@@ -1,0 +1,45 @@
+name: storyfork-dev
+
+services:
+  ai-service:
+    build:
+      context: ../backend/ai-service
+      dockerfile: Dockerfile
+    init: true
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+    expose:
+      - "8000"
+
+  core-api:
+    build:
+      context: ../backend/core-api
+      dockerfile: Dockerfile
+    init: true
+    environment:
+      AI_SERVICE_BASE_URL: http://ai-service:8000
+      AI_SERVICE_CONNECT_TIMEOUT: ${AI_SERVICE_CONNECT_TIMEOUT:-1s}
+      AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-12s}
+      APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${DEV_WEB_PORT:-5173}}
+    ports:
+      - "127.0.0.1:${CORE_API_PORT:-8080}:8080"
+
+  web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    init: true
+    working_dir: /app
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_CORE_API_BASE_URL: /
+      VITE_DEV_PROXY_TARGET: http://core-api:8080
+    ports:
+      - "127.0.0.1:${DEV_WEB_PORT:-5173}:5173"
+    volumes:
+      - ../frontend:/app
+      - web-node-modules:/app/node_modules
+
+volumes:
+  web-node-modules:

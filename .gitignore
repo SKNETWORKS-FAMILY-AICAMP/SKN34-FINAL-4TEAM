@@ -1,0 +1,28 @@
+# Credentials and machine-local settings; examples stay versioned.
+.env
+.env.*
+!.env.example
+*.local
+
+# Local dependencies, builds and caches.
+node_modules/
+.pnpm-store/
+dist/
+build/
+.gradle/
+.kotlin/
+.venv/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.vite/
+coverage/
+*.tsbuildinfo
+*.log
+.DS_Store
+.idea/
+.vscode/
+# Do not ignore *.jar: Gradle wrapper JAR must remain versioned.

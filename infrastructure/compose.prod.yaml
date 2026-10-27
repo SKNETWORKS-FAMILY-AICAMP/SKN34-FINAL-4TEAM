@@ -1,0 +1,37 @@
+# Standalone deploy-image validation stack, NOT an Internet-ready deployment.
+name: storyfork-prod-validation
+
+services:
+  ai-service:
+    build:
+      context: ../backend/ai-service
+      dockerfile: Dockerfile
+    init: true
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+    expose:
+      - "8000"
+
+  core-api:
+    build:
+      context: ../backend/core-api
+      dockerfile: Dockerfile
+    init: true
+    environment:
+      AI_SERVICE_BASE_URL: http://ai-service:8000
+      AI_SERVICE_CONNECT_TIMEOUT: ${AI_SERVICE_CONNECT_TIMEOUT:-1s}
+      AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-12s}
+      APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${WEB_PORT:-8088}}
+    expose:
+      - "8080"
+
+  web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    init: true
+    depends_on:
+      - core-api
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8088}:80"
