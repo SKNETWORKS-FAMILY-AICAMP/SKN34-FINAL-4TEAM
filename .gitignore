@@ -26,3 +26,4 @@ coverage/
 .idea/
 .vscode/
 # Do not ignore *.jar: Gradle wrapper JAR must remain versioned.
+**/graphify-out/**

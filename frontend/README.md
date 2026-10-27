@@ -10,11 +10,12 @@ Node **24.x**, pnpm **11.22.x** (`packageManager: pnpm@11.22.0`)가 필요합니
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm dev
+# 저장소 루트 .env를 선택적으로 로드합니다 (uv 필요).
+python3 ../infrastructure/scripts/run-native.py web
 ```
 
 네이티브 기본 주소는 `http://localhost:5173`, Core는 `http://localhost:8080`입니다.
-필요할 때만 `.env.example`을 `.env.local`로 복사하여 공개 `VITE_CORE_API_BASE_URL`을 변경합니다.
+설정은 루트 `.env`의 공개 `VITE_CORE_API_BASE_URL`을 변경합니다. 서비스별 `.env`는 만들지 않습니다.
 `VITE_*`는 브라우저에 노출되므로 비밀값을 넣지 않습니다. 백엔드는 별도로 실행합니다.
 
 루트의 [개발 Compose](../infrastructure/README.md)는 `http://127.0.0.1:5173`에서 실행하며

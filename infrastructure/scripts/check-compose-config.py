@@ -114,3 +114,4 @@ for mode in ("dev", "prod"):
     assert override.returncode == 0, "Explicit CORS configuration failed"
     assert json.loads(override.stdout)["services"]["core-api"]["environment"]["APP_CORS_ALLOWED_ORIGIN"] == "https://explicit.example"
 print("PASS: dev/prod three services, empty-key defaults, example, ports/CORS, secret boundaries, internal DNS, static isolation")
+subprocess.run(["python3", str(ROOT / "infrastructure/scripts/test-run-native.py")], check=True)
