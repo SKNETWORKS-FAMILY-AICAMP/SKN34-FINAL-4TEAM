@@ -43,7 +43,8 @@ main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 
 JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 
 ```bash
-./gradlew bootRun
+# 루트 .env의 Core 설정만 전달합니다 (Python 3 및 uv 필요).
+python3 ../../infrastructure/scripts/run-native.py core-api
 ./gradlew clean test --no-daemon
 ```
 
@@ -55,6 +56,7 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
 
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
-네이티브 실행은 루트 `.env`를 자동 로딩하지 않습니다. Core에 OpenAI 키를 주입하지 않습니다.
+위 실행기는 루트 `.env`의 Core 허용 설정만 로드합니다. Core에 OpenAI 키를 주입하지 않습니다.
+`./gradlew bootRun` 직접 실행은 `.env`를 로드하지 않습니다.
 Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 web 포트에 맞춥니다.
 실행 설정은 [인프라 안내](../../infrastructure/README.md)를 참고하세요.

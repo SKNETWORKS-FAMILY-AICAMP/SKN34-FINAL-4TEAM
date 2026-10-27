@@ -9,7 +9,7 @@ Python `>=3.11,<3.15`와 uv를 사용합니다.
 
 ```bash
 uv sync --locked --extra dev
-uv run --locked python -m uvicorn app.main:create_app --factory --reload --port 8000
+python3 ../../infrastructure/scripts/run-native.py ai-service
 ```
 
 ```bash
@@ -28,7 +28,7 @@ OpenAI Agents SDK가 선택된 AI 스택이며 기존 의존성·버전 범위�
 Health는 키 없이 시작하고 OpenAI 클라이언트를 만들거나 호출하지 않습니다.
 루트 `.env.example`의 `OPENAI_API_KEY`와 `OPENAI_MODEL`은 향후 AI 런타임용 예약 설정일 뿐
 현재 코드에서 읽지 않습니다. 키를 채워도 생성 기능이 동작하지 않으며 모델 접근을 검증하지 않습니다.
-네이티브 백엔드는 루트 `.env`를 자동 로딩하지 않습니다.
+위 실행기는 루트 `.env`의 AI 허용 설정만 로드합니다. uvicorn 직접 실행은 `.env`를 로드하지 않습니다.
 
 향후 AI 기능은 허용된 최소 문맥에서 제안을 반환합니다. 정본·권한·승인·발행·크레딧은 Core 소유이며
 AI가 직접 확정하지 않습니다. 다른 provider wrapper, fallback, Agent별 서버를 추가하지 않습니다.

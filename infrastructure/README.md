@@ -51,10 +51,11 @@ docker compose --env-file .env.example --file infrastructure/compose.prod.yaml d
 Health는 OpenAI 인증·모델 접근을 검사하지 않으며 클라이언트를 만들지 않습니다.
 키를 설정해도 생성 API가 제공되지는 않습니다. 키는 Frontend·Core·build ARG에 전달하지 않습니다.
 
-루트 `.env`는 Compose 치환용이며 전체 파일을 서비스에 주입하지 않습니다.
-네이티브 백엔드는 자동 로딩하지 않습니다. 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`,
-Compose는 환경 override와 무관하게 `http://ai-service:8000`을 고정 사용합니다.
-네이티브 Vite의 `frontend/.env.example`에는 공개 주소만 두며 Compose는 `/`와 내부 프록시를 지정합니다.
+루트 `.env` 한 곳에서 설정을 관리합니다. Compose에는 `--env-file .env`를 명시하고 전체 파일을 서비스에 주입하지 않습니다.
+네이티브는 루트에서 `python3 infrastructure/scripts/run-native.py web|core-api|ai-service`로 실행합니다.
+Python 3·uv가 필요하며 실행기는 서비스별 허용 변수만 전달합니다. 직접 pnpm/Gradle/uvicorn 실행은 루트 파일을 로드하지 않습니다.
+네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
+Frontend의 공개 설정도 루트 `.env.example`에 있으며 Compose는 `/`와 내부 프록시를 지정합니다.
 
 ## 검증
 
@@ -63,6 +64,7 @@ Compose는 환경 override와 무관하게 `http://ai-service:8000`을 고정 �
 
 ```bash
 python3 -I infrastructure/scripts/check-compose-config.py
+python3 infrastructure/scripts/test-run-native.py
 bash -n infrastructure/scripts/verify-compose.sh
 ```
 

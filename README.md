@@ -146,9 +146,19 @@ web만 loopback에 공개합니다. 인증·TLS가 없으므로 **인터넷 운�
 Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 미만과 uv를 사용합니다.
 각 서비스 [Frontend](frontend/README.md), [Core](backend/core-api/README.md),
 [AI](backend/ai-service/README.md) README의 실행 명령을 따릅니다.
-루트 `.env`는 Compose 치환용이며 네이티브 백엔드에서 자동 로딩하지 않습니다.
-네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 고정 내부 DNS
-`http://ai-service:8000`입니다. 네이티브 Vite의 공개 API 주소만 `frontend/.env.example`을 참고하세요.
+환경설정은 루트 `.env` 한 곳에서 관리합니다. `cp -n .env.example .env`로 준비하고 기존 파일은 덮어쓰지 않습니다.
+서비스별 `.env`는 만들지 않으며, 루트에서 아래 명령을 각각 실행합니다(Python 3·uv 필요).
+
+```bash
+python3 infrastructure/scripts/run-native.py web
+python3 infrastructure/scripts/run-native.py core-api
+python3 infrastructure/scripts/run-native.py ai-service
+```
+
+실행기는 루트 `.env`를 읽어 서비스별 허용 변수만 전달합니다. OpenAI 키는 AI에만 전달하며 브라우저·Core에 전달하지 않습니다.
+기존 셸 변수는 uv의 우선순위를 따릅니다. 빈 값은 네이티브 기본값을 사용합니다.
+기존 서비스별 `.env.local` 등이 있으면 Vite가 별도로 읽을 수 있으므로 필요한 값을 루트로 수동 통합하세요.
+네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
 
 ## 검증
 

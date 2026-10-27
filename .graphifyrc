@@ -1,0 +1,4 @@
+# Shared Graphify configuration; loaded when Graphify runs from this project.
+# Mandatory usage is defined in AGENTS.md; this file does not install or run tools.
+# Limit visualization size without changing extraction scope.
+viz_node_limit=5000
