@@ -23,6 +23,8 @@ stateDiagram-v2
   AUTHOR_REVIEW --> HOLD: 작가 보류
   HOLD --> AUTHOR_REVIEW: 작가 재검토
   FIXING --> DONE: 수정안 발행 완료
+  FIXING --> DONE: 작가 직접 수정 후 발행·제보 연결
+  AUTHOR_REVIEW --> DONE: 작가 직접 수정 후 발행·제보 연결
   FIXING --> ANSWERED: 수정안 거절 (사유 안내)
   ANSWERED --> [*]
   DONE --> [*]
@@ -81,6 +83,7 @@ stateDiagram-v2
   REPORTED --> UNPUBLISHED: 비공개 유지 결정
 ```
 - 초안은 회차 안에서 버전으로 계속 쌓이며, 독자는 `발행됨` 상태의 발행본만 봅니다.
+- 작품 전체를 비공개로 바꾸면(UC-07) 발행된 모든 회차가 `공개 중단`이 되고, 다시 공개하면 이전에 `발행됨`이던 회차만 돌아옵니다.
 - **미정:** 공개 중단·신고 조치가 기존 Fork에 미치는 영향, 신고 조치의 상세 절차(검토 예정).
 ## 4. AI 자율 연재
 ```mermaid
