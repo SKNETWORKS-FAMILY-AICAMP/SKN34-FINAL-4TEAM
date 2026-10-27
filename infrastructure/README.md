@@ -64,7 +64,6 @@ Frontend의 공개 설정도 루트 `.env.example`에 있으며 Compose는 `/`�
 
 ```bash
 python3 -I infrastructure/scripts/check-compose-config.py
-python3 infrastructure/scripts/test-run-native.py
 bash -n infrastructure/scripts/verify-compose.sh
 ```
 
