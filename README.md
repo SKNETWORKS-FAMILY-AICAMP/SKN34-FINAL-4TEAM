@@ -97,7 +97,9 @@ Core는 기능별 `Controller → Service → Repository` 또는
 
 ### 현재 구현
 
-- `/`: 제품 소개, 개발 기반/기능 준비 중 표시, 실제 Core·AI 연결 상태와 재시도.
+- `/`: 현재 `frontend/index.html`은 정적 UI 프로토타입(견본)이며 Core API를 호출하지 않습니다.
+  React 진입점(`src/main.tsx`)의 시작 화면·Core·AI 연결 상태 표시는 이 HTML에서 불러오지 않습니다.
+  프로토타입과 유스케이스의 차이는 [UI 프로토타입 대응](docs/prototype-alignment.md)을 참고하세요.
 - `GET /api/v1/health`: `{ "status": "up", "service": "storyfork-core-api" }`.
 - `GET /api/v1/health/ai-service`: Core가 내부 AI의 `/internal/v1/health`를 검증하여
   `{ "status": "up", "service": "storyfork-ai-service" }` 반환.
@@ -200,7 +202,7 @@ OpenAI를 호출하지 않지만 이미지·의존성 다운로드에는 네트�
 
 - [공통 구현 지침](AGENTS.md)
 - [현재 아키텍처](docs/architecture.md)
-- [유스케이스](docs/usecase.md) · [유스케이스 명세](docs/usecase-spec/README.md) · [보조 다이어그램](docs/diagrams/README.md)
+- [유스케이스](docs/usecase.md) · [유스케이스 명세](docs/usecase-spec/README.md) · [보조 다이어그램](docs/diagrams/README.md) · [UI 프로토타입 대응](docs/prototype-alignment.md)
 - [요구사항 정의서](docs/SKN34-final-4Team_요구사항정의서.xlsx) · [WBS](docs/SKN34-final-4Team_WBS.xlsx)
 - [Frontend](frontend/README.md): `storyfork-web`, 시작 화면과 공개 API 연결
 - [Core API](backend/core-api/README.md): `storyfork-core-api`, 공개 Health·내부 HTTP 오류 경계
