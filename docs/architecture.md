@@ -11,7 +11,7 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
                         /api/v1/health/ai-service
 ```
 
-현재 OpenAI 호출은 없습니다. OpenAI Agents SDK 의존성은 유지하지만 Agent·모델·wrapper를 생성하지 않습니다.
+현재 OpenAI 호출은 없습니다. AI 스택은 LangChain·LangGraph·Langfuse로 정했으며(현재 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체), 아직 Agent·모델·그래프를 생성하지 않습니다.
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
 DB·Redis·큐·worker·로그인·가짜 CRUD·seed 데이터는 없습니다.
 

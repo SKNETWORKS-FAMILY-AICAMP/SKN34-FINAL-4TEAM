@@ -87,7 +87,7 @@ Frontend (React)
 |---|---|---|
 | Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 열람·창작·검토 화면. 공개 Core API만 호출 |
 | Core API | Kotlin·Spring Boot, JDK 21 | 작품·세계관·회차 버전·Fork의 정본, 권한·승인·발행·크레딧의 최종 판단과 저장 |
-| AI Service | Python·FastAPI·OpenAI Agents SDK | 설정 추출·검토, 인물 시뮬레이션, 집필·피드백 제안. 정본 직접 변경 금지 |
+| AI Service | Python·FastAPI·LangChain·LangGraph, Langfuse(추적·평가) | 설정 추출·검토, 인물 시뮬레이션, 집필·피드백 제안. 정본 직접 변경 금지 |
 | 실행 환경 | Docker Compose, Vite 개발 서버, nginx 정적 배포 이미지 | 로컬 개발 및 서비스 연결·배포 이미지 검증 |
 
 Core는 기능별 `Controller → Service → Repository` 또는
@@ -106,7 +106,7 @@ Core는 기능별 `Controller → Service → Repository` 또는
 - AI 연결 불가·timeout은 안전한 503·504, 잘못된 응답은 502. 자체 Core Health와 분리합니다.
 
 Health는 OpenAI 인증·모델 접근·생성 품질 검증이 아닙니다. 모델 클라이언트를 생성하지 않으며
-실제 키 없이 실행됩니다. OpenAI Agents SDK는 향후 AI 구현을 위한 선택된 의존성으로만 유지합니다.
+실제 키 없이 실행됩니다. AI 스택은 LangChain·LangGraph·Langfuse로 정했으며, 현재 남아 있는 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체합니다.
 작품·로그인·저장·Fork·집필·승인·크레딧 기능, DB·Redis·큐·worker는 없습니다.
 
 ## 빠른 시작

@@ -3,12 +3,12 @@
 ## 현재
 
 현재 STORYFORK AI Service에는 실행되는 Agent가 없습니다.
-OpenAI Agents SDK 의존성만 유지하며 `app/main.py → health/router.py → HealthResponse`로
+AI 구현 스택은 LangChain·LangGraph·Langfuse로 정했으며(교체 전까지 기존 `openai-agents` 의존성만 남아 있음) `app/main.py → health/router.py → HealthResponse`로
 내부 상태를 반환합니다. Health에서 OpenAI 키를 요구하거나 모델 클라이언트를 생성하지 않습니다.
 
 ## 실제 AI 기능이 합의되면
 
-- `router → service → agent → OpenAI Agents SDK` 중 필요한 책임만 추가합니다.
+- `router → service → (필요할 때만 LangGraph 그래프) → LangChain OpenAI 모델` 중 필요한 책임만 추가하고, 호출은 Langfuse로 추적합니다(메타데이터만).
 - 기능별 구조화 입출력·timeout·안전한 오류 처리를 두고 요청에 허용된 최소 문맥만 사용합니다.
 - 설정 추출·인물 판단·집필·피드백 역할은 실제 입력·출력·책임이 다를 때만 나눕니다.
 - 인물별 문맥을 같은 구현에 주입하며 인물마다 클래스나 서버를 만들지 않습니다.
