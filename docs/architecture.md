@@ -15,6 +15,21 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
 DB·Redis·큐·worker·로그인·가짜 CRUD·seed 데이터는 없습니다.
 
+## 합의된 향후 구성요소 (미구현)
+
+유스케이스 v6에서 도입하기로 정했지만 아직 코드·Compose에 없는 구성요소입니다. 도입은 해당 기능 구현 때 팀 공유 후 진행합니다.
+
+| 구성요소 | 용도 | 근거 |
+|---|---|---|
+| Gitea | 세계관·인물관계도 버전 저장, Fork 고정(커밋 ID) | UC-02, UC-08 |
+| Elasticsearch | 작품 검색(공개 정보만 색인) | UC-01 |
+| LangChain·LangGraph | AI Service 구현(현재 `openai-agents` 교체) | AI Service 지침 |
+| Langfuse (Docker 직접 설치) | AI 호출 추적·평가·프롬프트 버전 | UC-26 |
+| Core API 내장 스케줄러 | 자율 연재·정기 작업 실행(별도 worker·큐 없음) | UC-18, UC-28 |
+| OpenAI 모더레이션·이미지 생성 모델 | 유해 콘텐츠 1차 필터, 일러스트 생성(AI Service 경유) | UC-14, UC-11 |
+| 이미지 파일 저장소 | 원고 이미지·일러스트 저장(방식 미정) | UC-03, UC-10 |
+| 회차 원고 DB | 회차·초안 버전 저장(제품 미정) | UC-10 |
+
 ## Frontend
 
 `App`은 `/`의 시작 화면과 알 수 없는 UI 경로의 안전한 홈 이동만 담당합니다.
