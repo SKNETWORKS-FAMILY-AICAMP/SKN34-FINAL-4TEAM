@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: ko-KR
+tone_instructions: >-
+  한국어로 간결하게 설명한다. 재현 가능한 버그·보안·데이터 손실·회귀를 우선하고
+  근거와 최소 수정안을 제시한다. 취향에 따른 스타일 변경이나 미래 대비 추상화는 권하지 않는다.
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  auto_approvals:
+    enabled: false
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+    # 기본 브랜치(main)는 항상 포함되며 develop을 추가한다.
+    # 별 10개 미만 공개 저장소는 서비스 정책상 @coderabbitai review 수동 요청이 필요할 수 있다.
+    base_branches:
+      - "^develop$"
+  path_instructions:
+    - path: "**/*"
+      instructions: >-
+        루트 및 변경 경로에 적용되는 AGENTS.md를 리뷰 기준으로 따른다.
+        현재 구현과 확정 계약을 기준으로 판단하고 미구현 기획을 결함으로 간주하지 않는다.
+        기존 코드·표준 라이브러리·플랫폼 기능을 재사용하는 가장 단순한 수정안을 우선한다.
+        보안·권한·데이터 무결성·접근성 검증은 생략하지 않는다.
+  finishing_touches:
+    autofix:
+      enabled: false
