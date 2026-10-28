@@ -112,39 +112,47 @@ sequenceDiagram
 ## 4. AI 자율 연재 1회 실행 (UC-18)
 ```mermaid
 sequenceDiagram
-  participant TR as 실행 트리거 (방식 미정)
+  participant TR as Core API 내장 스케줄러
   participant CO as Core API
   participant DB as DB
   participant GT as Gitea
   participant AI as AI Service
   participant LLM as OpenAI
   actor W as 작품 소유자
-  TR->>CO: 실행 시점 도래
-  CO->>DB: 자율 연재 상태 · 한도 · 소유자 크레딧 확인
-  alt 한도 · 크레딧 부족
+  TR->>CO: 소유자가 정한 실행 일정 도래
+  CO->>DB: 자율 연재 상태 · 월 한도 · 소유자 크레딧 · 미승인 초안 확인
+  alt 미승인 초안 있음 (발행 전 확인 켬)
+    CO->>DB: 이번 실행 건너뜀
+  else 한도 · 크레딧 부족
     CO->>DB: 자율 연재 중단됨
     CO-)W: 중단 알림
   else 실행
     CO->>GT: 세계관 공개·허용 문맥 조회
-    CO->>DB: 허용된 독자 반응 조회
+    CO->>DB: 허용된 독자 반응 조회 (켠 경우, 필터 통과 공개 댓글·제안, 작성자 정보 제외)
     CO->>AI: 다음 회차 생성 요청
     AI->>LLM: 생성
     alt 생성 실패
       AI-->>CO: 실패
-      CO->>DB: 오류 로그 (이번 회차 발행 안 함)
+      CO->>DB: 오류 로그 (이번 회차 발행 안 함, 연속 3회면 중단됨)
       CO-)W: 실패 알림
     else 생성 성공
       AI-->>CO: 회차 초안
-      CO->>DB: 초안 저장 · 사용 크레딧 기록
+      CO->>DB: 초안 저장 · 실제 사용량 차감 기록
+      CO->>AI: 1차 필터 (유해 콘텐츠 판정)
       CO->>CO: UC-13 발행 확인
-      CO->>DB: 새 회차 발행
-      opt 세계관 업데이트 자동
-        CO->>AI: 해당 회차 설정 추출 (UC-04)
-        AI-->>CO: 추출 결과
-        CO->>GT: 충돌 없는 항목 반영 · 변경 이력
+      alt 필터 판정 · 발행 확인 실패 · 발행 전 확인 켬
+        CO->>DB: 초안으로 보관
+        CO-)W: 확인 요청 또는 사유 알림
+      else 통과
+        CO->>DB: 새 회차 발행
+        opt 세계관 업데이트 자동
+          CO->>AI: 해당 회차 설정 추출 (UC-04)
+          AI-->>CO: 추출 결과
+          CO->>GT: 충돌 없는 항목 반영 · 변경 이력
+        end
+        CO-)W: 발행 결과 · 사용 크레딧 알림
       end
-      CO-)W: 발행 결과 · 사용 크레딧 알림
     end
   end
 ```
-- 스케줄러·worker 같은 실행 계층은 아직 승인되지 않았습니다. 도입 전 팀 공유가 필요합니다.
+- 실행 일정은 Core API 내장 스케줄러 하나로 처리하며 별도 worker·큐는 두지 않습니다. 새 실행 계층이므로 구현 전 팀 공유가 필요합니다.
