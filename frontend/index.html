@@ -296,9 +296,9 @@ button.avatar{border:0;cursor:pointer}
 @media (max-width:600px){.nwc{grid-template-columns:1fr}.they,.me{max-width:92%}}
 
 .herow{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:stretch;margin-top:18px}.herow .hero{margin-top:0;min-width:0}.herow .slide{flex-basis:calc((100% - 14px)/2)}
-.t10{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 16px 12px;display:flex;flex-direction:column;height:460px;box-sizing:border-box}
+.t10{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 16px 12px;display:flex;flex-direction:column;min-height:460px;box-sizing:border-box}
 .t10h{display:flex;align-items:center;gap:8px;padding:0 4px 8px;border-bottom:1px solid var(--line)}.t10h b{font-size:16px;font-weight:800}.t10h .live{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--acc-soft);color:var(--acc-ink)}.t10h .more{margin-left:auto;border:0;background:none;color:var(--sub);font-size:13px;font-weight:700}
-.t10 ol{list-style:none;margin:0;padding:4px 0 0;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}.t10 li button{display:flex;gap:10px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:4px;border-radius:6px;color:var(--ink)}.t10 li button:hover{background:var(--muted-bg)}
+.t10 ol{list-style:none;margin:0;padding:4px 0 0;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}.t10 li button{display:flex;gap:10px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:2px 4px;border-radius:6px;color:var(--ink)}.t10 li button:hover{background:var(--muted-bg)}
 .t10 .n{flex:none;width:20px;text-align:center;font-weight:800;font-size:14px;color:var(--faint)}.t10 .n.top{color:var(--pri)}.t10 .tx{min-width:0}.t10 .tx b{display:block;line-height:1.4;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.t10 .tx small{display:block;line-height:1.4;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ift{font-style:normal;font-size:10px;font-weight:800;padding:1px 5px;border-radius:5px;background:var(--pri-soft);color:var(--pri-ink);margin-right:5px;vertical-align:1px}.t10f{margin:6px 4px 0;font-size:11px;color:var(--faint)}
 .rgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 20px}.rg{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;align-items:start;border:0;background:none;text-align:left;padding:8px;border-radius:18px;color:var(--ink)}.rg:hover{background:var(--muted-bg)}
@@ -309,7 +309,7 @@ button.avatar{border:0;cursor:pointer}
 .eps-q{margin-left:auto;display:flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid var(--line2);border-radius:999px;background:var(--surface);font-size:13px}.eps-q input{border:0;background:none;outline:none;width:150px;color:var(--ink);font:inherit}.eps-q:focus-within{border-color:var(--pri);box-shadow:0 0 0 4px var(--pri-soft)}
 .ep .d .sep{display:inline-block;width:1px;height:9px;background:var(--line2);margin:0 5px;vertical-align:0}
 @media (max-width:1100px){.rgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:900px){.herow{grid-template-columns:1fr}.herow .slide{flex-basis:80%}.t10{height:auto}.t10 ol{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}}
+@media (max-width:900px){.herow{grid-template-columns:1fr}.herow .slide{flex-basis:80%}.t10{min-height:0}.t10 ol{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}}
 @media (max-width:600px){.rgrid{grid-template-columns:1fr}.t10 ol{grid-template-columns:1fr}.herow .slide{flex-basis:86%}.eps-q{margin-left:0;width:100%}.eps-q input{width:100%}}
 
 /* 히어로·선반 화살표: 또렷하고 딱 떨어지는 반응 */
@@ -427,6 +427,28 @@ img.cimg{width:100%;height:100%;object-fit:cover;display:block}
 .ckp{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line2);font-size:13px}
 @media (max-width:900px){.meg{grid-template-columns:1fr}.menav{position:static}.evg{grid-template-columns:1fr}.wiki{grid-template-columns:1fr}.wside{border-right:0;border-bottom:1px solid var(--tline)}.wmain{padding:20px 16px}.wbody2{grid-template-columns:1fr}.wtwo{grid-template-columns:1fr}.svw{margin-left:0;overflow-x:auto}.sbar{flex-wrap:wrap;height:auto;padding:10px 16px;gap:8px}.ovtop{grid-template-columns:110px minmax(0,1fr)}.ovflow{grid-template-columns:1fr}.wordtools{margin-left:-16px;margin-right:-16px;padding:12px 16px}.memo-page,.narrative-page{padding:24px 16px}}
 @media (max-width:600px){.rtype{grid-template-columns:1fr}.lrow{flex-direction:column;align-items:flex-start}.lrow .sortt{max-width:100%;overflow-x:auto}.board{padding:12px}}
+/* 작은 화면에서도 탐색과 섹션 제목의 읽는 순서를 유지한다. */
+::selection{background:var(--pri-soft);color:var(--pri-ink)}
+input,textarea{caret-color:var(--pri)}
+#home .sec-h{flex-wrap:wrap;row-gap:6px}
+#home .ring small,#home .bk small{color:var(--sub)}
+#home .t10 .n{font-variant-numeric:tabular-nums}
+@media (max-width:600px){
+ .gnb .in{height:auto;min-height:64px;flex-wrap:wrap;padding-top:12px;padding-bottom:8px;gap:10px}
+ .gnb .logo{font-size:18px;gap:8px;margin-right:auto}
+ .gnb .nav{order:1;width:100%;border-top:1px solid var(--line);padding-top:8px}
+ .gnb .nav button{flex:1;height:44px;border-radius:8px}
+ .gnb .nav .lf{display:inline}.gnb .nav .ls{display:none}
+ .gnb .search{margin-left:0}.gnb .thm{width:44px;height:44px}
+ #home{padding-top:20px}
+ #home .guide{position:relative;padding:16px 44px 16px 16px;gap:10px}
+ #home .guide ol{gap:8px}
+ #home .guide .x{position:absolute;right:4px;top:4px;width:44px;height:44px}
+ #home .sec-h>.small{order:1;width:100%}
+ #home .slide h3{font-size:24px}
+ #home .t10 li button{min-height:44px}
+ #home .sec{margin-top:36px}
+}
 </style></head><body>
 <div id="rbar"><i></i></div>
 <div id="app"></div><div id="modal"></div><div id="toast" hidden></div>
@@ -589,8 +611,8 @@ function isDark(){const t=document.documentElement.dataset.theme;return t?t==='d
 function thmBtn(c){return `<button class="${c||'thm'}" data-act="theme" aria-label="${isDark()?'라이트 모드로':'다크 모드로'}">${isDark()?'☀':'☾'}</button>`}
 function pend(){return S.inbox.filter(i=>i.status==='수정 제안'||i.status==='작가 확인 필요').length}
 function gnb(on){return `<header class="gnb"><div class="wrap in"><button class="logo" data-go="#/home" aria-label="STORYFORK 홈으로" title="홈으로"><b>SF</b>STORYFORK</button>
-<nav class="nav">${[['rank','랭킹','랭킹'],['chat','캐릭터 챗','챗'],['lib','내 서재','서재']].map(([k,l,sh])=>`<button data-go="#/${k}" class="${on===k?'on':''}"${k==='lib'&&pend()?` aria-label="내 서재, 처리할 독자 제보 ${pend()}건"`:''}><span class="lf">${l}</span><span class="ls">${sh}</span>${k==='lib'&&pend()?`<span class="nb" title="처리할 독자 제보 ${pend()}건">${pend()}</span>`:''}</button>`).join('')}</nav>
-<button class="search" data-act="qk">🔍 소설·인물·회차 검색<kbd>Ctrl K</kbd></button>${thmBtn()}
+<nav class="nav" aria-label="주요 메뉴">${[['rank','랭킹','랭킹'],['chat','캐릭터 챗','챗'],['lib','내 서재','서재']].map(([k,l,sh])=>`<button data-go="#/${k}" class="${on===k?'on':''}"${on===k?' aria-current="page"':''}${k==='lib'&&pend()?` aria-label="내 서재, 처리할 독자 제보 ${pend()}건"`:''}><span class="lf">${l}</span><span class="ls">${sh}</span>${k==='lib'&&pend()?`<span class="nb" title="처리할 독자 제보 ${pend()}건">${pend()}</span>`:''}</button>`).join('')}</nav>
+<button class="search" data-act="qk" aria-label="소설·인물·회차 검색">🔍 소설·인물·회차 검색<kbd>Ctrl K</kbd></button>${thmBtn()}
 <button class="credit" data-act="policy" title="크레딧 정책은 아직 확정되지 않았어요">✦ 크레딧 <span class="demo" style="border-color:currentColor;color:inherit">데모</span></button><button class="avatar ${S.role?'':'guest'}" data-act="acct" aria-label="${S.role?'내 계정 메뉴':'로그인·회원가입 메뉴'}" aria-haspopup="menu"><span>${S.role?esc((S.user.nick||'나').slice(0,1)):'<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="8.5" r="4" fill="currentColor"/><path d="M4 21c.8-4.4 4-7 8-7s7.2 2.6 8 7z" fill="currentColor"/></svg>'}</span></button></div></header>`}
 function foot(){return `<footer class="foot"><div class="wrap"><b>STORYFORK</b><span>SKN34 최종 프로젝트 4팀 · 인터랙티브 MVP (오프라인 · AI 응답은 미리 정한 데모)</span><div class="r"><button data-act="sidtoggle">화면 ID ${S.showSid?'끄기':'켜기'}</button><button data-act="reset">데모 초기화</button>${S.role==='admin'?'<button data-go="#/admin">관리자 화면</button>':''}${S.role?'<button data-act="logout">로그아웃</button>':'<button data-go="#/login">로그인</button>'}</div></div></footer>`}
 function cov(w,k,lk){return `<div class="cov">${coverOf(w,k)}<div class="tg">${tagHtml(w)}</div>${lk?`<span class="lk">♥ ${kfmt(w.likes)}</span>`:''}</div>`}
