@@ -1624,8 +1624,8 @@ document.addEventListener('click',e=>{
  if(act==='addev'){const w=W[a],d=S.draft[a];(w.ownEvents=w.ownEvents||[]).push([d.no,'f','복선: '+(d.title||'새 사건'),d.links.slice()]);render();toast('이 소설에만 사건을 추가했어요')}
  if(act==='approve'||act==='reject'||act==='resolve'||act==='publishRevision'){const it=S.inbox.find(i=>i.id===x.dataset.i);if(!it||!W[it.w]||!isMine(W[it.w]))return;
   const r=S.reports.find(r=>r.id===it.rid);
-  if(act==='approve'){it.status='승인됨';if(r)r.status='수정 진행 중'}
-  else if(act==='publishRevision'){const w=W[it.w],ep=w.eps[it.n-1],text=ep&&ep.p[it.pi];if(it.status!=='승인됨'||w.hidden||!text||!text.includes(it.from)){it.status='반영 실패';render();return toast('원고나 공개 상태가 바뀌어 발행하지 않았어요')}ep.p[it.pi]=text.replace(it.from,it.to);it.status='발행 완료';if(r)r.status='처리 완료'}
+  if(act==='approve'){const current=W[it.w].eps[it.n-1]?.p[it.pi];if(!current||(it.baseText!==undefined&&current!==it.baseText)){it.status='반영 실패';render();return toast('원문이 변경되어 수정안을 다시 검토해 주세요')}it.baseText=current;it.status='승인됨';if(r)r.status='수정 진행 중'}
+  else if(act==='publishRevision'){const w=W[it.w],ep=w.eps[it.n-1],text=ep&&ep.p[it.pi];if(it.status!=='승인됨'||w.hidden||!text||text!==it.baseText||!text.includes(it.from)){it.status='반영 실패';render();return toast('원고나 공개 상태가 바뀌어 발행하지 않았어요')}ep.p[it.pi]=text.replace(it.from,it.to);it.status='발행 완료';if(r)r.status='처리 완료'}
   else if(act==='reject'){it.status='거절됨';if(r)r.status='처리 완료'}else{it.status='처리 완료';it.answer=$('#ans')?$('#ans').value.trim():'';if(r){r.status='처리 완료';if(it.answer)r.reply='작가 답변: '+it.answer}}
   render();toast(act==='approve'?'수정안을 승인했어요. 발행은 별도로 확인해 주세요':act==='publishRevision'?'수정안을 발행했어요 (데모)':'처리했어요 (데모)')}
  if(act==='pickfile'){IMP.picked=true;render()}
