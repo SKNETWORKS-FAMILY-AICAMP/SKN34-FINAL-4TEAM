@@ -12,6 +12,7 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes("type==='질문'")
     includes('유해 콘텐츠 1차 필터')
     includes('댓글·단순 오류·스토리 오류·질문·제안')
+    includes('댓글·피드백·신고 안내')
   })
 
   it('provides in-app notifications, required categories, and all-read behavior', () => {
@@ -23,26 +24,34 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes('90일 보관')
   })
 
-  it('offers documented manuscript image and EPUB flows plus illustration proposals', () => {
+  it('offers image and EPUB manuscript tools while excluding MVP illustrations', () => {
     includes('이미지 삽입')
     includes('.epub')
-    includes('일러스트 생성')
     includes('저장·발행·내보내기에는 포함되지 않아요')
+    includes('일러스트 생성은 MVP에서 제외됐어요')
+    expect(demo).not.toContain('data-act="illustration"')
   })
 
   it('requires separate author confirmation before publishing autonomous drafts when enabled', () => {
     includes('data-auto="requireReview"')
     includes('일반 발행 흐름에서 공개해 주세요')
     includes('하루 최대 1회')
+    includes('KST 기준')
+    includes('필터를 통과한 공개 댓글·제안만')
+    includes('1시간 넘게 늦으면 건너뛰고 알림')
     includes('A.failures>=3')
     includes('A.failures=0')
+    includes("S.demoCredits<5){A.status='중단됨'")
     includes('유해 콘텐츠 필터·권리 확인을 연결하지 않았어요')
+    expect(demo).not.toContain('w.auto.freq')
   })
 
   it('shows the documented withdrawal grace period without simulating deletion', () => {
     includes('탈퇴 후 30일 동안')
     includes('다시 로그인하면 복구')
     includes('실제 탈퇴나 데이터 변경이 일어나지 않아요')
+    includes('저장 공간 관리는 MVP에서 제외됐어요')
+    expect(demo).not.toContain('data-storage-delete')
   })
 
   it('does not expose emotional reaction controls on chapter pages', () => {
@@ -54,5 +63,10 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes('정기 작업')
     includes('data-run-job')
     includes('자동 재처리하지 않아요')
+  })
+
+  it('limits MVP LLM operations to tracing, not evaluation or sample inspection', () => {
+    includes('MVP에서는 Langfuse 추적만 제공해요')
+    includes('평가 세트와 정보 누설 표본 검사는 MVP 이후예요')
   })
 })
