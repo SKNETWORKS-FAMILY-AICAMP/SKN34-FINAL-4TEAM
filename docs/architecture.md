@@ -31,7 +31,7 @@ DB·Redis·큐·worker·로그인·가짜 CRUD·seed 데이터는 없습니다.
 | 업무 DB | 회차·초안 버전, 작품별 회차 기록(설정 유효·독자 공개·인물별 인지 회차, 작품별 인물 상태, `@` 연결), 피드백·크레딧 원장(제품 미정) | UC-06, UC-10, UC-17 |
 | SMTP 메일 발송 (개발: 로컬 Mailpit) | 가입 인증·비밀번호 재설정 메일. 운영 발송사는 배포 시 결정, 설정은 루트 `.env`에서 Core API에만 전달 | UC-22 |
 
-저장 경계: 세계관 소유자가 정하는 값은 Gitea, 작품 소유 기록은 DB에 두고 DB 기록은 세계관 항목 ID·커밋 ID를 참조합니다. DB·Gitea·MinIO·SMTP 접근은 Core API만 하며 AI Service는 직접 쓰지 않습니다.
+저장 경계: 세계관 소유자가 정하는 값은 Gitea, 작품 소유 기록은 DB에 두고 DB 기록은 세계관 항목 ID를 참조합니다. 일반 작품 연결은 세계관의 최신 공개본(HEAD)을 따르고, 커밋 ID 고정은 Fork 고정본과 이용 허가 철회 시점 고정에만 씁니다. DB·Gitea·MinIO·SMTP 접근은 Core API만 하며 AI Service는 직접 쓰지 않습니다.
 
 ## Frontend
 
