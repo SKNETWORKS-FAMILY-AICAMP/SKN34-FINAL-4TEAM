@@ -82,8 +82,8 @@ sequenceDiagram
     CO-->>FE: 생성 불가 · 사유
   else 허용
     CO->>DB: 기준 회차까지 원고 버전 확정
-    CO->>GT: 분기 시점의 공개 설정집·인물관계도 항목 고정
-    Note over CO,GT: 고정 방식(복사·불변 참조·브랜치)은 미정
+    CO->>GT: 분기 시점의 공개 설정집·인물관계도 커밋 ID 조회
+    Note over CO,GT: 커밋 ID 기록으로 고정. 브랜치 운용은 미정
     CO->>DB: Fork 작품 생성 · 독자를 소유자로 지정
     alt 생성 실패
       CO->>DB: 부분 생성물 정리
