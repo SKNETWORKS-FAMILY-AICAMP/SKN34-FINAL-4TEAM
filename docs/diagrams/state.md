@@ -2,9 +2,11 @@
 > [다이어그램 목차](./README.md) · [유스케이스 문서](../usecase.md) · [명세 0.4 처리 상태 이름](../usecase-spec/README.md#04-처리-상태-이름)
 유스케이스 명세에서 쓰는 처리 상태와 그 전이를 정리합니다. 상태 이름은 명세 0.4절과 같습니다. 상태 코드·저장 방식은 구현 설계에서 정합니다.
 ## 1. 피드백(제보)
-댓글은 AI 분석 없이 `등록됨` 하나로 끝나므로 그리지 않습니다. 제보는 질문·오류 제보·제안입니다(UC-14·15).
+제보는 독자가 고른 유형(단순 오류·스토리 오류·질문·제안)으로 갈리며 AI로 분류하지 않습니다(BR-15, UC-14·15).
 ```mermaid
 stateDiagram-v2
+  state "필터 대기" as FILTER_WAIT
+  state "숨김" as HIDDEN
   state "접수됨" as RECEIVED
   state "분석 중" as ANALYZING
   state "응답 완료" as ANSWERED
@@ -13,28 +15,39 @@ stateDiagram-v2
   state "처리 완료" as DONE
   state "보류" as HOLD
   state "처리 실패" as FAILED
-  [*] --> RECEIVED: 제보 등록 (분석 크레딧 동의)
-  RECEIVED --> ANALYZING: UC-15 시작
-  ANALYZING --> ANSWERED: 근거 기반 응답
-  ANALYZING --> AUTHOR_REVIEW: 근거 부족·창작 판단 필요
-  ANALYZING --> FIXING: 표기 오류 수정안 생성
+  state "철회됨" as WITHDRAWN
+  [*] --> RECEIVED: 제보 등록 (무료) · 1차 필터 통과
+  [*] --> FILTER_WAIT: 필터 호출 실패
+  [*] --> HIDDEN: 유해 콘텐츠 판정
+  FILTER_WAIT --> RECEIVED: 재검사 통과
+  FILTER_WAIT --> HIDDEN: 재검사 판정
+  HIDDEN --> RECEIVED: 작가·운영자 복원
+  RECEIVED --> ANALYZING: 단순 오류·질문 (UC-15)
+  RECEIVED --> AUTHOR_REVIEW: 스토리 오류(검증됨·미검증)·제안
+  ANALYZING --> ANSWERED: 근거 기반 답변 (질문)
+  ANALYZING --> AUTHOR_REVIEW: 근거 부족·단순 오류 아님
+  ANALYZING --> FIXING: 단순 오류 수정안 생성
   ANALYZING --> FAILED: AI 실패·시간 초과 (즉시 고지)
   AUTHOR_REVIEW --> ANSWERED: 작가 답변
   AUTHOR_REVIEW --> HOLD: 작가 보류
   HOLD --> AUTHOR_REVIEW: 작가 재검토
   FIXING --> DONE: 수정안 발행 완료
   FIXING --> DONE: 작가 직접 수정 후 발행·제보 연결
-  AUTHOR_REVIEW --> DONE: 작가 직접 수정 후 발행·제보 연결
+  AUTHOR_REVIEW --> DONE: 작가 직접 수정 후 발행·제보 연결 (검증된 스토리 오류는 보상)
   FIXING --> ANSWERED: 수정안 거절 (사유 안내)
   FIXING --> FAILED: 수정안 반영 실패 (제보자에게 알림)
   FIXING --> AUTHOR_REVIEW: 자동 발행 실패 (작가 검토로 전환)
+  RECEIVED --> WITHDRAWN: 제보자 철회
+  AUTHOR_REVIEW --> WITHDRAWN: 제보자 철회
   ANSWERED --> [*]
   DONE --> [*]
   FAILED --> [*]
+  WITHDRAWN --> [*]
 ```
+- 댓글은 `필터 대기`·`등록됨`·`숨김`만 가지며, 다른 독자가 신고하면 다시 검사합니다(UC-14 A6). 숨긴 글은 삭제하지 않습니다.
 - `처리 실패`는 기다리게 두지 않고 바로 독자에게 알리며, 운영자에게 경고를 보냅니다(UC-21). 자동 재처리는 하지 않고 독자가 다시 제보할 수 있습니다.
 - `수정 진행 중`의 세부 진행은 아래 수정안 상태를 따릅니다. 작가 검토 모드에서 발행이 실패하면 작가가 다시 발행할 수 있으므로 `수정 진행 중`을 유지하고 작가에게 알립니다.
-- **미정:** 보류의 최대 기간, 실패한 제보의 크레딧 복구 기준(UC-17).
+- **미정:** 보류의 최대 기간, 필터 재검사 주기.
 ## 2. 수정안(PR)
 작품 설정의 표기 오류 처리 방식에 따라 작가 검토와 자동 승인·발행이 갈립니다(UC-16).
 ```mermaid
