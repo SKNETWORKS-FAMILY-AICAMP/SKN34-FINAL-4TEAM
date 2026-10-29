@@ -1,5 +1,5 @@
 import { splitSentences } from '../entities/feedback'
-import { canView, epsOf, forkList, forkOK, forksOf, isPub, originals, publicCast, visibleEpisode, type Role, type Work } from '../entities/work'
+import { canView, epsOf, forkLabel, forkList, forkOK, forksOf, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type Work } from '../entities/work'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 
 /** 목업 CHIPS: 홈 장르 칩과 필터 조건 */
@@ -110,6 +110,37 @@ export class ReadingUseCase {
     progress.liked[id] = !progress.liked[id]
     await this.readingRepository.saveProgress(progress)
     return progress.liked[id]
+  }
+
+  /** 목업 searchPage()·rank(): t는 랭킹 탭(all·orig·if) */
+  async findWorks({ t = 'all', q = '', f = 'all', sort }: { t?: string; q?: string; f?: string; sort: string }) {
+    const works = await this.workRepository.listWorks()
+    return works.filter(isPub)
+      .filter((w) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent))
+      .filter((w) => matchW(w, q, f, works))
+      .sort(sorter(sort))
+  }
+
+  /** 목업 tagPage(t): 태그가 없으면 첫 태그를 고릅니다. */
+  async getTag(tag?: string) {
+    const works = (await this.workRepository.listWorks())
+    const pub = works.filter(isPub)
+    const all: Record<string, number> = {}
+    for (const w of pub) for (const h of tagsOf(w, works)) all[h] = (all[h] || 0) + 1
+    const cur = tag ? '#' + tag : Object.keys(all)[0]
+    return {
+      cur,
+      tags: Object.entries(all).sort((a, b) => b[1] - a[1]),
+      list: pub.filter((w) => tagsOf(w, works).includes(cur)).sort((a, b) => (b.likes || 0) - (a.likes || 0)).map((w) => ({ w, tags: tagsOf(w, works) })),
+    }
+  }
+
+  /** 목업 ifs(): 공개 원작 하나와 그 포크 */
+  async getForkCollection(id: string, sort: string) {
+    const [works, worlds] = await Promise.all([this.workRepository.listWorks(), this.workRepository.listWorlds()])
+    return originals(works).filter(isPub).filter((o) => o.id === id).map((o) => ({
+      o, label: forkLabel(o, worlds), forkList: forkList(o, worlds), forks: forksOf(works, o.id).sort(sorter(sort)),
+    }))
   }
 
   /** 목업 quick(): 빠른 이동 후보 (소설·인물·회차) */

@@ -7,3 +7,9 @@ export function rng(seed: string) {
   for (const c of String(seed)) s = (s * 31 + c.charCodeAt(0)) >>> 0
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296)
 }
+
+/** 목업 qs(): 빈 값을 뺀 검색 조건 주소 */
+export function qs(base: string, o: Record<string, string | undefined>) {
+  const p = Object.entries(o).filter((e): e is [string, string] => e[1] !== '' && e[1] != null).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&')
+  return base + (p ? '?' + p : '')
+}

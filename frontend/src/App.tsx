@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router'
 
 import { LoginPage } from './presentation/features/auth/view/LoginPage'
 import { HomePage } from './presentation/features/home/view/HomePage'
+import { IfsPage, RankPage, SearchPage, TagPage } from './presentation/features/reading/view/ExplorePages'
 import { ReaderPage } from './presentation/features/reading/view/ReaderPage'
 import { WorkPage } from './presentation/features/reading/view/WorkPage'
 import { CoreApiConnectionStatus } from './presentation/shared/core-api-status/CoreApiConnectionStatus'
@@ -49,6 +50,10 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/work/:id" element={<WorkPage />} />
         <Route path="/read/:id/:n" element={<RequireRole><ReaderPage /></RequireRole>} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/rank" element={<RankPage />} />
+        <Route path="/ifs" element={<IfsPage />} />
+        <Route path="/tag/:tag?" element={<TagPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
       {pathname !== '/status' && <><GlobalChrome /><QuickJump /></>}
