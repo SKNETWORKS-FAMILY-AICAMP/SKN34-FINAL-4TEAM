@@ -390,11 +390,60 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     window.close()
   })
 
-  it('removes account logout, administrator shortcuts, and administrator service navigation', () => {
-    expect(demo).not.toContain('data-act="logout"')
+  it('keeps account logout while removing administrator shortcuts and service navigation', () => {
+    expect(demo).toContain('data-act="logout"')
     expect(demo).not.toContain('data-go="#/admin">관리자 화면</button>')
     expect(demo).not.toContain('>서비스로</button>')
     expect(demo).not.toContain('data-go="#/worlds"')
+  })
+
+  it('logs the demo account out from the profile menu', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'user'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.document.querySelector('[data-act="acct"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 0))
+    window.document.querySelector('.acctm [data-act="logout"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+
+    expect(window.__SF.S.role).toBeNull()
+    expect(window.location.hash).toBe('#/home')
+    expect(window.document.querySelector('.acctm')).toBeNull()
+    window.document.querySelector('[data-act="acct"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 0))
+    expect(window.document.querySelector('.acctm [data-act="logout"]')).toBeNull()
+    window.close()
+  })
+
+  it('puts administrator logout at the end of the sidebar and returns home', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'admin'
+    window.location.hash = '#/admin'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    const sidebar = window.document.querySelector('.admin-nav')
+    expect(sidebar.lastElementChild.dataset.act).toBe('logout')
+    sidebar.lastElementChild.click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+
+    expect(window.__SF.S.role).toBeNull()
+    expect(window.location.hash).toBe('#/home')
+    window.close()
   })
 
   it('keeps theme and screen-ID controls clear of the back-to-top button', () => {
