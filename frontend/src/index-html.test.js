@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { JSDOM } from 'jsdom'
 
-const demo = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
+const demo = readFileSync(new URL('../mockup/index.html', import.meta.url), 'utf8')
 const includes = (text) => expect(demo.includes(text), `missing documented demo content: ${text}`).toBe(true)
 
 describe('STORYFORK HTML demo follows documented product flows', () => {

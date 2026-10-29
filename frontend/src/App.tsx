@@ -35,8 +35,8 @@ function StartPage() {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<StartPage />} />
-      <Route path="*" element={<Navigate replace to="/" />} />
+      <Route path="/status" element={<StartPage />} />
+      <Route path="*" element={<Navigate replace to="/status" />} />
     </Routes>
   )
 }

@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -11,7 +13,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function renderApp(path = '/') {
+function renderApp(path = '/status') {
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
 }
 
@@ -56,12 +58,15 @@ describe('STORYFORK foundation', () => {
     expect(aiCalls).toBe(2)
   })
 
-  it('redirects unknown routes to the safe start page', async () => {
+  it('keeps the health check at /status and mounts React from the Vite entry', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) => response(
       url.endsWith('/ai-service') ? 'storyfork-ai-service' : 'storyfork-core-api',
     )))
-    renderApp('/unknown')
+    renderApp('/status')
     await waitFor(() => expect(screen.getByRole('heading', { name: 'STORYFORK' })).toBeTruthy())
     await screen.findByText('Core API 연결됨')
+    const entry = readFileSync(`${process.cwd()}/index.html`, 'utf8')
+    expect(entry).toContain('<div id="root"></div>')
+    expect(entry).toContain('src="/src/main.tsx"')
   })
 })
