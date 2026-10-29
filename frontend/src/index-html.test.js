@@ -124,7 +124,9 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
   })
 
   it('lets administrators add and manage character chats by work and character', () => {
-    includes("['characterChats','캐릭터챗 관리']")
+    includes("['characterChats','캐릭터챗']")
+    includes("characterChats:'캐릭터챗 관리'")
+    includes('data-admin-tab="${key}" data-go="#/admin?tab=${key}"')
     includes('function characterChats()')
     includes('Object.values(W).filter(w=>isPub(w)&&!w.parent)')
     includes('id="adminCharacterChatForm"')
