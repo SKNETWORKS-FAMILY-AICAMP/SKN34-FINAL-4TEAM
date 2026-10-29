@@ -122,4 +122,10 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes('이벤트 게시')
     includes('공지 게시')
   })
+  it('reports a whole novel from work listings instead of sentence selection', () => {
+    includes('data-report-novel=')
+    includes('function reportSheet(id)')
+    expect(demo).not.toContain('data-rep="신고"')
+    expect(demo).not.toContain('소설 신고 · ${n}화')
+  })
 })
