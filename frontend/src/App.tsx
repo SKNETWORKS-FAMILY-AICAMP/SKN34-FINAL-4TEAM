@@ -3,6 +3,10 @@ import { Navigate, Route, Routes, useLocation } from 'react-router'
 import { ForkedPage } from './presentation/features/fork/view/ForkedPage'
 import { ForkPage } from './presentation/features/fork/view/ForkPage'
 import { WritingPolicyPage } from './presentation/features/fork/view/WritingPolicyPage'
+import { ImportPage } from './presentation/features/library/view/ImportPage'
+import { LibraryPage } from './presentation/features/library/view/LibraryPage'
+import { NewWorkPage } from './presentation/features/library/view/NewWorkPage'
+import { StudioPage } from './presentation/features/studio/view/StudioPage'
 import { LoginPage } from './presentation/features/auth/view/LoginPage'
 import { HomePage } from './presentation/features/home/view/HomePage'
 import { IfsPage, RankPage, SearchPage, TagPage } from './presentation/features/reading/view/ExplorePages'
@@ -60,6 +64,12 @@ function App() {
         <Route path="/writing-policy" element={<RequireRole><WritingPolicyPage /></RequireRole>} />
         <Route path="/fork/:id" element={<RequireRole><ForkPage /></RequireRole>} />
         <Route path="/forked/:id" element={<RequireRole><ForkedPage /></RequireRole>} />
+        <Route path="/lib" element={<RequireRole><LibraryPage /></RequireRole>} />
+        <Route path="/write" element={<Navigate replace to="/lib?tab=write" />} />
+        <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
+        <Route path="/worlds" element={<Navigate replace to="/new" />} />
+        <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
+        <Route path="/studio/:id" element={<RequireRole><StudioPage /></RequireRole>} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
       {pathname !== '/status' && <><GlobalChrome /><QuickJump /></>}

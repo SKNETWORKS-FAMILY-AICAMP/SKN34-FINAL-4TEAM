@@ -190,9 +190,10 @@ export class LibraryUseCase {
   }
   setPermission(id: string, key: WorldPermission, on: boolean) { return this.updateMine(id, (w) => { w[key] = on }) }
 
-  async deleteWorld(id: string): Promise<{ error: string } | { ok: true }> {
+  /** dryRun이면 삭제할 수 있는지만 확인합니다 (목업은 확인 창 전에 연결 작품을 검사). */
+  async deleteWorld(id: string, dryRun = false): Promise<{ error: string } | { ok: true }> {
     if ((await this.workRepository.listWorks()).some((w) => (w.worldIds ?? []).includes(id))) return { error: '연결된 작품이 있어 삭제할 수 없어요' }
-    await this.worldRepository.remove(id)
+    if (!dryRun) await this.worldRepository.remove(id)
     return { ok: true }
   }
 
