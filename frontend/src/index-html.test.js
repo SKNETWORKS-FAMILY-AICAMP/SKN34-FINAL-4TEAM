@@ -228,12 +228,49 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(detail).toContain('소설 신고')
   })
 
-  it('normalizes selecting every chapter to the all-chapters fork setting', () => {
+  it('keeps selecting every chapter separate from the all-chapters fork setting', () => {
     const settings = demo.slice(demo.indexOf('function publishSheet(id){'), demo.indexOf('function policySheet()'))
-    expect(settings).toContain("st.all=fa.dataset.feAll==='1'&&w.eps.length>0")
-    expect(settings).toContain('st.all=st.eps.size===w.eps.length&&w.eps.length>0')
+    expect(settings).not.toContain("st.all=fa.dataset.feAll==='1'")
+    expect(settings).not.toContain('st.all=st.eps.size===w.eps.length&&w.eps.length>0')
     expect(settings).toContain('w.forkAll=st.on&&st.all')
     expect(settings).toContain('전체 회차 허용')
+    const detail = demo.slice(demo.indexOf('function work(id){'), demo.indexOf('function reader(id,n){'))
+    expect(detail).toContain("(w.forkAll||(w.forkEps||[]).length===w.eps.length)?'전체 회차'")
+  })
+
+  it('keeps a chapter-by-chapter selection when every chapter is allowed', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+      },
+    })
+    const { window } = dom
+    const work = window.__SF.W.guunmong
+    work.owner = 'me'
+    work.author = '나'
+    work.private = false
+    work.forksAllowed = true
+    work.forkAll = false
+    work.forkEps = []
+    work.worldIds = undefined
+    window.__SF.S.role = 'user'
+    window.location.hash = '#/lib?tab=write'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.document.querySelector('[data-act="publish"][data-id="guunmong"]').click()
+
+    for (let episode = 1; episode <= work.eps.length; episode++) window.document.querySelector(`#fkeps [data-fe="${episode}"]`).click()
+    expect(window.document.querySelector('#fkeps')).toBeTruthy()
+    window.document.querySelector('#savepub').click()
+    expect(work.forkAll).toBe(false)
+    expect(work.forkEps).toEqual(work.eps.map((_, i) => i + 1))
+    expect(window.document.querySelector('.mywork .tags').textContent).toContain(`${work.eps.map((_, i) => i + 1).join('·')}화 포크 허용`)
+    window.location.hash = '#/work/guunmong'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    expect(window.document.querySelector('.calm').textContent).toContain('전체 회차')
+    window.close()
   })
 
   it('shows separate policy and copyright acknowledgements for fork and import flows', () => {
@@ -249,6 +286,115 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(policy).toContain('required')
     const homeBinding = demo.slice(demo.indexOf("if(p==='home'||!"), demo.indexOf("if(p==='read')bindReader"))
     expect(homeBinding).toContain("'writing-policy'")
+  })
+
+  it('shows the policy page when forking from a novel detail page', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'user'
+    window.location.hash = '#/work/guunmong'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.document.querySelector('[data-act="forkPolicy"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    expect(window.location.hash).toContain('#/writing-policy?method=fork')
+    expect(window.document.querySelector('#writingPolicyForm')).toBeTruthy()
+
+    window.document.querySelector('[data-go="#/write"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.location.hash = '#/writing-policy?method=fork'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.document.querySelector('#writingPolicyRule').checked = true
+    window.document.querySelector('#writingPolicyRights').checked = true
+    window.document.querySelector('#writingPolicyForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    expect(window.location.hash).toBe('#/rank?t=orig')
+
+    window.location.hash = '#/work/guunmong'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.document.querySelector('[data-act="forkPolicy"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.document.querySelector('#writingPolicyRule').checked = true
+    window.document.querySelector('#writingPolicyRights').checked = true
+    window.document.querySelector('#writingPolicyForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    expect(window.location.hash).toBe('#/fork/guunmong')
+    expect(window.document.querySelector('#startFork')).toBeTruthy()
+    window.close()
+  })
+
+  it('shows the creation policy on every visit to the new story button', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'user'
+    const acceptPolicy = async () => {
+      window.document.querySelector('#workPolicyAck').checked = true
+      window.document.querySelector('#workPolicyForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+      await new Promise(resolve => window.setTimeout(resolve, 80))
+      expect(window.document.querySelector('#createWork')).toBeTruthy()
+    }
+    for (let visit = 0; visit < 2; visit++) {
+      window.location.hash = '#/lib?tab=write'
+      await new Promise(resolve => window.setTimeout(resolve, 220))
+      window.document.querySelector('[data-go="#/new"]').click()
+      await new Promise(resolve => window.setTimeout(resolve, 220))
+      expect(window.document.querySelector('#workPolicyForm')).toBeTruthy()
+      await acceptPolicy()
+    }
+    window.close()
+  })
+
+  it('moves world management into new story creation and preserves its draft while editing worlds', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'user'
+    window.location.hash = '#/new'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.document.querySelector('#workPolicyAck').checked = true
+    window.document.querySelector('#workPolicyForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    await new Promise(resolve => window.setTimeout(resolve, 80))
+    expect(window.document.querySelector('#worldCreate')).toBeTruthy()
+    expect(window.document.querySelector('#combineWorlds')).toBeTruthy()
+    expect(window.document.querySelector('[data-go="#/worlds"]')).toBeNull()
+    window.document.querySelector('#nwt').value = '작성 중인 작품'
+    window.document.querySelector('#nwt').dispatchEvent(new window.Event('input', { bubbles: true }))
+    window.document.querySelector('#worldCreate [name="name"]').value = '새 세계'
+    window.document.querySelector('#worldCreate [name="rules"]').value = '밤에는 문이 닫힌다'
+    window.document.querySelector('#worldCreate').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    await new Promise(resolve => window.setTimeout(resolve, 80))
+    expect(window.document.querySelector('#nwt').value).toBe('작성 중인 작품')
+    expect([...window.document.querySelectorAll('[name="world"]')].some(input => input.checked && input.parentElement.textContent.includes('새 세계'))).toBe(true)
+    window.location.hash = '#/worlds'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    expect(window.location.hash).toBe('#/new')
+    window.close()
+  })
+
+  it('removes account logout, administrator shortcuts, and administrator service navigation', () => {
+    expect(demo).not.toContain('data-act="logout"')
+    expect(demo).not.toContain('data-go="#/admin">관리자 화면</button>')
+    expect(demo).not.toContain('>서비스로</button>')
+    expect(demo).not.toContain('data-go="#/worlds"')
   })
 
   it('keeps theme and screen-ID controls clear of the back-to-top button', () => {
