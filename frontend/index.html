@@ -1651,7 +1651,7 @@ function render(){
  $('#app').innerHTML=h;$('#app').insertAdjacentHTML('beforeend',screenControls());setId(baseId);
  PX=[...document.querySelectorAll('.prox')];
  if(p==='notifications'){$('[data-mark-all]').onclick=()=>{S.notifications.forEach(n=>n.read=true);render()};document.querySelectorAll('[data-notification]').forEach(el=>el.onclick=()=>{const n=S.notifications.find(x=>x.id===el.dataset.notification);if(n)n.read=true});document.querySelectorAll('[data-notification-pref]').forEach(el=>el.onchange=()=>{S.notificationPrefs[el.dataset.notificationPref]=el.checked})}
- if(p==='home'||!['work','read','fork','forked','lib','write','studio','inbox','notifications','import','admin','rank','ifs','login','chat','new','worlds','tag','me','search'].includes(p)){bindHero();if(S.firstHome){S.firstHome=false;setTimeout(()=>{const m=$('#home');m&&m.classList.remove('loading')},650)}}
+ if(p==='home'||!['work','read','fork','forked','lib','write','studio','inbox','notifications','import','admin','rank','ifs','login','chat','new','worlds','tag','me','search','writing-policy'].includes(p)){bindHero();if(S.firstHome){S.firstHome=false;setTimeout(()=>{const m=$('#home');m&&m.classList.remove('loading')},650)}}
  if(p==='read')bindReader(a,+b||1);
  if(p==='studio'){bindStudio(a);bindStudioExtra(a)}
  if(p==='chat')bindChat();

@@ -186,6 +186,8 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(policy).toContain('writingPolicyRule')
     expect(policy).toContain('writingPolicyRights')
     expect(policy).toContain('required')
+    const homeBinding = demo.slice(demo.indexOf("if(p==='home'||!"), demo.indexOf("if(p==='read')bindReader"))
+    expect(homeBinding).toContain("'writing-policy'")
   })
 
   it('keeps theme and screen-ID controls together at the bottom of every screen', () => {
