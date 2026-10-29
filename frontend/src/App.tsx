@@ -1,6 +1,8 @@
-import { Navigate, Route, Routes } from 'react-router'
+import { Navigate, Route, Routes, useLocation } from 'react-router'
 
+import { HomePage } from './presentation/features/home/view/HomePage'
 import { CoreApiConnectionStatus } from './presentation/shared/core-api-status/CoreApiConnectionStatus'
+import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
 
 function StartPage() {
   return (
@@ -33,11 +35,16 @@ function StartPage() {
 }
 
 function App() {
+  const { pathname } = useLocation()
   return (
-    <Routes>
-      <Route path="/status" element={<StartPage />} />
-      <Route path="*" element={<Navigate replace to="/status" />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/status" element={<StartPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="*" element={<Navigate replace to="/" />} />
+      </Routes>
+      {pathname !== '/status' && <GlobalChrome />}
+    </>
   )
 }
 

@@ -2,20 +2,17 @@
 
 import { readFileSync } from 'node:fs'
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import App from './App'
+import { renderApp as renderAt } from './test/renderApp'
 
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
 })
 
-function renderApp(path = '/status') {
-  return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
-}
+const renderApp = (path = '/status') => renderAt(path)
 
 function response(service: string) {
   return new Response(JSON.stringify({ status: 'up', service }), {
