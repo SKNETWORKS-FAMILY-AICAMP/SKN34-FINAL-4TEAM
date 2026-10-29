@@ -8,7 +8,9 @@ export interface FeedbackRepository {
   addComment(key: string, comment: Comment): Promise<void>
   listCommentLikes(): Promise<Record<string, boolean>>
   toggleCommentLike(key: string): Promise<void>
+  listReports(): Promise<ReaderReport[]>
   addReport(report: ReaderReport): Promise<void>
+  listInbox(): Promise<InboxItem[]>
   addInbox(item: InboxItem): Promise<void>
   addReview(item: ReviewItem): Promise<void>
 }

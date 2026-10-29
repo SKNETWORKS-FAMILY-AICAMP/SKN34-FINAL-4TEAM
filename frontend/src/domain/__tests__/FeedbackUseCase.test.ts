@@ -16,6 +16,8 @@ function fakes() {
     addComment: async (key, c) => { (db.comments[key] ??= []).push(c) },
     listCommentLikes: async () => db.cmLiked,
     toggleCommentLike: async (key) => { db.cmLiked[key] = !db.cmLiked[key] },
+    listReports: async () => db.reports,
+    listInbox: async () => db.inbox,
     addReport: async (r) => { db.reports.unshift(r) },
     addInbox: async (i) => { db.inbox.unshift(i) },
     addReview: async (q) => { db.queue.unshift(q) },

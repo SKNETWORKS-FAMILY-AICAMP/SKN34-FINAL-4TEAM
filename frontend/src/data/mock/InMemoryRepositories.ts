@@ -1,10 +1,14 @@
+import type { DemoCredits } from '../../domain/entities/credit'
 import type { Draft } from '../../domain/entities/draft'
 import type { Comment, InboxItem, ReaderReport, ReviewItem } from '../../domain/entities/feedback'
 import type { AppNotification } from '../../domain/entities/notification'
 import type { Theme, Work } from '../../domain/entities/work'
+import type { World } from '../../domain/entities/world'
+import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
+import type { WorldRepository } from '../../domain/repositories/WorldRepository'
 import { SEED_COMMENTS, seedNotifications, seedWorks, seedWorlds } from './seed'
 
 /** 목업처럼 브라우저 메모리에만 있는 데모 상태. 새로고침하면 시드로 돌아갑니다. */
@@ -20,6 +24,7 @@ export function createMockDb() {
     inbox: [] as InboxItem[],
     reviewQueue: [] as ReviewItem[],
     drafts: {} as Record<string, Draft>,
+    credits: { credits: 100, usage: [], failNext: false, alerts: [] } as DemoCredits,
   }
 }
 export type MockDb = ReturnType<typeof createMockDb>
@@ -40,6 +45,24 @@ export class InMemoryWorkRepository implements WorkRepository {
   async saveDraft(key: string, draft: Draft) { this.db.drafts[key] = structuredClone(draft) }
 }
 
+export class InMemoryWorldRepository implements WorldRepository {
+  private readonly db: MockDb
+  constructor(db: MockDb) { this.db = db }
+  list() { return copy(this.db.worlds) }
+  async save(world: World) {
+    const i = this.db.worlds.findIndex((w) => w.id === world.id)
+    this.db.worlds.splice(i < 0 ? this.db.worlds.length : i, i < 0 ? 0 : 1, structuredClone(world))
+  }
+  async remove(id: string) { this.db.worlds = this.db.worlds.filter((w) => w.id !== id) }
+}
+
+export class InMemoryCreditRepository implements CreditRepository {
+  private readonly db: MockDb
+  constructor(db: MockDb) { this.db = db }
+  get() { return copy(this.db.credits) }
+  async save(state: DemoCredits) { this.db.credits = structuredClone(state) }
+}
+
 export class InMemoryReadingRepository implements ReadingRepository {
   private readonly db: MockDb
   constructor(db: MockDb) { this.db = db }
@@ -55,7 +78,9 @@ export class InMemoryFeedbackRepository implements FeedbackRepository {
   async addComment(key: string, comment: Comment) { (this.db.comments[key] ??= []).push(structuredClone(comment)) }
   listCommentLikes() { return copy(this.db.cmLiked) }
   async toggleCommentLike(key: string) { this.db.cmLiked[key] = !this.db.cmLiked[key] }
+  listReports() { return copy(this.db.reports) }
   async addReport(report: ReaderReport) { this.db.reports.unshift(structuredClone(report)) }
+  listInbox() { return copy(this.db.inbox) }
   async addInbox(item: InboxItem) { this.db.inbox.unshift(structuredClone(item)) }
   async addReview(item: ReviewItem) { this.db.reviewQueue.unshift(structuredClone(item)) }
 }

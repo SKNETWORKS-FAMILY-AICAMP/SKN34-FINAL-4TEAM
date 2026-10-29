@@ -1,5 +1,5 @@
 import { newEpisodeDraft } from '../entities/draft'
-import { canView, forkList, isMine, makeFork, type Role } from '../entities/work'
+import { canView, forkList, isMine, makeFork, nid, type Role } from '../entities/work'
 import type { WorkRepository } from '../repositories/WorkRepository'
 
 export type ForkInput = { dir: string; title: string; historyConsent: boolean }
@@ -36,7 +36,7 @@ export class ForkUseCase {
     const dir = input.dir.trim(), title = input.title.trim()
     if (!dir) return { error: '무엇이 달라지는지 한 줄 적어 주세요' }
     if (!title || title.endsWith(':')) return { error: '제목을 적어 주세요' }
-    const f = makeFork(work, at, { id: 'fork' + crypto.randomUUID().slice(0, 8), title, dir, author: '나', owner: 'me', mine: true })
+    const f = makeFork(work, at, { id: nid('fork'), title, dir, author: '나', owner: 'me', mine: true })
     await this.workRepository.saveWork(f)
     await this.workRepository.saveDraft(f.id, newEpisodeDraft(f))
     return { id: f.id }

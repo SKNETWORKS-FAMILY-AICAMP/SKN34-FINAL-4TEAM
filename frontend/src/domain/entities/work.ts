@@ -66,6 +66,7 @@ export type Work = {
   parent?: string
   forkAt?: number
   snap?: Snapshot
+  removedWorldDocs?: Record<string, WikiDoc[]>
 }
 
 export type Role = 'user' | 'admin' | null
@@ -80,6 +81,9 @@ export function original(o: Work): Work {
   }
   return w
 }
+
+/** 목업 nid(): 데모용 새 ID */
+export const nid = (prefix: string) => prefix + crypto.randomUUID().slice(0, 8)
 
 export const hashText = (s: string) => {
   let h = 0
