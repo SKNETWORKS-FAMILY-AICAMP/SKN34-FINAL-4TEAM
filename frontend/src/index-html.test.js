@@ -166,4 +166,12 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(detail).toContain('data-report-novel="${id}"')
     expect(detail).toContain('소설 신고')
   })
+
+  it('normalizes selecting every chapter to the all-chapters fork setting', () => {
+    const settings = demo.slice(demo.indexOf('function publishSheet(id){'), demo.indexOf('function policySheet()'))
+    expect(settings).toContain("st.all=fa.dataset.feAll==='1'&&w.eps.length>0")
+    expect(settings).toContain('st.all=st.eps.size===w.eps.length&&w.eps.length>0')
+    expect(settings).toContain('w.forkAll=st.on&&st.all')
+    expect(settings).toContain('전체 회차 허용')
+  })
 })
