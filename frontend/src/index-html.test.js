@@ -217,13 +217,18 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(homeBinding).toContain("'writing-policy'")
   })
 
-  it('keeps theme and screen-ID controls together at the bottom of every screen', () => {
+  it('keeps theme and screen-ID controls clear of the back-to-top button', () => {
     const controls = demo.slice(demo.indexOf('function screenControls(){'), demo.indexOf('function pend()'))
     expect(controls).toContain('data-act="sidtoggle"')
     expect(controls).toContain('thmBtn(')
     expect(demo).toContain("insertAdjacentHTML('beforeend',screenControls())")
     const calls = demo.match(/thmBtn\(/g) || []
     expect(calls).toHaveLength(2)
-    expect(demo).toContain('.screen-controls{position:fixed')
+    const controlsStyle = demo.match(/\.screen-controls\{([^}]+)\}/)?.[1] || ''
+    const controlsBottom = Number(controlsStyle.match(/bottom:max\((\d+)px,/)?.[1])
+    const topStyle = demo.match(/#top\{([^}]+)\}/)?.[1] || ''
+    const topBottom = Number(topStyle.match(/bottom:(\d+)px/)?.[1])
+    const topHeight = Number(topStyle.match(/height:(\d+)px/)?.[1])
+    expect(controlsBottom).toBeGreaterThanOrEqual(topBottom + topHeight + 12)
   })
 })
