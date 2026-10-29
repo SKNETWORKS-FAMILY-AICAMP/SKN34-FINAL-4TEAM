@@ -122,6 +122,7 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes('이벤트 게시')
     includes('공지 게시')
   })
+
   it('reports a whole novel from work listings instead of sentence selection', () => {
     includes('data-report-novel=')
     includes('function reportSheet(id)')
@@ -132,5 +133,18 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
   it('does not show a fork readiness box that does not gate forking', () => {
     expect(demo).not.toContain('포크 준비 끝!')
     expect(demo).not.toContain('class="gauge')
+  })
+
+  it('keeps fork collections scoped, sortable, and without the all-stories page', () => {
+    const start = demo.indexOf('function ifs()')
+    const end = demo.indexOf('function write()', start)
+    const forkCollection = demo.slice(start, end)
+    expect(forkCollection).not.toContain('전체 소설 보기')
+    expect(forkCollection).toContain('sorter(st.sort)')
+    expect(forkCollection).toContain('SORTS.map(([k,l])=>')
+    expect(forkCollection).toContain('조회 ${kfmt(f.views||0)}')
+    includes("SORTS=[['new','최신 순'],['pop','인기 순'],['view','조회 순']]")
+    includes("k==='new'?(a,b)=>(a.upd||0)-(b.upd||0)")
+    includes("if(p==='ifs'&&!Q.w){nav('#/rank?t=if');return}")
   })
 })
