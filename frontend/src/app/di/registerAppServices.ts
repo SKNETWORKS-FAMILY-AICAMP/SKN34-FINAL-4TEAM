@@ -8,6 +8,7 @@ import {
   InMemoryWorkRepository,
 } from '../../data/mock/InMemoryRepositories'
 import { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
+import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
 import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 import type { AppContainer } from './types'
@@ -22,6 +23,7 @@ export function registerAppServices(container: AppContainer) {
     feedbackRepository: asFunction(({ mockDb }) => new InMemoryFeedbackRepository(mockDb)).singleton(),
     readingUseCase: asFunction(({ workRepository, readingRepository }) => new ReadingUseCase(workRepository, readingRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository }) => new FeedbackUseCase(workRepository, feedbackRepository)).singleton(),
+    forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
     shellUseCase: asFunction(({ notificationRepository }) => new ShellUseCase(notificationRepository)).singleton(),
   })
 }

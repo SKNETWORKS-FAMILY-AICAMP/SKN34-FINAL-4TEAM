@@ -21,8 +21,6 @@ export function UnavailableWork() {
   )
 }
 
-// 포크 방식·저작권 안내(U43) 화면이 생기면 그곳으로 이어집니다. 지금은 없는 경로라 홈으로 돌아갑니다.
-const FORK_POLICY = '/writing-policy?method=fork'
 
 /** 목업 work(id): U04 소설 상세 */
 export function WorkPage() {
@@ -86,7 +84,7 @@ export function WorkPage() {
             {p ? (
               <><h3>원작 보기</h3><p>이 소설은 「{p.title}」 {w.forkAt}화가 끝난 시점의 설정을 복사해서 시작했어요. 이후 바뀐 설정은 이 소설에만 저장돼요.</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
             ) : forkList.length ? (
-              <><h3>이 소설, 다르게 쓰고 싶다면</h3><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to={FORK_POLICY} className="tbtn pri">✎ 포크하기</Go></>
+              <><h3>이 소설, 다르게 쓰고 싶다면</h3><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}` }} className="tbtn pri">✎ 포크하기</Go></>
             ) : (
               <><h3>포크를 허용하지 않은 소설</h3><p>소설 소유자가 포크를 허용하지 않았어요. 읽기와 질문·제보만 가능해요.</p><button type="button" className="tbtn" disabled>✎ 포크하기 불가</button></>
             )}
