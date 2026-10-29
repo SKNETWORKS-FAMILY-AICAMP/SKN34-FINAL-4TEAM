@@ -69,4 +69,38 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes('MVP에서는 Langfuse 추적만 제공해요')
     includes('평가 세트와 정보 누설 표본 검사는 MVP 이후예요')
   })
+
+  it('requires a work policy acknowledgement before setup without granting blanket AI or Fork consent', () => {
+    includes('if(!NEW.policyAccepted)')
+    includes('id="workPolicyForm"')
+    includes('id="workPolicyAck" required')
+    includes('작품 등록이나 AI 기능 사용만으로 모델 학습, 상업적 이용, 무제한 재창작에 동의한 것으로 보지 않습니다.')
+    includes('NEW.policyAccepted=true')
+  })
+
+  it('lets authors select and stores genre, schedule, age rating, and tags', () => {
+    const genres = demo.match(/const NOVEL_GENRES=\[([^\]]+)\]/)?.[1] || ''
+    expect((genres.match(/'/g) || []).length / 2).toBeGreaterThanOrEqual(25)
+    includes('id="nwg"')
+    includes('name="novelDay"')
+    includes('id="nwIrregular"')
+    includes('id="nwRating"')
+    includes('name="novelTag"')
+    includes('schedule:[...NEW.schedule]')
+    includes('rating:NEW.rating')
+    includes("hash:NEW.tags.map(tag=>'#'+tag)")
+  })
+
+  it('searches works and comments and supports granular administrator permissions', () => {
+    includes('id="adminSearchForm"')
+    includes('[w.title,w.author,w.kind,w.rights]')
+    includes('[c.text,c.work,c.author]')
+    includes('const ADMIN_PERMISSIONS=')
+    includes('name="adminPermission"')
+    includes('id="adminAccountForm"')
+    includes('if(!permissions.length)')
+    includes('제보·문의 대응')
+    includes('이벤트 게시')
+    includes('공지 게시')
+  })
 })
