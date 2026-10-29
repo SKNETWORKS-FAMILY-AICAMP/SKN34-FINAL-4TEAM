@@ -187,4 +187,14 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(policy).toContain('writingPolicyRights')
     expect(policy).toContain('required')
   })
+
+  it('keeps theme and screen-ID controls together at the bottom of every screen', () => {
+    const controls = demo.slice(demo.indexOf('function screenControls(){'), demo.indexOf('function pend()'))
+    expect(controls).toContain('data-act="sidtoggle"')
+    expect(controls).toContain('thmBtn(')
+    expect(demo).toContain("insertAdjacentHTML('beforeend',screenControls())")
+    const calls = demo.match(/thmBtn\(/g) || []
+    expect(calls).toHaveLength(2)
+    expect(demo).toContain('.screen-controls{position:fixed')
+  })
 })
