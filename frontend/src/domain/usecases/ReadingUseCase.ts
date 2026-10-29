@@ -123,7 +123,7 @@ export class ReadingUseCase {
 
   /** 목업 tagPage(t): 태그가 없으면 첫 태그를 고릅니다. */
   async getTag(tag?: string) {
-    const works = (await this.workRepository.listWorks())
+    const works = await this.workRepository.listWorks()
     const pub = works.filter(isPub)
     const all: Record<string, number> = {}
     for (const w of pub) for (const h of tagsOf(w, works)) all[h] = (all[h] || 0) + 1
