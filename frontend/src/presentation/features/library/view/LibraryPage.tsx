@@ -37,6 +37,12 @@ export function LibraryPage() {
         )}
         {d.write && (
           <>
+            {d.write.appeals.map((q) => (
+              <form className="panel" key={q.id} aria-label={`${q.title} · 권리 신고 소명`} onSubmit={(e) => { e.preventDefault(); d.appeal(q.id, new FormData(e.currentTarget).get('appeal')?.toString() ?? '') }}>
+                <b>{q.title} · 권리 신고 소명</b><p className="small muted">신고 내용: {q.text}. 검토 중 작품이 제한되어 있어요.</p>
+                <label className="field">소명 내용<textarea className="ta" name="appeal" maxLength={1000} required /></label><button className="btn sm pri">소명 제출</button>
+              </form>
+            ))}
             {d.write.mine.map(({ work: w, parent, writingNext, pub, forkLabel, forkCount }) => (
               <div className="mywork" data-work={w.id} key={w.id}><div className="th"><CoverOf w={w} /></div><div><h3>{w.title}</h3>
                 <div className="tags">{parent ? <span className="chip ok">포크 · {parent.title} {w.forkAt}화에서</span> : <span className="chip">{w.kind}</span>}{pub ? <span className="chip ok">공개 중</span> : <span className="chip wait">비공개 · 작성 중</span>}{!w.parent && <span className="chip">{forkLabel}</span>}</div>

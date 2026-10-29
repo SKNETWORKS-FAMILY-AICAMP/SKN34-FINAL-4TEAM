@@ -70,7 +70,8 @@ export class LibraryUseCase {
 
   /** U12 내가 쓰는 소설 */
   async getWrite() {
-    const [works, worlds, pending] = await Promise.all([this.workRepository.listWorks(), this.worldRepository.list(), this.pending()])
+    const [works, worlds, pending, queue] = await Promise.all([this.workRepository.listWorks(), this.worldRepository.list(), this.pending(), this.feedbackRepository.listReview()])
+    const appeals = queue.flatMap((q) => { const w = works.find((x) => x.id === q.w); return w && isMine(w) && q.status === '비공개 조치' ? [{ ...q, title: w.title }] : [] })
     const mine = await Promise.all(works.filter(isMine).map(async (work) => ({
       work,
       parent: works.find((w) => w.id === work.parent),
@@ -79,7 +80,16 @@ export class LibraryUseCase {
       forkLabel: forkLabel(work, worlds),
       forkCount: forksOf(works, work.id).length,
     })))
-    return { mine, pending }
+    return { mine, pending, appeals }
+  }
+
+  /** 목업 data-appeal-form: 비공개 조치된 내 작품의 권리 신고 소명 */
+  async appeal(id: string, text: string) {
+    const [queue, works] = await Promise.all([this.feedbackRepository.listReview(), this.workRepository.listWorks()])
+    const q = queue.find((x) => x.id === id), w = q && works.find((x) => x.id === q.w)
+    if (!q || !w || !isMine(w) || q.status !== '비공개 조치' || !text.trim()) return '소명 내용을 입력해 주세요'
+    await this.feedbackRepository.saveReview({ ...q, appeal: text.trim(), status: '소명 제출' })
+    return '소명을 제출했어요 (데모)'
   }
 
   /** U28 세계관 목록: 내 세계관, 이용 가능한 공개 세계관, 조합 가능한 세계관 */
