@@ -545,7 +545,7 @@ const isMine=w=>w.owner==='me'||w.author==='나';
 const canView=w=>!!w&&(isPub(w)||(S.role==='user'&&isMine(w)));
 function unavailableWork(){return gnb('')+'<main class="wrap"><div class="panel"><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><button class="btn" data-go="#/home">홈으로</button></div></main>'+foot()}
 const visibleEpisode=(w,e)=>!e.hidden||(S.role==='user'&&isMine(w));
-const publicCast=(w,ep)=>w.cast.filter(c=>(!w.castFrom||w.castFrom[c.n]<=ep)&&firstEp(w,c.n)<=ep);
+const publicCast=(w,ep)=>{const cast=w.parent?w.snap?.cast:w.cast;return (cast||[]).filter(c=>w.parent||(!w.castFrom||w.castFrom[c.n]<=ep)&&firstEp(w,c.n)<=ep)};
 const mineList=()=>Object.values(W).filter(w=>w.owner==='me'||w.author==='나');
 
 const S={user:{nick:'읽는사람',email:'reader@storyfork.demo',joined:'2026.10.20'},inq:[],motion:true,role:null,next:null,chat:{},look:'auto',fs:19,guide:true,chip:'추천',hero:0,liked:{},seen:{},cmLiked:{},firstHome:true,showSid:true,
@@ -1022,7 +1022,7 @@ function bindChatList(){
 function chatPage(wid,cn){
  if(!wid)return chatListPage();baseId='U27';const chats=characterChats(),chatWorks=Object.values(W).filter(work=>isPub(work)&&chats.some(c=>c.enabled!==false&&c.workId===work.id&&publicCast(work,Math.max(S.last[work.id]||0,1)).some(x=>x.n===c.character))),w=chatWorks.find(work=>work.id===wid);if(!w)return chatListPage();
  const entries=chats.filter(c=>c.workId===wid&&c.enabled!==false);if(cn&&!entries.some(c=>c.character===cn))return chatListPage();
- const read=Math.max(S.last[wid]||0,0),base=Math.max(read,1),cs=publicCast(w,base).filter(c=>entries.some(entry=>entry.character===c.n)).map(c=>({...c,from:firstEp(w,c.n)}));if(cn&&!cs.some(c=>c.n===cn))return chatListPage();const cur=cn?cs.find(c=>c.n===cn):cs[0];
+ const read=Math.max(S.last[wid]||0,0),base=Math.max(read,1),cs=publicCast(w,base).filter(c=>entries.some(entry=>entry.character===c.n)).map(c=>({...c,from:w.parent?1:firstEp(w,c.n)}));if(cn&&!cs.some(c=>c.n===cn))return chatListPage();const cur=cn?cs.find(c=>c.n===cn):cs[0];
  const key=wid+'/'+(cur&&cur.n);const log=S.chat[key]||(cur?[[cur.n,(CHAT[cur.n]||{hi:'안녕하세요.'}).hi]]:[]);if(cur)S.chat[key]=log;
  const qs=cur?((CHAT[cur.n]||{q:[]}).q):[];
  return gnb('chat')+`<main class="wrap"><button class="back" data-go="#/chat">캐릭터챗 목록</button><div class="sec-h"><h2>캐릭터 챗</h2><span class="muted small">내가 읽은 회차까지만 아는 인물과 이야기해요 · AI 응답은 데모</span></div>

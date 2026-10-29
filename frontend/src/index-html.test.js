@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { JSDOM } from 'jsdom'
 
 const demo = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
 const includes = (text) => expect(demo.includes(text), `missing documented demo content: ${text}`).toBe(true)
@@ -134,6 +135,39 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes('id="adminChatWork"')
     includes('id="adminChatCharacter"')
     includes('data-chat-admin-toggle=')
+  })
+
+  it('opens character chat management and starts a fork chat', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'admin'
+    window.location.hash = '#/admin?tab=data'
+    await new Promise(resolve => window.setTimeout(resolve, 200))
+    window.document.querySelector('[data-admin-tab="characterChats"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 200))
+
+    expect(window.location.hash).toBe('#/admin?tab=characterChats')
+    expect(window.document.querySelector('.workspace h1')?.textContent).toBe('캐릭터챗 관리')
+    expect(window.document.querySelector('#adminChatCharacter option')?.value).toBeTruthy()
+
+    const workId = window.document.querySelector('#adminChatWork').value
+    const character = window.document.querySelector('#adminChatCharacter').value
+    window.document.querySelector('#adminCharacterChatForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    window.location.hash = '#/chat'
+    await new Promise(resolve => window.setTimeout(resolve, 250))
+    const chatCard = [...window.document.querySelectorAll('.rgrid [data-go]')].find(card => card.dataset.go === `#/chat/${workId}/${encodeURIComponent(character)}`)
+    expect(chatCard).toBeTruthy()
+    chatCard.click()
+    await new Promise(resolve => window.setTimeout(resolve, 250))
+    expect(window.document.querySelector('#chf')).toBeTruthy()
+    window.close()
   })
 
   it('shows a filterable and sortable character chat catalog before opening a chat', () => {
