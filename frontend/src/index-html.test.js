@@ -128,4 +128,9 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(demo).not.toContain('data-rep="신고"')
     expect(demo).not.toContain('소설 신고 · ${n}화')
   })
+
+  it('does not show a fork readiness box that does not gate forking', () => {
+    expect(demo).not.toContain('포크 준비 끝!')
+    expect(demo).not.toContain('class="gauge')
+  })
 })
