@@ -1003,15 +1003,32 @@ function portrait(name,size){
  return `<svg viewBox="0 0 100 100" width="${s}" height="${s}" aria-hidden="true"><defs><radialGradient id="${id}" cx="50%" cy="30%" r="80%"><stop offset="0" stop-color="${p.bg[0]}"/><stop offset="1" stop-color="${p.bg[1]}"/></radialGradient><clipPath id="${id}c"><circle cx="50" cy="50" r="50"/></clipPath></defs><g clip-path="url(#${id}c)"><rect width="100" height="100" fill="url(#${id})"/>${back}${out}${extra}${face}${hair}${hat}${eyes}${brows}${blush}${wr}${beard}${mouth}</g></svg>`;
 }
 
+function chatListPage(){
+ baseId='U27';const st={kind:Q.kind||'all',work:Q.work||'all',character:Q.character||'all',sort:Q.sort||'new'};
+ const chats=characterChats().filter(c=>c.enabled!==false).map(c=>{const w=W[c.workId];if(!w||!isPub(w))return null;const character=publicCast(w,Math.max(S.last[w.id]||0,1)).find(x=>x.n===c.character);return character?{w,character}:null}).filter(Boolean);
+ const byKind=chats.filter(x=>st.kind==='all'||(st.kind==='fork'?!!x.w.parent:!x.w.parent));
+ const works=[...new Map(byKind.map(x=>[x.w.id,x.w])).values()].sort((a,b)=>a.title.localeCompare(b.title,'ko'));if(st.work!=='all'&&!works.some(w=>w.id===st.work))st.work='all';
+ const byWork=byKind.filter(x=>st.work==='all'||x.w.id===st.work),characters=[...new Set(byWork.map(x=>x.character.n))].sort((a,b)=>a.localeCompare(b,'ko'));if(st.character!=='all'&&!characters.includes(st.character))st.character='all';
+ const compare=sorter(st.sort),listed=byWork.filter(x=>st.character==='all'||x.character.n===st.character).sort((a,b)=>compare(a.w,b.w)||a.w.title.localeCompare(b.w.title,'ko')||a.character.n.localeCompare(b.character.n,'ko'));
+ const opts=(items,value,label)=>`<option value="all"${value==='all'?' selected':''}>${label}</option>${items.map(([v,l])=>`<option value="${esc(v)}"${v===value?' selected':''}>${esc(l)}</option>`).join('')}`;
+ return gnb('chat')+`<main class="wrap"><div class="sec-h"><h2>캐릭터챗</h2><span class="muted small">작품과 캐릭터를 골라 대화를 시작해요 · ${listed.length}개</span></div>
+ <nav class="libtabs" aria-label="작품 유형">${[['all','전체'],['original','원작'],['fork','포크']].map(([k,l])=>`<button data-go="${qs('#/chat',{...st,kind:k,work:'all',character:'all'})}" class="${st.kind===k?'on':''}"${st.kind===k?' aria-current="page"':''}>${l}</button>`).join('')}</nav>
+ <div class="panel" style="margin-bottom:20px"><div style="display:flex;gap:12px;flex-wrap:wrap"><label class="field" style="flex:1 1 180px">작품<select class="inp" id="chatWork">${opts(works.map(w=>[w.id,w.title]),st.work,'전체 작품')}</select></label><label class="field" style="flex:1 1 180px">캐릭터<select class="inp" id="chatCharacter">${opts(characters.map(c=>[c,c]),st.character,'전체 캐릭터')}</select></label></div><div class="eptool" style="margin:12px 0 0;padding:6px 0 0;border:0"><b>정렬</b><div class="sortt">${SORTS.map(([k,l])=>`<button type="button" data-go="${qs('#/chat',{...st,sort:k})}" class="${st.sort===k?'on':''}"${st.sort===k?' aria-pressed="true"':' aria-pressed="false"'}>${l}</button>`).join('')}</div></div><p class="small muted">최신순·인기순·조회순은 연결된 작품의 지표를 따릅니다. 포크는 원작과 구분해 보여요.</p></div>
+ <div class="rgrid">${listed.map(({w,character:c})=>`<button class="rg" data-go="#/chat/${w.id}/${encodeURIComponent(c.n)}"><div class="rc">${coverOf(w)}${w.parent?'<span class="tag if">포크</span>':''}</div><div class="ri"><small class="g">${w.parent?'포크':'원작'} · ${esc(w.genre)}</small><div class="chh" style="padding:0;border:0"><i class="pt">${portrait(c.n,36)}</i><div><b>${esc(c.n)}</b><small>${esc(c.d)}</small></div></div><small>${esc(w.title)}${w.parent&&W[w.parent]?` · 원작 ${esc(W[w.parent].title)}`:''}</small><span class="m">조회 ${kfmt(w.views||0)} <i></i> ♥ ${kfmt(w.likes||0)} <i></i> ${ago(w.upd||0)}</span></div></button>`).join('')||'<p class="muted" style="grid-column:1/-1;padding:20px 8px">조건에 맞는 캐릭터챗이 없어요. 작품 유형이나 필터를 바꿔 보세요. <button class="btn sm" data-go="#/chat">필터 초기화</button></p>'}</div></main>`+foot();
+}
+function bindChatList(){
+ document.querySelectorAll('#chatWork,#chatCharacter').forEach(el=>el.onchange=()=>{const st={kind:Q.kind||'all',work:$('#chatWork').value,character:$('#chatCharacter').value,sort:Q.sort||'new'};if(el.id==='chatWork')st.character='all';nav(qs('#/chat',st))});
+}
 function chatPage(wid,cn){
- baseId='U27';const O=ORIG().filter(isPub);const w=W[wid]||O[0];wid=w.id;const read=Math.max(S.last[wid]||0,0);const base=Math.max(read,1);
- const cs=publicCast(w,base).map(c=>({...c,from:firstEp(w,c.n)}));const cur=cs.find(c=>c.n===cn&&c.from<=base)||cs.find(c=>c.from<=base);
+ if(!wid)return chatListPage();baseId='U27';const chats=characterChats(),chatWorks=Object.values(W).filter(work=>isPub(work)&&chats.some(c=>c.enabled!==false&&c.workId===work.id&&publicCast(work,Math.max(S.last[work.id]||0,1)).some(x=>x.n===c.character))),w=chatWorks.find(work=>work.id===wid);if(!w)return chatListPage();
+ const entries=chats.filter(c=>c.workId===wid&&c.enabled!==false);if(cn&&!entries.some(c=>c.character===cn))return chatListPage();
+ const read=Math.max(S.last[wid]||0,0),base=Math.max(read,1),cs=publicCast(w,base).filter(c=>entries.some(entry=>entry.character===c.n)).map(c=>({...c,from:firstEp(w,c.n)}));if(cn&&!cs.some(c=>c.n===cn))return chatListPage();const cur=cn?cs.find(c=>c.n===cn):cs[0];
  const key=wid+'/'+(cur&&cur.n);const log=S.chat[key]||(cur?[[cur.n,(CHAT[cur.n]||{hi:'안녕하세요.'}).hi]]:[]);if(cur)S.chat[key]=log;
  const qs=cur?((CHAT[cur.n]||{q:[]}).q):[];
- return gnb('chat')+`<main class="wrap"><div class="sec-h"><h2>캐릭터 챗</h2><span class="muted small">내가 읽은 회차까지만 아는 인물과 이야기해요 · AI 응답은 데모</span></div>
- <div class="chatg"><aside class="tcard chl"><b class="small muted">소설</b><div class="chw">${O.map(o=>`<button class="${o.id===wid?'on':''}" data-go="#/chat/${o.id}"><span class="th">${coverOf(o)}</span>${esc(o.title)}</button>`).join('')}</div>
+ return gnb('chat')+`<main class="wrap"><button class="back" data-go="#/chat">캐릭터챗 목록</button><div class="sec-h"><h2>캐릭터 챗</h2><span class="muted small">내가 읽은 회차까지만 아는 인물과 이야기해요 · AI 응답은 데모</span></div>
+ <div class="chatg"><aside class="tcard chl"><b class="small muted">작품</b><div class="chw">${chatWorks.map(o=>`<button class="${o.id===wid?'on':''}" data-go="#/chat/${o.id}"><span class="th">${coverOf(o)}</span>${esc(o.title)}${o.parent?' · 포크':''}</button>`).join('')}</div>
  <b class="small muted" style="display:block;margin-top:14px">인물 <span style="font-weight:500">· ${read?read+'화까지 읽음':'아직 안 읽음 · 1화 기준'}</span></b>
- ${cs.map(c=>c.from<=base?`<button class="chc ${cur&&c.n===cur.n?'on':''}" data-go="#/chat/${wid}/${encodeURIComponent(c.n)}"><i class="pt">${portrait(c.n,36)}</i><div><b>${esc(c.n)}</b><small>${esc(c.d)}</small></div></button>`:`<div class="chc lock"><i class="pt">${portrait("?",36)}</i><div><b>???</b><small>${c.from}화를 읽으면 만날 수 있어요</small></div></div>`).join('')}</aside>
+ ${cs.map(c=>`<button class="chc ${cur&&c.n===cur.n?'on':''}" data-go="#/chat/${wid}/${encodeURIComponent(c.n)}"><i class="pt">${portrait(c.n,36)}</i><div><b>${esc(c.n)}</b><small>${esc(c.d)}</small></div></button>`).join('')||'<p class="small muted">대화할 수 있는 인물이 없어요.</p>'}</aside>
  <section class="tcard chm">${cur?`<div class="chh"><i class="pt">${portrait(cur.n,36)}</i><div><b>${esc(cur.n)}</b><small>${esc(w.title)} · ${base}화 시점의 기억</small></div></div>
  <div class="chlog" id="chlog">${log.map(m=>m[0]==='나'?`<div class="me"><p>${esc(m[1])}</p></div>`:`<div class="they"><i class="pt">${portrait(cur.n,36)}</i><div><p>${esc(m[1])}</p>${m[2]?`<span class="ev">${esc(m[2])}</span>`:''}</div></div>`).join('')}</div>
  <div class="chq">${qs.map((q,i)=>`<button data-cq="${i}">${q[0]>base?'🔒 ':''}${esc(q[1])}</button>`).join('')}</div>
@@ -1028,10 +1045,10 @@ function chatReply(wid,cn,text){
  return ['공개된 소설 안에서는 답을 찾지 못했어요. 지어내서 대답하지 않을게요.','근거 없음'];
 }
 function bindChat(){
- const lg=$('#chlog');if(lg)lg.scrollTop=lg.scrollHeight;const [p,wid0,cn0]=parse();const O=ORIG().filter(isPub);const wid=W[wid0]?wid0:O[0].id;
+ const lg=$('#chlog');if(lg)lg.scrollTop=lg.scrollHeight;const [p,wid0,cn0]=parse();const chatWorks=Object.values(W).filter(isPub);const wid=W[wid0]&&isPub(W[wid0])?wid0:chatWorks[0]?.id;if(!wid)return;
  const cur=document.querySelector('.chh b');if(!cur)return;const cn=cur.textContent;const key=wid+'/'+cn;const base=Math.max(S.last[wid]||0,1);
  const push=(q,r)=>{S.chat[key].push(['나',q]);render();setTimeout(()=>{S.chat[key].push([cn,r[0],r[1]]);render()},450)};
- document.querySelectorAll('[data-cq]').forEach(b=>b.onclick=()=>{const q=CHAT[cn].q[+b.dataset.cq];if(q[0]>base)return push(q[1],['그건 아직 말할 수 없어요. '+q[0]+'화를 읽고 다시 물어봐 주세요.',`스포일러 방지 · ${base}화까지 읽은 기준`]);push(q[1],[q[2],`근거 · ${q[0]}화`])});
+ document.querySelectorAll('[data-cq]').forEach(b=>b.onclick=()=>{const q=((CHAT[cn]||{q:[]}).q)[+b.dataset.cq];if(!q)return;if(q[0]>base)return push(q[1],['그건 아직 말할 수 없어요. '+q[0]+'화를 읽고 다시 물어봐 주세요.',`스포일러 방지 · ${base}화까지 읽은 기준`]);push(q[1],[q[2],`근거 · ${q[0]}화`])});
  const f=$('#chf');if(f)f.onsubmit=e=>{e.preventDefault();const v=$('#chi').value.trim();if(!v)return toast('물어볼 내용을 입력해 주세요');push(v,chatReply(wid,cn,v))};
 }
 const publicWorldRules=world=>world.rules.filter(rule=>world.rulePublic?world.rulePublic[rule]===true:!!world.owner);
@@ -1540,7 +1557,7 @@ function adminLog(action,detail){
 }
 function characterChats(){
  const A=S.admin;
- A.characterChats||=Object.values(W).filter(isPub).flatMap(w=>publicCast(w,Math.max(w.eps.length,1)).map(c=>({id:nid('cchat'),workId:w.id,character:c.n,enabled:true})));
+ A.characterChats||=Object.values(W).filter(w=>isPub(w)&&!w.parent).flatMap(w=>publicCast(w,Math.max(w.eps.length,1)).map(c=>({id:nid('cchat'),workId:w.id,character:c.n,enabled:true})));
  return A.characterChats;
 }
 const ADMIN_PERMISSIONS=[['works','작품 관리'],['users','사용자 관리'],['comments','댓글 관리'],['characterChats','캐릭터챗 관리'],['feedback','제보·문의 대응'],['rights','권리·신고 처리'],['events','이벤트 게시'],['notices','공지 게시'],['llm','LLM Ops 조회'],['jobs','정기 작업'],['credits','크레딧 운영'],['admins','관리자 계정 관리']];
@@ -1569,7 +1586,7 @@ function adminExtra(tab){
   T=`<div class="panel"><span class="demo">목업 작품 데이터</span>${controls([['all','전체'],['original','원작'],['fork','포크']],[['title','제목순'],['titleDesc','제목 역순']])}<table style="margin-top:10px"><thead><tr><th>작품</th><th>작성자</th><th>종류</th><th>권리</th><th>공개 상태</th><th>조치</th></tr></thead><tbody>${filtered.map(w=>`<tr><td><b>${esc(w.title)}</b></td><td>${esc(w.author)}</td><td>${esc(w.kind)}</td><td>${esc(w.rights)}</td><td><span class="chip ${w.hidden?'wait':'ok'}">${w.hidden?'운영 제한':w.private?'비공개':'공개'}</span></td><td><button class="btn sm" data-work-action="toggle" data-work-id="${esc(w.id)}">${w.hidden?'제한 해제':'운영상 비공개'}</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">검색 결과가 없어요.</td></tr>'}</tbody></table><p class="admin-note">공개 제한은 데모 작품 상태에만 반영되고, 실제 작품 권한 판단은 Core API에서 처리해야 합니다.</p></div>`;
  }else if(tab==='characterChats'){
   title='캐릭터챗 관리';description='공개 작품의 원작·포크와 캐릭터를 선택해 챗을 추가하거나 운영 상태를 바꿉니다.';
-  const form=A.chatForm||={kind:'original',workId:'',character:''};
+  const form=A.chatForm||={kind:'fork',workId:'',character:''};
   const available=works.filter(isPub).filter(w=>form.kind==='all'||(form.kind==='fork'?!!w.parent:!w.parent));
   if(!available.some(w=>w.id===form.workId))form.workId=available[0]?.id||'';
   const selectedWork=available.find(w=>w.id===form.workId),cast=selectedWork?publicCast(selectedWork,Math.max(selectedWork.eps.length,1)):[];
@@ -1669,7 +1686,7 @@ function render(){
  if(p==='home'||!['work','read','fork','forked','lib','write','studio','inbox','notifications','import','admin','rank','ifs','login','chat','new','worlds','tag','me','search','writing-policy'].includes(p)){bindHero();if(S.firstHome){S.firstHome=false;setTimeout(()=>{const m=$('#home');m&&m.classList.remove('loading')},650)}}
  if(p==='read')bindReader(a,+b||1);
  if(p==='studio'){bindStudio(a);bindStudioExtra(a)}
- if(p==='chat')bindChat();
+ if(p==='chat'){if($('#chf'))bindChat();else bindChatList()}
  if(p==='worlds')$('#worldCreate').onsubmit=e=>{e.preventDefault();const name=e.currentTarget.elements.name.value.trim(),description=e.currentTarget.elements.description.value.trim(),rules=e.currentTarget.elements.rules.value.split('\n').map(x=>x.trim()).filter(Boolean);if(!name)return toast('세계관 이름을 적어 주세요');const world={id:nid('world'),name,description,rules:[...new Set(rules)],public:false};worldVersion(world);S.worlds.push(world);render();toast('비공개 세계관을 만들었어요 (데모)')};
  if(p==='worlds')document.querySelectorAll('[data-rule-public]').forEach(el=>el.onchange=()=>{const world=S.worlds.find(w=>w.id===el.dataset.worldId&&!w.owner),rule=world&&world.rules[+el.dataset.rulePublic];if(!rule)return;(world.rulePublic||={})[rule]=el.checked;worldVersion(world);toast('세계관의 항목 공개 범위를 변경했어요 (데모)')});
  if(p==='worlds')document.querySelectorAll('[data-world-permission]').forEach(el=>el.onchange=()=>{const world=S.worlds.find(w=>w.id===el.dataset.worldId&&!w.owner);if(!world)return;if(el.checked&&!confirm('이 범위를 허용할 권리가 있나요?')){el.checked=false;return}world[el.dataset.worldPermission]=el.checked;worldVersion(world);toast('세계관 허용 범위를 저장했어요 (데모)')});

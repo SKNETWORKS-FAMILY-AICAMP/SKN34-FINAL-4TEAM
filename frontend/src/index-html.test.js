@@ -126,11 +126,24 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
   it('lets administrators add and manage character chats by work and character', () => {
     includes("['characterChats','캐릭터챗 관리']")
     includes('function characterChats()')
+    includes('Object.values(W).filter(w=>isPub(w)&&!w.parent)')
     includes('id="adminCharacterChatForm"')
     includes('id="adminChatKind"')
     includes('id="adminChatWork"')
     includes('id="adminChatCharacter"')
     includes('data-chat-admin-toggle=')
+  })
+
+  it('shows a filterable and sortable character chat catalog before opening a chat', () => {
+    includes('function chatListPage()')
+    includes('if(!wid)return chatListPage()')
+    includes('chats.some(c=>c.enabled!==false&&c.workId===work.id')
+    includes('aria-label="작품 유형"')
+    includes('id="chatWork"')
+    includes('id="chatCharacter"')
+    includes('SORTS.map(([k,l])=>')
+    includes('sorter(st.sort)')
+    includes('w.parent?\'포크\':\'원작\'')
   })
 
   it('reports a whole novel from work listings instead of sentence selection', () => {
