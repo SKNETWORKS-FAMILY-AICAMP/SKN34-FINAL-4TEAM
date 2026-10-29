@@ -43,6 +43,7 @@ export class InMemoryWorkRepository implements WorkRepository {
   }
   getDraft(key: string) { return copy(this.db.drafts[key]) }
   async saveDraft(key: string, draft: Draft) { this.db.drafts[key] = structuredClone(draft) }
+  async deleteDraft(key: string) { delete this.db.drafts[key] }
 }
 
 export class InMemoryWorldRepository implements WorldRepository {

@@ -12,6 +12,7 @@ import type { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
 import type { ForkUseCase } from '../../domain/usecases/ForkUseCase'
 import type { LibraryUseCase } from '../../domain/usecases/LibraryUseCase'
 import type { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
+import type { StudioUseCase } from '../../domain/usecases/StudioUseCase'
 import type { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
@@ -31,6 +32,7 @@ export type AppCradle = {
   readingUseCase: ReadingUseCase
   feedbackUseCase: FeedbackUseCase
   forkUseCase: ForkUseCase
+  studioUseCase: StudioUseCase
   shellUseCase: ShellUseCase
 }
 

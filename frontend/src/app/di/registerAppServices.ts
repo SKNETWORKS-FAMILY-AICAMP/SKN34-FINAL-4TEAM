@@ -14,6 +14,7 @@ import { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
 import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
 import { LibraryUseCase } from '../../domain/usecases/LibraryUseCase'
 import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
+import { StudioUseCase } from '../../domain/usecases/StudioUseCase'
 import { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 import type { AppContainer } from './types'
 
@@ -32,6 +33,7 @@ export function registerAppServices(container: AppContainer) {
     readingUseCase: asFunction(({ workRepository, readingRepository }) => new ReadingUseCase(workRepository, readingRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository }) => new FeedbackUseCase(workRepository, feedbackRepository)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
+    studioUseCase: asFunction(({ workRepository }) => new StudioUseCase(workRepository)).singleton(),
     shellUseCase: asFunction(({ notificationRepository }) => new ShellUseCase(notificationRepository)).singleton(),
   })
 }

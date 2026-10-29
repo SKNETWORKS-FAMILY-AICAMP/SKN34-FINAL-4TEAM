@@ -11,6 +11,7 @@ export interface WorkRepository {
   /** 작성 중인 회차 초안 (키: 작품 id 또는 `${id}:ep:${n}`) */
   getDraft(key: string): Promise<Draft | undefined>
   saveDraft(key: string, draft: Draft): Promise<void>
+  deleteDraft(key: string): Promise<void>
 }
 
 /** 독자 한 명의 읽기 기록 */
