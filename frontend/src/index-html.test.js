@@ -123,6 +123,16 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes('공지 게시')
   })
 
+  it('lets administrators add and manage character chats by work and character', () => {
+    includes("['characterChats','캐릭터챗 관리']")
+    includes('function characterChats()')
+    includes('id="adminCharacterChatForm"')
+    includes('id="adminChatKind"')
+    includes('id="adminChatWork"')
+    includes('id="adminChatCharacter"')
+    includes('data-chat-admin-toggle=')
+  })
+
   it('reports a whole novel from work listings instead of sentence selection', () => {
     includes('data-report-novel=')
     includes('function reportSheet(id)')
