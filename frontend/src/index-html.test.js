@@ -157,4 +157,13 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(reader.indexOf('e.authorNote')).toBeGreaterThan(reader.indexOf('const body='))
     includes('작가의 말')
   })
+
+  it('offers novel reports on work details and omits them from ranking cards', () => {
+    const card = demo.slice(demo.indexOf('function wcard('), demo.indexOf('function searchPage('))
+    expect(card).toContain("ranked?'':")
+    includes('data-report-novel="${w.id}"')
+    const detail = demo.slice(demo.indexOf('function work(id){'), demo.indexOf('function reader(id,n){'))
+    expect(detail).toContain('data-report-novel="${id}"')
+    expect(detail).toContain('소설 신고')
+  })
 })
