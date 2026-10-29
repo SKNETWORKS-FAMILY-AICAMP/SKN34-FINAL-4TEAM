@@ -147,4 +147,14 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes("k==='new'?(a,b)=>(a.upd||0)-(b.upd||0)")
     includes("if(p==='ifs'&&!Q.w){nav('#/rank?t=if');return}")
   })
+
+  it('stores each chapter author note and renders it after the chapter text', () => {
+    includes('id="authorNote"')
+    includes('d.authorNote=note.value')
+    includes('authorNote:d.authorNote')
+    const reader = demo.slice(demo.indexOf('function reader(id,n){'), demo.indexOf('function bindReader(id,n){'))
+    expect(reader).toContain('e.authorNote')
+    expect(reader.indexOf('e.authorNote')).toBeGreaterThan(reader.indexOf('const body='))
+    includes('작가의 말')
+  })
 })
