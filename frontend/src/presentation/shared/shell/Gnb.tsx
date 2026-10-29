@@ -1,10 +1,14 @@
+import { useState } from 'react'
+
 import { useAppSelector } from '../../../app/store'
 import { Go } from '../Go'
+import { AccountMenu } from './AccountMenu'
 import { useGnbViewModel } from './useGnbViewModel'
 
 /** 목업 gnb(on) */
 export function Gnb({ on = '' }: { on?: string }) {
   const { role, initial, unread, pending } = useGnbViewModel()
+  const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null)
   return (
     <header className="gnb">
       <div className="wrap in">
@@ -25,10 +29,12 @@ export function Gnb({ on = '' }: { on?: string }) {
         <button type="button" className="credit" title="크레딧 정책은 아직 확정되지 않았어요">
           ✦ 크레딧 <span className="demo" style={{ borderColor: 'currentColor', color: 'inherit' }}>데모</span>
         </button>
-        <button type="button" className={`avatar ${role ? '' : 'guest'}`} aria-label={role ? '내 계정 메뉴' : '로그인·회원가입 메뉴'} aria-haspopup="menu">
+        <button type="button" className={`avatar ${role ? '' : 'guest'}`} aria-label={role ? '내 계정 메뉴' : '로그인·회원가입 메뉴'} aria-haspopup="menu"
+          aria-expanded={!!menuAnchor} onClick={(e) => setMenuAnchor(menuAnchor ? null : e.currentTarget)}>
           <span>{role ? initial : <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="8.5" r="4" fill="currentColor" /><path d="M4 21c.8-4.4 4-7 8-7s7.2 2.6 8 7z" fill="currentColor" /></svg>}</span>
         </button>
       </div>
+      {menuAnchor && <AccountMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />}
     </header>
   )
 }

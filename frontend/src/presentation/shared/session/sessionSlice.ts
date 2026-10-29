@@ -6,6 +6,11 @@ import type { Role } from '../../../domain/entities/work'
 export type SessionState = {
   role: Role
   user: { nick: string; email: string; joined: string }
+  /** 로그인 후 돌아갈 경로와 로그인 화면 안내 (목업 S.next·S.loginMsg) */
+  next: string | null
+  loginMsg: string
+  /** 로그인 화면에서 고른 데모 종류 (목업 LOGIN_ROLE) */
+  loginRole: 'user' | 'admin'
   theme: 'light' | 'dark' | null
   showSid: boolean
   /** 페이지 화면 ID와 그 위에 열린 시트의 화면 ID */
@@ -20,6 +25,9 @@ export type SessionState = {
 export const initialSession: SessionState = {
   role: null,
   user: { nick: '읽는사람', email: 'reader@storyfork.demo', joined: '2026.10.20' },
+  next: null,
+  loginMsg: '',
+  loginRole: 'user',
   theme: null,
   showSid: true,
   screen: { base: 'U01', sheet: null },
@@ -33,6 +41,23 @@ export const sessionSlice = createSlice({
   name: 'session',
   initialState: initialSession,
   reducers: {
+    requireLogin: (s, a: PayloadAction<{ next: string; msg: string; role: 'user' | 'admin' }>) => {
+      s.next = a.payload.next
+      s.loginMsg = a.payload.msg
+      s.loginRole = a.payload.role
+    },
+    setLoginRole: (s, a: PayloadAction<'user' | 'admin'>) => { s.loginRole = a.payload },
+    login: (s, a: PayloadAction<{ email?: string }>) => {
+      s.role = s.loginRole
+      if (s.loginRole === 'user' && a.payload.email) s.user.email = a.payload.email
+      s.loginMsg = ''
+      s.next = null
+    },
+    logout: (s) => {
+      s.role = null
+      s.loginRole = 'user'
+      s.next = null
+    },
     setTheme: (s, a: PayloadAction<'light' | 'dark'>) => { s.theme = a.payload },
     toggleSid: (s) => { s.showSid = !s.showSid },
     setBaseScreen: (s, a: PayloadAction<string>) => { s.screen.base = a.payload },

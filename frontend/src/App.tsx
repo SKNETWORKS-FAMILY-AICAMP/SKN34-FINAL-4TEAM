@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 
+import { LoginPage } from './presentation/features/auth/view/LoginPage'
 import { HomePage } from './presentation/features/home/view/HomePage'
 import { CoreApiConnectionStatus } from './presentation/shared/core-api-status/CoreApiConnectionStatus'
 import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
@@ -41,6 +42,7 @@ function App() {
       <Routes>
         <Route path="/status" element={<StartPage />} />
         <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
       {pathname !== '/status' && <GlobalChrome />}
