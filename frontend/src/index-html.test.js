@@ -174,4 +174,17 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(settings).toContain('w.forkAll=st.on&&st.all')
     expect(settings).toContain('전체 회차 허용')
   })
+
+  it('shows separate policy and copyright acknowledgements for fork and import flows', () => {
+    const writing = demo.slice(demo.indexOf('function write(){'), demo.indexOf('function publishSheet(id){'))
+    expect(writing).toContain('#/writing-policy?method=fork')
+    expect(writing).toContain('#/writing-policy?method=import')
+    const policy = demo.slice(demo.indexOf('function writingPolicy(){'), demo.indexOf('function publishSheet(id){'))
+    expect(policy).toContain('원작이 허용한 공개 회차')
+    expect(policy).toContain('가져온 원고')
+    expect(policy).toContain('저작권')
+    expect(policy).toContain('writingPolicyRule')
+    expect(policy).toContain('writingPolicyRights')
+    expect(policy).toContain('required')
+  })
 })
