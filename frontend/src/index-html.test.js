@@ -85,10 +85,29 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     includes('name="novelDay"')
     includes('id="nwIrregular"')
     includes('id="nwRating"')
-    includes('name="novelTag"')
+    includes('id="nwTagSelect"')
     includes('schedule:[...NEW.schedule]')
     includes('rating:NEW.rating')
     includes("hash:NEW.tags.map(tag=>'#'+tag)")
+  })
+
+  it('supports direct and suggested tag entry, removable chips, and the two-tag minimum', () => {
+    includes('id="nwTagInput"')
+    includes('id="nwTagAdd"')
+    includes('id="nwTagSelect"')
+    includes('id="nwTagSelectAdd"')
+    includes('id="nwTagChips"')
+    includes('data-remove-tag=')
+    includes("e.key==='Enter'&&!e.isComposing")
+    includes('태그를 2개 이상 추가해 주세요')
+  })
+
+  it('organizes new story information in a responsive grid', () => {
+    includes('class="newwork-info-grid"')
+    includes('newwork-wide')
+    expect(demo).toMatch(/\.newwork-info-grid\{[^}]*grid-template-columns/)
+    expect(demo).toMatch(/\.newwork-info-grid\{[^}]*gap:/)
+    includes('@media(max-width:760px){.newwork-info-grid{grid-template-columns:minmax(0,1fr)}}')
   })
 
   it('searches works and comments and supports granular administrator permissions', () => {
