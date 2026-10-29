@@ -1,3 +1,4 @@
+import type { Draft } from '../entities/draft'
 import type { Work } from '../entities/work'
 import type { World } from '../entities/world'
 
@@ -5,6 +6,11 @@ import type { World } from '../entities/world'
 export interface WorkRepository {
   listWorks(): Promise<Work[]>
   listWorlds(): Promise<World[]>
+  /** 같은 id가 있으면 바꾸고 없으면 추가합니다. */
+  saveWork(work: Work): Promise<void>
+  /** 작성 중인 회차 초안 (키: 작품 id 또는 `${id}:ep:${n}`) */
+  getDraft(key: string): Promise<Draft | undefined>
+  saveDraft(key: string, draft: Draft): Promise<void>
 }
 
 /** 독자 한 명의 읽기 기록 */
