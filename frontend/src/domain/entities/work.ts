@@ -4,7 +4,9 @@ export type Theme = 'hanji' | 'star' | 'neon'
 
 export type Knowledge = { text: string; knownAt: number; publicAt?: number }
 export type CastMember = { n: string; c: string; d: string; st: string; knowledge?: Knowledge[] }
-export type Episode = { t: string; p: string[]; hidden?: boolean; note?: string; authorNote?: string }
+export type Episode = { t: string; p: string[]; hidden?: boolean; note?: string; authorNote?: string; ai?: boolean }
+/** 목업 autoOf(w): AI 자율 연재 데모 상태 */
+export type AutoSerial = { on: boolean; status: string; react: boolean; requireReview: boolean; log: string[]; failures?: number }
 /** [회차, 종류(m 주요·f 복선·s 설정), 내용, 관련 인물] */
 export type StoryEvent = [number, string, string, string[]]
 export type WikiDoc = { id: string; cat: string; t: string; knowledge?: Knowledge[] } & Record<string, unknown>
@@ -67,6 +69,12 @@ export type Work = {
   forkAt?: number
   snap?: Snapshot
   removedWorldDocs?: Record<string, WikiDoc[]>
+  auto?: AutoSerial
+  memo?: string
+  synopsis?: string
+  /** 서술 순서 (사건 제목) */
+  narrativeOrder?: string[]
+  settings?: { autoWorld: boolean; typoAuto: boolean }
 }
 
 export type Role = 'user' | 'admin' | null

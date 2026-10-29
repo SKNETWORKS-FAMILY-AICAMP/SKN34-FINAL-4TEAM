@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockDb, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
+import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
 const setup = () => {
   const db = createMockDb()
-  return { db, useCase: new StudioUseCase(new InMemoryWorkRepository(db)) }
+  return { db, useCase: new StudioUseCase(new InMemoryWorkRepository(db), new InMemoryCreditRepository(db), new InMemoryFeedbackRepository(db)) }
 }
 const opened = async (u: StudioUseCase, id: string, ep?: number) => {
   const s = await u.open(id, ep, 'user')
@@ -75,5 +75,23 @@ describe('StudioUseCase (목업 studio()·draftOf·pubEpSheet)', () => {
     const all = await useCase.exportText('starlight', s.key, true)
     expect(all.content.startsWith('별빛 서약의 탑\n\n1화 ')).toBe(true)
     expect(all.name).toBe('별빛 서약의 탑_전체원고.txt')
+  })
+})
+
+describe('AI 자율 연재 (목업 act==="autoGen")', () => {
+  it('데모 실패가 3번 이어지면 중단하고, 성공하면 실패 횟수를 되돌린다', async () => {
+    const { db, useCase } = setup()
+    await useCase.toggleAuto('starlight')
+    for (let i = 0; i < 3; i++) {
+      db.credits.failNext = true
+      await useCase.autoGen('starlight', () => true)
+    }
+    const w = db.works.find((x) => x.id === 'starlight')!
+    expect(w.auto).toMatchObject({ failures: 3, status: '중단됨' })
+    expect(await useCase.autoGen('starlight', () => true)).toBe('자율 연재를 다시 시작해 주세요')
+    await useCase.pauseAuto('starlight')
+    const n = db.works.find((x) => x.id === 'starlight')!.eps.length
+    expect(await useCase.autoGen('starlight', () => true)).toBe(`AI가 ${n + 1}화를 쓰고 공개했어요 (데모)`)
+    expect(db.works.find((x) => x.id === 'starlight')!.auto?.failures).toBe(0)
   })
 })

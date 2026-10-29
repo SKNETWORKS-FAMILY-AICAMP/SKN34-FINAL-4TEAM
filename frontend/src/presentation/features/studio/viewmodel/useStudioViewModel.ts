@@ -3,15 +3,16 @@ import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
-import type { StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
+import { autoOf, simTurns, type PublishSettings, type StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
+import { wikiOf } from '../../../../domain/entities/wiki'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
-import { useAiDemo } from '../../../shared/useAiDemo'
+import { confirmAi, useAiDemo } from '../../../shared/useAiDemo'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
 /** 목업 studio()·bindStudio·syncDraft·markSaving: U13 집필실 원고 화면 */
-export function useStudioViewModel(id: string, ep: number | undefined, studioUseCase: StudioUseCase = appContainer.resolve('studioUseCase')) {
+export function useStudioViewModel(id: string, ep: number | undefined, screen: string, studioUseCase: StudioUseCase = appContainer.resolve('studioUseCase')) {
   const role = useAppSelector((s) => s.session.role)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -26,7 +27,8 @@ export function useStudioViewModel(id: string, ep: number | undefined, studioUse
 
   const s = data && !('notMine' in data) ? data : null
   const d = s?.draft
-  useScreenId(data ? (!s ? 'U13' : d?.check?.issues.length ? 'U17' : d?.proposal === 'shown' ? 'U16' : 'U14') : null)
+  // screen: 원고 보기면 탭(ai·tl·note), 아니면 보기 이름의 화면 ID
+  useScreenId(data ? (!s ? 'U13' : screen !== 'ai' ? screen : d?.check?.issues.length ? 'U17' : d?.proposal === 'shown' ? 'U16' : 'U14') : null)
   const key = s?.key ?? ''
   const shown = (typed?.key === key ? typed.paras : null) ?? d?.paras ?? []
   const text = shown.join('\n\n')
@@ -93,6 +95,40 @@ export function useStudioViewModel(id: string, ep: number | undefined, studioUse
       refresh(true)
       toast(r.ok)
       navigate(r.go)
+    },
+    docs: s ? wikiOf(s.work) : [],
+    goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),
+    auto: s ? autoOf(s.work) : null,
+    saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => run(() => studioUseCase.saveNotes(id, patch)),
+    setCastStatus: (i: number, st: string) => run(() => studioUseCase.setCastStatus(id, i, st)),
+    addEvent: async () => { await run(() => studioUseCase.addEvent(id, key)); toast('이 소설에만 사건을 추가했어요') },
+    preview: async () => { await sync.current; toast(shown.length ? `${shown.length}문단 · 공개 전 미리보기는 공개 후 회차 뷰어에서 볼 수 있어요` : '아직 소설이 비어 있어요') },
+    toggleAuto: async () => {
+      if (!s?.work.auto?.on && !window.confirm('작품 소유자가 AI 자율 연재 비용을 부담합니다. 회당·월간 상한과 실제 비용은 미정이며, 이 데모는 예약 실행이나 AI 호출·차감이 없습니다. 켤까요?')) return
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.toggleAuto(id) })
+      if (msg) toast(msg)
+    },
+    pauseAuto: () => run(() => studioUseCase.pauseAuto(id)),
+    setAuto: (k: 'react' | 'requireReview', v: boolean) => run(() => studioUseCase.setAuto(id, k, v)),
+    autoGen: async () => {
+      if (d?.editingEpisode) return toast('자율 연재는 새 회차 화면에서 실행해 주세요')
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.autoGen(id, (credits) => confirmAi('AI 자율 연재', 5, credits)) }, true)
+      if (msg) toast(msg)
+    },
+    simTurns: (picked: string[]) => (s ? simTurns(s.work, picked) : []),
+    runSim: () => aiDemo('인물 시뮬레이션', 30),
+    takeSim: async (situation: string, picked: string[], turns: number) => {
+      await run(() => studioUseCase.takeSim(id, key, situation, picked, turns))
+      toast('시뮬레이션 결과를 집필실로 가져왔어요')
+    },
+    savePublishSettings: async (st: PublishSettings) => {
+      const r = await studioUseCase.savePublishSettings(id, st)
+      if ('error' in r) { toast(r.error); return false }
+      refresh()
+      toast(r.ok)
+      return true
     },
     download: async (all: boolean) => {
       await sync.current

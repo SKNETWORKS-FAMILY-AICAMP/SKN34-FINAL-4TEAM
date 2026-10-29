@@ -2,3 +2,4 @@
 export const toast = (message: string) => window.dispatchEvent(new CustomEvent('sf-toast', { detail: message }))
 export const showRouteProgress = () => window.dispatchEvent(new Event('sf-progress'))
 export const openQuick = () => window.dispatchEvent(new Event('sf-quick'))
+export const openPolicy = () => window.dispatchEvent(new Event('sf-policy'))

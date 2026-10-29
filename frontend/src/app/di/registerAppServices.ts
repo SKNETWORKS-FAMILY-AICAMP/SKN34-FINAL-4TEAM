@@ -33,7 +33,7 @@ export function registerAppServices(container: AppContainer) {
     readingUseCase: asFunction(({ workRepository, readingRepository }) => new ReadingUseCase(workRepository, readingRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository }) => new FeedbackUseCase(workRepository, feedbackRepository)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
-    studioUseCase: asFunction(({ workRepository }) => new StudioUseCase(workRepository)).singleton(),
+    studioUseCase: asFunction(({ workRepository, creditRepository, feedbackRepository }) => new StudioUseCase(workRepository, creditRepository, feedbackRepository)).singleton(),
     shellUseCase: asFunction(({ notificationRepository }) => new ShellUseCase(notificationRepository)).singleton(),
   })
 }

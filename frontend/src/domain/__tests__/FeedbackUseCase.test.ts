@@ -14,6 +14,7 @@ function fakes() {
   const feedbackRepository: FeedbackRepository = {
     listComments: async (theme, key) => [...(SEED_COMMENTS[theme] ?? []), ...(db.comments[key] ?? [])],
     addComment: async (key, c) => { (db.comments[key] ??= []).push(c) },
+    countComments: async () => 0,
     listCommentLikes: async () => db.cmLiked,
     toggleCommentLike: async (key) => { db.cmLiked[key] = !db.cmLiked[key] },
     listReports: async () => db.reports,

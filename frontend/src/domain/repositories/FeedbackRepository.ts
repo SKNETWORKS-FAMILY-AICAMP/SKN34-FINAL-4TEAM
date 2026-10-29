@@ -6,6 +6,8 @@ export interface FeedbackRepository {
   /** 테마별 예시 댓글(목업 SEED) 뒤에 이 회차 댓글을 붙여 돌려줍니다. */
   listComments(theme: Theme, key: string): Promise<Comment[]>
   addComment(key: string, comment: Comment): Promise<void>
+  /** 키가 prefix로 시작하는 회차에 독자가 단 댓글 수 (예시 댓글 제외) */
+  countComments(prefix: string): Promise<number>
   listCommentLikes(): Promise<Record<string, boolean>>
   toggleCommentLike(key: string): Promise<void>
   listReports(): Promise<ReaderReport[]>

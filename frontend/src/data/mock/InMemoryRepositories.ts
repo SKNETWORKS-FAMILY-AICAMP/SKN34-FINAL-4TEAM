@@ -77,6 +77,7 @@ export class InMemoryFeedbackRepository implements FeedbackRepository {
   constructor(db: MockDb) { this.db = db }
   listComments(theme: Theme, key: string) { return copy([...(SEED_COMMENTS[theme] ?? []), ...(this.db.comments[key] ?? [])]) }
   async addComment(key: string, comment: Comment) { (this.db.comments[key] ??= []).push(structuredClone(comment)) }
+  async countComments(prefix: string) { return Object.entries(this.db.comments).filter(([k]) => k.startsWith(prefix)).reduce((a, [, v]) => a + v.length, 0) }
   listCommentLikes() { return copy(this.db.cmLiked) }
   async toggleCommentLike(key: string) { this.db.cmLiked[key] = !this.db.cmLiked[key] }
   listReports() { return copy(this.db.reports) }
