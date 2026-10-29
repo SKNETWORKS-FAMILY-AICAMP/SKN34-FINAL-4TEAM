@@ -397,6 +397,107 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(demo).not.toContain('data-go="#/worlds"')
   })
 
+  it('opens a published episode as a separate manuscript revision draft', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+        window.HTMLElement.prototype.scrollIntoView = () => {}
+        window.confirm = () => true
+        Object.defineProperty(window.HTMLElement.prototype, 'innerText', { configurable: true, get() { return this.textContent } })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'user'
+    window.location.hash = '#/studio/starlight'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+
+    const original = window.__SF.W.starlight.eps[0].p.slice()
+    const episode = [...window.document.querySelectorAll('.seps button')].find(button => button.textContent.trim().startsWith('1화 '))
+    expect(episode).toBeTruthy()
+    episode.click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+
+    expect(window.location.hash).toBe('#/studio/starlight?ep=1')
+    expect(window.document.querySelector('#et').value).toBe(window.__SF.W.starlight.eps[0].t)
+    expect(window.document.querySelector('#eb').textContent).toContain(original[0])
+    window.document.querySelector('[data-act="autoToggle"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    expect(window.document.querySelector('#autoGen').disabled).toBe(true)
+    window.document.querySelector('#eb').innerHTML = '<p>수정 초안</p>'
+    window.document.querySelector('#eb').dispatchEvent(new window.Event('input', { bubbles: true }))
+    expect(window.__SF.W.starlight.eps[0].p).toEqual(original)
+    expect(window.__SF.S.draft['starlight:ep:1'].paras).toEqual(['수정 초안'])
+    window.document.querySelector('[data-act="pubep"]').click()
+    await new Promise(resolve => window.setTimeout(resolve, 0))
+    window.document.querySelector('#doPub').click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    expect(window.__SF.W.starlight.eps[0].p).toEqual(['수정 초안'])
+    window.close()
+  })
+
+  it('keeps AI proposals beside the manuscript and inserts them only after approval', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+        window.HTMLElement.prototype.scrollIntoView = () => {}
+        window.confirm = () => true
+        Object.defineProperty(window.HTMLElement.prototype, 'innerText', { configurable: true, get() { return this.textContent } })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'user'
+    window.location.hash = '#/studio/starlight'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+
+    const original = window.__SF.W.starlight.eps[0].p.slice()
+    const request = '장면의 긴장감을 높여 이어 써 주세요.'
+    const prompt = window.document.querySelector('#aiPrompt')
+    expect(prompt).toBeTruthy()
+    prompt.value = request
+    window.document.querySelector('#btnProp').click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+
+    expect(window.document.querySelector('.ai-context').textContent).toContain('현재 회차')
+    expect(window.document.querySelector('#aiprev').textContent).toContain(request)
+    expect(window.document.querySelector('#eb').textContent).toBe('')
+    window.document.querySelector('#acceptAI').click()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    expect(window.document.querySelector('#eb').textContent).not.toBe('')
+    expect(window.__SF.W.starlight.eps[0].p).toEqual(original)
+    window.close()
+  })
+
+  it('lists published episode revision drafts in storage', async () => {
+    const dom = new JSDOM(demo, {
+      runScripts: 'dangerously',
+      url: 'https://storyfork.test/#/home',
+      beforeParse(window) {
+        window.scrollTo = () => {}
+        window.matchMedia = () => ({ matches: false })
+        Object.defineProperty(window.HTMLElement.prototype, 'innerText', { configurable: true, get() { return this.textContent } })
+      },
+    })
+    const { window } = dom
+    window.__SF.S.role = 'user'
+    window.location.hash = '#/studio/starlight'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.location.hash = '#/studio/starlight?ep=1'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+    window.document.querySelector('#eb').innerHTML = '<p>수정 초안</p>'
+    window.document.querySelector('#eb').dispatchEvent(new window.Event('input', { bubbles: true }))
+    window.location.hash = '#/me/storage'
+    await new Promise(resolve => window.setTimeout(resolve, 220))
+
+    expect(window.document.querySelector('.mec').textContent).toContain('1화 수정 초안')
+    window.close()
+  })
+
   it('logs the demo account out from the profile menu', async () => {
     const dom = new JSDOM(demo, {
       runScripts: 'dangerously',
