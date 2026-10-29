@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { useAppSelector } from '../../../app/store'
+import { openQuick } from '../events'
 import { Go } from '../Go'
 import { AccountMenu } from './AccountMenu'
 import { useGnbViewModel } from './useGnbViewModel'
@@ -22,7 +23,7 @@ export function Gnb({ on = '' }: { on?: string }) {
             </Go>
           ))}
         </nav>
-        <button type="button" className="search" aria-label="소설·인물·회차 검색">🔍 소설·인물·회차 검색<kbd>Ctrl K</kbd></button>
+        <button type="button" className="search" aria-label="소설·인물·회차 검색" onClick={openQuick}>🔍 소설·인물·회차 검색<kbd>Ctrl K</kbd></button>
         <Go to="/notifications" className="btn sm" aria-label={`알림함${unread ? `, 읽지 않은 알림 ${unread}건` : ''}`}>
           알림{unread > 0 && <> <span className="nb">{unread}</span></>}
         </Go>

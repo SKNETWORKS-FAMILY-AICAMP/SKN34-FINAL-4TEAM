@@ -20,4 +20,5 @@ export type ReadingProgress = {
 export interface ReadingRepository {
   getProgress(): Promise<ReadingProgress>
   markSeen(workId: string): Promise<void>
+  saveProgress(progress: ReadingProgress): Promise<void>
 }

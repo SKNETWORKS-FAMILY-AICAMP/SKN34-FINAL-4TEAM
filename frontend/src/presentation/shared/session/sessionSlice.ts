@@ -3,6 +3,8 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { Role } from '../../../domain/entities/work'
 
 /** 화면 사이에서 유지하는 세션·보기 상태 (목업 S의 화면 상태 부분). 업무 데이터는 Repository에 둡니다. */
+export type Look = 'auto' | 'world' | 'ivory' | 'white' | 'night'
+
 export type SessionState = {
   role: Role
   user: { nick: string; email: string; joined: string }
@@ -16,6 +18,11 @@ export type SessionState = {
   /** 페이지 화면 ID와 그 위에 열린 시트의 화면 ID */
   screen: { base: string; sheet: string | null }
   chip: string
+  /** 회차 뷰어 보기 설정 (목업 S.look·S.fs·S.motion)과 상세 회차 정렬 (S.epSort) */
+  look: Look
+  fs: number
+  motion: boolean
+  epSort: 'old' | 'new'
   guide: boolean
   firstHome: boolean
   /** Repository 데이터가 바뀔 때마다 올려 화면 조회를 다시 실행합니다 (목업의 render() 재호출). */
@@ -32,6 +39,10 @@ export const initialSession: SessionState = {
   showSid: true,
   screen: { base: 'U01', sheet: null },
   chip: '추천',
+  look: 'auto',
+  fs: 19,
+  motion: true,
+  epSort: 'old',
   guide: true,
   firstHome: true,
   dataVersion: 0,
@@ -61,6 +72,11 @@ export const sessionSlice = createSlice({
     setTheme: (s, a: PayloadAction<'light' | 'dark'>) => { s.theme = a.payload },
     toggleSid: (s) => { s.showSid = !s.showSid },
     setBaseScreen: (s, a: PayloadAction<string>) => { s.screen.base = a.payload },
+    setSheetScreen: (s, a: PayloadAction<string | null>) => { s.screen.sheet = a.payload },
+    setLook: (s, a: PayloadAction<Look>) => { s.look = a.payload },
+    changeFs: (s, a: PayloadAction<number>) => { s.fs = Math.max(15, Math.min(24, s.fs + a.payload)) },
+    setMotion: (s, a: PayloadAction<boolean>) => { s.motion = a.payload },
+    setEpSort: (s, a: PayloadAction<'old' | 'new'>) => { s.epSort = a.payload },
     setChip: (s, a: PayloadAction<string>) => { s.chip = a.payload },
     closeGuide: (s) => { s.guide = false },
     homeVisited: (s) => { s.firstHome = false },

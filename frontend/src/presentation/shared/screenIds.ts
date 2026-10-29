@@ -22,8 +22,8 @@ export const SID: Record<string, string> = {
 
 export const screenLabel = (id: string) => id.split('+').map((x) => x + ' ' + SID[x]).join('  ·  ')
 
-/** 페이지가 렌더링될 때 화면 ID를 기록합니다 (목업 baseId·setId). */
-export function useScreenId(id: string) {
+/** 페이지가 렌더링될 때 화면 ID를 기록합니다 (목업 baseId·setId). null이면 이전 ID를 둡니다. */
+export function useScreenId(id: string | null) {
   const dispatch = useAppDispatch()
-  useEffect(() => { dispatch(sessionActions.setBaseScreen(id)) }, [dispatch, id])
+  useEffect(() => { if (id) dispatch(sessionActions.setBaseScreen(id)) }, [dispatch, id])
 }
