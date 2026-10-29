@@ -155,6 +155,8 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     const reader = demo.slice(demo.indexOf('function reader(id,n){'), demo.indexOf('function bindReader(id,n){'))
     expect(reader).toContain('e.authorNote')
     expect(reader.indexOf('e.authorNote')).toBeGreaterThan(reader.indexOf('const body='))
+    const autoPublish = demo.slice(demo.indexOf('function autoGen(id){'), demo.indexOf('function ownedWorld('))
+    expect(autoPublish).toContain('authorNote:d.authorNote')
     includes('작가의 말')
   })
 
