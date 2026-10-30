@@ -150,9 +150,9 @@ export class ReadingUseCase {
     // 목업은 모든 작품에서 넣지만, 비공개 인물이 보이지 않도록 내 작품 집필실에서만 넣습니다.
     const sw = studio && role === 'user' && works.find((w) => w.id === studio.id && isMine(w))
     if (sw) {
-      const at = (tab: string) => `/studio/${sw.id}?tab=${tab}${studio.ep ? `&ep=${studio.ep}` : ''}`
-      items.push({ k: '이동', label: 'AI 도움 탭', sub: '집필실', go: at('ai') }, { k: '이동', label: '타임라인 탭', sub: '집필실', go: at('tl') }, { k: '이동', label: '설정 노트 탭', sub: '집필실', go: at('note') })
-      for (const c of baseOf(sw).cast) items.push({ k: '인물', label: c.n, sub: '설정 노트에서 보기', go: at('note') })
+      const at = (target: string) => `/studio/${sw.id}?${target}${studio.ep ? `&ep=${studio.ep}` : ''}`
+      items.push({ k: '이동', label: 'AI 채팅', sub: '집필실', go: at('panel=chat') }, { k: '이동', label: '플롯', sub: '집필실', go: at('view=narrative') }, { k: '이동', label: '집필 설정', sub: '집필실', go: at('panel=settings') })
+      for (const c of baseOf(sw).cast) items.push({ k: '인물', label: c.n, sub: '사전에서 보기', go: at(`view=wiki&q=${encodeURIComponent(c.n)}`) })
     }
     for (const w of works.filter(isPub)) {
       items.push({ k: '소설', w, label: w.title, sub: `${w.author} · ${w.genre}`, go: `/work/${w.id}` })
