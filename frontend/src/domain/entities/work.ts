@@ -75,6 +75,8 @@ export type Work = {
   /** 서술 순서 (사건 제목) */
   narrativeOrder?: string[]
   settings?: { autoWorld: boolean; typoAuto: boolean }
+  /** 목업 worldCandidate: 설정 추출 후 검토 대기 후보 */
+  worldCandidate?: { text: string; source: string; ep: number }
 }
 
 export type Role = 'user' | 'admin' | null

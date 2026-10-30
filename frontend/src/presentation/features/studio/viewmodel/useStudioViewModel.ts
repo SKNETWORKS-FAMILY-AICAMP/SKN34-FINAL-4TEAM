@@ -17,8 +17,10 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const aiDemo = useAiDemo()
-  const { data } = useAsyncData(() => studioUseCase.open(id, ep, role), [studioUseCase, id, ep, role])
+  // 목업 render(): 탭(screen)을 바꾸면 저장 중인 입력을 기다렸다가 초안(연결·AI 요청)을 다시 불러옵니다.
+  const { data } = useAsyncData(() => sync.current.then(() => studioUseCase.open(id, ep, role)), [studioUseCase, id, ep, role, screen])
   const [typed, setTyped] = useState<{ key: string; paras: string[] } | null>(null)
+  const [prompt, setPrompt] = useState<{ key: string; v: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const sync = useRef<Promise<unknown>>(Promise.resolve())
@@ -42,11 +44,14 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     await fn()
     refresh(redraw)
   }
-  const edit = (patch: Parameters<StudioUseCase['edit']>[1]) => {
-    if (patch.paras) setTyped({ key, paras: patch.paras })
+  const flash = () => {
     setSaving(true)
     window.clearTimeout(savedTimer.current)
     savedTimer.current = window.setTimeout(() => setSaving(false), 600)
+  }
+  const edit = (patch: Parameters<StudioUseCase['edit']>[1]) => {
+    if (patch.paras) setTyped({ key, paras: patch.paras })
+    flash()
     sync.current = sync.current.then(() => studioUseCase.edit(key, patch))
   }
 
@@ -56,6 +61,10 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     readOnly: !!d?.locked,
     wordCount: `공백 포함 ${Array.from(text).length.toLocaleString('ko-KR')}자 · 공백 제외 ${Array.from(text.replace(/\s/g, '')).length.toLocaleString('ko-KR')}자`,
     edit,
+    // 목업 syncDraft: 입력 직후에도 지난 설정 검사를 무효로 보여 주고, AI 요청 문구는 초안에 남겨 탭을 바꿔도 유지합니다.
+    checkStale: !!d?.check && (d.check.stale || (typed?.key === key && JSON.stringify(typed.paras) !== JSON.stringify(d.paras))),
+    prompt: (prompt?.key === key ? prompt.v : null) ?? d?.aiPrompt ?? '',
+    setPrompt: (v: string) => { setPrompt({ key, v }); edit({ aiPrompt: v }) },
     propose: async (prompt: string) => {
       if (d?.locked) return toast('원작 스냅샷은 수정할 수 없어요')
       if (!await aiDemo('장면 이어쓰기', 5)) return
@@ -99,8 +108,31 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     docs: s ? wikiOf(s.work) : [],
     goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),
     auto: s ? autoOf(s.work) : null,
-    saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => run(() => studioUseCase.saveNotes(id, patch)),
-    setCastStatus: (i: number, st: string) => run(() => studioUseCase.setCastStatus(id, i, st)),
+    saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => { flash(); return run(() => studioUseCase.saveNotes(id, patch)) },
+    setCastStatus: async (i: number, st: string) => {
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.setCastStatus(id, i, st) })
+      if (msg) toast(msg)
+    },
+    /** 목업 data-work-setting: 결과가 없으면(취소) 화면이 체크를 되돌리도록 다시 불러옵니다. */
+    setSetting: async (k: 'autoWorld' | 'typoAuto', on: boolean) => {
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.setSetting(id, k, on, (credits) => confirmAi('세계관 자동 업데이트 설정 · 회당 예시 5', 0, credits)) })
+      if (msg) toast(msg)
+    },
+    extractWorld: async (n: number) => {
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.extractWorld(id, n, (credits) => confirmAi('세계관 설정 추출', 5, credits)) })
+      if (msg) toast(msg)
+    },
+    acceptWorld: async () => { let msg = ''; await run(async () => { msg = await studioUseCase.acceptWorld(id) }); toast(msg) },
+    discardWorld: async () => { let msg: string | null = null; await run(async () => { msg = await studioUseCase.discardWorld(id) }); if (msg) toast(msg) },
+    setRelease: async (kind: 'rule' | 'event' | 'cast', i: number, value: string) => {
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.setRelease(id, kind, i, value) })
+      if (msg) toast(msg)
+      return msg
+    },
     addEvent: async () => { await run(() => studioUseCase.addEvent(id, key)); toast('이 소설에만 사건을 추가했어요') },
     preview: async () => { await sync.current; toast(shown.length ? `${shown.length}문단 · 공개 전 미리보기는 공개 후 회차 뷰어에서 볼 수 있어요` : '아직 소설이 비어 있어요') },
     toggleAuto: async () => {

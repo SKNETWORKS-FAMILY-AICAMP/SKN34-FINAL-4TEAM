@@ -16,6 +16,8 @@ const PT: Record<string, Pt> = {
  '홍 판서':{bg:['#EAE3D6','#A99780'],skin:'#E8C3A2',hair:'topknot',hc:'#2A2522',out:'dopo',oc:'#2F3A55',oc2:'#E8E4DA',hat:'gat',beard:'goatee',age:'o'}
 };
 /** 목업 portrait(name, size): 인물 초상 SVG 문자열 (목업 코드 그대로) */
+export const hasPortrait = (name: string) => name in PT
+
 export function portraitSvg(name: string, size?: number) {
  const p=PT[name];const s=size||40;const id='pt'+[...name].reduce((a,c)=>a+c.charCodeAt(0),0)+'_'+s;
  if(!p)return `<svg viewBox="0 0 100 100" width="${s}" height="${s}" aria-hidden="true"><defs><radialGradient id="${id}" cx="50%" cy="35%" r="75%"><stop offset="0" stop-color="#C9CAD3"/><stop offset="1" stop-color="#8C8E97"/></radialGradient></defs><circle cx="50" cy="50" r="50" fill="url(#${id})"/><circle cx="50" cy="44" r="17" fill="#6B6F78"/><path d="M14 100c4-22 18-30 36-30s32 8 36 30z" fill="#6B6F78"/><text x="50" y="52" text-anchor="middle" font-size="22" font-weight="800" fill="#ECECF1">?</text></svg>`;

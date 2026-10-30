@@ -4,7 +4,9 @@ import { useSearchParams } from 'react-router'
 import { checkItems, LINE, mentions, narrativeOrder, propsAt, WCATS, type Doc } from '../../../../domain/entities/wiki'
 import { epsOf } from '../../../../domain/entities/work'
 import { CoverOf } from '../../../shared/art'
+import { toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
+import { resizeImg } from '../../../shared/resizeImg'
 import type { useStudioViewModel } from '../viewmodel/useStudioViewModel'
 
 type VM = ReturnType<typeof useStudioViewModel>
@@ -54,7 +56,7 @@ export function NarrativeView({ vm }: { vm: VM }) {
   )
 }
 
-/** 목업 overviewView(w). ponytail: 표지 이미지 바꾸기·지우기는 옮기지 않았어요(저장 구조 미정). */
+/** 목업 overviewView(w) */
 export function OverviewView({ vm }: { vm: VM }) {
   const w = vm.studio!.work
   const evs = vm.docs.filter((d) => d.cat === 'event')
@@ -62,9 +64,9 @@ export function OverviewView({ vm }: { vm: VM }) {
   const und = evs.filter((e) => !e.ep)
   return (
     <div className="ovw">
-      <div className="ovtop"><div className="ovcov"><CoverOf w={w} /></div><div><span className="chip">{w.genre}</span>
+      <div className="ovtop"><label className="ovcov"><CoverOf w={w} /><span>표지 바꾸기</span><input type="file" accept="image/*" hidden onChange={(e) => resizeImg(e.target.files?.[0], async (url) => { await vm.saveNotes({ coverImg: url }); toast('표지 이미지를 바꿨어요') })} /></label><div><span className="chip">{w.genre}</span>
         <h2 contentEditable suppressContentEditableWarning spellCheck={false} aria-label="한 줄 소개" onBlur={(e) => vm.saveNotes({ hook: (e.currentTarget.textContent ?? '').trim() })}>{w.hook || w.dir || ''}</h2>
-        <p className="muted small">한 줄 소개 · 눌러서 고칠 수 있어요</p><p className="note2">표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.</p></div></div>
+        <p className="muted small">한 줄 소개 · 눌러서 고칠 수 있어요</p>{w.coverImg ? <button type="button" className="btn sm" onClick={async () => { await vm.saveNotes({ coverImg: null }); toast('표지 이미지를 지웠어요') }}>표지 이미지 지우기</button> : <p className="note2">표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.</p>}</div></div>
       <h3 className="st">시놉시스</h3>
       <div className="wtext ovsyn" contentEditable suppressContentEditableWarning role="textbox" aria-label="시놉시스" data-ph="전체 줄거리를 적어 보세요." onBlur={(e) => vm.saveNotes({ synopsis: (e.currentTarget.textContent ?? '').trim() })}>{w.synopsis || w.summary || ''}</div>
       <h3 className="st">스토리 흐름 <small className="muted">보드에서 자동 정리</small></h3>

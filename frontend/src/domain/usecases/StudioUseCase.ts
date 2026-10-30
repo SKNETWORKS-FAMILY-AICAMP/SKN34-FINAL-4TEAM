@@ -1,8 +1,10 @@
 import { draftKey, episodeDraft, newEpisodeDraft, type Draft } from '../entities/draft'
 import { baseOf, epsOf, forkLabel, isMine, type AutoSerial, type CastMember, type Role, type Work } from '../entities/work'
+import { worldVersion } from '../entities/world'
 import type { CreditRepository } from '../repositories/CreditRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import type { WorkRepository } from '../repositories/WorkRepository'
+import type { WorldRepository } from '../repositories/WorldRepository'
 import { AI_FAIL_MSG, AI_SHORT_MSG, CreditUseCase } from './CreditUseCase'
 
 const PROPOSAL_GUUNMONG = ['선방으로 돌아온 성진은 곧장 대사의 방 앞에 무릎을 꿇었다.', '“스승님, 오늘 돌다리에서 제 마음이 흔들렸습니다.”', '육관대사는 한참 말이 없다가 문을 열었다. “흔들린 것을 숨기지 않았으니, 아직 길을 잃은 것은 아니구나.”', '그날 밤 성진은 몰래 산을 내려가 장안의 저잣거리를 걸었다.']
@@ -55,10 +57,12 @@ export class StudioUseCase {
   private readonly workRepository: WorkRepository
   private readonly creditRepository: CreditRepository
   private readonly feedbackRepository: FeedbackRepository
-  constructor(workRepository: WorkRepository, creditRepository: CreditRepository, feedbackRepository: FeedbackRepository) {
+  private readonly worldRepository: WorldRepository
+  constructor(workRepository: WorkRepository, creditRepository: CreditRepository, feedbackRepository: FeedbackRepository, worldRepository: WorldRepository) {
     this.workRepository = workRepository
     this.creditRepository = creditRepository
     this.feedbackRepository = feedbackRepository
+    this.worldRepository = worldRepository
   }
 
   /** 내 작품만 고치고 저장합니다. change가 문자열을 돌려주면 그대로 전달합니다. */
@@ -71,6 +75,80 @@ export class StudioUseCase {
   }
 
   private async work(id: string) { return (await this.workRepository.listWorks()).find((w) => w.id === id) }
+
+  /** 목업 ownedWorld(): 작품에 연결한 내 세계관 */
+  private async ownedWorld(w: Work) { return (await this.worldRepository.list()).find((x) => !x.owner && (w.worldIds ?? []).includes(x.id)) }
+
+  /** 목업 worldExtract(w, number, automatic): 자동이면 바로 세계관에 넣고, 아니면 후보로 둡니다. 저장은 부른 쪽이 합니다. */
+  private async worldExtract(w: Work, n: number, approve: (credits: number) => boolean, automatic: boolean): Promise<string | null> {
+    const world = await this.ownedWorld(w), ep = w.eps[n - 1]
+    if (!world || !ep?.p.length) return '작가 소유 세계관과 발행된 회차가 필요해요'
+    const r = await new CreditUseCase(this.creditRepository).spend('세계관 설정 추출', 5, approve)
+    if (r !== 'ok') return r === 'fail' ? AI_FAIL_MSG : r === 'short' ? AI_SHORT_MSG : null
+    const candidate = { text: ep.p[0].slice(0, 200), source: w.title, ep: n }
+    if (!automatic) { w.worldCandidate = candidate; return '' }
+    ;(world.facts ??= []).push(candidate)
+    worldVersion(world)
+    await this.worldRepository.save(world)
+    return ''
+  }
+
+  /** 발행 뒤 autoWorld가 켜져 있으면 세계관을 업데이트하고 성공 여부를 돌려줍니다. */
+  private async autoWorld(w: Work, n: number) { return !w.settings?.autoWorld || await this.worldExtract(w, n, () => true, true) === '' }
+
+  /** 목업 data-work-setting: 세계관 자동 업데이트를 켤 때만 세계관과 확인이 필요합니다. 취소하면 null */
+  async setSetting(id: string, key: 'autoWorld' | 'typoAuto', on: boolean, approve: (credits: number) => boolean): Promise<string | null> {
+    const w = await this.work(id)
+    if (!w || !isMine(w)) return null
+    if (key === 'autoWorld' && on) {
+      if (!await this.ownedWorld(w)) return '작가 소유 세계관이 필요해요'
+      const r = await new CreditUseCase(this.creditRepository).spend('세계관 자동 업데이트 설정 · 회당 예시 5', 0, approve)
+      if (r !== 'ok') return r === 'fail' ? AI_FAIL_MSG : null
+    }
+    ;(w.settings ??= { autoWorld: false, typoAuto: false })[key] = on
+    await this.workRepository.saveWork(w)
+    return '작품 설정을 변경했어요 (데모)'
+  }
+
+  /** 목업 act==='extractWorld' */
+  async extractWorld(id: string, n: number, approve: (credits: number) => boolean) {
+    const w = await this.work(id)
+    if (!w || !isMine(w)) return null
+    const r = await this.worldExtract(w, n, approve, false)
+    if (r !== '') return r
+    await this.workRepository.saveWork(w)
+    return '설정 후보를 확인해 주세요 (데모)'
+  }
+
+  /** 목업 act==='acceptWorld' */
+  async acceptWorld(id: string) {
+    const w = await this.work(id)
+    const world = w && isMine(w) ? await this.ownedWorld(w) : undefined
+    if (!w || !world || !w.worldCandidate) return '작가 소유 세계관이 필요해요'
+    ;(world.facts ??= []).push(w.worldCandidate)
+    worldVersion(world)
+    delete w.worldCandidate
+    await this.worldRepository.save(world)
+    await this.workRepository.saveWork(w)
+    return '채택한 후보를 세계관에 반영했어요 (데모)'
+  }
+
+  /** 목업 act==='discardWorld' */
+  discardWorld(id: string) { return this.change(id, (w) => { delete w.worldCandidate; return '후보를 제외했어요' }) }
+
+  /** 목업 data-rule-release·data-event-release·data-cast-release: 비우거나 1 미만이면 비공개(Infinity) */
+  setRelease(id: string, kind: 'rule' | 'event' | 'cast', i: number, value: string) {
+    return this.change(id, (w) => {
+      const b = baseOf(w)
+      const name = kind === 'rule' ? b.rules[i] : kind === 'event' ? b.events.concat(w.ownEvents ?? [])[i]?.[2] : b.cast[i]?.n
+      if (name === undefined) return null
+      const map = kind === 'rule' ? (w.ruleFrom ??= {}) : kind === 'event' ? (w.eventFrom ??= {}) : (w.castFrom ??= {})
+      const n = Number(value)
+      const bad = !!value && (!Number.isInteger(n) || n < 1)
+      map[name] = value && !bad ? n : Infinity
+      return bad ? '1 이상의 회차를 입력해 주세요' : `이 작품의 ${{ rule: '독자', event: '사건', cast: '인물' }[kind]} 공개 회차를 변경했어요 (데모)`
+    })
+  }
 
   private async draftOf(w: Work, episode?: number) {
     const key = draftKey(w.id, episode)
@@ -91,7 +169,8 @@ export class StudioUseCase {
     if (role !== 'user' || !isMine(w)) return { notMine: true as const, work: w }
     const { key, draft } = await this.draftOf(w, episode)
     const current = (await this.draftOf(w)).draft
-    return { work: w, eps: epsOf(w), base: baseOf(w), key, draft, current, proposal: propOf(w) }
+    const parentCast = w.parent ? (await this.work(w.parent))?.cast : undefined
+    return { work: w, eps: epsOf(w), base: baseOf(w), key, draft, current, proposal: propOf(w), parentCast }
   }
 
   private async update(key: string, change: (d: Draft) => void) {
@@ -103,7 +182,7 @@ export class StudioUseCase {
   }
 
   /** 목업 syncDraft(): 원고가 바뀌면 지난 설정 검사를 무효로 표시합니다. */
-  edit(key: string, patch: Partial<Pick<Draft, 'title' | 'paras' | 'authorNote' | 'aiPrompt'>>) {
+  edit(key: string, patch: Partial<Pick<Draft, 'title' | 'paras' | 'authorNote' | 'aiPrompt' | 'links'>>) {
     return this.update(key, (d) => {
       if (d.locked) return
       if (patch.paras && d.check && JSON.stringify(patch.paras) !== JSON.stringify(d.paras)) d.check.stale = true
@@ -156,19 +235,21 @@ export class StudioUseCase {
       const ep = w.eps[d.editingEpisode - (w.parent ? (w.forkAt ?? 0) : 0) - 1]
       if (!ep || ep.t !== d.baseTitle || JSON.stringify(ep.p) !== JSON.stringify(d.baseParas)) return { error: '공개 원고가 바뀌었어요. 최신 원고를 다시 열어 수정해 주세요' }
       Object.assign(ep, { t, p: d.paras.slice(), authorNote: d.authorNote.trim() })
+      const worldUpdated = await this.autoWorld(w, d.no)
       events.push([d.no, 'm', t + ' 수정 발행', lead])
       w.upd = 0
       await this.workRepository.saveWork(w)
       await this.workRepository.deleteDraft(key)
-      return { ok: `${d.no}화 수정안을 발행했어요 (데모)`, go: `/studio/${id}?ep=${d.no}` }
+      return { ok: worldUpdated ? `${d.no}화 수정안을 발행했어요 (데모)` : `${d.no}화 수정안은 발행됐지만 세계관 업데이트에 실패했어요`, go: `/studio/${id}?ep=${d.no}` }
     }
     w.eps.push({ t, p: d.paras.slice(), authorNote: d.authorNote.trim() })
+    const worldUpdated = await this.autoWorld(w, w.eps.length)
     events.push([d.no, 'm', t + ' 공개', lead])
     w.upd = 0
     w.views = w.views || 1
     await this.workRepository.saveWork(w)
     await this.workRepository.deleteDraft(key)
-    return { ok: w.private ? `${d.no}화를 발행했어요 · 작품은 비공개예요` : `${d.no}화를 공개했어요`, go: `/work/${id}` }
+    return { ok: !worldUpdated ? `${d.no}화는 발행됐지만 세계관 업데이트에 실패했어요` : w.private ? `${d.no}화를 발행했어요 · 작품은 비공개예요` : `${d.no}화를 공개했어요`, go: `/work/${id}` }
   }
 
   /** 목업 data-episode-visibility: index는 내가 쓴 회차(w.eps) 기준 */
@@ -195,10 +276,17 @@ export class StudioUseCase {
   }
 
   /** 목업 workMemo·data-ov·data-cast·data-narrative: 메모·한 줄 소개·시놉시스·서술 순서 */
-  saveNotes(id: string, patch: Partial<Pick<Work, 'memo' | 'hook' | 'synopsis' | 'narrativeOrder'>>) { return this.change(id, (w) => { Object.assign(w, patch) }) }
+  saveNotes(id: string, patch: Partial<Pick<Work, 'memo' | 'hook' | 'synopsis' | 'narrativeOrder' | 'coverImg'>>) { return this.change(id, (w) => { Object.assign(w, patch) }) }
 
   /** 목업 data-cast: 포크는 자기 스냅샷의 인물 상태만 바꿉니다. */
-  setCastStatus(id: string, i: number, st: string) { return this.change(id, (w) => { const c = baseOf(w).cast[i]; if (c) c.st = st }) }
+  setCastStatus(id: string, i: number, st: string) {
+    return this.change(id, (w) => {
+      const c = baseOf(w).cast[i]
+      if (!c) return null
+      c.st = st
+      return w.parent ? `이 소설에서만 ${c.n} 상태를 ‘${st}’로 바꿨어요 (원작 그대로)` : '원작 설정을 바꿨어요'
+    })
+  }
 
   /** 목업 act==='addev' */
   async addEvent(id: string, key: string) {
@@ -260,12 +348,12 @@ export class StudioUseCase {
     }
     const cms = await this.feedbackRepository.countComments(id)
     w.eps.push({ t: d.title, p: d.paras.slice(), authorNote: d.authorNote.trim(), ai: true })
+    const worldUpdated = await this.autoWorld(w, w.eps.length)
     ;(w.ownEvents ??= []).push([d.no, 'm', d.title + ' (AI 자율 연재)', [baseOf(w).cast[0]?.n ?? '']])
     A.log.push(`· ${d.no}화 자동 공개 (독자 반응 ${A.react ? cms + '건 반영' : '미반영'})`)
     await this.workRepository.saveWork(w)
     await this.workRepository.deleteDraft(key)
-    // ponytail: 작품 설정의 '세계관 자동 업데이트'(worldExtract)는 옮기지 않았어요. 설정 탭에 그 선택지가 생기면 여기서 실행해요.
-    return `AI가 ${w.eps.length}화를 쓰고 공개했어요 (데모)`
+    return !worldUpdated ? '회차는 발행됐지만 세계관 업데이트에 실패했어요' : `AI가 ${w.eps.length}화를 쓰고 공개했어요 (데모)`
   }
 
   /** 목업 publishSheet() #savepub: U21 공개 범위·회차별 포크 허용·권리 확인 */
