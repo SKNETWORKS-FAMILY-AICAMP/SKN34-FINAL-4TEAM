@@ -16,6 +16,9 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
   const look = useLook()
   const { data } = useAsyncData(() => readingUseCase.getWork(id, role), [readingUseCase, id, role])
   const [query, setQuery] = useState('')
+  // 목업 render(): 다른 작품으로 옮기면 회차 검색어(#epq)를 비웁니다.
+  const [shown, setShown] = useState(id)
+  if (shown !== id) { setShown(id); setQuery('') }
   const [reporting, setReporting] = useState(false)
   useScreenId(data ? 'U04' : null)
 

@@ -18,6 +18,8 @@ export type SessionState = {
   /** 페이지 화면 ID와 그 위에 열린 시트의 화면 ID */
   screen: { base: string; sheet: string | null }
   chip: string
+  /** 홈 캐러셀 위치 (목업 S.hero) */
+  hero: number
   /** 회차 뷰어 보기 설정 (목업 S.look·S.fs·S.motion)과 상세 회차 정렬 (S.epSort) */
   look: Look
   fs: number
@@ -39,6 +41,7 @@ export const initialSession: SessionState = {
   showSid: true,
   screen: { base: 'U01', sheet: null },
   chip: '추천',
+  hero: 0,
   look: 'auto',
   fs: 19,
   motion: true,
@@ -80,6 +83,8 @@ export const sessionSlice = createSlice({
     setMotion: (s, a: PayloadAction<boolean>) => { s.motion = a.payload },
     setEpSort: (s, a: PayloadAction<'old' | 'new'>) => { s.epSort = a.payload },
     setChip: (s, a: PayloadAction<string>) => { s.chip = a.payload },
+    setHero: (s, a: PayloadAction<number>) => { s.hero = a.payload },
+    stepHero: (s, a: PayloadAction<number>) => { s.hero += a.payload },
     closeGuide: (s) => { s.guide = false },
     homeVisited: (s) => { s.firstHome = false },
     dataChanged: (s) => { s.dataVersion += 1 },
