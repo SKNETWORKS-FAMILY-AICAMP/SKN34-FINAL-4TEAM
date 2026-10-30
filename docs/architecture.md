@@ -3,7 +3,8 @@
 ## 현재 구현
 
 STORYFORK 시작 화면과 실제 Core·AI 연결 확인만 제공하는 세 서비스 개발 기반입니다.
-서비스 책임을 분리한 MSA + 기능 중심 레이어드 구조를 유지하며 전면 Clean Architecture 전환은 하지 않습니다.
+서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
+백엔드는 기능 중심 레이어드 구조를 유지합니다.
 
 ```text
 Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
@@ -35,6 +36,10 @@ DB·Redis·큐·worker·로그인·가짜 CRUD·seed 데이터는 없습니다.
 저장 경계: 세계관 항목·갱신 기록과 작품 소유 기록은 모두 Core PostgreSQL에 두고, 작품 기록은 세계관 항목 ID를 참조합니다. 일반 작품 연결은 항목의 최신 갱신 기록을 따르고, 이용 허가 철회 시점 고정은 그때의 마지막 갱신 기록 ID로, Fork는 분기 시점 내용을 복사해 고정합니다. DB·MinIO·SMTP 접근은 Core API만 하며 AI Service는 Core 내부 조회 API로 작업 범위 안의 내용만 읽습니다.
 
 ## Frontend
+
+업무 기능은 TypeScript로 Clean Architecture·MVVM을 따릅니다([Frontend 지침](../frontend/AGENTS.md#구조와-의존성)).
+실행 흐름은 `View → ViewModel → UseCase → Repository 구현 → HTTP API`, 의존 방향은 `Presentation → Domain ← Data`이며
+`app/di`(Awilix)가 UseCase와 Repository 구현체를 연결합니다. 업무 기능은 아직 없어 `domain` 계층은 미구현입니다.
 
 `App`은 `/`의 시작 화면과 알 수 없는 UI 경로의 안전한 홈 이동만 담당합니다.
 실제 상태 UI는 `CoreApiConnectionStatus → useCoreApiHealth → appContainer 외부 함수 → Fetch·Zod`입니다.
