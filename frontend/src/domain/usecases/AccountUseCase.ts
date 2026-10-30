@@ -21,10 +21,10 @@ export class AccountUseCase {
     this.adminRepository = adminRepository
   }
 
-  /** U32 관심 소설 */
+  /** U32 관심 소설: 목업처럼 처음 누른 순서 */
   async liked() {
     const [works, p] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress()])
-    return works.filter((w) => p.liked[w.id])
+    return Object.keys(p.liked).filter((k) => p.liked[k]).flatMap((k) => works.filter((w) => w.id === k))
   }
 
   /** 저장 공간: 메모리 데모 데이터 크기 예시와 작성 중인 초안 (관리 기능은 MVP 제외) */

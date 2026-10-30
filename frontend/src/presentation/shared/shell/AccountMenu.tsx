@@ -24,8 +24,8 @@ export function AccountMenu({ anchor, onClose }: { anchor: HTMLElement; onClose:
   }, [anchor, onClose])
 
   const go = (to: string) => () => { onClose(); navigate(to) }
-  const Item = ({ to, className, children }: { to: string; className?: string; children: ReactNode }) => (
-    <button type="button" role="menuitem" className={className} onClick={go(to)}>{children}</button>
+  const Item = ({ to, id, className, children }: { to: string; id?: string; className?: string; children: ReactNode }) => (
+    <button type="button" role="menuitem" id={id} className={className} onClick={go(to)}>{children}</button>
   )
 
   return createPortal(
@@ -42,7 +42,7 @@ export function AccountMenu({ anchor, onClose }: { anchor: HTMLElement; onClose:
       ) : (
         <>
           <div className="who"><span className="meav g">?</span><span><b>로그인해 주세요</b><small>읽기·쓰기를 한 계정으로</small></span></div>
-          <Item to="/login" className="pri">로그인</Item><Item to="/me/signup">회원가입</Item><hr />
+          <Item to="/login" id="menuLogin" className="pri">로그인</Item><Item to="/me/signup">회원가입</Item><hr />
           <Item to="/me/notice">공지사항</Item><Item to="/me/event">이벤트</Item><Item to="/me/inquiry">문의하기</Item>
         </>
       )}

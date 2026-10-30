@@ -4,7 +4,6 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { Cov } from '../../../shared/art'
 import { openPolicy, toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
-import { useScreenId } from '../../../shared/screenIds'
 import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { Sheet } from '../../../shared/Sheet'
@@ -35,10 +34,10 @@ function Account({ sub }: { sub: string }) {
   const vm = useAccountViewModel(sub)
   const [q] = useSearchParams()
   const id = q.get('id')
-  useScreenId(sub === 'signup' ? 'U31' : sub === 'liked' ? 'U32' : sub === 'pay' ? 'U33' : sub === 'inquiry' ? 'U34' : sub === 'notice' ? 'U35' : sub === 'event' ? 'U35E' : 'U30')
   const NOTICE = vm.data?.board?.notices ?? [], EVENTS = vm.data?.board?.events ?? []
   let T: ReactNode = null
-  if (sub === 'profile') T = <Profile vm={vm} />
+  if (!vm.data && ['liked', 'notice', 'event'].includes(sub)) T = null
+  else if (sub === 'profile') T = <Profile vm={vm} />
   else if (sub === 'signup') T = <Signup vm={vm} />
   else if (sub === 'liked') T = <><h2>관심 소설 <span className="muted small">{vm.data?.liked.length ?? 0}편</span></h2>{vm.data?.liked.length
     ? <div className="grid6">{vm.data.liked.map((w) => <Go key={w.id} to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><span className="hk">{w.title}</span></Go>)}</div>
@@ -81,7 +80,7 @@ function Profile({ vm }: { vm: VM }) {
       <div className="tcard mecard"><div className="mehead"><span className="meav big">{vm.user.nick.slice(0, 1)}</span><div><b>{vm.user.nick}</b><small>가입일 {vm.user.joined}</small></div></div>
         <label className="field">닉네임<input className="inp" id="pfn" value={nick} maxLength={12} onChange={(e) => setNick(e.target.value)} /></label>
         <label className="field">이메일<input className="inp" id="pfe" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-        <div className="rowend"><button type="button" className="btn pri" id="saveProfile" onClick={() => vm.saveProfile(nick, email)}>저장</button></div></div>
+        <div className="rowend"><button type="button" className="btn pri" id="saveProfile" onClick={() => { if (vm.saveProfile(nick, email)) { setNick(nick.trim()); setEmail(email.trim()) } }}>저장</button></div></div>
       <div className="tcard mecard danger"><b>회원탈퇴</b><p className="small muted" style={{ margin: '6px 0 12px' }}>탈퇴 시 데이터 처리 기준은 아직 정해지지 않았어요. 이 화면은 실제 계정을 삭제하지 않는 데모입니다.</p><button type="button" className="btn" id="withdrawBtn" onClick={() => setWithdraw(true)}>회원탈퇴</button></div>
       {withdraw && <WithdrawSheet onClose={() => setWithdraw(false)} />}
     </>
@@ -137,16 +136,16 @@ function InquiryView({ vm }: { vm: VM }) {
   return (
     <>
       <h2>문의하기</h2>
-      <form className="tcard mecard" id="iqf" onSubmit={async (e) => { e.preventDefault(); if (await vm.ask(t, s, b)) { setS(''); setB('') } }}>
+      <form className="tcard mecard" id="iqf" onSubmit={async (e) => { e.preventDefault(); if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
         <label className="field">문의 유형<select className="inp" id="iqt" value={t} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>
         <label className="field">제목<input className="inp" id="iqs" maxLength={40} value={s} onChange={(e) => setS(e.target.value)} /></label>
         <label className="field">내용<textarea className="ta" id="iqb" maxLength={500} value={b} onChange={(e) => setB(e.target.value)} /></label>
         <div className="rowend"><button className="btn pri" type="submit" id="iqBtn">문의 보내기</button></div>
       </form>
-      <h3 className="st" style={{ marginTop: 22 }}>내 문의 {list.length}</h3>
+      {vm.data && <><h3 className="st" style={{ marginTop: 22 }}>내 문의 {list.length}</h3>
       <div className="list">{list.length ? list.map((x) => (
         <div className="rp" key={x.id}><div className="top"><b>[{x.t}] {x.s}</b><span className={`chip ${x.reply ? 'ok' : 'wait'}`}>{x.st}</span></div><div className="small muted" style={{ marginTop: 4 }}>{x.d} · {x.b}</div>{x.reply && <p className="inquiry-reply"><b>운영팀 답변</b><br />{x.reply}</p>}</div>
-      )) : <div className="rp muted">아직 보낸 문의가 없어요.</div>}</div>
+      )) : <div className="rp muted">아직 보낸 문의가 없어요.</div>}</div></>}
     </>
   )
 }

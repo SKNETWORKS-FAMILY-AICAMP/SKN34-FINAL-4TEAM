@@ -6,6 +6,7 @@ import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import App from './App'
+import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
 
 afterEach(cleanup)
@@ -108,5 +109,58 @@ describe('계정 (U30~U35E)', () => {
     renderAt('/me/event', null)
     await waitFor(() => expect(sid()).toContain('U35E'))
     screen.getByText('보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.')
+  })
+
+  it('관심 소설은 처음 누른 순서대로 보인다 (목업 Object.keys(S.liked))', async () => {
+    const reading = appContainer.resolve('readingUseCase')
+    await reading.toggleLike('postman'); await reading.toggleLike('guunmong')
+    renderAt('/me/liked')
+    await screen.findByText('2편')
+    expect([...document.querySelectorAll('.grid6 .hk')].map((x) => x.textContent)).toEqual(['회색 도시의 우편배달부', '구운몽'].map((t) => expect.stringContaining(t.split(' ')[0])))
+    await reading.toggleLike('postman'); await reading.toggleLike('guunmong')
+  })
+
+  it('불러오기 전에는 없음·0 상태를 먼저 그리지 않는다', () => {
+    renderAt('/me/notice?id=1', null)
+    expect(screen.queryByText('공지사항을 찾을 수 없어요.')).toBeNull()
+    cleanup()
+    renderAt('/me/event?id=0', null)
+    expect(screen.queryByText('이벤트를 찾을 수 없어요.')).toBeNull()
+    cleanup()
+    renderAt('/me/liked')
+    expect(screen.queryByText('0편')).toBeNull()
+    cleanup()
+    renderAt('/me/inquiry')
+    expect(screen.queryByText('아직 보낸 문의가 없어요.')).toBeNull()
+    expect(screen.queryByText('내 문의 0')).toBeNull()
+  })
+
+  it('문의를 보내면 유형도 이용 문의로 돌아간다 (목업 #iqf render())', async () => {
+    renderAt('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    const t = screen.getByLabelText<HTMLSelectElement>('문의 유형')
+    fireEvent.change(t, { target: { value: '계정' } })
+    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '계정 질문' } })
+    fireEvent.change(screen.getByLabelText('내용'), { target: { value: '내용' } })
+    fireEvent.click(screen.getByRole('button', { name: '문의 보내기' }))
+    await screen.findByText('[계정] 계정 질문')
+    expect(screen.getByLabelText<HTMLSelectElement>('문의 유형').value).toBe('이용 문의')
+  })
+
+  it('프로필 저장 뒤 입력칸에 앞뒤 공백을 뺀 값을 보여 준다 (목업 saveProfile)', async () => {
+    renderAt('/me/profile')
+    const nick = await screen.findByLabelText<HTMLInputElement>('닉네임'), email = screen.getByLabelText<HTMLInputElement>('이메일')
+    fireEvent.change(nick, { target: { value: '  새이름  ' } })
+    fireEvent.change(email, { target: { value: ' a@b.co ' } })
+    fireEvent.click(screen.getByRole('button', { name: '저장' }))
+    await toastIs('프로필을 저장했어요')
+    expect(screen.getByLabelText<HTMLInputElement>('닉네임').value).toBe('새이름')
+    expect(screen.getByLabelText<HTMLInputElement>('이메일').value).toBe('a@b.co')
+  })
+
+  it('비로그인 계정 메뉴의 로그인 항목은 목업 id menuLogin을 쓴다', () => {
+    renderAt('/', null)
+    fireEvent.click(screen.getByRole('button', { name: '로그인·회원가입 메뉴' }))
+    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: '로그인' }).id).toBe('menuLogin')
   })
 })
