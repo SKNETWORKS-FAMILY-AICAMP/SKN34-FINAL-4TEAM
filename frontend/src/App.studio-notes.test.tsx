@@ -205,21 +205,9 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
     delete db().drafts.starlight
   })
 
-  it('원고를 고치면 설정 검사 결과가 바로 무효로 바뀐다 (C)', async () => {
-    renderAt('/studio/starlight')
-    fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
-    fireEvent.click(await screen.findByRole('button', { name: /설정 검사/ }))
-    await screen.findByText('✓ 설정과 어긋난 곳이 없어요')
-    const body = screen.getByLabelText('원고 본문')
-    body.innerHTML = '<p>새 문장</p>'
-    fireEvent.input(body)
-    await screen.findByText('소설이 바뀌었어요. 설정 검사를 다시 실행해 주세요.')
-    delete db().drafts.starlight
-  })
-
   it('메모를 고치면 저장 중…으로 바뀌었다가 저장됨으로 돌아온다', async () => {
     renderAt('/studio/starlight?view=memo')
-    fireEvent.change(await screen.findByLabelText('메모'), { target: { value: '복선 확인' } })
+    fireEvent.change(await screen.findByLabelText('콘티 내용'), { target: { value: '복선 확인' } })
     expect(document.getElementById('saved')!.textContent).toBe('저장 중…')
     await waitFor(() => expect(document.getElementById('saved')!.textContent).toBe('저장됨'))
   })
@@ -234,16 +222,6 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
     await toastIs('표지 이미지를 지웠어요')
     await screen.findByText('표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.')
     expect(star().coverImg).toBeNull()
-  })
-
-  it('시뮬레이션 대화에서 초상이 있는 인물은 초상을 쓴다', async () => {
-    renderAt('/studio/starlight')
-    fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
-    fireEvent.click(await screen.findByRole('button', { name: /인물에게 맡겨 보기/ }))
-    const sheet = await screen.findByRole('dialog', { name: '인물에게 맡겨 보기' })
-    fireEvent.click(within(sheet).getByRole('button', { name: '▶ 실행하기' }))
-    await within(sheet).findByText('1턴')
-    expect(sheet.querySelector('.turn .av img')).not.toBeNull()
   })
 
   it('서재의 공개 설정은 서재 위 시트로 열고, 저장하면 서재에 남아 칩과 토스트가 바뀐다', async () => {

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 
-import { openPolicy, toast } from '../../../shared/events'
+import { toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { Sheet } from '../../../shared/Sheet'
 import { useStudioViewModel } from '../viewmodel/useStudioViewModel'
-import { PublishSettingsSheet, SimSheet } from './StudioSheets'
+import { PublishSettingsSheet } from './StudioSheets'
 import { MemoView, NarrativeView, StudioTools, WikiView } from './StudioViews'
 
 type VM = ReturnType<typeof useStudioViewModel>
@@ -27,7 +27,6 @@ export function StudioPage() {
   const requested = q.get('view') ?? ''
   const view = requested === 'overview' ? 'wiki' : VIEW_ID[requested] ? requested : 'write'
   const vm = useStudioViewModel(id, ep, VIEW_ID[view] ?? 'ai')
-  const [sim, setSim] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   useEffect(() => { if (q.get('panel') === 'chat') setChatOpen(true); if (q.get('panel') === 'settings') setSettingsOpen(true) }, [q])
@@ -80,12 +79,11 @@ export function StudioPage() {
         </nav>
         <Editor vm={vm} />
       </div>}
-      {chatOpen && <aside className="studio-chat" role="region" aria-label="AI 채팅"><div className="studio-chat-head"><b>AI 채팅</b><button type="button" className="btn sm" onClick={() => setChatOpen(false)}>접기</button></div><p className="small muted studio-chat-intro">사전 조회와 세계관 시뮬레이션, 요청에 따른 사전·플롯 수정과 콘티 구체화 및 반영을 도울 수 있어요. 이 화면은 데모입니다.</p><AiPanel vm={vm} onSim={() => setSim(true)} /></aside>}
+      {chatOpen && <aside className="studio-chat" role="region" aria-label="AI 채팅"><div className="studio-chat-head"><b>AI 채팅</b><button type="button" className="btn sm" onClick={() => setChatOpen(false)}>접기</button></div><p className="small muted studio-chat-intro">사전 조회와 세계관 시뮬레이션, 요청에 따른 사전·플롯 수정과 콘티 구체화 및 반영을 도울 수 있어요. 이 화면은 데모입니다.</p><AiPanel vm={vm} /></aside>}
       </div>
       {!chatOpen && <button type="button" className="studio-chat-toggle btn pri" onClick={() => setChatOpen(true)}>AI 채팅 열기</button>}
       {settingsOpen && <Sheet sid="U19" label="집필 설정" onClose={() => setSettingsOpen(false)}><div className="studio-settings-head"><h2>집필 설정</h2><button type="button" className="btn sm" onClick={() => setSettingsOpen(false)}>닫기</button></div><AutoBox vm={vm} /><NotePanel vm={vm} /></Sheet>}
       {vm.publishing && <PublishEpisodeSheet vm={vm} />}
-      {sim && <SimSheet vm={vm} onClose={() => setSim(false)} />}
       {publishSettings && <PublishSettingsSheet work={w} onSave={vm.savePublishSettings} onClose={closeSettings} />}
     </div>
   )
@@ -124,7 +122,6 @@ function Editor({ vm }: { vm: VM }) {
   const [mlist, setMlist] = useState<{ left: number; top: number } | null>(null)
   const [textAi, setTextAi] = useState(false)
   const [selection, setSelection] = useState('')
-  const [textMode, setTextMode] = useState<'replace' | 'beat'>('replace')
   const base = vm.studio!.base
   // 목업 openMention(): 커서 위치에 인물과 최근 사건 3개를 띄웁니다.
   const openMention = (eb: HTMLElement) => {
@@ -163,7 +160,7 @@ function Editor({ vm }: { vm: VM }) {
         onKeyUp={(e) => { if (e.key === '@') openMention(e.currentTarget); const s = window.getSelection(); if (s && e.currentTarget.contains(s.anchorNode) && e.currentTarget.contains(s.focusNode) && s.toString().trim()) setSelection(s.toString().trim()) }} onKeyDown={(e) => { if (e.key === 'Escape') setMlist(null) }}
         ref={(el) => { if (el && !filled.has(el)) { filled.add(el); fillBody(el, d.paras, bad, d.links) } }}>
       </div>
-      <div className="text-ai"><button type="button" className="btn sm" aria-expanded={textAi} onClick={() => setTextAi(!textAi)}>문장 AI 도구</button>{textAi && <div className="text-ai-panel"><b>문장 AI 채팅</b><p className="small muted">원고에서 문장을 선택해 수정하거나 장면 지시문을 작성하세요. 화면 예시이며 AI 요청과 원고 반영은 연결되지 않았어요.</p><div className="text-ai-selection">{selection || '선택한 문장이 여기에 표시됩니다.'}</div><div className="text-ai-modes"><button type="button" className={`btn sm${textMode === 'replace' ? ' pri' : ''}`} aria-pressed={textMode === 'replace'} onClick={() => setTextMode('replace')}>Text Replacement</button><button type="button" className={`btn sm${textMode === 'beat' ? ' pri' : ''}`} aria-pressed={textMode === 'beat'} onClick={() => setTextMode('beat')}>Scene Beat</button></div><p className="small muted">{textMode === 'replace' ? '늘리기 · 바꿔 쓰기 · 줄이기' : '생성 분량: 200 · 400 · 600'}</p><label className="field">{textMode === 'beat' ? '장면 지시문' : '수정 요청'}<textarea className="ta" placeholder="장면이나 수정 방향을 적어 주세요" /></label><div className="text-ai-modes"><button type="button" className="btn sm" disabled>＋ 문맥</button><button type="button" className="btn sm" disabled>생성</button><button type="button" className="btn sm" disabled>적용</button><button type="button" className="btn sm" disabled>다시 생성</button><button type="button" className="btn sm" disabled>버리기</button></div></div>}</div>
+      <div className="text-ai"><button type="button" className="btn sm" aria-expanded={textAi} onClick={() => setTextAi(!textAi)}>문장 AI 도구</button>{textAi && <div className="text-ai-panel"><b>문장 AI 채팅</b><p className="small muted">선택한 문장을 수정하거나 새로운 장면을 요청하세요. 화면 예시이며 AI 요청과 원고 반영은 연결되지 않았어요.</p><div className="text-ai-selection">{selection || '선택한 문장이 여기에 표시됩니다.'}</div><label className="field">문장 또는 장면 요청<textarea className="ta" placeholder="수정하거나 작성할 내용을 적어 주세요" /></label><div className="text-ai-modes"><button type="button" className="btn sm" disabled>＋ 문맥</button><button type="button" className="btn sm" disabled>생성</button><button type="button" className="btn sm" disabled>적용</button><button type="button" className="btn sm" disabled>다시 생성</button><button type="button" className="btn sm" disabled>버리기</button></div></div>}</div>
       {mlist && <div className="mlist" role="listbox" aria-label="연결할 인물·사건" style={mlist}>
         {base.cast.map((c) => <button type="button" role="option" aria-selected="false" key={c.n} onMouseDown={(e) => { e.preventDefault(); pickMention(c.n) }}><i style={{ width: 18, height: 18, borderRadius: '50%', background: c.c, display: 'inline-block' }} />{c.n}<small>인물</small></button>)}
         {base.events.slice(-3).map((x) => <button type="button" role="option" aria-selected="false" key={x[2]} onMouseDown={(e) => { e.preventDefault(); pickMention(x[2]) }}>📍 {x[2]}<small>사건</small></button>)}
@@ -189,39 +186,15 @@ function Editor({ vm }: { vm: VM }) {
   )
 }
 
-function AiPanel({ vm, onSim }: { vm: VM; onSim: () => void }) {
+function AiPanel({ vm }: { vm: VM }) {
   const s = vm.studio!, d = vm.draft!
-  const ro = vm.readOnly
-  const prompt = vm.prompt
-  const c = d.check
   return (
     <div className="spanel">
-      <div className="chat-welcome"><b>무엇을 함께 구상할까요?</b><p className="small muted">설정과 장면에 대해 질문하거나 아래 데모 작업을 선택해 보세요.</p></div>
+      <div className="chat-welcome"><b>무엇을 함께 구상할까요?</b><p className="small muted">설정과 장면에 대해 질문해 보세요.</p></div>
       <div className="ai-context" aria-label="AI 문맥"><span>현재 회차 · {d.no}화 {d.title}</span><span>세계관 · {s.base.rules.length}개</span><span>인물 · {s.base.cast.length}명</span></div>
       <button type="button" className="btn sm" disabled>＋ 문맥 선택 · 목업</button>
-      <label className="field ai-composer">AI에게 요청<textarea className="ta" id="aiPrompt" rows={3} placeholder="예: 장면의 긴장감을 살려 이어 써 주세요" disabled={ro} value={prompt} onChange={(e) => vm.setPrompt(e.target.value)} /></label>
+      <label className="field ai-composer">AI에게 요청<textarea className="ta" id="aiPrompt" rows={3} placeholder="AI에게 질문을 입력하세요" value={vm.prompt} onChange={(e) => vm.setPrompt(e.target.value)} /></label>
       <button type="button" className="btn sm" disabled>보내기 · 목업</button>
-      <button type="button" className="aib" id="btnSim" disabled={ro} onClick={() => (s.base.cast.length < 2 ? toast('인물을 2명 이상 추가해 주세요') : onSim())}><span className="ic">🎭</span><div><b>인물에게 맡겨 보기</b><span>상황을 주면 인물들이 직접 움직여요</span></div><em>예시 30<br />미확정</em></button>
-      <button type="button" className="aib" id="btnProp" disabled={ro} onClick={() => vm.propose(prompt)}><span className="ic">✍</span><div><b>장면 이어쓰기</b><span>작성한 요청과 현재 원고 문맥으로 초안을 제안해요</span></div><em>예시 5<br />미확정</em></button>
-      <button type="button" className="aib" id="btnCheck" disabled={ro} onClick={vm.check}><span className="ic">🔍</span><div><b>설정 검사</b><span>세계관 규칙과 어긋난 곳을 찾아요</span></div><em>예시 5<br />미확정</em></button>
-      {d.sim && <div className="ref">📎 참고 자료: 시뮬레이션 1건 — {d.sim.summary}</div>}
-      {d.proposal === 'shown' && (
-        <div className="aiprev" id="aiprev" role="region" aria-label="AI 제안 미리보기">
-          <small>AI 응답 · 장면 이어쓰기 예시 · 원고에 넣기 전에는 반영되지 않아요</small>
-          <p className="ai-request"><b>요청</b> {d.aiPrompt || '현재 장면을 이어 써 주세요'}</p>
-          {s.proposal.map((t) => <p key={t} style={{ margin: '0 0 .6em' }}>{t}</p>)}
-          <div className="r"><button type="button" className="btn sm pri" id="acceptAI" onClick={vm.accept}>원고에 넣기</button><button type="button" className="btn sm" onClick={vm.drop}>버리기</button></div>
-        </div>
-      )}
-      {!c ? <div className="chk idle">설정 검사는 선택 사항이에요. 필요하면 실행해 주세요.</div>
-        : vm.checkStale ? <div className="chk idle">소설이 바뀌었어요. 설정 검사를 다시 실행해 주세요.</div>
-        : c.issues.length ? (
-          <div className="chk bad" id="chkres"><b>⚠ {c.issues.length}곳이 설정과 어긋나요</b>{c.issues.map((x, i) => (
-            <div key={i} style={{ marginTop: 8 }}>“{x.sent.slice(0, 40)}…”<br /><span className="note2">규칙: {x.rule}</span>
-              <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}><button type="button" className="btn sm" onClick={() => vm.fix(i)}>제안대로 고치기</button><button type="button" className="btn sm" onClick={() => vm.ignore(i)}>의도한 거예요</button></div></div>
-          ))}</div>
-        ) : <div className="chk ok" id="chkres"><b>✓ 설정과 어긋난 곳이 없어요</b><br /><span className="note2">규칙 {s.base.rules.length}개 · 인물 {s.base.cast.length}명 기준 (이 소설의 스냅샷)</span></div>}
-      <p className="note2">숫자는 예시예요. 데모 잔액만 바뀌고 실제 차감은 없어요 · <button type="button" className="btn sm" style={{ height: 26, padding: '0 10px' }} onClick={openPolicy}>정책 안내</button><br />응답은 고정 예시이며 입력은 외부 AI로 전송되지 않아요. 제안은 ‘원고에 넣기’를 눌러야 반영돼요. 일러스트 생성은 MVP에서 제외됐어요.</p>
     </div>
   )
 }
