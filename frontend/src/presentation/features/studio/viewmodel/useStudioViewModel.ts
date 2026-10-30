@@ -47,8 +47,8 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     savedTimer.current = window.setTimeout(() => setSaving(false), 600)
   }
   // 사전 편집은 blur마다 저장하므로 순서대로 이어 붙여 앞선 저장을 덮어쓰지 않게 합니다.
-  const queue = (fn: () => Promise<unknown>) => {
-    flash()
+  const queue = (fn: () => Promise<unknown>, saving = true) => {
+    if (saving) flash()
     sync.current = sync.current.then(fn)
     return sync.current.then(() => refresh())
   }
@@ -108,7 +108,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     cats: s?.work.wiki?.cats ?? [],
     addDoc: async (cat: string, t: string) => {
       let docId: string | null = null
-      await queue(async () => { docId = await studioUseCase.addDoc(id, cat, t) })
+      await queue(async () => { docId = await studioUseCase.addDoc(id, cat, t) }, false)
       if (!docId) return
       toast(`‘${t}’ 문서를 만들었어요`)
       navigate(`/studio/${id}?view=wiki&doc=${encodeURIComponent(docId)}`)
@@ -116,7 +116,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     addCategory: async (n: string) => { await run(() => studioUseCase.addCategory(id, n)); toast('분류를 추가했어요') },
     deleteDoc: async (docId: string) => {
       let cat: string | null = null
-      await queue(async () => { cat = await studioUseCase.deleteDoc(id, docId) })
+      await queue(async () => { cat = await studioUseCase.deleteDoc(id, docId) }, false)
       if (!cat) return
       toast('문서를 지웠어요 (소설은 그대로예요)')
       navigate(`/studio/${id}?view=wiki&cat=${cat}`)

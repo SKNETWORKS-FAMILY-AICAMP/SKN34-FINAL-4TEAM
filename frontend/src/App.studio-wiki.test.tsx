@@ -31,6 +31,7 @@ describe('집필실 사전 편집 (U38)', () => {
     fill('제목', '미르')
     submit()
     await toastIs('‘미르’ 문서를 만들었어요')
+    expect(document.getElementById('saved')!.className).not.toContain('saving')
     await screen.findByRole('heading', { name: '미르' })
     expect(where()).toMatch(/view=wiki&doc=d/)
     expect((await starlight()).cast.some((c) => c.n === '미르')).toBe(true)
@@ -63,6 +64,18 @@ describe('집필실 사전 편집 (U38)', () => {
     expect((await screen.findByLabelText('문서 본문')).textContent).toBe('봉인이 잠든 곳')
     expect(screen.getByLabelText('첫 등장 값').textContent).toBe('3화')
     expect(screen.getByLabelText('관리자 값').textContent).toBe('카엘')
+  })
+
+  it('＋ 속성 추가는 시트에서 값만 넣고 인물 상태는 그대로 둔다', async () => {
+    renderAt('/studio/starlight?view=wiki&cat=char')
+    fireEvent.click((await screen.findAllByRole('button', { name: '세라핀' }))[0])
+    fireEvent.click(await screen.findByRole('button', { name: '＋ 속성 추가' }))
+    expect(within(sheet()).getByRole('heading', { name: '속성 추가' })).toBeTruthy()
+    fill('속성 이름 (예: 관계, 능력, 소속)', '상태')
+    fill('값', '분노')
+    submit()
+    await waitFor(async () => expect((await starlight()).wiki!.docs.find((d) => d.t === '세라핀')!.props.상태).toBe('분노'))
+    expect((await starlight()).cast.find((c) => c.n === '세라핀')!.st).toBe('여유')
   })
 
   it('본문 줄바꿈을 저장한다', async () => {
@@ -108,6 +121,7 @@ describe('집필실 사전 편집 (U38)', () => {
     fireEvent.click((await screen.findAllByRole('button', { name: '별빛 수정' }))[0])
     fireEvent.click(await screen.findByRole('button', { name: '삭제' }))
     await toastIs('문서를 지웠어요 (소설은 그대로예요)')
+    expect(document.getElementById('saved')!.className).not.toContain('saving')
     await waitFor(() => expect(where()).toBe('/studio/starlight?view=wiki&cat=item'))
     await waitFor(() => expect(screen.queryByRole('button', { name: '별빛 수정' })).toBeNull())
   })
