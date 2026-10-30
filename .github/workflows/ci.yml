@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # paths-filter가 PR 변경 파일 목록을 API로 읽는다.
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Changed paths
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      core: ${{ steps.filter.outputs.core }}
+      ai: ${{ steps.filter.outputs.ai }}
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          # 푸시는 같은 브랜치의 직전 커밋과 비교한다. PR·수동 실행은 빈 값으로 기본 비교를 쓴다.
+          base: ${{ github.event_name == 'push' && github.ref || '' }}
+          filters: |
+            web: ['frontend/**', '.github/workflows/ci.yml']
+            core: ['backend/core-api/**', '.github/workflows/ci.yml']
+            ai: ['backend/ai-service/**', '.github/workflows/ci.yml']
+            infra: ['infrastructure/**', '.env.example', '.github/workflows/ci.yml']
+
+  repository:
+    name: Whitespace
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check whitespace in changed lines
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # 수동 실행·새 브랜치 푸시는 기준선이 없으므로 부모 커밋과 비교한다.
+          # 브랜치 전체 변경은 PR 실행에서 base와 비교해 검사한다.
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="$(git rev-parse --verify --quiet HEAD^ || git hash-object -t tree /dev/null)"
+          fi
+          echo "base: $BASE"
+          git diff --check "$BASE" HEAD
+
+  web:
+    needs: changes
+    if: ${{ needs.changes.outputs.web == 'true' }}
+    name: Web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm lint
+      - run: pnpm build
+
+  core-api:
+    needs: changes
+    if: ${{ needs.changes.outputs.core == 'true' }}
+    name: Core API
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend/core-api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - run: ./gradlew clean test --no-daemon
+
+  ai-service:
+    needs: changes
+    if: ${{ needs.changes.outputs.ai == 'true' }}
+    name: AI Service
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend/ai-service
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          working-directory: backend/ai-service
+          enable-cache: true
+          cache-dependency-glob: backend/ai-service/uv.lock
+      - run: uv lock --check
+      - run: uv run --locked --extra dev python -m pytest
+
+  infrastructure:
+    needs: changes
+    if: ${{ needs.changes.outputs.infra == 'true' }}
+    name: Compose configuration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: python3 -I infrastructure/scripts/check-compose-config.py
+      - run: bash -n infrastructure/scripts/verify-compose.sh
+
+  required:
+    name: Required CI
+    if: ${{ always() }}
+    needs: [changes, repository, web, core-api, ai-service, infrastructure]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fail when any required job failed or was cancelled
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in success|skipped) ;; *) exit 1 ;; esac
+          done

@@ -56,8 +56,9 @@
 
 - 패키지 관리는 `pnpm`과 기존 lockfile을 사용한다. 실행 환경은 [package.json](package.json)을 따른다.
 - 코드 변경 시 해당 회귀 테스트와 영향받은 동작·화면을 확인한다. `pnpm test -- <테스트 경로>`로 범위를 지정할 수 있다.
-- 전체 검증 명령은 `pnpm test`, `pnpm lint`, `pnpm build`다. 변경 영향이나 필수 검증 요구에 맞게 선택하며
-  작은 수정이나 문서 변경을 이유로 불필요한 전체 빌드를 반복하지 않는다.
+- 로컬: 관련 테스트 파일과 `pnpm exec oxlint <변경 파일>`을 실행한다. 타입·빌드 설정을 바꿨을 때만 `pnpm build`를 추가한다.
+- CI: `pnpm install --frozen-lockfile` 후 `pnpm test`, `pnpm lint`, `pnpm build` 전체 실행.
+  작은 수정이나 문서 변경을 이유로 로컬에서 전체 빌드를 반복하지 않는다.
 - UseCase 테스트는 Fake Repository를 사용한다.
 - ViewModel 테스트는 Fake UseCase나 격리 컨테이너를 사용하고 전역 컨테이너를 덮어쓰지 않는다.
 - 상세 구조·상태 관리와 실행 방법은 [Frontend README](README.md)를 참고한다.

@@ -61,6 +61,7 @@
 - 요청 범위 밖의 패턴 통일, 파일 재배치 또는 미래 대비 리팩터링을 하지 않는다.
 - 새로운 production 의존성, 외부 서비스 또는 실행 계층을 추가하기 전에 사용자에게 알린다.
 - 구현 후 실제 호출 흐름과 OpenAI 호출 유무를 구분해 설명한다.
-- `backend/ai-service` 변경 후에는 AI Service 전체 테스트를 실행한다.
-  해당 디렉터리에서 `uv run --locked --extra dev python -m pytest`를 사용한다.
+- 로컬: `backend/ai-service`에서 `uv run --locked --extra dev python -m pytest <대상 테스트 경로>`로 관련 테스트를 실행한다.
+  필요하면 `-k`로 범위를 좁히고, 유료 API 호출 없는 단위·스텁 검증을 우선한다.
+- CI: `uv lock --check`와 `uv run --locked --extra dev python -m pytest` 전체 실행.
   문서만 변경한 경우는 루트의 문서 검증 기준을 따른다. 실제 OpenAI 호출 없이 검증한 범위를 구분해 보고한다.
