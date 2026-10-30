@@ -33,13 +33,26 @@ describe('빠른 이동 (U03) · 집필실', () => {
     await waitFor(() => expect(where()).toBe('/studio/starlight?tab=tl&ep=1'))
   })
 
-  it('시트 위에 겹쳐 연 빠른 이동은 Esc 한 번에 위 시트부터 닫힌다 (확인)', async () => {
+  it('크레딧 정책 시트를 연 채 Ctrl K를 누르면 시트가 교체되고 Esc 한 번에 닫힌다', async () => {
     renderAt('/')
-    fireEvent.click(await screen.findByRole('button', { name: '소설·인물·회차 검색' }))
+    fireEvent.click(await screen.findByRole('button', { name: /✦ 크레딧/ }))
+    await screen.findByRole('dialog')
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
-    expect(screen.getAllByRole('dialog', { name: '빠른 이동' })).toHaveLength(1)
+    await waitFor(() => expect(screen.getAllByRole('dialog').map((d) => d.getAttribute('aria-label'))).toEqual(['빠른 이동']))
+    expect(document.getElementById('sid')!.textContent).toContain('U03')
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('남의 작품 집필실에서는 탭 이동·설정 노트 인물 후보를 넣지 않는다', async () => {
+    renderAt('/studio/guunmong')
+    await waitFor(() => expect(where()).toMatch(/^\/studio\/guunmong/))
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
+    const dialog = screen.getByRole('dialog', { name: '빠른 이동' })
+    await waitFor(() => expect(dialog.querySelectorAll('#ql li b').length).toBeGreaterThan(0))
+    expect(within(dialog).queryByText('AI 도움 탭')).toBeNull()
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '설정 노트에서' } })
+    expect(within(dialog).queryAllByText('설정 노트에서 보기')).toHaveLength(0)
   })
 })
 
@@ -116,6 +129,7 @@ describe('상세·홈·주소', () => {
     renderAt('/work/postman')
     const chip = await screen.findByText('🤖 AI 자율 연재 중')
     expect(chip.className).toBe('chip ok')
+    expect(chip.style.marginLeft).toBe('8px')
     expect(chip.previousElementSibling!.textContent).toBe('SF')
     await repo.saveWork(w)
   })
