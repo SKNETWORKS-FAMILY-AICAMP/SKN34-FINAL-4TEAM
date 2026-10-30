@@ -14,8 +14,7 @@ const Where = () => { const l = useLocation(); return <p hidden data-testid="whe
 const where = () => screen.getByTestId('where').textContent
 const sid = () => document.getElementById('sid')!.textContent
 const toastIs = (t: string | RegExp) => waitFor(() => expect(document.getElementById('toast')!.textContent).toMatch(t))
-const renderAt = (path: string, role: 'user' | 'admin' | null = 'admin') => {
-  const store = createAppStore({ role })
+const renderAt = (path: string, role: 'user' | 'admin' | null = 'admin', store = createAppStore({ role })) => {
   return { store, ...render(<Provider store={store}><MemoryRouter initialEntries={[path]} useTransitions={false}><App /><Where /></MemoryRouter></Provider>) }
 }
 const nav = () => screen.getByRole('navigation', { name: '관리자 업무' })
@@ -144,6 +143,30 @@ describe('관리자 (A01~A18)', () => {
     fireEvent.click(screen.getByRole('button', { name: '증빙 요청' }))
     await toastIs('조치를 기록했어요 (데모)')
     await screen.findByText(/등록자에게 권리 증빙 요청/)
+  })
+
+  it('신고 행 선택·분류·캐릭터챗 입력은 다른 화면에 갔다 와도 유지된다 (목업 S.admin.sel·filters·chatForm)', async () => {
+    const { store } = renderAt('/admin?tab=rights')
+    fireEvent.click((await screen.findByText('○○○ 2차 연재')).closest('tr')!)
+    await screen.findByText('신고 상세 · ○○○ 2차 연재')
+    cleanup()
+    renderAt('/', 'admin', store)
+    cleanup()
+    renderAt('/admin?tab=rights', 'admin', store)
+    await screen.findByText('신고 상세 · ○○○ 2차 연재')
+    await waitFor(() => expect(sid()).toContain('A04'))
+
+    fireEvent.click(within(nav()).getByRole('button', { name: '캐릭터챗' }))
+    const kind = await screen.findByLabelText('작품 유형') as HTMLSelectElement
+    fireEvent.change(kind, { target: { value: 'original' } })
+    fireEvent.click(within(nav()).getByRole('button', { name: '작품' }))
+    const cat = await screen.findByLabelText('분류') as HTMLSelectElement
+    fireEvent.change(cat, { target: { value: 'fork' } })
+    cleanup()
+    renderAt('/admin?tab=characterChats', 'admin', store)
+    expect((await screen.findByLabelText('작품 유형') as HTMLSelectElement).value).toBe('original')
+    fireEvent.click(within(nav()).getByRole('button', { name: '작품' }))
+    expect((await screen.findByLabelText('분류') as HTMLSelectElement).value).toBe('fork')
   })
 
   it('프로필 이메일 형식을 확인하고 상단바 이름을 바꾼다', async () => {

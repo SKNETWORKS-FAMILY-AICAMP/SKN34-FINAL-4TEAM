@@ -1,13 +1,13 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { type FormEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 
 import { ADMIN_PERMISSIONS, adminTab, type AdminTab } from '../../../../domain/entities/admin'
 import { Go } from '../../../shared/Go'
+import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { useAdminViewModel } from '../viewmodel/useAdminViewModel'
 
 type VM = ReturnType<typeof useAdminViewModel>
 type Data = NonNullable<VM['data']>
-type Filter = { category: string; sort: string; query: string; search: string }
 
 const GROUPS: [string, [AdminTab, string][]][] = [['현황', [['data', '개요']]], ['콘텐츠 관리', [['users', '사용자'], ['works', '작품'], ['comments', '댓글'], ['characterChats', '캐릭터챗']]], ['소통 관리', [['feedback', '제보·문의'], ['events', '이벤트'], ['notices', '공지']]], ['서비스 운영', [['llm', 'LLM Ops'], ['jobs', '정기 작업'], ['rights', '신고·권리'], ['credits', '크레딧'], ['audit', '활동 로그']]], ['계정', [['profile', '프로필'], ['admins', '관리자 계정·권한']]]]
 const TITLES: Record<AdminTab, [string, string]> = {
@@ -27,11 +27,10 @@ const val = (e: FormEvent<HTMLFormElement>, name: string) => (e.currentTarget.el
 export function AdminPage() {
   const [q] = useSearchParams()
   const tab = adminTab(q.get('tab'))
-  const [sel, setSel] = useState<string | null>(null)
-  const vm = useAdminViewModel(tab, sel)
-  const [filters, setFilters] = useState<Record<string, Filter>>({})
+  const vm = useAdminViewModel(tab)
+  const { sel, filters, setSel } = vm
   const f = filters[tab] ?? { category: 'all', sort: tab === 'users' ? 'newest' : tab === 'comments' ? 'likes' : 'title', query: '', search: '' }
-  const setF = (x: Partial<Filter>) => setFilters({ ...filters, [tab]: { ...f, ...x } })
+  const setF = (x: Partial<Filter>) => vm.setFilter(tab, { ...f, ...x })
   const d = vm.data
   const [title, desc] = TITLES[tab]
   return (
@@ -163,7 +162,7 @@ function Llm({ d, vm }: { d: Data; vm: VM }) {
 
 /** 목업 #adminCharacterChatForm */
 function ChatForm({ d, vm }: { d: Data; vm: VM }) {
-  const [form, setForm] = useState({ kind: 'fork', workId: '', character: '' })
+  const { chatForm: form, setChatForm: setForm } = vm
   const available = vm.chatChoices(d.works, form.kind)
   const sw = available.find((x) => x.w.id === form.workId) ?? available[0]
   const cast = sw?.cast ?? []
