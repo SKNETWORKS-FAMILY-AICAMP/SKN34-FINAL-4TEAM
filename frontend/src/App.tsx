@@ -15,6 +15,7 @@ import { WorkPage } from './presentation/features/reading/view/WorkPage'
 import { CoreApiConnectionStatus } from './presentation/shared/core-api-status/CoreApiConnectionStatus'
 import { RequireRole } from './presentation/shared/session/RequireRole'
 import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
+import { PolicySheet } from './presentation/shared/shell/PolicySheet'
 import { QuickJump } from './presentation/shared/shell/QuickJump'
 
 function StartPage() {
@@ -72,7 +73,7 @@ function App() {
         <Route path="/studio/:id" element={<RequireRole><StudioPage /></RequireRole>} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
-      {pathname !== '/status' && <><GlobalChrome /><QuickJump /></>}
+      {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
     </>
   )
 }

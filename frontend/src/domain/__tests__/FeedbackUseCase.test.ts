@@ -10,10 +10,11 @@ import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 function fakes() {
   const works = seedWorks(0)
   const db = { comments: {} as Record<string, Comment[]>, cmLiked: {} as Record<string, boolean>, reports: [] as ReaderReport[], inbox: [] as InboxItem[], queue: [] as ReviewItem[] }
-  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), saveWork: async () => {}, getDraft: async () => undefined, saveDraft: async () => {} }
+  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), saveWork: async () => {}, getDraft: async () => undefined, saveDraft: async () => {}, deleteDraft: async () => {} }
   const feedbackRepository: FeedbackRepository = {
     listComments: async (theme, key) => [...(SEED_COMMENTS[theme] ?? []), ...(db.comments[key] ?? [])],
     addComment: async (key, c) => { (db.comments[key] ??= []).push(c) },
+    countComments: async () => 0,
     listCommentLikes: async () => db.cmLiked,
     toggleCommentLike: async (key) => { db.cmLiked[key] = !db.cmLiked[key] },
     listReports: async () => db.reports,

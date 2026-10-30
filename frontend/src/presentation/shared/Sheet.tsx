@@ -10,7 +10,7 @@ const FOCUSABLE = 'button:not([disabled]),input:not([disabled]),select:not([disa
  * 목업 #modal의 .back-dim 시트. 열리면 화면 ID를 시트 ID로 바꾸고 포커스를 가두며,
  * Esc·배경 클릭으로 닫히면 시트를 연 요소로 포커스를 돌려줍니다.
  */
-export function Sheet({ sid, label, onClose, panelClass = 'sheet', children }: { sid: string; label: string; onClose: () => void; panelClass?: string; children: ReactNode }) {
+export function Sheet({ sid, label, onClose, panelClass = 'sheet', dimClass = 'back-dim', children }: { sid: string; label: string; onClose: () => void; panelClass?: string; dimClass?: string; children: ReactNode }) {
   const dispatch = useAppDispatch()
   const panel = useRef<HTMLDivElement>(null)
   // 첫 렌더링 시점의 포커스(시트를 연 버튼)를 기억합니다.
@@ -45,7 +45,7 @@ export function Sheet({ sid, label, onClose, panelClass = 'sheet', children }: {
   }, [dispatch, sid])
 
   return createPortal(
-    <div className="back-dim" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+    <div className={dimClass} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div ref={panel} className={panelClass} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>{children}</div>
     </div>,
     document.body,

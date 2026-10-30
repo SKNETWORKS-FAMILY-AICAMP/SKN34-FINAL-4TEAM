@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import { useAppSelector } from '../../../app/store'
-import { openQuick } from '../events'
+import { openPolicy, openQuick } from '../events'
 import { Go } from '../Go'
 import { AccountMenu } from './AccountMenu'
 import { useGnbViewModel } from './useGnbViewModel'
@@ -27,7 +27,7 @@ export function Gnb({ on = '' }: { on?: string }) {
         <Go to="/notifications" className="btn sm" aria-label={`알림함${unread ? `, 읽지 않은 알림 ${unread}건` : ''}`}>
           알림{unread > 0 && <> <span className="nb">{unread}</span></>}
         </Go>
-        <button type="button" className="credit" title="크레딧 정책은 아직 확정되지 않았어요">
+        <button type="button" className="credit" onClick={openPolicy} title="크레딧 정책은 아직 확정되지 않았어요">
           ✦ 크레딧 <span className="demo" style={{ borderColor: 'currentColor', color: 'inherit' }}>데모</span>
         </button>
         <button type="button" className={`avatar ${role ? '' : 'guest'}`} aria-label={role ? '내 계정 메뉴' : '로그인·회원가입 메뉴'} aria-haspopup="menu"
