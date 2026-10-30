@@ -26,14 +26,14 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); delete star().worldIds; delet
 
 describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차·인물 상태)', () => {
   it('세계관 자동 업데이트는 작가 소유 세계관이 없거나 확인을 취소하면 꺼진 채로 남는다', async () => {
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     fireEvent.click(await box('새 회차 발행 후 세계관 자동 업데이트'))
     await toastIs('작가 소유 세계관이 필요해요')
     expect((await box('새 회차 발행 후 세계관 자동 업데이트')).checked).toBe(false)
     cleanup()
     ownWorld()
     vi.mocked(window.confirm).mockReturnValue(false)
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     fireEvent.click(await box('새 회차 발행 후 세계관 자동 업데이트'))
     await waitFor(() => expect(window.confirm).toHaveBeenCalledWith('세계관 자동 업데이트 설정 · 회당 예시 5 · 예시 비용 0 크레딧 · 데모 잔액 100. 실제 요금은 미정이며 실제 차감은 없어요. 계속할까요?'))
     expect((await box('새 회차 발행 후 세계관 자동 업데이트')).checked).toBe(false)
@@ -42,14 +42,14 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
 
   it('autoWorld를 켜고 발행하면 세계관에 후보와 이력이 쌓인다', async () => {
     ownWorld()
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     fireEvent.click(await box('새 회차 발행 후 세계관 자동 업데이트'))
     await toastIs('작품 설정을 변경했어요 (데모)')
     expect((await box('새 회차 발행 후 세계관 자동 업데이트')).checked).toBe(true)
     fireEvent.click(screen.getByLabelText('표기 오류 수정안 자동 승인·발행'))
     await waitFor(() => expect(star().settings).toEqual({ autoWorld: true, typoAuto: true }))
     const no = star().eps.length + 1
-    fireEvent.click(screen.getByRole('button', { name: 'AI 도움' }))
+    fireEvent.click(screen.getByRole('button', { name: '닫기' }))
     const body = await screen.findByLabelText('원고 본문')
     body.innerHTML = '<p>새벽 탑의 종이 세 번 울렸다.</p>'
     fireEvent.input(body)
@@ -79,12 +79,12 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   })
 
   it('설정 추출 후보는 반영하거나 제외할 수 있다', async () => {
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     fireEvent.click(await screen.findByRole('button', { name: '설정 추출 (데모)' }))
     await toastIs('작가 소유 세계관과 발행된 회차가 필요해요')
     cleanup()
     ownWorld()
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     fireEvent.change(await screen.findByLabelText('추출할 발행 회차'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: '설정 추출 (데모)' }))
     await toastIs('설정 후보를 확인해 주세요 (데모)')
@@ -103,12 +103,12 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   })
 
   it('세계관을 연결한 원작만 독자 공개 시작 회차를 입력하고, 1 미만은 거부한다', async () => {
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     await screen.findByLabelText('리안 상태')
     expect(screen.queryAllByLabelText('독자 공개 시작 회차 (비우면 비공개)')).toHaveLength(0)
     cleanup()
     ownWorld()
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     const [rule] = await screen.findAllByLabelText('독자 공개 시작 회차 (비우면 비공개)')
     fireEvent.change(rule, { target: { value: '0' } })
     fireEvent.blur(rule)
@@ -132,7 +132,7 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
 
   it('독자 공개 회차는 칸을 벗어나지 않아도 change(Enter·스핀 버튼) 한 번마다 저장한다', async () => {
     ownWorld()
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     const rule = (await screen.findAllByLabelText('독자 공개 시작 회차 (비우면 비공개)'))[0] as HTMLInputElement
     fireEvent.change(rule, { target: { value: '0' } })
     await toastIs('1 이상의 회차를 입력해 주세요')
@@ -145,7 +145,7 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
 
   it('공개 회차를 저장해도 같은 입력칸이 남고 포커스가 유지된다', async () => {
     ownWorld()
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     const cast = await screen.findByLabelText('세라핀 독자 공개 시작 회차 (비우면 비공개)')
     cast.focus()
     fireEvent.change(cast, { target: { value: '3' } })
@@ -157,12 +157,12 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   })
 
   it('인물 상태를 바꾸면 원작·포크에 맞게 알리고, 포크에는 원작 값을 함께 보여 준다', async () => {
-    renderAt('/studio/starlight?tab=note')
+    renderAt('/studio/starlight?panel=settings')
     fireEvent.change(await screen.findByLabelText('리안 상태'), { target: { value: '결심' } })
     await toastIs('원작 설정을 바꿨어요')
     cleanup()
     db().works.find((w) => w.id === 'crown')!.owner = 'me'
-    renderAt('/studio/crown?tab=note')
+    renderAt('/studio/crown?panel=settings')
     await screen.findByText('견습 서약사 · 원작: 결심')
     fireEvent.change(screen.getByLabelText('리안 상태'), { target: { value: '의문' } })
     await toastIs('이 소설에서만 리안 상태를 ‘의문’로 바꿨어요 (원작 그대로)')
@@ -188,27 +188,26 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
     expect(screen.queryByRole('listbox')).toBeNull()
     fireEvent.keyUp(body, { key: '@' })
     fireEvent.mouseDown(within(await screen.findByRole('listbox')).getByRole('option', { name: /리안/ }))
-    await toastIs(`‘리안’ → ${db().drafts.starlight.no}화에 연결했어요 · 타임라인에 표시돼요`)
+    await toastIs(`‘리안’ → ${db().drafts.starlight.no}화에 연결했어요`)
     expect(body.querySelector('.mention')!.textContent).toBe('@리안')
     expect(screen.queryByRole('listbox')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: '타임라인' }))
-    await screen.findByText('@ 리안')
     expect(db().drafts.starlight.paras).toEqual(['그때 @리안'])
     delete db().drafts.starlight
   })
 
   it('AI 요청 문구는 탭을 바꿔도 남는다', async () => {
     renderAt('/studio/starlight')
+    fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
     fireEvent.change(await screen.findByLabelText('AI에게 요청'), { target: { value: '긴장감 있게' } })
-    fireEvent.click(screen.getByRole('button', { name: '타임라인' }))
-    await screen.findByRole('button', { name: '＋ 사건 추가' })
-    fireEvent.click(screen.getByRole('button', { name: 'AI 도움' }))
+    fireEvent.click(screen.getByRole('button', { name: '접기' }))
+    fireEvent.click(screen.getByRole('button', { name: 'AI 채팅 열기' }))
     expect(((await screen.findByLabelText('AI에게 요청')) as HTMLTextAreaElement).value).toBe('긴장감 있게')
     delete db().drafts.starlight
   })
 
   it('원고를 고치면 설정 검사 결과가 바로 무효로 바뀐다 (C)', async () => {
     renderAt('/studio/starlight')
+    fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
     fireEvent.click(await screen.findByRole('button', { name: /설정 검사/ }))
     await screen.findByText('✓ 설정과 어긋난 곳이 없어요')
     const body = screen.getByLabelText('원고 본문')
@@ -239,6 +238,7 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
 
   it('시뮬레이션 대화에서 초상이 있는 인물은 초상을 쓴다', async () => {
     renderAt('/studio/starlight')
+    fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
     fireEvent.click(await screen.findByRole('button', { name: /인물에게 맡겨 보기/ }))
     const sheet = await screen.findByRole('dialog', { name: '인물에게 맡겨 보기' })
     fireEvent.click(within(sheet).getByRole('button', { name: '▶ 실행하기' }))

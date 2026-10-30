@@ -50,6 +50,7 @@ describe('집필실 (U13·U14·U16·U17·U22)', () => {
 
   it('AI 제안은 버리면 원고가 그대로이고 승인해야 들어간다', async () => {
     renderAt('/studio/starlight')
+    fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
     await screen.findByLabelText('AI에게 요청')
     expect(sid()).toBe('U14 집필실 · AI 도움')
     expect(document.querySelector('.ai-context')!.textContent).toContain('현재 회차')
@@ -73,6 +74,7 @@ describe('집필실 (U13·U14·U16·U17·U22)', () => {
     await screen.findByLabelText('원고 본문')
     body().innerHTML = '<p>해가 진 뒤 탑의 문이 열렸다.</p>'
     fireEvent.input(body())
+    fireEvent.click(screen.getByRole('button', { name: 'AI 채팅 열기' }))
     fireEvent.click(screen.getByRole('button', { name: /설정 검사/ }))
     await toastIs('1곳이 설정과 어긋나요')
     expect(sid()).toBe('U17 설정 검사 · 수정')

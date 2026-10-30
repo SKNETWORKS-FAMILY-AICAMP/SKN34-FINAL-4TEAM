@@ -23,7 +23,7 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
   it('보기를 바꾸고 메모는 다시 열어도 남아 있다', async () => {
     renderAt('/studio/starlight')
     await screen.findByLabelText('원고 본문')
-    for (const [label, id] of [['보드', 'U37'], ['사전', 'U38'], ['개요', 'U39'], ['서술', 'U40'], ['메모', 'U41']] as const) {
+    for (const [label, id] of [['사전', 'U38'], ['플롯', 'U40'], ['콘티', 'U41']] as const) {
       fireEvent.click(within(tools()).getByRole('button', { name: label }))
       await waitFor(() => expect(sid()).toContain(id))
     }
@@ -31,7 +31,7 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
     fireEvent.change(screen.getByLabelText('메모'), { target: { value: '아이디어 메모' } })
     fireEvent.click(within(tools()).getByRole('button', { name: '원고' }))
     await screen.findByLabelText('원고 본문')
-    fireEvent.click(within(tools()).getByRole('button', { name: '메모' }))
+    fireEvent.click(within(tools()).getByRole('button', { name: '콘티' }))
     await waitFor(() => expect((screen.getByLabelText('메모') as HTMLTextAreaElement).value).toBe('아이디어 메모'))
   })
 
@@ -52,6 +52,7 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
     await credits.save({ ...(await credits.get()), credits: 3 })
     renderAt('/studio/starlight')
     await screen.findByLabelText('원고 본문')
+    fireEvent.click(screen.getByRole('button', { name: '집필 설정' }))
     fireEvent.click(screen.getByRole('switch', { name: 'AI 자율 연재 켜기' }))
     await toastIs('AI 자율 연재를 켰어요 (데모 · 실제 예약 없음)')
     screen.getByText(/하루 최대 1회 · KST 기준/)
@@ -63,6 +64,7 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
 
   it('중단된 자율 연재를 다시 시작해 새 회차를 공개하며, 작가 확인을 켜면 초안만 만든다', async () => {
     renderAt('/studio/starlight')
+    fireEvent.click(await screen.findByRole('button', { name: '집필 설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '다시 시작' }))
     await screen.findByText('상태: 실행 중')
     fireEvent.click(screen.getByRole('button', { name: /지금 한 회차 생성해 보기/ }))
@@ -97,6 +99,7 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
     cleanup()
     renderAt('/studio/starlight')
     await screen.findByLabelText('원고 본문')
+    fireEvent.click(screen.getByRole('button', { name: 'AI 채팅 열기' }))
     fireEvent.click(screen.getByRole('button', { name: '정책 안내' }))
     const sheet = await screen.findByRole('dialog', { name: '크레딧·이용 정책 안내' })
     expect(sid()).toContain('U23')
@@ -110,6 +113,7 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
 
   it('인물 시뮬레이션 결과를 참고 자료로 가져오고, 타임라인에 사건을 더한다', async () => {
     renderAt('/studio/starlight')
+    fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
     fireEvent.click(await screen.findByRole('button', { name: /인물에게 맡겨 보기/ }))
     const sheet = await screen.findByRole('dialog', { name: '인물에게 맡겨 보기' })
     expect(sid()).toContain('U15')
@@ -119,11 +123,7 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
     await screen.findByText(/📎 참고 자료: 시뮬레이션 1건/)
     fireEvent.click(screen.getByRole('button', { name: '미리 보기' }))
     await toastIs(/^3문단 · 공개 전 미리보기는 공개 후 회차 뷰어에서 볼 수 있어요$/)
-    fireEvent.click(screen.getByRole('button', { name: '타임라인' }))
-    await waitFor(() => expect(sid()).toContain('U18'))
-    fireEvent.click(screen.getByRole('button', { name: '＋ 사건 추가' }))
-    await toastIs('이 소설에만 사건을 추가했어요')
-    fireEvent.click(screen.getByRole('button', { name: '설정' }))
-    await waitFor(() => expect(sid()).toContain('U19'))
+    fireEvent.click(screen.getByRole('button', { name: '집필 설정' }))
+    await screen.findByRole('dialog', { name: '집필 설정' })
   })
 })
