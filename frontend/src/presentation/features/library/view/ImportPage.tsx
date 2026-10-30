@@ -12,9 +12,9 @@ export function ImportPage() {
   const { step, done } = vm
   const json = JSON.stringify({
     title: '춘향전', source: vm.kind,
-    world: { era: '조선 숙종 대', places: ['남원 광한루', '오작교', '한양'], rules: IMPORT.world.filter((x) => x.startsWith('규칙')).map((x) => x.slice(4)) },
-    characters: IMPORT.cast.map((c, i) => ({ name: c.split(' · ')[0], role: c.split(' · ')[1], first_ep: i < 2 ? 1 : i === 2 ? 3 : 1 })),
-    events: IMPORT.events.map((e) => ({ ep: +e[0], summary: e.slice(3) })), episodes: 4,
+    world: { era: '조선 숙종 대', places: ['남원 광한루', '오작교', '한양'], rules: vm.result.world.filter((x) => x.startsWith('규칙')).map((x) => x.slice(4)) },
+    characters: vm.result.cast.map((c, i) => ({ name: c.split(' · ')[0], role: c.split(' · ')[1], first_ep: i < 2 ? 1 : i === 2 ? 3 : 1 })),
+    events: vm.result.events.map((e) => ({ ep: +e[0], summary: e.slice(3) })), episodes: 4,
   }, null, 2)
   return (
     <>
@@ -38,8 +38,8 @@ export function ImportPage() {
           <div className="panel"><b>3. 정리된 결과를 확인하세요</b><p className="small muted" style={{ margin: '4px 0 12px' }}>항목을 눌러 바로 고칠 수 있어요. 저장해야 세계관·인물에 들어가요.</p>
             {done ? (
               <>
-                <div className="res3">{([['인물', IMPORT.cast], ['세계관', IMPORT.world], ['사건', IMPORT.events]] as const).map(([h, list]) => (
-                  <div className="rc" key={h}><h4>{h} <span className="muted">{list.length}</span></h4><ul>{list.map((c) => <li key={c} contentEditable suppressContentEditableWarning>{c}</li>)}</ul></div>
+                <div className="res3">{([['인물', 'cast'], ['세계관', 'world'], ['사건', 'events']] as const).map(([h, k]) => (
+                  <div className="rc" key={h}><h4>{h} <span className="muted">{vm.result[k].length}</span></h4><ul>{vm.result[k].map((c, i) => <li key={i + c} contentEditable suppressContentEditableWarning onBlur={(e) => vm.edit(k, i, e.currentTarget.innerText ?? e.currentTarget.textContent ?? '')}>{c}</li>)}</ul></div>
                 ))}</div>
                 <div className="json" id="json">{json}</div>
                 <div className="rowend" style={{ marginTop: 14 }}><button type="button" className="btn" onClick={vm.rerun}>다시 정리 <span className="demo">예시 10 · 미확정</span></button><button type="button" className="btn pri" id="saveimp" onClick={vm.save}>확인하고 저장</button></div>

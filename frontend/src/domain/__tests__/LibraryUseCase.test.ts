@@ -100,6 +100,14 @@ describe('LibraryUseCase · 가져오기와 서재', () => {
     expect(await useCase.saveImport({ kind: '자체 창작', worldId: made.id })).toEqual({ error: '이미 저장했어요' })
   })
 
+  it('가져오기는 고친 인물·규칙·사건으로 저장한다', async () => {
+    const { db, useCase } = setup()
+    const made = await useCase.createWorld({ name: '남원', description: '', rules: '' })
+    if (!('id' in made)) throw new Error(made.error)
+    await useCase.saveImport({ kind: '자체 창작', worldId: made.id, cast: ['춘향 · 주인공'], world: ['규칙: 고친 규칙'], events: ['2화 고친 사건'] })
+    expect(db.works.find((w) => w.id === 'chunhyang')).toMatchObject({ cast: [expect.objectContaining({ n: '춘향', d: '주인공' })], localRules: ['고친 규칙'], events: [[2, 'm', '고친 사건', []]] })
+  })
+
   it('내가 쓰는 소설에 포크·원작과 초안 상태를 보여 준다', async () => {
     const { useCase } = setup()
     const write = await useCase.getWrite()
