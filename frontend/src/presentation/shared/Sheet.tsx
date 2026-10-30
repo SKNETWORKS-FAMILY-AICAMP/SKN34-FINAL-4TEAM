@@ -22,6 +22,10 @@ export function Sheet({ sid, label, onClose, panelClass = 'sheet', dimClass = 'b
     const el = panel.current
     if (!el) return
     const back = opener.current
+    // 목업 #modal은 슬롯이 하나라서 새 시트가 열리면 이전 시트를 닫습니다.
+    window.dispatchEvent(new Event('sf-sheet-open'))
+    const replaced = () => close.current()
+    window.addEventListener('sf-sheet-open', replaced)
     dispatch(sessionActions.setSheetScreen(sid))
     // 처음 포커스는 data-autofocus 입력, 없으면 첫 조작 요소 (React autoFocus는 StrictMode 재실행에서 풀립니다)
     ;(el.querySelector<HTMLElement>('[data-autofocus]') ?? el.querySelector<HTMLElement>(FOCUSABLE) ?? el).focus()
@@ -39,6 +43,9 @@ export function Sheet({ sid, label, onClose, panelClass = 'sheet', dimClass = 'b
     document.addEventListener('keydown', key)
     return () => {
       document.removeEventListener('keydown', key)
+      window.removeEventListener('sf-sheet-open', replaced)
+      // 교체로 닫힐 때는 새 시트의 화면 ID와 포커스를 지키고 opener로 돌리지 않습니다.
+      if ([...document.querySelectorAll('[role=dialog]')].some((d) => d !== el)) return
       dispatch(sessionActions.setSheetScreen(null))
       if (back instanceof HTMLElement) back.focus()
     }

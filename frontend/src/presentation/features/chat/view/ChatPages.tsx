@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useParams, useSearchParams } from 'react-router'
+import { useParams, useSearchParams } from 'react-router'
 
 import { SORTS } from '../../../../domain/entities/work'
 import { CoverOf } from '../../../shared/art'
@@ -58,7 +58,8 @@ function ChatRoom({ wid, cn }: { wid: string; cn?: string }) {
   const lines = vm.data?.log.length
   useEffect(() => { if (log.current) log.current.scrollTop = log.current.scrollHeight }, [lines])
   if (vm.data === undefined) return null
-  if (vm.data === null) return <Navigate replace to="/chat" />
+  // 목업 chatPage(): 대화할 수 없는 주소는 그대로 두고 목록을 그립니다.
+  if (vm.data === null) return <ChatList />
   const { w, chatWorks, cs, cur, read, base, questions, forkAt } = vm.data
   return (
     <>
