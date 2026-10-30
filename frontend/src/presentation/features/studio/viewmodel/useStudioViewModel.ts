@@ -117,7 +117,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
       if (msg) toast(msg)
     },
     acceptWorld: async () => { let msg = ''; await run(async () => { msg = await studioUseCase.acceptWorld(id) }); toast(msg) },
-    discardWorld: async () => { await run(() => studioUseCase.discardWorld(id)); toast('후보를 제외했어요') },
+    discardWorld: async () => { let msg: string | null = null; await run(async () => { msg = await studioUseCase.discardWorld(id) }); if (msg) toast(msg) },
     setRelease: async (kind: 'rule' | 'event' | 'cast', i: number, value: string) => {
       let msg: string | null = null
       await run(async () => { msg = await studioUseCase.setRelease(id, kind, i, value) })
