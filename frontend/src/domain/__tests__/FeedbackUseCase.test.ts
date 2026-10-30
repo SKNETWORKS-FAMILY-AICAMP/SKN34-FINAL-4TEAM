@@ -22,6 +22,10 @@ function fakes() {
     addReport: async (r) => { db.reports.unshift(r) },
     addInbox: async (i) => { db.inbox.unshift(i) },
     addReview: async (q) => { db.queue.unshift(q) },
+    saveInbox: async () => {},
+    saveReport: async () => {},
+    listReview: async () => db.queue,
+    saveReview: async () => {},
   }
   return { works, db, useCase: new FeedbackUseCase(workRepository, feedbackRepository) }
 }

@@ -14,5 +14,10 @@ export interface FeedbackRepository {
   addReport(report: ReaderReport): Promise<void>
   listInbox(): Promise<InboxItem[]>
   addInbox(item: InboxItem): Promise<void>
+  /** 같은 id 항목을 바꿉니다. */
+  saveInbox(item: InboxItem): Promise<void>
+  saveReport(report: ReaderReport): Promise<void>
+  listReview(): Promise<ReviewItem[]>
+  saveReview(item: ReviewItem): Promise<void>
   addReview(item: ReviewItem): Promise<void>
 }

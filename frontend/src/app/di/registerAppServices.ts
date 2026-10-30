@@ -2,6 +2,7 @@ import { asFunction, asValue } from 'awilix/browser'
 
 import {
   createMockDb,
+  InMemoryChatRepository,
   InMemoryCreditRepository,
   InMemoryFeedbackRepository,
   InMemoryNotificationRepository,
@@ -9,9 +10,11 @@ import {
   InMemoryWorkRepository,
   InMemoryWorldRepository,
 } from '../../data/mock/InMemoryRepositories'
+import { ChatUseCase } from '../../domain/usecases/ChatUseCase'
 import { CreditUseCase } from '../../domain/usecases/CreditUseCase'
 import { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
 import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
+import { InboxUseCase } from '../../domain/usecases/InboxUseCase'
 import { LibraryUseCase } from '../../domain/usecases/LibraryUseCase'
 import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { StudioUseCase } from '../../domain/usecases/StudioUseCase'
@@ -28,12 +31,15 @@ export function registerAppServices(container: AppContainer) {
     feedbackRepository: asFunction(({ mockDb }) => new InMemoryFeedbackRepository(mockDb)).singleton(),
     worldRepository: asFunction(({ mockDb }) => new InMemoryWorldRepository(mockDb)).singleton(),
     creditRepository: asFunction(({ mockDb }) => new InMemoryCreditRepository(mockDb)).singleton(),
+    chatRepository: asFunction(({ mockDb }) => new InMemoryChatRepository(mockDb)).singleton(),
+    chatUseCase: asFunction(({ workRepository, readingRepository, chatRepository }) => new ChatUseCase(workRepository, readingRepository, chatRepository)).singleton(),
+    inboxUseCase: asFunction(({ workRepository, feedbackRepository }) => new InboxUseCase(workRepository, feedbackRepository)).singleton(),
     libraryUseCase: asFunction(({ workRepository, worldRepository, readingRepository, feedbackRepository }) => new LibraryUseCase(workRepository, worldRepository, readingRepository, feedbackRepository)).singleton(),
     creditUseCase: asFunction(({ creditRepository }) => new CreditUseCase(creditRepository)).singleton(),
     readingUseCase: asFunction(({ workRepository, readingRepository }) => new ReadingUseCase(workRepository, readingRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository }) => new FeedbackUseCase(workRepository, feedbackRepository)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
     studioUseCase: asFunction(({ workRepository, creditRepository, feedbackRepository }) => new StudioUseCase(workRepository, creditRepository, feedbackRepository)).singleton(),
-    shellUseCase: asFunction(({ notificationRepository }) => new ShellUseCase(notificationRepository)).singleton(),
+    shellUseCase: asFunction(({ notificationRepository, feedbackRepository }) => new ShellUseCase(notificationRepository, feedbackRepository)).singleton(),
   })
 }

@@ -11,11 +11,11 @@ export type ReaderReport = { id: string; w: string; n: number | null; type: stri
 /** 목업 S.inbox: 작가 피드백함 항목 */
 export type InboxItem = {
   id: string; rid: string; w: string; n: number; pi: number; type: string; who: string; text: string; baseText: string; status: string
-  ai: { cls: string; why: string; ev: string }; from?: string; to?: string
+  ai: { cls: string; why: string; ev: string }; from?: string; to?: string; answer?: string
 }
 
 /** 목업 S.admin.queue: 운영팀 신고 검토 목록 */
-export type ReviewItem = { id: string; w: string; n: null; type: string; text: string; quote: string; status: string; who: string }
+export type ReviewItem = { id: string; w: string; n: null; type: string; text: string; quote: string; status: string; who: string; appeal?: string }
 
 export const FEEDBACK_TYPES = ['단순 오류', '스토리 오류', '질문', '제안'] as const
 export type FeedbackType = (typeof FEEDBACK_TYPES)[number]

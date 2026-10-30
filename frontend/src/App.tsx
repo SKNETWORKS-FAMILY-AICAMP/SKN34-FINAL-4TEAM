@@ -1,5 +1,8 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 
+import { ChatPage } from './presentation/features/chat/view/ChatPages'
+import { InboxPage } from './presentation/features/inbox/view/InboxPage'
+import { NotificationsPage } from './presentation/features/inbox/view/NotificationsPage'
 import { ForkedPage } from './presentation/features/fork/view/ForkedPage'
 import { ForkPage } from './presentation/features/fork/view/ForkPage'
 import { WritingPolicyPage } from './presentation/features/fork/view/WritingPolicyPage'
@@ -71,6 +74,9 @@ function App() {
         <Route path="/worlds" element={<Navigate replace to="/new" />} />
         <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
         <Route path="/studio/:id" element={<RequireRole><StudioPage /></RequireRole>} />
+        <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
+        <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
+        <Route path="/chat/:wid?/:cn?" element={<RequireRole><ChatPage /></RequireRole>} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
       {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
