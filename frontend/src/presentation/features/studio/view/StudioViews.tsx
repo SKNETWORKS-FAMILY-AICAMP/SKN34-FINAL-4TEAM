@@ -37,6 +37,19 @@ export function MemoView({ vm }: { vm: VM }) {
 
 const DocBtn = ({ id, d, children, ...props }: { id: string; d: Doc; children: ReactNode; className?: string; style?: CSSProperties }) => <Go to={`/studio/${id}?view=wiki&doc=${encodeURIComponent(d.id)}`} {...props}>{children}</Go>
 
+function PlanWikiSidebar({ vm }: { vm: VM }) {
+  const [openCat, setOpenCat] = useState<string | null>('char')
+  return <aside className="wside" aria-label="플롯 사전 목록">
+    <div className="wq"><input aria-label="사전 검색" placeholder="사전 검색 (목업)" disabled /></div>
+    <div className="wbtns"><button type="button" className="btn sm pri" disabled>＋ 새 문서</button><button type="button" className="btn sm" disabled>＋ 분류</button></div>
+    {vm.cats.filter((c) => c.id !== 'event').map((c) => {
+      const docs = vm.docs.filter((d) => d.cat === c.id), open = openCat === c.id
+      return <div className={`wcat ${open ? 'open' : ''}`} key={c.id}><button type="button" aria-expanded={open} onClick={() => setOpenCat(open ? null : c.id)}><i style={{ background: c.c }} />{c.n}{c.lock ? <small title="기본 분류">🔒</small> : null}<span>{docs.length}</span></button>
+        {open && <div className="wdocs">{docs.map((d) => <button type="button" key={d.id} disabled>{d.t}</button>)}</div>}</div>
+    })}
+  </aside>
+}
+
 /** 목업 narrativeView(w) */
 export function NarrativeView({ vm }: { vm: VM }) {
   const w = vm.studio!.work
@@ -48,12 +61,12 @@ export function NarrativeView({ vm }: { vm: VM }) {
   const [chapter, setChapter] = useState(0)
   const openNew = (ep: number) => { setChapter(ep); setEditing('new') }
   return (
-    <section className="narrative-page"><h2>플롯</h2><p className="muted">막과 회차에 따라 사건과 장면을 정리하세요.</p>
+    <div className="wiki"><PlanWikiSidebar vm={vm} /><section className="narrative-page"><h2>플롯</h2><p className="muted">막과 회차에 따라 사건과 장면을 정리하세요.</p>
       <div className="plan-toolbar"><b>이야기 구조</b><div className="text-ai-modes" aria-label="플롯 보기">{([['grid', '회차별 카드'], ['matrix', '등장 관계표']] as const).map(([key, label]) => <button type="button" key={key} className={`btn sm${layout === key ? ' pri' : ''}`} aria-pressed={layout === key} onClick={() => setLayout(key)}>{label}</button>)}</div></div>
       <div className="plan-act"><b>1막</b><span>이야기의 흐름</span><button type="button" className="btn sm" disabled>＋ 회차 · 목업</button></div>
       {layout === 'grid' ? <div className="plan-chapters">{chapters.map((ep) => <section className="plan-chapter" key={ep}><h3>{ep ? `${ep}화` : '회차 미정'}</h3>{ordered.filter((d) => (d.ep ?? 0) === ep).map((d, i) => <button type="button" className="plan-scene" key={d.id} onClick={() => setEditing(d)}><small>장면 {i + 1} · {LINE[d.line ?? ''] || '시점 미정'}</small><b>{d.t}</b><span>{d.body || '장면 내용을 정리해 보세요.'}</span><small>{d.who?.join(' · ') || '등장 인물 미정'}</small></button>)}<button type="button" className="btn sm" onClick={() => openNew(ep)}>사건 추가</button></section>)}</div> : <div className="wtbl plan-matrix"><p className="small muted">인물별로 등장하는 장면을 확인하세요. 장면을 선택하면 편집 화면이 열립니다.</p><table><thead><tr><th scope="col">인물</th>{ordered.map((d) => <th scope="col" key={d.id}><button type="button" onClick={() => setEditing(d)}>{d.ep ? `${d.ep}화 · ` : ''}{d.t}</button></th>)}</tr></thead><tbody>{characters.map((c) => <tr key={c.id}><th scope="row">{c.t}</th>{ordered.map((d) => <td key={d.id}>{d.who?.includes(c.t) ? '등장' : '—'}</td>)}</tr>)}</tbody></table><button type="button" className="btn sm" onClick={() => openNew(0)}>사건 추가</button></div>}
       {editing && <Sheet sid="U40" label={editing === 'new' ? '사건 추가' : '사건 편집'} onClose={() => setEditing(null)}><div className="studio-settings-head"><h3>{editing === 'new' ? '사건 추가' : '사건 편집'}</h3><button type="button" className="btn sm" onClick={() => setEditing(null)}>닫기</button></div><p className="small muted">화면 예시입니다. 입력한 내용은 저장되지 않습니다.</p><label className="field">사건 이름<input className="inp" defaultValue={editing === 'new' ? '' : editing.t} /></label><label className="field">회차<input className="inp" defaultValue={editing === 'new' ? (chapter || '') : (editing.ep || '')} /></label><label className="field">장면 내용<textarea className="ta" defaultValue={editing === 'new' ? '' : editing.body} /></label><label className="field">등장 인물<input className="inp" defaultValue={editing === 'new' ? '' : editing.who?.join(', ')} /></label><button type="button" className="btn pri" disabled>저장 · 목업</button></Sheet>}
-    </section>
+    </section></div>
   )
 }
 

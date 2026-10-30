@@ -59,6 +59,17 @@ describe('집필실 화면 구성', () => {
     expect(within(dialog).getByLabelText('사건 이름')).toBeTruthy()
   })
 
+  it('플롯에서 사전 목록을 보며 분류를 펼쳐도 플롯에 머문다', async () => {
+    renderApp('/studio/starlight?view=narrative', createAppStore({ role: 'user' }))
+    const sidebar = await screen.findByRole('complementary', { name: '플롯 사전 목록' })
+    expect(within(sidebar).getByRole('button', { name: '리안' })).toBeTruthy()
+    expect(within(sidebar).queryByRole('button', { name: /사건/ })).toBeNull()
+    fireEvent.click(within(sidebar).getByRole('button', { name: /장소/ }))
+    expect(within(sidebar).getByRole('button', { name: '별빛 탑' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: '플롯' })).toBeTruthy()
+    expect(within(sidebar).getByLabelText('사전 검색')).toHaveProperty('disabled', true)
+  })
+
   it('사전에서 작품 개요와 항목별 공개 설정을 보여준다', async () => {
     renderApp('/studio/starlight?view=wiki', createAppStore({ role: 'user' }))
     expect(await screen.findByLabelText('시놉시스')).toBeTruthy()
