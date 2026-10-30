@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import { autoOf, simTurns, type PublishSettings, type StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
-import { wikiOf } from '../../../../domain/entities/wiki'
+import { wikiState } from '../../../../domain/entities/wiki'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -42,11 +42,20 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     await fn()
     refresh(redraw)
   }
-  const edit = (patch: Parameters<StudioUseCase['edit']>[1]) => {
-    if (patch.paras) setTyped({ key, paras: patch.paras })
+  const flash = () => {
     setSaving(true)
     window.clearTimeout(savedTimer.current)
     savedTimer.current = window.setTimeout(() => setSaving(false), 600)
+  }
+  // 사전 편집은 blur마다 저장하므로 순서대로 이어 붙여 앞선 저장을 덮어쓰지 않게 합니다.
+  const queue = (fn: () => Promise<unknown>) => {
+    flash()
+    sync.current = sync.current.then(fn)
+    return sync.current.then(() => refresh())
+  }
+  const edit = (patch: Parameters<StudioUseCase['edit']>[1]) => {
+    if (patch.paras) setTyped({ key, paras: patch.paras })
+    flash()
     sync.current = sync.current.then(() => studioUseCase.edit(key, patch))
   }
 
@@ -96,7 +105,27 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
       toast(r.ok)
       navigate(r.go)
     },
-    docs: s ? wikiOf(s.work) : [],
+    docs: s ? wikiState(s.work).docs : [],
+    cats: s ? wikiState(s.work).cats : [],
+    addDoc: async (cat: string, t: string) => {
+      const docId = await studioUseCase.addDoc(id, cat, t)
+      refresh()
+      toast(`‘${t}’ 문서를 만들었어요`)
+      if (docId) navigate(`/studio/${id}?view=wiki&doc=${encodeURIComponent(docId)}`)
+    },
+    addCategory: async (n: string) => { await run(() => studioUseCase.addCategory(id, n)); toast('분류를 추가했어요') },
+    deleteDoc: async (docId: string) => {
+      const cat = await studioUseCase.deleteDoc(id, docId)
+      refresh()
+      toast('문서를 지웠어요 (소설은 그대로예요)')
+      navigate(`/studio/${id}?view=wiki&cat=${cat}`)
+    },
+    /** 목업 data-wf·data-wk·data-wv·walias·wtag·wprop: 고치면 '저장 중…'을 잠깐 보여 줍니다. */
+    setDocText: (docId: string, f: 't' | 'body', v: string) => queue(() => studioUseCase.setDocText(id, docId, f, v)),
+    setDocProp: (docId: string, k: string, v: string) => queue(() => studioUseCase.setDocProp(id, docId, k, v)),
+    renameDocProp: (docId: string, k: string, nk: string) => queue(() => studioUseCase.renameDocProp(id, docId, k, nk)),
+    addDocChip: (docId: string, f: 'alias' | 'tags', v: string) => run(() => studioUseCase.addDocChip(id, docId, f, v)),
+    removeAlias: (docId: string, i: number) => run(() => studioUseCase.removeAlias(id, docId, i)),
     goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),
     auto: s ? autoOf(s.work) : null,
     saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => run(() => studioUseCase.saveNotes(id, patch)),

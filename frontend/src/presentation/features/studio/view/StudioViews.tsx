@@ -1,14 +1,14 @@
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 
-import { checkItems, LINE, mentions, narrativeOrder, propsAt, WCATS, type Doc } from '../../../../domain/entities/wiki'
+import { checkItems, LINE, linkParts, mentions, narrativeOrder, propsAt, type Doc, type WikiCat } from '../../../../domain/entities/wiki'
 import { epsOf } from '../../../../domain/entities/work'
 import { CoverOf } from '../../../shared/art'
 import { Go } from '../../../shared/Go'
 import type { useStudioViewModel } from '../viewmodel/useStudioViewModel'
+import { FormSheet } from './StudioSheets'
 
 type VM = ReturnType<typeof useStudioViewModel>
-const catOf = (id: string) => WCATS.find((c) => c.id === id) ?? { id, n: id, c: '#999' }
 
 /** 목업 studioViews(id, view) */
 export function StudioTools({ id, view, ep }: { id: string; view: string; ep?: number }) {
@@ -31,7 +31,7 @@ export function MemoView({ vm }: { vm: VM }) {
   )
 }
 
-const DocBtn = ({ id, d, children, className }: { id: string; d: Doc; children: ReactNode; className?: string }) => <Go to={`/studio/${id}?view=wiki&doc=${encodeURIComponent(d.id)}`} className={className}>{children}</Go>
+const DocBtn = ({ id, d, children, className, style }: { id: string; d: Doc; children: ReactNode; className?: string; style?: CSSProperties }) => <Go to={`/studio/${id}?view=wiki&doc=${encodeURIComponent(d.id)}`} className={className} style={style}>{children}</Go>
 
 /** 목업 narrativeView(w) */
 export function NarrativeView({ vm }: { vm: VM }) {
@@ -110,15 +110,26 @@ export function BoardView({ vm }: { vm: VM }) {
   )
 }
 
-/** 목업 wikiView(w). ponytail: 읽기 전용이에요. 문서 편집·새 문서·분류·별칭·지식 추가·표 보기는 사전 저장 구조가 정해지면 옮겨요. */
+/** 목업 linkify(): 다른 문서 이름을 분류 색 링크로 그립니다. */
+const Linked = ({ id, docs, cats, text, self }: { id: string; docs: Doc[]; cats: WikiCat[]; text: string; self: string }) => <>{linkParts(docs, text, self).map((p, i) => typeof p === 'string' ? p : <DocBtn key={i} id={id} d={p} className="wl" style={{ '--dc': (cats.find((c) => c.id === p.cat) ?? { c: '#999' }).c } as CSSProperties}>{p.t}</DocBtn>)}</>
+
+/** 목업 contenteditable + blur 저장. 저장된 값이 바뀌면 key로 다시 그려 React와 DOM 내용을 맞춥니다. */
+const Editable = ({ as: Tag = 'div', value, onSave, children, ...props }: { as?: 'div' | 'h1' | 'th' | 'td'; value: string; onSave: (v: string) => void; children?: ReactNode; className?: string; 'data-ph'?: string; 'aria-label'?: string }) =>
+  <Tag key={value} {...props} contentEditable suppressContentEditableWarning spellCheck={false} onBlur={(e) => { const v = (e.currentTarget.textContent ?? '').trim(); if (v !== value) onSave(v) }}>{children ?? value}</Tag>
+
+type Form = Parameters<typeof FormSheet>[0]
+
+/** 목업 wikiView(w). ponytail: 사건 편집·시점별 값·지식·표 보기·대표 이미지는 다음 단계(G2b·G2c)에서 옮겨요. */
 export function WikiView({ vm }: { vm: VM }) {
-  const w = vm.studio!.work, id = w.id, docs = vm.docs
+  const w = vm.studio!.work, id = w.id, docs = vm.docs, cats = vm.cats
+  const catOf = (x: string) => cats.find((c) => c.id === x) ?? { id: x, n: x, c: '#999' }
+  const [form, setForm] = useState<Omit<Form, 'onClose'> | null>(null)
   const [q] = useSearchParams()
   const query = (q.get('q') ?? '').trim(), cat = q.get('cat') || 'char', chk = !!q.get('chk')
   const doc = docs.find((d) => d.id === q.get('doc'))
   const [search, setSearch] = useState(query)
   const ck = checkItems(docs)
-  const L = query ? docs.filter((d) => (d.t + ' ' + d.body).includes(query)) : null
+  const L = query ? docs.filter((d) => (d.t + ' ' + d.alias.join(' ') + ' ' + d.body).includes(query)) : null
   const list = (ds: Doc[], empty: string, small?: (d: Doc) => string) => <div className="wlist">{ds.length ? ds.map((d) => <DocBtn key={d.id} id={id} d={d}><i style={{ background: catOf(d.cat).c }} />{d.t}{small && <small>{small(d)}</small>}</DocBtn>) : <p className="muted small">{empty}</p>}</div>
   let main
   if (L) main = <><h2 className="wh">검색 결과 <small>{L.length}</small></h2>{list(L, '찾는 문서가 없어요.', (d) => catOf(d.cat).n)}</>
@@ -131,14 +142,17 @@ export function WikiView({ vm }: { vm: VM }) {
     const men = mentions(docs, doc)
     main = (
       <div className="wdoc">
-        <div className="wmeta"><span className="wcl"><i style={{ background: c.c }} />{c.n}</span>{doc.cat === 'char' && <span className="muted small">보드에서 보기 · {evs.length}</span>}</div>
-        <h1 className="wt">{doc.t}</h1>
+        <div className="wmeta"><span className="wcl"><i style={{ background: c.c }} />{c.n}</span>{doc.cat === 'char' && <span className="muted small">보드에서 보기 · {evs.length}</span>}<button type="button" className="btn sm" style={{ marginLeft: 'auto' }} onClick={() => vm.deleteDoc(doc.id)}>삭제</button></div>
+        <Editable as="h1" className="wt" value={doc.t} onSave={(v) => vm.setDocText(doc.id, 't', v)} />
+        <div className="wrow"><span>별칭</span><div>{doc.alias.map((a, i) => <em className="wchip" key={i}>{a}<button type="button" aria-label="별칭 삭제" onClick={() => vm.removeAlias(doc.id, i)}>✕</button></em>)}<button type="button" className="wadd" onClick={() => setForm({ title: '별칭 추가', fields: [{ name: 'a', label: '별칭', req: true }], onOk: (o) => vm.addDocChip(doc.id, 'alias', o.a) })}>＋ 별칭</button></div></div>
+        <div className="wrow"><span>태그</span><div>{doc.tags.map((t, i) => <em className="wchip" key={i}>{t}</em>)}<button type="button" className="wadd" onClick={() => setForm({ title: '태그 추가', fields: [{ name: 'a', label: '태그', req: true }], onOk: (o) => vm.addDocChip(doc.id, 'tags', o.a) })}>＋ 태그</button></div></div>
         {isEv && <><div className="wrow"><span>시점</span><div>{doc.ep ? doc.ep + '화' : '미정'} · {LINE[doc.line ?? '']}</div></div>
           <div className="wrow"><span>등장 인물</span><div>{(doc.who ?? []).map((n) => <em className="wchip" key={n}>{n}</em>)}</div></div>
           <div className="wrow"><span>이어지는 사건</span><div>{(doc.links ?? []).map((l) => <em className="wchip" key={l.to}>{l.k} → {docs.find((d) => d.id === l.to)?.t}</em>)}</div></div></>}
         <div className="wbody2"><div>
-          {!isEv && <table className="wprops"><tbody>{Object.entries(propsAt(doc, 0)).map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}</tbody></table>}
-          <div className="wtext">{doc.body}</div>
+          {!isEv && <><table className="wprops"><tbody>{Object.entries(propsAt(doc, 0)).map(([k, v]) => <tr key={k}><Editable as="th" aria-label={`속성 이름 ${k}`} value={k} onSave={(nk) => vm.renameDocProp(doc.id, k, nk)} /><Editable as="td" aria-label={`${k} 값`} value={v} onSave={(nv) => vm.setDocProp(doc.id, k, nv)}><Linked id={id} docs={docs} cats={cats} text={v} self={doc.id} /></Editable></tr>)}</tbody></table>
+            <button type="button" className="wadd" onClick={() => setForm({ title: '속성 추가', fields: [{ name: 'k', label: '속성 이름 (예: 관계, 능력, 소속)', req: true }, { name: 'v', label: '값' }], onOk: (o) => vm.setDocProp(doc.id, o.k, o.v) })}>＋ 속성 추가</button></>}
+          <Editable className="wtext" aria-label="문서 본문" data-ph="내용을 적어 보세요. 다른 문서 이름을 쓰면 자동으로 연결돼요." value={doc.body} onSave={(v) => vm.setDocText(doc.id, 'body', v)}><Linked id={id} docs={docs} cats={cats} text={doc.body} self={doc.id} /></Editable>
         </div></div>
         {doc.cat === 'char' && <section className="wsec"><h4>보드 연동 <small>자동 표시</small></h4><div className="wtwo"><div><small className="muted">등장 사건</small>{evs.length ? evs.map((e) => <DocBtn key={e.id} id={id} d={e} className="wev"><span>{e.ep ? e.ep + '화' : '미정'}</span>{e.t}<em className={`ln ${e.line}`}>{LINE[e.line ?? '']}</em></DocBtn>) : <p className="muted small">아직 없어요.</p>}</div>
           <div><small className="muted">상태 변화 이력</small>{Object.keys(doc.at).length ? Object.keys(doc.at).map(Number).sort((a, b) => a - b).map((k) => <div className="wev" key={k}><span>{k}화</span>상태: {doc.at[k].상태 ?? Object.values(doc.at[k])[0]}</div>) : <p className="muted small">아직 없어요.</p>}</div></div></section>}
@@ -147,21 +161,23 @@ export function WikiView({ vm }: { vm: VM }) {
     )
   } else {
     const c = catOf(cat), ds = docs.filter((d) => d.cat === cat)
-    main = <><h2 className="wh"><i style={{ background: c.c }} />{c.n} <small>문서 {ds.length}</small></h2>{list(ds, '아직 문서가 없어요.', (d) => (d.cat === 'event' ? `${d.ep ? d.ep + '화' : '미정'} · ${LINE[d.line ?? '']}` : ''))}</>
+    main = <><h2 className="wh"><i style={{ background: c.c }} />{c.n} <small>문서 {ds.length}</small></h2>{list(ds, '아직 문서가 없어요. ＋ 새 문서로 만들어 보세요.', (d) => (d.cat === 'event' ? `${d.ep ? d.ep + '화' : '미정'} · ${LINE[d.line ?? '']}` : ''))}</>
   }
   const openCat = doc ? doc.cat : cat
   return (
     <div className="wiki">
       <aside className="wside">
         <form className="wq" role="search" onSubmit={(e) => { e.preventDefault(); vm.goWiki(search) }}><span aria-hidden="true">🔍</span><input name="q" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="사전 검색 (제목·별칭·본문)" aria-label="사전 검색" /></form>
+        <div className="wbtns"><button type="button" className="btn sm pri" id="wnew" onClick={() => setForm({ title: '새 문서 · ' + catOf(openCat).n, fields: [{ name: 't', label: '제목', req: true }, { name: 'cat', label: '분류', opts: cats.map((c) => [c.id, c.n]), value: openCat }], onOk: (o) => vm.addDoc(o.cat, o.t) })}>＋ 새 문서</button><button type="button" className="btn sm" onClick={() => setForm({ title: '새 분류', fields: [{ name: 'n', label: '분류 이름', req: true }], onOk: (o) => vm.addCategory(o.n) })}>＋ 분류</button></div>
         <Go to={`/studio/${id}?view=wiki&chk=1`} className={`wcheck ${chk ? 'on' : ''}`}>☑ 설정 점검 <span>{ck.n}</span></Go>
-        {WCATS.map((c) => {
+        {cats.map((c) => {
           const ds = docs.filter((d) => d.cat === c.id), open = openCat === c.id && !chk
           return <div className={`wcat ${open ? 'open' : ''}`} key={c.id}><Go to={`/studio/${id}?view=wiki&cat=${c.id}`}><i style={{ background: c.c }} />{c.n}{c.lock ? <> <small title="기본 분류">🔒</small></> : null}<span>{ds.length}</span></Go>
             {open && <div className="wdocs">{ds.map((d) => <DocBtn key={d.id} id={id} d={d} className={doc?.id === d.id ? 'on' : ''}>{d.t}</DocBtn>)}</div>}</div>
         })}
       </aside>
       <section className="wmain">{w.parent && <div className="note2 wnote">이 사전은 원작 {w.forkAt}화 시점 스냅샷에서 만들었어요. 여기서 고쳐도 원작 사전은 바뀌지 않아요.</div>}{main}</section>
+      {form && <FormSheet {...form} onClose={() => setForm(null)} />}
     </div>
   )
 }
