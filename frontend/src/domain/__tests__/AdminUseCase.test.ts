@@ -55,4 +55,10 @@ describe('관리자 신고 처리 (목업 data-qact)', () => {
     expect(await uc.runJob('series')).toBeNull()
     expect(await uc.runJob('notification-cleanup')).toMatch('수동 재시도')
   })
+
+  it('없는 사용자는 바꾸지 않고 로그도 남기지 않는다', async () => {
+    const { uc, admin } = fakes()
+    expect(await uc.toggleUser('nope')).toBeNull()
+    expect(admin().audit).toEqual([])
+  })
 })

@@ -73,7 +73,10 @@ export class AdminUseCase {
   }
 
   async toggleUser(id: string) {
-    await this.log((a) => { const u = a.users.find((x) => x.id === id); if (u) u.status = u.status === '활동' ? '제한' : '활동' }, '사용자 상태 변경', (a) => { const u = a.users.find((x) => x.id === id)!; return u.nick + ' · ' + u.status })
+    const u = (await this.adminRepository.get()).users.find((x) => x.id === id)
+    if (!u) return null
+    const status = u.status === '활동' ? '제한' : '활동'
+    await this.log((a) => { a.users.find((x) => x.id === id)!.status = status }, '사용자 상태 변경', () => u.nick + ' · ' + status)
     return '사용자 상태를 변경했어요 (데모)'
   }
 
@@ -133,9 +136,10 @@ export class AdminUseCase {
   }
 
   async toggleEvent(i: number) {
-    const a = await this.adminRepository.get()
-    if (!a.events[i]) return null
-    await this.log((x) => { const e = x.events[i]; e.st = e.st === '진행 중' ? '종료' : '진행 중' }, '이벤트 상태 변경', (x) => x.events[i].t + ' · ' + x.events[i].st)
+    const e = (await this.adminRepository.get()).events[i]
+    if (!e) return null
+    const st = e.st === '진행 중' ? '종료' : '진행 중'
+    await this.log((a) => { a.events[i].st = st }, '이벤트 상태 변경', () => e.t + ' · ' + st)
     return '이벤트 상태를 변경했어요 (데모)'
   }
 
