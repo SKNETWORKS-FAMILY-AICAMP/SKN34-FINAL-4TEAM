@@ -118,4 +118,24 @@ describe('집필실 사전 (목업 wikiOf·wnew·wdel·data-wf·linkify)', () =>
     const s = await useCase.open('fk', undefined, 'user')
     expect(s && 'work' in s && s.work.wiki!.docs.some((d) => d.t === '성진')).toBe(true)
   })
+  it('사건 시점·라인·등장 인물·연결을 고치고, 보드 사건은 시점이 있을 때만 ownEvents에도 넣는다', async () => {
+    const { useCase, w } = await setup()
+    const ev = () => w().wiki!.docs.find((d) => d.t === '재의 사절 도착')!
+    await useCase.setEvent('starlight', ev().id, { ep: 1, line: 'f' })
+    await useCase.toggleWho('starlight', ev().id, '리안')
+    await useCase.toggleWho('starlight', ev().id, '세라핀')
+    expect(ev()).toMatchObject({ ep: 1, line: 'f', who: ['리안'] })
+    const to = w().wiki!.docs.find((d) => d.t === '봉인 아래의 속삭임')!.id
+    await useCase.addLink('starlight', ev().id, to, '복선')
+    expect(ev().links).toEqual([{ to, k: '복선' }])
+    await useCase.removeLink('starlight', ev().id, 0)
+    expect(ev().links).toEqual([])
+    const n = w().ownEvents?.length ?? 0
+    await useCase.addBoardEvent('starlight', '미정 사건', undefined, 'm', [])
+    await useCase.addBoardEvent('starlight', '3화 사건', 3, 's', ['카엘'])
+    expect(w().ownEvents!.length).toBe(n + 1)
+    expect(w().wiki!.docs.find((d) => d.t === '3화 사건')).toMatchObject({ ep: 3, line: 's', who: ['카엘'], tags: ['#3화'] })
+    await useCase.open('starlight', undefined, 'user')
+    expect(w().wiki!.docs.filter((d) => d.t === '3화 사건')).toHaveLength(1)
+  })
 })

@@ -123,9 +123,17 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     },
     /** 목업 data-wf·data-wk·data-wv·walias·wtag·wprop: 고치면 '저장 중…'을 잠깐 보여 줍니다. */
     setDocText: (docId: string, f: 't' | 'body', v: string) => queue(() => studioUseCase.setDocText(id, docId, f, v)),
-    setDocProp: (docId: string, k: string, v: string) => queue(() => studioUseCase.setDocProp(id, docId, k, v)),
+    setDocProp: (docId: string, k: string, v: string, ep?: number) => queue(() => studioUseCase.setDocProp(id, docId, k, v, ep)),
     addDocProp: (docId: string, k: string, v: string) => run(() => studioUseCase.addDocProp(id, docId, k, v)),
     renameDocProp: (docId: string, k: string, nk: string) => queue(() => studioUseCase.renameDocProp(id, docId, k, nk)),
+    setEvent: async (docId: string, patch: Parameters<StudioUseCase['setEvent']>[2]) => { await run(() => studioUseCase.setEvent(id, docId, patch)); toast('보드에 반영했어요') },
+    toggleWho: (docId: string, n: string) => run(() => studioUseCase.toggleWho(id, docId, n)),
+    addLink: async (docId: string, to: string, k: string) => { await run(() => studioUseCase.addLink(id, docId, to, k)); toast('보드에 화살표로 표시돼요') },
+    removeLink: (docId: string, i: number) => run(() => studioUseCase.removeLink(id, docId, i)),
+    addBoardEvent: async (t: string, ep: number | undefined, line: string, who: string[]) => {
+      await run(() => studioUseCase.addBoardEvent(id, t, ep, line, who))
+      toast(ep ? '보드에 사건을 추가했어요' : '시점 미정 사건으로 추가했어요 · 설정 점검에 표시돼요')
+    },
     addDocChip: (docId: string, f: 'alias' | 'tags', v: string) => run(() => studioUseCase.addDocChip(id, docId, f, v)),
     removeAlias: (docId: string, i: number) => run(() => studioUseCase.removeAlias(id, docId, i)),
     goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),

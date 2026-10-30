@@ -292,6 +292,24 @@ export class StudioUseCase {
     return this.editDoc(id, docId, (d) => { if (nk && nk !== k) d.props = Object.fromEntries(Object.entries(d.props).map(([a, b]) => [a === k ? nk : a, b])) })
   }
 
+  /** 목업 data-wev: 사건 시점·라인 */
+  setEvent(id: string, docId: string, patch: Pick<Doc, 'ep' | 'line'>) { return this.editDoc(id, docId, (d) => { Object.assign(d, patch) }) }
+
+  /** 목업 wwho: 등장 인물 칩 */
+  toggleWho(id: string, docId: string, n: string) { return this.editDoc(id, docId, (d) => { const who = d.who ??= []; if (who.includes(n)) who.splice(who.indexOf(n), 1); else who.push(n) }) }
+
+  /** 목업 wlink·wlink-del */
+  addLink(id: string, docId: string, to: string, k: string) { return this.editDoc(id, docId, (d) => { (d.links ??= []).push({ to, k }) }) }
+  removeLink(id: string, docId: string, i: number) { return this.editDoc(id, docId, (d) => { d.links?.splice(i, 1) }) }
+
+  /** 목업 bnew: 시점이 있으면 보드 사건(ownEvents)에도 넣습니다. */
+  addBoardEvent(id: string, t: string, ep: number | undefined, line: string, who: string[]) {
+    return this.change(id, (w) => {
+      wikiState(w).docs.push({ id: nid('d'), cat: 'event', t, alias: [], tags: ep ? ['#' + ep + '화'] : [], props: {}, at: {}, img: null, body: '', ep, line, who, links: [] })
+      if (ep) (w.ownEvents ??= []).push([ep, line, t, who])
+    })
+  }
+
   /** 목업 walias·walias-del·wtag */
   addDocChip(id: string, docId: string, f: 'alias' | 'tags', v: string) { return this.editDoc(id, docId, (d) => { d[f].push(v) }) }
   removeAlias(id: string, docId: string, i: number) { return this.editDoc(id, docId, (d) => { d.alias.splice(i, 1) }) }
