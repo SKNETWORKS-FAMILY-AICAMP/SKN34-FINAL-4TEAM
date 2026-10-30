@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { linkParts, wikiState } from '../entities/wiki'
+import { makeFork } from '../entities/work'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
 const setup = async () => {
@@ -64,5 +65,59 @@ describe('집필실 사전 (목업 wikiOf·wnew·wdel·data-wf·linkify)', () =>
     const docs = wikiState(w()).docs
     const parts = linkParts(docs, '리안이 별빛 탑에서 리안을 불렀다', 'x')
     expect(parts.map((p) => (typeof p === 'string' ? p : '[' + p.t + ']'))).toEqual(['[리안]', '이 ', '[별빛 탑]', '에서 리안을 불렀다'])
+  })
+  it('규칙은 세계관 문서의 제목·종류 값·생성·삭제 때만 다시 만들고, 속성 추가는 값만 넣는다', async () => {
+    const { useCase, w } = await setup()
+    const rule = w().rules[0]
+    const doc = () => w().wiki!.docs.find((d) => d.cat === 'world' && d.t === rule)!
+    await useCase.renameDocProp('starlight', doc().id, '종류', '분류')
+    expect(w().rules).toContain(rule)
+    const id = (await useCase.addDoc('starlight', 'place', '창고'))!
+    w().rules = []
+    await useCase.addDocProp('starlight', doc().id, '종류', '규칙')
+    expect(w().rules).toEqual([])
+    await useCase.setDocText('starlight', doc().id, 't', '바뀐 규칙')
+    expect(w().rules).toContain('바뀐 규칙')
+    const lian = w().wiki!.docs.find((d) => d.t === '리안')!.id
+    await useCase.addDocProp('starlight', lian, '상태', '잠듦')
+    expect(w().cast.find((c) => c.n === '리안')!.st).toBe('결의')
+    expect(id).toBeTruthy()
+  })
+
+  it('세계관 종류 값을 바꾸면 규칙에서 빠진다', async () => {
+    const { useCase, w } = await setup()
+    const rule = w().rules[0]
+    const d = w().wiki!.docs.find((x) => x.cat === 'world' && x.t === rule)!
+    await useCase.setDocProp('starlight', d.id, '종류', '설명')
+    expect(w().rules).not.toContain(rule)
+  })
+
+  it('인물 제목을 바꾸면 castFrom도 옮겨진다', async () => {
+    const { useCase, w } = await setup()
+    w().castFrom = { 리안: 1 }
+    await useCase.setDocText('starlight', w().wiki!.docs.find((d) => d.t === '리안')!.id, 't', '리아나')
+    expect(w().castFrom).toEqual({ 리아나: 1 })
+  })
+
+  it('사건 제목을 바꾼 뒤 다시 열어도 문서 ID가 모두 고유하다', async () => {
+    const { useCase, w } = await setup()
+    const ev = w().wiki!.docs.find((d) => d.cat === 'event')!
+    await useCase.setDocText('starlight', ev.id, 't', '새 사건 제목')
+    await useCase.open('starlight', undefined, 'user')
+    const ids = w().wiki!.docs.map((d) => d.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(w().wiki!.docs.find((d) => d.id === ev.id)!.t).toBe('새 사건 제목')
+  })
+
+  it('없는 문서는 지우지 않고 null을 돌려준다', async () => {
+    const { useCase } = await setup()
+    expect(await useCase.deleteDoc('starlight', 'none')).toBeNull()
+  })
+
+  it('포크 작품에서도 사전을 만든다', async () => {
+    const { db, useCase } = await setup()
+    db.works.push(makeFork(db.works.find((x) => x.id === 'guunmong')!, 2, { id: 'fk', title: '포크', author: '나', owner: 'me' }))
+    const s = await useCase.open('fk', undefined, 'user')
+    expect(s && 'work' in s && s.work.wiki!.docs.some((d) => d.t === '성진')).toBe(true)
   })
 })

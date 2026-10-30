@@ -214,21 +214,26 @@ export class StudioUseCase {
   /** 목업 data-cast: 포크는 자기 스냅샷의 인물 상태만 바꿉니다. */
   setCastStatus(id: string, i: number, st: string) { return this.change(id, (w) => { const c = baseOf(w).cast[i]; if (c) c.st = st }) }
 
-  /** 사전 문서 하나를 고치고 저장합니다. 세계관 문서가 바뀌면 규칙도 다시 만들어요. */
-  private async editDoc<T>(id: string, docId: string, fn: (d: Doc, w: Work) => T) {
-    const rules = new Map((await this.workRepository.listWorlds()).map((x) => [x.id, x.rules]))
+  /** 사전 문서 하나를 고치고 저장합니다. fn이 true를 돌려주면(세계관 문서의 제목·종류·삭제) 규칙을 다시 만들어요. */
+  private async editDoc<T>(id: string, docId: string, fn: (d: Doc, w: Work) => T, sync?: (d: Doc) => boolean) {
+    const rules = await this.worldRules()
     return this.change(id, (w) => {
       const d = wikiState(w).docs.find((x) => x.id === docId)
       if (!d) return null
       const r = fn(d, w)
-      if (d.cat === 'world') syncRules(w, (x) => rules.get(x) ?? [])
+      if (d.cat === 'world' && sync?.(d)) syncRules(w, rules)
       return r
     })
   }
 
+  private async worldRules() {
+    const m = new Map((await this.workRepository.listWorlds()).map((x) => [x.id, x.rules]))
+    return (x: string) => m.get(x) ?? []
+  }
+
   /** 목업 act==='wnew': 인물 문서는 등장인물에도 추가합니다. 새 문서 ID를 돌려줍니다. */
   async addDoc(id: string, cat: string, t: string) {
-    const rules = new Map((await this.workRepository.listWorlds()).map((x) => [x.id, x.rules]))
+    const rules = await this.worldRules()
     return this.change(id, (w) => {
       const d: Doc = { id: nid('d'), cat, t, alias: [], tags: [], props: cat === 'char' ? { 설명: '', 성격: '', 말투: '', 상태: '—' } : cat === 'world' ? { 종류: '규칙' } : {}, at: {}, img: null, body: '' }
       if (cat === 'event') Object.assign(d, { line: 'm', who: [], links: [] })
@@ -238,7 +243,7 @@ export class StudioUseCase {
         cast.push({ n: t, c: AVATAR_COLORS[cast.length % AVATAR_COLORS.length], d: '', st: '—' })
         if (w.castFrom) w.castFrom[t] = Infinity
       }
-      if (cat === 'world') syncRules(w, (x) => rules.get(x) ?? [])
+      if (cat === 'world') syncRules(w, rules)
       return d.id
     })
   }
@@ -253,7 +258,7 @@ export class StudioUseCase {
       wiki.docs = wiki.docs.filter((x) => x !== d)
       for (const x of wiki.docs) if (x.links) x.links = x.links.filter((l) => l.to !== d.id)
       return d.cat
-    })
+    }, () => true)
   }
 
   /** 목업 data-wf: 제목을 바꾸면 인물 이름도 바꿉니다. 빈 제목은 무시해요. */
@@ -267,7 +272,7 @@ export class StudioUseCase {
       const c = baseOf(w).cast.find((x) => x.n === old)
       if (c) c.n = v
       if (w.castFrom) { w.castFrom[v] = w.castFrom[old]; delete w.castFrom[old] }
-    })
+    }, () => f === 't' && !!v)
   }
 
   /** 목업 data-wv·wprop: ep가 있으면 그 회차 시점 값으로 저장합니다. 상태는 인물 상태에도 반영해요. */
@@ -276,8 +281,11 @@ export class StudioUseCase {
       if (ep) (d.at[ep] ??= {})[k] = v
       else d.props[k] = v
       if (k === '상태' && !ep && d.cat === 'char') { const c = baseOf(w).cast.find((x) => x.n === d.t); if (c) c.st = v }
-    })
+    }, () => k === '종류')
   }
+
+  /** 목업 wprop: 값만 넣고 인물 상태·규칙은 그대로 둡니다. */
+  addDocProp(id: string, docId: string, k: string, v: string) { return this.editDoc(id, docId, (d) => { d.props[k] = v }) }
 
   /** 목업 data-wk: 속성 이름을 바꾸고 순서는 그대로 둡니다. */
   renameDocProp(id: string, docId: string, k: string, nk: string) {

@@ -65,6 +65,15 @@ describe('집필실 사전 편집 (U38)', () => {
     expect(screen.getByLabelText('관리자 값').textContent).toBe('카엘')
   })
 
+  it('본문 줄바꿈을 저장한다', async () => {
+    renderAt('/studio/starlight?view=wiki&cat=item')
+    fireEvent.click((await screen.findAllByRole('button', { name: '오르벤의 서한' }))[0])
+    const body = await screen.findByLabelText('문서 본문')
+    Object.defineProperty(body, 'innerText', { value: '첫 줄\n둘째 줄', configurable: true })
+    fireEvent.blur(body)
+    await waitFor(async () => expect((await starlight()).wiki!.docs.some((d) => d.body === '첫 줄\n둘째 줄')).toBe(true))
+  })
+
   it('본문의 다른 문서 이름 링크를 누르면 그 문서가 열린다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=place')
     fireEvent.click((await screen.findAllByRole('button', { name: '별빛 탑' }))[0])
@@ -88,8 +97,8 @@ describe('집필실 사전 편집 (U38)', () => {
     fireEvent.change(screen.getByLabelText('사전 검색'), { target: { value: '탑의 기사' } })
     fireEvent.submit(screen.getByRole('search'))
     await screen.findByRole('heading', { name: /검색 결과/ })
-    expect(screen.getAllByRole('button', { name: /카엘/ }).length).toBeGreaterThan(0)
-    fireEvent.click(screen.getAllByRole('button', { name: /카엘캐릭터/ })[0])
+    const result = document.querySelector('.wmain .wlist') as HTMLElement
+    fireEvent.click(within(result).getByRole('button', { name: /카엘/ }))
     fireEvent.click(await screen.findByRole('button', { name: '별칭 삭제' }))
     await waitFor(() => expect(screen.queryByText('탑의 기사')).toBeNull())
   })

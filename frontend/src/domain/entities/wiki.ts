@@ -1,4 +1,4 @@
-import { baseOf, type Knowledge, type Work } from './work'
+import { baseOf, nid, type Knowledge, type Work } from './work'
 
 /** 목업 WCATS·LINE: 사전 분류와 사건 라인 */
 export type WikiCat = { id: string; n: string; c: string; lock?: number }
@@ -23,7 +23,7 @@ const SEEDW: Record<string, [string, string, string, number][]> = { guunmong: [[
 const SEEDL: Record<string, [string, string, string][]> = { guunmong: [['돌다리에서 팔선녀를 만나다', '스승의 벌로 인간 세상으로', '계기'], ['복숭아꽃이 여덟 구슬이 되다', '스승의 벌로 인간 세상으로', '복선']], starlight: [['탑 앞에서 밤을 지새우다', '봉인 아래의 속삭임', '계기']] }
 
 export type Doc = { id: string; cat: string; t: string; alias: string[]; tags: string[]; props: Record<string, string>; at: Record<number, Record<string, string>>; img?: string | null; body: string; knowledge?: Knowledge[]; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string }[] }
-export type Wiki = { docs: Doc[]; cats: WikiCat[]; synopsis: string }
+export type Wiki = { docs: Doc[]; cats: WikiCat[] }
 
 /**
  * 목업 wikiOf(w): 처음 열 때 작품 설정(포크는 스냅샷)에서 사전을 한 번 만들어 w.wiki에 두고, 이후에는 저장본을 씁니다.
@@ -39,11 +39,11 @@ export function wikiState(w: Work): Wiki {
     }
     for (const r of b.rules) docs.push({ id: 'world:' + r, cat: 'world', t: r, alias: [], tags: ['규칙'], props: { 종류: '규칙', 설정검사: '사용' }, at: {}, img: null, body: r + '. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.' })
     for (const [cat, t, body, ep] of SEEDW[src] ?? []) if (ep <= lim) docs.push({ id: cat + ':' + t, cat, t, alias: [], tags: [], props: { '첫 등장': ep + '화' }, at: {}, img: null, body })
-    w.wiki = { docs, cats: structuredClone(WCATS), synopsis: '' }
+    w.wiki = { docs, cats: structuredClone(WCATS) }
   }
   const docs = w.wiki.docs
   for (const [ep, k, t, who] of b.events.concat(w.ownEvents ?? [])) {
-    if (!docs.some((d) => d.cat === 'event' && d.t === t)) docs.push({ id: 'event:' + t, cat: 'event', t, alias: [], tags: ['#' + ep + '화'], props: {}, at: {}, img: null, body: '', ep, line: k, who: (who ?? []).filter(Boolean), links: [] })
+    if (!docs.some((d) => d.cat === 'event' && d.t === t)) docs.push({ id: docs.some((d) => d.id === 'event:' + t) ? nid('d') : 'event:' + t, cat: 'event', t, alias: [], tags: ['#' + ep + '화'], props: {}, at: {}, img: null, body: '', ep, line: k, who: (who ?? []).filter(Boolean), links: [] })
   }
   for (const [a, c, k] of SEEDL[src] ?? []) {
     const A = docs.find((d) => d.cat === 'event' && d.t === a), C = docs.find((d) => d.cat === 'event' && d.t === c)

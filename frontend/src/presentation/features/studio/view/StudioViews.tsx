@@ -115,7 +115,7 @@ const Linked = ({ id, docs, cats, text, self }: { id: string; docs: Doc[]; cats:
 
 /** 목업 contenteditable + blur 저장. 저장된 값이 바뀌면 key로 다시 그려 React와 DOM 내용을 맞춥니다. */
 const Editable = ({ as: Tag = 'div', value, onSave, children, ...props }: { as?: 'div' | 'h1' | 'th' | 'td'; value: string; onSave: (v: string) => void; children?: ReactNode; className?: string; 'data-ph'?: string; 'aria-label'?: string }) =>
-  <Tag key={value} {...props} contentEditable suppressContentEditableWarning spellCheck={false} onBlur={(e) => { const v = (e.currentTarget.textContent ?? '').trim(); if (v !== value) onSave(v) }}>{children ?? value}</Tag>
+  <Tag key={value} {...props} contentEditable suppressContentEditableWarning spellCheck={false} onBlur={(e) => { const v = (e.currentTarget.innerText ?? e.currentTarget.textContent ?? '').trim(); if (v !== value) onSave(v) }}>{children ?? value}</Tag>
 
 type Form = Parameters<typeof FormSheet>[0]
 
@@ -151,7 +151,7 @@ export function WikiView({ vm }: { vm: VM }) {
           <div className="wrow"><span>이어지는 사건</span><div>{(doc.links ?? []).map((l) => <em className="wchip" key={l.to}>{l.k} → {docs.find((d) => d.id === l.to)?.t}</em>)}</div></div></>}
         <div className="wbody2"><div>
           {!isEv && <><table className="wprops"><tbody>{Object.entries(propsAt(doc, 0)).map(([k, v]) => <tr key={k}><Editable as="th" aria-label={`속성 이름 ${k}`} value={k} onSave={(nk) => vm.renameDocProp(doc.id, k, nk)} /><Editable as="td" aria-label={`${k} 값`} value={v} onSave={(nv) => vm.setDocProp(doc.id, k, nv)}><Linked id={id} docs={docs} cats={cats} text={v} self={doc.id} /></Editable></tr>)}</tbody></table>
-            <button type="button" className="wadd" onClick={() => setForm({ title: '속성 추가', fields: [{ name: 'k', label: '속성 이름 (예: 관계, 능력, 소속)', req: true }, { name: 'v', label: '값' }], onOk: (o) => vm.setDocProp(doc.id, o.k, o.v) })}>＋ 속성 추가</button></>}
+            <button type="button" className="wadd" onClick={() => setForm({ title: '속성 추가', fields: [{ name: 'k', label: '속성 이름 (예: 관계, 능력, 소속)', req: true }, { name: 'v', label: '값' }], onOk: (o) => vm.addDocProp(doc.id, o.k, o.v) })}>＋ 속성 추가</button></>}
           <Editable className="wtext" aria-label="문서 본문" data-ph="내용을 적어 보세요. 다른 문서 이름을 쓰면 자동으로 연결돼요." value={doc.body} onSave={(v) => vm.setDocText(doc.id, 'body', v)}><Linked id={id} docs={docs} cats={cats} text={doc.body} self={doc.id} /></Editable>
         </div></div>
         {doc.cat === 'char' && <section className="wsec"><h4>보드 연동 <small>자동 표시</small></h4><div className="wtwo"><div><small className="muted">등장 사건</small>{evs.length ? evs.map((e) => <DocBtn key={e.id} id={id} d={e} className="wev"><span>{e.ep ? e.ep + '화' : '미정'}</span>{e.t}<em className={`ln ${e.line}`}>{LINE[e.line ?? '']}</em></DocBtn>) : <p className="muted small">아직 없어요.</p>}</div>
