@@ -7,7 +7,7 @@ import { ReadingUseCase } from '../usecases/ReadingUseCase'
 function fakes(progress: Partial<ReadingProgress> = {}) {
   const works = seedWorks(0)
   const state: ReadingProgress = { last: { guunmong: 2, starlight: 1 }, read: {}, seen: {}, liked: {}, ...progress }
-  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), saveWork: async () => {}, getDraft: async () => undefined, saveDraft: async () => {}, deleteDraft: async () => {} }
+  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = {
     getProgress: async () => state,
     markSeen: async (id) => { state.seen[id] = true },

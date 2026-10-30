@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router'
 
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
+import { EMAIL } from '../../../../domain/entities/account'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 
-const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 /** 목업 login()·doLogin(): 실제 인증 없이 데모 역할만 정합니다. */
 export function useLoginViewModel() {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { SEED_COMMENTS, seedWorks, seedWorlds } from '../../data/mock/seed'
+import { SEED_COMMENTS, seedAdmin, seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { Comment, InboxItem, ReaderReport, ReviewItem } from '../entities/feedback'
 import { FEEDBACK_TYPES, splitSentences } from '../entities/feedback'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
@@ -9,12 +9,12 @@ import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 
 function fakes() {
   const works = seedWorks(0)
-  const db = { comments: {} as Record<string, Comment[]>, cmLiked: {} as Record<string, boolean>, reports: [] as ReaderReport[], inbox: [] as InboxItem[], queue: [] as ReviewItem[] }
-  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), saveWork: async () => {}, getDraft: async () => undefined, saveDraft: async () => {}, deleteDraft: async () => {} }
+  const db = { comments: {} as Record<string, Comment[]>, cmLiked: {} as Record<string, boolean>, reports: [] as ReaderReport[], inbox: [] as InboxItem[], queue: [] as ReviewItem[], hidden: [] as string[] }
+  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const feedbackRepository: FeedbackRepository = {
     listComments: async (theme, key) => [...(SEED_COMMENTS[theme] ?? []), ...(db.comments[key] ?? [])],
     addComment: async (key, c) => { (db.comments[key] ??= []).push(c) },
-    countComments: async () => 0,
+    countComments: async (prefix) => Object.entries(db.comments).filter(([k]) => k.startsWith(prefix)).reduce((a, [, v]) => a + v.length, 0),
     listCommentLikes: async () => db.cmLiked,
     toggleCommentLike: async (key) => { db.cmLiked[key] = !db.cmLiked[key] },
     listReports: async () => db.reports,
@@ -27,7 +27,7 @@ function fakes() {
     listReview: async () => db.queue,
     saveReview: async () => {},
   }
-  return { works, db, useCase: new FeedbackUseCase(workRepository, feedbackRepository) }
+  return { works, db, useCase: new FeedbackUseCase(workRepository, feedbackRepository, { get: async () => ({ ...seedAdmin(), hiddenComments: db.hidden }), save: async () => {}, listComments: async () => [] }) }
 }
 
 describe('문장 분리 (목업 reader() body)', () => {
@@ -48,6 +48,27 @@ describe('FeedbackUseCase (목업 addComment·feedbackSheet·reportSheet)', () =
     expect(comments[3]).toEqual(['읽는사람', '좋아요', 0, { q: '문장', spoiler: true }])
     await useCase.toggleCommentLike('guunmong2c0')
     expect((await useCase.getComments(w, 2)).liked).toEqual({ guunmong2c0: true })
+  })
+
+  it('관리자가 숨긴 시드·독자 댓글은 회차 댓글에서 빠진다 (목업 reader() cms)', async () => {
+    const { works, db, useCase } = fakes()
+    const w = works.find((x) => x.id === 'guunmong')!
+    await useCase.addComment('guunmong', 2, '읽는사람', '좋아요', null)
+    db.hidden.push('hanji-1', 'runtime-guunmong-2-0')
+    const { comments } = await useCase.getComments(w, 2)
+    expect(comments.map((c) => c[1])).toEqual([SEED_COMMENTS.hanji[0][1], SEED_COMMENTS.hanji[2][1]])
+  })
+
+  it('10화 이상 작품의 1화는 10화대 독자 댓글과 섞지 않고 숨긴 댓글만 뺀다', async () => {
+    const { works, db, useCase } = fakes()
+    const w = works.find((x) => x.id === 'guunmong')!
+    await useCase.addComment('guunmong', 1, '읽는사람', '1화 댓글', null)
+    await useCase.addComment('guunmong', 10, '읽는사람', '10화 댓글', null)
+    expect((await useCase.getComments(w, 1)).comments).toHaveLength(4)
+    db.hidden.push('hanji-0')
+    expect((await useCase.getComments(w, 1)).comments.map((c) => c[1])).toEqual([SEED_COMMENTS.hanji[1][1], SEED_COMMENTS.hanji[2][1], '1화 댓글'])
+    db.hidden.splice(0, 1, 'runtime-guunmong-1-0')
+    expect((await useCase.getComments(w, 1)).comments.map((c) => c[1])).toEqual(SEED_COMMENTS.hanji.map((c) => c[1]))
   })
 
   it('피드백 유형은 4가지이고 유형마다 목업 상태로 접수한다', async () => {

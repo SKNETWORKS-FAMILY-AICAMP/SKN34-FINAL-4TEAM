@@ -10,6 +10,7 @@ export interface WorkRepository {
   saveWork(work: Work): Promise<void>
   /** 작성 중인 회차 초안 (키: 작품 id 또는 `${id}:ep:${n}`) */
   getDraft(key: string): Promise<Draft | undefined>
+  listDrafts(): Promise<Record<string, Draft>>
   saveDraft(key: string, draft: Draft): Promise<void>
   deleteDraft(key: string): Promise<void>
 }

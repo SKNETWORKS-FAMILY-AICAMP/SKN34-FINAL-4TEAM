@@ -64,6 +64,8 @@ export const sessionSlice = createSlice({
       s.loginMsg = ''
       s.next = null
     },
+    /** 목업 saveProfile: 데모 계정의 닉네임·이메일 */
+    setUser: (s, a: PayloadAction<Partial<SessionState['user']>>) => { Object.assign(s.user, a.payload) },
     logout: (s) => {
       s.role = null
       s.loginRole = 'user'

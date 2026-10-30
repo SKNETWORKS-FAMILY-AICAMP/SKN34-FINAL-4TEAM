@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 
+import { AdminPage } from './presentation/features/admin/view/AdminPage'
+import { AccountPage } from './presentation/features/account/view/AccountPage'
 import { ChatPage } from './presentation/features/chat/view/ChatPages'
 import { InboxPage } from './presentation/features/inbox/view/InboxPage'
 import { NotificationsPage } from './presentation/features/inbox/view/NotificationsPage'
@@ -77,6 +79,8 @@ function App() {
         <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
         <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
         <Route path="/chat/:wid?/:cn?" element={<RequireRole><ChatPage /></RequireRole>} />
+        <Route path="/admin" element={<RequireRole admin><AdminPage /></RequireRole>} />
+        <Route path="/me/:sub?" element={<AccountPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
       {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}

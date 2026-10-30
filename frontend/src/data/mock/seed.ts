@@ -1,6 +1,7 @@
 // 목업(frontend/mockup/index.html) 1절 데이터를 그대로 옮긴 메모리 시드입니다. 실제 작품·사용자 데이터가 아닙니다.
 import { makeFork, original, type Work } from '../../domain/entities/work'
 import type { World } from '../../domain/entities/world'
+import { ADMIN_PERMISSIONS, type AdminState } from '../../domain/entities/admin'
 
 const ORIGINALS: Work[] = [
   original({id:'guunmong',title:'구운몽',hanja:'九雲夢',theme:'hanji',genre:'고전 판타지',author:'김만중',owner:'운영팀',kind:'저작권 만료',rights:'확인됨',by:'원작 김만중 · 저작권 만료 작품 · 운영팀 등록',tags:['free'],hash:['#환생','#꿈','#고전리메이크'],
@@ -66,3 +67,14 @@ export const seedNotifications = (): NotificationSeed[] => structuredClone([{id:
 export const SEED_COMMENTS: Record<string, [string, string, number][]> = {hanji:[['연화봉러','돌다리 장면 묘사 최고… 성진 흔들릴 만하네',412],['고전덕후','교과서로만 보던 작품을 이렇게 읽으니 새롭다',230],['정주행중','3화 대사에 ‘않 된다’ 오타 있는 것 같아요',88]],
  star:[['별빛러','세라핀 진짜 뭐 숨기는 거 같아',301],['새벽감성','별빛 수정 깜빡이는 연출 좋다',122]],neon:[['tokki','편지 한 통으로 이렇게 긴장되다니',210],['회색비','7구역 분위기 미쳤다',133]]}
 
+
+/** 목업 S.admin 초기값 (adminExtra의 ||= 초기화 포함)과 NOTICE·EVENTS */
+export const seedAdmin = (): AdminState => structuredClone({
+ profile:{nick:'관리자',email:'admin@storyfork.demo',joined:'2026.10.20'},audit:[],hiddenComments:[],
+ users:[{id:'demo-reader',nick:'읽는사람',email:'reader@storyfork.demo',role:'일반 회원',status:'활동',joined:'2026.10.20'},{id:'demo-writer',nick:'연화봉러',email:'writer@storyfork.demo',role:'창작자',status:'활동',joined:'2026.10.21'},{id:'demo-reviewer',nick:'콘텐츠팀',email:'reviewer@storyfork.demo',role:'관리자',status:'활동',joined:'2026.10.22'}],
+ jobs:[{id:'series',name:'AI 자율 연재',status:'완료',last:'결과 없음 · 예시'},{id:'filter',name:'댓글 필터 재검사',status:'완료',last:'결과 없음 · 예시'},{id:'credit',name:'월간 크레딧 지급·만료',status:'완료',last:'결과 없음 · 예시'},{id:'withdraw',name:'탈퇴 유예기간 종료 처리',status:'완료',last:'결과 없음 · 예시'},{id:'appeal',name:'소명 기한 만료 처리',status:'완료',last:'결과 없음 · 예시'},{id:'false-report',name:'허위 신고 제한기간 종료 처리',status:'완료',last:'결과 없음 · 예시'},{id:'rights-reminder',name:'권리 신고 24시간 검토 알림',status:'완료',last:'결과 없음 · 예시'},{id:'ai-timeout',name:'AI 요청 시간 초과 정리',status:'완료',last:'결과 없음 · 예시'},{id:'notification-cleanup',name:'알림 90일 보관기간 정리',status:'실패',last:'시연 실패 · 실제 작업 없음'},{id:'search-sync',name:'검색 인덱스 동기화',status:'완료',last:'결과 없음 · 예시'},{id:'cost-report',name:'플랫폼 AI 비용 집계',status:'완료',last:'결과 없음 · 예시'}],
+ admins:[{id:'primary-admin',nick:'관리자',email:'admin@storyfork.demo',permissions:ADMIN_PERMISSIONS.map(([key])=>key),created:'2026.10.20'}],
+ flagged:{id:'flag1',title:'○○○ 2차 연재',owner:'user_8812',kind:'다른 사람 소설',rights:'미확인',fork:'자동 차단',reports:2,state:'제한 중',log:[]},
+ notices:[['2026.10.27','STORYFORK 데모 버전 안내','지금 보시는 화면은 SKN34 최종 프로젝트 4팀의 인터랙티브 목업이에요. AI 응답과 수치는 미리 정한 데모 값이에요.'],['2026.10.26','포크 이용 안내','작가가 허용한 회차에서만 포크할 수 있어요. 포크한 소설은 그 시점의 설정을 복사해 쓰기 때문에 원작이 바뀌어도 영향을 받지 않아요.'],['2026.10.24','댓글·피드백·신고 안내','댓글은 공개 의견으로 등록돼요. 단순 오류·스토리 오류·질문·제안은 피드백으로, 권리 침해·유해 콘텐츠는 운영팀 신고로 따로 접수돼요.'],['2026.10.22','AI 기능 크레딧 정책 안내','AI 기능의 크레딧 차감 기준은 아직 정해지지 않았어요. 화면에 보이는 숫자는 예시이며 실제로 차감되지 않아요.']],
+ events:[{t:'첫 포크 써 보기',p:'2026.10.27 ~ 11.30',st:'진행 중',d:'좋아하는 원작의 허용된 회차에서 포크하고 1화를 공개해 보세요.',go:'/rank?t=orig',cta:'포크할 소설 고르기'},{t:'캐릭터 챗으로 인물 만나기',p:'2026.10.27 ~ 11.15',st:'진행 중',d:'내가 읽은 회차까지만 아는 인물에게 질문해 보세요.',go:'/chat',cta:'캐릭터 챗 열기'},{t:'고전 소설 정주행',p:'2026.11.01 ~ 11.30',st:'예정',d:'저작권이 만료된 고전 소설을 끝까지 읽어 보세요.',go:'/search?q=고전리메이크&f=tag',cta:'고전 소설 보기'}],
+})

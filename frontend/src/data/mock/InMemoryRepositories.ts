@@ -1,3 +1,5 @@
+import type { Inquiry } from '../../domain/entities/account'
+import type { AdminState } from '../../domain/entities/admin'
 import type { CharacterChat, ChatLine } from '../../domain/entities/chat'
 import type { DemoCredits } from '../../domain/entities/credit'
 import type { Draft } from '../../domain/entities/draft'
@@ -5,13 +7,15 @@ import type { Comment, InboxItem, ReaderReport, ReviewItem } from '../../domain/
 import type { AppNotification } from '../../domain/entities/notification'
 import type { Theme, Work } from '../../domain/entities/work'
 import type { World } from '../../domain/entities/world'
+import type { AdminRepository } from '../../domain/repositories/AdminRepository'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
+import type { InquiryRepository } from '../../domain/repositories/InquiryRepository'
 import type { NotificationPrefs, NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
-import { SEED_COMMENTS, seedNotifications, seedWorks, seedWorlds } from './seed'
+import { SEED_COMMENTS, seedAdmin, seedNotifications, seedWorks, seedWorlds } from './seed'
 
 /** 목업처럼 브라우저 메모리에만 있는 데모 상태. 새로고침하면 시드로 돌아갑니다. */
 export function createMockDb() {
@@ -23,12 +27,14 @@ export function createMockDb() {
     notificationPrefs: { read: true, creator: true } as NotificationPrefs,
     characterChats: null as CharacterChat[] | null,
     chat: {} as Record<string, ChatLine[]>,
+    inq: [] as Inquiry[],
     comments: {} as Record<string, Comment[]>,
     cmLiked: {} as Record<string, boolean>,
     reports: [] as ReaderReport[],
     inbox: [] as InboxItem[],
     reviewQueue: [] as ReviewItem[],
     drafts: {} as Record<string, Draft>,
+    admin: seedAdmin(),
     credits: { credits: 100, usage: [], failNext: false, alerts: [] } as DemoCredits,
   }
 }
@@ -49,6 +55,7 @@ export class InMemoryWorkRepository implements WorkRepository {
     this.db.works.splice(i < 0 ? this.db.works.length : i, i < 0 ? 0 : 1, structuredClone(work))
   }
   getDraft(key: string) { return copy(this.db.drafts[key]) }
+  listDrafts() { return copy(this.db.drafts) }
   async saveDraft(key: string, draft: Draft) { this.db.drafts[key] = structuredClone(draft) }
   async deleteDraft(key: string) { delete this.db.drafts[key] }
 }
@@ -114,4 +121,32 @@ export class InMemoryChatRepository implements ChatRepository {
   async saveChats(chats: CharacterChat[]) { this.db.characterChats = structuredClone(chats) }
   getLog(key: string) { return copy(this.db.chat[key]) }
   async saveLog(key: string, log: ChatLine[]) { this.db.chat[key] = structuredClone(log) }
+}
+
+export class InMemoryInquiryRepository implements InquiryRepository {
+  private readonly db: MockDb
+  constructor(db: MockDb) { this.db = db }
+  list() { return copy(this.db.inq) }
+  async add(inquiry: Inquiry) { this.db.inq.unshift(structuredClone(inquiry)) }
+  async save(inquiry: Inquiry) { replace(this.db.inq, inquiry) }
+}
+
+const COMMENT_WORK: Record<string, [string, string]> = { hanji: ['guunmong', '구운몽'], star: ['starlight', '별빛 서약의 탑'], neon: ['postman', '회색 도시'] }
+
+export class InMemoryAdminRepository implements AdminRepository {
+  private readonly db: MockDb
+  constructor(db: MockDb) { this.db = db }
+  get() { return copy(this.db.admin) }
+  async save(state: AdminState) { this.db.admin = structuredClone(state) }
+  /** 목업 adminExtra()의 A.comments: 시드 댓글 + 회차 키(작품 id + 회차)로 찾은 브라우저 댓글 */
+  async listComments(works: Work[]) {
+    const ids = works.map((w) => w.id).sort((a, b) => b.length - a.length)
+    return [
+      ...Object.entries(COMMENT_WORK).flatMap(([theme, [workId, work]]) => (SEED_COMMENTS[theme] ?? []).map(([author, text, likes], i) => ({ id: theme + '-' + i, work, workId, author, text, likes }))),
+      ...Object.entries(this.db.comments).flatMap(([key, items]) => {
+        const id = ids.find((x) => key.startsWith(x)), w = works.find((x) => x.id === id)
+        return w ? items.map(([author, text, likes], i) => ({ id: `runtime-${w.id}-${key.slice(w.id.length)}-${i}`, work: w.title, workId: w.id, author, text, likes })) : []
+      }),
+    ]
+  }
 }

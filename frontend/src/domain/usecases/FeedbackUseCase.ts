@@ -1,5 +1,6 @@
 import { TYPO, type Comment, type FeedbackType, type Sentence } from '../entities/feedback'
 import { epsOf, isMine, type Work } from '../entities/work'
+import type { AdminRepository } from '../repositories/AdminRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import type { WorkRepository } from '../repositories/WorkRepository'
 
@@ -18,9 +19,11 @@ function typoReply(w: Work, n: number, sent: Sentence, text: string) {
 export class FeedbackUseCase {
   private readonly workRepository: WorkRepository
   private readonly feedbackRepository: FeedbackRepository
-  constructor(workRepository: WorkRepository, feedbackRepository: FeedbackRepository) {
+  private readonly adminRepository: AdminRepository
+  constructor(workRepository: WorkRepository, feedbackRepository: FeedbackRepository, adminRepository: AdminRepository) {
     this.workRepository = workRepository
     this.feedbackRepository = feedbackRepository
+    this.adminRepository = adminRepository
   }
 
   private async work(id: string) {
@@ -29,9 +32,12 @@ export class FeedbackUseCase {
     return w
   }
 
-  /** 댓글 좋아요 key는 목업처럼 작품 ID + 회차 + 'c' + 순번입니다. */
+  /** 관리자가 숨긴 댓글(시드 `테마-i`, 독자 `runtime-작품-회차-i`)은 뺍니다. 좋아요 key는 목업처럼 작품 ID + 회차 + 'c' + 걸러진 순번입니다. */
   async getComments(w: Work, n: number) {
-    const [comments, liked] = await Promise.all([this.feedbackRepository.listComments(w.theme, w.id + n), this.feedbackRepository.listCommentLikes()])
+    const [all, liked, { hiddenComments }] = await Promise.all([this.feedbackRepository.listComments(w.theme, w.id + n), this.feedbackRepository.listCommentLikes(), this.adminRepository.get()])
+    // 회차 키는 항상 작품ID+회차라서 빈 키로 조회하면 시드만 돌아온다
+    const seeds = (await this.feedbackRepository.listComments(w.theme, '')).length
+    const comments = all.filter((_, i) => !hiddenComments.includes(i < seeds ? `${w.theme}-${i}` : `runtime-${w.id}-${n}-${i - seeds}`))
     return { comments, liked }
   }
 
