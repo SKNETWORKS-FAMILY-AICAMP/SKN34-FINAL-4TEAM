@@ -34,7 +34,7 @@ export function createMockDb() {
     inbox: [] as InboxItem[],
     reviewQueue: [] as ReviewItem[],
     drafts: {} as Record<string, Draft>,
-    admin: seedAdmin() as AdminState,
+    admin: seedAdmin(),
     credits: { credits: 100, usage: [], failNext: false, alerts: [] } as DemoCredits,
   }
 }

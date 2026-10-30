@@ -37,7 +37,7 @@ export function registerAppServices(container: AppContainer) {
     creditRepository: asFunction(({ mockDb }) => new InMemoryCreditRepository(mockDb)).singleton(),
     inquiryRepository: asFunction(({ mockDb }) => new InMemoryInquiryRepository(mockDb)).singleton(),
     adminRepository: asFunction(({ mockDb }) => new InMemoryAdminRepository(mockDb)).singleton(),
-    adminUseCase: asFunction(({ adminRepository, workRepository, feedbackRepository, inquiryRepository, creditRepository, chatRepository, chatUseCase }) => new AdminUseCase(adminRepository, workRepository, feedbackRepository, inquiryRepository, creditRepository, chatRepository, chatUseCase)).singleton(),
+    adminUseCase: asFunction(({ adminRepository, workRepository, feedbackRepository, inquiryRepository, creditRepository, chatRepository }) => new AdminUseCase(adminRepository, workRepository, feedbackRepository, inquiryRepository, creditRepository, chatRepository)).singleton(),
     accountUseCase: asFunction(({ workRepository, worldRepository, readingRepository, inquiryRepository, adminRepository }) => new AccountUseCase(workRepository, worldRepository, readingRepository, inquiryRepository, adminRepository)).singleton(),
     chatRepository: asFunction(({ mockDb }) => new InMemoryChatRepository(mockDb)).singleton(),
     chatUseCase: asFunction(({ workRepository, readingRepository, chatRepository }) => new ChatUseCase(workRepository, readingRepository, chatRepository)).singleton(),

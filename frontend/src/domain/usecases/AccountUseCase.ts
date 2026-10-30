@@ -41,10 +41,10 @@ export class AccountUseCase {
   inquiries() { return this.inquiryRepository.list() }
 
   /** 목업 #iqf 제출. 문제가 있으면 안내 문구 */
-  async ask(t: string, s: string, b: string): Promise<string> {
-    if (!s.trim() || !b.trim()) return '제목과 내용을 입력해 주세요'
+  async ask(t: string, s: string, b: string) {
+    if (!s.trim() || !b.trim()) return { ok: false, msg: '제목과 내용을 입력해 주세요' }
     const q: Inquiry = { id: nid('q'), t, s: s.trim(), b: b.trim(), d: today(), st: '답변 대기' }
     await this.inquiryRepository.add(q)
-    return '문의를 보냈어요 (데모 · 실제 전송 없음)'
+    return { ok: true, msg: '문의를 보냈어요 (데모 · 실제 전송 없음)' }
   }
 }

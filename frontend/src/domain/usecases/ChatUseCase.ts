@@ -1,3 +1,4 @@
+import { ofKind } from '../entities/admin'
 import type { CharacterChat, ChatLine } from '../entities/chat'
 import { epsOf, firstEp, forkList, isPub, nid, publicCast, sorter, visibleEpisode, type Role, type Work } from '../entities/work'
 import type { ChatRepository } from '../repositories/ChatRepository'
@@ -19,6 +20,16 @@ const CHAT: Record<string, { hi: string; q: [number, string, string][] }> = {
 }
 const HOLD = '그건 아직 말할 수 없어요. 소설을 조금 더 읽고 다시 물어봐 주세요.'
 
+/** 목업 characterChats(): 저장된 목록이 없으면 공개 원작의 공개 인물마다 하나씩 엽니다. */
+export async function chatsOf(chatRepository: ChatRepository, works: Work[]): Promise<CharacterChat[]> {
+  const saved = await chatRepository.listChats()
+  if (saved) return saved
+  const all = works.filter((w) => isPub(w) && !w.parent)
+    .flatMap((w) => publicCast(w, Math.max(w.eps.length, 1)).map((c) => ({ id: nid('cchat'), workId: w.id, character: c.n, enabled: true })))
+  await chatRepository.saveChats(all)
+  return all
+}
+
 export type ChatFilter = { kind: string; work: string; character: string; sort: string }
 
 /** 목업 chatListPage()·chatPage()·chatReply(): U27 캐릭터 챗. 읽은 회차까지 공개된 원고에서만 답을 찾습니다. */
@@ -32,19 +43,9 @@ export class ChatUseCase {
     this.chatRepository = chatRepository
   }
 
-  /** 목업 characterChats(): 처음에는 공개 원작의 공개 인물마다 하나씩 엽니다. */
-  async chats(works?: Work[]): Promise<CharacterChat[]> {
-    const saved = await this.chatRepository.listChats()
-    if (saved) return saved
-    const all = (works ?? await this.workRepository.listWorks()).filter((w) => isPub(w) && !w.parent)
-      .flatMap((w) => publicCast(w, Math.max(w.eps.length, 1)).map((c) => ({ id: nid('cchat'), workId: w.id, character: c.n, enabled: true })))
-    await this.chatRepository.saveChats(all)
-    return all
-  }
-
   private async context() {
     const [works, progress] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress()])
-    const chats = (await this.chats(works)).filter((c) => c.enabled !== false)
+    const chats = (await chatsOf(this.chatRepository, works)).filter((c) => c.enabled !== false)
     const base = (w: Work) => Math.max(progress.last[w.id] || 0, 1)
     return { works, progress, chats, base }
   }
@@ -57,7 +58,7 @@ export class ChatUseCase {
       const character = w && isPub(w) ? publicCast(w, base(w)).find((x) => x.n === c.character) : undefined
       return w && character ? [{ w, character, parent: works.find((x) => x.id === w.parent) }] : []
     })
-    const byKind = all.filter((x) => st.kind === 'all' || (st.kind === 'fork' ? !!x.w.parent : !x.w.parent))
+    const byKind = all.filter((x) => ofKind(st.kind, x.w))
     const ws = [...new Map(byKind.map((x) => [x.w.id, x.w])).values()].sort((a, b) => a.title.localeCompare(b.title, 'ko'))
     if (st.work !== 'all' && !ws.some((w) => w.id === st.work)) st.work = 'all'
     const byWork = byKind.filter((x) => st.work === 'all' || x.w.id === st.work)

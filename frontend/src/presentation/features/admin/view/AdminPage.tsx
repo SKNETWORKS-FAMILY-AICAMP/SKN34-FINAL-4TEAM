@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 
-import { ADMIN_PERMISSIONS, adminTab, type AdminTab } from '../../../../domain/entities/admin'
+import { ADMIN_PERMISSIONS, adminTab, ofKind, type AdminTab } from '../../../../domain/entities/admin'
 import { Go } from '../../../shared/Go'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { useAdminViewModel } from '../viewmodel/useAdminViewModel'
@@ -18,10 +18,9 @@ const TITLES: Record<AdminTab, [string, string]> = {
   credits: ['크레딧 관리', '크레딧 이용 현황과 정책 확정 상태를 확인합니다.'], audit: ['관리자 활동 로그', '이 화면에서 수행한 데모 조치를 최신순으로 기록합니다.'], profile: ['관리자 프로필', '관리자 계정의 표시 이름과 이메일을 관리합니다.'],
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
-const byKind = (k: string, fork: boolean) => k === 'all' || (k === 'fork' ? fork : !fork)
 const has = (q: string, ...xs: string[]) => !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 /** 폼 입력값을 이름으로 읽습니다 (목업 $('#id').value). */
-const val = (e: FormEvent<HTMLFormElement>, name: string) => (e.currentTarget.elements.namedItem(name) as HTMLInputElement).value
+const val = (e: FormEvent<HTMLFormElement>, name: string) => String(new FormData(e.currentTarget).get(name) ?? '')
 
 /** 목업 admin(): 자체 상단바·업무 메뉴. 데모 화면 가림일 뿐이며 실제 권한 검사는 Core가 맡아야 합니다. */
 export function AdminPage() {
@@ -75,21 +74,21 @@ function Body(p: BodyProps) {
   else if (tab === 'llm') T = <Llm d={d} vm={vm} />
   else if (tab === 'admins') T = <Admins d={d} vm={vm} />
   else if (tab === 'users') {
-    const list = d.admin.users.filter((u) => f.category === 'all' || u.role === f.category).sort((a, b) => (f.sort === 'oldest' ? a.joined.localeCompare(b.joined) : b.joined.localeCompare(a.joined)))
     const s = f.search.trim().toLocaleLowerCase()
+    const list = d.admin.users.filter((u) => (f.category === 'all' || u.role === f.category) && (!s || (u.nick + u.email + u.role + u.joined + u.status).toLocaleLowerCase().includes(s))).sort((a, b) => (f.sort === 'oldest' ? a.joined.localeCompare(b.joined) : b.joined.localeCompare(a.joined)))
     T = <div className="panel"><Controls {...p} categories={[['all', '전체'], ...[...new Set(d.admin.users.map((u) => u.role))].map((v): [string, string] => [v, v])]} sorts={[['newest', '가입 최신순'], ['oldest', '가입 오래된순']]} />
       <div className="table-head"><span className="demo">예시 계정 · 실제 회원 데이터 아님</span><label className="field" style={{ margin: 0, maxWidth: 300 }}>사용자 검색<input className="inp" type="search" value={f.search} placeholder="이름·이메일 검색" onChange={(e) => p.setF({ search: e.target.value })} /></label></div>
       <table><thead><tr><th>사용자</th><th>역할</th><th>가입일</th><th>상태</th><th>조치</th></tr></thead><tbody>{list.map((u) => (
-        <tr key={u.id} hidden={!!s && !(u.nick + u.email + u.role + u.joined + u.status).toLocaleLowerCase().includes(s)}><td><b>{u.nick}</b><br /><span className="small muted">{u.email}</span></td><td>{u.role}</td><td>{u.joined}</td><td><span className={`chip ${u.status === '활동' ? 'ok' : 'wait'}`}>{u.status}</span></td><td><button type="button" className="btn sm" onClick={() => vm.toggleUser(u.id)}>{u.status === '활동' ? '이용 제한' : '제한 해제'}</button></td></tr>
+        <tr key={u.id}><td><b>{u.nick}</b><br /><span className="small muted">{u.email}</span></td><td>{u.role}</td><td>{u.joined}</td><td><span className={`chip ${u.status === '활동' ? 'ok' : 'wait'}`}>{u.status}</span></td><td><button type="button" className="btn sm" onClick={() => vm.toggleUser(u.id)}>{u.status === '활동' ? '이용 제한' : '제한 해제'}</button></td></tr>
       ))}</tbody></table><p className="admin-note">상태 변경은 이 브라우저의 데모 화면에만 반영됩니다. 실제 계정 권한은 서버 연동이 필요해요.</p></div>
   } else if (tab === 'works') {
-    const list = d.works.filter((w) => byKind(f.category, !!w.parent) && has(f.query, w.title, w.author, w.kind, w.rights)).sort((a, b) => titleSort(a.title, b.title))
+    const list = d.works.filter((w) => ofKind(f.category, w) && has(f.query, w.title, w.author, w.kind, w.rights)).sort((a, b) => titleSort(a.title, b.title))
     T = <div className="panel"><span className="demo">목업 작품 데이터</span><Controls {...p} categories={KINDS} sorts={[['title', '제목순'], ['titleDesc', '제목 역순']]} />
       <table style={{ marginTop: 10 }}><thead><tr><th>작품</th><th>작성자</th><th>종류</th><th>권리</th><th>공개 상태</th><th>조치</th></tr></thead><tbody>{list.length ? list.map((w) => (
         <tr key={w.id}><td><b>{w.title}</b></td><td>{w.author}</td><td>{w.kind}</td><td>{w.rights}</td><td><span className={`chip ${w.hidden ? 'wait' : 'ok'}`}>{w.hidden ? '운영 제한' : w.private ? '비공개' : '공개'}</span></td><td><button type="button" className="btn sm" onClick={() => vm.toggleWork(w.id)}>{w.hidden ? '제한 해제' : '운영상 비공개'}</button></td></tr>
       )) : <tr><td colSpan={6} className="muted">검색 결과가 없어요.</td></tr>}</tbody></table><p className="admin-note">공개 제한은 데모 작품 상태에만 반영되고, 실제 작품 권한 판단은 Core API에서 처리해야 합니다.</p></div>
   } else if (tab === 'characterChats') {
-    const list = d.chats.filter((c) => byKind(f.category, !!c.w.parent) && has(f.query, c.w.title, c.character)).sort((a, b) => titleSort(a.w.title, b.w.title) || a.character.localeCompare(b.character, 'ko'))
+    const list = d.chats.filter((c) => ofKind(f.category, c.w) && has(f.query, c.w.title, c.character)).sort((a, b) => titleSort(a.w.title, b.w.title) || a.character.localeCompare(b.character, 'ko'))
     T = <><ChatForm d={d} vm={vm} /><div className="panel" style={{ marginTop: 14 }}><div className="table-head"><b>캐릭터챗 목록</b><span className="demo">작품·캐릭터 연결</span></div><Controls {...p} categories={KINDS} sorts={[['title', '작품 제목순'], ['titleDesc', '작품 제목 역순']]} />
       <table style={{ marginTop: 10 }}><thead><tr><th>구분</th><th>작품</th><th>캐릭터</th><th>상태</th><th>관리</th></tr></thead><tbody>{list.length ? list.map((c) => (
         <tr key={c.id}><td><span className={`chip ${c.w.parent ? 'if' : 'ok'}`}>{c.w.parent ? '포크' : '원작'}</span></td><td><b>{c.w.title}</b></td><td>{c.character}</td><td><span className={`chip ${c.enabled === false ? 'wait' : 'ok'}`}>{c.enabled === false ? '중지' : '운영 중'}</span></td><td><button type="button" className="btn sm" onClick={() => vm.toggleChat(c.id)}>{c.enabled === false ? '운영 재개' : '중지'}</button></td></tr>
@@ -125,9 +124,9 @@ function Overview({ d }: { d: Data }) {
   return <>
     <div className="admin-priorities"><div><h2>확인할 작업</h2><p>데모에 접수된 항목부터 확인하세요.</p></div><div className="priority-links"><Go to="/admin?tab=feedback"><b>{d.inquiries.filter((q) => q.st === '답변 대기').length}</b><span>답변 대기 문의</span></Go><Go to="/admin?tab=rights"><b>{d.queue.filter((q) => q.status === '접수').length}</b><span>접수된 신고</span></Go></div></div>
     <h2 className="admin-section-title">데이터 시연 현황</h2>
-    <div className="kpi"><div><small>수집 원작 (만료·등록)</small><b>{d.expired.length}편</b><span className="small muted">{d.expired.map((w) => w.title).join(', ')}</span></div><div><small>가상 독자 댓글</small><b>300건</b><span className="small muted">유형 라벨 포함 · LLM 생성 (데모)</span></div><div><small>전처리 결과 JSON</small><b>{1 + Number(d.imported)}개</b><span className="small muted">구운몽{d.imported ? ' + 가져온 소설' : ''}</span></div><div><small>처리 대기 제보</small><b>{d.pending}건</b><span className="small muted">수정 제안 + 작가 확인 필요</span></div></div>
-    <div className="panel" style={{ marginTop: 14 }}><b>전처리 6단계 · 구운몽 시연 흐름</b><div className="flow" style={{ marginTop: 12 }}>{[['수집', '원문 txt'], ['정제', '특수·불용 문자 제거'], ['회차 분할', '16장 → 4화'], ['LLM 추출', '인물·관계·세계관·사건'], ['검수', '작가·관리자 확인'], ['결과', 'JSON 목업']].map(([a, b], i) => <div key={a} className={i < 4 || d.imported ? 'done' : ''}><b>{i + 1}. {a}</b>{b}</div>)}</div><p className="small" style={{ marginTop: 10, color: 'var(--pri-ink)' }}>실제 LLM 호출은 연결되지 않았으며, 이 파이프라인은 목표 흐름을 보여 주는 시연용입니다.</p></div>
-    <div className="panel" style={{ marginTop: 14 }}><b>수집 데이터 명세</b><table style={{ marginTop: 10 }}><tbody><tr><th>데이터</th><th>출처</th><th>양</th><th>형식</th><th>쓰는 곳</th></tr><tr><td>구운몽 전문</td><td>공유마당 만료 저작물</td><td>1편 · 16장</td><td>txt · 412KB</td><td>세계관·인물 추출, 읽기 화면</td></tr><tr><td>가상 독자 댓글</td><td>LLM 생성 (비상업·학습용)</td><td>300건</td><td>csv · 48KB</td><td>질문·제보 분류, 자동 응답</td></tr>{d.imported && <tr><td>춘향전 (가져온 소설)</td><td>이용자 등록 · {d.chunhyangKind}</td><td>1편 · 4화</td><td>txt · 286KB</td><td>세계관·인물 추출</td></tr>}</tbody></table></div>
+    <div className="kpi"><div><small>수집 원작 (만료·등록)</small><b>{d.expired.length}편</b><span className="small muted">{d.expired.map((w) => w.title).join(', ')}</span></div><div><small>가상 독자 댓글</small><b>300건</b><span className="small muted">유형 라벨 포함 · LLM 생성 (데모)</span></div><div><small>전처리 결과 JSON</small><b>{d.chunhyang ? 2 : 1}개</b><span className="small muted">구운몽{!!d.chunhyang ? ' + 가져온 소설' : ''}</span></div><div><small>처리 대기 제보</small><b>{d.pending}건</b><span className="small muted">수정 제안 + 작가 확인 필요</span></div></div>
+    <div className="panel" style={{ marginTop: 14 }}><b>전처리 6단계 · 구운몽 시연 흐름</b><div className="flow" style={{ marginTop: 12 }}>{[['수집', '원문 txt'], ['정제', '특수·불용 문자 제거'], ['회차 분할', '16장 → 4화'], ['LLM 추출', '인물·관계·세계관·사건'], ['검수', '작가·관리자 확인'], ['결과', 'JSON 목업']].map(([a, b], i) => <div key={a} className={i < 4 || !!d.chunhyang ? 'done' : ''}><b>{i + 1}. {a}</b>{b}</div>)}</div><p className="small" style={{ marginTop: 10, color: 'var(--pri-ink)' }}>실제 LLM 호출은 연결되지 않았으며, 이 파이프라인은 목표 흐름을 보여 주는 시연용입니다.</p></div>
+    <div className="panel" style={{ marginTop: 14 }}><b>수집 데이터 명세</b><table style={{ marginTop: 10 }}><tbody><tr><th>데이터</th><th>출처</th><th>양</th><th>형식</th><th>쓰는 곳</th></tr><tr><td>구운몽 전문</td><td>공유마당 만료 저작물</td><td>1편 · 16장</td><td>txt · 412KB</td><td>세계관·인물 추출, 읽기 화면</td></tr><tr><td>가상 독자 댓글</td><td>LLM 생성 (비상업·학습용)</td><td>300건</td><td>csv · 48KB</td><td>질문·제보 분류, 자동 응답</td></tr>{!!d.chunhyang && <tr><td>춘향전 (가져온 소설)</td><td>이용자 등록 · {d.chunhyang?.kind}</td><td>1편 · 4화</td><td>txt · 286KB</td><td>세계관·인물 추출</td></tr>}</tbody></table></div>
   </>
 }
 
@@ -192,7 +191,7 @@ function Feedback({ d, vm }: { d: Data; vm: VM }) {
 /** 목업 #adminAccountForm: A17 */
 function Admins({ d, vm }: { d: Data; vm: VM }) {
   return <>
-    <form className="panel" onSubmit={async (e) => { e.preventDefault(); const form = e.currentTarget; const perms = [...form.querySelectorAll<HTMLInputElement>('[name=adminPermission]:checked')].map((x) => x.value); if (await vm.addAdmin(val(e, 'name'), val(e, 'email'), perms)) form.reset() }}><b>관리자 계정 생성</b>
+    <form className="panel" onSubmit={async (e) => { e.preventDefault(); const form = e.currentTarget; const perms = new FormData(form).getAll('adminPermission').map(String); if (await vm.addAdmin(val(e, 'name'), val(e, 'email'), perms)) form.reset() }}><b>관리자 계정 생성</b>
       <div className="form-grid" style={{ marginTop: 12 }}><label className="field">이름<input className="inp" name="name" maxLength={20} required /></label><label className="field">이메일<input className="inp" name="email" type="email" maxLength={100} required /></label></div>
       <fieldset className="admin-permissions" style={{ marginTop: 12 }}><legend>부여할 권한</legend><div className="admin-perm-grid">{ADMIN_PERMISSIONS.map(([k, l]) => <label key={k}><input type="checkbox" name="adminPermission" value={k} />{l}</label>)}</div></fieldset>
       <div className="rowend"><button className="btn pri" type="submit">관리자 계정 추가</button></div><p className="admin-note">현재 화면은 오프라인 데모입니다. 계정 생성·로그인·권한 검사는 서버 연결이 필요합니다.</p></form>

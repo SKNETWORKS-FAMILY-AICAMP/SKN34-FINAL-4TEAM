@@ -33,20 +33,19 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
     },
     signup: (o: Parameters<typeof checkSignup>[0]) => {
       const err = checkSignup(o)
-      if (err) { toast(err); return false }
+      if (err) return toast(err)
       const nick = o.nick.trim()
       dispatch(sessionActions.setUser({ nick, email: o.email.trim(), joined: '2026.10.27' }))
       dispatch(sessionActions.setLoginRole('user'))
       dispatch(sessionActions.login({}))
       toast('가입을 환영해요, ' + nick + '님')
       navigate(next && !next.startsWith('/admin') && next !== '/login' ? next : '/')
-      return true
     },
     ask: async (t: string, s: string, b: string) => {
-      const msg = await accountUseCase.ask(t, s, b)
-      toast(msg)
-      if (msg.startsWith('문의를 보냈어요')) { dispatch(sessionActions.dataChanged()); return true }
-      return false
+      const r = await accountUseCase.ask(t, s, b)
+      toast(r.msg)
+      if (r.ok) dispatch(sessionActions.dataChanged())
+      return r.ok
     },
   }
 }

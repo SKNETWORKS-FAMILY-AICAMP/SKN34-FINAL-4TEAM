@@ -111,7 +111,7 @@ function Signup({ vm }: { vm: VM }) {
   return (
     <>
       <h2>회원가입</h2>
-      <form className="tcard mecard" id="suf" autoComplete="off" onSubmit={(e) => { e.preventDefault(); if (!vm.signup({ ...f, termsOk: TERMS.every(([, req], i) => !req || terms[i]) })) return; setF({ ...f, p1: '', p2: '' }) }}>
+      <form className="tcard mecard" id="suf" autoComplete="off" onSubmit={(e) => { e.preventDefault(); vm.signup({ ...f, termsOk: TERMS.every(([, req], i) => !req || terms[i]) }) }}>
         <label className="field">이메일<input className="inp" id="sue" type="email" placeholder="name@example.com" value={f.email} onChange={set('email')} /></label>
         <label className="field">닉네임<input className="inp" id="sun" maxLength={12} placeholder="2~12자" value={f.nick} onChange={set('nick')} /></label>
         <label className="field">비밀번호<input className="inp" id="sup" type="password" placeholder="8자 이상" autoComplete="new-password" value={f.p1} onChange={set('p1')} /></label>
