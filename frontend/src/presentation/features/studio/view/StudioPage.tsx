@@ -239,7 +239,7 @@ function NotePanel({ vm }: { vm: VM }) {
   const release = !w.parent && !!w.worldIds
   const from = (m: Record<string, number> | undefined, k: string) => { const n = m?.[k]; return n !== undefined && Number.isFinite(n) ? String(n) : '' }
   const releaseInput = (kind: 'rule' | 'event' | 'cast', i: number, value: string, label: string) => (
-    <ReleaseInput key={value} value={value} label={label} onCommit={(v) => vm.setRelease(kind, i, v)} />
+    <ReleaseInput key={`${w.id}:${kind}:${i}`} value={value} label={label} onCommit={(v) => vm.setRelease(kind, i, v)} />
   )
   return (
     <div className="spanel nt">
