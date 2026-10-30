@@ -72,7 +72,7 @@ function App() {
         <Route path="/fork/:id" element={<RequireRole><ForkPage /></RequireRole>} />
         <Route path="/forked/:id" element={<RequireRole><ForkedPage /></RequireRole>} />
         <Route path="/lib" element={<RequireRole><LibraryPage /></RequireRole>} />
-        <Route path="/write" element={<Navigate replace to="/lib?tab=write" />} />
+        <Route path="/write" element={<RequireRole><Navigate replace to="/lib?tab=write" /></RequireRole>} />
         <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
         <Route path="/worlds" element={<Navigate replace to="/new" />} />
         <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
