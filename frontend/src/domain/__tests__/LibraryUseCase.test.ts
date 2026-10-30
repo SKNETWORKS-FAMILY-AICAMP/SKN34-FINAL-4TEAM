@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { createMockDb, InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
-import { LibraryUseCase, NOVEL_GENRES, type NewWorkInput } from '../usecases/LibraryUseCase'
+import { LibraryUseCase, IMPORT, NOVEL_GENRES, type NewWorkInput } from '../usecases/LibraryUseCase'
 
 const setup = () => {
   const db = createMockDb()
@@ -92,12 +92,12 @@ describe('LibraryUseCase · 세계관 (목업 worldManager·saveWorld)', () => {
 describe('LibraryUseCase · 가져오기와 서재', () => {
   it('가져오기는 내 세계관이 있어야 저장되고 한 번만 저장된다', async () => {
     const { db, useCase } = setup()
-    expect(await useCase.saveImport({ kind: '다른 사람 소설', worldId: 'shared-world' })).toEqual({ error: '연결할 내 세계관을 선택해 주세요' })
+    expect(await useCase.saveImport({ kind: '다른 사람 소설', worldId: 'shared-world', ...IMPORT })).toEqual({ error: '연결할 내 세계관을 선택해 주세요' })
     const made = await useCase.createWorld({ name: '남원', description: '', rules: '' })
     if (!('id' in made)) throw new Error(made.error)
-    expect(await useCase.saveImport({ kind: '다른 사람 소설', worldId: made.id })).toEqual({ ok: true })
+    expect(await useCase.saveImport({ kind: '다른 사람 소설', worldId: made.id, ...IMPORT })).toEqual({ ok: true })
     expect(db.works.find((w) => w.id === 'chunhyang')).toMatchObject({ rights: '미확인', forksAllowed: false, private: true })
-    expect(await useCase.saveImport({ kind: '자체 창작', worldId: made.id })).toEqual({ error: '이미 저장했어요' })
+    expect(await useCase.saveImport({ kind: '자체 창작', worldId: made.id, ...IMPORT })).toEqual({ error: '이미 저장했어요' })
   })
 
   it('가져오기는 고친 인물·규칙·사건으로 저장한다', async () => {

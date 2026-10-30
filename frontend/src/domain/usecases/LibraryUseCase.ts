@@ -238,7 +238,7 @@ export class LibraryUseCase {
   }
 
   /** 목업 saveimp */
-  async saveImport({ kind, worldId, cast = IMPORT.cast, world: facts = IMPORT.world, events = IMPORT.events }: { kind: string; worldId: string; cast?: string[]; world?: string[]; events?: string[] }): Promise<{ error: string } | { ok: true }> {
+  async saveImport({ kind, worldId, cast, world: facts, events }: { kind: string; worldId: string; cast: string[]; world: string[]; events: string[] }): Promise<{ error: string } | { ok: true }> {
     const works = await this.workRepository.listWorks()
     if (works.some((w) => w.id === 'chunhyang')) return { error: '이미 저장했어요' }
     const world = mineOnly(await this.worldRepository.list(), worldId)
