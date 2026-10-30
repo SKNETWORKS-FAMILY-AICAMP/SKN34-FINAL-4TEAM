@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
-import { linkParts, wikiOf } from '../entities/wiki'
+import { linkParts, wikiState } from '../entities/wiki'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
 const setup = async () => {
@@ -61,7 +61,7 @@ describe('집필실 사전 (목업 wikiOf·wnew·wdel·data-wf·linkify)', () =>
 
   it('linkParts는 다른 문서 제목의 첫 번째만, 긴 제목을 먼저 연결한다', async () => {
     const { w } = await setup()
-    const docs = wikiOf(w())
+    const docs = wikiState(w()).docs
     const parts = linkParts(docs, '리안이 별빛 탑에서 리안을 불렀다', 'x')
     expect(parts.map((p) => (typeof p === 'string' ? p : '[' + p.t + ']'))).toEqual(['[리안]', '이 ', '[별빛 탑]', '에서 리안을 불렀다'])
   })

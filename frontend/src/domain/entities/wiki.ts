@@ -52,8 +52,6 @@ export function wikiState(w: Work): Wiki {
   return w.wiki
 }
 
-export const wikiOf = (w: Work) => wikiState(w).docs
-
 /** 목업 linkify(): 본문에 나온 다른 문서 제목의 첫 번째만 문서로 바꿉니다. 긴 제목을 먼저 찾아요. */
 export function linkParts(docs: Doc[], text: string, selfId: string): (string | Doc)[] {
   const D = docs.filter((d) => d.id !== selfId && d.t.length >= 2).sort((a, b) => b.t.length - a.t.length)
