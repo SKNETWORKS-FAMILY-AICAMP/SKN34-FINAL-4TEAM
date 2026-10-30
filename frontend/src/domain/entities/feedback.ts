@@ -15,7 +15,7 @@ export type InboxItem = {
 }
 
 /** 목업 S.admin.queue: 운영팀 신고 검토 목록 */
-export type ReviewItem = { id: string; w: string; n: null; type: string; text: string; quote: string; status: string; who: string; appeal?: string }
+export type ReviewItem = { id: string; w: string; n: null; type: string; text: string; quote: string; status: string; who: string; appeal?: string; beforeHidden?: boolean }
 
 export const FEEDBACK_TYPES = ['단순 오류', '스토리 오류', '질문', '제안'] as const
 export type FeedbackType = (typeof FEEDBACK_TYPES)[number]

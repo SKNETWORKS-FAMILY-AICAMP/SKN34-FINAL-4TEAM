@@ -2,6 +2,7 @@ import type { AwilixContainer } from 'awilix/browser'
 
 import type { CoreApiHealth } from '../../data/api/coreApiHealth'
 import type { MockDb } from '../../data/mock/InMemoryRepositories'
+import type { AdminRepository } from '../../domain/repositories/AdminRepository'
 import type { InquiryRepository } from '../../domain/repositories/InquiryRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
@@ -9,6 +10,7 @@ import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepos
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
+import type { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import type { AccountUseCase } from '../../domain/usecases/AccountUseCase'
 import type { ChatUseCase } from '../../domain/usecases/ChatUseCase'
 import type { CreditUseCase } from '../../domain/usecases/CreditUseCase'
@@ -34,6 +36,8 @@ export type AppCradle = {
   creditRepository: CreditRepository
   chatRepository: ChatRepository
   inquiryRepository: InquiryRepository
+  adminRepository: AdminRepository
+  adminUseCase: AdminUseCase
   accountUseCase: AccountUseCase
   chatUseCase: ChatUseCase
   inboxUseCase: InboxUseCase

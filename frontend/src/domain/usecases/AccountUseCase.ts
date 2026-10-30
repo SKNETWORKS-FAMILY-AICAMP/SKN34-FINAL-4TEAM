@@ -1,5 +1,7 @@
 import type { Inquiry } from '../entities/account'
+import { today } from '../entities/admin'
 import { isMine, nid } from '../entities/work'
+import type { AdminRepository } from '../repositories/AdminRepository'
 import type { InquiryRepository } from '../repositories/InquiryRepository'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
@@ -10,11 +12,13 @@ export class AccountUseCase {
   private readonly worldRepository: WorldRepository
   private readonly readingRepository: ReadingRepository
   private readonly inquiryRepository: InquiryRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, inquiryRepository: InquiryRepository) {
+  private readonly adminRepository: AdminRepository
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, inquiryRepository: InquiryRepository, adminRepository: AdminRepository) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
     this.readingRepository = readingRepository
     this.inquiryRepository = inquiryRepository
+    this.adminRepository = adminRepository
   }
 
   /** U32 관심 소설 */
@@ -31,12 +35,15 @@ export class AccountUseCase {
     return { bytes, drafts }
   }
 
+  /** U35·U35E: 관리자가 게시한 공지·이벤트를 포함합니다. */
+  async board() { const { notices, events } = await this.adminRepository.get(); return { notices, events } }
+
   inquiries() { return this.inquiryRepository.list() }
 
   /** 목업 #iqf 제출. 문제가 있으면 안내 문구 */
   async ask(t: string, s: string, b: string): Promise<string> {
     if (!s.trim() || !b.trim()) return '제목과 내용을 입력해 주세요'
-    const q: Inquiry = { id: nid('q'), t, s: s.trim(), b: b.trim(), d: new Intl.DateTimeFormat('sv-SE').format(new Date()).replaceAll('-', '.'), st: '답변 대기' }
+    const q: Inquiry = { id: nid('q'), t, s: s.trim(), b: b.trim(), d: today(), st: '답변 대기' }
     await this.inquiryRepository.add(q)
     return '문의를 보냈어요 (데모 · 실제 전송 없음)'
   }

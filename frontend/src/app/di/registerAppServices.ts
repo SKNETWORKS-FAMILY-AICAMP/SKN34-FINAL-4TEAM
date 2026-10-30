@@ -2,6 +2,7 @@ import { asFunction, asValue } from 'awilix/browser'
 
 import {
   createMockDb,
+  InMemoryAdminRepository,
   InMemoryChatRepository,
   InMemoryCreditRepository,
   InMemoryFeedbackRepository,
@@ -11,6 +12,7 @@ import {
   InMemoryWorkRepository,
   InMemoryWorldRepository,
 } from '../../data/mock/InMemoryRepositories'
+import { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import { AccountUseCase } from '../../domain/usecases/AccountUseCase'
 import { ChatUseCase } from '../../domain/usecases/ChatUseCase'
 import { CreditUseCase } from '../../domain/usecases/CreditUseCase'
@@ -34,7 +36,9 @@ export function registerAppServices(container: AppContainer) {
     worldRepository: asFunction(({ mockDb }) => new InMemoryWorldRepository(mockDb)).singleton(),
     creditRepository: asFunction(({ mockDb }) => new InMemoryCreditRepository(mockDb)).singleton(),
     inquiryRepository: asFunction(({ mockDb }) => new InMemoryInquiryRepository(mockDb)).singleton(),
-    accountUseCase: asFunction(({ workRepository, worldRepository, readingRepository, inquiryRepository }) => new AccountUseCase(workRepository, worldRepository, readingRepository, inquiryRepository)).singleton(),
+    adminRepository: asFunction(({ mockDb }) => new InMemoryAdminRepository(mockDb)).singleton(),
+    adminUseCase: asFunction(({ adminRepository, workRepository, feedbackRepository, inquiryRepository, creditRepository, chatRepository, chatUseCase }) => new AdminUseCase(adminRepository, workRepository, feedbackRepository, inquiryRepository, creditRepository, chatRepository, chatUseCase)).singleton(),
+    accountUseCase: asFunction(({ workRepository, worldRepository, readingRepository, inquiryRepository, adminRepository }) => new AccountUseCase(workRepository, worldRepository, readingRepository, inquiryRepository, adminRepository)).singleton(),
     chatRepository: asFunction(({ mockDb }) => new InMemoryChatRepository(mockDb)).singleton(),
     chatUseCase: asFunction(({ workRepository, readingRepository, chatRepository }) => new ChatUseCase(workRepository, readingRepository, chatRepository)).singleton(),
     inboxUseCase: asFunction(({ workRepository, feedbackRepository }) => new InboxUseCase(workRepository, feedbackRepository)).singleton(),

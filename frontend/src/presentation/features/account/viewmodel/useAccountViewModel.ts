@@ -18,6 +18,7 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
     storage: sub === 'storage' ? await accountUseCase.storage() : null,
     inquiries: sub === 'inquiry' ? await accountUseCase.inquiries() : [],
+    board: sub === 'notice' || sub === 'event' ? await accountUseCase.board() : null,
   }), [accountUseCase, sub])
   return {
     role, user, data: data?.sub === sub ? data : undefined,

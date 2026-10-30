@@ -1,7 +1,6 @@
 import { useState, type ChangeEvent, type ReactNode } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
-import { EVENTS, NOTICE } from '../../../../domain/entities/account'
 import { Cov } from '../../../shared/art'
 import { openPolicy, toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
@@ -37,6 +36,7 @@ function Account({ sub }: { sub: string }) {
   const [q] = useSearchParams()
   const id = q.get('id')
   useScreenId(sub === 'signup' ? 'U31' : sub === 'liked' ? 'U32' : sub === 'pay' ? 'U33' : sub === 'inquiry' ? 'U34' : sub === 'notice' ? 'U35' : sub === 'event' ? 'U35E' : 'U30')
+  const NOTICE = vm.data?.board?.notices ?? [], EVENTS = vm.data?.board?.events ?? []
   let T: ReactNode = null
   if (sub === 'profile') T = <Profile vm={vm} />
   else if (sub === 'signup') T = <Signup vm={vm} />
