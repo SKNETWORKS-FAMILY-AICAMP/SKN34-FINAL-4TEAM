@@ -41,7 +41,7 @@ export function WorkPage() {
         <section className="whero">
           <div className="cover"><CoverOf w={w} k="big" /></div>
           <div>
-            <span className="g">{w.genre}</span>
+            <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok">🤖 AI 자율 연재 중</span>}
             <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
             <p className="sum">{w.summary || '원작 「' + p?.title + '」의 ' + w.forkAt + '화 이후, 다른 길로 간 포크 소설.'}</p>
             <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>

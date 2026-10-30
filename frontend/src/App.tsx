@@ -63,6 +63,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/work/:id" element={<WorkPage />} />
         <Route path="/read/:id/:n" element={<RequireRole><ReaderPage /></RequireRole>} />
+        <Route path="/read/:id" element={<RequireRole><ReaderPage /></RequireRole>} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/rank" element={<RankPage />} />
         <Route path="/ifs" element={<IfsPage />} />
