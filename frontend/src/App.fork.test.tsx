@@ -41,11 +41,10 @@ describe('집필 방식·저작권 안내 (U43)', () => {
     await screen.findByRole('heading', { name: '내 소설 가져오기 전 확인' })
     screen.getByText(/가져온 원고는 집필을 돕기 위해/)
     agree()
-    // 가져오기 화면(U24)은 Task 7에서 이어집니다.
-    await waitFor(() => expect(where()).not.toMatch(/^\/writing-policy/))
+    await waitFor(() => expect(where()).toBe('/import'))
     cleanup()
     renderAt('/writing-policy?method=x')
-    await waitFor(() => expect(where()).not.toMatch(/^\/writing-policy/))
+    await waitFor(() => expect(where()).toBe('/lib?tab=write'))
   })
 })
 

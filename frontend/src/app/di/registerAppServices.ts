@@ -2,13 +2,17 @@ import { asFunction, asValue } from 'awilix/browser'
 
 import {
   createMockDb,
+  InMemoryCreditRepository,
   InMemoryFeedbackRepository,
   InMemoryNotificationRepository,
   InMemoryReadingRepository,
   InMemoryWorkRepository,
+  InMemoryWorldRepository,
 } from '../../data/mock/InMemoryRepositories'
+import { CreditUseCase } from '../../domain/usecases/CreditUseCase'
 import { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
 import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
+import { LibraryUseCase } from '../../domain/usecases/LibraryUseCase'
 import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 import type { AppContainer } from './types'
@@ -21,6 +25,10 @@ export function registerAppServices(container: AppContainer) {
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),
     notificationRepository: asFunction(({ mockDb }) => new InMemoryNotificationRepository(mockDb)).singleton(),
     feedbackRepository: asFunction(({ mockDb }) => new InMemoryFeedbackRepository(mockDb)).singleton(),
+    worldRepository: asFunction(({ mockDb }) => new InMemoryWorldRepository(mockDb)).singleton(),
+    creditRepository: asFunction(({ mockDb }) => new InMemoryCreditRepository(mockDb)).singleton(),
+    libraryUseCase: asFunction(({ workRepository, worldRepository, readingRepository, feedbackRepository }) => new LibraryUseCase(workRepository, worldRepository, readingRepository, feedbackRepository)).singleton(),
+    creditUseCase: asFunction(({ creditRepository }) => new CreditUseCase(creditRepository)).singleton(),
     readingUseCase: asFunction(({ workRepository, readingRepository }) => new ReadingUseCase(workRepository, readingRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository }) => new FeedbackUseCase(workRepository, feedbackRepository)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
