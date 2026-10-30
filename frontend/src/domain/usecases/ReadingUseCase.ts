@@ -1,5 +1,5 @@
 import { splitSentences } from '../entities/feedback'
-import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type Work } from '../entities/work'
+import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type Work } from '../entities/work'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 
 /** 목업 CHIPS: 홈 장르 칩과 필터 조건 */
@@ -147,7 +147,8 @@ export class ReadingUseCase {
   async getQuickItems(role: Role, studio?: { id: string; ep: string | null }) {
     const works = await this.workRepository.listWorks()
     const items: { k: string; w?: Work; label: string; sub: string; go: string }[] = []
-    const sw = studio && works.find((w) => w.id === studio.id)
+    // 목업은 모든 작품에서 넣지만, 비공개 인물이 보이지 않도록 내 작품 집필실에서만 넣습니다.
+    const sw = studio && role === 'user' && works.find((w) => w.id === studio.id && isMine(w))
     if (sw) {
       const at = (tab: string) => `/studio/${sw.id}?tab=${tab}${studio.ep ? `&ep=${studio.ep}` : ''}`
       items.push({ k: '이동', label: 'AI 도움 탭', sub: '집필실', go: at('ai') }, { k: '이동', label: '타임라인 탭', sub: '집필실', go: at('tl') }, { k: '이동', label: '설정 노트 탭', sub: '집필실', go: at('note') })
