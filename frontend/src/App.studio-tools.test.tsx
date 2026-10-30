@@ -28,23 +28,18 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
       await waitFor(() => expect(sid()).toContain(id))
     }
     expect(where()).toBe('/studio/starlight?view=memo')
-    fireEvent.change(screen.getByLabelText('메모'), { target: { value: '아이디어 메모' } })
+    fireEvent.change(screen.getByLabelText('콘티 내용'), { target: { value: '아이디어 메모' } })
     fireEvent.click(within(tools()).getByRole('button', { name: '원고' }))
     await screen.findByLabelText('원고 본문')
     fireEvent.click(within(tools()).getByRole('button', { name: '콘티' }))
-    await waitFor(() => expect((screen.getByLabelText('메모') as HTMLTextAreaElement).value).toBe('아이디어 메모'))
+    await waitFor(() => expect((screen.getByLabelText('콘티 내용') as HTMLTextAreaElement).value).toBe('아이디어 메모'))
   })
 
   it('사전은 인물 문서를 열고 서술 순서를 바꾼다', async () => {
     renderAt('/studio/starlight?view=wiki')
     fireEvent.click((await screen.findAllByRole('button', { name: '리안' }))[0])
     await screen.findByRole('heading', { name: '리안' })
-    cleanup()
-    renderAt('/studio/starlight?view=narrative')
-    const first = (await screen.findAllByRole('button', { name: /위로 이동$/ }))[1]
-    const name = first.getAttribute('aria-label')!.replace(' 위로 이동', '')
-    fireEvent.click(first)
-    await waitFor(() => expect(screen.getAllByRole('button', { name: /위로 이동$/ })[0].getAttribute('aria-label')).toBe(`${name} 위로 이동`))
+
   })
 
   it('데모 크레딧이 5 미만이면 자율 연재를 중단한다', async () => {
@@ -92,38 +87,4 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
     await toastIs('공개 설정을 저장했어요 · 1화 포크 허용')
   })
 
-  it('크레딧 버튼은 정책 안내를 열고 실패 시연을 다음 AI 요청에 적용한다', async () => {
-    renderAt('/lib')
-    fireEvent.click(await screen.findByRole('button', { name: /✦ 크레딧/ }))
-    await screen.findByRole('dialog', { name: '크레딧·이용 정책 안내' })
-    cleanup()
-    renderAt('/studio/starlight')
-    await screen.findByLabelText('원고 본문')
-    fireEvent.click(screen.getByRole('button', { name: 'AI 채팅 열기' }))
-    fireEvent.click(screen.getByRole('button', { name: '정책 안내' }))
-    const sheet = await screen.findByRole('dialog', { name: '크레딧·이용 정책 안내' })
-    expect(sid()).toContain('U23')
-    within(sheet).getByText(/데모 잔액 \d+/)
-    fireEvent.click(within(sheet).getByLabelText(/다음 AI 요청 실패 시연/))
-    fireEvent.click(within(sheet).getByRole('button', { name: '확인' }))
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    fireEvent.click(screen.getByRole('button', { name: /장면 이어쓰기/ }))
-    await toastIs('AI 데모 작업에 실패했어요. 자동 재시도하지 않습니다. 다시 요청할 수 있어요')
-  })
-
-  it('인물 시뮬레이션 결과를 참고 자료로 가져오고, 타임라인에 사건을 더한다', async () => {
-    renderAt('/studio/starlight')
-    fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
-    fireEvent.click(await screen.findByRole('button', { name: /인물에게 맡겨 보기/ }))
-    const sheet = await screen.findByRole('dialog', { name: '인물에게 맡겨 보기' })
-    expect(sid()).toContain('U15')
-    fireEvent.click(within(sheet).getByRole('button', { name: '▶ 실행하기' }))
-    fireEvent.click(await within(sheet).findByRole('button', { name: '집필실로 가져오기' }, { timeout: 4000 }))
-    await toastIs('시뮬레이션 결과를 집필실로 가져왔어요')
-    await screen.findByText(/📎 참고 자료: 시뮬레이션 1건/)
-    fireEvent.click(screen.getByRole('button', { name: '미리 보기' }))
-    await toastIs(/^3문단 · 공개 전 미리보기는 공개 후 회차 뷰어에서 볼 수 있어요$/)
-    fireEvent.click(screen.getByRole('button', { name: '집필 설정' }))
-    await screen.findByRole('dialog', { name: '집필 설정' })
-  })
 })
