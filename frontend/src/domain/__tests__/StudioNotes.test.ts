@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { createMockDb, InMemoryAdminRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
@@ -12,7 +12,7 @@ const setup = (owned = true) => {
     db.works.find((w) => w.id === 'starlight')!.worldIds = ['my-world']
   }
   const works = new InMemoryWorkRepository(db), feedback = new InMemoryFeedbackRepository(db)
-  return { db, star: () => db.works.find((w) => w.id === 'starlight')!, useCase: new StudioUseCase(works, new InMemoryCreditRepository(db), feedback, new InMemoryWorldRepository(db)), feedback: new FeedbackUseCase(works, feedback) }
+  return { db, star: () => db.works.find((w) => w.id === 'starlight')!, useCase: new StudioUseCase(works, new InMemoryCreditRepository(db), feedback, new InMemoryWorldRepository(db)), feedback: new FeedbackUseCase(works, feedback, new InMemoryAdminRepository(db)) }
 }
 
 describe('설정 노트 (목업 data-work-setting·worldExtract·release·data-cast)', () => {
