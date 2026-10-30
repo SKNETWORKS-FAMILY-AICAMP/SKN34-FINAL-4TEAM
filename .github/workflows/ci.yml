@@ -51,9 +51,12 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
+          # 수동 실행·새 브랜치 푸시는 기준선이 없으므로 부모 커밋과 비교한다.
+          # 브랜치 전체 변경은 PR 실행에서 base와 비교해 검사한다.
           if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
-            BASE="$(git hash-object -t tree /dev/null)"
+            BASE="$(git rev-parse --verify --quiet HEAD^ || git hash-object -t tree /dev/null)"
           fi
+          echo "base: $BASE"
           git diff --check "$BASE" HEAD
 
   web:
