@@ -90,6 +90,8 @@ export class AdminUseCase {
   }
 
   async toggleComment(id: string, label: string) {
+    const comments = await this.adminRepository.listComments(await this.workRepository.listWorks())
+    if (!comments.some((c) => c.id === id)) return null
     let status = ''
     await this.log((a) => { const hidden = a.hiddenComments.includes(id); a.hiddenComments = hidden ? a.hiddenComments.filter((x) => x !== id) : [...a.hiddenComments, id]; status = hidden ? '게시' : '숨김' }, '댓글 상태 변경', () => label + ' · ' + status)
     return '댓글 상태를 변경했어요 (데모)'

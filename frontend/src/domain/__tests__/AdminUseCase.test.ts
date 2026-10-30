@@ -21,7 +21,7 @@ function fakes() {
   }
   const chatRepository = { listChats: async () => chats, saveChats: async (c: typeof chats) => { chats = c }, getLog: async () => undefined, saveLog: async () => {} }
   const uc = new AdminUseCase(
-    { get: async () => structuredClone(admin), save: async (a) => { admin = a }, listComments: async () => [] },
+    { get: async () => structuredClone(admin), save: async (a) => { admin = a }, listComments: async () => [{ id: 'hanji-0', work: '구운몽', workId: 'guunmong', author: '연화봉러', text: '좋아요', likes: 1 }] },
     workRepository, feedbackRepository,
     { list: async () => db.inq, add: async () => {}, save: async (q) => { replace(db.inq, q) } },
     { get: async () => db.credits, save: async (c) => { db.credits = c } },
@@ -60,5 +60,14 @@ describe('관리자 신고 처리 (목업 data-qact)', () => {
     const { uc, admin } = fakes()
     expect(await uc.toggleUser('nope')).toBeNull()
     expect(admin().audit).toEqual([])
+  })
+
+  it('없는 댓글은 숨기지 않고 로그도 남기지 않는다 (목업 data-comment-action)', async () => {
+    const { uc, admin } = fakes()
+    expect(await uc.toggleComment('nope', '구운몽 · 누군가')).toBeNull()
+    expect(admin().hiddenComments).toEqual([])
+    expect(admin().audit).toEqual([])
+    expect(await uc.toggleComment('hanji-0', '구운몽 · 연화봉러')).toBe('댓글 상태를 변경했어요 (데모)')
+    expect(admin().hiddenComments).toEqual(['hanji-0'])
   })
 })
