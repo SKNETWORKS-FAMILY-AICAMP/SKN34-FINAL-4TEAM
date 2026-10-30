@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 
+import type { Work } from '../../../../domain/entities/work'
 import type { PublishSettings } from '../../../../domain/usecases/StudioUseCase'
 import { toast } from '../../../shared/events'
+import { Portrait } from '../../../shared/Portrait'
+import { hasPortrait } from '../../../shared/portraitSvg'
 import { Sheet } from '../../../shared/Sheet'
 import type { useStudioViewModel } from '../viewmodel/useStudioViewModel'
 
@@ -44,7 +47,7 @@ export function SimSheet({ vm, onClose }: { vm: VM; onClose: () => void }) {
           <button type="button" className="btn pri" id="run" disabled={turns.length > 0} onClick={run}>{done ? '✓ 완료' : running ? '진행 중…' : '▶ 실행하기'}</button><span className="note2" style={{ color: 'var(--sub)' }}>예상 크레딧: 예시 30 (미확정 · 차감 없음)</span>
         </div>
         <div><b style={{ fontSize: 14 }}>인물들의 대화</b>
-          {k ? turns.slice(0, k).map((t, i) => <div className="turn" key={i}><span className="av pt" style={{ background: col(t[0]) }}>{t[0].slice(0, 1)}</span><div><b>{t[0]}<small>{i + 1}턴</small></b><br /><p>{t[1]}</p></div></div>)
+          {k ? turns.slice(0, k).map((t, i) => <div className="turn" key={i}><span className="av pt" style={{ background: col(t[0]) }}>{hasPortrait(t[0]) ? <Portrait name={t[0]} size={36} /> : t[0].slice(0, 1)}</span><div><b>{t[0]}<small>{i + 1}턴</small></b><br /><p>{t[1]}</p></div></div>)
             : <p className="muted small" style={{ marginTop: 12 }}>왼쪽에서 상황을 정하고 실행해 보세요.</p>}
           {done && chosen.length > 1 && <>
             <div className="sum3"><div><small>인물 변화 (제안)</small>{chosen[0].n}: {chosen[0].st} → 결심</div><div><small>관계 변화 (제안)</small>{chosen[0].n}–{chosen[1].n} 신뢰 ↑</div><div><small>설정 검사</small>어긋난 곳 없음</div></div>
@@ -57,9 +60,8 @@ export function SimSheet({ vm, onClose }: { vm: VM; onClose: () => void }) {
   )
 }
 
-/** 목업 publishSheet(id): U21 소설 공개 설정 */
-export function PublishSettingsSheet({ vm, onClose }: { vm: VM; onClose: () => void }) {
-  const w = vm.studio!.work
+/** 목업 publishSheet(id): U21 소설 공개 설정. 집필실과 서재 양쪽에서 엽니다. */
+export function PublishSettingsSheet({ work: w, onSave, onClose }: { work: Work; onSave: (st: PublishSettings) => Promise<boolean>; onClose: () => void }) {
   const [st, setSt] = useState<PublishSettings>({ vis: w.private ? '나만' : '모두', on: !!w.forksAllowed, all: !!w.forkAll, eps: w.forkEps ?? [], kind: w.kind, ok: w.rights === '확인됨' })
   const set = (patch: Partial<PublishSettings>) => setSt({ ...st, ...patch })
   const mode = !st.on ? 'off' : st.all ? 'all' : 'eps'
@@ -80,7 +82,7 @@ export function PublishSettingsSheet({ vm, onClose }: { vm: VM; onClose: () => v
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13.5 }}><input type="checkbox" id="rok" checked={st.ok} onChange={(e) => set({ ok: e.target.checked })} /> 이 소설을 올리고 AI 처리·포크를 허용할 적법한 권리가 있어요</label>
       {st.kind === '다른 사람 소설' && <div className="policy">다른 사람 소설은 신고가 접수되면 운영팀이 공개·포크를 제한할 수 있어요 (관리자 화면 A03).</div>}
       <div className="policy">P2 · 미확정 정책 — 유료 열람, 판매 수익 배분은 아직 정해지지 않아 선택할 수 없어요.</div>
-      <div className="rowend"><button type="button" className="btn" onClick={onClose}>취소</button><button type="button" className="btn pri" id="savepub" onClick={async () => { if (await vm.savePublishSettings(st)) onClose() }}>저장</button></div>
+      <div className="rowend"><button type="button" className="btn" onClick={onClose}>취소</button><button type="button" className="btn pri" id="savepub" onClick={async () => { if (await onSave(st)) onClose() }}>저장</button></div>
     </Sheet>
   )
 }
