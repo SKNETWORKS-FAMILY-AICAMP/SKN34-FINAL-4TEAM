@@ -9,6 +9,8 @@ import App from './App'
 import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
 
+vi.mock('./presentation/shared/resizeImg', () => ({ resizeImg: (_f: File | undefined, cb: (url: string) => void) => cb('data:image/jpeg;base64,COVER') }))
+
 const db = () => appContainer.resolve('mockDb')
 const star = () => db().works.find((w) => w.id === 'starlight')!
 const toastIs = (t: string) => waitFor(() => expect(document.getElementById('toast')!.textContent).toBe(t))
@@ -165,5 +167,97 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
     fireEvent.change(screen.getByLabelText('리안 상태'), { target: { value: '의문' } })
     await toastIs('이 소설에서만 리안 상태를 ‘의문’로 바꿨어요 (원작 그대로)')
     expect(star().cast[0].st).toBe('결심')
+  })
+})
+
+describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시·표지·초상·공개 설정)', () => {
+  it('@를 치면 인물·사건 목록이 열리고, 고르면 멘션을 넣고 타임라인에 연결한다. Esc로 닫는다', async () => {
+    Range.prototype.getBoundingClientRect = () => new DOMRect() // jsdom에는 없음
+    renderAt('/studio/starlight')
+    const body = await screen.findByLabelText('원고 본문')
+    body.innerHTML = '<p>그때 @</p>'
+    const r = document.createRange()
+    r.setStart(body.querySelector('p')!.firstChild!, 4)
+    r.collapse(true)
+    getSelection()!.removeAllRanges()
+    getSelection()!.addRange(r)
+    fireEvent.keyUp(body, { key: '@' })
+    const list = await screen.findByRole('listbox', { name: '연결할 인물·사건' })
+    within(list).getByRole('option', { name: /재의 사절 도착/ })
+    fireEvent.keyDown(body, { key: 'Escape' })
+    expect(screen.queryByRole('listbox')).toBeNull()
+    fireEvent.keyUp(body, { key: '@' })
+    fireEvent.mouseDown(within(await screen.findByRole('listbox')).getByRole('option', { name: /리안/ }))
+    await toastIs(`‘리안’ → ${db().drafts.starlight.no}화에 연결했어요 · 타임라인에 표시돼요`)
+    expect(body.querySelector('.mention')!.textContent).toBe('@리안')
+    expect(screen.queryByRole('listbox')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '타임라인' }))
+    await screen.findByText('@ 리안')
+    expect(db().drafts.starlight.paras).toEqual(['그때 @리안'])
+    delete db().drafts.starlight
+  })
+
+  it('AI 요청 문구는 탭을 바꿔도 남는다', async () => {
+    renderAt('/studio/starlight')
+    fireEvent.change(await screen.findByLabelText('AI에게 요청'), { target: { value: '긴장감 있게' } })
+    fireEvent.click(screen.getByRole('button', { name: '타임라인' }))
+    await screen.findByRole('button', { name: '＋ 사건 추가' })
+    fireEvent.click(screen.getByRole('button', { name: 'AI 도움' }))
+    expect(((await screen.findByLabelText('AI에게 요청')) as HTMLTextAreaElement).value).toBe('긴장감 있게')
+    delete db().drafts.starlight
+  })
+
+  it('원고를 고치면 설정 검사 결과가 바로 무효로 바뀐다 (C)', async () => {
+    renderAt('/studio/starlight')
+    fireEvent.click(await screen.findByRole('button', { name: /설정 검사/ }))
+    await screen.findByText('✓ 설정과 어긋난 곳이 없어요')
+    const body = screen.getByLabelText('원고 본문')
+    body.innerHTML = '<p>새 문장</p>'
+    fireEvent.input(body)
+    await screen.findByText('소설이 바뀌었어요. 설정 검사를 다시 실행해 주세요.')
+    delete db().drafts.starlight
+  })
+
+  it('메모를 고치면 저장 중…으로 바뀌었다가 저장됨으로 돌아온다', async () => {
+    renderAt('/studio/starlight?view=memo')
+    fireEvent.change(await screen.findByLabelText('메모'), { target: { value: '복선 확인' } })
+    expect(document.getElementById('saved')!.textContent).toBe('저장 중…')
+    await waitFor(() => expect(document.getElementById('saved')!.textContent).toBe('저장됨'))
+  })
+
+  it('개요에서 표지를 바꾸고 지운다', async () => {
+    renderAt('/studio/starlight?view=overview')
+    fireEvent.change(await screen.findByLabelText('표지 바꾸기'), { target: { files: [new File(['x'], 'c.png', { type: 'image/png' })] } })
+    await toastIs('표지 이미지를 바꿨어요')
+    await waitFor(() => expect(star().coverImg).toBe('data:image/jpeg;base64,COVER'))
+    expect(screen.queryByText('표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '표지 이미지 지우기' }))
+    await toastIs('표지 이미지를 지웠어요')
+    await screen.findByText('표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.')
+    expect(star().coverImg).toBeNull()
+  })
+
+  it('시뮬레이션 대화에서 초상이 있는 인물은 초상을 쓴다', async () => {
+    renderAt('/studio/starlight')
+    fireEvent.click(await screen.findByRole('button', { name: /인물에게 맡겨 보기/ }))
+    const sheet = await screen.findByRole('dialog', { name: '인물에게 맡겨 보기' })
+    fireEvent.click(within(sheet).getByRole('button', { name: '▶ 실행하기' }))
+    await within(sheet).findByText('1턴')
+    expect(sheet.querySelector('.turn .av img')).not.toBeNull()
+  })
+
+  it('서재의 공개 설정은 서재 위 시트로 열고, 저장하면 서재에 남아 칩과 토스트가 바뀐다', async () => {
+    const view = renderAt('/lib?tab=write')
+    const card = (await screen.findByRole('heading', { name: '별빛 서약의 탑' })).closest('.mywork') as HTMLElement
+    fireEvent.click(within(card).getByRole('button', { name: '공개 설정' }))
+    const sheet = await screen.findByRole('dialog', { name: '공개 설정 · 별빛 서약의 탑' })
+    fireEvent.click(within(sheet).getByRole('button', { name: '허용 안 함' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: '저장' }))
+    await toastIs('공개 설정을 저장했어요 · 포크 비허용')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await within(card).findByText('포크 비허용')
+    screen.getByRole('heading', { name: '별빛 서약의 탑' })
+    view.unmount()
+    star().forksAllowed = true
   })
 })

@@ -2,6 +2,7 @@ import { Cov, CoverOf } from '../../../shared/art'
 import { kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { PublishSettingsSheet } from '../../studio/view/StudioSheets'
 import { useLibraryViewModel } from '../viewmodel/useLibraryViewModel'
 
 const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['qa', '내 댓글·신고']] as const
@@ -48,7 +49,7 @@ export function LibraryPage() {
                 <div className="tags">{parent ? <span className="chip ok">포크 · {parent.title} {w.forkAt}화에서</span> : <span className="chip">{w.kind}</span>}{pub ? <span className="chip ok">공개 중</span> : <span className="chip wait">비공개 · 작성 중</span>}{!w.parent && <span className="chip">{forkLabel}</span>}</div>
                 <div className="small muted">{w.parent ? `원작 스냅샷 ${w.forkAt}화 + 내가 쓴 ${w.eps.length}화${writingNext ? ' · 다음 화 초안 작성 중' : ''}` : `${w.eps.length}화 · ♥ ${kfmt(w.likes)} · 포크 소설 ${forkCount}편`}</div>
                 <div className="acts" style={{ marginTop: 12 }}><Go to={`/studio/${w.id}`} className="btn sm pri">✎ 쓰기</Go>{!w.parent
-                  ? <><Go to="/inbox" className="btn sm">독자 피드백함{d.pending > 0 && w.id === 'starlight' && <span className="badge-n">{d.pending}</span>}</Go><Go to={`/studio/${w.id}?publish=1`} className="btn sm">공개 설정</Go></>
+                  ? <><Go to="/inbox" className="btn sm">독자 피드백함{d.pending > 0 && w.id === 'starlight' && <span className="badge-n">{d.pending}</span>}</Go><button type="button" className="btn sm" onClick={() => d.openPublish(w.id)}>공개 설정</button></>
                   : <><Go to={`/work/${w.id}`} className="btn sm">소설 화면</Go><Go to={`/work/${w.parent}`} className="btn sm">원작 보기</Go></>}</div>
               </div></div>
             ))}
@@ -60,6 +61,7 @@ export function LibraryPage() {
           </>
         )}
       </main>
+      {d.publishing && <PublishSettingsSheet work={d.publishing} onSave={d.savePublish} onClose={d.closePublish} />}
       <Footer />
     </>
   )

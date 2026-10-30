@@ -17,8 +17,10 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const aiDemo = useAiDemo()
-  const { data } = useAsyncData(() => studioUseCase.open(id, ep, role), [studioUseCase, id, ep, role])
+  // 목업 render(): 탭(screen)을 바꾸면 저장 중인 입력을 기다렸다가 초안(연결·AI 요청)을 다시 불러옵니다.
+  const { data } = useAsyncData(() => sync.current.then(() => studioUseCase.open(id, ep, role)), [studioUseCase, id, ep, role, screen])
   const [typed, setTyped] = useState<{ key: string; paras: string[] } | null>(null)
+  const [prompt, setPrompt] = useState<{ key: string; v: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const sync = useRef<Promise<unknown>>(Promise.resolve())
@@ -42,11 +44,14 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     await fn()
     refresh(redraw)
   }
-  const edit = (patch: Parameters<StudioUseCase['edit']>[1]) => {
-    if (patch.paras) setTyped({ key, paras: patch.paras })
+  const flash = () => {
     setSaving(true)
     window.clearTimeout(savedTimer.current)
     savedTimer.current = window.setTimeout(() => setSaving(false), 600)
+  }
+  const edit = (patch: Parameters<StudioUseCase['edit']>[1]) => {
+    if (patch.paras) setTyped({ key, paras: patch.paras })
+    flash()
     sync.current = sync.current.then(() => studioUseCase.edit(key, patch))
   }
 
@@ -56,6 +61,10 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     readOnly: !!d?.locked,
     wordCount: `공백 포함 ${Array.from(text).length.toLocaleString('ko-KR')}자 · 공백 제외 ${Array.from(text.replace(/\s/g, '')).length.toLocaleString('ko-KR')}자`,
     edit,
+    // 목업 syncDraft: 입력 직후에도 지난 설정 검사를 무효로 보여 주고, AI 요청 문구는 초안에 남겨 탭을 바꿔도 유지합니다.
+    checkStale: !!d?.check && (d.check.stale || (typed?.key === key && JSON.stringify(typed.paras) !== JSON.stringify(d.paras))),
+    prompt: (prompt?.key === key ? prompt.v : null) ?? d?.aiPrompt ?? '',
+    setPrompt: (v: string) => { setPrompt({ key, v }); edit({ aiPrompt: v }) },
     propose: async (prompt: string) => {
       if (d?.locked) return toast('원작 스냅샷은 수정할 수 없어요')
       if (!await aiDemo('장면 이어쓰기', 5)) return
@@ -99,7 +108,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     docs: s ? wikiOf(s.work) : [],
     goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),
     auto: s ? autoOf(s.work) : null,
-    saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => run(() => studioUseCase.saveNotes(id, patch)),
+    saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => { flash(); return run(() => studioUseCase.saveNotes(id, patch)) },
     setCastStatus: async (i: number, st: string) => {
       let msg: string | null = null
       await run(async () => { msg = await studioUseCase.setCastStatus(id, i, st) })

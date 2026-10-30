@@ -182,7 +182,7 @@ export class StudioUseCase {
   }
 
   /** 목업 syncDraft(): 원고가 바뀌면 지난 설정 검사를 무효로 표시합니다. */
-  edit(key: string, patch: Partial<Pick<Draft, 'title' | 'paras' | 'authorNote' | 'aiPrompt'>>) {
+  edit(key: string, patch: Partial<Pick<Draft, 'title' | 'paras' | 'authorNote' | 'aiPrompt' | 'links'>>) {
     return this.update(key, (d) => {
       if (d.locked) return
       if (patch.paras && d.check && JSON.stringify(patch.paras) !== JSON.stringify(d.paras)) d.check.stale = true
@@ -276,7 +276,7 @@ export class StudioUseCase {
   }
 
   /** 목업 workMemo·data-ov·data-cast·data-narrative: 메모·한 줄 소개·시놉시스·서술 순서 */
-  saveNotes(id: string, patch: Partial<Pick<Work, 'memo' | 'hook' | 'synopsis' | 'narrativeOrder'>>) { return this.change(id, (w) => { Object.assign(w, patch) }) }
+  saveNotes(id: string, patch: Partial<Pick<Work, 'memo' | 'hook' | 'synopsis' | 'narrativeOrder' | 'coverImg'>>) { return this.change(id, (w) => { Object.assign(w, patch) }) }
 
   /** 목업 data-cast: 포크는 자기 스냅샷의 인물 상태만 바꿉니다. */
   setCastStatus(id: string, i: number, st: string) {

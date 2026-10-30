@@ -55,7 +55,7 @@ export function StudioPage() {
     const V = { board: BoardView, wiki: WikiView, overview: OverviewView, narrative: NarrativeView, memo: MemoView }[view]!
     return (
       <div className={`calm rd calm-${w.theme} studio`}>
-        <div className="sbar"><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><span className="t">{w.title}</span><StudioTools id={id} view={view} ep={ep} /><span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />저장됨</span></div>
+        <div className="sbar"><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><span className="t">{w.title}</span><StudioTools id={id} view={view} ep={ep} /><span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span></div>
         <div className="sview"><V vm={vm} /></div>
       </div>
     )
@@ -89,14 +89,23 @@ export function StudioPage() {
       </div>
       {vm.publishing && <PublishEpisodeSheet vm={vm} />}
       {sim && <SimSheet vm={vm} onClose={() => setSim(false)} />}
-      {publishSettings && <PublishSettingsSheet vm={vm} onClose={closeSettings} />}
+      {publishSettings && <PublishSettingsSheet work={w} onSave={vm.savePublishSettings} onClose={closeSettings} />}
     </div>
   )
 }
 
 /** 사용자가 직접 고치는 영역이라 React가 자식을 관리하지 않도록 DOM으로 채웁니다 (어긋난 문장은 강조). */
 const filled = new WeakSet<HTMLElement>()
-function fillBody(el: HTMLElement, paras: string[], bad: string[]) {
+const mention = (name: string) => {
+  const span = document.createElement('span')
+  span.className = 'mention'
+  span.contentEditable = 'false'
+  span.textContent = '@' + name
+  return span
+}
+/** 목업 studio(): 저장된 연결(d.links)은 본문에 멘션으로 보여 줍니다. */
+const withMentions = (t: string, links: string[]) => links.reduce<(string | Node)[]>((parts, l) => parts.flatMap((x): (string | Node)[] => typeof x !== 'string' ? [x] : x.split('@' + l).flatMap((y, i) => i ? [mention(l), y] : [y])), [t])
+function fillBody(el: HTMLElement, paras: string[], bad: string[], links: string[]) {
   for (const t of paras) {
     const p = document.createElement('p')
     const s = bad.find((x) => t.includes(x))
@@ -104,8 +113,8 @@ function fillBody(el: HTMLElement, paras: string[], bad: string[]) {
       const span = document.createElement('span')
       span.className = 'conflict'
       span.textContent = s
-      p.append(t.slice(0, t.indexOf(s)), span, t.slice(t.indexOf(s) + s.length))
-    } else p.textContent = t
+      p.append(...withMentions(t.slice(0, t.indexOf(s)), links), span, ...withMentions(t.slice(t.indexOf(s) + s.length), links))
+    } else p.append(...withMentions(t, links))
     el.append(p)
   }
 }
@@ -115,6 +124,32 @@ function Editor({ vm }: { vm: VM }) {
   const ro = vm.readOnly
   const bad = d.check?.issues.map((x) => x.sent) ?? []
   const image = useRef<HTMLInputElement>(null)
+  const [mlist, setMlist] = useState<{ left: number; top: number } | null>(null)
+  const base = vm.studio!.base
+  // 목업 openMention(): 커서 위치에 인물과 최근 사건 3개를 띄웁니다.
+  const openMention = (eb: HTMLElement) => {
+    const sel = getSelection()
+    if (!sel?.rangeCount) return
+    const rr = sel.getRangeAt(0).getBoundingClientRect(), ed = eb.closest('.editor')!, eR = ed.getBoundingClientRect()
+    setMlist({ left: Math.max(8, (rr.left || eR.left + 40) - eR.left), top: (rr.bottom || eR.top + 120) - eR.top + ed.scrollTop + 6 })
+  }
+  const pickMention = (name: string) => {
+    const s = getSelection(), eb = document.getElementById('eb')
+    if (s?.rangeCount) {
+      const r = s.getRangeAt(0)
+      if (r.startOffset > 0) r.setStart(r.startContainer, r.startOffset - 1)
+      r.deleteContents()
+      const sp = mention(name)
+      r.insertNode(sp)
+      r.setStartAfter(sp)
+      r.collapse(true)
+      s.removeAllRanges()
+      s.addRange(r)
+    }
+    setMlist(null)
+    vm.edit({ ...(eb ? { paras: readParas(eb) } : {}), links: d.links.includes(name) ? d.links : [...d.links, name] })
+    toast(`‘${name}’ → ${d.no}화에 연결했어요 · 타임라인에 표시돼요`)
+  }
   return (
     <section className="editor">
       <input className="et" id="et" defaultValue={d.title} key={vm.bodyKey + 't'} aria-label="회차 제목" disabled={ro} onInput={(e) => vm.edit({ title: e.currentTarget.value })} />
@@ -124,8 +159,13 @@ function Editor({ vm }: { vm: VM }) {
       {d.auto && <div className="abanner">🤖 AI 자율 연재가 쓴 초안이에요. 읽어 보고 고친 뒤 직접 공개해 주세요.</div>}
       <div className="eb" id="eb" key={vm.bodyKey} contentEditable={!ro} suppressContentEditableWarning spellCheck={false} role="textbox" aria-multiline="true" aria-label="원고 본문"
         data-ph={`여기에 ${d.no}화를 써 보세요. 오른쪽 AI 도움으로 시작할 수도 있어요.`} onInput={(e) => vm.edit({ paras: readParas(e.currentTarget) })}
-        ref={(el) => { if (el && !filled.has(el)) { filled.add(el); fillBody(el, d.paras, bad) } }}>
+        onKeyUp={(e) => { if (e.key === '@') openMention(e.currentTarget) }} onKeyDown={(e) => { if (e.key === 'Escape') setMlist(null) }}
+        ref={(el) => { if (el && !filled.has(el)) { filled.add(el); fillBody(el, d.paras, bad, d.links) } }}>
       </div>
+      {mlist && <div className="mlist" role="listbox" aria-label="연결할 인물·사건" style={mlist}>
+        {base.cast.map((c) => <button type="button" role="option" aria-selected="false" key={c.n} onMouseDown={(e) => { e.preventDefault(); pickMention(c.n) }}><i style={{ width: 18, height: 18, borderRadius: '50%', background: c.c, display: 'inline-block' }} />{c.n}<small>인물</small></button>)}
+        {base.events.slice(-3).map((x) => <button type="button" role="option" aria-selected="false" key={x[2]} onMouseDown={(e) => { e.preventDefault(); pickMention(x[2]) }}>📍 {x[2]}<small>사건</small></button>)}
+      </div>}
       <label className="field author-note-editor">작가의 말<textarea className="ta" id="authorNote" key={vm.bodyKey + 'n'} aria-label="작가의 말" placeholder="회차를 읽은 독자에게 전할 말을 적어 주세요" disabled={ro} defaultValue={d.authorNote} onInput={(e) => vm.edit({ authorNote: e.currentTarget.value })} /></label>
       <div className="wordtools"><output id="wordcount" aria-live="polite">{vm.wordCount}</output><div className="acts">
         <button type="button" className="btn sm" disabled={ro} onClick={() => image.current?.click()}>이미지 삽입</button>
@@ -150,13 +190,13 @@ function Editor({ vm }: { vm: VM }) {
 function AiPanel({ vm, onSim }: { vm: VM; onSim: () => void }) {
   const s = vm.studio!, d = vm.draft!
   const ro = vm.readOnly
-  const [prompt, setPrompt] = useState(d.aiPrompt ?? '')
+  const prompt = vm.prompt
   const c = d.check
   return (
     <div className="spanel">
       <AutoBox vm={vm} />
       <div className="ai-context" aria-label="AI 문맥"><span>현재 회차 · {d.no}화 {d.title}</span><span>세계관 · {s.base.rules.length}개</span><span>인물 · {s.base.cast.length}명</span></div>
-      <label className="field ai-composer">AI에게 요청<textarea className="ta" id="aiPrompt" rows={3} placeholder="예: 장면의 긴장감을 살려 이어 써 주세요" disabled={ro} value={prompt} onChange={(e) => setPrompt(e.target.value)} /></label>
+      <label className="field ai-composer">AI에게 요청<textarea className="ta" id="aiPrompt" rows={3} placeholder="예: 장면의 긴장감을 살려 이어 써 주세요" disabled={ro} value={prompt} onChange={(e) => vm.setPrompt(e.target.value)} /></label>
       <button type="button" className="aib" id="btnSim" disabled={ro} onClick={() => (s.base.cast.length < 2 ? toast('인물을 2명 이상 추가해 주세요') : onSim())}><span className="ic">🎭</span><div><b>인물에게 맡겨 보기</b><span>상황을 주면 인물들이 직접 움직여요</span></div><em>예시 30<br />미확정</em></button>
       <button type="button" className="aib" id="btnProp" disabled={ro} onClick={() => vm.propose(prompt)}><span className="ic">✍</span><div><b>장면 이어쓰기</b><span>작성한 요청과 현재 원고 문맥으로 초안을 제안해요</span></div><em>예시 5<br />미확정</em></button>
       <button type="button" className="aib" id="btnCheck" disabled={ro} onClick={vm.check}><span className="ic">🔍</span><div><b>설정 검사</b><span>세계관 규칙과 어긋난 곳을 찾아요</span></div><em>예시 5<br />미확정</em></button>
@@ -170,7 +210,7 @@ function AiPanel({ vm, onSim }: { vm: VM; onSim: () => void }) {
         </div>
       )}
       {!c ? <div className="chk idle">설정 검사는 선택 사항이에요. 필요하면 실행해 주세요.</div>
-        : c.stale ? <div className="chk idle">소설이 바뀌었어요. 설정 검사를 다시 실행해 주세요.</div>
+        : vm.checkStale ? <div className="chk idle">소설이 바뀌었어요. 설정 검사를 다시 실행해 주세요.</div>
         : c.issues.length ? (
           <div className="chk bad" id="chkres"><b>⚠ {c.issues.length}곳이 설정과 어긋나요</b>{c.issues.map((x, i) => (
             <div key={i} style={{ marginTop: 8 }}>“{x.sent.slice(0, 40)}…”<br /><span className="note2">규칙: {x.rule}</span>
