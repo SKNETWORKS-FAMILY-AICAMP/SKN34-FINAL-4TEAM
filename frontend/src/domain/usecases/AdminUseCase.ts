@@ -1,6 +1,6 @@
-import { ADMIN_PERMISSIONS, ofKind, today, type AdminState } from '../entities/admin'
+import { ADMIN_PERMISSIONS, today, type AdminState } from '../entities/admin'
 import { checkProfile, EMAIL } from '../entities/account'
-import { forkList, hashText, isPub, nid, publicCast, type Work } from '../entities/work'
+import { forkList, hashText, isPub, nid, ofKind, publicCast, type Work } from '../entities/work'
 import type { AdminRepository } from '../repositories/AdminRepository'
 import type { ChatRepository } from '../repositories/ChatRepository'
 import type { CreditRepository } from '../repositories/CreditRepository'
@@ -31,7 +31,7 @@ export class AdminUseCase {
   }
 
   /** 목업 adminLog(): change가 상태를 바꾸고 로그 내용을 돌려주면 맨 앞에 남깁니다. null이면 저장하지 않습니다. */
-  private async log(action: string, change: (a: AdminState) => string | null = () => '') {
+  private async log(action: string, change: (a: AdminState) => string | null) {
     const a = await this.adminRepository.get()
     const detail = change(a)
     if (detail === null) return false
@@ -42,10 +42,11 @@ export class AdminUseCase {
 
   /** 화면 하나에 필요한 데이터를 한 번에 모읍니다. */
   async load() {
-    const [admin, works, worlds, inquiries, queue, reports, credits, chats, inbox] = await Promise.all([
+    const [admin, works, worlds, inquiries, queue, reports, credits, inbox] = await Promise.all([
       this.adminRepository.get(), this.workRepository.listWorks(), this.workRepository.listWorlds(), this.inquiryRepository.list(),
-      this.feedbackRepository.listReview(), this.feedbackRepository.listReports(), this.creditRepository.get(), this.chatRepository.listChats(), this.feedbackRepository.listInbox(),
+      this.feedbackRepository.listReview(), this.feedbackRepository.listReports(), this.creditRepository.get(), this.feedbackRepository.listInbox(),
     ])
+    const chats = await chatsOf(this.chatRepository, works)
     const comments = (await this.adminRepository.listComments(works)).map((c) => ({ ...c, status: admin.hiddenComments.includes(c.id) ? '숨김' : '게시' }))
     const originals = works.filter((w) => !w.parent)
     const rights = originals.map((w) => ({
@@ -62,7 +63,7 @@ export class AdminUseCase {
     return {
       admin, works, inquiries, queue, comments, rights, isolation,
       alerts: credits.alerts,
-      chats: (chats ?? await chatsOf(this.chatRepository, works)).flatMap((c) => { const w = works.find((x) => x.id === c.workId); return w ? [{ ...c, w }] : [] }),
+      chats: chats.flatMap((c) => { const w = works.find((x) => x.id === c.workId); return w ? [{ ...c, w }] : [] }),
       reports: reports.filter((r) => !r.type.startsWith('신고 ·')),
       expired: originals.filter((w) => w.kind === '저작권 만료'),
       chunhyang: works.find((w) => w.id === 'chunhyang'),

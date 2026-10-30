@@ -1,7 +1,8 @@
 import { type FormEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 
-import { ADMIN_PERMISSIONS, adminTab, ofKind, type AdminTab } from '../../../../domain/entities/admin'
+import { ADMIN_PERMISSIONS, adminTab, type AdminTab } from '../../../../domain/entities/admin'
+import { ofKind } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { useAdminViewModel } from '../viewmodel/useAdminViewModel'

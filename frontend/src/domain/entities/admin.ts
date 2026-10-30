@@ -29,7 +29,4 @@ export const ADMIN_TABS = ['data', 'users', 'works', 'comments', 'characterChats
 export type AdminTab = (typeof ADMIN_TABS)[number]
 export const adminTab = (t: string | null): AdminTab => ADMIN_TABS.find((x) => x === (t === 'ai' ? 'llm' : t)) ?? 'data'
 
-/** 목업 분류 필터(관리자·캐릭터 챗 목록): 전체·원작·포크 */
-export const ofKind = (kind: string, w: { parent?: string }) => kind === 'all' || (kind === 'fork' ? !!w.parent : !w.parent)
-
 export const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date()).replaceAll('-', '.')

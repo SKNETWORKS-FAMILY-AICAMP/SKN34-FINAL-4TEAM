@@ -1,6 +1,5 @@
-import { ofKind } from '../entities/admin'
 import type { CharacterChat, ChatLine } from '../entities/chat'
-import { epsOf, firstEp, forkList, isPub, nid, publicCast, sorter, visibleEpisode, type Role, type Work } from '../entities/work'
+import { epsOf, firstEp, forkList, isPub, nid, ofKind, publicCast, sorter, visibleEpisode, type Role, type Work } from '../entities/work'
 import type { ChatRepository } from '../repositories/ChatRepository'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 

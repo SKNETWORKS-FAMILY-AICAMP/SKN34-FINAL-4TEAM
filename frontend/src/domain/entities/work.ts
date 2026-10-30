@@ -125,6 +125,8 @@ export const isMine = (w: Work) => w.owner === 'me' || w.author === '나'
 export const canView = (w: Work | undefined, role: Role): w is Work => !!w && (isPub(w) || (role === 'user' && isMine(w)))
 export const visibleEpisode = (w: Work, e: Episode, role: Role) => !e.hidden || (role === 'user' && isMine(w))
 export const originals = (works: Work[]) => works.filter((w) => !w.parent && !w.private)
+/** 목업 분류 필터(관리자·캐릭터 챗 목록): 전체·원작·포크 */
+export const ofKind = (kind: string, w: { parent?: string }) => kind === 'all' || (kind === 'fork' ? !!w.parent : !w.parent)
 export const forksOf = (works: Work[], id: string) => works.filter((w) => w.parent === id && isPub(w))
 
 export const firstEp = (w: Pick<Work, 'events'>, name: string) => {
