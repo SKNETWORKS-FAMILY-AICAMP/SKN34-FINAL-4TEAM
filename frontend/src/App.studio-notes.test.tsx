@@ -128,6 +128,19 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
     expect(star().castFrom!['세라핀']).toBe(3)
   })
 
+  it('독자 공개 회차는 칸을 벗어나지 않아도 change(Enter·스핀 버튼) 한 번마다 저장한다', async () => {
+    ownWorld()
+    renderAt('/studio/starlight?tab=note')
+    const rule = (await screen.findAllByLabelText('독자 공개 시작 회차 (비우면 비공개)'))[0] as HTMLInputElement
+    fireEvent.change(rule, { target: { value: '0' } })
+    await toastIs('1 이상의 회차를 입력해 주세요')
+    await waitFor(() => expect(rule.value).toBe(''))
+    const cast = screen.getByLabelText('세라핀 독자 공개 시작 회차 (비우면 비공개)')
+    fireEvent.change(cast, { target: { value: '2' } })
+    await toastIs('이 작품의 인물 공개 회차를 변경했어요 (데모)')
+    expect(star().castFrom!['세라핀']).toBe(2)
+  })
+
   it('인물 상태를 바꾸면 원작·포크에 맞게 알리고, 포크에는 원작 값을 함께 보여 준다', async () => {
     renderAt('/studio/starlight?tab=note')
     fireEvent.change(await screen.findByLabelText('리안 상태'), { target: { value: '결심' } })

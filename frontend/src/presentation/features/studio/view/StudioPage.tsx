@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { LINE } from '../../../../domain/entities/wiki'
@@ -217,6 +217,20 @@ function TimelinePanel({ vm }: { vm: VM }) {
   )
 }
 
+/** 목업 data-*-release el.onchange: React onChange(글자마다)가 아닌 native change(Enter·스핀·칸 벗어남)에 저장하고, 거부되면 칸을 비웁니다. */
+function ReleaseInput({ value, label, onCommit }: { value: string; label: string; onCommit: (v: string) => Promise<string | null> }) {
+  const ref = useRef<HTMLInputElement>(null)
+  const commit = useRef(onCommit)
+  commit.current = onCommit
+  useEffect(() => {
+    const el = ref.current!
+    const on = async () => { if (await commit.current(el.value) === '1 이상의 회차를 입력해 주세요') el.value = '' }
+    el.addEventListener('change', on)
+    return () => el.removeEventListener('change', on)
+  }, [])
+  return <label className="field">{label}<input ref={ref} className="inp" type="number" min="1" step="1" defaultValue={value} /></label>
+}
+
 /** 목업 studio() tab==='note': U19 설정 노트 */
 function NotePanel({ vm }: { vm: VM }) {
   const s = vm.studio!, w = s.work
@@ -224,12 +238,8 @@ function NotePanel({ vm }: { vm: VM }) {
   const [extractNo, setExtractNo] = useState(1)
   const release = !w.parent && !!w.worldIds
   const from = (m: Record<string, number> | undefined, k: string) => { const n = m?.[k]; return n !== undefined && Number.isFinite(n) ? String(n) : '' }
-  // 목업 onchange처럼 입력을 마칠 때 저장하고, 거부되면 목업처럼 칸을 비웁니다.
   const releaseInput = (kind: 'rule' | 'event' | 'cast', i: number, value: string, label: string) => (
-    <label className="field">{label}<input className="inp" type="number" min="1" step="1" key={value} defaultValue={value} onBlur={async (e) => {
-      const el = e.currentTarget
-      if (el.value !== value && await vm.setRelease(kind, i, el.value) === '1 이상의 회차를 입력해 주세요') el.value = ''
-    }} /></label>
+    <ReleaseInput key={value} value={value} label={label} onCommit={(v) => vm.setRelease(kind, i, v)} />
   )
   return (
     <div className="spanel nt">

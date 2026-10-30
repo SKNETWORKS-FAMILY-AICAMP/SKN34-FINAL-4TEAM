@@ -4,6 +4,7 @@ import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InM
 import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
+const ok = () => true
 const setup = (owned = true) => {
   const db = createMockDb()
   if (owned) {
@@ -16,15 +17,15 @@ const setup = (owned = true) => {
 
 describe('설정 노트 (목업 data-work-setting·worldExtract·release·data-cast)', () => {
   it('세계관 자동 업데이트는 작가 소유 세계관이 있어야 켤 수 있다', async () => {
-    expect(await setup(false).useCase.setSetting('starlight', 'autoWorld', true)).toBe('작가 소유 세계관이 필요해요')
+    expect(await setup(false).useCase.setSetting('starlight', 'autoWorld', true, ok)).toBe('작가 소유 세계관이 필요해요')
     const { useCase, star } = setup()
-    expect(await useCase.setSetting('starlight', 'autoWorld', true)).toBe('작품 설정을 변경했어요 (데모)')
+    expect(await useCase.setSetting('starlight', 'autoWorld', true, ok)).toBe('작품 설정을 변경했어요 (데모)')
     expect(star().settings).toEqual({ autoWorld: true, typoAuto: false })
   })
 
   it('autoWorld를 켜면 발행 때 첫 문단 200자를 세계관에 넣고 이력과 크레딧을 남긴다', async () => {
     const { db, useCase } = setup()
-    await useCase.setSetting('starlight', 'autoWorld', true)
+    await useCase.setSetting('starlight', 'autoWorld', true, ok)
     const s = await useCase.open('starlight', undefined, 'user')
     if (!s || 'notMine' in s) throw new Error()
     await useCase.edit(s.key, { paras: ['가'.repeat(250), '둘째'] })
@@ -37,7 +38,7 @@ describe('설정 노트 (목업 data-work-setting·worldExtract·release·data-c
 
   it('세계관 업데이트에 실패해도 발행은 되고 실패를 알린다', async () => {
     const { db, useCase } = setup()
-    await useCase.setSetting('starlight', 'autoWorld', true)
+    await useCase.setSetting('starlight', 'autoWorld', true, ok)
     db.credits.failNext = true
     const s = await useCase.open('starlight', undefined, 'user')
     if (!s || 'notMine' in s) throw new Error()
@@ -46,14 +47,14 @@ describe('설정 노트 (목업 data-work-setting·worldExtract·release·data-c
   })
 
   it('설정 추출은 후보로만 두고, 반영하면 세계관에 넣고 제외하면 지운다', async () => {
-    expect(await setup(false).useCase.extractWorld('starlight', 1)).toBe('작가 소유 세계관과 발행된 회차가 필요해요')
+    expect(await setup(false).useCase.extractWorld('starlight', 1, ok)).toBe('작가 소유 세계관과 발행된 회차가 필요해요')
     const { db, useCase, star } = setup()
-    expect(await useCase.extractWorld('starlight', 1)).toBe('설정 후보를 확인해 주세요 (데모)')
+    expect(await useCase.extractWorld('starlight', 1, ok)).toBe('설정 후보를 확인해 주세요 (데모)')
     expect(star().worldCandidate).toEqual({ text: star().eps[0].p[0].slice(0, 200), source: '별빛 서약의 탑', ep: 1 })
     expect(await useCase.acceptWorld('starlight')).toBe('채택한 후보를 세계관에 반영했어요 (데모)')
     expect(db.worlds.find((w) => w.id === 'my-world')!.facts).toHaveLength(1)
     expect(star().worldCandidate).toBeUndefined()
-    await useCase.extractWorld('starlight', 2)
+    await useCase.extractWorld('starlight', 2, ok)
     expect(await useCase.discardWorld('starlight')).toBe('후보를 제외했어요')
     expect(star().worldCandidate).toBeUndefined()
   })
@@ -84,7 +85,7 @@ describe('표기 오류 자동 승인 (목업 feedbackSheet typoAuto)', () => {
 
   it('켜져 있으면 본문을 바로 고치고 처리 완료로 두며 피드백함에 넣지 않는다', async () => {
     const { db, useCase, feedback, star } = setup()
-    await useCase.setSetting('starlight', 'typoAuto', true)
+    await useCase.setSetting('starlight', 'typoAuto', true, ok)
     expect(await feedback.sendFeedback(typo)).toEqual({ status: '처리 완료', message: '작품 설정의 자동 승인으로 표기 오류 수정안을 발행했어요 (데모).' })
     expect(star().eps[1].p[2]).toContain('되뇌었다')
     expect(db.inbox).toHaveLength(0)
@@ -93,7 +94,7 @@ describe('표기 오류 자동 승인 (목업 feedbackSheet typoAuto)', () => {
   it('꺼져 있거나 숨김 작품이면 작가 검토로 보낸다', async () => {
     const { db, useCase, feedback } = setup()
     expect((await feedback.sendFeedback(typo)).status).toBe('작가 검토 대기')
-    await useCase.setSetting('starlight', 'typoAuto', true)
+    await useCase.setSetting('starlight', 'typoAuto', true, ok)
     db.works.find((w) => w.id === 'starlight')!.hidden = true
     expect((await feedback.sendFeedback(typo)).status).toBe('작가 검토 대기')
     expect(db.inbox).toHaveLength(2)

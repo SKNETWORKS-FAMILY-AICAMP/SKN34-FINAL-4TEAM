@@ -97,7 +97,7 @@ export class StudioUseCase {
   private async autoWorld(w: Work, n: number) { return !w.settings?.autoWorld || await this.worldExtract(w, n, () => true, true) === '' }
 
   /** 목업 data-work-setting: 세계관 자동 업데이트를 켤 때만 세계관과 확인이 필요합니다. 취소하면 null */
-  async setSetting(id: string, key: 'autoWorld' | 'typoAuto', on: boolean, approve: (credits: number) => boolean = () => true): Promise<string | null> {
+  async setSetting(id: string, key: 'autoWorld' | 'typoAuto', on: boolean, approve: (credits: number) => boolean): Promise<string | null> {
     const w = await this.work(id)
     if (!w || !isMine(w)) return null
     if (key === 'autoWorld' && on) {
@@ -111,7 +111,7 @@ export class StudioUseCase {
   }
 
   /** 목업 act==='extractWorld' */
-  async extractWorld(id: string, n: number, approve: (credits: number) => boolean = () => true) {
+  async extractWorld(id: string, n: number, approve: (credits: number) => boolean) {
     const w = await this.work(id)
     if (!w || !isMine(w)) return null
     const r = await this.worldExtract(w, n, approve, false)
