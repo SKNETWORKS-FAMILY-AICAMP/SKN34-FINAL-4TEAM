@@ -16,11 +16,19 @@ const sid = () => document.getElementById('sid')!.textContent
 const toastIs = (t: string | RegExp) => waitFor(() => expect(document.getElementById('toast')!.textContent).toMatch(t))
 const renderAt = (path: string, role: 'user' | 'admin' | null = 'admin') => {
   const store = createAppStore({ role })
-  return { store, ...render(<Provider store={store}><MemoryRouter initialEntries={[path]}><App /><Where /></MemoryRouter></Provider>) }
+  return { store, ...render(<Provider store={store}><MemoryRouter initialEntries={[path]} useTransitions={false}><App /><Where /></MemoryRouter></Provider>) }
 }
 const nav = () => screen.getByRole('navigation', { name: '관리자 업무' })
 
 describe('관리자 (A01~A18)', () => {
+  it('관리자 화면에서 로그아웃하면 홈으로 가고 로그인 안내가 남지 않는다 (목업 logout)', async () => {
+    const { store } = renderAt('/admin')
+    fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
+    await toastIs('로그아웃했어요')
+    await waitFor(() => expect(where()).toBe('/'))
+    expect(store.getState().session).toMatchObject({ role: null, next: null, loginMsg: '' })
+  })
+
   it('일반 회원·비로그인은 관리자 로그인 안내로 보낸다', async () => {
     const { store } = renderAt('/admin?tab=users', 'user')
     await waitFor(() => expect(where()).toBe('/login'))

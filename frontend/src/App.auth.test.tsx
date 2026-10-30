@@ -5,6 +5,7 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import App from './App'
 import { createAppStore } from './app/store'
 import { LoginPage } from './presentation/features/auth/view/LoginPage'
 import { RequireRole } from './presentation/shared/session/RequireRole'
@@ -82,5 +83,15 @@ describe('로그인·라우트 보호 (L01, 목업 render() 보호 목록)', () 
     expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: '로그아웃' })).toBeNull()
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('menu')).toBeNull()
+  })
+
+  it('보호 화면(/lib)에서 로그아웃해도 홈으로 가고 로그인 안내가 남지 않는다 (목업 logout)', async () => {
+    const store = createAppStore({ role: 'user' })
+    render(<Provider store={store}><MemoryRouter initialEntries={['/lib']} useTransitions={false}><App /><Where /></MemoryRouter></Provider>)
+    fireEvent.click(await screen.findByRole('button', { name: '내 계정 메뉴' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '로그아웃' }))
+    await screen.findByText('로그아웃했어요')
+    await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/'))
+    expect(store.getState().session).toMatchObject({ role: null, next: null, loginMsg: '' })
   })
 })
