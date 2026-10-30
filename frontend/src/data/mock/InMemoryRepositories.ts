@@ -1,3 +1,4 @@
+import type { Inquiry } from '../../domain/entities/account'
 import type { CharacterChat, ChatLine } from '../../domain/entities/chat'
 import type { DemoCredits } from '../../domain/entities/credit'
 import type { Draft } from '../../domain/entities/draft'
@@ -8,6 +9,7 @@ import type { World } from '../../domain/entities/world'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
+import type { InquiryRepository } from '../../domain/repositories/InquiryRepository'
 import type { NotificationPrefs, NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
@@ -23,6 +25,7 @@ export function createMockDb() {
     notificationPrefs: { read: true, creator: true } as NotificationPrefs,
     characterChats: null as CharacterChat[] | null,
     chat: {} as Record<string, ChatLine[]>,
+    inq: [] as Inquiry[],
     comments: {} as Record<string, Comment[]>,
     cmLiked: {} as Record<string, boolean>,
     reports: [] as ReaderReport[],
@@ -49,6 +52,7 @@ export class InMemoryWorkRepository implements WorkRepository {
     this.db.works.splice(i < 0 ? this.db.works.length : i, i < 0 ? 0 : 1, structuredClone(work))
   }
   getDraft(key: string) { return copy(this.db.drafts[key]) }
+  listDrafts() { return copy(this.db.drafts) }
   async saveDraft(key: string, draft: Draft) { this.db.drafts[key] = structuredClone(draft) }
   async deleteDraft(key: string) { delete this.db.drafts[key] }
 }
@@ -114,4 +118,12 @@ export class InMemoryChatRepository implements ChatRepository {
   async saveChats(chats: CharacterChat[]) { this.db.characterChats = structuredClone(chats) }
   getLog(key: string) { return copy(this.db.chat[key]) }
   async saveLog(key: string, log: ChatLine[]) { this.db.chat[key] = structuredClone(log) }
+}
+
+export class InMemoryInquiryRepository implements InquiryRepository {
+  private readonly db: MockDb
+  constructor(db: MockDb) { this.db = db }
+  list() { return copy(this.db.inq) }
+  async add(inquiry: Inquiry) { this.db.inq.unshift(structuredClone(inquiry)) }
+  async save(inquiry: Inquiry) { replace(this.db.inq, inquiry) }
 }
