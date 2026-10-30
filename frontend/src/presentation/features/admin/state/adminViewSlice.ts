@@ -4,7 +4,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 export type AdminFilter = { category: string; sort: string; query: string; search: string }
 export type AdminChatForm = { kind: string; workId: string; character: string }
 
-export type AdminViewState = { sel: string | null; filters: Record<string, AdminFilter>; chatForm: AdminChatForm }
+type AdminViewState = { sel: string | null; filters: Record<string, AdminFilter>; chatForm: AdminChatForm }
 
 const initialState: AdminViewState = { sel: null, filters: {}, chatForm: { kind: 'fork', workId: '', character: '' } }
 
