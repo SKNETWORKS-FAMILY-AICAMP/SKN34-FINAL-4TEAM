@@ -30,6 +30,8 @@ jobs:
       - id: filter
         uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
+          # 푸시는 같은 브랜치의 직전 커밋과 비교한다. PR·수동 실행은 빈 값으로 기본 비교를 쓴다.
+          base: ${{ github.event_name == 'push' && github.ref || '' }}
           filters: |
             web: ['frontend/**', '.github/workflows/ci.yml']
             core: ['backend/core-api/**', '.github/workflows/ci.yml']
