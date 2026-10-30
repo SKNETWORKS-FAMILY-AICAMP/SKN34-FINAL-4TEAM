@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: read
+  # paths-filter가 PR 변경 파일 목록을 API로 읽는다.
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
