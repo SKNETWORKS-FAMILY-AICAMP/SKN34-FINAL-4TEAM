@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
+import type { LibraryUseCase } from '../../../../domain/usecases/LibraryUseCase'
 import { autoOf, simTurns, type PublishSettings, type StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
-import { wikiOf } from '../../../../domain/entities/wiki'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -12,7 +12,7 @@ import { confirmAi, useAiDemo } from '../../../shared/useAiDemo'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
 /** 목업 studio()·bindStudio·syncDraft·markSaving: U13 집필실 원고 화면 */
-export function useStudioViewModel(id: string, ep: number | undefined, screen: string, studioUseCase: StudioUseCase = appContainer.resolve('studioUseCase')) {
+export function useStudioViewModel(id: string, ep: number | undefined, screen: string, studioUseCase: StudioUseCase = appContainer.resolve('studioUseCase'), libraryUseCase: LibraryUseCase = appContainer.resolve('libraryUseCase')) {
   const role = useAppSelector((s) => s.session.role)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -48,6 +48,12 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     setSaving(true)
     window.clearTimeout(savedTimer.current)
     savedTimer.current = window.setTimeout(() => setSaving(false), 600)
+  }
+  // 사전 편집은 blur마다 저장하므로 순서대로 이어 붙여 앞선 저장을 덮어쓰지 않게 합니다.
+  const queue = (fn: () => Promise<unknown>, saving = true) => {
+    if (saving) flash()
+    sync.current = sync.current.then(fn)
+    return sync.current.then(() => refresh())
   }
   const edit = (patch: Parameters<StudioUseCase['edit']>[1]) => {
     if (patch.paras) setTyped({ key, paras: patch.paras })
@@ -105,7 +111,51 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
       toast(r.ok)
       navigate(r.go)
     },
-    docs: s ? wikiOf(s.work) : [],
+    docs: s?.work.wiki?.docs ?? [],
+    cats: s?.work.wiki?.cats ?? [],
+    addDoc: async (cat: string, t: string) => {
+      let docId: string | null = null
+      await queue(async () => { docId = await studioUseCase.addDoc(id, cat, t) }, false)
+      if (!docId) return
+      toast(`‘${t}’ 문서를 만들었어요`)
+      navigate(`/studio/${id}?view=wiki&doc=${encodeURIComponent(docId)}`)
+    },
+    addCategory: async (n: string) => { await run(() => studioUseCase.addCategory(id, n)); toast('분류를 추가했어요') },
+    deleteDoc: async (docId: string) => {
+      let cat: string | null = null
+      await queue(async () => { cat = await studioUseCase.deleteDoc(id, docId) }, false)
+      if (!cat) return
+      toast('문서를 지웠어요 (소설은 그대로예요)')
+      navigate(`/studio/${id}?view=wiki&cat=${cat}`)
+    },
+    /** 목업 data-wf·data-wk·data-wv·walias·wtag·wprop: 고치면 '저장 중…'을 잠깐 보여 줍니다. */
+    setDocText: (docId: string, f: 't' | 'body', v: string) => queue(() => studioUseCase.setDocText(id, docId, f, v)),
+    setDocProp: (docId: string, k: string, v: string, ep?: number) => queue(() => studioUseCase.setDocProp(id, docId, k, v, ep)),
+    addDocProp: (docId: string, k: string, v: string) => run(() => studioUseCase.addDocProp(id, docId, k, v)),
+    renameDocProp: (docId: string, k: string, nk: string) => queue(() => studioUseCase.renameDocProp(id, docId, k, nk)),
+    setEvent: async (docId: string, patch: Parameters<StudioUseCase['setEvent']>[2]) => { await run(() => studioUseCase.setEvent(id, docId, patch)); toast('보드에 반영했어요') },
+    toggleWho: (docId: string, n: string) => run(() => studioUseCase.toggleWho(id, docId, n)),
+    addLink: async (docId: string, to: string, k: string) => { await run(() => studioUseCase.addLink(id, docId, to, k)); toast('보드에 화살표로 표시돼요') },
+    removeLink: (docId: string, i: number) => run(() => studioUseCase.removeLink(id, docId, i)),
+    addBoardEvent: async (t: string, ep: number | undefined, line: string, who: string[]) => {
+      await run(() => studioUseCase.addBoardEvent(id, t, ep, line, who))
+      toast(ep ? '보드에 사건을 추가했어요' : '시점 미정 사건으로 추가했어요 · 설정 점검에 표시돼요')
+    },
+    shared: s?.shared ?? null,
+    addKnowledge: async (docId: string, k: { text: string; knownAt: number; publicAt?: number }) => { await run(() => studioUseCase.addKnowledge(id, docId, k)); toast('인물 지식을 저장했어요 (데모)') },
+    removeKnowledge: (docId: string, i: number) => { if (window.confirm('이 인물 지식을 삭제할까요?')) return run(() => studioUseCase.removeKnowledge(id, docId, i)) },
+    setDocImg: async (docId: string, img: string) => { await run(() => studioUseCase.setDocImg(id, docId, img)); toast('대표 이미지를 넣었어요') },
+    forkLinkedWorld: async () => {
+      const sh = s?.shared
+      if (!sh?.allowFork) return toast('세계관 포크가 허용되지 않았어요')
+      if (!window.confirm('전체 세계관을 복사하면 이후 원본 변경이 반영되지 않아요. 계속할까요?')) return
+      const copy = await libraryUseCase.copyWorld(sh.id)
+      if (!copy) return toast('세계관 포크가 허용되지 않았어요')
+      await run(() => studioUseCase.replaceWorld(id, sh.id, copy.id))
+      toast('연결을 내 세계관 포크로 교체했어요 (데모)')
+    },
+    addDocChip: (docId: string, f: 'alias' | 'tags', v: string) => run(() => studioUseCase.addDocChip(id, docId, f, v)),
+    removeAlias: (docId: string, i: number) => run(() => studioUseCase.removeAlias(id, docId, i)),
     goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),
     auto: s ? autoOf(s.work) : null,
     saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => { flash(); return run(() => studioUseCase.saveNotes(id, patch)) },

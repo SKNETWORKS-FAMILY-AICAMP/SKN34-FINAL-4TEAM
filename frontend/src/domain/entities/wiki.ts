@@ -1,7 +1,8 @@
-import { baseOf, type Work } from './work'
+import { baseOf, nid, type Knowledge, type Work } from './work'
 
 /** 목업 WCATS·LINE: 사전 분류와 사건 라인 */
-export const WCATS = [{ id: 'char', n: '캐릭터', c: '#7FBFA9', lock: 1 }, { id: 'event', n: '사건', c: '#EE9A75', lock: 1 }, { id: 'place', n: '장소', c: '#3F6B57' }, { id: 'org', n: '세력·조직', c: '#D9617D' }, { id: 'item', n: '아이템', c: '#D8A93B' }, { id: 'world', n: '세계관 설정', c: '#9C8CE0' }]
+export type WikiCat = { id: string; n: string; c: string; lock?: number }
+export const WCATS: WikiCat[] = [{ id: 'char', n: '캐릭터', c: '#7FBFA9', lock: 1 }, { id: 'event', n: '사건', c: '#EE9A75', lock: 1 }, { id: 'place', n: '장소', c: '#3F6B57' }, { id: 'org', n: '세력·조직', c: '#D9617D' }, { id: 'item', n: '아이템', c: '#D8A93B' }, { id: 'world', n: '세계관 설정', c: '#9C8CE0' }]
 export const LINE: Record<string, string> = { m: '메인', s: '서브', f: '복선' }
 
 const SEEDP: Record<string, [Record<string, string>, Record<number, Record<string, string>>]> = { '성진': [{ 나이: '20', 성별: '남', 소속: '연화봉 도량', 성격: '성실하지만 마음이 쉽게 흔들림', 말투: '공손한 존댓말', 관계: '육관대사의 제자' }, { 1: { 상태: '계율을 어기고 술을 마심' }, 2: { 상태: '마음이 흔들림' }, 3: { 상태: '벌을 받아 인간 세상으로' } }],
@@ -21,29 +22,53 @@ const SEEDW: Record<string, [string, string, string, number][]> = { guunmong: [[
   hong: [['place', '홍 판서 댁', '길동이 태어나 자란 집.', 1]] }
 const SEEDL: Record<string, [string, string, string][]> = { guunmong: [['돌다리에서 팔선녀를 만나다', '스승의 벌로 인간 세상으로', '계기'], ['복숭아꽃이 여덟 구슬이 되다', '스승의 벌로 인간 세상으로', '복선']], starlight: [['탑 앞에서 밤을 지새우다', '봉인 아래의 속삭임', '계기']] }
 
-export type Doc = { id: string; cat: string; t: string; props: Record<string, string>; at: Record<number, Record<string, string>>; body: string; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string }[] }
+export type Doc = { id: string; cat: string; t: string; alias: string[]; tags: string[]; props: Record<string, string>; at: Record<number, Record<string, string>>; img?: string | null; body: string; knowledge?: Knowledge[]; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string }[] }
+export type Wiki = { docs: Doc[]; cats: WikiCat[] }
 
 /**
- * 목업 wikiOf(w): 작품 설정(포크는 스냅샷)에서 사전 문서를 만듭니다.
- * ponytail: 문서를 저장하지 않고 매번 설정에서 만들어 읽기 전용이에요. 문서 편집·분류 추가·이미지는 저장 구조가 정해지면 추가해요.
+ * 목업 wikiOf(w): 처음 열 때 작품 설정(포크는 스냅샷)에서 사전을 한 번 만들어 w.wiki에 두고, 이후에는 저장본을 씁니다.
+ * 사건은 보드(events·ownEvents)에 새로 생긴 것만 문서로 덧붙여요.
  */
-export function wikiOf(w: Work): Doc[] {
+export function wikiState(w: Work): Wiki {
   const b = baseOf(w), src = w.parent || w.id, lim = w.parent ? w.forkAt ?? 0 : 999
-  const docs: Doc[] = []
-  for (const c of b.cast) {
-    const [props, at] = SEEDP[c.n] ?? [{}, {}]
-    docs.push({ id: 'char:' + c.n, cat: 'char', t: c.n, props: { 설명: c.d, ...props, 상태: c.st }, at: Object.fromEntries(Object.entries(at).filter(([k]) => +k <= lim)), body: c.d + '.' })
+  if (!w.wiki) {
+    const docs: Doc[] = []
+    for (const c of b.cast) {
+      const [props, at] = SEEDP[c.n] ?? [{}, {}]
+      docs.push({ id: 'char:' + c.n, cat: 'char', t: c.n, alias: [], tags: [], props: { 설명: c.d, ...props, 상태: c.st }, at: Object.fromEntries(Object.entries(at).filter(([k]) => +k <= lim)), img: null, body: c.d + '.', knowledge: structuredClone(c.knowledge ?? []) })
+    }
+    for (const r of b.rules) docs.push({ id: 'world:' + r, cat: 'world', t: r, alias: [], tags: ['규칙'], props: { 종류: '규칙', 설정검사: '사용' }, at: {}, img: null, body: r + '. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.' })
+    for (const [cat, t, body, ep] of SEEDW[src] ?? []) if (ep <= lim) docs.push({ id: cat + ':' + t, cat, t, alias: [], tags: [], props: { '첫 등장': ep + '화' }, at: {}, img: null, body })
+    w.wiki = { docs, cats: structuredClone(WCATS) }
   }
-  for (const r of b.rules) docs.push({ id: 'world:' + r, cat: 'world', t: r, props: { 종류: '규칙', 설정검사: '사용' }, at: {}, body: r + '. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.' })
-  for (const [cat, t, body, ep] of SEEDW[src] ?? []) if (ep <= lim) docs.push({ id: cat + ':' + t, cat, t, props: { '첫 등장': ep + '화' }, at: {}, body })
+  const docs = w.wiki.docs
   for (const [ep, k, t, who] of b.events.concat(w.ownEvents ?? [])) {
-    if (!docs.some((d) => d.cat === 'event' && d.t === t)) docs.push({ id: 'event:' + t, cat: 'event', t, props: {}, at: {}, body: '', ep, line: k, who: (who ?? []).filter(Boolean), links: [] })
+    if (!docs.some((d) => d.cat === 'event' && d.t === t)) docs.push({ id: docs.some((d) => d.id === 'event:' + t) ? nid('d') : 'event:' + t, cat: 'event', t, alias: [], tags: ['#' + ep + '화'], props: {}, at: {}, img: null, body: '', ep, line: k, who: (who ?? []).filter(Boolean), links: [] })
   }
   for (const [a, c, k] of SEEDL[src] ?? []) {
     const A = docs.find((d) => d.cat === 'event' && d.t === a), C = docs.find((d) => d.cat === 'event' && d.t === c)
-    if (A && C) A.links!.push({ to: C.id, k })
+    if (A && C && !A.links!.some((l) => l.to === C.id)) A.links!.push({ to: C.id, k })
   }
-  return docs
+  return w.wiki
+}
+
+/** 목업 linkify(): 본문에 나온 다른 문서 제목의 첫 번째만 문서로 바꿉니다. 긴 제목을 먼저 찾아요. */
+export function linkParts(docs: Doc[], text: string, selfId: string): (string | Doc)[] {
+  const D = docs.filter((d) => d.id !== selfId && d.t.length >= 2).sort((a, b) => b.t.length - a.t.length)
+  const src = text.replace(/@/g, '')
+  if (!D.length) return [src]
+  const re = new RegExp(D.map((d) => d.t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g')
+  const used = new Set<string>(), out: (string | Doc)[] = []
+  let last = 0
+  for (const m of src.matchAll(re)) {
+    const d = D.find((x) => x.t === m[0])!
+    if (used.has(d.id)) continue
+    used.add(d.id)
+    out.push(src.slice(last, m.index), d)
+    last = m.index + m[0].length
+  }
+  out.push(src.slice(last))
+  return out.filter((x) => x !== '')
 }
 
 /** 목업 propsAt(): ep 회차까지의 변화를 반영한 속성 */
