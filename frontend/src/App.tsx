@@ -1,6 +1,13 @@
-import { Navigate, Route, Routes } from 'react-router'
+import { Navigate, Route, Routes, useLocation } from 'react-router'
 
+import { LoginPage } from './presentation/features/auth/view/LoginPage'
+import { HomePage } from './presentation/features/home/view/HomePage'
+import { ReaderPage } from './presentation/features/reading/view/ReaderPage'
+import { WorkPage } from './presentation/features/reading/view/WorkPage'
 import { CoreApiConnectionStatus } from './presentation/shared/core-api-status/CoreApiConnectionStatus'
+import { RequireRole } from './presentation/shared/session/RequireRole'
+import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
+import { QuickJump } from './presentation/shared/shell/QuickJump'
 
 function StartPage() {
   return (
@@ -33,11 +40,19 @@ function StartPage() {
 }
 
 function App() {
+  const { pathname } = useLocation()
   return (
-    <Routes>
-      <Route path="/" element={<StartPage />} />
-      <Route path="*" element={<Navigate replace to="/" />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/status" element={<StartPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/work/:id" element={<WorkPage />} />
+        <Route path="/read/:id/:n" element={<RequireRole><ReaderPage /></RequireRole>} />
+        <Route path="*" element={<Navigate replace to="/" />} />
+      </Routes>
+      {pathname !== '/status' && <><GlobalChrome /><QuickJump /></>}
+    </>
   )
 }
 
