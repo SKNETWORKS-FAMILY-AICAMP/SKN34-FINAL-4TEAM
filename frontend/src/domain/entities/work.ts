@@ -158,3 +158,24 @@ export function makeFork(p: Work, at: number, o: Partial<Work> & { id: string; t
 /** 목업 AV: 인물·작성자 아바타 색 */
 export const AVATAR_COLORS = ['#B48A5A','#6F93C9','#5FA89A','#B07A9A','#8E7CC3','#C9A04A']
 export const avatarOf = (s: string) => AVATAR_COLORS[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length]
+
+/** 목업 tagsOf(): 포크는 원작의 해시태그를 이어받습니다. */
+export const tagsOf = (w: Work, works: Work[]) => w.hash?.length ? w.hash : (w.parent && works.find((x) => x.id === w.parent)?.hash) || []
+
+/** 목업 FIELDS·SORTS: 검색 범위와 정렬 */
+export const FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그']] as const
+export const SORTS = [['new', '최신 순'], ['pop', '인기 순'], ['view', '조회 순']] as const
+
+/** 목업 matchW(): 장르는 검색하지 않습니다. */
+export function matchW(w: Work, q: string, f: string, works: Work[]) {
+  if (!q) return true
+  q = q.replace(/^#/, '').toLowerCase()
+  const t = w.title.toLowerCase().includes(q)
+  const au = String(w.author).toLowerCase().includes(q)
+  const tg = tagsOf(w, works).some((h) => h.slice(1).toLowerCase().includes(q))
+  return f === 'title' ? t : f === 'author' ? au : f === 'tag' ? tg : t || au || tg
+}
+
+export const sorter = (k: string) => k === 'new'
+  ? (a: Work, b: Work) => (a.upd || 0) - (b.upd || 0)
+  : k === 'pop' ? (a: Work, b: Work) => (b.likes || 0) - (a.likes || 0) : (a: Work, b: Work) => (b.views || 0) - (a.views || 0)

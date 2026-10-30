@@ -6,6 +6,7 @@ import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepos
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
 import type { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
+import type { ForkUseCase } from '../../domain/usecases/ForkUseCase'
 import type { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import type { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 
@@ -21,6 +22,7 @@ export type AppCradle = {
   feedbackRepository: FeedbackRepository
   readingUseCase: ReadingUseCase
   feedbackUseCase: FeedbackUseCase
+  forkUseCase: ForkUseCase
   shellUseCase: ShellUseCase
 }
 

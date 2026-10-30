@@ -1,6 +1,7 @@
+import type { Draft } from '../../domain/entities/draft'
 import type { Comment, InboxItem, ReaderReport, ReviewItem } from '../../domain/entities/feedback'
 import type { AppNotification } from '../../domain/entities/notification'
-import type { Theme } from '../../domain/entities/work'
+import type { Theme, Work } from '../../domain/entities/work'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
@@ -18,6 +19,7 @@ export function createMockDb() {
     reports: [] as ReaderReport[],
     inbox: [] as InboxItem[],
     reviewQueue: [] as ReviewItem[],
+    drafts: {} as Record<string, Draft>,
   }
 }
 export type MockDb = ReturnType<typeof createMockDb>
@@ -30,6 +32,12 @@ export class InMemoryWorkRepository implements WorkRepository {
   constructor(db: MockDb) { this.db = db }
   listWorks() { return copy(this.db.works) }
   listWorlds() { return copy(this.db.worlds) }
+  async saveWork(work: Work) {
+    const i = this.db.works.findIndex((w) => w.id === work.id)
+    this.db.works.splice(i < 0 ? this.db.works.length : i, i < 0 ? 0 : 1, structuredClone(work))
+  }
+  getDraft(key: string) { return copy(this.db.drafts[key]) }
+  async saveDraft(key: string, draft: Draft) { this.db.drafts[key] = structuredClone(draft) }
 }
 
 export class InMemoryReadingRepository implements ReadingRepository {
