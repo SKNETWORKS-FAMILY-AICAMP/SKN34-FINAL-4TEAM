@@ -24,7 +24,7 @@ uv run --locked --extra dev python -m pytest
 
 ## OpenAI와 향후 경계
 
-AI 스택은 LangChain·LangGraph·Langfuse로 정했습니다. 현재 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체하며, 그 전에는 의존성·버전 범위를 바꾸지 않습니다.
+AI 스택은 LangChain·LangGraph로 정했습니다(Langfuse 추적은 MVP 이후). 현재 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체하며, 그 전에는 의존성·버전 범위를 바꾸지 않습니다.
 Health는 키 없이 시작하고 OpenAI 클라이언트를 만들거나 호출하지 않습니다.
 루트 `.env.example`의 `OPENAI_API_KEY`와 `OPENAI_MODEL`은 향후 AI 런타임용 예약 설정일 뿐
 현재 코드에서 읽지 않습니다. 키를 채워도 생성 기능이 동작하지 않으며 모델 접근을 검증하지 않습니다.

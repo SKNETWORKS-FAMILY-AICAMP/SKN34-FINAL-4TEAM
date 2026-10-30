@@ -8,6 +8,7 @@
 AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선택·집필·검토를 돕는 도구입니다.
 
 기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 이후 팀 결정은 [유스케이스 문서](docs/usecase.md)의 확정 정책(6.2절)에 반영되어 있습니다.
+MVP 설계는 [설계 문서](docs/design/design.md)에 있습니다. 세계관은 Gitea 대신 PostgreSQL에 게시판 방식으로 저장하고, AI는 도구로 Core 조회 API를 호출합니다.
 
 > **현재 구현 상태: 개발 기반 셋업 단계**
 > Frontend·Core API·AI Service와 Docker 실행 기반, STORYFORK 시작 화면과 실제 연결 확인만 제공합니다.
@@ -35,7 +36,7 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 | Fork 기반 독립 창작 | 허용된 회차 종료 시점의 공개 설정에서 분기하고, 이후 사건과 인물 상태를 원작과 분리 |
 | 집필·편집 지원 | 직접 집필, AI 협업 집필(일러스트 생성 포함), AI 자율 연재의 세 가지 방식. `.txt`·`.epub` 내보내기 |
 | 독자 피드백 분석·응대 | 독자가 유형(댓글·단순 오류·스토리 오류·질문·제안)을 고르고, 단순 오류·질문은 AI가 공개 근거로 수정안·답변, 스토리 오류·제안은 작가 검토로 연결. 등록 전 유해 콘텐츠 1차 필터 |
-| 알림·운영 | 사이트 안 알림함, 정기 작업(크레딧 초기화·탈퇴 처리 등) 실행 감시, LLMOps(Langfuse 추적·평가) |
+| 알림·운영 | 사이트 안 알림함, 정기 작업(크레딧 초기화·탈퇴 처리 등) 실행 감시, LLMOps(Langfuse 추적·평가, MVP 이후) |
 
 **AI 자율 연재**는 작품 소유자(원작·Fork 모두)가 켜면 정한 조건과 독자 반응을 바탕으로 다음 회차를 생성하고
 발행 확인을 거쳐 자동 발행하는 것으로 정했습니다. 크레딧은 작품 소유자가 부담합니다. 소유자가 정한 요일·시각에 Core API 내장 스케줄러로 실행하며, 아직 구현되지 않았습니다.
@@ -89,7 +90,7 @@ Frontend (React)
 |---|---|---|
 | Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 열람·창작·검토 화면. 공개 Core API만 호출 |
 | Core API | Kotlin·Spring Boot, JDK 21 | 작품·세계관·회차 버전·Fork의 정본, 권한·승인·발행·크레딧의 최종 판단과 저장 |
-| AI Service | Python·FastAPI·LangChain·LangGraph, Langfuse(추적·평가) | 설정 추출·검토, 인물 시뮬레이션, 집필·피드백 제안. 정본 직접 변경 금지 |
+| AI Service | Python·FastAPI·LangChain·LangGraph, Langfuse(추적·평가, MVP 이후) | 설정 추출·검토, 인물 시뮬레이션, 집필·피드백 제안. 정본 직접 변경 금지 |
 | 실행 환경 | Docker Compose, Vite 개발 서버, nginx 정적 배포 이미지 | 로컬 개발 및 서비스 연결·배포 이미지 검증 |
 
 Core는 기능별 `Controller → Service → Repository` 또는
@@ -109,7 +110,7 @@ Core는 기능별 `Controller → Service → Repository` 또는
 - AI 연결 불가·timeout은 안전한 503·504, 잘못된 응답은 502. 자체 Core Health와 분리합니다.
 
 Health는 OpenAI 인증·모델 접근·생성 품질 검증이 아닙니다. 모델 클라이언트를 생성하지 않으며
-실제 키 없이 실행됩니다. AI 스택은 LangChain·LangGraph·Langfuse로 정했으며, 현재 남아 있는 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체합니다.
+실제 키 없이 실행됩니다. AI 스택은 LangChain·LangGraph로 정했으며(Langfuse는 MVP 이후), 현재 남아 있는 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체합니다.
 작품·로그인·저장·Fork·집필·승인·크레딧 기능, DB·Redis·큐·worker는 없습니다.
 
 ## 빠른 시작
@@ -206,7 +207,7 @@ OpenAI를 호출하지 않지만 이미지·의존성 다운로드에는 네트�
 - [공통 구현 지침](AGENTS.md)
 - [현재 아키텍처](docs/architecture.md)
 - [유스케이스](docs/usecase.md) · [유스케이스 명세](docs/usecase-spec/README.md) · [보조 다이어그램](docs/diagrams/README.md) · [UI 프로토타입 대응](docs/prototype-alignment.md)
-- [요구사항 정의서](docs/SKN34-final-4Team_요구사항정의서.xlsx) · [WBS](docs/SKN34-final-4Team_WBS.xlsx)
+- [요구사항 정의서](docs/SKN34-final-4Team_요구사항정의서.xlsx)([기능 ID 색인](docs/requirements.md)) · [WBS](docs/SKN34-final-4Team_WBS.xlsx)
 - [Frontend](frontend/README.md): `storyfork-web`, 시작 화면과 공개 API 연결
 - [Core API](backend/core-api/README.md): `storyfork-core-api`, 공개 Health·내부 HTTP 오류 경계
 - [AI Service](backend/ai-service/README.md): `storyfork-ai-service`, 내부 Health

@@ -57,7 +57,7 @@ sequenceDiagram
 ```
 - 피드백 분석은 검증만 하며 세계관·설정을 바꾸지 않습니다(BR-11).
 - 유형은 독자가 고르며 AI로 분류하지 않습니다(BR-15).
-- AI Service는 DB·Gitea에 직접 쓰지 않습니다.
+- AI Service는 DB에 직접 접근하지 않습니다.
 ## 2. 표기 오류 수정안 자동 승인·발행 (UC-16 A4)
 ```mermaid
 sequenceDiagram
@@ -89,7 +89,6 @@ sequenceDiagram
   participant FE as Frontend
   participant CO as Core API
   participant DB as DB
-  participant GT as Gitea
   R->>FE: 분기 기준 회차 선택 · 제목 입력
   FE->>CO: Fork 생성 요청
   CO->>DB: Fork 허용 · 이용 조건 · 권리 제한 확인
@@ -97,8 +96,7 @@ sequenceDiagram
     CO-->>FE: 생성 불가 · 사유
   else 허용
     CO->>DB: 기준 회차까지 원고 버전 확정
-    CO->>GT: 분기 시점의 설정집·인물관계도 커밋 ID 조회
-    Note over CO,GT: 커밋 ID 기록으로 고정. 브랜치 운용은 미정
+    CO->>DB: 분기 시점에 공개된 설정집·인물관계도 항목을 Fork 전용 세계관으로 복사 (같은 트랜잭션)
     CO->>DB: Fork 작품 생성 · 독자를 소유자로 지정
     CO->>DB: 기준 회차 시점 작품별 회차 기록 사본을 Fork 작품 기록으로 생성 (같은 트랜잭션)
     alt 생성 실패
@@ -115,7 +113,6 @@ sequenceDiagram
   participant TR as Core API 내장 스케줄러
   participant CO as Core API
   participant DB as DB
-  participant GT as Gitea
   participant AI as AI Service
   participant LLM as OpenAI
   actor W as 작품 소유자
@@ -127,7 +124,7 @@ sequenceDiagram
     CO->>DB: 자율 연재 중단됨
     CO-)W: 중단 알림
   else 실행
-    CO->>GT: 세계관 공개·허용 문맥 조회
+    CO->>DB: 세계관 허용 문맥 조회
     CO->>DB: 허용된 독자 반응 조회 (켠 경우, 필터 통과 공개 댓글·제안, 작성자 정보 제외)
     CO->>AI: 다음 회차 생성 요청
     AI->>LLM: 생성
@@ -148,7 +145,7 @@ sequenceDiagram
         opt 세계관 업데이트 자동
           CO->>AI: 해당 회차 설정 추출 (UC-04)
           AI-->>CO: 추출 결과
-          CO->>GT: 충돌 없는 항목 반영 · 변경 이력
+          CO->>DB: 충돌 없는 항목에 갱신 기록 추가
         end
         CO-)W: 발행 결과 · 사용 크레딧 알림
       end

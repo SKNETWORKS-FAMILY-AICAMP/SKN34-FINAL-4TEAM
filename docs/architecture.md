@@ -11,7 +11,7 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
                         /api/v1/health/ai-service
 ```
 
-현재 OpenAI 호출은 없습니다. AI 스택은 LangChain·LangGraph·Langfuse로 정했으며(현재 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체), 아직 Agent·모델·그래프를 생성하지 않습니다.
+현재 OpenAI 호출은 없습니다. AI 스택은 LangChain·LangGraph로 정했으며(Langfuse는 MVP 이후, 현재 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체), 아직 Agent·모델·그래프를 생성하지 않습니다.
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
 DB·Redis·큐·worker·로그인·가짜 CRUD·seed 데이터는 없습니다.
 
@@ -19,19 +19,20 @@ DB·Redis·큐·worker·로그인·가짜 CRUD·seed 데이터는 없습니다.
 
 유스케이스 v6·v7에서 도입하기로 정했지만 아직 코드·Compose에 없는 구성요소입니다. 도입은 해당 기능 구현 때 팀 공유 후 진행합니다. `MVP 제외`로 표시한 것은 첫 출시 범위에 넣지 않습니다.
 
+> **MVP 설계:** 세계관은 Gitea 대신 Core PostgreSQL에 게시판 방식 갱신 기록으로 저장하고 스키마는 Flyway로 관리합니다([설계](design/design.md)). 아래는 계획이며 현재 구현이 달라진 것은 아닙니다.
+
 | 구성요소 | 용도 | 근거 |
 |---|---|---|
-| Gitea | 세계관마다 저장소 하나. 설정 값·인물관계도·인물 기본 정보의 버전 저장, Fork 고정(커밋 ID) | UC-02, UC-06, UC-08 |
+| PostgreSQL·Flyway | 세계관 항목·갱신 기록, 회차·초안 버전, 작품별 회차 기록, Fork 복사본, AI 작업, 댓글·제보. 스키마는 Flyway | UC-02, UC-06, UC-08, UC-10 |
 | Elasticsearch | 작품 검색(공개 정보만 색인). MVP 제외, MVP는 DB 검색 | UC-01 |
 | LangChain·LangGraph | AI Service 구현(현재 `openai-agents` 교체) | AI Service 지침 |
-| Langfuse (Docker 직접 설치) | AI 호출 추적·평가·프롬프트 버전. MVP는 추적만(평가 세트·표본 검사 제외) | UC-26 |
+| Langfuse (Docker 직접 설치) | AI 호출 추적·평가·프롬프트 버전. MVP 이후(DEC-18) | UC-26 |
 | Core API 내장 스케줄러 | 자율 연재·정기 작업 실행(별도 worker·큐 없음, 일정은 KST) | UC-18, UC-28 |
 | OpenAI 모더레이션·이미지 생성 모델 | 유해 콘텐츠 1차 필터, 일러스트 생성(AI Service 경유, 일러스트는 MVP 제외) | UC-14, UC-11 |
 | MinIO (S3 호환 저장소) | 원고 이미지 파일 저장. DB에는 위치·메타데이터만 | UC-03, UC-10 |
-| 업무 DB | 회차·초안 버전, 작품별 회차 기록(설정 유효·독자 공개·인물별 인지 회차, 작품별 인물 상태, `@` 연결), 피드백·크레딧 원장(제품 미정) | UC-06, UC-10, UC-17 |
-| SMTP 메일 발송 (개발: 로컬 Mailpit) | 가입 인증·비밀번호 재설정 메일. 운영 발송사는 배포 시 결정, 설정은 루트 `.env`에서 Core API에만 전달 | UC-22 |
+| SMTP 메일 발송 (개발: 로컬 Mailpit) | 가입 인증·비밀번호 재설정 메일. MVP 이후(DEC-22). 운영 발송사는 배포 시 결정, 설정은 루트 `.env`에서 Core API에만 전달 | UC-22 |
 
-저장 경계: 세계관 소유자가 정하는 값은 Gitea, 작품 소유 기록은 DB에 두고 DB 기록은 세계관 항목 ID를 참조합니다. 일반 작품 연결은 세계관의 최신 공개본(HEAD)을 따르고, 커밋 ID 고정은 Fork 고정본과 이용 허가 철회 시점 고정에만 씁니다. DB·Gitea·MinIO·SMTP 접근은 Core API만 하며 AI Service는 직접 쓰지 않습니다.
+저장 경계: 세계관 항목·갱신 기록과 작품 소유 기록은 모두 Core PostgreSQL에 두고, 작품 기록은 세계관 항목 ID를 참조합니다. 일반 작품 연결은 항목의 최신 갱신 기록을 따르고, 이용 허가 철회 시점 고정은 그때의 마지막 갱신 기록 ID로, Fork는 분기 시점 내용을 복사해 고정합니다. DB·MinIO·SMTP 접근은 Core API만 하며 AI Service는 Core 내부 조회 API로 작업 범위 안의 내용만 읽습니다.
 
 ## Frontend
 
