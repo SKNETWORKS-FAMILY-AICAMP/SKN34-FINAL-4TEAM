@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 
-import { LINE } from '../../../../domain/entities/wiki'
-import { openPolicy, toast } from '../../../shared/events'
+import { toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { Sheet } from '../../../shared/Sheet'
 import { useStudioViewModel } from '../viewmodel/useStudioViewModel'
-import { PublishSettingsSheet, SimSheet } from './StudioSheets'
-import { BoardView, MemoView, NarrativeView, OverviewView, StudioTools, WikiView } from './StudioViews'
+import { PublishSettingsSheet } from './StudioSheets'
+import { MemoView, NarrativeView, StudioTools, WikiView } from './StudioViews'
 
 type VM = ReturnType<typeof useStudioViewModel>
 const readParas = (el: HTMLElement) => {
@@ -17,18 +16,20 @@ const readParas = (el: HTMLElement) => {
   return (ps.length ? ps.map((p) => (p.textContent ?? '').trim()) : (el.textContent ?? '').split(/\n+/).map((x) => x.trim())).filter(Boolean)
 }
 
-const VIEW_ID: Record<string, string> = { board: 'U37', wiki: 'U38', overview: 'U39', narrative: 'U40', memo: 'U41' }
+const VIEW_ID: Record<string, string> = { wiki: 'U38', overview: 'U38', narrative: 'U40', memo: 'U41' }
 
-/** 목업 studio(id): U13 집필실. view(보드·사전·개요·서술·원고·메모)와 원고 보기의 tab(ai·tl·note)을 주소로 고릅니다. */
+/** 집필실의 사전·플롯·원고·콘티를 주소로 고릅니다. */
 export function StudioPage() {
   const { id = '' } = useParams()
   const [q] = useSearchParams()
   const navigate = useNavigate()
   const ep = Number(q.get('ep')) || undefined
-  const view = VIEW_ID[q.get('view') ?? ''] ? q.get('view')! : 'write'
-  const tab = q.get('tab') === 'tl' || q.get('tab') === 'note' ? q.get('tab')! : 'ai'
-  const vm = useStudioViewModel(id, ep, VIEW_ID[view] ?? (tab === 'tl' ? 'U18' : tab === 'note' ? 'U19' : 'ai'))
-  const [sim, setSim] = useState(false)
+  const requested = q.get('view') ?? ''
+  const view = requested === 'overview' ? 'wiki' : VIEW_ID[requested] ? requested : 'write'
+  const vm = useStudioViewModel(id, ep, VIEW_ID[view] ?? 'ai')
+  const [chatOpen, setChatOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  useEffect(() => { if (q.get('panel') === 'chat') setChatOpen(true); if (q.get('panel') === 'settings') setSettingsOpen(true) }, [q])
   const { data, studio: s, draft: d } = vm
   if (data === undefined) return null
   if (data === null) return <><Gnb on="lib" /><main className="wrap"><div className="panel"><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><Go to="/lib?tab=write" className="btn">내가 쓰는 소설</Go></div></main><Footer /></>
@@ -51,26 +52,19 @@ export function StudioPage() {
   const ro = vm.readOnly
   const publishSettings = q.get('publish') === '1' && !w.parent
   const closeSettings = () => navigate(`/studio/${id}`, { replace: true })
-  if (view !== 'write') {
-    const V = { board: BoardView, wiki: WikiView, overview: OverviewView, narrative: NarrativeView, memo: MemoView }[view]!
-    return (
-      <div className={`calm rd calm-${w.theme} studio`}>
-        <div className="sbar"><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><span className="t">{w.title}</span><StudioTools id={id} view={view} ep={ep} /><span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span></div>
-        <div className="sview"><V vm={vm} /></div>
-      </div>
-    )
-  }
-  const tabTo = (t: string) => `/studio/${id}?tab=${t}${ep ? `&ep=${ep}` : ''}`
+  const V = { wiki: WikiView, narrative: NarrativeView, memo: MemoView }[view]
   return (
     <div className={`calm rd calm-${w.theme} studio`}>
       <div className="sbar">
         <Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><span className="t">{w.title}</span>
-        <StudioTools id={id} view="write" ep={ep} />
+        <StudioTools id={id} view={view} ep={ep} />
         <span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span>
-        <button type="button" className="tbtn" style={{ height: 40 }} disabled={ro} onClick={vm.preview}>미리 보기</button>
-        <button type="button" className="tbtn pri" style={{ height: 40 }} id="pubep" disabled={ro} onClick={vm.openPublish}>{ro ? '원작 원고' : d.editingEpisode ? '수정 공개하기' : '공개하기'}</button>
+        <button type="button" className="tbtn" onClick={() => setSettingsOpen(true)}>집필 설정</button>
+        {view === 'write' && <><button type="button" className="tbtn" style={{ height: 40 }} disabled={ro} onClick={vm.preview}>미리 보기</button>
+        <button type="button" className="tbtn pri" style={{ height: 40 }} id="pubep" disabled={ro} onClick={vm.openPublish}>{ro ? '원작 원고' : d.editingEpisode ? '수정 공개하기' : '공개하기'}</button></>}
       </div>
-      <div className="sgrid">
+      <div className={`studio-workspace${chatOpen ? ' chat-open' : ''}`}>
+      {V ? <div className="sview"><V vm={vm} /></div> : <div className="sgrid">
         <nav className="seps"><div className="lab">회차</div>
           {s.eps.map((x, i) => {
             const snap = !!w.parent && i < (w.forkAt ?? 0)
@@ -84,11 +78,12 @@ export function StudioPage() {
           <Go to={`/studio/${id}`} className={selected ? '' : 'on'}>{s.current.no}화 {s.current.title}<small>쓰는 중 · 비공개</small></Go>
         </nav>
         <Editor vm={vm} />
-        <aside className="side"><div className="stabs">{([['ai', 'AI 도움'], ['tl', '타임라인'], ['note', '설정']] as const).map(([k, l]) => <Go key={k} to={tabTo(k)} className={tab === k ? 'on' : ''} aria-current={tab === k ? 'page' : undefined}>{l}</Go>)}</div>
-          {tab === 'ai' ? <AiPanel vm={vm} onSim={() => setSim(true)} /> : tab === 'tl' ? <TimelinePanel vm={vm} /> : <NotePanel vm={vm} />}</aside>
+      </div>}
+      {chatOpen && <aside className="studio-chat" role="region" aria-label="AI 채팅"><div className="studio-chat-head"><b>AI 채팅</b><button type="button" className="btn sm" onClick={() => setChatOpen(false)}>접기</button></div><p className="small muted studio-chat-intro">사전 조회와 세계관 시뮬레이션, 요청에 따른 사전·플롯 수정과 콘티 구체화 및 반영을 도울 수 있어요. 이 화면은 데모입니다.</p><AiPanel vm={vm} /></aside>}
       </div>
+      {!chatOpen && <button type="button" className="studio-chat-toggle btn pri" onClick={() => setChatOpen(true)}>AI 채팅 열기</button>}
+      {settingsOpen && <Sheet sid="U19" label="집필 설정" onClose={() => setSettingsOpen(false)}><div className="studio-settings-head"><h2>집필 설정</h2><button type="button" className="btn sm" onClick={() => setSettingsOpen(false)}>닫기</button></div><AutoBox vm={vm} /><NotePanel vm={vm} /></Sheet>}
       {vm.publishing && <PublishEpisodeSheet vm={vm} />}
-      {sim && <SimSheet vm={vm} onClose={() => setSim(false)} />}
       {publishSettings && <PublishSettingsSheet work={w} onSave={vm.savePublishSettings} onClose={closeSettings} />}
     </div>
   )
@@ -125,6 +120,8 @@ function Editor({ vm }: { vm: VM }) {
   const bad = d.check?.issues.map((x) => x.sent) ?? []
   const image = useRef<HTMLInputElement>(null)
   const [mlist, setMlist] = useState<{ left: number; top: number } | null>(null)
+  const [textAi, setTextAi] = useState(false)
+  const [selection, setSelection] = useState('')
   const base = vm.studio!.base
   // 목업 openMention(): 커서 위치에 인물과 최근 사건 3개를 띄웁니다.
   const openMention = (eb: HTMLElement) => {
@@ -148,7 +145,7 @@ function Editor({ vm }: { vm: VM }) {
     }
     setMlist(null)
     vm.edit({ ...(eb ? { paras: readParas(eb) } : {}), links: d.links.includes(name) ? d.links : [...d.links, name] })
-    toast(`‘${name}’ → ${d.no}화에 연결했어요 · 타임라인에 표시돼요`)
+    toast(`‘${name}’ → ${d.no}화에 연결했어요`)
   }
   return (
     <section className="editor">
@@ -158,10 +155,12 @@ function Editor({ vm }: { vm: VM }) {
         : ro ? <div className="revision-note">원작 스냅샷 원고는 읽기 전용이에요. Fork 이후 회차부터 수정할 수 있어요.</div> : null}
       {d.auto && <div className="abanner">🤖 AI 자율 연재가 쓴 초안이에요. 읽어 보고 고친 뒤 직접 공개해 주세요.</div>}
       <div className="eb" id="eb" key={vm.bodyKey} contentEditable={!ro} suppressContentEditableWarning spellCheck={false} role="textbox" aria-multiline="true" aria-label="원고 본문"
-        data-ph={`여기에 ${d.no}화를 써 보세요. 오른쪽 AI 도움으로 시작할 수도 있어요.`} onInput={(e) => vm.edit({ paras: readParas(e.currentTarget) })}
-        onKeyUp={(e) => { if (e.key === '@') openMention(e.currentTarget) }} onKeyDown={(e) => { if (e.key === 'Escape') setMlist(null) }}
+        data-ph={`여기에 ${d.no}화를 써 보세요. AI 채팅으로 시작할 수도 있어요.`} onInput={(e) => vm.edit({ paras: readParas(e.currentTarget) })}
+        onMouseUp={(e) => { const s = window.getSelection(); if (s && e.currentTarget.contains(s.anchorNode) && e.currentTarget.contains(s.focusNode)) setSelection(s.toString().trim()) }}
+        onKeyUp={(e) => { if (e.key === '@') openMention(e.currentTarget); const s = window.getSelection(); if (s && e.currentTarget.contains(s.anchorNode) && e.currentTarget.contains(s.focusNode) && s.toString().trim()) setSelection(s.toString().trim()) }} onKeyDown={(e) => { if (e.key === 'Escape') setMlist(null) }}
         ref={(el) => { if (el && !filled.has(el)) { filled.add(el); fillBody(el, d.paras, bad, d.links) } }}>
       </div>
+      <div className="text-ai"><button type="button" className="btn sm" aria-expanded={textAi} onClick={() => setTextAi(!textAi)}>문장 AI 도구</button>{textAi && <div className="text-ai-panel"><b>문장 AI 채팅</b><p className="small muted">선택한 문장을 수정하거나 새로운 장면을 요청하세요. 화면 예시이며 AI 요청과 원고 반영은 연결되지 않았어요.</p><div className="text-ai-selection">{selection || '선택한 문장이 여기에 표시됩니다.'}</div><label className="field">문장 또는 장면 요청<textarea className="ta" placeholder="수정하거나 작성할 내용을 적어 주세요" /></label><div className="text-ai-modes"><button type="button" className="btn sm" disabled>＋ 문맥</button><button type="button" className="btn sm" disabled>생성</button><button type="button" className="btn sm" disabled>적용</button><button type="button" className="btn sm" disabled>다시 생성</button><button type="button" className="btn sm" disabled>버리기</button></div></div>}</div>
       {mlist && <div className="mlist" role="listbox" aria-label="연결할 인물·사건" style={mlist}>
         {base.cast.map((c) => <button type="button" role="option" aria-selected="false" key={c.n} onMouseDown={(e) => { e.preventDefault(); pickMention(c.n) }}><i style={{ width: 18, height: 18, borderRadius: '50%', background: c.c, display: 'inline-block' }} />{c.n}<small>인물</small></button>)}
         {base.events.slice(-3).map((x) => <button type="button" role="option" aria-selected="false" key={x[2]} onMouseDown={(e) => { e.preventDefault(); pickMention(x[2]) }}>📍 {x[2]}<small>사건</small></button>)}
@@ -187,37 +186,15 @@ function Editor({ vm }: { vm: VM }) {
   )
 }
 
-function AiPanel({ vm, onSim }: { vm: VM; onSim: () => void }) {
+function AiPanel({ vm }: { vm: VM }) {
   const s = vm.studio!, d = vm.draft!
-  const ro = vm.readOnly
-  const prompt = vm.prompt
-  const c = d.check
   return (
     <div className="spanel">
-      <AutoBox vm={vm} />
+      <div className="chat-welcome"><b>무엇을 함께 구상할까요?</b><p className="small muted">설정과 장면에 대해 질문해 보세요.</p></div>
       <div className="ai-context" aria-label="AI 문맥"><span>현재 회차 · {d.no}화 {d.title}</span><span>세계관 · {s.base.rules.length}개</span><span>인물 · {s.base.cast.length}명</span></div>
-      <label className="field ai-composer">AI에게 요청<textarea className="ta" id="aiPrompt" rows={3} placeholder="예: 장면의 긴장감을 살려 이어 써 주세요" disabled={ro} value={prompt} onChange={(e) => vm.setPrompt(e.target.value)} /></label>
-      <button type="button" className="aib" id="btnSim" disabled={ro} onClick={() => (s.base.cast.length < 2 ? toast('인물을 2명 이상 추가해 주세요') : onSim())}><span className="ic">🎭</span><div><b>인물에게 맡겨 보기</b><span>상황을 주면 인물들이 직접 움직여요</span></div><em>예시 30<br />미확정</em></button>
-      <button type="button" className="aib" id="btnProp" disabled={ro} onClick={() => vm.propose(prompt)}><span className="ic">✍</span><div><b>장면 이어쓰기</b><span>작성한 요청과 현재 원고 문맥으로 초안을 제안해요</span></div><em>예시 5<br />미확정</em></button>
-      <button type="button" className="aib" id="btnCheck" disabled={ro} onClick={vm.check}><span className="ic">🔍</span><div><b>설정 검사</b><span>세계관 규칙과 어긋난 곳을 찾아요</span></div><em>예시 5<br />미확정</em></button>
-      {d.sim && <div className="ref">📎 참고 자료: 시뮬레이션 1건 — {d.sim.summary}</div>}
-      {d.proposal === 'shown' && (
-        <div className="aiprev" id="aiprev" role="region" aria-label="AI 제안 미리보기">
-          <small>AI 응답 · 장면 이어쓰기 예시 · 원고에 넣기 전에는 반영되지 않아요</small>
-          <p className="ai-request"><b>요청</b> {d.aiPrompt || '현재 장면을 이어 써 주세요'}</p>
-          {s.proposal.map((t) => <p key={t} style={{ margin: '0 0 .6em' }}>{t}</p>)}
-          <div className="r"><button type="button" className="btn sm pri" id="acceptAI" onClick={vm.accept}>원고에 넣기</button><button type="button" className="btn sm" onClick={vm.drop}>버리기</button></div>
-        </div>
-      )}
-      {!c ? <div className="chk idle">설정 검사는 선택 사항이에요. 필요하면 실행해 주세요.</div>
-        : vm.checkStale ? <div className="chk idle">소설이 바뀌었어요. 설정 검사를 다시 실행해 주세요.</div>
-        : c.issues.length ? (
-          <div className="chk bad" id="chkres"><b>⚠ {c.issues.length}곳이 설정과 어긋나요</b>{c.issues.map((x, i) => (
-            <div key={i} style={{ marginTop: 8 }}>“{x.sent.slice(0, 40)}…”<br /><span className="note2">규칙: {x.rule}</span>
-              <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}><button type="button" className="btn sm" onClick={() => vm.fix(i)}>제안대로 고치기</button><button type="button" className="btn sm" onClick={() => vm.ignore(i)}>의도한 거예요</button></div></div>
-          ))}</div>
-        ) : <div className="chk ok" id="chkres"><b>✓ 설정과 어긋난 곳이 없어요</b><br /><span className="note2">규칙 {s.base.rules.length}개 · 인물 {s.base.cast.length}명 기준 (이 소설의 스냅샷)</span></div>}
-      <p className="note2">숫자는 예시예요. 데모 잔액만 바뀌고 실제 차감은 없어요 · <button type="button" className="btn sm" style={{ height: 26, padding: '0 10px' }} onClick={openPolicy}>정책 안내</button><br />응답은 고정 예시이며 입력은 외부 AI로 전송되지 않아요. 제안은 ‘원고에 넣기’를 눌러야 반영돼요. 일러스트 생성은 MVP에서 제외됐어요.</p>
+      <button type="button" className="btn sm" disabled>＋ 문맥 선택 · 목업</button>
+      <label className="field ai-composer">AI에게 요청<textarea className="ta" id="aiPrompt" rows={3} placeholder="AI에게 질문을 입력하세요" value={vm.prompt} onChange={(e) => vm.setPrompt(e.target.value)} /></label>
+      <button type="button" className="btn sm" disabled>보내기 · 목업</button>
     </div>
   )
 }
@@ -238,21 +215,6 @@ function AutoBox({ vm }: { vm: VM }) {
         <button type="button" className="btn sm pri" id="autoGen" style={{ width: '100%' }} disabled={editing} onClick={vm.autoGen}>지금 한 회차 생성해 보기 <span className="demo" style={{ borderColor: 'currentColor', color: 'inherit' }}>예시 · 미확정</span></button>
         {A.log.length > 0 && <div className="alog">{A.log.slice(-3).map((l, i) => <span key={i}>{i > 0 && <br />}{l}</span>)}</div>}
       </div>}
-    </div>
-  )
-}
-
-/** 목업 studio() tab==='tl': U18 타임라인 */
-function TimelinePanel({ vm }: { vm: VM }) {
-  const s = vm.studio!, d = vm.draft!, w = s.work
-  const evs = s.base.events.map((x) => ({ x, orig: true })).concat((w.ownEvents ?? []).map((x) => ({ x, orig: false })))
-  return (
-    <div className="spanel"><div className="note2">회색 점 = 원작 스냅샷 사건 · 보라 점 = 이 소설에서 생긴 사건. 소설에서 @로 연결하면 이 회차 항목에 쌓여요.</div>
-      <div className="tl">{evs.map(({ x: [ep, k, t, who], orig }, i) => (
-        <div className={`tle ${orig ? 'orig' : ''}`} key={i}><small>{ep}화{orig && w.parent ? ' · 원작 스냅샷' : ''}</small><div><span className={`k ${k}`}>{LINE[k]}</span>{t}<div className="who">{who.map((c, j) => <span key={j}>▲ {c}</span>)}</div></div></div>
-      ))}
-        <div className="tle"><small>{d.no}화 · 지금 쓰는 중</small><div><span className="k m">메인</span>{d.title}<div className="who">{d.links.length ? d.links.map((c) => <span key={c}>@ {c}</span>) : <span>아직 연결 없음</span>}</div></div></div></div>
-      <button type="button" className="tbtn" style={{ height: 40 }} disabled={vm.readOnly} onClick={vm.addEvent}>＋ 사건 추가</button>
     </div>
   )
 }

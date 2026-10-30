@@ -133,9 +133,9 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     setDocProp: (docId: string, k: string, v: string, ep?: number) => queue(() => studioUseCase.setDocProp(id, docId, k, v, ep)),
     addDocProp: (docId: string, k: string, v: string) => run(() => studioUseCase.addDocProp(id, docId, k, v)),
     renameDocProp: (docId: string, k: string, nk: string) => queue(() => studioUseCase.renameDocProp(id, docId, k, nk)),
-    setEvent: async (docId: string, patch: Parameters<StudioUseCase['setEvent']>[2]) => { await run(() => studioUseCase.setEvent(id, docId, patch)); toast('보드에 반영했어요') },
+    setEvent: async (docId: string, patch: Parameters<StudioUseCase['setEvent']>[2]) => { await run(() => studioUseCase.setEvent(id, docId, patch)); toast('사건을 수정했어요') },
     toggleWho: (docId: string, n: string) => run(() => studioUseCase.toggleWho(id, docId, n)),
-    addLink: async (docId: string, to: string, k: string) => { await run(() => studioUseCase.addLink(id, docId, to, k)); toast('보드에 화살표로 표시돼요') },
+    addLink: async (docId: string, to: string, k: string) => { await run(() => studioUseCase.addLink(id, docId, to, k)); toast('사건을 연결했어요') },
     removeLink: (docId: string, i: number) => run(() => studioUseCase.removeLink(id, docId, i)),
     addBoardEvent: async (t: string, ep: number | undefined, line: string, who: string[]) => {
       await run(() => studioUseCase.addBoardEvent(id, t, ep, line, who))

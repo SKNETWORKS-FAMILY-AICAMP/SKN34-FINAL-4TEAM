@@ -25,12 +25,12 @@ describe('빠른 이동 (U03) · 집필실', () => {
     await waitFor(() => expect(where()).toBe('/studio/starlight?ep=1'))
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
     const dialog = screen.getByRole('dialog', { name: '빠른 이동' })
-    await waitFor(() => expect([...dialog.querySelectorAll('#ql li b')].slice(0, 3).map((x) => x.textContent)).toEqual(['AI 도움 탭', '타임라인 탭', '설정 노트 탭']))
-    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '설정 노트에서' } })
+    await waitFor(() => expect([...dialog.querySelectorAll('#ql li b')].slice(0, 3).map((x) => x.textContent)).toEqual(['AI 채팅', '플롯', '집필 설정']))
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '사전에서' } })
     screen.getByText('카엘')
     fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '' } })
-    fireEvent.click(screen.getByText('타임라인 탭'))
-    await waitFor(() => expect(where()).toBe('/studio/starlight?tab=tl&ep=1'))
+    fireEvent.click(within(dialog).getByText('플롯'))
+    await waitFor(() => expect(where()).toBe('/studio/starlight?view=narrative&ep=1'))
   })
 
   it('크레딧 정책 시트를 연 채 Ctrl K를 누르면 시트가 교체되고 Esc 한 번에 닫힌다', async () => {
@@ -51,8 +51,8 @@ describe('빠른 이동 (U03) · 집필실', () => {
     const dialog = screen.getByRole('dialog', { name: '빠른 이동' })
     await waitFor(() => expect(dialog.querySelectorAll('#ql li b').length).toBeGreaterThan(0))
     expect(within(dialog).queryByText('AI 도움 탭')).toBeNull()
-    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '설정 노트에서' } })
-    expect(within(dialog).queryAllByText('설정 노트에서 보기')).toHaveLength(0)
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '사전에서' } })
+    expect(within(dialog).queryAllByText('사전에서 보기')).toHaveLength(0)
   })
 })
 

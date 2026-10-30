@@ -48,37 +48,11 @@ describe('집필실 (U13·U14·U16·U17·U22)', () => {
     expect(title).not.toBe('')
   })
 
-  it('AI 제안은 버리면 원고가 그대로이고 승인해야 들어간다', async () => {
-    renderAt('/studio/starlight')
-    await screen.findByLabelText('AI에게 요청')
-    expect(sid()).toBe('U14 집필실 · AI 도움')
-    expect(document.querySelector('.ai-context')!.textContent).toContain('현재 회차')
-    fireEvent.change(screen.getByLabelText('AI에게 요청'), { target: { value: '장면의 긴장감을 높여 이어 써 주세요.' } })
-    fireEvent.click(screen.getByRole('button', { name: /장면 이어쓰기/ }))
-    const prev = await screen.findByRole('region', { name: 'AI 제안 미리보기' })
-    expect(prev.textContent).toContain('장면의 긴장감을 높여 이어 써 주세요.')
-    expect(sid()).toBe('U16 AI 소설 제안')
-    expect(body().textContent).toBe('')
-    fireEvent.click(within(prev).getByRole('button', { name: '버리기' }))
-    await toastIs('제안을 버렸어요')
-    expect(body().textContent).toBe('')
-    fireEvent.click(screen.getByRole('button', { name: /장면 이어쓰기/ }))
-    fireEvent.click(await screen.findByRole('button', { name: '원고에 넣기' }))
-    await toastIs('소설에 넣었어요 · 설정 검사를 해 보세요')
-    await waitFor(() => expect(body().textContent).toContain('리안은 한동안 말없이 창밖을 바라보았다.'))
-  })
-
-  it('설정 검사·TXT·EPUB·이미지 안내와 회차 공개 중단·새 회차 공개', async () => {
+  it('TXT·EPUB·이미지 안내와 회차 공개 중단·새 회차 공개', async () => {
     renderAt('/studio/starlight')
     await screen.findByLabelText('원고 본문')
-    body().innerHTML = '<p>해가 진 뒤 탑의 문이 열렸다.</p>'
+    body().innerHTML = '<p>새로운 원고입니다.</p>'
     fireEvent.input(body())
-    fireEvent.click(screen.getByRole('button', { name: /설정 검사/ }))
-    await toastIs('1곳이 설정과 어긋나요')
-    expect(sid()).toBe('U17 설정 검사 · 수정')
-    fireEvent.click(screen.getByRole('button', { name: '제안대로 고치기' }))
-    await toastIs('문장을 고쳤어요 · 다시 검사했어요')
-    await waitFor(() => expect(body().textContent).toBe('해가 진 뒤라 문은 열리지 않았다.'))
     fireEvent.click(screen.getByRole('button', { name: '이 회차 txt' }))
     await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled())
     fireEvent.click(screen.getByRole('button', { name: 'EPUB(.epub) 내보내기' }))
