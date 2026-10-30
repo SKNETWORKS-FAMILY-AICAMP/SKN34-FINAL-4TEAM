@@ -35,8 +35,8 @@ export class FeedbackUseCase {
   /** 관리자가 숨긴 댓글(시드 `테마-i`, 독자 `runtime-작품-회차-i`)은 뺍니다. 좋아요 key는 목업처럼 작품 ID + 회차 + 'c' + 걸러진 순번입니다. */
   async getComments(w: Work, n: number) {
     const [all, liked, { hiddenComments }] = await Promise.all([this.feedbackRepository.listComments(w.theme, w.id + n), this.feedbackRepository.listCommentLikes(), this.adminRepository.get()])
-    // ponytail: countComments는 접두어 합계라 20화 이상이면 2화와 섞인다. 회차 키별 개수가 필요해지면 Repository에 추가한다.
-    const seeds = all.length - (await this.feedbackRepository.countComments(w.id + n))
+    // 회차 키는 항상 작품ID+회차라서 빈 키로 조회하면 시드만 돌아온다
+    const seeds = (await this.feedbackRepository.listComments(w.theme, '')).length
     const comments = all.filter((_, i) => !hiddenComments.includes(i < seeds ? `${w.theme}-${i}` : `runtime-${w.id}-${n}-${i - seeds}`))
     return { comments, liked }
   }

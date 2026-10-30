@@ -59,6 +59,18 @@ describe('FeedbackUseCase (목업 addComment·feedbackSheet·reportSheet)', () =
     expect(comments.map((c) => c[1])).toEqual([SEED_COMMENTS.hanji[0][1], SEED_COMMENTS.hanji[2][1]])
   })
 
+  it('10화 이상 작품의 1화는 10화대 독자 댓글과 섞지 않고 숨긴 댓글만 뺀다', async () => {
+    const { works, db, useCase } = fakes()
+    const w = works.find((x) => x.id === 'guunmong')!
+    await useCase.addComment('guunmong', 1, '읽는사람', '1화 댓글', null)
+    await useCase.addComment('guunmong', 10, '읽는사람', '10화 댓글', null)
+    expect((await useCase.getComments(w, 1)).comments).toHaveLength(4)
+    db.hidden.push('hanji-0')
+    expect((await useCase.getComments(w, 1)).comments.map((c) => c[1])).toEqual([SEED_COMMENTS.hanji[1][1], SEED_COMMENTS.hanji[2][1], '1화 댓글'])
+    db.hidden.splice(0, 1, 'runtime-guunmong-1-0')
+    expect((await useCase.getComments(w, 1)).comments.map((c) => c[1])).toEqual(SEED_COMMENTS.hanji.map((c) => c[1]))
+  })
+
   it('피드백 유형은 4가지이고 유형마다 목업 상태로 접수한다', async () => {
     expect(FEEDBACK_TYPES).toEqual(['단순 오류', '스토리 오류', '질문', '제안'])
     const { db, useCase } = fakes()
