@@ -1,5 +1,6 @@
 import { draftKey, episodeDraft, newEpisodeDraft, type Draft } from '../entities/draft'
-import { baseOf, epsOf, forkLabel, isMine, type AutoSerial, type CastMember, type Role, type Work } from '../entities/work'
+import { wikiState, type Doc } from '../entities/wiki'
+import { AVATAR_COLORS, baseOf, epsOf, forkLabel, isMine, nid, type AutoSerial, type CastMember, type Knowledge, type Role, type Work } from '../entities/work'
 import { worldVersion } from '../entities/world'
 import type { CreditRepository } from '../repositories/CreditRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
@@ -51,6 +52,16 @@ export const autoOf = (w: Work): AutoSerial => w.auto ?? { on: false, status: '�
 export type PublishSettings = { vis: '나만' | '모두'; on: boolean; all: boolean; eps: number[]; kind: string; ok: boolean }
 
 const episodeText = (n: number, t: string, p: string[], note?: string) => `${n}화 ${t}\n\n${p.join('\n\n')}${note ? '\n\n작가의 말\n\n' + note : ''}`
+
+/** 목업 syncRules(w): 세계관 문서 중 종류가 규칙인 것을 작품 규칙으로 다시 만듭니다. */
+function syncRules(w: Work, worldRules: (id: string) => string[]) {
+  const b = baseOf(w)
+  b.rules = wikiState(w).docs.filter((d) => d.cat === 'world' && (d.props.종류 ?? '') === '규칙').map((d) => d.t)
+  if (!w.worldIds) return
+  const linked = w.worldIds.flatMap(worldRules)
+  w.localRules = b.rules.filter((r) => !linked.includes(r))
+  for (const r of b.rules) if (!Object.hasOwn(w.ruleFrom ??= {}, r)) w.ruleFrom[r] = Infinity
+}
 
 /** 목업 studio(): U13 집필실 원고 화면. 초안은 저장소에 두고 발행할 때만 회차 정본을 바꿉니다. */
 export class StudioUseCase {
@@ -167,10 +178,16 @@ export class StudioUseCase {
     const w = await this.work(id)
     if (!w) return null
     if (role !== 'user' || !isMine(w)) return { notMine: true as const, work: w }
+    const before = JSON.stringify(w.wiki ?? null)
+    wikiState(w)
+    if (JSON.stringify(w.wiki) !== before) await this.workRepository.saveWork(w)
     const { key, draft } = await this.draftOf(w, episode)
     const current = (await this.draftOf(w)).draft
     const parentCast = w.parent ? (await this.work(w.parent))?.cast : undefined
-    return { work: w, eps: epsOf(w), base: baseOf(w), key, draft, current, proposal: propOf(w), parentCast }
+    // 목업 shared: 남이 소유한 공개 세계관이 연결돼 있으면 복사 전까지 사전 편집을 막습니다.
+    const worlds = await this.workRepository.listWorlds()
+    const shared = (w.worldIds ?? []).map((x) => worlds.find((y) => y.id === x)).find((x) => x?.owner) ?? null
+    return { work: w, eps: epsOf(w), base: baseOf(w), key, draft, current, proposal: propOf(w), parentCast, shared }
   }
 
   private async update(key: string, change: (d: Draft) => void) {
@@ -287,6 +304,116 @@ export class StudioUseCase {
       return w.parent ? `이 소설에서만 ${c.n} 상태를 ‘${st}’로 바꿨어요 (원작 그대로)` : '원작 설정을 바꿨어요'
     })
   }
+
+  /** 사전 문서 하나를 고치고 저장합니다. fn이 true를 돌려주면(세계관 문서의 제목·종류·삭제) 규칙을 다시 만들어요. */
+  private async editDoc<T>(id: string, docId: string, fn: (d: Doc, w: Work) => T, sync?: (d: Doc) => boolean) {
+    const rules = await this.worldRules()
+    return this.change(id, (w) => {
+      const d = wikiState(w).docs.find((x) => x.id === docId)
+      if (!d) return null
+      const r = fn(d, w)
+      if (d.cat === 'world' && sync?.(d)) syncRules(w, rules)
+      return r
+    })
+  }
+
+  private async worldRules() {
+    const m = new Map((await this.workRepository.listWorlds()).map((x) => [x.id, x.rules]))
+    return (x: string) => m.get(x) ?? []
+  }
+
+  /** 목업 act==='wnew': 인물 문서는 등장인물에도 추가합니다. 새 문서 ID를 돌려줍니다. */
+  async addDoc(id: string, cat: string, t: string) {
+    const rules = await this.worldRules()
+    return this.change(id, (w) => {
+      const d: Doc = { id: nid('d'), cat, t, alias: [], tags: [], props: cat === 'char' ? { 설명: '', 성격: '', 말투: '', 상태: '—' } : cat === 'world' ? { 종류: '규칙' } : {}, at: {}, img: null, body: '' }
+      if (cat === 'event') Object.assign(d, { line: 'm', who: [], links: [] })
+      wikiState(w).docs.push(d)
+      const cast = baseOf(w).cast
+      if (cat === 'char' && !cast.some((c) => c.n === t)) {
+        cast.push({ n: t, c: AVATAR_COLORS[cast.length % AVATAR_COLORS.length], d: '', st: '—' })
+        if (w.castFrom) w.castFrom[t] = Infinity
+      }
+      if (cat === 'world') syncRules(w, rules)
+      return d.id
+    })
+  }
+
+  /** 목업 act==='wcat' */
+  addCategory(id: string, n: string) { return this.change(id, (w) => { const cats = wikiState(w).cats; cats.push({ id: nid('c'), n, c: AVATAR_COLORS[cats.length % AVATAR_COLORS.length] }) }) }
+
+  /** 목업 act==='wdel': 다른 사건의 연결에서도 지웁니다. 지운 문서의 분류를 돌려줍니다. */
+  deleteDoc(id: string, docId: string) {
+    return this.editDoc(id, docId, (d, w) => {
+      const wiki = wikiState(w)
+      wiki.docs = wiki.docs.filter((x) => x !== d)
+      for (const x of wiki.docs) if (x.links) x.links = x.links.filter((l) => l.to !== d.id)
+      return d.cat
+    }, () => true)
+  }
+
+  /** 목업 data-wf: 제목을 바꾸면 인물 이름도 바꿉니다. 빈 제목은 무시해요. */
+  setDocText(id: string, docId: string, f: 't' | 'body', v: string) {
+    return this.editDoc(id, docId, (d, w) => {
+      if (f === 'body') { d.body = v; return }
+      if (!v) return
+      const old = d.t
+      d.t = v
+      if (d.cat !== 'char') return
+      const c = baseOf(w).cast.find((x) => x.n === old)
+      if (c) c.n = v
+      if (w.castFrom) { w.castFrom[v] = w.castFrom[old]; delete w.castFrom[old] }
+    }, () => f === 't' && !!v)
+  }
+
+  /** 목업 data-wv·wprop: ep가 있으면 그 회차 시점 값으로 저장합니다. 상태는 인물 상태에도 반영해요. */
+  setDocProp(id: string, docId: string, k: string, v: string, ep = 0) {
+    return this.editDoc(id, docId, (d, w) => {
+      if (ep) (d.at[ep] ??= {})[k] = v
+      else d.props[k] = v
+      if (k === '상태' && !ep && d.cat === 'char') { const c = baseOf(w).cast.find((x) => x.n === d.t); if (c) c.st = v }
+    }, () => k === '종류')
+  }
+
+  /** 목업 wprop: 값만 넣고 인물 상태·규칙은 그대로 둡니다. */
+  addDocProp(id: string, docId: string, k: string, v: string) { return this.editDoc(id, docId, (d) => { d.props[k] = v }) }
+
+  /** 목업 data-wk: 속성 이름을 바꾸고 순서는 그대로 둡니다. */
+  renameDocProp(id: string, docId: string, k: string, nk: string) {
+    return this.editDoc(id, docId, (d) => { if (nk && nk !== k) d.props = Object.fromEntries(Object.entries(d.props).map(([a, b]) => [a === k ? nk : a, b])) })
+  }
+
+  /** 목업 data-wev: 사건 시점·라인 */
+  setEvent(id: string, docId: string, patch: Pick<Doc, 'ep' | 'line'>) { return this.editDoc(id, docId, (d) => { Object.assign(d, patch) }) }
+
+  /** 목업 wwho: 등장 인물 칩 */
+  toggleWho(id: string, docId: string, n: string) { return this.editDoc(id, docId, (d) => { const who = d.who ??= []; if (who.includes(n)) who.splice(who.indexOf(n), 1); else who.push(n) }) }
+
+  /** 목업 wlink·wlink-del */
+  addLink(id: string, docId: string, to: string, k: string) { return this.editDoc(id, docId, (d) => { (d.links ??= []).push({ to, k }) }) }
+  removeLink(id: string, docId: string, i: number) { return this.editDoc(id, docId, (d) => { d.links?.splice(i, 1) }) }
+
+  /** 목업 bnew: 시점이 있으면 보드 사건(ownEvents)에도 넣습니다. */
+  addBoardEvent(id: string, t: string, ep: number | undefined, line: string, who: string[]) {
+    return this.change(id, (w) => {
+      wikiState(w).docs.push({ id: nid('d'), cat: 'event', t, alias: [], tags: ep ? ['#' + ep + '화'] : [], props: {}, at: {}, img: null, body: '', ep, line, who, links: [] })
+      if (ep) (w.ownEvents ??= []).push([ep, line, t, who])
+    })
+  }
+
+  /** 목업 knowledgeForm·data-knowledge-delete. 목업 fact는 Knowledge.text에 둡니다. */
+  addKnowledge(id: string, docId: string, k: Knowledge) { return this.editDoc(id, docId, (d) => { (d.knowledge ??= []).push(k) }) }
+  removeKnowledge(id: string, docId: string, i: number) { return this.editDoc(id, docId, (d) => { d.knowledge?.splice(i, 1) }) }
+
+  /** 목업 data-img=doc */
+  setDocImg(id: string, docId: string, img: string) { return this.editDoc(id, docId, (d) => { d.img = img }) }
+
+  /** 목업 forkLinkedWorld: 복사본으로 연결을 바꿉니다. */
+  replaceWorld(id: string, from: string, to: string) { return this.change(id, (w) => { w.worldIds = (w.worldIds ?? []).map((x) => (x === from ? to : x)) }) }
+
+  /** 목업 walias·walias-del·wtag */
+  addDocChip(id: string, docId: string, f: 'alias' | 'tags', v: string) { return this.editDoc(id, docId, (d) => { d[f].push(v) }) }
+  removeAlias(id: string, docId: string, i: number) { return this.editDoc(id, docId, (d) => { d.alias.splice(i, 1) }) }
 
   /** 목업 act==='addev' */
   async addEvent(id: string, key: string) {

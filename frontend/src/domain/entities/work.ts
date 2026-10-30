@@ -1,3 +1,4 @@
+import type { Doc, Wiki } from './wiki'
 import type { World } from './world'
 
 export type Theme = 'hanji' | 'star' | 'neon'
@@ -9,7 +10,7 @@ export type Episode = { t: string; p: string[]; hidden?: boolean; note?: string;
 export type AutoSerial = { on: boolean; status: string; react: boolean; requireReview: boolean; log: string[]; failures?: number }
 /** [회차, 종류(m 주요·f 복선·s 설정), 내용, 관련 인물] */
 export type StoryEvent = [number, string, string, string[]]
-export type WikiDoc = { id: string; cat: string; t: string; knowledge?: Knowledge[] } & Record<string, unknown>
+export type WikiDoc = Doc
 
 export type Snapshot = {
   eps: Episode[]
@@ -64,7 +65,7 @@ export type Work = {
   eps: Episode[]
   worldIds?: string[]
   localRules?: string[]
-  wiki?: { docs: WikiDoc[] } & Record<string, unknown>
+  wiki?: Wiki
   parent?: string
   forkAt?: number
   snap?: Snapshot
