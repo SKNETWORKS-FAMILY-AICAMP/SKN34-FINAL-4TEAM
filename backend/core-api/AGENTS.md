@@ -77,7 +77,8 @@
 ## 검증
 
 - 테스트 패키지는 production 패키지 구조를 따라 배치한다.
-- Core API 변경 후에는 JDK 21 환경에서 `./gradlew clean test --no-daemon`을 실행한다.
-  실행 위치는 `backend/core-api`다. 문서만 변경한 경우는 루트의 문서 검증 기준을 따른다.
+- 로컬: JDK 21 환경의 `backend/core-api`에서 `./gradlew test --tests '<대상 테스트 클래스 또는 패턴>' --no-daemon`으로
+  관련 테스트를 실행한다. 파일 이동·빌드 설정·리소스 변경이나 오래된 산출물이 의심될 때만 `clean`을 추가한다.
+- CI: `./gradlew clean test --no-daemon` 전체 실행. 문서만 변경한 경우는 루트의 문서 검증 기준을 따른다.
 - 파일 이동 후에는 이전 package·import·문서 경로가 남지 않았는지 `rg`로 확인하고
   `git diff --check`를 통과시킨다.
