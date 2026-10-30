@@ -55,6 +55,24 @@ describe('관리자 (A01~A18)', () => {
     expect(sid()).toContain('A07')
   })
 
+  it('댓글 관리에서 숨긴 댓글은 회차 뷰어 목록·개수에서 빠지고 게시 복구하면 돌아온다 (목업 reader() cms)', async () => {
+    const text = '돌다리 장면 묘사 최고… 성진 흔들릴 만하네'
+    const readerCount = async () => { cleanup(); renderAt('/read/guunmong/1', 'user'); return (await screen.findByRole('heading', { name: /^댓글 \d+$/ })).textContent }
+    const before = await readerCount()
+    expect(screen.queryByText(text)).not.toBeNull()
+    const toggle = async () => {
+      cleanup(); renderAt('/admin?tab=comments')
+      fireEvent.click(within((await screen.findByText(text)).closest('tr') as HTMLElement).getByRole('button'))
+      await toastIs('댓글 상태를 변경했어요 (데모)')
+    }
+    await toggle()
+    expect(await readerCount()).toBe('댓글 ' + (Number(before!.split(' ')[1]) - 1))
+    expect(screen.queryByText(text)).toBeNull()
+    await toggle()
+    expect(await readerCount()).toBe(before)
+    expect(screen.queryByText(text)).not.toBeNull()
+  })
+
   it('사용자 이용 제한은 활동 로그에 남는다', async () => {
     renderAt('/admin?tab=users')
     const row = (await screen.findByText('연화봉러')).closest('tr') as HTMLElement
