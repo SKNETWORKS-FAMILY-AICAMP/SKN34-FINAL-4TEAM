@@ -76,8 +76,8 @@ MVP 설계는 [설계 문서](docs/design/design.md)에 있습니다. 세계관�
 
 ## 아키텍처와 현재 기술 기반
 
-기존 **서비스 책임을 분리한 MSA + 기능 중심 레이어드 구조**를 발전시킵니다.
-전면 Clean Architecture 전환이나 기능별 서버 복제는 전제하지 않습니다.
+기존 **서비스 책임을 분리한 MSA 구조**를 발전시킵니다. Frontend는 TypeScript로 **Clean Architecture·MVVM**을,
+백엔드는 **기능 중심 레이어드 구조**를 따릅니다. 기능별 서버 복제는 전제하지 않습니다.
 
 ```text
 Frontend (React)

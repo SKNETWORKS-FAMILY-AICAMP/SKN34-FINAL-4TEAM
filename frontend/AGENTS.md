@@ -14,13 +14,32 @@
 
 ## 구조와 의존성
 
-- 현재 Health는 `View → Hook → DI 외부 함수 → Fetch·Zod` 흐름이다.
-  업무 기능이 생길 때만 `View → ViewModel → UseCase → Repository → HTTP DTO`를 적용한다.
-  View는 렌더링·접근성을 담당하고 ViewModel을 통해 상태와 행동을 사용한다.
-- ViewModel은 전역 `appContainer`에서 필요한 UseCase·외부 API 기능만 조회한다.
-  Repository를 직접 생성·조회하지 않으며 생성·연결은 기존 Awilix `app/di`에서 관리한다.
+- 언어는 TypeScript를 사용한다. 새 소스는 `.ts`·`.tsx`로 작성하고 `any`와 타입 단언 남용을 피한다.
+  외부 응답은 Zod로 검증한 뒤 타입으로 사용한다.
+- 업무 기능은 Clean Architecture와 MVVM으로 개발한다. 기준 구조는
+  [SKN34-4th-1Team Frontend](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-1Team/blob/main/docs/architecture/README.md#frontend-화면과-데이터-처리-분리)를 따른다.
+  - 실행 흐름: `View → ViewModel → UseCase → Repository 구현 → HTTP API`
+  - 의존 방향: `Presentation → Domain ← Data`. Domain은 Data·Presentation·React를 import하지 않는다.
+  - 객체 조립: `app/di`(Awilix)에서 UseCase와 Repository 구현체를 연결한다.
+
+| 위치 | 역할 |
+|---|---|
+| `presentation/features/<기능>/view` | 렌더링·스타일·접근성. ViewModel이 반환한 상태와 handler만 사용 |
+| `presentation/features/<기능>/viewmodel` | Custom Hook ViewModel. 화면 상태·동작 제공, `appContainer`에서 UseCase 조회 |
+| `presentation/features/<기능>/state` | 화면 간 유지할 Redux slice |
+| `presentation/shared` | 여러 기능이 공유하는 화면 요소 |
+| `domain/entities` | 업무 데이터 타입 |
+| `domain/usecases` | 사용자 기능 실행. Repository interface만 생성자로 받음 |
+| `domain/repositories` | Repository interface |
+| `data` | Repository 구현·Fetch·HTTP DTO의 Zod 검증과 Entity 변환 |
+| `app` | Awilix 등록, Redux Store |
+
+- View는 `appContainer`를 직접 조회하지 않는다. ViewModel은 UseCase·외부 API 기능만 조회하고
+  Repository를 직접 생성·조회하지 않는다.
+- feature끼리 다른 feature의 ViewModel·Store를 참조하지 않는다. 공유 요소만 `presentation/shared`에 둔다.
+- 현재 Health처럼 업무 규칙이 없는 단순 연결 확인은 `View → Hook → DI 외부 함수 → Fetch·Zod`를 유지하며
+  빈 UseCase·Repository를 추가하지 않는다.
 - 브라우저는 공개 Core API만 호출한다. AI Service·OpenAI를 직접 호출하거나 내부 DTO를 공개 계약으로 사용하지 않는다.
-- Fetch와 Zod 응답 검증은 Data Layer에 둔다. Health처럼 단순 연결 확인에 불필요한 업무 계층을 추가하지 않는다.
 
 ## 상태·요청·화면
 
@@ -39,5 +58,6 @@
 - 코드 변경 시 해당 회귀 테스트와 영향받은 동작·화면을 확인한다. `pnpm test -- <테스트 경로>`로 범위를 지정할 수 있다.
 - 전체 검증 명령은 `pnpm test`, `pnpm lint`, `pnpm build`다. 변경 영향이나 필수 검증 요구에 맞게 선택하며
   작은 수정이나 문서 변경을 이유로 불필요한 전체 빌드를 반복하지 않는다.
+- UseCase 테스트는 Fake Repository를 사용한다.
 - ViewModel 테스트는 Fake UseCase나 격리 컨테이너를 사용하고 전역 컨테이너를 덮어쓰지 않는다.
 - 상세 구조·상태 관리와 실행 방법은 [Frontend README](README.md)를 참고한다.

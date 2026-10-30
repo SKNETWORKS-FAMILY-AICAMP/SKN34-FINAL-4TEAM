@@ -20,7 +20,8 @@
 
 ## 서비스 책임
 
-- 기존 MSA 서비스 경계와 기능 중심 레이어드 구조를 발전시킨다. 전면 Clean Architecture 전환을 전제하지 않는다.
+- 기존 MSA 서비스 경계를 발전시킨다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
+  백엔드는 기능 중심 레이어드 구조를 유지한다. 세부 규칙은 [Frontend 지침](frontend/AGENTS.md)을 따른다.
 - **Frontend:** 화면·사용자 상호작용을 담당하고 공개 Core API만 호출한다.
 - **Core API:** 작품·세계관·회차 버전·Fork의 정본과 권한·승인·발행·크레딧의 최종 판단·저장을 소유한다.
 - **AI Service:** 허용된 문맥에서 생성·시뮬레이션·검토 제안을 반환한다. 정본 직접 수정이나 권한·과금 확정을 하지 않는다.
