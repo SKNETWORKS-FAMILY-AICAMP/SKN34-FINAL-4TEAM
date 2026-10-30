@@ -100,7 +100,30 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),
     auto: s ? autoOf(s.work) : null,
     saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => run(() => studioUseCase.saveNotes(id, patch)),
-    setCastStatus: (i: number, st: string) => run(() => studioUseCase.setCastStatus(id, i, st)),
+    setCastStatus: async (i: number, st: string) => {
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.setCastStatus(id, i, st) })
+      if (msg) toast(msg)
+    },
+    /** 목업 data-work-setting: 결과가 없으면(취소) 화면이 체크를 되돌리도록 다시 불러옵니다. */
+    setSetting: async (k: 'autoWorld' | 'typoAuto', on: boolean) => {
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.setSetting(id, k, on, (credits) => confirmAi('세계관 자동 업데이트 설정 · 회당 예시 5', 0, credits)) })
+      if (msg) toast(msg)
+    },
+    extractWorld: async (n: number) => {
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.extractWorld(id, n, (credits) => confirmAi('세계관 설정 추출', 5, credits)) })
+      if (msg) toast(msg)
+    },
+    acceptWorld: async () => { let msg = ''; await run(async () => { msg = await studioUseCase.acceptWorld(id) }); toast(msg) },
+    discardWorld: async () => { await run(() => studioUseCase.discardWorld(id)); toast('후보를 제외했어요') },
+    setRelease: async (kind: 'rule' | 'event' | 'cast', i: number, value: string) => {
+      let msg: string | null = null
+      await run(async () => { msg = await studioUseCase.setRelease(id, kind, i, value) })
+      if (msg) toast(msg)
+      return msg
+    },
     addEvent: async () => { await run(() => studioUseCase.addEvent(id, key)); toast('이 소설에만 사건을 추가했어요') },
     preview: async () => { await sync.current; toast(shown.length ? `${shown.length}문단 · 공개 전 미리보기는 공개 후 회차 뷰어에서 볼 수 있어요` : '아직 소설이 비어 있어요') },
     toggleAuto: async () => {

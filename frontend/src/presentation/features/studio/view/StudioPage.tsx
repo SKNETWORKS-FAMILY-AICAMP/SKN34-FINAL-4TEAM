@@ -217,21 +217,40 @@ function TimelinePanel({ vm }: { vm: VM }) {
   )
 }
 
-/**
- * 목업 studio() tab==='note': U19 설정 노트.
- * ponytail: 규칙·인물 상태만 옮겼어요. 세계관 자동 업데이트·표기 오류 자동 승인·설정 추출·독자 공개 시작 회차는 세계관 저장 구조와 함께 옮겨요.
- */
+/** 목업 studio() tab==='note': U19 설정 노트 */
 function NotePanel({ vm }: { vm: VM }) {
   const s = vm.studio!, w = s.work
+  const st = w.settings ?? { autoWorld: false, typoAuto: false }
+  const [extractNo, setExtractNo] = useState(1)
+  const release = !w.parent && !!w.worldIds
+  const from = (m: Record<string, number> | undefined, k: string) => { const n = m?.[k]; return n !== undefined && Number.isFinite(n) ? String(n) : '' }
+  // 목업 onchange처럼 입력을 마칠 때 저장하고, 거부되면 목업처럼 칸을 비웁니다.
+  const releaseInput = (kind: 'rule' | 'event' | 'cast', i: number, value: string, label: string) => (
+    <label className="field">{label}<input className="inp" type="number" min="1" step="1" key={value} defaultValue={value} onBlur={async (e) => {
+      const el = e.currentTarget
+      if (el.value !== value && await vm.setRelease(kind, i, el.value) === '1 이상의 회차를 입력해 주세요') el.value = ''
+    }} /></label>
+  )
   return (
     <div className="spanel nt">
+      <h4>작품 설정</h4>
+      <label className="field"><span><input type="checkbox" checked={st.autoWorld} onChange={(e) => vm.setSetting('autoWorld', e.target.checked)} /> 새 회차 발행 후 세계관 자동 업데이트</span></label>
+      <label className="field"><span><input type="checkbox" checked={st.typoAuto} onChange={(e) => vm.setSetting('typoAuto', e.target.checked)} /> 표기 오류 수정안 자동 승인·발행</span></label>
+      <label className="field">추출할 발행 회차<select className="inp" id="extractEpisode" value={extractNo} onChange={(e) => setExtractNo(+e.target.value)}>{w.eps.map((ep, i) => <option key={i} value={i + 1}>{i + 1}화 · {ep.t}</option>)}</select></label>
+      <button type="button" className="btn sm" onClick={() => vm.extractWorld(extractNo)}>설정 추출 (데모)</button>
+      {w.worldCandidate && <div className="note2"><b>검토 대기 · 원고 발췌 예시</b><p>{w.worldCandidate.text}</p><button type="button" className="btn sm" onClick={vm.acceptWorld}>세계관에 반영</button><button type="button" className="btn sm" onClick={vm.discardWorld}>제외</button></div>}
       <Go to={`/studio/${w.id}?view=wiki`} className="btn sm">📖 사전에서 인물·세계관 자세히 관리 →</Go>
-      <h4>세계관 규칙 {w.parent ? '(스냅샷)' : ''}</h4><ul>{s.base.rules.map((r) => <li key={r}>{r}</li>)}</ul>
+      <h4>세계관 규칙 {w.parent ? '(스냅샷)' : ''}</h4><ul>{s.base.rules.map((r, i) => <li key={r}>{r}{release && releaseInput('rule', i, from(w.ruleFrom, r), '독자 공개 시작 회차 (비우면 비공개)')}</li>)}</ul>
+      {release && <><h4>사건의 독자 공개</h4>{s.base.events.concat(w.ownEvents ?? []).map((ev, i) => <div key={i}>{releaseInput('event', i, from(w.eventFrom, ev[2]), `${ev[2]} · 공개 시작 회차 (비우면 비공개)`)}</div>)}</>}
       <h4>인물 상태 {w.parent ? `· ${w.forkAt}화 시점에서 복사` : ''}</h4>
-      {s.base.cast.map((c, i) => (
-        <div className="pc" key={c.n}><i style={{ background: c.c }} /><div><b>{c.n}</b><span>{c.d}</span></div>
-          <select aria-label={`${c.n} 상태`} value={c.st} onChange={(e) => vm.setCastStatus(i, e.target.value)}>{['흔들림', '결심', '엄격', '호기심', '결의', '경계', '여유', '의문', '설움', '근심', '—'].map((o) => <option key={o}>{o}</option>)}</select></div>
-      ))}
+      {s.base.cast.map((c, i) => {
+        const pc = s.parentCast?.find((x) => x.n === c.n)
+        return (
+          <div className="pc" key={c.n}><i style={{ background: c.c }} /><div><b>{c.n}</b><span>{c.d}{pc ? ` · 원작: ${pc.st}` : ''}</span></div>
+            {release && releaseInput('cast', i, from(w.castFrom, c.n), `${c.n} 독자 공개 시작 회차 (비우면 비공개)`)}
+            <select aria-label={`${c.n} 상태`} value={c.st} onChange={(e) => vm.setCastStatus(i, e.target.value)}>{['흔들림', '결심', '엄격', '호기심', '결의', '경계', '여유', '의문', '설움', '근심', '—'].map((o) => <option key={o}>{o}</option>)}</select></div>
+        )
+      })}
       <p className="note2">{w.parent ? '여기서 바꾼 상태는 이 소설의 스냅샷에만 저장돼요. 원작 값은 회색 글씨로 같이 보여요.' : '원작의 설정이에요. 이미 포크 소설들은 각자의 스냅샷을 쓰기 때문에 영향을 받지 않아요.'}</p>
     </div>
   )

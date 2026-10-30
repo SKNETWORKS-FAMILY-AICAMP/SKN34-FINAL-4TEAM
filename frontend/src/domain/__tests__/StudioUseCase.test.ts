@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
+import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
 const setup = () => {
   const db = createMockDb()
-  return { db, useCase: new StudioUseCase(new InMemoryWorkRepository(db), new InMemoryCreditRepository(db), new InMemoryFeedbackRepository(db)) }
+  return { db, useCase: new StudioUseCase(new InMemoryWorkRepository(db), new InMemoryCreditRepository(db), new InMemoryFeedbackRepository(db), new InMemoryWorldRepository(db)) }
 }
 const opened = async (u: StudioUseCase, id: string, ep?: number) => {
   const s = await u.open(id, ep, 'user')

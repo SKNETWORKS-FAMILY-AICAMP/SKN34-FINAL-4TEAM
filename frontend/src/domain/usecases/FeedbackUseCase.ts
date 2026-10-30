@@ -45,18 +45,25 @@ export class FeedbackUseCase {
     return this.feedbackRepository.toggleCommentLike(key)
   }
 
-  // ponytail: 목업의 작품 설정 typoAuto(표기 오류 자동 발행)는 공개 설정 화면이 생길 때 추가한다.
   async sendFeedback(o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; verified: boolean; nick: string }) {
     const w = await this.work(o.workId)
     const proposal = o.type === '단순 오류' ? typoReply(w, o.n, o.sentence, o.text) : null
+    const par = w.eps[o.n - 1]?.p
+    // 목업 typoAuto: 작품 설정의 자동 승인이 켜져 있으면 본문을 바로 고치고 피드백함에 넣지 않습니다.
+    const autoApplied = !!(proposal?.key && w.settings?.typoAuto && !w.hidden && par?.[o.sentence.pi]?.includes(proposal.key))
+    if (autoApplied && par && proposal?.key) {
+      par[o.sentence.pi] = par[o.sentence.pi].replace(proposal.key, TYPO[proposal.key])
+      await this.workRepository.saveWork(w)
+    }
     const [status, message] =
-      proposal ? ['작가 검토 대기', proposal.reply]
+      autoApplied ? ['처리 완료', '작품 설정의 자동 승인으로 표기 오류 수정안을 발행했어요 (데모).']
+        : proposal ? ['작가 검토 대기', proposal.reply]
         : o.type === '질문' ? ['응답 완료', `공개된 ${o.n}화의 선택 문장을 근거로 답변을 준비했어요 (데모): “${o.sentence.t}”`]
           : o.type === '스토리 오류' ? ['작가 검토 대기', o.verified ? '검증 시뮬레이션 동의를 확인했어요. 실제 분석은 연결되지 않아 작가 검토 대상으로 접수했어요.' : '스토리 오류는 자동 판단하지 않고 작가 검토 대상으로 접수했어요.']
             : ['작가 검토 대기', '전개 제안을 오류로 단정하지 않고 작가 검토 대상으로 접수했어요.']
     const rid = nid('f')
     await this.feedbackRepository.addReport({ id: rid, w: o.workId, n: o.n, type: o.type, text: o.text, status, reply: message })
-    if (isMine(w) && o.type !== '질문') {
+    if (isMine(w) && o.type !== '질문' && !autoApplied) {
       await this.feedbackRepository.addInbox({
         id: nid('i'), rid, w: o.workId, n: o.n, pi: o.sentence.pi, type: o.type, who: o.nick, text: o.text, baseText: w.eps[o.n - 1]?.p[o.sentence.pi] ?? '',
         status: '작가 검토 대기', ai: { cls: o.type, why: '사용자가 고른 유형을 그대로 전달합니다. 자동 분류하지 않았어요.', ev: o.sentence.t },
