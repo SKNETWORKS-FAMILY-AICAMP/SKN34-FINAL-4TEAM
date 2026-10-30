@@ -2,40 +2,36 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
-import { useAppDispatch } from '../../../../app/store'
+import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import type { LibraryUseCase, NewWorkInput, WorldForm, WorldPermission } from '../../../../domain/usecases/LibraryUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
-
-const EMPTY: NewWorkInput = {
-  worldIds: [], schedule: ['비정기'], tags: [], title: '', summary: '', localRules: '',
-  cast: [{ n: '', d: '' }, { n: '', d: '' }, { n: '', d: '' }], genre: '판타지', rating: '일반', fork: 'all', cover: null,
-}
+import { newWorkActions } from '../state/newWorkSlice'
 
 /**
  * 목업 newWork()·NEW·worldManager: U28 새 소설 만들기.
- * 작성 중인 값은 화면 상태라 세계관을 바꿔도 남고, 정책 확인은 화면에 들어올 때마다 다시 받습니다.
+ * 작성 중인 값은 목업 NEW처럼 Redux에 남고, 정책 확인은 화면에 들어올 때마다 다시 받습니다.
  */
 export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContainer.resolve('libraryUseCase')) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const [policyAccepted, setPolicyAccepted] = useState(false)
-  const [form, setForm] = useState(EMPTY)
+  const form = useAppSelector((s) => s.newWork)
   const { data: worlds } = useAsyncData(() => libraryUseCase.getWorlds(), [libraryUseCase])
   useScreenId('U28')
 
-  const set = (patch: Partial<NewWorkInput>) => setForm((f) => ({ ...f, ...patch }))
-  const select = (id: string) => setForm((f) => ({ ...f, worldIds: [...new Set([...f.worldIds, id])] }))
+  const set = (patch: Partial<NewWorkInput>) => dispatch(newWorkActions.set(patch))
+  const select = (id: string) => set({ worldIds: [...new Set([...form.worldIds, id])] })
   const changed = (msg: string) => { dispatch(sessionActions.dataChanged()); toast(msg) }
 
   return {
     policyAccepted,
     acceptPolicy: (ack: boolean) => ack ? setPolicyAccepted(true) : toast('정책 확인 항목에 동의해 주세요'),
     form, set, worlds,
-    toggleWorld: (id: string, on: boolean) => setForm((f) => ({ ...f, worldIds: on ? [...new Set([...f.worldIds, id])] : f.worldIds.filter((x) => x !== id) })),
-    setCast: (i: number, key: 'n' | 'd', v: string) => setForm((f) => ({ ...f, cast: f.cast.map((c, n) => n === i ? { ...c, [key]: v } : c) })),
+    toggleWorld: (id: string, on: boolean) => set({ worldIds: on ? [...new Set([...form.worldIds, id])] : form.worldIds.filter((x) => x !== id) }),
+    setCast: (i: number, key: 'n' | 'd', v: string) => set({ cast: form.cast.map((c, n) => n === i ? { ...c, [key]: v } : c) }),
     addTag: (raw: string) => {
       const tag = raw.trim().replace(/^#+/, '').trim()
       if (!tag) { toast('태그를 입력해 주세요'); return false }
@@ -106,12 +102,13 @@ export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContaine
       if ('error' in linked) return toast(linked.error)
       if (!window.confirm('이 세계관을 삭제할까요?')) return
       await libraryUseCase.deleteWorld(id)
-      setForm((f) => ({ ...f, worldIds: f.worldIds.filter((x) => x !== id) }))
+      set({ worldIds: form.worldIds.filter((x) => x !== id) })
       changed('세계관을 삭제했어요 (데모)')
     },
     create: async () => {
       const r = await libraryUseCase.createWork(form)
       if ('error' in r) return toast(r.error)
+      dispatch(newWorkActions.created())
       dispatch(sessionActions.dataChanged())
       toast('소설을 만들었어요 · 나만 보기 상태예요')
       navigate('/studio/' + r.id)

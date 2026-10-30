@@ -13,9 +13,8 @@ const RIGHT = 'M9 5l7 7-7 7'
 const shortTitle = (w: Work) => w.title.split(': ').pop()
 
 /** 목업 bindHero(): 4.5초마다 넘기고, 마우스를 올리거나 시트가 열려 있으면 멈춥니다. */
-function Hero({ works }: { works: Work[] }) {
+function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: number; stepHero: (d: number) => void; setHero: (i: number) => void }) {
   const track = useRef<HTMLDivElement>(null)
-  const [hero, setHero] = useState(0)
   const [resize, setResize] = useState(0)
   const N = works.length
   useLayoutEffect(() => {
@@ -27,18 +26,18 @@ function Hero({ works }: { works: Work[] }) {
     if (hero > max) return setHero(0)
     if (hero < 0) return setHero(max)
     tr.style.transform = `translateX(${-hero * wdt}px)`
-  }, [hero, resize, N])
+  }, [hero, resize, N, setHero])
   useEffect(() => {
-    const t = setInterval(() => { if (!document.querySelector('.hero:hover, dialog[open]')) setHero((h) => h + 1) }, 4500)
+    const t = setInterval(() => { if (!document.querySelector('.hero:hover, [role=dialog]')) stepHero(1) }, 4500)
     const r = () => setResize((x) => x + 1)
     addEventListener('resize', r)
     return () => { clearInterval(t); removeEventListener('resize', r) }
-  }, [])
+  }, [stepHero])
   const shown = Math.min(Math.max(hero, 0), N - 1)
   return (
     <section className="hero">
       <span className="cnt" id="cnt">{shown + 1} / {N}</span>
-      <button type="button" className="arr l" aria-label="이전 소설" onClick={() => setHero((h) => h - 1)}><Chev d={LEFT} /></button>
+      <button type="button" className="arr l" aria-label="이전 소설" onClick={() => stepHero(-1)}><Chev d={LEFT} /></button>
       <div className="vp">
         <div className="track" id="track" ref={track}>
           {works.map((w) => (
@@ -52,7 +51,7 @@ function Hero({ works }: { works: Work[] }) {
           ))}
         </div>
       </div>
-      <button type="button" className="arr r" aria-label="다음 소설" onClick={() => setHero((h) => h + 1)}><Chev d={RIGHT} /></button>
+      <button type="button" className="arr r" aria-label="다음 소설" onClick={() => stepHero(1)}><Chev d={RIGHT} /></button>
       <div className="dots" id="dots">{works.map((w, i) => <i key={w.id} className={i === shown ? 'on' : ''} />)}</div>
     </section>
   )
@@ -123,7 +122,7 @@ export function HomePage() {
         )}
         {h && !h.filtered && (
           <>
-            <div className="herow"><Hero works={h.originals} /><Top10 list={h.top10} works={h.works} /></div>
+            <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} /></div>
             <section className="sec" style={{ marginTop: 28 }}>
               <div className="sec-h"><h2>방금 올라온 포크 소설</h2><span className="muted small">원작의 한 회차에서 포크됐어요</span><Go to="/rank?t=if" className="more">전체 보기 ›</Go></div>
               <div className="rings">

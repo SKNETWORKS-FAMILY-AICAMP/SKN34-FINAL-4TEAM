@@ -238,21 +238,21 @@ export class LibraryUseCase {
   }
 
   /** 목업 saveimp */
-  async saveImport({ kind, worldId }: { kind: string; worldId: string }): Promise<{ error: string } | { ok: true }> {
+  async saveImport({ kind, worldId, cast, world: facts, events }: { kind: string; worldId: string; cast: string[]; world: string[]; events: string[] }): Promise<{ error: string } | { ok: true }> {
     const works = await this.workRepository.listWorks()
     if (works.some((w) => w.id === 'chunhyang')) return { error: '이미 저장했어요' }
     const world = mineOnly(await this.worldRepository.list(), worldId)
     if (!world) return { error: '연결할 내 세계관을 선택해 주세요' }
-    const localRules = IMPORT.world.filter((x) => x.startsWith('규칙')).map((x) => x.slice(4))
+    const localRules = facts.filter((x) => x.startsWith('규칙')).map((x) => x.slice(4))
     const rules = [...new Set(world.rules.concat(localRules))]
     const w = original({
       id: 'chunhyang', worldIds: [world.id], localRules, eventFrom: {}, ruleFrom: Object.fromEntries(rules.map((r) => [r, Infinity])),
-      castFrom: Object.fromEntries(IMPORT.cast.map((c) => [c.split(' · ')[0], Infinity])), title: '춘향전 (가져온 소설)', theme: 'hanji',
+      castFrom: Object.fromEntries(cast.map((c) => [c.split(' · ')[0], Infinity])), title: '춘향전 (가져온 소설)', theme: 'hanji',
       genre: '고전 로맨스', author: '나', owner: 'me', kind, rights: kind === '다른 사람 소설' ? '미확인' : '확인됨', private: true,
       by: '가져온 소설 · ' + kind, tags: [], hash: ['#광한루', '#고전리메이크'], likes: 0, views: 0, cmts: 0, upd: 0,
       hero: ['단옷날 광한루,', '그네 타던 소녀'], heroBg: '#5B4A3A', hook: '단옷날, 그네 위의 춘향', summary: '남원 광한루에서 만난 춘향과 몽룡의 소설.', forkFrom: 2,
-      cast: IMPORT.cast.map((c, n) => ({ n: c.split(' · ')[0], c: AVATAR_COLORS[n % AVATAR_COLORS.length], d: c.split(' · ')[1] || '', st: '—' })),
-      rules, events: IMPORT.events.map((e) => [+e[0], 'm', e.slice(3), []]),
+      cast: cast.map((c, n) => ({ n: c.split(' · ')[0], c: AVATAR_COLORS[n % AVATAR_COLORS.length], d: c.split(' · ')[1] || '', st: '—' })),
+      rules, events: events.map((e) => [+e[0], 'm', e.slice(3), []]),
       eps: [{ t: '광한루', p: ['단옷날, 남원 광한루 앞 버드나무에 그네가 걸렸다.', '이몽룡은 그네 위의 소녀에게서 눈을 떼지 못했다.'] }],
     })
     if (w.rights === '미확인') w.forksAllowed = false

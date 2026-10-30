@@ -31,6 +31,9 @@ export function useReaderViewModel(id: string, n: number,
   }, [readingUseCase, feedbackUseCase, id, n, role])
   const [selected, setSelected] = useState<{ k: number; top: number; left: number; pop: boolean } | null>(null)
   const [sheet, setSheet] = useState<ReaderSheet>(null)
+  // 목업 render(): 다른 회차로 옮기면 문장 팝업과 선택을 지웁니다.
+  const [shown, setShown] = useState(id + '/' + n)
+  if (shown !== id + '/' + n) { setShown(id + '/' + n); setSelected(null) }
   const ok = data && data !== 'hidden' ? data : null
   const setEnd = useCallback((end: boolean) => { dispatch(sessionActions.setBaseScreen(end ? 'U08' : 'U05')) }, [dispatch])
   useScreenId(ok ? 'U05' : null)

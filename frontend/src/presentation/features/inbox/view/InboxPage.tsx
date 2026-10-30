@@ -12,6 +12,9 @@ export function InboxPage() {
   const [q] = useSearchParams()
   const vm = useInboxViewModel(q.get('i'))
   const [answer, setAnswer] = useState('')
+  // 목업 inbox()는 항목이 바뀔 때마다 #ans를 새로 그립니다.
+  const [shown, setShown] = useState(vm.data?.it?.id)
+  if (shown !== vm.data?.it?.id) { setShown(vm.data?.it?.id); setAnswer('') }
   if (!vm.data) return null
   const { items, it, current: cur } = vm.data
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { matchPath, useLocation, useNavigate, useSearchParams } from 'react-router'
 
 import { appContainer } from '../../../app/appContainer'
 import { useAppSelector } from '../../../app/store'
@@ -13,7 +13,9 @@ export function useQuickViewModel(readingUseCase: ReadingUseCase = appContainer.
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
   const [sel, setSel] = useState(0)
-  const { data: items = [] } = useAsyncData(() => (open ? readingUseCase.getQuickItems(role) : Promise.resolve([])), [readingUseCase, open, role])
+  const studioId = matchPath('/studio/:id', useLocation().pathname)?.params.id
+  const ep = useSearchParams()[0].get('ep')
+  const { data: items = [] } = useAsyncData(() => (open ? readingUseCase.getQuickItems(role, studioId ? { id: studioId, ep } : undefined) : Promise.resolve([])), [readingUseCase, open, role, studioId, ep])
 
   useEffect(() => {
     const show = () => { setQ(''); setSel(0); setOpen(true) }

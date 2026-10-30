@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 
 import { NOVEL_GENRES, NOVEL_TAG_GROUPS, type WorldForm, type WorldPermission } from '../../../../domain/usecases/LibraryUseCase'
 import type { World } from '../../../../domain/entities/world'
@@ -58,6 +58,7 @@ function NewWorkForm({ vm }: { vm: VM }) {
   const { form: f, worlds } = vm
   const [tagInput, setTagInput] = useState('')
   const [tagPick, setTagPick] = useState('')
+  const tagRef = useRef<HTMLInputElement>(null)
   const addTag = (v: string) => { if (vm.addTag(v)) { setTagInput(''); setTagPick('') } }
   return (
     <div className="fork newwork-page">
@@ -76,16 +77,16 @@ function NewWorkForm({ vm }: { vm: VM }) {
         <fieldset className="novel-days" id="nwschedule"><legend>연재 요일</legend><p className="small muted" style={{ margin: '0 0 8px' }}>요일은 여러 개 선택할 수 있어요.</p><div className="novel-choices">
           {[...DAYS, '비정기'].map((day) => (
             <label className="novel-choice" key={day}><input type="checkbox" name={day === '비정기' ? undefined : 'novelDay'} id={day === '비정기' ? 'nwIrregular' : undefined} value={day} checked={f.schedule.includes(day)}
-              onChange={(e) => vm.set({ schedule: [...DAYS, '비정기'].filter((d) => d === day ? e.target.checked : f.schedule.includes(d)) })} />{day}</label>
+              onChange={(e) => vm.set({ schedule: day === '비정기' && e.target.checked ? ['비정기'] : [...DAYS, '비정기'].filter((d) => d === day ? e.target.checked : d !== '비정기' && f.schedule.includes(d)) })} />{day}</label>
           ))}
         </div></fieldset>
         <label className="field">연령 제한<select className="inp" id="nwRating" value={f.rating} onChange={(e) => vm.set({ rating: e.target.value })}><option value="일반">일반</option><option value="성인">성인 (19세 이상)</option></select></label>
         <label className="field newwork-wide">한 줄 소개<input className="inp" id="nws" value={f.summary} onChange={(e) => vm.set({ summary: e.target.value })} maxLength={80} placeholder="예: 매일 밤 꺼지는 등대, 그 이유를 아는 사람은 한 명뿐이다" /></label>
         <div className="field newwork-wide" id="nwTags"><span>해시태그 <span className="muted">· 최소 2개</span></span><span className="small muted" id="nwTagCount" aria-live="polite">{f.tags.length}개 선택 · 최소 2개</span>
-          <div className="novel-tag-actions"><label className="field" htmlFor="nwTagInput">직접 입력<input className="inp" id="nwTagInput" autoComplete="off" placeholder="태그를 입력하고 Enter를 누르세요" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); addTag(tagInput) } }} /></label><button className="btn sm" type="button" id="nwTagAdd" onClick={() => addTag(tagInput)}>직접 추가</button></div>
+          <div className="novel-tag-actions"><label className="field" htmlFor="nwTagInput">직접 입력<input ref={tagRef} className="inp" id="nwTagInput" autoComplete="off" placeholder="태그를 입력하고 Enter를 누르세요" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); addTag(tagInput) } }} /></label><button className="btn sm" type="button" id="nwTagAdd" onClick={() => addTag(tagInput)}>직접 추가</button></div>
           <div className="novel-tag-actions" style={{ marginTop: 10 }}><label className="field" htmlFor="nwTagSelect">추천 태그<select className="inp" id="nwTagSelect" value={tagPick} onChange={(e) => setTagPick(e.target.value)}><option value="">추천 태그를 선택해 주세요</option>{Object.entries(NOVEL_TAG_GROUPS).map(([group, tags]) => <optgroup key={group} label={group}>{tags.map((t) => <option key={t} value={t}>{t}</option>)}</optgroup>)}</select></label><button className="btn sm" type="button" id="nwTagSelectAdd" onClick={() => tagPick ? addTag(tagPick) : toast('추천 태그를 선택해 주세요')}>선택 추가</button></div>
           <div className="novel-tag-chips" id="nwTagChips" aria-live="polite">{f.tags.length ? f.tags.map((tag) => (
-            <span className="novel-tag-chip" key={tag}><span>#{tag}</span><button type="button" aria-label={`${tag} 태그 삭제`} onClick={() => vm.removeTag(tag)}><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg></button></span>
+            <span className="novel-tag-chip" key={tag}><span>#{tag}</span><button type="button" aria-label={`${tag} 태그 삭제`} onClick={() => { vm.removeTag(tag); tagRef.current?.focus() }}><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg></button></span>
           )) : <span className="small muted">추가한 태그가 여기에 표시돼요.</span>}</div>
         </div>
         <div className="field newwork-wide">표지 이미지 <span className="muted small">(선택 · jpg·png)</span><div className="nwcov"><div className="pv" id="nwcovpv">{f.cover ? <img className="cimg" src={f.cover} alt="표지 미리보기" /> : <span>3:4 비율 추천</span>}</div>
@@ -120,7 +121,7 @@ function WorldManager({ vm }: { vm: VM }) {
         <button className="btn pri" type="submit">비공개 세계관 만들기</button>
       </form>
       <div className="sec"><div className="sec-h"><h2>만든 세계관</h2></div>
-        {w.mine.length ? w.mine.map((world) => <MyWorld key={world.id + (world.history?.length ?? 0)} world={world} vm={vm} />) : <p className="muted">아직 만든 세계관이 없어요.</p>}
+        {w.mine.length ? w.mine.map((world) => <MyWorld key={world.id} world={world} vm={vm} />) : <p className="muted">아직 만든 세계관이 없어요.</p>}
       </div>
       <div className="sec"><h2>이용 가능한 공개 세계관</h2>
         {w.usable.length ? w.usable.map(({ world, rules }) => (
@@ -150,9 +151,12 @@ function WorldManager({ vm }: { vm: VM }) {
 function MyWorld({ world: w, vm }: { world: World; vm: VM }) {
   const history = w.history ?? []
   const [version, setVersion] = useState(history.length - 1)
+  // 새 이력이 생기면 최신 버전을 고릅니다. 저장하지 않은 편집 입력은 그대로 둡니다 (목업 data-rule-public).
+  const [seen, setSeen] = useState(history.length)
+  if (seen !== history.length) { setSeen(history.length); setVersion(history.length - 1) }
   return (
     <div className="panel" style={{ marginBottom: 12 }}>
-      <form data-world-edit={w.id} onSubmit={(e) => { e.preventDefault(); vm.editWorld(w.id, worldForm(e)) }}>
+      <form key={[w.name, w.description, ...w.rules].join('\n')} data-world-edit={w.id} onSubmit={(e) => { e.preventDefault(); vm.editWorld(w.id, worldForm(e)) }}>
         <label className="field">이름<input className="inp" name="name" defaultValue={w.name} maxLength={60} required /></label>
         <label className="field">설명<textarea className="ta" name="description" defaultValue={w.description} maxLength={500} /></label>
         <label className="field">세계관 규칙 (한 줄에 하나)<textarea className="ta" name="rules" defaultValue={w.rules.join('\n')} maxLength={2000} /></label>
