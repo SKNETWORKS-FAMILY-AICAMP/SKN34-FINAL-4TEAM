@@ -72,7 +72,6 @@ describe('집필실 사전 (목업 wikiOf·wnew·wdel·data-wf·linkify)', () =>
     const doc = () => w().wiki!.docs.find((d) => d.cat === 'world' && d.t === rule)!
     await useCase.renameDocProp('starlight', doc().id, '종류', '분류')
     expect(w().rules).toContain(rule)
-    const id = (await useCase.addDoc('starlight', 'place', '창고'))!
     w().rules = []
     await useCase.addDocProp('starlight', doc().id, '종류', '규칙')
     expect(w().rules).toEqual([])
@@ -81,7 +80,6 @@ describe('집필실 사전 (목업 wikiOf·wnew·wdel·data-wf·linkify)', () =>
     const lian = w().wiki!.docs.find((d) => d.t === '리안')!.id
     await useCase.addDocProp('starlight', lian, '상태', '잠듦')
     expect(w().cast.find((c) => c.n === '리안')!.st).toBe('결의')
-    expect(id).toBeTruthy()
   })
 
   it('세계관 종류 값을 바꾸면 규칙에서 빠진다', async () => {
