@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
+import type { LibraryUseCase } from '../../../../domain/usecases/LibraryUseCase'
 import { autoOf, simTurns, type PublishSettings, type StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
@@ -11,7 +12,7 @@ import { confirmAi, useAiDemo } from '../../../shared/useAiDemo'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
 /** 목업 studio()·bindStudio·syncDraft·markSaving: U13 집필실 원고 화면 */
-export function useStudioViewModel(id: string, ep: number | undefined, screen: string, studioUseCase: StudioUseCase = appContainer.resolve('studioUseCase')) {
+export function useStudioViewModel(id: string, ep: number | undefined, screen: string, studioUseCase: StudioUseCase = appContainer.resolve('studioUseCase'), libraryUseCase: LibraryUseCase = appContainer.resolve('libraryUseCase')) {
   const role = useAppSelector((s) => s.session.role)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -133,6 +134,19 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     addBoardEvent: async (t: string, ep: number | undefined, line: string, who: string[]) => {
       await run(() => studioUseCase.addBoardEvent(id, t, ep, line, who))
       toast(ep ? '보드에 사건을 추가했어요' : '시점 미정 사건으로 추가했어요 · 설정 점검에 표시돼요')
+    },
+    shared: s?.shared ?? null,
+    addKnowledge: async (docId: string, k: { text: string; knownAt: number; publicAt?: number }) => { await run(() => studioUseCase.addKnowledge(id, docId, k)); toast('인물 지식을 저장했어요 (데모)') },
+    removeKnowledge: (docId: string, i: number) => { if (window.confirm('이 인물 지식을 삭제할까요?')) return run(() => studioUseCase.removeKnowledge(id, docId, i)) },
+    setDocImg: async (docId: string, img: string) => { await run(() => studioUseCase.setDocImg(id, docId, img)); toast('대표 이미지를 넣었어요') },
+    forkLinkedWorld: async () => {
+      const sh = s?.shared
+      if (!sh?.allowFork) return toast('세계관 포크가 허용되지 않았어요')
+      if (!window.confirm('전체 세계관을 복사하면 이후 원본 변경이 반영되지 않아요. 계속할까요?')) return
+      const copy = await libraryUseCase.copyWorld(sh.id)
+      if (!copy) return toast('세계관 포크가 허용되지 않았어요')
+      await run(() => studioUseCase.replaceWorld(id, sh.id, copy.id))
+      toast('연결을 내 세계관 포크로 교체했어요 (데모)')
     },
     addDocChip: (docId: string, f: 'alias' | 'tags', v: string) => run(() => studioUseCase.addDocChip(id, docId, f, v)),
     removeAlias: (docId: string, i: number) => run(() => studioUseCase.removeAlias(id, docId, i)),

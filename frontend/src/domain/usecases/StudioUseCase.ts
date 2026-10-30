@@ -1,6 +1,6 @@
 import { draftKey, episodeDraft, newEpisodeDraft, type Draft } from '../entities/draft'
 import { wikiState, type Doc } from '../entities/wiki'
-import { AVATAR_COLORS, baseOf, epsOf, forkLabel, isMine, nid, type AutoSerial, type CastMember, type Role, type Work } from '../entities/work'
+import { AVATAR_COLORS, baseOf, epsOf, forkLabel, isMine, nid, type AutoSerial, type CastMember, type Knowledge, type Role, type Work } from '../entities/work'
 import type { CreditRepository } from '../repositories/CreditRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import type { WorkRepository } from '../repositories/WorkRepository'
@@ -105,7 +105,10 @@ export class StudioUseCase {
     if (JSON.stringify(w.wiki) !== before) await this.workRepository.saveWork(w)
     const { key, draft } = await this.draftOf(w, episode)
     const current = (await this.draftOf(w)).draft
-    return { work: w, eps: epsOf(w), base: baseOf(w), key, draft, current, proposal: propOf(w) }
+    // 목업 shared: 남이 소유한 공개 세계관이 연결돼 있으면 복사 전까지 사전 편집을 막습니다.
+    const worlds = await this.workRepository.listWorlds()
+    const shared = (w.worldIds ?? []).map((x) => worlds.find((y) => y.id === x)).find((x) => x?.owner) ?? null
+    return { work: w, eps: epsOf(w), base: baseOf(w), key, draft, current, proposal: propOf(w), shared }
   }
 
   private async update(key: string, change: (d: Draft) => void) {
@@ -309,6 +312,16 @@ export class StudioUseCase {
       if (ep) (w.ownEvents ??= []).push([ep, line, t, who])
     })
   }
+
+  /** 목업 knowledgeForm·data-knowledge-delete. 목업 fact는 Knowledge.text에 둡니다. */
+  addKnowledge(id: string, docId: string, k: Knowledge) { return this.editDoc(id, docId, (d) => { (d.knowledge ??= []).push(k) }) }
+  removeKnowledge(id: string, docId: string, i: number) { return this.editDoc(id, docId, (d) => { d.knowledge?.splice(i, 1) }) }
+
+  /** 목업 data-img=doc */
+  setDocImg(id: string, docId: string, img: string) { return this.editDoc(id, docId, (d) => { d.img = img }) }
+
+  /** 목업 forkLinkedWorld: 복사본으로 연결을 바꿉니다. */
+  replaceWorld(id: string, from: string, to: string) { return this.change(id, (w) => { w.worldIds = (w.worldIds ?? []).map((x) => (x === from ? to : x)) }) }
 
   /** 목업 walias·walias-del·wtag */
   addDocChip(id: string, docId: string, f: 'alias' | 'tags', v: string) { return this.editDoc(id, docId, (d) => { d[f].push(v) }) }

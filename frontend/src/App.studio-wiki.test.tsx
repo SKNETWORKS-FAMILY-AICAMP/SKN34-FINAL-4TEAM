@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
 import { appContainer } from './app/appContainer'
@@ -204,5 +204,50 @@ describe('집필실 사전 편집 (U38)', () => {
     submit()
     await toastIs('보드에 사건을 추가했어요')
     expect((await starlight()).ownEvents!.some((e) => e[2] === '탑의 붕괴' && e[3].includes('카엘'))).toBe(true)
+  })
+  it('인물의 시점별 지식을 추가하고 확인 후 삭제한다', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderAt('/studio/starlight?view=wiki&cat=char')
+    fireEvent.click((await screen.findAllByRole('button', { name: '리안' }))[0])
+    await screen.findByText('등록된 지식이 없어요.')
+    fireEvent.change(screen.getByLabelText('알게 된 사실'), { target: { value: '봉인은 별빛으로 열린다' } })
+    fireEvent.change(screen.getByLabelText('인물이 아는 시작 회차'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: '지식 추가' }))
+    await toastIs('인물 지식을 저장했어요 (데모)')
+    await screen.findByText(/봉인은 별빛으로 열린다 · 인지 2화 · 독자 비공개/)
+    fireEvent.click(within(screen.getByText(/봉인은 별빛으로/).closest('li')!).getByRole('button', { name: '삭제' }))
+    await screen.findByText('등록된 지식이 없어요.')
+    vi.restoreAllMocks()
+  })
+
+  it('분류를 표로 보고 셀을 바로 고친다', async () => {
+    renderAt('/studio/starlight?view=wiki&cat=place')
+    fireEvent.click(await screen.findByRole('button', { name: '표' }))
+    await screen.findByText('셀을 눌러 바로 수정해요.')
+    expect(where()).toContain('ct=table')
+    expect(screen.getByRole('columnheader', { name: '제목' })).toBeTruthy()
+  })
+
+  it('대표 이미지 영역을 보여 준다', async () => {
+    renderAt('/studio/starlight?view=wiki&cat=place')
+    fireEvent.click((await screen.findAllByRole('button', { name: '별빛 탑' }))[0])
+    await screen.findByText('클릭해 추가')
+    expect(document.querySelector('input[type=file][accept="image/*"]')).toBeTruthy()
+  })
+
+  it('연결된 공개 세계관은 복사 전에 편집을 막고, 복사 후 수정으로 연결을 교체한다', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const repo = appContainer.resolve('workRepository')
+    const w = await starlight()
+    await repo.saveWork({ ...w, worldIds: ['shared-world'] })
+    renderAt('/studio/starlight?view=wiki')
+    await screen.findByText(/연결한 공개 세계관을 수정하려면 내 세계관으로 복사해야 해요/)
+    fireEvent.click(screen.getByRole('button', { name: '＋ 새 문서' }))
+    await toastIs('먼저 연결된 공개 세계관을 복사해 주세요')
+    fireEvent.click(screen.getByRole('button', { name: '안개 항구 복사 후 수정' }))
+    await toastIs('연결을 내 세계관 포크로 교체했어요 (데모)')
+    expect((await starlight()).worldIds![0]).not.toBe('shared-world')
+    await repo.saveWork(w)
+    vi.restoreAllMocks()
   })
 })
