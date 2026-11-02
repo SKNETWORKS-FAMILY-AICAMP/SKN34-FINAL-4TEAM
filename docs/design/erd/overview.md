@@ -35,10 +35,18 @@
 
 ```mermaid
 erDiagram
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "source world"
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "combined world"
+    WORK ||--o{ WORK_WORLD_HISTORY : "world history"
+    WORLD ||--o{ WORK_WORLD_HISTORY : "historical world"
+    EPISODE_VERSION o|--o{ WORK_WORLD_HISTORY : "effective episode candidate"
+    WORLD o|--o{ FORK_WORLD_REFERENCE : "source world candidate"
+    WORLD ||--o| FORK_WORLD_REFERENCE : "fork world candidate"
+    FORK ||--o| FORK_WORLD_REFERENCE : "fork world reference"
     MEMBER ||--o{ MEMBER_CONSENT : agrees
     MEMBER ||--o{ WORLD : owns
     MEMBER ||--o{ WORK : owns
-    WORLD ||--o{ WORK : context
+    WORLD ||--o| WORK : context
     WORLD ||--o{ SETTING_DOCUMENT : contains
     SETTING_CATEGORY ||--o{ SETTING_DOCUMENT : "category candidate"
     SETTING_CATEGORY o|--o{ SETTING_VERSION : "category snapshot candidate"
@@ -395,6 +403,26 @@ erDiagram
         string decision
         string decision_source
         text approved_content
+        datetime created_at
+    }
+    WORLD_COMPOSITION_SOURCE {
+        id combined_world_id PK,FK
+        id source_world_id PK,FK
+        string source_version_ref
+        datetime selected_at
+    }
+    WORK_WORLD_HISTORY {
+        id id PK
+        id work_id FK
+        id world_id FK
+        id effective_episode_version_id FK
+        datetime changed_at
+    }
+    FORK_WORLD_REFERENCE {
+        id fork_work_id PK,FK
+        id fork_world_id FK
+        id source_world_id FK
+        string reference_status
         datetime created_at
     }
 ```

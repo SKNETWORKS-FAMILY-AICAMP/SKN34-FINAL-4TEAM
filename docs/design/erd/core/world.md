@@ -8,9 +8,17 @@
 
 ```mermaid
 erDiagram
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "source world"
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "combined world"
+    WORK ||--o{ WORK_WORLD_HISTORY : "world history"
+    WORLD ||--o{ WORK_WORLD_HISTORY : "historical world"
+    EPISODE_VERSION o|--o{ WORK_WORLD_HISTORY : "effective episode candidate"
+    WORLD o|--o{ FORK_WORLD_REFERENCE : "source world candidate"
+    WORLD ||--o| FORK_WORLD_REFERENCE : "fork world candidate"
+    FORK ||--o| FORK_WORLD_REFERENCE : "fork world reference"
     MEMBER ||--o{ WORLD : owns
     MEMBER ||--o{ WORK : owns
-    WORLD ||--o{ WORK : context
+    WORLD ||--o| WORK : context
     WORLD ||--o{ SETTING_DOCUMENT : contains
     SETTING_CATEGORY ||--o{ SETTING_DOCUMENT : "category candidate"
     SETTING_CATEGORY o|--o{ SETTING_VERSION : "category snapshot candidate"
@@ -162,9 +170,31 @@ erDiagram
         id independent_world_id FK
         datetime created_at
     }
+    WORLD_COMPOSITION_SOURCE {
+        id combined_world_id PK,FK
+        id source_world_id PK,FK
+        string source_version_ref
+        datetime selected_at
+    }
+    WORK_WORLD_HISTORY {
+        id id PK
+        id work_id FK
+        id world_id FK
+        id effective_episode_version_id FK
+        datetime changed_at
+    }
+    FORK_WORLD_REFERENCE {
+        id fork_work_id PK,FK
+        id fork_world_id FK
+        id source_world_id FK
+        string reference_status
+        datetime created_at
+    }
 ```
 
 ## 이 그림의 테이블
+
+- 세계관 출처·이력 후보: [`WORLD_COMPOSITION_SOURCE`](../tables.md#world-composition-source), [`WORK_WORLD_HISTORY`](../tables.md#work-world-history), [`FORK_WORLD_REFERENCE`](../tables.md#fork-world-reference). 추가 참조: [`WORLD`](../tables.md#world), [`WORK`](../tables.md#work), [`EPISODE_VERSION`](../tables.md#episode-version), [`FORK`](../tables.md#fork).
 
 - 세계관과 설정: [`WORLD`](../tables.md#world), [`SETTING_CATEGORY`](../tables.md#setting-category), [`SETTING_DOCUMENT`](../tables.md#setting-document), [`SETTING_DRAFT`](../tables.md#setting-draft), [`SETTING_VERSION`](../tables.md#setting-version).
 - 첨부·분류·공개: [`SETTING_IMAGE`](../tables.md#setting-image), [`SETTING_REFERENCE`](../tables.md#setting-reference), [`SETTING_TAG`](../tables.md#setting-tag), [`SETTING_DOCUMENT_TAG`](../tables.md#setting-document-tag), [`SETTING_VISIBILITY_HISTORY`](../tables.md#setting-visibility-history).
@@ -182,6 +212,10 @@ erDiagram
 ## 카테고리와 이미지
 
 카테고리 목록·관리 주체와 태그 이력은 미정입니다. 이미지가 텍스트 버전에 종속되거나 과거 이미지가 보존된다고 가정하지 않습니다.
+
+## 세계관 조합과 작품 연결 (UC-24)
+
+작품은 세계관 하나에 연결되고 세계관은 동시에 최대 한 작품에 연결됩니다. 기존 세계관 최대 5개를 조합해 새 세계관 하나를 만들 수 있으며 원본별 출처와 접근 권한을 구분해야 합니다. 허용된 원본 세계관 최대 5개의 설정을 선택·복사하고 출처를 남기며 원본의 이후 변경은 자동 반영하지 않습니다. Fork된 세계관은 원본으로 선택할 수 없습니다. 조합 출처는 `WORLD_COMPOSITION_SOURCE` 후보로 표시하며 관계·회차 상태의 상세 복사 범위는 미정입니다.
 
 ## 원본 삭제와 Fork 보존 (UC-19)
 

@@ -222,6 +222,18 @@
 ### `USER_NOTICE` — 사용자 알림 후보
 - **그림의 항목:** `id`, `recipient_id`, `ai_job_id`, `delivery_status`, `message`, `created_at`. 예: 창작자가 요청한 AI 작업의 실패 안내. 운영 경고와 독립이며 알림 권한·보관은 별도 설계합니다.
 
+<a id="world-composition-source"></a>
+### `WORLD_COMPOSITION_SOURCE` — 조합 원본 후보
+- **그림의 항목:** `combined_world_id`, `source_world_id`, `source_version_ref`, `selected_at`. 예: 새 세계관에 선택된 원본의 출처. 원본 최대 5개, 원본 권한과 Fork 재분기 금지는 별도 검증합니다. 항목별 출처·버전 고정 방법은 미정입니다.
+
+<a id="work-world-history"></a>
+### `WORK_WORLD_HISTORY` — 작품의 세계관 연결 이력 후보
+- **그림의 항목:** `id`, `work_id`, `world_id`, `effective_episode_version_id`, `changed_at`. 예: 발행 후 세계관을 바꾸더라도 이전 연결을 남깁니다. 이 후보만으로 모든 저장·발행 회차와 Fork의 정확한 기준을 강제하지 않으며 회차별 연결 모델은 후속 설계입니다.
+
+<a id="fork-world-reference"></a>
+### `FORK_WORLD_REFERENCE` — 독립 전 원본 참조 후보
+- **그림의 항목:** `fork_work_id`, `fork_world_id`, `source_world_id`, `reference_status`, `created_at`. 예: Fork별 세계관이 허용된 원본 내용을 추종하다 최초 수정 시 독립합니다. 기준 회차·권한·독립 복사 완전성은 별도 검증합니다.
+
 ## 독자 피드백
 
 <a id="feedback"></a>

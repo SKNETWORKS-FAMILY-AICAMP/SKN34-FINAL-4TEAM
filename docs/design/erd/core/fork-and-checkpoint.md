@@ -8,6 +8,14 @@
 
 ```mermaid
 erDiagram
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "source world"
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "combined world"
+    WORK ||--o{ WORK_WORLD_HISTORY : "world history"
+    WORLD ||--o{ WORK_WORLD_HISTORY : "historical world"
+    EPISODE_VERSION o|--o{ WORK_WORLD_HISTORY : "effective episode candidate"
+    WORLD o|--o{ FORK_WORLD_REFERENCE : "source world candidate"
+    WORLD ||--o| FORK_WORLD_REFERENCE : "fork world candidate"
+    FORK ||--o| FORK_WORLD_REFERENCE : "fork world reference"
     SETTING_DOCUMENT ||--o{ SETTING_VERSION : versions
     SETTING_DOCUMENT o|--o{ SETTING_DOCUMENT : "fork source candidate"
     WORK ||--o{ EPISODE : contains
@@ -121,9 +129,38 @@ erDiagram
         id independent_world_id FK
         datetime created_at
     }
+    WORLD {
+        id id PK
+        id owner_id FK
+        string name
+        text description
+        datetime created_at
+    }
+    WORLD_COMPOSITION_SOURCE {
+        id combined_world_id PK,FK
+        id source_world_id PK,FK
+        string source_version_ref
+        datetime selected_at
+    }
+    WORK_WORLD_HISTORY {
+        id id PK
+        id work_id FK
+        id world_id FK
+        id effective_episode_version_id FK
+        datetime changed_at
+    }
+    FORK_WORLD_REFERENCE {
+        id fork_work_id PK,FK
+        id fork_world_id FK
+        id source_world_id FK
+        string reference_status
+        datetime created_at
+    }
 ```
 
 ## 이 그림의 테이블
+
+- 세계관 출처·이력 후보: [`WORLD_COMPOSITION_SOURCE`](../tables.md#world-composition-source), [`WORK_WORLD_HISTORY`](../tables.md#work-world-history), [`FORK_WORLD_REFERENCE`](../tables.md#fork-world-reference). 추가 참조: [`WORLD`](../tables.md#world), [`WORK`](../tables.md#work), [`EPISODE_VERSION`](../tables.md#episode-version), [`FORK`](../tables.md#fork).
 
 - 기준·분기: [`CHECKPOINT`](../tables.md#checkpoint), [`CHECKPOINT_EPISODE`](../tables.md#checkpoint-episode), [`CHECKPOINT_SETTING`](../tables.md#checkpoint-setting), [`FORK`](../tables.md#fork), [`FORK_SOURCE_CHANGE`](../tables.md#fork-source-change), [`FORK_POLICY_HISTORY`](../tables.md#fork-policy-history), [`FORK_POLICY_EPISODE`](../tables.md#fork-policy-episode).
 - 다른 영역의 참조: [`WORK`](../tables.md#work), [`EPISODE`](../tables.md#episode), [`EPISODE_VERSION`](../tables.md#episode-version), [`SETTING_DOCUMENT`](../tables.md#setting-document), [`SETTING_VERSION`](../tables.md#setting-version).

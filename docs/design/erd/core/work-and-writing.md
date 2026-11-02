@@ -8,9 +8,17 @@
 
 ```mermaid
 erDiagram
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "source world"
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "combined world"
+    WORK ||--o{ WORK_WORLD_HISTORY : "world history"
+    WORLD ||--o{ WORK_WORLD_HISTORY : "historical world"
+    EPISODE_VERSION o|--o{ WORK_WORLD_HISTORY : "effective episode candidate"
+    WORLD o|--o{ FORK_WORLD_REFERENCE : "source world candidate"
+    WORLD ||--o| FORK_WORLD_REFERENCE : "fork world candidate"
+    FORK ||--o| FORK_WORLD_REFERENCE : "fork world reference"
     MEMBER ||--o{ WORLD : owns
     MEMBER ||--o{ WORK : owns
-    WORLD ||--o{ WORK : context
+    WORLD ||--o| WORK : context
     WORK ||--o{ FORK_POLICY_HISTORY : "policy history candidate"
     EPISODE o|--o{ FORK_POLICY_HISTORY : "start episode candidate"
     FORK_POLICY_HISTORY ||--o{ FORK_POLICY_EPISODE : "selected episodes candidate"
@@ -95,9 +103,40 @@ erDiagram
         integer sequence
         text content
     }
+    FORK {
+        id work_id PK,FK
+        id source_checkpoint_id FK
+        id confirmed_policy_history_id FK
+        datetime conditions_confirmed_at
+        string world_mode
+        id independent_world_id FK
+        datetime created_at
+    }
+    WORLD_COMPOSITION_SOURCE {
+        id combined_world_id PK,FK
+        id source_world_id PK,FK
+        string source_version_ref
+        datetime selected_at
+    }
+    WORK_WORLD_HISTORY {
+        id id PK
+        id work_id FK
+        id world_id FK
+        id effective_episode_version_id FK
+        datetime changed_at
+    }
+    FORK_WORLD_REFERENCE {
+        id fork_work_id PK,FK
+        id fork_world_id FK
+        id source_world_id FK
+        string reference_status
+        datetime created_at
+    }
 ```
 
 ## 이 그림의 테이블
+
+- 세계관 출처·이력 후보: [`WORLD_COMPOSITION_SOURCE`](../tables.md#world-composition-source), [`WORK_WORLD_HISTORY`](../tables.md#work-world-history), [`FORK_WORLD_REFERENCE`](../tables.md#fork-world-reference). 추가 참조: [`WORLD`](../tables.md#world), [`WORK`](../tables.md#work), [`EPISODE_VERSION`](../tables.md#episode-version), [`FORK`](../tables.md#fork).
 
 - 작품·집필: [`WORK`](../tables.md#work), [`FORK_POLICY_HISTORY`](../tables.md#fork-policy-history), [`FORK_POLICY_EPISODE`](../tables.md#fork-policy-episode), [`EPISODE`](../tables.md#episode), [`EPISODE_DRAFT`](../tables.md#episode-draft), [`EPISODE_VERSION`](../tables.md#episode-version), [`STORY_PLAN`](../tables.md#story-plan).
 - 다른 영역의 참조: [`MEMBER`](../tables.md#member), [`WORLD`](../tables.md#world).
@@ -108,6 +147,11 @@ erDiagram
 - [UC-03](../../../usecase-spec/UC-03.md)·[UC-10](../../../usecase-spec/UC-10.md): 회차를 순서대로 등록하고 직접 원고를 작성·저장합니다. 확정 콘텐츠의 변경·되돌리기는 새 버전으로 남기는 방향입니다.
 - [UC-01](../../../usecase-spec/UC-01.md)·[UC-13](../../../usecase-spec/UC-13.md): 독자는 공개된 작품의 발행 회차만 읽으며, 소유자는 선택한 원고 버전을 발행하거나 공개를 중단할 수 있습니다. 원고를 저장한 사실은 발행이 아닙니다.
 - 큰 줄거리·회차 플롯·장면 계획은 집필을 돕는 선택적 데이터이며, 계획된 미래 사건은 실제 관계에 자동 적용되지 않습니다.
+
+## 작품·세계관 일대일 및 조합
+
+- 작품은 세계관 하나에 연결하며 세계관은 동시에 최대 한 작품에 연결됩니다. 미연결 세계관은 존재할 수 있습니다. 발행 후 권한을 확인하고 연결을 변경할 수 있습니다.
+- 기존 세계관 최대 5개를 조합해 새 세계관 하나를 만들며 작품에는 결과 하나만 연결합니다. 허용된 원본 설정을 선택·복사하고 출처를 남기며 원본의 이후 변경은 자동 반영하지 않습니다. Fork된 세계관은 조합 원본에서 제외합니다. 원본별 출처와 연결 이력은 논리 후보로 표시합니다. 접근 권한과 각 저장·발행 회차의 정확한 기준을 이 후보만으로 보장하지 않으며 후속 설계가 필요합니다.
 
 ## UC-13 발행 이력과 예약
 
