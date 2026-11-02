@@ -1,7 +1,7 @@
 # STORYFORK AI Service
 
 FastAPI 기반 내부 서비스 개발 기반입니다. 현재는 **Health만** 제공하며 Agent나 생성 API는 없습니다.
-Core API만 호출하고 Compose에서 호스트 포트를 공개하지 않습니다.
+현재 Core Service의 `core-api` 모듈이 이 Health를 호출합니다. Compose에서 AI Service의 호스트 포트는 공개하지 않습니다.
 
 ## 실행과 검증
 
@@ -24,12 +24,12 @@ uv run --locked --extra dev python -m pytest
 
 ## OpenAI와 향후 경계
 
-OpenAI Agents SDK가 선택된 AI 스택이며 기존 의존성·버전 범위는 유지합니다.
+[최신 MVP 설계](../../docs/design/design.md)의 모델·제공사·프레임워크는 미정입니다. 과거 LangChain·LangGraph 제안은 확정 기술이 아닙니다(Langfuse는 MVP 이후). 현재 `openai-agents` 의존성은 Health에서 사용하지 않으며 선정 전에는 의존성·버전 범위를 바꾸지 않습니다.
 Health는 키 없이 시작하고 OpenAI 클라이언트를 만들거나 호출하지 않습니다.
 루트 `.env.example`의 `OPENAI_API_KEY`와 `OPENAI_MODEL`은 향후 AI 런타임용 예약 설정일 뿐
 현재 코드에서 읽지 않습니다. 키를 채워도 생성 기능이 동작하지 않으며 모델 접근을 검증하지 않습니다.
 위 실행기는 루트 `.env`의 AI 허용 설정만 로드합니다. uvicorn 직접 실행은 `.env`를 로드하지 않습니다.
 
-향후 AI 기능은 허용된 최소 문맥에서 제안을 반환합니다. 정본·권한·승인·발행·크레딧은 Core 소유이며
-AI가 직접 확정하지 않습니다. 다른 provider wrapper, fallback, Agent별 서버를 추가하지 않습니다.
+향후 AI 기능은 허용된 최소 문맥에서 제안을 반환합니다. 정본·권한·승인·발행·크레딧은 Core Service 소유이며
+AI가 직접 확정하지 않습니다. 문서·원고와 그래프 관계를 해당 버전에 맞춰 참고하고, 조회 경로·모델은 선정 전까지 확정하지 않습니다. 장애를 정상 결과로 숨기는 fallback이나 Agent별 서버는 추가하지 않습니다.
 구현 기준은 [AGENTS.md](AGENTS.md), [Agent 구현 경계](docs/agent-structure.md)를 따릅니다.

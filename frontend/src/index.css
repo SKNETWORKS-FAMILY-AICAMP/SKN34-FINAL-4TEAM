@@ -1,10 +1,17 @@
-@import "tailwindcss";
+/* 목업(frontend/mockup/index.html) CSS가 기본 스타일을 직접 정하므로 Tailwind preflight는 불러오지 않는다. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "./styles/storyfork.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+/* 목업 클래스(.ring, .hidden 등)가 Tailwind 유틸리티로 생성되지 않도록 Tailwind를 쓰는 파일만 스캔한다. */
+@source "./App.tsx";
+@source "./presentation/shared/core-api-status";
+
+@theme inline {
+  --color-brand-accent: var(--acc);
+  --color-brand-primary: var(--pri);
+}
 
 @theme {
-  --color-app-canvas: #f8faff;
-  --color-app-ink: #182342;
-  --color-brand-accent: #b9e88f;
-  --color-brand-primary: #6262cc;
   --animate-connection-pulse: connection-pulse 1s ease-in-out infinite alternate;
 
   @keyframes connection-pulse {
@@ -14,28 +21,7 @@
   }
 }
 
-@layer base {
-  :root {
-    color: var(--color-app-ink);
-    background: var(--color-app-canvas);
-    font-family: Inter, Pretendard, 'Noto Sans KR', system-ui, sans-serif;
-    line-height: normal;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    min-width: 320px;
-    min-height: 100vh;
-    margin: 0;
-    background: var(--color-app-canvas);
-  }
-
-  button,
-  input,
-  select {
-    font: inherit;
-  }
+body {
+  min-width: 320px;
+  min-height: 100vh;
 }
