@@ -208,6 +208,7 @@ OpenAI를 호출하지 않지만 이미지·의존성 다운로드에는 네트�
 - [현재 아키텍처](docs/architecture.md)
 - [유스케이스](docs/usecase.md) · [유스케이스 명세](docs/usecase-spec/README.md) · [보조 다이어그램](docs/diagrams/README.md) · [UI 프로토타입 대응](docs/prototype-alignment.md)
 - [작가 도구 조사·온보딩](docs/research/writer-tools/README.md): Novelcrafter·Sudowrite·스토라이즈 비교와 시연 안내
+- [펜시브 기능 조사](docs/research/pensiv/README.md): 기능·블로그 제공 주장, STORYFORK 적용 제안과 공식 출처
 - [요구사항 정의서](docs/SKN34-final-4Team_요구사항정의서.xlsx)([기능 ID 색인](docs/requirements.md)) · [WBS](docs/SKN34-final-4Team_WBS.xlsx)
 - [Frontend](frontend/README.md): `storyfork-web`, 시작 화면과 공개 API 연결
 - [Core Service](backend/core-api/README.md): 현 실행 모듈 `storyfork-core-api`, 공개 Health·내부 HTTP 오류 경계

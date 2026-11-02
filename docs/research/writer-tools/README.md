@@ -6,6 +6,8 @@
 
 ## 문서 읽는 순서
 
+펜시브는 별도의 [기능 조사와 STORYFORK 적용 제안](../pensiv/README.md)에 정리했다. 블로그의 자동 모순 검사·등장 기록·관계 변화 추적 주장과 실제 검증 범위를 구분해 읽는다.
+
 | 문서 | 이런 질문에 사용 |
 |---|---|
 | [Novelcrafter 명세서](novelcrafter.md) | Codex, 장면 구조, 설정 추적과 Progression, 문맥 선택, 집필과 Chat |
