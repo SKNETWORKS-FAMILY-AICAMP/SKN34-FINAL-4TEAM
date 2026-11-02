@@ -68,9 +68,9 @@ PK 컬럼은 모두 NOT NULL입니다. 그 밖에 `checkpoints.checkpoint`·`che
 ### STORYFORK와의 연결 후보
 
 ```text
-MEMBER ── 소유 ── CHAT_SESSION(thread_id, context_work_id, 선택적 target_fork_work_id)
+MEMBER ── 소유 ── CHAT_SESSION(id, context_work_id, 선택적 target_fork_work_id)
                          │
-                         └ ┄ 같은 thread_id ┄ LangGraph checkpoints / blobs / writes
+                         └ ┄ saver_thread_ref → thread_id ┄ LangGraph checkpoints / blobs / writes
 
 STORYFORK CHECKPOINT = 회차·세계관·관계의 기준점
 LangGraph checkpoints = AI 실행 상태. 위 업무 기준점과 별개
