@@ -12,6 +12,32 @@ const base = (worldIds: string[]): NewWorkInput => ({
   cast: [{ n: '노인', d: '' }, { n: '', d: '' }, { n: '', d: '' }], genre: 'SF', rating: '일반', fork: 'all', cover: null,
 })
 
+it('issue #30: rejects edits, restores and deletion of another owner and private rule copies', async () => {
+  const {db,useCase}=setup()
+  const shared=db.worlds.find(w=>w.id==='shared-world')!
+  shared.rulePublic=Object.fromEntries(shared.rules.map((r,n)=>[r,n===0]))
+  shared.rules.push('secret-rule')
+  const before=structuredClone(shared)
+  expect(await useCase.editWorld(shared.id,{name:'허용하지 않은 수정',description:'',rules:'changed'},true)).toHaveProperty('error')
+  expect(await useCase.restoreWorld(shared.id,0)).toHaveProperty('error')
+  expect(await useCase.deleteWorld(shared.id)).toHaveProperty('error')
+  expect(db.worlds.find(w=>w.id===shared.id)).toEqual(before)
+  expect(await useCase.combineWorlds('copy',[{worldId:shared.id,ruleIndex:shared.rules.length-1}])).toHaveProperty('error')
+})
+
+it('issue #33: missing restore is an error rather than a confirmation request', async () => {
+  const {useCase}=setup()
+  expect(await useCase.restoreWorld('missing',-1,false)).toHaveProperty('error')
+})
+
+it('server worlds are used for new novels while the existing import path keeps its repository',async()=>{
+ const db=createMockDb(),works=new InMemoryWorkRepository(db),local=new InMemoryWorldRepository(db)
+ const server={list:async()=>[{id:'server-world',name:'서버 세계',description:'',rules:[],public:false}],save:async()=>{},remove:async()=>{}}
+ const u=new LibraryUseCase(works,local,new InMemoryReadingRepository(db),new InMemoryFeedbackRepository(db),server)
+ expect((await u.getWorlds()).mine.some(w=>w.id==='server-world')).toBe(false)
+ expect((await u.getWorlds(true)).mine.map(w=>w.id)).toEqual(['server-world'])
+})
+
 describe('LibraryUseCase · 새 소설 (목업 createWork)', () => {
   it('장르 목록은 목업 NOVEL_GENRES 30개다', () => {
     expect(NOVEL_GENRES).toHaveLength(30)

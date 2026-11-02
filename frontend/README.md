@@ -1,5 +1,7 @@
 # STORYFORK Web
 
+> 이 브랜치의 opt-in 세계관 직접 작성·Core DB 저장 추가 범위는 [세계관 직접 작성](../docs/world-studio-direct.md)을 참고하세요. 기존 작품 목업과 운영 인증·PostgreSQL 구현 여부를 구분합니다.
+
 React·TypeScript·Vite·Tailwind CSS로 만든 최소 시작 화면입니다.
 제품 소개와 '개발 기반 / 기능 준비 중' 상태, 실제 Core·AI 연결 상태만 제공합니다.
 작품·로그인·생성·Fork 화면과 가짜 결과는 없습니다. 알 수 없는 UI 경로는 `/`로 이동합니다.

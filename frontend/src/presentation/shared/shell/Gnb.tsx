@@ -15,9 +15,9 @@ export function Gnb({ on = '' }: { on?: string }) {
       <div className="wrap in">
         <Go to="/" className="logo" aria-label="STORYFORK 홈으로" title="홈으로"><b>SF</b>STORYFORK</Go>
         <nav className="nav" aria-label="주요 메뉴">
-          {([['rank', '랭킹', '랭킹'], ['chat', '캐릭터 챗', '챗'], ['lib', '내 서재', '서재']] as const).map(([k, l, sh]) => (
-            <Go key={k} to={'/' + k} className={on === k ? 'on' : ''} aria-current={on === k ? 'page' : undefined}
-              aria-label={k === 'lib' && pending ? `내 서재, 처리할 독자 제보 ${pending}건` : undefined}>
+          {([['rank', '랭킹', '랭킹'], ['chat', '캐릭터 챗', '챗'], ['lib', '내 서재', '서재'], ['worlds', '세계관 작업실', '세계관 작업실']] as const).map(([k, l, sh]) => (
+            <Go key={k} to={'/'+k} className={on === k ? 'on' : ''} aria-current={on === k ? 'page' : undefined}
+              aria-label={k==='worlds'?'세계관 작업실':k === 'lib' && pending ? `내 서재, 처리할 독자 제보 ${pending}건` : undefined}>
               <span className="lf">{l}</span><span className="ls">{sh}</span>
               {k === 'lib' && pending > 0 && <span className="nb" title={`처리할 독자 제보 ${pending}건`}>{pending}</span>}
             </Go>
@@ -41,15 +41,15 @@ export function Gnb({ on = '' }: { on?: string }) {
 }
 
 /** 목업 foot() */
-export function Footer() {
+export function Footer({ storage }: { storage?: 'core' } = {}) {
   const role = useAppSelector((s) => s.session.role)
   return (
     <footer className="foot">
       <div className="wrap">
-        <b>STORYFORK</b><span>SKN34 최종 프로젝트 4팀 · 인터랙티브 MVP (오프라인 · AI 응답은 미리 정한 데모)</span>
+        <b>STORYFORK</b><span>{storage === 'core' ? '저장한 세계관은 다시 열어 수정할 수 있어요.' : 'SKN34 최종 프로젝트 4팀 · 인터랙티브 MVP (오프라인 · AI 응답은 미리 정한 데모)'}</span>
         <div className="r">
           {/* 목업과 같이 메모리 상태를 버리려고 홈으로 새로고침합니다. */}
-          <button type="button" onClick={() => location.assign('/')}>데모 초기화</button>
+          <button type="button" onClick={() => location.assign('/')}>{storage === 'core' ? '홈으로' : '데모 초기화'}</button>
           {!role && <Go to="/login">로그인</Go>}
         </div>
       </div>

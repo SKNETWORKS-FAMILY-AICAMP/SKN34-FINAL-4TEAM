@@ -13,6 +13,14 @@ const opened = async (u: StudioUseCase, id: string, ep?: number) => {
   return s
 }
 
+it('issue #7: world queries use WorldRepository, not WorkRepository.listWorlds', async () => {
+  const db=createMockDb()
+  const works=new InMemoryWorkRepository(db)
+  works.listWorlds=async()=>{throw new Error('wrong repository')}
+  const u=new StudioUseCase(works,new InMemoryCreditRepository(db),new InMemoryFeedbackRepository(db),new InMemoryWorldRepository(db))
+  await expect(u.open('starlight',undefined,'user')).resolves.toBeTruthy()
+})
+
 describe('StudioUseCase (목업 studio()·draftOf·pubEpSheet)', () => {
   it('남의 소설은 열지 않고, 발행 회차는 수정 초안(starlight:ep:1)으로 연다', async () => {
     const { db, useCase } = setup()

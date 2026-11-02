@@ -1,15 +1,16 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation, useNavigate, type NavigateFunction } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
+import { worldStudioFetch } from './test/worldStudioFetch'
 import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
 
-beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
+beforeEach(() => { vi.stubGlobal('fetch', worldStudioFetch); vi.spyOn(window, 'confirm').mockReturnValue(true) })
 afterEach(cleanup)
 
 let nav: NavigateFunction
@@ -46,16 +47,12 @@ describe('새 소설 만들기 (U28)', () => {
     expect(document.activeElement).toBe(input)
   })
 
-  it('규칙 공개를 체크해도 편집 중인 세계관 입력이 남는다', async () => {
-    await appContainer.resolve('worldRepository').save({ id: 'w-keep', name: '남는 세계', description: '', rules: ['규칙 하나'], public: false })
-    renderAt('/new')
-    await acceptPolicy()
-    const form = document.querySelector<HTMLFormElement>('[data-world-edit="w-keep"]')!
-    const name = form.querySelector<HTMLInputElement>('[name=name]')!
-    fireEvent.change(name, { target: { value: '고치는 중' } })
-    fireEvent.click(screen.getAllByLabelText('규칙 하나').find((x) => !x.closest('#combineWorlds'))!)
-    await waitFor(() => expect(document.getElementById('toast')!.textContent).toBe('세계관의 항목 공개 범위를 변경했어요 (데모)'))
-    expect(document.querySelector<HTMLInputElement>('[data-world-edit="w-keep"] [name=name]')!.value).toBe('고치는 중')
+  it('새 소설은 세계관 편집 대신 작업실로 안내한다', async () => {
+    renderAt('/new'); await acceptPolicy()
+    expect(document.querySelector('[data-world-edit]')).toBeNull()
+    fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: '세계관 작업실' }))
+    await screen.findByRole('heading', { name: '세계관 작업실', level: 1 })
+    expect(where()).toBe('/worlds')
   })
 
   it('다른 화면에 갔다 와도 작성 내용이 남고, 만든 뒤에는 세계관 선택과 표지만 비운다', async () => {

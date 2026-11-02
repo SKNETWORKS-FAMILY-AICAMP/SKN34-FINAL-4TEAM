@@ -1,5 +1,7 @@
 # STORYFORK 아키텍처
 
+> 이 작업 브랜치는 opt-in 세계관 작업실(`/worlds/:worldId?`)과 실제 Core JDBC/H2 저장을 추가했습니다. 실행 설정·범위·UC-02 미구현 정책·테스트 증거는 [세계관 통합 기록](./world-studio-integration.md)을 참고하세요. 기존 작품·회차·Fork의 React 목업은 보존하며 운영 인증·PostgreSQL·그래프 DB 이전 완료를 뜻하지 않습니다.
+
 ## 현재 구현
 
 > 설계상 명칭은 **Core Service·AI Service**입니다. 아래 `core-api`, `Core API` 표기는 현재 실행 모듈 이름과 HTTP 인터페이스이며 서비스 이름의 변경을 코드·배포에 적용했다는 뜻이 아닙니다. 새 MVP 방향은 [시스템 설계](design/design.md)·[DEC-26~28](design/decisions.md#결정-목록)에 있습니다.

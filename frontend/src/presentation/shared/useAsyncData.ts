@@ -9,17 +9,19 @@ import { useAppSelector } from '../../app/store'
 export function useAsyncData<T>(load: () => Promise<T>, deps: readonly unknown[]) {
   const dataVersion = useAppSelector((s) => s.session.dataVersion)
   const requestId = useRef(0)
-  const [state, setState] = useState<{ data: T | undefined; isError: boolean }>({ data: undefined, isError: false })
+  const sameDeps = (saved: readonly unknown[]) => saved.length === deps.length && saved.every((value, i) => Object.is(value, deps[i]))
+  const [state, setState] = useState<{ data: T | undefined; isError: boolean; deps: readonly unknown[] }>({ data: undefined, isError: false, deps: [...deps] })
 
   useEffect(() => {
     const id = ++requestId.current
     load().then(
-      (data) => { if (requestId.current === id) setState({ data, isError: false }) },
-      () => { if (requestId.current === id) setState((s) => ({ ...s, isError: true })) },
+      (data) => { if (requestId.current === id) setState({ data, isError: false, deps: [...deps] }) },
+      () => { if (requestId.current === id) setState((s) => ({ data: sameDeps(s.deps) ? s.data : undefined, isError: true, deps: [...deps] })) },
     )
     return () => { requestId.current += 1 }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 호출자가 deps를 명시합니다.
   }, [...deps, dataVersion])
 
-  return { data: state.data, isLoading: state.data === undefined && !state.isError, isError: state.isError }
+  const current = sameDeps(state.deps)
+  return { data: current ? state.data : undefined, isLoading: !current || (state.data === undefined && !state.isError), isError: current && state.isError }
 }

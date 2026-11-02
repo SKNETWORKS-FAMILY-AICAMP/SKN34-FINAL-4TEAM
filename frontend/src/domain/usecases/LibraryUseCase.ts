@@ -36,12 +36,14 @@ const mineOnly = (worlds: World[], id: string) => worlds.find((w) => w.id === id
 /** 목업 lib()·write()·newWork()·worldManager·importer(): 내 서재와 창작 시작 */
 export class LibraryUseCase {
   private readonly workRepository: WorkRepository
+  private readonly creationWorldRepository: WorldRepository
   private readonly worldRepository: WorldRepository
   private readonly readingRepository: ReadingRepository
   private readonly feedbackRepository: FeedbackRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository) {
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository, creationWorldRepository: WorldRepository = worldRepository) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
+    this.creationWorldRepository = creationWorldRepository
     this.readingRepository = readingRepository
     this.feedbackRepository = feedbackRepository
   }
@@ -93,8 +95,8 @@ export class LibraryUseCase {
   }
 
   /** U28 세계관 목록: 내 세계관, 이용 가능한 공개 세계관, 조합 가능한 세계관 */
-  async getWorlds() {
-    const worlds = await this.worldRepository.list()
+  async getWorlds(forCreation = false) {
+    const worlds = await (forCreation ? this.creationWorldRepository : this.worldRepository).list()
     return {
       mine: worlds.filter((w) => !w.owner),
       usable: worlds.filter((w) => w.owner && w.public && w.allowUse).map((w) => ({ world: w, rules: publicWorldRules(w) })),
@@ -120,7 +122,8 @@ export class LibraryUseCase {
     const worlds = await this.worldRepository.list()
     const selected = picks.map((p) => {
       const source = worlds.find((w) => w.id === p.worldId && (!w.owner || (w.public && w.allowUse && w.allowFork)))
-      return source && { source, rule: source.rules[p.ruleIndex] }
+      const rule = source?.rules[p.ruleIndex]
+      return source && rule && (!source.owner || publicWorldRules(source).includes(rule)) ? { source, rule } : undefined
     }).filter((x): x is { source: World; rule: string } => !!x?.rule)
     if (!name.trim() || !selected.length) return { error: '이름과 항목을 선택해 주세요' }
     return this.addWorld({
@@ -172,7 +175,7 @@ export class LibraryUseCase {
   }
 
   async editWorld(id: string, f: WorldForm, confirmed: boolean): Promise<{ error: string } | { needsConfirm: true } | { ok: true }> {
-    const world = (await this.worldRepository.list()).find((w) => w.id === id)
+    const world = mineOnly(await this.worldRepository.list(), id)
     const name = f.name.trim()
     if (!world || !name) return { error: '세계관 이름을 적어 주세요' }
     const ok = await this.saveWorld(world, { name, description: f.description.trim(), rules: lines(f.rules), public: world.public }, confirmed)
@@ -180,9 +183,10 @@ export class LibraryUseCase {
   }
 
   async restoreWorld(id: string, version: number, confirmed = true) {
-    const world = (await this.worldRepository.list()).find((w) => w.id === id)
+    const world = mineOnly(await this.worldRepository.list(), id)
     const v = world?.history?.[version]
-    return !!world && !!v && this.saveWorld(world, structuredClone(v), confirmed)
+    if (!world || !v) return { error: '복원할 내 세계관 버전을 찾을 수 없어요' } as const
+    return await this.saveWorld(world, structuredClone(v), confirmed) ? { ok: true } as const : { needsConfirm: true } as const
   }
 
   private async updateMine(id: string, change: (w: World) => void) {
@@ -202,6 +206,7 @@ export class LibraryUseCase {
 
   /** dryRun이면 삭제할 수 있는지만 확인합니다 (목업은 확인 창 전에 연결 작품을 검사). */
   async deleteWorld(id: string, dryRun = false): Promise<{ error: string } | { ok: true }> {
+    if (!mineOnly(await this.worldRepository.list(), id)) return { error: '내 세계관만 삭제할 수 있어요' }
     if ((await this.workRepository.listWorks()).some((w) => (w.worldIds ?? []).includes(id))) return { error: '연결된 작품이 있어 삭제할 수 없어요' }
     if (!dryRun) await this.worldRepository.remove(id)
     return { ok: true }
@@ -216,7 +221,7 @@ export class LibraryUseCase {
     if (!t) return { error: '제목을 적어 주세요' }
     const cast = i.cast.map((c) => ({ n: c.n.trim(), d: c.d.trim() })).filter((c) => c.n)
     if (!cast.length) return { error: '인물을 1명 이상 적어 주세요' }
-    const worlds = (await this.worldRepository.list()).filter((w) => i.worldIds.includes(w.id) && (!w.owner || (w.public && w.allowUse)))
+    const worlds = (await this.creationWorldRepository.list()).filter((w) => i.worldIds.includes(w.id) && (!w.owner || (w.public && w.allowUse)))
     if (worlds.length !== i.worldIds.length) return { error: '이용할 수 없는 세계관이 있어요' }
     const localRules = lines(i.localRules)
     const rules = [...new Set(worlds.flatMap((w) => w.owner ? publicWorldRules(w) : w.rules).concat(localRules))]

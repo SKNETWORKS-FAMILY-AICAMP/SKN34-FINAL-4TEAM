@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { appContainer } from './app/appContainer'
+import { worldStudioFetch } from './test/worldStudioFetch'
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -8,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { createAppStore } from './app/store'
 
-beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
+beforeEach(() => { vi.stubGlobal('fetch', worldStudioFetch); vi.spyOn(window, 'confirm').mockReturnValue(true) })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
@@ -26,13 +28,13 @@ describe('내 서재 (U11·U12)', () => {
   it('읽는 중·내가 쓰는 소설·내 댓글·신고 탭을 오간다', async () => {
     renderAt('/lib')
     await screen.findByRole('button', { name: '▶ 2화 이어 읽기' })
-    expect(sid()).toBe('U11 내 서재')
+    await waitFor(() => expect(sid()).toBe('U11 내 서재'))
     screen.getByText('소설 화면에서 ♡를 누르면 여기에 모여요.')
     fireEvent.click(screen.getByRole('button', { name: '내 댓글·신고' }))
     await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
     fireEvent.click(screen.getByRole('button', { name: '내가 쓰는 소설' }))
     await screen.findByRole('heading', { name: '별빛 서약의 탑' })
-    expect(sid()).toBe('U12 내 서재 · 내가 쓰는 소설')
+    await waitFor(() => expect(sid()).toBe('U12 내 서재 · 내가 쓰는 소설'))
     expect(where()).toBe('/lib?tab=write')
     cleanup()
     renderAt('/write')
@@ -42,7 +44,7 @@ describe('내 서재 (U11·U12)', () => {
 })
 
 describe('새 소설 만들기 (U28)', () => {
-  it('새 소설 쓰기를 누를 때마다 정책 확인을 다시 요구하고 /worlds는 /new로 보낸다', async () => {
+  it('새 소설 쓰기를 누를 때마다 정책 확인을 다시 요구하고 /worlds는 독립 작업실을 연다', async () => {
     for (let visit = 0; visit < 2; visit++) {
       renderAt('/lib?tab=write')
       fireEvent.click(await screen.findByRole('button', { name: /＋ 새 소설 쓰기/ }))
@@ -52,21 +54,20 @@ describe('새 소설 만들기 (U28)', () => {
       cleanup()
     }
     renderAt('/worlds')
-    await waitFor(() => expect(where()).toBe('/new'))
+    await screen.findByRole('heading', { name: '세계관 작업실', level: 1 })
+    expect(where()).toBe('/worlds')
   })
 
   it('세계관을 만들어도 작성 중인 정보가 남고, 실패는 Toast로 알린 뒤 집필실로 간다', async () => {
+    await appContainer.resolve('worldRepository').save({ id: 'new-world', name: '새 세계', description: '', rules: ['밤에는 문이 닫힌다'], public: false })
     renderAt('/new')
     await acceptPolicy()
     expect(within(screen.getByLabelText('장르')).getAllByRole('option')).toHaveLength(30)
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '작성 중인 작품' } })
-    const create = document.getElementById('worldCreate')!
-    fireEvent.change(within(create).getByLabelText('이름'), { target: { value: '새 세계' } })
-    fireEvent.change(within(create).getByLabelText('세계관 규칙 (한 줄에 하나)'), { target: { value: '밤에는 문이 닫힌다' } })
-    fireEvent.click(within(create).getByRole('button', { name: '비공개 세계관 만들기' }))
-    await toastIs('비공개 세계관을 만들었어요 (데모)')
+    within(screen.getByRole('main')).getByRole('button', { name: '세계관 작업실' })
+    expect(document.getElementById('worldCreate')).toBeNull()
     expect((screen.getByLabelText('제목') as HTMLInputElement).value).toBe('작성 중인 작품')
-    await waitFor(() => expect((screen.getByLabelText(/새 세계 · 내 비공개 세계관/) as HTMLInputElement).checked).toBe(true))
+    fireEvent.click(await screen.findByLabelText(/새 세계 · 내 비공개 세계관/))
 
     fireEvent.click(screen.getByRole('button', { name: '소설 만들고 1화 쓰기 →' }))
     await toastIs('태그를 2개 이상 추가해 주세요')
@@ -88,11 +89,9 @@ describe('새 소설 만들기 (U28)', () => {
     await waitFor(() => expect(where()).toMatch(/^\/studio\/mine/))
   })
 
-  it('연결된 작품이 있는 세계관은 삭제할 수 없다', async () => {
-    renderAt('/new')
-    await acceptPolicy()
-    fireEvent.click(screen.getByRole('button', { name: '세계관 삭제' }))
-    await toastIs('연결된 작품이 있어 삭제할 수 없어요')
+  it('새 소설 화면은 세계관 삭제 기능을 노출하지 않는다', async () => {
+    renderAt('/new'); await acceptPolicy()
+    expect(screen.queryByRole('button', { name: '세계관 삭제' })).toBeNull()
   })
 })
 

@@ -185,7 +185,7 @@ export class StudioUseCase {
     const current = (await this.draftOf(w)).draft
     const parentCast = w.parent ? (await this.work(w.parent))?.cast : undefined
     // 목업 shared: 남이 소유한 공개 세계관이 연결돼 있으면 복사 전까지 사전 편집을 막습니다.
-    const worlds = await this.workRepository.listWorlds()
+    const worlds = await this.worldRepository.list()
     const shared = (w.worldIds ?? []).map((x) => worlds.find((y) => y.id === x)).find((x) => x?.owner) ?? null
     return { work: w, eps: epsOf(w), base: baseOf(w), key, draft, current, proposal: propOf(w), parentCast, shared }
   }
@@ -318,7 +318,7 @@ export class StudioUseCase {
   }
 
   private async worldRules() {
-    const m = new Map((await this.workRepository.listWorlds()).map((x) => [x.id, x.rules]))
+    const m = new Map((await this.worldRepository.list()).map((x) => [x.id, x.rules]))
     return (x: string) => m.get(x) ?? []
   }
 
@@ -487,7 +487,7 @@ export class StudioUseCase {
   async savePublishSettings(id: string, st: PublishSettings): Promise<{ error: string } | { ok: string }> {
     if (!st.ok && st.vis === '모두') return { error: '공개하려면 권리 확인에 체크해 주세요' }
     if (st.on && !st.all && !st.eps.length) return { error: '포크를 허용할 회차를 하나 이상 골라 주세요' }
-    const worlds = await this.workRepository.listWorlds()
+    const worlds = await this.worldRepository.list()
     const label = await this.change(id, (w) => {
       w.private = st.vis === '나만'
       w.forkAll = st.on && st.all

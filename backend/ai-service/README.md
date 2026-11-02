@@ -1,5 +1,7 @@
 # STORYFORK AI Service
 
+> 세계관 작업실 후속 단위는 `WORLD_STUDIO_AI_ENABLED=true`일 때만 `/internal/v1/initial-world-knowledge`를 등록합니다. 기존 `initial-content-4-minimal` 전처리·검증 계약을 재사용하며 기본 Health 실행은 키·모델 클라이언트를 필요로 하지 않습니다. Core와 AI Service 양쪽에 같은 opt-in 값을 전달해야 합니다. 검증은 더미 키와 HTTP mock만 사용했습니다.
+
 FastAPI 기반 내부 서비스 개발 기반입니다. 현재는 **Health만** 제공하며 Agent나 생성 API는 없습니다.
 현재 Core Service의 `core-api` 모듈이 이 Health를 호출합니다. Compose에서 AI Service의 호스트 포트는 공개하지 않습니다.
 

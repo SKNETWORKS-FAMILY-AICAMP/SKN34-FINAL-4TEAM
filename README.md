@@ -10,10 +10,32 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 최신 MVP 결정은 [결정 기록 DEC-26~40](docs/design/decisions.md#결정-목록)을 따릅니다. 충돌하는 과거 유스케이스 세부 정책은 현행 계약이 아닙니다.
 [MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 논리 명칭은 Core Service·AI Service입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
 
-> **현재 구현 상태: 개발 기반 셋업 단계**
-> Frontend·현재 `core-api` 실행 모듈·AI Service와 Docker 실행 기반, STORYFORK 시작 화면과 실제 연결 확인만 제공합니다. 설계상 서비스 명칭은 Core Service·AI Service입니다.
-> 아래 STORYFORK 기능은 **기획 목표이며 아직 구현되지 않았습니다.**
-> 화면·상세 업무 계약·데이터 모델은 후속 설계 대상입니다.
+> **개인 통합 브랜치: 세계관 작업실 부분 구현**
+> 세계관 직접 작성·Core 로컬 저장·선택적 AI 후보 검토·저장된 설정 조회를 포함합니다.
+> 작품·회차·Fork 등 나머지 화면은 기존 메모리 데모이며, 이 브랜치는 병합 준비 완료 상태가 아닙니다.
+> [Issue #48](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48)의 부분 구현이고 #49 작품 생성·관리는 범위 밖입니다.
+
+## 세계관 작업실 실행과 검증
+
+| 영역 | 현재 통합본 | 한계 |
+|---|---|---|
+| 직접 작성 | 이름/선택 설명, 인물·장소 등 10개 메뉴, 수정/저장/재조회 | 로컬 H2와 체험 actor 사용 |
+| 데이터 보호 | 소유자·기준 버전 검사, 이전 저장본 revision, 오류 시 입력/저장본 유지 | 실제 인증·PostgreSQL·항목/회차 공개·revert UI 미구현 |
+| AI | 기본 OFF, 동의 후 후보 생성·수정·선택 승인, 실패/중단 처리 | SDK HTTP mock/DTO 스텁으로만 검증, 실제 모델 품질·비용 미검증 |
+| 설정집·관계·시간선 | 저장된 settings를 읽는 화면 | 관계는 목록, 그래프 DB/그래프 시각화 미구현. 관계 양성 브라우저 검증 진행 중 |
+| 새 소설 연계 | 작업실 진입과 서버 세계관 조회 연결 | 작품 저장은 메모리 데모. 기존 1~5개 선택은 MVP 정책이 아님; #49 범위 밖 |
+
+Node 24·pnpm 11.22·JDK 21·Python/uv가 필요합니다. 루트 `.env.example`을 참고해 **개인 `.env` 한 곳**에서 설정합니다. 실제 `.env`와 DB는 커밋하지 않습니다.
+
+- 직접 작성: `STUDIO_ENABLED=true`, `WORLD_STUDIO_AI_ENABLED=false`, `STUDIO_DB_URL`에 개인 사용자 DB의 H2 파일 URL 지정. AI Service 없이 사용할 수 있습니다.
+- QA는 다른 H2 파일 URL과 다른 서버/브라우저 포트를 사용합니다. 사용자 DB에 합성 데이터를 넣거나 리셋하지 않습니다. Core는 loopback 접근과 기존 CORS 설정 Origin만 허용합니다.
+- 기존 native launcher: `python infrastructure/scripts/run-native.py core-api`, 별도 터미널에서 `python infrastructure/scripts/run-native.py web`. 기본 화면은 `/worlds`입니다. POSIX launcher 경로이며 Windows 일반 launcher 검증은 남아 있습니다.
+- 체험 화면에서 ‘체험 환경 안내 → 작업실 연결’을 사용합니다. 실제 계정 인증이나 운영 접근 권한이 부여되는 기능이 아닙니다.
+- AI는 명시적으로 켠 환경만 요청할 수 있습니다. 이 작업의 검증은 스텁/mock만 사용하며 신규 유료 호출은 하지 않았습니다.
+
+[통합 구현·실행 경계](docs/world-studio-integration.md) · [#48 요구사항 대조](docs/world-studio-direct.md) · [4개 PR 분리·검증 상태](docs/world-studio-sharing.md)
+
+**검증 상태:** 기존 기능 회귀/일부 Core·AI mock 검증과 각 PR의 독립 검증을 구분합니다. 독립 PR 2/3 빌드 및 PR 4 관계 양성 E2E는 진행 중입니다. 최신 완료 결과는 공유 문서의 표에 기록하며, 원격 CI는 실제 push 뒤의 실행 결과만 인정합니다.
 
 ## 사용자와 핵심 가치
 
@@ -83,10 +105,10 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 Frontend (React)
   → 공개 HTTP API → Core Service (현 실행 모듈: core-api, Spring Boot / Kotlin)
                      → 내부 HTTP API → AI Service (FastAPI)
-                                         (현재 Health만 제공, 모델 호출 없음)
+                                         (세계관 AI는 선택적·기본 비활성화)
 ```
 
-| 구성 | 현재 기술 | STORYFORK 목표 책임 — 업무 기능 미구현 |
+| 구성 | 현재 기술 | STORYFORK 목표 책임 — 구현 범위는 위 상태표 참고 |
 |---|---|---|
 | Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 독자·작가 전체 화면(작가 도구는 하위 기능). 공개 Core Service HTTP API만 호출 |
 | Core Service (`core-api` 모듈) | Kotlin·Spring Boot, JDK 21 | 작품·세계관·회차 버전·체크포인트·Fork의 정본, 권한·승인·발행의 최종 판단과 저장 |

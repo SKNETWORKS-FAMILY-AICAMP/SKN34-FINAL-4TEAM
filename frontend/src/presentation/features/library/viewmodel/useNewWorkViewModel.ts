@@ -19,7 +19,7 @@ export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContaine
   const navigate = useNavigate()
   const [policyAccepted, setPolicyAccepted] = useState(false)
   const form = useAppSelector((s) => s.newWork)
-  const { data: worlds } = useAsyncData(() => libraryUseCase.getWorlds(), [libraryUseCase])
+  const { data: worlds, isError: worldsError } = useAsyncData(() => libraryUseCase.getWorlds(true), [libraryUseCase])
   useScreenId('U28')
 
   const set = (patch: Partial<NewWorkInput>) => dispatch(newWorkActions.set(patch))
@@ -29,7 +29,7 @@ export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContaine
   return {
     policyAccepted,
     acceptPolicy: (ack: boolean) => ack ? setPolicyAccepted(true) : toast('정책 확인 항목에 동의해 주세요'),
-    form, set, worlds,
+    form, set, worlds, worldsError,
     toggleWorld: (id: string, on: boolean) => set({ worldIds: on ? [...new Set([...form.worldIds, id])] : form.worldIds.filter((x) => x !== id) }),
     setCast: (i: number, key: 'n' | 'd', v: string) => set({ cast: form.cast.map((c, n) => n === i ? { ...c, [key]: v } : c) }),
     addTag: (raw: string) => {
@@ -65,10 +65,12 @@ export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContaine
     },
     restore: async (id: string, version: number) => {
       if (!window.confirm('선택한 버전을 복원하고 새 이력으로 남길까요?')) return
-      if (!await libraryUseCase.restoreWorld(id, version, false)) {
+      let result = await libraryUseCase.restoreWorld(id, version, false)
+      if ('needsConfirm' in result) {
         if (!window.confirm('제거한 규칙을 연결된 작품에도 반영할까요? 이전 세계관 이력에서 복원할 수 있어요.')) return
-        await libraryUseCase.restoreWorld(id, version, true)
+        result = await libraryUseCase.restoreWorld(id, version, true)
       }
+      if (!('ok' in result)) return toast(result.error ?? '복원하지 못했어요')
       changed('선택한 버전을 복원했어요 (데모)')
     },
     togglePublic: async (id: string, isPublic: boolean) => {
