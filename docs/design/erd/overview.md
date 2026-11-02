@@ -97,6 +97,11 @@ erDiagram
     FEEDBACK ||--o{ FEEDBACK_MODERATION : moderation
     FEEDBACK ||--o{ FEEDBACK_LIKE : likes
     MEMBER ||--o{ FEEDBACK_LIKE : likes
+    FEEDBACK ||--o{ FEEDBACK_COMMENT : discussion
+    MEMBER ||--o{ FEEDBACK_COMMENT : writes
+    FEEDBACK ||--o{ FEEDBACK_REVIEW : decisions
+    AI_PROPOSAL o|--o{ FEEDBACK_REVIEW : proposal
+    EPISODE_VERSION o|--o{ FEEDBACK_REVIEW : applied_version
 
     MEMBER {
         id id PK
@@ -341,6 +346,25 @@ erDiagram
     FEEDBACK_LIKE {
         id feedback_id PK,FK
         id member_id PK,FK
+        datetime created_at
+    }
+    FEEDBACK_COMMENT {
+        id id PK
+        id feedback_id FK
+        id author_id FK
+        text content
+        text verification_snapshot
+        text evidence_snapshot
+        datetime created_at
+    }
+    FEEDBACK_REVIEW {
+        id id PK
+        id feedback_id FK
+        id proposal_id FK
+        id applied_episode_version_id FK
+        string decision
+        string decision_source
+        text approved_content
         datetime created_at
     }
 ```

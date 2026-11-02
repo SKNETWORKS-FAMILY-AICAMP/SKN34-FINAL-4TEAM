@@ -239,6 +239,14 @@
 ### `FEEDBACK_LIKE` — 댓글 좋아요
 - **그림의 항목:** `feedback_id`, `member_id`, `created_at`. 예: 한 회원의 좋아요. 복합 키는 중복 제한 후보이며 댓글에만 허용하고 수만 공개합니다.
 
+<a id="feedback-comment"></a>
+### `FEEDBACK_COMMENT` — 공개 제보의 추가 의견
+- **그림의 항목:** `id`, `feedback_id`, `author_id`, `content`, `verification_snapshot`, `evidence_snapshot`, `created_at`. 예: 다른 독자가 기존 제보에 의견과 검증 근거를 남깁니다. 첨부는 선택적이며 권한과 공개 범위는 별도 검증합니다.
+
+<a id="feedback-review"></a>
+### `FEEDBACK_REVIEW` — 제보의 검토·반영 후보
+- **그림의 항목:** `id`, `feedback_id`, `proposal_id`, `applied_episode_version_id`, `decision`, `decision_source`, `approved_content`, `created_at`. 예: 원래 AI 제안과 작가가 승인한 내용, 반영 버전을 연결합니다. 수동 수정에는 AI 제안이 없을 수 있고 발행 여부는 별도로 확인합니다.
+
 ## 외부 라이브러리 테이블은 별도
 
 [LangGraph PostgreSQL Saver 참고](ai-service/postgres-saver.md#3-langgraph-postgressaver의-실제-테이블)에 `checkpoints`, `checkpoint_blobs`, `checkpoint_writes`, `checkpoint_migrations` 네 테이블의 역할과 기본키를 따로 설명했습니다. 이들은 조사한 라이브러리 스키마이지 위 Core 업무 테이블이 아닙니다. Saver 도입과 DB 배치는 아직 미정이고, 실제 STORYFORK DB에서 `setup()`을 실행한 것은 아닙니다.

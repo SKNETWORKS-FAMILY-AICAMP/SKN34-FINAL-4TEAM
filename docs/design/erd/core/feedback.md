@@ -20,6 +20,11 @@ erDiagram
     FEEDBACK ||--o{ FEEDBACK_MODERATION : moderation
     FEEDBACK ||--o{ FEEDBACK_LIKE : likes
     MEMBER ||--o{ FEEDBACK_LIKE : likes
+    FEEDBACK ||--o{ FEEDBACK_COMMENT : discussion
+    MEMBER ||--o{ FEEDBACK_COMMENT : writes
+    FEEDBACK ||--o{ FEEDBACK_REVIEW : decisions
+    AI_PROPOSAL o|--o{ FEEDBACK_REVIEW : proposal
+    EPISODE_VERSION o|--o{ FEEDBACK_REVIEW : applied_version
 
     MEMBER {
         id id PK
@@ -55,6 +60,20 @@ erDiagram
         integer revision_no
         string title_snapshot
         text content
+        datetime created_at
+    }
+    AI_PROPOSAL {
+        id id PK
+        id job_id FK
+        string kind
+        text content
+        text evidence
+        string selection_status
+        string application_status
+        id base_episode_version_id FK
+        id base_setting_version_id FK
+        id applied_episode_version_id FK
+        id applied_setting_version_id FK
         datetime created_at
     }
     FEEDBACK {
@@ -99,12 +118,31 @@ erDiagram
         id member_id PK,FK
         datetime created_at
     }
+    FEEDBACK_COMMENT {
+        id id PK
+        id feedback_id FK
+        id author_id FK
+        text content
+        text verification_snapshot
+        text evidence_snapshot
+        datetime created_at
+    }
+    FEEDBACK_REVIEW {
+        id id PK
+        id feedback_id FK
+        id proposal_id FK
+        id applied_episode_version_id FK
+        string decision
+        string decision_source
+        text approved_content
+        datetime created_at
+    }
 ```
 
 ## 이 그림의 테이블
 
-- 피드백: [`FEEDBACK`](../tables.md#feedback), [`FEEDBACK_STATUS_EVENT`](../tables.md#feedback-status-event), [`FEEDBACK_RESPONSE`](../tables.md#feedback-response), [`FEEDBACK_VERIFICATION`](../tables.md#feedback-verification), [`FEEDBACK_MODERATION`](../tables.md#feedback-moderation), [`FEEDBACK_LIKE`](../tables.md#feedback-like).
-- 다른 영역의 참조: [`MEMBER`](../tables.md#member), [`WORK`](../tables.md#work), [`EPISODE`](../tables.md#episode), [`EPISODE_VERSION`](../tables.md#episode-version).
+- 피드백: [`FEEDBACK`](../tables.md#feedback), [`FEEDBACK_STATUS_EVENT`](../tables.md#feedback-status-event), [`FEEDBACK_RESPONSE`](../tables.md#feedback-response), [`FEEDBACK_VERIFICATION`](../tables.md#feedback-verification), [`FEEDBACK_MODERATION`](../tables.md#feedback-moderation), [`FEEDBACK_LIKE`](../tables.md#feedback-like), [`FEEDBACK_COMMENT`](../tables.md#feedback-comment), [`FEEDBACK_REVIEW`](../tables.md#feedback-review).
+- 다른 영역의 참조: [`MEMBER`](../tables.md#member), [`WORK`](../tables.md#work), [`EPISODE`](../tables.md#episode), [`EPISODE_VERSION`](../tables.md#episode-version), [`AI_PROPOSAL`](../tables.md#ai-proposal).
 
 ## 유스케이스와 데이터
 
@@ -123,4 +161,10 @@ erDiagram
 
 - 처리 상태·응답·제출된 검증 첨부를 구분합니다. 공개 응답은 제보 원문을 자동 공개하지 않으며 AI 응답과 작가 응답을 구분합니다.
 - 독자가 검증 기록을 삭제해도 이미 제출된 결과와 근거는 첨부로 보존합니다. 댓글 신고·필터·숨김·복원과 좋아요를 별도 관계로 표현합니다. 실제 접근 제어와 상태 전이는 관계만으로 보장되지 않습니다.
-- 제보 제출 후에는 철회 대신 독자가 정정 의견을 추가합니다. 의견은 제보자와 작가가 확인하며 관계 모델은 후속 설계 대상입니다. 필터·AI 응대 등은 MVP 이후이며 그림은 전체 서비스의 미구현 후보입니다.
+- 작가에게 전달된 제보는 독자가 정정 또는 철회할 수 있으며 원래 제보를 보존하고 작가에게 표시합니다. 정정·철회와 제보의 관계 모델은 아직 그림에 없습니다. 필터·AI 응대 등은 MVP 이후이며 그림은 전체 서비스의 미구현 후보입니다.
+- UC-15 답변과 당시 여러 근거의 연결, 제보별 AI 실행·실패·재시도, 제보와 수정안·판단·실제 반영 버전의 연결은 현재 그림에 모델링되지 않았습니다. 독자가 본 회차 이후나 비공개 정보의 접근은 별도로 제한합니다.
+
+## UC-16 검토와 공개 토론
+
+- 공개 제보는 열람 가능한 독자가 추가 의견과 선택적 검증 근거를 남깁니다. 중복 제보는 가능하며 비공개 제보는 제보자와 작가에게만 보입니다. 각 독자의 회차 공개 범위와 비공개 설정 보호는 별도 권한 검증이 필요합니다.
+- 원래 AI 제안과 작가가 승인한 내용, 판단 주체, 실제 반영 버전을 구분합니다. 발행은 별도이며 자동 승인 예외는 UC-16을 따릅니다. 정정·철회의 상세 관계와 AI 실행·복수 근거 관계는 아직 그림에 없습니다.
