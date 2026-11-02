@@ -33,3 +33,29 @@ try:
 finally:
     server.shutdown()
     server.server_close()
+
+# Exercise the actual branch-HEAD guard against a local GitHub API substitute.
+head_script = textwrap.dedent(workflow.split('          # branch-head-start\n', 1)[1].split('          # branch-head-end\n', 1)[0])
+server = http.server.HTTPServer(('127.0.0.1', 0), Handler)
+thread = threading.Thread(target=server.serve_forever, daemon=True)
+thread.start()
+try:
+    head_script = head_script.replace('https://api.github.com', f'http://127.0.0.1:{server.server_port}')
+    for status, body, expected in [(200, b'{"object":{"sha":"abc"}}', 0), (200, b'{"object":{"sha":"old"}}', 1), (200, b'{}', 1), (403, b'{}', 1), (500, b'{}', 1), (200, b'bad json', 1)]:
+        Handler.status, Handler.body = status, body
+        result = subprocess.run([sys.executable, '-c', head_script], env={**os.environ, 'GITHUB_REPOSITORY': 'owner/repo', 'GITHUB_REF_NAME': 'develop', 'GITHUB_SHA': 'abc', 'GH_TOKEN': 'test-secret'}, capture_output=True, text=True)
+        assert (result.returncode == 0) == (expected == 0), (status, body, result.stderr)
+        assert 'test-secret' not in result.stdout + result.stderr
+    assert 'docker push --all-tags' not in workflow
+    assert 'docker push "$IMAGE:$GITHUB_REF_NAME"' in workflow
+    assert 'docker push "$IMAGE:sha-$GITHUB_SHA"' in workflow
+    print('Branch HEAD and explicit tag cases passed')
+finally:
+    server.shutdown()
+    server.server_close()
+
+# A connection failure must also prevent publication.
+result = subprocess.run([sys.executable, '-c', head_script], env={**os.environ, 'GITHUB_REPOSITORY': 'owner/repo', 'GITHUB_REF_NAME': 'develop', 'GITHUB_SHA': 'abc', 'GH_TOKEN': 'test-secret'}, capture_output=True, text=True)
+assert result.returncode != 0 and 'test-secret' not in result.stdout + result.stderr
+assert workflow.index('# branch-head-end') < workflow.index('docker push "$IMAGE:sha-$GITHUB_SHA"')
+print('Branch lookup failure case passed')

@@ -223,5 +223,33 @@ jobs:
           print('GHCR returned DENIED; package may be private or absent')
           # preflight-end
           PY
+      - name: Verify current branch HEAD
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PYTHON'
+          # branch-head-start
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+
+          repository = urllib.parse.quote(os.environ['GITHUB_REPOSITORY'], safe='/')
+          branch = urllib.parse.quote(os.environ['GITHUB_REF_NAME'], safe='')
+          request = urllib.request.Request(
+              f'https://api.github.com/repos/{repository}/git/ref/heads/{branch}',
+              headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'},
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=10) as response:
+                  current_sha = json.load(response)['object']['sha']
+          except (OSError, ValueError, KeyError, TypeError):
+              raise SystemExit('Branch HEAD lookup failed; publishing stopped')
+          if current_sha != os.environ['GITHUB_SHA']:
+              raise SystemExit('Branch HEAD differs from event SHA; publishing stopped')
+          # branch-head-end
+          PYTHON
       - name: Push image tags
-        run: docker push --all-tags "$IMAGE"
+        run: |
+          docker push "$IMAGE:sha-$GITHUB_SHA"
+          docker push "$IMAGE:$GITHUB_REF_NAME"
