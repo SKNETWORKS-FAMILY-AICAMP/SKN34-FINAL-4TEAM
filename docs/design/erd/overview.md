@@ -85,6 +85,11 @@ erDiagram
     CHAT_SESSION o|--o{ AI_JOB : "optional chat"
     CHECKPOINT o|--o{ AI_JOB : "baseline candidate"
     AI_JOB ||--o{ AI_PROPOSAL : produces
+    AI_JOB o|--o{ OPERATION_ALERT : "job candidate"
+    OPERATION_ALERT ||--o{ OPERATION_ACTION : actions
+    MEMBER o|--o{ OPERATION_ACTION : "operator candidate"
+    MEMBER ||--o{ USER_NOTICE : receives
+    AI_JOB o|--o{ USER_NOTICE : "job candidate"
     EPISODE_VERSION o|--o{ AI_PROPOSAL : "base episode candidate"
     SETTING_VERSION o|--o{ AI_PROPOSAL : "base setting candidate"
     EPISODE_VERSION o|--o{ AI_PROPOSAL : "applied episode candidate"
@@ -304,6 +309,31 @@ erDiagram
         id base_setting_version_id FK
         id applied_episode_version_id FK
         id applied_setting_version_id FK
+        datetime created_at
+    }
+    OPERATION_ALERT {
+        id id PK
+        id ai_job_id FK
+        string source_kind
+        string source_ref
+        string delivery_status
+        datetime created_at
+        datetime checked_at
+    }
+    OPERATION_ACTION {
+        id id PK
+        id alert_id FK
+        id operator_id FK
+        string result
+        text summary
+        datetime created_at
+    }
+    USER_NOTICE {
+        id id PK
+        id recipient_id FK
+        id ai_job_id FK
+        string delivery_status
+        string message
         datetime created_at
     }
     FEEDBACK {

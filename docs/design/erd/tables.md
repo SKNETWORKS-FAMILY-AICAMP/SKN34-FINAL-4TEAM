@@ -210,6 +210,18 @@
 - **그림의 주요 항목:** `job_id`, `kind`, `content`, `evidence`, `selection_status`, `application_status`, `base_episode_version_id`·`base_setting_version_id`, `applied_episode_version_id`·`applied_setting_version_id`, `created_at`.
 - **예와 한계:** AI가 원고에서 새 인물 설정을 제안하면 작가가 검토·선택하고 실제 반영 결과는 별도로 구분합니다. 채택이나 저장이 자동 발행을 뜻하지 않습니다. 복수 대상·근거 표현과 제안 보관 여부는 미정입니다.
 
+<a id="operation-alert"></a>
+### `OPERATION_ALERT` — 운영 경고 후보
+- **그림의 항목:** `id`, `ai_job_id`, `source_kind`, `source_ref`, `delivery_status`, `created_at`, `checked_at`. 예: AI 연결 장애 경고. 신고·정기 작업 참조는 후보이며 FK와 전달·확인 정책은 미정입니다.
+
+<a id="operation-action"></a>
+### `OPERATION_ACTION` — 운영 조치 이력 후보
+- **그림의 항목:** `id`, `alert_id`, `operator_id`, `result`, `summary`, `created_at`. 예: 운영자가 장애 원인과 조치 결과를 기록합니다. 경고 확인은 해결과 다릅니다.
+
+<a id="user-notice"></a>
+### `USER_NOTICE` — 사용자 알림 후보
+- **그림의 항목:** `id`, `recipient_id`, `ai_job_id`, `delivery_status`, `message`, `created_at`. 예: 창작자가 요청한 AI 작업의 실패 안내. 운영 경고와 독립이며 알림 권한·보관은 별도 설계합니다.
+
 ## 독자 피드백
 
 <a id="feedback"></a>

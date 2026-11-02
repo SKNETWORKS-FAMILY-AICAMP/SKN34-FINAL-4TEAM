@@ -19,6 +19,11 @@ erDiagram
     CHAT_SESSION o|--o{ AI_JOB : "optional chat"
     CHECKPOINT o|--o{ AI_JOB : "baseline candidate"
     AI_JOB ||--o{ AI_PROPOSAL : produces
+    AI_JOB o|--o{ OPERATION_ALERT : "job candidate"
+    OPERATION_ALERT ||--o{ OPERATION_ACTION : actions
+    MEMBER o|--o{ OPERATION_ACTION : "operator candidate"
+    MEMBER ||--o{ USER_NOTICE : receives
+    AI_JOB o|--o{ USER_NOTICE : "job candidate"
     EPISODE_VERSION o|--o{ AI_PROPOSAL : "base episode candidate"
     SETTING_VERSION o|--o{ AI_PROPOSAL : "base setting candidate"
     EPISODE_VERSION o|--o{ AI_PROPOSAL : "applied episode candidate"
@@ -105,11 +110,36 @@ erDiagram
         id applied_setting_version_id FK
         datetime created_at
     }
+    OPERATION_ALERT {
+        id id PK
+        id ai_job_id FK
+        string source_kind
+        string source_ref
+        string delivery_status
+        datetime created_at
+        datetime checked_at
+    }
+    OPERATION_ACTION {
+        id id PK
+        id alert_id FK
+        id operator_id FK
+        string result
+        text summary
+        datetime created_at
+    }
+    USER_NOTICE {
+        id id PK
+        id recipient_id FK
+        id ai_job_id FK
+        string delivery_status
+        string message
+        datetime created_at
+    }
 ```
 
 ## 이 그림의 테이블
 
-- Core 업무 연결: [`CHAT_SESSION`](../tables.md#chat-session), [`AI_JOB`](../tables.md#ai-job), [`AI_PROPOSAL`](../tables.md#ai-proposal).
+- Core 업무 연결: [`CHAT_SESSION`](../tables.md#chat-session), [`AI_JOB`](../tables.md#ai-job), [`AI_PROPOSAL`](../tables.md#ai-proposal), [`OPERATION_ALERT`](../tables.md#operation-alert), [`OPERATION_ACTION`](../tables.md#operation-action), [`USER_NOTICE`](../tables.md#user-notice).
 - 다른 영역의 참조: [`MEMBER`](../tables.md#member), [`WORK`](../tables.md#work), [`CHECKPOINT`](../tables.md#checkpoint), [`EPISODE_VERSION`](../tables.md#episode-version), [`SETTING_VERSION`](../tables.md#setting-version). [LangGraph Saver 테이블](../ai-service/postgres-saver.md#3-langgraph-postgressaver의-실제-테이블)은 별도 외부 라이브러리 스키마입니다.
 
 ## 유스케이스와 데이터
@@ -129,6 +159,12 @@ erDiagram
 - 판단은 나중에 변경할 수 있으나 판단만으로 원고·설정이 변경되지는 않습니다. 창작자가 별도로 수정·반영하며 저장과 발행은 구분합니다. 검토 결과와 판단 이력은 창작자가 삭제하기 전까지 재조회합니다.
 - MVP에서 여러 세계관 검토는 개발하지 않지만 전체 서비스에서는 한 검토에 여러 세계관과 비교 기준이 연결될 수 있어야 합니다. 연결 정책·한도는 별도 확인합니다.
 - 위 관계는 **현재 그림에 모델링되지 않았습니다**. `AI_JOB`·`AI_PROPOSAL`의 기존 필드만으로 다중 근거와 판단 이력 보존을 보장하지 않으며 논리 모델 및 구체적인 보존 범위·저장 방식은 후속 설계 대상입니다.
+
+## UC-21 실패 알림과 운영 경고
+
+- AI 작업 실패는 요청한 창작자·독자 또는 자율 연재의 작품 소유자에게 알립니다. 운영 경고는 기술 진단용으로 별도이며 발생·전달·확인·조치 결과를 구분합니다. 재실행은 이전 실패를 덮어쓰지 않습니다.
+- 경고가 대상 AI 작업이나 지연된 신고와 연결되고 운영자의 확인·조치 이력을 남겨야 합니다. 사용자 작업 기록, 90일 기술 로그, 운영 경고·조치 이력은 서로 다른 보관 대상입니다. 운영 경고·조치 이력은 우선 1년 보관 기준이며 개인정보·법률 검토 후 조정합니다.
+- 그림은 AI 작업 연결 후보와 운영 경고·조치·사용자 알림을 표현합니다. 신고·정기 작업은 `source_kind`·`source_ref` 후보로만 표시하며 실제 FK·소유권·무결성을 보장하지 않습니다. 전달·접근 권한과 실제 진단 로그 보존은 별도로 설계합니다.
 
 ## 경계와 미정 사항
 
