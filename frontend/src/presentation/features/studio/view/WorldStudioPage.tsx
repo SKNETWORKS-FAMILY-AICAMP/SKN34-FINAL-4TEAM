@@ -6,11 +6,12 @@ import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import './world-studio.css'
+import { WorldMap } from './WorldMap'
 
 type VM=ReturnType<typeof useWorldStudioViewModel>
 const kinds:Record<SettingItem['kind'],string>={entity:'대상',fact:'설정',rule:'규칙',constraint:'제약',claim:'인물의 주장',relation:'관계',undetermined:'미정',event:'과거 사건',note:'메모'}
 const relations:Record<string,string>={sibling_of:'남매·형제자매',child_of:'자녀',spouse_of:'배우자',trusts:'신뢰',hostile_to:'적대',member_of:'소속',leads:'이끎',can_use:'사용 가능',located_in:'위치'}
-const tabs=[['edit','설정 작성'],['wiki','설정집'],['relations','인물 관계도'],['timeline','초기 역사 시간선'],['analysis','AI 후보 검토']] as const
+const tabs=[['edit','설정 작성'],['map','전체 세계관 지도'],['wiki','설정집'],['relations','인물 관계도'],['timeline','초기 역사 시간선'],['analysis','AI 후보 검토']] as const
 
 export function WorldStudioPage() {
  useScreenId('W01')
@@ -30,7 +31,7 @@ export function WorldStudioPage() {
    <section className="world-content">{vm.editing?<>
     <div className="world-toolbar"><h2>{vm.saved?.name}</h2><span role="status">{vm.busy?'잠시만 기다려 주세요':vm.dirty?'저장하지 않은 변경사항':'저장됨'}</span><button className="btn pri" disabled={vm.busy || !vm.dirty} onClick={vm.save}>저장</button></div>
     <nav className="libtabs" aria-label="세계관 도구">{tabs.map(([id,label])=><button type="button" key={id} className={tab===id?'on':''} onClick={()=>setTab(id)} aria-current={tab===id?'page':undefined}>{label}</button>)}</nav>
-    {tab==='edit'?<Editor vm={vm}/>:tab==='analysis'?<Analysis vm={vm}/>:<Confirmed vm={vm} tab={tab}/>}
+    {tab==='edit'?<Editor vm={vm}/>:tab==='map'&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}`} world={vm.saved}/>:tab==='analysis'?<Analysis vm={vm}/>:<Confirmed vm={vm} tab={tab}/>}
    </>:<div className="world-empty"><h2>{vm.busy?'세계관을 읽고 있습니다':'세계관을 선택하거나 새로 만들어 주세요'}</h2><p className="muted">이름만으로 시작할 수 있습니다. 설정과 인물은 필요한 만큼 추가하세요.</p></div>}</section>
   </div>
  </main><Footer storage="core"/></>
