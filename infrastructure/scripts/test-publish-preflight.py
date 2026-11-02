@@ -24,7 +24,7 @@ thread = threading.Thread(target=server.serve_forever, daemon=True)
 thread.start()
 try:
     script = script.replace('https://ghcr.io/token', f'http://127.0.0.1:{server.server_port}/token')
-    for status, body, expected in [(200, b'{"token":"secret"}', 1), (403, b'{"errors":[{"code":"DENIED"}]}', 0), (403, b'bad json', 1), (403, b'{"errors":[{"code":"OTHER"}]}', 1), (401, b'{}', 1), (429, b'{}', 1), (500, b'{}', 1)]:
+    for status, body, expected in [(200, b'{"token":"secret"}', 1), (401, b'{"errors":[{"code":"UNAUTHORIZED","message":"authentication required"}]}', 0), (403, b'{"errors":[{"code":"DENIED"}]}', 0), (401, b'{"errors":[{"code":"DENIED"}]}', 1), (403, b'{"errors":[{"code":"UNAUTHORIZED"}]}', 1), (401, b'{"errors":[{"code":"UNAUTHORIZED"},{"code":"DENIED"}]}', 1), (403, b'{"errors":[{"code":"DENIED"},{"code":"DENIED"}]}', 1), (403, b'{"errors":[]}', 1), (403, b'bad json', 1), (403, b'{"errors":[{"code":"OTHER"}]}', 1), (401, b'{}', 1), (429, b'{}', 1), (500, b'{}', 1)]:
         Handler.status, Handler.body = status, body
         result = subprocess.run([sys.executable, '-c', script], env={**os.environ, 'IMAGE': 'ghcr.io/sknetworks-family-aicamp/storyfork-web'}, capture_output=True, text=True)
         assert (result.returncode == 0) == (expected == 0), (status, result.stderr)
@@ -33,6 +33,10 @@ try:
 finally:
     server.shutdown()
     server.server_close()
+
+# A connection failure must prevent publication.
+result = subprocess.run([sys.executable, '-c', script], env={**os.environ, 'IMAGE': 'ghcr.io/sknetworks-family-aicamp/storyfork-web'}, capture_output=True, text=True)
+assert result.returncode != 0
 
 # Exercise the actual branch-HEAD guard against a local GitHub API substitute.
 head_script = textwrap.dedent(workflow.split('          # branch-head-start\n', 1)[1].split('          # branch-head-end\n', 1)[0])

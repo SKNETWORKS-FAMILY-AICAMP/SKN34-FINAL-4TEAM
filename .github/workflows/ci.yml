@@ -215,12 +215,13 @@ jobs:
               raise SystemExit('GHCR anonymous access check failed; publishing stopped')
           try:
               data = json.loads(body)
-              denied = status == 403 and isinstance(data, dict) and isinstance(data.get('errors'), list) and bool(data['errors']) and all(isinstance(item, dict) and item.get('code') == 'DENIED' for item in data['errors'])
+              errors = data.get('errors') if isinstance(data, dict) else None
+              denied = isinstance(errors, list) and len(errors) == 1 and isinstance(errors[0], dict) and (status, errors[0].get('code')) in {(401, 'UNAUTHORIZED'), (403, 'DENIED')}
           except (ValueError, UnicodeError):
               denied = False
           if not denied:
               raise SystemExit(f'GHCR anonymous access check returned HTTP {status}; publishing stopped')
-          print('GHCR returned DENIED; package may be private or absent')
+          print('GHCR denied anonymous access; package visibility is not guaranteed')
           # preflight-end
           PY
       - name: Verify current branch HEAD
