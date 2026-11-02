@@ -1,81 +1,58 @@
 # Core 업무 ERD — 독자 피드백
 
-> **전체 ERD의 부분 뷰 · 논리 초안 · 미구현.** [ERD 목차](../README.md) · [전체 업무 ERD](../overview.md). 업무 영역 구분은 별도 배포 서비스나 구현 클래스의 확정이 아닙니다.
+> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
-독자가 작성한 댓글·제보와 대상 회차 버전을 다루는 Core 업무 영역입니다.
+근거: [UC-14](../../../usecase-spec/UC-14.md), [UC-15](../../../usecase-spec/UC-15.md), [UC-16](../../../usecase-spec/UC-16.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-중심: `FEEDBACK`. 회원·작품·회차·원고 버전은 작성자와 대상 참조입니다.
+소유 후보 **17개**, 다른 영역 참조 **10개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
-    MEMBER ||--o{ WORK : owns
-    WORK ||--o{ EPISODE : contains
-    EPISODE ||--o{ EPISODE_VERSION : versions
-    EPISODE_VERSION o|--o| EPISODE : "published version candidate"
-    MEMBER ||--o{ FEEDBACK : writes
-    EPISODE_VERSION ||--o{ FEEDBACK : "read version"
-    FEEDBACK ||--o{ FEEDBACK_STATUS_EVENT : history
-    FEEDBACK ||--o{ FEEDBACK_RESPONSE : responses
-    FEEDBACK ||--o| FEEDBACK_VERIFICATION : attachment
-    FEEDBACK ||--o{ FEEDBACK_MODERATION : moderation
-    FEEDBACK ||--o{ FEEDBACK_LIKE : likes
-    MEMBER ||--o{ FEEDBACK_LIKE : likes
-    FEEDBACK ||--o{ FEEDBACK_COMMENT : discussion
-    MEMBER ||--o{ FEEDBACK_COMMENT : writes
-    FEEDBACK ||--o{ FEEDBACK_REVIEW : decisions
-    AI_PROPOSAL o|--o{ FEEDBACK_REVIEW : proposal
-    EPISODE_VERSION o|--o{ FEEDBACK_REVIEW : applied_version
+    MEMBER o|--o{ FEEDBACK : "author_id"
+    EPISODE_VERSION ||--o{ FEEDBACK : "episode_version_id"
+    FEEDBACK ||--o{ FEEDBACK_AMENDMENT : "feedback_id"
+    MEMBER o|--o{ FEEDBACK_AMENDMENT : "actor_id"
+    FEEDBACK ||--o{ FEEDBACK_STATUS_EVENT : "feedback_id"
+    MEMBER o|--o{ FEEDBACK_STATUS_EVENT : "actor_id"
+    AI_JOB o|--o{ FEEDBACK_STATUS_EVENT : "ai_job_id"
+    FEEDBACK ||--o{ FEEDBACK_AI_JOB : "feedback_id"
+    AI_JOB ||--o{ FEEDBACK_AI_JOB : "job_id"
+    FEEDBACK ||--o{ FEEDBACK_RESPONSE : "feedback_id"
+    AI_JOB o|--o{ FEEDBACK_RESPONSE : "ai_job_id"
+    MEMBER o|--o{ FEEDBACK_RESPONSE : "author_id"
+    FEEDBACK_RESPONSE ||--o{ FEEDBACK_RESPONSE_EVIDENCE : "response_id"
+    AI_EVIDENCE ||--o{ FEEDBACK_RESPONSE_EVIDENCE : "evidence_id"
+    FEEDBACK ||--o{ FEEDBACK_COMMENT : "feedback_id"
+    MEMBER o|--o{ FEEDBACK_COMMENT : "author_id"
+    FEEDBACK o|--o| FEEDBACK_VERIFICATION : "feedback_id"
+    FEEDBACK_COMMENT o|--o| FEEDBACK_VERIFICATION : "comment_id"
+    AI_JOB o|--o{ FEEDBACK_VERIFICATION : "original_job_id"
+    FEEDBACK_VERIFICATION ||--o{ FEEDBACK_VERIFICATION_EVIDENCE : "verification_id"
+    EPISODE_VERSION o|--o{ FEEDBACK_VERIFICATION_EVIDENCE : "episode_version_id"
+    SETTING_VERSION o|--o{ FEEDBACK_VERIFICATION_EVIDENCE : "setting_version_id"
+    FEEDBACK ||--o{ FEEDBACK_REPORT : "feedback_id"
+    MEMBER ||--o{ FEEDBACK_REPORT : "reporter_id"
+    FEEDBACK ||--o{ FEEDBACK_MODERATION_CHECK : "feedback_id"
+    AI_JOB ||--o{ FEEDBACK_MODERATION_CHECK : "job_id"
+    FEEDBACK_REPORT o|--o{ FEEDBACK_MODERATION_CHECK : "report_id"
+    FEEDBACK ||--o{ FEEDBACK_MODERATION : "feedback_id"
+    FEEDBACK_MODERATION_CHECK o|--o{ FEEDBACK_MODERATION : "check_id"
+    MEMBER o|--o{ FEEDBACK_MODERATION : "actor_id"
+    FEEDBACK ||--o{ FEEDBACK_LIKE : "feedback_id"
+    MEMBER ||--o{ FEEDBACK_LIKE : "member_id"
+    FEEDBACK ||--o{ FEEDBACK_PROPOSAL : "feedback_id"
+    AI_PROPOSAL ||--o{ FEEDBACK_PROPOSAL : "proposal_id"
+    FEEDBACK ||--o{ FEEDBACK_REVIEW : "feedback_id"
+    MEMBER ||--o{ FEEDBACK_REVIEW : "actor_id"
+    PROPOSAL_DECISION o|--o{ FEEDBACK_REVIEW : "proposal_decision_id"
+    FEEDBACK ||--o{ FEEDBACK_RESOLUTION : "feedback_id"
+    FEEDBACK_REVIEW ||--o{ FEEDBACK_RESOLUTION : "review_id"
+    EPISODE_VERSION ||--o{ FEEDBACK_RESOLUTION : "episode_version_id"
+    PUBLICATION_EVENT o|--o{ FEEDBACK_RESOLUTION : "publication_event_id"
+    PROPOSAL_APPLICATION o|--o{ FEEDBACK_RESOLUTION : "application_id"
+    FEEDBACK_RESOLUTION ||--o{ FEEDBACK_REWARD : "resolution_id"
+    CREDIT_GRANT ||--o| FEEDBACK_REWARD : "credit_grant_id"
 
-    MEMBER {
-        id id PK
-        string email
-        string password_hash
-        string nickname
-        datetime created_at
-    }
-    WORK {
-        id id PK
-        id owner_id FK
-        id world_id FK
-        string title
-        text description
-        string genre
-        string work_type
-        string visibility_status
-        boolean allow_fork_creation
-        boolean allow_fork_publication
-        datetime created_at
-    }
-    EPISODE {
-        id id PK
-        id work_id FK
-        integer sequence
-        string title
-        string publication_status
-        id published_version_id FK
-    }
-    EPISODE_VERSION {
-        id id PK
-        id episode_id FK
-        integer revision_no
-        string title_snapshot
-        text content
-        datetime created_at
-    }
-    AI_PROPOSAL {
-        id id PK
-        id job_id FK
-        string kind
-        text content
-        text evidence
-        string selection_status
-        string application_status
-        id base_episode_version_id FK
-        id base_setting_version_id FK
-        id applied_episode_version_id FK
-        id applied_setting_version_id FK
-        datetime created_at
-    }
     FEEDBACK {
         id id PK
         id author_id FK
@@ -83,34 +60,100 @@ erDiagram
         string kind
         text content
         text target_excerpt
+        string position
+        string visibility
         boolean is_spoiler
         datetime created_at
+        datetime delivered_at
         datetime author_checked_at
     }
-    FEEDBACK_STATUS_EVENT {
-        id id PK
-        id feedback_id FK
-        string status
-        datetime created_at
-    }
-    FEEDBACK_RESPONSE {
-        id id PK
-        id feedback_id FK
-        string source_kind
-        text content
-        boolean is_public
-        datetime created_at
-    }
-    FEEDBACK_VERIFICATION {
-        id feedback_id PK,FK
-        text result_snapshot
-        text evidence_snapshot
-    }
-    FEEDBACK_MODERATION {
+    FEEDBACK_AMENDMENT {
         id id PK
         id feedback_id FK
         id actor_id FK
         string action
+        text content
+        datetime created_at
+    }
+    FEEDBACK_STATUS_EVENT {
+        id id PK
+        id feedback_id FK
+        id actor_id FK
+        id ai_job_id FK
+        string status
+        datetime created_at
+    }
+    FEEDBACK_AI_JOB {
+        id feedback_id PK,FK
+        id job_id PK,FK
+        string purpose
+    }
+    FEEDBACK_RESPONSE {
+        id id PK
+        id feedback_id FK
+        id ai_job_id FK
+        id author_id FK
+        text content
+        boolean is_public
+        datetime created_at
+    }
+    FEEDBACK_RESPONSE_EVIDENCE {
+        id response_id PK,FK
+        id evidence_id PK,FK
+    }
+    FEEDBACK_COMMENT {
+        id id PK
+        id feedback_id FK
+        id author_id FK
+        text content
+        datetime created_at
+    }
+    FEEDBACK_VERIFICATION {
+        id id PK
+        id feedback_id UK,FK
+        id comment_id UK,FK
+        id original_job_id FK
+        string outcome
+        string verdict
+        decimal confidence
+        text result_snapshot
+        datetime submitted_at
+    }
+    FEEDBACK_VERIFICATION_EVIDENCE {
+        id id PK
+        id verification_id FK
+        integer sequence
+        id episode_version_id FK
+        id setting_version_id FK
+        string graph_state_ref
+        string position
+        text excerpt_snapshot
+    }
+    FEEDBACK_REPORT {
+        id id PK
+        id feedback_id FK
+        id reporter_id FK
+        text reason
+        datetime created_at
+    }
+    FEEDBACK_MODERATION_CHECK {
+        id id PK
+        id feedback_id FK
+        id job_id FK
+        id report_id FK
+        string outcome
+        string verdict
+        text reason
+        datetime checked_at
+    }
+    FEEDBACK_MODERATION {
+        id id PK
+        id feedback_id FK
+        id check_id FK
+        id actor_id FK
+        string action
+        string outcome
+        text reason
         datetime created_at
     }
     FEEDBACK_LIKE {
@@ -118,60 +161,180 @@ erDiagram
         id member_id PK,FK
         datetime created_at
     }
-    FEEDBACK_COMMENT {
-        id id PK
-        id feedback_id FK
-        id author_id FK
-        text content
-        text verification_snapshot
-        text evidence_snapshot
-        datetime created_at
+    FEEDBACK_PROPOSAL {
+        id feedback_id PK,FK
+        id proposal_id PK,FK
     }
     FEEDBACK_REVIEW {
         id id PK
         id feedback_id FK
-        id proposal_id FK
-        id applied_episode_version_id FK
+        id actor_id FK
+        id proposal_decision_id FK
         string decision
-        string decision_source
-        text approved_content
+        text reason
         datetime created_at
+    }
+    FEEDBACK_RESOLUTION {
+        id id PK
+        id feedback_id FK
+        id review_id FK
+        id episode_version_id FK
+        id publication_event_id FK
+        id application_id FK
+        datetime linked_at
+    }
+    FEEDBACK_REWARD {
+        id id PK
+        id resolution_id FK
+        id credit_grant_id UK,FK
+        string correction_key UK
+        datetime awarded_at
+    }
+    MEMBER {
+        id id PK
+        string email UK
+        string password_hash
+        string nickname
+        string account_status
+        datetime created_at
+        string operator_role
+    }
+    SETTING_VERSION {
+        id id PK
+        id setting_document_id FK
+        integer revision_no
+        string name
+        id category_id FK
+        text content
+        id restored_from_id FK
+        string lifecycle
+        datetime created_at
+    }
+    EPISODE_VERSION {
+        id id PK
+        id episode_id FK
+        id work_world_history_id FK
+        integer revision_no
+        string title
+        text content
+        id restored_from_id FK
+        datetime created_at
+    }
+    PUBLICATION_EVENT {
+        id id PK
+        id episode_version_id FK
+        id actor_id FK
+        string action
+        string outcome
+        datetime occurred_at
+        string trigger_kind
+    }
+    AI_JOB {
+        id id PK
+        id requester_id FK
+        id work_id FK
+        id session_id FK
+        id retry_of_job_id FK
+        id base_checkpoint_id FK
+        string kind
+        text request_text
+        string status
+        string failure_reason
+        datetime created_at
+        datetime started_at
+        datetime finished_at
+    }
+    AI_PROPOSAL {
+        id id PK
+        id job_id FK
+        id input_snapshot_id FK
+        integer sequence
+        string kind
+        text content
+        datetime created_at
+    }
+    AI_EVIDENCE {
+        id id PK
+        id episode_version_id FK
+        id setting_version_id FK
+        string graph_state_ref
+        string kind
+        string position
+        text excerpt_snapshot
+        datetime captured_at
+    }
+    PROPOSAL_DECISION {
+        id id PK
+        id proposal_id FK
+        integer sequence
+        id actor_id FK
+        id automation_policy_id FK
+        string decision
+        string selected_range
+        text approved_content
+        datetime decided_at
+    }
+    PROPOSAL_APPLICATION {
+        id id PK
+        id decision_id FK
+        integer attempt_no
+        string outcome
+        string failure_reason
+        datetime attempted_at
+    }
+    CREDIT_GRANT {
+        id id PK
+        id member_id FK
+        id subscription_period_id FK
+        id purchase_id FK
+        string kind
+        decimal amount
+        datetime granted_at
+        datetime expires_at
     }
 ```
 
 ## 이 그림의 테이블
 
-- 피드백: [`FEEDBACK`](../tables.md#feedback), [`FEEDBACK_STATUS_EVENT`](../tables.md#feedback-status-event), [`FEEDBACK_RESPONSE`](../tables.md#feedback-response), [`FEEDBACK_VERIFICATION`](../tables.md#feedback-verification), [`FEEDBACK_MODERATION`](../tables.md#feedback-moderation), [`FEEDBACK_LIKE`](../tables.md#feedback-like), [`FEEDBACK_COMMENT`](../tables.md#feedback-comment), [`FEEDBACK_REVIEW`](../tables.md#feedback-review).
-- 다른 영역의 참조: [`MEMBER`](../tables.md#member), [`WORK`](../tables.md#work), [`EPISODE`](../tables.md#episode), [`EPISODE_VERSION`](../tables.md#episode-version), [`AI_PROPOSAL`](../tables.md#ai-proposal).
+| 소유/참조 | 테이블 | 범위 |
+|---|---|---|
+| 소유 | [`FEEDBACK`](../tables.md#feedback) | MVP |
+| 소유 | [`FEEDBACK_AMENDMENT`](../tables.md#feedback-amendment) | MVP |
+| 소유 | [`FEEDBACK_STATUS_EVENT`](../tables.md#feedback-status-event) | MVP |
+| 소유 | [`FEEDBACK_AI_JOB`](../tables.md#feedback-ai-job) | MVP 이후 |
+| 소유 | [`FEEDBACK_RESPONSE`](../tables.md#feedback-response) | MVP 이후 |
+| 소유 | [`FEEDBACK_RESPONSE_EVIDENCE`](../tables.md#feedback-response-evidence) | MVP 이후 |
+| 소유 | [`FEEDBACK_COMMENT`](../tables.md#feedback-comment) | 전체·범위확인 |
+| 소유 | [`FEEDBACK_VERIFICATION`](../tables.md#feedback-verification) | MVP 이후 |
+| 소유 | [`FEEDBACK_VERIFICATION_EVIDENCE`](../tables.md#feedback-verification-evidence) | MVP 이후 |
+| 소유 | [`FEEDBACK_REPORT`](../tables.md#feedback-report) | MVP 이후 |
+| 소유 | [`FEEDBACK_MODERATION_CHECK`](../tables.md#feedback-moderation-check) | MVP 이후 |
+| 소유 | [`FEEDBACK_MODERATION`](../tables.md#feedback-moderation) | MVP 이후 |
+| 소유 | [`FEEDBACK_LIKE`](../tables.md#feedback-like) | 전체·범위확인 |
+| 소유 | [`FEEDBACK_PROPOSAL`](../tables.md#feedback-proposal) | MVP 이후 |
+| 소유 | [`FEEDBACK_REVIEW`](../tables.md#feedback-review) | MVP 이후 |
+| 소유 | [`FEEDBACK_RESOLUTION`](../tables.md#feedback-resolution) | MVP 이후 |
+| 소유 | [`FEEDBACK_REWARD`](../tables.md#feedback-reward) | MVP 이후 |
+| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP |
+| 다른 영역 참조 | [`SETTING_VERSION`](../tables.md#setting-version) | MVP |
+| 다른 영역 참조 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP |
+| 다른 영역 참조 | [`PUBLICATION_EVENT`](../tables.md#publication-event) | MVP |
+| 다른 영역 참조 | [`AI_JOB`](../tables.md#ai-job) | MVP |
+| 다른 영역 참조 | [`AI_PROPOSAL`](../tables.md#ai-proposal) | MVP |
+| 다른 영역 참조 | [`AI_EVIDENCE`](../tables.md#ai-evidence) | MVP |
+| 다른 영역 참조 | [`PROPOSAL_DECISION`](../tables.md#proposal-decision) | MVP |
+| 다른 영역 참조 | [`PROPOSAL_APPLICATION`](../tables.md#proposal-application) | MVP |
+| 다른 영역 참조 | [`CREDIT_GRANT`](../tables.md#credit-grant) | MVP 이후 |
 
-## 유스케이스와 데이터
+## 데이터 역할과 무결성
 
-- [UC-14](../../../usecase-spec/UC-14.md): 독자는 회차를 읽은 뒤 댓글 또는 제보를 남기고, 작가는 자기 작품의 목록을 확인합니다.
-- 작성자와 실제 대상 회차·발행 버전, 독자가 선택한 피드백 유형·내용을 연결합니다. 특정 구절과 스포일러 가리기는 UC의 항목이며 MVP 입력·저장 범위는 검토가 필요합니다.
-- 댓글과 제보는 공개 범위가 다르므로, 같은 엔티티에 담더라도 접근 제어를 다르게 적용해야 합니다. 회차 버전 ID만 아는 것으로 열람 권한을 인정하지 않습니다.
+- 댓글과 제보의 기본 내용은 `FEEDBACK`을 재사용하되 제보 공개 여부와 응답 공개 여부를 독립 보관합니다. 원문은 읽은 발행 버전·구절에 고정합니다. 제보 유형은 독자가 고르고 AI가 재분류하지 않습니다.
+- 전달 후 정정·철회는 별도 이력이며 원래 제보·기존 원고를 자동 삭제/되돌리지 않습니다. 전달 전 검증 중단은 작가에게 전달하지 않습니다. 댓글의 수정·삭제와 제보 보존을 구별합니다.
+- AI 재시도·응답·복수 근거·작가 판단·실제 저장/발행 연결을 분리했습니다. 승인내용은 `PROPOSAL_DECISION`을 재사용하고 여기서 중복 저장하지 않습니다. 직접 수정도 제보에 결과 버전을 연결할 수 있습니다.
+- 제보/토론 댓글에 제출한 검증 결과와 근거는 개인 AI 기록에서 분리한 스냅샷입니다. 개인 기록 삭제 후에도 남습니다. 다중 첨부 확대를 임의 확정하지 않고 대상당 최대 하나를 후보로 둡니다. 제보/댓글 FK의 XOR와 각각 non-NULL 조건부 UNIQUE 및 0..1 관계로 이를 표현합니다.
+- 신고 접수, 모델 검사, 실제 숨김·복원은 다른 사건입니다. 필터 호출 실패는 통과가 아니라 비공개 대기이며 숨김은 삭제가 아닙니다. 회차·세계관 권리 신고는 [권리 영역](rights.md)입니다.
+- 공개 제보의 토론 참여도 열람 권한을 확인합니다. 비공개 제보 응답을 공개해도 제보 원문이 자동 공개되지 않습니다. 이미 공개된 후속 회차라도 독자가 본 기준 이후의 내용은 응답 근거로 사용하지 않습니다.
+- 보상은 제보·실제 수정·지급분을 연결합니다. 같은 수정의 최초 검증 1건만, 자기작품 제외, 실제 검증비용 이내의 기준50% 및 월상한은 UC-14를 따릅니다. 같은 수정 식별·악용 방지는 미정입니다.
+- MVP는 등록과 작가 목록 확인입니다. 필터·독자검증·AI 응대·수정안·보상은 MVP 이후입니다. 숫자/고유명사/단어 교체를 포함한 수정과 작업초안 충돌은 자동 승인하지 않으며 자동 예외 판단은 Core가 합니다.
 
-## 경계와 미정 사항
-
-- 피드백 유형을 한 테이블로 구분하는 것은 후보입니다. 독자가 본 발행본 버전을 연결해 대상 작품과 회차를 확인합니다.
-- MVP는 댓글·제보 등록과 작가 확인까지입니다. AI 응대·수정안·보상은 이후입니다.
-- `target_excerpt`·`is_spoiler`는 UC에 등장하는 선택 기능의 후보이고 실제 MVP 저장·노출 여부는 미정입니다. `author_checked_at`은 작가가 개별 확인 사실을 보관할 때의 후보이며, MVP에서 작가가 목록을 조회한 것만으로 개별 확인 상태가 생긴다고 가정하지 않습니다.
-- 댓글과 제보의 접근 범위는 구분해야 하며, 세부 상태·구절·저장 형태는 미정입니다.
-
-## UC-14 전체 서비스 후보
-
-- 처리 상태·응답·제출된 검증 첨부를 구분합니다. 공개 응답은 제보 원문을 자동 공개하지 않으며 AI 응답과 작가 응답을 구분합니다.
-- 독자가 검증 기록을 삭제해도 이미 제출된 결과와 근거는 첨부로 보존합니다. 댓글 신고·필터·숨김·복원과 좋아요를 별도 관계로 표현합니다. 실제 접근 제어와 상태 전이는 관계만으로 보장되지 않습니다.
-- 작가에게 전달된 제보는 독자가 정정 또는 철회할 수 있으며 원래 제보를 보존하고 작가에게 표시합니다. 정정·철회와 제보의 관계 모델은 아직 그림에 없습니다. 필터·AI 응대 등은 MVP 이후이며 그림은 전체 서비스의 미구현 후보입니다.
-- UC-15 답변과 당시 여러 근거의 연결, 제보별 AI 실행·실패·재시도, 제보와 수정안·판단·실제 반영 버전의 연결은 현재 그림에 모델링되지 않았습니다. 독자가 본 회차 이후나 비공개 정보의 접근은 별도로 제한합니다.
-
-## UC-20 신고 처리의 논리 관계
-
-- 작품·회차·세계관·설정 항목의 신고를 구분하고, 여러 신고를 하나의 AI 검토 건으로 묶더라도 신고자·접수·증빙을 각각 보존해야 합니다. 조치·소명·운영자 결정과 대상별 적용 전 상태·적용 결과를 연결합니다.
-- 유해 판정의 자동 조치와 저작권 침해 확정 후 조치를 구분하고, 다른 유효한 신고 제한이 남으면 복원하지 않습니다. 하위 Fork 조치와 허위 신고 판단·신고 제한도 각각 기록합니다. 연락처·증빙 접근 권한과 개인정보 법적 보관 규칙을 별도로 검토합니다.
-- 성인 대상 작품·세계관의 분류 및 열람 제한은 추가 요구사항입니다. 등급·연령 확인·허용/금지 기준과 모더레이션 연계는 미정이며 성인 등급만으로 유해 판정을 가정하지 않습니다.
-- 위 관계는 **현재 ERD 그림에 없습니다.** 댓글의 `FEEDBACK_MODERATION`만으로 작품·세계관 권리 신고 전체를 표현한다고 가정하지 않습니다.
-
-## UC-16 검토와 공개 토론
-
-- 공개 제보는 열람 가능한 독자가 추가 의견과 선택적 검증 근거를 남깁니다. 중복 제보는 가능하며 비공개 제보는 제보자와 작가에게만 보입니다. 각 독자의 회차 공개 범위와 비공개 설정 보호는 별도 권한 검증이 필요합니다.
-- 원래 AI 제안과 작가가 승인한 내용, 판단 주체, 실제 반영 버전을 구분합니다. 발행은 별도이며 자동 승인 예외는 UC-16을 따릅니다. 정정·철회의 상세 관계와 AI 실행·복수 근거 관계는 아직 그림에 없습니다.
+각 테이블의 PK·FK·고유키·조건부 필수값과 예시는 [전체 테이블 가이드](../tables.md)에 있습니다. 그림만으로 권한·동시성·삭제 안전성이 보장되지 않습니다.

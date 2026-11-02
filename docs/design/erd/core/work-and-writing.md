@@ -1,96 +1,202 @@
-# Core 업무 ERD — 작품·집필·발행
+# Core 업무 ERD — 작품·독서·집필·발행
 
-> **전체 ERD의 부분 뷰 · 논리 초안 · 미구현.** [ERD 목차](../README.md) · [전체 업무 ERD](../overview.md). 업무 영역 구분은 별도 배포 서비스나 구현 클래스의 확정이 아닙니다.
+> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
-작품, 스토리 계획, 회차 원고와 발행 기준을 다루는 Core 업무 영역입니다.
+근거: [UC-01](../../../usecase-spec/UC-01.md), [UC-03](../../../usecase-spec/UC-03.md), [UC-10](../../../usecase-spec/UC-10.md), [UC-13](../../../usecase-spec/UC-13.md), [UC-23](../../../usecase-spec/UC-23.md), [UC-24](../../../usecase-spec/UC-24.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-중심: `WORK`, `EPISODE`, `EPISODE_DRAFT`, `EPISODE_VERSION`, `STORY_PLAN`. `MEMBER`와 `WORLD`는 소유자·세계관 참조입니다.
+소유 후보 **30개**, 다른 영역 참조 **3개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
-    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "source world"
-    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "combined world"
-    WORK ||--o{ WORK_WORLD_HISTORY : "world history"
-    WORLD ||--o{ WORK_WORLD_HISTORY : "historical world"
-    EPISODE_VERSION o|--o{ WORK_WORLD_HISTORY : "effective episode candidate"
-    WORLD o|--o{ FORK_WORLD_REFERENCE : "source world candidate"
-    WORLD ||--o| FORK_WORLD_REFERENCE : "fork world candidate"
-    FORK ||--o| FORK_WORLD_REFERENCE : "fork world reference"
-    MEMBER ||--o{ WORLD : owns
-    MEMBER ||--o{ WORK : owns
-    WORLD ||--o| WORK : context
-    WORK ||--o{ FORK_POLICY_HISTORY : "policy history candidate"
-    EPISODE o|--o{ FORK_POLICY_HISTORY : "start episode candidate"
-    FORK_POLICY_HISTORY ||--o{ FORK_POLICY_EPISODE : "selected episodes candidate"
-    EPISODE ||--o{ FORK_POLICY_EPISODE : "selected episode candidate"
-    WORK ||--o{ EPISODE : contains
-    EPISODE ||--o| EPISODE_DRAFT : "working draft"
-    EPISODE ||--o{ EPISODE_VERSION : versions
-    EPISODE_VERSION o|--o| EPISODE : "published version candidate"
-    WORK ||--o{ STORY_PLAN : plans
-    EPISODE o|--o{ STORY_PLAN : "episode plan candidate"
-    STORY_PLAN o|--o{ STORY_PLAN : "parent plan candidate"
+    MEMBER ||--o{ WORK : "owner_id"
+    WORK ||--o{ WORK_WORLD_HISTORY : "work_id"
+    WORLD ||--o{ WORK_WORLD_HISTORY : "world_id"
+    WORK ||--o{ WORK_GENRE : "work_id"
+    GENRE ||--o{ WORK_GENRE : "genre_id"
+    WORK ||--o{ WORK_HASHTAG : "work_id"
+    HASHTAG ||--o{ WORK_HASHTAG : "hashtag_id"
+    WORK ||--o{ WORK_PUBLICATION_HISTORY : "work_id"
+    WORK ||--o{ WORK_RIGHTS_DECLARATION : "work_id"
+    MEMBER ||--o{ WORK_RIGHTS_DECLARATION : "member_id"
+    WORK ||--o{ WORK_LIKE : "work_id"
+    MEMBER ||--o{ WORK_LIKE : "member_id"
+    MEMBER ||--o{ WORK_FAVORITE : "member_id"
+    WORK ||--o{ WORK_FAVORITE : "work_id"
+    MEMBER ||--o{ READING_PROGRESS : "member_id"
+    WORK ||--o{ READING_PROGRESS : "work_id"
+    EPISODE_VERSION ||--o{ READING_PROGRESS : "episode_version_id"
+    EPISODE ||--o{ EPISODE_VIEW_DAY : "episode_id"
+    WORK ||--o{ EPISODE : "work_id"
+    EPISODE ||--o| EPISODE_DRAFT : "episode_id"
+    EPISODE ||--o{ EPISODE_VERSION : "episode_id"
+    WORK_WORLD_HISTORY ||--o{ EPISODE_VERSION : "work_world_history_id"
+    EPISODE_VERSION o|--o{ EPISODE_VERSION : "restored_from_id"
+    MEMBER ||--o{ MANUSCRIPT_ASSET : "owner_id"
+    EPISODE_DRAFT ||--o{ EPISODE_DRAFT_IMAGE : "episode_id"
+    MANUSCRIPT_ASSET ||--o{ EPISODE_DRAFT_IMAGE : "asset_id"
+    EPISODE_VERSION ||--o{ EPISODE_VERSION_IMAGE : "episode_version_id"
+    MANUSCRIPT_ASSET ||--o{ EPISODE_VERSION_IMAGE : "asset_id"
+    EPISODE_DRAFT ||--o{ EPISODE_DRAFT_MENTION : "episode_id"
+    SETTING_DOCUMENT ||--o{ EPISODE_DRAFT_MENTION : "character_id"
+    EPISODE_VERSION ||--o{ EPISODE_VERSION_MENTION : "episode_version_id"
+    SETTING_DOCUMENT ||--o{ EPISODE_VERSION_MENTION : "character_id"
+    EPISODE_VERSION ||--o{ PUBLICATION_EVENT : "episode_version_id"
+    MEMBER o|--o{ PUBLICATION_EVENT : "actor_id"
+    EPISODE_VERSION ||--o{ PUBLICATION_SCHEDULE : "episode_version_id"
+    WORK ||--o{ STORY_PLAN : "work_id"
+    EPISODE o|--o{ STORY_PLAN : "episode_id"
+    STORY_PLAN o|--o{ STORY_PLAN : "parent_plan_id"
+    WORK ||--o{ WRITING_NOTE : "work_id"
+    EPISODE o|--o{ WRITING_NOTE : "episode_id"
+    WORK ||--o{ MANUSCRIPT_IMPORT : "work_id"
+    MANUSCRIPT_IMPORT ||--o{ MANUSCRIPT_IMPORT_ITEM : "import_id"
+    EPISODE_VERSION o|--o{ MANUSCRIPT_IMPORT_ITEM : "episode_version_id"
+    MANUSCRIPT_IMPORT_ITEM ||--o{ MANUSCRIPT_IMPORT_ISSUE : "import_item_id"
+    WORK ||--o| WORK_EXTERNAL_SOURCE : "work_id"
+    EXTERNAL_IP ||--o{ WORK_EXTERNAL_SOURCE : "external_ip_id"
+    WORK ||--o| PUBLIC_DOMAIN_SOURCE : "work_id"
 
-    MEMBER {
-        id id PK
-        string email
-        string password_hash
-        string nickname
-        datetime created_at
-    }
-    WORLD {
-        id id PK
-        id owner_id FK
-        string name
-        text description
-        datetime created_at
-    }
     WORK {
         id id PK
         id owner_id FK
-        id world_id FK
         string title
         text description
-        string genre
-        string work_type
-        string visibility_status
-        boolean allow_fork_creation
-        boolean allow_fork_publication
+        string origin_kind
+        string audience_rating
         datetime created_at
     }
-    FORK_POLICY_HISTORY {
+    WORK_WORLD_HISTORY {
         id id PK
         id work_id FK
-        boolean allow_fork_creation
-        boolean allow_fork_publication
-        string episode_scope
-        id start_episode_id FK
+        id world_id FK
+        integer revision_no
         datetime changed_at
     }
-    FORK_POLICY_EPISODE {
-        id fork_policy_history_id PK,FK
+    GENRE {
+        id id PK
+        string code UK
+        string name
+    }
+    WORK_GENRE {
+        id work_id PK,FK
+        id genre_id PK,FK
+    }
+    HASHTAG {
+        id id PK
+        string name UK
+    }
+    WORK_HASHTAG {
+        id work_id PK,FK
+        id hashtag_id PK,FK
+        string moderation_status
+    }
+    WORK_PUBLICATION_HISTORY {
+        id id PK
+        id work_id FK
+        integer revision_no
+        string visibility
+        datetime changed_at
+    }
+    WORK_RIGHTS_DECLARATION {
+        id id PK
+        id work_id FK
+        id member_id FK
+        string notice_version
+        string response
+        datetime confirmed_at
+    }
+    WORK_LIKE {
+        id work_id PK,FK
+        id member_id PK,FK
+        datetime created_at
+    }
+    WORK_FAVORITE {
+        id member_id PK,FK
+        id work_id PK,FK
+        datetime created_at
+    }
+    READING_PROGRESS {
+        id member_id PK,FK
+        id work_id PK,FK
+        id episode_version_id FK
+        string position
+        datetime updated_at
+    }
+    EPISODE_VIEW_DAY {
         id episode_id PK,FK
+        string viewer_key PK
+        date viewed_date PK
     }
     EPISODE {
         id id PK
         id work_id FK
         integer sequence
-        string title
-        string publication_status
-        id published_version_id FK
     }
     EPISODE_DRAFT {
         id episode_id PK,FK
         string title
         text content
+        integer edit_revision
         datetime updated_at
     }
     EPISODE_VERSION {
         id id PK
         id episode_id FK
+        id work_world_history_id FK
         integer revision_no
-        string title_snapshot
+        string title
         text content
+        id restored_from_id FK
+        datetime created_at
+    }
+    MANUSCRIPT_ASSET {
+        id id PK
+        id owner_id FK
+        string object_url
+        string media_type
+        integer byte_size
+        datetime created_at
+    }
+    EPISODE_DRAFT_IMAGE {
+        id id PK
+        id episode_id FK
+        id asset_id FK
+        string position
+        string alt_text
+    }
+    EPISODE_VERSION_IMAGE {
+        id id PK
+        id episode_version_id FK
+        id asset_id FK
+        string position
+        string alt_text
+    }
+    EPISODE_DRAFT_MENTION {
+        id id PK
+        id episode_id FK
+        id character_id FK
+        string position
+    }
+    EPISODE_VERSION_MENTION {
+        id id PK
+        id episode_version_id FK
+        id character_id FK
+        string position
+    }
+    PUBLICATION_EVENT {
+        id id PK
+        id episode_version_id FK
+        id actor_id FK
+        string action
+        string outcome
+        datetime occurred_at
+        string trigger_kind
+    }
+    PUBLICATION_SCHEDULE {
+        id id PK
+        id episode_version_id FK
+        datetime scheduled_at
+        string status
         datetime created_at
     }
     STORY_PLAN {
@@ -103,70 +209,122 @@ erDiagram
         integer sequence
         text content
     }
-    FORK {
-        id work_id PK,FK
-        id source_checkpoint_id FK
-        id confirmed_policy_history_id FK
-        datetime conditions_confirmed_at
-        string world_mode
-        id independent_world_id FK
-        datetime created_at
-    }
-    WORLD_COMPOSITION_SOURCE {
-        id combined_world_id PK,FK
-        id source_world_id PK,FK
-        string source_version_ref
-        datetime selected_at
-    }
-    WORK_WORLD_HISTORY {
+    WRITING_NOTE {
         id id PK
         id work_id FK
-        id world_id FK
-        id effective_episode_version_id FK
-        datetime changed_at
+        id episode_id FK
+        text content
+        datetime updated_at
     }
-    FORK_WORLD_REFERENCE {
-        id fork_work_id PK,FK
-        id fork_world_id FK
-        id source_world_id FK
-        string reference_status
+    MANUSCRIPT_IMPORT {
+        id id PK
+        id work_id FK
+        string input_kind
+        datetime created_at
+        string status
+    }
+    MANUSCRIPT_IMPORT_ITEM {
+        id id PK
+        id import_id FK
+        integer sequence
+        id episode_version_id FK
+        string status
+        string failure_reason
+    }
+    MANUSCRIPT_IMPORT_ISSUE {
+        id id PK
+        id import_item_id FK
+        string source_position
+        string reason
+    }
+    EXTERNAL_IP {
+        id id PK
+        string name
+        string reference_url
+    }
+    WORK_EXTERNAL_SOURCE {
+        id work_id PK,FK
+        id external_ip_id FK
+        string source_url
+        datetime registered_at
+    }
+    PUBLIC_DOMAIN_SOURCE {
+        id work_id PK,FK
+        text bibliographic_info
+        text rights_basis
+        datetime verified_at
+    }
+    MEMBER {
+        id id PK
+        string email UK
+        string password_hash
+        string nickname
+        string account_status
+        datetime created_at
+        string operator_role
+    }
+    WORLD {
+        id id PK
+        id owner_id FK
+        string name
+        text description
+        datetime created_at
+    }
+    SETTING_DOCUMENT {
+        id id PK
+        id world_id FK
         datetime created_at
     }
 ```
 
 ## 이 그림의 테이블
 
-- 세계관 출처·이력 후보: [`WORLD_COMPOSITION_SOURCE`](../tables.md#world-composition-source), [`WORK_WORLD_HISTORY`](../tables.md#work-world-history), [`FORK_WORLD_REFERENCE`](../tables.md#fork-world-reference). 추가 참조: [`WORLD`](../tables.md#world), [`WORK`](../tables.md#work), [`EPISODE_VERSION`](../tables.md#episode-version), [`FORK`](../tables.md#fork).
+| 소유/참조 | 테이블 | 범위 |
+|---|---|---|
+| 소유 | [`WORK`](../tables.md#work) | MVP |
+| 소유 | [`WORK_WORLD_HISTORY`](../tables.md#work-world-history) | MVP |
+| 소유 | [`GENRE`](../tables.md#genre) | MVP |
+| 소유 | [`WORK_GENRE`](../tables.md#work-genre) | MVP |
+| 소유 | [`HASHTAG`](../tables.md#hashtag) | MVP |
+| 소유 | [`WORK_HASHTAG`](../tables.md#work-hashtag) | MVP |
+| 소유 | [`WORK_PUBLICATION_HISTORY`](../tables.md#work-publication-history) | MVP |
+| 소유 | [`WORK_RIGHTS_DECLARATION`](../tables.md#work-rights-declaration) | MVP |
+| 소유 | [`WORK_LIKE`](../tables.md#work-like) | MVP |
+| 소유 | [`WORK_FAVORITE`](../tables.md#work-favorite) | MVP |
+| 소유 | [`READING_PROGRESS`](../tables.md#reading-progress) | MVP |
+| 소유 | [`EPISODE_VIEW_DAY`](../tables.md#episode-view-day) | MVP |
+| 소유 | [`EPISODE`](../tables.md#episode) | MVP |
+| 소유 | [`EPISODE_DRAFT`](../tables.md#episode-draft) | MVP |
+| 소유 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP |
+| 소유 | [`MANUSCRIPT_ASSET`](../tables.md#manuscript-asset) | 전체·범위확인 |
+| 소유 | [`EPISODE_DRAFT_IMAGE`](../tables.md#episode-draft-image) | 전체·범위확인 |
+| 소유 | [`EPISODE_VERSION_IMAGE`](../tables.md#episode-version-image) | 전체·범위확인 |
+| 소유 | [`EPISODE_DRAFT_MENTION`](../tables.md#episode-draft-mention) | MVP |
+| 소유 | [`EPISODE_VERSION_MENTION`](../tables.md#episode-version-mention) | MVP |
+| 소유 | [`PUBLICATION_EVENT`](../tables.md#publication-event) | MVP |
+| 소유 | [`PUBLICATION_SCHEDULE`](../tables.md#publication-schedule) | 전체·범위확인 |
+| 소유 | [`STORY_PLAN`](../tables.md#story-plan) | MVP |
+| 소유 | [`WRITING_NOTE`](../tables.md#writing-note) | 전체·범위확인 |
+| 소유 | [`MANUSCRIPT_IMPORT`](../tables.md#manuscript-import) | 전체·범위확인 |
+| 소유 | [`MANUSCRIPT_IMPORT_ITEM`](../tables.md#manuscript-import-item) | 전체·범위확인 |
+| 소유 | [`MANUSCRIPT_IMPORT_ISSUE`](../tables.md#manuscript-import-issue) | MVP 이후 |
+| 소유 | [`EXTERNAL_IP`](../tables.md#external-ip) | 전체·범위확인 |
+| 소유 | [`WORK_EXTERNAL_SOURCE`](../tables.md#work-external-source) | 전체·범위확인 |
+| 소유 | [`PUBLIC_DOMAIN_SOURCE`](../tables.md#public-domain-source) | 테스트 전용 |
+| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP |
+| 다른 영역 참조 | [`WORLD`](../tables.md#world) | MVP |
+| 다른 영역 참조 | [`SETTING_DOCUMENT`](../tables.md#setting-document) | MVP |
 
-- 작품·집필: [`WORK`](../tables.md#work), [`FORK_POLICY_HISTORY`](../tables.md#fork-policy-history), [`FORK_POLICY_EPISODE`](../tables.md#fork-policy-episode), [`EPISODE`](../tables.md#episode), [`EPISODE_DRAFT`](../tables.md#episode-draft), [`EPISODE_VERSION`](../tables.md#episode-version), [`STORY_PLAN`](../tables.md#story-plan).
-- 다른 영역의 참조: [`MEMBER`](../tables.md#member), [`WORLD`](../tables.md#world).
+## 데이터 역할과 무결성
 
-## 유스케이스와 데이터
+- 기존 `WORK.genre` 한 칸을 **장르 정의+작품 연결**로 분리했습니다. UC-01의 1~2개 장르와 최대 10개 해시태그를 표현합니다. 좋아요·관심 소설·이어 읽기는 서로 독립된 사용자 선택이며 개수/잔액 같은 파생값을 원천과 중복 저장하지 않습니다.
+- 작품은 현재 세계관 하나, 세계관은 현재 최대 한 작품입니다. `WORK_WORLD_HISTORY`의 최신 이력이 현재 연결이고 각 원고 버전은 **당시 연결 이력**을 고정합니다. 변경 후 이전 발행 회차가 새 세계관으로 자동 재해석되지 않습니다. 동시 연결의 유일성은 단순 FK만으로 보장되지 않습니다.
+- 회차 식별자에 제목·발행 상태를 중복하지 않습니다. 초안은 자동저장, 버전은 저장 버튼/복원, 발행 사건은 별개입니다. 복원도 새 버전이며 실패는 기존 저장본·발행본을 유지합니다.
+- 이미지 파일, 초안의 이미지 배치, 저장 버전의 이미지 배치를 나눴습니다. 저장 버전이 참조하는 파일은 제안·실행 기록 삭제와 독립적으로 보존합니다. `@`는 선택한 실제 인물과 위치를 초안/버전별로 보관하고 연결 자체가 설정을 변경하지 않습니다. 사건·장소 `@`는 확정하지 않았습니다.
+- 작품 공개 이력과 회차 발행 이력을 분리합니다. 회차별 직렬화된 성공 발행·교체·중단·재공개 전이만 현재 발행 상태를 바꿉니다. 저장은 `EPISODE_VERSION` 생성이며 발행 사건에 넣지 않고 실패 사건도 발행 상태를 바꾸지 않습니다. 소유자는 발행·교체·공개 중단·재공개 이력을 확인하지만 독자에게 과거 이력을 자동 공개하지 않습니다.
+- 예약은 저장 버전+시각이며 실제 실행 결과는 정기 작업 대상과 발행 사건에 연결합니다. 예약 변경·취소 정책과 MVP 포함 여부는 미정입니다. 원고 저장과 발행은 별개입니다.
+- `STORY_PLAN`은 줄거리·플롯·장면의 동일한 계층 구조를 재사용합니다. 보드·타임라인·개요는 이 데이터의 표현으로 두고 UI마다 같은 테이블을 복제하지 않습니다. 비공개 메모는 원고와 별도이며 내보내기에서 제외합니다.
+- 등록 요청/회차별 결과/이미지별 실패를 분리했습니다. 파일 업로드는 MVP 이후이고 붙여넣기 흐름과 다릅니다. `.txt`·`.epub` 내보내기 자체는 기존 버전·이미지로 계산하므로 별도 내보내기 작업 테이블을 선제 추가하지 않습니다.
+- 외부 IP 출처는 등록자 확인과 법적 권리를 구별합니다. 같은 IP의 최초 등록 기준은 플랫폼상의 원본 표시일 뿐 저작권 소유권이 아닙니다. 보호기간 만료 원작은 테스트용 서지·권리 근거만 둡니다.
 
-- [UC-24](../../../usecase-spec/UC-24.md): 소유자가 세계관을 연결하고 작품 제목·장르·소개를 입력합니다. 작품 생성만으로 공개되지 않습니다.
-- [UC-03](../../../usecase-spec/UC-03.md)·[UC-10](../../../usecase-spec/UC-10.md): 회차를 순서대로 등록하고 직접 원고를 작성·저장합니다. 확정 콘텐츠의 변경·되돌리기는 새 버전으로 남기는 방향입니다.
-- [UC-01](../../../usecase-spec/UC-01.md)·[UC-13](../../../usecase-spec/UC-13.md): 독자는 공개된 작품의 발행 회차만 읽으며, 소유자는 선택한 원고 버전을 발행하거나 공개를 중단할 수 있습니다. 원고를 저장한 사실은 발행이 아닙니다.
-- 큰 줄거리·회차 플롯·장면 계획은 집필을 돕는 선택적 데이터이며, 계획된 미래 사건은 실제 관계에 자동 적용되지 않습니다.
-
-## 작품·세계관 일대일 및 조합
-
-- 작품은 세계관 하나에 연결하며 세계관은 동시에 최대 한 작품에 연결됩니다. 미연결 세계관은 존재할 수 있습니다. 발행 후 권한을 확인하고 연결을 변경할 수 있습니다.
-- 기존 세계관 최대 5개를 조합해 새 세계관 하나를 만들며 작품에는 결과 하나만 연결합니다. 허용된 원본 설정을 선택·복사하고 출처를 남기며 원본의 이후 변경은 자동 반영하지 않습니다. Fork된 세계관은 조합 원본에서 제외합니다. 원본별 출처와 연결 이력은 논리 후보로 표시합니다. 접근 권한과 각 저장·발행 회차의 정확한 기준을 이 후보만으로 보장하지 않으며 후속 설계가 필요합니다.
-
-## UC-13 발행 이력과 예약
-
-- 소유자는 저장된 원고 버전을 발행하며, 발행·교체·공개 중단·재공개 이력을 확인합니다. 현재 발행 버전 포인터만으로 이력을 보장하지 않으며, 과거 발행본의 독자 공개는 별도 정책입니다.
-- 공개 중단 후에도 기존 Fork의 기준 버전은 보존하고 해당 회차를 새 Fork의 기준으로 고르지 않습니다. 독립 전 원본 참조 자료 처리 세부는 별도 결정 대상입니다.
-- 예약 발행은 저장 버전과 발행 시각을 대상으로 하며 예약과 실제 발행은 구분합니다. 예약 변경·취소·실패 처리와 MVP 포함 여부는 미정입니다.
-- **발행 이력과 예약 관계는 현재 그림에 모델링되지 않았습니다.** 논리 모델 및 저장 방식은 후속 설계 대상입니다.
-
-## 경계와 미정 사항
-
-- **원고 이미지·인물 연결:** 원고 초안과 저장 버전은 이미지 및 `@`로 선택한 인물 항목을 포함할 수 있습니다. 저장 버전별 당시 이미지와 인물 연결을 보존하여 조회·복원하고 발행한 버전의 이미지는 독자에게 표시합니다. 인물 연결은 표시 위치와 선택한 실제 항목을 구분하며, 연결 자체는 인물 설정을 변경하지 않습니다. 원고 이미지 파일의 참조·보존과 연결의 버전별 저장 모델은 아직 그림에 추가되지 않은 논리 설계 대상입니다. 설정 이미지의 과거 파일 미보존(DEC-39)과 구분하고, AI 조회와 독자 표시에는 권한·기준 시점을 적용합니다. 사건·장소 `@` 연결은 미정입니다.
-- 큰 줄거리·회차 플롯·장면 계획을 `STORY_PLAN` 하나로 표현한 것은 후보이며, 계획된 사건은 확정 관계가 아닙니다.
-- `WORK`의 공개 상태와 Fork 생성·공개 허용, `EPISODE`의 발행 상태와 발행 버전은 서로 다른 판단을 위한 후보입니다. `FORK_POLICY_HISTORY`는 회차 범위와 조건 이력, `FORK_POLICY_EPISODE`는 회차별 선택을 나타내는 후보입니다. `published_version_id`는 반드시 같은 회차의 버전을 가리켜야 합니다.
-- `EPISODE.sequence`는 작품 내 회차 순서의 후보입니다. 동일 작품에서 충돌하지 않게 검토해야 하며, `EPISODE_VERSION.title_snapshot`과 `revision_no`는 과거 제목·버전을 식별하는 후보입니다. 정확한 번호·제목의 이력 정책은 미정입니다.
-- `STORY_PLAN`의 회차·부모 계획은 같은 작품에 속해야 합니다. 장르 목록·작품 유형·공개·Fork 조건과 계획의 순서·이력 형태는 미정이며 자동 발행·유료 공개는 MVP 이후입니다.
-- 원고 자동저장은 회차별 작업 초안을 갱신하고 저장 버튼은 새 버전을 만듭니다. 복원은 새 버전이며 발행본을 자동으로 바꾸지 않습니다. `EPISODE_DRAFT`는 별도 논리 후보이며 회차당 최대 하나입니다. 저장 실패 시 기존 저장본을 보호하고 동시 편집 시 묵시적으로 덮어쓰지 않습니다. 자동저장 간격·동시성 처리와 현재/발행 포인터·발행 이력의 물리 방식은 미정입니다.
-
-- 원작의 Fork 생성 허용과 Fork 작품 공개 허용은 별개이며 정책 이력을 둡니다. 일반적으로 생성 허용 철회 후 기존 Fork는 계속 창작합니다. 공개 허용 철회 후 이미 공개된 Fork는 계속 공개·발행하고 미공개 Fork의 최초 공개만 제한합니다. 법적 제한은 별도로 판단합니다.
+각 테이블의 PK·FK·고유키·조건부 필수값과 예시는 [전체 테이블 가이드](../tables.md)에 있습니다. 그림만으로 권한·동시성·삭제 안전성이 보장되지 않습니다.

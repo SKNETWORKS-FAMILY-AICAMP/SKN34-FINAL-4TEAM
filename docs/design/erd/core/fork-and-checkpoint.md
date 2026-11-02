@@ -1,91 +1,50 @@
 # Core 업무 ERD — 체크포인트·Fork
 
-> **전체 ERD의 부분 뷰 · 논리 초안 · 미구현.** [ERD 목차](../README.md) · [전체 업무 ERD](../overview.md). 업무 영역 구분은 별도 배포 서비스나 구현 클래스의 확정이 아닙니다.
+> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
-분기의 기준이 되는 콘텐츠 버전과 독립 Fork 작품을 다루는 Core 업무 영역입니다.
+근거: [UC-07](../../../usecase-spec/UC-07.md), [UC-08](../../../usecase-spec/UC-08.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-중심: `CHECKPOINT`, `CHECKPOINT_EPISODE`, `CHECKPOINT_SETTING`, `FORK`. 작품·회차·원고·설정 버전은 기준을 설명하는 참조입니다.
+소유 후보 **12개**, 다른 영역 참조 **9개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
-    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "source world"
-    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "combined world"
-    WORK ||--o{ WORK_WORLD_HISTORY : "world history"
-    WORLD ||--o{ WORK_WORLD_HISTORY : "historical world"
-    EPISODE_VERSION o|--o{ WORK_WORLD_HISTORY : "effective episode candidate"
-    WORLD o|--o{ FORK_WORLD_REFERENCE : "source world candidate"
-    WORLD ||--o| FORK_WORLD_REFERENCE : "fork world candidate"
-    FORK ||--o| FORK_WORLD_REFERENCE : "fork world reference"
-    SETTING_DOCUMENT ||--o{ SETTING_VERSION : versions
-    SETTING_DOCUMENT o|--o{ SETTING_DOCUMENT : "fork source candidate"
-    WORK ||--o{ EPISODE : contains
-    EPISODE ||--o{ EPISODE_VERSION : versions
-    EPISODE_VERSION o|--o| EPISODE : "published version candidate"
-    EPISODE_VERSION ||--o{ CHECKPOINT : "basis candidate"
-    CHECKPOINT ||--o{ CHECKPOINT_EPISODE : "episode members candidate"
-    EPISODE ||--o{ CHECKPOINT_EPISODE : "episode candidate"
-    EPISODE_VERSION ||--o{ CHECKPOINT_EPISODE : "version candidate"
-    CHECKPOINT ||--o{ CHECKPOINT_SETTING : "setting members candidate"
-    SETTING_DOCUMENT ||--o{ CHECKPOINT_SETTING : "setting candidate"
-    SETTING_VERSION ||--o{ CHECKPOINT_SETTING : "member candidate"
-    WORK ||--o| FORK : "fork identity"
-    CHECKPOINT ||--o{ FORK : "source basis"
-    FORK ||--o{ FORK_SOURCE_CHANGE : "source change candidate"
-    WORK ||--o{ FORK_POLICY_HISTORY : "policy history candidate"
-    EPISODE o|--o{ FORK_POLICY_HISTORY : "start episode candidate"
-    FORK_POLICY_HISTORY ||--o{ FORK_POLICY_EPISODE : "selected episodes candidate"
-    EPISODE ||--o{ FORK_POLICY_EPISODE : "selected episode candidate"
-    FORK_POLICY_HISTORY ||--o{ FORK : "confirmed policy candidate"
+    WORK ||--o{ CHECKPOINT : "work_id"
+    EPISODE_VERSION ||--o{ CHECKPOINT : "basis_episode_version_id"
+    CHECKPOINT ||--o{ CHECKPOINT_EPISODE : "checkpoint_id"
+    EPISODE ||--o{ CHECKPOINT_EPISODE : "episode_id"
+    EPISODE_VERSION ||--o{ CHECKPOINT_EPISODE : "episode_version_id"
+    CHECKPOINT ||--o{ CHECKPOINT_SETTING : "checkpoint_id"
+    SETTING_DOCUMENT ||--o{ CHECKPOINT_SETTING : "setting_document_id"
+    SETTING_VERSION ||--o{ CHECKPOINT_SETTING : "setting_version_id"
+    CHECKPOINT ||--o{ CHECKPOINT_CHARACTER_STATE : "checkpoint_id"
+    SETTING_DOCUMENT ||--o{ CHECKPOINT_CHARACTER_STATE : "character_id"
+    CHARACTER_STATE_VERSION ||--o{ CHECKPOINT_CHARACTER_STATE : "state_version_id"
+    CHECKPOINT ||--o{ CHECKPOINT_CHARACTER_KNOWLEDGE : "checkpoint_id"
+    SETTING_DOCUMENT ||--o{ CHECKPOINT_CHARACTER_KNOWLEDGE : "character_id"
+    SETTING_DOCUMENT ||--o{ CHECKPOINT_CHARACTER_KNOWLEDGE : "fact_setting_id"
+    CHARACTER_KNOWLEDGE_VERSION ||--o{ CHECKPOINT_CHARACTER_KNOWLEDGE : "knowledge_version_id"
+    WORK ||--o{ FORK_POLICY_HISTORY : "work_id"
+    EPISODE o|--o{ FORK_POLICY_HISTORY : "start_episode_id"
+    FORK_POLICY_HISTORY ||--o{ FORK_POLICY_EPISODE : "policy_history_id"
+    EPISODE ||--o{ FORK_POLICY_EPISODE : "episode_id"
+    WORK ||--o| FORK : "work_id"
+    CHECKPOINT ||--o{ FORK : "source_checkpoint_id"
+    FORK_POLICY_HISTORY ||--o{ FORK : "confirmed_policy_history_id"
+    FORK ||--o| FORK_WORLD_REFERENCE : "fork_work_id"
+    WORLD ||--o{ FORK_WORLD_REFERENCE : "source_world_id"
+    CHECKPOINT o|--o{ FORK_WORLD_REFERENCE : "last_followed_checkpoint_id"
+    FORK ||--o{ FORK_SOURCE_CHANGE : "fork_work_id"
+    CHECKPOINT ||--o{ FORK_SOURCE_CHANGE : "before_checkpoint_id"
+    CHECKPOINT ||--o{ FORK_SOURCE_CHANGE : "after_checkpoint_id"
+    FORK_SOURCE_CHANGE ||--o{ FORK_CHANGE_DECISION : "source_change_id"
+    MEMBER ||--o{ FORK_CHANGE_DECISION : "actor_id"
+    FORK_CHANGE_DECISION ||--o{ FORK_CHANGE_APPLICATION : "decision_id"
+    CHECKPOINT o|--o{ FORK_CHANGE_APPLICATION : "result_checkpoint_id"
 
-    WORK {
-        id id PK
-        id owner_id FK
-        id world_id FK
-        string title
-        text description
-        string genre
-        string work_type
-        string visibility_status
-        boolean allow_fork_creation
-        boolean allow_fork_publication
-        datetime created_at
-    }
-    SETTING_DOCUMENT {
-        id id PK
-        id world_id FK
-        id category_id FK
-        id source_setting_document_id FK
-        string name
-        string visibility_status
-    }
-    SETTING_VERSION {
-        id id PK
-        id setting_document_id FK
-        integer revision_no
-        string name_snapshot
-        id category_id FK
-        text content
-        datetime created_at
-    }
-    EPISODE {
-        id id PK
-        id work_id FK
-        integer sequence
-        string title
-        string publication_status
-        id published_version_id FK
-    }
-    EPISODE_VERSION {
-        id id PK
-        id episode_id FK
-        integer revision_no
-        string title_snapshot
-        text content
-        datetime created_at
-    }
     CHECKPOINT {
         id id PK
-        id episode_version_id FK
+        id work_id FK
+        id basis_episode_version_id FK
         string graph_state_ref
         string status
         datetime created_at
@@ -100,24 +59,29 @@ erDiagram
         id setting_document_id PK,FK
         id setting_version_id FK
     }
-    FORK_SOURCE_CHANGE {
-        id id PK
-        id fork_work_id FK
-        string source_change_ref
-        string decision_status
-        datetime notified_at
+    CHECKPOINT_CHARACTER_STATE {
+        id checkpoint_id PK,FK
+        id character_id PK,FK
+        id state_version_id FK
+    }
+    CHECKPOINT_CHARACTER_KNOWLEDGE {
+        id checkpoint_id PK,FK
+        id character_id PK,FK
+        id fact_setting_id PK,FK
+        id knowledge_version_id FK
     }
     FORK_POLICY_HISTORY {
         id id PK
         id work_id FK
-        boolean allow_fork_creation
-        boolean allow_fork_publication
+        integer revision_no
+        boolean allow_creation
+        boolean allow_publication
         string episode_scope
         id start_episode_id FK
         datetime changed_at
     }
     FORK_POLICY_EPISODE {
-        id fork_policy_history_id PK,FK
+        id policy_history_id PK,FK
         id episode_id PK,FK
     }
     FORK {
@@ -125,9 +89,45 @@ erDiagram
         id source_checkpoint_id FK
         id confirmed_policy_history_id FK
         datetime conditions_confirmed_at
-        string world_mode
-        id independent_world_id FK
         datetime created_at
+    }
+    FORK_WORLD_REFERENCE {
+        id fork_work_id PK,FK
+        id source_world_id FK
+        string reference_status
+        id last_followed_checkpoint_id FK
+        datetime detached_at
+    }
+    FORK_SOURCE_CHANGE {
+        id id PK
+        id fork_work_id FK
+        id before_checkpoint_id FK
+        id after_checkpoint_id FK
+        datetime detected_at
+    }
+    FORK_CHANGE_DECISION {
+        id id PK
+        id source_change_id FK
+        id actor_id FK
+        string decision
+        datetime decided_at
+    }
+    FORK_CHANGE_APPLICATION {
+        id id PK
+        id decision_id FK
+        id result_checkpoint_id FK
+        string outcome
+        string reason
+        datetime applied_at
+    }
+    MEMBER {
+        id id PK
+        string email UK
+        string password_hash
+        string nickname
+        string account_status
+        datetime created_at
+        string operator_role
     }
     WORLD {
         id id PK
@@ -136,57 +136,102 @@ erDiagram
         text description
         datetime created_at
     }
-    WORLD_COMPOSITION_SOURCE {
-        id combined_world_id PK,FK
-        id source_world_id PK,FK
-        string source_version_ref
-        datetime selected_at
+    SETTING_DOCUMENT {
+        id id PK
+        id world_id FK
+        datetime created_at
     }
-    WORK_WORLD_HISTORY {
+    SETTING_VERSION {
+        id id PK
+        id setting_document_id FK
+        integer revision_no
+        string name
+        id category_id FK
+        text content
+        id restored_from_id FK
+        string lifecycle
+        datetime created_at
+    }
+    CHARACTER_STATE_VERSION {
+        id id PK
+        id character_id FK
+        integer revision_no
+        id basis_episode_id FK
+        text content
+        id restored_from_id FK
+        datetime created_at
+    }
+    CHARACTER_KNOWLEDGE_VERSION {
+        id id PK
+        id character_id FK
+        id fact_setting_id FK
+        integer revision_no
+        boolean known
+        id basis_episode_id FK
+        datetime created_at
+    }
+    WORK {
+        id id PK
+        id owner_id FK
+        string title
+        text description
+        string origin_kind
+        string audience_rating
+        datetime created_at
+    }
+    EPISODE {
         id id PK
         id work_id FK
-        id world_id FK
-        id effective_episode_version_id FK
-        datetime changed_at
+        integer sequence
     }
-    FORK_WORLD_REFERENCE {
-        id fork_work_id PK,FK
-        id fork_world_id FK
-        id source_world_id FK
-        string reference_status
+    EPISODE_VERSION {
+        id id PK
+        id episode_id FK
+        id work_world_history_id FK
+        integer revision_no
+        string title
+        text content
+        id restored_from_id FK
         datetime created_at
     }
 ```
 
 ## 이 그림의 테이블
 
-- 세계관 출처·이력 후보: [`WORLD_COMPOSITION_SOURCE`](../tables.md#world-composition-source), [`WORK_WORLD_HISTORY`](../tables.md#work-world-history), [`FORK_WORLD_REFERENCE`](../tables.md#fork-world-reference). 추가 참조: [`WORLD`](../tables.md#world), [`WORK`](../tables.md#work), [`EPISODE_VERSION`](../tables.md#episode-version), [`FORK`](../tables.md#fork).
+| 소유/참조 | 테이블 | 범위 |
+|---|---|---|
+| 소유 | [`CHECKPOINT`](../tables.md#checkpoint) | MVP |
+| 소유 | [`CHECKPOINT_EPISODE`](../tables.md#checkpoint-episode) | MVP |
+| 소유 | [`CHECKPOINT_SETTING`](../tables.md#checkpoint-setting) | MVP |
+| 소유 | [`CHECKPOINT_CHARACTER_STATE`](../tables.md#checkpoint-character-state) | MVP |
+| 소유 | [`CHECKPOINT_CHARACTER_KNOWLEDGE`](../tables.md#checkpoint-character-knowledge) | MVP |
+| 소유 | [`FORK_POLICY_HISTORY`](../tables.md#fork-policy-history) | MVP |
+| 소유 | [`FORK_POLICY_EPISODE`](../tables.md#fork-policy-episode) | MVP |
+| 소유 | [`FORK`](../tables.md#fork) | MVP |
+| 소유 | [`FORK_WORLD_REFERENCE`](../tables.md#fork-world-reference) | MVP |
+| 소유 | [`FORK_SOURCE_CHANGE`](../tables.md#fork-source-change) | MVP |
+| 소유 | [`FORK_CHANGE_DECISION`](../tables.md#fork-change-decision) | MVP |
+| 소유 | [`FORK_CHANGE_APPLICATION`](../tables.md#fork-change-application) | MVP |
+| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP |
+| 다른 영역 참조 | [`WORLD`](../tables.md#world) | MVP |
+| 다른 영역 참조 | [`SETTING_DOCUMENT`](../tables.md#setting-document) | MVP |
+| 다른 영역 참조 | [`SETTING_VERSION`](../tables.md#setting-version) | MVP |
+| 다른 영역 참조 | [`CHARACTER_STATE_VERSION`](../tables.md#character-state-version) | MVP |
+| 다른 영역 참조 | [`CHARACTER_KNOWLEDGE_VERSION`](../tables.md#character-knowledge-version) | MVP |
+| 다른 영역 참조 | [`WORK`](../tables.md#work) | MVP |
+| 다른 영역 참조 | [`EPISODE`](../tables.md#episode) | MVP |
+| 다른 영역 참조 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP |
 
-- 기준·분기: [`CHECKPOINT`](../tables.md#checkpoint), [`CHECKPOINT_EPISODE`](../tables.md#checkpoint-episode), [`CHECKPOINT_SETTING`](../tables.md#checkpoint-setting), [`FORK`](../tables.md#fork), [`FORK_SOURCE_CHANGE`](../tables.md#fork-source-change), [`FORK_POLICY_HISTORY`](../tables.md#fork-policy-history), [`FORK_POLICY_EPISODE`](../tables.md#fork-policy-episode).
-- 다른 영역의 참조: [`WORK`](../tables.md#work), [`EPISODE`](../tables.md#episode), [`EPISODE_VERSION`](../tables.md#episode-version), [`SETTING_DOCUMENT`](../tables.md#setting-document), [`SETTING_VERSION`](../tables.md#setting-version).
+## 데이터 역할과 무결성
 
-## 유스케이스와 데이터
+- `CHECKPOINT`는 LangGraph 실행 체크포인트와 다릅니다. 기준 회차 원고, 회차별 버전, 설정별 버전, 인물별 상태와 인지 버전을 묶습니다. `graph_state_ref`는 외부 관계 상태 참조이며 FK도 스냅샷 보증도 아닙니다.
+- 멤버 PK는 **(기준점, 항목)**입니다. (기준점, 버전)만 유일하게 두면 한 항목에 두 버전이 들어갈 수 있습니다. 항목 ID·버전 ID의 복합 소속 제약을 검사해야 합니다. 이 소속키의 의도적 중복은 [정규화 예외](../normalization.md#정규화-예외와-멈춘-지점)로 표시합니다.
+- `CHECKPOINT.work_id`는 소유 문맥이며 기준 원고 버전의 작품과 반드시 같지는 않습니다. 자기 회차 없이 설정부터 수정하는 Fork는 원작 기준 회차를 유지한 Fork 소유 기준점을 만들고 `source_checkpoint_id`의 계보를 검증합니다.
+- 최초 기준 `FORK.source_checkpoint_id`와 현재 추종·독립 상태 `FORK_WORLD_REFERENCE`를 분리했습니다. Fork 전용 세계관은 작품 연결 이력에서 유도하므로 독립세계관 ID를 세 테이블에 중복하지 않습니다.
+- 기준 회차에 공개된 허용 세계관 전체(상태·지식·관계 포함)를 이어받습니다. 첫 수정 전에는 그 회차에 영향을 주는 원본 변경을 따르고, 첫 수정에 전체 독립합니다. 독립 뒤에는 변경 감지/사용자 결정/실제 적용을 분리하며 거절 후 재선택할 수 있습니다. 10화 작업 중 5화에 적용·공개한 변경도 5화 Fork의 대상입니다.
+- 생성·공개 허용과 전체/특정 회차 이후/개별 선택 정책은 이력으로 보관합니다. `WORK`에 동일 허용 boolean을 다시 두지 않습니다. 생성시 확인한 조건과 현재 권한 판정은 별개이며 조건 변경시 재확인합니다.
+- 생성 허용 철회는 새 Fork만 차단합니다. 공개 허용 철회 후에도 이미 공개한 Fork는 계속 공개·발행하며 아직 미공개인 Fork의 최초 공개만 제한합니다. 법적 제한은 별도입니다.
+- 원작당 독자 1회·Fork의 Fork 금지는 유효합니다. 이는 도출 관계를 통한 동시성 제약이 필요하며 여러 기준점을 가리키는 FK만으로 강제되지 않습니다. 기준 불완전·복사 실패를 성공으로 표시하지 않습니다.
+- 원본 삭제 전 참조 Fork의 독립 전환이 성공해야 합니다. 원작 삭제·탈퇴시 기존 기준본은 보호하되 독자에게 분기 전 원고를 숨깁니다. 공개 중단·권리 제한 등에서 현재 접근 재검증이 필요합니다.
 
-- [UC-08](../../../usecase-spec/UC-08.md): 독자는 읽을 수 있고 Fork가 허용된 원작 회차를 기준으로 자기 Fork를 만듭니다. 원작 원고 옆 AI 채팅과 자기 설정 수정은 선택할 수 있으며 AI는 필수가 아닙니다.
-- `CHECKPOINT.episode_version_id`는 기준 회차의 원고 버전을, `CHECKPOINT_EPISODE`는 필요한 회차별 버전 목록을 표시하는 후보입니다. `CHECKPOINT_SETTING`은 설정 항목별 버전 목록의 후보입니다. Fork는 기준 회차에 공개된 세계관 전체를 이어받으며, 이 모델의 완전성 검증과 체크포인트 생성 시점은 미정입니다.
-- `graph_state_ref`는 당시 관계 상태를 찾기 위한 논리 식별자 **후보**이고 `status`는 준비·실패를 구분하기 위한 후보입니다. 그래프의 저장 모델·키와 완료 기준은 아직 정하지 않았으며, 이 값만으로 그래프가 고정되거나 양쪽 저장소가 원자적으로 일치하지 않습니다.
-- 작품 Fork의 세계관은 독자가 수정하기 전 원본의 허용된 변경을 따라가며, 최초 수정 때 전체를 독자 소유로 복사합니다. 복사 이후에는 원본 변경을 알리고 사용자 선택으로 반영합니다(DEC-32·34). `world_mode`와 변경 기록은 그 흐름의 논리 후보입니다.
-
-## 경계와 미정 사항
-
-- `CHECKPOINT`는 회차와 당시 설정·관계를 묶는 업무 기준점이며 LangGraph의 실행 상태 `checkpoints`와 다릅니다.
-- 회차·설정 멤버 후보를 추가해도 목록 누락과 시점 일치, 그래프 반영까지 자동으로 보장되지는 않습니다. `CHECKPOINT_EPISODE.episode_version_id`는 같은 행의 `episode_id`에, `CHECKPOINT_SETTING.setting_version_id`는 같은 행의 `setting_document_id`에 속해야 합니다. 멤버가 기준 원작에 속하는지도 함께 검증해야 합니다. 기준 회차를 `CHECKPOINT_EPISODE`에도 포함한다면 그 버전은 `CHECKPOINT.episode_version_id`와 일치해야 합니다.
-- 현재 이미지 최대 10개는 텍스트 버전과 별개이며 과거 이미지 이력·복원은 없습니다. 공유 참조를 끊지 않는 물리 정리 시점은 미정입니다.
-- 체크포인트 생성 시점, 기준까지 공개된 본문의 판정, 전체 복사·rebase 충돌 처리와 그래프 동기화·복구는 미정입니다. 세계관·설정·상태·관계 이력은 삭제 대신 revert로 정정합니다(DEC-33).
-- Core는 선택한 기준이 허용된 원작·회차·버전에 속하는지 검증합니다. 수정 전 원본 참조와 독립 후 선택적 변경 반영을 구분하며 독자 수정은 원작에 반영하지 않습니다.
-- 기존 UC-08·BR-14의 독자별 원작 Fork 1회와 재Fork 금지는 아직 존재합니다. 복수 Fork는 후속 결정 사항입니다.
-
-## 공개와 원작 정책
-
-기준 회차에서 공개된 세계관 전체에는 인물 기본 설정, 회차 상태·지식, 인물관계도가 포함됩니다. 독자는 받은 설정을 제한 없이 수정할 수 있습니다. 수정 전 기준 회차에 영향을 주는 원작 변경을 즉시 추종하고, 최초 수정 때 전체가 독립합니다. 이후 알림과 선택적 반영을 제공하며 거절 후 재반영할 수 있습니다. 10화에서 변경해도 5화에 적용·공개되면 5화 Fork에 영향을 줍니다. 미발행 원고와 권한 밖 지식 등 민감 본문은 노출하지 않습니다.
-
-원작의 Fork 생성 허용과 Fork 작품 공개 허용은 별개이며 변경 이력을 남기는 후보입니다. 일반적으로 생성 허용 철회 후에도 기존 Fork는 계속 창작할 수 있습니다. 공개 허용 철회 후 이미 공개된 Fork는 계속 공개·발행하고, 미공개 Fork의 최초 공개만 제한합니다. 법적 제한이 있는 경우는 별도로 판단합니다.
-
-`FORK_POLICY_HISTORY.episode_scope`와 `start_episode_id`, `FORK_POLICY_EPISODE`는 전체 공개 회차·특정 회차 이후·회차별 선택을 나타내는 논리 후보입니다. 시작 회차의 포함 여부, 현재 조건 선택과 물리 제약은 미정입니다. 조건 변경마다 이력과 개별 선택 목록을 보존합니다. `FORK.confirmed_policy_history_id`와 `conditions_confirmed_at`은 생성 시 창작자가 확인한 조건의 연결 후보입니다. 생성 전 조건이 달라지면 보여주고 재확인한 뒤 현재 권한을 판정하며, 이 기록만으로 나중 공개가 허용되지는 않습니다. 정책의 원작과 선택 회차·체크포인트의 원작이 일치하고 열람 가능한 발행 회차인지 검증해야 합니다.
-
-상세와 변경 경계는 [전체 ERD](../overview.md#fork와-권한에서-그림만으로-보장되지-않는-것)를 참고합니다. 그래프 실제 스키마·물리 보존, 정책 판정 시점과 반영 충돌 처리는 미정입니다.
+각 테이블의 PK·FK·고유키·조건부 필수값과 예시는 [전체 테이블 가이드](../tables.md)에 있습니다. 그림만으로 권한·동시성·삭제 안전성이 보장되지 않습니다.

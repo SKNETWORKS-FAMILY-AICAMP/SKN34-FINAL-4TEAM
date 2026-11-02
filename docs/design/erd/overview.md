@@ -1,134 +1,391 @@
-# STORYFORK 전체 MVP 업무 ERD 초안
+# STORYFORK 전체 업무 ERD — 정규화 논리 후보
 
-> **상태: 논의용 설계 후보 · 업무 기능과 DB 미구현.** [현재 MVP 설계](../design.md), [결정 기록](../decisions.md), [유스케이스 명세](../../usecase-spec/README.md)를 기준으로 계정부터 작품·Fork·AI·피드백까지 함께 그렸습니다. 표기된 업무 테이블명·속성·관계는 설명을 위한 후보이지 확정 SQL이나 구현 계약이 아닙니다. [LangGraph Saver](ai-service/postgres-saver.md#3-langgraph-postgressaver의-실제-테이블)는 별도 외부 라이브러리의 확인된 스키마이며 STORYFORK 도입은 검토 중입니다.
+> **설계 후보 · 업무 DB 미구현.** 요구사항 정의서의 116개 기능 ID, Markdown 추가 3개(합계 **119개**)와 UC-01~28을 대조했습니다. 기존 41개 엔티티에서 **143개 논리 테이블 후보**로 재구성했습니다. 전체 서비스 모델이며 전부 MVP에서 구현한다는 뜻이 아닙니다. 구체 SQL·타입·삭제 동작·인덱스·물리 배치는 확정하지 않았습니다.
 >
-> 이 그림은 그래프 DB 자체의 노드·관계 모델을 표현하지 않습니다. PostgreSQL과 그래프 DB의 연결·정합성은 미정입니다. `pg_git`은 MVP에서 사용하지 않고 MVP 이후 신중한 도입을 추진합니다(DEC-27·30).
+> [목차](README.md) · [정규화 근거·검증·명세 충돌](normalization.md) · [전체 테이블 설명](tables.md) · [119개 요구사항 추적표](requirements-matrix.md) · [AI Saver 참고](ai-service/postgres-saver.md)
 
-> [ERD 목차](README.md) · [테이블별 설명](tables.md) · [Core 업무 영역별 ERD](README.md#core-업무-영역별-erd) · [AI Saver 참고](ai-service/postgres-saver.md)
+## 기준과 읽는 법
 
-## 1. 기준과 읽는 법
+1. 최신 [결정 DEC-26~40](../decisions.md#결정-목록), 갱신된 상세 UC의 현재 본문을 기준으로 삼고, 엑셀/기능 색인의 오래된 문구와 충돌은 별도로 기록합니다. Gitea·pg_git을 재도입하거나 미룬 기능을 MVP로 올리지 않습니다.
+2. **Core**는 계정·작품·원문·버전·Fork·사용자 승인·발행·정산 판단의 소유자입니다. **관계 그래프 DB**는 관계 저장·조회 방향이며 정본·시점 모델·동기화는 미정입니다. 그림의 `graph_state_ref`는 외부 참조이지 PostgreSQL FK가 아닙니다.
+3. **AI Service**의 Saver/추적 저장소는 별도입니다. 그 내부 테이블을 Core 정본으로 복제하거나 DB 간 FK로 연결하지 않습니다. `saver_thread_ref`·`trace_ref`·`prompt_version_ref`는 외부 식별자 후보입니다.
+4. `PK`·`UK`·`FK`는 논리 제약 후보입니다. 선의 이름은 해당 자식 테이블의 FK 컬럼이고 `o|` 부모는 선택 참조입니다. FK 목적지는 [가이드](tables.md)에 명시합니다. 그 밖의 NULL·상태별 필수값과 복합 소속 검증은 구현 전 구체화합니다.
+5. TEXT는 원고·설명·필요한 당시 인용 등 문서 값에 사용합니다. 태그/장르/참여자/근거/반영 결과 목록을 쉼표나 JSON 한 칸에 압축하지 않습니다. 동일 행의 단일값까지 무조건 세로로 나누지는 않습니다.
 
-- **MVP 흐름:** 회원 가입·로그인 → 세계관과 작품 구성 → 설정·스토리 계획·회차 집필·발행 → 독자의 열람·Fork 및 댓글·제보. AI 집필·인물 시뮬레이션은 선택적이며 직접 집필이나 Fork 생성에 필수가 아닙니다.
-- **기준:** 최신 [MVP 범위](../design.md#포함과-제외)와 DEC-22~40이 충돌하는 기존 유스케이스 본문보다 우선합니다. 과거 UC-24의 복수 세계관, UC-14의 AI 응대, UC-22의 갱신 토큰 등을 MVP 물리 스키마로 확정하지 않습니다.
-- **저장 경계:** 원문과 콘텐츠 버전·체크포인트·Fork는 PostgreSQL, 인물과 엔티티 간 관계의 저장·조회는 그래프 DB 방향입니다. `STORY_PLAN`의 예정 사건을 확정 관계와 혼동하지 않습니다.
-- **업무 ERD:** 선과 카디널리티는 설명을 위한 관계 후보입니다. `id`, `string`, `text`, `datetime` 등은 논리 표기일 뿐 DB 타입을 확정하지 않습니다. `PK`/`FK`도 후보이며 NULL, 인덱스, 삭제·보존·동시성 제약은 후속 설계가 필요합니다.
-- **구분:** `CHECKPOINT`는 회차와 당시 세계관·관계를 묶는 **STORYFORK 업무 기준점**입니다. 소문자 `checkpoints`는 LangGraph의 **AI 실행 상태**입니다. 둘은 이름만 비슷하며 자동 연결되지 않습니다.
+## 범위
 
-### 유스케이스별 반영 범위
+| 표기 | 의미 |
+|---|---|
+| MVP | 현재 핵심 흐름의 논리 후보. 구현 완료나 모든 컬럼 확정이 아님 |
+| MVP 이후 | 명세에 있으나 최신 설계에서 시연 이후로 미룬 기능 |
+| 전체·범위확인 | 전체 요구사항에 필요하지만 MVP 상세 포함 여부를 별도 확인 |
+| 보류·재설계 | 최신 정책과 과거 상세 흐름 충돌 때문에 계약 확정 불가 |
+| 테스트 전용 | 운영 기능이 아닌 검증 환경용 |
 
-| 사용자 흐름 | 확인한 근거 | ERD에서 다룰 정보 |
-|---|---|---|
-| 가입·로그인 | [UC-22](../../usecase-spec/UC-22.md) | 회원, 필수 동의. 갱신 토큰·이메일 인증은 MVP 이후 |
-| 세계관·설정 | [UC-02](../../usecase-spec/UC-02.md) · [UC-06](../../usecase-spec/UC-06.md) | 세계관 소유, 항목·카테고리·설정 버전. 인물 관계는 그래프 DB, 인물별 지식 범위는 별도 설계 필요 |
-| 기존 원고·설정 추출 | [UC-03](../../usecase-spec/UC-03.md) · [UC-04](../../usecase-spec/UC-04.md) | 작품별 회차 원고 등록, 요청한 원고의 수동 추출과 사용자 채택. 파일 업로드·자동 반영은 MVP 이후 |
-| 작품·회차·발행 | [UC-01](../../usecase-spec/UC-01.md) · [UC-07](../../usecase-spec/UC-07.md) · [UC-13](../../usecase-spec/UC-13.md) · [UC-24](../../usecase-spec/UC-24.md) | 소유자·세계관·작품 정보, 회차 순서·원고 버전, 공개와 Fork 허용 판단. 유료 공개·자동 발행은 MVP 이후 |
-| Fork 창작 | [UC-08](../../usecase-spec/UC-08.md) · [UC-10](../../usecase-spec/UC-10.md) · [UC-11](../../usecase-spec/UC-11.md) | 원작 기준 회차와 설정·관계의 시점, 독립된 Fork, 선택적 원고 옆 AI 채팅·설정 수정 |
-| 스토리 설계·시뮬레이션 | [MVP 설계](../design.md#mvp-범위) · [UC-09](../../usecase-spec/UC-09.md) | 줄거리·회차 플롯·장면 계획과 선택적 시뮬레이션 결과. 예정 사건과 확정 상태 구분 |
-| 독자 피드백 | [UC-14](../../usecase-spec/UC-14.md) | 댓글·제보 작성자·내용·대상 회차/버전과 작가의 목록 확인. 필터·AI 응대·보상은 MVP 이후 |
-| AI 작업 | [DEC-18](../decisions.md#결정-목록) · [UC-11](../../usecase-spec/UC-11.md) | Core의 작업 상태·사용량·실패 기록과 선택적 제안의 기준·채택. Saver 내부 실행 상태와 별개 |
+## 전체 관계
 
-상세 UC의 옛 공개 항목 필터·복수 세계관·자동 반영과 최신 결정이 충돌하면 최신 MVP 설계를 우선합니다. **세계관 공개 범위와 Fork 정책은 아래 논리 후보로 반영하며 구체 저장 방식은 미정입니다.** 이 표는 **유스케이스 근거의 데이터 범위를 정리한 것**이지 기능 구현이나 물리 테이블을 확정한 것이 아닙니다.
-
-## 2. STORYFORK 업무 ERD — 전체 MVP 관계 후보
-
-`MEMBER` 한 사람이 독자와 창작자를 모두 겸할 수 있습니다. 별도 독자·작가 계정 테이블이나 미정인 결제 테이블은 만들지 않았습니다. `AI_JOB`·`AI_PROPOSAL`·`CHAT_SESSION`은 필요한 논리적 구분과 연결 후보이며, 지속 보관이나 각각의 물리 테이블을 확정한 것은 아닙니다.
+큰 그림은 전체 연결 확인용입니다. 실제 검토에는 10개 [업무 영역별 부분 뷰](README.md#core-업무-영역별-erd)를 사용합니다. 모든 부분 뷰의 엔티티 정의와 관계는 아래 원본과 동일하며, 다른 영역 테이블은 참조일 뿐 중복 생성하지 않습니다.
 
 ```mermaid
 erDiagram
-    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "source world"
-    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "combined world"
-    WORK ||--o{ WORK_WORLD_HISTORY : "world history"
-    WORLD ||--o{ WORK_WORLD_HISTORY : "historical world"
-    EPISODE_VERSION o|--o{ WORK_WORLD_HISTORY : "effective episode candidate"
-    WORLD o|--o{ FORK_WORLD_REFERENCE : "source world candidate"
-    WORLD ||--o| FORK_WORLD_REFERENCE : "fork world candidate"
-    FORK ||--o| FORK_WORLD_REFERENCE : "fork world reference"
-    MEMBER ||--o{ MEMBER_CONSENT : agrees
-    MEMBER ||--o{ WORLD : owns
-    MEMBER ||--o{ WORK : owns
-    WORLD ||--o| WORK : context
-    WORLD ||--o{ SETTING_DOCUMENT : contains
-    SETTING_CATEGORY ||--o{ SETTING_DOCUMENT : "category candidate"
-    SETTING_CATEGORY o|--o{ SETTING_VERSION : "category snapshot candidate"
-    SETTING_DOCUMENT ||--o{ SETTING_VERSION : versions
-    SETTING_DOCUMENT ||--o| SETTING_DRAFT : "overwritten draft candidate"
-    SETTING_DOCUMENT ||--o{ SETTING_IMAGE : "current images candidate"
-    SETTING_DOCUMENT ||--o{ SETTING_REFERENCE : "external references candidate"
-    SETTING_DOCUMENT ||--o{ SETTING_DOCUMENT_TAG : tagged
-    SETTING_TAG ||--o{ SETTING_DOCUMENT_TAG : classifies
-    MEMBER ||--o{ SETTING_TAG : owns
-    SETTING_DOCUMENT ||--o{ SETTING_VISIBILITY_HISTORY : "visibility history candidate"
-    EPISODE o|--o{ SETTING_VISIBILITY_HISTORY : "range start candidate"
-    EPISODE o|--o{ SETTING_VISIBILITY_HISTORY : "range end candidate"
-    WORK ||--o{ FORK_POLICY_HISTORY : "policy history candidate"
-    EPISODE o|--o{ FORK_POLICY_HISTORY : "start episode candidate"
-    FORK_POLICY_HISTORY ||--o{ FORK_POLICY_EPISODE : "selected episodes candidate"
-    EPISODE ||--o{ FORK_POLICY_EPISODE : "selected episode candidate"
-    FORK_POLICY_HISTORY ||--o{ FORK : "confirmed policy candidate"
-    FORK ||--o{ FORK_SOURCE_CHANGE : "source change candidate"
-    SETTING_DOCUMENT o|--o{ SETTING_DOCUMENT : "fork source candidate"
-    WORK ||--o{ EPISODE : contains
-    EPISODE ||--o| EPISODE_DRAFT : "working draft"
-    EPISODE ||--o{ EPISODE_VERSION : versions
-    EPISODE_VERSION o|--o| EPISODE : "published version candidate"
-    WORK ||--o{ STORY_PLAN : plans
-    EPISODE o|--o{ STORY_PLAN : "episode plan candidate"
-    STORY_PLAN o|--o{ STORY_PLAN : "parent plan candidate"
-    EPISODE_VERSION ||--o{ CHECKPOINT : "basis candidate"
-    CHECKPOINT ||--o{ CHECKPOINT_EPISODE : "episode members candidate"
-    EPISODE ||--o{ CHECKPOINT_EPISODE : "episode candidate"
-    EPISODE_VERSION ||--o{ CHECKPOINT_EPISODE : "version candidate"
-    CHECKPOINT ||--o{ CHECKPOINT_SETTING : "setting members candidate"
-    SETTING_DOCUMENT ||--o{ CHECKPOINT_SETTING : "setting candidate"
-    SETTING_VERSION ||--o{ CHECKPOINT_SETTING : "member candidate"
-    WORK ||--o| FORK : "fork identity"
-    CHECKPOINT ||--o{ FORK : "source basis"
-    WORLD o|--o{ FORK : "independent world candidate"
-    MEMBER ||--o{ CHAT_SESSION : owns
-    WORK ||--o{ CHAT_SESSION : "context work"
-    WORK o|--o{ CHAT_SESSION : "target fork candidate"
-    CHECKPOINT o|--o{ CHAT_SESSION : "context baseline candidate"
-    MEMBER ||--o{ AI_JOB : requests
-    WORK ||--o{ AI_JOB : context
-    CHAT_SESSION o|--o{ AI_JOB : "optional chat"
-    CHECKPOINT o|--o{ AI_JOB : "baseline candidate"
-    AI_JOB ||--o{ AI_PROPOSAL : produces
-    AI_JOB o|--o{ OPERATION_ALERT : "job candidate"
-    OPERATION_ALERT ||--o{ OPERATION_ACTION : actions
-    MEMBER o|--o{ OPERATION_ACTION : "operator candidate"
-    MEMBER ||--o{ USER_NOTICE : receives
-    AI_JOB o|--o{ USER_NOTICE : "job candidate"
-    EPISODE_VERSION o|--o{ AI_PROPOSAL : "base episode candidate"
-    SETTING_VERSION o|--o{ AI_PROPOSAL : "base setting candidate"
-    EPISODE_VERSION o|--o{ AI_PROPOSAL : "applied episode candidate"
-    SETTING_VERSION o|--o{ AI_PROPOSAL : "applied setting candidate"
-    MEMBER ||--o{ FEEDBACK : writes
-    EPISODE_VERSION ||--o{ FEEDBACK : "read version"
-    FEEDBACK ||--o{ FEEDBACK_STATUS_EVENT : history
-    FEEDBACK ||--o{ FEEDBACK_RESPONSE : responses
-    FEEDBACK ||--o| FEEDBACK_VERIFICATION : attachment
-    FEEDBACK ||--o{ FEEDBACK_MODERATION : moderation
-    FEEDBACK ||--o{ FEEDBACK_LIKE : likes
-    MEMBER ||--o{ FEEDBACK_LIKE : likes
-    FEEDBACK ||--o{ FEEDBACK_COMMENT : discussion
-    MEMBER ||--o{ FEEDBACK_COMMENT : writes
-    FEEDBACK ||--o{ FEEDBACK_REVIEW : decisions
-    AI_PROPOSAL o|--o{ FEEDBACK_REVIEW : proposal
-    EPISODE_VERSION o|--o{ FEEDBACK_REVIEW : applied_version
+    MEMBER ||--o{ MEMBER_CONSENT : "member_id"
+    TERMS_VERSION ||--o{ MEMBER_CONSENT : "terms_version_id"
+    MEMBER ||--o{ AUTH_SESSION : "member_id"
+    AUTH_SESSION ||--o{ REFRESH_TOKEN : "session_id"
+    REFRESH_TOKEN o|--o{ REFRESH_TOKEN : "previous_token_id"
+    MEMBER o|--o{ ACCOUNT_CHALLENGE : "member_id"
+    MEMBER ||--o{ ACCOUNT_WITHDRAWAL : "member_id"
+    MEMBER ||--o{ WORLD : "owner_id"
+    WORLD ||--o{ SETTING_DOCUMENT : "world_id"
+    SETTING_DOCUMENT ||--o| SETTING_DRAFT : "setting_document_id"
+    SETTING_CATEGORY ||--o{ SETTING_DRAFT : "category_id"
+    SETTING_DOCUMENT ||--o{ SETTING_VERSION : "setting_document_id"
+    SETTING_CATEGORY ||--o{ SETTING_VERSION : "category_id"
+    SETTING_VERSION o|--o{ SETTING_VERSION : "restored_from_id"
+    SETTING_DOCUMENT ||--o| SETTING_ORIGIN : "setting_document_id"
+    SETTING_VERSION ||--o{ SETTING_ORIGIN : "source_setting_version_id"
+    SETTING_DOCUMENT ||--o{ SETTING_IMAGE : "setting_document_id"
+    SETTING_DOCUMENT ||--o{ SETTING_REFERENCE : "setting_document_id"
+    MEMBER ||--o{ SETTING_TAG : "owner_id"
+    SETTING_DOCUMENT ||--o{ SETTING_DOCUMENT_TAG : "setting_document_id"
+    SETTING_TAG ||--o{ SETTING_DOCUMENT_TAG : "setting_tag_id"
+    SETTING_DOCUMENT ||--o{ SETTING_VISIBILITY_HISTORY : "setting_document_id"
+    SETTING_VISIBILITY_HISTORY ||--o{ SETTING_VISIBILITY_RANGE : "visibility_history_id"
+    EPISODE ||--o{ SETTING_VISIBILITY_RANGE : "start_episode_id"
+    EPISODE o|--o{ SETTING_VISIBILITY_RANGE : "end_episode_id"
+    SETTING_DOCUMENT ||--o{ CHARACTER_STATE_VERSION : "character_id"
+    EPISODE o|--o{ CHARACTER_STATE_VERSION : "basis_episode_id"
+    CHARACTER_STATE_VERSION o|--o{ CHARACTER_STATE_VERSION : "restored_from_id"
+    SETTING_DOCUMENT ||--o{ CHARACTER_KNOWLEDGE_VERSION : "character_id"
+    SETTING_DOCUMENT ||--o{ CHARACTER_KNOWLEDGE_VERSION : "fact_setting_id"
+    EPISODE o|--o{ CHARACTER_KNOWLEDGE_VERSION : "basis_episode_id"
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "combined_world_id"
+    WORLD ||--o{ WORLD_COMPOSITION_SOURCE : "source_world_id"
+    WORLD ||--o{ WORLD_USE_POLICY_HISTORY : "world_id"
+    MEMBER ||--o{ WORK : "owner_id"
+    WORK ||--o{ WORK_WORLD_HISTORY : "work_id"
+    WORLD ||--o{ WORK_WORLD_HISTORY : "world_id"
+    WORK ||--o{ WORK_GENRE : "work_id"
+    GENRE ||--o{ WORK_GENRE : "genre_id"
+    WORK ||--o{ WORK_HASHTAG : "work_id"
+    HASHTAG ||--o{ WORK_HASHTAG : "hashtag_id"
+    WORK ||--o{ WORK_PUBLICATION_HISTORY : "work_id"
+    WORK ||--o{ WORK_RIGHTS_DECLARATION : "work_id"
+    MEMBER ||--o{ WORK_RIGHTS_DECLARATION : "member_id"
+    WORK ||--o{ WORK_LIKE : "work_id"
+    MEMBER ||--o{ WORK_LIKE : "member_id"
+    MEMBER ||--o{ WORK_FAVORITE : "member_id"
+    WORK ||--o{ WORK_FAVORITE : "work_id"
+    MEMBER ||--o{ READING_PROGRESS : "member_id"
+    WORK ||--o{ READING_PROGRESS : "work_id"
+    EPISODE_VERSION ||--o{ READING_PROGRESS : "episode_version_id"
+    EPISODE ||--o{ EPISODE_VIEW_DAY : "episode_id"
+    WORK ||--o{ EPISODE : "work_id"
+    EPISODE ||--o| EPISODE_DRAFT : "episode_id"
+    EPISODE ||--o{ EPISODE_VERSION : "episode_id"
+    WORK_WORLD_HISTORY ||--o{ EPISODE_VERSION : "work_world_history_id"
+    EPISODE_VERSION o|--o{ EPISODE_VERSION : "restored_from_id"
+    MEMBER ||--o{ MANUSCRIPT_ASSET : "owner_id"
+    EPISODE_DRAFT ||--o{ EPISODE_DRAFT_IMAGE : "episode_id"
+    MANUSCRIPT_ASSET ||--o{ EPISODE_DRAFT_IMAGE : "asset_id"
+    EPISODE_VERSION ||--o{ EPISODE_VERSION_IMAGE : "episode_version_id"
+    MANUSCRIPT_ASSET ||--o{ EPISODE_VERSION_IMAGE : "asset_id"
+    EPISODE_DRAFT ||--o{ EPISODE_DRAFT_MENTION : "episode_id"
+    SETTING_DOCUMENT ||--o{ EPISODE_DRAFT_MENTION : "character_id"
+    EPISODE_VERSION ||--o{ EPISODE_VERSION_MENTION : "episode_version_id"
+    SETTING_DOCUMENT ||--o{ EPISODE_VERSION_MENTION : "character_id"
+    EPISODE_VERSION ||--o{ PUBLICATION_EVENT : "episode_version_id"
+    MEMBER o|--o{ PUBLICATION_EVENT : "actor_id"
+    EPISODE_VERSION ||--o{ PUBLICATION_SCHEDULE : "episode_version_id"
+    WORK ||--o{ STORY_PLAN : "work_id"
+    EPISODE o|--o{ STORY_PLAN : "episode_id"
+    STORY_PLAN o|--o{ STORY_PLAN : "parent_plan_id"
+    WORK ||--o{ WRITING_NOTE : "work_id"
+    EPISODE o|--o{ WRITING_NOTE : "episode_id"
+    WORK ||--o{ MANUSCRIPT_IMPORT : "work_id"
+    MANUSCRIPT_IMPORT ||--o{ MANUSCRIPT_IMPORT_ITEM : "import_id"
+    EPISODE_VERSION o|--o{ MANUSCRIPT_IMPORT_ITEM : "episode_version_id"
+    MANUSCRIPT_IMPORT_ITEM ||--o{ MANUSCRIPT_IMPORT_ISSUE : "import_item_id"
+    WORK ||--o{ CHECKPOINT : "work_id"
+    EPISODE_VERSION ||--o{ CHECKPOINT : "basis_episode_version_id"
+    CHECKPOINT ||--o{ CHECKPOINT_EPISODE : "checkpoint_id"
+    EPISODE ||--o{ CHECKPOINT_EPISODE : "episode_id"
+    EPISODE_VERSION ||--o{ CHECKPOINT_EPISODE : "episode_version_id"
+    CHECKPOINT ||--o{ CHECKPOINT_SETTING : "checkpoint_id"
+    SETTING_DOCUMENT ||--o{ CHECKPOINT_SETTING : "setting_document_id"
+    SETTING_VERSION ||--o{ CHECKPOINT_SETTING : "setting_version_id"
+    CHECKPOINT ||--o{ CHECKPOINT_CHARACTER_STATE : "checkpoint_id"
+    SETTING_DOCUMENT ||--o{ CHECKPOINT_CHARACTER_STATE : "character_id"
+    CHARACTER_STATE_VERSION ||--o{ CHECKPOINT_CHARACTER_STATE : "state_version_id"
+    CHECKPOINT ||--o{ CHECKPOINT_CHARACTER_KNOWLEDGE : "checkpoint_id"
+    SETTING_DOCUMENT ||--o{ CHECKPOINT_CHARACTER_KNOWLEDGE : "character_id"
+    SETTING_DOCUMENT ||--o{ CHECKPOINT_CHARACTER_KNOWLEDGE : "fact_setting_id"
+    CHARACTER_KNOWLEDGE_VERSION ||--o{ CHECKPOINT_CHARACTER_KNOWLEDGE : "knowledge_version_id"
+    WORK ||--o{ FORK_POLICY_HISTORY : "work_id"
+    EPISODE o|--o{ FORK_POLICY_HISTORY : "start_episode_id"
+    FORK_POLICY_HISTORY ||--o{ FORK_POLICY_EPISODE : "policy_history_id"
+    EPISODE ||--o{ FORK_POLICY_EPISODE : "episode_id"
+    WORK ||--o| FORK : "work_id"
+    CHECKPOINT ||--o{ FORK : "source_checkpoint_id"
+    FORK_POLICY_HISTORY ||--o{ FORK : "confirmed_policy_history_id"
+    FORK ||--o| FORK_WORLD_REFERENCE : "fork_work_id"
+    WORLD ||--o{ FORK_WORLD_REFERENCE : "source_world_id"
+    CHECKPOINT o|--o{ FORK_WORLD_REFERENCE : "last_followed_checkpoint_id"
+    FORK ||--o{ FORK_SOURCE_CHANGE : "fork_work_id"
+    CHECKPOINT ||--o{ FORK_SOURCE_CHANGE : "before_checkpoint_id"
+    CHECKPOINT ||--o{ FORK_SOURCE_CHANGE : "after_checkpoint_id"
+    FORK_SOURCE_CHANGE ||--o{ FORK_CHANGE_DECISION : "source_change_id"
+    MEMBER ||--o{ FORK_CHANGE_DECISION : "actor_id"
+    FORK_CHANGE_DECISION ||--o{ FORK_CHANGE_APPLICATION : "decision_id"
+    CHECKPOINT o|--o{ FORK_CHANGE_APPLICATION : "result_checkpoint_id"
+    MEMBER ||--o{ CHAT_SESSION : "owner_id"
+    WORK ||--o{ CHAT_SESSION : "context_work_id"
+    FORK o|--o{ CHAT_SESSION : "target_fork_work_id"
+    CHAT_SESSION ||--o{ CHAT_MESSAGE : "session_id"
+    AI_JOB o|--o{ CHAT_MESSAGE : "ai_job_id"
+    MEMBER ||--o{ AI_JOB : "requester_id"
+    WORK o|--o{ AI_JOB : "work_id"
+    CHAT_SESSION o|--o{ AI_JOB : "session_id"
+    AI_JOB o|--o{ AI_JOB : "retry_of_job_id"
+    CHECKPOINT o|--o{ AI_JOB : "base_checkpoint_id"
+    AI_JOB ||--o{ AI_MODEL_CALL : "job_id"
+    AI_MODEL_CALL o|--o{ AI_MODEL_CALL : "retry_of_call_id"
+    AI_JOB ||--o{ AI_INPUT_SNAPSHOT : "job_id"
+    EPISODE o|--o{ AI_INPUT_SNAPSHOT : "episode_id"
+    EPISODE_VERSION o|--o{ AI_INPUT_SNAPSHOT : "episode_version_id"
+    SETTING_VERSION o|--o{ AI_INPUT_SNAPSHOT : "setting_version_id"
+    AI_JOB ||--o{ AI_PROPOSAL : "job_id"
+    AI_INPUT_SNAPSHOT o|--o{ AI_PROPOSAL : "input_snapshot_id"
+    EPISODE_VERSION o|--o{ AI_EVIDENCE : "episode_version_id"
+    SETTING_VERSION o|--o{ AI_EVIDENCE : "setting_version_id"
+    AI_PROPOSAL ||--o{ PROPOSAL_EVIDENCE : "proposal_id"
+    AI_EVIDENCE ||--o{ PROPOSAL_EVIDENCE : "evidence_id"
+    AI_PROPOSAL ||--o{ PROPOSAL_DECISION : "proposal_id"
+    MEMBER o|--o{ PROPOSAL_DECISION : "actor_id"
+    WORK_AUTOMATION_VERSION o|--o{ PROPOSAL_DECISION : "automation_policy_id"
+    PROPOSAL_DECISION ||--o{ PROPOSAL_APPLICATION : "decision_id"
+    PROPOSAL_APPLICATION ||--o{ PROPOSAL_EPISODE_CHANGE : "application_id"
+    EPISODE ||--o{ PROPOSAL_EPISODE_CHANGE : "episode_id"
+    EPISODE_VERSION o|--o{ PROPOSAL_EPISODE_CHANGE : "result_version_id"
+    PROPOSAL_APPLICATION ||--o{ PROPOSAL_SETTING_CHANGE : "application_id"
+    SETTING_DOCUMENT ||--o{ PROPOSAL_SETTING_CHANGE : "setting_document_id"
+    SETTING_VERSION o|--o{ PROPOSAL_SETTING_CHANGE : "result_version_id"
+    PROPOSAL_APPLICATION ||--o{ PROPOSAL_GRAPH_CHANGE : "application_id"
+    AI_PROPOSAL ||--o{ PROPOSAL_IMAGE : "proposal_id"
+    MANUSCRIPT_ASSET ||--o{ PROPOSAL_IMAGE : "asset_id"
+    AI_JOB ||--o| SIMULATION_RUN : "job_id"
+    SETTING_DOCUMENT o|--o{ SIMULATION_RUN : "location_setting_id"
+    SIMULATION_RUN ||--o{ SIMULATION_PARTICIPANT : "run_id"
+    SETTING_DOCUMENT ||--o{ SIMULATION_PARTICIPANT : "character_id"
+    AI_PROPOSAL ||--o| SIMULATION_CANDIDATE : "proposal_id"
+    SIMULATION_RUN ||--o{ SIMULATION_CANDIDATE : "run_id"
+    SIMULATION_CANDIDATE ||--o{ SIMULATION_RECORD : "candidate_id"
+    SIMULATION_RECORD ||--o{ SIMULATION_RECORD_PARTICIPANT : "record_id"
+    SIMULATION_PARTICIPANT ||--o{ SIMULATION_RECORD_PARTICIPANT : "participant_id"
+    SIMULATION_RECORD ||--o{ SIMULATION_CAUSAL_LINK : "cause_record_id"
+    SIMULATION_RECORD ||--o{ SIMULATION_CAUSAL_LINK : "effect_record_id"
+    AI_JOB ||--o| VERIFICATION_RESULT : "job_id"
+    VERIFICATION_RESULT ||--o{ VERIFICATION_EVIDENCE : "verification_job_id"
+    AI_EVIDENCE ||--o{ VERIFICATION_EVIDENCE : "evidence_id"
+    CHAT_SESSION ||--o| CHARACTER_CHAT : "session_id"
+    SETTING_DOCUMENT ||--o{ CHARACTER_CHAT : "character_id"
+    MEMBER o|--o{ FEEDBACK : "author_id"
+    EPISODE_VERSION ||--o{ FEEDBACK : "episode_version_id"
+    FEEDBACK ||--o{ FEEDBACK_AMENDMENT : "feedback_id"
+    MEMBER o|--o{ FEEDBACK_AMENDMENT : "actor_id"
+    FEEDBACK ||--o{ FEEDBACK_STATUS_EVENT : "feedback_id"
+    MEMBER o|--o{ FEEDBACK_STATUS_EVENT : "actor_id"
+    AI_JOB o|--o{ FEEDBACK_STATUS_EVENT : "ai_job_id"
+    FEEDBACK ||--o{ FEEDBACK_AI_JOB : "feedback_id"
+    AI_JOB ||--o{ FEEDBACK_AI_JOB : "job_id"
+    FEEDBACK ||--o{ FEEDBACK_RESPONSE : "feedback_id"
+    AI_JOB o|--o{ FEEDBACK_RESPONSE : "ai_job_id"
+    MEMBER o|--o{ FEEDBACK_RESPONSE : "author_id"
+    FEEDBACK_RESPONSE ||--o{ FEEDBACK_RESPONSE_EVIDENCE : "response_id"
+    AI_EVIDENCE ||--o{ FEEDBACK_RESPONSE_EVIDENCE : "evidence_id"
+    FEEDBACK ||--o{ FEEDBACK_COMMENT : "feedback_id"
+    MEMBER o|--o{ FEEDBACK_COMMENT : "author_id"
+    FEEDBACK o|--o| FEEDBACK_VERIFICATION : "feedback_id"
+    FEEDBACK_COMMENT o|--o| FEEDBACK_VERIFICATION : "comment_id"
+    AI_JOB o|--o{ FEEDBACK_VERIFICATION : "original_job_id"
+    FEEDBACK_VERIFICATION ||--o{ FEEDBACK_VERIFICATION_EVIDENCE : "verification_id"
+    EPISODE_VERSION o|--o{ FEEDBACK_VERIFICATION_EVIDENCE : "episode_version_id"
+    SETTING_VERSION o|--o{ FEEDBACK_VERIFICATION_EVIDENCE : "setting_version_id"
+    FEEDBACK ||--o{ FEEDBACK_REPORT : "feedback_id"
+    MEMBER ||--o{ FEEDBACK_REPORT : "reporter_id"
+    FEEDBACK ||--o{ FEEDBACK_MODERATION_CHECK : "feedback_id"
+    AI_JOB ||--o{ FEEDBACK_MODERATION_CHECK : "job_id"
+    FEEDBACK_REPORT o|--o{ FEEDBACK_MODERATION_CHECK : "report_id"
+    FEEDBACK ||--o{ FEEDBACK_MODERATION : "feedback_id"
+    FEEDBACK_MODERATION_CHECK o|--o{ FEEDBACK_MODERATION : "check_id"
+    MEMBER o|--o{ FEEDBACK_MODERATION : "actor_id"
+    FEEDBACK ||--o{ FEEDBACK_LIKE : "feedback_id"
+    MEMBER ||--o{ FEEDBACK_LIKE : "member_id"
+    FEEDBACK ||--o{ FEEDBACK_PROPOSAL : "feedback_id"
+    AI_PROPOSAL ||--o{ FEEDBACK_PROPOSAL : "proposal_id"
+    FEEDBACK ||--o{ FEEDBACK_REVIEW : "feedback_id"
+    MEMBER ||--o{ FEEDBACK_REVIEW : "actor_id"
+    PROPOSAL_DECISION o|--o{ FEEDBACK_REVIEW : "proposal_decision_id"
+    FEEDBACK ||--o{ FEEDBACK_RESOLUTION : "feedback_id"
+    FEEDBACK_REVIEW ||--o{ FEEDBACK_RESOLUTION : "review_id"
+    EPISODE_VERSION ||--o{ FEEDBACK_RESOLUTION : "episode_version_id"
+    PUBLICATION_EVENT o|--o{ FEEDBACK_RESOLUTION : "publication_event_id"
+    PROPOSAL_APPLICATION o|--o{ FEEDBACK_RESOLUTION : "application_id"
+    FEEDBACK_RESOLUTION ||--o{ FEEDBACK_REWARD : "resolution_id"
+    CREDIT_GRANT ||--o| FEEDBACK_REWARD : "credit_grant_id"
+    WORK ||--o{ WORK_AUTOMATION_VERSION : "work_id"
+    WORK_AUTOMATION_VERSION ||--o| AUTOSERIAL_CONFIG_VERSION : "automation_version_id"
+    AUTOSERIAL_CONFIG_VERSION ||--o{ AUTOSERIAL_SLOT : "config_version_id"
+    AUTOSERIAL_CONFIG_VERSION ||--o{ AUTOSERIAL_RUN : "config_version_id"
+    SCHEDULED_TASK_ITEM o|--o{ AUTOSERIAL_RUN : "scheduled_task_item_id"
+    AI_JOB o|--o{ AUTOSERIAL_RUN : "ai_job_id"
+    EPISODE_VERSION o|--o{ AUTOSERIAL_RUN : "generated_version_id"
+    PUBLICATION_EVENT o|--o{ AUTOSERIAL_RUN : "publication_event_id"
+    MEMBER ||--o{ AI_COST_CONSENT : "member_id"
+    AI_JOB o|--o{ AI_COST_CONSENT : "job_id"
+    WORK_AUTOMATION_VERSION o|--o{ AI_COST_CONSENT : "automation_version_id"
+    MEMBER ||--o{ MEMBER_SUBSCRIPTION : "member_id"
+    SUBSCRIPTION_PLAN ||--o{ MEMBER_SUBSCRIPTION : "plan_id"
+    MEMBER_SUBSCRIPTION ||--o{ SUBSCRIPTION_PERIOD : "subscription_id"
+    MEMBER_SUBSCRIPTION ||--o{ CREDIT_PURCHASE : "subscription_id"
+    MEMBER ||--o{ CREDIT_GRANT : "member_id"
+    SUBSCRIPTION_PERIOD o|--o{ CREDIT_GRANT : "subscription_period_id"
+    CREDIT_PURCHASE o|--o{ CREDIT_GRANT : "purchase_id"
+    AI_JOB ||--o| CREDIT_SETTLEMENT : "job_id"
+    AI_COST_CONSENT o|--o{ CREDIT_SETTLEMENT : "consent_id"
+    MEMBER o|--o{ CREDIT_SETTLEMENT : "payer_member_id"
+    CREDIT_SETTLEMENT ||--o{ CREDIT_SETTLEMENT_LINE : "settlement_id"
+    AI_MODEL_CALL ||--o| CREDIT_SETTLEMENT_LINE : "call_id"
+    CREDIT_GRANT ||--o{ CREDIT_LEDGER_ENTRY : "grant_id"
+    CREDIT_SETTLEMENT_LINE o|--o{ CREDIT_LEDGER_ENTRY : "settlement_line_id"
+    MEMBER ||--o| STORAGE_QUOTA : "member_id"
+    RIGHTS_CASE ||--o{ RIGHTS_REPORT : "case_id"
+    MEMBER ||--o{ RIGHTS_REPORT : "reporter_id"
+    RIGHTS_CASE ||--o{ RIGHTS_CASE_TARGET : "case_id"
+    WORK o|--o{ RIGHTS_CASE_TARGET : "work_id"
+    EPISODE o|--o{ RIGHTS_CASE_TARGET : "episode_id"
+    WORLD o|--o{ RIGHTS_CASE_TARGET : "world_id"
+    SETTING_DOCUMENT o|--o{ RIGHTS_CASE_TARGET : "setting_document_id"
+    RIGHTS_REPORT ||--o{ RIGHTS_REPORT_TARGET : "report_id"
+    RIGHTS_CASE_TARGET ||--o{ RIGHTS_REPORT_TARGET : "case_target_id"
+    RIGHTS_CASE_TARGET ||--o{ RIGHTS_DEFENSE : "case_target_id"
+    MEMBER ||--o{ RIGHTS_DEFENSE : "owner_id"
+    RIGHTS_REPORT o|--o{ RIGHTS_EVIDENCE : "report_id"
+    RIGHTS_DEFENSE o|--o{ RIGHTS_EVIDENCE : "defense_id"
+    RIGHTS_CASE ||--o{ RIGHTS_DECISION : "case_id"
+    MEMBER ||--o{ RIGHTS_DECISION : "operator_id"
+    RIGHTS_CASE_TARGET ||--o{ CONTENT_MODERATION_ASSESSMENT : "target_id"
+    AI_JOB ||--o{ CONTENT_MODERATION_ASSESSMENT : "ai_job_id"
+    RIGHTS_CASE_TARGET ||--o{ CONTENT_RESTRICTION : "target_id"
+    RIGHTS_DECISION o|--o{ CONTENT_RESTRICTION : "decision_id"
+    CONTENT_MODERATION_ASSESSMENT o|--o{ CONTENT_RESTRICTION : "assessment_id"
+    CONTENT_RESTRICTION ||--o{ RESTRICTION_APPLICATION : "restriction_id"
+    RIGHTS_REPORT ||--o| FALSE_REPORT_FINDING : "report_id"
+    MEMBER ||--o{ FALSE_REPORT_FINDING : "operator_id"
+    MEMBER ||--o{ REPORTING_RESTRICTION : "member_id"
+    REPORTING_RESTRICTION ||--o{ REPORTING_RESTRICTION_FINDING : "restriction_id"
+    FALSE_REPORT_FINDING ||--o{ REPORTING_RESTRICTION_FINDING : "finding_id"
+    SCHEDULED_TASK_RUN o|--o{ SCHEDULED_TASK_RUN : "retry_of_run_id"
+    MEMBER o|--o{ SCHEDULED_TASK_RUN : "requested_by"
+    SCHEDULED_TASK_RUN ||--o{ SCHEDULED_TASK_ITEM : "run_id"
+    SCHEDULED_TASK_ITEM o|--o{ SCHEDULED_TASK_ITEM : "prior_item_id"
+    ACCOUNT_WITHDRAWAL o|--o{ SCHEDULED_TASK_ITEM : "withdrawal_id"
+    CREDIT_GRANT o|--o{ SCHEDULED_TASK_ITEM : "credit_grant_id"
+    RIGHTS_DEFENSE o|--o{ SCHEDULED_TASK_ITEM : "defense_id"
+    RIGHTS_CASE o|--o{ SCHEDULED_TASK_ITEM : "case_id"
+    REPORTING_RESTRICTION o|--o{ SCHEDULED_TASK_ITEM : "reporting_restriction_id"
+    PUBLICATION_SCHEDULE o|--o{ SCHEDULED_TASK_ITEM : "publication_schedule_id"
+    FEEDBACK o|--o{ SCHEDULED_TASK_ITEM : "feedback_id"
+    AI_JOB o|--o{ SCHEDULED_TASK_ITEM : "ai_job_id"
+    AUTOSERIAL_CONFIG_VERSION o|--o{ SCHEDULED_TASK_ITEM : "autoserial_config_id"
+    PUBLICATION_EVENT o|--o{ SCHEDULED_TASK_ITEM : "publication_event_id"
+    AI_JOB o|--o{ OPERATION_ALERT : "ai_job_id"
+    RIGHTS_CASE o|--o{ OPERATION_ALERT : "rights_case_id"
+    SCHEDULED_TASK_RUN o|--o{ OPERATION_ALERT : "scheduled_run_id"
+    OPERATION_ALERT ||--o{ OPERATION_ACTION : "alert_id"
+    MEMBER ||--o{ OPERATION_ACTION : "operator_id"
+    AI_JOB o|--o{ TECHNICAL_ERROR_LOG : "ai_job_id"
+    SCHEDULED_TASK_RUN o|--o{ TECHNICAL_ERROR_LOG : "scheduled_run_id"
+    OPERATION_ALERT o|--o{ TECHNICAL_ERROR_LOG : "alert_id"
+    AI_JOB o|--o{ NOTICE_EVENT : "ai_job_id"
+    FEEDBACK o|--o{ NOTICE_EVENT : "feedback_id"
+    FORK_SOURCE_CHANGE o|--o{ NOTICE_EVENT : "source_change_id"
+    PUBLICATION_EVENT o|--o{ NOTICE_EVENT : "publication_event_id"
+    RIGHTS_CASE o|--o{ NOTICE_EVENT : "rights_case_id"
+    CREDIT_GRANT o|--o{ NOTICE_EVENT : "credit_grant_id"
+    ACCOUNT_WITHDRAWAL o|--o{ NOTICE_EVENT : "withdrawal_id"
+    AUTH_SESSION o|--o{ NOTICE_EVENT : "auth_session_id"
+    OPERATION_ALERT o|--o{ NOTICE_EVENT : "alert_id"
+    MEMBER ||--o{ USER_NOTICE : "recipient_id"
+    USER_NOTICE ||--o{ USER_NOTICE_EVENT : "notice_id"
+    NOTICE_EVENT ||--o{ USER_NOTICE_EVENT : "event_id"
+    MEMBER ||--o{ NOTICE_PREFERENCE : "member_id"
+    USER_NOTICE ||--o{ NOTICE_DELIVERY_ATTEMPT : "notice_id"
+    ACCOUNT_WITHDRAWAL ||--o{ ACCOUNT_WITHDRAWAL_ITEM : "withdrawal_id"
+    WORK o|--o{ ACCOUNT_WITHDRAWAL_ITEM : "work_id"
+    WORLD o|--o{ ACCOUNT_WITHDRAWAL_ITEM : "world_id"
+    FORK o|--o{ ACCOUNT_WITHDRAWAL_ITEM : "fork_work_id"
+    WORK ||--o| WORK_EXTERNAL_SOURCE : "work_id"
+    EXTERNAL_IP ||--o{ WORK_EXTERNAL_SOURCE : "external_ip_id"
+    WORK ||--o| PUBLIC_DOMAIN_SOURCE : "work_id"
 
     MEMBER {
         id id PK
-        string email
+        string email UK
         string password_hash
         string nickname
+        string account_status
         datetime created_at
+        string operator_role
+    }
+    TERMS_VERSION {
+        id id PK
+        string terms_type
+        string version_label
+        text content
+        datetime effective_at
     }
     MEMBER_CONSENT {
         id id PK
         id member_id FK
-        string terms_type
-        string terms_version
-        datetime agreed_at
+        id terms_version_id FK
+        string action
+        datetime recorded_at
+    }
+    AUTH_SESSION {
+        id id PK
+        id member_id FK
+        string device_label
+        datetime created_at
+        datetime revoked_at
+    }
+    REFRESH_TOKEN {
+        id id PK
+        id session_id FK
+        string token_hash UK
+        id previous_token_id FK
+        datetime expires_at
+        datetime used_at
+        datetime revoked_at
+    }
+    ACCOUNT_CHALLENGE {
+        id id PK
+        id member_id FK
+        string email
+        string purpose
+        string secret_hash UK
+        datetime expires_at
+        datetime consumed_at
+    }
+    ACCOUNT_WITHDRAWAL {
+        id id PK
+        id member_id FK
+        datetime requested_at
+        datetime due_at
+        datetime restored_at
+        datetime completed_at
+        text reason
+        string status
     }
     WORLD {
         id id PK
@@ -137,35 +394,39 @@ erDiagram
         text description
         datetime created_at
     }
-    WORK {
-        id id PK
-        id owner_id FK
-        id world_id FK
-        string title
-        text description
-        string genre
-        string work_type
-        string visibility_status
-        boolean allow_fork_creation
-        boolean allow_fork_publication
-        datetime created_at
-    }
     SETTING_CATEGORY {
         id id PK
+        string code UK
         string name
     }
     SETTING_DOCUMENT {
         id id PK
         id world_id FK
-        id category_id FK
-        id source_setting_document_id FK
-        string name
-        string visibility_status
+        datetime created_at
     }
     SETTING_DRAFT {
         id setting_document_id PK,FK
+        string name
+        id category_id FK
         text content
+        integer edit_revision
         datetime updated_at
+    }
+    SETTING_VERSION {
+        id id PK
+        id setting_document_id FK
+        integer revision_no
+        string name
+        id category_id FK
+        text content
+        id restored_from_id FK
+        string lifecycle
+        datetime created_at
+    }
+    SETTING_ORIGIN {
+        id setting_document_id PK,FK
+        id source_setting_version_id FK
+        datetime copied_at
     }
     SETTING_IMAGE {
         id id PK
@@ -190,60 +451,190 @@ erDiagram
     SETTING_VISIBILITY_HISTORY {
         id id PK
         id setting_document_id FK
-        string visibility_status
+        integer revision_no
+        string default_visibility
+        datetime changed_at
+    }
+    SETTING_VISIBILITY_RANGE {
+        id id PK
+        id visibility_history_id FK
         id start_episode_id FK
         id end_episode_id FK
+        string visibility
+    }
+    CHARACTER_STATE_VERSION {
+        id id PK
+        id character_id FK
+        integer revision_no
+        id basis_episode_id FK
+        text content
+        id restored_from_id FK
+        datetime created_at
+    }
+    CHARACTER_KNOWLEDGE_VERSION {
+        id id PK
+        id character_id FK
+        id fact_setting_id FK
+        integer revision_no
+        boolean known
+        id basis_episode_id FK
+        datetime created_at
+    }
+    WORLD_COMPOSITION_SOURCE {
+        id combined_world_id PK,FK
+        id source_world_id PK,FK
+        datetime selected_at
+    }
+    WORLD_USE_POLICY_HISTORY {
+        id id PK
+        id world_id FK
+        integer revision_no
+        string visibility
+        boolean allow_use
+        boolean allow_world_fork
         datetime changed_at
     }
-    FORK_POLICY_HISTORY {
+    WORK {
+        id id PK
+        id owner_id FK
+        string title
+        text description
+        string origin_kind
+        string audience_rating
+        datetime created_at
+    }
+    WORK_WORLD_HISTORY {
         id id PK
         id work_id FK
-        boolean allow_fork_creation
-        boolean allow_fork_publication
-        string episode_scope
-        id start_episode_id FK
+        id world_id FK
+        integer revision_no
         datetime changed_at
     }
-    FORK_POLICY_EPISODE {
-        id fork_policy_history_id PK,FK
-        id episode_id PK,FK
-    }
-    FORK_SOURCE_CHANGE {
+    GENRE {
         id id PK
-        id fork_work_id FK
-        string source_change_ref
-        string decision_status
-        datetime notified_at
+        string code UK
+        string name
     }
-    SETTING_VERSION {
+    WORK_GENRE {
+        id work_id PK,FK
+        id genre_id PK,FK
+    }
+    HASHTAG {
         id id PK
-        id setting_document_id FK
+        string name UK
+    }
+    WORK_HASHTAG {
+        id work_id PK,FK
+        id hashtag_id PK,FK
+        string moderation_status
+    }
+    WORK_PUBLICATION_HISTORY {
+        id id PK
+        id work_id FK
         integer revision_no
-        string name_snapshot
-        id category_id FK
-        text content
+        string visibility
+        datetime changed_at
+    }
+    WORK_RIGHTS_DECLARATION {
+        id id PK
+        id work_id FK
+        id member_id FK
+        string notice_version
+        string response
+        datetime confirmed_at
+    }
+    WORK_LIKE {
+        id work_id PK,FK
+        id member_id PK,FK
         datetime created_at
+    }
+    WORK_FAVORITE {
+        id member_id PK,FK
+        id work_id PK,FK
+        datetime created_at
+    }
+    READING_PROGRESS {
+        id member_id PK,FK
+        id work_id PK,FK
+        id episode_version_id FK
+        string position
+        datetime updated_at
+    }
+    EPISODE_VIEW_DAY {
+        id episode_id PK,FK
+        string viewer_key PK
+        date viewed_date PK
     }
     EPISODE {
         id id PK
         id work_id FK
         integer sequence
-        string title
-        string publication_status
-        id published_version_id FK
     }
     EPISODE_DRAFT {
         id episode_id PK,FK
         string title
         text content
+        integer edit_revision
         datetime updated_at
     }
     EPISODE_VERSION {
         id id PK
         id episode_id FK
+        id work_world_history_id FK
         integer revision_no
-        string title_snapshot
+        string title
         text content
+        id restored_from_id FK
+        datetime created_at
+    }
+    MANUSCRIPT_ASSET {
+        id id PK
+        id owner_id FK
+        string object_url
+        string media_type
+        integer byte_size
+        datetime created_at
+    }
+    EPISODE_DRAFT_IMAGE {
+        id id PK
+        id episode_id FK
+        id asset_id FK
+        string position
+        string alt_text
+    }
+    EPISODE_VERSION_IMAGE {
+        id id PK
+        id episode_version_id FK
+        id asset_id FK
+        string position
+        string alt_text
+    }
+    EPISODE_DRAFT_MENTION {
+        id id PK
+        id episode_id FK
+        id character_id FK
+        string position
+    }
+    EPISODE_VERSION_MENTION {
+        id id PK
+        id episode_version_id FK
+        id character_id FK
+        string position
+    }
+    PUBLICATION_EVENT {
+        id id PK
+        id episode_version_id FK
+        id actor_id FK
+        string action
+        string outcome
+        datetime occurred_at
+        string trigger_kind
+    }
+    PUBLICATION_SCHEDULE {
+        id id PK
+        id episode_version_id FK
+        datetime scheduled_at
+        string status
         datetime created_at
     }
     STORY_PLAN {
@@ -256,9 +647,38 @@ erDiagram
         integer sequence
         text content
     }
+    WRITING_NOTE {
+        id id PK
+        id work_id FK
+        id episode_id FK
+        text content
+        datetime updated_at
+    }
+    MANUSCRIPT_IMPORT {
+        id id PK
+        id work_id FK
+        string input_kind
+        datetime created_at
+        string status
+    }
+    MANUSCRIPT_IMPORT_ITEM {
+        id id PK
+        id import_id FK
+        integer sequence
+        id episode_version_id FK
+        string status
+        string failure_reason
+    }
+    MANUSCRIPT_IMPORT_ISSUE {
+        id id PK
+        id import_item_id FK
+        string source_position
+        string reason
+    }
     CHECKPOINT {
         id id PK
-        id episode_version_id FK
+        id work_id FK
+        id basis_episode_version_id FK
         string graph_state_ref
         string status
         datetime created_at
@@ -273,60 +693,643 @@ erDiagram
         id setting_document_id PK,FK
         id setting_version_id FK
     }
+    CHECKPOINT_CHARACTER_STATE {
+        id checkpoint_id PK,FK
+        id character_id PK,FK
+        id state_version_id FK
+    }
+    CHECKPOINT_CHARACTER_KNOWLEDGE {
+        id checkpoint_id PK,FK
+        id character_id PK,FK
+        id fact_setting_id PK,FK
+        id knowledge_version_id FK
+    }
+    FORK_POLICY_HISTORY {
+        id id PK
+        id work_id FK
+        integer revision_no
+        boolean allow_creation
+        boolean allow_publication
+        string episode_scope
+        id start_episode_id FK
+        datetime changed_at
+    }
+    FORK_POLICY_EPISODE {
+        id policy_history_id PK,FK
+        id episode_id PK,FK
+    }
     FORK {
         id work_id PK,FK
         id source_checkpoint_id FK
         id confirmed_policy_history_id FK
         datetime conditions_confirmed_at
-        string world_mode
-        id independent_world_id FK
         datetime created_at
     }
+    FORK_WORLD_REFERENCE {
+        id fork_work_id PK,FK
+        id source_world_id FK
+        string reference_status
+        id last_followed_checkpoint_id FK
+        datetime detached_at
+    }
+    FORK_SOURCE_CHANGE {
+        id id PK
+        id fork_work_id FK
+        id before_checkpoint_id FK
+        id after_checkpoint_id FK
+        datetime detected_at
+    }
+    FORK_CHANGE_DECISION {
+        id id PK
+        id source_change_id FK
+        id actor_id FK
+        string decision
+        datetime decided_at
+    }
+    FORK_CHANGE_APPLICATION {
+        id id PK
+        id decision_id FK
+        id result_checkpoint_id FK
+        string outcome
+        string reason
+        datetime applied_at
+    }
     CHAT_SESSION {
-        string thread_id PK
+        id id PK
         id owner_id FK
         id context_work_id FK
         id target_fork_work_id FK
-        id base_checkpoint_id FK
+        string saver_thread_ref
+        datetime created_at
+    }
+    CHAT_MESSAGE {
+        id id PK
+        id session_id FK
+        integer sequence
+        string speaker
+        text content
+        id ai_job_id FK
         datetime created_at
     }
     AI_JOB {
         id id PK
         id requester_id FK
         id work_id FK
-        string thread_id FK
+        id session_id FK
+        id retry_of_job_id FK
         id base_checkpoint_id FK
         string kind
+        text request_text
         string status
+        string failure_reason
+        datetime created_at
+        datetime started_at
+        datetime finished_at
+    }
+    AI_MODEL_CALL {
+        id id PK
+        id job_id FK
+        integer sequence
+        id retry_of_call_id FK
+        string role
+        string provider
         string model
+        string prompt_version_ref
+        string trace_ref
+        string status
+        string usage_status
         integer input_tokens
         integer output_tokens
-        string failure_code
-        datetime created_at
+        decimal provider_cost
+        datetime started_at
         datetime finished_at
+        string failure_code
+    }
+    AI_INPUT_SNAPSHOT {
+        id id PK
+        id job_id FK
+        id episode_id FK
+        id episode_version_id FK
+        id setting_version_id FK
+        string graph_state_ref
+        string source_kind
+        string position
+        text content_snapshot
+        integer draft_revision
+        datetime captured_at
     }
     AI_PROPOSAL {
         id id PK
         id job_id FK
+        id input_snapshot_id FK
+        integer sequence
         string kind
         text content
-        text evidence
-        string selection_status
-        string application_status
-        id base_episode_version_id FK
-        id base_setting_version_id FK
-        id applied_episode_version_id FK
-        id applied_setting_version_id FK
         datetime created_at
+    }
+    AI_EVIDENCE {
+        id id PK
+        id episode_version_id FK
+        id setting_version_id FK
+        string graph_state_ref
+        string kind
+        string position
+        text excerpt_snapshot
+        datetime captured_at
+    }
+    PROPOSAL_EVIDENCE {
+        id proposal_id PK,FK
+        id evidence_id PK,FK
+    }
+    PROPOSAL_DECISION {
+        id id PK
+        id proposal_id FK
+        integer sequence
+        id actor_id FK
+        id automation_policy_id FK
+        string decision
+        string selected_range
+        text approved_content
+        datetime decided_at
+    }
+    PROPOSAL_APPLICATION {
+        id id PK
+        id decision_id FK
+        integer attempt_no
+        string outcome
+        string failure_reason
+        datetime attempted_at
+    }
+    PROPOSAL_EPISODE_CHANGE {
+        id id PK
+        id application_id FK
+        id episode_id FK
+        id result_version_id FK
+        string position
+        text before_content
+        text after_content
+        integer base_draft_revision
+        integer result_draft_revision
+    }
+    PROPOSAL_SETTING_CHANGE {
+        id id PK
+        id application_id FK
+        id setting_document_id FK
+        id result_version_id FK
+        string outcome
+    }
+    PROPOSAL_GRAPH_CHANGE {
+        id id PK
+        id application_id FK
+        string before_state_ref
+        string after_state_ref
+        string outcome
+        string failure_reason
+    }
+    PROPOSAL_IMAGE {
+        id proposal_id PK,FK
+        id asset_id PK,FK
+        integer position
+    }
+    SIMULATION_RUN {
+        id job_id PK,FK
+        string purpose
+        id location_setting_id FK
+        text situation
+        text direction
+        integer requested_characters
+    }
+    SIMULATION_PARTICIPANT {
+        id id PK
+        id run_id FK
+        id character_id FK
+        text allowed_context_snapshot
+    }
+    SIMULATION_CANDIDATE {
+        id proposal_id PK,FK
+        id run_id FK
+        integer sequence
+    }
+    SIMULATION_RECORD {
+        id id PK
+        id candidate_id FK
+        integer sequence
+        string kind
+        text content
+    }
+    SIMULATION_RECORD_PARTICIPANT {
+        id record_id PK,FK
+        id participant_id PK,FK
+    }
+    SIMULATION_CAUSAL_LINK {
+        id cause_record_id PK,FK
+        id effect_record_id PK,FK
+        text explanation
+    }
+    VERIFICATION_RESULT {
+        id job_id PK,FK
+        string verdict
+        decimal confidence
+        text content
+    }
+    VERIFICATION_EVIDENCE {
+        id verification_job_id PK,FK
+        id evidence_id PK,FK
+    }
+    CHARACTER_CHAT {
+        id session_id PK,FK
+        id character_id FK
+    }
+    FEEDBACK {
+        id id PK
+        id author_id FK
+        id episode_version_id FK
+        string kind
+        text content
+        text target_excerpt
+        string position
+        string visibility
+        boolean is_spoiler
+        datetime created_at
+        datetime delivered_at
+        datetime author_checked_at
+    }
+    FEEDBACK_AMENDMENT {
+        id id PK
+        id feedback_id FK
+        id actor_id FK
+        string action
+        text content
+        datetime created_at
+    }
+    FEEDBACK_STATUS_EVENT {
+        id id PK
+        id feedback_id FK
+        id actor_id FK
+        id ai_job_id FK
+        string status
+        datetime created_at
+    }
+    FEEDBACK_AI_JOB {
+        id feedback_id PK,FK
+        id job_id PK,FK
+        string purpose
+    }
+    FEEDBACK_RESPONSE {
+        id id PK
+        id feedback_id FK
+        id ai_job_id FK
+        id author_id FK
+        text content
+        boolean is_public
+        datetime created_at
+    }
+    FEEDBACK_RESPONSE_EVIDENCE {
+        id response_id PK,FK
+        id evidence_id PK,FK
+    }
+    FEEDBACK_COMMENT {
+        id id PK
+        id feedback_id FK
+        id author_id FK
+        text content
+        datetime created_at
+    }
+    FEEDBACK_VERIFICATION {
+        id id PK
+        id feedback_id UK,FK
+        id comment_id UK,FK
+        id original_job_id FK
+        string outcome
+        string verdict
+        decimal confidence
+        text result_snapshot
+        datetime submitted_at
+    }
+    FEEDBACK_VERIFICATION_EVIDENCE {
+        id id PK
+        id verification_id FK
+        integer sequence
+        id episode_version_id FK
+        id setting_version_id FK
+        string graph_state_ref
+        string position
+        text excerpt_snapshot
+    }
+    FEEDBACK_REPORT {
+        id id PK
+        id feedback_id FK
+        id reporter_id FK
+        text reason
+        datetime created_at
+    }
+    FEEDBACK_MODERATION_CHECK {
+        id id PK
+        id feedback_id FK
+        id job_id FK
+        id report_id FK
+        string outcome
+        string verdict
+        text reason
+        datetime checked_at
+    }
+    FEEDBACK_MODERATION {
+        id id PK
+        id feedback_id FK
+        id check_id FK
+        id actor_id FK
+        string action
+        string outcome
+        text reason
+        datetime created_at
+    }
+    FEEDBACK_LIKE {
+        id feedback_id PK,FK
+        id member_id PK,FK
+        datetime created_at
+    }
+    FEEDBACK_PROPOSAL {
+        id feedback_id PK,FK
+        id proposal_id PK,FK
+    }
+    FEEDBACK_REVIEW {
+        id id PK
+        id feedback_id FK
+        id actor_id FK
+        id proposal_decision_id FK
+        string decision
+        text reason
+        datetime created_at
+    }
+    FEEDBACK_RESOLUTION {
+        id id PK
+        id feedback_id FK
+        id review_id FK
+        id episode_version_id FK
+        id publication_event_id FK
+        id application_id FK
+        datetime linked_at
+    }
+    FEEDBACK_REWARD {
+        id id PK
+        id resolution_id FK
+        id credit_grant_id UK,FK
+        string correction_key UK
+        datetime awarded_at
+    }
+    WORK_AUTOMATION_VERSION {
+        id id PK
+        id work_id FK
+        integer revision_no
+        string world_update_mode
+        string proofreading_mode
+        string autoserial_state
+        datetime changed_at
+    }
+    AUTOSERIAL_CONFIG_VERSION {
+        id automation_version_id PK,FK
+        integer target_length
+        text direction
+        boolean use_reader_reactions
+        decimal cost_limit
+    }
+    AUTOSERIAL_SLOT {
+        id config_version_id PK,FK
+        integer weekday PK
+        string local_time
+    }
+    AUTOSERIAL_RUN {
+        id id PK
+        id config_version_id FK
+        id scheduled_task_item_id FK
+        id ai_job_id FK
+        id generated_version_id FK
+        id publication_event_id FK
+        datetime scheduled_at
+        string status
+        text reason
+    }
+    AI_COST_CONSENT {
+        id id PK
+        id member_id FK
+        id job_id FK
+        id automation_version_id FK
+        decimal estimated_credits
+        text scope_snapshot
+        string decision
+        datetime recorded_at
+    }
+    SUBSCRIPTION_PLAN {
+        id id PK
+        string name
+        decimal monthly_credits
+        decimal price
+        string currency
+        datetime effective_at
+    }
+    MEMBER_SUBSCRIPTION {
+        id id PK
+        id member_id FK
+        id plan_id FK
+        string status
+        datetime started_at
+        datetime ended_at
+    }
+    SUBSCRIPTION_PERIOD {
+        id id PK
+        id subscription_id FK
+        datetime period_start
+        datetime period_end
+    }
+    CREDIT_PURCHASE {
+        id id PK
+        id subscription_id FK
+        decimal quantity
+        string status
+        datetime requested_at
+        datetime completed_at
+    }
+    CREDIT_GRANT {
+        id id PK
+        id member_id FK
+        id subscription_period_id FK
+        id purchase_id FK
+        string kind
+        decimal amount
+        datetime granted_at
+        datetime expires_at
+    }
+    CREDIT_SETTLEMENT {
+        id id PK
+        id job_id UK,FK
+        id consent_id FK
+        id payer_member_id FK
+        string payer_kind
+        string status
+        datetime settled_at
+    }
+    CREDIT_SETTLEMENT_LINE {
+        id id PK
+        id settlement_id FK
+        id call_id UK,FK
+        decimal input_rate
+        decimal output_rate
+        decimal charged_credits
+    }
+    CREDIT_LEDGER_ENTRY {
+        id id PK
+        id grant_id FK
+        id settlement_line_id FK
+        string kind
+        decimal amount
+        string operation_key UK
+        datetime occurred_at
+    }
+    STORAGE_QUOTA {
+        id member_id PK,FK
+        integer limit_bytes
+        datetime updated_at
+    }
+    RIGHTS_CASE {
+        id id PK
+        string kind
+        string status
+        datetime opened_at
+        datetime first_reviewed_at
+    }
+    RIGHTS_REPORT {
+        id id PK
+        id case_id FK
+        id reporter_id FK
+        string receipt_no UK
+        string contact
+        text grounds
+        datetime submitted_at
+    }
+    RIGHTS_CASE_TARGET {
+        id id PK
+        id case_id FK
+        id work_id FK
+        id episode_id FK
+        id world_id FK
+        id setting_document_id FK
+        string target_role
+    }
+    RIGHTS_REPORT_TARGET {
+        id report_id PK,FK
+        id case_target_id PK,FK
+    }
+    RIGHTS_DEFENSE {
+        id id PK
+        id case_target_id FK
+        id owner_id FK
+        datetime notified_at
+        datetime due_at
+        datetime extended_at
+        datetime submitted_at
+        text response
+        string status
+    }
+    RIGHTS_EVIDENCE {
+        id id PK
+        id report_id FK
+        id defense_id FK
+        string evidence_url
+        text description
+        datetime submitted_at
+    }
+    RIGHTS_DECISION {
+        id id PK
+        id case_id FK
+        id operator_id FK
+        string conclusion
+        text reason
+        datetime decided_at
+    }
+    CONTENT_MODERATION_ASSESSMENT {
+        id id PK
+        id target_id FK
+        id ai_job_id FK
+        string outcome
+        string verdict
+        datetime assessed_at
+    }
+    CONTENT_RESTRICTION {
+        id id PK
+        id target_id FK
+        id decision_id FK
+        id assessment_id FK
+        string restriction_kind
+        datetime created_at
+        datetime lifted_at
+    }
+    RESTRICTION_APPLICATION {
+        id id PK
+        id restriction_id FK
+        string action
+        string before_state
+        string outcome
+        string failure_reason
+        datetime attempted_at
+    }
+    FALSE_REPORT_FINDING {
+        id report_id PK,FK
+        id operator_id FK
+        text reason
+        datetime decided_at
+    }
+    REPORTING_RESTRICTION {
+        id id PK
+        id member_id FK
+        datetime starts_at
+        datetime ends_at
+        text reason
+    }
+    REPORTING_RESTRICTION_FINDING {
+        id restriction_id PK,FK
+        id finding_id PK,FK
+    }
+    SCHEDULED_TASK_RUN {
+        id id PK
+        id retry_of_run_id FK
+        id requested_by FK
+        string kind
+        datetime scheduled_at
+        datetime started_at
+        datetime finished_at
+        string outcome
+    }
+    SCHEDULED_TASK_ITEM {
+        id id PK
+        id run_id FK
+        id prior_item_id FK
+        id withdrawal_id FK
+        id credit_grant_id FK
+        id defense_id FK
+        id case_id FK
+        id reporting_restriction_id FK
+        id publication_schedule_id FK
+        id feedback_id FK
+        id ai_job_id FK
+        id autoserial_config_id FK
+        datetime window_start
+        datetime window_end
+        string operation_key
+        string outcome
+        string failure_reason
+        datetime processed_at
+        id publication_event_id FK
     }
     OPERATION_ALERT {
         id id PK
         id ai_job_id FK
-        string source_kind
-        string source_ref
-        string delivery_status
+        id rights_case_id FK
+        id scheduled_run_id FK
+        string kind
+        string status
         datetime created_at
         datetime checked_at
+        datetime resolved_at
     }
     OPERATION_ACTION {
         id id PK
@@ -336,154 +1339,111 @@ erDiagram
         text summary
         datetime created_at
     }
+    TECHNICAL_ERROR_LOG {
+        id id PK
+        id ai_job_id FK
+        id scheduled_run_id FK
+        id alert_id FK
+        string stage
+        string error_code
+        text safe_message
+        datetime occurred_at
+    }
+    NOTICE_EVENT {
+        id id PK
+        id ai_job_id FK
+        id feedback_id FK
+        id source_change_id FK
+        id publication_event_id FK
+        id rights_case_id FK
+        id credit_grant_id FK
+        id withdrawal_id FK
+        id auth_session_id FK
+        id alert_id FK
+        string kind
+        text safe_summary
+        datetime occurred_at
+    }
     USER_NOTICE {
         id id PK
         id recipient_id FK
-        id ai_job_id FK
-        string delivery_status
-        string message
         datetime created_at
+        datetime read_at
     }
-    FEEDBACK {
-        id id PK
-        id author_id FK
-        id episode_version_id FK
-        string kind
-        text content
-        text target_excerpt
-        boolean is_spoiler
-        datetime created_at
-        datetime author_checked_at
+    USER_NOTICE_EVENT {
+        id notice_id PK,FK
+        id event_id PK,FK
     }
-    FEEDBACK_STATUS_EVENT {
-        id id PK
-        id feedback_id FK
-        string status
-        datetime created_at
-    }
-    FEEDBACK_RESPONSE {
-        id id PK
-        id feedback_id FK
-        string source_kind
-        text content
-        boolean is_public
-        datetime created_at
-    }
-    FEEDBACK_VERIFICATION {
-        id feedback_id PK,FK
-        text result_snapshot
-        text evidence_snapshot
-    }
-    FEEDBACK_MODERATION {
-        id id PK
-        id feedback_id FK
-        id actor_id FK
-        string action
-        datetime created_at
-    }
-    FEEDBACK_LIKE {
-        id feedback_id PK,FK
+    NOTICE_PREFERENCE {
         id member_id PK,FK
-        datetime created_at
+        string kind PK
+        boolean enabled
     }
-    FEEDBACK_COMMENT {
+    NOTICE_DELIVERY_ATTEMPT {
         id id PK
-        id feedback_id FK
-        id author_id FK
-        text content
-        text verification_snapshot
-        text evidence_snapshot
-        datetime created_at
+        id notice_id FK
+        datetime attempted_at
+        string outcome
+        string failure_reason
     }
-    FEEDBACK_REVIEW {
+    ACCOUNT_WITHDRAWAL_ITEM {
         id id PK
-        id feedback_id FK
-        id proposal_id FK
-        id applied_episode_version_id FK
-        string decision
-        string decision_source
-        text approved_content
-        datetime created_at
-    }
-    WORLD_COMPOSITION_SOURCE {
-        id combined_world_id PK,FK
-        id source_world_id PK,FK
-        string source_version_ref
-        datetime selected_at
-    }
-    WORK_WORLD_HISTORY {
-        id id PK
+        id withdrawal_id FK
         id work_id FK
         id world_id FK
-        id effective_episode_version_id FK
-        datetime changed_at
+        id fork_work_id FK
+        string operation
+        string outcome
+        string failure_reason
+        datetime processed_at
     }
-    FORK_WORLD_REFERENCE {
-        id fork_work_id PK,FK
-        id fork_world_id FK
-        id source_world_id FK
-        string reference_status
-        datetime created_at
+    EXTERNAL_IP {
+        id id PK
+        string name
+        string reference_url
+    }
+    WORK_EXTERNAL_SOURCE {
+        id work_id PK,FK
+        id external_ip_id FK
+        string source_url
+        datetime registered_at
+    }
+    PUBLIC_DOMAIN_SOURCE {
+        id work_id PK,FK
+        text bibliographic_info
+        text rights_basis
+        datetime verified_at
     }
 ```
 
-### 영역별 의미와 주의점
+## 영역별 읽기
 
-| 영역 | 후보 엔티티 | 설명과 미정 사항 |
-|---|---|---|
-| 계정 | `MEMBER`, `MEMBER_CONSENT` | 이메일·비밀번호·닉네임 가입과 필수 약관 동의(UC-22). 비밀번호는 평문이 아닌 해시. 동의 이력의 별도 테이블·약관 버전·보존은 **후보**이며, 이메일 중복 방지와 인증·접근 제어가 필요합니다. 갱신 토큰·이메일 인증·탈퇴는 MVP 이후입니다. |
-| 세계관·설정 | `WORLD`, `SETTING_CATEGORY`, `SETTING_DOCUMENT`, `SETTING_VERSION` | 설정 항목에는 카테고리 하나와 여러 태그를 둡니다(DEC-31). 태그 연결은 후보입니다. 인물의 기본 설정·회차별 상태·지식은 세계관과 이어지고, 관계는 그래프 DB에서 다룹니다. 물리 모델과 관리 범위는 미정입니다. |
-| 작품·회차 | `WORK`, `EPISODE`, `EPISODE_DRAFT`, `EPISODE_VERSION` | 회차별 초안은 자동저장으로 갱신하고 저장 버튼은 새 버전을 만듭니다. 발행은 별도입니다. `published_version_id`는 선택적 후보이며 다른 회차의 버전을 가리키지 못하도록 검증해야 합니다. 발행 취소·발행 이력·현재 포인터는 미정입니다. |
-| 스토리 계획 | `STORY_PLAN` | 큰 줄거리·회차 플롯·장면 계획을 하나의 개념으로 묶은 후보입니다. 필요할 때 회차와 상위 계획에 연결합니다. 유형·계층·버전과 저장 방법은 미정이며 모든 집필에서 필수 절차는 아닙니다. |
-| 기준과 분기 | `CHECKPOINT`, `CHECKPOINT_EPISODE`, `CHECKPOINT_SETTING`, `FORK` | 기준 회차와 필요한 회차·설정별 버전 목록을 연결하는 후보입니다. 멤버 목록과 그래프 참조가 누락 없이 같은 시점을 가리키는지, 생성 시점·포함 범위·보존 방식은 미정입니다. |
-| AI 대화 | `CHAT_SESSION` | 회원 소유의 대화와 작품 문맥을 연결하고 `thread_id`로 Saver를 찾는 **후보**입니다. UC-11 대화·제안은 소유자가 삭제하기 전까지 재조회합니다. 생성 전 원작 문맥과 Fork의 연결, 메시지 저장 모델·여러 문맥·실제 키 생성 규칙은 미정입니다. |
-| AI 실행과 후보 | `AI_JOB`, `AI_PROPOSAL` | 대화와 독립적인 설정 추출·시뮬레이션·집필 요청도 있으므로 작업과 채팅을 구분합니다. 작업 상태·사용량·실패 기록은 Core가 관리하는 MVP 방향입니다(DEC-18). 결과·채택 여부와 기준 콘텐츠 버전·반영 결과의 연결, 별도 물리 테이블·장기 보관 기간은 미정입니다. 제안 생성, 사용자 채택, 실제 저장·발행은 별개입니다. |
-| 피드백 | `FEEDBACK` | 회원의 댓글·제보와 **독자가 본 회차 버전**을 연결하는 후보입니다. 작품은 회차 버전 → 회차 → 작품에서 찾을 수 있습니다. MVP는 등록과 작가 확인에 한정하며(DEC-22), 댓글과 제보의 접근 범위는 구분해야 합니다. 상태·구절·공개 여부와 저장 형태는 미정입니다. |
+| 영역 | 소유 테이블 수 | 상세 |
+|---|---:|---|
+| 회원·인증 | 8 | [회원·인증](core/account.md) |
+| 세계관·설정·인물 | 16 | [세계관·설정·인물](core/world.md) |
+| 작품·독서·집필·발행 | 30 | [작품·독서·집필·발행](core/work-and-writing.md) |
+| 체크포인트·Fork | 12 | [체크포인트·Fork](core/fork-and-checkpoint.md) |
+| AI 작업·대화·시뮬레이션 | 23 | [AI 작업·대화·시뮬레이션](core/ai-work.md) |
+| 독자 피드백 | 17 | [독자 피드백](core/feedback.md) |
+| 자동 처리·자율 연재 | 4 | [자동 처리·자율 연재](core/automation.md) |
+| 크레딧·구독·저장 한도 | 10 | [크레딧·구독·저장 한도](core/credit.md) |
+| 권리 신고·판정·제한 | 13 | [권리 신고·판정·제한](core/rights.md) |
+| 운영·알림·정기 작업 | 10 | [운영·알림·정기 작업](core/operations.md) |
 
-### 추가 속성의 의미와 범위
+## Fork와 권한에서 그림만으로 보장되지 않는 것
 
-- 모든 속성·관계는 후보입니다. `id`, `string`, `integer`, `text`, `datetime`, `boolean`은 설명용 표기로 실제 PostgreSQL 타입·NULL·기본값·인덱스를 확정하지 않습니다. 선택 항목과 상태값도 업무 합의가 필요합니다.
-- `WORLD.description`, `WORK.description`·`genre`·`work_type`은 세계관 설명과 작품 생성 정보를, `EPISODE.sequence`는 회차 순서를, 각 버전의 `revision_no`·`created_at`은 변경 이력을 검토하기 위한 후보입니다.
-- `SETTING_VERSION.name_snapshot`·`category_id`, `EPISODE_VERSION.title_snapshot`은 당시 설정명·카테고리 식별자·회차 제목을 보존하기 위한 후보입니다. 카테고리 이름 자체의 변경 이력과 현재 항목과 중복되는 값의 일관성 유지 방식은 미정입니다.
-- `WORK.visibility_status`와 두 Fork 허용 필드, `EPISODE.publication_status`와 `published_version_id`는 작품 공개, Fork 허용, 회차 발행본을 구별하는 후보입니다. `FORK_POLICY_HISTORY.episode_scope`와 시작 회차·회차별 선택은 조건 이력의 표현 후보이며 소유·열람·Fork 권한을 별도로 검증해야 합니다.
-- `CHECKPOINT_EPISODE`, `CHECKPOINT_SETTING`은 기준점에서 회차·설정별 버전을 기록하는 연결 후보입니다. `SETTING_DOCUMENT.source_setting_document_id`는 별도 Fork 설정이 원작의 어느 항목에서 나왔는지 나타내는 선택적 후보이며, 기준 버전은 체크포인트에서 따로 확인합니다. `FORK.world_mode`와 변경 기록은 참조·독립·선택적 반영의 논리 후보입니다. `CHECKPOINT.graph_state_ref`는 그래프 상태를 찾기 위한 후보일 뿐 FK나 그래프 스냅샷 보장이 아닙니다. 멤버의 작품·항목·버전 일치와 허용 범위를 검증해야 합니다.
-- `AI_JOB`은 작업 종류·상태·모델·토큰·실패의 후보이며, 사용량 미보고와 0을 구분해야 합니다. `AI_PROPOSAL`의 선택과 실제 반영은 서로 다른 상태입니다. 각각의 기준 및 반영 버전 참조는 선택적 후보로, 작업·시뮬레이션마다 다른 대상과 복수 변경을 어떻게 표현할지는 미정입니다.
-- `FEEDBACK.target_excerpt`·`is_spoiler`·`author_checked_at`은 UC에서 검토할 선택적 정보이며 MVP 입력·저장·확인 상태의 확정이 아닙니다.
+- 기준점의 `work_id`는 소유 문맥이고 `basis_episode_version_id`는 이야기 기준입니다. 자기 회차를 아직 저장하지 않은 Fork도 원작 기준 회차를 유지한 채 Fork 소유 세계관 기준점을 만들 수 있으며 최초 Fork 기준 계보를 검증합니다.
+- 최초 기준 기록과 현재 원본 추종은 별개입니다. 기준 회차에 공개된 세계관 전체와 인물 상태·지식·관계를 보존하고, 수정 전 허용 변경 추종 → 첫 수정 전체 독립 → 이후 알림·선택 반영을 따릅니다.
+- 기준점의 PK/FK는 **항목당 한 버전**을 선택하기 위한 구조이지 누락 없는 전체 스냅샷·권한·독자 공개·그래프와의 일치를 보증하지 않습니다. 기준 회차·버전·항목 소속·허용 본문·관계의 완전성을 별도로 검증합니다.
+- 생성 허용 철회는 신규 Fork만 차단합니다. 공개 허용 철회 후 이미 공개한 Fork는 계속 공개·발행하고 미공개 Fork 최초 공개만 제한합니다. 최초 공개 사실은 작품 공개 이력으로 보존하며 현재 상태만으로 판단하지 않습니다.
+- 원본 삭제 전 참조 Fork 독립 전환에 실패하면 원본을 먼저 없애지 않습니다. 기존 Fork 기준본을 보호하고 원작 삭제·탈퇴 뒤 분기 전 원고의 독자 노출은 막습니다. 권리 제한은 일반 허용 철회와 별도입니다.
+- 비공개 원고·미발행 회차·권한 밖 지식은 본문·이미지·검색·알림·AI 입력/출력 모두에서 제외합니다. ID나 URL을 안다고 접근 권한이 생기지 않습니다.
 
-`SETTING_DOCUMENT.source_setting_document_id`, `STORY_PLAN.episode_id`·`parent_plan_id`, `EPISODE.published_version_id`, `CHAT_SESSION.target_fork_work_id`·`base_checkpoint_id`, `AI_JOB.thread_id`·`base_checkpoint_id`, `AI_PROPOSAL`의 기준·반영 버전은 선택적 관계를 설명하는 후보입니다. `FORK.work_id`는 후보 모델에서 독립 Fork 작품을 식별하는 키이기도 합니다.
+## 현재 남은 설계 경계
 
-`SETTING_DOCUMENT.category_id`는 필수 고정 카테고리 하나이며 사용자별 태그는 연결 후보입니다. `SETTING_DRAFT`는 덮어쓰는 초안, `SETTING_VERSION`은 확정된 새 텍스트 버전입니다. `SETTING_IMAGE`는 현재 항목의 최대 10개 이미지 URL이며 파일은 MinIO에 둡니다. 과거 이미지 이력·복원은 제공하지 않습니다. 공유 참조를 끊지 않는 물리 정리 시점은 미정입니다. `SETTING_REFERENCE`는 외부 참고 URL 후보입니다. URL 접근 검증과 권리는 별도 설계합니다.
-
-설정 항목은 기본 비공개이며 회차 범위별 공개·비공개와 변경 이력을 후보로 둡니다. `SETTING_VISIBILITY_HISTORY`의 범위와 기록 시각은 예시일 뿐, 공개 시점과 내용 유효 시점을 독립 필드로 둘지는 사용자와 미확정입니다. 공개 구분은 DEC-36에서 MVP에 포함하기로 정했지만 이 후보가 구현 완료나 물리 스키마 확정을 뜻하지는 않습니다.
-
-### Fork와 권한에서 그림만으로 보장되지 않는 것
-
-원고에는 이미지와 `@` 인물 연결을 넣을 수 있으며, 저장된 원고 버전의 당시 이미지와 인물 연결은 조회·복원 시 보존해야 합니다. 이미지 파일 참조와 원고 내 인물 연결의 버전별 모델은 현재 그림에 아직 표현되지 않은 설계 대상입니다. 설정 이미지의 과거 파일 미보존(DEC-39)과 구분합니다. 연결 자체는 설정을 변경하지 않으며 접근 권한과 기준 시점은 별도로 확인합니다.
-
-원작의 Fork 생성 허용과 Fork 작품 공개 허용은 별개이며 정책 변경 이력을 둡니다. 일반적으로 생성 허용 철회는 새 Fork만 막으며, 기존 Fork는 계속 창작합니다. 공개 허용 철회 후 이미 공개된 Fork는 계속 공개·발행하고 미공개 Fork의 최초 공개만 제한합니다. 법적 제한은 별도로 판단합니다.
-
-**회차 조건의 논리 후보:** `FORK_POLICY_HISTORY`에는 최초 조건과 변경 때마다 그 시점의 생성·공개 허용 및 `episode_scope`를 함께 기록하고, `FORK_POLICY_EPISODE`에는 해당 이력에서 개별 선택한 회차를 연결합니다. 범위는 **전체 공개 회차**, **특정 회차 이후** 또는 **회차별 선택**을 설명하는 후보입니다. 전체 범위는 이후 발행한 공개 회차도 포함하는 방향이고, 특정 회차 이후의 시작 회차를 포함하는지는 아직 미정입니다. `WORK`의 두 현재값과 최신 이력 사이의 일관성·현재 선택 방식은 검증해야 하며 물리 방식은 미정입니다.
-
-**조건 확인과 검증:** `FORK.confirmed_policy_history_id`와 `conditions_confirmed_at`은 창작자가 Fork 생성 때 확인한 원작 조건과 시각의 후보입니다. 이전 조건과 그에 연결된 회차 목록은 덮어쓰지 않고 보존합니다. 창작자가 확인한 뒤 생성 전에 조건이 변경됐다면 새 조건을 보여주고 재확인한 다음 현재 권한을 다시 판정하는 방향입니다. 확인 당시 조건은 증거일 뿐 현재 공개를 자동 허용하지 않습니다. 원작 정책의 작품, 시작 회차·선택 회차, `source_checkpoint_id`의 원작·회차가 서로 일치하고 Fork 대상 회차가 현재 읽을 수 있는 발행본인지 Core에서 검증해야 합니다. 전체·특정 회차 이후·회차별 선택 각각의 필수·불필요 값 조합과 이력의 일관성도 검증해야 합니다. 조건 변경과 생성이 경합할 때의 처리·화면의 동의 및 보존 방식은 미정입니다.
-
-이 조건은 STORYFORK 내 이용 조건 후보이지 실제 CC·MIT 같은 외부 라이선스의 효력을 뜻하지 않습니다. 공개 Fork의 원작·원작자 표시는 기준 원작을 통해 확인하는 방향이며, 등록자 권리 확인과 법적 권리는 별도로 구분합니다.
-
-기준 회차에서 공개된 세계관 전체에 인물 기본 설정, 회차 상태·지식, 인물관계도가 포함됩니다. 최초 설정 수정 전 기준 회차에 영향을 주는 원작 변경을 즉시 추종하며, 수정 시 전체 독립 이후 알림과 선택적 반영을 제공하고 거절 후 재반영할 수 있습니다. 10화에서 변경해도 5화에 적용·공개되면 5화 Fork에 영향을 줍니다. 독자는 받은 설정을 수정 제한 없이 바꿀 수 있습니다.
-
-1. 후보 경로 `FORK → CHECKPOINT → EPISODE_VERSION → EPISODE → WORK`의 기준이 사용자가 선택한 **허용된 원작·회차·버전**과 일치하는지 Core에서 확인해야 합니다. FK만으로 열람·Fork 권한이나 시점 일치가 보장되지 않습니다.
-2. 작품 Fork는 수정 전 허용된 원본 세계관 변경을 따라가고, 최초 수정 시 세계관 전체를 독자 소유로 복사합니다. 독립 이후 원본 변경은 알림 후 사용자 선택으로만 반영합니다. 독자 쓰기는 원작 정본을 변경하지 않습니다(DEC-32·34). 상태·알림·선택 결과는 논리 후보이며 재반영도 가능합니다.
-3. 원작의 미발행 원고·미래 회차와 인물별 비공개 지식을 원고 보기·설정 조회·복사·AI 대화에 노출하지 않습니다. 항목 공개 설정을 통과해도 미발행 원고나 권한 밖 지식을 노출할 수 없습니다.
-4. 그래프 DB까지 하나의 PostgreSQL FK나 트랜잭션으로 일치한다고 가정하지 않습니다. 관계 정본, 문서/버전 연결 키, 기준 시점, 동기화·실패 복구는 후속 결정입니다.
-5. 기존 UC-08·BR-14의 독자별 원작 Fork 1회와 Fork의 Fork 금지는 아직 존재합니다. 복수 Fork는 후속 결정 사항이므로 그림의 카디널리티만으로 이 규칙을 폐기하거나 새로운 횟수를 확정하지 않습니다.
-
-## 3. 결정과 검증이 필요한 항목
-
-1. **계정:** 약관 동의 저장 형태와 보존, 인증·권한의 세부 정책. 독자/작가를 계정 등급으로 분리하지 않습니다.
-2. **세계관·Fork:** 고정 카테고리 목록·태그 이력, 현재 이미지의 안전한 접근·정리, 공개 범위의 실제 판정 구현, 전체 복사·선택적 rebase 충돌 처리와 알림, Fork 화면 진입·기준 이전 장면 편집. 공개 시점과 유효 시점의 독립 필드 및 물리 보존 방식은 미정입니다. 기본 비공개, 최대 이미지 10개, 과거 이미지 미보존, 기준 회차에 영향을 주는 변경의 처리 원칙은 이미 결정했습니다(DEC-36~39).
-3. **콘텐츠 이력:** 설정 초안(DEC-40)과 원고 초안은 자동저장으로 갱신하고 저장 버튼은 새 버전을 만듭니다. 원고 되돌리기는 새 버전이며 발행과 별개입니다. 자동저장 간격·동시 수정, 현재/발행 포인터, 체크포인트 생성 시점과 포함 범위는 미정입니다.
-4. **그래프:** 제품, 관계 정본과 버전 연결 키, 체크포인트와의 일치, 반영 실패·복구·백업. 별도의 그래프 모델이 필요합니다.
-5. **AI:** UC-11 대화·제안과 UC-09 시뮬레이션 기록은 소유자 삭제 전까지 재조회합니다. Saver 도입·패키지 버전, 메시지·기준 원문·선택 이력의 저장 모델, 대화와 작품 연결, 기준 변경 검증·채택 방식은 미정입니다. 모델·제공사·프레임워크와 AI 조회 경로는 아직 확정되지 않았습니다.
-6. **피드백:** 댓글·제보 구분과 접근 제어, 상태·대상 구절·저장 방식. AI 피드백 응대·크레딧은 MVP 이후입니다.
-7. **이후 범위:** `pg_git`의 재사용 범위·테이블 이력 연계·동시 작업 격리. 결제·크레딧·AI 피드백 응대·자율 연재·갱신 토큰 등 MVP 이후 기능은 이 그림에 추가하지 않았습니다.
-
-이 문서는 ERD를 논의하기 위한 설계이며 SQL 마이그레이션, 실제 DB 무결성·성능, 모델 호출 또는 애플리케이션 E2E 검증을 뜻하지 않습니다.
+- 관계 그래프의 실제 노드/관계 스키마·정본과 버전 연결, 체크포인트 완전성·cross-store 복구는 **여전히 미설계**입니다. 아래 RDB 후보가 전체 그래프 모델의 검증 완료를 뜻하지 않습니다.
+- 인물 상태/인지의 입력·보존 단위, 설정의 내용 유효 시점과 공개 시점 표현, Fork 원본 변화 비교·충돌처리는 논리 후보 단계입니다.
+- 과거 태그 이력, 기본 세계관 템플릿의 저장·배포, 성인 세계관 등급과 연령 확인 방식, 공개 세계관 직접 이용 재설계는 보류합니다. 요구사항 추적표에 이 한계를 적었습니다.
+- 예약 취소, 자동 추출 유지 여부, 결제사·가격·플랜 변경, 초과잔액·동시차감·미보고/사용자중단 정산, 법적 보관·삭제 등 미정 정책은 새 테이블이 대신 결정하지 않습니다.
+- 이 문서는 SQL 실행·성능·애플리케이션 E2E를 검증한 결과가 아닙니다. 이번 변경의 실제 검증은 [정규화 검증 기록](normalization.md#검증)에서 구분합니다.
