@@ -1,6 +1,6 @@
 # STORYFORK Core Service (현재 모듈: `core-api`)
 
-Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로만 제공합니다. 현재 경로와 응답의 `storyfork-core-api` 식별자는 유지합니다. [새 MVP 설계](../../docs/design/design.md)는 PostgreSQL 원문·버전·체크포인트·Fork 및 그래프 DB 관계 저장·조회를 계획하며, `pg_git`은 MVP 미적용입니다. 업무 DB·업무 기능은 아직 없습니다. 작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core Service에 있습니다.
+Spring Boot·Kotlin 공개 API입니다. 기존 Health 경로·식별자를 유지하며 `CONTENT_ENABLED=true`일 때 PostgreSQL 기반 콘텐츠 API를 추가합니다. 작품·원고·설정집·버전·Fork·발행 구현과 인증 Principal 계약은 [콘텐츠 통합 안내](../../docs/content-integration.md)를 참고하세요. 그래프 DB·크레딧·실제 로그인은 구현하지 않았습니다.
 
 ## 공개 계약
 
@@ -10,7 +10,7 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로�
 | `GET /api/v1/health/ai-service` | `{"status":"up","service":"storyfork-ai-service"}` |
 
 자체 Health는 AI 장애와 무관합니다. AI Health는 내부 `/internal/v1/health`의 상태와 서비스명을
-정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다. 업무 API는 없습니다.
+정확히 검증합니다. Health는 OpenAI 인증이나 모델 호출을 검증하지 않습니다. 콘텐츠 API는 별도로 활성화합니다.
 
 | 실패 | HTTP | 공개 code |
 |---|---:|---|
@@ -51,7 +51,7 @@ python3 ../../infrastructure/scripts/run-native.py core-api
 |---|---|
 | `AI_SERVICE_BASE_URL` | `http://127.0.0.1:8000` |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` |
-| `AI_SERVICE_READ_TIMEOUT` | `12s` |
+| `AI_SERVICE_READ_TIMEOUT` | `75s` |
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
 
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.

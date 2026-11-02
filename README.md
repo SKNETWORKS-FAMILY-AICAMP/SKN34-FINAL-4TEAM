@@ -10,10 +10,8 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 최신 MVP 결정은 [결정 기록 DEC-26~40](docs/design/decisions.md#결정-목록)을 따릅니다. 충돌하는 과거 유스케이스 세부 정책은 현행 계약이 아닙니다.
 [MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 논리 명칭은 Core Service·AI Service입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
 
-> **현재 구현 상태: 개발 기반 셋업 단계**
-> Frontend·현재 `core-api` 실행 모듈·AI Service와 Docker 실행 기반, STORYFORK 시작 화면과 실제 연결 확인만 제공합니다. 설계상 서비스 명칭은 Core Service·AI Service입니다.
-> 아래 STORYFORK 기능은 **기획 목표이며 아직 구현되지 않았습니다.**
-> 화면·상세 업무 계약·데이터 모델은 후속 설계 대상입니다.
+> **현재 개인 브랜치 구현:** 개발 기반에 `/content` 집필 작업실과 선택적 PostgreSQL 저장·AI 제안을 추가했습니다. 작품·원고·설정집·발행·Fork 범위와 인증 계약은 [콘텐츠 통합 안내](docs/content-integration.md)를 참고하세요.
+> 나머지 아래 기능은 기획 목표입니다. 실제 로그인, 그래프 DB, 크레딧·운영 기능은 미구현이며 Aside E2E와 Required CI는 검증 대기입니다.
 
 ## 사용자와 핵심 가치
 
@@ -83,7 +81,7 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 Frontend (React)
   → 공개 HTTP API → Core Service (현 실행 모듈: core-api, Spring Boot / Kotlin)
                      → 내부 HTTP API → AI Service (FastAPI)
-                                         (현재 Health만 제공, 모델 호출 없음)
+                                         (Health 및 선택적 생성 제안)
 ```
 
 | 구성 | 현재 기술 | STORYFORK 목표 책임 — 업무 기능 미구현 |

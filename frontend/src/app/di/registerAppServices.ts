@@ -1,3 +1,5 @@
+import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
+import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { asFunction, asValue } from 'awilix/browser'
 
 import {
@@ -28,6 +30,8 @@ import type { AppContainer } from './types'
 /** Core 업무 API가 생기기 전까지 Repository는 메모리 구현을 씁니다. HTTP 구현이 생기면 이 등록만 바꿉니다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
+    episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
+    episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     mockDb: asValue(createMockDb()),
     workRepository: asFunction(({ mockDb }) => new InMemoryWorkRepository(mockDb)).singleton(),
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),

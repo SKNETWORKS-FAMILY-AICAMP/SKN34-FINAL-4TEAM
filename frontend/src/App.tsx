@@ -1,3 +1,4 @@
+import { EpisodePage } from './presentation/features/content/view/EpisodePage'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 
 import { AdminPage } from './presentation/features/admin/view/AdminPage'
@@ -58,6 +59,7 @@ function App() {
   return (
     <>
       <Routes>
+        <Route path="/content" element={<EpisodePage />} />
         <Route path="/status" element={<StartPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -84,7 +86,7 @@ function App() {
         <Route path="/me/:sub?" element={<AccountPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
-      {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
+      {pathname !== '/status' && pathname !== '/content' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
     </>
   )
 }

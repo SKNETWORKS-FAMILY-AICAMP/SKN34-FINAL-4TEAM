@@ -4,7 +4,7 @@
 
 > 설계상 명칭은 **Core Service·AI Service**입니다. 아래 `core-api`, `Core API` 표기는 현재 실행 모듈 이름과 HTTP 인터페이스이며 서비스 이름의 변경을 코드·배포에 적용했다는 뜻이 아닙니다. 새 MVP 방향은 [시스템 설계](design/design.md)·[DEC-26~28](design/decisions.md#결정-목록)에 있습니다.
 
-STORYFORK 시작 화면과 실제 Core·AI 연결 확인만 제공하는 세 서비스 개발 기반입니다.
+세 서비스 개발 기반에 개인 브랜치의 선택적 콘텐츠 기능을 추가했습니다. `/content` React 작업실은 Core `/api/v1/works`를 호출하고 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 상세 범위·인증·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요.
 서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
 백엔드는 기능 중심 레이어드 구조를 유지합니다.
 
@@ -14,9 +14,9 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
                         /api/v1/health/ai-service
 ```
 
-현재 OpenAI 호출은 없습니다. 예전 설계에서 LangChain·LangGraph를 정했으나 새 MVP의 모델·프레임워크는 미정입니다. 현재 `openai-agents` 의존성은 남아 있지만 Agent·모델·그래프는 생성하지 않습니다.
+사용자가 명시적으로 생성할 때 AI Service에서 OpenAI Responses API를 호출합니다. 개인 브랜치의 모델 설정은 팀 전체 모델 선정 결정과 구분합니다. 새 Agent 프레임워크·그래프 DB는 도입하지 않았습니다.
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
-DB·Redis·큐·worker·로그인·가짜 CRUD·seed 데이터는 없습니다.
+`CONTENT_ENABLED=true`일 때 JDBC·Flyway로 PostgreSQL 콘텐츠 저장을 활성화합니다. Redis·큐·worker·실제 로그인·운영 seed는 추가하지 않았습니다. 인증 공급자가 없는 기본 환경에서 쓰기는 401이며 네이티브 loopback 검증용 작성자는 별도 설정입니다.
 
 ## 합의된 향후 구성요소 (미구현)
 

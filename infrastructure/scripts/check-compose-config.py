@@ -68,11 +68,11 @@ for mode in ("dev", "prod"):
         example_port = "5173" if mode == "dev" else "8088"
         assert web["ports"][0]["host_ip"] == "127.0.0.1"
         assert str(web["ports"][0]["published"]) == example_port
-        assert ai["environment"] == {"OPENAI_API_KEY": "", "OPENAI_MODEL": "gpt-5.6-luna"}
+        assert ai["environment"] == {"OPENAI_API_KEY": "", "OPENAI_MODEL": "gpt-6.1-terra"}
         assert core["environment"] == {
             "AI_SERVICE_BASE_URL": "http://ai-service:8000",
             "AI_SERVICE_CONNECT_TIMEOUT": "1s",
-            "AI_SERVICE_READ_TIMEOUT": "12s",
+            "AI_SERVICE_READ_TIMEOUT": "75s",
             "APP_CORS_ALLOWED_ORIGIN": f"http://127.0.0.1:{example_port}",
         }
     for changed in (False, True):

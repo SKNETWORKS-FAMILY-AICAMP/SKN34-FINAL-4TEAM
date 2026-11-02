@@ -1,6 +1,6 @@
 # STORYFORK Docker 실행 기반
 
-현재는 시작 화면과 Core·AI Health만 제공하는 세 서비스 기반입니다. 업무 기능은 없습니다.
+기본 구성은 세 서비스이며, 콘텐츠 PostgreSQL 저장은 `compose.content.yaml` overlay로 선택합니다. [콘텐츠 실행·인증 안내](../docs/content-integration.md)를 참고하세요. 아래 기본 구성 표에는 선택적 PostgreSQL 서비스가 포함되지 않습니다.
 
 | 항목 | `compose.yaml` | `compose.prod.yaml` |
 |---|---|---|
