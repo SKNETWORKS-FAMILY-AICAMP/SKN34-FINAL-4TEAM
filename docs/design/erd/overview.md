@@ -91,6 +91,12 @@ erDiagram
     SETTING_VERSION o|--o{ AI_PROPOSAL : "applied setting candidate"
     MEMBER ||--o{ FEEDBACK : writes
     EPISODE_VERSION ||--o{ FEEDBACK : "read version"
+    FEEDBACK ||--o{ FEEDBACK_STATUS_EVENT : history
+    FEEDBACK ||--o{ FEEDBACK_RESPONSE : responses
+    FEEDBACK ||--o| FEEDBACK_VERIFICATION : attachment
+    FEEDBACK ||--o{ FEEDBACK_MODERATION : moderation
+    FEEDBACK ||--o{ FEEDBACK_LIKE : likes
+    MEMBER ||--o{ FEEDBACK_LIKE : likes
 
     MEMBER {
         id id PK
@@ -305,6 +311,37 @@ erDiagram
         boolean is_spoiler
         datetime created_at
         datetime author_checked_at
+    }
+    FEEDBACK_STATUS_EVENT {
+        id id PK
+        id feedback_id FK
+        string status
+        datetime created_at
+    }
+    FEEDBACK_RESPONSE {
+        id id PK
+        id feedback_id FK
+        string source_kind
+        text content
+        boolean is_public
+        datetime created_at
+    }
+    FEEDBACK_VERIFICATION {
+        id feedback_id PK,FK
+        text result_snapshot
+        text evidence_snapshot
+    }
+    FEEDBACK_MODERATION {
+        id id PK
+        id feedback_id FK
+        id actor_id FK
+        string action
+        datetime created_at
+    }
+    FEEDBACK_LIKE {
+        id feedback_id PK,FK
+        id member_id PK,FK
+        datetime created_at
     }
 ```
 

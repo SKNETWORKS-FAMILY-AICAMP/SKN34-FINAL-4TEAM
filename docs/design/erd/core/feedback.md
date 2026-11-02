@@ -14,6 +14,12 @@ erDiagram
     EPISODE_VERSION o|--o| EPISODE : "published version candidate"
     MEMBER ||--o{ FEEDBACK : writes
     EPISODE_VERSION ||--o{ FEEDBACK : "read version"
+    FEEDBACK ||--o{ FEEDBACK_STATUS_EVENT : history
+    FEEDBACK ||--o{ FEEDBACK_RESPONSE : responses
+    FEEDBACK ||--o| FEEDBACK_VERIFICATION : attachment
+    FEEDBACK ||--o{ FEEDBACK_MODERATION : moderation
+    FEEDBACK ||--o{ FEEDBACK_LIKE : likes
+    MEMBER ||--o{ FEEDBACK_LIKE : likes
 
     MEMBER {
         id id PK
@@ -62,11 +68,42 @@ erDiagram
         datetime created_at
         datetime author_checked_at
     }
+    FEEDBACK_STATUS_EVENT {
+        id id PK
+        id feedback_id FK
+        string status
+        datetime created_at
+    }
+    FEEDBACK_RESPONSE {
+        id id PK
+        id feedback_id FK
+        string source_kind
+        text content
+        boolean is_public
+        datetime created_at
+    }
+    FEEDBACK_VERIFICATION {
+        id feedback_id PK,FK
+        text result_snapshot
+        text evidence_snapshot
+    }
+    FEEDBACK_MODERATION {
+        id id PK
+        id feedback_id FK
+        id actor_id FK
+        string action
+        datetime created_at
+    }
+    FEEDBACK_LIKE {
+        id feedback_id PK,FK
+        id member_id PK,FK
+        datetime created_at
+    }
 ```
 
 ## 이 그림의 테이블
 
-- 피드백: [`FEEDBACK`](../tables.md#feedback).
+- 피드백: [`FEEDBACK`](../tables.md#feedback), [`FEEDBACK_STATUS_EVENT`](../tables.md#feedback-status-event), [`FEEDBACK_RESPONSE`](../tables.md#feedback-response), [`FEEDBACK_VERIFICATION`](../tables.md#feedback-verification), [`FEEDBACK_MODERATION`](../tables.md#feedback-moderation), [`FEEDBACK_LIKE`](../tables.md#feedback-like).
 - 다른 영역의 참조: [`MEMBER`](../tables.md#member), [`WORK`](../tables.md#work), [`EPISODE`](../tables.md#episode), [`EPISODE_VERSION`](../tables.md#episode-version).
 
 ## 유스케이스와 데이터
@@ -81,3 +118,9 @@ erDiagram
 - MVP는 댓글·제보 등록과 작가 확인까지입니다. AI 응대·수정안·보상은 이후입니다.
 - `target_excerpt`·`is_spoiler`는 UC에 등장하는 선택 기능의 후보이고 실제 MVP 저장·노출 여부는 미정입니다. `author_checked_at`은 작가가 개별 확인 사실을 보관할 때의 후보이며, MVP에서 작가가 목록을 조회한 것만으로 개별 확인 상태가 생긴다고 가정하지 않습니다.
 - 댓글과 제보의 접근 범위는 구분해야 하며, 세부 상태·구절·저장 형태는 미정입니다.
+
+## UC-14 전체 서비스 후보
+
+- 처리 상태·응답·제출된 검증 첨부를 구분합니다. 공개 응답은 제보 원문을 자동 공개하지 않으며 AI 응답과 작가 응답을 구분합니다.
+- 독자가 검증 기록을 삭제해도 이미 제출된 결과와 근거는 첨부로 보존합니다. 댓글 신고·필터·숨김·복원과 좋아요를 별도 관계로 표현합니다. 실제 접근 제어와 상태 전이는 관계만으로 보장되지 않습니다.
+- 제보 제출 후에는 철회 대신 독자가 정정 의견을 추가합니다. 의견은 제보자와 작가가 확인하며 관계 모델은 후속 설계 대상입니다. 필터·AI 응대 등은 MVP 이후이며 그림은 전체 서비스의 미구현 후보입니다.

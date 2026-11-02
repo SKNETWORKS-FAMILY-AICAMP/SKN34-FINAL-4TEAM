@@ -219,9 +219,29 @@
 - **그림의 주요 항목:** `author_id`, `episode_version_id`, `kind`, `content`, `target_excerpt`(대상 구절 후보), `is_spoiler`(스포일러 표시 후보), `created_at`, `author_checked_at`(개별 확인 시각 후보).
 - **예와 한계:** 독자가 5화에서 발견한 오류를 제보하고 작가가 목록을 확인합니다. MVP는 댓글·제보 등록과 작가 확인까지이며 AI 응대·수정안·보상은 이후입니다. 댓글과 제보의 접근 범위를 구분해야 하고, 대상 구절·개별 확인 상태의 실제 보관은 미정입니다.
 
+<a id="feedback-status-event"></a>
+### `FEEDBACK_STATUS_EVENT` — 처리 상태 이력
+- **그림의 항목:** `id`, `feedback_id`, `status`, `created_at`. 예: 접수·검토 상태. 실제 전이는 미정입니다.
+
+<a id="feedback-response"></a>
+### `FEEDBACK_RESPONSE` — 피드백 응답
+- **그림의 항목:** `id`, `feedback_id`, `source_kind`, `content`, `is_public`, `created_at`. 예: 작가가 공개한 답변. 제보 원문 공개 권한과 별개입니다.
+
+<a id="feedback-verification"></a>
+### `FEEDBACK_VERIFICATION` — 제출된 검증 첨부
+- **그림의 항목:** `feedback_id`, `result_snapshot`, `evidence_snapshot`. 예: 제보에 첨부된 검증 결과·근거. 개인 기록 삭제 후에도 첨부를 보존합니다.
+
+<a id="feedback-moderation"></a>
+### `FEEDBACK_MODERATION` — 신고·필터·숨김·복원
+- **그림의 항목:** `id`, `feedback_id`, `actor_id`, `action`, `created_at`. 예: 신고 후 숨김과 작가의 복원. 자동 판정의 행위자는 없을 수 있으며 상세 정책은 미정입니다.
+
+<a id="feedback-like"></a>
+### `FEEDBACK_LIKE` — 댓글 좋아요
+- **그림의 항목:** `feedback_id`, `member_id`, `created_at`. 예: 한 회원의 좋아요. 복합 키는 중복 제한 후보이며 댓글에만 허용하고 수만 공개합니다.
+
 ## 외부 라이브러리 테이블은 별도
 
-[LangGraph PostgreSQL Saver 참고](ai-service/postgres-saver.md#3-langgraph-postgressaver의-실제-테이블)에 `checkpoints`, `checkpoint_blobs`, `checkpoint_writes`, `checkpoint_migrations` 네 테이블의 역할과 기본키를 따로 설명했습니다. 이들은 조사한 라이브러리 스키마이지 위 27개 Core 업무 테이블이 아닙니다. Saver 도입과 DB 배치는 아직 미정이고, 실제 STORYFORK DB에서 `setup()`을 실행한 것은 아닙니다.
+[LangGraph PostgreSQL Saver 참고](ai-service/postgres-saver.md#3-langgraph-postgressaver의-실제-테이블)에 `checkpoints`, `checkpoint_blobs`, `checkpoint_writes`, `checkpoint_migrations` 네 테이블의 역할과 기본키를 따로 설명했습니다. 이들은 조사한 라이브러리 스키마이지 위 Core 업무 테이블이 아닙니다. Saver 도입과 DB 배치는 아직 미정이고, 실제 STORYFORK DB에서 `setup()`을 실행한 것은 아닙니다.
 
 ## 특히 그림만으로 판단할 수 없는 부분
 

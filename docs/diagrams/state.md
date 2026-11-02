@@ -15,7 +15,6 @@ stateDiagram-v2
   state "처리 완료" as DONE
   state "보류" as HOLD
   state "처리 실패" as FAILED
-  state "철회됨" as WITHDRAWN
   [*] --> RECEIVED: 제보 등록 (무료) · 1차 필터 통과
   [*] --> FILTER_WAIT: 필터 호출 실패
   [*] --> HIDDEN: 유해 콘텐츠 판정
@@ -37,12 +36,9 @@ stateDiagram-v2
   FIXING --> ANSWERED: 수정안 거절 (사유 안내)
   FIXING --> FAILED: 수정안 반영 실패 (제보자에게 알림)
   FIXING --> AUTHOR_REVIEW: 자동 발행 실패 (작가 검토로 전환)
-  RECEIVED --> WITHDRAWN: 제보자 철회
-  AUTHOR_REVIEW --> WITHDRAWN: 제보자 철회
   ANSWERED --> [*]
   DONE --> [*]
   FAILED --> [*]
-  WITHDRAWN --> [*]
 ```
 - 댓글은 `필터 대기`·`등록됨`·`숨김`만 가지며, 다른 독자가 신고하면 다시 검사합니다(UC-14 A6). 숨긴 글은 삭제하지 않습니다.
 - `처리 실패`는 기다리게 두지 않고 바로 독자에게 알리며, 운영자에게 경고를 보냅니다(UC-21). 자동 재처리는 하지 않고 독자가 다시 제보할 수 있습니다.
