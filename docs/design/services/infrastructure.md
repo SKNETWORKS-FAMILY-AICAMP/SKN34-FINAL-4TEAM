@@ -1,56 +1,37 @@
-# 인프라 설계 — RDB 기반 MVP
+# 인프라 설계 — PostgreSQL·관계 그래프 기반 MVP
 
-> 상위 문서: [시스템 아키텍처](../design.md) · [결정 기록](../decisions.md). 이 문서는 **설계 초안**이며 구성요소의 설치·운영·검증을 뜻하지 않습니다. 기존 KAG 기반 구성은 [보관본](../archive/kag-design/services/infrastructure.md)에 있습니다.
+> [상위 설계](../design.md) · [결정 기록](../decisions.md#결정-목록)(특히 DEC-26~28). 이 문서는 **목표 방향**이며 설치·운영·검증 완료가 아닙니다. 이전 [KAG 기반 구성](../archive/kag-design/services/infrastructure.md)은 현행 MVP가 아닙니다.
 
-## 현재와 MVP 구성
+## 현재와 MVP 방향
 
-현재 Compose는 `web`·`core-api`·`ai-service` 세 서비스를 실행하며 DB가 없습니다. [현재 아키텍처](../../architecture.md)가 실행 상태의 기준입니다.
+현재 Compose는 `web`·`core-api`·`ai-service` 세 실행 모듈로 Health를 제공하며 업무 DB는 없습니다([현재 아키텍처](../../architecture.md)). 설계상 논리 명칭은 Frontend·Core Service·AI Service이고, 기존 컨테이너명·패키지명·실행 스크립트는 이번 문서 작업에서 바꾸지 않습니다. 논리 명칭이 추가 MSA 배포 단위를 확정하지 않습니다.
 
-MVP에서 추가하는 구성요소는 **PostgreSQL 하나**이며, 스키마는 core-api 안의 **Flyway**로 관리합니다([DEC-17](../decisions.md#결정-목록)). 첫 업무 기능(계정 UC-22)을 구현할 때 함께 추가합니다.
-
-| 대상 | 목적 | 상태 |
+| 대상 | MVP 역할 | 상태 |
 |---|---|---|
-| PostgreSQL(core-postgres) | 세계관 항목·갱신 기록, 작품·원고·공개 범위·Fork, AI 작업, 댓글·제보 | `확정`(DEC-17), 미구현 |
-| Flyway | core-api 안의 버전 파일로 스키마 변경 관리 | `확정`(DEC-17), 미구현 |
-| SMTP·Mailpit | 이메일 인증·비밀번호 재설정 메일 | MVP 이후(DEC-22) |
-| MinIO | 원고 이미지 저장 | MVP 이후. 원고 이미지를 MVP에서 뺌(`제안`) |
-| Langfuse | AI 추적 | MVP 이후(DEC-18) |
-| 내장 스케줄러 | 자율 연재·정기 작업 | MVP 이후(`제안`) |
-| Elasticsearch | 공개 작품 검색 | 기존 MVP 제외. DB 검색 |
-| Gitea·kag-service·knowledge-service·lakeFS·Neo4j | 이전 설계의 세계관 저장·추론 | 쓰지 않음(DEC-16·20) |
+| PostgreSQL | 문서·원고 원문, 문서 버전·되돌리기·회차 체크포인트·Fork와 업무 기록 | `확정` 방향, 미설치 |
+| Flyway | PostgreSQL 스키마 변경 | `확정`(DEC-17), 미설치 |
+| 관계 그래프 DB | 인물·엔티티 간 관계 저장·조회. 문서·원고 전문 저장은 하지 않음 | 역할 `확정`, 제품·스키마·운영 방식 `미정`, 미설치 |
+| Gitea | 별도 Git 콘텐츠 저장소 | 사용하지 않음(DEC-27) |
+| `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | **MVP 미적용**. 실제 포크·설치·개발은 아직 안 함; 재사용 범위·격리 방식 검토(DEC-27·30) |
+| MinIO(S3 호환) | 설정 이미지 파일 보관. RDB에는 URL 저장 | `확정` 방향(DEC-39), 미설치. 원고 이미지 범위·접근·정리 방식은 별도 |
+| KAG·pgvector·Langfuse·SMTP | 이전 MVP 이후 또는 범위 밖 항목 | 이번 결정으로 추가하지 않음 |
 
-## PostgreSQL·Flyway
+그래프 DB를 쓴다는 결정만으로 **Neo4j**라는 제품이나 Apache AGE, 별도 graph-service, 큐·worker를 확정하지 않습니다. 관계 그래프의 정본 여부, PostgreSQL 문서·버전과 연결하는 키, 반영 순서와 재시도·복구·백업, Fork/체크포인트의 그래프 시점 고정, 권한 검사 위치는 후속 설계가 필요합니다. 별도 두 DB 사이에 PostgreSQL 트랜잭션 하나만으로 원자성이 생기지 않습니다.
 
-- core-postgres 인스턴스 하나에 core DB를 둡니다. 접속 계정은 core-api 전용이며 호스트 포트를 공개하지 않습니다.
-- Flyway 버전 파일은 core-api 안에 두고 core-api 시작 시 적용합니다. 적용된 버전 파일은 고치지 않고 새 버전으로 변경합니다.
-- 세계관 갱신 기록·Fork 복사·공개 범위 변경은 필요한 범위를 한 트랜잭션에 넣고 동시성·실패를 시험합니다.
-- DB 접근 라이브러리(JPA 또는 JDBC 계열)와 테이블·인덱스는 첫 업무 기능 구현 때 정합니다.
-- MVP에서는 pgvector 확장과 임베딩을 쓰지 않습니다(DEC-17).
-
-## Langfuse (MVP 이후)
-
-MVP에는 llmops 묶음(Langfuse web·worker, 전용 PostgreSQL·Redis·ClickHouse·blob)을 두지 않습니다([DEC-18](../decisions.md#결정-목록)). 도입할 때는 이전 초안의 구성(DEC-12·14)과 추적 규칙(DEC-15)을 [이전 결정 기록](../archive/kag-design/decisions.md#결정-목록)에서 참고하며, 원고 원문·비공개 설정·개인정보·비밀값을 보내지 않는 메타데이터 원칙은 그대로 둡니다.
-
-## 네트워크·보안
+## 네트워크와 비밀값
 
 ```text
-브라우저 → web → core-api → ai-service → OpenAI
-                   │  ↑
-                   │  └─ ai-service 도구의 내부 조회 호출 (/internal/v1, 읽기 전용)
-                   └─ core-postgres (Flyway)
+브라우저 → Frontend → Core Service (현 실행: core-api) → AI Service (현 실행: ai-service)
+                              ├─ PostgreSQL (원문·버전·체크포인트·Fork)
+                              ├─ 관계 그래프 DB (관계 저장·조회)
+                              └─ MinIO (설정 이미지)
+AI Service → 문서·원고·관계의 허용 범위 조회 (Core 경유 제안, 최종 경로 미정)
 ```
 
-- 브라우저는 공개 Core API만 사용합니다. AI Service, core-postgres, Core 내부 조회 API는 호스트에 공개하지 않습니다. web의 Vite·nginx 프록시는 `/api`만 중계하고 `/internal`은 중계하지 않습니다.
-- Core ↔ AI 내부 통신 인증은 MVP 이후입니다([DEC-19](../decisions.md#결정-목록)). 포트 비공개는 인증이 아니므로 로컬 검증 범위를 넘는 배포 전에 정합니다.
-- Core DB 접속 정보는 Core 런타임에만, OpenAI 키는 AI 런타임에만 전달합니다. AI Service에는 Core 내부 주소만 전달합니다. `VITE_*`·브라우저 번들·이미지 build ARG에 비밀값을 넣지 않습니다.
-- 개발 환경설정은 저장소 루트 `.env` 한 곳에서 관리하고 공유 설정은 `.env.example`만 둡니다. 실제 `.env`를 덮어쓰거나 커밋하지 않습니다. Compose는 루트에서 `--env-file .env`를 명시하고 네이티브 실행은 `infrastructure/scripts/run-native.py`의 서비스별 허용 설정만 전달합니다.
-- 현재 Compose는 인증·TLS가 없는 로컬 검증용이며 인터넷 운영 배포가 아닙니다. 운영 호스팅·TLS·도메인·백업 정책은 별도 결정이 필요합니다.
+Frontend는 공개 Core Service API만 호출합니다. 그래프 DB의 사용자 노출은 Core의 권한과 기준 회차/버전 검증을 우회하지 않아야 합니다. AI의 DB 직접 접근 여부는 미정이지만, 이 문서가 AI에 자격 증명·쓰기 권한을 부여하는 근거는 아닙니다. DB·내부 조회 API는 호스트에 직접 공개하지 않는 로컬 시연 구성을 전제로 하며, 포트 비공개는 인증이 아닙니다(DEC-19). 운영 인터넷 배포·TLS·내부 인증·백업 보관 정책은 별도 결정입니다.
 
-## 백업·복구와 검증 계획
+환경 설정은 루트 `.env` 한 곳에서 관리하고 `.env.example`만 공유합니다. 실제 `.env`는 수정·공개하지 않으며, 사용할 모델 API 키는 AI 런타임에만 전달합니다. 그래프 DB 제품과 접속 경로가 정해지기 전에는 설정값·이미지·의존성을 미리 추가하지 않습니다.
 
-- **PostgreSQL:** 세계관 갱신 기록·Fork 복사본을 포함한 정본 백업과 복구를 실제 데이터로 시험합니다. 보관 정책은 `미정`입니다.
-- **환경·보안:** 비밀값 주입 범위, 내부 조회 API 비공개 여부, 실제 AI 호출 여부를 나눠 검증합니다. 이 문서 작업에서는 서비스·인프라 시험을 실행하지 않았습니다.
+## 검증 계획·미정
 
-## 미정
-
-DB 접근 라이브러리, 백업 보관 정책, 운영 배포 조건은 `미정`입니다. MVP 이후 항목은 [상위 설계](../design.md#위험미정-사항)를 따릅니다.
+구현 시 PostgreSQL 버전·Fork 복원, 그래프 관계와 체크포인트 기준의 일치, 반영 실패·재시도·복구·백업, 권한 밖 관계 차단을 시험합니다. 이번 문서 변경에서는 서비스를 기동하거나 E2E·백업 복구를 실행하지 않았습니다. 그래프 DB 제품·운영 배치, DB 접근 라이브러리, 버전 동기화·실패 복구, 운영 배포 조건은 미정입니다.
