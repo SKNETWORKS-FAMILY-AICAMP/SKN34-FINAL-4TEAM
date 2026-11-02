@@ -23,7 +23,7 @@ Frontend View → ViewModel → WorldStudioUseCase → WorldStudioRepository →
 | POST `/api/v1/studio/worlds/{id}/analyze` | 선택적 후보 생성 |
 | POST `/api/v1/studio/worlds/{id}/approve` | 선택 후보 승인, 참조/기준 버전 검사 |
 
-루트 `.env`의 서비스별 allowlist만 native launcher에 전달합니다. `STUDIO_ENABLED`, `STUDIO_DB_URL`은 Core용이고 `WORLD_STUDIO_AI_ENABLED`는 Core/AI에만 전달합니다. 모델 키는 AI에만 두며 브라우저에 전달하지 않습니다. AI 기본값은 false입니다. 
+루트 `.env`의 서비스별 allowlist만 native launcher에 전달합니다. `STUDIO_ENABLED`, `STUDIO_DB_URL`은 Core용이고 `WORLD_STUDIO_AI_ENABLED`는 Core/AI에만 전달합니다. 모델 키는 AI에만 두며 브라우저에 전달하지 않습니다. AI 기본값은 false입니다.
 
 사용자와 QA는 서로 다른 DB/포트를 사용합니다. 로컬 preview는 기존 사용자 데이터용, QA는 합성 자료용입니다. DB 파일·JAR·PID·로그·브라우저 자료는 Git에 넣지 않습니다. 첫 생성에는 예시 데이터를 자동 저장하지 않습니다.
 

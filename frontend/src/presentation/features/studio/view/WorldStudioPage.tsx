@@ -67,7 +67,7 @@ function Confirmed({vm,tab}:{vm:VM;tab:string}) {
  const byId=(id:string|null)=>items.find(i=>i.id===id)?.title??'알 수 없는 항목'
  const rows=tab==='relations'?items.filter(i=>i.kind==='relation'):tab==='timeline'?items.filter(i=>i.kind==='event'):items
  return <section className="world-confirmed"><h3>{tab==='relations'?'확정 관계도':tab==='timeline'?'확정 시간선':'확정 Wiki'}</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{!rows.length?<p className="world-empty">아직 확정한 {tab==='relations'?'관계':tab==='timeline'?'과거 사건':'설정'}가 없습니다.</p>:rows.map(i=><article key={i.id}>
-  <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relations[i.predicate??'']??i.predicate} → ${byId(i.targetId)}`:i.title}</h4>{tab==='timeline' && <p className="small muted">{i.timeText||'시점 미지정'}{i.afterId?' · '+byId(i.afterId)+' 이후':''}</p>}<p className="world-prose">{i.text}</p>
+  <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relations[i.predicate??'']??i.predicate}${i.polarity==='denied'?' 아님':''} → ${byId(i.targetId)}`:i.title}</h4>{tab==='timeline' && <p className="small muted">{i.timeText||'시점 미지정'}{i.afterId?' · '+byId(i.afterId)+' 이후':''}</p>}<p className="world-prose">{i.text}</p>
  </article>)}</section>
 }
 
