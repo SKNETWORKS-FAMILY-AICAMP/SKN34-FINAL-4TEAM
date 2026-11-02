@@ -77,11 +77,17 @@
 - 루트 `.env` 전체를 Frontend·Core에 주입하거나 이미지에 복사하지 않는다. OpenAI 키는 AI 런타임에만 전달한다.
 - 실제 `.env`는 덮어쓰거나 커밋하지 않는다. 기존 서비스별 개인 설정은 확인 없이 삭제·이동하지 않는다.
 
-## 커밋과 Pull Request
+## 브랜치, 커밋과 Pull Request
 
+- 브랜치·커밋·PR에는 변경 목적에 맞는 공통 type을 사용한다.
+  - `feat`: 기능 추가, `fix`: 버그 수정, `docs`: 문서, `refactor`: 동작 변경 없는 구조 개선
+  - `test`: 테스트, `style`: 동작 변경 없는 코드 스타일, `perf`: 성능 개선
+  - `build`: 빌드·의존성, `ci`: CI 설정, `chore`: 그 밖의 개발 환경·유지보수, `revert`: 이전 변경 되돌리기
+- 작업 브랜치는 `<type>/<영문-설명>` 형식으로 만든다. 설명은 소문자·숫자와 하이픈으로 짧게 작성한다.
+  예: `feat/work-registration`, `fix/duplicate-request`, `docs/git-workflow`. 이슈 번호가 있으면 `feat/42-work-registration`처럼 포함할 수 있다.
 - 커밋 메시지와 PR 제목은 `<type>: <한국어 설명>` 형식을 사용한다.
-  type은 `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`, `perf`, `build`, `ci`, `revert` 중 변경 목적에 맞게 선택한다.
-  예: `feat: 작품 등록 기능 추가`, `fix: 중복 요청 처리 오류 수정`, `docs: 루트 환경설정 실행 방법 정리`.
+  예: `feat: 작품 등록 기능 추가`, `fix: 중복 요청 처리 오류 수정`, `docs: Git 작업 규칙 정리`.
+  각각 실제 변경 목적에 맞게 type을 선택한다. 하나의 브랜치에 서로 다른 type의 커밋이 있을 수 있다.
 - 커밋 본문과 PR 본문도 한국어로 작성한다. 코드 식별자·명령어·제품명은 원문을 유지한다.
 - 변경 전달은 작업 브랜치에 커밋·푸시한 뒤 PR을 생성한다. `main`·`develop`에 직접 푸시하거나
   브랜치 푸시만 하고 완료 처리하지 않는다. 사용자의 명시적인 예외 요청이 있을 때만 직접 푸시한다.
