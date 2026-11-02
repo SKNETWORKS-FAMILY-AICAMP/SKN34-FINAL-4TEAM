@@ -28,24 +28,16 @@
 
 ## LLM 사용 및 Agent 구성
 
-- 향후 AI 기능은 LangChain(OpenAI 모델 연동)과 LangGraph(다단계·다중 에이전트 흐름)로 구현하고,
-  호출 추적·평가·프롬프트 버전은 MVP 이후 Langfuse로 관리한다(UC-26, 설계 DEC-18). MVP에는 Langfuse를 추가하지 않는다. Health에는 키가 필요 없고 모델을 생성·호출하지 않는다.
-  OpenAI 외 LLM provider 선택 기능이나 규칙 기반 fallback을 추가하지 않는다.
-- LangChain·LangGraph·Langfuse 외의 LLM wrapper나 대체 Agent 프레임워크를 도입하지 않는다.
-  현재 `pyproject.toml`의 `openai-agents` 의존성은 첫 AI 기능을 구현할 때 LangChain·LangGraph로 교체한다(Langfuse는 MVP 이후).
-  교체 전에는 의존성·lockfile을 미리 바꾸지 않는다.
-- Langfuse에는 작업 ID·단계·모델·프롬프트 버전·토큰·지연·비용·상태 같은 메타데이터만 보낸다.
-  원고 원문·작가 비공개 설정·개인정보·비밀값을 보내지 않는다. Langfuse는 Docker로 직접 설치해 운영하며(Compose 구성은 MVP 이후 도입 시 추가), 클라우드에 추적 데이터를 보내지 않는다.
+- MVP의 모델·제공사·에이전트 프레임워크는 미정이다(DEC-28). 이전 LangChain·LangGraph·OpenAI 제안은 확정 기술로 취급하지 않는다. 현재 `openai-agents` 의존성은 Health에서 쓰지 않으며 구현 전에는 의존성·lockfile을 미리 바꾸지 않는다.
+- Langfuse는 MVP 이후다(DEC-18). 향후 도입해도 원고 원문·개인정보·비밀값을 추적 시스템에 보내지 않는다.
 - 장애를 정상 응답으로 숨기는 fallback을 만들지 않는다. 장애는 명시적인 오류로 반환한다.
-- LangGraph 그래프는 여러 단계·역할이 실제로 필요한 기능(다중 인물 시뮬레이션 등)에만 쓴다.
-  단일 호출로 끝나는 기능은 그래프 없이 직접 호출하며, 그 밖의 오케스트레이터·범용 Agent 계층을 추가하지 않는다.
-- 현재는 `router → HealthResponse`뿐이다. 향후 AI 기능에 실제로 필요할 때만
-  `router → service → agent → OpenAI`와 자원 조립을 추가한다.
+- 다중 인물 역할은 필요할 때만 분리한다. 단일 호출에 다중 에이전트 프레임워크를 강제하거나 역할마다 서버를 만들지 않는다.
+- 현재는 `router → HealthResponse`뿐이다. AI 기능을 구현할 때 실제 필요한 계층과 자원만 추가한다.
   상세는 [AI README](README.md)와 [Agent 구조](docs/agent-structure.md)를 참고한다.
 
 ## STORYFORK 생성 경계
 
-- Core가 전달한 허용 문맥과 작업 범위로 제한된 Core 내부 조회 API만 사용하며 정본 저장소를 직접 수정하거나 권한·승인·과금을 확정하지 않는다.
+- 허용 문맥과 작업 범위로 조회를 제한한다. Core 경유 읽기 전용 조회 도구는 후보 경로이며 AI의 저장소 직접 접근 여부는 미정이다. 어느 쪽이든 정본을 직접 수정하거나 권한·승인·과금을 확정하지 않는다. 설정 문서·원고와 그래프 관계를 같은 기준 버전에 맞춰 사용한다.
 - 캐릭터별 성격·목표·허용 기억·관찰 정보를 분리한다. 다른 인물의 비밀이나 미래 사건을 누출하지 않는다.
   같은 구현에 인물별 문맥을 주입하며 인물마다 클래스나 서버를 만들지 않는다.
 - 스토리 계획·캐릭터 판단·설정 검토·집필·피드백 역할은 실제 입력·출력·책임이 다를 때 나눈다.

@@ -6,7 +6,7 @@
 여러 서비스를 변경하면 관련 지침을 모두 확인한다. 하위 지침은 해당 경로의 세부 규칙이며 공통 보안·책임 경계를 약화하지 않는다.
 
 - `frontend/**` → [Frontend 지침](frontend/AGENTS.md)
-- `backend/core-api/**` → [Core API 지침](backend/core-api/AGENTS.md)
+- `backend/core-api/**` → [Core Service 구현 지침](backend/core-api/AGENTS.md) (`core-api`는 현행 모듈명)
 - `backend/ai-service/**` → [AI Service 지침](backend/ai-service/AGENTS.md)
 
 제품 목표·사용자 흐름·미정 정책은 [README](README.md), 현재 실행 구조는 [아키텍처 문서](docs/architecture.md)를 참고한다.
@@ -22,12 +22,13 @@
 
 - 기존 MSA 서비스 경계를 발전시킨다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
   백엔드는 기능 중심 레이어드 구조를 유지한다. 세부 규칙은 [Frontend 지침](frontend/AGENTS.md)을 따른다.
-- **Frontend:** 화면·사용자 상호작용을 담당하고 공개 Core API만 호출한다.
-- **Core API:** 작품·세계관·회차 버전·Fork의 정본과 권한·승인·발행·크레딧의 최종 판단·저장을 소유한다.
-- **AI Service:** 허용된 문맥에서 생성·시뮬레이션·검토 제안을 반환한다. 정본 직접 수정이나 권한·과금 확정을 하지 않는다.
-- 기본 AI 호출 방향은 `Frontend → Core API → AI Service → OpenAI`다. Agent 역할마다 서버를 만들지 않는다.
-- 원작·Fork·초안·시뮬레이션 상태를 구분한다. Fork의 기준 버전과 허용 문맥을 고정하고 원작 후속 변경을 자동 유입하지 않는다.
-- AI 제안과 사용자 승인·실제 반영을 구분한다. 작가 비공개 정보·독자 공개 범위·캐릭터 지식을 혼합하지 않는다.
+- **Frontend:** 독자·작가의 전체 화면을 맡고 작가 도구는 하위 기능이다. 공개 Core Service HTTP API만 호출한다.
+- **Core Service:** 작품·세계관·회차 버전·Fork의 정본과 권한·승인·발행·크레딧의 최종 판단·저장을 소유한다. 현행 `core-api` 모듈·URL 이름은 유지한다.
+- **AI Service:** 허용된 문맥에서 선택적 생성·시뮬레이션·검토 제안을 반환한다. 정본 직접 수정이나 권한·과금 확정을 하지 않는다.
+- 기본 호출 방향은 `Frontend → Core Service → AI Service`다. 모델·제공사·프레임워크는 미정이며 Agent 역할마다 서버를 만들지 않는다.
+- 원작·Fork·초안·시뮬레이션 상태를 구분한다. Fork 기준 회차·버전은 보존한다. 기준 회차에 공개된 세계관 전체는 인물 상태·지식·관계까지 포함한다. 수정 전에는 해당 회차에 영향을 주는 원본 변경을 따라가고, 최초 수정으로 독립한 뒤에는 알림과 사용자 선택으로 반영한다(DEC-37).
+- 설정은 항목별 공개·비공개와 회차별 공개 범위를 둔다. 기본은 비공개며 미발행 원고·권한 밖 정보·캐릭터 지식을 혼합하지 않는다. AI 제안과 사용자 승인·실제 반영은 구분한다(DEC-36).
+- MVP 저장 방향은 PostgreSQL의 원문·버전·체크포인트·Fork와 그래프 DB의 관계 저장·조회다. `pg_git`은 MVP에 적용하지 않으며 그래프 제품·정합성 방식은 미정이다.
 
 ## 필수 개발 워크플로
 

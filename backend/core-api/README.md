@@ -1,7 +1,6 @@
-# STORYFORK Core API
+# STORYFORK Core Service (현재 모듈: `core-api`)
 
-Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로만 제공합니다.
-작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core에 있지만 업무 기능과 저장소는 아직 없습니다.
+Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로만 제공합니다. 현재 경로와 응답의 `storyfork-core-api` 식별자는 유지합니다. [새 MVP 설계](../../docs/design/design.md)는 PostgreSQL 원문·버전·체크포인트·Fork 및 그래프 DB 관계 저장·조회를 계획하며, `pg_git`은 MVP 미적용입니다. 업무 DB·업무 기능은 아직 없습니다. 작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core Service에 있습니다.
 
 ## 공개 계약
 

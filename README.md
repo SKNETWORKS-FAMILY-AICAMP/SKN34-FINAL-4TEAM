@@ -7,11 +7,11 @@
 회차에서 이야기를 분기(Fork)하여 독립적인 전개와 결말을 창작하는 것을 목표로 합니다.
 AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선택·집필·검토를 돕는 도구입니다.
 
-기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 이후 팀 결정은 [유스케이스 문서](docs/usecase.md)의 확정 정책(6.2절)에 반영되어 있습니다.
-MVP 설계는 [설계 문서](docs/design/design.md)에 있습니다. 세계관은 Gitea 대신 PostgreSQL에 게시판 방식으로 저장하고, AI는 도구로 Core 조회 API를 호출합니다.
+기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 최신 MVP 결정은 [결정 기록 DEC-26~40](docs/design/decisions.md#결정-목록)을 따릅니다. 충돌하는 과거 유스케이스 세부 정책은 현행 계약이 아닙니다.
+[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 논리 명칭은 Core Service·AI Service입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
 
 > **현재 구현 상태: 개발 기반 셋업 단계**
-> Frontend·Core API·AI Service와 Docker 실행 기반, STORYFORK 시작 화면과 실제 연결 확인만 제공합니다.
+> Frontend·현재 `core-api` 실행 모듈·AI Service와 Docker 실행 기반, STORYFORK 시작 화면과 실제 연결 확인만 제공합니다. 설계상 서비스 명칭은 Core Service·AI Service입니다.
 > 아래 STORYFORK 기능은 **기획 목표이며 아직 구현되지 않았습니다.**
 > 화면·상세 업무 계약·데이터 모델은 후속 설계 대상입니다.
 
@@ -28,6 +28,8 @@ MVP 설계는 [설계 문서](docs/design/design.md)에 있습니다. 세계관�
 
 ## 핵심 기능 — 기획 목표
 
+아래 기획서 범위에는 MVP 이후 기능과 최신 설계에서 바뀐 공개·저장 정책도 포함됩니다. [MVP 범위](docs/design/design.md#포함과-제외)를 우선하며, AI 실행은 모든 집필의 필수 절차가 아닙니다.
+
 | 기능 | 기획 내용 |
 |---|---|
 | 작품·세계관 관리 | 세계관을 먼저 만들고 작품에 1~5개 연결, 기존 원고(.txt·.epub·에디터 입력, 이미지 포함)에서 설정 추출, 장소·시대·규칙·사건 관리. 공유 세계관과 작품별 변화는 구분 |
@@ -43,17 +45,15 @@ MVP 설계는 [설계 문서](docs/design/design.md)에 있습니다. 세계관�
 
 ### 주요 사용자 흐름
 
-1. **독자의 Fork 창작:** 작품 열람 → Fork 허용 회차 선택 → 독립 작품 생성 → 새 사건 설정
-   → 인물 시뮬레이션 → 결과 선택·편집 → 새 회차 집필·공개.
-2. **작가의 회차 집필:** 기존 세계관·회차 확인 → 장면·사건 설정 → 시뮬레이션
-   → 설정 충돌·개연성 검토 → 원고 작성·발행.
+1. **독자의 Fork 창작:** 허용 기준 회차에서 작품 Fork → 기준까지 공개된 세계관을 참조하며 직접 집필 또는 선택적 AI 대화. 설정을 처음 수정하면 전체 세계관을 자기 소유로 Fork하고, 이후 원본 변경 알림에서 반영 여부를 선택합니다(DEC-29·32~34). 발행은 별도입니다.
+2. **작가의 회차 집필:** 기존 세계관·회차 확인 → 장면·사건 설정 → 직접 원고 작성 또는 선택적 시뮬레이션·AI 제안 → 사용자 검토·발행. 별도의 설정 충돌·개연성 검토는 MVP 이후입니다.
 3. **피드백 응대:** 독자가 유형을 골라 무료로 등록 → 1차 필터 → 단순 오류·질문은 공개 근거로 수정안·답변
    (단순 오류는 작품 설정에 따라 자동 승인·발행), 스토리 오류(선택적으로 독자 크레딧으로 검증 시뮬레이션)·제안은 작가 검토
    → 실제 처리 상태 안내. 검증한 스토리 오류가 반영되면 독자에게 보상 크레딧.
 
 ### 지켜야 할 제품 경계
 
-- **원작과 Fork 분리:** 분기 기준 회차의 버전과 그 시점의 공개 설정을 고정하고 다음 회차부터 작성하며, 원작의 후속 변경을 자동 유입하지 않습니다.
+- **원작과 Fork 분리:** 기준 회차·버전을 보존합니다. 세계관은 수정 전 허용된 원본 변경을 따르고 최초 수정 시 독립됩니다. 독립 후 원본 변경은 알림과 사용자 선택으로만 반영하며 원작은 수정하지 않습니다.
 - **공개 범위와 인물 지식 분리:** 작가 비공개 정보, 독자에게 공개된 정보, 각 캐릭터가 아는 사실은 서로 다릅니다.
 - **생성과 확정 분리:** 시뮬레이션·AI 초안은 확정 원고가 아닙니다. 선택·승인 없이 정본이나 인물 상태를 덮어쓰지 않습니다.
 - **수정안과 작가 승인 분리:** 오타·맞춤법·명백한 수치 오류는 근거와 함께 수정안을 제시하고 작가 승인 후 반영합니다.
@@ -81,16 +81,16 @@ MVP 설계는 [설계 문서](docs/design/design.md)에 있습니다. 세계관�
 
 ```text
 Frontend (React)
-  → 공개 HTTP API → Core API (Spring Boot / Kotlin)
+  → 공개 HTTP API → Core Service (현 실행 모듈: core-api, Spring Boot / Kotlin)
                      → 내부 HTTP API → AI Service (FastAPI)
                                          (현재 Health만 제공, 모델 호출 없음)
 ```
 
 | 구성 | 현재 기술 | STORYFORK 목표 책임 — 업무 기능 미구현 |
 |---|---|---|
-| Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 열람·창작·검토 화면. 공개 Core API만 호출 |
-| Core API | Kotlin·Spring Boot, JDK 21 | 작품·세계관·회차 버전·Fork의 정본, 권한·승인·발행·크레딧의 최종 판단과 저장 |
-| AI Service | Python·FastAPI·LangChain·LangGraph, Langfuse(추적·평가, MVP 이후) | 설정 추출·검토, 인물 시뮬레이션, 집필·피드백 제안. 정본 직접 변경 금지 |
+| Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 독자·작가 전체 화면(작가 도구는 하위 기능). 공개 Core Service HTTP API만 호출 |
+| Core Service (`core-api` 모듈) | Kotlin·Spring Boot, JDK 21 | 작품·세계관·회차 버전·체크포인트·Fork의 정본, 권한·승인·발행의 최종 판단과 저장 |
+| AI Service | 현재 Python·FastAPI; MVP 모델·프레임워크 미정 | 선택적 설정 추출·인물 시뮬레이션·집필 제안. 정본 직접 변경 금지 |
 | 실행 환경 | Docker Compose, Vite 개발 서버, nginx 정적 배포 이미지 | 로컬 개발 및 서비스 연결·배포 이미지 검증 |
 
 Core는 기능별 `Controller → Service → Repository` 또는
@@ -110,7 +110,7 @@ Core는 기능별 `Controller → Service → Repository` 또는
 - AI 연결 불가·timeout은 안전한 503·504, 잘못된 응답은 502. 자체 Core Health와 분리합니다.
 
 Health는 OpenAI 인증·모델 접근·생성 품질 검증이 아닙니다. 모델 클라이언트를 생성하지 않으며
-실제 키 없이 실행됩니다. AI 스택은 LangChain·LangGraph로 정했으며(Langfuse는 MVP 이후), 현재 남아 있는 `openai-agents` 의존성은 첫 AI 기능 구현 시 교체합니다.
+실제 키 없이 실행됩니다. 이전 문서에서 제안한 LangChain·LangGraph와 현재 남아 있는 `openai-agents` 의존성은 MVP 모델·프레임워크 선정 완료를 뜻하지 않습니다.
 작품·로그인·저장·Fork·집필·승인·크레딧 기능, DB·Redis·큐·worker는 없습니다.
 
 ## 빠른 시작
@@ -207,9 +207,10 @@ OpenAI를 호출하지 않지만 이미지·의존성 다운로드에는 네트�
 - [공통 구현 지침](AGENTS.md)
 - [현재 아키텍처](docs/architecture.md)
 - [유스케이스](docs/usecase.md) · [유스케이스 명세](docs/usecase-spec/README.md) · [보조 다이어그램](docs/diagrams/README.md) · [UI 프로토타입 대응](docs/prototype-alignment.md)
+- [작가 도구 조사·온보딩](docs/research/writer-tools/README.md): Novelcrafter·Sudowrite·스토라이즈 비교와 시연 안내
 - [요구사항 정의서](docs/SKN34-final-4Team_요구사항정의서.xlsx)([기능 ID 색인](docs/requirements.md)) · [WBS](docs/SKN34-final-4Team_WBS.xlsx)
 - [Frontend](frontend/README.md): `storyfork-web`, 시작 화면과 공개 API 연결
-- [Core API](backend/core-api/README.md): `storyfork-core-api`, 공개 Health·내부 HTTP 오류 경계
+- [Core Service](backend/core-api/README.md): 현 실행 모듈 `storyfork-core-api`, 공개 Health·내부 HTTP 오류 경계
 - [AI Service](backend/ai-service/README.md): `storyfork-ai-service`, 내부 Health
 - [AI Agent 구현 경계](backend/ai-service/docs/agent-structure.md): 현재 Agent 없음, 향후 적용 기준
 - [Docker 실행/검증](infrastructure/README.md)
