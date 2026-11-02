@@ -139,6 +139,7 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 -I infrastructure/scripts/check-compose-config.py
+      - run: python3 -I infrastructure/scripts/test-publish-preflight.py
       - run: bash -n infrastructure/scripts/verify-compose.sh
 
   required:
@@ -156,3 +157,71 @@ jobs:
           for r in $RESULTS; do
             case "$r" in success|skipped) ;; *) exit 1 ;; esac
           done
+
+  publish:
+    name: Publish ${{ matrix.service }} image
+    needs: required
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main') && needs.required.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: web
+            context: frontend
+          - service: core-api
+            context: backend/core-api
+          - service: ai-service
+            context: backend/ai-service
+    env:
+      IMAGE: ghcr.io/sknetworks-family-aicamp/storyfork-${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Log in to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+      - name: Build image
+        run: |
+          docker build --platform linux/amd64 \
+            --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --tag "$IMAGE:$GITHUB_REF_NAME" --tag "$IMAGE:sha-$GITHUB_SHA" \
+            "${{ matrix.context }}"
+      - name: Check anonymous package access
+        run: |
+          python3 - <<'PY'
+          # preflight-start
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          image = os.environ['IMAGE'].removeprefix('ghcr.io/')
+          query = urllib.parse.urlencode({'service': 'ghcr.io', 'scope': f'repository:{image}:pull'})
+          try:
+              with urllib.request.urlopen('https://ghcr.io/token?' + query, timeout=10) as response:
+                  status, body = response.status, response.read()
+          except urllib.error.HTTPError as error:
+              status, body = error.code, error.read()
+          except (urllib.error.URLError, TimeoutError, OSError):
+              raise SystemExit('GHCR anonymous access check failed; publishing stopped')
+          try:
+              data = json.loads(body)
+              denied = status == 403 and isinstance(data, dict) and isinstance(data.get('errors'), list) and bool(data['errors']) and all(isinstance(item, dict) and item.get('code') == 'DENIED' for item in data['errors'])
+          except (ValueError, UnicodeError):
+              denied = False
+          if not denied:
+              raise SystemExit(f'GHCR anonymous access check returned HTTP {status}; publishing stopped')
+          print('GHCR returned DENIED; package may be private or absent')
+          # preflight-end
+          PY
+      - name: Push image tags
+        run: docker push --all-tags "$IMAGE"

@@ -89,3 +89,14 @@ AI 재시작 후 복구를 검사합니다. prod는 정적 index·JS asset·deep
 검증 종료 시 자신이 만든 프로젝트와 volume만 정리합니다. 기본 포트는 dev `15173`/`18080`, prod `18088`입니다.
 `VERIFY_COMPOSE_PROJECT_NAME`, `VERIFY_COMPOSE_TIMEOUT_SECONDS`(120초),
 `VERIFY_COMPOSE_KEEP_RUNNING=true`(진단용 보존)를 지원합니다. 실패 시 비밀값이나 서비스 원문 로그를 덤프하지 않습니다.
+
+## GHCR 이미지 게시
+
+`develop` 또는 `main` 푸시에서 Required CI가 성공하면 다음 이미지를 `linux/amd64`로 빌드해 GHCR에 게시합니다. PR·수동 실행에서는 게시하지 않으며 서버 배포는 수행하지 않습니다.
+
+- `ghcr.io/sknetworks-family-aicamp/storyfork-web`
+- `ghcr.io/sknetworks-family-aicamp/storyfork-core-api`
+- `ghcr.io/sknetworks-family-aicamp/storyfork-ai-service`
+
+태그는 브랜치 이름과 `sha-<전체 커밋 SHA>`입니다. 비공개 이미지를 pull하려면 해당 패키지에 접근 권한이 있는 GitHub 계정과 패키지 읽기 권한이 있는 인증으로 `docker login ghcr.io`를 먼저 실행합니다.
+각 이미지 push 직전 익명 토큰 요청에서 명확한 `403 DENIED`만 허용합니다. 이 응답은 비공개와 패키지 부재를 구분하지 못하며, 최초 패키지는 비공개로 생성된다는 GitHub 정책을 전제합니다. 검사와 게시 사이 공개 설정이 바뀌는 경쟁 가능성도 있으므로 비공개를 보장하는 원자적 검사는 아닙니다. 이미지별 게시가 독립적으로 실패할 수 있어 일부만 게시될 수 있으며 Actions의 각 job 결과를 확인해야 합니다.
