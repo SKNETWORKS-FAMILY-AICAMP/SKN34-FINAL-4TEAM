@@ -144,7 +144,7 @@ AI 재시작 후 복구를 검사합니다. prod는 정적 index·JS asset·deep
 | Environment variable | `CD_DEPLOY_DIR` | 별도 승인한 전용 디렉터리의 절대 실경로. 기본값 없음 |
 | Environment variable | `CD_WEB_PORT` | 기존 서비스와 충돌하지 않는 승인된 loopback 포트(1024–65535). 기본값 없음 |
 | Environment secret | `CD_SSH_PRIVATE_KEY` | 서버에 **이미 승인된** 전용 OpenSSH 인증키. 이 작업은 키 생성·authorized_keys 수정 안 함 |
-| Environment secret | `CD_SSH_KNOWN_HOSTS` | 독립된 신뢰 경로로 검증한 `[100.105.27.82]:5798`의 known_hosts 항목. 관측/ssh-keyscan만으로 신뢰하지 않음 |
+| Environment secret | `CD_SSH_KNOWN_HOSTS` | 독립된 신뢰 경로로 검증한 `[100.90.8.124]:5798`의 known_hosts 항목. 관측/ssh-keyscan만으로 신뢰하지 않음 |
 | Environment secret | `TS_OAUTH_CLIENT_ID` | Tailscale workload identity federation의 Client ID(이름과 달리 OAuth secret 불필요) |
 | Environment secret | `TS_AUDIENCE` | federated identity와 일치하는 audience |
 
@@ -154,7 +154,7 @@ CD job의 `GITHUB_TOKEN`은 `packages: read`만 사용하며 세 private GHCR �
 
 ### 별도로 준비할 서버 상태
 
-대상은 `tgv99536@100.105.27.82:5798`입니다. 아직 host key의 신뢰·디렉터리·포트·Docker 실행 가능 여부를 검증한 것이 아닙니다. host key secret이 없거나 일치하지 않으면 `StrictHostKeyChecking=yes`로 실패하며 TOFU·비밀번호 fallback은 없습니다.
+대상은 `tgv99536@100.90.8.124:5798`입니다. 아직 host key의 신뢰·디렉터리·포트·Docker 실행 가능 여부를 검증한 것이 아닙니다. host key secret이 없거나 일치하지 않으면 `StrictHostKeyChecking=yes`로 실패하며 TOFU·비밀번호 fallback은 없습니다.
 
 별도 승인받은 운영자가 **기존 서비스 디렉터리와 다른 전용 경로**를 준비해야 합니다. 현재 확인된 경로·포트는 없으므로 이 문서에는 실제값이나 자동 provisioning 명령을 두지 않습니다.
 

@@ -289,7 +289,7 @@ def connect(context, token):
         for file, value in ((key, os.environ['CD_SSH_PRIVATE_KEY']), (hosts, os.environ['CD_SSH_KNOWN_HOSTS'])):
             file.touch(mode=0o600)
             file.write_text(value.rstrip() + '\n')
-        if not run(['ssh-keygen', '-F', '[100.105.27.82]:5798', '-f', str(hosts)]).strip():
+        if not run(['ssh-keygen', '-F', '[100.90.8.124]:5798', '-f', str(hosts)]).strip():
             raise ValueError('Verified non-default-port host key required')
         helper = Path(__file__).with_name('check-publish-ci.py').read_text()
         script = 'PUBLISH_CI_SOURCE = ' + repr(helper) + '\n' + Path(__file__).read_text()
@@ -302,7 +302,7 @@ def connect(context, token):
             '-o', 'IdentitiesOnly=yes', '-o', 'PasswordAuthentication=no',
             '-o', 'KbdInteractiveAuthentication=no', '-o', 'ForwardAgent=no',
             '-o', 'ClearAllForwardings=yes', '-o', 'ConnectTimeout=15', '-o', 'LogLevel=ERROR',
-            'tgv99536@100.105.27.82', 'python3 -I -c ' + shlex.quote(script) + ' remote'],
+            'tgv99536@100.90.8.124', 'python3 -I -c ' + shlex.quote(script) + ' remote'],
             input=json.dumps(payload), timeout=1140)
         report = json.loads(result)
         if (report['sha'] != context['sha'] or report['project'] != PROJECT
