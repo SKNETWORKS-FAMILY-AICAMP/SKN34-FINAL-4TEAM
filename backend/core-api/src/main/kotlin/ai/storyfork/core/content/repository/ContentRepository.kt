@@ -57,13 +57,13 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
         }.also(w.versions::addAll)
         if(w.world.mode!="following") {
             w.world.revision=jdbc.queryForObject("SELECT revision FROM world WHERE id=?",Int::class.java,w.worldId)!!
-            w.world.history=readSettings("WHERE d.world_id=? AND (se.work_id=? OR vr.id IS NULL) ORDER BY v.revision_no",w.worldId,id).toMutableList()
+            w.world.history=readSettings(id,"WHERE d.world_id=? ORDER BY v.revision_no",w.worldId).toMutableList()
             rows("SELECT s.*,d.logical_id,'' AS content_version_id,s.name AS name_snapshot FROM setting_draft s JOIN setting_document d ON d.id=s.setting_document_id WHERE d.world_id=? ORDER BY s.edit_order",w.worldId,read=::setting).forEach { w.world.drafts[it.id]=it }
             w.world.draft=w.world.drafts.values.lastOrNull()
         }
         if(source!=null) {
-            w.world.basis=Basis(source.episode,source.version,readSettings("JOIN checkpoint_setting cs ON cs.setting_version_id=v.id JOIN fork f ON f.source_checkpoint_id=cs.checkpoint_id WHERE f.work_id=? AND (se.work_id=? OR vr.id IS NULL) ORDER BY v.revision_no",id,source.workId))
-            w.world.sourceSnapshot=readSettings("JOIN fork_source_setting fs ON fs.setting_version_id=v.id WHERE fs.fork_work_id=? AND (se.work_id=? OR vr.id IS NULL) ORDER BY v.revision_no",id,source.workId)
+            w.world.basis=Basis(source.episode,source.version,readSettings(source.workId,"JOIN checkpoint_setting cs ON cs.setting_version_id=v.id JOIN fork f ON f.source_checkpoint_id=cs.checkpoint_id WHERE f.work_id=? ORDER BY v.revision_no",id))
+            w.world.sourceSnapshot=readSettings(source.workId,"JOIN fork_source_setting fs ON fs.setting_version_id=v.id WHERE fs.fork_work_id=? ORDER BY v.revision_no",id)
             rows("SELECT c.source_change_ref,d.decision FROM fork_source_change c JOIN LATERAL (SELECT decision FROM fork_change_decision WHERE source_change_id=c.id ORDER BY decided_at DESC,id DESC LIMIT 1) d ON true WHERE c.fork_work_id=?",id) { it.getString(1) to it.getString(2) }.forEach { w.world.decisions[it.first]=it.second }
         }
         rows("SELECT * FROM fork_policy_history WHERE work_id=? ORDER BY revision_no",id) { r -> Policy(r.getBoolean("allow_creation"),r.getBoolean("allow_publication"),r.time("changed_at")) }.also(w.policyHistory::addAll)
@@ -128,7 +128,7 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
     }
 
     private fun setting(r: ResultSet) = Setting(id=r.getString("logical_id"),versionId=r.getString("content_version_id"),name=r.getString("name_snapshot"),content=r.getString("content"),category=r.getString("category_id"),tags=r.strings("tags"),visibility=r.getString("visibility_status"),fromEpisode=r.getInt("from_episode"),toEpisode=(r.getObject("to_episode") as Number?)?.toInt(),knownBy=r.strings("known_by"),evidence=r.getString("evidence"))
-    private fun readSettings(clause: String,vararg args: Any?) = rows("""
+    private fun readSettings(scopeWork: String,clause: String,vararg args: Any?) = rows("""
         SELECT v.*,v.name name_snapshot,d.logical_id,
             COALESCE(se.sequence,1) from_episode,ee.sequence to_episode,COALESCE(vr.visibility,vh.default_visibility) visibility_status,
             COALESCE((SELECT array_agg(character_name ORDER BY position,character_name) FROM setting_knowledge_scope WHERE setting_version_id=v.id),ARRAY[]::text[]) known_by,
@@ -136,8 +136,9 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
         FROM setting_version v JOIN setting_document d ON d.id=v.setting_document_id
         JOIN setting_visibility_history vh ON vh.id=v.visibility_history_id
         LEFT JOIN setting_visibility_range vr ON vr.visibility_history_id=vh.id
+            AND EXISTS (SELECT 1 FROM episode scope_start WHERE scope_start.id=vr.start_episode_id AND scope_start.work_id=?)
         LEFT JOIN episode se ON se.id=vr.start_episode_id LEFT JOIN episode ee ON ee.id=vr.end_episode_id
-        $clause""",*args,read=::setting)
+        $clause""",scopeWork,*args,read=::setting)
 
     fun save(w: ContentWork) {
         update("INSERT INTO member(id) VALUES (?) ON CONFLICT DO NOTHING",w.ownerId)

@@ -160,4 +160,54 @@ class ContentPostgresTest {
         assertEquals("private",service.world(a.id,"author").settings.single().visibility)
     }
 
+    private fun foreignOnlyRange(work: String,sid: String,other: String,defaultVisibility: String) {
+        val policy=jdbc.queryForObject("""SELECT v.visibility_history_id FROM setting_version v JOIN setting_document d ON d.id=v.setting_document_id
+            JOIN work_current w ON w.world_id=d.world_id WHERE w.id=? AND d.logical_id=? ORDER BY v.revision_no DESC LIMIT 1""",String::class.java,work,sid)!!
+        jdbc.update("UPDATE setting_visibility_history SET default_visibility=? WHERE id=?",defaultVisibility,policy)
+        assertEquals(1,jdbc.update("""UPDATE setting_visibility_range SET start_episode_id=(SELECT id FROM episode WHERE work_id=? AND sequence=1),
+            end_episode_id=NULL,visibility=? WHERE visibility_history_id=?""",other,if(defaultVisibility=="private") "public" else "private",policy))
+    }
+
+    @Test fun `foreign only range preserves latest private setting and cannot revive older public content`() {
+        val a=create();val b=create()
+        val sid=setting(a.id,"규칙","이전 공개 내용").settings.single().id
+        val d=service.edit(a.id,"author",DraftRequest("1화","발행 원고",0))
+        service.publish(a.id,"author",PublishRequest(d.revision,true,true,true,service.history(a.id,"author").versions.last().id))
+        val latest=setting(a.id,"규칙","현재 비공개 내용",false,sid=sid).settings.single()
+        foreignOnlyRange(a.id,sid,b.id,"private")
+
+        val world=service.world(a.id,"author")
+        assertEquals(2,world.history.size)
+        assertEquals(latest.versionId,world.settings.single().versionId)
+        assertEquals("private",world.settings.single().visibility)
+        assertTrue(service.readContext(a.id,null,1,"","").settings.isEmpty())
+        val fork=service.fork(a.id,"private-range-reader",ForkRequest(1,"비공개 설정 제외"))
+        assertTrue(service.world(fork.id,"private-range-reader").settings.isEmpty())
+        assertTrue(service.world(fork.id,"private-range-reader").basis!!.settings.isEmpty())
+    }
+
+    @Test fun `foreign only range retains default public setting in fork basis and source snapshot`() {
+        val a=create();val b=create()
+        val original=setting(a.id,"규칙","기본 공개 설정").settings.single()
+        val d=service.edit(a.id,"author",DraftRequest("1화","발행 원고",0))
+        service.publish(a.id,"author",PublishRequest(d.revision,true,true,true,service.history(a.id,"author").versions.last().id))
+        foreignOnlyRange(a.id,original.id,b.id,"public")
+
+        val fork=service.fork(a.id,"public-range-reader",ForkRequest(1,"기본 정책 승계"))
+        var world=service.world(fork.id,"public-range-reader")
+        val basis=world.basis!!
+        assertEquals(original.versionId,basis.settings.single().versionId)
+        assertEquals("public",basis.settings.single().visibility)
+        assertEquals(original.versionId,world.settings.single().versionId)
+        world=service.saveSetting(fork.id,original.id,"public-range-reader",SettingRequest(world.revision,world.settings.single().copy(content="독립 수정"),world.sourceToken))
+        world=service.commitSetting(fork.id,original.id,"public-range-reader",world.revision)
+        assertEquals("independent",world.mode)
+        assertEquals("독립 수정",world.settings.single().content)
+        val restored=repository.find(fork.id)!!
+        assertEquals(original.versionId,restored.world.basis!!.settings.single().versionId)
+        assertEquals(original.versionId,restored.world.sourceSnapshot.single().versionId)
+        assertEquals("public",restored.world.sourceSnapshot.single().visibility)
+        assertTrue(world.changes.isEmpty())
+    }
+
 }

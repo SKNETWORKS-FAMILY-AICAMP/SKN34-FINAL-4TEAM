@@ -54,3 +54,11 @@
 - TDD Red: 새 정상 이관 테스트가 `Legacy proposal target is ambiguous`로 실패했다(마이그레이션 5개 중 1개 실패). Green 및 조건식 정리 후 재실행: 별도 PostgreSQL `content_pr78_migration_test`에서 `./gradlew test --tests '*ContentMigrationTest*' --no-daemon` 5개 통과, 실패·오류·건너뜀 0. 대기 제안의 원문·revision·상태, 최신 초안·저장 버전, 재실행 시 중복 없음 및 대상 불명 거부 시 원본 보존을 확인했다.
 - Ponytail-review에서 대상 추론 우선순위·거부 경로·Flyway 호출부·저장 연결을 검토했고 추가 수정 지적은 없었다. 새 의존성·API·화면은 추가하지 않았다. Graphify AST 갱신, 지침 로컬 링크 및 `git diff --check` 통과. Graphify의 기존 SQL 추출 의존성 부재는 유지되며 이관 동작은 실제 PostgreSQL에서 검증했다.
 - 이번 변경은 마이그레이션과 문구에 한정되어 브라우저 사용자 흐름 변경이 없으므로 Aside E2E는 제외했다. 기존 사용자/배포 DB와 실제 .env는 변경하지 않았으며 유료 AI 호출도 하지 않았다. Docker·운영 배포·이번 미커밋 변경의 Required CI는 검증 대기다. 커밋·푸시·PR 댓글 작성은 수행하지 않았다.
+
+## PR #78 설정 공개 범위 JOIN 후속 수정 — 2026-11-03
+
+- `readSettings`의 선택적 공개 범위 JOIN 안에서 대상 작품을 제한한다. 다른 작품의 범위만 존재해도 설정 버전 자체는 보존하고 해당 버전의 `default_visibility`를 사용한다. 작품 설정 이력은 현재 작품, Fork 최초 기준과 원본 스냅샷은 원작 작품을 기준으로 조회한다. 기존 SQL 마이그레이션·권한 검사·저장 계약은 변경하지 않았다.
+- TDD Red: 별도 PostgreSQL `content_pr78_scope_test`에서 새 회귀 2개가 의도대로 실패했다. 최신 비공개 이력은 2개 대신 1개만 조회됐고 기본 공개 정책의 Fork 기준 설정은 빈 목록이었다. 테스트용 합성 자료에만 타 작품 범위를 구성했으며 기존 사용자/배포 DB는 변경하지 않았다.
+- Green: `./gradlew test --tests '*ContentPostgresTest' --tests '*ContentMigrationTest' --tests '*WritingPostgresTest' --tests '*ContentServiceTest' --tests '*ContentAuthorizationTest' --no-daemon` 5개 클래스 26개 통과, 실패·오류·건너뜀 0. 소유자 이력의 최신 비공개 버전 유지, 독자 문맥·Fork에서 이전 공개 내용 재노출 방지, 기본 공개 설정의 Fork 기준·추종·독립 수정·원본 스냅샷 보존을 검증했다. 기존 V5 이관·원고·권한 회귀도 함께 통과했다.
+- Ponytail-review에서 세 호출부의 작품 범위·SQL 인자 순서·기본 정책 보존·저장 및 이관 연결을 확인했고 추가 수정 지적은 없었다. Graphify AST 갱신과 `git diff --check` 통과. 기존 SQL 추출 의존성 부재는 유지되며 쿼리는 실제 PostgreSQL 통합 테스트로 검증했다.
+- 화면·HTTP 계약·사용자 조작 흐름을 바꾸지 않는 저장소 조회 수정으로 Aside E2E는 별도 실행하지 않았다. 현재 실행 중인 웹/Core의 재시작·브라우저 확인, Docker·운영 배포·이번 미커밋 변경의 Required CI는 미검증이다. 실제 .env·모델 설정은 변경하지 않았으며 유료 호출·커밋·푸시·PR 댓글 작성은 수행하지 않았다.
