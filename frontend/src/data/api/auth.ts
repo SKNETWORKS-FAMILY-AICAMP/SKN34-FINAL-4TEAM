@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { InvalidCredentials, InvalidResetLink, LockUnavailable } from '../../domain/repositories/AuthRepository'
+import { InvalidCredentials, InvalidResetLink } from '../../domain/repositories/AuthRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { csrf, withLock } from './csrf'
 
@@ -28,6 +28,7 @@ async function post(path: string, body?: object, expectedUser?: string | null) {
   if (path === 'logout' && response.status === 409) throw new SessionExpired()
   if (path === 'reset-password' && [400, 401, 410].includes(response.status)) throw new InvalidResetLink()
   if (path === 'login' && response.status === 401) throw new InvalidCredentials()
+  if (path === 'refresh' && [401, 403, 409].includes(response.status)) throw new SessionExpired()
   if (!response.ok) throw new Error('Authentication request failed')
   return response
 }
@@ -65,7 +66,7 @@ export function refresh(): Promise<AuthUser> {
       accessToken = result.accessToken
       return result.user
     } catch (error) {
-      if (version === generation && !(error instanceof LockUnavailable)) accessToken = null
+      if (version === generation && error instanceof SessionExpired) accessToken = null
       throw error
     }
   })().finally(() => { inFlight = null })
@@ -96,10 +97,10 @@ export async function protectedRequest(path: string, init: RequestInit = {}, ver
       if (response.status === 401) throw new SessionExpired()
     } catch (error) {
       if (version !== generation || init.signal?.aborted) throw error
-      if (error instanceof LockUnavailable) throw error
+      if (!(error instanceof SessionExpired)) throw error
       accessToken = null
       ++generation
-      throw new SessionExpired()
+      throw error
     }
   }
   if (!response.ok && !options.allowHttpError) throw new Error('Request failed')

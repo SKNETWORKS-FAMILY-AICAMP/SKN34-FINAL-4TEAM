@@ -64,7 +64,8 @@ function App() {
   const { restoring, restoreError } = useSessionRestore()
   return (
     <RestoreContext.Provider value={restoring}>
-      {restoreError && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}
+      {restoreError === 'lock' && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}
+      {restoreError === 'connection' && <p role="alert">서버 연결에 실패했어요. 잠시 후 다시 시도해 주세요.</p>}
       <Routes>
         <Route path="/content" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <EpisodePage />} />
         <Route path="/status" element={<StartPage />} />

@@ -58,7 +58,7 @@ Gradle group은 `ai.storyfork`, 애플리케이션은 `storyfork-core-api`, name
 Client의 nullable payload를 Service에서 `up`·`storyfork-ai-service`로 검증한 뒤 내부 Result와
 공개 Response로 변환합니다. 경계별 DTO 소유권을 유지하며 필요 없는 Facade는 없습니다.
 
-`auth/controller → service → repository`는 가입 후보·메일 인증·로그인·세션을 처리하며, `ProfileService`는 프로필·비밀번호 복구·이메일 변경을 저장·검증합니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
+Auth의 가입 후보·메일 인증은 `auth/controller → SignupService → SignupRepository` 경로로 저장합니다. 로그인·세션은 `SessionController → SessionService → JdbcTemplate`, 프로필·비밀번호 복구·이메일 변경은 `ProfileController → ProfileService → JdbcTemplate` 경로로 직접 SQL에 접근합니다. `SignupRequest`·`EmailRequest`·`TokenRequest`·`VerificationRequest`는 `auth/controller/dto`에 두고, 나머지 요청 DTO는 각 Controller 안에 둡니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
 
 기존 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS만 남습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
