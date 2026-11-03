@@ -20,9 +20,9 @@ export class EpisodeUseCase {
   }
   publicList(signal?: AbortSignal) { return this.repository.publicList(signal) }
   list(signal?: AbortSignal) { return this.repository.list(signal) }
-  create(title: string, summary: string) {
+  create(title: string, summary: string, signal?: AbortSignal) {
     if (!title.trim()) return Promise.reject(new Error('작품 제목을 입력해 주세요.'))
-    return this.repository.create(title.trim(),summary.trim())
+    return this.repository.create(title.trim(),summary.trim(),signal)
   }
   save(id: string, draft: Draft) { return this.repository.save(id,draft) }
   publish(id: string, draft: Draft, rights: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) {

@@ -24,7 +24,7 @@ export function NewWorkPage() {
   return (
     <>
       <Gnb on="lib" />
-      <main className="wrap">{vm.policyAccepted ? <NewWorkForm vm={vm} /> : <PolicyGate vm={vm} />}</main>
+      <main className="wrap"><p className="note2">이 화면은 브라우저 메모리에서만 동작하는 데모예요. 표지·원고·설정 파일을 서버에 보관하려면 <Go to="/content">서버 작품 만들기·관리</Go>를 이용해 주세요.</p>{vm.policyAccepted ? <NewWorkForm vm={vm} /> : <PolicyGate vm={vm} />}</main>
       <Footer />
     </>
   )
@@ -90,7 +90,7 @@ function NewWorkForm({ vm }: { vm: VM }) {
           )) : <span className="small muted">추가한 태그가 여기에 표시돼요.</span>}</div>
         </div>
         <div className="field newwork-wide">표지 이미지 <span className="muted small">(선택 · jpg·png)</span><div className="nwcov"><div className="pv" id="nwcovpv">{f.cover ? <img className="cimg" src={f.cover} alt="표지 미리보기" /> : <span>3:4 비율 추천</span>}</div>
-          <label className="btn sm">이미지 고르기<input type="file" accept="image/*" hidden id="nwcov" onChange={(e) => resizeImg(e.target.files?.[0], (url) => { vm.set({ cover: url }); toast('표지 이미지를 넣었어요') })} /></label></div></div>
+          <label className="btn sm">이미지 고르기<input type="file" accept="image/*" hidden id="nwcov" onChange={(e) => resizeImg(e.target.files?.[0], (url) => { vm.set({ cover: url }); toast('데모 표지 미리보기만 골랐어요. 서버에는 저장되지 않아요') })} /></label></div></div>
       </div></div>
       <div className="tcard fstep"><h3><i>2</i>세계관 규칙</h3><label className="field">한 줄에 하나씩 적어 주세요 (설정 검사에 쓰여요)<textarea className="ta" id="nwr" placeholder="예: 해가 지면 항구의 문은 닫힌다" value={f.localRules} onChange={(e) => vm.set({ localRules: e.target.value })} /></label></div>
       <div className="tcard fstep"><h3><i>3</i>인물</h3><p className="note2" style={{ margin: '-4px 0 10px' }}>2명 이상이면 ‘인물에게 맡겨 보기’를 쓸 수 있어요.</p>

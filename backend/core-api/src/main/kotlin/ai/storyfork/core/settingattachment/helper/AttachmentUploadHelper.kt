@@ -30,7 +30,9 @@ object AttachmentUploadHelper {
             "pdf" -> "application/pdf"
             else -> invalid()
         }
-        if (file.contentType?.lowercase() !in setOf(type, "application/octet-stream", null)) invalid()
+        val suppliedType = file.contentType?.substringBefore(';')?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
+        val alias = when (type) { "text/markdown" -> "text/x-markdown"; "text/csv" -> "application/vnd.ms-excel"; else -> type }
+        if (suppliedType !in setOf(type, alias, "application/octet-stream", null)) invalid()
         if (type.startsWith("image/")) validateImage(bytes, type)
         else if (type == "application/pdf") {
             val header = bytes.take(9).toByteArray().toString(Charsets.US_ASCII)

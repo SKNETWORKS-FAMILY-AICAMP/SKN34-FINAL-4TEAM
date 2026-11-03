@@ -50,6 +50,32 @@ it('creates a private work through the API and shows its editor', async()=>{
   expect(calls.mock.calls[1][0]).toBe('/api/v1/works')
 })
 
+it('does not reuse the previous cover when creating another work',async()=>{
+  const first={id:'11111111-1111-4111-8111-111111111111',title:'첫 작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:0}}
+  const second={...first,id:'22222222-2222-4222-8222-222222222222',title:'두 번째 작품'}
+  const calls=vi.fn().mockResolvedValueOnce(new Response('[]')).mockResolvedValueOnce(Response.json(first)).mockResolvedValueOnce(Response.json(second))
+  const uploads=vi.fn(async (path:string,init:RequestInit)=>{
+    expect((init.body as FormData).get('file')).toBeInstanceOf(File)
+    return Response.json({id:'33333333-3333-4333-8333-333333333333',filename:'first.png',mediaType:'image/png',kind:'IMAGE',byteSize:3,createdAt:'2026-11-03T00:00:00Z',url:`${path}/content`})
+  })
+  vi.stubGlobal('fetch',vi.fn(async (path:string,init?:RequestInit)=>path.endsWith('/csrf')?Response.json({csrfToken:'content-csrf'}):init?.method==='PUT'?uploads(path,init):new Response(null,{status:404})))
+  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))}/>)
+  await screen.findByText('첫 이야기를 시작해 보세요')
+  fireEvent.change(screen.getByLabelText('작품 제목'),{target:{value:first.title}})
+  fireEvent.change(screen.getByLabelText('작품 표지 (선택)'),{target:{files:[new File(['png'],'first.png',{type:'image/png'})]}})
+  fireEvent.click(screen.getByRole('button',{name:'작품 만들기'}))
+  await screen.findByText('비공개 작품과 표지를 저장했어요.')
+  expect(uploads).toHaveBeenCalledTimes(1)
+  expect(uploads.mock.calls[0][0]).toBe(`/api/v1/works/${first.id}/cover`)
+  fireEvent.click(screen.getByRole('button',{name:'＋ 새 작품'}))
+  fireEvent.change(screen.getByLabelText('작품 제목'),{target:{value:second.title}})
+  fireEvent.click(screen.getByRole('button',{name:'작품 만들기'}))
+  await screen.findByRole('heading',{name:second.title})
+  await waitFor(()=>expect((screen.getByRole('button',{name:'＋ 새 작품'}) as HTMLButtonElement).disabled).toBe(false))
+  expect(uploads).toHaveBeenCalledTimes(1)
+  expect(screen.getByText('비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.')).toBeTruthy()
+})
+
 it('keeps current tab when unsaved navigation is cancelled',async()=>{
   const w={id:'w',title:'이동 취소',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'회차',body:'기존',revision:0}}
   const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify([w])))

@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
 import type { Draft, Proposal, Work, History, Version, StoryContext } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import {validateMediaFile,type MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
 
-export function useEpisodeViewModel(useCase: EpisodeUseCase = appContainer.resolve('episodeUseCase')) {
+export function useEpisodeViewModel(useCase: EpisodeUseCase = appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
   const [publicWorks,setPublicWorks] = useState<Work[]>([])
   const [works,setWorks] = useState<Work[]>([])
   const [active,setActive] = useState<Work|null>(null)
@@ -16,14 +17,17 @@ export function useEpisodeViewModel(useCase: EpisodeUseCase = appContainer.resol
   const [error,setError] = useState('')
   const [notice,setNotice] = useState('')
   const [ready,setReady] = useState(false)
+  const [coverRevision,setCoverRevision] = useState(0)
+  const alive = useRef(true)
   const inFlight = useRef(false)
   const request = useRef<AbortController|null>(null)
   const dirty = !!active && (draft.title !== active.draft.title || draft.body !== active.draft.body)
   const install = (w: Work) => { setActive(w); setDraft(w.draft); setProposal(null); setHistory(null);setStoryContext(null);setSelectedVersion(null); setWorks(list=>[w,...list.filter(x=>x.id!==w.id)]) }
   useEffect(()=>{
+    alive.current=true
     const controller = new AbortController()
     useCase.list(controller.signal).then(list=>{if (!controller.signal.aborted) {setWorks(list);setReady(true)}}).catch((e:unknown)=>{if(!controller.signal.aborted) {setError(e instanceof Error?e.message:'Core 서버에 연결하지 못했어요. 서버를 실행한 뒤 새로고침해 주세요.');setReady(true)}})
-    return ()=>{controller.abort();request.current?.abort()}
+    return ()=>{alive.current=false;controller.abort();request.current?.abort()}
   },[useCase])
   useEffect(()=>{
     const leave = (event: BeforeUnloadEvent) => { if(dirty) event.preventDefault() }
@@ -33,8 +37,8 @@ export function useEpisodeViewModel(useCase: EpisodeUseCase = appContainer.resol
   const run = async (fn: ()=>Promise<void>) => {
     if(inFlight.current) return false
     inFlight.current=true;setBusy(true);setError('');setNotice('')
-    try { await fn(); return true } catch(e) { setError(e instanceof Error ? e.message : '요청에 실패했어요. 다시 시도해 주세요.'); return false }
-    finally { inFlight.current=false;setBusy(false) }
+    try { await fn(); return alive.current } catch(e) { if(alive.current)setError(e instanceof Error ? e.message : '요청에 실패했어요. 다시 시도해 주세요.'); return false }
+    finally { inFlight.current=false;if(alive.current)setBusy(false) }
   }
   const persist = async () => {
     if(!active) throw new Error('작품을 선택해 주세요.')
@@ -43,11 +47,24 @@ export function useEpisodeViewModel(useCase: EpisodeUseCase = appContainer.resol
     setDraft(saved);setActive({...active,draft:saved});setWorks(list=>list.map(w=>w.id===active.id?{...w,draft:saved}:w))
     return saved
   }
-  return {works,publicWorks,active,draft,proposal,history,storyContext,selectedVersion,busy,error,notice,ready,dirty,
+  return {works,publicWorks,active,draft,proposal,history,storyContext,selectedVersion,busy,error,notice,ready,dirty,coverRevision,
     browsePublic:()=>run(async()=>{setPublicWorks(await useCase.publicList())}),
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{setStoryContext(null);setDraft(d=>({...d,...patch}));setProposal(null);setSelectedVersion(null);setNotice('')},
     select:(w:Work|null)=>{if(busy)return false;if(dirty&&!window.confirm('저장하지 않은 원고가 있어요. 이동할까요?'))return false;setActive(w);if(w)setDraft(w.draft);setProposal(null);setHistory(null);setSelectedVersion(null);setError('');setNotice('');return true},
-    create:(title:string,summary:string)=>run(async()=>{install(await useCase.create(title,summary));setNotice('비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.')}),
+    create:(title:string,summary:string,cover?:File)=>run(async()=>{
+      if(cover)validateMediaFile(cover,true)
+      const controller=new AbortController();request.current=controller
+      const work=await useCase.create(title,summary,controller.signal)
+      if(controller.signal.aborted)return
+      install(work)
+      if(cover){
+        try{await media.upload({kind:'cover',workId:work.id},cover,undefined,controller.signal)}
+        catch(e){if(controller.signal.aborted)return;throw new Error(`작품은 생성됐지만 표지 저장에 실패했어요. 작품을 다시 만들지 말고 아래 표지 선택·변경에서 재시도해 주세요. ${e instanceof Error?e.message:''}`)}
+        if(controller.signal.aborted)return
+        setCoverRevision(v=>v+1)
+      }
+      setNotice(cover?'비공개 작품과 표지를 저장했어요.':'비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.')
+    }),
     save:()=>run(async()=>{await persist();setNotice('서버에 원고를 저장했어요.')}),
     reload:()=>run(async()=>{if(dirty&&!window.confirm('저장하지 않은 편집을 버리고 서버 원고를 불러올까요?'))return;const list=await useCase.list();setWorks(list);const w=list.find(x=>x.id===active?.id);if(w)install(w);setNotice('최신 원고를 불러왔어요.')}),
     publish:(rights:boolean,allowFork:boolean,allowForkPublication:boolean)=>run(async()=>{if(!active)return;if(!selectedVersion)throw new Error('저장·AI 이력에서 공개할 저장 버전을 먼저 선택해 주세요.');const saved=await persist();install(await useCase.publish(active.id,selectedVersion?{...selectedVersion,revision:saved.revision}:saved,rights,allowFork,allowForkPublication,selectedVersion?.id));setNotice('회차를 공개했어요. 공개 원고에서 확인할 수 있어요.')}),

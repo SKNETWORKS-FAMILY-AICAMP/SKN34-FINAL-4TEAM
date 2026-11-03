@@ -119,6 +119,121 @@ class SettingAttachmentHttpTest {
         assertEquals(404, get(base, actor()).statusCode())
     }
 
+    @Test fun `work cover persists replaces deletes and follows existing publication access`() {
+        val owner = actor(); val other = actor()
+        val work = content.create(owner.id, CreateWorkRequest("표지 검증"))
+        val path = "/api/v1/works/${work.id}/cover"
+        assertEquals(401, get(path, null).statusCode())
+        assertEquals(404, upload(path, other, method="PUT").statusCode())
+        val created = upload(path, owner, method="PUT")
+        assertEquals(200, created.statusCode(), String(created.body()))
+        val url = node(created).path("url").asText()
+        assertEquals("$path/content", url)
+        assertArrayEquals(png, get(url, owner).body())
+        assertEquals(404, get("/api/v1/public/works/${work.id}/cover/content", null).statusCode())
+        assertEquals(422, upload(path, owner, "text".toByteArray(), "note.txt", "text/plain", "PUT").statusCode())
+        assertArrayEquals(png, get(url, owner).body())
+        val replacement = image("jpg", 3)
+        assertEquals(200, upload(path, owner, replacement, "new.jpg", "image/jpeg", "PUT").statusCode())
+        assertArrayEquals(replacement, get(url, owner).body())
+        assertEquals(204, delete(path, owner).statusCode())
+        assertEquals(404, get(url, owner).statusCode())
+    }
+
+    @Test fun `manuscript image references survive versions and only published references are publicly readable`() {
+        val owner = actor(); val other = actor()
+        val work = content.create(owner.id, CreateWorkRequest("본문 검증"))
+        content.createEpisode(work.id, owner.id, CreateWorkRequest("1화"))
+        val base = "/api/v1/works/${work.id}/episodes/1/images"
+        assertEquals(401, upload(base, null).statusCode())
+        assertEquals(404, upload(base, other).statusCode())
+        val created = upload(base, owner)
+        assertEquals(201, created.statusCode(), String(created.body()))
+        val id = node(created).path("id").asText()
+        val body = "앞 문단\n\n[[image:$id]]\n\n뒤 문단"
+        val saved = content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", body, 0), true)
+        assertEquals(body, content.writing(work.id, owner.id, 1).draft.body)
+        val publicPath = "/api/v1/public/works/${work.id}/episodes/1/images/$id/content"
+        assertEquals(404, get(publicPath, null).statusCode())
+        content.publishEpisode(work.id, owner.id, 1, PublishRequest(saved.draft.revision, true, versionId=saved.versions.last().id))
+        val published = get(publicPath, null)
+        assertEquals(200, published.statusCode()); assertArrayEquals(png, published.body())
+        assertEquals("nosniff", published.headers().firstValue("X-Content-Type-Options").orElse(""))
+        val unpublished = upload(base, owner)
+        assertEquals(404, get(publicPath.replace(id, node(unpublished).path("id").asText()), null).statusCode())
+        assertEquals(404, get(node(created).path("url").asText(), other).statusCode())
+        assertEquals(404, get(publicPath.replace("/episodes/1/", "/episodes/2/"), null).statusCode())
+    }
+
+    @Test fun `inherited manuscript images use only the frozen basis body and reject unpublished references`() {
+        val owner = actor(); val reader = actor(); val stranger = actor()
+        val work = content.create(owner.id, CreateWorkRequest("이미지 Fork 검증"))
+        content.createEpisode(work.id, owner.id, CreateWorkRequest("1화"))
+        val base = "/api/v1/works/${work.id}/episodes/1/images"
+        val created = upload(base, owner); val id = node(created).path("id").asText()
+        val hidden = node(upload(base, owner)).path("id").asText()
+        val saved = content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "기준[[image:$id]]", 0), true)
+        content.publishEpisode(work.id, owner.id, 1, PublishRequest(saved.draft.revision, true, versionId=saved.versions.last().id))
+        content.policy(work.id, owner.id, PolicyRequest(content.read(work.id, owner.id).draft!!.revision, true, true))
+        val fork = content.fork(work.id, reader.id, ForkRequest(1, "이미지 기준 분기"))
+        val forkBase = base.replace(work.id, fork.id)
+        assertArrayEquals(png, get("$forkBase/$id/content", reader).body())
+        assertEquals(404, get("$forkBase/$hidden/content", reader).statusCode())
+        assertEquals(404, get("$forkBase/$id/content", stranger).statusCode())
+        assertEquals(403, upload(forkBase, reader).statusCode())
+        // 원작 재발행 뒤에도 Fork의 고정 원고에 포함된 bytes만 보존한다.
+        val changed = content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "이미지 없는 개정", content.writing(work.id, owner.id, 1).draft.revision), true)
+        content.publishEpisode(work.id, owner.id, 1, PublishRequest(changed.draft.revision, true, versionId=changed.versions.last().id))
+        assertEquals(404, get("/api/v1/public/works/${work.id}/episodes/1/images/$id/content", null).statusCode())
+        assertEquals(200, get("$forkBase/$id/content", reader).statusCode())
+        assertEquals("기준[[image:$id]]", content.writing(fork.id, reader.id, 1).draft.body)
+    }
+
+    @Test fun `content images enforce safe validation scoped references and immutable saved versions`() {
+        val owner = actor(); val work = content.create(owner.id, CreateWorkRequest("범위 검증"))
+        content.createEpisode(work.id, owner.id, CreateWorkRequest("1화"))
+        content.createEpisode(work.id, owner.id, CreateWorkRequest("2화"))
+        val base = "/api/v1/works/${work.id}/episodes/1/images"
+        val created = upload(base, owner); assertEquals(201, created.statusCode())
+        val id = node(created).path("id").asText(); val body = "앞[[image:$id]]뒤"
+        assertThrows(ai.storyfork.core.content.domain.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 2, DraftRequest("2화", body, 0), true) }
+        assertThrows(ai.storyfork.core.content.domain.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "data:image/png;base64,eA==", 0), true) }
+        assertThrows(ai.storyfork.core.content.domain.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "[[image:${UUID.randomUUID()}]]", 0), true) }
+        val saved = content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", body, 0), true)
+        content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "현재 텍스트", saved.draft.revision), true)
+        val restored = content.restoreEpisode(work.id, owner.id, 1, RevertRequest(2, saved.versions.last().id))
+        assertEquals(body, restored.draft.body)
+        assertArrayEquals(png, get(node(created).path("url").asText(), owner).body())
+        assertEquals(403, upload(base, owner, token="").statusCode())
+        assertEquals(422, upload(base, owner, ByteArray(0)).statusCode())
+        assertEquals(422, upload(base, owner, "<svg/>".toByteArray(), "bad.svg", "image/svg+xml").statusCode())
+        assertEquals(413, upload(base, owner, ByteArray(10485761)).statusCode())
+        repeat(9) { assertEquals(201, upload(base, owner).statusCode()) }
+        assertEquals(409, upload(base, owner).statusCode())
+        val cover = "/api/v1/works/${work.id}/cover"
+        assertEquals(200, upload(cover, owner, method="PUT").statusCode())
+        content.publishEpisode(work.id, owner.id, 1, PublishRequest(restored.draft.revision, true, versionId=restored.versions.last().id))
+        assertEquals(200, get("/api/v1/public/works/${work.id}/cover/content", null).statusCode())
+    }
+
+    @Test fun `cover storage and database failures preserve previous bytes and metadata`() {
+        val owner = actor(); val work = content.create(owner.id, CreateWorkRequest("실패 보존"))
+        val path = "/api/v1/works/${work.id}/cover"
+        assertEquals(200, upload(path, owner, method="PUT").statusCode())
+        jdbc.execute("ALTER TABLE content_image ADD CONSTRAINT issue92_reject_filename CHECK(filename <> 'reject-db.png')")
+        try {
+            assertEquals(503, upload(path, owner, image("png", 3), "reject-db.png", "image/png", "PUT").statusCode())
+            assertEquals("map.png", node(get(path, owner)).path("filename").asText())
+            assertArrayEquals(png, get("$path/content", owner).body())
+        } finally { jdbc.execute("ALTER TABLE content_image DROP CONSTRAINT issue92_reject_filename") }
+        org.mockito.Mockito.doThrow(ai.storyfork.core.settingattachment.domain.AttachmentFailure(503, "ATTACHMENT_STORAGE_FAILURE", "저장소 요청 실패"))
+            .`when`(storage).upload(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.any(ai.storyfork.core.settingattachment.client.dto.AttachmentObjectPayload::class.java)
+                    ?: ai.storyfork.core.settingattachment.client.dto.AttachmentObjectPayload(ByteArray(0), ""))
+        assertEquals(503, upload(path, owner, image("png", 3), method="PUT").statusCode())
+        assertArrayEquals(png, get("$path/content", owner).body())
+    }
+
     @Test fun `image upload metadata list read replace delete uses private storage`() {
         val owner = actor(); val base = fixture(owner)
         val created = upload(base, owner)
