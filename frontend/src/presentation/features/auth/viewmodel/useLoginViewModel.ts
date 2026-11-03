@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import { EMAIL } from '../../../../domain/entities/account'
+import { InvalidCredentials, LockUnavailable } from '../../../../domain/repositories/AuthRepository'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 
@@ -28,8 +29,15 @@ export function useLoginViewModel() {
       if (!active.current) return
       dispatch(sessionActions.login(user))
       navigate(next && next !== '/login' && (!next.startsWith('/admin') || user.operator) ? next : '/')
-    } catch {
-      if (active.current) setError('로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.')
+    } catch (cause) {
+      if (!active.current) return
+      setError(cause instanceof LockUnavailable
+        ? cause.message === 'Browser lock busy'
+          ? '다른 탭에서 인증을 처리하고 있어요. 잠시 후 다시 시도해 주세요.'
+          : '브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.'
+        : cause instanceof InvalidCredentials
+          ? '로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.'
+          : '로그인 요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
     } finally {
       busy.current = false
       if (active.current) setPending(false)

@@ -10,7 +10,7 @@ import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
 
 beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 let nav: NavigateFunction
 const Where = () => { const l = useLocation(); nav = useNavigate(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
@@ -91,11 +91,20 @@ describe('캐릭터 챗·로그인 보호·포크 대상', () => {
   })
 
   it('비로그인 /write는 로그인 안내를 보여 주고, 로그인하면 /write로 돌아온다', async () => {
+    vi.stubGlobal('navigator', { locks: { request: (_name: string, _options: object, callback: (lock: object) => Promise<unknown>) => callback({}) } })
+    const fetch = vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' })
+      : path.endsWith('/refresh') ? new Response(null, { status: 401 })
+        : Response.json({ accessToken: 'token', user: { id: 'reader', email: 'reader@example.invalid', nickname: '독자', operator: false } }))
+    vi.stubGlobal('fetch', fetch)
     const store = renderAt('/write', createAppStore())
     await screen.findByText('로그인이 필요한 화면이에요.')
     expect(store.getState().session.next).toBe('/write')
-    fireEvent.click(screen.getByRole('button', { name: '데모 계정으로 바로 시작' }))
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'reader@example.invalid' } })
+    fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'test-password' } })
+    fireEvent.click(screen.getByRole('button', { name: '로그인' }))
     await waitFor(() => expect(where()).toBe('/lib?tab=write'))
+    expect(store.getState().session.role).toBe('user')
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/login', expect.objectContaining({ body: JSON.stringify({ email: 'reader@example.invalid', password: 'test-password' }) }))
   })
 
   it('정책 화면을 떠났다가 뒤로 돌아와 제출하면 포크 대상이 비어 원작 랭킹으로 간다', async () => {

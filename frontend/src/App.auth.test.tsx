@@ -98,7 +98,38 @@ describe('로그인·라우트 보호 (L01, 목업 render() 보호 목록)', () 
       : new Response(null, { status: 401 })))
     const store = renderGuarded('/login')
     submitLogin('reader@example.com')
-    expect((await screen.findByRole('alert')).textContent).toContain('로그인하지 못했어요')
+    expect((await screen.findByRole('alert')).textContent).toContain('로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.')
+    expect(store.getState().session.role).toBeNull()
+  })
+
+  it.each(['busy', 'unavailable', 'failed'])('로그인 잠금 %s 실패는 자격 오류로 안내하지 않고 서버 요청을 보내지 않는다', async (reason) => {
+    vi.stubGlobal('navigator', reason === 'unavailable' ? {} : { locks: {
+      request: (_name: string, _options: object, callback: (lock: null) => unknown) => reason === 'busy'
+        ? Promise.resolve(callback(null)) : Promise.reject(new Error('denied')),
+    } })
+    const mock = vi.fn()
+    vi.stubGlobal('fetch', mock)
+    const store = renderGuarded('/login')
+    submitLogin('reader@example.com')
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain(reason === 'busy' ? '다른 탭' : '브라우저')
+    expect(alert.textContent).not.toContain('이메일과 비밀번호')
+    expect(mock).not.toHaveBeenCalled()
+    expect(store.getState().session.role).toBeNull()
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: '로그인' }).disabled).toBe(false)
+  })
+
+  it.each(['network', '503'])('로그인 %s 실패는 비밀번호 오류로 단정하지 않는다', async (failure) => {
+    vi.stubGlobal('fetch', vi.fn(async (path: string) => {
+      if (path.endsWith('/csrf')) return Response.json({ csrfToken: 'csrf' })
+      if (failure === 'network') throw new TypeError('offline')
+      return new Response(null, { status: 503 })
+    }))
+    const store = renderGuarded('/login')
+    submitLogin('reader@example.com')
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('잠시 후 다시 시도')
+    expect(alert.textContent).not.toContain('이메일과 비밀번호')
     expect(store.getState().session.role).toBeNull()
   })
 

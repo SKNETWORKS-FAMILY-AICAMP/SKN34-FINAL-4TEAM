@@ -1,10 +1,6 @@
-import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
-import { appContainer } from './app/appContainer'
-import { useAppDispatch } from './app/store'
-import { sessionActions } from './presentation/shared/session/sessionSlice'
 import { RestoreContext } from './presentation/shared/session/restoreContext'
-import { LockUnavailable } from './data/api/csrf'
+import { useSessionRestore } from './presentation/shared/session/useSessionRestore'
 
 import { AdminPage } from './presentation/features/admin/view/AdminPage'
 import { AccountPage } from './presentation/features/account/view/AccountPage'
@@ -64,16 +60,7 @@ function StartPage() {
 
 function App() {
   const { pathname } = useLocation()
-  const dispatch = useAppDispatch()
-  const [restoring, setRestoring] = useState(true)
-  const [restoreError, setRestoreError] = useState(false)
-  useEffect(() => {
-    let active = true
-    appContainer.resolve('authUseCase').refresh().then((user) => {
-      if (active) dispatch(sessionActions.login(user))
-    }).catch((error: unknown) => { if (active) { if (error instanceof LockUnavailable) setRestoreError(true); else dispatch(sessionActions.logout()) } }).finally(() => { if (active) setRestoring(false) })
-    return () => { active = false }
-  }, [dispatch])
+  const { restoring, restoreError } = useSessionRestore()
   return (
     <RestoreContext.Provider value={restoring}>
       {restoreError && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}

@@ -1,6 +1,8 @@
 export type AuthUser = { id: string; email: string; nickname: string; operator: boolean }
 
 export class InvalidResetLink extends Error {}
+export class InvalidCredentials extends Error {}
+export class LockUnavailable extends Error {}
 
 export interface AuthRepository {
   login(email: string, password: string): Promise<AuthUser>

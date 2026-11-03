@@ -1,6 +1,5 @@
 import { z } from 'zod'
-
-export class LockUnavailable extends Error {}
+import { LockUnavailable } from '../../domain/repositories/AuthRepository'
 
 export async function withLock<T>(name: string, action: () => Promise<T>, immediate = false): Promise<T> {
   if (!navigator.locks) throw new LockUnavailable('Browser lock unavailable')

@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { InvalidResetLink } from '../../domain/repositories/AuthRepository'
+import { InvalidCredentials, InvalidResetLink, LockUnavailable } from '../../domain/repositories/AuthRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
-import { csrf, LockUnavailable, withLock } from './csrf'
+import { csrf, withLock } from './csrf'
 
 export const userSchema = z.object({ id: z.string(), email: z.string().email(), nickname: z.string(), operator: z.boolean() })
 const responseSchema = z.object({ accessToken: z.string().min(1), user: userSchema })
@@ -27,6 +27,7 @@ async function post(path: string, body?: object, expectedUser?: string | null) {
   })
   if (path === 'logout' && response.status === 409) throw new SessionExpired()
   if (path === 'reset-password' && [400, 401, 410].includes(response.status)) throw new InvalidResetLink()
+  if (path === 'login' && response.status === 401) throw new InvalidCredentials()
   if (!response.ok) throw new Error('Authentication request failed')
   return response
 }

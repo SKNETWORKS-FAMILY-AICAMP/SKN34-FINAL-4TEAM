@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
 import { renderApp } from './test/renderApp'
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 const user = () => createAppStore({ role: 'user' })
 const sid = () => document.getElementById('sid')!.textContent
@@ -82,10 +82,19 @@ describe('소설 상세 (U04)', () => {
 
 describe('회차 뷰어 (U05·U07·U08)', () => {
   it('비로그인으로 열면 로그인 안내 후 원래 회차로 돌아온다', async () => {
-    renderApp('/read/guunmong/2')
+    vi.stubGlobal('navigator', { locks: { request: (_name: string, _options: object, callback: (lock: object) => Promise<unknown>) => callback({}) } })
+    const fetch = vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' })
+      : path.endsWith('/refresh') ? new Response(null, { status: 401 })
+        : Response.json({ accessToken: 'token', user: { id: 'reader', email: 'reader@example.invalid', nickname: '독자', operator: false } }))
+    vi.stubGlobal('fetch', fetch)
+    const { store } = renderApp('/read/guunmong/2')
     await screen.findByText('소설을 읽으려면 로그인해 주세요.')
-    fireEvent.click(screen.getByRole('button', { name: '데모 계정으로 바로 시작' }))
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'reader@example.invalid' } })
+    fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'test-password' } })
+    fireEvent.click(screen.getByRole('button', { name: '로그인' }))
     await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
+    expect(store.getState().session.role).toBe('user')
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/login', expect.objectContaining({ body: JSON.stringify({ email: 'reader@example.invalid', password: 'test-password' }) }))
   })
 
   it('작가의 말은 본문 뒤에 있고 감정 반응 없이 댓글 좋아요만 있다', async () => {
