@@ -27,3 +27,7 @@ coverage/
 .vscode/
 # Do not ignore *.jar: Gradle wrapper JAR must remain versioned.
 **/graphify-out/**
+# Isolated world-studio QA artifacts and embedded databases.
+/output/
+*.mv.db
+*.trace.db

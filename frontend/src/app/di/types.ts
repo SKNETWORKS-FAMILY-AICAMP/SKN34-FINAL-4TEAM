@@ -1,3 +1,5 @@
+import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
+import type { WorldStudioUseCase } from '../../domain/usecases/WorldStudioUseCase'
 import type { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import type { EpisodeRepository } from '../../domain/repositories/EpisodeRepository'
 import type { AwilixContainer } from 'awilix/browser'
@@ -36,6 +38,8 @@ export type AppCradle = {
   readingRepository: ReadingRepository
   notificationRepository: NotificationRepository
   feedbackRepository: FeedbackRepository
+  worldStudioRepository: WorldStudioRepository
+  worldStudioUseCase: WorldStudioUseCase
   worldRepository: WorldRepository
   creditRepository: CreditRepository
   chatRepository: ChatRepository

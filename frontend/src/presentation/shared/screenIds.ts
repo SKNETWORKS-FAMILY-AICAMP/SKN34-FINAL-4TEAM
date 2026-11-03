@@ -5,6 +5,7 @@ import { sessionActions } from './session/sessionSlice'
 
 /** 목업 SID: 화면 ID와 이름 (docs/prototype-alignment.md 2절의 키) */
 export const SID: Record<string, string> = {
+  W01: '세계관 작업실',
   U01: '홈', U02: '홈 · 필터 결과', U03: '빠른 이동 (Ctrl K)', U04: '소설 상세', U05: '회차 뷰어', U06: '댓글·피드백·신고',
   U07: '보기 설정 (Aa)', U08: '회차 끝 · 포크·댓글', U09: '포크 (3단계 폼)', U10: '포크 생성 완료 · 스냅샷', U11: '내 서재',
   U12: '내 서재 · 내가 쓰는 소설', U13: '집필실', U14: '집필실 · AI 도움', U15: '인물에게 맡겨 보기 (바텀시트)', U16: 'AI 소설 제안',

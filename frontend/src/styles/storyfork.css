@@ -462,3 +462,15 @@ input,textarea{caret-color:var(--pri)}
 .inquiry-item{padding:18px 0;border-top:1px solid var(--line)}.inquiry-item>p{margin:10px 0;white-space:pre-wrap;overflow-wrap:anywhere}.inquiry-item form{margin-top:14px}.inquiry-item .rowend{margin-top:8px}.inquiry-reply{padding:12px 14px;background:var(--muted-bg);border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere}
 .admin-priorities{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px;background:var(--surface);border:1px solid var(--line);border-radius:14px}.admin-priorities h2{font-size:18px}.admin-priorities p{margin-top:4px;color:var(--sub);font-size:13px}.priority-links{display:flex;gap:10px}.priority-links button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:140px;padding:12px 16px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);text-align:left}.priority-links button:hover{border-color:var(--pri);background:var(--pri-soft)}.priority-links b{font-size:22px;color:var(--pri-ink)}.priority-links span{font-size:13px;color:var(--sub)}.admin-section-title{font-size:16px;margin:26px 0 12px}
 @media(max-width:600px){.admin-priorities{align-items:stretch;flex-direction:column;gap:16px;padding:18px}.priority-links button{flex:1;min-width:0}.adm .table-head{align-items:flex-start;flex-direction:column}}
+
+/* Four main menus need room before the compact mobile header takes over. */
+@media (min-width:901px) and (max-width:1200px) {
+ .gnb .in{gap:12px}
+ .gnb .credit,.gnb .search kbd{display:none}
+ .gnb .search{min-width:0;flex:1;white-space:nowrap;overflow:hidden}
+}
+@media (min-width:601px) and (max-width:900px) {
+ .gnb .in{height:auto;min-height:64px;flex-wrap:wrap;padding-block:12px}
+ .gnb .nav{order:1;width:100%}
+ .gnb .nav button{flex:1}
+}

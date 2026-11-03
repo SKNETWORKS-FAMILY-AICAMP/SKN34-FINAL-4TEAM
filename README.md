@@ -217,3 +217,7 @@ OpenAI를 호출하지 않지만 이미지·의존성 다운로드에는 네트�
 Kotlin namespace는 `ai.storyfork.core`, Gradle group은 `ai.storyfork`입니다.
 `backend/core-api/src/{main,test}/kotlin/ai/storyfork/core/`가 package 선언과 일치합니다.
 업무 기능은 상세 계약과 권한·정책을 확정한 뒤 필요한 범위만 추가합니다.
+
+## 세계관 직접 작성 Draft
+
+직접 작성·명시 저장·재조회만 추가한 부분 구현입니다. H2·체험 세션은 로컬 전용이며 운영 인증/저장 완료를 뜻하지 않습니다. [범위·실행·팀 통합·이번 검증](docs/world-studio-direct-pr.md)을 참고하세요.

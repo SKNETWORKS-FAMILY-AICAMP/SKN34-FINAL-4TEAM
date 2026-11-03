@@ -64,7 +64,7 @@ function DemoStudioPage() {
     <div className={`calm rd calm-${w.theme} studio`}>
       <div className="sbar">
         <Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><span className="t">{w.title}</span>
-        <StudioTools id={id} view={view} ep={ep} />
+        <Go to="/worlds" className="tbtn">세계관 작업실</Go>{w.worldIds?.filter(x=>/^[0-9a-f-]{36}$/.test(x)).map(worldId=><Go key={worldId} to={'/worlds/'+worldId} className="tbtn">연결된 세계관</Go>)}<StudioTools id={id} view={view} ep={ep} />
         <span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span>
         <button type="button" className="tbtn" onClick={() => setSettingsOpen(true)}>집필 설정</button>
         {view === 'write' && <><button type="button" className="tbtn" style={{ height: 40 }} disabled={ro} onClick={vm.preview}>미리 보기</button>

@@ -65,3 +65,7 @@ Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 we
 실행 설정은 [인프라 안내](../../infrastructure/README.md)를 참고하세요.
 
 회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.
+
+## 로컬 세계관 직접 작성
+
+직접 작성·명시 저장·재조회만 추가한 부분 구현입니다. H2·체험 세션은 로컬 전용이며 운영 인증/저장 완료를 뜻하지 않습니다. [범위·실행·팀 통합·이번 검증](../../docs/world-studio-direct-pr.md)을 참고하세요.

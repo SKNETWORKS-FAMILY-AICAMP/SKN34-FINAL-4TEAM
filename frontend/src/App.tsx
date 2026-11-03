@@ -1,3 +1,4 @@
+import { WorldStudioPage } from './presentation/features/studio/view/WorldStudioPage'
 import { EpisodePage } from './presentation/features/content/view/EpisodePage'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 
@@ -76,7 +77,7 @@ function App() {
         <Route path="/lib" element={<RequireRole><LibraryPage /></RequireRole>} />
         <Route path="/write" element={<RequireRole><Navigate replace to="/lib?tab=write" /></RequireRole>} />
         <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
-        <Route path="/worlds" element={<Navigate replace to="/new" />} />
+        <Route path="/worlds/:worldId?" element={<RequireRole><WorldStudioPage /></RequireRole>} />
         <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
         <Route path="/studio/:id" element={<StudioPage />} />
         <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
