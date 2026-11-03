@@ -93,6 +93,23 @@ class SessionIntegrationTest {
     }
 
     @Test
+    fun `login and refresh expose only public fields and keep cookie attributes`() {
+        val login = login(member())
+        for (result in listOf(login, refresh(refreshCookie(login)))) {
+            assertEquals(200, result.response.status)
+            val body = result.response.contentAsString
+            assertTrue(body.contains("\"accessToken\""))
+            assertTrue(body.contains("\"user\""))
+            for (secret in listOf("refreshToken", "passwordHash", "password_hash", "tokenHash")) {
+                assertTrue(!body.contains(secret), "Public JSON must not expose internal credential fields")
+            }
+            val cookie = refreshCookie(result)
+            assertTrue(!body.contains(cookie.value), "The refresh secret belongs only in its HttpOnly cookie")
+            assertTrue(result.response.getHeaders("Set-Cookie").any { it.startsWith("refresh_token=") && it.contains("Max-Age=1209600") && !it.contains("Domain=") })
+        }
+    }
+
+    @Test
     fun `refresh rotates token and reuse revokes every session`() {
         val email = member()
         val first = refreshCookie(login(email))
