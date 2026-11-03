@@ -46,3 +46,11 @@
 - Ponytail-review에서 기존 인증/콘텐츠 계약과 실패 경로 보존을 확인했다. 추가 의존성·서비스·화면 변경은 없다. Graphify AST 갱신 및 git diff --check 통과.
 - 이번 수정에는 UI 동작 변경이 없어 별도 Aside 화면 E2E는 수행하지 않았다. 인증/콘텐츠 연결은 실제 HTTP 통합 테스트로 확인했으며, 개발 Nginx를 통한 긴 생성 요청은 Docker Linux 엔진 미기동으로 미검증이다. 유료 AI 호출은 하지 않았다.
 - 최신 미커밋 변경의 Required CI는 검증 대기다. 이번 수정은 커밋·푸시하지 않았다.
+
+## PR #78 리뷰 후속 수정 — 2026-11-03
+
+- Major: 공개 회차가 없는 작품에서 revision 0의 AI 제안을 대기시킨 뒤 초안을 revision 1로 수정하면 V5가 대상을 찾지 못하는 사례를 재현했다. 명시적 대상·적용 결과·단일 후보를 우선하며, 대기 상태·공개 회차 없음·후보 없음일 때만 대상을 1화로 복원한다. 발행 회차가 있어 대상을 확정할 수 없거나 적용 결과가 모호하면 계속 거부한다.
+- Minor: 루트 AGENTS.md의 후속 인증 작업이 전체 인증 구현이 아니라 해당 서재·열람·Fork 데모의 실제 인증 연결을 뜻한다고 명시했다.
+- TDD Red: 새 정상 이관 테스트가 `Legacy proposal target is ambiguous`로 실패했다(마이그레이션 5개 중 1개 실패). Green 및 조건식 정리 후 재실행: 별도 PostgreSQL `content_pr78_migration_test`에서 `./gradlew test --tests '*ContentMigrationTest*' --no-daemon` 5개 통과, 실패·오류·건너뜀 0. 대기 제안의 원문·revision·상태, 최신 초안·저장 버전, 재실행 시 중복 없음 및 대상 불명 거부 시 원본 보존을 확인했다.
+- Ponytail-review에서 대상 추론 우선순위·거부 경로·Flyway 호출부·저장 연결을 검토했고 추가 수정 지적은 없었다. 새 의존성·API·화면은 추가하지 않았다. Graphify AST 갱신, 지침 로컬 링크 및 `git diff --check` 통과. Graphify의 기존 SQL 추출 의존성 부재는 유지되며 이관 동작은 실제 PostgreSQL에서 검증했다.
+- 이번 변경은 마이그레이션과 문구에 한정되어 브라우저 사용자 흐름 변경이 없으므로 Aside E2E는 제외했다. 기존 사용자/배포 DB와 실제 .env는 변경하지 않았으며 유료 AI 호출도 하지 않았다. Docker·운영 배포·이번 미커밋 변경의 Required CI는 검증 대기다. 커밋·푸시·PR 댓글 작성은 수행하지 않았다.

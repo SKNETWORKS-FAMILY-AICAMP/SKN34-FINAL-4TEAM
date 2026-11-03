@@ -27,6 +27,7 @@ class V5__ImportLegacyContent(private val mapper: JsonMapper) : BaseJavaMigratio
                 val candidates = work.versions.filter { it.revision==proposal.revision && it.body==proposal.baseBody }.map { it.episode } +
                     if(work.draft.revision==proposal.revision && work.draft.body==proposal.baseBody) listOf(work.episodes.size+1) else emptyList()
                 val target=proposal.targetEpisode ?: result?.episode ?: candidates.distinct().singleOrNull()
+                    ?: (if(proposal.status=="pending" && work.episodes.isEmpty() && candidates.isEmpty()) 1 else null)
                     ?: error("Legacy proposal target is ambiguous")
                 proposal.copy(targetEpisode=target,appliedVersionId=result?.id)
             }
