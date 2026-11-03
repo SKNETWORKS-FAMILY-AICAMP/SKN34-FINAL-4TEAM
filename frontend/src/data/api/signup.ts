@@ -12,6 +12,6 @@ async function post(path: string, body: object, status: number) {
 }
 
 export const signup: SignupRepository['signup'] = (input) => post('signup', input, 202)
-export const verifyEmail: SignupRepository['verifyEmail'] = (token) => post('verify-email', { token }, 204)
+export const verifyEmail: SignupRepository['verifyEmail'] = (token, password) => post('verify-email', { token, password }, 204)
 export const resendVerification: SignupRepository['resendVerification'] = (email) => post('resend-verification', { email }, 202)
 export const signupRepository: SignupRepository = { signup, verifyEmail, resendVerification }

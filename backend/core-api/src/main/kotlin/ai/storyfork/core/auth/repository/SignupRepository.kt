@@ -12,7 +12,9 @@ class SignupRepository(private val jdbc: JdbcTemplate) {
         jdbc.queryForObject("select count(*) from auth_member where email = ?", Int::class.java, email) != 0
 
     fun createChallenge(email: String, passwordHash: String, nickname: String, tokenHash: String, expires: Instant) {
-        jdbc.update("insert into auth_signup_challenge(email, password_hash, nickname, token_hash, expires_at) values (?, ?, ?, ?, ?)",
+        jdbc.update("""insert into auth_signup_challenge(email, password_hash, nickname, token_hash, expires_at) values (?, ?, ?, ?, ?)
+            on conflict (email) do update set password_hash = excluded.password_hash, nickname = excluded.nickname,
+            token_hash = excluded.token_hash, expires_at = excluded.expires_at""",
             email, passwordHash, nickname, tokenHash, Timestamp.from(expires))
     }
 

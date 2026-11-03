@@ -69,8 +69,8 @@ class AuthHttpErrorIntegrationTest {
     fun `reused verification token stays 400 over embedded servlet error dispatch`() {
         val token = UUID.randomUUID().toString()
         val hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.toByteArray()))
-        signup.createChallenge("${UUID.randomUUID()}@example.invalid", "unused-password-hash", "Reader", hash, Instant.now().plusSeconds(60))
-        val body = """{"token":"$token"}"""
+        signup.createChallenge("${UUID.randomUUID()}@example.invalid", requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Reader", hash, Instant.now().plusSeconds(60))
+        val body = """{"token":"$token","password":"test-password"}"""
         assertEquals(204, send(mutation("/api/v1/auth/verify-email", body)).statusCode())
         val reused = send(mutation("/api/v1/auth/verify-email", body))
         assertEquals(400, reused.statusCode())

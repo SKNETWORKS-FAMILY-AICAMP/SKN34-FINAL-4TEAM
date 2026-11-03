@@ -3,7 +3,12 @@ package ai.storyfork.core.auth
 import ai.storyfork.core.auth.service.SignupService
 import java.util.concurrent.Executors
 import java.util.concurrent.CountDownLatch
+import java.security.MessageDigest
+import java.util.HexFormat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.doThrow
@@ -74,14 +79,16 @@ class SignupIntegrationTest {
                 runCatching { signup.signup("race@example.invalid", "a-long-test-password", "Reader") }.isSuccess
             } }
             start.countDown()
-            assertEquals(1, requests.count { it.get() })
-            val message = ArgumentCaptor.forClass(SimpleMailMessage::class.java)
-            verify(mail).send(message.capture())
-            val token = requireNotNull(message.value.text).substringAfter("#token=").trim()
+            assertEquals(2, requests.count { it.get() })
+            val messages = ArgumentCaptor.forClass(SimpleMailMessage::class.java)
+            verify(mail, times(2)).send(messages.capture())
+            val token = messages.allValues.map { requireNotNull(it.text).substringAfter("#token=").trim() }.single {
+                jdbc.queryForObject("select count(*) from auth_signup_challenge where token_hash = ?", Int::class.java, digest(it)) == 1
+            }
             val verifyStart = CountDownLatch(1)
             val checks = (1..2).map { pool.submit<Boolean> {
                 verifyStart.await()
-                runCatching { signup.verify(token) }.isSuccess
+                runCatching { signup.verify(token, "a-long-test-password") }.isSuccess
             } }
             verifyStart.countDown()
             assertEquals(1, checks.count { it.get() })
@@ -113,9 +120,9 @@ class SignupIntegrationTest {
         verify(mail, times(2)).send(messages.capture())
         val tokens = messages.allValues.map { requireNotNull(it.text).substringAfter("#token=").trim() }
         mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
-            .content("""{"token":"${tokens[0]}"}""")).andExpect(status().is4xxClientError())
+            .content("""{"token":"${tokens[0]}","password":"a-long-test-password"}""")).andExpect(status().is4xxClientError())
         mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
-            .content("""{"token":"${tokens[1]}"}""")).andExpect(status().isNoContent())
+            .content("""{"token":"${tokens[1]}","password":"a-long-test-password"}""")).andExpect(status().isNoContent())
     }
 
     @Test
@@ -128,7 +135,7 @@ class SignupIntegrationTest {
         val token = requireNotNull(message.value.text).substringAfter("#token=").trim()
         jdbc.update("update auth_signup_challenge set expires_at = now() - interval '1 second'")
         mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
-            .content("""{"token":"$token"}""")).andExpect(status().is4xxClientError())
+            .content("""{"token":"$token","password":"a-long-test-password"}""")).andExpect(status().is4xxClientError())
         assertEquals(0, jdbc.queryForObject("select count(*) from auth_member", Int::class.java))
     }
 
@@ -142,10 +149,10 @@ class SignupIntegrationTest {
         verify(mail).send(message.capture())
         val token = requireNotNull(message.value.text).substringAfter("#token=").trim()
         mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
-            .content("""{"token":"$token"}""")).andExpect(status().isNoContent())
+            .content("""{"token":"$token","password":"a-long-test-password"}""")).andExpect(status().isNoContent())
         assertEquals(1, jdbc.queryForObject("select count(*) from auth_member", Int::class.java))
         mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
-            .content("""{"token":"$token"}""")).andExpect(status().is4xxClientError())
+            .content("""{"token":"$token","password":"a-long-test-password"}""")).andExpect(status().is4xxClientError())
         mvc.perform(securedPost("/api/v1/auth/signup").contentType(MediaType.APPLICATION_JSON)
             .content("""{"email":"signup-test@example.invalid","password":"a-long-test-password","nickname":"Reader"}"""))
             .andExpect(status().is4xxClientError())
@@ -161,7 +168,7 @@ class SignupIntegrationTest {
             mvc.perform(securedPost("/api/v1/auth/resend-verification").contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"$email"}""")).andExpect(status().isAccepted())
         }
-        signup.verify(token)
+        signup.verify(token, "test-password")
         assertEquals(1, jdbc.queryForObject("select count(*) from auth_member", Int::class.java))
     }
 
@@ -175,8 +182,93 @@ class SignupIntegrationTest {
         signup.resend("expired@example.invalid")
         val messages = ArgumentCaptor.forClass(SimpleMailMessage::class.java)
         verify(mail, times(2)).send(messages.capture())
-        signup.verify(requireNotNull(messages.allValues.last().text).substringAfter("#token=").trim())
+        signup.verify(requireNotNull(messages.allValues.last().text).substringAfter("#token=").trim(), "test-password")
         assertEquals(1, jdbc.queryForObject("select count(*) from auth_member", Int::class.java))
     }
 
+    private fun digest(token: String) = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.toByteArray()))
+
+    private fun verifyToken(token: String, password: String) =
+        mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
+            .content("""{"token":"$token","password":"$password"}"""))
+
+    @Test
+    fun `pending and expired candidates are replaced with the latest signup and old links fail`() {
+        signup.signup("replace@example.invalid", "first-password", "First")
+        val messages = ArgumentCaptor.forClass(SimpleMailMessage::class.java)
+        verify(mail).send(messages.capture())
+        val firstToken = requireNotNull(messages.value.text).substringAfter("#token=").trim()
+        for (expired in listOf(false, true)) {
+            if (expired) jdbc.update("update auth_signup_challenge set expires_at = now() - interval '1 second'")
+            mvc.perform(securedPost("/api/v1/auth/signup").contentType(MediaType.APPLICATION_JSON)
+                .content("""{"email":"replace@example.invalid","password":"latest-password","nickname":"Latest"}"""))
+                .andExpect(status().isAccepted())
+            val candidate = jdbc.queryForMap("select * from auth_signup_challenge")
+            assertTrue(BCryptPasswordEncoder().matches("latest-password", candidate["password_hash"].toString()))
+            assertFalse(BCryptPasswordEncoder().matches("first-password", candidate["password_hash"].toString()))
+            assertEquals("Latest", candidate["nickname"])
+            assertEquals(1, jdbc.queryForObject("select count(*) from auth_signup_challenge where expires_at > now() + interval '23 hours'", Int::class.java))
+        }
+        verify(mail, times(3)).send(messages.capture())
+        val latestToken = requireNotNull(messages.allValues.last().text).substringAfter("#token=").trim()
+        verifyToken(firstToken, "first-password").andExpect(status().isBadRequest())
+        verifyToken(latestToken, "latest-password").andExpect(status().isNoContent())
+        assertEquals("Latest", jdbc.queryForObject("select nickname from auth_member", String::class.java))
+        mvc.perform(securedPost("/api/v1/auth/signup").contentType(MediaType.APPLICATION_JSON)
+            .content("""{"email":"replace@example.invalid","password":"latest-password","nickname":"Latest"}"""))
+            .andExpect(status().isConflict())
+    }
+
+    @Test
+    fun `verification requires the signup password and rejected proofs do not consume the token`() {
+        val password = "한".repeat(24)
+        signup.signup("proof@example.invalid", password, "Reader")
+        val message = ArgumentCaptor.forClass(SimpleMailMessage::class.java)
+        verify(mail).send(message.capture())
+        val token = requireNotNull(message.value.text).substringAfter("#token=").trim()
+        mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
+            .content("""{"token":"$token"}""")).andExpect(status().isBadRequest())
+        for (invalid in listOf("wrong-password", "        ", "short", "한".repeat(25))) {
+            verifyToken(token, invalid).andExpect(status().isBadRequest())
+            assertEquals(0, jdbc.queryForObject("select count(*) from auth_member", Int::class.java))
+            assertEquals(1, jdbc.queryForObject("select count(*) from auth_signup_challenge where token_hash = ?", Int::class.java, digest(token)))
+        }
+        verifyToken(token, password).andExpect(status().isNoContent())
+        verifyToken(token, password).andExpect(status().isBadRequest())
+    }
+
+    @Test
+    fun `email owner cannot confirm an attacker password and can replace it with their own signup`() {
+        signup.signup("owner@example.invalid", "attacker-password", "Attacker")
+        val messages = ArgumentCaptor.forClass(SimpleMailMessage::class.java)
+        verify(mail).send(messages.capture())
+        val attackerToken = requireNotNull(messages.value.text).substringAfter("#token=").trim()
+        verifyToken(attackerToken, "owner-password").andExpect(status().isBadRequest())
+        assertEquals(0, jdbc.queryForObject("select count(*) from auth_member", Int::class.java))
+        signup.signup("owner@example.invalid", "owner-password", "Owner")
+        verify(mail, times(2)).send(messages.capture())
+        val ownerToken = requireNotNull(messages.allValues.last().text).substringAfter("#token=").trim()
+        verifyToken(attackerToken, "attacker-password").andExpect(status().isBadRequest())
+        verifyToken(ownerToken, "owner-password").andExpect(status().isNoContent())
+        for ((password, expected) in listOf("attacker-password" to 401, "owner-password" to 200)) {
+            mvc.perform(securedPost("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content("""{"email":"owner@example.invalid","password":"$password"}"""))
+                .andExpect(status().`is`(expected))
+        }
+    }
+
+    @Test
+    fun `mail failure when replacing a candidate restores the previous password nickname and token`() {
+        signup.signup("rollback@example.invalid", "first-password", "First")
+        val message = ArgumentCaptor.forClass(SimpleMailMessage::class.java)
+        verify(mail).send(message.capture())
+        val token = requireNotNull(message.value.text).substringAfter("#token=").trim()
+        val before = jdbc.queryForMap("select * from auth_signup_challenge")
+        doThrow(MailSendException("delivery failed")).`when`(mail).send(org.mockito.ArgumentMatchers.any(SimpleMailMessage::class.java))
+        mvc.perform(securedPost("/api/v1/auth/signup").contentType(MediaType.APPLICATION_JSON)
+            .content("""{"email":"rollback@example.invalid","password":"new-password","nickname":"New"}"""))
+            .andExpect(status().isServiceUnavailable())
+        assertEquals(before, jdbc.queryForMap("select * from auth_signup_challenge"))
+        verifyToken(token, "first-password").andExpect(status().isNoContent())
+    }
 }

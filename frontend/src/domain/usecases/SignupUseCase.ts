@@ -5,6 +5,6 @@ export class SignupUseCase {
   constructor(repository: SignupRepository) { this.repository = repository }
 
   signup(input: { email: string; nickname: string; password: string }) { return this.repository.signup(input) }
-  verifyEmail(token: string) { return this.repository.verifyEmail(token) }
+  verifyEmail(token: string, password: string) { return this.repository.verifyEmail(token, password) }
   resendVerification(email: string) { return this.repository.resendVerification(email) }
 }

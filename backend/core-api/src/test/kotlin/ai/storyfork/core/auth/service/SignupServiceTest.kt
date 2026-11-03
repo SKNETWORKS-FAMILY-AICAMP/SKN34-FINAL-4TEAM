@@ -26,6 +26,8 @@ class SignupServiceTest {
         assertFalse(encoded.contains("correct horse battery staple"))
         assertTrue(BCryptPasswordEncoder().matches("correct horse battery staple", encoded))
         assertFalse(BCryptPasswordEncoder().matches("wrong password", encoded))
+        assertTrue(secrets.matchesPassword("correct horse battery staple", encoded))
+        assertFalse(secrets.matchesPassword("wrong password", encoded))
         assertTrue(secrets.newToken().length >= 32)
     }
 }

@@ -9,5 +9,6 @@ class SignupSecrets {
     private val random = SecureRandom()
 
     fun hashPassword(password: String): String = requireNotNull(passwords.encode(password))
+    fun matchesPassword(password: String, hash: String): Boolean = passwords.matches(password, hash)
     fun newToken(): String = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(32).also(random::nextBytes))
 }

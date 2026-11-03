@@ -66,11 +66,14 @@ class SignupService(
     }
 
     @Transactional
-    fun verify(token: String) {
-        val (email, password, nickname) = repository.consumeChallenge(digest(token))
+    fun verify(token: String, password: String) {
+        if (password.isBlank() || password.toByteArray(Charsets.UTF_8).size > 72) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        val (email, passwordHash, nickname) = repository.consumeChallenge(digest(token))
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        // A rejected password proof rolls back the atomic token deletion.
+        if (!secrets.matchesPassword(password, passwordHash)) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         try {
-            repository.createMember(email, password, nickname)
+            repository.createMember(email, passwordHash, nickname)
         } catch (_: DataIntegrityViolationException) {
             throw ResponseStatusException(HttpStatus.CONFLICT)
         }

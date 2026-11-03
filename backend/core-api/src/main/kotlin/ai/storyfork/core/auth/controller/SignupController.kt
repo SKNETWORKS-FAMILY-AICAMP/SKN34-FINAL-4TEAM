@@ -24,6 +24,10 @@ class SignupController(private val service: SignupService) {
     )
     data class EmailRequest(@field:NotBlank @field:Email @field:Size(max = 254) val email: String)
     data class TokenRequest(@field:NotBlank @field:Size(max = 128) val token: String)
+    data class VerificationRequest(
+        @field:NotBlank @field:Size(max = 128) val token: String,
+        @field:NotBlank @field:Size(min = 8, max = 72) val password: String,
+    )
 
     @GetMapping("/csrf")
     fun csrf(token: CsrfToken): Map<String, String> = mapOf("csrfToken" to token.token)
@@ -38,5 +42,5 @@ class SignupController(private val service: SignupService) {
 
     @PostMapping("/verify-email")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun verify(@Valid @RequestBody request: TokenRequest) = service.verify(request.token)
+    fun verify(@Valid @RequestBody request: VerificationRequest) = service.verify(request.token, request.password)
 }
