@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
     server: {
-      host: env.VITE_DEV_SERVER_HOST || '127.0.0.1',
+      host: env.VITE_DEV_SERVER_HOST || 'localhost',
       port: 5173,
       strictPort: true,
       watch: usePolling ? { usePolling: true, interval: 300 } : undefined,

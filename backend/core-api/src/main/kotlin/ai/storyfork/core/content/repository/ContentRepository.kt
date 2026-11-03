@@ -168,8 +168,14 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
         w.episodes.forEach { e -> version(e.number,e.versionId,e.version,e.title,e.body,Instant.EPOCH.toString(),false) }
         update("""INSERT INTO episode_draft(episode_id,title,content,edit_revision) VALUES (?,?,?,?)
             ON CONFLICT(episode_id) DO UPDATE SET title=EXCLUDED.title,content=EXCLUDED.content,edit_revision=EXCLUDED.edit_revision,updated_at=now()""",episodeId(w.id,w.episodes.size+1),w.draft.title,w.draft.body,w.draft.revision)
-        w.publicationHistory.forEach { p -> update("""INSERT INTO publication_event(id,episode_version_id,actor_id,action,outcome,occurred_at,trigger_kind)
-            VALUES (?,?,?,'publish','applied',?,'manual') ON CONFLICT DO NOTHING""",key("publication",w.id,p.episode.toString(),p.versionId),versionId(w.id,p.episode,p.versionId),w.ownerId,timestamp(p.publishedAt)) }
+        w.publicationHistory.forEach { p ->
+            val version=versionId(w.id,p.episode,p.versionId)
+            val at=timestamp(p.publishedAt)
+            update("""INSERT INTO publication_event(id,episode_version_id,actor_id,action,outcome,occurred_at,trigger_kind)
+                SELECT ?,?,?,'publish','applied',?,'manual' WHERE NOT EXISTS (
+                    SELECT 1 FROM publication_event WHERE episode_version_id=? AND action='publish' AND outcome='applied' AND occurred_at=?)
+                ON CONFLICT DO NOTHING""",key("publication",w.id,p.episode.toString(),p.versionId),version,w.ownerId,at,version,at)
+        }
     }
     private fun saveWorld(w: ContentWork, sourceWorld: String?) {
         val all=(w.world.history+w.world.drafts.values).associateBy { it.id }

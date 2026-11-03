@@ -11,7 +11,7 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 [MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 논리 명칭은 Core Service·AI Service입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
 
 > **현재 개인 브랜치 구현:** 개발 기반에 `/content` 집필 작업실과 선택적 PostgreSQL 저장·AI 제안을 추가했습니다. 작품·원고·설정집·발행·Fork 범위와 인증 계약은 [콘텐츠 통합 안내](docs/content-integration.md)를 참고하세요.
-> 나머지 아래 기능은 기획 목표입니다. 실제 로그인, 그래프 DB, 크레딧·운영 기능은 미구현이며 Aside E2E와 Required CI는 검증 대기입니다.
+> 나머지 아래 기능은 기획 목표입니다. 실제 로그인, 그래프 DB, 크레딧·운영 기능은 미구현이며 검증 이력과 남은 범위는 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, Required CI는 최신 PR 커밋의 결과로 판단합니다.
 
 ## 사용자와 핵심 가치
 
@@ -84,7 +84,7 @@ Frontend (React)
                                          (Health 및 선택적 생성 제안)
 ```
 
-| 구성 | 현재 기술 | STORYFORK 목표 책임 — 업무 기능 미구현 |
+| 구성 | 현재 기술 | STORYFORK 목표 책임 — 구현 범위는 콘텐츠 통합 안내 참고 |
 |---|---|---|
 | Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 독자·작가 전체 화면(작가 도구는 하위 기능). 공개 Core Service HTTP API만 호출 |
 | Core Service (`core-api` 모듈) | Kotlin·Spring Boot, JDK 21 | 작품·세계관·회차 버전·체크포인트·Fork의 정본, 권한·승인·발행의 최종 판단과 저장 |
@@ -93,7 +93,7 @@ Frontend (React)
 
 Core는 기능별 `Controller → Service → Repository` 또는
 `Controller → Service → (필요한 경우 Facade) → Client` 흐름을 사용합니다.
-현재 DB·큐·worker는 없으며, 저장·장기 실행 요구가 확정될 때 필요한 범위만 도입합니다.
+콘텐츠 기능은 선택적으로 PostgreSQL을 사용합니다. Redis·큐·worker는 도입하지 않았습니다.
 합의된 향후 구성요소(미구현)는 [아키텍처 문서](docs/architecture.md#합의된-향후-구성요소-미구현)에 정리했습니다.
 구체적인 구현 규칙은 [AGENTS.md](AGENTS.md), 현행 실행 구조는 [아키텍처 문서](docs/architecture.md)를 참고하세요.
 
@@ -109,7 +109,7 @@ Core는 기능별 `Controller → Service → Repository` 또는
 
 Health는 OpenAI 인증·모델 접근·생성 품질 검증이 아닙니다. 모델 클라이언트를 생성하지 않으며
 실제 키 없이 실행됩니다. 이전 문서에서 제안한 LangChain·LangGraph와 현재 남아 있는 `openai-agents` 의존성은 MVP 모델·프레임워크 선정 완료를 뜻하지 않습니다.
-작품·로그인·저장·Fork·집필·승인·크레딧 기능, DB·Redis·큐·worker는 없습니다.
+선택적 콘텐츠 기능은 작품·회차·설정 저장, 원고 버전·복원·공개, 제한된 Fork와 AI 제안 적용을 제공합니다. 실제 로그인, 전체 세계관 체크포인트, 일반 수정 제안 승인 체계, 크레딧·Redis·큐·worker는 미구현입니다.
 
 ## 빠른 시작
 

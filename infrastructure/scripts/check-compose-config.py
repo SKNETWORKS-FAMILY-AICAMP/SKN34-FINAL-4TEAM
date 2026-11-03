@@ -72,7 +72,8 @@ for mode in ("dev", "prod"):
         assert core["environment"] == {
             "AI_SERVICE_BASE_URL": "http://ai-service:8000",
             "AI_SERVICE_CONNECT_TIMEOUT": "1s",
-            "AI_SERVICE_READ_TIMEOUT": "75s",
+            "AI_SERVICE_READ_TIMEOUT": "12s",
+            "AI_GENERATION_READ_TIMEOUT": "75s",
             "APP_CORS_ALLOWED_ORIGIN": f"http://127.0.0.1:{example_port}",
         }
     for changed in (False, True):

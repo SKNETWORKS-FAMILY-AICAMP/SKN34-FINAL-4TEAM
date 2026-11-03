@@ -53,9 +53,11 @@ python3 ../../infrastructure/scripts/run-native.py core-api
 |---|---|
 | `AI_SERVICE_BASE_URL` | `http://127.0.0.1:8000` |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` |
-| `AI_SERVICE_READ_TIMEOUT` | `75s` |
+| `AI_SERVICE_READ_TIMEOUT` | `12s` (Health) |
+| `AI_GENERATION_READ_TIMEOUT` | `75s` (생성) |
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
 
+`ContentConfig`는 생성 전용 HTTP 클라이언트를 만들며 Health 클라이언트의 제한시간을 변경하지 않습니다.
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 위 실행기는 루트 `.env`의 Core 허용 설정만 로드합니다. Core에 OpenAI 키를 주입하지 않습니다.
 `./gradlew bootRun` 직접 실행은 `.env`를 로드하지 않습니다.
