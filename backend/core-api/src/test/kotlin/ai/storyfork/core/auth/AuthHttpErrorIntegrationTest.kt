@@ -17,8 +17,13 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import tools.jackson.databind.JsonNode
@@ -78,6 +83,39 @@ class AuthHttpErrorIntegrationTest {
         for (internal in listOf("trace", "exception", "message")) assertFalse(json.readTree(reused.body()).has(internal))
         assertFalse(reused.body().contains(token))
         assertFalse(reused.body().contains(hash))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/api/v1/auth/verify-email", "/api/v1/auth/signup", "/api/v1/auth/reset-password"])
+    @ExtendWith(OutputCaptureExtension::class)
+    fun `invalid auth passwords and tokens stay out of responses and validation logs`(path: String, output: CapturedOutput) {
+        val token = "f1-token-marker"
+        val shortPassword = "pwF1x"
+        val longPassword = "password-f1-".repeat(7)
+        val longToken = "f1-token-marker-".repeat(10)
+        val passwords = listOf("", "        ", shortPassword, longPassword)
+        val inputs = passwords.map { token to it } +
+            if (path.endsWith("/signup")) emptyList() else listOf(longToken to "valid-password-f1")
+        for ((requestToken, password) in inputs) {
+            val body = when {
+                path.endsWith("/signup") -> """{"email":"f1@example.invalid","nickname":"Reader","password":"$password"}"""
+                path.endsWith("/reset-password") -> """{"token":"$requestToken","newPassword":"$password"}"""
+                else -> """{"token":"$requestToken","password":"$password"}"""
+            }
+            val response = send(mutation(path, body))
+            assertEquals(400, response.statusCode())
+            assertEquals(400, json.readTree(response.body()).path("status").asInt())
+            for (secret in listOf(requestToken, password).filter { it.isNotBlank() }) {
+                assertFalse(response.body().contains(secret), "Validation responses must not echo request secrets")
+            }
+            for (internal in listOf("trace", "exception", "message", "errors")) {
+                assertFalse(json.readTree(response.body()).has(internal))
+            }
+        }
+        for (secret in listOf(token, shortPassword, longPassword, "valid-password-f1")) {
+            assertFalse(output.all.contains(secret), "Request secrets must not be written to application logs")
+        }
+        assertFalse(output.all.contains("rejected value ["), "Validation logs must not include rejected values")
     }
 
     @Test
