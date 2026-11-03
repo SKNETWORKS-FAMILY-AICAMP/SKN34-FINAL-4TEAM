@@ -13,7 +13,8 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # develop CD를 중간 취소하지 않는다. 대기 중 오래된 실행은 HEAD 검사에서 차단한다.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}
 
 jobs:
   changes:
@@ -140,7 +141,12 @@ jobs:
           persist-credentials: false
       - run: python3 -m unittest discover infrastructure/tests
       - run: python3 -I infrastructure/scripts/check-compose-config.py
+<<<<<<< HEAD
       - run: python3 -I infrastructure/scripts/check-content-config.py
+=======
+      - run: python3 -I infrastructure/scripts/test-publish-preflight.py
+      - run: python3 -I infrastructure/scripts/test-deploy-develop.py
+>>>>>>> fe9ddd85058789d3ae70f142a69dbca7508e603f
       - run: bash -n infrastructure/scripts/verify-compose.sh
 
   required:
@@ -158,3 +164,137 @@ jobs:
           for r in $RESULTS; do
             case "$r" in success|skipped) ;; *) exit 1 ;; esac
           done
+
+  publish:
+    name: Publish ${{ matrix.service }} image
+    needs: required
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main') && needs.required.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: web
+            context: frontend
+          - service: core-api
+            context: backend/core-api
+          - service: ai-service
+            context: backend/ai-service
+    env:
+      IMAGE: ghcr.io/sknetworks-family-aicamp/storyfork-${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Log in to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+      - name: Build image
+        run: |
+          docker build --platform linux/amd64 \
+            --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --tag "$IMAGE:$GITHUB_REF_NAME" --tag "$IMAGE:sha-$GITHUB_SHA" \
+            "${{ matrix.context }}"
+      - name: Check anonymous package access
+        run: |
+          python3 - <<'PY'
+          # preflight-start
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          image = os.environ['IMAGE'].removeprefix('ghcr.io/')
+          query = urllib.parse.urlencode({'service': 'ghcr.io', 'scope': f'repository:{image}:pull'})
+          try:
+              with urllib.request.urlopen('https://ghcr.io/token?' + query, timeout=10) as response:
+                  status, body = response.status, response.read()
+          except urllib.error.HTTPError as error:
+              status, body = error.code, error.read()
+          except (urllib.error.URLError, TimeoutError, OSError):
+              raise SystemExit('GHCR anonymous access check failed; publishing stopped')
+          try:
+              data = json.loads(body)
+              errors = data.get('errors') if isinstance(data, dict) else None
+              denied = isinstance(errors, list) and len(errors) == 1 and isinstance(errors[0], dict) and (status, errors[0].get('code')) in {(401, 'UNAUTHORIZED'), (403, 'DENIED')}
+          except (ValueError, UnicodeError):
+              denied = False
+          if not denied:
+              raise SystemExit(f'GHCR anonymous access check returned HTTP {status}; publishing stopped')
+          print('GHCR denied anonymous access; package visibility is not guaranteed')
+          # preflight-end
+          PY
+      - name: Verify current branch HEAD
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PYTHON'
+          # branch-head-start
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+
+          repository = urllib.parse.quote(os.environ['GITHUB_REPOSITORY'], safe='/')
+          branch = urllib.parse.quote(os.environ['GITHUB_REF_NAME'], safe='')
+          request = urllib.request.Request(
+              f'https://api.github.com/repos/{repository}/git/ref/heads/{branch}',
+              headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'},
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=10) as response:
+                  current_sha = json.load(response)['object']['sha']
+          except (OSError, ValueError, KeyError, TypeError):
+              raise SystemExit('Branch HEAD lookup failed; publishing stopped')
+          if current_sha != os.environ['GITHUB_SHA']:
+              raise SystemExit('Branch HEAD differs from event SHA; publishing stopped')
+          # branch-head-end
+          PYTHON
+      - name: Push image tags
+        run: |
+          docker push "$IMAGE:sha-$GITHUB_SHA"
+          docker push "$IMAGE:$GITHUB_REF_NAME"
+
+  deploy:
+    name: Deploy develop images
+    needs: [required, publish]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && needs.required.result == 'success' && needs.publish.result == 'success' && vars.DEVELOP_CD_ENABLED == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: develop-cd
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+      id-token: write
+    concurrency:
+      group: storyfork-develop-cd
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CD_DEPLOY_DIR: ${{ vars.CD_DEPLOY_DIR }}
+      CD_WEB_PORT: ${{ vars.CD_WEB_PORT }}
+      CD_SSH_PRIVATE_KEY: ${{ secrets.CD_SSH_PRIVATE_KEY }}
+      CD_SSH_KNOWN_HOSTS: ${{ secrets.CD_SSH_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Verify exact push, publish attempt and provisioning inputs
+        run: python3 -I infrastructure/scripts/deploy-develop.py check
+      - name: Join deployment tailnet with workload identity federation
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:storyfork-cd
+      - name: Pull all images, deploy isolated project and verify health
+        run: python3 -I infrastructure/scripts/deploy-develop.py deploy
