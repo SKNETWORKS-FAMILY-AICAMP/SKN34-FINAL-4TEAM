@@ -19,17 +19,19 @@ export function WorldStudioPage() {
  useScreenId('W01')
  const vm=useWorldStudioViewModel()
  const [tab,setTab]=useState('edit')
+ const [listOpen,setListOpen]=useState(true)
  const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const f=new FormData(e.currentTarget);vm.create(String(f.get('name')??''),String(f.get('description')??''))}
  return <><Gnb on="worlds"/><main className="wrap world-studio">
   <header className="world-heading"><div><Go to="/worlds" className="back">세계관 작업실</Go><h1>세계관 작업실</h1><p className="muted">인물과 장소, 세계의 규칙을 정리해 보세요. 필요할 때 AI의 도움을 받을 수도 있어요.</p></div><Go to="/new" className="btn">저장한 세계관으로 새 소설 쓰기</Go></header>
   {vm.error && <p role="alert" className="world-error">{vm.error}</p>}
   {vm.message && <p role="status" className="world-message">{vm.message}</p>}
-  <div className="world-layout" aria-busy={vm.busy}>
-   <aside className="world-list"><h2>내 세계관</h2><details className="world-demo-help"><summary>체험 환경 안내</summary><p className="small muted">지금은 체험용 계정으로 이용할 수 있어요. 내 계정으로 로그인하는 기능은 준비 중이에요.</p><button className="btn sm" type="button" disabled={vm.busy} onClick={vm.connect}>작업실 연결</button></details>
+  <div className={"world-layout"+(listOpen?"":" world-list-collapsed")} aria-busy={vm.busy}>
+   <aside id="world-list" className="world-list" hidden={!listOpen}><h2>내 세계관</h2><details className="world-demo-help"><summary>체험 환경 안내</summary><p className="small muted">지금은 체험용 계정으로 이용할 수 있어요. 내 계정으로 로그인하는 기능은 준비 중이에요.</p><button className="btn sm" type="button" disabled={vm.busy} onClick={vm.connect}>작업실 연결</button></details>
     <nav aria-label="내 세계관">{vm.worlds.map(w=><button type="button" key={w.id} disabled={vm.busy} onClick={()=>vm.open(w.id)} aria-current={vm.saved?.id===w.id?'page':undefined}>{w.name}<small>비공개</small></button>)}</nav>
     {!vm.busy && !vm.worlds.length && <p className="muted">아직 저장한 세계관이 없습니다.</p>}
     <form onSubmit={create}><h3>새 세계관 만들기</h3><label className="field">세계관 이름<input className="inp" name="name" required maxLength={100}/></label><label className="field">설명 (선택)<textarea className="ta" name="description" maxLength={20000}/></label><button className="btn pri" disabled={vm.busy}>세계관 만들기</button></form>
    </aside>
+   <div className="world-list-divider"><button type="button" className="world-list-toggle" aria-label={listOpen?'세계관 목록 접기':'세계관 목록 펼치기'} aria-expanded={listOpen} aria-controls="world-list" onClick={()=>setListOpen(open=>!open)}><span aria-hidden="true">{listOpen?'‹':'›'}</span></button></div>
    <section className="world-content">{vm.editing?<>
     <div className="world-toolbar"><h2>{vm.saved?.name}</h2><span role="status">{vm.busy?'잠시만 기다려 주세요':vm.dirty?'저장하지 않은 변경사항':'저장됨'}</span><button className="btn pri" disabled={vm.busy || !vm.dirty} onClick={vm.save}>저장</button></div>
     <nav className="libtabs" aria-label="세계관 도구">{tabs.map(([id,label])=><button type="button" key={id} className={tab===id?'on':''} onClick={()=>setTab(id)} aria-current={tab===id?'page':undefined}>{label}</button>)}</nav>

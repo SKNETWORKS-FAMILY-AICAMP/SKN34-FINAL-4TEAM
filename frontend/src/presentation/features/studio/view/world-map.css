@@ -1,5 +1,4 @@
 .world-studio:has(.world-map){max-width:1600px}
-.world-studio:has(.world-map) .world-layout{grid-template-columns:200px minmax(0,1fr);gap:20px}
 .world-map-intro{margin:20px 0}.world-map-intro p{color:var(--sub);font-size:13px;margin-top:6px}
 .world-map-layout{display:grid;grid-template-columns:200px minmax(0,1fr) 250px;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
 .world-map-search,.world-map-detail{padding:18px;min-width:0}.world-map-search{border-right:1px solid var(--line)}.world-map-detail{border-left:1px solid var(--line)}
@@ -15,10 +14,8 @@
 .world-map-connection{display:flex;justify-content:space-between;gap:8px;width:100%;padding:10px;margin-bottom:8px;border:1px solid var(--line2);border-radius:7px;background:var(--surface);color:var(--ink);text-align:left;overflow-wrap:anywhere}.world-map-connection small{color:var(--sub)}
 .world-map button:hover{filter:brightness(.96)}.world-map-empty{padding:30px 20px;color:var(--sub)}
 @media(max-width:1250px){.world-map-layout{grid-template-columns:180px minmax(0,1fr)}.world-map-detail{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
-@media(max-width:760px){.world-studio:has(.world-map) .world-layout{grid-template-columns:minmax(0,1fr)}.world-map-layout{display:flex;flex-direction:column}.world-map-search{border-right:0;border-bottom:1px solid var(--line)}.world-map-search nav{max-height:150px}.world-map-controls .btn{font-size:12px;padding-inline:10px}.world-map-canvas{touch-action:none}}
+@media(max-width:760px){.world-map-layout{display:flex;flex-direction:column}.world-map-search{border-right:0;border-bottom:1px solid var(--line)}.world-map-search nav{max-height:150px}.world-map-controls .btn{font-size:12px;padding-inline:10px}.world-map-canvas{touch-action:none}}
 /* Relationship editing uses one inspector; the whole-world reader keeps its existing layout. */
-.world-studio:has(.relationship-editor) .world-list{display:none}
-.world-studio:has(.relationship-editor) .world-layout{grid-template-columns:minmax(0,1fr)}
 .relationship-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px;border:1px solid var(--line);border-radius:12px 12px 0 0;background:var(--surface)}
 .relationship-toolbar .inp{width:200px;max-width:100%}
 .relationship-steps{display:flex;gap:24px;flex-wrap:wrap;padding:14px 34px;margin:0;background:var(--pri-soft);color:var(--sub);font-size:13px}

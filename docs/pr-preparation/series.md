@@ -194,3 +194,16 @@ frontend/src/presentation/features/studio/viewmodel/useWorldStudioViewModel.ts
 2026-11-03 현재 소스에서 관련 프런트 14파일·25테스트와 타입 검사·oxlint·Vite 빌드를 다시 통과했습니다. Core 최근 로컬 결과 XML은 서비스 10개·minimal 계약 3개, 실패 0개입니다. Vite 메인 번들 500kB 초과 경고는 남습니다.
 
 Ponytail 리뷰로 공통 편집본→원자적 적용→기존 저장 경로, 자유 원문과 기존 항목 보존, 삭제 참조 검사·되돌리기 무효화를 확인했습니다. 별도 의존성·그래프 저장소·DB 마이그레이션을 추가하지 않았습니다. 독립 검토의 카드 연결·입력·취소 Aside 확인과 전체 반응형 E2E 미완료를 구분합니다. 최신 develop 누적 패치 소스는 적용·일치만 검사했으며 그 소스에서 전체 테스트나 원격 CI를 실행한 것은 아닙니다.
+
+## 07 공통 세계관 목록 접기
+
+[목록 레이아웃 변경과 검증](../world-sidebar.md). 모든 탭의 기본 펼침과 명시적 접기 상태 유지를 공통 레이아웃에 적용합니다. 기존 01~06 패치를 보존하고 07을 그 뒤에 적용합니다. DB·관계 계약 변경은 없으며 관련 테스트 2개·타입·린트·빌드와 Aside 1440/390px 흐름 확인을 완료했습니다. 원격 CI는 미실행입니다.
+
+```text
+docs/pr-preparation/series.md
+docs/world-sidebar.md
+frontend/src/App.world-sidebar.test.tsx
+frontend/src/presentation/features/studio/view/WorldStudioPage.tsx
+frontend/src/presentation/features/studio/view/world-map.css
+frontend/src/presentation/features/studio/view/world-studio.css
+```
