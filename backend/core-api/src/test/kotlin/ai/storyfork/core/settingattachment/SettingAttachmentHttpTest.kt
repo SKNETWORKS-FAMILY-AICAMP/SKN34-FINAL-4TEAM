@@ -1,0 +1,304 @@
+package ai.storyfork.core.settingattachment
+
+import ai.storyfork.core.auth.repository.SignupRepository
+import ai.storyfork.core.content.controller.dto.*
+import ai.storyfork.core.content.domain.Setting
+import ai.storyfork.core.content.service.ContentService
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import java.net.CookieManager
+import java.net.CookiePolicy
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.util.UUID
+import java.util.concurrent.Executors
+import javax.imageio.ImageIO
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
+
+/** 실제 HTTP·PostgreSQL·S3 호환 저장소를 사용하는 선택적 통합 검증. */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [
+    "app.content.enabled=true", "app.setting-attachments.enabled=true",
+    "spring.datasource.url=\${TEST_ATTACHMENT_DATABASE_URL}",
+    "spring.datasource.username=content_test", "spring.datasource.password=",
+    "CONTENT_DATABASE_URL=\${TEST_ATTACHMENT_DATABASE_URL}", "CONTENT_DATABASE_USER=content_test", "CONTENT_DATABASE_PASSWORD=",
+    "spring.mail.host=127.0.0.1", "spring.mail.port=1",
+    "app.auth.public-origin=http://localhost:5173", "app.auth.mail-from=test@example.invalid",
+    "AUTH_JWT_SECRET=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "AUTH_COOKIE_SECURE=false",
+    "app.setting-attachments.bucket=issue87-test", "app.setting-attachments.region=us-east-1",
+    "app.setting-attachments.endpoint=\${TEST_ATTACHMENT_S3_ENDPOINT:http://127.0.0.1:19087}",
+])
+@EnabledIfEnvironmentVariable(named = "TEST_ATTACHMENT_DATABASE_URL", matches = ".+")
+class SettingAttachmentHttpTest {
+    @LocalServerPort var port = 0
+    @Autowired lateinit var signup: SignupRepository
+    @Autowired lateinit var content: ContentService
+    @Autowired lateinit var json: ObjectMapper
+    @Autowired lateinit var s3: software.amazon.awssdk.services.s3.S3Client
+    @Autowired lateinit var jdbc: org.springframework.jdbc.core.JdbcTemplate
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    lateinit var storage: ai.storyfork.core.settingattachment.client.AttachmentStorageClient
+    @org.junit.jupiter.api.BeforeEach fun privateBucket() {
+        try { s3.headBucket { it.bucket("issue87-test") } }
+        catch (e: software.amazon.awssdk.services.s3.model.NoSuchBucketException) { s3.createBucket { it.bucket("issue87-test") } }
+        catch (e: software.amazon.awssdk.services.s3.model.S3Exception) {
+            if (e.statusCode() != 404) throw e
+            s3.createBucket { it.bucket("issue87-test") }
+        }
+    }
+    private val cookies = CookieManager(null, CookiePolicy.ACCEPT_ALL)
+    private val http = HttpClient.newBuilder().cookieHandler(cookies).build()
+    private val concurrentHttp = HttpClient.newHttpClient()
+    private val png get() = image("png", 2)
+    private fun image(format: String, width: Int) = ByteArrayOutputStream().also {
+        ImageIO.write(BufferedImage(width, 2, BufferedImage.TYPE_INT_RGB), format, it)
+    }.toByteArray()
+    private data class Actor(val id: String, val token: String)
+    private fun request(path: String) = HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path"))
+    private fun send(builder: HttpRequest.Builder): HttpResponse<ByteArray> = http.send(builder.build(), HttpResponse.BodyHandlers.ofByteArray())
+    private fun node(response: HttpResponse<ByteArray>): JsonNode = json.readTree(response.body())
+    private fun csrf() = node(send(request("/api/v1/auth/csrf"))).path("csrfToken").asText()
+    private fun actor(): Actor {
+        val email = "${UUID.randomUUID()}@example.invalid"
+        signup.createMember(email, requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Writer")
+        val response = send(request("/api/v1/auth/login").header("X-CSRF-TOKEN", csrf()).header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString("""{"email":"$email","password":"test-password"}""")))
+        assertEquals(200, response.statusCode())
+        return Actor(node(response).path("user").path("id").asText(), node(response).path("accessToken").asText())
+    }
+    private fun fixture(actor: Actor): String {
+        val work = content.create(actor.id, CreateWorkRequest("첨부 검증"))
+        val saved = content.saveSetting(work.id, "new", actor.id, SettingRequest(0, Setting(name="지역", content="비공개 설정"), content.world(work.id, actor.id).sourceToken))
+        return "/api/v1/works/${work.id}/settings/${saved.draft!!.id}/attachments"
+    }
+    private fun get(path: String, actor: Actor?) = send(request(path).apply { actor?.let { header("Authorization", "Bearer ${it.token}") } })
+    private fun upload(path: String, actor: Actor?, bytes: ByteArray = png, filename: String = "map.png", type: String = "image/png", method: String = "POST", token: String = csrf(), origin: String? = null, cookie: String? = null): HttpResponse<ByteArray> {
+        val boundary = "issue87boundary"
+        val prefix = "--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$filename\"\r\nContent-Type: $type\r\n\r\n".toByteArray()
+        val builder = request(path).header("Content-Type", "multipart/form-data; boundary=$boundary").apply {
+            actor?.let { header("Authorization", "Bearer ${it.token}") }
+            if (token.isNotEmpty()) header("X-CSRF-TOKEN", token)
+            origin?.let { header("Origin", it) }
+            cookie?.let { header("Cookie", it) }
+        }.method(method, HttpRequest.BodyPublishers.ofByteArray(prefix + bytes + "\r\n--$boundary--\r\n".toByteArray()))
+        // JWT authentication rotates the response CSRF cookie; concurrent requests keep their valid request snapshot.
+        return (if (cookie == null) http else concurrentHttp).send(builder.build(), HttpResponse.BodyHandlers.ofByteArray())
+    }
+    private fun delete(path: String, actor: Actor) = send(request(path).header("Authorization", "Bearer ${actor.token}").header("X-CSRF-TOKEN", csrf()).DELETE())
+
+    @Test fun `image upload metadata list read replace delete uses private storage`() {
+        val owner = actor(); val base = fixture(owner)
+        val created = upload(base, owner)
+        assertEquals(201, created.statusCode(), String(created.body()))
+        val metadata = node(created); val id = metadata.path("id").asText(); val url = metadata.path("url").asText()
+        assertEquals("IMAGE", metadata.path("kind").asText())
+        assertEquals("image/png", metadata.path("mediaType").asText())
+        assertEquals("$base/$id/content", url)
+        assertFalse(String(created.body()).contains("19087"))
+        assertEquals(id, node(get(base, owner)).path("attachments").single().path("id").asText())
+        assertEquals(id, node(get("$base/$id", owner)).path("id").asText())
+        val downloaded = get(url, owner)
+        assertEquals(200, downloaded.statusCode()); assertArrayEquals(png, downloaded.body())
+        assertEquals("nosniff", downloaded.headers().firstValue("X-Content-Type-Options").orElse(""))
+        assertTrue(downloaded.headers().firstValue("Cache-Control").orElse("").contains("no-store"))
+        val replacement = image("jpg", 3)
+        val replaced = upload("$base/$id", owner, replacement, "new.jpg", "image/jpeg", "PUT")
+        assertEquals(200, replaced.statusCode(), String(replaced.body()))
+        assertEquals(id, node(replaced).path("id").asText()); assertArrayEquals(replacement, get(url, owner).body())
+        assertEquals(204, delete("$base/$id", owner).statusCode())
+        assertEquals(404, get(url, owner).statusCode()); assertTrue(node(get(base, owner)).path("attachments").isEmpty)
+    }
+
+    @Test fun `general files download only as safe attachments and have full CRUD`() {
+        val owner = actor(); val base = fixture(owner)
+        for ((filename, type, bytes) in listOf(
+            Triple("메모.txt", "text/plain", "일반 메모".toByteArray()),
+            Triple("notes.md", "text/markdown", "# Notes".toByteArray()),
+            Triple("table.csv", "text/csv", "name,value\na,1".toByteArray()),
+            Triple("document.pdf", "application/pdf", "%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\n".toByteArray()),
+        )) {
+            val created = upload(base, owner, bytes, filename, type)
+            assertEquals(201, created.statusCode(), String(created.body()))
+            assertEquals("FILE", node(created).path("kind").asText())
+            val path = "$base/${node(created).path("id").asText()}"
+            val download = get("$path/content", owner)
+            assertEquals(200, download.statusCode()); assertArrayEquals(bytes, download.body())
+            val disposition = download.headers().firstValue("Content-Disposition").orElse("")
+            assertTrue(disposition.startsWith("attachment;")); assertFalse(disposition.contains("\r")); assertFalse(disposition.contains("\n"))
+            assertEquals("nosniff", download.headers().firstValue("X-Content-Type-Options").orElse(""))
+            val replaced = upload(path, owner, "새 본문".toByteArray(), "replaced.txt", "text/plain", "PUT")
+            assertEquals(200, replaced.statusCode()); assertArrayEquals("새 본문".toByteArray(), get("$path/content", owner).body())
+            assertEquals(204, delete(path, owner).statusCode()); assertEquals(404, get("$path/content", owner).statusCode())
+        }
+    }
+
+    @Test fun `JWT ownership missing resources and csrf are enforced on every operation`() {
+        val owner = actor(); val other = actor(); val base = fixture(owner)
+        val created = upload(base, owner); assertEquals(201, created.statusCode())
+        val path = "$base/${node(created).path("id").asText()}"
+        assertEquals(401, get(path, null).statusCode()); assertEquals(401, upload(base, null).statusCode())
+        assertEquals(403, upload(base, owner, token="").statusCode())
+        assertEquals(403, upload(base, owner, origin="https://evil.example").statusCode())
+        for (url in listOf(base, path, "$path/content")) assertEquals(404, get(url, other).statusCode())
+        assertEquals(404, upload(base, other).statusCode()); assertEquals(404, upload(path, other, method="PUT").statusCode())
+        assertEquals(404, delete(path, other).statusCode())
+        assertEquals(404, get("$base/missing", owner).statusCode())
+        assertEquals(404, upload(base.replace("/settings/", "/settings/missing-"), owner).statusCode())
+        assertArrayEquals(png, get("$path/content", owner).body())
+    }
+
+    @Test fun `ten image ceiling holds under concurrent uploads and does not apply to files`() {
+        val owner = actor(); val base = fixture(owner); val token = csrf()
+        val cookie = cookies.cookieStore.cookies.filter { it.name == "XSRF-TOKEN" }.joinToString("; ") { "${it.name}=${it.value}" }
+        val pool = Executors.newFixedThreadPool(6)
+        val results = try { (1..12).map { pool.submit<HttpResponse<ByteArray>> { upload(base, owner, token=token, cookie=cookie) } }.map { it.get() } } finally { pool.shutdownNow() }
+        assertEquals(10, results.count { it.statusCode()==201 }, results.joinToString { "${it.statusCode()}:${String(it.body())}" })
+        assertEquals(2, results.count { it.statusCode()==409 })
+        val first = node(results.first { it.statusCode()==201 }).path("id").asText()
+        assertEquals(200, upload("$base/$first", owner, method="PUT").statusCode())
+        val file = upload(base, owner, "text".toByteArray(), "file.txt", "text/plain")
+        assertEquals(201, file.statusCode())
+        val filePath = "$base/${node(file).path("id").asText()}"
+        assertEquals(409, upload(filePath, owner, method="PUT").statusCode())
+        assertEquals(11, node(get(base, owner)).path("attachments").size())
+        assertEquals(200, upload("$base/$first", owner, "text".toByteArray(), "converted.txt", "text/plain", "PUT").statusCode())
+        assertEquals(200, upload(filePath, owner, method="PUT").statusCode())
+        assertEquals(409, upload(base, owner).statusCode())
+        assertEquals(204, delete(filePath, owner).statusCode()); assertEquals(201, upload(base, owner).statusCode())
+    }
+
+    @Test fun `ambiguous object deletion failure preserves old reference and readable bytes`() {
+        val owner = actor(); val base = fixture(owner)
+        val created = upload(base, owner); assertEquals(201, created.statusCode())
+        val path = "$base/${node(created).path("id").asText()}"
+        org.mockito.Mockito.doAnswer { invocation ->
+            invocation.callRealMethod()
+            throw ai.storyfork.core.settingattachment.domain.AttachmentFailure(503, "ATTACHMENT_STORAGE_FAILURE", "저장소 요청 실패")
+        }.`when`(storage).delete(org.mockito.ArgumentMatchers.anyString())
+        val replaced = upload(path, owner, "new".toByteArray(), "new.txt", "text/plain", "PUT")
+        assertEquals(503, replaced.statusCode()); assertEquals("map.png", node(get(path, owner)).path("filename").asText())
+        val afterReplace = get("$path/content", owner)
+        assertEquals(200, afterReplace.statusCode()); assertArrayEquals(png, afterReplace.body())
+        assertEquals(503, delete(path, owner).statusCode())
+        val afterDelete = get("$path/content", owner)
+        assertEquals(200, afterDelete.statusCode()); assertArrayEquals(png, afterDelete.body())
+    }
+
+    @Test fun `failed upload or replacement never switches the current reference`() {
+        val owner = actor(); val base = fixture(owner)
+        val created = upload(base, owner); assertEquals(201, created.statusCode())
+        val path = "$base/${node(created).path("id").asText()}"
+        org.mockito.Mockito.doThrow(ai.storyfork.core.settingattachment.domain.AttachmentFailure(503, "ATTACHMENT_STORAGE_FAILURE", "저장소 요청 실패"))
+            .`when`(storage).upload(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.any(ai.storyfork.core.settingattachment.client.dto.AttachmentObjectPayload::class.java)
+                    ?: ai.storyfork.core.settingattachment.client.dto.AttachmentObjectPayload(ByteArray(0), ""))
+        assertEquals(503, upload(base, owner).statusCode())
+        assertEquals(503, upload(path, owner, "new".toByteArray(), "new.txt", "text/plain", "PUT").statusCode())
+        assertEquals(1, node(get(base, owner)).path("attachments").size())
+        assertEquals("map.png", node(get(path, owner)).path("filename").asText())
+        assertArrayEquals(png, get("$path/content", owner).body())
+    }
+
+    @Test fun `failed compensation is explicit and requires operator recovery not false success`() {
+        val owner = actor(); val base = fixture(owner)
+        val bytes = "원래 문서".toByteArray()
+        val created = upload(base, owner, bytes, "original.txt", "text/plain"); assertEquals(201, created.statusCode())
+        val id = node(created).path("id").asText(); val path = "$base/$id"
+        val key = jdbc.queryForObject("SELECT object_key FROM setting_attachment WHERE id=?", String::class.java, id)!!
+        org.mockito.Mockito.doAnswer { invocation ->
+            invocation.callRealMethod()
+            throw ai.storyfork.core.settingattachment.domain.AttachmentFailure(503, "ATTACHMENT_STORAGE_FAILURE", "저장소 요청 실패")
+        }.`when`(storage).delete(org.mockito.ArgumentMatchers.anyString())
+        org.mockito.Mockito.doThrow(ai.storyfork.core.settingattachment.domain.AttachmentFailure(503, "ATTACHMENT_STORAGE_FAILURE", "복원 실패"))
+            .`when`(storage).upload(org.mockito.ArgumentMatchers.eq(key) ?: "",
+                org.mockito.ArgumentMatchers.any(ai.storyfork.core.settingattachment.client.dto.AttachmentObjectPayload::class.java)
+                    ?: ai.storyfork.core.settingattachment.client.dto.AttachmentObjectPayload(ByteArray(0), ""))
+        try {
+            val failed = delete(path, owner)
+            assertEquals(503, failed.statusCode()); assertEquals("ATTACHMENT_RECOVERY_REQUIRED", node(failed).path("code").asText())
+            assertEquals(200, get(path, owner).statusCode()); assertEquals(503, get("$path/content", owner).statusCode())
+        } finally {
+            s3.putObject({ it.bucket("issue87-test").key(key).contentType("text/plain") }, software.amazon.awssdk.core.sync.RequestBody.fromBytes(bytes))
+        }
+        assertArrayEquals(bytes, get("$path/content", owner).body())
+    }
+
+    @Test fun `database flush and deferred commit failure keep the existing downloadable reference`() {
+        val owner = actor(); val base = fixture(owner)
+        val created = upload(base, owner); assertEquals(201, created.statusCode())
+        val id = node(created).path("id").asText(); val path = "$base/$id"
+        jdbc.execute("ALTER TABLE setting_attachment ADD CONSTRAINT issue87_reject_filename CHECK(filename <> 'reject-db.txt')")
+        try {
+            assertEquals(503, upload(base, owner, "new".toByteArray(), "reject-db.txt", "text/plain").statusCode())
+            assertEquals(503, upload(path, owner, "new".toByteArray(), "reject-db.txt", "text/plain", "PUT").statusCode())
+            assertEquals(1, node(get(base, owner)).path("attachments").size())
+            assertArrayEquals(png, get("$path/content", owner).body())
+        } finally { jdbc.execute("ALTER TABLE setting_attachment DROP CONSTRAINT issue87_reject_filename") }
+        // Test-only deferred trigger exercises real PostgreSQL commit failure after object deletion.
+        jdbc.execute("""CREATE FUNCTION issue87_fail_commit() RETURNS trigger LANGUAGE plpgsql AS 'BEGIN RAISE EXCEPTION ''issue87 deferred failure''; END'""")
+        jdbc.execute("""CREATE CONSTRAINT TRIGGER issue87_commit_failure AFTER UPDATE OR DELETE ON setting_attachment
+            DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION issue87_fail_commit()""")
+        try {
+            val failed = upload(path, owner, "new".toByteArray(), "commit-failure.txt", "text/plain", "PUT")
+            assertEquals(503, failed.statusCode()); assertFalse(String(failed.body()).contains("issue87 deferred"))
+            assertEquals("map.png", node(get(path, owner)).path("filename").asText())
+            assertEquals(200, get("$path/content", owner).statusCode()); assertArrayEquals(png, get("$path/content", owner).body())
+            assertEquals(503, delete(path, owner).statusCode())
+            assertEquals(200, get("$path/content", owner).statusCode()); assertArrayEquals(png, get("$path/content", owner).body())
+        } finally {
+            jdbc.execute("DROP TRIGGER issue87_commit_failure ON setting_attachment")
+            jdbc.execute("DROP FUNCTION issue87_fail_commit()")
+        }
+    }
+
+    @Test fun `following Fork cannot access source attachments and IDs never cross local settings`() {
+        val owner = actor(); val reader = actor(); val base = fixture(owner)
+        val created = upload(base, owner); assertEquals(201, created.statusCode())
+        val workId = base.split('/')[4]; val settingId = base.split('/')[6]
+        val world = content.world(workId, owner.id)
+        content.commitSetting(workId, settingId, owner.id, world.revision)
+        val draft = content.edit(workId, owner.id, DraftRequest("회차", "원고", 0))
+        content.publish(workId, owner.id, PublishRequest(draft.revision, true, true, true, content.history(workId, owner.id).versions.last().id))
+        val fork = content.fork(workId, reader.id, ForkRequest(1, "따라가는 Fork"))
+        assertEquals(404, get(base.replace(workId, fork.id), reader).statusCode())
+        assertEquals(404, upload(base.replace(workId, fork.id), reader).statusCode())
+        val anotherBase = fixture(owner)
+        assertEquals(404, get("$anotherBase/${node(created).path("id").asText()}/content", owner).statusCode())
+        assertEquals(404, get("/api/v1/public/works/$workId/settings/$settingId/attachments", null).statusCode())
+    }
+
+    @Test fun `invalid empty oversized and unsafe content is rejected without adding references`() {
+        val owner = actor(); val base = fixture(owner)
+        val cases = listOf(
+            Triple(ByteArray(0), "empty.png", "image/png"),
+            Triple("not an image".toByteArray(), "fake.png", "image/png"),
+            Triple("<svg onload='alert(1)'/>".toByteArray(), "bad.svg", "image/svg+xml"),
+            Triple(png, "../bad.png", "image/png"),
+            Triple(png, "bad.exe", "image/png"),
+            Triple(image("png", 4097), "wide.png", "image/png"),
+            Triple(byteArrayOf(0, 1, 2), "binary.txt", "text/plain"),
+            Triple("not PDF".toByteArray(), "fake.pdf", "application/pdf"),
+            Triple(png.copyOf(30), "truncated.png", "image/png"),
+        )
+        for ((bytes, filename, type) in cases) {
+            val response = upload(base, owner, bytes, filename, type)
+            assertEquals(422, response.statusCode(), "$filename: ${response.statusCode()} ${String(response.body())}")
+            assertTrue(node(response).path("code").asText().startsWith("ATTACHMENT_"))
+        }
+        for (name in listOf("big.png", "big.txt")) {
+            val oversized = upload(base, owner, ByteArray(10*1024*1024+1), name, "application/octet-stream")
+            assertEquals(413, oversized.statusCode())
+            assertEquals("ATTACHMENT_TOO_LARGE", node(oversized).path("code").asText())
+        }
+        assertTrue(node(get(base, owner)).path("attachments").isEmpty)
+    }
+}

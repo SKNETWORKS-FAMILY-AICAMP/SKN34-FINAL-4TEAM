@@ -97,6 +97,31 @@ AI 재시작 후 복구를 검사합니다. prod는 정적 index·JS asset·deep
 `VERIFY_COMPOSE_PROJECT_NAME`, `VERIFY_COMPOSE_TIMEOUT_SECONDS`(120초),
 `VERIFY_COMPOSE_KEEP_RUNNING=true`(진단용 보존)를 지원합니다. 실패 시 비밀값이나 서비스 원문 로그를 덤프하지 않습니다.
 
+## 로컬 설정 첨부 저장소 (#87)
+
+이미지·일반 파일 API를 로컬에서 사용할 때만 다음 overlay를 추가합니다. 기존 DB와 사용자 데이터는 보존합니다.
+저장소 빌드는 승인된 [기존 minio.dockerfile](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-5Team/blob/HEAD/minio.dockerfile) 방식이며
+Go `1.24.8`/MinIO `RELEASE.2025-10-15T17-29-55Z`를 고정합니다(해당 tag의 go.mod와 일치).
+외부 소스 다운로드·빌드는 네트워크가 필요합니다. 개발용 MinIO를 실제 배포 저장소로 가정하지 않습니다.
+
+```bash
+# 루트 .env에 예제의 로컬 S3 변수와 별도 로컬 credentials를 지정 (실제 파일은 자동 변경하지 않음)
+docker compose --env-file .env -f infrastructure/compose.yaml -f infrastructure/compose.content.yaml -f infrastructure/compose.attachments.yaml up --build -d
+```
+
+MinIO Console은 `http://127.0.0.1:${MINIO_CONSOLE_PORT:-9001}`, S3 API는 `${MINIO_API_PORT:-9000}`입니다.
+기본 포트가 점유됐으면 다른 스택을 중지하지 말고 두 변수를 바꿉니다. 네이티브 Core는 `ATTACHMENT_S3_ENDPOINT`도 해당 loopback 포트로 지정합니다.
+Console에서 `ATTACHMENT_S3_BUCKET` 이름의 **private** 버킷을 먼저 생성합니다. API는 버킷/공개 정책을 자동 생성하지 않습니다.
+AWS credentials는 Core와 이 로컬 MinIO에만 전달하며 Frontend·AI·build ARG에는 전달하지 않습니다.
+네이티브 실행기는 S3 설정과 표준 AWS access/secret/session/region/profile 변수만 Core에 추가 전달합니다.
+로컬 자격증명은 `.env.example`의 공개 개발 전용 예제이며 실제 `.env`에서 교체합니다.
+
+실제 배포는 **AWS S3**입니다. endpoint를 비우고 region/bucket을 지정하며 로컬 access/secret 값을 제거한 뒤 SDK 기본 role/profile 체인을 사용합니다.
+이 overlay는 로컬 전용이고 기존 prod/CD Compose와 배포·AWS provisioning은 변경하지 않았습니다. AWS 유료 호출·실제 IAM·TLS는 미검증입니다.
+성공/실패 HTTP 계약과 분산 transaction 한계는 [Core 첨부 문서](../backend/core-api/README.md#설정-이미지일반-파일-87)를 따릅니다.
+선택 overlay·네이티브 비밀 경계 회귀는 `python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py`로 확인합니다.
+종료 시 해당 Compose 프로젝트만 `down`하고 volume은 기본 보존합니다. 이번 task의 별도 검증 컨테이너는 verifier 종료 후 그 소유자가 정리하며 다른 스택은 건드리지 않습니다.
+
 ## CI → Images → Deploy
 
 세 단계는 Actions에서 각각 보이는 독립 워크플로입니다. 자동으로 순서대로 이어지며, 앞 단계를 반복하지 않고 각 단계를 수동 재시도할 수 있습니다. 서버 배포는 별도 opt-in·승인·설정 전에는 비활성화됩니다.
