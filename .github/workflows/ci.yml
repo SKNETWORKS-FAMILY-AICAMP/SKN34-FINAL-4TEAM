@@ -35,10 +35,10 @@ jobs:
           # 푸시는 같은 브랜치의 직전 커밋과 비교한다. PR·수동 실행은 빈 값으로 기본 비교를 쓴다.
           base: ${{ github.event_name == 'push' && github.ref || '' }}
           filters: |
-            web: ['frontend/**', '.github/workflows/ci.yml']
-            core: ['backend/core-api/**', '.github/workflows/ci.yml']
-            ai: ['backend/ai-service/**', '.github/workflows/ci.yml']
-            infra: ['infrastructure/**', 'frontend/nginx.conf', '.env.example', '.github/workflows/ci.yml']
+            web: ['frontend/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
+            core: ['backend/core-api/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
+            ai: ['backend/ai-service/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
+            infra: ['infrastructure/**', 'frontend/nginx.conf', '.env.example', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
 
   repository:
     name: Whitespace
@@ -63,7 +63,7 @@ jobs:
 
   web:
     needs: changes
-    if: ${{ needs.changes.outputs.web == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true' }}
     name: Web
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -89,7 +89,7 @@ jobs:
 
   core-api:
     needs: changes
-    if: ${{ needs.changes.outputs.core == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.core == 'true' }}
     name: Core API
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -109,7 +109,7 @@ jobs:
 
   ai-service:
     needs: changes
-    if: ${{ needs.changes.outputs.ai == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.ai == 'true' }}
     name: AI Service
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -130,7 +130,7 @@ jobs:
 
   infrastructure:
     needs: changes
-    if: ${{ needs.changes.outputs.infra == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.infra == 'true' }}
     name: Compose configuration
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -140,6 +140,8 @@ jobs:
           persist-credentials: false
       - run: python3 -I infrastructure/scripts/check-compose-config.py
       - run: python3 -I infrastructure/scripts/check-nginx-routing.py
+      - run: python3 -I infrastructure/scripts/test-publish-preflight.py
+      - run: python3 -I infrastructure/scripts/test-deploy-develop.py
       - run: bash -n infrastructure/scripts/verify-compose.sh
 
   required:
