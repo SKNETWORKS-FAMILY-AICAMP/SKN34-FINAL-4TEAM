@@ -14,6 +14,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const [saved,setSaved]=useState<StudioWorld|null>(null)
  const [editing,setEditing]=useState<StudioWorld|null>(null)
  const [personUndo,setPersonUndo]=useState<{worldId:string;id:string;before:StudioSetting[];after:StudioSetting[];wasDirty:boolean}|null>(null)
+ const [saveState,setSaveState]=useState<'idle'|'saving'|'failed'>('idle')
  const [dirty,setDirty]=useState(false)
  const [selected,setSelected]=useState('')
  const [error,setError]=useState('')
@@ -24,10 +25,10 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const [edits,setEdits]=useState<Record<string,SettingItem>>({})
  const generation=useRef(0)
  const pending=useRef(false)
- const install=(w:StudioWorld) => {setPersonUndo(null);setSaved(w);setEditing(structuredClone(w));setDirty(false);setPicks([]);setEdits({});setWorlds(ws=>[...ws.filter(x=>x.id!==w.id),w])}
+ const install=(w:StudioWorld) => {setPersonUndo(null);setSaved(w);setEditing(structuredClone(w));setSaveState('idle');setDirty(false);setPicks([]);setEdits({});setWorlds(ws=>[...ws.filter(x=>x.id!==w.id),w])}
  useEffect(()=>{
   const controller=new AbortController();const current=++generation.current
-  setPersonUndo(null);setSaved(null);setEditing(null);setDirty(false);setError('');setMessage('');setBusy(true)
+  setSaveState('idle');setPersonUndo(null);setSaved(null);setEditing(null);setDirty(false);setError('');setMessage('');setBusy(true)
   Promise.all([useCase.list(controller.signal),useCase.capabilities(),worldId?useCase.read(worldId,controller.signal):Promise.resolve(null)]).then(([ws,c,w])=>{
    if(generation.current!==current)return
    setWorlds(ws);setAIEnabled(c.aiEnabled);if(w){setSaved(w);setEditing(structuredClone(w))}
@@ -46,7 +47,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   if(!editing||busy)return
   try {const settings=change(editing.settings);if(settings!==editing.settings)patch({settings});setError('');return settings} catch(e) {setError(e instanceof Error?e.message:'관계를 변경하지 못했습니다.')}
  }
- return {storageIssues:storageLimitations(editing?.settings??[]),worlds,saved,editing,dirty,selected,setSelected,error,message,busy,aiEnabled,picks,edits,canUndoPersonDeletion:!!personUndo,
+ return {saveState,storageIssues:storageLimitations(editing?.settings??[]),worlds,saved,editing,dirty,selected,setSelected,error,message,busy,aiEnabled,picks,edits,canUndoPersonDeletion:!!personUndo,
   connect:()=>perform(async()=>{const current=generation.current;await useCase.connect();const [ws,c]=await Promise.all([useCase.list(),useCase.capabilities()]);if(current!==generation.current)return;setWorlds(ws);setAIEnabled(c.aiEnabled);setMessage('작업실을 사용할 준비가 됐어요.')}),
   create:(name:string,description:string)=>perform(async()=>{const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current)navigate('/worlds/'+w.id)}),
   open:(id:string)=>{if(dirty && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){navigate('/worlds/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
@@ -62,7 +63,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   changeCardType:(id:string,type:CardType)=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;setSelected(id);try{const change=cardTypePatch(row.item,type,editing.settings);if(Object.keys(change).length)patch({settings:editStudioSetting(editing.settings,id,change)});setError('')}catch(e){setError(e instanceof Error?e.message:'유형을 바꾸지 못했습니다.')}},
   changeArea:(id:string,category:SettingItem['category'])=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;try{const change=areaPatch(row.item,category);patch({settings:editing.settings.map(s=>s.item.id===id?{...s,item:{...s.item,...change}}:s)});setError('')}catch(e){setError(e instanceof Error?e.message:'영역을 바꾸지 못했습니다.')}},
   update:(id:string,item:Partial<SettingItem>,labels?:Partial<StudioSetting>)=>{if(editing)patch({settings:editStudioSetting(editing.settings,id,item,labels)})},
-  save:()=>{setPersonUndo(null);return perform(async()=>{if(!editing)return;const current=generation.current;apply(await useCase.save(editing),current);if(current===generation.current)setMessage('세계관을 저장했어요.')})},
+  save:()=>{setPersonUndo(null);return perform(async()=>{if(!editing)return;const current=generation.current;setSaveState('saving');try{apply(await useCase.save(editing),current);if(current===generation.current)setMessage('세계관을 저장했어요.')}catch(e){if(current===generation.current)setSaveState('failed');throw e}})},
   analyze:()=>perform(async()=>{if(!saved || dirty)return;const current=generation.current;apply(await useCase.analyze(saved),current)}),
   toggle:(id:string,on:boolean)=>setPicks(ids=>on?[...new Set([...ids,id])]:ids.filter(x=>x!==id)),
   editCandidate:(i:SettingItem)=>setEdits(all=>({...all,[i.id]:i})),

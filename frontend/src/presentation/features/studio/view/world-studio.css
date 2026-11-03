@@ -59,3 +59,20 @@ html:has(.world-studio) { scrollbar-gutter:stable; }
 .world-setting-editor .field { min-width:0; }
 .world-setting-editor select { text-overflow:ellipsis; }
 .world-sections { margin-block:16px 24px; }
+
+/* Card navigation and editing share one draft across the four work areas. */
+.world-card-workspace { display:grid; grid-template-columns:minmax(200px,260px) minmax(0,1fr); gap:24px; margin-top:20px; }
+.world-card-library { min-width:0; border-right:1px solid var(--line); padding-right:20px; }
+.world-card-library .world-sections { gap:6px; border:0; padding:0; margin:0 0 20px; }
+.world-card-library .world-sections button { flex:1 1 90px; justify-content:space-between; min-height:44px; }
+.world-card-library .field { margin-bottom:16px; }
+.world-card-library .world-settings { display:block; border-top:1px solid var(--line); }
+.world-card-library .world-settings nav { max-height:520px; overflow-y:auto; }
+.world-mobile-list { display:none; }
+.world-studio [hidden] { display:none!important; }
+.world-content h2,.world-content h3 { overflow-wrap:anywhere; }
+.world-content .libtabs { display:flex; flex-wrap:wrap; overflow:visible; }
+.world-content .libtabs button { flex:1 1 auto; min-height:44px; }
+.world-explore-tabs { margin-top:24px; }
+@media(max-width:1050px) { .world-card-workspace { grid-template-columns:minmax(180px,220px) minmax(0,1fr); gap:16px; } .world-layout { grid-template-columns:190px 44px minmax(0,1fr); } }
+@media(max-width:800px) { .world-layout,.world-layout.world-list-collapsed { grid-template-columns:minmax(0,1fr); } .world-card-workspace { grid-template-columns:minmax(0,1fr); } .world-card-library { border:0; padding:0; } .world-card-workspace:not(.showing-detail)>.world-setting-editor { display:none; } .world-card-workspace.showing-detail>.world-card-library { display:none; } .world-mobile-list { display:inline-flex; margin-bottom:16px; } .world-card-library .world-settings nav { flex-direction:column; } .world-form-row { grid-template-columns:minmax(0,1fr); } }

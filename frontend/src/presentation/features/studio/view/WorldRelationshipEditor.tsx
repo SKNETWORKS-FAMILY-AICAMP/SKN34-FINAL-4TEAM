@@ -12,11 +12,13 @@ type Selection={kind:'person';id:string}|{kind:'target';source:string}|{kind:'pa
 type DraftRow={key:string;group:'fact'|'emotion';value:RelationInput}
 const pairMatches=(r:RelationInput,a:string,b:string)=>r.subjectId===a&&r.targetId===b||r.subjectId===b&&r.targetId===a
 
-export function WorldRelationshipEditor({studio}:{studio:VM}) {
+export function WorldRelationshipEditor({studio,active=true,entry}:{studio:VM;active?:boolean;entry?:{id:string;sequence:number}|null}) {
  const settings=studio.editing!.settings,people=settings.filter(s=>s.item.kind==='entity'&&s.item.entityType==='character')
  const vm=useWorldMapViewModel(settings,buildCharacterMap)
  const selectMap=vm.select
  const [selection,setSelection]=useState<Selection>(()=>people.some(p=>p.item.id===studio.selected)?{kind:'person',id:studio.selected}:null),[layoutVersion,setLayoutVersion]=useState(0),[deleteConfirm,setDeleteConfirm]=useState<string|null>(null)
+ const [lastEntry,setLastEntry]=useState(entry)
+ if(entry!==lastEntry){setLastEntry(entry);if(entry)setSelection({kind:'person',id:entry.id})}
  const [narrow,setNarrow]=useState(()=>window.matchMedia?.('(max-width: 1050px)').matches??false)
  const inspector=useRef<HTMLElement>(null),peopleButtons=useRef(new Map<string,HTMLButtonElement>()),returnFocus=useRef<string|null>(null),addButton=useRef<HTMLButtonElement>(null)
  const name=(id:string)=>people.find(p=>p.item.id===id)?.item.title||'새 인물'
@@ -33,13 +35,14 @@ export function WorldRelationshipEditor({studio}:{studio:VM}) {
   const media=window.matchMedia?.('(max-width: 1050px)');if(!media)return
   const changed=()=>setNarrow(media.matches);media.addEventListener('change',changed);return()=>media.removeEventListener('change',changed)
  },[])
- useEffect(()=>{if(!narrow||!showInspector)return;const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=overflow}},[narrow,showInspector])
+ useEffect(()=>{if(!active||!narrow||!showInspector)return;const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=overflow}},[active,narrow,showInspector])
  useEffect(()=>{
+  if(!active)return
   selectMap(source)
   if(returnFocus.current){(peopleButtons.current.get(returnFocus.current)??addButton.current)?.focus({preventScroll:true});returnFocus.current=null;return}
   if(selection?.kind==='target')Array.from(peopleButtons.current.entries()).find(([id,button])=>id!==selection.source&&!button.disabled)?.[1].focus({preventScroll:true})
   else if(selection)inspector.current?.focus({preventScroll:true})
- },[selection,source,selectMap])
+ },[active,selection,source,selectMap])
  const beginConnection=(id:string)=>{if(studio.busy)return;vm.setQuery('');setDeleteConfirm(null);vm.select(id);setSelection({kind:'target',source:id})}
  const selectPerson=(id:string)=>{
   if(studio.busy)return
