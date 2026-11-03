@@ -3,12 +3,12 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
 import { createAppStore } from './app/store'
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
@@ -21,11 +21,17 @@ const nav = () => screen.getByRole('navigation', { name: '관리자 업무' })
 
 describe('관리자 (A01~A18)', () => {
   it('관리자 화면에서 로그아웃하면 홈으로 가고 로그인 안내가 남지 않는다 (목업 logout)', async () => {
+    vi.stubGlobal('navigator', { locks: { request: (_name: string, _options: object, callback: (lock: object) => Promise<unknown>) => callback({}) } })
+    const fetch = vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' })
+      : path.endsWith('/refresh') ? Response.json({ accessToken: 'token', user: { id: 'admin', email: 'admin@example.invalid', nickname: '관리자', operator: true } })
+        : new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetch)
     const { store } = renderAt('/admin')
-    fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
+    fireEvent.click(await screen.findByRole('button', { name: '로그아웃' }))
     await toastIs('로그아웃했어요')
     await waitFor(() => expect(where()).toBe('/'))
     expect(store.getState().session).toMatchObject({ role: null, next: null, loginMsg: '' })
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/logout', expect.objectContaining({ method: 'POST', credentials: 'same-origin', headers: expect.objectContaining({ 'X-CSRF-TOKEN': 'csrf', 'X-Auth-User': 'admin' }) }))
   })
 
   it('일반 회원·비로그인은 관리자 로그인 안내로 보낸다', async () => {

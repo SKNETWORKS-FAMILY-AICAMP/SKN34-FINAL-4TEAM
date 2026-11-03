@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router'
+import { useLogout } from '../../../shared/session/useLogout'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
@@ -16,7 +16,7 @@ const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A0
 /** 목업 admin(): 관리자 업무 화면. 조치 결과 문구는 UseCase가 돌려준 목업 문구입니다. */
 export function useAdminViewModel(tab: AdminTab, adminUseCase: AdminUseCase = appContainer.resolve('adminUseCase')) {
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
+  const logout = useLogout()
   const view = useAppSelector((s) => s.adminView)
   const sel = view.sel
   useScreenId(tab === 'rights' && sel ? 'A03+A04' : IDS[tab])
@@ -51,6 +51,6 @@ export function useAdminViewModel(tab: AdminTab, adminUseCase: AdminUseCase = ap
     review: (id: string, act: 'ok' | 'hide' | 'keep' | 'restore') => run(adminUseCase.review(id, act)),
     saveProfile: (nick: string, email: string) => run(adminUseCase.saveProfile(nick, email)),
     addAdmin: (nick: string, email: string, perms: string[]) => run(adminUseCase.addAdmin(nick, email, perms)),
-    logout: () => { dispatch(sessionActions.logout()); navigate('/'); toast('로그아웃했어요') },
+    logout,
   }
 }

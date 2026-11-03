@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.*
@@ -58,6 +60,7 @@ class ContentController(private val service: ContentService, @Value("\${app.cont
     @GetMapping("/public/works/{id}/context") fun publicContext(@PathVariable id: String,@RequestParam episode: Int,@RequestParam(defaultValue="") query: String,@RequestParam(defaultValue="") character: String) = service.readContext(id,null,episode,query,character)
 }
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(assignableTypes=[ContentController::class])
 class ContentExceptionHandler {
     @ExceptionHandler(ContentFailure::class) fun failure(e: ContentFailure) = ResponseEntity.status(e.status).body(mapOf("detail" to e.message))

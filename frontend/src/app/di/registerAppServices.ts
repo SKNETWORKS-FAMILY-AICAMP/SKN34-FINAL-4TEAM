@@ -14,6 +14,12 @@ import {
   InMemoryWorkRepository,
   InMemoryWorldRepository,
 } from '../../data/mock/InMemoryRepositories'
+import { profileRepository } from '../../data/api/profile'
+import { ProfileUseCase } from '../../domain/usecases/ProfileUseCase'
+import { signupRepository } from '../../data/api/signup'
+import * as authRepository from '../../data/api/auth'
+import { AuthUseCase } from '../../domain/usecases/AuthUseCase'
+import { SignupUseCase } from '../../domain/usecases/SignupUseCase'
 import { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import { AccountUseCase } from '../../domain/usecases/AccountUseCase'
 import { ChatUseCase } from '../../domain/usecases/ChatUseCase'
@@ -30,6 +36,12 @@ import type { AppContainer } from './types'
 /** 콘텐츠는 HTTP API를 사용하며, 기존 서재·열람·Fork 등 데모는 메모리 구현을 유지합니다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
+    profileRepository: asValue(profileRepository),
+    profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
+    authRepository: asValue(authRepository),
+    authUseCase: asFunction(({ authRepository }) => new AuthUseCase(authRepository)).singleton(),
+    signupRepository: asValue(signupRepository),
+    signupUseCase: asFunction(({ signupRepository }) => new SignupUseCase(signupRepository)).singleton(),
     episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     mockDb: asValue(createMockDb()),

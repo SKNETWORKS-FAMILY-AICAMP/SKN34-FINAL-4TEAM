@@ -38,7 +38,7 @@ jobs:
             web: ['frontend/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
             core: ['backend/core-api/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
             ai: ['backend/ai-service/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
-            infra: ['infrastructure/**', '.env.example', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
+            infra: ['infrastructure/**', 'frontend/nginx.conf', '.env.example', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
 
   repository:
     name: Whitespace
@@ -140,6 +140,7 @@ jobs:
           persist-credentials: false
       - run: python3 -m unittest discover infrastructure/tests
       - run: python3 -I infrastructure/scripts/check-compose-config.py
+      - run: python3 -I infrastructure/scripts/check-nginx-routing.py
       - run: python3 -I infrastructure/scripts/check-content-config.py
       - run: python3 -I infrastructure/scripts/test-publish-preflight.py
       - run: python3 -I infrastructure/scripts/test-deploy-develop.py

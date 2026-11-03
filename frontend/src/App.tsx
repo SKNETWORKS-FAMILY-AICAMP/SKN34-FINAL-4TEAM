@@ -1,5 +1,7 @@
 import { EpisodePage } from './presentation/features/content/view/EpisodePage'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
+import { RestoreContext } from './presentation/shared/session/restoreContext'
+import { useSessionRestore } from './presentation/shared/session/useSessionRestore'
 
 import { AdminPage } from './presentation/features/admin/view/AdminPage'
 import { AccountPage } from './presentation/features/account/view/AccountPage'
@@ -14,6 +16,9 @@ import { LibraryPage } from './presentation/features/library/view/LibraryPage'
 import { NewWorkPage } from './presentation/features/library/view/NewWorkPage'
 import { StudioPage } from './presentation/features/studio/view/StudioPage'
 import { LoginPage } from './presentation/features/auth/view/LoginPage'
+import { ResendVerificationPage, Signup } from './presentation/features/auth/view/Signup'
+import { RecoveryPage } from './presentation/features/auth/view/RecoveryPage'
+import { VerifyEmailChangePage, VerifyEmailPage } from './presentation/features/auth/view/VerifyEmailPage'
 import { HomePage } from './presentation/features/home/view/HomePage'
 import { IfsPage, RankPage, SearchPage, TagPage } from './presentation/features/reading/view/ExplorePages'
 import { ReaderPage } from './presentation/features/reading/view/ReaderPage'
@@ -56,13 +61,21 @@ function StartPage() {
 
 function App() {
   const { pathname } = useLocation()
+  const { restoring, restoreError } = useSessionRestore()
   return (
-    <>
+    <RestoreContext.Provider value={restoring}>
+      {restoreError && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}
       <Routes>
-        <Route path="/content" element={<EpisodePage />} />
+        <Route path="/content" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <EpisodePage />} />
         <Route path="/status" element={<StartPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/me/signup" element={<Signup />} />
+        <Route path="/auth/resend-verification" element={<ResendVerificationPage />} />
+        <Route path="/auth/forgot-password" element={<RecoveryPage />} />
+        <Route path="/auth/reset-password" element={<RecoveryPage reset />} />
+        <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/auth/verify-email-change" element={<VerifyEmailChangePage />} />
         <Route path="/work/:id" element={<WorkPage />} />
         <Route path="/read/:id/:n" element={<RequireRole><ReaderPage /></RequireRole>} />
         <Route path="/read/:id" element={<RequireRole><ReaderPage /></RequireRole>} />
@@ -78,7 +91,7 @@ function App() {
         <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
         <Route path="/worlds" element={<Navigate replace to="/new" />} />
         <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
-        <Route path="/studio/:id" element={<StudioPage />} />
+        <Route path="/studio/:id" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <StudioPage />} />
         <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
         <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
         <Route path="/chat/:wid?/:cn?" element={<RequireRole><ChatPage /></RequireRole>} />
@@ -87,7 +100,7 @@ function App() {
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
       {pathname !== '/status' && pathname !== '/content' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
-    </>
+    </RestoreContext.Provider>
   )
 }
 

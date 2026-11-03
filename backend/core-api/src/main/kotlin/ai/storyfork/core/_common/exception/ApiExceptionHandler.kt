@@ -7,11 +7,19 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class ApiExceptionHandler {
+    // Validation exceptions contain rejected passwords and tokens; do not echo or log them.
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleMethodArgumentNotValidException(): ResponseEntity<ProblemDetail> =
+        ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+            .body(ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Request validation failed."))
+
     @ExceptionHandler(AiServiceCallException::class)
     fun handleAiServiceCallException(
         exception: AiServiceCallException,
