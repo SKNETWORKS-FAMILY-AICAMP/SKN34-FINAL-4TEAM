@@ -1,11 +1,19 @@
 // @vitest-environment jsdom
 import {act, cleanup, render, screen, fireEvent, waitFor} from '@testing-library/react'
-import {afterEach, expect, it, vi} from 'vitest'
+import {afterEach, beforeEach, expect, it, vi} from 'vitest'
+import '../../../../testLocks'
 import {WorldPanel} from './WorldPanel'
 import {EpisodeUseCase} from '../../../../domain/usecases/EpisodeUseCase'
 import {HttpEpisodeRepository} from '../../../../data/content/HttpEpisodeRepository'
+import {login} from '../../../../data/api/auth'
 
-afterEach(cleanup)
+beforeEach(async () => {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
+    ? Response.json({ csrfToken: 'content-csrf' })
+    : Response.json({ accessToken: 'content-bearer', user: { id: 'writer', email: 'writer@example.invalid', nickname: 'Writer', operator: false } })))
+  await login('writer@example.invalid', 'test-password')
+})
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 it('keeps typing and focus while autosaving and saves newer text with the returned revision',async()=>{
  const state={id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,drafts:[],settings:[],history:[],changes:[],sourceToken:'t'}

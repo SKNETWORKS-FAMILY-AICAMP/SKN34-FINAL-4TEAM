@@ -1,10 +1,19 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import '../../../../testLocks'
 import { EpisodePage } from './EpisodePage'
 import { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { HttpEpisodeRepository } from '../../../../data/content/HttpEpisodeRepository'
-afterEach(cleanup)
+import { login } from '../../../../data/api/auth'
+
+beforeEach(async () => {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
+    ? Response.json({ csrfToken: 'content-csrf' })
+    : Response.json({ accessToken: 'content-bearer', user: { id: 'writer', email: 'writer@example.invalid', nickname: 'Writer', operator: false } })))
+  await login('writer@example.invalid', 'test-password')
+})
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 it('requires selecting a saved version before opening publication preview', async()=>{
   const w={id:'w',title:'선택 필요',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'회차',body:'초안',revision:0}}
@@ -77,5 +86,7 @@ it('opens restored text in the editor as a new saved version',async()=>{
 it('shows the server authentication error instead of claiming the server is offline',async()=>{
  const calls=vi.fn().mockResolvedValue(new Response(JSON.stringify({detail:'서버 인증이 필요합니다.'}),{status:401}))
  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))}/>)
- expect(await screen.findByText('서버 인증이 필요합니다.')).toBeTruthy()
+ expect(await screen.findByText('서버 인증이 필요합니다. 로그인한 뒤 다시 시도해 주세요.')).toBeTruthy()
+ expect(calls).toHaveBeenCalledTimes(2)
+ expect(screen.queryByText('Core 서버에 연결하지 못했어요. 서버를 실행한 뒤 새로고침해 주세요.')).toBeNull()
 })
