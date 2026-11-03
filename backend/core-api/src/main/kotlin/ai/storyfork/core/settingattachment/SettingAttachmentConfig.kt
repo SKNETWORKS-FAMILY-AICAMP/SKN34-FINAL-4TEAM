@@ -4,7 +4,6 @@ import ai.storyfork.core.settingattachment.client.AttachmentStorageClient
 import ai.storyfork.core.settingattachment.entity.SettingAttachment
 import java.net.URI
 import java.time.Duration
-import javax.sql.DataSource
 import org.flywaydb.core.Flyway
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -13,7 +12,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.*
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.jdbc.datasource.DriverManagerDataSource
-import org.springframework.jdbc.support.JdbcTransactionManager
 import org.springframework.orm.jpa.JpaTransactionManager
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
@@ -46,7 +44,8 @@ class SettingAttachmentConfig {
 
     @Bean fun attachmentStorageClient(s3: S3Client, properties: SettingAttachmentProperties) = AttachmentStorageClient(s3, properties.bucket)
 
-    @Bean
+    // Keep Boot's default Auth persistence unit; attachments use the separately qualified Content database.
+    @Bean(defaultCandidate = false)
     @DependsOn("flywayInitializer", "contentRepository")
     fun attachmentEntityManagerFactory(
         @Value("\${CONTENT_DATABASE_URL}") url: String,
@@ -66,10 +65,6 @@ class SettingAttachmentConfig {
         }
     }
 
-    @Bean fun attachmentTransactionManager(@Qualifier("attachmentEntityManagerFactory") factory: jakarta.persistence.EntityManagerFactory) = JpaTransactionManager(factory)
-    @Bean fun attachmentTransactions(@Qualifier("attachmentTransactionManager") manager: JpaTransactionManager) = TransactionTemplate(manager)
-
-    // Preserve Auth's existing JDBC transaction boundary when the second (JPA) manager is enabled.
-    @Bean("transactionManager") @Primary
-    fun authTransactionManager(dataSource: DataSource) = JdbcTransactionManager(dataSource)
+    @Bean(defaultCandidate = false) fun attachmentTransactionManager(@Qualifier("attachmentEntityManagerFactory") factory: jakarta.persistence.EntityManagerFactory) = JpaTransactionManager(factory)
+    @Bean(defaultCandidate = false) fun attachmentTransactions(@Qualifier("attachmentTransactionManager") manager: JpaTransactionManager) = TransactionTemplate(manager)
 }

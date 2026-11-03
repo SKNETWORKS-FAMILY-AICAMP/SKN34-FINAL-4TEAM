@@ -1,6 +1,7 @@
 package ai.storyfork.core.settingattachment
 
-import ai.storyfork.core.auth.repository.SignupRepository
+import ai.storyfork.core.auth.entity.AuthMember
+import ai.storyfork.core.auth.repository.MemberRepository
 import ai.storyfork.core.content.controller.dto.*
 import ai.storyfork.core.content.domain.Setting
 import ai.storyfork.core.content.service.ContentService
@@ -40,7 +41,10 @@ import tools.jackson.databind.ObjectMapper
 @EnabledIfEnvironmentVariable(named = "TEST_ATTACHMENT_DATABASE_URL", matches = ".+")
 class SettingAttachmentHttpTest {
     @LocalServerPort var port = 0
-    @Autowired lateinit var signup: SignupRepository
+    @Autowired lateinit var members: MemberRepository
+    @Autowired lateinit var authTransactions: org.springframework.transaction.support.TransactionTemplate
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("attachmentTransactions")
+    lateinit var attachmentTransactions: org.springframework.transaction.support.TransactionTemplate
     @Autowired lateinit var content: ContentService
     @Autowired lateinit var json: ObjectMapper
     @Autowired lateinit var s3: software.amazon.awssdk.services.s3.S3Client
@@ -69,7 +73,7 @@ class SettingAttachmentHttpTest {
     private fun csrf() = node(send(request("/api/v1/auth/csrf"))).path("csrfToken").asText()
     private fun actor(): Actor {
         val email = "${UUID.randomUUID()}@example.invalid"
-        signup.createMember(email, requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Writer")
+        members.saveAndFlush(AuthMember(UUID.randomUUID(), email, requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Writer"))
         val response = send(request("/api/v1/auth/login").header("X-CSRF-TOKEN", csrf()).header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString("""{"email":"$email","password":"test-password"}""")))
         assertEquals(200, response.statusCode())
@@ -94,6 +98,26 @@ class SettingAttachmentHttpTest {
         return (if (cookie == null) http else concurrentHttp).send(builder.build(), HttpResponse.BodyHandlers.ofByteArray())
     }
     private fun delete(path: String, actor: Actor) = send(request(path).header("Authorization", "Bearer ${actor.token}").header("X-CSRF-TOKEN", csrf()).DELETE())
+
+    @Test fun `auth JPA transactions stay separate from attachment transactions`() {
+        val authManager = assertInstanceOf(org.springframework.orm.jpa.JpaTransactionManager::class.java, authTransactions.transactionManager)
+        assertNotSame(attachmentTransactions.transactionManager, authManager)
+        assertEquals(setOf(AuthMember::class.java.packageName), requireNotNull(authManager.entityManagerFactory)
+            .metamodel.entities.map { it.javaType.packageName }.toSet())
+        val id = UUID.randomUUID()
+        authTransactions.executeWithoutResult { status ->
+            members.saveAndFlush(AuthMember(id, "$id@example.invalid", "unused", "Rolled back"))
+            status.setRollbackOnly()
+        }
+        assertFalse(members.existsById(id))
+        val owner = actor()
+        val base = fixture(owner)
+        val listed = get(base, owner)
+        assertEquals(200, listed.statusCode())
+        assertTrue(node(listed).path("attachments").isEmpty)
+        assertEquals(401, get(base, null).statusCode())
+        assertEquals(404, get(base, actor()).statusCode())
+    }
 
     @Test fun `image upload metadata list read replace delete uses private storage`() {
         val owner = actor(); val base = fixture(owner)

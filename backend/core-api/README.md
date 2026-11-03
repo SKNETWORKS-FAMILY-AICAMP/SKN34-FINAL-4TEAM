@@ -56,7 +56,11 @@ main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 
 
 - `_health/controller`: 자체 상태.
 - `_health_ai_service/controller → service → client`: 내부 응답 조회와 검증.
-- `controller/dto`: 공개 응답, `client/dto`: 신뢰하지 않는 외부 payload, `service/dto`: 검증된 결과.
+- Health의 `controller/dto`: 공개 응답, `client/dto`: 신뢰하지 않는 외부 payload, `service/dto`: 검증된 결과.
+- `auth/controller → service → repository`: Controller는 필요한 쿠키·헤더와 검증된 JWT만 받고, Service는 업무·트랜잭션, Spring Data `JpaRepository`는 `auth/entity` 영속성을 담당합니다.
+- `auth/service/dto`: 클래스별 요청·응답 계약을 Controller와 Service가 공유합니다. `LoginResult`의 내부 refresh token은 Controller에서 HttpOnly 쿠키로만 보내며 공개 `LoginResponse`에는 포함하지 않습니다.
+- Auth는 기존 UUID·스키마와 Flyway 파일·`flyway_schema_history`를 유지합니다. Hibernate는 `validate`만 수행하며 Open Session in View는 사용하지 않습니다. 기존 Content JDBC·별도 마이그레이션 경로는 이번 Auth 전환에 포함하지 않습니다.
+- 로그인·복구·이메일 변경·refresh 회전·세션 폐기는 회원의 JPA `PESSIMISTIC_WRITE` 잠금으로 직렬화합니다. 토큰 재사용 폐기는 Service가 정상 반환해 커밋한 뒤 Controller에서 401로 변환합니다. 신규 가입 후보의 최초 삽입 충돌만 새 트랜잭션에서 한 번 재시도하며 메일 실패 시 후보 변경을 롤백합니다.
 - `_common/ai_config`: AI 주소·timeout·RestClient 설정.
 - `_common/helper`: 기존 HTTP 설정 검증과 통신 실패 분류 경계.
 - `_common/exception`: AI 실패 분류와 안전한 ProblemDetail.
