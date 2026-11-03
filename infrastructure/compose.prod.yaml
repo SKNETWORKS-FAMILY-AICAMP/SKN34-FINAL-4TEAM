@@ -9,7 +9,7 @@ services:
     init: true
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-6.1-terra}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
     expose:
       - "8000"
 
