@@ -1,4 +1,4 @@
-import { studioSections, sectionOf, type StudioSection } from '../../../../domain/entities/studioSections'
+import {cardTypes,cardTypeOf,settingAreas,type CardType,type CardFilter} from '../../../../domain/entities/studioCards'
 import { useState, type FormEvent } from 'react'
 import type { SettingItem } from '../../../../domain/entities/studioWorld'
 import { Go } from '../../../shared/Go'
@@ -33,7 +33,8 @@ export function WorldStudioPage() {
    </aside>
    <div className="world-list-divider"><button type="button" className="world-list-toggle" aria-label={listOpen?'세계관 목록 접기':'세계관 목록 펼치기'} aria-expanded={listOpen} aria-controls="world-list" onClick={()=>setListOpen(open=>!open)}><span aria-hidden="true">{listOpen?'‹':'›'}</span></button></div>
    <section className="world-content">{vm.editing?<>
-    <div className="world-toolbar"><h2>{vm.saved?.name}</h2><span role="status">{vm.busy?'잠시만 기다려 주세요':vm.dirty?'저장하지 않은 변경사항':'저장됨'}</span><button className="btn pri" disabled={vm.busy || !vm.dirty} onClick={vm.save}>저장</button></div>
+    <div className="world-toolbar"><h2>{vm.saved?.name}</h2><span role="status">{vm.busy?'잠시만 기다려 주세요':vm.storageIssues.length?'저장 지원 확인 필요':vm.dirty?'저장하지 않은 변경사항':'저장됨'}</span><button className="btn pri" disabled={vm.busy || !vm.dirty || vm.storageIssues.length>0} onClick={vm.save}>저장</button></div>
+    {vm.storageIssues.map(issue=><p role="alert" className="world-error" key={issue}>{issue}</p>)}
     <nav className="libtabs" aria-label="세계관 도구">{tabs.map(([id,label])=><button type="button" key={id} className={tab===id?'on':''} onClick={()=>setTab(id)} aria-current={tab===id?'page':undefined}>{label}</button>)}</nav>
     {tab==='edit'?<Editor vm={vm} onOpenRelations={()=>setTab('relationship-edit')}/>:tab==='relationship-edit'?<WorldRelationshipEditor key={vm.editing.id} studio={vm}/>:tab==='map'&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}`} world={vm.saved}/>:tab==='analysis'?<Analysis vm={vm}/>:<Confirmed vm={vm} tab={tab}/>}
    </>:<div className="world-empty"><h2>{vm.busy?'세계관을 읽고 있습니다':'세계관을 선택하거나 새로 만들어 주세요'}</h2><p className="muted">이름만으로 시작할 수 있습니다. 설정과 인물은 필요한 만큼 추가하세요.</p></div>}</section>
@@ -43,28 +44,42 @@ export function WorldStudioPage() {
 
 function Editor({vm,onOpenRelations}:{vm:VM;onOpenRelations:()=>void}) {
  const w=vm.editing!
- const [section,setSection]=useState<StudioSection>('basic')
- const rows=w.settings.filter(s=>sectionOf(s.item)===section)
+ const [filter,setFilter]=useState<CardFilter>('all')
+ const filters=[{id:'all' as const,label:'전체'},...cardTypes,{id:'note' as const,label:'집필 메모'},{id:'relation' as const,label:'기존 관계'},{id:'review' as const,label:'분류 확인'}]
+ const rows=w.settings.filter(s=>filter==='all'||cardTypeOf(s.item)===filter)
  const s=rows.find(s=>s.item.id===vm.selected)??rows[0]
- const label=studioSections.find(s=>s.id===section)!.label
- const update=(p:Partial<typeof w.settings[number]['item']>)=>{if(!s)return;vm.update(s.item.id,p);setSection(sectionOf({...s.item,...p}))}
+ const type=s?cardTypeOf(s.item):null
+ const label=filters.find(f=>f.id===filter)!.label
+ const canAdd=filter!=='relation'&&filter!=='review'&&filter!=='object'&&filter!=='other'
+ const addType=filter==='all'?'character':filter
+ const update=(p:Partial<SettingItem>)=>{if(s)vm.update(s.item.id,p)}
  return <fieldset disabled={vm.busy} className="world-fields"><legend className="sr-only">세계관 편집</legend>
-  <label className="field">세계관 이름<input className="inp" value={w.name} maxLength={100} onChange={e=>vm.patch({name:e.target.value})}/></label>
-  <label className="field">세계관 설명<textarea className="ta" value={w.description} maxLength={20000} onChange={e=>vm.patch({description:e.target.value})}/></label>
-  <nav className="world-sections" aria-label="설정 작성 메뉴">{studioSections.map(menu=><button type="button" key={menu.id} aria-label={`${menu.label} ${w.settings.filter(s=>sectionOf(s.item)===menu.id).length}개`} aria-current={section===menu.id?'page':undefined} onClick={()=>{setSection(menu.id);vm.setSelected('')}}>{menu.label}<span>{w.settings.filter(s=>sectionOf(s.item)===menu.id).length}</span></button>)}</nav>
-  <div className="world-toolbar"><h3>{label}</h3><button className="btn sm" type="button" onClick={()=>vm.add(section)}>{label} 추가</button></div>
-  {section==='people'&&<p className="small muted">등록한 인물은 같은 정보로 관계 편집에 표시돼요. 연결은 직접 선택할 때만 생깁니다. <button type="button" className="btn sm" onClick={onOpenRelations}>관계 편집 열기</button></p>}
-  <div className="world-settings"><nav aria-label={`${label} 항목`}>{rows.map((x,n)=><button type="button" key={x.item.id} onClick={()=>vm.setSelected(x.item.id)} aria-current={s?.item.id===x.item.id?'page':undefined}>{x.item.title||`새 ${label} ${n+1}`}{x.userCategory!=='설정'&&<small>{x.userCategory}</small>}</button>)}</nav>
+  <div className="world-form-row"><label className="field">세계관 이름<input className="inp" value={w.name} maxLength={100} onChange={e=>vm.patch({name:e.target.value})}/></label>
+  <label className="field">세계관 설명<textarea className="ta" value={w.description} maxLength={20000} onChange={e=>vm.patch({description:e.target.value})}/></label></div>
+  <h3 className="world-card-heading">설정 카드</h3><p className="small muted">유형으로 카드를 찾고, 카드 안에서 설정 영역을 따로 선택하세요. 관계 없이도 시작할 수 있어요.</p>
+  <nav className="world-sections" aria-label="설정 작성 메뉴">{filters.map(f=><button type="button" key={f.id} aria-label={`${f.label} ${w.settings.filter(s=>f.id==='all'||cardTypeOf(s.item)===f.id).length}개`} aria-current={filter===f.id?'page':undefined} onClick={()=>{setFilter(f.id);vm.setSelected('')}}>{f.label}<span>{w.settings.filter(s=>f.id==='all'||cardTypeOf(s.item)===f.id).length}</span></button>)}</nav>
+  <div className="world-toolbar"><h3>{label}</h3>{canAdd&&<button className="btn sm" type="button" onClick={()=>vm.addCard(addType as CardType|'note')}>{filter==='all'?'인물':label} 추가</button>}</div>
+  {(filter==='object'||filter==='other')&&<p className="world-compatibility" role="status">{label} 카드의 유형을 보존하는 저장 기능을 준비 중입니다. 다른 유형으로 대신 저장하지 않아요.</p>}
+  {filter==='review'&&<p className="world-compatibility">이전 설정의 의미와 분류를 그대로 보존하고 있어요. 새 카드 유형을 임의로 부여하지 않습니다.</p>}
+  {filter==='character'?<p className="small muted">인물 카드는 관계 편집과 같은 정보를 사용해요. <button type="button" className="btn sm" onClick={onOpenRelations}>관계 편집 열기</button></p>:null}
+  <div className="world-settings"><nav aria-label={`${label} 항목`}>{rows.map((x,n)=><button type="button" key={x.item.id} onClick={()=>vm.setSelected(x.item.id)} aria-current={s?.item.id===x.item.id?'page':undefined}>{x.item.title||`새 카드 ${n+1}`}<small>{filters.find(f=>f.id===cardTypeOf(x.item))?.label} · {settingAreas.find(a=>a.id===x.item.category)?.label}</small></button>)}</nav>
   {s?<div className="world-setting-editor">
+   <div className="world-form-row"><label className="field">카드 유형<select className="inp" value={type??'review'} onChange={e=>{vm.changeCardType(s.item.id,e.target.value as CardType);setFilter('all')}}>
+    {cardTypes.map(t=><option key={t.id} value={t.id} disabled={t.id==='object'||t.id==='other'}>{t.label}</option>)}
+    {type&&['note','relation','review'].includes(type)&&<option value={type}>{type==='review'?`기존 ${kinds[s.item.kind]} · 분류 확인`:type==='note'?'집필 메모':'기존 관계'}</option>}
+   </select></label>
+   <label className="field">설정 영역<select className="inp" value={s.item.category} onChange={e=>vm.changeArea(s.item.id,e.target.value as SettingItem['category'])}>{settingAreas.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select></label></div>
+   <p className="small muted">사물·기타 유형과 별칭 저장은 준비 중입니다. 기존 설정을 다른 유형으로 자동 변환하지 않아요.</p>
+   {type==='review'&&<p className="world-compatibility">기존 의미: {kinds[s.item.kind]}{s.item.entityType?` · ${s.item.entityType}`:''}. 원문과 연결을 유지하며 편집합니다.</p>}
    <label className="field">항목 이름<input className="inp" value={s.item.title} maxLength={200} onChange={e=>update({title:e.target.value})}/></label>
-   <div className="world-form-row"><label className="field">내 분류<input className="inp" value={s.userCategory} maxLength={50} onChange={e=>vm.update(s.item.id,{}, {userCategory:e.target.value})}/></label>
-   <label className="field">항목 종류<select className="inp" value={s.item.kind} onChange={e=>update({kind:e.target.value as SettingItem['kind'],category:e.target.value==='event'?'history':'basic',entityType:e.target.value==='entity'?'character':null,predicate:e.target.value==='relation'?'trusts':null,subjectId:null,targetId:null,timeText:'',afterId:null,topics:[]})}>{Object.entries(kinds).map(([k,v])=><option value={k} key={k}>{v}</option>)}</select></label></div>
-   <label className="field">내용<textarea className="ta world-text" value={s.item.text} maxLength={3000} onChange={e=>update({text:e.target.value})}/></label>
-   <label className="field">내 태그 (쉼표로 구분)<input className="inp" value={s.tags.join(',')} onChange={e=>vm.update(s.item.id,{}, {tags:e.target.value.split(',').map(t=>t.trim())})} onBlur={()=>{if(s.tags.some(t=>!t))vm.update(s.item.id,{}, {tags:s.tags.filter(Boolean)})}}/></label>
-   {s.item.kind==='entity' && <label className="field">대상 종류<select className="inp" value={s.item.entityType??'character'} onChange={e=>update({entityType:e.target.value})}>{Object.entries({character:'인물',location:'장소',organization:'조직',ability:'능력'}).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>}
-   {s.item.kind==='relation' && <><label className="field">관계<select className="inp" value={s.item.predicate??'trusts'} onChange={e=>update({predicate:e.target.value})}>{Object.entries(relations).map(([k,v])=><option value={k} key={k}>{v}</option>)}</select></label>{(['subjectId','targetId'] as const).map((key,n)=><label className="field" key={key}>{n?'관계 대상':'관계 주체'}<select className="inp" value={s.item[key]??''} onChange={e=>update({[key]:e.target.value||null})}><option value="">선택해 주세요</option>{w.settings.filter(x=>x.item.kind==='entity').map(x=><option value={x.item.id} key={x.item.id}>{x.item.title}</option>)}</select></label>)}</>}
-   {s.item.kind==='event' && <label className="field">사건 시점 (선택)<input className="inp" value={s.item.timeText} onChange={e=>update({timeText:e.target.value})}/></label>}
-  </div>:<p className="muted">이 메뉴의 항목을 추가해 주세요. 인물·장소는 이름만 입력해도 되며, 모든 메뉴를 채울 필요는 없습니다.</p>}</div>
+   <label className="field">내용<textarea className="ta world-text" value={s.item.text} maxLength={3000} placeholder="어떤 설정인가요? 자유롭게 적어 주세요." onChange={e=>update({text:e.target.value})}/></label>
+   <div className="world-form-row"><label className="field">내 태그 (쉼표로 구분)<input className="inp" value={s.tags.join(',')} onChange={e=>vm.update(s.item.id,{}, {tags:e.target.value.split(',').map(t=>t.trim())})} onBlur={()=>{if(s.tags.some(t=>!t))vm.update(s.item.id,{}, {tags:s.tags.filter(Boolean)})}}/></label>
+   <label className="field">별칭 (선택)<input className="inp" value={s.aliases?.join(',')??''} disabled aria-describedby="aliases-help"/></label></div>
+   <p id="aliases-help" className="small muted">별칭 전용 저장 기능은 준비 중입니다.</p>
+   <details className="world-legacy-fields"><summary>기존 정리 정보</summary><label className="field">내 분류<input className="inp" value={s.userCategory} maxLength={50} onChange={e=>vm.update(s.item.id,{}, {userCategory:e.target.value})}/></label><p className="small muted">이전 자유 분류를 보존합니다. 카드 유형이나 설정 영역과는 별개예요.</p></details>
+   {s.item.kind==='relation'&&<><label className="field">관계<select className="inp" value={s.item.predicate??'trusts'} onChange={e=>update({predicate:e.target.value})}>{Object.entries(relations).map(([k,v])=><option value={k} key={k}>{v}</option>)}</select></label>{(['subjectId','targetId'] as const).map((key,n)=><label className="field" key={key}>{n?'관계 대상':'관계 주체'}<select className="inp" value={s.item[key]??''} onChange={e=>update({[key]:e.target.value||null})}><option value="">선택해 주세요</option>{w.settings.filter(x=>x.item.kind==='entity').map(x=><option value={x.item.id} key={x.item.id}>{x.item.title}</option>)}</select></label>)}</>}
+   {s.item.kind==='event'&&<label className="field">사건 시점 (선택)<input className="inp" value={s.item.timeText} onChange={e=>update({timeText:e.target.value})}/></label>}
+  </div>:<p className="muted">{canAdd?'카드를 추가해 시작하세요. 인물·장소·조직·능력은 이름만 입력해도 됩니다.':'이 유형의 카드가 없습니다.'}</p>}</div>
  </fieldset>
 }
 

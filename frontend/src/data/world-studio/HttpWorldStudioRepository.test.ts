@@ -30,3 +30,15 @@ it('explains a missing world in the current environment and points back to the w
  const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(new Response(JSON.stringify({detail:'Not Found'}),{status:404})))
  await expect(repo.read('qa-only-world')).rejects.toThrow('이 환경에서 세계관을 찾을 수 없습니다. 세계관 작업실로 돌아가 목록에서 선택하거나 새로 만들어 주세요.')
 })
+
+it('preserves unexpected alias data on read and refuses to submit it to the legacy writer',async()=>{
+ const {newSetting}=await import('../../domain/entities/studioWorld')
+ const {WorldStudioUseCase}=await import('../../domain/usecases/WorldStudioUseCase')
+ const s={...newSetting('people'),aliases:['길동']};s.item.title='홍길동'
+ const world={id:'aliases',name:'별칭 보존',description:'',version:1,settings:[s],analysis:null}
+ const fetcher=vi.fn(async()=>new Response(JSON.stringify(world)))
+ const repo=new HttpWorldStudioRepository(fetcher);const loaded=await repo.read('aliases')
+ expect(loaded.settings[0].aliases).toEqual(['길동'])
+ await expect(new WorldStudioUseCase(repo).save(loaded)).rejects.toThrow(/별칭/)
+ expect(fetcher).toHaveBeenCalledTimes(1)
+})

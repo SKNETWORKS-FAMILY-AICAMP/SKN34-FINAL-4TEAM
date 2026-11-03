@@ -1,3 +1,4 @@
+import {cardTypePatch,areaPatch,storageLimitations,type CardType} from '../../../../domain/entities/studioCards'
 import type { StudioSection } from '../../../../domain/entities/studioSections'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
@@ -45,7 +46,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   if(!editing||busy)return
   try {const settings=change(editing.settings);if(settings!==editing.settings)patch({settings});setError('');return settings} catch(e) {setError(e instanceof Error?e.message:'관계를 변경하지 못했습니다.')}
  }
- return {worlds,saved,editing,dirty,selected,setSelected,error,message,busy,aiEnabled,picks,edits,canUndoPersonDeletion:!!personUndo,
+ return {storageIssues:storageLimitations(editing?.settings??[]),worlds,saved,editing,dirty,selected,setSelected,error,message,busy,aiEnabled,picks,edits,canUndoPersonDeletion:!!personUndo,
   connect:()=>perform(async()=>{const current=generation.current;await useCase.connect();const [ws,c]=await Promise.all([useCase.list(),useCase.capabilities()]);if(current!==generation.current)return;setWorlds(ws);setAIEnabled(c.aiEnabled);setMessage('작업실을 사용할 준비가 됐어요.')}),
   create:(name:string,description:string)=>perform(async()=>{const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current)navigate('/worlds/'+w.id)}),
   open:(id:string)=>{if(dirty && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){navigate('/worlds/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
@@ -57,6 +58,9 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   personDeletionInfo:(id:string)=>personDeletionInfo(editing?.settings??[],id),
   deletePerson:(id:string)=>{if(!editing)return false;const before=editing.settings;const after=changeRelations(settings=>removePerson(settings,id));if(!after)return false;setPersonUndo({worldId:editing.id,id,before,after,wasDirty:dirty});return true},
   undoPersonDeletion:()=>{if(!editing||!personUndo||busy||editing.id!==personUndo.worldId||editing.settings!==personUndo.after)return;const id=personUndo.id;patch({settings:personUndo.before});setDirty(personUndo.wasDirty);setSelected(id);return id},
+  addCard:(type:CardType|'note')=>{if(!editing||busy)return;const s=newSetting();if(type==='note')s.item.kind='note';else Object.assign(s.item,cardTypePatch(s.item,type,[]));patch({settings:[...editing.settings,s]});setSelected(s.item.id)},
+  changeCardType:(id:string,type:CardType)=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;setSelected(id);try{const change=cardTypePatch(row.item,type,editing.settings);if(Object.keys(change).length)patch({settings:editStudioSetting(editing.settings,id,change)});setError('')}catch(e){setError(e instanceof Error?e.message:'유형을 바꾸지 못했습니다.')}},
+  changeArea:(id:string,category:SettingItem['category'])=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;try{const change=areaPatch(row.item,category);patch({settings:editing.settings.map(s=>s.item.id===id?{...s,item:{...s.item,...change}}:s)});setError('')}catch(e){setError(e instanceof Error?e.message:'영역을 바꾸지 못했습니다.')}},
   update:(id:string,item:Partial<SettingItem>,labels?:Partial<StudioSetting>)=>{if(editing)patch({settings:editStudioSetting(editing.settings,id,item,labels)})},
   save:()=>{setPersonUndo(null);return perform(async()=>{if(!editing)return;const current=generation.current;apply(await useCase.save(editing),current);if(current===generation.current)setMessage('세계관을 저장했어요.')})},
   analyze:()=>perform(async()=>{if(!saved || dirty)return;const current=generation.current;apply(await useCase.analyze(saved),current)}),

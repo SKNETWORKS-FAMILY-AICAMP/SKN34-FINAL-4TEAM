@@ -4,7 +4,7 @@ import type { SettingItem, StudioWorld } from '../../domain/entities/studioWorld
 import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
 import { initialItemSchema } from '../api/initialWorld'
 
-const schema=z.object({id:z.string(),name:z.string(),description:z.string(),version:z.number().int(),settings:z.array(z.object({item:initialItemSchema,userCategory:z.string(),tags:z.array(z.string())})),analysis:z.object({id:z.string(),status:z.string(),candidates:z.array(initialItemSchema),issues:z.array(z.string())}).nullable()})
+const schema=z.object({id:z.string(),name:z.string(),description:z.string(),version:z.number().int(),settings:z.array(z.object({item:initialItemSchema,userCategory:z.string(),tags:z.array(z.string()),aliases:z.array(z.string()).optional()})),analysis:z.object({id:z.string(),status:z.string(),candidates:z.array(initialItemSchema),issues:z.array(z.string())}).nullable()})
 export class HttpWorldStudioRepository implements WorldStudioRepository {
  private readonly fetcher:typeof fetch
  constructor(fetcher:typeof fetch=fetch) {this.fetcher=fetcher.bind(globalThis)}

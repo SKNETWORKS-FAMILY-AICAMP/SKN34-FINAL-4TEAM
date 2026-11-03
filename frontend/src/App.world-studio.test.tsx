@@ -5,7 +5,8 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from './App'
 import { createAppStore } from './app/store'
-import { studioSections } from './domain/entities/studioSections'
+import {cardTypes} from './domain/entities/studioCards'
+const studioSections=[...cardTypes.filter(t=>t.id!=='object'&&t.id!=='other'),{id:'note',label:'집필 메모'}]
 import type { StudioWorld } from './domain/entities/studioWorld'
 
 afterEach(()=>{cleanup();vi.unstubAllGlobals()})
@@ -43,6 +44,7 @@ it('exposes original menus from main navigation and preserves every menu through
   fireEvent.click(screen.getByRole('button',{name:section.label+' 추가'}))
   fireEvent.change(screen.getByLabelText('항목 이름'),{target:{value:section.label+' 항목'}})
   fireEvent.change(screen.getByLabelText('내용'),{target:{value:'첫 줄 | 그대로\n'+section.label}})
+  fireEvent.click(screen.getByText('기존 정리 정보'))
   fireEvent.change(screen.getByLabelText('내 분류'),{target:{value:'내 사용자 분류'}})
   fireEvent.change(screen.getByLabelText('내 태그 (쉼표로 구분)'),{target:{value:'태그'}})
  }

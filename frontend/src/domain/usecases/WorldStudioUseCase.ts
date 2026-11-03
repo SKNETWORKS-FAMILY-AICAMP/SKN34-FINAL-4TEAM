@@ -1,3 +1,4 @@
+import {storageLimitations} from '../entities/studioCards'
 import type { SettingItem, StudioWorld } from '../entities/studioWorld'
 import type { WorldStudioRepository } from '../repositories/WorldStudioRepository'
 
@@ -9,7 +10,7 @@ export class WorldStudioUseCase {
  list(signal?:AbortSignal) {return this.repository.listStudio(signal)}
  read(id:string,signal?:AbortSignal) {return this.repository.read(id,signal)}
  create(name:string,description:string) {return this.repository.create(name,description)}
- save(w:StudioWorld) {return this.repository.saveStudio(w)}
+ save(w:StudioWorld) {const issues=storageLimitations(w.settings);if(issues.length)return Promise.reject(new Error(issues.join(' ')));return this.repository.saveStudio(w)}
  analyze(w:StudioWorld) {return this.repository.analyze(w)}
  approve(w:StudioWorld,ids:string[],edits:SettingItem[]) {return this.repository.approve(w,ids,edits)}
 }
