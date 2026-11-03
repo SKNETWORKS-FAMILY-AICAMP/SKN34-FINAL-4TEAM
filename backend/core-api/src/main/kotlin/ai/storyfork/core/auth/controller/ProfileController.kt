@@ -1,5 +1,7 @@
 package ai.storyfork.core.auth.controller
 
+import ai.storyfork.core.auth.controller.dto.EmailRequest
+import ai.storyfork.core.auth.controller.dto.TokenRequest
 import ai.storyfork.core.auth.service.ProfileService
 import ai.storyfork.core.auth.service.SessionService
 import jakarta.validation.Valid
@@ -26,15 +28,15 @@ class ProfileController(private val sessions: SessionService, private val profil
 
     @PostMapping("/api/v1/me/email-change")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    fun emailChange(@AuthenticationPrincipal jwt: Jwt, @Valid @RequestBody request: SignupController.EmailRequest) = profiles.requestEmailChange(member(jwt), request.email)
+    fun emailChange(@AuthenticationPrincipal jwt: Jwt, @Valid @RequestBody request: EmailRequest) = profiles.requestEmailChange(member(jwt), request.email)
 
     @PostMapping("/api/v1/auth/verify-email-change")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun verifyEmailChange(@Valid @RequestBody request: SignupController.TokenRequest) = profiles.verifyEmailChange(request.token)
+    fun verifyEmailChange(@Valid @RequestBody request: TokenRequest) = profiles.verifyEmailChange(request.token)
 
     @PostMapping("/api/v1/auth/forgot-password")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    fun forgotPassword(@Valid @RequestBody request: SignupController.EmailRequest) = profiles.forgotPassword(request.email)
+    fun forgotPassword(@Valid @RequestBody request: EmailRequest) = profiles.forgotPassword(request.email)
 
     @PostMapping("/api/v1/auth/reset-password")
     @ResponseStatus(HttpStatus.NO_CONTENT)

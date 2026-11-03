@@ -1,5 +1,6 @@
+import '../../testLocks'
 import { afterEach, expect, it, vi } from 'vitest'
-import { login, refresh, logout, getAccessToken } from './auth'
+import { login, refresh, logout, getAccessToken, authVersion, protectedRequest } from './auth'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 
 afterEach(() => { vi.unstubAllGlobals() })
@@ -20,6 +21,56 @@ it('shares concurrent refresh and clears the token on failure', async () => {
   const results = await Promise.allSettled([refresh(), refresh()])
   expect(results.map((r) => r.status)).toEqual(['rejected', 'rejected'])
   expect(fetchMock).toHaveBeenCalledTimes(2)
+  expect(getAccessToken()).toBeNull()
+})
+
+it.each(['network', '503'])('keeps authentication after transient %s refresh and retries', async failure => {
+  const user = { id: '1', email: 'a@b.co', nickname: 'A', operator: false }
+  let attempts = 0
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => {
+    if (path.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
+    if (path.endsWith('/login')) return Response.json({ accessToken: 'old', user })
+    if (++attempts === 1) {
+      if (failure === 'network') throw new TypeError('offline')
+      return new Response(null, { status: 503 })
+    }
+    return Response.json({ accessToken: 'new', user })
+  }))
+  await login(user.email, 'password')
+  const version = authVersion()
+  await expect(refresh()).rejects.toThrow(failure === 'network' ? 'offline' : 'Authentication request failed')
+  expect(getAccessToken()).toBe('old')
+  expect(authVersion()).toBe(version)
+  await refresh()
+  expect(getAccessToken()).toBe('new')
+})
+
+it('preserves a protected session after a transient refresh failure', async () => {
+  const user = { id: '1', email: 'a@b.co', nickname: 'A', operator: false }
+  let refreshAttempts = 0
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => {
+    if (path.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
+    if (path.endsWith('/login')) return Response.json({ accessToken: 'old', user })
+    if (path.endsWith('/refresh')) return ++refreshAttempts === 1 ? new Response(null, { status: 503 }) : Response.json({ accessToken: 'new', user })
+    return new Response(null, { status: refreshAttempts < 2 ? 401 : 200 })
+  }))
+  await login(user.email, 'password')
+  const version = authVersion()
+  await expect(protectedRequest('/api/v1/me')).rejects.toThrow('Authentication request failed')
+  expect(getAccessToken()).toBe('old')
+  expect(authVersion()).toBe(version)
+  expect((await protectedRequest('/api/v1/me')).status).toBe(200)
+})
+
+it.each([401, 403, 409])('expires authentication when refresh is denied with %i', async status => {
+  const user = { id: '1', email: 'a@b.co', nickname: 'A', operator: false }
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => {
+    if (path.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
+    if (path.endsWith('/login')) return Response.json({ accessToken: 'old', user })
+    return new Response(null, { status: path.endsWith('/refresh') ? status : 401 })
+  }))
+  await login(user.email, 'password')
+  await expect(protectedRequest('/api/v1/me')).rejects.toBeInstanceOf(SessionExpired)
   expect(getAccessToken()).toBeNull()
 })
 
