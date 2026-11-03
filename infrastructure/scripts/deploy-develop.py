@@ -2,6 +2,7 @@
 """Opt-in develop CD. No remote files are installed or existing configuration changed."""
 import base64
 import fcntl
+import io
 import json
 import os
 from pathlib import Path
@@ -12,12 +13,21 @@ import subprocess
 import sys
 import tempfile
 import time
+import types
+import urllib.parse
 import urllib.request
+import zipfile
+import zlib
 
 REPOSITORY = 'SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM'
 PROJECT = 'storyfork-develop-cd'
 SERVICES = ('web', 'core-api', 'ai-service')
 IMAGES = {name: 'ghcr.io/sknetworks-family-aicamp/storyfork-' + name for name in SERVICES}
+# Reuse the same CI gate on runner and server. This is trusted checkout code, never artifact data.
+ci = types.ModuleType('publish_ci')
+exec(PUBLISH_CI_SOURCE if 'PUBLISH_CI_SOURCE' in globals() else
+     Path(__file__).with_name('check-publish-ci.py').read_text(), ci.__dict__)
+require = ci.require
 
 
 def run(args, timeout=300, **kwargs):
@@ -29,37 +39,123 @@ def api(path, token):
     request = urllib.request.Request('https://api.github.com/repos/' + REPOSITORY + path,
         headers={'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json'})
     with urllib.request.urlopen(request, timeout=15) as response:
-        return json.load(response)
+        require(response.status == 200)
+        data = json.load(response)
+    require(isinstance(data, dict))
+    return data
+
+
+def publication_run(run_id, attempt, token):
+    require(type(run_id) is int and run_id > 0 and token)
+    workflow = api('/actions/workflows/publish-images.yml', token)
+    require(type(workflow['id']) is int and workflow['id'] > 0 and workflow['state'] == 'active')
+    require(workflow['name'] == 'Images' and workflow['path'] == '.github/workflows/publish-images.yml')
+    latest = api(f'/actions/runs/{run_id}', token)
+    if attempt is None: attempt = latest['run_attempt']
+    require(type(attempt) is int and attempt > 0 and latest['run_attempt'] == attempt)
+    source = api(f'/actions/runs/{run_id}/attempts/{attempt}', token)
+    for run in (latest, source):
+        require(run['id'] == run_id and run['run_attempt'] == attempt)
+        require(run['workflow_id'] == workflow['id'] and run['name'] == 'Images' and run['path'] == workflow['path'])
+        require(run['repository']['full_name'] == REPOSITORY and run['head_repository']['full_name'] == REPOSITORY)
+        require(run['status'] == 'completed' and run['conclusion'] == 'success')
+        require(run['event'] in {'workflow_run', 'workflow_dispatch'} and re.fullmatch('[0-9a-f]{40}', run['head_sha']))
+        require(run['head_branch'] in ({'main'} if run['event'] == 'workflow_run' else {'main', 'develop'}))
+    require(all(latest[key] == source[key] for key in ('head_sha', 'head_branch', 'event')))
+    return source
+
+
+def validate_source(context):
+    require(isinstance(context, dict) and set(context) == {
+        'repository', 'branch', 'sha', 'ci_run_id', 'ci_run_attempt', 'images_run_id', 'images_run_attempt'})
+    require(context['repository'] == REPOSITORY and context['branch'] == 'develop')
+    require(isinstance(context['sha'], str) and re.fullmatch('[0-9a-f]{40}', context['sha']))
+    require(all(type(context[key]) is int and context[key] > 0
+                for key in ('ci_run_id', 'ci_run_attempt', 'images_run_id', 'images_run_attempt')))
 
 
 def verify(context, token):
-    if (context['repository'] != REPOSITORY or context['event'] != 'push'
-            or context['ref'] != 'refs/heads/develop'
-            or not re.fullmatch('[0-9a-f]{40}', context['sha'])
-            or type(context['run_id']) is not int or context['run_id'] < 1
-            or type(context['attempt']) is not int or context['attempt'] < 1 or not token):
-        raise ValueError('Not a trusted develop push')
-    path = f"/actions/runs/{context['run_id']}/attempts/{context['attempt']}"
-    source = api(path, token)
-    if (source['id'] != context['run_id'] or source['run_attempt'] != context['attempt']
-            or source['head_sha'] != context['sha'] or source['event'] != 'push'
-            or source['head_branch'] != 'develop' or source['path'] != '.github/workflows/ci.yml'
-            or source['repository']['full_name'] != REPOSITORY
-            or source['head_repository']['full_name'] != REPOSITORY):
-        raise ValueError('Run provenance mismatch')
-    evidence = api(path + '/jobs?per_page=100', token)
-    jobs = evidence['jobs']
-    if len(jobs) != evidence['total_count'] or len(jobs) > 100:
-        raise ValueError('Incomplete job evidence')
-    for name in ('Required CI', *(f'Publish {service} image' for service in SERVICES)):
+    validate_source(context)
+    source = publication_run(context['images_run_id'], context['images_run_attempt'], token)
+    if source['event'] == 'workflow_dispatch':
+        require(source['head_branch'] == context['branch'] and source['head_sha'] == context['sha'])
+    jobs = list(ci.records(f"/actions/runs/{source['id']}/attempts/{source['run_attempt']}/jobs",
+                           'jobs', lambda path: api(path, token)))
+    for name in ('Verify successful CI', *(f'Publish {service} image' for service in SERVICES)):
         matches = [job for job in jobs if job['name'] == name]
-        if len(matches) != 1 or any(
-                job['status'] != 'completed' or job['conclusion'] != 'success'
-                or job['head_sha'] != context['sha'] or job['run_id'] != context['run_id']
-                for job in matches):
-            raise ValueError('Required CI or a publish job did not succeed in this attempt')
-    if api('/git/ref/heads/develop', token)['object']['sha'] != context['sha']:
-        raise ValueError('Develop HEAD changed')
+        require(len(matches) == 1)
+        job = matches[0]
+        require(job['status'] == 'completed' and job['conclusion'] == 'success')
+        # Images workflow_run jobs identify default main, NOT the published develop SHA.
+        require(job['head_sha'] == source['head_sha'] and job['run_id'] == source['id'])
+        require(job.get('run_attempt', source['run_attempt']) == source['run_attempt'])
+    ci.verify_ci(context['branch'], context['sha'], context['ci_run_id'], context['ci_run_attempt'],
+                 REPOSITORY, lambda path: api(path, token))
+    head = api('/git/ref/heads/develop', token)
+    require(head['ref'] == 'refs/heads/develop' and head['object']['sha'] == context['sha'])
+
+
+class ArtifactRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        require(urllib.parse.urlsplit(newurl).scheme == 'https')
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        redirected.remove_header('Authorization')
+        return redirected
+
+
+def download_artifact(artifact_id, token):
+    request = urllib.request.Request(
+        f'https://api.github.com/repos/{REPOSITORY}/actions/artifacts/{artifact_id}/zip',
+        headers={'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json'})
+    with urllib.request.build_opener(ArtifactRedirect()).open(request, timeout=15) as response:
+        require(response.status == 200)
+        body = response.read(16385)
+    require(len(body) <= 16384)
+    return body
+
+
+def unique_fields(pairs):
+    result = dict(pairs)
+    require(len(result) == len(pairs))
+    return result
+
+
+def resolve(event_name, event, ref, run_id, token):
+    require(event['repository']['full_name'] == REPOSITORY)
+    require(ref == 'refs/heads/main' and event['repository']['default_branch'] == 'main')
+    if event_name == 'workflow_run':
+        candidate = event['workflow_run']
+        source = publication_run(candidate['id'], candidate['run_attempt'], token)
+        require(all(candidate[key] == source[key] for key in (
+            'id', 'run_attempt', 'workflow_id', 'name', 'path', 'event', 'head_branch', 'head_sha', 'status', 'conclusion')))
+        require(candidate['repository']['full_name'] == REPOSITORY and candidate['head_repository']['full_name'] == REPOSITORY)
+    else:
+        require(event_name == 'workflow_dispatch' and re.fullmatch('[1-9][0-9]{0,19}', run_id))
+        source = publication_run(int(run_id), None, token)
+    artifacts = ci.records(f"/actions/runs/{source['id']}/artifacts", 'artifacts', lambda path: api(path, token))
+    matches = [artifact for artifact in artifacts
+               if artifact['name'] == f"publication-source-{source['id']}-{source['run_attempt']}"]
+    require(len(matches) == 1)
+    artifact = matches[0]
+    require(type(artifact['id']) is int and artifact['id'] > 0 and artifact['expired'] is False)
+    require(type(artifact['size_in_bytes']) is int and 0 < artifact['size_in_bytes'] <= 16384)
+    require(artifact['workflow_run']['id'] == source['id'] and artifact['workflow_run']['head_sha'] == source['head_sha'])
+    body = download_artifact(artifact['id'], token)
+    require(len(body) <= 16384)
+    # Read one bounded JSON member in memory; never extract files or execute artifact content.
+    with zipfile.ZipFile(io.BytesIO(body)) as archive:
+        entries = archive.infolist()
+        require(len(entries) == 1)
+        entry = entries[0]
+        require(entry.filename == 'publication-source.json' and 0 < entry.file_size <= 4096)
+        require(entry.compress_type in {zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED} and not entry.flag_bits & 1)
+        with archive.open(entry) as member:
+            data = member.read(4097)
+        require(len(data) <= 4096)
+    context = json.loads(data, object_pairs_hook=unique_fields)
+    validate_source(context)
+    require(context['images_run_id'] == source['id'] and context['images_run_attempt'] == source['run_attempt'])
+    return context
 
 
 def secure_file(path, directory=False):
@@ -195,7 +291,8 @@ def connect(context, token):
             file.write_text(value.rstrip() + '\n')
         if not run(['ssh-keygen', '-F', '[100.105.27.82]:5798', '-f', str(hosts)]).strip():
             raise ValueError('Verified non-default-port host key required')
-        script = Path(__file__).read_text()
+        helper = Path(__file__).with_name('check-publish-ci.py').read_text()
+        script = 'PUBLISH_CI_SOURCE = ' + repr(helper) + '\n' + Path(__file__).read_text()
         payload = {'context': context, 'token': token, 'actor': os.environ['GITHUB_ACTOR'],
                    'directory': directory, 'port': port,
                    'compose': (Path(__file__).resolve().parents[1] / 'compose.cd.yaml').read_text()}
@@ -222,10 +319,11 @@ def main():
     if sys.argv[1:] == ['remote']:
         remote(json.load(sys.stdin))
         return
-    context = {'repository': os.environ['GITHUB_REPOSITORY'], 'event': os.environ['GITHUB_EVENT_NAME'],
-               'ref': os.environ['GITHUB_REF'], 'sha': os.environ['GITHUB_SHA'],
-               'run_id': int(os.environ['GITHUB_RUN_ID']), 'attempt': int(os.environ['GITHUB_RUN_ATTEMPT'])}
     if sys.argv[1:] not in (['check'], ['deploy']): raise ValueError('Use check or deploy')
+    require(os.environ['GITHUB_REPOSITORY'] == REPOSITORY)
+    context = resolve(os.environ['GITHUB_EVENT_NAME'],
+                      json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text()),
+                      os.environ['GITHUB_REF'], os.environ.get('IMAGES_RUN_ID', ''), os.environ['GH_TOKEN'])
     verify(context, os.environ['GH_TOKEN'])
     settings()
     if sys.argv[1:] == ['deploy']: connect(context, os.environ['GH_TOKEN'])
@@ -234,6 +332,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+    except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile, zlib.error, subprocess.SubprocessError):
         # Never dump a subprocess/HTTP response, payload, Compose config, token, or service logs.
         sys.exit('Develop CD failed closed; check provisioning, exact publish evidence and health (raw output suppressed)')

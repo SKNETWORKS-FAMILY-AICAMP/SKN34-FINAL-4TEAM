@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location('deploy', ROOT / 'infrastructure/scripts/deploy-develop.py')
@@ -17,63 +18,201 @@ cd = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(cd)
 SHA = 'a' * 40
 TOKEN = 'synthetic-token-not-a-credential'
-CONTEXT = {'repository': 'SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM', 'event': 'push',
-           'ref': 'refs/heads/develop', 'sha': SHA, 'run_id': 123, 'attempt': 2}
-NAMES = ['Required CI', 'Publish web image', 'Publish core-api image', 'Publish ai-service image']
+REPOSITORY = 'SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM'
+DEFAULT_SHA = 'b' * 40
+CONTEXT = {'repository': REPOSITORY, 'branch': 'develop', 'sha': SHA,
+           'ci_run_id': 123, 'ci_run_attempt': 2, 'images_run_id': 456, 'images_run_attempt': 3}
+NAMES = ['Verify successful CI', 'Publish web image', 'Publish core-api image', 'Publish ai-service image']
 
 
 def evidence():
-    return [
-        {'event': 'push', 'head_branch': 'develop', 'head_sha': SHA, 'id': 123,
-         'run_attempt': 2, 'path': '.github/workflows/ci.yml',
-         'repository': {'full_name': CONTEXT['repository']},
-         'head_repository': {'full_name': CONTEXT['repository']}},
-        {'total_count': 4, 'jobs': [
+    common = {'repository': {'full_name': REPOSITORY}, 'head_repository': {'full_name': REPOSITORY},
+              'status': 'completed', 'conclusion': 'success'}
+    ci_run = {**common, 'event': 'push', 'head_branch': 'develop', 'head_sha': SHA, 'id': 123,
+              'run_attempt': 2, 'path': '.github/workflows/ci.yml', 'name': 'CI', 'workflow_id': 7}
+    images = {**common, 'event': 'workflow_run', 'head_branch': 'main', 'head_sha': DEFAULT_SHA,
+              'id': 456, 'run_attempt': 3, 'path': '.github/workflows/publish-images.yml',
+              'name': 'Images', 'workflow_id': 8}
+    return {
+        '/actions/workflows/ci.yml': {'id': 7, 'name': 'CI', 'path': ci_run['path'], 'state': 'active'},
+        '/actions/workflows/publish-images.yml': {'id': 8, 'name': 'Images', 'path': images['path'], 'state': 'active'},
+        '/actions/runs/123': ci_run,
+        '/actions/runs/123/attempts/2/jobs': {'total_count': 1, 'jobs': [
+            {'name': 'Required CI', 'status': 'completed', 'conclusion': 'success',
+             'head_sha': SHA, 'run_id': 123, 'run_attempt': 2}]},
+        '/actions/runs/456': images,
+        '/actions/runs/456/attempts/3': copy.deepcopy(images),
+        '/actions/runs/456/attempts/3/jobs': {'total_count': 4, 'jobs': [
             {'name': name, 'status': 'completed', 'conclusion': 'success',
-             'head_sha': SHA, 'run_id': 123} for name in NAMES]},
-        {'object': {'sha': SHA}},
-    ]
+             'head_sha': DEFAULT_SHA, 'run_id': 456, 'run_attempt': 3} for name in NAMES]},
+        '/git/ref/heads/develop': {'ref': 'refs/heads/develop', 'object': {'sha': SHA}},
+        '/actions/runs/456/artifacts': {'total_count': 1, 'artifacts': [
+            {'id': 777, 'name': 'publication-source-456-3', 'expired': False, 'size_in_bytes': 512,
+             'workflow_run': {'id': 456, 'head_sha': DEFAULT_SHA}}]},
+    }
+
+
+def archive(entries=None):
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, 'w') as output:
+        for name, body in (entries or [('publication-source.json', json.dumps(CONTEXT))]):
+            output.writestr(name, body)
+    return stream.getvalue()
+
+
+def respond(data):
+    return lambda path, token: copy.deepcopy(data[path.split('?', 1)[0]])
 
 
 class DeployTests(unittest.TestCase):
-    def test_exact_push_attempt_and_all_publish_evidence(self):
-        with patch.object(cd, 'api', side_effect=evidence()) as api:
+    def test_resolve_auto_default_main_context_and_explicit_manual_reuse(self):
+        data = evidence()
+        event = {'repository': {'full_name': REPOSITORY, 'default_branch': 'main'},
+                 'workflow_run': data['/actions/runs/456']}
+        with patch.object(cd, 'api', side_effect=respond(data)), \
+                patch.object(cd, 'download_artifact', return_value=archive()) as download:
+            auto = cd.resolve('workflow_run', event, 'refs/heads/main', '', TOKEN)
+            manual = cd.resolve('workflow_dispatch', event, 'refs/heads/main', '456', TOKEN)
+            self.assertEqual(auto, CONTEXT)
+            self.assertEqual(manual, auto)
+            cd.verify(auto, TOKEN)
+            self.assertTrue(all(call.args == (777, TOKEN) for call in download.call_args_list))
+        # An independent manual Images run carries its own develop ref/SHA, unlike workflow_run.
+        for route in ('/actions/runs/456', '/actions/runs/456/attempts/3'):
+            data[route].update(event='workflow_dispatch', head_branch='develop', head_sha=SHA)
+        for job in data['/actions/runs/456/attempts/3/jobs']['jobs']: job['head_sha'] = SHA
+        with patch.object(cd, 'api', side_effect=respond(data)):
             cd.verify(CONTEXT, TOKEN)
-            self.assertIn('/attempts/2/jobs', api.call_args_list[1].args[0])
-        for key, value in [('event', 'pull_request'), ('event', 'workflow_dispatch'),
-                           ('ref', 'refs/heads/main'), ('sha', 'bad'),
-                           ('repository', 'attacker/fork')]:
+
+    def test_exact_ci_and_images_attempt_and_all_publish_evidence(self):
+        data = evidence()
+        with patch.object(cd, 'api', side_effect=respond(data)) as api:
+            cd.verify(CONTEXT, TOKEN)
+            paths = [call.args[0] for call in api.call_args_list]
+            self.assertTrue(any('/456/attempts/3/jobs' in path for path in paths))
+            self.assertTrue(any('/123/attempts/2/jobs' in path for path in paths))
+        for key, value in [('branch', 'main'), ('sha', 'bad'), ('repository', 'attacker/fork'),
+                           ('ci_run_id', True), ('images_run_attempt', 0), ('extra', 'unexpected')]:
             with self.subTest(key=key, value=value), patch.object(cd, 'api') as api:
-                with self.assertRaises(ValueError):
-                    cd.verify({**CONTEXT, key: value}, TOKEN)
+                with self.assertRaises(ValueError): cd.verify({**CONTEXT, key: value}, TOKEN)
                 api.assert_not_called()
         cases = []
-        for index in range(4):
-            for result in ('failure', 'cancelled', 'skipped', None):
-                data = evidence()
-                data[1]['jobs'][index]['conclusion'] = result
-                cases.append(data)
-        for key, value in [('event', 'workflow_run'), ('head_sha', 'b' * 40),
-                           ('run_attempt', 1), ('head_branch', 'main'),
-                           ('head_repository', {'full_name': 'attacker/fork'})]:
-            data = evidence()
-            data[0][key] = value
-            cases.append(data)
-        for mutation in ('missing', 'duplicate', 'truncated', 'wrong-job-sha', 'wrong-run', 'stale-head'):
-            data = evidence()
-            if mutation == 'missing': data[1]['jobs'].pop()
-            if mutation == 'duplicate': data[1]['jobs'].append(data[1]['jobs'][0])
-            if mutation == 'truncated': data[1]['total_count'] = 101
-            if mutation == 'wrong-job-sha': data[1]['jobs'][1]['head_sha'] = 'b' * 40
-            if mutation == 'wrong-run': data[1]['jobs'][1]['run_id'] = 124
-            if mutation == 'stale-head': data[2]['object']['sha'] = 'b' * 40
-            cases.append(data)
-        for data in cases:
-            with self.subTest(data=data), patch.object(cd, 'api', side_effect=data):
-                with self.assertRaises(ValueError):
-                    cd.verify(CONTEXT, TOKEN)
+        for route in ('/actions/runs/123/attempts/2/jobs', '/actions/runs/456/attempts/3/jobs'):
+            for index in range(len(data[route]['jobs'])):
+                for key, value in [('conclusion', 'failure'), ('conclusion', 'cancelled'),
+                                   ('conclusion', 'skipped'), ('conclusion', None), ('status', 'in_progress'),
+                                   ('run_attempt', 1), ('head_sha', 'c' * 40), ('run_id', 999)]:
+                    changed = evidence()
+                    changed[route]['jobs'][index][key] = value
+                    cases.append(changed)
+            for mutation in ('missing', 'duplicate', 'truncated'):
+                changed = evidence()
+                if mutation == 'missing': changed[route]['jobs'].pop()
+                if mutation == 'duplicate': changed[route]['jobs'].append(changed[route]['jobs'][0])
+                if mutation == 'truncated': changed[route]['total_count'] = 101
+                cases.append(changed)
+        for route in ('/actions/runs/123', '/actions/runs/456', '/actions/runs/456/attempts/3'):
+            for key, value in [('event', 'pull_request'), ('head_sha', 'bad'), ('id', 999),
+                               ('run_attempt', 1), ('path', '.github/workflows/other.yml'),
+                               ('name', 'Other'), ('workflow_id', 99), ('conclusion', 'failure'),
+                               ('conclusion', 'cancelled'), ('status', 'in_progress'),
+                               ('head_repository', {'full_name': 'attacker/fork'}),
+                               ('repository', {'full_name': 'attacker/fork'})]:
+                changed = evidence()
+                changed[route][key] = value
+                cases.append(changed)
+        changed = evidence()
+        changed['/git/ref/heads/develop']['object']['sha'] = 'c' * 40
+        cases.append(changed)
+        for route in ('/actions/workflows/ci.yml', '/actions/workflows/publish-images.yml'):
+            changed = evidence()
+            changed[route]['state'] = 'disabled_manually'
+            cases.append(changed)
+        for changed in cases:
+            with self.subTest(data=changed), patch.object(cd, 'api', side_effect=respond(changed)):
+                with self.assertRaises(ValueError): cd.verify(CONTEXT, TOKEN)
+        # Partial service CI is fine: Required CI succeeded, publishers are in an independent run.
+        data = evidence()
+        data['/actions/runs/123/attempts/2/jobs']['jobs'].append({'name': 'Web', 'conclusion': 'skipped'})
+        data['/actions/runs/123/attempts/2/jobs']['total_count'] += 1
+        with patch.object(cd, 'api', side_effect=respond(data)): cd.verify(CONTEXT, TOKEN)
+        # An optional job run_attempt may be absent; the exact-attempt API still binds it.
+        data = evidence()
+        for job in data['/actions/runs/456/attempts/3/jobs']['jobs']: del job['run_attempt']
+        with patch.object(cd, 'api', side_effect=respond(data)): cd.verify(CONTEXT, TOKEN)
         with patch.object(cd, 'api', side_effect=OSError('offline')):
             with self.assertRaises(OSError): cd.verify(CONTEXT, TOKEN)
+
+    def test_untrusted_triggers_and_source_handoff_fail_closed(self):
+        data = evidence()
+        event = {'repository': {'full_name': REPOSITORY, 'default_branch': 'main'},
+                 'workflow_run': data['/actions/runs/456']}
+        cases = [('pull_request', event, 'refs/heads/main', ''),
+                 ('workflow_dispatch', event, 'refs/heads/develop', '456')]
+        for run_id in ('', '0', '-1', 'true', '456/attempts/1', '4\n56'):
+            cases.append(('workflow_dispatch', event, 'refs/heads/main', run_id))
+        for key, value in [('event', 'pull_request'), ('conclusion', 'failure'),
+                           ('conclusion', 'cancelled'), ('run_attempt', 1), ('head_sha', SHA),
+                           ('head_repository', {'full_name': 'attacker/fork'})]:
+            changed = copy.deepcopy(event)
+            changed['workflow_run'][key] = value
+            cases.append(('workflow_run', changed, 'refs/heads/main', ''))
+        for args in cases:
+            with self.subTest(args=args), patch.object(cd, 'api', side_effect=respond(data)), \
+                    patch.object(cd, 'download_artifact', return_value=archive()):
+                with self.assertRaises(ValueError): cd.resolve(*args, TOKEN)
+        archives = [b'not a zip', archive([('../publication-source.json', '{}')]),
+                    archive([('publication-source.json', '{}'), ('other', 'untrusted')]),
+                    archive([('publication-source.json', 'x' * 4097)]),
+                    archive([('publication-source.json', 'bad json')]),
+                    archive([('publication-source.json', '[]')]),
+                    archive([('publication-source.json', json.dumps(CONTEXT)[:-1] + ',"sha":"' + SHA + '"}')]),
+                    b'x' * 16385]
+        for key, value in [('repository', 'attacker/fork'), ('branch', 'main'), ('sha', 'bad'),
+                           ('ci_run_id', True), ('ci_run_attempt', 1), ('images_run_id', 789),
+                           ('images_run_attempt', 1), ('extra', 'untrusted')]:
+            archives.append(archive([('publication-source.json', json.dumps({**CONTEXT, key: value}))]))
+        for body in archives:
+            with self.subTest(body=body[:60]), patch.object(cd, 'api', side_effect=respond(data)), \
+                    patch.object(cd, 'download_artifact', return_value=body):
+                with self.assertRaises((ValueError, zipfile.BadZipFile)):
+                    source = cd.resolve('workflow_run', event, 'refs/heads/main', '', TOKEN)
+                    cd.verify(source, TOKEN)
+        for mutation in ('missing', 'duplicate', 'expired', 'oversized', 'wrong-run', 'wrong-sha', 'old-attempt'):
+            changed = evidence()
+            listing = changed['/actions/runs/456/artifacts']
+            artifact = listing['artifacts'][0]
+            if mutation == 'missing': listing.update(total_count=0, artifacts=[])
+            if mutation == 'duplicate': listing.update(total_count=2, artifacts=[artifact, artifact])
+            if mutation == 'expired': artifact['expired'] = True
+            if mutation == 'oversized': artifact['size_in_bytes'] = 16385
+            if mutation == 'wrong-run': artifact['workflow_run']['id'] = 999
+            if mutation == 'wrong-sha': artifact['workflow_run']['head_sha'] = SHA
+            if mutation == 'old-attempt': artifact['name'] = 'publication-source-456-2'
+            with self.subTest(mutation=mutation), patch.object(cd, 'api', side_effect=respond(changed)), \
+                    patch.object(cd, 'download_artifact', return_value=archive()):
+                with self.assertRaises(ValueError): cd.resolve('workflow_run', event, 'refs/heads/main', '', TOKEN)
+        for route in evidence():
+            with self.subTest(route=route):
+                def fail(path, token):
+                    if path.split('?', 1)[0] == route: raise OSError('API failed')
+                    return respond(data)(path, token)
+                with patch.object(cd, 'api', side_effect=fail), patch.object(cd, 'download_artifact', return_value=archive()):
+                    with self.assertRaises(OSError):
+                        source = cd.resolve('workflow_run', event, 'refs/heads/main', '', TOKEN)
+                        cd.verify(source, TOKEN)
+
+    def test_artifact_download_is_bounded_and_redirects_drop_auth(self):
+        response = io.BytesIO(b'x' * 16385)
+        response.status = 200
+        with patch.object(cd.urllib.request, 'build_opener') as opener:
+            opener.return_value.open.return_value = response
+            with self.assertRaises(ValueError): cd.download_artifact(777, TOKEN)
+        request = cd.urllib.request.Request('https://api.github.com/artifact', headers={'Authorization': 'Bearer ' + TOKEN})
+        redirect = cd.ArtifactRedirect().redirect_request(request, None, 302, 'Found', {}, 'https://blob.example/signed')
+        self.assertNotIn('Authorization', redirect.headers)
+        with self.assertRaises(ValueError):
+            cd.ArtifactRedirect().redirect_request(request, None, 302, 'Found', {}, 'http://blob.example/signed')
 
     def provision(self, directory):
         root = Path(directory).resolve()
@@ -199,6 +338,13 @@ class DeployTests(unittest.TestCase):
             self.assertIn('tgv99536@100.105.27.82', ssh)
             self.assertNotIn(TOKEN, ' '.join(ssh))
             self.assertFalse(Path(ssh[ssh.index('-i') + 1]).exists())
+            # The remote command carries the trusted shared gate, not a server-side file dependency.
+            command = cd.shlex.split(ssh[-1])
+            self.assertEqual(command[:3], ['python3', '-I', '-c'])
+            namespace = {'__name__': 'trusted_remote'}
+            exec(compile(command[3], '<trusted-ssh-script>', 'exec'), namespace)
+            namespace['api'] = respond(evidence())
+            namespace['verify'](CONTEXT, TOKEN)
 
     def test_http_health_contract(self):
         bodies = [b'<div id="root">', b'{"status":"up","service":"storyfork-core-api"}',
@@ -242,18 +388,29 @@ class DeployTests(unittest.TestCase):
         self.assertNotEqual(subprocess.run(args, env=env, capture_output=True).returncode, 0)
 
     def test_workflow_gate_and_pinning(self):
-        workflow = (ROOT / '.github/workflows/ci.yml').read_text()
-        deploy = workflow.split('\n  deploy:', 1)[1]
-        self.assertIn('needs: [required, publish]', deploy)
-        for text in ["github.event_name == 'push'", "github.ref == 'refs/heads/develop'",
-                     "needs.publish.result == 'success'", "vars.DEVELOP_CD_ENABLED == 'true'",
+        ci = (ROOT / '.github/workflows/ci.yml').read_text()
+        workflow = (ROOT / '.github/workflows/deploy-develop.yml').read_text()
+        for text in ['name: Deploy', 'workflows: [Images]', 'types: [completed]',
+                     'workflow_dispatch:', 'images_run_id:', 'required: true',
+                     "vars.DEVELOP_CD_ENABLED == 'true'", "github.event.workflow_run.conclusion == 'success'",
+                     'github.event.workflow_run.head_repository.full_name == github.repository',
                      'packages: read', 'actions: read', 'id-token: write', 'environment: develop-cd',
                      'tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c',
-                     'oauth-client-id:', 'audience:', 'tags: tag:storyfork-cd']:
-            self.assertIn(text, deploy)
-        self.assertNotIn('workflow_run:', workflow)
-        self.assertIn("cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}", workflow)
-        self.assertIn('test-deploy-develop.py', workflow.split('\n  required:', 1)[0])
+                     'oauth-client-id:', 'audience:', 'tags: tag:storyfork-cd',
+                     'group: storyfork-develop-cd', 'cancel-in-progress: false',
+                     'ref: ${{ github.event.repository.default_branch }}',
+                     'IMAGES_RUN_ID: ${{ inputs.images_run_id }}']:
+            self.assertIn(text, workflow)
+        self.assertNotIn('branches:', workflow)
+        self.assertNotIn('packages: write', workflow)
+        self.assertNotIn('needs:', workflow)
+        self.assertNotIn('  deploy:', ci)
+        self.assertNotIn('  publish:', ci)
+        self.assertIn('test-deploy-develop.py', ci.split('\n  required:', 1)[0])
+        self.assertLess(workflow.index('deploy-develop.py check'), workflow.index('tailscale/github-action@'))
+        self.assertLess(workflow.index('tailscale/github-action@'), workflow.index('deploy-develop.py deploy'))
+        for action in cd.re.findall(r'uses: (\S+)', workflow):
+            self.assertRegex(action, r'^[^@]+@[0-9a-f]{40}$')
 
 
 if __name__ == '__main__':
