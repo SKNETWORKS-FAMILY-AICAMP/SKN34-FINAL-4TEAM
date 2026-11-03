@@ -193,9 +193,14 @@ it('이메일 변경 확인 실패는 프로필에서 새 확인 메일을 요�
 
 it('이메일 인증 성공은 자동 로그인 없이 로그인 링크를 우선 제공한다', async () => {
   window.history.replaceState(null, '', '/auth/verify-email#token=secret')
-  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : new Response(null, { status: path.endsWith('/verify-email') ? 204 : 401 })))
+  const mock = vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : new Response(null, { status: path.endsWith('/verify-email') ? 204 : 401 }))
+  vi.stubGlobal('fetch', mock)
   const { store } = renderApp('/auth/verify-email#token=secret')
+  expect(mock.mock.calls.some(([path]) => path.endsWith('/verify-email'))).toBe(false)
+  fireEvent.change(screen.getByLabelText('가입 비밀번호'), { target: { value: 'password123' } })
+  fireEvent.click(screen.getByRole('button', { name: '이메일 확인' }))
   expect((await screen.findByText(/이메일 인증이 완료됐어요/))).toBeTruthy()
+  expect(mock).toHaveBeenCalledWith('/api/v1/auth/verify-email', expect.objectContaining({ body: JSON.stringify({ token: 'secret', password: 'password123' }) }))
   expect(screen.getByRole('link', { name: '로그인' }).classList.contains('pri')).toBe(true)
   expect(screen.queryByRole('link', { name: '확인 메일 재발송' })).toBeNull()
   expect(store.getState().session.role).toBeNull()
