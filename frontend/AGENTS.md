@@ -39,7 +39,7 @@
 - feature끼리 다른 feature의 ViewModel·Store를 참조하지 않는다. 공유 요소만 `presentation/shared`에 둔다.
 - 현재 Health처럼 업무 규칙이 없는 단순 연결 확인은 `View → Hook → DI 외부 함수 → Fetch·Zod`를 유지하며
   빈 UseCase·Repository를 추가하지 않는다.
-- 브라우저는 공개 Core API만 호출한다. AI Service·OpenAI를 직접 호출하거나 내부 DTO를 공개 계약으로 사용하지 않는다.
+- 브라우저는 공개 Core Service HTTP API만 호출한다(현재 실행 모듈·경로의 `core-api`는 유지). AI Service·그래프 DB·외부 모델을 직접 호출하거나 내부 DTO를 공개 계약으로 사용하지 않는다.
 
 ## 상태·요청·화면
 
