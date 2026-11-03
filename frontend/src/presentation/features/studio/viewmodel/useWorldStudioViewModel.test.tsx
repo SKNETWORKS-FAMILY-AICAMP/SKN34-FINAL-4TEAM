@@ -85,10 +85,12 @@ it('does not replace confirmed Wiki data until save resolves and prevents duplic
  let pending:Promise<void>
  act(()=>{pending=result.current.save();result.current.save()})
  expect(repo.saveStudio).toHaveBeenCalledTimes(1)
+ expect(result.current.saveState).toBe('saving')
  expect(result.current.saved?.settings).toEqual([])
  await act(async()=>{finish({...world,version:2,settings:[s]});await pending})
  expect(result.current.saved?.settings[0].item.id).toBe(s.item.id)
  expect(result.current.dirty).toBe(false)
+ expect(result.current.saveState).toBe('idle')
 })
 
 it('preserves author edits and last confirmed data on conflict',async()=>{
@@ -101,6 +103,7 @@ it('preserves author edits and last confirmed data on conflict',async()=>{
  expect(result.current.saved?.description).toBe('설명')
  expect(result.current.dirty).toBe(true)
  expect(result.current.error).toBe('다른 곳에서 변경되었습니다')
+ expect(result.current.saveState).toBe('failed')
  expect(repo.analyze).not.toHaveBeenCalled()
 })
 

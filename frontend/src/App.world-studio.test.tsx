@@ -55,6 +55,7 @@ it('exposes original menus from main navigation and preserves every menu through
  const ids=persisted.settings.map(s=>s.item.id)
  for(const section of studioSections) {
   fireEvent.click(within(screen.getByRole('navigation',{name:'설정 작성 메뉴'})).getByRole('button',{name:new RegExp('^'+section.label+' ')}))
+  fireEvent.click(within(screen.getByRole('navigation',{name:section.label+' 항목'})).getByRole('button'))
   fireEvent.change(screen.getByLabelText('내용'),{target:{value:'수정 | 원문\n'+section.label}})
  }
  fireEvent.click(screen.getByRole('button',{name:'저장'}))
@@ -65,6 +66,7 @@ it('exposes original menus from main navigation and preserves every menu through
  expect(persisted.settings.map(s=>s.item.id)).toEqual(ids)
  for(const section of studioSections) {
   fireEvent.click(within(screen.getByRole('navigation',{name:'설정 작성 메뉴'})).getByRole('button',{name:new RegExp('^'+section.label+' ')}))
+  fireEvent.click(within(screen.getByRole('navigation',{name:section.label+' 항목'})).getByRole('button'))
   expect(screen.getByLabelText<HTMLTextAreaElement>('내용').value).toBe('수정 | 원문\n'+section.label)
   expect(screen.getByLabelText<HTMLInputElement>('내 분류').value).toBe('내 사용자 분류')
   expect(screen.getByLabelText<HTMLInputElement>('내 태그 (쉼표로 구분)').value).toBe('태그')

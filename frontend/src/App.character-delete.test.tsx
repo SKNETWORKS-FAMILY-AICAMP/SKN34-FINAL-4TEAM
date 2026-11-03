@@ -18,7 +18,7 @@ it('confirms person/incident relation removal and restores identical IDs before 
  }))
  render(<Provider store={createAppStore({role:'user'})}><MemoryRouter initialEntries={['/worlds/delete-world']}><App/></MemoryRouter></Provider>)
  await screen.findByRole('heading',{name:'삭제 검증'})
- fireEvent.click(screen.getByRole('button',{name:'인물 관계 편집'}))
+ fireEvent.click(screen.getByRole('button',{name:'관계 편집'}))
  fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  fireEvent.click(screen.getByRole('button',{name:'인물 삭제'}))
  expect(screen.getByText('오랜 동료이자 경쟁자')).toBeTruthy()

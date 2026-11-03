@@ -21,6 +21,7 @@ it('keeps unsaved edits out of the map and updates the map only after Core save'
  await screen.findByRole('heading',{name:'지도 테스트'})
  fireEvent.click(screen.getByRole('button',{name:'인물 1개'}))
  fireEvent.change(screen.getByLabelText('항목 이름'),{target:{value:'아직 저장하지 않은 인물'}})
+ fireEvent.click(screen.getByRole('button',{name:'세계관 탐색'}))
  fireEvent.click(screen.getByRole('button',{name:'전체 세계관 지도'}))
  const list=screen.getByRole('navigation',{name:'지도 설정 목록'})
  expect(within(list).getByRole('button',{name:'저장된 인물 인물'})).toBeTruthy()

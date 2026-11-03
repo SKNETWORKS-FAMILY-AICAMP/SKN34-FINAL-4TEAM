@@ -13,7 +13,7 @@ it('keeps the world list open across tabs and preserves an explicit collapse unt
  render(<Provider store={createAppStore({role:'user'})}><MemoryRouter initialEntries={['/worlds/sidebar-world']}><App/></MemoryRouter></Provider>)
  await screen.findByRole('heading',{name:world.name})
  const list=screen.getByRole('navigation',{name:'내 세계관'})
- const tabs=['인물 관계 편집','전체 세계관 지도','설정집','인물 관계도','초기 역사 시간선','AI 후보 검토','설정 작성']
+ const tabs=['관계 편집','세계관 탐색','전체 세계관 지도','설정집','인물 관계도','초기 역사 시간선','AI 후보 검토','설정 작성']
  for(const name of tabs){
   fireEvent.click(screen.getByRole('button',{name}))
   expect(list.closest('aside')?.hidden).toBe(false)
