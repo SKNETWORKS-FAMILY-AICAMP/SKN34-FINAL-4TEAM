@@ -73,6 +73,46 @@ Health는 OpenAI 인증·모델 접근을 검사하지 않으며 클라이언트
 네이티브 개발은 각 서비스의 `pnpm dev`, `./gradlew bootRun`, `uv run --locked uvicorn app.main:create_app --factory --reload --port 8000`을 직접 사용합니다. 루트 `.env`는 자동으로 읽지 않으므로 필요한 변수만 해당 서비스 터미널에 설정합니다. 루트 `.env` 전체를 source하지 않습니다. 자동 설정 전달은 Compose를 사용합니다.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 사용합니다.
 
+## 로컬 설정 첨부 저장소 (#87)
+
+이미지·일반 파일 API를 로컬에서 사용할 때만 base + prod 뒤에 [`compose.attachments.yaml`](compose.attachments.yaml)을 추가합니다.
+이 overlay는 Content와 첨부를 활성화하며 기존 Auth DB·자격증명과 DB volume을 그대로 사용합니다. 실제 `INTERNAL_TOKEN`을 Core·AI에 동일하게 설정합니다.
+저장소 빌드는 승인된 [기존 minio.dockerfile](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-5Team/blob/HEAD/minio.dockerfile) 방식이며
+Go `1.24.8`/MinIO `RELEASE.2025-10-15T17-29-55Z`를 고정합니다. 외부 소스 다운로드·빌드에는 네트워크가 필요합니다.
+
+```bash
+# 루트 .env에 로컬 S3 변수와 별도 로컬 credentials를 지정 (실제 파일은 자동 변경하지 않음)
+docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml -f infrastructure/compose.attachments.yaml up --build -d
+```
+
+MinIO Console은 `http://127.0.0.1:${MINIO_CONSOLE_PORT:-9001}`, S3 API는 `${MINIO_API_PORT:-9000}`입니다.
+기본 포트가 점유됐으면 다른 스택을 중지하지 말고 두 변수를 바꿉니다. 네이티브 Core의 endpoint도 해당 loopback 포트로 지정합니다.
+Console에서 `ATTACHMENT_S3_BUCKET` 이름의 **private** 버킷을 먼저 생성합니다. API는 버킷/공개 정책을 자동 생성하지 않습니다.
+AWS credentials는 Core와 이 로컬 MinIO의 runtime에만 전달하며 Frontend·AI·build ARG에는 전달하지 않습니다.
+`.env.example`의 로컬 자격증명은 공개 개발 전용 예제이므로 실제 루트 `.env`에서 교체합니다.
+종료 시 같은 세 파일을 지정해 해당 Compose 프로젝트만 `down`하고 volume은 보존합니다. 다른 스택·개인 검증 자원은 건드리지 않습니다.
+
+### 네이티브 Core 첨부 설정
+
+`backend/core-api` 터미널에서 기존 Core DB·SMTP·인증 설정과 `INTERNAL_TOKEN`을 준비한 뒤 필요한 변수만 한 명령에 전달합니다.
+다음 명령은 Core 프로세스에만 적용되며 Frontend·AI 터미널에 AWS 설정을 export하지 않습니다. 루트 `.env`는 자동으로 읽지 않습니다.
+
+```bash
+env CONTENT_ENABLED=true SETTING_ATTACHMENTS_ENABLED=true \
+  ATTACHMENT_S3_ENDPOINT=http://127.0.0.1:9000 \
+  ATTACHMENT_S3_REGION=us-east-1 ATTACHMENT_S3_BUCKET=storyfork-setting-attachments \
+  AWS_ACCESS_KEY_ID='<local-access-key>' AWS_SECRET_ACCESS_KEY='<local-secret-key>' \
+  ./gradlew bootRun
+```
+
+임시 자격증명의 `AWS_SESSION_TOKEN`도 같은 Core 명령에만 추가합니다. `ATTACHMENT_S3_REGION`을 생략하면 `AWS_REGION`을 사용합니다.
+실제 배포 저장소는 **AWS S3**입니다. endpoint를 비우고 region/bucket을 지정하며 로컬 access/secret/session 값을 제거한 뒤
+SDK 기본 role/profile 체인을 사용합니다. 네이티브 profile이 필요하면 `AWS_PROFILE`도 Core 명령에만 전달합니다.
+이 MinIO overlay는 로컬 전용이며 CD Compose에 자동 추가되지 않습니다. AWS provisioning·유료 호출·실제 IAM·TLS는 미검증입니다.
+성공/실패 HTTP 계약과 분산 transaction 한계는 [Core 첨부 문서](../backend/core-api/README.md#설정-이미지일반-파일-87)를 따릅니다.
+문서의 명시적 네이티브 명령과 렌더링된 Compose의 비밀 경계는 `python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v`로 검사합니다.
+이 검사는 설정만 읽고 앱·DB·컨테이너를 실행하지 않으며 CI의 configuration job에서도 수행합니다.
+
 ## CI → CD (publish → deploy)
 
 [CI](../.github/workflows/ci.yml)와 [CD](../.github/workflows/publish-images.yml) 두 워크플로를 사용합니다.
@@ -134,7 +174,7 @@ docker compose --env-file .env --file infrastructure/docker-compose.yaml --file 
 ```
 
 위 명령은 구문 검사만 하고 컨테이너를 실행하지 않습니다. CI의 configuration job은 예시 설정과 CI dummy 값으로
-base+prod·base+dev의 콘텐츠 false/true와 CI overlay를 검사합니다. 실제 HTTP/DB/SMTP는 별도 CI 통합·시스템 계층에서 확인하며 모델은 유료 호출하지 않습니다.
+base+prod·base+dev의 콘텐츠 false/true, CI overlay와 선택 첨부 overlay의 환경 격리를 검사합니다. 실제 HTTP/DB/SMTP는 별도 CI 통합·시스템 계층에서 확인하며 모델은 유료 호출하지 않습니다.
 
 ## 표준 테스트 프레임워크 직접 실행
 
@@ -160,7 +200,8 @@ uv run --locked --extra dev --project backend/ai-service python -m pytest infras
 ```
 
 CI는 Vitest 파일 필터, Gradle 기능 패키지 `--tests`, pytest marker/`-k`를 직접 지정하고 실패·빈 선택 종료 코드를 유지합니다.
-web/AI는 보수적인 서비스 단위, Core는 auth/content/health 단위이며 공통·설정·미등록 runtime 경로는 전체로 확장합니다.
+web/AI는 보수적인 서비스 단위, Core의 기존 선택 범위는 auth/content/health이며 공통·설정·의존성·미등록 `settingattachment` 경로는 Core 전체로 확장합니다.
+Auth·Content 실행 코드는 새 첨부의 소비 관계도 있으므로 Core 전체를 검증합니다. 테스트만 변경하면 기존 기능 범위를 유지합니다.
 Core 공개 계약·Core-AI 변경은 소비 서비스와 시스템 시나리오도 선택합니다. 정확한 소스 의존 그래프는 아니며,
 삭제·이름 변경도 이전 경로를 포함합니다. 문서만 변경하면 runtime 테스트를 생략합니다.
 

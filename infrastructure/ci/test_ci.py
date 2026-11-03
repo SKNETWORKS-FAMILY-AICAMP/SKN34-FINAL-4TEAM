@@ -21,8 +21,31 @@ class SelectionTest(unittest.TestCase):
         plan = ci.select(["backend/core-api/src/main/kotlin/ai/storyfork/core/auth/service/SessionService.kt"])
         self.assertEqual({"web", "core"}, {row["service"] for row in plan["integration"]})
         core = next(row for row in plan["unit"] if row["service"] == "core")
-        self.assertEqual("auth,content", core["scope"])
+        self.assertEqual("all", core["scope"])  # 첨부 HTTP·설정 테스트도 Auth를 소비한다.
         self.assertIn("content", plan["system"])
+
+    def test_content_change_includes_attachment_consumers(self):
+        plan = ci.select(["backend/core-api/src/main/kotlin/ai/storyfork/core/content/service/ContentService.kt"])
+        self.assertIn({"service": "core", "scope": "all"}, plan["integration"])
+        self.assertEqual({"web", "core", "ai"}, {row["service"] for row in plan["unit"]})
+        self.assertIn("content", plan["system"])
+
+    def test_attachment_runtime_and_migration_paths_conservatively_select_all(self):
+        for path in [
+            "backend/core-api/src/main/kotlin/ai/storyfork/core/settingattachment/service/SettingAttachmentService.kt",
+            "backend/core-api/src/main/kotlin/ai/storyfork/core/settingattachment/SettingAttachmentConfig.kt",
+            "backend/core-api/src/main/resources/db/migration/settingattachment/V1__setting_attachment.sql",
+        ]:
+            with self.subTest(path=path):
+                plan = ci.select([path])
+                self.assertIn({"service": "core", "scope": "all"}, plan["integration"])
+                self.assertEqual({"web", "core", "ai"}, {row["service"] for row in plan["unit"]})
+                self.assertEqual(ci.SCENARIOS, plan["system"])
+
+    def test_attachment_test_change_selects_core_without_system(self):
+        plan = ci.select(["backend/core-api/src/test/kotlin/ai/storyfork/core/settingattachment/SettingAttachmentHttpTest.kt"])
+        self.assertEqual([{"service": "core", "scope": "all"}], plan["integration"])
+        self.assertEqual([], plan["system"])
 
     def test_ai_contract_selects_core_web_and_system(self):
         plan = ci.select(["backend/ai-service/app/generation/router.py"])
@@ -88,6 +111,8 @@ class SelectionTest(unittest.TestCase):
         self.assertNotIn('--passWithNoTests', workflow)
         self.assertFalse(hasattr(ci, 'command'))
         self.assertIn('CONFIGURATION_NEEDED:', workflow)
+        configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v', configuration)
 
     def test_required_rejects_cancelled_and_unexpected_skips(self):
         ci.check_results({"unit": "skipped", "integration": "skipped", "system": "skipped"}, set())
@@ -141,7 +166,7 @@ class ConfigurationTest(unittest.TestCase):
         build = (ci.ROOT / "backend/core-api/build.gradle").read_text()
         block = build.split("def integrationTestClasses = [", 1)[1].split("]", 1)[0]
         patterns = re.findall(r"'([^']+)'", block)
-        boundary = re.compile(r"SpringBootTest|WebMvcTest|ApplicationContextRunner|MockMvc|HttpClient|HttpServer|MockRestServiceServer|DriverManagerDataSource")
+        boundary = re.compile(r"SpringBootTest|WebMvcTest|ApplicationContextRunner|SpringApplicationBuilder|MockMvc|HttpClient|HttpServer|MockRestServiceServer|DriverManagerDataSource|Flyway\.configure")
         for source in (ci.ROOT / "backend/core-api/src/test/kotlin").rglob("*Test.kt"):
             if boundary.search(source.read_text()):
                 with self.subTest(test=source.name):

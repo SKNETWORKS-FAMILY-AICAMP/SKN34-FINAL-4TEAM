@@ -76,6 +76,8 @@ jobs:
           done
       - name: Validate isolated CI overlay
         run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml -f infrastructure/ci/compose.test.yaml config --quiet
+      - name: Validate optional attachment environment contract
+        run: python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v
 
   unit:
     name: Unit / ${{ matrix.service }}

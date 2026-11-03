@@ -108,9 +108,93 @@ Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 we
 `AiServiceClientPropertiesTest`처럼 context가 섞인 클래스도 통합입니다. 새 Spring/HTTP/DB 테스트는 분류 목록을 갱신합니다.
 
 CI가 이 디렉터리에서 `./gradlew unitTest --no-daemon --tests 'ai.storyfork.core.auth.*'`와 `./gradlew integrationTest --no-daemon --tests ...`를 직접 호출합니다. 별도 runner·shell wrapper는 없습니다.
-Gradle `--tests`로 auth/content/health 기능 전체를 선택하고 공통·설정·의존성·미등록 기능 변경은 필터 없이 Core 전체로 확장합니다.
+Gradle `--tests`의 기존 기능 범위는 auth/content/health이며 공통·설정·의존성·미등록 `settingattachment` 변경은 필터 없이 Core 전체로 확장합니다.
+Auth·Content 실행 코드 변경도 새 첨부 소비 관계를 포함하도록 Core 전체를 검증하며 테스트만 변경하면 기존 기능 범위를 유지합니다.
 통합 job은 임시 PostgreSQL·Mailpit에서 기존 Flyway와 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTENT_DATABASE_URL` 조건부 테스트를 실행합니다.
 Content의 기존 `content_test`/빈 비밀번호는 격리 runner PostgreSQL trust 인증에만 적용하며 운영 설정이 아닙니다.
 그 뒤 관련 HTTP 시스템 시나리오가 CI Compose에서 실행됩니다. [공통 검증](../../README.md#검증)을 따르며 실제 hosted `Required CI` 결과 확인 전에는 검증 대기입니다.
 
 회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.
+
+## 설정 이미지·일반 파일 (#87)
+
+`CONTENT_ENABLED=true`, `SETTING_ATTACHMENTS_ENABLED=true`와 미리 만든 **비공개** S3 버킷이 필요합니다.
+로컬은 소스 빌드 MinIO, 실제 배포 대상은 AWS S3입니다. 공식 AWS SDK v2만 사용하며 버킷 생성·공개 ACL·presigned URL·외부 URL 다운로드는 하지 않습니다.
+`ATTACHMENT_S3_ENDPOINT`를 비우면 일반 AWS S3 endpoint를 사용합니다. `ATTACHMENT_S3_REGION`(기본 `us-east-1`, 없으면 `AWS_REGION`)과
+`ATTACHMENT_S3_BUCKET`을 지정하고 SDK 기본 자격증명 체인(환경변수, profile, workload role)을 사용합니다.
+로컬 MinIO는 endpoint override와 path-style을 사용합니다. AWS 유료 호출·실제 IAM·TLS·배포는 이번 로컬 검증에 포함하지 않습니다.
+
+기존 `setting_document`의 논리 ID를 `{settingId}`로 사용합니다. 작품과 로컬 세계관의 소유자가 JWT Principal과 일치해야 합니다.
+현재 Content가 로컬 세계관 ID를 작품 ID로 만드는 규칙을 조회에 재사용합니다. **following Fork는 원본 첨부를 볼 수 없으며**,
+독립 후에도 첨부를 자동 복사하지 않습니다. 설정의 public 표시·작품 발행·이미지 URL 지식은 첨부 접근 권한을 주지 않습니다.
+공개/회차별 배포, 과거 파일 버전 복원, 프로필·표지·원고·AI 연계는 구현하지 않았습니다.
+
+기준 경로: `/api/v1/works/{workId}/settings/{settingId}/attachments`
+
+| 메서드·하위 경로 | 요청·응답 |
+|---|---|
+| `POST` | `multipart/form-data`의 `file` 필드(AttachmentUploadRequest); 201 AttachmentResponse |
+| `GET` | 200 `{"attachments":[AttachmentResponse,…]}` |
+| `GET /{attachmentId}` | 200 AttachmentResponse |
+| `GET /{attachmentId}/content` | 200 원본 바이트; 항상 `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store` |
+| `PUT /{attachmentId}` | `file`로 교체; ID 유지, 200 AttachmentResponse |
+| `DELETE /{attachmentId}` | 파일과 참조 삭제, 204 |
+
+AttachmentResponse는 `id`, `filename`, `mediaType`, `kind`(`IMAGE`/`FILE`), `byteSize`, `createdAt`, `url`만 노출합니다.
+`url`은 작품·설정·첨부 ID로 만든 위 인증 API의 상대 content 경로입니다. RDB의 object key·내부 endpoint·bucket·자격증명은 노출하지 않습니다.
+이미지와 일반 파일은 동일 첨부 CRUD를 사용하고 확장자와 실제 내용으로 분류합니다. 모든 변경은 기존 CSRF 쿠키와 `X-CSRF-TOKEN`을 요구합니다.
+타인·미존재 작품/설정/첨부·다른 설정의 첨부 ID는 동일한 404이며 미인증은 401, CSRF·허용하지 않은 origin은 403입니다.
+인증/CSRF 오류는 기존 Security 경계의 응답 형식을 유지합니다.
+
+### 보수적인 기술 제한 (요금·업무 저장 한도 정책이 아님)
+
+- 모든 파일은 비어 있지 않은 **10 MiB 이하**입니다. multipart envelope 한도는 11 MiB입니다.
+- 이미지: **PNG, JPEG**만 허용합니다. 확장자·MIME·시그니처/종료·실제 디코딩을 검사합니다.
+  디코딩 전에 가로/세로 각각 4,096 이하, 총 16,000,000 pixels 이하를 확인합니다. SVG·GIF·WebP·실행형 형식은 지원하지 않습니다.
+- 일반 파일: UTF-8 **TXT/MD/CSV**, header/EOF를 확인한 **PDF**만 허용합니다. 텍스트의 잘못된 UTF-8·NUL/제어문자는 거절합니다.
+  PDF 파싱·악성코드 검사·스크립트 제거·OCR는 하지 않으므로 PDF 내부 안전성을 보장하지 않습니다. 일반 파일은 브라우저 inline으로 보내지 않습니다.
+- 파일명: 120자 이하의 문자·숫자·공백·`_().-`만 허용하고 경로 구분자·`..`·선행 점·양끝 공백·제어/방향 전환 문자를 거절합니다.
+  원래 파일명을 저장소 key로 사용하지 않습니다. MIME은 검증된 형식 또는 `application/octet-stream`을 받습니다.
+- 설정당 이미지 **10개**는 JPA `PESSIMISTIC_WRITE` 설정 행 잠금과 transaction 내 count로 동시 요청에도 지킵니다.
+  일반 파일에는 이미지 디코딩·10개 한도를 적용하지 않습니다. `FILE→IMAGE` 교체는 한도를 검사하고 `IMAGE→FILE`은 자리를 반환합니다.
+- 같은 설정의 조회/변경은 저장소 I/O까지 잠금을 유지합니다. 초기 트래픽용 단순성 선택이며 고부하 처리 성능 보장은 아닙니다.
+
+첨부 오류 DTO는 `{"code":"ATTACHMENT_…","detail":"고정 안전 문구"}`입니다.
+형식/입력 오류 422 `ATTACHMENT_INVALID`, 용량 초과 413 `ATTACHMENT_TOO_LARGE`, 이미지 한도 409 `ATTACHMENT_IMAGE_LIMIT`,
+미존재/권한 없음 404 `ATTACHMENT_NOT_FOUND`, 저장소/DB 실패 503 `ATTACHMENT_STORAGE_FAILURE`/`ATTACHMENT_DATABASE_FAILURE`를 반환합니다.
+예외·SQL·저장소 원문을 노출하지 않습니다.
+
+### DB·파일 실패 경계
+
+새 영속성은 `settingattachment/controller → service → JpaRepository / AttachmentStorageClient`로 분리합니다.
+DTO는 `settingattachment/service/dto`, 저장소 전용 DTO는 `settingattachment/client/dto`에 둡니다.
+기존 Auth JPA·Content JDBC 경계는 유지하며 새 직접 SQL 영속성은 추가하지 않습니다.
+새 Flyway는 `db/migration/settingattachment`와 `setting_attachment_schema_history`를 사용합니다.
+Auth SQL은 **내용·파일명·버전·기존 `flyway_schema_history`를 유지**하고 `db/migration/auth`로만 이동했습니다.
+독립 V1 충돌을 피하도록 Auth location도 그 leaf만 읽습니다. 첨부 EntityManager 초기화는 Auth Flyway → 기존 Content → 첨부 migration 순서를 명시해 빈 DB에서도 Auth 이력이 먼저 생성되게 합니다. 기존 Content의 location/history는 변경하지 않았습니다.
+
+교체는 새 UUID object에 먼저 업로드하며, 삭제/교체는 기존 바이트를 크기 제한 내 메모리에 보관한 후 DB flush → 기존 object 삭제 → commit 순서입니다.
+저장소 삭제가 실패하거나(서버 반영 후 응답 유실 포함) DB commit이 실패하면 transaction을 rollback하고 기존 object를 복원합니다.
+일반적인 실패에서는 기존 참조와 다운로드를 유지하며 실패를 성공으로 숨기지 않습니다.
+**DB와 S3는 원자적이지 않습니다.** 프로세스 종료·동시 저장소 장애로 복원이 실패하면 503 `ATTACHMENT_RECOVERY_REQUIRED`를 반환하고
+운영자 대조/복구가 필요합니다. commit 응답 유실 시 성공 여부를 단정할 수 없으므로 새 object도 지우지 않습니다.
+실패 업로드/DB 실패 뒤 미참조 object가 남을 수 있습니다. 자동 정리 worker/outbox/버전 복원은 없으며 운영자가 DB object key와 버킷을 대조해야 합니다.
+부팅 시 버킷 연결을 성공으로 가정하지 않으며, 없거나 접근할 수 없는 버킷은 실제 요청 시 503입니다.
+
+### 선택 검증
+
+```bash
+# 로컬에서 허용하는 선택 순수 단위 검사
+./gradlew unitTest --tests 'ai.storyfork.core.settingattachment.AttachmentUploadHelperTest' --no-daemon
+# 아래는 CI/별도 승인된 격리 환경의 통합 호출 형식이며 로컬 자동 검증 목록이 아닙니다.
+./gradlew integrationTest --tests 'ai.storyfork.core.settingattachment.*' --no-daemon
+```
+
+`AttachmentStorageClientTest`의 대역 HTTP와 `AttachmentMigrationLocationTest`의 H2/Flyway도 통합 계층입니다.
+`SettingAttachmentConfigTest`는 Spring·실제 DB, `SettingAttachmentHttpTest`는 HTTP·실제 DB·MinIO를 사용하므로 단위 계층에서 실행하지 않습니다.
+설정·HTTP 검사는 `TEST_ATTACHMENT_DATABASE_URL`이 있을 때만 활성화합니다. 격리 DB 사용자는 `content_test`/빈 비밀번호이며 공유 DB에는 실행하지 않습니다.
+HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필요하고 전용 `issue87-test` 비공개 버킷을 만듭니다.
+실제 DB flush/deferred commit 실패와 저장소 응답 유실의 보상 동작을 검사하며 fault test 외의 HTTP lifecycle은 실제 MinIO를 사용합니다.
+현재 CI는 임시 PostgreSQL·Mailpit을 제공하지만 MinIO와 `TEST_ATTACHMENT_DATABASE_URL`은 설정하지 않아 첨부 설정·실제 HTTP 검사는 조건부 skip입니다.
+대역 HTTP·H2/Flyway 검사는 CI 통합 계층에 포함되며 실제 첨부 lifecycle 검증은 별도 승인된 격리 환경의 증거가 필요합니다.
+`Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다. 화면/브라우저 호출부 변경이 없어 Aside 브라우저 E2E는 제외합니다.

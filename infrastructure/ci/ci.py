@@ -59,10 +59,11 @@ def select(paths, full=False):
             features = {"auth": ("auth",), "content": ("content", "health"), "_health": ("health",), "_health_ai_service": ("health",)}.get(feature, ("all",))
             core(*(("content",) if feature == "content" and "/src/test/" in path else features))
             if "/src/test/" not in path:
+                if feature in {"auth", "content"}:
+                    core("all")  # 첨부도 Auth·Content를 소비하므로 미등록 기능을 포함한다.
                 scopes["web"].add("all")  # 공개 API의 현재 소비자. 개별 DTO 영향까지 추측하지 않는다.
                 scenarios.add("health")
                 if feature == "auth":
-                    core("content")
                     scenarios.update(("auth", "content"))
                 elif feature == "content":
                     scopes["ai"].add("all")
