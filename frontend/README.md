@@ -1,8 +1,8 @@
 # STORYFORK Web
 
-React·TypeScript·Vite·Tailwind CSS로 만든 최소 시작 화면입니다.
-제품 소개와 '개발 기반 / 기능 준비 중' 상태, 실제 Core·AI 연결 상태만 제공합니다.
-작품·로그인·생성·Fork 화면과 가짜 결과는 없습니다. 알 수 없는 UI 경로는 `/`로 이동합니다.
+React·TypeScript·Vite·Tailwind CSS 기반의 개발 화면입니다.
+작품·Fork·서재 등은 데모 데이터이며, 아래 인증·프로필·기기 관리 기능은 같은 출처의 실제 Core API를 호출합니다.
+이메일 확인 전 자동 로그인하지 않으며 운영 약관은 미정입니다. 알 수 없는 UI 경로는 `/`로 이동합니다.
 
 ## 실행
 
@@ -18,9 +18,9 @@ python3 ../infrastructure/scripts/run-native.py web
 설정은 루트 `.env`의 공개 `VITE_CORE_API_BASE_URL`을 변경합니다. 서비스별 `.env`는 만들지 않습니다.
 `VITE_*`는 브라우저에 노출되므로 비밀값을 넣지 않습니다. 백엔드는 별도로 실행합니다.
 
-루트의 [개발 Compose](../infrastructure/README.md)는 `http://127.0.0.1:5173`에서 실행하며
-브라우저의 `/api` 요청을 Vite가 `core-api:8080`으로 프록시합니다.
-배포 이미지는 nginx로 정적 파일과 같은 `/api` 경계를 제공합니다.
+루트의 [개발 Compose](../infrastructure/README.md)는 기본 `http://127.0.0.1:5173`의 Nginx를 단일 진입점으로 사용합니다.
+Nginx가 `/api` 요청을 `core-api:8080`으로, 화면과 HMR을 `web:5173`으로 전달합니다.
+배포 이미지의 Nginx도 정적 파일과 같은 `/api` 경계를 제공합니다. 인증·TLS 없는 로컬 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
 ## 실제 호출 흐름
 
@@ -31,15 +31,34 @@ python3 ../infrastructure/scripts/run-native.py web
 - AI 내부 주소나 OpenAI를 브라우저에서 직접 호출하지 않습니다.
 - Health는 OpenAI 키·모델 접근 검증이 아닙니다.
 
-화면별 요청 상태는 Hook에만 둡니다. 기존 Awilix `app/di`는 두 외부 함수를 연결합니다.
-업무 기능이 없어 Repository·UseCase·Redux Store·Provider는 없습니다.
-기존 설치 의존성·lock 버전은 유지하되 실제 사용하지 않는 업무 배선은 제거했습니다.
+인증·계정 기능은 View → ViewModel → UseCase → Repository → Core API 흐름으로 요청합니다.
 
-로딩·성공·실패를 독립적으로 표시하고 요청 중 재시도를 비활성화합니다.
-재시도와 unmount에서 AbortController로 취소하고 요청 ID로 늦은 응답을 무시합니다.
-Fetch는 20초 제한을 두며 내부 예외를 화면에 노출하지 않습니다.
-상태 알림은 live region, 버튼은 키보드 포커스를 지원하고 애니메이션은 reduced-motion을 따릅니다.
-기존 색상·타이포그래피·상태 스타일을 재사용합니다.
+| UI 경로·진입점 | 화면·동작 | Core endpoint |
+|---|---|---|
+| `/me/signup` | 가입 요청 → 이메일 확인 대기 (자동 로그인 없음) | `POST /api/v1/auth/signup` |
+| `/auth/resend-verification`, 로그인·가입·인증 실패 화면의 안내 | 이메일 1항목으로 확인 메일 재발송 (계정 존재 여부를 구분하지 않는 안내) | `POST /api/v1/auth/resend-verification` |
+| `/auth/verify-email#token=…` | 메일 링크의 이메일 확인 → 로그인 | `POST /api/v1/auth/verify-email` |
+| `/login` | 이메일·비밀번호 로그인, Core가 반환한 사용자·권한 반영 | `POST /api/v1/auth/login` |
+| 앱 시작 | HttpOnly refresh 쿠키를 통한 세션 복원 | `POST /api/v1/auth/refresh` |
+| 상단 계정 메뉴 | 현재 기기 로그아웃 | `POST /api/v1/auth/logout` |
+| `/me/profile` | 서버 프로필 조회·오류 재시도, 닉네임 저장 | `GET /api/v1/me`, `PATCH /api/v1/me` |
+| `/me/profile`의 이메일 저장 | 새 주소로 확인 메일 요청, 확인 전 기존 이메일 유지 | `POST /api/v1/me/email-change` |
+| `/auth/verify-email-change#token=…` | 이메일 변경 확인 → 프로필로 돌아가 새로 조회 또는 로그인 | `POST /api/v1/auth/verify-email-change` |
+| `/auth/forgot-password`, 프로필의 계정 보안 | 비밀번호 재설정 메일 요청 (계정 존재 일반화) | `POST /api/v1/auth/forgot-password` |
+| `/auth/reset-password#token=…` | 새 비밀번호 검증·저장 → 로그인, 만료 시 새 링크 요청 | `POST /api/v1/auth/reset-password` |
+| `/me/profile`의 로그인 기기 | 기기 조회·오류 재시도·개별 연결 종료 | `GET /api/v1/auth/sessions`, `DELETE /api/v1/auth/sessions/{id}` |
+| `/me/profile`의 모든 기기 로그아웃 | 서버 성공 후 현재 세션 해제 | `POST /api/v1/auth/logout-all` |
+
+- 변경 요청 전에 `GET /api/v1/auth/csrf`로 CSRF 토큰을 받습니다. 인증 링크의 fragment는 읽은 즉시 주소에서 제거하며, 토큰을 로그나 브라우저 저장소에 남기지 않습니다.
+- access token은 메모리에만 두고 refresh 쿠키는 Core가 HttpOnly로 관리합니다. 인증 변경은 기존 Web Locks와 계정 소유자 검증을 사용하고, 보호된 요청의 401은 세션 갱신 후 한 번만 재시도합니다.
+- 가입·비밀번호 재설정은 공백뿐인 비밀번호를 거부하고 8자 이상·UTF-8 72바이트 이하를 확인합니다. 재설정 입력 오류는 해당 필드에 안내하며 입력을 보존하고, 완료되거나 만료된 토큰은 다시 제출하지 않습니다.
+- 프로필·기기 조회는 화면 이탈·재시도 시 AbortController로 취소합니다. 로그인·가입의 늦은 응답은 화면 이탈 후 상태나 자동 이동을 덮어쓰지 않도록 무시합니다. 이미 서버에 전달한 요청을 되돌린다는 뜻은 아닙니다.
+- 로딩·실패·완료·빈 목록을 구분하고 중복 요청을 막습니다. Health 조회는 별도로 20초 제한과 취소를 사용합니다. 내부 예외는 화면에 노출하지 않습니다.
+- 로그인·가입·재발송·복구·이메일 확인은 같은 인증 화면을 사용합니다. 데스크톱의 기존 STORYFORK 브랜드는 보존하고 모바일은 작은 로고와 현재 입력부터 표시합니다. 테마 전환은 일반 문서 흐름에 두며 페이지 이동은 링크를 사용합니다.
+- 가입 오류는 해당 필드에 연결하고 첫 오류로 초점을 이동합니다. 복구·재발송 접수 후 입력한 주소와 스팸함 안내, 주소 수정·재요청 경로를 표시합니다. 이 주소 문맥은 화면 상태에만 두고 브라우저 저장소에 보관하지 않습니다.
+- 상태 알림은 live region, 버튼은 키보드 포커스를 지원하고 애니메이션은 reduced-motion을 따릅니다. 기존 색상·타이포그래피·상태 스타일을 재사용합니다.
+
+실제 약관 동의·계정탈퇴·소셜 로그인·운영 메일 서비스·비용 정책은 이 연결 범위에 포함하지 않습니다. 계정탈퇴 UI는 기존 데모이며 실제 계정을 삭제하지 않습니다.
 
 ## 검증
 

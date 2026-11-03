@@ -1,6 +1,9 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
 import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput} from '../../domain/entities/content'
+import { SessionExpired } from '../../domain/repositories/ProfileRepository'
+import { authVersion, protectedRequest } from '../api/auth'
+import { csrf } from '../api/csrf'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
 const writing = z.object({number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
@@ -13,11 +16,24 @@ const context = z.object({title:z.string(),summary:z.string(),basisEpisode:z.num
 const proposal = z.object({id:z.string(),text:z.string().min(1),model:z.string(),revision:z.number().int(),status:z.enum(['pending','accepted']),prompt:z.string().optional(),baseBody:z.string().optional(),createdAt:z.string().optional(),context:context.optional()})
 
 export class HttpEpisodeRepository implements EpisodeRepository {
-  private readonly fetcher: typeof fetch
-  constructor(fetcher: typeof fetch = fetch) { this.fetcher = fetcher }
+  private readonly fetcher?: typeof fetch
+  constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
   private async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
-    const fetcher = this.fetcher
-    const response = await fetcher('/api/v1' + path, {method, headers: {'Content-Type':'application/json'}, body:body === undefined ? undefined : JSON.stringify(body), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(80000)]) : AbortSignal.timeout(80000)})
+    const fetcher = this.fetcher ?? fetch
+    const version = authVersion()
+    const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(80000)]) : AbortSignal.timeout(80000)
+    const headers: Record<string, string> = {'Content-Type':'application/json'}
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) headers['X-CSRF-TOKEN'] = await csrf(requestSignal)
+    const init = {method, headers, credentials: 'same-origin' as const, body:body === undefined ? undefined : JSON.stringify(body), signal:requestSignal}
+    let response: Response
+    try {
+      response = path.startsWith('/public/works') && method === 'GET'
+        ? await fetcher('/api/v1' + path, init)
+        : await protectedRequest('/api/v1' + path, init, version, false, { fetcher, allowHttpError: true })
+    } catch (error) {
+      if (error instanceof SessionExpired) throw new SessionExpired('서버 인증이 필요합니다. 로그인한 뒤 다시 시도해 주세요.')
+      throw error
+    }
     const value: unknown = await response.json().catch(() => undefined)
     if (!response.ok) {
       const error = z.object({detail:z.string()}).safeParse(value)

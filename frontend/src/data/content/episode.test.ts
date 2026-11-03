@@ -1,6 +1,59 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import '../../testLocks'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
+import { login, refresh } from '../api/auth'
+
+beforeEach(async () => {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
+    ? Response.json({ csrfToken: 'content-csrf' })
+    : Response.json({ accessToken: 'content-bearer', user: { id: 'writer', email: 'writer@example.invalid', nickname: 'Writer', operator: false } })))
+  await login('writer@example.invalid', 'test-password')
+})
+afterEach(() => vi.unstubAllGlobals())
+
+describe('content authentication bridge', () => {
+  it('sends the memory bearer and same-origin credentials on private GET without a csrf request', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json([]))
+    await new HttpEpisodeRepository(fetcher).list()
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works', expect.objectContaining({
+      credentials: 'same-origin', headers: expect.objectContaining({ Authorization: 'Bearer content-bearer' }),
+    }))
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+  it.each(['POST', 'PUT'])('adds csrf and bearer to %s without losing the injected fetcher', async method => {
+    const value = { title: '제목', body: '본문', revision: 1 }
+    const fetcher = vi.fn().mockResolvedValue(method === 'PUT' ? Response.json(value) : Response.json({
+      id: 'w', title: '제목', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: value,
+    }))
+    const repo = new HttpEpisodeRepository(fetcher)
+    if (method === 'PUT') await repo.save('w', value)
+    else await repo.create('제목', '')
+    expect(fetcher).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+      method, credentials: 'same-origin', signal: expect.any(AbortSignal),
+      headers: expect.objectContaining({ Authorization: 'Bearer content-bearer', 'X-CSRF-TOKEN': 'content-csrf' }),
+    }))
+  })
+  it('preserves caller cancellation and refreshes a private 401 through the existing auth flow', async () => {
+    const controller = new AbortController()
+    const fetcher = vi.fn().mockResolvedValueOnce(new Response(null, { status: 401 })).mockResolvedValueOnce(Response.json([]))
+    await new HttpEpisodeRepository(fetcher).list(controller.signal)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    const signal = fetcher.mock.calls[0][1].signal as AbortSignal
+    controller.abort()
+    expect(signal.aborted).toBe(true)
+  })
+  it('keeps public GET anonymous even without a memory token', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : new Response(null, { status: 401 })))
+    await refresh().catch(() => {})
+    const fetcher = vi.fn().mockResolvedValue(Response.json([]))
+    await new HttpEpisodeRepository(fetcher).publicList()
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(fetcher.mock.calls[0][1].credentials).toBe('same-origin')
+    expect(new Headers(fetcher.mock.calls[0][1].headers).has('Authorization')).toBe(false)
+    expect(new Headers(fetcher.mock.calls[0][1].headers).has('X-CSRF-TOKEN')).toBe(false)
+  })
+})
 
 describe('episode API boundary', () => {
   it.each([404,502,504])('handles non-JSON gateway errors (%s)', async status => {

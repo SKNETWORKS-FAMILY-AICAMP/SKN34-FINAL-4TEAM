@@ -364,28 +364,48 @@ class DeployTests(unittest.TestCase):
 
     def test_image_only_compose_config(self):
         env = {key: value for key, value in os.environ.items() if key in ('PATH', 'HOME', 'DOCKER_CONFIG')}
-        env.update(CD_SOURCE_SHA=SHA, CD_DIRECTORY='/operator/provisioned', CD_WEB_PORT='28088',
+        auth_env = {
+            'CORE_DATABASE_URL': 'jdbc:postgresql://database.example.invalid:5432/storyfork',
+            'CORE_DATABASE_USER': 'configuration-only-user',
+            'CORE_DATABASE_PASSWORD': 'configuration-only-password',
+            'CORE_SMTP_HOST': 'smtp.example.invalid', 'CORE_SMTP_PORT': '2525',
+            'AUTH_PUBLIC_ORIGIN': 'http://127.0.0.1:28088', 'AUTH_MAIL_FROM': 'cd@example.invalid',
+            'AUTH_JWT_SECRET': 'configuration-only-synthetic-key', 'AUTH_COOKIE_SECURE': 'false',
+        }
+        env.update(**auth_env, CD_SOURCE_SHA=SHA, CD_DIRECTORY='/operator/provisioned', CD_WEB_PORT='28088',
                    OPENAI_API_KEY='configuration-only-synthetic-value')
         for name, image in cd.IMAGES.items():
             env['CD_' + name.upper().replace('-', '_') + '_IMAGE'] = image + '@sha256:' + 'd' * 64
-        args = ['docker', 'compose', '--env-file', '/dev/null', '--file',
+        args = ['docker', 'compose', '--env-file', str(ROOT / '.env.example'), '--file',
                 str(ROOT / 'infrastructure/compose.cd.yaml'), 'config', '--format', 'json']
         result = subprocess.run(args, env=env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, 'CD Compose must render without a daemon or build')
         model = json.loads(result.stdout)
         self.assertEqual(model['name'], cd.PROJECT)
         self.assertEqual(set(model['services']), set(cd.SERVICES))
+        self.assertEqual(model['services']['core-api']['environment'], {
+            **auth_env, 'AI_SERVICE_BASE_URL': 'http://ai-service:8000',
+            'AI_SERVICE_CONNECT_TIMEOUT': '1s', 'AI_SERVICE_READ_TIMEOUT': '12s',
+            'APP_CORS_ALLOWED_ORIGIN': 'http://127.0.0.1:28088',
+        })
         for name, service in model['services'].items():
             self.assertEqual(service['image'], cd.IMAGES[name] + '@sha256:' + 'd' * 64)
             self.assertFalse(any(service.get(key) for key in ('build', 'volumes', 'env_file', 'container_name')))
             self.assertEqual(service['labels']['io.storyfork.cd.sha'], SHA)
             self.assertEqual('OPENAI_API_KEY' in service.get('environment', {}), name == 'ai-service')
+            for key in auth_env:
+                self.assertEqual(key in service.get('environment', {}), name == 'core-api')
             if name == 'web':
                 self.assertEqual(service['ports'][0]['host_ip'], '127.0.0.1')
                 self.assertEqual(str(service['ports'][0]['published']), '28088')
             else: self.assertFalse(service.get('ports'))
+        quiet = args[:-2] + ['--quiet']
+        self.assertEqual(subprocess.run(quiet, env=env, capture_output=True).returncode, 0)
+        for key in sorted(auth_env.keys() - {'AUTH_COOKIE_SECURE'}):
+            with self.subTest(missing=key):
+                self.assertNotEqual(subprocess.run(quiet, env={**env, key: ''}, capture_output=True).returncode, 0)
         del env['CD_WEB_PORT']
-        self.assertNotEqual(subprocess.run(args, env=env, capture_output=True).returncode, 0)
+        self.assertNotEqual(subprocess.run(quiet, env=env, capture_output=True).returncode, 0)
 
     def test_workflow_gate_and_pinning(self):
         ci = (ROOT / '.github/workflows/ci.yml').read_text()

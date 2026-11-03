@@ -26,7 +26,8 @@ class ContentConfig {
     @Bean fun contentRepository(mapper: JsonMapper, @Value("\${CONTENT_DATABASE_URL}") url: String, @Value("\${CONTENT_DATABASE_USER}") user: String, @Value("\${CONTENT_DATABASE_PASSWORD}") password: String): ContentRepository {
         require(url.startsWith("jdbc:postgresql:")) { "Content storage requires PostgreSQL" }
         val dataSource=DriverManagerDataSource(url,user,password)
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/content").javaMigrations(V5__ImportLegacyContent(mapper)).table("content_schema_history").load().migrate()
+        // Auth already owns tables in this schema; start the separate content history before V1.
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/content").javaMigrations(V5__ImportLegacyContent(mapper)).table("content_schema_history").baselineOnMigrate(true).baselineVersion("0").load().migrate()
         return ContentRepository(JdbcTemplate(dataSource),TransactionTemplate(JdbcTransactionManager(dataSource)),mapper)
     }
     @Bean fun generationClient(builder: RestClient.Builder, properties: AiServiceClientProperties,

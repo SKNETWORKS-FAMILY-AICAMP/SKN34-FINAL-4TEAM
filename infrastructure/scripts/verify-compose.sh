@@ -23,6 +23,16 @@ else
   WEB_URL="http://127.0.0.1:${DEV_WEB_PORT}"
 fi
 export APP_CORS_ALLOWED_ORIGIN="${WEB_URL}"
+export AUTH_PUBLIC_ORIGIN="${WEB_URL}"
+export AUTH_MAIL_FROM="verify@example.invalid"
+# Disposable test key, not a deployment credential.
+export AUTH_JWT_SECRET="dmVyaWZpY2F0aW9uLW9ubHktdGVzdC1rZXktMzItYnl0ZXM="
+export AUTH_COOKIE_SECURE="false"
+export CORE_DATABASE_USER="verify"
+export CORE_DATABASE_PASSWORD="local-verification-only"
+export CORE_DATABASE_PORT="${CORE_DATABASE_PORT:-15432}"
+export CORE_MAILPIT_SMTP_PORT="${CORE_MAILPIT_SMTP_PORT:-11025}"
+export CORE_MAILPIT_WEB_PORT="${CORE_MAILPIT_WEB_PORT:-18025}"
 
 # Never load a developer .env or use a real/fake API key.
 export OPENAI_API_KEY=""
@@ -174,16 +184,16 @@ fi
 wait_for_http "Core health" "${WEB_URL}/api/v1/health" "200" '"status"[[:space:]]*:[[:space:]]*"up"' '"service"[[:space:]]*:[[:space:]]*"storyfork-core-api"'
 wait_for_http "AI health via Core" "${WEB_URL}/api/v1/health/ai-service" "200" '"status"[[:space:]]*:[[:space:]]*"up"' '"service"[[:space:]]*:[[:space:]]*"storyfork-ai-service"'
 for path in /api/v1/does-not-exist /api/v1/support-programs/search /api/v1/sample-items/prepare; do
-  wait_for_http "Absent API" "${WEB_URL}${path}" "404"
+  wait_for_http "Denied anonymous GET API" "${WEB_URL}${path}" "401"
   if grep -q '<div id="root">' "${LAST_RESPONSE_FILE}"; then
-    printf 'API 404 incorrectly returned the SPA\n' >&2
+    printf 'Denied API incorrectly returned the SPA\n' >&2
     exit 1
   fi
 done
 
-# The former preparation endpoint used POST, so verify that method too.
+# A POST without a CSRF token is denied with 403.
 post_status="$(curl --silent --output "${LAST_RESPONSE_FILE}" --write-out '%{http_code}' --max-time 5 --request POST --header 'Content-Type: application/json' --data '{}' "${WEB_URL}/api/v1/sample-items/prepare")"
-[[ "${post_status}" == "404" ]]
+[[ "${post_status}" == "403" ]]
 ! grep -q '<div id="root">' "${LAST_RESPONSE_FILE}"
 
 echo "Stopping only AI Service to verify failure isolation"

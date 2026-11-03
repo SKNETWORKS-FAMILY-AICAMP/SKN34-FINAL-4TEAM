@@ -13,6 +13,7 @@ vi.mock('./presentation/shared/resizeImg', () => ({ resizeImg: (_f: File | undef
 
 const db = () => appContainer.resolve('mockDb')
 const star = () => db().works.find((w) => w.id === 'starlight')!
+const releaseState = structuredClone({ ruleFrom: star().ruleFrom, eventFrom: star().eventFrom, castFrom: star().castFrom })
 const toastIs = (t: string) => waitFor(() => expect(document.getElementById('toast')!.textContent).toBe(t))
 const renderAt = (path: string) => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={[path]}><App /></MemoryRouter></Provider>)
 const box = (name: string) => screen.findByLabelText(name) as Promise<HTMLInputElement>
@@ -21,8 +22,8 @@ const ownWorld = () => {
   star().worldIds = ['my-world']
 }
 
-beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
-afterEach(() => { cleanup(); vi.restoreAllMocks(); delete star().worldIds; delete star().settings; delete star().worldCandidate })
+beforeEach(() => { Object.assign(star(), structuredClone(releaseState)); vi.spyOn(window, 'confirm').mockReturnValue(true) })
+afterEach(() => { cleanup(); vi.restoreAllMocks(); Object.assign(star(), structuredClone(releaseState)); delete star().worldIds; delete star().settings; delete star().worldCandidate })
 
 describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차·인물 상태)', () => {
   it('세계관 자동 업데이트는 작가 소유 세계관이 없거나 확인을 취소하면 꺼진 채로 남는다', async () => {
@@ -144,6 +145,9 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   })
 
   it('공개 회차를 저장해도 같은 입력칸이 남고 포커스가 유지된다', async () => {
+    expect(star().castFrom).toBeUndefined()
+    expect(star().eventFrom).toBeUndefined()
+    expect(star().ruleFrom).toEqual(releaseState.ruleFrom)
     ownWorld()
     renderAt('/studio/starlight?panel=settings')
     const cast = await screen.findByLabelText('세라핀 독자 공개 시작 회차 (비우면 비공개)')

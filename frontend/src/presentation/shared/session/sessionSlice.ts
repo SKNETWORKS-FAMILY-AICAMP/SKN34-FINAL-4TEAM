@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 import type { Role } from '../../../domain/entities/work'
+import type { AuthUser } from '../../../domain/repositories/AuthRepository'
 
 /** 화면 사이에서 유지하는 세션·보기 상태 (목업 S의 화면 상태 부분). 업무 데이터는 Repository에 둡니다. */
 export type Look = 'auto' | 'world' | 'ivory' | 'white' | 'night'
@@ -61,9 +62,9 @@ export const sessionSlice = createSlice({
       s.loginRole = a.payload.role
     },
     setLoginRole: (s, a: PayloadAction<'user' | 'admin'>) => { s.loginRole = a.payload },
-    login: (s, a: PayloadAction<{ email?: string }>) => {
-      s.role = s.loginRole
-      if (s.loginRole === 'user' && a.payload.email) s.user.email = a.payload.email
+    login: (s, a: PayloadAction<AuthUser>) => {
+      s.role = a.payload.operator ? 'admin' : 'user'
+      s.user = { nick: a.payload.nickname, email: a.payload.email, joined: '' }
       s.loginMsg = ''
       s.next = null
     },
@@ -71,6 +72,7 @@ export const sessionSlice = createSlice({
     setUser: (s, a: PayloadAction<Partial<SessionState['user']>>) => { Object.assign(s.user, a.payload) },
     logout: (s) => {
       s.role = null
+      s.user = { ...initialSession.user }
       s.loginRole = 'user'
       s.next = null
     },

@@ -1,20 +1,21 @@
 # STORYFORK Docker 실행 기반
 
-기본 구성은 세 서비스이며, 콘텐츠 PostgreSQL 저장은 `compose.content.yaml` overlay로 선택합니다. [콘텐츠 실행·인증 안내](../docs/content-integration.md)를 참고하세요. 아래 기본 구성 표에는 선택적 PostgreSQL 서비스가 포함되지 않습니다.
+화면 데모와 Core·AI Health, 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공합니다. `compose.content.yaml` overlay는 기본 Auth PostgreSQL과 같은 DB·자격증명·volume을 재사용해 콘텐츠 저장을 활성화합니다. [콘텐츠 실행·인증 안내](../docs/content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴는 미구현이며 운영 가입용이 아닙니다.
 
 | 항목 | `compose.yaml` | `compose.prod.yaml` |
 |---|---|---|
 | 프로젝트 | `storyfork-dev` | `storyfork-prod-validation` |
 | web | Vite hot reload, 소스·node_modules volume | pnpm locked build → nginx 정적 runtime |
-| web 공개 | `127.0.0.1:${DEV_WEB_PORT:-5173}` | `127.0.0.1:${WEB_PORT:-8088}` |
+| 브라우저 진입점 | nginx `127.0.0.1:${DEV_WEB_PORT:-5173}` | nginx `127.0.0.1:${WEB_PORT:-8088}` |
 | Core 공개 | `127.0.0.1:${CORE_API_PORT:-8080}` | 없음 |
 | AI 공개 | 없음 | 없음 |
 
-서비스는 정확히 `web`, `core-api`, `ai-service`입니다. 두 Compose는 상속 없이 각각 실행합니다.
+서비스는 `web`, `core-api`, `ai-service`, PostgreSQL, 로컬 메일 확인용 Mailpit이며 dev에는 nginx가 추가됩니다. Vite는 외부에 직접 공개하지 않습니다. 두 Compose는 상속 없이 각각 실행하며 각각 독립 DB volume을 사용합니다.
 인증·TLS가 없는 loopback **로컬 검증용**이며 인터넷 운영용 배포가 아닙니다.
 
 ```text
-Browser → web (dev Vite / prod nginx) → core-api:8080 → ai-service:8000
+Browser → nginx → dev Vite (HMR 포함) / prod 정적 파일
+                → core-api:8080 → ai-service:8000
 ```
 
 브라우저는 공개 Core API만 사용하고 AI 내부 DNS를 직접 호출하지 않습니다.
@@ -22,17 +23,19 @@ API 404는 SPA HTML로 바꾸지 않으며 알 수 없는 UI deep link만 홈 �
 
 ## 시작과 설정
 
-저장소 루트에서 예시를 그대로 사용할 수 있으며 키는 필요하지 않습니다.
+루트 `.env`에 개발용 `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD`와 32바이트 이상 무작위 값의 Base64 인코딩인 `AUTH_JWT_SECRET`을 직접 설정하고, `AUTH_PUBLIC_ORIGIN`을 실제 web origin으로 지정합니다. JWT 키는 Core에만 전달하며 저장소에 커밋하지 않습니다. 로컬 HTTP 검증에서만 `AUTH_COOKIE_SECURE=false`로 설정하고 HTTPS 운영에서는 `true`를 사용합니다. 기존 `.env`는 덮어쓰지 않습니다. Mailpit 화면은 기본 `http://127.0.0.1:8025`이며 인증 메일을 포함하므로 로컬에서만 사용합니다.
+
+SMTP는 가입 인증·비밀번호 복구·이메일 변경 메일에 사용합니다. 가입 인증 링크는 24시간, 비밀번호 재설정·이메일 변경 링크는 1시간 유효합니다. 가입 인증은 토큰과 가입 시 정한 비밀번호를 함께 요구하고, 이메일 변경 확인은 토큰만 사용합니다. 프로필 조회·닉네임 변경·이메일 변경 요청 및 복구 API의 실제 경로는 [Core API 계약](../backend/core-api/README.md#공개-계약)을 참고합니다.
 
 ```bash
-docker compose --env-file .env.example --file infrastructure/compose.yaml up --build
+docker compose --env-file .env --file infrastructure/compose.yaml up --build
 # http://127.0.0.1:5173
-docker compose --env-file .env.example --file infrastructure/compose.yaml down
+docker compose --env-file .env --file infrastructure/compose.yaml down
 
 # 독립적인 배포 이미지 로컬 검증
-docker compose --env-file .env.example --file infrastructure/compose.prod.yaml up --build -d
+docker compose --env-file .env --file infrastructure/compose.prod.yaml up --build -d
 # http://127.0.0.1:8088
-docker compose --env-file .env.example --file infrastructure/compose.prod.yaml down
+docker compose --env-file .env --file infrastructure/compose.prod.yaml down
 ```
 
 개인 설정은 `cp -n .env.example .env` 후 `--env-file .env`로 사용하고 기존 파일을 덮어쓰지 않습니다.
@@ -67,6 +70,7 @@ Frontend의 공개 설정도 루트 `.env.example`에 있으며 Compose는 `/`�
 
 ```bash
 python3 -I infrastructure/scripts/check-compose-config.py
+python3 -I infrastructure/scripts/check-nginx-routing.py
 bash -n infrastructure/scripts/verify-compose.sh
 ```
 
@@ -83,9 +87,9 @@ DEV_WEB_PORT=25173 CORE_API_PORT=28080 ./infrastructure/scripts/verify-compose.s
 WEB_PORT=28088 ./infrastructure/scripts/verify-compose.sh prod
 ```
 
-두 모드 모두 실제 Core·AI Health, 업무 API 부재/404, AI 중지 시 Core 생존과 안전한 503/504,
+두 모드 모두 실제 Core·AI Health, 미구현 API 접근 거부, AI 중지 시 Core 생존과 안전한 503/504,
 AI 재시작 후 복구를 검사합니다. prod는 정적 index·JS asset·deep link·누락 asset 404도 확인합니다.
-실제 키나 합성 키를 사용하지 않고 OpenAI를 호출하지 않습니다. 이미지·의존성 다운로드에는 네트워크가 필요합니다.
+일회용 JWT 테스트 키만 사용하며 OpenAI 키나 모델 호출은 사용하지 않습니다. 이미지·의존성 다운로드에는 네트워크가 필요합니다.
 
 `--env-file /dev/null`로 개인 `.env`를 읽지 않고 실행마다 별도 `storyfork-verify-<mode>-<pid>`를 사용합니다.
 같은 이름의 container/network/volume이 있으면 cleanup 설치 전에 거절합니다.
@@ -168,6 +172,8 @@ CD job의 `GITHUB_TOKEN`은 `packages: read`만 사용하며 세 private GHCR �
   - `.storyfork-cd.json`: 아래 세 필드만 담은 승인 marker. `repository` = `SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM`, `project` = `storyfork-develop-cd`, `web_port` = 승인한 `CD_WEB_PORT`와 같은 **JSON 정수**.
 - `storyfork-develop-cd` 프로젝트는 기존 workload와 분리합니다. 같은 프로젝트명에 다른 container/network/volume이 있으면 거절합니다. 재배포는 이 CD의 저장소·디렉터리 ownership label을 가진 세 서비스/default network만 허용하며 volume은 사용하지 않습니다.
 - `CD_WEB_PORT`가 이미 사용 중이면 다른 서비스를 중지하지 말고 준비 단계에서 다른 포트를 승인합니다. web은 `127.0.0.1`에만 바인딩하고 Core/AI는 외부 공개하지 않습니다. 인증·TLS·공개 ingress는 제공하지 않아 인터넷 운영 준비가 아닙니다.
+
+CD는 위 세 서비스만 실행하며 PostgreSQL·SMTP·volume을 추가하지 않습니다. 운영자가 Core 컨테이너에서 접근 가능한 외부 PostgreSQL과 SMTP를 사전 구성하고, 서버 소유 루트 `.env`에 `CORE_DATABASE_URL`, `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD`, `CORE_SMTP_HOST`, `CORE_SMTP_PORT`, `AUTH_PUBLIC_ORIGIN`, `AUTH_MAIL_FROM`, `AUTH_JWT_SECRET`을 설정해야 합니다. 기존 dev/prod Compose의 `postgres`·`mailpit` DNS는 이 CD에서 제공하지 않습니다. 필수값 누락·빈 값은 Compose 검증에서 실패하며, 이 값들과 `AUTH_COOKIE_SECURE`는 Core에만 전달합니다. JWT 키는 위와 같은 32바이트 이상 무작위 값의 Base64 인코딩을 사용합니다. `AUTH_PUBLIC_ORIGIN`은 실제 접근 origin에 맞추고, `AUTH_COOKIE_SECURE` 기본값은 `true`이며 승인된 로컬 HTTP 검증에서만 `false`로 설정합니다. 이 설정 연결은 외부 DB·메일 연결 검증이나 인터넷 운영 준비 완료를 뜻하지 않습니다.
 
 ### 실행·검증·실패 동작
 
