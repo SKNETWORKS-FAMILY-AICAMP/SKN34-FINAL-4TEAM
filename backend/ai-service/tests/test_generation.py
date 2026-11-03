@@ -31,6 +31,7 @@ def test_missing_key_is_explicit_failure(monkeypatch):
         ai.generate({}, '이어쓰기')
 
 
+@pytest.mark.integration
 def test_internal_auth_and_limit(monkeypatch):
     from fastapi.testclient import TestClient
     from app.main import create_app

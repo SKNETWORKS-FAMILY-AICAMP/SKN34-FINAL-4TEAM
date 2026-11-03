@@ -1,6 +1,9 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+
+pytestmark = pytest.mark.integration
 
 
 def test_health_without_openai_key_or_client(monkeypatch) -> None:

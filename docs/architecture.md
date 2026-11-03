@@ -70,7 +70,7 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 ### 설정 첨부 (#87)
 
 `settingattachment/controller → service → JPA repository / S3 client`가 기존 소유 로컬 Setting의 이미지·일반 파일 CRUD를 처리합니다.
-요청/응답 DTO는 기능의 `service/dto`, S3 전용 계약은 `client/dto`에 둡니다. 기존 Auth/Content JDBC는 전환하지 않았습니다.
+요청/응답 DTO는 기능의 `service/dto`, S3 전용 계약은 `client/dto`에 둡니다. 기존 Auth JPA·Content JDBC 경계는 유지합니다.
 `setting_document`·`world`·`work_current`의 기존 소유권을 확인하고 following Fork·익명 공개·URL만 아는 접근은 허용하지 않습니다.
 이미지는 설정당 10개를 설정 행 잠금으로 보호하고 일반 파일에는 그 한도를 적용하지 않습니다.
 파일은 비공개 버킷에 UUID key로 저장하며 원본 endpoint가 아닌 Core의 인증 download API만 노출합니다.
@@ -93,12 +93,14 @@ MinIO는 [선택 overlay](../infrastructure/compose.attachments.yaml)의 소스 
 
 ## 실행·보안 경계
 
-`web`, `core-api`, `ai-service`와 로컬 검증용 PostgreSQL·Mailpit이 있습니다.
-개발 Compose는 nginx 진입점과 Vite hot reload 및 소스/node_modules volume, prod는 pnpm locked build와 nginx 정적 runtime입니다.
-브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 내부 Core DNS로 중계합니다. 개발 HMR WebSocket도 nginx를 경유합니다.
+공통 `docker-compose.yaml`은 세 앱의 환경·내부 포트를 정의하며 단독 실행하지 않습니다.
+base + `docker-compose.prod.yaml`은 소스 빌드한 nginx 정적 web·Core·AI와 PostgreSQL·Mailpit을 사용합니다.
+base + `docker-compose.dev.yaml`은 CI가 게시한 `:develop` 이미지 세 개와 기존 외부 PostgreSQL·SMTP를 사용하며 소스 build·mount는 없습니다.
+선택 첨부 overlay는 base + prod 뒤에만 추가하는 로컬 MinIO 구성입니다. HMR은 Compose가 아닌 각 서비스의 기본 네이티브 명령을 사용합니다.
+브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 내부 Core DNS로 중계합니다.
 API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
 
-dev는 web과 디버깅용 Core를 loopback에, prod는 web만 loopback에 공개합니다. AI 포트는 내부 전용입니다.
+두 조합 모두 web만 loopback에 공개하며 Core·AI 포트는 내부 전용입니다. 선택 MinIO의 API·Console도 loopback에만 공개합니다.
 인증·TLS가 없는 **로컬 검증용**이며 인터넷 운영 준비가 된 배포가 아닙니다.
 OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build ARG에는 키를 넣지 않습니다.
 실행과 검증, 환경파일 경계는 [인프라 안내](../infrastructure/README.md)를 따릅니다.

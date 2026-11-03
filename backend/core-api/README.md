@@ -73,9 +73,10 @@ main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 
 JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 
 ```bash
-# 루트 .env의 Core 설정만 전달합니다 (Python 3 및 uv 필요).
-python3 ../../infrastructure/scripts/run-native.py core-api
-./gradlew clean test --no-daemon
+# 아래 Core 환경변수를 해당 터미널에 설정한 뒤 실행합니다.
+./gradlew bootRun
+# 로컬 개발 검증은 변경·직접 영향 범위의 순수 단위만 지정합니다.
+./gradlew unitTest --tests 'ai.storyfork.core.auth.AuthSecurityConfigTest' --no-daemon
 ```
 
 | 환경변수 | 네이티브 기본값 |
@@ -93,10 +94,25 @@ python3 ../../infrastructure/scripts/run-native.py core-api
 
 `ContentConfig`는 생성 전용 HTTP 클라이언트를 만들며 Health 클라이언트의 제한시간을 변경하지 않습니다.
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
-위 실행기는 루트 `.env`의 Core 허용 설정만 로드합니다. Core에 OpenAI 키를 주입하지 않습니다.
-`./gradlew bootRun` 직접 실행은 `.env`를 로드하지 않습니다.
+`./gradlew bootRun`은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달은 Compose를 사용합니다.
+루트 `.env` 전체를 source하거나 Core에 OpenAI 키를 주입하지 않습니다.
 Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 web 포트에 맞춥니다.
+공통 `docker-compose.yaml` + prod는 기존 PostgreSQL·Mailpit과 소스 빌드 앱을, base + dev는 CI의 `:develop` 앱 이미지와 기존 외부 DB·SMTP를 사용합니다. base 단독 실행이나 dev 서버 소스 build는 하지 않습니다.
+콘텐츠는 기본 비활성이며 `CONTENT_ENABLED=true`일 때도 Auth와 같은 DB·자격증명을 사용합니다. 실제 `INTERNAL_TOKEN`은 Core·AI에만 전달하고 개발 Principal은 주입하지 않습니다.
 실행 설정은 [인프라 안내](../../infrastructure/README.md)를 참고하세요.
+
+### CI 계층과 선택 실행
+
+로컬 개발에서는 `unitTest --tests ...`만 선택 실행합니다. Spring context·HTTP·DB·전체 suite·빌드는 로컬 개발 검증으로 실행하지 않습니다.
+`build.gradle`의 `integrationTestClasses`를 `unitTest`에서 제외하고 `integrationTest`에서만 포함하므로 테스트를 중복 실행하지 않습니다.
+`AiServiceClientPropertiesTest`처럼 context가 섞인 클래스도 통합입니다. 새 Spring/HTTP/DB 테스트는 분류 목록을 갱신합니다.
+
+CI가 이 디렉터리에서 `./gradlew unitTest --no-daemon --tests 'ai.storyfork.core.auth.*'`와 `./gradlew integrationTest --no-daemon --tests ...`를 직접 호출합니다. 별도 runner·shell wrapper는 없습니다.
+Gradle `--tests`의 기존 기능 범위는 auth/content/health이며 공통·설정·의존성·미등록 `settingattachment` 변경은 필터 없이 Core 전체로 확장합니다.
+Auth·Content 실행 코드 변경도 새 첨부 소비 관계를 포함하도록 Core 전체를 검증하며 테스트만 변경하면 기존 기능 범위를 유지합니다.
+통합 job은 임시 PostgreSQL·Mailpit에서 기존 Flyway와 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTENT_DATABASE_URL` 조건부 테스트를 실행합니다.
+Content의 기존 `content_test`/빈 비밀번호는 격리 runner PostgreSQL trust 인증에만 적용하며 운영 설정이 아닙니다.
+그 뒤 관련 HTTP 시스템 시나리오가 CI Compose에서 실행됩니다. [공통 검증](../../README.md#검증)을 따르며 실제 hosted `Required CI` 결과 확인 전에는 검증 대기입니다.
 
 회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.
 
@@ -152,7 +168,7 @@ AttachmentResponse는 `id`, `filename`, `mediaType`, `kind`(`IMAGE`/`FILE`), `by
 
 새 영속성은 `settingattachment/controller → service → JpaRepository / AttachmentStorageClient`로 분리합니다.
 DTO는 `settingattachment/service/dto`, 저장소 전용 DTO는 `settingattachment/client/dto`에 둡니다.
-기존 Auth/Content JDBC는 그대로이며 새 직접 SQL 영속성은 추가하지 않습니다.
+기존 Auth JPA·Content JDBC 경계는 유지하며 새 직접 SQL 영속성은 추가하지 않습니다.
 새 Flyway는 `db/migration/settingattachment`와 `setting_attachment_schema_history`를 사용합니다.
 Auth SQL은 **내용·파일명·버전·기존 `flyway_schema_history`를 유지**하고 `db/migration/auth`로만 이동했습니다.
 독립 V1 충돌을 피하도록 Auth location도 그 leaf만 읽습니다. 첨부 EntityManager 초기화는 Auth Flyway → 기존 Content → 첨부 migration 순서를 명시해 빈 DB에서도 Auth 이력이 먼저 생성되게 합니다. 기존 Content의 location/history는 변경하지 않았습니다.
@@ -168,14 +184,17 @@ Auth SQL은 **내용·파일명·버전·기존 `flyway_schema_history`를 유�
 ### 선택 검증
 
 ```bash
-# CI에서도 실행하는 저장소 불필요 검사
-./gradlew test --tests 'ai.storyfork.core.settingattachment.AttachmentUploadHelperTest' --tests 'ai.storyfork.core.settingattachment.AttachmentMigrationLocationTest' --no-daemon
-# 실제 MinIO + 일회용 PostgreSQL; DB 사용자는 content_test, password는 로컬 trust 테스트 전용 빈 값
-# TEST_ATTACHMENT_DATABASE_URL, TEST_ATTACHMENT_S3_ENDPOINT, AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY를 격리 환경에 설정
-./gradlew test --tests 'ai.storyfork.core.settingattachment.SettingAttachmentHttpTest' --no-daemon
+# 로컬에서 허용하는 선택 순수 단위 검사
+./gradlew unitTest --tests 'ai.storyfork.core.settingattachment.AttachmentUploadHelperTest' --no-daemon
+# 아래는 CI/별도 승인된 격리 환경의 통합 호출 형식이며 로컬 자동 검증 목록이 아닙니다.
+./gradlew integrationTest --tests 'ai.storyfork.core.settingattachment.*' --no-daemon
 ```
 
-HTTP 통합 검사는 `TEST_ATTACHMENT_DATABASE_URL`이 있을 때만 실행하며 테스트 전용 `issue87-test` 비공개 버킷을 만듭니다.
-실제 DB flush/deferred commit 실패와 저장소 응답 유실의 보상 동작을 검사합니다. fault test 외의 HTTP lifecycle은 실제 MinIO를 사용합니다.
-CI는 DB/MinIO를 실행하지 않으므로 해당 통합 검사는 CI에서 제외되고 별도 로컬 증거가 필요합니다. `Required CI`는 게시 승인 후 최신 커밋에서 확인해야 합니다.
-화면/브라우저 호출부 변경이 없어 Aside 브라우저 E2E는 제외하며 실제 HTTP·저장소 검증을 대신 기록합니다.
+`AttachmentStorageClientTest`의 대역 HTTP와 `AttachmentMigrationLocationTest`의 H2/Flyway도 통합 계층입니다.
+`SettingAttachmentConfigTest`는 Spring·실제 DB, `SettingAttachmentHttpTest`는 HTTP·실제 DB·MinIO를 사용하므로 단위 계층에서 실행하지 않습니다.
+설정·HTTP 검사는 `TEST_ATTACHMENT_DATABASE_URL`이 있을 때만 활성화합니다. 격리 DB 사용자는 `content_test`/빈 비밀번호이며 공유 DB에는 실행하지 않습니다.
+HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필요하고 전용 `issue87-test` 비공개 버킷을 만듭니다.
+실제 DB flush/deferred commit 실패와 저장소 응답 유실의 보상 동작을 검사하며 fault test 외의 HTTP lifecycle은 실제 MinIO를 사용합니다.
+현재 CI는 임시 PostgreSQL·Mailpit을 제공하지만 MinIO와 `TEST_ATTACHMENT_DATABASE_URL`은 설정하지 않아 첨부 설정·실제 HTTP 검사는 조건부 skip입니다.
+대역 HTTP·H2/Flyway 검사는 CI 통합 계층에 포함되며 실제 첨부 lifecycle 검증은 별도 승인된 격리 환경의 증거가 필요합니다.
+`Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다. 화면/브라우저 호출부 변경이 없어 Aside 브라우저 E2E는 제외합니다.

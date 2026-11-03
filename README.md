@@ -113,39 +113,40 @@ Health는 OpenAI 인증·모델 접근·생성 품질 검증이 아닙니다. �
 
 ## 빠른 시작
 
-Docker daemon과 Compose plugin이 필요합니다. 루트에서 예시를 그대로 사용해 실행할 수 있습니다.
-실제 `.env`가 이미 있으면 덮어쓰지 마세요.
+Docker daemon과 Compose plugin이 필요합니다. `cp -n .env.example .env`로 루트 설정을 준비하고,
+DB 자격증명·JWT 키를 설정한 뒤 `AUTH_PUBLIC_ORIGIN`을 실제 web 주소(아래 기본값 `http://127.0.0.1:8088`)에 맞춥니다.
+실제 `.env`가 이미 있으면 덮어쓰지 마세요. 예시 파일의 빈 자격증명만으로 기동할 수는 없습니다.
 
 ```bash
-docker compose --env-file .env.example --file infrastructure/compose.yaml up --build
-# http://127.0.0.1:5173
-docker compose --env-file .env.example --file infrastructure/compose.yaml down
+# 소스에서 배포 이미지를 빌드해 로컬 검증
+docker compose --env-file .env --file infrastructure/docker-compose.yaml --file infrastructure/docker-compose.prod.yaml up --build -d
+# http://127.0.0.1:8088
+docker compose --env-file .env --file infrastructure/docker-compose.yaml --file infrastructure/docker-compose.prod.yaml down
 ```
 
-개인 설정이 필요할 때만 `cp -n .env.example .env` 후 `--env-file .env`를 사용합니다.
-`OPENAI_API_KEY`는 비워 두어도 됩니다. 이 설정을 채워도 생성 API가 생기지는 않습니다.
+`docker-compose.yaml`은 공통 base로 단독 실행하지 않습니다. `docker-compose.prod.yaml`과 병합하면
+기존 `storyfork-prod-validation` 프로젝트의 PostgreSQL·Mailpit과 소스 빌드한 세 앱을 실행합니다.
+콘텐츠는 기본 비활성이며 `CONTENT_ENABLED=true`와 실제 내부 토큰으로 활성화합니다([콘텐츠 설정](docs/content-integration.md#인증과-실행)).
+Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 
 | 주소 | 용도 |
 |---|---|
-| `http://127.0.0.1:5173` | STORYFORK 시작 화면 |
-| `http://127.0.0.1:5173/api/v1/health` | Vite를 거친 Core Health |
-| `http://127.0.0.1:5173/api/v1/health/ai-service` | Core를 거친 AI Health |
-| `http://127.0.0.1:8080/api/v1/health` | 개발용 Core 직접 디버깅 |
+| `http://127.0.0.1:8088` | STORYFORK 화면 |
+| `http://127.0.0.1:8088/api/v1/health` | nginx를 거친 Core Health |
+| `http://127.0.0.1:8088/api/v1/health/ai-service` | Core를 거친 AI Health |
+| `http://127.0.0.1:8025` | 로컬 Mailpit 메일 확인 |
 
-포트는 `DEV_WEB_PORT=5173`, `CORE_API_PORT=8080`으로 변경할 수 있습니다.
-CORS는 web 포트에 맞춰 계산하며 `APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수도 있습니다.
-AI 포트는 호스트에 공개하지 않습니다. 키는 AI 런타임에만 전달하고 VITE/build ARG에는 넣지 않습니다.
+web 포트는 `WEB_PORT=8088`로 변경할 수 있습니다. CORS는 web 포트에 맞춰 계산하며
+`APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수도 있습니다. Core·AI·DB 포트는 호스트에 공개하지 않습니다.
+키는 AI 런타임에만 전달하고 VITE/build ARG에는 넣지 않습니다. nginx 정적 런타임이 SPA와 `/api` 프록시를 제공하며
+Vite나 소스 mount는 없습니다. loopback 검증용으로 **인터넷 운영 준비가 된 배포가 아닙니다**.
 
-### 배포 이미지 로컬 검증
+### 개발 서버 — CI 게시 이미지
 
-```bash
-docker compose --env-file .env.example --file infrastructure/compose.prod.yaml up --build -d
-# http://127.0.0.1:8088 (WEB_PORT로 변경)
-docker compose --env-file .env.example --file infrastructure/compose.prod.yaml down
-```
-
-별도 프로젝트의 nginx 정적 런타임이 SPA와 `/api` 프록시를 제공합니다. Vite나 소스 mount는 없습니다.
-web만 loopback에 공개합니다. 인증·TLS가 없으므로 **인터넷 운영 준비가 된 배포가 아닙니다**.
+base + `infrastructure/docker-compose.dev.yaml`은 `storyfork-develop-cd` 프로젝트에서 CI가 게시한
+세 `:develop` 이미지를 pull·실행합니다. 소스 build·hot reload나 DB 신설 없이 기존 외부 PostgreSQL·SMTP를 사용합니다.
+두 파일 전달·서버 설정과 실행 명령은 [인프라 안내](infrastructure/README.md)를 따릅니다.
+이전 소스/HMR용 Compose는 제거했으며, hot reload 개발은 아래 네이티브 명령을 유지합니다.
 
 ### 네이티브 실행
 
@@ -153,52 +154,87 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 각 서비스 [Frontend](frontend/README.md), [Core](backend/core-api/README.md),
 [AI](backend/ai-service/README.md) README의 실행 명령을 따릅니다.
 환경설정은 루트 `.env` 한 곳에서 관리합니다. `cp -n .env.example .env`로 준비하고 기존 파일은 덮어쓰지 않습니다.
-서비스별 `.env`는 만들지 않으며, 루트에서 아래 명령을 각각 실행합니다(Python 3·uv 필요).
+서비스별 `.env`는 만들지 않습니다. 기본 실행은 위의 Compose를 사용합니다.
+네이티브 개발은 각 서비스에 필요한 환경변수만 해당 터미널에 설정한 뒤 기본 명령을 실행합니다.
 
 ```bash
-python3 infrastructure/scripts/run-native.py web
-python3 infrastructure/scripts/run-native.py core-api
-python3 infrastructure/scripts/run-native.py ai-service
+(cd frontend && pnpm dev)
+(cd backend/core-api && ./gradlew bootRun)
+(cd backend/ai-service && uv run --locked uvicorn app.main:create_app --factory --reload --port 8000)
 ```
 
-실행기는 루트 `.env`를 읽어 서비스별 허용 변수만 전달합니다. OpenAI 키는 AI에만 전달하며 브라우저·Core에 전달하지 않습니다.
-기존 셸 변수는 uv의 우선순위를 따릅니다. 빈 값은 네이티브 기본값을 사용합니다.
+이 명령들은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달이 필요하면 Compose를 사용합니다.
+루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, DB·Auth 설정은 Core에만 전달합니다.
 기존 서비스별 `.env.local` 등이 있으면 Vite가 별도로 읽을 수 있으므로 필요한 값을 루트로 수동 통합하세요.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
 
 ## 검증
 
-```bash
-# 각 서비스 디렉터리에서
-# frontend (Node 24 / pnpm 11.22)
-pnpm test
-pnpm lint
-pnpm build
-# backend/core-api (JDK 21)
-./gradlew clean test --no-daemon
-# backend/ai-service
-uv lock --check
-uv run --locked --extra dev python -m pytest
-```
+### 로컬 개발: 변경·영향 범위의 단위 테스트만
 
-루트에서 설정/셸 회귀를 확인합니다. 빌드나 컨테이너 시작, 외부 API 호출은 하지 않습니다.
+TDD의 Red → Green → Refactor를 선택 단위 테스트로 진행합니다. DB·API·화면 변경도 관련 순수 단위 회귀를 먼저 작성하며,
+통합·시스템·브라우저 E2E·전체 suite·빌드는 로컬 개발 완료 조건으로 실행하지 않습니다. 앱·DB·컨테이너를 검증용으로 띄우지 않습니다.
+설정 구문·계약 검사와 `docker compose config --quiet`는 허용하며 문서는 내용·로컬 링크·`git diff --check`를 확인합니다.
 
 ```bash
-python3 -I infrastructure/scripts/check-compose-config.py
-bash -n infrastructure/scripts/verify-compose.sh
+# 루트: CI 선택/실행 계약의 작은 stdlib 단위 회귀 (앱·DB 실행 없음)
+python3 -m unittest discover -s infrastructure/ci -p 'test_*.py' -v
+# 각 서비스 디렉터리에서 변경한 단위 테스트를 지정하는 예
+pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
+./gradlew unitTest --tests 'ai.storyfork.core.auth.AuthSecurityConfigTest' --no-daemon
+uv run --locked --extra dev python -m pytest -m 'not integration' tests/test_generation.py -k missing_key
 ```
 
-별도 통합 검증은 새 일회성 프로젝트를 빌드·실행하고 자기 리소스만 정리합니다.
-실제 키 없이 Core·AI Health, 실패·복구, API 404 및 prod 정적 asset/deep link를 확인합니다.
-OpenAI를 호출하지 않지만 이미지·의존성 다운로드에는 네트워크가 필요합니다.
+자세한 선택 명령은 [Frontend 지침](frontend/AGENTS.md#검증), [Core 지침](backend/core-api/AGENTS.md#검증),
+[AI 지침](backend/ai-service/AGENTS.md#변경-범위와-검증)을 따릅니다. 단위 통과가 CI 통합·시스템 검증을 대신하지 않습니다.
+Aside는 별도 요청·승인 시에만 사용하며 HTTP 시스템 테스트를 브라우저 E2E로 보고하지 않습니다.
 
-```bash
-./infrastructure/scripts/verify-compose.sh dev
-./infrastructure/scripts/verify-compose.sh prod
-```
+### CI: 선택 → 단위·통합 병렬 → 선택 HTTP 시스템 → Required CI
 
-검증 기본 포트는 dev `15173`/`18080`, prod `18088`입니다.
-다른 프로젝트를 중지하지 말고 포트를 변경하세요. 상세는 [인프라 안내](infrastructure/README.md)를 참고하세요.
+[`ci.yml`](.github/workflows/ci.yml)이 Vitest·Gradle·pytest를 직접 호출하고 환경 기동·readiness·항상 정리를 소유합니다.
+[`infrastructure/ci/ci.py`](infrastructure/ci/ci.py)는 보수적인 변경 선택·결과 집계·로그 정제만 담당하며 공통 runner나 shell wrapper는 없습니다.
+JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytest 시스템 테스트는 [`infrastructure/system/test_http.py`](infrastructure/system/test_http.py)에 둡니다.
+새 테스트 프레임워크·production 의존성은 추가하지 않습니다.
+
+| 계층 | 현재 실행 범위 |
+|---|---|
+| 선택·정적 검사·단위 | 변경 diff 공백·선택기 회귀, 선택된 web의 lint/build, AI lock 검사. web Domain/Data/HTML 단위, Core `unitTest`, AI `-m 'not integration'` |
+| 통합 | 나머지 web React/Hook/App 조립, Core `integrationTest`(Spring context·HTTP·PostgreSQL·Flyway), AI `-m integration`(FastAPI TestClient) |
+| 시스템 | CI 전용 Compose 앱·임시 PostgreSQL·Mailpit을 기동한 뒤 `pytest infrastructure/system -k ...`로 선택된 실제 HTTP 시나리오 실행 |
+| 집계 | `Required CI`: 실패·취소·필요한 tier의 예상 밖 skip은 실패, 영향 없는 작업의 의도적 skip만 허용 |
+
+변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
+Core의 혼합 경계 클래스는 통합에 두며 새 Spring/HTTP/DB 테스트의 분류 누락은 선택기 회귀가 검사합니다.
+Core 통합 job은 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTENT_DATABASE_URL`을 설정해 기존 조건부 테스트를 활성화합니다.
+기존 Content 테스트의 `content_test`/빈 비밀번호 계약은 격리 runner의 임시 PostgreSQL trust 인증으로만 맞춥니다.
+
+#### 변경·영향 선택
+
+- PR: base와 실제 head의 **merge-base**부터 비교. push: event의 **before SHA**부터 비교.
+  수동 CI 실행·기준선 부재(새 브랜치/기준 커밋 없음)는 명시적으로 전체 서비스·시나리오를 실행합니다.
+  이때 공백 검사는 첫 부모와 비교하며, 부모가 없는 최초 커밋만 빈 트리와 비교합니다.
+- web·AI는 서비스 수준, Core는 auth/content/health 기능 수준으로 보수적으로 선택합니다. 선택된 범위의 해당 계층 테스트는 모두 실행합니다.
+- 공유·설정·의존성·미등록 runtime 경로는 해당 서비스 전체 또는 전체 서비스로 확장합니다.
+  Core Auth는 Content/web 소비자를, Core Content·AI 계약 변경은 연결된 Core/AI/web와 시스템 시나리오를 함께 선택합니다.
+- 삭제·이름 변경은 `git diff --no-renames`로 이전 경로까지 포함합니다. 정확한 소스별 의존 그래프 분석은 아닙니다.
+  테스트만 변경하면 해당 서비스/기능 회귀만 실행하고 시스템은 생략합니다. 문서만 변경하면 runtime job은 생략합니다.
+  영향받는 runtime 범위에서 테스트가 하나도 발견되지 않으면 성공으로 숨기지 않습니다.
+
+#### HTTP 시스템 시나리오와 경계
+
+`health`: web 정적 응답과 nginx → Core → AI Health.
+`auth`: CSRF 없는 변경 403, 가입 → Mailpit 메일 토큰 → 이메일 확인 → 잘못된 비밀번호 401 → 로그인·프로필·DB 회원 저장.
+`content`: auth를 한 번 준비한 뒤 작품 생성 → 회차 저장 → 오래된 revision 409 → 재조회·DB 원고 보존·미인증 접근 401.
+`ai`: auth/content를 재사용하고 실제 Core → AI HTTP 호출의 제공사 설정 누락 503, 원고 불변·실패 job 저장·성공 제안 없음.
+선택된 시나리오의 준비 흐름은 한 번만 실행합니다. 실제 모델 성공·과금·브라우저 입력/클릭은 검증하지 않습니다.
+
+[`compose.test.yaml`](infrastructure/ci/compose.test.yaml)은 base+prod 뒤에서 CI 포트를 loopback 임의 포트로 제한하고,
+DB를 tmpfs로 바꾸며 AI 키·모델은 빈 값으로 고정합니다. 서비스 단위 제공사 테스트는 monkeypatch 대역을 사용하고 시스템은 명시적인 503만 확인하므로 유료 호출이 없습니다.
+실행별 `storyfork-ci-<run>-<attempt>` 프로젝트만 항상 정리하며 배포 volume·실제 `.env`·외부 DB·실제 SMTP·서버 배포는 건드리지 않습니다.
+실패 시 테스트 결과·컨테이너 로그를 토큰·이메일 등으로부터 정제하여 7일 보관합니다.
+
+로컬 선택 단위 결과와 hosted runtime 결과를 구분합니다. **최신 커밋의 GitHub `Required CI` 실제 성공을 확인하기 전에는 검증 대기**입니다.
+CI 이후 단일 CD의 게시 → 배포 흐름은 [인프라 안내](infrastructure/README.md#ci--cd-publish--deploy)를 참고하세요.
 
 ## 저장소와 문서
 

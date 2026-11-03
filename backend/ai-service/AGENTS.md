@@ -73,7 +73,10 @@
 - 요청 범위 밖의 패턴 통일, 파일 재배치 또는 미래 대비 리팩터링을 하지 않는다.
 - 새로운 production 의존성, 외부 서비스 또는 실행 계층을 추가하기 전에 사용자에게 알린다.
 - 구현 후 실제 호출 흐름과 OpenAI 호출 유무를 구분해 설명한다.
-- 로컬: `backend/ai-service`에서 `uv run --locked --extra dev python -m pytest <대상 테스트 경로>`로 관련 테스트를 실행한다.
-  필요하면 `-k`로 범위를 좁히고, 유료 API 호출 없는 단위·스텁 검증을 우선한다.
-- CI: `uv lock --check`와 `uv run --locked --extra dev python -m pytest` 전체 실행.
-  문서만 변경한 경우는 루트의 문서 검증 기준을 따른다. 실제 OpenAI 호출 없이 검증한 범위를 구분해 보고한다.
+- 로컬: `backend/ai-service`에서 `uv run --locked --extra dev python -m pytest -m 'not integration' <대상 파일> -k '<대상>'`로
+  변경·직접 영향 범위의 단위 테스트만 실행한다. 제공사는 monkeypatch 대역을 사용하며 FastAPI TestClient는 통합 테스트로 분류한다.
+  로컬 통합·시스템·전체 suite·컨테이너·유료 API 호출은 개발 검증으로 실행하지 않는다.
+- CI: 선택된 AI 서비스에 `uv lock --check` 후 워크플로가 `uv run --locked --extra dev python -m pytest`를 직접 호출한다. 별도 runner·shell wrapper는 두지 않는다.
+  pytest의 `integration` marker와 반대 marker로 분리하여 동일 테스트를 중복 실행하지 않는다.
+  AI 계약 변경은 Core·web 소비자와 HTTP 시스템 시나리오도 선택한다. 시스템에서는 빈 키/모델의 명시적인 503 경로를 사용한다.
+  문서만 변경하면 runtime job을 생략한다. 실제 OpenAI 호출·브라우저 E2E는 검증하지 않으며 hosted 결과 확인 전에는 검증 대기로 보고한다.
