@@ -38,7 +38,7 @@ def main():
     code = "import os,json; print(json.dumps({k:os.environ[k] for k in " + repr(keys) + " if k in os.environ}))"
     command = ["uv", "run", "--no-project"]
     if (ROOT / ".env").exists():
-        command += ["--env-file", str(ROOT / ".env")]
+        command += ["--env-file", (ROOT / ".env").as_posix()]
     command += [sys.executable, "-c", code]
     try:
         result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)

@@ -3,6 +3,8 @@ plugins {
     id 'idea'
     id 'org.jetbrains.kotlin.jvm' version '2.4.10'
     id 'org.jetbrains.kotlin.plugin.spring' version '2.4.10'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '2.4.10'
+    id 'org.jetbrains.kotlin.plugin.allopen' version '2.4.10'
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -38,10 +40,17 @@ repositories {
     mavenCentral()
 }
 
+allOpen {
+    annotation('jakarta.persistence.Entity')
+    annotation('jakarta.persistence.MappedSuperclass')
+    annotation('jakarta.persistence.Embeddable')
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql'

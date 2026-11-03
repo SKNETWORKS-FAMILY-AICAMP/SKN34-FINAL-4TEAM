@@ -1,8 +1,8 @@
 package ai.storyfork.core.content
 
-import ai.storyfork.core.content.domain.*
-import ai.storyfork.core.content.repository.ContentRepository
-import ai.storyfork.core.content.repository.V5__ImportLegacyContent
+import ai.storyfork.core.content.migration.model.*
+import ai.storyfork.core.content.migration.LegacyContentRepository
+import ai.storyfork.core.content.migration.V5__ImportLegacyContent
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -24,7 +24,7 @@ class ContentMigrationTest {
         val ds=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test","")
         fun flyway(target: String?=null): Flyway {
             val config=Flyway.configure().dataSource(ds).schemas(schema).defaultSchema(schema)
-                .locations("classpath:db/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper))
+                .locations("classpath:db/migration/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper))
             if(target!=null) config.target(target)
             return config.load()
         }
@@ -42,7 +42,7 @@ class ContentMigrationTest {
         for(w in listOf(original,fork)) jdbc.update("INSERT INTO content_work(id,owner_id,source_id,visibility,payload) VALUES (?,?,?,?,CAST(? AS jsonb))",w.id,w.ownerId,w.source?.workId,w.visibility,mapper.writeValueAsString(w))
         jdbc.update("UPDATE content_work SET created_at='2020-01-01T00:00:00Z' WHERE id=?",original.id)
         flyway().migrate()
-        val repository=ContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper)
+        val repository=LegacyContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper)
         val restored=repository.find(original.id)!!
         assertEquals(original.draft,restored.draft)
         assertEquals(java.time.Instant.parse("2020-01-01T00:00:00Z"),jdbc.queryForObject("SELECT created_at FROM work WHERE id=?",java.sql.Timestamp::class.java,original.id)!!.toInstant())
@@ -65,7 +65,7 @@ class ContentMigrationTest {
         val schema="migration_failure_"+contentId().replace("-","")
         val ds=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test","")
         fun migration(target:String)=Flyway.configure().dataSource(ds).schemas(schema).defaultSchema(schema)
-            .locations("classpath:db/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
+            .locations("classpath:db/migration/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
         migration("4").migrate()
         val scoped=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL")+"?currentSchema="+schema,"content_test","")
         val jdbc=JdbcTemplate(scoped)
@@ -83,7 +83,7 @@ class ContentMigrationTest {
         jdbc.execute("DROP TRIGGER fail_second_import ON work")
         migration("5").migrate()
         assertEquals(2,jdbc.queryForObject("SELECT count(*) FROM work",Int::class.java))
-        assertEquals(first.draft,ContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper).find(first.id)!!.draft)
+        assertEquals(first.draft,LegacyContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper).find(first.id)!!.draft)
         assertEquals(0,migration("5").migrate().migrationsExecuted)
     }
 
@@ -91,7 +91,7 @@ class ContentMigrationTest {
         val schema="migration_pending_"+contentId().replace("-","")
         val ds=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test","")
         fun migration(target:String)=Flyway.configure().dataSource(ds).schemas(schema).defaultSchema(schema)
-            .locations("classpath:db/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
+            .locations("classpath:db/migration/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
         migration("4").migrate()
         val scoped=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL")+"?currentSchema="+schema,"content_test","")
         val jdbc=JdbcTemplate(scoped)
@@ -105,7 +105,7 @@ class ContentMigrationTest {
 
         migration("5").migrate()
 
-        val restored=ContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper).find(w.id)!!
+        val restored=LegacyContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper).find(w.id)!!
         val pending=restored.proposals.single()
         assertEquals(1,pending.targetEpisode)
         assertEquals("pending",pending.status)
@@ -123,7 +123,7 @@ class ContentMigrationTest {
         val schema="migration_pending_unknown_"+contentId().replace("-","")
         val ds=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test","")
         fun migration(target:String)=Flyway.configure().dataSource(ds).schemas(schema).defaultSchema(schema)
-            .locations("classpath:db/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
+            .locations("classpath:db/migration/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
         migration("4").migrate()
         val scoped=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL")+"?currentSchema="+schema,"content_test","")
         val jdbc=JdbcTemplate(scoped)
@@ -146,7 +146,7 @@ class ContentMigrationTest {
         val schema="migration_ai_"+contentId().replace("-","")
         val ds=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test","")
         fun migration(target:String)=Flyway.configure().dataSource(ds).schemas(schema).defaultSchema(schema)
-            .locations("classpath:db/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
+            .locations("classpath:db/migration/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
         migration("4").migrate()
         val scoped=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL")+"?currentSchema="+schema,"content_test","")
         val jdbc=JdbcTemplate(scoped)
@@ -166,7 +166,7 @@ class ContentMigrationTest {
         w.versions.removeLast()
         jdbc.update("UPDATE content_work SET payload=CAST(? AS jsonb) WHERE id=?",legacyJson(),w.id)
         migration("5").migrate()
-        val restored=ContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper).find(w.id)!!.proposals.single()
+        val restored=LegacyContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper).find(w.id)!!.proposals.single()
         assertEquals(2,restored.targetEpisode)
         assertEquals(applied.id,restored.appliedVersionId)
         assertEquals(0,migration("5").migrate().migrationsExecuted)

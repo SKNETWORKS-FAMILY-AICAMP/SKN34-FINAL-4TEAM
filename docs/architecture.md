@@ -60,9 +60,9 @@ Client의 nullable payload를 Service에서 `up`·`storyfork-ai-service`로 검�
 
 Auth의 가입 후보·메일 인증은 `auth/controller → SignupService → SignupRepository` 경로로 저장합니다. 로그인·세션은 `SessionController → SessionService → JdbcTemplate`, 프로필·비밀번호 복구·이메일 변경은 `ProfileController → ProfileService → JdbcTemplate` 경로로 직접 SQL에 접근합니다. `SignupRequest`·`EmailRequest`·`TokenRequest`·`VerificationRequest`는 `auth/controller/dto`에 두고, 나머지 요청 DTO는 각 Controller 안에 둡니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
 
-기존 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS만 남습니다.
+`_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS와 여러 콘텐츠 기능에서 공유하는 실패·식별자 계약이 있습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
-콘텐츠 생성은 `ContentConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
+콘텐츠 생성은 `proposal/config/GenerationClientConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
 내부 URL·오류 원문은 공개하지 않으며 AI 장애가 Core 자체 Health 성공을 막지 않습니다.
 
 ## AI Service
@@ -95,4 +95,13 @@ OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build A
 
 기능마다 서버를 복제하지 않으며 새 빈 업무 계층·인프라는 실제 계약과 요구가 정해질 때만 추가합니다.
 
-이슈 #50 범위의 서버 작품 집필실은 `/studio/{UUID}`에서 회차별 초안·불변 버전·발행본을 구분합니다. 기존 EpisodeUseCase/Repository와 ContentController/Service/Repository 경계를 재사용하며 새 실행 서비스나 production 의존성을 추가하지 않았습니다. 세부 계약은 [이슈 #50 대응](issue-50-alignment.md)을 참고합니다.
+이슈 #50 범위의 서버 작품 집필실은 `/studio/{UUID}`에서 회차별 초안·불변 버전·발행본을 구분합니다. Frontend의 기존 EpisodeUseCase/Repository를 재사용합니다. Core는 #84에 따라 기능별 Controller/Service와 JPA Repository로 전환하며 최소 JPA 의존성을 추가합니다. 새 서버·Gradle 모듈은 추가하지 않습니다. 세부 계약은 [이슈 #50 대응](issue-50-alignment.md)을 참고합니다.
+
+
+## #84 콘텐츠 책임 분리
+
+`work`는 작품·정책, `episode`는 회차 생성·조회·초안 수정, `episode_version`은 불변 버전·복원·부분 체크포인트, `publication`은 발행 사건과 공개 상태를 소유합니다. `world`는 설정 버전·공개 범위, `fork`는 분기 기준·원작 추적·독립·변경 선택, `proposal`은 AI 접수·호출·승인·반영 이력, `context`는 허용 문맥 구성을 담당합니다. `WorkAccessService`는 이들 기능이 공유하는 소유권·공개 접근·작품 잠금 기준을 제공합니다. 전 기능을 대신 저장하는 중앙 Repository·Service는 없습니다.
+
+콘텐츠는 별도 JPA 영속성 단위와 `contentTransactionManager`를 사용하고, Auth는 기존 JDBC 트랜잭션을 유지합니다. 작품·원작의 행 잠금을 ID 순서로 획득하고 오래된 1차 캐시를 갱신한 뒤 revision을 비교합니다. 저장·복원·제안 반영은 각 유스케이스 트랜잭션에서 원자적으로 처리합니다. AI 요청은 짧은 준비 트랜잭션과 결과 검증 트랜잭션 사이에서 실행하며 외부 호출 동안 DB 트랜잭션을 유지하지 않습니다.
+
+SQL 위치는 `db/migration/auth`와 `db/migration/content`이며 기존 `flyway_schema_history`·`content_schema_history`를 유지합니다. 공통 콘텐츠 과거 이력은 분할·재실행하지 않으며 Hibernate는 스키마를 변경하지 않습니다. V5의 JDBC는 이관 전용 패키지에 격리합니다. 회차 삭제 정책·전체 세계관/그래프 체크포인트는 미확정 범위로 남깁니다. 실제 검증 상태는 [#84 대응](issue-84-content-boundaries.md)에 기록합니다.

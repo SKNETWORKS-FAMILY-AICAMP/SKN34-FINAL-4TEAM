@@ -1,12 +1,31 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
 
 spec=importlib.util.spec_from_file_location('native',Path(__file__).parents[1]/'scripts/run-native.py')
 native=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(native)
 
 class ContentEnvironmentTest(unittest.TestCase):
+    def test_dotenv_argument_preserves_windows_path_separators(self):
+        root=MagicMock()
+        env_path=MagicMock()
+        env_path.exists.return_value=True
+        env_path.__str__.return_value='C:\\workspace\\.env'
+        env_path.as_posix.return_value='C:/workspace/.env'
+        root.__truediv__.return_value=env_path
+        with patch.object(native,'ROOT',root), patch.object(native.sys,'argv',['run-native.py','core-api']), \
+             patch.object(native.os,'name','nt'), patch.object(native.os,'chdir'), \
+             patch.object(native.subprocess,'run',return_value=SimpleNamespace(returncode=0,stdout='{}')) as load, \
+             patch.object(native.subprocess,'call',return_value=0):
+            with self.assertRaises(SystemExit) as result:
+                native.main()
+            self.assertEqual(result.exception.code,0)
+        command=load.call_args.args[0]
+        self.assertEqual(command[command.index('--env-file')+1],'C:/workspace/.env')
+
     def test_generation_timeout_is_core_only(self):
         values={'AI_GENERATION_READ_TIMEOUT':'90s'}
         self.assertEqual(native.service_environment('core-api',values).get('AI_GENERATION_READ_TIMEOUT'),'90s')
