@@ -43,6 +43,8 @@ it('late autosave response preserves newer typing and manual save creates a vers
   await act(async()=>{})
   act(()=>result.current.edit({body:'첫 입력'}))
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(result.current.editingLocked).toBe(false)
+  expect(result.current.busy).toBe(true)
   act(()=>result.current.edit({body:'최신 입력'}))
   await act(async()=>resolveSave({...episode,draft:{title:'1화',body:'첫 입력',revision:1}}))
   expect(result.current.draft.body).toBe('최신 입력')

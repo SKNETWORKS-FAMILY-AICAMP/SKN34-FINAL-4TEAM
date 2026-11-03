@@ -20,7 +20,7 @@ export function WorldPanel({workId,useCase,onDirty}:{workId:string;useCase?:Epis
    {w.settings.map(s=><button className="ep-setting-row" key={s.id} aria-pressed={vm.sid===s.id} disabled={vm.busy} onClick={()=>vm.pick(s)}><strong>{s.name}</strong><span>{s.category} · {s.visibility==='public'?'공개':'비공개'} · {s.fromEpisode}화{ s.toEpisode?`~${s.toEpisode}화`:'부터'}</span></button>)}
    {w.drafts.map(d=><button key={d.id} className="btn sm" disabled={vm.busy} onClick={()=>vm.pick(d)}>초안 열기 · {d.name}</button>)}
   </section>
-  <form onSubmit={e=>{e.preventDefault();vm.commit()}}><fieldset disabled={vm.busy}><legend>{vm.sid==='new'?'새 설정 작성':'설정 편집'}</legend>
+  <form onSubmit={e=>{e.preventDefault();vm.commit()}}><fieldset disabled={vm.editingLocked}><legend>{vm.sid==='new'?'새 설정 작성':'설정 편집'}</legend>
    <label>설정 이름<input value={vm.form.name} maxLength={120} required onChange={e=>vm.edit({name:e.target.value})}/></label>
    <label>카테고리<select value={vm.form.category} onChange={e=>{const category=settingCategories.find(c=>c===e.target.value);if(category)vm.edit({category})}}>{settingCategories.map(c=><option key={c}>{c}</option>)}</select></label>
    <label>설정 내용<textarea value={vm.form.content} maxLength={8000} rows={7} required onChange={e=>vm.edit({content:e.target.value})}/></label>
@@ -30,8 +30,8 @@ export function WorldPanel({workId,useCase,onDirty}:{workId:string;useCase?:Epis
    <label>독자 공개 범위<select value={vm.form.visibility} onChange={e=>vm.edit({visibility:e.target.value==='public'?'public':'private'})}><option value="private">비공개 · 내 집필 문맥만</option><option value="public">지정 회차 범위에 공개</option></select></label>
    <label>이 정보를 아는 인물 (쉼표로 구분)<input value={vm.form.knownBy.join(',')} placeholder="에리히,한트베커 · 모두 아는 정보는 *" onChange={e=>vm.edit({knownBy:e.target.value ? e.target.value.split(',') : []})}/></label>
    <p>빈칸이면 인물 시점에서는 제외돼요. 인물 상태·지식·관계도 별도 항목으로 기록하세요. 공개와 인물의 지식은 다른 기준이에요.</p>
-   <button type="button" className="btn sm" disabled={!vm.dirty} onClick={()=>void vm.saveDraft()}>설정 초안 저장</button>
-   <button className="btn pri" disabled={vm.dirty||!w.drafts.some(d=>d.id===vm.sid)}>설정 확정 저장</button>
+   <button type="button" className="btn sm" disabled={vm.busy||!vm.dirty} onClick={()=>void vm.saveDraft()}>설정 초안 저장</button>
+   <button className="btn pri" disabled={vm.busy||vm.dirty||!w.drafts.some(d=>d.id===vm.sid)}>설정 확정 저장</button>
   </fieldset></form></div>
   <details className="ep-world-history"><summary>설정 버전 이력 · {w.history.length}개</summary>{w.history.filter(s=>s.content).map(s=><article key={s.versionId}><h3>{s.name} · {s.fromEpisode}화부터 · {s.visibility==='public'?'공개':'비공개'}</h3><p>{s.content}</p><small>{s.evidence}</small><button className="btn sm" disabled={vm.busy||vm.dirty||!!w.draft} onClick={()=>vm.revert(s.id,s.versionId)}>이 설정을 새 버전으로 복원</button></article>)}</details>
  </section>

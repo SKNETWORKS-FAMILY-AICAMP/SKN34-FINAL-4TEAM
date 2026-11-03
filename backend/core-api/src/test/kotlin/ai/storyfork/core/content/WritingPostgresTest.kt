@@ -60,6 +60,7 @@ class WritingPostgresTest {
             assertEquals("보존",service.publicRead(w.id).episodes.single().body)
         } finally { jdbc.execute("ALTER TABLE episode_version DROP CONSTRAINT $constraint") }
         service.policy(w.id,"writer",PolicyRequest(service.read(w.id,"writer").draft!!.revision,true,true))
+        assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id JOIN episode e ON e.id=v.episode_id WHERE e.work_id=?", Int::class.java, w.id))
         val fork=service.fork(w.id,"reader",ForkRequest(1,"분기"))
         val inherited=service.writing(fork.id,"reader",1)
         assertTrue(inherited.inherited)

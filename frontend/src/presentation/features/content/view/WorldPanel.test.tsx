@@ -1,11 +1,35 @@
 // @vitest-environment jsdom
-import {cleanup, render, screen, fireEvent, waitFor} from '@testing-library/react'
+import {act, cleanup, render, screen, fireEvent, waitFor} from '@testing-library/react'
 import {afterEach, expect, it, vi} from 'vitest'
 import {WorldPanel} from './WorldPanel'
 import {EpisodeUseCase} from '../../../../domain/usecases/EpisodeUseCase'
 import {HttpEpisodeRepository} from '../../../../data/content/HttpEpisodeRepository'
 
 afterEach(cleanup)
+
+it('keeps typing and focus while autosaving and saves newer text with the returned revision',async()=>{
+ const state={id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,drafts:[],settings:[],history:[],changes:[],sourceToken:'t'}
+ const value={id:'s',name:'규칙',content:'첫 입력',category:'규칙',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
+ let finish:(response:Response)=>void=()=>{}
+ const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(state)))
+   .mockImplementationOnce(()=>new Promise<Response>(resolve=>{finish=resolve}))
+   .mockResolvedValueOnce(new Response(JSON.stringify({...state,revision:2,draft:{...value,content:'최신 입력'},drafts:[{...value,content:'최신 입력'}]})))
+ render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} onDirty={()=>{}} />)
+ await screen.findByText('설정집')
+ fireEvent.change(screen.getByLabelText('설정 이름'),{target:{value:'규칙'}})
+ const input=screen.getByLabelText('설정 내용') as HTMLTextAreaElement
+ input.focus()
+ fireEvent.change(input,{target:{value:'첫 입력'}})
+ await waitFor(()=>expect(fetcher).toHaveBeenCalledTimes(2))
+ expect(input.closest('fieldset')?.disabled).toBe(false)
+ expect(document.activeElement).toBe(input)
+ fireEvent.change(input,{target:{value:'최신 입력'}})
+ await act(async()=>finish(new Response(JSON.stringify({...state,revision:1,draft:value,drafts:[value]}))))
+ expect(input.value).toBe('최신 입력')
+ await waitFor(()=>expect(fetcher).toHaveBeenCalledTimes(3))
+ expect(fetcher.mock.calls[2][0]).toBe('/api/v1/works/w/settings/s/draft')
+ expect(JSON.parse(fetcher.mock.calls[2][1].body)).toMatchObject({revision:1,setting:{content:'최신 입력'}})
+})
 
 it('refreshes the selected editor after applying an upstream change',async()=>{
  const value={id:'s',versionId:'v',name:'규칙',content:'분기 내용',category:'규칙',tags:[],visibility:'public',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}

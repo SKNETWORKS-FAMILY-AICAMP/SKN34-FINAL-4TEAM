@@ -6,6 +6,15 @@ import { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { HttpEpisodeRepository } from '../../../../data/content/HttpEpisodeRepository'
 afterEach(cleanup)
 
+it('requires selecting a saved version before opening publication preview', async()=>{
+  const w={id:'w',title:'선택 필요',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'회차',body:'초안',revision:0}}
+  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response(JSON.stringify([w])))))}/>)
+  fireEvent.click(await screen.findByRole('button',{name:/선택 필요/}))
+  fireEvent.click(screen.getByLabelText('이 원고를 공개할 권리가 있음을 확인합니다.'))
+  expect((screen.getByRole('button',{name:'회차 공개하기'}) as HTMLButtonElement).disabled).toBe(true)
+  expect(screen.getByText('저장·AI 이력에서 공개할 저장 버전을 먼저 선택해 주세요.')).toBeTruthy()
+})
+
 it('requires a fresh rights confirmation for the next episode after publication', async()=>{
   const w = {id:'w1',title:'테스트',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'첫 화',body:'저장된 원고',revision:1}}
   const published = {...w,visibility:'public',episodes:[{number:1,version:1,title:'첫 화',body:'저장된 원고',inherited:false}],draft:{title:'새 회차',body:'',revision:2}}

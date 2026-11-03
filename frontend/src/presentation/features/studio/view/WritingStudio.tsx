@@ -35,8 +35,8 @@ export function WritingStudio({id}:{id:string}) {
       <main className="writing-editor">
         {active?<>
           <p className="muted">{active.number}화 · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
-          <label className="field">회차 제목<input className="inp" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.busy} onChange={e=>vm.edit({title:e.target.value})}/></label>
-          <label className="field">원고 본문<textarea className="inp writing-body" value={vm.draft.body} maxLength={40000} readOnly={active.inherited||vm.busy} onChange={e=>vm.edit({body:e.target.value})}/></label>
+          <label className="field">회차 제목<input className="inp" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({title:e.target.value})}/></label>
+          <label className="field">원고 본문<textarea className="inp writing-body" value={vm.draft.body} maxLength={40000} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({body:e.target.value})}/></label>
           <p className="small muted">{vm.draft.body.length.toLocaleString('ko-KR')} / 40,000자</p>
           <section aria-label="저장 버전과 발행" className="writing-history">
             <h2>저장 버전</h2>

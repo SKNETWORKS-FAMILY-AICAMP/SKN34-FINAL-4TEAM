@@ -9,6 +9,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [active,setActive]=useState<WritingEpisode|null>(null)
   const [draft,setDraft]=useState<Draft>({title:'',body:'',revision:0})
   const [busy,setBusy]=useState(false)
+  const [editingLocked,setEditingLocked]=useState(false)
   const [ready,setReady]=useState(false)
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
@@ -30,12 +31,13 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     window.addEventListener('beforeunload',leave)
     return ()=>window.removeEventListener('beforeunload',leave)
   },[dirty,busy])
-  const run=async(action:(signal:AbortSignal)=>Promise<void>)=>{
+  const run=async(action:(signal:AbortSignal)=>Promise<void>,lockEditing=true)=>{
     if(pending.current)return false
     const controller=new AbortController();pending.current=controller;setBusy(true);setError('');setNotice('')
+    setEditingLocked(lockEditing)
     try {await action(controller.signal);return !controller.signal.aborted}
     catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'저장에 실패했어요. 입력은 화면에 남아 있어요.');return false}
-    finally {if(pending.current===controller){pending.current=null;if(!controller.signal.aborted)setBusy(false)}}
+    finally {if(pending.current===controller){pending.current=null;if(!controller.signal.aborted){setBusy(false);setEditingLocked(false)}}}
   }
   const merge=(e:WritingEpisode)=>{setEpisodes(rows=>[...rows.filter(x=>x.number!==e.number),e].sort((a,b)=>a.number-b.number));setActive(e)}
   const save=(version=true)=>run(async signal=>{
@@ -47,7 +49,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     // A response acknowledges the sent draft, never typing that happened while it was in flight.
     put(current.current.title===sent.title && current.current.body===sent.body ? result.draft : {...current.current,revision:result.draft.revision})
     setNotice(version?'새 원고 버전을 저장했어요. 발행본은 그대로예요.':'작업 초안을 저장했어요.')
-  })
+  },version)
   const autoSave=useEffectEvent(()=>{void save(false)})
   useEffect(()=>{
     if(!dirty||busy||error||active?.inherited)return
@@ -55,7 +57,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     return ()=>window.clearTimeout(timer)
   },[draft,active,busy,error,dirty])
   const mayLeave=()=>!pending.current&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
-  return {episodes,active,draft,busy,ready,error,notice,dirty,
+  return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
     select:(e:WritingEpisode)=>{if(mayLeave())install(e)},

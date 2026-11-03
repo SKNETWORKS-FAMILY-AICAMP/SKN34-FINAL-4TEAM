@@ -71,8 +71,9 @@ export function EpisodePage({useCase}:{useCase?:EpisodeUseCase}) {
                 {!w.source&&<button className="btn sm" disabled={vm.busy} onClick={()=>void vm.policy(allowFork,allowForkPublication)}>분기 허용 설정 저장</button>}
                 <p>생성 허용과 공개 허용은 별개예요. 공개 허용을 철회해도 이미 공개한 분기는 계속 연재할 수 있어요.</p>
                 {vm.selectedVersion&&<p>공개 대상: 저장 버전 {vm.selectedVersion.revision} · {vm.selectedVersion.title}</p>}
-                <button className="btn pri" disabled={vm.busy||!rights||!(vm.selectedVersion?.body??vm.draft.body).trim()} onClick={()=>setPreview(true)}>회차 공개하기</button>
-                {preview&&<section className="ep-preview" aria-label="공개 미리보기"><h3>{vm.selectedVersion?.title??vm.draft.title}</h3><div>{vm.selectedVersion?.body??vm.draft.body}</div><p>이 원고를 독자에게 공개합니다. 저장·AI 이력에서 다른 저장 버전을 선택할 수 있어요.</p><button className="btn pri" disabled={vm.busy||!rights} onClick={()=>void publish()}>이 원고로 공개 확정</button><button className="btn sm" disabled={vm.busy} onClick={()=>setPreview(false)}>미리보기 닫기</button></section>}
+                {!vm.selectedVersion&&<p>저장·AI 이력에서 공개할 저장 버전을 먼저 선택해 주세요.</p>}
+                <button className="btn pri" disabled={vm.busy||!rights||!vm.selectedVersion?.body.trim()} onClick={()=>setPreview(true)}>회차 공개하기</button>
+                {preview&&vm.selectedVersion&&<section className="ep-preview" aria-label="공개 미리보기"><h3>{vm.selectedVersion.title}</h3><div>{vm.selectedVersion.body}</div><p>이 원고를 독자에게 공개합니다. 저장·AI 이력에서 다른 저장 버전을 선택할 수 있어요.</p><button className="btn pri" disabled={vm.busy||!rights} onClick={()=>void publish()}>이 원고로 공개 확정</button><button className="btn sm" disabled={vm.busy} onClick={()=>setPreview(false)}>미리보기 닫기</button></section>}
               </div>
             </section>
             <aside className="ep-ai" aria-label="AI 집필 도구"><span className="ep-ai-icon">✦</span><h2>함께 쓰는 다음 문장</h2><p>원하는 전개나 분위기를 알려 주세요.<br/>OpenAI가 이어쓰기 제안을 만들어요.</p>

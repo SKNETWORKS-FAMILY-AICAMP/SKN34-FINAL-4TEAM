@@ -3,6 +3,14 @@ import { HttpEpisodeRepository } from './HttpEpisodeRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 
 describe('episode API boundary', () => {
+  it.each([404,502,504])('handles non-JSON gateway errors (%s)', async status => {
+    const repo = new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response('<html>error</html>', {status})))
+    await expect(repo.list()).rejects.toThrow('요청을 처리하지 못했어요.')
+  })
+  it('rejects an empty successful response with a readable error', async () => {
+    const repo = new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response('')))
+    await expect(repo.list()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
   it('does not bind the native fetch function to the repository instance', async () => {
     const fetcher = vi.fn(function(this: unknown) {
       if (this !== undefined) throw new Error('Illegal invocation')

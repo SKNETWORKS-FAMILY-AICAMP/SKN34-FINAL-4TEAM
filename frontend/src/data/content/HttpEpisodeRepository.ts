@@ -18,7 +18,7 @@ export class HttpEpisodeRepository implements EpisodeRepository {
   private async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
     const fetcher = this.fetcher
     const response = await fetcher('/api/v1' + path, {method, headers: {'Content-Type':'application/json'}, body:body === undefined ? undefined : JSON.stringify(body), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(80000)]) : AbortSignal.timeout(80000)})
-    const value: unknown = await response.json()
+    const value: unknown = await response.json().catch(() => undefined)
     if (!response.ok) {
       const error = z.object({detail:z.string()}).safeParse(value)
       throw new Error(error.success ? error.data.detail : '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.')
