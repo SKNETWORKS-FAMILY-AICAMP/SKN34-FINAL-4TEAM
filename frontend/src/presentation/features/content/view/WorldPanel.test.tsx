@@ -70,6 +70,17 @@ it('autosaves a private draft then explicitly commits a setting version',async()
  await waitFor(()=>expect(screen.getAllByText('비마법 규칙').length).toBeGreaterThan(0))
 })
 
+it('exposes persistent file controls only after a real setting is selected',async()=>{
+ const value={id:'s',versionId:'v',name:'지도',content:'설정',category:'장소',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
+ const state={id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,drafts:[],settings:[value],history:[value],changes:[],sourceToken:'t'}
+ const fetcher=vi.fn().mockResolvedValue(Response.json(state))
+ render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} onDirty={()=>{}} />)
+ await screen.findByText('설정집')
+ expect(screen.queryByLabelText('설정 첨부 파일')).toBeNull()
+ fireEvent.click(screen.getByRole('button',{name:/지도.*장소/}))
+ expect(await screen.findByLabelText('설정 첨부 파일')).toHaveProperty('type','file')
+})
+
 it('shows API failure without claiming a saved draft',async()=>{
  const state={id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,settings:[],history:[],changes:[],sourceToken:'t'}
  const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(state))).mockResolvedValue(new Response(JSON.stringify({detail:'설정집 충돌'}),{status:409}))

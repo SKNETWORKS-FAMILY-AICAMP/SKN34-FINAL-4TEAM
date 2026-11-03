@@ -23,6 +23,16 @@ class AttachmentUploadHelperTest {
         assertEquals("FILE", AttachmentUploadHelper.validate(request("doc.pdf", "application/pdf", "%PDF-1.7\n%%EOF\n".toByteArray())).kind)
     }
 
+    @Test fun `normal browser MIME aliases and missing types still require validated bytes`() {
+        for ((name, mime, expected) in listOf(
+            Triple("note.md", "text/x-markdown", "text/markdown"),
+            Triple("table.csv", "application/vnd.ms-excel", "text/csv"),
+            Triple("note.txt", "", "text/plain"),
+            Triple("note.txt", "text/plain; charset=utf-8", "text/plain"),
+        )) assertEquals(expected, AttachmentUploadHelper.validate(request(name, mime, "본문".toByteArray())).mediaType)
+        assertThrows(AttachmentFailure::class.java) { AttachmentUploadHelper.validate(request("table.csv", "application/vnd.ms-excel", byteArrayOf(0))) }
+    }
+
     @Test fun `unsafe names unsupported active types oversized and invalid image data are rejected`() {
         for (name in listOf("../a.png", "folder/a.png", "folder\\a.png", ".a.png", "a\r\nb.png", "a‮b.png", "a.svg", "a.html", "a.exe")) {
             assertEquals(422, assertThrows(AttachmentFailure::class.java) { AttachmentUploadHelper.validate(request(name, "image/png", png())) }.status, name)

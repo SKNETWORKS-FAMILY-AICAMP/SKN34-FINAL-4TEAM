@@ -24,7 +24,7 @@ import software.amazon.awssdk.services.s3.S3Client
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = ["app.content.enabled", "app.setting-attachments.enabled"], havingValue = "true")
 @EnableConfigurationProperties(SettingAttachmentProperties::class)
-@EnableJpaRepositories(basePackages = ["ai.storyfork.core.settingattachment.repository"],
+@EnableJpaRepositories(basePackages = ["ai.storyfork.core.settingattachment.repository", "ai.storyfork.core.contentimage.repository"],
     entityManagerFactoryRef = "attachmentEntityManagerFactory", transactionManagerRef = "attachmentTransactionManager")
 class SettingAttachmentConfig {
     @Bean(destroyMethod = "close")
@@ -69,10 +69,12 @@ class SettingAttachmentConfig {
     ): LocalContainerEntityManagerFactoryBean {
         Flyway.configure().dataSource(source).locations("classpath:db/migration/settingattachment")
             .table("setting_attachment_schema_history").baselineOnMigrate(true).baselineVersion("0").load().migrate()
+        Flyway.configure().dataSource(source).locations("classpath:db/migration/contentimage")
+            .table("content_image_schema_history").baselineOnMigrate(true).baselineVersion("0").load().migrate()
         return LocalContainerEntityManagerFactoryBean().apply {
             dataSource = source
             persistenceUnitName = "setting-attachments"
-            setPackagesToScan(SettingAttachment::class.java.packageName)
+            setPackagesToScan(SettingAttachment::class.java.packageName, "ai.storyfork.core.contentimage.entity")
             jpaVendorAdapter = HibernateJpaVendorAdapter()
             setJpaPropertyMap(mapOf("hibernate.hbm2ddl.auto" to "validate", "hibernate.jdbc.time_zone" to "UTC"))
         }

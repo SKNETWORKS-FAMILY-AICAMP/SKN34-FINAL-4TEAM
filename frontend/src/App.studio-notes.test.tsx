@@ -219,11 +219,11 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
   it('개요에서 표지를 바꾸고 지운다', async () => {
     renderAt('/studio/starlight?view=overview')
     fireEvent.change(await screen.findByLabelText('표지 바꾸기'), { target: { files: [new File(['x'], 'c.png', { type: 'image/png' })] } })
-    await toastIs('표지 이미지를 바꿨어요')
+    await toastIs('데모 표지 미리보기만 바꿨어요. 서버에는 저장되지 않아요')
     await waitFor(() => expect(star().coverImg).toBe('data:image/jpeg;base64,COVER'))
     expect(screen.queryByText('표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '표지 이미지 지우기' }))
-    await toastIs('표지 이미지를 지웠어요')
+    await toastIs('데모 표지 미리보기를 지웠어요. 서버 파일 삭제는 아니에요')
     await screen.findByText('표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.')
     expect(star().coverImg).toBeNull()
   })

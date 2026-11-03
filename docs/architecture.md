@@ -82,7 +82,15 @@ MinIO는 [선택 overlay](../infrastructure/compose.attachments.yaml)의 소스 
 교체/삭제의 일반적인 DB/저장소 실패는 제한된 메모리 백업으로 복원하지만 분산 원자성·프로세스 종료 복구를 보장하지 않습니다.
 복원 실패는 명시적인 503이고 미참조 object는 수동 대조 대상입니다. worker/outbox는 없습니다.
 허용 형식·10 MiB 기술 제한·안전한 attachment 응답·API·한계는 [Core 계약](../backend/core-api/README.md#설정-이미지일반-파일-87)에 있습니다.
-화면·기존 client 호출부를 변경하지 않아 브라우저 E2E는 제외하고 실제 MinIO HTTP lifecycle 검증을 별도로 수행합니다.
+#92에서 실제 `/content` 설정 첨부 UI와 연결합니다. 이 변경은 브라우저 흐름에 영향을 주므로 실제 MinIO HTTP lifecycle 외에 Aside 정상·실패 E2E가 필요합니다.
+
+### 작품 표지·본문 이미지 (#92)
+
+`contentimage/controller → ContentImageService → JPA repository / 기존 S3 client`가 표지·회차 이미지 정본을 관리합니다. 별도 production 의존성·실행 계층을 추가하지 않고 attachment의 bounded Hikari pool·EntityManager를 재사용합니다. `content_image`(회차 0 = 단일 표지, 양수 = 불변 회차 이미지)와 별도 `content_image_schema_history`만 추가하며 기존 Auth·Content·설정 첨부 migration은 보존합니다.
+
+원고의 `[[image:<UUID>]]` 참조가 삽입 위치와 불변 bytes를 연결합니다. Core는 동일 작품·회차의 참조만 저장하고 공개 download는 기존 공개 회차 본문에 실제 포함된 marker로 제한합니다. inherited 원고는 기존 고정 본문의 참조만 허용하며 새로운 Fork 공유 정책은 추가하지 않습니다. 표지 변경/삭제의 미참조 object는 모호한 DB commit 때 기존 bytes 손실을 피하도록 비공개 버킷에 남을 수 있고 자동 정리 worker는 없습니다. 상세 [표지·원고 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 따릅니다.
+
+Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaRepository`가 실제 UUID 대상으로 인증 multipart/bytes를 전송합니다. View에서 Repository를 호출하지 않으며 이미지 Blob URL은 교체·이탈 때 해제합니다. `/content`의 생성 표지·기존 표지·설정 첨부 및 `/studio/{UUID}`의 커서 이미지·저장 버전 미리보기·텍스트 전용 TXT에 연결하고 기존 이름 기반 데모에는 서버 미저장 안내를 둡니다. 실패한 표지/첨부 요청은 기존 데이터와 생성된 작품을 보존하며 성공 fallback을 두지 않습니다.
 
 ## AI Service
 

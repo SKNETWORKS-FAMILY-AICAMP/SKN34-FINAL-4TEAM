@@ -127,7 +127,7 @@ Content의 기존 `content_test`/빈 비밀번호는 격리 runner PostgreSQL tr
 기존 `setting_document`의 논리 ID를 `{settingId}`로 사용합니다. 작품과 로컬 세계관의 소유자가 JWT Principal과 일치해야 합니다.
 현재 Content가 로컬 세계관 ID를 작품 ID로 만드는 규칙을 조회에 재사용합니다. **following Fork는 원본 첨부를 볼 수 없으며**,
 독립 후에도 첨부를 자동 복사하지 않습니다. 설정의 public 표시·작품 발행·이미지 URL 지식은 첨부 접근 권한을 주지 않습니다.
-공개/회차별 배포, 과거 파일 버전 복원, 프로필·표지·원고·AI 연계는 구현하지 않았습니다.
+설정 첨부의 공개/회차별 배포·과거 파일 복원·프로필·AI 연계는 구현하지 않았습니다. 표지·원고 이미지는 아래 #92 계약으로 별도 관리합니다.
 
 기준 경로: `/api/v1/works/{workId}/settings/{settingId}/attachments`
 
@@ -154,7 +154,7 @@ AttachmentResponse는 `id`, `filename`, `mediaType`, `kind`(`IMAGE`/`FILE`), `by
 - 일반 파일: UTF-8 **TXT/MD/CSV**, header/EOF를 확인한 **PDF**만 허용합니다. 텍스트의 잘못된 UTF-8·NUL/제어문자는 거절합니다.
   PDF 파싱·악성코드 검사·스크립트 제거·OCR는 하지 않으므로 PDF 내부 안전성을 보장하지 않습니다. 일반 파일은 브라우저 inline으로 보내지 않습니다.
 - 파일명: 120자 이하의 문자·숫자·공백·`_().-`만 허용하고 경로 구분자·`..`·선행 점·양끝 공백·제어/방향 전환 문자를 거절합니다.
-  원래 파일명을 저장소 key로 사용하지 않습니다. MIME은 검증된 형식 또는 `application/octet-stream`을 받습니다.
+  원래 파일명을 저장소 key로 사용하지 않습니다. MIME은 검증된 형식·`application/octet-stream`·미지정을 받으며 브라우저의 MD `text/x-markdown`, CSV `application/vnd.ms-excel` 별칭과 charset 매개변수를 정규화합니다. 확장자·실제 바이트 검증은 생략하지 않습니다.
 - 설정당 이미지 **10개**는 JPA `PESSIMISTIC_WRITE` 설정 행 잠금과 transaction 내 count로 동시 요청에도 지킵니다.
   일반 파일에는 이미지 디코딩·10개 한도를 적용하지 않습니다. `FILE→IMAGE` 교체는 한도를 검사하고 `IMAGE→FILE`은 자리를 반환합니다.
 - 같은 설정의 조회/변경은 저장소 I/O까지 잠금을 유지합니다. 초기 트래픽용 단순성 선택이며 고부하 처리 성능 보장은 아닙니다.
@@ -197,4 +197,28 @@ HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필
 실제 DB flush/deferred commit 실패와 저장소 응답 유실의 보상 동작을 검사하며 fault test 외의 HTTP lifecycle은 실제 MinIO를 사용합니다.
 현재 CI는 임시 PostgreSQL·Mailpit을 제공하지만 MinIO와 `TEST_ATTACHMENT_DATABASE_URL`은 설정하지 않아 첨부 설정·실제 HTTP 검사는 조건부 skip입니다.
 대역 HTTP·H2/Flyway 검사는 CI 통합 계층에 포함되며 실제 첨부 lifecycle 검증은 별도 승인된 격리 환경의 증거가 필요합니다.
-`Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다. 화면/브라우저 호출부 변경이 없어 Aside 브라우저 E2E는 제외합니다.
+`Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다.
+#92는 화면·브라우저 호출부를 변경하므로 Aside에서 실제 정상·실패 입력/클릭/API/화면 결과 확인이 필요합니다. HTTP·저장소 검증만으로 브라우저 E2E를 통과 처리하지 않습니다.
+
+## 작품 표지·원고 이미지 (#92)
+
+기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `contentimage/controller → ContentImageService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. 기존 Auth/Content/설정 첨부 migration의 바이트·history는 변경하지 않습니다.
+
+| 메서드·경로 (`/api/v1` 기준) | 요청·응답·권한 |
+|---|---|
+| `GET /works/{workId}/cover` | 소유자 표지 metadata, 200 AttachmentResponse / 표지 없음 404 |
+| `PUT /works/{workId}/cover` | multipart `file`, 생성·교체 200 AttachmentResponse |
+| `DELETE /works/{workId}/cover` | 현재 표지 참조 삭제 204 |
+| `GET /works/{workId}/cover/content` | 소유자 이미지 bytes |
+| `GET /public/works/{workId}/cover/content` | 기존 공개 작품만 익명 bytes |
+| `POST /works/{workId}/episodes/{number}/images` | 수정 가능한 소유 회차에 multipart `file`, 201 AttachmentResponse |
+| `GET /works/{workId}/episodes/{number}/images/{imageId}/content` | 소유 회차의 이미지 bytes; inherited 회차는 고정된 원고에 포함된 참조만 허용 |
+| `GET /public/works/{workId}/episodes/{number}/images/{imageId}/content` | 정확한 공개 회차 원고에 포함된 참조만 익명 bytes |
+
+표지·본문은 PNG/JPEG와 위 10 MiB/픽셀/파일명 검증을 적용합니다. 응답 URL은 Core 상대 경로이고 다운로드는 `private, no-store`, `nosniff`, 검증된 image MIME·inline disposition을 사용합니다. 타인/다른 회차/미존재는 404, 미인증 401, CSRF 403, 파일 검증 422/413, 회차 저장 이미지 10개 초과는 409, 저장소/DB 실패는 안전한 503입니다. 작품 행 잠금으로 표지 변경·회차 이미지 한도를 직렬화합니다.
+
+원고는 `[[image:<UUID>]]`를 본문 문자열의 삽입 위치에 저장합니다. 서버는 동일 작품·회차에 업로드된 참조만 저장하며 `data:image` 본문은 거절합니다. 초안·불변 버전·복원·발행은 기존 계약을 사용합니다. 이미지 bytes는 불변이며 교체/삭제 API를 두지 않습니다. 현재 원고에서 marker를 지워도 과거 버전의 bytes는 보존됩니다. **회차당 10개는 현재 참조 수가 아니라 업로드해 보존하는 원본 총수**이며 marker 삭제로 자리가 반환되지 않습니다. 기존 Fork의 기준 원고 접근만 재사용하며 새로운 설정 첨부 공유·발행 정책은 추가하지 않습니다.
+
+표지 교체는 새 비공개 UUID object 업로드 후 DB 참조를 바꾸고 삭제는 DB 참조만 지웁니다. 실패·모호한 commit으로 기존 파일을 잃지 않도록 이전 표지와 실패 업로드의 미참조 object는 보존할 수 있습니다. 따라서 논리 삭제는 버킷 원본의 즉시 영구 삭제가 아닙니다. 자동 lifecycle/정리 worker는 없으며 운영자가 DB key와 비공개 버킷을 대조·정리해야 합니다. DB/S3 분산 원자성·저장 비용/운영 삭제 정책은 보장하지 않습니다.
+
+프론트 `/content` 작품 생성의 선택 표지, 기존 표지 관리, 실제 설정 첨부 CRUD와 `/studio/{UUID}` 커서 위치 본문 이미지가 이 API를 사용합니다. 생성 후 표지 실패는 생성된 작품을 유지해 중복 생성 없이 재시도합니다. 취소/응답 유실은 서버 미처리를 보장하지 않으므로 새로고침으로 확인합니다. 브라우저는 인증 bytes → Blob URL로 표시하고 교체·이탈 시 해제하며 TXT 내보내기는 이미지·marker 없는 텍스트 전용입니다. EPUB은 추가하지 않습니다.
