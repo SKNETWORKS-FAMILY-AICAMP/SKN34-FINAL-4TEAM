@@ -138,7 +138,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - run: python3 -m unittest discover infrastructure/tests
       - run: python3 -I infrastructure/scripts/check-compose-config.py
+      - run: python3 -I infrastructure/scripts/check-content-config.py
       - run: python3 -I infrastructure/scripts/test-publish-preflight.py
       - run: python3 -I infrastructure/scripts/test-deploy-develop.py
       - run: bash -n infrastructure/scripts/verify-compose.sh

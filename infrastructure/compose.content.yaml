@@ -1,0 +1,31 @@
+# Optional content storage overlay. Use with compose.yaml or compose.prod.yaml.
+# Authentication must supply a verified servlet Principal; no demo identity in containers.
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: storyfork
+      POSTGRES_USER: storyfork
+      POSTGRES_PASSWORD: ${CONTENT_DATABASE_PASSWORD:?Set a local database password}
+    volumes:
+      - content-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U storyfork -d storyfork]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  core-api:
+    environment:
+      CONTENT_ENABLED: "true"
+      CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      CONTENT_DATABASE_USER: storyfork
+      CONTENT_DATABASE_PASSWORD: ${CONTENT_DATABASE_PASSWORD:?Set a local database password}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set an internal service token}
+    depends_on:
+      postgres:
+        condition: service_healthy
+  ai-service:
+    environment:
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set an internal service token}
+volumes:
+  content-postgres:

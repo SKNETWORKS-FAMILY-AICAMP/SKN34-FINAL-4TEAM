@@ -8,7 +8,7 @@ services:
     init: true
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
     expose:
       - "8000"
 
@@ -21,6 +21,7 @@ services:
       AI_SERVICE_BASE_URL: http://ai-service:8000
       AI_SERVICE_CONNECT_TIMEOUT: ${AI_SERVICE_CONNECT_TIMEOUT:-1s}
       AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-12s}
+      AI_GENERATION_READ_TIMEOUT: ${AI_GENERATION_READ_TIMEOUT:-75s}
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${DEV_WEB_PORT:-5173}}
     ports:
       - "127.0.0.1:${CORE_API_PORT:-8080}:8080"
@@ -35,6 +36,7 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       VITE_CORE_API_BASE_URL: /
       VITE_DEV_PROXY_TARGET: http://core-api:8080
+      VITE_DEV_SERVER_HOST: 0.0.0.0
     ports:
       - "127.0.0.1:${DEV_WEB_PORT:-5173}:5173"
     volumes:

@@ -1,6 +1,6 @@
 # STORYFORK Core Service (현재 모듈: `core-api`)
 
-Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로만 제공합니다. 현재 경로와 응답의 `storyfork-core-api` 식별자는 유지합니다. [새 MVP 설계](../../docs/design/design.md)는 PostgreSQL 원문·버전·체크포인트·Fork 및 그래프 DB 관계 저장·조회를 계획하며, `pg_git`은 MVP 미적용입니다. 업무 DB·업무 기능은 아직 없습니다. 작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core Service에 있습니다.
+Spring Boot·Kotlin 공개 API입니다. 기존 Health 경로·식별자를 유지하며 `CONTENT_ENABLED=true`일 때 PostgreSQL 기반 콘텐츠 API를 추가합니다. 작품·원고·설정집·버전·Fork·발행 구현과 인증 Principal 계약은 [콘텐츠 통합 안내](../../docs/content-integration.md)를 참고하세요. 그래프 DB·크레딧·실제 로그인은 구현하지 않았습니다.
 
 ## 공개 계약
 
@@ -10,7 +10,7 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로�
 | `GET /api/v1/health/ai-service` | `{"status":"up","service":"storyfork-ai-service"}` |
 
 자체 Health는 AI 장애와 무관합니다. AI Health는 내부 `/internal/v1/health`의 상태와 서비스명을
-정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다. 업무 API는 없습니다.
+정확히 검증합니다. Health는 OpenAI 인증이나 모델 호출을 검증하지 않습니다. 콘텐츠 API는 별도로 활성화합니다.
 
 | 실패 | HTTP | 공개 code |
 |---|---:|---|
@@ -23,6 +23,8 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로�
 내부 URL·응답 원문·예외 메시지를 공개하지 않습니다. 외부 실패를 성공으로 숨기지 않습니다.
 
 ## 구조
+
+콘텐츠 정본은 최신 ERD에 따른 관계형 테이블에 저장합니다. 기존 JSONB는 읽기 전용 이관 백업으로 남깁니다. [ERD 대응과 마이그레이션](../../docs/content-erd-migration.md)에 테이블별 역할·기존 데이터 보존·남은 범위를 기록했습니다.
 
 Gradle group `ai.storyfork`, 애플리케이션 `storyfork-core-api`, Kotlin namespace `ai.storyfork.core`입니다.
 main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 package와 일치합니다.
@@ -51,11 +53,15 @@ python3 ../../infrastructure/scripts/run-native.py core-api
 |---|---|
 | `AI_SERVICE_BASE_URL` | `http://127.0.0.1:8000` |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` |
-| `AI_SERVICE_READ_TIMEOUT` | `12s` |
+| `AI_SERVICE_READ_TIMEOUT` | `12s` (Health) |
+| `AI_GENERATION_READ_TIMEOUT` | `75s` (생성) |
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
 
+`ContentConfig`는 생성 전용 HTTP 클라이언트를 만들며 Health 클라이언트의 제한시간을 변경하지 않습니다.
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 위 실행기는 루트 `.env`의 Core 허용 설정만 로드합니다. Core에 OpenAI 키를 주입하지 않습니다.
 `./gradlew bootRun` 직접 실행은 `.env`를 로드하지 않습니다.
 Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 web 포트에 맞춥니다.
 실행 설정은 [인프라 안내](../../infrastructure/README.md)를 참고하세요.
+
+회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.

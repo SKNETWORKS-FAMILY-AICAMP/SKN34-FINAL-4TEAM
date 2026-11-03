@@ -1,6 +1,6 @@
 # STORYFORK Docker 실행 기반
 
-현재는 시작 화면과 Core·AI Health만 제공하는 세 서비스 기반입니다. 업무 기능은 없습니다.
+기본 구성은 세 서비스이며, 콘텐츠 PostgreSQL 저장은 `compose.content.yaml` overlay로 선택합니다. [콘텐츠 실행·인증 안내](../docs/content-integration.md)를 참고하세요. 아래 기본 구성 표에는 선택적 PostgreSQL 서비스가 포함되지 않습니다.
 
 | 항목 | `compose.yaml` | `compose.prod.yaml` |
 |---|---|---|
@@ -40,18 +40,21 @@ docker compose --env-file .env.example --file infrastructure/compose.prod.yaml d
 
 | 변수 | 기본값 | 소비 경계 |
 |---|---|---|
-| `OPENAI_API_KEY` | 빈 값, 선택 | AI 런타임만, 현재 읽거나 사용하지 않음 |
-| `OPENAI_MODEL` | `gpt-5.6-luna` | AI 런타임만, 향후 구현용 예약 |
+| `OPENAI_API_KEY` | 빈 값 | AI 런타임만, 생성 요청에 필요 |
+| `OPENAI_MODEL` | 빈 값 | AI 런타임만, 생성 시 명시 필요 |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core → AI 연결 |
-| `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI 읽기 |
+| `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health 읽기 |
+| `AI_GENERATION_READ_TIMEOUT` | `75s` | Core → AI 생성 읽기 |
 | `DEV_WEB_PORT` / `CORE_API_PORT` | `5173` / `8080` | dev loopback 포트 |
 | `WEB_PORT` | `8088` | prod loopback 포트 |
 | `APP_CORS_ALLOWED_ORIGIN` | 빈 값이면 해당 web 포트로 계산 | Core의 단일 허용 origin |
 
 Health는 OpenAI 인증·모델 접근을 검사하지 않으며 클라이언트를 만들지 않습니다.
-키를 설정해도 생성 API가 제공되지는 않습니다. 키는 Frontend·Core·build ARG에 전달하지 않습니다.
+콘텐츠 기능과 내부 인증을 구성하고 키·모델을 명시하면 생성 API를 사용할 수 있습니다. 모델 또는 키 누락 시 503으로 실패합니다. 키는 Frontend·Core·build ARG에 전달하지 않습니다.
 
 루트 `.env` 한 곳에서 설정을 관리합니다. Compose에는 `--env-file .env`를 명시하고 전체 파일을 서비스에 주입하지 않습니다.
+네이티브 기본 웹 주소는 `http://localhost:5173`입니다. `VITE_DEV_SERVER_HOST`를 변경하면 `APP_CORS_ALLOWED_ORIGIN`도 실제 웹 origin에 맞추세요. 생성 timeout을 늘릴 때는 브라우저 요청 한도(80초)와 Nginx 프록시 읽기 한도(90초)도 함께 검토하세요.
+
 네이티브는 루트에서 `python3 infrastructure/scripts/run-native.py web|core-api|ai-service`로 실행합니다.
 Python 3·uv가 필요하며 실행기는 서비스별 허용 변수만 전달합니다. 직접 pnpm/Gradle/uvicorn 실행은 루트 파일을 로드하지 않습니다.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.

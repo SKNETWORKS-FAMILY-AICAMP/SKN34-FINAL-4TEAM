@@ -76,7 +76,7 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
   it('공개 설정에서 회차별 포크 허용을 저장한다', async () => {
     renderAt('/studio/starlight?publish=1')
     const sheet = await screen.findByRole('dialog', { name: /^공개 설정 · / })
-    expect(sid()).toContain('U21')
+    await waitFor(() => expect(sid()).toContain('U21'))
     within(sheet).getByText(/P2 · 미확정 정책/)
     fireEvent.click(within(sheet).getByRole('button', { name: '회차별 선택' }))
     fireEvent.click(within(sheet).getByRole('button', { name: '모두 해제' }))

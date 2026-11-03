@@ -7,9 +7,9 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 SETTINGS = {
-    "web": ("VITE_CORE_API_BASE_URL", "VITE_DEV_PROXY_TARGET", "CHOKIDAR_USEPOLLING"),
-    "core-api": ("AI_SERVICE_BASE_URL", "AI_SERVICE_CONNECT_TIMEOUT", "AI_SERVICE_READ_TIMEOUT", "APP_CORS_ALLOWED_ORIGIN"),
-    "ai-service": ("OPENAI_API_KEY", "OPENAI_MODEL"),
+    "web": ("VITE_CORE_API_BASE_URL", "VITE_DEV_PROXY_TARGET", "CHOKIDAR_USEPOLLING", "VITE_DEV_SERVER_HOST"),
+    "core-api": ("AI_SERVICE_BASE_URL", "AI_SERVICE_CONNECT_TIMEOUT", "AI_SERVICE_READ_TIMEOUT", "AI_GENERATION_READ_TIMEOUT", "APP_CORS_ALLOWED_ORIGIN", "CONTENT_ENABLED", "CONTENT_DEV_OWNER", "CONTENT_DATABASE_URL", "CONTENT_DATABASE_USER", "CONTENT_DATABASE_PASSWORD", "INTERNAL_TOKEN"),
+    "ai-service": ("OPENAI_API_KEY", "OPENAI_MODEL", "INTERNAL_TOKEN"),
 }
 COMMANDS = {
     "web": ("frontend", ["pnpm", "dev"]),
@@ -46,6 +46,9 @@ def main():
     env = service_environment(service, json.loads(result.stdout))
     directory, args = COMMANDS[service]
     os.chdir(ROOT / directory)
+    if os.name == "nt" and service in ("web", "core-api"):
+        args = ["cmd", "/d", "/c", "pnpm.cmd", "dev"] if service == "web" else ["cmd", "/d", "/c", "gradlew.bat", "bootRun"]
+        sys.exit(subprocess.call(args, env=env))
     os.execvpe(args[0], args, env)
 
 
