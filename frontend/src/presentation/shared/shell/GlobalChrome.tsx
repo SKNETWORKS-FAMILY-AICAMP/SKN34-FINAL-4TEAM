@@ -55,10 +55,11 @@ function TopButton() {
   const [on, setOn] = useState(false)
   useEffect(() => {
     const f = () => setOn(scrollY > 600)
+    f()
     addEventListener('scroll', f, { passive: true })
     return () => removeEventListener('scroll', f)
   }, [])
-  return <button type="button" id="top" className={on ? 'on' : ''} aria-label="맨 위로" onClick={() => scrollTo({ top: 0, behavior: 'smooth' })}>↑</button>
+  return <button type="button" id="top" className={on ? 'on' : ''} hidden={!on} tabIndex={on ? 0 : -1} aria-label="맨 위로" onClick={() => scrollTo({ top: 0, behavior: typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button>
 }
 
 /** 목업 applyProx(): 마우스 근처 .prox 카드를 살짝 키웁니다. 터치 기기에서는 끕니다. */
@@ -97,17 +98,19 @@ export function GlobalChrome() {
   useApplyTheme()
   useProximity()
   const { showSid, screen } = useAppSelector((s) => s.session)
+  const { pathname } = useLocation()
+  const showTools = pathname !== '/login' && pathname !== '/me' && !pathname.startsWith('/me/') && !pathname.startsWith('/auth/')
   const dispatch = useAppDispatch()
   return (
     <>
       <RouteBar />
       <Toast />
       <TopButton />
-      <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>
+      {showTools && <><div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>
       <div className="screen-controls">
         <button type="button" className="btn sm" onClick={() => dispatch(sessionActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>
         <ThemeButton className="btn sm" />
-      </div>
+      </div></>}
     </>
   )
 }

@@ -1,6 +1,6 @@
 # STORYFORK Core Service (현재 모듈: `core-api`)
 
-Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로만 제공합니다. 현재 경로와 응답의 `storyfork-core-api` 식별자는 유지합니다. [새 MVP 설계](../../docs/design/design.md)는 PostgreSQL 원문·버전·체크포인트·Fork 및 그래프 DB 관계 저장·조회를 계획하며, `pg_git`은 MVP 미적용입니다. 업무 DB·업무 기능은 아직 없습니다. 작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core Service에 있습니다.
+Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 시연용 이메일 가입·인증 및 로그인·세션 API를 제공합니다. 계정 복구·프로필 및 실제 약관·동의는 아직 구현되지 않았으므로 운영 가입용이 아닙니다. 작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core Service에 있습니다.
 
 ## 공개 계약
 
@@ -10,7 +10,11 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. 현재 두 Health 경로�
 | `GET /api/v1/health/ai-service` | `{"status":"up","service":"storyfork-ai-service"}` |
 
 자체 Health는 AI 장애와 무관합니다. AI Health는 내부 `/internal/v1/health`의 상태와 서비스명을
-정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다. 업무 API는 없습니다.
+정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다.
+
+`GET /api/v1/auth/csrf`에서 토큰과 쿠키를 받은 뒤 `X-CSRF-TOKEN`을 보내 모든 변경 요청을 호출합니다. 인증 링크는 URL fragment로 토큰을 전달합니다. 가입 후보는 PostgreSQL에 해시만 저장하며 이메일 인증 전 회원을 생성하지 않습니다. 링크는 24시간 유효하고 한 번만 사용할 수 있습니다. 재발송은 일반화된 202를 반환하지만 메일 전송 장애 시 기존 후보 여부에 따라 응답이 달라질 수 있어 열거 방지의 한계가 있습니다. 메일과 데이터베이스는 로컬 검증용이며 운영 SMTP·TLS 정책은 미정입니다.
+
+로그인·갱신은 30분 유효한 access JWT와 회원 정보를 반환합니다. refresh는 host-only `refresh_token` 쿠키(HttpOnly, SameSite=Strict, 경로 `/api/v1/auth`)로 전달하며 세션은 로그인 시점부터 14일 유효합니다. 갱신은 회전하고 폐기된 토큰을 재사용하면 해당 회원의 모든 refresh 세션을 폐기합니다. 세션 목록·개별 폐기·전체 로그아웃은 Bearer 인증이 필요합니다. 발급된 access JWT는 세션 폐기 후에도 만료까지 유효합니다. 토큰 재사용 기록의 정리 및 로그인 속도 제한은 아직 없습니다.
 
 | 실패 | HTTP | 공개 code |
 |---|---:|---|
@@ -53,6 +57,11 @@ python3 ../../infrastructure/scripts/run-native.py core-api
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` |
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
+| `CORE_DATABASE_URL`, `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD` | 필수 |
+| `CORE_SMTP_HOST`, `CORE_SMTP_PORT` | 필수 |
+| `AUTH_PUBLIC_ORIGIN`, `AUTH_MAIL_FROM` | 필수 |
+| `AUTH_JWT_SECRET` | 필수, 32바이트 이상의 무작위 키를 Base64 인코딩 |
+| `AUTH_COOKIE_SECURE` | `true`; 로컬 HTTP 검증에서만 `false` |
 
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 위 실행기는 루트 `.env`의 Core 허용 설정만 로드합니다. Core에 OpenAI 키를 주입하지 않습니다.

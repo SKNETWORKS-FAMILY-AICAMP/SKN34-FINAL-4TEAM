@@ -1,4 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
+import { appContainer } from './app/appContainer'
+import { useAppDispatch } from './app/store'
+import { sessionActions } from './presentation/shared/session/sessionSlice'
+import { RestoreContext } from './presentation/shared/session/restoreContext'
+import { LockUnavailable } from './data/api/csrf'
 
 import { AdminPage } from './presentation/features/admin/view/AdminPage'
 import { AccountPage } from './presentation/features/account/view/AccountPage'
@@ -13,6 +19,9 @@ import { LibraryPage } from './presentation/features/library/view/LibraryPage'
 import { NewWorkPage } from './presentation/features/library/view/NewWorkPage'
 import { StudioPage } from './presentation/features/studio/view/StudioPage'
 import { LoginPage } from './presentation/features/auth/view/LoginPage'
+import { ResendVerificationPage, Signup } from './presentation/features/auth/view/Signup'
+import { RecoveryPage } from './presentation/features/auth/view/RecoveryPage'
+import { VerifyEmailChangePage, VerifyEmailPage } from './presentation/features/auth/view/VerifyEmailPage'
 import { HomePage } from './presentation/features/home/view/HomePage'
 import { IfsPage, RankPage, SearchPage, TagPage } from './presentation/features/reading/view/ExplorePages'
 import { ReaderPage } from './presentation/features/reading/view/ReaderPage'
@@ -55,12 +64,29 @@ function StartPage() {
 
 function App() {
   const { pathname } = useLocation()
+  const dispatch = useAppDispatch()
+  const [restoring, setRestoring] = useState(true)
+  const [restoreError, setRestoreError] = useState(false)
+  useEffect(() => {
+    let active = true
+    appContainer.resolve('authUseCase').refresh().then((user) => {
+      if (active) dispatch(sessionActions.login(user))
+    }).catch((error: unknown) => { if (active) { if (error instanceof LockUnavailable) setRestoreError(true); else dispatch(sessionActions.logout()) } }).finally(() => { if (active) setRestoring(false) })
+    return () => { active = false }
+  }, [dispatch])
   return (
-    <>
+    <RestoreContext.Provider value={restoring}>
+      {restoreError && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}
       <Routes>
         <Route path="/status" element={<StartPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/me/signup" element={<Signup />} />
+        <Route path="/auth/resend-verification" element={<ResendVerificationPage />} />
+        <Route path="/auth/forgot-password" element={<RecoveryPage />} />
+        <Route path="/auth/reset-password" element={<RecoveryPage reset />} />
+        <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/auth/verify-email-change" element={<VerifyEmailChangePage />} />
         <Route path="/work/:id" element={<WorkPage />} />
         <Route path="/read/:id/:n" element={<RequireRole><ReaderPage /></RequireRole>} />
         <Route path="/read/:id" element={<RequireRole><ReaderPage /></RequireRole>} />
@@ -85,7 +111,7 @@ function App() {
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
       {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
-    </>
+    </RestoreContext.Provider>
   )
 }
 

@@ -38,7 +38,7 @@ jobs:
             web: ['frontend/**', '.github/workflows/ci.yml']
             core: ['backend/core-api/**', '.github/workflows/ci.yml']
             ai: ['backend/ai-service/**', '.github/workflows/ci.yml']
-            infra: ['infrastructure/**', '.env.example', '.github/workflows/ci.yml']
+            infra: ['infrastructure/**', 'frontend/nginx.conf', '.env.example', '.github/workflows/ci.yml']
 
   repository:
     name: Whitespace
@@ -139,6 +139,7 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 -I infrastructure/scripts/check-compose-config.py
+      - run: python3 -I infrastructure/scripts/check-nginx-routing.py
       - run: bash -n infrastructure/scripts/verify-compose.sh
 
   required:

@@ -16,12 +16,16 @@ def config(mode, env_file="/dev/null", **overrides):
     return subprocess.run(
         ["docker", "compose", "--env-file", str(env_file), "--file",
          str(ROOT / "infrastructure" / file), "config", "--format", "json"],
-        env={**ENV, **overrides}, capture_output=True, text=True, check=False,
+        env={**ENV, "CORE_DATABASE_USER": "config-test", "CORE_DATABASE_PASSWORD": "config-test-only",
+             "AUTH_PUBLIC_ORIGIN": "http://127.0.0.1:5173", "AUTH_MAIL_FROM": "dev@example.invalid",
+             "AUTH_JWT_SECRET": "config-only-synthetic-key", "AUTH_COOKIE_SECURE": "false", **overrides},
+        capture_output=True, text=True, check=False,
     )
 
 
 def check_smoke_shell():
     script = (ROOT / "infrastructure/scripts/verify-compose.sh").read_text()
+    assert 'export AUTH_JWT_SECRET=' in script and 'export AUTH_COOKIE_SECURE="false"' in script
     helpers = script[script.index('RESPONSE_DIR="'):script.index("wait_for_ai_health_failure() {")]
     done = script[script.index('echo "Compose verification passed:'):]
     setup = '''set -Eeuo pipefail
@@ -63,13 +67,27 @@ for mode in ("dev", "prod"):
         result = config(mode, env_file=env_file)
         assert result.returncode == 0, "Compose defaults must work without a key"
         services = json.loads(result.stdout)["services"]
-        assert set(services) == {"web", "core-api", "ai-service"}
+        assert set(services) == {"web", "core-api", "ai-service", "postgres", "mailpit"} | ({"nginx"} if mode == "dev" else set())
         web, core, ai = (services[name] for name in ("web", "core-api", "ai-service"))
+        entry = services["nginx"] if mode == "dev" else web
         example_port = "5173" if mode == "dev" else "8088"
-        assert web["ports"][0]["host_ip"] == "127.0.0.1"
-        assert str(web["ports"][0]["published"]) == example_port
+        assert entry["ports"][0]["host_ip"] == "127.0.0.1"
+        assert str(entry["ports"][0]["published"]) == example_port
+        if mode == "dev":
+            assert not web.get("ports")
+            assert entry["image"] == "nginx:stable-alpine"
+            assert any(v["target"] == "/etc/nginx/conf.d/default.conf" and v["read_only"] for v in entry["volumes"])
         assert ai["environment"] == {"OPENAI_API_KEY": "", "OPENAI_MODEL": "gpt-5.6-luna"}
         assert core["environment"] == {
+            "CORE_DATABASE_URL": "jdbc:postgresql://postgres:5432/storyfork",
+            "CORE_DATABASE_USER": "config-test",
+            "CORE_DATABASE_PASSWORD": "config-test-only",
+            "CORE_SMTP_HOST": "mailpit",
+            "CORE_SMTP_PORT": "1025",
+            "AUTH_PUBLIC_ORIGIN": "http://127.0.0.1:5173",
+            "AUTH_MAIL_FROM": "dev@example.invalid",
+            "AUTH_JWT_SECRET": "config-only-synthetic-key",
+            "AUTH_COOKIE_SECURE": "false",
             "AI_SERVICE_BASE_URL": "http://ai-service:8000",
             "AI_SERVICE_CONNECT_TIMEOUT": "1s",
             "AI_SERVICE_READ_TIMEOUT": "12s",
@@ -84,11 +102,12 @@ for mode in ("dev", "prod"):
         model = json.loads(result.stdout)
         assert model["name"] == ("storyfork-dev" if mode == "dev" else "storyfork-prod-validation")
         services = model["services"]
-        assert set(services) == {"web", "core-api", "ai-service"}
+        assert set(services) == {"web", "core-api", "ai-service", "postgres", "mailpit"} | ({"nginx"} if mode == "dev" else set())
         web, core, ai = (services[name] for name in ("web", "core-api", "ai-service"))
+        entry = services["nginx"] if mode == "dev" else web
         expected_port = ports.get("DEV_WEB_PORT", "5173") if mode == "dev" else ports.get("WEB_PORT", "8088")
-        assert web["ports"][0]["host_ip"] == "127.0.0.1"
-        assert str(web["ports"][0]["published"]) == expected_port
+        assert entry["ports"][0]["host_ip"] == "127.0.0.1"
+        assert str(entry["ports"][0]["published"]) == expected_port
         assert core["environment"]["APP_CORS_ALLOWED_ORIGIN"] == f"http://127.0.0.1:{expected_port}"
         assert core["environment"]["AI_SERVICE_BASE_URL"] == "http://ai-service:8000"
         assert core["environment"]["AI_SERVICE_CONNECT_TIMEOUT"] == "3s"
@@ -97,6 +116,7 @@ for mode in ("dev", "prod"):
             environment = service.get("environment", {})
             assert ("OPENAI_API_KEY" in environment) == (name == "ai-service")
             assert ("OPENAI_MODEL" in environment) == (name == "ai-service")
+            assert ("AUTH_JWT_SECRET" in environment) == (name == "core-api")
             assert "config-only-" not in json.dumps(service.get("build", {}))
             assert not service.get("env_file")
         if mode == "dev":
@@ -108,9 +128,9 @@ for mode in ("dev", "prod"):
         else:
             assert not core.get("ports")
             assert web["build"]["dockerfile"] == "Dockerfile"
-            assert all(not service.get("volumes") for service in services.values())
+            assert all(not services[name].get("volumes") for name in ("web", "core-api", "ai-service"))
             assert all(not service.get("command") for service in services.values())
     override = config(mode, APP_CORS_ALLOWED_ORIGIN="https://explicit.example")
     assert override.returncode == 0, "Explicit CORS configuration failed"
     assert json.loads(override.stdout)["services"]["core-api"]["environment"]["APP_CORS_ALLOWED_ORIGIN"] == "https://explicit.example"
-print("PASS: dev/prod three services, empty-key defaults, example, ports/CORS, secret boundaries, internal DNS, static isolation")
+print("PASS: dev/prod services, example, ports/CORS, secret boundaries, internal DNS, static isolation")

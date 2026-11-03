@@ -2,14 +2,13 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router'
 
-import { useAppDispatch, useAppSelector } from '../../../app/store'
-import { toast } from '../events'
-import { sessionActions } from '../session/sessionSlice'
+import { useAppSelector } from '../../../app/store'
+import { useLogout } from '../session/useLogout'
 
 /** 목업 acctMenu(): 아바타 아래에 뜨는 계정 메뉴. 바깥을 누르거나 Esc를 누르면 닫힙니다. */
 export function AccountMenu({ anchor, onClose }: { anchor: HTMLElement; onClose: () => void }) {
   const { role, user } = useAppSelector((s) => s.session)
-  const dispatch = useAppDispatch()
+  const logout = useLogout()
   const navigate = useNavigate()
   const menu = useRef<HTMLDivElement>(null)
   const r = anchor.getBoundingClientRect()
@@ -37,7 +36,7 @@ export function AccountMenu({ anchor, onClose }: { anchor: HTMLElement; onClose:
           </Item>
           <Item to="/lib">내 서재</Item><Item to="/me/liked">관심 소설</Item><Item to="/me/pay">결제 내역</Item><hr />
           <Item to="/me/inquiry">문의하기</Item><Item to="/me/notice">공지사항</Item><Item to="/me/event">이벤트</Item><hr />
-          <button type="button" role="menuitem" onClick={() => { onClose(); dispatch(sessionActions.logout()); navigate('/'); toast('로그아웃했어요') }}>로그아웃</button>
+          <button type="button" role="menuitem" onClick={() => { void logout().then((ok) => { if (ok) onClose() }) }}>로그아웃</button>
         </>
       ) : (
         <>

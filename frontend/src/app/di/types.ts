@@ -2,6 +2,12 @@ import type { AwilixContainer } from 'awilix/browser'
 
 import type { CoreApiHealth } from '../../data/api/coreApiHealth'
 import type { MockDb } from '../../data/mock/InMemoryRepositories'
+import type { ProfileRepository } from '../../domain/repositories/ProfileRepository'
+import type { ProfileUseCase } from '../../domain/usecases/ProfileUseCase'
+import type { AuthRepository } from '../../domain/repositories/AuthRepository'
+import type { AuthUseCase } from '../../domain/usecases/AuthUseCase'
+import type { SignupRepository } from '../../domain/repositories/SignupRepository'
+import type { SignupUseCase } from '../../domain/usecases/SignupUseCase'
 import type { AdminRepository } from '../../domain/repositories/AdminRepository'
 import type { InquiryRepository } from '../../domain/repositories/InquiryRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
@@ -27,6 +33,12 @@ export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth
 export type AppCradle = {
   fetchCoreApiHealth: FetchCoreApiHealth
   fetchAiServiceHealth: FetchCoreApiHealth
+  profileRepository: ProfileRepository
+  profileUseCase: ProfileUseCase
+  authRepository: AuthRepository
+  authUseCase: AuthUseCase
+  signupRepository: SignupRepository
+  signupUseCase: SignupUseCase
   mockDb: MockDb
   workRepository: WorkRepository
   readingRepository: ReadingRepository

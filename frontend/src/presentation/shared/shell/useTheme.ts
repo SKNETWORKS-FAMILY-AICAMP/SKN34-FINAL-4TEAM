@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useAppDispatch, useAppSelector } from '../../../app/store'
 import { toast } from '../events'
@@ -10,7 +10,16 @@ const systemDark = () => typeof matchMedia === 'function' && matchMedia('(prefer
 export function useTheme() {
   const theme = useAppSelector((s) => s.session.theme)
   const dispatch = useAppDispatch()
-  const dark = theme ? theme === 'dark' : systemDark()
+  const [osDark, setOsDark] = useState(systemDark)
+  useEffect(() => {
+    if (theme || typeof matchMedia !== 'function') return
+    const media = matchMedia('(prefers-color-scheme: dark)')
+    const changed = () => setOsDark(media.matches)
+    changed()
+    media.addEventListener('change', changed)
+    return () => media.removeEventListener('change', changed)
+  }, [theme])
+  const dark = theme ? theme === 'dark' : osDark
   return {
     dark,
     toggle: () => {

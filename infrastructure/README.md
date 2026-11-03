@@ -1,20 +1,21 @@
 # STORYFORK Docker 실행 기반
 
-현재는 시작 화면과 Core·AI Health만 제공하는 세 서비스 기반입니다. 업무 기능은 없습니다.
+시작 화면과 Core·AI Health, 시연용 이메일 가입·인증 및 로그인·세션 API를 제공합니다. 실제 약관·동의와 계정 복구·프로필은 미구현이며 운영 가입용이 아닙니다.
 
 | 항목 | `compose.yaml` | `compose.prod.yaml` |
 |---|---|---|
 | 프로젝트 | `storyfork-dev` | `storyfork-prod-validation` |
 | web | Vite hot reload, 소스·node_modules volume | pnpm locked build → nginx 정적 runtime |
-| web 공개 | `127.0.0.1:${DEV_WEB_PORT:-5173}` | `127.0.0.1:${WEB_PORT:-8088}` |
+| 브라우저 진입점 | nginx `127.0.0.1:${DEV_WEB_PORT:-5173}` | nginx `127.0.0.1:${WEB_PORT:-8088}` |
 | Core 공개 | `127.0.0.1:${CORE_API_PORT:-8080}` | 없음 |
 | AI 공개 | 없음 | 없음 |
 
-서비스는 정확히 `web`, `core-api`, `ai-service`입니다. 두 Compose는 상속 없이 각각 실행합니다.
+서비스는 `web`, `core-api`, `ai-service`, PostgreSQL, 로컬 메일 확인용 Mailpit이며 dev에는 nginx가 추가됩니다. Vite는 외부에 직접 공개하지 않습니다. 두 Compose는 상속 없이 각각 실행하며 각각 독립 DB volume을 사용합니다.
 인증·TLS가 없는 loopback **로컬 검증용**이며 인터넷 운영용 배포가 아닙니다.
 
 ```text
-Browser → web (dev Vite / prod nginx) → core-api:8080 → ai-service:8000
+Browser → nginx → dev Vite (HMR 포함) / prod 정적 파일
+                → core-api:8080 → ai-service:8000
 ```
 
 브라우저는 공개 Core API만 사용하고 AI 내부 DNS를 직접 호출하지 않습니다.
@@ -22,17 +23,17 @@ API 404는 SPA HTML로 바꾸지 않으며 알 수 없는 UI deep link만 홈 �
 
 ## 시작과 설정
 
-저장소 루트에서 예시를 그대로 사용할 수 있으며 키는 필요하지 않습니다.
+루트 `.env`에 개발용 `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD`와 32바이트 이상 무작위 값의 Base64 인코딩인 `AUTH_JWT_SECRET`을 직접 설정하고, `AUTH_PUBLIC_ORIGIN`을 실제 web origin으로 지정합니다. JWT 키는 Core에만 전달하며 저장소에 커밋하지 않습니다. 로컬 HTTP 검증에서만 `AUTH_COOKIE_SECURE=false`로 설정하고 HTTPS 운영에서는 `true`를 사용합니다. 기존 `.env`는 덮어쓰지 않습니다. Mailpit 화면은 기본 `http://127.0.0.1:8025`이며 인증 메일을 포함하므로 로컬에서만 사용합니다.
 
 ```bash
-docker compose --env-file .env.example --file infrastructure/compose.yaml up --build
+docker compose --env-file .env --file infrastructure/compose.yaml up --build
 # http://127.0.0.1:5173
-docker compose --env-file .env.example --file infrastructure/compose.yaml down
+docker compose --env-file .env --file infrastructure/compose.yaml down
 
 # 독립적인 배포 이미지 로컬 검증
-docker compose --env-file .env.example --file infrastructure/compose.prod.yaml up --build -d
+docker compose --env-file .env --file infrastructure/compose.prod.yaml up --build -d
 # http://127.0.0.1:8088
-docker compose --env-file .env.example --file infrastructure/compose.prod.yaml down
+docker compose --env-file .env --file infrastructure/compose.prod.yaml down
 ```
 
 개인 설정은 `cp -n .env.example .env` 후 `--env-file .env`로 사용하고 기존 파일을 덮어쓰지 않습니다.
@@ -64,6 +65,7 @@ Frontend의 공개 설정도 루트 `.env.example`에 있으며 Compose는 `/`�
 
 ```bash
 python3 -I infrastructure/scripts/check-compose-config.py
+python3 -I infrastructure/scripts/check-nginx-routing.py
 bash -n infrastructure/scripts/verify-compose.sh
 ```
 
@@ -80,9 +82,9 @@ DEV_WEB_PORT=25173 CORE_API_PORT=28080 ./infrastructure/scripts/verify-compose.s
 WEB_PORT=28088 ./infrastructure/scripts/verify-compose.sh prod
 ```
 
-두 모드 모두 실제 Core·AI Health, 업무 API 부재/404, AI 중지 시 Core 생존과 안전한 503/504,
+두 모드 모두 실제 Core·AI Health, 미구현 API 접근 거부, AI 중지 시 Core 생존과 안전한 503/504,
 AI 재시작 후 복구를 검사합니다. prod는 정적 index·JS asset·deep link·누락 asset 404도 확인합니다.
-실제 키나 합성 키를 사용하지 않고 OpenAI를 호출하지 않습니다. 이미지·의존성 다운로드에는 네트워크가 필요합니다.
+일회용 JWT 테스트 키만 사용하며 OpenAI 키나 모델 호출은 사용하지 않습니다. 이미지·의존성 다운로드에는 네트워크가 필요합니다.
 
 `--env-file /dev/null`로 개인 `.env`를 읽지 않고 실행마다 별도 `storyfork-verify-<mode>-<pid>`를 사용합니다.
 같은 이름의 container/network/volume이 있으면 cleanup 설치 전에 거절합니다.

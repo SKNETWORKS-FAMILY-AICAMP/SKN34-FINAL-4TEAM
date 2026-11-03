@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from 'react'
+import { useContext, useEffect, type ReactNode } from 'react'
+import { RestoreContext } from './restoreContext'
 import { Navigate, useLocation } from 'react-router'
 
 import { useAppDispatch, useAppSelector } from '../../../app/store'
@@ -16,14 +17,15 @@ const MESSAGES: Record<string, string> = {
  */
 export function RequireRole({ admin = false, children }: { admin?: boolean; children: ReactNode }) {
   const role = useAppSelector((s) => s.session.role)
+  const restoring = useContext(RestoreContext)
   const { pathname, search } = useLocation()
   const dispatch = useAppDispatch()
   const allowed = admin ? role === 'admin' : !!role
   useEffect(() => {
-    if (allowed) return
+    if (allowed || restoring) return
     dispatch(sessionActions.requireLogin(admin
       ? { next: '/admin', msg: '관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.', role: 'admin' }
       : { next: pathname + search, msg: MESSAGES[pathname.split('/')[1]] ?? '로그인이 필요한 화면이에요.', role: 'user' }))
-  }, [allowed, admin, pathname, search, dispatch])
-  return allowed ? children : <Navigate replace to="/login" />
+  }, [allowed, restoring, admin, pathname, search, dispatch])
+  return restoring && !allowed ? <p role="status">로그인 상태를 확인하고 있어요.</p> : allowed ? children : <Navigate replace to="/login" />
 }

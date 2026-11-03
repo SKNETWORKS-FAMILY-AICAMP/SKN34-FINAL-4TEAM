@@ -12,6 +12,12 @@ import {
   InMemoryWorkRepository,
   InMemoryWorldRepository,
 } from '../../data/mock/InMemoryRepositories'
+import { profileRepository } from '../../data/api/profile'
+import { ProfileUseCase } from '../../domain/usecases/ProfileUseCase'
+import { signupRepository } from '../../data/api/signup'
+import * as authRepository from '../../data/api/auth'
+import { AuthUseCase } from '../../domain/usecases/AuthUseCase'
+import { SignupUseCase } from '../../domain/usecases/SignupUseCase'
 import { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import { AccountUseCase } from '../../domain/usecases/AccountUseCase'
 import { ChatUseCase } from '../../domain/usecases/ChatUseCase'
@@ -28,6 +34,12 @@ import type { AppContainer } from './types'
 /** Core 업무 API가 생기기 전까지 Repository는 메모리 구현을 씁니다. HTTP 구현이 생기면 이 등록만 바꿉니다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
+    profileRepository: asValue(profileRepository),
+    profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
+    authRepository: asValue(authRepository),
+    authUseCase: asFunction(({ authRepository }) => new AuthUseCase(authRepository)).singleton(),
+    signupRepository: asValue(signupRepository),
+    signupUseCase: asFunction(({ signupRepository }) => new SignupUseCase(signupRepository)).singleton(),
     mockDb: asValue(createMockDb()),
     workRepository: asFunction(({ mockDb }) => new InMemoryWorkRepository(mockDb)).singleton(),
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),

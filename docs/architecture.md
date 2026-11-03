@@ -4,7 +4,7 @@
 
 > 설계상 명칭은 **Core Service·AI Service**입니다. 아래 `core-api`, `Core API` 표기는 현재 실행 모듈 이름과 HTTP 인터페이스이며 서비스 이름의 변경을 코드·배포에 적용했다는 뜻이 아닙니다. 새 MVP 방향은 [시스템 설계](design/design.md)·[DEC-26~28](design/decisions.md#결정-목록)에 있습니다.
 
-STORYFORK 시작 화면과 실제 Core·AI 연결 확인만 제공하는 세 서비스 개발 기반입니다.
+STORYFORK 시작 화면과 Core·AI 연결 확인, Core의 시연용 이메일 가입·인증을 제공하는 개발 기반입니다. 실제 약관·동의 및 로그인은 미구현이므로 운영 가입용이 아닙니다.
 서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
 백엔드는 기능 중심 레이어드 구조를 유지합니다.
 
@@ -16,19 +16,19 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 
 현재 OpenAI 호출은 없습니다. 예전 설계에서 LangChain·LangGraph를 정했으나 새 MVP의 모델·프레임워크는 미정입니다. 현재 `openai-agents` 의존성은 남아 있지만 Agent·모델·그래프는 생성하지 않습니다.
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
-DB·Redis·큐·worker·로그인·가짜 CRUD·seed 데이터는 없습니다.
+가입 후보·회원 저장에 PostgreSQL·Flyway, 로컬 메일 확인에 Mailpit을 사용합니다. Redis·큐·worker·로그인·seed 데이터는 없습니다.
 
 ## 합의된 향후 구성요소 (미구현)
 
-아래는 **계획**이며 현재 코드·Compose에는 업무 DB가 없습니다. 기존 유스케이스의 세부 정책과 충돌할 때는 [DEC-26~28](design/decisions.md#결정-목록)을 우선합니다.
+아래 콘텐츠 저장·AI 구성은 **계획**입니다. 현재 DB에는 가입·인증 첫 단위만 있습니다. 기존 유스케이스의 세부 정책과 충돌할 때는 [DEC-26~28](design/decisions.md#결정-목록)을 우선합니다.
 
 | 구성요소 | 용도 | 상태 |
 |---|---|---|
-| PostgreSQL·Flyway | 설정·원고 원문, 버전·체크포인트·Fork·AI 작업·피드백. PostgreSQL 스키마는 Flyway | MVP 방향(DEC-26·27), 미설치 |
+| PostgreSQL·Flyway | 회원·가입 후보 및 추후 콘텐츠 저장 | 가입·인증 첫 단위에 적용, 콘텐츠는 미구현 |
 | 관계 그래프 DB | 인물·엔티티 관계 저장·조회; 문서·원고 전문은 제외 | MVP 방향(DEC-26), 제품·연동 미정 |
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | MVP 미적용. 포크·설치·개발은 아직 안 함(DEC-27·30) |
 | MinIO(S3 호환) | 설정 이미지 파일, RDB에는 URL | MVP 방향(DEC-39), 미설치 |
-| Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | 기존 MVP 이후 범위(DEC-18·22 등) |
+| Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | 로컬 SMTP만 가입 인증에 사용, 운영 제공사는 미정 |
 | 모델 API·프레임워크 | 선택적 AI 집필·시뮬레이션 | 선정 미정. 현재 모델 호출 없음 |
 
 저장 경계: 설정·원고 전문 및 콘텐츠의 확정 버전·되돌리기·체크포인트·Fork는 PostgreSQL, 관계 정보는 그래프 DB에서 다룹니다. 콘텐츠 변경을 기존 버전 덮어쓰기로 처리하지 않습니다. 두 DB의 연결 키·정본 여부·동기화·복구, Fork의 기준 관계 고정과 AI 조회 경로는 아직 설계하지 않았습니다. Gitea는 사용하지 않습니다. 세계관 설정은 항목별 공개·비공개와 회차별 공개 범위를 두고 사용자 권한·미발행 원고·인물별 인지 범위를 구분합니다(DEC-36).
@@ -59,6 +59,8 @@ Gradle group은 `ai.storyfork`, 애플리케이션은 `storyfork-core-api`, name
 Client의 nullable payload를 Service에서 `up`·`storyfork-ai-service`로 검증한 뒤 내부 Result와
 공개 Response로 변환합니다. 경계별 DTO 소유권을 유지하며 필요 없는 Facade는 없습니다.
 
+`auth/controller → service → repository`는 가입 후보, 메일 인증 및 CSRF를 처리합니다. 로그인·세션과 실제 약관 동의는 후속 범위입니다.
+
 기존 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS만 남습니다.
 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
 내부 URL·오류 원문은 공개하지 않으며 AI 장애가 Core 자체 Health 성공을 막지 않습니다.
@@ -72,9 +74,9 @@ Client의 nullable payload를 Service에서 `up`·`storyfork-ai-service`로 검�
 
 ## 실행·보안 경계
 
-정확히 `web`, `core-api`, `ai-service` 세 서비스만 있습니다.
-개발 Compose는 Vite hot reload와 소스/node_modules volume, prod는 pnpm locked build와 nginx 정적 runtime입니다.
-브라우저는 `/api`를 사용하고 Vite/nginx가 내부 Core DNS로 중계합니다.
+`web`, `core-api`, `ai-service`와 로컬 검증용 PostgreSQL·Mailpit이 있습니다.
+개발 Compose는 nginx 진입점과 Vite hot reload 및 소스/node_modules volume, prod는 pnpm locked build와 nginx 정적 runtime입니다.
+브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 내부 Core DNS로 중계합니다. 개발 HMR WebSocket도 nginx를 경유합니다.
 API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
 
 dev는 web과 디버깅용 Core를 loopback에, prod는 web만 loopback에 공개합니다. AI 포트는 내부 전용입니다.
