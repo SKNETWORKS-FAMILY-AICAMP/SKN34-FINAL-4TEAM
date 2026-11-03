@@ -23,6 +23,9 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
   const [prompt, setPrompt] = useState<{ key: string; v: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  const [publishBusy, setPublishBusy] = useState(false)
+  const [autoGenerating, setAutoGenerating] = useState(false)
+  const actionBusy = useRef(false)
   const sync = useRef<Promise<unknown>>(Promise.resolve())
   const savedTimer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(savedTimer.current), [])
@@ -93,23 +96,34 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
       await run(async () => { msg = await studioUseCase.toggleEpisode(id, index) })
       if (msg) toast(msg)
     },
-    publishing,
+    publishing, publishBusy, autoGenerating,
     openPublish: async () => {
+      if (actionBusy.current) return
       if (d?.locked) return toast('원작 스냅샷은 수정 공개할 수 없어요')
       if (s?.work.hidden) return toast('권리 제한 중인 작품은 발행할 수 없어요')
       await sync.current
       refresh()
       setPublishing(true)
     },
-    closePublish: () => setPublishing(false),
+    closePublish: () => { if (!actionBusy.current) setPublishing(false) },
     publish: async (title: string) => {
-      await sync.current
-      const r = await studioUseCase.publish(id, key, title)
-      if ('error' in r) return toast(r.error)
-      setPublishing(false)
-      refresh(true)
-      toast(r.ok)
-      navigate(r.go)
+      if (actionBusy.current) return
+      actionBusy.current = true
+      setPublishBusy(true)
+      try {
+        await sync.current
+        const r = await studioUseCase.publish(id, key, title)
+        if ('error' in r) return toast(r.error)
+        setPublishing(false)
+        refresh(true)
+        toast(r.ok)
+        navigate(r.go)
+      } catch {
+        toast('공개 요청을 완료하지 못했어요. 상태를 확인한 뒤 다시 시도해 주세요.')
+      } finally {
+        actionBusy.current = false
+        setPublishBusy(false)
+      }
     },
     docs: s?.work.wiki?.docs ?? [],
     cats: s?.work.wiki?.cats ?? [],
@@ -194,10 +208,20 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     pauseAuto: () => run(() => studioUseCase.pauseAuto(id)),
     setAuto: (k: 'react' | 'requireReview', v: boolean) => run(() => studioUseCase.setAuto(id, k, v)),
     autoGen: async () => {
+      if (actionBusy.current) return
       if (d?.editingEpisode) return toast('자율 연재는 새 회차 화면에서 실행해 주세요')
-      let msg: string | null = null
-      await run(async () => { msg = await studioUseCase.autoGen(id, (credits) => confirmAi('AI 자율 연재', 5, credits)) }, true)
-      if (msg) toast(msg)
+      actionBusy.current = true
+      setAutoGenerating(true)
+      try {
+        let msg: string | null = null
+        await run(async () => { msg = await studioUseCase.autoGen(id, (credits) => confirmAi('AI 자율 연재', 5, credits)) }, true)
+        if (msg) toast(msg)
+      } catch {
+        toast('생성 요청을 완료하지 못했어요. 상태를 확인한 뒤 다시 시도해 주세요.')
+      } finally {
+        actionBusy.current = false
+        setAutoGenerating(false)
+      }
     },
     simTurns: (picked: string[]) => (s ? simTurns(s.work, picked) : []),
     runSim: () => aiDemo('인물 시뮬레이션', 30),
