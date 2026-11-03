@@ -33,6 +33,14 @@ describe('ReadingUseCase.getHome (목업 home())', () => {
     expect(home.filtered!.map((w) => w.id)).toEqual(['guunmong', 'gate', 'cloud', 'pardon'])
   })
 
+  it('숨긴 원작은 홈 원작 캐러셀과 급상승 목록에서 제외한다', async () => {
+    const { works, useCase } = fakes()
+    works.find((w) => w.id === 'starlight')!.hidden = true
+    const home = await useCase.getHome(null, '추천')
+    expect(home.originals.map((w) => w.id)).toEqual(['guunmong', 'postman', 'hong'])
+    expect(home.rising.map((w) => w.id)).not.toContain('starlight')
+  })
+
   it('숨긴 회차는 이어 읽기에서 건너뛰고 본 포크를 기록한다', async () => {
     const { works, state, useCase } = fakes()
     works.find((w) => w.id === 'guunmong')!.eps[1].hidden = true

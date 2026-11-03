@@ -25,7 +25,7 @@ export class ReadingUseCase {
     const [works, progress] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress()])
     const pub = works.filter(isPub)
     const filter = (HOME_CHIPS.find((c) => c[0] === chip) ?? HOME_CHIPS[0])[1]
-    const origs = originals(works)
+    const origs = originals(works).filter(isPub)
     const lastId = Object.keys(progress.last).find((id) => {
       const w = works.find((x) => x.id === id)
       const e = w && isPub(w) && epsOf(w)[progress.last[id] - 1]
