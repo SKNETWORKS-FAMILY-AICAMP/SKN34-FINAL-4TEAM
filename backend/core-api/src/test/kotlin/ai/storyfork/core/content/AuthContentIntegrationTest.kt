@@ -1,6 +1,7 @@
 package ai.storyfork.core.content
 
-import ai.storyfork.core.auth.repository.SignupRepository
+import ai.storyfork.core.auth.entity.AuthMember
+import ai.storyfork.core.auth.repository.MemberRepository
 import java.net.CookieManager
 import java.net.CookiePolicy
 import java.net.URI
@@ -32,7 +33,7 @@ import tools.jackson.databind.ObjectMapper
 @EnabledIfEnvironmentVariable(named = "AUTH_INTEGRATION_TEST", matches = "true")
 class AuthContentIntegrationTest {
     @LocalServerPort var port: Int = 0
-    @Autowired lateinit var signup: SignupRepository
+    @Autowired lateinit var members: MemberRepository
     @Autowired lateinit var jdbc: JdbcTemplate
     @Autowired lateinit var json: ObjectMapper
     private val client = HttpClient.newBuilder().cookieHandler(CookieManager(null, CookiePolicy.ACCEPT_ALL)).build()
@@ -49,7 +50,7 @@ class AuthContentIntegrationTest {
     }
     private fun login(): JsonNode {
         val email = "${UUID.randomUUID()}@example.invalid"
-        signup.createMember(email, requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Writer")
+        members.saveAndFlush(AuthMember(UUID.randomUUID(), email, requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Writer"))
         val response = send(mutation("/api/v1/auth/login", """{"email":"$email","password":"test-password"}"""))
         assertEquals(200, response.statusCode())
         return json.readTree(response.body())

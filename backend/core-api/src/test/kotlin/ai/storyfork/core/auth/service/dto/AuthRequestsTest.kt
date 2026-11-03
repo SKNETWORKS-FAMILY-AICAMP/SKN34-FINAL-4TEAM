@@ -1,4 +1,4 @@
-package ai.storyfork.core.auth.controller.dto
+package ai.storyfork.core.auth.service.dto
 
 import jakarta.validation.Validation
 import org.junit.jupiter.api.Assertions.assertEquals
