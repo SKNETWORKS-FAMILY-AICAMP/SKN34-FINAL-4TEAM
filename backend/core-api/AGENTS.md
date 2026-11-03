@@ -154,8 +154,14 @@
 ## 검증
 
 - 테스트 패키지는 production 패키지 구조를 따라 배치한다.
-- 로컬: JDK 21 환경의 `backend/core-api`에서 `./gradlew test --tests '<대상 테스트 클래스 또는 패턴>' --no-daemon`으로
-  관련 테스트를 실행한다. 파일 이동·빌드 설정·리소스 변경이나 오래된 산출물이 의심될 때만 `clean`을 추가한다.
-- CI: `./gradlew clean test --no-daemon` 전체 실행. 문서만 변경한 경우는 루트의 문서 검증 기준을 따른다.
+- 로컬: JDK 21 환경의 `backend/core-api`에서 `./gradlew unitTest --tests '<대상 클래스 또는 패턴>' --no-daemon`으로
+  변경·직접 영향 범위의 순수 단위 테스트만 실행한다. Spring context·HTTP·DB 테스트, 전체 suite·빌드는 로컬 개발 검증으로 실행하지 않는다.
+- `build.gradle`의 `integrationTestClasses`가 Spring context·실제/모의 HTTP transport·DB/Flyway 테스트를 분류한다.
+  `unitTest`는 이를 제외하고 `integrationTest`는 이들만 포함한다. 혼합 클래스는 통합에 둬서 중복 실행하지 않는다.
+  새 경계 테스트를 추가하면 분류 목록을 갱신하며 `infrastructure/ci/test_ci.py`의 누락 검사도 유지한다.
+- CI: 워크플로가 `./gradlew unitTest`·`./gradlew integrationTest`와 기능 패키지 `--tests`를 직접 호출한다. 별도 runner·shell wrapper는 두지 않는다.
+  기능별 범위가 명확하면 해당 기능 전체, 공통·설정·의존성·미등록 기능이면 Core 전체를 검증한다.
+  통합 계층에서 임시 PostgreSQL·Mailpit·Flyway를 사용하고 조건부 Auth/Content 테스트를 활성화한다.
+  이후 관련 HTTP 시스템 시나리오를 실행한다. 문서만 변경하면 runtime job을 생략하고 hosted 결과 확인 전에는 검증 대기로 보고한다.
 - 파일 이동 후에는 이전 package·import·문서 경로가 남지 않았는지 `rg`로 확인하고
   `git diff --check`를 통과시킨다.

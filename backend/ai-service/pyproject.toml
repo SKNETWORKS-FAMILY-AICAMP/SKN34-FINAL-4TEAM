@@ -26,5 +26,6 @@ where = ["."]
 include = ["app*"]
 
 [tool.pytest.ini_options]
-addopts = "-q"
+addopts = "-q --strict-markers"
 testpaths = ["tests"]
+markers = ["integration: FastAPI TestClient / HTTP boundary (CI only)"]

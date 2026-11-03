@@ -60,8 +60,31 @@ dependencies {
     testRuntimeOnly 'com.h2database:h2'
 }
 
-tasks.named('test') {
+// 실제 경계 기준: Spring context, HTTP transport, PostgreSQL/Flyway는 통합 계층이다.
+// 새 경계 테스트는 이 목록에도 포함한다 (infrastructure/ci/test_ci.py가 누락을 검사).
+def integrationTestClasses = [
+    '**/*IntegrationTest.class', '**/*PostgresTest.class',
+    '**/ContentMigrationTest.class', '**/CoreApiApplicationTest.class',
+    '**/HealthControllerTest.class', '**/ContentAuthorizationTest.class',
+    '**/AiServiceClientPropertiesTest.class', '**/AiServiceHealthClientTest.class',
+    '**/AiServiceHealthControllerTest.class'
+]
+
+tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    filter { failOnNoMatchingTests = true }
+}
+
+tasks.register('unitTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    exclude integrationTestClasses
+}
+
+tasks.register('integrationTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include integrationTestClasses
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -8,9 +8,9 @@
 - 프론트엔드 작업은 반드시 `/impeccable` 스킬을 로드하고 작업 유형에 맞는 절차를 따른다.
   UI 구현·수정 전 기존 화면·디자인 토큰·제품 문맥을 확인하고, 스킬의 컨텍스트 로딩과 해당 가이드를 적용한다.
   기존 시각적 정체성·동작을 요청 없이 교체하지 않으며, 변경한 화면의 반응형·키보드 조작·접근성을 확인한다.
-- 공통 지침의 `/graphify` 영향 분석 → `/ponytail full` 기반 TDD 구현 → 관련 테스트·화면 확인 →
-  `/ponytail-review` 리뷰·필요 수정 → Aside E2E 테스트 순서를 반드시 따른다.
-  Impeccable은 이 흐름에서 UI 설계·구현·확인에 함께 적용하며, E2E 세부 기준은 루트 공통 지침을 따른다.
+- 공통 지침의 `/graphify` 영향 분석 → `/ponytail full` 기반 TDD 구현 → 로컬 선택 단위 테스트 →
+  `/ponytail-review` 리뷰·필요 수정 → CI 통합·시스템 검증 순서를 따른다.
+  Impeccable은 UI 설계·구현에 적용한다. 로컬 자동 브라우저/E2E 검증은 하지 않으며, 별도 요청·승인 시에만 Aside를 사용한다.
 
 ## 구조와 의존성
 
@@ -55,10 +55,13 @@
 ## 검증
 
 - 패키지 관리는 `pnpm`과 기존 lockfile을 사용한다. 실행 환경은 [package.json](package.json)을 따른다.
-- 코드 변경 시 해당 회귀 테스트와 영향받은 동작·화면을 확인한다. `pnpm test -- <테스트 경로>`로 범위를 지정할 수 있다.
-- 로컬: 관련 테스트 파일과 `pnpm exec oxlint <변경 파일>`을 실행한다. 타입·빌드 설정을 바꿨을 때만 `pnpm build`를 추가한다.
-- CI: `pnpm install --frozen-lockfile` 후 `pnpm test`, `pnpm lint`, `pnpm build` 전체 실행.
-  작은 수정이나 문서 변경을 이유로 로컬에서 전체 빌드를 반복하지 않는다.
+- 로컬: `pnpm exec vitest run src/domain/__tests__/<대상>.test.ts`처럼 변경·직접 영향받는 **단위 테스트 파일만** 지정한다.
+  `src/domain`, `src/data`의 대역 기반 테스트와 `src/index-html.test.js`가 현재 단위 범위다.
+  React 렌더·Hook·App 조립은 통합 계층이다. 로컬 통합·브라우저·전체 테스트·빌드는 실행하지 않는다.
+- CI: 서비스 수준의 보수적인 선택 후 단위 범위와 나머지 통합 범위를 서로 제외하여 한 번씩 실행한다.
+  워크플로가 Vitest 파일 필터·`--exclude`로 직접 실행하며 별도 runner·shell wrapper는 두지 않는다.
+  선택된 web은 frozen install·lint·build도 실행하며, Core 계약 변경 시 web 소비자 회귀도 선택한다.
+  실제 HTTP 시스템 검증은 브라우저 UI/E2E 검증이 아니다. 문서만 변경하면 runtime job을 생략한다.
 - UseCase 테스트는 Fake Repository를 사용한다.
 - ViewModel 테스트는 Fake UseCase나 격리 컨테이너를 사용하고 전역 컨테이너를 덮어쓰지 않는다.
 - 상세 구조·상태 관리와 실행 방법은 [Frontend README](README.md)를 참고한다.

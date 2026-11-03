@@ -4,160 +4,327 @@ on:
   push:
     branches: [develop, main]
   pull_request:
+  # 비교 기준이 없는 수동 실행은 모든 서비스/시나리오를 선택한다.
   workflow_dispatch:
 
 permissions:
   contents: read
-  # paths-filter가 PR 변경 파일 목록을 API로 읽는다.
-  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# 격리된 CI 전용 값이다. 저장소/서버의 실제 .env·secrets는 사용하지 않는다.
+env:
+  CORE_DATABASE_USER: content_test
+  CORE_DATABASE_PASSWORD: ci-test-only
+  CORE_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+  CORE_SMTP_HOST: 127.0.0.1
+  CORE_SMTP_PORT: "1025"
+  AUTH_PUBLIC_ORIGIN: http://127.0.0.1:8088
+  AUTH_MAIL_FROM: ci@example.invalid
+  AUTH_JWT_SECRET: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+  AUTH_COOKIE_SECURE: "false"
+  INTERNAL_TOKEN: ci-test-only-internal-token
+  OPENAI_API_KEY: ""
+  OPENAI_MODEL: ""
+
 jobs:
   changes:
-    name: Changed paths
+    name: Changed paths and selection checks
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
-      web: ${{ steps.filter.outputs.web }}
-      core: ${{ steps.filter.outputs.core }}
-      ai: ${{ steps.filter.outputs.ai }}
-      infra: ${{ steps.filter.outputs.infra }}
+      unit: ${{ steps.plan.outputs.unit }}
+      unit_needed: ${{ steps.plan.outputs.unit_needed }}
+      integration: ${{ steps.plan.outputs.integration }}
+      integration_needed: ${{ steps.plan.outputs.integration_needed }}
+      system: ${{ steps.plan.outputs.system }}
+      system_needed: ${{ steps.plan.outputs.system_needed }}
+      infra: ${{ steps.plan.outputs.infra }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
           persist-credentials: false
-      - id: filter
-        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
-        with:
-          # 푸시는 같은 브랜치의 직전 커밋과 비교한다. PR·수동 실행은 빈 값으로 기본 비교를 쓴다.
-          base: ${{ github.event_name == 'push' && github.ref || '' }}
-          filters: |
-            web: ['frontend/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
-            core: ['backend/core-api/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
-            ai: ['backend/ai-service/**', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
-            infra: ['infrastructure/**', 'frontend/nginx.conf', '.env.example', '.github/workflows/ci.yml', '.github/workflows/publish-images.yml', '.github/workflows/deploy-develop.yml']
+      - id: plan
+        run: python3 infrastructure/ci/ci.py plan
+      - if: ${{ steps.plan.outputs.unit_needed == 'true' }}
+        run: python3 -m unittest discover -s infrastructure/ci -p 'test_*.py' -v
 
-  repository:
-    name: Whitespace
+  configuration:
+    name: Compose configuration
+    needs: changes
+    if: ${{ needs.changes.outputs.infra == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    env:
+      CD_DIRECTORY: /configuration-test
+      CD_WEB_PORT: "8088"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-          fetch-depth: 0
-      - name: Check whitespace in changed lines
-        env:
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+      - name: Validate base + prod/dev with content disabled/enabled
         run: |
-          # 수동 실행·새 브랜치 푸시는 기준선이 없으므로 부모 커밋과 비교한다.
-          # 브랜치 전체 변경은 PR 실행에서 base와 비교해 검사한다.
-          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
-            BASE="$(git rev-parse --verify --quiet HEAD^ || git hash-object -t tree /dev/null)"
-          fi
-          echo "base: $BASE"
-          git diff --check "$BASE" HEAD
+          for mode in prod dev; do
+            for content in false true; do
+              CONTENT_ENABLED="$content" docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
+            done
+          done
+      - name: Validate isolated CI overlay
+        run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml -f infrastructure/ci/compose.test.yaml config --quiet
 
-  web:
+  unit:
+    name: Unit / ${{ matrix.service }}
     needs: changes
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true' }}
-    name: Web
+    if: ${{ needs.changes.outputs.unit_needed == 'true' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: frontend
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.unit) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - if: ${{ matrix.service == 'web' }}
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           package_json_file: frontend/package.json
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - if: ${{ matrix.service == 'web' }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test
-      - run: pnpm lint
-      - run: pnpm build
-
-  core-api:
-    needs: changes
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.core == 'true' }}
-    name: Core API
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: backend/core-api
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - if: ${{ matrix.service == 'core' }}
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: "21"
           cache: gradle
-      - run: ./gradlew clean test --no-daemon
-
-  ai-service:
-    needs: changes
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.ai == 'true' }}
-    name: AI Service
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    defaults:
-      run:
+      - if: ${{ matrix.service == 'ai' }}
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          working-directory: backend/ai-service
+          enable-cache: true
+          cache-dependency-glob: backend/ai-service/uv.lock
+      - if: ${{ matrix.service == 'web' }}
+        run: pnpm --dir frontend install --frozen-lockfile
+      - if: ${{ matrix.service == 'ai' }}
+        run: uv lock --check --directory backend/ai-service
+      - name: Vitest unit tests (isolated modules only)
+        if: ${{ matrix.service == 'web' }}
+        working-directory: frontend
+        run: pnpm exec vitest run src/domain src/data src/index-html.test.js --reporter=default --reporter=junit --outputFile=reports/unit.xml
+      - name: JUnit unit tests (selected feature packages)
+        if: ${{ matrix.service == 'core' }}
+        working-directory: backend/core-api
+        env:
+          SCOPE: ${{ matrix.scope }}
+        run: |
+          filters=()
+          if [[ "$SCOPE" != all ]]; then
+            for feature in ${SCOPE//,/ }; do
+              case "$feature" in
+                auth|content) packages=("$feature") ;;
+                health) packages=(_health _health_ai_service _common) ;;
+                *) exit 1 ;;
+              esac
+              for package in "${packages[@]}"; do filters+=(--tests "ai.storyfork.core.$package.*"); done
+            done
+          fi
+          ./gradlew unitTest --no-daemon "${filters[@]}"
+      - name: pytest isolated provider unit tests
+        if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
+        run: uv run --locked --extra dev python -m pytest -m 'not integration' --junitxml=reports/unit.xml
+      - if: ${{ matrix.service == 'web' }}
+        run: pnpm --dir frontend lint && pnpm --dir frontend build
+      - name: Sanitize failure reports
+        if: ${{ failure() }}
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/ai-service/reports
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ failure() }}
+        with:
+          name: unit-${{ matrix.service }}
+          path: sanitized/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  integration:
+    name: Integration / ${{ matrix.service }}
+    needs: [changes, configuration, unit]
+    # unaffected configuration 작업의 의도적 skip은 필요한 통합 테스트를 막지 않는다.
+    if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.unit.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.integration_needed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.integration) }}
+    services:
+      postgres:
+        # 비 Core 작업에는 컨테이너를 생성하지 않는다.
+        image: ${{ matrix.service == 'core' && 'postgres:17-alpine' || '' }}
+        env:
+          POSTGRES_DB: storyfork_test
+          POSTGRES_USER: content_test
+          # 기존 Content *PostgresTest의 content_test/빈 비밀번호 계약. 격리 runner 전용.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["127.0.0.1:5432:5432"]
+        options: --health-cmd "pg_isready -U content_test -d storyfork_test" --health-interval 3s --health-timeout 3s --health-retries 20
+      mailpit:
+        image: ${{ matrix.service == 'core' && 'axllent/mailpit:v1.27' || '' }}
+        ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+    env:
+      CORE_DATABASE_PASSWORD: ""
+      TEST_CONTENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      AUTH_INTEGRATION_TEST: "true"
+      AUTH_MAILPIT_API: http://127.0.0.1:8025
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - if: ${{ matrix.service == 'web' }}
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: frontend/package.json
+      - if: ${{ matrix.service == 'web' }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - if: ${{ matrix.service == 'core' }}
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - if: ${{ matrix.service == 'ai' }}
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          working-directory: backend/ai-service
+          enable-cache: true
+          cache-dependency-glob: backend/ai-service/uv.lock
+      - if: ${{ matrix.service == 'web' }}
+        run: pnpm --dir frontend install --frozen-lockfile
+      - name: Vitest React integration tests (exclude unit files)
+        if: ${{ matrix.service == 'web' }}
+        working-directory: frontend
+        run: pnpm exec vitest run --exclude 'src/domain/**' --exclude 'src/data/**' --exclude src/index-html.test.js --reporter=default --reporter=junit --outputFile=reports/integration.xml
+      - name: JUnit Spring/HTTP/PostgreSQL integration tests
+        if: ${{ matrix.service == 'core' }}
+        working-directory: backend/core-api
+        env:
+          SCOPE: ${{ matrix.scope }}
+        run: |
+          filters=()
+          if [[ "$SCOPE" != all ]]; then
+            for feature in ${SCOPE//,/ }; do
+              case "$feature" in
+                auth|content) packages=("$feature") ;;
+                health) packages=(_health _health_ai_service _common) ;;
+                *) exit 1 ;;
+              esac
+              for package in "${packages[@]}"; do filters+=(--tests "ai.storyfork.core.$package.*"); done
+            done
+          fi
+          ./gradlew integrationTest --no-daemon "${filters[@]}"
+      - name: pytest FastAPI HTTP integration tests
+        if: ${{ matrix.service == 'ai' }}
+        working-directory: backend/ai-service
+        run: uv run --locked --extra dev python -m pytest -m integration --junitxml=reports/integration.xml
+      - name: Collect isolated dependency logs
+        if: ${{ failure() && matrix.service == 'core' }}
+        env:
+          POSTGRES_ID: ${{ job.services.postgres.id }}
+          MAILPIT_ID: ${{ job.services.mailpit.id }}
+        run: |
+          docker logs "$POSTGRES_ID" > "$RUNNER_TEMP/postgres.log" 2>&1 || true
+          docker logs "$MAILPIT_ID" > "$RUNNER_TEMP/mailpit.log" 2>&1 || true
+      - name: Sanitize failure reports
+        if: ${{ failure() }}
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ failure() }}
+        with:
+          name: integration-${{ matrix.service }}
+          path: sanitized/
+          retention-days: 7
+          if-no-files-found: ignore
+      # Actions service containers/volumes는 job 종료 시 runner가 정리한다.
+
+  system:
+    name: Selected HTTP system scenarios
+    needs: [changes, unit, integration, configuration]
+    if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.unit.result == 'success' && needs.integration.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.system_needed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: storyfork-ci-${{ github.run_id }}-${{ github.run_attempt }}
+      COMPOSE_FILE: infrastructure/docker-compose.yaml:infrastructure/docker-compose.prod.yaml:infrastructure/ci/compose.test.yaml
+      SCENARIOS: ${{ needs.changes.outputs.system }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           working-directory: backend/ai-service
           enable-cache: true
           cache-dependency-glob: backend/ai-service/uv.lock
-      - run: uv lock --check
-      - run: uv run --locked --extra dev python -m pytest
+      - name: Launch only the isolated CI Compose project
+        run: docker compose --env-file .env.example up --build -d --wait --wait-timeout 240
+      - name: Discover loopback ports and wait for HTTP readiness
+        run: |
+          HTTP_BASE_URL="http://$(docker compose --env-file .env.example port web 80)"
+          MAILPIT_API_URL="http://$(docker compose --env-file .env.example port mailpit 8025)"
+          printf '%s\n' "HTTP_BASE_URL=$HTTP_BASE_URL" "MAILPIT_API_URL=$MAILPIT_API_URL" >> "$GITHUB_ENV"
+          for url in "$HTTP_BASE_URL/api/v1/health" "$HTTP_BASE_URL/api/v1/health/ai-service" "$MAILPIT_API_URL/api/v1/messages"; do
+            curl --retry 60 --retry-delay 2 --retry-all-errors --max-time 10 --fail --silent --show-error --output /dev/null "$url"
+          done
+      - name: pytest selected real HTTP and persistence flows
+        # 기존 AI dev extra의 pytest/httpx2를 재사용한다. 별도 테스트 엔진·wrapper는 없다.
+        run: uv run --locked --extra dev --project backend/ai-service python -m pytest infrastructure/system -k "${SCENARIOS//,/ or }" --junitxml=reports/system.xml --tb=no --show-capture=no -q
+      - name: Collect failure logs without printing bodies or credentials
+        if: ${{ failure() }}
+        run: |
+          docker compose --env-file .env.example logs --no-color > "$RUNNER_TEMP/system.log" 2>&1 || true
+          python3 infrastructure/ci/ci.py reports sanitized reports "$RUNNER_TEMP/system.log"
+      - name: Remove only this run's containers and test resources
+        if: ${{ always() }}
+        run: docker compose --env-file .env.example down --volumes --remove-orphans --timeout 10
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ failure() }}
+        with:
+          name: system-http
+          path: sanitized/
+          retention-days: 7
+          if-no-files-found: ignore
 
-  infrastructure:
-    needs: changes
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.infra == 'true' }}
-    name: Compose configuration
+  required:
+    name: Required CI
+    if: ${{ always() }}
+    needs: [changes, configuration, unit, integration, system]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - run: python3 -m unittest discover infrastructure/tests
-      - run: python3 -I infrastructure/scripts/check-compose-config.py
-      - run: python3 -I infrastructure/scripts/check-nginx-routing.py
-      - run: python3 -I infrastructure/scripts/check-content-config.py
-      - run: python3 -I infrastructure/scripts/test-publish-preflight.py
-      - run: python3 -I infrastructure/scripts/test-deploy-develop.py
-      - run: bash -n infrastructure/scripts/verify-compose.sh
-
-  required:
-    name: Required CI
-    if: ${{ always() }}
-    needs: [changes, repository, web, core-api, ai-service, infrastructure]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - name: Fail when any required job failed or was cancelled
+      - name: Reject failures, cancellations and unexpected skips
         env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
-        run: |
-          echo "results: $RESULTS"
-          for r in $RESULTS; do
-            case "$r" in success|skipped) ;; *) exit 1 ;; esac
-          done
+          NEEDS: ${{ toJSON(needs) }}
+          UNIT_NEEDED: ${{ needs.changes.outputs.unit_needed }}
+          INTEGRATION_NEEDED: ${{ needs.changes.outputs.integration_needed }}
+          SYSTEM_NEEDED: ${{ needs.changes.outputs.system_needed }}
+          CONFIGURATION_NEEDED: ${{ needs.changes.outputs.infra }}
+        run: python3 infrastructure/ci/ci.py required

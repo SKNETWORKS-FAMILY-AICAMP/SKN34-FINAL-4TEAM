@@ -73,9 +73,10 @@ main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 
 JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 
 ```bash
-# 루트 .env의 Core 설정만 전달합니다 (Python 3 및 uv 필요).
-python3 ../../infrastructure/scripts/run-native.py core-api
-./gradlew clean test --no-daemon
+# 아래 Core 환경변수를 해당 터미널에 설정한 뒤 실행합니다.
+./gradlew bootRun
+# 로컬 개발 검증은 변경·직접 영향 범위의 순수 단위만 지정합니다.
+./gradlew unitTest --tests 'ai.storyfork.core.auth.AuthSecurityConfigTest' --no-daemon
 ```
 
 | 환경변수 | 네이티브 기본값 |
@@ -93,9 +94,23 @@ python3 ../../infrastructure/scripts/run-native.py core-api
 
 `ContentConfig`는 생성 전용 HTTP 클라이언트를 만들며 Health 클라이언트의 제한시간을 변경하지 않습니다.
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
-위 실행기는 루트 `.env`의 Core 허용 설정만 로드합니다. Core에 OpenAI 키를 주입하지 않습니다.
-`./gradlew bootRun` 직접 실행은 `.env`를 로드하지 않습니다.
+`./gradlew bootRun`은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달은 Compose를 사용합니다.
+루트 `.env` 전체를 source하거나 Core에 OpenAI 키를 주입하지 않습니다.
 Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 web 포트에 맞춥니다.
+공통 `docker-compose.yaml` + prod는 기존 PostgreSQL·Mailpit과 소스 빌드 앱을, base + dev는 CI의 `:develop` 앱 이미지와 기존 외부 DB·SMTP를 사용합니다. base 단독 실행이나 dev 서버 소스 build는 하지 않습니다.
+콘텐츠는 기본 비활성이며 `CONTENT_ENABLED=true`일 때도 Auth와 같은 DB·자격증명을 사용합니다. 실제 `INTERNAL_TOKEN`은 Core·AI에만 전달하고 개발 Principal은 주입하지 않습니다.
 실행 설정은 [인프라 안내](../../infrastructure/README.md)를 참고하세요.
+
+### CI 계층과 선택 실행
+
+로컬 개발에서는 `unitTest --tests ...`만 선택 실행합니다. Spring context·HTTP·DB·전체 suite·빌드는 로컬 개발 검증으로 실행하지 않습니다.
+`build.gradle`의 `integrationTestClasses`를 `unitTest`에서 제외하고 `integrationTest`에서만 포함하므로 테스트를 중복 실행하지 않습니다.
+`AiServiceClientPropertiesTest`처럼 context가 섞인 클래스도 통합입니다. 새 Spring/HTTP/DB 테스트는 분류 목록을 갱신합니다.
+
+CI가 이 디렉터리에서 `./gradlew unitTest --no-daemon --tests 'ai.storyfork.core.auth.*'`와 `./gradlew integrationTest --no-daemon --tests ...`를 직접 호출합니다. 별도 runner·shell wrapper는 없습니다.
+Gradle `--tests`로 auth/content/health 기능 전체를 선택하고 공통·설정·의존성·미등록 기능 변경은 필터 없이 Core 전체로 확장합니다.
+통합 job은 임시 PostgreSQL·Mailpit에서 기존 Flyway와 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTENT_DATABASE_URL` 조건부 테스트를 실행합니다.
+Content의 기존 `content_test`/빈 비밀번호는 격리 runner PostgreSQL trust 인증에만 적용하며 운영 설정이 아닙니다.
+그 뒤 관련 HTTP 시스템 시나리오가 CI Compose에서 실행됩니다. [공통 검증](../../README.md#검증)을 따르며 실제 hosted `Required CI` 결과 확인 전에는 검증 대기입니다.
 
 회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.

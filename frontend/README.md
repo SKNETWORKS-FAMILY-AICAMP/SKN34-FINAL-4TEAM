@@ -10,17 +10,18 @@ Node **24.x**, pnpm **11.22.x** (`packageManager: pnpm@11.22.0`)가 필요합니
 
 ```bash
 pnpm install --frozen-lockfile
-# 저장소 루트 .env를 선택적으로 로드합니다 (uv 필요).
-python3 ../infrastructure/scripts/run-native.py web
+pnpm dev
 ```
 
 네이티브 기본 주소는 `http://localhost:5173`, Core는 `http://localhost:8080`입니다.
-설정은 루트 `.env`의 공개 `VITE_CORE_API_BASE_URL`을 변경합니다. 서비스별 `.env`는 만들지 않습니다.
+직접 실행할 때는 공개 `VITE_CORE_API_BASE_URL` 등 필요한 변수만 터미널에 설정합니다. 루트 `.env`는 자동으로 읽지 않습니다.
+루트 설정 자동 전달은 Compose를 사용하며 서비스별 `.env`는 만들지 않습니다.
 `VITE_*`는 브라우저에 노출되므로 비밀값을 넣지 않습니다. 백엔드는 별도로 실행합니다.
 
-루트의 [개발 Compose](../infrastructure/README.md)는 기본 `http://127.0.0.1:5173`의 Nginx를 단일 진입점으로 사용합니다.
-Nginx가 `/api` 요청을 `core-api:8080`으로, 화면과 HMR을 `web:5173`으로 전달합니다.
-배포 이미지의 Nginx도 정적 파일과 같은 `/api` 경계를 제공합니다. 인증·TLS 없는 로컬 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
+루트의 [Compose 안내](../infrastructure/README.md)는 공통 `docker-compose.yaml`에 prod 또는 dev를 병합합니다.
+prod는 소스에서 정적 배포 이미지를 빌드해 기본 `http://127.0.0.1:8088`로 검증하고, dev는 현재 개발 배포 서버에서 CI의 `:develop` 이미지를 pull·실행합니다.
+두 조합 모두 web 이미지의 Nginx가 정적 화면과 `/api` → `core-api:8080` 프록시를 제공합니다. 소스/HMR Compose는 제거했으며 hot reload는 위 `pnpm dev`를 사용합니다.
+loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
 ## 실제 호출 흐름
 
@@ -62,12 +63,17 @@ Nginx가 `/api` 요청을 `core-api:8080`으로, 화면과 HMR을 `web:5173`으�
 
 ## 검증
 
+로컬 개발은 변경·직접 영향 범위의 **단위 테스트 파일만** 지정합니다. 전체 suite·빌드·React 조립·브라우저/E2E는 로컬 개발 검증으로 실행하지 않습니다.
+
 ```bash
-pnpm test
-pnpm lint
-pnpm build
+pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
+# Data 단위 테스트도 실제 서버 대신 fetch 대역을 사용합니다.
+pnpm exec vitest run src/data/api/auth.test.ts
 ```
 
-실제 브라우저·통합 스택 확인은 [인프라 안내](../infrastructure/README.md)를 따릅니다.
+CI는 [공통 검증 정책](../README.md#검증)에 따라 web 서비스의 단위(Domain/Data/HTML)와 나머지 React/Hook/App 통합을 분리 실행하고 lint/build도 수행합니다.
+워크플로가 이 디렉터리에서 `pnpm exec vitest run src/domain src/data src/index-html.test.js`와 해당 파일들을 `--exclude`한 통합 명령을 직접 호출합니다. 별도 테스트 runner나 shell wrapper는 없습니다.
+Core API 변경 시 web 소비자 회귀도 선택합니다. 실제 HTTP 시스템 시나리오는 CI Compose에서 실행하며 브라우저 UI 검증이 아닙니다.
+Aside는 별도 요청·승인 시에만 사용합니다. hosted `Required CI` 결과 확인 전에는 검증 대기로 보고합니다.
 
 서버 작품은 `/studio/{UUID}`에서 회차별 실제 저장 API를 사용합니다. 데모 세션 대신 Core의 인증 결과를 따르며, 기존 이름 기반 데모 집필실과 구분합니다. 자동저장·버전 저장·복원과 검증 범위는 [이슈 #50 대응](../docs/issue-50-alignment.md)을 참고하세요.
