@@ -23,6 +23,18 @@ class ContentController(private val service: ContentService, @Value("\${app.cont
             ?: devOwner.takeIf { it.isNotBlank() && request.remoteAddr in setOf("127.0.0.1","0:0:0:0:0:0:0:1","::1") }
             ?: throw ContentFailure(401,"서버 인증이 필요합니다. 화면의 데모 로그인은 API 인증이 아닙니다.")
     }
+    @GetMapping("/works/{id}/episodes") fun episodes(r: HttpServletRequest,@PathVariable id: String) = service.writingList(id,owner(r))
+    @PostMapping("/works/{id}/episodes") @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    fun createEpisode(r: HttpServletRequest,@PathVariable id: String,@Valid @RequestBody d: CreateWorkRequest) = service.createEpisode(id,owner(r),d)
+    @GetMapping("/works/{id}/episodes/{number}") fun episode(r: HttpServletRequest,@PathVariable id: String,@PathVariable number: Int) = service.writing(id,owner(r),number)
+    @PutMapping("/works/{id}/episodes/{number}/draft")
+    fun draft(r: HttpServletRequest,@PathVariable id: String,@PathVariable number: Int,@Valid @RequestBody d: DraftRequest) = service.writeEpisode(id,owner(r),number,d,false)
+    @PostMapping("/works/{id}/episodes/{number}/versions")
+    fun version(r: HttpServletRequest,@PathVariable id: String,@PathVariable number: Int,@Valid @RequestBody d: DraftRequest) = service.writeEpisode(id,owner(r),number,d,true)
+    @PostMapping("/works/{id}/episodes/{number}/restore")
+    fun restore(r: HttpServletRequest,@PathVariable id: String,@PathVariable number: Int,@Valid @RequestBody d: RevertRequest) = service.restoreEpisode(id,owner(r),number,d)
+    @PostMapping("/works/{id}/episodes/{number}/publish")
+    fun publishEpisode(r: HttpServletRequest,@PathVariable id: String,@PathVariable number: Int,@Valid @RequestBody d: PublishRequest) = service.publishEpisode(id,owner(r),number,d)
     @GetMapping("/works") fun list(r: HttpServletRequest) = service.list(owner(r))
     @PostMapping("/works") @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     fun create(r: HttpServletRequest,@Valid @RequestBody d: CreateWorkRequest) = service.create(owner(r),d)

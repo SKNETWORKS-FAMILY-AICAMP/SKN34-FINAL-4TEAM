@@ -9,9 +9,11 @@ afterEach(cleanup)
 it('requires a fresh rights confirmation for the next episode after publication', async()=>{
   const w = {id:'w1',title:'테스트',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'첫 화',body:'저장된 원고',revision:1}}
   const published = {...w,visibility:'public',episodes:[{number:1,version:1,title:'첫 화',body:'저장된 원고',inherited:false}],draft:{title:'새 회차',body:'',revision:2}}
-  const calls = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify([w]))).mockResolvedValueOnce(new Response(JSON.stringify(published)))
+  const calls = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify([w]))).mockResolvedValueOnce(new Response(JSON.stringify({versions:[{id:'v1',episode:1,title:'첫 화',body:'저장된 원고',revision:1,savedAt:'2026-11-02T00:00:00Z'}],proposals:[]}))).mockResolvedValueOnce(new Response(JSON.stringify(published)))
   render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))}/> )
   fireEvent.click(await screen.findByRole('button',{name:/테스트/}))
+  fireEvent.click(screen.getByRole('button',{name:'저장·AI 이력'}))
+  fireEvent.click(await screen.findByRole('button',{name:'이 버전을 공개 대상으로 선택'}))
   const rights=screen.getByLabelText('이 원고를 공개할 권리가 있음을 확인합니다.')
   fireEvent.click(rights)
   fireEvent.click(screen.getByRole('button',{name:'회차 공개하기'}))

@@ -2,6 +2,8 @@
 
 ## 현재 구현
 
+콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
+
 > 설계상 명칭은 **Core Service·AI Service**입니다. 아래 `core-api`, `Core API` 표기는 현재 실행 모듈 이름과 HTTP 인터페이스이며 서비스 이름의 변경을 코드·배포에 적용했다는 뜻이 아닙니다. 새 MVP 방향은 [시스템 설계](design/design.md)·[DEC-26~28](design/decisions.md#결정-목록)에 있습니다.
 
 세 서비스 개발 기반에 개인 브랜치의 선택적 콘텐츠 기능을 추가했습니다. `/content` React 작업실은 Core `/api/v1/works`를 호출하고 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 상세 범위·인증·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요.
@@ -92,3 +94,5 @@ OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build A
 - 외부 IP 등록 시 등록자에게 2차 창작 권리 확인 여부를 묻지만 플랫폼이 작품별 권리를 직접 검증한다고 가정하지 않습니다(DEC-38). 비용·실행 한도·신고·자동 연재 조건은 [README 기획](../README.md)을 참고하며 임의 확정하지 않습니다.
 
 기능마다 서버를 복제하지 않으며 새 빈 업무 계층·인프라는 실제 계약과 요구가 정해질 때만 추가합니다.
+
+이슈 #50 범위의 서버 작품 집필실은 `/studio/{UUID}`에서 회차별 초안·불변 버전·발행본을 구분합니다. 기존 EpisodeUseCase/Repository와 ContentController/Service/Repository 경계를 재사용하며 새 실행 서비스나 production 의존성을 추가하지 않았습니다. 세부 계약은 [이슈 #50 대응](issue-50-alignment.md)을 참고합니다.

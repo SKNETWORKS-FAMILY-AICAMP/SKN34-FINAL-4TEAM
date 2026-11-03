@@ -19,6 +19,49 @@ class ContentService(private val repository: ContentRepository, private val ai: 
         checkContent(mapper.writeValueAsString(result).length <= 60000,message="문맥 한도를 넘어요. 회차 또는 인물 범위를 좁혀 주세요.")
         return result
     }
+    fun writingList(id: String,owner: String) = repository.transaction {
+        own(id,owner); repository.writingNumbers(id).mapNotNull { repository.writing(id,it) }
+    }
+    fun writing(id: String,owner: String,number: Int) = repository.transaction {
+        own(id,owner); repository.writing(id,number) ?: throw ContentFailure(404,"회차를 찾을 수 없어요.")
+    }
+    private fun editable(id: String,number: Int,expected: Int): WritingEpisode {
+        val e=repository.writing(id,number) ?: throw ContentFailure(404,"회차를 찾을 수 없어요.")
+        checkContent(!e.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
+        checkContent(e.draft.revision==expected,409,"다른 편집이 저장됐어요. 입력을 보관하고 최신 원고를 다시 불러와 주세요.")
+        return e
+    }
+    fun createEpisode(id: String,owner: String,data: CreateWorkRequest) = repository.transaction {
+        own(id,owner); checkContent(data.title.isNotBlank() && data.title.length<=120,message="회차 제목을 확인해 주세요.")
+        val number=(repository.writingNumbers(id).maxOrNull() ?: 0)+1
+        repository.writeDraft(id,number,Draft(data.title.trim()))
+        repository.writing(id,number)!!
+    }
+    fun writeEpisode(id: String,owner: String,number: Int,data: DraftRequest,saveVersion: Boolean) = repository.transaction {
+        val w=own(id,owner); editable(id,number,data.revision)
+        checkContent(data.title.isNotBlank() && data.title.length<=120 && data.body.length<=40000,message="제목은 120자, 원고는 40,000자 이내로 작성해 주세요.")
+        val draft=Draft(data.title.trim(),data.body,data.revision+1)
+        repository.writeDraft(id,number,draft)
+        if(saveVersion) {
+            val original=source(w)
+            repository.saveWritingVersion(w,number,draft,if(w.world.mode=="following") original!!.worldId else w.worldId,
+                selectSettings(effectiveHistory(w,original),number))
+        }
+        repository.writing(id,number)!!
+    }
+    fun restoreEpisode(id: String,owner: String,number: Int,data: RevertRequest) = repository.transaction {
+        own(id,owner); val e=editable(id,number,data.revision)
+        val v=e.versions.find { it.id==data.versionId } ?: throw ContentFailure(404,"이 회차의 저장 버전을 찾을 수 없어요.")
+        writeEpisode(id,owner,number,DraftRequest(v.title,v.body,data.revision),true)
+    }
+    fun publishEpisode(id: String,owner: String,number: Int,data: PublishRequest) = repository.transaction {
+        val w=own(id,owner); val e=editable(id,number,data.revision)
+        val v=e.versions.find { it.id==data.versionId } ?: throw ContentFailure(409,"이 회차의 저장 버전을 먼저 선택해 주세요.")
+        checkContent(data.rightsConfirmed && v.body.isNotBlank(),message="공개 권리와 저장된 원고를 확인해 주세요.")
+        checkContent(number<=w.episodes.size+1,409,"앞 회차부터 순서대로 공개해 주세요.")
+        if(w.source!=null && w.visibility!="public") checkContent(source(w)!!.allowForkPublication,403,"원작이 분기 작품의 최초 공개를 허용하지 않아요.")
+        repository.publishWriting(w,number,v); repository.writing(id,number)!!
+    }
     fun list(owner: String) = repository.transaction { repository.list(owner).map { view(it) } }
     fun read(id: String, owner: String) = repository.transaction { view(own(id,owner)) }
     fun publicList() = repository.transaction { repository.list().map { view(it,true) } }
@@ -40,15 +83,15 @@ class ContentService(private val repository: ContentRepository, private val ai: 
     fun publish(id: String, owner: String, data: PublishRequest) = repository.transaction {
         val w=own(id,owner); revision(w,data.revision)
         if(w.source!=null && w.visibility!="public") checkContent(source(w)!!.allowForkPublication,403,"원작이 분기 작품의 최초 공개를 허용하지 않아요.")
-        val chosen=if(data.versionId!=null) w.versions.find { it.id==data.versionId && it.episode==w.episodes.size+1 }
-            ?: throw ContentFailure(409,"현재 작성 회차의 저장본을 선택해 주세요.") else null
-        val body=chosen?.body ?: w.draft.body
-        checkContent(data.rightsConfirmed && body.isNotBlank(),message="원고를 작성하고 공개 권리를 확인해 주세요.")
-        val version=chosen ?: w.versions.lastOrNull { it.revision==w.draft.revision && it.episode==w.episodes.size+1 } ?: checkpoint(w)
+        val version=w.versions.find { it.id==data.versionId && it.episode==w.episodes.size+1 }
+            ?: throw ContentFailure(409,"현재 작성 회차의 저장 버전을 명시적으로 선택해 주세요.")
+        checkContent(data.rightsConfirmed && version.body.isNotBlank(),message="원고를 작성하고 공개 권리를 확인해 주세요.")
         w.episodes.add(Episode(w.episodes.size+1,version.revision,version.id,version.title,version.body))
         w.visibility="public"; w.allowFork=w.source==null && data.allowFork; w.allowForkPublication=w.source==null && data.allowForkPublication
-        w.publicationHistory.add(Publication(w.episodes.size,version.id)); w.draft=Draft(revision=data.revision+1)
-        repository.save(w); view(w)
+        if(w.source==null && w.policyHistory.lastOrNull()?.let { it.allowFork==w.allowFork && it.allowForkPublication==w.allowForkPublication }!=true)
+            w.policyHistory.add(Policy(w.allowFork,w.allowForkPublication))
+        w.publicationHistory.add(Publication(w.episodes.size,version.id)); w.draft=(repository.writing(w.id,w.episodes.size+1)?.draft ?: Draft()).copy(revision=data.revision+1)
+        repository.save(w); repository.recordPublicationRights(w.id,owner); view(w)
     }
     fun fork(id: String, owner: String, data: ForkRequest) = repository.transaction {
         val w=get(id)
@@ -56,7 +99,7 @@ class ContentService(private val repository: ContentRepository, private val ai: 
         checkContent(data.episode in 1..w.episodes.size,message="공개된 기준 회차를 선택해 주세요.")
         checkContent(repository.list(owner).none { it.source?.workId==id },409,"이미 만든 분기 작품이 있어요.")
         val episodes=w.episodes.take(data.episode).map { it.copy(inherited=true) }.toMutableList()
-        val source=Source(id,w.title,data.episode,episodes.last().version,data.direction)
+        val source=Source(id,w.title,data.episode,episodes.last().version,data.direction,w.policyHistory.lastIndex.takeIf { it>=0 },java.time.Instant.now().toString())
         val f=ContentWork(ownerId=owner,title=data.title.trim(),summary=data.summary,source=source,episodes=episodes,world=WorldState(mode="following"))
         f.world.basis=Basis(data.episode,source.version,inheritedSettings(f,w)); repository.save(f); view(f)
     }
@@ -99,14 +142,26 @@ class ContentService(private val repository: ContentRepository, private val ai: 
     }
     fun propose(id: String, owner: String, data: ProposalRequest): Proposal {
         checkContent(data.consent,message="OpenAI 전송과 API 비용에 동의해 주세요.")
-        val (selected,body)=repository.transaction { val w=own(id,owner); revision(w,data.revision); context(w,data.episode ?: w.episodes.size+1,data.prompt,data.character) to w.draft.body }
-        // Never hold a database transaction while waiting for a paid external call.
-        val result=ai.generate(selected,data.prompt)
-        return repository.transaction {
+        val jobId=contentId()
+        val (selected,body)=repository.transaction {
             val w=own(id,owner); revision(w,data.revision)
-            checkContent(context(w,selected.basisEpisode,data.prompt,data.character)==selected,409,"생성 중 문맥이 변경됐어요. 원고에는 반영하지 않았어요.")
-            val p=Proposal(text=result.text,model=result.model,revision=data.revision,prompt=data.prompt,baseBody=body,context=selected,providerResponseId=result.providerResponseId,usage=result.usage)
-            w.proposals.add(p); repository.save(w); p
+            val selected=context(w,data.episode ?: w.episodes.size+1,data.prompt,data.character)
+            repository.startJob(jobId,w,data.prompt)
+            selected to w.draft.body
+        }
+        // Never hold a database transaction while waiting for a paid external call.
+        try {
+            val result=ai.generate(selected,data.prompt)
+            repository.transaction { repository.completeCall(jobId,result.model,result.providerResponseId,result.usage) }
+            return repository.transaction {
+                val w=own(id,owner); revision(w,data.revision)
+                checkContent(context(w,selected.basisEpisode,data.prompt,data.character)==selected,409,"생성 중 문맥이 변경됐어요. 원고에는 반영하지 않았어요.")
+                val p=Proposal(id=jobId,text=result.text,model=result.model,revision=data.revision,prompt=data.prompt,baseBody=body,context=selected,providerResponseId=result.providerResponseId,usage=result.usage)
+                w.proposals.add(p); repository.save(w); p
+            }
+        } catch(e: RuntimeException) {
+            repository.transaction { repository.failJob(jobId,if(e is ContentFailure && e.status==409) "STALE_CONTEXT" else "GENERATION_OR_STORAGE_FAILED") }
+            throw e
         }
     }
     fun accept(id: String, pid: String, owner: String, expected: Int) = repository.transaction {

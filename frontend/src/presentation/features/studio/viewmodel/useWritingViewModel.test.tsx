@@ -1,0 +1,51 @@
+// @vitest-environment jsdom
+import { act, cleanup, renderHook } from '@testing-library/react'
+import { afterEach, expect, it, vi } from 'vitest'
+import { useWritingViewModel } from './useWritingViewModel'
+
+afterEach(()=>{cleanup();vi.useRealTimers()})
+it('accepts server-normalized titles without an endless autosave loop',async()=>{
+  vi.useFakeTimers()
+  const episode={number:1,draft:{title:'제목',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}
+  const api={writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockResolvedValue({...episode,draft:{...episode.draft,revision:1}}),restoreEpisode:vi.fn(),publishEpisode:vi.fn()}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({title:' 제목 '}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(result.current.draft.title).toBe('제목')
+  expect(result.current.dirty).toBe(false)
+  await act(async()=>{await vi.advanceTimersByTimeAsync(5000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+})
+it('autosaves only the draft after two seconds and retains edits on conflict',async()=>{
+  vi.useFakeTimers()
+  const episode={number:1,draft:{title:'1화',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}
+  const api={writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockRejectedValue(new Error('동시 수정 충돌')),restoreEpisode:vi.fn(),publishEpisode:vi.fn()}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'내 수정'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1999)})
+  expect(api.writeEpisode).not.toHaveBeenCalled()
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1)})
+  expect(api.writeEpisode).toHaveBeenCalledWith('w',1,{title:'1화',body:'내 수정',revision:0},false,expect.any(AbortSignal))
+  expect(result.current.draft.body).toBe('내 수정')
+  expect(result.current.error).toBe('동시 수정 충돌')
+  await act(async()=>{await vi.advanceTimersByTimeAsync(5000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+})
+
+it('late autosave response preserves newer typing and manual save creates a version',async()=>{
+  vi.useFakeTimers()
+  const episode={number:1,draft:{title:'1화',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}
+  let resolveSave: (value:typeof episode)=>void=()=>{}
+  const api={writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockImplementationOnce(()=>new Promise(resolve=>{resolveSave=resolve})).mockResolvedValue({...episode,draft:{title:'1화',body:'최신 입력',revision:2}}),restoreEpisode:vi.fn(),publishEpisode:vi.fn()}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'첫 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  act(()=>result.current.edit({body:'최신 입력'}))
+  await act(async()=>resolveSave({...episode,draft:{title:'1화',body:'첫 입력',revision:1}}))
+  expect(result.current.draft.body).toBe('최신 입력')
+  await act(async()=>{await result.current.save()})
+  expect(api.writeEpisode).toHaveBeenLastCalledWith('w',1,{title:'1화',body:'최신 입력',revision:1},true,expect.any(AbortSignal))
+})

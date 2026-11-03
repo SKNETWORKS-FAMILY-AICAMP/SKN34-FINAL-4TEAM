@@ -38,6 +38,7 @@ export function EpisodePage({useCase}:{useCase?:EpisodeUseCase}) {
       <aside className="ep-sidebar" aria-label="내 작품">
         <div className="ep-side-title">내가 쓰는 소설 <span>{vm.works.length}</span></div>
         <button className="btn pri ep-new" disabled={vm.busy} onClick={()=>pick(null)}>＋ 새 작품</button>
+        <a className="btn sm" href={w&&!w.readOnly?`/studio/${w.id}`:undefined} aria-disabled={!w||w.readOnly}>회차별 집필실 열기</a>
         <nav>{vm.works.map(item=><button key={item.id} className={'ep-work '+(w?.id===item.id?'selected':'')} disabled={vm.busy} onClick={()=>pick(item)}><span className="ep-book">{item.source?'⑂':'▤'}</span><span><strong>{item.title}</strong><small>{item.source?'분기 작품':'원작'} · {item.visibility==='public'?'공개':'비공개'} · {item.episodes.length}화</small></span></button>)}</nav>
         <button className="btn sm" disabled={vm.busy} onClick={()=>void vm.browsePublic()}>공개 작품 찾아보기</button><nav aria-label="공개 작품">{vm.publicWorks.map(item=><button className="ep-work" disabled={vm.busy} key={item.id} onClick={()=>pick(item)}>{item.title} · 공개 {item.episodes.length}화</button>)}</nav>
         <div className="ep-side-note"><strong>작가의 선택으로 완성되는 이야기</strong><p>AI는 제안을 만들고,<br/>적용과 공개는 직접 결정해요.</p><p>저장한 원고와 설정은 서버에서 보관해요.</p></div>

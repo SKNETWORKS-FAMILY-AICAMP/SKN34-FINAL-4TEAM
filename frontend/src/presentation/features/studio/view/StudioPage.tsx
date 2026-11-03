@@ -9,6 +9,8 @@ import { Sheet } from '../../../shared/Sheet'
 import { useStudioViewModel } from '../viewmodel/useStudioViewModel'
 import { PublishSettingsSheet } from './StudioSheets'
 import { MemoView, NarrativeView, StudioTools, WikiView } from './StudioViews'
+import { WritingStudio } from './WritingStudio'
+import { RequireRole } from '../../../shared/session/RequireRole'
 
 type VM = ReturnType<typeof useStudioViewModel>
 const readParas = (el: HTMLElement) => {
@@ -20,6 +22,11 @@ const VIEW_ID: Record<string, string> = { wiki: 'U38', overview: 'U38', narrativ
 
 /** 집필실의 사전·플롯·원고·콘티를 주소로 고릅니다. */
 export function StudioPage() {
+  const { id = '' } = useParams()
+  // Server work IDs use the persisted writing flow; existing named fixtures remain an explicit demo.
+  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? <WritingStudio key={id} id={id}/> : <RequireRole><DemoStudioPage/></RequireRole>
+}
+function DemoStudioPage() {
   const { id = '' } = useParams()
   const [q] = useSearchParams()
   const navigate = useNavigate()

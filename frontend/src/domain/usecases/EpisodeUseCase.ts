@@ -4,6 +4,20 @@ import type { Draft, SettingInput } from '../entities/content'
 export class EpisodeUseCase {
   private readonly repository: EpisodeRepository
   constructor(repository: EpisodeRepository) { this.repository = repository }
+  writingList(id:string,signal?:AbortSignal) {return this.repository.writingList(id,signal)}
+  createEpisode(id:string,title:string,signal?:AbortSignal) {
+    if(!title.trim() || title.length>120) return Promise.reject(new Error('회차 제목을 120자 이내로 입력해 주세요.'))
+    return this.repository.createEpisode(id,title.trim(),signal)
+  }
+  writeEpisode(id:string,number:number,draft:Draft,version:boolean,signal?:AbortSignal) {
+    if(!draft.title.trim() || draft.title.length>120 || draft.body.length>40000) return Promise.reject(new Error('제목은 120자, 원고는 40,000자 이내로 작성해 주세요.'))
+    return this.repository.writeEpisode(id,number,draft,version,signal)
+  }
+  restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.repository.restoreEpisode(id,number,revision,versionId,signal)}
+  publishEpisode(id:string,number:number,revision:number,versionId:string,rights:boolean,signal?:AbortSignal) {
+    if(!versionId || !rights) return Promise.reject(new Error('저장 버전 선택과 공개 권리 확인이 필요해요.'))
+    return this.repository.publishEpisode(id,number,revision,versionId,rights,signal)
+  }
   publicList(signal?: AbortSignal) { return this.repository.publicList(signal) }
   list(signal?: AbortSignal) { return this.repository.list(signal) }
   create(title: string, summary: string) {

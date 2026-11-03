@@ -1,6 +1,11 @@
-import type {Draft,Work,Proposal,History,World,SettingInput,StoryContext} from '../entities/content'
+import type {WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext} from '../entities/content'
 
 export interface EpisodeRepository {
+  writingList(id:string,signal?:AbortSignal):Promise<WritingEpisode[]>
+  createEpisode(id:string,title:string,signal?:AbortSignal):Promise<WritingEpisode>
+  writeEpisode(id:string,number:number,draft:Draft,version:boolean,signal?:AbortSignal):Promise<WritingEpisode>
+  restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal):Promise<WritingEpisode>
+  publishEpisode(id:string,number:number,revision:number,versionId:string,rights:boolean,signal?:AbortSignal):Promise<WritingEpisode>
   publicList(signal?: AbortSignal): Promise<Work[]>
   list(signal?: AbortSignal): Promise<Work[]>
   create(title: string, summary: string): Promise<Work>

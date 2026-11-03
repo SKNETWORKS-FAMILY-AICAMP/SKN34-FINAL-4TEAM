@@ -24,6 +24,8 @@ Spring Boot·Kotlin 공개 API입니다. 기존 Health 경로·식별자를 유�
 
 ## 구조
 
+콘텐츠 정본은 최신 ERD에 따른 관계형 테이블에 저장합니다. 기존 JSONB는 읽기 전용 이관 백업으로 남깁니다. [ERD 대응과 마이그레이션](../../docs/content-erd-migration.md)에 테이블별 역할·기존 데이터 보존·남은 범위를 기록했습니다.
+
 Gradle group `ai.storyfork`, 애플리케이션 `storyfork-core-api`, Kotlin namespace `ai.storyfork.core`입니다.
 main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 package와 일치합니다.
 
@@ -59,3 +61,5 @@ AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 �
 `./gradlew bootRun` 직접 실행은 `.env`를 로드하지 않습니다.
 Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 web 포트에 맞춥니다.
 실행 설정은 [인프라 안내](../../infrastructure/README.md)를 참고하세요.
+
+회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.

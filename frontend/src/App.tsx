@@ -78,7 +78,7 @@ function App() {
         <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
         <Route path="/worlds" element={<Navigate replace to="/new" />} />
         <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
-        <Route path="/studio/:id" element={<RequireRole><StudioPage /></RequireRole>} />
+        <Route path="/studio/:id" element={<StudioPage />} />
         <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
         <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
         <Route path="/chat/:wid?/:cn?" element={<RequireRole><ChatPage /></RequireRole>} />

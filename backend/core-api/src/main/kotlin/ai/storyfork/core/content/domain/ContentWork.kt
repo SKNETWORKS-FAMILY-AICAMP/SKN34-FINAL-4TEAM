@@ -5,8 +5,10 @@ import java.util.UUID
 
 fun contentId(): String = UUID.randomUUID().toString()
 data class Draft(val title: String = "새 회차", val body: String = "", val revision: Int = 0)
+data class WritingEpisode(val number: Int, val draft: Draft, val versions: List<Version>, val publishedVersionId: String?, val inherited: Boolean, val updatedAt: String?, val checkpointStatus: String = "content_only")
 data class Episode(val number: Int, val version: Int, val versionId: String, val title: String, val body: String, val inherited: Boolean = false)
-data class Source(val workId: String, val title: String, val episode: Int, val version: Int, val direction: String)
+data class Source(val workId: String, val title: String, val episode: Int, val version: Int, val direction: String,
+    val confirmedPolicyRevision: Int? = null, val conditionsConfirmedAt: String? = null)
 data class Version(val id: String = contentId(), val title: String, val body: String, val revision: Int, val episode: Int, val savedAt: String = Instant.now().toString())
 data class Setting(
     val id: String = "", val versionId: String = "", val name: String = "", val content: String = "",
@@ -34,7 +36,7 @@ data class ContentWork(
     val source: Source? = null, val episodes: MutableList<Episode> = mutableListOf(), var draft: Draft = Draft(),
     val versions: MutableList<Version> = mutableListOf(), val proposals: MutableList<Proposal> = mutableListOf(),
     val policyHistory: MutableList<Policy> = mutableListOf(), val publicationHistory: MutableList<Publication> = mutableListOf(),
-    val world: WorldState = WorldState(),
+    val world: WorldState = WorldState(), val worldId: String = id, val genre: String = "",
 )
 class ContentFailure(val status: Int, override val message: String): RuntimeException(message)
 fun checkContent(ok: Boolean, status: Int = 422, message: String) { if (!ok) throw ContentFailure(status, message) }

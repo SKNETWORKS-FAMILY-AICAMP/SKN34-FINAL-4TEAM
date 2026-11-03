@@ -10,3 +10,5 @@ export type World = {id:string;name:string;revision:number;mode:'own'|'following
 export type StoryContext = {title:string;summary:string;basisEpisode:number;character:string;settings:SavedSetting[];draft:string;episodes:{number:number;version:number;versionId:string;title:string;sourceCharacters:number;excerpts:{start:number;end:number;text:string}[]}[];selection:{method:string;omittedCharacters:number;eligibleEpisodes:number;note:string}}
 export type Version = Draft & { id: string; episode: number; savedAt: string }
 export type History = { versions: Version[]; proposals: Proposal[] }
+
+export type WritingEpisode = {number:number;draft:Draft;versions:Version[];publishedVersionId:string|null;inherited:boolean;updatedAt:string|null;checkpointStatus:string}

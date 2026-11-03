@@ -3,6 +3,7 @@ import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput} from '../../domain/entities/content'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
+const writing = z.object({number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
 const episode = z.object({number:z.number().int().positive(),version:z.number().int().positive(),title:z.string(),body:z.string(),inherited:z.boolean()})
 const source = z.object({workId:z.string(),title:z.string(),episode:z.number().int(),version:z.number().int(),direction:z.string()})
 const work = z.object({id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft})
@@ -26,6 +27,11 @@ export class HttpEpisodeRepository implements EpisodeRepository {
     if (!parsed.success) throw new Error('서버 응답 형식을 확인할 수 없어요.')
     return parsed.data
   }
+  writingList(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,z.array(writing),'GET',undefined,signal)}
+  createEpisode(id:string,title:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,writing,'POST',{title},signal)}
+  writeEpisode(id:string,number:number,value:Draft,version:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/${version?'versions':'draft'}`,writing,version?'POST':'PUT',value,signal)}
+  restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/restore`,writing,'POST',{revision,versionId},signal)}
+  publishEpisode(id:string,number:number,revision:number,versionId:string,rightsConfirmed:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/publish`,writing,'POST',{revision,versionId,rightsConfirmed},signal)}
   async publicList(signal?: AbortSignal) {
     const rows = await this.request('/public/works', z.array(work.omit({draft:true})), 'GET', undefined, signal)
     return rows.map(w=>({...w,readOnly:true,draft:{title:'',body:'',revision:0}}))

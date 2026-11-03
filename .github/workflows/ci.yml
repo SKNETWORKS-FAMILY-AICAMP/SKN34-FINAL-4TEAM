@@ -141,12 +141,9 @@ jobs:
           persist-credentials: false
       - run: python3 -m unittest discover infrastructure/tests
       - run: python3 -I infrastructure/scripts/check-compose-config.py
-<<<<<<< HEAD
       - run: python3 -I infrastructure/scripts/check-content-config.py
-=======
       - run: python3 -I infrastructure/scripts/test-publish-preflight.py
       - run: python3 -I infrastructure/scripts/test-deploy-develop.py
->>>>>>> fe9ddd85058789d3ae70f142a69dbca7508e603f
       - run: bash -n infrastructure/scripts/verify-compose.sh
 
   required:
