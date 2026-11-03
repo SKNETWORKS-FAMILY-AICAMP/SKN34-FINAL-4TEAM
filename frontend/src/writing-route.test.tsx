@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import './testLocks'
-import { act, cleanup, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { renderApp } from './test/renderApp'
 import { refresh, login, getAccessToken } from './data/api/auth'
@@ -40,6 +40,38 @@ it('shows a recoverable error without granting access on an initial outage', asy
   const { store } = renderApp('/')
   await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('연결'))
   expect(store.getState().session.role).toBeNull()
+})
+
+it('clears a restore connection error only after a later successful login', async () => {
+  const user = { id: 'writer', email: 'writer@example.invalid', nickname: 'Writer', operator: false }
+  const connectionError = '서버 연결에 실패했어요. 잠시 후 다시 시도해 주세요.'
+  let loginAttempts = 0
+  const fetcher = vi.fn(async (path: string) => {
+    if (path.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
+    if (path.endsWith('/login')) {
+      loginAttempts += 1
+      return loginAttempts === 1 ? new Response(null, { status: 401 }) : Response.json({ accessToken: 'manual-login', user })
+    }
+    return new Response(null, { status: 503 })
+  })
+  vi.stubGlobal('fetch', fetcher)
+  const { store } = renderApp('/login')
+  await screen.findByText(connectionError)
+  expect(store.getState().session.role).toBeNull()
+
+  fireEvent.change(screen.getByLabelText('이메일'), { target: { value: user.email } })
+  fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'wrong' } })
+  fireEvent.click(screen.getByRole('button', { name: '로그인' }))
+  await screen.findByText('로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.')
+  expect(screen.getByText(connectionError)).toBeTruthy()
+  expect(store.getState().session.role).toBeNull()
+
+  fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'password' } })
+  fireEvent.click(screen.getByRole('button', { name: '로그인' }))
+  await waitFor(() => expect(store.getState().session.role).toBe('user'))
+  expect(getAccessToken()).toBe('manual-login')
+  await waitFor(() => expect(screen.queryByText(connectionError)).toBeNull())
+  expect(fetcher.mock.calls.filter(([path]) => path.endsWith('/refresh'))).toHaveLength(1)
 })
 
 it.each(['/content', '/studio/00000000-0000-0000-0000-000000000001'])('waits for restored memory authentication before loading %s', async path => {

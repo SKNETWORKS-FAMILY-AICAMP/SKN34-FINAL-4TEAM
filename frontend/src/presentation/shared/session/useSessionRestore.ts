@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import { appContainer } from '../../../app/appContainer'
-import { useAppDispatch } from '../../../app/store'
+import { useAppDispatch, useAppSelector } from '../../../app/store'
 import { LockUnavailable } from '../../../domain/repositories/AuthRepository'
 import { SessionExpired } from '../../../domain/repositories/ProfileRepository'
 import { sessionActions } from './sessionSlice'
 
 export function useSessionRestore() {
   const dispatch = useAppDispatch()
+  const user = useAppSelector((s) => s.session.user)
   const [restoring, setRestoring] = useState(true)
   const [restoreError, setRestoreError] = useState<'lock' | 'connection' | null>(null)
+  useEffect(() => { setRestoreError(null) }, [user])
   useEffect(() => {
     let active = true
     appContainer.resolve('authUseCase').refresh().then((user) => {
