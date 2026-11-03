@@ -1,7 +1,12 @@
 """CI 선택·실행 계약의 stdlib 회귀 테스트. 서비스/DB/컨테이너를 실행하지 않는다."""
 import ast
 import importlib.util
+import json
+import os
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -114,13 +119,105 @@ class SelectionTest(unittest.TestCase):
         configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
         self.assertIn('python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v', configuration)
 
+    def test_unit_and_integration_run_in_parallel_before_system(self):
+        workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
+        unit = workflow.split('\n  unit:\n', 1)[1].split('\n  integration:\n', 1)[0]
+        integration = workflow.split('\n  integration:\n', 1)[1].split('\n  system:\n', 1)[0]
+        for job, needed in [(unit, 'unit'), (integration, 'integration')]:
+            with self.subTest(tier=needed):
+                self.assertIn('\n    needs: changes\n', job)
+                self.assertIn(f"if: ${{{{ needs.changes.outputs.{needed}_needed == 'true' }}}}", job)
+                self.assertIn('fail-fast: false', job)
+        system = workflow.split('\n  system:\n', 1)[1].split('\n  required:\n', 1)[0]
+        self.assertIn('needs: [changes, unit, integration, configuration]', system)
+        for prerequisite in ['changes', 'unit', 'integration']:
+            self.assertIn(f"needs.{prerequisite}.result == 'success'", system)
+        required = workflow.split('\n  required:\n', 1)[1]
+        self.assertIn('if: ${{ always() }}', required)
+        self.assertIn('needs: [changes, configuration, unit, integration, system]', required)
+        self.assertIn('pnpm exec vitest run src/domain src/data src/index-html.test.js', unit)
+        self.assertIn("--exclude 'src/domain/**' --exclude 'src/data/**' --exclude src/index-html.test.js", integration)
+
     def test_required_rejects_cancelled_and_unexpected_skips(self):
         ci.check_results({"unit": "skipped", "integration": "skipped", "system": "skipped"}, set())
-        for result in ["failure", "cancelled", "skipped"]:
-            with self.subTest(result=result), self.assertRaises(SystemExit):
-                ci.check_results({"unit": result}, {"unit"})
-        with self.assertRaises(SystemExit):
-            ci.check_results({}, {"unit"})
+        for job in ["changes", "configuration", "unit", "integration", "system"]:
+            ci.check_results({job: "success"}, {job})
+            for result in ["failure", "cancelled", "skipped", "unknown"]:
+                with self.subTest(job=job, result=result), self.assertRaises(SystemExit):
+                    ci.check_results({job: result}, {job})
+            with self.subTest(job=job), self.assertRaises(SystemExit):
+                ci.check_results({}, {job})
+
+
+class PlanGitTest(unittest.TestCase):
+    def setUp(self):
+        scratch = tempfile.TemporaryDirectory(prefix='ci-plan-')
+        self.addCleanup(scratch.cleanup)
+        self.repo = Path(scratch.name)
+        self.git('init', '-q')
+
+    def git(self, *args):
+        return subprocess.check_output([
+            'git', '-c', 'core.hooksPath=/dev/null', '-c', 'user.name=CI Test',
+            '-c', 'user.email=ci@example.invalid', *args,
+        ], cwd=self.repo, text=True).strip()
+
+    def commit(self, name, text):
+        (self.repo / name).write_text(text)
+        self.git('add', name)
+        self.git('commit', '-qm', 'test fixture')
+        return self.git('rev-parse', 'HEAD')
+
+    def plan(self, event, payload):
+        event_path = self.repo / 'event.json'
+        event_path.write_text(json.dumps(payload))
+        return subprocess.run([
+            sys.executable, '-I', '-c',
+            'import runpy, sys; from pathlib import Path; '
+            'ns = runpy.run_path(sys.argv[1]); main = ns["main"]; '
+            'main.__globals__["ROOT"] = Path(sys.argv[2]); '
+            'sys.argv = [sys.argv[1], "plan"]; main()',
+            str(Path(ci.__file__).resolve()), str(self.repo),
+        ], text=True, capture_output=True, env={**os.environ,
+            'GITHUB_EVENT_NAME': event, 'GITHUB_EVENT_PATH': str(event_path),
+            'GITHUB_OUTPUT': str(self.repo / 'output'),
+        })
+
+    def test_known_baseline_reports_whitespace_location_and_fails(self):
+        base = self.commit('clean.txt', 'clean\n')
+        self.commit('bad.txt', 'bad \n')
+        result = self.plan('push', {'before': base})
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('bad.txt:1: trailing whitespace.', result.stdout)
+
+    def test_missing_baseline_checks_parent_but_selects_all_tests(self):
+        self.commit('legacy.txt', 'legacy \n')
+        self.commit('clean.txt', 'clean\n')
+        for event, payload in [
+            ('workflow_dispatch', {}), ('push', {'before': '0' * 40}),
+            ('push', {'before': 'a' * 40}),
+            ('pull_request', {'pull_request': {'base': {'sha': 'a' * 40}}}),
+        ]:
+            with self.subTest(event=event, payload=payload):
+                result = self.plan(event, payload)
+                self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+                plan = json.loads(result.stdout)
+                self.assertIsNone(plan['base'])
+                self.assertEqual(set(ci.SERVICES), {row['service'] for row in plan['unit']})
+                self.assertEqual(plan['unit'], plan['integration'])
+                self.assertEqual(ci.SCENARIOS, plan['system'])
+                self.assertTrue(plan['infra'])
+        self.commit('new.txt', 'new \n')
+        result = self.plan('workflow_dispatch', {})
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('new.txt:1: trailing whitespace.', result.stdout)
+        self.assertNotIn('legacy.txt:1: trailing whitespace.', result.stdout)
+
+    def test_initial_commit_checks_against_empty_tree(self):
+        self.commit('initial.txt', 'initial \n')
+        result = self.plan('push', {'before': '0' * 40})
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('initial.txt:1: trailing whitespace.', result.stdout)
 
 
 class SystemContractTest(unittest.TestCase):

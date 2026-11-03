@@ -130,7 +130,12 @@ def main():
             for tier in ("unit", "integration"):
                 output.write(f"{tier}={json.dumps({'include': plan[tier]})}\n{tier}_needed={str(bool(plan[tier])).lower()}\n")
             output.write(f"system={','.join(plan['system'])}\nsystem_needed={str(bool(plan['system'])).lower()}\ninfra={str(plan['infra']).lower()}\n")
-        git("diff", "--check", base or git("hash-object", "-t", "tree", "/dev/null"), "HEAD")
+        check_base = base
+        if check_base is None:
+            # 테스트 선택은 전체로 확장해도 공백 검사는 직전 변경만 확인한다.
+            parents = [line[7:] for line in git("cat-file", "-p", "HEAD").split("\n\n", 1)[0].splitlines() if line.startswith("parent ")]
+            check_base = parents[0] if parents else git("hash-object", "-t", "tree", "/dev/null")
+        subprocess.run(["git", "diff", "--check", check_base, "HEAD"], cwd=ROOT, check=True)
     elif args.action == "reports":
         out = Path(args.output)
         out.mkdir(parents=True, exist_ok=True)

@@ -160,9 +160,8 @@ jobs:
 
   integration:
     name: Integration / ${{ matrix.service }}
-    needs: [changes, configuration, unit]
-    # unaffected configuration 작업의 의도적 skip은 필요한 통합 테스트를 막지 않는다.
-    if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.unit.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.integration_needed == 'true' }}
+    needs: changes
+    if: ${{ needs.changes.outputs.integration_needed == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:

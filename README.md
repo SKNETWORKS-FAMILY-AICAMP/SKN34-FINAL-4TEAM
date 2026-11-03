@@ -189,7 +189,7 @@ uv run --locked --extra dev python -m pytest -m 'not integration' tests/test_gen
 [AI 지침](backend/ai-service/AGENTS.md#변경-범위와-검증)을 따릅니다. 단위 통과가 CI 통합·시스템 검증을 대신하지 않습니다.
 Aside는 별도 요청·승인 시에만 사용하며 HTTP 시스템 테스트를 브라우저 E2E로 보고하지 않습니다.
 
-### CI: 단위 → 통합 → 선택 HTTP 시스템 → Required CI
+### CI: 선택 → 단위·통합 병렬 → 선택 HTTP 시스템 → Required CI
 
 [`ci.yml`](.github/workflows/ci.yml)이 Vitest·Gradle·pytest를 직접 호출하고 환경 기동·readiness·항상 정리를 소유합니다.
 [`infrastructure/ci/ci.py`](infrastructure/ci/ci.py)는 보수적인 변경 선택·결과 집계·로그 정제만 담당하며 공통 runner나 shell wrapper는 없습니다.
@@ -203,7 +203,7 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 | 시스템 | CI 전용 Compose 앱·임시 PostgreSQL·Mailpit을 기동한 뒤 `pytest infrastructure/system -k ...`로 선택된 실제 HTTP 시나리오 실행 |
 | 집계 | `Required CI`: 실패·취소·필요한 tier의 예상 밖 skip은 실패, 영향 없는 작업의 의도적 skip만 허용 |
 
-같은 계층의 서비스 작업은 병렬이고 앞 계층 실패 시 뒤 계층은 실행하지 않습니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
+변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
 Core의 혼합 경계 클래스는 통합에 두며 새 Spring/HTTP/DB 테스트의 분류 누락은 선택기 회귀가 검사합니다.
 Core 통합 job은 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTENT_DATABASE_URL`을 설정해 기존 조건부 테스트를 활성화합니다.
 기존 Content 테스트의 `content_test`/빈 비밀번호 계약은 격리 runner의 임시 PostgreSQL trust 인증으로만 맞춥니다.
@@ -212,6 +212,7 @@ Core 통합 job은 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTE
 
 - PR: base와 실제 head의 **merge-base**부터 비교. push: event의 **before SHA**부터 비교.
   수동 CI 실행·기준선 부재(새 브랜치/기준 커밋 없음)는 명시적으로 전체 서비스·시나리오를 실행합니다.
+  이때 공백 검사는 첫 부모와 비교하며, 부모가 없는 최초 커밋만 빈 트리와 비교합니다.
 - web·AI는 서비스 수준, Core는 auth/content/health 기능 수준으로 보수적으로 선택합니다. 선택된 범위의 해당 계층 테스트는 모두 실행합니다.
 - 공유·설정·의존성·미등록 runtime 경로는 해당 서비스 전체 또는 전체 서비스로 확장합니다.
   Core Auth는 Content/web 소비자를, Core Content·AI 계약 변경은 연결된 Core/AI/web와 시스템 시나리오를 함께 선택합니다.
