@@ -131,6 +131,25 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
     expect(star().castFrom!['세라핀']).toBe(3)
   })
 
+  it('세션 복원으로 설정 노트가 나타난 직후의 native change도 저장한다', async () => {
+    ownWorld()
+    const setRelease = vi.spyOn(appContainer.resolve('studioUseCase'), 'setRelease')
+    const observer = new MutationObserver(() => {
+      const rule = screen.queryAllByLabelText('독자 공개 시작 회차 (비우면 비공개)')[0]
+      if (!rule) return
+      observer.disconnect()
+      fireEvent.change(rule, { target: { value: '0' } })
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    try {
+      renderAt('/studio/starlight?panel=settings')
+      const rule = (await screen.findAllByLabelText('독자 공개 시작 회차 (비우면 비공개)'))[0] as HTMLInputElement
+      await waitFor(() => expect(setRelease).toHaveBeenCalledWith('starlight', 'rule', 0, '0'))
+      await toastIs('1 이상의 회차를 입력해 주세요')
+      await waitFor(() => expect(rule.value).toBe(''))
+    } finally { observer.disconnect() }
+  })
+
   it('독자 공개 회차는 칸을 벗어나지 않아도 change(Enter·스핀 버튼) 한 번마다 저장한다', async () => {
     ownWorld()
     renderAt('/studio/starlight?panel=settings')
