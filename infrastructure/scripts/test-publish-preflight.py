@@ -18,6 +18,16 @@ images_path = root / '.github/workflows/publish-images.yml'
 assert images_path.exists(), 'Images workflow missing; publication still lives in CI'
 workflow = images_path.read_text()
 assert '  publish:' not in ci and 'docker push' not in ci
+assert '  deploy:' not in ci, 'Deploy must not depend on removed CI publication jobs'
+assert 'python3 -I infrastructure/scripts/test-deploy-develop.py' in ci
+assert ci.count("'.github/workflows/deploy-develop.yml'") == 4
+# A successful Required CI with skipped service jobs must start a fresh Images graph.
+assert 'needs: required' not in workflow and 'needs: gate' in workflow
+assert 'if: ${{ always() }}' in ci and 'success|skipped)' in ci
+assert 'path: ${{ runner.temp }}/publication-source.json' in workflow
+assert 'name: publication-source-${{ github.run_id }}-${{ github.run_attempt }}' in workflow
+assert 'if-no-files-found: error' in workflow
+assert 'upload-artifact@' in workflow
 for service, output in [('web', 'web'), ('core-api', 'core'), ('ai-service', 'ai'), ('infrastructure', 'infra')]:
     assert f"if: ${{{{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.{output} == 'true' }}}}" in ci, service
 assert ci.count("'.github/workflows/publish-images.yml'") == 4
@@ -38,6 +48,7 @@ publication = workflow.split('  publish:\n', 1)[1]
 assert 'GITHUB_SHA' not in publication and 'GITHUB_REF' not in publication
 assert 'download-artifact' not in workflow and 'actions/cache' not in workflow
 assert '--platform linux/amd64' in workflow
+assert workflow.count('python3 -I - <<') == 2, 'Publication checks must not import target-checkout modules'
 assert workflow.count('persist-credentials: false') == workflow.count('uses: actions/checkout@')
 for action in re.findall(r'uses: (\S+)', ci + workflow):
     assert re.fullmatch(r'[^@]+@[0-9a-f]{40}', action), action
@@ -131,19 +142,24 @@ try:
         with tempfile.TemporaryDirectory() as directory:
             event_path = Path(directory) / 'event.json'
             output_path = Path(directory) / 'output'
+            source_path = Path(directory) / 'publication-source.json'
             event_path.write_text(json.dumps(event))
             output_path.touch()
-            env = {**os.environ, 'GITHUB_API_URL': api_url, 'GITHUB_REPOSITORY': 'owner/repo', 'GITHUB_EVENT_PATH': str(event_path), 'GITHUB_OUTPUT': str(output_path), 'GH_TOKEN': 'test-secret', 'GITHUB_EVENT_NAME': 'workflow_dispatch' if manual else 'workflow_run', 'GITHUB_SHA': sha if manual else 'd' * 40, 'GITHUB_REF': 'refs/heads/develop' if manual else 'refs/heads/main', **(overrides or {})}
+            env = {**os.environ, 'GITHUB_API_URL': api_url, 'GITHUB_REPOSITORY': 'owner/repo', 'GITHUB_EVENT_PATH': str(event_path), 'GITHUB_OUTPUT': str(output_path), 'GH_TOKEN': 'test-secret', 'GITHUB_EVENT_NAME': 'workflow_dispatch' if manual else 'workflow_run', 'GITHUB_SHA': sha if manual else 'd' * 40, 'GITHUB_REF': 'refs/heads/develop' if manual else 'refs/heads/main', 'GITHUB_RUN_ID': '84', 'GITHUB_RUN_ATTEMPT': '3', 'PUBLICATION_SOURCE_PATH': str(source_path), **(overrides or {})}
             result = subprocess.run([sys.executable, '-I', str(root / 'infrastructure/scripts/check-publish-ci.py')], env=env, capture_output=True, text=True)
             output = output_path.read_text()
+            source = json.loads(source_path.read_text()) if source_path.exists() else None
         assert (result.returncode == 0) == passed, (label, result.stdout, result.stderr)
         assert 'test-secret' not in result.stdout + result.stderr + output, label
         if passed:
             target_branch = env['GITHUB_REF'].removeprefix('refs/heads/') if manual else event['workflow_run']['head_branch']
             assert output == f'sha={sha}\nbranch={target_branch}\n', (label, output)
+            assert source == {'repository': 'owner/repo', 'branch': target_branch, 'sha': sha,
+                              'ci_run_id': 42, 'ci_run_attempt': 2,
+                              'images_run_id': 84, 'images_run_attempt': 3}, (label, source)
             assert any(urllib.parse.urlsplit(path).path == jobs_route for path in Handler.requests), label
         else:
-            assert not output, (label, output)
+            assert not output and source is None, (label, output, source)
         return list(Handler.requests)
 
     check_gate('automatic target differs from default branch context', passed=True)

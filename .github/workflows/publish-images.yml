@@ -34,7 +34,15 @@ jobs:
         id: ci
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLICATION_SOURCE_PATH: ${{ runner.temp }}/publication-source.json
         run: python3 -I infrastructure/scripts/check-publish-ci.py
+      - name: Record validated publication source
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: publication-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/publication-source.json
+          if-no-files-found: error
+          retention-days: 7
 
   publish:
     name: Publish ${{ matrix.service }} image
@@ -76,7 +84,7 @@ jobs:
             "${{ matrix.context }}"
       - name: Check anonymous package access
         run: |
-          python3 - <<'PY'
+          python3 -I - <<'PY'
           # preflight-start
           import json
           import os
@@ -108,7 +116,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 - <<'PYTHON'
+          python3 -I - <<'PYTHON'
           # branch-head-start
           import json
           import os
