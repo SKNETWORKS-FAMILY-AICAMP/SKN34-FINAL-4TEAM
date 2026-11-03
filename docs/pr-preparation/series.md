@@ -207,3 +207,14 @@ frontend/src/presentation/features/studio/view/WorldStudioPage.tsx
 frontend/src/presentation/features/studio/view/world-map.css
 frontend/src/presentation/features/studio/view/world-studio.css
 ```
+
+## 08 탭별 외부 레이아웃 통일
+
+남아 있던 그래프 전용 컨테이너 폭을 공통 작업실로 옮기고 탭바 세로 스크롤과 문서 스크롤바 폭 변화를 정리합니다. [원인과 전후 측정](../world-sidebar.md#탭별-공통-레이아웃-정정). 01~07 패치는 보존하며 08을 그 뒤에 적용합니다. DB·관계 데이터·PR 생성은 범위 밖입니다.
+
+```text
+docs/pr-preparation/series.md
+docs/world-sidebar.md
+frontend/src/presentation/features/studio/view/world-map.css
+frontend/src/presentation/features/studio/view/world-studio.css
+```

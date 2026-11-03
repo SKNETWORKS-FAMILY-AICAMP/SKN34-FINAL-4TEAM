@@ -1,4 +1,5 @@
-.world-studio { padding-block: 28px 64px; }
+html:has(.world-studio) { scrollbar-gutter:stable; }
+.world-studio { max-width:1600px; padding-block:28px 64px; }
 .world-heading,.world-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
 .world-heading h1 { font-size:30px; margin:16px 0 8px; }
 .world-layout { display:grid; grid-template-columns:240px 44px minmax(0,1fr); gap:12px; }
@@ -21,7 +22,7 @@
 .world-setting-editor { min-width:0; }
 .world-text { min-height:220px; }
 .world-content .libtabs { overflow-x:auto; }
-.world-content .libtabs button { flex-shrink:0; background:none; color:inherit; border:0; padding:12px; cursor:pointer; }
+.world-content .libtabs button { flex-shrink:0; background:none; color:inherit; border:0; border-bottom:2px solid transparent; margin-bottom:0; padding:12px; cursor:pointer; }
 .world-content .libtabs button.on { color:var(--pri); border-bottom:2px solid var(--pri); }
 .world-content :focus-visible,.world-list :focus-visible { outline:2px solid var(--pri); outline-offset:3px; }
 .world-content .inp,.world-list .inp,.world-content .ta { width:100%; }
