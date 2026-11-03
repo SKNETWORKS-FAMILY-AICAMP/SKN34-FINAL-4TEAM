@@ -320,7 +320,9 @@ class DeployTests(unittest.TestCase):
             calls = []
             def record(args, **kwargs):
                 calls.append(args)
-                if args[0] == 'ssh-keygen': return 'verified test fixture'
+                if args[0] == 'ssh-keygen':
+                    self.assertEqual(args[1:3], ['-F', '[100.90.8.124]:5798'])
+                    return 'verified test fixture'
                 return actual_run(args, **kwargs)
             with patch.dict(os.environ, env, clear=True), patch.object(cd, 'run', side_effect=record), \
                     patch.object(cd.subprocess, 'run', wraps=subprocess.run) as child, \
@@ -335,7 +337,7 @@ class DeployTests(unittest.TestCase):
             self.assertIn('BatchMode=yes', ssh)
             self.assertIn('PasswordAuthentication=no', ssh)
             self.assertIn('5798', ssh)
-            self.assertIn('tgv99536@100.105.27.82', ssh)
+            self.assertIn('tgv99536@100.90.8.124', ssh)
             self.assertNotIn(TOKEN, ' '.join(ssh))
             self.assertFalse(Path(ssh[ssh.index('-i') + 1]).exists())
             # The remote command carries the trusted shared gate, not a server-side file dependency.
