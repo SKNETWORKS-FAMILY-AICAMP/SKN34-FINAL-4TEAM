@@ -44,6 +44,17 @@
   DTO에는 해당 경계에서 허용된 필드만 명시한다. HTTP 상태·헤더와 본문 없는 응답을 위해 빈 DTO를 만들지는 않는다.
 - Repository의 영속성 입출력에는 Entity를 사용하되 Service에서 DTO와 변환한다. DTO 사용을 이유로 영속성 모델이나
   업무 로직까지 DTO로 대체하거나, 동일 경계에 불필요한 중간 DTO·전달 계층을 추가하지 않는다.
+- DTO는 계층 수가 아니라 계약·검증·노출 범위가 달라지는 경계를 기준으로 나눈다. Controller → Service → Facade처럼
+  호출 계층이 늘었다는 이유만으로 같은 필드의 DTO와 일대일 복사 코드를 단계마다 만들지 않는다.
+  Controller와 Service의 계약·허용 필드가 같으면 `service/dto`의 동일 DTO를 재사용한다.
+- 공개 HTTP 계약, 내부 실행 결과, 외부 시스템 계약의 필드·의미·변경 이유가 다르면 별도 DTO로 정의한다.
+  예를 들어 로그인 내부 결과의 refresh token은 Controller가 HttpOnly 쿠키로 설정하고, 공개 JSON 응답 DTO에는
+  access token과 허용된 사용자 정보만 담는다. 내부 결과 객체를 그대로 직렬화하여 비밀값을 노출하지 않는다.
+- DTO 안에 Entity·도메인 객체를 중첩하거나 그 목록을 담아 공개하는 방식으로 경계를 우회하지 않는다.
+  중첩 응답도 허용 필드가 명시된 DTO를 사용한다. Domain은 업무 상태·규칙을, Entity는 영속성 상태를 담당하며
+  둘을 계층 전달용 DTO로 취급하지 않는다. Repository의 Entity 계약을 DTO로 일괄 치환하지 않는다.
+- 경로·헤더·쿠키 값과 검증된 Principal은 위의 Spring MVC 바인딩 규칙을 따른다. 식별자 하나나 본문 없는 응답을
+  감싸기 위한 빈약한 DTO를 만들지 않으며, DTO 분리 자체를 위해 Mapper·Facade·인터페이스 계층을 추가하지 않는다.
 - 외부 DTO를 내부 모델로 변환하는 Mapper는 해당 외부 시스템의 `client/mapper`에 둔다.
 - 외부 시스템에서만 사용하는 예외는 해당 시스템의 `client/exception`에 둔다.
 - DTO, 예외, 설정을 프로젝트 전체의 중앙 폴더에 모으지 않고 그 계약을 소유하는 기능 가까이에 둔다.
