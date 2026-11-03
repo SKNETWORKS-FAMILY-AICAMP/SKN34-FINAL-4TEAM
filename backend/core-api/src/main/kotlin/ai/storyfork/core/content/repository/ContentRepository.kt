@@ -57,19 +57,22 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
         }.also(w.versions::addAll)
         if(w.world.mode!="following") {
             w.world.revision=jdbc.queryForObject("SELECT revision FROM world WHERE id=?",Int::class.java,w.worldId)!!
-            w.world.history=readSettings("WHERE d.world_id=? ORDER BY v.revision_no",w.worldId).toMutableList()
+            w.world.history=readSettings("WHERE d.world_id=? AND (se.work_id=? OR vr.id IS NULL) ORDER BY v.revision_no",w.worldId,id).toMutableList()
             rows("SELECT s.*,d.logical_id,'' AS content_version_id,s.name AS name_snapshot FROM setting_draft s JOIN setting_document d ON d.id=s.setting_document_id WHERE d.world_id=? ORDER BY s.edit_order",w.worldId,read=::setting).forEach { w.world.drafts[it.id]=it }
             w.world.draft=w.world.drafts.values.lastOrNull()
         }
         if(source!=null) {
-            w.world.basis=Basis(source.episode,source.version,readSettings("JOIN checkpoint_setting cs ON cs.setting_version_id=v.id JOIN fork f ON f.source_checkpoint_id=cs.checkpoint_id WHERE f.work_id=? ORDER BY v.revision_no",id))
-            w.world.sourceSnapshot=readSettings("JOIN fork_source_setting fs ON fs.setting_version_id=v.id WHERE fs.fork_work_id=? ORDER BY v.revision_no",id)
+            w.world.basis=Basis(source.episode,source.version,readSettings("JOIN checkpoint_setting cs ON cs.setting_version_id=v.id JOIN fork f ON f.source_checkpoint_id=cs.checkpoint_id WHERE f.work_id=? AND (se.work_id=? OR vr.id IS NULL) ORDER BY v.revision_no",id,source.workId))
+            w.world.sourceSnapshot=readSettings("JOIN fork_source_setting fs ON fs.setting_version_id=v.id WHERE fs.fork_work_id=? AND (se.work_id=? OR vr.id IS NULL) ORDER BY v.revision_no",id,source.workId)
             rows("SELECT c.source_change_ref,d.decision FROM fork_source_change c JOIN LATERAL (SELECT decision FROM fork_change_decision WHERE source_change_id=c.id ORDER BY decided_at DESC,id DESC LIMIT 1) d ON true WHERE c.fork_work_id=?",id) { it.getString(1) to it.getString(2) }.forEach { w.world.decisions[it.first]=it.second }
         }
         rows("SELECT * FROM fork_policy_history WHERE work_id=? ORDER BY revision_no",id) { r -> Policy(r.getBoolean("allow_creation"),r.getBoolean("allow_publication"),r.time("changed_at")) }.also(w.policyHistory::addAll)
         rows("SELECT e.sequence,v.content_version_id,p.occurred_at AS published_at FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id JOIN episode e ON e.id=v.episode_id WHERE e.work_id=? AND p.action='publish' AND p.outcome='applied' ORDER BY p.occurred_at",id) { r -> Publication(r.getInt(1),r.getString(2),r.time("published_at")) }.also(w.publicationHistory::addAll)
         rows("""SELECT p.*,j.request_text,c.model,c.trace_ref,c.input_tokens,c.output_tokens,i.content_snapshot,i.draft_revision,
-            e.excerpt_snapshot,EXISTS(SELECT 1 FROM proposal_decision d JOIN proposal_application a ON a.decision_id=d.id
+            e.excerpt_snapshot,(SELECT sequence FROM episode WHERE id=i.episode_id) target_episode,
+              (SELECT v.content_version_id FROM proposal_episode_change pc JOIN proposal_application pa ON pa.id=pc.application_id
+               JOIN proposal_decision pd ON pd.id=pa.decision_id JOIN episode_version v ON v.id=pc.result_version_id
+               WHERE pd.proposal_id=p.id AND pa.outcome='applied' ORDER BY pa.attempt_no DESC LIMIT 1) applied_version_id,EXISTS(SELECT 1 FROM proposal_decision d JOIN proposal_application a ON a.decision_id=d.id
               WHERE d.proposal_id=p.id AND a.outcome='applied') applied
             FROM ai_proposal p JOIN ai_job j ON j.id=p.job_id JOIN ai_model_call c ON c.job_id=j.id AND c.sequence=1
             JOIN ai_input_snapshot i ON i.id=p.input_snapshot_id JOIN proposal_evidence pe ON pe.proposal_id=p.id
@@ -78,7 +81,7 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
             Proposal(id=r.getString("id"),text=r.getString("content"),model=r.getString("model"),revision=r.getInt("draft_revision"),
                 status=if(r.getBoolean("applied")) "accepted" else "pending",prompt=r.getString("request_text"),baseBody=r.getString("content_snapshot"),
                 context=mapper.readValue(r.getString("excerpt_snapshot"),StoryContext::class.java),providerResponseId=r.getString("trace_ref"),
-                usage=if(r.getObject("input_tokens")==null) null else Usage(r.getInt("input_tokens"),r.getInt("output_tokens")),createdAt=r.time("created_at"))
+                usage=if(r.getObject("input_tokens")==null) null else Usage(r.getInt("input_tokens"),r.getInt("output_tokens")),createdAt=r.time("created_at"),targetEpisode=(r.getObject("target_episode") as Number?)?.toInt(),appliedVersionId=r.getString("applied_version_id"))
         }.also(w.proposals::addAll)
         return w
     }
@@ -125,7 +128,16 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
     }
 
     private fun setting(r: ResultSet) = Setting(id=r.getString("logical_id"),versionId=r.getString("content_version_id"),name=r.getString("name_snapshot"),content=r.getString("content"),category=r.getString("category_id"),tags=r.strings("tags"),visibility=r.getString("visibility_status"),fromEpisode=r.getInt("from_episode"),toEpisode=(r.getObject("to_episode") as Number?)?.toInt(),knownBy=r.strings("known_by"),evidence=r.getString("evidence"))
-    private fun readSettings(clause: String,vararg args: Any?) = rows("SELECT v.* FROM setting_version_read v JOIN setting_document d ON d.id=v.setting_document_id $clause",*args,read=::setting)
+    private fun readSettings(clause: String,vararg args: Any?) = rows("""
+        SELECT v.*,v.name name_snapshot,d.logical_id,
+            COALESCE(se.sequence,1) from_episode,ee.sequence to_episode,COALESCE(vr.visibility,vh.default_visibility) visibility_status,
+            COALESCE((SELECT array_agg(character_name ORDER BY position,character_name) FROM setting_knowledge_scope WHERE setting_version_id=v.id),ARRAY[]::text[]) known_by,
+            COALESCE((SELECT array_agg(t.name ORDER BY vt.position,t.name) FROM setting_version_tag vt JOIN setting_tag t ON t.id=vt.setting_tag_id WHERE vt.setting_version_id=v.id),ARRAY[]::text[]) tags
+        FROM setting_version v JOIN setting_document d ON d.id=v.setting_document_id
+        JOIN setting_visibility_history vh ON vh.id=v.visibility_history_id
+        LEFT JOIN setting_visibility_range vr ON vr.visibility_history_id=vh.id
+        LEFT JOIN episode se ON se.id=vr.start_episode_id LEFT JOIN episode ee ON ee.id=vr.end_episode_id
+        $clause""",*args,read=::setting)
 
     fun save(w: ContentWork) {
         update("INSERT INTO member(id) VALUES (?) ON CONFLICT DO NOTHING",w.ownerId)
@@ -276,8 +288,8 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
             VALUES (?,?,1,'writer','openai',?,?,'completed',?,?,?,?) ON CONFLICT(id) DO UPDATE SET model=EXCLUDED.model,trace_ref=EXCLUDED.trace_ref,
             status='completed',usage_status=EXCLUDED.usage_status,input_tokens=EXCLUDED.input_tokens,output_tokens=EXCLUDED.output_tokens,finished_at=COALESCE(ai_model_call.finished_at,EXCLUDED.finished_at)""",
             p.id,p.id,p.model,p.providerResponseId,if(p.usage==null) "unreported" else "reported",p.usage?.inputTokens,p.usage?.outputTokens,timestamp(p.createdAt))
-        val episode=w.versions.find { it.revision==p.revision }?.episode
-            ?: w.versions.find { it.revision==p.revision+1 }?.episode ?: w.episodes.size+1
+        val episode=p.targetEpisode ?: throw ContentFailure(409,"AI 제안의 대상 회차를 확인할 수 없어요.")
+        checkContent(episode>0,409,"AI 제안의 대상 회차를 확인할 수 없어요.")
         val input=key("input",p.id); val evidence=key("evidence",p.id)
         update("""INSERT INTO ai_input_snapshot(id,job_id,episode_id,source_kind,content_snapshot,draft_revision,captured_at)
             VALUES (?,?,?,'draft',?,?,?) ON CONFLICT DO NOTHING""",input,p.id,episodeId(w.id,episode),p.baseBody,p.revision,timestamp(p.createdAt))
@@ -285,7 +297,8 @@ class ContentRepository(private val jdbc: JdbcTemplate, private val transactions
         update("INSERT INTO ai_evidence(id,kind,excerpt_snapshot,captured_at) VALUES (?,'context',?,?) ON CONFLICT DO NOTHING",evidence,mapper.writeValueAsString(p.context),timestamp(p.createdAt))
         update("INSERT INTO proposal_evidence VALUES (?,?) ON CONFLICT DO NOTHING",p.id,evidence)
         if(p.status=="accepted") {
-            val applied=w.versions.first { it.revision==p.revision+1 }
+            val applied=w.versions.singleOrNull { it.id==p.appliedVersionId && it.episode==episode }
+                ?: throw ContentFailure(409,"AI 제안의 실제 반영 버전을 확인할 수 없어요.")
             val decision=key("proposal-decision",p.id); val application=key("proposal-application",p.id)
             update("INSERT INTO proposal_decision(id,proposal_id,sequence,actor_id,decision,approved_content,decided_at) VALUES (?,?,1,?,'accept',?,?) ON CONFLICT DO NOTHING",decision,p.id,w.ownerId,p.text,timestamp(applied.savedAt))
             update("INSERT INTO proposal_application(id,decision_id,attempt_no,outcome,attempted_at) VALUES (?,?,1,'applied',?) ON CONFLICT DO NOTHING",application,decision,timestamp(applied.savedAt))

@@ -143,11 +143,11 @@ class ContentService(private val repository: ContentRepository, private val ai: 
     fun propose(id: String, owner: String, data: ProposalRequest): Proposal {
         checkContent(data.consent,message="OpenAI 전송과 API 비용에 동의해 주세요.")
         val jobId=contentId()
-        val (selected,body)=repository.transaction {
+        val (selected,body,targetEpisode)=repository.transaction {
             val w=own(id,owner); revision(w,data.revision)
             val selected=context(w,data.episode ?: w.episodes.size+1,data.prompt,data.character)
             repository.startJob(jobId,w,data.prompt)
-            selected to w.draft.body
+            Triple(selected,w.draft.body,w.episodes.size+1)
         }
         // Never hold a database transaction while waiting for a paid external call.
         try {
@@ -155,8 +155,9 @@ class ContentService(private val repository: ContentRepository, private val ai: 
             repository.transaction { repository.completeCall(jobId,result.model,result.providerResponseId,result.usage) }
             return repository.transaction {
                 val w=own(id,owner); revision(w,data.revision)
+                checkContent(w.episodes.size+1==targetEpisode,409,"생성 중 대상 회차가 변경됐어요.")
                 checkContent(context(w,selected.basisEpisode,data.prompt,data.character)==selected,409,"생성 중 문맥이 변경됐어요. 원고에는 반영하지 않았어요.")
-                val p=Proposal(id=jobId,text=result.text,model=result.model,revision=data.revision,prompt=data.prompt,baseBody=body,context=selected,providerResponseId=result.providerResponseId,usage=result.usage)
+                val p=Proposal(id=jobId,text=result.text,model=result.model,revision=data.revision,prompt=data.prompt,baseBody=body,context=selected,providerResponseId=result.providerResponseId,usage=result.usage,targetEpisode=targetEpisode)
                 w.proposals.add(p); repository.save(w); p
             }
         } catch(e: RuntimeException) {
@@ -167,8 +168,9 @@ class ContentService(private val repository: ContentRepository, private val ai: 
     fun accept(id: String, pid: String, owner: String, expected: Int) = repository.transaction {
         val w=own(id,owner); revision(w,expected)
         val p=w.proposals.find { it.id==pid && it.status=="pending" && it.revision==expected } ?: throw ContentFailure(409,"만료되었거나 이미 적용한 제안이에요.")
+        checkContent(p.targetEpisode==w.episodes.size+1,409,"제안의 대상 회차가 변경됐어요. 다시 생성해 주세요.")
         checkContent(context(w,p.context.basisEpisode,p.prompt,p.context.character)==p.context,409,"설정 문맥이 변경됐어요. 최신 문맥으로 검토해 주세요.")
         val body=(w.draft.body+"\n\n"+p.text).trim(); checkContent(body.length<=40000,message="회차 원고는 40,000자까지 저장할 수 있어요.")
-        w.draft=w.draft.copy(body=body,revision=expected+1); checkpoint(w); p.status="accepted"; repository.save(w); w.draft
+        w.draft=w.draft.copy(body=body,revision=expected+1); p.appliedVersionId=checkpoint(w).id; p.status="accepted"; repository.save(w); w.draft
     }
 }

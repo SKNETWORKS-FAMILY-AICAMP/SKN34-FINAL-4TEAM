@@ -24,7 +24,7 @@ export function WritingStudio({id}:{id:string}) {
     {!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<div className="writing-layout">
       <nav className="seps" aria-label="회차 목록">
         <h2 className="lab">회차</h2>
-        {vm.episodes.map(e=><button className={`writing-episode ${active?.number===e.number?'on':''}`} key={e.number} aria-pressed={active?.number===e.number} disabled={vm.busy} onClick={()=>{vm.select(e);setSelection({episode:0,id:''});setRights(false)}}>
+        {vm.episodes.map(e=><button className={`writing-episode ${active?.number===e.number?'on':''}`} key={e.number} aria-pressed={active?.number===e.number} disabled={vm.busy} onClick={()=>{if(!vm.select(e))return;setSelection({episode:0,id:''});setRights(false)}}>
           <strong>{e.number}화 · {e.draft.title}</strong><small>{e.inherited?'원작 기준 · 읽기 전용':e.publishedVersionId?'발행본 있음 · 초안 별도':'비공개 초안'}</small>
         </button>)}
         <form className="writing-create" onSubmit={async e=>{e.preventDefault();if(await vm.create(title)){setTitle('');setRights(false);setSelection({episode:0,id:''})}}}>

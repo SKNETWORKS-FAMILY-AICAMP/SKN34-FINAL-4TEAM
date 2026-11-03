@@ -60,7 +60,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
-    select:(e:WritingEpisode)=>{if(mayLeave())install(e)},
+    select:(e:WritingEpisode)=>{if(!mayLeave())return false;install(e);return true},
     create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
     reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);setReady(true)}})},
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},

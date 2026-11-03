@@ -51,3 +51,21 @@ it('late autosave response preserves newer typing and manual save creates a vers
   await act(async()=>{await result.current.save()})
   expect(api.writeEpisode).toHaveBeenLastCalledWith('w',1,{title:'1화',body:'최신 입력',revision:1},true,expect.any(AbortSignal))
 })
+
+it('returns false when episode navigation is cancelled and keeps the dirty draft',async()=>{
+  const first={number:1,draft:{title:'1화',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}
+  const second={...first,number:2,draft:{...first.draft,title:'2화'}}
+  const api={writingList:vi.fn().mockResolvedValue([first,second]),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn()}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'미저장'}))
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+  try {
+    act(()=>expect(result.current.select(second)).toBe(false))
+    expect(result.current.active?.number).toBe(1)
+    expect(result.current.draft.body).toBe('미저장')
+    confirm.mockReturnValue(true)
+    act(()=>expect(result.current.select(second)).toBe(true))
+    expect(result.current.active?.number).toBe(2)
+  } finally {confirm.mockRestore()}
+})

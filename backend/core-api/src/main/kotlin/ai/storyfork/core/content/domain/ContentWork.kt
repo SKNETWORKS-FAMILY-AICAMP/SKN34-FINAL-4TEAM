@@ -27,6 +27,7 @@ data class Proposal(
     val id: String = contentId(), val text: String, val model: String, val revision: Int,
     var status: String = "pending", val prompt: String, val baseBody: String, val context: StoryContext,
     val providerResponseId: String? = null, val usage: Usage? = null, val createdAt: String = Instant.now().toString(),
+    val targetEpisode: Int? = null, var appliedVersionId: String? = null,
 )
 data class Publication(val episode: Int, val versionId: String, val publishedAt: String = Instant.now().toString())
 data class Policy(val allowFork: Boolean, val allowForkPublication: Boolean, val changedAt: String = Instant.now().toString())

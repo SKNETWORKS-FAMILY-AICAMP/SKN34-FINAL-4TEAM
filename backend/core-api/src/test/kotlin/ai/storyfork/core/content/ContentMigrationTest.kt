@@ -61,4 +61,60 @@ class ContentMigrationTest {
             jdbc.update("UPDATE content_work SET visibility='private'")
         }
     }
+    @Test fun `V5 failure rolls back earlier imports and retry preserves legacy rows`() {
+        val schema="migration_failure_"+contentId().replace("-","")
+        val ds=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test","")
+        fun migration(target:String)=Flyway.configure().dataSource(ds).schemas(schema).defaultSchema(schema)
+            .locations("classpath:db/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
+        migration("4").migrate()
+        val scoped=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL")+"?currentSchema="+schema,"content_test","")
+        val jdbc=JdbcTemplate(scoped)
+        val first=ContentWork(ownerId="legacy",title="먼저 이관")
+        val second=ContentWork(ownerId="legacy",title="실패 주입")
+        for((index,w) in listOf(first,second).withIndex()) jdbc.update("INSERT INTO content_work(id,owner_id,visibility,payload,created_at) VALUES (?,?,?,CAST(? AS jsonb),CAST(? AS timestamptz))",w.id,w.ownerId,w.visibility,mapper.writeValueAsString(w),"2020-01-0${index+1}T00:00:00Z")
+        jdbc.execute("CREATE FUNCTION fail_second_import() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.title='실패 주입' THEN RAISE EXCEPTION 'synthetic migration failure'; END IF; RETURN NEW; END; $$")
+        jdbc.execute("CREATE TRIGGER fail_second_import BEFORE INSERT ON work FOR EACH ROW EXECUTE FUNCTION fail_second_import()")
+        assertThrows(org.flywaydb.core.api.FlywayException::class.java) {migration("5").migrate()}
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM work",Int::class.java))
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM member",Int::class.java))
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM world",Int::class.java))
+        assertEquals(2,jdbc.queryForObject("SELECT count(*) FROM content_work",Int::class.java))
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version='5'",Int::class.java))
+        jdbc.execute("DROP TRIGGER fail_second_import ON work")
+        migration("5").migrate()
+        assertEquals(2,jdbc.queryForObject("SELECT count(*) FROM work",Int::class.java))
+        assertEquals(first.draft,ContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper).find(first.id)!!.draft)
+        assertEquals(0,migration("5").migrate().migrationsExecuted)
+    }
+
+    @Test fun `legacy accepted proposals resolve by content and reject ambiguous results`() {
+        val schema="migration_ai_"+contentId().replace("-","")
+        val ds=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test","")
+        fun migration(target:String)=Flyway.configure().dataSource(ds).schemas(schema).defaultSchema(schema)
+            .locations("classpath:db/content").table("content_schema_history").javaMigrations(V5__ImportLegacyContent(mapper)).target(target).load()
+        migration("4").migrate()
+        val scoped=DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL")+"?currentSchema="+schema,"content_test","")
+        val jdbc=JdbcTemplate(scoped)
+        val wrong=Version(title="다른 회차",body="다른 원고",revision=2,episode=1)
+        val applied=Version(title="대상 회차",body="기준\n\n제안",revision=2,episode=2)
+        val w=ContentWork(ownerId="legacy",title="이전 AI",draft=Draft("2화",applied.body,2),
+            episodes=mutableListOf(Episode(1,2,wrong.id,wrong.title,wrong.body)),versions=mutableListOf(wrong,applied),publicationHistory=mutableListOf(Publication(1,wrong.id)))
+        val proposal=Proposal(text="제안",model="stub",revision=1,status="accepted",prompt="계속",baseBody="기준",context=buildContext(w,emptyList(),2))
+        w.proposals.add(proposal)
+        fun legacyJson()=mapper.writeValueAsString(w).replace(",\"targetEpisode\":null", "").replace(",\"appliedVersionId\":null", "")
+        jdbc.update("INSERT INTO content_work(id,owner_id,visibility,payload) VALUES (?,?,?,CAST(? AS jsonb))",w.id,w.ownerId,w.visibility,legacyJson())
+        // Duplicate the same result identity to make an old revision-based mapping ambiguous.
+        w.versions.add(applied.copy(id=contentId()))
+        jdbc.update("UPDATE content_work SET payload=CAST(? AS jsonb) WHERE id=?",legacyJson(),w.id)
+        assertThrows(org.flywaydb.core.api.FlywayException::class.java) {migration("5").migrate()}
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM work",Int::class.java))
+        w.versions.removeLast()
+        jdbc.update("UPDATE content_work SET payload=CAST(? AS jsonb) WHERE id=?",legacyJson(),w.id)
+        migration("5").migrate()
+        val restored=ContentRepository(jdbc,TransactionTemplate(JdbcTransactionManager(scoped)),mapper).find(w.id)!!.proposals.single()
+        assertEquals(2,restored.targetEpisode)
+        assertEquals(applied.id,restored.appliedVersionId)
+        assertEquals(0,migration("5").migrate().migrationsExecuted)
+    }
+
 }

@@ -117,4 +117,47 @@ class ContentPostgresTest {
         setting(w.id,"새 규칙","변경")
         assertEquals(409,assertThrows(ContentFailure::class.java) { service.accept(w.id,p2.id,"author",1) }.status)
     }
+    @Autowired lateinit var repository: ai.storyfork.core.content.repository.ContentRepository
+
+    @Test fun `AI references explicit target and result when episode revisions overlap`() {
+        val first=Version(title="1화",body="첫 원고",revision=1,episode=1)
+        val second=Version(title="2화",body="다른 회차",revision=2,episode=2)
+        val work=ContentWork(ownerId="author",title="중복 revision",draft=Draft("3화","대상 초안",1),
+            episodes=mutableListOf(Episode(1,1,first.id,first.title,first.body),Episode(2,2,second.id,second.title,second.body)),
+            versions=mutableListOf(first,second),publicationHistory=mutableListOf(Publication(1,first.id),Publication(2,second.id)))
+        repository.transaction {repository.save(work)}
+        `when`(ai.generate(service.readContext(work.id,"author",3,"계속",""),"계속")).thenReturn(GenerationResponse("제안","stub-model"))
+        val proposal=service.propose(work.id,"author",ProposalRequest(1,"계속",true))
+        assertEquals(3,jdbc.queryForObject("SELECT e.sequence FROM ai_input_snapshot i JOIN episode e ON e.id=i.episode_id WHERE i.job_id=?",Int::class.java,proposal.id))
+        service.accept(work.id,proposal.id,"author",1)
+        val result=service.history(work.id,"author").versions.last()
+        assertEquals(3,result.episode)
+        assertEquals(result.id,jdbc.queryForObject("SELECT v.content_version_id FROM proposal_episode_change c JOIN proposal_application a ON a.id=c.application_id JOIN proposal_decision d ON d.id=a.decision_id JOIN episode_version v ON v.id=c.result_version_id WHERE d.proposal_id=?",String::class.java,proposal.id))
+        service.policy(work.id,"author",PolicyRequest(service.read(work.id,"author").draft!!.revision,true,true))
+        assertEquals(3,jdbc.queryForObject("SELECT e.sequence FROM ai_input_snapshot i JOIN episode e ON e.id=i.episode_id WHERE i.job_id=?",Int::class.java,proposal.id))
+    }
+
+    @Test fun `visibility range rejects another work and reversed episode boundaries`() {
+        val a=create();val b=create()
+        service.createEpisode(a.id,"author",CreateWorkRequest("2화"))
+        setting(a.id,"범위","내용")
+        val policy=jdbc.queryForObject("SELECT h.id FROM setting_visibility_history h JOIN setting_document d ON d.id=h.setting_document_id JOIN work_current w ON w.world_id=d.world_id WHERE w.id=?",String::class.java,a.id)!!
+        fun episode(work:String,number:Int)=jdbc.queryForObject("SELECT id FROM episode WHERE work_id=? AND sequence=?",String::class.java,work,number)!!
+        for((start,end) in listOf(episode(a.id,1) to episode(b.id,1),episode(a.id,2) to episode(a.id,1))) {
+            assertThrows(org.springframework.dao.DataIntegrityViolationException::class.java) {
+                jdbc.update("INSERT INTO setting_visibility_range VALUES (?,?,?,?,?)",contentId(),policy,start,end,"public")
+            }
+        }
+    }
+
+    @Test fun `a visibility range for another work is not used in this works context`() {
+        val a=create();val b=create()
+        setting(a.id,"비공개 규칙","원작 비밀",false)
+        val policy=jdbc.queryForObject("SELECT h.id FROM setting_visibility_history h JOIN setting_document d ON d.id=h.setting_document_id JOIN work_current w ON w.world_id=d.world_id WHERE w.id=?",String::class.java,a.id)!!
+        val other=jdbc.queryForObject("SELECT id FROM episode WHERE work_id=? AND sequence=1",String::class.java,b.id)!!
+        jdbc.update("INSERT INTO setting_visibility_range VALUES (?,?,?,?,?)",contentId(),policy,other,null,"public")
+        assertEquals(1,service.world(a.id,"author").history.size)
+        assertEquals("private",service.world(a.id,"author").settings.single().visibility)
+    }
+
 }
