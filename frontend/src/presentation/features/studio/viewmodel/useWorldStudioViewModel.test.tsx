@@ -10,12 +10,69 @@ import { useWorldStudioViewModel } from './useWorldStudioViewModel'
 
 afterEach(cleanup)
 const world:StudioWorld={id:'world-a',name:'항구',description:'설명',version:1,settings:[],analysis:null}
-function setup() {
- const repo:WorldStudioRepository={connect:vi.fn(async()=>{}),capabilities:vi.fn(async()=>({aiEnabled:true})),list:vi.fn(async()=>[]),listStudio:vi.fn(async()=>[world]),read:vi.fn(async()=>structuredClone(world)),create:vi.fn(async()=>world),save:vi.fn(async()=>{}),remove:vi.fn(async()=>{}),saveStudio:vi.fn(async(w)=>({...w,version:w.version+1})),analyze:vi.fn(async()=>world),approve:vi.fn(async()=>world)}
+function setup(initialWorld:StudioWorld=world) {
+ const repo:WorldStudioRepository={connect:vi.fn(async()=>{}),capabilities:vi.fn(async()=>({aiEnabled:true})),list:vi.fn(async()=>[]),listStudio:vi.fn(async()=>[initialWorld]),read:vi.fn(async()=>structuredClone(initialWorld)),create:vi.fn(async()=>world),save:vi.fn(async()=>{}),remove:vi.fn(async()=>{}),saveStudio:vi.fn(async(w)=>({...w,version:w.version+1})),analyze:vi.fn(async()=>world),approve:vi.fn(async()=>world)}
  const useCase=new WorldStudioUseCase(repo)
  const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worlds/world-a']}><Routes><Route path="/worlds/:worldId" element={children}/></Routes></MemoryRouter>
  return {repo,...renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})}
 }
+
+it('restores the original clean save state when undoing the only deletion',async()=>{
+ const p=newSetting('people');p.item.title='저장된 인물'
+ const {result}=setup({...world,settings:[p]})
+ await waitFor(()=>expect(result.current.saved).not.toBeNull())
+ act(()=>result.current.deletePerson(p.item.id))
+ expect(result.current.dirty).toBe(true)
+ act(()=>result.current.undoPersonDeletion())
+ expect(result.current.dirty).toBe(false)
+ expect(result.current.editing!.settings.map(s=>s.item.id)).toEqual([p.item.id])
+})
+
+it('undoes a person deletion only before further editing or saving and keeps a failed save draft',async()=>{
+ const {result,repo}=setup()
+ await waitFor(()=>expect(result.current.editing).not.toBeNull())
+ const p=newSetting('people');p.item.title='삭제 테스트'
+ act(()=>result.current.patch({settings:[p]}))
+ act(()=>result.current.deletePerson(p.item.id))
+ expect(result.current.editing!.settings).toHaveLength(0)
+ expect(result.current.canUndoPersonDeletion).toBe(true)
+ act(()=>result.current.undoPersonDeletion())
+ expect(result.current.editing!.settings[0].item.id).toBe(p.item.id)
+ act(()=>result.current.deletePerson(p.item.id))
+ act(()=>result.current.patch({description:'삭제 뒤 새 편집'}))
+ expect(result.current.canUndoPersonDeletion).toBe(false)
+ act(()=>result.current.undoPersonDeletion())
+ expect(result.current.editing!.description).toBe('삭제 뒤 새 편집')
+ expect(result.current.editing!.settings).toHaveLength(0)
+ vi.mocked(repo.saveStudio).mockRejectedValueOnce(new Error('저장 실패'))
+ await act(async()=>{await result.current.save()})
+ expect(result.current.dirty).toBe(true)
+ expect(result.current.editing!.settings).toHaveLength(0)
+})
+
+it('shares character and directed relationship edits with the normal save and preserves them on conflict',async()=>{
+ const {result,repo}=setup()
+ await waitFor(()=>expect(result.current.editing?.id).toBe('world-a'))
+ let a='',b=''
+ act(()=>{a=result.current.add('people')!})
+ act(()=>result.current.update(a,{title:'가람'}))
+ act(()=>{b=result.current.add('people')!})
+ act(()=>result.current.update(b,{title:'나래'}))
+ act(()=>result.current.putRelation({subjectId:a,targetId:b,predicate:'trusts',polarity:'asserted'}))
+ const relation=result.current.editing!.settings[2].item
+ expect(result.current.saved!.settings).toHaveLength(0)
+ act(()=>result.current.putRelation({...relation,polarity:'denied'}))
+ expect(result.current.editing!.settings[2].item.id).toBe(relation.id)
+ vi.mocked(repo.saveStudio).mockRejectedValueOnce(new Error('버전 충돌'))
+ await act(async()=>{await result.current.save()})
+ expect(result.current.editing!.settings).toHaveLength(3)
+ expect(result.current.error).toBe('버전 충돌')
+ await act(async()=>{await result.current.save()})
+ expect(result.current.saved!.settings[2].item.polarity).toBe('denied')
+ act(()=>result.current.removeRelation(relation.id))
+ await act(async()=>{await result.current.save()})
+ expect(result.current.saved!.settings.map(s=>s.item.id)).toEqual([a,b])
+})
 
 it('does not replace confirmed Wiki data until save resolves and prevents duplicate saves',async()=>{
  const {result,repo}=setup()

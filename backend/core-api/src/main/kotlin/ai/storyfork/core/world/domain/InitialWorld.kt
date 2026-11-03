@@ -85,7 +85,7 @@ fun assembleInitialSemantic(input:InitialInput,items:List<InitialItem>,rows:List
  return InitialExtraction(all,raw,usage,coverage)
 }
 
-val initialRelationLabels=mapOf("sibling_of" to "남매·형제자매", "child_of" to "자녀", "spouse_of" to "배우자", "trusts" to "신뢰", "hostile_to" to "적대", "member_of" to "소속", "leads" to "이끎", "can_use" to "사용 가능", "located_in" to "위치")
+val initialRelationLabels=mapOf("custom_relation_directed" to "직접 쓴 방향 관계", "custom_relation" to "직접 쓴 관계", "custom_emotion" to "직접 쓴 감정", "friend_of" to "친구", "parent_of" to "부모", "wary_of" to "경계", "likes" to "호감", "sibling_of" to "남매·형제자매", "child_of" to "자녀", "spouse_of" to "배우자", "trusts" to "신뢰", "hostile_to" to "적대", "member_of" to "소속", "leads" to "이끎", "can_use" to "사용 가능", "located_in" to "위치")
 fun validateInitialItems(items:List<InitialItem>,input:InitialInput) {
  val issues=initialItemIssues(items,input);require(issues.isEmpty()) {issues.joinToString("; ")}
 }
@@ -120,7 +120,7 @@ fun initialItemIssues(items:List<InitialItem>,input:InitialInput,reviewDisplay:B
    check(i.predicate in initialRelationLabels && i.subjectId!=null && i.targetId!=null && i.subjectId!=i.targetId)
    val pair=byId[i.subjectId]?.entityType to byId[i.targetId]?.entityType
    val valid=when(i.predicate) {
-    "sibling_of","child_of","spouse_of","trusts","hostile_to" -> pair==("character" to "character")
+    "custom_relation_directed","custom_relation","custom_emotion","friend_of","parent_of","wary_of","likes","sibling_of","child_of","spouse_of","trusts","hostile_to" -> pair==("character" to "character")
     "member_of","leads" -> pair==("character" to "organization")
     "can_use" -> pair==("character" to "ability")
     "located_in" -> pair.first in setOf("character","location","organization") && pair.second=="location"

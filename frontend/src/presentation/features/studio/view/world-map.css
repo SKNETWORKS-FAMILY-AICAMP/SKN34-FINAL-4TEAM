@@ -11,7 +11,42 @@
 .world-map-center{min-width:0;padding:16px 0}.world-map-center>p{padding-inline:16px;margin:6px 0}.world-map-canvas{height:460px;overflow:hidden}.world-map-canvas canvas{display:block}
 .world-map-controls,.world-map-legend{display:flex;flex-wrap:wrap;gap:7px;padding:12px 16px;border-top:1px solid var(--line)}.world-map-legend{gap:12px;font-size:12px;color:var(--sub)}.world-map-legend span{display:flex;align-items:center;gap:5px}
 .world-map-detail h4{margin:0 0 18px}.world-map-detail h3{margin:14px 0}.world-map-detail p{margin:12px 0;overflow-wrap:anywhere}.world-map-detail-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.world-map-detail h4:not(:first-child){margin-top:24px}
+
 .world-map-connection{display:flex;justify-content:space-between;gap:8px;width:100%;padding:10px;margin-bottom:8px;border:1px solid var(--line2);border-radius:7px;background:var(--surface);color:var(--ink);text-align:left;overflow-wrap:anywhere}.world-map-connection small{color:var(--sub)}
 .world-map button:hover{filter:brightness(.96)}.world-map-empty{padding:30px 20px;color:var(--sub)}
 @media(max-width:1250px){.world-map-layout{grid-template-columns:180px minmax(0,1fr)}.world-map-detail{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
 @media(max-width:760px){.world-studio:has(.world-map) .world-layout{grid-template-columns:minmax(0,1fr)}.world-map-layout{display:flex;flex-direction:column}.world-map-search{border-right:0;border-bottom:1px solid var(--line)}.world-map-search nav{max-height:150px}.world-map-controls .btn{font-size:12px;padding-inline:10px}.world-map-canvas{touch-action:none}}
+/* Relationship editing uses one inspector; the whole-world reader keeps its existing layout. */
+.world-studio:has(.relationship-editor) .world-list{display:none}
+.world-studio:has(.relationship-editor) .world-layout{grid-template-columns:minmax(0,1fr)}
+.relationship-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px;border:1px solid var(--line);border-radius:12px 12px 0 0;background:var(--surface)}
+.relationship-toolbar .inp{width:200px;max-width:100%}
+.relationship-steps{display:flex;gap:24px;flex-wrap:wrap;padding:14px 34px;margin:0;background:var(--pri-soft);color:var(--sub);font-size:13px}
+.relationship-steps [aria-current=step]{color:var(--pri-ink);font-weight:700}
+.relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:60px;padding:14px 18px;border-inline:1px solid var(--line);background:var(--surface)}
+.relationship-hint .btn{margin-left:auto}
+.relationship-workspace{display:grid;grid-template-columns:minmax(0,1fr);position:relative;border:1px solid var(--line);border-radius:0 0 12px 12px;background:var(--surface);overflow:hidden}
+.relationship-workspace.has-inspector{grid-template-columns:minmax(0,1fr) 330px}
+.relationship-main{min-width:0}.relationship-main>p{padding:8px 16px}
+
+.relationship-legend,.relationship-people,.relationship-pairs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line)}
+.relationship-legend{font-size:12px;color:var(--sub)}.relationship-people button[aria-pressed=true]{background:var(--pri-soft);border-color:var(--pri)}
+.relationship-pairs small{margin-left:10px;color:var(--sub)}.relationship-empty{color:var(--sub)}
+.relationship-inspector{padding:20px;border-left:1px solid var(--line);max-height:760px;overflow:auto;min-width:0;background:var(--surface);color:var(--ink);scrollbar-color:var(--pri) var(--surface)}
+.relationship-inspector:focus{outline:none}.relationship-inspector:focus-visible{outline:2px solid var(--pri);outline-offset:-3px}
+.relationship-inspector-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}.relationship-inspector-head h3{font-size:19px;overflow-wrap:anywhere}
+.relationship-inspector .field{margin:16px 0}.relationship-inspector .inp,.relationship-inspector .ta{width:100%;min-width:0}
+.relationship-inspector p{line-height:1.6;margin:12px 0;overflow-wrap:anywhere}.relationship-group{padding-block:20px;border-top:1px solid var(--line)}
+.relationship-group h4{font-size:16px;margin:0 0 12px;overflow-wrap:anywhere}.relationship-row{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.relationship-row details{margin-block:14px}.relationship-row summary{cursor:pointer;color:var(--sub);font-size:13px}
+.relationship-remove{color:var(--danger,#b42318);margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
+@media(max-width:1050px){.relationship-workspace.has-inspector{grid-template-columns:minmax(0,1fr)}.relationship-inspector{position:fixed;z-index:51;right:16px;top:120px;bottom:20px;width:330px;max-height:none;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px #24233030}.relationship-backdrop{position:fixed;inset:0;z-index:50;border:0;background:#18142524;cursor:default}}
+@media(max-width:600px){.relationship-inspector{left:10px;right:10px;top:auto;bottom:10px;width:auto;max-height:58vh;padding:18px}.relationship-toolbar{padding:12px;gap:8px}.relationship-toolbar .inp{flex:1;min-width:100px;width:140px}.relationship-steps{gap:12px;padding:12px 28px;font-size:11px}.relationship-hint{padding:12px;font-size:13px}.relationship-people{flex-wrap:nowrap;overflow:auto}.relationship-people .btn{white-space:nowrap}.relationship-apply{bottom:-18px}}
+.relationship-cards-scroll{height:clamp(380px,55vh,590px);overflow:auto;overscroll-behavior:contain;background:var(--surface);scrollbar-color:var(--pri) var(--surface)}
+.relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-edge-hit:focus{stroke:var(--pri);stroke-opacity:.25;outline:none}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.relationship-character-card{position:absolute;left:0;top:0;border:1px solid var(--line2);border-radius:12px;padding:12px;background:var(--surface);color:var(--ink);box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
+.relationship-character-card.selected{border:2px solid var(--pri);padding:11px;background:var(--pri-soft)}.relationship-character-card.target{border:2px dashed var(--pri);padding:11px}.relationship-character-card.dim{opacity:.3}
+.relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--sub);margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:11px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
+.relationship-undo{padding:14px;background:var(--pri-soft);display:flex;gap:12px;align-items:center;flex-wrap:wrap}.relationship-inspector ul{padding-left:20px;line-height:1.6;overflow-wrap:anywhere}
+@media(max-width:600px){.relationship-cards-scroll{height:440px}.relationship-character-card{border-radius:10px}}

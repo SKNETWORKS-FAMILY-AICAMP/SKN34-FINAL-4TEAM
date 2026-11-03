@@ -7,11 +7,13 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import './world-studio.css'
 import { WorldMap } from './WorldMap'
+import { WorldRelationshipEditor } from './WorldRelationshipEditor'
+import { relationDefinitions, relationLabel } from '../../../../domain/entities/studioRelations'
 
 type VM=ReturnType<typeof useWorldStudioViewModel>
 const kinds:Record<SettingItem['kind'],string>={entity:'대상',fact:'설정',rule:'규칙',constraint:'제약',claim:'인물의 주장',relation:'관계',undetermined:'미정',event:'과거 사건',note:'메모'}
-const relations:Record<string,string>={sibling_of:'남매·형제자매',child_of:'자녀',spouse_of:'배우자',trusts:'신뢰',hostile_to:'적대',member_of:'소속',leads:'이끎',can_use:'사용 가능',located_in:'위치'}
-const tabs=[['edit','설정 작성'],['map','전체 세계관 지도'],['wiki','설정집'],['relations','인물 관계도'],['timeline','초기 역사 시간선'],['analysis','AI 후보 검토']] as const
+const relations=Object.fromEntries(Object.entries(relationDefinitions).map(([key,value])=>[key,value.label]))
+const tabs=[['edit','설정 작성'],['relationship-edit','인물 관계 편집'],['map','전체 세계관 지도'],['wiki','설정집'],['relations','인물 관계도'],['timeline','초기 역사 시간선'],['analysis','AI 후보 검토']] as const
 
 export function WorldStudioPage() {
  useScreenId('W01')
@@ -31,13 +33,13 @@ export function WorldStudioPage() {
    <section className="world-content">{vm.editing?<>
     <div className="world-toolbar"><h2>{vm.saved?.name}</h2><span role="status">{vm.busy?'잠시만 기다려 주세요':vm.dirty?'저장하지 않은 변경사항':'저장됨'}</span><button className="btn pri" disabled={vm.busy || !vm.dirty} onClick={vm.save}>저장</button></div>
     <nav className="libtabs" aria-label="세계관 도구">{tabs.map(([id,label])=><button type="button" key={id} className={tab===id?'on':''} onClick={()=>setTab(id)} aria-current={tab===id?'page':undefined}>{label}</button>)}</nav>
-    {tab==='edit'?<Editor vm={vm}/>:tab==='map'&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}`} world={vm.saved}/>:tab==='analysis'?<Analysis vm={vm}/>:<Confirmed vm={vm} tab={tab}/>}
+    {tab==='edit'?<Editor vm={vm} onOpenRelations={()=>setTab('relationship-edit')}/>:tab==='relationship-edit'?<WorldRelationshipEditor key={vm.editing.id} studio={vm}/>:tab==='map'&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}`} world={vm.saved}/>:tab==='analysis'?<Analysis vm={vm}/>:<Confirmed vm={vm} tab={tab}/>}
    </>:<div className="world-empty"><h2>{vm.busy?'세계관을 읽고 있습니다':'세계관을 선택하거나 새로 만들어 주세요'}</h2><p className="muted">이름만으로 시작할 수 있습니다. 설정과 인물은 필요한 만큼 추가하세요.</p></div>}</section>
   </div>
  </main><Footer storage="core"/></>
 }
 
-function Editor({vm}:{vm:VM}) {
+function Editor({vm,onOpenRelations}:{vm:VM;onOpenRelations:()=>void}) {
  const w=vm.editing!
  const [section,setSection]=useState<StudioSection>('basic')
  const rows=w.settings.filter(s=>sectionOf(s.item)===section)
@@ -49,6 +51,7 @@ function Editor({vm}:{vm:VM}) {
   <label className="field">세계관 설명<textarea className="ta" value={w.description} maxLength={20000} onChange={e=>vm.patch({description:e.target.value})}/></label>
   <nav className="world-sections" aria-label="설정 작성 메뉴">{studioSections.map(menu=><button type="button" key={menu.id} aria-label={`${menu.label} ${w.settings.filter(s=>sectionOf(s.item)===menu.id).length}개`} aria-current={section===menu.id?'page':undefined} onClick={()=>{setSection(menu.id);vm.setSelected('')}}>{menu.label}<span>{w.settings.filter(s=>sectionOf(s.item)===menu.id).length}</span></button>)}</nav>
   <div className="world-toolbar"><h3>{label}</h3><button className="btn sm" type="button" onClick={()=>vm.add(section)}>{label} 추가</button></div>
+  {section==='people'&&<p className="small muted">등록한 인물은 같은 정보로 관계 편집에 표시돼요. 연결은 직접 선택할 때만 생깁니다. <button type="button" className="btn sm" onClick={onOpenRelations}>관계 편집 열기</button></p>}
   <div className="world-settings"><nav aria-label={`${label} 항목`}>{rows.map((x,n)=><button type="button" key={x.item.id} onClick={()=>vm.setSelected(x.item.id)} aria-current={s?.item.id===x.item.id?'page':undefined}>{x.item.title||`새 ${label} ${n+1}`}{x.userCategory!=='설정'&&<small>{x.userCategory}</small>}</button>)}</nav>
   {s?<div className="world-setting-editor">
    <label className="field">항목 이름<input className="inp" value={s.item.title} maxLength={200} onChange={e=>update({title:e.target.value})}/></label>
@@ -68,7 +71,7 @@ function Confirmed({vm,tab}:{vm:VM;tab:string}) {
  const byId=(id:string|null)=>items.find(i=>i.id===id)?.title??'알 수 없는 항목'
  const rows=tab==='relations'?items.filter(i=>i.kind==='relation'):tab==='timeline'?items.filter(i=>i.kind==='event'):items
  return <section className="world-confirmed"><h3>{tab==='relations'?'확정 관계도':tab==='timeline'?'확정 시간선':'확정 Wiki'}</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{!rows.length?<p className="world-empty">아직 확정한 {tab==='relations'?'관계':tab==='timeline'?'과거 사건':'설정'}가 없습니다.</p>:rows.map(i=><article key={i.id}>
-  <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relations[i.predicate??'']??i.predicate}${i.polarity==='denied'?' 아님':''} → ${byId(i.targetId)}`:i.title}</h4>{tab==='timeline' && <p className="small muted">{i.timeText||'시점 미지정'}{i.afterId?' · '+byId(i.afterId)+' 이후':''}</p>}<p className="world-prose">{i.text}</p>
+  <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relationLabel(i)} → ${byId(i.targetId)}`:i.title}</h4>{tab==='timeline' && <p className="small muted">{i.timeText||'시점 미지정'}{i.afterId?' · '+byId(i.afterId)+' 이후':''}</p>}<p className="world-prose">{i.text}</p>
  </article>)}</section>
 }
 

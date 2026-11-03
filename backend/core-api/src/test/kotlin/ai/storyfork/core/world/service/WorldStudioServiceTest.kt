@@ -21,6 +21,53 @@ class WorldStudioServiceTest {
  private val service=WorldStudioService(store,client,true)
  private fun setting(text:String="첫 줄 | 원문\n둘째 줄")=StudioSetting(InitialItem("stable-item","fact","항구의 법칙",text,origin="author_addition",authorText=text,decision="approved"),"설정",listOf("항구"))
 
+ @Test fun characterDeletionRequiresExplicitIncidentRelationRemovalAndPreservesRevisions() {
+  val w=service.create("author","인물 삭제","")
+  fun person(id:String)=StudioSetting(InitialItem(id,"entity",id,"",entityType="character",origin="author_addition",authorText="",decision="approved"))
+  val a=person("a");val b=person("b")
+  val r=StudioSetting(InitialItem("r","relation","관계","복잡한 관계",subjectId="a",targetId="b",predicate="custom_relation",origin="author_addition",authorText="복잡한 관계",decision="approved"))
+  val saved=service.save("author",w.id,w.version,w.name,"",listOf(a,b,r))
+  assertThrows(IllegalArgumentException::class.java) {service.save("author",w.id,saved.version,w.name,"",listOf(b,r))}
+  val deleted=service.save("author",w.id,saved.version,w.name,"",listOf(b))
+  assertEquals(listOf(b),service.read("author",w.id).settings)
+  assertEquals(saved.settings,store.revisions(w.id)[1].settings)
+  assertEquals(saved.version+1,deleted.version)
+ }
+
+ @Test fun customRelationsAndDirectionalEmotionsKeepVerbatimTextForSaveAndAnalysisInput() {
+  val w=service.create("author","홍길동","")
+  val people=listOf("father","son").map {id->StudioSetting(InitialItem(id,"entity",id,"",entityType="character",origin="author_addition",authorText="",decision="approved"))}
+  val texts=listOf("아버지와 서자, 인정받지 못한 가족","아끼지만 가문의 질서를 거스를까 두렵다","존경하고 인정받고 싶지만 차별에는 분노한다.\n그러나 가족을 지키고 싶다.")
+  val relations=texts.mapIndexed {i,text->StudioSetting(InitialItem("custom-$i","relation","관계 $i",text,subjectId=if(i==2) "son" else "father",targetId=if(i==2) "father" else "son",predicate=if(i==0) "custom_relation" else "custom_emotion",origin="author_addition",authorText=text,decision="approved"))}
+  val saved=service.save("author",w.id,w.version,w.name,"",people+relations)
+  assertEquals(people+relations,service.read("author",w.id).settings)
+  val failed=service.analyze("author",w.id,saved.version,true)
+  assertEquals(saved.settings,failed.settings)
+  val input=mockingDetails(client).invocations.single {it.method.name=="analyze"}.arguments[0] as InitialInput
+  texts.forEach {assertTrue(input.description.contains(it))}
+ }
+
+ @Test fun graphRelationsSaveDirectedEmotionsAndDeleteWithHistoryAndReferenceChecks() {
+  val w=service.create("author","관계","")
+  fun person(id:String)=StudioSetting(InitialItem(id,"entity",id,"",entityType="character",origin="author_addition",authorText="",decision="approved"),"인물",emptyList())
+  fun relation(id:String,from:String,to:String,predicate:String)=StudioSetting(InitialItem(id,"relation",id,id,subjectId=from,targetId=to,predicate=predicate,origin="author_addition",authorText=id,decision="approved"),"관계",emptyList())
+  val people=listOf(person("a"),person("b"))
+  val rows=people+listOf(relation("friend","a","b","friend_of"),relation("trust","a","b","trusts"),relation("wary","b","a","wary_of"))
+  val saved=service.save("author",w.id,w.version,w.name,"",rows)
+  assertEquals(rows,saved.settings)
+  assertThrows(IllegalArgumentException::class.java) {service.save("author",w.id,saved.version,w.name,"",rows+relation("reverse-friend","b","a","friend_of"))}
+  assertThrows(IllegalArgumentException::class.java) {service.save("author",w.id,saved.version,w.name,"",rows+relation("bad","a","missing","trusts"))}
+  val invalid=assertThrows(IllegalArgumentException::class.java) {service.save("author",w.id,saved.version,w.name,"",rows+relation("self","a","a","trusts"))}
+  assertEquals("관계 주체와 대상은 서로 다른 항목을 선택해 주세요.",invalid.message)
+  assertThrows(IllegalArgumentException::class.java) {service.save("author",w.id,saved.version,w.name,"",rows.filter {it.item.id!="a"})}
+  val deleted=service.save("author",w.id,saved.version,w.name,"",rows.filter {it.item.id!="trust"})
+  assertEquals(4,deleted.settings.size)
+  assertEquals(rows,store.revisions(w.id)[1].settings)
+  assertThrows(IllegalArgumentException::class.java) {service.save("author",w.id,saved.version,w.name,"",rows)}
+  assertEquals(deleted,service.read("author",w.id))
+  verifyNoInteractions(client)
+ }
+
  @Test fun directSavePreservesIdsTextAndImmutableVersionsWithoutAI() {
   val first=service.create("author","항구","")
   val saved=service.save("author",first.id,first.version,"항구","",listOf(setting()))

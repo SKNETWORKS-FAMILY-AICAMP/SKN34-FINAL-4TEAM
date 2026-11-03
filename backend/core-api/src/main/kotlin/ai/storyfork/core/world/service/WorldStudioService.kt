@@ -27,10 +27,11 @@ class WorldStudioService(private val store:WorldStudioStore,private val client:I
   require(settings.size<=250 && settings.all {it.userCategory.isNotBlank() && it.userCategory.length<=50 && it.tags.size<=20 && it.tags.all {t->t.isNotBlank() && t.length<=50}}) {"항목 분류와 태그 길이를 확인하세요."}
   require(settings.all {it.item.decision=="approved"}) {"확정한 항목만 저장할 수 있습니다."}
   require(settings.all {it.item.title.isNotBlank() && (it.item.kind=="entity" || it.item.text.isNotBlank())}) {"모든 설정 항목에 이름과 내용을 입력해 주세요."}
+  require(settings.none {it.item.kind=="relation" && it.item.subjectId==it.item.targetId}) {"관계 주체와 대상은 서로 다른 항목을 선택해 주세요."}
   // Approval retains source evidence; author edits are new explicit author statements.
   // Original author entries allow a name without a description. Validate their name as the source without rewriting stored text.
   val direct=settings.map {s->val text=s.item.text.ifBlank {if(s.item.kind=="entity") s.item.title else s.item.text};s.item.copy(text=text,origin="author_addition",authorText=text,evidence=emptyList(),orderEvidence=emptyList())}
-  validateInitialItems(direct,InitialInput(name,description))
+  require(initialItemIssues(direct,InitialInput(name,description)).isEmpty()) {"설정의 종류·내용·연결 대상을 확인해 주세요."}
  }
  fun create(actor:String,name:String,description:String):StudioWorld=store.transaction {
   validate(name,description,emptyList());StudioWorld(UUID.randomUUID().toString(),name,description).also {store.insert(actor,it)}
@@ -39,8 +40,13 @@ class WorldStudioService(private val store:WorldStudioStore,private val client:I
   val w=editable(actor,id,version)
   val authored=settings.map {s->if(w.settings.any {it.item==s.item}) s else s.copy(item=s.item.copy(origin="author_addition",authorText=s.item.text,evidence=emptyList(),orderEvidence=emptyList()))}
   validate(name,description,authored)
-  // Removing an item is outside this editor; it must eventually be a revert with retained history.
-  require(settings.map {it.item.id}.containsAll(w.settings.map {it.item.id})) {"기존 항목은 삭제할 수 없습니다. 내용을 정정해 새 버전으로 저장하세요."}
+  // Explicit character/relation removal creates a revision; validation above rejects remaining dangling references.
+  require(settings.map {it.item.id}.containsAll(w.settings.filter {it.item.kind!="relation" && !(it.item.kind=="entity" && it.item.entityType=="character")}.map {it.item.id})) {"인물과 관계 외의 기존 설정 항목은 삭제할 수 없습니다."}
+  val relations=authored.map {it.item}.filter {it.kind=="relation"}
+  for(r in relations.filter {next->w.settings.none {it.item==next}}) {
+   require(relations.none {other->other.id!=r.id && other.predicate==r.predicate && other.polarity==r.polarity && (r.predicate !in setOf("custom_relation","custom_relation_directed","custom_emotion") || other.text==r.text) &&
+    (other.subjectId==r.subjectId && other.targetId==r.targetId || r.predicate in setOf("custom_relation","friend_of","sibling_of","spouse_of") && other.subjectId==r.targetId && other.targetId==r.subjectId)}) {"같은 방향과 종류의 관계가 이미 있습니다."}
+  }
   w.copy(name=name,description=description,settings=authored,version=w.version+1,analysis=null).also {store.save(actor,w.version,it)}
  }
  private fun input(w:StudioWorld):InitialInput {
