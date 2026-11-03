@@ -4,14 +4,16 @@
 
 ## 결정 대기 목록
 
-아래 여섯 항목은 팀 합의 전이며 담당자·적용 순서를 임의 지정하지 않는다.
+아래 여섯 항목은 **팀 합의 전의 권장 선택지**다. 담당자·공유 스키마·API 계약을 확정하거나 구현을 승인한 것이 아니다.
 
-1. **독립 세계관 생성:** 작품·회차 없이 먼저 생성하는 방향은 작업실의 사용자 요구다. 회차 백엔드도 이 생명주기와 API를 수용할지 합의한다.
-2. **setting 테이블 소유권:** Core가 정본을 소유한다는 원칙 아래, 기존 회차 담당과 작업실 담당 중 누가 `setting_*` 계약·writer·스키마 변경을 책임질지 정한다. 두 기능이 각각 독립 writer를 만들지 않는다.
-3. **회차 참조:** 초기 `WorldRevision`을 작품 연결 시 고정할지, 회차 초안/확정 시 참조할지, checkpoint에 FK 또는 manifest로 연결할지 정한다.
-4. **관계 정본:** 권장안은 **PostgreSQL 관계 정본 + Graph DB 조회 projection**이다. Graph DB 관계 정본안과 비교해 결정하며 DEC-26만으로 최종 확정된 것은 아니다.
-5. **인증 매핑:** 검증된 Principal의 어떤 식별자를 `world.ownerId` 및 기존 content `member.id`에 연결할지 정한다. 요청 body의 ownerId나 데모 actor를 인증으로 신뢰하지 않는다.
-6. **공통 Flyway:** 구현 담당자, 기존 migration 경로/이력 보존 및 신규 경로 전환 방식, 배포·backfill·제약 활성화 순서를 정한다. 이 PR은 migration을 추가·실행하지 않는다.
+| 공통 계약 | 권장 선택지 (제안) | 팀 확인 사항 |
+|---|---|---|
+| 작품 없이 World 독립 생성 | 소유자가 있는 World와 초안을 먼저 생성하고 작품은 나중에 연결한다. 임시 작품·회차를 만들지 않는다. | 회차 백엔드의 생성 API·생명주기가 이 흐름을 수용하는가? |
+| 기존 setting 테이블의 쓰기 책임 | Core의 공통 설정 저장 경로를 재사용하고 작업실·회차가 같은 잠금·revision 규칙을 따른다. 기능별 독립 writer는 만들지 않는다. | `setting_*` 계약·writer·스키마 변경 책임자를 누가 맡는가? |
+| 회차의 WorldRevision 참조 시점 | 회차 초안 생성 시 선택한 확정 WorldRevision을 고정한다. 변경은 명시적 선택으로만 반영하고 회차 버전·checkpoint 확정 시 사용한 참조를 보존한다. | 기존 회차 버전 모델의 FK/manifest 연결 위치와 변경 절차는 무엇인가? WorldRevision은 EpisodeCheckpoint를 대체하지 않는다. |
+| 관계 정본의 저장 위치 | **PostgreSQL 관계 정본 + Graph DB 조회 projection**을 권장한다. | Graph DB 관계 정본안과 비교해 합의한다. DEC-26만으로 어느 안도 최종 확정된 것은 아니다. |
+| Principal과 소유자 ID 매핑 | 검증된 Principal의 안정적인 식별자를 서버에서 기존 content `member.id`로 매핑해 world 소유자를 결정한다. body의 ownerId·데모 actor·이메일을 인증 근거로 신뢰하지 않는다. | 인증 식별자, 매핑 생성·조회 책임과 기존 계정 연결 방식은 무엇인가? 두 ID가 같다고 가정하지 않는다. |
+| 공통 Flyway 담당과 순서 | 공통 스키마 담당자가 migration 순서를 조율한다. 확장 → backfill 검증 → 제약·writer 전환 → 읽기·projection 전환 순서를 권장한다(11절). | 실제 담당자·적용 시점·기존 이력/경로 보존·rollback 절차를 합의한다. 이 PR은 migration을 추가·실행하지 않는다. |
 
 ## 1. 목적과 작업 범위
 
@@ -51,7 +53,7 @@
 
 ### 실제 분류 필드 왕복 대조 (최종 재검증)
 
-2026-11-03 격리 Core 8100의 새 world `fa512e81-4548-46f9-9c07-bf80181442d4`에서 확인했다. 아래 각 셀은 **요청 = PUT 응답 = GET 응답**이며, 6건 모두 HTTP 200이었다. 기존 테스트에서는 userCategory를 보냈으나 명시적으로 assert하지 않았고, 원본 문서 작성 당시 PUT 응답과 GET 응답의 해당 필드까지 비교했다. 이번 문서 PR에서는 HTTP 테스트를 재실행하지 않았다.
+원본 문서가 2026-11-03 검증으로 기록한 실행 R3(10절)의 격리 Core 8100 새 world `fa512e81-4548-46f9-9c07-bf80181442d4`에서 확인했다. 아래 각 셀은 **요청 = PUT 응답 = GET 응답**이며, 6건 모두 HTTP 200이었다. 기존 테스트에서는 userCategory를 보냈으나 명시적으로 assert하지 않았고, 원본 문서 작성 당시 PUT 응답과 GET 응답의 해당 필드까지 비교했다. 이번 문서 PR에서는 HTTP 테스트를 재실행하지 않았다.
 
 | 유형 | kind (3단계 동일) | entityType (3단계 동일) | category (3단계 동일) | userCategory (3단계 동일) | 복원 기준 |
 |---|---|---|---|---|---|
@@ -291,7 +293,19 @@ Graph DB 관계 정본안에서 Graph가 손실되면 PostgreSQL의 ID/해시만
 | 브라우저 QA | 인물 입력·사회 영역/태그 지정·저장·재조회와 유형 변경 시 선택 유지 확인 | 당시 모바일 캡처 실패로 시각 QA 미검증. 이번 PR E2E는 문서 전용이라 제외 |
 | CI | 실행하지 않음 | 공유 브랜치 push만으로 이 저장소의 develop/main push 및 PR용 CI가 실행되는 것은 아님. Required CI 미검증 |
 
-로컬 증거: `output/card-classification/http-contract.json`, `http-contract-isolated.json`, `verify-contract.py`. 8100 격리 world ID는 `57d65c85-4341-4639-b3d0-7a032cc8f1e0`이다. QA world ID `515d4f36-c027-4f02-a948-34e7db19e3bb`. 이 output 폴더는 로컬 검증 산출물이며 팀 문서에는 결과를 위 표로 기록했다.
+### 실행별 원본 로컬 증거 대조
+
+아래 ID는 원본 JSON의 `url`·`worldId`에서 직접 확인했다. R2와 R3는 같은 8100 포트의 **서로 다른 world를 사용한 별도 검증 실행**이며 ID 오기가 아니다. 2절의 요청·PUT·GET 필드 대조표는 R3에만 대응한다.
+
+| 실행 | Core 포트 | world ID | 증거 파일 (`output/card-classification/` 아래) | 확인 범위 |
+|---|---|---|---|---|
+| R1 | 8098 | `515d4f36-c027-4f02-a948-34e7db19e3bb` | `http-contract.json`, 검증 스크립트 `verify-contract.py` | 6종 왕복 결과 요약. userCategory와 PUT 필드 동일성의 명시적 assert는 없음 |
+| R2 | 8100 | `57d65c85-4341-4639-b3d0-7a032cc8f1e0` | `http-contract-isolated.json` | 격리 서버의 6종 왕복 결과 요약. 요청·응답 전문은 이 파일에 없음 |
+| R3 | 8100 | `fa512e81-4548-46f9-9c07-bf80181442d4` | `field-roundtrip.json`, 검증 스크립트 `verify-fields.py` | `exchanges` 6건의 request·putResponse·getResponse로 kind/entityType/category/userCategory 및 ID·원문을 대조 |
+
+세 결과 파일 모두 사물·기타 409와 별칭 200 뒤 누락을 기록한다. 원본 문서는 R3를 2026-11-03 검증으로 기록했지만, 세 JSON 자체에는 실행 시각 필드가 없다. R1/R2의 정확한 실행일과 R3의 시각은 이 산출물만으로 확정하지 않으며 파일 수정 시각을 실행 시각으로 대체하지 않는다. 이번 수정에서는 기존 증거를 다시 대조했으며 HTTP 테스트를 재실행하지 않았다.
+
+이 output 폴더는 로컬 산출물이며 PR에는 포함하지 않는다. 팀원이 원본을 직접 열어 검증하려면 별도 증거 공유가 필요하다. 위 표는 원본 위치와 확인 범위를 추적하기 위한 기록이며 PostgreSQL 실행·내구성 검증을 뜻하지 않는다.
 
 프런트 테스트 파일: `App.world-card-types.test.tsx`, `domain/entities/studioCards.test.ts`, `App.world-studio.test.tsx`, `App.character-registration.test.tsx`, `App.relationship-edit.test.tsx`, `App.world-studio-confirmed.test.tsx`, `App.world-sidebar.test.tsx`, `data/world-studio/HttpWorldStudioRepository.test.ts`.
 
