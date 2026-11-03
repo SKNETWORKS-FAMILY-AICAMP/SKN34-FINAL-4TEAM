@@ -77,7 +77,7 @@ for mode in ("dev", "prod"):
             assert not web.get("ports")
             assert entry["image"] == "nginx:stable-alpine"
             assert any(v["target"] == "/etc/nginx/conf.d/default.conf" and v["read_only"] for v in entry["volumes"])
-        assert ai["environment"] == {"OPENAI_API_KEY": "", "OPENAI_MODEL": "gpt-5.6-luna"}
+        assert ai["environment"] == {"OPENAI_API_KEY": "", "OPENAI_MODEL": ""}
         assert core["environment"] == {
             "CORE_DATABASE_URL": "jdbc:postgresql://postgres:5432/storyfork",
             "CORE_DATABASE_USER": "config-test",
@@ -91,6 +91,7 @@ for mode in ("dev", "prod"):
             "AI_SERVICE_BASE_URL": "http://ai-service:8000",
             "AI_SERVICE_CONNECT_TIMEOUT": "1s",
             "AI_SERVICE_READ_TIMEOUT": "12s",
+            "AI_GENERATION_READ_TIMEOUT": "75s",
             "APP_CORS_ALLOWED_ORIGIN": f"http://127.0.0.1:{example_port}",
         }
     for changed in (False, True):

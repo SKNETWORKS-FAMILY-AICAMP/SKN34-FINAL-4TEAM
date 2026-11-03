@@ -1,3 +1,5 @@
+import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
+import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { asFunction, asValue } from 'awilix/browser'
 
 import {
@@ -40,6 +42,8 @@ export function registerAppServices(container: AppContainer) {
     authUseCase: asFunction(({ authRepository }) => new AuthUseCase(authRepository)).singleton(),
     signupRepository: asValue(signupRepository),
     signupUseCase: asFunction(({ signupRepository }) => new SignupUseCase(signupRepository)).singleton(),
+    episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
+    episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     mockDb: asValue(createMockDb()),
     workRepository: asFunction(({ mockDb }) => new InMemoryWorkRepository(mockDb)).singleton(),
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),

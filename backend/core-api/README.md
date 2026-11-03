@@ -1,6 +1,6 @@
 # STORYFORK Core Service (현재 모듈: `core-api`)
 
-Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공합니다. 실제 약관·동의와 회원 탈퇴는 아직 구현되지 않았으므로 운영 가입용이 아닙니다. 작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core Service에 있습니다.
+Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하며 `CONTENT_ENABLED=true`일 때 PostgreSQL 기반 콘텐츠 API를 활성화합니다. 작품·원고·설정집·버전·Fork·발행 구현은 [콘텐츠 통합 안내](../../docs/content-integration.md)를 참고하세요. 콘텐츠 소유자는 인증된 JWT의 회원 UUID를 사용합니다. 실제 약관·동의·회원 탈퇴·그래프 DB·크레딧은 미구현이며 운영 가입용이 아닙니다.
 
 ## 공개 계약
 
@@ -10,7 +10,7 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가�
 | `GET /api/v1/health/ai-service` | `{"status":"up","service":"storyfork-ai-service"}` |
 
 자체 Health는 AI 장애와 무관합니다. AI Health는 내부 `/internal/v1/health`의 상태와 서비스명을
-정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다.
+정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다. 콘텐츠 API는 별도로 활성화합니다.
 
 `GET /api/v1/auth/csrf`에서 토큰과 쿠키를 받은 뒤 `X-CSRF-TOKEN`을 보내 모든 변경 요청을 호출합니다. 인증 링크는 URL fragment로 토큰을 전달합니다. 가입 후보의 비밀번호와 토큰은 PostgreSQL에 해시로 저장하며 이메일 인증 전 회원을 생성하지 않습니다. 미인증 이메일로 다시 가입하면 비밀번호·닉네임·토큰과 24시간 유효기간을 새 요청으로 교체하고 이전 링크는 무효화합니다. 이미 가입한 회원의 이메일은 409입니다. 가입 인증은 최신 토큰과 가입 시 정한 비밀번호가 모두 일치해야 하며, 잘못된 비밀번호로는 토큰을 소비하지 않습니다. 인증 성공 후 자동 로그인하지 않습니다. 재발송은 일반화된 202를 반환하지만 메일 전송 장애 시 기존 후보 여부에 따라 응답이 달라질 수 있어 열거 방지의 한계가 있습니다.
 
@@ -41,6 +41,8 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가�
 
 ## 구조
 
+콘텐츠 정본은 최신 ERD에 따른 관계형 테이블에 저장합니다. 기존 JSONB는 읽기 전용 이관 백업으로 남깁니다. [ERD 대응과 마이그레이션](../../docs/content-erd-migration.md)에 테이블별 역할·기존 데이터 보존·남은 범위를 기록했습니다.
+
 Gradle group `ai.storyfork`, 애플리케이션 `storyfork-core-api`, Kotlin namespace `ai.storyfork.core`입니다.
 main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 package와 일치합니다.
 
@@ -68,7 +70,8 @@ python3 ../../infrastructure/scripts/run-native.py core-api
 |---|---|
 | `AI_SERVICE_BASE_URL` | `http://127.0.0.1:8000` |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` |
-| `AI_SERVICE_READ_TIMEOUT` | `12s` |
+| `AI_SERVICE_READ_TIMEOUT` | `12s` (Health) |
+| `AI_GENERATION_READ_TIMEOUT` | `75s` (생성) |
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
 | `CORE_DATABASE_URL`, `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD` | 필수 |
 | `CORE_SMTP_HOST`, `CORE_SMTP_PORT` | 필수 |
@@ -76,8 +79,11 @@ python3 ../../infrastructure/scripts/run-native.py core-api
 | `AUTH_JWT_SECRET` | 필수, 32바이트 이상의 무작위 키를 Base64 인코딩 |
 | `AUTH_COOKIE_SECURE` | `true`; 로컬 HTTP 검증에서만 `false` |
 
+`ContentConfig`는 생성 전용 HTTP 클라이언트를 만들며 Health 클라이언트의 제한시간을 변경하지 않습니다.
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 위 실행기는 루트 `.env`의 Core 허용 설정만 로드합니다. Core에 OpenAI 키를 주입하지 않습니다.
 `./gradlew bootRun` 직접 실행은 `.env`를 로드하지 않습니다.
 Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 web 포트에 맞춥니다.
 실행 설정은 [인프라 안내](../../infrastructure/README.md)를 참고하세요.
+
+회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.

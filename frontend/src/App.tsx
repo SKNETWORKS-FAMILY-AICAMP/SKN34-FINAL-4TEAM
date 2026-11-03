@@ -1,3 +1,4 @@
+import { EpisodePage } from './presentation/features/content/view/EpisodePage'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 import { RestoreContext } from './presentation/shared/session/restoreContext'
 import { useSessionRestore } from './presentation/shared/session/useSessionRestore'
@@ -65,6 +66,7 @@ function App() {
     <RestoreContext.Provider value={restoring}>
       {restoreError && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}
       <Routes>
+        <Route path="/content" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <EpisodePage />} />
         <Route path="/status" element={<StartPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -89,7 +91,7 @@ function App() {
         <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
         <Route path="/worlds" element={<Navigate replace to="/new" />} />
         <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
-        <Route path="/studio/:id" element={<RequireRole><StudioPage /></RequireRole>} />
+        <Route path="/studio/:id" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <StudioPage />} />
         <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
         <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
         <Route path="/chat/:wid?/:cn?" element={<RequireRole><ChatPage /></RequireRole>} />
@@ -97,7 +99,7 @@ function App() {
         <Route path="/me/:sub?" element={<AccountPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
-      {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
+      {pathname !== '/status' && pathname !== '/content' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
     </RestoreContext.Provider>
   )
 }

@@ -1,3 +1,5 @@
+import type { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
+import type { EpisodeRepository } from '../../domain/repositories/EpisodeRepository'
 import type { AwilixContainer } from 'awilix/browser'
 
 import type { CoreApiHealth } from '../../data/api/coreApiHealth'
@@ -31,6 +33,8 @@ import type { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
 export type AppCradle = {
+  episodeUseCase: EpisodeUseCase
+  episodeRepository: EpisodeRepository
   fetchCoreApiHealth: FetchCoreApiHealth
   fetchAiServiceHealth: FetchCoreApiHealth
   profileRepository: ProfileRepository

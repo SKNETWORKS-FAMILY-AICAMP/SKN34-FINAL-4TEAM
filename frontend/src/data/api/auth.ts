@@ -72,11 +72,13 @@ export function refresh(): Promise<AuthUser> {
   return inFlight
 }
 
-export async function protectedRequest(path: string, init: RequestInit = {}, version = generation, lockHeld = false) {
+export async function protectedRequest(path: string, init: RequestInit = {}, version = generation, lockHeld = false,
+  options: { fetcher?: typeof fetch; allowHttpError?: boolean } = {}) {
   assertAuthVersion(version)
   const token = accessToken
   if (!token) throw new SessionExpired()
-  const send = (current: string) => fetch(path, { ...init, credentials: 'same-origin', headers: { ...init.headers, Authorization: `Bearer ${current}` } })
+  const fetcher = options.fetcher ?? fetch
+  const send = (current: string) => fetcher(path, { ...init, credentials: 'same-origin', headers: { ...init.headers, Authorization: `Bearer ${current}` } })
   let response = await send(token)
   if (version !== generation || init.signal?.aborted) throw new Error('Request cancelled')
   if (response.status === 401) {
@@ -100,7 +102,7 @@ export async function protectedRequest(path: string, init: RequestInit = {}, ver
       throw new SessionExpired()
     }
   }
-  if (!response.ok) throw new Error('Request failed')
+  if (!response.ok && !options.allowHttpError) throw new Error('Request failed')
   return response
 }
 
