@@ -6,11 +6,7 @@
 
 > 설계상 명칭은 **Core Service·AI Service**입니다. 아래 `core-api`, `Core API` 표기는 현재 실행 모듈 이름과 HTTP 인터페이스이며 서비스 이름의 변경을 코드·배포에 적용했다는 뜻이 아닙니다. 새 MVP 방향은 [시스템 설계](design/design.md)·[DEC-26~28](design/decisions.md#결정-목록)에 있습니다.
 
-<<<<<<< HEAD
-세 서비스 개발 기반에 선택적 콘텐츠 기능을 추가했습니다. `/content` React 작업실은 Core `/api/v1/works`를 호출하고 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 상세 범위·인증·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요.
-=======
 STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴는 미구현이므로 운영 가입용이 아닙니다.
->>>>>>> 7cbc9fde1119841b5c2bd9c6a776818e5adf3098
 서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
 백엔드는 기능 중심 레이어드 구조를 유지합니다.
 
@@ -26,29 +22,16 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 
 ## 합의된 향후 구성요소 (미구현)
 
-<<<<<<< HEAD
-아래는 구현 범위와 향후 계획을 구분한 표입니다. 콘텐츠는 선택적 PostgreSQL·Flyway와 콘텐츠 Compose 구성을 제공합니다. 기존 유스케이스의 세부 정책과 충돌할 때는 [DEC-26~28](design/decisions.md#결정-목록)을 우선합니다.
-
-| 구성요소 | 용도 | 상태 |
-|---|---|---|
-| PostgreSQL·Flyway | 설정·원고 원문, 버전·체크포인트·Fork·AI 작업·피드백. PostgreSQL 스키마는 Flyway | 콘텐츠 원문·버전·부분 체크포인트·Fork·AI 이력 구현. 전체 도메인·운영 검증은 별도 |
-| 관계 그래프 DB | 인물·엔티티 관계 저장·조회; 문서·원고 전문은 제외 | MVP 방향(DEC-26), 제품·연동 미정 |
-| `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | MVP 미적용. 포크·설치·개발은 아직 안 함(DEC-27·30) |
-| MinIO(S3 호환) | 설정 이미지 파일, RDB에는 URL | MVP 방향(DEC-39), 미설치 |
-| Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | 기존 MVP 이후 범위(DEC-18·22 등) |
-| 모델 API·프레임워크 | 선택적 AI 집필·시뮬레이션 | 선정 미정. 명시적 키·모델 설정과 동의가 있는 이어쓰기 호출 제공 |
-=======
 아래 미구현 구성은 **계획**이며 현재 적용된 부분과 구분합니다. DB에는 인증·프로필과 선택적으로 활성화한 콘텐츠 데이터가 저장됩니다. 기존 유스케이스의 세부 정책과 충돌할 때는 [DEC-26~28](design/decisions.md#결정-목록)을 우선합니다.
 
 | 구성요소 | 용도 | 상태 |
 |---|---|---|
-| PostgreSQL·Flyway | 회원·가입 후보·refresh 세션·복구/이메일 변경 challenge 및 콘텐츠 저장 | 인증·프로필 적용, 콘텐츠는 선택적 활성화 |
+| PostgreSQL·Flyway | 회원·가입 후보·refresh 세션·복구/이메일 변경 challenge 및 콘텐츠 저장 | 인증·프로필 적용. 콘텐츠는 선택적 활성화하며 원문·버전·부분 체크포인트·Fork·AI 이력을 저장. 전체 도메인·운영 검증은 별도 |
 | 관계 그래프 DB | 인물·엔티티 관계 저장·조회; 문서·원고 전문은 제외 | MVP 방향(DEC-26), 제품·연동 미정 |
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | MVP 미적용. 포크·설치·개발은 아직 안 함(DEC-27·30) |
 | MinIO(S3 호환) | 설정 이미지 파일, RDB에는 URL | MVP 방향(DEC-39), 미설치 |
 | Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | 로컬 SMTP를 가입 인증·비밀번호 복구·이메일 변경에 사용, 운영 제공사는 미정 |
 | 모델 API·프레임워크 | 선택적 AI 집필·시뮬레이션 | 팀 선정 미정. 콘텐츠의 명시적 생성은 설정한 OpenAI 모델 호출 |
->>>>>>> 7cbc9fde1119841b5c2bd9c6a776818e5adf3098
 
 저장 경계: 설정·원고 전문 및 콘텐츠의 확정 버전·되돌리기·체크포인트·Fork는 PostgreSQL, 관계 정보는 그래프 DB에서 다룹니다. 콘텐츠 변경을 기존 버전 덮어쓰기로 처리하지 않습니다. 두 DB의 연결 키·정본 여부·동기화·복구, Fork의 기준 관계 고정과 AI 조회 경로는 아직 설계하지 않았습니다. Gitea는 사용하지 않습니다. 세계관 설정은 항목별 공개·비공개와 회차별 공개 범위를 두고 사용자 권한·미발행 원고·인물별 인지 범위를 구분합니다(DEC-36).
 
@@ -56,19 +39,6 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 
 업무 기능은 TypeScript로 Clean Architecture·MVVM을 따릅니다([Frontend 지침](../frontend/AGENTS.md#구조와-의존성)).
 실행 흐름은 `View → ViewModel → UseCase → Repository 구현 → HTTP API`, 의존 방향은 `Presentation → Domain ← Data`이며
-<<<<<<< HEAD
-`app/di`(Awilix)가 UseCase와 Repository 구현체를 연결합니다. 콘텐츠는 EpisodeUseCase·HTTP Repository를 사용하며, 기존 데모 기능은 별도 메모리 Repository를 사용합니다.
-
-`App`은 홈·Health·콘텐츠 작업실과 기존 데모 경로를 연결합니다. UUID `/studio/{id}`는 서버 집필실이며 나머지 집필 ID는 데모 경로입니다.
-실제 상태 UI는 `CoreApiConnectionStatus → useCoreApiHealth → appContainer 외부 함수 → Fetch·Zod`입니다.
-두 공개 API의 상태·서비스명을 검증하며 AI는 항상 Core를 경유합니다.
-
-- Awilix `app/di`가 두 Health 함수를 등록하고 전역 `appContainer`를 재사용합니다.
-- Hook이 로딩·성공·실패·재시도, 요청 취소와 늦은 응답 무시를 담당합니다.
-- Health 상태는 Hook에서 관리합니다. 업무 화면은 Redux Store·Provider와 UseCase·Repository를 사용합니다.
-- Fetch는 Data Layer에만 둡니다. Health는 20초, 콘텐츠 요청은 80초 제한과 안전한 오류 메시지를 사용합니다.
-- 기존 Tailwind 색상·타이포그래피·연결 상태 스타일을 재사용합니다.
-=======
 `app/di`(Awilix)가 인증·프로필 및 데모 기능의 UseCase와 Repository 구현체를 연결합니다.
 
 `App`은 라우팅과 세션 복원 상태 연결을 담당하고, 실제 복원·DI 호출은 Presentation의 `useSessionRestore` Hook에 둡니다.
@@ -77,7 +47,6 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 연결 상태 UI는 `CoreApiConnectionStatus → useCoreApiHealth → appContainer 외부 함수 → Fetch·Zod`입니다.
 두 공개 API의 상태·서비스명을 검증하며 AI는 항상 Core를 경유합니다.
 Hook이 로딩·성공·실패·재시도, 요청 취소와 늦은 응답 무시를 담당하고, Health Fetch는 Data Layer에서 20초 제한과 안전한 화면 오류를 사용합니다.
->>>>>>> 7cbc9fde1119841b5c2bd9c6a776818e5adf3098
 
 ## Core Service (현재 모듈: `core-api`)
 

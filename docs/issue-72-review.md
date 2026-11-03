@@ -31,3 +31,18 @@
 - AI는 Mockito 대역으로 검사했으며 유료 모델을 호출하지 않았다. Docker 실제 구동과 미커밋 변경의 Required CI는 미검증이다.
 - Graphify AST 갱신. SQL 추출 의존성 부재로 DB 관계는 SQL 직접 확인과 실제 PostgreSQL 테스트로 검증했다.
 - 커밋·푸시·PR 수정은 수행하지 않았다.
+
+
+## develop 병합 호환성 재확인 — 2026-11-03
+
+기준 병합 커밋: `9cb4891` (개인 수정 `e57297c` + 인증 PR #71의 develop).
+
+- Git의 미해결 인덱스는 없었으나 architecture.md에 커밋된 충돌 표시 3곳이 남아 있었다. 실제 인증·콘텐츠·데모 경계를 함께 보존해 정리하고 로컬 링크를 확인했다.
+- AuthContentIntegrationTest가 콘텐츠 마이그레이션을 7개로 고정해 V8과 충돌했다. 실제 PostgreSQL/로그인 JWT 테스트에서 실패를 재현하고, 인증 이력과 콘텐츠 V1~V8 적용 여부를 함께 검사하도록 수정했다.
+- 새 개발용 Nginx가 기본 60초 읽기 제한을 사용하므로 Core 생성 제한 75초보다 먼저 끊길 수 있었다. 두 Nginx 설정을 검사하는 회귀를 먼저 실패시킨 뒤 개발 프록시도 90초로 맞췄다.
+- 로컬 첫 실행은 중지된 테스트 PostgreSQL/미생성 DB 때문에 실패했다. 별도 loopback PostgreSQL을 재시작하고 content_merge_auth_test/content_merge_content_test DB에서 다시 확인했다. 운영/사용자 DB와 실제 .env는 변경하지 않았다.
+- 검증: 콘텐츠 관련 22개 통과. 수정 후 AuthContentIntegrationTest 2개 통과(실제 HTTP·JWT·CSRF·타 사용자 거부·인증/콘텐츠 마이그레이션 공존). 서로 다른 실행 단계의 결과이며 동일 시점 전체 테스트 통과로 표현하지 않는다.
+- Frontend 인증·콘텐츠·집필 관련 6파일 45개 및 TypeScript 검사 통과. 환경설정 unittest 4개, 개발/이미지 Compose 콘텐츠 설정·비밀값 격리, Nginx 라우팅·제한시간 검사 통과.
+- Ponytail-review에서 기존 인증/콘텐츠 계약과 실패 경로 보존을 확인했다. 추가 의존성·서비스·화면 변경은 없다. Graphify AST 갱신 및 git diff --check 통과.
+- 이번 수정에는 UI 동작 변경이 없어 별도 Aside 화면 E2E는 수행하지 않았다. 인증/콘텐츠 연결은 실제 HTTP 통합 테스트로 확인했으며, 개발 Nginx를 통한 긴 생성 요청은 Docker Linux 엔진 미기동으로 미검증이다. 유료 AI 호출은 하지 않았다.
+- 최신 미커밋 변경의 Required CI는 검증 대기다. 이번 수정은 커밋·푸시하지 않았다.

@@ -69,7 +69,8 @@ class AuthContentIntegrationTest {
         assertEquals(404, send(request("/api/v1/works/$id").header("Authorization", "Bearer $other")).statusCode())
         assertEquals(404, send(request("/api/v1/public/works/$id")).statusCode())
         assertTrue(jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success", Int::class.java)!! >= 3)
-        assertEquals(7, jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE success AND type <> 'BASELINE'", Int::class.java))
+        val contentVersions = jdbc.queryForList("SELECT version FROM content_schema_history WHERE success AND type <> 'BASELINE'", String::class.java)
+        assertTrue(contentVersions.containsAll((1..8).map(Int::toString)), "Auth and content migrations through V8 must coexist")
     }
 
     @Test

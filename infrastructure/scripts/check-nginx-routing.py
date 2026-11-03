@@ -6,6 +6,8 @@ import re
 root = Path(__file__).resolve().parents[2]
 for path in (root / 'frontend/nginx.conf', root / 'infrastructure/nginx.dev.conf'):
     config = path.read_text()
+    timeout = re.search(r'^\s*proxy_read_timeout\s+(\d+)s;', config, re.M)
+    assert timeout and int(timeout.group(1)) > 75, (path, 'proxy must wait beyond the 75s generation deadline')
     for location in ('= /api', '^~ /api/'):
         block = re.search(r'location\s+' + re.escape(location) + r'\s*\{([^}]*)}', config)
         assert block and 'proxy_pass http://core-api:8080;' in block.group(1), (path, location)
