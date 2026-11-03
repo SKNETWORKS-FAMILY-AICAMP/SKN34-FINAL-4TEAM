@@ -2,8 +2,10 @@ package ai.storyfork.core.settingattachment
 
 import ai.storyfork.core.settingattachment.client.AttachmentStorageClient
 import ai.storyfork.core.settingattachment.entity.SettingAttachment
+import com.zaxxer.hikari.HikariDataSource
 import java.net.URI
 import java.time.Duration
+import javax.sql.DataSource
 import org.flywaydb.core.Flyway
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -11,7 +13,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.*
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
-import org.springframework.jdbc.datasource.DriverManagerDataSource
 import org.springframework.orm.jpa.JpaTransactionManager
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
@@ -44,16 +45,28 @@ class SettingAttachmentConfig {
 
     @Bean fun attachmentStorageClient(s3: S3Client, properties: SettingAttachmentProperties) = AttachmentStorageClient(s3, properties.bucket)
 
+    @Bean(defaultCandidate = false, destroyMethod = "close")
+    fun attachmentDataSource(
+        @Value("\${CONTENT_DATABASE_URL}") url: String,
+        @Value("\${CONTENT_DATABASE_USER}") user: String,
+        @Value("\${CONTENT_DATABASE_PASSWORD}") password: String,
+    ): HikariDataSource {
+        require(url.startsWith("jdbc:postgresql:")) { "Attachment storage requires PostgreSQL" }
+        return HikariDataSource().apply {
+            jdbcUrl = url
+            username = user
+            this.password = password
+            maximumPoolSize = 5
+            connectionTimeout = 2_000
+        }
+    }
+
     // Keep Boot's default Auth persistence unit; attachments use the separately qualified Content database.
     @Bean(defaultCandidate = false)
     @DependsOn("flywayInitializer", "contentRepository")
     fun attachmentEntityManagerFactory(
-        @Value("\${CONTENT_DATABASE_URL}") url: String,
-        @Value("\${CONTENT_DATABASE_USER}") user: String,
-        @Value("\${CONTENT_DATABASE_PASSWORD}") password: String,
+        @Qualifier("attachmentDataSource") source: DataSource,
     ): LocalContainerEntityManagerFactoryBean {
-        require(url.startsWith("jdbc:postgresql:")) { "Attachment storage requires PostgreSQL" }
-        val source = DriverManagerDataSource(url, user, password)
         Flyway.configure().dataSource(source).locations("classpath:db/migration/settingattachment")
             .table("setting_attachment_schema_history").baselineOnMigrate(true).baselineVersion("0").load().migrate()
         return LocalContainerEntityManagerFactoryBean().apply {
