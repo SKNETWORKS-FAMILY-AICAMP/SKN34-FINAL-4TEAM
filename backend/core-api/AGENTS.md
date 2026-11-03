@@ -3,6 +3,21 @@
 `backend/core-api/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
 아래 STORYFORK 업무 경계는 후속 구현 기준이며 현재 기능이 구현되었다는 뜻이 아니다.
 
+## 개발 아키텍처: Spring MVC 필수
+
+- **Core API는 Spring MVC 패턴으로 개발한다.** 기능별 패키지 안에서 Controller와 Model의 책임을 분리하고,
+  업무 처리는 Service, 영속성 처리는 Repository로 나누는 레이어드 구조를 적용한다.
+- **Controller:** HTTP 요청을 DTO로 바인딩·검증하고 Service를 호출한 뒤 응답 DTO와 HTTP 상태·헤더를 반환한다.
+  Repository·EntityManager·외부 Client를 직접 호출하거나 업무 규칙을 구현하지 않는다.
+- **Model:** 도메인 객체·Entity는 상태와 업무 규칙을, Service는 유스케이스·권한 판단·트랜잭션을,
+  Repository는 영속성 조회·저장을 담당한다. Model은 HTTP 요청·응답 객체에 의존하지 않는다.
+- **View:** Core는 REST API이므로 서버 HTML 템플릿 대신 응답 DTO를 JSON으로 직렬화하여 표현한다.
+  DTO 자체를 View 로직으로 취급하지 않으며, 사용자 화면 렌더링은 Frontend가 담당한다. 별도 View 클래스·템플릿 계층은 만들지 않는다.
+- 기본 흐름은 `요청 DTO → Controller → Service → Repository → DB`, 응답은
+  `Service 결과 DTO → Controller → 응답 DTO의 JSON 직렬화`다. 외부 API는 Service가 Client를 통해 호출한다.
+- MVC는 전역 `model/view/controller` 폴더를 만들라는 뜻이 아니다. 아래 기능 중심 배치와 DTO·책임 분리 규칙을 함께 적용한다.
+  신규 개발과 수정 범위의 리팩터링은 이 기준을 따르며, 기존 코드가 이미 모두 준수한다고 간주하지 않는다.
+
 ## 기능 중심 배치
 
 - Kotlin 기본 패키지는 `ai.storyfork.core`다. 소스 루트는 `src/main/kotlin/ai/storyfork/core/`이며
