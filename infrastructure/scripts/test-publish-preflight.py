@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+import runpy
 import subprocess
 import sys
 import tempfile
@@ -34,7 +35,14 @@ assert ci.count("'.github/workflows/publish-images.yml'") == 4
 assert 'python3 -I infrastructure/scripts/test-publish-preflight.py' in ci
 assert 'name: CI\n' in ci and 'name: Required CI\n' in ci
 assert 'name: Images\n' in workflow
-assert 'workflows: [CI]' in workflow and 'branches: [develop, main]' in workflow
+assert 'branches: [develop, main]' in ci, 'CI must still validate main and develop'
+assert 'workflows: [CI]' in workflow and 'branches: [develop]' in workflow
+assert "(github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop')" in workflow
+assert "github.event.workflow_run.head_branch == 'develop'" in workflow
+for guard in ["github.event.workflow_run.conclusion == 'success'",
+              'github.event.workflow_run.head_repository.full_name == github.repository',
+              "(github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')"]:
+    assert guard in workflow, guard
 assert 'types: [completed]' in workflow and '  workflow_dispatch:' in workflow
 assert 'group: images-${{ github.event.workflow_run.head_branch || github.ref_name }}' in workflow
 assert 'cancel-in-progress: false' in workflow
@@ -208,7 +216,17 @@ try:
     changed[run_route] = (200, main_run)
     changed[runs_route] = (200, {'total_count': 1, 'workflow_runs': [main_run]})
     changed[prefix + '/git/ref/heads/main'] = (200, {'ref': 'refs/heads/main', 'object': {'sha': sha}})
-    check_gate('manual selected main HEAD with manual CI evidence', manual=True, overrides={'GITHUB_REF': 'refs/heads/main'}, responses=changed, passed=True)
+    check_gate('manual main rejected despite successful manual CI evidence', manual=True, overrides={'GITHUB_REF': 'refs/heads/main'}, responses=changed)
+    main_run['event'] = 'push'
+    check_gate('automatic main rejected despite successful push CI evidence', event_run=main_run, responses=changed)
+    verify_ci = runpy.run_path(str(root / 'infrastructure/scripts/check-publish-ci.py'))['verify_ci']
+    assert verify_ci('develop', sha, 42, 2, 'owner/repo', fetch=lambda path: fixtures[prefix + urllib.parse.urlsplit(path).path][1]) == run
+    try:
+        verify_ci('main', sha, 42, 2, 'owner/repo', fetch=lambda path: changed[prefix + urllib.parse.urlsplit(path).path][1])
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Shared CI verifier accepted main with complete successful CI evidence')
     check_gate('manual arbitrary branch', manual=True, overrides={'GITHUB_REF': 'refs/heads/feature/x'})
     check_gate('manual tag', manual=True, overrides={'GITHUB_REF': 'refs/tags/develop'})
     check_gate('manual selected ref SHA differs', manual=True, overrides={'GITHUB_SHA': '2' * 40})

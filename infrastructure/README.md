@@ -95,10 +95,10 @@ AI 재시작 후 복구를 검사합니다. prod는 정적 index·JS asset·deep
 세 단계는 Actions에서 각각 보이는 독립 워크플로입니다. 자동으로 순서대로 이어지며, 앞 단계를 반복하지 않고 각 단계를 수동 재시도할 수 있습니다. 서버 배포는 별도 opt-in·승인·설정 전에는 비활성화됩니다.
 
 1. [CI](../.github/workflows/ci.yml)는 `develop`·`main` 푸시와 PR에서 변경 경로별 테스트·lint·애플리케이션 빌드 및 `Required CI`를 수행합니다. 게시·배포 job은 없습니다. 수동 `Run workflow`는 선택한 ref를 checkout하고 변경 경로가 없어도 네 검증 job을 모두 실행합니다. 세 워크플로 경로 모두 경로 필터에 포함합니다.
-2. [Images](../.github/workflows/publish-images.yml)는 `develop`·`main`의 CI가 완료된 다음, 같은 저장소의 `push` 또는 `workflow_dispatch` CI가 성공한 경우에만 자동으로 이어집니다. PR·fork·실패·취소된 CI는 게시하지 않습니다. API 증거 확인 → 이미지 빌드 → 익명 접근 검사 → 현재 HEAD 확인 → 태그 push 순서이며 세 이미지의 matrix job은 병렬입니다. CI 경로 필터로 일부 서비스가 skipped여도 `Required CI`가 성공했다면 별도 Images 실행은 그 skip을 상속하지 않습니다.
+2. [Images](../.github/workflows/publish-images.yml)는 `develop`의 CI가 완료된 다음, 같은 저장소의 `push` 또는 `workflow_dispatch` CI가 성공한 경우에만 자동으로 이어집니다. `main`은 신뢰하는 workflow·helper 코드의 출처일 뿐 이미지 게시·배포 대상이 아닙니다. PR·fork·실패·취소된 CI는 게시하지 않습니다. API 증거 확인 → 이미지 빌드 → 익명 접근 검사 → 현재 HEAD 확인 → 태그 push 순서이며 세 이미지의 matrix job은 병렬입니다. CI 경로 필터로 일부 서비스가 skipped여도 `Required CI`가 성공했다면 별도 Images 실행은 그 skip을 상속하지 않습니다.
 3. [Deploy](../.github/workflows/deploy-develop.yml)는 성공한 Images 이후 원본 CI와 세 게시 job의 증거를 검증하고 **develop 이미지에만** 이어집니다. main 이미지·PR·fork·실패·취소·불완전 게시 증거는 배포하지 않습니다. 테스트나 이미지를 다시 빌드하지 않습니다.
 
-`Images`의 수동 `Run workflow`에서 `develop` 또는 `main`을 선택하면 해당 HEAD의 기존 성공 CI를 찾아 게시만 재시도합니다. 별도 SHA 입력은 받지 않습니다. 증거가 없으면 먼저 `CI`를 해당 브랜치에서 수동 실행합니다. 성공한 수동 CI도 Images를 자동 시작합니다.
+`Images`의 수동 `Run workflow`에서 `develop`을 선택하면 해당 HEAD의 기존 성공 CI를 찾아 게시만 재시도합니다. `main` 등 다른 ref를 선택하면 게시 job을 실행하지 않습니다. 별도 SHA 입력은 받지 않습니다. 증거가 없으면 먼저 `CI`를 해당 브랜치에서 수동 실행합니다. 성공한 수동 CI도 Images를 자동 시작합니다.
 
 `Deploy`의 수동 `Run workflow`는 **main에서** 실행하고 `images_run_id`에 현재 develop HEAD를 게시한 완료·성공 Images 실행 ID를 입력합니다. 그 실행의 최신 attempt 전체를 검증하여 기존 이미지만 재배포하며, CI·Images를 재실행하지 않습니다. 자동 배포와 같은 opt-in·환경 보호·concurrency·HEAD 검사를 적용합니다.
 
@@ -116,7 +116,7 @@ AI 재시작 후 복구를 검사합니다. prod는 정적 index·JS asset·deep
 - `ghcr.io/sknetworks-family-aicamp/storyfork-core-api`
 - `ghcr.io/sknetworks-family-aicamp/storyfork-ai-service`
 
-태그는 검증한 브랜치 이름(`develop`·`main`)과 `sha-<전체 커밋 SHA>`입니다. 비공개 이미지를 pull하려면 해당 패키지에 접근 권한이 있는 GitHub 계정과 패키지 읽기 권한이 있는 인증으로 `docker login ghcr.io`를 먼저 실행합니다.
+태그는 검증한 브랜치 이름 `develop`과 `sha-<전체 커밋 SHA>`입니다. 비공개 이미지를 pull하려면 해당 패키지에 접근 권한이 있는 GitHub 계정과 패키지 읽기 권한이 있는 인증으로 `docker login ghcr.io`를 먼저 실행합니다.
 각 이미지 push 직전 익명 토큰 요청에서 단일 오류 코드가 상태와 일치하는 `401 UNAUTHORIZED` 또는 `403 DENIED`만 허용합니다. `401 UNAUTHORIZED`는 인증이 필요하다는 응답일 뿐 패키지의 비공개를 보장하지 않으며, `403 DENIED`는 비공개와 패키지 부재를 구분하지 못합니다. 최초 패키지는 비공개로 생성된다는 GitHub 정책을 전제합니다. 검사와 게시 사이 공개 설정이 바뀌는 경쟁 가능성도 있으므로 비공개를 보장하는 원자적 검사는 아닙니다. 이미지별 게시가 독립적으로 실패할 수 있어 일부만 게시될 수 있으며 Actions의 각 job 결과를 확인해야 합니다.
 
 각 서비스는 게시 직전 GitHub API에서 현재 대상 브랜치 HEAD를 다시 읽고 검증한 SHA와 다르거나 조회가 실패하면 게시를 중단합니다. 조회와 두 태그 push 사이에도 브랜치가 바뀔 수 있어 이 검사는 원자적이지 않으며 오래된 태그 게시를 완전히 막지 못합니다. matrix 작업은 독립적이므로 실패·취소 또는 브랜치 변경 시 SHA 태그와 브랜치 태그가 서비스별로 서로 다른 상태가 될 수 있습니다.

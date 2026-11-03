@@ -61,7 +61,7 @@ def valid_run(run, workflow_id, branch, sha, repository=None):
 
 def verify_ci(branch, sha, run_id, attempt, repository=None, fetch=api):
     """Shared by Images and Deploy, including its final server-side recheck."""
-    require(branch in {'develop', 'main'} and re.fullmatch('[0-9a-f]{40}', sha))
+    require(branch == 'develop' and re.fullmatch('[0-9a-f]{40}', sha))
     require(type(run_id) is int and run_id > 0 and type(attempt) is int and attempt > 0)
     workflow = fetch('/actions/workflows/ci.yml')
     require(type(workflow['id']) is int and workflow['id'] > 0)
@@ -90,11 +90,11 @@ def main():
         branch, sha = candidate['head_branch'], candidate['head_sha']
     elif event_name == 'workflow_dispatch':
         ref = os.environ['GITHUB_REF']
-        require(ref in {'refs/heads/develop', 'refs/heads/main'})
+        require(ref == 'refs/heads/develop')
         branch, sha = ref.removeprefix('refs/heads/'), os.environ['GITHUB_SHA']
     else:
         raise ValueError('Unsupported trigger')
-    require(branch in {'develop', 'main'} and re.fullmatch('[0-9a-f]{40}', sha))
+    require(branch == 'develop' and re.fullmatch('[0-9a-f]{40}', sha))
 
     if event_name == 'workflow_dispatch':
         query = urllib.parse.urlencode({'branch': branch, 'head_sha': sha, 'status': 'success'})
