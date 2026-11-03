@@ -1,6 +1,6 @@
 # STORYFORK Core Service (현재 모듈: `core-api`)
 
-Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 시연용 이메일 가입·인증 및 로그인·세션 API를 제공합니다. 계정 복구·프로필 및 실제 약관·동의는 아직 구현되지 않았으므로 운영 가입용이 아닙니다. 작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core Service에 있습니다.
+Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공합니다. 실제 약관·동의와 회원 탈퇴는 아직 구현되지 않았으므로 운영 가입용이 아닙니다. 작품·버전·Fork·권한·승인·발행·크레딧의 목표 책임은 Core Service에 있습니다.
 
 ## 공개 계약
 
@@ -12,7 +12,20 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 시연용 이�
 자체 Health는 AI 장애와 무관합니다. AI Health는 내부 `/internal/v1/health`의 상태와 서비스명을
 정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다.
 
-`GET /api/v1/auth/csrf`에서 토큰과 쿠키를 받은 뒤 `X-CSRF-TOKEN`을 보내 모든 변경 요청을 호출합니다. 인증 링크는 URL fragment로 토큰을 전달합니다. 가입 후보는 PostgreSQL에 해시만 저장하며 이메일 인증 전 회원을 생성하지 않습니다. 링크는 24시간 유효하고 한 번만 사용할 수 있습니다. 재발송은 일반화된 202를 반환하지만 메일 전송 장애 시 기존 후보 여부에 따라 응답이 달라질 수 있어 열거 방지의 한계가 있습니다. 메일과 데이터베이스는 로컬 검증용이며 운영 SMTP·TLS 정책은 미정입니다.
+`GET /api/v1/auth/csrf`에서 토큰과 쿠키를 받은 뒤 `X-CSRF-TOKEN`을 보내 모든 변경 요청을 호출합니다. 인증 링크는 URL fragment로 토큰을 전달합니다. 가입 후보의 비밀번호와 토큰은 PostgreSQL에 해시로 저장하며 이메일 인증 전 회원을 생성하지 않습니다. 미인증 이메일로 다시 가입하면 비밀번호·닉네임·토큰과 24시간 유효기간을 새 요청으로 교체하고 이전 링크는 무효화합니다. 이미 가입한 회원의 이메일은 409입니다. 가입 인증은 최신 토큰과 가입 시 정한 비밀번호가 모두 일치해야 하며, 잘못된 비밀번호로는 토큰을 소비하지 않습니다. 인증 성공 후 자동 로그인하지 않습니다. 재발송은 일반화된 202를 반환하지만 메일 전송 장애 시 기존 후보 여부에 따라 응답이 달라질 수 있어 열거 방지의 한계가 있습니다.
+
+| 경로 | 요청·성공 동작 |
+|---|---|
+| `POST /api/v1/auth/signup` | `email`, `password`, `nickname`; 가입 후보 저장·메일 발송, 202 |
+| `POST /api/v1/auth/verify-email` | `token`, 가입 시 정한 `password`; 회원 생성, 204 |
+| `POST /api/v1/auth/forgot-password` | `email`; 비밀번호 재설정 메일 요청, 일반화된 202 |
+| `POST /api/v1/auth/reset-password` | `token`, `newPassword`; 비밀번호 변경·모든 refresh 세션 폐기, 204 |
+| `POST /api/v1/auth/verify-email-change` | `token`만으로 이메일 변경 확정, 204 |
+| `GET /api/v1/me` | Bearer 인증; 현재 회원 정보, 200 |
+| `PATCH /api/v1/me` | Bearer 인증과 `nickname`; 변경한 회원 정보, 200 |
+| `POST /api/v1/me/email-change` | Bearer 인증과 새 `email`; 변경 확인 메일 요청, 202 |
+
+가입 인증 링크는 24시간, 비밀번호 재설정·이메일 변경 링크는 1시간 유효하며 한 번만 사용할 수 있습니다. 가입 인증 화면은 fragment를 지운 뒤 비밀번호 입력과 명시적 확인을 기다리고, 이메일 변경 확인 화면은 기존처럼 토큰만으로 자동 진행합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경 메일에 사용합니다. 메일과 데이터베이스는 로컬 검증용이며 운영 SMTP·TLS 정책은 미정입니다.
 
 로그인·갱신은 30분 유효한 access JWT와 회원 정보를 반환합니다. refresh는 host-only `refresh_token` 쿠키(HttpOnly, SameSite=Strict, 경로 `/api/v1/auth`)로 전달하며 세션은 로그인 시점부터 14일 유효합니다. 갱신은 회전하고 폐기된 토큰을 재사용하면 해당 회원의 모든 refresh 세션을 폐기합니다. 세션 목록·개별 폐기·전체 로그아웃은 Bearer 인증이 필요합니다. 발급된 access JWT는 세션 폐기 후에도 만료까지 유효합니다. 토큰 재사용 기록의 정리 및 로그인 속도 제한은 아직 없습니다.
 

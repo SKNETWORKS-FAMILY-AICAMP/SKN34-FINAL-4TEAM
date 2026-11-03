@@ -1,6 +1,6 @@
 # STORYFORK Docker 실행 기반
 
-시작 화면과 Core·AI Health, 시연용 이메일 가입·인증 및 로그인·세션 API를 제공합니다. 실제 약관·동의와 계정 복구·프로필은 미구현이며 운영 가입용이 아닙니다.
+화면 데모와 Core·AI Health, 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공합니다. 실제 약관·동의와 회원 탈퇴는 미구현이며 운영 가입용이 아닙니다.
 
 | 항목 | `compose.yaml` | `compose.prod.yaml` |
 |---|---|---|
@@ -24,6 +24,8 @@ API 404는 SPA HTML로 바꾸지 않으며 알 수 없는 UI deep link만 홈 �
 ## 시작과 설정
 
 루트 `.env`에 개발용 `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD`와 32바이트 이상 무작위 값의 Base64 인코딩인 `AUTH_JWT_SECRET`을 직접 설정하고, `AUTH_PUBLIC_ORIGIN`을 실제 web origin으로 지정합니다. JWT 키는 Core에만 전달하며 저장소에 커밋하지 않습니다. 로컬 HTTP 검증에서만 `AUTH_COOKIE_SECURE=false`로 설정하고 HTTPS 운영에서는 `true`를 사용합니다. 기존 `.env`는 덮어쓰지 않습니다. Mailpit 화면은 기본 `http://127.0.0.1:8025`이며 인증 메일을 포함하므로 로컬에서만 사용합니다.
+
+SMTP는 가입 인증·비밀번호 복구·이메일 변경 메일에 사용합니다. 가입 인증 링크는 24시간, 비밀번호 재설정·이메일 변경 링크는 1시간 유효합니다. 가입 인증은 토큰과 가입 시 정한 비밀번호를 함께 요구하고, 이메일 변경 확인은 토큰만 사용합니다. 프로필 조회·닉네임 변경·이메일 변경 요청 및 복구 API의 실제 경로는 [Core API 계약](../backend/core-api/README.md#공개-계약)을 참고합니다.
 
 ```bash
 docker compose --env-file .env --file infrastructure/compose.yaml up --build
