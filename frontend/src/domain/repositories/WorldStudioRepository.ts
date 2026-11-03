@@ -1,6 +1,5 @@
 import type {StudioWorld} from '../entities/studioWorld'
-import type {WorldRepository} from './WorldRepository'
-export interface WorldStudioRepository extends WorldRepository {
+export interface WorldStudioRepository {
  connect():Promise<void>
  listStudio(signal?:AbortSignal):Promise<StudioWorld[]>
  read(id:string,signal?:AbortSignal):Promise<StudioWorld>

@@ -19,7 +19,7 @@ export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContaine
   const navigate = useNavigate()
   const [policyAccepted, setPolicyAccepted] = useState(false)
   const form = useAppSelector((s) => s.newWork)
-  const { data: worlds, isError: worldsError } = useAsyncData(() => libraryUseCase.getWorlds(true), [libraryUseCase])
+  const { data: worlds } = useAsyncData(() => libraryUseCase.getWorlds(), [libraryUseCase])
   useScreenId('U28')
 
   const set = (patch: Partial<NewWorkInput>) => dispatch(newWorkActions.set(patch))
@@ -29,7 +29,7 @@ export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContaine
   return {
     policyAccepted,
     acceptPolicy: (ack: boolean) => ack ? setPolicyAccepted(true) : toast('정책 확인 항목에 동의해 주세요'),
-    form, set, worlds, worldsError,
+    form, set, worlds,
     toggleWorld: (id: string, on: boolean) => set({ worldIds: on ? [...new Set([...form.worldIds, id])] : form.worldIds.filter((x) => x !== id) }),
     setCast: (i: number, key: 'n' | 'd', v: string) => set({ cast: form.cast.map((c, n) => n === i ? { ...c, [key]: v } : c) }),
     addTag: (raw: string) => {

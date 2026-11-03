@@ -14,7 +14,7 @@ it('exposes original menus from main navigation and preserves every menu through
  const fetcher=vi.fn(async(url:RequestInfo|URL,init?:RequestInit)=>{
   const path=String(url)
   if(init?.method==='PUT') {persisted={...JSON.parse(String(init.body)),version:persisted.version+1}}
-  return new Response(JSON.stringify(path.endsWith('/capabilities')?{aiEnabled:false}:path.endsWith('/worlds')?[persisted]:persisted))
+  return new Response(JSON.stringify(path.endsWith('/worlds')?[persisted]:persisted))
  })
  vi.stubGlobal('fetch',fetcher)
  const show=()=>render(<Provider store={createAppStore({role:'user'})}><MemoryRouter initialEntries={['/worlds/menu-world']}><App/></MemoryRouter></Provider>)
@@ -33,7 +33,7 @@ it('exposes original menus from main navigation and preserves every menu through
  await waitFor(()=>expect(screen.queryByRole('heading',{name:'메뉴 검증',level:2})).toBeNull())
  fireEvent.click(within(screen.getByRole('navigation',{name:'주요 메뉴'})).getByRole('button',{name:/내 서재/}))
  fireEvent.click(await screen.findByRole('button',{name:'내가 쓰는 소설'}))
- await screen.findByRole('heading',{name:'작품 작업실'})
+ await screen.findByRole('heading',{name:'내 서재'})
  fireEvent.click(within(screen.getByRole('main')).getByRole('button',{name:'세계관 작업실'}))
  fireEvent.click(await screen.findByRole('button',{name:/^메뉴 검증/}))
  await screen.findByRole('heading',{name:'메뉴 검증',level:2})

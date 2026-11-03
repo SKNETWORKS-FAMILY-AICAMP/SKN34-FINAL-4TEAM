@@ -36,14 +36,12 @@ const mineOnly = (worlds: World[], id: string) => worlds.find((w) => w.id === id
 /** 목업 lib()·write()·newWork()·worldManager·importer(): 내 서재와 창작 시작 */
 export class LibraryUseCase {
   private readonly workRepository: WorkRepository
-  private readonly creationWorldRepository: WorldRepository
   private readonly worldRepository: WorldRepository
   private readonly readingRepository: ReadingRepository
   private readonly feedbackRepository: FeedbackRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository, creationWorldRepository: WorldRepository = worldRepository) {
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
-    this.creationWorldRepository = creationWorldRepository
     this.readingRepository = readingRepository
     this.feedbackRepository = feedbackRepository
   }
@@ -95,8 +93,8 @@ export class LibraryUseCase {
   }
 
   /** U28 세계관 목록: 내 세계관, 이용 가능한 공개 세계관, 조합 가능한 세계관 */
-  async getWorlds(forCreation = false) {
-    const worlds = await (forCreation ? this.creationWorldRepository : this.worldRepository).list()
+  async getWorlds() {
+    const worlds = await this.worldRepository.list()
     return {
       mine: worlds.filter((w) => !w.owner),
       usable: worlds.filter((w) => w.owner && w.public && w.allowUse).map((w) => ({ world: w, rules: publicWorldRules(w) })),
@@ -218,7 +216,7 @@ export class LibraryUseCase {
     if (!t) return { error: '제목을 적어 주세요' }
     const cast = i.cast.map((c) => ({ n: c.n.trim(), d: c.d.trim() })).filter((c) => c.n)
     if (!cast.length) return { error: '인물을 1명 이상 적어 주세요' }
-    const worlds = (await this.creationWorldRepository.list()).filter((w) => i.worldIds.includes(w.id) && (!w.owner || (w.public && w.allowUse)))
+    const worlds = (await this.worldRepository.list()).filter((w) => i.worldIds.includes(w.id) && (!w.owner || (w.public && w.allowUse)))
     if (worlds.length !== i.worldIds.length) return { error: '이용할 수 없는 세계관이 있어요' }
     const localRules = lines(i.localRules)
     const rules = [...new Set(worlds.flatMap((w) => w.owner ? publicWorldRules(w) : w.rules).concat(localRules))]

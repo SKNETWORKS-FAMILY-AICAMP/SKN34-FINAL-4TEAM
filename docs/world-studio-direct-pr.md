@@ -21,7 +21,7 @@ H2는 로컬 개발용이며 PostgreSQL 운영 저장 구현이 아니다. 작�
 ## 팀 통합 검토
 
 - #68: 2026-11-03 조회 시 병합됨, merge SHA `a8d44ff`. 콘텐츠는 별도 PostgreSQL 연결과 `content_schema_history` Flyway를 사용한다. 기존 `/content`, `/studio/:id`, Episode DI 등록을 보존한다. 콘텐츠 스키마와 migration 파일은 수정하지 않는다.
-- #71: 조회 시 open, head `c695b8765dca897ed12459bdcc5f2d98c76f8cbb`. 공통 PostgreSQL/Flyway, JWT와 CSRF, STATELESS 및 anyRequest denyAll을 추가한다. 현 작업실의 HttpSession/로컬 actor 선택은 실제 회원 identity가 아니다. #71을 병합하면 studio 요청은 기본 거부되며 프런트 토큰·CSRF 연계도 없다. 임의 permitAll이나 CSRF 예외로 우회하지 않는다.
+- #71: 조회 시 open, 최종 확인 head `93c5b98f0e4cc389503e87d34e8572cf1d25224a`. 공통 PostgreSQL/Flyway, JWT와 CSRF, STATELESS 및 anyRequest denyAll을 추가한다. 최신 head는 #68을 통합하고 콘텐츠 인증 경로와 기존 schema의 콘텐츠 Flyway baseline을 조정했으나 studio 경로는 허용하지 않는다. 초기 c695b87 검토 결과와 최신 head 재검토를 구분한다. 현 작업실의 HttpSession/로컬 actor 선택은 실제 회원 identity가 아니다. #71을 병합하면 studio 요청은 기본 거부되며 프런트 토큰·CSRF 연계도 없다. 임의 permitAll이나 CSRF 예외로 우회하지 않는다.
 - Ready 전 `/api/v1/studio/*` 정책, 회원 Principal/소유자 ID 매핑, CSRF·세션 대체 및 운영 저장 방향을 인증 담당자와 합의해야 한다. 선택 가능한 체험 actor는 로컬 검증만 위한 것이므로 공개/역방향 프록시 운영에서 이 플래그를 켜면 안 된다. 운영 인증/데이터 격리가 완료됐다고 표시하지 않는다.
 
 ## 제외 및 Ready 조건
@@ -32,9 +32,37 @@ Ready 조건: 최신 Required CI 실제 성공, #71 인증/접근 정책 및 DB 
 
 ## 이번 실행 결과
 
-- Frontend 관련 9파일 37테스트 통과. 목록 접기 테스트는 후속 탭 없이 직접 작성 메뉴 전환과 미저장 입력 보존을 검사한다.
+- Frontend 관련 9파일 38테스트 통과. 목록 접기 테스트는 후속 탭 없이 직접 작성 메뉴 전환과 미저장 입력 보존을 검사한다.
 - Core 선택 19테스트 통과: 작업실 서비스/접근 필터·DataSource 분리, 기본 context, CORS, #68 콘텐츠 권한/서비스.
 - TypeScript 검사·관련 oxlint·Vite 빌드·Core bootJar 통과. 기존 Vite 메인 번들 500kB 경고가 남는다.
 - PostgreSQL 실제 콘텐츠 migration/coexistence 및 #71 JWT 통합 실행은 아직 미검증이다. 위 회귀를 실제 PostgreSQL 동시 구동 검증으로 표현하지 않는다.
 - 이번 QA: web 5183 → Core 8099 → worktree `output/direct-qa/worlds` 새 H2 파일. 기존 5175/5181 및 사용자 DB/환경 파일은 보존했다. 첫 기동은 Windows 긴 JVM 임시 소켓 경로로 실패해 QA JVM에만 짧은 임시 경로를 지정했다.
-- 브라우저/실제 HTTP·재시작 결과는 수행 후 갱신한다. 로그·스크린샷·QA JSON은 로컬 `output/`에 보관하며 커밋하지 않는다.
+- 브라우저·실제 HTTP·재시작 결과는 아래와 같다. 로그·DOM 스냅샷·QA JSON은 로컬 `output/`에 보관하며 커밋하지 않는다.
+
+## 최종 범위 리뷰와 실제 QA 결과
+
+기존 01 패치에 있던 새 소설의 HTTP 작업실 저장소 의존을 제거했다. 비활성 작업실 서버가 기존 새 소설 세계관 목록을 막는 실패를 먼저 재현하고, LibraryUseCase·useNewWorkViewModel을 최신 develop 원래 계약으로 유지했다. NewWorkPage에는 작업실 진입 링크 한 개만 추가한다. 기존 세계관 선택/편집/삭제 데모는 바꾸지 않으며 새 작업실 저장소와의 동기화는 후속 범위다. 직접 작성 Repository는 이 데모의 WorldRepository를 상속하지 않고 필요한 5개 메서드만 제공한다. AI capabilities·analysis mock 잔여를 제거했다.
+
+이번 전용 브랜치에서 수행한 결과:
+
+| 검증 | 실제 결과 |
+|---|---|
+| 관련 Frontend 최종 회귀 | 9파일 38개 통과. 비활성 작업실 HTTP에서도 기존 새 소설 목록 유지 포함 |
+| #68 프런트 회귀 | 회차 HTTP/집필 화면 2파일 16개 통과. 실제 유료 모델 호출 없음 |
+| Core 선택 검증 | 19개 통과. 초기 빌드 후 Core 구현은 변경하지 않음 |
+| 타입·린트·web/Core 빌드 | 통과. Vite 큰 번들 경고 유지 |
+| 실제 Aside 저장/재조회 | 새 세계관 생성→인물/장소/설정 3개 작성→저장→브라우저 새로고침·데모 재진입→원문 재조회→수정·재저장 통과 |
+| 실제 오류/충돌 | 빈 항목 이름 저장 거부, 별도 합성 세션 선행 저장 후 stale 저장 거부. 편집 내용과 마지막 저장본 보존 확인 |
+| 실제 HTTP 보호 | 11개 검사 통과: 익명/다른 체험 actor 조회·수정·history 거부, Origin·입력·버전 거부, ID/원문/분류/태그·revision 보존 |
+| 실제 프로세스 재시작 | 전용 QA Core PID를 검증하고 중단·재시작. 저장 payload 전체와 revision 1~5가 동일함을 HTTP로 확인 |
+| 통신 실패/복구 | Core 중단 중 저장을 실패로 표시하고 입력 유지. 재연결 후 같은 편집본 재시도 저장 version 6 성공 |
+| 기본 반응형·키보드 | Aside 실제 CSS 1440/800/390px에서 목록 접기→인물/장소/설정 메뉴 전환→Enter 펼치기, 상태·포커스 유지. 문서 가로 넘침 없음 |
+
+실제 QA URL: `http://127.0.0.1:5183/worlds/5dda0549-c389-4b01-905e-a53614a3730d`.
+로컬 증거: `output/frontend-final.log`, `output/content-frontend-regression.log`, `output/core-selected.log`, `output/core-results.json`, `output/direct-qa/http-protection.json`, `restart-verification.json`, `browser/direct-{saved,updated,final,responsive}.json`, `browser/direct-{invalid,conflict,offline}.txt`, `browser/direct-{1440,800,390}.txt`.
+
+스크린샷은 Aside CDP capture timeout으로 저장하지 못했다. 위 반응형 결과는 실제 DOM 스냅샷·치수·입력/클릭/Enter 확인이며 픽셀 이미지 검수를 완료했다고 표시하지 않는다. 익명/타 체험 actor 거부는 로컬 세션 범위의 결과이며 실제 회원 인증의 보장을 뜻하지 않는다.
+
+[Draft PR #76](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76)을 develop 대상으로 실제 생성했다. 첫 코드 커밋 `fa2fee7`의 [Required CI](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/actions/runs/41575206561)는 Web/Core/Compose/Whitespace를 포함해 성공했다. 최종 범위 축소 후 커밋의 결과는 PR Checks에서 별도로 확인하며 앞선 성공을 새 head의 성공으로 간주하지 않는다. Draft 유지, Ready 전환·병합 없음.
+
+추가 데이터 보호 확인: 현재 version 6으로 기존 항목을 모두 누락한 PUT을 실제 QA API에 보냈을 때 409로 거부됐고 ID 3개·원문·version·전체 payload가 그대로 유지됐다(`output/direct-qa/http-no-removal.json`). 삭제 UI/업무 API를 새로 구현한 것이 아니다.

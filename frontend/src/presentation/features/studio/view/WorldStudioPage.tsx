@@ -14,7 +14,7 @@ export function WorldStudioPage() {
  const [listOpen,setListOpen]=useState(true)
  const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const f=new FormData(e.currentTarget);vm.create(String(f.get('name')??''),String(f.get('description')??''))}
  return <><Gnb on="worlds"/><main className="wrap world-studio">
-  <header className="world-heading"><div><Go to="/worlds" className="back">세계관 작업실</Go><h1>세계관 작업실</h1><p className="muted">인물과 장소, 세계의 규칙을 정리해 보세요. 저장한 세계관은 새 소설에 연결할 수 있어요.</p></div><Go to="/new" className="btn">저장한 세계관으로 새 소설 쓰기</Go></header>
+  <header className="world-heading"><div><Go to="/worlds" className="back">세계관 작업실</Go><h1>세계관 작업실</h1><p className="muted">인물과 장소, 세계의 규칙을 정리해 보세요. 필요한 항목부터 직접 작성해 보세요.</p></div><Go to="/new" className="btn">새 소설 쓰기</Go></header>
   {vm.error && <p role="alert" className="world-error">{vm.error}</p>}
   {vm.message && <p role="status" className="world-message">{vm.message}</p>}
   <div className={"world-layout"+(listOpen?"":" world-list-collapsed")} aria-busy={vm.busy}>

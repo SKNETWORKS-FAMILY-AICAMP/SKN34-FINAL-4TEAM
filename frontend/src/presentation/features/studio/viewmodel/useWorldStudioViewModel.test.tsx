@@ -11,13 +11,13 @@ import { useWorldStudioViewModel } from './useWorldStudioViewModel'
 afterEach(cleanup)
 const world:StudioWorld={id:'world-a',name:'항구',description:'설명',version:1,settings:[]}
 function setup() {
- const repo:WorldStudioRepository={connect:vi.fn(async()=>{}),list:vi.fn(async()=>[]),listStudio:vi.fn(async()=>[world]),read:vi.fn(async()=>structuredClone(world)),create:vi.fn(async()=>world),save:vi.fn(async()=>{}),remove:vi.fn(async()=>{}),saveStudio:vi.fn(async(w)=>({...w,version:w.version+1}))}
+ const repo:WorldStudioRepository={connect:vi.fn(async()=>{}),listStudio:vi.fn(async()=>[world]),read:vi.fn(async()=>structuredClone(world)),create:vi.fn(async()=>world),saveStudio:vi.fn(async(w)=>({...w,version:w.version+1}))}
  const useCase=new WorldStudioUseCase(repo)
  const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worlds/world-a']}><Routes><Route path="/worlds/:worldId" element={children}/></Routes></MemoryRouter>
  return {repo,...renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})}
 }
 
-it('does not replace confirmed Wiki data until save resolves and prevents duplicate saves',async()=>{
+it('does not replace last saved data until save resolves and prevents duplicate saves',async()=>{
  const {result,repo}=setup()
  await waitFor(()=>expect(result.current.saved?.id).toBe('world-a'))
  let finish:(w:StudioWorld)=>void=()=>{}

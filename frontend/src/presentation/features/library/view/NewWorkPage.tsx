@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 
-import { NOVEL_GENRES, NOVEL_TAG_GROUPS } from '../../../../domain/usecases/LibraryUseCase'
+import { NOVEL_GENRES, NOVEL_TAG_GROUPS, type WorldForm, type WorldPermission } from '../../../../domain/usecases/LibraryUseCase'
+import type { World } from '../../../../domain/entities/world'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { resizeImg } from '../../../shared/resizeImg'
@@ -10,7 +11,12 @@ import { useNewWorkViewModel } from '../viewmodel/useNewWorkViewModel'
 
 type VM = ReturnType<typeof useNewWorkViewModel>
 const DAYS = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
+const PERMS: [WorldPermission, string][] = [['allowUse', '이용'], ['allowFork', '세계관 포크'], ['allowAI', 'AI 처리'], ['allowPaid', '유료 공개']]
 const rowLabel = { flexDirection: 'row', alignItems: 'flex-start', margin: '14px 0' } as const
+const worldForm = (e: FormEvent<HTMLFormElement>): WorldForm => {
+  const f = new FormData(e.currentTarget)
+  return { name: String(f.get('name') ?? ''), description: String(f.get('description') ?? ''), rules: String(f.get('rules') ?? '') }
+}
 
 /** 목업 newWork(): U28 새 소설 만들기 */
 export function NewWorkPage() {
@@ -56,10 +62,11 @@ function NewWorkForm({ vm }: { vm: VM }) {
   const addTag = (v: string) => { if (vm.addTag(v)) { setTagInput(''); setTagPick('') } }
   return (
     <div className="fork newwork-page">
+      <Go to="/worlds" className="btn">세계관 작업실</Go>
       <Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go>
       <h1 style={{ fontSize: 34, fontWeight: 800, margin: '14px 0 6px' }}>새 소설 쓰기</h1>
       <p className="muted">세계관과 인물을 먼저 정해 두면, 집필실의 설정 검사와 인물 시뮬레이션이 이 정보를 써요.</p>
-      <p className="note2">세계관 작성·관리는 <Go to="/worlds">세계관 작업실</Go>에서 할 수 있습니다.</p>{vm.worldsError && <p role="alert">저장한 세계관을 읽지 못했습니다. 세계관 작업실에서 로컬 세션을 연결하고 다시 열어 주세요.</p>}
+      {worlds && <WorldManager vm={vm} />}
       <div className="tcard fstep"><h3>연결할 세계관</h3><p className="small muted">1개 이상 5개 이하를 선택해 주세요.</p>
         {worlds?.linkable.length ? worlds.linkable.map((w) => (
           <label className="field" key={w.id}><span><input type="checkbox" name="world" value={w.id} checked={f.worldIds.includes(w.id)} onChange={(e) => vm.toggleWorld(w.id, e.target.checked)} /> {w.name} · {w.owner ? '공개 이용' : w.public ? '내 공개 세계관' : '내 비공개 세계관'}</span></label>
@@ -96,6 +103,82 @@ function NewWorkForm({ vm }: { vm: VM }) {
         {([['0', '허용 안 함'], ['all', '전체 회차 허용'], ['eps', '회차별로 정하기']] as const).map(([k, l]) => <button type="button" key={k} className={f.fork === k ? 'on' : ''} aria-pressed={f.fork === k} onClick={() => vm.set({ fork: k })}>{l}</button>)}
       </div><p className="note2" style={{ marginTop: 8 }}>‘회차별로 정하기’는 회차를 공개한 뒤 공개 설정에서 회차마다 켜고 끌 수 있어요. 처음에는 나만 볼 수 있는 상태로 만들어져요.</p></div>
       <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16, marginTop: 8 }} id="createWork" onClick={vm.create}>소설 만들고 1화 쓰기 →</button>
+    </div>
+  )
+}
+
+/** 목업 worldManager(): 세계관 만들기·조합·편집·버전 복원·공개·이용·복사·삭제 */
+function WorldManager({ vm }: { vm: VM }) {
+  const w = vm.worlds!
+  return (
+    <details id="worldManager" className="tcard fstep" open={!w.mine.length || undefined}>
+      <summary style={{ cursor: 'pointer', fontWeight: 700 }}>내 세계관 만들기와 관리</summary>
+      <p className="small muted" style={{ margin: '8px 0 0' }}>이 페이지에서 세계관을 만들고 관리한 뒤 새 소설에 연결할 수 있어요. 변경 내용은 이 데모의 브라우저 안에서만 유지돼요.</p>
+      <form className="panel" id="worldCreate" style={{ marginTop: 18 }} onSubmit={async (e) => { e.preventDefault(); const el = e.currentTarget; if (await vm.createWorld(worldForm(e))) el.reset() }}>
+        <h2>세계관 만들기</h2>
+        <label className="field">이름<input className="inp" name="name" maxLength={60} required /></label>
+        <label className="field">설명<textarea className="ta" name="description" maxLength={500} /></label>
+        <label className="field">세계관 규칙 (한 줄에 하나)<textarea className="ta" name="rules" maxLength={2000} /></label>
+        <button className="btn pri" type="submit">비공개 세계관 만들기</button>
+      </form>
+      <div className="sec"><div className="sec-h"><h2>만든 세계관</h2></div>
+        {w.mine.length ? w.mine.map((world) => <MyWorld key={world.id} world={world} vm={vm} />) : <p className="muted">아직 만든 세계관이 없어요.</p>}
+      </div>
+      <div className="sec"><h2>이용 가능한 공개 세계관</h2>
+        {w.usable.length ? w.usable.map(({ world, rules }) => (
+          <div className="panel" key={world.id}><b>{world.name}</b><p>{world.description}</p><p className="small muted">{world.owner} · 이용 허용 · 세계관 포크 {world.allowFork ? '허용' : '불허'}</p><ul>{rules.map((r) => <li key={r}>{r}</li>)}</ul>
+            <button type="button" className="btn sm" onClick={() => vm.use(world.id)}>작품에 이용</button>{world.allowFork && <> <button type="button" className="btn sm" onClick={() => vm.copy(world.id)}>내 세계관으로 포크</button></>}</div>
+        )) : <p className="muted">이용 가능한 공개 세계관이 없어요.</p>}
+      </div>
+      <form className="panel" id="combineWorlds" onSubmit={async (e) => {
+        e.preventDefault()
+        const el = e.currentTarget
+        const picks = [...el.querySelectorAll<HTMLInputElement>('[data-combine-world]:checked')].map((x) => ({ worldId: x.dataset.combineWorld ?? '', ruleIndex: Number(x.dataset.ruleIndex) }))
+        if (await vm.combine(String(new FormData(el).get('name') ?? ''), picks)) el.reset()
+      }}>
+        <h2>세계관 항목 조합</h2>
+        <label className="field">새 세계관 이름<input className="inp" name="name" maxLength={60} required /></label>
+        {w.combinable.map(({ world, rules }) => (
+          <fieldset key={world.id}><legend>{world.name}{world.owner ? ' · ' + world.owner : ''}</legend>
+            {rules.length ? rules.map(({ rule, index }) => <label className="field" key={index}><span><input type="checkbox" data-combine-world={world.id} data-rule-index={index} /> {rule}</span></label>) : <p className="muted">선택할 규칙이 없어요.</p>}
+          </fieldset>
+        ))}
+        <button className="btn sm pri" type="submit">선택한 항목으로 만들기</button>
+      </form>
+    </details>
+  )
+}
+
+function MyWorld({ world: w, vm }: { world: World; vm: VM }) {
+  const history = w.history ?? []
+  const [version, setVersion] = useState(history.length - 1)
+  // 새 이력이 생기면 최신 버전을 고릅니다. 저장하지 않은 편집 입력은 그대로 둡니다 (목업 data-rule-public).
+  const [seen, setSeen] = useState(history.length)
+  if (seen !== history.length) { setSeen(history.length); setVersion(history.length - 1) }
+  return (
+    <div className="panel" style={{ marginBottom: 12 }}>
+      <form key={[w.name, w.description, ...w.rules].join('\n')} data-world-edit={w.id} onSubmit={(e) => { e.preventDefault(); vm.editWorld(w.id, worldForm(e)) }}>
+        <label className="field">이름<input className="inp" name="name" defaultValue={w.name} maxLength={60} required /></label>
+        <label className="field">설명<textarea className="ta" name="description" defaultValue={w.description} maxLength={500} /></label>
+        <label className="field">세계관 규칙 (한 줄에 하나)<textarea className="ta" name="rules" defaultValue={w.rules.join('\n')} maxLength={2000} /></label>
+        <button className="btn sm pri">변경 저장</button>
+      </form>
+      <span className="chip">{w.public ? '공개' : '비공개'}</span>{' '}
+      <button type="button" className="btn sm" onClick={() => vm.togglePublic(w.id, w.public)}>{w.public ? '비공개로 전환' : '공개로 전환'}</button>{' '}
+      <button type="button" className="btn sm" onClick={() => vm.remove(w.id)}>세계관 삭제</button>
+      <fieldset><legend>세계관에서 공개할 규칙</legend>
+        {w.rules.length ? w.rules.map((rule, i) => <label className="field" key={rule}><span><input type="checkbox" checked={!!w.rulePublic?.[rule]} onChange={(e) => vm.setRulePublic(w.id, i, e.target.checked)} /> {rule}</span></label>) : <p className="muted">규칙이 없어요.</p>}
+      </fieldset>
+      <fieldset><legend>다른 작가의 이용 허용 범위</legend>
+        {PERMS.map(([key, label]) => <label className="field" key={key}><span><input type="checkbox" checked={!!w[key]} onChange={(e) => vm.setPermission(w.id, key, e.target.checked)} /> {label}</span></label>)}
+      </fieldset>
+      <p className="small muted">추출한 설정 {(w.facts ?? []).length}건</p>
+      <ul>{(w.facts ?? []).map((f, i) => <li key={i}>{f.text} · {f.source} {f.ep}화</li>)}</ul>
+      <label className="field">변경 이력<select className="inp" value={version} onChange={(e) => setVersion(Number(e.target.value))}>
+        {history.map((v, i) => <option key={i} value={i}>버전 {i + 1} · {v.name} · {v.rules.length}개 규칙</option>).reverse()}
+      </select></label>
+      <button type="button" className="btn sm" onClick={() => vm.restore(w.id, version)}>선택한 버전 복원</button>
+      <p className="small muted">연결된 작품이 있으면 세계관을 삭제할 수 없어요. 규칙 변경은 연결 작품에도 반영되며 이력에서 복원할 수 있어요.</p>
     </div>
   )
 }

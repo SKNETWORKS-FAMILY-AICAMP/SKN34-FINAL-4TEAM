@@ -16,7 +16,7 @@ export function LibraryPage() {
       <Gnb on="lib" />
       <main className="wrap">
         <Go to="/content" className="btn pri">서버 집필 작업실 · 작품·설정집·분기</Go>
-        <div className="sec-h" style={{ marginBottom: 0 }}><h2>{d.tab==='write'?'작품 작업실':'내 서재'}</h2><span className="muted small">읽기와 쓰기를 한 계정에서 해요</span></div>
+        <div className="sec-h" style={{ marginBottom: 0 }}><h2>내 서재</h2><span className="muted small">읽기와 쓰기를 한 계정에서 해요</span></div>
         <nav className="libtabs">{TABS.map(([k, l]) => <Go key={k} to={`/lib?tab=${k}`} className={d.tab === k ? 'on' : ''}>{l}{k === 'write' && d.pending > 0 && <span className="nb">{d.pending}</span>}</Go>)}</nav>
         {d.reports && (
           <>
