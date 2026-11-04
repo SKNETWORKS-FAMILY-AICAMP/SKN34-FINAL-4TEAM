@@ -1,7 +1,9 @@
+import {cardLibraryRows,worldWritingIssues} from '../../../../domain/entities/worldStudioWriting'
+import {initialWorldStudioFlow,worldStudioFlow,type StudioStep} from './worldStudioFlow'
 import {applyRelationChanges,editStudioSetting,type RelationInput} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,areaPatch,type CardType} from '../../../../domain/entities/studioCards'
 import type { StudioSection } from '../../../../domain/entities/studioSections'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import { newSetting, type SettingItem, type StudioSetting, type StudioWorld } from '../../../../domain/entities/studioWorld'
@@ -10,6 +12,16 @@ import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudio
 export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.resolve('worldStudioUseCase')) {
  const {worldId=''}=useParams()
  const navigate=useNavigate()
+ const [flow,dispatchFlow]=useReducer(worldStudioFlow,initialWorldStudioFlow)
+ const [tool,setTool]=useState<'write'|'explore'|'analysis'>('write')
+ const [explore,setExplore]=useState('map')
+ const [cardFilter,setCardFilter]=useState<CardType|'all'>('all')
+ const [cardQuery,setCardQuery]=useState('')
+ const [newCardType,setNewCardType]=useState<CardType>('character')
+ const [cardDetail,setCardDetail]=useState(false)
+ const [relationWorld,setRelationWorld]=useState('')
+ const returnCard=useRef('')
+ const [saveState,setSaveState]=useState<'idle'|'saving'|'failed'>('idle')
  const [worlds,setWorlds]=useState<StudioWorld[]>([])
  const [saved,setSaved]=useState<StudioWorld|null>(null)
  const [editing,setEditing]=useState<StudioWorld|null>(null)
@@ -18,9 +30,16 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const [error,setError]=useState('')
  const [message,setMessage]=useState('')
  const [busy,setBusy]=useState(false)
+ const editingId=editing?.id
+ useEffect(()=>{
+  if(editingId)dispatchFlow({type:'open'})
+  setTool('write');setCardFilter('all');setCardQuery('');setCardDetail(false);setRelationWorld('');returnCard.current=''
+ },[editingId])
+ const goStep=(step:StudioStep)=>{dispatchFlow({type:'step',step});setTool('write');if(step==='relations'&&editing)setRelationWorld(editing.id)}
+ const editCard=(id:string)=>{setSelected(id);setCardDetail(true);goStep('cards')}
  const generation=useRef(0)
  const pending=useRef(false)
- const install=(w:StudioWorld) => {setSaved(w);setEditing(structuredClone(w));setDirty(false);setWorlds(ws=>[...ws.filter(x=>x.id!==w.id),w])}
+ const install=(w:StudioWorld) => {setSaved(w);setEditing(structuredClone(w));setSaveState('idle');setDirty(false);setWorlds(ws=>[...ws.filter(x=>x.id!==w.id),w])}
  useEffect(()=>{
   const controller=new AbortController();const current=++generation.current
   setSaved(null);setEditing(null);setDirty(false);setError('');setMessage('');setBusy(true)
@@ -38,7 +57,12 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  }
  const apply=(w:StudioWorld,current:number)=>{if(generation.current===current)install(w)}
  const patch=(p:Partial<StudioWorld>)=>{setEditing(w=>w?{...w,...p}:null);setDirty(true);setMessage('')}
- return {worlds,saved,editing,dirty,selected,setSelected,error,message,busy,
+ return {flow,tool,setTool,explore,setExplore,cardFilter,setCardFilter,cardQuery,setCardQuery,newCardType,setNewCardType,cardDetail,setCardDetail,relationWorld,goStep,editCard,saveState,
+  showList:()=>dispatchFlow({type:'list'}),resume:()=>dispatchFlow({type:'resume'}),
+  openRelations:(id:string)=>{returnCard.current=id;setSelected(id);goStep('relations')},
+  returnToCard:()=>{if(returnCard.current)setSelected(returnCard.current);setCardDetail(true);goStep('cards')},
+  cardRows:cardLibraryRows(editing?.settings??[],cardFilter,cardQuery),writingIssues:editing?worldWritingIssues(editing):[],
+  worlds,saved,editing,dirty,selected,setSelected,error,message,busy,
   create:(name:string,description:string)=>perform(async()=>{const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current)navigate('/worldstudio/'+w.id)}),
   open:(id:string)=>{if(dirty && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){navigate('/worldstudio/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
   patch,
@@ -52,6 +76,6 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   changeCardType:(id:string,type:CardType)=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;setSelected(id);try{const change=cardTypePatch(row.item,type,editing.settings);if(Object.keys(change).length)patch({settings:editStudioSetting(editing.settings,id,change)});setError('')}catch(e){setError(e instanceof Error?e.message:'유형을 바꾸지 못했습니다.')}},
   changeArea:(id:string,category:SettingItem['category'])=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;try{const change=areaPatch(row.item,category);patch({settings:editing.settings.map(s=>s.item.id===id?{...s,item:{...s.item,...change}}:s)});setError('')}catch(e){setError(e instanceof Error?e.message:'영역을 바꾸지 못했습니다.')}},
   update:(id:string,item:Partial<SettingItem>,labels?:Partial<StudioSetting>)=>{if(editing)patch({settings:editStudioSetting(editing.settings,id,item,labels)})},
-  save:()=>{return perform(async()=>{if(!editing)return;const current=generation.current;apply(await useCase.save(editing),current);if(current===generation.current)setMessage('이 탭의 메모리에 저장했어요. 새로고침하면 초기화됩니다.')})},
+  save:()=>{return perform(async()=>{if(!editing)return;const current=generation.current;setSaveState('saving');try{apply(await useCase.save(editing),current);if(current===generation.current)setMessage('이 탭의 메모리에 저장했어요. 새로고침하면 초기화됩니다.')}catch(e){if(current===generation.current)setSaveState('failed');throw e}})},
  }
 }
