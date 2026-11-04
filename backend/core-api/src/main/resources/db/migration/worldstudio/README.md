@@ -6,7 +6,7 @@
 
 기존 서버의 Auth Flyway location과 DataSource는 변경하지 않았다. 이 migration은 평소 서버 시작에 실행되지 않는다. 독립 JPA Repository·Service는 이 schema를 사용하며 HTTP API·기존 UI와는 아직 연결하지 않았다.
 
-명시 실행 시 기존 Flyway API의 다음 설정을 사용한다. 대상 URL/자격증명은 실행자가 확인한 별도 값으로 전달한다. `CONTENT_DATABASE_URL`·Core 기본 DataSource를 암묵적으로 재사용하지 않는다.
+명시 실행 시 기존 Flyway API의 다음 설정을 사용한다. 입력은 기존 `CORE_DATABASE_URL/USER/PASSWORD`를 사용하며 실제 Core 개발 DB에 대한 allowlist·백업 복원 증거를 확인한다. 별도 접속 설정은 두지 않는다.
 
 ```java
 Flyway.configure().dataSource(confirmedUrl, user, password)
@@ -33,9 +33,9 @@ Flyway.configure().dataSource(confirmedUrl, user, password)
 
 ## 독립 JPA Service
 
-`app.worldstudio.enabled=true`일 때만 `WorldStudioConfig`가 활성화된다. 해당 Core 프로세스에 필요한 `WORLDSTUDIO_DATABASE_URL/USER/PASSWORD`만 전달한다. 전용 URL이 없으면 Core/Content URL로 fallback하지 않는다. 실제 `.env`는 저장소 루트 한 곳에서 관리하며 서비스별 env 파일은 만들지 않는다.
+`app.worldstudio.enabled=true`일 때만 `WorldStudioConfig`가 EntityScan/Repository 등록을 추가한다. Service의 `@Service`도 같은 조건으로 등록한다. AuthPersistenceConfig의 명시 스캔과 합쳐 Spring Boot의 기존 기본 DataSource·EntityManager·TransactionManager를 공유한다. 별도 Hikari pool/persistence unit/접속 환경변수는 없다.
 
-전용 Hikari pool(최대 5), `worldStudioEntityManagerFactory`, `worldStudioTransactionManager`와 Spring Data JpaRepository를 사용한다. Hibernate는 `validate`만 수행하며 새 schema migration을 자동 실행하지 않는다. Auth·Content의 코드·테이블·DataSource·Flyway 선행 조건은 없다. PostgreSQL 오류 DETAIL은 비공개 원문 로그 노출을 막기 위해 끈다.
+`WorldStudioService`는 생성자 주입과 기본 `@Transactional`을 사용한다. 소유권 잠금 조회를 포함한 외부 작업 하나가 하나의 쓰기 가능한 트랜잭션이다. Hibernate는 Core의 기존 `validate`만 수행한다. 활성화 전에 독립 migration이 완료되어야 하며, 비활성 상태에는 WorldStudio Entity/Repository/Service가 등록되지 않아 테이블 없이도 기존 Core가 시작된다. PostgreSQL 오류 DETAIL 억제도 기존 Core 설정을 따른다.
 
 `WorldStudioService`의 create/edit/draft/save/revision/restore는 DTO를 사용한다. `subject: UUID`는 검증된 JWT에서 호출 계층이 추출해야 하며 요청 본문에는 ownerId가 없다. HTTP 인증·Controller·기존 작업실 UI 연결은 이 작업의 범위 밖이다. 읽기/쓰기 모두 소유 world를 먼저 잠그고 확인한다. 현재는 짧은 DB 작업을 world별로 직렬화한다.
 
@@ -59,6 +59,6 @@ Service는 검증된 JWT subject를 인자로 받아 world.owner_subject를 먼�
 ./gradlew unitTest --tests '*WorldStudioServiceTest' --tests '*WorldStudioMigrationIdentityTest' integrationTest --tests '*WorldStudioServicePostgresTest' --tests '*WorldStudioFlywayPostgresTest' --tests '*WorldStudioHistoryPostgresTest' --tests '*WorldStudioConfigIntegrationTest' --no-daemon
 ```
 
-각 fixture는 `ws_independent_<uuid>` DB를 생성하고 자신이 만든 DB만 제거한다. Auth/Content가 없는 DB에서 실제 JPA 저장·복원·과거 조회·커밋 실패·동시성·무결성을 검증한다. CI도 전용 임시 PostgreSQL service에서만 실행한다. 사용자·공용 개발·운영 DB에 이 환경변수를 설정하지 않는다.
+각 fixture는 `ws_independent_<uuid>` DB를 생성하고 자신이 만든 DB만 제거한다. 독립 SQL은 Auth/Content 없는 DB에서, 공통 JPA는 Auth를 포함한 Core 기본 연결에서 Content 없이 저장·복원·과거 조회·커밋 실패·동시성·무결성을 검증한다. CI도 전용 임시 PostgreSQL service에서만 실행한다. 사용자·공용 개발·운영 DB에 이 환경변수를 설정하지 않는다.
 
 이미 실행한 Content 공존 검증은 일회성 데이터 보호 회귀다. 그 테스트만 별도로 `TEST_WORLDSTUDIO_COEXISTENCE_ONCE=true`를 지정했을 때 실행하도록 보존했으며 기본 검증 명령에는 포함하지 않는다. Content V1~V7은 독립 WorldStudio의 선행 조건이 아니다.

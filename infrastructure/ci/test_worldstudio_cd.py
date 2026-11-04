@@ -11,6 +11,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class WorldStudioDeploymentTest(unittest.TestCase):
+    def test_migration_reuses_core_credentials_without_worldstudio_connection(self):
+        compose = (ROOT / "infrastructure/docker-compose.dev.yaml").read_text(encoding="utf-8")
+        migration = compose.split("  worldstudio-migrate:", 1)[1].split("\n  web:", 1)[0]
+        for key in ("CORE_DATABASE_URL", "CORE_DATABASE_USER", "CORE_DATABASE_PASSWORD"):
+            self.assertIn(key + ":", migration)
+        self.assertNotIn("WORLDSTUDIO_DATABASE_", compose)
+        self.assertNotIn("WORLDSTUDIO_DATABASE_", (ROOT / ".env.example").read_text(encoding="utf-8"))
+
     def deploy(self, enabled, migration_exit=0, overrides=None):
         bash = shutil.which("bash")
         if os.name == "nt":

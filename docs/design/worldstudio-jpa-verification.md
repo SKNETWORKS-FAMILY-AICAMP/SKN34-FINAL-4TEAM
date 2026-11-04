@@ -1,3 +1,12 @@
+# PR #98 Core 기본 JPA 재사용 검증 계약
+
+팀 리뷰 반영: 독립 스키마·SQL·이력·업무 규칙은 유지하며 기존 Core DataSource/EntityManager/TransactionManager를 공유한다.
+조건부 EntityScan/Repository와 @Service/@Transactional을 사용한다. 전용 Hikari/접속 환경변수/TransactionTemplate 및 수동 Service Bean은 제거했다.
+갱신 테스트는 활성·비활성 시작, 미적용 상태 활성화 실패, 단일 기본 JPA 인프라와 Auth 매핑 공존,
+Core 연결을 통한 카드 8종 저장·과거 조회·복원·실패 롤백·소유권·충돌·멱등 동시성을 검증한다.
+로컬은 선택 단위·설정 검사만 수행하며 PostgreSQL/시작 검증 결과는 PR #98 최신 head CI에 기록한다.
+**아래는 #97의 이전 전용 인프라 검증 기록이며 현재 구성의 새 검증 결과가 아니다.**
+
 # WorldStudio 독립 JPA 저장소·Service 검증
 
 2026-11-04. 현재 제출 범위는 독립 V1·JPA Repository·Service·관련 테스트/문서를 팀원 검토용 Ready 일반 PR로 전달하는 것이다. HTTP API·프런트·회차·이미지·Graph 연결과 실제 DB 적용·PR 병합은 포함하지 않는다.

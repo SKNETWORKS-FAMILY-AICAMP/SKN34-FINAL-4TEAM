@@ -8,9 +8,14 @@ import ai.storyfork.core.world.service.dto.*
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
-import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /** 독립 세계관의 초안·확정본을 저장한다. subject는 호출 계층에서 검증한 JWT의 UUID여야 한다. */
+@Service
+@ConditionalOnProperty(name=["app.worldstudio.enabled"],havingValue="true")
+@Transactional
 class WorldStudioService(
     private val worlds:WorldRepository, private val drafts:WorldDraftRepository,
     private val cards:SettingCardRepository, private val cardDrafts:SettingCardDraftRepository,
@@ -18,26 +23,24 @@ class WorldStudioService(
     private val relationDrafts:RelationshipDraftRepository, private val relationVersions:RelationshipVersionRepository,
     private val revisions:WorldRevisionRepository, private val revisionCards:WorldRevisionCardRepository,
     private val revisionRelations:WorldRevisionRelationshipRepository, private val requests:WorldSaveRequestRepository,
-    private val transactions:TransactionTemplate,
 ) {
-    private fun <T:Any> transaction(action:()->T):T = requireNotNull(transactions.execute { action() })
     private fun owned(id:UUID,subject:UUID)=worlds.lockOwned(id,subject) ?: throw WorldNotFound()
     private fun draft(id:UUID)=drafts.findById(id).orElseThrow { WorldNotFound() }
     private fun expected(draft:WorldDraft,revision:Long) { if(draft.draftRevision!=revision) throw WorldConflict() }
 
-    fun create(subject:UUID,request:CreateWorldRequest):WorldDraftResponse=transaction {
+    fun create(subject:UUID,request:CreateWorldRequest):WorldDraftResponse {
         require(request.name.isNotBlank()) { "세계관 이름을 입력하세요." }
         val world=worlds.saveAndFlush(StudioWorld(ownerSubject=subject))
         drafts.saveAndFlush(WorldDraft(worldId=world.id,name=request.name,description=request.description))
-        readDraft(world)
+        return readDraft(world)
     }
-    fun draft(worldId:UUID,subject:UUID):WorldDraftResponse=transaction { readDraft(owned(worldId,subject)) }
-    fun revision(worldId:UUID,subject:UUID,revisionId:UUID):WorldRevisionResponse=transaction {
-        owned(worldId,subject);readRevision(worldId,revisionId)
+    fun draft(worldId:UUID,subject:UUID):WorldDraftResponse=readDraft(owned(worldId,subject))
+    fun revision(worldId:UUID,subject:UUID,revisionId:UUID):WorldRevisionResponse {
+        owned(worldId,subject);return readRevision(worldId,revisionId)
     }
 
     /** 생략된 항목은 유지한다. 빈 원문·미완성 관계는 초안으로 보존하며 확정 단계에서 검사한다. */
-    fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest):WorldDraftResponse=transaction {
+    fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest):WorldDraftResponse {
         val world=owned(worldId,subject);val draft=draft(worldId);expected(draft,request.expectedDraftRevision)
         require(request.cards.map { it.id }.distinct().size==request.cards.size) { "중복된 카드입니다." }
         require(request.relationships.map { it.id }.distinct().size==request.relationships.size) { "중복된 관계입니다." }
@@ -66,23 +69,23 @@ class WorldStudioService(
         draft.name=request.name;draft.description=request.description
         draft.draftRevision=Math.incrementExact(draft.draftRevision);draft.updatedAt=Instant.now()
         relationDrafts.flush()
-        readDraft(world)
+        return readDraft(world)
     }
 
-    fun save(worldId:UUID,subject:UUID,request:SaveWorldRequest):WorldRevisionResponse=transaction {
+    fun save(worldId:UUID,subject:UUID,request:SaveWorldRequest):WorldRevisionResponse {
         val world=owned(worldId,subject)
         val hash=hash("save",worldId,request.expectedDraftRevision,null)
-        retry(worldId,request.key,hash)?.let { return@transaction it }
+        retry(worldId,request.key,hash)?.let { return it }
         val draft=draft(worldId);expected(draft,request.expectedDraftRevision)
         val source=readDraft(world)
-        persist(world,draft,source.name,source.description,source.cards,source.relationships,request.key,hash)
+        return persist(world,draft,source.name,source.description,source.cards,source.relationships,request.key,hash)
     }
 
     /** 과거 확정본을 새 버전으로 복원한다. 과거 이력과 논리 ID는 유지하며 현재 초안은 명시적으로 교체한다. */
-    fun restore(worldId:UUID,subject:UUID,request:RestoreWorldRequest):WorldRevisionResponse=transaction {
+    fun restore(worldId:UUID,subject:UUID,request:RestoreWorldRequest):WorldRevisionResponse {
         val world=owned(worldId,subject)
         val hash=hash("restore",worldId,request.expectedDraftRevision,request.revisionId)
-        retry(worldId,request.key,hash)?.let { return@transaction it }
+        retry(worldId,request.key,hash)?.let { return it }
         val draft=draft(worldId);expected(draft,request.expectedDraftRevision)
         val source=readRevision(worldId,request.revisionId)
         val result=persist(world,draft,source.name,source.description,source.cards.map { it.card },
@@ -92,7 +95,7 @@ class WorldStudioService(
         cardDrafts.saveAll(source.cards.map { SettingCardDraft(cardId=it.card.id,worldId=worldId,fields=fields(it.card)) })
         relationDrafts.saveAll(source.relationships.map { RelationshipDraft(relationId=it.relationship.id,worldId=worldId,fields=fields(it.relationship)) })
         val restoredDraft=draft(worldId);restoredDraft.name=source.name;restoredDraft.description=source.description
-        result
+        return result
     }
 
     private fun persist(world:StudioWorld,draft:WorldDraft,name:String,description:String,cardData:List<CardPayload>,relationData:List<RelationshipPayload>,

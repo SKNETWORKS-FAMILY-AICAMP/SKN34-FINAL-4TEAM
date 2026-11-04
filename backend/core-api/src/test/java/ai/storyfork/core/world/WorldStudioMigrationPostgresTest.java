@@ -16,10 +16,10 @@ class WorldStudioMigrationPostgresTest {
     private WorldStudioMigrationProperties settings(WorldStudioPostgresFixture db) {
         return WorldStudioMigrationProperties.Companion.from(Map.of(
             "WORLDSTUDIO_MIGRATION_ENVIRONMENT", "development",
-            "WORLDSTUDIO_DATABASE_URL", db.url,
-            "WORLDSTUDIO_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
+            "CORE_DATABASE_URL", db.url,
+            "CORE_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
             // CI PostgreSQL trust 인증 전용. 실제 개발 DB 자격증명은 사용하지 않는다.
-            "WORLDSTUDIO_DATABASE_PASSWORD", "ci-only",
+            "CORE_DATABASE_PASSWORD", "ci-only",
             "WORLDSTUDIO_EXPECTED_DATABASE_URL", db.url,
             "WORLDSTUDIO_EXPECTED_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
             "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE", "disposable-ci-database"));

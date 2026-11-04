@@ -17,15 +17,19 @@ V1 SQL SHA-256은 아래 보존 값과 같다. baseline·repair·clean은 실행
 과거 확장형 WorldStudio 차단은 script·version·checksum·type·success 전체가 일치할 때만 적용한다.
 일반 Auth/Content의 동명 V1/V2는 차단하지 않는다. 불명확한 history 형식·조회 권한 부족도 실행 실패로 처리한다.
 
+WorldStudioConfig는 활성화된 경우에만 EntityScan/Repository 등록을 추가하고 Service도 동일 조건을 따른다.
+기존 Auth EntityScan과 합쳐 하나의 기본 persistence unit을 사용한다. 비활성 배포는 WorldStudio 테이블 없이 기존 Auth만 validate한다.
+Service의 소유권·잠금·초안 충돌·멱등 저장·확정/복원 규칙은 유지하고 전체 외부 작업을 기본 `@Transactional`로 묶는다. 잠금 조회도 readOnly로 바꾸지 않는다.
+
 ### 최초 활성화 전 배포 담당자 확인
 
 **현재 실제 개발 DB 식별·백업 복원 증거는 미확인이다. 이 작업에서 GitHub 변수를 활성화하거나 공용 DB에 적용하지 않는다.**
 
-1. 개발 서버 루트 `.env`에 독립 `WORLDSTUDIO_DATABASE_URL`, `WORLDSTUDIO_DATABASE_USER`, `WORLDSTUDIO_DATABASE_PASSWORD`를 설정한다. 비밀번호·실제 주소를 커밋하거나 출력하지 않는다.
+1. 개발 서버 루트 `.env`에 기존 `CORE_DATABASE_URL`, `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD`를 설정한다. 비밀번호·실제 주소를 커밋하거나 출력하지 않는다.
 2. 개발 DB임을 배포 설정·담당자 확인으로 확정한다. 운영 DB는 금지한다. SQL은 URL 문자열만으로 개발/운영을 판별할 수 없다.
 3. 최초 적용 직전 기존 DB 전체와 모든 Flyway 이력을 백업한다. 격리 DB에 복원하여 데이터·이력 조회 성공을 확인하고, 백업 위치·시각·복원 결과·복구 담당자를 팀 내부 기록에 남긴다. 백업 실패 시 활성화하지 않는다.
 4. 기존 WorldStudio schema/history와 과거 확장 SQL 이력을 읽기 전용으로 검토한다. 모호하면 중단한다. 이미 독립 V1을 적용했다면 체크섬·이력 정합성 확인 후 재실행 0건을 기대한다.
-5. 마이그레이션 계정에 DB `CREATE`, 기존 worldstudio schema 사용·DDL 및 history 조회 권한이 있는지 확인한다. 현재는 Core와 마이그레이션이 동일 WorldStudio 계정을 사용한다. 최소 권한 분리는 후속 운영 결정이다.
+5. 마이그레이션 계정에 DB `CREATE`, 기존 worldstudio schema 사용·DDL 및 history 조회 권한이 있는지 확인한다. 현재 Core 런타임과 마이그레이션은 같은 기존 Core 계정을 사용한다. 새 계정·DB·풀은 추가하지 않는다.
 6. GitHub **develop-cd environment variables**에 다음을 등록한다. URL·계정은 서버 `.env`와 독립적으로 개발 DB임을 확인한 값이어야 한다.
 
 | 변수 | 값/역할 |
@@ -35,7 +39,7 @@ V1 SQL SHA-256은 아래 보존 값과 같다. baseline·repair·clean은 실행
 | `WORLDSTUDIO_BACKUP_RESTORE_REFERENCE` | 팀 내부 백업·복원 검증 기록 참조(비밀값 금지) |
 | `WORLDSTUDIO_CD_MIGRATION_ENABLED` | 위 조건 충족 후 마지막에 `true`. 기본 미설정/`false` |
 
-이 변수들은 SSH stdin으로 전달하고 로그로 출력하지 않는다. DB 자격증명은 서버 `.env`에서 migration 컨테이너에 필요한 값만 전달한다.
+이 변수들은 SSH stdin으로 전달하고 로그로 출력하지 않는다. DB 자격증명은 기존 Core 설정을 재사용하고 서버 `.env`에서 migration 컨테이너에 필요한 값만 전달한다.
 명령은 URL allowlist·계정·실제 current_database/current_user·DB CREATE 권한을 DDL 전에 확인한다.
 백업 참조는 **담당자의 확인 기록**이며 프로그램이 백업 파일이나 복원 성공을 자체 검증하는 것은 아니다.
 환경 승인자·백업/복구 담당자·활성화 시점은 팀이 결정해야 한다. `develop-cd` 보호 규칙을 적절히 설정하는 것도 담당자 책임이다.
@@ -43,7 +47,7 @@ V1 SQL SHA-256은 아래 보존 값과 같다. baseline·repair·clean은 실행
 ### 실행과 실패 처리
 
 CD가 활성화된 develop 배포에서 opt-in이 `true`이면 migration 성공 후에만 `APP_WORLDSTUDIO_ENABLED=true`를 Core에 전달한다.
-이 값은 기존 WorldStudio의 독립 EntityManager/TransactionManager와 Hibernate validate를 활성화한다.
+이 값은 WorldStudio Entity/Repository/Service를 Core 기본 EntityManager/TransactionManager에 등록하고 Hibernate validate를 수행한다.
 미설정/`false`면 migration을 생략하고 WorldStudio를 비활성 상태로 유지하며 기존 배포 흐름을 실행한다.
 오타 flag·필수값 누락·대상 불일치·접속/권한/과거 이력/Flyway 실패면 새 Core `up`을 호출하지 않는다. 기존 실행 컨테이너를 중단하거나 DB를 되돌리지 않는다.
 실패가 새 Core 기동 이후 발생한 경우 자동 DB rollback은 하지 않는다. 실패 범위와 이력을 확인하고 담당자가 복구 여부를 결정한다.

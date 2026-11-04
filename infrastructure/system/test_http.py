@@ -116,8 +116,8 @@ def test_health_worldstudio_packaged_migration():
     args = ["run", "--rm", "--no-deps", "--entrypoint", "java"]
     for key, value in {
         "WORLDSTUDIO_MIGRATION_ENVIRONMENT": "development",
-        "WORLDSTUDIO_DATABASE_URL": url, "WORLDSTUDIO_DATABASE_USER": user,
-        "WORLDSTUDIO_DATABASE_PASSWORD": os.environ["CORE_DATABASE_PASSWORD"],
+        "CORE_DATABASE_URL": url, "CORE_DATABASE_USER": user,
+        "CORE_DATABASE_PASSWORD": os.environ["CORE_DATABASE_PASSWORD"],
         "WORLDSTUDIO_EXPECTED_DATABASE_URL": url, "WORLDSTUDIO_EXPECTED_DATABASE_USER": user,
         "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE": "isolated-ci-project",
     }.items():
