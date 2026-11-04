@@ -11,6 +11,10 @@ group = 'ai.storyfork'
 version = '0.0.1-SNAPSHOT'
 description = 'STORYFORK Content Service'
 
+springBoot {
+    mainClass = 'ai.storyfork.content.ApplicationKt'
+}
+
 kotlin {
     jvmToolchain(21)
     compilerOptions {

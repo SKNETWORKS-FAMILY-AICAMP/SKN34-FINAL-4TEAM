@@ -85,7 +85,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="298">콘텐츠 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>콘텐츠 서비스 독립 Spring Boot 실행 골격</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
+<tr><td rowspan="298">콘텐츠 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>콘텐츠 서비스 독립 Spring Boot 실행 골격 <small>(ApplicationKt 명시·Studio migration main 보존 계약 확인, bootJar 재검증 대기)</small></td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
 <tr><td>인증 연계</td><td>90 Core 인증 연계</td><td>별도 서비스 자격과 사용자 Bearer로 Core를 호출해 UUID Principal 생성·실패 분류 (로컬 구현)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
 <tr><td>인증 연계</td><td>90 Core 인증 연계</td><td>Core 내부 endpoint에서 서비스 자격·JWT를 확인하고 회원 UUID만 반환 (로컬 구현)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
 <tr><td>실행 기반</td><td>89 독립 앱 실행</td><td>기존 콘텐츠·첨부·독립 WorldStudio 실행 코드·테스트의 Content 소유 분리 (로컬 구현)</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>

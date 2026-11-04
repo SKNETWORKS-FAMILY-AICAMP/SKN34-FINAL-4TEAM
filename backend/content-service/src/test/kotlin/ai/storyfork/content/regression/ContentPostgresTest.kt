@@ -123,12 +123,14 @@ class ContentPostgresTest {
         val work=create()
         val first=service.writeEpisode(work.id,"author",1,DraftRequest("1화","첫 원고",0),true)
         service.publishEpisode(work.id,"author",1,PublishRequest(first.draft.revision,true,true,true,first.versions.last().id))
-        val second=service.writeEpisode(work.id,"author",2,DraftRequest("2화","다른 회차",0),true)
+        val secondDraft=service.createEpisode(work.id,"author",CreateWorkRequest("2화"))
+        val second=service.writeEpisode(work.id,"author",2,DraftRequest("2화","다른 회차",secondDraft.draft.revision),true)
         service.publishEpisode(work.id,"author",2,PublishRequest(second.draft.revision,true,true,true,second.versions.last().id))
-        val target=service.writing(work.id,"author",3)
+        val target=service.createEpisode(work.id,"author",CreateWorkRequest("3화"))
         service.writeEpisode(work.id,"author",3,DraftRequest("3화","대상 초안",target.draft.revision),false)
+        assertEquals(first.versions.last().revision,service.writing(work.id,"author",3).draft.revision)
         `when`(ai.generate(service.generationRequest(work.id,"author",3,"계속",""))).thenReturn(GenerationResponse("제안","stub-model"))
-        val revision=service.writing(work.id,"author",3).draft.revision
+        val revision=service.read(work.id,"author").draft!!.revision
         val proposal=service.propose(work.id,"author",ProposalRequest(revision,"계속",true,episode=3))
         assertEquals(3,jdbc.queryForObject("SELECT e.sequence FROM ai_input_snapshot i JOIN episode e ON e.id=i.episode_id WHERE i.job_id=?",Int::class.java,proposal.id))
         service.accept(work.id,proposal.id,"author",revision)

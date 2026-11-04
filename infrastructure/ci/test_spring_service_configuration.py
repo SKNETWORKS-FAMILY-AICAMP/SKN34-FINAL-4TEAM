@@ -30,6 +30,15 @@ class SpringServiceConfigurationTest(unittest.TestCase):
                     self.assertNotIn("spring.datasource.url", config["application"])
                     self.assertNotIn("spring.flyway.locations", config["application"])
 
+    def test_content_boot_entry_point_is_explicit_while_studio_migration_remains_available(self):
+        service = ROOT / "backend/content-service"
+        build = (service / "build.gradle").read_text(encoding="utf-8")
+        self.assertRegex(build, r"springBoot\s*\{\s*mainClass\s*=\s*'ai\.storyfork\.content\.ApplicationKt'\s*\}")
+        application = service / "src/main/kotlin/ai/storyfork/content/Application.kt"
+        self.assertIn("runApplication<ContentServiceApplication>(*args)", application.read_text(encoding="utf-8"))
+        migration = service / "src/main/kotlin/ai/storyfork/content/world/migration/WorldStudioMigration.kt"
+        self.assertIn("fun main(args: Array<String>)", migration.read_text(encoding="utf-8"))
+
     def test_each_independent_build_reuses_core_wrapper_bytes_and_executable_mode(self):
         for service in SERVICES:
             for name in ("gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar",
