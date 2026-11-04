@@ -60,6 +60,14 @@ class WorkService(
         drafts.saveAndFlush(EpisodeDraftEntity(episodeId=episode.id,title="새 회차",content="",editRevision=0))
         return read(id,owner)
     }
+    fun update(id: String,owner: String,data: UpdateWorkRequest): WorkResponse {
+        val w=access.own(id,owner);access.requireRevision(w,data.revision)
+        checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
+        val row=works.findById(id).orElseThrow()
+        row.title=data.title.trim();row.description=data.summary.trim();row.revision++
+        works.saveAndFlush(row)
+        return read(id,owner)
+    }
     fun policy(id: String,owner: String,data: PolicyRequest): WorkResponse {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
         checkContent(w.source==null,403,"분기 작품에서 재분기할 수 없어요.")
