@@ -1017,3 +1017,8 @@
 | Frontend | WorldStudio | 설정 카드 | 설정 카드 선택·수정 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio | 설정 카드 | 카드 8종과 영역 7종 분리 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio | 설정 카드 | 별칭·태그·분류·메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio | 관계 편집 | 관계 source·target 선택 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
+| Frontend | WorldStudio | 관계 편집 | 구조 관계 생성·수정 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
+| Frontend | WorldStudio | 관계 편집 | 방향별 감정 관계 생성·수정 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
+| Frontend | WorldStudio | 관계 편집 | 대칭·방향 관계와 기존 ID 유지 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
+| Frontend | WorldStudio | 관계 편집 | 관계 없는 상태 안내 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
