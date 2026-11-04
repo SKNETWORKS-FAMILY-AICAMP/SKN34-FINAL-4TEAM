@@ -2,6 +2,7 @@ package ai.storyfork.core.auth.config
 
 import ai.storyfork.core.auth.entity.AuthMember
 import org.springframework.boot.persistence.autoconfigure.EntityScan
+import org.springframework.boot.persistence.autoconfigure.EntityScanPackages
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
@@ -12,11 +13,11 @@ class AuthPersistenceConfig {
     @org.springframework.context.annotation.Bean
     @org.springframework.context.annotation.Primary
     @org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
-    fun entityManagerFactory(dataSource: javax.sql.DataSource, @org.springframework.beans.factory.annotation.Value("\${spring.jpa.hibernate.ddl-auto:validate}") schemaAction: String): org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean =
+    fun entityManagerFactory(dataSource: javax.sql.DataSource, entityPackages: EntityScanPackages, @org.springframework.beans.factory.annotation.Value("\${spring.jpa.hibernate.ddl-auto:validate}") schemaAction: String): org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean =
         org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean().apply {
             this.dataSource = dataSource
             persistenceUnitName = "auth"
-            setPackagesToScan(AuthMember::class.java.packageName)
+            setPackagesToScan(*entityPackages.packageNames.toTypedArray())
             jpaVendorAdapter = org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter()
             setJpaPropertyMap(mapOf("hibernate.hbm2ddl.auto" to schemaAction, "hibernate.jdbc.time_zone" to "UTC"))
         }

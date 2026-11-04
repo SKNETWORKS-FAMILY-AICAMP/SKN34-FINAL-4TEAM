@@ -6,7 +6,7 @@
 
 기존 서버의 Auth Flyway location과 DataSource는 변경하지 않았다. 이 migration은 평소 서버 시작에 실행되지 않는다. 독립 JPA Repository·Service는 이 schema를 사용하며 HTTP API·기존 UI와는 아직 연결하지 않았다.
 
-명시 실행 시 기존 Flyway API의 다음 설정을 사용한다. 대상 URL/자격증명은 실행자가 확인한 별도 값으로 전달한다. `CONTENT_DATABASE_URL`·Core 기본 DataSource를 암묵적으로 재사용하지 않는다.
+명시 실행 시 기존 Flyway API의 다음 설정을 사용한다. 입력은 기존 `CORE_DATABASE_URL/USER/PASSWORD`를 사용하며 실제 Core 개발 DB에 대한 allowlist·백업 복원 증거를 확인한다. 별도 접속 설정은 두지 않는다.
 
 ```java
 Flyway.configure().dataSource(confirmedUrl, user, password)
@@ -16,7 +16,11 @@ Flyway.configure().dataSource(confirmedUrl, user, password)
     .load(); // migrate(), validate()는 명시적 실행 단계에서만 호출
 ```
 
-`baselineOnMigrate`·`baseline`·`repair`를 켜지 않는다. 기존 worldstudio schema/history가 없거나 이 독립 V1의 이력이 있는 검증된 대상만 허용한다. 전용 schema가 이미 비어 있지 않은데 이력이 없으면 Flyway 기본 정책으로 거부한다. 이전 확장 SQL이 적용된 DB는 실행 대상이 아니며 별도 전환 설계가 필요하다. 이력 조회가 불가능하면 미확인 상태로 남기고 적용하지 않는다. 운영 실행 명령/권한·배포 연결은 아직 구현하지 않았다.
+`baselineOnMigrate`·`baseline`·`repair`를 켜지 않는다. 기존 worldstudio schema/history가 없거나 이 독립 V1의 이력이 있는 검증된 대상만 허용한다. 전용 schema가 이미 비어 있지 않은데 이력이 없으면 Flyway 기본 정책으로 거부한다. 이전 확장 SQL이 적용된 DB는 실행 대상이 아니며 별도 전환 설계가 필요하다. 이력 조회가 불가능하면 미확인 상태로 남기고 적용하지 않는다.
+
+개발 CD는 기존 Core 이미지의 `ai.storyfork.core.world.migration.WorldStudioMigration`을 별도 명령으로 실행한다.
+기본 비활성이며 확인된 개발 DB allowlist·백업 복원 기록·명시 활성화 후에만 migrate/validate 성공을 조건으로 새 Core를 기동한다.
+공용 DB 적용 여부·환경 승인·복구 책임은 [배포 실행 계약](../../../../../../../../docs/deployment/worldstudio-v1-rollout.md)을 따른다.
 
 과거 이력 차단은 다른 schema의 `world_studio_schema_history` 또는 기본 `flyway_schema_history`에서 아래 **성공한 SQL 이력**만 식별한다. 버전·스크립트명·체크섬·type=SQL·success=true가 모두 일치해야 한다. 이름이나 V1/V2 번호만으로 차단하지 않는다. 정상 타 도메인이 같은 버전·파일명·이력 테이블명을 사용해도 체크섬이 다르면 허용하고, 실패·baseline·불완전 행은 적용된 SQL로 취급하지 않는다. 이력 테이블은 읽기만 한다. 미확인 변형 이력을 자동 import·repair하는 기능은 없다.
 
@@ -29,9 +33,9 @@ Flyway.configure().dataSource(confirmedUrl, user, password)
 
 ## 독립 JPA Service
 
-`app.worldstudio.enabled=true`일 때만 `WorldStudioConfig`가 활성화된다. 해당 Core 프로세스에 필요한 `WORLDSTUDIO_DATABASE_URL/USER/PASSWORD`만 전달한다. 전용 URL이 없으면 Core/Content URL로 fallback하지 않는다. 실제 `.env`는 저장소 루트 한 곳에서 관리하며 서비스별 env 파일은 만들지 않는다.
+`app.worldstudio.enabled=true`일 때만 `WorldStudioConfig`가 EntityScan/Repository 등록을 추가한다. Service의 `@Service`도 같은 조건으로 등록한다. AuthPersistenceConfig의 명시 스캔과 합쳐 Core의 기존 기본 DataSource·EntityManager·TransactionManager를 공유한다. 별도 Hikari pool/persistence unit/접속 환경변수는 없다.
 
-전용 Hikari pool(최대 5), `worldStudioEntityManagerFactory`, `worldStudioTransactionManager`와 Spring Data JpaRepository를 사용한다. Hibernate는 `validate`만 수행하며 새 schema migration을 자동 실행하지 않는다. Auth·Content의 코드·테이블·DataSource·Flyway 선행 조건은 없다. PostgreSQL 오류 DETAIL은 비공개 원문 로그 노출을 막기 위해 끈다.
+`WorldStudioService`는 생성자 주입과 기본 `@Transactional`을 사용한다. 소유권 잠금 조회를 포함한 외부 작업 하나가 하나의 쓰기 가능한 트랜잭션이다. Hibernate는 Core의 기존 `validate`만 수행한다. 활성화 전에 독립 migration이 완료되어야 하며, 비활성 상태에는 WorldStudio Entity/Repository/Service가 등록되지 않아 테이블 없이도 기존 Core가 시작된다. PostgreSQL 오류 DETAIL 억제도 기존 Core 설정을 따른다.
 
 `WorldStudioService`의 create/edit/draft/save/revision/restore는 DTO를 사용한다. `subject: UUID`는 검증된 JWT에서 호출 계층이 추출해야 하며 요청 본문에는 ownerId가 없다. HTTP 인증·Controller·기존 작업실 UI 연결은 이 작업의 범위 밖이다. 읽기/쓰기 모두 소유 world를 먼저 잠그고 확인한다. 현재는 짧은 DB 작업을 world별로 직렬화한다.
 
@@ -55,6 +59,6 @@ Service는 검증된 JWT subject를 인자로 받아 world.owner_subject를 먼�
 ./gradlew unitTest --tests '*WorldStudioServiceTest' --tests '*WorldStudioMigrationIdentityTest' integrationTest --tests '*WorldStudioServicePostgresTest' --tests '*WorldStudioFlywayPostgresTest' --tests '*WorldStudioHistoryPostgresTest' --tests '*WorldStudioConfigIntegrationTest' --no-daemon
 ```
 
-각 fixture는 `ws_independent_<uuid>` DB를 생성하고 자신이 만든 DB만 제거한다. Auth/Content가 없는 DB에서 실제 JPA 저장·복원·과거 조회·커밋 실패·동시성·무결성을 검증한다. CI도 전용 임시 PostgreSQL service에서만 실행한다. 사용자·공용 개발·운영 DB에 이 환경변수를 설정하지 않는다.
+각 fixture는 `ws_independent_<uuid>` DB를 생성하고 자신이 만든 DB만 제거한다. 독립 SQL은 Auth/Content 없는 DB에서, 공통 JPA는 Auth를 포함한 Core 기본 연결에서 Content 없이 저장·복원·과거 조회·커밋 실패·동시성·무결성을 검증한다. CI도 전용 임시 PostgreSQL service에서만 실행한다. 사용자·공용 개발·운영 DB에 이 환경변수를 설정하지 않는다.
 
 이미 실행한 Content 공존 검증은 일회성 데이터 보호 회귀다. 그 테스트만 별도로 `TEST_WORLDSTUDIO_COEXISTENCE_ONCE=true`를 지정했을 때 실행하도록 보존했으며 기본 검증 명령에는 포함하지 않는다. Content V1~V7은 독립 WorldStudio의 선행 조건이 아니다.

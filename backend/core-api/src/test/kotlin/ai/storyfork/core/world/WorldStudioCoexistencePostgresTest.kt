@@ -16,14 +16,13 @@ import java.util.UUID
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class WorldStudioCoexistencePostgresTest {
     private fun context(db:WorldStudioPostgresFixture, studio:Boolean)=SpringApplicationBuilder(CoreApiApplication::class.java).run(
+        "--spring.datasource.hikari.maximum-pool-size=3", "--spring.datasource.hikari.minimum-idle=0",
         "--server.port=0", "--app.content.enabled=true", "--app.worldstudio.enabled=$studio",
         "--app.setting-attachments.enabled=false",
         "--CORE_DATABASE_URL=${db.url}", "--CORE_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
         "--CORE_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
         "--CONTENT_DATABASE_URL=${db.url}", "--CONTENT_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
         "--CONTENT_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
-        "--WORLDSTUDIO_DATABASE_URL=${db.url}", "--WORLDSTUDIO_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
-        "--WORLDSTUDIO_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
         "--CORE_SMTP_HOST=127.0.0.1", "--CORE_SMTP_PORT=1025", "--AUTH_PUBLIC_ORIGIN=http://localhost:5173",
         "--AUTH_MAIL_FROM=test@example.invalid", "--AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
 

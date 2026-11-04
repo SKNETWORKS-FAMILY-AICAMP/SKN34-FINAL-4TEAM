@@ -14,7 +14,9 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.SimpleTransactionStatus
-import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource
+import org.springframework.transaction.interceptor.TransactionInterceptor
+import org.springframework.aop.framework.ProxyFactory
 
 class WorldStudioServiceTest {
     private val worlds=mock(StudioWorldRepository::class.java)
@@ -32,7 +34,25 @@ class WorldStudioServiceTest {
     private val manager=mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenReturn(SimpleTransactionStatus())
     }
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,relationships,relationDrafts,relationVersions,revisions,revisionCards,revisionRelations,requests,TransactionTemplate(manager))
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,relationships,relationDrafts,relationVersions,revisions,revisionCards,revisionRelations,requests)
+
+    @Test fun `public operations use default writable transactions including locked reads`() {
+        val source=AnnotationTransactionAttributeSource()
+        val operations=WorldStudioService::class.java.declaredMethods.filter { java.lang.reflect.Modifier.isPublic(it.modifiers) }
+        assertEquals(setOf("create","draft","revision","edit","save","restore"),operations.map { it.name }.toSet())
+        operations.forEach {
+            val attribute=source.getTransactionAttribute(it,WorldStudioService::class.java)!!
+            assertFalse(attribute.isReadOnly)
+            assertTrue(attribute.qualifier.isNullOrBlank())
+        }
+        val proxy=ProxyFactory(service).apply {
+            isProxyTargetClass=true
+            addAdvice(TransactionInterceptor(manager,source))
+        }.proxy as WorldStudioService
+        assertThrows(WorldNotFound::class.java) { proxy.draft(UUID.randomUUID(),UUID.randomUUID()) }
+        verify(manager).rollback(any())
+        verify(manager,never()).commit(any())
+    }
 
     @Test fun `unowned world fails before reading drafts or history`() {
         val world=UUID.randomUUID();val actor=UUID.randomUUID()

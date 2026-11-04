@@ -1,5 +1,9 @@
 # STORYFORK Docker 실행 기반
 
+WorldStudio 개발 CD는 이미지 검증 후 일회성 migrate/validate를 실행하고 성공 시 새 Core를 기동합니다.
+전용 opt-in profile은 기본 비활성이며 개발 DB 대상·백업 복원 증거와 GitHub 환경 활성화가 필요합니다.
+실제 공용 DB 적용은 코드 연동과 별개입니다. [최초 활성화·실행 순서·실패 처리](../docs/deployment/worldstudio-v1-rollout.md)를 따릅니다.
+
 화면 데모와 Core·AI Health, 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공합니다. 공통 구성의 `CONTENT_ENABLED`는 기본 `false`이며, 명시적으로 켜면 Auth와 같은 PostgreSQL·자격증명을 사용해 콘텐츠 저장을 활성화합니다. 별도 콘텐츠 overlay는 없습니다. [콘텐츠 실행·인증 안내](../docs/content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴는 미구현이며 운영 가입용이 아닙니다.
 
 [`docker-compose.yaml`](docker-compose.yaml)은 세 앱의 공통 환경·내부 포트만 정의하는 base입니다. 이미지·빌드 선택이 없으므로 **단독 실행하지 않고** 아래 파일 중 하나와 순서대로 병합합니다.
