@@ -97,6 +97,8 @@ tasks.register('unitTest', Test) {
 }
 
 tasks.register('integrationTest', Test) {
+    // Close evicted contexts and their pools before exhausting the isolated CI database.
+    systemProperty 'spring.test.context.cache.maxSize', '4'
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     include integrationTestClasses
