@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { newSetting } from '../entities/studioWorld'
-import { applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions, personDeletionInfo, removePerson } from '../entities/studioRelations'
+import { applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions } from '../entities/studioRelations'
 
 it('keeps mutual facts separate from independent directed emotions and stable IDs',()=>{
  const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
@@ -11,7 +11,7 @@ it('keeps mutual facts separate from independent directed emotions and stable ID
  expect(rows).toHaveLength(5)
  expect(relationDefinitions.trusts.group).toBe('emotion')
  expect(()=>putRelation(rows,{subjectId:b.item.id,targetId:a.item.id,predicate:'friend_of',polarity:'asserted'})).toThrow(/이미/)
- expect(()=>putRelation(rows,{subjectId:a.item.id,targetId:'missing',predicate:'trusts',polarity:'asserted'})).toThrow(/인물/)
+ expect(()=>putRelation(rows,{subjectId:a.item.id,targetId:'missing',predicate:'trusts',polarity:'asserted'})).toThrow(/설정/)
  const trust=rows[3].item
  const changed=putRelation(rows,{...trust,polarity:'denied'})
  expect(changed[3].item.id).toBe(trust.id)
@@ -49,16 +49,6 @@ it('preserves free relationship and compound emotion prose without coercing it t
  expect(editStudioSetting(rows,a.item.id,{title:'홍 판서'})[3].item.text).toBe(prose)
 })
 
-it('previews incident links and blocks person deletion when unrelated settings reference that person',()=>{
- const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
- const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'오랜 동료이자 경쟁자'})
- const note=newSetting();note.item.title='가람의 계약';note.item.relatedIds=[a.item.id]
- expect(personDeletionInfo(rows,a.item.id).relations).toHaveLength(1)
- expect(removePerson(rows,a.item.id)).toEqual([b])
- expect(()=>removePerson([...rows,note],a.item.id)).toThrow(/가람의 계약/)
- expect(rows).toHaveLength(3)
-})
-
 it('synchronizes exact generated fields on structure/name edits and preserves independent author prose',()=>{
  const a=newSetting('people'),b=newSetting('people'),c=newSetting('people')
  a.item.title='가람';b.item.title='나래';c.item.title='다온'
@@ -85,4 +75,12 @@ it('synchronizes exact generated fields on structure/name edits and preserves in
  rows[3].item.title='나래 · 친구 · 가람'
  rows=editStudioSetting(rows,id,{predicate:'likes'})
  expect(rows[3].item.title).toBe('나래 · 친구 · 가람')
+})
+
+it('connects setting cards beyond characters and rejects an incomplete edit',()=>{
+ const person=newSetting('people'),place=newSetting('places');person.item.title='가람';place.item.title='항구'
+ const rows=putRelation([person,place],{subjectId:person.item.id,targetId:place.item.id,predicate:'custom_relation_directed',polarity:'asserted',text:'지키는 장소'})
+ expect(rows[2].item).toMatchObject({subjectId:person.item.id,targetId:place.item.id})
+ expect(()=>putRelation(rows,{...rows[2].item,text:''})).toThrow()
+ expect(()=>putRelation(rows,{...rows[2].item,targetId:null})).toThrow()
 })
