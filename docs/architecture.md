@@ -1,10 +1,12 @@
 # STORYFORK 아키텍처
 
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+
 ## 현재 구현
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
-> 설계상 명칭은 **Core Service·AI Service**입니다. 아래 `core-api`, `Core API` 표기는 현재 실행 모듈 이름과 HTTP 인터페이스이며 서비스 이름의 변경을 코드·배포에 적용했다는 뜻이 아닙니다. 새 MVP 방향은 [시스템 설계](design/design.md)·[DEC-26~28](design/decisions.md#결정-목록)에 있습니다.
+> 기존 연결·배포 백엔드는 core-api·ai-service이며 Core에 인증·콘텐츠·첨부가 공존합니다. 별도로 [콘텐츠](../backend/content-service/README.md)·[운영](../backend/operations-service/README.md)의 독립 Spring Boot 실행 골격을 추가했습니다(loopback 8081·8082, JDK 21). 업무·DB·인증·Compose·공개 라우팅은 옮기지 않았고 실제 기동 검증도 대기입니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
 
 STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴는 미구현이므로 운영 가입용이 아닙니다.
 서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
@@ -123,8 +125,10 @@ OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build A
 
 ## 제품 목표와 미정 정책 — 미구현
 
-- Core는 작품·세계관·회차 버전·Fork 정본과 권한·승인·발행·크레딧 최종 판단·저장을 소유합니다.
-- AI는 Core가 허용한 최소 문맥에서 생성·시뮬레이션·검토 제안만 반환합니다.
+- Core는 회원·인증·세션·크레딧·회원 알림을 소유합니다.
+- 콘텐츠 서비스는 작품·세계관·회차·버전·Fork·발행·독서·작품 피드백·첨부 및 콘텐츠 인가·제안 채택·반영을 소유합니다.
+- 운영 서비스는 고객지원·공지·이벤트·신고 사건·소명·운영 판단·감사·작업 감시를 소유합니다. 실제 회원 제한은 Core, 콘텐츠 제한은 콘텐츠 서비스에 적용 요청합니다.
+- AI는 업무 소유 서비스가 허용한 최소 문맥에서 생성·시뮬레이션·검토 결과만 반환합니다. LLMOps는 운영 영역으로 분리하며 Langfuse 자체 UI/API 통합은 미정입니다.
 - 작품 Fork의 기준 회차·버전은 보존합니다. 세계관은 수정 전 원본의 허용된 변경을 따르고, 최초 수정으로 독립한 뒤에는 알림에 따른 사용자 선택으로만 원본 변경을 반영합니다(DEC-32·34).
 - 설정 항목별 공개/비공개와 회차별 공개 범위를 적용하고, 사용자 권한·미발행 원고·인물별 인지도 구분합니다(DEC-36).
 - 생성·제안과 사용자 승인·정본 반영을 구분합니다.

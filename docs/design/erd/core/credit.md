@@ -1,10 +1,10 @@
 # Core 업무 ERD — 크레딧·구독·저장 한도
 
-> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
+> **전체 서비스 논리 후보 · 분리 구현 전.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
 근거: [UC-17](../../../usecase-spec/UC-17.md), [UC-19](../../../usecase-spec/UC-19.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-소유 후보 **10개**, 다른 영역 참조 **4개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
+이 뷰의 중심 후보 **10개**, 다른 영역 참조 **4개**입니다. 이 뷰의 중심 테이블 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
@@ -162,24 +162,30 @@ erDiagram
     }
 ```
 
+## 정본 소유와 서비스 경계
+
+[DEC-41 정본 소유·현행 구현과 논리 참조 해석](../README.md#dec-41-적용과-현재-구현)을 따릅니다. `core/`는 기존 문서 경로이며 각 표의 소유 구분이 목표 책임입니다. 그림의 엔티티·컬럼·관계는 그대로 보존하며 회원 인증 비밀을 다른 서비스에 복제하지 않습니다.
+
+Core가 크레딧·구독·지급·정산·원장을 소유합니다. 작업/모델 사용량·성공 여부는 요청 업무 소유 서비스와 AI가 전달하는 정산 입력이며 정산 정본이 아닙니다. `STORAGE_QUOTA`는 기존 한도 후보를 보존하되 콘텐츠 파일·사용량 집계와의 책임/강제 계약은 미정으로 둡니다. 운영의 이벤트 보상도 Core에 요청하며 원장을 직접 수정하지 않습니다.
+
 ## 이 그림의 테이블
 
-| 소유/참조 | 테이블 | 범위 |
-|---|---|---|
-| 소유 | [`AI_COST_CONSENT`](../tables.md#ai-cost-consent) | MVP 이후 |
-| 소유 | [`SUBSCRIPTION_PLAN`](../tables.md#subscription-plan) | MVP 이후 |
-| 소유 | [`MEMBER_SUBSCRIPTION`](../tables.md#member-subscription) | MVP 이후 |
-| 소유 | [`SUBSCRIPTION_PERIOD`](../tables.md#subscription-period) | MVP 이후 |
-| 소유 | [`CREDIT_PURCHASE`](../tables.md#credit-purchase) | MVP 이후 |
-| 소유 | [`CREDIT_GRANT`](../tables.md#credit-grant) | MVP 이후 |
-| 소유 | [`CREDIT_SETTLEMENT`](../tables.md#credit-settlement) | MVP 이후 |
-| 소유 | [`CREDIT_SETTLEMENT_LINE`](../tables.md#credit-settlement-line) | MVP 이후 |
-| 소유 | [`CREDIT_LEDGER_ENTRY`](../tables.md#credit-ledger-entry) | MVP 이후 |
-| 소유 | [`STORAGE_QUOTA`](../tables.md#storage-quota) | MVP 이후 |
-| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP |
-| 다른 영역 참조 | [`AI_JOB`](../tables.md#ai-job) | MVP |
-| 다른 영역 참조 | [`AI_MODEL_CALL`](../tables.md#ai-model-call) | MVP |
-| 다른 영역 참조 | [`WORK_AUTOMATION_VERSION`](../tables.md#work-automation-version) | MVP 이후 |
+| 뷰 구분 | 테이블 | 범위 | 목표 정본 소유 |
+|---|---|---|---|
+| 중심 후보 | [`AI_COST_CONSENT`](../tables.md#ai-cost-consent) | MVP 이후 | Core |
+| 중심 후보 | [`SUBSCRIPTION_PLAN`](../tables.md#subscription-plan) | MVP 이후 | Core |
+| 중심 후보 | [`MEMBER_SUBSCRIPTION`](../tables.md#member-subscription) | MVP 이후 | Core |
+| 중심 후보 | [`SUBSCRIPTION_PERIOD`](../tables.md#subscription-period) | MVP 이후 | Core |
+| 중심 후보 | [`CREDIT_PURCHASE`](../tables.md#credit-purchase) | MVP 이후 | Core |
+| 중심 후보 | [`CREDIT_GRANT`](../tables.md#credit-grant) | MVP 이후 | Core |
+| 중심 후보 | [`CREDIT_SETTLEMENT`](../tables.md#credit-settlement) | MVP 이후 | Core |
+| 중심 후보 | [`CREDIT_SETTLEMENT_LINE`](../tables.md#credit-settlement-line) | MVP 이후 | Core |
+| 중심 후보 | [`CREDIT_LEDGER_ENTRY`](../tables.md#credit-ledger-entry) | MVP 이후 | Core |
+| 중심 후보 | [`STORAGE_QUOTA`](../tables.md#storage-quota) | MVP 이후 | 한도·집계 계약 미정 (Core/콘텐츠 협력) |
+| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP | Core |
+| 다른 영역 참조 | [`AI_JOB`](../tables.md#ai-job) | MVP | 요청 업무 소유 서비스 (콘텐츠/운영) |
+| 다른 영역 참조 | [`AI_MODEL_CALL`](../tables.md#ai-model-call) | MVP | 요청 업무 소유 서비스 (콘텐츠/운영) |
+| 다른 영역 참조 | [`WORK_AUTOMATION_VERSION`](../tables.md#work-automation-version) | MVP 이후 | 콘텐츠 |
 
 ## 데이터 역할과 무결성
 

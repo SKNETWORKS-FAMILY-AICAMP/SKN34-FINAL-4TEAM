@@ -1,10 +1,10 @@
-# Core 업무 ERD — 작품·독서·집필·발행
+# 콘텐츠 업무 ERD — 작품·독서·집필·발행
 
-> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
+> **전체 서비스 논리 후보 · 분리 구현 전.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
 근거: [UC-01](../../../usecase-spec/UC-01.md), [UC-03](../../../usecase-spec/UC-03.md), [UC-10](../../../usecase-spec/UC-10.md), [UC-13](../../../usecase-spec/UC-13.md), [UC-23](../../../usecase-spec/UC-23.md), [UC-24](../../../usecase-spec/UC-24.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-소유 후보 **30개**, 다른 영역 참조 **3개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
+이 뷰의 중심 후보 **30개**, 다른 영역 참조 **3개**입니다. 이 뷰의 중심 테이블 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
@@ -277,43 +277,49 @@ erDiagram
     }
 ```
 
+## 정본 소유와 서비스 경계
+
+[DEC-41 정본 소유·현행 구현과 논리 참조 해석](../README.md#dec-41-적용과-현재-구현)을 따릅니다. `core/`는 기존 문서 경로이며 각 표의 소유 구분이 목표 책임입니다. 그림의 엔티티·컬럼·관계는 그대로 보존하며 회원 인증 비밀을 다른 서비스에 복제하지 않습니다.
+
+작품·독서·검색·회차·집필·발행·파일 참조 정본과 실제 예약 발행은 콘텐츠 서비스 책임입니다. 회원 알림은 콘텐츠가 사건을 제공하고 Core가 수신·전달을 담당합니다. 현재 해당 구현이 `core-api`에 있는 것과 별도 콘텐츠 앱으로의 이전 목표를 구분합니다.
+
 ## 이 그림의 테이블
 
-| 소유/참조 | 테이블 | 범위 |
-|---|---|---|
-| 소유 | [`WORK`](../tables.md#work) | MVP |
-| 소유 | [`WORK_WORLD_HISTORY`](../tables.md#work-world-history) | MVP |
-| 소유 | [`GENRE`](../tables.md#genre) | MVP |
-| 소유 | [`WORK_GENRE`](../tables.md#work-genre) | MVP |
-| 소유 | [`HASHTAG`](../tables.md#hashtag) | MVP |
-| 소유 | [`WORK_HASHTAG`](../tables.md#work-hashtag) | MVP |
-| 소유 | [`WORK_PUBLICATION_HISTORY`](../tables.md#work-publication-history) | MVP |
-| 소유 | [`WORK_RIGHTS_DECLARATION`](../tables.md#work-rights-declaration) | MVP |
-| 소유 | [`WORK_LIKE`](../tables.md#work-like) | MVP |
-| 소유 | [`WORK_FAVORITE`](../tables.md#work-favorite) | MVP |
-| 소유 | [`READING_PROGRESS`](../tables.md#reading-progress) | MVP |
-| 소유 | [`EPISODE_VIEW_DAY`](../tables.md#episode-view-day) | MVP |
-| 소유 | [`EPISODE`](../tables.md#episode) | MVP |
-| 소유 | [`EPISODE_DRAFT`](../tables.md#episode-draft) | MVP |
-| 소유 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP |
-| 소유 | [`MANUSCRIPT_ASSET`](../tables.md#manuscript-asset) | 전체·범위확인 |
-| 소유 | [`EPISODE_DRAFT_IMAGE`](../tables.md#episode-draft-image) | 전체·범위확인 |
-| 소유 | [`EPISODE_VERSION_IMAGE`](../tables.md#episode-version-image) | 전체·범위확인 |
-| 소유 | [`EPISODE_DRAFT_MENTION`](../tables.md#episode-draft-mention) | MVP |
-| 소유 | [`EPISODE_VERSION_MENTION`](../tables.md#episode-version-mention) | MVP |
-| 소유 | [`PUBLICATION_EVENT`](../tables.md#publication-event) | MVP |
-| 소유 | [`PUBLICATION_SCHEDULE`](../tables.md#publication-schedule) | 전체·범위확인 |
-| 소유 | [`STORY_PLAN`](../tables.md#story-plan) | MVP |
-| 소유 | [`WRITING_NOTE`](../tables.md#writing-note) | 전체·범위확인 |
-| 소유 | [`MANUSCRIPT_IMPORT`](../tables.md#manuscript-import) | 전체·범위확인 |
-| 소유 | [`MANUSCRIPT_IMPORT_ITEM`](../tables.md#manuscript-import-item) | 전체·범위확인 |
-| 소유 | [`MANUSCRIPT_IMPORT_ISSUE`](../tables.md#manuscript-import-issue) | MVP 이후 |
-| 소유 | [`EXTERNAL_IP`](../tables.md#external-ip) | 전체·범위확인 |
-| 소유 | [`WORK_EXTERNAL_SOURCE`](../tables.md#work-external-source) | 전체·범위확인 |
-| 소유 | [`PUBLIC_DOMAIN_SOURCE`](../tables.md#public-domain-source) | 테스트 전용 |
-| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP |
-| 다른 영역 참조 | [`WORLD`](../tables.md#world) | MVP |
-| 다른 영역 참조 | [`SETTING_DOCUMENT`](../tables.md#setting-document) | MVP |
+| 뷰 구분 | 테이블 | 범위 | 목표 정본 소유 |
+|---|---|---|---|
+| 중심 후보 | [`WORK`](../tables.md#work) | MVP | 콘텐츠 |
+| 중심 후보 | [`WORK_WORLD_HISTORY`](../tables.md#work-world-history) | MVP | 콘텐츠 |
+| 중심 후보 | [`GENRE`](../tables.md#genre) | MVP | 콘텐츠 |
+| 중심 후보 | [`WORK_GENRE`](../tables.md#work-genre) | MVP | 콘텐츠 |
+| 중심 후보 | [`HASHTAG`](../tables.md#hashtag) | MVP | 콘텐츠 |
+| 중심 후보 | [`WORK_HASHTAG`](../tables.md#work-hashtag) | MVP | 콘텐츠 |
+| 중심 후보 | [`WORK_PUBLICATION_HISTORY`](../tables.md#work-publication-history) | MVP | 콘텐츠 |
+| 중심 후보 | [`WORK_RIGHTS_DECLARATION`](../tables.md#work-rights-declaration) | MVP | 콘텐츠 |
+| 중심 후보 | [`WORK_LIKE`](../tables.md#work-like) | MVP | 콘텐츠 |
+| 중심 후보 | [`WORK_FAVORITE`](../tables.md#work-favorite) | MVP | 콘텐츠 |
+| 중심 후보 | [`READING_PROGRESS`](../tables.md#reading-progress) | MVP | 콘텐츠 |
+| 중심 후보 | [`EPISODE_VIEW_DAY`](../tables.md#episode-view-day) | MVP | 콘텐츠 |
+| 중심 후보 | [`EPISODE`](../tables.md#episode) | MVP | 콘텐츠 |
+| 중심 후보 | [`EPISODE_DRAFT`](../tables.md#episode-draft) | MVP | 콘텐츠 |
+| 중심 후보 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP | 콘텐츠 |
+| 중심 후보 | [`MANUSCRIPT_ASSET`](../tables.md#manuscript-asset) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`EPISODE_DRAFT_IMAGE`](../tables.md#episode-draft-image) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`EPISODE_VERSION_IMAGE`](../tables.md#episode-version-image) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`EPISODE_DRAFT_MENTION`](../tables.md#episode-draft-mention) | MVP | 콘텐츠 |
+| 중심 후보 | [`EPISODE_VERSION_MENTION`](../tables.md#episode-version-mention) | MVP | 콘텐츠 |
+| 중심 후보 | [`PUBLICATION_EVENT`](../tables.md#publication-event) | MVP | 콘텐츠 |
+| 중심 후보 | [`PUBLICATION_SCHEDULE`](../tables.md#publication-schedule) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`STORY_PLAN`](../tables.md#story-plan) | MVP | 콘텐츠 |
+| 중심 후보 | [`WRITING_NOTE`](../tables.md#writing-note) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`MANUSCRIPT_IMPORT`](../tables.md#manuscript-import) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`MANUSCRIPT_IMPORT_ITEM`](../tables.md#manuscript-import-item) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`MANUSCRIPT_IMPORT_ISSUE`](../tables.md#manuscript-import-issue) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`EXTERNAL_IP`](../tables.md#external-ip) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`WORK_EXTERNAL_SOURCE`](../tables.md#work-external-source) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`PUBLIC_DOMAIN_SOURCE`](../tables.md#public-domain-source) | 테스트 전용 | 콘텐츠 |
+| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP | Core |
+| 다른 영역 참조 | [`WORLD`](../tables.md#world) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`SETTING_DOCUMENT`](../tables.md#setting-document) | MVP | 콘텐츠 |
 
 ## 데이터 역할과 무결성
 

@@ -1,10 +1,10 @@
-# Core 업무 ERD — 독자 피드백
+# 콘텐츠 업무 ERD — 독자 피드백
 
-> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
+> **전체 서비스 논리 후보 · 분리 구현 전.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
 근거: [UC-14](../../../usecase-spec/UC-14.md), [UC-15](../../../usecase-spec/UC-15.md), [UC-16](../../../usecase-spec/UC-16.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-소유 후보 **17개**, 다른 영역 참조 **10개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
+이 뷰의 중심 후보 **17개**, 다른 영역 참조 **10개**입니다. 이 뷰의 중심 테이블 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
@@ -294,37 +294,43 @@ erDiagram
     }
 ```
 
+## 정본 소유와 서비스 경계
+
+[DEC-41 정본 소유·현행 구현과 논리 참조 해석](../README.md#dec-41-적용과-현재-구현)을 따릅니다. `core/`는 기존 문서 경로이며 각 표의 소유 구분이 목표 책임입니다. 그림의 엔티티·컬럼·관계는 그대로 보존하며 회원 인증 비밀을 다른 서비스에 복제하지 않습니다.
+
+작품 댓글·오류 제보·작가 검토·수정 반영·실제 숨김/복원은 콘텐츠, 플랫폼 문의와 권리/유해 신고 접수·운영 판단은 운영입니다. `FEEDBACK_REPORT`는 댓글 신고 접수 후보로 운영에 분류하고 실제 `FEEDBACK_MODERATION` 적용은 콘텐츠가 합니다. 검사 결과는 콘텐츠 초기 필터인지 운영 신고 검사인지에 따라 요청 업무를 구분하며 물리 분리·전달 계약은 미정입니다. 보상 근거 연결은 콘텐츠, 실제 크레딧 지급·정산은 Core입니다.
+
 ## 이 그림의 테이블
 
-| 소유/참조 | 테이블 | 범위 |
-|---|---|---|
-| 소유 | [`FEEDBACK`](../tables.md#feedback) | MVP |
-| 소유 | [`FEEDBACK_AMENDMENT`](../tables.md#feedback-amendment) | MVP |
-| 소유 | [`FEEDBACK_STATUS_EVENT`](../tables.md#feedback-status-event) | MVP |
-| 소유 | [`FEEDBACK_AI_JOB`](../tables.md#feedback-ai-job) | MVP 이후 |
-| 소유 | [`FEEDBACK_RESPONSE`](../tables.md#feedback-response) | MVP 이후 |
-| 소유 | [`FEEDBACK_RESPONSE_EVIDENCE`](../tables.md#feedback-response-evidence) | MVP 이후 |
-| 소유 | [`FEEDBACK_COMMENT`](../tables.md#feedback-comment) | 전체·범위확인 |
-| 소유 | [`FEEDBACK_VERIFICATION`](../tables.md#feedback-verification) | MVP 이후 |
-| 소유 | [`FEEDBACK_VERIFICATION_EVIDENCE`](../tables.md#feedback-verification-evidence) | MVP 이후 |
-| 소유 | [`FEEDBACK_REPORT`](../tables.md#feedback-report) | MVP 이후 |
-| 소유 | [`FEEDBACK_MODERATION_CHECK`](../tables.md#feedback-moderation-check) | MVP 이후 |
-| 소유 | [`FEEDBACK_MODERATION`](../tables.md#feedback-moderation) | MVP 이후 |
-| 소유 | [`FEEDBACK_LIKE`](../tables.md#feedback-like) | 전체·범위확인 |
-| 소유 | [`FEEDBACK_PROPOSAL`](../tables.md#feedback-proposal) | MVP 이후 |
-| 소유 | [`FEEDBACK_REVIEW`](../tables.md#feedback-review) | MVP 이후 |
-| 소유 | [`FEEDBACK_RESOLUTION`](../tables.md#feedback-resolution) | MVP 이후 |
-| 소유 | [`FEEDBACK_REWARD`](../tables.md#feedback-reward) | MVP 이후 |
-| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP |
-| 다른 영역 참조 | [`SETTING_VERSION`](../tables.md#setting-version) | MVP |
-| 다른 영역 참조 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP |
-| 다른 영역 참조 | [`PUBLICATION_EVENT`](../tables.md#publication-event) | MVP |
-| 다른 영역 참조 | [`AI_JOB`](../tables.md#ai-job) | MVP |
-| 다른 영역 참조 | [`AI_PROPOSAL`](../tables.md#ai-proposal) | MVP |
-| 다른 영역 참조 | [`AI_EVIDENCE`](../tables.md#ai-evidence) | MVP |
-| 다른 영역 참조 | [`PROPOSAL_DECISION`](../tables.md#proposal-decision) | MVP |
-| 다른 영역 참조 | [`PROPOSAL_APPLICATION`](../tables.md#proposal-application) | MVP |
-| 다른 영역 참조 | [`CREDIT_GRANT`](../tables.md#credit-grant) | MVP 이후 |
+| 뷰 구분 | 테이블 | 범위 | 목표 정본 소유 |
+|---|---|---|---|
+| 중심 후보 | [`FEEDBACK`](../tables.md#feedback) | MVP | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_AMENDMENT`](../tables.md#feedback-amendment) | MVP | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_STATUS_EVENT`](../tables.md#feedback-status-event) | MVP | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_AI_JOB`](../tables.md#feedback-ai-job) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_RESPONSE`](../tables.md#feedback-response) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_RESPONSE_EVIDENCE`](../tables.md#feedback-response-evidence) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_COMMENT`](../tables.md#feedback-comment) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_VERIFICATION`](../tables.md#feedback-verification) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_VERIFICATION_EVIDENCE`](../tables.md#feedback-verification-evidence) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_REPORT`](../tables.md#feedback-report) | MVP 이후 | 운영 (신고 접수) |
+| 중심 후보 | [`FEEDBACK_MODERATION_CHECK`](../tables.md#feedback-moderation-check) | MVP 이후 | 목적별 콘텐츠/운영 (검사 결과) |
+| 중심 후보 | [`FEEDBACK_MODERATION`](../tables.md#feedback-moderation) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_LIKE`](../tables.md#feedback-like) | 전체·범위확인 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_PROPOSAL`](../tables.md#feedback-proposal) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_REVIEW`](../tables.md#feedback-review) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_RESOLUTION`](../tables.md#feedback-resolution) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`FEEDBACK_REWARD`](../tables.md#feedback-reward) | MVP 이후 | 콘텐츠 |
+| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP | Core |
+| 다른 영역 참조 | [`SETTING_VERSION`](../tables.md#setting-version) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`PUBLICATION_EVENT`](../tables.md#publication-event) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`AI_JOB`](../tables.md#ai-job) | MVP | 요청 업무 소유 서비스 (콘텐츠/운영) |
+| 다른 영역 참조 | [`AI_PROPOSAL`](../tables.md#ai-proposal) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`AI_EVIDENCE`](../tables.md#ai-evidence) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`PROPOSAL_DECISION`](../tables.md#proposal-decision) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`PROPOSAL_APPLICATION`](../tables.md#proposal-application) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`CREDIT_GRANT`](../tables.md#credit-grant) | MVP 이후 | Core |
 
 ## 데이터 역할과 무결성
 
@@ -335,6 +341,6 @@ erDiagram
 - 신고 접수, 모델 검사, 실제 숨김·복원은 다른 사건입니다. 필터 호출 실패는 통과가 아니라 비공개 대기이며 숨김은 삭제가 아닙니다. 회차·세계관 권리 신고는 [권리 영역](rights.md)입니다.
 - 공개 제보의 토론 참여도 열람 권한을 확인합니다. 비공개 제보 응답을 공개해도 제보 원문이 자동 공개되지 않습니다. 이미 공개된 후속 회차라도 독자가 본 기준 이후의 내용은 응답 근거로 사용하지 않습니다.
 - 보상은 제보·실제 수정·지급분을 연결합니다. 같은 수정의 최초 검증 1건만, 자기작품 제외, 실제 검증비용 이내의 기준50% 및 월상한은 UC-14를 따릅니다. 같은 수정 식별·악용 방지는 미정입니다.
-- MVP는 등록과 작가 목록 확인입니다. 필터·독자검증·AI 응대·수정안·보상은 MVP 이후입니다. 숫자/고유명사/단어 교체를 포함한 수정과 작업초안 충돌은 자동 승인하지 않으며 자동 예외 판단은 Core가 합니다.
+- MVP는 등록과 작가 목록 확인입니다. 필터·독자검증·AI 응대·수정안·보상은 MVP 이후입니다. 숫자/고유명사/단어 교체를 포함한 수정과 작업초안 충돌은 자동 승인하지 않으며 자동 예외 판단은 콘텐츠 서비스가 합니다.
 
 각 테이블의 PK·FK·고유키·조건부 필수값과 예시는 [전체 테이블 가이드](../tables.md)에 있습니다. 그림만으로 권한·동시성·삭제 안전성이 보장되지 않습니다.

@@ -21,10 +21,14 @@ services:
   core-api:
     environment:
       CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
+      AUTH_COOKIE_SECURE: "false"
+      APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:8088
+
+  content-service:
+    environment:
       CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
       CONTENT_ENABLED: "true"
-      CONTENT_DEV_OWNER: ""
-      AUTH_COOKIE_SECURE: "false"
+      APP_WORLDSTUDIO_ENABLED: "false"
       APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:8088
 
   web:
