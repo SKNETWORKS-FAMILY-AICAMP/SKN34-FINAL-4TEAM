@@ -1,0 +1,38 @@
+# Image-only develop-server deployment; NOT source-build/HMR or Internet-ready.
+name: storyfork-develop-cd
+
+x-cd-labels: &cd-labels
+  io.storyfork.cd.repository: SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM
+  io.storyfork.cd.directory: ${CD_DIRECTORY:?Provision a dedicated deployment directory}
+
+services:
+  ai-service:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    environment:
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+
+  core-api:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    environment:
+      CORE_DATABASE_URL: ${CORE_DATABASE_URL:?Set CORE_DATABASE_URL}
+      CONTENT_DATABASE_URL: ${CORE_DATABASE_URL:?Set CORE_DATABASE_URL}
+      CORE_SMTP_HOST: ${CORE_SMTP_HOST:?Set CORE_SMTP_HOST}
+      CORE_SMTP_PORT: ${CORE_SMTP_PORT:?Set CORE_SMTP_PORT}
+      APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
+
+  web:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-web:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    ports:
+      - "127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}:80"
+
+networks:
+  default:
+    labels:
+      io.storyfork.cd.repository: SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM
+      io.storyfork.cd.directory: ${CD_DIRECTORY:?Provision a dedicated deployment directory}

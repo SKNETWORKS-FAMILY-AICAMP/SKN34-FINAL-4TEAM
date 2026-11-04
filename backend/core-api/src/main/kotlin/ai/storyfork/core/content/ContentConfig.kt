@@ -36,5 +36,6 @@ class ContentConfig {
         validatePositiveDuration(timeout,"AI_GENERATION_READ_TIMEOUT")
         return GenerationClient(buildRestClient(builder,properties.baseUrl,properties.connectTimeout,timeout),token)
     }
-    @Bean fun contentService(repository: ContentRepository,client: GenerationClient,mapper: JsonMapper) = ContentService(repository,client,mapper)
+    @Bean fun contentService(repository: ContentRepository,client: GenerationClient,mapper: JsonMapper,
+        images: org.springframework.beans.factory.ObjectProvider<ai.storyfork.core.attachment.repository.ContentImageRepository>) = ContentService(repository,client,mapper,images.ifAvailable)
 }

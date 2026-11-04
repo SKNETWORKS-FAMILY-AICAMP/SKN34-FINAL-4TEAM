@@ -4,6 +4,23 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { useWritingViewModel } from './useWritingViewModel'
 
 afterEach(()=>{cleanup();vi.useRealTimers()})
+it('inserts an uploaded immutable image reference at the cursor and keeps it through a saved version',async()=>{
+ const id='b142427a-cd9d-4fdc-a40d-c9e553d87d30';const imageId='e25ffb25-8128-48c0-8d66-e1d56831cd56'
+ const episode={number:1,draft:{title:'1화',body:'앞뒤',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}
+ const body=`앞\n\n[[image:${imageId}]]\n\n뒤`
+ const api={writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockResolvedValue({...episode,draft:{...episode.draft,body,revision:1}}),restoreEpisode:vi.fn(),publishEpisode:vi.fn()}
+ const media={upload:vi.fn().mockResolvedValue({id:imageId})}
+ const {result}=renderHook(()=>useWritingViewModel(id,api,media))
+ await act(async()=>{})
+ await act(async()=>{await result.current.addImage(new File(['png'],'본문.png'),1,1)})
+ expect(result.current.draft.body).toBe(body)
+ await act(async()=>{await result.current.save()})
+ expect(api.writeEpisode).toHaveBeenLastCalledWith(id,1,{...episode.draft,body},true,expect.any(AbortSignal))
+ media.upload.mockRejectedValue(new Error('저장소 실패'))
+ await act(async()=>{await result.current.addImage(new File(['png'],'실패.png'),0,0)})
+ expect(result.current.draft.body).toBe(body);expect(result.current.error).toBe('저장소 실패')
+})
+
 it('accepts server-normalized titles without an endless autosave loop',async()=>{
   vi.useFakeTimers()
   const episode={number:1,draft:{title:'제목',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}

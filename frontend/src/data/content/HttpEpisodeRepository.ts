@@ -53,7 +53,7 @@ export class HttpEpisodeRepository implements EpisodeRepository {
     return rows.map(w=>({...w,readOnly:true,draft:{title:'',body:'',revision:0}}))
   }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
-  create(title: string, summary: string) { return this.request('/works',work,'POST',{title,summary}) }
+  create(title: string, summary: string, signal?: AbortSignal) { return this.request('/works',work,'POST',{title,summary},signal) }
   save(id: string, value: Draft) { return this.request(`/works/${id}/draft`,draft,'PUT',value) }
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) { return this.request(`/works/${id}/publish`,work,'POST',{revision,rightsConfirmed,allowFork,allowForkPublication,versionId}) }
   history(id: string) { return this.request(`/works/${id}/history`,z.object({versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),proposals:z.array(proposal)})) }

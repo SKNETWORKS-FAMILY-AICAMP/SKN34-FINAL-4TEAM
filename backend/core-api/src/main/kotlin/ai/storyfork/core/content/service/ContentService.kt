@@ -6,7 +6,17 @@ import ai.storyfork.core.content.domain.*
 import ai.storyfork.core.content.repository.ContentRepository
 import tools.jackson.databind.json.JsonMapper
 
-class ContentService(private val repository: ContentRepository, private val ai: GenerationClient, private val mapper: JsonMapper) {
+class ContentService(private val repository: ContentRepository, private val ai: GenerationClient, private val mapper: JsonMapper,
+    private val images: ai.storyfork.core.attachment.repository.ContentImageRepository? = null) {
+    private fun validateImages(work: String, number: Int, body: String) {
+        checkContent(!body.contains("data:image", ignoreCase=true), message="이미지는 파일 업로드로 저장해 주세요.")
+        val markers = Regex("\\[\\[image:([^\\]]*)]]").findAll(body).map { it.groupValues[1] }.toList()
+        checkContent(markers.size <= 10, message="회차 이미지는 최대 10개까지 참조할 수 있어요.")
+        markers.forEach { id ->
+            val image = images?.findById(id)?.orElse(null)
+            checkContent(image != null && image.workId == work && image.episodeNo == number, message="이 회차에 업로드한 이미지 참조를 사용해 주세요.")
+        }
+    }
     private fun get(id: String) = repository.find(id) ?: throw ContentFailure(404,"작품을 찾을 수 없어요.")
     private fun own(id: String, owner: String): ContentWork = get(id).also { checkContent(it.ownerId==owner,404,"작품을 찾을 수 없어요.") }
     private fun source(w: ContentWork) = w.source?.let { get(it.workId) }
@@ -40,6 +50,7 @@ class ContentService(private val repository: ContentRepository, private val ai: 
     fun writeEpisode(id: String,owner: String,number: Int,data: DraftRequest,saveVersion: Boolean) = repository.transaction {
         val w=own(id,owner); editable(id,number,data.revision)
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.body.length<=40000,message="제목은 120자, 원고는 40,000자 이내로 작성해 주세요.")
+        validateImages(id,number,data.body)
         val draft=Draft(data.title.trim(),data.body,data.revision+1)
         repository.writeDraft(id,number,draft)
         if(saveVersion) {
@@ -71,6 +82,7 @@ class ContentService(private val repository: ContentRepository, private val ai: 
     }
     fun edit(id: String, owner: String, data: DraftRequest) = repository.transaction {
         val w=own(id,owner); revision(w,data.revision)
+        validateImages(id,w.episodes.size+1,data.body)
         w.draft=Draft(data.title.trim(),data.body,data.revision+1); checkpoint(w); repository.save(w); w.draft
     }
     fun history(id: String, owner: String) = repository.transaction { val w=own(id,owner); HistoryResponse(w.versions,w.proposals,w.policyHistory,w.publicationHistory) }
@@ -169,6 +181,7 @@ class ContentService(private val repository: ContentRepository, private val ai: 
         val p=w.proposals.find { it.id==pid && it.status=="pending" && it.revision==expected } ?: throw ContentFailure(409,"만료되었거나 이미 적용한 제안이에요.")
         checkContent(context(w,p.context.basisEpisode,p.prompt,p.context.character)==p.context,409,"설정 문맥이 변경됐어요. 최신 문맥으로 검토해 주세요.")
         val body=(w.draft.body+"\n\n"+p.text).trim(); checkContent(body.length<=40000,message="회차 원고는 40,000자까지 저장할 수 있어요.")
+        validateImages(id,w.episodes.size+1,body)
         w.draft=w.draft.copy(body=body,revision=expected+1); checkpoint(w); p.status="accepted"; repository.save(w); w.draft
     }
 }

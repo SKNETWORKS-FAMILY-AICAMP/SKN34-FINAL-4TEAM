@@ -1,0 +1,31 @@
+# GitHub CI 전용: base + prod 뒤에 병합한다. 배포 DB·volume은 사용하지 않는다.
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: storyfork_test
+    volumes: !reset []
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d storyfork_test"]
+
+  mailpit:
+    ports: !override ["127.0.0.1::8025"]
+
+  ai-service:
+    environment:
+      # 누락 제공사 설정의 명시적 503을 검증한다. 실제 키/유료 호출/대역 서버는 불필요하다.
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: ""
+
+  core-api:
+    environment:
+      CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
+      CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
+      CONTENT_ENABLED: "true"
+      CONTENT_DEV_OWNER: ""
+      AUTH_COOKIE_SECURE: "false"
+      APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:8088
+
+  web:
+    ports: !override ["127.0.0.1::80"]

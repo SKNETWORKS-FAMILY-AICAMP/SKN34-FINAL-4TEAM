@@ -1,3 +1,5 @@
+import { MediaUseCase } from '../../domain/usecases/MediaUseCase'
+import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { asFunction, asValue } from 'awilix/browser'
@@ -42,6 +44,8 @@ export function registerAppServices(container: AppContainer) {
     authUseCase: asFunction(({ authRepository }) => new AuthUseCase(authRepository)).singleton(),
     signupRepository: asValue(signupRepository),
     signupUseCase: asFunction(({ signupRepository }) => new SignupUseCase(signupRepository)).singleton(),
+    mediaRepository: asFunction(() => new HttpMediaRepository()).singleton(),
+    mediaUseCase: asFunction(({ mediaRepository }) => new MediaUseCase(mediaRepository)).singleton(),
     episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     mockDb: asValue(createMockDb()),

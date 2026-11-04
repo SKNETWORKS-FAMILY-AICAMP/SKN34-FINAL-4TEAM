@@ -29,7 +29,7 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 | PostgreSQL·Flyway | 회원·가입 후보·refresh 세션·복구/이메일 변경 challenge 및 콘텐츠 저장 | 인증·프로필 적용, 콘텐츠는 선택적 활성화 |
 | 관계 그래프 DB | 인물·엔티티 관계 저장·조회; 문서·원고 전문은 제외 | MVP 방향(DEC-26), 제품·연동 미정 |
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | MVP 미적용. 포크·설치·개발은 아직 안 함(DEC-27·30) |
-| MinIO(S3 호환) | 설정 이미지 파일, RDB에는 URL | MVP 방향(DEC-39), 미설치 |
+| S3 호환 object storage | 설정 이미지·TXT/MD/CSV/PDF 첨부, RDB에는 비공개 object key와 인증 API 참조 | #87 선택적 Core API 구현; 로컬 MinIO 소스 빌드, 배포 대상 AWS S3(실제 AWS 미검증) |
 | Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | 로컬 SMTP를 가입 인증·비밀번호 복구·이메일 변경에 사용, 운영 제공사는 미정 |
 | 모델 API·프레임워크 | 선택적 AI 집필·시뮬레이션 | 팀 선정 미정. 콘텐츠의 명시적 생성은 설정한 OpenAI 모델 호출 |
 
@@ -58,12 +58,39 @@ Gradle group은 `ai.storyfork`, 애플리케이션은 `storyfork-core-api`, name
 Client의 nullable payload를 Service에서 `up`·`storyfork-ai-service`로 검증한 뒤 내부 Result와
 공개 Response로 변환합니다. 경계별 DTO 소유권을 유지하며 필요 없는 Facade는 없습니다.
 
-Auth의 가입 후보·메일 인증은 `auth/controller → SignupService → SignupRepository` 경로로 저장합니다. 로그인·세션은 `SessionController → SessionService → JdbcTemplate`, 프로필·비밀번호 복구·이메일 변경은 `ProfileController → ProfileService → JdbcTemplate` 경로로 직접 SQL에 접근합니다. `SignupRequest`·`EmailRequest`·`TokenRequest`·`VerificationRequest`는 `auth/controller/dto`에 두고, 나머지 요청 DTO는 각 Controller 안에 둡니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
+Auth는 `auth/controller → SignupService·SessionService·ProfileService → auth/repository` 흐름을 사용합니다. Controller는 DTO·명시적 쿠키/헤더·검증된 JWT를 바인딩하고 Service가 업무·트랜잭션을 담당합니다. 공개 요청·응답은 클래스별 `auth/service/dto` 계약을 공유하며 내부 `LoginResult`의 refresh token은 공개 `LoginResponse`에서 제외하고 HttpOnly 쿠키로만 전달합니다. `X-Auth-User`는 인증 수단이 아니라 계정 혼선을 막는 사전조건입니다. Spring Security OAuth2 Resource Server·CSRF·JWT 검증은 유지하고 BCrypt를 Spring DI로 공유합니다.
+
+Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼리·JPQL·Entity 변경으로 처리합니다. 기존 UUID·Flyway SQL 바이트·`flyway_schema_history`는 유지하며 Hibernate는 스키마 검증만 수행합니다(`ddl-auto=validate`, `open-in-view=false`). 기존 Content JDBC 저장과 별도 `content_schema_history`는 이번 전환 범위 밖입니다. 회원별 `PESSIMISTIC_WRITE` 잠금 뒤에 자격 증명·refresh 상태를 읽어 로그인/비밀번호 재설정 및 refresh/로그아웃의 경합을 보호합니다. 재사용 감지 시 세션 폐기는 Service가 커밋한 뒤 HTTP 401로 변환합니다. 가입 후보는 행 잠금을 사용하며 아직 행이 없는 최초 가입의 삽입 충돌만 새 트랜잭션에서 한 번 재시도합니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
 
 기존 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS만 남습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
 콘텐츠 생성은 `ContentConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
 내부 URL·오류 원문은 공개하지 않으며 AI 장애가 Core 자체 Health 성공을 막지 않습니다.
+
+### 설정 첨부 (#87)
+
+`attachment/controller → AttachmentService → JPA repository / S3 client`가 기존 소유 로컬 Setting의 이미지·일반 파일 CRUD와 표지·회차 이미지를 처리합니다. `SettingAttachmentController`·`WorkCoverController`·`EpisodeImageController`와 기존 HTTP 계약은 유지합니다.
+요청/응답 DTO는 `attachment/service/dto`, S3 전용 계약은 `attachment/client/dto`에 둡니다. `AttachmentConfig`·`AttachmentProperties`는 기존 `app.setting-attachments` 속성·활성화 조건을 유지하며 기존 Auth JPA·Content JDBC 경계는 바꾸지 않습니다.
+`setting_document`·`world`·`work_current`의 기존 소유권을 확인하고 following Fork·익명 공개·URL만 아는 접근은 허용하지 않습니다.
+이미지는 설정당 10개를 설정 행 잠금으로 보호하고 일반 파일에는 그 한도를 적용하지 않습니다.
+파일은 비공개 버킷에 UUID key로 저장하며 원본 endpoint가 아닌 Core의 인증 download API만 노출합니다.
+새 Flyway leaf/history는 `db/migration/settingattachment`/`setting_attachment_schema_history`입니다.
+Auth SQL은 내용과 기존 이력을 보존한 채 `db/migration/auth`로 이동하여 독립 V1과 충돌하지 않게 합니다.
+
+공식 AWS SDK는 배포에서 기본 자격증명 체인·S3 region을, 로컬 MinIO에서는 endpoint override·path-style을 사용합니다.
+MinIO는 [선택 overlay](../infrastructure/compose.attachments.yaml)의 소스 빌드 로컬 runtime이며 AWS 인프라·버킷을 자동 생성하지 않습니다.
+교체/삭제의 일반적인 DB/저장소 실패는 제한된 메모리 백업으로 복원하지만 분산 원자성·프로세스 종료 복구를 보장하지 않습니다.
+복원 실패는 명시적인 503이고 미참조 object는 수동 대조 대상입니다. worker/outbox는 없습니다.
+허용 형식·10 MiB 기술 제한·안전한 attachment 응답·API·한계는 [Core 계약](../backend/core-api/README.md#설정-이미지일반-파일-87)에 있습니다.
+#92에서 실제 `/content` 설정 첨부 UI와 연결합니다. 이 변경은 브라우저 흐름에 영향을 주므로 실제 MinIO HTTP lifecycle 외에 Aside 정상·실패 E2E가 필요합니다.
+
+### 작품 표지·본문 이미지 (#92)
+
+`attachment/controller → AttachmentService → JPA repository / 기존 S3 client`가 표지·회차 이미지 정본을 관리합니다. 별도 production 의존성·실행 계층을 추가하지 않고 attachment의 bounded Hikari pool·EntityManager를 재사용합니다. `content_image`(회차 0 = 단일 표지, 양수 = 불변 회차 이미지)와 별도 `content_image_schema_history`만 추가하며 기존 Auth·Content·설정 첨부 migration은 보존합니다.
+
+원고의 `[[image:<UUID>]]` 참조가 삽입 위치와 불변 bytes를 연결합니다. Core는 동일 작품·회차의 참조만 저장하고 공개 download는 기존 공개 회차 본문에 실제 포함된 marker로 제한합니다. inherited 원고는 기존 고정 본문의 참조만 허용하며 새로운 Fork 공유 정책은 추가하지 않습니다. 표지 변경/삭제의 미참조 object는 모호한 DB commit 때 기존 bytes 손실을 피하도록 비공개 버킷에 남을 수 있고 자동 정리 worker는 없습니다. 상세 [표지·원고 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 따릅니다.
+
+Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaRepository`가 실제 UUID 대상으로 인증 multipart/bytes를 전송합니다. View에서 Repository를 호출하지 않으며 이미지 Blob URL은 교체·이탈 때 해제합니다. `/content`의 생성 표지·기존 표지·설정 첨부 및 `/studio/{UUID}`의 커서 이미지·저장 버전 미리보기·텍스트 전용 TXT에 연결하고 기존 이름 기반 데모에는 서버 미저장 안내를 둡니다. 실패한 표지/첨부 요청은 기존 데이터와 생성된 작품을 보존하며 성공 fallback을 두지 않습니다.
 
 ## AI Service
 
@@ -74,12 +101,14 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 
 ## 실행·보안 경계
 
-`web`, `core-api`, `ai-service`와 로컬 검증용 PostgreSQL·Mailpit이 있습니다.
-개발 Compose는 nginx 진입점과 Vite hot reload 및 소스/node_modules volume, prod는 pnpm locked build와 nginx 정적 runtime입니다.
-브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 내부 Core DNS로 중계합니다. 개발 HMR WebSocket도 nginx를 경유합니다.
+공통 `docker-compose.yaml`은 세 앱의 환경·내부 포트를 정의하며 단독 실행하지 않습니다.
+base + `docker-compose.prod.yaml`은 소스 빌드한 nginx 정적 web·Core·AI와 PostgreSQL·Mailpit을 사용합니다.
+base + `docker-compose.dev.yaml`은 CI가 게시한 `:develop` 이미지 세 개와 기존 외부 PostgreSQL·SMTP를 사용하며 소스 build·mount는 없습니다.
+선택 첨부 overlay는 base + prod 뒤에만 추가하는 로컬 MinIO 구성입니다. HMR은 Compose가 아닌 각 서비스의 기본 네이티브 명령을 사용합니다.
+브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 내부 Core DNS로 중계합니다.
 API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
 
-dev는 web과 디버깅용 Core를 loopback에, prod는 web만 loopback에 공개합니다. AI 포트는 내부 전용입니다.
+두 조합 모두 web만 loopback에 공개하며 Core·AI 포트는 내부 전용입니다. 선택 MinIO의 API·Console도 loopback에만 공개합니다.
 인증·TLS가 없는 **로컬 검증용**이며 인터넷 운영 준비가 된 배포가 아닙니다.
 OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build ARG에는 키를 넣지 않습니다.
 실행과 검증, 환경파일 경계는 [인프라 안내](../infrastructure/README.md)를 따릅니다.

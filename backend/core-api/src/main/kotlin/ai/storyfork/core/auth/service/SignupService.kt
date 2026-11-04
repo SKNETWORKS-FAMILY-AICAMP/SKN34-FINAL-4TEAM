@@ -1,31 +1,42 @@
 package ai.storyfork.core.auth.service
 
-import ai.storyfork.core.auth.repository.SignupRepository
+import ai.storyfork.core.auth.entity.AuthMember
+import ai.storyfork.core.auth.entity.AuthSignupChallenge
+import ai.storyfork.core.auth.helper.AuthTokenHelper
+import ai.storyfork.core.auth.repository.MemberRepository
+import ai.storyfork.core.auth.repository.SignupChallengeRepository
+import ai.storyfork.core.auth.service.dto.EmailRequest
+import ai.storyfork.core.auth.service.dto.SignupRequest
+import ai.storyfork.core.auth.service.dto.VerificationRequest
 import java.net.URI
-import java.security.MessageDigest
 import java.time.Instant
-import java.util.HexFormat
 import java.util.Locale
+import java.util.UUID
 import org.slf4j.LoggerFactory
-import org.springframework.transaction.interceptor.TransactionAspectSupport
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.mail.MailException
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.interceptor.TransactionAspectSupport
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.server.ResponseStatusException
 
 @Service
 class SignupService(
-    private val repository: SignupRepository,
+    private val members: MemberRepository,
+    private val challenges: SignupChallengeRepository,
+    private val passwords: PasswordEncoder,
+    private val secrets: AuthTokenHelper,
+    private val transactions: TransactionTemplate,
     private val mail: JavaMailSender,
     @param:Value("\${app.auth.public-origin}") private val publicOrigin: String,
     @param:Value("\${app.auth.mail-from}") private val mailFrom: String,
 ) {
-    private val secrets = SignupSecrets()
     private val logger = LoggerFactory.getLogger(SignupService::class.java)
 
     init {
@@ -36,50 +47,62 @@ class SignupService(
         require(mailFrom.isNotBlank())
     }
 
-    @Transactional
-    fun signup(email: String, password: String, nickname: String) {
-        val address = email.trim().lowercase(Locale.ROOT)
-        if (password.toByteArray(Charsets.UTF_8).size > 72) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-        if (repository.memberExists(address)) {
-            throw ResponseStatusException(HttpStatus.CONFLICT)
-        }
+    fun signup(request: SignupRequest) {
+        val address = request.email.trim().lowercase(Locale.ROOT)
+        if (request.password.toByteArray(Charsets.UTF_8).size > 72) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         val token = secrets.newToken()
-        try {
-            repository.createChallenge(address, secrets.hashPassword(password), nickname.trim(), digest(token), Instant.now().plusSeconds(86400))
-        } catch (_: DataIntegrityViolationException) {
-            throw ResponseStatusException(HttpStatus.CONFLICT)
-        }
-        send(address, token)
-    }
-
-    @Transactional
-    fun resend(email: String) {
-        val address = email.trim().lowercase(Locale.ROOT)
-        val token = secrets.newToken()
-        val updated = repository.replaceChallenge(address, digest(token), Instant.now().plusSeconds(86400))
-        if (updated == 1) {
-            try { send(address, token) } catch (_: ResponseStatusException) {
-                logger.warn("Verification email delivery failed")
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+        val passwordHash = requireNotNull(passwords.encode(request.password))
+        // An absent email has no row to lock. Retry its first-insert collision in a fresh transaction.
+        repeat(2) { attempt ->
+            try {
+                transactions.executeWithoutResult {
+                    if (members.existsByEmail(address)) throw ResponseStatusException(HttpStatus.CONFLICT)
+                    val challenge = challenges.lockByEmail(address)
+                    val expires = Instant.now().plusSeconds(86400)
+                    if (challenge == null) {
+                        challenges.saveAndFlush(AuthSignupChallenge(address, passwordHash, request.nickname.trim(), secrets.hash(token), expires))
+                    } else {
+                        challenge.passwordHash = passwordHash
+                        challenge.nickname = request.nickname.trim()
+                        challenge.tokenHash = secrets.hash(token)
+                        challenge.expiresAt = expires
+                        challenges.flush()
+                    }
+                    send(address, token)
+                }
+                return
+            } catch (_: DataIntegrityViolationException) {
+                if (attempt == 1) throw ResponseStatusException(HttpStatus.CONFLICT)
             }
         }
     }
 
     @Transactional
-    fun verify(token: String, password: String) {
-        if (password.isBlank() || password.toByteArray(Charsets.UTF_8).size > 72) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-        val (email, passwordHash, nickname) = repository.consumeChallenge(digest(token))
+    fun resend(request: EmailRequest) {
+        val address = request.email.trim().lowercase(Locale.ROOT)
+        val challenge = challenges.lockByEmail(address) ?: return
+        val token = secrets.newToken()
+        challenge.tokenHash = secrets.hash(token)
+        challenge.expiresAt = Instant.now().plusSeconds(86400)
+        try { send(address, token) } catch (_: ResponseStatusException) {
+            logger.warn("Verification email delivery failed")
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+        }
+    }
+
+    @Transactional
+    fun verify(request: VerificationRequest) {
+        if (request.password.isBlank() || request.password.toByteArray(Charsets.UTF_8).size > 72) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        val challenge = challenges.findByTokenHashAndExpiresAtAfter(secrets.hash(request.token), Instant.now())
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-        // A rejected password proof rolls back the atomic token deletion.
-        if (!secrets.matchesPassword(password, passwordHash)) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        if (!passwords.matches(request.password, challenge.passwordHash)) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        challenges.delete(challenge)
         try {
-            repository.createMember(email, passwordHash, nickname)
+            members.saveAndFlush(AuthMember(UUID.randomUUID(), challenge.email, challenge.passwordHash, challenge.nickname))
         } catch (_: DataIntegrityViolationException) {
             throw ResponseStatusException(HttpStatus.CONFLICT)
         }
     }
-
-    private fun digest(token: String): String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.toByteArray(Charsets.UTF_8)))
 
     private fun send(address: String, token: String) {
         val message = SimpleMailMessage().apply {

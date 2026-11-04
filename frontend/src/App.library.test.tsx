@@ -32,8 +32,10 @@ describe('내 서재 (U11·U12)', () => {
     await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
     fireEvent.click(screen.getByRole('button', { name: '내가 쓰는 소설' }))
     await screen.findByRole('heading', { name: '별빛 서약의 탑' })
-    expect(sid()).toBe('U12 내 서재 · 내가 쓰는 소설')
-    expect(where()).toBe('/lib?tab=write')
+    await waitFor(() => {
+      expect(sid()).toBe('U12 내 서재 · 내가 쓰는 소설')
+      expect(where()).toBe('/lib?tab=write')
+    })
     cleanup()
     renderAt('/write')
     await screen.findByRole('heading', { name: '별빛 서약의 탑' })

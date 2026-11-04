@@ -6,6 +6,9 @@ import java.util.concurrent.Executors
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -90,7 +93,8 @@ class ProfileIntegrationTest {
     }
 
     @Test
-    fun `two members racing for an email cannot both claim it`() {
+    @ExtendWith(OutputCaptureExtension::class)
+    fun `two members racing for an email cannot both claim it`(output: CapturedOutput) {
         val target = "${UUID.randomUUID()}@example.invalid"
         for (email in listOf(member(), member())) {
             mvc.perform(json(post("/api/v1/me/email-change").header("Authorization", bearer(email)), """{"email":"$target"}""")).andExpect(status().isAccepted())
@@ -110,6 +114,9 @@ class ProfileIntegrationTest {
             assertEquals(1, results.count { it == 204 })
             assertEquals(1, results.count { it == 409 })
             assertEquals(1, jdbc.queryForObject("select count(*) from auth_member where email = ?", Int::class.java, target))
+            assertTrue(output.all.contains("SQLState: 23505"), "The collision must retain its SQLState diagnostic")
+            assertTrue(output.all.contains("duplicate key value violates unique constraint"))
+            assertFalse(output.all.contains(target), "Constraint logs must not disclose the target email")
         } finally { pool.shutdownNow() }
     }
 

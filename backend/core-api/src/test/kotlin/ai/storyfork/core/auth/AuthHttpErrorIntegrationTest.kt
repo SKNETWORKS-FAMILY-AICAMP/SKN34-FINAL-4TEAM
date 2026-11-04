@@ -1,6 +1,9 @@
 package ai.storyfork.core.auth
 
-import ai.storyfork.core.auth.repository.SignupRepository
+import ai.storyfork.core.auth.entity.AuthMember
+import ai.storyfork.core.auth.entity.AuthSignupChallenge
+import ai.storyfork.core.auth.repository.MemberRepository
+import ai.storyfork.core.auth.repository.SignupChallengeRepository
 import java.net.CookieManager
 import java.net.CookiePolicy
 import java.net.URI
@@ -41,7 +44,8 @@ import tools.jackson.databind.ObjectMapper
 @EnabledIfEnvironmentVariable(named = "AUTH_INTEGRATION_TEST", matches = "true")
 class AuthHttpErrorIntegrationTest {
     @LocalServerPort var port: Int = 0
-    @Autowired lateinit var signup: SignupRepository
+    @Autowired lateinit var members: MemberRepository
+    @Autowired lateinit var challenges: SignupChallengeRepository
     @Autowired lateinit var json: ObjectMapper
 
     private val client = HttpClient.newBuilder()
@@ -64,17 +68,61 @@ class AuthHttpErrorIntegrationTest {
 
     private fun login(): JsonNode {
         val email = "${UUID.randomUUID()}@example.invalid"
-        signup.createMember(email, requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Reader")
+        members.saveAndFlush(AuthMember(UUID.randomUUID(), email, requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Reader"))
         val response = send(mutation("/api/v1/auth/login", """{"email":"$email","password":"test-password"}"""))
         assertEquals(200, response.statusCode())
         return json.readTree(response.body())
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = "AUTH_MAILPIT_API", matches = ".+")
+    fun `smtp signup login rotation logout and password recovery work over real http`() {
+        val email = "${UUID.randomUUID()}@example.invalid"
+        val mailpit = System.getenv("AUTH_MAILPIT_API")
+        fun mailedToken(): String {
+            val search = send(HttpRequest.newBuilder(URI.create("$mailpit/api/v1/search?query=to%3A$email")))
+            assertEquals(200, search.statusCode())
+            val id = json.readTree(search.body()).path("messages").path(0).path("ID").asText()
+            assertTrue(id.isNotBlank())
+            val message = send(HttpRequest.newBuilder(URI.create("$mailpit/api/v1/message/$id")))
+            assertEquals(200, message.statusCode())
+            return json.readTree(message.body()).path("Text").asText().substringAfter("#token=").trim()
+        }
+        fun signIn(password: String) = send(mutation("/api/v1/auth/login", """{"email":"$email","password":"$password"}"""))
+
+        assertEquals(202, send(mutation("/api/v1/auth/signup", """{"email":"$email","password":"test-password","nickname":"Reader"}""")).statusCode())
+        val verification = """{"token":"${mailedToken()}","password":"test-password"}"""
+        assertEquals(204, send(mutation("/api/v1/auth/verify-email", verification)).statusCode())
+        assertEquals(400, send(mutation("/api/v1/auth/verify-email", verification)).statusCode())
+        assertEquals(401, signIn("wrong-password").statusCode())
+        val login = signIn("test-password")
+        assertEquals(200, login.statusCode())
+        assertEquals(email, json.readTree(login.body()).path("user").path("email").asText())
+        val refreshed = send(mutation("/api/v1/auth/refresh"))
+        assertEquals(200, refreshed.statusCode())
+        val bearer = "Bearer " + json.readTree(refreshed.body()).path("accessToken").asText()
+        assertEquals(200, send(request("/api/v1/me").header("Authorization", bearer)).statusCode())
+        val sessions = send(request("/api/v1/auth/sessions").header("Authorization", bearer))
+        assertEquals(200, sessions.statusCode())
+        assertEquals(1, json.readTree(sessions.body()).path("sessions").size())
+        assertEquals(204, send(mutation("/api/v1/auth/logout")).statusCode())
+        assertEquals(401, send(mutation("/api/v1/auth/refresh")).statusCode())
+
+        assertEquals(202, send(mutation("/api/v1/auth/forgot-password", """{"email":"$email"}""")).statusCode())
+        val reset = """{"token":"${mailedToken()}","newPassword":"new-password"}"""
+        assertEquals(204, send(mutation("/api/v1/auth/reset-password", reset)).statusCode())
+        assertEquals(400, send(mutation("/api/v1/auth/reset-password", reset)).statusCode())
+        assertEquals(401, signIn("test-password").statusCode())
+        assertEquals(200, signIn("new-password").statusCode())
+        assertEquals(204, send(mutation("/api/v1/auth/logout")).statusCode())
+        assertEquals(401, send(mutation("/api/v1/auth/refresh")).statusCode())
+    }
+
+    @Test
     fun `reused verification token stays 400 over embedded servlet error dispatch`() {
         val token = UUID.randomUUID().toString()
         val hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.toByteArray()))
-        signup.createChallenge("${UUID.randomUUID()}@example.invalid", requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Reader", hash, Instant.now().plusSeconds(60))
+        challenges.saveAndFlush(AuthSignupChallenge("${UUID.randomUUID()}@example.invalid", requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Reader", hash, Instant.now().plusSeconds(60)))
         val body = """{"token":"$token","password":"test-password"}"""
         assertEquals(204, send(mutation("/api/v1/auth/verify-email", body)).statusCode())
         val reused = send(mutation("/api/v1/auth/verify-email", body))

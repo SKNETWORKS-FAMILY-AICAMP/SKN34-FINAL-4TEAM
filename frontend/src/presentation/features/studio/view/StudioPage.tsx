@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { toast } from '../../../shared/events'
@@ -231,7 +231,7 @@ function ReleaseInput({ value, label, onCommit }: { value: string; label: string
   const ref = useRef<HTMLInputElement>(null)
   const commit = useRef(onCommit)
   commit.current = onCommit
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current!
     const on = async () => { if (await commit.current(el.value) === '1 이상의 회차를 입력해 주세요') el.value = '' }
     el.addEventListener('change', on)

@@ -3,6 +3,7 @@ plugins {
     id 'idea'
     id 'org.jetbrains.kotlin.jvm' version '2.4.10'
     id 'org.jetbrains.kotlin.plugin.spring' version '2.4.10'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '2.4.10'
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -42,6 +43,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation('software.amazon.awssdk:s3:2.57.8') {
+        exclude group: 'software.amazon.awssdk', module: 'apache-client'
+        exclude group: 'software.amazon.awssdk', module: 'apache5-client'
+        exclude group: 'software.amazon.awssdk', module: 'netty-nio-client'
+    }
+    implementation 'software.amazon.awssdk:url-connection-client:2.57.8'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql'
@@ -58,8 +66,33 @@ dependencies {
     testRuntimeOnly 'com.h2database:h2'
 }
 
-tasks.named('test') {
+// 실제 경계 기준: Spring context, HTTP transport, PostgreSQL/Flyway는 통합 계층이다.
+// 새 경계 테스트는 이 목록에도 포함한다 (infrastructure/ci/test_ci.py가 누락을 검사).
+def integrationTestClasses = [
+    '**/*IntegrationTest.class', '**/*PostgresTest.class',
+    '**/ContentMigrationTest.class', '**/CoreApiApplicationTest.class',
+    '**/HealthControllerTest.class', '**/ContentAuthorizationTest.class',
+    '**/AiServiceClientPropertiesTest.class', '**/AiServiceHealthClientTest.class',
+    '**/AiServiceHealthControllerTest.class',
+    '**/AttachmentConfigTest.class', '**/SettingAttachmentHttpTest.class',
+    '**/AttachmentStorageClientTest.class', '**/AttachmentMigrationLocationTest.class'
+]
+
+tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    filter { failOnNoMatchingTests = true }
+}
+
+tasks.register('unitTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    exclude integrationTestClasses
+}
+
+tasks.register('integrationTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include integrationTestClasses
 }
 
 tasks.withType(JavaCompile).configureEach {
