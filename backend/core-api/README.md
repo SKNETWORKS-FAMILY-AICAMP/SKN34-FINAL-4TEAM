@@ -67,7 +67,7 @@ SQL은 `db/migration/auth`, `db/migration/content`로 배치하고 기존 두 �
 
 콘텐츠 정본은 최신 ERD에 따른 관계형 테이블에 저장합니다. 기존 JSONB는 읽기 전용 이관 백업으로 남깁니다. [ERD 대응과 마이그레이션](../../docs/content-erd-migration.md)에 테이블별 역할·기존 데이터 보존·남은 범위를 기록했습니다.
 
-WorldStudio의 [독립 초기 스키마](../../docs/design/worldstudio-independent-schema.md)는 전용 `worldstudio` schema와 `world_studio_schema_history`를 사용하며 기존 Content/Auth 테이블을 변경하지 않습니다. [명시 실행·검증 계약](src/main/resources/db/migration/worldstudio/README.md)을 따르며 서버 시작으로 migration을 실행하지 않습니다. `app.worldstudio.enabled=true`일 때만 전용 WORLDSTUDIO_DATABASE_* 기반 JPA Repository·Service를 활성화합니다. 독립 세계관 생성·초안 작성·확정 저장·과거 조회·복원은 이 Service의 책임이며 HTTP API·기존 UI 연결과 공용 DB 적용은 포함하지 않습니다. [실행 증거와 한계](../../docs/design/worldstudio-jpa-verification.md)를 참고하세요.
+WorldStudio의 [독립 초기 스키마](../../docs/design/worldstudio-independent-schema.md)는 전용 `worldstudio` schema와 `world_studio_schema_history`를 사용하며 기존 Content/Auth 테이블을 변경하지 않습니다. [명시 실행·검증 계약](src/main/resources/db/migration/worldstudio/README.md)을 따르며 서버 시작으로 migration을 실행하지 않습니다. `app.worldstudio.enabled=true`일 때만 기존 Core DataSource와 기본 JPA/TransactionManager를 공유하는 Repository·Service를 활성화합니다. 독립 세계관 생성·초안 작성·확정 저장·과거 조회·복원은 이 Service의 책임이며 HTTP API·기존 UI 연결과 공용 DB 적용은 포함하지 않습니다. [실행 증거와 한계](../../docs/design/worldstudio-jpa-verification.md)를 참고하세요.
 
 Gradle group `ai.storyfork`, 애플리케이션 `storyfork-core-api`, Kotlin namespace `ai.storyfork.core`입니다.
 main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 package와 일치합니다.
@@ -219,6 +219,15 @@ HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필
 대역 HTTP·H2/Flyway 검사는 CI 통합 계층에 포함되며 실제 첨부 lifecycle 검증은 별도 승인된 격리 환경의 증거가 필요합니다.
 `Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다.
 #92는 화면·브라우저 호출부를 변경하므로 Aside에서 실제 정상·실패 입력/클릭/API/화면 결과 확인이 필요합니다. HTTP·저장소 검증만으로 브라우저 E2E를 통과 처리하지 않습니다.
+
+## WorldStudio 개발 배포 명령
+
+일반 `java -jar` 시작과 별도로, 기존 이미지의 Boot `PropertiesLauncher`에서
+`ai.storyfork.core.world.migration.WorldStudioMigration` main을 실행합니다.
+Auth/Content context 없이 독립 Flyway migrate·validate를 수행하며 성공해야 개발 CD가 새 Core를 기동합니다.
+기존 CORE_DATABASE_URL/USER/PASSWORD를 사용하며 별도 DB·계정·풀은 없습니다.
+기본 비활성이며 실제 Core DB·계정 allowlist와 백업 복원 기록 확인 후 활성화합니다.
+자격증명·운영자 절차는 [WorldStudio 배포 문서](../../docs/deployment/worldstudio-v1-rollout.md)를 참고하세요.
 
 ## 작품 표지·원고 이미지 (#92)
 
