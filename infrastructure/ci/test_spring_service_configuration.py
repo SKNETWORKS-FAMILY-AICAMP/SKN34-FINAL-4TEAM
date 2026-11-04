@@ -39,6 +39,16 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         migration = service / "src/main/kotlin/ai/storyfork/content/world/migration/WorldStudioMigration.kt"
         self.assertIn("fun main(args: Array<String>)", migration.read_text(encoding="utf-8"))
 
+    def test_gradle_image_builds_lock_the_shared_user_home_cache(self):
+        for service in ("core-api", "content-service"):
+            with self.subTest(service=service):
+                dockerfile = (ROOT / "backend" / service / "Dockerfile").read_text(encoding="utf-8")
+                self.assertIn(
+                    "RUN --mount=type=cache,target=/root/.gradle,sharing=locked \\\n"
+                    "    ./gradlew bootJar --no-daemon",
+                    dockerfile,
+                )
+
     def test_each_independent_build_reuses_core_wrapper_bytes_and_executable_mode(self):
         for service in SERVICES:
             for name in ("gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar",
