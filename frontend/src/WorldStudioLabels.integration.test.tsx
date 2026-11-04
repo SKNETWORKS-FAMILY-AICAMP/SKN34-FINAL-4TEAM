@@ -21,7 +21,7 @@ it('does not dirty or rewrite a saved card when unchanged tag and alias fields l
  useCase=new WorldStudioUseCase({listStudio:async()=>[world],read:async()=>structuredClone(world),create:async()=>world,saveStudio:vi.fn()})
  render(<Provider store={createAppStore({role:'user'})}><MemoryRouter initialEntries={['/worldstudio/labels']}><Routes><Route path="/worldstudio/:worldId" element={<WorldStudioPage/>}/></Routes></MemoryRouter></Provider>)
  await screen.findByRole('heading',{name:'태그 검증',level:2})
- const step=screen.queryByRole('button',{name:'설정 카드',exact:true});if(step)fireEvent.click(step)
+ const step=screen.queryByRole('button',{name:'설정 카드'});if(step)fireEvent.click(step)
  const tag=screen.getByLabelText(/태그 \(쉼표로 구분\)/),alias=screen.getByLabelText(/^별칭/)
  fireEvent.focus(tag);fireEvent.blur(tag);fireEvent.focus(alias);fireEvent.blur(alias)
  expect(current.dirty).toBe(false)
