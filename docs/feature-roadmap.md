@@ -15,6 +15,8 @@
 - 향후 기능도 포함하지만 미정인 API·스키마·가격·한도·MVP 포함 여부를 확정하지 않는다. 중간 기능 이름 앞의 두 자리 번호는 기능 묶음 번호다. `#숫자` 링크는 실제 GitHub 이슈, `미등록-숫자`는 아직 대응 이슈가 없는 문서 내 관리 번호다.
 - LLMOps는 전체 서비스 개발 대상으로 명시했으며 이번 문서 변경으로 Langfuse 설치·연동 또는 평가 구현이 완료되는 것은 아니다. 프롬프트·모델 변경이 과거 생성 결과를 바꾸지 않으며, 추적에는 원고 전문·비공개 설정·개인정보·키를 기록하지 않는다. 원고 이미지의 목록·대체 텍스트·참조 제거는 이번 완료 근거를 확인하지 않아 ❌로 유지했다.
 - 검색·랭킹·홈 편성은 기존 데모 화면을 기준으로 분류했다. 최신 순·인기 순·조회 순은 작품 정렬이지 검색어 순위가 아니다. 실시간·24시간·주간 문구만으로 실제 기간 집계 구현을 인정하지 않는다. 인기 검색어는 추가 검토로 도입 미확정이며, 별도 검색 MSA·검색 엔진을 이 표로 확정하지 않는다.
+- 중간 기능 또는 세부 기능의 `(Draft 검토 후보)` 표시는 채택 미확정을 뜻한다. 다른 기능과 같은 표 안에 있어도 구현·정책 채택이 확정된 것은 아니며 관련 PR과 검토 근거를 확인한다.
+- 중간 기능 통합: 58→05, 49→20, 52→21-C, 79→31, 82→34, 81→40-D. 21은 좋아요(21-A)·관심 작품(21-B)·독서 기록(21-C)으로 구분했다. 기존 기능을 삭제하거나 미등록 번호를 재발급하지 않았으며, 05·08의 Draft 보완 동작은 해당 세부 행에 후보 표시를 유지한다.
 - 작성 기준: 2026-11-04 로컬 코드·요구사항·설계. HTML 표를 지원하는 Markdown 뷰어에서 병합 셀이 표시된다.
 
 
@@ -23,7 +25,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="301">Core API</td><td rowspan="17">회원 관리</td><td rowspan="9">01 회원 CRUD</td><td>회원가입</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a></td><td rowspan="9"><a href="#미등록-001">미등록-001</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-002">미등록-002</a></td></tr>
+<tr><td rowspan="394">Core API</td><td rowspan="17">회원 관리</td><td rowspan="9">01 회원 CRUD</td><td>회원가입</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a></td><td rowspan="9"><a href="#미등록-001">미등록-001</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-002">미등록-002</a></td></tr>
 <tr><td>내 회원 정보 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a></td></tr>
 <tr><td>닉네임 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a></td></tr>
 <tr><td>이메일 변경 요청</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a></td></tr>
@@ -49,21 +51,34 @@
 <tr><td>작품 이용 조건 조회</td><td>❌</td></tr>
 <tr><td>작품 Fork 생성 허용 설정</td><td>❌</td></tr>
 <tr><td>Fork 작품 공개 허용 설정</td><td>❌</td></tr>
-<tr><td rowspan="14">세계관 관리</td><td rowspan="5">04 세계관 CRUD</td><td>세계관 생성</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-003">미등록-003</a></td></tr>
+<tr><td rowspan="27">세계관 관리</td><td rowspan="5">04 세계관 CRUD</td><td>세계관 생성</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-003">미등록-003</a></td></tr>
 <tr><td>세계관 상세 조회</td><td>❌</td></tr>
 <tr><td>내 세계관 목록 조회</td><td>❌</td></tr>
 <tr><td>세계관 기본 정보 수정</td><td>❌</td></tr>
 <tr><td>세계관 삭제 요청</td><td>❌</td></tr>
-<tr><td rowspan="9">05 설정 항목 CRUD</td><td>설정 항목 생성</td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
-<tr><td>설정 항목 상세 조회</td><td>❌</td></tr>
-<tr><td>설정 항목 목록 조회</td><td>❌</td></tr>
-<tr><td>설정 항목 검색</td><td>❌</td></tr>
-<tr><td>설정 초안 저장</td><td>❌</td></tr>
-<tr><td>설정 항목 확정 저장</td><td>❌</td></tr>
-<tr><td>설정 카테고리 변경</td><td>❌</td></tr>
-<tr><td>설정 태그 수정</td><td>❌</td></tr>
-<tr><td>설정 항목 정정</td><td>❌</td></tr>
-<tr><td rowspan="21">캐릭터·관계 관리</td><td rowspan="5">06 캐릭터 CRUD</td><td>캐릭터 등록</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td rowspan="13">05 설정 항목 CRUD</td><td>설정 항목 생성</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 항목 상세 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 항목 목록 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 항목 검색</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 초안 저장</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 항목 확정 저장</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 카테고리 변경</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 태그 수정</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 항목 정정</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/33">#33</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>설정 항목 별칭 추가</td><td>❌</td><td><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-083">미등록-083</a></td></tr>
+<tr><td>설정 항목 별칭 제거</td><td>❌</td><td><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-083">미등록-083</a></td></tr>
+<tr><td>설정 카드 유형 변경 <small>(Draft 검토 후보)</small></td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>세계관 주제 영역 변경 <small>(Draft 검토 후보)</small></td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td rowspan="1">57 세계관·작품 연결</td><td>작품에 사용할 기존 세계관 선택·연결</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-082">미등록-082</a></td></tr>
+<tr><td rowspan="3">59 설정 문서 속성 편집</td><td>설정 문서 사용자 정의 속성 추가</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-084">미등록-084</a></td></tr>
+<tr><td>설정 문서 사용자 정의 속성 이름 변경</td><td>❌</td></tr>
+<tr><td>설정 문서 사용자 정의 속성 값 수정</td><td>❌</td></tr>
+<tr><td rowspan="1">61 설정 문서 참조 조회</td><td>현재 설정 문서를 언급한 다른 문서 목록 조회</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-086">미등록-086</a></td></tr>
+<tr><td rowspan="4">86 세계관 버전 관리 <small>(Draft 검토 후보)</small></td><td>세계관 전체 버전 생성</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>세계관 버전 목록 조회</td><td>❌</td></tr>
+<tr><td>세계관 버전 상세 조회</td><td>❌</td></tr>
+<tr><td>세계관 이전 버전 복원</td><td>❌</td></tr>
+<tr><td rowspan="26">캐릭터·관계 관리</td><td rowspan="5">06 캐릭터 CRUD</td><td>캐릭터 등록</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
 <tr><td>캐릭터 상세 조회</td><td>❌</td></tr>
 <tr><td>캐릭터 목록 조회</td><td>❌</td></tr>
 <tr><td>캐릭터 프로필 수정</td><td>❌</td></tr>
@@ -76,20 +91,25 @@
 <tr><td>인물 지식 수정</td><td>❌</td></tr>
 <tr><td>인물 상태 이력 조회</td><td>❌</td></tr>
 <tr><td>인물 상태 이력 정정</td><td>❌</td></tr>
-<tr><td rowspan="8">08 관계 CRUD</td><td>관계 생성</td><td>❌</td><td rowspan="8"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
-<tr><td>관계 상세 조회</td><td>❌</td></tr>
-<tr><td>관계 목록 조회</td><td>❌</td></tr>
-<tr><td>인물관계도 조회</td><td>❌</td></tr>
-<tr><td>관계 수정</td><td>❌</td></tr>
-<tr><td>관계 해제 정정</td><td>❌</td></tr>
-<tr><td>시점별 관계 조회</td><td>❌</td></tr>
-<tr><td>관계 이력 복원</td><td>❌</td></tr>
+<tr><td rowspan="13">08 관계 CRUD</td><td>관계 생성</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
+<tr><td>관계 상세 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
+<tr><td>관계 목록 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
+<tr><td>인물관계도 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
+<tr><td>관계 수정</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
+<tr><td>관계 해제 정정</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
+<tr><td>시점별 관계 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
+<tr><td>관계 이력 복원</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-005">미등록-005</a></td></tr>
+<tr><td>관계 초안 저장 <small>(Draft 검토 후보)</small></td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>관계 초안 조회 <small>(Draft 검토 후보)</small></td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>관계 초안 수정 <small>(Draft 검토 후보)</small></td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>미확정 관계 초안 제거 <small>(Draft 검토 후보)</small></td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>관계 확정 저장 <small>(Draft 검토 후보)</small></td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
 <tr><td rowspan="5">작품 관리</td><td rowspan="5">09 작품 CRUD</td><td>작품 생성</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
 <tr><td>작품 상세 조회</td><td>❌</td></tr>
 <tr><td>내 작품 목록 조회</td><td>❌</td></tr>
 <tr><td>작품 기본 정보 수정</td><td>❌</td></tr>
 <tr><td>작품 삭제 요청</td><td>❌</td></tr>
-<tr><td rowspan="27">회차·원고 관리</td><td rowspan="9">10 회차·원고 CRUD</td><td>회차 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-006">미등록-006</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td rowspan="32">회차·원고 관리</td><td rowspan="9">10 회차·원고 CRUD</td><td>회차 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-006">미등록-006</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>회차 상세 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 제목 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
@@ -116,6 +136,11 @@
 <tr><td>설정 이전 버전 복원</td><td>❌</td></tr>
 <tr><td>세계관 체크포인트 생성</td><td>❌</td></tr>
 <tr><td>체크포인트 상세 조회</td><td>❌</td></tr>
+<tr><td rowspan="2">62 회차 부가 내용 편집</td><td>회차 작가의 말 작성</td><td>❌</td><td rowspan="2"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/50">#50</a> · <a href="#미등록-087">미등록-087</a></td></tr>
+<tr><td>회차 작가의 말 수정</td><td>❌</td></tr>
+<tr><td rowspan="3">87 기준 세계관 연결 관리 <small>(Draft 검토 후보)</small></td><td>회차의 기준 세계관 버전 선택</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>회차의 기준 세계관 버전 조회</td><td>❌</td></tr>
+<tr><td>회차의 기준 세계관 버전 변경</td><td>❌</td></tr>
 <tr><td rowspan="9">발행 관리</td><td rowspan="9">13 발행·공개 관리</td><td>저장 버전 발행</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/34">#34</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/83">PR #83</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-009">미등록-009</a></td></tr>
 <tr><td>발행본 교체</td><td>❌</td></tr>
 <tr><td>회차 공개 중단</td><td>❌</td></tr>
@@ -125,7 +150,7 @@
 <tr><td>예약 발행 조회</td><td>❌</td></tr>
 <tr><td>예약 발행 변경</td><td>❌</td></tr>
 <tr><td>예약 발행 취소</td><td>❌</td></tr>
-<tr><td rowspan="16">Fork 관리</td><td rowspan="9">14 Fork CRUD</td><td>Fork 생성</td><td>❌</td><td rowspan="9"><a href="#미등록-010">미등록-010</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a></td></tr>
+<tr><td rowspan="20">Fork 관리</td><td rowspan="9">14 Fork CRUD</td><td>Fork 생성</td><td>❌</td><td rowspan="9"><a href="#미등록-010">미등록-010</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a></td></tr>
 <tr><td>Fork 상세 조회</td><td>❌</td></tr>
 <tr><td>내 Fork 목록 조회</td><td>❌</td></tr>
 <tr><td>Fork 원작 정보 조회</td><td>❌</td></tr>
@@ -141,6 +166,10 @@
 <tr><td>원본 변경 반영</td><td>❌</td></tr>
 <tr><td>원본 변경 거절</td><td>❌</td></tr>
 <tr><td>거절한 변경 재검토</td><td>❌</td></tr>
+<tr><td rowspan="1">53 공개 Fork 탐색</td><td>선택 원작의 공개 Fork 작품 목록 조회</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-078">미등록-078</a></td></tr>
+<tr><td rowspan="2">54 Fork 생성 준비</td><td>원작의 Fork 허용 회차 목록 조회</td><td>❌</td><td rowspan="2"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-079">미등록-079</a></td></tr>
+<tr><td>선택 기준 회차에서 가져올 공개 세계관·인물·사건 미리보기</td><td>❌</td></tr>
+<tr><td rowspan="1">83 Fork 정합성 운영 점검</td><td>Fork 스냅샷 해시·원작 해시·인물 상태 차이 점검 결과 조회</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-108">미등록-108</a></td></tr>
 <tr><td rowspan="18">이미지 관리</td><td rowspan="6">16-A 설정 이미지 CRUD</td><td>설정 이미지 업로드</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a></td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/87">#87</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="#미등록-012">미등록-012</a></td></tr>
 <tr><td>설정 이미지 상세 정보 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a></td></tr>
 <tr><td>설정 이미지 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a></td></tr>
@@ -180,22 +209,25 @@
 <tr><td>조합할 설정 항목 선택</td><td>❌</td></tr>
 <tr><td>조합 세계관 생성</td><td>❌</td></tr>
 <tr><td>조합 세계관 출처 조회</td><td>❌</td></tr>
-<tr><td rowspan="16">독서 관리</td><td rowspan="6">20 공개 열람</td><td>공개 작품 목록 조회</td><td>❌</td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
-<tr><td>공개 작품 상세 조회</td><td>❌</td></tr>
-<tr><td>공개 회차 목록 조회</td><td>❌</td></tr>
-<tr><td>공개 회차 본문 조회</td><td>❌</td></tr>
-<tr><td>이전 회차 조회</td><td>❌</td></tr>
-<tr><td>다음 회차 조회</td><td>❌</td></tr>
-<tr><td rowspan="10">21 좋아요·관심·독서 기록 관리</td><td>작품 좋아요</td><td>❌</td><td rowspan="10"><a href="#미등록-017">미등록-017</a> · <a href="#미등록-018">미등록-018</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
+<tr><td rowspan="19">독서 관리</td><td rowspan="7">20 공개 열람</td><td>공개 작품 목록 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>공개 작품 상세 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>공개 회차 목록 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>공개 회차 본문 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>이전 회차 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>다음 회차 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>작품 내 공개 회차 제목·본문 검색</td><td>❌</td><td><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-074">미등록-074</a></td></tr>
+<tr><td rowspan="3">21-A 작품 좋아요 관리</td><td>작품 좋아요</td><td>❌</td><td rowspan="3"><a href="#미등록-017">미등록-017</a> · <a href="#미등록-018">미등록-018</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
 <tr><td>작품 좋아요 취소</td><td>❌</td></tr>
 <tr><td>작품 좋아요 수 조회</td><td>❌</td></tr>
-<tr><td>관심 작품 등록</td><td>❌</td></tr>
+<tr><td rowspan="3">21-B 관심 작품 관리</td><td>관심 작품 등록</td><td>❌</td><td rowspan="3"><a href="#미등록-017">미등록-017</a> · <a href="#미등록-018">미등록-018</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
 <tr><td>내 관심 작품 목록 조회</td><td>❌</td></tr>
 <tr><td>관심 작품 해제</td><td>❌</td></tr>
-<tr><td>이어 읽기 위치 저장</td><td>❌</td></tr>
-<tr><td>이어 읽기 위치 조회</td><td>❌</td></tr>
-<tr><td>이어 읽기 위치 수정</td><td>❌</td></tr>
-<tr><td>이어 읽기 기록 삭제</td><td>❌</td></tr>
+<tr><td rowspan="6">21-C 독서 기록 관리</td><td>이어 읽기 위치 저장</td><td>❌</td><td><a href="#미등록-017">미등록-017</a> · <a href="#미등록-018">미등록-018</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
+<tr><td>이어 읽기 위치 조회</td><td>❌</td><td><a href="#미등록-017">미등록-017</a> · <a href="#미등록-018">미등록-018</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
+<tr><td>이어 읽기 위치 수정</td><td>❌</td><td><a href="#미등록-017">미등록-017</a> · <a href="#미등록-018">미등록-018</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
+<tr><td>이어 읽기 기록 삭제</td><td>❌</td><td><a href="#미등록-017">미등록-017</a> · <a href="#미등록-018">미등록-018</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
+<tr><td>읽은 회차 기록 저장</td><td>❌</td><td><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-077">미등록-077</a></td></tr>
+<tr><td>회차별 읽음 상태 조회</td><td>❌</td><td><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-077">미등록-077</a></td></tr>
 <tr><td rowspan="28">피드백 관리</td><td rowspan="8">22 댓글 CRUD</td><td>댓글 작성</td><td>❌</td><td rowspan="8"><a href="#미등록-019">미등록-019</a> · <a href="#미등록-020">미등록-020</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-021">미등록-021</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
 <tr><td>댓글 상세 조회</td><td>❌</td></tr>
 <tr><td>댓글 목록 조회</td><td>❌</td></tr>
@@ -230,14 +262,15 @@
 <tr><td>자동 교정 설정 변경</td><td>❌</td></tr>
 <tr><td>자율 연재 설정 변경</td><td>❌</td></tr>
 <tr><td>작품 설정 변경 이력 조회</td><td>❌</td></tr>
-<tr><td rowspan="8">알림 관리</td><td rowspan="8">31 알림 CRUD·수신 설정</td><td>알림 생성</td><td>❌</td><td rowspan="8"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
-<tr><td>내 알림 목록 조회</td><td>❌</td></tr>
-<tr><td>알림 상세 조회</td><td>❌</td></tr>
-<tr><td>알림 읽음 처리</td><td>❌</td></tr>
-<tr><td>알림 삭제</td><td>❌</td></tr>
-<tr><td>알림 수신 설정 조회</td><td>❌</td></tr>
-<tr><td>선택 알림 수신 설정 변경</td><td>❌</td></tr>
-<tr><td>묶음 알림 조회</td><td>❌</td></tr>
+<tr><td rowspan="9">알림 관리</td><td rowspan="9">31 알림 CRUD·수신 설정</td><td>알림 생성</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td>내 알림 목록 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td>알림 상세 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td>알림 읽음 처리</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td>알림 삭제</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td>알림 수신 설정 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td>선택 알림 수신 설정 변경</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td>묶음 알림 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-028">미등록-028</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td>전체 알림 일괄 읽음 처리</td><td>❌</td><td><a href="/Users/yunseongho/.hermes/cache/scratch/issues/89">#89</a> · <a href="#미등록-104">미등록-104</a></td></tr>
 <tr><td rowspan="12">크레딧 관리</td><td rowspan="12">32 지급·사용·정산 관리</td><td>크레딧 잔액 조회</td><td>❌</td><td rowspan="12"><a href="#미등록-029">미등록-029</a> · <a href="#미등록-030">미등록-030</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-031">미등록-031</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
 <tr><td>크레딧 지급</td><td>❌</td></tr>
 <tr><td>크레딧 지급 내역 조회</td><td>❌</td></tr>
@@ -260,18 +293,19 @@
 <tr><td>결제 취소 요청</td><td>❌</td></tr>
 <tr><td>환불 요청</td><td>❌</td></tr>
 <tr><td>결제 결과 검증</td><td>❌</td></tr>
-<tr><td rowspan="12">신고·운영 관리</td><td rowspan="12">34 신고·소명·조치 관리</td><td>권리 침해 신고 접수</td><td>❌</td><td rowspan="12"><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
-<tr><td>유해 콘텐츠 신고 접수</td><td>❌</td></tr>
-<tr><td>내 신고 목록 조회</td><td>❌</td></tr>
-<tr><td>운영 신고 목록 조회</td><td>❌</td></tr>
-<tr><td>신고 상세 조회</td><td>❌</td></tr>
-<tr><td>신고 증거 보완</td><td>❌</td></tr>
-<tr><td>작품 소유자 소명 제출</td><td>❌</td></tr>
-<tr><td>소명 조회</td><td>❌</td></tr>
-<tr><td>운영 검토 결과 기록</td><td>❌</td></tr>
-<tr><td>대상 콘텐츠 제한</td><td>❌</td></tr>
-<tr><td>대상 콘텐츠 제한 해제</td><td>❌</td></tr>
-<tr><td>운영 조치 이력 조회</td><td>❌</td></tr>
+<tr><td rowspan="13">신고·운영 관리</td><td rowspan="13">34 신고·소명·조치 관리</td><td>권리 침해 신고 접수</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>유해 콘텐츠 신고 접수</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>내 신고 목록 조회</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>운영 신고 목록 조회</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>신고 상세 조회</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>신고 증거 보완</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>작품 소유자 소명 제출</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>소명 조회</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>운영 검토 결과 기록</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>대상 콘텐츠 제한</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>대상 콘텐츠 제한 해제</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>운영 조치 이력 조회</td><td>❌</td><td><a href="#미등록-035">미등록-035</a> · <a href="#미등록-036">미등록-036</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-037">미등록-037</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td>작품 등록자에게 권리 증빙 요청</td><td>❌</td><td><a href="#미등록-107">미등록-107</a></td></tr>
 <tr><td rowspan="8">정기 작업 관리</td><td rowspan="8">35 일정·실행 관리</td><td>정기 작업 일정 등록</td><td>❌</td><td rowspan="8"><a href="#미등록-038">미등록-038</a> · <a href="#미등록-039">미등록-039</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="#미등록-040">미등록-040</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
 <tr><td>정기 작업 일정 조회</td><td>❌</td></tr>
 <tr><td>정기 작업 일정 변경</td><td>❌</td></tr>
@@ -317,13 +351,74 @@
 <tr><td>랭킹 집계 기준 확정</td><td>❌</td></tr>
 <tr><td>기간별 랭킹 집계</td><td>❌</td></tr>
 <tr><td>랭킹 갱신 시각 조회</td><td>❌</td></tr>
-<tr><td rowspan="4">홈 큐레이션 관리</td><td rowspan="4">46 홈 추천·편성</td><td>에디터 Pick 작품 조회</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a> · <a href="#미등록-071">미등록-071</a></td></tr>
+<tr><td rowspan="6">홈 큐레이션 관리</td><td rowspan="4">46 홈 추천·편성</td><td>에디터 Pick 작품 조회</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a> · <a href="#미등록-071">미등록-071</a></td></tr>
 <tr><td>오늘의 발견 작품 조회</td><td>❌</td></tr>
 <tr><td>홈 장르별 작품 조회</td><td>❌</td></tr>
 <tr><td>에디터 Pick 선정 관리 방식 결정</td><td>❌</td></tr>
+<tr><td rowspan="2">55 홈 탐색 필터</td><td>홈 무료 작품만 보기</td><td>❌</td><td rowspan="2"><a href="#미등록-080">미등록-080</a></td></tr>
+<tr><td>홈 Fork가 있는 원작만 보기</td><td>❌</td></tr>
 <tr><td rowspan="3">검색 트렌드 검토</td><td rowspan="3">47 인기 검색어(추가 검토)</td><td>인기 검색어 제공 여부 결정</td><td>❌</td><td rowspan="3"><a href="#미등록-072">미등록-072</a></td></tr>
 <tr><td>인기 검색어 집계 기준 결정</td><td>❌</td></tr>
 <tr><td>인기 검색어 순위 조회(도입 승인 후)</td><td>❌</td></tr>
+<tr><td rowspan="6">고객지원 관리</td><td rowspan="6">67 문의 접수·답변</td><td>이용·계정·권리 등 문의 유형을 선택해 문의 등록</td><td>❌</td><td rowspan="6"><a href="#미등록-092">미등록-092</a></td></tr>
+<tr><td>내 고객지원 문의 목록 조회</td><td>❌</td></tr>
+<tr><td>내 고객지원 문의 본문·처리 상태 조회</td><td>❌</td></tr>
+<tr><td>내 고객지원 문의의 운영팀 답변 조회</td><td>❌</td></tr>
+<tr><td>운영 고객지원 문의 목록·상태 조회</td><td>❌</td></tr>
+<tr><td>운영팀 문의 답변 등록</td><td>❌</td></tr>
+<tr><td rowspan="3">공지 관리</td><td rowspan="3">68 공지 게시·조회</td><td>공지 목록 조회</td><td>❌</td><td rowspan="3"><a href="#미등록-093">미등록-093</a></td></tr>
+<tr><td>공지 상세 조회</td><td>❌</td></tr>
+<tr><td>운영 공지 게시</td><td>❌</td></tr>
+<tr><td rowspan="5">이벤트 관리</td><td rowspan="5">69 이벤트 안내·운영</td><td>이벤트 목록 조회</td><td>❌</td><td rowspan="5"><a href="#미등록-094">미등록-094</a></td></tr>
+<tr><td>이벤트 상세·기간·진행 상태 조회</td><td>❌</td></tr>
+<tr><td>운영 이벤트 등록</td><td>❌</td></tr>
+<tr><td>운영 이벤트 목록 조회</td><td>❌</td></tr>
+<tr><td>이벤트 진행·종료 상태 변경</td><td>❌</td></tr>
+<tr><td rowspan="4">관리자 계정·권한 관리</td><td rowspan="4">71 관리자 계정 등록·권한</td><td>관리자 계정 목록 조회</td><td>❌</td><td rowspan="4"><a href="#미등록-096">미등록-096</a></td></tr>
+<tr><td>관리자 계정 생성</td><td>❌</td></tr>
+<tr><td>관리자 계정 생성 시 업무별 권한 부여</td><td>❌</td></tr>
+<tr><td>관리자별 부여 권한 조회</td><td>❌</td></tr>
+<tr><td rowspan="2">운영 감사 관리</td><td rowspan="2">72 관리자 활동 기록</td><td>관리자 조치의 수행자·시각·대상·내역 기록</td><td>❌</td><td rowspan="2"><a href="#미등록-097">미등록-097</a></td></tr>
+<tr><td>관리자 전체 활동 로그 최신순 조회</td><td>❌</td></tr>
+<tr><td rowspan="7">회원 운영 관리</td><td rowspan="7">73 운영 회원 조회·조치</td><td>운영 회원 목록·역할·상태 조회</td><td>❌</td><td rowspan="7"><a href="#미등록-098">미등록-098</a></td></tr>
+<tr><td>역할별 회원 목록 필터</td><td>❌</td></tr>
+<tr><td>회원 이름·이메일 검색</td><td>❌</td></tr>
+<tr><td>회원 가입 최신순 정렬</td><td>❌</td></tr>
+<tr><td>회원 가입 오래된순 정렬</td><td>❌</td></tr>
+<tr><td>회원 이용 제한</td><td>❌</td></tr>
+<tr><td>회원 이용 제한 해제</td><td>❌</td></tr>
+<tr><td rowspan="9">콘텐츠 운영 관리</td><td rowspan="5">74 운영 작품 조회</td><td>운영 작품 목록·작성자·권리·공개 상태 조회</td><td>❌</td><td rowspan="5"><a href="#미등록-099">미등록-099</a></td></tr>
+<tr><td>운영 작품 원작·Fork 필터</td><td>❌</td></tr>
+<tr><td>운영 작품명·작성자·권리 유형 검색</td><td>❌</td></tr>
+<tr><td>운영 작품 제목순 정렬</td><td>❌</td></tr>
+<tr><td>운영 작품 제목 역순 정렬</td><td>❌</td></tr>
+<tr><td rowspan="4">75 운영 댓글 조회·조치</td><td>작품별 운영 댓글 필터</td><td>❌</td><td rowspan="4"><a href="#미등록-100">미등록-100</a></td></tr>
+<tr><td>운영 댓글 내용·작품명·작성자 검색</td><td>❌</td></tr>
+<tr><td>운영 댓글 공감 많은순 정렬</td><td>❌</td></tr>
+<tr><td>운영 댓글 공감 적은순 정렬</td><td>❌</td></tr>
+<tr><td rowspan="17">캐릭터챗 관리</td><td rowspan="9">76 캐릭터챗 탐색·대화방</td><td>대화 가능한 공개 작품·캐릭터 챗 목록 조회</td><td>❌</td><td rowspan="9"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/47">#47</a> · <a href="#미등록-101">미등록-101</a></td></tr>
+<tr><td>캐릭터챗 원작·Fork 유형 필터</td><td>❌</td></tr>
+<tr><td>캐릭터챗 작품 필터</td><td>❌</td></tr>
+<tr><td>캐릭터챗 인물 필터</td><td>❌</td></tr>
+<tr><td>캐릭터챗 연결 작품 최신순 정렬</td><td>❌</td></tr>
+<tr><td>캐릭터챗 연결 작품 인기순 정렬</td><td>❌</td></tr>
+<tr><td>캐릭터챗 연결 작품 조회순 정렬</td><td>❌</td></tr>
+<tr><td>작품·인물을 선택해 대화방 조회·재개</td><td>❌</td></tr>
+<tr><td>작품·인물별 기존 대화 기록 조회</td><td>❌</td></tr>
+<tr><td rowspan="8">78 캐릭터챗 운영</td><td>운영 캐릭터챗 연결 목록·상태 조회</td><td>❌</td><td rowspan="8"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/47">#47</a> · <a href="#미등록-103">미등록-103</a></td></tr>
+<tr><td>공개 작품·캐릭터 연결로 캐릭터챗 등록</td><td>❌</td></tr>
+<tr><td>캐릭터챗 운영 중지</td><td>❌</td></tr>
+<tr><td>캐릭터챗 운영 재개</td><td>❌</td></tr>
+<tr><td>운영 캐릭터챗 원작·Fork 분류</td><td>❌</td></tr>
+<tr><td>운영 캐릭터챗 작품명·캐릭터 검색</td><td>❌</td></tr>
+<tr><td>운영 캐릭터챗 작품 제목순 정렬</td><td>❌</td></tr>
+<tr><td>운영 캐릭터챗 작품 제목 역순 정렬</td><td>❌</td></tr>
+<tr><td rowspan="2">운영 현황 관리</td><td rowspan="2">85 업무·데이터 현황 조회</td><td>답변 대기 문의·접수 신고·작가 검토 대기 수 조회</td><td>❌</td><td rowspan="2"><a href="#미등록-110">미등록-110</a></td></tr>
+<tr><td>수집 자료 출처·수량·형식·사용처 명세 조회</td><td>❌</td></tr>
+<tr><td rowspan="4">AI 제안 관리</td><td rowspan="4">88 제안 반영 이력 조회 <small>(Draft 검토 후보)</small></td><td>제안 요청 당시 원고 조회</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>제안과 원본 원고 비교</td><td>❌</td></tr>
+<tr><td>제안 반영 결과 버전 조회</td><td>❌</td></tr>
+<tr><td>반영 전후 원고 비교</td><td>❌</td></tr>
 </tbody>
 </table>
 
@@ -332,7 +427,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="68">Core API + AI Service</td><td rowspan="8">AI 설정 추출</td><td rowspan="8">25 추출·후보 관리</td><td>설정 추출 요청</td><td>❌</td><td rowspan="8"><a href="#미등록-047">미등록-047</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/60">#60</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td rowspan="73">Core API + AI Service</td><td rowspan="8">AI 설정 추출</td><td rowspan="8">25 추출·후보 관리</td><td>설정 추출 요청</td><td>❌</td><td rowspan="8"><a href="#미등록-047">미등록-047</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/60">#60</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
 <tr><td>추출 결과 조회</td><td>❌</td></tr>
 <tr><td>추출 후보 목록 조회</td><td>❌</td></tr>
 <tr><td>추출 후보 상세 조회</td><td>❌</td></tr>
@@ -400,6 +495,11 @@
 <tr><td>생성 회차 발행 조건 검사</td><td>❌</td></tr>
 <tr><td>생성 회차 자동 발행</td><td>❌</td></tr>
 <tr><td>자율 연재 실행 기록 조회</td><td>❌</td></tr>
+<tr><td rowspan="5">캐릭터챗 관리</td><td rowspan="5">77 캐릭터 응답·문맥 보호</td><td>추천 질문 선택 후 캐릭터 답변 요청</td><td>❌</td><td rowspan="5"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/47">#47</a> · <a href="#미등록-102">미등록-102</a></td></tr>
+<tr><td>자유 질문 입력 후 캐릭터 답변 요청</td><td>❌</td></tr>
+<tr><td>읽은 회차 기준으로 인물·답변 범위 제한</td><td>❌</td></tr>
+<tr><td>응답 근거 회차·근거 없음 표시</td><td>❌</td></tr>
+<tr><td>미열람 회차 질문의 답변 보류·스포일러 차단</td><td>❌</td></tr>
 </tbody>
 </table>
 
@@ -410,7 +510,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="28">운영 관리 서비스</td><td rowspan="28">LLMOps</td><td rowspan="7">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>❌</td><td rowspan="7"><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
+<tr><td rowspan="29">운영 관리 서비스</td><td rowspan="29">LLMOps</td><td rowspan="7">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>❌</td><td rowspan="7"><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
 <tr><td>AI 호출 기록 목록 조회</td><td>❌</td></tr>
 <tr><td>AI 호출 기록 상세 조회</td><td>❌</td></tr>
 <tr><td>요청 ID 기반 실행 단계 조회</td><td>❌</td></tr>
@@ -428,13 +528,14 @@
 <tr><td>회귀 평가 결과 조회</td><td>❌</td></tr>
 <tr><td>기존 버전과 평가 결과 비교</td><td>❌</td></tr>
 <tr><td>배포 전 평가 통과 여부 확인</td><td>❌</td></tr>
-<tr><td rowspan="7">40-D 품질·비용 지표</td><td>AI 오류 지표 조회</td><td>❌</td><td rowspan="7"><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
-<tr><td>AI 시간 초과율 조회</td><td>❌</td></tr>
-<tr><td>AI 비용 지표 조회</td><td>❌</td></tr>
-<tr><td>제안 채택률 조회</td><td>❌</td></tr>
-<tr><td>수정안 승인률 조회</td><td>❌</td></tr>
-<tr><td>필터 복원률 조회</td><td>❌</td></tr>
-<tr><td>운영 경고 조회</td><td>❌</td></tr>
+<tr><td rowspan="8">40-D 품질·비용 지표</td><td>AI 오류 지표 조회</td><td>❌</td><td><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
+<tr><td>AI 시간 초과율 조회</td><td>❌</td><td><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
+<tr><td>AI 비용 지표 조회</td><td>❌</td><td><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
+<tr><td>제안 채택률 조회</td><td>❌</td><td><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
+<tr><td>수정안 승인률 조회</td><td>❌</td><td><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
+<tr><td>필터 복원률 조회</td><td>❌</td><td><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
+<tr><td>운영 경고 조회</td><td>❌</td><td><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
+<tr><td>실패·지연 경고 확인 및 수동 조치 완료 기록</td><td>❌</td><td><a href="#미등록-106">미등록-106</a></td></tr>
 <tr><td rowspan="3">40-E 정보 누설 표본 검사</td><td>AI 응답 정보 누설 표본 검사</td><td>❌</td><td rowspan="3"><a href="#미등록-059">미등록-059</a> · <a href="#미등록-060">미등록-060</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="#미등록-061">미등록-061</a></td></tr>
 <tr><td>정보 누설 의심 결과 조회</td><td>❌</td></tr>
 <tr><td>정보 누설 의심 경고 기록</td><td>❌</td></tr>
@@ -446,7 +547,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="13">Frontend</td><td rowspan="13">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결</td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
+<tr><td rowspan="32">Frontend</td><td rowspan="21">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결</td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
 <tr><td>상세 화면 API 연결</td><td>❌</td></tr>
 <tr><td>등록 화면 API 연결</td><td>❌</td></tr>
 <tr><td>수정 화면 API 연결</td><td>❌</td></tr>
@@ -459,6 +560,25 @@
 <tr><td>인증 만료 안내</td><td>❌</td></tr>
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
 <tr><td>모바일 화면 대응</td><td>❌</td></tr>
+<tr><td rowspan="1">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a></td></tr>
+<tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
+<tr><td rowspan="1">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
+<tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-089">미등록-089</a></td></tr>
+<tr><td rowspan="1">65 미저장 작업 보호</td><td>미저장 원고·설정이 있을 때 이탈 또는 대상 전환 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-090">미등록-090</a></td></tr>
+<tr><td rowspan="3">66 요청 제어</td><td>진행 중 원고 저장 요청 취소</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/92">#92</a> · <a href="/Users/yunseongho/.hermes/cache/scratch/pull/93">PR #93</a> · <a href="#미등록-091">미등록-091</a></td></tr>
+<tr><td>진행 중 파일 요청 취소</td><td>❌</td></tr>
+<tr><td>취소 후 서버 처리 여부 재확인 안내</td><td>❌</td></tr>
+<tr><td rowspan="7">독서 관리</td><td rowspan="1">48 공개 열람</td><td>공개 회차 목록 오래된 순·최신 순 전환</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-073">미등록-073</a></td></tr>
+<tr><td rowspan="3">50 공유</td><td>작품 링크 공유</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-075">미등록-075</a></td></tr>
+<tr><td>회차 링크 공유</td><td>❌</td></tr>
+<tr><td>선택 문장 인용 공유</td><td>❌</td></tr>
+<tr><td rowspan="3">51 열람 환경 설정</td><td>뷰어 배경 모드 변경</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-076">미등록-076</a></td></tr>
+<tr><td>뷰어 배경 움직임 켜기·끄기</td><td>❌</td></tr>
+<tr><td>뷰어 글자 크기 조절</td><td>❌</td></tr>
+<tr><td rowspan="1">이벤트 관리</td><td rowspan="1">70 이벤트 안내·운영</td><td>이벤트 안내에서 관련 기능으로 이동</td><td>❌</td><td rowspan="1"><a href="#미등록-095">미등록-095</a></td></tr>
+<tr><td rowspan="1">알림 관리</td><td rowspan="1">80 알림 대상 화면 이동</td><td>알림 선택 후 관련 업무 화면으로 이동</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/89">#89</a> · <a href="#미등록-105">미등록-105</a></td></tr>
+<tr><td rowspan="2">창작 이용 안내</td><td rowspan="2">84 집필 방식·저작권 사전 확인</td><td>Fork 집필 정책과 저작권 안내 개별 확인 후 계속</td><td>❌</td><td rowspan="2"><a href="#미등록-109">미등록-109</a></td></tr>
+<tr><td>원고 가져오기 정책과 AI 처리 이용 권한 안내 개별 확인 후 계속</td><td>❌</td></tr>
 <tr><td rowspan="4">Android / iOS</td><td rowspan="4">모바일 앱</td><td rowspan="4">42 앱 제공</td><td>Android 지원 범위 결정</td><td>❌</td><td rowspan="4"><a href="#미등록-063">미등록-063</a> · <a href="#미등록-064">미등록-064</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-065">미등록-065</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
 <tr><td>Android 앱 제공</td><td>❌</td></tr>
 <tr><td>iOS 지원 범위 결정</td><td>❌</td></tr>
@@ -475,154 +595,6 @@
 </tbody>
 </table>
 
-## 화면 전수 대조 — 추가 기능
-
-기존 01~47 묶음과 의미가 겹치는 항목은 제외하고 실제 화면·핸들러에서 확인한 누락 동작만 추가했다. 새 행의 ❌는 화면이 없다는 뜻이 아니라 **업무 서버·수용 검증까지의 개발 완료를 확인하지 못했다**는 뜻이다. 관련 기존 이슈는 연계 범위이고, 새 미등록 번호는 해당 기능 전체의 등록 검토용이다. 특히 #47은 캐릭터챗 클라이언트 취소·중복 전송 지적이지 캐릭터챗 전체 구현 이슈가 아니다.
-
-- 관리자 세부 권한·사용자 정의 속성·정합성 해시·자료 명세 등은 **데모 화면에서 식별한 검토 대상**이다. 기존 단일 운영 역할이나 DEC-37을 화면에 맞춰 변경하지 않는다. 개별 권한 모델·고정 해시 알고리즘·복수 세계관 연결·외부 수집/학습을 승인한 것이 아니다.
-- 캐릭터챗은 집필 AI 대화와 별도인 독자 기능이며 전체 서비스 후보로 포함한다. 현재 고정 응답을 실제 LLM 기능으로 간주하지 않는다.
-- 문의·공지·이벤트·회원 운영 등은 이번에 새 운영 MSA로 이전하지 않고 Core 업무로 분류했다. 별도 운영 관리 서비스 분리 결정은 기존 LLMOps 범위를 유지한다.
-
-<table>
-<thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
-<tbody>
-<tr><td rowspan="1">Frontend</td><td rowspan="1">독서 관리</td><td rowspan="1">48 공개 열람</td><td>공개 회차 목록 오래된 순·최신 순 전환</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-073">미등록-073</a></td></tr>
-<tr><td rowspan="1">Core API</td><td rowspan="1">독서 관리</td><td rowspan="1">49 공개 열람</td><td>작품 내 공개 회차 제목·본문 검색</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-074">미등록-074</a></td></tr>
-<tr><td rowspan="3">Frontend</td><td rowspan="3">독서 관리</td><td rowspan="3">50 공유</td><td>작품 링크 공유</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-075">미등록-075</a></td></tr>
-<tr><td>회차 링크 공유</td><td>❌</td></tr>
-<tr><td>선택 문장 인용 공유</td><td>❌</td></tr>
-<tr><td rowspan="3">Frontend</td><td rowspan="3">독서 관리</td><td rowspan="3">51 열람 환경 설정</td><td>뷰어 배경 모드 변경</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-076">미등록-076</a></td></tr>
-<tr><td>뷰어 배경 움직임 켜기·끄기</td><td>❌</td></tr>
-<tr><td>뷰어 글자 크기 조절</td><td>❌</td></tr>
-<tr><td rowspan="2">Core API</td><td rowspan="2">독서 관리</td><td rowspan="2">52 독서 기록 관리</td><td>읽은 회차 기록 저장</td><td>❌</td><td rowspan="2"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-077">미등록-077</a></td></tr>
-<tr><td>회차별 읽음 상태 조회</td><td>❌</td></tr>
-<tr><td rowspan="1">Core API</td><td rowspan="1">Fork 관리</td><td rowspan="1">53 공개 Fork 탐색</td><td>선택 원작의 공개 Fork 작품 목록 조회</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-078">미등록-078</a></td></tr>
-<tr><td rowspan="2">Core API</td><td rowspan="2">Fork 관리</td><td rowspan="2">54 Fork 생성 준비</td><td>원작의 Fork 허용 회차 목록 조회</td><td>❌</td><td rowspan="2"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-079">미등록-079</a></td></tr>
-<tr><td>선택 기준 회차에서 가져올 공개 세계관·인물·사건 미리보기</td><td>❌</td></tr>
-<tr><td rowspan="2">Core API</td><td rowspan="2">홈 큐레이션 관리</td><td rowspan="2">55 홈 탐색 필터</td><td>홈 무료 작품만 보기</td><td>❌</td><td rowspan="2"><a href="#미등록-080">미등록-080</a></td></tr>
-<tr><td>홈 Fork가 있는 원작만 보기</td><td>❌</td></tr>
-<tr><td rowspan="1">Frontend</td><td rowspan="1">웹 화면</td><td rowspan="1">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a></td></tr>
-<tr><td rowspan="1">Core API</td><td rowspan="1">세계관 관리</td><td rowspan="1">57 세계관·작품 연결</td><td>작품에 사용할 기존 세계관 선택·연결</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-082">미등록-082</a></td></tr>
-<tr><td rowspan="2">Core API</td><td rowspan="2">세계관 관리</td><td rowspan="2">58 설정 항목 편집</td><td>설정 항목 별칭 추가</td><td>❌</td><td rowspan="2"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-083">미등록-083</a></td></tr>
-<tr><td>설정 항목 별칭 제거</td><td>❌</td></tr>
-<tr><td rowspan="3">Core API</td><td rowspan="3">세계관 관리</td><td rowspan="3">59 설정 문서 속성 편집</td><td>설정 문서 사용자 정의 속성 추가</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-084">미등록-084</a></td></tr>
-<tr><td>설정 문서 사용자 정의 속성 이름 변경</td><td>❌</td></tr>
-<tr><td>설정 문서 사용자 정의 속성 값 수정</td><td>❌</td></tr>
-<tr><td rowspan="1">Frontend</td><td rowspan="1">웹 화면</td><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
-<tr><td rowspan="1">Core API</td><td rowspan="1">세계관 관리</td><td rowspan="1">61 설정 문서 참조 조회</td><td>현재 설정 문서를 언급한 다른 문서 목록 조회</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/48">#48</a> · <a href="#미등록-086">미등록-086</a></td></tr>
-<tr><td rowspan="2">Core API</td><td rowspan="2">회차·원고 관리</td><td rowspan="2">62 회차 부가 내용 편집</td><td>회차 작가의 말 작성</td><td>❌</td><td rowspan="2"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/50">#50</a> · <a href="#미등록-087">미등록-087</a></td></tr>
-<tr><td>회차 작가의 말 수정</td><td>❌</td></tr>
-<tr><td rowspan="1">Frontend</td><td rowspan="1">웹 화면</td><td rowspan="1">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
-<tr><td rowspan="1">Frontend</td><td rowspan="1">웹 화면</td><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-089">미등록-089</a></td></tr>
-<tr><td rowspan="1">Frontend</td><td rowspan="1">웹 화면</td><td rowspan="1">65 미저장 작업 보호</td><td>미저장 원고·설정이 있을 때 이탈 또는 대상 전환 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-090">미등록-090</a></td></tr>
-<tr><td rowspan="3">Frontend</td><td rowspan="3">웹 화면</td><td rowspan="3">66 요청 제어</td><td>진행 중 원고 저장 요청 취소</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/92">#92</a> · <a href="/Users/yunseongho/.hermes/cache/scratch/pull/93">PR #93</a> · <a href="#미등록-091">미등록-091</a></td></tr>
-<tr><td>진행 중 파일 요청 취소</td><td>❌</td></tr>
-<tr><td>취소 후 서버 처리 여부 재확인 안내</td><td>❌</td></tr>
-<tr><td rowspan="6">Core API</td><td rowspan="6">고객지원 관리</td><td rowspan="6">67 문의 접수·답변</td><td>이용·계정·권리 등 문의 유형을 선택해 문의 등록</td><td>❌</td><td rowspan="6"><a href="#미등록-092">미등록-092</a></td></tr>
-<tr><td>내 고객지원 문의 목록 조회</td><td>❌</td></tr>
-<tr><td>내 고객지원 문의 본문·처리 상태 조회</td><td>❌</td></tr>
-<tr><td>내 고객지원 문의의 운영팀 답변 조회</td><td>❌</td></tr>
-<tr><td>운영 고객지원 문의 목록·상태 조회</td><td>❌</td></tr>
-<tr><td>운영팀 문의 답변 등록</td><td>❌</td></tr>
-<tr><td rowspan="3">Core API</td><td rowspan="3">공지 관리</td><td rowspan="3">68 공지 게시·조회</td><td>공지 목록 조회</td><td>❌</td><td rowspan="3"><a href="#미등록-093">미등록-093</a></td></tr>
-<tr><td>공지 상세 조회</td><td>❌</td></tr>
-<tr><td>운영 공지 게시</td><td>❌</td></tr>
-<tr><td rowspan="5">Core API</td><td rowspan="5">이벤트 관리</td><td rowspan="5">69 이벤트 안내·운영</td><td>이벤트 목록 조회</td><td>❌</td><td rowspan="5"><a href="#미등록-094">미등록-094</a></td></tr>
-<tr><td>이벤트 상세·기간·진행 상태 조회</td><td>❌</td></tr>
-<tr><td>운영 이벤트 등록</td><td>❌</td></tr>
-<tr><td>운영 이벤트 목록 조회</td><td>❌</td></tr>
-<tr><td>이벤트 진행·종료 상태 변경</td><td>❌</td></tr>
-<tr><td rowspan="1">Frontend</td><td rowspan="1">이벤트 관리</td><td rowspan="1">70 이벤트 안내·운영</td><td>이벤트 안내에서 관련 기능으로 이동</td><td>❌</td><td rowspan="1"><a href="#미등록-095">미등록-095</a></td></tr>
-<tr><td rowspan="4">Core API</td><td rowspan="4">관리자 계정·권한 관리</td><td rowspan="4">71 관리자 계정 등록·권한</td><td>관리자 계정 목록 조회</td><td>❌</td><td rowspan="4"><a href="#미등록-096">미등록-096</a></td></tr>
-<tr><td>관리자 계정 생성</td><td>❌</td></tr>
-<tr><td>관리자 계정 생성 시 업무별 권한 부여</td><td>❌</td></tr>
-<tr><td>관리자별 부여 권한 조회</td><td>❌</td></tr>
-<tr><td rowspan="2">Core API</td><td rowspan="2">운영 감사 관리</td><td rowspan="2">72 관리자 활동 기록</td><td>관리자 조치의 수행자·시각·대상·내역 기록</td><td>❌</td><td rowspan="2"><a href="#미등록-097">미등록-097</a></td></tr>
-<tr><td>관리자 전체 활동 로그 최신순 조회</td><td>❌</td></tr>
-<tr><td rowspan="7">Core API</td><td rowspan="7">회원 운영 관리</td><td rowspan="7">73 운영 회원 조회·조치</td><td>운영 회원 목록·역할·상태 조회</td><td>❌</td><td rowspan="7"><a href="#미등록-098">미등록-098</a></td></tr>
-<tr><td>역할별 회원 목록 필터</td><td>❌</td></tr>
-<tr><td>회원 이름·이메일 검색</td><td>❌</td></tr>
-<tr><td>회원 가입 최신순 정렬</td><td>❌</td></tr>
-<tr><td>회원 가입 오래된순 정렬</td><td>❌</td></tr>
-<tr><td>회원 이용 제한</td><td>❌</td></tr>
-<tr><td>회원 이용 제한 해제</td><td>❌</td></tr>
-<tr><td rowspan="5">Core API</td><td rowspan="5">콘텐츠 운영 관리</td><td rowspan="5">74 운영 작품 조회</td><td>운영 작품 목록·작성자·권리·공개 상태 조회</td><td>❌</td><td rowspan="5"><a href="#미등록-099">미등록-099</a></td></tr>
-<tr><td>운영 작품 원작·Fork 필터</td><td>❌</td></tr>
-<tr><td>운영 작품명·작성자·권리 유형 검색</td><td>❌</td></tr>
-<tr><td>운영 작품 제목순 정렬</td><td>❌</td></tr>
-<tr><td>운영 작품 제목 역순 정렬</td><td>❌</td></tr>
-<tr><td rowspan="4">Core API</td><td rowspan="4">콘텐츠 운영 관리</td><td rowspan="4">75 운영 댓글 조회·조치</td><td>작품별 운영 댓글 필터</td><td>❌</td><td rowspan="4"><a href="#미등록-100">미등록-100</a></td></tr>
-<tr><td>운영 댓글 내용·작품명·작성자 검색</td><td>❌</td></tr>
-<tr><td>운영 댓글 공감 많은순 정렬</td><td>❌</td></tr>
-<tr><td>운영 댓글 공감 적은순 정렬</td><td>❌</td></tr>
-<tr><td rowspan="9">Core API</td><td rowspan="9">캐릭터챗 관리</td><td rowspan="9">76 캐릭터챗 탐색·대화방</td><td>대화 가능한 공개 작품·캐릭터 챗 목록 조회</td><td>❌</td><td rowspan="9"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/47">#47</a> · <a href="#미등록-101">미등록-101</a></td></tr>
-<tr><td>캐릭터챗 원작·Fork 유형 필터</td><td>❌</td></tr>
-<tr><td>캐릭터챗 작품 필터</td><td>❌</td></tr>
-<tr><td>캐릭터챗 인물 필터</td><td>❌</td></tr>
-<tr><td>캐릭터챗 연결 작품 최신순 정렬</td><td>❌</td></tr>
-<tr><td>캐릭터챗 연결 작품 인기순 정렬</td><td>❌</td></tr>
-<tr><td>캐릭터챗 연결 작품 조회순 정렬</td><td>❌</td></tr>
-<tr><td>작품·인물을 선택해 대화방 조회·재개</td><td>❌</td></tr>
-<tr><td>작품·인물별 기존 대화 기록 조회</td><td>❌</td></tr>
-<tr><td rowspan="5">Core API + AI Service</td><td rowspan="5">캐릭터챗 관리</td><td rowspan="5">77 캐릭터 응답·문맥 보호</td><td>추천 질문 선택 후 캐릭터 답변 요청</td><td>❌</td><td rowspan="5"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/47">#47</a> · <a href="#미등록-102">미등록-102</a></td></tr>
-<tr><td>자유 질문 입력 후 캐릭터 답변 요청</td><td>❌</td></tr>
-<tr><td>읽은 회차 기준으로 인물·답변 범위 제한</td><td>❌</td></tr>
-<tr><td>응답 근거 회차·근거 없음 표시</td><td>❌</td></tr>
-<tr><td>미열람 회차 질문의 답변 보류·스포일러 차단</td><td>❌</td></tr>
-<tr><td rowspan="8">Core API</td><td rowspan="8">캐릭터챗 관리</td><td rowspan="8">78 캐릭터챗 운영</td><td>운영 캐릭터챗 연결 목록·상태 조회</td><td>❌</td><td rowspan="8"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/47">#47</a> · <a href="#미등록-103">미등록-103</a></td></tr>
-<tr><td>공개 작품·캐릭터 연결로 캐릭터챗 등록</td><td>❌</td></tr>
-<tr><td>캐릭터챗 운영 중지</td><td>❌</td></tr>
-<tr><td>캐릭터챗 운영 재개</td><td>❌</td></tr>
-<tr><td>운영 캐릭터챗 원작·Fork 분류</td><td>❌</td></tr>
-<tr><td>운영 캐릭터챗 작품명·캐릭터 검색</td><td>❌</td></tr>
-<tr><td>운영 캐릭터챗 작품 제목순 정렬</td><td>❌</td></tr>
-<tr><td>운영 캐릭터챗 작품 제목 역순 정렬</td><td>❌</td></tr>
-<tr><td rowspan="1">Core API</td><td rowspan="1">알림 관리</td><td rowspan="1">79 31 알림 CRUD·수신 설정</td><td>전체 알림 일괄 읽음 처리</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/89">#89</a> · <a href="#미등록-104">미등록-104</a></td></tr>
-<tr><td rowspan="1">Frontend</td><td rowspan="1">알림 관리</td><td rowspan="1">80 31 알림 CRUD·수신 설정</td><td>알림 선택 후 관련 업무 화면으로 이동</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/89">#89</a> · <a href="#미등록-105">미등록-105</a></td></tr>
-<tr><td rowspan="1">운영 관리 서비스</td><td rowspan="1">LLMOps</td><td rowspan="1">81 40-D 품질·비용 지표</td><td>실패·지연 경고 확인 및 수동 조치 완료 기록</td><td>❌</td><td rowspan="1"><a href="#미등록-106">미등록-106</a></td></tr>
-<tr><td rowspan="1">Core API</td><td rowspan="1">신고·운영 관리</td><td rowspan="1">82 34 신고·소명·조치 관리</td><td>작품 등록자에게 권리 증빙 요청</td><td>❌</td><td rowspan="1"><a href="#미등록-107">미등록-107</a></td></tr>
-<tr><td rowspan="1">Core API</td><td rowspan="1">Fork 관리</td><td rowspan="1">83 Fork 정합성 운영 점검</td><td>Fork 스냅샷 해시·원작 해시·인물 상태 차이 점검 결과 조회</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-108">미등록-108</a></td></tr>
-<tr><td rowspan="2">Frontend</td><td rowspan="2">창작 이용 안내</td><td rowspan="2">84 집필 방식·저작권 사전 확인</td><td>Fork 집필 정책과 저작권 안내 개별 확인 후 계속</td><td>❌</td><td rowspan="2"><a href="#미등록-109">미등록-109</a></td></tr>
-<tr><td>원고 가져오기 정책과 AI 처리 이용 권한 안내 개별 확인 후 계속</td><td>❌</td></tr>
-<tr><td rowspan="2">Core API</td><td rowspan="2">운영 현황 관리</td><td rowspan="2">85 업무·데이터 현황 조회</td><td>답변 대기 문의·접수 신고·작가 검토 대기 수 조회</td><td>❌</td><td rowspan="2"><a href="#미등록-110">미등록-110</a></td></tr>
-<tr><td>수집 자료 출처·수량·형식·사용처 명세 조회</td><td>❌</td></tr>
-</tbody>
-</table>
-
-## Draft PR 대조 — 추가 검토 후보
-
-다음은 Draft의 실제 변경 코드·설계와 기존 표를 대조해 추가한 **채택 미확정 후보**다. 기능표에 기록하는 것과 최종 제품·스키마·구현 채택은 구분하며, 모두 ❌로 표시한다. 기존 05·08은 새 중간 기능을 중복 생성하지 않고 후보 보완 동작만 별도로 적었다.
-
-- 세계관 전체 확정 버전은 회차 체크포인트와 구분한다. 복원은 과거 이력을 삭제하지 않고 새 버전으로 남긴다.
-- 관계 초안은 연결 대상이 미완성인 편집 상태를 포함한다. 미확정 초안 제거와 확정 관계의 이력 보존 정정을 구분한다. 상세 확정·삭제 정책은 후속 합의 대상이다.
-- 설정 카드 유형과 주제 영역의 분리·변경은 PR #86의 제안 범위다. 유형 목록·영역 목록·레거시 변환 정책을 이번 추가로 최종 확정하지 않는다.
-- 기존 04 세계관 생성은 작품·회차 없이 작성 가능한 독립 세계관 계약도 검토한다. 같은 생성 기능을 별도 행으로 중복 추가하지 않는다.
-- PR #86 확인 head: `618b0f9f60e9ec3361838962dba6166677fe9db5` (문서 설계 제안). PR #91 확인 head: `7429af0d051c35ff6f7441eac063030945987617` (미병합 구현 Draft). 확인 기준은 2026-11-04이며 병합·운영 검증 완료로 해석하지 않는다.
-
-<table>
-<thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
-<tbody>
-<tr><td rowspan="18">Core API</td><td rowspan="4">세계관 관리</td><td rowspan="4">86 세계관 버전 관리</td><td>세계관 전체 버전 생성</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
-<tr><td>세계관 버전 목록 조회</td><td>❌</td></tr>
-<tr><td>세계관 버전 상세 조회</td><td>❌</td></tr>
-<tr><td>세계관 이전 버전 복원</td><td>❌</td></tr>
-<tr><td rowspan="3">회차·원고 관리</td><td rowspan="3">87 기준 세계관 연결 관리</td><td>회차의 기준 세계관 버전 선택</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
-<tr><td>회차의 기준 세계관 버전 조회</td><td>❌</td></tr>
-<tr><td>회차의 기준 세계관 버전 변경</td><td>❌</td></tr>
-<tr><td rowspan="4">AI 제안 관리</td><td rowspan="4">88 제안 반영 이력 조회</td><td>제안 요청 당시 원고 조회</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
-<tr><td>제안과 원본 원고 비교</td><td>❌</td></tr>
-<tr><td>제안 반영 결과 버전 조회</td><td>❌</td></tr>
-<tr><td>반영 전후 원고 비교</td><td>❌</td></tr>
-<tr><td rowspan="5">캐릭터·관계 관리</td><td rowspan="5">08 관계 CRUD — 후보 보완</td><td>관계 초안 저장</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
-<tr><td>관계 초안 조회</td><td>❌</td></tr>
-<tr><td>관계 초안 수정</td><td>❌</td></tr>
-<tr><td>미확정 관계 초안 제거</td><td>❌</td></tr>
-<tr><td>관계 확정 저장</td><td>❌</td></tr>
-<tr><td rowspan="2">세계관 관리</td><td rowspan="2">05 설정 항목 CRUD — 후보 보완</td><td>설정 카드 유형 변경</td><td>❌</td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
-<tr><td>세계관 주제 영역 변경</td><td>❌</td></tr>
-</tbody>
-</table>
-
 ## 공통 이슈
 
 | 이슈 | 추적 |
@@ -633,6 +605,17 @@
 | Content 책임 분리·DTO·영속성 지침 정렬 | <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/84">#84</a> |
 | 그래프·체크포인트 정합성 계약 | <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> |
 | 실제 기능·화면·최신 CI 완료 확인 | <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/72">#72</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> |
+
+### Draft 후보의 해석·확인 근거
+
+다음은 Draft의 실제 변경 코드·설계와 기존 표를 대조해 추가한 **채택 미확정 후보**다. 기능표에 기록하는 것과 최종 제품·스키마·구현 채택은 구분하며, 모두 ❌로 표시한다. 기존 05·08은 새 중간 기능을 중복 생성하지 않고 후보 보완 동작을 해당 서브시스템 안에 배치했다.
+
+- 세계관 전체 확정 버전은 회차 체크포인트와 구분한다. 복원은 과거 이력을 삭제하지 않고 새 버전으로 남긴다.
+- 관계 초안은 연결 대상이 미완성인 편집 상태를 포함한다. 미확정 초안 제거와 확정 관계의 이력 보존 정정을 구분한다. 상세 확정·삭제 정책은 후속 합의 대상이다.
+- 설정 카드 유형과 주제 영역의 분리·변경은 PR #86의 제안 범위다. 유형 목록·영역 목록·레거시 변환 정책을 이번 추가로 최종 확정하지 않는다.
+- 기존 04 세계관 생성은 작품·회차 없이 작성 가능한 독립 세계관 계약도 검토한다. 같은 생성 기능을 별도 행으로 중복 추가하지 않는다.
+- PR #86 확인 head: `618b0f9f60e9ec3361838962dba6166677fe9db5` (문서 설계 제안). PR #91 확인 head: `7429af0d051c35ff6f7441eac063030945987617` (미병합 구현 Draft). 확인 기준은 2026-11-04이며 병합·운영 검증 완료로 해석하지 않는다.
+
 
 ## 근거·관리 범위
 
@@ -716,23 +699,21 @@
 | <a id="미등록-066"></a>미등록-066 | 43 | 선행 기능·이슈 | 업무별 저장 계약·배포 범위; 새 인프라를 일괄 선제 도입하지 않음 |
 | <a id="미등록-067"></a>미등록-067 | 공통 | 공통 이슈 | 전체 서비스와 MVP 정책 충돌 정리 |
 | <a id="미등록-068"></a>미등록-068 | 공통 | 공통 이슈 | 회원·작품·Fork·정본·파일의 삭제 정책 구분 |
-
 | <a id="미등록-069"></a>미등록-069 | 44 | 관련 이슈 | 서버 검색·필터·정렬·페이지네이션·빠른 이동 권한 계약 |
 | <a id="미등록-070"></a>미등록-070 | 45 | 관련 이슈 | 랭킹 집계 기간·산식·중복 방지·갱신 기준 |
 | <a id="미등록-071"></a>미등록-071 | 46 | 관련 이슈 | 홈 편성·선정 권한·공개 대상 검증 |
 | <a id="미등록-072"></a>미등록-072 | 47 | 관련 이슈 | 인기 검색어 도입 여부·개인정보·집계 조작 방지 |
-
 | <a id="미등록-073"></a>미등록-073 | 48 | 화면 누락 기능 | 독서 관리 / 공개 열람의 구현 범위·정책 및 전용 이슈 등록 검토 |
-| <a id="미등록-074"></a>미등록-074 | 49 | 화면 누락 기능 | 독서 관리 / 공개 열람의 구현 범위·정책 및 전용 이슈 등록 검토 |
+| <a id="미등록-074"></a>미등록-074 | 20 | 화면 누락 기능 | 독서 관리 / 공개 열람의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-075"></a>미등록-075 | 50 | 화면 누락 기능 | 독서 관리 / 공유의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-076"></a>미등록-076 | 51 | 화면 누락 기능 | 독서 관리 / 열람 환경 설정의 구현 범위·정책 및 전용 이슈 등록 검토 |
-| <a id="미등록-077"></a>미등록-077 | 52 | 화면 누락 기능 | 독서 관리 / 독서 기록 관리의 구현 범위·정책 및 전용 이슈 등록 검토 |
+| <a id="미등록-077"></a>미등록-077 | 21-C | 화면 누락 기능 | 독서 관리 / 독서 기록 관리의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-078"></a>미등록-078 | 53 | 화면 누락 기능 | Fork 관리 / 공개 Fork 탐색의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-079"></a>미등록-079 | 54 | 화면 누락 기능 | Fork 관리 / Fork 생성 준비의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-080"></a>미등록-080 | 55 | 화면 누락 기능 | 홈 큐레이션 관리 / 홈 탐색 필터의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-081"></a>미등록-081 | 56 | 화면 누락 기능 | 웹 화면 / 공통 사용자 환경의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-082"></a>미등록-082 | 57 | 화면 누락 기능 | 세계관 관리 / 세계관·작품 연결의 구현 범위·정책 및 전용 이슈 등록 검토 |
-| <a id="미등록-083"></a>미등록-083 | 58 | 화면 누락 기능 | 세계관 관리 / 설정 항목 편집의 구현 범위·정책 및 전용 이슈 등록 검토 |
+| <a id="미등록-083"></a>미등록-083 | 05 | 화면 누락 기능 | 세계관 관리 / 설정 항목 편집의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-084"></a>미등록-084 | 59 | 화면 누락 기능 | 세계관 관리 / 설정 문서 속성 편집의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-085"></a>미등록-085 | 60 | 화면 누락 기능 | 웹 화면 / 설정 문서 탐색의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-086"></a>미등록-086 | 61 | 화면 누락 기능 | 세계관 관리 / 설정 문서 참조 조회의 구현 범위·정책 및 전용 이슈 등록 검토 |
@@ -753,10 +734,10 @@
 | <a id="미등록-101"></a>미등록-101 | 76 | 화면 누락 기능 | 캐릭터챗 관리 / 캐릭터챗 탐색·대화방의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-102"></a>미등록-102 | 77 | 화면 누락 기능 | 캐릭터챗 관리 / 캐릭터 응답·문맥 보호의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-103"></a>미등록-103 | 78 | 화면 누락 기능 | 캐릭터챗 관리 / 캐릭터챗 운영의 구현 범위·정책 및 전용 이슈 등록 검토 |
-| <a id="미등록-104"></a>미등록-104 | 79 | 화면 누락 기능 | 알림 관리 / 31 알림 CRUD·수신 설정의 구현 범위·정책 및 전용 이슈 등록 검토 |
+| <a id="미등록-104"></a>미등록-104 | 31 | 화면 누락 기능 | 알림 관리 / 31 알림 CRUD·수신 설정의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-105"></a>미등록-105 | 80 | 화면 누락 기능 | 알림 관리 / 31 알림 CRUD·수신 설정의 구현 범위·정책 및 전용 이슈 등록 검토 |
-| <a id="미등록-106"></a>미등록-106 | 81 | 화면 누락 기능 | LLMOps / 40-D 품질·비용 지표의 구현 범위·정책 및 전용 이슈 등록 검토 |
-| <a id="미등록-107"></a>미등록-107 | 82 | 화면 누락 기능 | 신고·운영 관리 / 34 신고·소명·조치 관리의 구현 범위·정책 및 전용 이슈 등록 검토 |
+| <a id="미등록-106"></a>미등록-106 | 40-D | 화면 누락 기능 | LLMOps / 40-D 품질·비용 지표의 구현 범위·정책 및 전용 이슈 등록 검토 |
+| <a id="미등록-107"></a>미등록-107 | 34 | 화면 누락 기능 | 신고·운영 관리 / 34 신고·소명·조치 관리의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-108"></a>미등록-108 | 83 | 화면 누락 기능 | Fork 관리 / Fork 정합성 운영 점검의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-109"></a>미등록-109 | 84 | 화면 누락 기능 | 창작 이용 안내 / 집필 방식·저작권 사전 확인의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-110"></a>미등록-110 | 85 | 화면 누락 기능 | 운영 현황 관리 / 업무·데이터 현황 조회의 구현 범위·정책 및 전용 이슈 등록 검토 |
@@ -831,6 +812,15 @@
 - [홈 인기·급상승·최신·큐레이션 화면](../frontend/src/presentation/features/home/view/HomePage.tsx)
 - [데모 조회·정렬](../frontend/src/domain/usecases/ReadingUseCase.ts): TOP10은 좋아요 정렬, 급상승은 조회수 정렬, 에디터 Pick·주간은 고정 ID 목록이다. 실제 기간별 통계·개인화 추천으로 간주하지 않는다.
 
+### 화면 대조 항목의 해석
+
+기존 01~47 묶음과 의미가 겹치는 항목은 제외하고 실제 화면·핸들러에서 확인한 누락 동작만 추가했다. 화면 대조로 추가한 행의 ❌는 화면이 없다는 뜻이 아니라 **업무 서버·수용 검증까지의 개발 완료를 확인하지 못했다**는 뜻이다. 관련 기존 이슈는 연계 범위이고, 새 미등록 번호는 해당 기능 전체의 등록 검토용이다. 특히 #47은 캐릭터챗 클라이언트 취소·중복 전송 지적이지 캐릭터챗 전체 구현 이슈가 아니다.
+
+- 관리자 세부 권한·사용자 정의 속성·정합성 해시·자료 명세 등은 **데모 화면에서 식별한 검토 대상**이다. 기존 단일 운영 역할이나 DEC-37을 화면에 맞춰 변경하지 않는다. 개별 권한 모델·고정 해시 알고리즘·복수 세계관 연결·외부 수집/학습을 승인한 것이 아니다.
+- 캐릭터챗은 집필 AI 대화와 별도인 독자 기능이며 전체 서비스 후보로 포함한다. 현재 고정 응답을 실제 LLM 기능으로 간주하지 않는다.
+- 문의·공지·이벤트·회원 운영 등은 이번에 새 운영 MSA로 이전하지 않고 Core 업무로 분류했다. 별도 운영 관리 서비스 분리 결정은 기존 LLMOps 범위를 유지한다.
+
+
 ## 화면 조사 범위·추가 행 근거
 
 소스 기준 병렬 조사이며 실제 브라우저 실행·클릭·서버 호출 검증은 하지 않았다. App.tsx의 32개 Route 등록(리다이렉트·catch-all 포함), 런타임 화면·공통 TSX 44개를 조사 목록과 대조했다. 테스트 TSX 5개는 화면 수에서 제외했다. 하위 ViewModel·UseCase·상태·저장소도 관련 호출을 확인했다. Graphify에는 오래된 커밋·누락 파일이 있어 최종 판단은 현재 소스에 근거한다.
@@ -885,15 +875,15 @@
 | 중간 기능 번호 | 추가 동작 | 소스 근거 |
 |---|---|---|
 | 48 | 공개 회차 목록 오래된 순·최신 순 전환 | [WorkPage.tsx:63](../frontend/src/presentation/features/reading/view/WorkPage.tsx#L63) |
-| 49 | 작품 내 공개 회차 제목·본문 검색 | [WorkPage.tsx:66](../frontend/src/presentation/features/reading/view/WorkPage.tsx#L66) |
+| 20 | 작품 내 공개 회차 제목·본문 검색 | [WorkPage.tsx:66](../frontend/src/presentation/features/reading/view/WorkPage.tsx#L66) |
 | 50 | 작품 링크 공유 | [WorkPage.tsx:53](../frontend/src/presentation/features/reading/view/WorkPage.tsx#L53) |
 | 50 | 회차 링크 공유 | [ReaderPage.tsx:69](../frontend/src/presentation/features/reading/view/ReaderPage.tsx#L69) |
 | 50 | 선택 문장 인용 공유 | [ReaderPage.tsx:143](../frontend/src/presentation/features/reading/view/ReaderPage.tsx#L143) |
 | 51 | 뷰어 배경 모드 변경 | [Sheets.tsx:105](../frontend/src/presentation/features/reading/view/Sheets.tsx#L105) |
 | 51 | 뷰어 배경 움직임 켜기·끄기 | [Sheets.tsx:106](../frontend/src/presentation/features/reading/view/Sheets.tsx#L106) |
 | 51 | 뷰어 글자 크기 조절 | [Sheets.tsx:107](../frontend/src/presentation/features/reading/view/Sheets.tsx#L107) |
-| 52 | 읽은 회차 기록 저장 | [ReadingUseCase.ts:93](../frontend/src/domain/usecases/ReadingUseCase.ts#L93) |
-| 52 | 회차별 읽음 상태 조회 | [WorkPage.tsx:73](../frontend/src/presentation/features/reading/view/WorkPage.tsx#L73) |
+| 21-C | 읽은 회차 기록 저장 | [ReadingUseCase.ts:93](../frontend/src/domain/usecases/ReadingUseCase.ts#L93) |
+| 21-C | 회차별 읽음 상태 조회 | [WorkPage.tsx:73](../frontend/src/presentation/features/reading/view/WorkPage.tsx#L73) |
 | 53 | 선택 원작의 공개 Fork 작품 목록 조회 | [ExplorePages.tsx:135](../frontend/src/presentation/features/reading/view/ExplorePages.tsx#L135) |
 | 54 | 원작의 Fork 허용 회차 목록 조회 | [ForkPage.tsx:38](../frontend/src/presentation/features/fork/view/ForkPage.tsx#L38) |
 | 54 | 선택 기준 회차에서 가져올 공개 세계관·인물·사건 미리보기 | [ForkPage.tsx:42](../frontend/src/presentation/features/fork/view/ForkPage.tsx#L42) |
@@ -901,8 +891,8 @@
 | 55 | 홈 Fork가 있는 원작만 보기 | [ReadingUseCase.ts:12](../frontend/src/domain/usecases/ReadingUseCase.ts#L12) |
 | 56 | 앱 라이트·다크 모드 전환 | [ThemeButton.tsx:3](../frontend/src/presentation/shared/shell/ThemeButton.tsx#L3) |
 | 57 | 작품에 사용할 기존 세계관 선택·연결 | [NewWorkPage.tsx:69](../frontend/src/presentation/features/library/view/NewWorkPage.tsx#L69) |
-| 58 | 설정 항목 별칭 추가 | [StudioViews.tsx:121](../frontend/src/presentation/features/studio/view/StudioViews.tsx#L121) |
-| 58 | 설정 항목 별칭 제거 | [StudioViews.tsx:121](../frontend/src/presentation/features/studio/view/StudioViews.tsx#L121) |
+| 05 | 설정 항목 별칭 추가 | [StudioViews.tsx:121](../frontend/src/presentation/features/studio/view/StudioViews.tsx#L121) |
+| 05 | 설정 항목 별칭 제거 | [StudioViews.tsx:121](../frontend/src/presentation/features/studio/view/StudioViews.tsx#L121) |
 | 59 | 설정 문서 사용자 정의 속성 추가 | [StudioViews.tsx:125](../frontend/src/presentation/features/studio/view/StudioViews.tsx#L125) |
 | 59 | 설정 문서 사용자 정의 속성 이름 변경 | [StudioViews.tsx:125](../frontend/src/presentation/features/studio/view/StudioViews.tsx#L125) |
 | 59 | 설정 문서 사용자 정의 속성 값 수정 | [StudioViews.tsx:125](../frontend/src/presentation/features/studio/view/StudioViews.tsx#L125) |
@@ -975,10 +965,10 @@
 | 78 | 운영 캐릭터챗 작품명·캐릭터 검색 | [AdminPage.tsx:92](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L92) |
 | 78 | 운영 캐릭터챗 작품 제목순 정렬 | [AdminPage.tsx:93](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L93) |
 | 78 | 운영 캐릭터챗 작품 제목 역순 정렬 | [AdminPage.tsx:93](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L93) |
-| 79 | 전체 알림 일괄 읽음 처리 | [NotificationsPage.tsx:14](../frontend/src/presentation/features/inbox/view/NotificationsPage.tsx#L14) |
+| 31 | 전체 알림 일괄 읽음 처리 | [NotificationsPage.tsx:14](../frontend/src/presentation/features/inbox/view/NotificationsPage.tsx#L14) |
 | 80 | 알림 선택 후 관련 업무 화면으로 이동 | [NotificationsPage.tsx:23](../frontend/src/presentation/features/inbox/view/NotificationsPage.tsx#L23) |
-| 81 | 실패·지연 경고 확인 및 수동 조치 완료 기록 | [AdminPage.tsx:155](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L155) |
-| 82 | 작품 등록자에게 권리 증빙 요청 | [AdminPage.tsx:142](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L142) |
+| 40-D | 실패·지연 경고 확인 및 수동 조치 완료 기록 | [AdminPage.tsx:155](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L155) |
+| 34 | 작품 등록자에게 권리 증빙 요청 | [AdminPage.tsx:142](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L142) |
 | 83 | Fork 스냅샷 해시·원작 해시·인물 상태 차이 점검 결과 조회 | [AdminPage.tsx:147](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L147) |
 | 84 | Fork 집필 정책과 저작권 안내 개별 확인 후 계속 | [WritingPolicyPage.tsx:38](../frontend/src/presentation/features/fork/view/WritingPolicyPage.tsx#L38) |
 | 84 | 원고 가져오기 정책과 AI 처리 이용 권한 안내 개별 확인 후 계속 | [WritingPolicyPage.tsx:38](../frontend/src/presentation/features/fork/view/WritingPolicyPage.tsx#L38) |
