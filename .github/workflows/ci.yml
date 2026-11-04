@@ -146,7 +146,7 @@ jobs:
         working-directory: backend/${{ matrix.service }}-service
         env:
           SERVICE: ${{ matrix.service }}
-        run: ./gradlew test --tests "ai.storyfork.${SERVICE}.ApplicationPropertiesTest" --no-daemon
+        run: ./gradlew test --tests "ai.storyfork.${SERVICE}.*" --no-daemon
       - name: pytest isolated provider unit tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
