@@ -5,6 +5,12 @@
 갱신 테스트는 활성·비활성 시작, 미적용 상태 활성화 실패, 단일 기본 JPA 인프라와 Auth 매핑 공존,
 Core 연결을 통한 카드 8종 저장·과거 조회·복원·실패 롤백·소유권·충돌·멱등 동시성을 검증한다.
 로컬은 선택 단위·설정 검사만 수행하며 PostgreSQL/시작 검증 결과는 PR #98 최신 head CI에 기록한다.
+
+리뷰 반영 코드 `48de6a126e06e4ed59c87da845713f487ac26de5`의 [CI 41778704723](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/actions/runs/41778704723)은 Required CI를 포함한 10개 job이 성공했다.
+Core 단위·PostgreSQL 통합 및 실제 Docker 이미지/HTTP 시스템 검증을 실행했다. 공통 JPA 인프라 단일성·Auth 공존·활성/비활성/미적용 시작 계약과 기존 저장·복원·실패 롤백·동시성 회귀를 통과했다.
+로컬 선택 구성 단위 12건과 migration profile Compose 구문 검사를 통과했다. 로컬 DB·컨테이너·전체 빌드·브라우저는 실행하지 않았다.
+첫 리뷰 반영 CI의 임시 PostgreSQL 연결 한도 초과는 테스트 기본 풀만 3개로 제한해 해결했다. 런타임 풀 설정이나 공용 DB를 변경하지 않았다.
+최종 ponytail-review에서 전용 인프라·중복 Repository·새 persistence unit·업무 로직 변경이 없음을 대조했고, 공통 JPA 시작과 업무 독립성을 구분하도록 문서를 보완했다. 반영하지 않은 범위 내 지적은 없다.
 **아래는 #97의 이전 전용 인프라 검증 기록이며 현재 구성의 새 검증 결과가 아니다.**
 
 # WorldStudio 독립 JPA 저장소·Service 검증
