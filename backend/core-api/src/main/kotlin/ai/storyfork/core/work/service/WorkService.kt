@@ -16,6 +16,7 @@ import ai.storyfork.core.publication.repository.*
 import ai.storyfork.core.world.entity.*
 import ai.storyfork.core.world.repository.*
 import ai.storyfork.core.work.domain.*
+import org.springframework.dao.DataIntegrityViolationException
 
 @Service
 @ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
@@ -84,6 +85,27 @@ class WorkService(
         row.title=data.title.trim();row.description=data.summary.trim();row.revision++
         works.saveAndFlush(row)
         return read(id,owner)
+    }
+    /** 발행·저장 버전·세계관 설정 등 이력이 걸린 작품은 DB 제약으로 막히며 전체를 되돌리고 409를 반환한다. */
+    fun delete(id: String,owner: String) {
+        val w=access.own(id,owner)
+        checkContent(w.source==null,409,"분기 작품은 아직 삭제할 수 없어요.")
+        val rows=episodes.findAllByWorkIdOrderBySequence(id)
+        try {
+            drafts.deleteAllById(rows.map {it.id})
+            episodes.deleteAll(rows)
+            workGenres.deleteAllByWorkId(id)
+            hashtagRows.deleteAllByWorkId(id)
+            rightsRows.deleteAllByWorkId(id)
+            workWorlds.deleteAllByWorkId(id)
+            visibility.deleteAllByWorkId(id)
+            policies.deleteAllByWorkId(id)
+            works.deleteById(id)
+            worlds.deleteById(w.worldId)
+            works.flush()
+        } catch(e: DataIntegrityViolationException) {
+            throw ContentFailure(409,"발행·저장 이력이 있거나 분기된 작품은 삭제할 수 없어요.")
+        }
     }
     fun policy(id: String,owner: String,data: PolicyRequest): WorkResponse {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)

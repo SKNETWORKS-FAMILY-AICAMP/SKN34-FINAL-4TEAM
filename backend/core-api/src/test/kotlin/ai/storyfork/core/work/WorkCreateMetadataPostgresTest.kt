@@ -72,4 +72,12 @@ class WorkCreateMetadataPostgresTest {
         assertEquals("ORIGINAL",read.creationType)
         assertTrue(read.genres.isEmpty() && read.hashtags.isEmpty())
     }
+
+    @Test fun `deleting a registered work removes its genres hashtags and rights rows`() {
+        val w=register()
+        works.delete(w.id,"author")
+        for(table in listOf("work_genre","work_hashtag","work_rights_declaration")) {
+            assertEquals(0,count("SELECT count(*) FROM $table WHERE work_id=?",w.id),table)
+        }
+    }
 }

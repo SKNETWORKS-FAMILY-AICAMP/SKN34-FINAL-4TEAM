@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.*
 interface ForkPolicyHistoryRepository : JpaRepository<ForkPolicyHistoryEntity, String> {
     fun findAllByWorkIdOrderByRevisionNo(workId: String): List<ForkPolicyHistoryEntity>
     fun findFirstByWorkIdOrderByRevisionNoDesc(workId: String): ForkPolicyHistoryEntity?
+    fun deleteAllByWorkId(workId: String)
 }

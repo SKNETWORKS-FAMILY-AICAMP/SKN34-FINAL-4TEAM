@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.http.HttpStatus
 import ai.storyfork.core.work.service.dto.*
 
-/** 작품 등록·조회·수정·작품 정책과 기존 이력 조회 계약을 제공한다. */
+/** 작품 등록·조회·수정·삭제·작품 정책과 기존 이력 조회 계약을 제공한다. */
 @RestController
 @RequestMapping("/api/v1")
 @ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
@@ -28,6 +28,10 @@ class WorkController(private val service: ai.storyfork.core.work.service.WorkSer
     /** 작품 제목·소개를 수정한다. 소유자만 가능하며 revision 충돌은 409, 입력 오류는 422다. */
     @PutMapping("/works/{id}")
     fun update(@PathVariable id: String,principal: Principal,@Valid @RequestBody data: UpdateWorkRequest): WorkResponse = service.update(id,principal.name,data)
+
+    /** 작품을 삭제한다. 소유자만 가능하며 접근 불가는 404, 발행·저장 이력이 있거나 분기 작품이면 409다. */
+    @DeleteMapping("/works/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun delete(@PathVariable id: String,principal: Principal) = service.delete(id,principal.name)
 
     /** 저장 버전·제안·정책·발행 이력을 기존 복합 DTO로 반환한다. 소유자만 가능하며 접근 불가는 404다. */
     @GetMapping("/works/{id}/history")
