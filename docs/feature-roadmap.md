@@ -85,7 +85,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="294">콘텐츠 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>콘텐츠 서비스 독립 Spring Boot 실행 골격</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
+<tr><td rowspan="298">콘텐츠 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>콘텐츠 서비스 독립 Spring Boot 실행 골격</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
 <tr><td>인증 연계</td><td>90 Core 인증 연계</td><td>별도 서비스 자격과 사용자 Bearer로 Core를 호출해 UUID Principal 생성·실패 분류 (로컬 구현)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
 <tr><td>인증 연계</td><td>90 Core 인증 연계</td><td>Core 내부 endpoint에서 서비스 자격·JWT를 확인하고 회원 UUID만 반환 (로컬 구현)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
 <tr><td>실행 기반</td><td>89 독립 앱 실행</td><td>기존 콘텐츠·첨부·독립 WorldStudio 실행 코드·테스트의 Content 소유 분리 (로컬 구현)</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
@@ -154,8 +154,12 @@
 <tr><td>관계 초안 수정 <small>(Draft 검토 후보)</small></td><td>❌ <small>(독립 JPA 내부 구현·HTTP 미연결)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/97">PR #97</a></td></tr>
 <tr><td>미확정 관계 초안 제거 <small>(Draft 검토 후보)</small></td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
 <tr><td>관계 확정 저장 <small>(Draft 검토 후보)</small></td><td>❌ <small>(독립 JPA 내부 구현·HTTP 미연결)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/97">PR #97</a></td></tr>
-<tr><td rowspan="5">작품 관리</td><td rowspan="5">09 작품 CRUD</td><td>작품 생성</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
-<tr><td>작품 상세 조회</td><td>❌</td></tr>
+<tr><td rowspan="9">작품 관리</td><td rowspan="9">09 작품 CRUD</td><td>작품 생성</td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/102">PR #102</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>작품 유형 선택·저장</td><td>❌ <small>(Content 통합·최신 Required CI 확인 대기)</small></td></tr>
+<tr><td>승인 장르 1~2개 선택·저장</td><td>❌ <small>(Content 통합·최신 Required CI 확인 대기)</small></td></tr>
+<tr><td>해시태그 0~10개 검증·저장</td><td>❌ <small>(Content 통합·최신 Required CI 확인 대기)</small></td></tr>
+<tr><td>작품 등록 권리 확인·기록</td><td>❌ <small>(Content 통합·최신 Required CI 확인 대기)</small></td></tr>
+<tr><td>작품 상세 조회 <small>(유형·장르·해시태그 Content 통합·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>내 작품 목록 조회</td><td>❌</td></tr>
 <tr><td>작품 기본 정보 수정</td><td>❌</td></tr>
 <tr><td>작품 삭제 요청</td><td>❌</td></tr>

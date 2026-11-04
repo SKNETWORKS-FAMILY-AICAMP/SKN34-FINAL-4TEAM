@@ -15,6 +15,7 @@ import ai.storyfork.content.publication.entity.*
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.world.entity.*
 import ai.storyfork.content.world.repository.*
+import ai.storyfork.content.work.domain.*
 
 @Service
 @ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
@@ -27,6 +28,10 @@ class WorkService(
     private val workWorlds: WorkWorldHistoryRepository,
     private val visibility: WorkPublicationHistoryRepository,
     private val policies: ForkPolicyHistoryRepository,
+    private val genreRows: GenreRepository,
+    private val workGenres: WorkGenreRepository,
+    private val hashtagRows: WorkHashtagRepository,
+    private val rightsRows: WorkRightsDeclarationRepository,
     private val episodes: EpisodeRepository,
     private val drafts: EpisodeDraftRepository,
     private val publication: ai.storyfork.content.publication.service.PublicationService,
@@ -50,12 +55,24 @@ class WorkService(
     fun publicRead(id: String): WorkResponse = view(access.published(id),true)
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
+        val registered=data.creationType!=null || data.genres.isNotEmpty() || data.hashtags.isNotEmpty() || data.rightsConfirmed!=null
+        val meta=if(registered) validateWorkMetadata(data.creationType,data.genres,data.hashtags,data.rightsConfirmed==true) else null
+        val genreIds=meta?.let {
+            val found=genreRows.findAllByNameIn(it.genres)
+            checkContent(found.size==it.genres.size,message="승인된 장르 목록에서 서로 다른 장르를 골라 주세요.")
+            found
+        }.orEmpty()
         members.ensure(owner)
         val id=contentId()
         worlds.saveAndFlush(WorldEntity(id=id,ownerId=owner,name=data.title.trim()+" 설정집"))
-        works.saveAndFlush(WorkEntity(id=id,ownerId=owner,title=data.title.trim(),description=data.summary.trim(),originKind="original",revision=0))
+        works.saveAndFlush(WorkEntity(id=id,ownerId=owner,title=data.title.trim(),description=data.summary.trim(),originKind="original",revision=0,creationType=meta?.type?.code ?: "original"))
         workWorlds.saveAndFlush(WorkWorldHistoryEntity(id=contentKey("work-world",id,"0"),workId=id,worldId=id,revisionNo=0))
         visibility.saveAndFlush(WorkPublicationHistoryEntity(id=contentKey("work-publication",id,"0"),workId=id,revisionNo=0,visibility="private"))
+        if(meta!=null) {
+            workGenres.saveAll(genreIds.map {WorkGenreEntity(workId=id,genreId=it.id)})
+            hashtagRows.saveAll(meta.hashtags.mapIndexed {i,tag->WorkHashtagEntity(id=contentKey("work-hashtag",id,i.toString()),workId=id,tag=tag,position=i)})
+            rightsRows.save(WorkRightsDeclarationEntity(id=contentId(),workId=id,memberId=owner,noticeVersion="registration-rights-v1",response="confirmed"))
+        }
         val episode=episodes.saveAndFlush(EpisodeEntity(id=episodeId(id,1),workId=id,sequence=1))
         drafts.saveAndFlush(EpisodeDraftEntity(episodeId=episode.id,title="새 회차",content="",editRevision=0))
         return read(id,owner)
@@ -88,7 +105,11 @@ class WorkService(
             val d=e?.let {drafts.findById(it.id).orElse(null)}
             DraftResponse(d?.title ?: "새 회차",d?.content ?: "",w.revision)
         }
-        return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0)
+        val row=works.findById(w.id).orElseThrow()
+        val genres=genreRows.findAllById(workGenres.findAllByWorkId(w.id).map {it.genreId}).map {it.name}.sortedBy {WORK_GENRES.indexOf(it)}
+        val tags=hashtagRows.findAllByWorkIdOrderByPosition(w.id).map {it.tag}
+        val type=CreationType.entries.first {it.code==row.creationType}.name
+        return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0,creationType=type,genres=genres,hashtags=tags)
     }
 
 }

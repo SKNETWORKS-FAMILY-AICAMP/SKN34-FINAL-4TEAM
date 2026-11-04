@@ -24,4 +24,6 @@ class WorkEntity(
     var createdAt: Instant = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS),
     @field:Column(name = "audience_rating")
     var audienceRating: String? = null,
+    @field:Column(name = "creation_type")
+    var creationType: String = "original",
 )

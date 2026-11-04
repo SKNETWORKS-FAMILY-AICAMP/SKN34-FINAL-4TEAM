@@ -52,6 +52,20 @@ class ContentBoundaryTest {
         assertTrue(Files.readString(root.resolve("episode/controller/EpisodeController.kt")).contains("@DeleteMapping"))
     }
 
+    @Test fun `work registration metadata belongs to the fresh content schema`() {
+        val migration = Path.of("src/main/resources/db/migration")
+        val work = Files.readString(migration.resolve("work/V1__work.sql"))
+        assertTrue(work.contains("creation_type text NOT NULL DEFAULT 'original'"))
+        assertTrue(work.contains("'external_derivative'"))
+        val genres = Regex("\\('genre-\\d+', 'genre-\\d+', '([^']+)'\\)").findAll(work).map { it.groupValues[1] }.toList()
+        assertEquals(ai.storyfork.content.work.domain.WORK_GENRES, genres)
+        assertTrue(work.contains("CREATE TABLE work_hashtag"))
+        assertTrue(work.contains("UNIQUE (work_id, position)"))
+        assertTrue(work.contains("member_id varchar(200) NOT NULL REFERENCES member(id)"))
+        assertFalse(Files.exists(Path.of("../core-api/src/main/kotlin/ai/storyfork/core/work")))
+        assertFalse(Files.exists(Path.of("../core-api/src/main/resources/db/migration/content")))
+    }
+
     @Test fun `fresh SQL lives in feature leaves with one global version order`() {
         val migration = Path.of("src/main/resources/db/migration")
         assertFalse(Files.exists(migration.resolve("auth")))
