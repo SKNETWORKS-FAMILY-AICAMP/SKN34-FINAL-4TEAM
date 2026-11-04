@@ -1,5 +1,7 @@
 # STORYFORK
 
+> 원본 자료 안내: 이 문서가 참조하는 기획 PDF·요구사항/WBS 엑셀 중 일부는 현재 checkout에 없습니다. 파일명·과거 근거는 보존하되 링크를 현재 열 수 있다고 보장하지 않습니다. 읽을 수 있는 최신 기능·서비스 기준은 Markdown 요구사항 색인·유스케이스·DEC-41을 따릅니다.
+
 **원작을 나만의 이야기로.**
 
 다중 AI 에이전트 기반 **독자 참여형 스토리 창작 및 피드백 자동화 플랫폼**입니다.
@@ -8,10 +10,10 @@
 AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선택·집필·검토를 돕는 도구입니다.
 
 기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 최신 MVP 결정은 [결정 기록 DEC-26~40](docs/design/decisions.md#결정-목록)을 따릅니다. 충돌하는 과거 유스케이스 세부 정책은 현행 계약이 아닙니다.
-[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 논리 명칭은 Core Service·AI Service입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
+[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 목표 백엔드는 Core·콘텐츠·운영·AI의 4개 서비스입니다([DEC-41 구조](docs/design/service-boundaries.md)). 현재 실행 앱의 물리 분리는 미적용입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
 
 > **현재 개인 브랜치 구현:** 개발 기반에 `/content` 집필 작업실과 선택적 PostgreSQL 저장·AI 제안을 추가했습니다. 작품·원고·설정집·발행·Fork 범위와 인증 계약은 [콘텐츠 통합 안내](docs/content-integration.md)를 참고하세요.
-> 나머지 아래 기능은 기획 목표입니다. 실제 로그인, 그래프 DB, 크레딧·운영 기능은 미구현이며 검증 이력과 남은 범위는 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, Required CI는 최신 PR 커밋의 결과로 판단합니다.
+> 나머지 아래 기능은 기획 목표입니다. 실제 로그인은 구현되어 있고 그래프 DB·크레딧·운영 업무는 미구현이며 검증 이력과 남은 범위는 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, Required CI는 최신 PR 커밋의 결과로 판단합니다.
 
 ## 사용자와 핵심 가치
 
@@ -39,7 +41,7 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 | 알림·운영 | 사이트 안 알림함, 정기 작업(크레딧 초기화·탈퇴 처리 등) 실행 감시, LLMOps(Langfuse 추적·평가, MVP 이후) |
 
 **AI 자율 연재**는 작품 소유자(원작·Fork 모두)가 켜면 정한 조건과 독자 반응을 바탕으로 다음 회차를 생성하고
-발행 확인을 거쳐 자동 발행하는 것으로 정했습니다. 크레딧은 작품 소유자가 부담합니다. 소유자가 정한 요일·시각에 Core API 내장 스케줄러로 실행하며, 아직 구현되지 않았습니다.
+발행 확인을 거쳐 자동 발행하는 것으로 정했습니다. 크레딧은 작품 소유자가 부담합니다. 소유자가 정한 요일·시각에 콘텐츠 서비스의 업무 실행 경계에서 실행하고 Core가 정산·알림을 담당하는 목표이며, 아직 구현되지 않았습니다.
 
 ### 주요 사용자 흐름
 
@@ -86,8 +88,8 @@ Frontend (React)
 
 | 구성 | 현재 기술 | STORYFORK 목표 책임 — 구현 범위는 콘텐츠 통합 안내 참고 |
 |---|---|---|
-| Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 독자·작가 전체 화면(작가 도구는 하위 기능). 공개 Core Service HTTP API만 호출 |
-| Core Service (`core-api` 모듈) | Kotlin·Spring Boot, JDK 21 | 작품·세계관·회차 버전·체크포인트·Fork의 정본, 권한·승인·발행의 최종 판단과 저장 |
+| Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 독자·작가 전체 화면(작가 도구는 하위 기능). 목표는 단일 진입점의 Core·콘텐츠·운영 공개 API 사용; 현재는 기존 core-api 호출 |
+| Core Service (`core-api` 모듈) | Kotlin·Spring Boot, JDK 21 | 현재 인증·콘텐츠·첨부를 함께 실행. 분리 후 회원·인증·크레딧·알림 소유 |
 | AI Service | 현재 Python·FastAPI; MVP 모델·프레임워크 미정 | 선택적 설정 추출·인물 시뮬레이션·집필 제안. 정본 직접 변경 금지 |
 | 실행 환경 | Docker Compose, Vite 개발 서버, nginx 정적 배포 이미지 | 로컬 개발 및 서비스 연결·배포 이미지 검증 |
 
@@ -99,9 +101,7 @@ Core는 기능별 `Controller → Service → Repository` 또는
 
 ### 현재 구현
 
-- `/`: 현재 `frontend/index.html`은 정적 UI 프로토타입(견본)이며 Core API를 호출하지 않습니다.
-  React 진입점(`src/main.tsx`)의 시작 화면·Core·AI 연결 상태 표시는 이 HTML에서 불러오지 않습니다.
-  프로토타입과 유스케이스의 차이는 [UI 프로토타입 대응](docs/prototype-alignment.md)을 참고하세요.
+- `/`: React 홈·검색·독서 등 데모 화면과 실제 인증·일부 콘텐츠·첨부 API 연결이 공존합니다. `/content`와 UUID 집필실의 실제 서버 경계를 구분합니다.
 - `GET /api/v1/health`: `{ "status": "up", "service": "storyfork-core-api" }`.
 - `GET /api/v1/health/ai-service`: Core가 내부 AI의 `/internal/v1/health`를 검증하여
   `{ "status": "up", "service": "storyfork-ai-service" }` 반환.
@@ -109,7 +109,18 @@ Core는 기능별 `Controller → Service → Repository` 또는
 
 Health는 OpenAI 인증·모델 접근·생성 품질 검증이 아닙니다. 모델 클라이언트를 생성하지 않으며
 실제 키 없이 실행됩니다. 이전 문서에서 제안한 LangChain·LangGraph와 현재 남아 있는 `openai-agents` 의존성은 MVP 모델·프레임워크 선정 완료를 뜻하지 않습니다.
-선택적 콘텐츠 기능은 작품·회차·설정 저장, 원고 버전·복원·공개, 제한된 Fork와 AI 제안 적용을 제공합니다. 실제 로그인, 전체 세계관 체크포인트, 일반 수정 제안 승인 체계, 크레딧·Redis·큐·worker는 미구현입니다.
+선택적 콘텐츠 기능은 작품·회차·설정 저장, 원고 버전·복원·공개, 제한된 Fork와 AI 제안 적용을 제공합니다. 전체 세계관 체크포인트, 일반 수정 제안 승인 체계, 크레딧·Redis·큐·worker는 미구현입니다.
+
+## 목표 서비스 분리 — DEC-41
+
+| 서비스 | 소유 업무 | 현재와의 차이 |
+|---|---|---|
+| Core | 회원·인증·세션·크레딧·회원 알림 | 기존 core-api 재사용, 현재 남은 콘텐츠는 이전 대상 |
+| 콘텐츠 | 작품·세계관·회차·버전·Fork·발행·독서·검색·피드백·첨부 | 별도 Kotlin/Spring Boot 앱 분리 예정 |
+| 운영 | 문의·공지·이벤트·신고·소명·운영 판단·감사·작업 감시 | 별도 Kotlin/Spring Boot 앱 분리 예정 |
+| AI | 요청된 생성·추출·시뮬레이션·검토 실행 | 기존 FastAPI 재사용 |
+
+LLMOps는 운영 영역이다. Langfuse는 도입 시 별도 제품으로 배포하며 자체 UI와 운영 화면 API 통합 중 선택은 미정이다. 정기 작업은 업무 소유 서비스가 실행하고 운영이 감시한다. 콘텐츠 제한은 콘텐츠, 회원 제한·크레딧은 Core가 적용한다. 기존 실행 명령은 아래처럼 유지하며 새 Start 서버·빈 공통 starter를 추가하지 않는다. 상세 소유권·DB·통신·이전 절차는 [서비스 구조](docs/design/service-boundaries.md)를 따른다.
 
 ## 빠른 시작
 

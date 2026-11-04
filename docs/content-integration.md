@@ -1,5 +1,7 @@
 # 개인 브랜치 콘텐츠 통합
 
+> **범위:** 아래 Core·DB·경로·검증 이력은 분리 전 실제 구현을 설명한다. [DEC-41 목표](design/service-boundaries.md)에서 콘텐츠 정본·인가·발행·첨부는 콘텐츠 서비스로 이전하고 회원·인증·크레딧·알림은 Core에 남긴다. 기존 API·Flyway·데이터는 보존하며 이 문서 갱신은 이전 실행이나 과거 검증의 재실행을 의미하지 않는다.
+
 `/content` 작업실은 기존 React DI·MVVM에서 Kotlin Core 공개 API를 호출한다. Core가 PostgreSQL 정본과 권한·버전·발행을 관리하고 AI Service에 선택적 생성을 요청한다. Auth 통합 후 비공개 콘텐츠 요청은 기존 메모리 Bearer와 변경 요청의 CSRF를 재사용한다. 다른 목업 업무 화면은 실제 저장 API로 전환하지 않았다.
 
 ## 구현 범위

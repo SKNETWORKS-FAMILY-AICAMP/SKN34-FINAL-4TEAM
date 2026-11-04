@@ -4,6 +4,12 @@ React·TypeScript·Vite·Tailwind CSS 기반의 개발 화면입니다.
 이름 기반 작품·Fork·서재는 데모 데이터입니다. `/content`, `/studio/{UUID}` 및 아래 인증·프로필·기기 관리 기능은 같은 출처의 실제 Core API를 호출합니다.
 이메일 확인 전 자동 로그인하지 않으며 운영 약관은 미정입니다. 알 수 없는 UI 경로는 `/`로 이동합니다.
 
+## 목표 서비스 경계 (DEC-41)
+
+[4개 백엔드 서비스 구조](../docs/design/service-boundaries.md)에 따라 Core는 회원·인증·크레딧·회원 알림, 별도 Kotlin/Spring Boot 콘텐츠 앱은 창작·독서·콘텐츠 정본과 인가, 별도 Kotlin/Spring Boot 운영 앱은 문의·공지·신고 사건·운영 결정·감사·작업 감시를 담당합니다. Python AI 앱은 허용 문맥에서 생성·검토를 실행하며 정본·권한·발행·정산을 확정하지 않습니다. LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합니다. 자체 UI와 운영 화면 API 통합 중 방식은 미정입니다.
+
+목표 공개 호출은 단일 진입점에서 Core·콘텐츠·운영 API로 나뉘며 브라우저가 내부 AI·DB·모델을 직접 호출하지 않습니다. **현재는 분리 전**으로 콘텐츠·첨부도 `core-api` 안에 있습니다. 아래 Core endpoint·쿠키·CSRF·실행 명령은 현행 계약이며 새 서비스 라우트·인증 연동·포트·실행 명령은 아직 없습니다. 운영·알림 등의 데모 화면을 서버 구현 완료로 간주하지 않습니다.
+
 ## 실행
 
 Node **24.x**, pnpm **11.22.x** (`packageManager: pnpm@11.22.0`)가 필요합니다.
@@ -25,7 +31,7 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
 ## 실제 호출 흐름
 
-`App → CoreApiConnectionStatus → useCoreApiHealth → DI 외부 함수 → Fetch·Zod → 공개 Core API`.
+`/status`의 연결 확인은 `App → CoreApiConnectionStatus → useCoreApiHealth → DI 외부 함수 → Fetch·Zod → 공개 Core API`입니다. 해당 화면의 Health 전용 안내가 앱 전체의 구현 상태를 뜻하지는 않습니다.
 
 - Core: `GET /api/v1/health`, `storyfork-core-api`와 `up` 검증.
 - AI: `GET /api/v1/health/ai-service`, `storyfork-ai-service`와 `up` 검증.

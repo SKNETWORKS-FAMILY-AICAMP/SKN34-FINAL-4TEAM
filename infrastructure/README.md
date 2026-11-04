@@ -2,6 +2,16 @@
 
 화면 데모와 Core·AI Health, 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공합니다. 공통 구성의 `CONTENT_ENABLED`는 기본 `false`이며, 명시적으로 켜면 Auth와 같은 PostgreSQL·자격증명을 사용해 콘텐츠 저장을 활성화합니다. 별도 콘텐츠 overlay는 없습니다. [콘텐츠 실행·인증 안내](../docs/content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴는 미구현이며 운영 가입용이 아닙니다.
 
+## 목표 서비스와 현행 실행의 구분 (DEC-41)
+
+[4개 백엔드 서비스 구조](../docs/design/service-boundaries.md)의 목표는 Core(회원·인증·크레딧·회원 알림), 별도 Kotlin/Spring Boot 콘텐츠 앱(창작·독서 정본·콘텐츠 인가·발행·첨부), 별도 Kotlin/Spring Boot 운영 앱(문의·공지·신고 사건·운영 결정·감사·작업 감시), 기존 Python AI 앱(모델 실행)입니다. 운영은 제한 적용을 Core/콘텐츠 소유 서비스에 요청하며 정기 작업의 실제 실행도 업무 소유 서비스에 둡니다.
+
+**아래 Compose·이미지·CI/CD·네이티브 명령은 분리 전 현행 구성입니다.** 실행 앱은 web·core-api·ai-service 세 개이며 콘텐츠·첨부는 아직 core-api 안에 있습니다. 독립 콘텐츠·운영 앱의 경로·포트·이미지·실행 명령은 아직 없고 이 문서에서 만들지 않습니다. 목표의 4개 백엔드와 현행의 web 포함 세 앱을 혼동하지 않습니다. 기존 공개 URL·쿠키·CSRF·데이터·Flyway 이력은 이전 계약 확정 전 보존합니다.
+
+분리 시 기존 Compose와 CI/CD를 확장하되 별도 Start 서버나 공통 starter를 선제 추가하지 않습니다. PostgreSQL 서버 공동 사용·서비스별 데이터 소유 분리를 출발안으로 하며 스키마·계정·migration 전환과 서비스 간 인증·알림·정산·실패 복구는 미정입니다. 현재 Auth·Content가 같은 DB·자격증명을 쓰는 설정을 분리 완료로 표현하지 않습니다.
+
+LLMOps는 운영 영역입니다. Langfuse는 MVP 이후 도입 시 별도 제품으로 배포하는 방향이며 자체 UI 또는 운영 화면 API 통합은 미정입니다. Spring 앱에 전체 제품 기능을 재구현하지 않으며 현재 Compose·CD에 Langfuse가 포함된 것은 아닙니다.
+
 [`docker-compose.yaml`](docker-compose.yaml)은 세 앱의 공통 환경·내부 포트만 정의하는 base입니다. 이미지·빌드 선택이 없으므로 **단독 실행하지 않고** 아래 파일 중 하나와 순서대로 병합합니다.
 
 | 항목 | base + [`docker-compose.prod.yaml`](docker-compose.prod.yaml) | base + [`docker-compose.dev.yaml`](docker-compose.dev.yaml) |
@@ -21,7 +31,7 @@ Browser → web nginx (정적 파일)
         → /api → core-api:8080 → ai-service:8000
 ```
 
-브라우저는 공개 Core API만 사용하고 AI 내부 DNS를 직접 호출하지 않습니다.
+현재 브라우저는 공개 Core API만 사용하고 AI 내부 DNS를 직접 호출하지 않습니다. 목표는 기존 단일 공개 진입점을 확장해 Core·콘텐츠·운영 API로 라우팅하며 Core를 모든 요청의 중앙 프록시로 만들지 않는 것입니다. 실제 새 라우트와 내부 호출 계약은 후속 설계합니다.
 API 404는 SPA HTML로 바꾸지 않으며 알 수 없는 UI deep link만 홈 화면으로 이동합니다.
 
 ## 시작과 설정

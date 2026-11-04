@@ -1,10 +1,10 @@
-# Core 업무 ERD — AI 작업·대화·시뮬레이션
+# 콘텐츠 업무 ERD — AI 작업·대화·시뮬레이션
 
-> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
+> **전체 서비스 논리 후보 · 분리 구현 전.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
 근거: [UC-04](../../../usecase-spec/UC-04.md), [UC-09](../../../usecase-spec/UC-09.md), [UC-11](../../../usecase-spec/UC-11.md), [UC-12](../../../usecase-spec/UC-12.md), [UC-25](../../../usecase-spec/UC-25.md), [UC-26](../../../usecase-spec/UC-26.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-소유 후보 **23개**, 다른 영역 참조 **10개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
+이 뷰의 중심 후보 **23개**, 다른 영역 참조 **10개**입니다. 이 뷰의 중심 테이블 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
@@ -329,43 +329,49 @@ erDiagram
     }
 ```
 
+## 정본 소유와 서비스 경계
+
+[DEC-41 정본 소유·현행 구현과 논리 참조 해석](../README.md#dec-41-적용과-현재-구현)을 따릅니다. `core/`는 기존 문서 경로이며 각 표의 소유 구분이 목표 책임입니다. 그림의 엔티티·컬럼·관계는 그대로 보존하며 회원 인증 비밀을 다른 서비스에 복제하지 않습니다.
+
+콘텐츠 대화·시뮬레이션·입력·근거·제안·채택·반영은 콘텐츠 업무입니다. `AI_JOB`·`AI_MODEL_CALL`의 운영 검사/평가 기록은 운영 요청 업무로 구분하며 단일 Core 작업 저장소나 동일 테이블 공유 writer를 확정하지 않습니다. 목적별 물리 분리·AI 실행 상태와 업무 상태의 전달/보관 계약은 후속 설계입니다. AI(Python)는 실행, Core는 최종 정산을 담당합니다. Langfuse는 운영 영역의 별도 제품 도입 방향이며 자체 UI/API 통합은 미정입니다.
+
 ## 이 그림의 테이블
 
-| 소유/참조 | 테이블 | 범위 |
-|---|---|---|
-| 소유 | [`CHAT_SESSION`](../tables.md#chat-session) | MVP |
-| 소유 | [`CHAT_MESSAGE`](../tables.md#chat-message) | MVP |
-| 소유 | [`AI_JOB`](../tables.md#ai-job) | MVP |
-| 소유 | [`AI_MODEL_CALL`](../tables.md#ai-model-call) | MVP |
-| 소유 | [`AI_INPUT_SNAPSHOT`](../tables.md#ai-input-snapshot) | MVP |
-| 소유 | [`AI_PROPOSAL`](../tables.md#ai-proposal) | MVP |
-| 소유 | [`AI_EVIDENCE`](../tables.md#ai-evidence) | MVP |
-| 소유 | [`PROPOSAL_EVIDENCE`](../tables.md#proposal-evidence) | MVP |
-| 소유 | [`PROPOSAL_DECISION`](../tables.md#proposal-decision) | MVP |
-| 소유 | [`PROPOSAL_APPLICATION`](../tables.md#proposal-application) | MVP |
-| 소유 | [`PROPOSAL_EPISODE_CHANGE`](../tables.md#proposal-episode-change) | MVP |
-| 소유 | [`PROPOSAL_SETTING_CHANGE`](../tables.md#proposal-setting-change) | MVP |
-| 소유 | [`PROPOSAL_GRAPH_CHANGE`](../tables.md#proposal-graph-change) | MVP |
-| 소유 | [`PROPOSAL_IMAGE`](../tables.md#proposal-image) | MVP 이후 |
-| 소유 | [`SIMULATION_RUN`](../tables.md#simulation-run) | MVP |
-| 소유 | [`SIMULATION_PARTICIPANT`](../tables.md#simulation-participant) | MVP |
-| 소유 | [`SIMULATION_CANDIDATE`](../tables.md#simulation-candidate) | MVP |
-| 소유 | [`SIMULATION_RECORD`](../tables.md#simulation-record) | MVP |
-| 소유 | [`SIMULATION_RECORD_PARTICIPANT`](../tables.md#simulation-record-participant) | MVP |
-| 소유 | [`SIMULATION_CAUSAL_LINK`](../tables.md#simulation-causal-link) | MVP |
-| 소유 | [`VERIFICATION_RESULT`](../tables.md#verification-result) | MVP 이후 |
-| 소유 | [`VERIFICATION_EVIDENCE`](../tables.md#verification-evidence) | MVP 이후 |
-| 소유 | [`CHARACTER_CHAT`](../tables.md#character-chat) | MVP 이후 |
-| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP |
-| 다른 영역 참조 | [`SETTING_DOCUMENT`](../tables.md#setting-document) | MVP |
-| 다른 영역 참조 | [`SETTING_VERSION`](../tables.md#setting-version) | MVP |
-| 다른 영역 참조 | [`WORK`](../tables.md#work) | MVP |
-| 다른 영역 참조 | [`EPISODE`](../tables.md#episode) | MVP |
-| 다른 영역 참조 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP |
-| 다른 영역 참조 | [`MANUSCRIPT_ASSET`](../tables.md#manuscript-asset) | 전체·범위확인 |
-| 다른 영역 참조 | [`CHECKPOINT`](../tables.md#checkpoint) | MVP |
-| 다른 영역 참조 | [`FORK`](../tables.md#fork) | MVP |
-| 다른 영역 참조 | [`WORK_AUTOMATION_VERSION`](../tables.md#work-automation-version) | MVP 이후 |
+| 뷰 구분 | 테이블 | 범위 | 목표 정본 소유 |
+|---|---|---|---|
+| 중심 후보 | [`CHAT_SESSION`](../tables.md#chat-session) | MVP | 콘텐츠 |
+| 중심 후보 | [`CHAT_MESSAGE`](../tables.md#chat-message) | MVP | 콘텐츠 |
+| 중심 후보 | [`AI_JOB`](../tables.md#ai-job) | MVP | 요청 업무 소유 서비스 (콘텐츠/운영) |
+| 중심 후보 | [`AI_MODEL_CALL`](../tables.md#ai-model-call) | MVP | 요청 업무 소유 서비스 (콘텐츠/운영) |
+| 중심 후보 | [`AI_INPUT_SNAPSHOT`](../tables.md#ai-input-snapshot) | MVP | 콘텐츠 |
+| 중심 후보 | [`AI_PROPOSAL`](../tables.md#ai-proposal) | MVP | 콘텐츠 |
+| 중심 후보 | [`AI_EVIDENCE`](../tables.md#ai-evidence) | MVP | 콘텐츠 |
+| 중심 후보 | [`PROPOSAL_EVIDENCE`](../tables.md#proposal-evidence) | MVP | 콘텐츠 |
+| 중심 후보 | [`PROPOSAL_DECISION`](../tables.md#proposal-decision) | MVP | 콘텐츠 |
+| 중심 후보 | [`PROPOSAL_APPLICATION`](../tables.md#proposal-application) | MVP | 콘텐츠 |
+| 중심 후보 | [`PROPOSAL_EPISODE_CHANGE`](../tables.md#proposal-episode-change) | MVP | 콘텐츠 |
+| 중심 후보 | [`PROPOSAL_SETTING_CHANGE`](../tables.md#proposal-setting-change) | MVP | 콘텐츠 |
+| 중심 후보 | [`PROPOSAL_GRAPH_CHANGE`](../tables.md#proposal-graph-change) | MVP | 콘텐츠 |
+| 중심 후보 | [`PROPOSAL_IMAGE`](../tables.md#proposal-image) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`SIMULATION_RUN`](../tables.md#simulation-run) | MVP | 콘텐츠 |
+| 중심 후보 | [`SIMULATION_PARTICIPANT`](../tables.md#simulation-participant) | MVP | 콘텐츠 |
+| 중심 후보 | [`SIMULATION_CANDIDATE`](../tables.md#simulation-candidate) | MVP | 콘텐츠 |
+| 중심 후보 | [`SIMULATION_RECORD`](../tables.md#simulation-record) | MVP | 콘텐츠 |
+| 중심 후보 | [`SIMULATION_RECORD_PARTICIPANT`](../tables.md#simulation-record-participant) | MVP | 콘텐츠 |
+| 중심 후보 | [`SIMULATION_CAUSAL_LINK`](../tables.md#simulation-causal-link) | MVP | 콘텐츠 |
+| 중심 후보 | [`VERIFICATION_RESULT`](../tables.md#verification-result) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`VERIFICATION_EVIDENCE`](../tables.md#verification-evidence) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`CHARACTER_CHAT`](../tables.md#character-chat) | MVP 이후 | 콘텐츠 |
+| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP | Core |
+| 다른 영역 참조 | [`SETTING_DOCUMENT`](../tables.md#setting-document) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`SETTING_VERSION`](../tables.md#setting-version) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`WORK`](../tables.md#work) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`EPISODE`](../tables.md#episode) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`EPISODE_VERSION`](../tables.md#episode-version) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`MANUSCRIPT_ASSET`](../tables.md#manuscript-asset) | 전체·범위확인 | 콘텐츠 |
+| 다른 영역 참조 | [`CHECKPOINT`](../tables.md#checkpoint) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`FORK`](../tables.md#fork) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`WORK_AUTOMATION_VERSION`](../tables.md#work-automation-version) | MVP 이후 | 콘텐츠 |
 
 ## 데이터 역할과 무결성
 
@@ -378,6 +384,6 @@ erDiagram
 - 독자 검증은 제출 전 본인만 조회하고 제보시 결과·복수 근거를 별도 복사합니다. 개인 기록 삭제가 제출 증거를 삭제하지 않습니다. 신뢰도는 독자 오류검증 결과에만 사용하고 일반 답변에는 확대하지 않습니다.
 - 일러스트는 MVP 이후입니다. 생성제안의 파일참조와 저장원고 이미지참조는 수명이 다릅니다. 제안을 삭제해도 저장 버전의 이미지는 보존합니다.
 - 캐릭터 챗은 MVP 이후이며 각 메시지의 연결 작업/스냅샷으로 당시 회차 기준을 보존합니다. 보관기간·기준 선택 정책은 UC-25의 미정 그대로입니다.
-- Saver의 thread와 Langfuse의 trace/prompt 참조는 외부 키입니다. 업무 FK·인증·공개권한이 아니며 외부 라이브러리 테이블을 Core에 복제하지 않습니다. 정산은 [크레딧](credit.md), 자동 연재는 [자동 처리](automation.md), 경고·알림·정기 작업은 [운영](operations.md)에 있습니다.
+- Saver의 thread와 Langfuse의 trace/prompt 참조는 외부 키입니다. 업무 FK·인증·공개권한이 아니며 외부 제품·라이브러리 테이블을 업무 서비스에 복제하지 않습니다. 정산은 [크레딧](credit.md), 자동 연재는 [자동 처리](automation.md), 경고·알림·정기 작업은 [운영](operations.md)에 있습니다.
 
 각 테이블의 PK·FK·고유키·조건부 필수값과 예시는 [전체 테이블 가이드](../tables.md)에 있습니다. 그림만으로 권한·동시성·삭제 안전성이 보장되지 않습니다.
