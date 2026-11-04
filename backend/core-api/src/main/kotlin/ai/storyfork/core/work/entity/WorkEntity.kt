@@ -18,6 +18,8 @@ class WorkEntity(
     var originKind: String = "",
     @field:Column(name = "revision")
     var revision: Int = 0,
+    @field:Column(name = "deleted_episode_revision")
+    var deletedEpisodeRevision: Int = 0,
     @field:Column(name = "created_at")
     var createdAt: Instant = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS),
     @field:Column(name = "audience_rating")

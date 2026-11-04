@@ -11,4 +11,6 @@ export type StoryContext = {title:string;summary:string;basisEpisode:number;char
 export type Version = Draft & { id: string; episode: number; savedAt: string }
 export type History = { versions: Version[]; proposals: Proposal[] }
 
-export type WritingEpisode = {number:number;draft:Draft;versions:Version[];publishedVersionId:string|null;inherited:boolean;updatedAt:string|null;checkpointStatus:string}
+export type WritingEpisode = {hasDraft?:boolean;number:number;draft:Draft;versions:Version[];publishedVersionId:string|null;inherited:boolean;updatedAt:string|null;checkpointStatus:string}
+
+export type EpisodeOrderScope = {number:number;candidateNumbers:number[];reasons:string[];executable:false}

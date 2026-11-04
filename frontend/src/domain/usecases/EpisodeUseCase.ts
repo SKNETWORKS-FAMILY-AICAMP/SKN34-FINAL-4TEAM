@@ -4,6 +4,9 @@ import type { Draft, SettingInput } from '../entities/content'
 export class EpisodeUseCase {
   private readonly repository: EpisodeRepository
   constructor(repository: EpisodeRepository) { this.repository = repository }
+  orderScope(id:string,number:number,signal?:AbortSignal) {return this.repository.orderScope(id,number,signal)}
+  deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteDraft(id,number,revision,signal)}
+  deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteEpisode(id,number,revision,signal)}
   writingList(id:string,signal?:AbortSignal) {return this.repository.writingList(id,signal)}
   createEpisode(id:string,title:string,signal?:AbortSignal) {
     if(!title.trim() || title.length>120) return Promise.reject(new Error('회차 제목을 120자 이내로 입력해 주세요.'))

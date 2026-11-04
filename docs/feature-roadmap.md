@@ -974,3 +974,5 @@
 | 84 | 원고 가져오기 정책과 AI 처리 이용 권한 안내 개별 확인 후 계속 | [WritingPolicyPage.tsx:38](../frontend/src/presentation/features/fork/view/WritingPolicyPage.tsx#L38) |
 | 85 | 답변 대기 문의·접수 신고·작가 검토 대기 수 조회 | [AdminPage.tsx:126](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L126) |
 | 85 | 수집 자료 출처·수량·형식·사용처 명세 조회 | [AdminPage.tsx:130](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L130) |
+
+<!-- 회차 CRUD 10: 순서 후보 범위 조회·초안 물리 삭제·참조 없는 마지막 회차 삭제를 로컬 구현. 정책 초안: episode-deletion-policy-draft.md. 미커밋·미병합·Required CI 미확인이므로 세 행 모두 ❌ 유지. 실제 순서 변경은 범위 밖. -->

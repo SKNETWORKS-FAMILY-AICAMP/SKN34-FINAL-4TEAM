@@ -6,7 +6,7 @@ import { authVersion, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
-const writing = z.object({number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
+const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
 const episode = z.object({number:z.number().int().positive(),version:z.number().int().positive(),title:z.string(),body:z.string(),inherited:z.boolean()})
 const source = z.object({workId:z.string(),title:z.string(),episode:z.number().int(),version:z.number().int(),direction:z.string()})
 const work = z.object({id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft})
@@ -39,10 +39,14 @@ export class HttpEpisodeRepository implements EpisodeRepository {
       const error = z.object({detail:z.string()}).safeParse(value)
       throw new Error(error.success ? error.data.detail : '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.')
     }
+    if(method==='DELETE' && response.status!==204) throw new Error('삭제 완료 응답을 확인할 수 없어요. 다시 불러와 상태를 확인해 주세요.')
     const parsed = schema.safeParse(value)
     if (!parsed.success) throw new Error('서버 응답 형식을 확인할 수 없어요.')
     return parsed.data
   }
+  orderScope(id:string,number:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/order-scope`,z.object({number:z.number().int(),candidateNumbers:z.array(z.number().int()),reasons:z.array(z.string()),executable:z.literal(false)}),'GET',undefined,signal)}
+  deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/draft?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
+  deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   writingList(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,z.array(writing),'GET',undefined,signal)}
   createEpisode(id:string,title:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,writing,'POST',{title},signal)}
   writeEpisode(id:string,number:number,value:Draft,version:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/${version?'versions':'draft'}`,writing,version?'POST':'PUT',value,signal)}

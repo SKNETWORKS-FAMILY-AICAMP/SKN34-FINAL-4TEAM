@@ -4,10 +4,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '2.4.10'
     id 'org.jetbrains.kotlin.plugin.spring' version '2.4.10'
     id 'org.jetbrains.kotlin.plugin.jpa' version '2.4.10'
-<<<<<<< HEAD
     id 'org.jetbrains.kotlin.plugin.allopen' version '2.4.10'
-=======
->>>>>>> a6ce59f1fdc544b3cd70213af22d250c1cf23cfb
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -54,15 +51,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-<<<<<<< HEAD
-=======
     implementation('software.amazon.awssdk:s3:2.57.8') {
         exclude group: 'software.amazon.awssdk', module: 'apache-client'
         exclude group: 'software.amazon.awssdk', module: 'apache5-client'
         exclude group: 'software.amazon.awssdk', module: 'netty-nio-client'
     }
     implementation 'software.amazon.awssdk:url-connection-client:2.57.8'
->>>>>>> a6ce59f1fdc544b3cd70213af22d250c1cf23cfb
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql'

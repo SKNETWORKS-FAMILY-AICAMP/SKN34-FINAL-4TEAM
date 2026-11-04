@@ -5,7 +5,7 @@ import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
 import {imageMarker,manuscriptText} from '../../../../domain/entities/media'
 
-type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'>
+type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'>
 export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
@@ -61,12 +61,34 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     return ()=>window.clearTimeout(timer)
   },[draft,active,busy,error,dirty])
   const mayLeave=()=>!pending.current&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
+  const remove=(whole:boolean)=>{
+    if(!active||pending.current||active.inherited)return Promise.resolve(false)
+    if(!window.confirm(whole?'회차를 DB에서 삭제할까요? 참조 없는 마지막 회차만 삭제하며 복구할 수 없어요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return Promise.resolve(false)
+    return run(async signal=>{
+      const removeAction=whole?api.deleteEpisode.bind(api):api.deleteDraft.bind(api)
+      await removeAction(id,active.number,active.draft.revision,signal)
+      if(signal.aborted)return
+      // The deletion is committed: never retain a dirty buffer that could auto-save it back.
+      setActive(null);put({title:'',body:'',revision:0});setEpisodes([])
+      const rows=await api.writingList(id,signal)
+      if(signal.aborted)return
+      setEpisodes(rows)
+      const next=rows.find(e=>e.number===active.number)??rows[0]
+      if(next)install(next)
+      setNotice(whole?'회차를 삭제했어요.':'작업 초안을 삭제했어요. 새로 입력하면 새 초안으로 저장돼요.')
+    })
+  }
   return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
-<<<<<<< HEAD
+    deleteDraft:()=>remove(false),
+    deleteEpisode:()=>remove(true),
+    checkOrder:()=>run(async signal=>{
+      if(!active)return
+      const scope=await api.orderScope(id,active.number,signal)
+      if(!signal.aborted)setNotice(`검토 후보 위치: ${scope.candidateNumbers.join(', ')||'없음'}. ${scope.reasons.join(' ')}`)
+    }),
     select:(e:WritingEpisode)=>{if(!mayLeave())return false;install(e);return true},
-=======
     addImage:(file:File,start:number,end:number)=>run(async signal=>{
       if(!active||active.inherited)throw new Error('편집 가능한 내 회차를 선택해 주세요.')
       const sent=current.current
@@ -84,10 +106,9 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       downloads.current.set(url,setTimeout(()=>{URL.revokeObjectURL(url);downloads.current.delete(url)},1000))
       setNotice('TXT는 이미지와 참조 ID를 제외한 텍스트만 내보내요.')
     },
-    select:(e:WritingEpisode)=>{if(mayLeave())install(e)},
->>>>>>> a6ce59f1fdc544b3cd70213af22d250c1cf23cfb
+
     create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
-    reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);setReady(true)}})},
+    reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})},
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},
     publish:(versionId:string,rights:boolean)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){merge(e);put({...current.current,revision:e.draft.revision});setNotice('선택한 저장 버전을 공개했어요.')}}),
   }

@@ -11,4 +11,6 @@ class EpisodeEntity(
     var workId: String = "",
     @field:Column(name = "sequence")
     var sequence: Int = 0,
+    @field:Column(name = "draft_revision_floor")
+    var draftRevisionFloor: Int = -1,
 )

@@ -40,7 +40,7 @@ class ContentBoundaryTest {
         assertTrue(Files.exists(root.resolve("content/migration/V5__ImportLegacyContent.kt")))
     }
 
-    @Test fun `episode list keeps the existing JSON array and deletion remains deferred`() {
+    @Test fun `episode list keeps the existing JSON array and deletion endpoints preserve resource boundaries`() {
         val mapper=tools.jackson.databind.json.JsonMapper.builder().findAndAddModules().build()
         val dto=ai.storyfork.core.episode.service.dto.EpisodeListResponse(listOf(
             ai.storyfork.core.episode.service.dto.EpisodeResponse(1,ai.storyfork.core.episode.service.dto.DraftResponse("제목","원고",2),emptyList(),null,false,null)))
@@ -49,7 +49,7 @@ class ContentBoundaryTest {
         assertEquals("원고",value[0].path("draft").path("body").asText())
         assertEquals(2,value[0].path("draft").path("revision").asInt())
         assertEquals("content_only",value[0].path("checkpointStatus").asText())
-        assertFalse(Files.readString(root.resolve("episode/controller/EpisodeController.kt")).contains("@DeleteMapping"))
+        assertTrue(Files.readString(root.resolve("episode/controller/EpisodeController.kt")).contains("@DeleteMapping"))
     }
 
     @Test fun `historical SQL lives in explicit domain locations without deleting versions`() {

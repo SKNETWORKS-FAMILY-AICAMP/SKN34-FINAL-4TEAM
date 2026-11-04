@@ -45,6 +45,12 @@ export function WritingStudio({id}:{id:string}) {
           <button className="btn sm" disabled={vm.busy} onClick={vm.downloadText}>TXT 내보내기 · 텍스트 전용</button>
           {vm.busy&&<button className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
           <details><summary>현재 원고 이미지 미리보기</summary><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></details>
+          <section aria-label="회차 관리">
+            <button className="btn sm" disabled={vm.busy} onClick={()=>void vm.checkOrder()}>순서 변경 가능 범위 확인</button>
+            <button className="btn sm" disabled={vm.busy||active.inherited||active.hasDraft===false} onClick={()=>void vm.deleteDraft()}>초안 삭제</button>
+            <button className="btn sm" disabled={vm.busy||active.inherited} onClick={()=>void vm.deleteEpisode()}>회차 삭제</button>
+            {active.hasDraft===false&&<p role="status">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 저장 버전은 아래에서 복원할 수 있어요.</p>}
+          </section>
           <section aria-label="저장 버전과 발행" className="writing-history">
             <h2>저장 버전</h2>
             {!active.versions.length?<p>아직 저장한 버전이 없어요. 상단의 버전 저장을 눌러 원고를 남겨 주세요.</p>:<>

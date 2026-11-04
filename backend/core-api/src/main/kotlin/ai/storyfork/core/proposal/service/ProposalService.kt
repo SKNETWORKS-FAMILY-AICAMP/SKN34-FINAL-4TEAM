@@ -1,6 +1,7 @@
 package ai.storyfork.core.proposal.service
 
 import ai.storyfork.core._common.exception.*
+import ai.storyfork.core.proposal.domain.ProposalTextPolicy
 import ai.storyfork.core._common.helper.*
 import org.springframework.stereotype.Service
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -118,6 +119,7 @@ class ProposalService(
         checkContent(context.read(id,owner,ContextRequest(p.context.basisEpisode,p.prompt,p.context.character))==p.context,409,"설정 문맥이 변경됐어요. 최신 문맥으로 검토해 주세요.")
         val row=episodes.findByWorkIdAndSequence(id,target) ?: throw ContentFailure(409,"작성 회차를 확인할 수 없어요.")
         val draft=drafts.findById(row.id).orElseThrow()
+        ProposalTextPolicy.validate(p.text)
         val body=(draft.content+"\n\n"+p.text).trim()
         checkContent(body.length<=40000,message="회차 원고는 40,000자까지 저장할 수 있어요.")
         val saved=savedVersions.saveCurrent(id,owner,DraftRequest(draft.title,body,expected))
