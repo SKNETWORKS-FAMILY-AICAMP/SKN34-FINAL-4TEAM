@@ -1,7 +1,7 @@
 # Optional LOCAL MinIO overlay: combine with docker-compose.yaml and docker-compose.prod.yaml.
 # Production uses AWS S3, not this service. Create the private bucket before uploading.
 services:
-  core-api:
+  content-service:
     depends_on:
       minio:
         condition: service_healthy

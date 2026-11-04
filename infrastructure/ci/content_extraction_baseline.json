@@ -1,0 +1,248 @@
+{
+  "baseline_head": "7f8fecdba30637f5242edc0b5f4f6bd68ad7d7f8",
+  "sql_sha256": {
+    "db/migration/content/V1__content_work.sql": "7e40041946282c893a69006cea0caf23aa83a40a66866706c4e0b9633ca2db91",
+    "db/migration/content/V2__relational_content.sql": "ca023c58ff882fed80d23749e7014bf85115fb28903b9e135404d0b93a7fcc50",
+    "db/migration/content/V3__current_erd_relations.sql": "f300968d31abd6c93d7745521525f5cbb4b7e36bc57767b43805a61ba8c41b3e",
+    "db/migration/content/V4__preserve_setting_scope_order.sql": "96d7c744a4c3dd3d461c74e2c1021802e57cdace424e039f40cb1389d6e15e01",
+    "db/migration/content/V6__protect_content_history.sql": "bd4de1763ae673b5dae81591f32936efe14f8a9932ff28f6876221d3d6a5e1ee",
+    "db/migration/content/V7__preserve_legacy_creation_times.sql": "d5a5ceac9ced6cbb3069cbccdabb4194c52fedd4f5dab0884e90097d04931d80",
+    "db/migration/content/V8__validate_setting_visibility_range.sql": "a9adcbff41fb54709e99c1d541062296a8ede4b205251e8ee575d4e74a54d9aa",
+    "db/migration/content/V9__episode_draft_revision_floor.sql": "acd0274dce6f9f5de7e63b4efe4c175a6fb425c3bffbafda373900a097ad9b0d",
+    "db/migration/contentimage/V1__content_image.sql": "dff5d9d0983913a4fce88493c15f854cc3f2c73a7c4e16ce5b67f0c5199c50d4",
+    "db/migration/settingattachment/V1__setting_attachment.sql": "8e0a1b04ebd7e5e279ca2f49c9f037144c083b8bd43e8fe00c221b78affcef2e",
+    "db/migration/worldstudio/V1__independent_worldstudio.sql": "3f0689a58a02a3d7031526dee50619dbe7bdfd5029da03af10020a11d14e0a2a"
+  },
+  "controller_mappings": {
+    "work/controller/WorkController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1\""
+      ],
+      [
+        "GetMapping",
+        "\"/works\""
+      ],
+      [
+        "PostMapping",
+        "\"/works\") @ResponseStatus(HttpStatus.CREATED"
+      ],
+      [
+        "GetMapping",
+        "\"/works/{id}\""
+      ],
+      [
+        "PutMapping",
+        "\"/works/{id}\""
+      ],
+      [
+        "GetMapping",
+        "\"/works/{id}/history\""
+      ],
+      [
+        "PutMapping",
+        "\"/works/{id}/policy\""
+      ],
+      [
+        "GetMapping",
+        "\"/public/works\""
+      ],
+      [
+        "GetMapping",
+        "\"/public/works/{id}\""
+      ]
+    ],
+    "episode/controller/EpisodeController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1\""
+      ],
+      [
+        "GetMapping",
+        "\"/works/{id}/episodes\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/episodes\") @ResponseStatus(HttpStatus.CREATED"
+      ],
+      [
+        "GetMapping",
+        "\"/works/{id}/episodes/{number}\""
+      ],
+      [
+        "PutMapping",
+        "\"/works/{id}/episodes/{number}/draft\""
+      ],
+      [
+        "GetMapping",
+        "\"/works/{id}/episodes/{number}/order-scope\""
+      ],
+      [
+        "DeleteMapping",
+        "\"/works/{id}/episodes/{number}/draft\") @ResponseStatus(HttpStatus.NO_CONTENT"
+      ],
+      [
+        "DeleteMapping",
+        "\"/works/{id}/episodes/{number}\") @ResponseStatus(HttpStatus.NO_CONTENT"
+      ]
+    ],
+    "episode_version/controller/EpisodeVersionController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/episodes/{number}/versions\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/episodes/{number}/restore\""
+      ],
+      [
+        "PutMapping",
+        "\"/works/{id}/draft\""
+      ]
+    ],
+    "publication/controller/PublicationController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/episodes/{number}/publish\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/publish\""
+      ]
+    ],
+    "world/controller/WorldController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1\""
+      ],
+      [
+        "GetMapping",
+        "\"/works/{id}/world\""
+      ],
+      [
+        "PutMapping",
+        "\"/works/{id}/settings/{sid}/draft\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/settings/{sid}/commit\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/settings/{sid}/revert\""
+      ]
+    ],
+    "fork/controller/ForkController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/forks\") @ResponseStatus(HttpStatus.CREATED"
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/world/changes\""
+      ]
+    ],
+    "proposal/controller/ProposalController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/proposals\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/proposals/{pid}/accept\""
+      ]
+    ],
+    "context/controller/ContextController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1\""
+      ],
+      [
+        "GetMapping",
+        "\"/works/{id}/context\""
+      ],
+      [
+        "GetMapping",
+        "\"/public/works/{id}/context\""
+      ]
+    ],
+    "attachment/controller/EpisodeImageController.kt": [
+      [
+        "PostMapping",
+        "\"/api/v1/works/{work}/episodes/{number}/images\", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]"
+      ],
+      [
+        "GetMapping",
+        "\"/api/v1/works/{work}/episodes/{number}/images/{id}/content\""
+      ],
+      [
+        "GetMapping",
+        "\"/api/v1/public/works/{work}/episodes/{number}/images/{id}/content\""
+      ]
+    ],
+    "attachment/controller/SettingAttachmentController.kt": [
+      [
+        "RequestMapping",
+        "\"/api/v1/works/{workId}/settings/{settingId}/attachments\""
+      ],
+      [
+        "PostMapping",
+        "consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]"
+      ],
+      [
+        "GetMapping",
+        "\"/{attachmentId}\""
+      ],
+      [
+        "GetMapping",
+        "\"/{attachmentId}/content\""
+      ],
+      [
+        "PutMapping",
+        "\"/{attachmentId}\", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]"
+      ],
+      [
+        "DeleteMapping",
+        "\"/{attachmentId}\""
+      ]
+    ],
+    "attachment/controller/WorkCoverController.kt": [
+      [
+        "GetMapping",
+        "\"/api/v1/works/{work}/cover\""
+      ],
+      [
+        "PutMapping",
+        "\"/api/v1/works/{work}/cover\", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]"
+      ],
+      [
+        "DeleteMapping",
+        "\"/api/v1/works/{work}/cover\""
+      ],
+      [
+        "GetMapping",
+        "\"/api/v1/works/{work}/cover/content\""
+      ],
+      [
+        "GetMapping",
+        "\"/api/v1/public/works/{work}/cover/content\""
+      ]
+    ]
+  }
+}
