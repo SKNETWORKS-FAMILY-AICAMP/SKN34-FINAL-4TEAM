@@ -26,6 +26,7 @@ class WorkService(
     private val members: ContentMemberService,
     private val works: WorkRepository,
     private val worlds: WorldRepository,
+    private val settings: SettingDocumentRepository,
     private val workWorlds: WorkWorldHistoryRepository,
     private val visibility: WorkPublicationHistoryRepository,
     private val policies: ForkPolicyHistoryRepository,
@@ -86,10 +87,11 @@ class WorkService(
         works.saveAndFlush(row)
         return read(id,owner)
     }
-    /** 발행·저장 버전·세계관 설정 등 이력이 걸린 작품은 DB 제약으로 막히며 전체를 되돌리고 409를 반환한다. */
+    /** 세계관 설정이 있으면 삭제 전에 409를 반환하고, 발행·저장 버전 등 참조 충돌은 전체를 되돌린다. */
     fun delete(id: String,owner: String) {
         val w=access.own(id,owner)
         checkContent(w.source==null,409,"분기 작품은 아직 삭제할 수 없어요.")
+        checkContent(!settings.existsByWorldId(w.worldId),409,"세계관 설정이 있는 작품은 아직 삭제할 수 없어요.")
         val rows=episodes.findAllByWorkIdOrderBySequence(id)
         try {
             drafts.deleteAllById(rows.map {it.id})

@@ -29,7 +29,7 @@ class WorkController(private val service: ai.storyfork.content.work.service.Work
     @PutMapping("/works/{id}")
     fun update(@PathVariable id: String,principal: Principal,@Valid @RequestBody data: UpdateWorkRequest): WorkResponse = service.update(id,principal.name,data)
 
-    /** 작품을 삭제한다. 소유자만 가능하며 접근 불가는 404, 발행·저장 이력이 있거나 분기 작품이면 409다. */
+    /** 작품을 삭제한다. 소유자만 가능하며 접근 불가는 404, 세계관 설정·발행·저장 이력이 있거나 분기 작품이면 409다. */
     @DeleteMapping("/works/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable id: String,principal: Principal) = service.delete(id,principal.name)
 
