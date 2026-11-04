@@ -11,6 +11,8 @@ import ai.storyfork.core.episode_version.service.EpisodeVersionService
 import ai.storyfork.core.publication.controller.PublicationController
 import ai.storyfork.core.publication.service.PublicationService
 import ai.storyfork.core.work.service.dto.WorkListResponse
+import ai.storyfork.core.work.service.dto.UpdateWorkRequest
+import ai.storyfork.core.work.service.dto.WorkResponse
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,6 +51,9 @@ class ContentAuthorizationTest {
     @MockitoBean lateinit var context: ai.storyfork.core.context.service.ContextService
     private fun token(): String = encoder.encode(JwtEncoderParameters.from(JwsHeader.with(org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS256).build(),JwtClaimsSet.builder().subject("verified-user").issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(600)).build())).tokenValue
     private fun mutation(path: String) = post(path).cookie(Cookie("XSRF-TOKEN","test-csrf")).header("X-CSRF-TOKEN",csrfValue()).contentType("application/json")
+    private fun workUpdate(body: String) = put("/api/v1/works/work-id").header("Authorization","Bearer "+token())
+        .cookie(Cookie("XSRF-TOKEN","test-csrf")).header("X-CSRF-TOKEN",csrfValue()).contentType("application/json")
+        .content(body)
 
     @Test fun `browser demo identity and forged headers cannot authorize`() {
         mvc.perform(get("/api/v1/works").header("X-User-Id","me")).andExpect(status().isUnauthorized())
@@ -68,6 +73,29 @@ class ContentAuthorizationTest {
         `when`(works.list("verified-user")).thenReturn(WorkListResponse(emptyList()))
         mvc.perform(get("/api/v1/works").header("Authorization","Bearer "+token()).header("X-User-Id","forged")).andExpect(status().isOk())
         verify(works).list("verified-user")
+    }
+    @Test fun `work update binds path body and verified principal`() {
+        val body=UpdateWorkRequest("새 제목","새 소개",7)
+        `when`(works.update("work-id","verified-user",body)).thenReturn(WorkResponse("work-id",body.title,body.summary,"private",false,false,null,emptyList(),null))
+        mvc.perform(workUpdate("""{"title":"새 제목","summary":"새 소개","revision":7}""").header("X-User-Id","forged")).andExpect(status().isOk())
+        verify(works).update("work-id","verified-user",body)
+    }
+    @Test fun `work update rejects invalid fields before calling service`() {
+        for(body in listOf(
+            """{"title":"   ","revision":0}""",
+            """{"title":"${"가".repeat(121)}","revision":0}""",
+            """{"title":"제목","summary":"${"가".repeat(2001)}","revision":0}""",
+            """{"title":"제목","revision":-1}""",
+        )) {
+            mvc.perform(workUpdate(body)).andExpect(status().isUnprocessableEntity())
+        }
+        verifyNoInteractions(works)
+    }
+    @Test fun `work update rejects malformed revision and JSON`() {
+        for(body in listOf("""{"title":"제목","revision":"invalid"}""","{broken")) {
+            mvc.perform(workUpdate(body)).andExpect(status().isBadRequest())
+        }
+        verifyNoInteractions(works)
     }
     @Test fun `foreign origin cannot write even with principal`() {
         mvc.perform(mutation("/api/v1/works").header("Authorization","Bearer "+token()).header("Origin","https://evil.example").content("""{"title":"test"}""")).andExpect(status().isForbidden())
