@@ -1,3 +1,4 @@
+import {cardTypes,cardTypeOf} from './studioCards'
 import { authorEdit, newSetting, type SettingItem, type StudioSetting } from './studioWorld'
 
 export const relationDefinitions:Record<string,{label:string;group:'fact'|'emotion'|'other';symmetric?:boolean}>={
@@ -35,19 +36,19 @@ export function editStudioSetting(settings:StudioSetting[],id:string,patch:Parti
  })
 }
 export function putRelation(settings:StudioSetting[],input:RelationInput):StudioSetting[] {
- const people=settings.filter(s=>s.item.kind==='entity'&&s.item.entityType==='character')
+ const people=settings.filter(s=>cardTypes.some(type=>type.id===cardTypeOf(s.item)))
  const source=people.find(s=>s.item.id===input.subjectId),target=people.find(s=>s.item.id===input.targetId)
- if(!source||!target||source===target)throw new Error('서로 다른 인물 두 명을 선택해 주세요.')
- if(!relationDefinitions[input.predicate??''] || relationDefinitions[input.predicate??''].group==='other')throw new Error('인물 관계 또는 감정을 선택해 주세요.')
+ if(!source||!target||source===target)throw new Error('서로 다른 설정 카드 두 개를 선택해 주세요.')
+ if(!relationDefinitions[input.predicate??''] || relationDefinitions[input.predicate??''].group==='other')throw new Error('구조 관계 또는 감정을 선택해 주세요.')
  if(settings.some(s=>s.item.kind==='relation'&&s.item.id!==input.id&&sameRelation(s.item,input)))throw new Error('같은 방향과 종류의 관계가 이미 있습니다. 기존 연결을 선택해 수정해 주세요.')
  const existing=settings.find(s=>s.item.id===input.id)
  if(input.id&&(!existing||existing.item.kind!=='relation'))throw new Error('수정할 관계를 찾을 수 없습니다.')
- if(existing)return editStudioSetting(settings,existing.item.id,{...input,kind:'relation',entityType:null})
  const base=newSetting()
  const generated=generatedDescription(input,settings)
  const title=input.title??generated.slice(0,200)
  const text=input.text??generated
  if(!title.trim()||title.length>200||!text.trim()||text.length>3000)throw new Error('관계 이름은 200자, 설명은 3,000자 이내로 입력해 주세요.')
+ if(existing)return editStudioSetting(settings,existing.item.id,{...input,kind:'relation',entityType:null,title,text})
  const next=authorEdit(base,{...input,kind:'relation',entityType:null,title,text})
  return [...settings,next]
 }
@@ -78,18 +79,4 @@ export function removeRelation(settings:StudioSetting[],id:string) {
  if(settings.find(s=>s.item.id===id)?.item.kind!=='relation')throw new Error('삭제할 관계를 찾을 수 없습니다.')
  if(settings.some(s=>s.item.id!==id&&[s.item.subjectId,s.item.targetId,s.item.afterId,...s.item.relatedIds].includes(id)))throw new Error('다른 설정에서 참조하는 관계입니다. 연결을 먼저 정리해 주세요.')
  return settings.filter(s=>s.item.id!==id)
-}
-export function personDeletionInfo(settings:StudioSetting[],id:string) {
- const person=settings.find(s=>s.item.id===id&&s.item.kind==='entity'&&s.item.entityType==='character')
- if(!person)throw new Error('삭제할 인물을 찾을 수 없습니다.')
- const relations=settings.filter(s=>s.item.kind==='relation'&&(s.item.subjectId===id||s.item.targetId===id))
- const removed=new Set([id,...relations.map(s=>s.item.id)])
- const blockers=settings.filter(s=>!removed.has(s.item.id)&&[s.item.subjectId,s.item.targetId,s.item.afterId,...s.item.relatedIds].some(ref=>ref!==null&&removed.has(ref)))
- return {person,relations,blockers}
-}
-export function removePerson(settings:StudioSetting[],id:string) {
- const {relations,blockers}=personDeletionInfo(settings,id)
- if(blockers.length)throw new Error(`다른 설정에서 참조하고 있어 삭제할 수 없습니다: ${blockers.map(s=>s.item.title).join(', ')}`)
- const removed=new Set([id,...relations.map(s=>s.item.id)])
- return settings.filter(s=>!removed.has(s.item.id))
 }
