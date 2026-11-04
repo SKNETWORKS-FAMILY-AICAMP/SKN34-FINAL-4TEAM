@@ -59,6 +59,8 @@ SQL은 `db/migration/auth`, `db/migration/content`로 배치하고 기존 두 �
 
 콘텐츠 정본은 최신 ERD에 따른 관계형 테이블에 저장합니다. 기존 JSONB는 읽기 전용 이관 백업으로 남깁니다. [ERD 대응과 마이그레이션](../../docs/content-erd-migration.md)에 테이블별 역할·기존 데이터 보존·남은 범위를 기록했습니다.
 
+WorldStudio의 [독립 초기 스키마](../../docs/design/worldstudio-independent-schema.md)는 전용 `worldstudio` schema와 `world_studio_schema_history`를 사용하며 기존 Content/Auth 테이블을 변경하지 않습니다. [명시 실행·검증 계약](src/main/resources/db/migration/worldstudio/README.md)을 따르며 서버 시작으로 migration을 실행하지 않습니다. `app.worldstudio.enabled=true`일 때만 전용 WORLDSTUDIO_DATABASE_* 기반 JPA Repository·Service를 활성화합니다. 독립 세계관 생성·초안 작성·확정 저장·과거 조회·복원은 이 Service의 책임이며 HTTP API·기존 UI 연결과 공용 DB 적용은 포함하지 않습니다. [실행 증거와 한계](../../docs/design/worldstudio-jpa-verification.md)를 참고하세요.
+
 Gradle group `ai.storyfork`, 애플리케이션 `storyfork-core-api`, Kotlin namespace `ai.storyfork.core`입니다.
 main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 package와 일치합니다.
 
@@ -232,3 +234,5 @@ HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필
 표지 교체는 새 비공개 UUID object 업로드 후 DB 참조를 바꾸고 삭제는 DB 참조만 지웁니다. 실패·모호한 commit으로 기존 파일을 잃지 않도록 이전 표지와 실패 업로드의 미참조 object는 보존할 수 있습니다. 따라서 논리 삭제는 버킷 원본의 즉시 영구 삭제가 아닙니다. 자동 lifecycle/정리 worker는 없으며 운영자가 DB key와 비공개 버킷을 대조·정리해야 합니다. DB/S3 분산 원자성·저장 비용/운영 삭제 정책은 보장하지 않습니다.
 
 프론트 `/content` 작품 생성의 선택 표지, 기존 표지 관리, 실제 설정 첨부 CRUD와 `/studio/{UUID}` 커서 위치 본문 이미지가 이 API를 사용합니다. 생성 후 표지 실패는 생성된 작품을 유지해 중복 생성 없이 재시도합니다. 취소/응답 유실은 서버 미처리를 보장하지 않으므로 새로고침으로 확인합니다. 브라우저는 인증 bytes → Blob URL로 표시하고 교체·이탈 시 해제하며 TXT 내보내기는 이미지·marker 없는 텍스트 전용입니다. EPUB은 추가하지 않습니다.
+
+Content 세계관의 `world.entity`·`world.repository`와 독립 WorldStudio의 `world.studio.entity`·`world.studio.repository`는 별도 JPA 스캔 범위입니다. Content의 `WorldRepository`(String)와 WorldStudio의 `StudioWorldRepository`(UUID)를 구분하며, WorldStudio 비활성 시 Content에 독립 스키마를 요구하지 않습니다. 공존 검증은 현재 WorkService·WorldService와 WorldStudioService로 수행합니다.

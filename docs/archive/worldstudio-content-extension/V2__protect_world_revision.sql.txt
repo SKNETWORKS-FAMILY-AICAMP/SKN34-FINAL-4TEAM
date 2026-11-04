@@ -1,0 +1,64 @@
+-- Reuse Content V6's immutable history guard; never disable existing history triggers.
+CREATE TRIGGER world_relation_version_immutable BEFORE UPDATE OR DELETE ON world_relation_version
+    FOR EACH ROW EXECUTE FUNCTION reject_content_history_mutation();
+CREATE TRIGGER world_save_request_immutable BEFORE UPDATE OR DELETE ON world_save_request
+    FOR EACH ROW EXECUTE FUNCTION reject_content_history_mutation();
+
+CREATE FUNCTION guard_world_revision() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF TG_OP='INSERT' THEN
+        IF NEW.sealed THEN RAISE EXCEPTION 'Assemble revision before sealing' USING ERRCODE='23514'; END IF;
+        RETURN NEW;
+    END IF;
+    IF TG_OP='DELETE' THEN RAISE EXCEPTION 'WorldRevision is immutable' USING ERRCODE='23514'; END IF;
+    IF OLD.sealed OR NOT NEW.sealed OR (to_jsonb(OLD)-'sealed') IS DISTINCT FROM (to_jsonb(NEW)-'sealed') THEN
+        RAISE EXCEPTION 'Only sealing a new revision is allowed' USING ERRCODE='23514';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM world_revision_setting rs JOIN setting_version v ON v.id=rs.setting_version_id
+        WHERE rs.revision_id=NEW.id AND (v.card_type IS NULL OR v.area_code IS NULL OR v.lifecycle NOT IN ('active','removed'))
+    ) THEN RAISE EXCEPTION 'Revision requires classified card versions' USING ERRCODE='23514'; END IF;
+    IF EXISTS (
+        SELECT 1 FROM world_revision_relation rr JOIN world_relation_version rv ON rv.id=rr.relation_version_id
+        WHERE rr.revision_id=NEW.id AND rv.lifecycle='active' AND (
+            NOT EXISTS (SELECT 1 FROM world_revision_setting rs JOIN setting_version sv ON sv.id=rs.setting_version_id
+                WHERE rs.revision_id=NEW.id AND rs.setting_document_id=rv.source_id AND sv.lifecycle='active')
+            OR NOT EXISTS (SELECT 1 FROM world_revision_setting rs JOIN setting_version sv ON sv.id=rs.setting_version_id
+                WHERE rs.revision_id=NEW.id AND rs.setting_document_id=rv.target_id AND sv.lifecycle='active')
+        )
+    ) THEN RAISE EXCEPTION 'Active relation endpoints must be active in this revision' USING ERRCODE='23514'; END IF;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER world_revision_guard BEFORE INSERT OR UPDATE OR DELETE ON world_revision
+    FOR EACH ROW EXECUTE FUNCTION guard_world_revision();
+
+CREATE FUNCTION require_sealed_world_revision() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM world_revision WHERE id=NEW.id AND sealed) THEN
+        RAISE EXCEPTION 'An unsealed WorldRevision cannot commit' USING ERRCODE='23514';
+    END IF;
+    RETURN NULL;
+END;
+$$;
+CREATE CONSTRAINT TRIGGER world_revision_sealed AFTER INSERT OR UPDATE ON world_revision
+    DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION require_sealed_world_revision();
+
+CREATE FUNCTION guard_world_manifest() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE revision_key varchar(36); is_sealed boolean;
+BEGIN
+    IF TG_OP='UPDATE' THEN
+        RAISE EXCEPTION 'Replace manifest entries before sealing; do not update them' USING ERRCODE='23514';
+    END IF;
+    revision_key := CASE WHEN TG_OP='DELETE' THEN OLD.revision_id ELSE NEW.revision_id END;
+    -- Serialize manifest assembly with sealing, including concurrent transactions.
+    SELECT sealed INTO is_sealed FROM world_revision WHERE id=revision_key FOR UPDATE;
+    IF is_sealed THEN RAISE EXCEPTION 'Sealed revision manifest is immutable' USING ERRCODE='23514'; END IF;
+    IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER world_revision_setting_guard BEFORE INSERT OR UPDATE OR DELETE ON world_revision_setting
+    FOR EACH ROW EXECUTE FUNCTION guard_world_manifest();
+CREATE TRIGGER world_revision_relation_guard BEFORE INSERT OR UPDATE OR DELETE ON world_revision_relation
+    FOR EACH ROW EXECUTE FUNCTION guard_world_manifest();
