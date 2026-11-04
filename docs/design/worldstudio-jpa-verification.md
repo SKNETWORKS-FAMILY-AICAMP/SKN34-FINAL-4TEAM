@@ -33,8 +33,10 @@
 | JPA TDD Red | 먼저 작성한 소유권·충돌 테스트가 구현 부재로 compileTestKotlin에서 실패. `output/jpa-red.log` |
 | 첫 JPA Green | DB 회귀 8건 통과. WorldStudio 단위 3건 통과. 초기 명령에서 태스크 필터가 integrationTest에만 적용돼 전체 단위 34건이 실행됐으며 모두 통과했다. 최종 실행에서는 태스크별 필터로 관련 단위만 선택한다. `output/jpa-green.log`, `output/jpa-first-green-results/` |
 | 이전 JPA 구현 최종 선택 실행 | 선택 단위 3건 + PostgreSQL 8건 + 설정 context 1건 통과. 실패·오류·skip 0건. `output/jpa-final.log`, `output/jpa-final-results/`, `output/jpa-final-summary.json` |
-| 이번 PR 실제 재실행 | 최신 develop merge 후 unitTest/integrationTest에 각각 --rerun을 지정해 단위 3건·PostgreSQL 8건·설정 context 1건 통과. 실패·오류·skip 0건. `output/pr-worldstudio-rerun.log`, `output/pr-preparation/results/` |
+| 이번 PR 실제 재실행 | a6ce59f merge 후 unitTest/integrationTest에 각각 --rerun을 지정해 단위 3건·PostgreSQL 8건·설정 context 1건 통과. 실패·오류·skip 0건. `output/pr-worldstudio-rerun.log`, `output/pr-preparation/results/` |
 | 이전 CI 선택·경계 순수 단위 | `python -X utf8 -m unittest test_ci.ConfigurationTest.test_core_context_http_and_db_tests_are_not_unit_tests test_ci.SelectionTest.test_workflow_calls_standard_frameworks_without_a_runner_layer` 2건 통과 |
+
+추가 ad63576 merge는 프런트/문서 변경뿐이며 검증된 WorldStudio runtime/test SHA-256 manifest가 그대로임을 대조했다. 최종 head의 전체 영향 검증은 CI에서 확인한다.
 
 이번 PR의 실제 재확인은 아래 두 테스트 task에 각각 `--rerun`을 추가했다. 첫 재확인이 up-to-date 캐시였던 점과 구분하며, Gradle 결과는 2 executed / 6 up-to-date다.
 
@@ -66,7 +68,7 @@ ponytail-review에서 실제 저장 트랜잭션·소유권·동시성·복합 F
 ## PR 제출 기준과 남은 결정
 
 - Base는 develop, Head는 feature/world-studio-schema이며 Ready 상태의 일반 PR로 제출한다. 직접 병합하지 않는다.
-- 최신 develop `a6ce59f1fdc544b3cd70213af22d250c1cf23cfb`를 일반 merge했다. 차이는 AGENTS 기능표 관리 지침과 기능표 추가였으며 충돌은 없었다. Auth·Content·이미지·회차 실행 코드와 migration에는 변경이 없다.
+- 최신 develop `ad635761e94544c013a80f7a13aaced4725bf16a`까지 일반 merge했다. 초기 a6ce59f의 기능표/지침과 추가 PR #83의 프런트 집필실 3개 파일·검토 문서 1개는 WorldStudio와 겹치지 않았고 충돌도 없었다. Auth·Content·이미지·회차 실행 코드와 migration에는 변경이 없다.
 - SQL 보존 커밋은 `c384ee06580066606c20c6d9dc603a0f95d21310`, 독립 JPA 구현 커밋은 `a9045c4`다. 이후 검증·기능표·문서를 별도 커밋으로 전달한다. 실제 HEAD/파일 목록/CI는 PR을 기준으로 확인한다.
 - 기능표의 기존 관련 동작 26행에 독립 JPA 내부 구현 범위를 표시했다. 미병합·HTTP 미연결 상태이므로 완료 체크는 모두 기존 ❌를 유지한다. 후속 API나 Graph 기능을 구현 완료로 올리지 않는다.
 - 이전 개발 DB 배포 시도는 인증/접속·대상 확인 실패로 중단됐다. 백업·실제 migrate·개발 DB QA 쓰기를 하지 않았다. [배포 사전 확인](../deployment/worldstudio-v1-rollout.md)은 당시 기록이며 공용 DB 적용 성공의 증거가 아니다. 이번 PR 작업에서는 DB 접속도 시도하지 않는다.
