@@ -12,13 +12,13 @@ class AuthPersistenceConfig {
     @org.springframework.context.annotation.Bean
     @org.springframework.context.annotation.Primary
     @org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
-    fun entityManagerFactory(dataSource: javax.sql.DataSource): org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean =
+    fun entityManagerFactory(dataSource: javax.sql.DataSource, @org.springframework.beans.factory.annotation.Value("\${spring.jpa.hibernate.ddl-auto:validate}") schemaAction: String): org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean =
         org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean().apply {
             this.dataSource = dataSource
             persistenceUnitName = "auth"
             setPackagesToScan(AuthMember::class.java.packageName)
             jpaVendorAdapter = org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter()
-            setJpaPropertyMap(mapOf("hibernate.hbm2ddl.auto" to "validate", "hibernate.jdbc.time_zone" to "UTC"))
+            setJpaPropertyMap(mapOf("hibernate.hbm2ddl.auto" to schemaAction, "hibernate.jdbc.time_zone" to "UTC"))
         }
     @org.springframework.context.annotation.Bean
     @org.springframework.context.annotation.Primary
