@@ -116,6 +116,8 @@ jobs:
           cd -P -- "$CD_DIRECTORY"
           [[ "$PWD" == "$CD_DIRECTORY" && -f .env ]] || exit 1
           export CD_DIRECTORY CD_WEB_PORT COMPOSE_PROJECT_NAME=storyfork-develop-cd DOCKER_HOST=unix:///var/run/docker.sock
+          # 서버 .env의 profile 설정으로 명시적인 migration opt-in을 우회하지 못하게 한다.
+          export COMPOSE_PROFILES=
           unset DOCKER_CONTEXT
           export DOCKER_CONFIG
           DOCKER_CONFIG=$(mktemp -d)

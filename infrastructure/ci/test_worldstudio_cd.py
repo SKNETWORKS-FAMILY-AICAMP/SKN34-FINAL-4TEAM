@@ -22,6 +22,7 @@ class WorldStudioDeploymentTest(unittest.TestCase):
             (path / ".env").touch()
             docker = path / "docker"
             docker.write_text('#!/bin/bash\n'
+                '[[ -z "${COMPOSE_PROFILES:-}" ]] || exit 24\n'
                 'echo "$*" >> "$TEST_COMMANDS"\n'
                 'case "$*" in\n'
                 ' *"config --images"*) echo fake-core ;;\n'
@@ -64,6 +65,12 @@ class WorldStudioDeploymentTest(unittest.TestCase):
         code, commands, _ = self.deploy("treu")
         self.assertNotEqual(0, code)
         self.assertNotIn("up -d", commands)
+
+    def test_inherited_profile_cannot_bypass_github_activation(self):
+        code, commands, error = self.deploy("false", overrides={"COMPOSE_PROFILES": "worldstudio-migration"})
+        self.assertEqual(0, code, error)
+        self.assertIn("up -d", commands)
+        self.assertNotIn("run --rm", commands)
 
     def test_missing_target_or_restore_proof_stops_before_migration(self):
         for key in ("WORLDSTUDIO_EXPECTED_DATABASE_URL", "WORLDSTUDIO_EXPECTED_DATABASE_USER",
