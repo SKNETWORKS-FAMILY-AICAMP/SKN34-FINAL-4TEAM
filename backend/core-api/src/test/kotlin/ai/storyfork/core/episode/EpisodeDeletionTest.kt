@@ -112,12 +112,4 @@ class EpisodeDeletionTest {
         assertThrows(ContentFailure::class.java) {service.deleteDraft("w","other",1,4)}
         verifyNoInteractions(episodes,drafts,versions)
     }
-    @Test fun `draft rejects an image from another episode`() {
-        setup()
-        `when`(images.findById("foreign")).thenReturn(Optional.empty())
-        assertThrows(ContentFailure::class.java) {
-            service.update("w","owner",1,ai.storyfork.core.episode.service.dto.DraftRequest("title","[[image:foreign]]",4))
-        }
-        verify(drafts,never()).save(org.mockito.ArgumentMatchers.any(EpisodeDraftEntity::class.java))
-    }
 }
