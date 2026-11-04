@@ -163,7 +163,7 @@
 <tr><td>작품 상세 조회 <small>(유형·장르·해시태그 Content 통합·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>내 작품 목록 조회</td><td>❌</td></tr>
 <tr><td>작품 기본 정보 수정</td><td>❌</td></tr>
-<tr><td>작품 삭제 요청 <small>(설정 존재 시 삭제 전 409·데이터 보존 로컬 보완, 미병합·CI 대기)</small></td><td>❌</td></tr>
+<tr><td>작품 삭제 요청 <small>(설정 존재 시 삭제 전 409·데이터 보존 로컬 보완, 이관 매핑 기대값에 DELETE·204 반영, 미병합·CI 대기)</small></td><td>❌</td></tr>
 <tr><td rowspan="32">회차·원고 관리</td><td rowspan="9">10 회차·원고 CRUD</td><td>회차 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-006">미등록-006</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>회차 상세 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
