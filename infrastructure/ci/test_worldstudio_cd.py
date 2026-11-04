@@ -35,7 +35,11 @@ class WorldStudioDeploymentTest(unittest.TestCase):
                 'case "$*" in\n'
                 ' *"config --images"*) echo fake-core ;;\n'
                 ' "image inspect"*) printf "%040d\\n" 1 ;;\n'
-                ' *"run --rm --no-deps worldstudio-migrate"*) exit "$TEST_MIGRATION_EXIT" ;;\n'
+                ' *"run --rm --no-deps worldstudio-migrate"*)\n'
+                '   cat > "$TEST_CONSUMED_STDIN"\n'
+                '   if [[ -s "$TEST_CONSUMED_STDIN" ]]; then echo "migration stdin consumed" >> "$TEST_COMMANDS";\n'
+                '   else echo "migration stdin empty" >> "$TEST_COMMANDS"; fi\n'
+                '   exit "$TEST_MIGRATION_EXIT" ;;\n'
                 'esac\n', encoding="utf-8")
             docker.chmod(0o755)
             env = dict(os.environ, CD_DIRECTORY=directory.replace("\\", "/"), CD_WEB_PORT="8088",
@@ -43,12 +47,13 @@ class WorldStudioDeploymentTest(unittest.TestCase):
                 WORLDSTUDIO_CD_MIGRATION_ENABLED=enabled,
                 WORLDSTUDIO_EXPECTED_DATABASE_URL="jdbc:postgresql://qa:5432/qa",
                 WORLDSTUDIO_EXPECTED_DATABASE_USER="qa", WORLDSTUDIO_BACKUP_RESTORE_REFERENCE="qa-restored",
-                TEST_COMMANDS=str(path / "commands"), TEST_MIGRATION_EXIT=str(migration_exit))
+                TEST_COMMANDS=str(path / "commands"), TEST_MIGRATION_EXIT=str(migration_exit),
+                TEST_CONSUMED_STDIN=str(path / "migration-stdin"))
             env.update(overrides or {})
             # Git Bash translates native Windows paths before the deployment's physical-path check.
             if os.name == "nt":
                 env["CD_DIRECTORY"] = "/" + env["CD_DIRECTORY"][0].lower() + env["CD_DIRECTORY"][2:]
-            result = subprocess.run([bash, "-c", 'export PATH="$TEST_BIN:$PATH"\n' + script],
+            result = subprocess.run([bash, "-se"], input='export PATH="$TEST_BIN:$PATH"\n' + script,
                 env=dict(env, TEST_BIN=env["CD_DIRECTORY"]), capture_output=True, text=True)
             commands = (path / "commands").read_text() if (path / "commands").exists() else ""
             return result.returncode, commands, result.stderr
@@ -62,11 +67,13 @@ class WorldStudioDeploymentTest(unittest.TestCase):
     def test_migration_success_precedes_new_core(self):
         code, commands, error = self.deploy("true")
         self.assertEqual(0, code, error)
+        self.assertIn("migration stdin empty", commands)
+        self.assertIn("up -d", commands)
         self.assertLess(commands.index("run --rm --no-deps worldstudio-migrate"), commands.index("up -d"))
 
     def test_migration_failure_stops_new_core(self):
         code, commands, _ = self.deploy("true", 23)
-        self.assertNotEqual(0, code)
+        self.assertEqual(23, code)
         self.assertNotIn("up -d", commands)
 
     def test_unknown_flag_fails_closed(self):

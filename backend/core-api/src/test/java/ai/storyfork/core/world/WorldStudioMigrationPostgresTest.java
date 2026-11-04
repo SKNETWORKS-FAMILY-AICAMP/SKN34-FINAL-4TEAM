@@ -14,12 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DISPOSABLE", matches="true")
 class WorldStudioMigrationPostgresTest {
     private WorldStudioMigrationProperties settings(WorldStudioPostgresFixture db) {
+        var password = java.util.Objects.requireNonNull(System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD"));
         return WorldStudioMigrationProperties.Companion.from(Map.of(
             "WORLDSTUDIO_MIGRATION_ENVIRONMENT", "development",
             "CORE_DATABASE_URL", db.url,
             "CORE_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
-            // CI PostgreSQL trust 인증 전용. 실제 개발 DB 자격증명은 사용하지 않는다.
-            "CORE_DATABASE_PASSWORD", "ci-only",
+            // trust의 빈 비밀번호에만 대체값을 사용한다. 비밀번호 인증은 fixture와 같은 값을 쓴다.
+            "CORE_DATABASE_PASSWORD", password.isEmpty() ? "ci-only" : password,
             "WORLDSTUDIO_EXPECTED_DATABASE_URL", db.url,
             "WORLDSTUDIO_EXPECTED_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
             "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE", "disposable-ci-database"));
@@ -27,6 +28,16 @@ class WorldStudioMigrationPostgresTest {
 
     @Test void independentCommandAppliesV1AndRerunsWithoutChanges() throws Exception {
         try (var db = new WorldStudioPostgresFixture("independent")) {
+            if ("true".equals(System.getenv("TEST_WORLDSTUDIO_PASSWORD_AUTH"))) {
+                var failure = assertThrows(java.sql.SQLException.class, () -> {
+                    try (var ignored = java.sql.DriverManager.getConnection(db.url,
+                            System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
+                            System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD") + "-incorrect")) {
+                        fail("Password-authenticated CI database must reject an incorrect password");
+                    }
+                });
+                assertEquals("28P01", failure.getSQLState());
+            }
             assertEquals(1, WorldStudioMigration.INSTANCE.migrate(settings(db)));
             assertEquals(0, WorldStudioMigration.INSTANCE.migrate(settings(db)));
             db.studio().validate();
