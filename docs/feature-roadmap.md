@@ -586,7 +586,7 @@
 <tr><td>iOS 앱 제공</td><td>❌</td></tr>
 <tr><td rowspan="9">운영·인프라</td><td rowspan="9">운영 기반</td><td rowspan="9">43 저장·배포·복구 관리</td><td>Core Health 조회</td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/63">#63</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/64">#64</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/67">PR #67</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/80">PR #80</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/94">PR #94</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/65">PR #65</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/77">PR #77</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/45">PR #45</a> · <a href="#미등록-066">미등록-066</a></td></tr>
 <tr><td>AI Health 조회</td><td>❌</td></tr>
-<tr><td>DB 마이그레이션 관리</td><td>❌</td></tr>
+<tr><td>DB 마이그레이션 관리</td><td>❌ (WorldStudio develop CD 연동 검토 중·실제 개발 DB 미확인·기본 비활성)</td></tr>
 <tr><td>파일 저장소 연결 관리</td><td>❌</td></tr>
 <tr><td>백업 생성</td><td>❌</td></tr>
 <tr><td>복원 수행</td><td>❌</td></tr>

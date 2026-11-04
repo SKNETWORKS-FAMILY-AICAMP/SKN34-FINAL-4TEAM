@@ -204,6 +204,14 @@ HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필
 `Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다.
 #92는 화면·브라우저 호출부를 변경하므로 Aside에서 실제 정상·실패 입력/클릭/API/화면 결과 확인이 필요합니다. HTTP·저장소 검증만으로 브라우저 E2E를 통과 처리하지 않습니다.
 
+## WorldStudio 개발 배포 명령
+
+일반 `java -jar` 시작과 별도로, 기존 이미지의 Boot `PropertiesLauncher`에서
+`ai.storyfork.core.world.migration.WorldStudioMigration` main을 실행합니다.
+Auth/Content context 없이 독립 Flyway migrate·validate를 수행하며 성공해야 개발 CD가 새 Core를 기동합니다.
+기본 비활성이며 대상 DB·계정 allowlist와 백업 복원 기록 확인 후 활성화합니다.
+자격증명·운영자 절차는 [WorldStudio 배포 문서](../../docs/deployment/worldstudio-v1-rollout.md)를 참고하세요.
+
 ## 작품 표지·원고 이미지 (#92)
 
 기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `attachment/controller → AttachmentService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. 기존 Auth/Content/설정 첨부 migration의 바이트·history는 변경하지 않습니다.

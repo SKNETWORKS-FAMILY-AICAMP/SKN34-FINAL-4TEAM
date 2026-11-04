@@ -107,6 +107,35 @@ def test_health(web):
     assert response.json() == {"status": "up", "service": "storyfork-ai-service"}
 
 
+def test_health_worldstudio_packaged_migration():
+    """실제 배포 Core jar의 별도 main과 기존 Auth/Content 이력 공존을 확인한다."""
+    url = "jdbc:postgresql://postgres:5432/storyfork_test"
+    user = os.environ["CORE_DATABASE_USER"]
+    histories = scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
+    content_history = scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")
+    args = ["run", "--rm", "--no-deps", "--entrypoint", "java"]
+    for key, value in {
+        "WORLDSTUDIO_MIGRATION_ENVIRONMENT": "development",
+        "WORLDSTUDIO_DATABASE_URL": url, "WORLDSTUDIO_DATABASE_USER": user,
+        "WORLDSTUDIO_DATABASE_PASSWORD": os.environ["CORE_DATABASE_PASSWORD"],
+        "WORLDSTUDIO_EXPECTED_DATABASE_URL": url, "WORLDSTUDIO_EXPECTED_DATABASE_USER": user,
+        "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE": "isolated-ci-project",
+    }.items():
+        args.extend(["-e", key + "=" + value])
+    args.extend(["core-api", "-Dloader.main=ai.storyfork.core.world.migration.WorldStudioMigration",
+                 "-cp", "/app/application.jar", "org.springframework.boot.loader.launch.PropertiesLauncher"])
+    wrong_target = args.copy()
+    wrong_target[wrong_target.index("WORLDSTUDIO_EXPECTED_DATABASE_URL=" + url)] = "WORLDSTUDIO_EXPECTED_DATABASE_URL=jdbc:postgresql://wrong/production"
+    with pytest.raises(subprocess.CalledProcessError):
+        compose(*wrong_target)
+    assert scalar("SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'") == "0"
+    assert "applied=1; pending=0; tables=12" in compose(*args)
+    assert "applied=0; pending=0; tables=12" in compose(*args)
+    assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "12"
+    assert histories == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
+    assert content_history == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")
+
+
 def test_auth(signed_in):
     client = signed_in["client"]
     with httpx2.Client(base_url=client.base_url, timeout=15, trust_env=False) as anonymous:

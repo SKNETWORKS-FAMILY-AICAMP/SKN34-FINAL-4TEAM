@@ -1,4 +1,62 @@
-# 독립 WorldStudio V1 배포 사전 확인
+# 독립 WorldStudio V1 배포
+
+## develop CD 실행 계약
+
+기본 Auth Flyway는 `classpath:db/migration/auth`, Content는 `ContentConfig`에서 별도 migrate를 실행한다.
+WorldStudio는 독립 EntityManager의 Hibernate `validate`만 수행했으므로 #97 병합과 일반 Core 시작만으로 V1이 실행되지 않았다.
+
+이번 연동은 `.github/workflows/publish-images.yml`의 기존 develop CD에 실행 단계를 추가한다.
+CI 성공 → 세 이미지 게시 → 개발 서버 pull·이미지 revision 일치 확인 → **일회성 WorldStudio migrate·validate·pending=0·12개 테이블 확인** → 새 Core `up --wait` 순서다.
+마이그레이션은 기존 Core 이미지의 `WorldStudioMigration` main을 Boot `PropertiesLauncher`로 실행한다.
+Compose의 `worldstudio-migration` profile은 `run --rm --no-deps worldstudio-migrate`에서만 실행되며 상시 서버·DB를 추가하지 않는다.
+일반 `java -jar` 시작에는 이 명령이 실행되지 않는다. Auth/Content Spring context도 마이그레이션 명령에서 시작하지 않는다.
+
+실행 범위는 `worldstudio` schema, `classpath:db/migration/worldstudio`, `worldstudio.world_studio_schema_history`다.
+V1 SQL SHA-256은 아래 보존 값과 같다. baseline·repair·clean은 실행하지 않는다.
+이미 적용된 V1은 validate 후 추가 적용 0건으로 종료한다. 기존 Auth/Content history는 읽기 검사 외 변경하지 않는다.
+과거 확장형 WorldStudio 차단은 script·version·checksum·type·success 전체가 일치할 때만 적용한다.
+일반 Auth/Content의 동명 V1/V2는 차단하지 않는다. 불명확한 history 형식·조회 권한 부족도 실행 실패로 처리한다.
+
+### 최초 활성화 전 배포 담당자 확인
+
+**현재 실제 개발 DB 식별·백업 복원 증거는 미확인이다. 이 작업에서 GitHub 변수를 활성화하거나 공용 DB에 적용하지 않는다.**
+
+1. 개발 서버 루트 `.env`에 독립 `WORLDSTUDIO_DATABASE_URL`, `WORLDSTUDIO_DATABASE_USER`, `WORLDSTUDIO_DATABASE_PASSWORD`를 설정한다. 비밀번호·실제 주소를 커밋하거나 출력하지 않는다.
+2. 개발 DB임을 배포 설정·담당자 확인으로 확정한다. 운영 DB는 금지한다. SQL은 URL 문자열만으로 개발/운영을 판별할 수 없다.
+3. 최초 적용 직전 기존 DB 전체와 모든 Flyway 이력을 백업한다. 격리 DB에 복원하여 데이터·이력 조회 성공을 확인하고, 백업 위치·시각·복원 결과·복구 담당자를 팀 내부 기록에 남긴다. 백업 실패 시 활성화하지 않는다.
+4. 기존 WorldStudio schema/history와 과거 확장 SQL 이력을 읽기 전용으로 검토한다. 모호하면 중단한다. 이미 독립 V1을 적용했다면 체크섬·이력 정합성 확인 후 재실행 0건을 기대한다.
+5. 마이그레이션 계정에 DB `CREATE`, 기존 worldstudio schema 사용·DDL 및 history 조회 권한이 있는지 확인한다. 현재는 Core와 마이그레이션이 동일 WorldStudio 계정을 사용한다. 최소 권한 분리는 후속 운영 결정이다.
+6. GitHub **develop-cd environment variables**에 다음을 등록한다. URL·계정은 서버 `.env`와 독립적으로 개발 DB임을 확인한 값이어야 한다.
+
+| 변수 | 값/역할 |
+| --- | --- |
+| `WORLDSTUDIO_EXPECTED_DATABASE_URL` | 승인한 JDBC URL 전체와 정확히 일치해야 함(비밀번호 금지) |
+| `WORLDSTUDIO_EXPECTED_DATABASE_USER` | 승인한 접속 계정과 정확히 일치해야 함 |
+| `WORLDSTUDIO_BACKUP_RESTORE_REFERENCE` | 팀 내부 백업·복원 검증 기록 참조(비밀값 금지) |
+| `WORLDSTUDIO_CD_MIGRATION_ENABLED` | 위 조건 충족 후 마지막에 `true`. 기본 미설정/`false` |
+
+이 변수들은 SSH stdin으로 전달하고 로그로 출력하지 않는다. DB 자격증명은 서버 `.env`에서 migration 컨테이너에 필요한 값만 전달한다.
+명령은 URL allowlist·계정·실제 current_database/current_user·DB CREATE 권한을 DDL 전에 확인한다.
+백업 참조는 **담당자의 확인 기록**이며 프로그램이 백업 파일이나 복원 성공을 자체 검증하는 것은 아니다.
+환경 승인자·백업/복구 담당자·활성화 시점은 팀이 결정해야 한다. `develop-cd` 보호 규칙을 적절히 설정하는 것도 담당자 책임이다.
+
+### 실행과 실패 처리
+
+CD가 활성화된 develop 배포에서 opt-in이 `true`이면 migration 성공 후에만 `APP_WORLDSTUDIO_ENABLED=true`를 Core에 전달한다.
+이 값은 기존 WorldStudio의 독립 EntityManager/TransactionManager와 Hibernate validate를 활성화한다.
+미설정/`false`면 migration을 생략하고 WorldStudio를 비활성 상태로 유지하며 기존 배포 흐름을 실행한다.
+오타 flag·필수값 누락·대상 불일치·접속/권한/과거 이력/Flyway 실패면 새 Core `up`을 호출하지 않는다. 기존 실행 컨테이너를 중단하거나 DB를 되돌리지 않는다.
+실패가 새 Core 기동 이후 발생한 경우 자동 DB rollback은 하지 않는다. 실패 범위와 이력을 확인하고 담당자가 복구 여부를 결정한다.
+Flyway 상세 접속 로그와 원인 예외는 출력하지 않고 성공 적용 수/검증 결과 또는 실패 상태만 출력한다.
+
+### 검증 위치
+
+- 로컬: fake Docker 배포 순서·실패 중단 단위 회귀, 문서/구문/Compose 설정 검사. DB/컨테이너 기동 없음.
+- CI Core integration: 독립 빈 PostgreSQL V1/재실행 0건/12개 테이블, 실제 Auth·Content migration 공존·데이터/이력 보존, 정확한 과거 이력 차단.
+- CI system: 실제 Core Docker jar의 별도 main 실행, 잘못된 대상 거부, 최초 적용/재실행 0건과 기존 이력 보존. 브라우저 검증은 아니다.
+- 실행 결과는 PR의 최신 head CI 결과에 기록한다. 아래 이전 사전 확인은 이번 CI 결과로 간주하지 않는다.
+
+## 이전 사전 확인 기록
 
 확인일: 2026-11-04 (Asia/Seoul). 상태: **통합 개발 DB 적용 중단 — 대상 식별·접속·백업 미충족**.
 

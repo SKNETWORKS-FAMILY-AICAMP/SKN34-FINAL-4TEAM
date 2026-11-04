@@ -70,6 +70,10 @@ jobs:
     env:
       CD_DEPLOY_DIR: ${{ vars.CD_DEPLOY_DIR }}
       CD_WEB_PORT: ${{ vars.CD_WEB_PORT }}
+      WORLDSTUDIO_CD_MIGRATION_ENABLED: ${{ vars.WORLDSTUDIO_CD_MIGRATION_ENABLED }}
+      WORLDSTUDIO_EXPECTED_DATABASE_URL: ${{ vars.WORLDSTUDIO_EXPECTED_DATABASE_URL }}
+      WORLDSTUDIO_EXPECTED_DATABASE_USER: ${{ vars.WORLDSTUDIO_EXPECTED_DATABASE_USER }}
+      WORLDSTUDIO_BACKUP_RESTORE_REFERENCE: ${{ vars.WORLDSTUDIO_BACKUP_RESTORE_REFERENCE }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -100,6 +104,10 @@ jobs:
             # 설정과 토큰은 명령 인자가 아닌 암호화된 SSH stdin으로 전달한다.
             printf '%s=%q\n' CD_DIRECTORY "$CD_DEPLOY_DIR" CD_WEB_PORT "$CD_WEB_PORT" \
               GITHUB_ACTOR "$GITHUB_ACTOR" GH_TOKEN "$GH_TOKEN" \
+              WORLDSTUDIO_CD_MIGRATION_ENABLED "$WORLDSTUDIO_CD_MIGRATION_ENABLED" \
+              WORLDSTUDIO_EXPECTED_DATABASE_URL "$WORLDSTUDIO_EXPECTED_DATABASE_URL" \
+              WORLDSTUDIO_EXPECTED_DATABASE_USER "$WORLDSTUDIO_EXPECTED_DATABASE_USER" \
+              WORLDSTUDIO_BACKUP_RESTORE_REFERENCE "$WORLDSTUDIO_BACKUP_RESTORE_REFERENCE" \
               COMPOSE_BASE_YAML "$(< infrastructure/docker-compose.yaml)" \
               COMPOSE_DEV_YAML "$(< infrastructure/docker-compose.dev.yaml)"
             cat <<'REMOTE'
@@ -132,6 +140,19 @@ jobs:
           images=$(docker compose --project-directory "$CD_DIRECTORY" --env-file .env config --images)
           revisions=$(docker image inspect $images --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
           [[ "$revisions" =~ ^[0-9a-f]{40}$ ]] || { printf 'Mixed or missing develop image revisions; rerun CD.\n' >&2; exit 1; }
+          # 미확인 DB에 DDL을 실행하지 않는다. develop-cd의 승인된 설정만 활성화한다.
+          export APP_WORLDSTUDIO_ENABLED=false
+          case "${WORLDSTUDIO_CD_MIGRATION_ENABLED:-false}" in
+            true)
+              export WORLDSTUDIO_EXPECTED_DATABASE_URL WORLDSTUDIO_EXPECTED_DATABASE_USER WORLDSTUDIO_BACKUP_RESTORE_REFERENCE
+              export WORLDSTUDIO_MIGRATION_ENVIRONMENT=development
+              [[ -n "$WORLDSTUDIO_EXPECTED_DATABASE_URL" && -n "$WORLDSTUDIO_EXPECTED_DATABASE_USER" && -n "$WORLDSTUDIO_BACKUP_RESTORE_REFERENCE" ]] || exit 1
+              docker compose --project-directory "$CD_DIRECTORY" --env-file .env run --rm --no-deps worldstudio-migrate
+              export APP_WORLDSTUDIO_ENABLED=true
+              ;;
+            false|'') ;;
+            *) printf 'Invalid WorldStudio migration activation flag.\n' >&2; exit 1 ;;
+          esac
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180
           REMOTE
           } | ssh -F /dev/null -T -p 5798 -i "$SSH_DIR/key" \
