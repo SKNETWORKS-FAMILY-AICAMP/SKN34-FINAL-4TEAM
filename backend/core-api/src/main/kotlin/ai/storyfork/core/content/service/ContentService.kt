@@ -7,7 +7,7 @@ import ai.storyfork.core.content.repository.ContentRepository
 import tools.jackson.databind.json.JsonMapper
 
 class ContentService(private val repository: ContentRepository, private val ai: GenerationClient, private val mapper: JsonMapper,
-    private val images: ai.storyfork.core.contentimage.repository.ContentImageRepository? = null) {
+    private val images: ai.storyfork.core.attachment.repository.ContentImageRepository? = null) {
     private fun validateImages(work: String, number: Int, body: String) {
         checkContent(!body.contains("data:image", ignoreCase=true), message="이미지는 파일 업로드로 저장해 주세요.")
         val markers = Regex("\\[\\[image:([^\\]]*)]]").findAll(body).map { it.groupValues[1] }.toList()

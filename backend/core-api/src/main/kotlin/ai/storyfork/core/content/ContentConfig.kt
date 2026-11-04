@@ -37,5 +37,5 @@ class ContentConfig {
         return GenerationClient(buildRestClient(builder,properties.baseUrl,properties.connectTimeout,timeout),token)
     }
     @Bean fun contentService(repository: ContentRepository,client: GenerationClient,mapper: JsonMapper,
-        images: org.springframework.beans.factory.ObjectProvider<ai.storyfork.core.contentimage.repository.ContentImageRepository>) = ContentService(repository,client,mapper,images.ifAvailable)
+        images: org.springframework.beans.factory.ObjectProvider<ai.storyfork.core.attachment.repository.ContentImageRepository>) = ContentService(repository,client,mapper,images.ifAvailable)
 }

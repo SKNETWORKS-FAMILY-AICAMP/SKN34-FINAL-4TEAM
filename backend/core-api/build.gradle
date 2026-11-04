@@ -74,7 +74,7 @@ def integrationTestClasses = [
     '**/HealthControllerTest.class', '**/ContentAuthorizationTest.class',
     '**/AiServiceClientPropertiesTest.class', '**/AiServiceHealthClientTest.class',
     '**/AiServiceHealthControllerTest.class',
-    '**/SettingAttachmentConfigTest.class', '**/SettingAttachmentHttpTest.class',
+    '**/AttachmentConfigTest.class', '**/SettingAttachmentHttpTest.class',
     '**/AttachmentStorageClientTest.class', '**/AttachmentMigrationLocationTest.class'
 ]
 

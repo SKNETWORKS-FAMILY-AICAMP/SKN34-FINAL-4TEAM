@@ -200,7 +200,7 @@ uv run --locked --extra dev --project backend/ai-service python -m pytest infras
 ```
 
 CI는 Vitest 파일 필터, Gradle 기능 패키지 `--tests`, pytest marker/`-k`를 직접 지정하고 실패·빈 선택 종료 코드를 유지합니다.
-web/AI는 보수적인 서비스 단위, Core의 기존 선택 범위는 auth/content/health이며 공통·설정·의존성·미등록 `settingattachment` 경로는 Core 전체로 확장합니다.
+web/AI는 보수적인 서비스 단위, Core의 기존 선택 범위는 auth/content/health이며 공통·설정·의존성·미등록 `attachment` 경로는 Core 전체로 확장합니다.
 Auth·Content 실행 코드는 새 첨부의 소비 관계도 있으므로 Core 전체를 검증합니다. 테스트만 변경하면 기존 기능 범위를 유지합니다.
 Core 공개 계약·Core-AI 변경은 소비 서비스와 시스템 시나리오도 선택합니다. 정확한 소스 의존 그래프는 아니며,
 삭제·이름 변경도 이전 경로를 포함합니다. 문서만 변경하면 runtime 테스트를 생략합니다.

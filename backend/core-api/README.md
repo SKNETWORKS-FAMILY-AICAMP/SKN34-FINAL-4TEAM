@@ -61,6 +61,8 @@ main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 
 - `auth/service/dto`: 클래스별 요청·응답 계약을 Controller와 Service가 공유합니다. `LoginResult`의 내부 refresh token은 Controller에서 HttpOnly 쿠키로만 보내며 공개 `LoginResponse`에는 포함하지 않습니다.
 - Auth는 기존 UUID·스키마와 Flyway 파일·`flyway_schema_history`를 유지합니다. Hibernate는 `validate`만 수행하며 Open Session in View는 사용하지 않습니다. 기존 Content JDBC·별도 마이그레이션 경로는 이번 Auth 전환에 포함하지 않습니다.
 - 로그인·복구·이메일 변경·refresh 회전·세션 폐기는 회원의 JPA `PESSIMISTIC_WRITE` 잠금으로 직렬화합니다. 토큰 재사용 폐기는 Service가 정상 반환해 커밋한 뒤 Controller에서 401로 변환합니다. 신규 가입 후보의 최초 삽입 충돌만 새 트랜잭션에서 한 번 재시도하며 메일 실패 시 후보 변경을 롤백합니다.
+- `attachment/controller → AttachmentService → repository / AttachmentStorageClient`: 설정 첨부·작품 표지·회차 이미지를 하나의 서비스에서 처리하며 Controller와 각 리소스의 권한·오류 계약은 유지합니다.
+- `attachment/AttachmentConfig`·`AttachmentProperties`: 공용 저장소·JPA 설정이며 기존 `app.setting-attachments` 속성과 활성화 조건을 유지합니다.
 - `_common/ai_config`: AI 주소·timeout·RestClient 설정.
 - `_common/helper`: 기존 HTTP 설정 검증과 통신 실패 분류 경계.
 - `_common/exception`: AI 실패 분류와 안전한 ProblemDetail.
@@ -108,7 +110,7 @@ Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 we
 `AiServiceClientPropertiesTest`처럼 context가 섞인 클래스도 통합입니다. 새 Spring/HTTP/DB 테스트는 분류 목록을 갱신합니다.
 
 CI가 이 디렉터리에서 `./gradlew unitTest --no-daemon --tests 'ai.storyfork.core.auth.*'`와 `./gradlew integrationTest --no-daemon --tests ...`를 직접 호출합니다. 별도 runner·shell wrapper는 없습니다.
-Gradle `--tests`의 기존 기능 범위는 auth/content/health이며 공통·설정·의존성·미등록 `settingattachment` 변경은 필터 없이 Core 전체로 확장합니다.
+Gradle `--tests`의 기존 기능 범위는 auth/content/health이며 공통·설정·의존성·미등록 `attachment` 변경은 필터 없이 Core 전체로 확장합니다.
 Auth·Content 실행 코드 변경도 새 첨부 소비 관계를 포함하도록 Core 전체를 검증하며 테스트만 변경하면 기존 기능 범위를 유지합니다.
 통합 job은 임시 PostgreSQL·Mailpit에서 기존 Flyway와 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTENT_DATABASE_URL` 조건부 테스트를 실행합니다.
 Content의 기존 `content_test`/빈 비밀번호는 격리 runner PostgreSQL trust 인증에만 적용하며 운영 설정이 아닙니다.
@@ -166,8 +168,8 @@ AttachmentResponse는 `id`, `filename`, `mediaType`, `kind`(`IMAGE`/`FILE`), `by
 
 ### DB·파일 실패 경계
 
-새 영속성은 `settingattachment/controller → service → JpaRepository / AttachmentStorageClient`로 분리합니다.
-DTO는 `settingattachment/service/dto`, 저장소 전용 DTO는 `settingattachment/client/dto`에 둡니다.
+첨부 영속성은 `attachment/controller → AttachmentService → JpaRepository / AttachmentStorageClient`로 분리합니다.
+DTO는 `attachment/service/dto`, 저장소 전용 DTO는 `attachment/client/dto`에 둡니다.
 기존 Auth JPA·Content JDBC 경계는 유지하며 새 직접 SQL 영속성은 추가하지 않습니다.
 새 Flyway는 `db/migration/settingattachment`와 `setting_attachment_schema_history`를 사용합니다.
 Auth SQL은 **내용·파일명·버전·기존 `flyway_schema_history`를 유지**하고 `db/migration/auth`로만 이동했습니다.
@@ -185,13 +187,13 @@ Auth SQL은 **내용·파일명·버전·기존 `flyway_schema_history`를 유�
 
 ```bash
 # 로컬에서 허용하는 선택 순수 단위 검사
-./gradlew unitTest --tests 'ai.storyfork.core.settingattachment.AttachmentUploadHelperTest' --no-daemon
+./gradlew unitTest --tests 'ai.storyfork.core.attachment.AttachmentServiceTest' --tests 'ai.storyfork.core.attachment.AttachmentUploadHelperTest' --no-daemon
 # 아래는 CI/별도 승인된 격리 환경의 통합 호출 형식이며 로컬 자동 검증 목록이 아닙니다.
-./gradlew integrationTest --tests 'ai.storyfork.core.settingattachment.*' --no-daemon
+./gradlew integrationTest --tests 'ai.storyfork.core.attachment.*' --no-daemon
 ```
 
 `AttachmentStorageClientTest`의 대역 HTTP와 `AttachmentMigrationLocationTest`의 H2/Flyway도 통합 계층입니다.
-`SettingAttachmentConfigTest`는 Spring·실제 DB, `SettingAttachmentHttpTest`는 HTTP·실제 DB·MinIO를 사용하므로 단위 계층에서 실행하지 않습니다.
+`AttachmentConfigTest`는 Spring·실제 DB, `SettingAttachmentHttpTest`는 HTTP·실제 DB·MinIO를 사용하므로 단위 계층에서 실행하지 않습니다.
 설정·HTTP 검사는 `TEST_ATTACHMENT_DATABASE_URL`이 있을 때만 활성화합니다. 격리 DB 사용자는 `content_test`/빈 비밀번호이며 공유 DB에는 실행하지 않습니다.
 HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필요하고 전용 `issue87-test` 비공개 버킷을 만듭니다.
 실제 DB flush/deferred commit 실패와 저장소 응답 유실의 보상 동작을 검사하며 fault test 외의 HTTP lifecycle은 실제 MinIO를 사용합니다.
@@ -202,7 +204,7 @@ HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필
 
 ## 작품 표지·원고 이미지 (#92)
 
-기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `contentimage/controller → ContentImageService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. 기존 Auth/Content/설정 첨부 migration의 바이트·history는 변경하지 않습니다.
+기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `attachment/controller → AttachmentService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. 기존 Auth/Content/설정 첨부 migration의 바이트·history는 변경하지 않습니다.
 
 | 메서드·경로 (`/api/v1` 기준) | 요청·응답·권한 |
 |---|---|
