@@ -129,8 +129,11 @@ def test_health_worldstudio_packaged_migration():
     with pytest.raises(subprocess.CalledProcessError):
         compose(*wrong_target)
     assert scalar("SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'") == "0"
-    assert "applied=1; pending=0; tables=12" in compose(*args)
-    assert "applied=0; pending=0; tables=12" in compose(*args)
+    first = compose(*args)
+    again = compose(*args)
+    assert url not in first + again
+    assert "applied=1; pending=0; tables=12" in first
+    assert "applied=0; pending=0; tables=12" in again
     assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "12"
     assert histories == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
     assert content_history == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")

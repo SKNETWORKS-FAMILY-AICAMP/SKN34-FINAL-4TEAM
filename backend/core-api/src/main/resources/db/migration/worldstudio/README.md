@@ -16,7 +16,11 @@ Flyway.configure().dataSource(confirmedUrl, user, password)
     .load(); // migrate(), validate()는 명시적 실행 단계에서만 호출
 ```
 
-`baselineOnMigrate`·`baseline`·`repair`를 켜지 않는다. 기존 worldstudio schema/history가 없거나 이 독립 V1의 이력이 있는 검증된 대상만 허용한다. 전용 schema가 이미 비어 있지 않은데 이력이 없으면 Flyway 기본 정책으로 거부한다. 이전 확장 SQL이 적용된 DB는 실행 대상이 아니며 별도 전환 설계가 필요하다. 이력 조회가 불가능하면 미확인 상태로 남기고 적용하지 않는다. 운영 실행 명령/권한·배포 연결은 아직 구현하지 않았다.
+`baselineOnMigrate`·`baseline`·`repair`를 켜지 않는다. 기존 worldstudio schema/history가 없거나 이 독립 V1의 이력이 있는 검증된 대상만 허용한다. 전용 schema가 이미 비어 있지 않은데 이력이 없으면 Flyway 기본 정책으로 거부한다. 이전 확장 SQL이 적용된 DB는 실행 대상이 아니며 별도 전환 설계가 필요하다. 이력 조회가 불가능하면 미확인 상태로 남기고 적용하지 않는다.
+
+개발 CD는 기존 Core 이미지의 `ai.storyfork.core.world.migration.WorldStudioMigration`을 별도 명령으로 실행한다.
+기본 비활성이며 확인된 개발 DB allowlist·백업 복원 기록·명시 활성화 후에만 migrate/validate 성공을 조건으로 새 Core를 기동한다.
+공용 DB 적용 여부·환경 승인·복구 책임은 [배포 실행 계약](../../../../../../../../docs/deployment/worldstudio-v1-rollout.md)을 따른다.
 
 과거 이력 차단은 다른 schema의 `world_studio_schema_history` 또는 기본 `flyway_schema_history`에서 아래 **성공한 SQL 이력**만 식별한다. 버전·스크립트명·체크섬·type=SQL·success=true가 모두 일치해야 한다. 이름이나 V1/V2 번호만으로 차단하지 않는다. 정상 타 도메인이 같은 버전·파일명·이력 테이블명을 사용해도 체크섬이 다르면 허용하고, 실패·baseline·불완전 행은 적용된 SQL로 취급하지 않는다. 이력 테이블은 읽기만 한다. 미확인 변형 이력을 자동 import·repair하는 기능은 없다.
 

@@ -1,6 +1,9 @@
 package ai.storyfork.core.world.migration
 
 import org.flywaydb.core.Flyway
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import org.slf4j.LoggerFactory
 import java.sql.DriverManager
 import java.util.Properties
 import kotlin.system.exitProcess
@@ -10,6 +13,8 @@ object WorldStudioMigration {
     @JvmStatic
     fun main(args: Array<String>) {
         try {
+            // 별도 명령 프로세스에서만 URL이 포함된 Flyway 로그를 억제한다.
+            (LoggerFactory.getLogger("org.flywaydb") as Logger).level = Level.OFF
             val applied = migrate(WorldStudioMigrationProperties.from(System.getenv()))
             println("WorldStudio migration validated; applied=$applied; pending=0; tables=12")
         } catch (_: Exception) {
@@ -54,8 +59,7 @@ object WorldStudioMigration {
         val flyway = Flyway.configure().dataSource(settings.url, settings.user, settings.password)
             .locations("classpath:db/migration/worldstudio")
             .schemas("worldstudio").defaultSchema("worldstudio").table("world_studio_schema_history")
-            // Flyway INFO 로그에는 JDBC URL이 포함되므로 배포 명령에서는 비활성화한다.
-            .loggers("none").cleanDisabled(true).baselineOnMigrate(false).load()
+            .cleanDisabled(true).baselineOnMigrate(false).load()
         val result = flyway.migrate()
         flyway.validate()
         check(flyway.info().pending().isEmpty())
