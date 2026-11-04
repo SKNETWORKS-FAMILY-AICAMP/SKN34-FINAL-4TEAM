@@ -15,7 +15,7 @@
 
 `App.tsx`의 `/content` → `EpisodePage`/`WorldPanel` → ViewModel → `EpisodeUseCase` → `EpisodeRepository` → `HttpEpisodeRepository` 순서다. 기존 `appContainer`에 등록하며 HTTP·Zod 검증은 Data 계층에 있다. 도서관에서 서버 집필 작업실 링크로 진입한다. 원고·설정집·공개 조회의 정본은 브라우저 저장소가 아닌 Core 응답이다.
 
-공개 API는 `/api/v1/works` 아래 작품·draft·history·policy·publish·forks·world·settings·context·proposals를 제공한다. 공개 독자 조회는 `/api/v1/public/works` 아래에 있고 초안은 반환하지 않는다. 구체적인 요청 DTO와 HTTP 메서드는 [ContentController](../backend/core-api/src/main/kotlin/ai/storyfork/core/content/controller/ContentController.kt)에 있다.
+공개 API는 `/api/v1/works` 아래 작품·draft·history·policy·publish·forks·world·settings·context·proposals를 제공한다. 공개 독자 조회는 `/api/v1/public/works` 아래에 있고 초안은 반환하지 않는다. 구체적인 요청 DTO와 HTTP 메서드는 [작품 Controller](../backend/core-api/src/main/kotlin/ai/storyfork/core/work/controller/WorkController.kt)와 [회차 Controller](../backend/core-api/src/main/kotlin/ai/storyfork/core/episode/controller/EpisodeController.kt)에 있다.
 
 ## 인증과 실행
 
@@ -41,7 +41,7 @@ base는 단독 실행하지 않는다. prod는 기존 Auth PostgreSQL 서비스�
 
 공개·인물 문맥에는 비공개 설정과 미발행 원고를 포함하지 않는다. 작가 문맥은 소유자에게 허용된 설정과 작성 원고를 포함한다. AI 제안은 자동 발행하지 않는다. 제공사 실패는 503으로 드러내며 임의 생성 결과로 대체하지 않는다.
 
-현재 저장 명령은 PostgreSQL advisory transaction lock으로 직렬화한다. 초기 작가 검증 규모의 무결성을 위한 선택이며 동시 다수 작가의 처리량은 검증하지 않았다. 목록 페이지네이션·aggregate 크기·버전 누적량은 운영 전 측정 및 보완 대상이다.
+현재 콘텐츠 저장은 JPA를 사용하며 관련 작품·원작 행의 `PESSIMISTIC_WRITE`를 정렬된 순서로 획득한 뒤 revision을 검사한다. Auth는 기존 JDBC를 유지한다. 다중 작가의 운영 처리량은 검증하지 않았다. 목록 페이지네이션·aggregate 크기·버전 누적량은 운영 전 측정 및 보완 대상이다.
 
 ## 검증 기록 — 2026-11-02
 
@@ -66,3 +66,6 @@ base는 단독 실행하지 않는다. prod는 기존 Auth PostgreSQL 서비스�
 Aside를 사용할 수 있을 때 정상 흐름, 실패 경로, 재접속 저장 유지, 모바일·키보드 조작을 확인한다. 실제 Principal 제공자 연결과 Docker 기동을 별도로 확인하고, 유료 생성 추가 검증은 별도 승인 범위에서만 수행한다. 변경 전달 시 최신 커밋의 Required CI 결과를 확인한다.
 
 후속 집필 작업의 기준은 [이슈 #50 대응](issue-50-alignment.md)입니다. `/content`에서 작품을 선택하고 회차별 집필실로 이동할 수 있습니다. 모든 발행 요청은 저장 버전 ID를 명시해야 합니다.
+
+
+#84의 파일·책임·DTO·영속성 대응과 이번 검증 한계는 [콘텐츠 책임 분리](issue-84-content-boundaries.md)를 따른다. 아래 과거 날짜의 기록은 당시 결과이며 이번 JPA 전환의 통과 근거로 대신하지 않는다.

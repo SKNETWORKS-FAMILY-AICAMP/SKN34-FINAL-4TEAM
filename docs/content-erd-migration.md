@@ -2,6 +2,8 @@
 
 기준은 `b5bcd4d`에 병합된 [143개 논리 후보 ERD](design/erd/README.md)와 [정규화 원칙](design/erd/normalization.md)이다. 사용자 확인에 따라 현재 구현된 작품·설정집·집필·발행·Fork·AI 이어쓰기 범위만 이식한다. ERD 원본을 구현에 맞춰 수정하지 않는다.
 
+현재 Core 내부 책임 분리·JPA 전환 및 이번 검증 상태는 [#84 대응 문서](issue-84-content-boundaries.md)를 따른다. 아래 날짜별 기록은 당시 결과이며 이번 변경의 검증을 대신하지 않는다.
+
 ## 정본과 조회
 
 `content_work.payload`를 운영 정본으로 읽거나 쓰지 않는다. 작품별 전체 JSON 덮어쓰기는 제거하고 아래 관계에 저장한다. `work_current`, `episode_current`, `setting_version_read`는 조회용 SQL VIEW이며 별도 현재값 저장소가 아니다.

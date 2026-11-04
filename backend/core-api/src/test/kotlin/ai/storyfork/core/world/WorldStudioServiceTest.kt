@@ -2,8 +2,8 @@ package ai.storyfork.core.world
 
 import ai.storyfork.core.world.domain.WorldConflict
 import ai.storyfork.core.world.domain.WorldNotFound
-import ai.storyfork.core.world.entity.*
-import ai.storyfork.core.world.repository.*
+import ai.storyfork.core.world.studio.entity.*
+import ai.storyfork.core.world.studio.repository.*
 import ai.storyfork.core.world.service.WorldStudioService
 import ai.storyfork.core.world.service.dto.*
 import java.util.Optional
@@ -17,7 +17,7 @@ import org.springframework.transaction.support.SimpleTransactionStatus
 import org.springframework.transaction.support.TransactionTemplate
 
 class WorldStudioServiceTest {
-    private val worlds=mock(WorldRepository::class.java)
+    private val worlds=mock(StudioWorldRepository::class.java)
     private val drafts=mock(WorldDraftRepository::class.java)
     private val cards=mock(SettingCardRepository::class.java)
     private val cardDrafts=mock(SettingCardDraftRepository::class.java)

@@ -117,7 +117,7 @@
 <tr><td>원고 본문 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>원고 초안 자동저장</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 순서 변경 가능 범위 확인</td><td>❌</td></tr>
-<tr><td>초안 삭제 요청</td><td>❌</td></tr>
+<tr><td>초안 삭제 요청 (브라우저 DELETE CORS 허용 보완, 병합·CI 확인 대기)</td><td>❌</td></tr>
 <tr><td>회차 삭제 요청</td><td>❌</td></tr>
 <tr><td rowspan="9">11 플롯·장면 계획 CRUD</td><td>플롯 생성</td><td>❌</td><td rowspan="9"><a href="#미등록-007">미등록-007</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/61">#61</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
 <tr><td>플롯 상세 조회</td><td>❌</td></tr>
@@ -975,3 +975,13 @@
 | 84 | 원고 가져오기 정책과 AI 처리 이용 권한 안내 개별 확인 후 계속 | [WritingPolicyPage.tsx:38](../frontend/src/presentation/features/fork/view/WritingPolicyPage.tsx#L38) |
 | 85 | 답변 대기 문의·접수 신고·작가 검토 대기 수 조회 | [AdminPage.tsx:126](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L126) |
 | 85 | 수집 자료 출처·수량·형식·사용처 명세 조회 | [AdminPage.tsx:130](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L130) |
+
+<!-- 회차 CRUD 10: 순서 후보 범위 조회·초안 물리 삭제·참조 없는 마지막 회차 삭제를 로컬 구현. 정책 초안: episode-deletion-policy-draft.md. 미커밋·미병합·Required CI 미확인이므로 세 행 모두 ❌ 유지. 실제 순서 변경은 범위 밖. -->
+
+<!-- 회차 CRUD 10 후속: 예약 회차와 작성 회차 구분, 작성 대상 없음 안내, 이미지 참조 확인 실패 시 삭제 거절 및 업로드/삭제 작품 잠금 보완. 미커밋·미병합·Required CI 미확인으로 해당 세 행 ❌ 유지. -->
+
+<!-- PR #91 후속: Auth/Content JPA 분리, 첨부 초기화 의존성, 공개 조회 쓰기 잠금 제거 및 회차 삭제 호환성 보완. 미병합으로 관련 기능 ❌ 유지. -->
+
+<!-- PR #91 이미지 소속 검증 추가분은 담당 범위 밖이므로 원복. 해당 보안 검증은 팀장 담당 후속이며 병합 전 해결 필요. -->
+
+PR #91 / PR #97 호환 보완: 세계관 생성·설정 저장·조회 관련 JPA 패키지와 저장소를 분리하고, 독립 WorldStudio migration 전후의 Content 정본 보존 및 동시 활성화를 CI 공존 테스트에 연결했습니다. 관련 기능의 ❌ 표시는 PR #91 미병합으로 유지합니다. 이미지 권한 기능은 변경하지 않았습니다.

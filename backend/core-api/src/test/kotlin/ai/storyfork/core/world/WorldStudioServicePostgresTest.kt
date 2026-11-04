@@ -77,7 +77,7 @@ class WorldStudioServicePostgresTest {
                 assertThrows(WorldConflict::class.java) { service.edit(world,actor,EditWorldDraftRequest(before.draftRevision-1,"덮어쓰기","")) }
                 assertEquals(before,service.draft(world,actor))
                 lastDraftRevision=before.draftRevision
-                assertEquals(setOf("ai.storyfork.core.world.entity"),ctx.getBean("worldStudioEntityManagerFactory",EntityManagerFactory::class.java).metamodel.entities.map { it.javaType.packageName }.toSet())
+                assertEquals(setOf("ai.storyfork.core.world.studio.entity"),ctx.getBean("worldStudioEntityManagerFactory",EntityManagerFactory::class.java).metamodel.entities.map { it.javaType.packageName }.toSet())
             }
             context(db).use { fresh ->
                 val service=fresh.getBean(WorldStudioService::class.java)

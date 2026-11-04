@@ -11,7 +11,8 @@ import ai.storyfork.core.attachment.repository.ContentImageRepository
 import ai.storyfork.core.attachment.repository.ImageWorkRepository
 import ai.storyfork.core.attachment.repository.SettingAttachmentRepository
 import ai.storyfork.core.attachment.service.dto.*
-import ai.storyfork.core.content.service.ContentService
+import ai.storyfork.core.work.service.WorkService
+import ai.storyfork.core.episode.service.EpisodeService
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -27,9 +28,11 @@ class AttachmentService(
     private val attachments: SettingAttachmentRepository,
     private val images: ContentImageRepository,
     private val works: ImageWorkRepository,
-    private val content: ContentService,
+    private val content: WorkService,
+    private val episodeService: EpisodeService,
     private val storage: AttachmentStorageClient,
     @Qualifier("attachmentTransactions") private val transactions: TransactionTemplate,
+    private val imageEpisodes: ai.storyfork.core.attachment.repository.ImageEpisodeRepository,
 ) {
     private fun missingSettingAttachment(): Nothing = throw AttachmentFailure(404, "ATTACHMENT_NOT_FOUND", "설정 또는 첨부를 찾을 수 없어요.")
     private fun ownedSetting(workId: String, settingId: String, owner: String): String {
@@ -159,10 +162,13 @@ class AttachmentService(
     }
     fun deleteCover(work: String, owner: String) { imageTransaction { ownedWork(work, owner); images.delete(cover(work)); images.flush(); true } }
     fun createEpisodeImage(work: String, number: Int, owner: String, request: AttachmentUploadRequest): AttachmentResponse {
-        val episode = content.writing(work, owner, number)
+        val episode = episodeService.read(work, owner, number)
         if (episode.inherited) throw AttachmentFailure(403, "IMAGE_INHERITED", "원작 기준 회차에는 이미지를 추가할 수 없어요.")
         return imageTransaction {
             ownedWork(work, owner)
+            // The attachment work lock and Core deletion lock target the same database row.
+            // Recheck after locking: deletion may have committed since the initial Core read.
+            if (!imageEpisodes.existsByWorkIdAndSequence(work, number)) missingImage()
             val data = imagePayload(request)
             if (images.countByWorkIdAndEpisodeNo(work, number) >= 10) throw AttachmentFailure(409, "IMAGE_LIMIT", "회차 이미지는 최대 10개까지 추가할 수 있어요.")
             val key = "episode-images/${UUID.randomUUID()}"
@@ -176,7 +182,7 @@ class AttachmentService(
         if (public) {
             if (content.publicRead(work).episodes.none { it.number == number && marker in it.body }) missingImage()
         } else {
-            val episode = content.writing(work, owner ?: "", number)
+            val episode = episodeService.read(work, owner ?: "", number)
             val image = imageTransaction { images.findById(id).orElse(null) ?: missingImage() }
             if (image.workId != work || image.episodeNo != number) {
                 if (!episode.inherited || marker !in episode.draft.body) missingImage()

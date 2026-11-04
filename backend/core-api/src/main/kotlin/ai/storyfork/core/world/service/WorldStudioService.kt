@@ -2,8 +2,8 @@ package ai.storyfork.core.world.service
 
 import ai.storyfork.core.world.domain.WorldConflict
 import ai.storyfork.core.world.domain.WorldNotFound
-import ai.storyfork.core.world.entity.*
-import ai.storyfork.core.world.repository.*
+import ai.storyfork.core.world.studio.entity.*
+import ai.storyfork.core.world.studio.repository.*
 import ai.storyfork.core.world.service.dto.*
 import java.security.MessageDigest
 import java.time.Instant
@@ -12,7 +12,7 @@ import org.springframework.transaction.support.TransactionTemplate
 
 /** 독립 세계관의 초안·확정본을 저장한다. subject는 호출 계층에서 검증한 JWT의 UUID여야 한다. */
 class WorldStudioService(
-    private val worlds:WorldRepository, private val drafts:WorldDraftRepository,
+    private val worlds:StudioWorldRepository, private val drafts:WorldDraftRepository,
     private val cards:SettingCardRepository, private val cardDrafts:SettingCardDraftRepository,
     private val cardVersions:SettingCardVersionRepository, private val relationships:RelationshipRepository,
     private val relationDrafts:RelationshipDraftRepository, private val relationVersions:RelationshipVersionRepository,

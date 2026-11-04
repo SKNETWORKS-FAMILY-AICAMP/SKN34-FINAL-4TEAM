@@ -1,6 +1,9 @@
 import type {WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext} from '../entities/content'
 
 export interface EpisodeRepository {
+  orderScope(id:string,number:number,signal?:AbortSignal):Promise<import('../entities/content').EpisodeOrderScope>
+  deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
+  deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
   writingList(id:string,signal?:AbortSignal):Promise<WritingEpisode[]>
   createEpisode(id:string,title:string,signal?:AbortSignal):Promise<WritingEpisode>
   writeEpisode(id:string,number:number,draft:Draft,version:boolean,signal?:AbortSignal):Promise<WritingEpisode>

@@ -116,3 +116,13 @@ it('shows the server authentication error instead of claiming the server is offl
  expect(calls).toHaveBeenCalledTimes(2)
  expect(screen.queryByText('Core 서버에 연결하지 못했어요. 서버를 실행한 뒤 새로고침해 주세요.')).toBeNull()
 })
+
+
+it('shows a creation link instead of save and AI controls when the writing episode is missing',async()=>{
+ const w={id:'w',title:'회차 삭제됨',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
+ render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([w]))))}/>)
+ fireEvent.click(await screen.findByRole('button',{name:/회차 삭제됨/}))
+ expect(screen.getByRole('link',{name:'집필실에서 회차 생성'}).getAttribute('href')).toBe('/studio/w')
+ expect(screen.queryByRole('button',{name:'원고 저장'})).toBeNull()
+ expect(screen.queryByRole('textbox',{name:'원고 본문'})).toBeNull()
+})

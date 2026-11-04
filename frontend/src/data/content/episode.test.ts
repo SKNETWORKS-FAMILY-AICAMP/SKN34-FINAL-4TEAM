@@ -96,3 +96,30 @@ it('public browsing never exposes an editable owner draft', async()=>{
  expect(rows[0].draft.body).toBe('')
  expect(fetcher.mock.calls[0][0]).toBe('/api/v1/public/works')
 })
+
+
+describe('episode removal contract', () => {
+  it('sends the observed revision and handles an empty deletion response', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, {status:204}))
+    await new HttpEpisodeRepository(fetcher).deleteDraft('w',2,7)
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w/episodes/2/draft?revision=7', expect.objectContaining({method:'DELETE'}))
+  })
+  it('validates order scope without mutating the episode', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({number:2,candidateNumbers:[2,3],reasons:[],executable:false}))
+    expect((await new HttpEpisodeRepository(fetcher).orderScope('w',2)).candidateNumbers).toEqual([2,3])
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w/episodes/2/order-scope',expect.objectContaining({method:'GET'}))
+  })
+})
+
+
+it('does not treat an unexpected successful deletion response as confirmed removal',async()=>{
+  const repo=new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response('not-json',{status:200})))
+  await expect(repo.deleteEpisode('w',1,0)).rejects.toThrow()
+})
+
+
+it('preserves the missing writing episode state from Core',async()=>{
+ const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
+ const repo=new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value])))
+ expect((await repo.list())[0].hasWritingEpisode).toBe(false)
+})

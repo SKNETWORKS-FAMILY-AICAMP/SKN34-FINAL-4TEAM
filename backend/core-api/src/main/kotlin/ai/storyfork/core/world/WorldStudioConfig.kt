@@ -1,7 +1,7 @@
 package ai.storyfork.core.world
 
-import ai.storyfork.core.world.entity.StudioWorld
-import ai.storyfork.core.world.repository.*
+import ai.storyfork.core.world.studio.entity.StudioWorld
+import ai.storyfork.core.world.studio.repository.*
 import ai.storyfork.core.world.service.WorldStudioService
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.persistence.EntityManagerFactory
@@ -19,7 +19,7 @@ import org.springframework.transaction.support.TransactionTemplate
 
 @Configuration(proxyBeanMethods=false)
 @ConditionalOnProperty(name=["app.worldstudio.enabled"],havingValue="true")
-@EnableJpaRepositories(basePackages=["ai.storyfork.core.world.repository"],
+@EnableJpaRepositories(basePackages=["ai.storyfork.core.world.studio.repository"],
     entityManagerFactoryRef="worldStudioEntityManagerFactory",transactionManagerRef="worldStudioTransactionManager")
 class WorldStudioConfig {
     @Bean(defaultCandidate=false,destroyMethod="close")
@@ -43,7 +43,7 @@ class WorldStudioConfig {
     @Bean(defaultCandidate=false)
     fun worldStudioTransactionManager(@Qualifier("worldStudioEntityManagerFactory") factory:EntityManagerFactory)=JpaTransactionManager(factory)
 
-    @Bean fun worldStudioService(worlds:WorldRepository,drafts:WorldDraftRepository,cards:SettingCardRepository,
+    @Bean fun worldStudioService(worlds:StudioWorldRepository,drafts:WorldDraftRepository,cards:SettingCardRepository,
         cardDrafts:SettingCardDraftRepository,cardVersions:SettingCardVersionRepository,relationships:RelationshipRepository,
         relationDrafts:RelationshipDraftRepository,relationVersions:RelationshipVersionRepository,revisions:WorldRevisionRepository,
         revisionCards:WorldRevisionCardRepository,revisionRelations:WorldRevisionRelationshipRepository,requests:WorldSaveRequestRepository,
