@@ -976,3 +976,7 @@
 | 85 | 수집 자료 출처·수량·형식·사용처 명세 조회 | [AdminPage.tsx:130](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L130) |
 
 <!-- 회차 CRUD 10: 순서 후보 범위 조회·초안 물리 삭제·참조 없는 마지막 회차 삭제를 로컬 구현. 정책 초안: episode-deletion-policy-draft.md. 미커밋·미병합·Required CI 미확인이므로 세 행 모두 ❌ 유지. 실제 순서 변경은 범위 밖. -->
+
+<!-- 회차 CRUD 10 후속: 예약 회차와 작성 회차 구분, 작성 대상 없음 안내, 이미지 참조 확인 실패 시 삭제 거절 및 업로드/삭제 작품 잠금 보완. 미커밋·미병합·Required CI 미확인으로 해당 세 행 ❌ 유지. -->
+
+<!-- PR #91 후속: Auth/Content JPA 분리, 첨부 초기화 의존성, 이미지 소속 검증, 공개 조회 쓰기 잠금 제거 및 회차 삭제 호환성 보완. 미병합으로 관련 기능 ❌ 유지. -->

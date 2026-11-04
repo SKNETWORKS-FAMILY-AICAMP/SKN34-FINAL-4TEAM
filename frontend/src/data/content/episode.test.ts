@@ -116,3 +116,10 @@ it('does not treat an unexpected successful deletion response as confirmed remov
   const repo=new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response('not-json',{status:200})))
   await expect(repo.deleteEpisode('w',1,0)).rejects.toThrow()
 })
+
+
+it('preserves the missing writing episode state from Core',async()=>{
+ const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
+ const repo=new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value])))
+ expect((await repo.list())[0].hasWritingEpisode).toBe(false)
+})

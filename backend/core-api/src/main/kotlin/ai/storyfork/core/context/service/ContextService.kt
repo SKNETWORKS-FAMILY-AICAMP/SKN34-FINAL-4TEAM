@@ -31,7 +31,7 @@ class ContextService(
         val published=publication.publishedEpisodes(id).items
         val max=published.size+if(owner==null) 0 else 1
         checkContent(basis in 1..max,message="공개 회차 또는 현재 작성 회차를 선택해 주세요.")
-        val following=w.source!=null && world.read(id,w.ownerId).mode=="following"
+        val following=w.source!=null && world.isFollowingForContext(id)
         val settings=selectSettings(world.historyForContext(id).items.map {it.toDomain()},basis,owner==null || following,character)
         val draft=if(owner!=null && character.isEmpty() && basis==max) {
             episodes.findByWorkIdAndSequence(id,published.size+1)?.let {drafts.findById(it.id).orElse(null)?.content} ?: ""

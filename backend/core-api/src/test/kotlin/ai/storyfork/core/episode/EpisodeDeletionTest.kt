@@ -23,12 +23,17 @@ class EpisodeDeletionTest {
     private val current=mock(EpisodeCurrentRepository::class.java)
     private val versions=mock(EpisodeVersionRepository::class.java)
     private val em=mock(EntityManager::class.java)
-    private val service=EpisodeService(access,works,episodes,drafts,current,versions,false,em)
+    private val images=mock(ai.storyfork.core.attachment.repository.ContentImageRepository::class.java)
+    @Suppress("UNCHECKED_CAST")
+    private val imageProviders=mock(org.springframework.beans.factory.ObjectProvider::class.java) as org.springframework.beans.factory.ObjectProvider<ai.storyfork.core.attachment.repository.ContentImageRepository>
+    private val service=EpisodeService(access,works,episodes,drafts,current,versions,imageProviders,em)
     private val episode=EpisodeEntity("e","w",1)
     private val draft=EpisodeDraftEntity("e","title","original",4)
     private val row=EpisodeCurrentEntity("e","w",1)
     private val work=WorkEntity(id="w",revision=5)
     private fun setup() {
+        `when`(imageProviders.getIfAvailable()).thenReturn(images)
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(row))
         `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(episode)
         `when`(episodes.findAllById(listOf("e"))).thenReturn(listOf(episode))
         `when`(episodes.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(episode))
@@ -63,9 +68,56 @@ class EpisodeDeletionTest {
         verify(drafts).delete(draft);verify(episodes).delete(episode)
         assertEquals(6,work.revision)
     }
+    @Test fun `future setting placeholder does not become a writing candidate`() {
+        setup()
+        val placeholder=EpisodeEntity("future","w",10)
+        `when`(episodes.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(episode,placeholder))
+        `when`(episodes.referenceCount("future")).thenReturn(1)
+        assertEquals(listOf(1),service.orderScope("w","owner",1).candidateNumbers)
+    }
+    @Test fun `disabled image metadata must not be assumed empty`() {
+        setup()
+        `when`(imageProviders.getIfAvailable()).thenReturn(null)
+        assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}
+    }
+    @Test fun `creating after chapter one ignores future setting rows`() {
+        setup()
+        `when`(episodes.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(episode,EpisodeEntity("future","w",10)))
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(row))
+        val next=EpisodeEntity("next","w",2)
+        `when`(episodes.findByWorkIdAndSequence("w",2)).thenReturn(next)
+        `when`(current.findByWorkIdAndSequence("w",2)).thenReturn(EpisodeCurrentEntity("next","w",2))
+        `when`(episodes.findAllById(listOf("next"))).thenReturn(listOf(next))
+        `when`(drafts.findAllById(listOf("next"))).thenReturn(listOf(EpisodeDraftEntity("next","second","",0)))
+        assertEquals(2,service.create("w","owner",ai.storyfork.core.episode.service.dto.CreateEpisodeRequest("second")).number)
+    }
+    @Test fun `existing image blocks deletion even without any content references`() {
+        setup(); `when`(images.countByWorkIdAndEpisodeNo("w",1)).thenReturn(1)
+        assertEquals(409,assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}.status)
+        verify(drafts,never()).delete(draft);verify(episodes,never()).delete(episode)
+    }
+    @Test fun `image store failure does not authorize deletion`() {
+        setup(); `when`(images.countByWorkIdAndEpisodeNo("w",1)).thenThrow(org.springframework.dao.DataAccessResourceFailureException("private database details"))
+        val failure=assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}
+        assertEquals(503,failure.status);assertFalse(failure.message.contains("private database"))
+        verify(episodes,never()).delete(episode)
+    }
+    @Test fun `future placeholder does not prevent deleting last written chapter`() {
+        setup(); `when`(episodes.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(episode,EpisodeEntity("future","w",10)))
+        service.deleteEpisode("w","owner",1,4)
+        verify(episodes).delete(episode)
+    }
     @Test fun `ownership failure prevents every persistence operation`() {
         `when`(access.own("w","other")).thenThrow(ContentFailure(404,"missing"))
         assertThrows(ContentFailure::class.java) {service.deleteDraft("w","other",1,4)}
         verifyNoInteractions(episodes,drafts,versions)
+    }
+    @Test fun `draft rejects an image from another episode`() {
+        setup()
+        `when`(images.findById("foreign")).thenReturn(Optional.empty())
+        assertThrows(ContentFailure::class.java) {
+            service.update("w","owner",1,ai.storyfork.core.episode.service.dto.DraftRequest("title","[[image:foreign]]",4))
+        }
+        verify(drafts,never()).save(org.mockito.ArgumentMatchers.any(EpisodeDraftEntity::class.java))
     }
 }

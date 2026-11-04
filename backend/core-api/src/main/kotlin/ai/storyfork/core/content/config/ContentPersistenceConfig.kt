@@ -12,7 +12,6 @@ import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitializat
 import org.springframework.context.annotation.*
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.jdbc.datasource.DriverManagerDataSource
-import org.springframework.jdbc.support.JdbcTransactionManager
 import org.springframework.orm.jpa.*
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
 import org.springframework.transaction.support.TransactionTemplate
@@ -50,9 +49,6 @@ class ContentPersistenceConfig {
         }
     }
 
-    @Bean("transactionManager")
-    @Primary
-    fun authTransactionManager(dataSource: DataSource) = JdbcTransactionManager(dataSource)
 
     @Bean
     fun contentTransactionManager(@Qualifier("contentEntityManagerFactory") factory: EntityManagerFactory) = JpaTransactionManager(factory)

@@ -41,7 +41,6 @@ class WorkService(
     }
     fun publicList(): WorkListResponse {
         val rows=works.findAll().sortedByDescending {it.createdAt}
-        access.lockScopes(rows.map {it.id})
         return WorkListResponse(rows.mapNotNull {
             val w=access.get(it.id)
             if(w.visibility=="public") view(w,true) else null
@@ -81,7 +80,7 @@ class WorkService(
             val d=e?.let {drafts.findById(it.id).orElse(null)}
             DraftResponse(d?.title ?: "새 회차",d?.content ?: "",w.revision)
         }
-        return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft)
+        return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0)
     }
 
 }

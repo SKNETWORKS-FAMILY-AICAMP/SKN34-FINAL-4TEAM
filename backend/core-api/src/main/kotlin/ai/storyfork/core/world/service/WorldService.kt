@@ -52,6 +52,7 @@ class WorldService(
 
     private data class Loaded(val work: WorkAccessResult, val state: WorldState, val basis: BasisResponse?, val sourceWorld: String?, val sourceHistory: List<Setting>)
     fun read(id: String, owner: String): WorldResponse = view(load(access.own(id,owner)))
+    fun isFollowingForContext(id: String): Boolean = load(access.get(id)).state.mode=="following"
     fun historyForContext(id: String): SettingListResponse {
         val loaded=load(access.get(id))
         return SettingListResponse(effective(loaded).map {it.toPayload()})

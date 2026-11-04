@@ -46,7 +46,8 @@ class AttachmentServiceTest {
     private val episodeService = mock(EpisodeService::class.java)
     private val storage = mock(AttachmentStorageClient::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
-    private val service = AttachmentService(settings, attachments, images, works, content, episodeService, storage, TransactionTemplate(manager))
+    private val imageEpisodes=mock(ai.storyfork.core.attachment.repository.ImageEpisodeRepository::class.java)
+    private val service = AttachmentService(settings, attachments, images, works, content, episodeService, storage, TransactionTemplate(manager), imageEpisodes)
     private val png = ByteArrayOutputStream().also {
         ImageIO.write(BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB), "png", it)
     }.toByteArray()
@@ -60,8 +61,17 @@ class AttachmentServiceTest {
         `when`(attachments.saveAndFlush(any(SettingAttachment::class.java) ?: SettingAttachment())).thenAnswer { it.arguments[0] }
         `when`(images.saveAndFlush(any(ContentImage::class.java) ?: ContentImage())).thenAnswer { it.arguments[0] }
         `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, false, null))
+        `when`(imageEpisodes.existsByWorkIdAndSequence("work",1)).thenReturn(true)
     }
 
+    @Test fun `upload rechecks deleted episode under the work lock before writing a file`() {
+        `when`(imageEpisodes.existsByWorkIdAndSequence("work",1)).thenReturn(false)
+        assertThrows(AttachmentFailure::class.java) {service.createEpisodeImage("work",1,"owner",request())}
+        val ordered=inOrder(works,imageEpisodes)
+        ordered.verify(works).lockOwned("work","owner")
+        ordered.verify(imageEpisodes).existsByWorkIdAndSequence("work",1)
+        verifyNoInteractions(storage)
+    }
     @Test fun `one attachment service stores setting files work covers and episode images through shared storage`() {
         val file = "설정 문서".toByteArray()
         val setting = service.createSettingAttachment("work", "setting", "owner", request("note.txt", "text/plain", file))

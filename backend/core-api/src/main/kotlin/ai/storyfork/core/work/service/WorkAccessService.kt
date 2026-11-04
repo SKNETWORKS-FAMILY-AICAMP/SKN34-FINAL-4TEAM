@@ -52,7 +52,6 @@ class WorkAccessService(
         return get(id).also { checkContent(it.ownerId==owner,404,"작품을 찾을 수 없어요.") }
     }
     fun published(id: String): WorkAccessResult {
-        lockScope(id)
         return get(id).also { checkContent(it.visibility=="public",404,"공개 작품을 찾을 수 없어요.") }
     }
     fun lockScope(id: String) = lockScopes(listOf(id))

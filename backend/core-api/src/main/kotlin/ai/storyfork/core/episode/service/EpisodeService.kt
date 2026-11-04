@@ -25,7 +25,7 @@ class EpisodeService(
     private val drafts: EpisodeDraftRepository,
     private val current: EpisodeCurrentRepository,
     private val versions: EpisodeVersionRepository,
-    @org.springframework.beans.factory.annotation.Value("\${app.setting-attachments.enabled:false}") private val attachmentsEnabled: Boolean,
+    private val imageRepositories: org.springframework.beans.factory.ObjectProvider<ai.storyfork.core.attachment.repository.ContentImageRepository>,
     @Qualifier("contentEntityManager") private val em: EntityManager,
 ) {
 
@@ -40,7 +40,7 @@ class EpisodeService(
     fun create(id: String, owner: String, data: CreateEpisodeRequest): EpisodeResponse {
         access.own(id,owner)
         validate(data.title,"")
-        val last=episodes.findAllByWorkIdOrderBySequence(id).maxOfOrNull { it.sequence } ?: 0
+        val last=list(id,owner).items.maxOfOrNull { it.number } ?: 0
         checkContent(last<Int.MAX_VALUE,409,"회차 번호를 더 생성할 수 없어요.")
         val number=last+1
         val e=ensure(id,number)
@@ -54,6 +54,13 @@ class EpisodeService(
         checkContent(!before.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(ai.storyfork.core.episode.domain.EpisodeMutationPolicy.acceptsRevision(data.revision,before.draft.revision),409,"다른 편집이 저장됐어요. 입력을 보관하고 최신 원고를 다시 불러와 주세요.")
         validate(data.title,data.body)
+        checkContent(!data.body.contains("data:image",ignoreCase=true),message="Inline images are not allowed")
+        val markers=Regex("\\[\\[image:([^\\]]*)]]").findAll(data.body).map {it.groupValues[1]}.toList()
+        checkContent(markers.size<=10,message="Too many image references")
+        for(marker in markers) {
+            val image=imageRepositories.getIfAvailable()?.findById(marker)?.orElse(null)
+            checkContent(image!=null && image.workId==id && image.episodeNo==number,message="Invalid episode image reference")
+        }
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
         val d=drafts.findById(e.id).orElse(null) ?: EpisodeDraftEntity(episodeId=e.id)
         d.title=data.title.trim(); d.content=data.body; d.editRevision=data.revision+1; d.updatedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
@@ -65,9 +72,9 @@ class EpisodeService(
     fun orderScope(id: String, owner: String, number: Int): EpisodeOrderScopeResponse {
         read(id,owner,number)
         val rows=episodes.findAllByWorkIdOrderBySequence(id)
-        val protected=rows.filter { attachmentsEnabled || episodes.referenceCount(it.id)>0 }.map {it.sequence}.toSet()
-        val candidates=ai.storyfork.core.episode.domain.EpisodeMutationPolicy.candidates(number,rows.map {it.sequence},protected)
-        return EpisodeOrderScopeResponse(number,candidates,listOf(if(attachmentsEnabled) "이미지 기능 활성화: 번호 연결 정합성 확인 전 변경 제한" else "저장 버전·설정 공개 범위·AI·Fork 참조를 넘는 이동 제한", "후보 조회만 제공하며 실제 순서 변경과 최종 정책은 미확정입니다."))
+        val protected=rows.filter { !imagesAbsent(id,it.sequence) || episodes.referenceCount(it.id)>0 }.map {it.sequence}.toSet()
+        val candidates=ai.storyfork.core.episode.domain.EpisodeMutationPolicy.candidates(number,list(id,owner).items.map {it.number},protected)
+        return EpisodeOrderScopeResponse(number,candidates,listOf("이미지 참조 또는 참조 확인 불가·저장 버전·설정 공개 범위·AI·Fork 참조를 넘는 이동 제한", "후보 조회만 제공하며 실제 순서 변경과 최종 정책은 미확정입니다."))
     }
     fun deleteDraft(id: String, owner: String, number: Int, revision: Int) {
         val before=read(id,owner,number)
@@ -86,8 +93,8 @@ class EpisodeService(
         checkContent(!before.inherited,403,"원작 기준 회차는 삭제할 수 없어요.")
         checkContent(before.draft.revision==revision,409,"회차가 변경됐어요. 다시 불러와 주세요.")
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
-        val following=episodes.findAllByWorkIdOrderBySequence(id).any {it.sequence>number}
-        checkContent(ai.storyfork.core.episode.domain.EpisodeMutationPolicy.canDelete(before.inherited,attachmentsEnabled || episodes.referenceCount(e.id)>0,following),409,"참조 없는 마지막 회차만 삭제할 수 있어요. 이미지 기능 사용 중에는 회차 삭제가 제한돼요.")
+        val following=list(id,owner).items.any {it.number>number}
+        checkContent(ai.storyfork.core.episode.domain.EpisodeMutationPolicy.canDelete(before.inherited,!imagesAbsent(id,number) || episodes.referenceCount(e.id)>0,following),409,"참조 없는 마지막 회차만 삭제할 수 있어요. 이미지 참조가 있거나 확인할 수 없으면 삭제가 제한돼요.")
         drafts.findById(e.id).ifPresent { drafts.delete(it) }
         drafts.flush()
         episodes.delete(e)
@@ -97,6 +104,11 @@ class EpisodeService(
         val work=works.findById(id).orElseThrow()
         work.revision=maxOf(work.revision,revision)+1
         work.deletedEpisodeRevision=work.revision
+    }
+    private fun imagesAbsent(work: String, number: Int): Boolean {
+        val repository=imageRepositories.getIfAvailable() ?: return false
+        return try { repository.countByWorkIdAndEpisodeNo(work,number)==0L }
+        catch (_: org.springframework.dao.DataAccessException) { throw ContentFailure(503,"이미지 참조를 확인하지 못했어요. 삭제하지 않았으니 나중에 다시 시도해 주세요.") }
     }
     private fun ensure(work: String, number: Int): EpisodeEntity = episodes.findByWorkIdAndSequence(work,number)
         ?: episodes.saveAndFlush(EpisodeEntity(id=episodeId(work,number),workId=work,sequence=number))
