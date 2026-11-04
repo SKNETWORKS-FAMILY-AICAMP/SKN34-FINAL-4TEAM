@@ -184,6 +184,11 @@ jobs:
     env:
       CORE_DATABASE_PASSWORD: ""
       TEST_CONTENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      # Each WorldStudio fixture owns a separate temporary database in this CI service.
+      TEST_WORLDSTUDIO_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      TEST_WORLDSTUDIO_DATABASE_USER: content_test
+      TEST_WORLDSTUDIO_DATABASE_PASSWORD: ""
+      TEST_WORLDSTUDIO_DISPOSABLE: "true"
       AUTH_INTEGRATION_TEST: "true"
       AUTH_MAILPIT_API: http://127.0.0.1:8025
     steps:

@@ -1,0 +1,119 @@
+-- Requires Content V1..V7. Separate Flyway history: world_studio_schema_history.
+-- Additive schema only: no legacy classification/backfill, no H2 import.
+ALTER TABLE setting_document ADD CONSTRAINT setting_document_world_id_key UNIQUE(world_id,id);
+
+ALTER TABLE setting_draft
+    ALTER COLUMN from_episode DROP NOT NULL,
+    ADD COLUMN card_type text CHECK(card_type IN ('character','location','organization','ability','object','rule','event','other')),
+    ADD COLUMN area_code text CHECK(area_code IN ('basic','space','history','society','culture','special','conflict')),
+    ADD COLUMN aliases text[] NOT NULL DEFAULT '{}',
+    ADD COLUMN semantic_metadata jsonb NOT NULL DEFAULT '{}' CHECK(jsonb_typeof(semantic_metadata)='object'),
+    ADD COLUMN lifecycle text NOT NULL DEFAULT 'active' CHECK(lifecycle IN ('active','removed')),
+    ADD CONSTRAINT setting_draft_initial_scope CHECK(from_episode IS NOT NULL OR to_episode IS NULL);
+
+-- Nullable classification preserves unclassified historical versions without rewriting them.
+ALTER TABLE setting_version
+    ADD COLUMN card_type text CHECK(card_type IN ('character','location','organization','ability','object','rule','event','other')),
+    ADD COLUMN area_code text CHECK(area_code IN ('basic','space','history','society','culture','special','conflict')),
+    ADD COLUMN aliases text[] NOT NULL DEFAULT '{}',
+    ADD COLUMN semantic_metadata jsonb NOT NULL DEFAULT '{}' CHECK(jsonb_typeof(semantic_metadata)='object');
+
+CREATE TABLE world_relation (
+    id varchar(36) PRIMARY KEY,
+    world_id varchar(36) NOT NULL REFERENCES world(id),
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(world_id,id)
+);
+CREATE TABLE world_relation_draft (
+    relation_id varchar(36) PRIMARY KEY,
+    world_id varchar(36) NOT NULL,
+    source_id varchar(36), target_id varchar(36),
+    category text CHECK(category IN ('structural','emotional')),
+    description text NOT NULL DEFAULT '', label text,
+    direction text NOT NULL DEFAULT 'directed' CHECK(direction IN ('directed','symmetric')),
+    polarity text NOT NULL DEFAULT 'asserted' CHECK(polarity IN ('asserted','denied')),
+    lifecycle text NOT NULL DEFAULT 'active' CHECK(lifecycle IN ('active','removed')),
+    FOREIGN KEY(world_id,relation_id) REFERENCES world_relation(world_id,id),
+    FOREIGN KEY(world_id,source_id) REFERENCES setting_document(world_id,id),
+    FOREIGN KEY(world_id,target_id) REFERENCES setting_document(world_id,id)
+);
+CREATE TABLE world_relation_version (
+    id varchar(36) PRIMARY KEY,
+    relation_id varchar(36) NOT NULL, world_id varchar(36) NOT NULL,
+    version_no bigint NOT NULL CHECK(version_no>0),
+    source_id varchar(36) NOT NULL, target_id varchar(36) NOT NULL,
+    category text NOT NULL CHECK(category IN ('structural','emotional')),
+    description text NOT NULL, label text,
+    direction text NOT NULL DEFAULT 'directed' CHECK(direction IN ('directed','symmetric')),
+    polarity text NOT NULL DEFAULT 'asserted' CHECK(polarity IN ('asserted','denied')),
+    lifecycle text NOT NULL DEFAULT 'active' CHECK(lifecycle IN ('active','removed')),
+    restored_from_id varchar(36), created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(relation_id,version_no), UNIQUE(world_id,relation_id,id),
+    CHECK(restored_from_id IS DISTINCT FROM id),
+    FOREIGN KEY(world_id,relation_id) REFERENCES world_relation(world_id,id),
+    FOREIGN KEY(world_id,source_id) REFERENCES setting_document(world_id,id),
+    FOREIGN KEY(world_id,target_id) REFERENCES setting_document(world_id,id),
+    FOREIGN KEY(world_id,relation_id,restored_from_id) REFERENCES world_relation_version(world_id,relation_id,id)
+);
+CREATE TABLE world_revision (
+    id varchar(36) PRIMARY KEY, world_id varchar(36) NOT NULL REFERENCES world(id),
+    revision_no bigint NOT NULL CHECK(revision_no>0),
+    name_snapshot text NOT NULL, description_snapshot text NOT NULL,
+    parent_id varchar(36), restored_from_id varchar(36),
+    -- Transaction-local assembly state: an unsealed revision may never commit.
+    sealed boolean NOT NULL DEFAULT false,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(world_id,id), UNIQUE(world_id,revision_no),
+    CHECK(parent_id IS DISTINCT FROM id), CHECK(restored_from_id IS DISTINCT FROM id),
+    FOREIGN KEY(world_id,parent_id) REFERENCES world_revision(world_id,id),
+    FOREIGN KEY(world_id,restored_from_id) REFERENCES world_revision(world_id,id)
+);
+CREATE TABLE world_draft (
+    world_id varchar(36) PRIMARY KEY REFERENCES world(id), base_revision_id varchar(36),
+    name text NOT NULL, description text NOT NULL,
+    draft_revision bigint NOT NULL DEFAULT 0 CHECK(draft_revision>=0),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    FOREIGN KEY(world_id,base_revision_id) REFERENCES world_revision(world_id,id)
+);
+CREATE TABLE world_revision_setting (
+    world_id varchar(36) NOT NULL, revision_id varchar(36) NOT NULL,
+    setting_document_id varchar(36) NOT NULL, setting_version_id varchar(36) NOT NULL,
+    PRIMARY KEY(revision_id,setting_document_id),
+    FOREIGN KEY(world_id,revision_id) REFERENCES world_revision(world_id,id),
+    FOREIGN KEY(world_id,setting_document_id) REFERENCES setting_document(world_id,id),
+    FOREIGN KEY(setting_document_id,setting_version_id) REFERENCES setting_version(setting_document_id,id)
+);
+CREATE INDEX world_revision_setting_version ON world_revision_setting(setting_version_id);
+CREATE TABLE world_revision_relation (
+    world_id varchar(36) NOT NULL, revision_id varchar(36) NOT NULL,
+    relation_id varchar(36) NOT NULL, relation_version_id varchar(36) NOT NULL,
+    PRIMARY KEY(revision_id,relation_id),
+    FOREIGN KEY(world_id,revision_id) REFERENCES world_revision(world_id,id),
+    FOREIGN KEY(world_id,relation_id,relation_version_id) REFERENCES world_relation_version(world_id,relation_id,id)
+);
+CREATE TABLE world_save_request (
+    world_id varchar(36) NOT NULL, idempotency_key text NOT NULL CHECK(btrim(idempotency_key)<>''),
+    request_hash text NOT NULL CHECK(btrim(request_hash)<>''), result_revision_id varchar(36) NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(world_id,idempotency_key),
+    FOREIGN KEY(world_id,result_revision_id) REFERENCES world_revision(world_id,id)
+);
+-- Queue/projection metadata only; no Graph DB client, worker, or product selection.
+CREATE TABLE world_graph_outbox (
+    id varchar(36) PRIMARY KEY, world_id varchar(36) NOT NULL, revision_id varchar(36) NOT NULL,
+    event_type text NOT NULL CHECK(btrim(event_type)<>''),
+    status text NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','processing','done','failed')),
+    attempt_count integer NOT NULL DEFAULT 0 CHECK(attempt_count>=0),
+    available_at timestamptz NOT NULL DEFAULT now(), last_error text,
+    created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(world_id,revision_id,event_type),
+    FOREIGN KEY(world_id,revision_id) REFERENCES world_revision(world_id,id)
+);
+CREATE INDEX world_graph_outbox_available ON world_graph_outbox(available_at) WHERE status IN ('pending','failed');
+CREATE TABLE world_graph_projection (
+    world_id varchar(36) NOT NULL, revision_id varchar(36) NOT NULL,
+    projector_version text NOT NULL CHECK(btrim(projector_version)<>''),
+    status text NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','syncing','ready','failed')),
+    synced_at timestamptz, last_error text, updated_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY(world_id,revision_id,projector_version),
+    FOREIGN KEY(world_id,revision_id) REFERENCES world_revision(world_id,id),
+    CHECK(status<>'ready' OR synced_at IS NOT NULL)
+);
