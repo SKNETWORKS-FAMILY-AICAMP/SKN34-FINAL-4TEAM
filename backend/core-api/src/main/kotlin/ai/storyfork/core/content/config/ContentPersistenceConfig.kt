@@ -53,7 +53,7 @@ class ContentPersistenceConfig {
     @Bean
     fun contentTransactionManager(@Qualifier("contentEntityManagerFactory") factory: EntityManagerFactory) = JpaTransactionManager(factory)
 
-    @Bean("contentTransactions")
+    @Bean(name=["contentTransactions"], defaultCandidate=false)
     fun contentTransactions(@Qualifier("contentTransactionManager") manager: JpaTransactionManager) = TransactionTemplate(manager)
 
     @Bean("contentEntityManager")
