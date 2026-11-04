@@ -6,7 +6,8 @@ COPY gradle ./gradle
 COPY build.gradle settings.gradle ./
 RUN chmod +x ./gradlew
 COPY src ./src
-RUN --mount=type=cache,target=/root/.gradle \
+# ponytail: shared cache serializes Gradle; split cache IDs if build throughput matters.
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
     ./gradlew bootJar --no-daemon && \
     artifact="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' -print -quit)" && \
     test -n "${artifact}" && cp "${artifact}" /workspace/application.jar

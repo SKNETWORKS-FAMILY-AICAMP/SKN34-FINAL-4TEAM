@@ -606,13 +606,14 @@
 <tr><td>Android 앱 제공</td><td>❌</td></tr>
 <tr><td>iOS 지원 범위 결정</td><td>❌</td></tr>
 <tr><td>iOS 앱 제공</td><td>❌</td></tr>
-<tr><td rowspan="9">운영·인프라</td><td rowspan="9">운영 기반</td><td rowspan="9">43 저장·배포·복구 관리</td><td>Core Health 조회</td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/63">#63</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/64">#64</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/67">PR #67</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/80">PR #80</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/94">PR #94</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/65">PR #65</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/77">PR #77</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/45">PR #45</a> · <a href="#미등록-066">미등록-066</a></td></tr>
+<tr><td rowspan="10">운영·인프라</td><td rowspan="10">운영 기반</td><td rowspan="10">43 저장·배포·복구 관리</td><td>Core Health 조회</td><td>❌</td><td rowspan="10"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/63">#63</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/64">#64</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/67">PR #67</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/80">PR #80</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/94">PR #94</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/65">PR #65</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/77">PR #77</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/45">PR #45</a> · <a href="#미등록-066">미등록-066</a> · <a href="#미등록-114">미등록-114</a></td></tr>
 <tr><td>AI Health 조회</td><td>❌</td></tr>
 <tr><td>DB 마이그레이션 관리 · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/98">PR #98</a></td><td>❌ (WorldStudio Core 기본 JPA·DB 재사용 및 CD 연동 검토 중·실제 개발 DB 미확인·기본 비활성)</td></tr>
 <tr><td>파일 저장소 연결 관리</td><td>❌</td></tr>
 <tr><td>백업 생성</td><td>❌</td></tr>
 <tr><td>복원 수행</td><td>❌</td></tr>
 <tr><td>CI 결과 확인</td><td>❌</td></tr>
+<tr><td>Core·Content 동시 이미지 빌드의 Gradle 공유 캐시 잠금 <small>(정적 회귀 확인·hosted CI 대기)</small></td><td>❌</td></tr>
 <tr><td>배포 상태 확인</td><td>❌</td></tr>
 <tr><td>장애 상태 확인</td><td>❌</td></tr>
 </tbody>
@@ -767,6 +768,7 @@
 | <a id="미등록-111"></a>미등록-111 | 89 | 실행 기반 | 기존 콘텐츠·첨부·Studio 코드/테스트 추출, 업무별 fresh V1~V9·writer 소유 분리, 공개 라우팅·Content 이미지/Compose/CD·CI 소비자 선택을 로컬 구현; Auth·첨부·Studio SQL 바이트 보존. 실제 DB 대상/보존·복구 승인·hosted 재생·앱 기동·게시/배포·병합/최신 head Required CI 확인 전이므로 모든 이전 행은 ❌ 유지 |
 | <a id="미등록-112"></a>미등록-112 | 89 | 실행 기반 | 운영 독립 Gradle·Spring Boot 진입점·loopback 설정·선택 단위 테스트 골격을 로컬 구현; 업무·DB·배포 구현, 앱 기동, 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
 | <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 | POST /internal/v1/auth/verify의 별도 서비스 자격·서명/만료/UUID JWT 확인, Content HTTP Service proxy·timeout/장애/401 구분·UUID Principal·CSRF/CORS 경계를 소스 구현; 캐시/재시도/fallback/키 공유 없음. bc672a0의 hosted Content 통합은 성공했으나 시스템 인증 장애의 503/504 기대 불일치로 Required CI 실패; 네트워크를 유지한 pause/unpause·정확한 504/CORE_AUTH_TIMEOUT 회귀 보완은 hosted 재검증·병합 전이므로 ❌ 유지 |
+| <a id="미등록-114"></a>미등록-114 | 43 | 빌드 캐시 잠금 | Core·Content Dockerfile의 `/root/.gradle` cache mount에 `sharing=locked`를 적용해 서비스 간·동일 서비스 동시 빌드의 캐시 사용 구간을 보호; 정적 계약 RED→GREEN 확인. 실제 이미지 빌드·병합·최신 head Required CI 검증 전이므로 ❌ 유지 |
 
 ## 연결한 GitHub 이슈
 
