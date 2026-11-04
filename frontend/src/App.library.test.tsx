@@ -26,7 +26,7 @@ describe('내 서재 (U11·U12)', () => {
   it('읽는 중·내가 쓰는 소설·내 댓글·신고 탭을 오간다', async () => {
     renderAt('/lib')
     await screen.findByRole('button', { name: '▶ 2화 이어 읽기' })
-    expect(sid()).toBe('U11 내 서재')
+    await waitFor(() => expect(sid()).toBe('U11 내 서재'))
     screen.getByText('소설 화면에서 ♡를 누르면 여기에 모여요.')
     fireEvent.click(screen.getByRole('button', { name: '내 댓글·신고' }))
     await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
