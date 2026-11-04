@@ -1,8 +1,14 @@
 # STORYFORK Web
 
 React·TypeScript·Vite·Tailwind CSS 기반의 개발 화면입니다.
-이름 기반 작품·Fork·서재는 데모 데이터입니다. `/content`, `/studio/{UUID}` 및 아래 인증·프로필·기기 관리 기능은 같은 출처의 실제 Core API를 호출합니다.
+이름 기반 작품·Fork·서재는 데모 데이터입니다. `/content`·`/studio/{UUID}`는 같은 출처의 Content API, 인증·프로필·기기 관리는 Core API를 호출합니다.
 이메일 확인 전 자동 로그인하지 않으며 운영 약관은 미정입니다. 알 수 없는 UI 경로는 `/`로 이동합니다.
+
+## 목표 서비스 경계 (DEC-41)
+
+[4개 백엔드 서비스 구조](../docs/design/service-boundaries.md)에 따라 Core는 회원·인증·크레딧·회원 알림, 별도 Kotlin/Spring Boot 콘텐츠 앱은 창작·독서·콘텐츠 정본과 인가, 별도 Kotlin/Spring Boot 운영 앱은 문의·공지·신고 사건·운영 결정·감사·작업 감시를 담당합니다. Python AI 앱은 허용 문맥에서 생성·검토를 실행하며 정본·권한·발행·정산을 확정하지 않습니다. LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합니다. 자체 UI와 운영 화면 API 통합 중 방식은 미정입니다.
+
+nginx/Vite는 기존 `/api/v1/works`·`/api/v1/public/works`와 하위 경로를 Content:8081, 나머지 `/api`를 Core:8080으로 분기합니다. 브라우저는 상대 URL·기존 Bearer/쿠키/CSRF를 유지하며 내부 인증 endpoint·AI·DB·모델을 직접 호출하지 않습니다. 소스 연결과 hosted CI·실제 DB 전환·배포는 구분하며 운영·알림 데모를 서버 완료로 간주하지 않습니다.
 
 ## 실행
 
@@ -13,19 +19,19 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-네이티브 기본 주소는 `http://localhost:5173`, Core는 `http://localhost:8080`입니다.
+네이티브 web/Core/Content는 `http://localhost:5173`/8080/8081입니다. 콘텐츠는 같은 origin의 상대 `/api`로 호출하며 `VITE_DEV_PROXY_TARGET`과 `VITE_CONTENT_DEV_PROXY_TARGET`이 각각 Core/Content를 지정합니다.
 직접 실행할 때는 공개 `VITE_CORE_API_BASE_URL` 등 필요한 변수만 터미널에 설정합니다. 루트 `.env`는 자동으로 읽지 않습니다.
 루트 설정 자동 전달은 Compose를 사용하며 서비스별 `.env`는 만들지 않습니다.
 `VITE_*`는 브라우저에 노출되므로 비밀값을 넣지 않습니다. 백엔드는 별도로 실행합니다.
 
 루트의 [Compose 안내](../infrastructure/README.md)는 공통 `docker-compose.yaml`에 prod 또는 dev를 병합합니다.
 prod는 소스에서 정적 배포 이미지를 빌드해 기본 `http://127.0.0.1:8088`로 검증하고, dev는 현재 개발 배포 서버에서 CI의 `:develop` 이미지를 pull·실행합니다.
-두 조합 모두 web 이미지의 Nginx가 정적 화면과 `/api` → `core-api:8080` 프록시를 제공합니다. 소스/HMR Compose는 제거했으며 hot reload는 위 `pnpm dev`를 사용합니다.
+두 조합 모두 Nginx가 정적 화면과 works 경로 → `content-service:8081`, 나머지 `/api` → `core-api:8080` 프록시를 제공합니다. 소스/HMR Compose는 제거했으며 hot reload는 위 `pnpm dev`를 사용합니다.
 loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
 ## 실제 호출 흐름
 
-`App → CoreApiConnectionStatus → useCoreApiHealth → DI 외부 함수 → Fetch·Zod → 공개 Core API`.
+`/status`의 연결 확인은 `App → CoreApiConnectionStatus → useCoreApiHealth → DI 외부 함수 → Fetch·Zod → 공개 Core API`입니다. 해당 화면의 Health 전용 안내가 앱 전체의 구현 상태를 뜻하지는 않습니다.
 
 - Core: `GET /api/v1/health`, `storyfork-core-api`와 `up` 검증.
 - AI: `GET /api/v1/health/ai-service`, `storyfork-ai-service`와 `up` 검증.

@@ -1,12 +1,12 @@
 # Frontend 설계 (현재 실행 모듈: `web`)
 
-> [MVP 설계](../design.md)와 [결정 기록](../decisions.md#결정-목록)(DEC-26~28)을 따릅니다. 이 문서는 화면 방향이며 업무 화면·API는 아직 구현되지 않았습니다. 예전 [KAG 설계](../archive/kag-design/services/web.md)는 현행 MVP가 아닙니다.
+> [MVP 설계](../design.md)와 [결정 기록](../decisions.md#결정-목록)(특히 DEC-41)을 따릅니다. 이 문서는 화면·목표 경계 방향이며 실제 인증/콘텐츠 화면과 목업·미구현 기능을 구분합니다. 콘텐츠·운영 앱 분리는 아직 실행하지 않았습니다. 예전 [KAG 설계](../archive/kag-design/services/web.md)는 현행 MVP가 아닙니다.
 
 ## 목적과 현재 상태
 
-Frontend는 **작가와 독자가 사용하는 전체 웹 화면**입니다. 작가 도구는 Frontend 안의 하위 기능이며 Frontend 전체의 이름이 아닙니다. 현재 React 시작 화면과 `CoreApiConnectionStatus`를 통한 Core/AI Health 확인만 동작합니다. `CoreApiConnectionStatus`는 현재 코드 식별자이고, 설계상 서비스 명칭은 **Core Service**입니다. `web`·`core-api` 실행 모듈 이름이나 현재 HTTP 경로는 이번 설계 작업에서 바꾸지 않습니다.
+Frontend는 **작가와 독자가 사용하는 전체 웹 화면**입니다. 작가 도구는 Frontend 안의 하위 기능이며 Frontend 전체의 이름이 아닙니다. 현재 React Health·인증/프로필 및 선택적 `/content` 작업실·`/studio/{UUID}` 서버 집필실을 제공하며 나머지 목업 화면은 실제 서버 저장과 구분합니다. `CoreApiConnectionStatus`는 현재 코드 식별자이고, 설계상 서비스 명칭은 **Core Service**입니다. `web`·`core-api` 실행 모듈 이름이나 현재 HTTP 경로는 이번 설계 작업에서 바꾸지 않습니다.
 
-현재 React·TypeScript·Vite와 Clean Architecture·MVVM 지침을 유지합니다. 화면이 없는 기능의 폴더·UseCase·Redux 상태는 미리 생성하지 않습니다. 브라우저는 공개 Core Service HTTP API만 호출하며 그래프 DB·AI Service·외부 모델을 직접 호출하지 않습니다. 화면 버튼 숨김은 서버 권한 검사를 대체하지 않습니다.
+현재 React·TypeScript·Vite와 Clean Architecture·MVVM 지침을 유지합니다. 화면이 없는 기능의 폴더·UseCase·Redux 상태는 미리 생성하지 않습니다. 목표는 단일 공개 진입점을 통해 Core·콘텐츠·운영의 공개 HTTP API를 호출하는 구조이며 브라우저는 그래프 DB·AI Service·외부 모델을 직접 호출하지 않습니다. 화면 버튼 숨김은 서버 권한 검사를 대체하지 않습니다.
 
 ## MVP 사용자 흐름
 
@@ -22,11 +22,13 @@ Frontend는 **작가와 독자가 사용하는 전체 웹 화면**입니다. 작
 
 ## 화면 상태와 API 경계
 
-- 현재 Health 화면은 `View → Hook → DI 외부 함수 → Fetch·Zod`를 유지합니다. 향후 업무 기능은 실제 필요할 때 `View → ViewModel → UseCase → Repository → HTTP API`로 구현합니다.
+- 현재 Health 화면은 `View → Hook → DI 외부 함수 → Fetch·Zod`, 인증/콘텐츠 등 업무 기능은 `View → ViewModel → UseCase → Repository → HTTP API` 경계를 유지합니다. 미구현 기능의 빈 계층을 미리 만들지 않습니다.
 - 화면 전용 상태는 Hook, 화면 간 유지할 작업 ID 같은 상태는 Redux Toolkit 후보입니다. 같은 상태를 중복 보관하지 않고 늦은 응답·중복 전송·이탈 취소를 처리합니다.
-- 브라우저는 `/api` 프록시를 통해 기존 공개 Core HTTP 인터페이스를 호출합니다. `auth`, `worldviews`, `works`, `episodes`, `forks`, `ai-tasks`, `feedback`은 [Core Service의 가칭 범주](core-api.md#제공-api)이고 새 DTO·엔드포인트가 구현됐다는 뜻이 아닙니다.
+- 현재 브라우저는 `/api` 프록시로 기존 `core-api` HTTP 인터페이스를 호출합니다. 목표는 단일 공개 진입점에서 회원/인증·크레딧·알림은 Core, 작품·독서·검색·피드백·첨부는 콘텐츠, 문의·공지·이벤트·신고·소명·운영 판단은 운영으로 연결하는 것입니다. [소유별 API 범주](core-api.md#제공-api)는 새 URL·DTO 확정이나 분리 완료를 뜻하지 않으며 현재 라우트·쿠키·CSRF·응답은 전환 전 보존합니다.
 - AI 작업 상태는 제안·실패·취소와 사용자의 채택·실제 버전 생성·관계 반영을 구분해 표시해야 합니다. 그래프 반영이 불확실한 결과를 성공으로 표시하지 않습니다. 폴링 방식·메시지·화면 수는 미정입니다.
-- 브라우저 토큰 보관·CSRF/XSS 대응은 미정입니다. `VITE_*`와 브라우저 번들에 키·미공개 원고를 넣지 않습니다. 항목별 공개 범위와 접근 권한을 적용하고 다른 사용자 작품·미발행 원고를 무제한 보여 주지 않습니다.
+- 현재 토큰·쿠키·CSRF 경계를 유지하며 분리 서비스의 인증 검증·세션 폐기 전파는 미정입니다. `VITE_*`와 브라우저 번들에 키·미공개 원고를 넣지 않습니다. 항목별 공개 범위와 접근 권한을 적용하고 다른 사용자 작품·미발행 원고를 무제한 보여 주지 않습니다.
+
+회원 인증·정산 결과는 Core, 콘텐츠 인가·채택·발행 결과는 콘텐츠, 운영 결정·조치 요청/결과는 운영 응답을 따릅니다. 운영 결정을 실제 제한 적용 성공으로 표시하지 않습니다. LLMOps는 운영 영역이나 Langfuse 자체 UI/API 통합 방식은 미정이며 화면 추가나 Spring 재구현을 확정하지 않습니다. [DEC-41 상세](../service-boundaries.md)를 따릅니다.
 
 ## 검증 계획·미정
 

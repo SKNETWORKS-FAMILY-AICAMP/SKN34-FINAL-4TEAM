@@ -4,6 +4,10 @@
 >
 > 원본 [엑셀](../../deliverables/SKN34-final-4Team_요구사항정의서.xlsx)의 116개 ID와 [Markdown 색인](../../requirements.md)의 추가 3개를 합쳐 **119개를 빠짐없이 대조**했습니다. 행이 존재한다는 것은 구현/수용기준 통과가 아니라 검토 대상과 모델·남은 한계의 추적입니다. 현행 상세 UC·최신 결정이 오래된 행과 다르면 아래 비고와 정규화 보고를 따릅니다. 원본 엑셀/요구사항 문서는 이번 작업에서 수정하지 않았습니다.
 
+## 서비스 책임 해석 (DEC-41)
+
+이 표의 요구사항·모델 연결은 유지하며 [소유권 표](README.md#업무-영역별-erd)를 함께 봅니다. 회원·인증·크레딧·알림은 Core, 작품·세계관·회차·버전·Fork·독서·검색·작품 피드백·파일은 콘텐츠, 문의·공지·이벤트·신고 사건·소명·운영 판단·감사·감시·LLMOps는 운영입니다. AI는 Python 실행을 맡고 업무별 작업/사용량 전달·최종 정산은 분리합니다. `core/`는 현행 문서 경로이며 전체 Core 소유나 분리 완료를 뜻하지 않습니다. 문의·공지·이벤트 등 새 운영 목표가 현행 143개 그림에 전부 모델링된 것은 아닙니다.
+
 ## 기능 ID별
 
 | 기능 ID | 기능 | 연결 논리 후보 | 검토 결과·한계 |
@@ -120,13 +124,13 @@
 | [F-NTF-02](../../requirements.md#f-ntf-02) | 알림 설정 | [`NOTICE_PREFERENCE`](tables.md#notice-preference) | 관련 관계 후보에 반영. 범위·조건은 해당 테이블/UC 참고; 권한·실행 검증은 미실시. |
 | [F-JOB-01](../../requirements.md#f-job-01) | 정기 작업 실행·기록 | [`SCHEDULED_TASK_RUN`](tables.md#scheduled-task-run) · [`SCHEDULED_TASK_ITEM`](tables.md#scheduled-task-item) | 관련 관계 후보에 반영. 범위·조건은 해당 테이블/UC 참고; 권한·실행 검증은 미실시. |
 | [F-JOB-02](../../requirements.md#f-job-02) | 정기 작업 감시·재실행 | [`SCHEDULED_TASK_RUN`](tables.md#scheduled-task-run) · [`SCHEDULED_TASK_ITEM`](tables.md#scheduled-task-item) · [`OPERATION_ALERT`](tables.md#operation-alert) | 관련 관계 후보에 반영. 범위·조건은 해당 테이블/UC 참고; 권한·실행 검증은 미실시. |
-| [F-LLM-01](../../requirements.md#f-llm-01) | AI 호출 추적 | [`AI_MODEL_CALL`](tables.md#ai-model-call) | MVP Core 호출기록; Langfuse 포함 UC-26 전체는 이후. 외부 trace 키만 연결. |
+| [F-LLM-01](../../requirements.md#f-llm-01) | AI 호출 추적 | [`AI_MODEL_CALL`](tables.md#ai-model-call) | 요청 업무 소유 서비스(콘텐츠/운영)의 호출기록, AI 실행 사용량과 구분; Core 최종 정산. Langfuse 포함 UC-26 전체는 이후, trace는 외부 참조. |
 | [F-LLM-02](../../requirements.md#f-llm-02) | 프롬프트·모델 버전 관리 | [`AI_MODEL_CALL`](tables.md#ai-model-call) | 외부 프롬프트 버전 저장소 책임. prompt_version_ref는 FK가 아니며 보관은 외부. |
-| [F-LLM-03](../../requirements.md#f-llm-03) | 변경 전 회귀 평가 | Core 업무 테이블 추가 없음 | 외부 LLMOps 평가세트·평가실행/결과 책임(미구현). Core 테이블 복제 안 함; 통과기준 미정. |
+| [F-LLM-03](../../requirements.md#f-llm-03) | 변경 전 회귀 평가 | 업무 테이블 추가 없음 | 운영 영역 LLMOps. Langfuse 별도 제품 도입 방향; 자체 UI/API 통합·평가 실행·통과기준 미정, 제품 테이블 복제 안 함. |
 | [F-LLM-04](../../requirements.md#f-llm-04) | AI 품질·비용 지표와 경고 | [`AI_MODEL_CALL`](tables.md#ai-model-call) · [`PROPOSAL_DECISION`](tables.md#proposal-decision) · [`FEEDBACK_MODERATION`](tables.md#feedback-moderation) · [`OPERATION_ALERT`](tables.md#operation-alert) | 기존 기록에서 지표 계산. 지표별 저장테이블 없음; 임계값·외부연동 미정. |
-| [F-LLM-05](../../requirements.md#f-llm-05) | 정보 누설 표본 검사 | [`OPERATION_ALERT`](tables.md#operation-alert) | 외부 LLMOps 검사 결과/실행은 미설계. Core 경고만 연결, 완전검증 아님. |
-| [F-MOB-01](../../requirements.md#f-mob-01) | Android 앱 지원 | Core 업무 테이블 추가 없음 | 클라이언트 요구. 플랫폼별 테이블 없음; 모바일 기능/인증·출시 계약 미정. |
-| [F-MOB-02](../../requirements.md#f-mob-02) | iOS 앱 지원 | Core 업무 테이블 추가 없음 | 클라이언트 요구. 기존 Core 데이터 재사용; 모바일 기능/인증·출시 계약 미정. |
+| [F-LLM-05](../../requirements.md#f-llm-05) | 정보 누설 표본 검사 | [`OPERATION_ALERT`](tables.md#operation-alert) | 운영 영역 검사·평가 실행 계약은 미설계. 운영 경고 참조만 연결하며 완전검증 아님. |
+| [F-MOB-01](../../requirements.md#f-mob-01) | Android 앱 지원 | 업무 테이블 추가 없음 | 클라이언트 요구. 플랫폼별 테이블 없음; 모바일 기능/인증·출시 계약 미정. |
+| [F-MOB-02](../../requirements.md#f-mob-02) | iOS 앱 지원 | 업무 테이블 추가 없음 | 클라이언트 요구. 소유 서비스의 기존 데이터 재사용; 모바일 기능/인증·출시 계약 미정. |
 
 ## UC-01~28 전체 대조
 
@@ -157,6 +161,6 @@
 | [UC-23](../../usecase-spec/UC-23.md) | [`PUBLIC_DOMAIN_SOURCE`](tables.md#public-domain-source) · [`WORK_RIGHTS_DECLARATION`](tables.md#work-rights-declaration) | 테스트 전용. |
 | [UC-24](../../usecase-spec/UC-24.md) | [`WORK`](tables.md#work) · [`WORK_WORLD_HISTORY`](tables.md#work-world-history) · [`WORLD_COMPOSITION_SOURCE`](tables.md#world-composition-source) · [`WORK_EXTERNAL_SOURCE`](tables.md#work-external-source) · [`WORK_AUTOMATION_VERSION`](tables.md#work-automation-version) | 논리 후보; 물리 제약·권한·실행은 구현 시 검증. |
 | [UC-25](../../usecase-spec/UC-25.md) | [`CHARACTER_CHAT`](tables.md#character-chat) · [`CHAT_MESSAGE`](tables.md#chat-message) · [`AI_JOB`](tables.md#ai-job) | 기준 선택·보관 정책 미정. |
-| [UC-26](../../usecase-spec/UC-26.md) | [`AI_MODEL_CALL`](tables.md#ai-model-call) · [`PROPOSAL_DECISION`](tables.md#proposal-decision) · [`OPERATION_ALERT`](tables.md#operation-alert) | 외부 LLMOps 스키마·평가 미설계. |
+| [UC-26](../../usecase-spec/UC-26.md) | [`AI_MODEL_CALL`](tables.md#ai-model-call) · [`PROPOSAL_DECISION`](tables.md#proposal-decision) · [`OPERATION_ALERT`](tables.md#operation-alert) | 운영 LLMOps·Langfuse 별도 제품, 자체 UI/API 통합·평가 실행 미정. |
 | [UC-27](../../usecase-spec/UC-27.md) | [`NOTICE_EVENT`](tables.md#notice-event) · [`USER_NOTICE`](tables.md#user-notice) · [`USER_NOTICE_EVENT`](tables.md#user-notice-event) · [`NOTICE_PREFERENCE`](tables.md#notice-preference) · [`NOTICE_DELIVERY_ATTEMPT`](tables.md#notice-delivery-attempt) | 논리 후보; 물리 제약·권한·실행은 구현 시 검증. |
 | [UC-28](../../usecase-spec/UC-28.md) | [`SCHEDULED_TASK_RUN`](tables.md#scheduled-task-run) · [`SCHEDULED_TASK_ITEM`](tables.md#scheduled-task-item) | 논리 후보; 물리 제약·권한·실행은 구현 시 검증. |

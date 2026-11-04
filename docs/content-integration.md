@@ -1,5 +1,7 @@
 # 개인 브랜치 콘텐츠 통합
 
+> **현재 상태:** 콘텐츠·첨부·WorldStudio 실행 코드/테스트는 Content로 추출했고 기존 works URL·Bearer/CSRF는 유지한다. Core 내부 검증은 별도 서비스 자격과 JWT로 UUID만 반환한다. Content fresh SQL 재작성은 기존 이력과 비호환이며 실제 DB 폐기/전환은 실행하지 않았다. 현재 실행 지침은 [Content 안내](../backend/content-service/README.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 Core 소유·이전 경로·설정·검증 기록은 분리 전 역사적 설명이며 현재 실행 명령이나 이번 CI 통과 근거가 아니다.**
+
 `/content` 작업실은 기존 React DI·MVVM에서 Kotlin Core 공개 API를 호출한다. Core가 PostgreSQL 정본과 권한·버전·발행을 관리하고 AI Service에 선택적 생성을 요청한다. Auth 통합 후 비공개 콘텐츠 요청은 기존 메모리 Bearer와 변경 요청의 CSRF를 재사용한다. 다른 목업 업무 화면은 실제 저장 API로 전환하지 않았다.
 
 ## 구현 범위
@@ -15,7 +17,7 @@
 
 `App.tsx`의 `/content` → `EpisodePage`/`WorldPanel` → ViewModel → `EpisodeUseCase` → `EpisodeRepository` → `HttpEpisodeRepository` 순서다. 기존 `appContainer`에 등록하며 HTTP·Zod 검증은 Data 계층에 있다. 도서관에서 서버 집필 작업실 링크로 진입한다. 원고·설정집·공개 조회의 정본은 브라우저 저장소가 아닌 Core 응답이다.
 
-공개 API는 `/api/v1/works` 아래 작품·draft·history·policy·publish·forks·world·settings·context·proposals를 제공한다. 공개 독자 조회는 `/api/v1/public/works` 아래에 있고 초안은 반환하지 않는다. 구체적인 요청 DTO와 HTTP 메서드는 [작품 Controller](../backend/core-api/src/main/kotlin/ai/storyfork/core/work/controller/WorkController.kt)와 [회차 Controller](../backend/core-api/src/main/kotlin/ai/storyfork/core/episode/controller/EpisodeController.kt)에 있다.
+공개 API는 `/api/v1/works` 아래 작품·draft·history·policy·publish·forks·world·settings·context·proposals를 제공한다. 공개 독자 조회는 `/api/v1/public/works` 아래에 있고 초안은 반환하지 않는다. 구체적인 요청 DTO와 HTTP 메서드는 [이전된 작품 Controller](../backend/content-service/src/main/kotlin/ai/storyfork/content/work/controller/WorkController.kt)와 [이전된 회차 Controller](../backend/content-service/src/main/kotlin/ai/storyfork/content/episode/controller/EpisodeController.kt)에 있다.
 
 ## 인증과 실행
 

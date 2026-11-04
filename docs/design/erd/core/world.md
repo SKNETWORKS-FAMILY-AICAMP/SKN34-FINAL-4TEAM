@@ -1,10 +1,10 @@
-# Core 업무 ERD — 세계관·설정·인물
+# 콘텐츠 업무 ERD — 세계관·설정·인물
 
-> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
+> **전체 서비스 논리 후보 · 분리 구현 전.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
 근거: [UC-02](../../../usecase-spec/UC-02.md), [UC-05](../../../usecase-spec/UC-05.md), [UC-06](../../../usecase-spec/UC-06.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-소유 후보 **16개**, 다른 영역 참조 **2개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
+이 뷰의 중심 후보 **16개**, 다른 영역 참조 **2개**입니다. 이 뷰의 중심 테이블 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
@@ -159,28 +159,34 @@ erDiagram
     }
 ```
 
+## 정본 소유와 서비스 경계
+
+[DEC-41 정본 소유·현행 구현과 논리 참조 해석](../README.md#dec-41-적용과-현재-구현)을 따릅니다. `core/`는 기존 문서 경로이며 각 표의 소유 구분이 목표 책임입니다. 그림의 엔티티·컬럼·관계는 그대로 보존하며 회원 인증 비밀을 다른 서비스에 복제하지 않습니다.
+
+세계관·설정·상태·지식·관계 접근 및 콘텐츠 확정은 콘텐츠 서비스 책임입니다. 관계 그래프 제품·관계 정본·시점 모델·복구는 계속 미정입니다. Core 회원 참조는 인증 정본 복제나 Core의 콘텐츠 인가를 뜻하지 않습니다.
+
 ## 이 그림의 테이블
 
-| 소유/참조 | 테이블 | 범위 |
-|---|---|---|
-| 소유 | [`WORLD`](../tables.md#world) | MVP |
-| 소유 | [`SETTING_CATEGORY`](../tables.md#setting-category) | MVP |
-| 소유 | [`SETTING_DOCUMENT`](../tables.md#setting-document) | MVP |
-| 소유 | [`SETTING_DRAFT`](../tables.md#setting-draft) | MVP |
-| 소유 | [`SETTING_VERSION`](../tables.md#setting-version) | MVP |
-| 소유 | [`SETTING_ORIGIN`](../tables.md#setting-origin) | MVP |
-| 소유 | [`SETTING_IMAGE`](../tables.md#setting-image) | MVP |
-| 소유 | [`SETTING_REFERENCE`](../tables.md#setting-reference) | MVP |
-| 소유 | [`SETTING_TAG`](../tables.md#setting-tag) | MVP |
-| 소유 | [`SETTING_DOCUMENT_TAG`](../tables.md#setting-document-tag) | MVP |
-| 소유 | [`SETTING_VISIBILITY_HISTORY`](../tables.md#setting-visibility-history) | MVP |
-| 소유 | [`SETTING_VISIBILITY_RANGE`](../tables.md#setting-visibility-range) | MVP |
-| 소유 | [`CHARACTER_STATE_VERSION`](../tables.md#character-state-version) | MVP |
-| 소유 | [`CHARACTER_KNOWLEDGE_VERSION`](../tables.md#character-knowledge-version) | MVP |
-| 소유 | [`WORLD_COMPOSITION_SOURCE`](../tables.md#world-composition-source) | MVP 이후 |
-| 소유 | [`WORLD_USE_POLICY_HISTORY`](../tables.md#world-use-policy-history) | 보류·재설계 |
-| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP |
-| 다른 영역 참조 | [`EPISODE`](../tables.md#episode) | MVP |
+| 뷰 구분 | 테이블 | 범위 | 목표 정본 소유 |
+|---|---|---|---|
+| 중심 후보 | [`WORLD`](../tables.md#world) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_CATEGORY`](../tables.md#setting-category) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_DOCUMENT`](../tables.md#setting-document) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_DRAFT`](../tables.md#setting-draft) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_VERSION`](../tables.md#setting-version) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_ORIGIN`](../tables.md#setting-origin) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_IMAGE`](../tables.md#setting-image) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_REFERENCE`](../tables.md#setting-reference) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_TAG`](../tables.md#setting-tag) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_DOCUMENT_TAG`](../tables.md#setting-document-tag) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_VISIBILITY_HISTORY`](../tables.md#setting-visibility-history) | MVP | 콘텐츠 |
+| 중심 후보 | [`SETTING_VISIBILITY_RANGE`](../tables.md#setting-visibility-range) | MVP | 콘텐츠 |
+| 중심 후보 | [`CHARACTER_STATE_VERSION`](../tables.md#character-state-version) | MVP | 콘텐츠 |
+| 중심 후보 | [`CHARACTER_KNOWLEDGE_VERSION`](../tables.md#character-knowledge-version) | MVP | 콘텐츠 |
+| 중심 후보 | [`WORLD_COMPOSITION_SOURCE`](../tables.md#world-composition-source) | MVP 이후 | 콘텐츠 |
+| 중심 후보 | [`WORLD_USE_POLICY_HISTORY`](../tables.md#world-use-policy-history) | 보류·재설계 | 콘텐츠 |
+| 다른 영역 참조 | [`MEMBER`](../tables.md#member) | MVP | Core |
+| 다른 영역 참조 | [`EPISODE`](../tables.md#episode) | MVP | 콘텐츠 |
 
 ## 데이터 역할과 무결성
 
