@@ -1,5 +1,6 @@
 {
   "baseline_head": "7f8fecdba30637f5242edc0b5f4f6bd68ad7d7f8",
+  "controller_mappings_head": "bb139f9c98cd80e744107dedce26dbc5bcaea76a",
   "sql_sha256": {
     "db/migration/content/V1__content_work.sql": "7e40041946282c893a69006cea0caf23aa83a40a66866706c4e0b9633ca2db91",
     "db/migration/content/V2__relational_content.sql": "ca023c58ff882fed80d23749e7014bf85115fb28903b9e135404d0b93a7fcc50",
@@ -34,6 +35,10 @@
       [
         "PutMapping",
         "\"/works/{id}\""
+      ],
+      [
+        "DeleteMapping",
+        "\"/works/{id}\") @ResponseStatus(HttpStatus.NO_CONTENT"
       ],
       [
         "GetMapping",
