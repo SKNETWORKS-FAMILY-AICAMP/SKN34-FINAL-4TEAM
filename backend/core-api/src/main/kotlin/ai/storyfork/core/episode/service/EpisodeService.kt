@@ -54,13 +54,6 @@ class EpisodeService(
         checkContent(!before.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(ai.storyfork.core.episode.domain.EpisodeMutationPolicy.acceptsRevision(data.revision,before.draft.revision),409,"다른 편집이 저장됐어요. 입력을 보관하고 최신 원고를 다시 불러와 주세요.")
         validate(data.title,data.body)
-        checkContent(!data.body.contains("data:image",ignoreCase=true),message="Inline images are not allowed")
-        val markers=Regex("\\[\\[image:([^\\]]*)]]").findAll(data.body).map {it.groupValues[1]}.toList()
-        checkContent(markers.size<=10,message="Too many image references")
-        for(marker in markers) {
-            val image=imageRepositories.getIfAvailable()?.findById(marker)?.orElse(null)
-            checkContent(image!=null && image.workId==id && image.episodeNo==number,message="Invalid episode image reference")
-        }
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
         val d=drafts.findById(e.id).orElse(null) ?: EpisodeDraftEntity(episodeId=e.id)
         d.title=data.title.trim(); d.content=data.body; d.editRevision=data.revision+1; d.updatedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
