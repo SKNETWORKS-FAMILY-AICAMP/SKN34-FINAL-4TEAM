@@ -116,7 +116,7 @@
 <tr><td>원고 본문 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>원고 초안 자동저장</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 순서 변경 가능 범위 확인</td><td>❌</td></tr>
-<tr><td>초안 삭제 요청</td><td>❌</td></tr>
+<tr><td>초안 삭제 요청 (브라우저 DELETE CORS 허용 보완, 병합·CI 확인 대기)</td><td>❌</td></tr>
 <tr><td>회차 삭제 요청</td><td>❌</td></tr>
 <tr><td rowspan="9">11 플롯·장면 계획 CRUD</td><td>플롯 생성</td><td>❌</td><td rowspan="9"><a href="#미등록-007">미등록-007</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/61">#61</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
 <tr><td>플롯 상세 조회</td><td>❌</td></tr>
