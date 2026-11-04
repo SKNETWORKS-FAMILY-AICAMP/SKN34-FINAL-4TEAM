@@ -19,6 +19,10 @@ group = 'ai.storyfork'
 version = '0.0.1-SNAPSHOT'
 description = 'STORYFORK Core API'
 
+springBoot {
+    mainClass = 'ai.storyfork.core.CoreApiApplicationKt'
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
