@@ -1022,3 +1022,4 @@
 | Frontend | WorldStudio 데모 | 설정 카드 | 태그 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio 데모 | 설정 카드 | 사용자 분류 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio 데모 | 설정 카드 | 기존 메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 태그·별칭 무변경 포커스 이동 시 저장 상태 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |

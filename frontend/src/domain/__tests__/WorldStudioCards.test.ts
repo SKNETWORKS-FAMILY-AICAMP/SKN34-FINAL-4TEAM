@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest'
-import {newSetting} from '../entities/studioWorld'
+import {newSetting,studioLabelCleanup} from '../entities/studioWorld'
 import {cardTypes,cardTypePatch,cardTypeOf,settingAreas,areaPatch} from '../entities/studioCards'
 import {WorldStudioUseCase} from '../usecases/WorldStudioUseCase'
 import type {WorldStudioRepository} from '../repositories/WorldStudioRepository'
@@ -23,4 +23,12 @@ it('rejects invalid names without overwriting a saved world',async()=>{
  const w=await useCase.create('원본','')
  await expect(useCase.save({...w,name:' '})).rejects.toThrow()
  expect((await useCase.read(w.id)).name).toBe('원본')
+})
+
+it('only requests label cleanup when trimming or removing empty labels changes the value',()=>{
+ expect(studioLabelCleanup(undefined)).toBeUndefined()
+ expect(studioLabelCleanup([])).toBeUndefined()
+ expect(studioLabelCleanup(['금빛 열쇠','보물'])).toBeUndefined()
+ expect(studioLabelCleanup([' 금빛 열쇠 ','','보물'])).toEqual(['금빛 열쇠','보물'])
+ expect(studioLabelCleanup([' ',''])).toEqual([])
 })
