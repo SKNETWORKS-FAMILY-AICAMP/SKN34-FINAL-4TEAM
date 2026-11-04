@@ -68,6 +68,30 @@ class SelectionTest(unittest.TestCase):
                 self.assertEqual(plan["unit"], plan["integration"])
                 self.assertEqual([], plan["system"])
 
+    def test_independent_spring_skeletons_select_only_their_unit_tests(self):
+        for service in ("content", "operations"):
+            for suffix in ("build.gradle", "src/main/resources/application.properties",
+                           f"src/main/kotlin/ai/storyfork/{service}/Application.kt",
+                           f"src/test/kotlin/ai/storyfork/{service}/ApplicationPropertiesTest.kt",
+                           "gradlew", "gradle/wrapper/gradle-wrapper.jar"):
+                with self.subTest(service=service, path=suffix):
+                    plan = ci.select([f"backend/{service}-service/{suffix}"])
+                    self.assertEqual([{"service": service, "scope": "all"}], plan["unit"])
+                    self.assertEqual([], plan["integration"])
+                    self.assertEqual([], plan["system"])
+                    self.assertFalse(plan["infra"])
+
+    def test_skeleton_ci_runs_scoped_junit_without_empty_integration_rows(self):
+        workflow = (ci.ROOT / ".github/workflows/ci.yml").read_text()
+        unit = workflow.split("\n  unit:\n", 1)[1].split("\n  integration:\n", 1)[0]
+        self.assertIn("matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations'", unit)
+        self.assertIn("working-directory: backend/${{ matrix.service }}-service", unit)
+        self.assertIn('test --tests "ai.storyfork.${SERVICE}.*" --no-daemon', unit)
+        self.assertEqual({"web", "core", "ai", "content", "operations"},
+                         {row["service"] for row in ci.select([], full=True)["unit"]})
+        self.assertEqual({"web", "core", "ai"},
+                         {row["service"] for row in ci.select([], full=True)["integration"]})
+
     def test_ai_contract_selects_core_web_and_system(self):
         plan = ci.select(["backend/ai-service/app/generation/router.py"])
         self.assertEqual({"web", "core", "ai"}, {r["service"] for r in plan["unit"]})
@@ -96,10 +120,11 @@ class SelectionTest(unittest.TestCase):
                 self.assertTrue(plan["system"])
         for path in ["infrastructure/ci/ci.py", ".github/workflows/ci.yml", "new-runtime-config.toml"]:
             with self.subTest(path=path):
-                self.assertEqual({"web", "core", "ai"}, {r["service"] for r in ci.select([path])["unit"]})
+                self.assertEqual({"web", "core", "ai", "content", "operations"},
+                                 {r["service"] for r in ci.select([path])["unit"]})
 
     def test_manual_and_missing_push_base_run_full_safely(self):
-        self.assertEqual(3, len(ci.select([], full=True)["unit"]))
+        self.assertEqual(5, len(ci.select([], full=True)["unit"]))
         self.assertIsNone(ci.comparison_base("workflow_dispatch", {}))
         self.assertIsNone(ci.comparison_base("push", {"before": "0" * 40}))
 
@@ -220,7 +245,7 @@ class PlanGitTest(unittest.TestCase):
                 plan = json.loads(result.stdout)
                 self.assertIsNone(plan['base'])
                 self.assertEqual(set(ci.SERVICES), {row['service'] for row in plan['unit']})
-                self.assertEqual(plan['unit'], plan['integration'])
+                self.assertEqual({'web', 'core', 'ai'}, {row['service'] for row in plan['integration']})
                 self.assertEqual(ci.SCENARIOS, plan['system'])
                 self.assertTrue(plan['infra'])
         self.commit('new.txt', 'new \n')

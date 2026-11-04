@@ -7,7 +7,7 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
-SERVICES = ("web", "core", "ai")
+SERVICES = ("web", "core", "ai", "content", "operations")
 SCENARIOS = ["health", "auth", "content", "ai"]
 
 
@@ -73,6 +73,10 @@ def select(paths, full=False):
                 if feature in {None, "_health_ai_service"}:
                     scopes["ai"].add("all")
             infra |= "Dockerfile" in path
+        elif path.startswith("backend/content-service/"):
+            scopes["content"].add("all")
+        elif path.startswith("backend/operations-service/"):
+            scopes["operations"].add("all")
         elif path.startswith("backend/ai-service/"):
             scopes["ai"].add("all")
             if "/tests/" not in path:
@@ -90,7 +94,9 @@ def select(paths, full=False):
         scenarios.update(SCENARIOS)
     rows = [{"service": service, "scope": "all" if "all" in scope else ",".join(sorted(scope))}
             for service, scope in scopes.items() if scope]
-    return {"unit": rows, "integration": rows.copy(), "system": [s for s in SCENARIOS if s in scenarios], "infra": infra}
+    # 새 실행 골격은 순수 단위 테스트만 있다. 빈 통합 job을 만들지 않는다.
+    integration = [row for row in rows if row["service"] in {"web", "core", "ai"}]
+    return {"unit": rows, "integration": integration, "system": [s for s in SCENARIOS if s in scenarios], "infra": infra}
 
 
 def check_results(results, expected):

@@ -116,8 +116,8 @@ Health는 OpenAI 인증·모델 접근·생성 품질 검증이 아닙니다. �
 | 서비스 | 소유 업무 | 현재와의 차이 |
 |---|---|---|
 | Core | 회원·인증·세션·크레딧·회원 알림 | 기존 core-api 재사용, 현재 남은 콘텐츠는 이전 대상 |
-| 콘텐츠 | 작품·세계관·회차·버전·Fork·발행·독서·검색·피드백·첨부 | 별도 Kotlin/Spring Boot 앱 분리 예정 |
-| 운영 | 문의·공지·이벤트·신고·소명·운영 판단·감사·작업 감시 | 별도 Kotlin/Spring Boot 앱 분리 예정 |
+| 콘텐츠 | 작품·세계관·회차·버전·Fork·발행·독서·검색·피드백·첨부 | [독립 Spring Boot 실행 골격](backend/content-service/README.md) 추가, 업무·DB·배포 이전 미완료 |
+| 운영 | 문의·공지·이벤트·신고·소명·운영 판단·감사·작업 감시 | [독립 Spring Boot 실행 골격](backend/operations-service/README.md) 추가, 업무·DB·배포 미구현 |
 | AI | 요청된 생성·추출·시뮬레이션·검토 실행 | 기존 FastAPI 재사용 |
 
 LLMOps는 운영 영역이다. Langfuse는 도입 시 별도 제품으로 배포하며 자체 UI와 운영 화면 API 통합 중 선택은 미정이다. 정기 작업은 업무 소유 서비스가 실행하고 운영이 감시한다. 콘텐츠 제한은 콘텐츠, 회원 제한·크레딧은 Core가 적용한다. 기존 실행 명령은 아래처럼 유지하며 새 Start 서버·빈 공통 starter를 추가하지 않는다. 상세 소유권·DB·통신·이전 절차는 [서비스 구조](docs/design/service-boundaries.md)를 따른다.
@@ -179,6 +179,8 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 기존 서비스별 `.env.local` 등이 있으면 Vite가 별도로 읽을 수 있으므로 필요한 값을 루트로 수동 통합하세요.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
 
+별도 JDK 21 실행 골격인 [콘텐츠](backend/content-service/README.md)·[운영](backend/operations-service/README.md)은 각각 loopback 8081·8082를 기본값으로 사용하며 외부 설정 없이 독립 `bootRun`이 가능하도록 구성했습니다. 기존 Compose·nginx·공개 API와 연결하지 않았고 업무·DB 이전도 완료하지 않았습니다. 선택 단위 테스트와 실제 앱 기동 검증은 구분합니다.
+
 ## 검증
 
 ### 로컬 개발: 변경·영향 범위의 단위 테스트만
@@ -209,7 +211,7 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 
 | 계층 | 현재 실행 범위 |
 |---|---|
-| 선택·정적 검사·단위 | 변경 diff 공백·선택기 회귀, 선택된 web의 lint/build, AI lock 검사. web Domain/Data/HTML 단위, Core `unitTest`, AI `-m 'not integration'` |
+| 선택·정적 검사·단위 | 변경 diff 공백·선택기 회귀, 선택된 web의 lint/build, AI lock 검사. web Domain/Data/HTML 단위, Core `unitTest`, 콘텐츠·운영 골격 `ApplicationPropertiesTest`, AI `-m 'not integration'` |
 | 통합 | 나머지 web React/Hook/App 조립, Core `integrationTest`(Spring context·HTTP·PostgreSQL·Flyway), AI `-m integration`(FastAPI TestClient) |
 | 시스템 | CI 전용 Compose 앱·임시 PostgreSQL·Mailpit을 기동한 뒤 `pytest infrastructure/system -k ...`로 선택된 실제 HTTP 시나리오 실행 |
 | 집계 | `Required CI`: 실패·취소·필요한 tier의 예상 밖 skip은 실패, 영향 없는 작업의 의도적 skip만 허용 |
@@ -224,7 +226,7 @@ Core 통합 job은 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTE
 - PR: base와 실제 head의 **merge-base**부터 비교. push: event의 **before SHA**부터 비교.
   수동 CI 실행·기준선 부재(새 브랜치/기준 커밋 없음)는 명시적으로 전체 서비스·시나리오를 실행합니다.
   이때 공백 검사는 첫 부모와 비교하며, 부모가 없는 최초 커밋만 빈 트리와 비교합니다.
-- web·AI는 서비스 수준, Core는 auth/content/health 기능 수준으로 보수적으로 선택합니다. 선택된 범위의 해당 계층 테스트는 모두 실행합니다.
+- web·AI는 서비스 수준, Core는 auth/content/health 기능 수준으로 보수적으로 선택합니다. 콘텐츠·운영 골격은 각각 단위 테스트만 선택하고 빈 통합·시스템 job은 만들지 않습니다. 기존 시스템 `content` 시나리오는 새 콘텐츠 서비스가 아닌 Core의 콘텐츠 API를 검증합니다.
 - 공유·설정·의존성·미등록 runtime 경로는 해당 서비스 전체 또는 전체 서비스로 확장합니다.
   Core Auth는 Content/web 소비자를, Core Content·AI 계약 변경은 연결된 Core/AI/web와 시스템 시나리오를 함께 선택합니다.
 - 삭제·이름 변경은 `git diff --no-renames`로 이전 경로까지 포함합니다. 정확한 소스별 의존 그래프 분석은 아닙니다.

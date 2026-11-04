@@ -103,7 +103,7 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
-      - if: ${{ matrix.service == 'core' }}
+      - if: ${{ matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' }}
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
@@ -141,6 +141,12 @@ jobs:
             done
           fi
           ./gradlew unitTest --no-daemon "${filters[@]}"
+      - name: JUnit skeleton resource unit tests (no Spring context)
+        if: ${{ matrix.service == 'content' || matrix.service == 'operations' }}
+        working-directory: backend/${{ matrix.service }}-service
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: ./gradlew test --tests "ai.storyfork.${SERVICE}.ApplicationPropertiesTest" --no-daemon
       - name: pytest isolated provider unit tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
@@ -149,7 +155,7 @@ jobs:
         run: pnpm --dir frontend lint && pnpm --dir frontend build
       - name: Sanitize failure reports
         if: ${{ failure() }}
-        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/ai-service/reports
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/operations-service/build/test-results backend/ai-service/reports
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ failure() }}
         with:

@@ -6,7 +6,7 @@
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
-> 현재 실행 백엔드는 core-api·ai-service이며 Core에 인증·콘텐츠·첨부가 공존합니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)입니다. 아래 현재 명령·경로는 이전 전 실행 구조이며 새 서비스가 기동됐다는 뜻은 아닙니다.
+> 기존 연결·배포 백엔드는 core-api·ai-service이며 Core에 인증·콘텐츠·첨부가 공존합니다. 별도로 [콘텐츠](../backend/content-service/README.md)·[운영](../backend/operations-service/README.md)의 독립 Spring Boot 실행 골격을 추가했습니다(loopback 8081·8082, JDK 21). 업무·DB·인증·Compose·공개 라우팅은 옮기지 않았고 실제 기동 검증도 대기입니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
 
 STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴는 미구현이므로 운영 가입용이 아닙니다.
 서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
