@@ -63,7 +63,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   returnToCard:()=>{if(returnCard.current)setSelected(returnCard.current);setCardDetail(true);goStep('cards')},
   cardRows:cardLibraryRows(editing?.settings??[],cardFilter,cardQuery),writingIssues:editing?worldWritingIssues(editing):[],
   worlds,saved,editing,dirty,selected,setSelected,error,message,busy,
-  create:(name:string,description:string)=>perform(async()=>{const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current)navigate('/worldstudio/'+w.id)}),
+  create:(name:string,description:string)=>perform(async()=>{if(dirty&&!window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?'))return;const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current)navigate('/worldstudio/'+w.id)}),
   open:(id:string)=>{if(dirty && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){navigate('/worldstudio/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
   patch,
   applyRelations:(changes:RelationInput[],removed:string[])=>{
