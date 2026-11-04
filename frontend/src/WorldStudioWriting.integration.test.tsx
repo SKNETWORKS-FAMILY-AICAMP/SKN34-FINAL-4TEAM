@@ -58,7 +58,9 @@ it('makes add visible and keeps management entries out of the compact type filte
  fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  expect(screen.getByRole<HTMLInputElement>('textbox',{name:'설정 이름'}).value).toBe('가람')
 })
-it('keeps the edit when save fails and keeps exploration and AI available as auxiliary tools',async()=>{
+it('keeps failed edits and AI candidates out of the saved confirmed view',async()=>{
+ const candidate=newSetting('people').item;candidate.title='미확정 AI 후보';candidate.text='AI 후보 내용'
+ world.analysis={id:'candidate-batch',status:'completed',candidates:[candidate],issues:[]}
  await show();fireEvent.click(screen.getByRole('button',{name:'설정 카드'}))
  fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'실패해도 남길 내용'}})
  vi.mocked(repository.saveStudio).mockRejectedValueOnce(new Error('저장 충돌'))
@@ -71,6 +73,13 @@ it('keeps the edit when save fails and keeps exploration and AI available as aux
  expect(screen.getByRole('button',{name:'세계관 탐색'})).toBeTruthy()
  expect(screen.getByRole('button',{name:'AI 후보 검토'})).toBeTruthy()
  expect(screen.getByRole('button',{name:'집필 메모 추가'})).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'세계관 탐색'}))
+ fireEvent.click(screen.getByRole('button',{name:'설정집'}))
+ const confirmed=screen.getByRole('heading',{name:'확정 Wiki'}).closest('section')!
+ expect(confirmed.textContent).toContain('기존 원문')
+ expect(confirmed.textContent).not.toContain('실패해도 남길 내용')
+ expect(confirmed.textContent).not.toContain('미확정 AI 후보')
+ expect(confirmed.textContent).not.toContain('AI 후보 내용')
  expect(world.settings[0].item.text).toBe('기존 원문')
 })
 
