@@ -7,7 +7,7 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
-SERVICES = ("web", "core", "ai")
+SERVICES = ("web", "core", "ai", "content", "operations")
 SCENARIOS = ["health", "auth", "content", "ai"]
 
 
@@ -51,32 +51,40 @@ def select(paths, full=False):
                 scenarios.update(SCENARIOS)
             infra |= path.endswith(("nginx.conf", "Dockerfile", "Dockerfile.dev"))
         elif path.startswith("backend/core-api/"):
-            feature = next((name for name in ("auth", "content", "_health", "_health_ai_service") if f"/core/{name}/" in path or f"/db/migration/{name}/" in path), None)
-            if "/db/content/" in path:
-                feature = "content"
+            feature = next((name for name in ("auth", "_health", "_health_ai_service") if f"/core/{name}/" in path or f"/db/migration/{name}/" in path), None)
             if "/config/" in path or path.endswith(("Config.kt", "Properties.kt")):
-                feature = None  # Bean/security 설정은 기능 경계를 넘어 Core 전체를 검증한다.
-            features = {"auth": ("auth",), "content": ("content", "health"), "_health": ("health",), "_health_ai_service": ("health",)}.get(feature, ("all",))
-            core(*(("content",) if feature == "content" and "/src/test/" in path else features))
+                feature = None  # Bean/security 설정은 보수적으로 모든 Core 기능을 선택한다.
+            core(*{"auth": ("auth",), "_health": ("health",), "_health_ai_service": ("health",)}.get(feature, ("all",)))
+            # 삭제된 이전 콘텐츠 경로도 새 소유 서비스의 회귀를 선택한다.
+            if feature is None:
+                scopes["content"].add("all")
             if "/src/test/" not in path:
-                if feature in {"auth", "content"}:
-                    core("all")  # 첨부도 Auth·Content를 소비하므로 미등록 기능을 포함한다.
-                scopes["web"].add("all")  # 공개 API의 현재 소비자. 개별 DTO 영향까지 추측하지 않는다.
+                scopes["web"].add("all")
+                scopes["content"].add("all")  # Core 인증/공개 계약의 실제 소비자.
                 scenarios.add("health")
                 if feature == "auth":
+                    core("all")
                     scenarios.update(("auth", "content"))
-                elif feature == "content":
-                    scopes["ai"].add("all")
-                    scenarios.update(("content", "ai"))
                 elif feature is None:
                     scenarios.update(SCENARIOS)
                 if feature in {None, "_health_ai_service"}:
                     scopes["ai"].add("all")
             infra |= "Dockerfile" in path
+        elif path.startswith("backend/content-service/"):
+            scopes["content"].add("all")
+            if "/src/test/" not in path:
+                core("all")
+                scopes["web"].add("all")
+                scopes["ai"].add("all")
+                scenarios.update(SCENARIOS)
+            infra |= "Dockerfile" in path
+        elif path.startswith("backend/operations-service/"):
+            scopes["operations"].add("all")
         elif path.startswith("backend/ai-service/"):
             scopes["ai"].add("all")
             if "/tests/" not in path:
-                core("content", "health")
+                core("health")
+                scopes["content"].add("all")
                 scopes["web"].add("all")
                 scenarios.update(("health", "ai"))
             infra |= "Dockerfile" in path
@@ -90,7 +98,9 @@ def select(paths, full=False):
         scenarios.update(SCENARIOS)
     rows = [{"service": service, "scope": "all" if "all" in scope else ",".join(sorted(scope))}
             for service, scope in scopes.items() if scope]
-    return {"unit": rows, "integration": rows.copy(), "system": [s for s in SCENARIOS if s in scenarios], "infra": infra}
+    # Operations만 실행 골격이며 빈 통합 job을 만들지 않는다.
+    integration = [row for row in rows if row["service"] in {"web", "core", "ai", "content"}]
+    return {"unit": rows, "integration": integration, "system": [s for s in SCENARIOS if s in scenarios], "infra": infra}
 
 
 def check_results(results, expected):
@@ -102,7 +112,7 @@ def check_results(results, expected):
 
 
 def redact(text):
-    for key in ("AUTH_JWT_SECRET", "INTERNAL_TOKEN", "CORE_DATABASE_PASSWORD", "OPENAI_API_KEY"):
+    for key in ("AUTH_JWT_SECRET", "INTERNAL_TOKEN", "CONTENT_CORE_AUTH_TOKEN", "CORE_DATABASE_PASSWORD", "CONTENT_DATABASE_PASSWORD", "OPENAI_API_KEY"):
         value = os.environ.get(key, "")
         if value:
             text = text.replace(value, "[redacted]")

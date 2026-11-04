@@ -1,10 +1,10 @@
 # Core 업무 ERD — 회원·인증
 
-> **전체 서비스 논리 후보 · 미구현.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
+> **전체 서비스 논리 후보 · 분리 구현 전.** [목차](../README.md) · [전체 ERD](../overview.md) · [정규화 검증](../normalization.md) · [요구사항 추적](../requirements-matrix.md). 영역은 서비스 배포 단위가 아닙니다.
 
 근거: [UC-22](../../../usecase-spec/UC-22.md). 최신 결정과 충돌하는 과거 상세는 적용하지 않습니다.
 
-소유 후보 **8개**, 다른 영역 참조 **3개**입니다. 이 영역 소유 테이블의 FK 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
+이 뷰의 중심 후보 **8개**, 다른 영역 참조 **3개**입니다. 이 뷰의 중심 테이블 관계만 표시하며 참조 테이블에서 다른 영역으로 나가는 선은 의도적으로 생략합니다.
 
 ```mermaid
 erDiagram
@@ -114,21 +114,27 @@ erDiagram
     }
 ```
 
+## 정본 소유와 서비스 경계
+
+[DEC-41 정본 소유·현행 구현과 논리 참조 해석](../README.md#dec-41-적용과-현재-구현)을 따릅니다. `core/`는 기존 문서 경로이며 각 표의 소유 구분이 목표 책임입니다. 그림의 엔티티·컬럼·관계는 그대로 보존하며 회원 인증 비밀을 다른 서비스에 복제하지 않습니다.
+
+Core가 회원·인증·세션·탈퇴 요청/진행을 소유합니다. 작품 소유권·Fork 독립·콘텐츠 삭제/익명화의 실제 처리는 콘텐츠에 요청하고 결과를 확인합니다. `MEMBER.operator_role`은 기존 논리 속성 후보이며 운영 권한 검사·모델·검증 계약을 이 속성 하나로 확정하지 않습니다.
+
 ## 이 그림의 테이블
 
-| 소유/참조 | 테이블 | 범위 |
-|---|---|---|
-| 소유 | [`MEMBER`](../tables.md#member) | MVP |
-| 소유 | [`TERMS_VERSION`](../tables.md#terms-version) | MVP |
-| 소유 | [`MEMBER_CONSENT`](../tables.md#member-consent) | MVP |
-| 소유 | [`AUTH_SESSION`](../tables.md#auth-session) | MVP 이후 |
-| 소유 | [`REFRESH_TOKEN`](../tables.md#refresh-token) | MVP 이후 |
-| 소유 | [`ACCOUNT_CHALLENGE`](../tables.md#account-challenge) | MVP 이후 |
-| 소유 | [`ACCOUNT_WITHDRAWAL`](../tables.md#account-withdrawal) | MVP 이후 |
-| 소유 | [`ACCOUNT_WITHDRAWAL_ITEM`](../tables.md#account-withdrawal-item) | MVP 이후 |
-| 다른 영역 참조 | [`WORLD`](../tables.md#world) | MVP |
-| 다른 영역 참조 | [`WORK`](../tables.md#work) | MVP |
-| 다른 영역 참조 | [`FORK`](../tables.md#fork) | MVP |
+| 뷰 구분 | 테이블 | 범위 | 목표 정본 소유 |
+|---|---|---|---|
+| 중심 후보 | [`MEMBER`](../tables.md#member) | MVP | Core |
+| 중심 후보 | [`TERMS_VERSION`](../tables.md#terms-version) | MVP | Core |
+| 중심 후보 | [`MEMBER_CONSENT`](../tables.md#member-consent) | MVP | Core |
+| 중심 후보 | [`AUTH_SESSION`](../tables.md#auth-session) | MVP 이후 | Core |
+| 중심 후보 | [`REFRESH_TOKEN`](../tables.md#refresh-token) | MVP 이후 | Core |
+| 중심 후보 | [`ACCOUNT_CHALLENGE`](../tables.md#account-challenge) | MVP 이후 | Core |
+| 중심 후보 | [`ACCOUNT_WITHDRAWAL`](../tables.md#account-withdrawal) | MVP 이후 | Core |
+| 중심 후보 | [`ACCOUNT_WITHDRAWAL_ITEM`](../tables.md#account-withdrawal-item) | MVP 이후 | Core |
+| 다른 영역 참조 | [`WORLD`](../tables.md#world) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`WORK`](../tables.md#work) | MVP | 콘텐츠 |
+| 다른 영역 참조 | [`FORK`](../tables.md#fork) | MVP | 콘텐츠 |
 
 ## 데이터 역할과 무결성
 

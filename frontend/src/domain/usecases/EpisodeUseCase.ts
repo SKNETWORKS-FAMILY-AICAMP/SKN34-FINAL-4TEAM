@@ -1,5 +1,5 @@
 import type {EpisodeRepository} from '../repositories/EpisodeRepository'
-import type { Draft, SettingInput } from '../entities/content'
+import type { Draft, SettingInput, WorkRegistration } from '../entities/content'
 
 export class EpisodeUseCase {
   private readonly repository: EpisodeRepository
@@ -23,10 +23,20 @@ export class EpisodeUseCase {
   }
   publicList(signal?: AbortSignal) { return this.repository.publicList(signal) }
   list(signal?: AbortSignal) { return this.repository.list(signal) }
-  create(title: string, summary: string, signal?: AbortSignal) {
+  create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) {
     if (!title.trim()) return Promise.reject(new Error('작품 제목을 입력해 주세요.'))
-    return this.repository.create(title.trim(),summary.trim(),signal)
+    if (registration) {
+      if (registration.genres.length<1 || registration.genres.length>2) return Promise.reject(new Error('장르는 1~2개를 선택해 주세요.'))
+      if (registration.hashtags.length>10) return Promise.reject(new Error('해시태그는 10개까지 입력할 수 있어요.'))
+      if (!registration.rightsConfirmed) return Promise.reject(new Error('작품 권리 확인이 필요해요.'))
+    }
+    return this.repository.create(title.trim(),summary.trim(),signal,registration)
   }
+  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal) {
+    if (!title.trim() || title.length>120 || summary.length>2000) return Promise.reject(new Error('작품 제목은 120자, 소개는 2,000자 이내로 입력해 주세요.'))
+    return this.repository.updateWork(id,title.trim(),summary.trim(),revision,signal)
+  }
+  deleteWork(id: string, signal?: AbortSignal) { return this.repository.deleteWork(id,signal) }
   save(id: string, draft: Draft) { return this.repository.save(id,draft) }
   publish(id: string, draft: Draft, rights: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) {
     if (!draft.body.trim()) return Promise.reject(new Error('원고를 먼저 작성해 주세요.'))

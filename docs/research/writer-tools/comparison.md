@@ -21,7 +21,7 @@
 
 ## STORYFORK와 비교하는 기준
 
-**[현재]** [아키텍처 문서](../../architecture.md)는 시작 화면과 Core·AI Health 연결 중심의 개발 기반을 설명하며 STORYFORK 업무 기능은 미구현이다.
+**[현재]** [아키텍처 문서](../../architecture.md)의 인증·일부 콘텐츠·첨부 API와 데모 공존 상태를 기준으로 한다. [DEC-41](../../design/service-boundaries.md)의 서비스 분리는 미적용이며 경쟁 도구 조사는 구현 완료 근거가 아니다.
 
 **[MVP 설계]** [설계 문서](../../design/design.md)의 목표는 다음과 같다.
 
