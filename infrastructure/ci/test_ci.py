@@ -36,10 +36,17 @@ class SelectionTest(unittest.TestCase):
         self.assertIn("content", plan["system"])
 
     def test_attachment_runtime_and_migration_paths_conservatively_select_all(self):
+        # 새 패키지는 미등록 기능의 보수적 전체 선택을 유지하고, 삭제된 이전 경로도 포함한다.
         for path in [
+            "backend/core-api/src/main/kotlin/ai/storyfork/core/attachment/service/AttachmentService.kt",
+            "backend/core-api/src/main/kotlin/ai/storyfork/core/attachment/AttachmentConfig.kt",
+            "backend/core-api/src/main/kotlin/ai/storyfork/core/attachment/AttachmentProperties.kt",
+            "backend/core-api/src/main/kotlin/ai/storyfork/core/attachment/repository/ContentImageRepository.kt",
             "backend/core-api/src/main/kotlin/ai/storyfork/core/settingattachment/service/SettingAttachmentService.kt",
             "backend/core-api/src/main/kotlin/ai/storyfork/core/settingattachment/SettingAttachmentConfig.kt",
+            "backend/core-api/src/main/kotlin/ai/storyfork/core/contentimage/service/ContentImageService.kt",
             "backend/core-api/src/main/resources/db/migration/settingattachment/V1__setting_attachment.sql",
+            "backend/core-api/src/main/resources/db/migration/contentimage/V1__content_image.sql",
         ]:
             with self.subTest(path=path):
                 plan = ci.select([path])
@@ -48,9 +55,18 @@ class SelectionTest(unittest.TestCase):
                 self.assertEqual(ci.SCENARIOS, plan["system"])
 
     def test_attachment_test_change_selects_core_without_system(self):
-        plan = ci.select(["backend/core-api/src/test/kotlin/ai/storyfork/core/settingattachment/SettingAttachmentHttpTest.kt"])
-        self.assertEqual([{"service": "core", "scope": "all"}], plan["integration"])
-        self.assertEqual([], plan["system"])
+        # 이동된 테스트와 삭제된 이전 테스트 경로 모두 Core 전체, 시스템 미선택이다.
+        for path in [
+            "backend/core-api/src/test/kotlin/ai/storyfork/core/attachment/AttachmentServiceTest.kt",
+            "backend/core-api/src/test/kotlin/ai/storyfork/core/attachment/AttachmentConfigTest.kt",
+            "backend/core-api/src/test/kotlin/ai/storyfork/core/attachment/SettingAttachmentHttpTest.kt",
+            "backend/core-api/src/test/kotlin/ai/storyfork/core/settingattachment/SettingAttachmentHttpTest.kt",
+        ]:
+            with self.subTest(path=path):
+                plan = ci.select([path])
+                self.assertEqual([{"service": "core", "scope": "all"}], plan["unit"])
+                self.assertEqual(plan["unit"], plan["integration"])
+                self.assertEqual([], plan["system"])
 
     def test_ai_contract_selects_core_web_and_system(self):
         plan = ci.select(["backend/ai-service/app/generation/router.py"])
