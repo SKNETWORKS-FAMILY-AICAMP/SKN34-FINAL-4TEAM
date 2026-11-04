@@ -1,7 +1,7 @@
 # STORYFORK Web
 
 React·TypeScript·Vite·Tailwind CSS 기반의 개발 화면입니다.
-작품·Fork·서재 등은 데모 데이터이며, 아래 인증·프로필·기기 관리 기능은 같은 출처의 실제 Core API를 호출합니다.
+이름 기반 작품·Fork·서재는 데모 데이터입니다. `/content`, `/studio/{UUID}` 및 아래 인증·프로필·기기 관리 기능은 같은 출처의 실제 Core API를 호출합니다.
 이메일 확인 전 자동 로그인하지 않으며 운영 약관은 미정입니다. 알 수 없는 UI 경로는 `/`로 이동합니다.
 
 ## 실행
@@ -10,17 +10,18 @@ Node **24.x**, pnpm **11.22.x** (`packageManager: pnpm@11.22.0`)가 필요합니
 
 ```bash
 pnpm install --frozen-lockfile
-# 저장소 루트 .env를 선택적으로 로드합니다 (uv 필요).
-python3 ../infrastructure/scripts/run-native.py web
+pnpm dev
 ```
 
 네이티브 기본 주소는 `http://localhost:5173`, Core는 `http://localhost:8080`입니다.
-설정은 루트 `.env`의 공개 `VITE_CORE_API_BASE_URL`을 변경합니다. 서비스별 `.env`는 만들지 않습니다.
+직접 실행할 때는 공개 `VITE_CORE_API_BASE_URL` 등 필요한 변수만 터미널에 설정합니다. 루트 `.env`는 자동으로 읽지 않습니다.
+루트 설정 자동 전달은 Compose를 사용하며 서비스별 `.env`는 만들지 않습니다.
 `VITE_*`는 브라우저에 노출되므로 비밀값을 넣지 않습니다. 백엔드는 별도로 실행합니다.
 
-루트의 [개발 Compose](../infrastructure/README.md)는 기본 `http://127.0.0.1:5173`의 Nginx를 단일 진입점으로 사용합니다.
-Nginx가 `/api` 요청을 `core-api:8080`으로, 화면과 HMR을 `web:5173`으로 전달합니다.
-배포 이미지의 Nginx도 정적 파일과 같은 `/api` 경계를 제공합니다. 인증·TLS 없는 로컬 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
+루트의 [Compose 안내](../infrastructure/README.md)는 공통 `docker-compose.yaml`에 prod 또는 dev를 병합합니다.
+prod는 소스에서 정적 배포 이미지를 빌드해 기본 `http://127.0.0.1:8088`로 검증하고, dev는 현재 개발 배포 서버에서 CI의 `:develop` 이미지를 pull·실행합니다.
+두 조합 모두 web 이미지의 Nginx가 정적 화면과 `/api` → `core-api:8080` 프록시를 제공합니다. 소스/HMR Compose는 제거했으며 hot reload는 위 `pnpm dev`를 사용합니다.
+loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
 ## 실제 호출 흐름
 
@@ -60,14 +61,32 @@ Nginx가 `/api` 요청을 `core-api:8080`으로, 화면과 HMR을 `web:5173`으�
 
 실제 약관 동의·계정탈퇴·소셜 로그인·운영 메일 서비스·비용 정책은 이 연결 범위에 포함하지 않습니다. 계정탈퇴 UI는 기존 데모이며 실제 계정을 삭제하지 않습니다.
 
+## 서버 이미지·파일 (#92)
+
+`MediaPanel / useMediaViewModel → MediaUseCase → MediaRepository → HttpMediaRepository`를 Awilix에서 조립합니다. 실제 작품·설정 UUID만 허용하고 데모 ID·실패 시 메모리 성공 fallback을 보내지 않습니다.
+
+- `/content`: 작품 생성 시 PNG/JPEG 표지 선택, 생성된 작품의 표지 조회·교체·삭제·새로고침. 작품만 생성되고 표지 업로드가 실패하면 생성된 작품을 유지하며 표지만 재시도합니다.
+- `/content` 설정집: 서버에 설정 초안을 먼저 저장한 뒤 이미지·TXT/MD/CSV/PDF 목록/업로드/다운로드/교체/삭제. following 설정은 로컬 독립 전 첨부하지 않습니다. 공개 설정도 첨부 자체는 소유자 전용입니다.
+- `/studio/{UUID}`: 실제 회차 본문의 커서/선택 영역에 불변 이미지 `[[image:<UUID>]]` 참조 삽입, 초안·버전 저장/재진입/복원/발행 및 읽기 미리보기. 업로드 후 초안이나 버전을 저장해야 참조가 보존됩니다. 과거 버전을 위해 원본을 지우지 않으므로 회차당 업로드 총 10개는 marker 삭제로 반환되지 않습니다.
+- 같은 출처의 Bearer/CSRF multipart 요청을 사용하며 JSON Content-Type을 강제하지 않습니다. 비공개 이미지 bytes를 인증 fetch 후 Blob URL로 표시하고 교체·이탈 때 revoke합니다. 토큰·스토리지 URL·base64를 서버 원고에 저장하지 않습니다.
+- 중복 요청을 막고 취소·이탈 뒤 늦은 결과를 적용하지 않습니다. 취소/네트워크 응답 유실은 서버 rollback을 의미하지 않으므로 목록 새로고침으로 실제 상태를 확인합니다. 실패하면 기존 파일/원고를 유지합니다.
+- PNG/JPEG 표지·본문 및 설정 파일은 파일당 10 MiB 이하입니다. 서버가 바이트·픽셀·권한·한도를 최종 검증합니다. TXT 내보내기는 이미지·참조 marker를 제외한 텍스트 전용이며 EPUB은 제공하지 않습니다.
+
+`/new`, 이름 기반 `/studio/starlight` 등 개요·Wiki 이미지 선택은 브라우저 메모리 데모입니다. 인접 안내·toast에서 서버 미저장을 알리고 `/content`로 연결합니다. 무관한 데모 데이터 전체의 서버 이관은 포함하지 않습니다. 표지 논리 삭제·미참조 원본 보존과 API/권한/운영 한계는 [Core 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 참고하세요.
+
 ## 검증
 
+로컬 개발은 변경·직접 영향 범위의 **단위 테스트 파일만** 지정합니다. 전체 suite·빌드·React 조립·브라우저/E2E는 로컬 개발 검증으로 실행하지 않습니다.
+
 ```bash
-pnpm test
-pnpm lint
-pnpm build
+pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
+# Data 단위 테스트도 실제 서버 대신 fetch 대역을 사용합니다.
+pnpm exec vitest run src/data/api/auth.test.ts
 ```
 
-실제 브라우저·통합 스택 확인은 [인프라 안내](../infrastructure/README.md)를 따릅니다.
+CI는 [공통 검증 정책](../README.md#검증)에 따라 web 서비스의 단위(Domain/Data/HTML)와 나머지 React/Hook/App 통합을 분리 실행하고 lint/build도 수행합니다.
+워크플로가 이 디렉터리에서 `pnpm exec vitest run src/domain src/data src/index-html.test.js`와 해당 파일들을 `--exclude`한 통합 명령을 직접 호출합니다. 별도 테스트 runner나 shell wrapper는 없습니다.
+Core API 변경 시 web 소비자 회귀도 선택합니다. 실제 HTTP 시스템 시나리오는 CI Compose에서 실행하며 브라우저 UI 검증이 아닙니다.
+Aside는 별도 요청·승인 시에만 사용합니다. hosted `Required CI` 결과 확인 전에는 검증 대기로 보고합니다.
 
 서버 작품은 `/studio/{UUID}`에서 회차별 실제 저장 API를 사용합니다. 데모 세션 대신 Core의 인증 결과를 따르며, 기존 이름 기반 데모 집필실과 구분합니다. 자동저장·버전 저장·복원과 검증 범위는 [이슈 #50 대응](../docs/issue-50-alignment.md)을 참고하세요.

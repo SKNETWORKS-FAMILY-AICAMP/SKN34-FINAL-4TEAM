@@ -131,6 +131,25 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
     expect(star().castFrom!['세라핀']).toBe(3)
   })
 
+  it('세션 복원으로 설정 노트가 나타난 직후의 native change도 저장한다', async () => {
+    ownWorld()
+    const setRelease = vi.spyOn(appContainer.resolve('studioUseCase'), 'setRelease')
+    const observer = new MutationObserver(() => {
+      const rule = screen.queryAllByLabelText('독자 공개 시작 회차 (비우면 비공개)')[0]
+      if (!rule) return
+      observer.disconnect()
+      fireEvent.change(rule, { target: { value: '0' } })
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    try {
+      renderAt('/studio/starlight?panel=settings')
+      const rule = (await screen.findAllByLabelText('독자 공개 시작 회차 (비우면 비공개)'))[0] as HTMLInputElement
+      await waitFor(() => expect(setRelease).toHaveBeenCalledWith('starlight', 'rule', 0, '0'))
+      await toastIs('1 이상의 회차를 입력해 주세요')
+      await waitFor(() => expect(rule.value).toBe(''))
+    } finally { observer.disconnect() }
+  })
+
   it('독자 공개 회차는 칸을 벗어나지 않아도 change(Enter·스핀 버튼) 한 번마다 저장한다', async () => {
     ownWorld()
     renderAt('/studio/starlight?panel=settings')
@@ -219,11 +238,11 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
   it('개요에서 표지를 바꾸고 지운다', async () => {
     renderAt('/studio/starlight?view=overview')
     fireEvent.change(await screen.findByLabelText('표지 바꾸기'), { target: { files: [new File(['x'], 'c.png', { type: 'image/png' })] } })
-    await toastIs('표지 이미지를 바꿨어요')
+    await toastIs('데모 표지 미리보기만 바꿨어요. 서버에는 저장되지 않아요')
     await waitFor(() => expect(star().coverImg).toBe('data:image/jpeg;base64,COVER'))
     expect(screen.queryByText('표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '표지 이미지 지우기' }))
-    await toastIs('표지 이미지를 지웠어요')
+    await toastIs('데모 표지 미리보기를 지웠어요. 서버 파일 삭제는 아니에요')
     await screen.findByText('표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.')
     expect(star().coverImg).toBeNull()
   })

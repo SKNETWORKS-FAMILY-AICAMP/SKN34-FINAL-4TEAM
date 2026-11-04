@@ -55,6 +55,8 @@ Aside는 아래 2026-11-03 재검증 결과를 따른다. Docker와 Required CI 
 
 ### develop 병합 호환성 확인 (2026-11-03, d170f25)
 
+아래는 당시 구성의 검증 기록이다. 현재 Compose 파일명·base+prod/dev 역할과 콘텐츠 활성화 경로는 [인프라 안내](../infrastructure/README.md)와 [콘텐츠 실행 안내](content-integration.md#인증과-실행)를 따른다.
+
 - 병합 커밋과 첫 부모를 비교했다. 이번 업데이트는 GHCR 게시·Tailscale CD, 작업 규칙, 조사·발표 자료이며 Frontend/Core/AI 소스와 ERD·확정 요구사항의 변경은 없다. 펜시브 조사 자료는 자체 명시대로 제안이며 #50의 구현 계약에 자동 추가하지 않는다.
 - 병합 커밋에 남아 있던 `.env.example`, `.github/workflows/ci.yml`의 충돌 표시를 제거했다. 콘텐츠 환경변수와 develop의 추가 예시, 콘텐츠 Compose 검사와 새 게시/CD 검사를 모두 보존했다. 실제 `.env`와 ERD는 변경하지 않았다. 수정 전 콘텐츠 Compose 검사는 실패했고 수정 후 dev/prod 모두 통과했다.
 - CI YAML 파싱·필수 job 보존, 환경변수 경계 테스트 1개, GHCR 공개 접근/최신 HEAD/실패 차단 검사, 집필 라우트·자동저장 회귀 4개, `git diff --check`가 통과했다. Windows Compose에서 CD의 세 digest 이미지·build/volume/env_file 부재·loopback 포트·OpenAI 키의 AI 전용 전달도 확인했다.

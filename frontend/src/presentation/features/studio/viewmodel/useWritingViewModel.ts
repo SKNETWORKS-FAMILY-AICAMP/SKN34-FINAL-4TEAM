@@ -2,9 +2,11 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
 import type { Draft, WritingEpisode } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
+import {imageMarker,manuscriptText} from '../../../../domain/entities/media'
 
 type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'>
-export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase')) {
+export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
   const [draft,setDraft]=useState<Draft>({title:'',body:'',revision:0})
@@ -15,6 +17,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [notice,setNotice]=useState('')
   const current=useRef(draft)
   const pending=useRef<AbortController|null>(null)
+  const downloads=useRef(new Map<string,ReturnType<typeof setTimeout>>())
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body)
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const install=(e:WritingEpisode)=>{setActive(e);put(e.draft);setNotice('');setError('')}
@@ -24,7 +27,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       if(controller.signal.aborted)return
       setEpisodes(rows);if(rows[0])install(rows[0]);setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
-    return ()=>{controller.abort();pending.current?.abort()}
+    const urls=downloads.current
+    return ()=>{controller.abort();pending.current?.abort();for(const [url,timer] of urls){clearTimeout(timer);URL.revokeObjectURL(url)}urls.clear()}
   },[id,api])
   useEffect(()=>{
     const leave=(e:BeforeUnloadEvent)=>{if(dirty||busy)e.preventDefault()}
@@ -60,7 +64,28 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
+<<<<<<< HEAD
     select:(e:WritingEpisode)=>{if(!mayLeave())return false;install(e);return true},
+=======
+    addImage:(file:File,start:number,end:number)=>run(async signal=>{
+      if(!active||active.inherited)throw new Error('편집 가능한 내 회차를 선택해 주세요.')
+      const sent=current.current
+      const from=Math.max(0,Math.min(start,sent.body.length));const to=Math.max(from,Math.min(end,sent.body.length))
+      if(sent.body.length-(to-from)+50>40000)throw new Error('이미지 참조를 넣을 공간이 부족해요. 원고를 40,000자 이내로 줄여 주세요.')
+      const item=await media.upload({kind:'episode',workId:id,number:active.number},file,undefined,signal)
+      if(signal.aborted)return
+      put({...current.current,body:sent.body.slice(0,from)+`\n\n${imageMarker(item.id)}\n\n`+sent.body.slice(to)})
+      setNotice('이미지를 서버에 업로드했어요. 본문 참조는 초안·버전 저장 후 유지돼요. 참조를 지워도 과거 저장본의 이미지는 보존돼요.')
+    }),
+    cancel:()=>{pending.current?.abort();pending.current=null;setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
+    downloadText:()=>{
+      const url=URL.createObjectURL(new Blob(['﻿'+current.current.title+'\n\n'+manuscriptText(current.current.body)],{type:'text/plain;charset=utf-8'}))
+      const link=document.createElement('a');link.href=url;link.download=`${current.current.title.replace(/[\\/:*?"<>|]/g,'_')||'원고'}.txt`;link.click()
+      downloads.current.set(url,setTimeout(()=>{URL.revokeObjectURL(url);downloads.current.delete(url)},1000))
+      setNotice('TXT는 이미지와 참조 ID를 제외한 텍스트만 내보내요.')
+    },
+    select:(e:WritingEpisode)=>{if(mayLeave())install(e)},
+>>>>>>> a6ce59f1fdc544b3cd70213af22d250c1cf23cfb
     create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
     reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);setReady(true)}})},
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},

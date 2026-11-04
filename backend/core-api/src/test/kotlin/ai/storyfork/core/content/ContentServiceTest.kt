@@ -16,6 +16,25 @@ import org.junit.jupiter.api.Assertions.*
 import tools.jackson.databind.json.JsonMapper
 
 class ContentServiceTest {
+    @Test fun `accepting proposals cannot bypass image validation or mutate the existing draft`() {
+        for (text in listOf("data:image/png;base64,eA==", "[[image:${contentId()}]]")) {
+            val work = ContentWork(ownerId="author", title="소설", draft=Draft(body="보존할 원고"))
+            val proposal = Proposal(text=text, model="test", revision=0, prompt="", baseBody=work.draft.body,
+                context=buildContext(work, emptyList(), 1, "", ""))
+            work.proposals.add(proposal)
+            val repository = org.mockito.Mockito.mock(ai.storyfork.core.content.repository.ContentRepository::class.java)
+            org.mockito.Mockito.`when`(repository.find(work.id)).thenReturn(work)
+            org.mockito.Mockito.doAnswer { (it.arguments[0] as Function0<*>).invoke() }
+                .`when`(repository).transaction(org.mockito.ArgumentMatchers.any<() -> Any>() ?: { work })
+            val service = ai.storyfork.core.content.service.ContentService(repository,
+                org.mockito.Mockito.mock(ai.storyfork.core.content.client.GenerationClient::class.java),
+                tools.jackson.databind.json.JsonMapper.builder().build())
+            assertThrows(ContentFailure::class.java) { service.accept(work.id, proposal.id, "author", 0) }
+            assertEquals("보존할 원고", work.draft.body)
+            assertEquals("pending", proposal.status)
+            assertTrue(work.versions.isEmpty())
+        }
+    }
     @Test fun `settings are private and episode scoped`() {
         val history=listOf(Setting(id="a",versionId="v1",name="secret",content="private"),Setting(id="b",versionId="v2",name="future",content="future",visibility="public",fromEpisode=4))
         assertEquals(1,selectSettings(history,3).size)

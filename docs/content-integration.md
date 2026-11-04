@@ -23,21 +23,17 @@
 
 설정은 루트 `.env.example`을 참고해 루트 `.env`에서 관리한다. 실제 `.env`를 덮어쓰거나 서비스별 파일을 만들지 않는다. 기본 `CONTENT_ENABLED=false`에서도 기존 Health·Auth 실행을 유지한다. 활성화 시 PostgreSQL JDBC URL·사용자·비밀번호와 양 서비스의 동일한 `INTERNAL_TOKEN`이 필요하다. `OPENAI_API_KEY`와 `OPENAI_MODEL`은 AI 런타임에만 전달한다. 공용 실행 설정에는 모델 기본값이 없다. 생성을 사용하려면 사용 가능한 `OPENAI_MODEL`과 키를 명시해야 하며, 누락하면 생성 API는 503으로 실패한다. 팀 CD의 별도 모델 설정은 팀 전체 모델 선정 결정이나 실제 런타임 검증을 뜻하지 않는다.
 
-```bash
-python3 infrastructure/scripts/run-native.py ai-service
-python3 infrastructure/scripts/run-native.py core-api
-python3 infrastructure/scripts/run-native.py web
-```
-
-각 서비스는 별도 터미널에서 실행한다. Core는 JDK 21, Frontend는 저장소 지정 Node/pnpm, AI는 uv 잠금파일을 사용한다.
-
-선택적 Docker 저장소 overlay:
+별도 콘텐츠 overlay 없이 공통 base에서 `CONTENT_ENABLED`를 전달한다. 루트 `.env`에 `CONTENT_ENABLED=true`와 두 서비스가 공유할 실제 `INTERNAL_TOKEN`을 명시한 뒤, 저장소 루트에서 배포 이미지 로컬 검증 조합으로 실행한다:
 
 ```bash
-docker compose --env-file .env -f infrastructure/compose.yaml -f infrastructure/compose.content.yaml up --build
+docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml up --build -d
 ```
 
-이미지 구성은 첫 파일을 `infrastructure/compose.prod.yaml`로 바꾼다. overlay는 기본 Auth PostgreSQL의 서비스·자격증명·volume·포트를 변경하지 않고 Core의 콘텐츠 연결에도 같은 DB와 `CORE_DATABASE_USER`/`CORE_DATABASE_PASSWORD`를 전달한다. Auth의 `flyway_schema_history`와 콘텐츠의 `content_schema_history`는 분리한다. dev의 DB 포트는 loopback 전용이며 prod DB는 호스트에 공개하지 않는다. 컨테이너에는 개발 작성자를 주입하지 않으며 실제 로그인 JWT가 필요하다. 인증·TLS 없는 운영 배포 준비 완료를 의미하지 않는다.
+base는 단독 실행하지 않는다. prod는 기존 Auth PostgreSQL 서비스·자격증명·volume을 유지하며, Core의 `CONTENT_DATABASE_*`에는 같은 내부 DB URL과 `CORE_DATABASE_USER`/`CORE_DATABASE_PASSWORD`를 전달한다. 루트 예시의 별도 `CONTENT_DATABASE_*` 값은 네이티브 실행용이며 Compose에서 다른 DB를 선택하는 설정이 아니다. Auth의 `flyway_schema_history`와 콘텐츠의 `content_schema_history`는 분리한다. DB·Core·AI는 호스트에 공개하지 않는다.
+
+현재 개발 배포 서버는 같은 base + `infrastructure/docker-compose.dev.yaml`을 사용한다. CI가 게시한 세 `:develop` 이미지만 pull·실행하며 소스 build·hot reload가 아니다. 기존 외부 `CORE_DATABASE_URL`·자격증명을 Auth와 콘텐츠에 함께 전달하고 외부 SMTP를 유지하며 새 DB나 volume은 만들지 않는다. 서버 배포 명령과 디렉터리·포트 경계는 [인프라 안내](../infrastructure/README.md)를 따른다.
+
+두 조합 모두 콘텐츠는 기본 비활성이고, 컨테이너에는 개발 작성자를 주입하지 않으며 실제 로그인 JWT가 필요하다. 빈 내부 토큰은 인증 성공으로 대체하지 않는다. Compose 구문 검사 자체는 실제 토큰 유효성을 검증하지 않으며, 토큰 누락 시 생성 요청은 기존 구현대로 실패한다. 인증·TLS 없는 운영 배포 준비 완료를 의미하지 않는다.
 
 ## 문맥과 저장 한계
 
