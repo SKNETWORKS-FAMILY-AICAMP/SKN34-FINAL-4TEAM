@@ -39,8 +39,8 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const apply=(w:StudioWorld,current:number)=>{if(generation.current===current)install(w)}
  const patch=(p:Partial<StudioWorld>)=>{setEditing(w=>w?{...w,...p}:null);setDirty(true);setMessage('')}
  return {worlds,saved,editing,dirty,selected,setSelected,error,message,busy,
-  create:(name:string,description:string)=>perform(async()=>{const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current)navigate('/worlds/'+w.id)}),
-  open:(id:string)=>{if(dirty && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){navigate('/worlds/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
+  create:(name:string,description:string)=>perform(async()=>{const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current)navigate('/worldstudio/'+w.id)}),
+  open:(id:string)=>{if(dirty && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){navigate('/worldstudio/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
   patch,
   applyRelations:(changes:RelationInput[],removed:string[])=>{
    if(!editing||busy)return false

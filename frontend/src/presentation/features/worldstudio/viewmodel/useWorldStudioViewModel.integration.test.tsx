@@ -10,7 +10,7 @@ afterEach(cleanup)
 it('opens a world, adds and edits a card without touching server state',async()=>{
  const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
  const world=await useCase.create('세계','')
- const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worlds/'+world.id]}><Routes><Route path="/worlds/:worldId" element={children}/></Routes></MemoryRouter>
+ const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path="/worldstudio/:worldId" element={children}/></Routes></MemoryRouter>
  const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
  await waitFor(()=>expect(result.current.editing?.id).toBe(world.id))
  act(()=>result.current.addCard('object'))

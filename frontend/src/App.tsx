@@ -91,7 +91,8 @@ function App() {
         <Route path="/lib" element={<RequireRole><LibraryPage /></RequireRole>} />
         <Route path="/write" element={<RequireRole><Navigate replace to="/lib?tab=write" /></RequireRole>} />
         <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
-        <Route path="/worlds/:worldId?" element={<WorldStudioPage />} />
+        <Route path="/worlds" element={<Navigate replace to="/new" />} />
+        <Route path="/worldstudio/:worldId?" element={<WorldStudioPage />} />
         <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
         <Route path="/studio/:id" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <StudioPage />} />
         <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
