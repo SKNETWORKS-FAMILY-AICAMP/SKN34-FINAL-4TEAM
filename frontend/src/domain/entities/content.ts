@@ -1,7 +1,10 @@
 export type Draft = { title: string; body: string; revision: number }
 export type Episode = { number: number; version: number; title: string; body: string; inherited: boolean }
 export type Source = { workId: string; title: string; episode: number; version: number; direction: string }
-export type Work = { hasWritingEpisode?: boolean; readOnly?: boolean; id: string; title: string; summary: string; visibility: 'private' | 'public'; allowFork: boolean; allowForkPublication: boolean; source: Source | null; episodes: Episode[]; draft: Draft }
+export type WorkCreationType = 'ORIGINAL' | 'EXTERNAL_DERIVATIVE'
+/** 작품 등록 시 함께 보내는 유형·장르·해시태그·권리 확인이다. 장르 2개·해시태그 10개까지다. */
+export type WorkRegistration = { creationType: WorkCreationType; genres: string[]; hashtags: string[]; rightsConfirmed: boolean }
+export type Work = { creationType?: WorkCreationType; genres?: string[]; hashtags?: string[]; hasWritingEpisode?: boolean; readOnly?: boolean; id: string; title: string; summary: string; visibility: 'private' | 'public'; allowFork: boolean; allowForkPublication: boolean; source: Source | null; episodes: Episode[]; draft: Draft }
 export type Proposal = { id: string; text: string; model: string; revision: number; status: 'pending' | 'accepted'; prompt?: string; baseBody?: string; createdAt?: string; context?: StoryContext }
 export const settingCategories = ['규칙','인물','장소','광물','상태','지식','관계'] as const
 export type SettingInput = {name:string;content:string;category:typeof settingCategories[number];tags:string[];visibility:'private'|'public';fromEpisode:number;toEpisode:number|null;knownBy:string[];evidence:string}
