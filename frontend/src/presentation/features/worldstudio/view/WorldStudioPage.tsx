@@ -16,7 +16,7 @@ export function WorldStudioPage() {
  const [listOpen,setListOpen]=useState(true)
  const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const f=new FormData(e.currentTarget);vm.create(String(f.get('name')??''),String(f.get('description')??''))}
  return <><Gnb on="worldstudio"/><main className="wrap world-studio">
-  <header className="world-heading"><div><Go to="/worldstudio" className="back">세계관 작업실</Go><h1>세계관 작업실</h1><p className="muted">메모리 데모 · 서버에 저장되지 않으며 새로고침하면 초기화됩니다.</p></div><Go to="/new" className="btn">저장한 세계관으로 새 소설 쓰기</Go></header>
+  <header className="world-heading"><div><Go to="/worldstudio" className="back">세계관 작업실</Go><h1>세계관 작업실</h1><p className="muted">메모리 데모 · 서버에 저장되지 않으며 새로고침하면 초기화됩니다.</p></div><Go to="/new" className="btn">새 소설 등록으로</Go></header>
   {vm.error && <p role="alert" className="world-error">{vm.error}</p>}
   {vm.message && <p role="status" className="world-message">{vm.message}</p>}
   <div className={"world-layout"+(listOpen?"":" world-list-collapsed")} aria-busy={vm.busy}>
@@ -62,8 +62,8 @@ function Editor({vm}:{vm:VM}) {
    {type==='review'&&<p className="world-compatibility">기존 의미: {kinds[s.item.kind]}{s.item.entityType?` · ${s.item.entityType}`:''}. 원문과 연결을 유지하며 편집합니다.</p>}
    <label className="field">항목 이름<input className="inp" value={s.item.title} maxLength={200} onChange={e=>update({title:e.target.value})}/></label>
    <label className="field">내용<textarea className="ta world-text" value={s.item.text} maxLength={3000} placeholder="어떤 설정인가요? 자유롭게 적어 주세요." onChange={e=>update({text:e.target.value})}/></label>
-   <div className="world-form-row"><label className="field">내 태그 (쉼표로 구분)<input className="inp" value={s.tags.join(',')} onChange={e=>vm.update(s.item.id,{}, {tags:e.target.value.split(',').map(t=>t.trim())})} onBlur={()=>{if(s.tags.some(t=>!t))vm.update(s.item.id,{}, {tags:s.tags.filter(Boolean)})}}/></label>
-   <label className="field">별칭 (선택)<input className="inp" value={s.aliases?.join(',')??''} onChange={e=>vm.update(s.item.id,{}, {aliases:e.target.value.split(',').map(t=>t.trim())})}/></label></div>
+   <div className="world-form-row"><label className="field">내 태그 (쉼표로 구분)<input className="inp" value={s.tags.join(',')} onChange={e=>vm.update(s.item.id,{}, {tags:e.target.value.split(',')})} onBlur={()=>{vm.update(s.item.id,{}, {tags:s.tags.map(t=>t.trim()).filter(Boolean)})}}/></label>
+   <label className="field">별칭 (선택)<input className="inp" value={s.aliases?.join(',')??''} onChange={e=>vm.update(s.item.id,{}, {aliases:e.target.value.split(',')})} onBlur={()=>vm.update(s.item.id,{}, {aliases:s.aliases?.map(t=>t.trim()).filter(Boolean)})}/></label></div>
    <details className="world-legacy-fields"><summary>기존 정리 정보</summary><label className="field">내 분류<input className="inp" value={s.userCategory} maxLength={50} onChange={e=>vm.update(s.item.id,{}, {userCategory:e.target.value})}/></label><p className="small muted">이전 자유 분류를 보존합니다. 카드 유형이나 설정 영역과는 별개예요.</p></details>
    {s.item.kind==='event'&&<label className="field">사건 시점 (선택)<input className="inp" value={s.item.timeText} onChange={e=>update({timeText:e.target.value})}/></label>}
   </div>:<p className="muted">{canAdd?'카드를 추가해 시작하세요. 인물·장소·조직·능력은 이름만 입력해도 됩니다.':'이 유형의 카드가 없습니다.'}</p>}</div>

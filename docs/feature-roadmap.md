@@ -1011,9 +1011,14 @@
 
 | 서비스 | 서브시스템 | 중간 기능 | 세부 기능 | 개발 완료 | 관련 이슈 |
 |---|---|---|---|---|---|
-| Frontend | WorldStudio | 설정 카드 | 세계관 작업실 진입 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
-| Frontend | WorldStudio | 설정 카드 | 세계관 기본 정보 작성 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
-| Frontend | WorldStudio | 설정 카드 | 설정 카드 추가 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
-| Frontend | WorldStudio | 설정 카드 | 설정 카드 선택·수정 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
-| Frontend | WorldStudio | 설정 카드 | 카드 8종과 영역 7종 분리 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
-| Frontend | WorldStudio | 설정 카드 | 별칭·태그·분류·메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 세계관 작업실 진입 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 세계관 기본 정보 작성 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 설정 카드 추가 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 설정 카드 선택 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 설정 카드 수정 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 카드 유형 선택(8종) | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 설정 영역 선택(7종) | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 별칭 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 태그 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 사용자 분류 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 기존 메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
