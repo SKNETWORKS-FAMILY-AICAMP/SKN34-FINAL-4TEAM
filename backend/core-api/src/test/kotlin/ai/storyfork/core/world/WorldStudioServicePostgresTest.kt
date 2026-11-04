@@ -38,6 +38,8 @@ class WorldStudioServicePostgresTest {
         TestPropertyValues.of("app.worldstudio.enabled=$enabled","spring.datasource.url=${db.url}",
             "spring.datasource.username=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
             "spring.datasource.password=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+            // CI의 다른 Auth context와 같은 임시 PostgreSQL을 사용하므로 테스트 풀만 제한한다.
+            "spring.datasource.hikari.maximum-pool-size=3","spring.datasource.hikari.minimum-idle=0",
             "spring.datasource.hikari.data-source-properties.logServerErrorDetail=false",
             "spring.jpa.hibernate.ddl-auto=validate","spring.flyway.enabled=false").applyTo(this)
         register(CoreJpaTestConfig::class.java,AuthPersistenceConfig::class.java,WorldStudioConfig::class.java,WorldStudioService::class.java)
