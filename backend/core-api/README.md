@@ -51,6 +51,8 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가�
 
 콘텐츠 정본은 최신 ERD에 따른 관계형 테이블에 저장합니다. 기존 JSONB는 읽기 전용 이관 백업으로 남깁니다. [ERD 대응과 마이그레이션](../../docs/content-erd-migration.md)에 테이블별 역할·기존 데이터 보존·남은 범위를 기록했습니다.
 
+WorldStudio의 [독립 초기 스키마](../../docs/design/worldstudio-independent-schema.md)는 전용 `worldstudio` schema와 `world_studio_schema_history`를 사용하며 기존 Content/Auth 테이블을 변경하지 않습니다. [명시 실행·검증 계약](src/main/resources/db/migration/worldstudio/README.md)을 따르며 서버 시작으로 migration을 실행하지 않습니다. `app.worldstudio.enabled=true`일 때만 전용 WORLDSTUDIO_DATABASE_* 기반 JPA Repository·Service를 활성화합니다. 독립 세계관 생성·초안 작성·확정 저장·과거 조회·복원은 이 Service의 책임이며 HTTP API·기존 UI 연결과 공용 DB 적용은 포함하지 않습니다. [실행 증거와 한계](../../docs/design/worldstudio-jpa-verification.md)를 참고하세요.
+
 Gradle group `ai.storyfork`, 애플리케이션 `storyfork-core-api`, Kotlin namespace `ai.storyfork.core`입니다.
 main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 package와 일치합니다.
 

@@ -67,6 +67,10 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 콘텐츠 생성은 `ContentConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
 내부 URL·오류 원문은 공개하지 않으며 AI 장애가 Core 자체 Health 성공을 막지 않습니다.
 
+### WorldStudio 독립 JPA 저장소·Service (HTTP API 연결 전)
+
+[독립 초기 설계](design/worldstudio-independent-schema.md)는 기존 Content/Auth와 다른 `worldstudio` schema에 12개 정본 테이블을 둡니다. 전용 Flyway location/history는 `db/migration/worldstudio` / `worldstudio.world_studio_schema_history`이며 서버 기본 DataSource·Auth migration 경로·Content writer를 변경하지 않습니다. `WorldStudioConfig → WorldStudioService → Spring Data JpaRepository`가 전용 EntityManager·트랜잭션으로 생성·초안·확정·과거 조회·복원을 처리합니다. subject는 검증된 JWT의 UUID를 전달받으며 모든 world 접근에서 소유권과 world별 잠금을 검사합니다. Content·Auth 테이블 FK/조회나 초기화 의존은 없습니다. 서버 시작 DDL·HTTP API·기존 UI 연결·공용 DB 적용은 포함하지 않으며 Graph·AI·이미지를 추가하지 않습니다.
+
 ### 설정 첨부 (#87)
 
 `attachment/controller → AttachmentService → JPA repository / S3 client`가 기존 소유 로컬 Setting의 이미지·일반 파일 CRUD와 표지·회차 이미지를 처리합니다. `SettingAttachmentController`·`WorkCoverController`·`EpisodeImageController`와 기존 HTTP 계약은 유지합니다.
