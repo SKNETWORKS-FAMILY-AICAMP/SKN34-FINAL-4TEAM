@@ -68,7 +68,7 @@ function DemoStudioPage() {
         <span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span>
         <button type="button" className="tbtn" onClick={() => setSettingsOpen(true)}>집필 설정</button>
         {view === 'write' && <><button type="button" className="tbtn" style={{ height: 40 }} disabled={ro} onClick={vm.preview}>미리 보기</button>
-        <button type="button" className="tbtn pri" style={{ height: 40 }} id="pubep" disabled={ro} onClick={vm.openPublish}>{ro ? '원작 원고' : d.editingEpisode ? '수정 공개하기' : '공개하기'}</button></>}
+        <button type="button" className="tbtn pri" style={{ height: 40 }} id="pubep" disabled={ro || vm.publishBusy || vm.autoGenerating} onClick={vm.openPublish}>{ro ? '원작 원고' : d.editingEpisode ? '수정 공개하기' : '공개하기'}</button></>}
       </div>
       <div className={`studio-workspace${chatOpen ? ' chat-open' : ''}`}>
       {V ? <div className="sview"><V vm={vm} /></div> : <div className="sgrid">
@@ -219,7 +219,7 @@ function AutoBox({ vm }: { vm: VM }) {
         <p className="small">상태: {A.status}</p><button type="button" className="btn sm" onClick={vm.pauseAuto}>{A.status === '실행 중' ? '일시 중지' : '다시 시작'}</button>
         <div className="anext">주 1–7회, 하루 최대 1회 · KST 기준. 예정 시각에서 1시간 넘게 늦으면 건너뛰고 알림을 보내요. 이 화면은 예약 실행을 하지 않아요.</div>
         {editing && <p className="small note2">자율 연재는 새 회차 화면에서 실행할 수 있어요.</p>}
-        <button type="button" className="btn sm pri" id="autoGen" style={{ width: '100%' }} disabled={editing} onClick={vm.autoGen}>지금 한 회차 생성해 보기 <span className="demo" style={{ borderColor: 'currentColor', color: 'inherit' }}>예시 · 미확정</span></button>
+        <button type="button" className="btn sm pri" id="autoGen" style={{ width: '100%' }} disabled={editing || vm.autoGenerating || vm.publishBusy} aria-busy={vm.autoGenerating} onClick={vm.autoGen}>{vm.autoGenerating ? '생성 중…' : '지금 한 회차 생성해 보기'} <span className="demo" style={{ borderColor: 'currentColor', color: 'inherit' }}>예시 · 미확정</span></button>
         {A.log.length > 0 && <div className="alog">{A.log.slice(-3).map((l, i) => <span key={i}>{i > 0 && <br />}{l}</span>)}</div>}
       </div>}
     </div>
@@ -278,15 +278,16 @@ function NotePanel({ vm }: { vm: VM }) {
 /** 목업 pubEpSheet(): U22 회차 공개 */
 function PublishEpisodeSheet({ vm }: { vm: VM }) {
   const s = vm.studio!, d = vm.draft!, w = s.work
-  const [title, setTitle] = useState(d.title)
+  const [edited, setTitle] = useState<string | null>(null)
+  const title = edited ?? d.title
   const ready = d.paras.length > 0
   const checked = !!d.check && !d.check.stale
   const clean = checked && !d.check!.issues.length
   const label = d.editingEpisode ? '수정 공개하기' : '공개하기'
   return (
     <Sheet sid="U22" label={`${d.no}화 ${label}`} onClose={vm.closePublish}>
-      <div className="sh-h"><h3>{d.no}화 {label}</h3><button type="button" className="x" aria-label="닫기" onClick={vm.closePublish}>✕</button></div>
-      <label className="field">회차 제목<input className="inp" id="pubt" value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+      <div className="sh-h"><h3>{d.no}화 {label}</h3><button type="button" className="x" aria-label="닫기" disabled={vm.publishBusy} onClick={vm.closePublish}>✕</button></div>
+      <label className="field">회차 제목<input className="inp" id="pubt" value={title} disabled={vm.publishBusy} onChange={(e) => setTitle(e.target.value)} /></label>
       <div className="list" style={{ borderRadius: 16 }}>
         <div className="rp"><div className="top"><b>소설</b><span className={`chip ${ready ? 'ok' : 'wait'}`}>{ready ? d.paras.length + '문단' : '비어 있음'}</span></div></div>
         <div className="rp"><div className="top"><b>설정 검사</b><span className={`chip ${clean ? 'ok' : 'wait'}`}>{!checked ? '선택 사항' : clean ? '통과' : d.check!.issues.length + '곳 확인 필요'}</span></div></div>
@@ -294,10 +295,12 @@ function PublishEpisodeSheet({ vm }: { vm: VM }) {
       </div>
       {!ready ? <div className="policy">소설을 먼저 써 주세요.</div> : !clean ? <div className="note2">설정 검사는 선택 사항이에요. 확인하지 않아도 공개할 수 있어요.</div> : <div className="note">발행 후 공개 범위는 작품 설정을 따릅니다. 원작은 바뀌지 않아요.</div>}
       <div className="rowend">
-        <button type="button" className="btn" onClick={vm.closePublish}>취소</button>
-        {ready && !clean && <button type="button" className="btn" onClick={async () => { if (await vm.check()) vm.closePublish() }}>설정 검사 하기</button>}
-        <button type="button" className="btn pri" id="doPub" disabled={!ready} onClick={() => vm.publish(title)}>{label}</button>
+        <button type="button" className="btn" disabled={vm.publishBusy} onClick={vm.closePublish}>취소</button>
+        {ready && !clean && <button type="button" className="btn" disabled={vm.publishBusy} onClick={async () => { if (await vm.check()) vm.closePublish() }}>설정 검사 하기</button>}
+        {/* 제목을 따로 고치지 않았으면 저장 큐 이후의 최신 초안 제목을 사용합니다. */}
+        <button type="button" className="btn pri" id="doPub" disabled={!ready || vm.publishBusy} aria-busy={vm.publishBusy} onClick={() => vm.publish(edited ?? '')}>{vm.publishBusy ? '공개 중…' : label}</button>
       </div>
+      {vm.publishBusy && <p role="status">공개 요청을 처리하고 있어요.</p>}
     </Sheet>
   )
 }
