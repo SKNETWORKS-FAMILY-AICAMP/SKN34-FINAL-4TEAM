@@ -6,6 +6,9 @@ import {ManuscriptBody} from '../../../shared/media/MediaPanel'
 import { Sheet } from '../../../shared/Sheet'
 import { BackChev } from '../../../shared/icons'
 import { writingStatus } from '../../../../domain/entities/writingStatus'
+import { VersionComparison } from './VersionComparison'
+import { SettingHistoryPanel } from './SettingHistoryPanel'
+import './version-panels.css'
 
 export function WritingStudio({id}:{id:string}) {
   useScreenId('U13')
@@ -15,6 +18,7 @@ export function WritingStudio({id}:{id:string}) {
   const [selection,setSelection]=useState({episode:0,id:''})
   const [rights,setRights]=useState(false)
   const [versionsOpen,setVersionsOpen]=useState(false)
+  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'>('versions')
   const active=vm.active
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
   const status=writingStatus({ready:vm.ready,busy:vm.busy,error:vm.error,dirty:vm.dirty,active:!!active,hasDraft:active?.hasDraft!==false,inherited:active?.inherited??false})
@@ -24,7 +28,8 @@ export function WritingStudio({id}:{id:string}) {
       <span className="st" role="status" aria-live="polite">{status}</span>
       <button className="tbtn" disabled={vm.busy||!active||active.inherited} onClick={()=>void vm.save()}>버전 저장</button>
       <button className="tbtn" disabled={vm.busy} onClick={()=>void vm.reload()}>다시 불러오기</button>
-      <button className="tbtn pri" disabled={vm.busy||!active} onClick={()=>{setRights(false);setVersionsOpen(true)}}>저장 버전 · 공개</button>
+      <button className="tbtn pri" disabled={vm.busy||!active} onClick={()=>{setRights(false);setHistoryView('versions');setVersionsOpen(true)}}>저장 버전 · 공개</button>
+      <button className="tbtn writing-setting-history" disabled={vm.busy||!vm.ready} onClick={()=>{setHistoryView('settings');setVersionsOpen(true)}}>설정 버전 이력</button>
     </header>
     {vm.error&&<div className="writing-message" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}</div>}
     {vm.notice&&<p className="writing-message" role="status">{vm.notice}</p>}
@@ -56,8 +61,20 @@ export function WritingStudio({id}:{id:string}) {
             <button className="btn sm" disabled={vm.busy||active.inherited} onClick={()=>void vm.deleteEpisode()}>회차 삭제</button>
             {active.hasDraft===false&&<p role="status">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 저장 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           </section>
-          {versionsOpen&&<Sheet sid="U21" label="저장 버전과 발행" onClose={()=>setVersionsOpen(false)}><section aria-label="저장 버전과 발행" className="writing-history">
+        </>:<p>회차가 없어요. 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
+      </main>
+    </div></div>}
+          {versionsOpen&&<Sheet sid="U21" label="저장 버전과 발행" panelClass={`sheet writing-history-sheet${historyView==='compare'?' writing-history-wide':''}`} onClose={()=>setVersionsOpen(false)}><section aria-label="저장 버전과 발행" className="writing-history">
             <button type="button" className="btn sm" onClick={()=>setVersionsOpen(false)}>닫기</button>
+            <nav className="version-panel-nav" aria-label="버전 관리">
+              <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='versions'} onClick={()=>setHistoryView('versions')}>원고 저장본 · 공개</button>
+              <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='compare'} onClick={()=>setHistoryView('compare')}>원고 버전 비교</button>
+              <button type="button" className="btn sm" aria-pressed={historyView==='settings'} onClick={()=>setHistoryView('settings')}>설정 버전 이력</button>
+            </nav>
+            {historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
+              <h2>{active.number}화 원고 버전 비교</h2>
+              <VersionComparison key={active.number} workId={id} number={active.number} versions={active.versions}/>
+            </>:<>
             {vm.error&&<p role="alert">{vm.error}</p>}
             {vm.notice&&<p role="status">{vm.notice}</p>}
             <h2>저장 버전</h2>
@@ -72,9 +89,7 @@ export function WritingStudio({id}:{id:string}) {
               </>}
             </>}
             <p className="small muted">원고와 허용된 설정을 버전 기준으로 보관해요. 인물·관계 저장소 동기화는 아직 지원하지 않아요.</p>
+            </>}
           </section></Sheet>}
-        </>:<p>회차가 없어요. 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
-      </main>
-    </div></div>}
   </div>
 }

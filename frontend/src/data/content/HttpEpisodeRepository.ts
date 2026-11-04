@@ -67,10 +67,10 @@ export class HttpEpisodeRepository implements EpisodeRepository {
   fork(id: string, episode: number, title: string, direction: string) { return this.request(`/works/${id}/forks`,work,'POST',{episode,title,direction}) }
   propose(id: string, revision: number, prompt: string, consent: boolean, signal?: AbortSignal, episode?:number, character='') { return this.request(`/works/${id}/proposals`,proposal,'POST',{revision,prompt,consent,episode,character},signal) }
   accept(id: string, pid: string, revision: number) { return this.request(`/works/${id}/proposals/${pid}/accept`,draft,'POST',{revision}) }
-  world(id:string) {return this.request(`/works/${id}/world`,world)}
+  world(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/world`,world,'GET',undefined,signal)}
   saveSetting(id:string,sid:string,revision:number,value:SettingInput,sourceToken:string) {return this.request(`/works/${id}/settings/${sid}/draft`,world,'PUT',{revision,setting:value,sourceToken})}
   commitSetting(id:string,sid:string,revision:number) {return this.request(`/works/${id}/settings/${sid}/commit`,world,'POST',{revision})}
-  revertSetting(id:string,sid:string,revision:number,versionId:string) {return this.request(`/works/${id}/settings/${sid}/revert`,world,'POST',{revision,versionId})}
+  revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/settings/${sid}/revert`,world,'POST',{revision,versionId},signal)}
   decideChange(id:string,revision:number,changeId:string,decision:'apply'|'reject') {return this.request(`/works/${id}/world/changes`,world,'POST',{revision,changeId,decision})}
   context(id:string,episode:number,query:string,character:string,publicView:boolean) {return this.request(`${publicView?'/public':''}/works/${id}/context?${new URLSearchParams({episode:String(episode),query,character})}`,context)}
 }
