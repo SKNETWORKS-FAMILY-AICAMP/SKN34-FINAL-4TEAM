@@ -1,6 +1,5 @@
-package ai.storyfork.core.content
+package ai.storyfork.core.content.domain
 
-import ai.storyfork.core.content.domain.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -26,8 +25,14 @@ class WorkMetadataTest {
     @Test fun `genre must be in the approved list and distinct`() {
         assertEquals(422, rejected { ok(genres = listOf("없는장르")) }.status)
         assertEquals(422, rejected { ok(genres = listOf("판타지", "판타지")) }.status)
-        assertTrue(WORK_GENRES.containsAll(listOf("판타지", "SF", "고전", "기타")))
-        assertEquals(30, WORK_GENRES.size)
+        assertEquals(
+            listOf(
+                "판타지", "현대판타지", "무협", "선협", "퓨전", "로맨스", "로맨스판타지", "BL", "GL", "현대",
+                "시대물", "역사", "대체역사", "SF", "게임", "스포츠", "드라마", "미스터리", "추리", "스릴러",
+                "공포", "오컬트", "액션", "전쟁·밀리터리", "라이트노벨", "학원", "일상", "고전", "일반소설", "기타",
+            ),
+            WORK_GENRES,
+        )
     }
 
     @Test fun `hashtags allow zero to ten`() {
