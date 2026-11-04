@@ -1,4 +1,4 @@
-import type {WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext} from '../entities/content'
+import type {WorkRegistration,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext} from '../entities/content'
 
 export interface EpisodeRepository {
   orderScope(id:string,number:number,signal?:AbortSignal):Promise<import('../entities/content').EpisodeOrderScope>
@@ -11,7 +11,9 @@ export interface EpisodeRepository {
   publishEpisode(id:string,number:number,revision:number,versionId:string,rights:boolean,signal?:AbortSignal):Promise<WritingEpisode>
   publicList(signal?: AbortSignal): Promise<Work[]>
   list(signal?: AbortSignal): Promise<Work[]>
-  create(title: string, summary: string, signal?: AbortSignal): Promise<Work>
+  create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>
+  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal): Promise<Work>
+  deleteWork(id: string, signal?: AbortSignal): Promise<void>
   save(id: string, draft: Draft): Promise<Draft>
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication?: boolean, versionId?: string): Promise<Work>
   history(id: string): Promise<History>
