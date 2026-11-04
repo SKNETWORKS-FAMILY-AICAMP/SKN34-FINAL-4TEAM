@@ -189,6 +189,16 @@ jobs:
           POSTGRES_HOST_AUTH_METHOD: trust
         ports: ["127.0.0.1:5432:5432"]
         options: --health-cmd "pg_isready -U content_test -d storyfork_test" --health-interval 3s --health-timeout 3s --health-retries 20
+      postgres-password:
+        # WorldStudio migration 테스트만 비밀번호 인증에서도 재실행한다. 기존 trust DB는 유지한다.
+        image: ${{ matrix.service == 'content' && 'postgres:17-alpine' || '' }}
+        env:
+          POSTGRES_DB: worldstudio_password_test
+          POSTGRES_USER: worldstudio_test
+          POSTGRES_PASSWORD: worldstudio-ci-password
+          POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+        ports: ["127.0.0.1:5433:5432"]
+        options: --health-cmd "pg_isready -U worldstudio_test -d worldstudio_password_test" --health-interval 3s --health-timeout 3s --health-retries 20
       mailpit:
         image: ${{ matrix.service == 'core' && 'axllent/mailpit:v1.27' || '' }}
         ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
@@ -257,6 +267,15 @@ jobs:
         if: ${{ matrix.service == 'content' }}
         working-directory: backend/content-service
         run: ./gradlew integrationTest --no-daemon
+      - name: WorldStudio migration with PostgreSQL password authentication
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        env:
+          TEST_WORLDSTUDIO_DATABASE_URL: jdbc:postgresql://127.0.0.1:5433/worldstudio_password_test
+          TEST_WORLDSTUDIO_DATABASE_USER: worldstudio_test
+          TEST_WORLDSTUDIO_DATABASE_PASSWORD: worldstudio-ci-password
+          TEST_WORLDSTUDIO_PASSWORD_AUTH: "true"
+        run: ./gradlew integrationTest --tests ai.storyfork.content.world.WorldStudioMigrationPostgresTest --no-daemon --rerun-tasks
       - name: pytest FastAPI HTTP integration tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
@@ -265,9 +284,11 @@ jobs:
         if: ${{ failure() && (matrix.service == 'core' || matrix.service == 'content') }}
         env:
           POSTGRES_ID: ${{ job.services.postgres.id }}
+          PASSWORD_POSTGRES_ID: ${{ job.services.postgres-password.id }}
           MAILPIT_ID: ${{ job.services.mailpit.id }}
         run: |
           docker logs "$POSTGRES_ID" > "$RUNNER_TEMP/postgres.log" 2>&1 || true
+          if [[ -n "$PASSWORD_POSTGRES_ID" ]]; then docker logs "$PASSWORD_POSTGRES_ID" >> "$RUNNER_TEMP/postgres.log" 2>&1 || true; fi
           if [[ -n "$MAILPIT_ID" ]]; then docker logs "$MAILPIT_ID" > "$RUNNER_TEMP/mailpit.log" 2>&1 || true; fi
       - name: Sanitize failure reports
         if: ${{ failure() }}
