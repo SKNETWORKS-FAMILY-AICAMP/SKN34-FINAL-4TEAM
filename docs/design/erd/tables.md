@@ -2,10 +2,14 @@
 
 > [목차](README.md) · [전체 ERD](overview.md) · [정규화 근거](normalization.md) · [요구사항 추적](requirements-matrix.md)
 >
-> **전부 논리 후보이며 DB에 생성되지 않았습니다.** 각 표의 필드는 전체/부분 ERD와 같습니다. PK는 행 식별자, UK는 단일 후보 고유키, FK는 다른 업무 엔티티 참조입니다. 복합 유일성·조건부 필수값은 설명을 함께 확인합니다. 단일 컬럼 FK가 복합 PK를 직접 가리키는 것으로 해석하지 않습니다. 외부 graph/Saver/Langfuse 키는 FK가 아닙니다.
+> **143개 전체 모델은 논리 후보이며 일부의 현행 물리 구현과 구분합니다.** 각 표의 필드는 전체/부분 ERD와 같습니다. PK는 행 식별자, UK는 단일 후보 고유키, FK는 기존 논리 엔티티 참조입니다. 서비스 경계를 넘으면 식별 참조이지 교차 DB FK·직접 JOIN/쓰기 계약이 아닙니다. 복합 유일성·조건부 필수값은 설명을 함께 확인합니다. 단일 컬럼 FK가 복합 PK를 직접 가리키는 것으로 해석하지 않습니다. 외부 graph/Saver/Langfuse 키는 FK가 아닙니다.
 
 초안↔불변 버전, 개인 기록↔제출 증거, 제안↔사용자가 저장한 원고는 삭제 수명이 다릅니다. 이 가이드의 제약은 **구현할 때 검증해야 할 조건**이지 DB가 이미 보장하는 조건이 아닙니다. 상태 enum·NULL·시간대·URL/위치 인코딩·동시성은 물리 설계에서 구체화합니다. 예시는 실제 데이터가 아닙니다.
 
+
+## DEC-41 정본 소유
+
+[서비스 경계](../service-boundaries.md)와 [현재 구현/분리 상태](README.md#dec-41-적용과-현재-구현)를 따릅니다. 각 테이블에 목표 소유를 표시하되 엔티티·컬럼·관계·물리 테이블은 그대로 둡니다. 공유 PostgreSQL을 쓰더라도 소유 서비스별 쓰기·권한·migration 이력을 분리합니다. Core 회원 참조는 인증 비밀 복제를 뜻하지 않으며 분리 후 조회·사건·정산·조치·삭제 복구 계약은 미정입니다. 뷰별 분류가 배포 경계나 전체 서비스 스키마를 완성하지 않습니다.
 
 ### 개인 기록 삭제와 업무 증빙 보존
 
@@ -18,6 +22,8 @@
 <a id="member"></a>
 ### `MEMBER`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 회원의 식별·기본 프로필. 독자·작가는 별도 계정 종류가 아닙니다. **MVP**.
 - **그림의 필드:** `id`(PK), `email`(UK), `password_hash`, `nickname`, `account_status`, `created_at`, `operator_role`.
 - **참조:** 다른 업무 테이블의 FK 없음.
@@ -26,6 +32,8 @@
 
 <a id="terms-version"></a>
 ### `TERMS_VERSION`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 여러 회원이 동의한 약관 원문과 버전 정의를 한 번 저장합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `terms_type`, `version_label`, `content`, `effective_at`.
@@ -36,6 +44,8 @@
 <a id="member-consent"></a>
 ### `MEMBER_CONSENT`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 약관 정의와 분리한 회원의 동의·철회 사실입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `member_id`, `terms_version_id`, `action`, `recorded_at`.
 - **참조:** `member_id` → [`MEMBER`](tables.md#member).`id`; `terms_version_id` → [`TERMS_VERSION`](tables.md#terms-version).`id`.
@@ -44,6 +54,8 @@
 
 <a id="auth-session"></a>
 ### `AUTH_SESSION`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 회원이 로그인한 기기별 세션과 폐기 상태입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `member_id`, `device_label`, `created_at`, `revoked_at`.
@@ -54,6 +66,8 @@
 <a id="refresh-token"></a>
 ### `REFRESH_TOKEN`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 세션별 갱신 토큰 회전·폐기 이력입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `session_id`, `token_hash`(UK), `previous_token_id`, `expires_at`, `used_at`, `revoked_at`.
 - **참조:** `session_id` → [`AUTH_SESSION`](tables.md#auth-session).`id`; `previous_token_id` → [`REFRESH_TOKEN`](tables.md#refresh-token).`id` (선택).
@@ -62,6 +76,8 @@
 
 <a id="account-challenge"></a>
 ### `ACCOUNT_CHALLENGE`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 가입 전 이메일 확인과 비밀번호 재설정의 일회용 확인 요청입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `member_id`, `email`, `purpose`, `secret_hash`(UK), `expires_at`, `consumed_at`.
@@ -72,6 +88,8 @@
 <a id="account-withdrawal"></a>
 ### `ACCOUNT_WITHDRAWAL`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 탈퇴 요청·유예·복구·실제 처리 결과를 회원 정보와 분리합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `member_id`, `requested_at`, `due_at`, `restored_at`, `completed_at`, `reason`, `status`.
 - **참조:** `member_id` → [`MEMBER`](tables.md#member).`id`.
@@ -80,6 +98,8 @@
 
 <a id="account-withdrawal-item"></a>
 ### `ACCOUNT_WITHDRAWAL_ITEM`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 탈퇴 처리에서 작품·세계관·Fork 독립 전환별 성공·실패를 구분합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `withdrawal_id`, `work_id`, `world_id`, `fork_work_id`, `operation`, `outcome`, `failure_reason`, `processed_at`.
@@ -94,6 +114,8 @@
 <a id="world"></a>
 ### `WORLD`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 세계관 소유와 이름을 식별합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `owner_id`, `name`, `description`, `created_at`.
 - **참조:** `owner_id` → [`MEMBER`](tables.md#member).`id`.
@@ -102,6 +124,8 @@
 
 <a id="setting-category"></a>
 ### `SETTING_CATEGORY`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 플랫폼이 정한 단일 설정 카테고리입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `code`(UK), `name`.
@@ -112,6 +136,8 @@
 <a id="setting-document"></a>
 ### `SETTING_DOCUMENT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 세계관 안의 설정 항목 식별자만 관리합니다. 현재 이름·분류·본문은 확정 버전에서 읽습니다. **MVP**.
 - **그림의 필드:** `id`(PK), `world_id`, `created_at`.
 - **참조:** `world_id` → [`WORLD`](tables.md#world).`id`.
@@ -120,6 +146,8 @@
 
 <a id="setting-draft"></a>
 ### `SETTING_DRAFT`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 설정의 이름·카테고리·본문을 자동저장하는 가변 초안입니다. **MVP**.
 - **그림의 필드:** `setting_document_id`(PK), `name`, `category_id`, `content`, `edit_revision`, `updated_at`.
@@ -130,6 +158,8 @@
 <a id="setting-version"></a>
 ### `SETTING_VERSION`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 확정한 설정 이름·분류·본문을 변경 불가 버전으로 보존합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `setting_document_id`, `revision_no`, `name`, `category_id`, `content`, `restored_from_id`, `lifecycle`, `created_at`.
 - **참조:** `setting_document_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id`; `category_id` → [`SETTING_CATEGORY`](tables.md#setting-category).`id`; `restored_from_id` → [`SETTING_VERSION`](tables.md#setting-version).`id` (선택).
@@ -138,6 +168,8 @@
 
 <a id="setting-origin"></a>
 ### `SETTING_ORIGIN`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 복사된 항목과 실제 복사한 원본 버전의 출처를 연결합니다. **MVP**.
 - **그림의 필드:** `setting_document_id`(PK), `source_setting_version_id`, `copied_at`.
@@ -148,6 +180,8 @@
 <a id="setting-image"></a>
 ### `SETTING_IMAGE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 현재 설정에 붙인 이미지 URL과 표시 순서입니다. 과거 이미지 버전 테이블은 만들지 않습니다. **MVP**.
 - **그림의 필드:** `id`(PK), `setting_document_id`, `object_url`, `position`.
 - **참조:** `setting_document_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id`.
@@ -156,6 +190,8 @@
 
 <a id="setting-reference"></a>
 ### `SETTING_REFERENCE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 설정에 붙인 여러 외부 참고 주소를 행으로 나눕니다. **MVP**.
 - **그림의 필드:** `id`(PK), `setting_document_id`, `external_url`.
@@ -166,6 +202,8 @@
 <a id="setting-tag"></a>
 ### `SETTING_TAG`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 창작자가 재사용하는 자유 태그 이름입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `owner_id`, `name`.
 - **참조:** `owner_id` → [`MEMBER`](tables.md#member).`id`.
@@ -174,6 +212,8 @@
 
 <a id="setting-document-tag"></a>
 ### `SETTING_DOCUMENT_TAG`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 설정 항목과 자유 태그의 다대다 연결입니다. **MVP**.
 - **그림의 필드:** `setting_document_id`(PK), `setting_tag_id`(PK).
@@ -184,6 +224,8 @@
 <a id="setting-visibility-history"></a>
 ### `SETTING_VISIBILITY_HISTORY`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 항목 공개 정책의 변경 1회와 그때의 기본 공개 상태입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `setting_document_id`, `revision_no`, `default_visibility`, `changed_at`.
 - **참조:** `setting_document_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id`.
@@ -192,6 +234,8 @@
 
 <a id="setting-visibility-range"></a>
 ### `SETTING_VISIBILITY_RANGE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 공개 정책 하나의 복수 회차 범위를 개별 행으로 분리합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `visibility_history_id`, `start_episode_id`, `end_episode_id`, `visibility`.
@@ -202,6 +246,8 @@
 <a id="character-state-version"></a>
 ### `CHARACTER_STATE_VERSION`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 인물의 회차 기준 상태를 인물 기본 문서와 분리한 버전 후보입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `character_id`, `revision_no`, `basis_episode_id`, `content`, `restored_from_id`, `created_at`.
 - **참조:** `character_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id`; `basis_episode_id` → [`EPISODE`](tables.md#episode).`id` (선택); `restored_from_id` → [`CHARACTER_STATE_VERSION`](tables.md#character-state-version).`id` (선택).
@@ -210,6 +256,8 @@
 
 <a id="character-knowledge-version"></a>
 ### `CHARACTER_KNOWLEDGE_VERSION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 인물과 지식 항목의 다대다 인지 관계에 대한 이력 후보입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `character_id`, `fact_setting_id`, `revision_no`, `known`, `basis_episode_id`, `created_at`.
@@ -220,6 +268,8 @@
 <a id="world-composition-source"></a>
 ### `WORLD_COMPOSITION_SOURCE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 조합 세계관이 어떤 원본들을 선택했는지 기록합니다. **MVP 이후**.
 - **그림의 필드:** `combined_world_id`(PK), `source_world_id`(PK), `selected_at`.
 - **참조:** `combined_world_id` → [`WORLD`](tables.md#world).`id`; `source_world_id` → [`WORLD`](tables.md#world).`id`.
@@ -228,6 +278,8 @@
 
 <a id="world-use-policy-history"></a>
 ### `WORLD_USE_POLICY_HISTORY`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 작품 Fork와 별개인 세계관 직접 이용의 공개·허용 조건 후보입니다. **보류·재설계**.
 - **그림의 필드:** `id`(PK), `world_id`, `revision_no`, `visibility`, `allow_use`, `allow_world_fork`, `changed_at`.
@@ -242,6 +294,8 @@
 <a id="work"></a>
 ### `WORK`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 작품의 소유자·기본 정보. Fork 여부는 FORK 행의 존재로 구분합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `owner_id`, `title`, `description`, `origin_kind`, `audience_rating`, `created_at`.
 - **참조:** `owner_id` → [`MEMBER`](tables.md#member).`id`.
@@ -250,6 +304,8 @@
 
 <a id="work-world-history"></a>
 ### `WORK_WORLD_HISTORY`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 작품의 세계관 연결을 변경 순서대로 보존합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `work_id`, `world_id`, `revision_no`, `changed_at`.
@@ -260,6 +316,8 @@
 <a id="genre"></a>
 ### `GENRE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 작품과 기본 세계관에 공통으로 쓰는 고정 장르 목록입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `code`(UK), `name`.
 - **참조:** 다른 업무 테이블의 FK 없음.
@@ -268,6 +326,8 @@
 
 <a id="work-genre"></a>
 ### `WORK_GENRE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 작품마다 여러 장르를 연결합니다. **MVP**.
 - **그림의 필드:** `work_id`(PK), `genre_id`(PK).
@@ -278,6 +338,8 @@
 <a id="hashtag"></a>
 ### `HASHTAG`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 작품 탐색에 쓰는 재사용 해시태그 이름입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `name`(UK).
 - **참조:** 다른 업무 테이블의 FK 없음.
@@ -286,6 +348,8 @@
 
 <a id="work-hashtag"></a>
 ### `WORK_HASHTAG`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 작품과 해시태그의 다대다 연결 및 등록 판정입니다. **MVP**.
 - **그림의 필드:** `work_id`(PK), `hashtag_id`(PK), `moderation_status`.
@@ -296,6 +360,8 @@
 <a id="work-publication-history"></a>
 ### `WORK_PUBLICATION_HISTORY`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 작품 전체 공개·비공개 변경을 회차 발행과 분리합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `work_id`, `revision_no`, `visibility`, `changed_at`.
 - **참조:** `work_id` → [`WORK`](tables.md#work).`id`.
@@ -304,6 +370,8 @@
 
 <a id="work-rights-declaration"></a>
 ### `WORK_RIGHTS_DECLARATION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 등록자의 권리 확인 응답과 당시 고지 내용을 보관합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `work_id`, `member_id`, `notice_version`, `response`, `confirmed_at`.
@@ -314,6 +382,8 @@
 <a id="work-like"></a>
 ### `WORK_LIKE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 회원이 작품에 누른 좋아요입니다. **MVP**.
 - **그림의 필드:** `work_id`(PK), `member_id`(PK), `created_at`.
 - **참조:** `work_id` → [`WORK`](tables.md#work).`id`; `member_id` → [`MEMBER`](tables.md#member).`id`.
@@ -322,6 +392,8 @@
 
 <a id="work-favorite"></a>
 ### `WORK_FAVORITE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 본인만 보는 관심 작품과 새 회차 알림 대상입니다. **MVP**.
 - **그림의 필드:** `member_id`(PK), `work_id`(PK), `created_at`.
@@ -332,6 +404,8 @@
 <a id="reading-progress"></a>
 ### `READING_PROGRESS`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 회원별 작품 이어 읽기 위치입니다. **MVP**.
 - **그림의 필드:** `member_id`(PK), `work_id`(PK), `episode_version_id`, `position`, `updated_at`.
 - **참조:** `member_id` → [`MEMBER`](tables.md#member).`id`; `work_id` → [`WORK`](tables.md#work).`id`; `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id`.
@@ -340,6 +414,8 @@
 
 <a id="episode-view-day"></a>
 ### `EPISODE_VIEW_DAY`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 하루에 같은 독자의 회차 조회를 한 번만 집계하는 논리 후보입니다. **MVP**.
 - **그림의 필드:** `episode_id`(PK), `viewer_key`(PK), `viewed_date`(PK).
@@ -350,6 +426,8 @@
 <a id="episode"></a>
 ### `EPISODE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 작품에 속하는 회차 식별자와 순서입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `work_id`, `sequence`.
 - **참조:** `work_id` → [`WORK`](tables.md#work).`id`.
@@ -358,6 +436,8 @@
 
 <a id="episode-draft"></a>
 ### `EPISODE_DRAFT`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 한 회차의 가변 작업 원고입니다. **MVP**.
 - **그림의 필드:** `episode_id`(PK), `title`, `content`, `edit_revision`, `updated_at`.
@@ -368,6 +448,8 @@
 <a id="episode-version"></a>
 ### `EPISODE_VERSION`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 수동 저장·복원으로 확정한 제목과 원고 버전입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `episode_id`, `work_world_history_id`, `revision_no`, `title`, `content`, `restored_from_id`, `created_at`.
 - **참조:** `episode_id` → [`EPISODE`](tables.md#episode).`id`; `work_world_history_id` → [`WORK_WORLD_HISTORY`](tables.md#work-world-history).`id`; `restored_from_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id` (선택).
@@ -376,6 +458,8 @@
 
 <a id="manuscript-asset"></a>
 ### `MANUSCRIPT_ASSET`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 원고·생성 제안이 참조하는 이미지 파일 식별과 메타데이터입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `owner_id`, `object_url`, `media_type`, `byte_size`, `created_at`.
@@ -386,6 +470,8 @@
 <a id="episode-draft-image"></a>
 ### `EPISODE_DRAFT_IMAGE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 초안에 배치한 이미지별 위치와 대체 텍스트 후보입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `episode_id`, `asset_id`, `position`, `alt_text`.
 - **참조:** `episode_id` → [`EPISODE_DRAFT`](tables.md#episode-draft).`episode_id`; `asset_id` → [`MANUSCRIPT_ASSET`](tables.md#manuscript-asset).`id`.
@@ -394,6 +480,8 @@
 
 <a id="episode-version-image"></a>
 ### `EPISODE_VERSION_IMAGE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 저장된 원고 버전에 실제 사용한 이미지와 위치를 보존합니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `episode_version_id`, `asset_id`, `position`, `alt_text`.
@@ -404,6 +492,8 @@
 <a id="episode-draft-mention"></a>
 ### `EPISODE_DRAFT_MENTION`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 초안의 @ 인물 선택과 위치를 개별 행으로 기록합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `episode_id`, `character_id`, `position`.
 - **참조:** `episode_id` → [`EPISODE_DRAFT`](tables.md#episode-draft).`episode_id`; `character_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id`.
@@ -412,6 +502,8 @@
 
 <a id="episode-version-mention"></a>
 ### `EPISODE_VERSION_MENTION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 저장 버전의 @ 인물 연결과 위치를 불변으로 보존합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `episode_version_id`, `character_id`, `position`.
@@ -422,6 +514,8 @@
 <a id="publication-event"></a>
 ### `PUBLICATION_EVENT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 발행·교체·공개 중단·재공개와 그 실제 성공·실패를 구분한 이력입니다. 저장은 EPISODE_VERSION 생성으로만 표현합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `episode_version_id`, `actor_id`, `action`, `outcome`, `occurred_at`, `trigger_kind`.
 - **참조:** `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id`; `actor_id` → [`MEMBER`](tables.md#member).`id` (선택).
@@ -430,6 +524,8 @@
 
 <a id="publication-schedule"></a>
 ### `PUBLICATION_SCHEDULE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 지정 저장 버전과 예약 시각을 실제 발행 결과와 분리합니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `episode_version_id`, `scheduled_at`, `status`, `created_at`.
@@ -440,6 +536,8 @@
 <a id="story-plan"></a>
 ### `STORY_PLAN`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 줄거리·플롯·장면 계획을 공통 속성의 단일 계층으로 보관합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `work_id`, `episode_id`, `parent_plan_id`, `kind`, `title`, `sequence`, `content`.
 - **참조:** `work_id` → [`WORK`](tables.md#work).`id`; `episode_id` → [`EPISODE`](tables.md#episode).`id` (선택); `parent_plan_id` → [`STORY_PLAN`](tables.md#story-plan).`id` (선택).
@@ -448,6 +546,8 @@
 
 <a id="writing-note"></a>
 ### `WRITING_NOTE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 작품별 비공개 집필 메모입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `work_id`, `episode_id`, `content`, `updated_at`.
@@ -458,6 +558,8 @@
 <a id="manuscript-import"></a>
 ### `MANUSCRIPT_IMPORT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 여러 회차를 가져오는 요청의 출처·상태를 보관합니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `work_id`, `input_kind`, `created_at`, `status`.
 - **참조:** `work_id` → [`WORK`](tables.md#work).`id`.
@@ -466,6 +568,8 @@
 
 <a id="manuscript-import-item"></a>
 ### `MANUSCRIPT_IMPORT_ITEM`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 가져오기 요청의 회차별 성공·실패와 저장 결과입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `import_id`, `sequence`, `episode_version_id`, `status`, `failure_reason`.
@@ -476,6 +580,8 @@
 <a id="manuscript-import-issue"></a>
 ### `MANUSCRIPT_IMPORT_ISSUE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 한 회차의 여러 이미지·읽기 문제를 분리합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `import_item_id`, `source_position`, `reason`.
 - **참조:** `import_item_id` → [`MANUSCRIPT_IMPORT_ITEM`](tables.md#manuscript-import-item).`id`.
@@ -484,6 +590,8 @@
 
 <a id="external-ip"></a>
 ### `EXTERNAL_IP`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 외부 2차 창작물들이 공유하는 원천 IP의 식별 후보입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `name`, `reference_url`.
@@ -494,6 +602,8 @@
 <a id="work-external-source"></a>
 ### `WORK_EXTERNAL_SOURCE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 외부 2차 창작 작품과 원천 IP·등록 출처의 연결입니다. **전체·범위확인**.
 - **그림의 필드:** `work_id`(PK), `external_ip_id`, `source_url`, `registered_at`.
 - **참조:** `work_id` → [`WORK`](tables.md#work).`id`; `external_ip_id` → [`EXTERNAL_IP`](tables.md#external-ip).`id`.
@@ -502,6 +612,8 @@
 
 <a id="public-domain-source"></a>
 ### `PUBLIC_DOMAIN_SOURCE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 테스트 원작의 서지 정보와 보호기간 만료 근거입니다. **테스트 전용**.
 - **그림의 필드:** `work_id`(PK), `bibliographic_info`, `rights_basis`, `verified_at`.
@@ -516,6 +628,8 @@
 <a id="checkpoint"></a>
 ### `CHECKPOINT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 회차와 당시 허용된 세계관 상태를 묶는 업무 기준점입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `work_id`, `basis_episode_version_id`, `graph_state_ref`, `status`, `created_at`.
 - **참조:** `work_id` → [`WORK`](tables.md#work).`id`; `basis_episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id`.
@@ -524,6 +638,8 @@
 
 <a id="checkpoint-episode"></a>
 ### `CHECKPOINT_EPISODE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 기준점에 포함된 회차별 원고 버전입니다. **MVP**.
 - **그림의 필드:** `checkpoint_id`(PK), `episode_id`(PK), `episode_version_id`.
@@ -534,6 +650,8 @@
 <a id="checkpoint-setting"></a>
 ### `CHECKPOINT_SETTING`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 기준점에 포함된 설정별 확정 버전입니다. **MVP**.
 - **그림의 필드:** `checkpoint_id`(PK), `setting_document_id`(PK), `setting_version_id`.
 - **참조:** `checkpoint_id` → [`CHECKPOINT`](tables.md#checkpoint).`id`; `setting_document_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id`; `setting_version_id` → [`SETTING_VERSION`](tables.md#setting-version).`id`.
@@ -542,6 +660,8 @@
 
 <a id="checkpoint-character-state"></a>
 ### `CHECKPOINT_CHARACTER_STATE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 기준점에서 사용할 인물별 상태 버전입니다. **MVP**.
 - **그림의 필드:** `checkpoint_id`(PK), `character_id`(PK), `state_version_id`.
@@ -552,6 +672,8 @@
 <a id="checkpoint-character-knowledge"></a>
 ### `CHECKPOINT_CHARACTER_KNOWLEDGE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 기준점에서 사용할 인물·지식별 인지 버전입니다. **MVP**.
 - **그림의 필드:** `checkpoint_id`(PK), `character_id`(PK), `fact_setting_id`(PK), `knowledge_version_id`.
 - **참조:** `checkpoint_id` → [`CHECKPOINT`](tables.md#checkpoint).`id`; `character_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id`; `fact_setting_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id`; `knowledge_version_id` → [`CHARACTER_KNOWLEDGE_VERSION`](tables.md#character-knowledge-version).`id`.
@@ -560,6 +682,8 @@
 
 <a id="fork-policy-history"></a>
 ### `FORK_POLICY_HISTORY`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 원작의 Fork 생성·공개 허용과 범위 변경을 보존합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `work_id`, `revision_no`, `allow_creation`, `allow_publication`, `episode_scope`, `start_episode_id`, `changed_at`.
@@ -570,6 +694,8 @@
 <a id="fork-policy-episode"></a>
 ### `FORK_POLICY_EPISODE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 개별 선택 정책의 허용 회차 집합입니다. **MVP**.
 - **그림의 필드:** `policy_history_id`(PK), `episode_id`(PK).
 - **참조:** `policy_history_id` → [`FORK_POLICY_HISTORY`](tables.md#fork-policy-history).`id`; `episode_id` → [`EPISODE`](tables.md#episode).`id`.
@@ -578,6 +704,8 @@
 
 <a id="fork"></a>
 ### `FORK`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 독립 작품의 분기 기준과 생성 시 확인한 이용 조건입니다. **MVP**.
 - **그림의 필드:** `work_id`(PK), `source_checkpoint_id`, `confirmed_policy_history_id`, `conditions_confirmed_at`, `created_at`.
@@ -588,6 +716,8 @@
 <a id="fork-world-reference"></a>
 ### `FORK_WORLD_REFERENCE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** Fork의 최초 기준과 구분되는 현재 원본 추종·독립 상태입니다. **MVP**.
 - **그림의 필드:** `fork_work_id`(PK), `source_world_id`, `reference_status`, `last_followed_checkpoint_id`, `detached_at`.
 - **참조:** `fork_work_id` → [`FORK`](tables.md#fork).`work_id`; `source_world_id` → [`WORLD`](tables.md#world).`id`; `last_followed_checkpoint_id` → [`CHECKPOINT`](tables.md#checkpoint).`id` (선택).
@@ -596,6 +726,8 @@
 
 <a id="fork-source-change"></a>
 ### `FORK_SOURCE_CHANGE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 특정 Fork 기준 회차에 영향을 주는 원본 변화와 비교 기준입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `fork_work_id`, `before_checkpoint_id`, `after_checkpoint_id`, `detected_at`.
@@ -606,6 +738,8 @@
 <a id="fork-change-decision"></a>
 ### `FORK_CHANGE_DECISION`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 원본 변경을 거절한 뒤 나중에 재선택하는 결정 이력입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `source_change_id`, `actor_id`, `decision`, `decided_at`.
 - **참조:** `source_change_id` → [`FORK_SOURCE_CHANGE`](tables.md#fork-source-change).`id`; `actor_id` → [`MEMBER`](tables.md#member).`id`.
@@ -614,6 +748,8 @@
 
 <a id="fork-change-application"></a>
 ### `FORK_CHANGE_APPLICATION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 선택된 원본 변경의 실제 반영 시도·실패·완료 결과입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `decision_id`, `result_checkpoint_id`, `outcome`, `reason`, `applied_at`.
@@ -628,14 +764,18 @@
 <a id="chat-session"></a>
 ### `CHAT_SESSION`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 회원 소유 대화와 읽는 원작·쓰는 Fork 문맥의 연결입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `owner_id`, `context_work_id`, `target_fork_work_id`, `saver_thread_ref`, `created_at`.
 - **참조:** `owner_id` → [`MEMBER`](tables.md#member).`id`; `context_work_id` → [`WORK`](tables.md#work).`id`; `target_fork_work_id` → [`FORK`](tables.md#fork).`work_id` (선택).
-- **제약·한계:** Saver 참조는 외부 키이지 Core PK·인증 수단이 아님. 대화별 문맥은 턴/작업 기준으로 제한.
+- **제약·한계:** Saver 참조는 외부 키이지 콘텐츠 업무 PK·인증 수단이 아님. 대화별 문맥은 턴/작업 기준으로 제한.
 - **연결 예시:** `id=1; owner_id=member-1; context_work_id=work-1; target_fork_work_id=fork-1`처럼 한 관계·사건을 기록합니다(가상 예시; 상태 enum 미확정).
 
 <a id="chat-message"></a>
 ### `CHAT_MESSAGE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 세션 안의 개별 사용자·AI 메시지입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `session_id`, `sequence`, `speaker`, `content`, `ai_job_id`, `created_at`.
@@ -646,7 +786,9 @@
 <a id="ai-job"></a>
 ### `AI_JOB`
 
-- **역할·범위:** 하나의 사용자 요청 또는 승인된 자동 작업의 결과·실패를 관리합니다. **MVP**.
+- **목표 정본 소유:** 요청 업무 소유 서비스 (콘텐츠/운영).
+
+- **역할·범위:** 콘텐츠 또는 운영의 요청 업무별 결과·실패를 관리합니다. AI 실행 상태와 구별하며 목적별 저장/전달 계약은 미정입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `requester_id`, `work_id`, `session_id`, `retry_of_job_id`, `base_checkpoint_id`, `kind`, `request_text`, `status`, `failure_reason`, `created_at`, `started_at`, `finished_at`.
 - **참조:** `requester_id` → [`MEMBER`](tables.md#member).`id`; `work_id` → [`WORK`](tables.md#work).`id` (선택); `session_id` → [`CHAT_SESSION`](tables.md#chat-session).`id` (선택); `retry_of_job_id` → [`AI_JOB`](tables.md#ai-job).`id` (선택); `base_checkpoint_id` → [`CHECKPOINT`](tables.md#checkpoint).`id` (선택).
 - **제약·한계:** 사용자 재시도·재생성은 새 작업; 순환 재시도 금지. 실제 시작과 생성 시각 구분. 모델별 토큰은 AI_MODEL_CALL. 원문 포함 기록은 기술 로그가 아님. 집필/시뮬레이션 등 작품 작업은 work_id 필수; 미연결 세계관·설정 신고 모더레이션은 선택이며 CONTENT_MODERATION_ASSESSMENT→RIGHTS_CASE_TARGET에서 실제 대상을 검증. 무관한 작품을 연결하지 않음.
@@ -654,6 +796,8 @@
 
 <a id="ai-model-call"></a>
 ### `AI_MODEL_CALL`
+
+- **목표 정본 소유:** 요청 업무 소유 서비스 (콘텐츠/운영).
 
 - **역할·범위:** 한 작업에서 수행한 여러 모델·역할의 호출과 실제 사용량입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `job_id`, `sequence`, `retry_of_call_id`, `role`, `provider`, `model`, `prompt_version_ref`, `trace_ref`, `status`, `usage_status`, `input_tokens`, `output_tokens`, `provider_cost`, `started_at`, `finished_at`, `failure_code`.
@@ -664,6 +808,8 @@
 <a id="ai-input-snapshot"></a>
 ### `AI_INPUT_SNAPSHOT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 요청 당시의 필요한 원고·설정 범위와 내용을 보존합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `job_id`, `episode_id`, `episode_version_id`, `setting_version_id`, `graph_state_ref`, `source_kind`, `position`, `content_snapshot`, `draft_revision`, `captured_at`.
 - **참조:** `job_id` → [`AI_JOB`](tables.md#ai-job).`id`; `episode_id` → [`EPISODE`](tables.md#episode).`id` (선택); `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id` (선택); `setting_version_id` → [`SETTING_VERSION`](tables.md#setting-version).`id` (선택).
@@ -672,6 +818,8 @@
 
 <a id="ai-proposal"></a>
 ### `AI_PROPOSAL`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 작업이 생성한 원안·발견 사항·후보 한 개입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `job_id`, `input_snapshot_id`, `sequence`, `kind`, `content`, `created_at`.
@@ -682,6 +830,8 @@
 <a id="ai-evidence"></a>
 ### `AI_EVIDENCE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** AI 근거 한 개의 당시 인용과 출처입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `episode_version_id`, `setting_version_id`, `graph_state_ref`, `kind`, `position`, `excerpt_snapshot`, `captured_at`.
 - **참조:** `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id` (선택); `setting_version_id` → [`SETTING_VERSION`](tables.md#setting-version).`id` (선택).
@@ -690,6 +840,8 @@
 
 <a id="proposal-evidence"></a>
 ### `PROPOSAL_EVIDENCE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 제안·검토 발견 하나의 여러 근거를 연결합니다. **MVP**.
 - **그림의 필드:** `proposal_id`(PK), `evidence_id`(PK).
@@ -700,6 +852,8 @@
 <a id="proposal-decision"></a>
 ### `PROPOSAL_DECISION`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 채택·일부 채택·수정·거절·보류와 개연성 검토 판단의 이력입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `proposal_id`, `sequence`, `actor_id`, `automation_policy_id`, `decision`, `selected_range`, `approved_content`, `decided_at`.
 - **참조:** `proposal_id` → [`AI_PROPOSAL`](tables.md#ai-proposal).`id`; `actor_id` → [`MEMBER`](tables.md#member).`id` (선택); `automation_policy_id` → [`WORK_AUTOMATION_VERSION`](tables.md#work-automation-version).`id` (선택).
@@ -708,6 +862,8 @@
 
 <a id="proposal-application"></a>
 ### `PROPOSAL_APPLICATION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 선택된 제안의 실제 반영 시도입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `decision_id`, `attempt_no`, `outcome`, `failure_reason`, `attempted_at`.
@@ -718,6 +874,8 @@
 <a id="proposal-episode-change"></a>
 ### `PROPOSAL_EPISODE_CHANGE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 반영 시도에서 바뀐 원고 구절·초안 revision·저장 결과입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `application_id`, `episode_id`, `result_version_id`, `position`, `before_content`, `after_content`, `base_draft_revision`, `result_draft_revision`.
 - **참조:** `application_id` → [`PROPOSAL_APPLICATION`](tables.md#proposal-application).`id`; `episode_id` → [`EPISODE`](tables.md#episode).`id`; `result_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id` (선택).
@@ -726,6 +884,8 @@
 
 <a id="proposal-setting-change"></a>
 ### `PROPOSAL_SETTING_CHANGE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 반영 시도에서 바뀐 설정별 결과입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `application_id`, `setting_document_id`, `result_version_id`, `outcome`.
@@ -736,6 +896,8 @@
 <a id="proposal-graph-change"></a>
 ### `PROPOSAL_GRAPH_CHANGE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 관계 그래프 변경 제안의 적용 결과와 외부 기준 참조입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `application_id`, `before_state_ref`, `after_state_ref`, `outcome`, `failure_reason`.
 - **참조:** `application_id` → [`PROPOSAL_APPLICATION`](tables.md#proposal-application).`id`.
@@ -744,6 +906,8 @@
 
 <a id="proposal-image"></a>
 ### `PROPOSAL_IMAGE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 생성 제안의 이미지 파일을 원고 사용 참조와 분리합니다. **MVP 이후**.
 - **그림의 필드:** `proposal_id`(PK), `asset_id`(PK), `position`.
@@ -754,6 +918,8 @@
 <a id="simulation-run"></a>
 ### `SIMULATION_RUN`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 시뮬레이션 요청의 장소·상황·전개 방향·분량입니다. **MVP**.
 - **그림의 필드:** `job_id`(PK), `purpose`, `location_setting_id`, `situation`, `direction`, `requested_characters`.
 - **참조:** `job_id` → [`AI_JOB`](tables.md#ai-job).`id`; `location_setting_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id` (선택).
@@ -762,6 +928,8 @@
 
 <a id="simulation-participant"></a>
 ### `SIMULATION_PARTICIPANT`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 실행에 참여한 인물별로 허용된 문맥을 분리합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `run_id`, `character_id`, `allowed_context_snapshot`.
@@ -772,6 +940,8 @@
 <a id="simulation-candidate"></a>
 ### `SIMULATION_CANDIDATE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 일반 AI 제안에 시뮬레이션 실행과 후보 순서를 연결합니다. **MVP**.
 - **그림의 필드:** `proposal_id`(PK), `run_id`, `sequence`.
 - **참조:** `proposal_id` → [`AI_PROPOSAL`](tables.md#ai-proposal).`id`; `run_id` → [`SIMULATION_RUN`](tables.md#simulation-run).`job_id`.
@@ -780,6 +950,8 @@
 
 <a id="simulation-record"></a>
 ### `SIMULATION_RECORD`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 후보에서 일어난 행동·대화·사건 기록입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `candidate_id`, `sequence`, `kind`, `content`.
@@ -790,6 +962,8 @@
 <a id="simulation-record-participant"></a>
 ### `SIMULATION_RECORD_PARTICIPANT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 진행 기록에 관여한 여러 인물의 연결입니다. **MVP**.
 - **그림의 필드:** `record_id`(PK), `participant_id`(PK).
 - **참조:** `record_id` → [`SIMULATION_RECORD`](tables.md#simulation-record).`id`; `participant_id` → [`SIMULATION_PARTICIPANT`](tables.md#simulation-participant).`id`.
@@ -798,6 +972,8 @@
 
 <a id="simulation-causal-link"></a>
 ### `SIMULATION_CAUSAL_LINK`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 후보 안 사건 기록의 원인·결과 연결입니다. **MVP**.
 - **그림의 필드:** `cause_record_id`(PK), `effect_record_id`(PK), `explanation`.
@@ -808,6 +984,8 @@
 <a id="verification-result"></a>
 ### `VERIFICATION_RESULT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 독자 오류 검증 실행의 판정·신뢰도 결과입니다. **MVP 이후**.
 - **그림의 필드:** `job_id`(PK), `verdict`, `confidence`, `content`.
 - **참조:** `job_id` → [`AI_JOB`](tables.md#ai-job).`id`.
@@ -817,6 +995,8 @@
 <a id="verification-evidence"></a>
 ### `VERIFICATION_EVIDENCE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 개인 검증 결과에 연결된 복수 근거입니다. **MVP 이후**.
 - **그림의 필드:** `verification_job_id`(PK), `evidence_id`(PK).
 - **참조:** `verification_job_id` → [`VERIFICATION_RESULT`](tables.md#verification-result).`job_id`; `evidence_id` → [`AI_EVIDENCE`](tables.md#ai-evidence).`id`.
@@ -825,6 +1005,8 @@
 
 <a id="character-chat"></a>
 ### `CHARACTER_CHAT`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** MVP 이후 인물 대화의 선택 인물을 일반 대화와 구분합니다. **MVP 이후**.
 - **그림의 필드:** `session_id`(PK), `character_id`.
@@ -839,6 +1021,8 @@
 <a id="feedback"></a>
 ### `FEEDBACK`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 읽은 발행본·구절에 고정한 원래 댓글 또는 제보입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `author_id`, `episode_version_id`, `kind`, `content`, `target_excerpt`, `position`, `visibility`, `is_spoiler`, `created_at`, `delivered_at`, `author_checked_at`.
 - **참조:** `author_id` → [`MEMBER`](tables.md#member).`id` (선택); `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id`.
@@ -847,6 +1031,8 @@
 
 <a id="feedback-amendment"></a>
 ### `FEEDBACK_AMENDMENT`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 제보 정정 의견·철회를 원래 제보와 분리합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `actor_id`, `action`, `content`, `created_at`.
@@ -857,6 +1043,8 @@
 <a id="feedback-status-event"></a>
 ### `FEEDBACK_STATUS_EVENT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 접수·분석·실패·작가 검토·실제 처리 상태의 변화입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `actor_id`, `ai_job_id`, `status`, `created_at`.
 - **참조:** `feedback_id` → [`FEEDBACK`](tables.md#feedback).`id`; `actor_id` → [`MEMBER`](tables.md#member).`id` (선택); `ai_job_id` → [`AI_JOB`](tables.md#ai-job).`id` (선택).
@@ -865,6 +1053,8 @@
 
 <a id="feedback-ai-job"></a>
 ### `FEEDBACK_AI_JOB`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 제보마다 수행한 AI 검토·재시도를 연결합니다. **MVP 이후**.
 - **그림의 필드:** `feedback_id`(PK), `job_id`(PK), `purpose`.
@@ -875,6 +1065,8 @@
 <a id="feedback-response"></a>
 ### `FEEDBACK_RESPONSE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** AI 또는 작가의 응답과 독립된 공개 선택입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `ai_job_id`, `author_id`, `content`, `is_public`, `created_at`.
 - **참조:** `feedback_id` → [`FEEDBACK`](tables.md#feedback).`id`; `ai_job_id` → [`AI_JOB`](tables.md#ai-job).`id` (선택); `author_id` → [`MEMBER`](tables.md#member).`id` (선택).
@@ -883,6 +1075,8 @@
 
 <a id="feedback-response-evidence"></a>
 ### `FEEDBACK_RESPONSE_EVIDENCE`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 응답의 복수 근거와 당시 인용을 연결합니다. **MVP 이후**.
 - **그림의 필드:** `response_id`(PK), `evidence_id`(PK).
@@ -893,6 +1087,8 @@
 <a id="feedback-comment"></a>
 ### `FEEDBACK_COMMENT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 공개 제보에 대한 다른 독자의 추가 토론 댓글입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `author_id`, `content`, `created_at`.
 - **참조:** `feedback_id` → [`FEEDBACK`](tables.md#feedback).`id`; `author_id` → [`MEMBER`](tables.md#member).`id` (선택).
@@ -901,6 +1097,8 @@
 
 <a id="feedback-verification"></a>
 ### `FEEDBACK_VERIFICATION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 개인 검증과 삭제 수명이 다른 제출 결과 스냅샷입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `feedback_id`(UK), `comment_id`(UK), `original_job_id`, `outcome`, `verdict`, `confidence`, `result_snapshot`, `submitted_at`.
@@ -911,6 +1109,8 @@
 <a id="feedback-verification-evidence"></a>
 ### `FEEDBACK_VERIFICATION_EVIDENCE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 제출한 검증의 근거들을 개인 AI 기록과 독립 보존합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `verification_id`, `sequence`, `episode_version_id`, `setting_version_id`, `graph_state_ref`, `position`, `excerpt_snapshot`.
 - **참조:** `verification_id` → [`FEEDBACK_VERIFICATION`](tables.md#feedback-verification).`id`; `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id` (선택); `setting_version_id` → [`SETTING_VERSION`](tables.md#setting-version).`id` (선택).
@@ -919,6 +1119,8 @@
 
 <a id="feedback-report"></a>
 ### `FEEDBACK_REPORT`
+
+- **목표 정본 소유:** 운영 (신고 접수).
 
 - **역할·범위:** 댓글 유해 신고의 신고자·사유별 접수입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `reporter_id`, `reason`, `created_at`.
@@ -929,6 +1131,8 @@
 <a id="feedback-moderation-check"></a>
 ### `FEEDBACK_MODERATION_CHECK`
 
+- **목표 정본 소유:** 목적별 콘텐츠/운영 (검사 결과).
+
 - **역할·범위:** 반복되는 필터·재검사 실행의 판정 결과입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `job_id`, `report_id`, `outcome`, `verdict`, `reason`, `checked_at`.
 - **참조:** `feedback_id` → [`FEEDBACK`](tables.md#feedback).`id`; `job_id` → [`AI_JOB`](tables.md#ai-job).`id`; `report_id` → [`FEEDBACK_REPORT`](tables.md#feedback-report).`id` (선택).
@@ -937,6 +1141,8 @@
 
 <a id="feedback-moderation"></a>
 ### `FEEDBACK_MODERATION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 모델 판정 또는 사람 검토에 따른 숨김·복원의 실제 조치 이력입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `check_id`, `actor_id`, `action`, `outcome`, `reason`, `created_at`.
@@ -947,6 +1153,8 @@
 <a id="feedback-like"></a>
 ### `FEEDBACK_LIKE`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 피드백 댓글에 누른 회원별 좋아요입니다. **전체·범위확인**.
 - **그림의 필드:** `feedback_id`(PK), `member_id`(PK), `created_at`.
 - **참조:** `feedback_id` → [`FEEDBACK`](tables.md#feedback).`id`; `member_id` → [`MEMBER`](tables.md#member).`id`.
@@ -955,6 +1163,8 @@
 
 <a id="feedback-proposal"></a>
 ### `FEEDBACK_PROPOSAL`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 한 수정 제안과 여러 제보의 연결입니다. **MVP 이후**.
 - **그림의 필드:** `feedback_id`(PK), `proposal_id`(PK).
@@ -965,6 +1175,8 @@
 <a id="feedback-review"></a>
 ### `FEEDBACK_REVIEW`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 수정안이 없는 스토리 오류·제안도 포함한 작가 판단 이력입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `actor_id`, `proposal_decision_id`, `decision`, `reason`, `created_at`.
 - **참조:** `feedback_id` → [`FEEDBACK`](tables.md#feedback).`id`; `actor_id` → [`MEMBER`](tables.md#member).`id`; `proposal_decision_id` → [`PROPOSAL_DECISION`](tables.md#proposal-decision).`id` (선택).
@@ -973,6 +1185,8 @@
 
 <a id="feedback-resolution"></a>
 ### `FEEDBACK_RESOLUTION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 제보와 실제로 수정된 저장/발행 결과의 연결입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `feedback_id`, `review_id`, `episode_version_id`, `publication_event_id`, `application_id`, `linked_at`.
@@ -983,7 +1197,9 @@
 <a id="feedback-reward"></a>
 ### `FEEDBACK_REWARD`
 
-- **역할·범위:** 보상 대상 수정과 제보·실제 지급의 연결입니다. **MVP 이후**.
+- **목표 정본 소유:** 콘텐츠.
+
+- **역할·범위:** 콘텐츠의 보상 대상 수정·제보와 Core가 확정한 실제 지급의 연결입니다. 지급 요청과 지급 성공을 구분합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `resolution_id`, `credit_grant_id`(UK), `correction_key`(UK), `awarded_at`.
 - **참조:** `resolution_id` → [`FEEDBACK_RESOLUTION`](tables.md#feedback-resolution).`id`; `credit_grant_id` → [`CREDIT_GRANT`](tables.md#credit-grant).`id`.
 - **제약·한계:** 같은 수정의 최초 검증 제보 1개, 자기 작품 제외. correction_key 산정·월상한 값 미정. 지급분 참조로 수령자·금액 유도.
@@ -996,6 +1212,8 @@
 <a id="work-automation-version"></a>
 ### `WORK_AUTOMATION_VERSION`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 작품 자동 처리의 설정과 소유자 승인 기준을 이력으로 보존합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `work_id`, `revision_no`, `world_update_mode`, `proofreading_mode`, `autoserial_state`, `changed_at`.
 - **참조:** `work_id` → [`WORK`](tables.md#work).`id`.
@@ -1004,6 +1222,8 @@
 
 <a id="autoserial-config-version"></a>
 ### `AUTOSERIAL_CONFIG_VERSION`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 자율 연재에만 필요한 실행 분량·방향·비용 상한입니다. **MVP 이후**.
 - **그림의 필드:** `automation_version_id`(PK), `target_length`, `direction`, `use_reader_reactions`, `cost_limit`.
@@ -1014,6 +1234,8 @@
 <a id="autoserial-slot"></a>
 ### `AUTOSERIAL_SLOT`
 
+- **목표 정본 소유:** 콘텐츠.
+
 - **역할·범위:** 설정 버전의 반복 요일·시각을 개별 행으로 분리합니다. **MVP 이후**.
 - **그림의 필드:** `config_version_id`(PK), `weekday`(PK), `local_time`.
 - **참조:** `config_version_id` → [`AUTOSERIAL_CONFIG_VERSION`](tables.md#autoserial-config-version).`automation_version_id`.
@@ -1022,6 +1244,8 @@
 
 <a id="autoserial-run"></a>
 ### `AUTOSERIAL_RUN`
+
+- **목표 정본 소유:** 콘텐츠.
 
 - **역할·범위:** 예정 실행 한 번의 조건·생성·발행 결과를 연결합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `config_version_id`, `scheduled_task_item_id`, `ai_job_id`, `generated_version_id`, `publication_event_id`, `scheduled_at`, `status`, `reason`.
@@ -1036,6 +1260,8 @@
 <a id="ai-cost-consent"></a>
 ### `AI_COST_CONSENT`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 실행 또는 자동 설정에 대한 예상 비용·부담 주체 안내와 동의입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `member_id`, `job_id`, `automation_version_id`, `estimated_credits`, `scope_snapshot`, `decision`, `recorded_at`.
 - **참조:** `member_id` → [`MEMBER`](tables.md#member).`id`; `job_id` → [`AI_JOB`](tables.md#ai-job).`id` (선택); `automation_version_id` → [`WORK_AUTOMATION_VERSION`](tables.md#work-automation-version).`id` (선택).
@@ -1044,6 +1270,8 @@
 
 <a id="subscription-plan"></a>
 ### `SUBSCRIPTION_PLAN`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 구독 상품 식별입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `name`, `monthly_credits`, `price`, `currency`, `effective_at`.
@@ -1054,6 +1282,8 @@
 <a id="member-subscription"></a>
 ### `MEMBER_SUBSCRIPTION`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 회원의 구독 계약과 시작·종료 상태입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `member_id`, `plan_id`, `status`, `started_at`, `ended_at`.
 - **참조:** `member_id` → [`MEMBER`](tables.md#member).`id`; `plan_id` → [`SUBSCRIPTION_PLAN`](tables.md#subscription-plan).`id`.
@@ -1062,6 +1292,8 @@
 
 <a id="subscription-period"></a>
 ### `SUBSCRIPTION_PERIOD`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 구독별 월 지급 기간을 분리합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `subscription_id`, `period_start`, `period_end`.
@@ -1072,6 +1304,8 @@
 <a id="credit-purchase"></a>
 ### `CREDIT_PURCHASE`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 추가 크레딧 구매 요청과 실제 구매 상태입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `subscription_id`, `quantity`, `status`, `requested_at`, `completed_at`.
 - **참조:** `subscription_id` → [`MEMBER_SUBSCRIPTION`](tables.md#member-subscription).`id`.
@@ -1080,6 +1314,8 @@
 
 <a id="credit-grant"></a>
 ### `CREDIT_GRANT`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 회원에게 지급한 크레딧을 지급분·종류·소멸일별로 구분합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `member_id`, `subscription_period_id`, `purchase_id`, `kind`, `amount`, `granted_at`, `expires_at`.
@@ -1090,6 +1326,8 @@
 <a id="credit-settlement"></a>
 ### `CREDIT_SETTLEMENT`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** AI 작업의 청구 대상·동의·정산 결과입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `job_id`(UK), `consent_id`, `payer_member_id`, `payer_kind`, `status`, `settled_at`.
 - **참조:** `job_id` → [`AI_JOB`](tables.md#ai-job).`id`; `consent_id` → [`AI_COST_CONSENT`](tables.md#ai-cost-consent).`id` (선택); `payer_member_id` → [`MEMBER`](tables.md#member).`id` (선택).
@@ -1098,6 +1336,8 @@
 
 <a id="credit-settlement-line"></a>
 ### `CREDIT_SETTLEMENT_LINE`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 모델 호출별 실제 사용량에 적용한 환산율과 확정 차감액입니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `settlement_id`, `call_id`(UK), `input_rate`, `output_rate`, `charged_credits`.
@@ -1108,6 +1348,8 @@
 <a id="credit-ledger-entry"></a>
 ### `CREDIT_LEDGER_ENTRY`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 지급분별 사용·소멸·조정 내역입니다. 차감 할당을 별도 중복 테이블로 만들지 않습니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `grant_id`, `settlement_line_id`, `kind`, `amount`, `operation_key`(UK), `occurred_at`.
 - **참조:** `grant_id` → [`CREDIT_GRANT`](tables.md#credit-grant).`id`; `settlement_line_id` → [`CREDIT_SETTLEMENT_LINE`](tables.md#credit-settlement-line).`id` (선택).
@@ -1116,6 +1358,8 @@
 
 <a id="storage-quota"></a>
 ### `STORAGE_QUOTA`
+
+- **목표 정본 소유:** 한도·집계 계약 미정 (Core/콘텐츠 협력).
 
 - **역할·범위:** 회원 저장 한도 후보. 사용량은 소유·참조 콘텐츠에서 조회합니다. **MVP 이후**.
 - **그림의 필드:** `member_id`(PK), `limit_bytes`, `updated_at`.
@@ -1130,6 +1374,8 @@
 <a id="rights-case"></a>
 ### `RIGHTS_CASE`
 
+- **목표 정본 소유:** 운영.
+
 - **역할·범위:** 같은 사안으로 묶은 권리·유해 콘텐츠 검토 건입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `kind`, `status`, `opened_at`, `first_reviewed_at`.
 - **참조:** 다른 업무 테이블의 FK 없음.
@@ -1138,6 +1384,8 @@
 
 <a id="rights-report"></a>
 ### `RIGHTS_REPORT`
+
+- **목표 정본 소유:** 운영.
 
 - **역할·범위:** 묶음 안에서도 보존할 개별 신고자·접수·근거 설명입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `case_id`, `reporter_id`, `receipt_no`(UK), `contact`, `grounds`, `submitted_at`.
@@ -1148,6 +1396,8 @@
 <a id="rights-case-target"></a>
 ### `RIGHTS_CASE_TARGET`
 
+- **목표 정본 소유:** 운영.
+
 - **역할·범위:** 한 검토 건의 원대상·조치되는 파생 대상입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `case_id`, `work_id`, `episode_id`, `world_id`, `setting_document_id`, `target_role`.
 - **참조:** `case_id` → [`RIGHTS_CASE`](tables.md#rights-case).`id`; `work_id` → [`WORK`](tables.md#work).`id` (선택); `episode_id` → [`EPISODE`](tables.md#episode).`id` (선택); `world_id` → [`WORLD`](tables.md#world).`id` (선택); `setting_document_id` → [`SETTING_DOCUMENT`](tables.md#setting-document).`id` (선택).
@@ -1156,6 +1406,8 @@
 
 <a id="rights-report-target"></a>
 ### `RIGHTS_REPORT_TARGET`
+
+- **목표 정본 소유:** 운영.
 
 - **역할·범위:** 각 개별 신고가 지목한 대상들을 묶음 검토 대상과 연결합니다. **전체·범위확인**.
 - **그림의 필드:** `report_id`(PK), `case_target_id`(PK).
@@ -1166,6 +1418,8 @@
 <a id="rights-defense"></a>
 ### `RIGHTS_DEFENSE`
 
+- **목표 정본 소유:** 운영.
+
 - **역할·범위:** 대상 소유자의 소명 통지·기한·제출입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `case_target_id`, `owner_id`, `notified_at`, `due_at`, `extended_at`, `submitted_at`, `response`, `status`.
 - **참조:** `case_target_id` → [`RIGHTS_CASE_TARGET`](tables.md#rights-case-target).`id`; `owner_id` → [`MEMBER`](tables.md#member).`id`.
@@ -1174,6 +1428,8 @@
 
 <a id="rights-evidence"></a>
 ### `RIGHTS_EVIDENCE`
+
+- **목표 정본 소유:** 운영.
 
 - **역할·범위:** 신고/소명에 제출한 여러 증빙을 각각 보존합니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `report_id`, `defense_id`, `evidence_url`, `description`, `submitted_at`.
@@ -1184,6 +1440,8 @@
 <a id="rights-decision"></a>
 ### `RIGHTS_DECISION`
 
+- **목표 정본 소유:** 운영.
+
 - **역할·범위:** 운영자의 침해 여부 및 처리 판단입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `case_id`, `operator_id`, `conclusion`, `reason`, `decided_at`.
 - **참조:** `case_id` → [`RIGHTS_CASE`](tables.md#rights-case).`id`; `operator_id` → [`MEMBER`](tables.md#member).`id`.
@@ -1192,6 +1450,8 @@
 
 <a id="content-moderation-assessment"></a>
 ### `CONTENT_MODERATION_ASSESSMENT`
+
+- **목표 정본 소유:** 운영.
 
 - **역할·범위:** 신고 대상의 유해 모델 재검사 결과입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `target_id`, `ai_job_id`, `outcome`, `verdict`, `assessed_at`.
@@ -1202,7 +1462,9 @@
 <a id="content-restriction"></a>
 ### `CONTENT_RESTRICTION`
 
-- **역할·범위:** 한 원인으로 한 대상에 적용하는 제한과 해제입니다. **전체·범위확인**.
+- **목표 정본 소유:** 콘텐츠 (실제 제한).
+
+- **역할·범위:** 콘텐츠 서비스가 한 원인으로 한 대상에 실제 적용하는 제한과 해제입니다. 운영의 판단·요청과 구분합니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `target_id`, `decision_id`, `assessment_id`, `restriction_kind`, `created_at`, `lifted_at`.
 - **참조:** `target_id` → [`RIGHTS_CASE_TARGET`](tables.md#rights-case-target).`id`; `decision_id` → [`RIGHTS_DECISION`](tables.md#rights-decision).`id` (선택); `assessment_id` → [`CONTENT_MODERATION_ASSESSMENT`](tables.md#content-moderation-assessment).`id` (선택).
 - **제약·한계:** 운영판정 또는 유해검사 중 하나의 원인. 대상과 사건 일치. 다른 활성제한이 남으면 공개 복원 금지.
@@ -1211,7 +1473,9 @@
 <a id="restriction-application"></a>
 ### `RESTRICTION_APPLICATION`
 
-- **역할·범위:** 제한·해제의 실제 적용 시도와 적용 전 상태입니다. **전체·범위확인**.
+- **목표 정본 소유:** 콘텐츠 (실제 적용 시도).
+
+- **역할·범위:** 콘텐츠 서비스의 제한·해제 적용 시도와 적용 전 상태입니다. 운영은 요청·응답 결과를 확인합니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `restriction_id`, `action`, `before_state`, `outcome`, `failure_reason`, `attempted_at`.
 - **참조:** `restriction_id` → [`CONTENT_RESTRICTION`](tables.md#content-restriction).`id`.
 - **제약·한계:** 판정 완료와 실제 적용 완료 분리. 실패 경고. 하위 Fork도 대상별 적용결과 보존.
@@ -1219,6 +1483,8 @@
 
 <a id="false-report-finding"></a>
 ### `FALSE_REPORT_FINDING`
+
+- **목표 정본 소유:** 운영.
 
 - **역할·범위:** 운영자가 명시적으로 허위라고 판단한 신고 기록입니다. **전체·범위확인**.
 - **그림의 필드:** `report_id`(PK), `operator_id`, `reason`, `decided_at`.
@@ -1229,6 +1495,8 @@
 <a id="reporting-restriction"></a>
 ### `REPORTING_RESTRICTION`
 
+- **목표 정본 소유:** 운영.
+
 - **역할·범위:** 회원 신고 기능의 제한 기간과 원인입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `member_id`, `starts_at`, `ends_at`, `reason`.
 - **참조:** `member_id` → [`MEMBER`](tables.md#member).`id`.
@@ -1237,6 +1505,8 @@
 
 <a id="reporting-restriction-finding"></a>
 ### `REPORTING_RESTRICTION_FINDING`
+
+- **목표 정본 소유:** 운영.
 
 - **역할·범위:** 신고 제한을 일으킨 허위 판단들을 연결합니다. **전체·범위확인**.
 - **그림의 필드:** `restriction_id`(PK), `finding_id`(PK).
@@ -1251,7 +1521,9 @@
 <a id="scheduled-task-run"></a>
 ### `SCHEDULED_TASK_RUN`
 
-- **역할·범위:** 정기 작업 실행 한 번의 예정·시작·종료와 재실행 계보입니다. **전체·범위확인**.
+- **목표 정본 소유:** 실행 업무 소유 서비스 (감시는 운영).
+
+- **역할·범위:** 업무 소유 서비스가 실행한 정기 작업의 예정·시작·종료와 재실행 계보입니다. 운영 통합 감시의 물리 수집 계약은 미정입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `retry_of_run_id`, `requested_by`, `kind`, `scheduled_at`, `started_at`, `finished_at`, `outcome`.
 - **참조:** `retry_of_run_id` → [`SCHEDULED_TASK_RUN`](tables.md#scheduled-task-run).`id` (선택); `requested_by` → [`MEMBER`](tables.md#member).`id` (선택).
 - **제약·한계:** 원실행·재실행 별도, 0건 성공도 실행행 존재. 집계 건수는 대상행에서 유도. 사용자 AI 자동재실행 금지.
@@ -1260,7 +1532,9 @@
 <a id="scheduled-task-item"></a>
 ### `SCHEDULED_TASK_ITEM`
 
-- **역할·범위:** 실행별 대상 처리 결과 및 실패 이유입니다. **전체·범위확인**.
+- **목표 정본 소유:** 실행 업무 소유 서비스 (감시는 운영).
+
+- **역할·범위:** 업무 소유 서비스 실행별 대상 처리 결과·실패 이유입니다. 감시용 참조가 타 서비스 직접 쓰기를 허용하지 않습니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `run_id`, `prior_item_id`, `withdrawal_id`, `credit_grant_id`, `defense_id`, `case_id`, `reporting_restriction_id`, `publication_schedule_id`, `feedback_id`, `ai_job_id`, `autoserial_config_id`, `window_start`, `window_end`, `operation_key`, `outcome`, `failure_reason`, `processed_at`, `publication_event_id`.
 - **참조:** `run_id` → [`SCHEDULED_TASK_RUN`](tables.md#scheduled-task-run).`id`; `prior_item_id` → [`SCHEDULED_TASK_ITEM`](tables.md#scheduled-task-item).`id` (선택); `withdrawal_id` → [`ACCOUNT_WITHDRAWAL`](tables.md#account-withdrawal).`id` (선택); `credit_grant_id` → [`CREDIT_GRANT`](tables.md#credit-grant).`id` (선택); `defense_id` → [`RIGHTS_DEFENSE`](tables.md#rights-defense).`id` (선택); `case_id` → [`RIGHTS_CASE`](tables.md#rights-case).`id` (선택); `reporting_restriction_id` → [`REPORTING_RESTRICTION`](tables.md#reporting-restriction).`id` (선택); `publication_schedule_id` → [`PUBLICATION_SCHEDULE`](tables.md#publication-schedule).`id` (선택); `feedback_id` → [`FEEDBACK`](tables.md#feedback).`id` (선택); `ai_job_id` → [`AI_JOB`](tables.md#ai-job).`id` (선택); `autoserial_config_id` → [`AUTOSERIAL_CONFIG_VERSION`](tables.md#autoserial-config-version).`automation_version_id` (선택); `publication_event_id` → [`PUBLICATION_EVENT`](tables.md#publication-event).`id` (선택).
 - **제약·한계:** 대상 FK 정확히 하나 또는 로그정리/집계용 기간 한 쌍. UNIQUE(run_id,operation_key). 재시도 동일 operation_key 유지, 성공 업무효과 최대1회. 실패 재시도 기록을 막는 전역 UNIQUE는 금지. publication_event_id는 예약 대상이 아닌 실제 실행 결과 FK이며 성공/실패와 맞아야 함.
@@ -1268,6 +1542,8 @@
 
 <a id="operation-alert"></a>
 ### `OPERATION_ALERT`
+
+- **목표 정본 소유:** 운영.
 
 - **역할·범위:** 기술 장애·권리 검토 지연·정기 작업 실패에 대한 운영 경고입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `ai_job_id`, `rights_case_id`, `scheduled_run_id`, `kind`, `status`, `created_at`, `checked_at`, `resolved_at`.
@@ -1278,6 +1554,8 @@
 <a id="operation-action"></a>
 ### `OPERATION_ACTION`
 
+- **목표 정본 소유:** 운영.
+
 - **역할·범위:** 운영 경고에 대해 사람이 수행한 실제 조치의 이력입니다. **MVP**.
 - **그림의 필드:** `id`(PK), `alert_id`, `operator_id`, `result`, `summary`, `created_at`.
 - **참조:** `alert_id` → [`OPERATION_ALERT`](tables.md#operation-alert).`id`; `operator_id` → [`MEMBER`](tables.md#member).`id`.
@@ -1286,6 +1564,8 @@
 
 <a id="technical-error-log"></a>
 ### `TECHNICAL_ERROR_LOG`
+
+- **목표 정본 소유:** 운영.
 
 - **역할·범위:** 개인 작업 결과와 수명이 다른 기술 진단 기록입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `ai_job_id`, `scheduled_run_id`, `alert_id`, `stage`, `error_code`, `safe_message`, `occurred_at`.
@@ -1296,6 +1576,8 @@
 <a id="notice-event"></a>
 ### `NOTICE_EVENT`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 수신·묶음과 분리한 개별 알림 사건입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `ai_job_id`, `feedback_id`, `source_change_id`, `publication_event_id`, `rights_case_id`, `credit_grant_id`, `withdrawal_id`, `auth_session_id`, `alert_id`, `kind`, `safe_summary`, `occurred_at`.
 - **참조:** `ai_job_id` → [`AI_JOB`](tables.md#ai-job).`id` (선택); `feedback_id` → [`FEEDBACK`](tables.md#feedback).`id` (선택); `source_change_id` → [`FORK_SOURCE_CHANGE`](tables.md#fork-source-change).`id` (선택); `publication_event_id` → [`PUBLICATION_EVENT`](tables.md#publication-event).`id` (선택); `rights_case_id` → [`RIGHTS_CASE`](tables.md#rights-case).`id` (선택); `credit_grant_id` → [`CREDIT_GRANT`](tables.md#credit-grant).`id` (선택); `withdrawal_id` → [`ACCOUNT_WITHDRAWAL`](tables.md#account-withdrawal).`id` (선택); `auth_session_id` → [`AUTH_SESSION`](tables.md#auth-session).`id` (선택); `alert_id` → [`OPERATION_ALERT`](tables.md#operation-alert).`id` (선택).
@@ -1304,6 +1586,8 @@
 
 <a id="user-notice"></a>
 ### `USER_NOTICE`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 회원에게 표시하는 알림 한 묶음과 읽음 상태입니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `recipient_id`, `created_at`, `read_at`.
@@ -1314,6 +1598,8 @@
 <a id="user-notice-event"></a>
 ### `USER_NOTICE_EVENT`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 묶음 알림의 개별 사건들을 빠짐없이 연결합니다. **전체·범위확인**.
 - **그림의 필드:** `notice_id`(PK), `event_id`(PK).
 - **참조:** `notice_id` → [`USER_NOTICE`](tables.md#user-notice).`id`; `event_id` → [`NOTICE_EVENT`](tables.md#notice-event).`id`.
@@ -1322,6 +1608,8 @@
 
 <a id="notice-preference"></a>
 ### `NOTICE_PREFERENCE`
+
+- **목표 정본 소유:** Core.
 
 - **역할·범위:** 회원이 끌 수 있는 종류별 알림 설정입니다. **전체·범위확인**.
 - **그림의 필드:** `member_id`(PK), `kind`(PK), `enabled`.
@@ -1332,8 +1620,10 @@
 <a id="notice-delivery-attempt"></a>
 ### `NOTICE_DELIVERY_ATTEMPT`
 
+- **목표 정본 소유:** Core.
+
 - **역할·범위:** 알림 전달의 성공·실패·재시도를 읽음과 분리합니다. **전체·범위확인**.
 - **그림의 필드:** `id`(PK), `notice_id`, `attempted_at`, `outcome`, `failure_reason`.
 - **참조:** `notice_id` → [`USER_NOTICE`](tables.md#user-notice).`id`.
-- **제약·한계:** 알림함만 지원. Redis 등 전달수단 미정; 전달 실패가 원래 업무결과를 되돌리지 않음.
+- **제약·한계:** 기존 알림 범위와 #89의 RabbitMQ/SSE/SNS 방향은 별도 기능표·계약을 따름. 분리 서비스의 사건·수신·전달 상세는 미정; 전달 실패가 원래 업무결과를 되돌리지 않음.
 - **연결 예시:** `id=1; notice_id=user_notice-1; outcome=종류/상태의 예시값`처럼 한 관계·사건을 기록합니다(가상 예시; 상태 enum 미확정).

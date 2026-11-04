@@ -8,7 +8,6 @@ import javax.crypto.spec.SecretKeySpec
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.security.config.Customizer.withDefaults
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -63,8 +62,6 @@ class AuthSecurityConfig {
                     "/api/v1/auth/signup", "/api/v1/auth/verify-email", "/api/v1/auth/resend-verification",
                     "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout", "/api/v1/auth/forgot-password",
                     "/api/v1/auth/reset-password", "/api/v1/auth/verify-email-change").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/public/works", "/api/v1/public/works/**").permitAll()
-                    .requestMatchers("/api/v1/works", "/api/v1/works/**").authenticated()
                     .requestMatchers("/api/v1/me", "/api/v1/me/email-change").authenticated()
                     .requestMatchers("/api/v1/auth/sessions", "/api/v1/auth/sessions/*", "/api/v1/auth/logout-all").authenticated()
                     .anyRequest().denyAll()

@@ -10,10 +10,10 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class AttachmentEnvironmentTest(unittest.TestCase):
-    def test_native_guidance_scopes_s3_settings_to_core_command(self):
+    def test_native_guidance_scopes_s3_settings_to_content_command(self):
         self.assertFalse((ROOT / "infrastructure/scripts/run-native.py").exists())
         readme = (ROOT / "infrastructure/README.md").read_text(encoding="utf-8")
-        native = readme.split("### 네이티브 Core 첨부 설정\n", 1)[1].split("\n## ", 1)[0]
+        native = readme.split("### 네이티브 Content 첨부 설정\n", 1)[1].split("\n## ", 1)[0]
         command = native.split("```bash\n", 1)[1].split("```", 1)[0]
         tokens = shlex.split(command.replace("\\\n", " "))
         self.assertEqual("env", tokens[0])
@@ -51,7 +51,7 @@ class AttachmentEnvironmentTest(unittest.TestCase):
             settings = service.get("environment", {})
             for key in ("SETTING_ATTACHMENTS_ENABLED", "ATTACHMENT_S3_ENDPOINT", "ATTACHMENT_S3_REGION", "ATTACHMENT_S3_BUCKET",
                         "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"):
-                self.assertEqual(name == "core-api", key in settings)
+                self.assertEqual(name == "content-service", key in settings)
                 self.assertNotIn(key, service.get("build", {}).get("args", {}))
             self.assertEqual(name == "ai-service", "OPENAI_API_KEY" in settings)
             self.assertNotIn("env_file", service)
@@ -59,19 +59,19 @@ class AttachmentEnvironmentTest(unittest.TestCase):
                 self.assertEqual("127.0.0.1", port["host_ip"])
         self.assertEqual("synthetic-s3-id", services["minio"]["environment"]["MINIO_ROOT_USER"])
         self.assertEqual("synthetic-s3-secret", services["minio"]["environment"]["MINIO_ROOT_PASSWORD"])
-        core = services["core-api"]["environment"]
-        self.assertEqual("true", core["CONTENT_ENABLED"])
-        self.assertEqual("true", core["SETTING_ATTACHMENTS_ENABLED"])
-        self.assertEqual("http://minio:9000", core["ATTACHMENT_S3_ENDPOINT"])
-        self.assertEqual("storyfork-setting-attachments", core["ATTACHMENT_S3_BUCKET"])
-        self.assertEqual("us-east-1", core["ATTACHMENT_S3_REGION"])
-        self.assertEqual("synthetic-s3-id", core["AWS_ACCESS_KEY_ID"])
-        self.assertEqual("synthetic-s3-secret", core["AWS_SECRET_ACCESS_KEY"])
-        self.assertEqual("service_healthy", services["core-api"]["depends_on"]["minio"]["condition"])
-        self.assertEqual(base["services"]["core-api"]["build"], services["core-api"]["build"])
+        content = services["content-service"]["environment"]
+        self.assertEqual("true", content["CONTENT_ENABLED"])
+        self.assertEqual("true", content["SETTING_ATTACHMENTS_ENABLED"])
+        self.assertEqual("http://minio:9000", content["ATTACHMENT_S3_ENDPOINT"])
+        self.assertEqual("storyfork-setting-attachments", content["ATTACHMENT_S3_BUCKET"])
+        self.assertEqual("us-east-1", content["ATTACHMENT_S3_REGION"])
+        self.assertEqual("synthetic-s3-id", content["AWS_ACCESS_KEY_ID"])
+        self.assertEqual("synthetic-s3-secret", content["AWS_SECRET_ACCESS_KEY"])
+        self.assertEqual("service_healthy", services["content-service"]["depends_on"]["minio"]["condition"])
+        self.assertEqual(base["services"]["content-service"]["build"], services["content-service"]["build"])
         self.assertEqual("/data", services["minio"]["volumes"][0]["target"])
         self.assertEqual("volume", services["minio"]["volumes"][0]["type"])
-        for name in set(base["services"]) - {"core-api"}:
+        for name in set(base["services"]) - {"content-service"}:
             self.assertEqual(base["services"][name], services[name])
 
     def test_example_has_active_local_and_commented_aws_settings(self):

@@ -26,6 +26,7 @@ env:
   AUTH_JWT_SECRET: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
   AUTH_COOKIE_SECURE: "false"
   INTERNAL_TOKEN: ci-test-only-internal-token
+  CONTENT_CORE_AUTH_TOKEN: ci-content-core-auth-only-0123456789abcdef
   OPENAI_API_KEY: ""
   OPENAI_MODEL: ""
 
@@ -103,7 +104,7 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
-      - if: ${{ matrix.service == 'core' }}
+      - if: ${{ matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' }}
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
@@ -133,7 +134,7 @@ jobs:
           if [[ "$SCOPE" != all ]]; then
             for feature in ${SCOPE//,/ }; do
               case "$feature" in
-                auth|content) packages=("$feature") ;;
+                auth) packages=("$feature") ;;
                 health) packages=(_health _health_ai_service _common) ;;
                 *) exit 1 ;;
               esac
@@ -141,6 +142,16 @@ jobs:
             done
           fi
           ./gradlew unitTest --no-daemon "${filters[@]}"
+      - name: JUnit Content pure unit tests (integration excluded)
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        run: ./gradlew unitTest --no-daemon
+      - name: JUnit skeleton resource unit tests (no Spring context)
+        if: ${{ matrix.service == 'operations' }}
+        working-directory: backend/${{ matrix.service }}-service
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: ./gradlew test --tests "ai.storyfork.${SERVICE}.*" --no-daemon
       - name: pytest isolated provider unit tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
@@ -149,7 +160,7 @@ jobs:
         run: pnpm --dir frontend lint && pnpm --dir frontend build
       - name: Sanitize failure reports
         if: ${{ failure() }}
-        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/ai-service/reports
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/operations-service/build/test-results backend/ai-service/reports
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ failure() }}
         with:
@@ -169,8 +180,8 @@ jobs:
       matrix: ${{ fromJSON(needs.changes.outputs.integration) }}
     services:
       postgres:
-        # 비 Core 작업에는 컨테이너를 생성하지 않는다.
-        image: ${{ matrix.service == 'core' && 'postgres:17-alpine' || '' }}
+        # Core와 Content 통합에서만 격리 DB를 생성한다.
+        image: ${{ (matrix.service == 'core' || matrix.service == 'content') && 'postgres:17-alpine' || '' }}
         env:
           POSTGRES_DB: storyfork_test
           POSTGRES_USER: content_test
@@ -178,12 +189,27 @@ jobs:
           POSTGRES_HOST_AUTH_METHOD: trust
         ports: ["127.0.0.1:5432:5432"]
         options: --health-cmd "pg_isready -U content_test -d storyfork_test" --health-interval 3s --health-timeout 3s --health-retries 20
+      postgres-password:
+        # WorldStudio migration 테스트만 비밀번호 인증에서도 재실행한다. 기존 trust DB는 유지한다.
+        image: ${{ matrix.service == 'content' && 'postgres:17-alpine' || '' }}
+        env:
+          POSTGRES_DB: worldstudio_password_test
+          POSTGRES_USER: worldstudio_test
+          POSTGRES_PASSWORD: worldstudio-ci-password
+          POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+        ports: ["127.0.0.1:5433:5432"]
+        options: --health-cmd "pg_isready -U worldstudio_test -d worldstudio_password_test" --health-interval 3s --health-timeout 3s --health-retries 20
       mailpit:
         image: ${{ matrix.service == 'core' && 'axllent/mailpit:v1.27' || '' }}
         ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
     env:
       CORE_DATABASE_PASSWORD: ""
       TEST_CONTENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      # Each WorldStudio fixture owns a separate temporary database in this CI service.
+      TEST_WORLDSTUDIO_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      TEST_WORLDSTUDIO_DATABASE_USER: content_test
+      TEST_WORLDSTUDIO_DATABASE_PASSWORD: ""
+      TEST_WORLDSTUDIO_DISPOSABLE: "true"
       AUTH_INTEGRATION_TEST: "true"
       AUTH_MAILPIT_API: http://127.0.0.1:8025
     steps:
@@ -201,7 +227,7 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
-      - if: ${{ matrix.service == 'core' }}
+      - if: ${{ matrix.service == 'core' || matrix.service == 'content' }}
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
@@ -229,7 +255,7 @@ jobs:
           if [[ "$SCOPE" != all ]]; then
             for feature in ${SCOPE//,/ }; do
               case "$feature" in
-                auth|content) packages=("$feature") ;;
+                auth) packages=("$feature") ;;
                 health) packages=(_health _health_ai_service _common) ;;
                 *) exit 1 ;;
               esac
@@ -237,21 +263,36 @@ jobs:
             done
           fi
           ./gradlew integrationTest --no-daemon "${filters[@]}"
+      - name: JUnit Content Spring HTTP and fresh PostgreSQL integration tests
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        run: ./gradlew integrationTest --no-daemon
+      - name: WorldStudio migration with PostgreSQL password authentication
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        env:
+          TEST_WORLDSTUDIO_DATABASE_URL: jdbc:postgresql://127.0.0.1:5433/worldstudio_password_test
+          TEST_WORLDSTUDIO_DATABASE_USER: worldstudio_test
+          TEST_WORLDSTUDIO_DATABASE_PASSWORD: worldstudio-ci-password
+          TEST_WORLDSTUDIO_PASSWORD_AUTH: "true"
+        run: ./gradlew integrationTest --tests ai.storyfork.content.world.WorldStudioMigrationPostgresTest --no-daemon --rerun-tasks
       - name: pytest FastAPI HTTP integration tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
         run: uv run --locked --extra dev python -m pytest -m integration --junitxml=reports/integration.xml
       - name: Collect isolated dependency logs
-        if: ${{ failure() && matrix.service == 'core' }}
+        if: ${{ failure() && (matrix.service == 'core' || matrix.service == 'content') }}
         env:
           POSTGRES_ID: ${{ job.services.postgres.id }}
+          PASSWORD_POSTGRES_ID: ${{ job.services.postgres-password.id }}
           MAILPIT_ID: ${{ job.services.mailpit.id }}
         run: |
           docker logs "$POSTGRES_ID" > "$RUNNER_TEMP/postgres.log" 2>&1 || true
-          docker logs "$MAILPIT_ID" > "$RUNNER_TEMP/mailpit.log" 2>&1 || true
+          if [[ -n "$PASSWORD_POSTGRES_ID" ]]; then docker logs "$PASSWORD_POSTGRES_ID" >> "$RUNNER_TEMP/postgres.log" 2>&1 || true; fi
+          if [[ -n "$MAILPIT_ID" ]]; then docker logs "$MAILPIT_ID" > "$RUNNER_TEMP/mailpit.log" 2>&1 || true; fi
       - name: Sanitize failure reports
         if: ${{ failure() }}
-        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log"
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ failure() }}
         with:
@@ -288,7 +329,7 @@ jobs:
           HTTP_BASE_URL="http://$(docker compose --env-file .env.example port web 80)"
           MAILPIT_API_URL="http://$(docker compose --env-file .env.example port mailpit 8025)"
           printf '%s\n' "HTTP_BASE_URL=$HTTP_BASE_URL" "MAILPIT_API_URL=$MAILPIT_API_URL" >> "$GITHUB_ENV"
-          for url in "$HTTP_BASE_URL/api/v1/health" "$HTTP_BASE_URL/api/v1/health/ai-service" "$MAILPIT_API_URL/api/v1/messages"; do
+          for url in "$HTTP_BASE_URL/api/v1/health" "$HTTP_BASE_URL/api/v1/health/ai-service" "$HTTP_BASE_URL/api/v1/public/works" "$MAILPIT_API_URL/api/v1/messages"; do
             curl --retry 60 --retry-delay 2 --retry-all-errors --max-time 10 --fail --silent --show-error --output /dev/null "$url"
           done
       - name: pytest selected real HTTP and persistence flows

@@ -1,5 +1,7 @@
 # 이슈 #50 회차 생성·원고 관리 대응
 
+> **범위:** 아래 Core·DB·경로·검증 이력은 분리 전 실제 구현을 설명한다. [DEC-41 목표](design/service-boundaries.md)에서 콘텐츠 정본·인가·발행·첨부는 콘텐츠 서비스로 이전하고 회원·인증·크레딧·알림은 Core에 남긴다. 기존 API·Flyway·데이터는 보존하며 이 문서 갱신은 이전 실행이나 과거 검증의 재실행을 의미하지 않는다.
+
 기준: [팀 이슈 #50](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50), 2026-11-02 확인. 본문 전체와 댓글(0개), UC-10·UC-13 및 현재 ERD를 대조했다. 이전 시제품은 저장·권한 기반은 공유하지만 회차 관리와 초안/버전 구분이 달라, #50을 이번 작업의 우선 기준으로 전환했다.
 
 | 요구 | 변경 전 | 이번 대응 |
@@ -21,7 +23,7 @@
 
 ## API와 연결
 
-공개 Core 경로 `/api/v1/works/{id}/episodes`에 GET 목록·POST 생성을 제공한다. `/{number}`는 GET 상세, `/{number}/draft`는 PUT 초안 갱신, `/{number}/versions`는 POST 수동 저장, `/{number}/restore`는 POST 복원, `/{number}/publish`는 POST 저장 버전 공개다. 작성 요청은 서버 Principal의 작품 소유권을 검증한다. 개발 작성자 예외는 기존 localhost 설정에서만 동작한다.
+공개 Core 경로 `/api/v1/works/{id}/episodes`에 GET 목록·POST 생성을 제공한다. `/{number}`는 GET 상세, `/{number}/draft`는 PUT 초안 갱신, `/{number}/versions`는 POST 수동 저장, `/{number}/restore`는 POST 복원, `/{number}/publish`는 POST 저장 버전 공개다. 작성 요청은 서버 Principal의 작품 소유권을 검증한다. 현재 비공개 콘텐츠 API는 실제 JWT 인증을 요구하며 개발 작성자 설정으로 SecurityFilterChain을 우회하지 않는다.
 
 React는 기존 EpisodeUseCase·EpisodeRepository와 Awilix 조립을 재사용한다. ViewModel이 요청 취소·중복 방지·오류·저장 상태를 관리하며 HTTP 응답은 Zod로 검증한다. `/content`의 작품을 선택한 뒤 `회차별 집필실 열기`로 이동한다. 작품·세계관 관리의 기존 기능은 보존한다. 이미지·인물 `@` 연결·AI 기능 추가는 #50의 현재 작업 범위에 포함하지 않는다.
 
@@ -63,3 +65,8 @@ Aside는 아래 2026-11-03 재검증 결과를 따른다. Docker와 Required CI 
 - CD 테스트는 Windows에서 Linux 전용 `fcntl` 부재로 실행 불가였다. Ubuntu WSL에서는 7개 중 6개 통과, Compose 설정 테스트 1개는 WSL Docker 연동 부재로 실패했다. Windows의 별도 Compose 설정 검사를 이 전체 테스트의 통과로 간주하지 않는다. 컨테이너 기동·Tailscale/SSH 배포·Required CI는 미검증이다.
 - 새 `compose.cd.yaml`은 Health 전용 3개 서비스이며 콘텐츠 PostgreSQL·인증·내부 생성 토큰을 공급하지 않는다. 현재 콘텐츠 기능은 기존 dev/prod + `compose.content.yaml` 또는 네이티브 실행 경로를 사용한다. CD에 콘텐츠 저장소를 임의 추가하지 않았고 CD Health 성공을 집필 기능 배포 성공으로 표현하지 않는다.
 - ponytail-review: 두 변경을 모두 보존하는 최소 충돌 해소이며 신규 의존성·추상화·배포 활성화는 없다. 추가 수정 지적 없음. Graphify AST를 갱신했으나 SQL/PDF 추출 의존성 부재 한계가 있다. 이번 수정은 CI·예시 설정에 한정되어 사용자 흐름의 Aside 재실행은 제외하며, 위 실제 Aside 검증 결과를 유지한다. 커밋·푸시는 하지 않았다.
+
+
+## #84 구조 전환
+
+회차 API 계약을 유지하며 Core 책임을 분리하고 JPA로 전환한다. 자동 저장은 EpisodeService, 수동 버전·복원은 EpisodeVersionService, 발행은 PublicationService가 담당한다. 삭제 정책은 보류하며 삭제 API·UI를 추가하지 않는다. 과거 검증과 구분한 이번 결과는 [#84 대응](issue-84-content-boundaries.md)에 기록한다.

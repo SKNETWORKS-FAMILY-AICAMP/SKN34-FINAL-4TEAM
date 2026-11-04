@@ -4,6 +4,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '2.4.10'
     id 'org.jetbrains.kotlin.plugin.spring' version '2.4.10'
     id 'org.jetbrains.kotlin.plugin.jpa' version '2.4.10'
+    id 'org.jetbrains.kotlin.plugin.allopen' version '2.4.10'
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -18,6 +19,10 @@ idea {
 group = 'ai.storyfork'
 version = '0.0.1-SNAPSHOT'
 description = 'STORYFORK Core API'
+
+springBoot {
+    mainClass = 'ai.storyfork.core.CoreApiApplicationKt'
+}
 
 java {
     toolchain {
@@ -39,17 +44,17 @@ repositories {
     mavenCentral()
 }
 
+allOpen {
+    annotation('jakarta.persistence.Entity')
+    annotation('jakarta.persistence.MappedSuperclass')
+    annotation('jakarta.persistence.Embeddable')
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation('software.amazon.awssdk:s3:2.57.8') {
-        exclude group: 'software.amazon.awssdk', module: 'apache-client'
-        exclude group: 'software.amazon.awssdk', module: 'apache5-client'
-        exclude group: 'software.amazon.awssdk', module: 'netty-nio-client'
-    }
-    implementation 'software.amazon.awssdk:url-connection-client:2.57.8'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql'
@@ -70,16 +75,14 @@ dependencies {
 // 새 경계 테스트는 이 목록에도 포함한다 (infrastructure/ci/test_ci.py가 누락을 검사).
 def integrationTestClasses = [
     '**/*IntegrationTest.class', '**/*PostgresTest.class',
-    '**/ContentMigrationTest.class', '**/CoreApiApplicationTest.class',
-    '**/HealthControllerTest.class', '**/ContentAuthorizationTest.class',
+    '**/CoreApiApplicationTest.class', '**/HealthControllerTest.class',
     '**/AiServiceClientPropertiesTest.class', '**/AiServiceHealthClientTest.class',
-    '**/AiServiceHealthControllerTest.class',
-    '**/AttachmentConfigTest.class', '**/SettingAttachmentHttpTest.class',
-    '**/AttachmentStorageClientTest.class', '**/AttachmentMigrationLocationTest.class'
+    '**/AiServiceHealthControllerTest.class'
 ]
 
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    failOnNoDiscoveredTests = true
     filter { failOnNoMatchingTests = true }
 }
 
@@ -90,6 +93,8 @@ tasks.register('unitTest', Test) {
 }
 
 tasks.register('integrationTest', Test) {
+    // Close evicted contexts and their pools before exhausting the isolated CI database.
+    systemProperty 'spring.test.context.cache.maxSize', '4'
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     include integrationTestClasses

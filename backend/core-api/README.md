@@ -1,6 +1,14 @@
 # STORYFORK Core Service (현재 모듈: `core-api`)
 
-Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하며 `CONTENT_ENABLED=true`일 때 PostgreSQL 기반 콘텐츠 API를 활성화합니다. 작품·원고·설정집·버전·Fork·발행 구현은 [콘텐츠 통합 안내](../../docs/content-integration.md)를 참고하세요. 콘텐츠 소유자는 인증된 JWT의 회원 UUID를 사용합니다. 실제 약관·동의·회원 탈퇴·그래프 DB·크레딧은 미구현이며 운영 가입용이 아닙니다.
+Spring Boot·Kotlin의 Auth·세션·Health API와 Content 전용 내부 인증 확인을 제공합니다. 기존 콘텐츠·첨부·WorldStudio 코드/테스트는 [Content Service](../content-service/README.md)로 추출했습니다. hosted CI·실제 DB 전환·배포는 대기입니다. 실제 약관·동의·회원 탈퇴·그래프 DB·크레딧은 미구현이며 운영 가입용이 아닙니다.
+
+## 목표 소유권과 현재 모듈 (DEC-41)
+
+[4개 서비스 경계](../../docs/design/service-boundaries.md)의 Core 정본은 회원·인증·세션·크레딧·정산·회원 알림입니다. 작품·세계관·회차·원고·버전·Fork·발행·독서·검색·작품 피드백·첨부와 콘텐츠 인가는 별도 Kotlin/Spring Boot 콘텐츠 앱으로 이전할 대상입니다. 문의·공지·이벤트·신고 사건·소명·운영 결정·감사·작업 감시는 별도 Kotlin/Spring Boot 운영 앱, 모델 실행은 Python AI 앱의 책임입니다. 운영 결정에 따른 회원 제한은 Core, 콘텐츠 제한은 콘텐츠 서비스가 실제 적용합니다.
+
+Core 8080과 Content 8081은 기존 같은 DB 대상·계정을 쓰되 writer·Entity/Repository·migration을 나눕니다. 운영 8082는 기존 실행 골격 그대로입니다. 기존 works URL은 공개 진입점에서 Content로 보내며 Core는 중계하지 않습니다. 아래 첨부 #87/#92 계약은 기존 문서 링크 호환을 위해 보존하지만 실행 소유자는 Content입니다. 사용자 승인 fresh Content 이력은 과거 checksum과 비호환이며 정확한 대상·보존/복구 승인 전 실제 DB를 폐기하지 않습니다. Auth SQL/이력은 유지합니다.
+
+LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합니다. 자체 UI 또는 운영 화면 API 통합은 미정이고 Core/Spring에서 제품 전체를 재구현하지 않습니다. 업무별 정기 작업은 소유 서비스가 실행하고 운영은 감시·재실행 요청을 담당합니다.
 
 ## 공개 계약
 
@@ -49,7 +57,9 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가�
 
 ## 구조
 
-콘텐츠 정본은 최신 ERD에 따른 관계형 테이블에 저장합니다. 기존 JSONB는 읽기 전용 이관 백업으로 남깁니다. [ERD 대응과 마이그레이션](../../docs/content-erd-migration.md)에 테이블별 역할·기존 데이터 보존·남은 범위를 기록했습니다.
+Core는 `auth`·`_health`·`_health_ai_service`와 필요한 `_common`만 실행합니다. #84의 콘텐츠별 Controller/Service/JPA·잠금·revision·공개 DTO 계약은 [Content](../content-service/README.md)에 유지합니다. Content는 fresh 7개 업무 leaf/전역 V1~V9/`content_schema_history`를 소유하고 통합 migration 폴더·legacy JSONB importer를 제거했습니다. 이 재작성은 Auth 이력에 적용하지 않습니다.
+
+WorldStudio는 [Content의 명시 migration 계약](../content-service/src/main/resources/db/migration/worldstudio/README.md)을 따릅니다. 동일 `contentDataSource`와 studio-only EntityManager/TransactionManager로 validate하며 Core Auth 스캔·기본 영속성 단위를 공유하지 않습니다. V1 SQL/독립 history는 보존하고 HTTP/UI는 여전히 미연결입니다.
 
 Gradle group `ai.storyfork`, 애플리케이션 `storyfork-core-api`, Kotlin namespace `ai.storyfork.core`입니다.
 main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 package와 일치합니다.
@@ -59,10 +69,8 @@ main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 
 - Health의 `controller/dto`: 공개 응답, `client/dto`: 신뢰하지 않는 외부 payload, `service/dto`: 검증된 결과.
 - `auth/controller → service → repository`: Controller는 필요한 쿠키·헤더와 검증된 JWT만 받고, Service는 업무·트랜잭션, Spring Data `JpaRepository`는 `auth/entity` 영속성을 담당합니다.
 - `auth/service/dto`: 클래스별 요청·응답 계약을 Controller와 Service가 공유합니다. `LoginResult`의 내부 refresh token은 Controller에서 HttpOnly 쿠키로만 보내며 공개 `LoginResponse`에는 포함하지 않습니다.
-- Auth는 기존 UUID·스키마와 Flyway 파일·`flyway_schema_history`를 유지합니다. Hibernate는 `validate`만 수행하며 Open Session in View는 사용하지 않습니다. 기존 Content JDBC·별도 마이그레이션 경로는 이번 Auth 전환에 포함하지 않습니다.
+- Auth는 기존 UUID·스키마와 Flyway 파일·`flyway_schema_history`를 유지합니다. Hibernate는 `validate`만 수행하며 Open Session in View는 사용하지 않습니다. Content Entity/Repository·migration은 이 앱에서 등록하지 않습니다.
 - 로그인·복구·이메일 변경·refresh 회전·세션 폐기는 회원의 JPA `PESSIMISTIC_WRITE` 잠금으로 직렬화합니다. 토큰 재사용 폐기는 Service가 정상 반환해 커밋한 뒤 Controller에서 401로 변환합니다. 신규 가입 후보의 최초 삽입 충돌만 새 트랜잭션에서 한 번 재시도하며 메일 실패 시 후보 변경을 롤백합니다.
-- `attachment/controller → AttachmentService → repository / AttachmentStorageClient`: 설정 첨부·작품 표지·회차 이미지를 하나의 서비스에서 처리하며 Controller와 각 리소스의 권한·오류 계약은 유지합니다.
-- `attachment/AttachmentConfig`·`AttachmentProperties`: 공용 저장소·JPA 설정이며 기존 `app.setting-attachments` 속성과 활성화 조건을 유지합니다.
 - `_common/ai_config`: AI 주소·timeout·RestClient 설정.
 - `_common/helper`: 기존 HTTP 설정 검증과 통신 실패 분류 경계.
 - `_common/exception`: AI 실패 분류와 안전한 ProblemDetail.
@@ -86,7 +94,7 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `AI_SERVICE_BASE_URL` | `http://127.0.0.1:8000` |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` (Health) |
-| `AI_GENERATION_READ_TIMEOUT` | `75s` (생성) |
+| `CONTENT_CORE_AUTH_TOKEN` | 기본 빈 값; Content 인증 연결 시 32자 이상·개행 없는 별도 자격 |
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
 | `CORE_DATABASE_URL`, `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD` | 필수 |
 | `CORE_SMTP_HOST`, `CORE_SMTP_PORT` | 필수 |
@@ -94,13 +102,12 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `AUTH_JWT_SECRET` | 필수, 32바이트 이상의 무작위 키를 Base64 인코딩 |
 | `AUTH_COOKIE_SECURE` | `true`; 로컬 HTTP 검증에서만 `false` |
 
-`ContentConfig`는 생성 전용 HTTP 클라이언트를 만들며 Health 클라이언트의 제한시간을 변경하지 않습니다.
-AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
+Core는 AI Health만 호출합니다. 생성 전용 HTTP 클라이언트는 Content에 있습니다. AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 `./gradlew bootRun`은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달은 Compose를 사용합니다.
 루트 `.env` 전체를 source하거나 Core에 OpenAI 키를 주입하지 않습니다.
 Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 web 포트에 맞춥니다.
 공통 `docker-compose.yaml` + prod는 기존 PostgreSQL·Mailpit과 소스 빌드 앱을, base + dev는 CI의 `:develop` 앱 이미지와 기존 외부 DB·SMTP를 사용합니다. base 단독 실행이나 dev 서버 소스 build는 하지 않습니다.
-콘텐츠는 기본 비활성이며 `CONTENT_ENABLED=true`일 때도 Auth와 같은 DB·자격증명을 사용합니다. 실제 `INTERNAL_TOKEN`은 Core·AI에만 전달하고 개발 Principal은 주입하지 않습니다.
+Content의 활성화·DB·AI 생성 토큰·S3 설정은 Content에만 전달합니다. Core에는 `CONTENT_CORE_AUTH_TOKEN` 외 Content runtime 설정·JWT 키 공유·개발 Principal을 추가하지 않습니다.
 실행 설정은 [인프라 안내](../../infrastructure/README.md)를 참고하세요.
 
 ### CI 계층과 선택 실행
@@ -110,10 +117,8 @@ Compose는 내부 DNS `http://ai-service:8000`을 고정 사용하고 CORS를 we
 `AiServiceClientPropertiesTest`처럼 context가 섞인 클래스도 통합입니다. 새 Spring/HTTP/DB 테스트는 분류 목록을 갱신합니다.
 
 CI가 이 디렉터리에서 `./gradlew unitTest --no-daemon --tests 'ai.storyfork.core.auth.*'`와 `./gradlew integrationTest --no-daemon --tests ...`를 직접 호출합니다. 별도 runner·shell wrapper는 없습니다.
-Gradle `--tests`의 기존 기능 범위는 auth/content/health이며 공통·설정·의존성·미등록 `attachment` 변경은 필터 없이 Core 전체로 확장합니다.
-Auth·Content 실행 코드 변경도 새 첨부 소비 관계를 포함하도록 Core 전체를 검증하며 테스트만 변경하면 기존 기능 범위를 유지합니다.
-통합 job은 임시 PostgreSQL·Mailpit에서 기존 Flyway와 `AUTH_INTEGRATION_TEST=true`, `AUTH_MAILPIT_API`, `TEST_CONTENT_DATABASE_URL` 조건부 테스트를 실행합니다.
-Content의 기존 `content_test`/빈 비밀번호는 격리 runner PostgreSQL trust 인증에만 적용하며 운영 설정이 아닙니다.
+Core의 기능 필터는 auth/health이며 공통·설정·의존성·미등록 경로는 전체로 확장합니다. Auth runtime 변경은 Content/web 소비자와 시스템도 선택합니다. 이전된 콘텐츠 테스트는 Content job에서 실행합니다.
+통합은 임시 PostgreSQL·Mailpit의 Auth Flyway/내부 보안을 확인하고 `AUTH_INTEGRATION_TEST=true`·`AUTH_MAILPIT_API`를 설정합니다. Content의 fresh DB/JPA/HTTP 검사는 별도 Content job 책임입니다.
 그 뒤 관련 HTTP 시스템 시나리오가 CI Compose에서 실행됩니다. [공통 검증](../../README.md#검증)을 따르며 실제 hosted `Required CI` 결과 확인 전에는 검증 대기입니다.
 
 회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.
@@ -170,10 +175,8 @@ AttachmentResponse는 `id`, `filename`, `mediaType`, `kind`(`IMAGE`/`FILE`), `by
 
 첨부 영속성은 `attachment/controller → AttachmentService → JpaRepository / AttachmentStorageClient`로 분리합니다.
 DTO는 `attachment/service/dto`, 저장소 전용 DTO는 `attachment/client/dto`에 둡니다.
-기존 Auth JPA·Content JDBC 경계는 유지하며 새 직접 SQL 영속성은 추가하지 않습니다.
-새 Flyway는 `db/migration/settingattachment`와 `setting_attachment_schema_history`를 사용합니다.
-Auth SQL은 **내용·파일명·버전·기존 `flyway_schema_history`를 유지**하고 `db/migration/auth`로만 이동했습니다.
-독립 V1 충돌을 피하도록 Auth location도 그 leaf만 읽습니다. 첨부 EntityManager 초기화는 Auth Flyway → 기존 Content → 첨부 migration 순서를 명시해 빈 DB에서도 Auth 이력이 먼저 생성되게 합니다. 기존 Content의 location/history는 변경하지 않았습니다.
+Content 내 별도 attachment JPA·bounded pool 경계를 유지하며 직접 SQL 영속성은 추가하지 않습니다. `db/migration/settingattachment`/`setting_attachment_schema_history`와 이미지 leaf/history의 SQL 바이트는 보존합니다.
+Compose의 Core Auth Health → Content fresh 업무 migration → 첨부 EntityManager 순서로 시작합니다. 첨부 설정은 Auth를 직접 호출하거나 스캔하지 않습니다. Auth SQL과 `flyway_schema_history`는 Core만 소유합니다.
 
 교체는 새 UUID object에 먼저 업로드하며, 삭제/교체는 기존 바이트를 크기 제한 내 메모리에 보관한 후 DB flush → 기존 object 삭제 → commit 순서입니다.
 저장소 삭제가 실패하거나(서버 반영 후 응답 유실 포함) DB commit이 실패하면 transaction을 rollback하고 기존 object를 복원합니다.
@@ -186,10 +189,10 @@ Auth SQL은 **내용·파일명·버전·기존 `flyway_schema_history`를 유�
 ### 선택 검증
 
 ```bash
-# 로컬에서 허용하는 선택 순수 단위 검사
-./gradlew unitTest --tests 'ai.storyfork.core.attachment.AttachmentServiceTest' --tests 'ai.storyfork.core.attachment.AttachmentUploadHelperTest' --no-daemon
-# 아래는 CI/별도 승인된 격리 환경의 통합 호출 형식이며 로컬 자동 검증 목록이 아닙니다.
-./gradlew integrationTest --tests 'ai.storyfork.core.attachment.*' --no-daemon
+# backend/content-service에서 로컬 선택 순수 단위만
+./gradlew unitTest --tests 'ai.storyfork.content.attachment.AttachmentServiceTest' --tests 'ai.storyfork.content.attachment.AttachmentUploadHelperTest' --no-daemon
+# 아래는 hosted CI 형식이며 로컬 자동 검증 목록이 아닙니다.
+./gradlew integrationTest --tests 'ai.storyfork.content.attachment.*' --no-daemon
 ```
 
 `AttachmentStorageClientTest`의 대역 HTTP와 `AttachmentMigrationLocationTest`의 H2/Flyway도 통합 계층입니다.
@@ -202,9 +205,14 @@ HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필
 `Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다.
 #92는 화면·브라우저 호출부를 변경하므로 Aside에서 실제 정상·실패 입력/클릭/API/화면 결과 확인이 필요합니다. HTTP·저장소 검증만으로 브라우저 E2E를 통과 처리하지 않습니다.
 
+## WorldStudio 개발 배포 명령
+
+일반 서버 시작과 별도로 **Content 이미지**의 Boot `PropertiesLauncher`에서 `ai.storyfork.content.world.migration.WorldStudioMigration` main을 실행합니다. Auth/Content context 없이 독립 Flyway migrate·validate를 수행합니다. 기존 같은 DB를 `CONTENT_DATABASE_URL/USER/PASSWORD`로 받고 별도 DB·계정·풀은 없습니다. 기본 비활성이며 정확한 대상 allowlist·백업 복원 기록과 Content fresh 전환 승인이 필요합니다. CD는 ingress/구 writer 중지 뒤 명령 성공을 확인하고 새 앱을 시작하며 실패 시 자동 rollback하지 않습니다.
+자격증명·운영자 절차는 [WorldStudio 배포 문서](../../docs/deployment/worldstudio-v1-rollout.md)를 참고하세요.
+
 ## 작품 표지·원고 이미지 (#92)
 
-기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `attachment/controller → AttachmentService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. 기존 Auth/Content/설정 첨부 migration의 바이트·history는 변경하지 않습니다.
+기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `attachment/controller → AttachmentService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. Auth·설정 첨부·이미지·독립 Studio SQL 바이트/history는 보존합니다. Content 업무 초기 스키마만 사용자 승인 fresh 이력으로 재작성했습니다.
 
 | 메서드·경로 (`/api/v1` 기준) | 요청·응답·권한 |
 |---|---|
@@ -217,10 +225,12 @@ HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필
 | `GET /works/{workId}/episodes/{number}/images/{imageId}/content` | 소유 회차의 이미지 bytes; inherited 회차는 고정된 원고에 포함된 참조만 허용 |
 | `GET /public/works/{workId}/episodes/{number}/images/{imageId}/content` | 정확한 공개 회차 원고에 포함된 참조만 익명 bytes |
 
-표지·본문은 PNG/JPEG와 위 10 MiB/픽셀/파일명 검증을 적용합니다. 응답 URL은 Core 상대 경로이고 다운로드는 `private, no-store`, `nosniff`, 검증된 image MIME·inline disposition을 사용합니다. 타인/다른 회차/미존재는 404, 미인증 401, CSRF 403, 파일 검증 422/413, 회차 저장 이미지 10개 초과는 409, 저장소/DB 실패는 안전한 503입니다. 작품 행 잠금으로 표지 변경·회차 이미지 한도를 직렬화합니다.
+표지·본문은 PNG/JPEG와 위 10 MiB/픽셀/파일명 검증을 적용합니다. 응답 URL은 기존 공개 상대 경로이고 다운로드는 `private, no-store`, `nosniff`, 검증된 image MIME·inline disposition을 사용합니다. 타인/다른 회차/미존재는 404, 미인증 401, CSRF 403, 파일 검증 422/413, 회차 저장 이미지 10개 초과는 409, 저장소/DB 실패는 안전한 503입니다. 작품 행 잠금으로 표지 변경·회차 이미지 한도를 직렬화합니다.
 
 원고는 `[[image:<UUID>]]`를 본문 문자열의 삽입 위치에 저장합니다. 서버는 동일 작품·회차에 업로드된 참조만 저장하며 `data:image` 본문은 거절합니다. 초안·불변 버전·복원·발행은 기존 계약을 사용합니다. 이미지 bytes는 불변이며 교체/삭제 API를 두지 않습니다. 현재 원고에서 marker를 지워도 과거 버전의 bytes는 보존됩니다. **회차당 10개는 현재 참조 수가 아니라 업로드해 보존하는 원본 총수**이며 marker 삭제로 자리가 반환되지 않습니다. 기존 Fork의 기준 원고 접근만 재사용하며 새로운 설정 첨부 공유·발행 정책은 추가하지 않습니다.
 
 표지 교체는 새 비공개 UUID object 업로드 후 DB 참조를 바꾸고 삭제는 DB 참조만 지웁니다. 실패·모호한 commit으로 기존 파일을 잃지 않도록 이전 표지와 실패 업로드의 미참조 object는 보존할 수 있습니다. 따라서 논리 삭제는 버킷 원본의 즉시 영구 삭제가 아닙니다. 자동 lifecycle/정리 worker는 없으며 운영자가 DB key와 비공개 버킷을 대조·정리해야 합니다. DB/S3 분산 원자성·저장 비용/운영 삭제 정책은 보장하지 않습니다.
 
 프론트 `/content` 작품 생성의 선택 표지, 기존 표지 관리, 실제 설정 첨부 CRUD와 `/studio/{UUID}` 커서 위치 본문 이미지가 이 API를 사용합니다. 생성 후 표지 실패는 생성된 작품을 유지해 중복 생성 없이 재시도합니다. 취소/응답 유실은 서버 미처리를 보장하지 않으므로 새로고침으로 확인합니다. 브라우저는 인증 bytes → Blob URL로 표시하고 교체·이탈 시 해제하며 TXT 내보내기는 이미지·marker 없는 텍스트 전용입니다. EPUB은 추가하지 않습니다.
+
+Content 세계관의 `world.entity`·`world.repository`와 독립 WorldStudio의 `world.studio.entity`·`world.studio.repository`는 별도 JPA 스캔 범위입니다. Content의 `WorldRepository`(String)와 WorldStudio의 `StudioWorldRepository`(UUID)를 구분하며, WorldStudio 비활성 시 Content에 독립 스키마를 요구하지 않습니다. 공존 검증은 현재 WorkService·WorldService와 WorldStudioService로 수행합니다.

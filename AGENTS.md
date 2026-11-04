@@ -7,6 +7,7 @@
 
 - `frontend/**` → [Frontend 지침](frontend/AGENTS.md)
 - `backend/core-api/**` → [Core Service 구현 지침](backend/core-api/AGENTS.md) (`core-api`는 현행 모듈명)
+- `backend/content-service/**` → [Content Service 구현 지침](backend/content-service/AGENTS.md)
 - `backend/ai-service/**` → [AI Service 지침](backend/ai-service/AGENTS.md)
 
 제품 목표·사용자 흐름·미정 정책은 [README](README.md), 현재 실행 구조는 [아키텍처 문서](docs/architecture.md)를 참고한다.
@@ -15,17 +16,20 @@
 ## 제품과 현재 상태
 
 - STORYFORK는 다중 AI 에이전트 기반 독자 참여형 스토리 창작·피드백 플랫폼이다.
-- 현재는 시작 화면과 Core·AI Health만 제공하는 개발 기반이다. STORYFORK 업무 기능은 아직 미구현이다.
+- Core는 회원·인증·세션·Health를 유지하고 기존 콘텐츠·첨부·WorldStudio 코드/테스트는 content-service로 추출했다. 인증 확인·공개 라우팅·이미지/CI 연결은 소스 구현 상태이며 hosted CI·실제 DB 전환·배포는 확인 대기다. 운영은 골격 그대로다. Frontend의 `/content`와 UUID `/studio/{id}`는 기존 URL의 Content API를 사용하며 서재·열람·Fork 메모리 데모의 실제 인증 연결과 전체 세계관 체크포인트 등은 후속 작업이다. 실행·검증 범위는 현재 아키텍처와 기능표를 확인한다.
 - 기획 목표·확정 계약·미정 사항·실제 구현을 구분한다. 기획에 있다는 이유만으로 기능·정책을 선제 구현하지 않는다.
 
 ## 서비스 책임
 
 - 기존 MSA 서비스 경계를 발전시킨다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
   백엔드는 기능 중심 레이어드 구조를 유지한다. 세부 규칙은 [Frontend 지침](frontend/AGENTS.md)을 따른다.
-- **Frontend:** 독자·작가의 전체 화면을 맡고 작가 도구는 하위 기능이다. 공개 Core Service HTTP API만 호출한다.
-- **Core Service:** 작품·세계관·회차 버전·Fork의 정본과 권한·승인·발행·크레딧의 최종 판단·저장을 소유한다. 현행 `core-api` 모듈·URL 이름은 유지한다.
-- **AI Service:** 허용된 문맥에서 선택적 생성·시뮬레이션·검토 제안을 반환한다. 정본 직접 수정이나 권한·과금 확정을 하지 않는다.
-- 기본 호출 방향은 `Frontend → Core Service → AI Service`다. 모델·제공사·프레임워크는 미정이며 Agent 역할마다 서버를 만들지 않는다.
+- 서비스 경계는 [DEC-41 및 서비스 구조](docs/design/service-boundaries.md)와 [이관 계약](docs/design/content-service-migration-contract.md)을 따른다. 코드 추출·같은 DB의 writer/migration 소유 분리·실제 DB/배포 전환은 구분한다. 개발용 Content fresh 이력 재작성만 승인됐으며 Auth·첨부·WorldStudio 이력은 유지한다. 정확한 대상·보존/복구 범위의 별도 승인 없이 실제 DB를 폐기하지 않는다.
+- **Frontend:** 독자·작가 전체 화면. 단일 공개 진입점을 통해 Core·콘텐츠·운영의 공개 API를 사용하며 AI·DB·외부 모델을 직접 호출하지 않는다. 현재 라우트·인증 계약은 이전 전 보존한다.
+- **Core:** 회원·인증·세션·크레딧·정산·회원 알림의 정본과 최종 판단. 기존 core-api를 재사용한다.
+- **콘텐츠:** 작품·세계관·회차·원고·버전·Fork·발행·독서·검색·작품 피드백·첨부와 콘텐츠 인가·채택·반영의 정본. 별도 Kotlin/Spring Boot 앱으로 분리한다.
+- **운영:** 고객지원·공지·이벤트·신고 사건·소명·운영 결정·감사·작업 감시. 별도 Kotlin/Spring Boot 앱으로 분리한다. 회원·콘텐츠의 실제 조치는 소유 서비스에 요청한다.
+- **LLMOps:** 운영 영역으로 분류한다. Langfuse는 도입 시 별도 제품 서비스로 배포하며, 자체 UI 또는 운영 화면 API 통합은 미정이다. Spring으로 전체 제품 기능을 재구현하지 않는다.
+- **AI:** 허용 문맥에서 요청된 생성·시뮬레이션·검토 결과를 반환한다. 정본 수정·권한·발행·정산의 최종 판단을 하지 않는다. 업무별 호출·인증·알림 계약은 후속 설계하며 Agent 역할마다 서버를 만들지 않는다.
 - 원작·Fork·초안·시뮬레이션 상태를 구분한다. Fork 기준 회차·버전은 보존한다. 기준 회차에 공개된 세계관 전체는 인물 상태·지식·관계까지 포함한다. 수정 전에는 해당 회차에 영향을 주는 원본 변경을 따라가고, 최초 수정으로 독립한 뒤에는 알림과 사용자 선택으로 반영한다(DEC-37).
 - 설정은 항목별 공개·비공개와 회차별 공개 범위를 둔다. 기본은 비공개며 미발행 원고·권한 밖 정보·캐릭터 지식을 혼합하지 않는다. AI 제안과 사용자 승인·실제 반영은 구분한다(DEC-36).
 - MVP 저장 방향은 PostgreSQL의 원문·버전·체크포인트·Fork와 그래프 DB의 관계 저장·조회다. `pg_git`은 MVP에 적용하지 않으며 그래프 제품·정합성 방식은 미정이다.
@@ -152,7 +156,7 @@
 - CI는 격리된 임시 테스트 DB와 테스트용 SMTP를 사용할 수 있다. 운영·공유 개발 DB 접근, 실제 메일 발송,
   유료 OpenAI 호출과 서버 배포는 하지 않는다. AI 제공사는 테스트 대역을 사용하고 테스트 자원은 실행 후 정리한다.
   실패 시 테스트 결과·컨테이너 로그를 비밀값·개인정보 없이 보관하도록 구성한다.
-- Core 통합 job은 임시 PostgreSQL·Mailpit과 기존 Flyway 테스트를 사용하며 `TEST_CONTENT_DATABASE_URL`을 실제로 설정한다.
+- Core 통합 job은 임시 PostgreSQL·Mailpit으로 Auth를 확인하고 Content 통합 job은 임시 PostgreSQL·`TEST_CONTENT_DATABASE_URL`로 콘텐츠/Flyway를 확인한다.
   Content 테스트의 `content_test`/빈 비밀번호 계약은 격리된 CI service container의 trust 인증으로만 맞춘다.
   시스템 job은 실행별 `storyfork-ci-<run>-<attempt>` Compose 프로젝트와 임시 DB를 사용하고 항상 해당 프로젝트만 정리한다.
   배포 volume·서버·실제 `.env`에는 접근하지 않는다. 실제 Actions 결과를 확인하기 전에는 hosted CI 검증 대기이며,

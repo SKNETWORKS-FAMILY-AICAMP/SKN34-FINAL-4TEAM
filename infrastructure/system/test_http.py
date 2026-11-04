@@ -84,6 +84,8 @@ def draft_work(signed_in):
     response = client.post("/api/v1/works", json={"title": "CI work"})
     assert response.status_code == 201
     work_id = str(uuid.UUID(response.json()["id"]))
+    # Real login -> Core verification -> Content ownership, not a mocked principal.
+    assert scalar(f"SELECT owner_id FROM work WHERE id='{work_id}'") == signed_in["id"]
     path = "/api/v1/works/" + work_id + "/episodes/1"
     response = client.get(path)
     assert response.status_code == 200
@@ -105,6 +107,38 @@ def test_health(web):
     response = web.get("/api/v1/health/ai-service")
     assert response.status_code == 200
     assert response.json() == {"status": "up", "service": "storyfork-ai-service"}
+
+
+def test_health_worldstudio_packaged_migration():
+    """실제 Content jar의 별도 main과 동일 DB의 독립 Auth/Content 이력 공존을 확인한다."""
+    url = "jdbc:postgresql://postgres:5432/storyfork_test"
+    user = os.environ["CORE_DATABASE_USER"]
+    histories = scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
+    content_history = scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")
+    args = ["run", "--rm", "--no-deps", "--entrypoint", "java"]
+    for key, value in {
+        "WORLDSTUDIO_MIGRATION_ENVIRONMENT": "development",
+        "CONTENT_DATABASE_URL": url, "CONTENT_DATABASE_USER": user,
+        "CONTENT_DATABASE_PASSWORD": os.environ["CORE_DATABASE_PASSWORD"],
+        "WORLDSTUDIO_EXPECTED_DATABASE_URL": url, "WORLDSTUDIO_EXPECTED_DATABASE_USER": user,
+        "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE": "isolated-ci-project",
+    }.items():
+        args.extend(["-e", key + "=" + value])
+    args.extend(["content-service", "-Dloader.main=ai.storyfork.content.world.migration.WorldStudioMigration",
+                 "-cp", "/app/application.jar", "org.springframework.boot.loader.launch.PropertiesLauncher"])
+    wrong_target = args.copy()
+    wrong_target[wrong_target.index("WORLDSTUDIO_EXPECTED_DATABASE_URL=" + url)] = "WORLDSTUDIO_EXPECTED_DATABASE_URL=jdbc:postgresql://wrong/production"
+    with pytest.raises(subprocess.CalledProcessError):
+        compose(*wrong_target)
+    assert scalar("SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'") == "0"
+    first = compose(*args)
+    again = compose(*args)
+    assert url not in first + again
+    assert "applied=1; pending=0; tables=12" in first
+    assert "applied=0; pending=0; tables=12" in again
+    assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "12"
+    assert histories == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
+    assert content_history == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")
 
 
 def test_auth(signed_in):
@@ -136,6 +170,27 @@ def test_content(draft_work):
                   f"WHERE e.work_id='{draft_work['id']}' AND e.sequence=1 AND d.content='CI persisted manuscript'") == "1"
 
 
+def test_content_core_auth_timeout_is_not_an_invalid_user_or_cached_success(draft_work):
+    client, path = draft_work["client"], draft_work["path"]
+    assert client.get(path).status_code == 200
+    # stop의 endpoint/DNS 전환 대신 listener·네트워크를 보존하고 응답만 멈춘다.
+    compose("pause", "core-api")
+    try:
+        response = client.get(path)
+        assert response.status_code == 504
+        assert response.json()["code"] == "CORE_AUTH_TIMEOUT"
+    finally:
+        compose("unpause", "core-api")
+        deadline = time.monotonic() + 120
+        while time.monotonic() < deadline:
+            if client.get("/api/v1/health").status_code == 200:
+                break
+            time.sleep(2)
+        else:
+            pytest.fail("Core did not recover in the isolated CI project")
+    assert client.get(path).status_code == 200
+
+
 def test_ai_failure(draft_work):
     # CI overlay가 키·모델을 빈 값으로 고정한다. 실제 AI 경계를 거치되 유료 제공사는 호출하지 않는다.
     client, work_id = draft_work["client"], draft_work["id"]
@@ -154,6 +209,6 @@ def test_ai_failure(draft_work):
     response = client.get(path + "/history")
     assert response.status_code == 200
     assert response.json()["proposals"] == []
-    # Core 자체 장애를 AI 제공사 503 통과로 오인하지 않는다. 기본 uvicorn access log에는 본문·토큰이 없다.
+    # Content/Core 자체 장애를 AI 제공사 503 통과로 오인하지 않는다. 기본 uvicorn access log에는 본문·토큰이 없다.
     logs = compose("logs", "--no-color", "ai-service")
     assert bool(re.search(r'"POST /internal/v1/proposals HTTP/\S+" 503\b', logs)), "AI did not receive the proposal request"

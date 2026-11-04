@@ -1,10 +1,12 @@
 # STORYFORK 아키텍처
 
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+
 ## 현재 구현
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
-> 설계상 명칭은 **Core Service·AI Service**입니다. 아래 `core-api`, `Core API` 표기는 현재 실행 모듈 이름과 HTTP 인터페이스이며 서비스 이름의 변경을 코드·배포에 적용했다는 뜻이 아닙니다. 새 MVP 방향은 [시스템 설계](design/design.md)·[DEC-26~28](design/decisions.md#결정-목록)에 있습니다.
+> 기존 연결·배포 백엔드는 core-api·ai-service이며 Core에 인증·콘텐츠·첨부가 공존합니다. 별도로 [콘텐츠](../backend/content-service/README.md)·[운영](../backend/operations-service/README.md)의 독립 Spring Boot 실행 골격을 추가했습니다(loopback 8081·8082, JDK 21). 업무·DB·인증·Compose·공개 라우팅은 옮기지 않았고 실제 기동 검증도 대기입니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
 
 STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴는 미구현이므로 운영 가입용이 아닙니다.
 서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
@@ -26,7 +28,7 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 
 | 구성요소 | 용도 | 상태 |
 |---|---|---|
-| PostgreSQL·Flyway | 회원·가입 후보·refresh 세션·복구/이메일 변경 challenge 및 콘텐츠 저장 | 인증·프로필 적용, 콘텐츠는 선택적 활성화 |
+| PostgreSQL·Flyway | 회원·가입 후보·refresh 세션·복구/이메일 변경 challenge 및 콘텐츠 저장 | 인증·프로필 적용. 콘텐츠는 선택적 활성화하며 원문·버전·부분 체크포인트·Fork·AI 이력을 저장. 전체 도메인·운영 검증은 별도 |
 | 관계 그래프 DB | 인물·엔티티 관계 저장·조회; 문서·원고 전문은 제외 | MVP 방향(DEC-26), 제품·연동 미정 |
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | MVP 미적용. 포크·설치·개발은 아직 안 함(DEC-27·30) |
 | S3 호환 object storage | 설정 이미지·TXT/MD/CSV/PDF 첨부, RDB에는 비공개 object key와 인증 API 참조 | #87 선택적 Core API 구현; 로컬 MinIO 소스 빌드, 배포 대상 AWS S3(실제 AWS 미검증) |
@@ -62,10 +64,18 @@ Auth는 `auth/controller → SignupService·SessionService·ProfileService → a
 
 Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼리·JPQL·Entity 변경으로 처리합니다. 기존 UUID·Flyway SQL 바이트·`flyway_schema_history`는 유지하며 Hibernate는 스키마 검증만 수행합니다(`ddl-auto=validate`, `open-in-view=false`). 기존 Content JDBC 저장과 별도 `content_schema_history`는 이번 전환 범위 밖입니다. 회원별 `PESSIMISTIC_WRITE` 잠금 뒤에 자격 증명·refresh 상태를 읽어 로그인/비밀번호 재설정 및 refresh/로그아웃의 경합을 보호합니다. 재사용 감지 시 세션 폐기는 Service가 커밋한 뒤 HTTP 401로 변환합니다. 가입 후보는 행 잠금을 사용하며 아직 행이 없는 최초 가입의 삽입 충돌만 새 트랜잭션에서 한 번 재시도합니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
 
-기존 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS만 남습니다.
+`_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS와 여러 콘텐츠 기능에서 공유하는 실패·식별자 계약이 있습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
-콘텐츠 생성은 `ContentConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
+콘텐츠 생성은 `proposal/config/GenerationClientConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
 내부 URL·오류 원문은 공개하지 않으며 AI 장애가 Core 자체 Health 성공을 막지 않습니다.
+
+### WorldStudio 독립 JPA 저장소·Service (HTTP API 연결 전)
+
+개발 CD는 기존 Core 이미지의 별도 `WorldStudioMigration` main을 일회성으로 실행한 뒤 새 Core를 기동합니다.
+일반 서버 시작에서는 WorldStudio DDL을 실행하지 않습니다. 대상 allowlist·백업 복원 기록·명시 활성화가 없으면 기본 비활성이며,
+실제 공유 DB 적용은 이번 구현과 구분합니다. [배포 실행 계약](deployment/worldstudio-v1-rollout.md)을 따릅니다.
+
+[독립 초기 설계](design/worldstudio-independent-schema.md)는 기존 Content/Auth와 다른 `worldstudio` schema에 12개 정본 테이블을 둡니다. 전용 Flyway location/history는 `db/migration/worldstudio` / `worldstudio.world_studio_schema_history`이며 서버 기본 DataSource·Auth migration 경로·Content writer를 변경하지 않습니다. `WorldStudioConfig → WorldStudioService → Spring Data JpaRepository`가 기존 Core 기본 EntityManager·TransactionManager와 `@Transactional`로 생성·초안·확정·과거 조회·복원을 처리합니다. subject는 검증된 JWT의 UUID를 전달받으며 모든 world 접근에서 소유권과 world별 잠금을 검사합니다. 세계관 업무에는 Content·Auth 테이블 FK/조회 의존이 없습니다. Core 공통 JPA는 기존 Auth 초기화와 함께 사용합니다. 서버 시작 DDL·HTTP API·기존 UI 연결·공용 DB 적용은 포함하지 않으며 Graph·AI·이미지를 추가하지 않습니다.
 
 ### 설정 첨부 (#87)
 
@@ -94,8 +104,8 @@ Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaR
 
 ## AI Service
 
-`app/main.py`가 FastAPI와 Health router를 조립하고 `health/models.py`의 고정된 타입 응답을 반환합니다.
-외부 모델 자원이 없어 컨테이너·lifespan·설정 조립은 없습니다.
+`app/main.py`가 Health·generation router를 조립합니다. 내부 인증된 생성 요청에서만 OpenAI를 호출하며 정본은 Core에서 반영합니다.
+시작 시 모델 클라이언트를 만들지 않습니다. 생성 요청에서만 AI 런타임의 키·모델·내부 토큰 설정을 사용합니다.
 향후 합의된 AI 기능은 필요한 `router → service → agent → OpenAI` 흐름으로 추가합니다.
 상세는 [Agent 구현 경계](../backend/ai-service/docs/agent-structure.md)를 따릅니다.
 
@@ -115,8 +125,10 @@ OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build A
 
 ## 제품 목표와 미정 정책 — 미구현
 
-- Core는 작품·세계관·회차 버전·Fork 정본과 권한·승인·발행·크레딧 최종 판단·저장을 소유합니다.
-- AI는 Core가 허용한 최소 문맥에서 생성·시뮬레이션·검토 제안만 반환합니다.
+- Core는 회원·인증·세션·크레딧·회원 알림을 소유합니다.
+- 콘텐츠 서비스는 작품·세계관·회차·버전·Fork·발행·독서·작품 피드백·첨부 및 콘텐츠 인가·제안 채택·반영을 소유합니다.
+- 운영 서비스는 고객지원·공지·이벤트·신고 사건·소명·운영 판단·감사·작업 감시를 소유합니다. 실제 회원 제한은 Core, 콘텐츠 제한은 콘텐츠 서비스에 적용 요청합니다.
+- AI는 업무 소유 서비스가 허용한 최소 문맥에서 생성·시뮬레이션·검토 결과만 반환합니다. LLMOps는 운영 영역으로 분리하며 Langfuse 자체 UI/API 통합은 미정입니다.
 - 작품 Fork의 기준 회차·버전은 보존합니다. 세계관은 수정 전 원본의 허용된 변경을 따르고, 최초 수정으로 독립한 뒤에는 알림에 따른 사용자 선택으로만 원본 변경을 반영합니다(DEC-32·34).
 - 설정 항목별 공개/비공개와 회차별 공개 범위를 적용하고, 사용자 권한·미발행 원고·인물별 인지도 구분합니다(DEC-36).
 - 생성·제안과 사용자 승인·정본 반영을 구분합니다.
@@ -124,4 +136,15 @@ OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build A
 
 기능마다 서버를 복제하지 않으며 새 빈 업무 계층·인프라는 실제 계약과 요구가 정해질 때만 추가합니다.
 
-이슈 #50 범위의 서버 작품 집필실은 `/studio/{UUID}`에서 회차별 초안·불변 버전·발행본을 구분합니다. 기존 EpisodeUseCase/Repository와 ContentController/Service/Repository 경계를 재사용하며 새 실행 서비스나 production 의존성을 추가하지 않았습니다. 세부 계약은 [이슈 #50 대응](issue-50-alignment.md)을 참고합니다.
+이슈 #50 범위의 서버 작품 집필실은 `/studio/{UUID}`에서 회차별 초안·불변 버전·발행본을 구분합니다. Frontend의 기존 EpisodeUseCase/Repository를 재사용합니다. Core는 #84에 따라 기능별 Controller/Service와 JPA Repository로 전환하며 최소 JPA 의존성을 추가합니다. 새 서버·Gradle 모듈은 추가하지 않습니다. 세부 계약은 [이슈 #50 대응](issue-50-alignment.md)을 참고합니다.
+
+
+## #84 콘텐츠 책임 분리
+
+`work`는 작품·정책, `episode`는 회차 생성·조회·초안 수정, `episode_version`은 불변 버전·복원·부분 체크포인트, `publication`은 발행 사건과 공개 상태를 소유합니다. `world`는 설정 버전·공개 범위, `fork`는 분기 기준·원작 추적·독립·변경 선택, `proposal`은 AI 접수·호출·승인·반영 이력, `context`는 허용 문맥 구성을 담당합니다. `WorkAccessService`는 이들 기능이 공유하는 소유권·공개 접근·작품 잠금 기준을 제공합니다. 전 기능을 대신 저장하는 중앙 Repository·Service는 없습니다.
+
+콘텐츠는 별도 JPA 영속성 단위와 `contentTransactionManager`를 사용하고, Auth는 기존 JDBC 트랜잭션을 유지합니다. 작품·원작의 행 잠금을 ID 순서로 획득하고 오래된 1차 캐시를 갱신한 뒤 revision을 비교합니다. 저장·복원·제안 반영은 각 유스케이스 트랜잭션에서 원자적으로 처리합니다. AI 요청은 짧은 준비 트랜잭션과 결과 검증 트랜잭션 사이에서 실행하며 외부 호출 동안 DB 트랜잭션을 유지하지 않습니다.
+
+SQL 위치는 `db/migration/auth`와 `db/migration/content`이며 기존 `flyway_schema_history`·`content_schema_history`를 유지합니다. 공통 콘텐츠 과거 이력은 분할·재실행하지 않으며 Hibernate는 스키마를 변경하지 않습니다. V5의 JDBC는 이관 전용 패키지에 격리합니다. 회차 삭제 정책·전체 세계관/그래프 체크포인트는 미확정 범위로 남깁니다. 실제 검증 상태는 [#84 대응](issue-84-content-boundaries.md)에 기록합니다.
+
+Content 세계관의 `world.entity`·`world.repository`와 독립 WorldStudio의 `world.studio.entity`·`world.studio.repository`는 별도 JPA 스캔 범위입니다. Content의 `WorldRepository`(String)와 WorldStudio의 `StudioWorldRepository`(UUID)를 구분하며, WorldStudio 비활성 시 Content에 독립 스키마를 요구하지 않습니다. 공존 검증은 현재 WorkService·WorldService와 WorldStudioService로 수행합니다.

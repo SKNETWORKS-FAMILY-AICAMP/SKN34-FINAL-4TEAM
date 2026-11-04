@@ -1,34 +1,43 @@
 # 인프라 설계 — PostgreSQL·관계 그래프 기반 MVP
 
-> [상위 설계](../design.md) · [결정 기록](../decisions.md#결정-목록)(특히 DEC-26~28). 이 문서는 **목표 방향**이며 설치·운영·검증 완료가 아닙니다. 이전 [KAG 기반 구성](../archive/kag-design/services/infrastructure.md)은 현행 MVP가 아닙니다.
+> [상위 설계](../design.md) · [결정 기록](../decisions.md#결정-목록)(특히 DEC-41). 이 문서는 **목표 방향**이며 설치·운영·검증 완료가 아닙니다. 이전 [KAG 기반 구성](../archive/kag-design/services/infrastructure.md)은 현행 MVP가 아닙니다.
 
 ## 현재와 MVP 방향
 
-현재 Compose는 `web`·`core-api`·`ai-service` 세 실행 모듈로 Health를 제공하며 업무 DB는 없습니다([현재 아키텍처](../../architecture.md)). 설계상 논리 명칭은 Frontend·Core Service·AI Service이고, 기존 컨테이너명·패키지명·실행 스크립트는 이번 문서 작업에서 바꾸지 않습니다. 논리 명칭이 추가 MSA 배포 단위를 확정하지 않습니다.
+현재 실행 앱은 `web`·`core-api`·`ai-service`이며 인증·선택적 콘텐츠/첨부의 PostgreSQL·Flyway, 로컬 SMTP와 선택 MinIO 구성이 있습니다([현재 아키텍처](../../architecture.md)). `core-api`에 인증·콘텐츠·첨부가 공존합니다. 목표는 기존 Core·Python AI 앱 재사용과 별도 Kotlin/Spring Boot 콘텐츠·운영 앱 분리입니다. 새 앱·포트·이미지·DB 이전은 아직 실행하지 않았으며 기존 실행 이름·스크립트·데이터를 유지합니다.
 
 | 대상 | MVP 역할 | 상태 |
 |---|---|---|
-| PostgreSQL | 문서·원고 원문, 문서 버전·되돌리기·회차 체크포인트·Fork와 업무 기록 | `확정` 방향, 미설치 |
-| Flyway | PostgreSQL 스키마 변경 | `확정`(DEC-17), 미설치 |
+| PostgreSQL | Core·콘텐츠·운영별 정본과 쓰기 범위 분리. 서버 공동 사용 출발안 | 인증·선택 콘텐츠/첨부 저장 적용. 스키마/논리 DB·계정 권한·소유 전환 미정 |
+| Flyway | 각 소유 서비스의 PostgreSQL 스키마·이력 관리 | 현행 Auth·Content·Attachment migration 적용. checksum·식별자·기존 이력 보존, writer/소유 전환은 후속 설계 |
 | 관계 그래프 DB | 인물·엔티티 간 관계 저장·조회. 문서·원고 전문 저장은 하지 않음 | 역할 `확정`, 제품·스키마·운영 방식 `미정`, 미설치 |
 | Gitea | 별도 Git 콘텐츠 저장소 | 사용하지 않음(DEC-27) |
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | **MVP 미적용**. 실제 포크·설치·개발은 아직 안 함; 재사용 범위·격리 방식 검토(DEC-27·30) |
-| MinIO(S3 호환) | 설정 이미지 파일 보관. RDB에는 URL 저장 | `확정` 방향(DEC-39), 미설치. 원고 이미지 범위·접근·정리 방식은 별도 |
-| KAG·pgvector·Langfuse·SMTP | 이전 MVP 이후 또는 범위 밖 항목 | 이번 결정으로 추가하지 않음 |
+| MinIO(S3 호환) | 설정 이미지 파일 보관. RDB에는 URL 저장 | 설정·표지·회차 첨부 선택 구현 존재. 추가 배포·접근·정리 계약은 별도 |
+| KAG·pgvector | 이전 MVP 이후 또는 범위 밖 항목 | 이번 결정으로 추가하지 않음 |
+| Langfuse | 운영 영역 LLMOps, 도입 시 별도 제품 배포 | MVP 이후 유지. 자체 UI/API 통합·평가 실행 계약 미정, Spring Boot 재구현 아님 |
+| SMTP | 현재 인증·복구·이메일 변경 | 로컬 구성 존재, 운영 제공사 미정. 옛 MVP 제외를 미구현으로 읽지 않음 |
 
-그래프 DB를 쓴다는 결정만으로 **Neo4j**라는 제품이나 Apache AGE, 별도 graph-service, 큐·worker를 확정하지 않습니다. 관계 그래프의 정본 여부, PostgreSQL 문서·버전과 연결하는 키, 반영 순서와 재시도·복구·백업, Fork/체크포인트의 그래프 시점 고정, 권한 검사 위치는 후속 설계가 필요합니다. 별도 두 DB 사이에 PostgreSQL 트랜잭션 하나만으로 원자성이 생기지 않습니다.
+그래프 DB를 쓴다는 결정만으로 **Neo4j**라는 제품이나 Apache AGE, 별도 graph-service, 큐·worker를 확정하지 않습니다. 관계 그래프의 정본 여부, PostgreSQL 문서·버전과 연결하는 키, 반영 순서와 재시도·복구·백업, Fork/체크포인트의 그래프 시점 고정, 콘텐츠 인가의 구현 계약은 후속 설계가 필요합니다. 별도 두 DB 사이에 PostgreSQL 트랜잭션 하나만으로 원자성이 생기지 않습니다.
 
 ## 네트워크와 비밀값
 
 ```text
-브라우저 → Frontend → Core Service (현 실행: core-api) → AI Service (현 실행: ai-service)
-                              ├─ PostgreSQL (원문·버전·체크포인트·Fork)
-                              ├─ 관계 그래프 DB (관계 저장·조회)
-                              └─ MinIO (설정 이미지)
-AI Service → 문서·원고·관계의 허용 범위 조회 (Core 경유 제안, 최종 경로 미정)
+브라우저 → Frontend → 단일 공개 진입점 (기존 nginx 확장 후보)
+                        ├─ Core: 인증·크레딧·알림 → 자기 소유 PostgreSQL 범위
+                        ├─ 콘텐츠 → 자기 소유 PostgreSQL·MinIO·관계 그래프
+                        │    ├─ Core: 정산·알림 사건 등 합의된 공통 업무
+                        │    └─ AI: 콘텐츠 생성·검토
+                        └─ 운영 → 자기 소유 PostgreSQL 범위
+                             ├─ Core/콘텐츠: 회원/콘텐츠 조치 적용 요청
+                             └─ AI: 운영 검사·평가 (계약 미정)
+AI → 허용 문맥 조회 (목표 콘텐츠 경유 도구 후보, 최종 경로 미정)
+Langfuse → 도입 시 별도 제품 서비스 (운영 UI/API 통합 미정)
 ```
 
-Frontend는 공개 Core Service API만 호출합니다. 그래프 DB의 사용자 노출은 Core의 권한과 기준 회차/버전 검증을 우회하지 않아야 합니다. AI의 DB 직접 접근 여부는 미정이지만, 이 문서가 AI에 자격 증명·쓰기 권한을 부여하는 근거는 아닙니다. DB·내부 조회 API는 호스트에 직접 공개하지 않는 로컬 시연 구성을 전제로 하며, 포트 비공개는 인증이 아닙니다(DEC-19). 운영 인터넷 배포·TLS·내부 인증·백업 보관 정책은 별도 결정입니다.
+위는 목표 경계입니다. 현재 `/api`는 `core-api`로 연결하며 새 라우트·쿠키·CSRF·응답은 소비자와 전환 계약 전 변경하지 않습니다. Core를 중앙 프록시로 만들지 않습니다. 콘텐츠 인가는 콘텐츠, 회원 인증은 Core, 운영 권한은 운영이 검사합니다. AI의 DB 조회 여부는 미정이며 자격 증명·정본 쓰기 권한을 승인하지 않습니다. DB·내부 API의 비공개 포트는 인증이 아닙니다(DEC-19). 분리 서비스 인증·키 배포·세션 폐기 전파, TLS·백업·운영 배포는 후속 계약입니다.
+
+같은 PostgreSQL 서버라도 서비스별 쓰기·DB 권한·Flyway 이력을 분리합니다. 타 서비스 테이블 직접 UPDATE·공유 JPA 트랜잭션에 의존하지 않으며 HTTP 호출은 자동 원자적이지 않습니다. 기존 데이터·migration을 보존하고 writer 전환·호환 읽기·복구/롤백을 먼저 설계합니다. 정기 실행·중복 방지·트랜잭션·복구는 업무 소유 서비스, 감시·재실행 요청은 운영에 둡니다. 중앙 스케줄러·별도 Start 서버·공통 starter 라이브러리는 선제 도입하지 않습니다.
 
 환경 설정은 루트 `.env` 한 곳에서 관리하고 `.env.example`만 공유합니다. 실제 `.env`는 수정·공개하지 않으며, 사용할 모델 API 키는 AI 런타임에만 전달합니다. 그래프 DB 제품과 접속 경로가 정해지기 전에는 설정값·이미지·의존성을 미리 추가하지 않습니다.
 

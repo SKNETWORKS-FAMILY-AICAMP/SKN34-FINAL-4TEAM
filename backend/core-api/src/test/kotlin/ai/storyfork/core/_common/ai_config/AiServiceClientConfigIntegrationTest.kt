@@ -30,22 +30,6 @@ import org.springframework.web.client.RestClient
 
 class AiServiceClientConfigIntegrationTest {
 
-    @Test
-    fun generationCanWaitBeyondHealthDeadline() {
-        server.createContext("/internal/v1/proposals") { exchange ->
-            Thread.sleep(250)
-            sendJson(exchange, """{"text":"제안","model":"test","providerResponseId":"test","usage":null}""")
-        }
-        server.start()
-        val properties = AiServiceClientProperties(URI.create("http://127.0.0.1:${server.address.port}"), CONNECT_TIMEOUT, Duration.ofMillis(50))
-        val client = ai.storyfork.core.content.ContentConfig().generationClient(RestClient.builder(), properties, Duration.ofSeconds(2), "test")
-        val context = ai.storyfork.core.content.domain.StoryContext("test", "", 1, "", emptyList(), "", emptyList(), ai.storyfork.core.content.domain.Selection(0,0))
-        assertEquals("제안", client.generate(context,"test").text)
-        assertThrows(IllegalArgumentException::class.java) {
-            ai.storyfork.core.content.ContentConfig().generationClient(RestClient.builder(), properties, Duration.ZERO, "test")
-        }
-    }
-
     private lateinit var server: HttpServer
     private lateinit var serverExecutor: ExecutorService
 

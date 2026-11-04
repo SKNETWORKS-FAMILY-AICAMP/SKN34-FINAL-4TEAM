@@ -35,7 +35,7 @@ import { StudioUseCase } from '../../domain/usecases/StudioUseCase'
 import { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 import type { AppContainer } from './types'
 
-/** Core 업무 API가 생기기 전까지 Repository는 메모리 구현을 씁니다. HTTP 구현이 생기면 이 등록만 바꿉니다. */
+/** 콘텐츠는 HTTP API를 사용하며, 기존 서재·열람·Fork 등 데모는 메모리 구현을 유지합니다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
     profileRepository: asValue(profileRepository),
