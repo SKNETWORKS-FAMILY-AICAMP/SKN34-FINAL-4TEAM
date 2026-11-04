@@ -1,3 +1,4 @@
+import {studioLabelCleanup} from '../../../../domain/entities/studioWorld'
 import {WorldMap} from './WorldMap'
 import {WorldRelationshipEditor} from './WorldRelationshipEditor'
 import {cardTypes,cardTypeOf,settingAreas,type CardType,type CardFilter} from '../../../../domain/entities/studioCards'
@@ -68,8 +69,8 @@ function Editor({vm}:{vm:VM}) {
    {type==='review'&&<p className="world-compatibility">기존 의미: {kinds[s.item.kind]}{s.item.entityType?` · ${s.item.entityType}`:''}. 원문과 연결을 유지하며 편집합니다.</p>}
    <label className="field">항목 이름<input className="inp" value={s.item.title} maxLength={200} onChange={e=>update({title:e.target.value})}/></label>
    <label className="field">내용<textarea className="ta world-text" value={s.item.text} maxLength={3000} placeholder="어떤 설정인가요? 자유롭게 적어 주세요." onChange={e=>update({text:e.target.value})}/></label>
-   <div className="world-form-row"><label className="field">내 태그 (쉼표로 구분)<input className="inp" value={s.tags.join(',')} onChange={e=>vm.update(s.item.id,{}, {tags:e.target.value.split(',')})} onBlur={()=>{vm.update(s.item.id,{}, {tags:s.tags.map(t=>t.trim()).filter(Boolean)})}}/></label>
-   <label className="field">별칭 (선택)<input className="inp" value={s.aliases?.join(',')??''} onChange={e=>vm.update(s.item.id,{}, {aliases:e.target.value.split(',')})} onBlur={()=>vm.update(s.item.id,{}, {aliases:s.aliases?.map(t=>t.trim()).filter(Boolean)})}/></label></div>
+   <div className="world-form-row"><label className="field">내 태그 (쉼표로 구분)<input className="inp" value={s.tags.join(',')} onChange={e=>vm.update(s.item.id,{}, {tags:e.target.value.split(',')})} onBlur={()=>{const tags=studioLabelCleanup(s.tags);if(tags)vm.update(s.item.id,{}, {tags})}}/></label>
+   <label className="field">별칭 (선택)<input className="inp" value={s.aliases?.join(',')??''} onChange={e=>vm.update(s.item.id,{}, {aliases:e.target.value.split(',')})} onBlur={()=>{const aliases=studioLabelCleanup(s.aliases);if(aliases)vm.update(s.item.id,{}, {aliases})}}/></label></div>
    <details className="world-legacy-fields"><summary>기존 정리 정보</summary><label className="field">내 분류<input className="inp" value={s.userCategory} maxLength={50} onChange={e=>vm.update(s.item.id,{}, {userCategory:e.target.value})}/></label><p className="small muted">이전 자유 분류를 보존합니다. 카드 유형이나 설정 영역과는 별개예요.</p></details>
    {s.item.kind==='event'&&<label className="field">사건 시점 (선택)<input className="inp" value={s.item.timeText} onChange={e=>update({timeText:e.target.value})}/></label>}
   </div>:<p className="muted">{canAdd?'카드를 추가해 시작하세요. 인물·장소·조직·능력은 이름만 입력해도 됩니다.':'이 유형의 카드가 없습니다.'}</p>}</div>
