@@ -67,7 +67,7 @@ ponytail-review에서 실제 저장 트랜잭션·소유권·동시성·복합 F
 
 ## PR 제출 기준과 남은 결정
 
-- Base는 develop, Head는 feature/world-studio-schema이며 Ready 상태의 일반 PR로 제출한다. 직접 병합하지 않는다.
+- Base는 develop, Head는 feature/world-studio-schema이며 [일반 PR #97](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/97)을 Ready 상태로 생성했다. 직접 병합하지 않는다. 최신 head의 CI는 PR에서 확인한다.
 - 최신 develop `ad635761e94544c013a80f7a13aaced4725bf16a`까지 일반 merge했다. 초기 a6ce59f의 기능표/지침과 추가 PR #83의 프런트 집필실 3개 파일·검토 문서 1개는 WorldStudio와 겹치지 않았고 충돌도 없었다. Auth·Content·이미지·회차 실행 코드와 migration에는 변경이 없다.
 - SQL 보존 커밋은 `c384ee06580066606c20c6d9dc603a0f95d21310`, 독립 JPA 구현 커밋은 `a9045c4`다. 이후 검증·기능표·문서를 별도 커밋으로 전달한다. 실제 HEAD/파일 목록/CI는 PR을 기준으로 확인한다.
 - 기능표의 기존 관련 동작 26행에 독립 JPA 내부 구현 범위를 표시했다. 미병합·HTTP 미연결 상태이므로 완료 체크는 모두 기존 ❌를 유지한다. 후속 API나 Graph 기능을 구현 완료로 올리지 않는다.
