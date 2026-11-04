@@ -2,8 +2,8 @@ package ai.storyfork.core.world.service
 
 import ai.storyfork.core.world.domain.WorldConflict
 import ai.storyfork.core.world.domain.WorldNotFound
-import ai.storyfork.core.world.entity.*
-import ai.storyfork.core.world.repository.*
+import ai.storyfork.core.world.studio.entity.*
+import ai.storyfork.core.world.studio.repository.*
 import ai.storyfork.core.world.service.dto.*
 import java.security.MessageDigest
 import java.time.Instant
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional
 @ConditionalOnProperty(name=["app.worldstudio.enabled"],havingValue="true")
 @Transactional
 class WorldStudioService(
-    private val worlds:WorldRepository, private val drafts:WorldDraftRepository,
+    private val worlds:StudioWorldRepository, private val drafts:WorldDraftRepository,
     private val cards:SettingCardRepository, private val cardDrafts:SettingCardDraftRepository,
     private val cardVersions:SettingCardVersionRepository, private val relationships:RelationshipRepository,
     private val relationDrafts:RelationshipDraftRepository, private val relationVersions:RelationshipVersionRepository,

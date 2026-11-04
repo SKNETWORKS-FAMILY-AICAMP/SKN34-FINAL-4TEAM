@@ -18,7 +18,7 @@ V1 SQL SHA-256은 아래 보존 값과 같다. baseline·repair·clean은 실행
 일반 Auth/Content의 동명 V1/V2는 차단하지 않는다. 불명확한 history 형식·조회 권한 부족도 실행 실패로 처리한다.
 
 WorldStudioConfig는 활성화된 경우에만 EntityScan/Repository 등록을 추가하고 Service도 동일 조건을 따른다.
-기존 Auth EntityScan과 합쳐 하나의 기본 persistence unit을 사용한다. 비활성 배포는 WorldStudio 테이블 없이 기존 Auth만 validate한다.
+기존 Auth EntityScan과 합쳐 하나의 Core 기본 persistence unit을 사용한다. 비활성 배포는 WorldStudio 테이블 없이 기존 Auth만 validate한다.
 Service의 소유권·잠금·초안 충돌·멱등 저장·확정/복원 규칙은 유지하고 전체 외부 작업을 기본 `@Transactional`로 묶는다. 잠금 조회도 readOnly로 바꾸지 않는다.
 
 ### 최초 활성화 전 배포 담당자 확인

@@ -38,11 +38,11 @@ class AiServiceClientConfigIntegrationTest {
         }
         server.start()
         val properties = AiServiceClientProperties(URI.create("http://127.0.0.1:${server.address.port}"), CONNECT_TIMEOUT, Duration.ofMillis(50))
-        val client = ai.storyfork.core.content.ContentConfig().generationClient(RestClient.builder(), properties, Duration.ofSeconds(2), "test")
-        val context = ai.storyfork.core.content.domain.StoryContext("test", "", 1, "", emptyList(), "", emptyList(), ai.storyfork.core.content.domain.Selection(0,0))
-        assertEquals("제안", client.generate(context,"test").text)
+        val client = ai.storyfork.core.proposal.config.GenerationClientConfig().generationClient(RestClient.builder(), properties, Duration.ofSeconds(2), "test")
+        val context = ai.storyfork.core.context.service.dto.StoryContextResponse("test", "", 1, "", emptyList(), "", emptyList(), ai.storyfork.core.context.service.dto.SelectionResponse(0,0))
+        assertEquals("제안", client.generate(ai.storyfork.core.proposal.client.dto.GenerationPayload(context,"test")).text)
         assertThrows(IllegalArgumentException::class.java) {
-            ai.storyfork.core.content.ContentConfig().generationClient(RestClient.builder(), properties, Duration.ZERO, "test")
+            ai.storyfork.core.proposal.config.GenerationClientConfig().generationClient(RestClient.builder(), properties, Duration.ZERO, "test")
         }
     }
 

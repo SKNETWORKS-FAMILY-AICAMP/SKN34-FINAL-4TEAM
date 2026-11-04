@@ -63,7 +63,7 @@ class AttachmentConfig {
 
     // Keep Boot's default Auth persistence unit; attachments use the separately qualified Content database.
     @Bean(defaultCandidate = false)
-    @DependsOn("flywayInitializer", "contentRepository")
+    @DependsOn("flywayInitializer", "contentEntityManagerFactory")
     fun attachmentEntityManagerFactory(
         @Qualifier("attachmentDataSource") source: DataSource,
     ): LocalContainerEntityManagerFactoryBean {

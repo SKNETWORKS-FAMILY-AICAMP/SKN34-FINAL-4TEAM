@@ -1,11 +1,12 @@
 package ai.storyfork.core.attachment
 
 import ai.storyfork.core.attachment.service.AttachmentService
-import ai.storyfork.core.content.controller.dto.WorkResponse
-import ai.storyfork.core.content.domain.Draft
-import ai.storyfork.core.content.domain.Episode
-import ai.storyfork.core.content.domain.WritingEpisode
-import ai.storyfork.core.content.service.ContentService
+import ai.storyfork.core.work.service.dto.WorkResponse
+import ai.storyfork.core.episode.service.dto.DraftResponse as Draft
+import ai.storyfork.core.publication.service.dto.PublishedEpisodeResponse as Episode
+import ai.storyfork.core.episode.service.dto.EpisodeResponse as WritingEpisode
+import ai.storyfork.core.work.service.WorkService as ContentService
+import ai.storyfork.core.episode.service.EpisodeService
 import ai.storyfork.core.attachment.entity.ContentImage
 import ai.storyfork.core.attachment.entity.ImageWork
 import ai.storyfork.core.attachment.repository.ContentImageRepository
@@ -42,9 +43,11 @@ class AttachmentServiceTest {
     private val images = mock(ContentImageRepository::class.java)
     private val works = mock(ImageWorkRepository::class.java)
     private val content = mock(ContentService::class.java)
+    private val episodeService = mock(EpisodeService::class.java)
     private val storage = mock(AttachmentStorageClient::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
-    private val service = AttachmentService(settings, attachments, images, works, content, storage, TransactionTemplate(manager))
+    private val imageEpisodes=mock(ai.storyfork.core.attachment.repository.ImageEpisodeRepository::class.java)
+    private val service = AttachmentService(settings, attachments, images, works, content, episodeService, storage, TransactionTemplate(manager), imageEpisodes)
     private val png = ByteArrayOutputStream().also {
         ImageIO.write(BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB), "png", it)
     }.toByteArray()
@@ -57,9 +60,18 @@ class AttachmentServiceTest {
         `when`(works.lockOwned("work", "owner")).thenReturn(ImageWork(id = "work", ownerId = "owner"))
         `when`(attachments.saveAndFlush(any(SettingAttachment::class.java) ?: SettingAttachment())).thenAnswer { it.arguments[0] }
         `when`(images.saveAndFlush(any(ContentImage::class.java) ?: ContentImage())).thenAnswer { it.arguments[0] }
-        `when`(content.writing("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, false, null))
+        `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, false, null))
+        `when`(imageEpisodes.existsByWorkIdAndSequence("work",1)).thenReturn(true)
     }
 
+    @Test fun `upload rechecks deleted episode under the work lock before writing a file`() {
+        `when`(imageEpisodes.existsByWorkIdAndSequence("work",1)).thenReturn(false)
+        assertThrows(AttachmentFailure::class.java) {service.createEpisodeImage("work",1,"owner",request())}
+        val ordered=inOrder(works,imageEpisodes)
+        ordered.verify(works).lockOwned("work","owner")
+        ordered.verify(imageEpisodes).existsByWorkIdAndSequence("work",1)
+        verifyNoInteractions(storage)
+    }
     @Test fun `one attachment service stores setting files work covers and episode images through shared storage`() {
         val file = "설정 문서".toByteArray()
         val setting = service.createSettingAttachment("work", "setting", "owner", request("note.txt", "text/plain", file))
@@ -81,7 +93,7 @@ class AttachmentServiceTest {
         assertArrayEquals(png, payloads.allValues[2].bytes)
         verify(settings).lockOwnedLocal("work", "setting", "owner")
         verify(works, times(2)).lockOwned("work", "owner")
-        verify(content).writing("work", "owner", 1)
+        verify(episodeService).read("work", "owner", 1)
         verify(storage, never()).delete(anyString())
     }
 
@@ -124,12 +136,12 @@ class AttachmentServiceTest {
         val image = ContentImage(workId = "original", episodeNo = 1, objectKey = "episode-images/old", filename = "map.png", mediaType = "image/png", byteSize = png.size.toLong())
         `when`(images.findById(image.id)).thenReturn(Optional.of(image))
         `when`(storage.read(image.objectKey)).thenReturn(AttachmentObjectResult(png))
-        `when`(content.writing("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(body = "기준[[image:${image.id}]]"), emptyList(), null, true, null))
+        `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(body = "기준[[image:${image.id}]]"), emptyList(), null, true, null))
         assertArrayEquals(png, service.downloadEpisodeImage("work", 1, image.id, "owner", false).bytes)
         assertEquals("IMAGE_INHERITED", assertThrows(AttachmentFailure::class.java) {
             service.createEpisodeImage("work", 1, "owner", request())
         }.code)
-        `when`(content.writing("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(body = "새 본문"), emptyList(), null, true, null))
+        `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(body = "새 본문"), emptyList(), null, true, null))
         assertEquals("IMAGE_NOT_FOUND", assertThrows(AttachmentFailure::class.java) {
             service.downloadEpisodeImage("work", 1, image.id, "owner", false)
         }.code)

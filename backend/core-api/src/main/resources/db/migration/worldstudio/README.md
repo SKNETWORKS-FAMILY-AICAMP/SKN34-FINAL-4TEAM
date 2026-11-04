@@ -33,7 +33,7 @@ Flyway.configure().dataSource(confirmedUrl, user, password)
 
 ## 독립 JPA Service
 
-`app.worldstudio.enabled=true`일 때만 `WorldStudioConfig`가 EntityScan/Repository 등록을 추가한다. Service의 `@Service`도 같은 조건으로 등록한다. AuthPersistenceConfig의 명시 스캔과 합쳐 Spring Boot의 기존 기본 DataSource·EntityManager·TransactionManager를 공유한다. 별도 Hikari pool/persistence unit/접속 환경변수는 없다.
+`app.worldstudio.enabled=true`일 때만 `WorldStudioConfig`가 EntityScan/Repository 등록을 추가한다. Service의 `@Service`도 같은 조건으로 등록한다. AuthPersistenceConfig의 명시 스캔과 합쳐 Core의 기존 기본 DataSource·EntityManager·TransactionManager를 공유한다. 별도 Hikari pool/persistence unit/접속 환경변수는 없다.
 
 `WorldStudioService`는 생성자 주입과 기본 `@Transactional`을 사용한다. 소유권 잠금 조회를 포함한 외부 작업 하나가 하나의 쓰기 가능한 트랜잭션이다. Hibernate는 Core의 기존 `validate`만 수행한다. 활성화 전에 독립 migration이 완료되어야 하며, 비활성 상태에는 WorldStudio Entity/Repository/Service가 등록되지 않아 테이블 없이도 기존 Core가 시작된다. PostgreSQL 오류 DETAIL 억제도 기존 Core 설정을 따른다.
 

@@ -43,6 +43,7 @@ export function useEpisodeViewModel(useCase: EpisodeUseCase = appContainer.resol
   const persist = async () => {
     if(!active) throw new Error('작품을 선택해 주세요.')
     if(!dirty) return draft
+    if(active.hasWritingEpisode===false) throw new Error('집필실에서 작성할 회차를 먼저 생성해 주세요.')
     const saved = await useCase.save(active.id,draft)
     setDraft(saved);setActive({...active,draft:saved});setWorks(list=>list.map(w=>w.id===active.id?{...w,draft:saved}:w))
     return saved
@@ -76,8 +77,8 @@ export function useEpisodeViewModel(useCase: EpisodeUseCase = appContainer.resol
     fork:(episode:number,title:string,direction:string)=>run(async()=>{if(!active)return;await persist();install(await useCase.fork(active.id,episode,title,direction));setNotice('선택한 회차에서 비공개 분기 작품을 만들었어요.')}),
     loadContext:(episode:number,prompt:string,character:string,publicView:boolean)=>run(async()=>{if(!active)return;await persist();setStoryContext(await useCase.context(active.id,episode,prompt,character,publicView));setNotice('회차 기준 문맥을 조회했어요. OpenAI는 호출하지 않았어요.')}),
     clearContext:()=>setStoryContext(null),
-    propose:(prompt:string,consent:boolean,episode?:number,character='')=>run(async()=>{if(!active)return;const saved=await persist();request.current=new AbortController();const p=await useCase.propose(active.id,saved,prompt,consent,request.current.signal,episode,character);setProposal(p);setStoryContext(p.context??null);setNotice('AI 제안이 도착했어요. 원고에는 아직 반영되지 않았어요.')}),
-    accept:()=>run(async()=>{if(!active||!proposal)return;const saved=await useCase.accept(active.id,proposal.id,draft.revision);install({...active,draft:saved});setNotice('AI 제안을 원고에 적용하고 저장했어요. 공개는 별도예요.')}),
+    propose:(prompt:string,consent:boolean,episode?:number,character='')=>run(async()=>{if(!active)return;if(active.hasWritingEpisode===false)throw new Error('집필실에서 작성할 회차를 먼저 생성해 주세요.');const saved=await persist();request.current=new AbortController();const p=await useCase.propose(active.id,saved,prompt,consent,request.current.signal,episode,character);setProposal(p);setStoryContext(p.context??null);setNotice('AI 제안이 도착했어요. 원고에는 아직 반영되지 않았어요.')}),
+    accept:()=>run(async()=>{if(!active||!proposal)return;if(active.hasWritingEpisode===false)throw new Error('작성할 회차가 없어요. 집필실에서 회차를 생성해 주세요.');const saved=await useCase.accept(active.id,proposal.id,draft.revision);install({...active,draft:saved});setNotice('AI 제안을 원고에 적용하고 저장했어요. 공개는 별도예요.')}),
     discard:()=>{setProposal(null);setNotice('제안을 닫았어요. 원고는 변경하지 않았어요.')},
   }
 }

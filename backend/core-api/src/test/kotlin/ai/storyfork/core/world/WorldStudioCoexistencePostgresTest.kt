@@ -1,60 +1,65 @@
 package ai.storyfork.core.world
 
-import ai.storyfork.core.content.domain.*
-import ai.storyfork.core.content.repository.ContentRepository
-import ai.storyfork.core.content.repository.V5__ImportLegacyContent
-import org.flywaydb.core.Flyway
+import ai.storyfork.core.CoreApiApplication
+import ai.storyfork.core.work.service.WorkService
+import ai.storyfork.core.work.service.dto.CreateWorkRequest
+import ai.storyfork.core.world.service.WorldService
+import ai.storyfork.core.world.service.WorldStudioService
+import ai.storyfork.core.world.service.dto.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.datasource.DriverManagerDataSource
-import org.springframework.jdbc.support.JdbcTransactionManager
-import org.springframework.transaction.support.TransactionTemplate
-import tools.jackson.databind.json.JsonMapper
+import org.springframework.boot.builder.SpringApplicationBuilder
 import java.sql.Connection
+import java.util.UUID
 
-// One-time protection regression; never a WorldStudio runtime or default verification prerequisite.
-@EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_COEXISTENCE_ONCE",matches="true")
+@EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class WorldStudioCoexistencePostgresTest {
-    @Test fun `independent migration leaves latest Auth and Content schema data and history unchanged`() {
+    private fun context(db:WorldStudioPostgresFixture, studio:Boolean)=SpringApplicationBuilder(CoreApiApplication::class.java).run(
+        "--spring.datasource.hikari.maximum-pool-size=3", "--spring.datasource.hikari.minimum-idle=0",
+        "--server.port=0", "--app.content.enabled=true", "--app.worldstudio.enabled=$studio",
+        "--app.setting-attachments.enabled=false",
+        "--CORE_DATABASE_URL=${db.url}", "--CORE_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
+        "--CORE_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+        "--CONTENT_DATABASE_URL=${db.url}", "--CONTENT_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
+        "--CONTENT_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+        "--CORE_SMTP_HOST=127.0.0.1", "--CORE_SMTP_PORT=1025", "--AUTH_PUBLIC_ORIGIN=http://localhost:5173",
+        "--AUTH_MAIL_FROM=test@example.invalid", "--AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
+
+    @Test fun `independent migration preserves content and both JPA services coexist`() {
         WorldStudioPostgresFixture("coexist").use { db ->
-            val auth=Flyway.configure().dataSource(db.url,System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD"))
-                .locations("classpath:db/migration/auth").table("flyway_schema_history").load()
-            assertEquals(3,auth.migrate().migrationsExecuted)
-            val mapper=JsonMapper.builder().findAndAddModules().build()
-            val source=DriverManagerDataSource(db.url,System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD"))
-            val content=Flyway.configure().dataSource(source).locations("classpath:db/content")
-                .javaMigrations(V5__ImportLegacyContent(mapper)).table("content_schema_history")
-                .baselineOnMigrate(true).baselineVersion("0").load()
-            assertEquals(7,content.migrate().migrationsExecuted)
-            db.connect().use { c ->
-                WorldStudioPostgresFixture.sql(c,"INSERT INTO public.auth_member(id,email,password_hash,nickname) VALUES ('11111111-1111-1111-1111-111111111111','synthetic@example.invalid','synthetic','QA')")
+            val actor=UUID.randomUUID().toString()
+            var workId=""; var settingId=""; var versionId=""
+            val original="  원문 | 보존\n둘째 줄"
+            context(db,false).use { ctx ->
+                workId=ctx.getBean(WorkService::class.java).create(actor,CreateWorkRequest("기존 작품")).id
+                val world=ctx.getBean(WorldService::class.java)
+                val before=world.read(workId,actor)
+                val draft=world.saveDraft(workId,"new",actor,SettingRequest(before.revision,SettingPayload(name="기존 설정",content=original),before.sourceToken))
+                settingId=draft.draft!!.id
+                val saved=world.commit(workId,settingId,actor,draft.revision)
+                versionId=saved.settings.single().versionId
             }
-            fun repository()=ContentRepository(JdbcTemplate(source),TransactionTemplate(JdbcTransactionManager(source)),mapper)
-            val repo=repository()
-            val setting=Setting(id=contentId(),versionId=contentId(),name="기존 설정",content="  원문 | 보존\n둘째 줄",tags=listOf("둘","하나"),evidence="기존 근거")
-            val work=ContentWork(ownerId="synthetic-content-owner",title="기존 작품",world=WorldState(history=mutableListOf(setting)))
-            repo.transaction { repo.save(work) }
             val before=db.connect().use(::fingerprint)
             val studio=db.studio()
             assertEquals(1,studio.migrate().migrationsExecuted)
             studio.validate()
             assertEquals(0,studio.migrate().migrationsExecuted)
-            assertEquals(before,db.connect().use(::fingerprint),"Public columns, constraints, indexes, rows and Flyway histories must be identical")
-            val restored=repository().find(work.id)!!
-            assertEquals(setting,restored.world.history.single())
-            restored.world.drafts[setting.id]=setting.copy(content="수정 초안")
-            repo.transaction { repo.save(restored) }
-            val fresh=repository().find(work.id)!!
-            assertEquals(setting,fresh.world.history.single())
-            assertEquals("수정 초안",fresh.world.drafts[setting.id]!!.content)
-            assertEquals(setting.id,fresh.world.history.single().id)
-            assertEquals(setting.versionId,fresh.world.history.single().versionId)
-            auth.validate();content.validate();studio.validate()
-            assertEquals(0,auth.migrate().migrationsExecuted)
-            assertEquals(0,content.migrate().migrationsExecuted)
-            println("Coexistence PostgreSQL: Auth V1-V3; Content V1-V7 including Java V5; public fingerprint identical; existing Content save/read and IDs preserved; validate/rerun=0")
+            assertEquals(before,db.connect().use(::fingerprint))
+            context(db,true).use { ctx ->
+                val content=ctx.getBean(WorldService::class.java)
+                val current=content.read(workId,actor)
+                assertEquals(original,current.settings.single().content)
+                assertEquals(versionId,current.settings.single().versionId)
+                val independent=ctx.getBean(WorldStudioService::class.java)
+                val created=independent.create(UUID.fromString(actor),CreateWorldRequest("독립 세계관",""))
+                val saved=independent.save(created.worldId,UUID.fromString(actor),SaveWorldRequest(created.draftRevision,"first"))
+                assertEquals(before,db.connect().use(::fingerprint),"Studio writes must not touch public Auth/Content data")
+                val changed=content.saveDraft(workId,settingId,actor,SettingRequest(current.revision,SettingPayload(id=settingId,name="기존 설정",content="수정 초안"),current.sourceToken))
+                assertEquals("수정 초안",changed.draft!!.content)
+                assertEquals(original,content.read(workId,actor).settings.single().content)
+                assertEquals(saved,independent.revision(created.worldId,UUID.fromString(actor),saved.revisionId))
+            }
         }
     }
 

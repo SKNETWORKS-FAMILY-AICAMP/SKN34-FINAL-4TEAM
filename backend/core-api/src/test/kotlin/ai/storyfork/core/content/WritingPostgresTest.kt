@@ -1,8 +1,8 @@
 package ai.storyfork.core.content
 
-import ai.storyfork.core.content.controller.dto.*
-import ai.storyfork.core.content.domain.ContentFailure
-import ai.storyfork.core.content.service.ContentService
+import ai.storyfork.core.content.fixture.*
+import ai.storyfork.core.content.migration.model.ContentFailure
+import ai.storyfork.core.content.fixture.ContentTestDriver
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -12,9 +12,10 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
+@org.springframework.context.annotation.Import(ai.storyfork.core.content.fixture.ContentTestConfig::class)
 @SpringBootTest(properties=["app.content.enabled=true","CONTENT_DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","CONTENT_DATABASE_USER=content_test","CONTENT_DATABASE_PASSWORD="])
 class WritingPostgresTest {
-    @Autowired lateinit var service: ContentService
+    @Autowired lateinit var service: ContentTestDriver
     private val jdbc get() = JdbcTemplate(DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test",""))
 
     @Test fun `independent episode drafts versions restore and publication survive reload`() {

@@ -49,6 +49,14 @@ Spring Boot·Kotlin 공개 API 개발 기반입니다. Health와 이메일 가�
 
 ## 구조
 
+콘텐츠는 #84 기준으로 `work`, `episode`, `episode_version`, `publication`, `world`, `fork`, `proposal`, `context`로 책임을 분리합니다. 각 기능의 `controller → service → repository`를 사용하며 공개·내부 서비스 DTO는 `service/dto`, 생성 HTTP 전용 DTO는 `proposal/client/dto`에 둡니다. 같은 계약의 DTO는 Controller와 Service가 재사용하고, Entity·도메인 객체는 HTTP에 직접 노출하지 않습니다.
+
+`episode`는 생성·조회·초안 수정만 담당합니다. 삭제는 보존 정책 미확정으로 API를 추가하지 않았습니다. 버전 저장·복원, 발행, 세계관·Fork·AI 처리는 각 소유 Service가 담당하며 기존 URL·JSON·UUID·revision을 유지합니다. 자세한 대응표와 검증 상태는 [#84 대응](../../docs/issue-84-content-boundaries.md)을 참고하세요.
+
+콘텐츠 영속성은 JPA Entity·Spring Data Repository, 동시 편집은 정렬된 작품 행의 `PESSIMISTIC_WRITE`와 revision 비교를 사용합니다. Auth JDBC와 콘텐츠 JPA는 DataSource·TransactionManager를 구분하며 `CONTENT_ENABLED=false`일 때 콘텐츠 영속성 단위는 초기화하지 않습니다. JPA 추가 의존성은 팀 지침을 따르기 위한 최소 starter와 Kotlin Entity 플러그인입니다.
+
+SQL은 `db/migration/auth`, `db/migration/content`로 배치하고 기존 두 이력 테이블을 유지합니다. 과거 공통 콘텐츠 V1~V8을 새 도메인 이력으로 재실행하지 않습니다. `content/migration`의 V5·JDBC·모델은 과거 이관 재현 전용이며 런타임 저장 경로에서 호출하지 않습니다.
+
 콘텐츠 정본은 최신 ERD에 따른 관계형 테이블에 저장합니다. 기존 JSONB는 읽기 전용 이관 백업으로 남깁니다. [ERD 대응과 마이그레이션](../../docs/content-erd-migration.md)에 테이블별 역할·기존 데이터 보존·남은 범위를 기록했습니다.
 
 WorldStudio의 [독립 초기 스키마](../../docs/design/worldstudio-independent-schema.md)는 전용 `worldstudio` schema와 `world_studio_schema_history`를 사용하며 기존 Content/Auth 테이블을 변경하지 않습니다. [명시 실행·검증 계약](src/main/resources/db/migration/worldstudio/README.md)을 따르며 서버 시작으로 migration을 실행하지 않습니다. `app.worldstudio.enabled=true`일 때만 기존 Core DataSource와 기본 JPA/TransactionManager를 공유하는 Repository·Service를 활성화합니다. 독립 세계관 생성·초안 작성·확정 저장·과거 조회·복원은 이 Service의 책임이며 HTTP API·기존 UI 연결과 공용 DB 적용은 포함하지 않습니다. [실행 증거와 한계](../../docs/design/worldstudio-jpa-verification.md)를 참고하세요.
@@ -96,7 +104,7 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `AUTH_JWT_SECRET` | 필수, 32바이트 이상의 무작위 키를 Base64 인코딩 |
 | `AUTH_COOKIE_SECURE` | `true`; 로컬 HTTP 검증에서만 `false` |
 
-`ContentConfig`는 생성 전용 HTTP 클라이언트를 만들며 Health 클라이언트의 제한시간을 변경하지 않습니다.
+`proposal/config/GenerationClientConfig`는 생성 전용 HTTP 클라이언트를 만들며 Health 클라이언트의 제한시간을 변경하지 않습니다.
 AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 `./gradlew bootRun`은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달은 Compose를 사용합니다.
 루트 `.env` 전체를 source하거나 Core에 OpenAI 키를 주입하지 않습니다.
@@ -235,3 +243,5 @@ Auth/Content context 없이 독립 Flyway migrate·validate를 수행하며 성�
 표지 교체는 새 비공개 UUID object 업로드 후 DB 참조를 바꾸고 삭제는 DB 참조만 지웁니다. 실패·모호한 commit으로 기존 파일을 잃지 않도록 이전 표지와 실패 업로드의 미참조 object는 보존할 수 있습니다. 따라서 논리 삭제는 버킷 원본의 즉시 영구 삭제가 아닙니다. 자동 lifecycle/정리 worker는 없으며 운영자가 DB key와 비공개 버킷을 대조·정리해야 합니다. DB/S3 분산 원자성·저장 비용/운영 삭제 정책은 보장하지 않습니다.
 
 프론트 `/content` 작품 생성의 선택 표지, 기존 표지 관리, 실제 설정 첨부 CRUD와 `/studio/{UUID}` 커서 위치 본문 이미지가 이 API를 사용합니다. 생성 후 표지 실패는 생성된 작품을 유지해 중복 생성 없이 재시도합니다. 취소/응답 유실은 서버 미처리를 보장하지 않으므로 새로고침으로 확인합니다. 브라우저는 인증 bytes → Blob URL로 표시하고 교체·이탈 시 해제하며 TXT 내보내기는 이미지·marker 없는 텍스트 전용입니다. EPUB은 추가하지 않습니다.
+
+Content 세계관의 `world.entity`·`world.repository`와 독립 WorldStudio의 `world.studio.entity`·`world.studio.repository`는 별도 JPA 스캔 범위입니다. Content의 `WorldRepository`(String)와 WorldStudio의 `StudioWorldRepository`(UUID)를 구분하며, WorldStudio 비활성 시 Content에 독립 스키마를 요구하지 않습니다. 공존 검증은 현재 WorkService·WorldService와 WorldStudioService로 수행합니다.

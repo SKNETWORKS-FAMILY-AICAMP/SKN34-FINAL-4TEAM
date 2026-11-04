@@ -2,7 +2,7 @@ package ai.storyfork.core.world;
 
 import ai.storyfork.core.world.migration.WorldStudioMigration;
 import ai.storyfork.core.world.migration.WorldStudioMigrationProperties;
-import ai.storyfork.core.content.repository.V5__ImportLegacyContent;
+import ai.storyfork.core.content.migration.V5__ImportLegacyContent;
 import tools.jackson.databind.json.JsonMapper;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ class WorldStudioMigrationPostgresTest {
             var auth = Flyway.configure().dataSource(db.url,user,password)
                 .locations("classpath:db/migration/auth").table("flyway_schema_history").load();
             auth.migrate();
-            var content = Flyway.configure().dataSource(db.url,user,password).locations("classpath:db/content")
+            var content = Flyway.configure().dataSource(db.url,user,password).locations("classpath:db/migration/content")
                 .javaMigrations(new V5__ImportLegacyContent(JsonMapper.builder().findAndAddModules().build()))
                 .table("content_schema_history").baselineOnMigrate(true).baselineVersion("0").load();
             content.migrate();

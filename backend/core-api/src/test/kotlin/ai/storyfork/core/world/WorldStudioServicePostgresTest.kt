@@ -7,7 +7,7 @@ import ai.storyfork.core.world.service.dto.*
 import ai.storyfork.core.auth.config.AuthPersistenceConfig
 import ai.storyfork.core.auth.entity.AuthMember
 import ai.storyfork.core.auth.repository.MemberRepository
-import ai.storyfork.core.world.repository.WorldRepository
+import ai.storyfork.core.world.studio.repository.StudioWorldRepository
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -51,7 +51,7 @@ class WorldStudioServicePostgresTest {
             auth(db)
             context(db,false).use { ctx ->
                 assertFalse(ctx.containsBean("worldStudioService"))
-                assertTrue(ctx.getBeansOfType(WorldRepository::class.java).isEmpty())
+                assertTrue(ctx.getBeansOfType(StudioWorldRepository::class.java).isEmpty())
                 assertEquals(setOf("ai.storyfork.core.auth.entity"),ctx.getBean(EntityManagerFactory::class.java).metamodel.entities.map { it.javaType.packageName }.toSet())
                 assertEquals(1,ctx.getBeansOfType(DataSource::class.java).size)
                 db.connect().use { c -> assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'")) }
@@ -135,7 +135,7 @@ class WorldStudioServicePostgresTest {
                 assertEquals(before,service.draft(world,actor))
                 assertEquals(member.nickname,members.findById(member.id).orElseThrow().nickname)
                 lastDraftRevision=before.draftRevision
-                assertEquals(setOf("ai.storyfork.core.world.entity","ai.storyfork.core.auth.entity"),ctx.getBean(EntityManagerFactory::class.java).metamodel.entities.map { it.javaType.packageName }.toSet())
+                assertEquals(setOf("ai.storyfork.core.world.studio.entity","ai.storyfork.core.auth.entity"),ctx.getBean(EntityManagerFactory::class.java).metamodel.entities.map { it.javaType.packageName }.toSet())
             }
             context(db).use { fresh ->
                 val service=fresh.getBean(WorldStudioService::class.java)

@@ -2,9 +2,10 @@ package ai.storyfork.core.attachment
 
 import ai.storyfork.core.auth.entity.AuthMember
 import ai.storyfork.core.auth.repository.MemberRepository
-import ai.storyfork.core.content.controller.dto.*
-import ai.storyfork.core.content.domain.Setting
-import ai.storyfork.core.content.service.ContentService
+import ai.storyfork.core.content.migration.model.*
+import ai.storyfork.core.content.fixture.*
+import ai.storyfork.core.content.migration.model.Setting
+import ai.storyfork.core.content.fixture.ContentTestDriver as ContentService
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.net.CookieManager
@@ -27,6 +28,7 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
 
 /** 실제 HTTP·PostgreSQL·S3 호환 저장소를 사용하는 선택적 통합 검증. */
+@org.springframework.context.annotation.Import(ai.storyfork.core.content.fixture.ContentTestConfig::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [
     "app.content.enabled=true", "app.setting-attachments.enabled=true",
     "spring.datasource.url=\${TEST_ATTACHMENT_DATABASE_URL}",
@@ -196,9 +198,9 @@ class SettingAttachmentHttpTest {
         val base = "/api/v1/works/${work.id}/episodes/1/images"
         val created = upload(base, owner); assertEquals(201, created.statusCode())
         val id = node(created).path("id").asText(); val body = "앞[[image:$id]]뒤"
-        assertThrows(ai.storyfork.core.content.domain.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 2, DraftRequest("2화", body, 0), true) }
-        assertThrows(ai.storyfork.core.content.domain.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "data:image/png;base64,eA==", 0), true) }
-        assertThrows(ai.storyfork.core.content.domain.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "[[image:${UUID.randomUUID()}]]", 0), true) }
+        assertThrows(ai.storyfork.core._common.exception.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 2, DraftRequest("2화", body, 0), true) }
+        assertThrows(ai.storyfork.core._common.exception.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "data:image/png;base64,eA==", 0), true) }
+        assertThrows(ai.storyfork.core._common.exception.ContentFailure::class.java) { content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "[[image:${UUID.randomUUID()}]]", 0), true) }
         val saved = content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", body, 0), true)
         content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "현재 텍스트", saved.draft.revision), true)
         val restored = content.restoreEpisode(work.id, owner.id, 1, RevertRequest(2, saved.versions.last().id))

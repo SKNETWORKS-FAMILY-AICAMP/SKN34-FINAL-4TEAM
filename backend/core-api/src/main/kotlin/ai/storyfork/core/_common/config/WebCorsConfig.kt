@@ -14,7 +14,7 @@ class WebCorsConfig(
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/api/**")
             .allowedOrigins(allowedOrigin)
-            .allowedMethods("GET", "POST", "PUT")
+            .allowedMethods("GET", "POST", "PUT", "DELETE")
             .allowedHeaders("*")
     }
 }
