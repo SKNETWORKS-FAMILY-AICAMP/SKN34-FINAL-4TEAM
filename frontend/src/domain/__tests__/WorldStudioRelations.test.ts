@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { newSetting } from '../entities/studioWorld'
-import { applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions } from '../entities/studioRelations'
+import { applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions, personDeletionInfo, removePerson } from '../entities/studioRelations'
 
 it('keeps mutual facts separate from independent directed emotions and stable IDs',()=>{
  const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
@@ -83,4 +83,14 @@ it('connects setting cards beyond characters and rejects an incomplete edit',()=
  expect(rows[2].item).toMatchObject({subjectId:person.item.id,targetId:place.item.id})
  expect(()=>putRelation(rows,{...rows[2].item,text:''})).toThrow()
  expect(()=>putRelation(rows,{...rows[2].item,targetId:null})).toThrow()
+})
+
+it('previews incident links and blocks person deletion when unrelated settings reference that person',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'오랜 동료이자 경쟁자'})
+ const note=newSetting();note.item.title='가람의 계약';note.item.relatedIds=[a.item.id]
+ expect(personDeletionInfo(rows,a.item.id).relations).toHaveLength(1)
+ expect(removePerson(rows,a.item.id)).toEqual([b])
+ expect(()=>removePerson([...rows,note],a.item.id)).toThrow(/가람의 계약/)
+ expect(rows).toHaveLength(3)
 })

@@ -8,6 +8,8 @@ const pairMatches=(r:RelationInput,a:string,b:string)=>r.subjectId===a&&r.target
 export function WorldRelationshipEditor({studio}:{studio:VM}){
  const people=studio.editing!.settings.filter(s=>cardTypes.some(type=>type.id===cardTypeOf(s.item)))
  const [source,setSource]=useState(''),[target,setTarget]=useState(''),[open,setOpen]=useState(false)
+ const [deleteConfirm,setDeleteConfirm]=useState<string|null>(null)
+ const deletion=deleteConfirm?studio.personDeletionInfo(deleteConfirm):null
  const relations=studio.editing!.settings.filter(s=>s.item.kind==='relation')
  const name=(id:string|null)=>people.find(s=>s.item.id===id)?.item.title||'선택 안 함'
  return <section aria-label="관계 편집"><h3>관계 연결 (선택)</h3><p>구조적 관계와 방향별 감정을 따로 작성합니다.</p>
@@ -16,6 +18,13 @@ export function WorldRelationshipEditor({studio}:{studio:VM}){
    <label className="field">target · 관계 대상<select className="inp" value={target} onChange={e=>{setTarget(e.target.value);setOpen(false)}}><option value="">선택하세요</option>{people.map(s=><option key={s.item.id} value={s.item.id}>{s.item.title||'이름 없는 설정'}</option>)}</select></label></div>
    <button className="btn" type="button" disabled={!source||!target||source===target} onClick={()=>setOpen(true)}>관계 작성</button>
    {people.length<2&&<p>설정 카드에서 설정 두 개을 먼저 추가하세요. 관계 없이도 저장할 수 있습니다.</p>}
+   <div className="world-toolbar"><button className="btn" type="button" disabled={!people.some(s=>s.item.id===source&&s.item.entityType==='character')} onClick={()=>setDeleteConfirm(source)}>선택한 인물 삭제</button>
+    {studio.canUndoPersonDeletion&&<button className="btn" type="button" onClick={()=>{const id=studio.undoPersonDeletion();if(id)setSource(id)}}>인물 삭제 되돌리기</button>}
+   </div>
+   {deletion&&<section aria-label="인물 삭제 확인"><h4>{deletion.person.item.title} 삭제 확인</h4><p>인물과 연결된 관계·감정 {deletion.relations.length}개를 편집본에서 삭제합니다. 저장해야 반영됩니다.</p><ul>{deletion.relations.map(r=><li key={r.item.id}>{relationLabel(r.item)}</li>)}</ul>
+    {!!deletion.blockers.length&&<div role="alert"><p>다른 설정에서 참조하고 있어 삭제할 수 없습니다. 연결을 먼저 정리해 주세요.</p><ul>{deletion.blockers.map(row=><li key={row.item.id}>{row.item.title}</li>)}</ul></div>}
+    <button className="btn" type="button" disabled={!!deletion.blockers.length} onClick={()=>{if(studio.deletePerson(deletion.person.item.id)){setDeleteConfirm(null);setSource('');setTarget('');setOpen(false)}}}>인물과 연결 삭제</button><button className="btn" type="button" onClick={()=>setDeleteConfirm(null)}>삭제 취소</button>
+   </section>}
    {!relations.length&&<p>아직 연결한 관계가 없습니다.</p>}
    <nav aria-label="저장할 관계 목록">{relations.map(s=><button className="btn" key={s.item.id} type="button" onClick={()=>{setSource(s.item.subjectId??'');setTarget(s.item.targetId??'');setOpen(true)}}>{name(s.item.subjectId)} · {relationLabel(s.item)} · {name(s.item.targetId)}</button>)}</nav>
    {open&&<PairEditor key={source+'|'+target} studio={studio} source={source} target={target} onClose={()=>setOpen(false)}/>}
