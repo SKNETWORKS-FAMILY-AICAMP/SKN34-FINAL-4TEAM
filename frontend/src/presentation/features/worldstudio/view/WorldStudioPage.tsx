@@ -1,3 +1,4 @@
+import {WorldRelationshipEditor} from './WorldRelationshipEditor'
 import {cardTypes,cardTypeOf,settingAreas,type CardType,type CardFilter} from '../../../../domain/entities/studioCards'
 import { useState, type FormEvent } from 'react'
 import type { SettingItem } from '../../../../domain/entities/studioWorld'
@@ -13,6 +14,7 @@ const kinds:Record<SettingItem['kind'],string>={entity:'대상',fact:'설정',ru
 export function WorldStudioPage() {
  useScreenId('W01')
  const vm=useWorldStudioViewModel()
+ const [tab,setTab]=useState('edit')
  const [listOpen,setListOpen]=useState(true)
  const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const f=new FormData(e.currentTarget);vm.create(String(f.get('name')??''),String(f.get('description')??''))}
  return <><Gnb on="worlds"/><main className="wrap world-studio">
@@ -28,7 +30,9 @@ export function WorldStudioPage() {
    <div className="world-list-divider"><button type="button" className="world-list-toggle" aria-label={listOpen?'세계관 목록 접기':'세계관 목록 펼치기'} aria-expanded={listOpen} aria-controls="world-list" onClick={()=>setListOpen(open=>!open)}><span aria-hidden="true">{listOpen?'‹':'›'}</span></button></div>
    <section className="world-content">{vm.editing?<>
     <div className="world-toolbar"><h2>{vm.saved?.name}</h2><span role="status">{vm.busy?'잠시만 기다려 주세요':vm.dirty?'저장하지 않은 변경사항':'저장됨'}</span><button className="btn pri" disabled={vm.busy || !vm.dirty} onClick={vm.save}>저장</button></div>
-    <Editor vm={vm}/>
+    <nav className="libtabs" aria-label="세계관 도구"><button type="button" onClick={()=>setTab('edit')}>설정 작성</button><button type="button" onClick={()=>setTab('relations')}>관계 편집</button></nav>
+    <div hidden={tab!=='edit'}><Editor vm={vm}/></div>
+    <div hidden={tab!=='relations'}><WorldRelationshipEditor key={vm.editing.id} studio={vm}/></div>
    </>:<div className="world-empty"><h2>{vm.busy?'세계관을 읽고 있습니다':'세계관을 선택하거나 새로 만들어 주세요'}</h2><p className="muted">이름만으로 시작할 수 있습니다. 설정과 인물은 필요한 만큼 추가하세요.</p></div>}</section>
   </div>
  </main><Footer/></>
