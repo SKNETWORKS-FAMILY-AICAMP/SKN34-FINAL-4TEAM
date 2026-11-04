@@ -170,16 +170,17 @@ def test_content(draft_work):
                   f"WHERE e.work_id='{draft_work['id']}' AND e.sequence=1 AND d.content='CI persisted manuscript'") == "1"
 
 
-def test_content_core_auth_unavailable_is_not_an_invalid_user_or_cached_success(draft_work):
+def test_content_core_auth_timeout_is_not_an_invalid_user_or_cached_success(draft_work):
     client, path = draft_work["client"], draft_work["path"]
     assert client.get(path).status_code == 200
-    compose("stop", "core-api")
+    # stop의 endpoint/DNS 전환 대신 listener·네트워크를 보존하고 응답만 멈춘다.
+    compose("pause", "core-api")
     try:
         response = client.get(path)
-        assert response.status_code == 503
-        assert response.json()["code"] == "CORE_AUTH_UNAVAILABLE"
+        assert response.status_code == 504
+        assert response.json()["code"] == "CORE_AUTH_TIMEOUT"
     finally:
-        compose("start", "core-api")
+        compose("unpause", "core-api")
         deadline = time.monotonic() + 120
         while time.monotonic() < deadline:
             if client.get("/api/v1/health").status_code == 200:

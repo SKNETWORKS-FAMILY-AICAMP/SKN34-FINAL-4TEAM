@@ -766,7 +766,7 @@
 | <a id="미등록-110"></a>미등록-110 | 85 | 화면 누락 기능 | 운영 현황 관리 / 업무·데이터 현황 조회의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-111"></a>미등록-111 | 89 | 실행 기반 | 기존 콘텐츠·첨부·Studio 코드/테스트 추출, 업무별 fresh V1~V9·writer 소유 분리, 공개 라우팅·Content 이미지/Compose/CD·CI 소비자 선택을 로컬 구현; Auth·첨부·Studio SQL 바이트 보존. 실제 DB 대상/보존·복구 승인·hosted 재생·앱 기동·게시/배포·병합/최신 head Required CI 확인 전이므로 모든 이전 행은 ❌ 유지 |
 | <a id="미등록-112"></a>미등록-112 | 89 | 실행 기반 | 운영 독립 Gradle·Spring Boot 진입점·loopback 설정·선택 단위 테스트 골격을 로컬 구현; 업무·DB·배포 구현, 앱 기동, 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
-| <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 | POST /internal/v1/auth/verify의 별도 서비스 자격·서명/만료/UUID JWT 확인, Content HTTP Service proxy·timeout/장애/401 구분·UUID Principal·CSRF/CORS 경계를 소스 구현; 캐시/재시도/fallback/키 공유 없음. 선택 순수 단위 통과, HTTP/보안 통합은 hosted CI 미실행이며 병합·최신 head Required CI 확인 전 ❌ 유지 |
+| <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 | POST /internal/v1/auth/verify의 별도 서비스 자격·서명/만료/UUID JWT 확인, Content HTTP Service proxy·timeout/장애/401 구분·UUID Principal·CSRF/CORS 경계를 소스 구현; 캐시/재시도/fallback/키 공유 없음. bc672a0의 hosted Content 통합은 성공했으나 시스템 인증 장애의 503/504 기대 불일치로 Required CI 실패; 네트워크를 유지한 pause/unpause·정확한 504/CORE_AUTH_TIMEOUT 회귀 보완은 hosted 재검증·병합 전이므로 ❌ 유지 |
 
 ## 연결한 GitHub 이슈
 

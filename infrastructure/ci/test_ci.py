@@ -291,6 +291,34 @@ class SystemContractTest(unittest.TestCase):
         self.assertIn('curl --retry', workflow)
         self.assertIn('down --volumes --remove-orphans', workflow)
 
+    def test_core_auth_timeout_fault_preserves_transport_and_strict_error_contract(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock, call
+
+        module = ast.parse((ci.ROOT / 'infrastructure/system/test_http.py').read_text())
+        function = next(node for node in module.body if isinstance(node, ast.FunctionDef)
+                        and node.name.startswith('test_content_core_auth_'))
+        # Execute only the scenario with test doubles: no pytest/httpx imports, HTTP or Docker.
+        for status, code in [(504, 'CORE_AUTH_TIMEOUT'), (503, 'CORE_AUTH_UNAVAILABLE'),
+                             (401, 'UNAUTHORIZED'), (200, ''), (504, 'CORE_AUTH_UNAVAILABLE')]:
+            with self.subTest(status=status, code=code):
+                compose = Mock()
+                client = Mock()
+                client.get.side_effect = [SimpleNamespace(status_code=200),
+                    SimpleNamespace(status_code=status, json=lambda: {'code': code}),
+                    SimpleNamespace(status_code=200), SimpleNamespace(status_code=200)]
+                namespace = {'compose': compose, 'time': Mock(monotonic=lambda: 0)}
+                exec(compile(ast.Module(body=[function], type_ignores=[]), '<system-scenario>', 'exec'), namespace)
+                scenario = lambda: namespace[function.name]({'client': client, 'path': '/api/v1/works/owned'})
+                if (status, code) == (504, 'CORE_AUTH_TIMEOUT'):
+                    scenario()
+                    self.assertEqual([call('/api/v1/works/owned'), call('/api/v1/works/owned'),
+                                      call('/api/v1/health'), call('/api/v1/works/owned')], client.get.call_args_list)
+                else:
+                    with self.assertRaises(AssertionError):
+                        scenario()
+                self.assertEqual([call('pause', 'core-api'), call('unpause', 'core-api')], compose.call_args_list)
+
     def test_system_mutations_refresh_csrf_per_request(self):
         source = (ci.ROOT / 'infrastructure/system/test_http.py').read_text()
         mutations = 0
