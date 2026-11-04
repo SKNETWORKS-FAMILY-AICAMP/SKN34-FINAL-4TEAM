@@ -1,61 +1,82 @@
 # STORYFORK Content Service
 
-콘텐츠 서비스의 독립 Spring Boot 실행 골격입니다. 기존 Core의 콘텐츠·첨부 코드, API·DB·데이터·배포는 이전하지 않았습니다. 소유권 목표와 미정 계약은 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
+Core에 있던 작품·회차·원고 버전·발행·세계관·독립 WorldStudio·Fork·제안·문맥·첨부 코드와 테스트를 소유하는 독립 Spring Boot 앱입니다. Core는 회원·인증·세션과 Auth migration을 유지하며 콘텐츠 요청을 중계하지 않습니다. [서비스 경계](../../docs/design/service-boundaries.md)와 [이관·연동 계약](../../docs/design/content-service-migration-contract.md)을 따릅니다.
 
-## 실행 기반
+**소스 추출·연결과 운영 전환은 다릅니다.** fresh 콘텐츠 초기 스키마로 이력을 재작성했으므로 기존 Content history에 바로 배포할 수 없습니다. 실제 DB 초기화·데이터 이동·공용 DB 적용·이미지 게시·배포는 수행하지 않았으며 최신 head의 hosted `Required CI` 성공도 확인 대기입니다. 운영 서비스는 실행 골격 그대로입니다.
 
-- 독립 Gradle 프로젝트: `storyfork-content-service`, group `ai.storyfork`
-- 패키지: `ai.storyfork.content`, 진입점: `ContentServiceApplication` (`Application.kt`)
-- Core와 같은 JDK 21, Kotlin 2.4.10, Spring Boot 4.1.0, dependency-management 1.1.7
-- Core에서 바이트 그대로 재사용한 Gradle 9.5.1 wrapper
-- production 의존성은 `spring-boot-starter-webmvc`와 `kotlin-reflect`만 선언합니다. 테스트는 Boot가 버전을 관리하는 JUnit Jupiter·Platform launcher를 사용합니다.
+## 실행 기반과 책임
+
+- 독립 Gradle 프로젝트 `storyfork-content-service`, group `ai.storyfork`, 패키지 `ai.storyfork.content`, main `ContentServiceApplication` (`Application.kt`).
+- Core와 같은 JDK 21·Kotlin 2.4.10·Spring Boot 4.1.0·Gradle 9.5.1 wrapper를 재사용합니다.
+- MVC·RestClient·Security·Validation·JPA/JDBC·Flyway·PostgreSQL과 기존 Jackson/AWS S3 의존성을 실제 이전 기능에 사용합니다. 공통 starter·새 큐/worker/DB는 추가하지 않습니다.
+- `work`, `episode`, `episode_version`, `publication`, `world`, `fork`, `proposal`, `context`, `attachment`의 Controller → Service → Repository를 유지합니다. 중복 `content.content`와 중앙 production ContentService는 없습니다.
+- 공개 API는 기존 `/api/v1/works`와 `/api/v1/public/works`를 유지합니다. nginx 및 Vite가 이 경로만 Content로 보내고 나머지 `/api`는 Core로 보냅니다. 내부 인증 endpoint는 공개 proxy에 등록하지 않습니다.
+- [콘텐츠 사용자 흐름](../../docs/content-integration.md), [설정 첨부 계약](../core-api/README.md#설정-이미지일반-파일-87), [표지·원고 이미지 계약](../core-api/README.md#작품-표지원고-이미지-92)은 기존 URL 호환을 유지합니다. 첨부 계약 문서의 위치는 호환 링크를 위해 남겨 두었지만 실행 소유자는 Content입니다.
 
 ## 네이티브 실행
 
-JDK 21의 `JAVA_HOME`을 해당 프로세스에 설정하고 이 디렉터리에서 실행합니다. 아래는 수동 실행 안내이며 CI/로컬 단위 검증이 앱을 기동하지는 않습니다.
+JDK 21의 `JAVA_HOME`과 필요한 변수만 해당 프로세스에 설정하고 이 디렉터리에서 실행합니다. 다음은 수동 실행 안내이며 로컬 자동 검증에서 앱을 기동하지 않습니다.
 
 ```bash
 ./gradlew bootRun
 ```
 
-기본 주소는 `127.0.0.1:8081`, `spring.application.name`은 `storyfork-content-service`입니다. Core의 8080, 운영 골격의 8082와 구분한 제안 포트이며 실제 호스트의 사용 여부는 별도로 확인해야 합니다. 포트 변경이 필요하면 Spring Boot 표준 옵션을 사용합니다.
+기본 주소는 `127.0.0.1:8081`, 앱 이름은 `storyfork-content-service`입니다. Core 8080·운영 골격 8082와 구분합니다. 콘텐츠와 WorldStudio가 모두 비활성이면 DB/인증 클라이언트를 만들지 않습니다. 이 기본 실행은 업무 API 준비 완료를 뜻하지 않습니다. 포트는 Spring 표준 `--server.port`로 변경할 수 있습니다.
 
-```bash
-./gradlew bootRun --args='--server.port=18081'
+실제 콘텐츠 활성화에는 `CONTENT_ENABLED=true`, 기존 대상의 `CONTENT_DATABASE_URL/USER/PASSWORD`, Core와 동일한 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 기본 Core 인증 origin은 `http://127.0.0.1:8080`, 연결/읽기 timeout은 `1s`/`3s`입니다. 생성은 Content와 AI의 동일한 `INTERNAL_TOKEN`을 사용하며 OpenAI 키·모델은 AI에만 전달합니다. 첨부 설정은 [네이티브 Content 안내](../../infrastructure/README.md#네이티브-content-첨부-설정)를 따릅니다.
+
+루트 `.env` 한 곳에서 관리하고 서비스별 `.env`를 만들거나 전체 파일을 source하지 않습니다. 실제 `.env`는 자동 변경하지 않습니다. 네이티브 Frontend는 같은 origin의 `/api` proxy를 사용해야 두 소유 서비스로 라우팅됩니다(`VITE_DEV_PROXY_TARGET`, `VITE_CONTENT_DEV_PROXY_TARGET`). Compose는 필요한 값만 각 런타임에 전달하며 DB 대상·계정은 기존 Core 설정과 같습니다.
+
+## Core 인증 클라이언트 — 실제 연결
+
+[`CoreAuthClient`](src/main/kotlin/ai/storyfork/content/auth/client/CoreAuthClient.kt)는 Spring HTTP Service proxy Bean입니다. 보호 요청의 Bearer를 Core에 보내고 `VerifiedMemberResponse(memberId: UUID)`만 받아 Principal을 구성합니다.
+
+```text
+POST /internal/v1/auth/verify
+Authorization: Bearer <사용자 access token>
+X-Content-Service-Token: <별도 서비스 자격증명>
+→ {"memberId":"<회원 UUID>"}
 ```
 
-기본 실행에 DB·SMTP·AI 키나 별도 환경설정은 필요하지 않습니다. 서비스별 `.env`를 만들거나 루트 `.env` 전체를 source하지 않습니다. 향후 필요한 설정도 루트 `.env`에서 관리하고 해당 프로세스에 필요한 값만 전달합니다.
+- `CONTENT_CORE_AUTH_TOKEN`은 32자 이상·개행 없는 별도 비밀값이며 루트 예시는 빈 값입니다. 사용자 Bearer·JWT 서명 키와 대체할 수 없습니다. Core는 상수 시간 비교와 기존 JWT 서명/만료 검증을 수행합니다.
+- 인증 필수 요청마다 실제 확인하며 캐시·자동 재시도·개발 사용자 fallback은 없습니다. Content는 JWT 서명 키·Auth Entity/Repository를 받지 않습니다.
+- 사용자 무효 401 `UNAUTHORIZED`, 연결 불가/상대 503은 503 `CORE_AUTH_UNAVAILABLE`, timeout은 504 `CORE_AUTH_TIMEOUT`, 기타 상대 오류는 502 `CORE_AUTH_UPSTREAM_ERROR`, 빈/잘못된 응답·redirect는 502 `CORE_AUTH_INVALID_RESPONSE`입니다. 오류 원문·토큰을 노출하지 않습니다.
+- 공개 작품 GET만 익명 허용하고 소유권·Fork·공개 회차 검사는 업무 Service가 담당합니다. 모든 공개 변경 요청의 CSRF 쿠키/`X-CSRF-TOKEN`·XOR 계약과 CORS를 유지합니다. 로그인·refresh·CSRF 발급은 Core 책임입니다.
+- 기존 access JWT에는 세션 ID가 없어 refresh 세션 폐기 후 access token의 즉시 무효화를 새로 보장하지 않습니다.
 
-## 선택 단위 검증
+## 같은 DB와 fresh 콘텐츠 migration
+
+물리 DB를 나누거나 데이터를 복사하지 않습니다. Core Auth와 Content는 기존 같은 대상/계정을 사용하되 각자 자기 테이블과 migration만 씁니다. Compose는 Core Health 이후 Content를 시작하여 새 공유 schema의 Auth 초기화가 먼저 끝나게 합니다. 서버 간 HTTP는 단일 DB transaction이 아닙니다.
+
+| 전역 버전 | 명시 leaf | 책임 |
+|---|---|---|
+| V1 | `db/migration/work` | 자격증명 없는 로컬 member 참조·작품·장르·권리 |
+| V2 | `db/migration/episode` | 회차·초안·삭제 revision floor |
+| V3 | `db/migration/world` | 세계관·설정·버전·공개/회차 범위·지식·태그 |
+| V4 | `db/migration/episode_version` | 불변 원고 버전 |
+| V5 | `db/migration/publication` | 작품 공개 이력·발행 사건 |
+| V6 | `db/migration/fork` | 체크포인트·Fork 정책/기준·변경 선택/반영 |
+| V7 | `db/migration/proposal` | AI 작업·호출·입력·근거·제안·채택/반영 |
+| V8 | `db/migration/work` | 의존 이력 이후 `work_current` view |
+| V9 | `db/migration/episode` | Fork/발행 이후 `episode_current` view |
+
+[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 7개 leaf만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
+
+이 변경은 **사용자가 허용한 개발용 재초기화 전제**이며 과거 Content V1~V9 checksum과 호환되지 않습니다. 기존 적용 이력을 자동 repair/baseline 변경/clean하지 않습니다. 정확한 대상·중단 시간·보존 범위·복구 증거를 운영자가 확인하고 별도 승인하기 전 실제 DB/volume을 지우지 않습니다. 특히 같은 DB의 Auth·WorldStudio·첨부까지 일괄 폐기하는 승인이 아닙니다.
+
+Auth SQL은 Core의 `db/migration/auth`/`flyway_schema_history`에 원본 그대로 남습니다. 설정 첨부·이미지는 독립 leaf/history 및 바이트를 유지합니다. WorldStudio V1도 바이트/`worldstudio.world_studio_schema_history`를 유지하고 [명시 migration](src/main/resources/db/migration/worldstudio/README.md) 뒤에만 활성화합니다. 같은 `contentDataSource`를 사용하지만 studio-only EntityManager/TransactionManager이며 서버 시작은 `validate`만 합니다. 별도 WorldStudio DB/pool·Auth 스캔은 없습니다.
+
+## 이미지·전환과 검증
+
+Content Dockerfile·Compose·GHCR 게시 대상·nginx/Vite·CI 소비 선택을 연결했습니다. CD 배포는 `DEVELOP_CD_ENABLED=true`와 `CONTENT_FRESH_SCHEMA_APPROVED=true`가 모두 필요합니다. 승인 변수는 실제 DB 준비를 대신하지 않습니다. 동일 revision 이미지 확인 후 web/구 Core/Content writer를 중단하고 선택 WorldStudio migration → 새 앱 기동 순서이며 실패하면 자동 rollback/repair 없이 ingress를 멈춘 상태로 남깁니다. [인프라 절차](../../infrastructure/README.md#ci--cd-publish--deploy)를 따릅니다.
 
 ```bash
-./gradlew test --tests 'ai.storyfork.content.ApplicationPropertiesTest' --no-daemon
+# 로컬: 순수 단위만 명시 선택
+./gradlew unitTest --tests 'ai.storyfork.content.auth.CoreAuthVerificationServiceTest' --tests 'ai.storyfork.content.episode.ContentBoundaryTest' --no-daemon
+# 아래는 hosted CI 호출이며 로컬 자동 실행 목록이 아님
+./gradlew integrationTest --no-daemon
 ```
 
-JUnit 테스트는 JDK `Properties`로 실제 classpath의 `application.properties`를 읽어 서비스명·loopback 주소·포트를 검증합니다. Spring context·HTTP·DB를 사용하지 않습니다. `useJUnitPlatform`, 빈 발견 실패, 필터 불일치 실패를 설정했으며 CI도 위 클래스를 명시해 실행합니다.
+`unitTest`는 `build.gradle`에 분류한 Spring/실제·대역 HTTP/DB/Flyway를 제외하고 `integrationTest`는 그 경계만 실행합니다. 빈 발견/불일치는 실패합니다. hosted CI에는 격리 PostgreSQL fresh 초기화·validate·재실행 0건·변조 이력 거부, 실제 proxy 인증/timeout, Core 내부 보안, 실제 로그인 → Content 소유권·저장·Core 장애 503 시스템 회귀를 둡니다. CI를 구성한 것과 실행 성공은 구분합니다.
 
-루트에서 실행하는 별도 정적 계약 검사는 기본 설정과 Core wrapper의 바이트·실행 권한만 확인합니다.
-
-```bash
-python3 -I -m unittest discover -s infrastructure/ci -p test_spring_service_configuration.py -v
-```
-
-## Core 인증 클라이언트 준비 — 로컬 초안
-
-- [`CoreAuthClient`](src/main/kotlin/ai/storyfork/content/auth/client/CoreAuthClient.kt)는 기존 Spring HTTP Service Client의 `@HttpExchange`·`@PostExchange` 선언만 준비합니다. 새 production 의존성은 없습니다.
-- `POST /internal/v1/auth/verify`와 `VerifiedMemberResponse(memberId: UUID)`는 **콘텐츠 서비스 내부의 잠정 초안**입니다. Core에 해당 endpoint는 구현되어 있지 않으며, 기존 Core 계약이나 전체 프로젝트의 인증 방식으로 채택한 것이 아닙니다.
-- 응답은 Core `AuthMember.id`의 UUID 타입에 맞춘 회원 식별자 하나만 제안합니다. 기존 공개 `MemberResponse.id`는 UUID 문자열이며 이 새 DTO와 다른 계약입니다. 원본 자격증명은 `Authorization` 헤더 인자에만 두고 요청 본문·응답 DTO·로그에는 넣지 않습니다. 역할·권한 필드는 추측해 추가하지 않습니다.
-- Bean·HTTP proxy·보안 필터·업무 호출부는 없습니다. 실제 Core 호출이나 인증·인가 강제는 수행하지 않습니다. 실제 연결 전에 Core 경로·응답과 서버 간 인증을 합의하고 timeout·오류 매핑·콘텐츠 인가를 구현해야 합니다.
-
-```bash
-./gradlew test --tests 'ai.storyfork.content.auth.client.CoreAuthClientTest' --no-daemon
-```
-
-위 순수 JUnit 테스트 하나는 reflection으로 HTTP annotation·필수 헤더·UUID-only 반환 DTO만 검사합니다. 서버·소켓·Spring context·MockMvc·실제 토큰 검증은 사용하지 않습니다. 기존 CI의 테스트 선택은 이번 범위에서 바꾸지 않았습니다.
-
-## 범위와 검증 한계
-
-- 업무 API·Health endpoint·인증/인가·DB·Flyway·공통 starter·빈 업무 계층은 추가하지 않습니다. 업무 API를 추가하기 전에 인증·콘텐츠 권한 계약을 별도로 구현해야 합니다.
-- Compose·nginx·공개 라우팅·운영 배포에 연결하지 않은 loopback 네이티브 골격입니다. 인터넷 운영 준비 완료를 뜻하지 않습니다.
-- 로컬에서는 선택 단위/정적 검증만 수행합니다. 앱 기동·`build`/`bootJar`·통합·시스템·브라우저 검증은 실행하지 않았으며, 실제 기동 가능성은 별도 검증 대기입니다.
-- hosted `Required CI` 성공은 아직 확인하지 않았습니다. 기능표는 병합과 최신 head의 CI 성공 확인 전까지 ❌를 유지합니다.
+로컬 전체 suite·build/bootJar·Spring/DB/HTTP·컨테이너·시스템·브라우저는 실행하지 않습니다. S3 실물 lifecycle은 별도 격리 fixture가 필요하며 현재 CI의 조건부 skip을 통과로 표현하지 않습니다. 최신 Required CI·PR 병합 전 기능표는 ❌를 유지합니다.

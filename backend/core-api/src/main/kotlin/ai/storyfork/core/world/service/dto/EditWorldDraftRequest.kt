@@ -1,7 +1,0 @@
-package ai.storyfork.core.world.service.dto
-
-
-data class EditWorldDraftRequest(
-    val expectedDraftRevision: Long, val name: String, val description: String,
-    val cards: List<CardPayload> = emptyList(), val relationships: List<RelationshipPayload> = emptyList()
-)

@@ -17,11 +17,18 @@ class SpringServiceConfigurationTest(unittest.TestCase):
                 self.assertTrue(resource.is_file(), f"설정 파일 누락: {resource.relative_to(ROOT)}")
                 config = ConfigParser(interpolation=None, delimiters=("=",))
                 config.read_string("[application]\n" + resource.read_text(encoding="utf-8"))
-                self.assertEqual({
+                expected = {
                     "spring.application.name": f"storyfork-{service}-service",
                     "server.address": "127.0.0.1",
                     "server.port": port,
-                }, dict(config["application"]))
+                }
+                self.assertEqual(expected, {key: config["application"][key] for key in expected})
+                if service == "operations":
+                    self.assertEqual(expected, dict(config["application"]))
+                else:
+                    self.assertEqual("${CONTENT_ENABLED:false}", config["application"]["app.content.enabled"])
+                    self.assertNotIn("spring.datasource.url", config["application"])
+                    self.assertNotIn("spring.flyway.locations", config["application"])
 
     def test_each_independent_build_reuses_core_wrapper_bytes_and_executable_mode(self):
         for service in SERVICES:

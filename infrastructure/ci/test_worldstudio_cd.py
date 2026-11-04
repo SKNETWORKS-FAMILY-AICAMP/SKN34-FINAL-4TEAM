@@ -14,8 +14,8 @@ class WorldStudioDeploymentTest(unittest.TestCase):
     def test_migration_reuses_core_credentials_without_worldstudio_connection(self):
         compose = (ROOT / "infrastructure/docker-compose.dev.yaml").read_text(encoding="utf-8")
         migration = compose.split("  worldstudio-migrate:", 1)[1].split("\n  web:", 1)[0]
-        for key in ("CORE_DATABASE_URL", "CORE_DATABASE_USER", "CORE_DATABASE_PASSWORD"):
-            self.assertIn(key + ":", migration)
+        for key in ("URL", "USER", "PASSWORD"):
+            self.assertIn("CONTENT_DATABASE_" + key + ": ${CORE_DATABASE_" + key, migration)
         self.assertNotIn("WORLDSTUDIO_DATABASE_", compose)
         self.assertNotIn("WORLDSTUDIO_DATABASE_", (ROOT / ".env.example").read_text(encoding="utf-8"))
 
@@ -41,7 +41,7 @@ class WorldStudioDeploymentTest(unittest.TestCase):
             docker.chmod(0o755)
             env = dict(os.environ, CD_DIRECTORY=directory.replace("\\", "/"), CD_WEB_PORT="8088",
                 GITHUB_ACTOR="test", GH_TOKEN="fake-token", COMPOSE_BASE_YAML="", COMPOSE_DEV_YAML="",
-                WORLDSTUDIO_CD_MIGRATION_ENABLED=enabled,
+                WORLDSTUDIO_CD_MIGRATION_ENABLED=enabled, CONTENT_FRESH_SCHEMA_APPROVED="true",
                 WORLDSTUDIO_EXPECTED_DATABASE_URL="jdbc:postgresql://qa:5432/qa",
                 WORLDSTUDIO_EXPECTED_DATABASE_USER="qa", WORLDSTUDIO_BACKUP_RESTORE_REFERENCE="qa-restored",
                 TEST_COMMANDS=str(path / "commands"), TEST_MIGRATION_EXIT=str(migration_exit))
@@ -53,6 +53,18 @@ class WorldStudioDeploymentTest(unittest.TestCase):
                 env=dict(env, TEST_BIN=env["CD_DIRECTORY"]), capture_output=True, text=True)
             commands = (path / "commands").read_text() if (path / "commands").exists() else ""
             return result.returncode, commands, result.stderr
+
+    def test_unapproved_content_cutover_never_stops_or_starts_services(self):
+        code, commands, _ = self.deploy("false", overrides={"CONTENT_FRESH_SCHEMA_APPROVED": ""})
+        self.assertNotEqual(0, code)
+        self.assertNotIn("stop web core-api content-service", commands)
+        self.assertNotIn("up -d", commands)
+
+    def test_old_writer_and_public_ingress_stop_before_any_migration_or_new_writer(self):
+        code, commands, error = self.deploy("true")
+        self.assertEqual(0, code, error)
+        self.assertLess(commands.index("stop web core-api content-service"), commands.index("run --rm --no-deps worldstudio-migrate"))
+        self.assertLess(commands.index("stop web core-api content-service"), commands.index("up -d"))
 
     def test_disabled_preserves_deployment_without_migration(self):
         code, commands, error = self.deploy("false")

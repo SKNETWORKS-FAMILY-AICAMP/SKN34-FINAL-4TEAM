@@ -4,7 +4,7 @@
 
 ## 표 기준
 
-> **서비스 열은 DEC-41의 목표 소유권이다.** [서비스 경계·실행 구조](design/service-boundaries.md)를 따른다. 기존 ✅는 해당 동작의 종전 구현 근거이지 새 서비스로의 이전 완료가 아니다. 현재 코드·API·DB는 분리 전 상태다. LLMOps는 운영 영역으로 분류하되 Langfuse 자체 UI와 운영 화면 API 통합은 미정이며 Spring 내부 구현을 뜻하지 않는다. 정기 작업 행은 운영의 감시·관리 관점이고 실제 실행은 업무 소유 서비스에 둔다.
+> **서비스 열은 DEC-41의 목표 소유권이다.** [서비스 경계·실행 구조](design/service-boundaries.md)를 따른다. 기존 ✅는 해당 동작의 종전 구현 근거이지 새 서비스로의 이전 완료가 아니다. Core→Content 업무·테스트·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기다. 아래 이전 기능의 ✅를 이번 추출 완료로 승격하지 않는다. LLMOps는 운영 영역으로 분류하되 Langfuse 자체 UI와 운영 화면 API 통합은 미정이며 Spring 내부 구현을 뜻하지 않는다. 정기 작업 행은 운영의 감시·관리 관점이고 실제 실행은 업무 소유 서비스에 둔다.
 
 
 - **개발 완료:** ✅는 해당 세부 동작을 명시적으로 구현한 PR이 병합됐고 그 PR 최신 head의 `Required CI` 성공을 확인한 항목이다. ❌는 미구현·부분 구현·열린 PR·병합 없는 종료·완료 근거 미확인을 포함한다. ❌가 코드가 전혀 없다는 뜻은 아니다.
@@ -20,7 +20,7 @@
 - 검색·랭킹·홈 편성은 기존 데모 화면을 기준으로 분류했다. 최신 순·인기 순·조회 순은 작품 정렬이지 검색어 순위가 아니다. 실시간·24시간·주간 문구만으로 실제 기간 집계 구현을 인정하지 않는다. 인기 검색어는 추가 검토로 도입 미확정이며, 별도 검색 MSA·검색 엔진을 이 표로 확정하지 않는다.
 - 중간 기능 또는 세부 기능의 `(Draft 검토 후보)` 표시는 채택 미확정을 뜻한다. 다른 기능과 같은 표 안에 있어도 구현·정책 채택이 확정된 것은 아니며 관련 PR과 검토 근거를 확인한다.
 - 중간 기능 통합: 58→05, 49→20, 52→21-C, 79→31, 82→34, 81→40-D. 21은 좋아요(21-A)·관심 작품(21-B)·독서 기록(21-C)으로 구분했다. 기존 기능을 삭제하거나 미등록 번호를 재발급하지 않았으며, 05·08의 Draft 보완 동작은 해당 세부 행에 후보 표시를 유지한다.
-- 독립 WorldStudio 저장소·Service의 로컬 구현 범위는 해당 행에 표시했다. Content 없이 전용 schema에서 동작하며 HTTP API·프런트·Graph·이미지·회차 연동은 포함하지 않는다. PR #97은 develop에 병합됐지만 HTTP 미연결이므로 완료 표시는 ❌를 유지한다. 서비스 분리 목표 분류는 보존하며 WorldStudio 실행 코드는 아직 core-api에 있고 content-service로 이전하지 않았다.
+- 독립 WorldStudio 저장소·Service의 로컬 구현 범위는 해당 행에 표시했다. Content 없이 전용 schema에서 동작하며 HTTP API·프런트·Graph·이미지·회차 연동은 포함하지 않는다. PR #97은 develop에 병합됐지만 HTTP 미연결이므로 완료 표시는 ❌를 유지한다. WorldStudio 실행 코드·Kotlin/Java 테스트는 content-service로 추출했으며 같은 contentDataSource와 전용 EntityManager/TransactionManager를 쓴다. 소스 추출은 실제 DB 적용·HTTP 연결 완료가 아니다.
 - 작성 기준: 2026-11-04 로컬 코드·요구사항·설계. HTML 표를 지원하는 Markdown 뷰어에서 병합 셀이 표시된다.
 
 
@@ -85,8 +85,14 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="288">콘텐츠 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>콘텐츠 서비스 독립 Spring Boot 실행 골격</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
-<tr><td>인증 연계</td><td>90 Core 인증 연계 준비</td><td>Core 인증 확인용 HTTP 인터페이스·최소 응답 DTO 선언 (로컬 초안)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
+<tr><td rowspan="294">콘텐츠 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>콘텐츠 서비스 독립 Spring Boot 실행 골격</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
+<tr><td>인증 연계</td><td>90 Core 인증 연계</td><td>별도 서비스 자격과 사용자 Bearer로 Core를 호출해 UUID Principal 생성·실패 분류 (로컬 구현)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
+<tr><td>인증 연계</td><td>90 Core 인증 연계</td><td>Core 내부 endpoint에서 서비스 자격·JWT를 확인하고 회원 UUID만 반환 (로컬 구현)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
+<tr><td>실행 기반</td><td>89 독립 앱 실행</td><td>기존 콘텐츠·첨부·독립 WorldStudio 실행 코드·테스트의 Content 소유 분리 (로컬 구현)</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
+<tr><td>실행 기반</td><td>89 독립 앱 실행</td><td>업무별 fresh 초기 SQL 발견·순서 및 Content migration 소유 분리 (로컬 구현·DB 재생 미실행)</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
+<tr><td>실행 기반</td><td>89 독립 앱 실행</td><td>기존 works 공개 URL의 nginx/Vite Content 라우팅 (로컬 소스 계약 확인)</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
+<tr><td>실행 기반</td><td>89 독립 앱 실행</td><td>Content 이미지·Compose·CD 연결 (소스 구현·게시/배포 미실행)</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
+<tr><td>실행 기반</td><td>89 독립 앱 실행</td><td>Content 변경의 CI 통합·소비자·시스템 회귀 선택 (로컬 선택 단위 확인)</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
 <tr><td rowspan="8">권한 관리</td><td rowspan="8">03 접근·공개 범위 관리</td><td>작품 소유권 확인</td><td>❌</td><td rowspan="8"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/97">PR #97</a></td></tr>
 <tr><td>세계관 소유권 확인</td><td>❌ <small>(독립 JPA 내부 구현·HTTP 미연결)</small></td></tr>
 <tr><td>설정 항목 공개 범위 설정</td><td>❌</td></tr>
@@ -634,8 +640,8 @@
 
 - 전체 서비스 기능의 출발점: [요구사항 색인](requirements.md), [유스케이스](usecase.md). 원문의 모든 세부 요구사항을 일대일 대조한 완전성 감사는 아니며 서브시스템·중간 기능·개별 동작으로 재분류했다.
 - 현행 MVP와 정책: [설계](design/design.md), [결정 기록](design/decisions.md), [Core 설계](design/services/core-api.md). 과거 저장 기술·공개·자동 처리 정책을 이 표만으로 되살리지 않는다.
-- 현재 구현 확인: [콘텐츠 API](../backend/core-api/src/main/kotlin/ai/storyfork/core/content/controller/ContentController.kt), [콘텐츠 Service](../backend/core-api/src/main/kotlin/ai/storyfork/core/content/service/ContentService.kt), [Auth](../backend/core-api/src/main/kotlin/ai/storyfork/core/auth/controller/SessionController.kt), [가입](../backend/core-api/src/main/kotlin/ai/storyfork/core/auth/controller/SignupController.kt), [회원 정보](../backend/core-api/src/main/kotlin/ai/storyfork/core/auth/controller/ProfileController.kt), [첨부](../backend/core-api/src/main/kotlin/ai/storyfork/core/attachment/controller/SettingAttachmentController.kt), [표지](../backend/core-api/src/main/kotlin/ai/storyfork/core/attachment/controller/WorkCoverController.kt), [원고 이미지](../backend/core-api/src/main/kotlin/ai/storyfork/core/attachment/controller/EpisodeImageController.kt), [AI 생성](../backend/ai-service/app/generation/router.py), [통합 안내](content-integration.md).
-- 이번 수정은 이 기능표만 대상으로 한다. 앱·설정·DB·엑셀·기존 요구사항은 바꾸지 않았으며, GitHub 이슈 55개(열림·종료 포함)의 제목·본문·상태를 조회해 관련 항목을 연결했다. 새 GitHub 이슈 생성·수정은 하지 않았다.
+- 현재 구현 확인: [작품 API](../backend/content-service/src/main/kotlin/ai/storyfork/content/work/controller/WorkController.kt), [작품 Service](../backend/content-service/src/main/kotlin/ai/storyfork/content/work/service/WorkService.kt), [Auth](../backend/core-api/src/main/kotlin/ai/storyfork/core/auth/controller/SessionController.kt), [가입](../backend/core-api/src/main/kotlin/ai/storyfork/core/auth/controller/SignupController.kt), [회원 정보](../backend/core-api/src/main/kotlin/ai/storyfork/core/auth/controller/ProfileController.kt), [첨부](../backend/content-service/src/main/kotlin/ai/storyfork/content/attachment/controller/SettingAttachmentController.kt), [표지](../backend/content-service/src/main/kotlin/ai/storyfork/content/attachment/controller/WorkCoverController.kt), [원고 이미지](../backend/content-service/src/main/kotlin/ai/storyfork/content/attachment/controller/EpisodeImageController.kt), [AI 생성](../backend/ai-service/app/generation/router.py), [통합 안내](content-integration.md).
+- 기존 기능표 작성 시 GitHub 이슈 55개(열림·종료 포함)의 제목·본문·상태를 조회해 연결했다. 이번 Core→Content 추출에서는 소스 상태와 기존 미등록-111/113의 세부 동작만 갱신했으며 GitHub 이슈 생성·수정이나 새 CI 조회는 하지 않았다.
 
 
 ## 미등록 항목 번호
@@ -754,9 +760,9 @@
 | <a id="미등록-108"></a>미등록-108 | 83 | 화면 누락 기능 | Fork 관리 / Fork 정합성 운영 점검의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-109"></a>미등록-109 | 84 | 화면 누락 기능 | 창작 이용 안내 / 집필 방식·저작권 사전 확인의 구현 범위·정책 및 전용 이슈 등록 검토 |
 | <a id="미등록-110"></a>미등록-110 | 85 | 화면 누락 기능 | 운영 현황 관리 / 업무·데이터 현황 조회의 구현 범위·정책 및 전용 이슈 등록 검토 |
-| <a id="미등록-111"></a>미등록-111 | 89 | 실행 기반 | 콘텐츠 독립 Gradle·Spring Boot 진입점·loopback 설정·선택 단위 테스트 골격을 로컬 구현; 업무·DB·배포 이전, 앱 기동, 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
+| <a id="미등록-111"></a>미등록-111 | 89 | 실행 기반 | 기존 콘텐츠·첨부·Studio 코드/테스트 추출, 업무별 fresh V1~V9·writer 소유 분리, 공개 라우팅·Content 이미지/Compose/CD·CI 소비자 선택을 로컬 구현; Auth·첨부·Studio SQL 바이트 보존. 실제 DB 대상/보존·복구 승인·hosted 재생·앱 기동·게시/배포·병합/최신 head Required CI 확인 전이므로 모든 이전 행은 ❌ 유지 |
 | <a id="미등록-112"></a>미등록-112 | 89 | 실행 기반 | 운영 독립 Gradle·Spring Boot 진입점·loopback 설정·선택 단위 테스트 골격을 로컬 구현; 업무·DB·배포 구현, 앱 기동, 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
-| <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 준비 | 콘텐츠 CoreAuthClient의 잠정 POST 경로·Authorization 헤더·UUID-only 응답 DTO 선언과 순수 단위 계약 검사만 로컬 구현; Core endpoint·서버 간 인증·timeout·오류 매핑·보안 강제·실제 호출은 미구현이며 전체 인증 정책으로 채택하지 않음; 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
+| <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 | POST /internal/v1/auth/verify의 별도 서비스 자격·서명/만료/UUID JWT 확인, Content HTTP Service proxy·timeout/장애/401 구분·UUID Principal·CSRF/CORS 경계를 소스 구현; 캐시/재시도/fallback/키 공유 없음. 선택 순수 단위 통과, HTTP/보안 통합은 hosted CI 미실행이며 병합·최신 head Required CI 확인 전 ❌ 유지 |
 
 ## 연결한 GitHub 이슈
 

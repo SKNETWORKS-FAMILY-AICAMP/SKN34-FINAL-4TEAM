@@ -1,8 +1,0 @@
-package ai.storyfork.core.publication.repository
-
-import ai.storyfork.core.publication.entity.WorkPublicationHistoryEntity
-import org.springframework.data.jpa.repository.*
-
-interface WorkPublicationHistoryRepository : JpaRepository<WorkPublicationHistoryEntity, String> {
-    fun findFirstByWorkIdOrderByRevisionNoDesc(workId: String): WorkPublicationHistoryEntity?
-}

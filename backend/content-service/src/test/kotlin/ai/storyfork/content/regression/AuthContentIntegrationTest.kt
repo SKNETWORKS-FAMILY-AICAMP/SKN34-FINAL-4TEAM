@@ -1,0 +1,72 @@
+package ai.storyfork.content.regression
+
+import ai.storyfork.content.auth.client.CoreAuthClient
+import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.fixture.CsrfFixture
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.util.UUID
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.mockito.Mockito.`when`
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.jdbc.core.JdbcTemplate
+import javax.sql.DataSource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import tools.jackson.databind.json.JsonMapper
+
+/** Content HTTP/DB 경계. 실제 Core 로그인→확인은 CI 시스템 시나리오에서 별도 실행한다. */
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties=[
+    "app.content.enabled=true","CONTENT_DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
+    "CONTENT_DATABASE_USER=content_test","CONTENT_DATABASE_PASSWORD=",
+    "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
+])
+@EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
+class AuthContentIntegrationTest {
+    @LocalServerPort var port=0
+    @MockitoBean lateinit var core:CoreAuthClient
+    @Autowired @Qualifier("contentDataSource") lateinit var source:DataSource
+    @Autowired lateinit var json:JsonMapper
+    private val jdbc get()=JdbcTemplate(source)
+    private val client=HttpClient.newHttpClient()
+    private fun request(path:String)=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).header("Accept","application/json")
+    private fun send(request:HttpRequest.Builder)=client.send(request.build(),HttpResponse.BodyHandlers.ofString())
+    private fun mutation(path:String,body:String)=request(path).header("Cookie",CsrfFixture.cookie)
+        .header("X-CSRF-TOKEN",CsrfFixture.token()).header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(body))
+    private fun actor():UUID=UUID.randomUUID().also { id -> `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id)) }
+
+    @Test fun `Core verified UUID owns private content and another member receives 404`() {
+        val user=actor()
+        val created=send(mutation("/api/v1/works","""{"title":"verified ownership"}""")
+            .header("Authorization","Bearer $user").header("X-User-Id","forged-owner"))
+        assertEquals(201,created.statusCode(),created.body())
+        val id=json.readTree(created.body()).path("id").asText()
+        assertEquals(user.toString(),jdbc.queryForObject("SELECT owner_id FROM work WHERE id=?",String::class.java,id))
+        assertEquals(200,send(request("/api/v1/works/$id").header("Authorization","Bearer $user")).statusCode())
+        assertEquals(404,send(request("/api/v1/works/$id").header("Authorization","Bearer ${actor()}")).statusCode())
+        assertEquals(404,send(request("/api/v1/public/works/$id")).statusCode())
+        val versions=jdbc.queryForList("SELECT version FROM content_schema_history WHERE success AND type <> 'BASELINE'",String::class.java)
+        assertTrue(versions.containsAll((1..9).map(Int::toString)))
+        assertTrue(source.connection.use { c -> c.metaData.getTables(null,"public","auth_member",null).use { !it.next() } },"Content does not initialize Auth")
+    }
+
+    @Test fun `only public GET is anonymous and private writes require csrf and allowed origin`() {
+        assertEquals(200,send(request("/api/v1/public/works")).statusCode())
+        assertEquals(401,send(request("/api/v1/works").header("X-User-Id","forged-owner")).statusCode())
+        assertEquals(401,send(mutation("/api/v1/works","""{"title":"anonymous"}""")).statusCode())
+        assertEquals(401,send(mutation("/api/v1/public/works","{}")).statusCode())
+        val user=actor()
+        assertEquals(403,send(request("/api/v1/works").header("Authorization","Bearer $user").header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString("{}"))).statusCode())
+        assertEquals(403,send(mutation("/api/v1/works","""{"title":"foreign origin"}""").header("Authorization","Bearer $user").header("Origin","https://evil.example")).statusCode())
+        for(path in listOf("/api/v1/not-implemented","/error")) assertEquals(403,send(request(path).header("Authorization","Bearer $user")).statusCode())
+        assertEquals(403,send(mutation("/api/v1/public/works","{}").header("Authorization","Bearer $user")).statusCode())
+        val invalid=send(mutation("/api/v1/works","""{"title":""}""").header("Authorization","Bearer $user"))
+        assertEquals(422,invalid.statusCode());assertFalse(invalid.body().contains("rejected value"))
+    }
+}

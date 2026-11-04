@@ -24,7 +24,7 @@ class SelectionTest(unittest.TestCase):
 
     def test_auth_change_selects_content_and_web_consumers(self):
         plan = ci.select(["backend/core-api/src/main/kotlin/ai/storyfork/core/auth/service/SessionService.kt"])
-        self.assertEqual({"web", "core"}, {row["service"] for row in plan["integration"]})
+        self.assertEqual({"web", "core", "content"}, {row["service"] for row in plan["integration"]})
         core = next(row for row in plan["unit"] if row["service"] == "core")
         self.assertEqual("all", core["scope"])  # 첨부 HTTP·설정 테스트도 Auth를 소비한다.
         self.assertIn("content", plan["system"])
@@ -32,7 +32,7 @@ class SelectionTest(unittest.TestCase):
     def test_content_change_includes_attachment_consumers(self):
         plan = ci.select(["backend/core-api/src/main/kotlin/ai/storyfork/core/content/service/ContentService.kt"])
         self.assertIn({"service": "core", "scope": "all"}, plan["integration"])
-        self.assertEqual({"web", "core", "ai"}, {row["service"] for row in plan["unit"]})
+        self.assertEqual({"web", "core", "ai", "content"}, {row["service"] for row in plan["unit"]})
         self.assertIn("content", plan["system"])
 
     def test_attachment_runtime_and_migration_paths_conservatively_select_all(self):
@@ -51,7 +51,7 @@ class SelectionTest(unittest.TestCase):
             with self.subTest(path=path):
                 plan = ci.select([path])
                 self.assertIn({"service": "core", "scope": "all"}, plan["integration"])
-                self.assertEqual({"web", "core", "ai"}, {row["service"] for row in plan["unit"]})
+                self.assertEqual({"web", "core", "ai", "content"}, {row["service"] for row in plan["unit"]})
                 self.assertEqual(ci.SCENARIOS, plan["system"])
 
     def test_attachment_test_change_selects_core_without_system(self):
@@ -64,12 +64,12 @@ class SelectionTest(unittest.TestCase):
         ]:
             with self.subTest(path=path):
                 plan = ci.select([path])
-                self.assertEqual([{"service": "core", "scope": "all"}], plan["unit"])
+                self.assertEqual([{"service": "core", "scope": "all"}, {"service": "content", "scope": "all"}], plan["unit"])
                 self.assertEqual(plan["unit"], plan["integration"])
                 self.assertEqual([], plan["system"])
 
     def test_independent_spring_skeletons_select_only_their_unit_tests(self):
-        for service in ("content", "operations"):
+        for service in ("operations",):
             for suffix in ("build.gradle", "src/main/resources/application.properties",
                            f"src/main/kotlin/ai/storyfork/{service}/Application.kt",
                            f"src/test/kotlin/ai/storyfork/{service}/ApplicationPropertiesTest.kt",
@@ -89,12 +89,24 @@ class SelectionTest(unittest.TestCase):
         self.assertIn('test --tests "ai.storyfork.${SERVICE}.*" --no-daemon', unit)
         self.assertEqual({"web", "core", "ai", "content", "operations"},
                          {row["service"] for row in ci.select([], full=True)["unit"]})
-        self.assertEqual({"web", "core", "ai"},
+        self.assertEqual({"web", "core", "ai", "content"},
                          {row["service"] for row in ci.select([], full=True)["integration"]})
+
+    def test_content_runtime_selects_its_integration_and_current_consumers(self):
+        plan = ci.select(["backend/content-service/src/main/kotlin/ai/storyfork/content/work/service/WorkService.kt"])
+        self.assertEqual({"web", "core", "ai", "content"}, {r["service"] for r in plan["integration"]})
+        self.assertIn("content", plan["system"])
+        self.assertNotIn("operations", {r["service"] for r in plan["unit"]})
+
+    def test_content_test_only_does_not_launch_system_or_other_services(self):
+        plan = ci.select(["backend/content-service/src/test/kotlin/ai/storyfork/content/world/WorldServiceTest.kt"])
+        self.assertEqual([{"service": "content", "scope": "all"}], plan["unit"])
+        self.assertEqual(plan["unit"], plan["integration"])
+        self.assertEqual([], plan["system"])
 
     def test_ai_contract_selects_core_web_and_system(self):
         plan = ci.select(["backend/ai-service/app/generation/router.py"])
-        self.assertEqual({"web", "core", "ai"}, {r["service"] for r in plan["unit"]})
+        self.assertEqual({"web", "core", "ai", "content"}, {r["service"] for r in plan["unit"]})
         self.assertIn("ai", plan["system"])
 
     def test_core_ai_contract_selects_provider_regressions(self):
@@ -107,7 +119,7 @@ class SelectionTest(unittest.TestCase):
 
     def test_service_tests_do_not_launch_system(self):
         plan = ci.select(["backend/core-api/src/test/kotlin/ai/storyfork/core/content/ContentPostgresTest.kt"])
-        self.assertEqual([{"service": "core", "scope": "content"}], plan["integration"])
+        self.assertEqual([{"service": "core", "scope": "all"}, {"service": "content", "scope": "all"}], plan["integration"])
         self.assertEqual([], plan["system"])
 
     def test_shared_unknown_and_dependency_changes_fail_safe(self):
@@ -245,7 +257,7 @@ class PlanGitTest(unittest.TestCase):
                 plan = json.loads(result.stdout)
                 self.assertIsNone(plan['base'])
                 self.assertEqual(set(ci.SERVICES), {row['service'] for row in plan['unit']})
-                self.assertEqual({'web', 'core', 'ai'}, {row['service'] for row in plan['integration']})
+                self.assertEqual({'web', 'core', 'ai', 'content'}, {row['service'] for row in plan['integration']})
                 self.assertEqual(ci.SCENARIOS, plan['system'])
                 self.assertTrue(plan['infra'])
         self.commit('new.txt', 'new \n')
@@ -298,19 +310,21 @@ class SystemContractTest(unittest.TestCase):
 
 
 class ConfigurationTest(unittest.TestCase):
-    def test_core_context_http_and_db_tests_are_not_unit_tests(self):
+    def test_core_and_content_context_http_and_db_tests_are_not_unit_tests(self):
         import fnmatch
         import re
-        build = (ci.ROOT / "backend/core-api/build.gradle").read_text()
-        block = build.split("def integrationTestClasses = [", 1)[1].split("]", 1)[0]
-        patterns = re.findall(r"'([^']+)'", block)
-        boundary = re.compile(r"SpringBootTest|WebMvcTest|ApplicationContextRunner|SpringApplicationBuilder|MockMvc|HttpClient|HttpServer|MockRestServiceServer|DriverManagerDataSource|Flyway\.configure")
-        for source in (ci.ROOT / "backend/core-api/src/test/kotlin").rglob("*Test.kt"):
-            if boundary.search(source.read_text()):
-                with self.subTest(test=source.name):
-                    self.assertTrue(any(fnmatch.fnmatch("classes/" + source.stem + ".class", p) for p in patterns))
-        self.assertIn("exclude integrationTestClasses", build)
-        self.assertIn("include integrationTestClasses", build)
+        boundary = re.compile(r"SpringBootTest|WebMvcTest|ApplicationContextRunner|AnnotationConfigApplicationContext|SpringApplicationBuilder|MockMvc|\bHttpClient\b|\bHttpServer\b|MockRestServiceServer|DriverManagerDataSource|Flyway\.configure")
+        for service in ("core-api", "content-service"):
+            root = ci.ROOT / "backend" / service
+            build = (root / "build.gradle").read_text()
+            block = build.split("def integrationTestClasses = [", 1)[1].split("]", 1)[0]
+            patterns = re.findall(r"'([^']+)'", block)
+            for source in (root / "src/test").rglob("*Test.*"):
+                if source.suffix in {".kt", ".java"} and boundary.search(source.read_text()):
+                    with self.subTest(service=service, test=source.name):
+                        self.assertTrue(any(fnmatch.fnmatch("classes/" + source.stem + ".class", p) for p in patterns))
+            self.assertIn("exclude integrationTestClasses", build)
+            self.assertIn("include integrationTestClasses", build)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

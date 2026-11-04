@@ -2,6 +2,8 @@
 
 ## develop CD 실행 계약
 
+> **Core→Content 추출 후 현재 소스 계약:** 네 이미지(web/Core/Content/AI)의 revision 확인과 fresh 전환 승인 뒤 web·구 Core·Content writer를 중지한다. opt-in 명령은 **Content 이미지**의 `ai.storyfork.content.world.migration.WorldStudioMigration`이고 기존 Core DB 설정을 `CONTENT_DATABASE_*`로 매핑한다. migration 성공 후 새 앱을 시작하며 중지 뒤 실패는 ingress 중단 상태로 남기고 자동 rollback하지 않는다. 서버는 같은 `contentDataSource`와 studio-only EntityManager/TransactionManager를 사용한다. 통합/시스템 검증은 Content job/이미지로 옮겼으며 이번 hosted CI·실제 DB 전환·배포는 미실행이다. 현재 실행 정본은 [인프라 안내](../../infrastructure/README.md#배포-설정과-전환)와 [Content 안내](../../backend/content-service/README.md)다. **아래 세 이미지·Core main·기본 Auth 영속성 공유·기존 컨테이너 무중단 설명은 추출 전 기록이며 현재 실행 지침이 아니다. 이전 사전 확인 기록은 당시 사실로만 보존한다.**
+
 기본 Auth Flyway는 `classpath:db/migration/auth`, Content는 `ContentConfig`에서 별도 migrate를 실행한다.
 WorldStudio는 독립 EntityManager의 Hibernate `validate`만 수행했으므로 #97 병합과 일반 Core 시작만으로 V1이 실행되지 않았다.
 

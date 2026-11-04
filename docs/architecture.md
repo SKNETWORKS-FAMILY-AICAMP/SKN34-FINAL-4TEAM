@@ -1,6 +1,6 @@
 # STORYFORK 아키텍처
 
-> **서비스 경계 최신 결정: DEC-41.** [Core·콘텐츠·운영·AI 분리 목표](design/service-boundaries.md)를 따른다. 아래 기존 Core 소유 콘텐츠·단일 호출 방향 설명은 현재 실행 또는 분리 전 기준이며, 목표 소유권은 연결 문서를 우선한다. 코드·DB·배포 이전 완료를 의미하지 않는다.
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
 
 ## 현재 구현
 

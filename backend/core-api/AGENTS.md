@@ -1,6 +1,6 @@
 # Core Service 구현 지침 (현재 모듈: `core-api`)
 
-> **목표 서비스 경계는 DEC-41과 [4개 서비스 구조](../../docs/design/service-boundaries.md)를 우선한다.** 기존 Core 콘텐츠 책임·공개 Core 전용 호출 표기는 현재 분리 전 실행 기준이다. 콘텐츠 정본·인가·발행은 콘텐츠 서비스, 회원·인증·크레딧·알림은 Core, 운영 업무는 운영 서비스로 분리하되 실제 API·데이터 이전은 별도 구현 작업이다.
+> **서비스 경계는 DEC-41과 [4개 서비스 구조](../../docs/design/service-boundaries.md)를 따른다.** Core는 Auth·세션·Health와 내부 인증 확인을 유지한다. 기존 콘텐츠·첨부·WorldStudio 코드/테스트는 Content로 추출했으며 hosted CI·실제 DB 전환·배포는 대기다. 콘텐츠의 정본·인가·발행은 Content, 회원·인증·크레딧·알림은 Core, 운영 업무는 운영 서비스의 목표 책임이다. 미구현 업무를 선제 추가하지 않는다.
 
 `backend/core-api/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
 아래 STORYFORK 업무 경계는 후속 구현 기준이며 현재 기능이 구현되었다는 뜻이 아니다.
@@ -128,8 +128,8 @@
 - 스키마의 소유자는 Flyway다. SQL 마이그레이션은 `src/main/resources/db/migration/<domain>/`에 두고
   `db/migration` 바로 아래에 SQL 파일을 두지 않는다. 도메인별 locations와 이력 테이블을 분리하여
   독립적인 버전 번호가 충돌하지 않게 한다. 기존 SQL 체크섬·이력은 보존하고 Hibernate create/update를 사용하지 않는다.
-- 현재 Auth·첨부는 JPA이며 `ContentRepository`는 JDBC·`TransactionTemplate`을 사용한다. 위 JPA 규칙은 신규·전환 구현 방향이며 기존 콘텐츠 전환이 완료됐다고 표현하지 않는다. 기존 SQL·잠금·트랜잭션을 이 문서 정리만으로 제거하지 않는다.
-- Flyway의 과거 이관 코드는 이력 재현을 위해 보존한다. 서비스 분리·JPA 전환 시 기존 데이터·체크섬·원자성·동시 편집 보호를 유지하고 별도 구현·검증한다.
+- Core는 Auth JPA·`db/migration/auth`·`flyway_schema_history`만 소유한다. Auth SQL 바이트/이력은 유지하며 Content Entity/Repository·첨부/Studio migration을 다시 스캔하지 않는다.
+- Content의 사용자 승인 개발용 fresh 이력 재작성은 Auth에 적용하지 않는다. 같은 기존 DB에서 writer/migration 소유권만 분리하며 실제 DB 삭제·개인 `.env` 수정·자동 repair/clean은 승인 범위 밖이다. Content 초기화·불변 이력·동시 편집은 Content hosted CI에서 검증한다.
 
 ## 정본·권한·승인 경계
 
@@ -138,7 +138,7 @@
 - 작품 Fork의 기준 회차·원고 버전은 보존한다. 기준 회차에 공개된 세계관 전체에는 설정·인물 상태·지식·관계가 함께 포함된다. 수정 전에는 기준 회차에 영향을 주는 원본 변경을 따라가고 최초 수정 시 전체를 독자 소유로 Fork한다. 독립 후에는 변경을 알리고 사용자 선택으로만 반영한다(DEC-37).
   모든 참조·복사·알림·AI 문맥에서 기준 회차와 권한을 확인한다. 실제 필터링, 체크포인트·관계 동기화는 후속 설계다.
 - 세계관 설정은 항목별 공개/비공개와 회차별 공개 범위를 둔다. 기본은 비공개다(DEC-36). 사용자 권한·미공개 초안·독자 발행 범위·Fork 분기 시점·캐릭터 지식은 구분한다.
-  사용자가 보낸 ID나 프롬프트만 신뢰하지 말고 콘텐츠 서비스에서 권한·허용 문맥을 확인한다. 현재 분리 전 구현은 core-api에서 수행한다.
+  사용자가 보낸 ID나 프롬프트만 신뢰하지 말고 콘텐츠 서비스에서 권한·허용 문맥을 확인한다. Core는 별도 서비스 자격과 기존 JWT 검증을 통과한 회원 UUID만 내부 endpoint로 제공하며 콘텐츠 인가를 대신하지 않는다.
 - 사용자가 선택·승인한 제안만 권한과 기준 버전을 검증한 뒤 반영한다. 수정안에는 기준 버전·변경 전후·근거·
   처리 상태를 연결하고, 기준 버전이 바뀌면 무조건 덮어쓰지 않는다. 작품 내 PR은 GitHub 연동을 전제하지 않는다.
 - AI 응답 성공을 저장·승인·발행 성공으로 처리하지 않는다. 접수·검토·승인·반영의 실제 상태를 반환한다.
@@ -160,7 +160,7 @@
   새 경계 테스트를 추가하면 분류 목록을 갱신하며 `infrastructure/ci/test_ci.py`의 누락 검사도 유지한다.
 - CI: 워크플로가 `./gradlew unitTest`·`./gradlew integrationTest`와 기능 패키지 `--tests`를 직접 호출한다. 별도 runner·shell wrapper는 두지 않는다.
   기능별 범위가 명확하면 해당 기능 전체, 공통·설정·의존성·미등록 기능이면 Core 전체를 검증한다.
-  통합 계층에서 임시 PostgreSQL·Mailpit·Flyway를 사용하고 조건부 Auth/Content 테스트를 활성화한다.
+  통합 계층에서 임시 PostgreSQL·Mailpit·Flyway로 Auth와 내부 인증 보안을 확인한다. 이전된 콘텐츠·첨부·WorldStudio 통합 테스트는 Content job에서 실행한다.
   이후 관련 HTTP 시스템 시나리오를 실행한다. 문서만 변경하면 runtime job을 생략하고 hosted 결과 확인 전에는 검증 대기로 보고한다.
 - 파일 이동 후에는 이전 package·import·문서 경로가 남지 않았는지 `rg`로 확인하고
   `git diff --check`를 통과시킨다.
