@@ -14,3 +14,8 @@ export function authorEdit(setting:StudioSetting,patch:Partial<SettingItem>):Stu
  const item={...setting.item,...patch,origin:'author_addition' as const,decision:'approved' as const,evidence:[],orderEvidence:[]}
  return {...setting,item:{...item,authorText:item.text}}
 }
+
+export function studioLabelCleanup(values?:string[]):string[]|undefined {
+ if(!values?.some(value=>!value||value!==value.trim()))return
+ return values.map(value=>value.trim()).filter(Boolean)
+}
