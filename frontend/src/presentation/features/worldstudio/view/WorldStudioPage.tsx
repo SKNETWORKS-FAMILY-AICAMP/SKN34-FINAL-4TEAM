@@ -1,4 +1,5 @@
 import {studioLabelCleanup} from '../../../../domain/entities/studioWorld'
+import {WorldMap} from './WorldMap'
 import {WorldRelationshipEditor} from './WorldRelationshipEditor'
 import {cardTypes,cardTypeOf,settingAreas,type CardType,type CardFilter} from '../../../../domain/entities/studioCards'
 import { useState, type FormEvent } from 'react'
@@ -31,9 +32,10 @@ export function WorldStudioPage() {
    <div className="world-list-divider"><button type="button" className="world-list-toggle" aria-label={listOpen?'세계관 목록 접기':'세계관 목록 펼치기'} aria-expanded={listOpen} aria-controls="world-list" onClick={()=>setListOpen(open=>!open)}><span aria-hidden="true">{listOpen?'‹':'›'}</span></button></div>
    <section className="world-content">{vm.editing?<>
     <div className="world-toolbar"><h2>{vm.saved?.name}</h2><span role="status">{vm.busy?'잠시만 기다려 주세요':vm.dirty?'저장하지 않은 변경사항':'저장됨'}</span><button className="btn pri" disabled={vm.busy || !vm.dirty} onClick={vm.save}>저장</button></div>
-    <nav className="libtabs" aria-label="세계관 도구"><button type="button" onClick={()=>setTab('edit')}>설정 작성</button><button type="button" onClick={()=>setTab('relations')}>관계 편집</button></nav>
+    <nav className="libtabs" aria-label="세계관 도구"><button type="button" onClick={()=>setTab('edit')}>설정 작성</button><button type="button" onClick={()=>setTab('relations')}>관계 편집</button><button type="button" onClick={()=>setTab('map')}>세계관 탐색</button><button type="button" onClick={()=>setTab('characters')}>인물 관계도</button></nav>
     <div hidden={tab!=='edit'}><Editor vm={vm}/></div>
     <div hidden={tab!=='relations'}><WorldRelationshipEditor key={vm.editing.id} studio={vm}/></div>
+    {(tab==='map'||tab==='characters')&&vm.saved&&<WorldMap key={`${vm.saved.id}:${vm.saved.version}:${tab}`} world={vm.saved} charactersOnly={tab==='characters'}/>}
    </>:<div className="world-empty"><h2>{vm.busy?'세계관을 읽고 있습니다':'세계관을 선택하거나 새로 만들어 주세요'}</h2><p className="muted">이름만으로 시작할 수 있습니다. 설정과 인물은 필요한 만큼 추가하세요.</p></div>}</section>
   </div>
  </main><Footer/></>
