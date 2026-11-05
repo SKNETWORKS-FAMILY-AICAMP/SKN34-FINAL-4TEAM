@@ -1,4 +1,7 @@
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
+import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
+import { HttpStoryPlanRepository } from '../../data/plans/HttpStoryPlanRepository'
+import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
 import {HttpWorldStudioRepository} from '../../data/world-studio/HttpWorldStudioRepository'
 import { MediaUseCase } from '../../domain/usecases/MediaUseCase'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
@@ -51,6 +54,8 @@ export function registerAppServices(container: AppContainer) {
     mediaUseCase: asFunction(({ mediaRepository }) => new MediaUseCase(mediaRepository)).singleton(),
     episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
+    storyPlanUseCase: asFunction(({ episodeRepository }) => new StoryPlanUseCase(new HttpStoryPlanRepository(episodeRepository))).singleton(),
+    demoStoryPlanUseCase: asFunction(({ workRepository }) => new StoryPlanUseCase(new InMemoryStoryPlanRepository(workRepository))).singleton(),
     mockDb: asValue(createMockDb()),
     workRepository: asFunction(({ mockDb }) => new InMemoryWorkRepository(mockDb)).singleton(),
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),

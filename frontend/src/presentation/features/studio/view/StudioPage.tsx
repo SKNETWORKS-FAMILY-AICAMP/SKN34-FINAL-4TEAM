@@ -11,6 +11,7 @@ import { PublishSettingsSheet } from './StudioSheets'
 import { MemoView, NarrativeView, StudioTools, WikiView } from './StudioViews'
 import { WritingStudio } from './WritingStudio'
 import { RequireRole } from '../../../shared/session/RequireRole'
+import { StoryPlanPage } from '../../plans/view/StoryPlanPage'
 
 type VM = ReturnType<typeof useStudioViewModel>
 const readParas = (el: HTMLElement) => {
@@ -23,8 +24,9 @@ const VIEW_ID: Record<string, string> = { wiki: 'U38', overview: 'U38', narrativ
 /** 집필실의 사전·플롯·원고·콘티를 주소로 고릅니다. */
 export function StudioPage() {
   const { id = '' } = useParams()
+  const [query] = useSearchParams()
   // Server work IDs use the persisted writing flow; existing named fixtures remain an explicit demo.
-  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? <WritingStudio key={id} id={id}/> : <RequireRole><DemoStudioPage/></RequireRole>
+  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id}/> : <RequireRole><DemoStudioPage/></RequireRole>
 }
 function DemoStudioPage() {
   const { id = '' } = useParams()
@@ -65,7 +67,7 @@ function DemoStudioPage() {
       <div className="sbar">
         <Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><span className="t">{w.title}</span>
         <StudioTools id={id} view={view} ep={ep} />
-        <span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span>
+        {view !== 'narrative' && <span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span>}
         <button type="button" className="tbtn" onClick={() => setSettingsOpen(true)}>집필 설정</button>
         {view === 'write' && <><button type="button" className="tbtn" style={{ height: 40 }} disabled={ro} onClick={vm.preview}>미리 보기</button>
         <button type="button" className="tbtn pri" style={{ height: 40 }} id="pubep" disabled={ro || vm.publishBusy || vm.autoGenerating} onClick={vm.openPublish}>{ro ? '원작 원고' : d.editingEpisode ? '수정 공개하기' : '공개하기'}</button></>}

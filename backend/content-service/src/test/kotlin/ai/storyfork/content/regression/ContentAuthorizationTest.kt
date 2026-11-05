@@ -27,7 +27,7 @@ import org.mockito.Mockito.*
 import jakarta.servlet.http.Cookie
 import java.time.Instant
 
-@WebMvcTest(controllers=[WorkController::class,EpisodeController::class,EpisodeVersionController::class,PublicationController::class,ai.storyfork.content.context.controller.ContextController::class],properties=["app.content.enabled=true","app.cors.allowed-origin=http://localhost:5173","AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="])
+@WebMvcTest(controllers=[WorkController::class,EpisodeController::class,EpisodeVersionController::class,PublicationController::class,ai.storyfork.content.context.controller.ContextController::class,ai.storyfork.content.plan.controller.StoryPlanController::class],properties=["app.content.enabled=true","app.cors.allowed-origin=http://localhost:5173","AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="])
 @Import(ContentSecurityConfig::class,WebCorsConfig::class,ai.storyfork.content._common.exception.ContentExceptionHandler::class,ContentAuthorizationTest.MvcSecurity::class)
 class ContentAuthorizationTest {
     @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods=false)
@@ -50,6 +50,7 @@ class ContentAuthorizationTest {
     @MockitoBean lateinit var versions: EpisodeVersionService
     @MockitoBean lateinit var publication: PublicationService
     @MockitoBean lateinit var context: ai.storyfork.content.context.service.ContextService
+    @MockitoBean lateinit var plans: ai.storyfork.content.plan.service.StoryPlanService
     private fun token(): String {
         `when`(verification.verify("Bearer opaque-user-token")).thenReturn(verifiedUser)
         return "opaque-user-token"
@@ -122,5 +123,27 @@ class ContentAuthorizationTest {
     @Test fun `authenticated mutations still require csrf`() {
         mvc.perform(post("/api/v1/works").header("Authorization","Bearer "+token()).contentType("application/json").content("""{"title":"test"}""")).andExpect(status().isForbidden())
         verifyNoInteractions(works,episodes,versions,publication)
+    }
+    @Test fun `private plan API requires verified identity and csrf`() {
+        val path="/api/v1/works/work-id/story-plans"
+        mvc.perform(get(path).header("X-User-Id","me")).andExpect(status().isUnauthorized())
+        mvc.perform(mutation(path).content("""{"kind":"plot","title":"계획"}""")).andExpect(status().isUnauthorized())
+        mvc.perform(post(path).header("Authorization","Bearer "+token()).contentType("application/json").content("""{"kind":"plot","title":"계획"}""")).andExpect(status().isForbidden())
+        verifyNoInteractions(plans)
+        `when`(plans.list("work-id",verifiedUser.toString())).thenReturn(ai.storyfork.content.plan.service.dto.StoryPlanListResponse(emptyList()))
+        mvc.perform(get(path).header("Authorization","Bearer "+token()).header("X-User-Id","forged")).andExpect(status().isOk())
+        verify(plans).list("work-id",verifiedUser.toString())
+    }
+    @Test fun `plan failures preserve conflict not found and validation detail responses`() {
+        doThrow(ai.storyfork.content._common.exception.ContentFailure(409,"하위 장면 계획을 먼저 삭제해 주세요.")).`when`(plans).delete("work-id",verifiedUser.toString(),"plan-id",1)
+        mvc.perform(delete("/api/v1/works/work-id/story-plans/plan-id?revision=1")
+            .header("Authorization","Bearer "+token()).cookie(Cookie("XSRF-TOKEN","test-csrf"))
+            .header("X-CSRF-TOKEN",csrfValue()))
+            .andExpect(status().isConflict()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("하위 장면 계획을 먼저 삭제해 주세요."))
+        doThrow(ai.storyfork.content._common.exception.ContentFailure(404,"계획을 찾을 수 없어요.")).`when`(plans).read("work-id",verifiedUser.toString(),"missing")
+        mvc.perform(get("/api/v1/works/work-id/story-plans/missing").header("Authorization","Bearer "+token()))
+            .andExpect(status().isNotFound()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("계획을 찾을 수 없어요."))
+        mvc.perform(mutation("/api/v1/works/work-id/story-plans").header("Authorization","Bearer "+token()).content("""{"kind":"plot","title":""}"""))
+            .andExpect(status().`is`(422)).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").exists())
     }
 }
