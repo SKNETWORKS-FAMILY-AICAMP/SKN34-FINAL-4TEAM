@@ -63,7 +63,7 @@ class AuthSecurityConfig {
                     "/api/v1/auth/signup", "/api/v1/auth/verify-email", "/api/v1/auth/resend-verification",
                     "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout", "/api/v1/auth/forgot-password",
                     "/api/v1/auth/reset-password", "/api/v1/auth/verify-email-change").permitAll()
-                    .requestMatchers("/api/v1/me", "/api/v1/me/email-change").authenticated()
+                    .requestMatchers("/api/v1/me", "/api/v1/me/email-change", "/api/v1/me/withdrawal").authenticated()
                     .requestMatchers("/api/v1/auth/sessions", "/api/v1/auth/sessions/*", "/api/v1/auth/logout-all").authenticated()
                     .requestMatchers("/api/v1/me/notifications", "/api/v1/me/notifications/**", "/api/v1/me/notification-preferences").authenticated()
                     .anyRequest().denyAll()

@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 import { useAppDispatch } from '../../app/store'
 import { sessionActions } from './session/sessionSlice'
 
-const FOCUSABLE = 'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'
+const FOCUSABLE = 'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary:not([tabindex="-1"]),[href],[tabindex]:not([tabindex="-1"])'
 
 /**
  * 목업 #modal의 .back-dim 시트. 열리면 화면 ID를 시트 ID로 바꾸고 포커스를 가두며,
