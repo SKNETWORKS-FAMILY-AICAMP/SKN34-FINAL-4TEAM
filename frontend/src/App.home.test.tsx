@@ -32,6 +32,21 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: '로그인' })).toBeTruthy()
   })
 
+  it('세계관·크레딧 메뉴의 데모 꼬리표만 없애고 정책의 실제 차감 없음 안내는 유지한다', async () => {
+    renderAt('/')
+    const worlds = within(screen.getByRole('navigation', { name: '주요 메뉴' })).getByRole('link', { name: /세계관/ })
+    expect(worlds.getAttribute('href')).toBe('/worldstudio')
+    expect(worlds.querySelector('.lf')?.textContent).toBe('세계관')
+    expect(worlds.querySelector('.ls')?.textContent).toBe('세계관')
+    expect(worlds.textContent).not.toContain('데모')
+    const credit = screen.getByRole('button', { name: '✦ 크레딧' })
+    expect(credit.querySelector('.demo')).toBeNull()
+    expect(credit.title).toBe('크레딧 정책은 아직 확정되지 않았어요')
+    fireEvent.click(credit)
+    const policy = await screen.findByRole('dialog', { name: '크레딧·이용 정책 안내' })
+    expect(policy.textContent).toContain('실제 결제나 차감은 없습니다.')
+  })
+
   it('칩을 고르면 필터 결과(U02)를 보여 주고 안내를 닫을 수 있다', async () => {
     renderAt('/')
     await screen.findByText('방금 올라온 포크 소설')
