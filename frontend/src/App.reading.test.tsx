@@ -23,7 +23,7 @@ describe('소설 상세 (U04)', () => {
   it('회차 검색·결과 없음·정렬·좋아요·포크 허용 회차를 보여 준다', async () => {
     renderApp('/work/guunmong')
     await screen.findByRole('heading', { name: '구운몽' })
-    expect(sid()).toBe('U04 소설 상세')
+    await waitFor(() => expect(sid()).toBe('U04 소설 상세'))
     screen.getByText('전체 4화')
     expect(screen.getByText('2·3·4화').closest('p')!.textContent).toContain('운영팀이 2·3·4화에서 포크를 허용했어요.')
     const list = () => [...document.querySelectorAll<HTMLElement>('#eplist .ep')].filter((el) => el.style.display !== 'none').map((el) => el.querySelector('.no')!.textContent)
