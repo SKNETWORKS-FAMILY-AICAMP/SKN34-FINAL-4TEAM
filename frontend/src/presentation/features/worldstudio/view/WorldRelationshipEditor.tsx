@@ -3,7 +3,7 @@ import {useState} from 'react'
 import {relationDefinitions,relationLabel,isFreeRelation,type RelationInput} from '../../../../domain/entities/studioRelations'
 import type {useWorldStudioViewModel} from '../viewmodel/useWorldStudioViewModel'
 type VM=ReturnType<typeof useWorldStudioViewModel>
-type DraftRow={key:string;group:'fact'|'emotion';value:RelationInput}
+type DraftRow={key:string;group:'fact'|'emotion';value:RelationInput;baseline?:RelationInput}
 const pairMatches=(r:RelationInput,a:string,b:string)=>r.subjectId===a&&r.targetId===b||r.subjectId===b&&r.targetId===a
 export function WorldRelationshipEditor({studio}:{studio:VM}){
  const people=studio.editing!.settings.filter(s=>cardTypes.some(type=>type.id===cardTypeOf(s.item)))
@@ -36,7 +36,7 @@ function PairEditor({studio,source,target,onClose}:{studio:VM;source:string;targ
  const name=(id:string|null)=>studio.editing!.settings.find(s=>s.item.id===id)?.item.title||'새 설정'
  const empty=(group:'fact'|'emotion',from=source,to=target):DraftRow=>({key:crypto.randomUUID(),group,value:{subjectId:from,targetId:to,predicate:group==='fact'?'custom_relation':'custom_emotion',polarity:'asserted'}})
  const [rows,setRows]=useState<DraftRow[]>(()=>{
-  const existing:DraftRow[]=studio.editing!.settings.filter(s=>s.item.kind==='relation'&&pairMatches(s.item,source,target)).map(s=>({key:s.item.id,group:relationDefinitions[s.item.predicate??'']?.group==='emotion'?'emotion' as const:'fact' as const,value:{...s.item}}))
+  const existing:DraftRow[]=studio.editing!.settings.filter(s=>s.item.kind==='relation'&&pairMatches(s.item,source,target)).map(s=>({key:s.item.id,group:relationDefinitions[s.item.predicate??'']?.group==='emotion'?'emotion' as const:'fact' as const,value:{...s.item},baseline:{...s.item}}))
   if(!existing.some(r=>r.group==='fact'))existing.push(empty('fact'))
   for(const [a,b] of [[source,target],[target,source]])if(!existing.some(r=>r.group==='emotion'&&r.value.subjectId===a))existing.push(empty('emotion',a,b))
   return existing
@@ -68,14 +68,14 @@ function PairEditor({studio,source,target,onClose}:{studio:VM;source:string;targ
   })}<button className="btn sm" type="button" onClick={()=>setRows(all=>[...all,empty(kind,from,to)])}>{label} 추가</button></section>
  }
  const apply=()=>{
-  const changes=rows.filter(r=>r.value.id||r.value.text?.trim()).map(r=>r.value)
+  const changes=rows.filter(r=>r.value.id||r.value.text?.trim()).map(r=>r.baseline?{...r.value,baseline:r.baseline}:r.value)
   if(!changes.length&&!removed.length){setError('실제 관계나 감정을 하나 이상 선택해 주세요.');return}
   if(studio.applyRelations(changes,removed))onClose();else setError('적용하지 못했습니다. 중복된 관계와 연결 대상, 이름·설명을 확인해 주세요.')
  }
  return <><datalist id="relationship-examples"><option value="친구"/><option value="아버지와 서자, 인정받지 못한 가족"/><option value="오랜 동료이자 경쟁자"/></datalist><p className="small muted">실제 관계는 여러 개일 수 있어요. 감정은 각 방향을 따로 정하며, 반대 방향으로 복사하지 않습니다.</p>
   {group('fact',source,target,'실제 관계')}{group('emotion',source,target,`${name(source)} → ${name(target)} 감정`)}{group('emotion',target,source,`${name(target)} → ${name(source)} 감정`)}
   {!!removed.length&&<p role="status">관계 항목 {removed.length}개를 삭제할 예정입니다. 다른 관계와 감정은 유지됩니다.</p>}
-  {error&&<p role="alert" className="world-error">{error}</p>}
+  {error&&<p role="alert" className="world-error">{studio.error||error}</p>}
   <div className="relationship-apply"><button type="button" className="btn pri" onClick={apply}>편집본에 적용</button><button type="button" className="btn" onClick={onClose}>취소</button></div><p className="small muted">적용 후 세계관 저장 버튼을 눌러야 저장됩니다. 취소하면 이 패널에서 입력한 변경만 버립니다.</p>
  </>
 }

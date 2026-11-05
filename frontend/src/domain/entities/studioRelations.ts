@@ -52,7 +52,12 @@ export function putRelation(settings:StudioSetting[],input:RelationInput):Studio
  const next=authorEdit(base,{...input,kind:'relation',entityType:null,title,text})
  return [...settings,next]
 }
-export function applyRelationChanges(settings:StudioSetting[],changes:RelationInput[],removedIds:string[]) {
+export function applyRelationChanges(settings:StudioSetting[],changes:(RelationInput&{baseline?:RelationInput})[],removedIds:string[]) {
+ for(const {id,baseline} of changes) {
+  if(!baseline)continue
+  const current=settings.find(s=>s.item.id===id)?.item
+  if(!current||current.kind!=='relation'||(['subjectId','targetId','predicate','polarity','title','text'] as const).some(key=>current[key]!==baseline[key]))throw new Error('다른 곳에서 관계가 변경되어 적용하지 못했습니다. 입력은 유지됩니다. 필요한 내용을 복사한 뒤 취소하고 관계를 다시 열어 주세요.')
+ }
  const ids=changes.flatMap(c=>c.id?[c.id]:[])
  if(new Set(ids).size!==ids.length||ids.some(id=>removedIds.includes(id)))throw new Error('같은 관계의 수정과 삭제를 중복 적용할 수 없습니다.')
  if(removedIds.some(id=>settings.find(s=>s.item.id===id)?.item.kind!=='relation'))throw new Error('삭제할 관계를 찾을 수 없습니다.')
