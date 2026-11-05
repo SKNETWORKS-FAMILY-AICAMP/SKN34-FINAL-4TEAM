@@ -5,11 +5,11 @@ import { relationLabel } from '../../../../domain/entities/studioRelations'
 export const mapColors = { 인물:'#7960c7', 장소:'#328a7d', 조직:'#527daf', 규칙:'#a16c20', 사건:'#b45f86', 관계:'#93617d', 설정:'#64748b' }
 export type MapKind = keyof typeof mapColors
 export type MapNode = { id:string; name:string; kind:MapKind; text:string; tags:string[]; unnamed?:boolean; x?:number; y?:number; vx?:number; vy?:number; fx?:number; fy?:number }
-export type MapLink = { id?:string; symmetric?:boolean; emotion?:boolean; curve?:number; source:string|MapNode; target:string|MapNode; label:string; fullLabel?:string; reverseLabel?:string }
+export type MapLink = { id?:string; symmetric?:boolean; emotion?:boolean; curve?:number; source:string|MapNode; target:string|MapNode; label:string; fullLabel?:string; description?:string; reverseLabel?:string }
 export const mapEndpoint = (node:string|MapNode) => typeof node==='string'?node:node.id
 export function mapConnectionLabel(link:MapLink,selectedId:string) {
  const incoming=mapEndpoint(link.target)===selectedId
- const label=incoming?(link.reverseLabel??link.fullLabel??link.label):(link.fullLabel??link.label)
+ const label=(incoming?link.reverseLabel:undefined)??(link.description?.trim()?link.description:undefined)??link.fullLabel??link.label
  return link.symmetric===false?`${incoming?'받는 관계':'보내는 관계'} · ${label}`:label
 }
 

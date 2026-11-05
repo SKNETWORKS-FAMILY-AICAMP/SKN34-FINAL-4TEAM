@@ -19,3 +19,12 @@ it('separates the effective geometry of opposite and same-direction links withou
  expect(new Set(links.map(l=>l.curve!*(String(l.source)<String(l.target)?1:-1))).size).toBe(3)
  expect(rows).toEqual(before)
 })
+
+it('preserves an authored description even for a predefined directional relationship',()=>{
+ const a=newSetting('people'),b=newSetting('people'),description='오랫동안 바다를 함께 건너온 이들을 신뢰한다'
+ const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'trusts',polarity:'asserted',text:description})
+ const link=buildCharacterMap(rows).links[0]
+ expect(link.label).toBe('신뢰')
+ expect(mapConnectionLabel(link,a.item.id)).toBe('보내는 관계 · '+description)
+ expect(mapConnectionLabel(link,b.item.id)).toBe('받는 관계 · '+description)
+})
