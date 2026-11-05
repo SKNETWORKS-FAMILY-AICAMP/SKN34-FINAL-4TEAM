@@ -63,20 +63,33 @@ jobs:
     env:
       CD_DIRECTORY: /configuration-test
       CD_WEB_PORT: "8088"
+      # Configuration-only synthetic values; no published image is pulled or started here.
+      PROD_DATABASE_URL: jdbc:postgresql://production-config.invalid:5432/storyfork
+      PROD_DATABASE_USER: synthetic-prod-user
+      PROD_DATABASE_PASSWORD: synthetic-prod-password
+      PROD_SMTP_HOST: smtp-config.invalid
+      PROD_SMTP_PORT: "587"
+      PROD_PUBLIC_ORIGIN: https://production-config.invalid
+      PROD_MAIL_FROM: ci@example.invalid
+      PROD_AUTH_JWT_SECRET: synthetic-config-only
+      PROD_CONTENT_CORE_AUTH_TOKEN: synthetic-config-only
+      PROD_INTERNAL_TOKEN: synthetic-config-only
+      PROD_WEB_PORT: "18088"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - name: Validate base + prod/dev with content disabled/enabled
+      - name: Validate default local entrypoint and base + local/prod/dev
         run: |
-          for mode in prod dev; do
+          docker compose --env-file .env.example config --quiet
+          for mode in local prod dev; do
             for content in false true; do
-              CONTENT_ENABLED="$content" docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
+              CONTENT_ENABLED="$content" PROD_CONTENT_ENABLED="$content" docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
             done
           done
       - name: Validate isolated CI overlay
-        run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml -f infrastructure/ci/compose.test.yaml config --quiet
+        run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml -f infrastructure/ci/compose.test.yaml config --quiet
       - name: Validate optional attachment environment contract
         run: python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v
 
@@ -310,7 +323,7 @@ jobs:
     timeout-minutes: 30
     env:
       COMPOSE_PROJECT_NAME: storyfork-ci-${{ github.run_id }}-${{ github.run_attempt }}
-      COMPOSE_FILE: infrastructure/docker-compose.yaml:infrastructure/docker-compose.prod.yaml:infrastructure/ci/compose.test.yaml
+      COMPOSE_FILE: infrastructure/docker-compose.yaml:infrastructure/docker-compose.local.yaml:infrastructure/ci/compose.test.yaml
       SCENARIOS: ${{ needs.changes.outputs.system }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
