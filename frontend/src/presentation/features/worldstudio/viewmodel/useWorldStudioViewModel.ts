@@ -1,4 +1,4 @@
-import {cardLibraryRows,worldWritingIssues} from '../../../../domain/entities/worldStudioWriting'
+import {cardLibraryRows,selectCardForFilter,worldWritingIssues} from '../../../../domain/entities/worldStudioWriting'
 import {initialWorldStudioFlow,worldStudioFlow,type StudioStep} from './worldStudioFlow'
 import {applyRelationChanges,assertNoNewRelationDuplicates,editStudioSetting,personDeletionInfo,removePerson,type RelationInput} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,areaPatch,type CardType} from '../../../../domain/entities/studioCards'
@@ -21,6 +21,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const [newCardType,setNewCardType]=useState<CardType>('character')
  const [cardDetail,setCardDetail]=useState(false)
  const [relationWorld,setRelationWorld]=useState('')
+ const [relationRequest,setRelationRequest]=useState<{id:string;seq:number}|null>(null)
  const [relationKey,setRelationKey]=useState(0)
  const returnCard=useRef('')
  const [saveState,setSaveState]=useState<'idle'|'saving'|'failed'>('idle')
@@ -39,10 +40,11 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const editingId=editing?.id
  useEffect(()=>{
   if(editingId)dispatchFlow({type:'open'})
-  setTool('write');setCardFilter('all');setCardQuery('');setCardDetail(false);setRelationWorld('');returnCard.current=''
+  setTool('write');setCardFilter('all');setCardQuery('');setCardDetail(false);setRelationWorld('');setRelationRequest(null);returnCard.current=''
  },[editingId])
  const goStep=(step:StudioStep)=>{dispatchFlow({type:'step',step});setTool('write');if(step==='relations'&&editing)setRelationWorld(editing.id)}
- const editCard=(id:string)=>{setSelected(id);setCardDetail(true);goStep('cards')}
+ const editCard=(id:string)=>{const row=editing?.settings.find(s=>s.item.id===id);if(row&&cardLibraryRows([row],'all','').length&&!cardLibraryRows([row],cardFilter,cardQuery).length){setCardFilter('all');setCardQuery('')};setSelected(id);setCardDetail(true);goStep('cards')}
+ const filterCards=(type:CardType|'all',query:string)=>{setCardFilter(type);setCardQuery(query);setSelected(selectCardForFilter(editing?.settings??[],selected,type,query))}
  const generation=useRef(0)
  const pending=useRef(false)
  const install=(w:StudioWorld) => {setPersonUndo(null);setSaved(w);setEditing(structuredClone(w));setSaveState('idle');setDirty(false);setWorlds(ws=>[...ws.filter(x=>x.id!==w.id),w])}
@@ -67,9 +69,10 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   if(!editing||busy)return
   try {const settings=change(editing.settings);if(settings!==editing.settings)patch({settings});setError('');return settings} catch(e) {setError(e instanceof Error?e.message:'관계를 변경하지 못했습니다.')}
  }
- return {canUndoPersonDeletion:!!personUndo,flow,tool,setTool,explore,setExplore,cardFilter,setCardFilter,cardQuery,setCardQuery,newCardType,setNewCardType,cardDetail,setCardDetail,relationWorld,relationKey,goStep,editCard,saveState,
+ return {canUndoPersonDeletion:!!personUndo,flow,tool,setTool,explore,setExplore,cardFilter,setCardFilter,cardQuery,setCardQuery,filterCards,newCardType,setNewCardType,cardDetail,setCardDetail,relationWorld,relationKey,relationRequest,goStep,editCard,saveState,
   showList:()=>dispatchFlow({type:'list'}),resume:()=>dispatchFlow({type:'resume'}),
   openRelations:(id:string)=>{returnCard.current=id;setSelected(id);goStep('relations')},
+  editRelation:(id:string)=>{setRelationRequest(previous=>({id,seq:(previous?.seq??0)+1}));goStep('relations')},
   returnToCard:()=>{if(returnCard.current)setSelected(returnCard.current);setCardDetail(true);goStep('cards')},
   cardRows:cardLibraryRows(editing?.settings??[],cardFilter,cardQuery),writingIssues:editing?worldWritingIssues(editing):[],
   worlds,saved,editing,dirty,relationDirty,setRelationDirty,selected,setSelected,error,message,busy,
