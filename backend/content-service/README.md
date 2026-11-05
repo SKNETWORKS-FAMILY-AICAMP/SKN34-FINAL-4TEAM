@@ -9,7 +9,7 @@ Core에 있던 작품·회차·원고 버전·발행·세계관·독립 WorldStu
 - 독립 Gradle 프로젝트 `storyfork-content-service`, group `ai.storyfork`, 패키지 `ai.storyfork.content`, main `ContentServiceApplication` (`Application.kt`).
 - Core와 같은 JDK 21·Kotlin 2.4.10·Spring Boot 4.1.0·Gradle 9.5.1 wrapper를 재사용합니다.
 - MVC·RestClient·Security·Validation·JPA/JDBC·Flyway·PostgreSQL과 기존 Jackson/AWS S3 의존성을 실제 이전 기능에 사용합니다. 공통 starter·새 큐/worker/DB는 추가하지 않습니다.
-- `work`, `episode`, `episode_version`, `publication`, `world`, `fork`, `proposal`, `context`, `attachment`의 Controller → Service → Repository를 유지합니다. 중복 `content.content`와 중앙 production ContentService는 없습니다.
+- `work`, `episode`, `episode_version`, `publication`, `world`, `fork`, `proposal`, `context`, `attachment`, `plan`의 Controller → Service → Repository를 유지합니다. 중복 `content.content`와 중앙 production ContentService는 없습니다.
 - 공개 API는 기존 `/api/v1/works`와 `/api/v1/public/works`를 유지합니다. nginx 및 Vite가 이 경로만 Content로 보내고 나머지 `/api`는 Core로 보냅니다. 내부 인증 endpoint는 공개 proxy에 등록하지 않습니다.
 - [콘텐츠 사용자 흐름](../../docs/content-integration.md), [설정 첨부 계약](../core-api/README.md#설정-이미지일반-파일-87), [표지·원고 이미지 계약](../core-api/README.md#작품-표지원고-이미지-92)은 기존 URL 호환을 유지합니다. 첨부 계약 문서의 위치는 호환 링크를 위해 남겨 두었지만 실행 소유자는 Content입니다.
 
@@ -59,8 +59,11 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V7 | `db/migration/proposal` | AI 작업·호출·입력·근거·제안·채택/반영 |
 | V8 | `db/migration/work` | 의존 이력 이후 `work_current` view |
 | V9 | `db/migration/episode` | Fork/발행 이후 `episode_current` view |
+| V10 | `db/migration/plan` | 11번 비공개 플롯·장면 계획, 참조, revision·논리 삭제 |
 
-[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 7개 leaf만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
+[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 8개 leaf만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
+
+11번 계획 API는 `/api/v1/works/{workId}/story-plans`의 GET·POST와 `/{id}`의 GET·PUT·DELETE를 제공합니다. 기존 인증·CSRF·작품 소유권 검사를 사용하며 다른 소유자의 작품·계획은 404입니다. 수정·삭제에는 계획의 `revision`을 사용하고 충돌은 409입니다. 인물·장소는 현재 작품의 `WorldService.read().settings`에서 분류와 허용 범위를 확인하고, 회차는 해당 작품에서 확인한 내부 ID로 연결합니다. 회차 삭제 후에는 계획을 유지하고 `episodeMissing`으로 안내하며 재사용된 번호에 자동 연결하지 않습니다. 논리 삭제된 계획은 일반 조회에서 제외하고, 하위 장면이 남은 플롯은 삭제하지 않습니다. 원고·사전·Fork 독립 상태는 변경하지 않습니다. V10은 기존 SQL을 수정하지 않는 추가 migration이며 실제 DB 적용은 수행하지 않았습니다.
 
 이 변경은 **사용자가 허용한 개발용 재초기화 전제**이며 과거 Content V1~V9 checksum과 호환되지 않습니다. 기존 적용 이력을 자동 repair/baseline 변경/clean하지 않습니다. 정확한 대상·중단 시간·보존 범위·복구 증거를 운영자가 확인하고 별도 승인하기 전 실제 DB/volume을 지우지 않습니다. 특히 같은 DB의 Auth·WorldStudio·첨부까지 일괄 폐기하는 승인이 아닙니다.
 

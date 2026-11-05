@@ -4,6 +4,8 @@
 
 ## 현재 구현
 
+11번 플롯·장면 계획은 Content의 `plan` 기능과 추가 `db/migration/plan/V10__story_plan.sql`에 분리했습니다. 기존 7개 leaf에 plan을 더한 8개 leaf를 사용하며 V1~V9는 변경하지 않습니다. `/studio/{id}?view=narrative`에서 실제 작품은 계획 API를, 메모리 데모는 독립 계획 저장소를 사용하고 기존 설정집·회차 조회를 참조합니다. 계획 저장은 원고·사전·인물 상태·Fork 독립을 변경하지 않습니다. 로컬 구현이며 DB 적용·최신 Required CI 검증은 대기입니다.
+
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
 > 기존 연결·배포 백엔드는 core-api·ai-service이며 Core에 인증·콘텐츠·첨부가 공존합니다. 별도로 [콘텐츠](../backend/content-service/README.md)·[운영](../backend/operations-service/README.md)의 독립 Spring Boot 실행 골격을 추가했습니다(loopback 8081·8082, JDK 21). 업무·DB·인증·Compose·공개 라우팅은 옮기지 않았고 실제 기동 검증도 대기입니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
