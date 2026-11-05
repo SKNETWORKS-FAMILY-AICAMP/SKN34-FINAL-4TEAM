@@ -1,6 +1,7 @@
-# GitHub CI 전용: base + prod 뒤에 병합한다. 배포 DB·volume은 사용하지 않는다.
+# GitHub CI 전용: base + local 소스 빌드 뒤에 병합한다. 배포 DB·volume은 사용하지 않는다.
 services:
   postgres:
+    ports: !reset []
     environment:
       POSTGRES_DB: storyfork_test
     volumes: !reset []
@@ -19,12 +20,14 @@ services:
       OPENAI_MODEL: ""
 
   core-api:
+    ports: !reset []
     environment:
       CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
       AUTH_COOKIE_SECURE: "false"
       APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:8088
 
   content-service:
+    ports: !reset []
     environment:
       CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
       CONTENT_ENABLED: "true"

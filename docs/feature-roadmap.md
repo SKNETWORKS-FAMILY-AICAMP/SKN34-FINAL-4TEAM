@@ -611,7 +611,7 @@
 <tr><td>Android 앱 제공</td><td>❌</td></tr>
 <tr><td>iOS 지원 범위 결정</td><td>❌</td></tr>
 <tr><td>iOS 앱 제공</td><td>❌</td></tr>
-<tr><td rowspan="10">운영·인프라</td><td rowspan="10">운영 기반</td><td rowspan="10">43 저장·배포·복구 관리</td><td>Core Health 조회</td><td>❌</td><td rowspan="10"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/63">#63</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/64">#64</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/67">PR #67</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/80">PR #80</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/94">PR #94</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/65">PR #65</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/77">PR #77</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/45">PR #45</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/103">#103</a> · <a href="#미등록-066">미등록-066</a> · <a href="#미등록-114">미등록-114</a></td></tr>
+<tr><td rowspan="24">운영·인프라</td><td rowspan="24">운영 기반</td><td rowspan="24">43 저장·배포·복구 관리</td><td>Core Health 조회</td><td>❌</td><td rowspan="24"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/63">#63</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/64">#64</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/67">PR #67</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/80">PR #80</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/94">PR #94</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/65">PR #65</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/77">PR #77</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/45">PR #45</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/103">#103</a> · <a href="#미등록-066">미등록-066</a> · <a href="#미등록-114">미등록-114</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/141">#141</a></td></tr>
 <tr><td>AI Health 조회</td><td>❌</td></tr>
 <tr><td>DB 마이그레이션 관리 · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/98">PR #98</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/104">PR #104</a></td><td>❌ (WorldStudio CD stdin·인증 테스트를 Content Service 이관에 맞춰 통합·PR 미병합·실제 개발 DB 미확인·기본 비활성)</td></tr>
 <tr><td>파일 저장소 연결 관리</td><td>❌</td></tr>
@@ -621,6 +621,20 @@
 <tr><td>Core·Content 동시 이미지 빌드의 Gradle 공유 캐시 잠금 <small>(정적 회귀 확인·hosted CI 대기)</small></td><td>❌</td></tr>
 <tr><td>배포 상태 확인</td><td>❌</td></tr>
 <tr><td>장애 상태 확인</td><td>❌</td></tr>
+<tr><td>루트 기본 Compose 명령으로 로컬 네 앱 소스 빌드 선택</td><td>❌</td></tr>
+<tr><td>로컬 web·API·DB·Mailpit 포트의 loopback 바인딩</td><td>❌</td></tr>
+<tr><td>로컬·개발 서버의 프로젝트별 DB volume 격리</td><td>❌</td></tr>
+<tr><td>개발 서버의 네 앱을 게시된 develop 이미지로 선택</td><td>❌</td></tr>
+<tr><td>로컬·개발 서버의 내부 PostgreSQL 연결</td><td>❌</td></tr>
+<tr><td>로컬·개발 서버의 내부 Mailpit SMTP 연결</td><td>❌</td></tr>
+<tr><td>개발 CD의 내부 DB 전환 미승인 시 실행 차단</td><td>❌</td></tr>
+<tr><td>운영 준비 구성의 네 앱을 main runtime 이미지로 선택</td><td>❌</td></tr>
+<tr><td>운영 준비 구성의 외부 PostgreSQL 연결 입력 분리</td><td>❌</td></tr>
+<tr><td>운영 준비 구성의 외부 SMTP 연결 입력 분리</td><td>❌</td></tr>
+<tr><td>운영 필수 PROD 설정 누락 시 Compose 구성 실패</td><td>❌</td></tr>
+<tr><td>운영 쿠키의 Secure 강제</td><td>❌</td></tr>
+<tr><td>CI HTTP 시스템 검증의 소스 빌드 overlay 유지</td><td>❌</td></tr>
+<tr><td>선택 로컬 MinIO 첨부 overlay의 소스 빌드 조합 유지</td><td>❌</td></tr>
 </tbody>
 </table>
 
@@ -774,6 +788,7 @@
 | <a id="미등록-112"></a>미등록-112 | 89 | 실행 기반 | 운영 독립 Gradle·Spring Boot 진입점·loopback 설정·선택 단위 테스트 골격을 로컬 구현; 업무·DB·배포 구현, 앱 기동, 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
 | <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 | POST /internal/v1/auth/verify의 별도 서비스 자격·서명/만료/UUID JWT 확인, Content HTTP Service proxy·timeout/장애/401 구분·UUID Principal·CSRF/CORS 경계를 소스 구현; 캐시/재시도/fallback/키 공유 없음. bc672a0의 hosted Content 통합은 성공했으나 시스템 인증 장애의 503/504 기대 불일치로 Required CI 실패; 네트워크를 유지한 pause/unpause·정확한 504/CORE_AUTH_TIMEOUT 회귀 보완은 hosted 재검증·병합 전이므로 ❌ 유지 |
 | <a id="미등록-114"></a>미등록-114 | 43 | 빌드 캐시 잠금 | Core·Content Dockerfile의 `/root/.gradle` cache mount에 `sharing=locked`를 적용해 서비스 간·동일 서비스 동시 빌드의 캐시 사용 구간을 보호; 정적 계약 RED→GREEN 확인. 실제 이미지 빌드·병합·최신 head Required CI 검증 전이므로 ❌ 유지 |
+| <a id="미등록-117"></a>미등록-117 | 43 | Compose 실행 경계 | 루트 local 소스 빌드·loopback 포트, local/dev 내부 PostgreSQL·Mailpit과 프로젝트별 volume, dev develop 이미지·내부 DB 전환 승인, prod main runtime 이미지·외부 DB/SMTP·필수 PROD 입력·Secure 쿠키, CI/첨부 소스 빌드 조합을 설정·선택 회귀로 구현. 실제 컨테이너 기동·외부/공유 DB 전환·데이터 이관·main 이미지 게시/가용성·배포는 미실행/미확인이고 병합·최신 head Required CI 전이므로 모든 세부 행은 ❌ 유지. 기본 Auth V4 샘플 회원의 공개 비밀번호 위험은 별도 운영 판단 대상이며 기존 migration은 변경하지 않음 |
 
 ## 연결한 GitHub 이슈
 
@@ -1024,9 +1039,11 @@
 | Frontend | WorldStudio 데모 | 설정 카드 | 별칭 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio 데모 | 설정 카드 | 태그 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio 데모 | 설정 카드 | 사용자 분류 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
-| Frontend | WorldStudio 데모 | 설정 카드 | 기존 메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 기존 메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) · [#116](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/116) |
+| Frontend | WorldStudio 데모 | 작성 보호 | 미저장 편집 중 화면 이탈·세계관 전환 확인 | ❌ | [#116](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/116) |
 | Frontend | WorldStudio 데모 | 설정 카드 | 태그·별칭 무변경 포커스 이동 시 저장 상태 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio | 관계 편집 | 관계 source·target 선택 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
+| Frontend | WorldStudio | 관계 편집 | 관계 상세 편집의 빈 주체·대상 저장 차단 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
 | Frontend | WorldStudio | 관계 편집 | 구조 관계 생성·수정 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
 | Frontend | WorldStudio | 관계 편집 | 방향별 감정 관계 생성·수정 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
 | Frontend | WorldStudio | 관계 편집 | 대칭·방향 관계와 기존 ID 유지 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
@@ -1035,3 +1052,20 @@
 | Frontend | WorldStudio | 관계 편집 | 인물 삭제와 연결 관계 삭제 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
 | Frontend | WorldStudio | 관계 편집 | 외부 참조가 있는 인물 삭제 차단 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
 | Frontend | WorldStudio | 관계 편집 | 인물 삭제 후 동일 ID로 되돌리기 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
+| Frontend | WorldStudio | 세계관 탐색 | 저장된 세계관 지도 표시 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 설정 검색·선택 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 연결된 설정 탐색 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 인물 관계도 표시 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 빈 세계관 안내 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 단계형 작성 | 작성 4단계 이동 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 단계 이동 후 입력 유지 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 설정 검색·유형 필터 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 이름·설명 우선 편집과 상세 접기 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 관계 단계 건너뛰기 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 검토 오류에서 해당 카드로 복귀 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 탐색·AI 보조 도구 접근 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 390px 대응과 키보드 포커스 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 세계관 탐색 | 지도 오류 시 새로고침 없이 설정 목록 이용 안내 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 방향 식별 (로컬 구현·미병합) | ❌ | [#126](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/126) |
+| Frontend | WorldStudio | 세계관 탐색 | 다중 관계선 구분과 비대칭 방향 표시 (로컬 구현·미병합) | ❌ | [#128](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/128) |
+| Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 설명 원문 표시 (로컬 구현·미병합) | ❌ | [#127](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/127) |

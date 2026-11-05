@@ -81,7 +81,7 @@ main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 
 - `auth/service/dto`: 클래스별 요청·응답 계약을 Controller와 Service가 공유합니다. `LoginResult`의 내부 refresh token은 Controller에서 HttpOnly 쿠키로만 보내며 공개 `LoginResponse`에는 포함하지 않습니다.
 - Auth는 기존 UUID·스키마와 Flyway 파일·`flyway_schema_history`를 유지합니다. Hibernate는 `validate`만 수행하며 Open Session in View는 사용하지 않습니다. Content Entity/Repository·migration은 이 앱에서 등록하지 않습니다.
 - 로그인·복구·이메일 변경·refresh 회전·세션 폐기는 회원의 JPA `PESSIMISTIC_WRITE` 잠금으로 직렬화합니다. 토큰 재사용 폐기는 Service가 정상 반환해 커밋한 뒤 Controller에서 401로 변환합니다. 신규 가입 후보의 최초 삽입 충돌만 새 트랜잭션에서 한 번 재시도하며 메일 실패 시 후보 변경을 롤백합니다.
-- `notification/controller → NoticeService → repository`: 알림함·수신 설정 API입니다. Entity·Repository는 `notification/entity`·`notification/repository`에 두고 Flyway는 `db/migration/notification`(V4~, Auth와 같은 `flyway_schema_history`)을 사용합니다. 읽음·삭제는 조건부 UPDATE로 처리해 동시 요청이 삭제 표시를 되살리지 않습니다.
+- `notification/controller → NoticeService → repository`: 알림함·수신 설정 API입니다. Entity·Repository는 `notification/entity`·`notification/repository`에 두고 Flyway는 `db/migration/notification`(V5~, Auth와 같은 `flyway_schema_history`)을 사용합니다. 읽음·삭제는 조건부 UPDATE로 처리해 동시 요청이 삭제 표시를 되살리지 않습니다.
 - `_common/ai_config`: AI 주소·timeout·RestClient 설정.
 - `_common/helper`: 기존 HTTP 설정 검증과 통신 실패 분류 경계.
 - `_common/exception`: AI 실패 분류와 안전한 ProblemDetail.

@@ -35,7 +35,7 @@ class AttachmentEnvironmentTest(unittest.TestCase):
                    INTERNAL_TOKEN="synthetic-internal", CONTENT_ENABLED="false", OPENAI_API_KEY="synthetic-ai-key",
                    AWS_ACCESS_KEY_ID="synthetic-s3-id", AWS_SECRET_ACCESS_KEY="synthetic-s3-secret")
         command = ["docker", "compose", "--env-file", str(ROOT / ".env.example"), "-f", str(ROOT / "infrastructure/docker-compose.yaml"),
-                   "-f", str(ROOT / "infrastructure/docker-compose.prod.yaml")]
+                   "-f", str(ROOT / "infrastructure/docker-compose.local.yaml")]
 
         def config(args):
             result = subprocess.run(args + ["config", "--format", "json"], env=env, capture_output=True, text=True, check=True)
