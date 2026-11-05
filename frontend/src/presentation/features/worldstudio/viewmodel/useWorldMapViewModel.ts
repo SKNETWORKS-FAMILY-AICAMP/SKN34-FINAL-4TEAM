@@ -5,8 +5,15 @@ import { relationLabel } from '../../../../domain/entities/studioRelations'
 export const mapColors = { 인물:'#7960c7', 장소:'#328a7d', 조직:'#527daf', 규칙:'#a16c20', 사건:'#b45f86', 관계:'#93617d', 설정:'#64748b' }
 export type MapKind = keyof typeof mapColors
 export type MapNode = { id:string; name:string; kind:MapKind; text:string; tags:string[]; unnamed?:boolean; x?:number; y?:number; vx?:number; vy?:number; fx?:number; fy?:number }
-export type MapLink = { id?:string; symmetric?:boolean; emotion?:boolean; curve?:number; source:string|MapNode; target:string|MapNode; label:string; fullLabel?:string; reverseLabel?:string }
+export type MapLink = { id?:string; symmetric?:boolean; emotion?:boolean; curve?:number; source:string|MapNode; target:string|MapNode; label:string; fullLabel?:string; description?:string; reverseLabel?:string }
 export const mapEndpoint = (node:string|MapNode) => typeof node==='string'?node:node.id
+export function mapConnectionLabel(link:MapLink,selectedId:string) {
+ const incoming=mapEndpoint(link.target)===selectedId
+ const fullLabel=(incoming?link.reverseLabel:undefined)??link.fullLabel??link.label
+ let label=fullLabel
+ if(link.description?.trim())label=link.description===fullLabel||link.description.split(' · ').some(part=>part.trim()===fullLabel.trim())?link.description:fullLabel+' · '+link.description
+ return link.symmetric===false?`${incoming?'받는 관계':'보내는 관계'} · ${label}`:label
+}
 
 export function buildWorldMap(settings:StudioSetting[]) {
  const saved=settings.filter(s=>s.item.decision==='approved')
@@ -36,7 +43,7 @@ export function useWorldMapViewModel(settings:StudioSetting[],project=buildWorld
  const selected=graph.nodes.find(n=>n.id===selectedId)??null
  const results=graph.nodes.filter(n=>(kind==='전체'||kind===n.kind)&&[n.name,n.text,...n.tags].join(' ').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
  const visible=new Set(results.map(n=>n.id))
- const connections=selected?graph.links.filter(l=>mapEndpoint(l.source)===selected.id||mapEndpoint(l.target)===selected.id).map(l=>({label:mapEndpoint(l.target)===selected.id?(l.reverseLabel??l.label):l.label,node:graph.nodes.find(n=>n.id===(mapEndpoint(l.source)===selected.id?mapEndpoint(l.target):mapEndpoint(l.source)))!})):[]
+ const connections=selected?graph.links.filter(l=>mapEndpoint(l.source)===selected.id||mapEndpoint(l.target)===selected.id).map(l=>({label:mapConnectionLabel(l,selected.id),node:graph.nodes.find(n=>n.id===(mapEndpoint(l.source)===selected.id?mapEndpoint(l.target):mapEndpoint(l.source)))!})):[]
  const neighbors=new Set(selected?[selected.id,...connections.map(c=>c.node.id)]:[])
  return {graph,query,setQuery,kind,setKind,selected,select,results,visible,connections,neighbors}
 }

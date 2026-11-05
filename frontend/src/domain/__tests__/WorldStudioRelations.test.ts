@@ -120,3 +120,19 @@ it('previews incident links and blocks person deletion when unrelated settings r
  expect(()=>removePerson([...rows,note],a.item.id)).toThrow(/가람의 계약/)
  expect(rows).toHaveLength(3)
 })
+
+
+it.each(['pending','held','rejected'] as const)('preserves metadata when only labels change for %s items',decision=>{
+ const row=newSetting('people');row.item.title='근거가 있는 인물';row.item.text='작성된 원문';row.item.origin='extraction';row.item.decision=decision
+ row.item.authorText='기존 원문';row.item.evidence=[{sourceId:'source',quote:'인용'}];row.item.orderEvidence=[{sourceId:'history',quote:'순서'}]
+ const original=structuredClone(row),labels=[{tags:['새 태그']},{aliases:['별칭']},{userCategory:'새 분류'}]
+ for(const label of labels){
+  const result=editStudioSetting([row],row.item.id,{},label)[0]
+  expect(result.item).toEqual(original.item)
+  expect(result).toMatchObject(label)
+ }
+ expect(editStudioSetting([row],row.item.id,{title:row.item.title},{tags:['변경']})[0].item).toEqual(original.item)
+ const edited=editStudioSetting([row],row.item.id,{text:'작성자가 고친 원문'})[0]
+ expect(edited.item).toMatchObject({origin:'author_addition',decision:'approved',text:'작성자가 고친 원문',evidence:[],orderEvidence:[]})
+ expect(row).toEqual(original)
+})

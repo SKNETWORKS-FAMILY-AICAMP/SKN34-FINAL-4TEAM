@@ -9,7 +9,7 @@ export function buildCharacterMap(settings:StudioSetting[]) {
  for(const {item} of settings.filter(s=>s.item.kind==='relation'&&s.item.decision==='approved')) {
   if(!item.subjectId||!item.targetId||item.subjectId===item.targetId||!ids.has(item.subjectId)||!ids.has(item.targetId)){missingLinks++;continue}
   const fullLabel=relationLabel(item),label=Array.from(fullLabel).length>10?Array.from(fullLabel).slice(0,10).join('')+'…':fullLabel
-  links.push({id:item.id,source:item.subjectId,target:item.targetId,label,fullLabel,symmetric:!!relationDefinitions[item.predicate??'']?.symmetric,emotion:relationDefinitions[item.predicate??'']?.group==='emotion'})
+  links.push({id:item.id,source:item.subjectId,target:item.targetId,label,fullLabel,description:item.text,symmetric:!!relationDefinitions[item.predicate??'']?.symmetric,emotion:relationDefinitions[item.predicate??'']?.group==='emotion'})
  }
  for(const link of links) {
   const pair=links.filter(l=>[l.source,l.target].sort().join(':')===[link.source,link.target].sort().join(':'))
