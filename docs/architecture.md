@@ -4,7 +4,7 @@
 
 ## 현재 구현
 
-11번 플롯·장면 계획은 Content의 `plan` 기능과 추가 `db/migration/plan/V10__story_plan.sql`에 분리했습니다. 기존 7개 leaf에 plan을 더한 8개 leaf를 사용하며 V1~V9는 변경하지 않습니다. `/studio/{id}?view=narrative`에서 실제 작품은 계획 API를, 메모리 데모는 독립 계획 저장소를 사용하고 기존 설정집·회차 조회를 참조합니다. 계획 저장은 원고·사전·인물 상태·Fork 독립을 변경하지 않습니다. 로컬 구현이며 DB 적용·최신 Required CI 검증은 대기입니다.
+11번 플롯·장면 계획은 Content의 `plan` 기능과 추가 `db/migration/plan/V10__story_plan.sql`에 분리했습니다. V11은 기존 V1~V10 SQL·체크섬을 보존하며 작품의 실제 삭제 시 해당 계획과 계획 참조만 종속 정리합니다. 기존 7개 leaf에 plan을 더한 8개 leaf를 사용합니다. `/studio/{id}?view=narrative`에서 실제 작품은 계획 API를, 메모리 데모는 독립 계획 저장소를 사용하고 기존 설정집·회차 조회를 참조합니다. 계획 저장은 원고·사전·인물 상태·Fork 독립을 변경하지 않습니다. 사용자 승인으로 5433의 별도 검증 DB에서 신규 생성·V10 업그레이드·작품 삭제 회귀를 확인했으며 공유 DB 적용과 이번 수정의 최신 Required CI 검증은 대기입니다.
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 

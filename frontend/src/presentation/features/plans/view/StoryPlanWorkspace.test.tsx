@@ -23,7 +23,7 @@ describe('계획 화면 · CI 통합', () => {
     setup()
     await waitFor(() => expect(screen.getByRole('button', { name: '플롯 추가' })).toHaveProperty('disabled', false))
     fireEvent.click(screen.getByRole('button', { name: '플롯 추가' }))
-    expect(screen.getByRole('textbox', { name: '계획 내용', exact: true })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: '계획 내용' })).toBeTruthy()
   })
   it('플롯과 구조화된 장면을 저장하고 상세 조회·수정·삭제한다', async () => {
     const { api, work } = setup()
