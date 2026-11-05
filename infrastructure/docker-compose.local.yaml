@@ -19,6 +19,23 @@ services:
       timeout: 3s
       retries: 20
 
+  # Explicit opt-in only; never launched by local validation. Data transition requires separate approval.
+  neo4j:
+    image: neo4j:5.26.0-community
+    profiles: [worldstudio]
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-}
+    ports:
+      - "127.0.0.1:${NEO4J_BOLT_PORT:-7687}:7687"
+    volumes:
+      - worldstudio-neo4j:/data
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p \"$${NEO4J_AUTH#*/}\" 'RETURN 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
   mailpit:
     image: axllent/mailpit:v1.27
     ports:
@@ -93,4 +110,5 @@ services:
 
 volumes:
   core-postgres:
+  worldstudio-neo4j:
   core-rabbitmq:

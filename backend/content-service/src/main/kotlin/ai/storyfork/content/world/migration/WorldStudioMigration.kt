@@ -16,7 +16,7 @@ object WorldStudioMigration {
             // 별도 명령 프로세스에서만 URL이 포함된 Flyway 로그를 억제한다.
             (LoggerFactory.getLogger("org.flywaydb") as Logger).level = Level.OFF
             val applied = migrate(WorldStudioMigrationProperties.from(System.getenv()))
-            println("WorldStudio migration validated; applied=$applied; pending=0; tables=12")
+            println("WorldStudio migration validated; applied=$applied; pending=0; tables=13")
         } catch (_: Exception) {
             System.err.println("WorldStudio migration failed; Core deployment must stop. Check target, backup approval, permissions and history privately.")
             exitProcess(1)
@@ -66,7 +66,7 @@ object WorldStudioMigration {
         DriverManager.getConnection(settings.url, credentials).use { connection ->
             connection.createStatement().use { statement ->
                 statement.executeQuery("SELECT count(*) FROM pg_catalog.pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'").use {
-                    check(it.next() && it.getInt(1) == 12)
+                    check(it.next() && it.getInt(1) == 13)
                 }
             }
         }

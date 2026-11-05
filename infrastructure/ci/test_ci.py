@@ -472,6 +472,27 @@ class ConfigurationTest(unittest.TestCase):
             self.assertIn("exclude integrationTestClasses", build)
             self.assertIn("include integrationTestClasses", build)
 
+    def test_graph_credentials_are_redacted_and_only_content_integration_owns_neo4j(self):
+        with patch.dict(os.environ, {'NEO4J_PASSWORD': 'short-graph-secret', 'TEST_WORLDSTUDIO_DATABASE_PASSWORD': 'short-db-secret'}):
+            self.assertEqual('[redacted] [redacted]', ci.redact('short-graph-secret short-db-secret'))
+        workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
+        integration = workflow.split('\n  integration:\n', 1)[1].split('\n  system:\n', 1)[0]
+        self.assertIn("matrix.service == 'content' && 'neo4j:5.26.0-community'", integration)
+        self.assertIn('NEO4J_URI: bolt://127.0.0.1:7687', integration)
+        self.assertIn('NEO4J_PASSWORD:', integration)
+        self.assertIn('"$RUNNER_TEMP/neo4j.log"', integration)
+        configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
+        self.assertIn('APP_WORLDSTUDIO_ENABLED=true', configuration)
+        self.assertIn('--profile worldstudio config --quiet', configuration)
+
+    def test_world_studio_graph_public_routes_stay_content_owned(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/world-studios {', 'location ^~ /api/v1/world-studios/ {']:
+                self.assertIn(location + '\n        proxy_pass http://content-service:8081;', text)
+        text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
+        self.assertIn('world-studios', text)
+
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)
         for secret in ['abc.def.ghi', 'test@example.invalid', 'opaque-token', 'a' * 64]:
