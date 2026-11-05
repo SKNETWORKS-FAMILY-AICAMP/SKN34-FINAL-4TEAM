@@ -3,6 +3,7 @@ import type {EpisodeUseCase} from '../../../../domain/usecases/EpisodeUseCase'
 import {settingCategories} from '../../../../domain/entities/content'
 import {useWorldViewModel} from '../viewmodel/useWorldViewModel'
 import {MediaPanel} from '../../../shared/media/MediaPanel'
+import {SettingVersionHistory} from '../../../shared/version-history/SettingVersionHistory'
 
 export function WorldPanel({workId,useCase,onDirty}:{workId:string;useCase?:EpisodeUseCase;onDirty:(dirty:boolean)=>void}) {
  const vm=useWorldViewModel(workId,useCase)
@@ -37,6 +38,9 @@ export function WorldPanel({workId,useCase,onDirty}:{workId:string;useCase?:Epis
    <button className="btn pri" disabled={locked||vm.dirty||!w.drafts.some(d=>d.id===vm.sid)}>설정 확정 저장</button>
   </fieldset></form></div>
   {vm.sid==='new'?<p>설정 초안을 서버에 저장하면 이미지·파일을 첨부할 수 있어요.</p>:w.mode==='following'?<p>원작 추종 설정에는 첨부할 수 없어요. 내 설정을 수정·저장하여 독립한 뒤 이용해 주세요.</p>:<MediaPanel key={`${workId}-${vm.sid}`} target={{kind:'setting',workId,settingId:vm.sid}} onBusy={setAttachmentBusy} disabled={vm.busy}/>}
-  <details className="ep-world-history"><summary>설정 버전 이력 · {w.history.length}개</summary>{w.history.filter(s=>s.content).map(s=><article key={s.versionId}><h3>{s.name} · {s.fromEpisode}화부터 · {s.visibility==='public'?'공개':'비공개'}</h3><p>{s.content}</p><small>{s.evidence}</small><button className="btn sm" disabled={locked||vm.dirty||!!w.draft} onClick={()=>vm.revert(s.id,s.versionId)}>이 설정을 새 버전으로 복원</button></article>)}</details>
+  <details className="ep-world-history"><summary>설정 버전 이력 · {w.history.length}개</summary>
+   <SettingVersionHistory history={w.history} current={w.settings} busy={locked} onRestore={vm.revert}
+    disabledReason={vm.dirty?'저장하지 않은 설정 편집이 있어요. 먼저 저장·확정해 주세요.':w.drafts.length||w.draft?'작성 중인 설정 초안을 먼저 확정해 주세요.':''}/>
+  </details>
  </section>
 }

@@ -40,6 +40,32 @@ it('applies a multi-relation pair atomically, preserving IDs/prose and removing 
  expect(edited.find(s=>s.item.id===spouse.id)?.item.polarity).toBe('denied')
 })
 
+it('rejects stale pair rows after external prose, title or endpoint-name edits without losing the latest settings or draft',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'friend_of',polarity:'asserted'})
+ const relation=rows[2].item,stale={...relation,baseline:{...relation}}
+ const changes=[stale,{subjectId:b.item.id,targetId:a.item.id,predicate:'custom_emotion',polarity:'asserted' as const,text:'아직 입력 중인 감정'}]
+ for(const [id,patch] of [[relation.id,{text:'설정 작성에서 고친 최신 설명'}],[relation.id,{title:'설정 작성에서 고친 최신 이름'}],[a.item.id,{title:'가람 수정'}]] as const) {
+  const latest=editStudioSetting(rows,id,patch),before=structuredClone(latest),draft=structuredClone(changes)
+  expect(()=>applyRelationChanges(latest,changes,[])).toThrow(/다른.*변경/)
+  expect(latest).toEqual(before)
+  expect(changes).toEqual(draft)
+ }
+})
+
+it('accepts current baselines across save clones and unrelated edits while preserving relation IDs and prose',()=>{
+ const a=newSetting('people'),b=newSetting('people'),note=newSetting();a.item.title='가람';b.item.title='나래'
+ const rows=putRelation([a,b,note],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'오랜 동료이자 경쟁자'})
+ const relation=rows[3].item
+ const latest=editStudioSetting(structuredClone(rows),note.item.id,{text:'관계 밖에서 수정한 메모'})
+ const changed=applyRelationChanges(latest,[{...relation,baseline:{...relation}},{subjectId:b.item.id,targetId:a.item.id,predicate:'custom_emotion',polarity:'asserted',text:'믿고 있지만 경계한다.'}],[])
+ expect(changed[3]).toBe(latest[3])
+ expect(changed[3].item).toEqual(relation)
+ expect(changed[2].item.text).toBe('관계 밖에서 수정한 메모')
+ expect(changed[4].item.text).toBe('믿고 있지만 경계한다.')
+ expect(changed[4].item).not.toHaveProperty('baseline')
+})
+
 it('preserves free relationship and compound emotion prose without coercing it to legacy predicates',()=>{
  const a=newSetting('people'),b=newSetting('people');a.item.title='아버지';b.item.title='홍길동'
  const prose='존경하고 인정받고 싶지만 차별에는 분노한다.\n가족이기에 더 두렵다.'
