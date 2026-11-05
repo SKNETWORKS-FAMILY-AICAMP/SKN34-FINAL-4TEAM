@@ -1,0 +1,31 @@
+.writing-studio h1 { font-size: inherit; margin: 0; }
+.writing-studio .sbar .st { margin-left: auto; }
+.writing-studio .seps { min-width: 0; }
+.writing-episode { overflow-wrap: anywhere; }
+.writing-create { margin-top: 24px; }
+.writing-editor { min-width: 0; width: 100%; max-width: 900px; margin-inline: auto; }
+.writing-editor > .field { margin-top: 24px; }
+.writing-studio .tbtn, .writing-studio .btn, .writing-history .btn { min-height: 44px; }
+.writing-studio .et, .writing-body { caret-color: var(--tacc); }
+.writing-studio .et::selection, .writing-body::selection { background: var(--pri-soft); color: var(--pri-ink); }
+.writing-editor .et { font-family: var(--ui); font-size: 22px; font-weight: 600; line-height: 1.5; }
+.writing-editor .writing-body { font-family: var(--ui); font-size: 16px; font-weight: 400; line-height: 1.8; }
+.writing-body { display: block; width: 100%; min-height: 48vh; resize: vertical; border: 0; background: transparent; color: var(--tfg); }
+.writing-studio .et:focus-visible, .writing-body:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; }
+.writing-editor section[aria-label="회차 관리"] { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.writing-preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 350px; overflow: auto; font: inherit; line-height: 1.8; padding: 16px 0; }
+.writing-rights { display: flex; gap: 10px; align-items: flex-start; margin: 24px 0 16px; }
+.writing-message { margin: 16px 24px; }
+.writing-studio button:disabled { cursor: not-allowed; opacity: .55; }
+@media (max-width: 900px) {
+  .writing-studio .seps { align-items: flex-start; }
+  .writing-studio .seps .writing-episode { min-height: 44px; max-width: 240px; white-space: normal; }
+  .writing-create { min-width: 200px; margin: 0; }
+}
+@media (max-width: 600px) {
+  .writing-studio .sbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .writing-studio .sbar .back { grid-column: span 2; }
+  .writing-studio .sbar .t { grid-row: 2; grid-column: span 2; }
+  .writing-studio .sbar .st { grid-row: 2; grid-column: 3; }
+  .writing-studio .sbar .tbtn { grid-row: 3; padding-inline: 8px; font-size: 13px; white-space: normal; word-break: keep-all; }
+}

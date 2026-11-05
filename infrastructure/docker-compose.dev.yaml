@@ -1,0 +1,61 @@
+# Image-only develop-server deployment; NOT source-build/HMR or Internet-ready.
+name: storyfork-develop-cd
+
+x-cd-labels: &cd-labels
+  io.storyfork.cd.repository: SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM
+  io.storyfork.cd.directory: ${CD_DIRECTORY:?Provision a dedicated deployment directory}
+
+services:
+  ai-service:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    environment:
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+
+  core-api:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    environment:
+      CORE_DATABASE_URL: ${CORE_DATABASE_URL:?Set CORE_DATABASE_URL}
+      CORE_SMTP_HOST: ${CORE_SMTP_HOST:?Set CORE_SMTP_HOST}
+      CORE_SMTP_PORT: ${CORE_SMTP_PORT:?Set CORE_SMTP_PORT}
+      APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
+
+  content-service:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    environment:
+      CONTENT_DATABASE_URL: ${CORE_DATABASE_URL:?Set CORE_DATABASE_URL}
+      APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
+
+  # 동일 DB의 전용 schema/이력. 콘텐츠 이미지의 명시적인 compose run에서만 실행한다.
+  worldstudio-migrate:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    profiles: [worldstudio-migration]
+    entrypoint: [java, -Dloader.main=ai.storyfork.content.world.migration.WorldStudioMigration, -cp, /app/application.jar, org.springframework.boot.loader.launch.PropertiesLauncher]
+    environment:
+      WORLDSTUDIO_MIGRATION_ENVIRONMENT: ${WORLDSTUDIO_MIGRATION_ENVIRONMENT:-}
+      CONTENT_DATABASE_URL: ${CORE_DATABASE_URL:?Set CORE_DATABASE_URL}
+      CONTENT_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
+      CONTENT_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+      WORLDSTUDIO_EXPECTED_DATABASE_URL: ${WORLDSTUDIO_EXPECTED_DATABASE_URL:-}
+      WORLDSTUDIO_EXPECTED_DATABASE_USER: ${WORLDSTUDIO_EXPECTED_DATABASE_USER:-}
+      WORLDSTUDIO_BACKUP_RESTORE_REFERENCE: ${WORLDSTUDIO_BACKUP_RESTORE_REFERENCE:-}
+
+  web:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-web:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    ports:
+      - "127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}:80"
+
+networks:
+  default:
+    labels:
+      io.storyfork.cd.repository: SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM
+      io.storyfork.cd.directory: ${CD_DIRECTORY:?Provision a dedicated deployment directory}

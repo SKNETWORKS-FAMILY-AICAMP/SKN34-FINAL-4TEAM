@@ -1,12 +1,72 @@
+import type { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
+import type { EpisodeRepository } from '../../domain/repositories/EpisodeRepository'
 import type { AwilixContainer } from 'awilix/browser'
 
 import type { CoreApiHealth } from '../../data/api/coreApiHealth'
+import type { MockDb } from '../../data/mock/InMemoryRepositories'
+import type { ProfileRepository } from '../../domain/repositories/ProfileRepository'
+import type { ProfileUseCase } from '../../domain/usecases/ProfileUseCase'
+import type { AuthRepository } from '../../domain/repositories/AuthRepository'
+import type { AuthUseCase } from '../../domain/usecases/AuthUseCase'
+import type { SignupRepository } from '../../domain/repositories/SignupRepository'
+import type { SignupUseCase } from '../../domain/usecases/SignupUseCase'
+import type { AdminRepository } from '../../domain/repositories/AdminRepository'
+import type { InquiryRepository } from '../../domain/repositories/InquiryRepository'
+import type { ChatRepository } from '../../domain/repositories/ChatRepository'
+import type { CreditRepository } from '../../domain/repositories/CreditRepository'
+import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
+import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
+import type { ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
+import type { WorldRepository } from '../../domain/repositories/WorldRepository'
+import type { AdminUseCase } from '../../domain/usecases/AdminUseCase'
+import type { AccountUseCase } from '../../domain/usecases/AccountUseCase'
+import type { ChatUseCase } from '../../domain/usecases/ChatUseCase'
+import type { CreditUseCase } from '../../domain/usecases/CreditUseCase'
+import type { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
+import type { ForkUseCase } from '../../domain/usecases/ForkUseCase'
+import type { InboxUseCase } from '../../domain/usecases/InboxUseCase'
+import type { LibraryUseCase } from '../../domain/usecases/LibraryUseCase'
+import type { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
+import type { StudioUseCase } from '../../domain/usecases/StudioUseCase'
+import type { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
 export type AppCradle = {
+  worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
+  mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
+  mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository
+  episodeUseCase: EpisodeUseCase
+  episodeRepository: EpisodeRepository
   fetchCoreApiHealth: FetchCoreApiHealth
   fetchAiServiceHealth: FetchCoreApiHealth
+  profileRepository: ProfileRepository
+  profileUseCase: ProfileUseCase
+  authRepository: AuthRepository
+  authUseCase: AuthUseCase
+  signupRepository: SignupRepository
+  signupUseCase: SignupUseCase
+  mockDb: MockDb
+  workRepository: WorkRepository
+  readingRepository: ReadingRepository
+  notificationRepository: NotificationRepository
+  feedbackRepository: FeedbackRepository
+  worldRepository: WorldRepository
+  creditRepository: CreditRepository
+  chatRepository: ChatRepository
+  inquiryRepository: InquiryRepository
+  adminRepository: AdminRepository
+  adminUseCase: AdminUseCase
+  accountUseCase: AccountUseCase
+  chatUseCase: ChatUseCase
+  inboxUseCase: InboxUseCase
+  libraryUseCase: LibraryUseCase
+  creditUseCase: CreditUseCase
+  readingUseCase: ReadingUseCase
+  feedbackUseCase: FeedbackUseCase
+  forkUseCase: ForkUseCase
+  studioUseCase: StudioUseCase
+  shellUseCase: ShellUseCase
 }
 
 export type AppContainer = AwilixContainer<AppCradle>

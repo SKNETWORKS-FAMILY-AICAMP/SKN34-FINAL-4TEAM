@@ -1,0 +1,173 @@
+# STORYFORK 시퀀스 다이어그램
+> [다이어그램 목차](./README.md) · [유스케이스 문서](../usecase.md) · [명세 목차](../usecase-spec/README.md)
+서비스 사이의 호출 순서와 책임을 정리합니다. 목표 호출 경계는 [DEC-41](../design/service-boundaries.md)을 따릅니다. 콘텐츠 서비스가 콘텐츠 인가·정본·발행을, Core가 회원·인증·크레딧·알림을 담당하고 운영 서비스가 사건·감시를 관리합니다. 아래는 제품 흐름을 설명하는 목표 다이어그램으로, 세부 호출·재시도 계약과 실제 서비스 분리는 미구현입니다. 메시지 이름은 동작 설명이며 API URL·DTO가 아닙니다.
+## 1. 독자 제보 접수·응대 (UC-14·15)
+```mermaid
+sequenceDiagram
+  actor R as 독자
+  participant FE as Frontend
+  participant CO as 콘텐츠 서비스
+  participant CORE as Core 서비스
+  participant DB as 콘텐츠 저장소
+  participant AI as AI Service
+  participant LLM as OpenAI
+  participant OPS as 운영 서비스
+  actor OP as 운영자
+  R->>FE: 제보 작성 (유형 선택: 단순 오류·스토리 오류·질문·제안)
+  opt 스토리 오류 검증 (독자 크레딧, UC-09 A5)
+    FE->>CO: 검증 비용 조회 · 동의
+    CO->>AI: 검증 시뮬레이션 (독자가 본 회차까지의 공개 문맥만)
+    AI->>LLM: 시뮬레이션
+    AI-->>CO: 판정 · 신뢰도 · 근거
+    CO->>CORE: 실제 사용량 정산 요청 (작업 ID, 중복 차감 방지)
+    CORE-->>CO: 정산 결과 또는 대기·실패
+    CO-->>FE: 검증 결과 (제보 여부는 독자가 결정)
+  end
+  R->>FE: 등록 (무료)
+  FE->>CO: 제보 등록
+  CO->>CO: 권한 확인
+  CO->>AI: 1차 필터 (유해 콘텐츠 판정)
+  AI->>LLM: 모더레이션 모델
+  alt 필터 호출 실패
+    CO->>DB: 저장 · 상태 필터 대기 (비공개, 재검사)
+  else 유해 판정
+    CO->>DB: 저장 · 상태 숨김
+    CO-->>FE: 숨김 사유 안내
+  else 통과
+    CO->>DB: 제보 저장 (회차 · 발행본 버전 · 구절 · 검증 결과) · 상태 접수됨
+    CO-->>FE: 접수 결과
+    alt 스토리 오류 · 제안
+      CO->>DB: 상태 작가 검토 대기 (UC-16)
+    else 단순 오류 · 질문
+      CO->>DB: 상태 분석 중
+      CO->>CO: 독자가 본 회차까지의 공개 근거 범위만 추림
+      CO->>AI: 응대 요청 (허용된 공개 문맥만)
+      AI->>LLM: 근거 대조 · 수정안 또는 답변 생성
+      alt AI 실패 · 시간 초과
+        AI-->>CO: 실패
+        CO->>DB: 상태 처리 실패 · 오류 로그
+        CO-->>FE: 처리 실패 즉시 고지
+        CO->>OPS: 기술 장애 사건 전달 (UC-21)
+        OPS-)OP: 조치 대상 경고
+      else 성공
+        LLM-->>AI: 결과
+        AI-->>CO: 답변안 · 수정안 제안
+        CO->>CORE: 플랫폼 부담 사용량 보고·정산 요청
+        CO->>DB: 응답 · 다음 상태 (응답 완료 / 작가 검토 대기 / 수정 진행 중)
+        CO-->>FE: 응답과 상태 표시
+      end
+    end
+  end
+```
+- 피드백 분석은 검증만 하며 세계관·설정을 바꾸지 않습니다(BR-11).
+- 유형은 독자가 고르며 AI로 분류하지 않습니다(BR-15).
+- AI Service는 DB에 직접 접근하지 않습니다.
+## 2. 표기 오류 수정안 자동 승인·발행 (UC-16 A4)
+```mermaid
+sequenceDiagram
+  participant CO as 콘텐츠 서비스
+  participant CORE as Core 서비스
+  participant DB as 콘텐츠 저장소
+  actor W as 작품 소유자
+  CO->>DB: 작품 설정 조회 (표기 오류 처리 방식)
+  alt 작가 검토
+    CO->>DB: 수정안 검토 대기
+    CO->>CORE: 회원 알림 사건 전달
+    CORE-)W: 검토 요청 알림
+  else 자동 승인·발행
+    CO->>DB: 기준 버전 확인
+    alt 기준 버전 변경됨
+      CO->>DB: 수정안 검토 대기로 전환
+      CO->>CORE: 회원 알림 사건 전달
+      CORE-)W: 검토 요청 알림
+    else 일치
+      CO->>DB: 자동 승인 · 초안 반영 (새 초안 버전)
+      CO->>CO: UC-13 발행 확인
+      CO->>DB: 재발행 · 수정안 발행 완료 · 피드백 처리 완료
+      Note over CO: 재발행이므로 세계관 자동 업데이트 없음 (BR-11)
+      CO->>CORE: 회원 알림 사건 전달
+      CORE-)W: 자동 처리 결과 알림 (변경 이력)
+    end
+  end
+```
+## 3. Fork 생성 (UC-08)
+```mermaid
+sequenceDiagram
+  actor R as 독자
+  participant FE as Frontend
+  participant CO as 콘텐츠 서비스
+  participant DB as 콘텐츠 저장소
+  R->>FE: 분기 기준 회차 선택 · 제목 입력
+  FE->>CO: Fork 생성 요청
+  CO->>DB: Fork 허용 · 이용 조건 · 권리 제한 확인
+  alt 허용되지 않음
+    CO-->>FE: 생성 불가 · 사유
+  else 허용
+    CO->>DB: 기준 회차까지 원고 버전 확정
+    CO->>DB: 분기 시점에 공개된 설정집·인물관계도 항목을 Fork 전용 세계관으로 복사 (같은 트랜잭션)
+    CO->>DB: Fork 작품 생성 · 독자를 소유자로 지정
+    CO->>DB: 기준 회차 시점 작품별 회차 기록 사본을 Fork 작품 기록으로 생성 (같은 트랜잭션)
+    alt 생성 실패
+      CO->>DB: 부분 생성물 정리
+      CO-->>FE: 생성 실패 안내
+    else 성공
+      CO-->>FE: Fork 작품 화면
+    end
+  end
+```
+## 4. AI 자율 연재 1회 실행 (UC-18)
+```mermaid
+sequenceDiagram
+  participant TR as 콘텐츠 서비스 일정 실행
+  participant CO as 콘텐츠 서비스
+  participant CORE as Core 서비스
+  participant DB as 콘텐츠 저장소
+  participant AI as AI Service
+  participant LLM as OpenAI
+  actor W as 작품 소유자
+  TR->>CO: 소유자가 정한 실행 일정 도래
+  CO->>DB: 자율 연재 상태 · 월 한도 · 미승인 초안 확인
+  CO->>CORE: 소유자 크레딧 조회·실행 가능 여부 확인
+  CORE-->>CO: 잔액·허용 여부 또는 실패
+  alt 미승인 초안 있음 (발행 전 확인 켬)
+    CO->>DB: 이번 실행 건너뜀
+  else 한도 · 크레딧 부족
+    CO->>DB: 자율 연재 중단됨
+    CO->>CORE: 회원 알림 사건 전달
+    CORE-)W: 중단 알림
+  else 실행
+    CO->>DB: 세계관 허용 문맥 조회
+    CO->>DB: 허용된 독자 반응 조회 (켠 경우, 필터 통과 공개 댓글·제안, 작성자 정보 제외)
+    CO->>AI: 다음 회차 생성 요청
+    AI->>LLM: 생성
+    alt 생성 실패
+      AI-->>CO: 실패
+      CO->>DB: 오류 로그 (이번 회차 발행 안 함, 연속 3회면 중단됨)
+      CO->>CORE: 회원 알림 사건 전달
+      CORE-)W: 실패 알림
+    else 생성 성공
+      AI-->>CO: 회차 초안
+      CO->>DB: 초안 저장
+      CO->>CORE: 실제 사용량 정산 요청
+      CORE-->>CO: 정산 결과 또는 대기·실패
+      CO->>AI: 1차 필터 (유해 콘텐츠 판정)
+      CO->>CO: UC-13 발행 확인
+      alt 필터 판정 · 발행 확인 실패 · 발행 전 확인 켬
+        CO->>DB: 초안으로 보관
+        CO->>CORE: 회원 알림 사건 전달
+        CORE-)W: 확인 요청 또는 사유 알림
+      else 통과
+        CO->>DB: 새 회차 발행
+        opt 세계관 업데이트 자동
+          CO->>AI: 해당 회차 설정 추출 (UC-04)
+          AI-->>CO: 추출 결과
+          CO->>DB: 충돌 없는 항목에 갱신 기록 추가
+        end
+        CO->>CORE: 회원 알림 사건 전달
+        CORE-)W: 발행 결과 · 사용 크레딧 알림
+      end
+    end
+  end
+```
+- 실행은 콘텐츠 서비스 업무 경계, 정산·회원 알림은 Core, 실패·지연 감시는 운영 서비스 책임입니다. 별도 worker·큐·중앙 스케줄러는 선제 추가하지 않습니다. 서비스 간 호출은 하나의 DB 트랜잭션이 아니므로 정산·알림의 부분 실패를 저장 성공과 구분하고 작업 ID 기반 복구 계약을 후속 설계합니다.
+- 이 문서의 UC별 세부 제품 흐름은 최신 유스케이스 명세와 결정 기록을 우선하며, 분리 결정 자체가 기존 자동 승인·자율 연재 정책을 새로 확정하는 것은 아닙니다.

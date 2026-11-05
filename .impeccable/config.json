@@ -8,6 +8,15 @@
         "value": "inter",
         "createdAt": "2026-10-27T03:39:23.505Z",
         "reason": "Implementation spec section 4 explicitly requires reusing existing typography and forbids new fonts; Inter is inherited in frontend/src/index.css."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "frontend/src/styles/storyfork.css"
+        ],
+        "createdAt": "2026-10-30T07:28:22.286Z",
+        "reason": "Existing .quote and q.cq styles identify quoted text rather than card accents."
       }
     ]
   }

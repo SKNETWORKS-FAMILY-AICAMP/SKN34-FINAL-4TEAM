@@ -1,0 +1,372 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  # 비교 기준이 없는 수동 실행은 모든 서비스/시나리오를 선택한다.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# 격리된 CI 전용 값이다. 저장소/서버의 실제 .env·secrets는 사용하지 않는다.
+env:
+  CORE_DATABASE_USER: content_test
+  CORE_DATABASE_PASSWORD: ci-test-only
+  CORE_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+  CORE_SMTP_HOST: 127.0.0.1
+  CORE_SMTP_PORT: "1025"
+  AUTH_PUBLIC_ORIGIN: http://127.0.0.1:8088
+  AUTH_MAIL_FROM: ci@example.invalid
+  AUTH_JWT_SECRET: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+  AUTH_COOKIE_SECURE: "false"
+  INTERNAL_TOKEN: ci-test-only-internal-token
+  CONTENT_CORE_AUTH_TOKEN: ci-content-core-auth-only-0123456789abcdef
+  OPENAI_API_KEY: ""
+  OPENAI_MODEL: ""
+
+jobs:
+  changes:
+    name: Changed paths and selection checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      unit: ${{ steps.plan.outputs.unit }}
+      unit_needed: ${{ steps.plan.outputs.unit_needed }}
+      integration: ${{ steps.plan.outputs.integration }}
+      integration_needed: ${{ steps.plan.outputs.integration_needed }}
+      system: ${{ steps.plan.outputs.system }}
+      system_needed: ${{ steps.plan.outputs.system_needed }}
+      infra: ${{ steps.plan.outputs.infra }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - id: plan
+        run: python3 infrastructure/ci/ci.py plan
+      - if: ${{ steps.plan.outputs.unit_needed == 'true' }}
+        run: python3 -m unittest discover -s infrastructure/ci -p 'test_*.py' -v
+
+  configuration:
+    name: Compose configuration
+    needs: changes
+    if: ${{ needs.changes.outputs.infra == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      CD_DIRECTORY: /configuration-test
+      CD_WEB_PORT: "8088"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Validate base + prod/dev with content disabled/enabled
+        run: |
+          for mode in prod dev; do
+            for content in false true; do
+              CONTENT_ENABLED="$content" docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
+            done
+          done
+      - name: Validate isolated CI overlay
+        run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml -f infrastructure/ci/compose.test.yaml config --quiet
+      - name: Validate optional attachment environment contract
+        run: python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v
+
+  unit:
+    name: Unit / ${{ matrix.service }}
+    needs: changes
+    if: ${{ needs.changes.outputs.unit_needed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.unit) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - if: ${{ matrix.service == 'web' }}
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: frontend/package.json
+      - if: ${{ matrix.service == 'web' }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - if: ${{ matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' }}
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - if: ${{ matrix.service == 'ai' }}
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          working-directory: backend/ai-service
+          enable-cache: true
+          cache-dependency-glob: backend/ai-service/uv.lock
+      - if: ${{ matrix.service == 'web' }}
+        run: pnpm --dir frontend install --frozen-lockfile
+      - if: ${{ matrix.service == 'ai' }}
+        run: uv lock --check --directory backend/ai-service
+      - name: Vitest unit tests (isolated modules only)
+        if: ${{ matrix.service == 'web' }}
+        working-directory: frontend
+        run: pnpm exec vitest run src/domain src/data src/index-html.test.js --reporter=default --reporter=junit --outputFile=reports/unit.xml
+      - name: JUnit unit tests (selected feature packages)
+        if: ${{ matrix.service == 'core' }}
+        working-directory: backend/core-api
+        env:
+          SCOPE: ${{ matrix.scope }}
+        run: |
+          filters=()
+          if [[ "$SCOPE" != all ]]; then
+            for feature in ${SCOPE//,/ }; do
+              case "$feature" in
+                auth) packages=("$feature") ;;
+                health) packages=(_health _health_ai_service _common) ;;
+                *) exit 1 ;;
+              esac
+              for package in "${packages[@]}"; do filters+=(--tests "ai.storyfork.core.$package.*"); done
+            done
+          fi
+          ./gradlew unitTest --no-daemon "${filters[@]}"
+      - name: JUnit Content pure unit tests (integration excluded)
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        run: ./gradlew unitTest --no-daemon
+      - name: JUnit skeleton resource unit tests (no Spring context)
+        if: ${{ matrix.service == 'operations' }}
+        working-directory: backend/${{ matrix.service }}-service
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: ./gradlew test --tests "ai.storyfork.${SERVICE}.*" --no-daemon
+      - name: pytest isolated provider unit tests
+        if: ${{ matrix.service == 'ai' }}
+        working-directory: backend/ai-service
+        run: uv run --locked --extra dev python -m pytest -m 'not integration' --junitxml=reports/unit.xml
+      - if: ${{ matrix.service == 'web' }}
+        run: pnpm --dir frontend lint && pnpm --dir frontend build
+      - name: Sanitize failure reports
+        if: ${{ failure() }}
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/operations-service/build/test-results backend/ai-service/reports
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ failure() }}
+        with:
+          name: unit-${{ matrix.service }}
+          path: sanitized/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  integration:
+    name: Integration / ${{ matrix.service }}
+    needs: changes
+    if: ${{ needs.changes.outputs.integration_needed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.integration) }}
+    services:
+      postgres:
+        # Core와 Content 통합에서만 격리 DB를 생성한다.
+        image: ${{ (matrix.service == 'core' || matrix.service == 'content') && 'postgres:17-alpine' || '' }}
+        env:
+          POSTGRES_DB: storyfork_test
+          POSTGRES_USER: content_test
+          # 기존 Content *PostgresTest의 content_test/빈 비밀번호 계약. 격리 runner 전용.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["127.0.0.1:5432:5432"]
+        options: --health-cmd "pg_isready -U content_test -d storyfork_test" --health-interval 3s --health-timeout 3s --health-retries 20
+      postgres-password:
+        # WorldStudio migration 테스트만 비밀번호 인증에서도 재실행한다. 기존 trust DB는 유지한다.
+        image: ${{ matrix.service == 'content' && 'postgres:17-alpine' || '' }}
+        env:
+          POSTGRES_DB: worldstudio_password_test
+          POSTGRES_USER: worldstudio_test
+          POSTGRES_PASSWORD: worldstudio-ci-password
+          POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+        ports: ["127.0.0.1:5433:5432"]
+        options: --health-cmd "pg_isready -U worldstudio_test -d worldstudio_password_test" --health-interval 3s --health-timeout 3s --health-retries 20
+      mailpit:
+        image: ${{ matrix.service == 'core' && 'axllent/mailpit:v1.27' || '' }}
+        ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+    env:
+      CORE_DATABASE_PASSWORD: ""
+      TEST_CONTENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      # Each WorldStudio fixture owns a separate temporary database in this CI service.
+      TEST_WORLDSTUDIO_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      TEST_WORLDSTUDIO_DATABASE_USER: content_test
+      TEST_WORLDSTUDIO_DATABASE_PASSWORD: ""
+      TEST_WORLDSTUDIO_DISPOSABLE: "true"
+      AUTH_INTEGRATION_TEST: "true"
+      AUTH_MAILPIT_API: http://127.0.0.1:8025
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - if: ${{ matrix.service == 'web' }}
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: frontend/package.json
+      - if: ${{ matrix.service == 'web' }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - if: ${{ matrix.service == 'core' || matrix.service == 'content' }}
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - if: ${{ matrix.service == 'ai' }}
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          working-directory: backend/ai-service
+          enable-cache: true
+          cache-dependency-glob: backend/ai-service/uv.lock
+      - if: ${{ matrix.service == 'web' }}
+        run: pnpm --dir frontend install --frozen-lockfile
+      - name: Vitest React integration tests (exclude unit files)
+        if: ${{ matrix.service == 'web' }}
+        working-directory: frontend
+        run: pnpm exec vitest run --exclude 'src/domain/**' --exclude 'src/data/**' --exclude src/index-html.test.js --reporter=default --reporter=junit --outputFile=reports/integration.xml
+      - name: JUnit Spring/HTTP/PostgreSQL integration tests
+        if: ${{ matrix.service == 'core' }}
+        working-directory: backend/core-api
+        env:
+          SCOPE: ${{ matrix.scope }}
+        run: |
+          filters=()
+          if [[ "$SCOPE" != all ]]; then
+            for feature in ${SCOPE//,/ }; do
+              case "$feature" in
+                auth) packages=("$feature") ;;
+                health) packages=(_health _health_ai_service _common) ;;
+                *) exit 1 ;;
+              esac
+              for package in "${packages[@]}"; do filters+=(--tests "ai.storyfork.core.$package.*"); done
+            done
+          fi
+          ./gradlew integrationTest --no-daemon "${filters[@]}"
+      - name: JUnit Content Spring HTTP and fresh PostgreSQL integration tests
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        run: ./gradlew integrationTest --no-daemon
+      - name: WorldStudio migration with PostgreSQL password authentication
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        env:
+          TEST_WORLDSTUDIO_DATABASE_URL: jdbc:postgresql://127.0.0.1:5433/worldstudio_password_test
+          TEST_WORLDSTUDIO_DATABASE_USER: worldstudio_test
+          TEST_WORLDSTUDIO_DATABASE_PASSWORD: worldstudio-ci-password
+          TEST_WORLDSTUDIO_PASSWORD_AUTH: "true"
+        run: ./gradlew integrationTest --tests ai.storyfork.content.world.WorldStudioMigrationPostgresTest --no-daemon --rerun-tasks
+      - name: pytest FastAPI HTTP integration tests
+        if: ${{ matrix.service == 'ai' }}
+        working-directory: backend/ai-service
+        run: uv run --locked --extra dev python -m pytest -m integration --junitxml=reports/integration.xml
+      - name: Collect isolated dependency logs
+        if: ${{ failure() && (matrix.service == 'core' || matrix.service == 'content') }}
+        env:
+          POSTGRES_ID: ${{ job.services.postgres.id }}
+          PASSWORD_POSTGRES_ID: ${{ job.services.postgres-password.id }}
+          MAILPIT_ID: ${{ job.services.mailpit.id }}
+        run: |
+          docker logs "$POSTGRES_ID" > "$RUNNER_TEMP/postgres.log" 2>&1 || true
+          if [[ -n "$PASSWORD_POSTGRES_ID" ]]; then docker logs "$PASSWORD_POSTGRES_ID" >> "$RUNNER_TEMP/postgres.log" 2>&1 || true; fi
+          if [[ -n "$MAILPIT_ID" ]]; then docker logs "$MAILPIT_ID" > "$RUNNER_TEMP/mailpit.log" 2>&1 || true; fi
+      - name: Sanitize failure reports
+        if: ${{ failure() }}
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ failure() }}
+        with:
+          name: integration-${{ matrix.service }}
+          path: sanitized/
+          retention-days: 7
+          if-no-files-found: ignore
+      # Actions service containers/volumes는 job 종료 시 runner가 정리한다.
+
+  system:
+    name: Selected HTTP system scenarios
+    needs: [changes, unit, integration, configuration]
+    if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.unit.result == 'success' && needs.integration.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.system_needed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: storyfork-ci-${{ github.run_id }}-${{ github.run_attempt }}
+      COMPOSE_FILE: infrastructure/docker-compose.yaml:infrastructure/docker-compose.prod.yaml:infrastructure/ci/compose.test.yaml
+      SCENARIOS: ${{ needs.changes.outputs.system }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          working-directory: backend/ai-service
+          enable-cache: true
+          cache-dependency-glob: backend/ai-service/uv.lock
+      - name: Launch only the isolated CI Compose project
+        run: docker compose --env-file .env.example up --build -d --wait --wait-timeout 240
+      - name: Discover loopback ports and wait for HTTP readiness
+        run: |
+          HTTP_BASE_URL="http://$(docker compose --env-file .env.example port web 80)"
+          MAILPIT_API_URL="http://$(docker compose --env-file .env.example port mailpit 8025)"
+          printf '%s\n' "HTTP_BASE_URL=$HTTP_BASE_URL" "MAILPIT_API_URL=$MAILPIT_API_URL" >> "$GITHUB_ENV"
+          for url in "$HTTP_BASE_URL/api/v1/health" "$HTTP_BASE_URL/api/v1/health/ai-service" "$HTTP_BASE_URL/api/v1/public/works" "$MAILPIT_API_URL/api/v1/messages"; do
+            curl --retry 60 --retry-delay 2 --retry-all-errors --max-time 10 --fail --silent --show-error --output /dev/null "$url"
+          done
+      - name: pytest selected real HTTP and persistence flows
+        # 기존 AI dev extra의 pytest/httpx2를 재사용한다. 별도 테스트 엔진·wrapper는 없다.
+        run: uv run --locked --extra dev --project backend/ai-service python -m pytest infrastructure/system -k "${SCENARIOS//,/ or }" --junitxml=reports/system.xml --tb=no --show-capture=no -q
+      - name: Collect failure logs without printing bodies or credentials
+        if: ${{ failure() }}
+        run: |
+          docker compose --env-file .env.example logs --no-color > "$RUNNER_TEMP/system.log" 2>&1 || true
+          python3 infrastructure/ci/ci.py reports sanitized reports "$RUNNER_TEMP/system.log"
+      - name: Remove only this run's containers and test resources
+        if: ${{ always() }}
+        run: docker compose --env-file .env.example down --volumes --remove-orphans --timeout 10
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ failure() }}
+        with:
+          name: system-http
+          path: sanitized/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  required:
+    name: Required CI
+    if: ${{ always() }}
+    needs: [changes, configuration, unit, integration, system]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Reject failures, cancellations and unexpected skips
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+          UNIT_NEEDED: ${{ needs.changes.outputs.unit_needed }}
+          INTEGRATION_NEEDED: ${{ needs.changes.outputs.integration_needed }}
+          SYSTEM_NEEDED: ${{ needs.changes.outputs.system_needed }}
+          CONFIGURATION_NEEDED: ${{ needs.changes.outputs.infra }}
+        run: python3 infrastructure/ci/ci.py required
