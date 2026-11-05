@@ -1,5 +1,6 @@
 package ai.storyfork.core.notification.service
 
+import ai.storyfork.core.auth.repository.MemberRepository
 import ai.storyfork.core.notification.domain.NoticeKind
 import ai.storyfork.core.notification.entity.NoticeEntity
 import ai.storyfork.core.notification.entity.NoticePreferenceEntity
@@ -28,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException
 class NoticeService(
     private val notices: NoticeRepository,
     private val preferences: NoticePreferenceRepository,
+    private val members: MemberRepository,
 ) {
     /** 본인 알림을 최신순으로 limit개 반환한다. cursor가 형식에 맞지 않으면 400이다. */
     @Transactional(readOnly = true)
@@ -76,6 +78,8 @@ class NoticeService(
     /** 읽기·창작 분류의 수신 여부를 저장한다. 알 수 없는 분류·중복·끌 수 없는 분류 끄기는 400이며 이때 변경은 모두 롤백한다. */
     @Transactional
     fun updatePreferences(memberId: UUID, request: NoticePreferencesRequest): NoticePreferencesResponse {
+        // 설정 행이 없는 같은 회원·분류의 최초 저장이 동시에 오면 복합 PK 충돌이 나므로 회원 행 잠금으로 직렬화한다.
+        members.lockById(memberId) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
         val kinds = request.items.map { NoticeKind.fromCode(requireNotNull(it.kind)) ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
         if (kinds.toSet().size != kinds.size) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         request.items.forEachIndexed { index, item ->

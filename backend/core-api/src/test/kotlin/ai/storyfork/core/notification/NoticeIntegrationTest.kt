@@ -141,6 +141,29 @@ class NoticeIntegrationTest {
     }
 
     @Test
+    fun `concurrent first preference saves for the same member and category both succeed`() {
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(8)
+        try {
+            repeat(6) {
+                val me = member(); val auth = bearer(me)
+                val start = java.util.concurrent.CountDownLatch(1)
+                val body = """{"items":[{"kind":"creation","enabled":false}]}"""
+                val calls = (1..4).map {
+                    pool.submit<Int> {
+                        start.await()
+                        mvc.perform(json(put("/api/v1/me/notification-preferences"), auth, body)).andReturn().response.status
+                    }
+                }
+                start.countDown()
+                assertEquals(listOf(200, 200, 200, 200), calls.map { it.get() })
+                assertEquals(1, jdbc.queryForObject("select count(*) from notification_preference where member_id = ?", Int::class.java, me.id))
+            }
+        } finally {
+            pool.shutdownNow()
+        }
+    }
+
+    @Test
     fun `disabled categories are not created but earlier notices stay`() {
         val me = member(); val auth = bearer(me)
         add(me, "before", NoticeKind.CREATION)
