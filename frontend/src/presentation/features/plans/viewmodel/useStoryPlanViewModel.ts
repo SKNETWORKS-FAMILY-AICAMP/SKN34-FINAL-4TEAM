@@ -62,6 +62,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   }, [])
 
   useEffect(() => {
+    const beforeLeave = (event: Event) => { if (!mayLeave()) event.preventDefault() }
     const beforeUnload = (event: BeforeUnloadEvent) => { if (state.current.dirty || state.current.busy) event.preventDefault() }
     const click = (event: MouseEvent) => {
       const target = event.target
@@ -76,10 +77,12 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
       if (currentIndex === null || nextIndex === null || currentIndex === nextIndex) return
       if (!mayLeave()) { event.stopImmediatePropagation(); window.history.go(currentIndex - nextIndex) }
     }
+    window.addEventListener('sf-before-leave', beforeLeave)
     window.addEventListener('beforeunload', beforeUnload)
     document.addEventListener('click', click, true)
     window.addEventListener('popstate', pop, true)
     return () => {
+      window.removeEventListener('sf-before-leave', beforeLeave)
       window.removeEventListener('beforeunload', beforeUnload)
       document.removeEventListener('click', click, true)
       window.removeEventListener('popstate', pop, true)
