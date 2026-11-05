@@ -191,7 +191,7 @@
 <tr><td>원고 버전 비교</td><td>❌</td></tr>
 <tr><td>원고 이전 버전 복원</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>설정 버전 목록 조회</td><td>❌</td></tr>
-<tr><td>설정 버전 상세의 선택 이력 번호 확인</td><td>❌</td></tr>
+<tr><td>설정 버전 상세의 선택 이력 번호 확인</td><td>❌ <small>동일 버전의 첫 항목 기준으로 목록·상세·복원 확인 번호 통일, 긴 설정명 복원 확인 줄바꿈 보완. <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/134">PR #134</a> 리뷰 보완, 병합·수정본 Required CI 확인 대기.</small></td></tr>
 <tr><td>설정 이전 버전 복원</td><td>❌</td></tr>
 <tr><td>세계관 체크포인트 생성</td><td>❌</td></tr>
 <tr><td>체크포인트 상세 조회</td><td>❌</td></tr>

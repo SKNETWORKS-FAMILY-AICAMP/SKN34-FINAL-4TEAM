@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { SavedSetting } from '../../../domain/entities/content'
 import './version-history.css'
 
+/** 동일 버전의 첫 공개 범위로 이력을 표시하고, 확인 후 원래 설정·버전 ID로 복원을 요청한다. */
 export function SettingVersionHistory({ history, current, onRestore, busy = false, disabledReason = '' }: {
   history: SavedSetting[]; current: SavedSetting[]; onRestore: (id: string, versionId: string) => void
   busy?: boolean; disabledReason?: string
@@ -24,7 +25,9 @@ export function SettingVersionHistory({ history, current, onRestore, busy = fals
     wasConfirming.current = confirm
   }, [confirm])
   const items = [...new Map(history.map(s => [s.id, s])).values()]
-  const versions = history.filter(s => s.id === settingId)
+  const versions = history
+    .filter(s => s.id === settingId)
+    .filter((s, i, all) => all.findIndex(t => t.versionId === s.versionId) === i)
   const selectedIndex = versions.findIndex(s => s.versionId === versionId)
   const selected = versions[selectedIndex]
   const latest = current.find(s => s.id === settingId)
