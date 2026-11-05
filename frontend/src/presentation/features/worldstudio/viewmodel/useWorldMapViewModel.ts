@@ -9,7 +9,8 @@ export type MapLink = { id?:string; symmetric?:boolean; emotion?:boolean; curve?
 export const mapEndpoint = (node:string|MapNode) => typeof node==='string'?node:node.id
 export function mapConnectionLabel(link:MapLink,selectedId:string) {
  const incoming=mapEndpoint(link.target)===selectedId
- const label=(incoming?link.reverseLabel:undefined)??(link.description?.trim()?link.description:undefined)??link.fullLabel??link.label
+ const fullLabel=(incoming?link.reverseLabel:undefined)??link.fullLabel??link.label
+ const label=link.description?.trim()&&link.description!==fullLabel?fullLabel+' · '+link.description:fullLabel
  return link.symmetric===false?`${incoming?'받는 관계':'보내는 관계'} · ${label}`:label
 }
 

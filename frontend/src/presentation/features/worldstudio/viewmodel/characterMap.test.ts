@@ -25,6 +25,6 @@ it('preserves an authored description even for a predefined directional relation
  const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'trusts',polarity:'asserted',text:description})
  const link=buildCharacterMap(rows).links[0]
  expect(link.label).toBe('신뢰')
- expect(mapConnectionLabel(link,a.item.id)).toBe('보내는 관계 · '+description)
- expect(mapConnectionLabel(link,b.item.id)).toBe('받는 관계 · '+description)
+ expect(mapConnectionLabel(link,a.item.id)).toBe('보내는 관계 · 신뢰 · '+description)
+ expect(mapConnectionLabel(link,b.item.id)).toBe('받는 관계 · 신뢰 · '+description)
 })
