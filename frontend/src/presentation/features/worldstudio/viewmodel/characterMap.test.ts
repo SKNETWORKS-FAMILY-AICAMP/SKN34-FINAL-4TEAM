@@ -21,7 +21,7 @@ it('separates the effective geometry of opposite and same-direction links withou
 })
 
 it('preserves an authored description even for a predefined directional relationship',()=>{
- const a=newSetting('people'),b=newSetting('people'),description='오랫동안 바다를 함께 건너온 이들을 신뢰한다'
+ const a=newSetting('people'),b=newSetting('people'),description='오랫동안 바다를 함께 건너온 동료를 믿는다'
  const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'trusts',polarity:'asserted',text:description})
  const link=buildCharacterMap(rows).links[0]
  expect(link.label).toBe('신뢰')
