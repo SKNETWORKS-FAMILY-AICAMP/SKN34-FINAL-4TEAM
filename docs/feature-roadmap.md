@@ -617,7 +617,9 @@
 <tr><td>홈 더보기·전체 보기의 최소 44px 터치 영역 제공</td><td>❌</td></tr>
 <tr><td>모바일 홈·공유 셸 검색·계정·필터·알림·테마의 최소 44×44px 터치 영역 제공</td><td>❌</td></tr>
 <tr><td>공유 푸터의 데모 초기화·로그인 제거 (상단 계정/로그인·데모 고지 유지)</td><td>❌</td></tr>
-<tr><td>GNB 크레딧 정책 버튼의 문구·데모 표시를 줄바꿈 없이 유지 (모바일 숨김 유지)</td><td>❌</td></tr>
+<tr><td>GNB 크레딧 정책 버튼의 문구를 줄바꿈 없이 유지 (데모 꼬리표 제거·모바일 숨김 유지)</td><td>❌</td></tr>
+<tr><td>GNB 세계관 메뉴의 데모 꼬리표 제거·기존 이동 경로 유지</td><td>❌</td></tr>
+<tr><td>크레딧 메뉴의 데모 꼬리표 제거·정책의 실제 결제 및 차감 없음 안내 유지</td><td>❌</td></tr>
 <tr><td>개발 환경에서만 화면 ID 표시·토글 제공 (일반 화면 테마 전환·인증 경로 제외 유지)</td><td>❌</td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
 <tr><td rowspan="1">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
@@ -1110,3 +1112,7 @@
 | Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 방향 식별 (로컬 구현·미병합) | ❌ | [#126](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/126) |
 | Frontend | WorldStudio | 세계관 탐색 | 다중 관계선 구분과 비대칭 방향 표시 (로컬 구현·미병합) | ❌ | [#128](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/128) |
 | Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 설명 원문 표시 (로컬 구현·미병합) | ❌ | [#127](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/127) |
+
+### 메인 메뉴 후속 변경 — 미등록-116
+
+세계관·크레딧 메뉴의 데모 꼬리표만 제거한다. 기존 메뉴 경로·정책 안내·푸터 고지는 유지한다. 관련 App.home 회귀를 포함하며 React 통합은 CI에서 실행한다. 미병합·최신 head Required CI 확인 전이므로 ❌를 유지한다.
