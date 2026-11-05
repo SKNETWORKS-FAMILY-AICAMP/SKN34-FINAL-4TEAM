@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 import type { Role } from '../../../domain/entities/work'
+import type { StreamState } from '../../../data/api/notificationStream'
 import type { AuthUser } from '../../../domain/repositories/AuthRepository'
 
 /** 화면 사이에서 유지하는 세션·보기 상태 (목업 S의 화면 상태 부분). 업무 데이터는 Repository에 둡니다. */
@@ -30,6 +31,9 @@ export type SessionState = {
   firstHome: boolean
   /** Repository 데이터가 바뀔 때마다 올려 화면 조회를 다시 실행합니다 (목업의 render() 재호출). */
   dataVersion: number
+  /** 알림 변경 신호(SSE)를 받을 때마다 올라갑니다. 알림 배지·목록이 이 값으로 다시 조회합니다. */
+  noticeVersion: number
+  noticeStream: StreamState
 }
 
 export const initialSession: SessionState = {
@@ -50,6 +54,8 @@ export const initialSession: SessionState = {
   guide: true,
   firstHome: true,
   dataVersion: 0,
+  noticeVersion: 0,
+  noticeStream: 'off',
 }
 
 export const sessionSlice = createSlice({
@@ -90,6 +96,8 @@ export const sessionSlice = createSlice({
     closeGuide: (s) => { s.guide = false },
     homeVisited: (s) => { s.firstHome = false },
     dataChanged: (s) => { s.dataVersion += 1 },
+    noticeSignal: (s) => { s.noticeVersion += 1 },
+    noticeStreamState: (s, a: PayloadAction<StreamState>) => { s.noticeStream = a.payload },
   },
 })
 
