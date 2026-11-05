@@ -51,10 +51,10 @@ export class EpisodeUseCase {
     return this.repository.propose(id,draft.revision,prompt,consent,signal,episode,character)
   }
   accept(id: string, pid: string, revision: number) { return this.repository.accept(id,pid,revision) }
-  world(id:string) {return this.repository.world(id)}
+  world(id:string,signal?:AbortSignal) {return this.repository.world(id,signal)}
   saveSetting(id:string,sid:string,revision:number,value:SettingInput,sourceToken:string) {return this.repository.saveSetting(id,sid,revision,value,sourceToken)}
   commitSetting(id:string,sid:string,revision:number) {return this.repository.commitSetting(id,sid,revision)}
-  revertSetting(id:string,sid:string,revision:number,versionId:string) {return this.repository.revertSetting(id,sid,revision,versionId)}
+  revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal) {return this.repository.revertSetting(id,sid,revision,versionId,signal)}
   decideChange(id:string,revision:number,changeId:string,decision:'apply'|'reject') {return this.repository.decideChange(id,revision,changeId,decision)}
   context(id:string,episode:number,query:string,character:string,publicView=false) {return this.repository.context(id,episode,query,character,publicView)}
 }

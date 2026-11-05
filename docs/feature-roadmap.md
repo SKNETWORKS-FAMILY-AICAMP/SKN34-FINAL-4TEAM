@@ -572,23 +572,23 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="32">Frontend</td><td rowspan="21">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결</td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
+<tr><td rowspan="32">Frontend</td><td rowspan="21">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
 <tr><td>상세 화면 API 연결</td><td>❌</td></tr>
 <tr><td>등록 화면 API 연결</td><td>❌</td></tr>
-<tr><td>수정 화면 API 연결</td><td>❌</td></tr>
+<tr><td>수정 화면 API 연결 <small>(회차 집필에 팀 레이아웃 재사용·제목/본문 입력은 UI 서체 적용, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>삭제 확인 화면 API 연결</td><td>❌</td></tr>
 <tr><td>파일 업로드 화면 연결</td><td>❌</td></tr>
 <tr><td>파일 다운로드 처리</td><td>❌</td></tr>
 <tr><td>AI 실행 화면 연결</td><td>❌</td></tr>
 <tr><td>승인 화면 연결</td><td>❌</td></tr>
-<tr><td>저장 충돌 안내</td><td>❌</td></tr>
+<tr><td>저장 충돌 안내 <small>(집필 상단·버전 공개 시트에 오류 표시, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>인증 만료 안내</td><td>❌</td></tr>
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
-<tr><td>모바일 화면 대응</td><td>❌</td></tr>
+<tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td rowspan="1">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a></td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
 <tr><td rowspan="1">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
-<tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-089">미등록-089</a></td></tr>
+<tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기 <small>(팀 공통 시트 연결, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-089">미등록-089</a></td></tr>
 <tr><td rowspan="1">65 미저장 작업 보호</td><td>미저장 원고·설정이 있을 때 이탈 또는 대상 전환 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-090">미등록-090</a></td></tr>
 <tr><td rowspan="3">66 요청 제어</td><td>진행 중 원고 저장 요청 취소</td><td>❌</td><td rowspan="3"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/92">#92</a> · <a href="/Users/yunseongho/.hermes/cache/scratch/pull/93">PR #93</a> · <a href="#미등록-091">미등록-091</a></td></tr>
 <tr><td>진행 중 파일 요청 취소</td><td>❌</td></tr>
@@ -664,7 +664,7 @@
 | <a id="미등록-005"></a>미등록-005 | 08 | 선행 기능·이슈 | 05~07, 그래프·버전 정합성 계약 |
 | <a id="미등록-006"></a>미등록-006 | 10 | 선행 기능·이슈 | 09, 저장 충돌·삭제 계약 |
 | <a id="미등록-007"></a>미등록-007 | 11 | 핵심 이슈 | 계획과 확정 사건·인물 상태를 구분 |
-| <a id="미등록-008"></a>미등록-008 | 12 | 선행 기능·이슈 | 05~08·10, 시점 고정 계약 |
+| <a id="미등록-008"></a>미등록-008 | 12 | 선행 기능·이슈 | 05~08·10, 시점 고정 계약. 2026-11-04 로컬 작업: UUID 집필실에 저장 원고 두 버전의 줄 단위 비교를 추가하고, 기존 설정 이력·복원 API와 공통 이력 화면을 재사용해 연결. 사용자 승인으로 5433의 전용 검증 DB에서 실제 로그인·서재→집필실·원고 비교·설정 이력 조회·복원 후 기존 이력 보존을 확인함. 원고 비교·설정 버전 목록 조회·설정 이전 버전 복원은 커밋·PR·병합·최신 Required CI 확인 전이므로 ❌ 유지. 세계관 체크포인트 생성·상세 조회는 전체 세계관 계약 확정 전까지 사용자 요청으로 구현 보류하며 기존 content_only 저장은 변경하지 않음. |
 | <a id="미등록-009"></a>미등록-009 | 13 | 선행 기능·이슈 | 03·10·12; 예약은 35 |
 | <a id="미등록-010"></a>미등록-010 | 14 | 핵심 이슈 | 원작 기준 회차·버전 유지, 재분기·중복 제한, 삭제 시 참조 보호 |
 | <a id="미등록-011"></a>미등록-011 | 15 | 선행 기능·이슈 | 14·07·08·12; 별도 알림함은 31 |
