@@ -15,12 +15,12 @@ it.each([false,true])('waits for session restoration before loading world list a
  const world=await useCase.create('세계','')
  const list=vi.spyOn(repository,'listStudio'),read=vi.spyOn(repository,'read')
  let finishRestore!:()=>void
- const wrapper=({children}:{children:ReactNode})=>{
+ function Wrapper({children}:{children:ReactNode}) {
   const [restoring,setRestoring]=useState(true)
   finishRestore=()=>setRestoring(false)
   return <RestoreContext.Provider value={restoring}><MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path="/worldstudio/:worldId" element={children}/></Routes></MemoryRouter></RestoreContext.Provider>
  }
- const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
+ const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper:Wrapper})
  expect(list).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled()
  expect(result.current.busy).toBe(true);expect(result.current.error).toBe('');expect(result.current.editing).toBeNull()
  if(denied){list.mockRejectedValue(new SessionExpired('서버 로그인이 필요합니다.'));read.mockRejectedValue(new SessionExpired('서버 로그인이 필요합니다.'))}
