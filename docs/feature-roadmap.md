@@ -1048,3 +1048,7 @@
 | Frontend | WorldStudio | 단계형 작성 | 검토 오류에서 해당 카드로 복귀 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
 | Frontend | WorldStudio | 단계형 작성 | 탐색·AI 보조 도구 접근 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
 | Frontend | WorldStudio | 단계형 작성 | 390px 대응과 키보드 포커스 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 세계관 탐색 | 지도 오류 시 새로고침 없이 설정 목록 이용 안내 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 방향 식별 | ❌ | [#126](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/126) |
+| Frontend | WorldStudio | 세계관 탐색 | 다중 관계선 구분과 비대칭 방향 표시 | ❌ | [#128](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/128) |
+| Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 설명 원문 표시 | ❌ | [#127](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/127) |

@@ -8,7 +8,7 @@ const WorldMapCanvas=lazy(()=>import('./WorldMapCanvas'))
 export class MapBoundary extends Component<{children:ReactNode},{failed:boolean}> {
  state={failed:false}
  static getDerivedStateFromError(){return {failed:true}}
- render(){return this.state.failed?<p role="alert" className="world-map-empty">지도를 표시하지 못했습니다. 설정 목록에서 내용을 확인하거나 페이지를 새로고침해 주세요.</p>:this.props.children}
+ render(){return this.state.failed?<p role="alert" className="world-map-empty">지도를 표시하지 못했습니다. 설정 목록에서 내용을 확인해 주세요.</p>:this.props.children}
 }
 
 export function WorldMap({world,charactersOnly=false}:{world:StudioWorld;charactersOnly?:boolean}) {
