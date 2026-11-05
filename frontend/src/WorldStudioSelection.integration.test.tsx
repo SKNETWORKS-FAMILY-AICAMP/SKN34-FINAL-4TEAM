@@ -73,3 +73,13 @@ it('shows no unrelated editor when there are no filter results',async()=>{
  expect(screen.queryByRole('region',{name:'선택한 설정 편집'})).toBeNull()
  expect(screen.getByText('조건에 맞는 설정이 없어요.')).toBeTruthy()
 })
+
+it('keeps a card being typed visible when its new title no longer matches the search',async()=>{
+ await show();fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:'가람'}})
+ const name=screen.getByRole<HTMLInputElement>('textbox',{name:'설정 이름'})
+ name.focus();fireEvent.change(name,{target:{value:'바뀐 이름'}})
+ expect(name.value).toBe('바뀐 이름')
+ expect(document.activeElement).toBe(name)
+ expect(screen.getByText('현재 편집 중 · 필터 조건 밖')).toBeTruthy()
+ expect(screen.getByRole('button',{name:'바뀐 이름 인물'}).getAttribute('aria-current')).toBe('true')
+})
