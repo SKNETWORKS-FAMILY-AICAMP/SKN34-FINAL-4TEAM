@@ -108,9 +108,9 @@ export function GlobalChrome() {
       <RouteBar />
       <Toast />
       <TopButton />
-      {showTools && <><div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>
+      {showTools && <>{import.meta.env.DEV && <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>}
       <div className="screen-controls">
-        <button type="button" className="btn sm" onClick={() => dispatch(sessionActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>
+        {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(sessionActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
         <ThemeButton className="btn sm" />
       </div></>}
     </>

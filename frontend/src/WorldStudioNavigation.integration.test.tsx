@@ -58,7 +58,7 @@ it('retains beforeunload protection while dirty',async()=>{
 
 it('protects navigation through the actual Gnb Go button',async()=>{
  await show();const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
- fireEvent.click(screen.getAllByRole('button',{name:/내 서재/})[0])
+ fireEvent.click(screen.getAllByRole('link',{name:/내 서재/})[0])
  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
 })

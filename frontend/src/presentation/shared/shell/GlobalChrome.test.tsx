@@ -14,20 +14,37 @@ function renderChrome(path = '/', theme?: 'light' | 'dark') {
   return { store, ...view }
 }
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); delete document.documentElement.dataset.theme })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); delete document.documentElement.dataset.theme })
 
-it.each(['/login', '/me/signup', '/auth/forgot-password', '/auth/reset-password', '/auth/verify-email', '/auth/verify-email-change', '/auth/resend-verification', '/me/profile', '/me/notice'])('%s에는 입력을 가리는 고정 개발 도구가 없다', (path) => {
+it.each(['/login', '/me', '/me/signup', '/auth/forgot-password', '/auth/reset-password', '/auth/verify-email', '/auth/verify-email-change', '/auth/resend-verification', '/me/profile', '/me/notice'])('%s에는 입력을 가리는 고정 개발 도구가 없다', (path) => {
+  vi.stubEnv('DEV', true)
   renderChrome(path)
   expect(document.querySelector('.screen-controls')).toBeNull()
   expect(document.getElementById('sid')).toBeNull()
 })
 
-it('일반 화면의 개발 도구는 보존하고 숨긴 맨 위로 버튼은 Tab 대상에서 제외한다', () => {
+it('운영 화면에는 화면 ID 표시·토글 없이 테마 전환을 제공한다', () => {
+  vi.stubEnv('DEV', false)
+  const { store } = renderChrome('/', 'light')
+  expect(document.getElementById('sid')).toBeNull()
+  expect(screen.queryByRole('button', { name: /화면 ID/ })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '다크 모드로' }))
+  expect(store.getState().session.theme).toBe('dark')
+  expect(document.documentElement.dataset.theme).toBe('dark')
+  expect(screen.getByRole('button', { name: '라이트 모드로' })).toBeTruthy()
+})
+
+it('개발 화면의 화면 ID 표시·토글을 보존하고 숨긴 맨 위로 버튼은 Tab 대상에서 제외한다', () => {
+  vi.stubEnv('DEV', true)
   vi.stubGlobal('scrollY', 0)
   const scroll = vi.fn()
   vi.stubGlobal('scrollTo', scroll)
   renderChrome()
-  expect(screen.getByRole('button', { name: '화면 ID 끄기' })).toBeTruthy()
+  expect(document.getElementById('sid')!.hidden).toBe(false)
+  fireEvent.click(screen.getByRole('button', { name: '화면 ID 끄기' }))
+  expect(document.getElementById('sid')!.hidden).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '화면 ID 켜기' }))
+  expect(document.getElementById('sid')!.hidden).toBe(false)
   expect(screen.queryByRole('button', { name: '맨 위로' })).toBeNull()
   const top = document.getElementById('top')!
   expect(top.hidden || top.tabIndex === -1).toBe(true)

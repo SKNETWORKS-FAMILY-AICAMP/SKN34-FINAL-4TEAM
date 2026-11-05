@@ -14,7 +14,7 @@ const model = vi.hoisted(() => ({
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p> }))
-vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="연결된 설정 이력">{workId}</section> }))
+vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 const renderStudio = () => render(<Provider store={createAppStore()}><WritingStudio id="work-id" /></Provider>)
 
@@ -37,7 +37,8 @@ it('팀 서재로 돌아가며 공개 시트에서 버전 선택과 권리 확�
 it('집필실에서 같은 작품의 설정 이력을 열고 단일 시트 안에서 원고 비교로 이동한다', () => {
   renderStudio()
   fireEvent.click(screen.getByRole('button', { name: '설정 버전 이력' }))
-  expect(screen.getByRole('region', { name: '연결된 설정 이력' }).textContent).toBe('work-id')
+  expect(screen.getAllByRole('region', { name: '설정 버전 이력' })).toHaveLength(1)
+  expect(within(screen.getByRole('region', { name: '설정 버전 이력' })).getByText('work-id')).toBeTruthy()
   expect(screen.getAllByRole('dialog')).toHaveLength(1)
   expect(screen.getByRole('dialog', { name: '설정 버전 이력' })).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '원고 버전 비교' }))
@@ -64,7 +65,7 @@ it('관리 화면을 전환해도 같은 시트와 탐색 초점을 유지하고
     target.focus()
     fireEvent.click(target)
     expect(screen.getByRole('dialog', { name: label })).toBe(dialog)
-    expect(within(dialog).getByRole('region', { name: label })).toBeTruthy()
+    expect(within(dialog).getByRole('heading', { level: 2, name: label })).toBeTruthy()
     expect(document.activeElement).toBe(target)
     expect(target.getAttribute('aria-pressed')).toBe('true')
   }

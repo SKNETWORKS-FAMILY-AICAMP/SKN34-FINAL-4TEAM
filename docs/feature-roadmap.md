@@ -89,7 +89,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="308">콘텐츠 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>콘텐츠 서비스 독립 Spring Boot 실행 골격 <small>(ApplicationKt 명시·Studio migration main 보존 계약 확인, bootJar 재검증 대기)</small></td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
+<tr><td rowspan="312">콘텐츠 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>콘텐츠 서비스 독립 Spring Boot 실행 골격 <small>(ApplicationKt 명시·Studio migration main 보존 계약 확인, bootJar 재검증 대기)</small></td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
 <tr><td>인증 연계</td><td>90 Core 인증 연계</td><td>별도 서비스 자격과 사용자 Bearer로 Core를 호출해 UUID Principal 생성·실패 분류 (로컬 구현)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
 <tr><td>인증 연계</td><td>90 Core 인증 연계</td><td>Core 내부 endpoint에서 서비스 자격·JWT를 확인하고 회원 UUID만 반환 (로컬 구현)</td><td>❌</td><td><a href="#미등록-113">미등록-113</a></td></tr>
 <tr><td>실행 기반</td><td>89 독립 앱 실행</td><td>기존 콘텐츠·첨부·독립 WorldStudio 실행 코드·테스트의 Content 소유 분리 (로컬 구현)</td><td>❌</td><td><a href="#미등록-111">미등록-111</a></td></tr>
@@ -174,7 +174,7 @@
 <tr><td>작품 삭제 요청 <small>(소유자·이력 없는 원작 범위, 세계관 설정 존재 시 삭제 전 409)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a></td></tr>
 <tr><td>원작 삭제 시 Fork 작품 독립 유지 <small>(Fork가 물려받은 회차·설정 복사 후 연결 해제, #108)</small></td><td>❌</td></tr>
 <tr><td>세계관 설정 문서가 있는 작품 삭제 <small>(현재 삭제 전 409로 보존, 삭제 순서·보존 정책 미정, #108)</small></td><td>❌</td></tr>
-<tr><td rowspan="35">회차·원고 관리</td><td rowspan="9">10 회차·원고 CRUD</td><td>회차 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-006">미등록-006</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
+<tr><td rowspan="39">회차·원고 관리</td><td rowspan="9">10 회차·원고 CRUD</td><td>회차 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-006">미등록-006</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>회차 상세 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 제목 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
@@ -183,7 +183,7 @@
 <tr><td>회차 순서 변경 가능 범위 확인</td><td>❌</td></tr>
 <tr><td>초안 삭제 요청</td><td>❌</td></tr>
 <tr><td>회차 삭제 요청</td><td>❌</td></tr>
-<tr><td rowspan="9">11 플롯·장면 계획 CRUD</td><td>플롯 생성</td><td>❌</td><td rowspan="9"><a href="#미등록-007">미등록-007</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/61">#61</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td rowspan="13">11 플롯·장면 계획 CRUD</td><td>플롯 생성</td><td>❌</td><td rowspan="13"><a href="#미등록-007">미등록-007</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/61">#61</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/131">PR #131</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/140">#140</a></td></tr>
 <tr><td>플롯 상세 조회</td><td>❌</td></tr>
 <tr><td>플롯 목록 조회</td><td>❌</td></tr>
 <tr><td>플롯 수정</td><td>❌</td></tr>
@@ -192,12 +192,16 @@
 <tr><td>장면 계획 조회</td><td>❌</td></tr>
 <tr><td>장면 계획 수정</td><td>❌</td></tr>
 <tr><td>장면 계획 삭제 요청</td><td>❌</td></tr>
+<tr><td>작품 실제 삭제 시 소속 계획·참조 정리</td><td>❌</td></tr>
+<tr><td>계획 삭제 충돌 후 최신 대상 재조회·재확인</td><td>❌</td></tr>
+<tr><td>장면 계획 삭제 후 키보드 포커스 복구</td><td>❌</td></tr>
+<tr><td>플롯 삭제 후 키보드 포커스 복구</td><td>❌</td></tr>
 <tr><td rowspan="12">12 버전·체크포인트 관리</td><td>원고 저장 버전 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="12"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="#미등록-008">미등록-008</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/119">#119</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/121">#121</a></td></tr>
 <tr><td>원고 버전 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>원고 버전 상세 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>원고 버전 비교</td><td>❌</td></tr>
 <tr><td>원고 비교·공개 범위를 설명하는 버전 관리 진입 문구</td><td>❌ <small>로컬 구현, PR·병합·Required CI 확인 대기</small></td></tr>
-<tr><td>버전 관리의 현재 화면과 시트 접근성 이름 일치</td><td>❌ <small>로컬 구현, PR·병합·Required CI 확인 대기</small></td></tr>
+<tr><td>버전 관리의 현재 화면과 시트 접근성 이름 일치</td><td>❌ <small>설정 이력 외부 section의 중복 접근성 이름 제거, 동적 시트 이름·내부 설정 버전 이력 이름 유지. <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/152">PR #152</a> 회귀 보완, 병합·수정본 Required CI 확인 대기.</small></td></tr>
 <tr><td>원고 이전 버전 복원</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>설정 버전 목록 조회</td><td>❌</td></tr>
 <tr><td>설정 버전 상세의 선택 이력 번호 확인</td><td>❌ <small>동일 버전의 첫 항목 기준으로 목록·상세·복원 확인 번호 통일, 긴 설정명 복원 확인 줄바꿈 보완, 복원 확인 문구를 ‘이력 N 버전으로’로 명확화. <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/134">PR #134</a> 리뷰 보완, 병합·모바일 검증·수정본 Required CI 확인 대기.</small></td></tr>
@@ -584,7 +588,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="32">Frontend</td><td rowspan="21">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
+<tr><td rowspan="51">Frontend</td><td rowspan="40">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
 <tr><td>상세 화면 API 연결</td><td>❌</td></tr>
 <tr><td>등록 화면 API 연결</td><td>❌</td></tr>
 <tr><td>수정 화면 API 연결 <small>(회차 집필에 팀 레이아웃 재사용·제목/본문 입력은 UI 서체 적용, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
@@ -597,7 +601,28 @@
 <tr><td>인증 만료 안내</td><td>❌</td></tr>
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
-<tr><td rowspan="1">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a></td></tr>
+<tr><td rowspan="20">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="20"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a> · <a href="#미등록-116">미등록-116</a></td></tr>
+<tr><td>홈 단색 배경 보조 텍스트의 라이트·다크 대비 확보</td><td>❌</td></tr>
+<tr><td>홈 Hero 자동 넘김을 이름 있는 정지·재생 제어로 조작</td><td>❌</td></tr>
+<tr><td>홈 Hero 포커스·수동 전환 후 명시적 재생 전까지 자동 넘김 정지</td><td>❌</td></tr>
+<tr><td>홈 Hero hover 중 자동 넘김 정지</td><td>❌</td></tr>
+<tr><td>동작 줄이기 설정에서는 홈 Hero 자동 넘김 JS 타이머 미생성</td><td>❌</td></tr>
+<tr><td>홈 Hero 비활성 카드를 키보드·접근성 탐색에서 제외</td><td>❌</td></tr>
+<tr><td>모바일 홈 Hero를 이전·다음·슬라이드 선택으로 전환</td><td>❌</td></tr>
+<tr><td>홈 이어 읽기·Fork 발견·순위의 DOM·탭·읽기 순서 일치</td><td>❌</td></tr>
+<tr><td>모바일 홈 인기 순위는 3개를 먼저 보여 주고 전체 순위로 이동</td><td>❌</td></tr>
+<tr><td>홈 필터 Fork 카드에 확인 가능한 공개 원작 제목·기준 회차 표시</td><td>❌</td></tr>
+<tr><td>홈 선택 필터의 눌림 상태를 보조 기술에 제공</td><td>❌</td></tr>
+<tr><td>공유 Go를 주소·라우터 state·클릭 콜백을 유지하는 네이티브 링크로 탐색</td><td>❌</td></tr>
+<tr><td>비활성 Go 회차의 주소·탭 진입·클릭 탐색 차단</td><td>❌</td></tr>
+<tr><td>홈 화면·섹션·작품의 h1·h2·h3 제목 계층 제공</td><td>❌</td></tr>
+<tr><td>홈 더보기·전체 보기의 최소 44px 터치 영역 제공</td><td>❌</td></tr>
+<tr><td>모바일 홈·공유 셸 검색·계정·필터·알림·테마의 최소 44×44px 터치 영역 제공</td><td>❌</td></tr>
+<tr><td>공유 푸터의 데모 초기화·로그인 제거 (상단 계정/로그인·데모 고지 유지)</td><td>❌</td></tr>
+<tr><td>GNB 크레딧 정책 버튼의 문구를 줄바꿈 없이 유지 (데모 꼬리표 제거·모바일 숨김 유지)</td><td>❌</td></tr>
+<tr><td>GNB 세계관 메뉴의 데모 꼬리표 제거·기존 이동 경로 유지</td><td>❌</td></tr>
+<tr><td>크레딧 메뉴의 데모 꼬리표 제거·정책의 실제 결제 및 차감 없음 안내 유지</td><td>❌</td></tr>
+<tr><td>개발 환경에서만 화면 ID 표시·토글 제공 (일반 화면 테마 전환·인증 경로 제외 유지)</td><td>❌</td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
 <tr><td rowspan="1">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
 <tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기 <small>(팀 공통 시트 연결, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-089">미등록-089</a></td></tr>
@@ -689,7 +714,7 @@
 | <a id="미등록-004"></a>미등록-004 | 07 | 선행 기능·이슈 | 06, 시점·인지 정보 표현 계약 |
 | <a id="미등록-005"></a>미등록-005 | 08 | 선행 기능·이슈 | 05~07, 그래프·버전 정합성 계약 |
 | <a id="미등록-006"></a>미등록-006 | 10 | 선행 기능·이슈 | 09, 저장 충돌·삭제 계약 |
-| <a id="미등록-007"></a>미등록-007 | 11 | 핵심 이슈 | 계획과 확정 사건·인물 상태를 구분 |
+| <a id="미등록-007"></a>미등록-007 | 11 | 핵심 이슈 | 계획과 확정 사건·인물 상태를 구분. P1 후속: QuickJump 열기·클릭/Enter에 계획 이탈 확인을 연결하여 미저장 거절·변경 요청 중 이동을 차단함. 실제 Vitest 14개 통과 및 타입 검사·빌드 성공, Aside 로그인·Ctrl+K·클릭/Enter 확인(네이티브 confirm 취소는 도구 제약으로 미검증). P2 후속은 [#140](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/140)에서 추적하며 최신 Required CI·병합 전 완료 표시는 유지함. 2026-11-05 구현: 작품별 플롯·장면 계획 CRUD, 실제 Content API와 독립 메모리 데모, 기존 설정집·회차 조회 및 작품 소유권 검사 재사용, 인물·장소·회차 참조 검증, revision 충돌 방지, 논리 삭제와 하위 장면 보호, 집필실 연결 및 제한된 스타일 보정. 원고·사전·Fork 정본을 수정하지 않음. [PR #131](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/131)의 CI 실패를 보정한 선행 리비전 15f5c7f의 Required CI 성공을 확인함. 이후 V12를 추가하여 인물·장소 선택 해제·순서 교체의 중간 unique 충돌을 수정하고 기존 SQL·체크섬과 V11 삭제 동작을 보존함. 선택 단위 Web 9개·Content 12개, 선택 통합 20개(5433 DB 7개·migration 발견 1개·HTTP 권한 12개), CI/CD 계약 30개, 타입 검사·Compose 구성 5종 통과. 실제 프론트 CRUD·모바일·다크 모드는 앞선 승인 검증에서 확인·녹화함. 완료 판정은 PR #131 병합 및 병합 대상 최신 head의 Required CI 성공 확인 후 수행하며 그전까지 13개 행의 ❌ 유지. 후속 변경의 hosted 검증은 해당 head의 Required CI 결과로 판정하며 공유 개발·운영 DB 적용은 별도 절차. 후속 [#140](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/140) 1·2번: 삭제 실패 후 최신 목록 재조회·최신 revision 재확인 및 재삭제 보호, 대상 소멸 안내, 삭제 후 같은 목록의 다음·이전 항목 또는 추가 버튼으로 포커스 복구를 구현함. 3번은 기존 V12와 PostgreSQL 회귀를 재사용하며 수정하지 않음. 이번 선택 순수 단위 20개·타입 검사·변경 파일 린트 통과. 화면 조립 회귀는 로컬 미실행. c191b61의 [CI 실행](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/actions/runs/41982864589)에서 Web 통합 345개 성공·1개 실패를 확인함. 삭제 검토 실패 회귀가 실제 호출되는 api.reviewDeletion 대신 api.list에 실패 대역을 지정한 것이 원인이므로, 대역 대상을 보정하고 실패 검증 뒤 복원하여 재시도·중복 요청 검증의 호출 기록을 분리함. 앱 동작·기존 검증 조건은 유지함. 이번 관련 순수 단위 13개·타입 검사·변경 테스트 린트 통과. 보정한 화면 통합 회귀와 Required CI 재검증은 CI 대기이며 실제 브라우저 검증도 미실행. 최신 리뷰 P2: QuickJump 열기 승인 시 진행 중인 계획 편집 조회만 AbortSignal로 무효화하고 busy를 즉시 해제하여, 늦은 성공 응답이 편집 Sheet를 다시 열지 않도록 수정함. 미저장 거절·변경 요청 차단과 초기 목록·선택·삭제 검토 조회는 유지함. Ctrl/Cmd+K·sf-quick의 지연 조회 회귀를 추가했으며 React 통합은 로컬 미실행. React를 대역으로 격리한 소스 handler 검사에서 수정 전 늦은 편집기 재열림 실패를 확인했고 수정 후 3개 및 기존 이탈 handler 5개가 통과함(React 통합 검증 아님). 후속 승인 Aside에서 실제 상세 GET을 8초 지연한 뒤에도 QuickJump가 유지되고 편집기가 재열리지 않음을 확인함(조정자 실행 증거 재사용). 최신 Required CI·병합 확인 전 13개 행의 ❌를 유지함. |
 | <a id="미등록-008"></a>미등록-008 | 12 | 선행 기능·이슈 | 05~08·10, 시점 고정 계약. 2026-11-04 로컬 작업: UUID 집필실에 저장 원고 두 버전의 줄 단위 비교를 추가하고, 기존 설정 이력·복원 API와 공통 이력 화면을 재사용해 연결. 사용자 승인으로 5433의 전용 검증 DB에서 실제 로그인·서재→집필실·원고 비교·설정 이력 조회·복원 후 기존 이력 보존을 확인함. 원고 비교·설정 버전 목록 조회·설정 이전 버전 복원은 커밋·PR·병합·최신 Required CI 확인 전이므로 ❌ 유지. 세계관 체크포인트 생성·상세 조회는 전체 세계관 계약 확정 전까지 사용자 요청으로 구현 보류하며 기존 content_only 저장은 변경하지 않음. |
 | <a id="미등록-009"></a>미등록-009 | 13 | 선행 기능·이슈 | 03·10·12; 예약은 35 |
 | <a id="미등록-010"></a>미등록-010 | 14 | 핵심 이슈 | 원작 기준 회차·버전 유지, 재분기·중복 제한, 삭제 시 참조 보호 |
@@ -797,6 +822,7 @@
 | <a id="미등록-112"></a>미등록-112 | 89 | 실행 기반 | 운영 독립 Gradle·Spring Boot 진입점·loopback 설정·선택 단위 테스트 골격을 로컬 구현; 업무·DB·배포 구현, 앱 기동, 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
 | <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 | POST /internal/v1/auth/verify의 별도 서비스 자격·서명/만료/UUID JWT 확인, Content HTTP Service proxy·timeout/장애/401 구분·UUID Principal·CSRF/CORS 경계를 소스 구현; 캐시/재시도/fallback/키 공유 없음. bc672a0의 hosted Content 통합은 성공했으나 시스템 인증 장애의 503/504 기대 불일치로 Required CI 실패; 네트워크를 유지한 pause/unpause·정확한 504/CORE_AUTH_TIMEOUT 회귀 보완은 hosted 재검증·병합 전이므로 ❌ 유지 |
 | <a id="미등록-114"></a>미등록-114 | 43 | 빌드 캐시 잠금 | Core·Content Dockerfile의 `/root/.gradle` cache mount에 `sharing=locked`를 적용해 서비스 간·동일 서비스 동시 빌드의 캐시 사용 구간을 보호; 정적 계약 RED→GREEN 확인. 실제 이미지 빌드·병합·최신 head Required CI 검증 전이므로 ❌ 유지 |
+| <a id="미등록-116"></a>미등록-116 | 56 | 홈·공유 탐색 접근성 | 메모리 데모 홈의 보조 텍스트 대비·Hero 정지/재생·동작 줄이기 타이머 제외·비활성 카드 제외·모바일 우선순위/TOP3·실제 Fork 출처·필터/제목 의미·44px 더보기 및 공유 Go 링크·직접 소비 스타일/회귀를 로컬 구현. `.prox` 상시 will-change만 제거하고 기존 근접 효과·작품 팔레트·일러스트·폰트는 유지. 후속으로 GNB 크레딧 버튼 줄바꿈 방지와 기존 DEV 조건의 화면 ID 표시·토글 제한을 반영하고 테마 전환·인증 경로 제외·데모 고지는 보존. 모바일 홈·공유 셸의 검색·계정·필터·알림·테마를 최소 44×44px 클릭 박스로 조정하고 좁은 GNB 메뉴의 줄바꿈을 허용; 전역 `.btn.sm`·기존 Hero/더보기는 유지하며 CSS 정적 검사만 수행. 추가 요청으로 Footer의 데모 초기화·로그인만 제거하고 상단 계정/로그인·푸터 데모 고지는 유지; 관련 React 회귀를 먼저 갱신했으며 CI 실행 대기. Fork 출처 선택 단위 RED→GREEN 확인; 화면 ID 환경별 React 회귀는 구현 전에 작성했으나 CI 전용으로 로컬 미실행. React 통합·브라우저 수용 검증·병합·최신 head Required CI 미확인으로 세부 행 모두 ❌ 유지. #24 전체 완료를 뜻하지 않음. PR #151 충돌 해결에서 최신 develop의 알림 API·SSE 회귀를 보존하고 GNB 알림 탐색의 link 역할 기대값을 정렬. 첫 CI의 WorldStudio 이탈 보호 테스트도 같은 link 역할로 정렬했으며 확인 횟수·편집 보존 검증은 유지; 수정본 통합 테스트는 CI 실행 대기 |
 | <a id="미등록-117"></a>미등록-117 | 43 | Compose 실행 경계 | 루트 local 소스 빌드·loopback 포트, local/dev 내부 PostgreSQL·Mailpit과 프로젝트별 volume, dev develop 이미지·내부 DB 전환 승인, prod main runtime 이미지·외부 DB/SMTP·필수 PROD 입력·Secure 쿠키, CI/첨부 소스 빌드 조합을 설정·선택 회귀로 구현. 실제 컨테이너 기동·외부/공유 DB 전환·데이터 이관·main 이미지 게시/가용성·배포는 미실행/미확인이고 병합·최신 head Required CI 전이므로 모든 세부 행은 ❌ 유지. 기본 Auth V4 샘플 회원의 공개 비밀번호 위험은 별도 운영 판단 대상이며 기존 migration은 변경하지 않음 |
 
 ## 연결한 GitHub 이슈
@@ -1088,3 +1114,17 @@
 | Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 방향 식별 (로컬 구현·미병합) | ❌ | [#126](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/126) |
 | Frontend | WorldStudio | 세계관 탐색 | 다중 관계선 구분과 비대칭 방향 표시 (로컬 구현·미병합) | ❌ | [#128](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/128) |
 | Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 설명 원문 표시 (로컬 구현·미병합) | ❌ | [#127](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/127) |
+
+### WorldStudio 진입 보호·기본 표지 — 미등록-119
+
+| 서비스 | 서브시스템 | 중간 기능 | 세부 기능 | 개발 완료 | 관련 이슈 |
+|---|---|---|---|---|---|
+| Frontend | WorldStudio | 인증 진입 | 비로그인 진입 차단·로그인 후 원래 경로와 쿼리 복귀 | ❌ | [미등록-119](#미등록-119) |
+| Frontend | WorldStudio | 인증 진입 | 세션 복원 대기·복원 401 후 로그인 안내 | ❌ | [미등록-119](#미등록-119) |
+| Frontend | 첨부 관리 | 작품 표지 | 표지 목록 조회 성공 후 비어 있을 때 로컬 기본 SVG 표시 | ❌ | [미등록-119](#미등록-119) |
+
+- <a id="미등록-119"></a>미등록-119: 기존 RequireRole 재사용과 기본 표지 표시 및 회귀 테스트. 로딩·실패·업로드 표지를 기본 이미지로 대체하지 않는다. 로컬 Vitest는 pnpm 실행 및 의존성 부재로 실행하지 못했으며 React 통합은 CI에서 실행한다. 미병합·최신 Required CI 미확인으로 ❌ 유지.
+
+### 메인 메뉴 후속 변경 — 미등록-116
+
+세계관·크레딧 메뉴의 데모 꼬리표만 제거한다. 기존 메뉴 경로·정책 안내·푸터 고지는 유지한다. 관련 App.home 회귀를 포함하며 React 통합은 CI에서 실행한다. 미병합·최신 head Required CI 확인 전이므로 ❌를 유지한다.

@@ -30,6 +30,7 @@ export function WritingStudio({id}:{id:string}) {
   return <div className="calm rd studio writing-studio">
     <header className="sbar">
       <a className="back" href="/lib?tab=write"><BackChev />내가 쓰는 소설</a><h1 className="t">집필실</h1>
+      <a className="tbtn" href={`/studio/${id}?view=narrative`}>플롯</a>
       <span className="st" role="status" aria-live="polite">{status}</span>
       <button className="tbtn" disabled={vm.busy||!active||active.inherited} onClick={()=>void vm.save()}>버전 저장</button>
       <button className="tbtn" disabled={vm.busy} onClick={()=>void vm.reload()}>다시 불러오기</button>
@@ -69,7 +70,7 @@ export function WritingStudio({id}:{id:string}) {
         </>:<p>회차가 없어요. 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
       </main>
     </div></div>}
-          {versionsOpen&&<Sheet sid="U21" label={historyLabel} panelClass={`sheet writing-history-sheet${historyView==='compare'?' writing-history-wide':''}`} onClose={()=>setVersionsOpen(false)}><section aria-label={historyLabel} className="writing-history">
+          {versionsOpen&&<Sheet sid="U21" label={historyLabel} panelClass={`sheet writing-history-sheet${historyView==='compare'?' writing-history-wide':''}`} onClose={()=>setVersionsOpen(false)}><section className="writing-history">
             <button type="button" className="btn sm" onClick={()=>setVersionsOpen(false)}>닫기</button>
             <nav className="version-panel-nav" aria-label="버전 관리">
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='versions'} onClick={()=>setHistoryView('versions')}>원고 저장본 · 공개</button>

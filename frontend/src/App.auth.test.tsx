@@ -12,6 +12,13 @@ import { LoginPage } from './presentation/features/auth/view/LoginPage'
 import { RequireRole } from './presentation/shared/session/RequireRole'
 import { renderApp } from './test/renderApp'
 
+vi.mock('./presentation/features/worldstudio/view/WorldStudioPage', () => ({
+  WorldStudioPage: () => {
+    const { pathname, search } = useLocation()
+    return <><h1>세계관 작업실</h1><p data-testid="world-location">{pathname + search}</p></>
+  },
+}))
+
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(async (path: string, options?: RequestInit) => {
     if (path.endsWith('/csrf')) return new Response(JSON.stringify({ csrfToken: 'csrf' }))
@@ -53,6 +60,40 @@ describe('로그인·라우트 보호 (L01, 목업 render() 보호 목록)', () 
     const store = createAppStore({ role: 'user' })
     render(<Provider store={store}><MemoryRouter><App /></MemoryRouter></Provider>)
     await waitFor(() => expect(store.getState().session.role).toBeNull())
+  })
+
+  it.each(['/worldstudio', '/worldstudio/owned-world?tab=cards'])('세계관 경로 %s는 로그인 후 원래 경로로 돌아간다', async (path) => {
+    const { store } = renderApp(path)
+    await screen.findByRole('heading', { name: '로그인', level: 1 })
+    expect(screen.queryByRole('heading', { name: '세계관 작업실' })).toBeNull()
+    expect(store.getState().session.next).toBe(path)
+    submitLogin('reader@example.com')
+    await screen.findByRole('heading', { name: '세계관 작업실' })
+    expect(screen.getByTestId('world-location').textContent).toBe(path)
+    expect(store.getState().session).toMatchObject({ role: 'user', next: null })
+  })
+
+  it.each(['/worldstudio', '/worldstudio/owned-world?tab=cards'])('세계관 경로 %s는 실제 세션 복원이 끝날 때까지 기다린다', async (path) => {
+    let finish!: (response: Response) => void
+    const pending = new Promise<Response>((resolve) => { finish = resolve })
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.endsWith('/csrf')
+      ? Response.json({ csrfToken: 'csrf' }) : pending))
+    const { store } = renderApp(path)
+    expect(screen.getByText('로그인 상태를 확인하고 있어요.').getAttribute('role')).toBe('status')
+    expect(screen.queryByRole('heading', { name: '세계관 작업실' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: '로그인', level: 1 })).toBeNull()
+    expect(store.getState().session.next).toBeNull()
+    await act(async () => { finish(Response.json({ accessToken: 'token', user: { id: '1', email: 'reader@example.com', nickname: '독자', operator: false } })) })
+    await screen.findByRole('heading', { name: '세계관 작업실' })
+    expect(screen.getByTestId('world-location').textContent).toBe(path)
+    expect(store.getState().session).toMatchObject({ role: 'user', next: null, user: { email: 'reader@example.com' } })
+  })
+
+  it.each(['/worldstudio', '/worldstudio/owned-world?tab=cards'])('세계관 경로 %s의 복원 401은 기존 세션을 해제한다', async (path) => {
+    const { store } = renderApp(path, createAppStore({ role: 'user' }))
+    await screen.findByRole('heading', { name: '로그인', level: 1 })
+    expect(store.getState().session).toMatchObject({ role: null, next: path })
+    expect(screen.queryByRole('heading', { name: '세계관 작업실' })).toBeNull()
   })
 
   it('비로그인 사용자를 경로별 안내와 함께 로그인으로 보내고, 로그인 후 원래 경로로 돌려보낸다', async () => {

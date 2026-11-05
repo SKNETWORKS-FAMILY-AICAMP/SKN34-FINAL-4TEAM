@@ -17,7 +17,7 @@ describe('소설 상세 (U04)', () => {
   it('없는 작품은 목업 unavailableWork 화면을 보여 준다', async () => {
     renderApp('/work/nope')
     await screen.findByRole('heading', { name: '소설을 찾을 수 없거나 볼 수 없어요.' })
-    screen.getByRole('button', { name: '홈으로' })
+    screen.getByRole('link', { name: '홈으로' })
   })
 
   it('회차 검색·결과 없음·정렬·좋아요·포크 허용 회차를 보여 준다', async () => {
@@ -113,8 +113,9 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
     const like = screen.getByRole('button', { name: '♡ 412' })
     fireEvent.click(like)
     await screen.findByRole('button', { name: '♥ 413' })
-    expect(screen.getByRole('button', { name: '‹ 이전 화' })).toHaveProperty('disabled', true)
-    fireEvent.click(screen.getByRole('button', { name: '다음 화 ›' }))
+    expect(screen.getByRole('link', { name: '‹ 이전 화' }).getAttribute('aria-disabled')).toBe('true')
+    expect(screen.getByRole('link', { name: '‹ 이전 화' }).hasAttribute('href')).toBe(false)
+    fireEvent.click(screen.getByRole('link', { name: '다음 화 ›' }))
     await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
     screen.getByText('여기서 포크해 볼까요?')
   })
@@ -172,7 +173,7 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
     await screen.findByRole('heading', { name: '재의 사절' })
     cleanup()
     renderApp('/', user())
-    await screen.findByRole('button', { name: /별빛 서약의 탑 · 3화 재의 사절/ })
+    await screen.findByRole('link', { name: /별빛 서약의 탑 · 3화 재의 사절/ })
   })
 })
 

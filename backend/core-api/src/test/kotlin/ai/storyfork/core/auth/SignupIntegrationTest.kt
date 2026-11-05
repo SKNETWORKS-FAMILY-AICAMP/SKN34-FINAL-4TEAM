@@ -8,6 +8,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import ai.storyfork.core.auth.repository.SignupChallengeRepository
+import ai.storyfork.core.auth.entity.AuthSignupChallenge
+import org.mockito.ArgumentMatchers.any
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito.doAnswer
 import org.springframework.boot.test.system.CapturedOutput
@@ -83,16 +85,7 @@ class SignupIntegrationTest {
     @Test
     @ExtendWith(OutputCaptureExtension::class)
     fun `concurrent signup and token consumption create only one member`(output: CapturedOutput) {
-        val absent = CountDownLatch(2)
-        doAnswer { invocation ->
-            // Spring Data uses a delegating proxy spy, not a concrete repository method.
-            val candidate = org.mockito.Mockito.mockingDetails(challenges).mockCreationSettings.defaultAnswer.answer(invocation)
-            if (candidate == null) {
-                absent.countDown()
-                assertTrue(absent.await(5, TimeUnit.SECONDS))
-            }
-            candidate
-        }.`when`(challenges).lockByEmail("race@example.invalid")
+        forceSignupInsertCollision(challenges)
         val pool = Executors.newFixedThreadPool(2)
         try {
             val start = CountDownLatch(1)
@@ -102,7 +95,10 @@ class SignupIntegrationTest {
                 true
             } }
             start.countDown()
-            assertEquals(2, requests.count { it.get() })
+            assertEquals(2, requests.count { it.get(10, TimeUnit.SECONDS) })
+            verify(challenges, times(2)).save(any(AuthSignupChallenge::class.java))
+            verify(challenges, times(3)).lockByEmail("race@example.invalid")
+            assertEquals(1, jdbc.queryForObject("select count(*) from auth_signup_challenge", Int::class.java))
             val messages = ArgumentCaptor.forClass(SimpleMailMessage::class.java)
             verify(mail, times(2)).send(messages.capture())
             val token = messages.allValues.map { requireNotNull(it.text).substringAfter("#token=").trim() }.single {
@@ -114,7 +110,7 @@ class SignupIntegrationTest {
                 runCatching { signup.verify(VerificationRequest(token, "a-long-test-password")) }.isSuccess
             } }
             verifyStart.countDown()
-            assertEquals(1, checks.count { it.get() })
+            assertEquals(1, checks.count { it.get(10, TimeUnit.SECONDS) })
             assertEquals(1, jdbc.queryForObject("select count(*) from auth_member", Int::class.java))
             assertTrue(output.all.contains("SQLState: 23505"), "The forced collision must retain its SQLState diagnostic")
             assertTrue(output.all.contains("duplicate key value violates unique constraint"))
@@ -297,4 +293,16 @@ class SignupIntegrationTest {
         assertEquals(before, jdbc.queryForMap("select * from auth_signup_challenge"))
         verifyToken(token, "first-password").andExpect(status().isNoContent())
     }
+}
+
+internal fun forceSignupInsertCollision(challenges: SignupChallengeRepository) {
+    val merged = CountDownLatch(2)
+    doAnswer { invocation ->
+        // Assigned email IDs use merge: lockByEmail alone cannot synchronize its later lookup.
+        val candidate = challenges.save(invocation.getArgument<AuthSignupChallenge>(0))
+        merged.countDown()
+        assertTrue(merged.await(5, TimeUnit.SECONDS), "Both merges must finish before either insert is flushed")
+        challenges.flush()
+        candidate
+    }.`when`(challenges).saveAndFlush(any(AuthSignupChallenge::class.java))
 }

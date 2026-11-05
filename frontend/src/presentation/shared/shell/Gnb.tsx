@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import { useAppSelector } from '../../../app/store'
 import { openPolicy, openQuick } from '../events'
 import { Go } from '../Go'
 import { AccountMenu } from './AccountMenu'
@@ -15,7 +14,7 @@ export function Gnb({ on = '' }: { on?: string }) {
       <div className="wrap in">
         <Go to="/" className="logo" aria-label="STORYFORK 홈으로" title="홈으로"><b>SF</b>STORYFORK</Go>
         <nav className="nav" aria-label="주요 메뉴">
-          {([['rank', '랭킹', '랭킹'], ['chat', '캐릭터 챗', '챗'], ['lib', '내 서재', '서재'], ['worldstudio', '세계관 데모', '세계관']] as const).map(([k, l, sh]) => (
+          {([['rank', '랭킹', '랭킹'], ['chat', '캐릭터 챗', '챗'], ['lib', '내 서재', '서재'], ['worldstudio', '세계관', '세계관']] as const).map(([k, l, sh]) => (
             <Go key={k} to={'/' + k} className={on === k ? 'on' : ''} aria-current={on === k ? 'page' : undefined}
               aria-label={k === 'lib' && pending ? `내 서재, 처리할 독자 제보 ${pending}건` : undefined}>
               <span className="lf">{l}</span><span className="ls">{sh}</span>
@@ -28,7 +27,7 @@ export function Gnb({ on = '' }: { on?: string }) {
           알림{unread > 0 && <> <span className="nb">{unread}</span></>}
         </Go>
         <button type="button" className="credit" onClick={openPolicy} title="크레딧 정책은 아직 확정되지 않았어요">
-          ✦ 크레딧 <span className="demo" style={{ borderColor: 'currentColor', color: 'inherit' }}>데모</span>
+          ✦ 크레딧
         </button>
         <button type="button" className={`avatar ${role ? '' : 'guest'}`} aria-label={role ? '내 계정 메뉴' : '로그인·회원가입 메뉴'} aria-haspopup="menu"
           aria-expanded={!!menuAnchor} onClick={(e) => setMenuAnchor(menuAnchor ? null : e.currentTarget)}>
@@ -42,16 +41,10 @@ export function Gnb({ on = '' }: { on?: string }) {
 
 /** 목업 foot() */
 export function Footer() {
-  const role = useAppSelector((s) => s.session.role)
   return (
     <footer className="foot">
       <div className="wrap">
         <b>STORYFORK</b><span>SKN34 최종 프로젝트 4팀 · 인터랙티브 MVP (오프라인 · AI 응답은 미리 정한 데모)</span>
-        <div className="r">
-          {/* 목업과 같이 메모리 상태를 버리려고 홈으로 새로고침합니다. */}
-          <button type="button" onClick={() => location.assign('/')}>데모 초기화</button>
-          {!role && <Go to="/login">로그인</Go>}
-        </div>
       </div>
     </footer>
   )

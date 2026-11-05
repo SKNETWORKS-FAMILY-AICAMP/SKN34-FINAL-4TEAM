@@ -51,7 +51,7 @@ describe('집필 방식·저작권 안내 (U43)', () => {
 describe('포크 (U09·U10)', () => {
   it('상세의 포크하기 → 정책 동의 → 회차 선택 → 스냅샷 완료, 같은 원작은 다시 포크할 수 없다', async () => {
     renderAt('/work/guunmong')
-    fireEvent.click(await screen.findByRole('button', { name: '✎ 포크하기' }))
+    fireEvent.click(await screen.findByRole('link', { name: '✎ 포크하기' }))
     await screen.findByRole('heading', { name: '다른 소설 포크 전 확인' })
     agree()
     await screen.findByRole('heading', { name: '「구운몽」 포크' })
@@ -76,17 +76,17 @@ describe('포크 (U09·U10)', () => {
     expect(where()).toMatch(/^\/forked\/fork/)
     screen.getByText('「구운몽: 연화봉에 남은 성진」 · 원작 「구운몽」 3화 끝에서 포크')
     expect(document.querySelector('.snap')!.textContent).toContain('복사한 회차3화')
-    screen.getByRole('button', { name: '집필실로 가기 →' })
+    screen.getByRole('link', { name: '집필실로 가기 →' })
     cleanup()
 
     renderAt('/fork/guunmong')
     await screen.findByRole('heading', { name: '이미 포크한 원작이에요' })
-    screen.getByRole('button', { name: '내 포크 계속 쓰기' })
+    screen.getByRole('link', { name: '내 포크 계속 쓰기' })
   })
 
   it('회차 끝 포크 버튼은 그 회차를 고른 폼으로 이어진다', async () => {
     renderAt('/read/postman/2')
-    fireEvent.click(await screen.findByRole('button', { name: '✎ 2화에서 포크하기' }))
+    fireEvent.click(await screen.findByRole('link', { name: '✎ 2화에서 포크하기' }))
     agree()
     await screen.findByRole('heading', { name: '「회색 도시의 우편배달부」 포크' })
     expect(document.getElementById('atl')!.textContent).toBe('2')
