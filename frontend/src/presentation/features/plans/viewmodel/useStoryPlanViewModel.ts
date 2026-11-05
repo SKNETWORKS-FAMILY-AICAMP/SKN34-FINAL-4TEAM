@@ -19,6 +19,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const pending = useRef<AbortController | null>(null)
+  const editorRead = useRef<AbortSignal | null>(null)
   const mutating = useRef(false)
   const dirty = !!editor && JSON.stringify(editor.value) !== JSON.stringify(editor.initial)
   const state = useRef({ dirty, busy })
@@ -57,6 +58,11 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   const mayLeave = useCallback(() => {
     if (state.current.busy) return false
     if (state.current.dirty && !window.confirm('저장하지 않은 변경을 버리고 계속할까요?')) return false
+    if (pending.current && pending.current.signal === editorRead.current) {
+      pending.current.abort()
+      pending.current = null
+      setBusy(false)
+    }
     state.current.dirty = false
     setEditor(null)
     return true
@@ -92,7 +98,10 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
 
   const edit = (plan: StoryPlan) => {
     if (!mayLeave()) return
-    void run(signal => Promise.all([api.read(workId, plan.id, signal), api.references(workId, signal)]), ([fresh, refs]) => {
+    void run(signal => {
+      editorRead.current = signal
+      return Promise.all([api.read(workId, plan.id, signal), api.references(workId, signal)])
+    }, ([fresh, refs]) => {
       setReferences(refs)
       const value: PlanInput = { kind: fresh.kind, parentId: fresh.parentId, title: fresh.title, content: fresh.content, episodeNumber: fresh.episodeNumber, characterIds: fresh.characterIds, placeIds: fresh.placeIds }
       setEditor({ value, initial: value, previous: fresh })

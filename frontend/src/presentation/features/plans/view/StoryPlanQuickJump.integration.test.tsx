@@ -78,6 +78,35 @@ describe('계획과 실제 QuickJump Sheet · CI 통합', () => {
     expect(screen.getAllByRole('dialog')).toHaveLength(1)
   })
 
+  it.each(['Ctrl', 'Cmd', 'sf-quick'] as const)('%s를 연 뒤 늦은 계획 수정 조회가 완료되어도 QuickJump와 해제된 로딩을 유지한다', async trigger => {
+    const { api } = await setup()
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    edit()
+    fireEvent.click(screen.getByRole('button', { name: '저장' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: '플롯 수정' })).toHaveProperty('disabled', false))
+    const [plan] = await api.list('starlight')
+    let finish!: (plan: StoryPlan) => void
+    // Ignore abort in the fake: even a late successful response must not open the editor.
+    const read = vi.spyOn(api, 'read').mockImplementation(() => new Promise<StoryPlan>(resolve => { finish = resolve }))
+    fireEvent.click(screen.getByRole('button', { name: '플롯 수정' }))
+    expect(read).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: '플롯 추가' })).toHaveProperty('disabled', true)
+    open[trigger]()
+    const dialog = screen.getByRole('dialog', { name: '빠른 이동' })
+    expect(read.mock.calls[0][2]?.aborted).toBe(true)
+    expect(screen.getByRole('button', { name: '플롯 추가' })).toHaveProperty('disabled', false)
+    await act(async () => { finish(plan) })
+    expect(screen.getByRole('dialog', { name: '빠른 이동' })).toBe(dialog)
+    expect(screen.queryByLabelText('플롯 제목')).toBeNull()
+    expect(screen.getAllByRole('dialog')).toHaveLength(1)
+    expect(screen.getByRole('button', { name: '플롯 추가' })).toHaveProperty('disabled', false)
+    expect(confirm).not.toHaveBeenCalled()
+    stays()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    fireEvent.click(screen.getByRole('button', { name: '플롯 추가' }))
+    expect(screen.getByLabelText('플롯 제목')).toBeTruthy()
+  })
+
   it.each(['click', 'Enter'] as const)('취소 후 승인하면 %s로 한 번만 이동한다', async selection => {
     await setup()
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
