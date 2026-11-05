@@ -1026,6 +1026,7 @@
 | Frontend | WorldStudio 데모 | 설정 카드 | 기존 메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio 데모 | 설정 카드 | 태그·별칭 무변경 포커스 이동 시 저장 상태 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio | 관계 편집 | 관계 source·target 선택 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
+| Frontend | WorldStudio | 관계 편집 | 관계 상세 편집의 빈 주체·대상 저장 차단 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
 | Frontend | WorldStudio | 관계 편집 | 구조 관계 생성·수정 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
 | Frontend | WorldStudio | 관계 편집 | 방향별 감정 관계 생성·수정 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
 | Frontend | WorldStudio | 관계 편집 | 대칭·방향 관계와 기존 ID 유지 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
@@ -1034,3 +1035,20 @@
 | Frontend | WorldStudio | 관계 편집 | 인물 삭제와 연결 관계 삭제 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
 | Frontend | WorldStudio | 관계 편집 | 외부 참조가 있는 인물 삭제 차단 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
 | Frontend | WorldStudio | 관계 편집 | 인물 삭제 후 동일 ID로 되돌리기 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
+| Frontend | WorldStudio | 세계관 탐색 | 저장된 세계관 지도 표시 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 설정 검색·선택 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 연결된 설정 탐색 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 인물 관계도 표시 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 빈 세계관 안내 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 단계형 작성 | 작성 4단계 이동 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 단계 이동 후 입력 유지 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 설정 검색·유형 필터 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 이름·설명 우선 편집과 상세 접기 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 관계 단계 건너뛰기 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 검토 오류에서 해당 카드로 복귀 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 탐색·AI 보조 도구 접근 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 단계형 작성 | 390px 대응과 키보드 포커스 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
+| Frontend | WorldStudio | 세계관 탐색 | 지도 오류 시 새로고침 없이 설정 목록 이용 안내 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 방향 식별 | ❌ | [#126](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/126) |
+| Frontend | WorldStudio | 세계관 탐색 | 다중 관계선 구분과 비대칭 방향 표시 | ❌ | [#128](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/128) |
+| Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 설명 원문 표시 | ❌ | [#127](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/127) |
