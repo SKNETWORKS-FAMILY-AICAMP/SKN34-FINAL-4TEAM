@@ -42,6 +42,11 @@ services:
       SERVER_ADDRESS: 0.0.0.0
       CONTENT_ENABLED: ${CONTENT_ENABLED:-false}
       APP_WORLDSTUDIO_ENABLED: ${APP_WORLDSTUDIO_ENABLED:-false}
+      # Content only. The optional local profile supplies neo4j; image deployments use an approved external target.
+      NEO4J_URI: ${NEO4J_URI:-bolt://neo4j:7687}
+      NEO4J_USERNAME: ${NEO4J_USERNAME:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-}
+      NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:-}
       CORE_AUTH_BASE_URL: http://core-api:8080
       CORE_AUTH_CONNECT_TIMEOUT: ${CORE_AUTH_CONNECT_TIMEOUT:-1s}

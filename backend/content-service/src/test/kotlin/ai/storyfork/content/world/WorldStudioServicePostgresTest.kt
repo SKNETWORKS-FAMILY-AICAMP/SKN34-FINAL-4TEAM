@@ -1,153 +1,137 @@
 package ai.storyfork.content.world
 
-import ai.storyfork.content.world.domain.WorldConflict
-import ai.storyfork.content.world.domain.WorldNotFound
+import ai.storyfork.content.world.domain.*
+import ai.storyfork.content.world.relationship.Neo4jRelationshipConfig
+import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.*
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
-import org.flywaydb.core.Flyway
-import javax.sql.DataSource
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.transaction.PlatformTransactionManager
-import org.springframework.aop.support.AopUtils
 import jakarta.persistence.EntityManagerFactory
 import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import javax.sql.DataSource
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.transaction.PlatformTransactionManager
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
+/** CI only: isolated PostgreSQL plus real Neo4j. No production/legacy data transition. */
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class WorldStudioServicePostgresTest {
     private fun context(db:WorldStudioPostgresFixture,enabled:Boolean=true)=AnnotationConfigApplicationContext().apply {
         TestPropertyValues.of("app.worldstudio.enabled=$enabled","app.content.enabled=false",
             "CONTENT_DATABASE_URL=${db.url}","CONTENT_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
-            "CONTENT_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}").applyTo(this)
-        register(ai.storyfork.content._common.config.ContentDatabaseConfig::class.java,WorldStudioConfig::class.java,WorldStudioService::class.java)
+            "CONTENT_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+            "app.worldstudio.neo4j.uri=${System.getenv("NEO4J_URI")}","app.worldstudio.neo4j.username=neo4j",
+            "app.worldstudio.neo4j.password=${System.getenv("NEO4J_PASSWORD")}").applyTo(this)
+        beanFactory.registerSingleton("jsonMapper",JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())
+        register(ai.storyfork.content._common.config.ContentDatabaseConfig::class.java,WorldStudioConfig::class.java,
+            Neo4jRelationshipConfig::class.java,Neo4jRelationshipRepository::class.java,WorldStudioService::class.java)
         refresh()
     }
-
     @Test fun `disabled feature creates no persistence beans and no worldstudio schema`() {
-        WorldStudioPostgresFixture("independent").use { db ->
-            context(db,false).use { ctx ->
-                assertFalse(ctx.containsBean("worldStudioService"))
-                assertTrue(ctx.getBeansOfType(StudioWorldRepository::class.java).isEmpty())
-                assertTrue(ctx.getBeansOfType(EntityManagerFactory::class.java).isEmpty())
-                assertTrue(ctx.getBeansOfType(DataSource::class.java).isEmpty())
-                db.connect().use { c -> assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'")) }
-            }
-        }
+        WorldStudioPostgresFixture("independent").use { db -> context(db,false).use { ctx ->
+            assertFalse(ctx.containsBean("worldStudioService"));assertTrue(ctx.getBeansOfType(StudioWorldRepository::class.java).isEmpty())
+            assertTrue(ctx.getBeansOfType(EntityManagerFactory::class.java).isEmpty());assertTrue(ctx.getBeansOfType(DataSource::class.java).isEmpty())
+            db.connect().use { c -> assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'")) }
+        } }
     }
-    @Test fun `enabled feature fails validate if explicit migration has not completed`() {
+    @Test fun `enabled feature fails validate without explicit migration`() {
         WorldStudioPostgresFixture("independent").use { db ->
             assertThrows(RuntimeException::class.java) { context(db).close() }
             db.connect().use { c -> assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'")) }
         }
     }
-    @Test fun `content owned studio JPA saves restores and rolls back without auth`() {
+    @Test fun `current relation CRUD survives restart without PostgreSQL relationship copies or history`() {
         WorldStudioPostgresFixture("independent").use { db ->
-            db.studio().migrate()
-            val actor=UUID.randomUUID();val card=UUID.randomUUID();val location=UUID.randomUUID();val relation=UUID.randomUUID()
-            var world=UUID.randomUUID();var first=UUID.randomUUID();var lastDraftRevision=0L
+            db.studio().migrate();val actor=UUID.randomUUID();val card=UUID.randomUUID();val target=UUID.randomUUID()
+            val original=CardPayload(card,"홍길동","  원문 | 보존\n다음 줄","character","basic",aliases=listOf("길동","길동"),tags=listOf("둘","하나"))
+            val place=CardPayload(target,"본거지","비밀 장소","location","space")
+            val relationship=RelationshipPayload(UUID.randomUUID(),card,target,"emotional","신뢰하면서도 경계한다",direction="directed",polarity="asserted")
+            val create=CreateWorldRequest("홍길동전","작품 없이 시작");var first=UUID.randomUUID();var last=0L
             context(db).use { ctx ->
-                val service=ctx.getBean(WorldStudioService::class.java)
-                assertTrue(AopUtils.isAopProxy(service))
-                assertEquals(1,ctx.getBeansOfType(DataSource::class.java).size)
-                assertEquals(1,ctx.getBeansOfType(EntityManagerFactory::class.java).size)
-                assertEquals(1,ctx.getBeansOfType(PlatformTransactionManager::class.java).size)
-                assertFalse(ctx.containsBean("worldStudioDataSource"))
-                val created=service.create(actor,CreateWorldRequest("홍길동전","작품 없이 시작"));world=created.worldId
-                val original=CardPayload(card,"홍길동","  원문 | 보존\n다음 줄","character","basic",aliases=listOf("길동","길동"),tags=listOf("둘","하나"),semanticMetadata=mapOf("kind" to "claim"))
-                val place=CardPayload(location,"활빈당 본거지","비밀 장소","location","space")
-                val more=listOf("organization","ability","object","rule","event","other").mapIndexed { index,type ->
-                    CardPayload(UUID.randomUUID(),type,"각 유형의 원문",type,listOf("history","society","culture","special","conflict","basic")[index])
-                }
-                val feeling=RelationshipPayload(relation,card,location,"emotional","신뢰하면서도 경계한다",direction="directed",polarity="asserted")
-                var edited=service.edit(world,actor,EditWorldDraftRequest(created.draftRevision,"홍길동전","작품 없이 시작",listOf(original,place)+more,listOf(feeling)))
-                val incomplete=service.edit(world,actor,EditWorldDraftRequest(edited.draftRevision,edited.name,edited.description,listOf(original.copy(body=""))))
-                assertThrows(IllegalArgumentException::class.java) { service.save(world,actor,SaveWorldRequest(incomplete.draftRevision,"invalid")) }
-                assertEquals(incomplete,service.draft(world,actor))
-                edited=service.edit(world,actor,EditWorldDraftRequest(incomplete.draftRevision,incomplete.name,incomplete.description,listOf(original)))
-                val saved=service.save(world,actor,SaveWorldRequest(edited.draftRevision,"save-1"));first=saved.revisionId
-                assertEquals(8,saved.cards.map { it.card.cardType }.toSet().size)
-                assertEquals(7,saved.cards.map { it.card.areaCode }.toSet().size)
-                assertEquals(saved,service.save(world,actor,SaveWorldRequest(edited.draftRevision,"save-1")))
-                assertThrows(WorldConflict::class.java) { service.save(world,actor,SaveWorldRequest(edited.draftRevision+1,"save-1")) }
-                assertThrows(WorldNotFound::class.java) { service.draft(world,UUID.randomUUID()) }
-                assertThrows(WorldNotFound::class.java) { service.revision(world,UUID.randomUUID(),first) }
-                val draft=service.draft(world,actor)
-                val publicDraft=service.edit(world,actor,EditWorldDraftRequest(draft.draftRevision,draft.name,draft.description,listOf(original.copy(body="수정 원문",visibility="public")),emptyList()))
-                val second=service.save(world,actor,SaveWorldRequest(publicDraft.draftRevision,"save-2"))
-                assertEquals("public",second.cards.single { it.card.id==card }.card.visibility)
-                val current=service.draft(world,actor)
-                val restored=service.restore(world,actor,RestoreWorldRequest(current.draftRevision,"restore-1",first))
-                val restoredCard=restored.cards.single { it.card.id==card }
-                assertEquals(original,restoredCard.card)
-                assertEquals(saved.cards.single { it.card.id==card }.versionId,restoredCard.restoredFromVersionId)
-                assertNotEquals(saved.cards.single { it.card.id==card }.versionId,restoredCard.versionId)
-                assertEquals(3L,restoredCard.versionNo)
-                assertEquals(feeling,restored.relationships.single().relationship)
-                assertEquals(first,restored.restoredFromRevisionId)
-                assertEquals("public",service.revision(world,actor,second.revisionId).cards.single { it.card.id==card }.card.visibility)
-                val before=service.draft(world,actor)
-                // A late commit failure must roll back the whole JPA save, including pointer and idempotency row.
+                assertEquals(1,ctx.getBeansOfType(DataSource::class.java).size);assertEquals(1,ctx.getBeansOfType(EntityManagerFactory::class.java).size)
+                assertEquals(1,ctx.getBeansOfType(PlatformTransactionManager::class.java).size);assertFalse(ctx.containsBean("worldStudioDataSource"))
+                val service=ctx.getBean(WorldStudioService::class.java);val created=service.create(actor,create)
+                assertEquals(created,service.create(actor,create))
+                val more=listOf("organization","ability","object","rule","event","other").mapIndexed { i,type ->
+                    CardPayload(UUID.randomUUID(),type,"각 유형 원문",type,listOf("history","society","culture","special","conflict","basic")[i]) }
+                val edit=EditWorldDraftRequest(created.draftRevision,created.name,created.description,listOf(original,place)+more,listOf(relationship),"edit-1",true)
+                val edited=service.edit(create.id,actor,edit);assertEquals(edited,service.edit(create.id,actor,edit))
+                assertEquals(listOf(relationship),edited.relationships)
+                val incomplete=service.edit(create.id,actor,EditWorldDraftRequest(edited.draftRevision,edited.name,"",listOf(original.copy(body="")),key="incomplete"))
+                assertThrows(IllegalArgumentException::class.java) { service.save(create.id,actor,SaveWorldRequest(incomplete.draftRevision,"invalid")) }
+                assertEquals(incomplete,service.draft(create.id,actor))
+                val fixed=service.edit(create.id,actor,EditWorldDraftRequest(incomplete.draftRevision,incomplete.name,"",listOf(original),key="fixed"))
+                val saved=service.save(create.id,actor,SaveWorldRequest(fixed.draftRevision,"save-1"));first=saved.revisionId
+                assertEquals(8,saved.cards.map { it.card.cardType }.toSet().size);assertEquals(7,saved.cards.map { it.card.areaCode }.toSet().size)
+                assertNull(saved.relationships);assertEquals("not_recorded",saved.relationshipStatus)
+                assertEquals(saved,service.save(create.id,actor,SaveWorldRequest(fixed.draftRevision,"save-1")))
+                assertThrows(WorldConflict::class.java) { service.save(create.id,actor,SaveWorldRequest(fixed.draftRevision+1,"save-1")) }
+                assertThrows(WorldNotFound::class.java) { service.draft(create.id,UUID.randomUUID()) }
+                assertThrows(WorldNotFound::class.java) { service.revision(create.id,UUID.randomUUID(),first) }
+                val before=service.draft(create.id,actor)
+                val changed=service.edit(create.id,actor,EditWorldDraftRequest(before.draftRevision,before.name,"",relationships=listOf(relationship.copy(body="変更",direction="symmetric")),key="update"))
+                assertEquals("symmetric",changed.relationships.single().direction)
+                val removed=service.edit(create.id,actor,EditWorldDraftRequest(changed.draftRevision,changed.name,"",changed.cards,emptyList(),"delete",true))
+                assertTrue(removed.relationships.isEmpty());assertEquals(original,service.revision(create.id,actor,first).cards.single { it.card.id==card }.card)
+                assertEquals("RELATIONSHIP_HISTORY_UNSUPPORTED",assertThrows(WorldStudioFailure::class.java) { service.restore(create.id,actor,RestoreWorldRequest(removed.draftRevision,"restore",first)) }.code)
+                // Card revision commit failures still roll back pointer, manifest and request atomically within PostgreSQL.
                 db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"""CREATE FUNCTION worldstudio.qa_fail_commit() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'} BEGIN IF NEW.request_key='fail-late' THEN RAISE EXCEPTION 'synthetic late failure' USING ERRCODE='23514'; END IF; RETURN NULL; END; ${'$'}${'$'};
                     CREATE CONSTRAINT TRIGGER qa_fail_commit AFTER INSERT ON worldstudio.world_save_request DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION worldstudio.qa_fail_commit();""") }
-                assertThrows(RuntimeException::class.java) { service.save(world,actor,SaveWorldRequest(before.draftRevision,"fail-late")) }
-                assertEquals(before,service.draft(world,actor))
-                val another=service.create(actor,CreateWorldRequest("별도 세계관",""))
-                val transientCard=CardPayload(UUID.randomUUID(),"작성 중","첫 카드","character","basic")
-                assertThrows(IllegalArgumentException::class.java) {
-                    service.edit(another.worldId,actor,EditWorldDraftRequest(another.draftRevision,another.name,"",listOf(transientCard,transientCard.copy(id=UUID.randomUUID(),cardType="invalid"))))
-                }
+                assertThrows(RuntimeException::class.java) { service.save(create.id,actor,SaveWorldRequest(removed.draftRevision,"fail-late")) };assertEquals(removed,service.draft(create.id,actor))
+                val another=service.create(actor,CreateWorldRequest("別世界"))
+                assertThrows(WorldNotFound::class.java) { service.edit(another.worldId,actor,EditWorldDraftRequest(0,another.name,"",listOf(original),key="foreign")) }
+                val collision=EditWorldDraftRequest(0,another.name,"",relationships=listOf(relationship.copy(sourceCardId=null,targetCardId=null)),key="foreign-relation",replace=true)
+                assertEquals("WORLD_WRITE_REJECTED",assertThrows(WorldStudioFailure::class.java) { service.edit(another.worldId,actor,collision) }.code)
                 assertEquals(another,service.draft(another.worldId,actor))
-                db.connect().use { c -> assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.setting_card WHERE id='${transientCard.id}'")) }
-                assertThrows(WorldNotFound::class.java) { service.restore(another.worldId,actor,RestoreWorldRequest(another.draftRevision,"cross-world",first)) }
-                assertThrows(WorldNotFound::class.java) { service.edit(another.worldId,actor,EditWorldDraftRequest(another.draftRevision,another.name,"",listOf(original))) }
-                assertEquals(another,service.draft(another.worldId,actor))
-                assertThrows(WorldConflict::class.java) { service.edit(world,actor,EditWorldDraftRequest(before.draftRevision-1,"덮어쓰기","")) }
-                assertEquals(before,service.draft(world,actor))
-                assertThrows(RuntimeException::class.java) { service.restore(world,actor,RestoreWorldRequest(before.draftRevision,"fail-late",first)) }
-                assertEquals(before,service.draft(world,actor))
-                lastDraftRevision=before.draftRevision
-                assertEquals(setOf("ai.storyfork.content.world.studio.entity"),ctx.getBean(EntityManagerFactory::class.java).metamodel.entities.map { it.javaType.packageName }.toSet())
+                val corrected=collision.copy(key="corrected",relationships=listOf(collision.relationships.single().copy(id=UUID.randomUUID())))
+                assertEquals(1L,service.edit(another.worldId,actor,corrected).draftRevision)
+                assertEquals(removed,service.draft(create.id,actor))
+                assertEquals("WORLD_WRITE_REJECTED",assertThrows(WorldStudioFailure::class.java) { service.edit(create.id,actor,EditWorldDraftRequest(0,"stale","",key="stale")) }.code)
+                last=removed.draftRevision
             }
-            context(db).use { fresh ->
-                val service=fresh.getBean(WorldStudioService::class.java)
-                assertEquals(first,service.revision(world,actor,first).revisionId)
-                assertEquals(lastDraftRevision,service.draft(world,actor).draftRevision)
-            }
+            context(db).use { ctx -> val service=ctx.getBean(WorldStudioService::class.java)
+                assertEquals(first,service.revision(create.id,actor,first).revisionId);assertEquals(last,service.draft(create.id,actor).draftRevision)
+                assertTrue(service.draft(create.id,actor).relationships.isEmpty()) }
             db.connect().use { c ->
-                assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename IN ('content_schema_history','work_current')"))
-                assertEquals(listOf("3"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.world_revision"))
-                assertEquals(listOf("24"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.setting_card_version"))
-                assertEquals(listOf("3"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.relationship_version"))
+                for(table in listOf("relationship","relationship_draft","relationship_version","world_revision_relationship"))
+                    assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.$table"))
+                assertEquals(listOf("1"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.world_revision"))
+                assertEquals(listOf("8"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.setting_card_version"))
                 assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.world_save_request WHERE request_key='fail-late'"))
             }
         }
     }
-    @Test fun `simultaneous retries serialize on the owned world and create only one revision`() {
-        WorldStudioPostgresFixture("independent").use { db ->
-            db.studio().migrate()
-            context(db).use { ctx ->
-                val service=ctx.getBean(WorldStudioService::class.java);val actor=UUID.randomUUID()
-                val created=service.create(actor,CreateWorldRequest("동시 저장",""))
-                Executors.newFixedThreadPool(2).use { pool ->
-                    val jobs=pool.invokeAll(List(2) { Callable { service.save(created.worldId,actor,SaveWorldRequest(created.draftRevision,"same-key")) } })
-                    assertEquals(jobs[0].get().revisionId,jobs[1].get().revisionId)
-                    val current=service.draft(created.worldId,actor)
-                    val competing=pool.invokeAll(List(2) { index -> Callable {
-                        try { service.save(created.worldId,actor,SaveWorldRequest(current.draftRevision,"competing-$index"));"saved" }
-                        catch(_:WorldConflict) { "conflict" }
-                    } })
-                    assertEquals(listOf("conflict","saved"),competing.map { it.get() }.sorted())
-                }
+    @Test fun `Neo4j success followed by PostgreSQL commit failure stays pending until exact replay`() {
+        WorldStudioPostgresFixture("independent").use { db -> db.studio().migrate();context(db).use { ctx ->
+            val service=ctx.getBean(WorldStudioService::class.java);val actor=UUID.randomUUID();val created=service.create(actor,CreateWorldRequest("retry"))
+            val request=EditWorldDraftRequest(created.draftRevision,"after","",key="pending",replace=true)
+            db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"""CREATE FUNCTION worldstudio.qa_fail_edit() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'} BEGIN RAISE EXCEPTION 'synthetic finalization failure'; END; ${'$'}${'$'};
+                CREATE CONSTRAINT TRIGGER qa_fail_edit AFTER UPDATE ON worldstudio.world_draft DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION worldstudio.qa_fail_edit();""") }
+            assertThrows(RuntimeException::class.java) { service.edit(created.worldId,actor,request) }
+            assertEquals("RELATIONSHIP_WRITE_INCOMPLETE",assertThrows(WorldStudioFailure::class.java) { service.draft(created.worldId,actor) }.code)
+            assertThrows(WorldConflict::class.java) { service.edit(created.worldId,actor,request.copy(name="different")) }
+            db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"DROP TRIGGER qa_fail_edit ON worldstudio.world_draft") }
+            val recovered=service.edit(created.worldId,actor,request);assertEquals("after",recovered.name);assertEquals(created.draftRevision+1,recovered.draftRevision)
+            assertEquals(recovered,service.edit(created.worldId,actor,request))
+        } }
+    }
+    @Test fun `simultaneous card saves serialize and duplicate requests create one revision`() {
+        WorldStudioPostgresFixture("independent").use { db -> db.studio().migrate();context(db).use { ctx ->
+            val service=ctx.getBean(WorldStudioService::class.java);val actor=UUID.randomUUID();val created=service.create(actor,CreateWorldRequest("同時"))
+            Executors.newFixedThreadPool(2).use { pool ->
+                val jobs=pool.invokeAll(List(2) { Callable { service.save(created.worldId,actor,SaveWorldRequest(created.draftRevision,"same")) } })
+                assertEquals(jobs[0].get().revisionId,jobs[1].get().revisionId)
+                val current=service.draft(created.worldId,actor)
+                val competing=pool.invokeAll(List(2) { i -> Callable { try { service.save(created.worldId,actor,SaveWorldRequest(current.draftRevision,"key-$i"));"saved" } catch(_:WorldConflict) { "conflict" } } })
+                assertEquals(listOf("conflict","saved"),competing.map { it.get() }.sorted())
             }
-            db.connect().use { c -> assertEquals(listOf("2"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.world_revision")) }
-        }
+        } }
     }
 }

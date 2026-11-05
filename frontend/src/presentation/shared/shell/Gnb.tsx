@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import { useAppSelector } from '../../../app/store'
 import { openPolicy, openQuick } from '../events'
 import { Go } from '../Go'
 import { AccountMenu } from './AccountMenu'
@@ -42,16 +41,10 @@ export function Gnb({ on = '' }: { on?: string }) {
 
 /** 목업 foot() */
 export function Footer() {
-  const role = useAppSelector((s) => s.session.role)
   return (
     <footer className="foot">
       <div className="wrap">
         <b>STORYFORK</b><span>SKN34 최종 프로젝트 4팀 · 인터랙티브 MVP (오프라인 · AI 응답은 미리 정한 데모)</span>
-        <div className="r">
-          {/* 목업과 같이 메모리 상태를 버리려고 홈으로 새로고침합니다. */}
-          <button type="button" onClick={() => location.assign('/')}>데모 초기화</button>
-          {!role && <Go to="/login">로그인</Go>}
-        </div>
       </div>
     </footer>
   )

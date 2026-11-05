@@ -8,7 +8,7 @@ export type SettingItem = {
  origin: 'extraction'|'correction'|'author_addition'|'author_input'; authorText: string|null; decision: 'pending'|'approved'|'rejected'|'held'
 }
 export type StudioSetting = {item:SettingItem;userCategory:string;tags:string[];aliases?:string[]}
-export type StudioWorld = {id:string;name:string;description:string;version:number;settings:StudioSetting[];analysis:{id:string;status:string;candidates:SettingItem[];issues:string[]}|null}
+export type StudioWorld = {id:string;name:string;description:string;version:number;settings:StudioSetting[];relationshipStatus?:'current'|'incomplete'|'migration_required';analysis:{id:string;status:string;candidates:SettingItem[];issues:string[]}|null}
 export const newSetting = (section:StudioSection='basic'):StudioSetting => ({userCategory:'설정',tags:[],item:{id:crypto.randomUUID(),title:'',text:'',topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_addition',authorText:'',decision:'approved',...sectionFields(section)}})
 export function authorEdit(setting:StudioSetting,patch:Partial<SettingItem>):StudioSetting {
  const item={...setting.item,...patch,origin:'author_addition' as const,decision:'approved' as const,evidence:[],orderEvidence:[]}

@@ -81,7 +81,7 @@ it.each(['text','title','name'] as const)('preserves the same-mounted pair draft
  fireEvent.change(screen.getByRole('textbox',{name:field==='text'?'설명':'설정 이름'}),{target:{value:field==='text'?'설정 탭의 최신 설명':field==='title'?'설정 탭의 최신 이름':'가람 수정'}})
  fireEvent.click(screen.getByRole('button',{name:'검토·저장'}))
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
- await screen.findByText('이 탭의 메모리에 저장했어요. 새로고침하면 초기화됩니다.')
+ await screen.findByText('서버에 현재 세계관을 저장했어요. 관계는 현재 상태만 보관하며 과거 관계 복원은 지원하지 않습니다.')
  const latest=await useCase.read(world.id)
  expect(latest.settings[2].item).toMatchObject({id:relation.id,...(field==='text'?{text:'설정 탭의 최신 설명'}:field==='title'?{title:'설정 탭의 최신 이름'}:{title:'가람 수정 · 친구 · 나래',text:'가람 수정 · 친구 · 나래'})})
  fireEvent.click(screen.getByRole('button',{name:'관계 연결 (선택)'}))
