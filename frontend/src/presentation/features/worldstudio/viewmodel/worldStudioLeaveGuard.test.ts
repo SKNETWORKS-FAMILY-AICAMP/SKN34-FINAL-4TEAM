@@ -1,5 +1,5 @@
 import {expect,it,vi} from 'vitest'
-import {createWorldStudioLeaveGuard} from '../../presentation/features/worldstudio/viewmodel/worldStudioLeaveGuard'
+import {createWorldStudioLeaveGuard} from './worldStudioLeaveGuard'
 it('blocks every transition while dirty and preserves the draft on cancel',()=>{
  const confirm=vi.fn(()=>false),guard=createWorldStudioLeaveGuard(confirm)
  expect(guard.shouldBlock()).toBe(false)

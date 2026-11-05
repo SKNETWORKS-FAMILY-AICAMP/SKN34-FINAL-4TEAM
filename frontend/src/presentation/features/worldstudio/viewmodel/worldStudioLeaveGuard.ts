@@ -1,5 +1,6 @@
 import {createContext} from 'react'
 
+/** 승인한 생성·열기 이동에만 한 번 확인을 생략한다. */
 export function createWorldStudioLeaveGuard(confirm:()=>boolean) {
  let dirty=false,allowOnce=false
  return {
