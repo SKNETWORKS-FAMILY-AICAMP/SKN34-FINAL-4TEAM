@@ -8,7 +8,7 @@
 
 > 기존 연결·배포 백엔드는 core-api·ai-service이며 Core에 인증·콘텐츠·첨부가 공존합니다. 별도로 [콘텐츠](../backend/content-service/README.md)·[운영](../backend/operations-service/README.md)의 독립 Spring Boot 실행 골격을 추가했습니다(loopback 8081·8082, JDK 21). 업무·DB·인증·Compose·공개 라우팅은 옮기지 않았고 실제 기동 검증도 대기입니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
 
-STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴는 미구현이므로 운영 가입용이 아닙니다.
+STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴의 최종 처리(콘텐츠 삭제·익명화)는 미구현이므로 운영 가입용이 아닙니다.
 서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
 백엔드는 기능 중심 레이어드 구조를 유지합니다.
 
@@ -64,7 +64,9 @@ Auth는 `auth/controller → SignupService·SessionService·ProfileService → a
 
 Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼리·JPQL·Entity 변경으로 처리합니다. 기존 UUID·Flyway SQL 바이트·`flyway_schema_history`는 유지하며 Hibernate는 스키마 검증만 수행합니다(`ddl-auto=validate`, `open-in-view=false`). 기존 Content JDBC 저장과 별도 `content_schema_history`는 이번 전환 범위 밖입니다. 회원별 `PESSIMISTIC_WRITE` 잠금 뒤에 자격 증명·refresh 상태를 읽어 로그인/비밀번호 재설정 및 refresh/로그아웃의 경합을 보호합니다. 재사용 감지 시 세션 폐기는 Service가 커밋한 뒤 HTTP 401로 변환합니다. 가입 후보는 행 잠금을 사용하며 아직 행이 없는 최초 가입의 삽입 충돌만 새 트랜잭션에서 한 번 재시도합니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
 
-알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V4~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ outbox·소비자와 모바일 푸시는 후속 범위입니다.
+회원 탈퇴 요청은 `auth/controller → WithdrawalService → JpaRepository`가 `auth_withdrawal`(Flyway V7, `db/migration/auth`)에 요청·30일 유예·복구 상태만 기록하고 refresh 세션을 폐기합니다. 콘텐츠 숨김·삭제·익명화와 유예 만료 후 최종 처리는 콘텐츠 서비스와의 계약이 확정된 뒤 후속으로 연결합니다.
+
+알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V5~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ outbox·소비자와 모바일 푸시는 후속 범위입니다.
 
 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS와 여러 콘텐츠 기능에서 공유하는 실패·식별자 계약이 있습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
