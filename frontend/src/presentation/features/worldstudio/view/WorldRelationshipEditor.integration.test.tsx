@@ -70,7 +70,7 @@ it.each(['text','title','name'] as const)('preserves the same-mounted pair draft
  await screen.findByRole('heading',{name:'탭 충돌 검증',level:2})
  fireEvent.click(screen.getByRole('button',{name:'관계 연결 (선택)'}))
  fireEvent.click(screen.getByRole('button',{name:'가람 · 친구 · 나래'}))
- const fact=screen.getByRole('textbox',{name:'실제 관계 1'}),draft=screen.getByRole<HTMLTextAreaElement>('textbox',{name:'나래 → 가람 감정 1'})
+ const fact=screen.getByRole('combobox',{name:'실제 관계 1'}),draft=screen.getByRole<HTMLTextAreaElement>('textbox',{name:'나래 → 가람 감정 1'})
  const prose='믿고 싶지만 아직은 두렵다.\n패널에 남겨 둘 감정'
  fireEvent.change(draft,{target:{value:prose}})
  fireEvent.click(screen.getByRole('button',{name:'설정 카드'}))
@@ -85,7 +85,7 @@ it.each(['text','title','name'] as const)('preserves the same-mounted pair draft
  const latest=await useCase.read(world.id)
  expect(latest.settings[2].item).toMatchObject({id:relation.id,...(field==='text'?{text:'설정 탭의 최신 설명'}:field==='title'?{title:'설정 탭의 최신 이름'}:{title:'가람 수정 · 친구 · 나래',text:'가람 수정 · 친구 · 나래'})})
  fireEvent.click(screen.getByRole('button',{name:'관계 연결 (선택)'}))
- expect(screen.getByRole('textbox',{name:'실제 관계 1'})).toBe(fact)
+ expect(screen.getByRole('combobox',{name:'실제 관계 1'})).toBe(fact)
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:field==='name'?'나래 → 가람 수정 감정 1':'나래 → 가람 감정 1'}).value).toBe(prose)
  fireEvent.click(screen.getByRole('button',{name:'편집본에 적용'}))
  const panel=screen.getByRole('region',{name:'관계 편집'})
