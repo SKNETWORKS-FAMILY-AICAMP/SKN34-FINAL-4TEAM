@@ -162,7 +162,7 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: '야간' }))
     fireEvent.click(within(dialog).getByRole('button', { name: '가 +' }))
     fireEvent.click(within(dialog).getByRole('button', { name: '끄기' }))
-    expect(store.getState().session).toMatchObject({ look: 'night', fs: 20, motion: false })
+    expect(store.getState().ui).toMatchObject({ look: 'night', fs: 20, motion: false })
     expect(document.querySelector('.reader')!.className).toBe('calm rd calm-hanji reader')
     fireEvent.click(dialog.parentElement!)
     expect(screen.queryByRole('dialog')).toBeNull()

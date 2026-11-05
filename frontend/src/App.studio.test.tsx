@@ -5,6 +5,7 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import './test/scrollToSpy'
 import App from './App'
 import { createAppStore } from './app/store'
 
@@ -53,8 +54,21 @@ describe('집필실 (U13·U14·U16·U17·U22)', () => {
     await screen.findByLabelText('원고 본문')
     body().innerHTML = '<p>새로운 원고입니다.</p>'
     fireEvent.input(body())
-    fireEvent.click(screen.getByRole('button', { name: '이 회차 txt' }))
-    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled())
+    const downloaded = vi.fn()
+    const onDownload = (event: MouseEvent) => {
+      const link = event.target
+      if (!(link instanceof HTMLAnchorElement) || link.href !== 'blob:x' || !link.download) return
+      downloaded(link.href, link.download, event.defaultPrevented)
+      event.preventDefault()
+    }
+    document.addEventListener('click', onDownload)
+    try {
+      fireEvent.click(screen.getByRole('button', { name: '이 회차 txt' }))
+      await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled())
+      await waitFor(() => expect(downloaded).toHaveBeenCalledExactlyOnceWith('blob:x', '별빛 서약의 탑_4화.txt', false))
+    } finally {
+      document.removeEventListener('click', onDownload)
+    }
     fireEvent.click(screen.getByRole('button', { name: 'EPUB(.epub) 내보내기' }))
     await toastIs('EPUB는 회차·메타데이터·이미지를 포함해야 해요. 이 데모에서는 TXT 내보내기만 지원합니다.')
     screen.getByText(/이미지는 이 화면에서 임시 삽입만 할 수 있으며/)

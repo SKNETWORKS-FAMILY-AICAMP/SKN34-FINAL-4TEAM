@@ -1,12 +1,12 @@
 import { expect, it } from 'vitest'
 
-import type { AppNotification } from '../entities/notification'
+import type { AppNotification } from '../../../../domain/entities/notification'
 import {
   applyNotificationRefresh,
   completeMarkAllRead,
   readNotificationsThrough,
   type NotificationListState,
-} from '../../presentation/features/inbox/viewmodel/notificationListState'
+} from './notificationListState'
 
 const n = (id: string, createdAt = `2026-11-05T03:00:${String(id.charCodeAt(0) - 97).padStart(2, '0')}Z`): AppNotification => ({ id, kind: 'creation', summary: id, targetType: null, targetId: null, createdAt, read: false })
 const initial = (): NotificationListState => ({ items: [n('c'), n('b')], nextCursor: 'below-b', appliedRefreshSeq: 0, readUpTo: null })

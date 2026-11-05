@@ -29,6 +29,14 @@ prod는 소스에서 정적 배포 이미지를 빌드해 기본 `http://127.0.0
 두 조합 모두 Nginx가 정적 화면과 works 경로 → `content-service:8081`, 나머지 `/api` → `core-api:8080` 프록시를 제공합니다. 소스/HMR Compose는 제거했으며 hot reload는 위 `pnpm dev`를 사용합니다.
 loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
+## 프론트엔드 구조와 상태 소유
+
+- `app/di`에서 Repository·UseCase와 Health·알림 SSE 외부 함수를 조립합니다. Presentation은 Data 함수를 직접 import하지 않으며, 공유 Health·SSE 계약은 Domain에 둡니다. HTTP 응답의 Zod 검증은 Data에 남깁니다.
+- Redux `session`은 인증·로그인 안내와 기존 조회 무효화 신호를, `ui`는 테마·화면 ID·읽기 설정·홈 표시 상태를 소유합니다. UI 상태는 로그인·로그아웃 때 유지하며 브라우저 저장소에 영속화하지 않습니다. `dataVersion`은 여전히 데모 전역 재조회 신호이며 기능별 캐시로 바꾸지 않았습니다.
+- 관계 패널의 draft 상태·적용 handler는 `useRelationPairViewModel`, 순수 초기화·방향 변환은 Domain의 `relationDraft`가 담당합니다. 최초 baseline을 유지하고 기존 `applyRelationChanges`로 검증하며, 저장 전 편집과 실제 저장을 구분합니다.
+- 집필실·서재가 함께 쓰는 `PublishSettingsSheet`는 `presentation/shared`에, Wiki 편집 화면은 `StudioWikiView`에 둡니다. 데모 피드백함과 실제 알림함의 ViewModel은 별도 파일입니다.
+- 순수 함수라도 Presentation 소유의 테스트는 해당 feature 옆에 둡니다. 현재 CI는 경로 기준으로 분류하므로 이 테스트는 Domain/Data 단위 명령이 아니라 기존 통합 선택에서 발견됩니다.
+
 ## 실제 호출 흐름
 
 `/status`의 연결 확인은 `App → CoreApiConnectionStatus → useCoreApiHealth → DI 외부 함수 → Fetch·Zod → 공개 Core API`입니다. 해당 화면의 Health 전용 안내가 앱 전체의 구현 상태를 뜻하지는 않습니다.

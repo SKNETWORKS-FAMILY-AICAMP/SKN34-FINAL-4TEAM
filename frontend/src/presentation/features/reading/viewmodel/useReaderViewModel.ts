@@ -7,6 +7,7 @@ import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
+import { uiActions } from '../../../shared/ui/uiSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { useLook } from './useLook'
 
@@ -35,7 +36,7 @@ export function useReaderViewModel(id: string, n: number,
   const [shown, setShown] = useState(id + '/' + n)
   if (shown !== id + '/' + n) { setShown(id + '/' + n); setSelected(null) }
   const ok = data && data !== 'hidden' ? data : null
-  const setEnd = useCallback((end: boolean) => { dispatch(sessionActions.setBaseScreen(end ? 'U08' : 'U05')) }, [dispatch])
+  const setEnd = useCallback((end: boolean) => { dispatch(uiActions.setBaseScreen(end ? 'U08' : 'U05')) }, [dispatch])
   useScreenId(ok ? 'U05' : null)
 
   const sentences = ok ? ok.paragraphs.flat() : []

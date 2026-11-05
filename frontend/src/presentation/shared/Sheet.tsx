@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useAppDispatch } from '../../app/store'
-import { sessionActions } from './session/sessionSlice'
+import { uiActions } from './ui/uiSlice'
 
 const FOCUSABLE = 'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary:not([tabindex="-1"]),[href],[tabindex]:not([tabindex="-1"])'
 
@@ -26,7 +26,7 @@ export function Sheet({ sid, label, onClose, panelClass = 'sheet', dimClass = 'b
     window.dispatchEvent(new Event('sf-sheet-open'))
     const replaced = () => close.current()
     window.addEventListener('sf-sheet-open', replaced)
-    dispatch(sessionActions.setSheetScreen(sid))
+    dispatch(uiActions.setSheetScreen(sid))
     // 처음 포커스는 data-autofocus 입력, 없으면 첫 조작 요소 (React autoFocus는 StrictMode 재실행에서 풀립니다)
     ;(el.querySelector<HTMLElement>('[data-autofocus]') ?? el.querySelector<HTMLElement>(FOCUSABLE) ?? el).focus()
     const key = (e: KeyboardEvent) => {
@@ -46,7 +46,7 @@ export function Sheet({ sid, label, onClose, panelClass = 'sheet', dimClass = 'b
       window.removeEventListener('sf-sheet-open', replaced)
       // 교체로 닫힐 때는 새 시트의 화면 ID와 포커스를 지키고 opener로 돌리지 않습니다.
       if ([...document.querySelectorAll('[role=dialog]')].some((d) => d !== el)) return
-      dispatch(sessionActions.setSheetScreen(null))
+      dispatch(uiActions.setSheetScreen(null))
       if (back instanceof HTMLElement) back.focus()
     }
   }, [dispatch, sid])

@@ -5,6 +5,7 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation, useNavigate, type NavigateFunction } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import './test/scrollToSpy'
 import App from './App'
 import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
@@ -64,6 +65,7 @@ describe('새 소설 만들기 (U28)', () => {
     await acceptPolicy()
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '남는 제목' } })
     act(() => { nav('/lib') })
+    await screen.findByRole('heading', { name: '내 서재' })
     act(() => { nav('/new') })
     await acceptPolicy()
     expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe('남는 제목')
@@ -75,6 +77,7 @@ describe('새 소설 만들기 (U28)', () => {
     fireEvent.change(screen.getByLabelText('인물 1 이름'), { target: { value: '등대지기' } })
     fireEvent.click(screen.getByRole('button', { name: '소설 만들고 1화 쓰기 →' }))
     await waitFor(() => expect(where()).toMatch(/^\/studio\//))
+    await screen.findByLabelText('원고 본문')
     act(() => { nav('/new') })
     await acceptPolicy()
     expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe('남는 제목')

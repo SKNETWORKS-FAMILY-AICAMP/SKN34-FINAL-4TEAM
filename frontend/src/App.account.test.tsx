@@ -6,6 +6,7 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import './test/scrollToSpy'
 import App from './App'
 import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
@@ -72,7 +73,7 @@ describe('계정 (U30~U35E)', () => {
   it('프로필은 닉네임 2자·이메일 형식을 확인하고 저장한다', async () => {
     const { store } = renderAt('/me/profile')
     await screen.findByRole('heading', { name: '프로필' })
-    expect(store.getState().session.screen.base).toBe('U30')
+    expect(store.getState().ui.screen.base).toBe('U30')
     expect(document.getElementById('sid')).toBeNull()
     const nick = screen.getByLabelText('닉네임'), email = screen.getByLabelText('이메일')
     fireEvent.change(nick, { target: { value: '나' } })
@@ -118,7 +119,7 @@ describe('계정 (U30~U35E)', () => {
   it('문의를 보내면 답변 대기로 쌓인다', async () => {
     const { store } = renderAt('/me/inquiry')
     await screen.findByRole('heading', { name: '문의하기' })
-    expect(store.getState().session.screen.base).toBe('U34')
+    expect(store.getState().ui.screen.base).toBe('U34')
     fireEvent.click(screen.getByRole('button', { name: '문의 보내기' }))
     await toastIs('제목과 내용을 입력해 주세요')
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '포크 질문' } })
@@ -148,7 +149,7 @@ describe('계정 (U30~U35E)', () => {
     await screen.findByRole('heading', { name: '포크 이용 안내' })
     cleanup()
     const { store } = renderAt('/me/event', null)
-    await waitFor(() => expect(store.getState().session.screen.base).toBe('U35E'))
+    await waitFor(() => expect(store.getState().ui.screen.base).toBe('U35E'))
     screen.getByText('보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.')
   })
 

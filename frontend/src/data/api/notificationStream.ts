@@ -1,13 +1,9 @@
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, protectedRequest } from './auth'
 
-/** off: 연결하지 않음(비로그인·세션 만료), connecting: 연결 중, live: 실시간 연결됨, offline: 끊김(자동 재연결 중) */
-export type StreamState = 'off' | 'connecting' | 'live' | 'offline'
+import type { NotificationStreamOptions } from '../../domain/entities/notificationStream'
 
-export type StreamOptions = {
-  /** 연결·재연결 직후와 새 알림이 저장될 때마다 호출됩니다. 받으면 목록·미읽음 수를 다시 조회하세요. 읽음 처리가 아닙니다. */
-  onSignal: () => void
-  onState: (state: StreamState) => void
+export type StreamOptions = NotificationStreamOptions & {
   fetcher?: typeof fetch
   /** 이 시간 동안 아무 바이트(ping 포함)도 오지 않으면 끊고 다시 연결합니다. 서버는 20초마다 ping을 보냅니다. */
   idleMs?: number

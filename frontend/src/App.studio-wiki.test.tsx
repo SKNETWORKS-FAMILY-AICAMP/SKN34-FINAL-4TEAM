@@ -5,6 +5,7 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import './test/scrollToSpy'
 import App from './App'
 import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'

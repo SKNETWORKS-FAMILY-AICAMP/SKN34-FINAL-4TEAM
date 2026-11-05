@@ -1,8 +1,8 @@
 import {expect,it} from 'vitest'
-import {newSetting} from '../entities/studioWorld'
-import {buildWorldMap} from '../../presentation/features/worldstudio/viewmodel/useWorldMapViewModel'
-import {buildCharacterMap} from '../../presentation/features/worldstudio/viewmodel/characterMap'
-import {putRelation} from '../entities/studioRelations'
+import {newSetting} from '../../../../domain/entities/studioWorld'
+import {buildWorldMap} from './useWorldMapViewModel'
+import {buildCharacterMap} from './characterMap'
+import {putRelation} from '../../../../domain/entities/studioRelations'
 it('renders only approved data, preserves saved objects and handles an empty world',()=>{
  expect(buildWorldMap([])).toEqual({nodes:[],links:[],missingLinks:0})
  const a=newSetting('people'),b=newSetting('people'),place=newSetting('places')
