@@ -39,3 +39,8 @@ it('does not repeat a relation type already present in its description',()=>{
  const link={source:'a',target:'b',label:'신뢰',fullLabel:'신뢰',description:'가람 · 신뢰 · 나래',symmetric:false}
  expect(mapConnectionLabel(link,'a')).toBe('보내는 관계 · 가람 · 신뢰 · 나래')
 })
+
+it('does not treat a relation type within a different phrase as a duplicate',()=>{
+ const link={source:'a',target:'b',label:'신뢰',fullLabel:'신뢰',description:'그를 신뢰하지 않는다',symmetric:false}
+ expect(mapConnectionLabel(link,'a')).toBe('보내는 관계 · 신뢰 · 그를 신뢰하지 않는다')
+})
