@@ -43,12 +43,12 @@ describe('집필실 사전 편집 (U38)', () => {
     fill('분류 이름', '마법 체계')
     submit()
     await toastIs('분류를 추가했어요')
-    await screen.findByRole('button', { name: /마법 체계/ })
+    await screen.findByRole('link', { name: /마법 체계/ })
   })
 
   it('제목·본문·속성을 고치면 다시 열어도 남아 있다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=place')
-    fireEvent.click((await screen.findAllByRole('button', { name: '지하서고' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '지하서고' }))[0])
     blurWith(await screen.findByRole('heading', { name: '지하서고' }), '깊은 서고')
     await screen.findByRole('heading', { name: '깊은 서고' })
     blurWith(screen.getByLabelText('문서 본문'), '봉인이 잠든 곳')
@@ -60,7 +60,7 @@ describe('집필실 사전 편집 (U38)', () => {
     await screen.findByLabelText('관리자 값')
     cleanup()
     renderAt('/studio/starlight?view=wiki&cat=place')
-    fireEvent.click((await screen.findAllByRole('button', { name: '깊은 서고' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '깊은 서고' }))[0])
     expect((await screen.findByLabelText('문서 본문')).textContent).toBe('봉인이 잠든 곳')
     expect(screen.getByLabelText('첫 등장 값').textContent).toBe('3화')
     expect(screen.getByLabelText('관리자 값').textContent).toBe('카엘')
@@ -68,7 +68,7 @@ describe('집필실 사전 편집 (U38)', () => {
 
   it('＋ 속성 추가는 시트에서 값만 넣고 인물 상태는 그대로 둔다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=char')
-    fireEvent.click((await screen.findAllByRole('button', { name: '세라핀' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '세라핀' }))[0])
     fireEvent.click(await screen.findByRole('button', { name: '＋ 속성 추가' }))
     expect(within(sheet()).getByRole('heading', { name: '속성 추가' })).toBeTruthy()
     fill('속성 이름 (예: 관계, 능력, 소속)', '상태')
@@ -80,7 +80,7 @@ describe('집필실 사전 편집 (U38)', () => {
 
   it('본문 줄바꿈을 저장한다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=item')
-    fireEvent.click((await screen.findAllByRole('button', { name: '오르벤의 서한' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '오르벤의 서한' }))[0])
     const body = await screen.findByLabelText('문서 본문')
     Object.defineProperty(body, 'innerText', { value: '첫 줄\n둘째 줄', configurable: true })
     fireEvent.blur(body)
@@ -89,16 +89,16 @@ describe('집필실 사전 편집 (U38)', () => {
 
   it('본문의 다른 문서 이름 링크를 누르면 그 문서가 열린다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=place')
-    fireEvent.click((await screen.findAllByRole('button', { name: '별빛 탑' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '별빛 탑' }))[0])
     blurWith(await screen.findByLabelText('문서 본문'), '리안이 지키는 탑')
-    const link = await waitFor(() => { const b = within(screen.getByLabelText('문서 본문')).getByRole('button', { name: '리안' }); expect(b.className).toBe('wl'); return b })
+    const link = await waitFor(() => { const b = within(screen.getByLabelText('문서 본문')).getByRole('link', { name: '리안' }); expect(b.className).toBe('wl'); return b })
     fireEvent.click(link)
     await screen.findByRole('heading', { name: '리안' })
   })
 
   it('별칭을 추가·삭제하고 별칭으로 검색한다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=char')
-    fireEvent.click((await screen.findAllByRole('button', { name: '카엘' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '카엘' }))[0])
     fireEvent.click(await screen.findByRole('button', { name: '＋ 별칭' }))
     fill('별칭', '탑의 기사')
     submit()
@@ -111,23 +111,23 @@ describe('집필실 사전 편집 (U38)', () => {
     fireEvent.submit(screen.getByRole('search'))
     await screen.findByRole('heading', { name: /검색 결과/ })
     const result = document.querySelector('.wmain .wlist') as HTMLElement
-    fireEvent.click(within(result).getByRole('button', { name: /카엘/ }))
+    fireEvent.click(within(result).getByRole('link', { name: /카엘/ }))
     fireEvent.click(await screen.findByRole('button', { name: '별칭 삭제' }))
     await waitFor(() => expect(screen.queryByText('탑의 기사')).toBeNull())
   })
 
   it('문서를 지우면 토스트가 뜨고 분류 목록으로 이동한다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=item')
-    fireEvent.click((await screen.findAllByRole('button', { name: '별빛 수정' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '별빛 수정' }))[0])
     fireEvent.click(await screen.findByRole('button', { name: '삭제' }))
     await toastIs('문서를 지웠어요 (소설은 그대로예요)')
     expect(document.getElementById('saved')!.className).not.toContain('saving')
     await waitFor(() => expect(where()).toBe('/studio/starlight?view=wiki&cat=item'))
-    await waitFor(() => expect(screen.queryByRole('button', { name: '별빛 수정' })).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('link', { name: '별빛 수정' })).toBeNull())
   })
   it('문서 시점을 고르면 주소의 ep와 표시 값이 바뀌고, 상태 이력에 등장이 먼저 나온다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=char')
-    fireEvent.click((await screen.findAllByRole('button', { name: '리안' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '리안' }))[0])
     await screen.findByText('상태 변화 이력')
     fireEvent.change(screen.getByLabelText('시점'), { target: { value: '2' } })
     await waitFor(() => expect(where()).toMatch(/&ep=2/))
@@ -140,7 +140,7 @@ describe('집필실 사전 편집 (U38)', () => {
   it('인물의 시점별 지식을 추가하고 확인 후 삭제한다', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderAt('/studio/starlight?view=wiki&cat=char')
-    fireEvent.click((await screen.findAllByRole('button', { name: '리안' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '리안' }))[0])
     await screen.findByText('등록된 지식이 없어요.')
     fireEvent.change(screen.getByLabelText('알게 된 사실'), { target: { value: '봉인은 별빛으로 열린다' } })
     fireEvent.change(screen.getByLabelText('인물이 아는 시작 회차'), { target: { value: '2' } })
@@ -154,7 +154,7 @@ describe('집필실 사전 편집 (U38)', () => {
 
   it('분류를 표로 보고 셀을 바로 고친다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=place')
-    fireEvent.click(await screen.findByRole('button', { name: '표' }))
+    fireEvent.click(await screen.findByRole('link', { name: '표' }))
     await screen.findByText('셀을 눌러 바로 수정해요.')
     expect(where()).toContain('ct=table')
     expect(screen.getByRole('columnheader', { name: '제목' })).toBeTruthy()
@@ -162,7 +162,7 @@ describe('집필실 사전 편집 (U38)', () => {
 
   it('대표 이미지 영역을 보여 준다', async () => {
     renderAt('/studio/starlight?view=wiki&cat=place')
-    fireEvent.click((await screen.findAllByRole('button', { name: '별빛 탑' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '별빛 탑' }))[0])
     await screen.findByText('클릭해 추가')
     expect(document.querySelector('input[type=file][accept="image/*"]')).toBeTruthy()
   })

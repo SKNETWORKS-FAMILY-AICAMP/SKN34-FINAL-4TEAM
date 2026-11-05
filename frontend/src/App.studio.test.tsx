@@ -26,12 +26,12 @@ describe('집필실 (U13·U14·U16·U17·U22)', () => {
   it('남의 소설은 쓸 수 없고 포크를 권한다', async () => {
     renderAt('/studio/guunmong')
     await screen.findByRole('heading', { name: '내 소설만 쓸 수 있어요' })
-    screen.getByRole('button', { name: '✎ 포크하기' })
+    screen.getByRole('link', { name: '✎ 포크하기' })
   })
 
   it('발행 회차는 수정 초안으로 열리고 수정 공개 전에는 원본이 그대로다', async () => {
     renderAt('/studio/starlight')
-    fireEvent.click(await screen.findByRole('button', { name: /^1화 .* 원고$/ }))
+    fireEvent.click(await screen.findByRole('link', { name: /^1화 .* 원고$/ }))
     await waitFor(() => expect(where()).toBe('/studio/starlight?ep=1'))
     await screen.findByText(/공개 원고를 복사한 수정 초안이에요/)
     const title = (screen.getByLabelText('회차 제목') as HTMLInputElement).value

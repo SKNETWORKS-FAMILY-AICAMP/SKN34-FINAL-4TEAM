@@ -33,6 +33,29 @@ describe('ReadingUseCase.getHome (목업 home())', () => {
     expect(home.filtered!.map((w) => w.id)).toEqual(['guunmong', 'gate', 'cloud', 'pardon'])
   })
 
+  it('필터의 포크 카드에 실제 공개 원작 제목과 기준 회차를 제공한다', async () => {
+    const { works, useCase } = fakes()
+    const home = await useCase.getHome(null, '🛰 SF')
+    for (const id of ['reply', 'postif']) {
+      const fork = works.find((w) => w.id === id)!
+      const parent = works.find((w) => w.id === fork.parent)!
+      expect(home.forkSources[id]).toEqual({ title: parent.title, episode: fork.forkAt })
+    }
+    expect(home.forkSources.postman).toBeUndefined()
+  })
+
+  it('원작을 확인할 수 없거나 기준 회차가 없으면 포크 출처를 지어내지 않는다', async () => {
+    const { works, useCase } = fakes()
+    works.find((w) => w.id === 'postman')!.private = true
+    works.find((w) => w.id === 'gate')!.forkAt = undefined
+    works.find((w) => w.id === 'crown')!.parent = 'missing'
+    const home = await useCase.getHome(null, '추천')
+    expect(home.forkSources.reply).toBeUndefined()
+    expect(home.forkSources.postif).toBeUndefined()
+    expect(home.forkSources.gate).toBeUndefined()
+    expect(home.forkSources.crown).toBeUndefined()
+  })
+
   it('숨긴 원작은 홈 원작 캐러셀과 급상승 목록에서 제외한다', async () => {
     const { works, useCase } = fakes()
     works.find((w) => w.id === 'starlight')!.hidden = true
