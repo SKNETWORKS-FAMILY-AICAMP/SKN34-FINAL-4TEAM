@@ -24,7 +24,7 @@ function generatedDescription(item:RelationInput,settings:StudioSetting[]) {
  return `${name(item.subjectId)} · ${label} · ${name(item.targetId)}`
 }
 export function editStudioSetting(settings:StudioSetting[],id:string,patch:Partial<SettingItem>,labels?:Partial<StudioSetting>) {
- const edited=settings.map(s=>s.item.id===id?{...authorEdit(s,patch),...labels}:s)
+ const edited=settings.map(s=>s.item.id===id?{...(Object.entries(patch).some(([key,value])=>JSON.stringify(s.item[key as keyof SettingItem])!==JSON.stringify(value))?authorEdit(s,patch):s),...labels}:s)
  return edited.map(row=>{
   const before=settings.find(s=>s.item.id===row.item.id)
   if(!before||before.item.kind!=='relation'||row.item.kind!=='relation')return row
