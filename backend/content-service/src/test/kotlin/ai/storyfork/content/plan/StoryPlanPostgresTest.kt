@@ -10,6 +10,8 @@ import ai.storyfork.content.world.service.dto.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -23,6 +25,38 @@ class StoryPlanPostgresTest {
     @Autowired lateinit var plans: StoryPlanService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var world: WorldService
+
+    @ParameterizedTest
+    @ValueSource(strings=["인물","장소"])
+    fun `reference lists can remove the first of three and swap survivors without losing data`(category: String) {
+        val owner="plan-reference-owner"
+        val work=works.create(owner,CreateWorkRequest("참조 선택 해제 회귀"))
+        var current=world.read(work.id,owner)
+        val ids=(1..3).map { index ->
+            val draft=world.saveDraft(work.id,"new",owner,SettingRequest(current.revision,
+                SettingPayload(name="$category $index",content="보존할 설정",category=category),current.sourceToken))
+            val id=draft.drafts.single().id
+            current=world.commit(work.id,id,owner,draft.revision)
+            id
+        }
+        val before=works.read(work.id,owner).draft
+        val plot=plans.create(work.id,owner,StoryPlanRequest("plot",title="참조 플롯"))
+        fun input(refs: List<String>, revision: Int = 0) = StoryPlanRequest("scene",plot.id,"참조 장면",
+            characterIds=if(category=="인물") refs else emptyList(),
+            placeIds=if(category=="장소") refs else emptyList(),revision=revision)
+        val scene=plans.create(work.id,owner,input(ids))
+        val shortened=plans.update(work.id,owner,scene.id,input(ids.drop(1),scene.revision))
+        val reordered=plans.update(work.id,owner,scene.id,input(ids.drop(1).reversed(),shortened.revision))
+        val stored=plans.read(work.id,owner,scene.id)
+        assertEquals(ids.drop(1).reversed(),if(category=="인물") stored.characterIds else stored.placeIds)
+        assertEquals(reordered,stored)
+        assertEquals(422,assertThrows(ContentFailure::class.java) {
+            plans.update(work.id,owner,scene.id,input(listOf(ids[1],ids[1]),stored.revision))
+        }.status)
+        assertEquals(stored,plans.read(work.id,owner,scene.id))
+        assertEquals(current,world.read(work.id,owner))
+        assertEquals(before,works.read(work.id,owner).draft)
+    }
 
     @Test fun `deleting a work also removes its active and logically deleted plans`() {
         val owner="plan-delete-owner"
