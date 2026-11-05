@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
-import { type AppNotification, type NotificationPage, noticeTarget } from '../../../../domain/entities/notification'
+import { type AppNotification, noticeTarget } from '../../../../domain/entities/notification'
 import type { NotificationPrefs } from '../../../../domain/repositories/NotificationRepository'
 import type { InboxAct, InboxUseCase } from '../../../../domain/usecases/InboxUseCase'
 import type { ShellUseCase } from '../../../../domain/usecases/ShellUseCase'
@@ -11,6 +11,7 @@ import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
+import { mergeFirstPage } from './mergeFirstPage'
 
 /** 목업 inbox(): U20 독자 피드백함 */
 export function useInboxViewModel(sel: string | null, inboxUseCase: InboxUseCase = appContainer.resolve('inboxUseCase')) {
@@ -35,17 +36,21 @@ export function useNotificationsViewModel(shellUseCase: ShellUseCase = appContai
   useScreenId('U42')
   const [state, setState] = useState<NotificationsState>({ status: 'loading', items: [], nextCursor: null, prefs: null, loadingMore: false, saving: false })
   const alive = useRef(0)
+  const controller = useRef<AbortController | null>(null)
   const changed = () => dispatch(sessionActions.dataChanged())
 
   const load = useCallback(() => {
     const id = ++alive.current
+    controller.current?.abort()
+    const request = new AbortController()
+    controller.current = request
     setState((s) => ({ ...s, status: 'loading' }))
-    Promise.all([shellUseCase.listNotifications(), shellUseCase.getPrefs()]).then(
+    Promise.all([shellUseCase.listNotifications(null, request.signal), shellUseCase.getPrefs(request.signal)]).then(
       ([page, prefs]) => { if (alive.current === id) setState({ status: 'ready', items: page.items, nextCursor: page.nextCursor, prefs, loadingMore: false, saving: false }) },
       () => { if (alive.current === id) setState((s) => ({ ...s, status: 'error' })) },
     )
   }, [shellUseCase])
-  useEffect(() => { load(); return () => { alive.current += 1 } }, [load])
+  useEffect(() => { load(); return () => { alive.current += 1; controller.current?.abort() } }, [load])
 
   /** SSE 변경 신호: 화면을 비우지 않고 첫 페이지만 다시 받아 합칩니다. 실패하면 조용히 두고 다음 신호·재시도에 맡깁니다. */
   const { noticeVersion, noticeStream } = useAppSelector((s) => s.session)
@@ -54,8 +59,8 @@ export function useNotificationsViewModel(shellUseCase: ShellUseCase = appContai
     if (seenVersion.current === noticeVersion) return
     seenVersion.current = noticeVersion
     const id = alive.current
-    shellUseCase.listNotifications().then(
-      (page) => { if (alive.current === id) setState((s) => (s.status === 'ready' ? mergeFirstPage(s, page) : s)) },
+    shellUseCase.listNotifications(null, controller.current?.signal).then(
+      (page) => { if (alive.current === id) setState((s) => (s.status === 'ready' ? { ...s, ...mergeFirstPage(s, page) } : s)) },
       () => {},
     )
   }, [noticeVersion, shellUseCase])
@@ -73,16 +78,19 @@ export function useNotificationsViewModel(shellUseCase: ShellUseCase = appContai
       const id = alive.current
       setState((s) => ({ ...s, loadingMore: true }))
       try {
-        const page = await shellUseCase.listNotifications(state.nextCursor)
+        const page = await shellUseCase.listNotifications(state.nextCursor, controller.current?.signal)
         if (alive.current === id) setState((s) => ({ ...s, items: [...s.items, ...page.items.filter((n) => !s.items.some((o) => o.id === n.id))], nextCursor: page.nextCursor, loadingMore: false }))
       } catch { if (alive.current === id) { setState((s) => ({ ...s, loadingMore: false })); toast('알림을 더 불러오지 못했어요. 다시 시도해 주세요.') } }
     },
-    /** 화면에 보이는 가장 최신 알림 시각까지만 읽음 처리해, 그 뒤 도착한 알림은 미읽음으로 남깁니다. */
+    /**
+     * 목록은 서버가 최신순으로 주므로 첫 알림이 화면에서 가장 최신입니다. 그 시각(서버가 준 문자열 그대로)을 upTo로 보내
+     * 화면에 보이는 알림은 모두 읽음이 되고, 그 뒤 도착한 알림은 미읽음으로 남습니다. 시각 문자열을 직접 비교하지 않습니다.
+     */
     markAll: async () => {
-      const upTo = state.items.reduce((m, n) => (n.createdAt > m ? n.createdAt : m), '')
+      const upTo = state.items[0]?.createdAt
       if (!upTo) return
       if (!await run(() => shellUseCase.markAllRead(upTo), '모두 읽음 처리하지 못했어요. 다시 시도해 주세요.')) return
-      setState((s) => ({ ...s, items: s.items.map((n) => (n.createdAt <= upTo ? { ...n, read: true } : n)) }))
+      setState((s) => ({ ...s, items: s.items.map((n) => ({ ...n, read: true })) }))
       changed()
     },
     open: async (n: AppNotification) => {
@@ -117,12 +125,4 @@ type NotificationsState = {
   prefs: NotificationPrefs | null
   loadingMore: boolean
   saving: boolean
-}
-
-/** 새로 받은 첫 페이지로 앞부분을 갱신하고(다른 곳에서 삭제·읽음 반영), 이미 불러온 더 오래된 알림은 유지합니다. */
-function mergeFirstPage(s: NotificationsState, page: NotificationPage): NotificationsState {
-  if (!page.nextCursor) return { ...s, items: page.items, nextCursor: null }
-  const oldest = page.items[page.items.length - 1]?.createdAt ?? ''
-  const older = s.items.filter((o) => o.createdAt <= oldest && !page.items.some((p) => p.id === o.id))
-  return { ...s, items: [...page.items, ...older], nextCursor: older.length ? s.nextCursor : page.nextCursor }
 }

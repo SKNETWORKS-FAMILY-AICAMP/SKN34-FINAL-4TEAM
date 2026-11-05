@@ -2,8 +2,11 @@ package ai.storyfork.core.notification.service
 
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import org.springframework.beans.factory.DisposableBean
 import org.springframework.stereotype.Component
@@ -14,6 +17,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
  *
  * 신호는 "알림 목록·미읽음 수를 다시 조회하라"는 뜻일 뿐 알림 내용·읽음 상태를 담지 않는다.
  * 알림 정본은 DB이므로 신호가 유실되거나 연결이 끊겨도 재연결 뒤 재조회로 복구되며, 신호 유실 때문에 알림을 다시 만들지 않는다.
+ * 전송은 알림 저장 흐름·하트비트 스레드와 분리된 작은 전용 스레드 풀에서 하므로 느린 연결이 알림 생성(afterCommit)이나
+ * 다른 회원의 신호를 지연시키지 않는다. 대기열이 가득 차 신호를 보낼 수 없으면 그 연결을 닫아, 클라이언트가 재연결하며 재조회하게 한다.
  * 연결 목록은 이 Core 인스턴스의 메모리에만 있다(단일 Core 전제). 여러 Core 인스턴스로 늘리면 다른 인스턴스에 연결된
  * 회원에게는 신호가 가지 않으므로, 그때는 인스턴스 간 전달(예: 브로커 fan-out)을 추가해야 한다.
  */
@@ -21,6 +26,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 class NoticeStream : DisposableBean {
     private val subscribers = ConcurrentHashMap<UUID, CopyOnWriteArrayList<SseEmitter>>()
     private val heartbeat = Executors.newSingleThreadScheduledExecutor { Thread(it, "notice-stream-heartbeat").apply { isDaemon = true } }
+    private val sender = ThreadPoolExecutor(
+        SENDER_THREADS, SENDER_THREADS, 30, TimeUnit.SECONDS, ArrayBlockingQueue(SENDER_QUEUE),
+        { Thread(it, "notice-stream-sender").apply { isDaemon = true } },
+    ).apply { allowCoreThreadTimeOut(true) }
 
     init {
         heartbeat.scheduleWithFixedDelay({ ping() }, HEARTBEAT_SECONDS, HEARTBEAT_SECONDS, TimeUnit.SECONDS)
@@ -41,27 +50,41 @@ class NoticeStream : DisposableBean {
         }
         evicted.forEach { runCatching { it.complete() } }
         // 연결 직후와 재연결 직후에 한 번 보내, 끊겨 있던 동안 놓친 변경을 클라이언트가 다시 조회하게 한다.
-        send(memberId, emitter, SseEmitter.event().name(READY_EVENT).data("ok"))
+        dispatch(memberId, emitter, SseEmitter.event().name(READY_EVENT).data("ok"))
         return emitter
     }
 
     /** 본인의 열린 연결로 "변경됨" 신호를 보낸다. 연결이 없으면 아무 일도 하지 않는다. */
     fun notifyChanged(memberId: UUID) {
-        subscribers[memberId]?.forEach { send(memberId, it, SseEmitter.event().name(CHANGED_EVENT).data("1")) }
+        subscribers[memberId]?.forEach { dispatch(memberId, it, SseEmitter.event().name(CHANGED_EVENT).data("1")) }
     }
 
     /** 프록시·브라우저가 유휴 연결을 끊지 않도록 주기적으로 주석 줄을 보낸다. 끊긴 연결은 이때 정리된다. */
     private fun ping() {
-        subscribers.forEach { (memberId, list) -> list.forEach { send(memberId, it, SseEmitter.event().comment("ping")) } }
+        subscribers.forEach { (memberId, list) -> list.forEach { dispatch(memberId, it, SseEmitter.event().comment("ping")) } }
     }
 
-    private fun send(memberId: UUID, emitter: SseEmitter, event: SseEmitter.SseEventBuilder) {
+    /** 전송을 전용 스레드 풀에 맡긴다. 대기열이 가득 차면 이 연결을 닫아 클라이언트가 재연결·재조회하게 한다. */
+    private fun dispatch(memberId: UUID, emitter: SseEmitter, event: SseEmitter.SseEventBuilder) {
+        try {
+            sender.execute { deliver(memberId, emitter, event) }
+        } catch (_: RejectedExecutionException) {
+            drop(memberId, emitter)
+        }
+    }
+
+    private fun deliver(memberId: UUID, emitter: SseEmitter, event: SseEmitter.SseEventBuilder) {
+        if (subscribers[memberId]?.contains(emitter) != true) return // 대기 중 이미 닫힌 연결
         try {
             emitter.send(event)
         } catch (_: Exception) {
-            remove(memberId, emitter)
-            runCatching { emitter.complete() }
+            drop(memberId, emitter)
         }
+    }
+
+    private fun drop(memberId: UUID, emitter: SseEmitter) {
+        remove(memberId, emitter)
+        runCatching { emitter.complete() }
     }
 
     private fun remove(memberId: UUID, emitter: SseEmitter) {
@@ -73,6 +96,7 @@ class NoticeStream : DisposableBean {
 
     override fun destroy() {
         heartbeat.shutdownNow()
+        sender.shutdownNow()
         subscribers.values.flatten().forEach { runCatching { it.complete() } }
         subscribers.clear()
     }
@@ -84,5 +108,7 @@ class NoticeStream : DisposableBean {
         const val MAX_LIFETIME_MILLIS = 10 * 60 * 1000L
         const val HEARTBEAT_SECONDS = 20L
         const val MAX_CONNECTIONS_PER_MEMBER = 5
+        const val SENDER_THREADS = 4
+        const val SENDER_QUEUE = 1000
     }
 }

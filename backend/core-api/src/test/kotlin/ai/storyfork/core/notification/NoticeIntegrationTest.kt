@@ -14,6 +14,7 @@ import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -54,15 +55,26 @@ class NoticeIntegrationTest {
         mvc.perform(get("/api/v1/me/notification-preferences")).andExpect(status().isUnauthorized())
     }
 
+    /** 전송은 별도 스레드에서 비동기로 일어나므로 응답 본문에 기대한 이벤트 수가 나타날 때까지 잠시 기다린다. */
+    private fun awaitEvents(result: MvcResult, event: String, count: Int) {
+        val deadline = System.currentTimeMillis() + 5000
+        while (System.currentTimeMillis() < deadline) {
+            if (Regex(event).findAll(result.response.contentAsString).count() >= count) return
+            Thread.sleep(20)
+        }
+        throw AssertionError("expected $count x $event but got: ${result.response.contentAsString}")
+    }
+
     @Test
     fun `stream signals only its owner and only after a notice is saved`() {
         val me = member(); val other = member(); val auth = bearer(me)
         val opened = mvc.perform(get("/api/v1/me/notifications/stream").header("Authorization", auth).accept(MediaType.TEXT_EVENT_STREAM))
             .andExpect(request().asyncStarted()).andReturn()
-        assertTrue(opened.response.contentAsString.contains("event:ready"))
+        awaitEvents(opened, "event:ready", 1)
         add(other, "not mine")
-        assertFalse(opened.response.contentAsString.contains("event:changed"))
         add(me, "mine")
+        awaitEvents(opened, "event:changed", 1)
+        Thread.sleep(300) // 다른 회원의 알림이 늦게 섞여 들어오지 않는지 확인할 여유
         assertEquals(1, Regex("event:changed").findAll(opened.response.contentAsString).count())
         mvc.perform(get("/api/v1/me/notifications/stream").accept(MediaType.TEXT_EVENT_STREAM)).andExpect(status().isUnauthorized())
     }

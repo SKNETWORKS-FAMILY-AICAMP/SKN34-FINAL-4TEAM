@@ -61,6 +61,28 @@ describe('알림함 (U42)', () => {
     expect(screen.getByRole('button', { name: '모두 읽음' })).toHaveProperty('disabled', true)
   })
 
+  it('모두 읽음은 시각 문자열을 비교하지 않고 서버가 준 가장 최신 알림의 시각을 그대로 보낸다', async () => {
+    // 소수부 자릿수가 달라도(.500123Z가 .5Z보다 늦다) 첫(최신) 알림의 값을 쓴다.
+    const b = backend([notice('a', { createdAt: '2026-11-05T03:00:00.500123Z' }), notice('b', { createdAt: '2026-11-05T03:00:00.5Z' })])
+    // 서버는 upTo 이전(포함) 알림을 모두 읽음으로 바꿉니다(여기서는 둘 다 해당).
+    b.readAll.mockImplementation(async () => { b.state.items = b.state.items.map((n) => ({ ...n, read: true })) })
+    renderAt('/notifications')
+    await screen.findByRole('button', { name: '알림함, 읽지 않은 알림 2건' })
+    fireEvent.click(screen.getByRole('button', { name: '모두 읽음' }))
+    await waitFor(() => expect(b.readAll).toHaveBeenCalledWith('2026-11-05T03:00:00.500123Z'))
+    await screen.findByRole('button', { name: '알림함' })
+  })
+
+  it('화면을 떠나면 진행 중인 조회 요청을 취소한다', async () => {
+    const b = backend([notice('a')])
+    renderAt('/notifications')
+    await screen.findByText('알림 a')
+    const signal = b.list.mock.calls[0][1] as AbortSignal
+    expect(signal.aborted).toBe(false)
+    cleanup()
+    expect(signal.aborted).toBe(true)
+  })
+
   it('알림을 누르면 읽음 처리하고 대상 화면으로 간다', async () => {
     const b = backend([notice('a')])
     renderAt('/notifications')
