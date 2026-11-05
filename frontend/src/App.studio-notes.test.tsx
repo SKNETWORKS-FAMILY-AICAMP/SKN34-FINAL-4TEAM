@@ -27,6 +27,12 @@ const renderAt = async (path: string) => {
   // 세션 복원이 lazy import를 시작하게 한 뒤, findBy의 기본 제한과 별개로 모듈을 기다린다.
   await act(async () => { view = render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={[path]}><App /></MemoryRouter></Provider>) })
   await act(async () => { await vi.dynamicImportSettled() })
+  await waitFor(() => {
+    expect(screen.queryByText('화면을 불러오고 있어요.')).toBeNull()
+    if (path.startsWith('/studio/')) screen.getByRole('button', { name: '집필 설정' })
+    else if (path.startsWith('/read/')) screen.getByRole('button', { name: '보기 설정' })
+    else screen.getByRole('heading', { name: '내 서재' })
+  })
   return view
 }
 const box = (name: string) => screen.findByLabelText(name) as Promise<HTMLInputElement>
@@ -48,11 +54,14 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
     try {
       await act(async () => { pending = Promise.resolve(renderAt('/studio/starlight?panel=settings')).then(onReady) })
       await studioRequested
+      // import 대기가 끝나도 실제 Studio를 막은 동안에는 helper가 준비 완료되면 안 된다.
+      await act(async () => { await vi.dynamicImportSettled() })
       expect(screen.getByText('화면을 불러오고 있어요.')).toHaveProperty('role', 'status')
       expect(onReady).not.toHaveBeenCalled()
     } finally {
       releaseStudio()
-      await act(async () => { await pending; await vi.dynamicImportSettled() })
+      await pending
+      await act(async () => { await vi.dynamicImportSettled() })
     }
     fireEvent.click(await box('새 회차 발행 후 세계관 자동 업데이트'))
     await toastIs('작가 소유 세계관이 필요해요')
