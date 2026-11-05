@@ -132,3 +132,31 @@ it('exposes exploration shortcuts and renders the character view through the 2D 
  fireEvent.click(screen.getByRole('button',{name:'작성으로 돌아가기'}))
  expect(screen.getByRole('navigation',{name:'세계관 작성 단계'})).toBeTruthy()
 })
+
+
+it('marks exactly one writing step active when switching between cards and relationships',async()=>{
+ await show()
+ const nav=screen.getByRole('navigation',{name:'세계관 작성 단계'})
+ for(const label of ['설정 카드','관계 연결 (선택)','설정 카드']){
+  fireEvent.click(within(nav).getByRole('button',{name:label}))
+  expect(within(nav).getAllByRole('button').filter(button=>button.getAttribute('aria-current')==='step')).toEqual([within(nav).getByRole('button',{name:label})])
+ }
+})
+
+it('rejects a duplicate relationship edited in the general form without losing either original id',async()=>{
+ const b=newSetting('people');b.item.title='나래'
+ world.settings=putRelation([...world.settings,b],{subjectId:world.settings[0].item.id,targetId:b.item.id,predicate:'custom_relation',text:'동료',polarity:'asserted'})
+ world.settings=putRelation(world.settings,{subjectId:world.settings[0].item.id,targetId:b.item.id,predicate:'custom_relation',text:'경쟁자',polarity:'asserted'})
+ const ids=world.settings.map(s=>s.item.id)
+ await show();fireEvent.click(screen.getByRole('button',{name:'설정 카드'}))
+ fireEvent.click(screen.getByText('기존 설정·관계 2개'))
+ fireEvent.click(within(screen.getByRole('navigation',{name:'기존 설정과 관계'})).getByRole('button',{name:/경쟁자/}))
+ fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'동료'}})
+ fireEvent.click(screen.getByRole('button',{name:'관계 없이 검토·저장'}))
+ fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
+ expect((await screen.findByRole('alert')).textContent).toContain('이미')
+ expect(repository.saveStudio).not.toHaveBeenCalled()
+ expect(world.settings.map(s=>s.item.id)).toEqual(ids)
+ fireEvent.click(screen.getByRole('button',{name:'설정 카드'}))
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('동료')
+})
