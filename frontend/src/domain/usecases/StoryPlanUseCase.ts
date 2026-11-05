@@ -7,6 +7,10 @@ export class StoryPlanUseCase {
   list(workId: string, signal?: AbortSignal) { return this.repository.list(workId, signal) }
   read(workId: string, id: string, signal?: AbortSignal) { return this.repository.read(workId, id, signal) }
   references(workId: string, signal?: AbortSignal) { return this.repository.references(workId, signal) }
+  async reviewDeletion(workId: string, id: string, signal?: AbortSignal) {
+    const plans = await this.repository.list(workId, signal)
+    return { plans, target: plans.find(plan => plan.id === id) ?? null }
+  }
   async save(workId: string, value: PlanInput, previous?: StoryPlan, signal?: AbortSignal) {
     validatePlan(value)
     return this.repository.save(workId, { ...value, title: value.title.trim() }, previous, signal)

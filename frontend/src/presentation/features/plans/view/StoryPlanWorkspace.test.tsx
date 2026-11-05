@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -18,7 +18,132 @@ function setup() {
   render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><StoryPlanWorkspace workId={work.id} demo api={api} /></MemoryRouter></Provider>)
   return { api, work }
 }
+
+async function setupDeletion(sceneCount = 1, demo = true) {
+  const db = createMockDb()
+  const work = db.works.find(w => w.id === 'starlight')!
+  work.owner = 'me'
+  const api = new StoryPlanUseCase(new InMemoryStoryPlanRepository(new InMemoryWorkRepository(db)))
+  const input = { kind: 'plot' as const, parentId: null, title: '삭제 검증 플롯', content: '', episodeNumber: null, characterIds: [], placeIds: [] }
+  const plot = await api.save(work.id, input)
+  const scenes = []
+  for (let i = 0; i < sceneCount; i++) scenes.push(await api.save(work.id, { ...input, kind: 'scene', parentId: plot.id, title: `장면 ${i + 1}` }))
+  render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><StoryPlanWorkspace workId={work.id} demo={demo} api={api} /></MemoryRouter></Provider>)
+  await waitFor(() => expect(screen.getByRole('button', { name: '플롯 삭제' })).toHaveProperty('disabled', false))
+  return { api, work, plot, scenes }
+}
+
+function askSceneDelete(index = 0) {
+  const opener = screen.getAllByRole('button', { name: '장면 계획 삭제' })[index]
+  opener.focus()
+  fireEvent.click(opener)
+  return { opener, dialog: within(screen.getByRole('dialog', { name: '계획 삭제 확인' })) }
+}
+
 describe('계획 화면 · CI 통합', () => {
+  it.each([true, false])('demo=%s에서 삭제 충돌 후 최신 내용을 재확인하고 명시적으로 다시 삭제한다', async demo => {
+    const { api, work, scenes } = await setupDeletion(1, demo)
+    const fresh = await api.save(work.id, { ...scenes[0], title: '다른 탭의 제목', content: '삭제 전 확인할 최신 내용' }, scenes[0])
+    const remove = vi.spyOn(api, 'remove')
+    const { opener, dialog } = askSceneDelete()
+    fireEvent.click(dialog.getByRole('button', { name: '삭제' }))
+    await waitFor(() => expect(dialog.getByRole('button', { name: '삭제' })).toHaveProperty('disabled', true))
+    expect(await dialog.findByRole('alert')).toBeTruthy()
+    fireEvent.click(dialog.getByRole('button', { name: '취소' }))
+    await waitFor(() => expect(document.activeElement).toBe(opener))
+    const reopened = askSceneDelete().dialog
+    expect(reopened.getByRole('button', { name: '삭제' })).toHaveProperty('disabled', true)
+    fireEvent.click(reopened.getByRole('button', { name: '최신 목록 확인' }))
+    await reopened.findByText('다른 탭의 제목')
+    expect(reopened.getByText('삭제 전 확인할 최신 내용')).toBeTruthy()
+    expect(remove).toHaveBeenCalledTimes(1)
+    expect(await api.read(work.id, fresh.id)).toEqual(fresh)
+    await waitFor(() => expect(reopened.getByRole('button', { name: '삭제' })).toHaveProperty('disabled', false))
+    fireEvent.click(reopened.getByRole('button', { name: '삭제' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(remove).toHaveBeenLastCalledWith(work.id, fresh, expect.any(AbortSignal))
+    expect(await api.list(work.id)).toHaveLength(1)
+  })
+
+  it('다른 탭에서 이미 삭제된 대상은 재조회 후 닫고 추가 버튼으로 포커스를 복구한다', async () => {
+    const { api, work, scenes } = await setupDeletion()
+    await api.remove(work.id, scenes[0])
+    const remove = vi.spyOn(api, 'remove')
+    const { dialog } = askSceneDelete()
+    fireEvent.click(dialog.getByRole('button', { name: '삭제' }))
+    await dialog.findByRole('alert')
+    fireEvent.click(dialog.getByRole('button', { name: '최신 목록 확인' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(await screen.findByText('최신 목록에서 해당 계획을 찾을 수 없어요.')).toBeTruthy()
+    expect(remove).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '장면 계획 추가' })))
+  })
+
+  it('최신 목록 조회 실패를 삭제로 처리하지 않고 재시도와 중복 요청 차단을 유지한다', async () => {
+    const { api, work, scenes } = await setupDeletion()
+    await api.save(work.id, { ...scenes[0], title: '최신 장면' }, scenes[0])
+    const remove = vi.spyOn(api, 'remove')
+    const { dialog } = askSceneDelete()
+    fireEvent.click(dialog.getByRole('button', { name: '삭제' }))
+    await dialog.findByRole('alert')
+    vi.spyOn(api, 'list').mockRejectedValueOnce(new Error('최신 목록 조회 실패'))
+    fireEvent.click(dialog.getByRole('button', { name: '최신 목록 확인' }))
+    expect(await dialog.findByText('최신 목록 조회 실패')).toBeTruthy()
+    expect(dialog.getByRole('button', { name: '삭제' })).toHaveProperty('disabled', true)
+    const reviewed = await api.reviewDeletion(work.id, scenes[0].id)
+    let finish!: (value: typeof reviewed) => void
+    const review = vi.spyOn(api, 'reviewDeletion').mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+    fireEvent.click(dialog.getByRole('button', { name: '최신 목록 확인' }))
+    fireEvent.click(dialog.getByRole('button', { name: '최신 목록 확인' }))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(review).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    expect(remove).toHaveBeenCalledTimes(1)
+    await act(async () => finish(reviewed))
+    expect(dialog.getByText('최신 장면')).toBeTruthy()
+    expect(dialog.getByRole('button', { name: '삭제' })).toHaveProperty('disabled', false)
+    expect(remove).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    { count: 3, index: 1, next: '장면 3' },
+    { count: 3, index: 2, next: '장면 2' },
+    { count: 1, index: 0, next: '장면 계획 추가' },
+  ])('장면 $index 삭제 후 $next에 키보드 포커스를 둔다', async ({ count, index, next }) => {
+    await setupDeletion(count)
+    fireEvent.click(askSceneDelete(index).dialog.getByRole('button', { name: '삭제' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: new RegExp(next) })))
+  })
+
+  it('마지막 플롯 삭제 후 플롯 추가로 복귀하고 취소 시에는 원래 버튼으로 복귀한다', async () => {
+    await setupDeletion(0)
+    const opener = screen.getByRole('button', { name: '플롯 삭제' })
+    opener.focus()
+    fireEvent.click(opener)
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '취소' }))
+    await waitFor(() => expect(document.activeElement).toBe(opener))
+    fireEvent.click(opener)
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '삭제' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '플롯 추가' })))
+  })
+
+  it('삭제 응답을 기다리는 동안 사용자가 옮긴 유효한 포커스를 빼앗지 않는다', async () => {
+    const { api } = await setupDeletion()
+    let finish!: () => void
+    vi.spyOn(api, 'remove').mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+    fireEvent.click(askSceneDelete().dialog.getByRole('button', { name: '삭제' }))
+    const outside = document.createElement('button')
+    document.body.append(outside)
+    try {
+      outside.focus()
+      await act(async () => finish())
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(document.activeElement).toBe(outside)
+    } finally { outside.remove() }
+  })
+
   it('본문 입력 이름과 글자 수 안내를 분리한다', async () => {
     setup()
     await waitFor(() => expect(screen.getByRole('button', { name: '플롯 추가' })).toHaveProperty('disabled', false))
