@@ -37,6 +37,8 @@ export function useNotificationsViewModel(shellUseCase: ShellUseCase = appContai
   const [state, setState] = useState<NotificationsState>({ status: 'loading', items: [], nextCursor: null, prefs: null, loadingMore: false, saving: false })
   const alive = useRef(0)
   const controller = useRef<AbortController | null>(null)
+  /** SSE 재조회 요청 순번. 더 새로운 요청이 있으면 늦게 도착한 이전 응답은 버립니다. */
+  const refreshSeq = useRef(0)
   const changed = () => dispatch(sessionActions.dataChanged())
 
   const load = useCallback(() => {
@@ -59,8 +61,9 @@ export function useNotificationsViewModel(shellUseCase: ShellUseCase = appContai
     if (seenVersion.current === noticeVersion) return
     seenVersion.current = noticeVersion
     const id = alive.current
+    const seq = ++refreshSeq.current
     shellUseCase.listNotifications(null, controller.current?.signal).then(
-      (page) => { if (alive.current === id) setState((s) => (s.status === 'ready' ? { ...s, ...mergeFirstPage(s, page) } : s)) },
+      (page) => { if (alive.current === id && refreshSeq.current === seq) setState((s) => (s.status === 'ready' ? { ...s, ...mergeFirstPage(s, page) } : s)) },
       () => {},
     )
   }, [noticeVersion, shellUseCase])
@@ -74,23 +77,27 @@ export function useNotificationsViewModel(shellUseCase: ShellUseCase = appContai
     live: noticeStream,
     retry: load,
     loadMore: async () => {
-      if (!state.nextCursor || state.loadingMore) return
+      const cursor = state.nextCursor
+      if (!cursor || state.loadingMore) return
       const id = alive.current
       setState((s) => ({ ...s, loadingMore: true }))
       try {
-        const page = await shellUseCase.listNotifications(state.nextCursor, controller.current?.signal)
-        if (alive.current === id) setState((s) => ({ ...s, items: [...s.items, ...page.items.filter((n) => !s.items.some((o) => o.id === n.id))], nextCursor: page.nextCursor, loadingMore: false }))
+        const page = await shellUseCase.listNotifications(cursor, controller.current?.signal)
+        // SSE로 목록 기준(cursor)이 바뀌었으면 이전 기준의 응답은 버립니다. 이어 붙이면 사이 알림을 영영 놓칩니다.
+        if (alive.current === id) setState((s) => (s.nextCursor !== cursor ? { ...s, loadingMore: false } : { ...s, items: [...s.items, ...page.items.filter((n) => !s.items.some((o) => o.id === n.id))], nextCursor: page.nextCursor, loadingMore: false }))
       } catch { if (alive.current === id) { setState((s) => ({ ...s, loadingMore: false })); toast('알림을 더 불러오지 못했어요. 다시 시도해 주세요.') } }
     },
     /**
      * 목록은 서버가 최신순으로 주므로 첫 알림이 화면에서 가장 최신입니다. 그 시각(서버가 준 문자열 그대로)을 upTo로 보내
      * 화면에 보이는 알림은 모두 읽음이 되고, 그 뒤 도착한 알림은 미읽음으로 남습니다. 시각 문자열을 직접 비교하지 않습니다.
+     * 응답이 늦어지는 사이 SSE로 들어온 알림도 미읽음으로 남도록, 요청 시점에 화면에 있던 id만 읽음으로 바꿉니다.
      */
     markAll: async () => {
       const upTo = state.items[0]?.createdAt
       if (!upTo) return
+      const requested = new Set(state.items.map((n) => n.id))
       if (!await run(() => shellUseCase.markAllRead(upTo), '모두 읽음 처리하지 못했어요. 다시 시도해 주세요.')) return
-      setState((s) => ({ ...s, items: s.items.map((n) => ({ ...n, read: true })) }))
+      setState((s) => ({ ...s, items: s.items.map((n) => (requested.has(n.id) ? { ...n, read: true } : n)) }))
       changed()
     },
     open: async (n: AppNotification) => {
