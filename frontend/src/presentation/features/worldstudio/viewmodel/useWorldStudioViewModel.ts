@@ -1,6 +1,6 @@
 import {cardLibraryRows,worldWritingIssues} from '../../../../domain/entities/worldStudioWriting'
 import {initialWorldStudioFlow,worldStudioFlow,type StudioStep} from './worldStudioFlow'
-import {applyRelationChanges,editStudioSetting,personDeletionInfo,removePerson,type RelationInput} from '../../../../domain/entities/studioRelations'
+import {applyRelationChanges,assertNoNewRelationDuplicates,editStudioSetting,personDeletionInfo,removePerson,type RelationInput} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,areaPatch,type CardType} from '../../../../domain/entities/studioCards'
 import { useContext, useEffect, useReducer, useRef, useState } from 'react'
 import { WorldStudioLeaveContext } from './worldStudioLeaveGuard'
@@ -21,6 +21,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const [newCardType,setNewCardType]=useState<CardType>('character')
  const [cardDetail,setCardDetail]=useState(false)
  const [relationWorld,setRelationWorld]=useState('')
+ const [relationKey,setRelationKey]=useState(0)
  const returnCard=useRef('')
  const [saveState,setSaveState]=useState<'idle'|'saving'|'failed'>('idle')
  const [worlds,setWorlds]=useState<StudioWorld[]>([])
@@ -28,11 +29,13 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const [editing,setEditing]=useState<StudioWorld|null>(null)
  const [personUndo,setPersonUndo]=useState<{worldId:string;id:string;before:StudioSetting[];after:StudioSetting[];wasDirty:boolean}|null>(null)
  const [dirty,setDirty]=useState(false)
+ const [relationDirty,setRelationDirty]=useState(false)
  const [selected,setSelected]=useState('')
  const [error,setError]=useState('')
  const [message,setMessage]=useState('')
  const [busy,setBusy]=useState(false)
  useEffect(()=>{leaveGuard?.setDirty(dirty);return ()=>leaveGuard?.setDirty(false)},[dirty,leaveGuard])
+ useEffect(()=>{leaveGuard?.setRelationDirty(relationDirty);return ()=>leaveGuard?.setRelationDirty(false)},[relationDirty,leaveGuard])
  const editingId=editing?.id
  useEffect(()=>{
   if(editingId)dispatchFlow({type:'open'})
@@ -52,7 +55,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   }).catch(e=>{if(generation.current===current && !controller.signal.aborted)setError(e instanceof Error?e.message:'세계관을 읽지 못했습니다.')}).finally(()=>{if(generation.current===current)setBusy(false)})
   return ()=>{controller.abort();generation.current=current+1}
  },[useCase,worldId])
- useEffect(()=>{if(!dirty)return;const warn=(e:BeforeUnloadEvent)=>e.preventDefault();window.addEventListener('beforeunload',warn);return ()=>window.removeEventListener('beforeunload',warn)},[dirty])
+ useEffect(()=>{if(!dirty&&!relationDirty)return;const warn=(e:BeforeUnloadEvent)=>e.preventDefault();window.addEventListener('beforeunload',warn);return ()=>window.removeEventListener('beforeunload',warn)},[dirty,relationDirty])
  const perform=async(action:()=>Promise<void>)=>{
   if(pending.current)return
   pending.current=true;const current=generation.current;setBusy(true);setError('');setMessage('')
@@ -64,16 +67,17 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   if(!editing||busy)return
   try {const settings=change(editing.settings);if(settings!==editing.settings)patch({settings});setError('');return settings} catch(e) {setError(e instanceof Error?e.message:'관계를 변경하지 못했습니다.')}
  }
- return {canUndoPersonDeletion:!!personUndo,flow,tool,setTool,explore,setExplore,cardFilter,setCardFilter,cardQuery,setCardQuery,newCardType,setNewCardType,cardDetail,setCardDetail,relationWorld,goStep,editCard,saveState,
+ return {canUndoPersonDeletion:!!personUndo,flow,tool,setTool,explore,setExplore,cardFilter,setCardFilter,cardQuery,setCardQuery,newCardType,setNewCardType,cardDetail,setCardDetail,relationWorld,relationKey,goStep,editCard,saveState,
   showList:()=>dispatchFlow({type:'list'}),resume:()=>dispatchFlow({type:'resume'}),
   openRelations:(id:string)=>{returnCard.current=id;setSelected(id);goStep('relations')},
   returnToCard:()=>{if(returnCard.current)setSelected(returnCard.current);setCardDetail(true);goStep('cards')},
   cardRows:cardLibraryRows(editing?.settings??[],cardFilter,cardQuery),writingIssues:editing?worldWritingIssues(editing):[],
-  worlds,saved,editing,dirty,selected,setSelected,error,message,busy,
-  create:(name:string,description:string)=>perform(async()=>{if(leaveGuard?!leaveGuard.confirmBeforeAction():dirty&&!window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?'))return;const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current){leaveGuard?.allowNextNavigation();navigate('/worldstudio/'+w.id)}}),
-  open:(id:string)=>{if(leaveGuard?!leaveGuard.confirmBeforeAction():dirty&&!window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){leaveGuard?.allowNextNavigation();navigate('/worldstudio/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
+  worlds,saved,editing,dirty,relationDirty,setRelationDirty,selected,setSelected,error,message,busy,
+  confirmRelationDiscard:()=>leaveGuard?leaveGuard.confirmRelationDiscard():!relationDirty||window.confirm('적용하지 않은 관계 입력을 버릴까요?'),
+  create:(name:string,description:string)=>perform(async()=>{if(leaveGuard?!leaveGuard.confirmBeforeAction():(dirty||relationDirty)&&!window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?'))return;const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current){leaveGuard?.allowNextNavigation();navigate('/worldstudio/'+w.id)}}),
+  open:(id:string)=>{if(leaveGuard?!leaveGuard.confirmBeforeAction():(dirty||relationDirty)&&!window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){leaveGuard?.allowNextNavigation();navigate('/worldstudio/'+id);return};return perform(async()=>{const current=generation.current;const world=await useCase.read(id);if(generation.current===current){setRelationKey(key=>key+1);setRelationDirty(false);apply(world,current)}})},
   patch,
-  applyRelations:(changes:RelationInput[],removed:string[])=>!!changeRelations(settings=>applyRelationChanges(settings,changes,removed)),
+  applyRelations:(changes:RelationInput[],removed:string[])=>!!changeRelations(settings=>applyRelationChanges(settings,changes,removed,saved?.settings)),
   personDeletionInfo:(id:string)=>personDeletionInfo(editing?.settings??[],id),
   deletePerson:(id:string)=>{if(!editing)return false;const before=editing.settings;const after=changeRelations(settings=>removePerson(settings,id));if(!after)return false;setPersonUndo({worldId:editing.id,id,before,after,wasDirty:dirty});return true},
   undoPersonDeletion:()=>{if(!editing||!personUndo||busy||editing.id!==personUndo.worldId||editing.settings!==personUndo.after)return;const id=personUndo.id;patch({settings:personUndo.before});setDirty(personUndo.wasDirty);setSelected(id);return id},
@@ -81,6 +85,6 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   changeCardType:(id:string,type:CardType)=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;setSelected(id);try{const change=cardTypePatch(row.item,type,editing.settings);if(Object.keys(change).length)patch({settings:editStudioSetting(editing.settings,id,change)});setError('')}catch(e){setError(e instanceof Error?e.message:'유형을 바꾸지 못했습니다.')}},
   changeArea:(id:string,category:SettingItem['category'])=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;try{const change=areaPatch(row.item,category);patch({settings:editing.settings.map(s=>s.item.id===id?{...s,item:{...s.item,...change}}:s)});setError('')}catch(e){setError(e instanceof Error?e.message:'영역을 바꾸지 못했습니다.')}},
   update:(id:string,item:Partial<SettingItem>,labels?:Partial<StudioSetting>)=>{if(editing)patch({settings:editStudioSetting(editing.settings,id,item,labels)})},
-  save:()=>{setPersonUndo(null);return perform(async()=>{if(!editing)return;const current=generation.current;setSaveState('saving');try{apply(await useCase.save(editing),current);if(current===generation.current)setMessage('이 탭의 메모리에 저장했어요. 새로고침하면 초기화됩니다.')}catch(e){if(current===generation.current)setSaveState('failed');throw e}})},
+  save:()=>perform(async()=>{if(!editing)return;const current=generation.current;setSaveState('saving');try{if(saved&&saved.id===editing.id)assertNoNewRelationDuplicates(editing.settings,saved.settings);apply(await useCase.save(editing),current);if(current===generation.current)setMessage('이 탭의 메모리에 저장했어요. 새로고침하면 초기화됩니다.')}catch(e){if(current===generation.current)setSaveState('failed');throw e}}),
  }
 }

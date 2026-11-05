@@ -35,24 +35,38 @@ export function editStudioSetting(settings:StudioSetting[],id:string,patch:Parti
   return title===row.item.title&&text===row.item.text?row:authorEdit(row,{title,text})
  })
 }
-export function putRelation(settings:StudioSetting[],input:RelationInput):StudioSetting[] {
+export function assertNoNewRelationDuplicates(settings:StudioSetting[],baselineSettings:StudioSetting[]) {
+ const relations=settings.filter(s=>s.item.kind==='relation').map(s=>s.item)
+ const baseline=new Map(baselineSettings.filter(s=>s.item.kind==='relation').map(s=>[s.item.id,s.item]))
+ for(let i=0;i<relations.length;i++)for(let j=i+1;j<relations.length;j++) {
+  const a=relations[i],b=relations[j]
+  if(!sameRelation(a,b))continue
+  const oldA=baseline.get(a.id),oldB=baseline.get(b.id)
+  if(oldA&&oldB&&sameRelation(oldA,oldB)&&sameRelation(a,oldA)&&sameRelation(b,oldB))continue
+  throw new Error('같은 방향과 종류의 관계가 이미 있습니다. 기존 연결을 선택해 수정해 주세요.')
+ }
+}
+function validateRelation(settings:StudioSetting[],input:RelationInput) {
  const people=settings.filter(s=>cardTypes.some(type=>type.id===cardTypeOf(s.item)))
  const source=people.find(s=>s.item.id===input.subjectId),target=people.find(s=>s.item.id===input.targetId)
  if(!source||!target||source===target)throw new Error('서로 다른 설정 카드 두 개를 선택해 주세요.')
  if(!relationDefinitions[input.predicate??''] || relationDefinitions[input.predicate??''].group==='other')throw new Error('구조 관계 또는 감정을 선택해 주세요.')
- if(settings.some(s=>s.item.kind==='relation'&&s.item.id!==input.id&&sameRelation(s.item,input)))throw new Error('같은 방향과 종류의 관계가 이미 있습니다. 기존 연결을 선택해 수정해 주세요.')
  const existing=settings.find(s=>s.item.id===input.id)
  if(input.id&&(!existing||existing.item.kind!=='relation'))throw new Error('수정할 관계를 찾을 수 없습니다.')
- const base=newSetting()
  const generated=generatedDescription(input,settings)
- const title=input.title??generated.slice(0,200)
+ const title=input.title?.trim()?input.title:generated.slice(0,200)
  const text=input.text??generated
  if(!title.trim()||title.length>200||!text.trim()||text.length>3000)throw new Error('관계 이름은 200자, 설명은 3,000자 이내로 입력해 주세요.')
+ return {existing,title,text}
+}
+export function putRelation(settings:StudioSetting[],input:RelationInput):StudioSetting[] {
+ const {existing,title,text}=validateRelation(settings,input)
+ if(settings.some(s=>s.item.kind==='relation'&&s.item.id!==input.id&&sameRelation(s.item,input)))throw new Error('같은 방향과 종류의 관계가 이미 있습니다. 기존 연결을 선택해 수정해 주세요.')
  if(existing)return editStudioSetting(settings,existing.item.id,{...input,kind:'relation',entityType:null,title,text})
- const next=authorEdit(base,{...input,kind:'relation',entityType:null,title,text})
+ const next=authorEdit(newSetting(),{...input,kind:'relation',entityType:null,title,text})
  return [...settings,next]
 }
-export function applyRelationChanges(settings:StudioSetting[],changes:(RelationInput&{baseline?:RelationInput})[],removedIds:string[]) {
+export function applyRelationChanges(settings:StudioSetting[],changes:(RelationInput&{baseline?:RelationInput})[],removedIds:string[],savedSettings:StudioSetting[]=settings) {
  for(const {id,baseline} of changes) {
   if(!baseline)continue
   const current=settings.find(s=>s.item.id===id)?.item
@@ -66,17 +80,17 @@ export function applyRelationChanges(settings:StudioSetting[],changes:(RelationI
  for(const change of changes.filter(c=>c.id)) {
   const before=next.find(s=>s.item.id===change.id)
   if(before?.item.kind!=='relation')throw new Error('수정할 관계를 찾을 수 없습니다.')
-  const patch:Partial<SettingItem>={subjectId:change.subjectId,targetId:change.targetId,predicate:change.predicate,polarity:change.polarity,...(change.title!==undefined?{title:change.title}:{}),...(change.text!==undefined?{text:change.text}:{})}
+  const patch:Partial<SettingItem>={subjectId:change.subjectId,targetId:change.targetId,predicate:change.predicate,polarity:change.polarity,...(change.title!==undefined?{title:change.title.trim()?change.title:generatedDescription(change,next).slice(0,200)}:{}),...(change.text!==undefined?{text:change.text}:{})}
   if(Object.entries(patch).every(([key,value])=>before.item[key as keyof SettingItem]===value))continue
   next=editStudioSetting(next,change.id!,patch);editedIds.push(change.id!)
  }
  for(const change of changes.filter(c=>!c.id))next=putRelation(next,change)
  for(const id of editedIds) {
   const row=next.find(s=>s.item.id===id)!
-  // Validate the final batch, so exchanging two relationship types is atomic.
-  putRelation(next,row.item)
-  if(!row.item.title.trim()||row.item.title.length>200||!row.item.text.trim()||row.item.text.length>3000)throw new Error('관계 이름과 설명의 길이를 확인해 주세요.')
+  validateRelation(next,row.item)
  }
+ // Compare the final batch against saved data, preserving legacy duplicates and atomic exchanges.
+ assertNoNewRelationDuplicates(next,savedSettings)
  if(next.some(s=>[s.item.subjectId,s.item.targetId,s.item.afterId,...s.item.relatedIds].some(id=>id!==null&&removedIds.includes(id))))throw new Error('다른 설정에서 참조하는 관계입니다. 연결을 먼저 정리해 주세요.')
  return next
 }
