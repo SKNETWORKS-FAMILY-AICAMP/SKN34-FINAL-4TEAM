@@ -47,13 +47,16 @@ class WithdrawalService(
     fun status(memberId: UUID): WithdrawalResponse =
         withdrawals.findByMemberIdAndStatus(memberId, AuthWithdrawal.PENDING)?.let(::toResponse) ?: WithdrawalResponse(NONE, null, null)
 
-    /** 유예 중인 요청을 취소(복구)한다. 진행 중인 요청이 없으면 404다. */
+    /** 유예 중인 요청을 취소(복구)한다. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409다. */
     @Transactional
     fun restore(memberId: UUID) {
         members.lockById(memberId) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
         val pending = withdrawals.findByMemberIdAndStatus(memberId, AuthWithdrawal.PENDING) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        val now = Instant.now()
+        // 유예 만료 후 실제 처리는 아직 없어 행이 PENDING으로 남을 수 있다. 기한이 지났으면 복구를 허용하지 않는다.
+        if (!now.isBefore(pending.dueAt)) throw ResponseStatusException(HttpStatus.CONFLICT)
         pending.status = AuthWithdrawal.RESTORED
-        pending.restoredAt = Instant.now()
+        pending.restoredAt = now
     }
 
     private fun toResponse(w: AuthWithdrawal) = WithdrawalResponse(w.status, w.requestedAt, w.dueAt)

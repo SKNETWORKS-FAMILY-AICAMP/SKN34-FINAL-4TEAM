@@ -66,6 +66,8 @@ class WithdrawalIntegrationTest {
     @Test
     fun `request starts a thirty day grace period and revokes refresh sessions`() {
         val m = member(); val result = login(m); val auth = bearer(result); val cookie = refreshCookie(result)
+        val secondCookie = refreshCookie(login(m))
+        assertNotEquals(cookie.value, secondCookie.value)
         val before = Instant.now()
         mvc.perform(json(post("/api/v1/me/withdrawal"), auth, """{"password":"test-password","reason":" 더 이상 쓰지 않아요 "}"""))
             .andExpect(status().isAccepted()).andExpect(jsonPath("$.status").value("PENDING"))
@@ -75,8 +77,21 @@ class WithdrawalIntegrationTest {
         assertEquals("PENDING", row["status"]); assertEquals("더 이상 쓰지 않아요", row["reason"])
         assertEquals(Duration.ofDays(30), Duration.between(requested, due))
         assertFalse(requested.isBefore(before.minusSeconds(5)))
+        // 한 세션만이 아니라 모든 기기의 refresh 세션이 폐기돼야 한다.
         mvc.perform(csrf(post("/api/v1/auth/refresh")).cookie(cookie)).andExpect(status().is4xxClientError())
+        mvc.perform(csrf(post("/api/v1/auth/refresh")).cookie(secondCookie)).andExpect(status().is4xxClientError())
         mvc.perform(get("/api/v1/me/withdrawal").header("Authorization", auth)).andExpect(jsonPath("$.status").value("PENDING")).andExpect(jsonPath("$.dueAt").exists())
+    }
+
+    @Test
+    fun `restore is rejected once the grace period has passed`() {
+        val m = member(); val auth = bearer(login(m))
+        mvc.perform(json(post("/api/v1/me/withdrawal"), auth, """{"password":"test-password"}""")).andExpect(status().isAccepted())
+        jdbc.update("update auth_withdrawal set due_at = now() - interval '1 second' where member_id = ?", m.id)
+        val again = bearer(login(m))
+        mvc.perform(json(delete("/api/v1/me/withdrawal"), again, "")).andExpect(status().isConflict())
+        val row = jdbc.queryForMap("select status, restored_at from auth_withdrawal where member_id = ?", m.id)
+        assertEquals("PENDING", row["status"]); assertNull(row["restored_at"])
     }
 
     @Test
