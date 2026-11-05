@@ -125,6 +125,7 @@ class ProfileService(
         if (member.email != challenge.targetEmail) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         member.passwordHash = requireNotNull(passwords.encode(request.newPassword))
         challenges.delete(challenge)
+        challenges.findById(ProfileChallengeId(id, "email")).ifPresent(challenges::delete)
         sessions.revokeAll(id)
     }
 
