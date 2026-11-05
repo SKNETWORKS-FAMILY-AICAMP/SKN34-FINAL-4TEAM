@@ -3,6 +3,7 @@ import {HttpWorldStudioRepository} from '../../data/world-studio/HttpWorldStudio
 import { MediaUseCase } from '../../domain/usecases/MediaUseCase'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
+import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { asFunction, asValue } from 'awilix/browser'
 
@@ -13,7 +14,6 @@ import {
   InMemoryCreditRepository,
   InMemoryFeedbackRepository,
   InMemoryInquiryRepository,
-  InMemoryNotificationRepository,
   InMemoryReadingRepository,
   InMemoryWorkRepository,
   InMemoryWorldRepository,
@@ -54,7 +54,7 @@ export function registerAppServices(container: AppContainer) {
     mockDb: asValue(createMockDb()),
     workRepository: asFunction(({ mockDb }) => new InMemoryWorkRepository(mockDb)).singleton(),
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),
-    notificationRepository: asFunction(({ mockDb }) => new InMemoryNotificationRepository(mockDb)).singleton(),
+    notificationRepository: asFunction(() => new HttpNotificationRepository()).singleton(),
     feedbackRepository: asFunction(({ mockDb }) => new InMemoryFeedbackRepository(mockDb)).singleton(),
     worldRepository: asFunction(({ mockDb }) => new InMemoryWorldRepository(mockDb)).singleton(),
     creditRepository: asFunction(({ mockDb }) => new InMemoryCreditRepository(mockDb)).singleton(),
