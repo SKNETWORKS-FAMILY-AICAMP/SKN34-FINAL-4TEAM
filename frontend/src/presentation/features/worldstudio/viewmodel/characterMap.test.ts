@@ -34,3 +34,8 @@ it('retains denial when the original description is a positive phrase',()=>{
  expect(mapConnectionLabel(link,'a')).toBe('보내는 관계 · 친구 아님 · 친구')
  expect(mapConnectionLabel(link,'b')).toBe('받는 관계 · 친구 아님 · 친구')
 })
+
+it('does not repeat a relation type already present in its description',()=>{
+ const link={source:'a',target:'b',label:'신뢰',fullLabel:'신뢰',description:'가람 · 신뢰 · 나래',symmetric:false}
+ expect(mapConnectionLabel(link,'a')).toBe('보내는 관계 · 가람 · 신뢰 · 나래')
+})

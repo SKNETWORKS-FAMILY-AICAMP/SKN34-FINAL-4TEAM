@@ -10,7 +10,8 @@ export const mapEndpoint = (node:string|MapNode) => typeof node==='string'?node:
 export function mapConnectionLabel(link:MapLink,selectedId:string) {
  const incoming=mapEndpoint(link.target)===selectedId
  const fullLabel=(incoming?link.reverseLabel:undefined)??link.fullLabel??link.label
- const label=link.description?.trim()&&link.description!==fullLabel?fullLabel+' · '+link.description:fullLabel
+ let label=fullLabel
+ if(link.description?.trim())label=link.description.includes(fullLabel)?link.description:fullLabel+' · '+link.description
  return link.symmetric===false?`${incoming?'받는 관계':'보내는 관계'} · ${label}`:label
 }
 
