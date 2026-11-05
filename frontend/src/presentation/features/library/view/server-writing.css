@@ -1,0 +1,7 @@
+.server-writing { margin-bottom: 32px; }
+.server-writing .sec-h { flex-wrap: wrap; gap: 12px; }
+.server-writing-content { grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere; }
+.server-writing .mywork h3 { line-height: 1.5; }
+.server-writing .mywork p:not(:empty) { margin: 8px 0 12px; line-height: 1.7; }
+.server-writing .btn { min-height: 44px; }
+.server-writing .chip { white-space: normal; overflow-wrap: anywhere; }

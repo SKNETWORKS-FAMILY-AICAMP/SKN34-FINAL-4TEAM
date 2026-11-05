@@ -12,6 +12,22 @@ beforeEach(async () => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+describe('설정 이력 연결', () => {
+  const world = { id: 'w', name: '세계관', revision: 3, mode: 'own', basis: null, draft: null, drafts: [], settings: [], history: [], sourceToken: 't', changes: [] }
+  it.each(['read', 'restore'])('이력 %s 요청에 호출자의 취소 신호를 전달한다', async action => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(world))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    const controller = new AbortController()
+    if (action === 'read') await api.world('w', controller.signal)
+    else await api.revertSetting('w', 's', 3, 'v1', controller.signal)
+    const [url, init] = fetcher.mock.calls[0]
+    expect(url).toBe(action === 'read' ? '/api/v1/works/w/world' : '/api/v1/works/w/settings/s/revert')
+    if (action === 'restore') expect(JSON.parse(init.body)).toEqual({ revision: 3, versionId: 'v1' })
+    controller.abort()
+    expect(init.signal.aborted).toBe(true)
+  })
+})
+
 describe('content authentication bridge', () => {
   it('sends the memory bearer and same-origin credentials on private GET without a csrf request', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json([]))

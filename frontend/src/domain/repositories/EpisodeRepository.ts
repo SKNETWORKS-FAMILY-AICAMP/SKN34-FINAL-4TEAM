@@ -21,10 +21,10 @@ export interface EpisodeRepository {
   fork(id: string, episode: number, title: string, direction: string): Promise<Work>
   propose(id: string, revision: number, prompt: string, consent: boolean, signal?: AbortSignal, episode?:number, character?:string): Promise<Proposal>
   accept(id: string, pid: string, revision: number): Promise<Draft>
-  world(id:string):Promise<World>
+  world(id:string,signal?:AbortSignal):Promise<World>
   saveSetting(id:string,sid:string,revision:number,setting:SettingInput,sourceToken:string):Promise<World>
   commitSetting(id:string,sid:string,revision:number):Promise<World>
-  revertSetting(id:string,sid:string,revision:number,versionId:string):Promise<World>
+  revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal):Promise<World>
   decideChange(id:string,revision:number,changeId:string,decision:'apply'|'reject'):Promise<World>
   context(id:string,episode:number,query:string,character:string,publicView:boolean):Promise<StoryContext>
 }
