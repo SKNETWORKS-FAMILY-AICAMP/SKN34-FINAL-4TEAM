@@ -28,3 +28,9 @@ it('preserves an authored description even for a predefined directional relation
  expect(mapConnectionLabel(link,a.item.id)).toBe('보내는 관계 · 신뢰 · '+description)
  expect(mapConnectionLabel(link,b.item.id)).toBe('받는 관계 · 신뢰 · '+description)
 })
+
+it('retains denial when the original description is a positive phrase',()=>{
+ const link={source:'a',target:'b',label:'친구 아님',fullLabel:'친구 아님',description:'친구',symmetric:false}
+ expect(mapConnectionLabel(link,'a')).toBe('보내는 관계 · 친구 아님 · 친구')
+ expect(mapConnectionLabel(link,'b')).toBe('받는 관계 · 친구 아님 · 친구')
+})
