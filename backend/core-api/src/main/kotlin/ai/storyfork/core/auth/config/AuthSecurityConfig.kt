@@ -64,6 +64,7 @@ class AuthSecurityConfig {
                     "/api/v1/auth/reset-password", "/api/v1/auth/verify-email-change").permitAll()
                     .requestMatchers("/api/v1/me", "/api/v1/me/email-change").authenticated()
                     .requestMatchers("/api/v1/auth/sessions", "/api/v1/auth/sessions/*", "/api/v1/auth/logout-all").authenticated()
+                    .requestMatchers("/api/v1/me/notifications", "/api/v1/me/notifications/**", "/api/v1/me/notification-preferences").authenticated()
                     .anyRequest().denyAll()
             }
             .oauth2ResourceServer { it.jwt(withDefaults()) }
