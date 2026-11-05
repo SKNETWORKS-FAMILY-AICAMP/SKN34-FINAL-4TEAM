@@ -64,6 +64,8 @@ Auth는 `auth/controller → SignupService·SessionService·ProfileService → a
 
 Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼리·JPQL·Entity 변경으로 처리합니다. 기존 UUID·Flyway SQL 바이트·`flyway_schema_history`는 유지하며 Hibernate는 스키마 검증만 수행합니다(`ddl-auto=validate`, `open-in-view=false`). 기존 Content JDBC 저장과 별도 `content_schema_history`는 이번 전환 범위 밖입니다. 회원별 `PESSIMISTIC_WRITE` 잠금 뒤에 자격 증명·refresh 상태를 읽어 로그인/비밀번호 재설정 및 refresh/로그아웃의 경합을 보호합니다. 재사용 감지 시 세션 폐기는 Service가 커밋한 뒤 HTTP 401로 변환합니다. 가입 후보는 행 잠금을 사용하며 아직 행이 없는 최초 가입의 삽입 충돌만 새 트랜잭션에서 한 번 재시도합니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
 
+알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V4~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ outbox·소비자와 모바일 푸시는 후속 범위입니다.
+
 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS와 여러 콘텐츠 기능에서 공유하는 실패·식별자 계약이 있습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
 콘텐츠 생성은 `proposal/config/GenerationClientConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
@@ -111,15 +113,15 @@ Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaR
 
 ## 실행·보안 경계
 
-공통 `docker-compose.yaml`은 세 앱의 환경·내부 포트를 정의하며 단독 실행하지 않습니다.
-base + `docker-compose.prod.yaml`은 소스 빌드한 nginx 정적 web·Core·AI와 PostgreSQL·Mailpit을 사용합니다.
-base + `docker-compose.dev.yaml`은 CI가 게시한 `:develop` 이미지 세 개와 기존 외부 PostgreSQL·SMTP를 사용하며 소스 build·mount는 없습니다.
-선택 첨부 overlay는 base + prod 뒤에만 추가하는 로컬 MinIO 구성입니다. HMR은 Compose가 아닌 각 서비스의 기본 네이티브 명령을 사용합니다.
-브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 내부 Core DNS로 중계합니다.
-API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
+공통 `infrastructure/docker-compose.yaml`은 web·Core·Content·AI 네 앱의 공통 환경·내부 포트를 정의하며 단독 실행하지 않습니다.
+루트 `compose.yaml`은 base + `docker-compose.local.yaml`을 include합니다. 루트 `.env`를 자동으로 읽는 `docker compose up -d --build`는 네 앱을 기존 runtime Dockerfile로 빌드하고 내부 PostgreSQL·Mailpit을 함께 사용합니다.
+base + `docker-compose.dev.yaml`은 게시된 `:develop` 앱 이미지와 같은 내부 PostgreSQL·Mailpit 구조를 사용하며 앱 소스 build·mount는 없습니다. local/dev의 프로젝트·DB volume은 서로 격리합니다. 기존 외부·공유 DB의 내부 DB 전환과 데이터 이관은 실행하지 않았으며 개발 CD에는 별도 전환 승인이 필요합니다.
+base + `docker-compose.prod.yaml`은 `:main` 앱 이미지와 외부 PostgreSQL·SMTP를 사용하는 운영 설정 준비입니다. 현재 게시 workflow는 develop 전용이므로 main 이미지 가용성·실제 게시·배포는 확인되지 않았습니다.
+선택 첨부 overlay는 base + local 뒤에 추가하는 로컬 MinIO 구성입니다. 소스 빌드 web은 nginx 정적 이미지이지 HMR이 아니며, hot reload는 각 서비스의 기본 네이티브 명령을 사용합니다.
+브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 Core·Content 내부 DNS로 중계합니다. API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
 
-두 조합 모두 web만 loopback에 공개하며 Core·AI 포트는 내부 전용입니다. 선택 MinIO의 API·Console도 loopback에만 공개합니다.
-인증·TLS가 없는 **로컬 검증용**이며 인터넷 운영 준비가 된 배포가 아닙니다.
+local은 web 5173·Core 8080·Content 8081·PostgreSQL 5432·Mailpit 1025/8025를 기본 loopback 포트로 공개하며 AI는 내부 전용입니다. dev는 기존 `CD_WEB_PORT` loopback 바인딩만 유지하고 DB·Mailpit은 호스트에 공개하지 않습니다. prod도 별도 `PROD_WEB_PORT` loopback 바인딩이며 필수 `PROD_*` 입력과 항상 Secure인 쿠키를 사용합니다. 선택 MinIO도 loopback 전용입니다.
+TLS·공개 ingress·외부 서비스는 제공하지 않으며 운영 준비 완료가 아닙니다. 모든 환경의 기본 Auth V4에 공개 비밀번호 샘플 회원 생성이 남아 있어 운영 사용 전 별도 보안 판단이 필요합니다. 이번 설정 변경에서 기존 migration은 수정하지 않습니다.
 OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build ARG에는 키를 넣지 않습니다.
 실행과 검증, 환경파일 경계는 [인프라 안내](../infrastructure/README.md)를 따릅니다.
 

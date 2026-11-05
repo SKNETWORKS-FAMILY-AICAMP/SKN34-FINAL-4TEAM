@@ -10,14 +10,17 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 
 [`docker-compose.yaml`](docker-compose.yaml)은 공통 환경·내부 포트만 정의하는 base로 **단독 실행하지 않습니다**.
 
-| 항목 | base + [`docker-compose.prod.yaml`](docker-compose.prod.yaml) | base + [`docker-compose.dev.yaml`](docker-compose.dev.yaml) |
-|---|---|---|
-| 용도 | 소스에서 만든 배포 이미지의 로컬 검증 | 개발 서버의 CI 게시 이미지 실행 |
-| 프로젝트 | `storyfork-prod-validation` | `storyfork-develop-cd` |
-| 앱 | web·Core·Content·AI 소스 build, web은 nginx 정적 runtime | 네 앱의 `:develop` 이미지 pull, `linux/amd64`, build·소스 mount 없음 |
-| DB·SMTP | 기존 `core-postgres` volume의 PostgreSQL + Mailpit | 기존 외부 PostgreSQL·SMTP, 새 DB·volume 없음 |
-| 공개 포트 | `127.0.0.1:${WEB_PORT:-8088}` | `127.0.0.1:${CD_WEB_PORT}` |
-| Core·Content·AI 호스트 공개 | 없음 | 없음 |
+| 항목 | 루트 [`compose.yaml`](../compose.yaml) / base + [`docker-compose.local.yaml`](docker-compose.local.yaml) | base + [`docker-compose.dev.yaml`](docker-compose.dev.yaml) | base + [`docker-compose.prod.yaml`](docker-compose.prod.yaml) |
+|---|---|---|---|
+| 용도 | 로컬 개발의 소스 빌드 runtime, CI의 소스 빌드 기반 | develop 배포 서버 | 실제 운영 배포 서버용 설정 준비 |
+| 프로젝트 | `storyfork-local` | `storyfork-develop-cd` | `storyfork-production` |
+| 앱 | 네 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 네 앱의 GHCR `:develop`, `linux/amd64` | 네 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
+| DB·SMTP | 새 프로젝트 범위 `core-postgres` volume의 PostgreSQL + Mailpit | 로컬과 같은 PostgreSQL·Mailpit 정의 재사용, 별도 프로젝트 DB volume | 별도 승인·준비한 외부 PostgreSQL·SMTP, 내장 DB·Mailpit·volume 없음 |
+| web 포트 | `127.0.0.1:${DEV_WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${PROD_WEB_PORT}` |
+| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | 없음 | 없음 |
+
+루트 진입점은 Compose native `include`로 base+local을 재사용하므로 build context는 `infrastructure/` 기준의 `../frontend`·`../backend/*`입니다.
+루트 `.env`는 기본 명령에서 자동 로드하며 컨테이너에는 서비스별 allowlist만 전달합니다. dev는 local 파일의 PostgreSQL·Mailpit 서비스만 native `extends`로 재사용하고 호스트 포트는 제거합니다. 원격 CD에서는 `--project-directory`와 임시 설정 위치가 다르므로 `CD_LOCAL_COMPOSE_FILE`을 임시 파일의 절대 경로로 고정합니다. dev 렌더링에 앱 build는 없으며 DB volume은 `storyfork-develop-cd_core-postgres`로 격리됩니다. Compose v2.24.4 이상을 사용합니다.
 
 ```text
 Browser → web nginx
@@ -26,32 +29,33 @@ Browser → web nginx
            └─ 나머지 /api → Core:8080 → AI Health
 ```
 
-공개 URL·JSON·쿠키·Bearer·CSRF 계약을 유지합니다. 내부 `/internal/v1/auth/verify`를 공개 proxy에 등록하지 않으며 Core는 콘텐츠 중계 프록시가 아닙니다. API 404는 SPA HTML로 바꾸지 않습니다. UI deep link만 SPA로 연결합니다. 두 조합 모두 loopback 검증용이며 **인터넷 운영용 TLS·ingress 준비 완료가 아닙니다**.
+공개 URL·JSON·쿠키·Bearer·CSRF 계약을 유지합니다. 내부 `/internal/v1/auth/verify`를 공개 proxy에 등록하지 않으며 Core는 콘텐츠 중계 프록시가 아닙니다. API 404는 SPA HTML로 바꾸지 않습니다. UI deep link만 SPA로 연결합니다. 로컬은 loopback 개발용이며 배포 서버의 web도 loopback에만 노출합니다. prod 설정만으로 **인터넷 운영용 TLS·ingress 준비 완료가 아닙니다**.
 
 ## 시작과 설정
 
 다음은 담당자의 수동 실행 안내이며 로컬 자동 검증에서 앱/DB/컨테이너를 기동하지 않습니다. `cp -n .env.example .env`로 루트 설정을 준비하되 기존 파일은 덮어쓰지 않습니다. 서비스별 `.env`는 만들지 않습니다.
 
-Core에는 `CORE_DATABASE_*`, `CORE_SMTP_HOST/PORT`, `AUTH_PUBLIC_ORIGIN`, `AUTH_MAIL_FROM`, `AUTH_JWT_SECRET`이 필요합니다. JWT 키는 32바이트 이상 무작위 값의 Base64 인코딩이며 Core에만 전달합니다. `AUTH_PUBLIC_ORIGIN`을 실제 web 주소에 맞추고 HTTP 로컬 검증에서만 `AUTH_COOKIE_SECURE=false`를 사용합니다. prod Mailpit 화면(기본 8025)은 인증 메일을 포함하므로 로컬 전용입니다. dev는 기존 외부 SMTP를 사용합니다. 가입 인증 24시간, 복구·이메일 변경 1시간 계약과 실제 API는 [Core 문서](../backend/core-api/README.md#공개-계약)를 따릅니다.
+로컬 Core에는 직접 준비한 `CORE_DATABASE_USER/PASSWORD`, `AUTH_MAIL_FROM`, `AUTH_JWT_SECRET`이 필요합니다. JWT 키는 32바이트 이상 무작위 값의 Base64 인코딩이며 Core에만 전달합니다. 기본 비밀번호나 서명 키는 제공하지 않습니다. `AUTH_PUBLIC_ORIGIN`을 실제 web 주소에 맞추고 HTTP 로컬 검증에서만 `AUTH_COOKIE_SECURE=false`를 사용합니다. 로컬 DB URL·SMTP는 Compose 내부 PostgreSQL·Mailpit으로 고정합니다. Mailpit 화면(기본 8025)은 인증 메일을 포함하므로 로컬 전용입니다. dev도 내부 PostgreSQL·Mailpit을 쓰지만 호스트에 노출하지 않으며, prod만 외부 DB·SMTP를 사용합니다. 가입 인증 24시간, 복구·이메일 변경 1시간 계약과 실제 API는 [Core 문서](../backend/core-api/README.md#공개-계약)를 따릅니다.
 
 Content 활성화에는 `CONTENT_ENABLED=true`와 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 32자 이상·개행 없는 값을 Core/Content에만 동일하게 설정합니다. 사용자 Bearer·JWT 서명 키·AI의 `INTERNAL_TOKEN`과 다른 자격입니다. 생성은 Content/AI의 동일한 `INTERNAL_TOKEN` 및 AI에만 주입한 키/모델을 사용합니다. 인증 확인에는 캐시·자동 재시도·fallback이 없으며 Core 장애를 사용자 401로 숨기지 않습니다([Content 계약](../backend/content-service/README.md#core-인증-클라이언트--실제-연결)).
 
-Core와 Content는 **기존 같은 DB 대상·계정**을 사용합니다. Compose는 `CORE_DATABASE_*`를 Content의 `CONTENT_DATABASE_*`로 필요한 이름만 바꿔 전달합니다. 별도 production DB·데이터 복사·WorldStudio pool은 없습니다. Core Auth 초기화/Health 뒤에 Content를 시작하며 각 서비스는 자기 Entity/Repository·migration만 소유합니다. Content의 7개 leaf/전역 V1~V9와 이전 이력의 비호환성은 [fresh migration 안내](../backend/content-service/README.md#같은-db와-fresh-콘텐츠-migration)를 따릅니다.
+각 스택 안에서 Core와 Content는 **같은 DB 대상·계정**을 사용합니다. local/dev는 `CORE_DATABASE_*`, prod는 별도 `PROD_DATABASE_*`를 필요한 런타임 이름으로 바꿔 전달합니다. 스택 사이의 DB·자격증명을 공유한다는 뜻이 아니며 DB 복사·추가 WorldStudio pool은 없습니다. Core Auth 초기화/Health 뒤에 Content를 시작하며 각 서비스는 자기 Entity/Repository·migration만 소유합니다. Content의 7개 leaf/전역 V1~V9와 이전 이력의 비호환성은 [fresh migration 안내](../backend/content-service/README.md#같은-db와-fresh-콘텐츠-migration)를 따릅니다.
 
 ```bash
-# 저장소 루트: 승인된 fresh 대상에서만 수동 실행
-# .env의 빈 자격증명만으로는 기동할 수 없습니다.
-docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml up --build -d
-# http://127.0.0.1:8088
-docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml down
+# 저장소 루트: 사용자 자격증명을 준비한 뒤 수동 실행, .env 자동 로드
+docker compose up -d --build
+# http://127.0.0.1:5173
+docker compose down
 ```
 
-`down`에는 volume 삭제를 붙이지 않습니다. dev 배포는 아래 CD 절차를 사용합니다. 단순 수동 `pull/up`은 revision 일치·구 writer 중지·fresh 대상 승인 검사를 대신하지 못합니다.
+`storyfork-local_core-postgres`는 새 프로젝트 범위 volume입니다. 과거 `storyfork-dev`·`storyfork-prod-validation`·CD의 컨테이너/volume을 가져오거나 지우지 않습니다. 기존 `COMPOSE_FILE`·`COMPOSE_PROJECT_NAME` override가 있으면 기본 진입점/격리를 바꿀 수 있으므로 확인합니다. 포트가 이미 점유돼 있으면 시작이 실패합니다. 기존 앱을 중지하지 말고 루트 `.env`의 로컬 포트와 `AUTH_PUBLIC_ORIGIN`을 조정합니다.
+
+`down`에는 volume 삭제를 붙이지 않으며 해당 로컬 프로젝트만 대상으로 합니다. **소스 빌드는 hot reload가 아닙니다.** Vite/소스 mount가 없으므로 변경 후 `docker compose up -d --build`로 다시 빌드하거나 아래 네이티브 명령을 사용합니다. dev 배포는 아래 CD 절차를 사용하며 단순 수동 `pull/up`은 revision 일치·구 writer 중지·fresh 대상 승인 검사를 대신하지 못합니다.
 
 | 변수 | 기본값 | 소비 경계 |
 |---|---|---|
 | `OPENAI_API_KEY` | 빈 값 | AI runtime만 |
-| `OPENAI_MODEL` | prod 빈 값 / dev `gpt-5.6-luna` | AI runtime만; 팀 모델 선정·접근 검증 아님 |
+| `OPENAI_MODEL` | local 빈 값 / dev `gpt-5.6-luna` | AI runtime만; prod는 별도 `PROD_OPENAI_MODEL`, 팀 모델 선정·접근 검증 아님 |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |
@@ -62,21 +66,51 @@ docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastr
 | `CONTENT_DATABASE_*` | Compose는 기존 Core DB와 동일 | Content·Studio 공유 datasource |
 | `INTERNAL_TOKEN` | 빈 값 | Content/AI 생성만 |
 | `APP_CORS_ALLOWED_ORIGIN` | 빈 값이면 web 포트에서 계산 | Core/Content의 단일 origin |
-| `WEB_PORT` | `8088` | prod loopback |
+| `DEV_WEB_PORT` | `5173` | local web loopback |
+| `CORE_API_PORT` / `CONTENT_SERVICE_PORT` | `8080` / `8081` | local API loopback |
+| `CORE_DATABASE_PORT` | `5432` | local DB loopback, 컨테이너 내부는 고정 5432 |
+| `CORE_MAILPIT_SMTP_PORT` / `CORE_MAILPIT_WEB_PORT` | `1025` / `8025` | local Mailpit loopback |
 | `CD_DIRECTORY` / `CD_WEB_PORT` | 필수 | dev 전용 디렉터리 label / loopback |
+| `PROD_*` | 아래 필수값 외 기본 자격증명 없음 | prod 전용, local/dev 값을 fallback으로 쓰지 않음 |
 
 Health는 OpenAI 인증·모델 접근 검증이 아니며 모델 클라이언트를 만들지 않습니다. 생성 제공사 설정 누락은 503입니다. OpenAI 키를 Frontend·Core·Content·build ARG에 넣지 않습니다. 루트 `.env` 전체를 프로세스에 주입하지 않습니다.
 
 네이티브는 각 서비스의 기본 명령(`pnpm dev`, `./gradlew bootRun`, `uv run --locked uvicorn app.main:create_app --factory --reload --port 8000`)을 사용합니다. Core/Content 기본 포트는 8080/8081입니다. 필요한 변수만 해당 터미널에 전달하며 루트 `.env` 전체를 source하지 않습니다. Vite는 `VITE_DEV_PROXY_TARGET`(Core)과 `VITE_CONTENT_DEV_PROXY_TARGET`(Content)으로 두 경로를 분기합니다. 기본 web origin은 `http://localhost:5173`이며 CORS도 실제 origin과 맞춥니다. 생성 timeout을 늘릴 때 브라우저 80초/nginx 90초 한도도 함께 검토합니다.
 
+## 운영 서버 설정 준비 — prod
+
+prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP**만 선택합니다. 소스 build·PostgreSQL·Mailpit·로컬 자격증명·DB volume을 포함하지 않습니다. 현재 [`publish-images.yml`](../.github/workflows/publish-images.yml)은 **develop만 게시**하므로 `:main`의 존재·접근 가능 여부는 미확인입니다. 이미지 목록에 이름이 있다고 실제 게시된 것은 아닙니다. main 게시/배포 trigger는 추가하지 않았습니다.
+
+루트 `.env.example` 하단의 deployment 예시는 모두 주석이며 로컬 기본값을 바꾸지 않습니다. 운영 서버 담당자가 전용 설정에 다음 값을 준비합니다. `config` 단계에서 비어 있거나 누락된 필수값은 명시적으로 실패하며 로컬 `CORE_*`·`AUTH_*`로 대신 채우지 않습니다.
+
+| 변수 | 요구사항 |
+|---|---|
+| `PROD_DATABASE_URL` / `PROD_DATABASE_USER` / `PROD_DATABASE_PASSWORD` | 승인된 외부 PostgreSQL JDBC 대상·전용 자격, Core/Content가 같은 대상 사용 |
+| `PROD_SMTP_HOST` / `PROD_SMTP_PORT` | 준비한 외부 SMTP, STARTTLS 사용·필수 |
+| `PROD_PUBLIC_ORIGIN` / `PROD_MAIL_FROM` | 실제 HTTPS web origin / 승인된 발신 주소 |
+| `PROD_AUTH_JWT_SECRET` | 별도로 생성한 32바이트 이상 Base64 키, Core에만 전달 |
+| `PROD_CONTENT_CORE_AUTH_TOKEN` / `PROD_INTERNAL_TOKEN` | 각각 Core↔Content / Content↔AI의 별도 무작위 서비스 자격 |
+| `PROD_WEB_PORT` | 담당자가 준비한 비충돌 loopback 포트, TLS ingress는 별도 |
+
+SMTP 인증은 기본 `PROD_SMTP_AUTH=true`이며 제공사가 요구하는 `PROD_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `PROD_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `PROD_OPENAI_API_KEY/MODEL`은 선택적 생성 설정으로 AI에만 전달합니다. `PROD_CONTENT_ENABLED`·`PROD_WORLDSTUDIO_ENABLED`는 기본 false이며 WorldStudio의 실제 DB 준비·명시 migration은 별도 승인 대상입니다.
+
+prod의 `AUTH_COOKIE_SECURE`는 **항상 true**이므로 로컬 HTTP용 `AUTH_COOKIE_SECURE=false`가 있어도 약화되지 않습니다. HTTP로 그대로 공개해도 되는 설정이 아니며 HTTPS ingress·DNS·인증/메일·백업 복원·관측·운영 수용 검증은 이 파일이 제공하지 않습니다.
+
+**운영 차단 위험:** 현재 기본 Auth `V4__sample_member.sql`은 공개 비밀번호의 일반 샘플 계정을 모든 프로필에 생성합니다. prod 이미지에 이 migration이 포함되면 같은 위험이 적용됩니다. 이 작업은 V4·인증 코드를 수정하거나 기존 계정을 삭제하지 않았으며, 운영 배포 전 별도 승인된 샘플 계정 처리와 검증이 필요합니다.
+
+```bash
+# 설정만 확인하는 수동 예시: 이미지 pull/build/서버 기동은 하지 않음
+docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml config --quiet
+```
+
 ## 로컬 설정 첨부 저장소 (#87)
 
-base + prod 뒤에 [`compose.attachments.yaml`](compose.attachments.yaml)을 추가하면 **Content**와 첨부를 활성화하고 로컬 MinIO를 연결합니다. 기존 DB·계정·volume을 사용하며 Core에는 S3 설정을 전달하지 않습니다. Core/Content 서비스 자격과 Content/AI 생성 토큰은 각각 준비합니다.
+base + local 뒤에 [`compose.attachments.yaml`](compose.attachments.yaml)을 추가하면 **Content**와 첨부를 활성화하고 로컬 MinIO를 연결합니다. 기존 DB·계정·volume을 사용하며 Core에는 S3 설정을 전달하지 않습니다. Core/Content 서비스 자격과 Content/AI 생성 토큰은 각각 준비합니다.
 
 MinIO는 승인된 [기존 minio.dockerfile](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-5Team/blob/HEAD/minio.dockerfile) 방식의 소스 빌드입니다. Go `1.24.8`/MinIO `RELEASE.2025-10-15T17-29-55Z`를 고정하며 다운로드/빌드는 네트워크가 필요합니다.
 
 ```bash
-docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml -f infrastructure/compose.attachments.yaml up --build -d
+docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml -f infrastructure/compose.attachments.yaml up --build -d
 ```
 
 MinIO Console은 `127.0.0.1:${MINIO_CONSOLE_PORT:-9001}`, API는 `${MINIO_API_PORT:-9000}`입니다. 점유 포트가 있으면 다른 스택을 멈추지 말고 포트를 바꿉니다. **private** 버킷은 담당자가 먼저 생성하며 앱이 버킷/공개 정책을 만들지 않습니다. AWS credentials는 Content와 로컬 MinIO runtime만 받습니다. 예시 credentials는 공개 로컬 전용이므로 실제 루트 `.env`에서 교체합니다. 종료 시 같은 파일 조합의 해당 프로젝트만 `down`하고 volume을 보존합니다.
@@ -104,7 +138,7 @@ API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core
 - CI는 변경 선택 → 단위·통합·설정 병렬 → 선택 HTTP 시스템 → `Required CI`입니다.
 - 자동 CD publish는 신뢰된 같은 저장소 develop의 성공한 push/수동 CI만 받습니다. PR·fork·main·실패·취소 CI는 게시/배포 권한이 없습니다.
 - 수동 **CD → Run workflow → develop**은 해당 커밋 네 이미지를 게시합니다. 이 수동 경로가 CI 재검증을 대신하지는 않습니다. 다른 ref는 생략합니다.
-- deploy는 publish 성공과 repository variables **`DEVELOP_CD_ENABLED=true`·`CONTENT_FRESH_SCHEMA_APPROVED=true` 모두**를 요구합니다. GitHub environment 승인과 Tailscale·SSH host key 검증을 유지합니다.
+- deploy는 publish 성공과 repository variables **`DEVELOP_CD_ENABLED=true`·`CONTENT_FRESH_SCHEMA_APPROVED=true`·`DEVELOP_INTERNAL_DB_APPROVED=true` 모두**를 요구합니다. 새 내부 DB 전환은 과거 외부 DB용 승인만으로 자동 시작하지 않습니다. GitHub environment 승인과 Tailscale·SSH host key 검증을 유지합니다.
 - packages write는 publish, packages read/id-token write는 deploy에만 부여합니다. `storyfork-develop-cd` concurrency로 직렬화하고 실행 중 취소하지 않습니다.
 
 자동 `workflow_run`은 기본 브랜치 main, 수동은 develop ref를 사용하므로 `develop-cd` environment의 allowed deployment branches에 둘을 허용하고 승인 정책을 유지해야 합니다. 소스 파일만으로 실제 GitHub 설정·branch protection·게시·배포가 완료되지 않습니다.
@@ -126,16 +160,17 @@ API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core
 |---|---|---|
 | Repository variable | `DEVELOP_CD_ENABLED` | 배포 허용 시 `true` |
 | Repository variable | `CONTENT_FRESH_SCHEMA_APPROVED` | 정확한 개발 DB의 Content fresh 전환 준비/복구 승인 후 `true` |
+| Repository variable | `DEVELOP_INTERNAL_DB_APPROVED` | 외부/공유 DB 보존·별도 내부 DB로의 전환/이관 계획을 담당자가 승인한 후만 `true`; 기본 미설정이면 배포 생략 |
 | Environment | `develop-cd` | main/develop ref와 필요한 승인 정책 |
 | Environment variable | `CD_DEPLOY_DIR` / `CD_WEB_PORT` | 기존 전용 절대 실경로 / 비충돌 loopback 1024–65535 |
 | Environment secret | `CD_SSH_PRIVATE_KEY` / `CD_SSH_KNOWN_HOSTS` | 전용 SSH 키 / 검증한 host key |
 | Environment secret | `TS_OAUTH_CLIENT_ID` / `TS_AUDIENCE` | Tailscale workload identity |
 
-기존 대상 `tgv99536@100.90.8.124:5798`, `tag:storyfork-cd` 접근·Bash·Docker·Compose v2(`up --wait`) 및 GHCR 읽기 권한이 필요합니다. 실제 주소/개인 설정에 이번 작업은 접속하지 않습니다. 서버 `.env`와 배포 디렉터리는 담당자가 준비하며 DB·SMTP·JWT 설정 외 콘텐츠 활성화 시 별도 서비스 자격/생성 토큰을 설정합니다. OpenAI는 AI만 받습니다. 새 production DB·계정·pool이나 marker/lock 파일을 만들지 않습니다.
+기존 대상 `tgv99536@100.90.8.124:5798`, `tag:storyfork-cd` 접근·Bash·Docker·Compose v2(`up --wait`) 및 GHCR 읽기 권한이 필요합니다. 실제 주소/개인 설정에 이번 작업은 접속하지 않습니다. 서버 `.env`와 배포 디렉터리는 담당자가 준비하며 내부 DB 전용 자격·JWT·별도 서비스 자격/생성 토큰을 설정합니다. DB URL과 SMTP host/port는 `postgres`/`mailpit` 내부 DNS로 고정합니다. OpenAI는 AI만 받습니다. 새 production DB·계정·pool이나 marker/lock 파일을 만들지 않습니다. **기존 외부/공유 DB를 내부 fresh DB로 전환하거나 데이터를 이관하지 않았습니다.** 새 승인 변수는 대상·Auth/Studio/첨부 보존·백업/복구·별도 데이터 이관 계획 확인 전에는 활성화하지 않습니다.
 
 **fresh 승인 변수는 DB를 초기화하거나 준비 상태를 검증하지 않습니다.** 정확한 개발 대상·보존할 Auth/Studio/첨부·백업/격리 복원·중단 시간·호환 이미지의 복구 방법을 담당자가 확정해야 합니다. 이 확인 없이 기존 Content history에 새 앱을 배포하지 않습니다. 일괄 DROP/volume 삭제·자동 repair/clean을 하지 않습니다.
 
-CD는 기존 전용 디렉터리/project labels를 확인하고 두 Compose 파일을 SSH stdin으로 임시 전달하며 서버 `.env`를 덮어쓰지 않습니다. 순서는 **login/pull → 네 이미지 revision 확인 → web·구 Core·Content writer 중지 → opt-in Studio 명시 migration → 새 앱 `up --wait`**입니다. Core Health 뒤 Content를 시작합니다. Studio main은 Content 이미지에 있으며 [대상 allowlist/백업/실패 계약](../docs/deployment/worldstudio-v1-rollout.md)을 따릅니다.
+CD는 기존 전용 디렉터리/project labels를 확인하고 base·dev 및 의존 서비스 참조용 local Compose 파일을 SSH stdin으로 임시 전달하며 서버 `.env`를 덮어쓰지 않습니다. 순서는 **두 DB 승인 확인 → login/pull → 앱 네 이미지만 revision 확인 → web·구 Core·Content writer 중지 → 내부 PostgreSQL·Mailpit `up --wait` → opt-in Studio 명시 migration → 새 앱 `up --wait`**입니다. PostgreSQL/Mailpit 이미지는 앱 revision 비교에서 제외하며 원격 앱 소스 build는 없습니다. Core Health 뒤 Content를 시작합니다. Studio main은 Content 이미지에 있으며 [대상 allowlist/백업/실패 계약](../docs/deployment/worldstudio-v1-rollout.md)을 따릅니다.
 
 중지 전 login/pull/revision 실패는 기존 앱을 건드리지 않습니다. 중지 후 migration/startup 실패는 **ingress를 멈춘 채 실패**하며 자동 rollback/repair/retry·`down`/prune/volume 삭제를 하지 않습니다. 새 이력과 구 binary가 비호환이므로 운영자가 로그/이력과 호환 스냅샷을 확인해 복구를 결정합니다. `up --wait`는 running/healthcheck 확인이지 사용자 HTTP/DB/SMTP 전체 수용 검증이 아닙니다. web의 loopback 외 운영 TLS/ingress는 별도입니다.
 
@@ -143,11 +178,13 @@ CD는 기존 전용 디렉터리/project labels를 확인하고 두 Compose 파�
 
 ```bash
 # 수동 예시: 실제 .env를 읽지 않는 자동 검사는 .env.example + synthetic 값 사용
-docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml config --quiet
+docker compose --env-file .env config --quiet
+docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml config --quiet
 docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.dev.yaml config --quiet
+docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml config --quiet
 ```
 
-구문 검사만 하며 컨테이너를 시작하지 않습니다. CI configuration은 예시/synthetic 값으로 prod/dev의 content false/true, CI overlay, 첨부 환경 격리를 확인합니다. 실제 DB·HTTP·SMTP는 CI 통합/시스템, 모델은 대역 또는 명시적 설정 누락 실패로 검증합니다.
+구문 검사만 하며 컨테이너를 시작하지 않습니다. CI configuration은 예시/synthetic 값으로 루트 기본 진입점과 local/dev/prod의 content false/true, 소스 빌드 CI overlay, 첨부 환경 격리를 확인합니다. 실제 DB·HTTP·SMTP는 CI 통합/시스템, 모델은 대역 또는 명시적 설정 누락 실패로 검증합니다.
 
 ## 표준 테스트 프레임워크 직접 실행
 
