@@ -3,6 +3,7 @@ import '../../testLocks'
 import { login } from '../api/auth'
 import { HttpEpisodeRepository } from '../content/HttpEpisodeRepository'
 import { HttpStoryPlanRepository } from './HttpStoryPlanRepository'
+import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
 
 beforeEach(async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
@@ -15,6 +16,25 @@ const input = { kind: 'plot' as const, parentId: null, title: '플롯', content:
 const plan = { ...input, id: 'p', workId: 'w', revision: 1, episodeMissing: false }
 
 describe('계획 HTTP 계약', () => {
+  it('삭제 충돌 후 기존 인증 목록 조회로 검토하고 재확인한 revision만 삭제한다', async () => {
+    const fresh = { ...plan, title: '다른 탭의 최신 계획', revision: 2 }
+    const fetcher = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === 'GET') return Response.json([fresh])
+      return String(url).endsWith('revision=1')
+        ? Response.json({ detail: '다른 변경이 저장됐어요.' }, { status: 409 })
+        : new Response(null, { status: 204 })
+    })
+    const api = new StoryPlanUseCase(new HttpStoryPlanRepository(new HttpEpisodeRepository(fetcher), fetcher))
+    await expect(api.remove('w', plan)).rejects.toThrow(/변경/)
+    const controller = new AbortController()
+    const reviewed = await api.reviewDeletion('w', 'p', controller.signal)
+    expect(reviewed).toEqual({ plans: [fresh], target: fresh })
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(fetcher).toHaveBeenLastCalledWith('/api/v1/works/w/story-plans', expect.objectContaining({ method: 'GET', headers: expect.objectContaining({ Authorization: 'Bearer bearer' }) }))
+    await api.remove('w', reviewed.target!)
+    expect(fetcher).toHaveBeenLastCalledWith('/api/v1/works/w/story-plans/p?revision=2', expect.objectContaining({ method: 'DELETE', headers: expect.objectContaining({ 'X-CSRF-TOKEN': 'csrf' }) }))
+  })
+
   it('인증·CSRF·revision을 유지해 생성·조회·수정·삭제한다', async () => {
     const fetcher = vi.fn().mockImplementation(async (_url, init) => init.method === 'DELETE' ? new Response(null, { status: 204 }) : Response.json(plan))
     const repo = new HttpStoryPlanRepository(new HttpEpisodeRepository(fetcher), fetcher)

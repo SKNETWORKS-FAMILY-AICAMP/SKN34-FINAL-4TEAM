@@ -13,6 +13,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   const [selected, setSelected] = useState<string | null>(null)
   const [editor, setEditor] = useState<Editor | null>(null)
   const [deleting, setDeleting] = useState<StoryPlan | null>(null)
+  const [deleteNeedsReview, setDeleteNeedsReview] = useState(false)
   const [busy, setBusy] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
@@ -43,12 +44,12 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     }
   }, [])
   const load = useCallback(() => run(signal => Promise.all([api.list(workId, signal), api.references(workId, signal)]), ([rows, refs]) => {
-    setPlans(rows); setReferences(refs)
+    setPlans(rows); setReferences(refs); setDeleteNeedsReview(false)
     setSelected(before => rows.some(p => p.id === before && p.kind === 'plot') ? before : rows.find(p => p.kind === 'plot')?.id ?? null)
   }), [api, workId, run])
 
   useEffect(() => {
-    setPlans([]); setReferences(null); setSelected(null); setEditor(null); setReady(false)
+    setPlans([]); setReferences(null); setSelected(null); setEditor(null); setDeleting(null); setDeleteNeedsReview(false); setReady(false)
     void load()
     return () => { pending.current?.abort(); pending.current = null }
   }, [load])
@@ -111,20 +112,30 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     }, true)
   }
   const remove = () => {
-    if (!deleting) return
+    if (!deleting || deleteNeedsReview || pending.current) return
+    // 응답이 불명확한 경우에도 재전송 전 최신 목록에서 대상을 확인한다.
+    setDeleteNeedsReview(true)
     void run(signal => api.remove(workId, deleting, signal), () => {
-      setPlans(rows => rows.filter(p => p.id !== deleting.id)); setDeleting(null)
+      setPlans(rows => rows.filter(p => p.id !== deleting.id)); setDeleting(null); setDeleteNeedsReview(false)
       setNotice('계획을 삭제했어요. 연결된 원고·사전은 유지돼요.')
     }, true)
   }
+  const reviewDelete = () => {
+    if (!deleting || pending.current) return
+    setDeleteNeedsReview(true)
+    void run(signal => api.reviewDeletion(workId, deleting.id, signal), ({ plans: rows, target }) => {
+      setPlans(rows); setDeleting(target); setDeleteNeedsReview(false)
+      setNotice(target ? '최신 내용을 불러왔어요. 내용을 확인한 뒤 삭제를 다시 선택해 주세요.' : '최신 목록에서 해당 계획을 찾을 수 없어요.')
+    })
+  }
   return {
-    plans, references, selected: plans.find(p => p.id === selected) ?? null, editor, deleting, busy, ready, error, notice, dirty,
+    plans, references, selected: plans.find(p => p.id === selected) ?? null, editor, deleting, deleteNeedsReview, busy, ready, error, notice, dirty,
     reload: () => { if (mayLeave()) void load() },
     select: (id: string) => { if (!mayLeave()) return; void run(signal => api.read(workId, id, signal), fresh => { setPlans(rows => rows.map(p => p.id === id ? fresh : p)); setSelected(id) }) },
-    create, edit, save, remove,
+    create, edit, save, remove, reviewDelete,
     change: (patch: Partial<PlanInput>) => setEditor(before => before ? { ...before, value: { ...before.value, ...patch } } : null),
     closeEditor: () => { if (mayLeave()) setError('') },
-    askDelete: (plan: StoryPlan) => { if (mayLeave()) { setDeleting(plan); setError('') } },
-    closeDelete: () => { if (!pending.current) { setDeleting(null); setError('') } },
+    askDelete: (plan: StoryPlan) => { if (mayLeave()) { setDeleting(plan); setError(''); setNotice('') } },
+    closeDelete: () => { if (!pending.current) { setDeleting(null); setError(''); setNotice('') } },
   }
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createMockDb, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
 import { StoryPlanUseCase } from '../usecases/StoryPlanUseCase'
@@ -9,7 +9,7 @@ function setup() {
   const work = db.works.find(w => w.id === 'starlight')!
   work.owner = 'me'
   const repo = new InMemoryStoryPlanRepository(new InMemoryWorkRepository(db))
-  return { db, work, api: new StoryPlanUseCase(repo) }
+  return { db, work, repo, api: new StoryPlanUseCase(repo) }
 }
 
 describe('11 플롯·장면 계획', () => {
@@ -41,6 +41,42 @@ describe('11 플롯·장면 계획', () => {
     await expect(api.save(work.id, plot, p)).rejects.toThrow(/변경/)
     await expect(api.remove(work.id, p)).rejects.toThrow(/변경/)
     expect((await api.read(work.id, p.id)).title).toBe('최신 계획')
+  })
+
+  it('삭제 충돌 후 최신 대상을 검토만 하고 재확인한 revision으로 삭제한다', async () => {
+    const { api, work, repo } = setup()
+    const p = await api.save(work.id, plot)
+    const fresh = await api.save(work.id, { ...plot, title: '다른 탭에서 수정', content: '삭제 전 확인할 최신 내용' }, p)
+    await expect(api.remove(work.id, p)).rejects.toThrow(/변경/)
+    const remove = vi.spyOn(repo, 'remove')
+    const reviewed = await api.reviewDeletion(work.id, p.id)
+    expect(reviewed).toEqual({ plans: [fresh], target: fresh })
+    expect(remove).not.toHaveBeenCalled()
+    expect(await api.read(work.id, p.id)).toEqual(fresh)
+    await api.remove(work.id, reviewed.target!)
+    expect(remove).toHaveBeenCalledWith(work.id, fresh, undefined)
+    expect(await api.list(work.id)).toEqual([])
+  })
+
+  it('다른 탭에서 삭제한 대상은 목록에서 제외하고 다시 삭제하지 않는다', async () => {
+    const { api, work, repo } = setup()
+    const p = await api.save(work.id, plot)
+    await api.remove(work.id, p)
+    const remove = vi.spyOn(repo, 'remove')
+    expect(await api.reviewDeletion(work.id, p.id)).toEqual({ plans: [], target: null })
+    expect(remove).not.toHaveBeenCalled()
+  })
+
+  it('삭제 검토의 조회 실패와 권한 거부를 대상 삭제로 바꾸지 않는다', async () => {
+    const { api, work, repo } = setup()
+    const p = await api.save(work.id, plot)
+    const controller = new AbortController()
+    const failure = new Error('목록 조회 실패')
+    const list = vi.spyOn(repo, 'list').mockRejectedValueOnce(failure)
+    await expect(api.reviewDeletion(work.id, p.id, controller.signal)).rejects.toBe(failure)
+    expect(list).toHaveBeenCalledWith(work.id, controller.signal)
+    work.owner = 'someone-else'; work.author = '다른 작가'
+    await expect(api.reviewDeletion(work.id, p.id)).rejects.toThrow(/권한/)
   })
 
   it('다른 작품의 부모·인물·장소·회차와 잘못된 입력을 거부한다', async () => {

@@ -1,0 +1,96 @@
+# Local source-built stack, also reused by CI; nginx runtime, NOT HMR.
+# A new project-scoped volume deliberately does not reuse storyfork-dev or deployment data.
+name: storyfork-local
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: storyfork
+      POSTGRES_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
+      POSTGRES_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+    ports:
+      - "127.0.0.1:${CORE_DATABASE_PORT:-5432}:5432"
+    volumes:
+      - core-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:${CORE_MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${CORE_MAILPIT_WEB_PORT:-8025}:8025"
+
+  # 알림 사건 검증용 브로커. 기본 스택에는 포함하지 않으며 `--profile events`로만 켠다.
+  # 관리 UI·포트는 열지 않고 상태 확인은 컨테이너 안의 rabbitmqctl로 한다.
+  rabbitmq:
+    image: rabbitmq:4.1.0-alpine
+    profiles: [events]
+    hostname: storyfork-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${CORE_RABBITMQ_USER:-storyfork}
+      RABBITMQ_DEFAULT_PASS: ${CORE_RABBITMQ_PASSWORD:-}
+    volumes:
+      - core-rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 20s
+
+  ai-service:
+    build:
+      context: ../backend/ai-service
+      dockerfile: Dockerfile
+
+  core-api:
+    build:
+      context: ../backend/core-api
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      CORE_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
+      CORE_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+      CORE_SMTP_HOST: mailpit
+      CORE_SMTP_PORT: 1025
+      AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:-http://127.0.0.1:${DEV_WEB_PORT:-5173}}
+      AUTH_MAIL_FROM: ${AUTH_MAIL_FROM:?Set AUTH_MAIL_FROM}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Set AUTH_JWT_SECRET}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${DEV_WEB_PORT:-5173}}
+    ports:
+      - "127.0.0.1:${CORE_API_PORT:-8080}:8080"
+
+  content-service:
+    build:
+      context: ../backend/content-service
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      CONTENT_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
+      CONTENT_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+      APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${DEV_WEB_PORT:-5173}}
+    ports:
+      - "127.0.0.1:${CONTENT_SERVICE_PORT:-8081}:8081"
+
+  web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:${DEV_WEB_PORT:-5173}:80"
+
+volumes:
+  core-postgres:
+  core-rabbitmq:

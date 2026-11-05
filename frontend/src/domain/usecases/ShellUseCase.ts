@@ -10,24 +10,16 @@ export class ShellUseCase {
     this.feedbackRepository = feedbackRepository
   }
 
-  /** 목업 pend(): 작가가 처리할 피드백 수 */
+  /** 알림 수 조회가 실패해도(비로그인·일시 오류) 메뉴 전체가 깨지지 않게 0으로 둡니다. */
   async getBadges() {
-    const [notifications, inbox] = await Promise.all([this.notificationRepository.list(), this.feedbackRepository.listInbox()])
-    return { unread: notifications.filter((n) => !n.read).length, pending: inbox.filter((i) => ['작가 검토 대기', '수정 진행 중', '발행 대기'].includes(i.status)).length }
+    const [unread, inbox] = await Promise.all([this.notificationRepository.unreadCount().catch(() => 0), this.feedbackRepository.listInbox()])
+    return { unread, pending: inbox.filter((i) => ['작가 검토 대기', '수정 진행 중', '발행 대기'].includes(i.status)).length }
   }
 
-  async getNotifications() {
-    const [list, prefs] = await Promise.all([this.notificationRepository.list(), this.notificationRepository.getPrefs()])
-    return { list, prefs }
-  }
-
-  /** id가 없으면 모두 읽음 */
-  async markRead(id?: string) {
-    const list = await this.notificationRepository.list()
-    await this.notificationRepository.save(list.map((n) => (!id || n.id === id ? { ...n, read: true } : n)))
-  }
-
-  async setPref(key: keyof NotificationPrefs, on: boolean) {
-    await this.notificationRepository.savePrefs({ ...(await this.notificationRepository.getPrefs()), [key]: on })
-  }
+  listNotifications(cursor?: string | null, signal?: AbortSignal) { return this.notificationRepository.list(cursor, signal) }
+  getPrefs(signal?: AbortSignal) { return this.notificationRepository.getPrefs(signal) }
+  markRead(id: string) { return this.notificationRepository.markRead(id) }
+  markAllRead(upTo: string) { return this.notificationRepository.markAllRead(upTo) }
+  removeNotification(id: string) { return this.notificationRepository.remove(id) }
+  savePrefs(prefs: NotificationPrefs) { return this.notificationRepository.savePrefs(prefs) }
 }

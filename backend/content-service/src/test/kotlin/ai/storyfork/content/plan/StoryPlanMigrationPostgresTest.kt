@@ -11,12 +11,12 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 
-/** V10 데이터와 체크섬을 보존하며 계획의 작품 삭제 종속성만 업그레이드한다. */
+/** 기존 데이터·체크섬과 작품 삭제 종속성을 보존하며 참조 제약을 업그레이드한다. */
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL", matches=".+")
 class StoryPlanMigrationPostgresTest {
     @ParameterizedTest
-    @ValueSource(booleans=[false,true])
-    fun `fresh and V10 plans follow only their deleted work without losing other data`(upgrade: Boolean) {
+    @ValueSource(ints=[0,10,11])
+    fun `fresh and upgraded plans preserve data uniqueness and work deletion boundaries`(version: Int) {
         val url=System.getenv("TEST_CONTENT_DATABASE_URL")
         val user=System.getenv("TEST_CONTENT_DATABASE_USER") ?: "content_test"
         val password=System.getenv("TEST_CONTENT_DATABASE_PASSWORD") ?: ""
@@ -28,9 +28,9 @@ class StoryPlanMigrationPostgresTest {
             val jdbc=JdbcTemplate(source)
             fun migrations() = Flyway.configure().dataSource(source).schemas(schema).defaultSchema(schema)
                 .locations(*ContentPersistenceConfig.MIGRATION_LOCATIONS).table("content_schema_history")
-            val initial=migrations().let { if(upgrade) it.target("10") else it }.load()
-            assertEquals(if(upgrade) 10 else 11,initial.migrate().migrationsExecuted)
-            val checksum=jdbc.queryForObject("SELECT checksum FROM content_schema_history WHERE version='10'",Int::class.java)
+            val initial=migrations().let { if(version>0) it.target(version.toString()) else it }.load()
+            assertEquals(if(version>0) version else 12,initial.migrate().migrationsExecuted)
+            val checksums=jdbc.queryForList("SELECT version,checksum FROM content_schema_history ORDER BY installed_rank")
             jdbc.update("INSERT INTO member(id) VALUES ('owner')")
             jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','삭제 작품','','original',0),('other','owner','보존 작품','','original',0)")
             jdbc.update("""INSERT INTO story_plan(id,work_id,kind,parent_id,title,content,revision,created_at,deleted_at) VALUES
@@ -42,12 +42,26 @@ class StoryPlanMigrationPostgresTest {
             for(table in listOf("story_plan_character","story_plan_place")) {
                 jdbc.update("INSERT INTO $table(plan_id,position,setting_id) VALUES ('removed',0,'old-ref'),('scene',0,'scene-ref'),('kept-scene',0,'kept-ref')")
             }
-            if(upgrade) assertThrows(DataIntegrityViolationException::class.java) { jdbc.update("DELETE FROM work WHERE id='w'") }
+            if(version==10) assertThrows(DataIntegrityViolationException::class.java) { jdbc.update("DELETE FROM work WHERE id='w'") }
 
             val upgraded=migrations().load()
-            assertEquals(if(upgrade) 1 else 0,upgraded.migrate().migrationsExecuted)
-            assertEquals(checksum,jdbc.queryForObject("SELECT checksum FROM content_schema_history WHERE version='10'",Int::class.java))
+            assertEquals(if(version>0) 12-version else 0,upgraded.migrate().migrationsExecuted)
+            assertEquals(checksums,jdbc.queryForList("SELECT version,checksum FROM content_schema_history ORDER BY installed_rank").take(checksums.size))
             assertEquals(5,jdbc.queryForObject("SELECT count(*) FROM story_plan",Int::class.java))
+            for(table in listOf("story_plan_character","story_plan_place")) {
+                source.connection.use { connection ->
+                    connection.autoCommit=false
+                    try {
+                        connection.createStatement().use {
+                            it.executeUpdate("INSERT INTO $table(plan_id,position,setting_id) VALUES ('scene',1,'scene-ref')")
+                        }
+                        val rejected=assertThrows(java.sql.SQLException::class.java) { connection.commit() }
+                        assertEquals("23505",rejected.sqlState)
+                    } finally {
+                        connection.rollback()
+                    }
+                }
+            }
             // 장면이 남은 플롯의 개별 물리 삭제 제약도 그대로 유지한다.
             assertThrows(DataIntegrityViolationException::class.java) { jdbc.update("DELETE FROM story_plan WHERE id='plot'") }
             assertEquals(1,jdbc.update("DELETE FROM work WHERE id='w'"))

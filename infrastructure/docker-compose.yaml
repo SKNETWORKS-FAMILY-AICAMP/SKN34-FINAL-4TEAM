@@ -1,4 +1,4 @@
-# Shared application settings; use with docker-compose.prod.yaml or docker-compose.dev.yaml.
+# Shared application settings; use with docker-compose.local.yaml, .dev.yaml or .prod.yaml.
 # This base has no image/build selection and is not runnable on its own.
 services:
   ai-service:
@@ -13,16 +13,16 @@ services:
   core-api:
     init: true
     environment:
-      CORE_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
-      CORE_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
-      AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN}
-      AUTH_MAIL_FROM: ${AUTH_MAIL_FROM:?Set AUTH_MAIL_FROM}
-      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Set AUTH_JWT_SECRET}
-      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:-}
       AI_SERVICE_BASE_URL: http://ai-service:8000
       AI_SERVICE_CONNECT_TIMEOUT: ${AI_SERVICE_CONNECT_TIMEOUT:-1s}
       AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-12s}
+      # 알림 사건 소비는 기본 꺼짐. 켜면 CORE_RABBITMQ_* 로 브로커에 연결한다.
+      CORE_NOTIFICATION_EVENTS_ENABLED: ${CORE_NOTIFICATION_EVENTS_ENABLED:-false}
+      CORE_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}
+      CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
+      CORE_RABBITMQ_USER: ${CORE_RABBITMQ_USER:-}
+      CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
     expose:
       - "8080"
     # Bash is in the existing JRE image; no new probe dependency or authenticated route.
@@ -42,9 +42,6 @@ services:
       SERVER_ADDRESS: 0.0.0.0
       CONTENT_ENABLED: ${CONTENT_ENABLED:-false}
       APP_WORLDSTUDIO_ENABLED: ${APP_WORLDSTUDIO_ENABLED:-false}
-      # Same existing database/account as before; no new database or data copy.
-      CONTENT_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
-      CONTENT_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:-}
       CORE_AUTH_BASE_URL: http://core-api:8080
       CORE_AUTH_CONNECT_TIMEOUT: ${CORE_AUTH_CONNECT_TIMEOUT:-1s}

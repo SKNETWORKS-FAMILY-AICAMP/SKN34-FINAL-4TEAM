@@ -36,8 +36,8 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(11,flyway.migrate().migrationsExecuted)
-        assertEquals((1..11).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(12,flyway.migrate().migrationsExecuted)
+        assertEquals((1..12).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for(table in listOf("work","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place")) {
@@ -68,6 +68,6 @@ class ContentMigrationTest {
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(11,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(12,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

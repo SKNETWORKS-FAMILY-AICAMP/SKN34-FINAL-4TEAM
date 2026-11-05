@@ -2,8 +2,8 @@ import {cardLibraryRows,worldWritingIssues} from '../../../../domain/entities/wo
 import {initialWorldStudioFlow,worldStudioFlow,type StudioStep} from './worldStudioFlow'
 import {applyRelationChanges,editStudioSetting,personDeletionInfo,removePerson,type RelationInput} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,areaPatch,type CardType} from '../../../../domain/entities/studioCards'
-import type { StudioSection } from '../../../../domain/entities/studioSections'
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useContext, useEffect, useReducer, useRef, useState } from 'react'
+import { WorldStudioLeaveContext } from './worldStudioLeaveGuard'
 import { useNavigate, useParams } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import { newSetting, type SettingItem, type StudioSetting, type StudioWorld } from '../../../../domain/entities/studioWorld'
@@ -12,6 +12,7 @@ import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudio
 export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.resolve('worldStudioUseCase')) {
  const {worldId=''}=useParams()
  const navigate=useNavigate()
+ const leaveGuard=useContext(WorldStudioLeaveContext)
  const [flow,dispatchFlow]=useReducer(worldStudioFlow,initialWorldStudioFlow)
  const [tool,setTool]=useState<'write'|'explore'|'analysis'>('write')
  const [explore,setExplore]=useState('map')
@@ -31,6 +32,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
  const [error,setError]=useState('')
  const [message,setMessage]=useState('')
  const [busy,setBusy]=useState(false)
+ useEffect(()=>{leaveGuard?.setDirty(dirty);return ()=>leaveGuard?.setDirty(false)},[dirty,leaveGuard])
  const editingId=editing?.id
  useEffect(()=>{
   if(editingId)dispatchFlow({type:'open'})
@@ -68,14 +70,13 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   returnToCard:()=>{if(returnCard.current)setSelected(returnCard.current);setCardDetail(true);goStep('cards')},
   cardRows:cardLibraryRows(editing?.settings??[],cardFilter,cardQuery),writingIssues:editing?worldWritingIssues(editing):[],
   worlds,saved,editing,dirty,selected,setSelected,error,message,busy,
-  create:(name:string,description:string)=>perform(async()=>{if(dirty&&!window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?'))return;const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current)navigate('/worldstudio/'+w.id)}),
-  open:(id:string)=>{if(dirty && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){navigate('/worldstudio/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
+  create:(name:string,description:string)=>perform(async()=>{if(leaveGuard?!leaveGuard.confirmBeforeAction():dirty&&!window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?'))return;const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current){leaveGuard?.allowNextNavigation();navigate('/worldstudio/'+w.id)}}),
+  open:(id:string)=>{if(leaveGuard?!leaveGuard.confirmBeforeAction():dirty&&!window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){leaveGuard?.allowNextNavigation();navigate('/worldstudio/'+id);return};return perform(async()=>{const current=generation.current;apply(await useCase.read(id),current)})},
   patch,
   applyRelations:(changes:RelationInput[],removed:string[])=>!!changeRelations(settings=>applyRelationChanges(settings,changes,removed)),
   personDeletionInfo:(id:string)=>personDeletionInfo(editing?.settings??[],id),
   deletePerson:(id:string)=>{if(!editing)return false;const before=editing.settings;const after=changeRelations(settings=>removePerson(settings,id));if(!after)return false;setPersonUndo({worldId:editing.id,id,before,after,wasDirty:dirty});return true},
   undoPersonDeletion:()=>{if(!editing||!personUndo||busy||editing.id!==personUndo.worldId||editing.settings!==personUndo.after)return;const id=personUndo.id;patch({settings:personUndo.before});setDirty(personUndo.wasDirty);setSelected(id);return id},
-  add:(section:StudioSection='basic')=>{if(!editing||busy)return;const s=newSetting(section);patch({settings:[...editing.settings,s]});setSelected(s.item.id);return s.item.id},
   addCard:(type:CardType|'note')=>{if(!editing||busy)return;const s=newSetting();if(type==='note')s.item.kind='note';else Object.assign(s.item,cardTypePatch(s.item,type,[]));patch({settings:[...editing.settings,s]});setSelected(s.item.id)},
   changeCardType:(id:string,type:CardType)=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;setSelected(id);try{const change=cardTypePatch(row.item,type,editing.settings);if(Object.keys(change).length)patch({settings:editStudioSetting(editing.settings,id,change)});setError('')}catch(e){setError(e instanceof Error?e.message:'유형을 바꾸지 못했습니다.')}},
   changeArea:(id:string,category:SettingItem['category'])=>{if(!editing||busy)return;const row=editing.settings.find(s=>s.item.id===id);if(!row)return;try{const change=areaPatch(row.item,category);patch({settings:editing.settings.map(s=>s.item.id===id?{...s,item:{...s.item,...change}}:s)});setError('')}catch(e){setError(e instanceof Error?e.message:'영역을 바꾸지 못했습니다.')}},
