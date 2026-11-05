@@ -74,12 +74,13 @@ it('clears a restore connection error only after a later successful login', asyn
   expect(fetcher.mock.calls.filter(([path]) => path.endsWith('/refresh'))).toHaveLength(1)
 })
 
-it.each(['/content', '/studio/00000000-0000-0000-0000-000000000001'])('waits for restored memory authentication before loading %s', async path => {
+it.each(['/content', '/studio/00000000-0000-0000-0000-000000000001', '/studio/00000000-0000-0000-0000-000000000001?view=narrative'])('waits for restored memory authentication before loading %s', async path => {
   let finish!: (response: Response) => void
   const pending = new Promise<Response>(resolve => { finish = resolve })
   const fetcher = vi.fn(async (url: string, _init?: RequestInit) => {
     if (url.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
     if (url.endsWith('/refresh')) return pending
+    if (url.endsWith('/world')) return Response.json({ id: 'w', name: '설정집', revision: 0, mode: 'own', basis: null, draft: null, drafts: [], settings: [], history: [], sourceToken: 't', changes: [] })
     return Response.json([])
   })
   vi.stubGlobal('fetch', fetcher)

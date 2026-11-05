@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/store'
 import { screenLabel } from '../screenIds'
 import { sessionActions } from '../session/sessionSlice'
 import { ThemeButton } from './ThemeButton'
+import { useNotificationStream } from './useNotificationStream'
 import { useApplyTheme } from './useTheme'
 
 /** 목업 RB: 페이지 이동 바 */
@@ -97,6 +98,7 @@ function useProximity() {
 export function GlobalChrome() {
   useApplyTheme()
   useProximity()
+  useNotificationStream()
   const { showSid, screen } = useAppSelector((s) => s.session)
   const { pathname } = useLocation()
   const showTools = pathname !== '/login' && pathname !== '/me' && !pathname.startsWith('/me/') && !pathname.startsWith('/auth/')
@@ -106,9 +108,9 @@ export function GlobalChrome() {
       <RouteBar />
       <Toast />
       <TopButton />
-      {showTools && <><div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>
+      {showTools && <>{import.meta.env.DEV && <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>}
       <div className="screen-controls">
-        <button type="button" className="btn sm" onClick={() => dispatch(sessionActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>
+        {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(sessionActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
         <ThemeButton className="btn sm" />
       </div></>}
     </>

@@ -24,20 +24,20 @@ describe('집필실 도구 (U15·U18·U21·U23·U37~U41·자율 연재)', () => 
     renderAt('/studio/starlight')
     await screen.findByLabelText('원고 본문')
     for (const [label, id] of [['사전', 'U38'], ['플롯', 'U40'], ['콘티', 'U41']] as const) {
-      fireEvent.click(within(tools()).getByRole('button', { name: label }))
+      fireEvent.click(within(tools()).getByRole('link', { name: label }))
       await waitFor(() => expect(sid()).toContain(id))
     }
     expect(where()).toBe('/studio/starlight?view=memo')
     fireEvent.change(screen.getByLabelText('콘티 내용'), { target: { value: '아이디어 메모' } })
-    fireEvent.click(within(tools()).getByRole('button', { name: '원고' }))
+    fireEvent.click(within(tools()).getByRole('link', { name: '원고' }))
     await screen.findByLabelText('원고 본문')
-    fireEvent.click(within(tools()).getByRole('button', { name: '콘티' }))
+    fireEvent.click(within(tools()).getByRole('link', { name: '콘티' }))
     await waitFor(() => expect((screen.getByLabelText('콘티 내용') as HTMLTextAreaElement).value).toBe('아이디어 메모'))
   })
 
   it('사전은 인물 문서를 열고 서술 순서를 바꾼다', async () => {
     renderAt('/studio/starlight?view=wiki')
-    fireEvent.click((await screen.findAllByRole('button', { name: '리안' }))[0])
+    fireEvent.click((await screen.findAllByRole('link', { name: '리안' }))[0])
     await screen.findByRole('heading', { name: '리안' })
 
   })

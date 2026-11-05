@@ -1,8 +1,10 @@
 # STORYFORK 아키텍처
 
-> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 현재 상태 하나이며 관계 이력·과거 snapshot·전체 세계관 복원은 지원하지 않는다. 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
 
 ## 현재 구현
+
+11번 플롯·장면 계획은 Content의 `plan` 기능과 추가 `db/migration/plan/V10__story_plan.sql`에 분리했습니다. V11은 작품의 실제 삭제 시 해당 계획과 계획 참조만 종속 정리합니다. V12는 인물·장소 순서 목록 갱신의 일시 중복을 허용하고 커밋 시 최종 중복을 거부하며 기존 V1~V11 SQL·체크섬을 보존합니다. 기존 7개 leaf에 plan을 더한 8개 leaf를 사용합니다. `/studio/{id}?view=narrative`에서 실제 작품은 계획 API를, 메모리 데모는 독립 계획 저장소를 사용하고 기존 설정집·회차 조회를 참조합니다. 계획 저장은 원고·사전·인물 상태·Fork 독립을 변경하지 않습니다. 사용자 승인으로 5433의 별도 검증 DB에서 신규 생성·V10/V11 업그레이드·작품 삭제·인물/장소 선택 해제와 순서 교체 회귀를 확인했으며 공유 DB 적용은 별도 절차이며 후속 변경의 hosted 검증은 해당 head의 Required CI 결과로 판정합니다.
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
@@ -64,18 +66,22 @@ Auth는 `auth/controller → SignupService·SessionService·ProfileService → a
 
 Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼리·JPQL·Entity 변경으로 처리합니다. 기존 UUID·Flyway SQL 바이트·`flyway_schema_history`는 유지하며 Hibernate는 스키마 검증만 수행합니다(`ddl-auto=validate`, `open-in-view=false`). 기존 Content JDBC 저장과 별도 `content_schema_history`는 이번 전환 범위 밖입니다. 회원별 `PESSIMISTIC_WRITE` 잠금 뒤에 자격 증명·refresh 상태를 읽어 로그인/비밀번호 재설정 및 refresh/로그아웃의 경합을 보호합니다. 재사용 감지 시 세션 폐기는 Service가 커밋한 뒤 HTTP 401로 변환합니다. 가입 후보는 행 잠금을 사용하며 아직 행이 없는 최초 가입의 삽입 충돌만 새 트랜잭션에서 한 번 재시도합니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
 
+알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V4~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ outbox·소비자와 모바일 푸시는 후속 범위입니다.
+
 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS와 여러 콘텐츠 기능에서 공유하는 실패·식별자 계약이 있습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
 콘텐츠 생성은 `proposal/config/GenerationClientConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
 내부 URL·오류 원문은 공개하지 않으며 AI 장애가 Core 자체 Health 성공을 막지 않습니다.
 
-### WorldStudio 독립 JPA 저장소·Service (HTTP API 연결 전)
+### WorldStudio Content HTTP·Neo4j 현재 상태 (#132)
 
-개발 CD는 기존 Core 이미지의 별도 `WorldStudioMigration` main을 일회성으로 실행한 뒤 새 Core를 기동합니다.
-일반 서버 시작에서는 WorldStudio DDL을 실행하지 않습니다. 대상 allowlist·백업 복원 기록·명시 활성화가 없으면 기본 비활성이며,
-실제 공유 DB 적용은 이번 구현과 구분합니다. [배포 실행 계약](deployment/worldstudio-v1-rollout.md)을 따릅니다.
+이 절은 현재 소스 계약이다. `WorldStudioController → WorldStudioService → JPA / Neo4jRelationshipRepository`가 `/api/v1/world-studios`를 제공하고 nginx/Vite는 exact·하위 경로를 Content:8081로 보낸다. 기존 Core 인증 확인의 UUID Principal·CSRF·world 소유권 검사를 유지한다. Frontend는 기존 UseCase/Repository 경계를 통해 현재 draft를 저장하고 기존 관계 편집·관계도에 사용한다. 화면 저장은 draft PUT이며 카드 revision POST·공개·발행이 아니다.
 
-[독립 초기 설계](design/worldstudio-independent-schema.md)는 기존 Content/Auth와 다른 `worldstudio` schema에 12개 정본 테이블을 둡니다. 전용 Flyway location/history는 `db/migration/worldstudio` / `worldstudio.world_studio_schema_history`이며 서버 기본 DataSource·Auth migration 경로·Content writer를 변경하지 않습니다. `WorldStudioConfig → WorldStudioService → Spring Data JpaRepository`가 기존 Core 기본 EntityManager·TransactionManager와 `@Transactional`로 생성·초안·확정·과거 조회·복원을 처리합니다. subject는 검증된 JWT의 UUID를 전달받으며 모든 world 접근에서 소유권과 world별 잠금을 검사합니다. 세계관 업무에는 Content·Auth 테이블 FK/조회 의존이 없습니다. Core 공통 JPA는 기존 Auth 초기화와 함께 사용합니다. 서버 시작 DDL·HTTP API·기존 UI 연결·공용 DB 적용은 포함하지 않으며 Graph·AI·이미지를 추가하지 않습니다.
+기존 `worldstudio` V1의 12개 테이블·SQL·데이터를 보존하고 V2로 관계 내용 없는 `relationship_state`를 추가한다. PG는 카드 원문/버전·소유권·UUID와 요청 상태만, Neo4j는 현재 관계 내용만 소유한다. 짧은 PG prepare → PG 밖 Neo4j CAS → 짧은 PG finalization 순서이며 분산 원자성을 가정하지 않는다. graph token은 이력 버전이 아니다. pending은 원래 key/입력으로만 재시도하며 탭을 잃은 뒤 자동 복구할 수 없다. 미전환·미완료·불일치는 빈 관계 성공으로 대체하지 않는다.
+
+관계 변경 이력·과거 snapshot·시점 조회·복원은 최신 사용자 결정으로 제외했다(DEC-27·33의 관계만의 MVP 예외). 기존 카드 revision은 `relationships=null` / `not_recorded`이고 전체 세계관 restore는 명시적 미지원이다. 기존 인물·설정·원고 버전과 과거 SQL/데이터는 유지한다.
+
+서버는 Content DataSource와 studio-only EntityManager/TransactionManager로 validate만 한다. 명시 migration main은 Content 이미지에 있으며 실제 DB 적용·기존 관계 변환은 별도 승인 대상이다. opt-in Neo4j profile과 격리 CI 서비스는 소스에 연결했지만 실제 이관·hosted CI·배포·브라우저 검증은 대기다. API·설정·실패/재시도 한계는 [현재 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132), 기존 배포 승인은 [배포 실행 계약](deployment/worldstudio-v1-rollout.md)을 따른다.
 
 ### 설정 첨부 (#87)
 
@@ -111,15 +117,15 @@ Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaR
 
 ## 실행·보안 경계
 
-공통 `docker-compose.yaml`은 세 앱의 환경·내부 포트를 정의하며 단독 실행하지 않습니다.
-base + `docker-compose.prod.yaml`은 소스 빌드한 nginx 정적 web·Core·AI와 PostgreSQL·Mailpit을 사용합니다.
-base + `docker-compose.dev.yaml`은 CI가 게시한 `:develop` 이미지 세 개와 기존 외부 PostgreSQL·SMTP를 사용하며 소스 build·mount는 없습니다.
-선택 첨부 overlay는 base + prod 뒤에만 추가하는 로컬 MinIO 구성입니다. HMR은 Compose가 아닌 각 서비스의 기본 네이티브 명령을 사용합니다.
-브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 내부 Core DNS로 중계합니다.
-API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
+공통 `infrastructure/docker-compose.yaml`은 web·Core·Content·AI 네 앱의 공통 환경·내부 포트를 정의하며 단독 실행하지 않습니다.
+루트 `compose.yaml`은 base + `docker-compose.local.yaml`을 include합니다. 루트 `.env`를 자동으로 읽는 `docker compose up -d --build`는 네 앱을 기존 runtime Dockerfile로 빌드하고 내부 PostgreSQL·Mailpit을 함께 사용합니다.
+base + `docker-compose.dev.yaml`은 게시된 `:develop` 앱 이미지와 같은 내부 PostgreSQL·Mailpit 구조를 사용하며 앱 소스 build·mount는 없습니다. local/dev의 프로젝트·DB volume은 서로 격리합니다. 기존 외부·공유 DB의 내부 DB 전환과 데이터 이관은 실행하지 않았으며 개발 CD에는 별도 전환 승인이 필요합니다.
+base + `docker-compose.prod.yaml`은 `:main` 앱 이미지와 외부 PostgreSQL·SMTP를 사용하는 운영 설정 준비입니다. 현재 게시 workflow는 develop 전용이므로 main 이미지 가용성·실제 게시·배포는 확인되지 않았습니다.
+선택 첨부 overlay는 base + local 뒤에 추가하는 로컬 MinIO 구성입니다. 소스 빌드 web은 nginx 정적 이미지이지 HMR이 아니며, hot reload는 각 서비스의 기본 네이티브 명령을 사용합니다.
+브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 Core·Content 내부 DNS로 중계합니다. API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
 
-두 조합 모두 web만 loopback에 공개하며 Core·AI 포트는 내부 전용입니다. 선택 MinIO의 API·Console도 loopback에만 공개합니다.
-인증·TLS가 없는 **로컬 검증용**이며 인터넷 운영 준비가 된 배포가 아닙니다.
+local은 web 5173·Core 8080·Content 8081·PostgreSQL 5432·Mailpit 1025/8025를 기본 loopback 포트로 공개하며 AI는 내부 전용입니다. dev는 기존 `CD_WEB_PORT` loopback 바인딩만 유지하고 DB·Mailpit은 호스트에 공개하지 않습니다. prod도 별도 `PROD_WEB_PORT` loopback 바인딩이며 필수 `PROD_*` 입력과 항상 Secure인 쿠키를 사용합니다. 선택 MinIO도 loopback 전용입니다.
+TLS·공개 ingress·외부 서비스는 제공하지 않으며 운영 준비 완료가 아닙니다. 모든 환경의 기본 Auth V4에 공개 비밀번호 샘플 회원 생성이 남아 있어 운영 사용 전 별도 보안 판단이 필요합니다. 이번 설정 변경에서 기존 migration은 수정하지 않습니다.
 OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build ARG에는 키를 넣지 않습니다.
 실행과 검증, 환경파일 경계는 [인프라 안내](../infrastructure/README.md)를 따릅니다.
 

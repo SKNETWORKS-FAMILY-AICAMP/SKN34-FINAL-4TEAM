@@ -25,6 +25,7 @@ export default function WorldMapCanvas({vm}:{vm:ReturnType<typeof useWorldMapVie
    }}
    nodePointerAreaPaint={(n,color,ctx)=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(n.x??0,n.y??0,11,0,2*Math.PI);ctx.fill()}}
    linkColor={l=>linked(l)?'#9472e2':'#a5a7b780'} linkWidth={l=>linked(l)?1.8:.7}
+   linkCurvature={l=>l.curve??0} linkDirectionalArrowLength={l=>l.symmetric===false?5:0} linkDirectionalArrowRelPos={0.8}
    linkDirectionalParticles={l=>linked(l)&&!paused&&!reduced?2:0} linkDirectionalParticleWidth={2}
    onNodeClick={n=>vm.select(n.id)} onBackgroundClick={()=>vm.select(null)} onNodeDragEnd={n=>{n.fx=n.x;n.fy=n.y}}
    onEngineStop={()=>{setSettled(true);if(!paused)graph.current?.zoomToFit(reduced?0:400,40)}}/>
