@@ -179,17 +179,16 @@ class AttachmentService(
     fun downloadEpisodeImage(work: String, number: Int, id: String, owner: String?, public: Boolean): AttachmentDownloadResult {
         val marker = "[[image:$id]]"
         // Public access is granted by the exact existing published body, never by a guessed image ID or a draft.
-        if (public) {
-            if (content.publicRead(work).episodes.none { it.number == number && marker in it.body }) missingImage()
+        val referenced = if (public) {
+            content.publicRead(work).episodes.any { it.number == number && marker in it.body }
         } else {
             val episode = episodeService.read(work, owner ?: "", number)
-            val image = imageTransaction { images.findById(id).orElse(null) ?: missingImage() }
-            if (image.workId != work || image.episodeNo != number) {
-                if (!episode.inherited || marker !in episode.draft.body) missingImage()
-            }
+            episode.inherited && marker in episode.draft.body
         }
+        if (public && !referenced) missingImage()
         return imageTransaction {
             val image = images.findById(id).orElse(null) ?: missingImage()
+            if (!episodeService.permitsImageReference(work, number, image) || (image.workId != work && !referenced)) missingImage()
             AttachmentDownloadResult(response(image, work), imageBytes(image))
         }
     }
