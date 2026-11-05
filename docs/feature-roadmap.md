@@ -576,7 +576,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="32">Frontend</td><td rowspan="21">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
+<tr><td rowspan="33">Frontend</td><td rowspan="22">웹 화면</td><td rowspan="14">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="14"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a> · <a href="#미등록-115">미등록-115</a></td></tr>
 <tr><td>상세 화면 API 연결</td><td>❌</td></tr>
 <tr><td>등록 화면 API 연결</td><td>❌</td></tr>
 <tr><td>수정 화면 API 연결 <small>(회차 집필에 팀 레이아웃 재사용·제목/본문 입력은 UI 서체 적용, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
@@ -588,6 +588,7 @@
 <tr><td>저장 충돌 안내 <small>(집필 상단·버전 공개 시트에 오류 표시, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>인증 만료 안내</td><td>❌</td></tr>
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
+<tr><td>공통 시트의 summary 키보드 탐색 <small>(초기 포커스·Tab/Shift+Tab 순환, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td rowspan="1">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a></td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
@@ -775,6 +776,7 @@
 | <a id="미등록-112"></a>미등록-112 | 89 | 실행 기반 | 운영 독립 Gradle·Spring Boot 진입점·loopback 설정·선택 단위 테스트 골격을 로컬 구현; 업무·DB·배포 구현, 앱 기동, 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
 | <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 | POST /internal/v1/auth/verify의 별도 서비스 자격·서명/만료/UUID JWT 확인, Content HTTP Service proxy·timeout/장애/401 구분·UUID Principal·CSRF/CORS 경계를 소스 구현; 캐시/재시도/fallback/키 공유 없음. bc672a0의 hosted Content 통합은 성공했으나 시스템 인증 장애의 503/504 기대 불일치로 Required CI 실패; 네트워크를 유지한 pause/unpause·정확한 504/CORE_AUTH_TIMEOUT 회귀 보완은 hosted 재검증·병합 전이므로 ❌ 유지 |
 | <a id="미등록-114"></a>미등록-114 | 43 | 빌드 캐시 잠금 | Core·Content Dockerfile의 `/root/.gradle` cache mount에 `sharing=locked`를 적용해 서비스 간·동일 서비스 동시 빌드의 캐시 사용 구간을 보호; 정적 계약 RED→GREEN 확인. 실제 이미지 빌드·병합·최신 head Required CI 검증 전이므로 ❌ 유지 |
+| <a id="미등록-115"></a>미등록-115 | 41 | 공통 시트 접근성 | Sheet 포커스 대상에 summary를 포함하고 tabIndex=-1 제외를 보존. 초기 포커스·Tab/Shift+Tab 순환·Escape 및 닫기 후 포커스 복귀 회귀 추가. 전용 GitHub 이슈·PR 미등록이며 병합·최신 Required CI 확인 전이므로 ❌ 유지 |
 
 ## 연결한 GitHub 이슈
 
