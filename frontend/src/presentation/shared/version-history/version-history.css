@@ -8,6 +8,7 @@
 .version-metadata dt { color: var(--sub); }
 .version-metadata dd { margin: 0; overflow-wrap: anywhere; }
 .version-confirm { display: grid; gap: 12px; padding-block: 16px; border-top: 1px solid var(--line); }
+.version-confirm p { overflow-wrap: anywhere; }
 .version-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .version-history ::selection { background: var(--pri-soft); color: var(--pri-ink); }
 @media (max-width: 600px) {
