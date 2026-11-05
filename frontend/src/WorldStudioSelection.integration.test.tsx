@@ -65,7 +65,7 @@ it('focuses the requested relation among multiple relations for the same pair',a
  await show();fireEvent.click(screen.getByRole('button',{name:'검토·저장'}))
  fireEvent.click(within(screen.getByRole('region',{name:'세계관 검토'})).getAllByRole('button',{name:'관계 수정'})[1])
  await waitFor(()=>expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 2'}).value).toBe('두 번째 관계'))
- expect(document.activeElement).toBe(screen.getByRole('combobox',{name:'실제 관계 2'}))
+ await waitFor(()=>expect(document.activeElement).toBe(screen.getByRole('combobox',{name:'실제 관계 2'})))
 })
 
 it('shows no unrelated editor when there are no filter results',async()=>{

@@ -50,7 +50,7 @@ export function WorldRelationshipEditor({studio}:{studio:VM}){
 
 function PairEditor({studio,source,target,focusRequest,onClose}:{studio:VM;source:string;target:string;focusRequest:{id:string;seq:number}|null;onClose:()=>void}) {
  const focusedRow=useRef<HTMLDivElement>(null)
- useEffect(()=>{if(focusRequest)focusedRow.current?.querySelector<HTMLElement>('input,textarea,select')?.focus()},[focusRequest])
+ useEffect(()=>{if(!focusRequest)return;const frame=requestAnimationFrame(()=>focusedRow.current?.querySelector<HTMLElement>('input,textarea,select')?.focus());return ()=>cancelAnimationFrame(frame)},[focusRequest])
  const name=(id:string|null)=>studio.editing!.settings.find(s=>s.item.id===id)?.item.title||'새 설정'
  const empty=(group:'fact'|'emotion',from=source,to=target):DraftRow=>({key:crypto.randomUUID(),group,value:{subjectId:from,targetId:to,predicate:group==='fact'?'custom_relation':'custom_emotion',polarity:'asserted'}})
  const [rows,setRows]=useState<DraftRow[]>(()=>{
