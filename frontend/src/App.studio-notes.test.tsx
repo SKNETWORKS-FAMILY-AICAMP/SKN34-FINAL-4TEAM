@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -10,13 +10,25 @@ import App from './App'
 import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
 
+const studioChunk = vi.hoisted(() => ({ ready: Promise.resolve(), requested: vi.fn() }))
+vi.mock('./presentation/features/studio/view/StudioPage', async (importOriginal) => {
+  studioChunk.requested()
+  await studioChunk.ready
+  return importOriginal()
+})
 vi.mock('./presentation/shared/resizeImg', () => ({ resizeImg: (_f: File | undefined, cb: (url: string) => void) => cb('data:image/jpeg;base64,COVER') }))
 
 const db = () => appContainer.resolve('mockDb')
 const star = () => db().works.find((w) => w.id === 'starlight')!
 const releaseState = structuredClone({ ruleFrom: star().ruleFrom, eventFrom: star().eventFrom, castFrom: star().castFrom })
 const toastIs = (t: string) => waitFor(() => expect(document.getElementById('toast')!.textContent).toBe(t))
-const renderAt = (path: string) => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={[path]}><App /></MemoryRouter></Provider>)
+const renderAt = async (path: string) => {
+  let view!: ReturnType<typeof render>
+  // 세션 복원이 lazy import를 시작하게 한 뒤, findBy의 기본 제한과 별개로 모듈을 기다린다.
+  await act(async () => { view = render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={[path]}><App /></MemoryRouter></Provider>) })
+  await act(async () => { await vi.dynamicImportSettled() })
+  return view
+}
 const box = (name: string) => screen.findByLabelText(name) as Promise<HTMLInputElement>
 const ownWorld = () => {
   if (!db().worlds.some((w) => w.id === 'my-world')) db().worlds.push({ id: 'my-world', name: '별빛 세계', description: '', rules: [], public: false })
@@ -28,14 +40,27 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); Object.assign(star(), structu
 
 describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차·인물 상태)', () => {
   it('세계관 자동 업데이트는 작가 소유 세계관이 없거나 확인을 취소하면 꺼진 채로 남는다', async () => {
-    renderAt('/studio/starlight?panel=settings')
+    let releaseStudio!: () => void
+    const studioRequested = new Promise<void>((resolve) => { studioChunk.requested.mockImplementationOnce(resolve) })
+    studioChunk.ready = new Promise<void>((resolve) => { releaseStudio = resolve })
+    const onReady = vi.fn()
+    let pending!: Promise<unknown>
+    try {
+      await act(async () => { pending = Promise.resolve(renderAt('/studio/starlight?panel=settings')).then(onReady) })
+      await studioRequested
+      expect(screen.getByText('화면을 불러오고 있어요.')).toHaveProperty('role', 'status')
+      expect(onReady).not.toHaveBeenCalled()
+    } finally {
+      releaseStudio()
+      await act(async () => { await pending; await vi.dynamicImportSettled() })
+    }
     fireEvent.click(await box('새 회차 발행 후 세계관 자동 업데이트'))
     await toastIs('작가 소유 세계관이 필요해요')
     expect((await box('새 회차 발행 후 세계관 자동 업데이트')).checked).toBe(false)
     cleanup()
     ownWorld()
     vi.mocked(window.confirm).mockReturnValue(false)
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     fireEvent.click(await box('새 회차 발행 후 세계관 자동 업데이트'))
     await waitFor(() => expect(window.confirm).toHaveBeenCalledWith('세계관 자동 업데이트 설정 · 회당 예시 5 · 예시 비용 0 크레딧 · 데모 잔액 100. 실제 요금은 미정이며 실제 차감은 없어요. 계속할까요?'))
     expect((await box('새 회차 발행 후 세계관 자동 업데이트')).checked).toBe(false)
@@ -44,7 +69,7 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
 
   it('autoWorld를 켜고 발행하면 세계관에 후보와 이력이 쌓인다', async () => {
     ownWorld()
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     fireEvent.click(await box('새 회차 발행 후 세계관 자동 업데이트'))
     await toastIs('작품 설정을 변경했어요 (데모)')
     expect((await box('새 회차 발행 후 세계관 자동 업데이트')).checked).toBe(true)
@@ -67,7 +92,7 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   it('표기 오류 자동 승인이 켜진 작품은 단순 오류 제보로 본문이 바로 고쳐지고 피드백함에 들어가지 않는다', async () => {
     star().settings = { autoWorld: false, typoAuto: true }
     const inbox = db().inbox.length
-    renderAt('/read/starlight/2')
+    await renderAt('/read/starlight/2')
     fireEvent.click((await screen.findAllByText('리안은 낮게 되뇌였다.')).find((el) => el.classList.contains('s'))!)
     fireEvent.click(screen.getByRole('button', { name: '✉ 피드백 보내기' }))
     const dialog = screen.getByRole('dialog', { name: '피드백 보내기' })
@@ -81,12 +106,12 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   })
 
   it('설정 추출 후보는 반영하거나 제외할 수 있다', async () => {
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     fireEvent.click(await screen.findByRole('button', { name: '설정 추출 (데모)' }))
     await toastIs('작가 소유 세계관과 발행된 회차가 필요해요')
     cleanup()
     ownWorld()
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     fireEvent.change(await screen.findByLabelText('추출할 발행 회차'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: '설정 추출 (데모)' }))
     await toastIs('설정 후보를 확인해 주세요 (데모)')
@@ -105,12 +130,12 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   })
 
   it('세계관을 연결한 원작만 독자 공개 시작 회차를 입력하고, 1 미만은 거부한다', async () => {
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     await screen.findByLabelText('리안 상태')
     expect(screen.queryAllByLabelText('독자 공개 시작 회차 (비우면 비공개)')).toHaveLength(0)
     cleanup()
     ownWorld()
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     const [rule] = await screen.findAllByLabelText('독자 공개 시작 회차 (비우면 비공개)')
     fireEvent.change(rule, { target: { value: '0' } })
     fireEvent.blur(rule)
@@ -143,7 +168,7 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
     })
     observer.observe(document.body, { childList: true, subtree: true })
     try {
-      renderAt('/studio/starlight?panel=settings')
+      await renderAt('/studio/starlight?panel=settings')
       const rule = (await screen.findAllByLabelText('독자 공개 시작 회차 (비우면 비공개)'))[0] as HTMLInputElement
       await waitFor(() => expect(setRelease).toHaveBeenCalledWith('starlight', 'rule', 0, '0'))
       await toastIs('1 이상의 회차를 입력해 주세요')
@@ -153,7 +178,7 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
 
   it('독자 공개 회차는 칸을 벗어나지 않아도 change(Enter·스핀 버튼) 한 번마다 저장한다', async () => {
     ownWorld()
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     const rule = (await screen.findAllByLabelText('독자 공개 시작 회차 (비우면 비공개)'))[0] as HTMLInputElement
     fireEvent.change(rule, { target: { value: '0' } })
     await toastIs('1 이상의 회차를 입력해 주세요')
@@ -169,7 +194,7 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
     expect(star().eventFrom).toBeUndefined()
     expect(star().ruleFrom).toEqual(releaseState.ruleFrom)
     ownWorld()
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     const cast = await screen.findByLabelText('세라핀 독자 공개 시작 회차 (비우면 비공개)')
     cast.focus()
     fireEvent.change(cast, { target: { value: '3' } })
@@ -181,12 +206,12 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   })
 
   it('인물 상태를 바꾸면 원작·포크에 맞게 알리고, 포크에는 원작 값을 함께 보여 준다', async () => {
-    renderAt('/studio/starlight?panel=settings')
+    await renderAt('/studio/starlight?panel=settings')
     fireEvent.change(await screen.findByLabelText('리안 상태'), { target: { value: '결심' } })
     await toastIs('원작 설정을 바꿨어요')
     cleanup()
     db().works.find((w) => w.id === 'crown')!.owner = 'me'
-    renderAt('/studio/crown?panel=settings')
+    await renderAt('/studio/crown?panel=settings')
     await screen.findByText('견습 서약사 · 원작: 결심')
     fireEvent.change(screen.getByLabelText('리안 상태'), { target: { value: '의문' } })
     await toastIs('이 소설에서만 리안 상태를 ‘의문’로 바꿨어요 (원작 그대로)')
@@ -197,7 +222,7 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
 describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시·표지·초상·공개 설정)', () => {
   it('@를 치면 인물·사건 목록이 열리고, 고르면 멘션을 넣고 타임라인에 연결한다. Esc로 닫는다', async () => {
     Range.prototype.getBoundingClientRect = () => new DOMRect() // jsdom에는 없음
-    renderAt('/studio/starlight')
+    await renderAt('/studio/starlight')
     const body = await screen.findByLabelText('원고 본문')
     body.innerHTML = '<p>그때 @</p>'
     const r = document.createRange()
@@ -220,7 +245,7 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
   })
 
   it('AI 요청 문구는 탭을 바꿔도 남는다', async () => {
-    renderAt('/studio/starlight')
+    await renderAt('/studio/starlight')
     fireEvent.click(await screen.findByRole('button', { name: 'AI 채팅 열기' }))
     fireEvent.change(await screen.findByLabelText('AI에게 요청'), { target: { value: '긴장감 있게' } })
     fireEvent.click(screen.getByRole('button', { name: '접기' }))
@@ -230,14 +255,14 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
   })
 
   it('메모를 고치면 저장 중…으로 바뀌었다가 저장됨으로 돌아온다', async () => {
-    renderAt('/studio/starlight?view=memo')
+    await renderAt('/studio/starlight?view=memo')
     fireEvent.change(await screen.findByLabelText('콘티 내용'), { target: { value: '복선 확인' } })
     expect(document.getElementById('saved')!.textContent).toBe('저장 중…')
     await waitFor(() => expect(document.getElementById('saved')!.textContent).toBe('저장됨'))
   })
 
   it('개요에서 표지를 바꾸고 지운다', async () => {
-    renderAt('/studio/starlight?view=overview')
+    await renderAt('/studio/starlight?view=overview')
     fireEvent.change(await screen.findByLabelText('표지 바꾸기'), { target: { files: [new File(['x'], 'c.png', { type: 'image/png' })] } })
     await toastIs('데모 표지 미리보기만 바꿨어요. 서버에는 저장되지 않아요')
     await waitFor(() => expect(star().coverImg).toBe('data:image/jpeg;base64,COVER'))
@@ -249,7 +274,7 @@ describe('원고·개요·서재 (G3b: @ 멘션·AI 요청 보존·저장 표시
   })
 
   it('서재의 공개 설정은 서재 위 시트로 열고, 저장하면 서재에 남아 칩과 토스트가 바뀐다', async () => {
-    const view = renderAt('/lib?tab=write')
+    const view = await renderAt('/lib?tab=write')
     const card = (await screen.findByRole('heading', { name: '별빛 서약의 탑' })).closest('.mywork') as HTMLElement
     fireEvent.click(within(card).getByRole('button', { name: '공개 설정' }))
     const sheet = await screen.findByRole('dialog', { name: '공개 설정 · 별빛 서약의 탑' })
