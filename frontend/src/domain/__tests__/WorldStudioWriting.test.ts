@@ -1,7 +1,7 @@
 import {buildCharacterMap} from '../../presentation/features/worldstudio/viewmodel/characterMap'
 import {putRelation} from '../entities/studioRelations'
 import {expect,it} from 'vitest'
-import {cardLibraryRows,worldWritingIssues} from '../entities/worldStudioWriting'
+import {cardLibraryRows,selectCardForFilter,worldWritingIssues} from '../entities/worldStudioWriting'
 import {newSetting,type StudioWorld} from '../entities/studioWorld'
 import {initialWorldStudioFlow,worldStudioFlow} from '../../presentation/features/worldstudio/viewmodel/worldStudioFlow'
 const world=(settings:StudioWorld['settings']=[]):StudioWorld=>({id:'qa',name:'초기 세계',description:'',version:1,settings,analysis:null})
@@ -47,4 +47,14 @@ it('2D character projection keeps person IDs and real relationship edges separat
  expect(graph.links[0]).toMatchObject({id:settings[3].item.id,source:a.item.id,target:b.item.id,label:'동료'})
  graph.nodes[0].x=42;graph.links[0].source=graph.nodes[0]
  expect(settings).toEqual(before)
+})
+
+it('keeps or changes the selected card only to a visible search or type result',()=>{
+ const person=newSetting('people'),place=newSetting('places');person.item.title='가람';place.item.title='항구'
+ const rows=[person,place],before=structuredClone(rows)
+ expect(selectCardForFilter(rows,person.item.id,'all','가람')).toBe(person.item.id)
+ expect(selectCardForFilter(rows,person.item.id,'all','항구')).toBe(place.item.id)
+ expect(selectCardForFilter(rows,person.item.id,'location','')).toBe(place.item.id)
+ expect(selectCardForFilter(rows,person.item.id,'all','없는 설정')).toBe('')
+ expect(rows).toEqual(before)
 })

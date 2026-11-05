@@ -1,5 +1,5 @@
 import {cardTypes,cardTypeOf} from '../../../../domain/entities/studioCards'
-import {useEffect,useRef,useState} from 'react'
+import {useCallback,useEffect,useRef,useState} from 'react'
 import {relationDefinitions,relationLabel,isFreeRelation,type RelationInput} from '../../../../domain/entities/studioRelations'
 import type {useWorldStudioViewModel} from '../viewmodel/useWorldStudioViewModel'
 type VM=ReturnType<typeof useWorldStudioViewModel>
@@ -8,14 +8,24 @@ const pairMatches=(r:RelationInput,a:string,b:string)=>r.subjectId===a&&r.target
 export function WorldRelationshipEditor({studio}:{studio:VM}){
  const people=studio.editing!.settings.filter(s=>cardTypes.some(type=>type.id===cardTypeOf(s.item)))
  const [source,setSource]=useState(''),[target,setTarget]=useState(''),[open,setOpen]=useState(false)
+ const [focusRequest,setFocusRequest]=useState<{id:string;seq:number}|null>(null)
+ const handledRequest=useRef(0)
  const [deleteConfirm,setDeleteConfirm]=useState<string|null>(null)
  const validDeletion=!!deleteConfirm&&people.some(s=>s.item.id===deleteConfirm&&s.item.kind==='entity'&&s.item.entityType==='character')
  const deletion=validDeletion?studio.personDeletionInfo(deleteConfirm!):null
  useEffect(()=>{if(deleteConfirm&&!validDeletion)setDeleteConfirm(null)},[deleteConfirm,validDeletion])
- const selectPair=(nextSource:string,nextTarget:string,nextOpen:boolean)=>{
-  if(open&&(nextSource!==source||nextTarget!==target)&&!studio.confirmRelationDiscard())return
-  setSource(nextSource);setTarget(nextTarget);setOpen(nextOpen)
- }
+ const selectPair=useCallback((nextSource:string,nextTarget:string,nextOpen:boolean)=>{
+  if(open&&(nextSource!==source||nextTarget!==target)&&!studio.confirmRelationDiscard())return false
+  setSource(nextSource);setTarget(nextTarget);setOpen(nextOpen);return true
+ },[open,source,target,studio])
+ useEffect(()=>{
+  const request=studio.relationRequest
+  if(!request||request.seq===handledRequest.current)return
+  handledRequest.current=request.seq
+  const item=studio.editing?.settings.find(row=>row.item.id===request.id&&row.item.kind==='relation')?.item
+  if(!item?.subjectId||!item.targetId)return
+  if(open&&pairMatches(item,source,target)||selectPair(item.subjectId,item.targetId,true))setFocusRequest(request)
+ },[studio.relationRequest,studio.editing?.settings,open,source,target,selectPair])
  const relations=studio.editing!.settings.filter(s=>s.item.kind==='relation')
  const name=(id:string|null)=>people.find(s=>s.item.id===id)?.item.title||'선택 안 함'
  return <section aria-label="관계 편집"><h3>관계 연결 (선택)</h3><p>구조적 관계와 방향별 감정을 따로 작성합니다.</p>
@@ -33,12 +43,14 @@ export function WorldRelationshipEditor({studio}:{studio:VM}){
    </section>}
    {!relations.length&&<p>아직 연결한 관계가 없습니다.</p>}
    <nav aria-label="저장할 관계 목록">{relations.map(s=><button className="btn" key={s.item.id} type="button" onClick={()=>selectPair(s.item.subjectId??'',s.item.targetId??'',true)}>{name(s.item.subjectId)} · {relationLabel(s.item)} · {name(s.item.targetId)}</button>)}</nav>
-   {open&&<PairEditor key={source+'|'+target} studio={studio} source={source} target={target} onClose={()=>setOpen(false)}/>}
+   {open&&<PairEditor key={source+'|'+target} studio={studio} source={source} target={target} focusRequest={focusRequest} onClose={()=>setOpen(false)}/>}
   </fieldset>
  </section>
 }
 
-function PairEditor({studio,source,target,onClose}:{studio:VM;source:string;target:string;onClose:()=>void}) {
+function PairEditor({studio,source,target,focusRequest,onClose}:{studio:VM;source:string;target:string;focusRequest:{id:string;seq:number}|null;onClose:()=>void}) {
+ const focusedRow=useRef<HTMLDivElement>(null)
+ useEffect(()=>{if(!focusRequest)return;const frame=requestAnimationFrame(()=>focusedRow.current?.querySelector<HTMLElement>('input,textarea,select')?.focus());return ()=>cancelAnimationFrame(frame)},[focusRequest])
  const name=(id:string|null)=>studio.editing!.settings.find(s=>s.item.id===id)?.item.title||'새 설정'
  const empty=(group:'fact'|'emotion',from=source,to=target):DraftRow=>({key:crypto.randomUUID(),group,value:{subjectId:from,targetId:to,predicate:group==='fact'?'custom_relation':'custom_emotion',polarity:'asserted'}})
  const [rows,setRows]=useState<DraftRow[]>(()=>{
@@ -60,7 +72,7 @@ function PairEditor({studio,source,target,onClose}:{studio:VM;source:string;targ
    const field=label+' '+(i+1),symmetric=!!relationDefinitions[r.value.predicate??'']?.symmetric
    const direction=symmetric?'mutual':r.value.subjectId===source?'forward':'reverse'
    const write=(text:string)=>change(r.key,{text,predicate:kind==='emotion'?'custom_emotion':symmetric?'custom_relation':'custom_relation_directed'})
-   return <div className="relationship-row" key={r.key}>
+   return <div className="relationship-row" key={r.key} ref={r.value.id===focusRequest?.id?focusedRow:undefined}>
     <label className="field">{field}{kind==='fact'?<input className="inp" list="relationship-examples" value={r.value.text??''} maxLength={3000} placeholder="예: 아버지와 서자, 인정받지 못한 가족" onChange={e=>write(e.target.value)}/>:<textarea className="ta" value={r.value.text??''} maxLength={3000} placeholder="예: 존경하고 인정받고 싶지만 차별에는 분노한다" onChange={e=>write(e.target.value)}/>}</label>
     {r.value.id&&!isFreeRelation(r.value.predicate)&&<p className="small muted">기존 관계: {relationLabel(r.value)}</p>}
     {kind==='fact'&&<><label className="field">{field} 방향<select className="inp" value={direction} onChange={e=>{
