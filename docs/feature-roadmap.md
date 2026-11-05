@@ -1113,6 +1113,16 @@
 | Frontend | WorldStudio | 세계관 탐색 | 다중 관계선 구분과 비대칭 방향 표시 (로컬 구현·미병합) | ❌ | [#128](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/128) |
 | Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 설명 원문 표시 (로컬 구현·미병합) | ❌ | [#127](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/127) |
 
+### WorldStudio 진입 보호·기본 표지 — 미등록-119
+
+| 서비스 | 서브시스템 | 중간 기능 | 세부 기능 | 개발 완료 | 관련 이슈 |
+|---|---|---|---|---|---|
+| Frontend | WorldStudio | 인증 진입 | 비로그인 진입 차단·로그인 후 원래 경로와 쿼리 복귀 | ❌ | [미등록-119](#미등록-119) |
+| Frontend | WorldStudio | 인증 진입 | 세션 복원 대기·복원 401 후 로그인 안내 | ❌ | [미등록-119](#미등록-119) |
+| Frontend | 첨부 관리 | 작품 표지 | 표지 목록 조회 성공 후 비어 있을 때 로컬 기본 SVG 표시 | ❌ | [미등록-119](#미등록-119) |
+
+- <a id="미등록-119"></a>미등록-119: 기존 RequireRole 재사용과 기본 표지 표시 및 회귀 테스트. 로딩·실패·업로드 표지를 기본 이미지로 대체하지 않는다. 로컬 Vitest는 pnpm 실행 및 의존성 부재로 실행하지 못했으며 React 통합은 CI에서 실행한다. 미병합·최신 Required CI 미확인으로 ❌ 유지.
+
 ### 메인 메뉴 후속 변경 — 미등록-116
 
 세계관·크레딧 메뉴의 데모 꼬리표만 제거한다. 기존 메뉴 경로·정책 안내·푸터 고지는 유지한다. 관련 App.home 회귀를 포함하며 React 통합은 CI에서 실행한다. 미병합·최신 head Required CI 확인 전이므로 ❌를 유지한다.

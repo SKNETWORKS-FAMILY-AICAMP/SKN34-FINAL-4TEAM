@@ -29,6 +29,7 @@ export function MediaPanel({target,onBusy,disabled=false}:{target:MediaTarget;on
   <p className="small muted">{cover?'PNG·JPEG, 10 MiB 이하. 작품 공개 전에는 나만 볼 수 있어요.':'PNG·JPEG·TXT·MD·CSV·PDF, 파일당 10 MiB 이하 · 설정 이미지 최대 10개. 첨부는 소유자 전용이며 독자에게 자동 공개되지 않아요.'}</p>
   {vm.error&&<p role="alert">{vm.error}</p>}
   <p role="status">{vm.busy?'파일을 처리하고 있어요…':vm.notice||(!vm.items.length?'저장된 파일이 없어요.':'')}</p>
+  {cover&&!vm.busy&&!vm.error&&vm.items.length===0&&<img className="stored-image" src="/default-work-cover.svg" alt="기본 작품 표지" width="180" height="240"/>}
   <fieldset disabled={vm.busy||disabled}>
    <legend className="sr-only">{cover?'표지 관리':'첨부 관리'}</legend>
    <label className="media-file">{cover?'표지 선택·변경':'설정 첨부 파일'}<input type="file" accept={cover?'.png,.jpg,.jpeg':'.png,.jpg,.jpeg,.txt,.md,.csv,.pdf'} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void vm.upload(file)}}/></label>

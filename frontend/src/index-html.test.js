@@ -5,6 +5,41 @@ import { JSDOM } from 'jsdom'
 const demo = readFileSync(new URL('../mockup/index.html', import.meta.url), 'utf8')
 const includes = (text) => expect(demo.includes(text), `missing documented demo content: ${text}`).toBe(true)
 
+describe('frontend shell source contracts', () => {
+  it('guards the complete optional worldstudio route with the existing RequireRole', () => {
+    const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8')
+    const routes = [...app.matchAll(/<Route\s+path="(\/worldstudio[^"]*)"\s+element=\{([^\n]+)\}/g)]
+    expect(routes.map(([, path, element]) => [path, element])).toEqual([
+      ['/worldstudio/:worldId?', '<RequireRole><WorldStudioPage /></RequireRole>'],
+    ])
+  })
+
+  it('simplifies only the worldstudio label and credit badge, not the policy action', () => {
+    const gnb = readFileSync(new URL('./presentation/shared/shell/Gnb.tsx', import.meta.url), 'utf8')
+    expect(gnb).toContain("['worldstudio', '세계관', '세계관']")
+    expect(gnb).not.toContain('세계관 데모')
+    const credit = gnb.match(/<button[^>]*className="credit"[^>]*>([\s\S]*?)<\/button>/)?.[0]
+    expect(credit).toContain('✦ 크레딧')
+    expect(credit).not.toContain('데모')
+    expect(credit).toContain('onClick={openPolicy}')
+    expect(credit).toContain('크레딧 정책은 아직 확정되지 않았어요')
+  })
+
+  it('uses a local cover only for a successfully loaded empty cover list', () => {
+    const panel = readFileSync(new URL('./presentation/shared/media/MediaPanel.tsx', import.meta.url), 'utf8')
+    expect(panel).toMatch(/cover\s*&&\s*!vm\.busy\s*&&\s*!vm\.error\s*&&\s*vm\.items\.length===0\s*&&\s*<img[^>]*src="\/default-work-cover\.svg"/)
+    expect(panel).toContain('alt="기본 작품 표지"')
+    expect(panel).toContain("{vm.error&&<p role=\"alert\">{vm.error}</p>}")
+  })
+
+  it('ships an original portrait SVG with no executable or external content', () => {
+    const svg = readFileSync(new URL('../public/default-work-cover.svg', import.meta.url), 'utf8')
+    expect(svg).toContain('viewBox="0 0 300 400"')
+    expect(svg).toMatch(/<title[^>]*>기본 작품 표지<\/title>/)
+    expect(svg).not.toMatch(/<\s*(?:script|foreignObject|image)\b|\bon\w+\s*=|\b(?:href|src)\s*=|url\(\s*['"]?(?:https?:|\/\/|data:)/i)
+  })
+})
+
 describe('STORYFORK HTML demo follows documented product flows', () => {
   it('separates free feedback from optional story-error verification and content reports', () => {
     includes('스토리 오류 검증 시뮬레이션')
