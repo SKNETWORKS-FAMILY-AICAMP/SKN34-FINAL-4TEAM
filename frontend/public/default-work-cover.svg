@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" width="300" height="400" role="img" aria-labelledby="title">
+  <title id="title">기본 작품 표지</title>
+  <rect width="300" height="400" fill="#F4F0E8"/>
+  <rect x="18" y="18" width="264" height="364" rx="2" fill="none" stroke="#D6CCBA"/>
+  <path d="M36 36h228M36 364h228" fill="none" stroke="#D6CCBA"/>
+  <path d="M150 122V88m0 17c0-17-29-16-29-33m29 33c0-17 29-16 29-33" fill="none" stroke="#6D4AE0" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="121" cy="68" r="4" fill="#6D4AE0"/>
+  <circle cx="150" cy="84" r="4" fill="#6D4AE0"/>
+  <circle cx="179" cy="68" r="4" fill="#B08951"/>
+  <path d="M64 156c29-10 57-6 86 10 29-16 57-20 86-10v115c-29-10-57-6-86 10-29-16-57-20-86-10Z" fill="#E7DECA"/>
+  <path d="M70 146c28-7 55-3 80 13 25-16 52-20 80-13v113c-28-7-55-3-80 13-25-16-52-20-80-13Z" fill="#FCFAF5" stroke="#514267" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M150 159v113M87 171c15-1 29 2 45 10m-45 8c15-1 29 2 45 10m-45 8c15-1 29 2 45 10m-45 8c12-1 23 1 35 6m91-60c-15-1-29 2-45 10m45 8c-15-1-29 2-45 10m45 8c-15-1-29 2-45 10" fill="none" stroke="#B9ACC9" stroke-width="2" stroke-linecap="round"/>
+  <path d="M190 145v54l9-6 9 6v-54" fill="#6D4AE0"/>
+  <path d="M126 319h48m-35 10h22" fill="none" stroke="#B08951" stroke-width="2" stroke-linecap="round"/>
+</svg>
