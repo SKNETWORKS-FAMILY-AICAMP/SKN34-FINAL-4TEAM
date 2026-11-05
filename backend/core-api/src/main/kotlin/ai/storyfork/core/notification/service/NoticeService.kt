@@ -105,9 +105,11 @@ class NoticeService(
             val stored = preferences.findAllByMemberId(request.recipientId).firstOrNull { it.kind == request.kind.code }
             if (stored != null && !stored.enabled) return null
         }
-        val saved = notices.save(NoticeEntity(
+        // 사건 id 유일 제약 위반을 이 트랜잭션 안에서 바로 드러내도록 즉시 반영한다.
+        val saved = notices.saveAndFlush(NoticeEntity(
             id = UUID.randomUUID(), recipientId = request.recipientId, kind = request.kind.code, summary = request.summary,
             targetType = request.targetType, targetId = request.targetId, createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS),
+            sourceEventId = request.sourceEventId,
         ))
         signalAfterCommit(request.recipientId)
         return toResponse(saved)

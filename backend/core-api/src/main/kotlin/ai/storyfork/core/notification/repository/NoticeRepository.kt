@@ -21,6 +21,9 @@ interface NoticeRepository : JpaRepository<NoticeEntity, UUID> {
 
     fun existsByIdAndRecipientId(id: UUID, recipientId: UUID): Boolean
 
+    /** 삭제된 알림까지 포함해 해당 사건으로 이미 알림을 만들었는지 확인한다. */
+    fun existsBySourceEventId(sourceEventId: UUID): Boolean
+
     /** 읽지 않은 본인 알림 하나만 읽음 처리한다. 필요한 컬럼만 조건부로 갱신해 동시 삭제 표시를 덮어쓰지 않는다. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update NoticeEntity n set n.readAt = :now where n.id = :id and n.recipientId = :recipientId and n.readAt is null and n.deletedAt is null")

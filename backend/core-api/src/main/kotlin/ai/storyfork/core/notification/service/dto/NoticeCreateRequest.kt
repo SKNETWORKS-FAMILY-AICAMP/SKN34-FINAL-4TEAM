@@ -10,4 +10,6 @@ data class NoticeCreateRequest(
     val summary: String,
     val targetType: String? = null,
     val targetId: String? = null,
+    /** 사건에서 만든 알림이면 사건 id. 같은 사건의 재전달을 한 번만 반영하는 키다. */
+    val sourceEventId: UUID? = null,
 )

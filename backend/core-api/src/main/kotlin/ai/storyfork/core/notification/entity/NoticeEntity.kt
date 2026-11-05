@@ -20,4 +20,5 @@ class NoticeEntity(
     @Column(name = "created_at", nullable = false) val createdAt: Instant,
     @Column(name = "read_at") var readAt: Instant? = null,
     @Column(name = "deleted_at") var deletedAt: Instant? = null,
+    @Column(name = "source_event_id") val sourceEventId: UUID? = null,
 )
