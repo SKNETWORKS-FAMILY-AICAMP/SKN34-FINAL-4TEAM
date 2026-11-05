@@ -86,10 +86,12 @@ describe('계획 화면 · CI 통합', () => {
     const { dialog } = askSceneDelete()
     fireEvent.click(dialog.getByRole('button', { name: '삭제' }))
     await dialog.findByRole('alert')
-    vi.spyOn(api, 'list').mockRejectedValueOnce(new Error('최신 목록 조회 실패'))
+    const failedReview = vi.spyOn(api, 'reviewDeletion').mockRejectedValueOnce(new Error('최신 목록 조회 실패'))
     fireEvent.click(dialog.getByRole('button', { name: '최신 목록 확인' }))
     expect(await dialog.findByText('최신 목록 조회 실패')).toBeTruthy()
     expect(dialog.getByRole('button', { name: '삭제' })).toHaveProperty('disabled', true)
+    expect(failedReview).toHaveBeenCalledTimes(1)
+    failedReview.mockRestore()
     const reviewed = await api.reviewDeletion(work.id, scenes[0].id)
     let finish!: (value: typeof reviewed) => void
     const review = vi.spyOn(api, 'reviewDeletion').mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
