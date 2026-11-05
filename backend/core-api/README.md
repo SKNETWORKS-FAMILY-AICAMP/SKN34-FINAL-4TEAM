@@ -40,6 +40,15 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `GET /api/v1/me` | Bearer 인증; 현재 회원 정보, 200 |
 | `PATCH /api/v1/me` | Bearer 인증과 `nickname`; 변경한 회원 정보, 200 |
 | `POST /api/v1/me/email-change` | Bearer 인증과 새 `email`; 변경 확인 메일 요청, 202 |
+| `GET /api/v1/me/notifications` | Bearer 인증, 선택 `cursor`·`limit`(1~50, 기본 20); 본인 알림 최신순 `{"items":[…],"nextCursor"}`, 200 |
+| `GET /api/v1/me/notifications/unread-count` | Bearer 인증; 삭제하지 않은 미읽음 수 `{"count":N}`, 200 |
+| `PATCH /api/v1/me/notifications/{id}/read` | Bearer 인증; 읽음 처리(반복 호출도 204), 타인·삭제된 알림 404 |
+| `POST /api/v1/me/notifications/read-all` | Bearer 인증과 `upTo`; 그 시각 이전 도착분만 읽음, 204 |
+| `DELETE /api/v1/me/notifications/{id}` | Bearer 인증; 삭제 표시(행 보존, 반복 호출도 204), 타인 알림 404 |
+| `GET /api/v1/me/notification-preferences` | Bearer 인증; 분류별 `{"items":[{"kind","enabled","mutable"}]}`, 200 |
+| `PUT /api/v1/me/notification-preferences` | Bearer 인증과 `items`; 읽기(`reading`)·창작(`creation`)만 변경, 그 외 분류 끄기·알 수 없는 분류·중복은 400 |
+
+알림 분류는 `reading`·`creation`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·SSE·모바일 푸시는 아직 없습니다.
 
 가입 인증 링크는 24시간, 비밀번호 재설정·이메일 변경 링크는 1시간 유효하며 한 번만 사용할 수 있습니다. 가입 인증 화면은 fragment를 지운 뒤 비밀번호 입력과 명시적 확인을 기다리고, 이메일 변경 확인 화면은 기존처럼 토큰만으로 자동 진행합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경 메일에 사용합니다. 메일과 데이터베이스는 로컬 검증용이며 운영 SMTP·TLS 정책은 미정입니다.
 
@@ -57,7 +66,7 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 
 ## 구조
 
-Core는 `auth`·`_health`·`_health_ai_service`와 필요한 `_common`만 실행합니다. #84의 콘텐츠별 Controller/Service/JPA·잠금·revision·공개 DTO 계약은 [Content](../content-service/README.md)에 유지합니다. Content는 fresh 7개 업무 leaf/전역 V1~V9/`content_schema_history`를 소유하고 통합 migration 폴더·legacy JSONB importer를 제거했습니다. 이 재작성은 Auth 이력에 적용하지 않습니다.
+Core는 `auth`·`notification`·`_health`·`_health_ai_service`와 필요한 `_common`만 실행합니다. #84의 콘텐츠별 Controller/Service/JPA·잠금·revision·공개 DTO 계약은 [Content](../content-service/README.md)에 유지합니다. Content는 fresh 7개 업무 leaf/전역 V1~V9/`content_schema_history`를 소유하고 통합 migration 폴더·legacy JSONB importer를 제거했습니다. 이 재작성은 Auth 이력에 적용하지 않습니다.
 
 WorldStudio는 [Content의 명시 migration 계약](../content-service/src/main/resources/db/migration/worldstudio/README.md)을 따릅니다. 동일 `contentDataSource`와 studio-only EntityManager/TransactionManager로 validate하며 Core Auth 스캔·기본 영속성 단위를 공유하지 않습니다. V1 SQL/독립 history는 보존하고 HTTP/UI는 여전히 미연결입니다.
 
@@ -71,6 +80,7 @@ main/test 디렉터리는 각각 `src/{main,test}/kotlin/ai/storyfork/core/`로 
 - `auth/service/dto`: 클래스별 요청·응답 계약을 Controller와 Service가 공유합니다. `LoginResult`의 내부 refresh token은 Controller에서 HttpOnly 쿠키로만 보내며 공개 `LoginResponse`에는 포함하지 않습니다.
 - Auth는 기존 UUID·스키마와 Flyway 파일·`flyway_schema_history`를 유지합니다. Hibernate는 `validate`만 수행하며 Open Session in View는 사용하지 않습니다. Content Entity/Repository·migration은 이 앱에서 등록하지 않습니다.
 - 로그인·복구·이메일 변경·refresh 회전·세션 폐기는 회원의 JPA `PESSIMISTIC_WRITE` 잠금으로 직렬화합니다. 토큰 재사용 폐기는 Service가 정상 반환해 커밋한 뒤 Controller에서 401로 변환합니다. 신규 가입 후보의 최초 삽입 충돌만 새 트랜잭션에서 한 번 재시도하며 메일 실패 시 후보 변경을 롤백합니다.
+- `notification/controller → NoticeService → repository`: 알림함·수신 설정 API입니다. Entity·Repository는 `notification/entity`·`notification/repository`에 두고 Flyway는 `db/migration/notification`(V4~, Auth와 같은 `flyway_schema_history`)을 사용합니다. 읽음·삭제는 조건부 UPDATE로 처리해 동시 요청이 삭제 표시를 되살리지 않습니다.
 - `_common/ai_config`: AI 주소·timeout·RestClient 설정.
 - `_common/helper`: 기존 HTTP 설정 검증과 통신 실패 분류 경계.
 - `_common/exception`: AI 실패 분류와 안전한 ProblemDetail.

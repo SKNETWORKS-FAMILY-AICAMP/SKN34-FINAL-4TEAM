@@ -19,6 +19,18 @@ interface NoticeRepository : JpaRepository<NoticeEntity, UUID> {
 
     fun findByIdAndRecipientId(id: UUID, recipientId: UUID): NoticeEntity?
 
+    fun existsByIdAndRecipientId(id: UUID, recipientId: UUID): Boolean
+
+    /** 읽지 않은 본인 알림 하나만 읽음 처리한다. 필요한 컬럼만 조건부로 갱신해 동시 삭제 표시를 덮어쓰지 않는다. */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update NoticeEntity n set n.readAt = :now where n.id = :id and n.recipientId = :recipientId and n.readAt is null and n.deletedAt is null")
+    fun markRead(id: UUID, recipientId: UUID, now: Instant): Int
+
+    /** 삭제하지 않은 본인 알림 하나에 삭제 시각을 기록한다. 이미 삭제했거나 없으면 0을 반환한다. */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update NoticeEntity n set n.deletedAt = :now where n.id = :id and n.recipientId = :recipientId and n.deletedAt is null")
+    fun markDeleted(id: UUID, recipientId: UUID, now: Instant): Int
+
     /** 기준 시점 이전(포함)에 만들어진 읽지 않은 알림만 읽음 처리한다. 그 뒤 도착한 알림은 미읽음으로 남는다. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update NoticeEntity n set n.readAt = :now where n.recipientId = :recipientId and n.readAt is null and n.deletedAt is null and n.createdAt <= :upTo")
