@@ -60,9 +60,6 @@ export function seedWorks(now = Date.now()): Work[] {
 
 export const seedWorlds = (): World[] => structuredClone([{id:'shared-world',name:'안개 항구',description:'등대와 해무가 있는 공개 예시 세계관',rules:['밤에는 항구의 문이 닫힌다'],public:true,owner:'예시 작가',allowUse:true,allowFork:true,allowAI:false,allowPaid:false}])
 
-export type NotificationSeed = { id: string; type: string; title: string; text: string; target: string; read: boolean; at: string }
-export const seedNotifications = (): NotificationSeed[] => structuredClone([{id:'n-read',type:'읽기',title:'읽던 회차가 있어요',text:'「구운몽」 3화부터 이어 읽을 수 있어요.',target:'#/work/guunmong',read:false,at:'오늘'},{id:'n-result',type:'결과',title:'피드백 처리 결과를 확인해 주세요',text:'제출한 피드백의 상태가 바뀌었어요.',target:'#/inbox',read:false,at:'오늘'},{id:'n-creator',type:'작가 소식',title:'작가가 새 회차를 공개했어요',text:'「별빛 서약의 탑」의 새 소식을 확인해 보세요.',target:'#/work/starlight',read:true,at:'어제'},{id:'n-credit',type:'크레딧',title:'크레딧 정책 안내',text:'충전·사용 조건은 아직 미정이에요.',target:'#/me/pay',read:true,at:'어제'},{id:'n-rights',type:'권리·보안',title:'권리·보안 안내',text:'권리 신고와 계정 보안 안내는 이곳에서 확인할 수 있어요.',target:'#/me',read:true,at:'어제'}])
-
 /** 테마별 예시 댓글 [닉네임, 내용, 좋아요] */
 export const SEED_COMMENTS: Record<string, [string, string, number][]> = {hanji:[['연화봉러','돌다리 장면 묘사 최고… 성진 흔들릴 만하네',412],['고전덕후','교과서로만 보던 작품을 이렇게 읽으니 새롭다',230],['정주행중','3화 대사에 ‘않 된다’ 오타 있는 것 같아요',88]],
  star:[['별빛러','세라핀 진짜 뭐 숨기는 거 같아',301],['새벽감성','별빛 수정 깜빡이는 연출 좋다',122]],neon:[['tokki','편지 한 통으로 이렇게 긴장되다니',210],['회색비','7구역 분위기 미쳤다',133]]}

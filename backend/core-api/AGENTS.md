@@ -128,7 +128,7 @@
 - 스키마의 소유자는 Flyway다. SQL 마이그레이션은 `src/main/resources/db/migration/<domain>/`에 두고
   `db/migration` 바로 아래에 SQL 파일을 두지 않는다. 도메인별 locations와 이력 테이블을 분리하여
   독립적인 버전 번호가 충돌하지 않게 한다. 기존 SQL 체크섬·이력은 보존하고 Hibernate create/update를 사용하지 않는다.
-- Core는 Auth JPA·`db/migration/auth`·`flyway_schema_history`만 소유한다. Auth SQL 바이트/이력은 유지하며 Content Entity/Repository·첨부/Studio migration을 다시 스캔하지 않는다.
+- Core는 Auth JPA·`db/migration/auth`와 알림함(#89) JPA·`db/migration/notification`을 `flyway_schema_history` 하나로 소유한다(알림 버전은 V5부터, Auth V1–V4와 겹치지 않는다). Auth SQL 바이트/이력은 유지하며 Content Entity/Repository·첨부/Studio migration을 다시 스캔하지 않는다.
 - Content의 사용자 승인 개발용 fresh 이력 재작성은 Auth에 적용하지 않는다. 같은 기존 DB에서 writer/migration 소유권만 분리하며 실제 DB 삭제·개인 `.env` 수정·자동 repair/clean은 승인 범위 밖이다. Content 초기화·불변 이력·동시 편집은 Content hosted CI에서 검증한다.
 
 ## 정본·권한·승인 경계
