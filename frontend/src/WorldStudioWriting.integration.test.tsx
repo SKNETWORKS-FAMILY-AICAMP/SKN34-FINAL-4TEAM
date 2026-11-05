@@ -145,8 +145,8 @@ it('marks exactly one writing step active when switching between cards and relat
 
 it('rejects a duplicate relationship edited in the general form without losing either original id',async()=>{
  const b=newSetting('people');b.item.title='나래'
- world.settings=putRelation([...world.settings,b],{subjectId:world.settings[0].item.id,targetId:b.item.id,predicate:'custom_relation',text:'동료',polarity:'asserted'})
- world.settings=putRelation(world.settings,{subjectId:world.settings[0].item.id,targetId:b.item.id,predicate:'custom_relation',text:'경쟁자',polarity:'asserted'})
+ world.settings=putRelation([...world.settings,b],{subjectId:world.settings[0].item.id,targetId:b.item.id,predicate:'custom_relation',title:'동료 관계',text:'동료',polarity:'asserted'})
+ world.settings=putRelation(world.settings,{subjectId:world.settings[0].item.id,targetId:b.item.id,predicate:'custom_relation',title:'경쟁자 관계',text:'경쟁자',polarity:'asserted'})
  const ids=world.settings.map(s=>s.item.id)
  await show();fireEvent.click(screen.getByRole('button',{name:'설정 카드'}))
  fireEvent.click(screen.getByText('기존 설정·관계 2개'))
