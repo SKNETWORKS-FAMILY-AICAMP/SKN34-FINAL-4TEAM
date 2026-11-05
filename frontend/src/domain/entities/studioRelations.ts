@@ -66,7 +66,7 @@ export function putRelation(settings:StudioSetting[],input:RelationInput):Studio
  const next=authorEdit(newSetting(),{...input,kind:'relation',entityType:null,title,text})
  return [...settings,next]
 }
-export function applyRelationChanges(settings:StudioSetting[],changes:(RelationInput&{baseline?:RelationInput})[],removedIds:string[]) {
+export function applyRelationChanges(settings:StudioSetting[],changes:(RelationInput&{baseline?:RelationInput})[],removedIds:string[],savedSettings:StudioSetting[]=settings) {
  for(const {id,baseline} of changes) {
   if(!baseline)continue
   const current=settings.find(s=>s.item.id===id)?.item
@@ -89,8 +89,8 @@ export function applyRelationChanges(settings:StudioSetting[],changes:(RelationI
   const row=next.find(s=>s.item.id===id)!
   validateRelation(next,row.item)
  }
- // Compare the final batch, allowing existing duplicates while keeping exchanges atomic.
- assertNoNewRelationDuplicates(next,settings)
+ // Compare the final batch against saved data, preserving legacy duplicates and atomic exchanges.
+ assertNoNewRelationDuplicates(next,savedSettings)
  if(next.some(s=>[s.item.subjectId,s.item.targetId,s.item.afterId,...s.item.relatedIds].some(id=>id!==null&&removedIds.includes(id))))throw new Error('다른 설정에서 참조하는 관계입니다. 연결을 먼저 정리해 주세요.')
  return next
 }

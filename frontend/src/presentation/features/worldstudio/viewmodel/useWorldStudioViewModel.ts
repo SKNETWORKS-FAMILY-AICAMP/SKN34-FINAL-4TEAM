@@ -77,7 +77,7 @@ export function useWorldStudioViewModel(useCase:WorldStudioUseCase=appContainer.
   create:(name:string,description:string)=>perform(async()=>{if(leaveGuard?!leaveGuard.confirmBeforeAction():(dirty||relationDirty)&&!window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?'))return;const current=generation.current;const w=await useCase.create(name,description);if(generation.current===current){leaveGuard?.allowNextNavigation();navigate('/worldstudio/'+w.id)}}),
   open:(id:string)=>{if(leaveGuard?!leaveGuard.confirmBeforeAction():(dirty||relationDirty)&&!window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?'))return;if(id!==worldId){leaveGuard?.allowNextNavigation();navigate('/worldstudio/'+id);return};return perform(async()=>{const current=generation.current;const world=await useCase.read(id);if(generation.current===current){setRelationKey(key=>key+1);setRelationDirty(false);apply(world,current)}})},
   patch,
-  applyRelations:(changes:RelationInput[],removed:string[])=>!!changeRelations(settings=>applyRelationChanges(settings,changes,removed)),
+  applyRelations:(changes:RelationInput[],removed:string[])=>!!changeRelations(settings=>applyRelationChanges(settings,changes,removed,saved?.settings)),
   personDeletionInfo:(id:string)=>personDeletionInfo(editing?.settings??[],id),
   deletePerson:(id:string)=>{if(!editing)return false;const before=editing.settings;const after=changeRelations(settings=>removePerson(settings,id));if(!after)return false;setPersonUndo({worldId:editing.id,id,before,after,wasDirty:dirty});return true},
   undoPersonDeletion:()=>{if(!editing||!personUndo||busy||editing.id!==personUndo.worldId||editing.settings!==personUndo.after)return;const id=personUndo.id;patch({settings:personUndo.before});setDirty(personUndo.wasDirty);setSelected(id);return id},

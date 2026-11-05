@@ -47,7 +47,7 @@ it('rejects stale pair rows after external prose, title or endpoint-name edits w
  const changes=[stale,{subjectId:b.item.id,targetId:a.item.id,predicate:'custom_emotion',polarity:'asserted' as const,text:'아직 입력 중인 감정'}]
  for(const [id,patch] of [[relation.id,{text:'설정 작성에서 고친 최신 설명'}],[relation.id,{title:'설정 작성에서 고친 최신 이름'}],[a.item.id,{title:'가람 수정'}]] as const) {
   const latest=editStudioSetting(rows,id,patch),before=structuredClone(latest),draft=structuredClone(changes)
-  expect(()=>applyRelationChanges(latest,changes,[])).toThrow(/다른.*변경/)
+  expect(()=>applyRelationChanges(latest,changes,[],rows)).toThrow(/다른.*변경/)
   expect(latest).toEqual(before)
   expect(changes).toEqual(draft)
  }
@@ -156,6 +156,26 @@ it('rejects only newly introduced relation identity duplicates while preserving 
  expect(()=>assertNoNewRelationDuplicates(changedTogether,legacy)).toThrow(/이미/)
 })
 
+it('uses the saved baseline for panel edits after an unsaved general-form duplicate without losing inputs',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ let saved=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'동료'})
+ saved=putRelation(saved,{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'경쟁자'})
+ const second=saved[3].item
+ const latest=editStudioSetting(saved,second.id,{text:'동료'})
+ const changes=[{...latest[3].item,title:'패널에서 고친 이름',baseline:{...latest[3].item}}],removedIds:string[]=[]
+ const before=structuredClone({saved,latest,changes,removedIds})
+ expect(()=>applyRelationChanges(latest,changes,removedIds,saved)).toThrow(/이미/)
+ expect(()=>assertNoNewRelationDuplicates(latest,saved)).toThrow(/이미/)
+ expect({saved,latest,changes,removedIds}).toEqual(before)
+ const valid=applyRelationChanges(latest,[{...changes[0],text:'경쟁자'}],removedIds,saved)
+ expect(valid.map(s=>s.item.id)).toEqual(saved.map(s=>s.item.id))
+ expect(valid[2]).toEqual(saved[2])
+ expect(valid[3].item).toMatchObject({id:second.id,title:'패널에서 고친 이름',text:'경쟁자',authorText:'경쟁자'})
+ expect(valid[3].item).not.toHaveProperty('baseline')
+ expect(()=>assertNoNewRelationDuplicates(valid,saved)).not.toThrow()
+ expect({saved,latest,changes,removedIds}).toEqual(before)
+})
+
 it('uses existing relation direction and polarity semantics in duplicate checks',()=>{
  const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
  const base=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'friend_of',polarity:'asserted'})
@@ -174,7 +194,8 @@ it('allows editing existing duplicate compatibility rows but rejects new panel c
  const initial=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'동료'})
  const copy={...structuredClone(initial[2]),item:{...structuredClone(initial[2].item),id:crypto.randomUUID()}}
  const legacy=[...initial,copy],before=structuredClone(legacy)
- const updated=applyRelationChanges(legacy,[{...legacy[2].item,title:'유지할 새 이름'}],[])
+ const updated=applyRelationChanges(legacy,[{...legacy[2].item,title:'유지할 새 이름'}],[],structuredClone(legacy))
+ expect(()=>assertNoNewRelationDuplicates(updated,legacy)).not.toThrow()
  expect(updated[2].item).toMatchObject({id:legacy[2].item.id,text:'동료',title:'유지할 새 이름'})
  expect(updated[3]).toEqual(legacy[3])
  expect(legacy).toEqual(before)
@@ -201,7 +222,8 @@ it('allows atomic relation identity exchanges without changing relation IDs',()=
  let settings=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'friend_of',polarity:'asserted'})
  settings=putRelation(settings,{subjectId:a.item.id,targetId:b.item.id,predicate:'spouse_of',polarity:'asserted'})
  const first=settings[2].item,second=settings[3].item
- const changed=applyRelationChanges(settings,[{...first,predicate:'spouse_of'},{...second,predicate:'friend_of'}],[])
+ const changed=applyRelationChanges(settings,[{...first,predicate:'spouse_of'},{...second,predicate:'friend_of'}],[],structuredClone(settings))
+ expect(()=>assertNoNewRelationDuplicates(changed,settings)).not.toThrow()
  expect(changed[2].item).toMatchObject({id:first.id,predicate:'spouse_of'})
  expect(changed[3].item).toMatchObject({id:second.id,predicate:'friend_of'})
 })

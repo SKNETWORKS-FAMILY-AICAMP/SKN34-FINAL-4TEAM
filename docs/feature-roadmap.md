@@ -1035,7 +1035,7 @@
 | Frontend | WorldStudio | 관계 편집 | 미적용 관계 초안의 이탈·대상 변경 보호 | ❌ | [#118](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/118) |
 | Frontend | WorldStudio | 관계 편집 | 삭제 확인 중 인물 유형 변경 시 확인 안전 취소 | ❌ | [#118](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/118) |
 | Frontend | WorldStudio | 관계 편집 | 저장 실패 후 인물과 연결의 삭제 되돌리기 보존 | ❌ | [#118](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/118) |
-| Frontend | WorldStudio | 관계 편집 | 기존 호환 데이터 보존 및 신규 관계 중복 저장 차단 | ❌ | [#118](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/118) |
+| Frontend | WorldStudio | 관계 편집 | 기존 호환 데이터 보존 및 저장본 기준 신규 관계 중복 적용·저장 차단 | ❌ | [#118](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/118) · [PR #135](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/135) |
 | Frontend | WorldStudio | 관계 편집 | 빈 관계 이름의 자동 이름 복원 | ❌ | [#118](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/118) |
 | Frontend | WorldStudio | 관계 편집 | 작성 단계의 활성 상태 표시와 접근성 | ❌ | [#118](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/118) |
 | Frontend | WorldStudio | 관계 편집 | 관계 없는 상태 안내 | ❌ | [PR #113](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/113) |
