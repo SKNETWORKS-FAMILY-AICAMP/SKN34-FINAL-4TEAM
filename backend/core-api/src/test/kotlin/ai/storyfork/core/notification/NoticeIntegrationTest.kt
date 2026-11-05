@@ -71,6 +71,25 @@ class NoticeIntegrationTest {
     }
 
     @Test
+    fun `cursor paging keeps notices with identical createdAt exactly once`() {
+        val me = member(); val auth = bearer(me)
+        val at = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
+        val ids = (1..3).map { UUID.randomUUID() }
+        ids.forEach {
+            jdbc.update("insert into notification(id,recipient_id,kind,summary,created_at) values (?,?,?,?,?)",
+                it, me.id, NoticeKind.RESULT.code, "same time", java.sql.Timestamp.from(at))
+        }
+        val page1 = mvc.perform(get("/api/v1/me/notifications?limit=2").header("Authorization", auth))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(2)).andReturn().response.contentAsString
+        val cursor = page1.substringAfter("\"nextCursor\":\"").substringBefore('"')
+        val page2 = mvc.perform(get("/api/v1/me/notifications").param("limit", "2").param("cursor", cursor).header("Authorization", auth))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(1)).andReturn().response.contentAsString
+        val seen = Regex("\"id\":\"([0-9a-f-]{36})\"").findAll(page1 + page2).map { it.groupValues[1] }.toList()
+        assertEquals(3, seen.size)
+        assertEquals(ids.map { it.toString() }.toSet(), seen.toSet())
+    }
+
+    @Test
     fun `read is idempotent and other members get 404`() {
         val me = member(); val other = member(); val auth = bearer(me)
         val id = add(me, "hello")
