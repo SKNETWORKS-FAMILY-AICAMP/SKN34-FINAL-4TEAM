@@ -42,6 +42,11 @@ services:
       SERVER_ADDRESS: 0.0.0.0
       CONTENT_ENABLED: ${CONTENT_ENABLED:-false}
       APP_WORLDSTUDIO_ENABLED: ${APP_WORLDSTUDIO_ENABLED:-false}
+      # Content only. The optional source-built validation profile supplies neo4j; image deployments use an approved external target.
+      NEO4J_URI: ${NEO4J_URI:-bolt://neo4j:7687}
+      NEO4J_USERNAME: ${NEO4J_USERNAME:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-}
+      NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
       # Same existing database/account as before; no new database or data copy.
       CONTENT_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
       CONTENT_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}

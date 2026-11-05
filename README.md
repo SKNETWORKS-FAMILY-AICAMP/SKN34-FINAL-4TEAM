@@ -10,10 +10,10 @@
 AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선택·집필·검토를 돕는 도구입니다.
 
 기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 최신 MVP 결정은 [결정 기록 DEC-26~40](docs/design/decisions.md#결정-목록)을 따릅니다. 충돌하는 과거 유스케이스 세부 정책은 현행 계약이 아닙니다.
-[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 목표 백엔드는 Core·콘텐츠·운영·AI의 4개 서비스입니다([DEC-41 구조](docs/design/service-boundaries.md)). Core → Content 코드·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기입니다. 운영은 독립 골격 그대로입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
+[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 목표 백엔드는 Core·콘텐츠·운영·AI의 4개 서비스입니다([DEC-41 구조](docs/design/service-boundaries.md)). Core → Content 코드·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기입니다. 운영은 독립 골격 그대로입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. #132에서 관계 정본은 Neo4j 현재 상태 하나로 결정했으며 관계 이력·시점 복원은 이번 MVP에서 제외합니다. 실제 기존 데이터 이관·운영 복구/백업과 AI 조회 경로는 별도 대기입니다([현재 관계 계약](docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)).
 
 > **현재 개인 브랜치 구현:** 개발 기반에 `/content` 집필 작업실과 선택적 PostgreSQL 저장·AI 제안을 추가했습니다. 작품·원고·설정집·발행·Fork 범위와 인증 계약은 [콘텐츠 통합 안내](docs/content-integration.md)를 참고하세요.
-> 나머지 아래 기능은 기획 목표입니다. 실제 로그인은 구현되어 있고 그래프 DB·크레딧·운영 업무는 미구현이며 검증 이력과 남은 범위는 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, Required CI는 최신 PR 커밋의 결과로 판단합니다.
+> 나머지 아래 기능은 기획 목표입니다. 실제 로그인과 #132의 Neo4j 현재 관계/HTTP 연결 소스는 구현되어 있지만 관계 이력·시점 복원·크레딧·운영 업무는 미지원이며 검증 이력과 남은 범위는 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, Required CI는 최신 PR 커밋의 결과로 판단합니다.
 
 ## 사용자와 핵심 가치
 
@@ -81,7 +81,7 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 
 ```text
 Frontend (React) → 단일 공개 진입점
-                   ├─ /api/v1/(public/)works → Content:8081 → AI:8000 (선택 생성)
+                   ├─ /api/v1/(public/)works, /api/v1/world-studios → Content:8081 → AI:8000 (선택 생성)
                    │                              └→ Core 내부 인증 확인
                    └─ 나머지 /api → Core:8080 → AI:8000 (Health)
 Operations:8082는 독립 실행 골격이며 공개 proxy/배포 대상 아님
@@ -141,6 +141,7 @@ docker compose --env-file .env --file infrastructure/docker-compose.yaml --file 
 `docker-compose.yaml`은 공통 base로 단독 실행하지 않습니다. `docker-compose.prod.yaml`과 병합하면
 기존 `storyfork-prod-validation` 프로젝트의 PostgreSQL·Mailpit과 소스 빌드한 네 앱(web·Core·Content·AI)을 실행합니다.
 콘텐츠는 기본 비활성이며 `CONTENT_ENABLED=true`, Core/Content의 별도 `CONTENT_CORE_AUTH_TOKEN`, 생성 시 Content/AI의 `INTERNAL_TOKEN`이 필요합니다([콘텐츠 설정](docs/content-integration.md#인증과-실행)). **새 Content 이력은 개발용 fresh 전용**이며 기존 history에 바로 배포하지 않습니다. 정확한 대상·보존/복구 범위 승인 전 실제 DB/volume을 지우지 않습니다.
+WorldStudio 현재 관계는 별도 `APP_WORLDSTUDIO_ENABLED=true`와 승인된 SQL 적용·Neo4j 연결이 필요합니다. 소스 빌드 검증 overlay의 선택 `worldstudio` profile과 Content 전용 `NEO4J_*` 설정은 [현재 관계 계약](docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따릅니다. 기존 관계 자동 변환이나 실제 DB 적용/기동은 이 문서로 승인되지 않습니다.
 Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 
 | 주소 | 용도 |
@@ -222,7 +223,7 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 
 변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
 Core/Content의 혼합 경계 클래스는 통합에 두며 Kotlin/Java의 Spring/HTTP/DB 분류 누락을 회귀로 검사합니다.
-Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
+Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 통합 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
 
 #### 변경·영향 선택
 

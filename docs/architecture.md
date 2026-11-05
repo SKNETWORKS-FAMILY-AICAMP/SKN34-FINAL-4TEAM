@@ -1,6 +1,6 @@
 # STORYFORK 아키텍처
 
-> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 현재 상태 하나이며 관계 이력·과거 snapshot·전체 세계관 복원은 지원하지 않는다. 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
 
 ## 현재 구현
 
@@ -69,13 +69,15 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 콘텐츠 생성은 `proposal/config/GenerationClientConfig`의 별도 HTTP 클라이언트를 사용합니다. Health 읽기 기본값은 12초, 생성은 75초이며 생성 실패는 콘텐츠 API의 503으로 반환합니다.
 내부 URL·오류 원문은 공개하지 않으며 AI 장애가 Core 자체 Health 성공을 막지 않습니다.
 
-### WorldStudio 독립 JPA 저장소·Service (HTTP API 연결 전)
+### WorldStudio Content HTTP·Neo4j 현재 상태 (#132)
 
-개발 CD는 기존 Core 이미지의 별도 `WorldStudioMigration` main을 일회성으로 실행한 뒤 새 Core를 기동합니다.
-일반 서버 시작에서는 WorldStudio DDL을 실행하지 않습니다. 대상 allowlist·백업 복원 기록·명시 활성화가 없으면 기본 비활성이며,
-실제 공유 DB 적용은 이번 구현과 구분합니다. [배포 실행 계약](deployment/worldstudio-v1-rollout.md)을 따릅니다.
+이 절은 현재 소스 계약이다. `WorldStudioController → WorldStudioService → JPA / Neo4jRelationshipRepository`가 `/api/v1/world-studios`를 제공하고 nginx/Vite는 exact·하위 경로를 Content:8081로 보낸다. 기존 Core 인증 확인의 UUID Principal·CSRF·world 소유권 검사를 유지한다. Frontend는 기존 UseCase/Repository 경계를 통해 현재 draft를 저장하고 기존 관계 편집·관계도에 사용한다. 화면 저장은 draft PUT이며 카드 revision POST·공개·발행이 아니다.
 
-[독립 초기 설계](design/worldstudio-independent-schema.md)는 기존 Content/Auth와 다른 `worldstudio` schema에 12개 정본 테이블을 둡니다. 전용 Flyway location/history는 `db/migration/worldstudio` / `worldstudio.world_studio_schema_history`이며 서버 기본 DataSource·Auth migration 경로·Content writer를 변경하지 않습니다. `WorldStudioConfig → WorldStudioService → Spring Data JpaRepository`가 기존 Core 기본 EntityManager·TransactionManager와 `@Transactional`로 생성·초안·확정·과거 조회·복원을 처리합니다. subject는 검증된 JWT의 UUID를 전달받으며 모든 world 접근에서 소유권과 world별 잠금을 검사합니다. 세계관 업무에는 Content·Auth 테이블 FK/조회 의존이 없습니다. Core 공통 JPA는 기존 Auth 초기화와 함께 사용합니다. 서버 시작 DDL·HTTP API·기존 UI 연결·공용 DB 적용은 포함하지 않으며 Graph·AI·이미지를 추가하지 않습니다.
+기존 `worldstudio` V1의 12개 테이블·SQL·데이터를 보존하고 V2로 관계 내용 없는 `relationship_state`를 추가한다. PG는 카드 원문/버전·소유권·UUID와 요청 상태만, Neo4j는 현재 관계 내용만 소유한다. 짧은 PG prepare → PG 밖 Neo4j CAS → 짧은 PG finalization 순서이며 분산 원자성을 가정하지 않는다. graph token은 이력 버전이 아니다. pending은 원래 key/입력으로만 재시도하며 탭을 잃은 뒤 자동 복구할 수 없다. 미전환·미완료·불일치는 빈 관계 성공으로 대체하지 않는다.
+
+관계 변경 이력·과거 snapshot·시점 조회·복원은 최신 사용자 결정으로 제외했다(DEC-27·33의 관계만의 MVP 예외). 기존 카드 revision은 `relationships=null` / `not_recorded`이고 전체 세계관 restore는 명시적 미지원이다. 기존 인물·설정·원고 버전과 과거 SQL/데이터는 유지한다.
+
+서버는 Content DataSource와 studio-only EntityManager/TransactionManager로 validate만 한다. 명시 migration main은 Content 이미지에 있으며 실제 DB 적용·기존 관계 변환은 별도 승인 대상이다. opt-in Neo4j profile과 격리 CI 서비스는 소스에 연결했지만 실제 이관·hosted CI·배포·브라우저 검증은 대기다. API·설정·실패/재시도 한계는 [현재 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132), 기존 배포 승인은 [배포 실행 계약](deployment/worldstudio-v1-rollout.md)을 따른다.
 
 ### 설정 첨부 (#87)
 

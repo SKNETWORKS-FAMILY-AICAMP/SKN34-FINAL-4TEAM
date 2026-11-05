@@ -39,7 +39,7 @@ class WorldStudioCoexistencePostgresTest {
             }
             val before=db.connect().use(::fingerprint)
             val studio=db.studio()
-            assertEquals(1,studio.migrate().migrationsExecuted)
+            assertEquals(2,studio.migrate().migrationsExecuted)
             studio.validate()
             assertEquals(0,studio.migrate().migrationsExecuted)
             assertEquals(before,db.connect().use(::fingerprint))

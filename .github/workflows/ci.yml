@@ -75,6 +75,8 @@ jobs:
               CONTENT_ENABLED="$content" docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
             done
           done
+      - name: Validate opt-in current relationship graph configuration without starting services
+        run: CONTENT_ENABLED=true APP_WORLDSTUDIO_ENABLED=true NEO4J_PASSWORD=graph-config-test-only docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml --profile worldstudio config --quiet
       - name: Validate isolated CI overlay
         run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml -f infrastructure/ci/compose.test.yaml config --quiet
       - name: Validate optional attachment environment contract
@@ -199,6 +201,13 @@ jobs:
           POSTGRES_HOST_AUTH_METHOD: scram-sha-256
         ports: ["127.0.0.1:5433:5432"]
         options: --health-cmd "pg_isready -U worldstudio_test -d worldstudio_password_test" --health-interval 3s --health-timeout 3s --health-retries 20
+      neo4j:
+        # Content integration only; isolated runner storage, no external graph or paid calls.
+        image: ${{ matrix.service == 'content' && 'neo4j:5.26.0-community' || '' }}
+        env:
+          NEO4J_AUTH: neo4j/worldstudio-ci-graph-password
+        ports: ["127.0.0.1:7687:7687"]
+        options: --health-cmd "cypher-shell -u neo4j -p worldstudio-ci-graph-password 'RETURN 1'" --health-interval 5s --health-timeout 5s --health-start-period 30s --health-retries 30
       mailpit:
         image: ${{ matrix.service == 'core' && 'axllent/mailpit:v1.27' || '' }}
         ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
@@ -210,6 +219,10 @@ jobs:
       TEST_WORLDSTUDIO_DATABASE_USER: content_test
       TEST_WORLDSTUDIO_DATABASE_PASSWORD: ""
       TEST_WORLDSTUDIO_DISPOSABLE: "true"
+      NEO4J_URI: bolt://127.0.0.1:7687
+      NEO4J_USERNAME: neo4j
+      NEO4J_PASSWORD: worldstudio-ci-graph-password
+      NEO4J_DATABASE: neo4j
       AUTH_INTEGRATION_TEST: "true"
       AUTH_MAILPIT_API: http://127.0.0.1:8025
     steps:
@@ -286,13 +299,15 @@ jobs:
           POSTGRES_ID: ${{ job.services.postgres.id }}
           PASSWORD_POSTGRES_ID: ${{ job.services.postgres-password.id }}
           MAILPIT_ID: ${{ job.services.mailpit.id }}
+          NEO4J_ID: ${{ job.services.neo4j.id }}
         run: |
           docker logs "$POSTGRES_ID" > "$RUNNER_TEMP/postgres.log" 2>&1 || true
           if [[ -n "$PASSWORD_POSTGRES_ID" ]]; then docker logs "$PASSWORD_POSTGRES_ID" >> "$RUNNER_TEMP/postgres.log" 2>&1 || true; fi
           if [[ -n "$MAILPIT_ID" ]]; then docker logs "$MAILPIT_ID" > "$RUNNER_TEMP/mailpit.log" 2>&1 || true; fi
+          if [[ -n "$NEO4J_ID" ]]; then docker logs "$NEO4J_ID" > "$RUNNER_TEMP/neo4j.log" 2>&1 || true; fi
       - name: Sanitize failure reports
         if: ${{ failure() }}
-        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log"
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log" "$RUNNER_TEMP/neo4j.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ failure() }}
         with:
