@@ -22,6 +22,8 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.server.ResponseStatusException
 
 /** 회원별 알림함·알림 설정 규칙. 다른 회원의 알림은 존재하지 않는 것처럼 404로 취급한다. */
@@ -30,6 +32,7 @@ class NoticeService(
     private val notices: NoticeRepository,
     private val preferences: NoticePreferenceRepository,
     private val members: MemberRepository,
+    private val stream: NoticeStream,
 ) {
     /** 본인 알림을 최신순으로 limit개 반환한다. cursor가 형식에 맞지 않으면 400이다. */
     @Transactional(readOnly = true)
@@ -106,7 +109,19 @@ class NoticeService(
             id = UUID.randomUUID(), recipientId = request.recipientId, kind = request.kind.code, summary = request.summary,
             targetType = request.targetType, targetId = request.targetId, createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS),
         ))
+        signalAfterCommit(request.recipientId)
         return toResponse(saved)
+    }
+
+    /** 알림이 DB에 커밋된 뒤에만 본인에게 변경 신호를 보낸다. 롤백되면 신호도 보내지 않는다. */
+    private fun signalAfterCommit(recipientId: UUID) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+                override fun afterCommit() = stream.notifyChanged(recipientId)
+            })
+        } else {
+            stream.notifyChanged(recipientId)
+        }
     }
 
     /** 본인의 삭제되지 않은 알림만 반환하고, 없거나 타인·삭제된 알림이면 404를 던진다. */

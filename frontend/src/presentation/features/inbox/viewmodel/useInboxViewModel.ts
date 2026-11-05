@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
-import { useAppDispatch } from '../../../../app/store'
-import { type AppNotification, noticeTarget } from '../../../../domain/entities/notification'
+import { useAppDispatch, useAppSelector } from '../../../../app/store'
+import { type AppNotification, type NotificationPage, noticeTarget } from '../../../../domain/entities/notification'
 import type { NotificationPrefs } from '../../../../domain/repositories/NotificationRepository'
 import type { InboxAct, InboxUseCase } from '../../../../domain/usecases/InboxUseCase'
 import type { ShellUseCase } from '../../../../domain/usecases/ShellUseCase'
@@ -47,12 +47,26 @@ export function useNotificationsViewModel(shellUseCase: ShellUseCase = appContai
   }, [shellUseCase])
   useEffect(() => { load(); return () => { alive.current += 1 } }, [load])
 
+  /** SSE 변경 신호: 화면을 비우지 않고 첫 페이지만 다시 받아 합칩니다. 실패하면 조용히 두고 다음 신호·재시도에 맡깁니다. */
+  const { noticeVersion, noticeStream } = useAppSelector((s) => s.session)
+  const seenVersion = useRef(noticeVersion)
+  useEffect(() => {
+    if (seenVersion.current === noticeVersion) return
+    seenVersion.current = noticeVersion
+    const id = alive.current
+    shellUseCase.listNotifications().then(
+      (page) => { if (alive.current === id) setState((s) => (s.status === 'ready' ? mergeFirstPage(s, page) : s)) },
+      () => {},
+    )
+  }, [noticeVersion, shellUseCase])
+
   const run = async (action: () => Promise<void>, failure: string) => {
     try { await action(); return true } catch { toast(failure); return false }
   }
   return {
     ...state,
     unread: state.items.filter((n) => !n.read).length,
+    live: noticeStream,
     retry: load,
     loadMore: async () => {
       if (!state.nextCursor || state.loadingMore) return
@@ -103,4 +117,12 @@ type NotificationsState = {
   prefs: NotificationPrefs | null
   loadingMore: boolean
   saving: boolean
+}
+
+/** 새로 받은 첫 페이지로 앞부분을 갱신하고(다른 곳에서 삭제·읽음 반영), 이미 불러온 더 오래된 알림은 유지합니다. */
+function mergeFirstPage(s: NotificationsState, page: NotificationPage): NotificationsState {
+  if (!page.nextCursor) return { ...s, items: page.items, nextCursor: null }
+  const oldest = page.items[page.items.length - 1]?.createdAt ?? ''
+  const older = s.items.filter((o) => o.createdAt <= oldest && !page.items.some((p) => p.id === o.id))
+  return { ...s, items: [...page.items, ...older], nextCursor: older.length ? s.nextCursor : page.nextCursor }
 }

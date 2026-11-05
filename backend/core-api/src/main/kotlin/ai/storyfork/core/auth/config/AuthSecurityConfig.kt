@@ -57,7 +57,8 @@ class AuthSecurityConfig {
             }) }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
-                it.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                // ASYNC: SSE 연결이 끝나며 일어나는 비동기 재디스패치는 최초 요청에서 이미 인증·인가를 마쳤다.
+                it.dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC).permitAll()
                     .requestMatchers("/api/v1/health", "/api/v1/health/ai-service", "/api/v1/auth/csrf",
                     "/api/v1/auth/signup", "/api/v1/auth/verify-email", "/api/v1/auth/resend-verification",
                     "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout", "/api/v1/auth/forgot-password",

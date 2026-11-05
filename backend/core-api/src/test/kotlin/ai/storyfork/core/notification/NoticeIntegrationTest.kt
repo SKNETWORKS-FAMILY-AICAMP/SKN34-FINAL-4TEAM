@@ -55,6 +55,19 @@ class NoticeIntegrationTest {
     }
 
     @Test
+    fun `stream signals only its owner and only after a notice is saved`() {
+        val me = member(); val other = member(); val auth = bearer(me)
+        val opened = mvc.perform(get("/api/v1/me/notifications/stream").header("Authorization", auth).accept(MediaType.TEXT_EVENT_STREAM))
+            .andExpect(request().asyncStarted()).andReturn()
+        assertTrue(opened.response.contentAsString.contains("event:ready"))
+        add(other, "not mine")
+        assertFalse(opened.response.contentAsString.contains("event:changed"))
+        add(me, "mine")
+        assertEquals(1, Regex("event:changed").findAll(opened.response.contentAsString).count())
+        mvc.perform(get("/api/v1/me/notifications/stream").accept(MediaType.TEXT_EVENT_STREAM)).andExpect(status().isUnauthorized())
+    }
+
+    @Test
     fun `list returns only own notices newest first with cursor paging`() {
         val me = member(); val other = member(); val auth = bearer(me)
         val first = add(me, "first"); val second = add(me, "second"); val third = add(me, "third"); add(other, "not mine")

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -9,6 +9,7 @@ import App from './App'
 import type { AppNotification } from './domain/entities/notification'
 import { appContainer } from './app/appContainer'
 import { createAppStore } from './app/store'
+import { sessionActions } from './presentation/shared/session/sessionSlice'
 
 afterEach(cleanup)
 
@@ -17,6 +18,7 @@ const where = () => screen.getByTestId('where').textContent
 const sid = () => document.getElementById('sid')!.textContent
 const toastIs = (t: string | RegExp) => waitFor(() => expect(document.getElementById('toast')!.textContent).toMatch(t))
 const renderAt = (path: string) => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={[path]}><App /><Where /></MemoryRouter></Provider>)
+const renderWith = (store: ReturnType<typeof createAppStore>, path = '/notifications') => render(<Provider store={store}><MemoryRouter initialEntries={[path]}><App /><Where /></MemoryRouter></Provider>)
 const feedback = () => appContainer.resolve('feedbackRepository')
 const item = (id: string, patch: object) => ({ id, rid: 'r-' + id, w: 'starlight', n: 1, pi: 0, type: '질문', who: '독자', text: '제보 ' + id, baseText: '', status: '작가 검토 대기', ai: { cls: '제안', why: '안내', ev: '문장' }, ...patch })
 
@@ -118,6 +120,45 @@ describe('알림함 (U42)', () => {
     await screen.findByText(/알림을 불러오지 못했어요/)
     fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
     await screen.findByText('알림 a')
+  })
+
+  it('실시간 변경 신호를 받으면 화면을 비우지 않고 새 알림을 합치고 배지를 갱신한다', async () => {
+    const b = backend([notice('a', { read: true })])
+    const store = createAppStore({ role: 'user' })
+    renderWith(store)
+    await screen.findByText('알림 a')
+    await waitFor(() => expect(store.getState().session.noticeStream).toBe('off'))
+    b.state.items = [notice('b', { createdAt: '2026-11-05T04:00:00Z' }), notice('a', { read: true })]
+    act(() => { store.dispatch(sessionActions.noticeSignal()) })
+    await screen.findByText('알림 b')
+    screen.getByText('알림 a')
+    await screen.findByRole('button', { name: '알림함, 읽지 않은 알림 1건' })
+  })
+
+  it('신호로 다시 받아도 이미 불러온 오래된 알림은 유지하고, 다른 곳에서 삭제한 알림은 사라진다', async () => {
+    const b = backend([notice('a', { createdAt: '2026-11-05T03:00:00Z' }), notice('c', { createdAt: '2026-11-05T01:00:00Z' })], 'next-1')
+    const store = createAppStore({ role: 'user' })
+    renderWith(store)
+    fireEvent.click(await screen.findByRole('button', { name: '더 보기' }))
+    await screen.findByText('알림 older')
+    b.state.items = [notice('c', { createdAt: '2026-11-05T01:00:00Z' })]
+    act(() => { store.dispatch(sessionActions.noticeSignal()) })
+    await waitFor(() => expect(screen.queryByText('알림 a')).toBeNull())
+    screen.getByText('알림 older')
+    screen.getByText('알림 c')
+  })
+
+  it('실시간 연결이 끊기면 안내를 보여 주고 목록은 그대로 쓸 수 있다', async () => {
+    backend([notice('a')])
+    const store = createAppStore({ role: 'user' })
+    renderWith(store)
+    await screen.findByText('알림 a')
+    await waitFor(() => expect(store.getState().session.noticeStream).toBe('off'))
+    act(() => { store.dispatch(sessionActions.noticeStreamState('offline')) })
+    await screen.findByText(/실시간 연결이 끊겼어요/)
+    screen.getByText('알림 a')
+    act(() => { store.dispatch(sessionActions.noticeStreamState('live')) })
+    await waitFor(() => expect(screen.queryByText(/실시간 연결이 끊겼어요/)).toBeNull())
   })
 
   it('알림이 없으면 빈 상태를 보여 준다', async () => {

@@ -19,6 +19,7 @@ export function NotificationsPage() {
           <p className="small muted">결과·크레딧·권리·보안 알림은 필수 알림이에요. 알림은 앱 안에서만 확인할 수 있고, 직접 삭제하기 전까지 보관해요.</p>
         </section>
         <div className="panel" style={{ marginTop: 14 }}>
+          {vm.live === 'offline' && <p className="small muted" role="status">실시간 연결이 끊겼어요. 자동으로 다시 연결하는 중이고, 그동안 도착한 알림은 다시 연결되면 보여요.</p>}
           {vm.status === 'loading' && <p className="muted" role="status">알림을 불러오는 중이에요…</p>}
           {vm.status === 'error' && <div role="alert"><p className="muted">알림을 불러오지 못했어요. 로그인 상태와 연결을 확인하고 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={vm.retry}>다시 시도</button></div>}
           {vm.status === 'ready' && (

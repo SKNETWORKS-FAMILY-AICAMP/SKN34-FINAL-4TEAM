@@ -45,10 +45,11 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `PATCH /api/v1/me/notifications/{id}/read` | Bearer 인증; 읽음 처리(반복 호출도 204), 타인·삭제된 알림 404 |
 | `POST /api/v1/me/notifications/read-all` | Bearer 인증과 `upTo`; 그 시각 이전 도착분만 읽음, 204 |
 | `DELETE /api/v1/me/notifications/{id}` | Bearer 인증; 삭제 표시(행 보존, 반복 호출도 204), 타인 알림 404 |
+| `GET /api/v1/me/notifications/stream` | Bearer 인증; SSE(`text/event-stream`). `ready`(연결·재연결 직후)와 `changed`(새 알림 저장 후)만 보내며 내용은 없음. 받으면 목록·미읽음 수를 다시 조회. 연결은 10분 뒤 끝나고 20초마다 `:ping`을 보냄 |
 | `GET /api/v1/me/notification-preferences` | Bearer 인증; 분류별 `{"items":[{"kind","enabled","mutable"}]}`, 200 |
 | `PUT /api/v1/me/notification-preferences` | Bearer 인증과 `items`; 읽기(`reading`)·창작(`creation`)만 변경, 그 외 분류 끄기·알 수 없는 분류·중복은 400 |
 
-알림 분류는 `reading`·`creation`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·SSE·모바일 푸시는 아직 없습니다.
+알림 분류는 `reading`·`creation`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·모바일 푸시는 아직 없습니다. SSE 연결 목록은 Core 인스턴스 메모리에 있으므로 단일 Core 인스턴스를 전제로 하며, 여러 인스턴스로 늘리면 인스턴스 간 신호 전달을 추가해야 합니다.
 
 가입 인증 링크는 24시간, 비밀번호 재설정·이메일 변경 링크는 1시간 유효하며 한 번만 사용할 수 있습니다. 가입 인증 화면은 fragment를 지운 뒤 비밀번호 입력과 명시적 확인을 기다리고, 이메일 변경 확인 화면은 기존처럼 토큰만으로 자동 진행합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경 메일에 사용합니다. 메일과 데이터베이스는 로컬 검증용이며 운영 SMTP·TLS 정책은 미정입니다.
 
