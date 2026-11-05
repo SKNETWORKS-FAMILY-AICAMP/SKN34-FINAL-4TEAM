@@ -25,12 +25,12 @@ const acceptPolicy = async () => {
 describe('내 서재 (U11·U12)', () => {
   it('읽는 중·내가 쓰는 소설·내 댓글·신고 탭을 오간다', async () => {
     renderAt('/lib')
-    await screen.findByRole('button', { name: '▶ 2화 이어 읽기' })
+    await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
     await waitFor(() => expect(sid()).toBe('U11 내 서재'))
     screen.getByText('소설 화면에서 ♡를 누르면 여기에 모여요.')
-    fireEvent.click(screen.getByRole('button', { name: '내 댓글·신고' }))
+    fireEvent.click(screen.getByRole('link', { name: '내 댓글·신고' }))
     await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
-    fireEvent.click(screen.getByRole('button', { name: '내가 쓰는 소설' }))
+    fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
     await screen.findByRole('heading', { name: '별빛 서약의 탑' })
     await waitFor(() => {
       expect(sid()).toBe('U12 내 서재 · 내가 쓰는 소설')
@@ -47,7 +47,7 @@ describe('새 소설 만들기 (U28)', () => {
   it('새 소설 쓰기를 누를 때마다 정책 확인을 다시 요구하고 /worlds는 /new로 보낸다', async () => {
     for (let visit = 0; visit < 2; visit++) {
       renderAt('/lib?tab=write')
-      fireEvent.click(await screen.findByRole('button', { name: /＋ 새 소설 쓰기/ }))
+      fireEvent.click(await screen.findByRole('link', { name: /＋ 새 소설 쓰기/ }))
       await screen.findByRole('heading', { name: '집필 전 정책 확인' })
       expect(sid()).toBe('U28 새 소설 만들기')
       await acceptPolicy()

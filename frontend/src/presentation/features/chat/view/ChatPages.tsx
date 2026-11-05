@@ -34,7 +34,7 @@ function ChatList() {
             <label className="field" style={{ flex: '1 1 180px' }}>작품<select className="inp" id="chatWork" value={st.work} onChange={(e) => vm.go({ work: e.target.value, character: 'all' })}><option value="all">전체 작품</option>{works.map((w) => <option key={w.id} value={w.id}>{w.title}</option>)}</select></label>
             <label className="field" style={{ flex: '1 1 180px' }}>캐릭터<select className="inp" id="chatCharacter" value={st.character} onChange={(e) => vm.go({ character: e.target.value })}><option value="all">전체 캐릭터</option>{characters.map((c) => <option key={c} value={c}>{c}</option>)}</select></label>
           </div>
-          <div className="eptool" style={{ margin: '12px 0 0', padding: '6px 0 0', border: 0 }}><b>정렬</b><div className="sortt">{SORTS.map(([k, l]) => <Go key={k} to={vm.to({ sort: k })} className={st.sort === k ? 'on' : ''} aria-pressed={st.sort === k}>{l}</Go>)}</div></div>
+          <div className="eptool" style={{ margin: '12px 0 0', padding: '6px 0 0', border: 0 }}><b>정렬</b><div className="sortt">{SORTS.map(([k, l]) => <Go key={k} to={vm.to({ sort: k })} className={st.sort === k ? 'on' : ''} aria-current={st.sort === k ? 'page' : undefined}>{l}</Go>)}</div></div>
           <p className="small muted">최신순·인기순·조회순은 연결된 작품의 지표를 따릅니다. 포크는 원작과 구분해 보여요.</p>
         </div>
         <div className="rgrid">{listed.length ? listed.map(({ w, character: c, parent }) => (

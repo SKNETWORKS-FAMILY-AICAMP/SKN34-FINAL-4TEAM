@@ -1,8 +1,7 @@
-import type { ButtonHTMLAttributes } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, type LinkProps } from 'react-router'
 
-/** 목업 data-go 버튼: 목업 CSS가 button 요소 기준이라 링크 대신 버튼으로 이동합니다. */
-export function Go({ to, state, onClick, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { to: string; state?: unknown }) {
-  const navigate = useNavigate()
-  return <button type="button" {...props} onClick={(e) => { onClick?.(e); navigate(to, { state }) }} />
+/** 이동은 네이티브 링크로, 비활성 회차는 주소 없는 비활성 링크로 표시합니다. */
+export function Go({ to, state, disabled, className, onClick, ...props }: LinkProps & { disabled?: boolean }) {
+  if (disabled) return <a {...props} data-route-link className={className} role="link" aria-disabled="true" tabIndex={-1} onClick={(e) => e.preventDefault()} />
+  return <Link {...props} data-route-link to={to} state={state} className={className} onClick={onClick} />
 }

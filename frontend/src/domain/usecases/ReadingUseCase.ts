@@ -26,6 +26,12 @@ export class ReadingUseCase {
     const pub = works.filter(isPub)
     const filter = (HOME_CHIPS.find((c) => c[0] === chip) ?? HOME_CHIPS[0])[1]
     const origs = originals(works).filter(isPub)
+    const forkSources: Record<string, { title: string; episode: number }> = {}
+    // ponytail: 소수 작품의 메모리 데모용 중첩 순회; 서버 목록으로 확장할 때 저장소 조회로 대체합니다.
+    for (const w of pub) {
+      const parent = pub.find((p) => p.id === w.parent)
+      if (parent && w.forkAt) forkSources[w.id] = { title: parent.title, episode: w.forkAt }
+    }
     const lastId = Object.keys(progress.last).find((id) => {
       const w = works.find((x) => x.id === id)
       const e = w && isPub(w) && epsOf(w)[progress.last[id] - 1]
@@ -35,6 +41,7 @@ export class ReadingUseCase {
     const pick = (ids: string[]) => ids.map((id) => works.find((w) => w.id === id)).filter((w): w is Work => !!w)
     return {
       works,
+      forkSources,
       seen: progress.seen,
       filtered: filter ? pub.filter((w) => filter(w, works)) : null,
       originals: origs,

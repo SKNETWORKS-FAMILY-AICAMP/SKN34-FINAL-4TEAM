@@ -574,7 +574,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="32">Frontend</td><td rowspan="21">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
+<tr><td rowspan="51">Frontend</td><td rowspan="40">웹 화면</td><td rowspan="13">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="#미등록-062">미등록-062</a></td></tr>
 <tr><td>상세 화면 API 연결</td><td>❌</td></tr>
 <tr><td>등록 화면 API 연결</td><td>❌</td></tr>
 <tr><td>수정 화면 API 연결 <small>(회차 집필에 팀 레이아웃 재사용·제목/본문 입력은 UI 서체 적용, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
@@ -587,7 +587,26 @@
 <tr><td>인증 만료 안내</td><td>❌</td></tr>
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
-<tr><td rowspan="1">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a></td></tr>
+<tr><td rowspan="20">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="20"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a> · <a href="#미등록-116">미등록-116</a></td></tr>
+<tr><td>홈 단색 배경 보조 텍스트의 라이트·다크 대비 확보</td><td>❌</td></tr>
+<tr><td>홈 Hero 자동 넘김을 이름 있는 정지·재생 제어로 조작</td><td>❌</td></tr>
+<tr><td>홈 Hero 포커스·수동 전환 후 명시적 재생 전까지 자동 넘김 정지</td><td>❌</td></tr>
+<tr><td>홈 Hero hover 중 자동 넘김 정지</td><td>❌</td></tr>
+<tr><td>동작 줄이기 설정에서는 홈 Hero 자동 넘김 JS 타이머 미생성</td><td>❌</td></tr>
+<tr><td>홈 Hero 비활성 카드를 키보드·접근성 탐색에서 제외</td><td>❌</td></tr>
+<tr><td>모바일 홈 Hero를 이전·다음·슬라이드 선택으로 전환</td><td>❌</td></tr>
+<tr><td>홈 이어 읽기·Fork 발견·순위의 DOM·탭·읽기 순서 일치</td><td>❌</td></tr>
+<tr><td>모바일 홈 인기 순위는 3개를 먼저 보여 주고 전체 순위로 이동</td><td>❌</td></tr>
+<tr><td>홈 필터 Fork 카드에 확인 가능한 공개 원작 제목·기준 회차 표시</td><td>❌</td></tr>
+<tr><td>홈 선택 필터의 눌림 상태를 보조 기술에 제공</td><td>❌</td></tr>
+<tr><td>공유 Go를 주소·라우터 state·클릭 콜백을 유지하는 네이티브 링크로 탐색</td><td>❌</td></tr>
+<tr><td>비활성 Go 회차의 주소·탭 진입·클릭 탐색 차단</td><td>❌</td></tr>
+<tr><td>홈 화면·섹션·작품의 h1·h2·h3 제목 계층 제공</td><td>❌</td></tr>
+<tr><td>홈 더보기·전체 보기의 최소 44px 터치 영역 제공</td><td>❌</td></tr>
+<tr><td>모바일 홈·공유 셸 검색·계정·필터·알림·테마의 최소 44×44px 터치 영역 제공</td><td>❌</td></tr>
+<tr><td>공유 푸터의 데모 초기화·로그인 제거 (상단 계정/로그인·데모 고지 유지)</td><td>❌</td></tr>
+<tr><td>GNB 크레딧 정책 버튼의 문구·데모 표시를 줄바꿈 없이 유지 (모바일 숨김 유지)</td><td>❌</td></tr>
+<tr><td>개발 환경에서만 화면 ID 표시·토글 제공 (일반 화면 테마 전환·인증 경로 제외 유지)</td><td>❌</td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
 <tr><td rowspan="1">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
 <tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기 <small>(팀 공통 시트 연결, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="1"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-089">미등록-089</a></td></tr>
@@ -773,6 +792,8 @@
 | <a id="미등록-112"></a>미등록-112 | 89 | 실행 기반 | 운영 독립 Gradle·Spring Boot 진입점·loopback 설정·선택 단위 테스트 골격을 로컬 구현; 업무·DB·배포 구현, 앱 기동, 병합·최신 head Required CI 확인 전이므로 ❌ 유지 |
 | <a id="미등록-113"></a>미등록-113 | 90 | 인증 연계 | POST /internal/v1/auth/verify의 별도 서비스 자격·서명/만료/UUID JWT 확인, Content HTTP Service proxy·timeout/장애/401 구분·UUID Principal·CSRF/CORS 경계를 소스 구현; 캐시/재시도/fallback/키 공유 없음. bc672a0의 hosted Content 통합은 성공했으나 시스템 인증 장애의 503/504 기대 불일치로 Required CI 실패; 네트워크를 유지한 pause/unpause·정확한 504/CORE_AUTH_TIMEOUT 회귀 보완은 hosted 재검증·병합 전이므로 ❌ 유지 |
 | <a id="미등록-114"></a>미등록-114 | 43 | 빌드 캐시 잠금 | Core·Content Dockerfile의 `/root/.gradle` cache mount에 `sharing=locked`를 적용해 서비스 간·동일 서비스 동시 빌드의 캐시 사용 구간을 보호; 정적 계약 RED→GREEN 확인. 실제 이미지 빌드·병합·최신 head Required CI 검증 전이므로 ❌ 유지 |
+| <a id="미등록-116"></a>미등록-116 | 56 | 홈·공유 탐색 접근성 | 메모리 데모 홈의 보조 텍스트 대비·Hero 정지/재생·동작 줄이기 타이머 제외·비활성 카드 제외·모바일 우선순위/TOP3·실제 Fork 출처·필터/제목 의미·44px 더보기 및 공유 Go 링크·직접 소비 스타일/회귀를 로컬 구현. `.prox` 상시 will-change만 제거하고 기존 근접 효과·작품 팔레트·일러스트·폰트는 유지. 후속으로 GNB 크레딧 버튼 줄바꿈 방지와 기존 DEV 조건의 화면 ID 표시·토글 제한을 반영하고 테마 전환·인증 경로 제외·데모 고지는 보존. 모바일 홈·공유 셸의 검색·계정·필터·알림·테마를 최소 44×44px 클릭 박스로 조정하고 좁은 GNB 메뉴의 줄바꿈을 허용; 전역 `.btn.sm`·기존 Hero/더보기는 유지하며 CSS 정적 검사만 수행. 추가 요청으로 Footer의 데모 초기화·로그인만 제거하고 상단 계정/로그인·푸터 데모 고지는 유지; 관련 React 회귀를 먼저 갱신했으며 CI 실행 대기. Fork 출처 선택 단위 RED→GREEN 확인; 화면 ID 환경별 React 회귀는 구현 전에 작성했으나 CI 전용으로 로컬 미실행. React 통합·브라우저 수용 검증·병합·최신 head Required CI 미확인으로 세부 행 모두 ❌ 유지. #24 전체 완료를 뜻하지 않음 |
+
 
 ## 연결한 GitHub 이슈
 
