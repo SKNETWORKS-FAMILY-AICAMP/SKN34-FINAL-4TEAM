@@ -15,13 +15,13 @@ class WorldStudioFlywayPostgresTest {
                 assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='public'"));
             }
             var flyway=db.studio();
-            assertEquals(1,flyway.migrate().migrationsExecuted);
+            assertEquals(2,flyway.migrate().migrationsExecuted);
             flyway.validate();
             assertEquals(0,flyway.migrate().migrationsExecuted);
             String w=id(), owner=id(), rev=id(), card=id(), other=id(), v1=id(), v2=id(), v3=id();
             String r=id(), rv=id();
             try(var c=db.connect()) {
-                assertEquals(List.of("12"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename<>'world_studio_schema_history'"));
+                assertEquals(List.of("13"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename<>'world_studio_schema_history'"));
                 assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='public'"));
                 c.setAutoCommit(false);
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+owner+"')");
@@ -127,7 +127,7 @@ class WorldStudioFlywayPostgresTest {
                 assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='public'"));
             }
             flyway.validate(); assertEquals(0,flyway.migrate().migrationsExecuted);
-            System.out.println("Independent PostgreSQL: Content/Auth absent; 12 tables; 8 types/7 areas; snapshots; rejection/rollback; privacy restore; new connection; validate; rerun=0");
+            System.out.println("Independent PostgreSQL: Content/Auth absent; 13 tables; 8 types/7 areas; snapshots; rejection/rollback; privacy restore; new connection; validate; rerun=0");
         }
     }
     static String version(String v,String card,String w,int no,String visibility,String restored) {
