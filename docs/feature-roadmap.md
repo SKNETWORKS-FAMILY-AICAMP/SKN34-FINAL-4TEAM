@@ -1004,3 +1004,22 @@
 | 84 | 원고 가져오기 정책과 AI 처리 이용 권한 안내 개별 확인 후 계속 | [WritingPolicyPage.tsx:38](../frontend/src/presentation/features/fork/view/WritingPolicyPage.tsx#L38) |
 | 85 | 답변 대기 문의·접수 신고·작가 검토 대기 수 조회 | [AdminPage.tsx:126](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L126) |
 | 85 | 수집 자료 출처·수량·형식·사용처 명세 조회 | [AdminPage.tsx:130](../frontend/src/presentation/features/admin/view/AdminPage.tsx#L130) |
+
+## WorldStudio 프런트엔드 선별 통합
+
+메모리 데모이며 PostgreSQL HTTP API와 연결되지 않는다. 미병합 PR은 완료 표시하지 않는다.
+
+| 서비스 | 서브시스템 | 중간 기능 | 세부 기능 | 개발 완료 | 관련 이슈 |
+|---|---|---|---|---|---|
+| Frontend | WorldStudio 데모 | 설정 카드 | 세계관 작업실 진입 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 세계관 기본 정보 작성 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 설정 카드 추가 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 설정 카드 선택 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 설정 카드 수정 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 카드 유형 선택(8종) | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 설정 영역 선택(7종) | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 별칭 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 태그 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 사용자 분류 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 기존 메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
+| Frontend | WorldStudio 데모 | 설정 카드 | 태그·별칭 무변경 포커스 이동 시 저장 상태 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
