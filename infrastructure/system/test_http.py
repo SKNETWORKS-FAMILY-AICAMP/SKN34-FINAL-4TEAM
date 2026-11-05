@@ -16,6 +16,9 @@ import pytest
 def compose(*args):
     assert os.environ.get("GITHUB_ACTIONS") == "true", "GitHub CI only"
     assert re.fullmatch(r"storyfork-ci-\d+-\d+", os.environ.get("COMPOSE_PROJECT_NAME", "")), "Owned CI project required"
+    assert os.environ.get("COMPOSE_FILE") == (
+        "infrastructure/docker-compose.yaml:infrastructure/docker-compose.local.yaml:infrastructure/ci/compose.test.yaml"
+    ), "CI source-build overlays required"
     return subprocess.check_output(["docker", "compose", "--env-file", ".env.example", *args], text=True).strip()
 
 

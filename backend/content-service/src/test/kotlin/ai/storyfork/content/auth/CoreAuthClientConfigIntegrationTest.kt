@@ -45,7 +45,8 @@ class CoreAuthClientConfigIntegrationTest {
         }
         server.start()
         try {
-            val properties=CoreAuthClientProperties(URI.create("http://127.0.0.1:${server.address.port}"),Duration.ofSeconds(1),Duration.ofMillis(150))
+            // Normal responses use the application default; only the timeout probe gets a short deadline.
+            val properties=CoreAuthClientProperties(URI.create("http://127.0.0.1:${server.address.port}"),Duration.ofSeconds(1),Duration.ofSeconds(3))
             val client=CoreAuthClientConfig().coreAuthClient(RestClient.builder(),properties,"service-credential-0123456789abcdef")
             val service=CoreAuthVerificationService(client)
             repeat(2) {assertEquals("12345678-1234-4234-8234-123456789abc",service.verify("Bearer user-token").toString())}
@@ -59,7 +60,9 @@ class CoreAuthClientConfigIntegrationTest {
             assertEquals(503,assertThrows(CoreAuthException::class.java) {service.verify("Bearer user-token")}.status)
             assertEquals(5,calls.get())
             status=200;delay=600
-            assertEquals(504,assertThrows(CoreAuthException::class.java) {service.verify("Bearer user-token")}.status)
+            val timeoutService=CoreAuthVerificationService(CoreAuthClientConfig().coreAuthClient(
+                RestClient.builder(),properties.copy(readTimeout=Duration.ofMillis(150)),"service-credential-0123456789abcdef"))
+            assertEquals(504,assertThrows(CoreAuthException::class.java) {timeoutService.verify("Bearer user-token")}.status)
             assertEquals(6,calls.get())
         } finally {
             server.stop(0);executor.shutdownNow();executor.awaitTermination(2,TimeUnit.SECONDS)

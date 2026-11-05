@@ -1,3 +1,5 @@
+import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
+import {InMemoryWorldStudioRepository} from '../../data/world-studio/InMemoryWorldStudioRepository'
 import { MediaUseCase } from '../../domain/usecases/MediaUseCase'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
@@ -38,6 +40,7 @@ import type { AppContainer } from './types'
 /** 콘텐츠는 HTTP API를 사용하며, 기존 서재·열람·Fork 등 데모는 메모리 구현을 유지합니다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
+    worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new InMemoryWorldStudioRepository())).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
     authRepository: asValue(authRepository),
