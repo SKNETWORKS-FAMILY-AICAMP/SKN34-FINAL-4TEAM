@@ -16,6 +16,9 @@ import pytest
 def compose(*args):
     assert os.environ.get("GITHUB_ACTIONS") == "true", "GitHub CI only"
     assert re.fullmatch(r"storyfork-ci-\d+-\d+", os.environ.get("COMPOSE_PROJECT_NAME", "")), "Owned CI project required"
+    assert os.environ.get("COMPOSE_FILE") == (
+        "infrastructure/docker-compose.yaml:infrastructure/docker-compose.local.yaml:infrastructure/ci/compose.test.yaml"
+    ), "CI source-build overlays required"
     return subprocess.check_output(["docker", "compose", "--env-file", ".env.example", *args], text=True).strip()
 
 
@@ -134,9 +137,9 @@ def test_health_worldstudio_packaged_migration():
     first = compose(*args)
     again = compose(*args)
     assert url not in first + again
-    assert "applied=1; pending=0; tables=12" in first
-    assert "applied=0; pending=0; tables=12" in again
-    assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "12"
+    assert "applied=2; pending=0; tables=13" in first
+    assert "applied=0; pending=0; tables=13" in again
+    assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "13"
     assert histories == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
     assert content_history == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")
 

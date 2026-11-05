@@ -121,7 +121,7 @@ class ContentExtractionTest(unittest.TestCase):
         self.assertIn('"validate"', source)
 
     def test_content_image_and_runtime_are_connected(self):
-        for relative in ('infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.prod.yaml', 'infrastructure/docker-compose.dev.yaml', 'infrastructure/ci/compose.test.yaml'):
+        for relative in ('infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml', 'infrastructure/docker-compose.prod.yaml', 'infrastructure/docker-compose.dev.yaml', 'infrastructure/ci/compose.test.yaml'):
             with self.subTest(compose=relative):
                 self.assertIn('  content-service:', (ROOT / relative).read_text())
         self.assertTrue((ROOT / 'backend/content-service/Dockerfile').exists())

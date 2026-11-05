@@ -10,10 +10,10 @@
 AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선택·집필·검토를 돕는 도구입니다.
 
 기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 최신 MVP 결정은 [결정 기록 DEC-26~40](docs/design/decisions.md#결정-목록)을 따릅니다. 충돌하는 과거 유스케이스 세부 정책은 현행 계약이 아닙니다.
-[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 목표 백엔드는 Core·콘텐츠·운영·AI의 4개 서비스입니다([DEC-41 구조](docs/design/service-boundaries.md)). Core → Content 코드·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기입니다. 운영은 독립 골격 그대로입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
+[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 목표 백엔드는 Core·콘텐츠·운영·AI의 4개 서비스입니다([DEC-41 구조](docs/design/service-boundaries.md)). Core → Content 코드·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기입니다. 운영은 독립 골격 그대로입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. #132에서 관계 정본은 Neo4j 현재 상태 하나로 결정했으며 관계 이력·시점 복원은 이번 MVP에서 제외합니다. 실제 기존 데이터 이관·운영 복구/백업과 AI 조회 경로는 별도 대기입니다([현재 관계 계약](docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)).
 
 > **현재 개인 브랜치 구현:** 개발 기반에 `/content` 집필 작업실과 선택적 PostgreSQL 저장·AI 제안을 추가했습니다. 작품·원고·설정집·발행·Fork 범위와 인증 계약은 [콘텐츠 통합 안내](docs/content-integration.md)를 참고하세요.
-> 나머지 아래 기능은 기획 목표입니다. 실제 로그인은 구현되어 있고 그래프 DB·크레딧·운영 업무는 미구현이며 검증 이력과 남은 범위는 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, Required CI는 최신 PR 커밋의 결과로 판단합니다.
+> 나머지 아래 기능은 기획 목표입니다. 실제 로그인과 #132의 Neo4j 현재 관계/HTTP 연결 소스는 구현되어 있지만 관계 이력·시점 복원·크레딧·운영 업무는 미지원이며 검증 이력과 남은 범위는 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, Required CI는 최신 PR 커밋의 결과로 판단합니다.
 
 ## 사용자와 핵심 가치
 
@@ -81,7 +81,7 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 
 ```text
 Frontend (React) → 단일 공개 진입점
-                   ├─ /api/v1/(public/)works → Content:8081 → AI:8000 (선택 생성)
+                   ├─ /api/v1/(public/)works, /api/v1/world-studios → Content:8081 → AI:8000 (선택 생성)
                    │                              └→ Core 내부 인증 확인
                    └─ 나머지 /api → Core:8080 → AI:8000 (Health)
 Operations:8082는 독립 실행 골격이며 공개 proxy/배포 대상 아님
@@ -127,40 +127,55 @@ LLMOps는 운영 영역이다. Langfuse는 도입 시 별도 제품으로 배포
 
 ## 빠른 시작
 
-Docker daemon과 Compose plugin이 필요합니다. `cp -n .env.example .env`로 루트 설정을 준비하고,
-DB 자격증명·JWT 키를 설정한 뒤 `AUTH_PUBLIC_ORIGIN`을 실제 web 주소(아래 기본값 `http://127.0.0.1:8088`)에 맞춥니다.
-실제 `.env`가 이미 있으면 덮어쓰지 마세요. 예시 파일의 빈 자격증명만으로 기동할 수는 없습니다.
+Docker daemon과 Compose v2.24.4 이상(`include`·CI의 `!override` 지원)이 필요합니다.
+`cp -n .env.example .env`로 루트 설정을 준비하고 빈 DB 자격증명·JWT 키를 직접 설정합니다.
+`AUTH_PUBLIC_ORIGIN`은 실제 web 주소(기본 `http://127.0.0.1:5173`)와 맞춥니다.
+실제 `.env`가 이미 있으면 덮어쓰지 마세요. 예시 파일에는 기본 DB 비밀번호·JWT 서명 키가 없으므로 그대로는 기동할 수 없습니다.
 
 ```bash
-# 소스에서 배포 이미지를 빌드해 로컬 검증
-docker compose --env-file .env --file infrastructure/docker-compose.yaml --file infrastructure/docker-compose.prod.yaml up --build -d
-# http://127.0.0.1:8088
-docker compose --env-file .env --file infrastructure/docker-compose.yaml --file infrastructure/docker-compose.prod.yaml down
+# 저장소 루트: .env 자동 로드, 로컬 소스에서 runtime 이미지 빌드
+docker compose up -d --build
+# http://127.0.0.1:5173
+# 이 로컬 프로젝트만 종료하며 DB volume은 보존
+docker compose down
 ```
 
-`docker-compose.yaml`은 공통 base로 단독 실행하지 않습니다. `docker-compose.prod.yaml`과 병합하면
-기존 `storyfork-prod-validation` 프로젝트의 PostgreSQL·Mailpit과 소스 빌드한 네 앱(web·Core·Content·AI)을 실행합니다.
+루트 [`compose.yaml`](compose.yaml)이 공통 base와 [`docker-compose.local.yaml`](infrastructure/docker-compose.local.yaml)을
+native `include`로 재사용합니다. `storyfork-local` 프로젝트의 새 `storyfork-local_core-postgres` volume과 PostgreSQL·Mailpit,
+소스 빌드한 네 앱(web·Core·Content·AI)을 선택하며 과거 `storyfork-dev`·배포 DB/volume을 재사용하지 않습니다.
+기존 `COMPOSE_FILE`·`COMPOSE_PROJECT_NAME` override가 있으면 먼저 확인해 다른 프로젝트를 가리키지 않게 하세요.
 콘텐츠는 기본 비활성이며 `CONTENT_ENABLED=true`, Core/Content의 별도 `CONTENT_CORE_AUTH_TOKEN`, 생성 시 Content/AI의 `INTERNAL_TOKEN`이 필요합니다([콘텐츠 설정](docs/content-integration.md#인증과-실행)). **새 Content 이력은 개발용 fresh 전용**이며 기존 history에 바로 배포하지 않습니다. 정확한 대상·보존/복구 범위 승인 전 실제 DB/volume을 지우지 않습니다.
+WorldStudio 현재 관계는 별도 `APP_WORLDSTUDIO_ENABLED=true`와 승인된 SQL 적용·Neo4j 연결이 필요합니다. 소스 빌드 검증 overlay의 선택 `worldstudio` profile과 Content 전용 `NEO4J_*` 설정은 [현재 관계 계약](docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따릅니다. 기존 관계 자동 변환이나 실제 DB 적용/기동은 이 문서로 승인되지 않습니다.
 Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 
-| 주소 | 용도 |
+| loopback 주소 | 용도 |
 |---|---|
-| `http://127.0.0.1:8088` | STORYFORK 화면 |
-| `http://127.0.0.1:8088/api/v1/health` | nginx를 거친 Core Health |
-| `http://127.0.0.1:8088/api/v1/health/ai-service` | Core를 거친 AI Health |
+| `http://127.0.0.1:5173` | nginx 정적 STORYFORK 화면·동일 origin `/api` |
+| `http://127.0.0.1:5173/api/v1/health` | nginx를 거친 Core Health |
+| `http://127.0.0.1:5173/api/v1/health/ai-service` | Core를 거친 AI Health |
+| `http://127.0.0.1:8080` / `http://127.0.0.1:8081` | 로컬 Core / Content 직접 접근 |
+| `127.0.0.1:5432` / `127.0.0.1:1025` | 로컬 PostgreSQL / Mailpit SMTP |
 | `http://127.0.0.1:8025` | 로컬 Mailpit 메일 확인 |
 
-web 포트는 `WEB_PORT=8088`로 변경할 수 있습니다. CORS는 web 포트에 맞춰 계산하며
-`APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수도 있습니다. Core·AI·DB 포트는 호스트에 공개하지 않습니다.
-키는 AI 런타임에만 전달하고 VITE/build ARG에는 넣지 않습니다. nginx 정적 런타임이 SPA와 `/api` 프록시를 제공하며
-Vite나 소스 mount는 없습니다. loopback 검증용으로 **인터넷 운영 준비가 된 배포가 아닙니다**.
+포트는 `DEV_WEB_PORT`·`CORE_API_PORT`·`CONTENT_SERVICE_PORT`·`CORE_DATABASE_PORT`·`CORE_MAILPIT_*_PORT`로 변경합니다.
+기존 프로세스가 5173/8080 등을 사용 중이면 시작은 실패하므로 **기존 앱을 임의 중지하지 말고** 포트와 `AUTH_PUBLIC_ORIGIN`을 조정하세요.
+CORS는 web 포트에서 계산하며 `APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수 있습니다. AI는 내부 전용입니다.
+키는 AI 런타임에만 전달하고 VITE/build ARG에는 넣지 않습니다. **소스 빌드는 HMR이 아닙니다.**
+web은 nginx 정적 runtime이고 소스 mount가 없어 변경 후 다시 build해야 합니다. hot reload는 아래 네이티브 명령을 사용합니다.
 
-### 개발 서버 — CI 게시 이미지
+### 개발·운영 배포 서버 — 게시 이미지
 
-base + `infrastructure/docker-compose.dev.yaml`은 `storyfork-develop-cd` 프로젝트에서 CI가 게시한
-네 `:develop` 이미지를 pull·실행합니다. 실제 배포는 fresh 대상 승인과 구 writer 중지 절차가 필요합니다. 소스 build·hot reload나 DB 신설 없이 기존 외부 PostgreSQL·SMTP를 사용합니다.
-두 파일 전달·서버 설정과 실행 명령은 [인프라 안내](infrastructure/README.md)를 따릅니다.
-이전 소스/HMR용 Compose는 제거했으며, hot reload 개발은 아래 네이티브 명령을 유지합니다.
+- base + `infrastructure/docker-compose.dev.yaml`: 기존 `storyfork-develop-cd` 프로젝트와 네 `:develop` 이미지,
+  로컬과 같은 PostgreSQL·Mailpit 내부 컨테이너를 사용하되 프로젝트·DB volume은 로컬과 격리합니다. 앱의 소스 build·hot reload는 없습니다.
+- base + `infrastructure/docker-compose.prod.yaml`: 별도 `storyfork-production` 프로젝트와 네 `:main` 이미지,
+  사전에 준비한 외부 PostgreSQL·SMTP만 사용합니다. `PROD_*` 필수값이 없으면 설정 검사부터 실패하고,
+  로컬 자격증명·DB·Mailpit을 재사용하지 않으며 Secure 쿠키를 강제합니다.
+
+**현재 게시 workflow는 develop 전용이며 `:main` 게시·접근 가능 여부는 미확인입니다.** 이 변경은 main 이미지 게시나 운영 배포 trigger를 추가하지 않습니다.
+기본 Auth V4의 공개 비밀번호 샘플 계정은 운영 위험으로 남아 있으며 이 작업에서 migration을 수정하지 않았습니다.
+이미지 게시·샘플 계정 조치·DB 이력/복구 승인·HTTPS ingress·운영 수용 검증 전에는 운영 배포 준비 완료가 아닙니다.
+dev의 기존 외부 DB에서 내부 fresh DB로의 전환·데이터 이관도 실행하지 않았습니다. 별도 `DEVELOP_INTERNAL_DB_APPROVED` 승인 없이는 기존 CD가 새 내부 DB로 전환되지 않습니다.
+서버별 변수의 주석 예시와 전환 경계는 [인프라 안내](infrastructure/README.md)를 따릅니다.
 
 ### 네이티브 실행
 
@@ -222,7 +237,7 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 
 변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
 Core/Content의 혼합 경계 클래스는 통합에 두며 Kotlin/Java의 Spring/HTTP/DB 분류 누락을 회귀로 검사합니다.
-Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
+Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 통합 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
 
 #### 변경·영향 선택
 
@@ -243,7 +258,7 @@ Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통�
 `ai`: auth/content를 재사용하고 실제 Content → AI HTTP의 제공사 설정 누락 503, 원고 불변·실패 job·성공 제안 없음.
 선택된 시나리오의 준비 흐름은 한 번만 실행합니다. 실제 모델 성공·과금·브라우저 입력/클릭은 검증하지 않습니다.
 
-[`compose.test.yaml`](infrastructure/ci/compose.test.yaml)은 base+prod 뒤에서 CI 포트를 loopback 임의 포트로 제한하고,
+[`compose.test.yaml`](infrastructure/ci/compose.test.yaml)은 base+local 소스 빌드 뒤에서 CI 포트를 loopback 임의 포트로 제한하고,
 DB를 tmpfs로 바꾸며 AI 키·모델은 빈 값으로 고정합니다. 서비스 단위 제공사 테스트는 monkeypatch 대역을 사용하고 시스템은 명시적인 503만 확인하므로 유료 호출이 없습니다.
 실행별 `storyfork-ci-<run>-<attempt>` 프로젝트만 항상 정리하며 배포 volume·실제 `.env`·외부 DB·실제 SMTP·서버 배포는 건드리지 않습니다.
 실패 시 테스트 결과·컨테이너 로그를 토큰·이메일 등으로부터 정제하여 7일 보관합니다.

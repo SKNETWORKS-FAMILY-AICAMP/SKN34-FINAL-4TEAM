@@ -1,0 +1,6 @@
+# Bare docker compose uses the root .env; include keeps build paths relative to infrastructure/.
+name: storyfork-local
+include:
+  - path:
+      - ./infrastructure/docker-compose.yaml
+      - ./infrastructure/docker-compose.local.yaml

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface StudioWorldRepository : JpaRepository<StudioWorld, UUID> {
+    fun findAllByOwnerSubjectOrderByCreatedAtDesc(ownerSubject:UUID):List<StudioWorld>
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select w from StudioWorld w where w.id=:world and w.ownerSubject=:subject")
     fun lockOwned(@Param("world") world: UUID, @Param("subject") subject: UUID): StudioWorld?

@@ -24,7 +24,7 @@ export function WorldStudioPage(){
  const current=steps.findIndex(([id])=>id===vm.flow.step)
  const chooseTool=(tool:'explore'|'analysis')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
  return <><Gnb on="worldstudio"/><main className="wrap world-studio world-writing">
-  <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">메모리 데모 · 서버에 저장되지 않으며 새로고침하면 초기화됩니다.</p></div></header>
+  <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">로그인한 내 세계관을 서버에 저장합니다. 관계는 현재 상태만 보관하며 관계 이력·과거 세계관 전체 복원은 지원하지 않습니다.</p></div></header>
   {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}
   {vm.message&&<p role="status" className="world-message">{vm.message}</p>}
   <WorldLibrary vm={vm}/>
@@ -54,8 +54,8 @@ export function WorldStudioPage(){
 function WorldLibrary({vm}:{vm:VM}){
  const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const form=new FormData(e.currentTarget);vm.create(String(form.get('name')??''),String(form.get('description')??''))}
  return <section className="world-library" hidden={vm.flow.screen!=='list'} aria-busy={vm.busy}><div className="world-toolbar"><h2>내 세계관</h2>{vm.editing&&<button className="btn" type="button" onClick={vm.resume}>이어서 작성</button>}</div>
-  <p className="small muted">이 탭에서만 사용하는 메모리 데모입니다. 새로고침하면 초기화됩니다.</p>
-  <nav aria-label="내 세계관">{vm.worlds.map(w=><button key={w.id} type="button" disabled={vm.busy} onClick={()=>vm.editing?.id===w.id?vm.resume():vm.open(w.id)}><strong>{w.name}</strong><small>{w.description||'세계관 설명 없음'}</small></button>)}</nav>
+  <p className="small muted">내 계정의 서버 저장 목록입니다. 저장 실패 시 입력을 보존하고 같은 입력으로 다시 저장하세요. 미완료 요청은 새로고침만으로 복구되지 않습니다.</p>
+  <nav aria-label="내 세계관">{vm.worlds.map(w=><button key={w.id} type="button" disabled={vm.busy} onClick={()=>vm.editing?.id===w.id?vm.resume():vm.open(w.id)}><strong>{w.name}</strong><small>{w.description||'세계관 설명 없음'}{w.relationshipStatus==='incomplete'?' · 저장 미완료':w.relationshipStatus==='migration_required'?' · 기존 데이터 전환 필요':''}</small></button>)}</nav>
   {!vm.busy&&!vm.worlds.length&&!vm.error&&<p className="muted">아직 저장한 세계관이 없어요. 이름부터 정해 시작해 보세요.</p>}
   <form onSubmit={create}><h3>새 세계관 만들기</h3><label className="field">세계관 이름<input name="name" className="inp" required maxLength={100}/></label><label className="field">설명 (선택)<textarea name="description" className="ta" rows={3} maxLength={20000}/></label><button className="btn pri" disabled={vm.busy}>세계관 만들기</button></form>
  </section>
@@ -84,11 +84,11 @@ function CardWriting({vm}:{vm:VM}){
     {cardTypeOf(setting.item)==='character'&&<button className="btn sm world-relation-link" type="button" onClick={()=>vm.openRelations(setting.item.id)}>관계 연결로 이동</button>}
     <details className="world-additional" key={setting.item.id}><summary>상세 설정 · 선택</summary><div className="world-form-row"><label className="field">카드 유형<select className="inp" value={cardTypeOf(setting.item)} onChange={e=>vm.changeCardType(setting.item.id,e.target.value as CardType)}>{cardTypes.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}{['relation','review','note'].includes(cardTypeOf(setting.item))&&<option value={cardTypeOf(setting.item)}>{kinds[setting.item.kind]} · 기존 의미 유지</option>}</select></label><label className="field">설정 영역<select className="inp" value={setting.item.category} onChange={e=>vm.changeArea(setting.item.id,e.target.value as SettingItem['category'])}>{settingAreas.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select></label></div>
      <label className="field">태그 (쉼표로 구분)<input className="inp" value={setting.tags.join(',')} onChange={e=>vm.update(setting.item.id,{}, {tags:e.target.value.split(',')})} onBlur={()=>{const tags=studioLabelCleanup(setting.tags);if(tags)vm.update(setting.item.id,{}, {tags})}}/></label>
-     <label className="field">별칭<input className="inp" value={setting.aliases?.join(',')??''} onChange={e=>vm.update(setting.item.id,{}, {aliases:e.target.value.split(',')})} onBlur={()=>{const aliases=studioLabelCleanup(setting.aliases);if(aliases)vm.update(setting.item.id,{}, {aliases})}}/></label><p id="world-alias-help" className="small muted">별칭은 쉼표로 구분하며 다른 메타데이터와 함께 메모리에 보존합니다.</p>
+     <label className="field">별칭<input className="inp" value={setting.aliases?.join(',')??''} onChange={e=>vm.update(setting.item.id,{}, {aliases:e.target.value.split(',')})} onBlur={()=>{const aliases=studioLabelCleanup(setting.aliases);if(aliases)vm.update(setting.item.id,{}, {aliases})}}/></label><p id="world-alias-help" className="small muted">별칭은 쉼표로 구분하며 저장 시 다른 카드 정보와 함께 서버에 보존합니다.</p>
      <label className="field">내 분류<input className="inp" value={setting.userCategory} maxLength={50} onChange={e=>vm.update(setting.item.id,{}, {userCategory:e.target.value})}/></label>
      {setting.item.kind==='event'&&<label className="field">사건 시점<input className="inp" value={setting.item.timeText} onChange={e=>vm.update(setting.item.id,{timeText:e.target.value})}/></label>}
      {setting.item.kind==='relation'&&<><label className="field">기존 관계 유형<select className="inp" value={setting.item.predicate??'trusts'} onChange={e=>vm.update(setting.item.id,{predicate:e.target.value})}>{Object.entries(relationDefinitions).map(([id,r])=><option key={id} value={id}>{r.label}</option>)}</select></label>{(['subjectId','targetId'] as const).map((key,i)=><label className="field" key={key}>{i?'관계 대상':'관계 주체'}<select className="inp" value={setting.item[key]??''} onChange={e=>vm.update(setting.item.id,{[key]:e.target.value||null})}><option value="">선택하세요</option>{world.settings.filter(s=>s.item.kind==='entity').map(s=><option key={s.item.id} value={s.item.id}>{s.item.title}</option>)}</select></label>)}</>}
-     <label className="world-consent"><input type="checkbox" role="switch" checked disabled aria-describedby="world-privacy-help"/>스포일러 숨기기</label><p id="world-privacy-help" className="small muted">카드 전체는 이 탭의 메모리에만 있습니다. 서버 저장·발행·공개 및 이미지 첨부는 연결되지 않았어요.</p>
+     <label className="world-consent"><input type="checkbox" role="switch" checked disabled aria-describedby="world-privacy-help"/>스포일러 숨기기</label><p id="world-privacy-help" className="small muted">카드는 소유자만 볼 수 있는 비공개 상태로 저장합니다. 발행·공개 및 이미지 첨부는 이 화면에서 지원하지 않습니다.</p>
     </details>
    </section>:<div className="world-empty"><h4>어떤 설정부터 시작할까요?</h4><p className="muted">인물이나 장소를 추가하고 이름부터 적어 보세요.</p></div>}
   </div>
@@ -109,7 +109,7 @@ function Confirmed({vm,tab}:{vm:VM;tab:string}) {
  const items=vm.saved?.settings.map(s=>s.item)??[]
  const byId=(id:string|null)=>items.find(i=>i.id===id)?.title??'알 수 없는 항목'
  const rows=tab==='relations'?items.filter(i=>i.kind==='relation'):tab==='timeline'?items.filter(i=>i.kind==='event'):items
- return <section className="world-confirmed"><h3>{tab==='relations'?'확정 관계도':tab==='timeline'?'확정 시간선':'확정 Wiki'}</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{!rows.length?<p className="world-empty">아직 확정한 {tab==='relations'?'관계':tab==='timeline'?'과거 사건':'설정'}가 없습니다.</p>:rows.map(i=><article key={i.id}>
+ return <section className="world-confirmed"><h3>{tab==='relations'?'저장된 현재 관계도':tab==='timeline'?'저장된 시간선':'저장된 설정집'}</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{!rows.length?<p className="world-empty">아직 확정한 {tab==='relations'?'관계':tab==='timeline'?'과거 사건':'설정'}가 없습니다.</p>:rows.map(i=><article key={i.id}>
   <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relationLabel(i)} → ${byId(i.targetId)}`:i.title}</h4>{tab==='timeline' && <p className="small muted">{i.timeText||'시점 미지정'}{i.afterId?' · '+byId(i.afterId)+' 이후':''}</p>}<p className="world-prose">{i.text}</p>
  </article>)}</section>
 }

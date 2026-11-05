@@ -1,8 +1,9 @@
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
-import {InMemoryWorldStudioRepository} from '../../data/world-studio/InMemoryWorldStudioRepository'
+import {HttpWorldStudioRepository} from '../../data/world-studio/HttpWorldStudioRepository'
 import { MediaUseCase } from '../../domain/usecases/MediaUseCase'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
+import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { asFunction, asValue } from 'awilix/browser'
 
@@ -13,7 +14,6 @@ import {
   InMemoryCreditRepository,
   InMemoryFeedbackRepository,
   InMemoryInquiryRepository,
-  InMemoryNotificationRepository,
   InMemoryReadingRepository,
   InMemoryWorkRepository,
   InMemoryWorldRepository,
@@ -40,7 +40,7 @@ import type { AppContainer } from './types'
 /** 콘텐츠는 HTTP API를 사용하며, 기존 서재·열람·Fork 등 데모는 메모리 구현을 유지합니다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
-    worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new InMemoryWorldStudioRepository())).singleton(),
+    worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
     authRepository: asValue(authRepository),
@@ -54,7 +54,7 @@ export function registerAppServices(container: AppContainer) {
     mockDb: asValue(createMockDb()),
     workRepository: asFunction(({ mockDb }) => new InMemoryWorkRepository(mockDb)).singleton(),
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),
-    notificationRepository: asFunction(({ mockDb }) => new InMemoryNotificationRepository(mockDb)).singleton(),
+    notificationRepository: asFunction(() => new HttpNotificationRepository()).singleton(),
     feedbackRepository: asFunction(({ mockDb }) => new InMemoryFeedbackRepository(mockDb)).singleton(),
     worldRepository: asFunction(({ mockDb }) => new InMemoryWorldRepository(mockDb)).singleton(),
     creditRepository: asFunction(({ mockDb }) => new InMemoryCreditRepository(mockDb)).singleton(),

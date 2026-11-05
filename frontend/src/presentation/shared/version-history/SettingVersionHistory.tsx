@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { SavedSetting } from '../../../domain/entities/content'
 import './version-history.css'
 
+/** 동일 버전의 첫 공개 범위로 이력을 표시하고, 확인 후 원래 설정·버전 ID로 복원을 요청한다. */
 export function SettingVersionHistory({ history, current, onRestore, busy = false, disabledReason = '' }: {
   history: SavedSetting[]; current: SavedSetting[]; onRestore: (id: string, versionId: string) => void
   busy?: boolean; disabledReason?: string
@@ -24,8 +25,11 @@ export function SettingVersionHistory({ history, current, onRestore, busy = fals
     wasConfirming.current = confirm
   }, [confirm])
   const items = [...new Map(history.map(s => [s.id, s])).values()]
-  const versions = history.filter(s => s.id === settingId)
-  const selected = versions.find(s => s.versionId === versionId)
+  const versions = history
+    .filter(s => s.id === settingId)
+    .filter((s, i, all) => all.findIndex(t => t.versionId === s.versionId) === i)
+  const selectedIndex = versions.findIndex(s => s.versionId === versionId)
+  const selected = versions[selectedIndex]
   const latest = current.find(s => s.id === settingId)
   return <section ref={region} tabIndex={-1} className="version-history" aria-label="설정 버전 목록">
     {!history.length ? <p className="muted">아직 확정한 설정 버전이 없어요.</p> : <>
@@ -42,7 +46,7 @@ export function SettingVersionHistory({ history, current, onRestore, busy = fals
         </label>
       </div>
       {selected ? <article className="setting-version-detail">
-        <h3>{selected.name}</h3>
+        <h3>이력 {selectedIndex + 1} · {selected.name}</h3>
         <p className="small muted">{selected.category} · {selected.visibility === 'public' ? '공개' : '비공개'} · {selected.fromEpisode}화{selected.toEpisode ? `~${selected.toEpisode}화` : '부터'}{selected.versionId === latest?.versionId ? ' · 현재 설정' : ''}</p>
         <p className="version-prose">{selected.content || '(빈 설정)'}</p>
         <dl className="version-metadata">
@@ -54,7 +58,7 @@ export function SettingVersionHistory({ history, current, onRestore, busy = fals
         {disabledReason && <p role="status">{disabledReason}</p>}
         {!selected.content && <p className="muted">빈 설정 버전은 복원할 수 없어요.</p>}
         {confirm ? <div className="version-confirm" role="group" aria-label="설정 복원 확인">
-          <p>「{selected.name}」의 선택한 이력으로 복원할까요?</p>
+          <p>「{selected.name}」의 이력 {selectedIndex + 1} 버전으로 복원할까요?</p>
           <div className="version-actions">
             <button type="button" className="btn" disabled={busy} onClick={() => setConfirm(false)}>취소</button>
             <button ref={confirmButton} type="button" className="btn pri" disabled={busy || !!disabledReason || !selected.content} onClick={() => { setConfirm(false); onRestore(selected.id, selected.versionId) }}>새 버전으로 복원 확인</button>

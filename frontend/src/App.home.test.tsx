@@ -1,14 +1,16 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { appContainer } from './app/appContainer'
 import { renderApp as renderAt } from './test/renderApp'
 
-afterEach(() => { cleanup(); delete document.documentElement.dataset.theme })
+afterEach(() => { cleanup(); vi.restoreAllMocks(); delete document.documentElement.dataset.theme })
 
 describe('홈·공통 셸 (U01·U02)', () => {
   it('목업 홈의 GNB·캐러셀·섹션·푸터를 보여 준다', async () => {
+    vi.spyOn(appContainer.resolve('notificationRepository'), 'unreadCount').mockResolvedValue(2)
     renderAt('/')
     expect(screen.getByRole('link', { name: 'STORYFORK 홈으로' }).getAttribute('href')).toBe('/')
     await screen.findByRole('link', { name: '알림함, 읽지 않은 알림 2건' })

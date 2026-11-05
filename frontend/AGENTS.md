@@ -1,6 +1,6 @@
 # Frontend 구현 지침
 
-> **서비스 경계는 DEC-41과 [4개 서비스 구조](../docs/design/service-boundaries.md)를 따른다.** nginx/Vite는 기존 `/api/v1/works`·`/api/v1/public/works`와 하위 경로를 Content, 나머지 `/api`를 Core로 라우팅한다. 콘텐츠 정본·인가·발행은 Content, 회원·인증은 Core이며 운영은 골격 그대로다. 소스 연결과 hosted CI·실제 DB/배포 전환 완료는 구분한다.
+> **서비스 경계는 DEC-41과 [4개 서비스 구조](../docs/design/service-boundaries.md)를 따른다.** nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`와 하위 경로를 Content, 나머지 `/api`를 Core로 라우팅한다. 콘텐츠 정본·인가·발행은 Content, 회원·인증은 Core이며 운영은 골격 그대로다. 소스 연결과 hosted CI·실제 DB/배포 전환 완료는 구분한다.
 
 `frontend/**`에 적용한다. [루트 공통 지침](../AGENTS.md)을 함께 따른다.
 현재 React는 인증·일부 콘텐츠·첨부 API 연결과 메모리 데모 화면을 함께 제공한다. `/content`·UUID `/studio/{id}`는 콘텐츠 API를 사용하며 기존 서재·열람·Fork 데모는 별도 메모리 저장소다. 해당 데모의 실제 인증 연결·화면 정렬과 미구현 업무는 후속 작업이다. 화면 존재와 서버 기능 완료를 구분하며 서비스 분리 목표는 DEC-41을 따른다.
