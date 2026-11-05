@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
 import { WritingStudio } from './WritingStudio'
@@ -16,7 +16,25 @@ vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: 
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="연결된 설정 이력">{workId}</section> }))
 // 이 테스트는 공개 동작 연결만 검사한다. 실제 Sheet의 포커스·키보드는 별도 검증 대상이다.
 vi.mock('../../../shared/Sheet', () => ({ Sheet: ({ children }: { children: ReactNode }) => <div role="dialog">{children}</div> }))
-afterEach(() => { cleanup(); vi.clearAllMocks() })
+const originalActive = model.active
+const comparisonVersions = [
+  ...originalActive.versions,
+  { ...originalActive.versions[0], id: 'v2', body: '변경 원고' },
+  { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
+]
+afterEach(() => { cleanup(); vi.clearAllMocks(); model.active = originalActive })
+
+function chooseComparison() {
+  fireEvent.click(screen.getByRole('button', { name: '저장 버전 · 공개' }))
+  fireEvent.click(screen.getByRole('button', { name: '원고 버전 비교' }))
+  fireEvent.change(screen.getByLabelText('기준 원고 버전'), { target: { value: 'v1' } })
+  fireEvent.change(screen.getByLabelText('비교 원고 버전'), { target: { value: 'v2' } })
+}
+
+function expectComparisonSelection(before: string, after: string) {
+  expect(screen.getByLabelText('기준 원고 버전')).toHaveProperty('value', before)
+  expect(screen.getByLabelText('비교 원고 버전')).toHaveProperty('value', after)
+}
 
 it('팀 서재로 돌아가며 공개 시트에서 버전 선택과 권리 확인 후 기존 API 동작을 사용한다', async () => {
   render(<WritingStudio id="work-id" />)
@@ -41,4 +59,79 @@ it('집필실에서 같은 작품의 설정 이력을 열고 단일 시트 안�
   expect(screen.getByText('비교하려면 이 회차의 저장 버전이 두 개 이상 필요해요.')).toBeTruthy()
   expect(model.save).not.toHaveBeenCalled()
   expect(model.publish).not.toHaveBeenCalled()
+})
+
+it('열린 시트의 관리 탭을 왕복해도 비교 선택과 결과를 유지하며 저장 API를 호출하지 않는다', () => {
+  model.active = { ...originalActive, versions: comparisonVersions }
+  render(<WritingStudio id="work-id" />)
+  chooseComparison()
+  for (const tab of ['원고 저장본 · 공개', '설정 버전 이력']) {
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: tab }))
+    expect(screen.queryByLabelText('기준 원고 버전')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '원고 버전 비교' }))
+    expectComparisonSelection('v1', 'v2')
+    expect(screen.getByRole('region', { name: '원고 변경 내용' })).toBeTruthy()
+  }
+  expect(model.save).not.toHaveBeenCalled()
+  expect(model.publish).not.toHaveBeenCalled()
+  expect(model.restore).not.toHaveBeenCalled()
+})
+
+it('시트를 닫았다 다시 열면 비교 선택을 초기화한다', () => {
+  model.active = { ...originalActive, versions: comparisonVersions }
+  render(<WritingStudio id="work-id" />)
+  chooseComparison()
+  fireEvent.click(screen.getByRole('button', { name: '닫기' }))
+  fireEvent.click(screen.getByRole('button', { name: '저장 버전 · 공개' }))
+  fireEvent.click(screen.getByRole('button', { name: '원고 버전 비교' }))
+  expectComparisonSelection('', '')
+})
+
+it.each(['회차', '작품'])('%s가 바뀌면 같은 버전 ID가 있어도 비교 선택을 초기화한다', scope => {
+  model.active = { ...originalActive, versions: comparisonVersions }
+  const { rerender } = render(<WritingStudio id="work-id" />)
+  chooseComparison()
+  model.active = { ...model.active, number: scope === '회차' ? 2 : 1 }
+  rerender(<WritingStudio id={scope === '작품' ? 'other-work' : 'work-id'} />)
+  expectComparisonSelection('', '')
+  model.active = { ...originalActive, versions: comparisonVersions }
+  rerender(<WritingStudio id="work-id" />)
+  expectComparisonSelection('', '')
+})
+
+it.each(['v1', 'v2'])('다른 탭에서 선택 버전 %s가 사라졌다 재등장해도 선택을 복구하지 않는다', removedId => {
+  model.active = { ...originalActive, versions: comparisonVersions }
+  const { rerender } = render(<WritingStudio id="work-id" />)
+  chooseComparison()
+  fireEvent.click(screen.getByRole('button', { name: '원고 저장본 · 공개' }))
+  model.active = { ...model.active, versions: comparisonVersions.filter(v => v.id !== removedId) }
+  rerender(<WritingStudio id="work-id" />)
+  model.active = { ...model.active, versions: comparisonVersions }
+  rerender(<WritingStudio id="work-id" />)
+  fireEvent.click(screen.getByRole('button', { name: '원고 버전 비교' }))
+  expectComparisonSelection(removedId === 'v1' ? '' : 'v1', removedId === 'v2' ? '' : 'v2')
+  expect(screen.queryByRole('region', { name: '원고 변경 내용' })).toBeNull()
+})
+
+it('새 저장 버전이 추가돼도 유효한 기존 비교 선택을 유지한다', () => {
+  model.active = { ...originalActive, versions: comparisonVersions.slice(0, 2) }
+  const { rerender } = render(<WritingStudio id="work-id" />)
+  chooseComparison()
+  model.active = { ...model.active, versions: comparisonVersions }
+  rerender(<WritingStudio id="work-id" />)
+  expectComparisonSelection('v1', 'v2')
+  expect(screen.getByRole('region', { name: '원고 변경 내용' })).toBeTruthy()
+})
+
+it('버전이 두 개 미만으로 줄어 비교 화면이 사라져도 제거된 선택을 정리한다', () => {
+  model.active = { ...originalActive, versions: comparisonVersions.slice(0, 2) }
+  const { rerender } = render(<WritingStudio id="work-id" />)
+  chooseComparison()
+  model.active = { ...model.active, versions: comparisonVersions.slice(0, 1) }
+  rerender(<WritingStudio id="work-id" />)
+  expect(screen.getByText('비교하려면 이 회차의 저장 버전이 두 개 이상 필요해요.')).toBeTruthy()
+  model.active = { ...model.active, versions: comparisonVersions }
+  rerender(<WritingStudio id="work-id" />)
+  expectComparisonSelection('v1', '')
+  expect(screen.queryByRole('region', { name: '원고 변경 내용' })).toBeNull()
 })

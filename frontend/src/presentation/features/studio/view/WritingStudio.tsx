@@ -1,5 +1,6 @@
 import { useRef,useState } from 'react'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
+import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 import './writing.css'
 import { useScreenId } from '../../../shared/screenIds'
 import {ManuscriptBody} from '../../../shared/media/MediaPanel'
@@ -20,6 +21,7 @@ export function WritingStudio({id}:{id:string}) {
   const [versionsOpen,setVersionsOpen]=useState(false)
   const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'>('versions')
   const active=vm.active
+  const comparison=useVersionComparisonViewModel(active?.versions??[],versionsOpen&&active?`${id}:${active.number}`:'')
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
   const status=writingStatus({ready:vm.ready,busy:vm.busy,error:vm.error,dirty:vm.dirty,active:!!active,hasDraft:active?.hasDraft!==false,inherited:active?.inherited??false})
   return <div className="calm rd studio writing-studio">
@@ -74,7 +76,7 @@ export function WritingStudio({id}:{id:string}) {
             </nav>
             {historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
               <h2>{active.number}화 원고 버전 비교</h2>
-              <VersionComparison key={active.number} workId={id} number={active.number} versions={active.versions}/>
+              <VersionComparison workId={id} number={active.number} versions={active.versions} model={comparison}/>
             </>:<>
             {vm.error&&<p role="alert">{vm.error}</p>}
             {vm.notice&&<p role="status">{vm.notice}</p>}

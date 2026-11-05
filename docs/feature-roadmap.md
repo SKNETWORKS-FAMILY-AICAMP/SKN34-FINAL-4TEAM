@@ -200,6 +200,8 @@
 <tr><td>원고 버전 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>원고 버전 상세 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>원고 버전 비교</td><td>❌</td></tr>
+<tr><td>버전 관리 탭 전환 시 원고 비교 선택 유지</td><td>❌</td></tr>
+<tr><td>원고 비교 선택 초기화 <small>(작품·회차 변경, 시트 닫기, 선택 버전 제거)</small></td><td>❌</td></tr>
 <tr><td>원고 이전 버전 복원</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>설정 버전 목록 조회</td><td>❌</td></tr>
 <tr><td>설정 버전 상세의 선택 이력 번호 확인</td><td>❌ <small>동일 버전의 첫 항목 기준으로 목록·상세·복원 확인 번호 통일, 긴 설정명 복원 확인 줄바꿈 보완, 복원 확인 문구를 ‘이력 N 버전으로’로 명확화. <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/134">PR #134</a> 리뷰 보완, 병합·모바일 검증·수정본 Required CI 확인 대기.</small></td></tr>
@@ -598,6 +600,7 @@
 <tr><td>저장 충돌 안내 <small>(집필 상단·버전 공개 시트에 오류 표시, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>인증 만료 안내</td><td>❌</td></tr>
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
+<tr><td>공통 시트의 summary 키보드 탐색 <small>(초기 포커스·Tab/Shift+Tab 순환, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td rowspan="20">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="20"><a href="/Users/yunseongho/.hermes/cache/scratch/issues/73">#73</a> · <a href="#미등록-081">미등록-081</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a> · <a href="#미등록-116">미등록-116</a></td></tr>
 <tr><td>홈 단색 배경 보조 텍스트의 라이트·다크 대비 확보</td><td>❌</td></tr>
