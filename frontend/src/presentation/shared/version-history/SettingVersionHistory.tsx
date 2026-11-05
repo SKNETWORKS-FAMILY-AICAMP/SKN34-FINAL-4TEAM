@@ -58,7 +58,7 @@ export function SettingVersionHistory({ history, current, onRestore, busy = fals
         {disabledReason && <p role="status">{disabledReason}</p>}
         {!selected.content && <p className="muted">빈 설정 버전은 복원할 수 없어요.</p>}
         {confirm ? <div className="version-confirm" role="group" aria-label="설정 복원 확인">
-          <p>「{selected.name}」의 이력 {selectedIndex + 1}로 복원할까요?</p>
+          <p>「{selected.name}」의 이력 {selectedIndex + 1} 버전으로 복원할까요?</p>
           <div className="version-actions">
             <button type="button" className="btn" disabled={busy} onClick={() => setConfirm(false)}>취소</button>
             <button ref={confirmButton} type="button" className="btn pri" disabled={busy || !!disabledReason || !selected.content} onClick={() => { setConfirm(false); onRestore(selected.id, selected.versionId) }}>새 버전으로 복원 확인</button>
