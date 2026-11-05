@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.*
 
 interface SettingDocumentRepository : JpaRepository<SettingDocumentEntity, String> {
     fun findAllByWorldId(worldId: String): List<SettingDocumentEntity>
+    fun existsByWorldId(worldId: String): Boolean
 }

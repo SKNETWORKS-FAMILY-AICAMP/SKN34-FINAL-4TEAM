@@ -1,5 +1,7 @@
 package ai.storyfork.core.auth
 
+import ai.storyfork.core._common.exception.AiServiceCallException
+import ai.storyfork.core._health_ai_service.client.AiServiceHealthClient
 import ai.storyfork.core.auth.entity.AuthMember
 import ai.storyfork.core.auth.entity.AuthSignupChallenge
 import ai.storyfork.core.auth.repository.MemberRepository
@@ -23,21 +25,20 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.system.CapturedOutput
 import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = [
-        "app.ai-service.base-url=http://127.0.0.1:1",
-        "app.ai-service.connect-timeout=10ms",
-        "app.ai-service.read-timeout=10ms",
         "logging.level.org.springframework.security.web.FilterChainProxy=DEBUG",
     ],
 )
@@ -47,6 +48,7 @@ class AuthHttpErrorIntegrationTest {
     @Autowired lateinit var members: MemberRepository
     @Autowired lateinit var challenges: SignupChallengeRepository
     @Autowired lateinit var json: ObjectMapper
+    @MockitoBean lateinit var aiServiceHealthClient: AiServiceHealthClient
 
     private val client = HttpClient.newBuilder()
         .cookieHandler(CookieManager(null, CookiePolicy.ACCEPT_ALL))
@@ -223,6 +225,9 @@ class AuthHttpErrorIntegrationTest {
         assertEquals(200, health.statusCode())
         assertEquals("up", json.readTree(health.body()).path("status").asText())
         assertEquals("storyfork-core-api", json.readTree(health.body()).path("service").asText())
+        // This checks public error dispatch, not transport deadline scheduling.
+        Mockito.doThrow(AiServiceCallException.unavailable(java.net.ConnectException("127.0.0.1")))
+            .`when`(aiServiceHealthClient).getHealth()
         val ai = send(request("/api/v1/health/ai-service"))
         assertEquals(503, ai.statusCode())
         assertTrue(ai.headers().firstValue("Content-Type").orElse("").startsWith("application/problem+json"))
