@@ -7,11 +7,13 @@ import { ago, kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { Portrait } from '../../../shared/Portrait'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useChatListViewModel, useChatViewModel } from '../viewmodel/useChatViewModel'
 
 /** 목업 chatPage(wid, cn): 작품 없이 열거나 대화할 수 없으면 목록을 보여 줍니다. */
 export function ChatPage() {
   const { wid, cn } = useParams()
+  useDocumentTitle('캐릭터 챗')
   return wid ? <ChatRoom wid={wid} cn={cn} /> : <ChatList />
 }
 
@@ -24,8 +26,8 @@ function ChatList() {
   return (
     <>
       <Gnb on="chat" />
-      <main className="wrap">
-        <div className="sec-h"><h2>캐릭터챗</h2><span className="muted small">작품과 캐릭터를 골라 대화를 시작해요 · {listed.length}개</span></div>
+      <main className="wrap" id="main" tabIndex={-1}>
+        <div className="sec-h"><h1>캐릭터챗</h1><span className="muted small">작품과 캐릭터를 골라 대화를 시작해요 · {listed.length}개</span></div>
         <nav className="libtabs" aria-label="작품 유형">{([['all', '전체'], ['original', '원작'], ['fork', '포크']] as const).map(([k, l]) => (
           <Go key={k} to={vm.to({ kind: k, work: 'all', character: 'all' })} className={st.kind === k ? 'on' : ''} aria-current={st.kind === k ? 'page' : undefined}>{l}</Go>
         ))}</nav>
@@ -64,9 +66,9 @@ function ChatRoom({ wid, cn }: { wid: string; cn?: string }) {
   return (
     <>
       <Gnb on="chat" />
-      <main className="wrap">
+      <main className="wrap" id="main" tabIndex={-1}>
         <Go to="/chat" className="back">캐릭터챗 목록</Go>
-        <div className="sec-h"><h2>캐릭터 챗</h2><span className="muted small">내가 읽은 회차까지만 아는 인물과 이야기해요 · AI 응답은 데모</span></div>
+        <div className="sec-h"><h1>캐릭터 챗</h1><span className="muted small">내가 읽은 회차까지만 아는 인물과 이야기해요 · AI 응답은 데모</span></div>
         <div className="chatg">
           <aside className="tcard chl"><b className="small muted">작품</b>
             <div className="chw">{chatWorks.map((o) => <Go key={o.id} to={`/chat/${o.id}`} className={o.id === wid ? 'on' : ''}><span className="th"><CoverOf w={o} /></span>{o.title}{o.parent ? ' · 포크' : ''}</Go>)}</div>

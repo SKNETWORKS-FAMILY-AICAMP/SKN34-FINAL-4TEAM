@@ -5,8 +5,10 @@ import './episode.css'
 import { WorldPanel } from './WorldPanel'
 import { ContextPreview } from './ContextPreview'
 import { ManuscriptBody, MediaPanel, StoredImage } from '../../../shared/media/MediaPanel'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 
 export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
+  useDocumentTitle('회차 에디터')
   const vm = useEpisodeViewModel(useCase)
   const [tab, setTab] = useState<'write' | 'read' | 'fork' | 'history' | 'world'>('write')
   const [worldVisited, setWorldVisited] = useState(false)
@@ -72,7 +74,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
           <small>이야기가 갈라지는 순간</small>
         </button>
         <div className='ep-top-meta'>
-          <span className='ep-dot' /> 에피소드 스튜디오 <span className='chip'>집필 작업실</span>
+          <span className='ep-dot' /> <span className='ep-top-label'>에피소드 스튜디오</span> <span className='chip'>집필 작업실</span>
         </div>
       </header>
       <div className='ep-shell'>
@@ -132,7 +134,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
             <p>저장한 원고와 설정은 서버에서 보관해요.</p>
           </div>
         </aside>
-        <main className='ep-main'>
+        <main className='ep-main' id='main' tabIndex={-1}>
           {vm.error && (
             <div className='ep-alert' role='alert'>
               {vm.error}
