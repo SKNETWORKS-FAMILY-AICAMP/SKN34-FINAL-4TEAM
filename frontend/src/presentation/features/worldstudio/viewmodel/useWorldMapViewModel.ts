@@ -45,5 +45,13 @@ export function useWorldMapViewModel(settings:StudioSetting[],project=buildWorld
  const visible=new Set(results.map(n=>n.id))
  const connections=selected?graph.links.filter(l=>mapEndpoint(l.source)===selected.id||mapEndpoint(l.target)===selected.id).map(l=>({label:mapConnectionLabel(l,selected.id),node:graph.nodes.find(n=>n.id===(mapEndpoint(l.source)===selected.id?mapEndpoint(l.target):mapEndpoint(l.source)))!})):[]
  const neighbors=new Set(selected?[selected.id,...connections.map(c=>c.node.id)]:[])
+ if(selected?.kind==='인물')for(const connection of connections){
+  if(connection.node.kind!=='관계')continue
+  for(const link of graph.links){
+   const source=mapEndpoint(link.source),target=mapEndpoint(link.target)
+   if(source===connection.node.id)neighbors.add(target)
+   if(target===connection.node.id)neighbors.add(source)
+  }
+ }
  return {graph,query,setQuery,kind,setKind,selected,select,results,visible,connections,neighbors}
 }
