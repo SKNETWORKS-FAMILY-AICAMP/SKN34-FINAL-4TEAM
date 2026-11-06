@@ -6,4 +6,4 @@ export const coreApiHealthSchema = z.object({
   service: z.string(),
 })
 
-export type CoreApiHealth = z.infer<typeof coreApiHealthSchema>
+export type { CoreApiHealth } from '../../domain/entities/serviceHealth'

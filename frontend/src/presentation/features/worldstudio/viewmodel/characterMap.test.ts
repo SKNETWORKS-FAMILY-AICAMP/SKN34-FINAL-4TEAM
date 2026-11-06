@@ -3,6 +3,18 @@ import {newSetting} from '../../../../domain/entities/studioWorld'
 import {putRelation} from '../../../../domain/entities/studioRelations'
 import {mapConnectionLabel,type MapNode} from './useWorldMapViewModel'
 import {buildCharacterMap} from './characterMap'
+it('2D character projection keeps person IDs and real relationship edges separate from locations',()=>{
+ const a=newSetting('people'),b=newSetting('people'),place=newSetting('places')
+ a.item.title='가람';b.item.title='나래';place.item.title='항구'
+ const settings=putRelation([a,b,place],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'동료'})
+ const before=structuredClone(settings),graph=buildCharacterMap(settings)
+ expect(graph.nodes.map(n=>n.id)).toEqual([a.item.id,b.item.id])
+ expect(graph.links).toHaveLength(1)
+ expect(graph.links[0]).toMatchObject({id:settings[3].item.id,source:a.item.id,target:b.item.id,label:'동료'})
+ graph.nodes[0].x=42;graph.links[0].source=graph.nodes[0]
+ expect(settings).toEqual(before)
+})
+
 it('shows direction and complete description for both endpoints without changing general map labels',()=>{
  const link={source:'a',target:'b',label:'부모가 자녀를 보호…',fullLabel:'부모가 자녀를 보호하고 양육하는 관계',symmetric:false}
  expect(mapConnectionLabel(link,'a')).toBe('보내는 관계 · 부모가 자녀를 보호하고 양육하는 관계')

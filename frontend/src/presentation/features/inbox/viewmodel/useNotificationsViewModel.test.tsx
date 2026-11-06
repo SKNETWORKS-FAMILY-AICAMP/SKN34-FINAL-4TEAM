@@ -10,7 +10,7 @@ import { createAppStore } from '../../../../app/store'
 import type { AppNotification, NotificationPage } from '../../../../domain/entities/notification'
 import type { ShellUseCase } from '../../../../domain/usecases/ShellUseCase'
 import { sessionActions } from '../../../shared/session/sessionSlice'
-import { useNotificationsViewModel } from './useInboxViewModel'
+import { useNotificationsViewModel } from './useNotificationsViewModel'
 
 afterEach(cleanup)
 

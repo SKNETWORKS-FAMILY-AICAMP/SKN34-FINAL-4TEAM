@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { FEEDBACK_TYPES, REPORT_TYPES, type FeedbackType, type Sentence } from '../../../../domain/entities/feedback'
 import type { Work } from '../../../../domain/entities/work'
-import type { Look } from '../../../shared/session/sessionSlice'
+import type { Look } from '../../../shared/ui/uiSlice'
 import { Sheet } from '../../../shared/Sheet'
 import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { useLook } from '../viewmodel/useLook'

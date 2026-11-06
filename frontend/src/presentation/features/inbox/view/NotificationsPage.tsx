@@ -1,6 +1,6 @@
 import { noticeLabel } from '../../../../domain/entities/notification'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { useNotificationsViewModel } from '../viewmodel/useInboxViewModel'
+import { useNotificationsViewModel } from '../viewmodel/useNotificationsViewModel'
 
 const when = (iso: string) => new Date(iso).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 

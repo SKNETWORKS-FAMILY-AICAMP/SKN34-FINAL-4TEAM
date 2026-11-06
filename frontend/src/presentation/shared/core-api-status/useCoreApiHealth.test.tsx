@@ -3,10 +3,20 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type { CoreApiHealth } from '../../../data/api/coreApiHealth'
+import type { CoreApiHealth } from '../../../domain/entities/serviceHealth'
 import { useCoreApiHealth } from './useCoreApiHealth'
 
 afterEach(cleanup)
+
+it('keeps injected AI health fetching and cancellation independent from the default Core target', async () => {
+  const fetchHealth = vi.fn((_signal?: AbortSignal) => Promise.resolve({ service: 'storyfork-ai-service', status: 'up' }))
+  const { result, unmount } = renderHook(() => useCoreApiHealth(fetchHealth, 'ai-service'))
+  await waitFor(() => expect(result.current.data?.service).toBe('storyfork-ai-service'))
+  const signal = fetchHealth.mock.calls[0][0]!
+  expect(signal.aborted).toBe(false)
+  unmount()
+  expect(signal.aborted).toBe(true)
+})
 
 describe('useCoreApiHealth', () => {
   it('aborts the first StrictMode request and only applies the latest response', async () => {

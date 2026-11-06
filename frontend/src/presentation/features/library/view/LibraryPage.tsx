@@ -2,7 +2,7 @@ import { Cov, CoverOf } from '../../../shared/art'
 import { kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { PublishSettingsSheet } from '../../studio/view/StudioSheets'
+import { PublishSettingsSheet } from '../../../shared/PublishSettingsSheet'
 import { useLibraryViewModel } from '../viewmodel/useLibraryViewModel'
 import { ServerWritingList } from './ServerWritingList'
 
