@@ -1,3 +1,4 @@
+import { presentationPortrait } from '../../../../app/presentationPortraits'
 import { useEffect, useId, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { mapEndpoint, type useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 
@@ -51,7 +52,7 @@ export default function CharacterCards({vm,editing}:{vm:ReturnType<typeof useWor
    </svg>
    {vm.graph.nodes.map(n=>{const p=at(n.id),target=!!editing.targetSource&&n.id!==editing.targetSource,selected=vm.selected?.id===n.id
     return <div key={n.id} role="group" aria-label={`${n.name} 인물 카드`} ref={el=>{if(el)cards.current.set(n.id,el);else cards.current.delete(n.id)}} className={'relationship-character-card'+(selected?' selected':'')+(target?' target':'')+(!vm.visible.has(n.id)?' dim':'')} style={{width:cardWidth,height:cardHeight,transform:`translate(${p.x}px, ${p.y}px)`}} onPointerDown={e=>start(n.id,e)} onPointerMove={move} onPointerUp={stop} onPointerCancel={()=>{drag.current=null}}>
-     <h4 title={n.name}>{n.name}</h4><p title={n.text}>{n.text||'소개를 입력할 수 있어요.'}</p>
+     <h4 title={n.name}>{presentationPortrait(n.name) && <img src={presentationPortrait(n.name)} alt="" width={36} height={36} style={{objectFit:"cover", borderRadius:8, verticalAlign:"middle", marginRight:8}} />}{n.name}</h4><p title={n.text}>{n.text||'소개를 입력할 수 있어요.'}</p>
      <div><button type="button" className="btn sm" aria-label={`${n.name} 정보 편집`} disabled={editing.busy||!!editing.targetSource} onClick={()=>editing.onSelect(n.id)}>정보 편집</button>
       {editing.targetSource?<button type="button" className="btn pri sm" aria-label={`${n.name} 상대 선택`} disabled={editing.busy||n.id===editing.targetSource||n.unnamed} onClick={()=>editing.onSelect(n.id)}>상대 선택</button>:<button type="button" className="btn sm" aria-label={`${n.name} 관계 연결`} disabled={editing.busy||n.unnamed} onClick={()=>editing.onConnect(n.id)}>관계 연결</button>}
      </div>

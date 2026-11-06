@@ -1,3 +1,4 @@
+import { presentationDb, PresentationWorldRepository } from '../../data/mock/presentation'
 import { HttpWorldStudioRepository } from '../../data/world-studio/HttpWorldStudioRepository'
 import { WorldStudioUseCase } from '../../domain/usecases/WorldStudioUseCase'
 import { asFunction, asValue } from 'awilix/browser'
@@ -30,8 +31,8 @@ import type { AppContainer } from './types'
 /** Core 업무 API가 생기기 전까지 Repository는 메모리 구현을 씁니다. HTTP 구현이 생기면 이 등록만 바꿉니다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
-    mockDb: asValue(createMockDb()),
-    worldStudioRepository: asFunction(() => new HttpWorldStudioRepository()).singleton(),
+    mockDb: asValue(import.meta.env.MODE === 'presentation' ? presentationDb() : createMockDb()),
+    worldStudioRepository: asFunction(() => import.meta.env.MODE === 'presentation' ? new PresentationWorldRepository() : new HttpWorldStudioRepository()).singleton(),
     worldStudioUseCase: asFunction(({ worldStudioRepository }) => new WorldStudioUseCase(worldStudioRepository)).singleton(),
     workRepository: asFunction(({ mockDb }) => new InMemoryWorkRepository(mockDb)).singleton(),
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),

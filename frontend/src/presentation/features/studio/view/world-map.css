@@ -46,3 +46,8 @@
 .relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--sub);margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:11px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
 .relationship-undo{padding:14px;background:var(--pri-soft);display:flex;gap:12px;align-items:center;flex-wrap:wrap}.relationship-inspector ul{padding-left:20px;line-height:1.6;overflow-wrap:anywhere}
 @media(max-width:600px){.relationship-cards-scroll{height:440px}.relationship-character-card{border-radius:10px}}
+
+.world-map-layout{grid-template-columns:180px minmax(0,1fr)}.world-map-detail{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}.world-map-canvas{height:560px;background:radial-gradient(ellipse at 50% 48%,#182742 0%,#0b1324 56%,#080e1b 100%)}
+
+
+.world-map-expanded{position:fixed;inset:0;z-index:100;background:var(--surface);overflow:auto;padding:24px}.world-map-expanded .world-map-layout{grid-template-columns:190px minmax(0,1fr) 280px}.world-map-expanded .world-map-detail{grid-column:auto;border-top:0;border-left:1px solid var(--line)}.world-map-intro .btn{margin-top:12px}@media(max-width:900px){.world-map-expanded{padding:12px}.world-map-expanded .world-map-layout{grid-template-columns:150px minmax(0,1fr)}.world-map-expanded .world-map-detail{grid-column:1/-1}}

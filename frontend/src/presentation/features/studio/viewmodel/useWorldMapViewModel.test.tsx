@@ -5,6 +5,14 @@ import { newSetting, type StudioSetting } from '../../../../domain/entities/stud
 import { buildWorldMap, useWorldMapViewModel } from './useWorldMapViewModel'
 
 afterEach(cleanup)
+it('keeps the other person visible through a relationship node, without expanding unrelated neighbors',()=>{
+ const a=setting('a'),b=setting('b'),r=setting('r'),c=setting('c')
+ r.item={...r.item,kind:'relation',subjectId:'a',targetId:'b'}
+ b.item.relatedIds=['c']
+ const {result}=renderHook(()=>useWorldMapViewModel([a,b,r,c]))
+ act(()=>result.current.select('a'))
+ expect([...result.current.neighbors].sort()).toEqual(['a','b','r'])
+})
 it('describes event chronology from the selected event',()=>{
  const a=setting('a'),b=setting('b');a.item.kind='event';b.item.kind='event';b.item.afterId='a'
  const {result}=renderHook(()=>useWorldMapViewModel([a,b]))

@@ -1,3 +1,4 @@
+import { presentationPortrait } from '../../../../app/presentationPortraits'
 import { studioSections, sectionOf, type StudioSection } from '../../../../domain/entities/studioSections'
 import { useState, type FormEvent } from 'react'
 import type { SettingItem } from '../../../../domain/entities/studioWorld'
@@ -7,6 +8,8 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import './world-studio.css'
 import { WorldMap } from './WorldMap'
+import { WorldTimeline } from './WorldTimeline'
+import { WorldWiki } from './WorldWiki'
 import { WorldRelationshipEditor } from './WorldRelationshipEditor'
 import { relationDefinitions, relationLabel } from '../../../../domain/entities/studioRelations'
 
@@ -56,7 +59,7 @@ function Editor({vm,onOpenRelations}:{vm:VM;onOpenRelations:()=>void}) {
   {section==='people'&&<p className="small muted">등록한 인물은 같은 정보로 관계 편집에 표시돼요. 연결은 직접 선택할 때만 생깁니다. <button type="button" className="btn sm" onClick={onOpenRelations}>관계 편집 열기</button></p>}
   <div className="world-settings"><nav aria-label={`${label} 항목`}>{rows.map((x,n)=><button type="button" key={x.item.id} onClick={()=>vm.setSelected(x.item.id)} aria-current={s?.item.id===x.item.id?'page':undefined}>{x.item.title||`새 ${label} ${n+1}`}{x.userCategory!=='설정'&&<small>{x.userCategory}</small>}</button>)}</nav>
   {s?<div className="world-setting-editor">
-   <label className="field">항목 이름<input className="inp" value={s.item.title} maxLength={200} onChange={e=>update({title:e.target.value})}/></label>
+   {s.item.entityType === "character" && presentationPortrait(s.item.title) && <img src={presentationPortrait(s.item.title)} alt={s.item.title + " 인물 이미지"} width={100} height={100} style={{objectFit:"cover", borderRadius:12}} />}<label className="field">항목 이름<input className="inp" value={s.item.title} maxLength={200} onChange={e=>update({title:e.target.value})}/></label>
    <div className="world-form-row"><label className="field">내 분류<input className="inp" value={s.userCategory} maxLength={50} onChange={e=>vm.update(s.item.id,{}, {userCategory:e.target.value})}/></label>
    <label className="field">항목 종류<select className="inp" value={s.item.kind} onChange={e=>update({kind:e.target.value as SettingItem['kind'],category:e.target.value==='event'?'history':'basic',entityType:e.target.value==='entity'?'character':null,predicate:e.target.value==='relation'?'trusts':null,subjectId:null,targetId:null,timeText:'',afterId:null,topics:[]})}>{Object.entries(kinds).map(([k,v])=><option value={k} key={k}>{v}</option>)}</select></label></div>
    <label className="field">내용<textarea className="ta world-text" value={s.item.text} maxLength={3000} onChange={e=>update({text:e.target.value})}/></label>
@@ -69,9 +72,11 @@ function Editor({vm,onOpenRelations}:{vm:VM;onOpenRelations:()=>void}) {
 }
 
 function Confirmed({vm,tab}:{vm:VM;tab:string}) {
+ if(tab==='wiki'&&vm.saved)return <WorldWiki key={vm.saved.id} world={vm.saved}/>
  const items=vm.saved?.settings.map(s=>s.item)??[]
  const byId=(id:string|null)=>items.find(i=>i.id===id)?.title??'알 수 없는 항목'
  const rows=tab==='relations'?items.filter(i=>i.kind==='relation'):tab==='timeline'?items.filter(i=>i.kind==='event'):items
+ if(tab==='timeline')return <section className="world-confirmed"><h3>확정 시간선</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p><WorldTimeline items={items}/></section>
  return <section className="world-confirmed"><h3>{tab==='relations'?'확정 관계도':tab==='timeline'?'확정 시간선':'확정 Wiki'}</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{!rows.length?<p className="world-empty">아직 확정한 {tab==='relations'?'관계':tab==='timeline'?'과거 사건':'설정'}가 없습니다.</p>:rows.map(i=><article key={i.id}>
   <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relationLabel(i)} → ${byId(i.targetId)}`:i.title}</h4>{tab==='timeline' && <p className="small muted">{i.timeText||'시점 미지정'}{i.afterId?' · '+byId(i.afterId)+' 이후':''}</p>}<p className="world-prose">{i.text}</p>
  </article>)}</section>
@@ -82,7 +87,7 @@ function Analysis({vm}:{vm:VM}) {
  const run=vm.saved?.analysis
  return <section className="world-analysis"><h3>선택적 AI 분석</h3><p className="muted">저장한 설명과 설정을 분석해 후보를 만듭니다. 직접 적은 분류·태그는 유지돼요. 제안받은 내용은 선택한 것만 저장할 수 있어요.</p>
   {!vm.aiEnabled && <p className="note2">서버에서 AI 분석을 꺼 두었습니다. 직접 작성과 저장은 계속 사용할 수 있습니다.</p>}
-  <label className="world-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} disabled={!vm.aiEnabled || vm.busy}/>저장한 설정의 외부 AI 처리를 요청합니다.</label>
+  <label className="world-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} disabled={!vm.aiEnabled || vm.busy}/>{import.meta.env.MODE === 'presentation' ? '발표용 예시 후보를 불러옵니다.' : '저장한 설정의 외부 AI 처리를 요청합니다.'}</label>
   <button className="btn" disabled={!vm.aiEnabled || vm.busy || vm.dirty || !consent} onClick={vm.analyze}>AI 분석 요청</button>{vm.dirty && <p className="small">변경한 설정을 먼저 확정 저장해 주세요.</p>}
   {run && <div className="world-review"><h3>{run.status==='failed'?'분석 실패':run.status==='running'?'분석 진행 중':'AI 후보 · 미확정'}</h3>{run.issues.map((s,n)=><p role="alert" key={n}>{s}</p>)}
    {run.status==='review' && <><p className="small muted">후보를 수정한 뒤 선택하여 확정할 수 있습니다. 미해결 항목은 먼저 정정하세요.</p>{run.candidates.map(c=>{const i=vm.edits[c.id]??c;return <div className="world-candidate" key={c.id}>

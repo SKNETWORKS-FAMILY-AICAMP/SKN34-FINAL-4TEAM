@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense, type ReactNode } from 'react'
+import { Component, lazy, Suspense, useState, type ReactNode } from 'react'
 import type { StudioWorld } from '../../../../domain/entities/studioWorld'
 import { mapColors, useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import './world-map.css'
@@ -12,8 +12,9 @@ export class MapBoundary extends Component<{children:ReactNode},{failed:boolean}
 
 export function WorldMap({world}:{world:StudioWorld}) {
  const vm=useWorldMapViewModel(world.settings)
- return <section className="world-map" aria-label="전체 세계관 지도">
-  <div className="world-map-intro"><h3>전체 세계관 지도</h3><p>저장한 설정의 연결을 살펴보세요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p></div>
+ const [expanded,setExpanded]=useState(false)
+ return <section className={'world-map'+(expanded?' world-map-expanded':'')} aria-label="전체 세계관 지도" onKeyDown={e=>{if(e.key==='Escape')setExpanded(false)}}>
+  <div className="world-map-intro"><h3>전체 세계관 지도</h3><p>저장한 설정의 연결을 살펴보세요. 인물을 선택하면 관련 설정만 선명하게 보입니다.</p><button className="btn sm" aria-expanded={expanded} onClick={()=>setExpanded(!expanded)}>{expanded?'지도 접기':'지도 넓게 보기'}</button></div>
   {!vm.graph.nodes.length?<p className="world-map-empty">저장된 설정이 없습니다.</p>:<div className="world-map-layout">
    <aside className="world-map-search"><h4>설정 탐색</h4><label className="field">설정 검색<input type="search" className="inp" value={vm.query} onChange={e=>vm.setQuery(e.target.value)} placeholder="이름, 내용, 태그"/></label>
     <div className="world-map-filters" role="group" aria-label="설정 종류">{(['전체',...Object.keys(mapColors)] as const).map(k=><button key={k} type="button" aria-pressed={vm.kind===k} onClick={()=>vm.setKind(k as typeof vm.kind)}>{k}</button>)}</div>

@@ -1,0 +1,23 @@
+{
+  "name": "storyfork-presentation-3d",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5186",
+    "build": "vite build",
+    "capture": "node scripts/capture.mjs",
+    "check": "node scripts/check.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-force-graph-3d": "1.29.0",
+    "three": "0.180.0",
+    "three-spritetext": "1.10.0"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1",
+    "vite": "7.3.7"
+  }
+}
