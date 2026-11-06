@@ -20,10 +20,8 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
-import org.springframework.http.HttpStatus
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.web.server.ResponseStatusException
 
 class ProfileServiceTest {
     private val members = mock(MemberRepository::class.java)
@@ -86,9 +84,9 @@ class ProfileServiceTest {
 
     @Test
     fun `unknown reset token preserves passwords sessions and email challenges`() {
-        val error = assertThrows(ResponseStatusException::class.java) { profiles.resetPassword(request) }
+        val error = assertThrows(AuthException::class.java) { profiles.resetPassword(request) }
 
-        assertEquals(HttpStatus.BAD_REQUEST, error.statusCode)
+        assertEquals(AuthException.Reason.INVALID, error.reason)
         assertEquals("old-hash", member.passwordHash)
         verify(challenges).findMemberId("reset", reset.tokenHash)
         verifyNoMoreInteractions(challenges)
@@ -96,9 +94,9 @@ class ProfileServiceTest {
     }
 
     private fun assertRejectedResetPreservesAccount() {
-        val error = assertThrows(ResponseStatusException::class.java) { profiles.resetPassword(request) }
+        val error = assertThrows(AuthException::class.java) { profiles.resetPassword(request) }
 
-        assertEquals(HttpStatus.BAD_REQUEST, error.statusCode)
+        assertEquals(AuthException.Reason.INVALID, error.reason)
         assertEquals("old-hash", member.passwordHash)
         assertEquals("reader@example.invalid", member.email)
         verify(challenges).findMemberId("reset", reset.tokenHash)
