@@ -76,7 +76,7 @@ it('keeps failed edits and AI candidates out of the saved confirmed view',async(
  expect(screen.getByRole('button',{name:'집필 메모 추가'})).toBeTruthy()
  fireEvent.click(screen.getByRole('button',{name:'세계관 탐색'}))
  fireEvent.click(screen.getByRole('button',{name:'설정집'}))
- const confirmed=screen.getByRole('heading',{name:'저장된 설정집'}).closest('section')!
+ const confirmed=screen.getByRole('region',{name:'설정집 WIKI'})
  expect(confirmed.textContent).toContain('기존 원문')
  expect(confirmed.textContent).not.toContain('실패해도 남길 내용')
  expect(confirmed.textContent).not.toContain('미확정 AI 후보')
@@ -124,7 +124,7 @@ it('exposes exploration shortcuts and renders the character view through the 2D 
  expect(await screen.findByText('세계관 지도 대역')).toBeTruthy()
  expect(screen.queryByRole('heading',{name:'저장된 현재 관계도'})).toBeNull()
  fireEvent.click(screen.getByRole('button',{name:'설정집'}))
- expect(screen.getByRole('heading',{name:'저장된 설정집'})).toBeTruthy()
+ expect(screen.getByRole('region',{name:'설정집 WIKI'})).toBeTruthy()
  fireEvent.click(screen.getByRole('button',{name:'전체 세계관 지도'}))
  expect(screen.getByRole('region',{name:'전체 세계관 지도'})).toBeTruthy()
  fireEvent.click(screen.getByRole('button',{name:'초기 역사 시간선'}))
