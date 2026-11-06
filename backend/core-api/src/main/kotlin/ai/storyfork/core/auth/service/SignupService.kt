@@ -82,7 +82,8 @@ class SignupService(
         val token = secrets.newToken()
         challenge.tokenHash = secrets.hash(token)
         challenge.expiresAt = Instant.now().plusSeconds(86400)
-        try { send(address, token) } catch (_: AuthException) {
+        try { send(address, token) } catch (exception: AuthException) {
+            if (exception.reason != AuthException.Reason.UNAVAILABLE) throw exception
             logger.warn("Verification email delivery failed")
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
         }
