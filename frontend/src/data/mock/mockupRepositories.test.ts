@@ -30,6 +30,18 @@ describe('발표용 목업 저장소', () => {
     expect(world.settings.some((s) => s.item.predicate === 'child_of')).toBe(true)
   })
 
+  it('설정집·시간선·AI 후보 검토용 장소·사건 순서·근거 후보를 함께 넣는다', async () => {
+    const [world] = await createMockupWorldStudioRepository().listStudio()
+    const items = world.settings.map((s) => s.item)
+    const ids = new Set(items.map((i) => i.id))
+    expect(items.filter((i) => i.entityType === 'location').length).toBeGreaterThan(1)
+    const events = items.filter((i) => i.kind === 'event')
+    expect(events.some((e) => e.afterId && ids.has(e.afterId))).toBe(true)
+    expect(items.flatMap((i) => i.relatedIds).every((id) => ids.has(id))).toBe(true)
+    expect(world.analysis?.candidates.length).toBeGreaterThan(0)
+    expect(world.analysis?.candidates.every((c) => c.decision === 'pending' && c.evidence.length > 0)).toBe(true)
+  })
+
   it('알림은 빈 목록으로 응답한다', async () => {
     await expect(mockupNotificationRepository.list()).resolves.toEqual({ items: [], nextCursor: null })
     await expect(mockupNotificationRepository.unreadCount()).resolves.toBe(0)
