@@ -4,6 +4,8 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { newSetting } from '../../../../domain/entities/studioWorld'
 import { CharacterRelationshipEditor } from './CharacterRelationshipEditor'
 
+vi.mock('./RelationPairEditor', () => ({ RelationPairEditor: ({ onDirty }: { onDirty: (dirty: boolean) => void }) => <button onClick={() => onDirty(true)}>입력</button> }))
+
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 it('keeps an unapplied relation draft on IME Escape and asks before discarding it', async () => {
@@ -16,7 +18,7 @@ it('keeps an unapplied relation draft on IME Escape and asks before discarding i
     setSelected: vi.fn(), addCard: vi.fn(), update: vi.fn(), personDeletionInfo: vi.fn(),
     deletePerson: vi.fn(), undoPersonDeletion: vi.fn(),
   } as unknown as Parameters<typeof CharacterRelationshipEditor>[0]['studio']
-  render(<CharacterRelationshipEditor studio={studio} renderPair={(_s, _t, _close, onDirty) => <button onClick={() => onDirty(true)}>입력</button>} />)
+  render(<CharacterRelationshipEditor studio={studio} />)
   fireEvent.click(await screen.findByRole('button', { name: '가람 관계 연결' }))
   fireEvent.click(screen.getByRole('button', { name: '나래 상대 선택' }))
   const draft = screen.getByText('입력')

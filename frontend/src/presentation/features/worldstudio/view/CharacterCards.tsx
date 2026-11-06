@@ -30,9 +30,9 @@ export default function CharacterCards({vm,editing}:{vm:ReturnType<typeof useWor
  }
  const stop=(e:PointerEvent<HTMLDivElement>)=>{const d=drag.current;drag.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId);if(d&&!d.moved)editing.onSelect(d.id)}
  const names=new Map(vm.graph.nodes.map(n=>[n.id,n.name])),title=(id:string)=>names.get(id)??'인물'
- return <div ref={host} className="relationship-cards-scroll" aria-label="인물 카드 그래프">
+ return <div ref={host} className="relationship-cards-scroll" role="group" aria-label="인물 카드 그래프">
   <div className="relationship-cards-board" style={{width:boardWidth,height:boardHeight}}>
-   <svg width={boardWidth} height={boardHeight} className="relationship-card-edges" aria-label="인물 사이 관계선">
+   <svg width={boardWidth} height={boardHeight} className="relationship-card-edges" role="group" aria-label="인물 사이 관계선">
     <defs><marker id={marker} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--pri-ink)"/></marker></defs>
     {vm.graph.links.map((l,i)=>{
      const source=mapEndpoint(l.source),target=mapEndpoint(l.target),a=at(source),b=at(target)
@@ -51,7 +51,7 @@ export default function CharacterCards({vm,editing}:{vm:ReturnType<typeof useWor
     })}
    </svg>
    {vm.graph.nodes.map(n=>{const p=at(n.id),portrait=presentationPortrait(n.name),target=!!editing.targetSource&&n.id!==editing.targetSource,selected=vm.selected?.id===n.id
-    return <div key={n.id} role="group" data-id={n.id} aria-label={`${n.name} 인물 카드`} ref={el=>{if(el)cards.current.set(n.id,el);else cards.current.delete(n.id)}} className={'relationship-character-card'+(selected?' selected':'')+(target?' target':'')+(!vm.visible.has(n.id)?' dim':'')} style={{width:cardWidth,height:cardHeight,transform:`translate(${p.x}px, ${p.y}px)`}} onPointerDown={e=>start(n.id,e)} onPointerMove={move} onPointerUp={stop} onPointerCancel={()=>{drag.current=null}}>
+    return <div key={n.id} role="group" data-id={n.id} aria-current={selected||undefined} aria-label={`${n.name} 인물 카드`} ref={el=>{if(el)cards.current.set(n.id,el);else cards.current.delete(n.id)}} className={'relationship-character-card'+(selected?' selected':'')+(target?' target':'')+(!vm.visible.has(n.id)?' dim':'')} style={{width:cardWidth,height:cardHeight,transform:`translate(${p.x}px, ${p.y}px)`}} onPointerDown={e=>start(n.id,e)} onPointerMove={move} onPointerUp={stop} onPointerCancel={()=>{drag.current=null}}>
      <h4 title={n.name}>{portrait&&<img src={portrait} alt="" width={36} height={36}/>}{n.name}</h4><p title={n.text}>{n.text||'소개를 입력할 수 있어요.'}</p>
      <div><button type="button" className="btn sm" aria-label={`${n.name} ${editing.readOnly?'상세 보기':'정보 편집'}`} disabled={editing.busy||!!editing.targetSource} onClick={()=>editing.onSelect(n.id)}>{editing.readOnly?'상세 보기':'정보 편집'}</button>
       {!editing.readOnly&&(editing.targetSource?<button type="button" className="btn pri sm" aria-label={`${n.name} 상대 선택`} disabled={editing.busy||n.id===editing.targetSource||n.unnamed} onClick={()=>editing.onSelect(n.id)}>상대 선택</button>:<button type="button" className="btn sm" aria-label={`${n.name} 관계 연결`} disabled={editing.busy||n.unnamed} onClick={()=>editing.onConnect(n.id)}>관계 연결</button>)}
