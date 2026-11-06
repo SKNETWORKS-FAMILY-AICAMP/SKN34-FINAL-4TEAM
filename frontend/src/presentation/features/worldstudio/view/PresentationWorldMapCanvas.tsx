@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d'
+import { useMemo } from 'react'
+import ForceGraph2D from 'react-force-graph-2d'
+import { MapControls, useMapCanvas } from './useMapCanvas'
 import { mapEndpoint, type MapNode, type MapLink, type useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 
 export default function WorldMapCanvas({vm}:{vm:ReturnType<typeof useWorldMapViewModel>}) {
- const host=useRef<HTMLDivElement>(null),graph=useRef<ForceGraphMethods<MapNode,MapLink>>(undefined)
- const [width,setWidth]=useState(500),[reduced,setReduced]=useState(()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false)
- const [paused,setPaused]=useState(reduced),[settled,setSettled]=useState(false)
+ const canvas=useMapCanvas(),{host,graph,width,reduced,paused,setSettled}=canvas
  const palette={인물:'#67caff',장소:'#6ce3cb',조직:'#ffca83',규칙:'#c0abff',사건:'#f0a0cf',관계:'#b9a0ed',설정:'#a5b8d8'}
  const data=useMemo(()=>{
   const people=vm.graph.nodes.filter(n=>n.kind==='인물'),others=vm.graph.nodes.filter(n=>n.kind!=='인물')
@@ -18,14 +17,11 @@ export default function WorldMapCanvas({vm}:{vm:ReturnType<typeof useWorldMapVie
   })
   return {nodes,links:vm.graph.links.map(l=>({...l,source:mapEndpoint(l.source),target:mapEndpoint(l.target)}))}
  },[vm.graph])
- useEffect(()=>{const media=window.matchMedia?.('(prefers-reduced-motion: reduce)');if(!media)return;const change=()=>{setReduced(media.matches);if(media.matches)setPaused(true)};media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[])
- useEffect(()=>{if(!host.current)return;const observer=new ResizeObserver(([entry])=>setWidth(Math.max(240,Math.round(entry.contentRect.width))));observer.observe(host.current);return()=>observer.disconnect()},[])
- useEffect(()=>{graph.current?.zoomToFit(0,40)},[width])
  const linked=(l:MapLink)=>!!vm.selected&&vm.neighbors.has(mapEndpoint(l.source))&&vm.neighbors.has(mapEndpoint(l.target))
  const replay=()=>{
   vm.select(null);graph.current?.zoom(.2,0);graph.current?.zoomToFit(reduced?0:900,65)
  }
- return <><p className="small muted" role="status">{paused?'움직임 멈춤':settled?'배치 완료':'연결을 따라 펼쳐지는 중'}</p><div ref={host} className="world-map-canvas">
+ return <><p className="small muted" role="status">{canvas.status}</p><div ref={host} className="world-map-canvas">
   <ForceGraph2D<MapNode,MapLink> ref={graph} graphData={data} width={width} height={560} backgroundColor="rgba(0,0,0,0)"
    cooldownTicks={1} nodeLabel={()=>''} nodeRelSize={8}
    nodeCanvasObject={(node,ctx,scale)=>{
@@ -42,11 +38,5 @@ export default function WorldMapCanvas({vm}:{vm:ReturnType<typeof useWorldMapVie
    linkDirectionalParticles={l=>linked(l)&&!paused&&!reduced?2:0} linkDirectionalParticleWidth={2}
    onNodeClick={n=>vm.select(n.id)} onBackgroundClick={()=>vm.select(null)} onNodeDragEnd={n=>{n.fx=n.x;n.fy=n.y}}
    onEngineStop={()=>{setSettled(true);graph.current?.zoomToFit(reduced?0:600,65)}}/>
- </div><div className="world-map-controls">
-  <button type="button" className="btn pri sm" onClick={replay}>다시 펼치기</button>
-  <button type="button" className="btn sm" onClick={()=>{if(paused){setSettled(false);graph.current?.d3ReheatSimulation()}setPaused(!paused)}}>{paused?'움직임 재개':'움직임 멈추기'}</button>
-  <button type="button" className="btn sm" onClick={()=>graph.current?.zoomToFit(reduced?0:350,40)}>전체 보기</button>
-  <button type="button" className="btn sm" onClick={()=>{const g=graph.current;if(g)g.zoom(g.zoom()*1.25,reduced?0:200)}} aria-label="지도 확대">확대 +</button>
-  <button type="button" className="btn sm" onClick={()=>{const g=graph.current;if(g)g.zoom(g.zoom()/1.25,reduced?0:200)}} aria-label="지도 축소">축소 −</button>
- </div></>
+ </div><MapControls canvas={canvas} onReplay={replay}/></>
 }

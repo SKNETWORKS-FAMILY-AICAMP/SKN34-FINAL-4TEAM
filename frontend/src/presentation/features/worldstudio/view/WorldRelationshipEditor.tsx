@@ -1,13 +1,14 @@
 import { CharacterRelationshipEditor } from './CharacterRelationshipEditor'
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { PersonDeletionConfirm } from './PersonDeletionConfirm'
 import { isFreeRelation, relationLabel } from '../../../../domain/entities/studioRelations'
 import { useRelationPairViewModel } from '../viewmodel/useRelationPairViewModel'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
 export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   return import.meta.env.MODE === 'mockup'
-    ? <CharacterRelationshipEditor studio={studio} renderPair={(source,target,onClose)=><PairEditor key={source+'|'+target} studio={studio} source={source} target={target} onClose={onClose}/>}/>
+    ? <CharacterRelationshipEditor studio={studio} renderPair={(source,target,onClose,onDirty)=><PairEditor key={source+'|'+target} studio={studio} source={source} target={target} onClose={onClose} onDirty={onDirty}/>}/>
     : <SettingsRelationshipEditor studio={studio}/>
 }
 
@@ -101,42 +102,18 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
           )}
         </div>
         {deletion && (
-          <section aria-label='인물 삭제 확인'>
-            <h4>{deletion.person.item.title} 삭제 확인</h4>
-            <p>
-              인물과 연결된 관계·감정{' '}
-              {deletion.relations.length}개를 편집본에서 삭제합니다. 저장해야 반영됩니다.
-            </p>
-            <ul>
-              {deletion.relations.map((r) => <li key={r.item.id}>{relationLabel(r.item)}</li>)}
-            </ul>
-            {!!deletion.blockers.length && (
-              <div role='alert'>
-                <p>다른 설정에서 참조하고 있어 삭제할 수 없습니다. 연결을 먼저 정리해 주세요.</p>
-                <ul>
-                  {deletion.blockers.map((row) => <li key={row.item.id}>{row.item.title}</li>)}
-                </ul>
-              </div>
-            )}
-            <button
-              className='btn'
-              type='button'
-              disabled={!!deletion.blockers.length}
-              onClick={() => {
-                if (studio.deletePerson(deletion.person.item.id)) {
-                  setDeleteConfirm(null)
-                  setSource('')
-                  setTarget('')
-                  setOpen(false)
-                }
-              }}
-            >
-              인물과 연결 삭제
-            </button>
-            <button className='btn' type='button' onClick={() => setDeleteConfirm(null)}>
-              삭제 취소
-            </button>
-          </section>
+          <PersonDeletionConfirm
+            deletion={deletion}
+            onDelete={() => {
+              if (studio.deletePerson(deletion.person.item.id)) {
+                setDeleteConfirm(null)
+                setSource('')
+                setTarget('')
+                setOpen(false)
+              }
+            }}
+            onCancel={() => setDeleteConfirm(null)}
+          />
         )}
         {!relations.length && <p>아직 연결한 관계가 없습니다.</p>}
         <nav aria-label='저장할 관계 목록'>
@@ -170,17 +147,19 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
 }
 
 function PairEditor(
-  { studio, source, target, onClose }: {
+  { studio, source, target, onClose, onDirty }: {
     studio: VM
     source: string
     target: string
     onClose: () => void
+    onDirty?: (dirty: boolean) => void
   },
 ) {
   const name = (id: string | null) =>
     studio.editing!.settings.find((s) => s.item.id === id)?.item.title || '새 설정'
   const vm = useRelationPairViewModel(studio, source, target, onClose)
   const { rows, removed, error, change } = vm
+  useEffect(() => onDirty?.(vm.dirty), [onDirty, vm.dirty])
   const group = (kind: 'fact' | 'emotion', from: string, to: string, label: string) => {
     const visible = rows.filter((r) =>
       r.group === kind && (kind === 'fact' || r.value.subjectId === from)

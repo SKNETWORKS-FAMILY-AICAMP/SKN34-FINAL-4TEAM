@@ -31,6 +31,7 @@ export function useRelationPairViewModel(
     rows: createPairRelationDraft(studio.editing!.settings, source, target),
     removed: [] as string[],
   }))
+  const [initial] = useState(draft)
   const [error, setError] = useState('')
   const change = (key: string, patch: Partial<RelationInput>) => {
     setDraft((current) => ({
@@ -43,6 +44,7 @@ export function useRelationPairViewModel(
   }
   return {
     ...draft,
+    dirty: draft !== initial,
     error,
     change,
     direction: (row: RelationDraftRow) => relationDirection(row.value, source),
