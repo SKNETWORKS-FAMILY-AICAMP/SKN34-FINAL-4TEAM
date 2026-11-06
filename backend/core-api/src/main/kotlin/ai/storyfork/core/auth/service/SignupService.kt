@@ -15,7 +15,6 @@ import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.http.HttpStatus
 import org.springframework.mail.MailException
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.interceptor.TransactionAspectSupport
 import org.springframework.transaction.support.TransactionTemplate
-import org.springframework.web.server.ResponseStatusException
 
 @Service
 class SignupService(
@@ -49,14 +47,14 @@ class SignupService(
 
     fun signup(request: SignupRequest) {
         val address = request.email.trim().lowercase(Locale.ROOT)
-        if (request.password.toByteArray(Charsets.UTF_8).size > 72) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        if (request.password.toByteArray(Charsets.UTF_8).size > 72) throw AuthException(AuthException.Reason.INVALID)
         val token = secrets.newToken()
         val passwordHash = requireNotNull(passwords.encode(request.password))
         // An absent email has no row to lock. Retry its first-insert collision in a fresh transaction.
         repeat(2) { attempt ->
             try {
                 transactions.executeWithoutResult {
-                    if (members.existsByEmail(address)) throw ResponseStatusException(HttpStatus.CONFLICT)
+                    if (members.existsByEmail(address)) throw AuthException(AuthException.Reason.CONFLICT)
                     val challenge = challenges.lockByEmail(address)
                     val expires = Instant.now().plusSeconds(86400)
                     if (challenge == null) {
@@ -72,7 +70,7 @@ class SignupService(
                 }
                 return
             } catch (_: DataIntegrityViolationException) {
-                if (attempt == 1) throw ResponseStatusException(HttpStatus.CONFLICT)
+                if (attempt == 1) throw AuthException(AuthException.Reason.CONFLICT)
             }
         }
     }
@@ -84,7 +82,7 @@ class SignupService(
         val token = secrets.newToken()
         challenge.tokenHash = secrets.hash(token)
         challenge.expiresAt = Instant.now().plusSeconds(86400)
-        try { send(address, token) } catch (_: ResponseStatusException) {
+        try { send(address, token) } catch (_: AuthException) {
             logger.warn("Verification email delivery failed")
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
         }
@@ -92,15 +90,15 @@ class SignupService(
 
     @Transactional
     fun verify(request: VerificationRequest) {
-        if (request.password.isBlank() || request.password.toByteArray(Charsets.UTF_8).size > 72) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        if (request.password.isBlank() || request.password.toByteArray(Charsets.UTF_8).size > 72) throw AuthException(AuthException.Reason.INVALID)
         val challenge = challenges.findByTokenHashAndExpiresAtAfter(secrets.hash(request.token), Instant.now())
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-        if (!passwords.matches(request.password, challenge.passwordHash)) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+            ?: throw AuthException(AuthException.Reason.INVALID)
+        if (!passwords.matches(request.password, challenge.passwordHash)) throw AuthException(AuthException.Reason.INVALID)
         challenges.delete(challenge)
         try {
             members.saveAndFlush(AuthMember(UUID.randomUUID(), challenge.email, challenge.passwordHash, challenge.nickname))
         } catch (_: DataIntegrityViolationException) {
-            throw ResponseStatusException(HttpStatus.CONFLICT)
+            throw AuthException(AuthException.Reason.CONFLICT)
         }
     }
 
@@ -114,7 +112,7 @@ class SignupService(
         try {
             mail.send(message)
         } catch (_: MailException) {
-            throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE)
+            throw AuthException(AuthException.Reason.UNAVAILABLE)
         }
     }
 }

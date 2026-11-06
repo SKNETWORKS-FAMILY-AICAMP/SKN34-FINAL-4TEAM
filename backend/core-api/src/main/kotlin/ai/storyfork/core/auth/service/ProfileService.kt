@@ -18,7 +18,6 @@ import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.http.HttpStatus
 import org.springframework.mail.MailException
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -26,7 +25,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.interceptor.TransactionAspectSupport
-import org.springframework.web.server.ResponseStatusException
 
 @Service
 class ProfileService(
@@ -42,14 +40,14 @@ class ProfileService(
     private val logger = LoggerFactory.getLogger(ProfileService::class.java)
     private fun address(email: String) = email.trim().lowercase(Locale.ROOT)
     private fun user(member: AuthMember) = MemberResponse(member.id.toString(), member.email, member.nickname, member.operator)
-    private fun lock(id: UUID) = members.lockById(id) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+    private fun lock(id: UUID) = members.lockById(id) ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED)
 
     @Transactional(readOnly = true)
-    fun profile(id: UUID): MemberResponse = user(members.findById(id).orElse(null) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED))
+    fun profile(id: UUID): MemberResponse = user(members.findById(id).orElse(null) ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED))
 
     @Transactional
     fun nickname(id: UUID, request: NicknameRequest): MemberResponse {
-        if (request.nickname.isBlank()) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        if (request.nickname.isBlank()) throw AuthException(AuthException.Reason.INVALID)
         val member = lock(id)
         member.nickname = request.nickname.trim()
         return user(member)
@@ -81,16 +79,16 @@ class ProfileService(
     fun requestEmailChange(id: UUID, request: EmailRequest) {
         lock(id)
         val target = address(request.email)
-        if (members.existsByEmail(target)) throw ResponseStatusException(HttpStatus.CONFLICT)
+        if (members.existsByEmail(target)) throw AuthException(AuthException.Reason.CONFLICT)
         val token = secrets.newToken()
         challenge(id, "email", target, token)
-        try { send(target, "verify-email-change", token) } catch (_: MailException) { throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE) }
+        try { send(target, "verify-email-change", token) } catch (_: MailException) { throw AuthException(AuthException.Reason.UNAVAILABLE) }
     }
 
     @Transactional
     fun verifyEmailChange(request: TokenRequest) {
         val hash = secrets.hash(request.token)
-        val id = challenges.findMemberId("email", hash) ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        val id = challenges.findMemberId("email", hash) ?: throw AuthException(AuthException.Reason.INVALID)
         val member = lock(id)
         val challenge = validChallenge(id, "email", hash)
         member.email = requireNotNull(challenge.targetEmail)
@@ -98,7 +96,7 @@ class ProfileService(
         challenges.findById(ProfileChallengeId(id, "reset")).ifPresent(challenges::delete)
         try {
             members.flush()
-        } catch (_: DataIntegrityViolationException) { throw ResponseStatusException(HttpStatus.CONFLICT) }
+        } catch (_: DataIntegrityViolationException) { throw AuthException(AuthException.Reason.CONFLICT) }
     }
 
     @Transactional
@@ -117,12 +115,12 @@ class ProfileService(
 
     @Transactional
     fun resetPassword(request: ResetRequest) {
-        if (request.newPassword.toByteArray(Charsets.UTF_8).size > 72) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        if (request.newPassword.toByteArray(Charsets.UTF_8).size > 72) throw AuthException(AuthException.Reason.INVALID)
         val hash = secrets.hash(request.token)
-        val id = challenges.findMemberId("reset", hash) ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        val id = challenges.findMemberId("reset", hash) ?: throw AuthException(AuthException.Reason.INVALID)
         val member = lock(id)
         val challenge = validChallenge(id, "reset", hash)
-        if (member.email != challenge.targetEmail) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        if (member.email != challenge.targetEmail) throw AuthException(AuthException.Reason.INVALID)
         member.passwordHash = requireNotNull(passwords.encode(request.newPassword))
         challenges.delete(challenge)
         challenges.findById(ProfileChallengeId(id, "email")).ifPresent(challenges::delete)
@@ -133,7 +131,7 @@ class ProfileService(
     private fun validChallenge(id: UUID, purpose: String, hash: String): AuthProfileChallenge {
         val challenge = challenges.findById(ProfileChallengeId(id, purpose)).orElse(null)
         if (challenge == null || challenge.tokenHash != hash || !challenge.expiresAt.isAfter(Instant.now()))
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+            throw AuthException(AuthException.Reason.INVALID)
         return challenge
     }
 }
