@@ -1,9 +1,10 @@
-import { type FormEvent, type ReactNode } from 'react'
+import { type CSSProperties, type FormEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
 import { ofKind } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { useAdminViewModel } from '../viewmodel/useAdminViewModel'
 
@@ -49,6 +50,28 @@ const has = (q: string, ...xs: string[]) =>
 /** 폼 입력값을 이름으로 읽습니다 (목업 $('#id').value). */
 const val = (e: FormEvent<HTMLFormElement>, name: string) =>
   String(new FormData(e.currentTarget).get(name) ?? '')
+/** 신고 표 첫 셀의 선택 버튼: 표 글자처럼 보이되 키보드·스크린리더로 누를 수 있습니다. */
+const pickStyle = {
+  border: 0,
+  background: 'none',
+  padding: 0,
+  textAlign: 'left',
+  textDecoration: 'underline',
+} as const
+
+/** 표마다 용도를 알리는 캡션과, 좁은 화면에서 키보드로 가로 스크롤할 수 있는 영역을 붙입니다. */
+function Table(
+  { label, style, children }: { label: string; style?: CSSProperties; children: ReactNode },
+) {
+  return (
+    <div className='adm-scroll' role='region' tabIndex={0} aria-label={label} style={style}>
+      <table>
+        <caption className='sr-only'>{label}</caption>
+        {children}
+      </table>
+    </div>
+  )
+}
 
 /** 목업 admin(): 자체 상단바·업무 메뉴. 데모 화면 가림일 뿐이며 실제 권한 검사는 Core가 맡아야 합니다. */
 export function AdminPage() {
@@ -66,24 +89,29 @@ export function AdminPage() {
   const setF = (x: Partial<Filter>) => vm.setFilter(tab, { ...f, ...x })
   const d = vm.data
   const [title, desc] = TITLES[tab]
+  useDocumentTitle(`관리자 · ${title}`)
   return (
     <div className='adm'>
       <div className='top'>
         <div className='wrap in'>
           <b style={{ fontSize: 16 }}>STORYFORK 관리자</b>
-          <span style={{ marginLeft: 'auto', fontSize: 12.5, color: '#D4D1E2' }}>
+          <span style={{ marginLeft: 'auto', fontSize: 12.5, color: 'var(--fixed-sub)' }}>
             관리자 전용 계정
           </span>
           <Go
             to='/admin?tab=profile'
             className='btn sm'
-            style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: 0 }}
+            style={{
+              background: 'color-mix(in srgb, var(--fixed-ink) 10%, transparent)',
+              color: 'var(--fixed-ink)',
+              border: 0,
+            }}
           >
             {d?.admin.profile.nick ?? '관리자'} · 프로필
           </Go>
         </div>
       </div>
-      <main className='wrap'>
+      <main id='main' tabIndex={-1} className='wrap'>
         <div className='shell'>
           <nav className='admin-nav' aria-label='관리자 업무'>
             {GROUPS.map(([g, items]) => (
@@ -238,14 +266,14 @@ function Body(p: BodyProps) {
             />
           </label>
         </div>
-        <table>
+        <Table label='사용자 계정 표'>
           <thead>
             <tr>
-              <th>사용자</th>
-              <th>역할</th>
-              <th>가입일</th>
-              <th>상태</th>
-              <th>조치</th>
+              <th scope='col'>사용자</th>
+              <th scope='col'>역할</th>
+              <th scope='col'>가입일</th>
+              <th scope='col'>상태</th>
+              <th scope='col'>조치</th>
             </tr>
           </thead>
           <tbody>
@@ -273,7 +301,7 @@ function Body(p: BodyProps) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
         <p className='admin-note'>
           상태 변경은 이 브라우저의 데모 화면에만 반영됩니다. 실제 계정 권한은 서버 연동이 필요해요.
         </p>
@@ -291,15 +319,15 @@ function Body(p: BodyProps) {
           categories={KINDS}
           sorts={[['title', '제목순'], ['titleDesc', '제목 역순']]}
         />
-        <table style={{ marginTop: 10 }}>
+        <Table label='작품 관리 표' style={{ marginTop: 10 }}>
           <thead>
             <tr>
-              <th>작품</th>
-              <th>작성자</th>
-              <th>종류</th>
-              <th>권리</th>
-              <th>공개 상태</th>
-              <th>조치</th>
+              <th scope='col'>작품</th>
+              <th scope='col'>작성자</th>
+              <th scope='col'>종류</th>
+              <th scope='col'>권리</th>
+              <th scope='col'>공개 상태</th>
+              <th scope='col'>조치</th>
             </tr>
           </thead>
           <tbody>
@@ -330,7 +358,7 @@ function Body(p: BodyProps) {
                 </tr>
               )}
           </tbody>
-        </table>
+        </Table>
         <p className='admin-note'>
           공개 제한은 데모 작품 상태에만 반영되고, 실제 작품 권한 판단은 Core API에서 처리해야
           합니다.
@@ -356,14 +384,14 @@ function Body(p: BodyProps) {
             categories={KINDS}
             sorts={[['title', '작품 제목순'], ['titleDesc', '작품 제목 역순']]}
           />
-          <table style={{ marginTop: 10 }}>
+          <Table label='캐릭터챗 운영 표' style={{ marginTop: 10 }}>
             <thead>
               <tr>
-                <th>구분</th>
-                <th>작품</th>
-                <th>캐릭터</th>
-                <th>상태</th>
-                <th>관리</th>
+                <th scope='col'>구분</th>
+                <th scope='col'>작품</th>
+                <th scope='col'>캐릭터</th>
+                <th scope='col'>상태</th>
+                <th scope='col'>관리</th>
               </tr>
             </thead>
             <tbody>
@@ -397,7 +425,7 @@ function Body(p: BodyProps) {
                   </tr>
                 )}
             </tbody>
-          </table>
+          </Table>
         </div>
       </>
     )
@@ -422,15 +450,15 @@ function Body(p: BodyProps) {
           ]}
           sorts={[['likes', '공감 많은순'], ['likesAsc', '공감 적은순']]}
         />
-        <table style={{ marginTop: 10 }}>
+        <Table label='댓글 관리 표' style={{ marginTop: 10 }}>
           <thead>
             <tr>
-              <th>댓글</th>
-              <th>작품</th>
-              <th>작성자</th>
-              <th>공감</th>
-              <th>상태</th>
-              <th>조치</th>
+              <th scope='col'>댓글</th>
+              <th scope='col'>작품</th>
+              <th scope='col'>작성자</th>
+              <th scope='col'>공감</th>
+              <th scope='col'>상태</th>
+              <th scope='col'>조치</th>
             </tr>
           </thead>
           <tbody>
@@ -463,7 +491,7 @@ function Body(p: BodyProps) {
                 </tr>
               )}
           </tbody>
-        </table>
+        </Table>
       </div>
     )
   } else if (tab === 'feedback') T = <Feedback d={d} vm={vm} />
@@ -478,14 +506,14 @@ function Body(p: BodyProps) {
           기획 구조는 Core API 내장 스케줄러예요. 실행 주기는 미정이며, 별도 worker·queue는 추가하지
           않아요. 사용자가 요청한 AI 작업은 자동 재처리하지 않습니다.
         </p>
-        <table>
+        <Table label='정기 작업 표'>
           <thead>
             <tr>
-              <th>작업</th>
-              <th>실행 주기</th>
-              <th>최근 상태</th>
-              <th>최근 결과</th>
-              <th>조치</th>
+              <th scope='col'>작업</th>
+              <th scope='col'>실행 주기</th>
+              <th scope='col'>최근 상태</th>
+              <th scope='col'>최근 결과</th>
+              <th scope='col'>조치</th>
             </tr>
           </thead>
           <tbody>
@@ -515,7 +543,7 @@ function Body(p: BodyProps) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
         <p className='admin-note'>
           실패 작업은 명시적인 수동 재시도만 표시합니다. 재시도 동작은 멱등하게 설계해야 하며, 이
           화면의 버튼은 실제 작업을 실행하지 않습니다.
@@ -551,13 +579,13 @@ function Body(p: BodyProps) {
         </form>
         <div className='panel' style={{ marginTop: 14 }}>
           <span className='demo'>데모에서만 추가·변경</span>
-          <table style={{ marginTop: 10 }}>
+          <Table label='이벤트 표' style={{ marginTop: 10 }}>
             <thead>
               <tr>
-                <th>이벤트</th>
-                <th>기간</th>
-                <th>상태</th>
-                <th>조치</th>
+                <th scope='col'>이벤트</th>
+                <th scope='col'>기간</th>
+                <th scope='col'>상태</th>
+                <th scope='col'>조치</th>
               </tr>
             </thead>
             <tbody>
@@ -582,7 +610,7 @@ function Body(p: BodyProps) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         </div>
       </>
     )
@@ -612,12 +640,12 @@ function Body(p: BodyProps) {
         </form>
         <div className='panel' style={{ marginTop: 14 }}>
           <span className='demo'>데모에서만 게시</span>
-          <table style={{ marginTop: 10 }}>
+          <Table label='공지 표' style={{ marginTop: 10 }}>
             <thead>
               <tr>
-                <th>게시일</th>
-                <th>제목</th>
-                <th>내용</th>
+                <th scope='col'>게시일</th>
+                <th scope='col'>제목</th>
+                <th scope='col'>내용</th>
               </tr>
             </thead>
             <tbody>
@@ -631,7 +659,7 @@ function Body(p: BodyProps) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         </div>
       </>
     )
@@ -643,14 +671,14 @@ function Body(p: BodyProps) {
           <span className='chip wait'>정책 미확정</span>
         </div>
         <p>현재 실제 잔액·충전·차감 내역은 연결되어 있지 않습니다.</p>
-        <table style={{ marginTop: 14 }}>
+        <Table label='크레딧 원장 표' style={{ marginTop: 14 }}>
           <thead>
             <tr>
-              <th>일시</th>
-              <th>계정</th>
-              <th>유형</th>
-              <th>변동</th>
-              <th>상태</th>
+              <th scope='col'>일시</th>
+              <th scope='col'>계정</th>
+              <th scope='col'>유형</th>
+              <th scope='col'>변동</th>
+              <th scope='col'>상태</th>
             </tr>
           </thead>
           <tbody>
@@ -660,7 +688,7 @@ function Body(p: BodyProps) {
               </td>
             </tr>
           </tbody>
-        </table>
+        </Table>
         <p className='admin-note'>
           충전·회수·수동 조정은 정책, 권한, 복구 기준이 확정된 뒤 연결해야 합니다. 이 화면에서는
           크레딧을 변경하지 않습니다.
@@ -758,15 +786,17 @@ function Overview({ d }: { d: Data }) {
       </div>
       <div className='panel' style={{ marginTop: 14 }}>
         <b>수집 데이터 명세</b>
-        <table style={{ marginTop: 10 }}>
-          <tbody>
+        <Table label='수집 데이터 명세 표' style={{ marginTop: 10 }}>
+          <thead>
             <tr>
-              <th>데이터</th>
-              <th>출처</th>
-              <th>양</th>
-              <th>형식</th>
-              <th>쓰는 곳</th>
+              <th scope='col'>데이터</th>
+              <th scope='col'>출처</th>
+              <th scope='col'>양</th>
+              <th scope='col'>형식</th>
+              <th scope='col'>쓰는 곳</th>
             </tr>
+          </thead>
+          <tbody>
             <tr>
               <td>구운몽 전문</td>
               <td>공유마당 만료 저작물</td>
@@ -791,7 +821,7 @@ function Overview({ d }: { d: Data }) {
               </tr>
             )}
           </tbody>
-        </table>
+        </Table>
       </div>
     </>
   )
@@ -805,24 +835,38 @@ function Rights({ d, vm, sel, setSel }: BodyProps) {
     <>
       <div className='panel' style={{ marginTop: 22 }}>
         <b>권리 확인·신고</b> <span className='muted small'>행을 누르면 상세가 열려요</span>
-        <table style={{ marginTop: 10 }}>
-          <tbody>
+        <Table label='권리 확인·신고 표' style={{ marginTop: 10 }}>
+          <thead>
             <tr>
-              <th>소설</th>
-              <th>올린 사람</th>
-              <th>종류</th>
-              <th>권리 확인</th>
-              <th>포크</th>
-              <th>신고</th>
-              <th>상태</th>
+              <th scope='col'>소설</th>
+              <th scope='col'>올린 사람</th>
+              <th scope='col'>종류</th>
+              <th scope='col'>권리 확인</th>
+              <th scope='col'>포크</th>
+              <th scope='col'>신고</th>
+              <th scope='col'>상태</th>
             </tr>
+          </thead>
+          <tbody>
             {d.rights.map((r) => (
               <tr
                 key={r.id}
                 className={`click ${sel === r.id ? 'sel' : ''}`}
                 onClick={() => setSel(r.id)}
               >
-                <td>{r.title}</td>
+                <td>
+                  <button
+                    type='button'
+                    style={pickStyle}
+                    aria-pressed={sel === r.id}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSel(r.id)
+                    }}
+                  >
+                    {r.title}
+                  </button>
+                </td>
                 <td>{r.owner}</td>
                 <td>{r.kind}</td>
                 <td>
@@ -836,7 +880,7 @@ function Rights({ d, vm, sel, setSel }: BodyProps) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       </div>
       {sel === 'flag1'
         ? (
@@ -938,16 +982,18 @@ function Rights({ d, vm, sel, setSel }: BodyProps) {
         })()}
       <h3 className='st'>A06 · 원작 / 포크 데이터 격리 점검</h3>
       <div className='panel'>
-        <table>
-          <tbody>
+        <Table label='원작·포크 격리 점검 표'>
+          <thead>
             <tr>
-              <th>포크</th>
-              <th>원작 · 분기</th>
-              <th>스냅샷 해시</th>
-              <th>원작 현재 해시 (1~분기 회차)</th>
-              <th>인물 상태 차이</th>
-              <th>판정</th>
+              <th scope='col'>포크</th>
+              <th scope='col'>원작 · 분기</th>
+              <th scope='col'>스냅샷 해시</th>
+              <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
+              <th scope='col'>인물 상태 차이</th>
+              <th scope='col'>판정</th>
             </tr>
+          </thead>
+          <tbody>
             {d.isolation.map((x) => (
               <tr key={x.title}>
                 <td>{x.title}</td>
@@ -963,7 +1009,7 @@ function Rights({ d, vm, sel, setSel }: BodyProps) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
         <p className='small muted' style={{ marginTop: 10 }}>
           스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 PR로 수정되면 오른쪽
           해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
@@ -1010,13 +1056,13 @@ function Llm({ d, vm }: { d: Data; vm: VM }) {
       </div>
       <div className='panel' style={{ marginTop: 22 }}>
         <b>LLM Ops · 운영 지표</b> <span className='demo'>시연 데이터 · 실시간 연결 없음</span>
-        <table style={{ marginTop: 10 }}>
+        <Table label='LLM 운영 지표 표' style={{ marginTop: 10 }}>
           <thead>
             <tr>
-              <th>지표</th>
-              <th>측정 내용</th>
-              <th>현재 값</th>
-              <th>집계 기준</th>
+              <th scope='col'>지표</th>
+              <th scope='col'>측정 내용</th>
+              <th scope='col'>현재 값</th>
+              <th scope='col'>집계 기준</th>
             </tr>
           </thead>
           <tbody>
@@ -1035,7 +1081,7 @@ function Llm({ d, vm }: { d: Data; vm: VM }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
         <p className='small muted' style={{ marginTop: 10 }}>
           MVP에서는 Langfuse 추적만 제공해요. 추적에는 요청·작업·단계·모델·프롬프트
           버전·토큰·지연·결과를 기록하며 개인 원고 내용은 넣지 않아요. 평가 세트와 정보 누설 표본
@@ -1166,13 +1212,13 @@ function Feedback({ d, vm }: { d: Data; vm: VM }) {
       <div className='panel' style={{ marginTop: 14 }}>
         <b>작가 검토 제보</b>
         <p className='small muted'>원고 반영은 작가가 검토합니다.</p>
-        <table style={{ marginTop: 10 }}>
+        <Table label='작가 검토 제보 표' style={{ marginTop: 10 }}>
           <thead>
             <tr>
-              <th>유형</th>
-              <th>내용</th>
-              <th>접수일</th>
-              <th>상태</th>
+              <th scope='col'>유형</th>
+              <th scope='col'>내용</th>
+              <th scope='col'>접수일</th>
+              <th scope='col'>상태</th>
             </tr>
           </thead>
           <tbody>
@@ -1199,7 +1245,7 @@ function Feedback({ d, vm }: { d: Data; vm: VM }) {
                 </tr>
               )}
           </tbody>
-        </table>
+        </Table>
         <p className='admin-note'>
           답변과 상태는 현재 브라우저에만 반영되며 실제 전송되지 않습니다.
         </p>
@@ -1253,13 +1299,13 @@ function Admins({ d, vm }: { d: Data; vm: VM }) {
           <b>관리자 계정</b>
           <span className='demo'>현재 브라우저의 시연 데이터</span>
         </div>
-        <table>
+        <Table label='관리자 계정 표'>
           <thead>
             <tr>
-              <th>이름</th>
-              <th>이메일</th>
-              <th>권한</th>
-              <th>등록일</th>
+              <th scope='col'>이름</th>
+              <th scope='col'>이메일</th>
+              <th scope='col'>권한</th>
+              <th scope='col'>등록일</th>
             </tr>
           </thead>
           <tbody>
@@ -1277,7 +1323,7 @@ function Admins({ d, vm }: { d: Data; vm: VM }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       </div>
     </>
   )

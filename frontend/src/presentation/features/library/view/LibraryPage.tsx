@@ -3,6 +3,7 @@ import { kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { PublishSettingsSheet } from '../../../shared/PublishSettingsSheet'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useLibraryViewModel } from '../viewmodel/useLibraryViewModel'
 import { ServerWritingList } from './ServerWritingList'
 
@@ -11,13 +12,14 @@ const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['qa', 
 /** 목업 lib(): U11 내 서재 (읽는 중·내가 쓰는 소설·내 댓글·신고) */
 export function LibraryPage() {
   const d = useLibraryViewModel()
+  useDocumentTitle('내 서재')
   if (!d) return null
   return (
     <>
       <Gnb on="lib" />
-      <main className="wrap">
-        <div className="sec-h" style={{ marginBottom: 0 }}><h2>내 서재</h2><span className="muted small">읽기와 쓰기를 한 계정에서 해요</span></div>
-        <nav className="libtabs">{TABS.map(([k, l]) => <Go key={k} to={`/lib?tab=${k}`} className={d.tab === k ? 'on' : ''}>{l}{k === 'write' && d.pending > 0 && <span className="nb">{d.pending}</span>}</Go>)}</nav>
+      <main id="main" tabIndex={-1} className="wrap">
+        <div className="sec-h" style={{ marginBottom: 0 }}><h1>내 서재</h1><span className="muted small">읽기와 쓰기를 한 계정에서 해요</span></div>
+        <nav className="libtabs">{TABS.map(([k, l]) => <Go key={k} to={`/lib?tab=${k}`} className={d.tab === k ? 'on' : ''} aria-current={d.tab === k ? 'page' : undefined}>{l}{k === 'write' && d.pending > 0 && <span className="nb">{d.pending}</span>}</Go>)}</nav>
         {d.reports && (
           <>
             <div className="list" id="myreports">{d.reports.map((r) => (
