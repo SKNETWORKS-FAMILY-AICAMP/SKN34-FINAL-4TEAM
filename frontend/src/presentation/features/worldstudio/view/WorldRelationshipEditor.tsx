@@ -1,3 +1,4 @@
+import { CharacterRelationshipEditor } from './CharacterRelationshipEditor'
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 import { useState } from 'react'
 import { isFreeRelation, relationLabel } from '../../../../domain/entities/studioRelations'
@@ -5,6 +6,12 @@ import { useRelationPairViewModel } from '../viewmodel/useRelationPairViewModel'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
 export function WorldRelationshipEditor({ studio }: { studio: VM }) {
+  return import.meta.env.MODE === 'mockup'
+    ? <CharacterRelationshipEditor studio={studio} renderPair={(source,target,onClose)=><PairEditor key={source+'|'+target} studio={studio} source={source} target={target} onClose={onClose}/>}/>
+    : <SettingsRelationshipEditor studio={studio}/>
+}
+
+function SettingsRelationshipEditor({ studio }: { studio: VM }) {
   const people = studio.editing!.settings.filter((s) =>
     cardTypes.some((type) => type.id === cardTypeOf(s.item))
   )

@@ -4,6 +4,7 @@ import type { StudioWorld } from '../../../../domain/entities/studioWorld'
 import { mapColors, buildWorldMap, useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import './world-map.css'
 
+const CharacterCards=lazy(()=>import('./CharacterCards'))
 const WorldMapCanvas=lazy(()=>import('./WorldMapCanvas'))
 export class MapBoundary extends Component<{children:ReactNode},{failed:boolean}> {
  state={failed:false}
@@ -24,9 +25,9 @@ export function WorldMap({world,charactersOnly=false}:{world:StudioWorld;charact
     {!vm.results.length&&<div><p>일치하는 설정이 없습니다.</p><button className="btn sm" onClick={()=>{vm.setQuery('');vm.setKind('전체')}}>검색 조건 초기화</button></div>}
    </aside>
    <div className="world-map-center"><p className="small muted">{vm.graph.nodes.length}개 설정 · {vm.graph.links.length}개 연결</p>
-    <MapBoundary><Suspense fallback={<p role="status">지도를 불러오고 있습니다.</p>}><WorldMapCanvas vm={vm}/></Suspense></MapBoundary>
+    <MapBoundary><Suspense fallback={<p role="status">지도를 불러오고 있습니다.</p>}>{charactersOnly&&import.meta.env.MODE==='mockup'?<CharacterCards vm={vm} editing={{busy:false,readOnly:true,selectedRelations:[],targetSource:null,layoutVersion:0,onSelect:vm.select,onConnect:vm.select,onRelation:id=>{const relation=world.settings.find(s=>s.item.id===id)?.item;if(relation?.subjectId)vm.select(relation.subjectId)}}}/>:<WorldMapCanvas vm={vm}/>}</Suspense></MapBoundary>
     <div className="world-map-legend">{Object.entries(mapColors).map(([name,color])=><span key={name}><i style={{background:color}}/>{name}</span>)}</div>
-    <p className="small muted">노드 선택: 상세 보기 · 드래그: 위치 이동 · 휠: 확대·축소. 위치는 저장되지 않습니다.</p>
+    <p className="small muted">{charactersOnly&&import.meta.env.MODE==='mockup'?'카드 선택: 상세 보기 · 드래그: 위치 이동 · 실선: 관계 · 점선: 방향별 감정. 위치는 저장되지 않습니다.':'노드 선택: 상세 보기 · 드래그: 위치 이동 · 휠: 확대·축소. 위치는 저장되지 않습니다.'}</p>
     {!!vm.graph.missingLinks&&<p role="status" className="small">현재 설정에서 찾을 수 없는 연결 {vm.graph.missingLinks}개는 표시하지 않았습니다.</p>}
    </div>
    <aside className="world-map-detail" aria-label="선택한 설정"><h4>설정 살펴보기</h4>{vm.selected?<>
