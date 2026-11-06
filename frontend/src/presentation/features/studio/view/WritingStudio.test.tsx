@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { Provider } from 'react-redux'
+import { MemoryRouter, useLocation } from 'react-router'
 import { createAppStore } from '../../../../app/store'
 import { WritingStudio } from './WritingStudio'
 
@@ -9,7 +10,7 @@ const model = vi.hoisted(() => ({
   active: { number: 1, draft: { title: '첫 회차', body: '원고', revision: 1 }, versions: [{ id: 'v1', title: '저장본', body: '저장 원고', savedAt: '2026-11-04T00:00:00Z' }], inherited: false, hasDraft: true },
   episodes: [], draft: { title: '첫 회차', body: '원고', revision: 1 },
   busy: false, error: '', notice: '', ready: true, dirty: false, editingLocked: false,
-  save: vi.fn(), reload: vi.fn(), publish: vi.fn().mockResolvedValue(true), restore: vi.fn(),
+  save: vi.fn(), reload: vi.fn(), publish: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
 }))
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
@@ -22,10 +23,12 @@ const comparisonVersions = [
   { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
 ]
 afterEach(() => { cleanup(); vi.clearAllMocks(); model.active = originalActive })
+const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
+const where = () => screen.getByTestId('where').textContent
 const renderStudio = () => {
   const store = createAppStore()
   return render(<WritingStudio id="work-id" />, {
-    wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={['/studio/work-id']}>{children}<Where /></MemoryRouter></Provider>,
   })
 }
 
@@ -190,4 +193,52 @@ it('버전이 두 개 미만으로 줄어 비교 화면이 사라져도 제거�
   rerender(<WritingStudio id="work-id" />)
   expectComparisonSelection('v1', '')
   expect(screen.queryByRole('region', { name: '원고 변경 내용' })).toBeNull()
+})
+
+it('내가 쓰는 소설·플롯 링크는 전체 새로고침 없이 앱 안에서 이동한다', () => {
+  renderStudio()
+  expect(fireEvent.click(screen.getByRole('link', { name: '플롯' }))).toBe(false)
+  expect(where()).toBe('/studio/work-id?view=narrative')
+  expect(fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))).toBe(false)
+  expect(where()).toBe('/lib?tab=write')
+  expect(model.mayLeave).toHaveBeenCalledTimes(2)
+})
+
+it('저장하지 않은 입력이나 진행 중 요청 때문에 이동할 수 없으면 링크가 이동하지 않는다', () => {
+  renderStudio()
+  model.mayLeave.mockReturnValueOnce(false)
+  expect(fireEvent.click(screen.getByRole('link', { name: '플롯' }))).toBe(false)
+  expect(where()).toBe('/studio/work-id')
+  model.mayLeave.mockReturnValueOnce(false)
+  fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
+  expect(where()).toBe('/studio/work-id')
+})
+
+it('회차 편집 영역은 건너뛰기 링크가 닿는 하나의 main 안에 있고 h1은 하나다', () => {
+  renderStudio()
+  const main = screen.getByRole('main')
+  expect(screen.getAllByRole('main')).toHaveLength(1)
+  expect(main.id).toBe('main')
+  expect(main.getAttribute('tabindex')).toBe('-1')
+  expect(main.contains(screen.getByLabelText('원고 본문'))).toBe(true)
+  expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual(['집필실'])
+})
+
+it('회차를 불러오는 동안에도 main은 하나다', () => {
+  model.ready = false
+  try {
+    renderStudio()
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(screen.getByRole('main').id).toBe('main')
+    expect(within(screen.getByRole('main')).getByText('회차를 불러오고 있어요…')).toBeTruthy()
+  } finally {
+    model.ready = true
+  }
+})
+
+it('탭 제목에 집필실을 쓴다', () => {
+  renderStudio()
+  expect(document.title).toBe('집필실 · STORYFORK')
+  cleanup()
+  expect(document.title).toBe('STORYFORK')
 })

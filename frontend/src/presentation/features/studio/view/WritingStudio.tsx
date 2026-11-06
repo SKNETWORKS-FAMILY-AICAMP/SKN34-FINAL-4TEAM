@@ -2,7 +2,9 @@ import { useRef,useState } from 'react'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 import './writing.css'
+import { Go } from '../../../shared/Go'
 import { useScreenId } from '../../../shared/screenIds'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import {ManuscriptBody} from '../../../shared/media/MediaPanel'
 import { Sheet } from '../../../shared/Sheet'
 import { BackChev } from '../../../shared/icons'
@@ -13,6 +15,7 @@ import './version-panels.css'
 
 export function WritingStudio({id}:{id:string}) {
   useScreenId('U13')
+  useDocumentTitle('집필실')
   const vm=useWritingViewModel(id)
   const bodyInput=useRef<HTMLTextAreaElement>(null)
   const [title,setTitle]=useState('')
@@ -28,11 +31,12 @@ export function WritingStudio({id}:{id:string}) {
   }[historyView]
   const comparison=useVersionComparisonViewModel(active?.versions??[],versionsOpen&&active?`${id}:${active.number}`:'')
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
+  const leave=(e:{preventDefault():void})=>{if(!vm.mayLeave())e.preventDefault()}
   const status=writingStatus({ready:vm.ready,busy:vm.busy,error:vm.error,dirty:vm.dirty,active:!!active,hasDraft:active?.hasDraft!==false,inherited:active?.inherited??false})
   return <div className="calm rd studio writing-studio">
     <header className="sbar">
-      <a className="back" href="/lib?tab=write"><BackChev />내가 쓰는 소설</a><h1 className="t">집필실</h1>
-      <a className="tbtn" href={`/studio/${id}?view=narrative`}>플롯</a>
+      <Go className="back" to="/lib?tab=write" onClick={leave}><BackChev />내가 쓰는 소설</Go><h1 className="t">집필실</h1>
+      <Go className="tbtn" to={`/studio/${id}?view=narrative`} onClick={leave}>플롯</Go>
       <span className="st" role="status" aria-live="polite">{status}</span>
       <button className="tbtn" disabled={vm.busy||!active||active.inherited} onClick={()=>void vm.save()}>버전 저장</button>
       <button className="tbtn" disabled={vm.busy} onClick={()=>void vm.reload()}>다시 불러오기</button>
@@ -41,7 +45,7 @@ export function WritingStudio({id}:{id:string}) {
     </header>
     {vm.error&&<div className="writing-message" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}</div>}
     {vm.notice&&<p className="writing-message" role="status">{vm.notice}</p>}
-    {!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<div className="studio-workspace"><div className="sgrid">
+    <main id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<div className="sgrid">
       <nav className="seps" aria-label="회차 목록">
         <h2 className="lab">회차</h2>
         {vm.episodes.map(e=><button className={`writing-episode ${active?.number===e.number?'on':''}`} key={e.number} aria-pressed={active?.number===e.number} disabled={vm.busy} onClick={()=>{if(!vm.select(e))return;setSelection({episode:0,id:''});setRights(false)}}>
@@ -52,7 +56,7 @@ export function WritingStudio({id}:{id:string}) {
           <button className="btn" disabled={vm.busy||!title.trim()}>회차 생성</button>
         </form>
       </nav>
-      <main className="editor writing-editor">
+      <div className="editor writing-editor">
         {active?<>
           <p className="muted">{active.number}화 · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
           <label className="field">회차 제목<input className="et" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({title:e.target.value})}/></label>
@@ -70,8 +74,8 @@ export function WritingStudio({id}:{id:string}) {
             {active.hasDraft===false&&<p role="status">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 원고 버전 · 비교 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           </section>
         </>:<p>회차가 없어요. 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
-      </main>
-    </div></div>}
+      </div>
+    </div>}</main>
           {versionsOpen&&<Sheet sid="U21" label={historyLabel} panelClass={`sheet writing-history-sheet${historyView==='compare'?' writing-history-wide':''}`} onClose={()=>setVersionsOpen(false)}><section className="writing-history">
             <button type="button" className="btn sm" onClick={()=>setVersionsOpen(false)}>닫기</button>
             <nav className="version-panel-nav" aria-label="버전 관리">

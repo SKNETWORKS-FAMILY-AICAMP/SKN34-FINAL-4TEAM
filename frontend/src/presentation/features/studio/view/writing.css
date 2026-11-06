@@ -1,4 +1,4 @@
-.writing-studio h1 { font-size: inherit; margin: 0; }
+.studio .sbar h1 { font-size: inherit; margin: 0; }
 .writing-studio .sbar .st { margin-left: auto; }
 .writing-studio .seps { min-width: 0; }
 .writing-episode { overflow-wrap: anywhere; }

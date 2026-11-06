@@ -5,6 +5,7 @@ import type {StudioSetting,SettingItem} from '../../../../domain/entities/studio
 import {relationDefinitions,relationLabel} from '../../../../domain/entities/studioRelations'
 import {Go} from '../../../shared/Go'
 import {useScreenId} from '../../../shared/screenIds'
+import {useDocumentTitle} from '../../../shared/useDocumentTitle'
 import {Gnb} from '../../../shared/shell/Gnb'
 import {useWorldStudioViewModel} from '../viewmodel/useWorldStudioViewModel'
 import {WorldMap} from './WorldMap'
@@ -23,11 +24,12 @@ const labelOf=(setting:StudioSetting)=>cardTypes.find(t=>t.id===cardTypeOf(setti
 
 export function WorldStudioPage(){
  useScreenId('W01')
+ useDocumentTitle('세계관')
  const vm=useWorldStudioViewModel(),heading=useRef<HTMLHeadingElement>(null),tools=useRef<HTMLDetailsElement>(null)
  useEffect(()=>{if(vm.flow.screen==='editor')heading.current?.focus({preventScroll:true})},[vm.flow.step,vm.flow.screen])
  const current=steps.findIndex(([id])=>id===vm.flow.step)
  const chooseTool=(tool:'explore'|'analysis')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
- return <><Gnb on="worldstudio"/><main className="wrap world-studio world-writing">
+ return <><Gnb on="worldstudio"/><main id="main" tabIndex={-1} className="wrap world-studio world-writing">
   <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">로그인한 내 세계관을 서버에 저장합니다. 관계는 현재 상태만 보관하며 관계 이력·과거 세계관 전체 복원은 지원하지 않습니다.</p></div></header>
   {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}
   {vm.message&&<p role="status" className="world-message">{vm.message}</p>}
@@ -50,7 +52,7 @@ export function WorldStudioPage(){
     <div hidden={vm.flow.step!=='review'}><WritingReview vm={vm}/></div>
     <nav className="world-step-actions" aria-label="단계 이동"><button className="btn" type="button" disabled={current===0} onClick={()=>vm.goStep(steps[current-1][0])}>이전 단계</button>{current<3&&<button className="btn pri" type="button" onClick={()=>vm.goStep(steps[current+1][0])}>{vm.flow.step==='relations'?'검토·저장으로':'다음 단계'}</button>}{vm.flow.step==='cards'&&<button className="btn" type="button" onClick={()=>vm.goStep('review')}>관계 없이 검토·저장</button>}</nav>
    </div>
-   {vm.tool==='explore'&&<><nav className="libtabs" aria-label="세계관 탐색 보기">{exploreTabs.map(([id,label])=><button type="button" key={id} className={vm.explore===id?'on':''} onClick={()=>vm.setExplore(id)}>{label}</button>)}</nav>{(vm.explore==='map'||vm.explore==='relations')&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}:${vm.explore}`} world={vm.saved} charactersOnly={vm.explore==='relations'}/>:<Confirmed vm={vm} tab={vm.explore}/>}</>}
+   {vm.tool==='explore'&&<><nav className="libtabs" aria-label="세계관 탐색 보기">{exploreTabs.map(([id,label])=><button type="button" key={id} className={vm.explore===id?'on':''} aria-pressed={vm.explore===id} onClick={()=>vm.setExplore(id)}>{label}</button>)}</nav>{(vm.explore==='map'||vm.explore==='relations')&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}:${vm.explore}`} world={vm.saved} charactersOnly={vm.explore==='relations'}/>:<Confirmed vm={vm} tab={vm.explore}/>}</>}
    <div hidden={vm.tool!=='analysis'}><Analysis key={vm.editing.id} vm={vm}/></div>
   </section>}
  </main><footer className="foot"><div className="wrap"><b>STORYFORK</b><Go to="/lib">내 서재</Go></div></footer></>

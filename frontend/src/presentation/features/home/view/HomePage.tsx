@@ -5,6 +5,7 @@ import { Art, Cov, CoverOf, Tags } from '../../../shared/art'
 import { ago, kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useHomeViewModel } from '../viewmodel/useHomeViewModel'
 
 const Chev = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -120,6 +121,7 @@ const BookCard = ({ w, k, label, sub, source }: { w: Work; k: string; label?: st
 /** 목업 home(): U01 홈 · U02 필터 결과 */
 export function HomePage() {
   const vm = useHomeViewModel()
+  useDocumentTitle('원작을 나만의 이야기로')
   const shelf = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(vm.firstHome)
   useEffect(() => {
@@ -135,89 +137,92 @@ export function HomePage() {
   return (
     <>
       <Gnb on="home" />
-      <main className={`wrap ${loading ? 'loading' : ''}`} id="home">
-        <h1 className="sr-only">STORYFORK</h1>
-        <div className="chips">
-          {vm.chips.map((c) => <button type="button" key={c} className={vm.chip === c ? 'on' : ''} aria-pressed={vm.chip === c} onClick={() => vm.selectChip(c)}>{c}</button>)}
-        </div>
-        {vm.guide && (
-          <div className="guide">
-            <b>처음 오셨나요?</b>
-            <ol><li><i>1</i>읽기</li><li><i>2</i>문장을 눌러 댓글·피드백</li><li><i>3</i>원하는 회차에서 포크하기</li></ol>
-            <button type="button" className="x" aria-label="안내 닫기" onClick={vm.closeGuide}>✕</button>
+      <main className={`wrap ${loading ? 'loading' : ''}`} id="main" tabIndex={-1}>
+        {/* main#main은 본문 랜드마크이고 #home은 기존 CSS·테스트 선택자를 유지하는 래퍼입니다. */}
+        <div id="home">
+          <h1 className="sr-only">STORYFORK</h1>
+          <div className="chips">
+            {vm.chips.map((c) => <button type="button" key={c} className={vm.chip === c ? 'on' : ''} aria-pressed={vm.chip === c} onClick={() => vm.selectChip(c)}>{c}</button>)}
           </div>
-        )}
-        {vm.isError && <p className="muted">소설을 불러오지 못했어요.</p>}
-        {h && h.filtered && (
-          <section className="sec">
-            <div className="sec-h"><h2>{vm.chip}</h2><span className="muted small">{h.filtered.length}편</span></div>
-            <div className="grid6">
-              {h.filtered.length ? h.filtered.map((w) => <BookCard key={w.id} w={w} k="" label={shortTitle(w)} sub={`${w.author} · ${w.genre}`} source={h.forkSources[w.id]} />) : <p className="muted">아직 소설이 없어요.</p>}
+          {vm.guide && (
+            <div className="guide">
+              <b>처음 오셨나요?</b>
+              <ol><li><i>1</i>읽기</li><li><i>2</i>문장을 눌러 댓글·피드백</li><li><i>3</i>원하는 회차에서 포크하기</li></ol>
+              <button type="button" className="x" aria-label="안내 닫기" onClick={vm.closeGuide}>✕</button>
             </div>
-          </section>
-        )}
-        {h && !h.filtered && (
-          <>
-            {h.continueReading && (() => {
-              const { work: lw, episode: ln } = h.continueReading
-              const eps = epsOf(lw)
-              return (
-                <Go to={`/read/${lw.id}/${ln}`} className="cont">
-                  <div className="th"><CoverOf w={lw} /></div>
-                  <div><h2>▶ 이어 읽기</h2><b>{lw.title} · {ln}화 {eps[ln - 1].t}</b><div className="bar"><i style={{ width: `${ln / eps.length * 100}%` }} /></div></div>
-                  <span className="go">{ln}화 이어 읽기</span>
-                </Go>
-              )
-            })()}
-            <section className="sec" style={{ marginTop: 28 }}>
-              <div className="sec-h"><h2>방금 올라온 포크 소설</h2><span className="muted small">원작의 한 회차에서 포크됐어요</span><Go to="/rank?t=if" className="more">전체 보기 ›</Go></div>
-              <div className="rings">
-                <Go to="/work/guunmong" className="ring add"><div className="o">＋</div><b>나도 쓰기</b><small>원작에서 포크하기</small></Go>
-                {h.forkFeed.map((w) => (
-                  <Go key={w.id} to={`/work/${w.id}`} className={`ring ${h.seen[w.id] ? 'seen' : ''} prox`} onClick={() => vm.markSeen(w.id)}>
-                    <div className="o"><span><CoverOf w={w} k="r" /></span></div>
-                    <b>{w.title.split(': ')[1] || w.title}</b><small>{w.author} · {ago(w.upd)}</small>
+          )}
+          {vm.isError && <p className="muted">소설을 불러오지 못했어요.</p>}
+          {h && h.filtered && (
+            <section className="sec">
+              <div className="sec-h"><h2>{vm.chip}</h2><span className="muted small">{h.filtered.length}편</span></div>
+              <div className="grid6">
+                {h.filtered.length ? h.filtered.map((w) => <BookCard key={w.id} w={w} k="" label={shortTitle(w)} sub={`${w.author} · ${w.genre}`} source={h.forkSources[w.id]} />) : <p className="muted">아직 소설이 없어요.</p>}
+              </div>
+            </section>
+          )}
+          {h && !h.filtered && (
+            <>
+              {h.continueReading && (() => {
+                const { work: lw, episode: ln } = h.continueReading
+                const eps = epsOf(lw)
+                return (
+                  <Go to={`/read/${lw.id}/${ln}`} className="cont">
+                    <div className="th"><CoverOf w={lw} /></div>
+                    <div><h2>▶ 이어 읽기</h2><b>{lw.title} · {ln}화 {eps[ln - 1].t}</b><div className="bar"><i style={{ width: `${ln / eps.length * 100}%` }} /></div></div>
+                    <span className="go">{ln}화 이어 읽기</span>
                   </Go>
-                ))}
-              </div>
-            </section>
-            <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} /></div>
-            <section className="sec">
-              <div className="tri">
-                <div><h2>24시간 인기 급상승</h2>{h.rising.map((w, i) => (
-                  <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${i < 3 ? 'top' : ''}`}>{['1st', '2nd', '3rd'][i] || i + 1 + 'th'}</span><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>👁 {kfmt(w.views)}</em></Go>
+                )
+              })()}
+              <section className="sec" style={{ marginTop: 28 }}>
+                <div className="sec-h"><h2>방금 올라온 포크 소설</h2><span className="muted small">원작의 한 회차에서 포크됐어요</span><Go to="/rank?t=if" className="more">전체 보기 ›</Go></div>
+                <div className="rings">
+                  <Go to="/work/guunmong" className="ring add"><div className="o">＋</div><b>나도 쓰기</b><small>원작에서 포크하기</small></Go>
+                  {h.forkFeed.map((w) => (
+                    <Go key={w.id} to={`/work/${w.id}`} className={`ring ${h.seen[w.id] ? 'seen' : ''} prox`} onClick={() => vm.markSeen(w.id)}>
+                      <div className="o"><span><CoverOf w={w} k="r" /></span></div>
+                      <b>{w.title.split(': ')[1] || w.title}</b><small>{w.author} · {ago(w.upd)}</small>
+                    </Go>
+                  ))}
+                </div>
+              </section>
+              <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} /></div>
+              <section className="sec">
+                <div className="tri">
+                  <div><h2>24시간 인기 급상승</h2>{h.rising.map((w, i) => (
+                    <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${i < 3 ? 'top' : ''}`}>{['1st', '2nd', '3rd'][i] || i + 1 + 'th'}</span><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>👁 {kfmt(w.views)}</em></Go>
+                  ))}</div>
+                  <div><h2>방금 업데이트</h2>{h.fresh.map((w) => (
+                    <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{ago(w.upd)}</em></Go>
+                  ))}</div>
+                  <div><h2>에디터 Pick</h2><div className="picks">{h.picks.map((w) => (
+                    <Go key={w.id} to={`/work/${w.id}`} className="pick prox"><Cov w={w} /><b>{shortTitle(w)}</b></Go>
+                  ))}</div></div>
+                </div>
+              </section>
+              <section className="sec">
+                <div className="sec-h"><h2>오늘, 스토리포크의 발견</h2></div>
+                <div className="shelf">
+                  <button type="button" className="arr l" aria-label="이전" onClick={() => scrollShelf(-1)}><Chev d={LEFT} /></button>
+                  <div className="row" id="shelf" ref={shelf}>{h.discover.map((w) => <BookCard key={w.id} w={w} k="s" label={w.hook || w.dir} sub={shortTitle(w) ?? ''} />)}</div>
+                  <button type="button" className="arr r" aria-label="다음" onClick={() => scrollShelf(1)}><Chev d={RIGHT} /></button>
+                </div>
+              </section>
+              <section className="sec">
+                <div className="sec-h"><h2>이번 주 인기 무료 소설</h2></div>
+                <div className="wk">{h.weekly.map((w) => (
+                  <Go key={w.id} to={`/work/${w.id}`} className="wc prox">
+                    <div>
+                      <div className="tgs"><Tags w={w} /><span className="tag dk">연재중</span></div>
+                      <h3>{w.title}</h3><p>{w.summary}</p>
+                      <div className="ft"><i style={{ background: avatarOf(w.author) }} />{w.author}<span>👁 {kfmt(w.views)} · ♥ {kfmt(w.likes)}</span></div>
+                    </div>
+                    <Cov w={w} k="w" />
+                  </Go>
                 ))}</div>
-                <div><h2>방금 업데이트</h2>{h.fresh.map((w) => (
-                  <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{ago(w.upd)}</em></Go>
-                ))}</div>
-                <div><h2>에디터 Pick</h2><div className="picks">{h.picks.map((w) => (
-                  <Go key={w.id} to={`/work/${w.id}`} className="pick prox"><Cov w={w} /><b>{shortTitle(w)}</b></Go>
-                ))}</div></div>
-              </div>
-            </section>
-            <section className="sec">
-              <div className="sec-h"><h2>오늘, 스토리포크의 발견</h2></div>
-              <div className="shelf">
-                <button type="button" className="arr l" aria-label="이전" onClick={() => scrollShelf(-1)}><Chev d={LEFT} /></button>
-                <div className="row" id="shelf" ref={shelf}>{h.discover.map((w) => <BookCard key={w.id} w={w} k="s" label={w.hook || w.dir} sub={shortTitle(w) ?? ''} />)}</div>
-                <button type="button" className="arr r" aria-label="다음" onClick={() => scrollShelf(1)}><Chev d={RIGHT} /></button>
-              </div>
-            </section>
-            <section className="sec">
-              <div className="sec-h"><h2>이번 주 인기 무료 소설</h2></div>
-              <div className="wk">{h.weekly.map((w) => (
-                <Go key={w.id} to={`/work/${w.id}`} className="wc prox">
-                  <div>
-                    <div className="tgs"><Tags w={w} /><span className="tag dk">연재중</span></div>
-                    <h3>{w.title}</h3><p>{w.summary}</p>
-                    <div className="ft"><i style={{ background: avatarOf(w.author) }} />{w.author}<span>👁 {kfmt(w.views)} · ♥ {kfmt(w.likes)}</span></div>
-                  </div>
-                  <Cov w={w} k="w" />
-                </Go>
-              ))}</div>
-            </section>
-          </>
-        )}
+              </section>
+            </>
+          )}
+        </div>
       </main>
       <Footer />
     </>

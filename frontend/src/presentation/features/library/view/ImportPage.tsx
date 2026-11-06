@@ -2,6 +2,7 @@ import { IMPORT } from '../../../../domain/usecases/LibraryUseCase'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useImportViewModel } from '../viewmodel/useImportViewModel'
 
 const STEPS = [['글 다듬기', '특수문자·빈칸 정리'], ['회차 나누기', '장 → 회차 4화'], ['인물·관계 찾기', '인물 5 · 관계 6'], ['세계관·사건 찾기', '규칙 2 · 사건 4'], ['내가 확인하기', '틀린 건 고치고 저장']]
@@ -9,6 +10,7 @@ const STEPS = [['글 다듬기', '특수문자·빈칸 정리'], ['회차 나누
 /** 목업 importer(): U24 소설 가져오기 */
 export function ImportPage() {
   const vm = useImportViewModel()
+  useDocumentTitle('소설 가져오기')
   const { step, done } = vm
   const json = JSON.stringify({
     title: '춘향전', source: vm.kind,
@@ -19,8 +21,8 @@ export function ImportPage() {
   return (
     <>
       <Gnb on="lib" />
-      <main className="wrap">
-        <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h2 style={{ fontSize: 21, fontWeight: 800 }}>내 소설 가져오기</h2><span className="demo">가상 추출</span></div>
+      <main id="main" tabIndex={-1} className="wrap">
+        <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 style={{ fontSize: 21, fontWeight: 800 }}>내 소설 가져오기</h1><span className="demo">가상 추출</span></div>
         <div className="imp">
           <div className="panel"><b>1. 소설 올리기</b>
             <p className="small muted">가져오기 대상: TXT 또는 DRM이 없는 EPUB. 원고 이미지도 보존 대상이에요. 파일 크기·수 제한은 미정이며 이 화면은 실제 파일을 업로드하지 않아요.</p>
@@ -39,7 +41,7 @@ export function ImportPage() {
             {done ? (
               <>
                 <div className="res3">{([['인물', 'cast'], ['세계관', 'world'], ['사건', 'events']] as const).map(([h, k]) => (
-                  <div className="rc" key={h}><h4>{h} <span className="muted">{vm.result[k].length}</span></h4><ul>{vm.result[k].map((c, i) => <li key={i + c} contentEditable suppressContentEditableWarning onBlur={(e) => vm.edit(k, i, e.currentTarget.innerText ?? e.currentTarget.textContent ?? '')}>{c}</li>)}</ul></div>
+                  <div className="rc" key={h}><h4>{h} <span className="muted">{vm.result[k].length}</span></h4><ul>{vm.result[k].map((c, i) => <li key={i + c}><div contentEditable suppressContentEditableWarning role="textbox" tabIndex={0} aria-label={`${h} ${i + 1}`} onBlur={(e) => vm.edit(k, i, e.currentTarget.innerText ?? e.currentTarget.textContent ?? '')}>{c}</div></li>)}</ul></div>
                 ))}</div>
                 <div className="json" id="json">{json}</div>
                 <div className="rowend" style={{ marginTop: 14 }}><button type="button" className="btn" onClick={vm.rerun}>다시 정리 <span className="demo">예시 10 · 미확정</span></button><button type="button" className="btn pri" id="saveimp" onClick={vm.save}>확인하고 저장</button></div>
