@@ -1,5 +1,7 @@
 # STORYFORK 개발·실행·검증 안내
 
+[메인 README](../README.md) · [문서 목록](README.md)
+
 > 루트 [README](../README.md)에서 옮긴 실행·배포 설정·검증 상세입니다. 제품 소개·아키텍처 요약은 README를, 구현 규칙은 [AGENTS.md](../AGENTS.md)를 따릅니다.
 
 ## 빠른 시작

@@ -1,5 +1,7 @@
 # STORYFORK 4개 백엔드 서비스 책임·실행 구조
 
+[메인 README](../../README.md) · [문서 목록](../README.md)
+
 > **상태: Core → Content 추출 소스 구현, hosted CI·실제 DB 전환·배포 대기.** DEC-41에 따라 기존 콘텐츠·첨부·WorldStudio 코드/테스트와 인증 연동·공개 라우팅·이미지/CI 설정을 `backend/content-service`로 이전했다. Core에는 Auth·Health가 남고 운영은 골격 그대로다. 물리 DB는 기존 대상을 공유하며 writer/migration만 분리한다. 사용자가 승인한 개발용 Content fresh 이력 재작성과 실제 DB 폐기는 구분한다. [이관·서비스 연동 계약](content-service-migration-contract.md)을 따른다.
 
 ## 1. 서비스 구성과 데이터 소유

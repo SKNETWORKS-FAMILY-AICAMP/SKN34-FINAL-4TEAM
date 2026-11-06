@@ -1,5 +1,9 @@
 # 이슈 #50 회차 생성·원고 관리 대응
 
+[메인 README](../README.md) · [문서 목록](README.md)
+
+> **작성 시점 기록:** 이슈 #50 진행 기록입니다. 현재 서비스 경계는 [이관 계약](design/content-service-migration-contract.md), 개발 현황은 [기능표](feature-roadmap.md)를 따릅니다.
+
 > **범위:** 아래 Core·DB·경로·검증 이력은 분리 전 실제 구현을 설명한다. [DEC-41 목표](design/service-boundaries.md)에서 콘텐츠 정본·인가·발행·첨부는 콘텐츠 서비스로 이전하고 회원·인증·크레딧·알림은 Core에 남긴다. 기존 API·Flyway·데이터는 보존하며 이 문서 갱신은 이전 실행이나 과거 검증의 재실행을 의미하지 않는다.
 
 기준: [팀 이슈 #50](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50), 2026-11-02 확인. 본문 전체와 댓글(0개), UC-10·UC-13 및 현재 ERD를 대조했다. 이전 시제품은 저장·권한 기반은 공유하지만 회차 관리와 초안/버전 구분이 달라, #50을 이번 작업의 우선 기준으로 전환했다.

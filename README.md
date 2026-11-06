@@ -255,6 +255,7 @@ docker compose down           # DB volume은 보존
 
 | 보고 싶은 내용 | 문서 |
 |---|---|
+| 전체 문서 목록 | [docs 문서 안내](docs/README.md): 현재 기준 문서와 작성 시점 기록 구분 |
 | 기획 산출물 | [기획서](<docs/deliverables/SKN34-final-4Team_기획서.pdf>) · [요구사항 정의서](<docs/deliverables/SKN34-final-4Team_요구사항정의서.xlsx>)([기능 ID 색인](docs/requirements.md)) · [WBS](docs/deliverables/SKN34-final-4Team_WBS.xlsx) · [화면 설계서](<docs/deliverables/SKN34-final-4Team_화면설계서.pdf>) · [시스템 구상도](<docs/deliverables/SKN34-final-4Team_시스템 구상도.pdf>) · [AI 시스템 아키텍처](<docs/deliverables/SKN34-final-4Team_AI 시스템 아키텍처.pdf>) |
 | 개발 현황 | [개발 기능표](docs/feature-roadmap.md) · [콘텐츠 통합 안내](docs/content-integration.md) · [이슈 #50 대응](docs/issue-50-alignment.md) |
 | 설계·결정 | [MVP 설계](docs/design/design.md) · [결정 기록](docs/design/decisions.md) · [서비스 구조(DEC-41)](docs/design/service-boundaries.md) · [현재 아키텍처](docs/architecture.md) · [ERD](docs/design/erd/README.md) |
