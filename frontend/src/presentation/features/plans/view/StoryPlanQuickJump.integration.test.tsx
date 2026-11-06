@@ -28,7 +28,7 @@ const open = {
 }
 const choose = {
   click: (dialog: HTMLElement) => fireEvent.click(within(dialog).getByText('‘이동 회귀’ 검색 결과 모두 보기')),
-  Enter: (dialog: HTMLElement) => fireEvent.keyDown(within(dialog).getByRole('textbox'), { key: 'Enter' }),
+  Enter: (dialog: HTMLElement) => fireEvent.keyDown(within(dialog).getByRole('combobox'), { key: 'Enter' }),
 }
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/') })
@@ -54,7 +54,7 @@ function edit() {
 }
 function search() {
   const dialog = screen.getByRole('dialog', { name: '빠른 이동' })
-  fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '이동 회귀' } })
+  fireEvent.change(within(dialog).getByRole('combobox'), { target: { value: '이동 회귀' } })
   return dialog
 }
 function stays() {

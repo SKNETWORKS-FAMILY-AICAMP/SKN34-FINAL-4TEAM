@@ -187,7 +187,7 @@ describe('빠른 이동 (U03)', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
     const dialog = screen.getByRole('dialog', { name: '빠른 이동' })
-    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '팔선녀' } })
+    fireEvent.change(within(dialog).getByRole('combobox'), { target: { value: '팔선녀' } })
     fireEvent.click(await within(dialog).findByText('구운몽 2화 돌다리 위의 팔선녀'))
     await screen.findByText('소설을 읽으려면 로그인해 주세요.')
     expect(screen.queryByRole('dialog')).toBeNull()

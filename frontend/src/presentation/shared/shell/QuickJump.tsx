@@ -6,17 +6,19 @@ import { useQuickViewModel } from './useQuickViewModel'
 export function QuickJump() {
   const vm = useQuickViewModel()
   if (!vm.open) return null
+  const hasList = vm.list.length > 0
   return (
     <Sheet sid="U03" label="빠른 이동" panelClass="qk" onClose={vm.close}>
-      <input id="qi" data-autofocus aria-label="소설·인물·회차 검색" placeholder="소설·인물·회차 검색 (Enter: 전체 결과 보기)" value={vm.q}
+      <input id="qi" data-autofocus role="combobox" aria-expanded={hasList} aria-controls="ql" aria-autocomplete="list" aria-activedescendant={hasList ? `qo${vm.sel}` : undefined}
+        aria-label="소설·인물·회차 검색" placeholder="소설·인물·회차 검색 (Enter: 전체 결과 보기)" value={vm.q}
         onChange={(e) => vm.setQuery(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); vm.move(e.key === 'ArrowDown' ? 1 : -1) }
           if (e.key === 'Enter') vm.go(vm.sel)
         }} />
-      <ul id="ql">
-        {vm.list.length ? vm.list.map((x, i) => (
-          <li key={x.k + x.label + x.go} className={i === vm.sel ? 'on' : ''} onClick={() => vm.go(i)}>
+      <ul id="ql" role={hasList ? 'listbox' : undefined} aria-label={hasList ? '이동할 곳' : undefined}>
+        {hasList ? vm.list.map((x, i) => (
+          <li key={x.k + x.label + x.go} id={`qo${i}`} role="option" aria-selected={i === vm.sel} className={i === vm.sel ? 'on' : ''} onClick={() => vm.go(i)}>
             <div className="th">{'w' in x && x.w && <CoverOf w={x.w} k="q" />}</div><div><b>{x.label}</b><small>{x.sub}</small></div><span className="chip">{x.k}</span>
           </li>
         )) : <li style={{ display: 'block', color: 'var(--sub)' }}>검색 결과가 없어요.</li>}

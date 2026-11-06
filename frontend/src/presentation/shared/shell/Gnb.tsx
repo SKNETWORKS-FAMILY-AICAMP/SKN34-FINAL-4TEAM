@@ -10,6 +10,8 @@ export function Gnb({ on = '' }: { on?: string }) {
   const { role, initial, unread, pending } = useGnbViewModel()
   const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null)
   return (
+    <>
+    <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus() }}>본문으로 바로가기</a>
     <header className="gnb">
       <div className="wrap in">
         <Go to="/" className="logo" aria-label="STORYFORK 홈으로" title="홈으로"><b>SF</b>STORYFORK</Go>
@@ -36,6 +38,7 @@ export function Gnb({ on = '' }: { on?: string }) {
       </div>
       {menuAnchor && <AccountMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />}
     </header>
+    </>
   )
 }
 
