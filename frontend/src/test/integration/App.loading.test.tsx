@@ -5,23 +5,23 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, useNavigate } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import './test/scrollToSpy'
-import App from './App'
-import { createAppStore } from './app/store'
+import '../scrollToSpy'
+import App from '../../App'
+import { createAppStore } from '../../app/store'
 
 const { loadStudio, loadAdmin } = vi.hoisted(() => ({ loadStudio: vi.fn(), loadAdmin: vi.fn() }))
 let finish!: () => void
 const ready = new Promise<void>((resolve) => { finish = resolve })
-vi.mock('./presentation/shared/session/useSessionRestore', () => ({ useSessionRestore: () => ({ restoring: false }) }))
-vi.mock('./presentation/features/studio/view/StudioPage', () => {
+vi.mock('../../presentation/shared/session/useSessionRestore', () => ({ useSessionRestore: () => ({ restoring: false }) }))
+vi.mock('../../presentation/features/studio/view/StudioPage', () => {
   loadStudio()
   return { StudioPage: () => { use(ready); return <main><h1>지연 집필실</h1></main> } }
 })
-vi.mock('./presentation/features/admin/view/AdminPage', () => {
+vi.mock('../../presentation/features/admin/view/AdminPage', () => {
   loadAdmin()
   return { AdminPage: () => <h1>관리자 화면</h1> }
 })
-vi.mock('./presentation/features/chat/view/ChatPages', () => { throw new Error('route chunk unavailable') })
+vi.mock('../../presentation/features/chat/view/ChatPages', () => { throw new Error('route chunk unavailable') })
 afterEach(cleanup)
 
 function OpenStudio() {

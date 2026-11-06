@@ -2,8 +2,8 @@
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { waitFor } from '@testing-library/react'
-import { renderApp } from './test/renderApp'
-import { createAppStore } from './app/store'
+import { renderApp } from '../renderApp'
+import { createAppStore } from '../../app/store'
 
 afterEach(cleanup)
 

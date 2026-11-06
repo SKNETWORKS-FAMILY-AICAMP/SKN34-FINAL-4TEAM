@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import '../../testLocks'
+import '../../test/testLocks'
 import { login } from '../api/auth'
 import { HttpEpisodeRepository } from '../content/HttpEpisodeRepository'
 import { HttpStoryPlanRepository } from './HttpStoryPlanRepository'

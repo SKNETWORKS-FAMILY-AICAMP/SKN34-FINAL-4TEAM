@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import './testLocks'
+import '../testLocks'
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import type { AuthSession } from './domain/repositories/AuthRepository'
-import { renderApp } from './test/renderApp'
+import type { AuthSession } from '../../domain/repositories/AuthRepository'
+import { renderApp } from '../renderApp'
 
 const user = { id: '1', nickname: '독자', email: 'reader@example.com', operator: false }
 const session = (deviceLabel: string, current = false): AuthSession => ({ id: current ? 'current' : 'other', deviceLabel, current, createdAt: '2026-01-01T00:00:00Z' })

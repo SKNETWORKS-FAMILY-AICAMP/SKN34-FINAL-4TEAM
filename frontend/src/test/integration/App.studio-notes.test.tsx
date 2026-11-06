@@ -5,18 +5,18 @@ import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import './test/scrollToSpy'
-import App from './App'
-import { appContainer } from './app/appContainer'
-import { createAppStore } from './app/store'
+import '../scrollToSpy'
+import App from '../../App'
+import { appContainer } from '../../app/appContainer'
+import { createAppStore } from '../../app/store'
 
 const studioChunk = vi.hoisted(() => ({ ready: Promise.resolve(), requested: vi.fn() }))
-vi.mock('./presentation/features/studio/view/StudioPage', async (importOriginal) => {
+vi.mock('../../presentation/features/studio/view/StudioPage', async (importOriginal) => {
   studioChunk.requested()
   await studioChunk.ready
   return importOriginal()
 })
-vi.mock('./presentation/shared/resizeImg', () => ({ resizeImg: (_f: File | undefined, cb: (url: string) => void) => cb('data:image/jpeg;base64,COVER') }))
+vi.mock('../../presentation/shared/resizeImg', () => ({ resizeImg: (_f: File | undefined, cb: (url: string) => void) => cb('data:image/jpeg;base64,COVER') }))
 
 const db = () => appContainer.resolve('mockDb')
 const star = () => db().works.find((w) => w.id === 'starlight')!

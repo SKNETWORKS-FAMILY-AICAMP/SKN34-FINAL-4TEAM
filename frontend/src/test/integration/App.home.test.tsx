@@ -3,8 +3,8 @@
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { appContainer } from './app/appContainer'
-import { renderApp as renderAt } from './test/renderApp'
+import { appContainer } from '../../app/appContainer'
+import { renderApp as renderAt } from '../renderApp'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); delete document.documentElement.dataset.theme })
 

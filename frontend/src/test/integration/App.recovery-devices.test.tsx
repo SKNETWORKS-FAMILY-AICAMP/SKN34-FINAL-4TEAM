@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import './testLocks'
+import '../testLocks'
 import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { renderApp } from './test/renderApp'
+import { renderApp } from '../renderApp'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); window.history.replaceState(null, '', '/') })
 

@@ -3,15 +3,15 @@ import {cleanup,fireEvent,render,screen} from '@testing-library/react'
 import {Provider} from 'react-redux'
 import {MemoryRouter,Routes,Route} from 'react-router'
 import {afterEach,expect,it,vi} from 'vitest'
-import {createAppStore} from './app/store'
-import {WorldStudioPage} from './presentation/features/worldstudio/view/WorldStudioPage'
-import {WorldStudioUseCase} from './domain/usecases/WorldStudioUseCase'
-import {newSetting,type StudioWorld} from './domain/entities/studioWorld'
-import type {useWorldStudioViewModel} from './presentation/features/worldstudio/viewmodel/useWorldStudioViewModel'
+import {createAppStore} from '../../app/store'
+import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
+import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
+import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
+import type {useWorldStudioViewModel} from '../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel'
 let useCase:WorldStudioUseCase
 let current:ReturnType<typeof useWorldStudioViewModel>
-vi.mock('./presentation/features/worldstudio/viewmodel/useWorldStudioViewModel',async original=>{
- const actual=await original<typeof import('./presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
+vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel',async original=>{
+ const actual=await original<typeof import('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
  return {useWorldStudioViewModel:()=>{current=actual.useWorldStudioViewModel(useCase);return current}}
 })
 afterEach(cleanup)

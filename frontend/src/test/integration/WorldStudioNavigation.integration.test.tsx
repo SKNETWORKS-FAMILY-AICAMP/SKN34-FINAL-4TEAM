@@ -3,19 +3,19 @@ import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/reac
 import {afterEach,expect,it,vi} from 'vitest'
 import {Link,Route,RouterProvider,Routes,createMemoryRouter,useLocation,useNavigate} from 'react-router'
 import {Provider} from 'react-redux'
-import {createAppStore} from './app/store'
-import {WorldStudioPage} from './presentation/features/worldstudio/view/WorldStudioPage'
-import {WorldStudioLeaveProvider} from './presentation/features/worldstudio/viewmodel/WorldStudioLeaveProvider'
-import {WorldStudioUseCase} from './domain/usecases/WorldStudioUseCase'
-import {newSetting,type StudioWorld} from './domain/entities/studioWorld'
+import {createAppStore} from '../../app/store'
+import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
+import {WorldStudioLeaveProvider} from '../../presentation/features/worldstudio/viewmodel/WorldStudioLeaveProvider'
+import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
+import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
 let useCase:WorldStudioUseCase
 let createWorld=vi.fn(async(_name:string,_description:string):Promise<StudioWorld>=>{throw new Error('test setup')})
-vi.mock('./presentation/features/worldstudio/viewmodel/useWorldStudioViewModel',async original=>{
- const actual=await original<typeof import('./presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
+vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel',async original=>{
+ const actual=await original<typeof import('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
  return {useWorldStudioViewModel:()=>actual.useWorldStudioViewModel(useCase)}
 })
-vi.mock('./presentation/features/worldstudio/view/CharacterCards',()=>({default:()=>null}))
-vi.mock('./presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=>null}))
+vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=>null}))
+vi.mock('../../presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=>null}))
 afterEach(()=>{cleanup();vi.restoreAllMocks()})
 function Destination(){const location=useLocation();return <div>도착 {location.pathname} {JSON.stringify(location.state)}</div>}
 function Links(){const navigate=useNavigate();return <><Link to="/link" state={{via:'link'}}>링크 이동</Link><button onClick={()=>navigate('/replace',{replace:true,state:{via:'replace'}})}>교체 이동</button><WorldStudioPage/></>}

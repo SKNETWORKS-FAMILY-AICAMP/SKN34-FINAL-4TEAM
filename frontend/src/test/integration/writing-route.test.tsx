@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import './testLocks'
+import '../testLocks'
 import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { renderApp } from './test/renderApp'
-import { refresh, login, getAccessToken } from './data/api/auth'
-import { sessionActions } from './presentation/shared/session/sessionSlice'
+import { renderApp } from '../renderApp'
+import { refresh, login, getAccessToken } from '../../data/api/auth'
+import { sessionActions } from '../../presentation/shared/session/sessionSlice'
 beforeEach(async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : new Response(null, { status: 401 })))
   await refresh().catch(() => {})

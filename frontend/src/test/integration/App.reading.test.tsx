@@ -3,9 +3,9 @@
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { appContainer } from './app/appContainer'
-import { createAppStore } from './app/store'
-import { renderApp } from './test/renderApp'
+import { appContainer } from '../../app/appContainer'
+import { createAppStore } from '../../app/store'
+import { renderApp } from '../renderApp'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 

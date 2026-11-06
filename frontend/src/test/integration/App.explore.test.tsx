@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { renderApp } from './test/renderApp'
+import { renderApp } from '../renderApp'
 
 afterEach(cleanup)
 

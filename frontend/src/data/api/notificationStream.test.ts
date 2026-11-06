@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import '../../testLocks'
+import '../../test/testLocks'
 import { login } from './auth'
 import type { StreamState } from '../../domain/entities/notificationStream'
 import { openNotificationStream } from './notificationStream'

@@ -3,21 +3,21 @@ import {cleanup,fireEvent,render,screen,within} from '@testing-library/react'
 import {Provider} from 'react-redux'
 import {MemoryRouter,Routes,Route} from 'react-router'
 import {afterEach,beforeEach,expect,it,vi} from 'vitest'
-import {createAppStore} from './app/store'
-import {WorldStudioPage} from './presentation/features/worldstudio/view/WorldStudioPage'
-import {WorldStudioUseCase} from './domain/usecases/WorldStudioUseCase'
-import {newSetting,type StudioWorld} from './domain/entities/studioWorld'
-import {putRelation} from './domain/entities/studioRelations'
-import type {WorldStudioRepository} from './domain/repositories/WorldStudioRepository'
+import {createAppStore} from '../../app/store'
+import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
+import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
+import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
+import {putRelation} from '../../domain/entities/studioRelations'
+import type {WorldStudioRepository} from '../../domain/repositories/WorldStudioRepository'
 let useCase:WorldStudioUseCase
 let world:StudioWorld
 let repository:WorldStudioRepository
-vi.mock('./presentation/features/worldstudio/viewmodel/useWorldStudioViewModel',async original=>{
- const actual=await original<typeof import('./presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
+vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel',async original=>{
+ const actual=await original<typeof import('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
  return {useWorldStudioViewModel:()=>actual.useWorldStudioViewModel(useCase)}
 })
-vi.mock('./presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 그래프 대역</div>}))
-vi.mock('./presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=> <div>세계관 지도 대역</div>}))
+vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 그래프 대역</div>}))
+vi.mock('../../presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=> <div>세계관 지도 대역</div>}))
 beforeEach(()=>{
  const a=newSetting('people');a.item.title='가람';a.item.text='기존 원문';a.tags=['주인공']
  world={id:'qa-writing',name:'작성 검증',description:'세계의 배경',version:1,settings:[a],analysis:null}

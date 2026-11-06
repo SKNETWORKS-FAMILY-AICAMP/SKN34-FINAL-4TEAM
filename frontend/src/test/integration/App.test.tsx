@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { renderApp as renderAt } from './test/renderApp'
+import { renderApp as renderAt } from '../renderApp'
 
 afterEach(() => {
   cleanup()

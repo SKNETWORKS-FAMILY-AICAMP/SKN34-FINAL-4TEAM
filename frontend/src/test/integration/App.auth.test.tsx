@@ -1,18 +1,18 @@
 // @vitest-environment jsdom
-import './testLocks'
+import '../testLocks'
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import App from './App'
-import { createAppStore } from './app/store'
-import { LoginPage } from './presentation/features/auth/view/LoginPage'
-import { RequireRole } from './presentation/shared/session/RequireRole'
-import { renderApp } from './test/renderApp'
+import App from '../../App'
+import { createAppStore } from '../../app/store'
+import { LoginPage } from '../../presentation/features/auth/view/LoginPage'
+import { RequireRole } from '../../presentation/shared/session/RequireRole'
+import { renderApp } from '../renderApp'
 
-vi.mock('./presentation/features/worldstudio/view/WorldStudioPage', () => ({
+vi.mock('../../presentation/features/worldstudio/view/WorldStudioPage', () => ({
   WorldStudioPage: () => {
     const { pathname, search } = useLocation()
     return <><h1>세계관 작업실</h1><p data-testid="world-location">{pathname + search}</p></>

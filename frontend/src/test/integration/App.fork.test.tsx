@@ -5,9 +5,9 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import './test/scrollToSpy'
-import App from './App'
-import { createAppStore } from './app/store'
+import '../scrollToSpy'
+import App from '../../App'
+import { createAppStore } from '../../app/store'
 
 afterEach(cleanup)
 
