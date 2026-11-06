@@ -52,7 +52,7 @@ export function CharacterRelationshipEditor({studio,renderPair}:{studio:VM;rende
  const openPair=(a:string,b:string)=>{if(studio.busy)return;vm.select(a);setSelection({kind:'pair',source:a,target:b})}
  const cancel=()=>{if(source)returnFocus.current=source;setDeleteConfirm(null);setSelection(null);vm.select(null)}
  const keyDown=(e:KeyboardEvent<HTMLElement>)=>{
-  if(e.key==='Escape'&&selection){e.preventDefault();e.stopPropagation();cancel();return}
+  if(e.key==='Escape'&&selection&&!e.nativeEvent.isComposing){e.preventDefault();e.stopPropagation();cancel();return}
   if(e.key!=='Tab'||!narrow||!showInspector||!inspector.current)return
   const controls=Array.from(inspector.current.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary')).filter(el=>el.getClientRects().length)
   const first=controls[0],last=controls.at(-1)
@@ -70,14 +70,14 @@ export function CharacterRelationshipEditor({studio,renderPair}:{studio:VM;rende
    <ol className="relationship-steps" aria-label="관계 연결 단계"><li aria-current={!selection||selection.kind==='person'?'step':undefined}>인물 선택</li><li aria-current={choosing?'step':undefined}>상대 선택</li><li aria-current={selection?.kind==='pair'?'step':undefined}>관계·감정 입력</li><li>편집본 적용 후 저장</li></ol>
    <div className="relationship-hint" role="status">{choosing?<><strong>{name(selection.source)}</strong>와 연결할 상대를 선택해 주세요.<button type="button" className="btn sm" onClick={cancel}>연결 취소</button></>:selection?.kind==='pair'?'관계 입력 중입니다. 편집본에 적용한 뒤 위의 저장 버튼을 눌러 주세요.':'인물은 드래그로 위치를 옮길 수 있어요. 연결은 인물을 선택한 뒤 시작하세요.'}</div>
    <div className={'relationship-workspace'+(showInspector?' has-inspector':'')}>
-    <div className="relationship-main"><MapBoundary><Suspense fallback={<p role="status">관계도를 불러오고 있습니다.</p>}><Canvas vm={vm} editing={{busy:studio.busy,selectedRelations:pairRelations.map(r=>r.item.id),targetSource:choosing?selection.source:null,layoutVersion,onSelect:selectPerson,onConnect:beginConnection,onRelation:id=>{const r=settings.find(s=>s.item.id===id)?.item;if(r?.subjectId&&r.targetId)openPair(r.subjectId,r.targetId)}}}/></Suspense></MapBoundary>
+    <div className="relationship-main"><MapBoundary><Suspense fallback={<p role="status">관계도를 불러오고 있습니다.</p>}><Canvas key={layoutVersion} vm={vm} editing={{busy:studio.busy,selectedRelations:pairRelations.map(r=>r.item.id),targetSource:choosing?selection.source:null,onSelect:selectPerson,onConnect:beginConnection,onRelation:id=>{const r=settings.find(s=>s.item.id===id)?.item;if(r?.subjectId&&r.targetId)openPair(r.subjectId,r.targetId)}}}/></Suspense></MapBoundary>
      {!people.length&&<p className="relationship-empty">아직 인물이 없어요. 인물을 추가해 관계를 시작하세요.</p>}
      <div className="relationship-legend"><span>실선: 실제 관계</span><span>점선·화살표: 방향별 감정</span><span>위치는 이 화면에서만 유지돼요.</span></div>
      <nav className="relationship-people" aria-label="관계 편집 인물 목록">{vm.results.map(n=><button type="button" className="btn sm" key={n.id} ref={el=>{if(el)peopleButtons.current.set(n.id,el);else peopleButtons.current.delete(n.id)}} aria-label={`${n.name} 인물`} aria-pressed={source===n.id} disabled={choosing&&(n.id===selection.source||!people.find(p=>p.item.id===n.id)?.item.title.trim())} onClick={()=>selectPerson(n.id)}>{n.name}</button>)}</nav>
      {!vm.results.length&&!!people.length&&<p className="small muted">일치하는 인물이 없습니다. 검색어를 지워 다시 선택해 주세요.</p>}
      <nav className="relationship-pairs" aria-label="인물 관계 목록">{pairs.map(p=><button className="btn sm" key={p.a+'|'+p.b} type="button" aria-label={`${name(p.a)} · ${name(p.b)} 관계 편집`} onClick={()=>openPair(p.a,p.b)}>{name(p.a)} · {name(p.b)}<small>{settings.filter(s=>s.item.kind==='relation'&&pairMatches(s.item,p.a,p.b)).length}개 항목</small></button>)}</nav>
     </div>
-    {narrow&&showInspector&&<button type="button" className="relationship-backdrop" tabIndex={-1} aria-label="선택 취소" onClick={cancel}/>}
+    {narrow&&showInspector&&<div className="relationship-backdrop" aria-hidden="true"/>}
     {showInspector&&<aside ref={inspector} tabIndex={-1} className="relationship-inspector" role={narrow?'dialog':undefined} aria-modal={narrow?true:undefined} aria-label="인물과 관계 편집">
      <div className="relationship-inspector-head"><h3>{person?'인물 정보':`${name(selection!.kind==='pair'?selection.source:'')} · ${name(selection!.kind==='pair'?selection.target:'')}`}</h3><button type="button" className="btn sm" aria-label="편집 패널 닫기" onClick={cancel}>닫기</button></div>
      {deletion?<><h4>{deletion.person.item.title} 삭제 확인</h4><p>이 인물과 아래 관계·감정 {deletion.relations.length}개를 편집본에서 삭제합니다. 공통 저장을 눌러야 반영되며 이전 저장 이력은 유지됩니다.</p><ul>{deletion.relations.map(r=><li key={r.item.id}>{relationLabel(r.item)}</li>)}</ul>

@@ -9,7 +9,7 @@ afterEach(()=>{cleanup();vi.unstubAllGlobals()})
 it('opens saved character details without exposing edit or connect controls',()=>{
  const a=newSetting('people');a.item.title='홍문'
  const onSelect=vi.fn()
- function Harness(){const vm=useWorldMapViewModel([a],buildCharacterMap);return <CharacterCards vm={vm} editing={{busy:false,readOnly:true,selectedRelations:[],targetSource:null,layoutVersion:0,onSelect,onConnect:vi.fn(),onRelation:vi.fn()}}/>}
+ function Harness(){const vm=useWorldMapViewModel([a],buildCharacterMap);return <CharacterCards vm={vm} editing={{busy:false,readOnly:true,selectedRelations:[],targetSource:null,onSelect,onConnect:vi.fn(),onRelation:vi.fn()}}/>}
  render(<Harness/> )
  fireEvent.click(screen.getByRole('button',{name:'홍문 상세 보기'}))
  expect(onSelect).toHaveBeenCalledWith(a.item.id)
@@ -19,7 +19,7 @@ it('creates cards without links and separates dragging, info and explicit connec
  vi.stubGlobal('PointerEvent',MouseEvent)
  const a=newSetting('people'),b=newSetting('people');a.item.title='가람';a.item.text='북부 기록관';b.item.title='나래'
  const onSelect=vi.fn(),onConnect=vi.fn(),onRelation=vi.fn()
- function Harness(){const vm=useWorldMapViewModel([a,b],buildCharacterMap);return <CharacterCards vm={vm} editing={{busy:false,selectedRelations:[],targetSource:null,layoutVersion:0,onSelect,onConnect,onRelation}}/>}
+ function Harness(){const vm=useWorldMapViewModel([a,b],buildCharacterMap);return <CharacterCards vm={vm} editing={{busy:false,selectedRelations:[],targetSource:null,onSelect,onConnect,onRelation}}/>}
  render(<Harness/> )
  expect(screen.getByRole('group',{name:'가람 인물 카드'})).toBeTruthy()
  expect(screen.queryByRole('button',{name:/관계선 편집/})).toBeNull()

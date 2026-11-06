@@ -27,13 +27,14 @@ export default function WorldMapCanvas({vm}:{vm:ReturnType<typeof useWorldMapVie
  }
  return <><p className="small muted" role="status">{paused?'움직임 멈춤':settled?'배치 완료':'연결을 따라 펼쳐지는 중'}</p><div ref={host} className="world-map-canvas">
   <ForceGraph2D<MapNode,MapLink> ref={graph} graphData={data} width={width} height={560} backgroundColor="rgba(0,0,0,0)"
-   cooldownTicks={1} nodeLabel={n=>n.name} nodeRelSize={8}
+   cooldownTicks={1} nodeLabel={()=>''} nodeRelSize={8}
    nodeCanvasObject={(node,ctx,scale)=>{
     const active=vm.visible.has(node.id)&&(!vm.selected||vm.neighbors.has(node.id)),x=node.x??0,y=node.y??0
     const radius=node.kind==='인물'?10:5
     ctx.globalAlpha=active?1:.22;ctx.filter=active?'none':`blur(${3/scale}px)`;ctx.shadowColor=palette[node.kind];ctx.shadowBlur=active?18:0
     ctx.beginPath();ctx.arc(x,y,radius,0,2*Math.PI);ctx.fillStyle=palette[node.kind];ctx.fill();ctx.shadowBlur=0
     if(vm.selected?.id===node.id){ctx.beginPath();ctx.arc(x,y,radius+6/scale,0,2*Math.PI);ctx.lineWidth=1.5/scale;ctx.strokeStyle=palette[node.kind];ctx.stroke()}
+    ctx.filter='none';ctx.globalAlpha=active?1:.55
     ctx.font=`${node.kind==='인물'?'600 ':''}${node.kind==='인물'?15/scale:11/scale}px "Malgun Gothic",sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#edf2ff';ctx.fillText(node.name.length>16?node.name.slice(0,15)+'…':node.name,x,y+radius+7/scale);ctx.globalAlpha=1;ctx.filter='none'
    }}
    nodePointerAreaPaint={(n,color,ctx)=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(n.x??0,n.y??0,11,0,2*Math.PI);ctx.fill()}}
