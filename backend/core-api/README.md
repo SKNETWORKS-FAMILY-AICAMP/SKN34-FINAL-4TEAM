@@ -135,7 +135,7 @@ Content의 활성화·DB·AI 생성 토큰·S3 설정은 Content에만 전달합
 CI가 이 디렉터리에서 `./gradlew unitTest --no-daemon --tests 'ai.storyfork.core.auth.*'`와 `./gradlew integrationTest --no-daemon --tests ...`를 직접 호출합니다. 별도 runner·shell wrapper는 없습니다.
 Core의 기능 필터는 auth/health이며 공통·설정·의존성·미등록 경로는 전체로 확장합니다. Auth runtime 변경은 Content/web 소비자와 시스템도 선택합니다. 이전된 콘텐츠 테스트는 Content job에서 실행합니다.
 통합은 임시 PostgreSQL·Mailpit의 Auth Flyway/내부 보안을 확인하고 `AUTH_INTEGRATION_TEST=true`·`AUTH_MAILPIT_API`를 설정합니다. Content의 fresh DB/JPA/HTTP 검사는 별도 Content job 책임입니다.
-그 뒤 관련 HTTP 시스템 시나리오가 CI Compose에서 실행됩니다. [공통 검증](../../README.md#검증)을 따르며 실제 hosted `Required CI` 결과 확인 전에는 검증 대기입니다.
+그 뒤 관련 HTTP 시스템 시나리오가 CI Compose에서 실행됩니다. [공통 검증](../../docs/development.md#검증)을 따르며 실제 hosted `Required CI` 결과 확인 전에는 검증 대기입니다.
 
 회차별 초안·수동 버전·복원 API와 저장 실패 경계는 [이슈 #50 대응](../../docs/issue-50-alignment.md)을 참고하세요.
 

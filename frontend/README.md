@@ -98,7 +98,7 @@ pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
 pnpm exec vitest run src/data/api/auth.test.ts
 ```
 
-CI는 [공통 검증 정책](../README.md#검증)에 따라 web 서비스의 단위(Domain/Data/HTML)와 나머지 React/Hook/App 통합을 분리 실행하고 lint/build도 수행합니다.
+CI는 [공통 검증 정책](../docs/development.md#검증)에 따라 web 서비스의 단위(Domain/Data/HTML)와 나머지 React/Hook/App 통합을 분리 실행하고 lint/build도 수행합니다.
 워크플로가 이 디렉터리에서 `pnpm exec vitest run src/domain src/data src/index-html.test.js`와 해당 파일들을 `--exclude`한 통합 명령을 직접 호출합니다. 별도 테스트 runner나 shell wrapper는 없습니다.
 앱·라우트 횡단 통합 테스트는 `src/test/integration/`에, 기능별 테스트는 기존 기능 파일 옆에 둡니다. 공통 테스트 도구는 `src/test/`에 두고, HTML 단위 테스트는 CI 명시 경로인 `src/index-html.test.js`에 유지합니다.
 Core API 변경 시 web 소비자 회귀도 선택합니다. 실제 HTTP 시스템 시나리오는 CI Compose에서 실행하며 브라우저 UI 검증이 아닙니다.
