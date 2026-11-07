@@ -28,7 +28,8 @@ Core는 회원·인증·세션·Health와 내부 인증 확인을 담당한다. 
 
 - JPA Entity와 Spring Data `JpaRepository`를 사용한다. 직접 작성 SQL·`JdbcTemplate`·`nativeQuery`는 쓰지 않는다.
 - 스키마는 Flyway가 소유한다. SQL은 `db/migration/<domain>/`에 두고 기존 SQL 체크섬·이력을 보존한다. Hibernate create/update는 쓰지 않는다.
-- Core는 `db/migration/auth`(V1–V4)와 `db/migration/notification`(V5~)을 `flyway_schema_history` 하나로 소유한다.
+- Core는 `db/migration/auth`(현재 V1–V4·V7)와 `db/migration/notification`(V5–V6)을 `flyway_schema_history` 하나로 소유한다.
+  두 경로가 전역 버전을 공유하므로 새 SQL은 두 경로 전체의 최댓값 다음 번호를 쓴다.
 
 ## 검증
 

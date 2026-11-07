@@ -25,8 +25,9 @@ SEARCH_CMDS = {"rg", "grep", "egrep", "find", "ag", "fd"}
 
 
 def git(root, *args):
-    r = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
-    return r.stdout.strip() if r.returncode == 0 else ""
+    r = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                       stdin=subprocess.DEVNULL, timeout=10)
+    return r.stdout.rstrip("\n") if r.returncode == 0 else ""  # porcelain 앞 공백 보존
 
 
 def repo_root(cwd):
@@ -45,8 +46,9 @@ def graphify_ready(root):
 
 
 def segments(cmd):
-    # ponytail: 줄바꿈으로만 이어진 여러 명령은 한 구간으로 본다. 필요하면 셸 파서로 교체.
-    lex = shlex.shlex(cmd, posix=True, punctuation_chars=";&|")
+    # 따옴표 밖 줄바꿈도 명령 구분자다. ponytail: 따옴표 없는 heredoc 본문도 명령으로 보지만 오탐만 생긴다.
+    lex = shlex.shlex(cmd, posix=True, punctuation_chars=";&|\n")
+    lex.whitespace = " \t\r"
     lex.whitespace_split = True
     try:
         tokens = list(lex)
@@ -54,7 +56,7 @@ def segments(cmd):
         return []
     seg = []
     for t in tokens:
-        if t and set(t) <= set(";&|"):
+        if t and set(t) <= set(";&|\n"):
             yield seg
             seg = []
         else:
@@ -114,9 +116,9 @@ def check_git(cmd, root):
         sub, rest = args[0], args[1:]
         positional = [a for a in rest if not a.startswith("-")]
         if sub == "push":
+            current = git(root, "branch", "--show-current")
             dests = [p.split(":")[-1].lstrip("+").removeprefix("refs/heads/") for p in positional[1:]]
-            if not dests:
-                dests = [git(root, "branch", "--show-current")]
+            dests = [current if d == "HEAD" else d for d in dests] or [current]
             hit = PROTECTED.intersection(dests)
             if hit:
                 return "ask", f"{'/'.join(sorted(hit))} 직접 푸시는 사용자 확인이 필요하다. 기본은 작업 브랜치 → PR."
@@ -133,7 +135,9 @@ def check_git(cmd, root):
             if first is not None and not COMMIT_RE.match(first):
                 return "block", f"커밋 메시지 '{first}'는 `<type>: <한국어 설명>` 형식이어야 한다 (type: {TYPES})."
         elif sub == "add":
-            for p in positional:
+            # 디렉터리·-A·-f로 실제 추가될 경로까지 본다(dry-run 출력: add 'path').
+            staged = re.findall(r"^add '(.+)'$", git(root, "add", "--dry-run", *rest), re.M)
+            for p in positional + staged:
                 name = Path(p).name
                 if (name == ".env" or name.startswith(".env.")) and name != ".env.example":
                     return "block", f"{p}: 실제 .env는 커밋하지 않는다. 공유는 .env.example만."

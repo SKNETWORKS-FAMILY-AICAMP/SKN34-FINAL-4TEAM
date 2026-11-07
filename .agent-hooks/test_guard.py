@@ -89,6 +89,21 @@ class GuardTest(unittest.TestCase):
         self.assertEqual(2, self.bash("hermes", "git add backend/.env.local")[0])
         self.assertEqual((0, "", ""), self.bash("claude", "git add .env.example"))
 
+    def test_env_staged_through_directory_is_blocked(self):
+        (self.repo / ".gitignore").write_text(".env\n")
+        (self.repo / ".env").write_text("KEY=1\n")
+        self.assertEqual((0, "", ""), self.bash("claude", "git add ."))  # 무시 파일은 추가되지 않음
+        self.assertEqual(2, self.bash("claude", "git add -f .")[0])
+        self.assertEqual(2, self.bash("codex", "git add -A --force")[0])
+
+    def test_push_head_and_newline_separated_commands(self):
+        sh(self.repo, "git", "switch", "-qc", "develop")
+        _, out, _ = self.bash("claude", "git push origin HEAD")
+        self.assertEqual("ask", json.loads(out)["hookSpecificOutput"]["permissionDecision"])
+        sh(self.repo, "git", "switch", "-q", "feat/base")
+        self.assertEqual(2, self.bash("codex", "git status\ngit push origin develop")[0])
+        self.assertEqual(2, self.bash("claude", "git status\ngit switch -c Bad")[0])
+
     def test_outside_storyfork_is_noop(self):
         with tempfile.TemporaryDirectory() as other:
             sh(other, "git", "init", "-q")
@@ -113,6 +128,13 @@ class GuardTest(unittest.TestCase):
         (self.repo / "test_app.py").write_text("")
         reason = json.loads(self.stop("codex")[1])["reason"]
         self.assertNotIn("TDD", reason)
+
+    def test_stop_keeps_first_status_path_intact(self):
+        (self.repo / "test_app.py").write_text("")
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "t")
+        (self.repo / "test_app.py").write_text("assert True\n")  # ` M test_app.py` 한 줄
+        self.assertNotIn("TDD", json.loads(self.stop()[1])["reason"])
 
     def test_stop_ignores_docs_only_and_hermes_retry(self):
         (self.repo / "README.md").write_text("doc\n")
