@@ -135,6 +135,7 @@ class AttachmentServiceTest {
     @Test fun `inherited episode images use frozen body references and cannot be created`() {
         val image = ContentImage(workId = "original", episodeNo = 1, objectKey = "episode-images/old", filename = "map.png", mediaType = "image/png", byteSize = png.size.toLong())
         `when`(images.findById(image.id)).thenReturn(Optional.of(image))
+        `when`(episodeService.permitsImageReference("work", 1, image)).thenReturn(true)
         `when`(storage.read(image.objectKey)).thenReturn(AttachmentObjectResult(png))
         `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(body = "기준[[image:${image.id}]]"), emptyList(), null, true, null))
         assertArrayEquals(png, service.downloadEpisodeImage("work", 1, image.id, "owner", false).bytes)
@@ -152,6 +153,7 @@ class AttachmentServiceTest {
     @Test fun `public image access requires exact published episode references and cover publication access`() {
         val image = ContentImage(workId = "work", episodeNo = 1, objectKey = "episode-images/old", byteSize = png.size.toLong())
         `when`(images.findById(image.id)).thenReturn(Optional.of(image))
+        `when`(episodeService.permitsImageReference("work", 1, image)).thenReturn(true)
         `when`(storage.read(image.objectKey)).thenReturn(AttachmentObjectResult(png))
         `when`(content.publicRead("work")).thenReturn(WorkResponse("work", "공개 작품", "", "public", false, false, null,
             listOf(Episode(1, 1, "version", "1화", "공개[[image:${image.id}]]")), null))

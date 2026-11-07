@@ -49,6 +49,15 @@ it.each([
  expect(await useCase.read(saved.id)).toEqual(corrected)
 })
 
+it('passes mutation cancellation through the use case without changing its input',async()=>{
+ const repository=fakeRepository(),useCase=new WorldStudioUseCase(repository),controller=new AbortController()
+ const create=vi.spyOn(repository,'create'),save=vi.spyOn(repository,'saveStudio')
+ const world=await useCase.create('세계','',controller.signal)
+ await useCase.save(world,controller.signal)
+ expect(create).toHaveBeenCalledWith('세계','',controller.signal)
+ expect(save).toHaveBeenCalledWith(world,controller.signal)
+})
+
 it('only requests label cleanup when trimming or removing empty labels changes the value',()=>{
  expect(studioLabelCleanup(undefined)).toBeUndefined()
  expect(studioLabelCleanup([])).toBeUndefined()

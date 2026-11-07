@@ -60,7 +60,7 @@ jobs:
     # publish가 같은 저장소 develop의 CI 성공 또는 명시적인 develop 수동 실행만 허용한다.
     # workflow_run의 ref는 기본 브랜치, 수동 실행의 ref는 develop이므로 main-only 검사는 하지 않는다.
     # Fresh content history is incompatible with the retired development history. No automatic reset.
-    if: ${{ needs.publish.result == 'success' && vars.DEVELOP_CD_ENABLED == 'true' && vars.CONTENT_FRESH_SCHEMA_APPROVED == 'true' }}
+    if: ${{ needs.publish.result == 'success' && vars.DEVELOP_CD_ENABLED == 'true' && vars.CONTENT_FRESH_SCHEMA_APPROVED == 'true' && vars.DEVELOP_INTERNAL_DB_APPROVED == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -72,6 +72,7 @@ jobs:
       CD_DEPLOY_DIR: ${{ vars.CD_DEPLOY_DIR }}
       CD_WEB_PORT: ${{ vars.CD_WEB_PORT }}
       CONTENT_FRESH_SCHEMA_APPROVED: ${{ vars.CONTENT_FRESH_SCHEMA_APPROVED }}
+      DEVELOP_INTERNAL_DB_APPROVED: ${{ vars.DEVELOP_INTERNAL_DB_APPROVED }}
       WORLDSTUDIO_CD_MIGRATION_ENABLED: ${{ vars.WORLDSTUDIO_CD_MIGRATION_ENABLED }}
       WORLDSTUDIO_EXPECTED_DATABASE_URL: ${{ vars.WORLDSTUDIO_EXPECTED_DATABASE_URL }}
       WORLDSTUDIO_EXPECTED_DATABASE_USER: ${{ vars.WORLDSTUDIO_EXPECTED_DATABASE_USER }}
@@ -107,17 +108,20 @@ jobs:
             printf '%s=%q\n' CD_DIRECTORY "$CD_DEPLOY_DIR" CD_WEB_PORT "$CD_WEB_PORT" \
               GITHUB_ACTOR "$GITHUB_ACTOR" GH_TOKEN "$GH_TOKEN" \
               CONTENT_FRESH_SCHEMA_APPROVED "$CONTENT_FRESH_SCHEMA_APPROVED" \
+              DEVELOP_INTERNAL_DB_APPROVED "$DEVELOP_INTERNAL_DB_APPROVED" \
               WORLDSTUDIO_CD_MIGRATION_ENABLED "$WORLDSTUDIO_CD_MIGRATION_ENABLED" \
               WORLDSTUDIO_EXPECTED_DATABASE_URL "$WORLDSTUDIO_EXPECTED_DATABASE_URL" \
               WORLDSTUDIO_EXPECTED_DATABASE_USER "$WORLDSTUDIO_EXPECTED_DATABASE_USER" \
               WORLDSTUDIO_BACKUP_RESTORE_REFERENCE "$WORLDSTUDIO_BACKUP_RESTORE_REFERENCE" \
               COMPOSE_BASE_YAML "$(< infrastructure/docker-compose.yaml)" \
-              COMPOSE_DEV_YAML "$(< infrastructure/docker-compose.dev.yaml)"
+              COMPOSE_DEV_YAML "$(< infrastructure/docker-compose.dev.yaml)" \
+              COMPOSE_LOCAL_YAML "$(< infrastructure/docker-compose.local.yaml)"
             cat <<'REMOTE'
           set -euo pipefail
           umask 077
           # An operator must confirm the exact target and fresh content schema outside this workflow.
           [[ "${CONTENT_FRESH_SCHEMA_APPROVED:-}" == true ]] || { printf 'Content fresh-schema cutover not approved.\n' >&2; exit 1; }
+          [[ "${DEVELOP_INTERNAL_DB_APPROVED:-}" == true ]] || { printf 'Develop internal database cutover not approved.\n' >&2; exit 1; }
           cd -P -- "$CD_DIRECTORY"
           [[ "$PWD" == "$CD_DIRECTORY" && -f .env ]] || exit 1
           export CD_DIRECTORY CD_WEB_PORT COMPOSE_PROJECT_NAME=storyfork-develop-cd DOCKER_HOST=unix:///var/run/docker.sock
@@ -130,6 +134,9 @@ jobs:
           export COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.yaml:$DOCKER_CONFIG/docker-compose.dev.yaml"
           printf '%s\n' "$COMPOSE_BASE_YAML" > "$DOCKER_CONFIG/docker-compose.yaml"
           printf '%s\n' "$COMPOSE_DEV_YAML" > "$DOCKER_CONFIG/docker-compose.dev.yaml"
+          # --project-directory changes relative extends resolution; use the staged absolute path.
+          export CD_LOCAL_COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.local.yaml"
+          printf '%s\n' "$COMPOSE_LOCAL_YAML" > "$CD_LOCAL_COMPOSE_FILE"
 
           # 같은 프로젝트 이름을 사용하는 다른 배포는 변경하지 않는다.
           containers=$(docker container ls --all --quiet --filter label=com.docker.compose.project=storyfork-develop-cd)
@@ -145,12 +152,13 @@ jobs:
           export CD_CONTENT_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
           export CD_AI_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env pull
-          images=$(docker compose --project-directory "$CD_DIRECTORY" --env-file .env config --images)
-          revisions=$(docker image inspect $images --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
+          revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
           [[ "$revisions" =~ ^[0-9a-f]{40}$ ]] || { printf 'Mixed or missing develop image revisions; rerun CD.\n' >&2; exit 1; }
           # Stop public writes and the old Core content writer before any new migration/writer starts.
           # Failure leaves ingress stopped; never auto-repair history or roll incompatible binaries back.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env stop web core-api content-service
+          # New project-scoped dependencies require a separately approved cutover; no data import/reset.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180 postgres mailpit
           # 미확인 DB에 DDL을 실행하지 않는다. develop-cd의 승인된 설정만 활성화한다.
           export APP_WORLDSTUDIO_ENABLED=false
           case "${WORLDSTUDIO_CD_MIGRATION_ENABLED:-false}" in

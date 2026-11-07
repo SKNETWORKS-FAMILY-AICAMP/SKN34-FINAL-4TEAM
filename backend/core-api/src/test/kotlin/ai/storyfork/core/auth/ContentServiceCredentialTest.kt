@@ -1,10 +1,10 @@
 package ai.storyfork.core.auth
 
+import ai.storyfork.core.auth.service.AuthException
 import ai.storyfork.core.auth.service.AuthVerificationService
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.springframework.web.server.ResponseStatusException
 
 class ContentServiceCredentialTest {
     @Test fun `empty configuration missing header wrong service token and user bearer never authenticate a service`() {
@@ -21,7 +21,7 @@ class ContentServiceCredentialTest {
         val id = UUID.randomUUID()
         assertEquals(id, service.verify(id.toString()).memberId)
         for (value in listOf(null, "forged-owner", "1-1-1-1-1", "")) {
-            assertEquals(401, assertThrows(ResponseStatusException::class.java) { service.verify(value) }.statusCode.value())
+            assertEquals(AuthException.Reason.UNAUTHENTICATED, assertThrows(AuthException::class.java) { service.verify(value) }.reason)
         }
     }
 }

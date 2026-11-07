@@ -114,7 +114,8 @@ def check_results(results, expected):
 def redact(text):
     for key in ("AUTH_JWT_SECRET", "INTERNAL_TOKEN", "CONTENT_CORE_AUTH_TOKEN", "OPERATIONS_SERVICE_TOKEN",
                 "CORE_DATABASE_PASSWORD", "CONTENT_DATABASE_PASSWORD", "OPERATIONS_DATABASE_PASSWORD",
-                "TEST_OPERATIONS_DATABASE_PASSWORD", "OPENAI_API_KEY"):
+                "TEST_OPERATIONS_DATABASE_PASSWORD", "TEST_WORLDSTUDIO_DATABASE_PASSWORD", "NEO4J_PASSWORD",
+                "OPENAI_API_KEY"):
         value = os.environ.get(key, "")
         if value:
             text = text.replace(value, "[redacted]")

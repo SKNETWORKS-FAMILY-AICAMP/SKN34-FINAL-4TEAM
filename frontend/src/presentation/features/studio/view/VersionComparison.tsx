@@ -1,9 +1,9 @@
 import type { Version } from '../../../../domain/entities/content'
 import { ManuscriptBody } from '../../../shared/media/MediaPanel'
-import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
+import type { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 
-export function VersionComparison({ workId, number, versions }: { workId: string; number: number; versions: Version[] }) {
-  const { before, after, comparison, changed, setBeforeId, setAfterId } = useVersionComparisonViewModel(versions)
+export function VersionComparison({ workId, number, versions, model }: { workId: string; number: number; versions: Version[]; model: ReturnType<typeof useVersionComparisonViewModel> }) {
+  const { before, after, comparison, changed, setBeforeId, setAfterId } = model
   if (versions.length < 2) return <p className="muted">비교하려면 이 회차의 저장 버전이 두 개 이상 필요해요.</p>
   const labels = { same: '유지', removed: '삭제', added: '추가' }
   return <section className="version-comparison" aria-label="저장 원고 비교">

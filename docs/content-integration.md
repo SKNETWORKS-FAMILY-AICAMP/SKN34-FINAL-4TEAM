@@ -1,5 +1,7 @@
 # 개인 브랜치 콘텐츠 통합
 
+[메인 README](../README.md) · [문서 목록](README.md)
+
 > **현재 상태:** 콘텐츠·첨부·WorldStudio 실행 코드/테스트는 Content로 추출했고 기존 works URL·Bearer/CSRF는 유지한다. Core 내부 검증은 별도 서비스 자격과 JWT로 UUID만 반환한다. Content fresh SQL 재작성은 기존 이력과 비호환이며 실제 DB 폐기/전환은 실행하지 않았다. 현재 실행 지침은 [Content 안내](../backend/content-service/README.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 Core 소유·이전 경로·설정·검증 기록은 분리 전 역사적 설명이며 현재 실행 명령이나 이번 CI 통과 근거가 아니다.**
 
 `/content` 작업실은 기존 React DI·MVVM에서 Kotlin Core 공개 API를 호출한다. Core가 PostgreSQL 정본과 권한·버전·발행을 관리하고 AI Service에 선택적 생성을 요청한다. Auth 통합 후 비공개 콘텐츠 요청은 기존 메모리 Bearer와 변경 요청의 CSRF를 재사용한다. 다른 목업 업무 화면은 실제 저장 API로 전환하지 않았다.
@@ -25,17 +27,19 @@
 
 설정은 루트 `.env.example`을 참고해 루트 `.env`에서 관리한다. 실제 `.env`를 덮어쓰거나 서비스별 파일을 만들지 않는다. 기본 `CONTENT_ENABLED=false`에서도 기존 Health·Auth 실행을 유지한다. 활성화 시 PostgreSQL JDBC URL·사용자·비밀번호와 양 서비스의 동일한 `INTERNAL_TOKEN`이 필요하다. `OPENAI_API_KEY`와 `OPENAI_MODEL`은 AI 런타임에만 전달한다. 공용 실행 설정에는 모델 기본값이 없다. 생성을 사용하려면 사용 가능한 `OPENAI_MODEL`과 키를 명시해야 하며, 누락하면 생성 API는 503으로 실패한다. 팀 CD의 별도 모델 설정은 팀 전체 모델 선정 결정이나 실제 런타임 검증을 뜻하지 않는다.
 
-별도 콘텐츠 overlay 없이 공통 base에서 `CONTENT_ENABLED`를 전달한다. 루트 `.env`에 `CONTENT_ENABLED=true`와 두 서비스가 공유할 실제 `INTERNAL_TOKEN`을 명시한 뒤, 저장소 루트에서 배포 이미지 로컬 검증 조합으로 실행한다:
+다음 실행 안내는 현재 Content 분리 구성이다. 별도 콘텐츠 overlay 없이 공통 base에서 `CONTENT_ENABLED`를 전달한다. 루트 `.env`에 필수 DB·JWT 자격과 `CONTENT_ENABLED=true`, Core↔Content의 `CONTENT_CORE_AUTH_TOKEN`, Content↔AI의 `INTERNAL_TOKEN`을 준비한 뒤 저장소 루트에서 실행한다:
 
 ```bash
-docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml up --build -d
+docker compose up -d --build
 ```
 
-base는 단독 실행하지 않는다. prod는 기존 Auth PostgreSQL 서비스·자격증명·volume을 유지하며, Core의 `CONTENT_DATABASE_*`에는 같은 내부 DB URL과 `CORE_DATABASE_USER`/`CORE_DATABASE_PASSWORD`를 전달한다. 루트 예시의 별도 `CONTENT_DATABASE_*` 값은 네이티브 실행용이며 Compose에서 다른 DB를 선택하는 설정이 아니다. Auth의 `flyway_schema_history`와 콘텐츠의 `content_schema_history`는 분리한다. DB·Core·AI는 호스트에 공개하지 않는다.
+루트 `compose.yaml`이 base + `infrastructure/docker-compose.local.yaml`을 선택하고 루트 `.env`를 자동으로 읽는다. web·Core·Content·AI 네 앱을 runtime Dockerfile로 빌드하며 HMR은 아니다. local의 새 프로젝트·DB volume은 기존 `storyfork-dev`나 배포 데이터를 재사용하지 않는다. Core·Content는 같은 내부 PostgreSQL과 `CORE_DATABASE_USER`/`CORE_DATABASE_PASSWORD`를 사용하고 SMTP는 내부 Mailpit으로 연결한다. 별도 `CONTENT_DATABASE_*` 예시는 네이티브 실행용이다. Auth·Content migration 이력은 분리한다. web 5173·Core 8080·Content 8081·DB 5432·Mailpit 1025/8025는 기본 loopback 바인딩이고 AI는 내부 전용이다.
 
-현재 개발 배포 서버는 같은 base + `infrastructure/docker-compose.dev.yaml`을 사용한다. CI가 게시한 세 `:develop` 이미지만 pull·실행하며 소스 build·hot reload가 아니다. 기존 외부 `CORE_DATABASE_URL`·자격증명을 Auth와 콘텐츠에 함께 전달하고 외부 SMTP를 유지하며 새 DB나 volume은 만들지 않는다. 서버 배포 명령과 디렉터리·포트 경계는 [인프라 안내](../infrastructure/README.md)를 따른다.
+개발 서버의 base + `infrastructure/docker-compose.dev.yaml`은 게시된 네 `:develop` 앱 이미지와 내부 PostgreSQL·Mailpit을 사용한다. local과 같은 DB·메일 구조지만 별도 프로젝트·volume이며 기존 `CD_WEB_PORT` loopback 바인딩만 호스트에 노출한다. 앱 소스 build·hot reload는 아니다. 기존 외부·공유 DB 전환과 데이터 이관은 실행하지 않았고 개발 CD에는 별도 내부 DB 전환 승인이 필요하다.
 
-두 조합 모두 콘텐츠는 기본 비활성이고, 컨테이너에는 개발 작성자를 주입하지 않으며 실제 로그인 JWT가 필요하다. 빈 내부 토큰은 인증 성공으로 대체하지 않는다. Compose 구문 검사 자체는 실제 토큰 유효성을 검증하지 않으며, 토큰 누락 시 생성 요청은 기존 구현대로 실패한다. 인증·TLS 없는 운영 배포 준비 완료를 의미하지 않는다.
+운영 준비용 base + `infrastructure/docker-compose.prod.yaml`만 `:main` 앱 이미지·외부 PostgreSQL/SMTP·필수 `PROD_*` 입력·항상 Secure인 쿠키를 사용한다. 현재 게시 workflow는 develop 전용이므로 main 가용성·게시·배포는 확인되지 않았다. TLS/ingress 제공이나 운영 준비 완료가 아니며, 기본 Auth V4의 공개 비밀번호 샘플 회원은 운영 전 별도 보안 판단 대상이다. 이번 설정 변경은 기존 migration을 수정하지 않는다. 세부 환경·포트·승인 경계는 [인프라 안내](../infrastructure/README.md)를 따른다.
+
+세 조합 모두 콘텐츠는 기본 비활성이고, 개발 작성자를 주입하지 않으며 실제 로그인 JWT가 필요하다. 빈 내부 토큰은 인증 성공으로 대체하지 않는다. Compose 구문 검사 자체는 실제 토큰 유효성을 검증하지 않으며, 토큰 누락 시 생성 요청은 기존 구현대로 실패한다.
 
 ## 문맥과 저장 한계
 

@@ -1,5 +1,7 @@
 # Frontend 설계 (현재 실행 모듈: `web`)
 
+[메인 README](../../../README.md) · [문서 목록](../../README.md)
+
 > [MVP 설계](../design.md)와 [결정 기록](../decisions.md#결정-목록)(특히 DEC-41)을 따릅니다. 이 문서는 화면·목표 경계 방향이며 실제 인증/콘텐츠 화면과 목업·미구현 기능을 구분합니다. 콘텐츠·운영 앱 분리는 아직 실행하지 않았습니다. 예전 [KAG 설계](../archive/kag-design/services/web.md)는 현행 MVP가 아닙니다.
 
 ## 목적과 현재 상태

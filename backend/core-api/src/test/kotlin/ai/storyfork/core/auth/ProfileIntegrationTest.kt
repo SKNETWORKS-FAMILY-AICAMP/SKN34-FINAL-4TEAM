@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.boot.test.system.CapturedOutput
 import org.springframework.boot.test.system.OutputCaptureExtension
 import org.mockito.ArgumentCaptor
@@ -165,6 +167,62 @@ class ProfileIntegrationTest {
         assertEquals(200, login(email, "new-password").status)
         mvc.perform(csrf(post("/api/v1/auth/refresh")).cookie(refresh)).andExpect(status().is4xxClientError())
     }
+    @Test
+    fun `password reset invalidates pending email change without affecting another member`() {
+        val email = member()
+        val otherEmail = member()
+        val authorization = bearer(email)
+        val otherAuthorization = bearer(otherEmail)
+        val target = "${UUID.randomUUID()}@example.invalid"
+        val otherTarget = "${UUID.randomUUID()}@example.invalid"
+        mvc.perform(json(post("/api/v1/me/email-change").header("Authorization", authorization), """{"email":"$target"}""")).andExpect(status().isAccepted())
+        val changeToken = sentToken()
+        reset(mail)
+        mvc.perform(json(post("/api/v1/me/email-change").header("Authorization", otherAuthorization), """{"email":"$otherTarget"}""")).andExpect(status().isAccepted())
+        val otherChangeToken = sentToken()
+        reset(mail)
+        mvc.perform(json(post("/api/v1/auth/forgot-password"), """{"email":"$email"}""")).andExpect(status().isAccepted())
+        val resetToken = sentToken()
+        reset(mail)
+        mvc.perform(json(post("/api/v1/auth/forgot-password"), """{"email":"$otherEmail"}""")).andExpect(status().isAccepted())
+
+        mvc.perform(json(post("/api/v1/auth/reset-password"), """{"token":"$resetToken","newPassword":"new-password"}""")).andExpect(status().isNoContent())
+
+        mvc.perform(json(post("/api/v1/auth/verify-email-change"), """{"token":"$changeToken"}""")).andExpect(status().isBadRequest())
+        mvc.perform(get("/api/v1/me").header("Authorization", authorization)).andExpect(jsonPath("$.email").value(email))
+        assertEquals(200, login(email, "new-password").status)
+        assertEquals(2, jdbc.queryForObject("select count(*) from auth_profile_challenge where member_id = (select id from auth_member where email = ?)", Int::class.java, otherEmail))
+        assertEquals(1, jdbc.queryForObject("select count(*) from auth_session where member_id = (select id from auth_member where email = ?) and not revoked", Int::class.java, otherEmail))
+        assertEquals(200, login(otherEmail).status)
+        mvc.perform(json(post("/api/v1/auth/verify-email-change"), """{"token":"$otherChangeToken"}""")).andExpect(status().isNoContent())
+        mvc.perform(get("/api/v1/me").header("Authorization", otherAuthorization)).andExpect(jsonPath("$.email").value(otherTarget))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["unknown", "expired"])
+    fun `rejected password reset preserves password sessions and pending email change`(failure: String) {
+        val email = member()
+        val authorization = bearer(email)
+        val target = "${UUID.randomUUID()}@example.invalid"
+        mvc.perform(json(post("/api/v1/me/email-change").header("Authorization", authorization), """{"email":"$target"}""")).andExpect(status().isAccepted())
+        val changeToken = sentToken()
+        reset(mail)
+        mvc.perform(json(post("/api/v1/auth/forgot-password"), """{"email":"$email"}""")).andExpect(status().isAccepted())
+        val resetToken = sentToken()
+        if (failure == "expired") {
+            jdbc.update("update auth_profile_challenge set expires_at = now() - interval '1 second' where target_email = ? and purpose = 'reset'", email)
+        }
+        val token = if (failure == "unknown") "invalid-token" else resetToken
+
+        mvc.perform(json(post("/api/v1/auth/reset-password"), """{"token":"$token","newPassword":"new-password"}""")).andExpect(status().isBadRequest())
+
+        assertEquals(2, jdbc.queryForObject("select count(*) from auth_profile_challenge where member_id = (select id from auth_member where email = ?)", Int::class.java, email))
+        assertEquals(1, jdbc.queryForObject("select count(*) from auth_session where member_id = (select id from auth_member where email = ?) and not revoked", Int::class.java, email))
+        assertEquals(200, login(email).status)
+        mvc.perform(json(post("/api/v1/auth/verify-email-change"), """{"token":"$changeToken"}""")).andExpect(status().isNoContent())
+        mvc.perform(get("/api/v1/me").header("Authorization", authorization)).andExpect(jsonPath("$.email").value(target))
+    }
+
     @Test
     fun `blank reset password is rejected without consuming the link`() {
         val email = member()

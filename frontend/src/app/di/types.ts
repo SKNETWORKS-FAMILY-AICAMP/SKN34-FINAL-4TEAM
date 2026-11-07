@@ -2,7 +2,8 @@ import type { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import type { EpisodeRepository } from '../../domain/repositories/EpisodeRepository'
 import type { AwilixContainer } from 'awilix/browser'
 
-import type { CoreApiHealth } from '../../data/api/coreApiHealth'
+import type { CoreApiHealth } from '../../domain/entities/serviceHealth'
+import type { OpenNotificationStream } from '../../domain/entities/notificationStream'
 import type { MockDb } from '../../data/mock/InMemoryRepositories'
 import type { ProfileRepository } from '../../domain/repositories/ProfileRepository'
 import type { ProfileUseCase } from '../../domain/usecases/ProfileUseCase'
@@ -35,11 +36,14 @@ export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth
 export type AppCradle = {
   operationsRepository: import('../../domain/repositories/OperationsRepository').OperationsRepository
   operationsUseCase: import('../../domain/usecases/OperationsUseCase').OperationsUseCase
+  storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
+  demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
   mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository
   episodeUseCase: EpisodeUseCase
   episodeRepository: EpisodeRepository
+  openNotificationStream: OpenNotificationStream
   fetchCoreApiHealth: FetchCoreApiHealth
   fetchAiServiceHealth: FetchCoreApiHealth
   profileRepository: ProfileRepository

@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -283,7 +284,124 @@ class PlanGitTest(unittest.TestCase):
         self.assertIn('initial.txt:1: trailing whitespace.', result.stdout)
 
 
+class ComposeSplitTest(unittest.TestCase):
+    def test_root_compose_includes_isolated_local_source_build(self):
+        root = ci.ROOT / 'compose.yaml'
+        self.assertTrue(root.is_file(), 'Bare docker compose needs a root compose.yaml')
+        source = root.read_text()
+        self.assertIn('name: storyfork-local', source)
+        self.assertIn('include:', source)
+        for name in ('docker-compose.yaml', 'docker-compose.local.yaml'):
+            self.assertIn('./infrastructure/' + name, source)
+        local = (ci.ROOT / 'infrastructure/docker-compose.local.yaml').read_text()
+        self.assertIn('name: storyfork-local', local)
+        self.assertNotIn('name: storyfork-dev\n', local)
+        self.assertNotIn('external:', local)
+        self.assertNotIn('env_file:', source + local)
+        for context in ('../frontend', '../backend/core-api', '../backend/content-service', '../backend/ai-service'):
+            self.assertIn('context: ' + context, local)
+            self.assertTrue((ci.ROOT / 'infrastructure' / context / 'Dockerfile').is_file())
+        for port in ('${DEV_WEB_PORT:-5173}:80', '${CORE_API_PORT:-8080}:8080',
+                     '${CONTENT_SERVICE_PORT:-8081}:8081', '${CORE_DATABASE_PORT:-5432}:5432',
+                     '${CORE_MAILPIT_SMTP_PORT:-1025}:1025', '${CORE_MAILPIT_WEB_PORT:-8025}:8025'):
+            self.assertIn('127.0.0.1:' + port, local)
+        self.assertIn('core-postgres:/var/lib/postgresql/data', local)
+        self.assertIn('CORE_SMTP_HOST: mailpit', local)
+        self.assertIn('AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}', local)
+
+    def test_production_uses_main_images_and_explicit_external_settings(self):
+        source = (ci.ROOT / 'infrastructure/docker-compose.prod.yaml').read_text()
+        self.assertIn('name: storyfork-production', source)
+        for service in ('web', 'core-api', 'content-service', 'ai-service'):
+            self.assertIn(f'image: ghcr.io/sknetworks-family-aicamp/storyfork-{service}:main', source)
+        for forbidden in ('build:', 'volumes:', '  postgres:', '  mailpit:', 'env_file:', ':develop',
+                          '${CORE_DATABASE_', '${AUTH_JWT_SECRET', '${OPENAI_API_KEY', '${INTERNAL_TOKEN'):
+            self.assertNotIn(forbidden, source)
+        for variable in ('PROD_DATABASE_URL', 'PROD_DATABASE_USER', 'PROD_DATABASE_PASSWORD',
+                         'PROD_SMTP_HOST', 'PROD_SMTP_PORT', 'PROD_PUBLIC_ORIGIN', 'PROD_MAIL_FROM',
+                         'PROD_AUTH_JWT_SECRET', 'PROD_CONTENT_CORE_AUTH_TOKEN', 'PROD_INTERNAL_TOKEN', 'PROD_WEB_PORT'):
+            self.assertIn('${' + variable + ':?', source)
+        self.assertIn('AUTH_COOKIE_SECURE: "true"', source)
+        self.assertIn('CONTENT_ENABLED: ${PROD_CONTENT_ENABLED:-false}', source)
+        self.assertIn('OPENAI_API_KEY: ${PROD_OPENAI_API_KEY:-}', source)
+        self.assertIn('127.0.0.1:${PROD_WEB_PORT:?', source)
+        # Base interpolation must not demand local secrets before prod overrides can apply.
+        base = (ci.ROOT / 'infrastructure/docker-compose.yaml').read_text()
+        self.assertNotIn(':?', base)
+        dev = (ci.ROOT / 'infrastructure/docker-compose.dev.yaml').read_text()
+        for service in ('web', 'core-api', 'content-service', 'ai-service'):
+            self.assertIn(f'image: ghcr.io/sknetworks-family-aicamp/storyfork-{service}:develop', dev)
+        for variable in ('CORE_DATABASE_USER', 'CORE_DATABASE_PASSWORD', 'AUTH_JWT_SECRET'):
+            self.assertIn('${' + variable + ':?', dev)
+        self.assertNotIn('build:', dev)
+        self.assertIn('  postgres:', dev)
+        self.assertIn('  mailpit:', dev)
+        self.assertEqual(2, dev.count('file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}'))
+        self.assertEqual(2, dev.count('ports: !reset []'))
+        self.assertIn('CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
+        self.assertIn('CORE_SMTP_HOST: mailpit', dev)
+        self.assertIn('CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
+        self.assertNotIn('${CORE_DATABASE_URL', dev)
+        self.assertIn('  core-postgres:', dev)
+        self.assertNotIn('external:', dev)
+        workflow = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
+        self.assertIn('COMPOSE_LOCAL_YAML', workflow)
+        self.assertIn('docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE"', workflow)
+        self.assertIn("vars.DEVELOP_INTERNAL_DB_APPROVED == 'true'", workflow)
+
+    def test_ci_and_attachment_callers_keep_source_builds(self):
+        workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
+        self.assertIn('for mode in local prod dev; do', workflow)
+        self.assertIn('docker compose --env-file .env.example config --quiet', workflow)
+        files = 'infrastructure/docker-compose.yaml:infrastructure/docker-compose.local.yaml:infrastructure/ci/compose.test.yaml'
+        self.assertIn('COMPOSE_FILE: ' + files, workflow)
+        self.assertIn('-f infrastructure/docker-compose.local.yaml -f infrastructure/ci/compose.test.yaml', workflow)
+        self.assertNotIn('docker-compose.prod.yaml', workflow)
+        attachment = (ci.ROOT / 'infrastructure/tests/test_attachment_environment.py').read_text()
+        self.assertIn('infrastructure/docker-compose.local.yaml', attachment)
+        self.assertNotIn('infrastructure/docker-compose.prod.yaml', attachment)
+        self.assertIn('docker-compose.local.yaml', (ci.ROOT / 'infrastructure/compose.attachments.yaml').read_text())
+        overlay = (ci.ROOT / 'infrastructure/ci/compose.test.yaml').read_text()
+        for service in ('postgres', 'core-api', 'content-service'):
+            block = re.split(r'\n  [a-z][\w-]*:\n', overlay.split('  ' + service + ':\n', 1)[1], maxsplit=1)[0]
+            self.assertIn('ports: !reset []', block)
+
+    def test_example_does_not_activate_deployment_or_supply_signing_keys(self):
+        source = (ci.ROOT / '.env.example').read_text()
+        active = dict(line.split('=', 1) for line in source.splitlines() if line and not line.startswith('#'))
+        self.assertFalse(any(key.startswith(('PROD_', 'CD_')) for key in active))
+        for key in ('AUTH_JWT_SECRET', 'CORE_DATABASE_USER', 'CORE_DATABASE_PASSWORD', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN'):
+            self.assertEqual('', active[key])
+        self.assertEqual('false', active['AUTH_COOKIE_SECURE'])
+        self.assertEqual('5173', active['DEV_WEB_PORT'])
+        self.assertIn('# PROD_DATABASE_URL=', source)
+        self.assertIn('# PROD_AUTH_JWT_SECRET=', source)
+        self.assertIn('# CD_DIRECTORY=', source)
+
+
 class SystemContractTest(unittest.TestCase):
+    def test_compose_rejects_any_non_source_build_file_selection(self):
+        from unittest.mock import Mock
+
+        module = ast.parse((ci.ROOT / 'infrastructure/system/test_http.py').read_text())
+        function = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == 'compose')
+        files = 'infrastructure/docker-compose.yaml:infrastructure/docker-compose.local.yaml:infrastructure/ci/compose.test.yaml'
+        namespace = {'os': os, 're': re, 'subprocess': Mock()}
+        exec(compile(ast.Module(body=[function], type_ignores=[]), '<compose-contract>', 'exec'), namespace)
+        for selection in (files, files.replace('.local.yaml', '.prod.yaml'), ''):
+            with self.subTest(selection=selection), patch.dict(os.environ, {
+                'GITHUB_ACTIONS': 'true', 'COMPOSE_PROJECT_NAME': 'storyfork-ci-1-1', 'COMPOSE_FILE': selection,
+            }, clear=True):
+                if selection == files:
+                    namespace['compose']('version', '--short')
+                    namespace['subprocess'].check_output.assert_called_once_with(
+                        ['docker', 'compose', '--env-file', '.env.example', 'version', '--short'], text=True)
+                    namespace['subprocess'].reset_mock()
+                else:
+                    with self.assertRaises(AssertionError):
+                        namespace['compose']('version', '--short')
+                    namespace['subprocess'].check_output.assert_not_called()
+
     def test_system_is_pytest_with_existing_http_client_and_ci_owned_lifecycle(self):
         source = (ci.ROOT / 'infrastructure/system/test_http.py').read_text()
         module = ast.parse(source)
@@ -367,6 +485,27 @@ class ConfigurationTest(unittest.TestCase):
                         self.assertTrue(any(fnmatch.fnmatch("classes/" + source.stem + ".class", p) for p in patterns))
             self.assertIn("exclude integrationTestClasses", build)
             self.assertIn("include integrationTestClasses", build)
+
+    def test_graph_credentials_are_redacted_and_only_content_integration_owns_neo4j(self):
+        with patch.dict(os.environ, {'NEO4J_PASSWORD': 'short-graph-secret', 'TEST_WORLDSTUDIO_DATABASE_PASSWORD': 'short-db-secret'}):
+            self.assertEqual('[redacted] [redacted]', ci.redact('short-graph-secret short-db-secret'))
+        workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
+        integration = workflow.split('\n  integration:\n', 1)[1].split('\n  system:\n', 1)[0]
+        self.assertIn("matrix.service == 'content' && 'neo4j:5.26.0-community'", integration)
+        self.assertIn('NEO4J_URI: bolt://127.0.0.1:7687', integration)
+        self.assertIn('NEO4J_PASSWORD:', integration)
+        self.assertIn('"$RUNNER_TEMP/neo4j.log"', integration)
+        configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
+        self.assertIn('APP_WORLDSTUDIO_ENABLED=true', configuration)
+        self.assertIn('--profile worldstudio config --quiet', configuration)
+
+    def test_world_studio_graph_public_routes_stay_content_owned(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/world-studios {', 'location ^~ /api/v1/world-studios/ {']:
+                self.assertIn(location + '\n        proxy_pass http://content-service:8081;', text)
+        text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
+        self.assertIn('world-studios', text)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

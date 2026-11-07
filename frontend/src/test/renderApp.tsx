@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 
+import './scrollToSpy'
 import App from '../App'
 import { createAppStore } from '../app/store'
 

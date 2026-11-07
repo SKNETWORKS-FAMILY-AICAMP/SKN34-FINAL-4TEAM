@@ -9,12 +9,6 @@ export const studioSections=[
  {id:'conflict',label:'주요 갈등'},{id:'notes',label:'집필 메모'},
 ] as const
 export type StudioSection=typeof studioSections[number]['id']
-export function sectionOf(item:SettingItem):StudioSection {
- if(item.kind==='entity' && item.entityType==='character')return 'people'
- if(item.kind==='entity' && item.entityType==='location')return 'places'
- if(item.kind==='note')return 'notes'
- return item.category
-}
 export function sectionFields(section:StudioSection):Pick<SettingItem,'kind'|'category'|'entityType'> {
  if(section==='people')return {kind:'entity',category:'basic',entityType:'character'}
  if(section==='places')return {kind:'entity',category:'space',entityType:'location'}

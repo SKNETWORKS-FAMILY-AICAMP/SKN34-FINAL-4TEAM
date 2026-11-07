@@ -11,13 +11,23 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    // 발표용 목업(`--mode mockup`): 상대 경로·단일 JS/CSS로 묶고 scripts/inline-mockup.mjs가 한 HTML로 합칩니다.
+    ...(mode === 'mockup' && {
+      base: './',
+      build: {
+        outDir: 'dist/mockup',
+        assetsInlineLimit: Number.MAX_SAFE_INTEGER,
+        cssCodeSplit: false,
+        rolldownOptions: { output: { codeSplitting: false } },
+      },
+    }),
     server: {
       host: env.VITE_DEV_SERVER_HOST || 'localhost',
       port: 5173,
       strictPort: true,
       watch: usePolling ? { usePolling: true, interval: 300 } : undefined,
       proxy: {
-        '^/api/v1/(?:public/)?works(?:/|\\?|$)': {
+        '^/api/v1/(?:(?:public/)?works|world-studios)(?:/|\\?|$)': {
           target: env.VITE_CONTENT_DEV_PROXY_TARGET || 'http://localhost:8081',
           changeOrigin: true,
         },

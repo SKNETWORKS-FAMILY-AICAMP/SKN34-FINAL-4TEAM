@@ -27,6 +27,8 @@ class EpisodeService(
     private val versions: EpisodeVersionRepository,
     private val imageRepositories: org.springframework.beans.factory.ObjectProvider<ai.storyfork.content.attachment.repository.ContentImageRepository>,
     @Qualifier("contentEntityManager") private val em: EntityManager,
+    private val forks: ai.storyfork.content.fork.repository.ForkRepository,
+    private val checkpointEpisodes: CheckpointEpisodeRepository,
 ) {
 
     fun list(id: String, owner: String): EpisodeListResponse {
@@ -54,6 +56,7 @@ class EpisodeService(
         checkContent(!before.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.acceptsRevision(data.revision,before.draft.revision),409,"다른 편집이 저장됐어요. 입력을 보관하고 최신 원고를 다시 불러와 주세요.")
         validate(data.title,data.body)
+        requireImageReferences(id,number,data.body)
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
         val d=drafts.findById(e.id).orElse(null) ?: EpisodeDraftEntity(episodeId=e.id)
         d.title=data.title.trim(); d.content=data.body; d.editRevision=data.revision+1; d.updatedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
@@ -97,6 +100,29 @@ class EpisodeService(
         val work=works.findById(id).orElseThrow()
         work.revision=maxOf(work.revision,revision)+1
         work.deletedEpisodeRevision=work.revision
+    }
+    /** 원고 저장·복원·발행에서 동일한 이미지 참조 권한을 확인한다. 첨부 비활성 시 참조는 거부한다. */
+    fun requireImageReferences(work: String, number: Int, body: String) {
+        val ids=Regex("\\[\\[image:([^\\]]+)\\]\\]").findAll(body).map {it.groupValues[1]}.toSet()
+        if(ids.isEmpty()) return
+        val images=imageRepositories.getIfAvailable()
+        checkContent(images!=null,422,"사용할 수 없는 원고 이미지가 포함되어 있어요.")
+        ids.forEach { id ->
+            val image=images!!.findById(id).orElse(null)
+            checkContent(image!=null && permitsImageReference(work,number,image),422,"사용할 수 없는 원고 이미지가 포함되어 있어요.")
+        }
+    }
+    /** Fork의 상속 권한은 원작의 현재 원고가 아닌 생성 시 고정된 원본 회차·버전으로 증명한다. */
+    fun permitsImageReference(work: String, number: Int, image: ai.storyfork.content.attachment.entity.ContentImage): Boolean {
+        if(number<1 || image.episodeNo!=number) return false
+        if(image.workId==work) return true
+        val fork=forks.findById(work).orElse(null) ?: return false
+        if(image.workId!=fork.sourceWorkId) return false
+        val source=episodes.findByWorkIdAndSequence(fork.sourceWorkId,number) ?: return false
+        val pinned=checkpointEpisodes.findById(ai.storyfork.content.episode_version.entity.CheckpointEpisodeEntity.Key(fork.sourceCheckpointId,source.id)).orElse(null) ?: return false
+        if(pinned.sourceWorkId!=fork.sourceWorkId) return false
+        val version=versions.findById(pinned.episodeVersionId).orElse(null) ?: return false
+        return version.episodeId==source.id && "[[image:${image.id}]]" in version.content
     }
     private fun imagesAbsent(work: String, number: Int): Boolean {
         val repository=imageRepositories.getIfAvailable() ?: return false

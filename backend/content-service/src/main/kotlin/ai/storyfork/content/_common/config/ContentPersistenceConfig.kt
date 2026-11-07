@@ -17,7 +17,7 @@ import org.springframework.transaction.support.TransactionTemplate
 @org.springframework.transaction.annotation.EnableTransactionManagement
 @ConditionalOnProperty(name = ["app.content.enabled"], havingValue = "true")
 @EnableJpaRepositories(
-    basePackages = ["ai.storyfork.content.work.repository", "ai.storyfork.content.episode.repository", "ai.storyfork.content.episode_version.repository", "ai.storyfork.content.publication.repository", "ai.storyfork.content.world.repository", "ai.storyfork.content.fork.repository", "ai.storyfork.content.proposal.repository"],
+    basePackages = ["ai.storyfork.content.work.repository", "ai.storyfork.content.episode.repository", "ai.storyfork.content.episode_version.repository", "ai.storyfork.content.publication.repository", "ai.storyfork.content.world.repository", "ai.storyfork.content.fork.repository", "ai.storyfork.content.proposal.repository", "ai.storyfork.content.plan.repository"],
     entityManagerFactoryRef = "contentEntityManagerFactory",
     transactionManagerRef = "contentTransactionManager",
 )
@@ -29,6 +29,7 @@ class ContentPersistenceConfig {
             "classpath:db/migration/world", "classpath:db/migration/episode_version",
             "classpath:db/migration/publication", "classpath:db/migration/fork",
             "classpath:db/migration/proposal",
+            "classpath:db/migration/plan",
         )
     }
 
@@ -42,7 +43,7 @@ class ContentPersistenceConfig {
         return LocalContainerEntityManagerFactoryBean().apply {
             dataSource = ds
             persistenceUnitName = "content"
-            setPackagesToScan("ai.storyfork.content.work.entity", "ai.storyfork.content.episode.entity", "ai.storyfork.content.episode_version.entity", "ai.storyfork.content.publication.entity", "ai.storyfork.content.world.entity", "ai.storyfork.content.fork.entity", "ai.storyfork.content.proposal.entity")
+            setPackagesToScan("ai.storyfork.content.work.entity", "ai.storyfork.content.episode.entity", "ai.storyfork.content.episode_version.entity", "ai.storyfork.content.publication.entity", "ai.storyfork.content.world.entity", "ai.storyfork.content.fork.entity", "ai.storyfork.content.proposal.entity", "ai.storyfork.content.plan.entity")
             jpaVendorAdapter = HibernateJpaVendorAdapter()
             setJpaPropertyMap(mapOf("hibernate.hbm2ddl.auto" to "validate", "hibernate.jdbc.time_zone" to "UTC"))
         }

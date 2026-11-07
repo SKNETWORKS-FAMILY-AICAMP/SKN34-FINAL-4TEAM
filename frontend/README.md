@@ -29,6 +29,14 @@ prod는 소스에서 정적 배포 이미지를 빌드해 기본 `http://127.0.0
 두 조합 모두 Nginx가 정적 화면과 works 경로 → `content-service:8081`, 나머지 `/api` → `core-api:8080` 프록시를 제공합니다. 소스/HMR Compose는 제거했으며 hot reload는 위 `pnpm dev`를 사용합니다.
 loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
+## 프론트엔드 구조와 상태 소유
+
+- `app/di`에서 Repository·UseCase와 Health·알림 SSE 외부 함수를 조립합니다. Presentation은 Data 함수를 직접 import하지 않으며, 공유 Health·SSE 계약은 Domain에 둡니다. HTTP 응답의 Zod 검증은 Data에 남깁니다.
+- Redux `session`은 인증·로그인 안내와 기존 조회 무효화 신호를, `ui`는 테마·화면 ID·읽기 설정·홈 표시 상태를 소유합니다. UI 상태는 로그인·로그아웃 때 유지하며 브라우저 저장소에 영속화하지 않습니다. `dataVersion`은 여전히 데모 전역 재조회 신호이며 기능별 캐시로 바꾸지 않았습니다.
+- 관계 패널의 draft 상태·적용 handler는 `useRelationPairViewModel`, 순수 초기화·방향 변환은 Domain의 `relationDraft`가 담당합니다. 최초 baseline을 유지하고 기존 `applyRelationChanges`로 검증하며, 저장 전 편집과 실제 저장을 구분합니다.
+- 집필실·서재가 함께 쓰는 `PublishSettingsSheet`는 `presentation/shared`에, Wiki 편집 화면은 `StudioWikiView`에 둡니다. 데모 피드백함과 실제 알림함의 ViewModel은 별도 파일입니다.
+- 순수 함수라도 Presentation 소유의 테스트는 해당 feature 옆에 둡니다. 현재 CI는 경로 기준으로 분류하므로 이 테스트는 Domain/Data 단위 명령이 아니라 기존 통합 선택에서 발견됩니다.
+
 ## 실제 호출 흐름
 
 `/status`의 연결 확인은 `App → CoreApiConnectionStatus → useCoreApiHealth → DI 외부 함수 → Fetch·Zod → 공개 Core API`입니다. 해당 화면의 Health 전용 안내가 앱 전체의 구현 상태를 뜻하지는 않습니다.
@@ -90,8 +98,9 @@ pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
 pnpm exec vitest run src/data/api/auth.test.ts
 ```
 
-CI는 [공통 검증 정책](../README.md#검증)에 따라 web 서비스의 단위(Domain/Data/HTML)와 나머지 React/Hook/App 통합을 분리 실행하고 lint/build도 수행합니다.
+CI는 [공통 검증 정책](../docs/development.md#검증)에 따라 web 서비스의 단위(Domain/Data/HTML)와 나머지 React/Hook/App 통합을 분리 실행하고 lint/build도 수행합니다.
 워크플로가 이 디렉터리에서 `pnpm exec vitest run src/domain src/data src/index-html.test.js`와 해당 파일들을 `--exclude`한 통합 명령을 직접 호출합니다. 별도 테스트 runner나 shell wrapper는 없습니다.
+앱·라우트 횡단 통합 테스트는 `src/test/integration/`에, 기능별 테스트는 기존 기능 파일 옆에 둡니다. 공통 테스트 도구는 `src/test/`에 두고, HTML 단위 테스트는 CI 명시 경로인 `src/index-html.test.js`에 유지합니다.
 Core API 변경 시 web 소비자 회귀도 선택합니다. 실제 HTTP 시스템 시나리오는 CI Compose에서 실행하며 브라우저 UI 검증이 아닙니다.
 Aside는 별도 요청·승인 시에만 사용합니다. hosted `Required CI` 결과 확인 전에는 검증 대기로 보고합니다.
 
