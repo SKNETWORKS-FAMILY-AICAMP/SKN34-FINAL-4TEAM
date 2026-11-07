@@ -60,6 +60,7 @@ dev의 기존 외부 DB에서 내부 fresh DB로의 전환·데이터 이관도 
 
 Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 미만과 uv를 사용합니다.
 각 서비스 [Frontend](../frontend/README.md), [Core](../backend/core-api/README.md),
+[Content](../backend/content-service/README.md), [Operations](../backend/operations-service/README.md),
 [AI](../backend/ai-service/README.md) README의 실행 명령을 따릅니다.
 환경설정은 루트 `.env` 한 곳에서 관리합니다. `cp -n .env.example .env`로 준비하고 기존 파일은 덮어쓰지 않습니다.
 서비스별 `.env`는 만들지 않습니다. 기본 실행은 위의 Compose를 사용합니다.
@@ -69,15 +70,16 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 (cd frontend && pnpm dev)
 (cd backend/core-api && ./gradlew bootRun)
 (cd backend/content-service && ./gradlew bootRun)
+(cd backend/operations-service && ./gradlew bootRun)
 (cd backend/ai-service && uv run --locked uvicorn app.main:create_app --factory --reload --port 8000)
 ```
 
-이 명령들은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달이 필요하면 Compose를 사용합니다.
-루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, Auth/JWT/SMTP는 Core에만, Content DB·S3/생성은 Content에만 전달합니다. 기존 같은 DB 대상·계정을 사용하며 별도 서비스 자격만 Core/Content가 공유합니다.
+이 명령들은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달이 필요하면 Compose를 사용하며, Compose 자동 전달은 Operations에는 적용되지 않습니다.
+루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, Auth/JWT/SMTP는 Core에만, Content DB·S3/생성은 Content에만 전달합니다. 기존 같은 DB 대상·계정을 사용하며 별도 서비스 자격만 Core/Content가 공유합니다. Operations DB 자격은 Operations에만, 별도 `OPERATIONS_SERVICE_TOKEN`은 Operations와 신뢰하는 호출 서버에만 주입하며 Core/Content 토큰과 재사용하거나 브라우저에 전달하지 않습니다.
 기존 서비스별 `.env.local` 등이 있으면 Vite가 별도로 읽을 수 있으므로 필요한 값을 루트로 수동 통합하세요.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
 
-[Content](../backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](../backend/operations-service/README.md)은 loopback 8082 실행 골격만 유지합니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
+[Content](../backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](../backend/operations-service/README.md)은 loopback 8082의 독립 CRUD이며 PostgreSQL 연결과 operations schema 초기화 권한이 필요합니다. 기본 빈 서비스 토큰으로는 보호 접근을 허용하지 않으며 Compose·nginx/Vite에 연결하지 않았습니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
 
 ## 검증
 
@@ -109,21 +111,21 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 
 | 계층 | 현재 실행 범위 |
 |---|---|
-| 선택·정적 검사·단위 | 변경 diff 공백·선택기 회귀, 선택 web lint/build, AI lock. web Domain/Data/HTML, Core/Content `unitTest`, 운영 `ApplicationPropertiesTest`, AI `-m 'not integration'` |
-| 통합 | 나머지 web React/Hook/App, Core/Content `integrationTest`(Spring·HTTP·PostgreSQL/Flyway), AI `-m integration`(FastAPI TestClient) |
+| 선택·정적 검사·단위 | 변경 diff 공백·선택기 회귀, 선택 web lint/build, AI lock. web Domain/Data/HTML, Core/Content/Operations `unitTest`(Spring·HTTP·DB 제외), AI `-m 'not integration'` |
+| 통합 | 나머지 web React/Hook/App, Core/Content/Operations `integrationTest`(Spring·HTTP·PostgreSQL/Flyway), AI `-m integration`(FastAPI TestClient) |
 | 시스템 | CI 전용 Compose 앱·임시 PostgreSQL·Mailpit을 기동한 뒤 `pytest infrastructure/system -k ...`로 선택된 실제 HTTP 시나리오 실행 |
 | 집계 | `Required CI`: 실패·취소·필요한 tier의 예상 밖 skip은 실패, 영향 없는 작업의 의도적 skip만 허용 |
 
 변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
-Core/Content의 혼합 경계 클래스는 통합에 두며 Kotlin/Java의 Spring/HTTP/DB 분류 누락을 회귀로 검사합니다.
-Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 통합 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
+Core/Content/Operations의 혼합 경계 클래스는 통합에 두며 Kotlin/Java의 Spring/HTTP/DB 분류 누락을 회귀로 검사합니다.
+Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 통합 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. Operations 통합은 job별 임시 PostgreSQL의 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`와 서비스 토큰/독립 CRUD·Flyway·JPA를 확인하도록 구성합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
 
 #### 변경·영향 선택
 
 - PR: base와 실제 head의 **merge-base**부터 비교. push: event의 **before SHA**부터 비교.
   수동 CI 실행·기준선 부재(새 브랜치/기준 커밋 없음)는 명시적으로 전체 서비스·시나리오를 실행합니다.
   이때 공백 검사는 첫 부모와 비교하며, 부모가 없는 최초 커밋만 빈 트리와 비교합니다.
-- web·Content·AI는 서비스 수준, Core는 auth/health 또는 보수적 전체로 선택합니다. 운영만 골격 단위 검증이며 빈 통합 job은 만들지 않습니다. 시스템 `content`는 실제 Core 로그인 뒤 Content API·DB 소유권을 확인합니다.
+- web·Content·Operations·AI는 서비스 수준, Core는 auth/health 또는 보수적 전체로 선택합니다. Operations 변경은 독립 단위·통합을 함께 선택하고 다른 서비스나 HTTP 시스템 시나리오를 추가하지 않습니다. 시스템 `content`는 실제 Core 로그인 뒤 Content API·DB 소유권을 확인합니다.
 - 공유·설정·의존성·미등록 runtime은 확대 선택합니다. Core Auth는 Content/web 소비자, Content/AI 계약은 연결된 소비자와 시스템을 선택합니다. 삭제된 구 Core 콘텐츠 경로도 새 소유 서비스 회귀를 선택합니다.
 - 삭제·이름 변경은 `git diff --no-renames`로 이전 경로까지 포함합니다. 정확한 소스별 의존 그래프 분석은 아닙니다.
   테스트만 변경하면 해당 서비스/기능 회귀만 실행하고 시스템은 생략합니다. 문서만 변경하면 runtime job은 생략합니다.

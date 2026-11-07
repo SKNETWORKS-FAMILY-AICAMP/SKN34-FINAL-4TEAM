@@ -34,6 +34,8 @@ import type { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
 export type AppCradle = {
+  operationsRepository: import('../../domain/repositories/OperationsRepository').OperationsRepository
+  operationsUseCase: import('../../domain/usecases/OperationsUseCase').OperationsUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase

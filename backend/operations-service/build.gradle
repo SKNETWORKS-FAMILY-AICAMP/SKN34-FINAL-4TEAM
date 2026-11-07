@@ -1,6 +1,8 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '2.4.10'
     id 'org.jetbrains.kotlin.plugin.spring' version '2.4.10'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '2.4.10'
+    id 'org.jetbrains.kotlin.plugin.allopen' version '2.4.10'
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -16,16 +18,32 @@ kotlin {
     }
 }
 
+allOpen {
+    annotation('jakarta.persistence.Entity')
+    annotation('jakarta.persistence.MappedSuperclass')
+    annotation('jakarta.persistence.Embeddable')
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'tools.jackson.module:jackson-module-kotlin'
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+// Spring context/HTTP/PostgreSQL tests run only in hosted CI.
+def integrationTestClasses = ['**/*IntegrationTest.class', '**/*PostgresTest.class']
 
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
@@ -33,4 +51,16 @@ tasks.withType(Test).configureEach {
     filter {
         failOnNoMatchingTests = true
     }
+}
+
+tasks.register('unitTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    exclude integrationTestClasses
+}
+
+tasks.register('integrationTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include integrationTestClasses
 }

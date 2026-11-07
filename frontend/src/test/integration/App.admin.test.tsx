@@ -38,7 +38,7 @@ describe('관리자 (A01~A18)', () => {
   it('일반 회원·비로그인은 관리자 로그인 안내로 보낸다', async () => {
     const { store } = renderAt('/admin?tab=users', 'user')
     await waitFor(() => expect(where()).toBe('/login'))
-    expect(store.getState().session).toMatchObject({ next: '/admin', loginRole: 'admin', loginMsg: '관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.' })
+    expect(store.getState().session).toMatchObject({ next: '/admin?tab=users', loginRole: 'admin', loginMsg: '관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.' })
     cleanup()
     renderAt('/admin', null)
     await waitFor(() => expect(where()).toBe('/login'))
@@ -93,12 +93,14 @@ describe('관리자 (A01~A18)', () => {
 
   it('공지·이벤트를 게시하면 회원 화면에 보인다', async () => {
     renderAt('/admin?tab=notices')
+    fireEvent.click(await screen.findByText('기존 회원 화면 공지 데모'))
     expect((await screen.findByLabelText<HTMLInputElement>('제목')).required).toBe(true)
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '점검 안내' } })
     fireEvent.change(screen.getByLabelText('내용'), { target: { value: '오늘 밤 점검해요' } })
     fireEvent.click(screen.getByRole('button', { name: '공지 게시' }))
     await toastIs('공지를 게시했어요 (데모 · 현재 화면에만 반영)')
     fireEvent.click(within(nav()).getByRole('link', { name: '이벤트' }))
+    fireEvent.click(await screen.findByText('기존 회원 화면 이벤트 데모'))
     fireEvent.change(await screen.findByLabelText('이벤트명'), { target: { value: '새 이벤트' } })
     fireEvent.change(screen.getByLabelText('안내 내용'), { target: { value: '참여해 보세요' } })
     fireEvent.click(screen.getByRole('button', { name: '이벤트 추가' }))
@@ -123,7 +125,9 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByText('[이용 문의] 답변 요청')
     cleanup()
     renderAt('/admin?tab=feedback')
-    const item = (await screen.findByText('[이용 문의] 답변 요청')).closest('article') as HTMLElement
+    fireEvent.click(await screen.findByText('기존 회원 문의 데모'))
+    fireEvent.click(await screen.findByRole('button', { name: /답변 요청.*답변 대기/ }))
+    const item = (await screen.findByRole('heading', { name: '[이용 문의] 답변 요청' })).closest('article') as HTMLElement
     fireEvent.change(within(item).getByLabelText('답변'), { target: { value: '확인했어요' } })
     fireEvent.click(within(item).getByRole('button', { name: '답변 등록' }))
     await toastIs('답변을 등록했어요 (데모 · 실제 전송 없음)')
