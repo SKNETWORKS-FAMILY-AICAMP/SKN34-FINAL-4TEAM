@@ -161,16 +161,18 @@ CI 이후 단일 CD의 게시 → 배포 흐름은 [인프라 안내](../infrast
 - **Claude Code**: [`.claude/settings.json`](../.claude/settings.json)이 자동 적용됩니다. 스킬은 `.claude/skills`(→ `.agents/skills`)입니다.
 - **Codex**: [`.codex/hooks.json`](../.codex/hooks.json)은 프로젝트를 신뢰하고 `/hooks`에서 훅을 승인해야 실행됩니다. 스킬은 `.agents/skills`를 읽습니다.
 - **Hermes**: 저장소 훅을 자동으로 읽지 않으므로 각자 `~/.hermes/config.yaml`에 등록하고 첫 실행 때 동의합니다.
+  훅은 Hermes **프로세스의 시작 디렉터리**로 저장소를 판별하므로 저장소(또는 worktree) 안에서 Hermes를 실행해야 합니다.
+  다른 곳에서 시작한 세션·gateway는 터미널 작업 디렉터리만 저장소로 옮겨도 훅이 동작하지 않습니다.
 
 ```yaml
 hooks:
   pre_llm_call:
-    - command: "python3 /절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py hermes"
+    - command: "python3 '/절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py' hermes"
   pre_tool_call:
     - matcher: "terminal|search_files"
-      command: "python3 /절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py hermes"
+      command: "python3 '/절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py' hermes"
   pre_verify:
-    - command: "python3 /절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py hermes"
+    - command: "python3 '/절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py' hermes"
 skills:
   external_dirs:
     - /절대경로/SKN34-FINAL-4TEAM/.agents/skills
