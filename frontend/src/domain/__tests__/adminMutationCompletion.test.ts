@@ -59,7 +59,7 @@ const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submi
   { name: 'legacy reply', method: 'reply', prepare: (vm, changed = false) => { vm.selectLegacyInquiry('question'); vm.setLegacyDraft('inquiry:question', 'answer', changed ? '새 답변' : '제출한 답변') }, submit: async (vm) => { const ok = await vm.reply('question', '제출한 답변'); if (ok) vm.clearLegacyDraft('inquiry:question'); return ok }, other: (vm) => vm.selectLegacyInquiry('other') },
 ]
 
-function start(test: typeof cases[number]) {
+function useStartedSubmission(test: typeof cases[number]) {
   let finish!: (result: { id: string; ok: boolean; msg: string }) => void
   const response = new Promise<{ id: string; ok: boolean; msg: string }>((done) => { finish = done })
   const method = test.method in doubles.operations ? doubles.operations[test.method as keyof typeof doubles.operations] : doubles.admin[test.method as keyof typeof doubles.admin]
@@ -74,7 +74,7 @@ function start(test: typeof cases[number]) {
 
 describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
   it('이탈·재진입한 같은 폼의 새 초안과 선택은 보존하되 성공과 dataChanged는 유지한다', async () => {
-    const request = start(test)
+    const request = useStartedSubmission(test)
     doubles.cleanups.splice(0).forEach((cleanup) => cleanup())
     test.prepare(useAdminViewModel('notices'), true)
     const expected = view
@@ -85,7 +85,7 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
   })
 
   it('같은 mount에서 제출 뒤 바뀐 초안을 지우지 않는다', async () => {
-    const request = start(test)
+    const request = useStartedSubmission(test)
     test.prepare(request.vm, true)
     const expected = view
     request.finish()
@@ -95,7 +95,7 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
   })
 
   if (['saveNotice', 'saveEvent', 'saveInquiry'].includes(test.method)) it('제출 뒤 동일 내용으로 다시 만든 새 초안도 오래된 완료가 지우지 않는다', async () => {
-    const request = start(test)
+    const request = useStartedSubmission(test)
     test.prepare(request.vm)
     const expected = view
     request.finish()
@@ -105,7 +105,7 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
   })
 
   if (test.other) it('제출 뒤 다른 레코드를 선택했으면 기존 초안과 새 선택을 건드리지 않는다', async () => {
-    const request = start(test)
+    const request = useStartedSubmission(test)
     test.other?.(request.vm)
     const expected = view
     request.finish()
@@ -115,7 +115,7 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
   })
 
   it('같은 mount·초안·선택의 성공은 기존대로 초안을 정리한다', async () => {
-    const request = start(test)
+    const request = useStartedSubmission(test)
     request.finish()
     expect(await request.pending).toBe(true)
     expect(view.noticeDrafts).toEqual({})
@@ -129,7 +129,7 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
 
 it('문의 삭제 중 새로 쓴 답변 초안도 지우지 않는다', async () => {
   const test = cases.find((test) => test.name === 'inquiry delete')!
-  const request = start(test)
+  const request = useStartedSubmission(test)
   request.vm.setReplyDraft('existing:new', '삭제 대기 중 작성한 답변')
   const expected = view
   request.finish()

@@ -68,6 +68,7 @@ class NoticeCrudIntegrationTest {
         assertEquals("수정 본문", updated.body)
 
         mvc.perform(authorized(delete("$base/$id"))).andExpect(status().isNoContent())
+        entityManager.flush()
         entityManager.clear()
         assertFalse(repository.existsById(id))
         mvc.perform(authorized(get("$base/$id"))).andExpect(status().isNotFound())

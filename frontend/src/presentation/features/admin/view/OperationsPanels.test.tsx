@@ -108,7 +108,7 @@ describe('독립 운영 CRUD 화면 (오프라인 데모)', () => {
     fill('종료 (한국시간)', '2026-11-05T09:00')
     fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
     await screen.findByRole('alert', { name: '' })
-    screen.getByText('종료는 시작과 같거나 늦어야 해요.')
+    within(screen.getByRole('region', { name: '운영 이벤트' })).getByText('종료는 시작과 같거나 늦어야 해요.')
     fireEvent.click(within(menu()).getByRole('link', { name: '공지' }))
     fireEvent.click(within(menu()).getByRole('link', { name: '이벤트' }))
     expect((screen.getByLabelText('이벤트 제목') as HTMLInputElement).value).toBe('시간대 이벤트')
