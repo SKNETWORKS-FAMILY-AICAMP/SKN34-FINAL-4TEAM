@@ -147,6 +147,40 @@ DB를 tmpfs로 바꾸며 AI 키·모델은 빈 값으로 고정합니다. 서비
 로컬 선택 단위 결과와 hosted runtime 결과를 구분합니다. **최신 커밋의 GitHub `Required CI` 실제 성공을 확인하기 전에는 검증 대기**입니다.
 CI 이후 단일 CD의 게시 → 배포 흐름은 [인프라 안내](../infrastructure/README.md#ci--cd-publish--deploy)를 참고하세요.
 
+## 에이전트 훅·스킬
+
+[`.agent-hooks/guard.py`](../.agent-hooks/guard.py) 하나를 Claude Code·Codex·Hermes가 함께 사용합니다(Python 3 stdlib, 의존성 없음).
+
+| 시점 | 동작 |
+|---|---|
+| 세션 시작 | ponytail 권장과 graphify 사용 안내(graphify·`graphify-out/graph.json`이 있을 때만) 주입 |
+| 셸 실행 전 | 브랜치·커밋 형식 위반, 실제 `.env`의 `git add`는 차단. `main`·`develop` 직접 푸시와 `gh pr merge`는 사용자 확인(Codex는 확인 기능이 없어 차단) |
+| 첫 검색 | graphify가 준비돼 있으면 세션의 첫 grep·검색을 한 번 막고 `graphify query`를 먼저 쓰게 함 |
+| 작업 종료 | 코드 변경마다 한 번 TDD·단위 테스트·아키텍처/docs 점검과 권장 리뷰를 요청하고 `graphify update .`를 백그라운드로 실행 |
+
+- **Claude Code**: [`.claude/settings.json`](../.claude/settings.json)이 자동 적용됩니다. 스킬은 `.claude/skills`(→ `.agents/skills`)입니다.
+- **Codex**: [`.codex/hooks.json`](../.codex/hooks.json)은 프로젝트를 신뢰하고 `/hooks`에서 훅을 승인해야 실행됩니다. 스킬은 `.agents/skills`를 읽습니다.
+- **Hermes**: 저장소 훅을 자동으로 읽지 않으므로 각자 `~/.hermes/config.yaml`에 등록하고 첫 실행 때 동의합니다.
+  훅은 Hermes **프로세스의 시작 디렉터리**로 저장소를 판별하므로 저장소(또는 worktree) 안에서 Hermes를 실행해야 합니다.
+  다른 곳에서 시작한 세션·gateway는 터미널 작업 디렉터리만 저장소로 옮겨도 훅이 동작하지 않습니다.
+
+```yaml
+hooks:
+  pre_llm_call:
+    - command: "python3 '/절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py' hermes"
+  pre_tool_call:
+    - matcher: "terminal|search_files"
+      command: "python3 '/절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py' hermes"
+  pre_verify:
+    - command: "python3 '/절대경로/SKN34-FINAL-4TEAM/.agent-hooks/guard.py' hermes"
+skills:
+  external_dirs:
+    - /절대경로/SKN34-FINAL-4TEAM/.agents/skills
+```
+
+저장소 밖에서는 훅이 아무것도 하지 않습니다. 저장소에 포함한 스킬은 `ponytail`·`ponytail-review`(MIT, v4.10.0 사본)뿐이며 자동 갱신되지 않습니다.
+훅 회귀 테스트는 `python3 -m unittest discover -s .agent-hooks -v`로 로컬에서 실행하며, 이 경로들은 CI runtime 선택에서 제외됩니다.
+
 ## 코드 네임스페이스
 
 Kotlin namespace는 `ai.storyfork.core`, Gradle group은 `ai.storyfork`입니다.

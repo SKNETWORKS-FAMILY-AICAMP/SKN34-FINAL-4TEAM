@@ -43,7 +43,9 @@ def select(paths, full=False):
         scopes["core"].update(features)
 
     for path in paths:
-        if path.endswith(".md") or path.startswith(("docs/", "graphify-out/")) or path in {"LICENSE", ".gitignore", ".graphifyrc"}:
+        # 에이전트 지침·훅·스킬은 런타임과 무관하다(훅 테스트는 .agent-hooks에서 로컬 실행).
+        if path.endswith(".md") or path.startswith(("docs/", "graphify-out/", ".agent-hooks/", ".agents/", ".claude/", ".codex/")) \
+                or path in {"LICENSE", ".gitignore", ".graphifyrc"}:
             continue
         if path.startswith("frontend/"):
             scopes["web"].add("all")
