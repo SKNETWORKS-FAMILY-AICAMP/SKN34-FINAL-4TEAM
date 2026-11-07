@@ -136,6 +136,36 @@ class GuardTest(unittest.TestCase):
         (self.repo / "test_app.py").write_text("assert True\n")  # ` M test_app.py` 한 줄
         self.assertNotIn("TDD", json.loads(self.stop()[1])["reason"])
 
+    def test_stop_includes_changes_committed_during_session(self):
+        self.run_hook("claude", {"hook_event_name": "SessionStart"})
+        (self.repo / "app.py").write_text("x = 2\n")
+        sh(self.repo, "git", "commit", "-qam", "feat: 변경")
+        self.run_hook("claude", {"hook_event_name": "SessionStart"})  # resume·compact가 기준을 덮어쓰지 않음
+        self.assertIn("TDD", json.loads(self.stop()[1])["reason"])
+        self.run_hook("hermes", {"hook_event_name": "pre_llm_call", "session_id": "h1", "extra": {"is_first_turn": True}})
+        (self.repo / "app.py").write_text("x = 3\n")
+        sh(self.repo, "git", "commit", "-qam", "fix: 변경")
+        _, out, _ = self.run_hook("hermes", {"hook_event_name": "pre_verify", "session_id": "h1", "extra": {"attempt": 0}})
+        self.assertEqual("block", json.loads(out)["decision"])
+
+    def test_concurrent_sessions_keep_own_verification(self):
+        (self.repo / "app.py").write_text("x = 2\n")
+        self.run_hook("claude", {"hook_event_name": "SessionStart", "session_id": "a"})
+        sh(self.repo, "git", "commit", "-qam", "feat: a")  # a의 기준 이후 커밋 → b와 지문이 달라짐
+        self.run_hook("codex", {"hook_event_name": "SessionStart", "session_id": "b"})
+        (self.repo / "app.py").write_text("x = 3\n")
+        stop = lambda s: self.run_hook("claude", {"hook_event_name": "Stop", "session_id": s})[1]
+        self.assertTrue(stop("a"))
+        self.assertTrue(stop("b"))
+        self.assertEqual(("", ""), (stop("a"), stop("b")))  # 변경 없으면 서로 덮어써 재점검하지 않음
+
+    def test_stop_sees_old_path_of_committed_rename(self):
+        self.run_hook("claude", {"hook_event_name": "SessionStart"})
+        (self.repo / "docs").mkdir()
+        sh(self.repo, "git", "mv", "app.py", "docs/app.py")
+        sh(self.repo, "git", "commit", "-qm", "docs: 이동")
+        self.assertEqual("block", json.loads(self.stop()[1])["decision"])
+
     def test_stop_ignores_docs_only_and_hermes_retry(self):
         (self.repo / "README.md").write_text("doc\n")
         self.assertEqual("", self.stop()[1])
