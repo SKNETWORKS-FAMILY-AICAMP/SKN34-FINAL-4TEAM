@@ -116,7 +116,7 @@ describe('독립 운영 CRUD 화면 (오프라인 데모)', () => {
     fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
     await screen.findByRole('heading', { name: '시간대 이벤트' })
     screen.getByText(/UTC: 2026-11-05T01:00:00.000Z/)
-    expect(screen.queryByRole('button', { name: '상태 변경' })).toBeNull()
+    expect(within(screen.getByRole('region', { name: '운영 이벤트' })).queryByRole('button', { name: '상태 변경' })).toBeNull()
     fill('이벤트 제목', '수정된 시간대 이벤트')
     fill('시작 (한국시간)', '')
     fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))

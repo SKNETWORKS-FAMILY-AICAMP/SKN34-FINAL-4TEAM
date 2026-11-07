@@ -139,14 +139,14 @@ class EventIntegrationTest {
         val rows = List(3) { index -> EventEntity(title = "이벤트 $index", body = "본문", createdAt = time) }
         events.saveAllAndFlush(rows)
         try {
-            // CI 로그는 UUID를 가리므로 같은 순서를 제목으로 비교해 실패 원인을 읽을 수 있게 한다.
+            // CI 로그는 UUID를 가리므로 같은 순서를 제목으로 비교한다. Jackson 3 JsonNode.map은 List가 아니므로 iterator로 변환한다.
             val expected = rows.sortedByDescending { it.id.toString() }.map { it.title }
             val first = send("GET", "$path?size=2&sort=title,asc")
             val second = send("GET", "$path?size=2&page=1&sort=title,asc")
             assertEquals(200, first.statusCode(), first.body())
             assertEquals(200, second.statusCode(), second.body())
-            assertEquals(expected.take(2), json.readTree(first.body()).path("items").map { it.path("title").asText() }, first.body())
-            assertEquals(expected.drop(2), json.readTree(second.body()).path("items").map { it.path("title").asText() }.take(1), second.body())
+            assertEquals(expected.take(2), json.readTree(first.body()).path("items").iterator().asSequence().map { it.path("title").asText() }.toList(), first.body())
+            assertEquals(expected.drop(2), json.readTree(second.body()).path("items").iterator().asSequence().map { it.path("title").asText() }.toList().take(1), second.body())
         } finally {
             events.deleteAllById(rows.map { it.id })
         }
