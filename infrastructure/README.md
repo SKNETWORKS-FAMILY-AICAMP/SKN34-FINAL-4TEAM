@@ -152,7 +152,7 @@ API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core
 - `ghcr.io/sknetworks-family-aicamp/storyfork-content-service`
 - `ghcr.io/sknetworks-family-aicamp/storyfork-ai-service`
 
-모든 `sha-<전체 SHA>`를 게시한 뒤 `develop` 태그를 갱신합니다. 태그 갱신 중 실패하면 혼합 revision이 가능하므로 deploy가 네 이미지의 공통 revision을 검사하고 다르면 중단합니다. 같은 CD run에서 실패한 job만 재실행할 수 있습니다. 별도 run ID/artifact 증거 체계는 추가하지 않습니다.
+모든 `sha-<전체 SHA>`를 게시한 뒤 `develop` 태그를 갱신합니다. publish는 대상 SHA가 현재 develop HEAD가 아니면 게시하지 않습니다. deploy는 pull한 네 `develop` 이미지의 revision이 모두 이 run의 SHA와 같지 않으면(혼합 revision·더 새 커밋 포함) 앱을 멈추기 전에 중단합니다. 같은 CD run에서 실패한 job만 재실행할 수 있습니다. 별도 run ID/artifact 증거 체계는 추가하지 않습니다.
 
 ### 배포 설정과 전환
 
