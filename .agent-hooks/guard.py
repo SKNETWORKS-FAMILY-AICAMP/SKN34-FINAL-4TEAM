@@ -166,15 +166,21 @@ def is_test(p):
     return bool(re.search(r"(^|/)(tests?|__tests__)/|(^|/)test_[^/]*$|[._-]test\.|Tests?\.kt$|_test\.py$", p))
 
 
-def check_stop(root, retry):
-    paths = [line[3:].split(" -> ")[-1] for line in git(root, "status", "--porcelain", "-uall").splitlines()]
+def check_stop(root, retry, session):
+    # 세션 시작 커밋 이후 커밋된 변경과 미커밋 변경을 함께 본다.
+    base_file = state_file(root, f"base-{session}")
+    base = base_file.read_text() if base_file.exists() else ""
+    # --no-renames: 이름 변경의 이전 경로(삭제)도 점검 대상에 넣는다.
+    paths = [line[3:] for line in git(root, "status", "--porcelain", "-uall", "--no-renames").splitlines()]
+    if base:
+        paths = sorted(set(paths + git(root, "diff", "--name-only", "--no-renames", base, "HEAD").splitlines()))
     code = [p for p in paths if not is_doc(p)]
     if not code:
         return None
     if graphify_ready(root):  # LLM 없는 AST 갱신. 출력은 문맥에 넣지 않는다.
         subprocess.Popen(["graphify", "update", "."], cwd=root, stdout=subprocess.DEVNULL,
                          stderr=subprocess.DEVNULL, start_new_session=True)
-    fp = hashlib.sha256((git(root, "diff", "HEAD") + "\n".join(sorted(paths))).encode()).hexdigest()
+    fp = hashlib.sha256((git(root, "diff", base or "HEAD") + "\n".join(sorted(paths))).encode()).hexdigest()
     marker = state_file(root, "verified")
     seen = marker.read_text() if marker.exists() else ""
     marker.write_text(fp)
@@ -206,10 +212,14 @@ def main():
         return 0
     event = payload.get("hook_event_name", "")
     extra = payload.get("extra") or {}
+    session = payload.get("session_id") or "default"
 
     if event in {"SessionStart", "pre_llm_call"}:
         if event == "pre_llm_call" and not extra.get("is_first_turn"):
             return 0
+        base = state_file(root, f"base-{session}")
+        if not base.exists():  # resume·compact의 재시작은 첫 기준을 유지한다
+            base.write_text(git(root, "rev-parse", "HEAD"))
         ctx = session_context(root)
         out = {"context": ctx} if tool == "hermes" else \
             {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": ctx}}
@@ -234,7 +244,7 @@ def main():
                 return 2
     elif event in {"Stop", "pre_verify"}:
         retry = bool(payload.get("stop_hook_active")) or int(extra.get("attempt") or 0) > 0
-        reason = check_stop(root, retry)
+        reason = check_stop(root, retry, session)
         if reason:
             print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
     return 0
