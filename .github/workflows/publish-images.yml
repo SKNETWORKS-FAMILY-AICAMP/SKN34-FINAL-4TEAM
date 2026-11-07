@@ -1,4 +1,4 @@
-name: Images
+name: CD
 
 on:
   workflow_run:
@@ -9,136 +9,176 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
-  group: images-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  group: storyfork-develop-cd
   cancel-in-progress: false
 
 jobs:
-  gate:
-    name: Verify successful CI
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.head_repository.full_name == github.repository && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')) }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    outputs:
-      sha: ${{ steps.ci.outputs.sha }}
-      branch: ${{ steps.ci.outputs.branch }}
-    steps:
-      # Gate 코드는 선택한 대상이 아닌 신뢰하는 기본 브랜치에서 실행한다.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-          persist-credentials: false
-      - name: Verify exact-SHA Required CI evidence
-        id: ci
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLICATION_SOURCE_PATH: ${{ runner.temp }}/publication-source.json
-        run: python3 -I infrastructure/scripts/check-publish-ci.py
-      - name: Record validated publication source
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: publication-source-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/publication-source.json
-          if-no-files-found: error
-          retention-days: 7
-
   publish:
-    name: Publish ${{ matrix.service }} image
-    needs: gate
+    name: Publish develop images
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.head_repository.full_name == github.repository && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')) }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - service: web
-            context: frontend
-          - service: core-api
-            context: backend/core-api
-          - service: ai-service
-            context: backend/ai-service
     env:
-      IMAGE: ghcr.io/sknetworks-family-aicamp/storyfork-${{ matrix.service }}
-      TARGET_SHA: ${{ needs.gate.outputs.sha }}
-      TARGET_BRANCH: ${{ needs.gate.outputs.branch }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.gate.outputs.sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
-      - name: Log in to GHCR
+      - name: Build and push develop images
+        run: |
+          set -euo pipefail
+          umask 077
+          scratch=$(mktemp -d)
+          trap 'rm -rf -- "$scratch"' EXIT
+          export DOCKER_CONFIG="$scratch"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          for service in web core-api content-service ai-service; do
+            image="ghcr.io/sknetworks-family-aicamp/storyfork-$service"
+            context="backend/$service"
+            if [[ "$service" == web ]]; then context=frontend; fi
+            docker build --platform linux/amd64 \
+              --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+              --label "org.opencontainers.image.revision=$TARGET_SHA" \
+              --tag "$image:sha-$TARGET_SHA" --tag "$image:develop" "$context"
+            docker push "$image:sha-$TARGET_SHA"
+          done
+          # 모든 SHA 이미지 게시 후에만 develop을 갱신한다.
+          for service in web core-api content-service ai-service; do
+            docker push "ghcr.io/sknetworks-family-aicamp/storyfork-$service:develop"
+          done
+
+  deploy:
+    name: Deploy develop images
+    needs: publish
+    # publish가 같은 저장소 develop의 CI 성공 또는 명시적인 develop 수동 실행만 허용한다.
+    # workflow_run의 ref는 기본 브랜치, 수동 실행의 ref는 develop이므로 main-only 검사는 하지 않는다.
+    # Fresh content history is incompatible with the retired development history. No automatic reset.
+    if: ${{ needs.publish.result == 'success' && vars.DEVELOP_CD_ENABLED == 'true' && vars.CONTENT_FRESH_SCHEMA_APPROVED == 'true' && vars.DEVELOP_INTERNAL_DB_APPROVED == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+    environment: develop-cd
+    env:
+      CD_DEPLOY_DIR: ${{ vars.CD_DEPLOY_DIR }}
+      CD_WEB_PORT: ${{ vars.CD_WEB_PORT }}
+      CONTENT_FRESH_SCHEMA_APPROVED: ${{ vars.CONTENT_FRESH_SCHEMA_APPROVED }}
+      DEVELOP_INTERNAL_DB_APPROVED: ${{ vars.DEVELOP_INTERNAL_DB_APPROVED }}
+      WORLDSTUDIO_CD_MIGRATION_ENABLED: ${{ vars.WORLDSTUDIO_CD_MIGRATION_ENABLED }}
+      WORLDSTUDIO_EXPECTED_DATABASE_URL: ${{ vars.WORLDSTUDIO_EXPECTED_DATABASE_URL }}
+      WORLDSTUDIO_EXPECTED_DATABASE_USER: ${{ vars.WORLDSTUDIO_EXPECTED_DATABASE_USER }}
+      WORLDSTUDIO_BACKUP_RESTORE_REFERENCE: ${{ vars.WORLDSTUDIO_BACKUP_RESTORE_REFERENCE }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:storyfork-cd
+      - name: Prepare SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CD_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.CD_SSH_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          SSH_DIR="$RUNNER_TEMP/storyfork-ssh"
+          printf 'SSH_DIR=%s\n' "$SSH_DIR" >> "$GITHUB_ENV"
+          mkdir -p "$SSH_DIR"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$SSH_DIR/key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$SSH_DIR/known_hosts"
+      - name: Pull and start develop images
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-      - name: Build image
         run: |
-          docker build --platform linux/amd64 \
-            --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
-            --label "org.opencontainers.image.revision=$TARGET_SHA" \
-            --tag "$IMAGE:$TARGET_BRANCH" --tag "$IMAGE:sha-$TARGET_SHA" \
-            "${{ matrix.context }}"
-      - name: Check anonymous package access
-        run: |
-          python3 -I - <<'PY'
-          # preflight-start
-          import json
-          import os
-          import urllib.error
-          import urllib.parse
-          import urllib.request
+          set -euo pipefail
+          {
+            # 설정과 토큰은 명령 인자가 아닌 암호화된 SSH stdin으로 전달한다.
+            printf '%s=%q\n' CD_DIRECTORY "$CD_DEPLOY_DIR" CD_WEB_PORT "$CD_WEB_PORT" \
+              GITHUB_ACTOR "$GITHUB_ACTOR" GH_TOKEN "$GH_TOKEN" \
+              CONTENT_FRESH_SCHEMA_APPROVED "$CONTENT_FRESH_SCHEMA_APPROVED" \
+              DEVELOP_INTERNAL_DB_APPROVED "$DEVELOP_INTERNAL_DB_APPROVED" \
+              WORLDSTUDIO_CD_MIGRATION_ENABLED "$WORLDSTUDIO_CD_MIGRATION_ENABLED" \
+              WORLDSTUDIO_EXPECTED_DATABASE_URL "$WORLDSTUDIO_EXPECTED_DATABASE_URL" \
+              WORLDSTUDIO_EXPECTED_DATABASE_USER "$WORLDSTUDIO_EXPECTED_DATABASE_USER" \
+              WORLDSTUDIO_BACKUP_RESTORE_REFERENCE "$WORLDSTUDIO_BACKUP_RESTORE_REFERENCE" \
+              COMPOSE_BASE_YAML "$(< infrastructure/docker-compose.yaml)" \
+              COMPOSE_DEV_YAML "$(< infrastructure/docker-compose.dev.yaml)" \
+              COMPOSE_LOCAL_YAML "$(< infrastructure/docker-compose.local.yaml)"
+            cat <<'REMOTE'
+          set -euo pipefail
+          umask 077
+          # An operator must confirm the exact target and fresh content schema outside this workflow.
+          [[ "${CONTENT_FRESH_SCHEMA_APPROVED:-}" == true ]] || { printf 'Content fresh-schema cutover not approved.\n' >&2; exit 1; }
+          [[ "${DEVELOP_INTERNAL_DB_APPROVED:-}" == true ]] || { printf 'Develop internal database cutover not approved.\n' >&2; exit 1; }
+          cd -P -- "$CD_DIRECTORY"
+          [[ "$PWD" == "$CD_DIRECTORY" && -f .env ]] || exit 1
+          export CD_DIRECTORY CD_WEB_PORT COMPOSE_PROJECT_NAME=storyfork-develop-cd DOCKER_HOST=unix:///var/run/docker.sock
+          # 서버 .env의 profile 설정으로 명시적인 migration opt-in을 우회하지 못하게 한다.
+          export COMPOSE_PROFILES=
+          unset DOCKER_CONTEXT
+          export DOCKER_CONFIG
+          DOCKER_CONFIG=$(mktemp -d)
+          trap 'rm -rf -- "$DOCKER_CONFIG"' EXIT
+          export COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.yaml:$DOCKER_CONFIG/docker-compose.dev.yaml"
+          printf '%s\n' "$COMPOSE_BASE_YAML" > "$DOCKER_CONFIG/docker-compose.yaml"
+          printf '%s\n' "$COMPOSE_DEV_YAML" > "$DOCKER_CONFIG/docker-compose.dev.yaml"
+          # --project-directory changes relative extends resolution; use the staged absolute path.
+          export CD_LOCAL_COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.local.yaml"
+          printf '%s\n' "$COMPOSE_LOCAL_YAML" > "$CD_LOCAL_COMPOSE_FILE"
 
-          image = os.environ['IMAGE'].removeprefix('ghcr.io/')
-          query = urllib.parse.urlencode({'service': 'ghcr.io', 'scope': f'repository:{image}:pull'})
-          try:
-              with urllib.request.urlopen('https://ghcr.io/token?' + query, timeout=10) as response:
-                  status, body = response.status, response.read()
-          except urllib.error.HTTPError as error:
-              status, body = error.code, error.read()
-          except (urllib.error.URLError, TimeoutError, OSError):
-              raise SystemExit('GHCR anonymous access check failed; publishing stopped')
-          try:
-              data = json.loads(body)
-              errors = data.get('errors') if isinstance(data, dict) else None
-              denied = isinstance(errors, list) and len(errors) == 1 and isinstance(errors[0], dict) and (status, errors[0].get('code')) in {(401, 'UNAUTHORIZED'), (403, 'DENIED')}
-          except (ValueError, UnicodeError):
-              denied = False
-          if not denied:
-              raise SystemExit(f'GHCR anonymous access check returned HTTP {status}; publishing stopped')
-          print('GHCR denied anonymous access; package visibility is not guaranteed')
-          # preflight-end
-          PY
-      - name: Verify current branch HEAD
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python3 -I - <<'PYTHON'
-          # branch-head-start
-          import json
-          import os
-          import urllib.parse
-          import urllib.request
+          # 같은 프로젝트 이름을 사용하는 다른 배포는 변경하지 않는다.
+          containers=$(docker container ls --all --quiet --filter label=com.docker.compose.project=storyfork-develop-cd)
+          for container in $containers; do
+            [[ "$(docker container inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$container")" == "$CD_DIRECTORY" ]] || exit 1
+          done
 
-          repository = urllib.parse.quote(os.environ['GITHUB_REPOSITORY'], safe='/')
-          branch = urllib.parse.quote(os.environ['TARGET_BRANCH'], safe='')
-          request = urllib.request.Request(
-              f'https://api.github.com/repos/{repository}/git/ref/heads/{branch}',
-              headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'},
-          )
-          try:
-              with urllib.request.urlopen(request, timeout=10) as response:
-                  current_sha = json.load(response)['object']['sha']
-          except (OSError, ValueError, KeyError, TypeError):
-              raise SystemExit('Branch HEAD lookup failed; publishing stopped')
-          if current_sha != os.environ['TARGET_SHA']:
-              raise SystemExit('Branch HEAD differs from validated SHA; publishing stopped')
-          # branch-head-end
-          PYTHON
-      - name: Push image tags
-        run: |
-          docker push "$IMAGE:sha-$TARGET_SHA"
-          docker push "$IMAGE:$TARGET_BRANCH"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          unset GH_TOKEN
+          # 서버 .env의 과거 image override 대신 최신 develop을 사용한다.
+          export CD_WEB_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-web:develop
+          export CD_CORE_API_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-core-api:develop
+          export CD_CONTENT_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
+          export CD_AI_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env pull
+          revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
+          [[ "$revisions" =~ ^[0-9a-f]{40}$ ]] || { printf 'Mixed or missing develop image revisions; rerun CD.\n' >&2; exit 1; }
+          # Stop public writes and the old Core content writer before any new migration/writer starts.
+          # Failure leaves ingress stopped; never auto-repair history or roll incompatible binaries back.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env stop web core-api content-service
+          # New project-scoped dependencies require a separately approved cutover; no data import/reset.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180 postgres mailpit
+          # 미확인 DB에 DDL을 실행하지 않는다. develop-cd의 승인된 설정만 활성화한다.
+          export APP_WORLDSTUDIO_ENABLED=false
+          case "${WORLDSTUDIO_CD_MIGRATION_ENABLED:-false}" in
+            true)
+              export WORLDSTUDIO_EXPECTED_DATABASE_URL WORLDSTUDIO_EXPECTED_DATABASE_USER WORLDSTUDIO_BACKUP_RESTORE_REFERENCE
+              export WORLDSTUDIO_MIGRATION_ENVIRONMENT=development
+              [[ -n "$WORLDSTUDIO_EXPECTED_DATABASE_URL" && -n "$WORLDSTUDIO_EXPECTED_DATABASE_USER" && -n "$WORLDSTUDIO_BACKUP_RESTORE_REFERENCE" ]] || exit 1
+              docker compose --project-directory "$CD_DIRECTORY" --env-file .env run --rm --no-deps worldstudio-migrate </dev/null
+              export APP_WORLDSTUDIO_ENABLED=true
+              ;;
+            false|'') ;;
+            *) printf 'Invalid WorldStudio migration activation flag.\n' >&2; exit 1 ;;
+          esac
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180
+          REMOTE
+          } | ssh -F /dev/null -T -p 5798 -i "$SSH_DIR/key" \
+            -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$SSH_DIR/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
+            -o ForwardAgent=no -o ClearAllForwardings=yes -o ConnectTimeout=15 \
+            tgv99536@100.90.8.124 'bash -se'
+      - name: Clean up SSH credentials
+        if: ${{ always() }}
+        run: rm -rf -- "$SSH_DIR"
