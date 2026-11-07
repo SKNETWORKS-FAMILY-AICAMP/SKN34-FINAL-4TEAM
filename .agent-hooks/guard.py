@@ -181,7 +181,7 @@ def check_stop(root, retry, session):
         subprocess.Popen(["graphify", "update", "."], cwd=root, stdout=subprocess.DEVNULL,
                          stderr=subprocess.DEVNULL, start_new_session=True)
     fp = hashlib.sha256((git(root, "diff", base or "HEAD") + "\n".join(sorted(paths))).encode()).hexdigest()
-    marker = state_file(root, "verified")
+    marker = state_file(root, f"verified-{session}")  # 동시 세션끼리 덮어쓰지 않음
     seen = marker.read_text() if marker.exists() else ""
     marker.write_text(fp)
     if retry or fp == seen:

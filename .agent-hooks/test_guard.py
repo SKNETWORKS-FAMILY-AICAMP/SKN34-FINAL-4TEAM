@@ -148,6 +148,17 @@ class GuardTest(unittest.TestCase):
         _, out, _ = self.run_hook("hermes", {"hook_event_name": "pre_verify", "session_id": "h1", "extra": {"attempt": 0}})
         self.assertEqual("block", json.loads(out)["decision"])
 
+    def test_concurrent_sessions_keep_own_verification(self):
+        (self.repo / "app.py").write_text("x = 2\n")
+        self.run_hook("claude", {"hook_event_name": "SessionStart", "session_id": "a"})
+        sh(self.repo, "git", "commit", "-qam", "feat: a")  # a의 기준 이후 커밋 → b와 지문이 달라짐
+        self.run_hook("codex", {"hook_event_name": "SessionStart", "session_id": "b"})
+        (self.repo / "app.py").write_text("x = 3\n")
+        stop = lambda s: self.run_hook("claude", {"hook_event_name": "Stop", "session_id": s})[1]
+        self.assertTrue(stop("a"))
+        self.assertTrue(stop("b"))
+        self.assertEqual(("", ""), (stop("a"), stop("b")))  # 변경 없으면 서로 덮어써 재점검하지 않음
+
     def test_stop_sees_old_path_of_committed_rename(self):
         self.run_hook("claude", {"hook_event_name": "SessionStart"})
         (self.repo / "docs").mkdir()
