@@ -6,6 +6,8 @@ import { ofKind } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { useAdminViewModel } from '../viewmodel/useAdminViewModel'
+import { AdminActionStatus, OperationsEvents, OperationsInquiries, OperationsNotices } from './OperationsPanels'
+import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 type VM = ReturnType<typeof useAdminViewModel>
 type Data = NonNullable<VM['data']>
@@ -14,12 +16,13 @@ const GROUPS: [string, [AdminTab, string][]][] = [['현황', [['data', '개요']
 const TITLES: Record<AdminTab, [string, string]> = {
   data: ['관리 개요', '수집 자료와 서비스 상태를 확인합니다.'], rights: ['신고·권리 관리', '신고·권리 조치와 원작·Fork 격리를 확인합니다.'], llm: ['LLM Ops', 'LLM 운영 지표는 시연용 예시이며 실시간 연결은 없습니다.'],
   admins: ['관리자 계정과 권한', '업무별 접근 권한을 나누어 관리자 계정을 추가합니다.'], users: ['사용자 관리', '데모 계정의 상태를 확인하고 제한할 수 있어요.'], works: ['작품 관리', '등록 작품의 공개 상태와 이용 권리 정보를 살펴봅니다.'],
-  characterChats: ['캐릭터챗 관리', '공개 작품의 원작·포크와 캐릭터를 선택해 챗을 추가하거나 운영 상태를 바꿉니다.'], comments: ['댓글 관리', '댓글 목록을 확인하고 데모 상태에서 숨김 처리할 수 있어요.'], feedback: ['제보·문의', '오류 제보와 사용자 문의를 한곳에서 확인합니다.'],
-  jobs: ['정기 작업', 'Core API 내장 스케줄러에서 관리할 작업 흐름을 확인합니다.'], events: ['이벤트 관리', '이벤트를 안내하고 진행 상태를 바꿉니다.'], notices: ['공지 게시', '회원 화면의 공지 목록에 데모 게시물을 추가합니다.'],
+  characterChats: ['캐릭터챗 관리', '공개 작품의 원작·포크와 캐릭터를 선택해 챗을 추가하거나 운영 상태를 바꿉니다.'], comments: ['댓글 관리', '댓글 목록을 확인하고 데모 상태에서 숨김 처리할 수 있어요.'], feedback: ['제보·문의', '독립 운영 문의 기록과 기존 회원 문의·작가 제보 데모를 구분해 확인합니다.'],
+  jobs: ['정기 작업', 'Core API 내장 스케줄러에서 관리할 작업 흐름을 확인합니다.'], events: ['이벤트 관리', '독립 운영 이벤트의 내용과 선택 기간을 관리합니다.'], notices: ['공지 게시', '독립 운영 공지 기록을 작성·조회·수정·삭제합니다.'],
   credits: ['크레딧 관리', '크레딧 이용 현황과 정책 확정 상태를 확인합니다.'], audit: ['관리자 활동 로그', '이 화면에서 수행한 데모 조치를 최신순으로 기록합니다.'], profile: ['관리자 프로필', '관리자 계정의 표시 이름과 이메일을 관리합니다.'],
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
 const has = (q: string, ...xs: string[]) => !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
+const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
 /** 폼 입력값을 이름으로 읽습니다 (목업 $('#id').value). */
 const val = (e: FormEvent<HTMLFormElement>, name: string) => String(new FormData(e.currentTarget).get(name) ?? '')
 
@@ -43,6 +46,12 @@ export function AdminPage() {
         </nav>
         <section className="workspace">
           <header className="admin-head"><div><h1>{title}</h1><p>{desc}</p></div><span className="demo">데모 화면</span></header>
+          {vm.isLoading && <p className="admin-data-state" role="status">관리자 데이터를 불러오고 있어요.</p>}
+          {vm.lastSuccess && <p className="admin-data-state" role="status">{vm.lastSuccess}</p>}
+          {vm.isRefreshing && <p className="admin-data-state" role="status">목록을 새로고침하고 있어요. 이전 조회 내용은 유지하며 처리 버튼은 잠시 사용할 수 없어요.</p>}
+          {vm.isError && <div className="admin-data-state admin-action-error" role="alert"><p>{d ? vm.lastSuccess ? '마지막 요청은 성공했지만 목록 새로고침에 실패했어요. 아래는 이전 조회 내용이에요. 같은 요청을 다시 보내지 말고 먼저 목록을 새로고침해 주세요.' : '목록 새로고침에 실패했어요. 아래는 이전 조회 내용이에요. 다시 불러온 뒤 처리해 주세요.' : '관리자 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'}</p><button type="button" className="btn sm" onClick={vm.retry}>다시 불러오기</button></div>}
+          {d && !vm.isError && <div className="rowend admin-refresh"><button type="button" className="btn sm" onClick={vm.retry} disabled={vm.isRefreshing}>목록 새로고침</button></div>}
+          {Object.entries(vm.actions).filter(([key]) => !/^(notice:|event:|inquiry:|reply:|legacy:)/.test(key)).map(([key, state]) => <AdminActionStatus key={key} state={state} />)}
           {d && <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} />}
           <p className="admin-note">이 관리자 UI는 오프라인 데모입니다. 실제 권한 확인과 데이터 반영은 서버 연결이 필요합니다.</p>
         </section>
@@ -80,40 +89,34 @@ function Body(p: BodyProps) {
     T = <div className="panel"><Controls {...p} categories={[['all', '전체'], ...[...new Set(d.admin.users.map((u) => u.role))].map((v): [string, string] => [v, v])]} sorts={[['newest', '가입 최신순'], ['oldest', '가입 오래된순']]} />
       <div className="table-head"><span className="demo">예시 계정 · 실제 회원 데이터 아님</span><label className="field" style={{ margin: 0, maxWidth: 300 }}>사용자 검색<input className="inp" type="search" value={f.search} placeholder="이름·이메일 검색" onChange={(e) => p.setF({ search: e.target.value })} /></label></div>
       <table><thead><tr><th>사용자</th><th>역할</th><th>가입일</th><th>상태</th><th>조치</th></tr></thead><tbody>{list.map((u) => (
-        <tr key={u.id}><td><b>{u.nick}</b><br /><span className="small muted">{u.email}</span></td><td>{u.role}</td><td>{u.joined}</td><td><span className={`chip ${u.status === '활동' ? 'ok' : 'wait'}`}>{u.status}</span></td><td><button type="button" className="btn sm" onClick={() => vm.toggleUser(u.id)}>{u.status === '활동' ? '이용 제한' : '제한 해제'}</button></td></tr>
+        <tr key={u.id}><td><b>{u.nick}</b><br /><span className="small muted">{u.email}</span></td><td>{u.role}</td><td>{u.joined}</td><td><span className={`chip ${u.status === '활동' ? 'ok' : 'wait'}`}>{u.status}</span></td><td><button type="button" className="btn sm" disabled={blocked(vm, `user:${u.id}`)} onClick={() => vm.toggleUser(u.id)}>{u.status === '활동' ? '이용 제한' : '제한 해제'}</button></td></tr>
       ))}</tbody></table><p className="admin-note">상태 변경은 이 브라우저의 데모 화면에만 반영됩니다. 실제 계정 권한은 서버 연동이 필요해요.</p></div>
   } else if (tab === 'works') {
     const list = d.works.filter((w) => ofKind(f.category, w) && has(f.query, w.title, w.author, w.kind, w.rights)).sort((a, b) => titleSort(a.title, b.title))
     T = <div className="panel"><span className="demo">목업 작품 데이터</span><Controls {...p} categories={KINDS} sorts={[['title', '제목순'], ['titleDesc', '제목 역순']]} />
       <table style={{ marginTop: 10 }}><thead><tr><th>작품</th><th>작성자</th><th>종류</th><th>권리</th><th>공개 상태</th><th>조치</th></tr></thead><tbody>{list.length ? list.map((w) => (
-        <tr key={w.id}><td><b>{w.title}</b></td><td>{w.author}</td><td>{w.kind}</td><td>{w.rights}</td><td><span className={`chip ${w.hidden ? 'wait' : 'ok'}`}>{w.hidden ? '운영 제한' : w.private ? '비공개' : '공개'}</span></td><td><button type="button" className="btn sm" onClick={() => vm.toggleWork(w.id)}>{w.hidden ? '제한 해제' : '운영상 비공개'}</button></td></tr>
+        <tr key={w.id}><td><b>{w.title}</b></td><td>{w.author}</td><td>{w.kind}</td><td>{w.rights}</td><td><span className={`chip ${w.hidden ? 'wait' : 'ok'}`}>{w.hidden ? '운영 제한' : w.private ? '비공개' : '공개'}</span></td><td><button type="button" className="btn sm" disabled={blocked(vm, `work:${w.id}`)} onClick={() => vm.toggleWork(w.id)}>{w.hidden ? '제한 해제' : '운영상 비공개'}</button></td></tr>
       )) : <tr><td colSpan={6} className="muted">검색 결과가 없어요.</td></tr>}</tbody></table><p className="admin-note">공개 제한은 데모 작품 상태에만 반영되고, 실제 작품 권한 판단은 Core API에서 처리해야 합니다.</p></div>
   } else if (tab === 'characterChats') {
     const list = d.chats.filter((c) => ofKind(f.category, c.w) && has(f.query, c.w.title, c.character)).sort((a, b) => titleSort(a.w.title, b.w.title) || a.character.localeCompare(b.character, 'ko'))
     T = <><ChatForm d={d} vm={vm} /><div className="panel" style={{ marginTop: 14 }}><div className="table-head"><b>캐릭터챗 목록</b><span className="demo">작품·캐릭터 연결</span></div><Controls {...p} categories={KINDS} sorts={[['title', '작품 제목순'], ['titleDesc', '작품 제목 역순']]} />
       <table style={{ marginTop: 10 }}><thead><tr><th>구분</th><th>작품</th><th>캐릭터</th><th>상태</th><th>관리</th></tr></thead><tbody>{list.length ? list.map((c) => (
-        <tr key={c.id}><td><span className={`chip ${c.w.parent ? 'if' : 'ok'}`}>{c.w.parent ? '포크' : '원작'}</span></td><td><b>{c.w.title}</b></td><td>{c.character}</td><td><span className={`chip ${c.enabled === false ? 'wait' : 'ok'}`}>{c.enabled === false ? '중지' : '운영 중'}</span></td><td><button type="button" className="btn sm" onClick={() => vm.toggleChat(c.id)}>{c.enabled === false ? '운영 재개' : '중지'}</button></td></tr>
+        <tr key={c.id}><td><span className={`chip ${c.w.parent ? 'if' : 'ok'}`}>{c.w.parent ? '포크' : '원작'}</span></td><td><b>{c.w.title}</b></td><td>{c.character}</td><td><span className={`chip ${c.enabled === false ? 'wait' : 'ok'}`}>{c.enabled === false ? '중지' : '운영 중'}</span></td><td><button type="button" className="btn sm" disabled={blocked(vm, `chat:${c.id}`)} onClick={() => vm.toggleChat(c.id)}>{c.enabled === false ? '운영 재개' : '중지'}</button></td></tr>
       )) : <tr><td colSpan={5} className="muted">조건에 맞는 캐릭터챗이 없어요.</td></tr>}</tbody></table></div></>
   } else if (tab === 'comments') {
     const works = [...new Map(d.comments.map((c) => [c.workId, c.work])).entries()].sort((a, b) => a[1].localeCompare(b[1], 'ko'))
     const list = d.comments.filter((c) => (f.category === 'all' || c.workId === f.category) && has(f.query, c.text, c.work, c.author)).sort((a, b) => (f.sort === 'likes' ? b.likes - a.likes : a.likes - b.likes))
     T = <div className="panel"><span className="demo">시드·현재 브라우저 댓글 · 서버 저장 없음</span><Controls {...p} categories={[['all', '전체 작품'], ...works.map(([id, name]): [string, string] => [id, works.filter((x) => x[1] === name).length > 1 ? name + ' · ' + id : name])]} sorts={[['likes', '공감 많은순'], ['likesAsc', '공감 적은순']]} />
       <table style={{ marginTop: 10 }}><thead><tr><th>댓글</th><th>작품</th><th>작성자</th><th>공감</th><th>상태</th><th>조치</th></tr></thead><tbody>{list.length ? list.map((c) => (
-        <tr key={c.id}><td>{c.text}</td><td>{c.work}</td><td>{c.author}</td><td>{c.likes}</td><td><span className={`chip ${c.status === '게시' ? 'ok' : 'wait'}`}>{c.status}</span></td><td><button type="button" className="btn sm" onClick={() => vm.toggleComment(c.id, c.work + ' · ' + c.author)}>{c.status === '게시' ? '숨김' : '게시 복구'}</button></td></tr>
+        <tr key={c.id}><td>{c.text}</td><td>{c.work}</td><td>{c.author}</td><td>{c.likes}</td><td><span className={`chip ${c.status === '게시' ? 'ok' : 'wait'}`}>{c.status}</span></td><td><button type="button" className="btn sm" disabled={blocked(vm, `comment:${c.id}`)} onClick={() => vm.toggleComment(c.id, c.work + ' · ' + c.author)}>{c.status === '게시' ? '숨김' : '게시 복구'}</button></td></tr>
       )) : <tr><td colSpan={6} className="muted">검색 결과가 없어요.</td></tr>}</tbody></table></div>
   } else if (tab === 'feedback') T = <Feedback d={d} vm={vm} />
   else if (tab === 'jobs') T = <div className="panel"><div className="table-head"><b>운영 정기 작업</b><span className="demo">데모 기록 · 실제 실행 없음</span></div><p className="admin-note">기획 구조는 Core API 내장 스케줄러예요. 실행 주기는 미정이며, 별도 worker·queue는 추가하지 않아요. 사용자가 요청한 AI 작업은 자동 재처리하지 않습니다.</p>
     <table><thead><tr><th>작업</th><th>실행 주기</th><th>최근 상태</th><th>최근 결과</th><th>조치</th></tr></thead><tbody>{d.admin.jobs.map((j) => (
-      <tr key={j.id}><td><b>{j.name}</b></td><td>미정</td><td><span className={`chip ${j.status === '실패' ? 'wait' : 'ok'}`}>{j.status}</span></td><td>{j.last}</td><td>{j.status === '실패' ? <button type="button" className="btn sm" onClick={() => vm.runJob(j.id)}>수동 재시도 시연</button> : '—'}</td></tr>
+      <tr key={j.id}><td><b>{j.name}</b></td><td>미정</td><td><span className={`chip ${j.status === '실패' ? 'wait' : 'ok'}`}>{j.status}</span></td><td>{j.last}</td><td>{j.status === '실패' ? <button type="button" className="btn sm" disabled={blocked(vm, `job:${j.id}`)} onClick={() => vm.runJob(j.id)}>수동 재시도 시연</button> : '—'}</td></tr>
     ))}</tbody></table><p className="admin-note">실패 작업은 명시적인 수동 재시도만 표시합니다. 재시도 동작은 멱등하게 설계해야 하며, 이 화면의 버튼은 실제 작업을 실행하지 않습니다.</p></div>
-  else if (tab === 'events') T = <>
-    <form className="panel" onSubmit={async (e) => { e.preventDefault(); const form = e.currentTarget; if (await vm.addEvent(val(e, 'title'), val(e, 'period'), val(e, 'body'))) form.reset() }}><b>이벤트 추가</b><div className="form-grid" style={{ marginTop: 12 }}><label className="field">이벤트명<input className="inp" name="title" maxLength={50} required /></label><label className="field">기간<input className="inp" name="period" maxLength={40} placeholder="기간 미정" /></label><label className="field wide">안내 내용<textarea className="ta" name="body" maxLength={300} required /></label></div><div className="rowend"><button className="btn pri" type="submit">이벤트 추가</button></div></form>
-    <div className="panel" style={{ marginTop: 14 }}><span className="demo">데모에서만 추가·변경</span><table style={{ marginTop: 10 }}><thead><tr><th>이벤트</th><th>기간</th><th>상태</th><th>조치</th></tr></thead><tbody>{d.admin.events.map((e, i) => (
-      <tr key={i}><td><b>{e.t}</b><br /><span className="small muted">{e.d}</span></td><td>{e.p}</td><td>{e.st}</td><td><button type="button" className="btn sm" onClick={() => vm.toggleEvent(i)}>상태 변경</button></td></tr>
-    ))}</tbody></table></div></>
-  else if (tab === 'notices') T = <>
-    <form className="panel" onSubmit={async (e) => { e.preventDefault(); const form = e.currentTarget; if (await vm.addNotice(val(e, 'title'), val(e, 'body'))) form.reset() }}><b>공지 작성</b><div className="form-grid" style={{ marginTop: 12 }}><label className="field wide">제목<input className="inp" name="title" maxLength={60} required /></label><label className="field wide">내용<textarea className="ta" name="body" maxLength={1000} required /></label></div><div className="rowend"><button className="btn pri" type="submit">공지 게시</button></div></form>
-    <div className="panel" style={{ marginTop: 14 }}><span className="demo">데모에서만 게시</span><table style={{ marginTop: 10 }}><thead><tr><th>게시일</th><th>제목</th><th>내용</th></tr></thead><tbody>{d.admin.notices.map((n, i) => <tr key={i}><td>{n[0]}</td><td><b>{n[1]}</b></td><td>{n[2]}</td></tr>)}</tbody></table></div></>
+  else if (tab === 'events') T = <><OperationsEvents vm={vm} /><LegacyEvents d={d} vm={vm} /></>
+  else if (tab === 'notices') T = <><OperationsNotices vm={vm} /><LegacyNotices d={d} vm={vm} /></>
   else if (tab === 'credits') T = <div className="panel"><div className="table-head"><b>크레딧 원장</b><span className="chip wait">정책 미확정</span></div><p>현재 실제 잔액·충전·차감 내역은 연결되어 있지 않습니다.</p><table style={{ marginTop: 14 }}><thead><tr><th>일시</th><th>계정</th><th>유형</th><th>변동</th><th>상태</th></tr></thead><tbody><tr><td colSpan={5} className="muted" style={{ textAlign: 'center', padding: 24 }}>표시할 실제 내역이 없어요.</td></tr></tbody></table><p className="admin-note">충전·회수·수동 조정은 정책, 권한, 복구 기준이 확정된 뒤 연결해야 합니다. 이 화면에서는 크레딧을 변경하지 않습니다.</p></div>
   else if (tab === 'audit') T = <div className="panel"><ul className="audit-list">{d.admin.audit.length ? d.admin.audit.map((x, i) => <li key={i}><time>{x.at}</time><div><b>{x.action}</b><div className="small muted">{x.actor} · {x.detail}</div></div></li>) : <li className="muted">아직 기록된 조치가 없어요.</li>}</ul><p className="admin-note">기록은 현재 브라우저 메모리에만 있으며 새로고침하면 사라집니다.</p></div>
   else T = <Profile d={d} vm={vm} />
@@ -139,11 +142,11 @@ function Rights({ d, vm, sel, setSel }: BodyProps) {
     <div className="panel" style={{ marginTop: 22 }}><b>권리 확인·신고</b> <span className="muted small">행을 누르면 상세가 열려요</span><table style={{ marginTop: 10 }}><tbody><tr><th>소설</th><th>올린 사람</th><th>종류</th><th>권리 확인</th><th>포크</th><th>신고</th><th>상태</th></tr>
       {d.rights.map((r) => <tr key={r.id} className={`click ${sel === r.id ? 'sel' : ''}`} onClick={() => setSel(r.id)}><td>{r.title}</td><td>{r.owner}</td><td>{r.kind}</td><td><span className={`chip ${r.rights === '확인됨' ? 'ok' : 'wait'}`}>{r.rights}</span></td><td>{r.fork}</td><td>{r.reports}</td><td>{r.state}</td></tr>)}</tbody></table></div>
     {sel === 'flag1' ? <div className="panel" style={{ marginTop: 14 }} id="a04"><b>신고 상세 · {f.title}</b><dl className="ai"><dt>신고 사유</dt><dd>원작 무단 사용 의심 (외부 IP)</dd><dt>신고 수</dt><dd>{f.reports}건</dd><dt>권리 확인</dt><dd>{f.rights}</dd><dt>현재 조치</dt><dd>{f.state} · 포크 {f.fork}</dd></dl>
-      <div className="rowend"><button type="button" className="btn" onClick={() => vm.flag('proof')}>증빙 요청</button><button type="button" className="btn" onClick={() => vm.flag('hide')}>비공개 전환</button><button type="button" className="btn pri" onClick={() => vm.flag('lift')}>소명 확인 · 제한 해제</button></div>{f.log.length > 0 && <div className="note" style={{ marginTop: 10 }}>{f.log.map((x, i) => <div key={i}>{x}</div>)}</div>}<p className="small muted" style={{ marginTop: 10 }}>기획서 V-2: 적법한 중단 요청·침해 정황 시 공개·AI·포크 기능 제한, 소명·재개 절차 제공</p></div>
+      <div className="rowend"><button type="button" className="btn" disabled={blocked(vm, 'flag')} onClick={() => vm.flag('proof')}>증빙 요청</button><button type="button" className="btn" disabled={blocked(vm, 'flag')} onClick={() => vm.flag('hide')}>비공개 전환</button><button type="button" className="btn pri" disabled={blocked(vm, 'flag')} onClick={() => vm.flag('lift')}>소명 확인 · 제한 해제</button></div>{f.log.length > 0 && <div className="note" style={{ marginTop: 10 }}>{f.log.map((x, i) => <div key={i}>{x}</div>)}</div>}<p className="small muted" style={{ marginTop: 10 }}>기획서 V-2: 적법한 중단 요청·침해 정황 시 공개·AI·포크 기능 제한, 소명·재개 절차 제공</p></div>
       : selWork && (() => { const qs = d.queue.filter((q) => q.w === sel); return <div className="panel" style={{ marginTop: 14 }} id="a04"><b>신고 상세 · {selWork.title}</b><p className="small muted" style={{ margin: '6px 0 10px' }}>권리 {selWork.rights} · 종류 {selWork.kind} · 신고 {qs.length}건</p>
         {qs.length ? qs.map((q) => <div className="rp" key={q.id}><div className="top"><b>{q.n ? `${q.n}화` : '소설 전체'} · {q.type}</b><span className={`chip ${q.status === '접수' ? 'wait' : 'ok'}`}>{q.status}</span></div><q className="cq">{q.quote || '문장 인용 없이 소설 전체를 신고했어요.'}</q><div className="small">{q.text} · {q.who}</div>{q.appeal && <p>소명: {q.appeal}</p>}
-          {q.status === '접수' ? <div className="rowend" style={{ marginTop: 8 }}><button type="button" className="btn sm" onClick={() => vm.review(q.id, 'ok')}>문제 없음</button><button type="button" className="btn sm pri" onClick={() => vm.review(q.id, 'hide')}>비공개 조치</button></div>
-            : q.status === '소명 제출' && <div className="rowend"><button type="button" className="btn sm" onClick={() => vm.review(q.id, 'keep')}>비공개 유지</button><button type="button" className="btn sm pri" onClick={() => vm.review(q.id, 'restore')}>소명 인정 · 복원</button></div>}</div>) : <p className="small muted">접수된 신고가 없어요.</p>}</div> })()}
+          {q.status === '접수' ? <div className="rowend" style={{ marginTop: 8 }}><button type="button" className="btn sm" disabled={blocked(vm, `review:${q.id}`)} onClick={() => vm.review(q.id, 'ok')}>문제 없음</button><button type="button" className="btn sm pri" disabled={blocked(vm, `review:${q.id}`)} onClick={() => vm.review(q.id, 'hide')}>비공개 조치</button></div>
+            : q.status === '소명 제출' && <div className="rowend"><button type="button" className="btn sm" disabled={blocked(vm, `review:${q.id}`)} onClick={() => vm.review(q.id, 'keep')}>비공개 유지</button><button type="button" className="btn sm pri" disabled={blocked(vm, `review:${q.id}`)} onClick={() => vm.review(q.id, 'restore')}>소명 인정 · 복원</button></div>}</div>) : <p className="small muted">접수된 신고가 없어요.</p>}</div> })()}
     <h3 className="st">A06 · 원작 / 포크 데이터 격리 점검</h3><div className="panel"><table><tbody><tr><th>포크</th><th>원작 · 분기</th><th>스냅샷 해시</th><th>원작 현재 해시 (1~분기 회차)</th><th>인물 상태 차이</th><th>판정</th></tr>
       {d.isolation.map((x) => <tr key={x.title}><td>{x.title}</td><td>{x.parent} · {x.forkAt}화</td><td className="mono">{x.snapNow}</td><td className="mono">{x.now}</td><td>{x.diff.length ? x.diff.join(', ') : '없음'}</td><td><span className={`chip ${x.ok ? 'ok' : 'wait'}`}>{x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}</span></td></tr>)}</tbody></table><p className="small muted" style={{ marginTop: 10 }}>스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 PR로 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.</p></div>
   </>
@@ -152,7 +155,7 @@ function Rights({ d, vm, sel, setSel }: BodyProps) {
 /** 목업 adminLegacy() 그 밖의 tab(llm): A05 */
 function Llm({ d, vm }: { d: Data; vm: VM }) {
   return <>
-    <div className="panel"><h2>처리 실패·지연 경고</h2><p className="small muted">데모 오류만 표시하며 자동 재처리하지 않아요.</p>{d.alerts.length ? d.alerts.map((a) => <div className="rp" key={a.id}><b>{a.task} · {a.status}</b><p>{a.detail}</p><dl className="ai"><dt>실패 단계</dt><dd>{a.stage || '미정'}</dd><dt>오류</dt><dd>{a.error || a.detail}</dd><dt>다음 조치</dt><dd>{a.action || '수동 확인'}</dd></dl>{a.resolved ? <span className="chip">조치 기록됨</span> : <button type="button" className="btn sm" onClick={() => vm.resolveAlert(a.id)}>확인 및 조치 기록</button>}</div>) : <p className="muted">경고가 없어요.</p>}
+    <div className="panel"><h2>처리 실패·지연 경고</h2><p className="small muted">데모 오류만 표시하며 자동 재처리하지 않아요.</p>{d.alerts.length ? d.alerts.map((a) => <div className="rp" key={a.id}><b>{a.task} · {a.status}</b><p>{a.detail}</p><dl className="ai"><dt>실패 단계</dt><dd>{a.stage || '미정'}</dd><dt>오류</dt><dd>{a.error || a.detail}</dd><dt>다음 조치</dt><dd>{a.action || '수동 확인'}</dd></dl>{a.resolved ? <span className="chip">조치 기록됨</span> : <button type="button" className="btn sm" disabled={blocked(vm, `alert:${a.id}`)} onClick={() => vm.resolveAlert(a.id)}>확인 및 조치 기록</button>}</div>) : <p className="muted">경고가 없어요.</p>}
       <p className="small muted">작업·상태·실패 단계·오류·다음 조치만 표시해요. 개인 원고 내용은 로그에 넣지 않아요.</p><Go to="/admin?tab=rights" className="btn sm">권리 신고 대기 확인</Go></div>
     <div className="panel" style={{ marginTop: 22 }}><b>LLM Ops · 운영 지표</b> <span className="demo">시연 데이터 · 실시간 연결 없음</span><table style={{ marginTop: 10 }}><thead><tr><th>지표</th><th>측정 내용</th><th>현재 값</th><th>집계 기준</th></tr></thead><tbody>
       {[['실패·시간 초과율', '작업 단계별 요청 결과', '단계별'], ['응답 지연', '처리 단계별 지연 시간', '모델·프롬프트 버전'], ['토큰·비용', '지급 주체별 사용량', '원고 내용 미수집'], ['제안 채택·수정 승인', '제안 반영 여부', '품질 지표'], ['오류 검증·필터 복구', '오류 적용·숨김 복구 비율', '품질 지표']].map(([a, b, c]) => <tr key={a}><td>{a}</td><td>{b}</td><td>미정</td><td>{c}</td></tr>)}</tbody></table>
@@ -172,18 +175,65 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
       <div className="form-grid" style={{ marginTop: 12 }}><label className="field">작품 유형<select className="inp" value={form.kind} onChange={(e) => setForm({ kind: e.target.value, workId: '', character: '' })}><option value="all">전체</option><option value="original">원작</option><option value="fork">포크</option></select></label>
         <label className="field">작품<select className="inp" value={sw?.w.id ?? ''} disabled={!available.length} onChange={(e) => setForm({ ...form, workId: e.target.value, character: '' })}>{available.map(({ w }) => <option key={w.id} value={w.id}>{w.title}{w.parent ? ' · 포크' : ' · 원작'}</option>)}</select></label>
         <label className="field wide">캐릭터<select className="inp" value={character} disabled={!cast.length} onChange={(e) => setForm({ ...form, workId: sw?.w.id ?? '', character: e.target.value })}>{cast.map((c) => <option key={c.n} value={c.n}>{c.n} · {c.d}</option>)}</select></label></div>
-      <div className="rowend"><button className="btn pri" type="submit" disabled={!sw || !character}>캐릭터챗 추가</button></div><p className="admin-note">공개 작품의 기존 캐릭터만 선택할 수 있어요. 추가·운영 상태는 이 브라우저의 데모 화면에만 반영됩니다.</p></form>
+      <div className="rowend"><button className="btn pri" type="submit" disabled={!sw || !character || blocked(vm, 'chat:new')}>{vm.actions['chat:new']?.pending ? '추가 중…' : '캐릭터챗 추가'}</button></div><p className="admin-note">공개 작품의 기존 캐릭터만 선택할 수 있어요. 추가·운영 상태는 이 브라우저의 데모 화면에만 반영됩니다.</p></form>
   )
 }
 
-/** 목업 adminExtra() tab=feedback: 문의 답변(data-inquiry-form)과 작가 검토 제보 */
+/** 회원 화면의 기존 단순 데모는 독립 운영 기록으로 이관하지 않습니다. */
+function LegacyNotices({ d, vm }: { d: Data; vm: VM }) {
+  const form = vm.legacyDrafts.notice ?? {}
+  const state = vm.actions['legacy:notice']
+  return <details className="panel admin-legacy-demo">
+    <summary>기존 회원 화면 공지 데모</summary>
+    <p className="admin-note">기존 회원 공지 목록과 이어지는 별도 호환 데모예요. 위 운영 공지 기록의 서버 발행 기능이 아니에요.</p>
+    <form onSubmit={async (e) => { e.preventDefault(); if (await vm.addNotice(form.title ?? '', form.body ?? '')) vm.clearLegacyDraft('notice') }}>
+      <fieldset disabled={vm.mutationsBlocked || !!state?.pending} className="form-grid">
+        <label className="field wide">제목<input className="inp" maxLength={60} required value={form.title ?? ''} onChange={(e) => vm.setLegacyDraft('notice', 'title', e.target.value)} /></label>
+        <label className="field wide">내용<textarea className="ta" maxLength={1000} required value={form.body ?? ''} onChange={(e) => vm.setLegacyDraft('notice', 'body', e.target.value)} /></label>
+        <div className="rowend wide"><button className="btn pri" type="submit">{state?.pending ? '게시 중…' : '공지 게시'}</button></div>
+      </fieldset><AdminActionStatus state={state} />
+    </form>
+    <table><thead><tr><th>게시일</th><th>제목</th><th>내용</th></tr></thead><tbody>{d.admin.notices.map((n, i) => <tr key={i}><td>{n[0]}</td><td><b>{n[1]}</b></td><td className="admin-prose">{n[2]}</td></tr>)}</tbody></table>
+  </details>
+}
+
+function LegacyEvents({ d, vm }: { d: Data; vm: VM }) {
+  const form = vm.legacyDrafts.event ?? {}
+  const state = vm.actions['legacy:event:new']
+  return <details className="panel admin-legacy-demo">
+    <summary>기존 회원 화면 이벤트 데모</summary>
+    <p className="admin-note">기존 회원 화면의 문자열 기간·상태 변경만 유지하는 호환 데모예요. 위 운영 이벤트의 UTC 기간 계약과는 별개예요.</p>
+    <form onSubmit={async (e) => { e.preventDefault(); if (await vm.addEvent(form.title ?? '', form.period ?? '', form.body ?? '')) vm.clearLegacyDraft('event') }}>
+      <fieldset disabled={vm.mutationsBlocked || !!state?.pending} className="form-grid">
+        <label className="field">이벤트명<input className="inp" maxLength={50} required value={form.title ?? ''} onChange={(e) => vm.setLegacyDraft('event', 'title', e.target.value)} /></label>
+        <label className="field">기간<input className="inp" maxLength={40} placeholder="기간 미정" value={form.period ?? ''} onChange={(e) => vm.setLegacyDraft('event', 'period', e.target.value)} /></label>
+        <label className="field wide">안내 내용<textarea className="ta" maxLength={300} required value={form.body ?? ''} onChange={(e) => vm.setLegacyDraft('event', 'body', e.target.value)} /></label>
+        <div className="rowend wide"><button className="btn pri" type="submit">{state?.pending ? '추가 중…' : '이벤트 추가'}</button></div>
+      </fieldset><AdminActionStatus state={state} />
+    </form>
+    <table><thead><tr><th>이벤트</th><th>기간</th><th>상태</th><th>조치</th></tr></thead><tbody>{d.admin.events.map((event, i) => <tr key={i}><td><b>{event.t}</b><p className="small muted admin-prose">{event.d}</p></td><td>{event.p}</td><td>{event.st}</td><td><button type="button" className="btn sm" disabled={vm.mutationsBlocked || !!vm.actions[`legacy:event:${i}`]?.pending} onClick={() => vm.toggleEvent(i)}>상태 변경</button><AdminActionStatus state={vm.actions[`legacy:event:${i}`]} /></td></tr>)}</tbody></table>
+  </details>
+}
+
+/** 기존 회원 문의는 단일 답변을 그대로 유지하고, 운영 문의 CRUD와 섞지 않습니다. */
 function Feedback({ d, vm }: { d: Data; vm: VM }) {
+  const inquiry = d.inquiries.find((row) => row.id === vm.legacyInquiryId)
+  const root = useAdminDetailFocus(vm.legacyInquiryId, !!inquiry)
+  const draftKey = `inquiry:${vm.legacyInquiryId}`
+  const answer = vm.legacyDrafts[draftKey]?.answer ?? ''
+  const state = vm.actions[`legacy:reply:${vm.legacyInquiryId}`]
   return <>
-    <div className="panel"><div className="table-head"><b>사용자 문의</b><span className="demo">현재 브라우저 데모</span></div>{d.inquiries.length ? d.inquiries.map((q) => (
-      <article className="inquiry-item" key={q.id}><b>[{q.t}] {q.s}</b><p className="small muted">{q.d} · {q.st}</p><p>{q.b}</p>{q.reply ? <p className="inquiry-reply"><b>운영팀 답변</b><br />{q.reply}</p>
-        : <form onSubmit={(e) => { e.preventDefault(); vm.reply(q.id, val(e, 'answer')) }}><label className="field">답변<textarea className="ta" name="answer" maxLength={1000} required /></label><div className="rowend"><button className="btn pri sm" type="submit">답변 등록</button></div></form>}</article>
-    )) : <p className="muted">아직 접수된 문의가 없어요. 사용자가 문의를 보내면 이곳에서 답변할 수 있어요.</p>}</div>
-    <div className="panel" style={{ marginTop: 14 }}><b>작가 검토 제보</b><p className="small muted">원고 반영은 작가가 검토합니다.</p><table style={{ marginTop: 10 }}><thead><tr><th>유형</th><th>내용</th><th>접수일</th><th>상태</th></tr></thead><tbody>{d.reports.length ? d.reports.map((r) => (
+    <OperationsInquiries vm={vm} />
+    <details className="panel admin-legacy-demo">
+      <summary>기존 회원 문의 데모</summary>
+      <section ref={root} aria-label="기존 회원 문의">
+        <p className="admin-note">회원의 내 문의에 연결된 기존 단일 답변 데모예요. 운영 문의 기록과 저장소가 다르고 실제 전송·알림은 없어요.</p>
+        {!vm.legacyInquiryId ? <><h2 tabIndex={-1}>기존 회원 문의 목록</h2>{d.inquiries.length ? <ul className="admin-record-list">{d.inquiries.map((q) => <li key={q.id}><button type="button" className="admin-record-link" data-record-id={q.id} onClick={() => vm.selectLegacyInquiry(q.id)}><b>[{q.t}] {q.s}</b><span className="small muted">{q.st} · {q.d}</span></button></li>)}</ul> : <p className="muted">아직 접수된 문의가 없어요. 사용자가 문의를 보내면 이곳에서 답변할 수 있어요.</p>}</>
+          : <><button type="button" className="btn sm" onClick={() => vm.selectLegacyInquiry(null)}>회원 문의 목록으로</button>{inquiry ? <article className="inquiry-item"><h2 tabIndex={-1}>[{inquiry.t}] {inquiry.s}</h2><p className="small muted">{inquiry.d} · {inquiry.st}</p><p className="admin-prose">{inquiry.b}</p>{inquiry.reply ? <p className="inquiry-reply"><b>운영팀 답변</b><br />{inquiry.reply}</p>
+            : <form onSubmit={async (e) => { e.preventDefault(); if (await vm.reply(inquiry.id, answer)) vm.clearLegacyDraft(draftKey) }}><fieldset disabled={vm.mutationsBlocked || !!state?.pending}><label className="field">답변<textarea className="ta" maxLength={1000} required value={answer} onChange={(e) => vm.setLegacyDraft(draftKey, 'answer', e.target.value)} /></label><div className="rowend"><button className="btn pri sm" type="submit">{state?.pending ? '등록 중…' : '답변 등록'}</button></div></fieldset></form>}<AdminActionStatus state={state} /></article> : <p role="alert">선택한 회원 문의를 찾을 수 없어요. 목록으로 돌아가 다시 선택해 주세요.</p>}</>}
+      </section>
+    </details>
+    <div className="panel" style={{ marginTop: 14 }}><b>작가 검토 제보</b><p className="small muted">원고 반영은 작가가 검토합니다. 운영 문의 기록과는 별도의 기존 제보예요.</p><table style={{ marginTop: 10 }}><thead><tr><th>유형</th><th>내용</th><th>접수일</th><th>상태</th></tr></thead><tbody>{d.reports.length ? d.reports.map((r) => (
       <tr key={r.id}><td>{r.type || '제보'}</td><td><b>{r.text}</b>{r.reply && <><br /><span className="small muted">{r.reply}</span></>}</td><td>—</td><td>{r.status}</td></tr>
     )) : <tr><td colSpan={4} className="muted">접수된 제보가 없어요.</td></tr>}</tbody></table><p className="admin-note">답변과 상태는 현재 브라우저에만 반영되며 실제 전송되지 않습니다.</p></div>
   </>
@@ -195,7 +245,7 @@ function Admins({ d, vm }: { d: Data; vm: VM }) {
     <form className="panel" onSubmit={async (e) => { e.preventDefault(); const form = e.currentTarget; const perms = new FormData(form).getAll('adminPermission').map(String); if (await vm.addAdmin(val(e, 'name'), val(e, 'email'), perms)) form.reset() }}><b>관리자 계정 생성</b>
       <div className="form-grid" style={{ marginTop: 12 }}><label className="field">이름<input className="inp" name="name" maxLength={20} required /></label><label className="field">이메일<input className="inp" name="email" type="email" maxLength={100} required /></label></div>
       <fieldset className="admin-permissions" style={{ marginTop: 12 }}><legend>부여할 권한</legend><div className="admin-perm-grid">{ADMIN_PERMISSIONS.map(([k, l]) => <label key={k}><input type="checkbox" name="adminPermission" value={k} />{l}</label>)}</div></fieldset>
-      <div className="rowend"><button className="btn pri" type="submit">관리자 계정 추가</button></div><p className="admin-note">현재 화면은 오프라인 데모입니다. 계정 생성·로그인·권한 검사는 서버 연결이 필요합니다.</p></form>
+      <div className="rowend"><button className="btn pri" type="submit" disabled={blocked(vm, 'admin:new')}>{vm.actions['admin:new']?.pending ? '추가 중…' : '관리자 계정 추가'}</button></div><p className="admin-note">현재 화면은 오프라인 데모입니다. 계정 생성·로그인·권한 검사는 서버 연결이 필요합니다.</p></form>
     <div className="panel" style={{ marginTop: 14 }}><div className="table-head"><b>관리자 계정</b><span className="demo">현재 브라우저의 시연 데이터</span></div><table><thead><tr><th>이름</th><th>이메일</th><th>권한</th><th>등록일</th></tr></thead><tbody>{d.admin.admins.map((a) => (
       <tr key={a.id}><td><b>{a.nick}</b></td><td>{a.email}</td><td>{ADMIN_PERMISSIONS.filter(([k]) => a.permissions.includes(k)).map(([, l]) => l).join(', ') || '없음'}</td><td>{a.created}</td></tr>
     ))}</tbody></table></div>
@@ -208,6 +258,6 @@ function Profile({ d, vm }: { d: Data; vm: VM }) {
   return (
     <form className="panel" onSubmit={(e) => { e.preventDefault(); vm.saveProfile(val(e, 'nick'), val(e, 'email')) }}><div className="mehead"><span className="meav big">{p.nick.slice(0, 1)}</span><div><b>{p.nick}</b><small>관리자 계정 · 가입일 {p.joined}</small></div></div>
       <div className="form-grid" style={{ marginTop: 14 }}><label className="field">닉네임<input className="inp" name="nick" defaultValue={p.nick} maxLength={12} required /></label><label className="field">이메일<input className="inp" name="email" type="email" defaultValue={p.email} required /></label></div>
-      <div className="rowend"><button className="btn pri" type="submit">프로필 저장</button></div><p className="admin-note">저장한 값은 이 브라우저의 데모 상태에만 반영됩니다. 비밀번호 변경과 인증 설정은 실제 계정 서비스 연결 후 제공해야 합니다.</p></form>
+      <div className="rowend"><button className="btn pri" type="submit" disabled={blocked(vm, 'profile')}>{vm.actions.profile?.pending ? '저장 중…' : '프로필 저장'}</button></div><p className="admin-note">저장한 값은 이 브라우저의 데모 상태에만 반영됩니다. 비밀번호 변경과 인증 설정은 실제 계정 서비스 연결 후 제공해야 합니다.</p></form>
   )
 }

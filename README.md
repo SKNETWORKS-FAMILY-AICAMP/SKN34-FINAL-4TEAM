@@ -10,10 +10,10 @@
 AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선택·집필·검토를 돕는 도구입니다.
 
 기획 기준은 **「SKN34 4Team 프로젝트 기획서」 v1.4**이며, 최신 MVP 결정은 [결정 기록 DEC-26~40](docs/design/decisions.md#결정-목록)을 따릅니다. 충돌하는 과거 유스케이스 세부 정책은 현행 계약이 아닙니다.
-[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 목표 백엔드는 Core·콘텐츠·운영·AI의 4개 서비스입니다([DEC-41 구조](docs/design/service-boundaries.md)). Core → Content 코드·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기입니다. 운영은 독립 골격 그대로입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
+[MVP 설계](docs/design/design.md): Frontend는 작가·독자 전체 화면, 목표 백엔드는 Core·콘텐츠·운영·AI의 4개 서비스입니다([DEC-41 구조](docs/design/service-boundaries.md)). Core → Content 코드·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기입니다. 운영은 서비스 토큰으로 보호하는 독립 공지·이벤트·문의/답변 CRUD와 `operations` schema를 소스에 추가했으며, hosted CI·실제 DB 적용·배포는 대기입니다. PostgreSQL은 설정·원고 원문 및 버전·체크포인트·Fork를, 그래프 DB는 관계 저장·조회를 담당합니다. 설정은 항목별 공개·비공개를 두고, 설정 이미지는 MinIO에 보관합니다. `pg_git`은 MVP에서 제외합니다. 그래프 DB 제품·동기화 및 AI 조회 경로는 미정입니다.
 
 > **현재 개인 브랜치 구현:** 개발 기반에 `/content` 집필 작업실과 선택적 PostgreSQL 저장·AI 제안을 추가했습니다. 작품·원고·설정집·발행·Fork 범위와 인증 계약은 [콘텐츠 통합 안내](docs/content-integration.md)를 참고하세요.
-> 나머지 아래 기능은 기획 목표입니다. 실제 로그인은 구현되어 있고 그래프 DB·크레딧·운영 업무는 미구현이며 검증 이력과 남은 범위는 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, Required CI는 최신 PR 커밋의 결과로 판단합니다.
+> 나머지 아래 기능은 기획 목표입니다. 실제 로그인과 독립 운영 레코드 CRUD 소스는 구현되어 있지만 그래프 DB·크레딧·사람별 운영 권한·신고/감사 업무는 미구현입니다. 운영의 정확한 범위는 [Operations 안내](backend/operations-service/README.md), 기존 검증 이력은 [이슈 #50 대응](docs/issue-50-alignment.md)을 참고하며, 검증 완료는 최신 PR 커밋의 Required CI 실제 결과로 판단합니다.
 
 ## 사용자와 핵심 가치
 
@@ -84,7 +84,8 @@ Frontend (React) → 단일 공개 진입점
                    ├─ /api/v1/(public/)works → Content:8081 → AI:8000 (선택 생성)
                    │                              └→ Core 내부 인증 확인
                    └─ 나머지 /api → Core:8080 → AI:8000 (Health)
-Operations:8082는 독립 실행 골격이며 공개 proxy/배포 대상 아님
+Operations:8082는 서비스 토큰으로 보호하는 독립 CRUD → PostgreSQL operations schema
+(Frontend/Core/Content 연결·공개 proxy·Compose/CD 대상 아님)
 ```
 
 | 구성 | 현재 기술 | STORYFORK 목표 책임 — 구현 범위는 콘텐츠 통합 안내 참고 |
@@ -92,7 +93,7 @@ Operations:8082는 독립 실행 골격이며 공개 proxy/배포 대상 아님
 | Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 실제 인증·일부 콘텐츠/첨부와 메모리 데모 공존. 기존 URL로 Core/Content 분기 |
 | Core Service (`core-api` 모듈) | Kotlin·Spring Boot, JDK 21 | Auth·세션·Health·서비스 인증 확인. 크레딧/알림은 목표 |
 | Content Service | Kotlin·Spring Boot, JDK 21 | 기존 작품·회차·버전·발행·세계관/Studio·Fork·제안·문맥·첨부 추출 |
-| Operations Service | Kotlin·Spring Boot, JDK 21 | 독립 실행 골격만, 업무·Compose/CD 미구현 |
+| Operations Service | Kotlin·Spring Boot·JPA·Flyway, JDK 21 | 서비스 자격의 독립 공지·이벤트·문의/답변 CRUD 소스. `operations` schema, 실제 DB 적용·CI·배포 확인 대기; 공개 proxy·Compose/CD 미연결 |
 | AI Service | 현재 Python·FastAPI; MVP 모델·프레임워크 미정 | 선택적 설정 추출·인물 시뮬레이션·집필 제안. 정본 직접 변경 금지 |
 | 실행 환경 | Docker Compose, Vite 개발 서버, nginx 정적 배포 이미지 | 로컬 개발 및 서비스 연결·배포 이미지 검증 |
 
@@ -105,6 +106,8 @@ Core는 기능별 `Controller → Service → Repository` 또는
 ### 현재 구현
 
 - `/`: React 홈·검색·독서 등 데모 화면과 실제 인증·일부 콘텐츠·첨부 API 연결이 공존합니다. `/content`와 UUID 집필실의 실제 서버 경계를 구분합니다.
+- 독립 Operations `/api/v1/operations/{notices,events,inquiries}`: 공지·이벤트·문의/하위 답변 CRUD 소스. 모든 호출에 서버 전용 `X-Operations-Service-Token`이 필요하며, 회원/관리자 인증이나 브라우저 연결을 뜻하지 않습니다. 빈 설정은 접근을 차단하고 기본 bind는 `127.0.0.1:8082`입니다([API 계약](backend/operations-service/README.md#api-계약)). 분리 PR도 공통 기반 → 공지 V1 → 이벤트 V2 → 문의/답변 V3 순서의 공유 Flyway 의존성을 포함하며 fresh 임시 CI DB에서 검증해야 합니다([적용 순서](backend/operations-service/README.md#분리-pr의-flyway-의존성과-순서)).
+- `/admin?tab=notices`, `/admin?tab=events`, `/admin?tab=feedback`: 공지·이벤트·문의/여러 답변 CRUD를 별도 메모리 저장소에 구현한 **독립 운영 UI 데모**입니다. KST 선택 기간·UTC 변환/검증, 조회·변경 오류/재시도·중복 방지·초안/선택 유지가 있으며 기존 회원·작가 데모는 별도로 보존합니다. 실제 Operations HTTP·서버 저장·관리자 인증은 연결하지 않았고 새로고침 시 기록·초안이 사라집니다. 인계된 선택 Domain 3파일 32건·범위 정적 검사 통과는 기존 Node 22 결과이며 고정 Node 24·React/Hook/App CI·전체 build·브라우저 검증을 대신하지 않습니다([데모 경계](backend/operations-service/README.md#관리자-ui-메모리-데모), [기능표 미등록-119](docs/feature-roadmap.md#미등록-119)).
 - `GET /api/v1/health`: `{ "status": "up", "service": "storyfork-core-api" }`.
 - `GET /api/v1/health/ai-service`: Core가 내부 AI의 `/internal/v1/health`를 검증하여
   `{ "status": "up", "service": "storyfork-ai-service" }` 반환.
@@ -120,7 +123,7 @@ Health는 OpenAI 인증·모델 접근·생성 품질 검증이 아닙니다. �
 |---|---|---|
 | Core | 회원·인증·세션·크레딧·회원 알림 | 기존 core-api의 Auth·Health 유지. 콘텐츠 writer/migration 제거 |
 | 콘텐츠 | 작품·세계관·회차·버전·Fork·발행·독서·검색·피드백·첨부 | [독립 Content 앱](backend/content-service/README.md)으로 구현된 업무·테스트 추출. hosted CI·실제 DB/배포 전환 대기 |
-| 운영 | 문의·공지·이벤트·신고·소명·운영 판단·감사·작업 감시 | [독립 Spring Boot 실행 골격](backend/operations-service/README.md) 추가, 업무·DB·배포 미구현 |
+| 운영 | 문의·공지·이벤트·신고·소명·운영 판단·감사·작업 감시 | [독립 CRUD API](backend/operations-service/README.md)와 서비스 자격·operations schema 소스 구현. 사람별 권한·신고/감사·실제 DB 적용·배포는 미구현/미확인 |
 | AI | 요청된 생성·추출·시뮬레이션·검토 실행 | 기존 FastAPI 재사용 |
 
 LLMOps는 운영 영역이다. Langfuse는 도입 시 별도 제품으로 배포하며 자체 UI와 운영 화면 API 통합 중 선택은 미정이다. 정기 작업은 업무 소유 서비스가 실행하고 운영이 감시한다. 콘텐츠 제한은 콘텐츠, 회원 제한·크레딧은 Core가 적용한다. 기존 실행 명령은 아래처럼 유지하며 새 Start 서버·빈 공통 starter를 추가하지 않는다. 상세 소유권·DB·통신·이전 절차는 [서비스 구조](docs/design/service-boundaries.md)를 따른다.
@@ -166,6 +169,7 @@ base + `infrastructure/docker-compose.dev.yaml`은 `storyfork-develop-cd` 프로
 
 Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 미만과 uv를 사용합니다.
 각 서비스 [Frontend](frontend/README.md), [Core](backend/core-api/README.md),
+[Content](backend/content-service/README.md), [Operations](backend/operations-service/README.md),
 [AI](backend/ai-service/README.md) README의 실행 명령을 따릅니다.
 환경설정은 루트 `.env` 한 곳에서 관리합니다. `cp -n .env.example .env`로 준비하고 기존 파일은 덮어쓰지 않습니다.
 서비스별 `.env`는 만들지 않습니다. 기본 실행은 위의 Compose를 사용합니다.
@@ -175,15 +179,16 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 (cd frontend && pnpm dev)
 (cd backend/core-api && ./gradlew bootRun)
 (cd backend/content-service && ./gradlew bootRun)
+(cd backend/operations-service && ./gradlew bootRun)
 (cd backend/ai-service && uv run --locked uvicorn app.main:create_app --factory --reload --port 8000)
 ```
 
-이 명령들은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달이 필요하면 Compose를 사용합니다.
-루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, Auth/JWT/SMTP는 Core에만, Content DB·S3/생성은 Content에만 전달합니다. 기존 같은 DB 대상·계정을 사용하며 별도 서비스 자격만 Core/Content가 공유합니다.
+이 명령들은 루트 `.env`를 자동으로 읽지 않습니다. Compose의 자동 설정 전달은 연결된 네 앱에만 적용되며 Operations에는 적용되지 않습니다.
+루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, Auth/JWT/SMTP는 Core에만, Content DB·S3/생성은 Content에만 전달합니다. 기존 같은 PostgreSQL 대상 안에서 서비스별 schema/이력을 분리합니다. Operations DB 자격은 Operations에만, 별도 `OPERATIONS_SERVICE_TOKEN`은 Operations와 신뢰하는 호출 서버에만 주입하며 Core/Content 토큰과 재사용하거나 브라우저에 전달하지 않습니다.
 기존 서비스별 `.env.local` 등이 있으면 Vite가 별도로 읽을 수 있으므로 필요한 값을 루트로 수동 통합하세요.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
 
-[Content](backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](backend/operations-service/README.md)은 loopback 8082 실행 골격만 유지합니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
+[Content](backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](backend/operations-service/README.md)은 loopback 8082의 독립 CRUD이며 PostgreSQL 연결과 operations schema 초기화 권한이 필요합니다. 기본 빈 서비스 토큰으로는 보호 접근을 허용하지 않습니다. Operations는 Compose·nginx/Vite에 연결하지 않았으며 실제 DB 적용·배포 승인을 뜻하지 않습니다. Content의 공개 API 연결 소스와 실제 앱/DB/배포 검증도 구분합니다.
 
 ## 검증
 
@@ -211,25 +216,25 @@ Aside는 별도 요청·승인 시에만 사용하며 HTTP 시스템 테스트�
 [`ci.yml`](.github/workflows/ci.yml)이 Vitest·Gradle·pytest를 직접 호출하고 환경 기동·readiness·항상 정리를 소유합니다.
 [`infrastructure/ci/ci.py`](infrastructure/ci/ci.py)는 보수적인 변경 선택·결과 집계·로그 정제만 담당하며 공통 runner나 shell wrapper는 없습니다.
 JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytest 시스템 테스트는 [`infrastructure/system/test_http.py`](infrastructure/system/test_http.py)에 둡니다.
-새 테스트 프레임워크·production 의존성은 추가하지 않습니다.
+CI는 기존 테스트 프레임워크와 native 명령을 사용하며 별도 runner를 추가하지 않습니다.
 
 | 계층 | 현재 실행 범위 |
 |---|---|
-| 선택·정적 검사·단위 | 변경 diff 공백·선택기 회귀, 선택 web lint/build, AI lock. web Domain/Data/HTML, Core/Content `unitTest`, 운영 `ApplicationPropertiesTest`, AI `-m 'not integration'` |
-| 통합 | 나머지 web React/Hook/App, Core/Content `integrationTest`(Spring·HTTP·PostgreSQL/Flyway), AI `-m integration`(FastAPI TestClient) |
+| 선택·정적 검사·단위 | 변경 diff 공백·선택기 회귀, 선택 web lint/build, AI lock. web Domain/Data/HTML, Core/Content/Operations `unitTest`(Spring·HTTP·DB 제외), AI `-m 'not integration'` |
+| 통합 | 나머지 web React/Hook/App, Core/Content/Operations `integrationTest`(Spring·HTTP·PostgreSQL/Flyway), AI `-m integration`(FastAPI TestClient) |
 | 시스템 | CI 전용 Compose 앱·임시 PostgreSQL·Mailpit을 기동한 뒤 `pytest infrastructure/system -k ...`로 선택된 실제 HTTP 시나리오 실행 |
 | 집계 | `Required CI`: 실패·취소·필요한 tier의 예상 밖 skip은 실패, 영향 없는 작업의 의도적 skip만 허용 |
 
 변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
-Core/Content의 혼합 경계 클래스는 통합에 두며 Kotlin/Java의 Spring/HTTP/DB 분류 누락을 회귀로 검사합니다.
-Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
+Core/Content/Operations의 Spring/HTTP/DB 경계 클래스는 통합에 두며 Kotlin/Java의 분류 누락을 회귀로 검사합니다.
+Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를, Operations 통합은 job별 임시 PostgreSQL의 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`와 서비스 토큰/독립 CRUD·Flyway·JPA를 확인하도록 구성합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
 
 #### 변경·영향 선택
 
 - PR: base와 실제 head의 **merge-base**부터 비교. push: event의 **before SHA**부터 비교.
   수동 CI 실행·기준선 부재(새 브랜치/기준 커밋 없음)는 명시적으로 전체 서비스·시나리오를 실행합니다.
   이때 공백 검사는 첫 부모와 비교하며, 부모가 없는 최초 커밋만 빈 트리와 비교합니다.
-- web·Content·AI는 서비스 수준, Core는 auth/health 또는 보수적 전체로 선택합니다. 운영만 골격 단위 검증이며 빈 통합 job은 만들지 않습니다. 시스템 `content`는 실제 Core 로그인 뒤 Content API·DB 소유권을 확인합니다.
+- web·Content·Operations·AI는 서비스 수준, Core는 auth/health 또는 보수적 전체로 선택합니다. Operations 변경은 독립 단위·통합을 함께 선택하고 다른 서비스나 HTTP 시스템 시나리오를 추가하지 않습니다. 시스템 `content`는 실제 Core 로그인 뒤 Content API·DB 소유권을 확인합니다.
 - 공유·설정·의존성·미등록 runtime은 확대 선택합니다. Core Auth는 Content/web 소비자, Content/AI 계약은 연결된 소비자와 시스템을 선택합니다. 삭제된 구 Core 콘텐츠 경로도 새 소유 서비스 회귀를 선택합니다.
 - 삭제·이름 변경은 `git diff --no-renames`로 이전 경로까지 포함합니다. 정확한 소스별 의존 그래프 분석은 아닙니다.
   테스트만 변경하면 해당 서비스/기능 회귀만 실행하고 시스템은 생략합니다. 문서만 변경하면 runtime job은 생략합니다.

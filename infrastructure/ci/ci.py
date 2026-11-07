@@ -98,8 +98,8 @@ def select(paths, full=False):
         scenarios.update(SCENARIOS)
     rows = [{"service": service, "scope": "all" if "all" in scope else ",".join(sorted(scope))}
             for service, scope in scopes.items() if scope]
-    # Operations만 실행 골격이며 빈 통합 job을 만들지 않는다.
-    integration = [row for row in rows if row["service"] in {"web", "core", "ai", "content"}]
+    # 모든 선택 서비스가 실제 통합 테스트를 가진다(Operations는 독립 CRUD/auth).
+    integration = list(rows)
     return {"unit": rows, "integration": integration, "system": [s for s in SCENARIOS if s in scenarios], "infra": infra}
 
 
@@ -112,7 +112,9 @@ def check_results(results, expected):
 
 
 def redact(text):
-    for key in ("AUTH_JWT_SECRET", "INTERNAL_TOKEN", "CONTENT_CORE_AUTH_TOKEN", "CORE_DATABASE_PASSWORD", "CONTENT_DATABASE_PASSWORD", "OPENAI_API_KEY"):
+    for key in ("AUTH_JWT_SECRET", "INTERNAL_TOKEN", "CONTENT_CORE_AUTH_TOKEN", "OPERATIONS_SERVICE_TOKEN",
+                "CORE_DATABASE_PASSWORD", "CONTENT_DATABASE_PASSWORD", "OPERATIONS_DATABASE_PASSWORD",
+                "TEST_OPERATIONS_DATABASE_PASSWORD", "OPENAI_API_KEY"):
         value = os.environ.get(key, "")
         if value:
             text = text.replace(value, "[redacted]")
