@@ -10,11 +10,13 @@ export function Gnb({ on = '' }: { on?: string }) {
   const { role, initial, unread, pending } = useGnbViewModel()
   const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null)
   return (
+    <>
+    <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus() }}>본문으로 바로가기</a>
     <header className="gnb">
       <div className="wrap in">
         <Go to="/" className="logo" aria-label="STORYFORK 홈으로" title="홈으로"><b>SF</b>STORYFORK</Go>
         <nav className="nav" aria-label="주요 메뉴">
-          {([['rank', '랭킹', '랭킹'], ['chat', '캐릭터 챗', '챗'], ['lib', '내 서재', '서재'], ['worldstudio', '세계관 데모', '세계관']] as const).map(([k, l, sh]) => (
+          {([['rank', '랭킹', '랭킹'], ['chat', '캐릭터 챗', '챗'], ['lib', '내 서재', '서재'], ['worldstudio', '세계관', '세계관']] as const).map(([k, l, sh]) => (
             <Go key={k} to={'/' + k} className={on === k ? 'on' : ''} aria-current={on === k ? 'page' : undefined}
               aria-label={k === 'lib' && pending ? `내 서재, 처리할 독자 제보 ${pending}건` : undefined}>
               <span className="lf">{l}</span><span className="ls">{sh}</span>
@@ -27,7 +29,7 @@ export function Gnb({ on = '' }: { on?: string }) {
           알림{unread > 0 && <> <span className="nb">{unread}</span></>}
         </Go>
         <button type="button" className="credit" onClick={openPolicy} title="크레딧 정책은 아직 확정되지 않았어요">
-          ✦ 크레딧 <span className="demo" style={{ borderColor: 'currentColor', color: 'inherit' }}>데모</span>
+          ✦ 크레딧
         </button>
         <button type="button" className={`avatar ${role ? '' : 'guest'}`} aria-label={role ? '내 계정 메뉴' : '로그인·회원가입 메뉴'} aria-haspopup="menu"
           aria-expanded={!!menuAnchor} onClick={(e) => setMenuAnchor(menuAnchor ? null : e.currentTarget)}>
@@ -36,6 +38,7 @@ export function Gnb({ on = '' }: { on?: string }) {
       </div>
       {menuAnchor && <AccountMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />}
     </header>
+    </>
   )
 }
 

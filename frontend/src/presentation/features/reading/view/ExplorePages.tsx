@@ -1,17 +1,21 @@
 import { Fragment } from 'react'
 import { Navigate, useParams } from 'react-router'
 
-import { epsOf, FIELDS, SORTS, type Work } from '../../../../domain/entities/work'
+import { epsOf, SEARCH_FIELDS, SEARCH_SORTS, sortsOf, type Work } from '../../../../domain/entities/work'
 import { CoverOf, Cov } from '../../../shared/art'
 import { ago, kfmt, qs } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Crown } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useIfsViewModel, useRankViewModel, useSearchViewModel, useTagViewModel } from '../viewmodel/useExploreViewModel'
 import { ReportSheet } from './Sheets'
 
 type St = Record<string, string>
+
+/** 선택한 정렬·범위·탭은 색(.on)뿐 아니라 aria-current로도 알립니다. */
+const selected = (on: boolean) => ({ className: on ? 'on' : '', 'aria-current': on ? ('true' as const) : undefined })
 
 /** 목업 listTools(base, st, withQ) */
 function ListTools({ base, st, onSubmit }: { base: string; st: St; onSubmit: (q: string) => void }) {
@@ -19,16 +23,21 @@ function ListTools({ base, st, onSubmit }: { base: string; st: St; onSubmit: (q:
     <div className="ltools">
       <form className="lq" key={st.q} onSubmit={(e) => { e.preventDefault(); onSubmit(new FormData(e.currentTarget).get('q')?.toString() ?? '') }}>
         <span aria-hidden="true">🔍</span>
-        <input name="q" defaultValue={st.q} placeholder="제목·작가·태그로 찾기" aria-label="검색어" />
+        <input name="q" defaultValue={st.q} placeholder="제목·태그·장르로 찾기" aria-label="검색어" />
         <button className="btn sm pri" type="submit">검색</button>
       </form>
       <div className="lrow">
-        <div className="sortt" role="group" aria-label="검색 범위">{FIELDS.map(([k, l]) => <Go key={k} className={st.f === k ? 'on' : ''} to={qs(base, { ...st, f: k })}>{l}</Go>)}</div>
-        <div className="sortt" role="group" aria-label="정렬">{SORTS.map(([k, l]) => <Go key={k} className={st.sort === k ? 'on' : ''} to={qs(base, { ...st, sort: k })}>{l}</Go>)}</div>
+        <div className="sortt" role="group" aria-label="검색 범위">{SEARCH_FIELDS.map(([k, l]) => <Go key={k} {...selected(st.f === k)} to={qs(base, { ...st, f: k })}>{l}</Go>)}</div>
+        <div className="sortt" role="group" aria-label="정렬">{SEARCH_SORTS.map(([k, l]) => <Go key={k} {...selected(st.sort === k)} to={qs(base, { ...st, sort: k })}>{l}</Go>)}</div>
       </div>
     </div>
   )
 }
+
+/** 서버 조회 실패는 빈 목록·0편으로 숨기지 않고 안내와 다시 불러오기로 보입니다. */
+const LoadError = ({ retry }: { retry: () => void }) => (
+  <div className="rp muted"><p role="alert">소설을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={retry}>다시 불러오기</button></div>
+)
 
 /** 목업 wcard(w, i, ranked) */
 function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolean; onReport?: (w: Work) => void }) {
@@ -44,7 +53,7 @@ function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolea
         <div className="ri">
           <small className="g">{w.genre}</small><b>{w.title}</b>
           <small>{w.author}{w.parent && ` · 원작 ${w.forkAt}화에서 포크`}</small>
-          <span className="m">총 {epsOf(w).length}화{w.statisticsSupported!==false && <> <i></i> 조회 {kfmt(w.views || 0)} <i></i> ♥ {kfmt(w.likes || 0)} <i></i> {ago(w.upd || 0)}</>}</span>
+          <span className="m">총 {epsOf(w).length}화 <i></i> 조회 {kfmt(w.views || 0)}{w.statisticsSupported !== false && <> <i></i> ♥ {kfmt(w.likes || 0)} <i></i> {ago(w.upd || 0)}</>}</span>
         </div>
       </Go>
       {!ranked && !w.canonical && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport?.(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}
@@ -55,16 +64,17 @@ function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolea
 /** 목업 searchPage(): U36 */
 export function SearchPage() {
   const vm = useSearchViewModel()
+  useDocumentTitle('검색')
   const L = vm.list ?? []
   return (
     <>
       <Gnb />
-      <main className="wrap">
-        <div className="sec-h"><h2>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h2><span className="muted small">{L.length}편</span></div>
+      <main className="wrap" id="main" tabIndex={-1}>
+        <div className="sec-h"><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h1>{vm.list && !vm.isError && <span className="muted small">{L.length}편</span>}</div>
         <ListTools base="/search" st={vm.st} onSubmit={vm.submit} />
-        {!vm.list && <ContentLoadState failed={vm.isError} retry={vm.retry}/>}
+        {!vm.list && !vm.isError && <ContentLoadState failed={false} retry={vm.retry}/>}
         <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.setReporting} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
+          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.setReporting} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
         </div>
       </main>
       <Footer />
@@ -76,17 +86,18 @@ export function SearchPage() {
 /** 목업 rank(): U25 */
 export function RankPage() {
   const vm = useRankViewModel()
+  useDocumentTitle('랭킹')
   const L = vm.list ?? []
   return (
     <>
       <Gnb on="rank" />
-      <main className="wrap">
-        <div className="sec-h" style={{ marginBottom: 0 }}><h2>소설 둘러보기</h2><span className="muted small">인기·조회·업데이트 집계는 제공하지 않아요.</span></div>
-        <nav className="libtabs">{([['all', '전체'], ['orig', '원작 소설'], ['if', '포크 소설']] as const).map(([k, l]) => <Go key={k} to={qs('/rank', { ...vm.st, t: k })} className={vm.st.t === k ? 'on' : ''}>{l}</Go>)}</nav>
+      <main className="wrap" id="main" tabIndex={-1}>
+        <div className="sec-h" style={{ marginBottom: 0 }}><h1>랭킹</h1><span className="muted small">{`${SEARCH_SORTS.find((x) => x[0] === vm.st.sort)?.[1]}${vm.st.sort === 'view' ? ' · 최근 24시간 조회 기준' : ''}`}</span></div>
+        <nav className="libtabs">{([['all', '전체'], ['orig', '원작 소설'], ['if', '포크 소설']] as const).map(([k, l]) => <Go key={k} to={qs('/rank', { ...vm.st, t: k })} {...selected(vm.st.t === k)}>{l}</Go>)}</nav>
         <ListTools base="/rank" st={vm.st} onSubmit={vm.submit} />
-        {!vm.list && <ContentLoadState failed={vm.isError} retry={vm.retry}/>}
+        {!vm.list && !vm.isError && <ContentLoadState failed={false} retry={vm.retry}/>}
         <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked={!w.canonical} />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
+          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
         </div>
       </main>
       <Footer />
@@ -99,14 +110,15 @@ export function TagPage() {
   const { tag } = useParams()
   const vm = useTagViewModel(tag)
   const d = vm.data
+  useDocumentTitle(d?.cur ?? '태그')
   return (
     <>
       <Gnb />
-      {!d && <main className="wrap"><ContentLoadState failed={vm.isError} retry={vm.retry}/></main>}
+      {!d && <main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main>}
       {d && (
-        <main className="wrap">
-          <div className="sec-h"><h2>{d.cur}</h2><span className="muted small">이 해시태그가 붙은 소설 {d.list.length}편 · 포크 소설은 원작의 해시태그를 이어받아요</span></div>
-          <div className="tagbar">{d.tags.map(([h, c]) => <Go key={h} className={h === d.cur ? 'on' : ''} to={`/tag/${encodeURIComponent(h.slice(1))}`}>{h}<span>{c}</span></Go>)}</div>
+        <main className="wrap" id="main" tabIndex={-1}>
+          <div className="sec-h"><h1>{d.cur}</h1><span className="muted small">이 해시태그가 붙은 소설 {d.list.length}편 · 포크 소설은 원작의 해시태그를 이어받아요</span></div>
+          <div className="tagbar">{d.tags.map(([h, c]) => <Go key={h} {...selected(h === d.cur)} to={`/tag/${encodeURIComponent(h.slice(1))}`}>{h}<span>{c}</span></Go>)}</div>
           <div className="rgrid" style={{ marginTop: 22 }}>
             {d.list.map(({ w, tags }) => (
               <Go key={w.id} className="rg prox" to={`/work/${w.id}`}>
@@ -128,14 +140,17 @@ export function TagPage() {
 /** 목업 ifs(): U26 */
 export function IfsPage() {
   const vm = useIfsViewModel()
+  useDocumentTitle('포크 소설 모아보기')
   if (!vm.w) return <Navigate replace to="/rank?t=if" />
+  const sorts = sortsOf(vm.groups?.flatMap(({ o, forks }) => [o, ...forks]) ?? [])
+  const sort = sorts.some(([k]) => k === vm.sort) ? vm.sort : sorts[0][0]
   return (
     <>
       <Gnb on="ifs" />
-      <main className="wrap">
-        <div className="sec-h"><h2>포크 소설</h2><span className="muted small">원작의 한 회차에서 포크한 독자들의 소설이에요. 원작은 바뀌지 않아요.</span></div>
+      <main className="wrap" id="main" tabIndex={-1}>
+        <div className="sec-h"><h1>포크 소설</h1><span className="muted small">원작의 한 회차에서 포크한 독자들의 소설이에요. 원작은 바뀌지 않아요.</span></div>
         <div className="lrow" style={{ justifyContent: 'flex-end', margin: '12px 0 8px' }}>
-          <div className="sortt" role="group" aria-label="정렬">{SORTS.map(([k, l]) => <Go key={k} className={vm.sort === k ? 'on' : ''} to={qs('/ifs', { w: vm.w, sort: k })}>{l}</Go>)}</div>
+          <div className="sortt" role="group" aria-label="정렬">{sorts.map(([k, l]) => <Go key={k} {...selected(sort === k)} to={qs('/ifs', { w: vm.w, sort: k })}>{l}</Go>)}</div>
         </div>
         {!vm.groups && <ContentLoadState failed={vm.isError} retry={vm.retry}/>}
         {vm.groups && (vm.groups.length ? vm.groups.map(({ o, label, forkList, forks }) => (

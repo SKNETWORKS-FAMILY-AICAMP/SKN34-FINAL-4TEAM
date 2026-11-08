@@ -1,5 +1,9 @@
 # 이슈 #34 집필실 공개 중복·제목 초기값 수정
 
+[메인 README](../README.md) · [문서 목록](README.md)
+
+> **작성 시점 기록:** 종료된 이슈 #34의 작성 시점 기록입니다. 현재 개발 현황은 [기능표](feature-roadmap.md)를 따릅니다.
+
 기준 브랜치: `fullstack-function`, 기준 커밋: `017cc48`.
 범위는 기존 메모리 데모 집필실의 [#34](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/34)이며 Core 콘텐츠 API와 UUID 집필실은 변경하지 않았다.
 

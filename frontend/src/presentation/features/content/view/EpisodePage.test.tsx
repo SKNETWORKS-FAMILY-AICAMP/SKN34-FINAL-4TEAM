@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import '../../../../testLocks'
+import '../../../../test/testLocks'
 import { EpisodePage } from './EpisodePage'
 import { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { HttpEpisodeRepository } from '../../../../data/content/HttpEpisodeRepository'
@@ -117,6 +117,23 @@ it('shows the server authentication error instead of claiming the server is offl
  expect(screen.queryByText('Core 서버에 연결하지 못했어요. 서버를 실행한 뒤 새로고침해 주세요.')).toBeNull()
 })
 
+
+it('exposes one focusable main landmark with one h1 and names the browser tab',async()=>{
+ render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response('[]'))))}/>)
+ const h1=await screen.findByRole('heading',{level:1,name:'첫 이야기를 시작해 보세요'})
+ const main=screen.getByRole('main')
+ expect(main.id).toBe('main')
+ expect(main.getAttribute('tabindex')).toBe('-1')
+ expect(main.contains(h1)).toBe(true)
+ expect(screen.getAllByRole('heading',{level:1})).toHaveLength(1)
+ expect(document.title).toBe('회차 에디터 · STORYFORK')
+})
+
+it('wraps the studio label so compact headers can hide it visually without losing it',async()=>{
+ render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response('[]'))))}/>)
+ await screen.findByText('첫 이야기를 시작해 보세요')
+ expect(screen.getByText('에피소드 스튜디오').className).toBe('ep-top-label')
+})
 
 it('shows a creation link instead of save and AI controls when the writing episode is missing',async()=>{
  const w={id:'w',title:'회차 삭제됨',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}

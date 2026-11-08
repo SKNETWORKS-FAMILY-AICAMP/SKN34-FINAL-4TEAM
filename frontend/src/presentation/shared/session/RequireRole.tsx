@@ -4,6 +4,7 @@ import { Navigate, useLocation } from 'react-router'
 
 import { useAppDispatch, useAppSelector } from '../../../app/store'
 import { sessionActions } from './sessionSlice'
+import { adminReturnPath } from '../../../domain/entities/admin'
 
 const MESSAGES: Record<string, string> = {
   read: '소설을 읽으려면 로그인해 주세요.',
@@ -24,7 +25,7 @@ export function RequireRole({ admin = false, children }: { admin?: boolean; chil
   useEffect(() => {
     if (allowed || restoring) return
     dispatch(sessionActions.requireLogin(admin
-      ? { next: '/admin', msg: '관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.', role: 'admin' }
+      ? { next: adminReturnPath(search), msg: '관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.', role: 'admin' }
       : { next: pathname + search, msg: MESSAGES[pathname.split('/')[1]] ?? '로그인이 필요한 화면이에요.', role: 'user' }))
   }, [allowed, restoring, admin, pathname, search, dispatch])
   return restoring && !allowed ? <p role="status">로그인 상태를 확인하고 있어요.</p> : allowed ? children : <Navigate replace to="/login" />

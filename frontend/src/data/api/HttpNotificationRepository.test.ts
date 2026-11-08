@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import '../../testLocks'
+import '../../test/testLocks'
 import { login } from './auth'
 import { HttpNotificationRepository } from './HttpNotificationRepository'
 

@@ -6,12 +6,14 @@ import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
+import { uiActions } from '../../../shared/ui/uiSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { useLook } from './useLook'
 
 /** 목업 work(id): 소설 상세 U04 */
 export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = appContainer.resolve('readingUseCase')) {
-  const { role, epSort } = useAppSelector((s) => s.session)
+  const role = useAppSelector((s) => s.session.role)
+  const epSort = useAppSelector((s) => s.ui.epSort)
   const dispatch = useAppDispatch()
   const look = useLook()
   const { data, isError, retry } = useAsyncData(() => readingUseCase.getWork(id, role), [readingUseCase, id, role])
@@ -34,7 +36,7 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
     query,
     setQuery,
     epSort,
-    setSort: (s: 'old' | 'new') => dispatch(sessionActions.setEpSort(s)),
+    setSort: (s: 'old' | 'new') => dispatch(uiActions.setEpSort(s)),
     bandAmb: !look.dark && look.eff === 'world' && look.motion,
     toggleLike: () => readingUseCase.toggleLike(data?.work.id ?? id).then((on) => {
       dispatch(sessionActions.dataChanged())

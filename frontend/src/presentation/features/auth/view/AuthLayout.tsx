@@ -14,7 +14,7 @@ export function AuthLayout({ title, intro, children }: { title: string; intro?: 
       </div>
       <div className="lg-art" aria-hidden="true"><Art theme="star" w={420} h={300} seed="loginart" /></div>
     </aside>
-    <main className="lg-r" aria-labelledby="auth-title">
+    <main id="main" tabIndex={-1} className="lg-r" aria-labelledby="auth-title">
       <div className="lg-card">
         <header className="auth-header"><Link to="/" className="back"><BackChev />홈으로</Link><ThemeButton /></header>
         <h1 id="auth-title">{title}</h1>

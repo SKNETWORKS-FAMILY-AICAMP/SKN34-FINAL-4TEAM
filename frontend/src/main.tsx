@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, createHashRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { WorldStudioLeaveProvider } from './presentation/features/worldstudio/viewmodel/WorldStudioLeaveProvider'
 
@@ -9,7 +9,9 @@ import './index.css'
 import App from './App.tsx'
 import { createAppStore } from './app/store'
 
-const router = createBrowserRouter([{path:'*',element:<WorldStudioLeaveProvider><App /></WorldStudioLeaveProvider>}])
+// 발표용 목업은 file://로 여는 단일 HTML이라 hash 경로를 사용합니다.
+const createRouter = import.meta.env.MODE === 'mockup' ? createHashRouter : createBrowserRouter
+const router = createRouter([{path:'*',element:<WorldStudioLeaveProvider><App /></WorldStudioLeaveProvider>}])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

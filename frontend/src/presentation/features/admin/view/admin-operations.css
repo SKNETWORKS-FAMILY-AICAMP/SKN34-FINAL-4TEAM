@@ -1,0 +1,45 @@
+.adm .admin-operations,
+.adm .admin-legacy-demo { min-width: 0; overflow-wrap: anywhere; }
+.adm .admin-operations fieldset,
+.adm .admin-legacy-demo fieldset { border: 0; padding: 0; margin: 12px 0 0; min-width: 0; }
+.adm .admin-operations h2,
+.adm .admin-legacy-demo h2 { font-size: 20px; line-height: 1.4; margin: 24px 0 12px; }
+.adm .admin-operations .table-head h2 { margin: 0; }
+.adm .admin-operations h3 { font-size: 16px; margin: 28px 0 12px; }
+.adm .admin-operations h4 { font-size: 15px; }
+.adm .admin-operations .inp,
+.adm .admin-operations .ta,
+.adm .admin-legacy-demo .inp,
+.adm .admin-legacy-demo .ta { min-width: 0; width: 100%; }
+.adm .admin-operations :is(button, input, textarea):disabled,
+.adm .admin-legacy-demo :is(button, input, textarea):disabled { cursor: not-allowed; opacity: .55; }
+.adm .admin-record-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.adm .admin-record-list li { border-bottom: 1px solid var(--line); }
+.adm .admin-record-link { display: flex; flex-direction: column; gap: 6px; width: 100%; min-height: 64px; padding: 14px 8px; border: 0; background: transparent; color: var(--ink); text-align: left; }
+.adm .admin-record-link:hover { background: var(--pri-soft); }
+.adm .admin-record-link:focus-visible { outline-offset: -2px; }
+.adm .admin-prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+.adm .admin-operations p.admin-prose { margin: 18px 0; max-width: 75ch; }
+.adm .admin-empty { margin: 24px 0; color: var(--sub); }
+.adm .admin-action-error { padding: 12px; margin: 12px 0; background: var(--acc-soft); color: var(--acc-ink); border: 1px solid var(--line2); border-radius: 10px; overflow-wrap: anywhere; }
+.adm .admin-data-state { margin: 12px 0; font-size: 14px; }
+.adm .admin-data-state .btn { margin-top: 12px; }
+.adm .admin-refresh { margin: 0 0 12px; }
+.adm .admin-replies { margin-top: 28px; padding-top: 4px; border-top: 1px solid var(--line2); }
+.adm .admin-replies .inquiry-item { padding: 18px 0; }
+.adm .admin-legacy-demo { margin-top: 24px; }
+.adm .admin-legacy-demo summary { cursor: pointer; font-weight: 700; min-height: 44px; padding: 10px 0; color: var(--pri-ink); }
+.adm .admin-legacy-demo table { margin-top: 18px; }
+.adm .admin-operations [tabindex="-1"]:focus,
+.adm .admin-legacy-demo [tabindex="-1"]:focus { outline: 2px solid var(--pri); outline-offset: 4px; }
+@media (max-width: 600px) {
+  .adm .admin-operations,
+  .adm .admin-legacy-demo { padding: 16px; }
+  .adm .admin-operations .table-head { align-items: stretch; }
+  .adm .admin-operations .btn,
+  .adm .admin-legacy-demo .btn { min-height: 44px; }
+  .adm .admin-operations .rowend,
+  .adm .admin-legacy-demo .rowend { justify-content: stretch; }
+  .adm .admin-operations .rowend > .btn,
+  .adm .admin-legacy-demo .rowend > .btn { flex: 1 1 130px; }
+}

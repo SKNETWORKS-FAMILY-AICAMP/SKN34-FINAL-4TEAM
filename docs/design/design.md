@@ -1,8 +1,10 @@
 # STORYFORK 시스템 아키텍처 설계 — PostgreSQL·관계 그래프 기반 MVP
 
+[메인 README](../../README.md) · [문서 목록](../README.md)
+
 > **DEC-41 목표 경계 · 분리 구현 전.** [Core·콘텐츠·운영·AI 책임](service-boundaries.md)에 맞춰 아래 본문을 구분합니다. 현재 `core-api`의 인증·콘텐츠·첨부 공존과 기존 URL·데이터·Flyway 이력은 유지하며 별도 콘텐츠·운영 앱과 DB 이전은 아직 실행하지 않았습니다.
 
-> **상태: 목표 설계 · 일부 업무 구현, 서비스 분리 미실행.** [결정 기록](decisions.md)의 DEC-41과 DEC-36~40 및 이전 최신 결정들이 충돌하는 기존 MVP 설계보다 우선합니다. 사용자가 수정한 [시스템 구상도](../deliverables/SKN34-final-4Team-시스템%20구상도.pdf)의 그림은 방향 참고 자료이며 PDF 본문·기존 [유스케이스](../usecase.md)와 [상세 명세](../usecase-spec/README.md) 중 옛 저장소·공개 정책과 충돌하는 부분은 현행 MVP 계약이 아닙니다. 이전 [RDB 단독 MVP 설계](archive/rdb-mvp/design.md)와 [KAG 설계](archive/kag-design/design.md)는 보관본에 남깁니다.
+> **상태: 목표 설계 · 일부 업무 구현, 서비스 분리 미실행.** [결정 기록](decisions.md)의 DEC-41과 DEC-36~40 및 이전 최신 결정들이 충돌하는 기존 MVP 설계보다 우선합니다. 사용자가 수정한 [시스템 구상도](../deliverables/SKN34-final-4Team_시스템%20구상도.pdf)의 그림은 방향 참고 자료이며 PDF 본문·기존 [유스케이스](../usecase.md)와 [상세 명세](../usecase-spec/README.md) 중 옛 저장소·공개 정책과 충돌하는 부분은 현행 MVP 계약이 아닙니다. 이전 [RDB 단독 MVP 설계](archive/rdb-mvp/design.md)와 [KAG 설계](archive/kag-design/design.md)는 보관본에 남깁니다.
 
 ## Overview
 

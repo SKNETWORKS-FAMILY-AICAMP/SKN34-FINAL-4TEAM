@@ -39,7 +39,7 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
   })
   it('blocks inbox and admin actions before any demo status or audit changes',async()=>{
     const {db,w,works,feedback,admin,credits}=setup()
-    db.inbox.push({id:'i',rid:'r',w:w.id,n:1,pi:0,type:'질문',who:'독자',text:'질문',status:'작가 검토 대기',ai:{cls:'질문',why:'',ev:''}})
+    db.inbox.push({id:'i',rid:'r',w:w.id,n:1,pi:0,type:'질문',who:'독자',text:'질문',baseText:'',status:'작가 검토 대기',ai:{cls:'질문',why:'',ev:''}})
     db.reviewQueue.push({id:'q',w:w.id,n:null,type:'신고',text:'내용',quote:'',status:'접수',who:'독자'})
     const before=structuredClone(db)
     expect(await new InboxUseCase(works,feedback).act('i','reject')).toContain('아직 연결되지')

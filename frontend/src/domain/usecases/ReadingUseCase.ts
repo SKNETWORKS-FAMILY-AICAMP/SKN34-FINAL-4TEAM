@@ -1,6 +1,8 @@
+import type { Work as ContentWork } from '../entities/content'
 import { splitSentences } from '../entities/feedback'
-import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type Work } from '../entities/work'
+import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
+import type { WorkSearchRepository } from '../repositories/WorkSearchRepository'
 
 /** 목업 CHIPS: 홈 장르 칩과 필터 조건 */
 export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] = [
@@ -15,14 +17,24 @@ export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] 
 export class ReadingUseCase {
   private readonly workRepository: WorkRepository
   private readonly readingRepository: ReadingRepository
-  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository) {
+  /** 있으면 홈 순위·검색을 서버(Content 공개 API)로 채웁니다. 없으면(목업) 메모리 데모입니다. */
+  private readonly workSearchRepository?: WorkSearchRepository
+  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, workSearchRepository?: WorkSearchRepository) {
     this.workRepository = workRepository
     this.readingRepository = readingRepository
+    this.workSearchRepository = workSearchRepository
+  }
+
+  /** 서버 랭킹(최근 24시간 조회). 실패는 빈 목록으로 숨기지 않고 failed로 알립니다. */
+  private serverRanking() {
+    const repo = this.workSearchRepository
+    if (!repo) return null
+    return Promise.all([repo.ranking('top'), repo.ranking('rising')]).then(([top10, rising]) => ({ top10, rising, failed: false }), () => ({ top10: [] as Work[], rising: [] as Work[], failed: true }))
   }
 
   /** 목업 home(): 칩이 '추천'이 아니면 filtered(U02)만 채웁니다. */
   async getHome(role: Role, chip: string) {
-    const [works, progress] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress()])
+    const [works, progress, ranking] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverRanking()])
     const pub = works.filter(isPub)
     const filter = (HOME_CHIPS.find((c) => c[0] === chip) ?? HOME_CHIPS[0])[1]
     const origs = originals(works).filter(isPub)
@@ -46,8 +58,11 @@ export class ReadingUseCase {
       originals: origs,
       forkFeed: pub.filter((w) => w.parent).sort(sorter('new')),
       continueReading: lastWork ? { work: lastWork, episode: progress.last[lastWork.id] } : null,
-      top10: pub.slice().sort(sorter('pop')).slice(0, 10),
-      rising: origs.slice().sort(sorter('view')),
+      top10: ranking ? ranking.top10 : pub.slice().sort(sorter('pop')).slice(0, 10),
+      rising: ranking ? ranking.rising : origs.slice().sort(sorter('view')),
+      rankingFailed: !!ranking?.failed,
+      /** 순위 섹션이 실제 순위인가: 서버 랭킹이거나 좋아요·조회 지표가 있는 목업. 지표 없는 서버 작품의 단순 목록이면 false입니다. */
+      ranked: !!ranking || !pub.some((w) => w.statisticsSupported === false),
       fresh: pub.slice().sort(sorter('new')).slice(0, 5),
       picks: pub.slice(0, 6),
       discover: pub,
@@ -57,6 +72,18 @@ export class ReadingUseCase {
 
   markSeen(workId: string) {
     return this.readingRepository.markSeen(workId)
+  }
+
+  /**
+   * 공개 열람 화면이 여는 작품의 조회를 기록합니다. 화면이 전체 회차를 한 번에 보여 주므로 긴 작품이 24시간 랭킹을
+   * 부풀리지 않게 상속이 아닌 첫 발행 회차 1건만 보냅니다(서버가 회원·회차·하루 1회로 거르니 작품당 회원 하루 1회 효과).
+   * 상속 회차는 원작의 것이라 제외하고, 실패는 읽기를 막지 않으므로 삼킵니다.
+   */
+  async recordViews(work: Pick<ContentWork, 'id' | 'readOnly' | 'episodes'>) {
+    const repo = this.workSearchRepository
+    const first = work.episodes.find((e) => !e.inherited)
+    if (!repo || !work.readOnly || !first) return
+    await repo.recordView(work.id, first.number).catch(() => {})
   }
 
   private async load(id: string) {
@@ -121,13 +148,15 @@ export class ReadingUseCase {
     return progress.liked[id]
   }
 
-  /** 목업 searchPage()·rank(): t는 랭킹 탭(all·orig·if) */
-  async findWorks({ t = 'all', q = '', f = 'all', sort }: { t?: string; q?: string; f?: string; sort: string }) {
+  /** 목업 searchPage()·rank(): t는 랭킹 탭(all·orig·if). 서버 저장소가 있으면 검색은 서버가, 원작·Fork 탭은 결과에서 거릅니다. */
+  async findWorks({ t = 'all', q = '', f = 'all', sort }: { t?: string; q?: string; f?: SearchField; sort: SearchSort }) {
+    const kind = (w: Work) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent)
+    if (this.workSearchRepository) return (await this.workSearchRepository.search({ q: q.trim(), f, sort })).filter(kind)
     const works = await this.workRepository.listWorks()
     return works.filter(isPub)
-      .filter((w) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent))
+      .filter(kind)
       .filter((w) => matchW(w, q, f, works))
-      .sort(sorter(sort))
+      .sort(sorter(sort === 'latest' ? 'new' : sort))
   }
 
   /** 목업 tagPage(t): 태그가 없으면 첫 태그를 고릅니다. */

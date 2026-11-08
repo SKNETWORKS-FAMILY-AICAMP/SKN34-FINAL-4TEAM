@@ -43,6 +43,7 @@ class WorkPolicyServiceTest {
     @Mock lateinit var publication: PublicationService
     @Mock lateinit var versions: EpisodeVersionService
     @Mock lateinit var proposals: ProposalService
+    @Mock lateinit var viewService: WorkViewService
     @InjectMocks lateinit var service: WorkService
 
     private val work=WorkAccessResult("w","owner","제목","소개",4,"world","public",true,true,null)

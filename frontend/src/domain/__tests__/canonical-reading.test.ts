@@ -20,7 +20,7 @@ describe('canonical reading, independent of sample slugs', () => {
     db.works=db.works.map(w=>({...w,canonical:true,statisticsSupported:false}))
     const uc=new ReadingUseCase(new InMemoryWorkRepository(db),new InMemoryReadingRepository(db))
     const expected=db.works.filter(w=>!w.private && (!w.parent || w.eps.length>0)).slice().sort((a,b)=>a.title.localeCompare(b.title,'ko')).map(w=>w.id)
-    expect((await uc.findWorks({sort:'pop'})).map(w=>w.id)).toEqual(expected)
+    expect((await uc.findWorks({sort:'latest'})).map(w=>w.id)).toEqual(expected)
     expect((await uc.findWorks({sort:'view'})).map(w=>w.id)).toEqual(expected)
     const home=await uc.getHome(null,'추천')
     expect(home.top10.map(w=>w.id)).toEqual(expected.slice(0,10))

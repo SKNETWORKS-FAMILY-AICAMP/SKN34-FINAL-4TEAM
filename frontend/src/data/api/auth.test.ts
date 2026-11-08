@@ -1,4 +1,4 @@
-import '../../testLocks'
+import '../../test/testLocks'
 import { afterEach, expect, it, vi } from 'vitest'
 import { login, refresh, logout, getAccessToken, authVersion, protectedRequest } from './auth'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'

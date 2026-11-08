@@ -1,4 +1,4 @@
-// 목업(frontend/mockup/index.html) 940~1003행의 인물 초상 그림을 그대로 옮겼습니다. 이름은 코드 안 상수만 씁니다.
+// 목업(frontend/mockup/legacy-index.html) 940~1003행의 인물 초상 그림을 그대로 옮겼습니다. 이름은 코드 안 상수만 씁니다.
 type Pt = { bg: string[]; [k: string]: string | string[] | number | undefined }
 
 /** 목업 PT: 인물 초상 설정 */

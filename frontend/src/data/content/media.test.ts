@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, expect, it, vi} from 'vitest'
-import '../../testLocks'
+import '../../test/testLocks'
 import {login} from '../api/auth'
 import {HttpMediaRepository} from './HttpMediaRepository'
 import {MediaUseCase} from '../../domain/usecases/MediaUseCase'

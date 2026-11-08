@@ -1,5 +1,7 @@
 # 알림 사건 계약 (RabbitMQ, schemaVersion 1)
 
+[메인 README](../README.md) · [문서 목록](README.md)
+
 사건을 만든 서비스(예: Content)가 브로커에 사건을 발행하면 Core가 소비해 회원의 알림함에 한 건을 만든다.
 이 문서는 발행·소비 양쪽이 지켜야 할 메시지 형식이다. 처음 연결할 사건(`content.world.changed`)은 팀 확인 전의 후보다.
 

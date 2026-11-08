@@ -1,5 +1,7 @@
 # STORYFORK 4개 백엔드 서비스 책임·실행 구조
 
+[메인 README](../../README.md) · [문서 목록](../README.md)
+
 > **상태: Core → Content 추출 소스 구현, hosted CI·실제 DB 전환·배포 대기.** DEC-41에 따라 기존 콘텐츠·첨부·WorldStudio 코드/테스트와 인증 연동·공개 라우팅·이미지/CI 설정을 `backend/content-service`로 이전했다. Core에는 Auth·Health가 남고 운영은 골격 그대로다. 물리 DB는 기존 대상을 공유하며 writer/migration만 분리한다. 사용자가 승인한 개발용 Content fresh 이력 재작성과 실제 DB 폐기는 구분한다. [이관·서비스 연동 계약](content-service-migration-contract.md)을 따른다.
 
 ## 1. 서비스 구성과 데이터 소유
@@ -11,7 +13,7 @@
 | 운영 관리 서비스 | 독립 Kotlin·Spring Boot 골격 `backend/operations-service` | 고객지원·공지·이벤트·권리/유해 신고 사건·증거·소명·운영 결정·운영 권한·감사·작업 감시·LLMOps 관리 | 문의·답변·공지·이벤트·신고 사건·운영 판단·조치 요청/결과·감사·관측 기록 |
 | AI 서비스 | 기존 `backend/ai-service`, Python·FastAPI 재사용 | 집필·추출·시뮬레이션·검토·캐릭터 응답·이미지 생성·유해 판정 등 요청된 모델 실행 | 필요한 실행 상태. 콘텐츠·회원·정산·운영 판단 정본을 직접 변경하지 않음 |
 
-표의 담당 기능은 목표 책임이며 전부 구현됐다는 뜻이 아니다. 현재 Core는 Auth·Health, Content는 이전된 콘텐츠·첨부·WorldStudio를 구현하며 운영은 골격뿐이다. Core/Content/운영 기본 포트는 8080/8081/8082이고 독립 Gradle main·패키지를 가진다. Frontend와 향후 Android/iOS 앱은 클라이언트다. 모바일 실제 지원과 미구현 업무는 후속 대상이며 역할마다 AI 서버를 만들거나 검색·파일·랭킹마다 별도 서버를 선제 생성하지 않는다.
+표의 담당 기능은 목표 책임이며 전부 구현됐다는 뜻이 아니다. 현재 Core는 Auth·Health, Content는 이전된 콘텐츠·첨부·WorldStudio를 구현하며 운영은 골격뿐이다. Core/Content/운영 기본 포트는 8080/8081/8082이고 독립 Gradle main·패키지를 가진다. Frontend와 향후 Android/iOS 앱은 클라이언트다. 모바일 실제 지원과 미구현 업무는 후속 대상이며 역할마다 AI 서버를 만들거나 검색·파일·랭킹마다 별도 서버를 선제 생성하지 않는다. 작품 검색·실시간 랭킹은 Content 안에서 [검색·랭킹 계약](work-search-ranking-contract.md)을 따른다.
 
 ## 2. 책임 경계
 

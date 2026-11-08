@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import '../../testLocks'
+import '../../test/testLocks'
 import { login } from './auth'
-import { openNotificationStream, type StreamState } from './notificationStream'
+import type { StreamState } from '../../domain/entities/notificationStream'
+import { openNotificationStream } from './notificationStream'
 
 const encoder = new TextEncoder()
 

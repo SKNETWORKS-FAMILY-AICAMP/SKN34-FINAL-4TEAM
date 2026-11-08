@@ -128,7 +128,7 @@ def build_script(service, root, database, schema, approval):
             " RAISE EXCEPTION 'Existing ordinary development writer identity must be verified first'; END IF; END $$;"]
     else:
         output += ["DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='work' AND column_name='slug') OR to_regclass('setting_reading_detail') IS NULL THEN",
-            " RAISE EXCEPTION 'Content V10 schema is required; do not reset or repair migration history'; END IF; END $$;"]
+            " RAISE EXCEPTION 'Content V14 reading metadata schema is required; do not reset or repair migration history'; END IF; END $$;"]
     for table, columns in tables.items():
         names = ','.join(columns)
         output += [f'CREATE TEMP TABLE sample_expected_{table} (LIKE {table} INCLUDING DEFAULTS) ON COMMIT DROP;',

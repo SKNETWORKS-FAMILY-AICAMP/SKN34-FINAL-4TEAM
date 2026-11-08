@@ -43,11 +43,11 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(10,flyway.migrate().migrationsExecuted)
-        assertEquals((1..10).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(14,flyway.migrate().migrationsExecuted)
+        assertEquals((1..14).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
-        for(table in listOf("work","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
+        for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
             assertNotNull(jdbc.queryForObject("SELECT to_regclass(?)::text",String::class.java,table))
         }
         for(view in listOf("work_current","episode_current","setting_version_read")) {
@@ -152,10 +152,25 @@ class ContentMigrationTest {
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM world", Int::class.java))
     }
 
+    @Test fun `work view keeps one row per member episode and day and rejects broken references`() = isolated { flyway,jdbc ->
+        flyway.migrate()
+        jdbc.update("INSERT INTO member(id) VALUES ('owner')")
+        jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','제목','','original',0)")
+        val insert="INSERT INTO work_view(work_id,episode_number,member_id,view_date) VALUES (?,?,?,?::date)"
+        jdbc.update(insert,"w",1,"reader","2026-11-08")
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM work_view WHERE viewed_at IS NOT NULL",Int::class.java))
+        for(row in listOf(arrayOf<Any>("w",1,"reader","2026-11-08"),arrayOf<Any>("w",0,"reader","2026-11-08"),arrayOf<Any>("missing",1,"reader","2026-11-08"))) {
+            assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(insert,*row)}
+        }
+        for(row in listOf(arrayOf<Any>("w",1,"reader","2026-11-09"),arrayOf<Any>("w",2,"reader","2026-11-08"),arrayOf<Any>("w",1,"other","2026-11-08"))) jdbc.update(insert,*row)
+        assertEquals(4,jdbc.queryForObject("SELECT count(*) FROM work_view",Int::class.java))
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM pg_indexes WHERE schemaname=current_schema() AND indexname='work_view_viewed_at'",Int::class.java))
+    }
+
     @Test fun `changed history fails validation instead of silently repairing`() = isolated { flyway,jdbc ->
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(10,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(14,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

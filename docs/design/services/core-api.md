@@ -1,5 +1,7 @@
 # Core Service 설계 (현재 실행 모듈: `core-api`)
 
+[메인 README](../../../README.md) · [문서 목록](../../README.md)
+
 > **DEC-41 목표 경계 · 분리 구현 전.** [Core·콘텐츠·운영·AI 책임](../service-boundaries.md)에 맞춰 아래 본문을 구분합니다. 현재 `core-api`의 인증·콘텐츠·첨부 공존과 기존 URL·데이터·Flyway 이력은 유지하며 별도 콘텐츠·운영 앱과 DB 이전은 아직 실행하지 않았습니다.
 
 > **상태: 일부 업무 구현 · Core 재사용 및 콘텐츠 이전 목표.** [상위 설계](../design.md)·[결정 기록](../decisions.md#결정-목록)(특히 DEC-41)을 따릅니다. `core-api`는 기존 패키지·컨테이너·경로 이름이며 지금 변경하지 않습니다. 이전 [KAG 설계](../archive/kag-design/services/core-api.md)는 현행 MVP가 아닙니다.

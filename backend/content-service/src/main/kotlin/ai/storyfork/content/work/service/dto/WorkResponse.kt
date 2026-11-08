@@ -14,4 +14,6 @@ data class WorkResponse(
     val theme: String = "star", val hook: String = "", val hanja: String? = null,
     val hero: List<String>? = null, val heroBg: String? = null,
     val forkableEpisodes: List<Int> = emptyList(),
+    /** 최근 24시간 조회 수. 공개 목록·검색·랭킹 응답에서만 채우고 그 밖에는 0이다. */
+    val views: Long = 0,
 )

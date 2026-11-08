@@ -19,12 +19,10 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
-import org.springframework.web.server.ResponseStatusException
 
 /** 회원별 알림함·알림 설정 규칙. 다른 회원의 알림은 존재하지 않는 것처럼 404로 취급한다. */
 @Service
@@ -66,7 +64,7 @@ class NoticeService(
     /** 행을 지우지 않고 삭제 표시만 한다. 이미 삭제한 알림을 다시 삭제해도 성공이다. */
     @Transactional
     fun delete(memberId: UUID, id: UUID) {
-        if (notices.markDeleted(id, memberId, Instant.now()) == 0 && !notices.existsByIdAndRecipientId(id, memberId)) throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        if (notices.markDeleted(id, memberId, Instant.now()) == 0 && !notices.existsByIdAndRecipientId(id, memberId)) throw NoticeException(NoticeException.Reason.NOT_FOUND)
     }
 
     /** 모든 분류의 수신 여부를 반환한다. 저장값이 없으면 켜짐이고 끌 수 없는 분류는 항상 켜짐이다. */
@@ -82,14 +80,14 @@ class NoticeService(
     @Transactional
     fun updatePreferences(memberId: UUID, request: NoticePreferencesRequest): NoticePreferencesResponse {
         // 설정 행이 없는 같은 회원·분류의 최초 저장이 동시에 오면 복합 PK 충돌이 나므로 회원 행 잠금으로 직렬화한다.
-        members.lockById(memberId) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
-        val kinds = request.items.map { NoticeKind.fromCode(requireNotNull(it.kind)) ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
-        if (kinds.toSet().size != kinds.size) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        members.lockById(memberId) ?: throw NoticeException(NoticeException.Reason.UNAUTHENTICATED)
+        val kinds = request.items.map { NoticeKind.fromCode(requireNotNull(it.kind)) ?: throw NoticeException(NoticeException.Reason.INVALID) }
+        if (kinds.toSet().size != kinds.size) throw NoticeException(NoticeException.Reason.INVALID)
         request.items.forEachIndexed { index, item ->
             val kind = kinds[index]
             val enabled = requireNotNull(item.enabled)
             if (!kind.mutable) {
-                if (!enabled) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+                if (!enabled) throw NoticeException(NoticeException.Reason.INVALID)
             } else {
                 preferences.save(NoticePreferenceEntity(memberId, kind.code, enabled))
             }
@@ -128,12 +126,12 @@ class NoticeService(
 
     /** 본인의 삭제되지 않은 알림만 반환하고, 없거나 타인·삭제된 알림이면 404를 던진다. */
     private fun visible(memberId: UUID, id: UUID): NoticeEntity =
-        notices.findByIdAndRecipientId(id, memberId)?.takeIf { it.deletedAt == null } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        notices.findByIdAndRecipientId(id, memberId)?.takeIf { it.deletedAt == null } ?: throw NoticeException(NoticeException.Reason.NOT_FOUND)
 
     /** `<createdAt ISO>_<uuid>` 형식의 cursor를 해석하며 잘못된 값은 400으로 변환한다. */
     private fun parseCursor(cursor: String): Pair<Instant, UUID> = try {
         Instant.parse(cursor.substringBefore('_')) to UUID.fromString(cursor.substringAfter('_'))
-    } catch (_: RuntimeException) { throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
+    } catch (_: RuntimeException) { throw NoticeException(NoticeException.Reason.INVALID) }
 
     /** 엔티티를 공개 응답으로 변환한다. */
     private fun toResponse(n: NoticeEntity) = NoticeResponse(n.id.toString(), n.kind, n.summary, n.targetType, n.targetId, n.createdAt, n.readAt != null)

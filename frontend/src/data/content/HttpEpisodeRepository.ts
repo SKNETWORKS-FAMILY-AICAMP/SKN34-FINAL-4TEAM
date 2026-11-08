@@ -1,9 +1,11 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
+import type {WorkRankingKind, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput, type WorkRegistration} from '../../domain/entities/content'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
-import { authVersion, protectedRequest } from '../api/auth'
+import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
+import { publicWork, toCardWork } from './publicWork'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
 const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
@@ -29,7 +31,7 @@ const readingWorld = z.object({workId:z.string(),episode:z.number().int().positi
 export type ReadingWorkRecord = z.infer<typeof readingWork>
 export type ReadingWorldRecord = z.infer<typeof readingWorld>
 
-export class HttpEpisodeRepository implements EpisodeRepository {
+export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepository {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
   private async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
@@ -72,6 +74,18 @@ export class HttpEpisodeRepository implements EpisodeRepository {
   }
   readingList(owned = false, signal?: AbortSignal) { return this.request(owned ? '/works' : '/public/works',z.array(readingWork),'GET',undefined,signal) }
   readingWorld(id:string,episode:number,signal?:AbortSignal) { return this.request(`/public/works/${encodeURIComponent(id)}/world?episode=${episode}`,readingWorld,'GET',undefined,signal) }
+  async search(query: WorkSearchQuery, signal?: AbortSignal) {
+    const params = new URLSearchParams({ f: query.f, sort: query.sort })
+    if (query.q) params.set('q', query.q)
+    return (await this.request(`/public/works?${params}`, z.array(publicWork), 'GET', undefined, signal)).map(toCardWork)
+  }
+  async ranking(kind: WorkRankingKind, signal?: AbortSignal) {
+    return (await this.request(`/public/works/ranking?kind=${kind}`, z.array(publicWork), 'GET', undefined, signal)).map(toCardWork)
+  }
+  async recordView(id: string, number: number, signal?: AbortSignal) {
+    if (!getAccessToken()) return // 익명 열람은 회원 식별이 없어 기록하지 않는다.
+    await this.request(`/works/${encodeURIComponent(id)}/episodes/${number}/views`, z.undefined(), 'POST', undefined, signal)
+  }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) { return this.request('/works',work,'POST',registration?{title,summary,...registration}:{title,summary},signal) }
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal) { return this.request(`/works/${id}`,work,'PUT',{title,summary,revision},signal) }

@@ -5,6 +5,7 @@ import { appContainer } from '../../../app/appContainer'
 import { useAppSelector } from '../../../app/store'
 import type { ReadingUseCase } from '../../../domain/usecases/ReadingUseCase'
 import { useAsyncData } from '../useAsyncData'
+import { requestLeave } from '../events'
 
 /** 목업 quick(): Ctrl/Cmd+K 또는 GNB 검색 버튼(sf-quick 이벤트)으로 엽니다. */
 export function useQuickViewModel(readingUseCase: ReadingUseCase = appContainer.resolve('readingUseCase')) {
@@ -18,7 +19,7 @@ export function useQuickViewModel(readingUseCase: ReadingUseCase = appContainer.
   const { data: items = [] } = useAsyncData(() => (open ? readingUseCase.getQuickItems(role, studioId ? { id: studioId, ep } : undefined) : Promise.resolve([])), [readingUseCase, open, role, studioId, ep])
 
   useEffect(() => {
-    const show = () => { setQ(''); setSel(0); setOpen(true) }
+    const show = () => { if (!requestLeave()) return; setQ(''); setSel(0); setOpen(true) }
     const key = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); show() } }
     window.addEventListener('sf-quick', show)
     document.addEventListener('keydown', key)
@@ -27,7 +28,7 @@ export function useQuickViewModel(readingUseCase: ReadingUseCase = appContainer.
 
   const query = q.trim()
   const list = query
-    ? [{ k: '검색', label: `‘${query}’ 검색 결과 모두 보기`, sub: 'Enter · 제목·작가·태그에서 찾기', go: `/search?q=${encodeURIComponent(query)}` }, ...items.filter((x) => (x.label + x.sub).includes(query)).slice(0, 7)]
+    ? [{ k: '검색', label: `‘${query}’ 검색 결과 모두 보기`, sub: 'Enter · 제목·태그·장르에서 찾기', go: `/search?q=${encodeURIComponent(query)}` }, ...items.filter((x) => (x.label + x.sub).includes(query)).slice(0, 7)]
     : items.filter((x) => x.k === '소설' || x.k === '이동').slice(0, 8)
   const current = sel < list.length ? sel : 0
 
@@ -39,6 +40,6 @@ export function useQuickViewModel(readingUseCase: ReadingUseCase = appContainer.
     setQuery: (v: string) => { setQ(v); setSel(0) },
     move: (d: number) => setSel(Math.max(0, Math.min(current + d, list.length - 1))),
     close: () => setOpen(false),
-    go: (i: number) => { const item = list[i]; if (!item) return; setOpen(false); navigate(item.go) },
+    go: (i: number) => { const item = list[i]; if (!item || !requestLeave()) return; setOpen(false); navigate(item.go) },
   }
 }

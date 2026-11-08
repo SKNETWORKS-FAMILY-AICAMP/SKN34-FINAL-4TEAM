@@ -2,7 +2,7 @@
 
 사용자 요청에 따라 **샘플 데이터는 SQL 파일이 아니라 테이블별 UTF-8 CSV 파일**로 제공한다. 이 디렉터리는 저장소의 데모 텍스트를 정규 테이블에 옮기는 오프라인 자료이며 앱 시작·Flyway·배포에서 자동 실행하지 않는다. 운영 seed, 실제 저자 인증·저작권 확인·이용 실적의 증거가 아니다.
 
-**현재 상태:** CSV round-trip·본문 hash·선택 순수 단위 검사를 수행했다. 별도 격리 로컬 PostgreSQL(`storyfork_samples`, 기존 DB 아님)에 Core V1–V6·Content V1–V10을 적용하고 Core→Content CSV 적재, 동일 재실행, 변경 행 충돌 거절을 실제로 확인했다. 공유/운영 DB 적용·백업/복원, hosted Required CI, React/HTTP 통합·브라우저 수용은 별도 검증 대기다. 아래 안내는 적용 승인이 아니다.
+**현재 상태:** CSV round-trip·본문 hash·선택 순수 단위 검사를 수행했다. 별도 격리 로컬 PostgreSQL(`storyfork_samples`, 기존 DB 아님)에 Core V1–V6·Content V1–V10(작품 검색·랭킹 병합 전 번호, 병합 후 Content는 V1–V14)을 적용하고 Core→Content CSV 적재, 동일 재실행, 변경 행 충돌 거절을 실제로 확인했다. 병합 후 번호의 재적재는 하지 않았다. 공유/운영 DB 적용·백업/복원, hosted Required CI, React/HTTP 통합·브라우저 수용은 별도 검증 대기다. 아래 안내는 적용 승인이 아니다.
 
 ## 정본 입력과 불변 증거
 
@@ -12,7 +12,7 @@
 - [generate.py](generate.py)는 그 불변 증거에서 CSV를 **별도 빈 출력 디렉터리로 재현**하여 정본 CSV와 비교하는 도구다. DB·네트워크에 접근하지 않고 정본 디렉터리 덮어쓰기를 거절한다. CSV 변경이 필요하면 변경 근거를 검토하고 재현 계약도 함께 갱신하되 inventory 원문은 바꾸지 않는다.
 - [load.py](load.py)는 CSV만 읽는 작은 stdlib + 기존 `psql` importer다. inventory/Frontend fixture를 읽지 않고 샘플 SQL 파일을 생성·사용하지 않는다. 새 production 의존성·서비스·ETL 프레임워크는 없다.
 - [test_import.py](test_import.py)는 CSV 재현 일치·타입/header/키 검증·본문 hash·wiki 정규화·상속 버전·inventory에 고정된 migration 바이트·COPY 프로토콜 안전성의 오프라인 순수 단위다. 별도 오프라인 검증에서 baseline의 기존 migration 19개 전체 바이트도 직접 대조했다. 실제 PostgreSQL 실행 검증을 대신하지 않는다.
-- 스키마만 변경하는 [V10__reading_metadata.sql](../../backend/content-service/src/main/resources/db/migration/work/V10__reading_metadata.sql)은 **SQL로 유지**한다. 샘플/계정 행이 없고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개의 바이트/이력은 보존한다. 이번 nullable 공개 epoch는 아직 적용하지 않은 추가 V10에만 반영했다.
+- 스키마만 변경하는 [V14__reading_metadata.sql](../../backend/content-service/src/main/resources/db/migration/work/V14__reading_metadata.sql)은 **SQL로 유지**한다. 샘플 이관 당시 V10이었고 develop의 V10~V13(계획·`work_view`) 뒤로 번호만 옮겼으며 내용은 같다. 샘플/계정 행이 없고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개의 바이트/이력은 보존한다. 이번 nullable 공개 epoch는 아직 적용하지 않은 추가 V14에만 반영했다.
 
 | 대상 | 수량 | 의미 |
 |---|---:|---|
@@ -44,7 +44,7 @@
 1. **정확한 대상:** Core/Content 각각 host/port 또는 socket, DB, schema, 계정, 서비스 소유 history, 현재 revision/보존 범위를 별도 승인 기록에 고정한다. [Content migration 안내](../../backend/content-service/README.md#같은-db와-fresh-콘텐츠-migration)를 따른다. 이 loader의 DB/schema 비교와 `approved-development` gate는 운영 환경 자동 판별이 아니다. 같은 DB 이름의 다른 host는 운영자가 직접 구분해야 한다.
 2. **일관된 백업·복구:** Auth, Content, 같은 DB의 첨부·WorldStudio와 각 migration history를 포함할 범위, 백업 식별자/hash, 격리 복원 검증을 승인한다. 이 변경은 백업을 생성/검증하지 않는다. 별도 coordinator 승인 기록을 이 문서로 대체하지 않는다.
 3. **writer 중단:** 서비스별 transaction 안에서 대상 테이블을 `SHARE ROW EXCLUSIVE`로 잠근다. table lock 5초, statement/idle-in-transaction 60초, psql 전체 프로세스 120초, advisory lock 경합은 즉시 실패한다. 온라인/대량 이관 도구가 아니며 timeout을 해제해 경합을 우회하지 않는다.
-4. **정상 migration 선행:** Core Auth의 보존된 V4가 만드는 기존 일반 개발 작가 identity가 필요하다. 새 DB라도 정상 Auth migration을 먼저 적용한다. Content는 현행 V1~V10을 정상 적용한다. 다른 checksum/history면 중단하며 `repair`, `clean`, baseline/reset/drop/volume 삭제를 하지 않는다.
+4. **정상 migration 선행:** Core Auth의 보존된 V4가 만드는 기존 일반 개발 작가 identity가 필요하다. 새 DB라도 정상 Auth migration을 먼저 적용한다. Content는 현행 V1~V14를 정상 적용한다. 다른 checksum/history면 중단하며 `repair`, `clean`, baseline/reset/drop/volume 삭제를 하지 않는다.
 5. **최소 자격·연결:** `python3`, 기존 `psql`과 승인된 libpq service/연결 환경을 사용한다. 비밀번호 URI/명령줄/보고서, 루트 `.env` 출력/source/덮어쓰기는 금지한다. Core/Content는 각각 별도 연결/transaction이고 분산 transaction·자동 보상은 없다. 서비스명은 영숫자/`_`/`-`, DB/schema는 영문/숫자/`_`의 단순 PostgreSQL 식별자로 제한한다.
 
 승인된 소유 연결에서 다음 **읽기 전용** 정보와 history의 version/checksum/success를 대조한다. Auth 행/password hash·개인 원고를 로그에 출력하지 않는다.

@@ -46,7 +46,7 @@ class WorldStudioDeploymentTest(unittest.TestCase):
                 '   exit "$TEST_MIGRATION_EXIT" ;;\n'
                 'esac\n', encoding="utf-8")
             docker.chmod(0o755)
-            env = dict(os.environ, CD_DIRECTORY=directory.replace("\\", "/"), CD_WEB_PORT="8088",
+            env = dict(os.environ, CD_DIRECTORY=directory.replace("\\", "/"), CD_WEB_PORT="8088", TARGET_SHA="%040d" % 1,
                 GITHUB_ACTOR="test", GH_TOKEN="fake-token", COMPOSE_BASE_YAML="", COMPOSE_DEV_YAML="", COMPOSE_LOCAL_YAML="",
                 WORLDSTUDIO_CD_MIGRATION_ENABLED=enabled, CONTENT_FRESH_SCHEMA_APPROVED="true", DEVELOP_INTERNAL_DB_APPROVED="true",
                 WORLDSTUDIO_EXPECTED_DATABASE_URL="jdbc:postgresql://postgres:5432/storyfork",
@@ -101,6 +101,7 @@ class WorldStudioDeploymentTest(unittest.TestCase):
     def test_unknown_flag_fails_closed(self):
         code, commands, _ = self.deploy("treu")
         self.assertNotEqual(0, code)
+        self.assertNotIn("stop web core-api content-service", commands)
         self.assertNotIn("up -d --no-build --pull never --wait --wait-timeout 180\n", commands)
 
     def test_inherited_profile_cannot_bypass_github_activation(self):
@@ -114,5 +115,18 @@ class WorldStudioDeploymentTest(unittest.TestCase):
                     "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE"):
             code, commands, _ = self.deploy("true", overrides={key: ""})
             self.assertNotEqual(0, code)
+            self.assertNotIn("stop web core-api content-service", commands)
             self.assertNotIn("run --rm", commands)
             self.assertNotIn("up -d --no-build --pull never --wait --wait-timeout 180\n", commands)
+
+    def test_image_revision_other_than_run_target_stops_before_ingress(self):
+        code, commands, _ = self.deploy("false", overrides={"TARGET_SHA": "%040d" % 2})
+        self.assertNotEqual(0, code)
+        self.assertNotIn("stop web core-api content-service", commands)
+
+    def test_publish_requires_target_to_be_current_develop_head(self):
+        workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
+        publish = workflow.split("  publish:", 1)[1].split("\n  deploy:", 1)[0]
+        check = publish.index('gh api "repos/$GITHUB_REPOSITORY/commits/develop" --jq .sha')
+        self.assertIn('[[ "$head" == "$TARGET_SHA" ]]', publish)
+        self.assertLess(check, publish.index("docker build"))

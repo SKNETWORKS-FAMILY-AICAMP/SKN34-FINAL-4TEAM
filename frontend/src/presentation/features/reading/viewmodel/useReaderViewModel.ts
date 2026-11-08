@@ -7,6 +7,7 @@ import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
+import { uiActions } from '../../../shared/ui/uiSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { useLook } from './useLook'
 
@@ -31,11 +32,13 @@ export function useReaderViewModel(id: string, n: number,
   }, [readingUseCase, feedbackUseCase, id, n, role])
   const [selected, setSelected] = useState<{ k: number; top: number; left: number; pop: boolean } | null>(null)
   const [sheet, setSheet] = useState<ReaderSheet>(null)
+  // 키보드 탭 정지점(roving tabindex): 본문은 문장 하나만 Tab 순서에 두고 방향키로 옮깁니다.
+  const [tabStop, setTabStop] = useState(0)
   // 목업 render(): 다른 회차로 옮기면 문장 팝업과 선택을 지웁니다.
   const [shown, setShown] = useState(id + '/' + n)
-  if (shown !== id + '/' + n) { setShown(id + '/' + n); setSelected(null) }
+  if (shown !== id + '/' + n) { setShown(id + '/' + n); setSelected(null); setTabStop(0) }
   const ok = data && data !== 'hidden' ? data : null
-  const setEnd = useCallback((end: boolean) => { dispatch(sessionActions.setBaseScreen(end ? 'U08' : 'U05')) }, [dispatch])
+  const setEnd = useCallback((end: boolean) => { dispatch(uiActions.setBaseScreen(end ? 'U08' : 'U05')) }, [dispatch])
   useScreenId(ok ? 'U05' : null)
 
   const sentences = ok ? ok.paragraphs.flat() : []
@@ -49,6 +52,8 @@ export function useReaderViewModel(id: string, n: number,
     readerClass: (look.eff === 'world' ? `th-${theme} themed${lite ? ' lite' : ''}` : `calm rd calm-${theme}`) + ' reader',
     readerVars: { ...(look.eff === 'white' || look.eff === 'night' ? LOOK_VARS[look.eff] : {}), '--fs': look.fs + 'px' },
     amb: look.eff === 'world' && look.motion ? { lite } : null,
+    tabStop,
+    setTabStop,
     selected,
     /** 목업 selectSent(): 고른 문장과 팝업(댓글·피드백·공유) 위치 */
     select: (s: { k: number; top: number; left: number } | null) => setSelected(s && { ...s, pop: true }),

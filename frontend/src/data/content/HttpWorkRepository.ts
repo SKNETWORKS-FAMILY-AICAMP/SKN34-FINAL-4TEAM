@@ -43,7 +43,12 @@ export function withReadingWorld(work: Work, world: ReadingWorldRecord): Work {
 
 /** Canonical reads and Fork writes only; rich demo mutations never pretend to persist. */
 export class HttpWorkRepository implements WorkRepository {
-  constructor(private readonly api = new HttpEpisodeRepository(), private readonly authenticated = () => !!getAccessToken()) {}
+  private readonly api: HttpEpisodeRepository
+  private readonly authenticated: () => boolean
+  constructor(api = new HttpEpisodeRepository(), authenticated = () => !!getAccessToken()) {
+    this.api = api
+    this.authenticated = authenticated
+  }
   async listWorks(): Promise<Work[]> {
     const version = authVersion()
     const [publicRows, owned] = await Promise.all([this.api.readingList(false), this.authenticated() ? this.api.readingList(true) : Promise.resolve([])])

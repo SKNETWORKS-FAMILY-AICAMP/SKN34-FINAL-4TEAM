@@ -7,6 +7,7 @@ import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev, Heart } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useWorkViewModel } from '../viewmodel/useWorkViewModel'
 import { Amb } from './Amb'
 import { ReportSheet } from './Sheets'
@@ -16,7 +17,7 @@ export function UnavailableWork() {
   return (
     <>
       <Gnb />
-      <main className="wrap"><div className="panel"><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><Go to="/" className="btn">홈으로</Go></div></main>
+      <main className="wrap" id="main" tabIndex={-1}><div className="panel"><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><Go to="/" className="btn">홈으로</Go></div></main>
       <Footer />
     </>
   )
@@ -28,7 +29,8 @@ export function WorkPage() {
   const { id = '' } = useParams()
   const vm = useWorkViewModel(id)
   const d = vm.detail
-  if (d === undefined) return <><Gnb/><main className="wrap"><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
+  useDocumentTitle(d?.work.title ?? '소설 상세')
+  if (d === undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   if (d === null) return <UnavailableWork />
   const { work: w, parent: p, visible, last, read, liked, forks, forkList } = d
   const start = last && visible.some(([, i]) => i + 1 === last) ? last : (visible[0]?.[1] ?? 0) + 1
@@ -37,7 +39,7 @@ export function WorkPage() {
     <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
       <div className="band"><Art theme={w.theme} w={1200} h={460} seed={w.id + 'band'} /></div>
       {vm.bandAmb && <Amb t={w.theme} lite band />}
-      <div className="wrap">
+      <main className="wrap" id="main" tabIndex={-1}>
         <div className="topbar"><Go to="/" className="back" aria-label="홈으로 돌아가기"><BackChev />홈으로</Go><span style={{ marginLeft: 'auto' }} /></div>
         <section className="whero">
           <div className="cover"><CoverOf w={w} k="big" /></div>
@@ -100,7 +102,7 @@ export function WorkPage() {
             )}
           </aside>
         </div>
-      </div>
+      </main>
     </div>
     <Footer />
     {vm.reporting && <ReportSheet work={w} onClose={() => vm.setReporting(false)} />}

@@ -1,4 +1,3 @@
-import { appContainer } from '../../../app/appContainer'
 import { useCoreApiHealth } from './useCoreApiHealth'
 import {
   coreApiStatusDotClassName,
@@ -7,8 +6,7 @@ import {
 
 export function CoreApiConnectionStatus({ target = 'core-api' }: { target?: 'core-api' | 'ai-service' }) {
   const name = target === 'core-api' ? 'Core API' : 'AI Service (Core 경유)'
-  const fetchHealth = appContainer.resolve(target === 'core-api' ? 'fetchCoreApiHealth' : 'fetchAiServiceHealth')
-  const { data, isError, isLoading, refetch } = useCoreApiHealth(fetchHealth)
+  const { data, isError, isLoading, refetch } = useCoreApiHealth(undefined, target)
   const healthy = !isError && data?.status === 'up'
 
   return (

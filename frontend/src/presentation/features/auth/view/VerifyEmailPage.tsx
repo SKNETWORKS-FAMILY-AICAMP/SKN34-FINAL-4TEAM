@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useVerifyEmailViewModel } from '../viewmodel/useSignupViewModel'
 import { AuthLayout } from './AuthLayout'
 
 export function VerifyEmailChangePage() {
   const vm = useVerifyEmailViewModel(true)
+  useDocumentTitle('이메일 변경 확인')
   return <AuthLayout title="이메일 변경 확인">
     <p role="status">{vm.message}</p>
     {vm.state === 'error' && <p className="auth-help">새 확인 메일은 프로필에서 이메일 변경을 다시 요청해 주세요. 새 주소를 확인하기 전에는 기존 이메일을 사용할 수 있어요.</p>}
@@ -17,14 +19,15 @@ export function VerifyEmailChangePage() {
 
 export function VerifyEmailPage() {
   const vm = useVerifyEmailViewModel()
+  useDocumentTitle('이메일 인증')
   const password = useRef<HTMLInputElement>(null)
   const error = useRef<HTMLParagraphElement>(null)
   useEffect(() => {
     if (vm.passwordError) password.current?.focus()
-    else if (vm.state === 'error') error.current?.focus()
+    else if (vm.state === 'error' || vm.state === 'success') error.current?.focus()
   }, [vm.passwordError, vm.state, vm.message])
   return <AuthLayout title="이메일 확인" intro={vm.state !== 'success' ? '가입할 때 정한 비밀번호를 입력해 주세요. 이메일 확인을 마친 뒤 로그인할 수 있어요.' : undefined}>
-    {vm.message && <p ref={error} role={vm.state === 'error' ? 'alert' : 'status'} tabIndex={vm.state === 'error' ? -1 : undefined}>{vm.message}</p>}
+    {vm.message && <p ref={error} role={vm.state === 'error' ? 'alert' : 'status'} tabIndex={-1}>{vm.message}</p>}
     {vm.canVerify && <form className="auth-form" noValidate aria-busy={vm.state === 'pending'} onSubmit={(event) => { event.preventDefault(); void vm.submit() }}>
       <label className="field">가입 비밀번호<input ref={password} className="inp" name="password" type="password" autoComplete="current-password" required minLength={8} value={vm.password} disabled={vm.state === 'pending'} aria-invalid={!!vm.passwordError} aria-describedby={vm.passwordError ? 'verify-password-error' : 'verify-password-help'} onChange={(event) => vm.setPassword(event.target.value)} /></label>
       <p id="verify-password-help" className="small muted">본인이 가입 요청을 하지 않았거나 비밀번호를 정한 적이 없다면 다시 가입해 주세요.</p>

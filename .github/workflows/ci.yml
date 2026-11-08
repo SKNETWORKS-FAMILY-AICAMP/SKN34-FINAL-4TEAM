@@ -163,12 +163,10 @@ jobs:
         if: ${{ matrix.service == 'content' }}
         working-directory: backend/content-service
         run: ./gradlew unitTest --no-daemon
-      - name: JUnit skeleton resource unit tests (no Spring context)
+      - name: JUnit Operations pure unit tests (integration excluded)
         if: ${{ matrix.service == 'operations' }}
-        working-directory: backend/${{ matrix.service }}-service
-        env:
-          SERVICE: ${{ matrix.service }}
-        run: ./gradlew test --tests "ai.storyfork.${SERVICE}.*" --no-daemon
+        working-directory: backend/operations-service
+        run: ./gradlew unitTest --no-daemon
       - name: pytest isolated provider unit tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
@@ -197,8 +195,8 @@ jobs:
       matrix: ${{ fromJSON(needs.changes.outputs.integration) }}
     services:
       postgres:
-        # Core와 Content 통합에서만 격리 DB를 생성한다.
-        image: ${{ (matrix.service == 'core' || matrix.service == 'content') && 'postgres:17-alpine' || '' }}
+        # Core·Content·Operations 통합 job마다 서로 격리된 임시 DB를 생성한다.
+        image: ${{ (matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations') && 'postgres:17-alpine' || '' }}
         env:
           POSTGRES_DB: storyfork_test
           POSTGRES_USER: content_test
@@ -229,6 +227,9 @@ jobs:
     env:
       CORE_DATABASE_PASSWORD: ""
       TEST_CONTENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      TEST_OPERATIONS_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+      TEST_OPERATIONS_DATABASE_USER: content_test
+      TEST_OPERATIONS_DATABASE_PASSWORD: ""
       # Each WorldStudio fixture owns a separate temporary database in this CI service.
       TEST_WORLDSTUDIO_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
       TEST_WORLDSTUDIO_DATABASE_USER: content_test
@@ -255,7 +256,7 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
-      - if: ${{ matrix.service == 'core' || matrix.service == 'content' }}
+      - if: ${{ matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' }}
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
@@ -295,6 +296,10 @@ jobs:
         if: ${{ matrix.service == 'content' }}
         working-directory: backend/content-service
         run: ./gradlew integrationTest --no-daemon
+      - name: JUnit Operations service-auth HTTP and PostgreSQL CRUD integration tests
+        if: ${{ matrix.service == 'operations' }}
+        working-directory: backend/operations-service
+        run: ./gradlew integrationTest --no-daemon
       - name: WorldStudio migration with PostgreSQL password authentication
         if: ${{ matrix.service == 'content' }}
         working-directory: backend/content-service
@@ -309,7 +314,7 @@ jobs:
         working-directory: backend/ai-service
         run: uv run --locked --extra dev python -m pytest -m integration --junitxml=reports/integration.xml
       - name: Collect isolated dependency logs
-        if: ${{ failure() && (matrix.service == 'core' || matrix.service == 'content') }}
+        if: ${{ failure() && (matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations') }}
         env:
           POSTGRES_ID: ${{ job.services.postgres.id }}
           PASSWORD_POSTGRES_ID: ${{ job.services.postgres-password.id }}
@@ -322,7 +327,7 @@ jobs:
           if [[ -n "$NEO4J_ID" ]]; then docker logs "$NEO4J_ID" > "$RUNNER_TEMP/neo4j.log" 2>&1 || true; fi
       - name: Sanitize failure reports
         if: ${{ failure() }}
-        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log" "$RUNNER_TEMP/neo4j.log"
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/operations-service/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log" "$RUNNER_TEMP/neo4j.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ failure() }}
         with:

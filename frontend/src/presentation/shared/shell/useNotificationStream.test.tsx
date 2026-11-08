@@ -5,16 +5,18 @@ import { Provider } from 'react-redux'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../app/store'
-import type { StreamOptions } from '../../../data/api/notificationStream'
+import type { NotificationStreamOptions, OpenNotificationStream } from '../../../domain/entities/notificationStream'
 import { sessionActions } from '../session/sessionSlice'
 import { useNotificationStream } from './useNotificationStream'
 
-const opened: { options: StreamOptions; close: ReturnType<typeof vi.fn> }[] = []
-vi.mock('../../../data/api/notificationStream', () => ({
-  openNotificationStream: (options: StreamOptions) => { const close = vi.fn(); opened.push({ options, close }); return close },
-}))
+const opened: { options: NotificationStreamOptions; close: ReturnType<typeof vi.fn> }[] = []
+const openStream: OpenNotificationStream = (options) => {
+  const close = vi.fn()
+  opened.push({ options, close })
+  return close
+}
 
-function Probe() { useNotificationStream(); return null }
+function Probe() { useNotificationStream(openStream); return null }
 const setup = () => {
   const store = createAppStore()
   render(<Provider store={store}><Probe /></Provider>)

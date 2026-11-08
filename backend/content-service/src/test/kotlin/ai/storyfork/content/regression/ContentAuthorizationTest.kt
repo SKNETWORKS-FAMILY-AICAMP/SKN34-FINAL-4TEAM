@@ -27,7 +27,7 @@ import org.mockito.Mockito.*
 import jakarta.servlet.http.Cookie
 import java.time.Instant
 
-@WebMvcTest(controllers=[WorkController::class,EpisodeController::class,EpisodeVersionController::class,PublicationController::class,ai.storyfork.content.context.controller.ContextController::class],properties=["app.content.enabled=true","app.cors.allowed-origin=http://localhost:5173","AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="])
+@WebMvcTest(controllers=[WorkController::class,EpisodeController::class,EpisodeVersionController::class,PublicationController::class,ai.storyfork.content.context.controller.ContextController::class,ai.storyfork.content.plan.controller.StoryPlanController::class],properties=["app.content.enabled=true","app.cors.allowed-origin=http://localhost:5173","AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="])
 @Import(ContentSecurityConfig::class,WebCorsConfig::class,ai.storyfork.content._common.exception.ContentExceptionHandler::class,ContentAuthorizationTest.MvcSecurity::class)
 class ContentAuthorizationTest {
     @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods=false)
@@ -46,10 +46,12 @@ class ContentAuthorizationTest {
     @MockitoBean lateinit var verification: CoreAuthVerificationService
     private val verifiedUser=java.util.UUID.fromString("12345678-1234-4234-8234-123456789abc")
     @MockitoBean lateinit var works: WorkService
+    @MockitoBean lateinit var workViews: ai.storyfork.content.work.service.WorkViewService
     @MockitoBean lateinit var episodes: EpisodeService
     @MockitoBean lateinit var versions: EpisodeVersionService
     @MockitoBean lateinit var publication: PublicationService
     @MockitoBean lateinit var context: ai.storyfork.content.context.service.ContextService
+    @MockitoBean lateinit var plans: ai.storyfork.content.plan.service.StoryPlanService
     private fun token(): String {
         `when`(verification.verify("Bearer opaque-user-token")).thenReturn(verifiedUser)
         return "opaque-user-token"
@@ -70,6 +72,46 @@ class ContentAuthorizationTest {
             verify(verification).verify(header)
         }
         verifyNoInteractions(works)
+    }
+    @Test fun `public search and ranking are anonymous GETs that bind their query options`() {
+        `when`(works.publicList("달빛","tag","view")).thenReturn(WorkListResponse(emptyList()))
+        `when`(works.publicList(null,null,null)).thenReturn(WorkListResponse(emptyList()))
+        `when`(works.ranking("rising")).thenReturn(WorkListResponse(emptyList()))
+        mvc.perform(get("/api/v1/public/works").param("q","달빛").param("f","tag").param("sort","view")).andExpect(status().isOk())
+        mvc.perform(get("/api/v1/public/works")).andExpect(status().isOk())
+        mvc.perform(get("/api/v1/public/works/ranking").param("kind","rising")).andExpect(status().isOk())
+        verify(works).publicList("달빛","tag","view")
+        verify(works).publicList(null,null,null)
+        verify(works).ranking("rising")
+        verifyNoInteractions(workViews)
+    }
+    @Test fun `ranking is routed to its own handler and not to the public work detail`() {
+        `when`(works.ranking("top")).thenReturn(WorkListResponse(emptyList()))
+        mvc.perform(get("/api/v1/public/works/ranking").param("kind","top")).andExpect(status().isOk())
+        verify(works).ranking("top")
+        verify(works,never()).publicRead("ranking")
+        mvc.perform(get("/api/v1/public/works/ranking")).andExpect(status().isBadRequest())
+    }
+    @Test fun `invalid search options keep the 422 detail contract`() {
+        `when`(works.publicList(null,"author",null)).thenThrow(ai.storyfork.content._common.exception.ContentFailure(422,"f 값을 확인해 주세요."))
+        `when`(works.ranking("daily")).thenThrow(ai.storyfork.content._common.exception.ContentFailure(422,"kind 값을 확인해 주세요."))
+        mvc.perform(get("/api/v1/public/works").param("f","author")).andExpect(status().`is`(422))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("f 값을 확인해 주세요."))
+        mvc.perform(get("/api/v1/public/works/ranking").param("kind","daily")).andExpect(status().`is`(422))
+    }
+    @Test fun `episode view recording requires verified identity and csrf and answers 204`() {
+        val path="/api/v1/works/work-id/episodes/1/views"
+        mvc.perform(mutation(path)).andExpect(status().isUnauthorized())
+        mvc.perform(post(path).header("Authorization","Bearer "+token())).andExpect(status().isForbidden())
+        verifyNoInteractions(workViews)
+        mvc.perform(mutation(path).header("Authorization","Bearer "+token()).header("X-User-Id","forged")).andExpect(status().isNoContent())
+        verify(workViews).record("work-id",1,verifiedUser.toString())
+    }
+    @Test fun `episode view recording maps unpublished targets to 404`() {
+        doThrow(ai.storyfork.content._common.exception.ContentFailure(404,"공개 회차를 찾을 수 없어요.")).`when`(workViews).record("work-id",2,verifiedUser.toString())
+        mvc.perform(mutation("/api/v1/works/work-id/episodes/2/views").header("Authorization","Bearer "+token()))
+            .andExpect(status().isNotFound()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("공개 회차를 찾을 수 없어요."))
+        mvc.perform(mutation("/api/v1/works/work-id/episodes/abc/views").header("Authorization","Bearer "+token())).andExpect(status().isBadRequest())
     }
     @Test fun `episode mutations require server authentication and validate input`() {
         val base="/api/v1/works/work-id/episodes"
@@ -122,5 +164,27 @@ class ContentAuthorizationTest {
     @Test fun `authenticated mutations still require csrf`() {
         mvc.perform(post("/api/v1/works").header("Authorization","Bearer "+token()).contentType("application/json").content("""{"title":"test"}""")).andExpect(status().isForbidden())
         verifyNoInteractions(works,episodes,versions,publication)
+    }
+    @Test fun `private plan API requires verified identity and csrf`() {
+        val path="/api/v1/works/work-id/story-plans"
+        mvc.perform(get(path).header("X-User-Id","me")).andExpect(status().isUnauthorized())
+        mvc.perform(mutation(path).content("""{"kind":"plot","title":"계획"}""")).andExpect(status().isUnauthorized())
+        mvc.perform(post(path).header("Authorization","Bearer "+token()).contentType("application/json").content("""{"kind":"plot","title":"계획"}""")).andExpect(status().isForbidden())
+        verifyNoInteractions(plans)
+        `when`(plans.list("work-id",verifiedUser.toString())).thenReturn(ai.storyfork.content.plan.service.dto.StoryPlanListResponse(emptyList()))
+        mvc.perform(get(path).header("Authorization","Bearer "+token()).header("X-User-Id","forged")).andExpect(status().isOk())
+        verify(plans).list("work-id",verifiedUser.toString())
+    }
+    @Test fun `plan failures preserve conflict not found and validation detail responses`() {
+        doThrow(ai.storyfork.content._common.exception.ContentFailure(409,"하위 장면 계획을 먼저 삭제해 주세요.")).`when`(plans).delete("work-id",verifiedUser.toString(),"plan-id",1)
+        mvc.perform(delete("/api/v1/works/work-id/story-plans/plan-id?revision=1")
+            .header("Authorization","Bearer "+token()).cookie(Cookie("XSRF-TOKEN","test-csrf"))
+            .header("X-CSRF-TOKEN",csrfValue()))
+            .andExpect(status().isConflict()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("하위 장면 계획을 먼저 삭제해 주세요."))
+        doThrow(ai.storyfork.content._common.exception.ContentFailure(404,"계획을 찾을 수 없어요.")).`when`(plans).read("work-id",verifiedUser.toString(),"missing")
+        mvc.perform(get("/api/v1/works/work-id/story-plans/missing").header("Authorization","Bearer "+token()))
+            .andExpect(status().isNotFound()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("계획을 찾을 수 없어요."))
+        mvc.perform(mutation("/api/v1/works/work-id/story-plans").header("Authorization","Bearer "+token()).content("""{"kind":"plot","title":""}"""))
+            .andExpect(status().`is`(422)).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").exists())
     }
 }

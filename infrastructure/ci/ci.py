@@ -43,7 +43,9 @@ def select(paths, full=False):
         scopes["core"].update(features)
 
     for path in paths:
-        if path.endswith(".md") or path.startswith(("docs/", "graphify-out/")) or path in {"LICENSE", ".gitignore", ".graphifyrc"}:
+        # 에이전트 지침·훅·스킬은 런타임과 무관하다(훅 테스트는 .agent-hooks에서 로컬 실행).
+        if path.endswith(".md") or path.startswith(("docs/", "graphify-out/", ".agent-hooks/", ".agents/", ".claude/", ".codex/")) \
+                or path in {"LICENSE", ".gitignore", ".graphifyrc"}:
             continue
         if path.startswith("frontend/"):
             scopes["web"].add("all")
@@ -98,8 +100,8 @@ def select(paths, full=False):
         scenarios.update(SCENARIOS)
     rows = [{"service": service, "scope": "all" if "all" in scope else ",".join(sorted(scope))}
             for service, scope in scopes.items() if scope]
-    # Operations만 실행 골격이며 빈 통합 job을 만들지 않는다.
-    integration = [row for row in rows if row["service"] in {"web", "core", "ai", "content"}]
+    # 모든 선택 서비스가 실제 통합 테스트를 가진다(Operations는 독립 CRUD/auth).
+    integration = list(rows)
     return {"unit": rows, "integration": integration, "system": [s for s in SCENARIOS if s in scenarios], "infra": infra}
 
 
@@ -112,7 +114,10 @@ def check_results(results, expected):
 
 
 def redact(text):
-    for key in ("AUTH_JWT_SECRET", "INTERNAL_TOKEN", "CONTENT_CORE_AUTH_TOKEN", "CORE_DATABASE_PASSWORD", "CONTENT_DATABASE_PASSWORD", "TEST_WORLDSTUDIO_DATABASE_PASSWORD", "NEO4J_PASSWORD", "OPENAI_API_KEY"):
+    for key in ("AUTH_JWT_SECRET", "INTERNAL_TOKEN", "CONTENT_CORE_AUTH_TOKEN", "OPERATIONS_SERVICE_TOKEN",
+                "CORE_DATABASE_PASSWORD", "CONTENT_DATABASE_PASSWORD", "OPERATIONS_DATABASE_PASSWORD",
+                "TEST_OPERATIONS_DATABASE_PASSWORD", "TEST_WORLDSTUDIO_DATABASE_PASSWORD", "NEO4J_PASSWORD",
+                "OPENAI_API_KEY"):
         value = os.environ.get(key, "")
         if value:
             text = text.replace(value, "[redacted]")
