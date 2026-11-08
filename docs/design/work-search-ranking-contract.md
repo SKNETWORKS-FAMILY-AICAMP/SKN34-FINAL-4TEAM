@@ -57,7 +57,7 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 - 조회 기록은 실제 공개 회차를 표시하는 화면에서 로그인 회원일 때 보낸다. 기록 실패는 읽기를 막지 않는다.
   공개 열람(`/content`)은 한 화면에 전체 회차를 보여 주므로 상속이 아닌 첫 발행 회차 1건만 기록한다(작품당 회원 하루 1회).
   회차별 열람 화면(`/read/:id/:n`)은 로그인 회원이 서버 작품의 자체 회차를 열 때 그 회차 번호로 기록한다. Fork의 상속 회차
-  (원작 몫)·익명·메모리 데모 작품은 요청하지 않고, 기록 실패는 읽기를 막지 않는다(`ReadingUseCase.openEpisode`).
+  (원작 몫)·소유자가 여는 비공개 작품·익명·메모리 데모 작품은 요청하지 않고, 기록 실패는 읽기를 막지 않는다(`ReadingUseCase.openEpisode`).
 
 ## ponytail 한계
 
