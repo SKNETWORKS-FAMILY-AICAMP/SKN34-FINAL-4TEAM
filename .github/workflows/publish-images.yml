@@ -45,7 +45,7 @@ jobs:
           trap 'rm -rf -- "$scratch"' EXIT
           export DOCKER_CONFIG="$scratch"
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-          for service in web core-api content-service ai-service; do
+          for service in web core-api content-service operations-service ai-service; do
             image="ghcr.io/sknetworks-family-aicamp/storyfork-$service"
             context="backend/$service"
             if [[ "$service" == web ]]; then context=frontend; fi
@@ -56,7 +56,7 @@ jobs:
             docker push "$image:sha-$TARGET_SHA"
           done
           # 모든 SHA 이미지 게시 후에만 develop을 갱신한다.
-          for service in web core-api content-service ai-service; do
+          for service in web core-api content-service operations-service ai-service; do
             docker push "ghcr.io/sknetworks-family-aicamp/storyfork-$service:develop"
           done
 
@@ -158,8 +158,9 @@ jobs:
           export CD_CORE_API_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-core-api:develop
           export CD_CONTENT_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
           export CD_AI_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+          export CD_OPERATIONS_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-operations-service:develop
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env pull
-          revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
+          revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" "$CD_OPERATIONS_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
           # 재실행된 이전 run이 더 새 develop 이미지와 이전 Compose를 섞어 배포하지 않게 한다.
           [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ && "$revisions" == "$TARGET_SHA" ]] || { printf 'develop images are not this run revision; rerun CD for current develop.\n' >&2; exit 1; }
           # 설정 실수만으로 ingress를 멈추지 않도록 WorldStudio 입력은 앱 중지 전에 검사한다.
@@ -170,7 +171,7 @@ jobs:
           esac
           # Stop public writes and the old Core content writer before any new migration/writer starts.
           # Failure leaves ingress stopped; never auto-repair history or roll incompatible binaries back.
-          docker compose --project-directory "$CD_DIRECTORY" --env-file .env stop web core-api content-service
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env stop web core-api content-service operations-service
           # New project-scoped dependencies require a separately approved cutover; no data import/reset.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180 postgres mailpit
           # 미확인 DB에 DDL을 실행하지 않는다. develop-cd의 승인된 설정만 활성화한다.
