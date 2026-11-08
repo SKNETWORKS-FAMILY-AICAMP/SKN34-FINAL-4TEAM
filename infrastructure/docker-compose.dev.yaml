@@ -57,6 +57,18 @@ services:
       CONTENT_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
 
+  operations-service:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-operations-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      OPERATIONS_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      OPERATIONS_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
+      OPERATIONS_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+
   # 동일 DB의 전용 schema/이력. 콘텐츠 이미지의 명시적인 compose run에서만 실행한다.
   worldstudio-migrate:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
