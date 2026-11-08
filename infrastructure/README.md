@@ -64,10 +64,9 @@ docker compose down
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
 | `CONTENT_ENABLED` | `false` | Content 업무 opt-in |
-| `DATABASE_*` | 빈 계정, `storyfork` DB | Core·Content(Studio 포함)·운영 공용 PostgreSQL |
+| `DATABASE_*` | 빈 계정, `storyfork` DB | Core·Content(Studio 포함)·운영 공용 PostgreSQL(운영은 전용 `operations` schema) |
 | `INTERNAL_TOKEN` | 빈 값 | Content/AI 생성만 |
 | `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content |
-| `OPERATIONS_DATABASE_*` | Compose는 기존 Core DB와 동일 | Operations 전용 `operations` schema |
 | `APP_CORS_ALLOWED_ORIGIN` | 빈 값이면 web 포트에서 계산 | Core/Content의 단일 origin |
 | `DEV_WEB_PORT` | `5173` | local web loopback |
 | `CORE_API_PORT` / `CONTENT_SERVICE_PORT` | `8080` / `8081` | local API loopback |
