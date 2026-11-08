@@ -62,7 +62,7 @@ export function AccountMenu({ anchor, onClose }: { anchor: HTMLElement; onClose:
             <span className="meav">{user.nick.slice(0, 1)}</span><span><b>{user.nick}</b><small>{user.email}</small></span><em>프로필 ›</em>
           </Item>
           <Item to="/lib">내 서재</Item><Item to="/me/liked">관심 소설</Item><Item to="/me/pay">결제 내역</Item><hr />
-          <Item to="/me/inquiry">문의하기</Item><Item to="/me/notice">공지사항</Item><Item to="/me/event">이벤트</Item><hr />
+          <Item to="/me/inquiry">문의하기</Item><Item to="/reports">내 신고</Item><Item to="/me/notice">공지사항</Item><Item to="/me/event">이벤트</Item><hr />
           <button type="button" role="menuitem" onClick={() => { void logout().then((ok) => { if (ok) onClose() }) }}>로그아웃</button>
         </>
       ) : (

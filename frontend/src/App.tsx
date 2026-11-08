@@ -21,6 +21,7 @@ import { PolicySheet } from './presentation/shared/shell/PolicySheet'
 import { QuickJump } from './presentation/shared/shell/QuickJump'
 
 const AdminPage = lazy(() => import('./presentation/features/admin/view/AdminPage').then((m) => ({ default: m.AdminPage })))
+const ReportsPage = lazy(() => import('./presentation/features/reports/view/ReportsPage').then((m) => ({ default: m.ReportsPage })))
 const AccountPage = lazy(() => import('./presentation/features/account/view/AccountPage').then((m) => ({ default: m.AccountPage })))
 const ChatPage = lazy(() => import('./presentation/features/chat/view/ChatPages').then((m) => ({ default: m.ChatPage })))
 const EpisodePage = lazy(() => import('./presentation/features/content/view/EpisodePage').then((m) => ({ default: m.EpisodePage })))
@@ -122,6 +123,7 @@ function App() {
             <Route path="/studio/:id" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <StudioPage />} />
             <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
             <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
+            <Route path="/reports" element={<RequireRole><ReportsPage /></RequireRole>} />
             <Route path="/chat/:wid?/:cn?" element={<RequireRole><ChatPage /></RequireRole>} />
             <Route path="/admin" element={<RequireRole admin><AdminPage /></RequireRole>} />
             <Route path="/me/:sub?" element={<AccountPage />} />
