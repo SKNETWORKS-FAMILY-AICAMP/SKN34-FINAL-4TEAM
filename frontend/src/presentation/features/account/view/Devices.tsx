@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { AuthSession } from '../../../../domain/repositories/AuthRepository'
 import { useDevicesViewModel } from '../viewmodel/useDevicesViewModel'
 
@@ -18,7 +18,8 @@ export function Devices() {
   /** 요청이 끝난 뒤 초점을 되돌릴 요소 id 후보: 누른 버튼 → 다음 기기 → 이전 기기. 마지막엔 제목으로 갑니다. */
   const restore = useRef<string[] | null>(null)
   useEffect(() => { if (confirmAll) cancel.current?.focus() }, [confirmAll])
-  useEffect(() => {
+  // 초점을 잃은 행이 사라지는 같은 커밋 안에서 옮긴다. passive effect는 다음 task라 그 사이 초점이 body에 놓인다.
+  useLayoutEffect(() => {
     const ids = restore.current
     if (!ids || vm.pending) return
     restore.current = null
