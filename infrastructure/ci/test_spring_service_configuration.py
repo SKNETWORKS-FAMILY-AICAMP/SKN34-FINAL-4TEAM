@@ -40,6 +40,11 @@ class SpringServiceConfigurationTest(unittest.TestCase):
                     self.assertNotIn("spring.datasource.url", config["application"])
                     self.assertNotIn("spring.flyway.locations", config["application"])
 
+    def test_core_flyway_includes_v100_samples_with_out_of_order_schema(self):
+        properties = (ROOT / "backend/core-api/src/main/resources/application.properties").read_text(encoding="utf-8")
+        self.assertIn("spring.flyway.locations=classpath:db/migration/auth,classpath:db/migration/notification,classpath:db/migration/sample\n", properties)
+        self.assertIn("spring.flyway.out-of-order=true\n", properties)
+
     def test_content_boot_entry_point_is_explicit_while_studio_migration_remains_available(self):
         service = ROOT / "backend/content-service"
         build = (service / "build.gradle").read_text(encoding="utf-8")

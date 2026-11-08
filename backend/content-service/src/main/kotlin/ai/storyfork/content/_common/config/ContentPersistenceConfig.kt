@@ -30,6 +30,8 @@ class ContentPersistenceConfig {
             "classpath:db/migration/publication", "classpath:db/migration/fork",
             "classpath:db/migration/proposal",
             "classpath:db/migration/plan",
+            // Development sample rows (V100+, generated from infrastructure/sample-data CSV).
+            "classpath:db/migration/sample",
         )
     }
 
@@ -39,7 +41,8 @@ class ContentPersistenceConfig {
     ): LocalContainerEntityManagerFactoryBean {
         Flyway.configure().dataSource(ds).locations(*MIGRATION_LOCATIONS)
             .table("content_schema_history")
-            .baselineOnMigrate(true).baselineVersion("0").validateOnMigrate(true).load().migrate()
+            // outOfOrder: schema versions below the applied V100 samples must still apply on existing DBs.
+            .baselineOnMigrate(true).baselineVersion("0").validateOnMigrate(true).outOfOrder(true).load().migrate()
         return LocalContainerEntityManagerFactoryBean().apply {
             dataSource = ds
             persistenceUnitName = "content"

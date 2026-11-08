@@ -89,7 +89,10 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        assertEquals((1..15).toList(), versions.sorted())
+        // Schema versions stay sequential; development samples start at V100 and need out-of-order for later schema.
+        assertEquals((1..15).toList() + 100, versions.sorted())
+        assertTrue(leaves.contains("classpath:db/migration/sample"))
+        assertTrue(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains(".outOfOrder(true)"))
         Files.list(migration).use { paths ->
             assertFalse(paths.anyMatch { it.toString().endsWith(".sql") }, "Unscoped Flyway SQL")
         }
