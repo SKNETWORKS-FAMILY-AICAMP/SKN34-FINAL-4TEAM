@@ -59,7 +59,10 @@ class OperationsExceptionHandlerTest {
         for ((status, code, message) in listOf(
             Triple(HttpStatus.CONFLICT, "CONFLICT", "Resource conflicts with its current state."),
             Triple(HttpStatus.NOT_FOUND, "NOT_FOUND", "Resource not found."),
-            Triple(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Invalid request."))) {
+            Triple(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Invalid request."),
+            Triple(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required."),
+            Triple(HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied."),
+            Triple(HttpStatus.BAD_GATEWAY, "UPSTREAM_FAILED", "Upstream service request failed."))) {
             assertError(handler.responseStatus(ResponseStatusException(status, "private SQL, token or inquiry body")),
                 status.value(), code, message)
         }

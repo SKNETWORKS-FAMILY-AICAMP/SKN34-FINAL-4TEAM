@@ -1,12 +1,12 @@
 # STORYFORK Docker 실행 기반
 
-Core → Content 업무·테스트·인증 확인·공개 라우팅·이미지/CI 연결을 소스에 반영했습니다. **hosted CI·실제 DB 전환·게시·배포는 확인 대기**입니다. 운영 서비스는 기존 독립 실행 골격 그대로이며 Compose/CD에 추가하지 않습니다. [서비스 경계](../docs/design/service-boundaries.md)와 [이관 계약](../docs/design/content-service-migration-contract.md)을 따릅니다.
+Core → Content 업무·테스트·인증 확인·공개 라우팅·이미지/CI 연결을 소스에 반영했습니다. **hosted CI·실제 DB 전환·게시·배포는 확인 대기**입니다. 운영 서비스(operations-service)는 신고·회원·관리자 공개 API를 위해 Compose에 추가했으며 호스트 포트 없이 컨테이너 네트워크에서만 노출합니다. develop CD는 publish 워크플로에서 operations-service 이미지도 빌드·게시하고 배포 revision 검사에 포함합니다. [서비스 경계](../docs/design/service-boundaries.md)와 [이관 계약](../docs/design/content-service-migration-contract.md)을 따릅니다.
 
 Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다. 과거 Content history와 호환되지 않으며 실제 대상 DB·보존/복구 범위·중단 시간을 확인하기 전 기존 DB에 바로 배포하지 않습니다. 이 문서는 DB 삭제·volume 초기화·개인 `.env` 변경·배포 승인이 아닙니다. Auth·첨부·독립 WorldStudio의 SQL/이력은 유지합니다.
 
 ## 서비스와 진입점
 
-현재 Compose의 앱은 **web·core-api·content-service·ai-service 네 개**입니다. Core는 회원·인증·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio, AI는 요청된 모델 실행을 소유합니다. 정산·알림·운영 업무는 목표 책임이며 구현 완료를 뜻하지 않습니다. Langfuse·새 큐/worker/Start 서버는 추가하지 않습니다.
+현재 Compose의 앱은 **web·core-api·content-service·operations-service·ai-service 다섯 개**입니다. Core는 회원·인증·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio, AI는 요청된 모델 실행을 소유합니다. 정산·알림·운영 업무는 목표 책임이며 구현 완료를 뜻하지 않습니다. Langfuse·새 큐/worker/Start 서버는 추가하지 않습니다.
 
 [`docker-compose.yaml`](docker-compose.yaml)은 공통 환경·내부 포트만 정의하는 base로 **단독 실행하지 않습니다**.
 
@@ -14,7 +14,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 |---|---|---|---|
 | 용도 | 로컬 개발의 소스 빌드 runtime, CI의 소스 빌드 기반 | develop 배포 서버 | 실제 운영 배포 서버용 설정 준비 |
 | 프로젝트 | `storyfork-local` | `storyfork-develop-cd` | `storyfork-production` |
-| 앱 | 네 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 네 앱의 GHCR `:develop`, `linux/amd64` | 네 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
+| 앱 | 다섯 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 다섯 앱의 GHCR `:develop`, `linux/amd64` | 다섯 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
 | DB·SMTP | 새 프로젝트 범위 `core-postgres` volume의 PostgreSQL + Mailpit | 로컬과 같은 PostgreSQL·Mailpit 정의 재사용, 별도 프로젝트 DB volume | 별도 승인·준비한 외부 PostgreSQL·SMTP, 내장 DB·Mailpit·volume 없음 |
 | web 포트 | `127.0.0.1:${DEV_WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${PROD_WEB_PORT}` |
 | 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | 없음 | 없음 |
@@ -26,6 +26,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 Browser → web nginx
            ├─ /api/v1/works 및 /api/v1/public/works(+하위) → Content:8081 → AI:8000
            │                                                   └→ Core 내부 인증 확인
+           ├─ /api/v1/operations/{reports,members,admins}(+하위) → Operations:8082 → Core·Content 내부 API
            └─ 나머지 /api → Core:8080 → AI Health
 ```
 
@@ -65,6 +66,8 @@ docker compose down
 | `CONTENT_ENABLED` | `false` | Content 업무 opt-in |
 | `CONTENT_DATABASE_*` | Compose는 기존 Core DB와 동일 | Content·Studio 공유 datasource |
 | `INTERNAL_TOKEN` | 빈 값 | Content/AI 생성만 |
+| `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content, prod는 `PROD_OPERATIONS_SERVICE_TOKEN` |
+| `OPERATIONS_DATABASE_*` | Compose는 기존 Core DB와 동일 | Operations 전용 `operations` schema |
 | `APP_CORS_ALLOWED_ORIGIN` | 빈 값이면 web 포트에서 계산 | Core/Content의 단일 origin |
 | `DEV_WEB_PORT` | `5173` | local web loopback |
 | `CORE_API_PORT` / `CONTENT_SERVICE_PORT` | `8080` / `8081` | local API loopback |
@@ -75,7 +78,7 @@ docker compose down
 
 Health는 OpenAI 인증·모델 접근 검증이 아니며 모델 클라이언트를 만들지 않습니다. 생성 제공사 설정 누락은 503입니다. OpenAI 키를 Frontend·Core·Content·build ARG에 넣지 않습니다. 루트 `.env` 전체를 프로세스에 주입하지 않습니다.
 
-네이티브는 각 서비스의 기본 명령(`pnpm dev`, `./gradlew bootRun`, `uv run --locked uvicorn app.main:create_app --factory --reload --port 8000`)을 사용합니다. Core/Content 기본 포트는 8080/8081입니다. 필요한 변수만 해당 터미널에 전달하며 루트 `.env` 전체를 source하지 않습니다. Vite는 `VITE_DEV_PROXY_TARGET`(Core)과 `VITE_CONTENT_DEV_PROXY_TARGET`(Content)으로 두 경로를 분기합니다. 기본 web origin은 `http://localhost:5173`이며 CORS도 실제 origin과 맞춥니다. 생성 timeout을 늘릴 때 브라우저 80초/nginx 90초 한도도 함께 검토합니다.
+네이티브는 각 서비스의 기본 명령(`pnpm dev`, `./gradlew bootRun`, `uv run --locked uvicorn app.main:create_app --factory --reload --port 8000`)을 사용합니다. Core/Content 기본 포트는 8080/8081입니다. 필요한 변수만 해당 터미널에 전달하며 루트 `.env` 전체를 source하지 않습니다. Vite는 `VITE_DEV_PROXY_TARGET`(Core)·`VITE_CONTENT_DEV_PROXY_TARGET`(Content)·`VITE_OPERATIONS_DEV_PROXY_TARGET`(Operations, 기본 8082)으로 경로를 분기합니다. 기본 web origin은 `http://localhost:5173`이며 CORS도 실제 origin과 맞춥니다. 생성 timeout을 늘릴 때 브라우저 80초/nginx 90초 한도도 함께 검토합니다.
 
 ## 운영 서버 설정 준비 — prod
 
