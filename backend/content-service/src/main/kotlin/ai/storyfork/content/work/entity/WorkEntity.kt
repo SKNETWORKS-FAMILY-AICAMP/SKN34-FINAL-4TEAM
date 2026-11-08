@@ -26,4 +26,6 @@ class WorkEntity(
     var audienceRating: String? = null,
     @field:Column(name = "creation_type")
     var creationType: String = "original",
+    @field:Column(name = "restricted")
+    var restricted: Boolean = false,
 )
