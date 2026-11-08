@@ -96,7 +96,7 @@ class InternalAuthVerificationIntegrationTest {
         mvc.perform(post("/internal/v1/auth/verify").header("X-Operations-Service-Token",operations).header("Authorization",bearer(admin.toString())))
             .andExpect(status().isOk())
         mvc.perform(post("/internal/v1/auth/verify").header("X-Content-Service-Token",credential).header("Authorization",bearer(restricted.toString())))
-            .andExpect(status().isForbidden())
+            .andExpect(status().isUnauthorized())
     }
 
     @Test fun `member admin APIs need the operations token and an operator bearer`() {
