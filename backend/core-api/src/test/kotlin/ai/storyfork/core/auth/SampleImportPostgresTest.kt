@@ -55,32 +55,38 @@ class SampleImportPostgresTest {
         }
     }
 
+    /** Flyway가 먼저 시드한 회원(V4 개발 작가, V8 샘플 관리자 등)은 샘플 9명과 별개라 행 수는 이관 전 값을 기준으로 센다. */
+    private fun members(jdbc: JdbcTemplate): Int = requireNotNull(jdbc.queryForObject("SELECT count(*) FROM auth_member", Int::class.java))
+
     @Test fun `ordinary disabled accounts replay without changing existing writer credentials or ownership`() = isolated { jdbc ->
         val before = jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer)
+        val seeded = members(jdbc)
         importSamples(jdbc)
         importSamples(jdbc)
-        assertEquals(10, jdbc.queryForObject("SELECT count(*) FROM auth_member", Int::class.java))
+        assertEquals(seeded + 9, members(jdbc))
         assertEquals(9, jdbc.queryForObject("SELECT count(*) FROM auth_member WHERE id<>? AND password_hash='!sample-import-login-disabled' AND NOT operator", Int::class.java, writer))
         assertTrue(before == jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer), "Existing writer must remain unchanged")
     }
 
     @Test fun `approval target and existing writer identity are mandatory`() = isolated { jdbc ->
+        val seeded = members(jdbc)
         assertThrows(SQLException::class.java) { importSamples(jdbc, approval = "not-approved") }
         assertThrows(SQLException::class.java) { importSamples(jdbc, wrongTarget = true) }
         jdbc.update("UPDATE auth_member SET operator=true WHERE id=?", writer)
         assertThrows(SQLException::class.java) { importSamples(jdbc) }
-        assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM auth_member", Int::class.java))
+        assertEquals(seeded, members(jdbc))
     }
 
     @Test fun `secondary email collision rolls back all new fixture accounts`() = isolated { jdbc ->
         val email = "SELECT email FROM auth_member WHERE id=?"
         val existingEmail = jdbc.queryForObject(email, String::class.java, writer)
+        val seeded = members(jdbc)
         val inventory = tools.jackson.databind.json.JsonMapper.builder().build()
             .readTree(Files.readString(sampleDir.resolve("source-inventory.json")))
         val author = inventory.path("authors").first { it.path("canonicalOwnerLabel").asText() != "개발 작가" }
         jdbc.update("INSERT INTO auth_member(id,email,password_hash,nickname,operator) VALUES (?,?,?,'local',false)", UUID.randomUUID(), author.path("proposedEmail").asText(), "!disabled-local")
         assertThrows(SQLException::class.java) { importSamples(jdbc) }
-        assertEquals(2, jdbc.queryForObject("SELECT count(*) FROM auth_member", Int::class.java))
+        assertEquals(seeded + 1, members(jdbc))
         assertEquals(existingEmail, jdbc.queryForObject(email, String::class.java, writer))
     }
 }
