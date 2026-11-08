@@ -10,11 +10,10 @@ import ai.storyfork.operations.member.service.dto.*
 import ai.storyfork.operations.security.OperationsMember
 import java.util.UUID
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
-/** Permission checks happen before any Core call; Core also re-checks the forwarded admin Bearer. */
+/** Permission checks happen before any Core call; Core also re-checks the forwarded admin Bearer.
+ *  No service transaction: repository calls use their own, so a slow Core call never holds a DB connection. */
 @Service
-@Transactional
 class MemberService(private val core: CoreClient, private val permissions: AdminPermissionRepository) {
     fun list(member: OperationsMember, authorization: String, role: String?, q: String?, sort: String?): MemberListResponse {
         permissions.requirePermission(member, "users")
