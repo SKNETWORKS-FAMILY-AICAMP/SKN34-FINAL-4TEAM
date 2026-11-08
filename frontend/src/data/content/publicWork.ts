@@ -13,15 +13,15 @@ export const publicWork = z.object({
 })
 
 /**
- * 기존 카드 화면의 Work로 바꾼다. 서버에 없는 표시 값(작가·표지 테마·좋아요·갱신 시각)은 중립 기본값이다.
- * 원작/Fork는 source 유무로 가른다.
+ * 기존 카드 화면의 Work로 바꾼다. 서버에 없는 표시 값(작가·표지 테마·좋아요·갱신 시각)은 중립 기본값이며,
+ * 좋아요·갱신 시각은 statisticsSupported:false로 화면이 표시하지 않게 한다. 원작/Fork는 source 유무로 가른다.
  */
 export function toCardWork(w: z.infer<typeof publicWork>): Work {
   const { source } = w
   return {
     id: w.id, title: w.title, summary: w.summary, theme: 'hanji', genre: (w.genres ?? []).join(' · '),
     author: '', kind: source ? '포크' : '원작', rights: '', by: '', tags: source ? ['if'] : [],
-    likes: 0, views: w.views, cmts: 0, upd: 0,
+    likes: 0, views: w.views, cmts: 0, upd: 0, statisticsSupported: false,
     cast: [], rules: [], events: [], eps: w.episodes.map((e) => ({ t: e.title, p: [] })),
     ...(source && { parent: source.workId, forkAt: source.episode, dir: source.direction }),
   }

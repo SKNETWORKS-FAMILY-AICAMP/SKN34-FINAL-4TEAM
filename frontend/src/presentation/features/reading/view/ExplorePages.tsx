@@ -50,7 +50,7 @@ function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolea
         <div className="ri">
           <small className="g">{w.genre}</small><b>{w.title}</b>
           <small>{w.author}{w.parent && ` · 원작 ${w.forkAt}화에서 포크`}</small>
-          <span className="m">총 {epsOf(w).length}화 <i></i> 조회 {kfmt(w.views || 0)} <i></i> ♥ {kfmt(w.likes || 0)} <i></i> {ago(w.upd || 0)}</span>
+          <span className="m">총 {epsOf(w).length}화 <i></i> 조회 {kfmt(w.views || 0)}{w.statisticsSupported !== false && <> <i></i> ♥ {kfmt(w.likes || 0)} <i></i> {ago(w.upd || 0)}</>}</span>
         </div>
       </Go>
       {!ranked && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport?.(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}

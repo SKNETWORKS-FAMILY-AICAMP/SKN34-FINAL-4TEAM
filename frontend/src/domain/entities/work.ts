@@ -39,6 +39,8 @@ export type Work = {
   cmts: number
   /** 마지막 업데이트 후 지난 분 */
   upd: number
+  /** false면 서버가 좋아요·갱신 시각을 주지 않는 작품이라 likes·upd는 자리표시 값이다. 화면은 이 둘을 표시하지 않는다. 생략하면 표시한다. */
+  statisticsSupported?: boolean
   hero?: [string, string]
   heroBg?: string
   lite?: boolean

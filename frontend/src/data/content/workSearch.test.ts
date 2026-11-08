@@ -33,7 +33,7 @@ describe('공개 작품 검색 (GET /api/v1/public/works)', () => {
     expect(init.credentials).toBe('same-origin')
     expect(new Headers(init.headers).has('Authorization')).toBe(false)
     expect(new Headers(init.headers).has('X-CSRF-TOKEN')).toBe(false)
-    expect(w).toMatchObject({ id: 'w1', title: '별빛 서약의 탑', genre: '판타지 · SF', summary: '소개', kind: '원작', views: 7, likes: 0, cmts: 0, upd: 0, tags: [] })
+    expect(w).toMatchObject({ id: 'w1', title: '별빛 서약의 탑', genre: '판타지 · SF', summary: '소개', kind: '원작', views: 7, likes: 0, cmts: 0, upd: 0, statisticsSupported: false, tags: [] })
     expect(w.parent).toBeUndefined()
     expect(w.forkAt).toBeUndefined()
     expect(w.eps.map((e) => e.t)).toEqual(['첫 화', '둘째 화'])
@@ -71,6 +71,7 @@ describe('작품 랭킹 (GET /api/v1/public/works/ranking)', () => {
     expect(url).toBe(`/api/v1/public/works/ranking?kind=${kind}`)
     expect(new Headers(init.headers).has('Authorization')).toBe(false)
     expect(rows.map((w) => w.views)).toEqual([12])
+    expect(rows.map((w) => w.statisticsSupported)).toEqual([false])
   })
 
   it('형식이 맞지 않는 응답은 오류로 알린다', async () => {

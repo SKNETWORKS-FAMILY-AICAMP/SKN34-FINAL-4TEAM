@@ -49,6 +49,8 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
   홈 `top10`·`rising`과 `/search`·`/rank`의 `findWorks`를 채운다. `--mode mockup`은 기존 메모리 동작을 유지한다.
 - 홈 TOP10·랭킹 화면의 "데모" 문구를 실제 기준(최근 24시간 조회)으로 바꾼다.
 - 결과 카드는 `/work/:id`로 연결한다. develop의 열람 화면은 메모리 데모라 실제 작품 상세·열람은 샘플 이관 병합 후 동작한다.
+- 서버에 없는 좋아요·갱신 시각은 카드 `Work`에 `statisticsSupported: false`를 달아 `/search`·`/rank` 카드가 표시하지 않는다
+  (조회 수는 서버 값이라 표시). 메모리 데모 작품은 그대로 표시한다.
 - 조회 기록은 실제 공개 회차를 표시하는 화면에서 로그인 회원일 때 보낸다. 기록 실패는 읽기를 막지 않는다.
   develop의 공개 열람(`/content`)은 한 화면에 전체 회차를 보여 주므로 상속이 아닌 첫 발행 회차 1건만 기록한다(작품당 회원 하루 1회).
   회차별 열람 화면은 샘플 이관 병합 때 연 회차를 기록한다.
