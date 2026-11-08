@@ -16,7 +16,8 @@ export function useForkViewModel(id: string, queryAt: number, forkUseCase: ForkU
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const [picked, setPicked] = useState<number | null>(null)
-  const { data, isError, retry } = useAsyncData(() => forkUseCase.getForm(id,picked??queryAt), [forkUseCase, id, picked, queryAt, role])
+  // 회차를 고르면 그 회차의 설정을 다시 읽지만 폼은 그대로 둡니다(포커스·입력 유지). 범위는 작품·기준 주소입니다.
+  const { data, isError, isRefreshing, retry } = useAsyncData(() => forkUseCase.getForm(id,picked??queryAt), [forkUseCase, id, queryAt, role], [picked])
   const [dir, setDir] = useState('')
   const [title, setTitle] = useState<string | null>(null)
   const [historyConsent, setHistoryConsent] = useState(false)
@@ -30,13 +31,15 @@ export function useForkViewModel(id: string, queryAt: number, forkUseCase: ForkU
   const w = data?.work
   const shownTitle = title ?? (w ? `${w.title}: ` : '')
   const at = picked ?? (data?.forkList.includes(queryAt) ? queryAt : data?.forkList[0] ?? 0)
+  // 서버 작품은 고른 회차의 설정을 읽는 동안 이전 회차의 개수를 새 회차 값처럼 보이지 않습니다.
+  const reading = isRefreshing && !!w?.canonical
   return {
     form: data, isError, retry, submitting, error,
     episodes: w ? w.eps.map((e, i) => ({ e, n: i + 1, ok: data.forkList.includes(i + 1) })).filter(({ e }) => visibleEpisode(w, e, role)) : [],
     at,
     pick: setPicked,
-    ruleCount: w ? w.rules.filter((r) => !(w.ruleFrom && w.ruleFrom[r] > at)).length : 0,
-    castCount: w ? publicCast(w, at).length : 0,
+    ruleCount: w && !reading ? w.rules.filter((r) => !(w.ruleFrom && w.ruleFrom[r] > at)).length : null,
+    castCount: w && !reading ? publicCast(w, at).length : null,
     dir, setDir,
     title: shownTitle,
     setTitle,

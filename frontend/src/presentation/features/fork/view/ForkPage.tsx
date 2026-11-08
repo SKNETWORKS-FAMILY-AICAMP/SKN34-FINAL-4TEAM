@@ -18,7 +18,7 @@ function ForkForm({id}:{id:string}) {
   const vm = useForkViewModel(id, Number(q.get('at')))
   const d = vm.form
   useDocumentTitle('포크 만들기')
-  if (d === undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
+  if (d === undefined || vm.isError) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   if (d === null) return <Navigate replace to={`/work/${id}`} />
   if (d.existing) {
     return (
@@ -45,7 +45,7 @@ function ForkForm({id}:{id:string}) {
               <button type="button" key={n} data-at={n} className={n === vm.at ? 'on' : ''} aria-pressed={n === vm.at} disabled={!ok} title={ok ? undefined : '작가가 포크를 허용하지 않은 회차'} onClick={() => vm.pick(n)}>{n}화 끝에서<small>{e.t}</small></button>
             ))}
           </div>
-          <div className="carry" id="carry"><span>가져가는 것</span><span>공개된 세계관 규칙 <b id="rulecount">{vm.ruleCount}</b>개</span><span>공개된 인물 <b id="castcount">{vm.castCount}</b>명 (<b id="atl">{vm.at}</b>화 시점 상태)</span><span><b id="atl2">{vm.at}</b>화까지의 사건</span></div>
+          <div className="carry" id="carry"><span>가져가는 것</span><span>공개된 세계관 규칙 <b id="rulecount">{vm.ruleCount ?? '…'}</b>개</span><span>공개된 인물 <b id="castcount">{vm.castCount ?? '…'}</b>명 (<b id="atl">{vm.at}</b>화 시점 상태)</span><span><b id="atl2">{vm.at}</b>화까지의 사건</span></div>
         </section>
         {d.historyConsentNeeded && <label className="field"><span><input type="checkbox" id="forkHistoryConsent" checked={vm.historyConsent} onChange={(e) => vm.setHistoryConsent(e.target.checked)} /> 회차별 설정 이력이 없어 현재 공개 설정이 포함되며 이후 회차 내용이 섞일 수 있음을 확인했어요.</span></label>}
         <section className="tcard fstep"><h3><i>2</i>무엇이 달라지나요?</h3><input className="tinp" id="fdir" value={vm.dir} onChange={(e) => vm.setDir(e.target.value)} placeholder="한 줄로 적어 주세요" maxLength={60} aria-label="무엇이 달라지나요?" /></section>

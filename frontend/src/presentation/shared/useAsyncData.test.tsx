@@ -12,9 +12,11 @@ afterEach(cleanup)
 describe('API-backed read state (CI integration)',()=>{
   it('invalidates every read on logout even when caller deps stay the same',async()=>{
     const store=createAppStore({role:'user'})
+    // load는 effect 다음 microtask에 호출되므로 응답 Promise를 먼저 만들어 둔다(호출 시점과 무관하게 finish가 닿는다).
     let finish:(data:string)=>void=()=>{}
+    const pending=new Promise<string>(done=>{finish=done})
     const stableWrapper=({children}:{children:ReactNode})=><Provider store={store}>{children}</Provider>
-    const {result}=renderHook(()=>useAsyncData(()=>store.getState().session.role?Promise.resolve('private'):new Promise<string>(done=>{finish=done}),[]),{wrapper:stableWrapper})
+    const {result}=renderHook(()=>useAsyncData(()=>store.getState().session.role?Promise.resolve('private'):pending,[]),{wrapper:stableWrapper})
     await waitFor(()=>expect(result.current.data).toBe('private'))
     act(()=>{store.dispatch(sessionActions.logout())})
     expect(result.current.data).toBeUndefined()
@@ -23,7 +25,8 @@ describe('API-backed read state (CI integration)',()=>{
   })
   it('never shows previous private data when the request scope changes',async()=>{
     let finish:(data:string)=>void=()=>{}
-    const {result,rerender}=renderHook(({scope})=>useAsyncData(()=>scope==='owner'?Promise.resolve('private'):new Promise<string>(done=>{finish=done}),[scope]),{initialProps:{scope:'owner'},wrapper})
+    const pending=new Promise<string>(done=>{finish=done})
+    const {result,rerender}=renderHook(({scope})=>useAsyncData(()=>scope==='owner'?Promise.resolve('private'):pending,[scope]),{initialProps:{scope:'owner'},wrapper})
     await waitFor(()=>expect(result.current.data).toBe('private'))
     rerender({scope:'anonymous'})
     expect(result.current.data).toBeUndefined()
@@ -53,6 +56,24 @@ describe('API-backed read state (CI integration)',()=>{
     await act(async()=>finish('새 데이터'))
     expect(result.current.data).toBe('새 데이터')
     expect(result.current.isRefreshing).toBe(false)
+  })
+  it('re-reads in place when only refresh values change, but hides data when the scope changes',async()=>{
+    let finish:(data:string)=>void=()=>{}
+    const pending=new Promise<string>(done=>{finish=done})
+    const load=vi.fn((work:string,tab:string)=>tab==='write'?pending:Promise.resolve(`${work}:${tab}`))
+    const store=createAppStore()
+    const stableWrapper=({children}:{children:ReactNode})=><Provider store={store}>{children}</Provider>
+    const {result,rerender}=renderHook(({work,tab})=>useAsyncData(()=>load(work,tab),[work],[tab]),{initialProps:{work:'작품1',tab:'wiki'},wrapper:stableWrapper})
+    await waitFor(()=>expect(result.current.data).toBe('작품1:wiki'))
+    rerender({work:'작품1',tab:'write'})
+    expect(result.current.data).toBe('작품1:wiki')
+    await waitFor(()=>expect(result.current.isRefreshing).toBe(true))
+    await act(async()=>finish('작품1:write'))
+    expect(result.current.data).toBe('작품1:write')
+    expect(result.current.isRefreshing).toBe(false)
+    rerender({work:'작품2',tab:'write'})
+    expect(result.current.data).toBeUndefined()
+    expect(result.current.isLoading).toBe(true)
   })
 })
 it('재조회 중 이전 성공 데이터를 유지하고 실패·재시도·복구를 구분한다 (CI 통합)', async () => {

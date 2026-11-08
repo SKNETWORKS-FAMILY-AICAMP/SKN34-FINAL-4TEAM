@@ -10,8 +10,9 @@ const sameScope = (a: readonly unknown[], b: readonly unknown[]) => a.length ===
  * 조회 범위(deps)·인증(role·계정)이 바뀌면 이전 원고를 즉시 감추고 새 요청 결과만 표시합니다.
  * 같은 범위에서 dataVersion이 오르거나 retry하면 이전 성공 데이터를 유지한 채 다시 조회하며(isRefreshing),
  * 재조회가 실패해도 그 데이터는 남기고 isError로 알립니다.
+ * refresh는 같은 대상에서 화면 선택(탭·회차 고르기)만 바뀌어 다시 읽을 값입니다. 범위가 아니므로 위와 같이 갱신합니다.
  */
-export function useAsyncData<T>(load: () => Promise<T>, deps: readonly unknown[]) {
+export function useAsyncData<T>(load: () => Promise<T>, deps: readonly unknown[], refresh: readonly unknown[] = []) {
   const dataVersion = useAppSelector((s) => s.session.dataVersion)
   const role = useAppSelector((s) => s.session.role)
   const identity = useAppSelector((s) => s.session.user.email)
@@ -33,7 +34,7 @@ export function useAsyncData<T>(load: () => Promise<T>, deps: readonly unknown[]
     )
     return () => { requestId.current += 1 }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 호출자가 deps를 명시합니다.
-  }, [...deps, dataVersion, attempt, role, identity])
+  }, [...deps, ...refresh, dataVersion, attempt, role, identity])
 
   return {
     data: shown?.data, isLoading: !shown || (shown.data === undefined && shown.isFetching),
