@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { Navigate, useParams } from 'react-router'
 
-import { epsOf, FIELDS, SORTS, type Work } from '../../../../domain/entities/work'
+import { epsOf, SEARCH_FIELDS, SEARCH_SORTS, SORTS, type Work } from '../../../../domain/entities/work'
 import { CoverOf, Cov } from '../../../shared/art'
 import { ago, kfmt, qs } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
@@ -22,16 +22,19 @@ function ListTools({ base, st, onSubmit }: { base: string; st: St; onSubmit: (q:
     <div className="ltools">
       <form className="lq" key={st.q} onSubmit={(e) => { e.preventDefault(); onSubmit(new FormData(e.currentTarget).get('q')?.toString() ?? '') }}>
         <span aria-hidden="true">🔍</span>
-        <input name="q" defaultValue={st.q} placeholder="제목·작가·태그로 찾기" aria-label="검색어" />
+        <input name="q" defaultValue={st.q} placeholder="제목·태그·장르로 찾기" aria-label="검색어" />
         <button className="btn sm pri" type="submit">검색</button>
       </form>
       <div className="lrow">
-        <div className="sortt" role="group" aria-label="검색 범위">{FIELDS.map(([k, l]) => <Go key={k} {...selected(st.f === k)} to={qs(base, { ...st, f: k })}>{l}</Go>)}</div>
-        <div className="sortt" role="group" aria-label="정렬">{SORTS.map(([k, l]) => <Go key={k} {...selected(st.sort === k)} to={qs(base, { ...st, sort: k })}>{l}</Go>)}</div>
+        <div className="sortt" role="group" aria-label="검색 범위">{SEARCH_FIELDS.map(([k, l]) => <Go key={k} {...selected(st.f === k)} to={qs(base, { ...st, f: k })}>{l}</Go>)}</div>
+        <div className="sortt" role="group" aria-label="정렬">{SEARCH_SORTS.map(([k, l]) => <Go key={k} {...selected(st.sort === k)} to={qs(base, { ...st, sort: k })}>{l}</Go>)}</div>
       </div>
     </div>
   )
 }
+
+/** 서버 조회 실패는 빈 목록·0편으로 숨기지 않고 안내로 보입니다. */
+const LoadError = () => <div className="rp muted" role="alert">소설을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>
 
 /** 목업 wcard(w, i, ranked) */
 function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolean; onReport?: (w: Work) => void }) {
@@ -64,10 +67,10 @@ export function SearchPage() {
     <>
       <Gnb />
       <main className="wrap" id="main" tabIndex={-1}>
-        <div className="sec-h"><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h1><span className="muted small">{L.length}편</span></div>
+        <div className="sec-h"><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h1>{vm.list && !vm.isError && <span className="muted small">{L.length}편</span>}</div>
         <ListTools base="/search" st={vm.st} onSubmit={vm.submit} />
         <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.setReporting} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
+          {vm.isError ? <LoadError /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.setReporting} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
         </div>
       </main>
       <Footer />
@@ -85,11 +88,11 @@ export function RankPage() {
     <>
       <Gnb on="rank" />
       <main className="wrap" id="main" tabIndex={-1}>
-        <div className="sec-h" style={{ marginBottom: 0 }}><h1>랭킹</h1><span className="muted small">{SORTS.find((x) => x[0] === vm.st.sort)?.[1]} · 데모 데이터</span></div>
+        <div className="sec-h" style={{ marginBottom: 0 }}><h1>랭킹</h1><span className="muted small">{`${SEARCH_SORTS.find((x) => x[0] === vm.st.sort)?.[1]}${vm.st.sort === 'view' ? ' · 최근 24시간 조회 기준' : ''}`}</span></div>
         <nav className="libtabs">{([['all', '전체'], ['orig', '원작 소설'], ['if', '포크 소설']] as const).map(([k, l]) => <Go key={k} to={qs('/rank', { ...vm.st, t: k })} {...selected(vm.st.t === k)}>{l}</Go>)}</nav>
         <ListTools base="/rank" st={vm.st} onSubmit={vm.submit} />
         <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
+          {vm.isError ? <LoadError /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
         </div>
       </main>
       <Footer />

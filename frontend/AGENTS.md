@@ -3,6 +3,8 @@
 `frontend/**`에 적용한다. [루트 공통 지침](../AGENTS.md)을 함께 따른다.
 nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`와 하위 경로를 Content, 나머지 `/api`를 Core로 라우팅한다.
 `/content`·UUID `/studio/{id}`는 Content API를 쓰고 서재·열람·Fork 데모는 별도 메모리 저장소다. 화면 존재와 서버 기능 완료를 구분한다.
+홈 실시간 인기·급상승과 `/search`·`/rank`는 Content 공개 검색·랭킹 API를 쓰고(`--mode mockup`은 메모리), 작품 상세·열람은 아직 메모리 데모다.
+계약은 [작품 검색·랭킹](../docs/design/work-search-ranking-contract.md)이다.
 
 화면은 세 규칙을 함께 쓴다. **Clean Architecture**는 계층 의존 방향을, **MVVM**은 화면 책임 분리를,
 **Flux**는 상태 변경·전달 순서를 정한다. 하나가 다른 것을 대신하지 않는다.

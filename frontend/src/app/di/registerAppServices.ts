@@ -42,7 +42,7 @@ import { StudioUseCase } from '../../domain/usecases/StudioUseCase'
 import { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 import type { AppContainer } from './types'
 
-/** 콘텐츠는 HTTP API를 사용하며, 기존 서재·열람·Fork 등 데모는 메모리 구현을 유지합니다. */
+/** 콘텐츠는 HTTP API를 사용하며, 기존 서재·열람·Fork 등 데모는 메모리 구현을 유지합니다. 홈 순위·검색만 Content 공개 API입니다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
     operationsRepository: asFunction(() => new InMemoryOperationsRepository()).singleton(),
@@ -62,6 +62,7 @@ export function registerAppServices(container: AppContainer) {
     demoStoryPlanUseCase: asFunction(({ workRepository }) => new StoryPlanUseCase(new InMemoryStoryPlanRepository(workRepository))).singleton(),
     mockDb: asValue(createMockDb()),
     workRepository: asFunction(({ mockDb }) => new InMemoryWorkRepository(mockDb)).singleton(),
+    workSearchRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
     readingRepository: asFunction(({ mockDb }) => new InMemoryReadingRepository(mockDb)).singleton(),
     notificationRepository: asFunction(() => new HttpNotificationRepository()).singleton(),
     feedbackRepository: asFunction(({ mockDb }) => new InMemoryFeedbackRepository(mockDb)).singleton(),
@@ -76,7 +77,7 @@ export function registerAppServices(container: AppContainer) {
     inboxUseCase: asFunction(({ workRepository, feedbackRepository }) => new InboxUseCase(workRepository, feedbackRepository)).singleton(),
     libraryUseCase: asFunction(({ workRepository, worldRepository, readingRepository, feedbackRepository }) => new LibraryUseCase(workRepository, worldRepository, readingRepository, feedbackRepository)).singleton(),
     creditUseCase: asFunction(({ creditRepository }) => new CreditUseCase(creditRepository)).singleton(),
-    readingUseCase: asFunction(({ workRepository, readingRepository }) => new ReadingUseCase(workRepository, readingRepository)).singleton(),
+    readingUseCase: asFunction(({ workRepository, readingRepository, workSearchRepository }) => new ReadingUseCase(workRepository, readingRepository, workSearchRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository, adminRepository }) => new FeedbackUseCase(workRepository, feedbackRepository, adminRepository)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
     studioUseCase: asFunction(({ workRepository, creditRepository, feedbackRepository, worldRepository }) => new StudioUseCase(workRepository, creditRepository, feedbackRepository, worldRepository)).singleton(),

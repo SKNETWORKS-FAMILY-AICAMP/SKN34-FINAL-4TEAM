@@ -1,9 +1,11 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
+import type {WorkRankingKind, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput, type WorkRegistration} from '../../domain/entities/content'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
-import { authVersion, protectedRequest } from '../api/auth'
+import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
+import { publicWork, toCardWork } from './publicWork'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
 const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
@@ -15,7 +17,7 @@ const world = z.object({id:z.string(),name:z.string(),revision:z.number().int(),
 const context = z.object({title:z.string(),summary:z.string(),basisEpisode:z.number().int(),character:z.string(),settings:z.array(setting),draft:z.string(),episodes:z.array(z.object({number:z.number().int(),version:z.number().int(),versionId:z.string(),title:z.string(),sourceCharacters:z.number(),excerpts:z.array(z.object({start:z.number(),end:z.number(),text:z.string()}))})),selection:z.object({method:z.string(),omittedCharacters:z.number(),eligibleEpisodes:z.number(),note:z.string()})})
 const proposal = z.object({id:z.string(),text:z.string().min(1),model:z.string(),revision:z.number().int(),status:z.enum(['pending','accepted']),prompt:z.string().optional(),baseBody:z.string().optional(),createdAt:z.string().optional(),context:context.optional()})
 
-export class HttpEpisodeRepository implements EpisodeRepository {
+export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepository {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
   private async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
@@ -55,6 +57,18 @@ export class HttpEpisodeRepository implements EpisodeRepository {
   async publicList(signal?: AbortSignal) {
     const rows = await this.request('/public/works', z.array(work.omit({draft:true})), 'GET', undefined, signal)
     return rows.map(w=>({...w,readOnly:true,draft:{title:'',body:'',revision:0}}))
+  }
+  async search(query: WorkSearchQuery, signal?: AbortSignal) {
+    const params = new URLSearchParams({ f: query.f, sort: query.sort })
+    if (query.q) params.set('q', query.q)
+    return (await this.request(`/public/works?${params}`, z.array(publicWork), 'GET', undefined, signal)).map(toCardWork)
+  }
+  async ranking(kind: WorkRankingKind, signal?: AbortSignal) {
+    return (await this.request(`/public/works/ranking?kind=${kind}`, z.array(publicWork), 'GET', undefined, signal)).map(toCardWork)
+  }
+  async recordView(id: string, number: number, signal?: AbortSignal) {
+    if (!getAccessToken()) return // 익명 열람은 회원 식별이 없어 기록하지 않는다.
+    await this.request(`/works/${encodeURIComponent(id)}/episodes/${number}/views`, z.undefined(), 'POST', undefined, signal)
   }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) { return this.request('/works',work,'POST',registration?{title,summary,...registration}:{title,summary},signal) }
