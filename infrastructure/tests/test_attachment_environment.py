@@ -19,9 +19,8 @@ class AttachmentEnvironmentTest(unittest.TestCase):
         self.assertEqual("env", tokens[0])
         self.assertEqual(["./gradlew", "bootRun"], tokens[-2:])
         settings = dict(token.split("=", 1) for token in tokens[1:-2])
-        self.assertEqual({"CONTENT_ENABLED", "SETTING_ATTACHMENTS_ENABLED", "ATTACHMENT_S3_ENDPOINT",
+        self.assertEqual({"SETTING_ATTACHMENTS_ENABLED", "ATTACHMENT_S3_ENDPOINT",
                           "ATTACHMENT_S3_REGION", "ATTACHMENT_S3_BUCKET", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"}, set(settings))
-        self.assertEqual("true", settings["CONTENT_ENABLED"])
         self.assertEqual("true", settings["SETTING_ATTACHMENTS_ENABLED"])
         self.assertEqual("http://127.0.0.1:9000", settings["ATTACHMENT_S3_ENDPOINT"])
         for key in ("AWS_SESSION_TOKEN", "AWS_REGION", "AWS_PROFILE"):
@@ -32,7 +31,7 @@ class AttachmentEnvironmentTest(unittest.TestCase):
     def test_optional_compose_preserves_base_and_isolates_local_credentials(self):
         env = {key: value for key, value in os.environ.items() if key in ("PATH", "HOME", "DOCKER_CONFIG", "SystemRoot")}
         env.update(DATABASE_USER="synthetic-user", DATABASE_PASSWORD="synthetic-db", AUTH_JWT_SECRET="synthetic-jwt",
-                   INTERNAL_TOKEN="synthetic-internal", CONTENT_ENABLED="false", OPENAI_API_KEY="synthetic-ai-key",
+                   INTERNAL_TOKEN="synthetic-internal", OPENAI_API_KEY="synthetic-ai-key",
                    AWS_ACCESS_KEY_ID="synthetic-s3-id", AWS_SECRET_ACCESS_KEY="synthetic-s3-secret")
         command = ["docker", "compose", "--env-file", str(ROOT / ".env.example"), "-f", str(ROOT / "infrastructure/docker-compose.yaml"),
                    "-f", str(ROOT / "infrastructure/docker-compose.local.yaml")]
@@ -60,7 +59,6 @@ class AttachmentEnvironmentTest(unittest.TestCase):
         self.assertEqual("synthetic-s3-id", services["minio"]["environment"]["MINIO_ROOT_USER"])
         self.assertEqual("synthetic-s3-secret", services["minio"]["environment"]["MINIO_ROOT_PASSWORD"])
         content = services["content-service"]["environment"]
-        self.assertEqual("true", content["CONTENT_ENABLED"])
         self.assertEqual("true", content["SETTING_ATTACHMENTS_ENABLED"])
         self.assertEqual("http://minio:9000", content["ATTACHMENT_S3_ENDPOINT"])
         self.assertEqual("storyfork-setting-attachments", content["ATTACHMENT_S3_BUCKET"])

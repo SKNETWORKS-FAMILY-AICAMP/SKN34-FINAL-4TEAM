@@ -3,7 +3,6 @@ package ai.storyfork.content.fork.service
 import ai.storyfork.content._common.exception.*
 import ai.storyfork.content._common.helper.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import ai.storyfork.content.work.entity.*
@@ -23,7 +22,6 @@ import ai.storyfork.content.fork.service.dto.*
 import ai.storyfork.content.world.domain.selectSettings
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class ForkService(
     private val access: ai.storyfork.content.work.service.WorkAccessService,

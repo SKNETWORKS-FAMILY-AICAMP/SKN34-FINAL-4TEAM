@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*
 
 /** 회차 본문 이미지 업로드·조회를 바인딩한다. 저장 버전 보존을 위해 이미지 바이트는 불변이다. */
 @RestController
-@ConditionalOnProperty(name = ["app.content.enabled", "app.setting-attachments.enabled"], havingValue = "true")
+@ConditionalOnProperty(name = ["app.setting-attachments.enabled"], havingValue = "true")
 class EpisodeImageController(private val service: AttachmentService) {
     /** 소유자의 편집 가능한 실제 회차에 PNG·JPEG를 추가한다. 형식·10개 한도·원작 회차·저장 실패를 검사한다. */
     @PostMapping("/api/v1/works/{work}/episodes/{number}/images", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])

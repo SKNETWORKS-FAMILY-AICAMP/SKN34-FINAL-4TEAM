@@ -17,7 +17,7 @@ import java.util.UUID
 class WorldStudioCoexistencePostgresTest {
     private fun context(db:WorldStudioPostgresFixture, studio:Boolean)=SpringApplicationBuilder(ContentServiceApplication::class.java).run(
         "--spring.datasource.hikari.maximum-pool-size=3", "--spring.datasource.hikari.minimum-idle=0",
-        "--server.port=0", "--app.content.enabled=true", "--app.worldstudio.enabled=$studio",
+        "--server.port=0", "--app.worldstudio.enabled=$studio",
         "--app.setting-attachments.enabled=false",
         "--DATABASE_URL=${db.url}", "--DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
         "--DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",

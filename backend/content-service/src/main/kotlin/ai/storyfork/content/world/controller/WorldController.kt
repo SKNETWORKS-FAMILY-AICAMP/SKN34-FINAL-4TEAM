@@ -2,7 +2,6 @@ package ai.storyfork.content.world.controller
 
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 import ai.storyfork.content.episode_version.service.dto.*
 import ai.storyfork.content.world.service.dto.*
@@ -10,7 +9,6 @@ import ai.storyfork.content.world.service.dto.*
 /** 세계관 설정의 조회·초안·확정·복원을 담당한다. */
 @RestController
 @RequestMapping("/api/v1")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class WorldController(private val service: ai.storyfork.content.world.service.WorldService) {
 
     /** 설정집과 공개 범위 DTO를 반환한다. 소유자만 가능하며 접근 불가는 404다. */

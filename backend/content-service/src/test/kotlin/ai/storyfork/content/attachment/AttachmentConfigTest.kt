@@ -20,7 +20,7 @@ class AttachmentConfigTest {
         val url=System.getenv("TEST_ATTACHMENT_DATABASE_URL")
         lateinit var pool:HikariDataSource
         SpringApplicationBuilder(ContentServiceApplication::class.java).run(
-            "--server.port=0","--app.content.enabled=true","--app.setting-attachments.enabled=true",
+            "--server.port=0","--app.setting-attachments.enabled=true",
             "--DATABASE_URL=$url","--DATABASE_USER=content_test","--DATABASE_PASSWORD=",
             "--CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
             "--app.setting-attachments.bucket=issue87-test","--app.setting-attachments.region=us-east-1",
