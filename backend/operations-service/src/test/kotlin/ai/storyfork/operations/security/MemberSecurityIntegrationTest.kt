@@ -72,7 +72,8 @@ class MemberSecurityIntegrationTest {
     fun `Core verification failures keep 401 and 403 and otherwise return 502`() {
         for ((upstream, expected) in listOf(HttpStatus.UNAUTHORIZED to "UNAUTHORIZED", HttpStatus.FORBIDDEN to "FORBIDDEN",
             HttpStatus.BAD_GATEWAY to "UPSTREAM_FAILED")) {
-            `when`(core.verify(bearer)).thenThrow(ResponseStatusException(upstream))
+            // doThrow: re-stubbing with when(core.verify(...)) would invoke the previous throwing stub.
+            doThrow(ResponseStatusException(upstream)).`when`(core).verify(bearer)
             val response = mvc.perform(get("/api/v1/operations/reports/mine").header("Authorization", bearer)).andReturn().response
             assertEquals(upstream.value(), response.status)
             assertEquals(expected, code(response.contentAsString))
