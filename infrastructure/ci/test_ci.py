@@ -340,8 +340,10 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertNotIn('build:', dev)
         self.assertIn('  postgres:', dev)
         self.assertIn('  mailpit:', dev)
-        self.assertEqual(2, dev.count('file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}'))
-        self.assertEqual(2, dev.count('ports: !reset []'))
+        self.assertEqual(4, dev.count('file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}'))
+        for service in ('  neo4j:', '  rabbitmq:'):
+            self.assertIn(service, dev)
+        self.assertEqual(3, dev.count('ports: !reset []'))
         self.assertIn('DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
         self.assertIn('CORE_SMTP_HOST: mailpit', dev)
         self.assertNotIn('${DATABASE_URL', dev)
@@ -499,8 +501,8 @@ class ConfigurationTest(unittest.TestCase):
         self.assertIn('NEO4J_PASSWORD:', integration)
         self.assertIn('"$RUNNER_TEMP/neo4j.log"', integration)
         configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
-        self.assertIn('APP_WORLDSTUDIO_ENABLED=true', configuration)
-        self.assertIn('--profile worldstudio config --quiet', configuration)
+        self.assertIn('NEO4J_PASSWORD: synthetic-config-only', configuration)
+        self.assertNotIn('--profile', configuration)
 
     def test_world_studio_graph_public_routes_stay_content_owned(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:

@@ -92,7 +92,7 @@ prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP*
 | `CONTENT_CORE_AUTH_TOKEN` / `INTERNAL_TOKEN` | 각각 Core↔Content / Content↔AI의 별도 무작위 서비스 자격 |
 | `WEB_PORT` | 담당자가 준비한 비충돌 loopback 포트, TLS ingress는 별도 |
 
-SMTP 인증은 기본 `CORE_SMTP_AUTH=true`이며 제공사가 요구하는 `CORE_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `CORE_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `OPENAI_API_KEY/MODEL`은 선택적 생성 설정으로 AI에만 전달합니다. `APP_WORLDSTUDIO_ENABLED`는 기본 false이며 WorldStudio의 실제 DB 준비·명시 migration은 별도 승인 대상입니다.
+SMTP 인증은 기본 `CORE_SMTP_AUTH=true`이며 제공사가 요구하는 `CORE_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `CORE_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `OPENAI_API_KEY/MODEL`은 선택적 생성 설정으로 AI에만 전달합니다. Neo4j·RabbitMQ는 local·개발 배포에서 항상 뜨며 `NEO4J_PASSWORD`·`CORE_RABBITMQ_PASSWORD`가 필요합니다. WorldStudio schema는 Content 시작 시 적용됩니다.
 
 prod의 `AUTH_COOKIE_SECURE`는 **항상 true**이므로 로컬 HTTP용 `AUTH_COOKIE_SECURE=false`가 있어도 약화되지 않습니다. HTTP로 그대로 공개해도 되는 설정이 아니며 HTTPS ingress·DNS·인증/메일·백업 복원·관측·운영 수용 검증은 이 파일이 제공하지 않습니다.
 

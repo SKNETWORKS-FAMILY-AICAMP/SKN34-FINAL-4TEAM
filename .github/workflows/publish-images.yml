@@ -80,10 +80,6 @@ jobs:
       CD_WEB_PORT: ${{ vars.CD_WEB_PORT }}
       CONTENT_FRESH_SCHEMA_APPROVED: ${{ vars.CONTENT_FRESH_SCHEMA_APPROVED }}
       DEVELOP_INTERNAL_DB_APPROVED: ${{ vars.DEVELOP_INTERNAL_DB_APPROVED }}
-      WORLDSTUDIO_CD_MIGRATION_ENABLED: ${{ vars.WORLDSTUDIO_CD_MIGRATION_ENABLED }}
-      WORLDSTUDIO_EXPECTED_DATABASE_URL: ${{ vars.WORLDSTUDIO_EXPECTED_DATABASE_URL }}
-      WORLDSTUDIO_EXPECTED_DATABASE_USER: ${{ vars.WORLDSTUDIO_EXPECTED_DATABASE_USER }}
-      WORLDSTUDIO_BACKUP_RESTORE_REFERENCE: ${{ vars.WORLDSTUDIO_BACKUP_RESTORE_REFERENCE }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -116,10 +112,6 @@ jobs:
               GITHUB_ACTOR "$GITHUB_ACTOR" GH_TOKEN "$GH_TOKEN" \
               CONTENT_FRESH_SCHEMA_APPROVED "$CONTENT_FRESH_SCHEMA_APPROVED" \
               DEVELOP_INTERNAL_DB_APPROVED "$DEVELOP_INTERNAL_DB_APPROVED" \
-              WORLDSTUDIO_CD_MIGRATION_ENABLED "$WORLDSTUDIO_CD_MIGRATION_ENABLED" \
-              WORLDSTUDIO_EXPECTED_DATABASE_URL "$WORLDSTUDIO_EXPECTED_DATABASE_URL" \
-              WORLDSTUDIO_EXPECTED_DATABASE_USER "$WORLDSTUDIO_EXPECTED_DATABASE_USER" \
-              WORLDSTUDIO_BACKUP_RESTORE_REFERENCE "$WORLDSTUDIO_BACKUP_RESTORE_REFERENCE" \
               COMPOSE_BASE_YAML "$(< infrastructure/docker-compose.yaml)" \
               COMPOSE_DEV_YAML "$(< infrastructure/docker-compose.dev.yaml)" \
               COMPOSE_LOCAL_YAML "$(< infrastructure/docker-compose.local.yaml)"
@@ -132,7 +124,7 @@ jobs:
           cd -P -- "$CD_DIRECTORY"
           [[ "$PWD" == "$CD_DIRECTORY" && -f .env ]] || exit 1
           export CD_DIRECTORY CD_WEB_PORT COMPOSE_PROJECT_NAME=storyfork-develop-cd DOCKER_HOST=unix:///var/run/docker.sock
-          # 서버 .env의 profile 설정으로 명시적인 migration opt-in을 우회하지 못하게 한다.
+          # 서버 .env의 profile 설정이 배포 구성을 바꾸지 못하게 한다.
           export COMPOSE_PROFILES=
           unset DOCKER_CONTEXT
           export DOCKER_CONFIG
@@ -163,29 +155,12 @@ jobs:
           revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" "$CD_OPERATIONS_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
           # 재실행된 이전 run이 더 새 develop 이미지와 이전 Compose를 섞어 배포하지 않게 한다.
           [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ && "$revisions" == "$TARGET_SHA" ]] || { printf 'develop images are not this run revision; rerun CD for current develop.\n' >&2; exit 1; }
-          # 설정 실수만으로 ingress를 멈추지 않도록 WorldStudio 입력은 앱 중지 전에 검사한다.
-          case "${WORLDSTUDIO_CD_MIGRATION_ENABLED:-false}" in
-            true) [[ -n "$WORLDSTUDIO_EXPECTED_DATABASE_URL" && -n "$WORLDSTUDIO_EXPECTED_DATABASE_USER" && -n "$WORLDSTUDIO_BACKUP_RESTORE_REFERENCE" ]] || { printf 'WorldStudio migration variables are incomplete.\n' >&2; exit 1; } ;;
-            false|'') ;;
-            *) printf 'Invalid WorldStudio migration activation flag.\n' >&2; exit 1 ;;
-          esac
           # Stop public writes and the old Core content writer before any new migration/writer starts.
           # Failure leaves ingress stopped; never auto-repair history or roll incompatible binaries back.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env stop web core-api content-service operations-service
           # New project-scoped dependencies require a separately approved cutover; no data import/reset.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180 postgres mailpit
-          # 미확인 DB에 DDL을 실행하지 않는다. develop-cd의 승인된 설정만 활성화한다.
-          export APP_WORLDSTUDIO_ENABLED=false
-          case "${WORLDSTUDIO_CD_MIGRATION_ENABLED:-false}" in
-            true)
-              export WORLDSTUDIO_EXPECTED_DATABASE_URL WORLDSTUDIO_EXPECTED_DATABASE_USER WORLDSTUDIO_BACKUP_RESTORE_REFERENCE
-              export WORLDSTUDIO_MIGRATION_ENVIRONMENT=development
-              docker compose --project-directory "$CD_DIRECTORY" --env-file .env run --rm --no-deps worldstudio-migrate </dev/null
-              export APP_WORLDSTUDIO_ENABLED=true
-              ;;
-            false|'') ;;
-            *) printf 'Invalid WorldStudio migration activation flag.\n' >&2; exit 1 ;;
-          esac
+          # Neo4j·RabbitMQ를 포함한 전체 스택을 띄운다. WorldStudio schema는 Content 시작 시 Flyway가 적용한다.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180
           REMOTE
           } | ssh -F /dev/null -T -p 5798 -i "$SSH_DIR/key" \

@@ -52,14 +52,30 @@ class SpringServiceConfigurationTest(unittest.TestCase):
                      "infrastructure/compose.attachments.yaml", ".github/workflows/ci.yml"):
             self.assertNotIn("CONTENT_ENABLED", (ROOT / path).read_text(encoding="utf-8"), path)
 
-    def test_content_boot_entry_point_is_explicit_while_studio_migration_remains_available(self):
+    def test_worldstudio_and_notification_events_are_always_on_in_every_environment(self):
+        # local·개발 배포는 같은 구성이다. 기능 플래그·compose profile 없이 Neo4j·RabbitMQ를 항상 띄운다.
+        for service, flag in (("content-service", "app.worldstudio.enabled"), ("core-api", "app.notification.events.enabled")):
+            sources = list((ROOT / "backend" / service / "src").rglob("*.kt")) + list((ROOT / "backend" / service / "src/main/resources").glob("*.properties"))
+            self.assertEqual([], [str(p) for p in sources if flag in p.read_text(encoding="utf-8")], flag)
+        for path in (".env.example", "infrastructure/docker-compose.yaml", "infrastructure/docker-compose.local.yaml",
+                     "infrastructure/docker-compose.dev.yaml", "infrastructure/ci/compose.test.yaml",
+                     ".github/workflows/ci.yml", ".github/workflows/publish-images.yml"):
+            text = (ROOT / path).read_text(encoding="utf-8")
+            for name in ("APP_WORLDSTUDIO_ENABLED", "CORE_NOTIFICATION_EVENTS_ENABLED", "WORLDSTUDIO_CD_MIGRATION_ENABLED",
+                         "worldstudio-migrate", "profiles: [worldstudio]", "profiles: [events]"):
+                self.assertNotIn(name, text, f"{path}: {name}")
+        dev = (ROOT / "infrastructure/docker-compose.dev.yaml").read_text(encoding="utf-8")
+        for service in ("neo4j", "rabbitmq"):
+            self.assertIn(f"\n  {service}:\n", dev)
+        local = (ROOT / "infrastructure/docker-compose.local.yaml").read_text(encoding="utf-8")
+        self.assertIn('"127.0.0.1:${OPERATIONS_SERVICE_PORT:-8082}:8082"', local)
+
+    def test_content_boot_entry_point_is_explicit(self):
         service = ROOT / "backend/content-service"
         build = (service / "build.gradle").read_text(encoding="utf-8")
         self.assertRegex(build, r"springBoot\s*\{\s*mainClass\s*=\s*'ai\.storyfork\.content\.ApplicationKt'\s*\}")
         application = service / "src/main/kotlin/ai/storyfork/content/Application.kt"
         self.assertIn("runApplication<ContentServiceApplication>(*args)", application.read_text(encoding="utf-8"))
-        migration = service / "src/main/kotlin/ai/storyfork/content/world/migration/WorldStudioMigration.kt"
-        self.assertIn("fun main(args: Array<String>)", migration.read_text(encoding="utf-8"))
 
     def test_gradle_image_builds_lock_the_shared_user_home_cache(self):
         for service in ("core-api", "content-service"):

@@ -31,7 +31,8 @@ class AttachmentEnvironmentTest(unittest.TestCase):
     def test_optional_compose_preserves_base_and_isolates_local_credentials(self):
         env = {key: value for key, value in os.environ.items() if key in ("PATH", "HOME", "DOCKER_CONFIG", "SystemRoot")}
         env.update(DATABASE_USER="synthetic-user", DATABASE_PASSWORD="synthetic-db", AUTH_JWT_SECRET="synthetic-jwt",
-                   INTERNAL_TOKEN="synthetic-internal", OPENAI_API_KEY="synthetic-ai-key",
+                   INTERNAL_TOKEN="synthetic-internal", OPENAI_API_KEY="synthetic-ai-key", NEO4J_PASSWORD="synthetic-graph",
+                   CORE_RABBITMQ_PASSWORD="synthetic-broker",
                    AWS_ACCESS_KEY_ID="synthetic-s3-id", AWS_SECRET_ACCESS_KEY="synthetic-s3-secret")
         command = ["docker", "compose", "--env-file", str(ROOT / ".env.example"), "-f", str(ROOT / "infrastructure/docker-compose.yaml"),
                    "-f", str(ROOT / "infrastructure/docker-compose.local.yaml")]

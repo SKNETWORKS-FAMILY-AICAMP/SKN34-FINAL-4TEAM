@@ -21,6 +21,19 @@ services:
     labels: *cd-labels
     ports: !reset []
 
+  neo4j:
+    extends:
+      file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}
+      service: neo4j
+    labels: *cd-labels
+    ports: !reset []
+
+  rabbitmq:
+    extends:
+      file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}
+      service: rabbitmq
+    labels: *cd-labels
+
   ai-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
     platform: linux/amd64
@@ -35,11 +48,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
       CORE_SMTP_HOST: mailpit
+      CORE_RABBITMQ_HOST: rabbitmq
       CORE_SMTP_PORT: 1025
       AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN}
       AUTH_MAIL_FROM: ${AUTH_MAIL_FROM:?Set AUTH_MAIL_FROM}
@@ -51,10 +67,14 @@ services:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
     platform: linux/amd64
     labels: *cd-labels
+    depends_on:
+      neo4j:
+        condition: service_healthy
     environment:
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
+      NEO4J_URI: bolt://neo4j:7687
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
 
   operations-service:
@@ -69,22 +89,6 @@ services:
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
 
-  # 동일 DB의 전용 schema/이력. 콘텐츠 이미지의 명시적인 compose run에서만 실행한다.
-  worldstudio-migrate:
-    image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
-    platform: linux/amd64
-    labels: *cd-labels
-    profiles: [worldstudio-migration]
-    entrypoint: [java, -Dloader.main=ai.storyfork.content.world.migration.WorldStudioMigration, -cp, /app/application.jar, org.springframework.boot.loader.launch.PropertiesLauncher]
-    environment:
-      WORLDSTUDIO_MIGRATION_ENVIRONMENT: ${WORLDSTUDIO_MIGRATION_ENVIRONMENT:-}
-      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
-      DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
-      WORLDSTUDIO_EXPECTED_DATABASE_URL: ${WORLDSTUDIO_EXPECTED_DATABASE_URL:-}
-      WORLDSTUDIO_EXPECTED_DATABASE_USER: ${WORLDSTUDIO_EXPECTED_DATABASE_USER:-}
-      WORLDSTUDIO_BACKUP_RESTORE_REFERENCE: ${WORLDSTUDIO_BACKUP_RESTORE_REFERENCE:-}
-
   web:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-web:develop
     platform: linux/amd64
@@ -94,6 +98,10 @@ services:
 
 volumes:
   core-postgres:
+    labels: *cd-labels
+  worldstudio-neo4j:
+    labels: *cd-labels
+  core-rabbitmq:
     labels: *cd-labels
 
 networks:

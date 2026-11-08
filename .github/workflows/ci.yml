@@ -27,6 +27,8 @@ env:
   AUTH_COOKIE_SECURE: "false"
   INTERNAL_TOKEN: ci-test-only-internal-token
   CONTENT_CORE_AUTH_TOKEN: ci-content-core-auth-only-0123456789abcdef
+  NEO4J_PASSWORD: ci-test-only-graph
+  CORE_RABBITMQ_PASSWORD: ci-test-only-broker
   OPENAI_API_KEY: ""
   OPENAI_MODEL: ""
 
@@ -71,6 +73,8 @@ jobs:
       AUTH_JWT_SECRET: synthetic-config-only
       CONTENT_CORE_AUTH_TOKEN: synthetic-config-only
       INTERNAL_TOKEN: synthetic-config-only
+      NEO4J_PASSWORD: synthetic-config-only
+      CORE_RABBITMQ_PASSWORD: synthetic-config-only
       WEB_PORT: "18088"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -83,8 +87,6 @@ jobs:
           for mode in local prod dev; do
             docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
           done
-      - name: Validate opt-in current relationship graph configuration without starting services
-        run: APP_WORLDSTUDIO_ENABLED=true NEO4J_PASSWORD=graph-config-test-only docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml --profile worldstudio config --quiet
       - name: Validate isolated CI overlay
         run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml -f infrastructure/ci/compose.test.yaml config --quiet
       - name: Validate optional attachment environment contract
