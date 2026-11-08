@@ -32,6 +32,8 @@ class WorldService(
     private val workWorlds: WorkWorldHistoryRepository,
     private val documents: SettingDocumentRepository,
     private val versions: SettingVersionRepository,
+    private val readingDetails: SettingReadingDetailRepository,
+    private val currentEpisodes: EpisodeCurrentRepository,
     private val drafts: SettingDraftRepository,
     private val visibility: SettingVisibilityHistoryRepository,
     private val ranges: SettingVisibilityRangeRepository,
@@ -52,6 +54,16 @@ class WorldService(
 
     private data class Loaded(val work: WorkAccessResult, val state: WorldState, val basis: BasisResponse?, val sourceWorld: String?, val sourceHistory: List<Setting>)
     fun read(id: String, owner: String): WorldResponse = view(load(access.own(id,owner)))
+    fun publicRead(id: String, episode: Int): ReadingWorldResponse {
+        val l=load(access.published(id))
+        checkContent(episode>0 && currentEpisodes.findByWorkIdAndSequence(id,episode)?.publishedVersionId!=null,404,"공개된 회차를 찾을 수 없어요.")
+        val selected=selectSettings(effective(l),episode,true)
+        val world=if(l.state.mode=="following") l.sourceWorld!! else ownedWorld(l)
+        val details=readingDetails.findAllById(selected.map {settingVersionId(world,it.id,it.versionId)}).associateBy {it.settingVersionId}
+        val visible=selected.filter {s -> details[settingVersionId(world,s.id,s.versionId)]?.eventEpisode?.let {it<=episode} ?: true}
+        val ids=visible.map {it.id}.toSet()
+        return ReadingWorldResponse(id,episode,visible.map {toReadingResponse(it,details[settingVersionId(world,it.id,it.versionId)],episode,ids,if(l.state.mode=="following") l.work.source?.episode else null)})
+    }
     fun isFollowingForContext(id: String): Boolean = load(access.get(id)).state.mode=="following"
     fun historyForContext(id: String): SettingListResponse {
         val loaded=load(access.get(id))
@@ -59,7 +71,7 @@ class WorldService(
     }
     fun saveDraft(id: String, sid: String, owner: String, data: SettingRequest): WorldResponse {
         val l=load(access.own(id,owner));val s=l.state
-        revision(l,data.revision);validateSetting(data.setting.toDomain())
+        revision(l,data.revision);requireEditable(l,sid);validateSetting(data.setting.toDomain())
         val before=view(l)
         checkContent(data.sourceToken==before.sourceToken,409,"참조 원본 설정이 변경됐어요. 다시 불러와 주세요.")
         checkContent(sid=="new" || effective(l).any {it.id==sid} || sid in s.drafts,404,"설정을 찾을 수 없어요.")
@@ -71,20 +83,21 @@ class WorldService(
     fun commit(id: String,sid: String,owner: String,expected: Int): WorldResponse {
         val l=load(access.own(id,owner));revision(l,expected)
         val setting=l.state.drafts[sid] ?: throw ContentFailure(409,"설정 초안을 먼저 저장해 주세요.")
-        append(l.state,setting);persist(l);return view(load(access.get(id)))
+        requireEditable(l,sid);append(l.state,setting);persist(l);return view(load(access.get(id)))
     }
     fun revert(id: String,sid: String,owner: String,data: RevertRequest): WorldResponse {
         val l=load(access.own(id,owner));revision(l,data.revision)
         checkContent(l.state.drafts.isEmpty(),409,"작성 중인 설정 초안을 먼저 확정해 주세요.")
         val setting=effective(l).find {it.id==sid && it.versionId==data.versionId && it.content.isNotEmpty()}
             ?: throw ContentFailure(404,"설정 버전을 찾을 수 없어요.")
-        detach(l);append(l.state,setting);persist(l);return view(load(access.get(id)))
+        requireEditable(l,sid);detach(l);append(l.state,setting);persist(l);return view(load(access.get(id)))
     }
     fun applySourceChange(id: String,owner: String,data: ChangeRequest) {
         val l=load(access.own(id,owner));revision(l,data.revision)
         val change=view(l).changes.find {it.id==data.changeId} ?: throw ContentFailure(409,"원본 변경이 달라졌어요. 알림을 다시 확인해 주세요.")
         checkContent(change.decision!="apply",409,"이미 반영한 변경이에요. 버전 복원을 이용해 주세요.")
         if(data.decision=="apply") {
+            requireEditable(l,change.settingId,copySource=true)
             checkContent(l.state.drafts.isEmpty(),409,"설정 초안을 먼저 확정해 주세요.")
             append(l.state,(change.after ?: change.before!!.copy(visibility="private",content="원본 공개 범위에서 제외됨")).toDomain())
         } else l.state.revision++
@@ -162,6 +175,15 @@ class WorldService(
         state.history.add(setting.copy(versionId=contentId()));state.drafts.remove(setting.id);state.revision++
     }
     private fun revision(l: Loaded, expected: Int) = checkContent(l.state.revision==expected,409,"설정집이 변경됐어요. 최신 데이터를 불러와 주세요.")
+    /** 구형 쓰기 DTO에 없는 wiki 필드를 새 버전에서 소실시키지 않는다. 전용 편집 계약 전까지 명시적 읽기 전용이다. */
+    private fun requireEditable(l: Loaded, sid: String, copySource: Boolean = false) {
+        val world=if(l.state.mode=="following") l.sourceWorld!! else ownedWorld(l)
+        // Following detach copies its effective history; ordinary writes only replace the target.
+        val affected=effective(l).filter {l.state.mode=="following" || it.id==sid}
+        val ids=affected.map {settingVersionId(world,it.id,it.versionId)} +
+            (if(copySource) l.sourceHistory.filter {it.id==sid}.map {settingVersionId(l.sourceWorld!!,it.id,it.versionId)} else emptyList())
+        if(ids.isNotEmpty()) checkContent(readingDetails.findAllById(ids.distinct()).isEmpty(),409,"구조화된 wiki 설정은 현재 읽기 전용이에요. 기존 내용은 변경하지 않았어요.")
+    }
     private fun ownedWorld(l: Loaded) = if(l.work.source==null) l.work.worldId else l.work.id
     private fun view(l: Loaded): WorldResponse {
         val h=effective(l);val before=l.state.sourceSnapshot.associateBy {it.id}

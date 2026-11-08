@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -11,11 +12,15 @@ const sid = () => document.getElementById('sid')!.textContent
 const titles = () => [...document.querySelectorAll('.rgrid .ri b')].map((b) => b.textContent)
 
 describe('검색 결과 (U36)', () => {
-  it('제목·태그·장르 범위로 찾고 결과 수를 보여 준다', async () => {
+  it('제목·작가·태그·장르 범위로 찾고 결과 수를 보여 준다', async () => {
     renderApp('/search?q=구운몽')
     await screen.findByRole('heading', { name: '‘구운몽’ 검색 결과' })
     await waitFor(() => expect(sid()).toBe('U36 검색 결과'))
     await screen.findByText('4편')
+    cleanup()
+    renderApp('/search?q=윤서하&f=author')
+    await screen.findByText('1편')
+    expect(titles()).toEqual(['회색 도시의 우편배달부'])
     cleanup()
     renderApp('/search?q=SF&f=genre')
     await screen.findByText('3편')
@@ -48,11 +53,11 @@ describe('검색 결과 (U36)', () => {
     await waitFor(() => expect(titles()).toEqual(['회색 도시의 우편배달부', '회색 도시: 송신탑 아래', '회색 도시: 답장']))
   })
 
-  it('검색 범위·정렬은 서버가 지원하는 값만 고르게 한다 (작가·인기 순 없음)', async () => {
+  it('검색 범위·정렬은 서버가 지원하는 값만 고르게 한다 (인기 순 없음)', async () => {
     renderApp('/search')
     const scope = await screen.findByRole('group', { name: '검색 범위' })
     const sort = screen.getByRole('group', { name: '정렬' })
-    expect([...scope.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['전체', '제목', '태그', '장르'])
+    expect([...scope.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['전체', '제목', '작가', '태그', '장르'])
     expect([...sort.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['최신 순', '조회 순'])
   })
 
@@ -101,6 +106,7 @@ describe('랭킹 (U25)·포크 소설 (U26)', () => {
     await waitFor(() => expect(forks()).toEqual(['구름 위의 길', '저승의 문', '스승의 용서']))
     screen.getByText('2·3·4화 포크 허용')
     screen.getByRole('link', { name: '✎ 나도 포크하기' })
+    // 통계가 있는 목업 작품은 최신·인기·조회 순을 고른다(서버 작품의 제목·작가 순은 sortOptions 단위 테스트).
     fireEvent.click(screen.getByRole('link', { name: '최신 순' }))
     await waitFor(() => expect(forks()).toEqual(['저승의 문', '구름 위의 길', '스승의 용서']))
   })

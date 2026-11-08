@@ -46,7 +46,7 @@ class WorkRestrictionServiceTest {
         val worlds = mock(WorkWorldHistoryRepository::class.java)
         val visibility = mock(WorkPublicationHistoryRepository::class.java)
         val access = WorkAccessService(works, worlds, visibility, mock(ForkPolicyHistoryRepository::class.java),
-            mock(ForkRepository::class.java), mock(CheckpointRepository::class.java), mock(EpisodeRepository::class.java),
+            mock(ForkPolicyEpisodeRepository::class.java), mock(ForkRepository::class.java), mock(CheckpointRepository::class.java), mock(EpisodeRepository::class.java),
             mock(EpisodeVersionRepository::class.java), mock(EntityManager::class.java))
         `when`(works.findById("work")).thenReturn(Optional.of(row))
         `when`(worlds.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkWorldHistoryEntity(workId = "work", worldId = "world"))

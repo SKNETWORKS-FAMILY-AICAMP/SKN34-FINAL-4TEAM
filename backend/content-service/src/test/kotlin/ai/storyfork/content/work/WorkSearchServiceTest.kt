@@ -37,6 +37,7 @@ class WorkSearchServiceTest {
     @Mock lateinit var workWorlds: WorkWorldHistoryRepository
     @Mock lateinit var visibility: WorkPublicationHistoryRepository
     @Mock lateinit var policies: ForkPolicyHistoryRepository
+    @Mock lateinit var selectedPolicyEpisodes: ForkPolicyEpisodeRepository
     @Mock lateinit var genreRows: GenreRepository
     @Mock lateinit var workGenres: WorkGenreRepository
     @Mock lateinit var hashtagRows: WorkHashtagRepository
@@ -54,8 +55,8 @@ class WorkSearchServiceTest {
     private val rows = mutableListOf<WorkEntity>()
 
     /** [age]가 클수록 늦게 만든 작품이다. */
-    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false) {
-        rows += WorkEntity(id = id, ownerId = "author", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted)
+    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false, author: String = "작성자") {
+        rows += WorkEntity(id = id, ownerId = "author", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted, authorName = author)
         `when`(works.findAll()).thenReturn(rows)
         `when`(works.findAllById(ArgumentMatchers.anyIterable<String>())).thenAnswer { call ->
             val ids = call.getArgument<Iterable<String>>(0).toSet()
@@ -104,6 +105,30 @@ class WorkSearchServiceTest {
         assertEquals(listOf("c", "b", "a"), ids(null, null, null))
     }
 
+    @Test fun `author search matches the author name only and all includes it`() {
+        work("a", "달빛 정원", 1, author = "윤서하")
+        work("b", "별빛 서점", 2, author = "Writer Kim")
+        work("c", "우주 정거장", 3)
+        views()
+
+        fun ids(q: String?, f: String?) = service.publicList(q, f, null).items.map { it.id }
+
+        assertEquals(listOf("a"), ids("윤서", "author"))
+        assertEquals(listOf("b"), ids(" writer ", "author"))
+        assertEquals(emptyList<String>(), ids("정원", "author"))
+        assertEquals(listOf("b"), ids("kim", "all"))
+        assertEquals(listOf("c", "b", "a"), ids(" ", "author"))
+    }
+
+    @Test fun `restricted works are left out of author search and all search`() {
+        work("open", "공개 작품", 1, author = "윤서하")
+        work("blocked", "제한 작품", 2, restricted = true, author = "윤서하")
+        views()
+
+        assertEquals(listOf("open"), service.publicList("윤서", "author", null).items.map { it.id })
+        assertEquals(listOf("open"), service.publicList("윤서", "all", null).items.map { it.id })
+    }
+
     @Test fun `ranking lists only works with a positive score and fills their recent views`() {
         work("a", "첫째", 1)
         work("b", "둘째", 2)
@@ -145,7 +170,7 @@ class WorkSearchServiceTest {
     }
 
     @Test fun `unknown options fail with 422 before any lookup`() {
-        for (call in listOf<() -> Any>({ service.publicList(null, "author", null) }, { service.publicList(null, null, "popular") }, { service.ranking("daily") })) {
+        for (call in listOf<() -> Any>({ service.publicList(null, "body", null) }, { service.publicList(null, null, "popular") }, { service.ranking("daily") })) {
             assertEquals(422, failure { call() }.status)
         }
 

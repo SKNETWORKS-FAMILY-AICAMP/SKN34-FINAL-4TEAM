@@ -25,7 +25,7 @@ export function useReaderViewModel(id: string, n: number,
   const role = useAppSelector((s) => s.session.role)
   const dispatch = useAppDispatch()
   const look = useLook()
-  const { data } = useAsyncData(async () => {
+  const { data, isError, retry } = useAsyncData(async () => {
     const r = await readingUseCase.openEpisode(id, n, role)
     if (!r || r === 'hidden') return r
     return { ...r, ...(await feedbackUseCase.getComments(r.work, r.n)) }
@@ -46,7 +46,7 @@ export function useReaderViewModel(id: string, n: number,
   const lite = !look.dark
   return {
     /** undefined: 불러오는 중, null: 볼 수 없는 작품, 'hidden': 숨긴 회차 */
-    state: data,
+    state: data, isError, retry,
     reader: ok,
     sentences,
     readerClass: (look.eff === 'world' ? `th-${theme} themed${lite ? ' lite' : ''}` : `calm rd calm-${theme}`) + ' reader',
@@ -64,6 +64,10 @@ export function useReaderViewModel(id: string, n: number,
     share: () => toast('링크 공유는 데모예요 (실제 복사 없음)'),
     shareSentence: () => toast('문장 공유는 데모예요 (실제 복사 없음)'),
     setEnd,
-    toggleCommentLike: (key: string) => feedbackUseCase.toggleCommentLike(key).then(() => dispatch(sessionActions.dataChanged())),
+    toggleCommentLike: async (key: string) => {
+      if (!ok) return
+      try { await feedbackUseCase.toggleCommentLike(ok.work.id,key); dispatch(sessionActions.dataChanged()) }
+      catch (error) { toast(error instanceof Error?error.message:'댓글 좋아요를 저장하지 못했어요.') }
+    },
   }
 }

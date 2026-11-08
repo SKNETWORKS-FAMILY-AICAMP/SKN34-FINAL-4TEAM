@@ -5,7 +5,7 @@ import type { ChatRepository } from '../repositories/ChatRepository'
 import type { CreditRepository } from '../repositories/CreditRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import type { InquiryRepository } from '../repositories/InquiryRepository'
-import type { WorkRepository } from '../repositories/WorkRepository'
+import { AGGREGATE_WRITE_UNSUPPORTED, type WorkRepository } from '../repositories/WorkRepository'
 import { chatsOf } from './ChatUseCase'
 
 /** 조치 결과: ok면 데이터를 다시 읽습니다. null이면 대상이 없어 아무것도 하지 않았습니다. */
@@ -53,7 +53,7 @@ export class AdminUseCase {
       fork: forkList(w, worlds).length ? (w.forkAll ? '전체 회차' : forkList(w, worlds).join('·') + '화') : '불가',
       reports: queue.filter((q) => q.w === w.id).length, state: w.hidden ? '비공개 (신고 조치)' : w.private ? '비공개' : '공개',
     })).concat([admin.flagged])
-    const isolation = works.filter((f) => f.parent && f.snap).map((fk) => {
+    const isolation = works.filter((f) => !f.canonical && f.parent && f.snap && works.some(w=>w.id===f.parent)).map((fk) => {
       const p = works.find((w) => w.id === fk.parent)!, snap = fk.snap!
       const now = hashText(JSON.stringify(p.eps.slice(0, fk.forkAt))), snapNow = hashText(JSON.stringify(snap.eps))
       const diff = snap.cast.flatMap((c) => { const pc = p.cast.find((x) => x.n === c.n); return pc && pc.st !== c.st ? [c.n + ': ' + pc.st + ' → ' + c.st] : [] })
@@ -78,6 +78,7 @@ export class AdminUseCase {
   async toggleWork(id: string): Promise<AdminResult> {
     const w = (await this.workRepository.listWorks()).find((x) => x.id === id)
     if (!w) return null
+    if (w.canonical) return fail(AGGREGATE_WRITE_UNSUPPORTED)
     w.hidden = !w.hidden
     await this.workRepository.saveWork(w)
     await this.log('작품 공개 상태 변경', () => w.title + ' · ' + (w.hidden ? '운영상 비공개' : '제한 해제'))

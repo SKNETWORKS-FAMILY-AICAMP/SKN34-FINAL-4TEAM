@@ -5,7 +5,8 @@ import { Provider } from 'react-redux'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../../app/store'
-import { createMockDb, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../../../data/mock/fixtureDb'
+import { InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
 import { InMemoryStoryPlanRepository } from '../../../../data/plans/InMemoryStoryPlanRepository'
 import { StoryPlanUseCase } from '../../../../domain/usecases/StoryPlanUseCase'
 import type { StoryPlan } from '../../../../domain/entities/storyPlan'
@@ -33,7 +34,7 @@ const choose = {
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/') })
 async function setup() {
-  const db = createMockDb()
+  const db = createFixtureDb()
   const work = db.works.find(w => w.id === 'starlight')!
   work.owner = 'me'
   const api = new StoryPlanUseCase(new InMemoryStoryPlanRepository(new InMemoryWorkRepository(db)))
@@ -147,7 +148,7 @@ describe('계획과 실제 QuickJump Sheet · CI 통합', () => {
   })
 
   it.each(['click', 'Enter'] as const)('이미 열린 QuickJump의 %s도 선택 시점의 진행 중 변경을 확인한다', async selection => {
-    const db = createMockDb()
+    const db = createFixtureDb()
     const work = db.works.find(w => w.id === 'starlight')!
     work.owner = 'me'
     const api = new StoryPlanUseCase(new InMemoryStoryPlanRepository(new InMemoryWorkRepository(db)))

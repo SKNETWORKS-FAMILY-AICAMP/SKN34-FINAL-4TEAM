@@ -33,6 +33,7 @@ class PublicationService(
     private val drafts: EpisodeDraftRepository,
     private val works: WorkRepository,
     private val policies: ForkPolicyHistoryRepository,
+    private val selectedPolicyEpisodes: ForkPolicyEpisodeRepository,
     @Qualifier("contentEntityManager") private val em: EntityManager,
 ) {
 
@@ -79,7 +80,9 @@ class PublicationService(
             val last=policies.findFirstByWorkIdOrderByRevisionNoDesc(id)
             if(last==null || last.allowCreation!=data.allowFork || last.allowPublication!=data.allowForkPublication) {
                 val revision=(last?.revisionNo ?: -1)+1
-                policies.save(ForkPolicyHistoryEntity(id=contentKey("policy",id,revision.toString()),workId=id,allowCreation=data.allowFork,allowPublication=data.allowForkPublication,revisionNo=revision,episodeScope="all"))
+                val policyId=contentKey("policy",id,revision.toString())
+                policies.saveAndFlush(ForkPolicyHistoryEntity(id=policyId,workId=id,allowCreation=data.allowFork,allowPublication=data.allowForkPublication,revisionNo=revision,episodeScope=last?.episodeScope ?: "all",startEpisodeId=last?.startEpisodeId))
+                if(last?.episodeScope=="selected") selectedPolicyEpisodes.saveAll(selectedPolicyEpisodes.findAllByPolicyHistoryId(last.id).map {ForkPolicyEpisodeEntity(policyId,it.episodeId,id)})
             }
         }
         val next=number+1

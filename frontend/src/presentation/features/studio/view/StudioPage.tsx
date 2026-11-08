@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
@@ -13,6 +13,8 @@ import { MemoView, NarrativeView, StudioTools } from './StudioViews'
 import { WikiView } from './StudioWikiView'
 import { WritingStudio } from './WritingStudio'
 import { RequireRole } from '../../../shared/session/RequireRole'
+import { ContentLoadState } from '../../../shared/ContentLoadState'
+import { useStudioRouteViewModel } from '../viewmodel/useStudioRouteViewModel'
 import { StoryPlanPage } from '../../plans/view/StoryPlanPage'
 
 type VM = ReturnType<typeof useStudioViewModel>
@@ -27,8 +29,16 @@ const VIEW_ID: Record<string, string> = { wiki: 'U38', overview: 'U38', narrativ
 export function StudioPage() {
   const { id = '' } = useParams()
   const [query] = useSearchParams()
-  // Server work IDs use the persisted writing flow; existing named fixtures remain an explicit demo.
-  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id}/> : <RequireRole><DemoStudioPage/></RequireRole>
+  // Server work IDs use the persisted writing flow(narrative는 플롯·장면 계획); 이름 경로는 서버 작품을 찾아 UUID로 보내고 없으면 명시적 데모입니다.
+  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id}/> : <NamedStudioRoute key={id} id={id}/>
+}
+function NamedStudioRoute({id}:{id:string}) {
+  const [query]=useSearchParams()
+  const vm=useStudioRouteViewModel(id)
+  if(vm.data===undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
+  if(vm.data===null) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><Go to="/content" className="btn">내 소설 관리</Go></main></>
+  if(vm.data.work.canonical) return <Navigate replace to={`/studio/${vm.data.work.id}${query.size?'?'+query.toString():''}`}/>
+  return <RequireRole><DemoStudioPage/></RequireRole>
 }
 function DemoStudioPage() {
   const { id = '' } = useParams()

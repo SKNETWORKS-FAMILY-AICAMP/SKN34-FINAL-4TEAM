@@ -4,14 +4,15 @@ import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../../app/store'
-import { createMockDb, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../../../data/mock/fixtureDb'
+import { InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
 import { InMemoryStoryPlanRepository } from '../../../../data/plans/InMemoryStoryPlanRepository'
 import { StoryPlanUseCase } from '../../../../domain/usecases/StoryPlanUseCase'
 import { StoryPlanWorkspace } from './StoryPlanWorkspace'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 function setup() {
-  const db = createMockDb()
+  const db = createFixtureDb()
   const work = db.works.find(w => w.id === 'starlight')!
   work.owner = 'me'
   const api = new StoryPlanUseCase(new InMemoryStoryPlanRepository(new InMemoryWorkRepository(db)))
@@ -20,7 +21,7 @@ function setup() {
 }
 
 async function setupDeletion(sceneCount = 1, demo = true) {
-  const db = createMockDb()
+  const db = createFixtureDb()
   const work = db.works.find(w => w.id === 'starlight')!
   work.owner = 'me'
   const api = new StoryPlanUseCase(new InMemoryStoryPlanRepository(new InMemoryWorkRepository(db)))

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 // React 조립 회귀: CI 통합 계층에서만 실행한다.
+import '../../../../test/fixtureApp'
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
@@ -17,7 +18,7 @@ const renderHome = () => render(<Provider store={createAppStore()}><MemoryRouter
 
 it('본문 랜드마크 하나 안에서 기존 #home 구성을 유지한다', async () => {
   renderHome()
-  await screen.findByText('방금 올라온 포크 소설')
+  await screen.findByText('다르게 이어진 포크 소설')
   const main = screen.getByRole('main')
   expect(screen.getAllByRole('main')).toHaveLength(1)
   expect(main.id).toBe('main')
@@ -47,7 +48,7 @@ it('실시간 인기·급상승은 최근 24시간 조회 기준임을 알리고
 it('순위 조회가 실패하면 빈 목록으로 숨기지 않고 안내하며 나머지 홈은 그대로 보여 준다', async () => {
   vi.spyOn(appContainer.resolve('workSearchRepository'), 'ranking').mockRejectedValue(new Error('offline'))
   renderHome()
-  await screen.findByText('방금 올라온 포크 소설')
+  await screen.findByText('다르게 이어진 포크 소설')
   expect(screen.getAllByText('순위를 불러오지 못했어요.')).toHaveLength(2)
   expect(within(screen.getByLabelText('실시간 인기 TOP10')).queryByRole('list')).toBeNull()
   expect(screen.queryByText('최근 24시간 동안 조회된 소설이 아직 없어요.')).toBeNull()

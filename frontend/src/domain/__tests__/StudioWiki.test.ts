@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../data/mock/fixtureDb'
+import { InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { linkParts, wikiState } from '../entities/wiki'
 import { makeFork } from '../entities/work'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
 const setup = async () => {
-  const db = createMockDb()
+  const db = createFixtureDb()
   const useCase = new StudioUseCase(new InMemoryWorkRepository(db), new InMemoryCreditRepository(db), new InMemoryFeedbackRepository(db), new InMemoryWorldRepository(db))
   await useCase.open('starlight', undefined, 'user')
   const w = () => db.works.find((x) => x.id === 'starlight')!

@@ -44,7 +44,7 @@ class WorkController(
     @PutMapping("/works/{id}/policy")
     fun policy(@PathVariable id: String,principal: Principal,@Valid @RequestBody data: PolicyRequest): WorkResponse = service.policy(id,principal.name,data)
 
-    /** 공개 작품 목록을 초안 없이 반환한다. 익명 조회를 허용한다. q(제목·해시태그·장르 부분 일치)·f(all|title|tag|genre)·sort(latest|view)는 선택이며 잘못된 f·sort는 422다. */
+    /** 공개 작품 목록을 초안 없이 반환한다. 익명 조회를 허용한다. q(제목·작가명·해시태그·장르 부분 일치)·f(all|title|author|tag|genre)·sort(latest|view)는 선택이며 잘못된 f·sort는 422다. */
     @GetMapping("/public/works")
     fun publicList(@RequestParam(required=false) q: String?,@RequestParam(required=false) f: String?,@RequestParam(required=false) sort: String?): WorkListResponse = service.publicList(q,f,sort)
 

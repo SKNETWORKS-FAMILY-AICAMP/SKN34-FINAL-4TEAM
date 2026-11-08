@@ -5,17 +5,33 @@ import {settingCategories, type Draft, type SettingInput, type WorkRegistration}
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
-import { publicWork, toCardWork } from './publicWork'
+import { mapReadingWork } from './readingWork'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
 const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
-const episode = z.object({number:z.number().int().positive(),version:z.number().int().positive(),title:z.string(),body:z.string(),inherited:z.boolean()})
+const episode = z.object({number:z.number().int().positive(),version:z.number().int().positive(),versionId:z.string().optional(),title:z.string(),body:z.string(),inherited:z.boolean()})
 const source = z.object({workId:z.string(),title:z.string(),episode:z.number().int(),version:z.number().int(),direction:z.string()})
 const work = z.object({creationType:z.enum(['ORIGINAL','EXTERNAL_DERIVATIVE']).optional(),genres:z.array(z.string()).optional(),hashtags:z.array(z.string()).optional(),hasWritingEpisode:z.boolean().optional(),id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft})
 const setting = z.object({id:z.string(),versionId:z.string(),name:z.string(),content:z.string(),category:z.enum(settingCategories),tags:z.array(z.string()),visibility:z.enum(['private','public']),fromEpisode:z.number().int().positive(),toEpisode:z.number().int().positive().nullable(),knownBy:z.array(z.string()),evidence:z.string()})
 const world = z.object({id:z.string(),name:z.string(),revision:z.number().int(),mode:z.enum(['own','following','independent']),basis:z.object({episode:z.number(),version:z.number(),settings:z.array(setting)}).nullable(),draft:setting.omit({versionId:true}).nullable(),settings:z.array(setting),drafts:z.array(setting.omit({versionId:true})).default([]),history:z.array(setting),sourceToken:z.string(),changes:z.array(z.object({id:z.string(),settingId:z.string(),before:setting.nullable(),after:setting.nullable(),decision:z.enum(['pending','apply','reject'])}))})
 const context = z.object({title:z.string(),summary:z.string(),basisEpisode:z.number().int(),character:z.string(),settings:z.array(setting),draft:z.string(),episodes:z.array(z.object({number:z.number().int(),version:z.number().int(),versionId:z.string(),title:z.string(),sourceCharacters:z.number(),excerpts:z.array(z.object({start:z.number(),end:z.number(),text:z.string()}))})),selection:z.object({method:z.string(),omittedCharacters:z.number(),eligibleEpisodes:z.number(),note:z.string()})})
 const proposal = z.object({id:z.string(),text:z.string().min(1),model:z.string(),revision:z.number().int(),status:z.enum(['pending','accepted']),prompt:z.string().optional(),baseBody:z.string().optional(),createdAt:z.string().optional(),context:context.optional()})
+
+const readingWork = work.omit({draft:true}).extend({
+  slug:z.string().nullable(),authorName:z.string(),ownerId:z.string().min(1),revision:z.number().int().nonnegative(),
+  theme:z.enum(['hanji','star','neon']),hook:z.string(),hanja:z.string().nullable(),hero:z.tuple([z.string(),z.string()]).nullable(),heroBg:z.string().nullable(),
+  forkableEpisodes:z.array(z.number().int().positive()),episodes:z.array(episode.extend({versionId:z.string()})),
+  /** 최근 24시간 조회 수(서버 값). 공개 목록·검색·랭킹 응답에서만 채워지고 그 밖에는 0이다. */
+  views:z.number().int().nonnegative(),
+})
+const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.string(),name:z.string(),body:z.string(),
+  aliases:z.array(z.string()),tags:z.array(z.string()),properties:z.array(z.object({name:z.string(),value:z.string()})),
+  color:z.string(),image:z.string().nullable(),episode:z.number().int().nullable(),line:z.string().nullable(),participants:z.array(z.string()),
+  knowledge:z.array(z.object({text:z.string(),knownAt:z.number().int(),publicAt:z.number().int()})),links:z.array(z.object({to:z.string(),kind:z.string()})),
+})
+const readingWorld = z.object({workId:z.string(),episode:z.number().int().positive(),documents:z.array(readingDocument)})
+export type ReadingWorkRecord = z.infer<typeof readingWork>
+export type ReadingWorldRecord = z.infer<typeof readingWorld>
 
 export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepository {
   private readonly fetcher?: typeof fetch
@@ -58,13 +74,15 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     const rows = await this.request('/public/works', z.array(work.omit({draft:true})), 'GET', undefined, signal)
     return rows.map(w=>({...w,readOnly:true,draft:{title:'',body:'',revision:0}}))
   }
+  readingList(owned = false, signal?: AbortSignal) { return this.request(owned ? '/works' : '/public/works',z.array(readingWork),'GET',undefined,signal) }
+  readingWorld(id:string,episode:number,signal?:AbortSignal) { return this.request(`/public/works/${encodeURIComponent(id)}/world?episode=${episode}`,readingWorld,'GET',undefined,signal) }
   async search(query: WorkSearchQuery, signal?: AbortSignal) {
     const params = new URLSearchParams({ f: query.f, sort: query.sort })
     if (query.q) params.set('q', query.q)
-    return (await this.request(`/public/works?${params}`, z.array(publicWork), 'GET', undefined, signal)).map(toCardWork)
+    return (await this.request(`/public/works?${params}`, z.array(readingWork), 'GET', undefined, signal)).map((w) => mapReadingWork(w))
   }
   async ranking(kind: WorkRankingKind, signal?: AbortSignal) {
-    return (await this.request(`/public/works/ranking?kind=${kind}`, z.array(publicWork), 'GET', undefined, signal)).map(toCardWork)
+    return (await this.request(`/public/works/ranking?kind=${kind}`, z.array(readingWork), 'GET', undefined, signal)).map((w) => mapReadingWork(w))
   }
   async recordView(id: string, number: number, signal?: AbortSignal) {
     if (!getAccessToken()) return // 익명 열람은 회원 식별이 없어 기록하지 않는다.

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../../../../test/fixtureApp'
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
@@ -45,13 +46,19 @@ it('검색 범위와 정렬의 선택 상태를 aria-current로 알린다', asyn
 })
 
 it('서버가 지원하지 않는 옛 주소의 범위·정렬 값은 기본값(전체·최신 순)으로 읽는다', async () => {
-  renderAt('/search?f=author&sort=pop')
+  renderAt('/search?f=body&sort=pop')
   const scope = await screen.findByRole('group', { name: '검색 범위' })
   const sort = screen.getByRole('group', { name: '정렬' })
   expect(current(scope, '전체')).toBe('true')
   expect(current(sort, '최신 순')).toBe('true')
-  expect(within(scope).queryByRole('link', { name: '작가' })).toBeNull()
   expect(within(sort).queryByRole('link', { name: '인기 순' })).toBeNull()
+})
+
+it('작가 범위는 서버가 지원하므로 주소의 f=author가 그대로 선택된다', async () => {
+  renderAt('/search?f=author')
+  const scope = await screen.findByRole('group', { name: '검색 범위' })
+  expect(current(scope, '작가')).toBe('true')
+  expect(scope.querySelectorAll('[aria-current]')).toHaveLength(1)
 })
 
 it('검색이 실패하면 빈 결과가 아니라 오류 안내를 보여 준다', async () => {

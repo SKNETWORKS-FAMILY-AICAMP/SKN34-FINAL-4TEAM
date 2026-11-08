@@ -10,10 +10,9 @@ import { ReadingUseCase } from '../usecases/ReadingUseCase'
 /** 서버가 돌려주는 카드용 Work(메모리 시드와 id가 겹치지 않는다) */
 const serverWork = (id: string, over: Partial<Work> = {}): Work => ({ ...seedWorks(0)[0], id, title: `서버 ${id}`, views: 10, parent: undefined, forkAt: undefined, ...over })
 
-function setup(search?: Partial<WorkSearchRepository>) {
-  const works = seedWorks(0)
+function setup(search?: Partial<WorkSearchRepository>, works = seedWorks(0)) {
   const state: ReadingProgress = { last: {}, read: {}, seen: {}, liked: {} }
-  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
+  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (work) => work, createFork: async () => ({ id: 'forked' }), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async () => {} }
   const repo: WorkSearchRepository | undefined = search && { search: vi.fn(async () => []), ranking: vi.fn(async () => []), recordView: vi.fn(async () => {}), ...search }
   return { useCase: new ReadingUseCase(workRepository, readingRepository, repo) }
@@ -45,6 +44,14 @@ describe('ReadingUseCase.getHome 서버 랭킹', () => {
     expect(home.top10).toEqual([])
     expect(home.rising).toEqual([])
     expect(home.originals).toHaveLength(4)
+  })
+
+  it('순위 섹션이 실제 순위인지(ranked) 알린다: 서버 랭킹(실패 포함)과 지표가 있는 목업은 true, 지표 없는 서버 작품의 메모리 목록은 false', async () => {
+    const placeholder = seedWorks(0).map((w) => ({ ...w, canonical: true, statisticsSupported: false }))
+    expect((await setup({ ranking: async () => [serverWork('t1', { statisticsSupported: false })] }, placeholder).useCase.getHome(null, '추천')).ranked).toBe(true)
+    expect((await setup({ ranking: async () => { throw new Error('offline') } }, placeholder).useCase.getHome(null, '추천')).ranked).toBe(true)
+    expect((await setup().useCase.getHome(null, '추천')).ranked).toBe(true)
+    expect((await setup(undefined, placeholder).useCase.getHome(null, '추천')).ranked).toBe(false)
   })
 
   it('저장소를 주입하지 않은 목업은 기존 메모리 순위를 유지한다', async () => {
@@ -114,6 +121,65 @@ describe('ReadingUseCase.recordViews 공개 열람 기록', () => {
     const recordView = vi.fn(async () => { throw new Error('offline') })
     const { useCase } = setup({ recordView })
     await expect(useCase.recordViews({ id: 'w', readOnly: true, episodes: [episode(1), episode(2)] })).resolves.toBeUndefined()
+    expect(recordView).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ReadingUseCase.openEpisode 회차 열람 조회 기록', () => {
+  const server = () => seedWorks(0).map((w) => ({ ...w, canonical: true }))
+
+  it('로그인 회원이 서버 작품의 회차를 열면 그 회차 번호로 기록한다', async () => {
+    const recordView = vi.fn(async () => {})
+    const result = await setup({ recordView }, server()).useCase.openEpisode('guunmong', 2, 'user')
+    expect(result).toMatchObject({ n: 2 })
+    expect(recordView.mock.calls).toEqual([['guunmong', 2]])
+  })
+
+  it('Fork는 상속분이 아닌 자체 회차만 이어진 번호로 기록한다(상속 회차는 원작 몫)', async () => {
+    const recordView = vi.fn(async () => {})
+    const { useCase } = setup({ recordView }, server())
+    await useCase.openEpisode('cloud', 1, 'user')
+    await useCase.openEpisode('cloud', 2, 'user')
+    expect(recordView).not.toHaveBeenCalled()
+    await useCase.openEpisode('cloud', 3, 'user')
+    expect(recordView.mock.calls).toEqual([['cloud', 3]])
+  })
+
+  it('익명·메모리 데모 작품·검색 저장소가 없는 목업은 요청하지 않는다', async () => {
+    const recordView = vi.fn(async () => {})
+    await setup({ recordView }, server()).useCase.openEpisode('guunmong', 2, null)
+    await setup({ recordView }).useCase.openEpisode('guunmong', 2, 'user')
+    await expect(setup(undefined, server()).useCase.openEpisode('guunmong', 2, 'user')).resolves.toMatchObject({ n: 2 })
+    expect(recordView).not.toHaveBeenCalled()
+  })
+
+  it('소유자가 연 비공개 작품은 서버가 404로 거절하므로 요청하지 않는다(공개로 바꾸면 기록한다)', async () => {
+    const recordView = vi.fn(async () => {})
+    const works = server()
+    const mine = works.find((w) => w.id === 'starlight')!
+    mine.private = true
+    const { useCase } = setup({ recordView }, works)
+    await expect(useCase.openEpisode('starlight', 2, 'user')).resolves.toMatchObject({ n: 2 })
+    expect(recordView).not.toHaveBeenCalled()
+    mine.private = false
+    await useCase.openEpisode('starlight', 2, 'user')
+    expect(recordView.mock.calls).toEqual([['starlight', 2]])
+  })
+
+  it('숨긴 회차와 볼 수 없는 작품은 기록하지 않는다', async () => {
+    const recordView = vi.fn(async () => {})
+    const works = server()
+    works.find((w) => w.id === 'postman')!.eps[0].hidden = true
+    const { useCase } = setup({ recordView }, works)
+    expect(await useCase.openEpisode('postman', 1, 'user')).toBe('hidden')
+    expect(await useCase.openEpisode('nope', 1, 'user')).toBeNull()
+    expect(recordView).not.toHaveBeenCalled()
+  })
+
+  it('기록이 실패해도 읽기를 막지 않는다', async () => {
+    const recordView = vi.fn(async () => { throw new Error('offline') })
+    const result = await setup({ recordView }, server()).useCase.openEpisode('guunmong', 3, 'user')
+    expect(result).toMatchObject({ n: 3 })
     expect(recordView).toHaveBeenCalledTimes(1)
   })
 })

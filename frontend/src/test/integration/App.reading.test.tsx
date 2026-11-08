@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { asValue } from 'awilix/browser'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { renderApp } from '../renderApp'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
@@ -36,11 +39,11 @@ describe('소설 상세 (U04)', () => {
     expect(list()).toEqual(['4', '3', '2', '1'])
     fireEvent.click(screen.getByRole('button', { name: '관심 소설' }))
     await waitFor(() => expect(screen.getByRole('button', { name: '관심 소설' }).getAttribute('aria-pressed')).toBe('true'))
-    expect(screen.getByRole('status').textContent).toBe('관심 소설에 담았어요')
+    expect(screen.getByRole('status').textContent).toBe('이 창의 관심 소설에 담았어요 · 계정에 저장되지 않아요')
     expect(document.getElementById('lkc')!.textContent).toBe('1.2만')
     fireEvent.click(screen.getByRole('button', { name: '공유' }))
     expect(screen.getByRole('status').textContent).toBe('링크 공유는 데모예요 (실제 복사 없음)')
-    screen.getByText('🔥 인기 포크')
+    screen.getByText('이 원작의 포크 소설')
   })
 
   it('소설 신고는 소설 단위 시트로 열리고 Esc로 닫으면 포커스가 신고 버튼으로 돌아온다', async () => {
@@ -174,6 +177,36 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
     cleanup()
     renderApp('/', user())
     await screen.findByRole('link', { name: /별빛 서약의 탑 · 3화 재의 사절/ })
+  })
+})
+
+describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
+  it('does not present canonical placeholders as rankings or editable sentence actions', async () => {
+    const works = appContainer.resolve('mockDb').works
+    const searchedUseCase = appContainer.resolve('readingUseCase')
+    for (const work of works) { work.canonical = true; work.statisticsSupported = false }
+    try {
+      renderApp('/work/guunmong')
+      await screen.findByRole('heading', { name: '구운몽' })
+      expect(document.querySelector('.ifs .md')).toBeNull()
+      expect(document.getElementById('lkc')).toBeNull()
+      cleanup()
+      renderApp('/read/guunmong/2', user())
+      await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
+      expect(document.querySelector('#text [data-s]')).toBeNull()
+      expect(screen.queryByRole('button', { name: '등록' })).toBeNull()
+      cleanup()
+      // 서버 순위가 없는 목록(지표 없는 정본 작품)은 순위·메달로 보이지 않는다(서버 랭킹이 있는 홈은 App.home이 다룬다).
+      const { workRepository, readingRepository } = appContainer.cradle
+      appContainer.register({ readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository)) })
+      renderApp('/')
+      await screen.findByRole('heading', { name: '공개 소설' })
+      expect(document.querySelector('#home .md, #home .rk .top')).toBeNull()
+    } finally {
+      cleanup()
+      appContainer.register({ readingUseCase: asValue(searchedUseCase) })
+      for (const work of works) { delete work.canonical; delete work.statisticsSupported }
+    }
   })
 })
 

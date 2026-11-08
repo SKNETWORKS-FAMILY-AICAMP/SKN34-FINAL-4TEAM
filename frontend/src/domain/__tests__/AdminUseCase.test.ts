@@ -10,7 +10,7 @@ import { AdminUseCase } from '../usecases/AdminUseCase'
 function fakes() {
   let works = seedWorks(0), admin = seedAdmin(), chats = null as null | { id: string; workId: string; character: string; enabled: boolean }[]
   const db = { queue: [] as ReviewItem[], reports: [] as ReaderReport[], inq: [] as Inquiry[], credits: { credits: 100, usage: [], failNext: false, alerts: [] } as DemoCredits }
-  const workRepository = { listWorks: async () => structuredClone(works), listWorlds: async () => seedWorlds(), saveWork: async (w: Work) => { works = works.map((x) => (x.id === w.id ? w : x)) }, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
+  const workRepository = { listWorks: async () => structuredClone(works), listWorlds: async () => seedWorlds(), readWorld: async (w: Work) => w, createFork: async () => { throw new Error('not used') }, saveWork: async (w: Work) => { works = works.map((x) => (x.id === w.id ? w : x)) }, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const replace = <T extends { id: string }>(l: T[], x: T) => l.splice(l.findIndex((y) => y.id === x.id), 1, x)
   const feedbackRepository = {
     listComments: async () => [], addComment: async () => {}, countComments: async () => 0, listCommentLikes: async () => ({}), toggleCommentLike: async () => {},

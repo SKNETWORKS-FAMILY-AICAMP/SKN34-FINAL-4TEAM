@@ -93,9 +93,9 @@ class ContentAuthorizationTest {
         mvc.perform(get("/api/v1/public/works/ranking")).andExpect(status().isBadRequest())
     }
     @Test fun `invalid search options keep the 422 detail contract`() {
-        `when`(works.publicList(null,"author",null)).thenThrow(ai.storyfork.content._common.exception.ContentFailure(422,"f 값을 확인해 주세요."))
+        `when`(works.publicList(null,"body",null)).thenThrow(ai.storyfork.content._common.exception.ContentFailure(422,"f 값을 확인해 주세요."))
         `when`(works.ranking("daily")).thenThrow(ai.storyfork.content._common.exception.ContentFailure(422,"kind 값을 확인해 주세요."))
-        mvc.perform(get("/api/v1/public/works").param("f","author")).andExpect(status().`is`(422))
+        mvc.perform(get("/api/v1/public/works").param("f","body")).andExpect(status().`is`(422))
             .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("f 값을 확인해 주세요."))
         mvc.perform(get("/api/v1/public/works/ranking").param("kind","daily")).andExpect(status().`is`(422))
     }

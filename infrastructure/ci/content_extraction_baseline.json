@@ -141,6 +141,10 @@
         "\"/works/{id}/world\""
       ],
       [
+        "GetMapping",
+        "\"/public/works/{id}/world\""
+      ],
+      [
         "PutMapping",
         "\"/works/{id}/settings/{sid}/draft\""
       ],

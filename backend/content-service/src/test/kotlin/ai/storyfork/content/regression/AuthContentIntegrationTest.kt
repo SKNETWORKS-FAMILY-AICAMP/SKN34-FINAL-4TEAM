@@ -3,6 +3,15 @@ package ai.storyfork.content.regression
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.fixture.CsrfFixture
+import ai.storyfork.content.episode.service.dto.DraftRequest
+import ai.storyfork.content.episode_version.service.EpisodeVersionService
+import ai.storyfork.content.publication.service.PublicationService
+import ai.storyfork.content.publication.service.dto.PublishRequest
+import ai.storyfork.content.work.service.WorkService
+import ai.storyfork.content.work.service.dto.CreateWorkRequest
+import ai.storyfork.content.world.service.WorldService
+import ai.storyfork.content.world.service.dto.SettingPayload
+import ai.storyfork.content.world.service.dto.SettingRequest
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -33,6 +42,10 @@ class AuthContentIntegrationTest {
     @MockitoBean lateinit var core:CoreAuthClient
     @Autowired @Qualifier("contentDataSource") lateinit var source:DataSource
     @Autowired lateinit var json:JsonMapper
+    @Autowired lateinit var works:WorkService
+    @Autowired lateinit var versions:EpisodeVersionService
+    @Autowired lateinit var publication:PublicationService
+    @Autowired lateinit var worlds:WorldService
     private val jdbc get()=JdbcTemplate(source)
     private val client=HttpClient.newHttpClient()
     private fun request(path:String)=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).header("Accept","application/json")
@@ -54,6 +67,33 @@ class AuthContentIntegrationTest {
         val versions=jdbc.queryForList("SELECT version FROM content_schema_history WHERE success AND type <> 'BASELINE'",String::class.java)
         assertTrue(versions.containsAll((1..9).map(Int::toString)))
         assertTrue(source.connection.use { c -> c.metaData.getTables(null,"public","auth_member",null).use { !it.next() } },"Content does not initialize Auth")
+    }
+
+    @Test fun `public wiki HTTP requires a published episode and never trusts ownership headers`() {
+        val owner=actor().toString()
+        val work=works.create(owner,CreateWorkRequest("public wiki boundary"))
+        val path="/api/v1/public/works/${work.id}/world"
+        assertEquals(404,send(request("$path?episode=1").header("X-User-Id",owner)).statusCode())
+        for((name,visibility,at) in listOf(Triple("visible","public",1),Triple("private","private",1),Triple("future","public",2))) {
+            val world=worlds.read(work.id,owner)
+            val saved=worlds.saveDraft(work.id,"new",owner,SettingRequest(world.revision,
+                SettingPayload(name=name,content="${name}-body",visibility=visibility,fromEpisode=at,knownBy=listOf("*")),world.sourceToken))
+            worlds.commit(work.id,saved.draft!!.id,owner,saved.revision)
+        }
+        val saved=versions.saveCurrent(work.id,owner,DraftRequest("1화","published body",work.revision))
+        publication.publishCurrent(work.id,owner,PublishRequest(saved.draft.revision,true,versionId=saved.version.id))
+        val response=send(request("$path?episode=1"))
+        assertEquals(200,response.statusCode(),response.body())
+        val tree=json.readTree(response.body())
+        assertEquals(work.id,tree.path("workId").asText())
+        assertEquals(1,tree.path("episode").asInt())
+        // Jackson 3.1의 JsonNode.map(Function)은 노드 자신에 적용돼 배열을 순회하지 않으므로 List로 바꾼 뒤 map한다.
+        assertEquals(listOf("visible"),tree.path("documents").toList().map {it.path("name").asText()})
+        assertFalse(response.body().contains("private-body"));assertFalse(response.body().contains("future-body"))
+        for(query in listOf("","?episode=bad")) assertEquals(400,send(request(path+query)).statusCode())
+        for(episode in listOf(0,-1,2)) assertEquals(404,send(request("$path?episode=$episode").header("X-User-Id",owner)).statusCode())
+        assertEquals(404,send(request("/api/v1/public/works/${UUID.randomUUID()}/world?episode=1")).statusCode())
+        assertEquals(401,send(request("/api/v1/works/${work.id}/world").header("X-User-Id",owner)).statusCode())
     }
 
     @Test fun `only public GET is anonymous and private writes require csrf and allowed origin`() {

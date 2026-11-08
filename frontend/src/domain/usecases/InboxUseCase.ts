@@ -1,6 +1,6 @@
 import { isMine } from '../entities/work'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import type { WorkRepository } from '../repositories/WorkRepository'
+import { FEEDBACK_UNAVAILABLE, type WorkRepository } from '../repositories/WorkRepository'
 
 export type InboxAct = 'approve' | 'reject' | 'resolve' | 'publishRevision'
 
@@ -32,6 +32,7 @@ export class InboxUseCase {
     const it = inbox.find((i) => i.id === id)
     const w = it && works.find((x) => x.id === it.w)
     if (!it || !w || !isMine(w)) return null
+    if (w.canonical) return FEEDBACK_UNAVAILABLE
     const r = reports.find((x) => x.id === it.rid)
     const save = async (msg: string) => {
       await this.feedbackRepository.saveInbox(it)

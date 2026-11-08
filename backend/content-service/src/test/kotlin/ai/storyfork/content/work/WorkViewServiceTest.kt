@@ -14,6 +14,7 @@ import ai.storyfork.content.work.domain.viewDate
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.entity.WorkViewEntity
 import ai.storyfork.content.work.entity.WorkWorldHistoryEntity
+import ai.storyfork.content.work.repository.ForkPolicyEpisodeRepository
 import ai.storyfork.content.work.repository.ForkPolicyHistoryRepository
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.repository.WorkViewRepository
@@ -88,8 +89,8 @@ class WorkViewServiceTest {
         `when`(works.findById("work")).thenReturn(Optional.of(WorkEntity(id = "work", ownerId = "author", restricted = true)))
         `when`(worlds.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkWorldHistoryEntity(workId = "work", worldId = "world"))
         `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkPublicationHistoryEntity(workId = "work", visibility = "public"))
-        val restricted = WorkAccessService(works, worlds, visibility, mock(ForkPolicyHistoryRepository::class.java), mock(ForkRepository::class.java),
-            mock(CheckpointRepository::class.java), mock(EpisodeRepository::class.java), mock(EpisodeVersionRepository::class.java), mock(EntityManager::class.java))
+        val restricted = WorkAccessService(works, worlds, visibility, mock(ForkPolicyHistoryRepository::class.java), mock(ForkPolicyEpisodeRepository::class.java),
+            mock(ForkRepository::class.java), mock(CheckpointRepository::class.java), mock(EpisodeRepository::class.java), mock(EpisodeVersionRepository::class.java), mock(EntityManager::class.java))
 
         assertEquals(404, failure { WorkViewService(restricted, current, views).record("work", 1, "reader") }.status)
 

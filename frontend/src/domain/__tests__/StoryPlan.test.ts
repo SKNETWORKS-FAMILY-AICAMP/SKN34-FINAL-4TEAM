@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createMockDb, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../data/mock/fixtureDb'
+import { InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
 import { StoryPlanUseCase } from '../usecases/StoryPlanUseCase'
 
 const plot = { kind: 'plot' as const, parentId: null, title: '새로운 선택', content: '계획', episodeNumber: null, characterIds: [], placeIds: [] }
 function setup() {
-  const db = createMockDb()
+  const db = createFixtureDb()
   const work = db.works.find(w => w.id === 'starlight')!
   work.owner = 'me'
   const repo = new InMemoryStoryPlanRepository(new InMemoryWorkRepository(db))

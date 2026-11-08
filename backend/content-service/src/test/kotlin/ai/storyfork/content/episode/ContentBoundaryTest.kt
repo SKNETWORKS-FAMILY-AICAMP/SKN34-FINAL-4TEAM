@@ -89,7 +89,7 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        assertEquals((1..14).toList(), versions.sorted())
+        assertEquals((1..15).toList(), versions.sorted())
         Files.list(migration).use { paths ->
             assertFalse(paths.anyMatch { it.toString().endsWith(".sql") }, "Unscoped Flyway SQL")
         }

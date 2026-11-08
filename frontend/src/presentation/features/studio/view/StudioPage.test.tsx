@@ -5,7 +5,9 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
-import { createMockDb } from '../../../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../../../data/mock/fixtureDb'
+import { InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
+import { asValue } from 'awilix/browser'
 import { StudioPage } from './StudioPage'
 
 // This file uses its own container; production and other tests keep their repositories.
@@ -15,7 +17,9 @@ vi.mock('../../../../app/appContainer', async () => {
 })
 
 beforeEach(() => {
-  Object.assign(appContainer.resolve('mockDb'), createMockDb())
+  const db = appContainer.resolve('mockDb')
+  Object.assign(db, createFixtureDb())
+  appContainer.register({ workRepository: asValue(new InMemoryWorkRepository(db)) })
   Range.prototype.getBoundingClientRect = () => new DOMRect() // jsdom에는 없음
 })
 afterEach(() => { cleanup(); document.title = 'STORYFORK' })

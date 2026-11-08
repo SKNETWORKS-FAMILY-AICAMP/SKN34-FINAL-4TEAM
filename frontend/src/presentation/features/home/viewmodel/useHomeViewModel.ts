@@ -13,14 +13,14 @@ export function useHomeViewModel(readingUseCase: ReadingUseCase = appContainer.r
   const role = useAppSelector((s) => s.session.role)
   const { chip, guide, firstHome, hero } = useAppSelector((s) => s.ui)
   const dispatch = useAppDispatch()
-  const { data, isError } = useAsyncData(() => readingUseCase.getHome(role, chip), [readingUseCase, role, chip])
+  const { data, isError, isLoading, retry } = useAsyncData(() => readingUseCase.getHome(role, chip), [readingUseCase, role, chip])
   useScreenId(chip === HOME_CHIPS[0][0] ? 'U01' : 'U02')
   // 캐러셀 effect가 렌더마다 타이머를 다시 걸지 않도록 고정합니다.
   const stepHero = useCallback((d: number) => { dispatch(uiActions.stepHero(d)) }, [dispatch])
   const setHero = useCallback((i: number) => { dispatch(uiActions.setHero(i)) }, [dispatch])
   return {
     home: data,
-    isError,
+    isError, isLoading, retry,
     chips: HOME_CHIPS.map((c) => c[0]),
     chip,
     guide,
