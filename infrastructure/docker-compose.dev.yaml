@@ -36,9 +36,9 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
-      CORE_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
-      CORE_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
       CORE_SMTP_HOST: mailpit
       CORE_SMTP_PORT: 1025
       AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN}
@@ -52,9 +52,9 @@ services:
     platform: linux/amd64
     labels: *cd-labels
     environment:
-      CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
-      CONTENT_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
-      CONTENT_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
 
   operations-service:
@@ -65,9 +65,9 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      OPERATIONS_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
-      OPERATIONS_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
-      OPERATIONS_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
 
   # 동일 DB의 전용 schema/이력. 콘텐츠 이미지의 명시적인 compose run에서만 실행한다.
   worldstudio-migrate:
@@ -78,9 +78,9 @@ services:
     entrypoint: [java, -Dloader.main=ai.storyfork.content.world.migration.WorldStudioMigration, -cp, /app/application.jar, org.springframework.boot.loader.launch.PropertiesLauncher]
     environment:
       WORLDSTUDIO_MIGRATION_ENVIRONMENT: ${WORLDSTUDIO_MIGRATION_ENVIRONMENT:-}
-      CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
-      CONTENT_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
-      CONTENT_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
       WORLDSTUDIO_EXPECTED_DATABASE_URL: ${WORLDSTUDIO_EXPECTED_DATABASE_URL:-}
       WORLDSTUDIO_EXPECTED_DATABASE_USER: ${WORLDSTUDIO_EXPECTED_DATABASE_USER:-}
       WORLDSTUDIO_BACKUP_RESTORE_REFERENCE: ${WORLDSTUDIO_BACKUP_RESTORE_REFERENCE:-}

@@ -34,7 +34,7 @@ import tools.jackson.databind.ObjectMapper
     "app.content.enabled=true", "app.setting-attachments.enabled=true",
     "spring.datasource.url=\${TEST_ATTACHMENT_DATABASE_URL}",
     "spring.datasource.username=content_test", "spring.datasource.password=",
-    "CONTENT_DATABASE_URL=\${TEST_ATTACHMENT_DATABASE_URL}", "CONTENT_DATABASE_USER=content_test", "CONTENT_DATABASE_PASSWORD=",
+    "DATABASE_URL=\${TEST_ATTACHMENT_DATABASE_URL}", "DATABASE_USER=content_test", "DATABASE_PASSWORD=",
     "spring.mail.host=127.0.0.1", "spring.mail.port=1",
     "app.auth.public-origin=http://localhost:5173", "app.auth.mail-from=test@example.invalid",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",

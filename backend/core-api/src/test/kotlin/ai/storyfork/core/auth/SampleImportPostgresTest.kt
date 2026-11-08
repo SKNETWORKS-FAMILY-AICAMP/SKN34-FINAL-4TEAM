@@ -20,9 +20,9 @@ class SampleImportPostgresTest {
 
     private fun isolated(test: (JdbcTemplate, (String?) -> Flyway) -> Unit) {
         val schema = "sample_auth_" + UUID.randomUUID().toString().replace("-", "")
-        val url = requireNotNull(System.getenv("CORE_DATABASE_URL"))
-        val user = requireNotNull(System.getenv("CORE_DATABASE_USER"))
-        val password = System.getenv("CORE_DATABASE_PASSWORD") ?: ""
+        val url = requireNotNull(System.getenv("DATABASE_URL"))
+        val user = requireNotNull(System.getenv("DATABASE_USER"))
+        val password = System.getenv("DATABASE_PASSWORD") ?: ""
         val admin = JdbcTemplate(DriverManagerDataSource(url, user, password))
         val scoped = DriverManagerDataSource(url + (if ('?' in url) "&" else "?") + "currentSchema=" + schema, user, password)
         admin.execute("CREATE SCHEMA $schema")

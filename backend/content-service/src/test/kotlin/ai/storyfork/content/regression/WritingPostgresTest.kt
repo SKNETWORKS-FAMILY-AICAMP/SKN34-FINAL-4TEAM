@@ -13,7 +13,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource
 
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 @org.springframework.context.annotation.Import(ai.storyfork.content.fixture.ContentTestConfig::class)
-@SpringBootTest(properties=["app.content.enabled=true","CONTENT_DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","CONTENT_DATABASE_USER=content_test","CONTENT_DATABASE_PASSWORD="])
+@SpringBootTest(properties=["app.content.enabled=true","DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=content_test","DATABASE_PASSWORD="])
 class WritingPostgresTest {
     @Autowired lateinit var service: ContentTestDriver
     private val jdbc get() = JdbcTemplate(DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test",""))

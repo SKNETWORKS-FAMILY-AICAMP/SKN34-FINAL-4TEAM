@@ -6,11 +6,11 @@
 
 ## 실행 계약
 
-> **Core→Content 추출 후 현재 계약:** 명시 main은 Content 이미지의 `ai.storyfork.content.world.migration.WorldStudioMigration`이며 기존 같은 DB를 `CONTENT_DATABASE_URL/USER/PASSWORD`로 받는다. 서버는 `contentDataSource`와 studio-only EntityManager/TransactionManager로 validate만 하며 Auth를 스캔하지 않는다. CD는 fresh 전환 승인 후 ingress/구 writer 중지 → opt-in migration → 새 앱 시작 순서이며 실패 시 ingress를 멈춘 채 자동 rollback하지 않는다. 로컬은 선택 순수 `unitTest`만 허용하고 아래 PostgreSQL/통합 명령은 hosted CI 전용이다. **아래 Core 패키지·기본 persistence unit·통합 로컬 실행 설명은 추출 전 기록으로 사용하지 않는다.** 최신 [Content 안내](../../../../../../README.md)와 [배포 계약](../../../../../../../../docs/deployment/worldstudio-v1-rollout.md)을 우선한다.
+> **Core→Content 추출 후 현재 계약:** 명시 main은 Content 이미지의 `ai.storyfork.content.world.migration.WorldStudioMigration`이며 기존 같은 DB를 `DATABASE_URL/USER/PASSWORD`로 받는다. 서버는 `contentDataSource`와 studio-only EntityManager/TransactionManager로 validate만 하며 Auth를 스캔하지 않는다. CD는 fresh 전환 승인 후 ingress/구 writer 중지 → opt-in migration → 새 앱 시작 순서이며 실패 시 ingress를 멈춘 채 자동 rollback하지 않는다. 로컬은 선택 순수 `unitTest`만 허용하고 아래 PostgreSQL/통합 명령은 hosted CI 전용이다. **아래 Core 패키지·기본 persistence unit·통합 로컬 실행 설명은 추출 전 기록으로 사용하지 않는다.** 최신 [Content 안내](../../../../../../README.md)와 [배포 계약](../../../../../../../../docs/deployment/worldstudio-v1-rollout.md)을 우선한다.
 
 기존 서버의 Auth Flyway location과 DataSource는 변경하지 않았다. 이 migration은 평소 서버 시작에 실행되지 않는다. 독립 JPA Repository·Service는 이 schema를 사용하며 HTTP API·기존 UI와는 아직 연결하지 않았다.
 
-명시 실행 시 기존 Flyway API의 다음 설정을 사용한다. 입력은 기존 `CORE_DATABASE_URL/USER/PASSWORD`를 사용하며 실제 Core 개발 DB에 대한 allowlist·백업 복원 증거를 확인한다. 별도 접속 설정은 두지 않는다.
+명시 실행 시 기존 Flyway API의 다음 설정을 사용한다. 입력은 기존 `DATABASE_URL/USER/PASSWORD`를 사용하며 실제 Core 개발 DB에 대한 allowlist·백업 복원 증거를 확인한다. 별도 접속 설정은 두지 않는다.
 
 ```java
 Flyway.configure().dataSource(confirmedUrl, user, password)

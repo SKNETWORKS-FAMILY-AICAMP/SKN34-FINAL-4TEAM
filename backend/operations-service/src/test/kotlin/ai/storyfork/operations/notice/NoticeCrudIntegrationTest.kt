@@ -28,9 +28,9 @@ import tools.jackson.databind.json.JsonMapper
 
 /** 격리된 CI PostgreSQL에서만 공지 영속성·MVC·서비스 토큰 경계를 검증한다. */
 @SpringBootTest(properties = [
-    "OPERATIONS_DATABASE_URL=\${TEST_OPERATIONS_DATABASE_URL}",
-    "OPERATIONS_DATABASE_USER=\${TEST_OPERATIONS_DATABASE_USER:operations_test}",
-    "OPERATIONS_DATABASE_PASSWORD=\${TEST_OPERATIONS_DATABASE_PASSWORD:}",
+    "DATABASE_URL=\${TEST_OPERATIONS_DATABASE_URL}",
+    "DATABASE_USER=\${TEST_OPERATIONS_DATABASE_USER:operations_test}",
+    "DATABASE_PASSWORD=\${TEST_OPERATIONS_DATABASE_PASSWORD:}",
     "OPERATIONS_SERVICE_TOKEN=notice-integration-service-token-at-least-32",
 ])
 @AutoConfigureMockMvc

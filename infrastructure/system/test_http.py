@@ -23,7 +23,7 @@ def compose(*args):
 
 
 def scalar(sql):
-    return compose("exec", "-T", "postgres", "psql", "--no-psqlrc", "-U", os.environ["CORE_DATABASE_USER"],
+    return compose("exec", "-T", "postgres", "psql", "--no-psqlrc", "-U", os.environ["DATABASE_USER"],
                    "-d", "storyfork_test", "-v", "ON_ERROR_STOP=1", "-At", "-c", sql)
 
 
@@ -115,14 +115,14 @@ def test_health(web):
 def test_health_worldstudio_packaged_migration():
     """실제 Content jar의 별도 main과 동일 DB의 독립 Auth/Content 이력 공존을 확인한다."""
     url = "jdbc:postgresql://postgres:5432/storyfork_test"
-    user = os.environ["CORE_DATABASE_USER"]
+    user = os.environ["DATABASE_USER"]
     histories = scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
     content_history = scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")
     args = ["run", "--rm", "--no-deps", "--entrypoint", "java"]
     for key, value in {
         "WORLDSTUDIO_MIGRATION_ENVIRONMENT": "development",
-        "CONTENT_DATABASE_URL": url, "CONTENT_DATABASE_USER": user,
-        "CONTENT_DATABASE_PASSWORD": os.environ["CORE_DATABASE_PASSWORD"],
+        "DATABASE_URL": url, "DATABASE_USER": user,
+        "DATABASE_PASSWORD": os.environ["DATABASE_PASSWORD"],
         "WORLDSTUDIO_EXPECTED_DATABASE_URL": url, "WORLDSTUDIO_EXPECTED_DATABASE_USER": user,
         "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE": "isolated-ci-project",
     }.items():

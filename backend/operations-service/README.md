@@ -15,9 +15,9 @@
 
 | 환경변수 | 기본값 / 의미 |
 |---|---|
-| `OPERATIONS_DATABASE_URL` | `jdbc:postgresql://127.0.0.1:5432/storyfork` — 기존 PostgreSQL 연결 |
-| `OPERATIONS_DATABASE_USER` | `storyfork` — 운영 schema에 필요한 권한을 가진 DB 사용자 |
-| `OPERATIONS_DATABASE_PASSWORD` | 빈 값 — 실제 실행 환경의 DB 자격을 별도 설정 |
+| `DATABASE_URL` | `jdbc:postgresql://127.0.0.1:5432/storyfork` — 기존 PostgreSQL 연결 |
+| `DATABASE_USER` | `storyfork` — 운영 schema에 필요한 권한을 가진 DB 사용자 |
+| `DATABASE_PASSWORD` | 빈 값 — 실제 실행 환경의 DB 자격을 별도 설정 |
 | `OPERATIONS_SERVICE_TOKEN` | 빈 값 — 비어 있거나 공백뿐이면 **보호 접근을 허용하지 않음**. Core·Content 호출 시 같은 값을 `X-Operations-Service-Token`으로 전송 |
 | `OPERATIONS_CORE_BASE_URL` | `http://127.0.0.1:8080` — Core(인증 확인·회원 API) |
 | `OPERATIONS_CONTENT_BASE_URL` | `http://127.0.0.1:8081` — Content(작품 조회·제한 API) |

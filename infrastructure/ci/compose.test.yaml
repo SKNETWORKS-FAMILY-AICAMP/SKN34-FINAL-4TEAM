@@ -22,21 +22,21 @@ services:
   core-api:
     ports: !reset []
     environment:
-      CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
       AUTH_COOKIE_SECURE: "false"
       APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:8088
 
   content-service:
     ports: !reset []
     environment:
-      CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
       CONTENT_ENABLED: "true"
       APP_WORLDSTUDIO_ENABLED: "false"
       APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:8088
 
   operations-service:
     environment:
-      OPERATIONS_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
 
   web:
     ports: !override ["127.0.0.1::80"]

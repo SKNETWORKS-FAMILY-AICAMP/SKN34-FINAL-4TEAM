@@ -23,7 +23,7 @@ JDK 21의 `JAVA_HOME`과 필요한 변수만 해당 프로세스에 설정하고
 
 기본 주소는 `127.0.0.1:8081`, 앱 이름은 `storyfork-content-service`입니다. Core 8080·운영 골격 8082와 구분합니다. 콘텐츠와 WorldStudio가 모두 비활성이면 DB/인증 클라이언트를 만들지 않습니다. 이 기본 실행은 업무 API 준비 완료를 뜻하지 않습니다. 포트는 Spring 표준 `--server.port`로 변경할 수 있습니다.
 
-실제 콘텐츠 활성화에는 `CONTENT_ENABLED=true`, 기존 대상의 `CONTENT_DATABASE_URL/USER/PASSWORD`, Core와 동일한 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 기본 Core 인증 origin은 `http://127.0.0.1:8080`, 연결/읽기 timeout은 `1s`/`3s`입니다. 생성은 Content와 AI의 동일한 `INTERNAL_TOKEN`을 사용하며 OpenAI 키·모델은 AI에만 전달합니다. 첨부 설정은 [네이티브 Content 안내](../../infrastructure/README.md#네이티브-content-첨부-설정)를 따릅니다.
+실제 콘텐츠 활성화에는 `CONTENT_ENABLED=true`, 기존 대상의 `DATABASE_URL/USER/PASSWORD`, Core와 동일한 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 기본 Core 인증 origin은 `http://127.0.0.1:8080`, 연결/읽기 timeout은 `1s`/`3s`입니다. 생성은 Content와 AI의 동일한 `INTERNAL_TOKEN`을 사용하며 OpenAI 키·모델은 AI에만 전달합니다. 첨부 설정은 [네이티브 Content 안내](../../infrastructure/README.md#네이티브-content-첨부-설정)를 따릅니다.
 
 루트 `.env` 한 곳에서 관리하고 서비스별 `.env`를 만들거나 전체 파일을 source하지 않습니다. 실제 `.env`는 자동 변경하지 않습니다. 네이티브 Frontend는 같은 origin의 `/api` proxy를 사용해야 두 소유 서비스로 라우팅됩니다(`VITE_DEV_PROXY_TARGET`, `VITE_CONTENT_DEV_PROXY_TARGET`). Compose는 필요한 값만 각 런타임에 전달하며 DB 대상·계정은 기존 Core 설정과 같습니다.
 

@@ -17,10 +17,10 @@ class WorldStudioMigrationPostgresTest {
         var password = java.util.Objects.requireNonNull(System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD"));
         return WorldStudioMigrationProperties.Companion.from(Map.of(
             "WORLDSTUDIO_MIGRATION_ENVIRONMENT", "development",
-            "CONTENT_DATABASE_URL", db.url,
-            "CONTENT_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
+            "DATABASE_URL", db.url,
+            "DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
             // trust의 빈 비밀번호에만 대체값을 사용한다. 비밀번호 인증은 fixture와 같은 값을 쓴다.
-            "CONTENT_DATABASE_PASSWORD", password.isEmpty() ? "ci-only" : password,
+            "DATABASE_PASSWORD", password.isEmpty() ? "ci-only" : password,
             "WORLDSTUDIO_EXPECTED_DATABASE_URL", db.url,
             "WORLDSTUDIO_EXPECTED_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
             "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE", "disposable-ci-database"));
