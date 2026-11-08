@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'

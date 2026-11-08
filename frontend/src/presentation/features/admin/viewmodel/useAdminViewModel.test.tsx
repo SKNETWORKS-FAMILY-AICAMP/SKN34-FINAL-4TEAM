@@ -5,15 +5,15 @@ import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { createAppContainer } from '../../../../app/di/container'
 import { createAppStore } from '../../../../app/store'
 import type { AdminTab } from '../../../../domain/entities/admin'
+import { createFixtureContainer } from '../../../../test/fixtureContainer'
 import { useAdminViewModel } from './useAdminViewModel'
 
 // React/Hook 통합 회귀: CI 전용이며 로컬 선택 단위 범위에 포함하지 않습니다.
 afterEach(cleanup)
 function setup(tab: AdminTab = 'notices') {
-  const container = createAppContainer()
+  const container = createFixtureContainer()
   const admin = container.resolve('adminUseCase')
   const operations = container.resolve('operationsUseCase')
   const store = createAppStore({ role: 'admin' })
