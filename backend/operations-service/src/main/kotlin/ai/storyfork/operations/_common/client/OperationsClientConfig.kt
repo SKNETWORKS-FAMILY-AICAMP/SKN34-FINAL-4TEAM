@@ -41,9 +41,10 @@ internal fun <T : Any> upstream(preserved: Set<Int> = setOf(400, 404, 409), call
     val result = try {
         call()
     } catch (error: RestClientResponseException) {
-        throw ResponseStatusException(if (error.statusCode.value() in preserved) error.statusCode else HttpStatus.BAD_GATEWAY)
+        throw ResponseStatusException(if (error.statusCode.value() in preserved) error.statusCode else HttpStatus.BAD_GATEWAY, null, error)
     } catch (error: RestClientException) {
-        throw ResponseStatusException(HttpStatus.BAD_GATEWAY)
+        // Keep the cause for server logs; the response body stays the generic UPSTREAM_FAILED DTO.
+        throw ResponseStatusException(HttpStatus.BAD_GATEWAY, null, error)
     }
     return result ?: throw ResponseStatusException(HttpStatus.BAD_GATEWAY)
 }
