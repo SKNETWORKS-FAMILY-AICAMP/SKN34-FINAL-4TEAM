@@ -153,6 +153,19 @@ describe('ReadingUseCase.openEpisode 회차 열람 조회 기록', () => {
     expect(recordView).not.toHaveBeenCalled()
   })
 
+  it('소유자가 연 비공개 작품은 서버가 404로 거절하므로 요청하지 않는다(공개로 바꾸면 기록한다)', async () => {
+    const recordView = vi.fn(async () => {})
+    const works = server()
+    const mine = works.find((w) => w.id === 'starlight')!
+    mine.private = true
+    const { useCase } = setup({ recordView }, works)
+    await expect(useCase.openEpisode('starlight', 2, 'user')).resolves.toMatchObject({ n: 2 })
+    expect(recordView).not.toHaveBeenCalled()
+    mine.private = false
+    await useCase.openEpisode('starlight', 2, 'user')
+    expect(recordView.mock.calls).toEqual([['starlight', 2]])
+  })
+
   it('숨긴 회차와 볼 수 없는 작품은 기록하지 않는다', async () => {
     const recordView = vi.fn(async () => {})
     const works = server()

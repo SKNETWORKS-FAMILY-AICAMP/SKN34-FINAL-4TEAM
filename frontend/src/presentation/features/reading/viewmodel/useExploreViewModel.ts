@@ -12,7 +12,7 @@ const resolve = (): ReadingUseCase => appContainer.resolve('readingUseCase')
 
 /**
  * 목업 listTools 검색 form: 검색어만 바꾸고 범위·정렬은 주소에 있던 값을 유지합니다.
- * 서버가 지원하는 범위·정렬만 읽고, 옛 주소의 작가·인기 순 같은 값은 기본값으로 봅니다.
+ * 서버가 지원하는 범위(전체·제목·작가·태그·장르)·정렬(최신·조회)만 읽고, 옛 주소의 인기 순 같은 값은 기본값으로 봅니다.
  */
 function useListQuery(base: string, defaultSort: SearchSort) {
   const [params] = useSearchParams()

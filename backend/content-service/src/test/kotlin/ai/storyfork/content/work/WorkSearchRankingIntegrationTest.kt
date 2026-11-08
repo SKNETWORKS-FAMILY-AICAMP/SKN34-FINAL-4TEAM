@@ -103,7 +103,7 @@ class WorkSearchRankingIntegrationTest {
         assertEquals(2L,views[moon])
         assertEquals(1L,views[star])
 
-        assertEquals(422,get("/api/v1/public/works?f=author").statusCode())
+        assertEquals(422,get("/api/v1/public/works?f=body").statusCode())
         assertEquals(422,get("/api/v1/public/works?sort=popular").statusCode())
     }
 
