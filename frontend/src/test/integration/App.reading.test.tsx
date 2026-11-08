@@ -104,8 +104,8 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
     appContainer.resolve('mockDb').works.find((w) => w.id === 'guunmong')!.eps[0].authorNote = '첫 화를 열어 주셔서 고마워요.'
     renderApp('/read/guunmong/1', user())
     await screen.findByRole('heading', { name: '연화봉의 젊은 승려' })
-    // jsdom은 레이아웃이 없어 회차 끝 표시가 늘 화면 안에 있으므로 U08로 바뀐다.
-    expect(sid()).toBe('U08 회차 끝 · 포크·댓글')
+    // jsdom은 레이아웃이 없어 회차 끝 표시가 늘 화면 안에 있으므로 U08로 바뀐다. 라벨은 effect 뒤에 갱신되므로 기다린다.
+    await waitFor(() => expect(sid()).toBe('U08 회차 끝 · 포크·댓글'))
     const note = screen.getByRole('heading', { name: '작가의 말' }).closest('section')!
     expect(document.getElementById('text')!.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     screen.getByText('第 一 回')
