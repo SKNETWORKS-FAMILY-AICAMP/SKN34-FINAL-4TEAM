@@ -33,11 +33,11 @@
 docker compose up -d --build
 ```
 
-루트 `compose.yaml`이 base + `infrastructure/docker-compose.local.yaml`을 선택하고 루트 `.env`를 자동으로 읽는다. web·Core·Content·AI 네 앱을 runtime Dockerfile로 빌드하며 HMR은 아니다. local의 새 프로젝트·DB volume은 기존 `storyfork-dev`나 배포 데이터를 재사용하지 않는다. Core·Content는 같은 내부 PostgreSQL과 `CORE_DATABASE_USER`/`CORE_DATABASE_PASSWORD`를 사용하고 SMTP는 내부 Mailpit으로 연결한다. 별도 `CONTENT_DATABASE_*` 예시는 네이티브 실행용이다. Auth·Content migration 이력은 분리한다. web 5173·Core 8080·Content 8081·DB 5432·Mailpit 1025/8025는 기본 loopback 바인딩이고 AI는 내부 전용이다.
+루트 `compose.yaml`이 base + `infrastructure/docker-compose.local.yaml`을 선택하고 루트 `.env`를 자동으로 읽는다. web·Core·Content·AI 네 앱을 runtime Dockerfile로 빌드하며 HMR은 아니다. local의 새 프로젝트·DB volume은 기존 `storyfork-dev`나 배포 데이터를 재사용하지 않는다. Core·Content는 같은 내부 PostgreSQL과 `DATABASE_USER`/`DATABASE_PASSWORD`를 사용하고 SMTP는 내부 Mailpit으로 연결한다. 별도 `CONTENT_DATABASE_*` 예시는 네이티브 실행용이다. Auth·Content migration 이력은 분리한다. web 5173·Core 8080·Content 8081·DB 5432·Mailpit 1025/8025는 기본 loopback 바인딩이고 AI는 내부 전용이다.
 
 개발 서버의 base + `infrastructure/docker-compose.dev.yaml`은 게시된 네 `:develop` 앱 이미지와 내부 PostgreSQL·Mailpit을 사용한다. local과 같은 DB·메일 구조지만 별도 프로젝트·volume이며 기존 `CD_WEB_PORT` loopback 바인딩만 호스트에 노출한다. 앱 소스 build·hot reload는 아니다. 기존 외부·공유 DB 전환과 데이터 이관은 실행하지 않았고 개발 CD에는 별도 내부 DB 전환 승인이 필요하다.
 
-운영 준비용 base + `infrastructure/docker-compose.prod.yaml`만 `:main` 앱 이미지·외부 PostgreSQL/SMTP·필수 `PROD_*` 입력·항상 Secure인 쿠키를 사용한다. 현재 게시 workflow는 develop 전용이므로 main 가용성·게시·배포는 확인되지 않았다. TLS/ingress 제공이나 운영 준비 완료가 아니며, 기본 Auth V4의 공개 비밀번호 샘플 회원은 운영 전 별도 보안 판단 대상이다. 이번 설정 변경은 기존 migration을 수정하지 않는다. 세부 환경·포트·승인 경계는 [인프라 안내](../infrastructure/README.md)를 따른다.
+운영 준비용 base + `infrastructure/docker-compose.prod.yaml`만 `:main` 앱 이미지·외부 PostgreSQL/SMTP·local과 같은 이름의 필수 입력·항상 Secure인 쿠키를 사용한다. 현재 게시 workflow는 develop 전용이므로 main 가용성·게시·배포는 확인되지 않았다. TLS/ingress 제공이나 운영 준비 완료가 아니며, 기본 Auth V4의 공개 비밀번호 샘플 회원은 운영 전 별도 보안 판단 대상이다. 이번 설정 변경은 기존 migration을 수정하지 않는다. 세부 환경·포트·승인 경계는 [인프라 안내](../infrastructure/README.md)를 따른다.
 
 세 조합 모두 콘텐츠는 기본 비활성이고, 개발 작성자를 주입하지 않으며 실제 로그인 JWT가 필요하다. 빈 내부 토큰은 인증 성공으로 대체하지 않는다. Compose 구문 검사 자체는 실제 토큰 유효성을 검증하지 않으며, 토큰 누락 시 생성 요청은 기존 구현대로 실패한다.
 

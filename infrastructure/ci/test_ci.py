@@ -308,7 +308,7 @@ class ComposeSplitTest(unittest.TestCase):
             self.assertIn('context: ' + context, local)
             self.assertTrue((ci.ROOT / 'infrastructure' / context / 'Dockerfile').is_file())
         for port in ('${DEV_WEB_PORT:-5173}:80', '${CORE_API_PORT:-8080}:8080',
-                     '${CONTENT_SERVICE_PORT:-8081}:8081', '${CORE_DATABASE_PORT:-5432}:5432',
+                     '${CONTENT_SERVICE_PORT:-8081}:8081', '${DATABASE_PORT:-5432}:5432',
                      '${CORE_MAILPIT_SMTP_PORT:-1025}:1025', '${CORE_MAILPIT_WEB_PORT:-8025}:8025'):
             self.assertIn('127.0.0.1:' + port, local)
         self.assertIn('core-postgres:/var/lib/postgresql/data', local)
@@ -320,34 +320,31 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertIn('name: storyfork-production', source)
         for service in ('web', 'core-api', 'content-service', 'ai-service'):
             self.assertIn(f'image: ghcr.io/sknetworks-family-aicamp/storyfork-{service}:main', source)
-        for forbidden in ('build:', 'volumes:', '  postgres:', '  mailpit:', 'env_file:', ':develop',
-                          '${CORE_DATABASE_', '${AUTH_JWT_SECRET', '${OPENAI_API_KEY', '${INTERNAL_TOKEN'):
+        for forbidden in ('build:', 'volumes:', '  postgres:', '  mailpit:', 'env_file:', ':develop', 'PROD_'):
             self.assertNotIn(forbidden, source)
-        for variable in ('PROD_DATABASE_URL', 'PROD_DATABASE_USER', 'PROD_DATABASE_PASSWORD',
-                         'PROD_SMTP_HOST', 'PROD_SMTP_PORT', 'PROD_PUBLIC_ORIGIN', 'PROD_MAIL_FROM',
-                         'PROD_AUTH_JWT_SECRET', 'PROD_CONTENT_CORE_AUTH_TOKEN', 'PROD_INTERNAL_TOKEN', 'PROD_WEB_PORT'):
+        # Same variable names as local/dev; the server's own .env supplies values and blanks fail config.
+        for variable in ('DATABASE_URL', 'DATABASE_USER', 'DATABASE_PASSWORD',
+                         'CORE_SMTP_HOST', 'CORE_SMTP_PORT', 'AUTH_PUBLIC_ORIGIN', 'AUTH_MAIL_FROM',
+                         'AUTH_JWT_SECRET', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN', 'WEB_PORT'):
             self.assertIn('${' + variable + ':?', source)
         self.assertIn('AUTH_COOKIE_SECURE: "true"', source)
-        self.assertIn('CONTENT_ENABLED: ${PROD_CONTENT_ENABLED:-false}', source)
-        self.assertIn('OPENAI_API_KEY: ${PROD_OPENAI_API_KEY:-}', source)
-        self.assertIn('127.0.0.1:${PROD_WEB_PORT:?', source)
+        self.assertIn('127.0.0.1:${WEB_PORT:?', source)
         # Base interpolation must not demand local secrets before prod overrides can apply.
         base = (ci.ROOT / 'infrastructure/docker-compose.yaml').read_text()
         self.assertNotIn(':?', base)
         dev = (ci.ROOT / 'infrastructure/docker-compose.dev.yaml').read_text()
         for service in ('web', 'core-api', 'content-service', 'ai-service'):
             self.assertIn(f'image: ghcr.io/sknetworks-family-aicamp/storyfork-{service}:develop', dev)
-        for variable in ('CORE_DATABASE_USER', 'CORE_DATABASE_PASSWORD', 'AUTH_JWT_SECRET'):
+        for variable in ('DATABASE_USER', 'DATABASE_PASSWORD', 'AUTH_JWT_SECRET'):
             self.assertIn('${' + variable + ':?', dev)
         self.assertNotIn('build:', dev)
         self.assertIn('  postgres:', dev)
         self.assertIn('  mailpit:', dev)
         self.assertEqual(2, dev.count('file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}'))
         self.assertEqual(2, dev.count('ports: !reset []'))
-        self.assertIn('CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
+        self.assertIn('DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
         self.assertIn('CORE_SMTP_HOST: mailpit', dev)
-        self.assertIn('CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
-        self.assertNotIn('${CORE_DATABASE_URL', dev)
+        self.assertNotIn('${DATABASE_URL', dev)
         self.assertIn('  core-postgres:', dev)
         self.assertNotIn('external:', dev)
         workflow = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
@@ -376,13 +373,13 @@ class ComposeSplitTest(unittest.TestCase):
         source = (ci.ROOT / '.env.example').read_text()
         active = dict(line.split('=', 1) for line in source.splitlines() if line and not line.startswith('#'))
         self.assertFalse(any(key.startswith(('PROD_', 'CD_')) for key in active))
-        for key in ('AUTH_JWT_SECRET', 'CORE_DATABASE_USER', 'CORE_DATABASE_PASSWORD', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN'):
+        for key in ('AUTH_JWT_SECRET', 'DATABASE_USER', 'DATABASE_PASSWORD', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN'):
             self.assertEqual('', active[key])
         self.assertEqual('false', active['AUTH_COOKIE_SECURE'])
         self.assertEqual('5173', active['DEV_WEB_PORT'])
-        self.assertIn('# PROD_DATABASE_URL=', source)
-        self.assertIn('# PROD_AUTH_JWT_SECRET=', source)
-        self.assertIn('# CD_DIRECTORY=', source)
+        self.assertNotIn('PROD_', source)
+        self.assertNotIn('GETSTREAM_API_KEY', source)
+        self.assertIn('CD_DIRECTORY', source)
 
 
 class SystemContractTest(unittest.TestCase):
@@ -519,7 +516,7 @@ class ConfigurationTest(unittest.TestCase):
             self.assertNotIn(secret, text)
 
     def test_operations_credentials_are_removed_from_failure_reports(self):
-        secrets = {"OPERATIONS_SERVICE_TOKEN": "short-test-token", "OPERATIONS_DATABASE_PASSWORD": "test-password"}
+        secrets = {"OPERATIONS_SERVICE_TOKEN": "short-test-token", "DATABASE_PASSWORD": "test-password"}
         with patch.dict(os.environ, secrets):
             self.assertEqual("[redacted] [redacted]", ci.redact("short-test-token test-password"))
 

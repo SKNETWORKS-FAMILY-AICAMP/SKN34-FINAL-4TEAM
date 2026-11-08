@@ -20,9 +20,9 @@ class SampleImportPostgresTest {
 
     private fun isolated(test: (JdbcTemplate) -> Unit) {
         val schema = "sample_auth_" + UUID.randomUUID().toString().replace("-", "")
-        val url = requireNotNull(System.getenv("CORE_DATABASE_URL"))
-        val user = requireNotNull(System.getenv("CORE_DATABASE_USER"))
-        val password = System.getenv("CORE_DATABASE_PASSWORD") ?: ""
+        val url = requireNotNull(System.getenv("DATABASE_URL"))
+        val user = requireNotNull(System.getenv("DATABASE_USER"))
+        val password = System.getenv("DATABASE_PASSWORD") ?: ""
         val admin = JdbcTemplate(DriverManagerDataSource(url, user, password))
         val scoped = DriverManagerDataSource(url + (if ('?' in url) "&" else "?") + "currentSchema=" + schema, user, password)
         admin.execute("CREATE SCHEMA $schema")
@@ -45,8 +45,8 @@ class SampleImportPostgresTest {
             val builder=ProcessBuilder("python3","-I",sampleDir.resolve("load.py").toString(),"--service","core",
                 "--database",if(wrongTarget) "not_the_owned_test_database" else connection.catalog,"--schema",connection.schema,"--approval",approval)
             builder.environment().putAll(mapOf("PGHOST" to target.host,"PGPORT" to (if(target.port<0) 5432 else target.port).toString(),
-                "PGDATABASE" to connection.catalog,"PGUSER" to requireNotNull(System.getenv("CORE_DATABASE_USER")),
-                "PGPASSWORD" to (System.getenv("CORE_DATABASE_PASSWORD") ?: ""),"PGCLIENTENCODING" to "UTF8"))
+                "PGDATABASE" to connection.catalog,"PGUSER" to requireNotNull(System.getenv("DATABASE_USER")),
+                "PGPASSWORD" to (System.getenv("DATABASE_PASSWORD") ?: ""),"PGCLIENTENCODING" to "UTF8"))
             builder.environment().remove("PGSERVICE")
             builder.environment().remove("PGOPTIONS")
             val process=builder.redirectErrorStream(true).start()

@@ -24,9 +24,9 @@ import tools.jackson.databind.json.JsonMapper
 
 /** CI-only HTTP/PostgreSQL coverage; cleanup touches only inquiry UUIDs created by this test. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [
-    "OPERATIONS_DATABASE_URL=\${TEST_OPERATIONS_DATABASE_URL}",
-    "OPERATIONS_DATABASE_USER=\${TEST_OPERATIONS_DATABASE_USER:operations_test}",
-    "OPERATIONS_DATABASE_PASSWORD=\${TEST_OPERATIONS_DATABASE_PASSWORD:}",
+    "DATABASE_URL=\${TEST_OPERATIONS_DATABASE_URL}",
+    "DATABASE_USER=\${TEST_OPERATIONS_DATABASE_USER:operations_test}",
+    "DATABASE_PASSWORD=\${TEST_OPERATIONS_DATABASE_PASSWORD:}",
     "OPERATIONS_SERVICE_TOKEN=inquiry-ci-service-token-not-a-production-secret",
 ])
 @EnabledIfEnvironmentVariable(named = "TEST_OPERATIONS_DATABASE_URL", matches = ".+")

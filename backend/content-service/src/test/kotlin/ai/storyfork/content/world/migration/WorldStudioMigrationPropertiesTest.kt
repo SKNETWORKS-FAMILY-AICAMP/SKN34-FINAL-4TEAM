@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test
 class WorldStudioMigrationPropertiesTest {
     private fun environment() = mutableMapOf(
         "WORLDSTUDIO_MIGRATION_ENVIRONMENT" to "development",
-        "CONTENT_DATABASE_URL" to "jdbc:postgresql://qa:5432/studio?sslmode=require",
-        "CONTENT_DATABASE_USER" to "qa",
-        "CONTENT_DATABASE_PASSWORD" to "test-only",
+        "DATABASE_URL" to "jdbc:postgresql://qa:5432/studio?sslmode=require",
+        "DATABASE_USER" to "qa",
+        "DATABASE_PASSWORD" to "test-only",
         "WORLDSTUDIO_EXPECTED_DATABASE_URL" to "jdbc:postgresql://qa:5432/studio?sslmode=require",
         "WORLDSTUDIO_EXPECTED_DATABASE_USER" to "qa",
         "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE" to "isolated-restore-proof",
@@ -24,8 +24,8 @@ class WorldStudioMigrationPropertiesTest {
             put("WORLDSTUDIO_DATABASE_USER","other")
             put("WORLDSTUDIO_DATABASE_PASSWORD","other")
         }
-        assertEquals(values["CONTENT_DATABASE_URL"],WorldStudioMigrationProperties.from(values).url)
-        listOf("CONTENT_DATABASE_URL","CONTENT_DATABASE_USER","CONTENT_DATABASE_PASSWORD").forEach { key ->
+        assertEquals(values["DATABASE_URL"],WorldStudioMigrationProperties.from(values).url)
+        listOf("DATABASE_URL","DATABASE_USER","DATABASE_PASSWORD").forEach { key ->
             assertThrows(IllegalArgumentException::class.java) {
                 WorldStudioMigrationProperties.from(values.toMutableMap().apply { remove(key) })
             }
@@ -40,8 +40,8 @@ class WorldStudioMigrationPropertiesTest {
         }
         for ((key, value) in listOf(
             "WORLDSTUDIO_MIGRATION_ENVIRONMENT" to "production",
-            "CONTENT_DATABASE_URL" to "jdbc:postgresql://other:5432/studio",
-            "CONTENT_DATABASE_USER" to "other",
+            "DATABASE_URL" to "jdbc:postgresql://other:5432/studio",
+            "DATABASE_USER" to "other",
         )) {
             assertThrows(IllegalArgumentException::class.java) {
                 WorldStudioMigrationProperties.from(environment().apply { put(key, value) })
@@ -54,7 +54,7 @@ class WorldStudioMigrationPropertiesTest {
             "jdbc:postgresql://qa/studio?password=secret", "jdbc:postgresql://qa/studio?USER=other")) {
             assertThrows(IllegalArgumentException::class.java) {
                 WorldStudioMigrationProperties.from(environment().apply {
-                    put("CONTENT_DATABASE_URL", url); put("WORLDSTUDIO_EXPECTED_DATABASE_URL", url)
+                    put("DATABASE_URL", url); put("WORLDSTUDIO_EXPECTED_DATABASE_URL", url)
                 })
             }
         }

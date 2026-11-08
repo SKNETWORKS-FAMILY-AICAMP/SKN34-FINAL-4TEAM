@@ -47,9 +47,9 @@ class AttachmentConfig {
 
     @Bean(defaultCandidate = false, destroyMethod = "close")
     fun attachmentDataSource(
-        @Value("\${CONTENT_DATABASE_URL}") url: String,
-        @Value("\${CONTENT_DATABASE_USER}") user: String,
-        @Value("\${CONTENT_DATABASE_PASSWORD}") password: String,
+        @Value("\${DATABASE_URL}") url: String,
+        @Value("\${DATABASE_USER}") user: String,
+        @Value("\${DATABASE_PASSWORD}") password: String,
     ): HikariDataSource {
         require(url.startsWith("jdbc:postgresql:")) { "Attachment storage requires PostgreSQL" }
         return HikariDataSource().apply {

@@ -36,7 +36,7 @@ Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 | `127.0.0.1:5432` / `127.0.0.1:1025` | 로컬 PostgreSQL / Mailpit SMTP |
 | `http://127.0.0.1:8025` | 로컬 Mailpit 메일 확인 |
 
-포트는 `DEV_WEB_PORT`·`CORE_API_PORT`·`CONTENT_SERVICE_PORT`·`CORE_DATABASE_PORT`·`CORE_MAILPIT_*_PORT`로 변경합니다.
+포트는 `DEV_WEB_PORT`·`CORE_API_PORT`·`CONTENT_SERVICE_PORT`·`DATABASE_PORT`·`CORE_MAILPIT_*_PORT`로 변경합니다.
 기존 프로세스가 5173/8080 등을 사용 중이면 시작은 실패하므로 **기존 앱을 임의 중지하지 말고** 포트와 `AUTH_PUBLIC_ORIGIN`을 조정하세요.
 CORS는 web 포트에서 계산하며 `APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수 있습니다. AI는 내부 전용입니다.
 키는 AI 런타임에만 전달하고 VITE/build ARG에는 넣지 않습니다. **소스 빌드는 HMR이 아닙니다.**
@@ -47,7 +47,7 @@ web은 nginx 정적 runtime이고 소스 mount가 없어 변경 후 다시 build
 - base + `infrastructure/docker-compose.dev.yaml`: 기존 `storyfork-develop-cd` 프로젝트와 네 `:develop` 이미지,
   로컬과 같은 PostgreSQL·Mailpit 내부 컨테이너를 사용하되 프로젝트·DB volume은 로컬과 격리합니다. 앱의 소스 build·hot reload는 없습니다.
 - base + `infrastructure/docker-compose.prod.yaml`: 별도 `storyfork-production` 프로젝트와 네 `:main` 이미지,
-  사전에 준비한 외부 PostgreSQL·SMTP만 사용합니다. `PROD_*` 필수값이 없으면 설정 검사부터 실패하고,
+  사전에 준비한 외부 PostgreSQL·SMTP만 사용합니다. 필수값(local과 같은 변수 이름)이 없으면 설정 검사부터 실패하고,
   로컬 자격증명·DB·Mailpit을 재사용하지 않으며 Secure 쿠키를 강제합니다.
 
 **현재 게시 workflow는 develop 전용이며 `:main` 게시·접근 가능 여부는 미확인입니다.** 이 변경은 main 이미지 게시나 운영 배포 trigger를 추가하지 않습니다.

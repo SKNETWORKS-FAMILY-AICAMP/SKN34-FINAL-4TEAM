@@ -136,7 +136,7 @@ base + `docker-compose.prod.yaml`은 `:main` 앱 이미지와 외부 PostgreSQL�
 선택 첨부 overlay는 base + local 뒤에 추가하는 로컬 MinIO 구성입니다. 소스 빌드 web은 nginx 정적 이미지이지 HMR이 아니며, hot reload는 각 서비스의 기본 네이티브 명령을 사용합니다.
 브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 Core·Content 내부 DNS로 중계합니다. API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
 
-local은 web 5173·Core 8080·Content 8081·PostgreSQL 5432·Mailpit 1025/8025를 기본 loopback 포트로 공개하며 AI는 내부 전용입니다. dev는 기존 `CD_WEB_PORT` loopback 바인딩만 유지하고 DB·Mailpit은 호스트에 공개하지 않습니다. prod도 별도 `PROD_WEB_PORT` loopback 바인딩이며 필수 `PROD_*` 입력과 항상 Secure인 쿠키를 사용합니다. 선택 MinIO도 loopback 전용입니다.
+local은 web 5173·Core 8080·Content 8081·PostgreSQL 5432·Mailpit 1025/8025를 기본 loopback 포트로 공개하며 AI는 내부 전용입니다. dev는 기존 `CD_WEB_PORT` loopback 바인딩만 유지하고 DB·Mailpit은 호스트에 공개하지 않습니다. prod도 `WEB_PORT` loopback 바인딩이며 local과 같은 이름의 필수 입력과 항상 Secure인 쿠키를 사용합니다. 선택 MinIO도 loopback 전용입니다.
 TLS·공개 ingress·외부 서비스는 제공하지 않으며 운영 준비 완료가 아닙니다. 모든 환경의 기본 Auth V4에 공개 비밀번호 샘플 회원 생성이 남아 있어 운영 사용 전 별도 보안 판단이 필요합니다. 이번 설정 변경에서 기존 migration은 수정하지 않습니다.
 OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build ARG에는 키를 넣지 않습니다.
 실행과 검증, 환경파일 경계는 [인프라 안내](../infrastructure/README.md)를 따릅니다.

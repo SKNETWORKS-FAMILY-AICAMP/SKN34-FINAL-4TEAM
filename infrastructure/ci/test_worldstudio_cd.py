@@ -14,9 +14,9 @@ class WorldStudioDeploymentTest(unittest.TestCase):
     def test_migration_reuses_core_credentials_without_worldstudio_connection(self):
         compose = (ROOT / "infrastructure/docker-compose.dev.yaml").read_text(encoding="utf-8")
         migration = compose.split("  worldstudio-migrate:", 1)[1].split("\n  web:", 1)[0]
-        self.assertIn('CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', migration)
+        self.assertIn('DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', migration)
         for key in ("USER", "PASSWORD"):
-            self.assertIn("CONTENT_DATABASE_" + key + ": ${CORE_DATABASE_" + key, migration)
+            self.assertIn("DATABASE_" + key + ": ${DATABASE_" + key, migration)
         self.assertNotIn("WORLDSTUDIO_DATABASE_", compose)
         self.assertNotIn("WORLDSTUDIO_DATABASE_", (ROOT / ".env.example").read_text(encoding="utf-8"))
 

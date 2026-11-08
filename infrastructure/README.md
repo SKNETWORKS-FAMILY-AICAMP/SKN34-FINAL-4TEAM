@@ -16,7 +16,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 | 프로젝트 | `storyfork-local` | `storyfork-develop-cd` | `storyfork-production` |
 | 앱 | 다섯 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 다섯 앱의 GHCR `:develop`, `linux/amd64` | 다섯 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
 | DB·SMTP | 새 프로젝트 범위 `core-postgres` volume의 PostgreSQL + Mailpit | 로컬과 같은 PostgreSQL·Mailpit 정의 재사용, 별도 프로젝트 DB volume | 별도 승인·준비한 외부 PostgreSQL·SMTP, 내장 DB·Mailpit·volume 없음 |
-| web 포트 | `127.0.0.1:${DEV_WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${PROD_WEB_PORT}` |
+| web 포트 | `127.0.0.1:${DEV_WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${WEB_PORT}` |
 | 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | 없음 | 없음 |
 
 루트 진입점은 Compose native `include`로 base+local을 재사용하므로 build context는 `infrastructure/` 기준의 `../frontend`·`../backend/*`입니다.
@@ -36,11 +36,11 @@ Browser → web nginx
 
 다음은 담당자의 수동 실행 안내이며 로컬 자동 검증에서 앱/DB/컨테이너를 기동하지 않습니다. `cp -n .env.example .env`로 루트 설정을 준비하되 기존 파일은 덮어쓰지 않습니다. 서비스별 `.env`는 만들지 않습니다.
 
-로컬 Core에는 직접 준비한 `CORE_DATABASE_USER/PASSWORD`, `AUTH_MAIL_FROM`, `AUTH_JWT_SECRET`이 필요합니다. JWT 키는 32바이트 이상 무작위 값의 Base64 인코딩이며 Core에만 전달합니다. 기본 비밀번호나 서명 키는 제공하지 않습니다. `AUTH_PUBLIC_ORIGIN`을 실제 web 주소에 맞추고 HTTP 로컬 검증에서만 `AUTH_COOKIE_SECURE=false`를 사용합니다. 로컬 DB URL·SMTP는 Compose 내부 PostgreSQL·Mailpit으로 고정합니다. Mailpit 화면(기본 8025)은 인증 메일을 포함하므로 로컬 전용입니다. dev도 내부 PostgreSQL·Mailpit을 쓰지만 호스트에 노출하지 않으며, prod만 외부 DB·SMTP를 사용합니다. 가입 인증 24시간, 복구·이메일 변경 1시간 계약과 실제 API는 [Core 문서](../backend/core-api/README.md#공개-계약)를 따릅니다.
+로컬 Core에는 직접 준비한 `DATABASE_USER/PASSWORD`, `AUTH_MAIL_FROM`, `AUTH_JWT_SECRET`이 필요합니다. JWT 키는 32바이트 이상 무작위 값의 Base64 인코딩이며 Core에만 전달합니다. 기본 비밀번호나 서명 키는 제공하지 않습니다. `AUTH_PUBLIC_ORIGIN`을 실제 web 주소에 맞추고 HTTP 로컬 검증에서만 `AUTH_COOKIE_SECURE=false`를 사용합니다. 로컬 DB URL·SMTP는 Compose 내부 PostgreSQL·Mailpit으로 고정합니다. Mailpit 화면(기본 8025)은 인증 메일을 포함하므로 로컬 전용입니다. dev도 내부 PostgreSQL·Mailpit을 쓰지만 호스트에 노출하지 않으며, prod만 외부 DB·SMTP를 사용합니다. 가입 인증 24시간, 복구·이메일 변경 1시간 계약과 실제 API는 [Core 문서](../backend/core-api/README.md#공개-계약)를 따릅니다.
 
 Content 활성화에는 `CONTENT_ENABLED=true`와 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 32자 이상·개행 없는 값을 Core/Content에만 동일하게 설정합니다. 사용자 Bearer·JWT 서명 키·AI의 `INTERNAL_TOKEN`과 다른 자격입니다. 생성은 Content/AI의 동일한 `INTERNAL_TOKEN` 및 AI에만 주입한 키/모델을 사용합니다. 인증 확인에는 캐시·자동 재시도·fallback이 없으며 Core 장애를 사용자 401로 숨기지 않습니다([Content 계약](../backend/content-service/README.md#core-인증-클라이언트--실제-연결)).
 
-각 스택 안에서 Core와 Content는 **같은 DB 대상·계정**을 사용합니다. local/dev는 `CORE_DATABASE_*`, prod는 별도 `PROD_DATABASE_*`를 필요한 런타임 이름으로 바꿔 전달합니다. 스택 사이의 DB·자격증명을 공유한다는 뜻이 아니며 DB 복사·추가 WorldStudio pool은 없습니다. Core Auth 초기화/Health 뒤에 Content를 시작하며 각 서비스는 자기 Entity/Repository·migration만 소유합니다. Content의 7개 leaf/전역 V1~V9와 이전 이력의 비호환성은 [fresh migration 안내](../backend/content-service/README.md#같은-db와-fresh-콘텐츠-migration)를 따릅니다.
+각 스택 안에서 Core와 Content는 **같은 DB 대상·계정**을 사용합니다. local/dev/prod 모두 같은 `DATABASE_*` 이름을 쓰고 값만 각 서버의 `.env`가 정합니다. 스택 사이의 DB·자격증명을 공유한다는 뜻이 아니며 DB 복사·추가 WorldStudio pool은 없습니다. Core Auth 초기화/Health 뒤에 Content를 시작하며 각 서비스는 자기 Entity/Repository·migration만 소유합니다. Content의 7개 leaf/전역 V1~V9와 이전 이력의 비호환성은 [fresh migration 안내](../backend/content-service/README.md#같은-db와-fresh-콘텐츠-migration)를 따릅니다.
 
 ```bash
 # 저장소 루트: 사용자 자격증명을 준비한 뒤 수동 실행, .env 자동 로드
@@ -56,7 +56,7 @@ docker compose down
 | 변수 | 기본값 | 소비 경계 |
 |---|---|---|
 | `OPENAI_API_KEY` | 빈 값 | AI runtime만 |
-| `OPENAI_MODEL` | local 빈 값 / dev `gpt-5.6-luna` | AI runtime만; prod는 별도 `PROD_OPENAI_MODEL`, 팀 모델 선정·접근 검증 아님 |
+| `OPENAI_MODEL` | local·prod 빈 값 / dev `gpt-5.6-luna` | AI runtime만, 팀 모델 선정·접근 검증 아님 |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |
@@ -64,17 +64,17 @@ docker compose down
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
 | `CONTENT_ENABLED` | `false` | Content 업무 opt-in |
-| `CONTENT_DATABASE_*` | Compose는 기존 Core DB와 동일 | Content·Studio 공유 datasource |
+| `DATABASE_*` | 빈 계정, `storyfork` DB | Core·Content(Studio 포함)·운영 공용 PostgreSQL |
 | `INTERNAL_TOKEN` | 빈 값 | Content/AI 생성만 |
-| `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content, prod는 `PROD_OPERATIONS_SERVICE_TOKEN` |
+| `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content |
 | `OPERATIONS_DATABASE_*` | Compose는 기존 Core DB와 동일 | Operations 전용 `operations` schema |
 | `APP_CORS_ALLOWED_ORIGIN` | 빈 값이면 web 포트에서 계산 | Core/Content의 단일 origin |
 | `DEV_WEB_PORT` | `5173` | local web loopback |
 | `CORE_API_PORT` / `CONTENT_SERVICE_PORT` | `8080` / `8081` | local API loopback |
-| `CORE_DATABASE_PORT` | `5432` | local DB loopback, 컨테이너 내부는 고정 5432 |
+| `DATABASE_PORT` | `5432` | local DB loopback, 컨테이너 내부는 고정 5432 |
 | `CORE_MAILPIT_SMTP_PORT` / `CORE_MAILPIT_WEB_PORT` | `1025` / `8025` | local Mailpit loopback |
 | `CD_DIRECTORY` / `CD_WEB_PORT` | 필수 | dev 전용 디렉터리 label / loopback |
-| `PROD_*` | 아래 필수값 외 기본 자격증명 없음 | prod 전용, local/dev 값을 fallback으로 쓰지 않음 |
+| `WEB_PORT` | 필수 | prod 전용 web loopback |
 
 Health는 OpenAI 인증·모델 접근 검증이 아니며 모델 클라이언트를 만들지 않습니다. 생성 제공사 설정 누락은 503입니다. OpenAI 키를 Frontend·Core·Content·build ARG에 넣지 않습니다. 루트 `.env` 전체를 프로세스에 주입하지 않습니다.
 
@@ -84,18 +84,18 @@ Health는 OpenAI 인증·모델 접근 검증이 아니며 모델 클라이언�
 
 prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP**만 선택합니다. 소스 build·PostgreSQL·Mailpit·로컬 자격증명·DB volume을 포함하지 않습니다. 현재 [`publish-images.yml`](../.github/workflows/publish-images.yml)은 **develop만 게시**하므로 `:main`의 존재·접근 가능 여부는 미확인입니다. 이미지 목록에 이름이 있다고 실제 게시된 것은 아닙니다. main 게시/배포 trigger는 추가하지 않았습니다.
 
-루트 `.env.example` 하단의 deployment 예시는 모두 주석이며 로컬 기본값을 바꾸지 않습니다. 운영 서버 담당자가 전용 설정에 다음 값을 준비합니다. `config` 단계에서 비어 있거나 누락된 필수값은 명시적으로 실패하며 로컬 `CORE_*`·`AUTH_*`로 대신 채우지 않습니다.
+변수 이름은 local/dev와 같습니다. 운영 서버 담당자가 서버 전용 `.env`에 다음 값을 준비하며 로컬 `.env`를 복사하지 않습니다. `config` 단계에서 비어 있거나 누락된 필수값은 명시적으로 실패합니다.
 
 | 변수 | 요구사항 |
 |---|---|
-| `PROD_DATABASE_URL` / `PROD_DATABASE_USER` / `PROD_DATABASE_PASSWORD` | 승인된 외부 PostgreSQL JDBC 대상·전용 자격, Core/Content가 같은 대상 사용 |
-| `PROD_SMTP_HOST` / `PROD_SMTP_PORT` | 준비한 외부 SMTP, STARTTLS 사용·필수 |
-| `PROD_PUBLIC_ORIGIN` / `PROD_MAIL_FROM` | 실제 HTTPS web origin / 승인된 발신 주소 |
-| `PROD_AUTH_JWT_SECRET` | 별도로 생성한 32바이트 이상 Base64 키, Core에만 전달 |
-| `PROD_CONTENT_CORE_AUTH_TOKEN` / `PROD_INTERNAL_TOKEN` | 각각 Core↔Content / Content↔AI의 별도 무작위 서비스 자격 |
-| `PROD_WEB_PORT` | 담당자가 준비한 비충돌 loopback 포트, TLS ingress는 별도 |
+| `DATABASE_URL` / `DATABASE_USER` / `DATABASE_PASSWORD` | 승인된 외부 PostgreSQL JDBC 대상·전용 자격, Core/Content가 같은 대상 사용 |
+| `CORE_SMTP_HOST` / `CORE_SMTP_PORT` | 준비한 외부 SMTP, STARTTLS 사용·필수 |
+| `AUTH_PUBLIC_ORIGIN` / `AUTH_MAIL_FROM` | 실제 HTTPS web origin(CORS에도 사용) / 승인된 발신 주소 |
+| `AUTH_JWT_SECRET` | 별도로 생성한 32바이트 이상 Base64 키, Core에만 전달 |
+| `CONTENT_CORE_AUTH_TOKEN` / `INTERNAL_TOKEN` | 각각 Core↔Content / Content↔AI의 별도 무작위 서비스 자격 |
+| `WEB_PORT` | 담당자가 준비한 비충돌 loopback 포트, TLS ingress는 별도 |
 
-SMTP 인증은 기본 `PROD_SMTP_AUTH=true`이며 제공사가 요구하는 `PROD_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `PROD_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `PROD_OPENAI_API_KEY/MODEL`은 선택적 생성 설정으로 AI에만 전달합니다. `PROD_CONTENT_ENABLED`·`PROD_WORLDSTUDIO_ENABLED`는 기본 false이며 WorldStudio의 실제 DB 준비·명시 migration은 별도 승인 대상입니다.
+SMTP 인증은 기본 `CORE_SMTP_AUTH=true`이며 제공사가 요구하는 `CORE_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `CORE_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `OPENAI_API_KEY/MODEL`은 선택적 생성 설정으로 AI에만 전달합니다. `CONTENT_ENABLED`·`APP_WORLDSTUDIO_ENABLED`는 기본 false이며 WorldStudio의 실제 DB 준비·명시 migration은 별도 승인 대상입니다.
 
 prod의 `AUTH_COOKIE_SECURE`는 **항상 true**이므로 로컬 HTTP용 `AUTH_COOKIE_SECURE=false`가 있어도 약화되지 않습니다. HTTP로 그대로 공개해도 되는 설정이 아니며 HTTPS ingress·DNS·인증/메일·백업 복원·관측·운영 수용 검증은 이 파일이 제공하지 않습니다.
 
@@ -120,7 +120,7 @@ MinIO Console은 `127.0.0.1:${MINIO_CONSOLE_PORT:-9001}`, API는 `${MINIO_API_PO
 
 ### 네이티브 Content 첨부 설정
 
-`backend/content-service` 터미널에 기존 대상 `CONTENT_DATABASE_*`, `CONTENT_CORE_AUTH_TOKEN`, Core 인증 origin과 필요 시 생성 `INTERNAL_TOKEN`을 준비합니다. 다음 명령의 S3 설정은 Content 프로세스에만 적용됩니다. Frontend·Core·AI에 AWS 설정을 export하지 않습니다.
+`backend/content-service` 터미널에 공용 `DATABASE_*`, `CONTENT_CORE_AUTH_TOKEN`, Core 인증 origin과 필요 시 생성 `INTERNAL_TOKEN`을 준비합니다. 다음 명령의 S3 설정은 Content 프로세스에만 적용됩니다. Frontend·Core·AI에 AWS 설정을 export하지 않습니다.
 
 ```bash
 env CONTENT_ENABLED=true SETTING_ATTACHMENTS_ENABLED=true \

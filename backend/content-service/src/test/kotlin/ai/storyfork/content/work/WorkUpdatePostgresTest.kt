@@ -18,7 +18,7 @@ import java.util.concurrent.*
 /** 작품 수정을 실제 PostgreSQL에서 검증한다. TEST_CONTENT_DATABASE_URL이 있을 때만 실행한다. */
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 @Import(ContentTestConfig::class)
-@SpringBootTest(properties=["app.content.enabled=true","CONTENT_DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","CONTENT_DATABASE_USER=content_test","CONTENT_DATABASE_PASSWORD="])
+@SpringBootTest(properties=["app.content.enabled=true","DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=content_test","DATABASE_PASSWORD="])
 class WorkUpdatePostgresTest {
     @Autowired lateinit var works: WorkService
     @MockitoBean lateinit var ai: GenerationClient

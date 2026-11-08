@@ -16,9 +16,9 @@ concurrency:
 
 # 격리된 CI 전용 값이다. 저장소/서버의 실제 .env·secrets는 사용하지 않는다.
 env:
-  CORE_DATABASE_USER: content_test
-  CORE_DATABASE_PASSWORD: ci-test-only
-  CORE_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
+  DATABASE_USER: content_test
+  DATABASE_PASSWORD: ci-test-only
+  DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
   CORE_SMTP_HOST: 127.0.0.1
   CORE_SMTP_PORT: "1025"
   AUTH_PUBLIC_ORIGIN: http://127.0.0.1:8088
@@ -64,17 +64,14 @@ jobs:
       CD_DIRECTORY: /configuration-test
       CD_WEB_PORT: "8088"
       # Configuration-only synthetic values; no published image is pulled or started here.
-      PROD_DATABASE_URL: jdbc:postgresql://production-config.invalid:5432/storyfork
-      PROD_DATABASE_USER: synthetic-prod-user
-      PROD_DATABASE_PASSWORD: synthetic-prod-password
-      PROD_SMTP_HOST: smtp-config.invalid
-      PROD_SMTP_PORT: "587"
-      PROD_PUBLIC_ORIGIN: https://production-config.invalid
-      PROD_MAIL_FROM: ci@example.invalid
-      PROD_AUTH_JWT_SECRET: synthetic-config-only
-      PROD_CONTENT_CORE_AUTH_TOKEN: synthetic-config-only
-      PROD_INTERNAL_TOKEN: synthetic-config-only
-      PROD_WEB_PORT: "18088"
+      DATABASE_USER: synthetic-config-user
+      DATABASE_PASSWORD: synthetic-config-password
+      AUTH_PUBLIC_ORIGIN: https://production-config.invalid
+      AUTH_MAIL_FROM: ci@example.invalid
+      AUTH_JWT_SECRET: synthetic-config-only
+      CONTENT_CORE_AUTH_TOKEN: synthetic-config-only
+      INTERNAL_TOKEN: synthetic-config-only
+      WEB_PORT: "18088"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -85,7 +82,7 @@ jobs:
           docker compose --env-file .env.example config --quiet
           for mode in local prod dev; do
             for content in false true; do
-              CONTENT_ENABLED="$content" PROD_CONTENT_ENABLED="$content" docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
+              CONTENT_ENABLED="$content" docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
             done
           done
       - name: Validate opt-in current relationship graph configuration without starting services
@@ -225,7 +222,7 @@ jobs:
         image: ${{ matrix.service == 'core' && 'axllent/mailpit:v1.27' || '' }}
         ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
     env:
-      CORE_DATABASE_PASSWORD: ""
+      DATABASE_PASSWORD: ""
       TEST_CONTENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
       TEST_OPERATIONS_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test
       TEST_OPERATIONS_DATABASE_USER: content_test
