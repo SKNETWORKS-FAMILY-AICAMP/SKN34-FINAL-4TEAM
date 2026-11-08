@@ -26,6 +26,8 @@ class WorkEntity(
     var audienceRating: String? = null,
     @field:Column(name = "creation_type")
     var creationType: String = "original",
+    @field:Column(name = "restricted")
+    var restricted: Boolean = false,
     @field:Column(name = "slug") var slug: String? = null,
     @field:Column(name = "author_name") var authorName: String = "작성자",
     @field:Column(name = "theme") var theme: String = "star",

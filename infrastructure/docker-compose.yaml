@@ -14,6 +14,8 @@ services:
     init: true
     environment:
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:-}
+      # Operations → Core/Content 내부 API 자격. 비어 있으면 운영 호출을 거절한다.
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:-}
       AI_SERVICE_BASE_URL: http://ai-service:8000
       AI_SERVICE_CONNECT_TIMEOUT: ${AI_SERVICE_CONNECT_TIMEOUT:-1s}
       AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-12s}
@@ -48,6 +50,7 @@ services:
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:-}
       NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:-}
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:-}
       CORE_AUTH_BASE_URL: http://core-api:8080
       CORE_AUTH_CONNECT_TIMEOUT: ${CORE_AUTH_CONNECT_TIMEOUT:-1s}
       CORE_AUTH_READ_TIMEOUT: ${CORE_AUTH_READ_TIMEOUT:-3s}
@@ -59,8 +62,25 @@ services:
     expose:
       - "8081"
 
+  # 신고·회원·관리자 운영 API. 호스트 포트 없이 컨테이너 네트워크(nginx)에서만 노출한다.
+  operations-service:
+    init: true
+    depends_on:
+      core-api:
+        condition: service_healthy
+      content-service:
+        condition: service_started
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:-}
+      OPERATIONS_CORE_BASE_URL: http://core-api:8080
+      OPERATIONS_CONTENT_BASE_URL: http://content-service:8081
+    expose:
+      - "8082"
+
   web:
     init: true
     depends_on:
       - core-api
       - content-service
+      - operations-service

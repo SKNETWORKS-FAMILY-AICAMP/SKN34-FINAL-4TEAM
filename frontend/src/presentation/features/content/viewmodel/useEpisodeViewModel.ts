@@ -109,6 +109,8 @@ export function useEpisodeViewModel(
     works,
     publicWorks,
     active,
+    /** 공개 작품 보기에서 신고 버튼을 숨기는 화면용 값. 서버는 본인 작품 신고를 아직 막지 않습니다. */
+    activeIsMine: !!active && works.some((w) => w.id === active.id),
     draft,
     proposal,
     history,

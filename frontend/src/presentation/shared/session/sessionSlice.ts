@@ -8,6 +8,8 @@ import type { AuthUser } from '../../../domain/repositories/AuthRepository'
 export type SessionState = {
   role: Role
   user: { nick: string; email: string; joined: string }
+  /** Core 회원 ID. 신고자·작품 소유자 표시 판단에만 쓰며 권한 검사는 서버가 합니다. */
+  memberId: string | null
   /** 로그인 후 돌아갈 경로와 로그인 화면 안내 (목업 S.next·S.loginMsg) */
   next: string | null
   loginMsg: string
@@ -23,6 +25,7 @@ export type SessionState = {
 export const initialSession: SessionState = {
   role: null,
   user: { nick: '읽는사람', email: 'reader@storyfork.demo', joined: '2026.10.20' },
+  memberId: null,
   next: null,
   loginMsg: '',
   loginRole: 'user',
@@ -44,6 +47,7 @@ export const sessionSlice = createSlice({
     login: (s, a: PayloadAction<AuthUser>) => {
       s.role = a.payload.operator ? 'admin' : 'user'
       s.user = { nick: a.payload.nickname, email: a.payload.email, joined: '' }
+      s.memberId = a.payload.id
       s.loginMsg = ''
       s.next = null
     },
@@ -52,6 +56,7 @@ export const sessionSlice = createSlice({
     logout: (s) => {
       s.role = null
       s.user = { ...initialSession.user }
+      s.memberId = null
       s.loginRole = 'user'
       s.next = null
     },

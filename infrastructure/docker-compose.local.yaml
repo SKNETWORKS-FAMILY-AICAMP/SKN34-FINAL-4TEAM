@@ -101,6 +101,18 @@ services:
     ports:
       - "127.0.0.1:${CONTENT_SERVICE_PORT:-8081}:8081"
 
+  operations-service:
+    build:
+      context: ../backend/operations-service
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      OPERATIONS_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
+      OPERATIONS_DATABASE_USER: ${CORE_DATABASE_USER:?Set CORE_DATABASE_USER}
+      OPERATIONS_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?Set CORE_DATABASE_PASSWORD}
+
   web:
     build:
       context: ../frontend

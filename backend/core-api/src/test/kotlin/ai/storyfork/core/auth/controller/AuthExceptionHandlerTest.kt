@@ -12,6 +12,7 @@ class AuthExceptionHandlerTest {
             AuthException.Reason.INVALID to 400,
             AuthException.Reason.UNAUTHENTICATED to 401,
             AuthException.Reason.FORBIDDEN to 403,
+            AuthException.Reason.RESTRICTED to 403,
             AuthException.Reason.NOT_FOUND to 404,
             AuthException.Reason.CONFLICT to 409,
             AuthException.Reason.UNAVAILABLE to 503,

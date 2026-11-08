@@ -45,7 +45,7 @@ class WorkAccessService(
         return WorkAccessResult(w.id,w.ownerId,w.title,w.description,w.revision,
             worlds.findFirstByWorkIdOrderByRevisionNoDesc(id)?.worldId ?: throw ContentFailure(409,"작품의 세계관 연결이 없어요."),
             visibility.findFirstByWorkIdOrderByRevisionNoDesc(id)?.visibility ?: "private",
-            policy?.allowCreation ?: false,policy?.allowPublication ?: false,source)
+            policy?.allowCreation ?: false,policy?.allowPublication ?: false,source,w.restricted)
     }
     fun forkable(id: String, published: List<Int>): List<Int> {
         val policy=policies.findFirstByWorkIdOrderByRevisionNoDesc(id) ?: return emptyList()
@@ -60,7 +60,7 @@ class WorkAccessService(
         return get(id).also { checkContent(it.ownerId==owner,404,"작품을 찾을 수 없어요.") }
     }
     fun published(id: String): WorkAccessResult {
-        return get(id).also { checkContent(it.visibility=="public",404,"공개 작품을 찾을 수 없어요.") }
+        return get(id).also { checkContent(it.publiclyVisible(),404,"공개 작품을 찾을 수 없어요.") }
     }
     fun lockScope(id: String) = lockScopes(listOf(id))
     fun lockScopes(ids: Collection<String>) {

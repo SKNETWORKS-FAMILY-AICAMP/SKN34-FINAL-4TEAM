@@ -38,6 +38,9 @@ class OperationsExceptionHandler {
         400 -> invalidRequest()
         404 -> notFound()
         409 -> conflict()
+        401 -> ResponseEntity.status(401).body(OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
+        403 -> ResponseEntity.status(403).body(OperationsErrorResponse("FORBIDDEN", "Access denied."))
+        502 -> ResponseEntity.status(502).body(OperationsErrorResponse("UPSTREAM_FAILED", "Upstream service request failed."))
         else -> ResponseEntity.status(error.statusCode).body(OperationsErrorResponse("REQUEST_FAILED", "Request could not be completed."))
     }
 

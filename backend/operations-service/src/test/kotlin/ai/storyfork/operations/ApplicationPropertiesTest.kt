@@ -34,5 +34,7 @@ class ApplicationPropertiesTest {
         assertEquals("\${OPERATIONS_DATABASE_URL:jdbc:postgresql://127.0.0.1:5432/storyfork}", properties.getProperty("spring.datasource.url"))
         assertEquals("\${OPERATIONS_DATABASE_USER:storyfork}", properties.getProperty("spring.datasource.username"))
         assertEquals("\${OPERATIONS_DATABASE_PASSWORD:}", properties.getProperty("spring.datasource.password"))
+        assertEquals("\${OPERATIONS_CORE_BASE_URL:http://127.0.0.1:8080}", properties.getProperty("app.operations.core-base-url"))
+        assertEquals("\${OPERATIONS_CONTENT_BASE_URL:http://127.0.0.1:8081}", properties.getProperty("app.operations.content-base-url"))
     }
 }

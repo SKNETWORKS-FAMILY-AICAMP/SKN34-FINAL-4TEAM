@@ -15,10 +15,12 @@
 - 실시간 인기 TOP10: 최근 24시간(`now-24h ~ now`) 조회 수 내림차순, 조회 0인 작품 제외, 최대 10개.
 - 급상승: 최근 24시간 조회 수 − 그 전 24시간 조회 수가 큰 순서, 증가분 0 이하 제외, 최대 10개.
 - 동점은 작품 생성 최신순으로 정한다.
+- 운영이 제한한 작품(`work.restricted`)은 공개 작품이 아니다. 공개 여부는 `WorkAccessResult.publiclyVisible()` 하나로 판단하므로
+  제한 작품은 검색·랭킹에서 빠지고 조회 기록도 404다([운영 계약](operations-member-report-contract.md#content-내부-api-운영-전용)).
 
 ## 저장
 
-`backend/content-service/src/main/resources/db/migration/work/V13__work_view.sql`
+`backend/content-service/src/main/resources/db/migration/work/V14__work_view.sql`(V13은 운영 작품 제한 `work_restriction`이다)
 
 ```sql
 CREATE TABLE work_view (
@@ -40,7 +42,7 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 |---|---|---|
 | `GET /api/v1/public/works?q=&f=all\|title\|author\|tag\|genre&sort=latest\|view` | 익명 | 매개변수 없으면 기존 공개 목록과 같다. `q`는 trim 후 대소문자 무시 부분 일치(`author`는 `author_name`), `tag`는 앞 `#` 무시. 잘못된 `f`·`sort`는 422 |
 | `GET /api/v1/public/works/ranking?kind=top\|rising` | 익명 | 위 규칙의 최대 10개 `WorkListResponse`. 잘못된 `kind`는 422 |
-| `POST /api/v1/works/{id}/episodes/{number}/views` | 회원 | 공개 작품의 발행 회차면 기록(같은 날 중복은 무시)하고 204. 비공개·미발행 회차는 404. 소유자 검사 없음 |
+| `POST /api/v1/works/{id}/episodes/{number}/views` | 회원 | 공개 작품의 발행 회차면 기록(같은 날 중복은 무시)하고 204. 비공개·운영 제한·미발행 회차는 404. 소유자 검사 없음 |
 
 `WorkResponse`에 `views: Long`(최근 24시간 조회 수, 기본 0)을 추가한다. 기존 필드·응답 구조는 바꾸지 않는다.
 
@@ -62,5 +64,6 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 ## ponytail 한계
 
 - 작가 검색은 `author_name` 표시명만 본다(Core 닉네임·계정과 동기화하지 않는다).
-- 검색·랭킹은 공개 작품 목록을 메모리에서 거르고 정렬한다(시연 규모). 작품 수가 늘면 SQL 조건·페이지네이션으로 옮긴다.
+- 검색은 공개 작품 목록을 메모리에서 거르고 정렬한다(시연 규모). 랭킹은 조회 기록이 있는 작품만 읽어 순위 10개만 응답으로 조립한다.
+  작품 수가 늘면 SQL 조건·페이지네이션으로 옮긴다.
 - 서버 페이지네이션 없음. 기간 집계는 롤링 24시간 두 구간만 있고 주간 집계는 없다.

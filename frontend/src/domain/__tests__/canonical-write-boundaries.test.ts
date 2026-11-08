@@ -44,7 +44,6 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
     const before=structuredClone(db)
     expect(await new InboxUseCase(works,feedback).act('i','reject')).toContain('아직 연결되지')
     const uc=new AdminUseCase(admin,works,feedback,new InMemoryInquiryRepository(db),credits,new InMemoryChatRepository(db))
-    expect((await uc.review('q','hide'))?.ok).toBe(false)
     expect((await uc.toggleWork(w.id))?.ok).toBe(false)
     expect(db).toEqual(before)
     expect((await uc.load()).isolation.some(x=>x.title===w.title)).toBe(false)

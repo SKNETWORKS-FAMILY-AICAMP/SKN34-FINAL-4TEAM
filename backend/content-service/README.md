@@ -44,6 +44,15 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 - 공개 작품 GET만 익명 허용하고 소유권·Fork·공개 회차 검사는 업무 Service가 담당합니다. 모든 공개 변경 요청의 CSRF 쿠키/`X-CSRF-TOKEN`·XOR 계약과 CORS를 유지합니다. 로그인·refresh·CSRF 발급은 Core 책임입니다.
 - 기존 access JWT에는 세션 ID가 없어 refresh 세션 폐기 후 access token의 즉시 무효화를 새로 보장하지 않습니다.
 
+## 운영 전용 내부 API
+
+[운영 회원·신고 계약](../../docs/design/operations-member-report-contract.md#content-내부-api-운영-전용)의 작품 제한 API입니다. 회원 Bearer·CSRF 없이 `X-Operations-Service-Token`이 환경변수 `OPERATIONS_SERVICE_TOKEN`(32자 이상)과 같을 때만 허용하고, 미설정·짧음·불일치는 403입니다. 공개 proxy에 등록하지 않습니다.
+
+- `GET /internal/v1/works/{workId}` → `{ workId, ownerId, title, restricted }`, 없으면 404
+- `PUT`·`DELETE /internal/v1/works/{workId}/restriction` → 같은 본문(`restricted` true/false)
+
+제한 작품은 `/api/v1/public/works` 목록에서 빠지고 공개 상세·문맥·표지·회차 이미지와 새 분기 생성은 404/403입니다. 작가 본인 스튜디오(`/api/v1/works`)는 그대로입니다.
+
 ## 같은 DB와 fresh 콘텐츠 migration
 
 물리 DB를 나누거나 데이터를 복사하지 않습니다. Core Auth와 Content는 기존 같은 대상/계정을 사용하되 각자 자기 테이블과 migration만 씁니다. Compose는 Core Health 이후 Content를 시작하여 새 공유 schema의 Auth 초기화가 먼저 끝나게 합니다. 서버 간 HTTP는 단일 DB transaction이 아닙니다.
@@ -62,8 +71,9 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V10 | `db/migration/plan` | 11번 비공개 플롯·장면 계획, 참조, revision·논리 삭제 |
 | V11 | `db/migration/plan` | 작품 실제 삭제 시 해당 계획·참조만 종속 정리 |
 | V12 | `db/migration/plan` | 인물·장소 순서 목록의 중복 검사를 커밋까지 지연 |
-| V13 | `db/migration/work` | 공개 회차 조회 기록 `work_view`(작품 검색·실시간 랭킹의 조회 수 정본) |
-| V14 | `db/migration/work` | 공개 표시 메타데이터·불변 rich wiki 상세 추가 (샘플 자동 insert 없음) |
+| V13 | `db/migration/work` | 운영 작품 제한 플래그 `work.restricted`(기본 false) |
+| V14 | `db/migration/work` | 공개 회차 조회 기록 `work_view`(작품 검색·실시간 랭킹의 조회 수 정본) |
+| V15 | `db/migration/work` | 공개 표시 메타데이터·불변 rich wiki 상세 추가 (샘플 자동 insert 없음) |
 
 [`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 8개 leaf만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 
@@ -71,13 +81,13 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 
 V12는 기존 V1~V11을 보존하고 계획의 인물·장소 `(plan_id, setting_id)` unique 제약만 `DEFERRABLE INITIALLY DEFERRED`로 교체합니다. Hibernate가 `[A,B,C] → [B,C]` 또는 `[A,B] → [B,A]`를 저장하는 중간의 일시 중복은 허용하되, 트랜잭션 커밋 시 최종 중복은 거부합니다. API의 중복 입력 검증, 순서 위치 PK, 작품·계획 외래키와 V11 삭제 동작은 유지합니다.
 
-V13은 기존 V1~V12를 보존하고 `work_view`(작품·회차·회원·Asia/Seoul 날짜가 기본키, `viewed_at` 인덱스)만 추가합니다. 작품 삭제 경로는 바꾸지 않습니다. 조회 기록은 공개 작품의 발행 회차에만 생기고 발행 이력이 있는 작품의 삭제는 이미 409이기 때문입니다.
+V14는 기존 V1~V13을 보존하고 `work_view`(작품·회차·회원·Asia/Seoul 날짜가 기본키, `viewed_at` 인덱스)만 추가합니다. 작품 삭제 경로는 바꾸지 않습니다. 조회 기록은 공개 작품의 발행 회차에만 생기고 발행 이력이 있는 작품의 삭제는 이미 409이기 때문입니다.
 
-작품 검색·실시간 랭킹·조회 기록 API(`GET /api/v1/public/works?q&f&sort`, `GET /api/v1/public/works/ranking?kind`, `POST /api/v1/works/{id}/episodes/{number}/views`)는 [계약](../../docs/design/work-search-ranking-contract.md)을 따르고, `work_view` 기록과 24시간 집계는 `WorkViewService`가 맡습니다. 계약에 없는 경계는 `kind` 누락 400, `f`·`sort`·`kind`는 소문자 정확 일치 외(빈 문자열 포함) 422, 공백뿐인 `q`는 필터 없음, 해시태그는 검색어·저장값 모두 앞 `#` 무시로 정했고, `f=author`는 `work.author_name`(작가 표시명)을 보고 `f=all`에도 포함합니다. `WorkResponse.views`는 공개 목록·검색·랭킹 응답에서만 채우며 그 밖은 0입니다. 같은 날 중복 기록은 nativeQuery 없이 처리합니다. 서비스 트랜잭션을 쓰지 않고 저장소 호출마다 독립 트랜잭션으로 선검사한 뒤, unique 위반이 나면 행이 이미 있는지 다시 확인해 중복일 때만 무시합니다. 검색·랭킹은 공개 작품을 메모리에서 거르고 정렬하는 시연 규모 구현이며 서버 페이지네이션은 없습니다.
+작품 검색·실시간 랭킹·조회 기록 API(`GET /api/v1/public/works?q&f&sort`, `GET /api/v1/public/works/ranking?kind`, `POST /api/v1/works/{id}/episodes/{number}/views`)는 [계약](../../docs/design/work-search-ranking-contract.md)을 따르고, `work_view` 기록과 24시간 집계는 `WorkViewService`가 맡습니다. 계약에 없는 경계는 `kind` 누락 400, `f`·`sort`·`kind`는 소문자 정확 일치 외(빈 문자열 포함) 422, 공백뿐인 `q`는 필터 없음, 해시태그는 검색어·저장값 모두 앞 `#` 무시로 정했고, `f=author`는 `work.author_name`(작가 표시명)을 보고 `f=all`에도 포함합니다. `WorkResponse.views`는 공개 목록·검색·랭킹 응답에서만 채우며 그 밖은 0입니다. 같은 날 중복 기록은 nativeQuery 없이 처리합니다. 서비스 트랜잭션을 쓰지 않고 저장소 호출마다 독립 트랜잭션으로 선검사한 뒤, unique 위반이 나면 행이 이미 있는지 다시 확인해 중복일 때만 무시합니다. 공개 여부는 운영 제한을 뺀 `WorkAccessResult.publiclyVisible()` 하나로 판단하므로 제한 작품은 작가 검색을 포함한 검색·랭킹에서 빠지고 조회 기록도 404입니다. 검색은 공개 작품을 메모리에서 거르고 정렬하는 시연 규모 구현이고, 랭킹은 최근 48시간 조회 기록이 있는 작품만 읽어 순위 10개만 응답으로 조립하며, 서버 페이지네이션은 없습니다.
 
 이 변경은 **사용자가 허용한 개발용 재초기화 전제**이며 과거 Content V1~V9 checksum과 호환되지 않습니다. 기존 적용 이력을 자동 repair/baseline 변경/clean하지 않습니다. 정확한 대상·중단 시간·보존 범위·복구 증거를 운영자가 확인하고 별도 승인하기 전 실제 DB/volume을 지우지 않습니다. 특히 같은 DB의 Auth·WorldStudio·첨부까지 일괄 폐기하는 승인이 아닙니다.
 
-샘플 데이터는 사용자 요청대로 [테이블별 UTF-8 CSV와 승인형 Core/Content loader](../../infrastructure/sample-data/README.md)를 사용합니다. V14(샘플 이관 시점의 V10을 develop의 V10~V13 뒤로 옮긴 번호)는 샘플 행 없는 스키마 SQL로 유지하고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개 바이트는 보존합니다. CSV 속성은 원문 근거가 있는 공개 시점만 부여하며 불확실한 값은 비공개입니다. rich 대상 편집/following Fork의 rich detach는 409로 보호하되 원작의 새 단순 설정 초안·확정은 기존 rich 상세를 바꾸지 않고 허용합니다. 앱/Flyway/배포 자동 seed·sample SQL 파일은 없으며 실제 적용·hosted CI·브라우저 수용은 별도 확인 대기입니다.
+샘플 데이터는 사용자 요청대로 [테이블별 UTF-8 CSV와 승인형 Core/Content loader](../../infrastructure/sample-data/README.md)를 사용합니다. V15(샘플 이관 시점의 V10을 develop의 V10~V14 뒤로 옮긴 번호)는 샘플 행 없는 스키마 SQL로 유지하고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개 바이트는 보존합니다. CSV 속성은 원문 근거가 있는 공개 시점만 부여하며 불확실한 값은 비공개입니다. rich 대상 편집/following Fork의 rich detach는 409로 보호하되 원작의 새 단순 설정 초안·확정은 기존 rich 상세를 바꾸지 않고 허용합니다. 앱/Flyway/배포 자동 seed·sample SQL 파일은 없으며 실제 적용·hosted CI·브라우저 수용은 별도 확인 대기입니다.
 
 Auth SQL은 Core의 `db/migration/auth`/`flyway_schema_history`에 원본 그대로 남습니다. 설정 첨부·이미지는 독립 leaf/history 및 바이트를 유지합니다. WorldStudio V1도 바이트/`worldstudio.world_studio_schema_history`를 유지하고 [명시 migration](src/main/resources/db/migration/worldstudio/README.md) 뒤에만 활성화합니다. 같은 `contentDataSource`를 사용하지만 studio-only EntityManager/TransactionManager이며 서버 시작은 `validate`만 합니다. 별도 WorldStudio DB/pool·Auth 스캔은 없습니다.
 

@@ -32,7 +32,7 @@ beforeEach(() => {
   doubles.cleanups.length = 0
   view = adminViewSlice.reducer(undefined, { type: 'init' })
   dataVersion = 0
-  doubles.getState.mockImplementation(() => ({ adminView: view }))
+  doubles.getState.mockImplementation(() => ({ adminView: view, session: { memberId: null, user: { nick: '관리자', email: '', joined: '' } } }))
   doubles.dispatch.mockImplementation((action: { type: string }) => {
     view = adminViewSlice.reducer(view, action)
     if (action.type === 'session/dataChanged') dataVersion++
