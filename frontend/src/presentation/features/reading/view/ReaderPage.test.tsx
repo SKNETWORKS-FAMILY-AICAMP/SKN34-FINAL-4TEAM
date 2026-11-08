@@ -21,6 +21,9 @@ afterEach(() => {
 async function openReader() {
   renderApp('/read/postman/1', createAppStore({ role: 'user' }))
   await screen.findByRole('heading', { name: '수취인 불명' })
+  // 스크롤 리스너는 렌더 뒤 passive effect로 붙어, 부하가 크면 findBy가 풀린 뒤에도 아직 없고 스크롤 이벤트를 놓친다.
+  // act 한 번으로는 Scheduler가 미룬 effect를 비우지 못하므로, 그 효과의 첫 실행이 채우는 진행률 바로 준비를 확인한다.
+  await waitFor(() => expect(document.getElementById('prog')?.style.width).toBeTruthy())
   return [...document.querySelectorAll<HTMLElement>('[data-s]')]
 }
 
