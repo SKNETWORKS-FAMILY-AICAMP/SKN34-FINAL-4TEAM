@@ -11,7 +11,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 
-/** CI only: Flyway V100 sample accounts in an owned random schema, never the shared Auth schema. */
+/** CI only: Flyway V9 sample accounts in an owned random schema, never the shared Auth schema. */
 @EnabledIfEnvironmentVariable(named = "AUTH_INTEGRATION_TEST", matches = "true")
 class SampleImportPostgresTest {
     private val writer = UUID.fromString("b832d965-0352-4eb1-b896-7a307ba09a68")
@@ -28,7 +28,7 @@ class SampleImportPostgresTest {
         admin.execute("CREATE SCHEMA $schema")
         try {
             val flyway = { target: String? ->
-                Flyway.configure().dataSource(scoped).schemas(schema).defaultSchema(schema).locations(*locations).outOfOrder(true)
+                Flyway.configure().dataSource(scoped).schemas(schema).defaultSchema(schema).locations(*locations)
                     .let { if (target == null) it else it.target(target) }.load()
             }
             test(JdbcTemplate(scoped), flyway)
@@ -40,7 +40,7 @@ class SampleImportPostgresTest {
     private fun samples(jdbc: JdbcTemplate): Int = requireNotNull(jdbc.queryForObject(
         "SELECT count(*) FROM auth_member WHERE id<>? AND password_hash='!sample-import-login-disabled' AND NOT operator", Int::class.java, writer))
 
-    @Test fun `V100 adds ordinary disabled sample accounts without changing the existing writer`() = isolated { jdbc, flyway ->
+    @Test fun `V9 adds ordinary disabled sample accounts without changing the existing writer`() = isolated { jdbc, flyway ->
         flyway("8").migrate()
         val before = jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer)
         assertEquals(1, flyway(null).migrate().migrationsExecuted)
@@ -50,7 +50,7 @@ class SampleImportPostgresTest {
         flyway(null).validate()
     }
 
-    @Test fun `secondary email collision fails V100 atomically instead of overwriting`() = isolated { jdbc, flyway ->
+    @Test fun `secondary email collision fails V9 atomically instead of overwriting`() = isolated { jdbc, flyway ->
         flyway("8").migrate()
         val inventory = tools.jackson.databind.json.JsonMapper.builder().build()
             .readTree(Files.readString(sampleDir.resolve("source-inventory.json")))

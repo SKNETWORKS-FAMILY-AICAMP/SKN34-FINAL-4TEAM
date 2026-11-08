@@ -158,8 +158,8 @@ class SampleImportTest(unittest.TestCase):
 
     def test_flyway_migrations_are_exactly_rendered_from_csv(self):
         loader = self.loader()
+        self.assertEqual({'core': 'V9__sample_auth_member.sql', 'content': 'V16__sample_content.sql'}, {s: p.name for s, p in loader.MIGRATIONS.items()})
         for service, path in loader.MIGRATIONS.items():
-            self.assertTrue(path.name.startswith('V100__'), path)
             self.assertEqual(loader.render_sql(service), path.read_text(encoding='utf-8'), f'regenerate {path.name} with load.py')
 
     def test_rendered_sql_is_additive_and_literal_safe(self):

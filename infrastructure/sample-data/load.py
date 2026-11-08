@@ -1,4 +1,4 @@
-"""Render the canonical sample CSVs into each service's Flyway V100 migration (stdlib only).
+"""Render the canonical sample CSVs into each service's Flyway sample migration (stdlib only).
 
 Run `python3 -I infrastructure/sample-data/load.py` after editing a CSV and commit the regenerated SQL.
 """
@@ -8,10 +8,10 @@ import re
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-# Sample rows use V100+ so schema migrations keep their own sequential numbers below it.
+# Ordinary next-version migrations; once applied they are immutable, so later sample changes need a new version.
 MIGRATIONS = {
-    'core': ROOT / 'backend/core-api/src/main/resources/db/migration/sample/V100__sample_auth_member.sql',
-    'content': ROOT / 'backend/content-service/src/main/resources/db/migration/sample/V100__sample_content.sql',
+    'core': ROOT / 'backend/core-api/src/main/resources/db/migration/sample/V9__sample_auth_member.sql',
+    'content': ROOT / 'backend/content-service/src/main/resources/db/migration/sample/V16__sample_content.sql',
 }
 # Fixed schema/column allowlist, in FK insertion order. No CSV value becomes an SQL identifier.
 TABLES = {

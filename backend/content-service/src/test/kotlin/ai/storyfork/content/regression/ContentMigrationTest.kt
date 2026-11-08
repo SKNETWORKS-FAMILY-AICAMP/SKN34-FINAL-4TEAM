@@ -42,7 +42,7 @@ class ContentMigrationTest {
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
         assertEquals(16,flyway.migrate().migrationsExecuted)
-        assertEquals((1..15).map(Int::toString)+"100",flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals((1..16).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
@@ -71,7 +71,7 @@ class ContentMigrationTest {
 
     private val sampleDir = Path.of("..", "..", "infrastructure", "sample-data")
 
-    @Test fun `V100 samples preserve bodies source versions wiki and replay without changes`() = isolated { flyway,jdbc ->
+    @Test fun `V16 samples preserve bodies source versions wiki and replay without changes`() = isolated { flyway,jdbc ->
         flyway.migrate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for ((table, count) in mapOf("member" to 10, "work" to 11, "fork" to 7, "episode_version" to 32,
@@ -110,7 +110,7 @@ class ContentMigrationTest {
         .defaultSchema(jdbc.queryForObject("SELECT current_schema()",String::class.java)).locations(*ContentPersistenceConfig.MIGRATION_LOCATIONS)
         .table("content_schema_history").baselineOnMigrate(true).baselineVersion("0").target("15").load()
 
-    @Test fun `V100 keeps an existing row with the same key instead of overwriting it`() = isolated { flyway,jdbc ->
+    @Test fun `V16 keeps an existing row with the same key instead of overwriting it`() = isolated { flyway,jdbc ->
         upTo15(jdbc).migrate()
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
@@ -120,7 +120,7 @@ class ContentMigrationTest {
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
 
-    @Test fun `V100 secondary unique conflict fails atomically instead of partial samples`() = isolated { flyway,jdbc ->
+    @Test fun `V16 secondary unique conflict fails atomically instead of partial samples`() = isolated { flyway,jdbc ->
         upTo15(jdbc).migrate()
         jdbc.update("INSERT INTO member(id) VALUES ('unrelated')")
         jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision,slug) VALUES ('unrelated','unrelated','keep local','','original',0,'guunmong')")
