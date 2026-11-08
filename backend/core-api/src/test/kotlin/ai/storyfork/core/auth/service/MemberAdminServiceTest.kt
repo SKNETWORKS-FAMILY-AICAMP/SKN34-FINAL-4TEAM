@@ -33,6 +33,9 @@ class MemberAdminServiceTest {
     init {
         `when`(members.findById(admin.id)).thenReturn(Optional.of(admin))
         `when`(members.findById(reader.id)).thenReturn(Optional.of(reader))
+        // 제한 전환은 refresh·복구와 같은 회원 행 잠금으로 직렬화한다.
+        `when`(members.lockById(reader.id)).thenReturn(reader)
+        `when`(members.lockById(admin.id)).thenReturn(admin)
     }
 
     private fun reason(block: () -> Unit) = assertThrows(AuthException::class.java) { block() }.reason
@@ -43,7 +46,7 @@ class MemberAdminServiceTest {
         assertEquals(AuthException.Reason.UNAUTHENTICATED, reason { service.restrict(UUID.randomUUID().toString(), reader.id) })
         assertEquals(AuthException.Reason.UNAUTHENTICATED, reason { service.list("not-a-uuid", "ALL", "", "newest") })
         admin.restricted = true
-        assertEquals(AuthException.Reason.RESTRICTED, reason { service.list(admin.id.toString(), "ALL", "", "newest") })
+        assertEquals(AuthException.Reason.UNAUTHENTICATED, reason { service.list(admin.id.toString(), "ALL", "", "newest") })
         assertFalse(reader.restricted)
     }
 
@@ -76,6 +79,7 @@ class MemberAdminServiceTest {
         assertTrue(reader.restricted)
         assertFalse(service.unrestrict(admin.id.toString(), reader.id).restricted)
         assertFalse(reader.restricted)
+        org.mockito.Mockito.verify(members, org.mockito.Mockito.times(2)).lockById(reader.id)
 
         assertEquals(AuthException.Reason.INVALID, reason { service.restrict(admin.id.toString(), admin.id) })
         assertEquals(AuthException.Reason.INVALID, reason { service.unrestrict(admin.id.toString(), admin.id) })
