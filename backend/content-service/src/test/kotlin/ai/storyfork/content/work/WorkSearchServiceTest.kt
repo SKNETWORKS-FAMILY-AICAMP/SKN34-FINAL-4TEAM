@@ -18,6 +18,7 @@ import java.util.Optional
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
@@ -56,6 +57,10 @@ class WorkSearchServiceTest {
     private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false) {
         rows += WorkEntity(id = id, ownerId = "author", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted)
         `when`(works.findAll()).thenReturn(rows)
+        `when`(works.findAllById(ArgumentMatchers.anyIterable<String>())).thenAnswer { call ->
+            val ids = call.getArgument<Iterable<String>>(0).toSet()
+            rows.filter { it.id in ids }
+        }
         `when`(access.get(id)).thenReturn(WorkAccessResult(id, "author", title, "", 0, "world", visible, false, false, null, restricted))
         if (visible != "public") return
         `when`(works.findById(id)).thenReturn(Optional.of(rows.last()))
@@ -111,6 +116,21 @@ class WorkSearchServiceTest {
         assertEquals(listOf("a", "b"), top.map { it.id })
         assertEquals(listOf(3L, 2L), top.map { it.views })
         assertEquals(listOf("a"), rising.map { it.id })
+    }
+
+    @Test fun `ranking reads only works with views and assembles only the top ten visible ones`() {
+        for (i in 1..12) work("w$i", "작품 $i", i.toLong())
+        work("quiet", "조회 없음", 13)
+        work("blocked", "제한 작품", 14, restricted = true)
+        views(*(listOf(Triple("blocked", 99L, 0L)) + (1..12).map { Triple("w$it", it.toLong(), 0L) }).toTypedArray())
+
+        val top = service.ranking("top").items
+
+        assertEquals((12 downTo 3).map { "w$it" }, top.map { it.id })
+        assertEquals((12 downTo 3).map { it.toLong() }, top.map { it.views })
+        verify(works, never()).findAll()
+        verify(access, never()).get("quiet")
+        verify(publication, times(10)).publishedEpisodes(ArgumentMatchers.anyString())
     }
 
     @Test fun `restricted public works are left out of list search and both rankings`() {

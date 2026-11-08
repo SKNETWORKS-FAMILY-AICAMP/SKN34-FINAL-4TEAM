@@ -56,13 +56,16 @@ class WorkService(
         val byId=found.associateBy {it.id}
         return WorkListResponse(orderByViews(found.map {it.id},counts).map {byId.getValue(it)})
     }
-    /** 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 잘못된 kind는 422다. */
+    /**
+     * 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 잘못된 kind는 422다.
+     * 조회 기록이 있는 작품만 읽어 공개 여부로 거르고 순위(최대 10개)를 정한 뒤, 그 작품만 응답으로 조립한다.
+     */
     fun ranking(kind: String): WorkListResponse {
         val rankingKind=queryOption(kind,RankingKind.TOP,"kind")
         val counts=viewService.counts()
-        val all=publicWorks(counts)
-        val byId=all.associateBy {it.id}
-        return WorkListResponse(rankingIds(rankingKind,all.map {it.id},counts).map {byId.getValue(it)})
+        val visible=works.findAllById(counts.keys).sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()}
+        val byId=visible.associateBy {it.id}
+        return WorkListResponse(rankingIds(rankingKind,visible.map {it.id},counts).map {view(byId.getValue(it),true).copy(views=counts.getValue(it).recent)})
     }
     private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> =
         works.findAll().sortedByDescending {it.createdAt}.mapNotNull {
