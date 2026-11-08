@@ -44,6 +44,7 @@ class ContentServiceCredentialTest {
             assertEquals(AuthException.Reason.UNAUTHENTICATED, assertThrows(AuthException::class.java) { service.verify(value) }.reason)
         }
         admin.restricted = true
-        assertEquals(AuthException.Reason.RESTRICTED, assertThrows(AuthException::class.java) { service.verify(admin.id.toString()) }.reason)
+        // 제한 회원은 유효한 세션이 없는 것으로 보아 401: Content가 403을 서비스 자격 오류(502)로 바꾸지 않게 한다.
+        assertEquals(AuthException.Reason.UNAUTHENTICATED, assertThrows(AuthException::class.java) { service.verify(admin.id.toString()) }.reason)
     }
 }

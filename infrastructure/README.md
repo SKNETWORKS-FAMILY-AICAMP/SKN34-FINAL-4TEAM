@@ -1,6 +1,6 @@
 # STORYFORK Docker 실행 기반
 
-Core → Content 업무·테스트·인증 확인·공개 라우팅·이미지/CI 연결을 소스에 반영했습니다. **hosted CI·실제 DB 전환·게시·배포는 확인 대기**입니다. 운영 서비스(operations-service)는 신고·회원·관리자 공개 API를 위해 Compose에 추가했으며 호스트 포트 없이 컨테이너 네트워크에서만 노출합니다. develop CD 이미지 게시는 publish 워크플로 반영이 필요합니다. [서비스 경계](../docs/design/service-boundaries.md)와 [이관 계약](../docs/design/content-service-migration-contract.md)을 따릅니다.
+Core → Content 업무·테스트·인증 확인·공개 라우팅·이미지/CI 연결을 소스에 반영했습니다. **hosted CI·실제 DB 전환·게시·배포는 확인 대기**입니다. 운영 서비스(operations-service)는 신고·회원·관리자 공개 API를 위해 Compose에 추가했으며 호스트 포트 없이 컨테이너 네트워크에서만 노출합니다. develop CD는 publish 워크플로에서 operations-service 이미지도 빌드·게시하고 배포 revision 검사에 포함합니다. [서비스 경계](../docs/design/service-boundaries.md)와 [이관 계약](../docs/design/content-service-migration-contract.md)을 따릅니다.
 
 Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다. 과거 Content history와 호환되지 않으며 실제 대상 DB·보존/복구 범위·중단 시간을 확인하기 전 기존 DB에 바로 배포하지 않습니다. 이 문서는 DB 삭제·volume 초기화·개인 `.env` 변경·배포 승인이 아닙니다. Auth·첨부·독립 WorldStudio의 SQL/이력은 유지합니다.
 
@@ -14,7 +14,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 |---|---|---|---|
 | 용도 | 로컬 개발의 소스 빌드 runtime, CI의 소스 빌드 기반 | develop 배포 서버 | 실제 운영 배포 서버용 설정 준비 |
 | 프로젝트 | `storyfork-local` | `storyfork-develop-cd` | `storyfork-production` |
-| 앱 | 네 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 네 앱의 GHCR `:develop`, `linux/amd64` | 네 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
+| 앱 | 다섯 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 다섯 앱의 GHCR `:develop`, `linux/amd64` | 다섯 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
 | DB·SMTP | 새 프로젝트 범위 `core-postgres` volume의 PostgreSQL + Mailpit | 로컬과 같은 PostgreSQL·Mailpit 정의 재사용, 별도 프로젝트 DB volume | 별도 승인·준비한 외부 PostgreSQL·SMTP, 내장 DB·Mailpit·volume 없음 |
 | web 포트 | `127.0.0.1:${DEV_WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${PROD_WEB_PORT}` |
 | 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | 없음 | 없음 |

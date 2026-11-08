@@ -57,7 +57,7 @@ class MemberAdminService(
 
     private fun setRestricted(subject: String?, id: UUID, restricted: Boolean): MemberItem {
         if (requireOperator(subject) == id) throw AuthException(AuthException.Reason.INVALID)
-        val member = members.findById(id).orElseThrow { AuthException(AuthException.Reason.NOT_FOUND) }
+        val member = members.lockById(id) ?: throw AuthException(AuthException.Reason.NOT_FOUND)
         member.restricted = restricted
         return item(member)
     }
