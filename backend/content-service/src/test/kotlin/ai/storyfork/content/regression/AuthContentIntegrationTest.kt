@@ -87,7 +87,8 @@ class AuthContentIntegrationTest {
         val tree=json.readTree(response.body())
         assertEquals(work.id,tree.path("workId").asText())
         assertEquals(1,tree.path("episode").asInt())
-        assertEquals(listOf("visible"),tree.path("documents").map {it.path("name").asText()})
+        // Jackson 3.1의 JsonNode.map(Function)은 노드 자신에 적용돼 배열을 순회하지 않으므로 List로 바꾼 뒤 map한다.
+        assertEquals(listOf("visible"),tree.path("documents").toList().map {it.path("name").asText()})
         assertFalse(response.body().contains("private-body"));assertFalse(response.body().contains("future-body"))
         for(query in listOf("","?episode=bad")) assertEquals(400,send(request(path+query)).statusCode())
         for(episode in listOf(0,-1,2)) assertEquals(404,send(request("$path?episode=$episode").header("X-User-Id",owner)).statusCode())
