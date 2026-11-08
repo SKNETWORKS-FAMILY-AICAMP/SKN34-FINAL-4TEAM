@@ -50,7 +50,7 @@ class WorkService(
         val rows=works.findAll().sortedByDescending {it.createdAt}
         return WorkListResponse(rows.mapNotNull {
             val w=access.get(it.id)
-            if(w.visibility=="public") view(w,true) else null
+            if(w.publiclyVisible()) view(w,true) else null
         })
     }
     fun read(id: String,owner: String): WorkResponse = view(access.own(id,owner))

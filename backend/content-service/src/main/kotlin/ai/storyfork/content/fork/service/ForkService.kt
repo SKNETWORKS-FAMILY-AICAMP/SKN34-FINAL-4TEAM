@@ -48,7 +48,7 @@ class ForkService(
 
     fun create(id: String,owner: String,data: ForkRequest): WorkResponse {
         access.lockScope(id);val original=access.get(id)
-        checkContent(original.source==null && original.visibility=="public" && original.allowFork,403,"이 작품은 분기를 허용하지 않아요.")
+        checkContent(original.source==null && original.publiclyVisible() && original.allowFork,403,"이 작품은 분기를 허용하지 않아요.")
         val published=publication.publishedEpisodes(id).items
         checkContent(data.episode in 1..published.size,message="공개된 기준 회차를 선택해 주세요.")
         checkContent(forks.findAllByOwnerIdAndSourceWorkId(owner,id).isEmpty(),409,"이미 만든 분기 작품이 있어요.")

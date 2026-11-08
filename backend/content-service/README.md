@@ -44,6 +44,15 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 - 공개 작품 GET만 익명 허용하고 소유권·Fork·공개 회차 검사는 업무 Service가 담당합니다. 모든 공개 변경 요청의 CSRF 쿠키/`X-CSRF-TOKEN`·XOR 계약과 CORS를 유지합니다. 로그인·refresh·CSRF 발급은 Core 책임입니다.
 - 기존 access JWT에는 세션 ID가 없어 refresh 세션 폐기 후 access token의 즉시 무효화를 새로 보장하지 않습니다.
 
+## 운영 전용 내부 API
+
+[운영 회원·신고 계약](../../docs/design/operations-member-report-contract.md#content-내부-api-운영-전용)의 작품 제한 API입니다. 회원 Bearer·CSRF 없이 `X-Operations-Service-Token`이 환경변수 `OPERATIONS_SERVICE_TOKEN`(32자 이상)과 같을 때만 허용하고, 미설정·짧음·불일치는 403입니다. 공개 proxy에 등록하지 않습니다.
+
+- `GET /internal/v1/works/{workId}` → `{ workId, ownerId, title, restricted }`, 없으면 404
+- `PUT`·`DELETE /internal/v1/works/{workId}/restriction` → 같은 본문(`restricted` true/false)
+
+제한 작품은 `/api/v1/public/works` 목록에서 빠지고 공개 상세·문맥·표지·회차 이미지와 새 분기 생성은 404/403입니다. 작가 본인 스튜디오(`/api/v1/works`)는 그대로입니다.
+
 ## 같은 DB와 fresh 콘텐츠 migration
 
 물리 DB를 나누거나 데이터를 복사하지 않습니다. Core Auth와 Content는 기존 같은 대상/계정을 사용하되 각자 자기 테이블과 migration만 씁니다. Compose는 Core Health 이후 Content를 시작하여 새 공유 schema의 Auth 초기화가 먼저 끝나게 합니다. 서버 간 HTTP는 단일 DB transaction이 아닙니다.
@@ -62,6 +71,7 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V10 | `db/migration/plan` | 11번 비공개 플롯·장면 계획, 참조, revision·논리 삭제 |
 | V11 | `db/migration/plan` | 작품 실제 삭제 시 해당 계획·참조만 종속 정리 |
 | V12 | `db/migration/plan` | 인물·장소 순서 목록의 중복 검사를 커밋까지 지연 |
+| V13 | `db/migration/work` | 운영 작품 제한 플래그 `work.restricted`(기본 false) |
 
 [`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 8개 leaf만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 
