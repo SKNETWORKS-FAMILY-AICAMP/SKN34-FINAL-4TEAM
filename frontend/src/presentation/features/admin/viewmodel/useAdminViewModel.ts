@@ -8,6 +8,10 @@ import type { AdminTab } from '../../../../domain/entities/admin'
 import { OperationsError, toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
 import type { AdminResult, AdminUseCase } from '../../../../domain/usecases/AdminUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
+import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
+import type { ReportStatus, ReviewDecision } from '../../../../domain/entities/report'
+import type { MemberUseCase } from '../../../../domain/usecases/MemberUseCase'
+import type { ReportUseCase } from '../../../../domain/usecases/ReportUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -19,19 +23,45 @@ const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A0
 export type AdminActionState = { pending: boolean; error: string; message: string }
 const demoSaved = (name: string) => ({ ok: true, msg: `${name} 저장했어요 (독립 운영 데모 · 서버 저장 없음)` })
 const demoDeleted = (name: string) => ({ ok: true, msg: `${name} 삭제했어요 (독립 운영 데모 · 서버 삭제 없음)` })
+/** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'profile']
+const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
+const STATUSES: ReportStatus[] = ['RECEIVED', 'ACCEPTED', 'REJECTED']
 
 /** 기존 회원/제보 데모와 독립 운영 CRUD를 함께 보여 주되 정본과 조치를 섞지 않습니다. */
-export function useAdminViewModel(tab: AdminTab, adminUseCase: AdminUseCase = appContainer.resolve('adminUseCase'), operationsUseCase: OperationsUseCase = appContainer.resolve('operationsUseCase')) {
+export function useAdminViewModel(
+  tab: AdminTab,
+  adminUseCase: AdminUseCase = appContainer.resolve('adminUseCase'),
+  operationsUseCase: OperationsUseCase = appContainer.resolve('operationsUseCase'),
+  memberUseCase: MemberUseCase = appContainer.resolve('memberUseCase'),
+  reportUseCase: ReportUseCase = appContainer.resolve('reportUseCase'),
+) {
   const dispatch = useAppDispatch()
   const store = useStore<RootState>()
   const logout = useLogout()
   const view = useAppSelector((s) => s.adminView)
+  const memberId = useAppSelector((s) => s.session.memberId)
+  const me = useAppSelector((s) => s.session.user)
   const sel = view.sel
   useScreenId(tab === 'rights' && sel ? 'A03+A04' : IDS[tab])
   const query = useAsyncData(async () => {
     const [data, operations] = await Promise.all([adminUseCase.load(), operationsUseCase.load()])
     return { ...data, operations }
   }, [adminUseCase, operationsUseCase])
+  // 실제 운영 API 조회: 현재 탭에 필요한 목록만 요청하고, 필터는 서버 query로 보냅니다.
+  const filter = view.filters[tab]
+  const role = ROLES.find((r) => r === filter?.category) ?? 'ALL'
+  const q = tab === 'users' ? filter?.query ?? '' : ''
+  const sort = filter?.sort === 'oldest' ? 'oldest' : 'newest'
+  const status = STATUSES.find((x) => x === filter?.category) ?? null
+  const live = useAsyncData(async () => ({
+    members: tab === 'users' ? await memberUseCase.listMembers({ role, q, sort }) : [],
+    admins: tab === 'admins' ? await memberUseCase.listAdmins() : [],
+    // 개요의 '접수된 신고' 수도 실제 신고 목록에서 셉니다.
+    reports: tab === 'rights' ? await reportUseCase.listAll(status) : tab === 'data' ? await reportUseCase.listAll('RECEIVED') : [],
+  }), [tab, role, q, sort, status, memberUseCase, reportUseCase])
+  const reportId = tab === 'rights' ? sel : null
+  const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
   const busy = useRef(new Set<string>())
   const mounted = useRef(true)
   const [actions, setActions] = useState<Record<string, AdminActionState>>({})
@@ -63,9 +93,22 @@ export function useAdminViewModel(tab: AdminTab, adminUseCase: AdminUseCase = ap
       return false
     } finally { busy.current.delete(key) }
   }
+  /** 서버 응답 성공만 완료로 표시하고 dataChanged로 목록·상세를 다시 조회합니다. */
+  const runLive = (key: string, msg: string, action: () => Promise<void>) => run(key, async () => { await action(); return { ok: true, msg } })
   const selectRecord = (kind: OperationsRecordKind, id: string | null) => { dispatch(adminViewActions.selectRecord({ kind, id })) }
   return {
     ...query, ...view, actions, lastSuccess,
+    /** 본인 계정 조치 버튼을 막는 화면용 값. 서버도 본인 제한을 400으로 거절합니다. */
+    selfId: memberId,
+    me,
+    live: {
+      ...live, report,
+      setMemberRestriction: (id: string, restricted: boolean) => runLive(`member:${id}`, restricted ? '회원 이용을 제한했어요.' : '회원 이용 제한을 해제했어요.', () => memberUseCase.setRestriction(id, restricted)),
+      createAdmin: (input: AdminInput) => runLive('admin:new', '관리자 계정을 만들고 권한을 저장했어요.', () => memberUseCase.createAdmin(input)),
+      review: (id: string, decision: ReviewDecision, note: string) => runLive(`report:${id}:review`, '검토 결과를 기록했어요.', () => reportUseCase.review(id, decision, note)),
+      setContentRestriction: (id: string, restricted: boolean) => runLive(`report:${id}:restrict`, restricted ? '대상 작품을 제한했어요.' : '대상 작품 제한을 해제했어요.', () => reportUseCase.setContentRestriction(id, restricted)),
+      requestEvidence: (id: string, body: string) => runLive(`report:${id}:evidence`, '작품 등록자에게 권리 증빙을 요청했어요.', () => reportUseCase.requestEvidence(id, body)),
+    },
     mutationsBlocked: query.isLoading || query.isRefreshing || query.isError,
     setSel: (id: string) => { dispatch(adminViewActions.select(id)) },
     setFilter: (t: AdminTab, filter: AdminFilter) => { dispatch(adminViewActions.setFilter({ tab: t, filter })) },
@@ -151,7 +194,6 @@ export function useAdminViewModel(tab: AdminTab, adminUseCase: AdminUseCase = ap
       return demoDeleted('답변을')
     }),
     chatChoices: adminUseCase.chatChoices.bind(adminUseCase),
-    toggleUser: (id: string) => run(`user:${id}`, () => adminUseCase.toggleUser(id)),
     toggleWork: (id: string) => run(`work:${id}`, () => adminUseCase.toggleWork(id)),
     toggleComment: (id: string, label: string) => run(`comment:${id}`, () => adminUseCase.toggleComment(id, label)),
     toggleChat: (id: string) => run(`chat:${id}`, () => adminUseCase.toggleChat(id)),
@@ -162,10 +204,6 @@ export function useAdminViewModel(tab: AdminTab, adminUseCase: AdminUseCase = ap
     toggleEvent: (i: number) => run(`legacy:event:${i}`, () => adminUseCase.toggleEvent(i)),
     runJob: (id: string) => run(`job:${id}`, () => adminUseCase.runJob(id)),
     resolveAlert: (id: string) => run(`alert:${id}`, () => adminUseCase.resolveAlert(id)),
-    flag: (k: 'proof' | 'hide' | 'lift') => run('flag', () => adminUseCase.flag(k)),
-    review: (id: string, act: 'ok' | 'hide' | 'keep' | 'restore') => run(`review:${id}`, () => adminUseCase.review(id, act)),
-    saveProfile: (nick: string, email: string) => run('profile', () => adminUseCase.saveProfile(nick, email)),
-    addAdmin: (nick: string, email: string, perms: string[]) => run('admin:new', () => adminUseCase.addAdmin(nick, email, perms)),
     logout,
   }
 }
