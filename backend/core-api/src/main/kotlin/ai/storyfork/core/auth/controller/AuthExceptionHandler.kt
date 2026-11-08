@@ -17,7 +17,7 @@ class AuthExceptionHandler {
     private fun status(reason: AuthException.Reason): HttpStatus = when (reason) {
         AuthException.Reason.INVALID -> HttpStatus.BAD_REQUEST
         AuthException.Reason.UNAUTHENTICATED -> HttpStatus.UNAUTHORIZED
-        AuthException.Reason.FORBIDDEN -> HttpStatus.FORBIDDEN
+        AuthException.Reason.FORBIDDEN, AuthException.Reason.RESTRICTED -> HttpStatus.FORBIDDEN
         AuthException.Reason.NOT_FOUND -> HttpStatus.NOT_FOUND
         AuthException.Reason.CONFLICT -> HttpStatus.CONFLICT
         AuthException.Reason.UNAVAILABLE -> HttpStatus.SERVICE_UNAVAILABLE
