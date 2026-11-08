@@ -11,9 +11,9 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource
 @ConditionalOnExpression("\${app.content.enabled:false} or \${app.worldstudio.enabled:false}")
 class ContentDatabaseConfig {
     @Bean
-    fun contentDataSource(@Value("\${CONTENT_DATABASE_URL}") url: String,
-        @Value("\${CONTENT_DATABASE_USER}") user: String,
-        @Value("\${CONTENT_DATABASE_PASSWORD}") password: String): DriverManagerDataSource {
+    fun contentDataSource(@Value("\${DATABASE_URL}") url: String,
+        @Value("\${DATABASE_USER}") user: String,
+        @Value("\${DATABASE_PASSWORD}") password: String): DriverManagerDataSource {
         require(url.startsWith("jdbc:postgresql:")) { "Content storage requires PostgreSQL" }
         return DriverManagerDataSource(url, user, password)
     }

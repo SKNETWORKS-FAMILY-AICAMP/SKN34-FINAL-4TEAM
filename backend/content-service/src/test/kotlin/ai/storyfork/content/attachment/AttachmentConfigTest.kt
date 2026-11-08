@@ -21,7 +21,7 @@ class AttachmentConfigTest {
         lateinit var pool:HikariDataSource
         SpringApplicationBuilder(ContentServiceApplication::class.java).run(
             "--server.port=0","--app.content.enabled=true","--app.setting-attachments.enabled=true",
-            "--CONTENT_DATABASE_URL=$url","--CONTENT_DATABASE_USER=content_test","--CONTENT_DATABASE_PASSWORD=",
+            "--DATABASE_URL=$url","--DATABASE_USER=content_test","--DATABASE_PASSWORD=",
             "--CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
             "--app.setting-attachments.bucket=issue87-test","--app.setting-attachments.region=us-east-1",
             "--app.setting-attachments.endpoint=http://127.0.0.1:19087",

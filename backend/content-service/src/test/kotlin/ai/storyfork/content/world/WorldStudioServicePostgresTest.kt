@@ -25,8 +25,8 @@ import tools.jackson.module.kotlin.KotlinModule
 class WorldStudioServicePostgresTest {
     private fun context(db:WorldStudioPostgresFixture,enabled:Boolean=true)=AnnotationConfigApplicationContext().apply {
         TestPropertyValues.of("app.worldstudio.enabled=$enabled","app.content.enabled=false",
-            "CONTENT_DATABASE_URL=${db.url}","CONTENT_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
-            "CONTENT_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+            "DATABASE_URL=${db.url}","DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
+            "DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
             "app.worldstudio.neo4j.uri=${System.getenv("NEO4J_URI")}","app.worldstudio.neo4j.username=neo4j",
             "app.worldstudio.neo4j.password=${System.getenv("NEO4J_PASSWORD")}").applyTo(this)
         beanFactory.registerSingleton("jsonMapper",JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())

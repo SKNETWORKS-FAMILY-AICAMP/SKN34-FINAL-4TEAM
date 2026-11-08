@@ -19,8 +19,8 @@ class WorldStudioCoexistencePostgresTest {
         "--spring.datasource.hikari.maximum-pool-size=3", "--spring.datasource.hikari.minimum-idle=0",
         "--server.port=0", "--app.content.enabled=true", "--app.worldstudio.enabled=$studio",
         "--app.setting-attachments.enabled=false",
-        "--CONTENT_DATABASE_URL=${db.url}", "--CONTENT_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
-        "--CONTENT_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+        "--DATABASE_URL=${db.url}", "--DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
+        "--DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
         "--CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32")
 
     @Test fun `independent migration preserves content and both JPA services coexist`() {

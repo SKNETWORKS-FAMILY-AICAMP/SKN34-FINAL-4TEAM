@@ -126,7 +126,7 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `CONTENT_CORE_AUTH_TOKEN` | 기본 빈 값; Content 인증 연결 시 32자 이상·개행 없는 별도 자격 |
 | `OPERATIONS_SERVICE_TOKEN` | 기본 빈 값; 운영 서비스 연결 시 32자 이상. 비면 운영 자격은 항상 403 |
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
-| `CORE_DATABASE_URL`, `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD` | 필수 |
+| `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD` | 필수 |
 | `CORE_SMTP_HOST`, `CORE_SMTP_PORT` | 필수 |
 | `AUTH_PUBLIC_ORIGIN`, `AUTH_MAIL_FROM` | 필수 |
 | `AUTH_JWT_SECRET` | 필수, 32바이트 이상의 무작위 키를 Base64 인코딩 |
@@ -237,7 +237,7 @@ HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필
 
 ## WorldStudio 개발 배포 명령
 
-일반 서버 시작과 별도로 **Content 이미지**의 Boot `PropertiesLauncher`에서 `ai.storyfork.content.world.migration.WorldStudioMigration` main을 실행합니다. Auth/Content context 없이 독립 Flyway migrate·validate를 수행합니다. 기존 같은 DB를 `CONTENT_DATABASE_URL/USER/PASSWORD`로 받고 별도 DB·계정·풀은 없습니다. 기본 비활성이며 정확한 대상 allowlist·백업 복원 기록과 Content fresh 전환 승인이 필요합니다. CD는 ingress/구 writer 중지 뒤 명령 성공을 확인하고 새 앱을 시작하며 실패 시 자동 rollback하지 않습니다.
+일반 서버 시작과 별도로 **Content 이미지**의 Boot `PropertiesLauncher`에서 `ai.storyfork.content.world.migration.WorldStudioMigration` main을 실행합니다. Auth/Content context 없이 독립 Flyway migrate·validate를 수행합니다. 기존 같은 DB를 `DATABASE_URL/USER/PASSWORD`로 받고 별도 DB·계정·풀은 없습니다. 기본 비활성이며 정확한 대상 allowlist·백업 복원 기록과 Content fresh 전환 승인이 필요합니다. CD는 ingress/구 writer 중지 뒤 명령 성공을 확인하고 새 앱을 시작하며 실패 시 자동 rollback하지 않습니다.
 자격증명·운영자 절차는 [WorldStudio 배포 문서](../../docs/deployment/worldstudio-v1-rollout.md)를 참고하세요.
 
 ## 작품 표지·원고 이미지 (#92)
