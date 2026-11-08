@@ -105,9 +105,9 @@ class InternalAuthVerificationIntegrationTest {
                 org.springframework.data.domain.Sort.Order.asc("id"))))).thenReturn(emptyList())
         mvc.perform(get("/internal/v1/members").header("X-Content-Service-Token",credential).header("Authorization",bearer(admin.toString())))
             .andExpect(status().isForbidden())
-        // 인코딩한 경로 변형도 Content 토큰으로는 회원 API에 닿지 않는다.
+        // 인코딩한 경로 변형은 회원 API에 닿기 전에 firewall이 400으로 거절한다.
         mvc.perform(get("/internal/v1/%6Dembers").header("X-Content-Service-Token",credential).header("Authorization",bearer(admin.toString())))
-            .andExpect(status().isForbidden())
+            .andExpect(status().isBadRequest())
         mvc.perform(get("/internal/v1/members").header("X-Operations-Service-Token",operations).header("Authorization",bearer()))
             .andExpect(status().isForbidden())
         mvc.perform(get("/internal/v1/members").header("X-Operations-Service-Token",operations))
