@@ -13,3 +13,7 @@ export function qs(base: string, o: Record<string, string | undefined>) {
   const p = Object.entries(o).filter((e): e is [string, string] => e[1] !== '' && e[1] != null).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&')
   return base + (p ? '?' + p : '')
 }
+
+const kst = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'short', timeStyle: 'short' })
+/** 서버 UTC 시각을 한국시간으로 표시합니다. */
+export const kstDateTime = (iso: string) => kst.format(new Date(iso))

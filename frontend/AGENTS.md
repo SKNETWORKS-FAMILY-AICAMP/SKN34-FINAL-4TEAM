@@ -1,7 +1,7 @@
 # Frontend 구현 지침
 
 `frontend/**`에 적용한다. [루트 공통 지침](../AGENTS.md)을 함께 따른다.
-nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`와 하위 경로를 Content, 나머지 `/api`를 Core로 라우팅한다.
+nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`와 하위 경로를 Content, `/api/v1/operations/{reports,members,admins}`와 하위 경로를 Operations, 나머지 `/api`를 Core로 라우팅한다.
 `/content`·UUID `/studio/{id}`는 Content API를 쓰고 서재·열람·Fork 데모는 별도 메모리 저장소다. 화면 존재와 서버 기능 완료를 구분한다.
 
 화면은 세 규칙을 함께 쓴다. **Clean Architecture**는 계층 의존 방향을, **MVVM**은 화면 책임 분리를,

@@ -5,6 +5,8 @@
 /* 목업 클래스(.ring, .hidden 등)가 Tailwind 유틸리티로 생성되지 않도록 Tailwind를 쓰는 파일만 스캔한다. */
 @source "./App.tsx";
 @source "./presentation/shared/core-api-status";
+@source "./presentation/features/reports";
+@source "./presentation/shared/reports";
 
 @theme inline {
   --color-brand-accent: var(--acc);

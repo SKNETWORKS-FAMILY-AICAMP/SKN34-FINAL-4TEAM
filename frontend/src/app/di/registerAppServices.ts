@@ -1,4 +1,7 @@
 import { OperationsUseCase } from '../../domain/usecases/OperationsUseCase'
+import { MemberUseCase } from '../../domain/usecases/MemberUseCase'
+import { ReportUseCase } from '../../domain/usecases/ReportUseCase'
+import { HttpMemberRepository, HttpReportRepository } from '../../data/api/operationsApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
@@ -47,6 +50,10 @@ export function registerAppServices(container: AppContainer) {
   container.register({
     operationsRepository: asFunction(() => new InMemoryOperationsRepository()).singleton(),
     operationsUseCase: asFunction(({ operationsRepository }) => new OperationsUseCase(operationsRepository)).singleton(),
+    reportRepository: asFunction(() => new HttpReportRepository()).singleton(),
+    reportUseCase: asFunction(({ reportRepository }) => new ReportUseCase(reportRepository)).singleton(),
+    memberRepository: asFunction(() => new HttpMemberRepository()).singleton(),
+    memberUseCase: asFunction(({ memberRepository }) => new MemberUseCase(memberRepository)).singleton(),
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
