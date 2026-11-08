@@ -57,10 +57,32 @@ services:
       retries: 20
       start_period: 20s
 
+  # 첨부 파일 저장소(S3 호환). 공식 이미지 배포 중단으로 소스 빌드한다. local·개발 배포 모두 항상 띄운다.
+  minio:
+    build:
+      context: ./minio
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:?Set AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
+    command: [server, /data, --console-address, ':9001']
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - setting-attachments:/data
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://localhost:9000/minio/health/live]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   ai-service:
     build:
       context: ../backend/ai-service
       dockerfile: Dockerfile
+    environment:
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
 
   core-api:
     build:
@@ -72,6 +94,8 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
+      CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
@@ -93,12 +117,22 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
       neo4j:
         condition: service_healthy
     environment:
+      CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
+      ATTACHMENT_S3_BUCKET: ${ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}
+      ATTACHMENT_S3_REGION: ${ATTACHMENT_S3_REGION:-us-east-1}
+      ATTACHMENT_S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?Set AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
       NEO4J_URI: bolt://neo4j:7687
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${WEB_PORT:-5173}}
     ports:
@@ -112,6 +146,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
@@ -129,3 +164,4 @@ volumes:
   core-postgres:
   worldstudio-neo4j:
   core-rabbitmq:
+  setting-attachments:

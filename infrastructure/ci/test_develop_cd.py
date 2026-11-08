@@ -28,13 +28,12 @@ class DevelopDeploymentTest(unittest.TestCase):
                 'case "$*" in\n'
                 ' "image inspect"*)\n'
                 '   [[ "${CD_LOCAL_COMPOSE_FILE:-}" == "$DOCKER_CONFIG/docker-compose.local.yaml" && -f "${CD_LOCAL_COMPOSE_FILE:-}" ]] || exit 25\n'
-                '   [[ "$3 $4 $5 $6" == "$CD_WEB_IMAGE $CD_CORE_API_IMAGE $CD_CONTENT_SERVICE_IMAGE $CD_AI_SERVICE_IMAGE" ]] || exit 26\n'
+                '   [[ "$3 $4 $5 $6 $7 $8" == "$CD_WEB_IMAGE $CD_CORE_API_IMAGE $CD_CONTENT_SERVICE_IMAGE $CD_AI_SERVICE_IMAGE $CD_OPERATIONS_SERVICE_IMAGE $CD_MINIO_IMAGE" ]] || exit 26\n'
                 '   printf "%040d\\n" 1 ;;\n'
                 'esac\n', encoding="utf-8")
             docker.chmod(0o755)
             env = dict(os.environ, CD_DIRECTORY=directory.replace("\\", "/"), CD_WEB_PORT="8088", TARGET_SHA="%040d" % 1,
                 GITHUB_ACTOR="test", GH_TOKEN="fake-token", COMPOSE_BASE_YAML="", COMPOSE_DEV_YAML="", COMPOSE_LOCAL_YAML="",
-                CONTENT_FRESH_SCHEMA_APPROVED="true", DEVELOP_INTERNAL_DB_APPROVED="true",
                 TEST_COMMANDS=str(path / "commands"))
             env.update(overrides or {})
             # Git Bash translates native Windows paths before the deployment's physical-path check.
@@ -44,17 +43,6 @@ class DevelopDeploymentTest(unittest.TestCase):
                 env=dict(env, TEST_BIN=env["CD_DIRECTORY"]), capture_output=True, text=True)
             commands = (path / "commands").read_text() if (path / "commands").exists() else ""
             return result.returncode, commands, result.stderr
-
-    def test_unapproved_content_cutover_never_stops_or_starts_services(self):
-        code, commands, _ = self.deploy(overrides={"CONTENT_FRESH_SCHEMA_APPROVED": ""})
-        self.assertNotEqual(0, code)
-        self.assertNotIn("stop web core-api content-service", commands)
-        self.assertNotIn("up -d --no-build --pull never --wait --wait-timeout 180\n", commands)
-
-    def test_unapproved_internal_database_never_starts_new_resources(self):
-        code, commands, _ = self.deploy(overrides={"DEVELOP_INTERNAL_DB_APPROVED": ""})
-        self.assertNotEqual(0, code)
-        self.assertEqual('', commands)
 
     def test_old_writer_and_public_ingress_stop_before_the_full_stack_starts(self):
         code, commands, error = self.deploy()

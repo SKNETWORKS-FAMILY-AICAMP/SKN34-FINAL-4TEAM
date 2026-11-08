@@ -49,7 +49,7 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         sources = (ROOT / "backend/content-service/src").rglob("*.kt")
         self.assertEqual([], [str(p) for p in sources if "app.content.enabled" in p.read_text(encoding="utf-8")])
         for path in (".env.example", "infrastructure/docker-compose.yaml", "infrastructure/ci/compose.test.yaml",
-                     "infrastructure/compose.attachments.yaml", ".github/workflows/ci.yml"):
+                     ".github/workflows/ci.yml"):
             self.assertNotIn("CONTENT_ENABLED", (ROOT / path).read_text(encoding="utf-8"), path)
 
     def test_worldstudio_and_notification_events_are_always_on_in_every_environment(self):
@@ -69,6 +69,27 @@ class SpringServiceConfigurationTest(unittest.TestCase):
             self.assertIn(f"\n  {service}:\n", dev)
         local = (ROOT / "infrastructure/docker-compose.local.yaml").read_text(encoding="utf-8")
         self.assertIn('"127.0.0.1:${OPERATIONS_SERVICE_PORT:-8082}:8082"', local)
+
+    def test_attachments_and_deploy_have_no_on_off_switches(self):
+        # 첨부(MinIO)도 항상 켠다. 배포는 승인 변수 없이 develop 머지마다 실행한다.
+        sources = (ROOT / "backend/content-service/src").rglob("*.kt")
+        self.assertEqual([], [str(p) for p in sources if "setting-attachments.enabled" in p.read_text(encoding="utf-8")])
+        self.assertFalse((ROOT / "infrastructure/compose.attachments.yaml").exists())
+        for path in (".env.example", "backend/content-service/src/main/resources/application.properties",
+                     "infrastructure/docker-compose.local.yaml", "infrastructure/docker-compose.dev.yaml",
+                     ".github/workflows/publish-images.yml", ".github/workflows/ci.yml"):
+            text = (ROOT / path).read_text(encoding="utf-8")
+            for name in ("SETTING_ATTACHMENTS_ENABLED", "setting-attachments.enabled", "compose.attachments",
+                         "DEVELOP_CD_ENABLED", "CONTENT_FRESH_SCHEMA_APPROVED", "DEVELOP_INTERNAL_DB_APPROVED"):
+                self.assertNotIn(name, text, f"{path}: {name}")
+        for path in ("infrastructure/docker-compose.local.yaml", "infrastructure/docker-compose.dev.yaml"):
+            compose = (ROOT / path).read_text(encoding="utf-8")
+            self.assertIn("\n  minio:\n", compose)
+            for secret in ("OPERATIONS_SERVICE_TOKEN", "OPENAI_API_KEY", "INTERNAL_TOKEN", "CONTENT_CORE_AUTH_TOKEN"):
+                self.assertIn("${" + secret + ":?", compose, f"{path}: {secret}")
+        publish = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
+        self.assertIn("operations-service ai-service minio; do", publish)
+        self.assertIn('"$CD_MINIO_IMAGE"', publish)
 
     def test_content_boot_entry_point_is_explicit(self):
         service = ROOT / "backend/content-service"

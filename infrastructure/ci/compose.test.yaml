@@ -16,6 +16,9 @@ services:
   neo4j:
     ports: !reset []
 
+  minio:
+    ports: !reset []
+
   ai-service:
     environment:
       # 누락 제공사 설정의 명시적 503을 검증한다. 실제 키/유료 호출/대역 서버는 불필요하다.

@@ -45,10 +45,11 @@ jobs:
           trap 'rm -rf -- "$scratch"' EXIT
           export DOCKER_CONFIG="$scratch"
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-          for service in web core-api content-service operations-service ai-service; do
+          for service in web core-api content-service operations-service ai-service minio; do
             image="ghcr.io/sknetworks-family-aicamp/storyfork-$service"
             context="backend/$service"
             if [[ "$service" == web ]]; then context=frontend; fi
+            if [[ "$service" == minio ]]; then context=infrastructure/minio; fi
             docker build --platform linux/amd64 \
               --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
               --label "org.opencontainers.image.revision=$TARGET_SHA" \
@@ -56,7 +57,7 @@ jobs:
             docker push "$image:sha-$TARGET_SHA"
           done
           # 모든 SHA 이미지 게시 후에만 develop을 갱신한다.
-          for service in web core-api content-service operations-service ai-service; do
+          for service in web core-api content-service operations-service ai-service minio; do
             docker push "ghcr.io/sknetworks-family-aicamp/storyfork-$service:develop"
           done
 
@@ -65,8 +66,7 @@ jobs:
     needs: publish
     # publish가 같은 저장소 develop의 CI 성공 또는 명시적인 develop 수동 실행만 허용한다.
     # workflow_run의 ref는 기본 브랜치, 수동 실행의 ref는 develop이므로 main-only 검사는 하지 않는다.
-    # Fresh content history is incompatible with the retired development history. No automatic reset.
-    if: ${{ needs.publish.result == 'success' && vars.DEVELOP_CD_ENABLED == 'true' && vars.CONTENT_FRESH_SCHEMA_APPROVED == 'true' && vars.DEVELOP_INTERNAL_DB_APPROVED == 'true' }}
+    if: ${{ needs.publish.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -78,8 +78,6 @@ jobs:
       TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
       CD_DEPLOY_DIR: ${{ vars.CD_DEPLOY_DIR }}
       CD_WEB_PORT: ${{ vars.CD_WEB_PORT }}
-      CONTENT_FRESH_SCHEMA_APPROVED: ${{ vars.CONTENT_FRESH_SCHEMA_APPROVED }}
-      DEVELOP_INTERNAL_DB_APPROVED: ${{ vars.DEVELOP_INTERNAL_DB_APPROVED }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -110,17 +108,12 @@ jobs:
             # 설정과 토큰은 명령 인자가 아닌 암호화된 SSH stdin으로 전달한다.
             printf '%s=%q\n' CD_DIRECTORY "$CD_DEPLOY_DIR" CD_WEB_PORT "$CD_WEB_PORT" TARGET_SHA "$TARGET_SHA" \
               GITHUB_ACTOR "$GITHUB_ACTOR" GH_TOKEN "$GH_TOKEN" \
-              CONTENT_FRESH_SCHEMA_APPROVED "$CONTENT_FRESH_SCHEMA_APPROVED" \
-              DEVELOP_INTERNAL_DB_APPROVED "$DEVELOP_INTERNAL_DB_APPROVED" \
               COMPOSE_BASE_YAML "$(< infrastructure/docker-compose.yaml)" \
               COMPOSE_DEV_YAML "$(< infrastructure/docker-compose.dev.yaml)" \
               COMPOSE_LOCAL_YAML "$(< infrastructure/docker-compose.local.yaml)"
             cat <<'REMOTE'
           set -euo pipefail
           umask 077
-          # An operator must confirm the exact target and fresh content schema outside this workflow.
-          [[ "${CONTENT_FRESH_SCHEMA_APPROVED:-}" == true ]] || { printf 'Content fresh-schema cutover not approved.\n' >&2; exit 1; }
-          [[ "${DEVELOP_INTERNAL_DB_APPROVED:-}" == true ]] || { printf 'Develop internal database cutover not approved.\n' >&2; exit 1; }
           cd -P -- "$CD_DIRECTORY"
           [[ "$PWD" == "$CD_DIRECTORY" && -f .env ]] || exit 1
           export CD_DIRECTORY CD_WEB_PORT COMPOSE_PROJECT_NAME=storyfork-develop-cd DOCKER_HOST=unix:///var/run/docker.sock
@@ -151,16 +144,16 @@ jobs:
           export CD_CONTENT_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
           export CD_AI_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
           export CD_OPERATIONS_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-operations-service:develop
+          export CD_MINIO_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-minio:develop
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env pull
-          revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" "$CD_OPERATIONS_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
+          revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" "$CD_OPERATIONS_SERVICE_IMAGE" "$CD_MINIO_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
           # 재실행된 이전 run이 더 새 develop 이미지와 이전 Compose를 섞어 배포하지 않게 한다.
           [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ && "$revisions" == "$TARGET_SHA" ]] || { printf 'develop images are not this run revision; rerun CD for current develop.\n' >&2; exit 1; }
           # Stop public writes and the old Core content writer before any new migration/writer starts.
           # Failure leaves ingress stopped; never auto-repair history or roll incompatible binaries back.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env stop web core-api content-service operations-service
-          # New project-scoped dependencies require a separately approved cutover; no data import/reset.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180 postgres mailpit
-          # Neo4j·RabbitMQ를 포함한 전체 스택을 띄운다. WorldStudio schema는 Content 시작 시 Flyway가 적용한다.
+          # Neo4j·RabbitMQ·MinIO를 포함한 전체 스택을 띄운다. WorldStudio schema는 Content 시작 시 Flyway가 적용한다.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180
           REMOTE
           } | ssh -F /dev/null -T -p 5798 -i "$SSH_DIR/key" \

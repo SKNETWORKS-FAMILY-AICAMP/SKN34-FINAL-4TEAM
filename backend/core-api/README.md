@@ -155,7 +155,7 @@ Core의 기능 필터는 auth/health이며 공통·설정·의존성·미등록 
 
 ## 설정 이미지·일반 파일 (#87)
 
-`SETTING_ATTACHMENTS_ENABLED=true`와 미리 만든 **비공개** S3 버킷이 필요합니다.
+첨부는 항상 켜져 있습니다. local·개발 배포는 compose의 MinIO를 쓰고 버킷은 Content 시작 시 만들며, AWS S3는 미리 만든 **비공개** 버킷이 필요합니다.
 로컬은 소스 빌드 MinIO, 실제 배포 대상은 AWS S3입니다. 공식 AWS SDK v2만 사용하며 버킷 생성·공개 ACL·presigned URL·외부 URL 다운로드는 하지 않습니다.
 `ATTACHMENT_S3_ENDPOINT`를 비우면 일반 AWS S3 endpoint를 사용합니다. `ATTACHMENT_S3_REGION`(기본 `us-east-1`, 없으면 `AWS_REGION`)과
 `ATTACHMENT_S3_BUCKET`을 지정하고 SDK 기본 자격증명 체인(환경변수, profile, workload role)을 사용합니다.

@@ -53,7 +53,7 @@ web은 nginx 정적 runtime이고 소스 mount가 없어 변경 후 다시 build
 **현재 게시 workflow는 develop 전용이며 `:main` 게시·접근 가능 여부는 미확인입니다.** 이 변경은 main 이미지 게시나 운영 배포 trigger를 추가하지 않습니다.
 기본 Auth V4의 공개 비밀번호 샘플 계정은 운영 위험으로 남아 있으며 이 작업에서 migration을 수정하지 않았습니다.
 이미지 게시·샘플 계정 조치·DB 이력/복구 승인·HTTPS ingress·운영 수용 검증 전에는 운영 배포 준비 완료가 아닙니다.
-dev의 기존 외부 DB에서 내부 fresh DB로의 전환·데이터 이관도 실행하지 않았습니다. 별도 `DEVELOP_INTERNAL_DB_APPROVED` 승인 없이는 기존 CD가 새 내부 DB로 전환되지 않습니다.
+dev의 기존 외부 DB에서 내부 fresh DB로의 전환·데이터 이관도 실행하지 않았습니다. CD는 승인 변수 없이 develop CI 성공 시 내부 DB 구성으로 배포합니다.
 서버별 변수의 주석 예시와 전환 경계는 [인프라 안내](../infrastructure/README.md)를 따릅니다.
 
 ### 네이티브 실행

@@ -31,7 +31,6 @@ import tools.jackson.databind.ObjectMapper
 /** 실제 HTTP·PostgreSQL·S3 호환 저장소를 사용하는 선택적 통합 검증. */
 @org.springframework.context.annotation.Import(ai.storyfork.content.fixture.ContentTestConfig::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [
-    "app.setting-attachments.enabled=true",
     "spring.datasource.url=\${TEST_ATTACHMENT_DATABASE_URL}",
     "spring.datasource.username=content_test", "spring.datasource.password=",
     "DATABASE_URL=\${TEST_ATTACHMENT_DATABASE_URL}", "DATABASE_USER=content_test", "DATABASE_PASSWORD=",

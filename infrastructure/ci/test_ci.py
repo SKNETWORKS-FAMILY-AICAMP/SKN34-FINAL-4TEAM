@@ -352,7 +352,7 @@ class ComposeSplitTest(unittest.TestCase):
         workflow = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
         self.assertIn('COMPOSE_LOCAL_YAML', workflow)
         self.assertIn('docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE"', workflow)
-        self.assertIn("vars.DEVELOP_INTERNAL_DB_APPROVED == 'true'", workflow)
+        self.assertIn("if: ${{ needs.publish.result == 'success' }}", workflow)
 
     def test_ci_and_attachment_callers_keep_source_builds(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
@@ -365,7 +365,6 @@ class ComposeSplitTest(unittest.TestCase):
         attachment = (ci.ROOT / 'infrastructure/tests/test_attachment_environment.py').read_text()
         self.assertIn('infrastructure/docker-compose.local.yaml', attachment)
         self.assertNotIn('infrastructure/docker-compose.prod.yaml', attachment)
-        self.assertIn('docker-compose.local.yaml', (ci.ROOT / 'infrastructure/compose.attachments.yaml').read_text())
         overlay = (ci.ROOT / 'infrastructure/ci/compose.test.yaml').read_text()
         for service in ('postgres', 'core-api', 'content-service'):
             block = re.split(r'\n  [a-z][\w-]*:\n', overlay.split('  ' + service + ':\n', 1)[1], maxsplit=1)[0]

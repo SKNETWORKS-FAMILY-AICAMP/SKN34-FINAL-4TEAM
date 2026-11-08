@@ -29,6 +29,7 @@ env:
   CONTENT_CORE_AUTH_TOKEN: ci-content-core-auth-only-0123456789abcdef
   NEO4J_PASSWORD: ci-test-only-graph
   CORE_RABBITMQ_PASSWORD: ci-test-only-broker
+  OPERATIONS_SERVICE_TOKEN: ci-test-only-operations-token
   OPENAI_API_KEY: ""
   OPENAI_MODEL: ""
 
@@ -75,6 +76,8 @@ jobs:
       INTERNAL_TOKEN: synthetic-config-only
       NEO4J_PASSWORD: synthetic-config-only
       CORE_RABBITMQ_PASSWORD: synthetic-config-only
+      OPERATIONS_SERVICE_TOKEN: synthetic-config-only
+      OPENAI_API_KEY: synthetic-config-only
       WEB_PORT: "18088"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -344,6 +347,8 @@ jobs:
       COMPOSE_PROJECT_NAME: storyfork-ci-${{ github.run_id }}-${{ github.run_attempt }}
       COMPOSE_FILE: infrastructure/docker-compose.yaml:infrastructure/docker-compose.local.yaml:infrastructure/ci/compose.test.yaml
       SCENARIOS: ${{ needs.changes.outputs.system }}
+      # compose 필수값만 채운다. compose.test.yaml이 ai-service의 실제 키를 빈 값으로 덮어 503을 검증한다.
+      OPENAI_API_KEY: ci-unused-placeholder
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
