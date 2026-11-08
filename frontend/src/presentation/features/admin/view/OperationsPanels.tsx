@@ -17,8 +17,7 @@ export function AdminActionStatus({ state }: { state?: AdminActionState }) {
   </>
 }
 
-const DraftNote = () => <p className="admin-note">초안과 선택은 탭·목록 이동 후에도 유지돼요. 브라우저를 새로고침하면 데모 기록과 초안이 사라져요.</p>
-const BoundaryNote = () => <p className="admin-note">독립 운영 메모리 데모예요. 실제 API·서버 저장·발행·알림·권한·버전 충돌 처리는 연결되지 않았어요. 기존 회원 화면용 데모와도 별개예요.</p>
+const DemoNote = () => <p className="admin-note">이 기록은 서버에 저장되지 않아요. 탭을 옮겨도 초안은 남지만 새로고침하면 사라져요.</p>
 
 export function OperationsNotices({ vm }: { vm: VM }) {
   const selection = vm.recordSelection.notices
@@ -48,7 +47,7 @@ export function OperationsNotices({ vm }: { vm: VM }) {
         </form>
       </>}
     </>}
-    <DraftNote /><BoundaryNote />
+    <DemoNote />
   </section>
 }
 
@@ -84,7 +83,7 @@ export function OperationsEvents({ vm }: { vm: VM }) {
       </>}
     </>}
     <p className="admin-note">이 운영 경로는 안내 기록만 관리해요. 임의 기간 문구·진행 상태 토글·참여·보상은 지원하지 않아요.</p>
-    <DraftNote /><BoundaryNote />
+    <DemoNote />
   </section>
 }
 
@@ -134,7 +133,7 @@ export function OperationsInquiries({ vm }: { vm: VM }) {
         </section>}
       </>}
     </>}
-    <DraftNote /><BoundaryNote />
+    <DemoNote />
   </section>
 }
 

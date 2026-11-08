@@ -43,3 +43,7 @@
   .adm .admin-operations .rowend > .btn,
   .adm .admin-legacy-demo .rowend > .btn { flex: 1 1 130px; }
 }
+/* 신고 상세의 두 처리 폼: 제목과 입력을 가깝게 묶습니다. 상세 제목은 포커스 이동 대상일 뿐이라 테두리를 그리지 않습니다. */
+.adm .admin-operations .report-actions fieldset { display: grid; gap: 10px; margin: 0; }
+.adm .admin-operations .report-actions h3 { margin: 0; }
+.adm .admin-operations h2[tabindex="-1"]:focus { outline: none; }
