@@ -307,7 +307,7 @@ class ComposeSplitTest(unittest.TestCase):
         for context in ('../frontend', '../backend/core-api', '../backend/content-service', '../backend/ai-service'):
             self.assertIn('context: ' + context, local)
             self.assertTrue((ci.ROOT / 'infrastructure' / context / 'Dockerfile').is_file())
-        for port in ('${DEV_WEB_PORT:-5173}:80', '${CORE_API_PORT:-8080}:8080',
+        for port in ('${WEB_PORT:-5173}:80', '${CORE_API_PORT:-8080}:8080',
                      '${CONTENT_SERVICE_PORT:-8081}:8081', '${DATABASE_PORT:-5432}:5432',
                      '${CORE_MAILPIT_SMTP_PORT:-1025}:1025', '${CORE_MAILPIT_WEB_PORT:-8025}:8025'):
             self.assertIn('127.0.0.1:' + port, local)
@@ -376,7 +376,7 @@ class ComposeSplitTest(unittest.TestCase):
         for key in ('AUTH_JWT_SECRET', 'DATABASE_USER', 'DATABASE_PASSWORD', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN'):
             self.assertEqual('', active[key])
         self.assertEqual('false', active['AUTH_COOKIE_SECURE'])
-        self.assertEqual('5173', active['DEV_WEB_PORT'])
+        self.assertEqual('5173', active['WEB_PORT'])
         self.assertNotIn('PROD_', source)
         self.assertNotIn('GETSTREAM_API_KEY', source)
         self.assertIn('CD_DIRECTORY', source)

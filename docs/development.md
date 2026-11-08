@@ -36,7 +36,7 @@ Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 | `127.0.0.1:5432` / `127.0.0.1:1025` | 로컬 PostgreSQL / Mailpit SMTP |
 | `http://127.0.0.1:8025` | 로컬 Mailpit 메일 확인 |
 
-포트는 `DEV_WEB_PORT`·`CORE_API_PORT`·`CONTENT_SERVICE_PORT`·`DATABASE_PORT`·`CORE_MAILPIT_*_PORT`로 변경합니다.
+포트는 `WEB_PORT`·`CORE_API_PORT`·`CONTENT_SERVICE_PORT`·`DATABASE_PORT`·`CORE_MAILPIT_*_PORT`로 변경합니다.
 기존 프로세스가 5173/8080 등을 사용 중이면 시작은 실패하므로 **기존 앱을 임의 중지하지 말고** 포트와 `AUTH_PUBLIC_ORIGIN`을 조정하세요.
 CORS는 web 포트에서 계산하며 `APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수 있습니다. AI는 내부 전용입니다.
 키는 AI 런타임에만 전달하고 VITE/build ARG에는 넣지 않습니다. **소스 빌드는 HMR이 아닙니다.**
