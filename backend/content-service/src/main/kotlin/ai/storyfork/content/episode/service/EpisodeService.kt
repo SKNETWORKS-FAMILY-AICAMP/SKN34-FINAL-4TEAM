@@ -3,7 +3,6 @@ package ai.storyfork.content.episode.service
 import ai.storyfork.content._common.exception.*
 import ai.storyfork.content._common.helper.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.beans.factory.annotation.Qualifier
 import jakarta.persistence.EntityManager
@@ -16,7 +15,6 @@ import ai.storyfork.content.episode_version.repository.*
 import ai.storyfork.content.episode_version.service.dto.*
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class EpisodeService(
     private val access: ai.storyfork.content.work.service.WorkAccessService,

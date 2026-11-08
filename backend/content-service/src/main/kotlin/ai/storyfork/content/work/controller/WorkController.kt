@@ -2,7 +2,6 @@ package ai.storyfork.content.work.controller
 
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 import org.springframework.http.HttpStatus
 import ai.storyfork.content.work.service.dto.*
@@ -10,7 +9,6 @@ import ai.storyfork.content.work.service.dto.*
 /** 작품 등록·조회·수정·삭제·작품 정책과 기존 이력 조회 계약을 제공한다. */
 @RestController
 @RequestMapping("/api/v1")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class WorkController(
     private val service: ai.storyfork.content.work.service.WorkService,
     private val views: ai.storyfork.content.work.service.WorkViewService,

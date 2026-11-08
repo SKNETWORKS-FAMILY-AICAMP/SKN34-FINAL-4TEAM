@@ -81,12 +81,10 @@ jobs:
         run: |
           docker compose --env-file .env.example config --quiet
           for mode in local prod dev; do
-            for content in false true; do
-              CONTENT_ENABLED="$content" docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
-            done
+            docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
           done
       - name: Validate opt-in current relationship graph configuration without starting services
-        run: CONTENT_ENABLED=true APP_WORLDSTUDIO_ENABLED=true NEO4J_PASSWORD=graph-config-test-only docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml --profile worldstudio config --quiet
+        run: APP_WORLDSTUDIO_ENABLED=true NEO4J_PASSWORD=graph-config-test-only docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml --profile worldstudio config --quiet
       - name: Validate isolated CI overlay
         run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml -f infrastructure/ci/compose.test.yaml config --quiet
       - name: Validate optional attachment environment contract

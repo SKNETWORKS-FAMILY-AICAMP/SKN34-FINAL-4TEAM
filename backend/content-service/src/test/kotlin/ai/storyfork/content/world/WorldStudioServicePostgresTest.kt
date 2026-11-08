@@ -24,7 +24,7 @@ import tools.jackson.module.kotlin.KotlinModule
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class WorldStudioServicePostgresTest {
     private fun context(db:WorldStudioPostgresFixture,enabled:Boolean=true)=AnnotationConfigApplicationContext().apply {
-        TestPropertyValues.of("app.worldstudio.enabled=$enabled","app.content.enabled=false",
+        TestPropertyValues.of("app.worldstudio.enabled=$enabled",
             "DATABASE_URL=${db.url}","DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
             "DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
             "app.worldstudio.neo4j.uri=${System.getenv("NEO4J_URI")}","app.worldstudio.neo4j.username=neo4j",
@@ -37,7 +37,7 @@ class WorldStudioServicePostgresTest {
     @Test fun `disabled feature creates no persistence beans and no worldstudio schema`() {
         WorldStudioPostgresFixture("independent").use { db -> context(db,false).use { ctx ->
             assertFalse(ctx.containsBean("worldStudioService"));assertTrue(ctx.getBeansOfType(StudioWorldRepository::class.java).isEmpty())
-            assertTrue(ctx.getBeansOfType(EntityManagerFactory::class.java).isEmpty());assertTrue(ctx.getBeansOfType(DataSource::class.java).isEmpty())
+            assertTrue(ctx.getBeansOfType(EntityManagerFactory::class.java).isEmpty())
             db.connect().use { c -> assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'")) }
         } }
     }

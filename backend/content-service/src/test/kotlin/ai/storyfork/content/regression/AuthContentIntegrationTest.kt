@@ -32,7 +32,7 @@ import tools.jackson.databind.json.JsonMapper
 
 /** Content HTTP/DB 경계. 실제 Core 로그인→확인은 CI 시스템 시나리오에서 별도 실행한다. */
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties=[
-    "app.content.enabled=true","DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
+    "DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
     "DATABASE_USER=content_test","DATABASE_PASSWORD=",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
 ])

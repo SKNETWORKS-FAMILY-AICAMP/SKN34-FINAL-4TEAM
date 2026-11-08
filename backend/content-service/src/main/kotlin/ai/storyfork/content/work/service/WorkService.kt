@@ -3,7 +3,6 @@ package ai.storyfork.content.work.service
 import ai.storyfork.content._common.exception.*
 import ai.storyfork.content._common.helper.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.transaction.annotation.Transactional
 import ai.storyfork.content.work.entity.*
 import ai.storyfork.content.work.repository.*
@@ -19,7 +18,6 @@ import ai.storyfork.content.work.domain.*
 import org.springframework.dao.DataIntegrityViolationException
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class WorkService(
     private val access: WorkAccessService,

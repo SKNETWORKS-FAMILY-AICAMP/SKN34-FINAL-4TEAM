@@ -6,7 +6,6 @@ services:
       minio:
         condition: service_healthy
     environment:
-      CONTENT_ENABLED: "true"
       SETTING_ATTACHMENTS_ENABLED: "true"
       ATTACHMENT_S3_BUCKET: ${ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}
       ATTACHMENT_S3_REGION: ${ATTACHMENT_S3_REGION:-us-east-1}

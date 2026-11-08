@@ -2,13 +2,11 @@ package ai.storyfork.content.work.controller
 
 import ai.storyfork.content.work.service.InternalWorkService
 import ai.storyfork.content.work.service.dto.InternalWorkResponse
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 
 /** 운영 서비스 전용 내부 API. `X-Operations-Service-Token`만으로 인증하며 공개 proxy에 등록하지 않는다. */
 @RestController
 @RequestMapping("/internal/v1/works/{workId}")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class InternalWorkController(private val service: InternalWorkService) {
     /** 신고 대상 작품의 소유자·제목·제한 여부. 없는 작품은 404다. */
     @GetMapping

@@ -3,7 +3,6 @@ package ai.storyfork.content.publication.service
 import ai.storyfork.content._common.exception.*
 import ai.storyfork.content._common.helper.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.beans.factory.annotation.Qualifier
 import jakarta.persistence.EntityManager
@@ -19,7 +18,6 @@ import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.dto.*
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class PublicationService(
     private val access: ai.storyfork.content.work.service.WorkAccessService,

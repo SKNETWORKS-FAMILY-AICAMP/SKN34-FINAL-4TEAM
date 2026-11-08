@@ -25,9 +25,9 @@
 
 비공개 `/api/v1/works` API는 Auth가 검증한 JWT의 servlet `Principal.name`(회원 UUID)을 작성자로 사용한다. 클라이언트 사용자 ID 헤더·데모 역할·`CONTENT_DEV_OWNER`로 SecurityFilterChain을 우회할 수 없다. 모든 변경 요청에는 CSRF가 필요하고 공개 `/api/v1/public/works` 조회는 GET만 익명으로 허용한다.
 
-설정은 루트 `.env.example`을 참고해 루트 `.env`에서 관리한다. 실제 `.env`를 덮어쓰거나 서비스별 파일을 만들지 않는다. 기본 `CONTENT_ENABLED=false`에서도 기존 Health·Auth 실행을 유지한다. 활성화 시 PostgreSQL JDBC URL·사용자·비밀번호와 양 서비스의 동일한 `INTERNAL_TOKEN`이 필요하다. `OPENAI_API_KEY`와 `OPENAI_MODEL`은 AI 런타임에만 전달한다. 공용 실행 설정에는 모델 기본값이 없다. 생성을 사용하려면 사용 가능한 `OPENAI_MODEL`과 키를 명시해야 하며, 누락하면 생성 API는 503으로 실패한다. 팀 CD의 별도 모델 설정은 팀 전체 모델 선정 결정이나 실제 런타임 검증을 뜻하지 않는다.
+설정은 루트 `.env.example`을 참고해 루트 `.env`에서 관리한다. 실제 `.env`를 덮어쓰거나 서비스별 파일을 만들지 않는다. Content는 항상 PostgreSQL JDBC URL·사용자·비밀번호와 양 서비스의 동일한 `INTERNAL_TOKEN`이 필요하다. `OPENAI_API_KEY`와 `OPENAI_MODEL`은 AI 런타임에만 전달한다. 공용 실행 설정에는 모델 기본값이 없다. 생성을 사용하려면 사용 가능한 `OPENAI_MODEL`과 키를 명시해야 하며, 누락하면 생성 API는 503으로 실패한다. 팀 CD의 별도 모델 설정은 팀 전체 모델 선정 결정이나 실제 런타임 검증을 뜻하지 않는다.
 
-다음 실행 안내는 현재 Content 분리 구성이다. 별도 콘텐츠 overlay 없이 공통 base에서 `CONTENT_ENABLED`를 전달한다. 루트 `.env`에 필수 DB·JWT 자격과 `CONTENT_ENABLED=true`, Core↔Content의 `CONTENT_CORE_AUTH_TOKEN`, Content↔AI의 `INTERNAL_TOKEN`을 준비한 뒤 저장소 루트에서 실행한다:
+다음 실행 안내는 현재 Content 분리 구성이다. 별도 콘텐츠 overlay나 활성화 변수 없이 공통 base를 사용한다. 루트 `.env`에 필수 DB·JWT 자격과 Core↔Content의 `CONTENT_CORE_AUTH_TOKEN`, Content↔AI의 `INTERNAL_TOKEN`을 준비한 뒤 저장소 루트에서 실행한다:
 
 ```bash
 docker compose up -d --build

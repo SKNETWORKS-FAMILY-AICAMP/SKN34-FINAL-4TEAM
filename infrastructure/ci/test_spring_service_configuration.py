@@ -36,9 +36,16 @@ class SpringServiceConfigurationTest(unittest.TestCase):
                     self.assertEqual("20", settings["spring.data.web.pageable.default-page-size"])
                     self.assertEqual("100", settings["spring.data.web.pageable.max-page-size"])
                 else:
-                    self.assertEqual("${CONTENT_ENABLED:false}", config["application"]["app.content.enabled"])
+                    self.assertNotIn("app.content.enabled", config["application"])
                     self.assertNotIn("spring.datasource.url", config["application"])
                     self.assertNotIn("spring.flyway.locations", config["application"])
+
+    def test_content_service_is_always_enabled_without_feature_flag(self):
+        sources = (ROOT / "backend/content-service/src").rglob("*.kt")
+        self.assertEqual([], [str(p) for p in sources if "app.content.enabled" in p.read_text(encoding="utf-8")])
+        for path in (".env.example", "infrastructure/docker-compose.yaml", "infrastructure/ci/compose.test.yaml",
+                     "infrastructure/compose.attachments.yaml", ".github/workflows/ci.yml"):
+            self.assertNotIn("CONTENT_ENABLED", (ROOT / path).read_text(encoding="utf-8"), path)
 
     def test_content_boot_entry_point_is_explicit_while_studio_migration_remains_available(self):
         service = ROOT / "backend/content-service"

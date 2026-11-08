@@ -22,7 +22,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = ["app.content.enabled", "app.setting-attachments.enabled"], havingValue = "true")
+@ConditionalOnProperty(name = ["app.setting-attachments.enabled"], havingValue = "true")
 @EnableConfigurationProperties(AttachmentProperties::class)
 @EnableJpaRepositories(basePackages = ["ai.storyfork.content.attachment.repository"],
     entityManagerFactoryRef = "attachmentEntityManagerFactory", transactionManagerRef = "attachmentTransactionManager")

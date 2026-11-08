@@ -22,7 +22,7 @@ import org.springframework.transaction.TransactionException
 import org.springframework.transaction.support.TransactionTemplate
 
 @Service
-@ConditionalOnProperty(name = ["app.content.enabled", "app.setting-attachments.enabled"], havingValue = "true")
+@ConditionalOnProperty(name = ["app.setting-attachments.enabled"], havingValue = "true")
 class AttachmentService(
     private val settings: AttachmentSettingRepository,
     private val attachments: SettingAttachmentRepository,

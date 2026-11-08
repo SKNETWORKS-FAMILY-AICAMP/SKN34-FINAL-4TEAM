@@ -32,7 +32,7 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 
 사용자가 명시적으로 생성할 때 AI Service에서 OpenAI Responses API를 호출합니다. 개인 브랜치의 모델 설정은 팀 전체 모델 선정 결정과 구분합니다. 새 Agent 프레임워크·그래프 DB는 도입하지 않았습니다.
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
-가입 후보·회원·refresh 세션·복구/이메일 변경 challenge 저장에 PostgreSQL·Flyway, 로컬 메일 확인에 Mailpit을 사용합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경에 사용하며, 가입 인증은 24시간, 복구·이메일 변경 challenge는 1시간 유효합니다. `CONTENT_ENABLED=true`일 때 같은 PostgreSQL에서 별도 `content_schema_history`로 콘텐츠 저장을 활성화합니다. 비공개 콘텐츠 API는 JWT Bearer 인증을 요구하고 공개 작품은 GET만 익명으로 조회합니다. Redis·큐·worker·운영 seed는 없습니다.
+가입 후보·회원·refresh 세션·복구/이메일 변경 challenge 저장에 PostgreSQL·Flyway, 로컬 메일 확인에 Mailpit을 사용합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경에 사용하며, 가입 인증은 24시간, 복구·이메일 변경 challenge는 1시간 유효합니다. Content는 같은 PostgreSQL에서 별도 `content_schema_history`로 콘텐츠를 저장합니다. 비공개 콘텐츠 API는 JWT Bearer 인증을 요구하고 공개 작품은 GET만 익명으로 조회합니다. Redis·큐·worker·운영 seed는 없습니다.
 
 ## 합의된 향후 구성요소 (미구현)
 

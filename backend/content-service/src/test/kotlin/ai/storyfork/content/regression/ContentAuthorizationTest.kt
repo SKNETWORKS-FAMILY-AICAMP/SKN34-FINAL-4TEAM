@@ -27,7 +27,7 @@ import org.mockito.Mockito.*
 import jakarta.servlet.http.Cookie
 import java.time.Instant
 
-@WebMvcTest(controllers=[WorkController::class,EpisodeController::class,EpisodeVersionController::class,PublicationController::class,ai.storyfork.content.context.controller.ContextController::class,ai.storyfork.content.plan.controller.StoryPlanController::class],properties=["app.content.enabled=true","app.cors.allowed-origin=http://localhost:5173","AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="])
+@WebMvcTest(controllers=[WorkController::class,EpisodeController::class,EpisodeVersionController::class,PublicationController::class,ai.storyfork.content.context.controller.ContextController::class,ai.storyfork.content.plan.controller.StoryPlanController::class],properties=["app.cors.allowed-origin=http://localhost:5173","AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="])
 @Import(ContentSecurityConfig::class,WebCorsConfig::class,ai.storyfork.content._common.exception.ContentExceptionHandler::class,ContentAuthorizationTest.MvcSecurity::class)
 class ContentAuthorizationTest {
     @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods=false)
