@@ -23,7 +23,7 @@ docker compose down
 native `include`로 재사용합니다. `storyfork-local` 프로젝트의 새 `storyfork-local_core-postgres` volume과 PostgreSQL·Mailpit,
 소스 빌드한 네 앱(web·Core·Content·AI)을 선택하며 과거 `storyfork-dev`·배포 DB/volume을 재사용하지 않습니다.
 기존 `COMPOSE_FILE`·`COMPOSE_PROJECT_NAME` override가 있으면 먼저 확인해 다른 프로젝트를 가리키지 않게 하세요.
-콘텐츠는 기본 비활성이며 `CONTENT_ENABLED=true`, Core/Content의 별도 `CONTENT_CORE_AUTH_TOKEN`, 생성 시 Content/AI의 `INTERNAL_TOKEN`이 필요합니다([콘텐츠 설정](content-integration.md#인증과-실행)). **새 Content 이력은 개발용 fresh 전용**이며 기존 history에 바로 배포하지 않습니다. 정확한 대상·보존/복구 범위 승인 전 실제 DB/volume을 지우지 않습니다.
+콘텐츠는 항상 활성이며 Core/Content의 별도 `CONTENT_CORE_AUTH_TOKEN`, 생성 시 Content/AI의 `INTERNAL_TOKEN`이 필요합니다([콘텐츠 설정](content-integration.md#인증과-실행)). **새 Content 이력은 개발용 fresh 전용**이며 기존 history에 바로 배포하지 않습니다. 정확한 대상·보존/복구 범위 승인 전 실제 DB/volume을 지우지 않습니다.
 WorldStudio 현재 관계는 별도 `APP_WORLDSTUDIO_ENABLED=true`와 승인된 SQL 적용·Neo4j 연결이 필요합니다. 소스 빌드 검증 overlay의 선택 `worldstudio` profile과 Content 전용 `NEO4J_*` 설정은 [현재 관계 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따릅니다. 기존 관계 자동 변환이나 실제 DB 적용/기동은 이 문서로 승인되지 않습니다.
 Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 

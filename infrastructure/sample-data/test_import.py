@@ -156,45 +156,31 @@ class SampleImportTest(unittest.TestCase):
             for table, names in tables.items():
                 self.assertEqual([], [c for c in names if c not in columns.get(table, set())], f'{service}.{table}')
 
-    def test_loader_uses_guarded_copy_staging_without_data_as_sql(self):
+    def test_flyway_migrations_are_exactly_rendered_from_csv(self):
+        loader = self.loader()
+        self.assertEqual({'core': 'V9__sample_auth_member.sql', 'content': 'V16__sample_content.sql'}, {s: p.name for s, p in loader.MIGRATIONS.items()})
+        for service, path in loader.MIGRATIONS.items():
+            self.assertEqual(loader.render_sql(service), path.read_text(encoding='utf-8'), f'regenerate {path.name} with load.py')
+
+    def test_rendered_sql_is_additive_and_literal_safe(self):
         loader = self.loader()
         for service in ('core', 'content'):
-            script = loader.build_script(service, HERE, 'approved_db', 'approved_schema', 'approved-development')
-            self.assertIn('IS DISTINCT FROM', script)
-            self.assertIn("SET LOCAL lock_timeout = '5s'", script)
-            self.assertIn('pg_try_advisory_xact_lock', script)
-            self.assertIn('FROM STDIN WITH (FORMAT text', script)
-            self.assertLess(script.index(' IN SHARE ROW EXCLUSIVE MODE;'), script.index('CREATE TEMP TABLE'))
-            if service == 'core':
-                self.assertLess(script.index('LOCK TABLE auth_member'), script.index('Existing ordinary development writer identity'))
-            self.assertNotIn('DO UPDATE', script)
-            self.assertNotIn('DELETE FROM', script)
-            self.assertNotIn('VALUES\n', script)
-            self.assertIn('COMMIT;', script)
+            sql = loader.render_sql(service)
+            filled = [t for t, cols in loader.TABLES[service].items() if loader.read_table(HERE / service / (t + '.csv'), cols)]
+            self.assertEqual([f'INSERT INTO {t} (' for t in filled], [line[:len(f'INSERT INTO {t} (')] for t, line in zip(filled, [l for l in sql.splitlines() if l.startswith('INSERT INTO')])])
+            for forbidden in ('UPDATE ', 'DELETE ', 'DROP ', 'TRUNCATE', 'DO UPDATE', '${'):
+                self.assertNotIn(forbidden, sql)
+            self.assertEqual(sql.count('INSERT INTO'), sql.count('DO NOTHING;'))
+        self.assertEqual("'it''s'", loader.sql_literal("it's"))
+        self.assertEqual("'a\\b\n--; c'", loader.sql_literal('a\\b\n--; c'))
+        self.assertEqual(('NULL', 'true', '7'), (loader.sql_literal(None), loader.sql_literal(True), loader.sql_literal(7)))
         with self.assertRaises(ValueError):
-            loader.build_script('content', HERE, 'approved_db', 'public', 'no')
-        for bad in ('bad-schema', 'public; DROP TABLE work;', 'public\n\\!whoami'):
-            with self.assertRaises(ValueError):
-                loader.build_script('content', HERE, 'approved_db', bad, 'approved-development')
-        # Real multiline CSV, quotes and psql metacommands are safely COPY-text encoded.
-        columns = loader.TABLES['content']['world']
-        row = dict(self.rows['world'][0], description="한글, \"인용\"\n\\.\n\\! touch must-not-run\r\nSELECT 'not SQL';", name='\\N')
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / 'world.csv'
-            generator.write_csv('content', {'world': [row]}, Path(tmp))
-            path = Path(tmp) / 'content/world.csv'
-            decoded = loader.read_table(path, columns)
-            self.assertEqual([row], decoded)
-            payload = loader.copy_data(columns, decoded)
-            self.assertNotIn('\n\\.\n', payload)
-            self.assertNotIn('\n\\! touch', payload)
-            parsed = payload.rstrip('\n').split('\t')
-            self.assertEqual(loader.copy_escape(row['description']), parsed[columns.index('description')])
-            self.assertEqual('\\\\N', parsed[columns.index('name')])
+            loader.sql_literal('${flyway:user}')
+        self.assertIn("ON CONFLICT (work_id, genre_id) DO NOTHING;", loader.render_sql('content'))
+        self.assertNotIn('psql', (HERE / 'load.py').read_text())
 
-    def test_invalid_csv_fails_before_any_psql_process(self):
+    def test_invalid_csv_fails_before_rendering(self):
         loader = self.loader()
-        columns = loader.TABLES['core']['auth_member']
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             shutil.copytree(HERE / 'core', root / 'core')
@@ -203,31 +189,8 @@ class SampleImportTest(unittest.TestCase):
             cases = [valid.replace('id,email,', 'id,rogue,', 1), valid + valid.splitlines()[1] + '\n', valid + 'too,few\n', valid.replace(',false', ',not-a-bool', 1), valid.replace('!sample-import', '\x00sample-import', 1)]
             for text in cases:
                 path.write_text(text, encoding='utf-8')
-                with patch.object(loader.subprocess, 'run') as run:
-                    with self.assertRaises(ValueError):
-                        loader.load('core', root, 'fixture', 'db', 'public', 'approved-development')
-                    run.assert_not_called()
-            path.write_text(valid, encoding='utf-8')
-            with patch.object(loader.subprocess, 'run') as run:
-                run.return_value.returncode = 0
-                loader.load('core', root, 'fixture', 'db', 'public', 'approved-development')
-                args, kwargs = run.call_args
-                self.assertIn('--no-password', args[0])
-                self.assertEqual('service=fixture', args[0][-1])
-                self.assertNotIn('shell', kwargs)
-                self.assertIn('COPY sample_expected_auth_member', kwargs['input'])
-                self.assertTrue(kwargs['capture_output'])
-                self.assertEqual(120, kwargs['timeout'])
-            with patch.object(loader.subprocess, 'run', side_effect=loader.subprocess.TimeoutExpired('psql', 120, stderr='secret-value')):
-                with self.assertRaisesRegex(RuntimeError, 'commit outcome is unconfirmed') as error:
-                    loader.load('core', root, 'fixture', 'db', 'public', 'approved-development')
-                self.assertNotIn('secret-value', str(error.exception))
-            with patch.object(loader.subprocess, 'run') as run:
-                run.return_value.returncode = 3
-                run.return_value.stderr = 'ERROR: Conflicting existing auth_member sample row; no overwrite is permitted\nsecret-value'
-                with self.assertRaisesRegex(RuntimeError, 'no overwrite') as error:
-                    loader.load('core', root, 'fixture', 'db', 'public', 'approved-development')
-                self.assertNotIn('secret-value', str(error.exception))
+                with self.assertRaises(ValueError):
+                    loader.render_sql('core', root)
 
 
 if __name__ == "__main__":

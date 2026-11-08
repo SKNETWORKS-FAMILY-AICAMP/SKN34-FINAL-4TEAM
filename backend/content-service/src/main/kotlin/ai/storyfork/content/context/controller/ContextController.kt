@@ -2,14 +2,12 @@ package ai.storyfork.content.context.controller
 
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 import ai.storyfork.content.context.service.dto.*
 
 /** 회차·공개 범위·인물 지식을 적용한 문맥 조회를 제공한다. */
 @RestController
 @RequestMapping("/api/v1")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class ContextController(private val service: ai.storyfork.content.context.service.ContextService) {
 
     /** 작성자의 허용 문맥 DTO를 반환한다. 소유자만 가능하며 범위·문맥 한도 오류는 422다. */

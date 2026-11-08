@@ -23,7 +23,7 @@ JDK 21의 `JAVA_HOME`과 필요한 변수만 해당 프로세스에 설정하고
 
 기본 주소는 `127.0.0.1:8081`, 앱 이름은 `storyfork-content-service`입니다. Core 8080·운영 골격 8082와 구분합니다. 콘텐츠와 WorldStudio가 모두 비활성이면 DB/인증 클라이언트를 만들지 않습니다. 이 기본 실행은 업무 API 준비 완료를 뜻하지 않습니다. 포트는 Spring 표준 `--server.port`로 변경할 수 있습니다.
 
-실제 콘텐츠 활성화에는 `CONTENT_ENABLED=true`, 기존 대상의 `DATABASE_URL/USER/PASSWORD`, Core와 동일한 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 기본 Core 인증 origin은 `http://127.0.0.1:8080`, 연결/읽기 timeout은 `1s`/`3s`입니다. 생성은 Content와 AI의 동일한 `INTERNAL_TOKEN`을 사용하며 OpenAI 키·모델은 AI에만 전달합니다. 첨부 설정은 [네이티브 Content 안내](../../infrastructure/README.md#네이티브-content-첨부-설정)를 따릅니다.
+Content 실행에는 기존 대상의 `DATABASE_URL/USER/PASSWORD`, Core와 동일한 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 기본 Core 인증 origin은 `http://127.0.0.1:8080`, 연결/읽기 timeout은 `1s`/`3s`입니다. 생성은 Content와 AI의 동일한 `INTERNAL_TOKEN`을 사용하며 OpenAI 키·모델은 AI에만 전달합니다. 첨부 설정은 [네이티브 Content 안내](../../infrastructure/README.md#네이티브-content-첨부-설정)를 따릅니다.
 
 루트 `.env` 한 곳에서 관리하고 서비스별 `.env`를 만들거나 전체 파일을 source하지 않습니다. 실제 `.env`는 자동 변경하지 않습니다. 네이티브 Frontend는 같은 origin의 `/api` proxy를 사용해야 두 소유 서비스로 라우팅됩니다(`VITE_DEV_PROXY_TARGET`, `VITE_CONTENT_DEV_PROXY_TARGET`). Compose는 필요한 값만 각 런타임에 전달하며 DB 대상·계정은 기존 Core 설정과 같습니다.
 
@@ -87,7 +87,7 @@ V14는 기존 V1~V13을 보존하고 `work_view`(작품·회차·회원·Asia/Se
 
 이 변경은 **사용자가 허용한 개발용 재초기화 전제**이며 과거 Content V1~V9 checksum과 호환되지 않습니다. 기존 적용 이력을 자동 repair/baseline 변경/clean하지 않습니다. 정확한 대상·중단 시간·보존 범위·복구 증거를 운영자가 확인하고 별도 승인하기 전 실제 DB/volume을 지우지 않습니다. 특히 같은 DB의 Auth·WorldStudio·첨부까지 일괄 폐기하는 승인이 아닙니다.
 
-샘플 데이터는 사용자 요청대로 [테이블별 UTF-8 CSV와 승인형 Core/Content loader](../../infrastructure/sample-data/README.md)를 사용합니다. V15(샘플 이관 시점의 V10을 develop의 V10~V14 뒤로 옮긴 번호)는 샘플 행 없는 스키마 SQL로 유지하고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개 바이트는 보존합니다. CSV 속성은 원문 근거가 있는 공개 시점만 부여하며 불확실한 값은 비공개입니다. rich 대상 편집/following Fork의 rich detach는 409로 보호하되 원작의 새 단순 설정 초안·확정은 기존 rich 상세를 바꾸지 않고 허용합니다. 앱/Flyway/배포 자동 seed·sample SQL 파일은 없으며 실제 적용·hosted CI·브라우저 수용은 별도 확인 대기입니다.
+샘플 데이터는 [테이블별 UTF-8 CSV 정본에서 생성한 Flyway `db/migration/sample/V16`](../../infrastructure/sample-data/README.md)으로 서버 시작 시 적용됩니다. V15(샘플 이관 시점의 V10을 develop의 V10~V14 뒤로 옮긴 번호)는 샘플 행 없는 스키마 SQL로 유지하고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개 바이트는 보존합니다. CSV 속성은 원문 근거가 있는 공개 시점만 부여하며 불확실한 값은 비공개입니다. rich 대상 편집/following Fork의 rich detach는 409로 보호하되 원작의 새 단순 설정 초안·확정은 기존 rich 상세를 바꾸지 않고 허용합니다. 실제 적용·hosted CI·브라우저 수용은 별도 확인 대기입니다.
 
 Auth SQL은 Core의 `db/migration/auth`/`flyway_schema_history`에 원본 그대로 남습니다. 설정 첨부·이미지는 독립 leaf/history 및 바이트를 유지합니다. WorldStudio V1도 바이트/`worldstudio.world_studio_schema_history`를 유지하고 [명시 migration](src/main/resources/db/migration/worldstudio/README.md) 뒤에만 활성화합니다. 같은 `contentDataSource`를 사용하지만 studio-only EntityManager/TransactionManager이며 서버 시작은 `validate`만 합니다. 별도 WorldStudio DB/pool·Auth 스캔은 없습니다.
 

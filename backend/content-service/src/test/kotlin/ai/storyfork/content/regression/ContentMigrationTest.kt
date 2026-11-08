@@ -5,8 +5,6 @@ import java.util.UUID
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
-import java.sql.SQLException
-import java.net.URI
 import java.util.HexFormat
 import tools.jackson.databind.json.JsonMapper
 import org.flywaydb.core.Flyway
@@ -43,8 +41,8 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(15,flyway.migrate().migrationsExecuted)
-        assertEquals((1..15).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(16,flyway.migrate().migrationsExecuted)
+        assertEquals((1..16).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
@@ -73,25 +71,9 @@ class ContentMigrationTest {
 
     private val sampleDir = Path.of("..", "..", "infrastructure", "sample-data")
 
-    private fun importSamples(jdbc: JdbcTemplate, approval: String = "approved-development", wrongTarget: Boolean = false) {
-        jdbc.dataSource!!.connection.use { connection ->
-            val target=URI(connection.metaData.url.removePrefix("jdbc:"))
-            val builder=ProcessBuilder("python3","-I",sampleDir.resolve("load.py").toString(),"--service","content",
-                "--database",connection.catalog,"--schema",if(wrongTarget) "not_the_owned_test_schema" else connection.schema,"--approval",approval)
-            builder.environment().putAll(mapOf("PGHOST" to target.host,"PGPORT" to (if(target.port<0) 5432 else target.port).toString(),
-                "PGDATABASE" to connection.catalog,"PGUSER" to "content_test","PGPASSWORD" to "","PGCLIENTENCODING" to "UTF8"))
-            builder.environment().remove("PGSERVICE")
-            builder.environment().remove("PGOPTIONS")
-            val process=builder.redirectErrorStream(true).start()
-            process.inputStream.use {it.readBytes()} // Never echo possible credentials/row values into CI reports.
-            if(process.waitFor()!=0) throw SQLException("Content CSV loader refused import; transaction rolled back")
-        }
-    }
-
-    @Test fun `explicit sample import preserves bodies source versions wiki and identical replay`() = isolated { flyway,jdbc ->
+    @Test fun `V16 samples preserve bodies source versions wiki and replay without changes`() = isolated { flyway,jdbc ->
         flyway.migrate()
-        importSamples(jdbc)
-        importSamples(jdbc)
+        assertEquals(0,flyway.migrate().migrationsExecuted)
         for ((table, count) in mapOf("member" to 10, "work" to 11, "fork" to 7, "episode_version" to 32,
             "publication_event" to 17, "checkpoint_episode" to 15, "setting_document" to 120, "setting_reading_detail" to 120)) {
             assertEquals(count, jdbc.queryForObject("SELECT count(*) FROM $table", Int::class.java), table)
@@ -124,29 +106,25 @@ class ContentMigrationTest {
         flyway.validate()
     }
 
-    @Test fun `sample import requires approval and exact target and leaves no partial rows`() = isolated { flyway,jdbc ->
-        flyway.migrate()
-        assertThrows(SQLException::class.java) { importSamples(jdbc, approval="not-approved") }
-        assertThrows(SQLException::class.java) { importSamples(jdbc, wrongTarget=true) }
-        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM member", Int::class.java))
-        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
+    private fun upTo15(jdbc: JdbcTemplate)=Flyway.configure().dataSource(jdbc.dataSource!!).schemas(jdbc.queryForObject("SELECT current_schema()",String::class.java))
+        .defaultSchema(jdbc.queryForObject("SELECT current_schema()",String::class.java)).locations(*ContentPersistenceConfig.MIGRATION_LOCATIONS)
+        .table("content_schema_history").baselineOnMigrate(true).baselineVersion("0").target("15").load()
+
+    @Test fun `V16 keeps an existing row with the same key instead of overwriting it`() = isolated { flyway,jdbc ->
+        upTo15(jdbc).migrate()
+        // Same sample owner and tag id, different local value: the sample row must not overwrite it.
+        jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
+        jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
+        assertEquals(1,flyway.migrate().migrationsExecuted)
+        assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
+        assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
 
-    @Test fun `sample PK conflict refuses overwrite before canonical inserts`() = isolated { flyway,jdbc ->
-        flyway.migrate()
-        jdbc.update("INSERT INTO member(id) VALUES ('unrelated')")
-        jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('d384e2a3-d131-3d31-b25e-a3f85ebe2240','unrelated','keep local','','original',0)")
-        assertThrows(SQLException::class.java) { importSamples(jdbc) }
-        assertEquals("keep local", jdbc.queryForObject("SELECT title FROM work", String::class.java))
-        assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM member", Int::class.java))
-        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM episode", Int::class.java))
-    }
-
-    @Test fun `sample secondary unique conflict rolls back earlier inserts`() = isolated { flyway,jdbc ->
-        flyway.migrate()
+    @Test fun `V16 secondary unique conflict fails atomically instead of partial samples`() = isolated { flyway,jdbc ->
+        upTo15(jdbc).migrate()
         jdbc.update("INSERT INTO member(id) VALUES ('unrelated')")
         jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision,slug) VALUES ('unrelated','unrelated','keep local','','original',0,'guunmong')")
-        assertThrows(SQLException::class.java) { importSamples(jdbc) }
+        assertThrows(FlywayException::class.java) { flyway.migrate() }
         assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM member", Int::class.java))
         assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM world", Int::class.java))
@@ -171,6 +149,6 @@ class ContentMigrationTest {
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(15,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(16,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

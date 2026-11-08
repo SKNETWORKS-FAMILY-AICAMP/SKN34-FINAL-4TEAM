@@ -10,12 +10,10 @@ import ai.storyfork.content.plan.service.dto.*
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.world.service.WorldService
 import java.time.Instant
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class StoryPlanService(
     private val access: WorkAccessService,

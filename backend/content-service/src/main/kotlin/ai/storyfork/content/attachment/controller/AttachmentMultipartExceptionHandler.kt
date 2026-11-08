@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartException
 /** Controller 매핑 전에 발생하는 multipart 파싱 실패만 안전한 첨부 오류로 변환한다. */
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
-@ConditionalOnProperty(name = ["app.content.enabled", "app.setting-attachments.enabled"], havingValue = "true")
+@ConditionalOnProperty(name = ["app.setting-attachments.enabled"], havingValue = "true")
 class AttachmentMultipartExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException::class)
     fun tooLarge() = ResponseEntity.status(413).body(AttachmentErrorResponse("ATTACHMENT_TOO_LARGE", "파일은 10 MiB 이하만 업로드할 수 있어요."))

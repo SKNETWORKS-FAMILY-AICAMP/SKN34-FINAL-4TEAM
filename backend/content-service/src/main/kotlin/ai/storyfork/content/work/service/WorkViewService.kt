@@ -9,7 +9,6 @@ import ai.storyfork.content.work.repository.WorkViewRepository
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -19,7 +18,6 @@ private val VIEW_WINDOW: Duration = Duration.ofHours(24)
 
 /** 공개 회차 조회 기록(work_view)과 작품별 최근 조회 수 집계를 맡는다. */
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class WorkViewService(
     private val access: WorkAccessService,
     private val current: EpisodeCurrentRepository,

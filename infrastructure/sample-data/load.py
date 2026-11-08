@@ -1,11 +1,18 @@
-"""Approved, additive CSV import using stdlib + psql; no sample SQL files or runtime seed."""
-import argparse
+"""Render the canonical sample CSVs into each service's Flyway sample migration (stdlib only).
+
+Run `python3 -I infrastructure/sample-data/load.py` after editing a CSV and commit the regenerated SQL.
+"""
 import csv
 from pathlib import Path
 import re
-import subprocess
 
 HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+# Ordinary next-version migrations; once applied they are immutable, so later sample changes need a new version.
+MIGRATIONS = {
+    'core': ROOT / 'backend/core-api/src/main/resources/db/migration/sample/V9__sample_auth_member.sql',
+    'content': ROOT / 'backend/content-service/src/main/resources/db/migration/sample/V16__sample_content.sql',
+}
 # Fixed schema/column allowlist, in FK insertion order. No CSV value becomes an SQL identifier.
 TABLES = {
     'core': {'auth_member': 'id,email,password_hash,nickname,operator'},
@@ -94,84 +101,37 @@ def read_table(path, columns):
     return rows
 
 
-def copy_escape(value):
+def sql_literal(value):
     if value is None:
-        return NULL
-    text = str(value).lower() if isinstance(value, bool) else str(value)
-    return text.replace('\\', '\\\\').replace('\t', r'\t').replace('\n', r'\n').replace('\r', r'\r')
+        return 'NULL'
+    if isinstance(value, bool):
+        return 'true' if value else 'false'
+    if isinstance(value, int):
+        return str(value)
+    if '${' in value:
+        raise ValueError('Flyway placeholder syntax is not allowed in sample values')
+    # PostgreSQL standard_conforming_strings: only the quote needs escaping; backslashes/newlines stay literal.
+    return "'" + value.replace("'", "''") + "'"
 
 
-def copy_data(columns, rows):
-    # Convert validated CSV to COPY text: one physical line per row, no embedded psql terminator/metacommand.
-    return ''.join('\t'.join(copy_escape(row[c]) for c in columns) + '\n' for row in rows)
-
-
-def build_script(service, root, database, schema, approval):
-    if service not in TABLES or approval != 'approved-development':
-        raise ValueError('Explicit development approval and known service are required')
-    if not all(re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,62}', value) for value in (database, schema)):
-        raise ValueError('Approved database/schema must be simple PostgreSQL identifiers')
+def render_sql(service, root=HERE):
     tables = TABLES[service]
     if {p.stem for p in (root / service).glob('*.csv')} != set(tables):
         raise ValueError('CSV table set does not match the fixed service allowlist')
-    rows = {t: read_table(root / service / (t + '.csv'), cols) for t, cols in tables.items()}
-    output = ['\\encoding UTF8', 'BEGIN;', 'SET LOCAL standard_conforming_strings = on;', "SET LOCAL lock_timeout = '5s';",
-        "SET LOCAL statement_timeout = '60s';", "SET LOCAL idle_in_transaction_session_timeout = '60s';",
-        f'SET LOCAL search_path TO "{schema}";', 'DO $$ BEGIN',
-        f" IF current_database() IS DISTINCT FROM '{database}' OR current_schema() IS DISTINCT FROM '{schema}' THEN",
-        "  RAISE EXCEPTION 'Explicit development import approval and exact database/schema are required'; END IF;",
-        " IF NOT pg_try_advisory_xact_lock(736521904) THEN RAISE EXCEPTION 'Another sample import holds the lock'; END IF; END $$;"]
-    # ponytail: one-off import locks all owned targets; online/live imports require a separate design.
-    output += ['LOCK TABLE ' + ','.join(tables) + ' IN SHARE ROW EXCLUSIVE MODE;']
-    if service == 'core':
-        output += ["DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM auth_member WHERE id='b832d965-0352-4eb1-b896-7a307ba09a68' AND email='writer@example.test' AND operator=false) THEN",
-            " RAISE EXCEPTION 'Existing ordinary development writer identity must be verified first'; END IF; END $$;"]
-    else:
-        output += ["DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='work' AND column_name='slug') OR to_regclass('setting_reading_detail') IS NULL THEN",
-            " RAISE EXCEPTION 'Content V15 reading metadata schema is required; do not reset or repair migration history'; END IF; END $$;"]
+    rows = {t: read_table(root / service / (t + '.csv'), cols) for t, cols in tables.items()}  # Validate everything first.
+    output = [f'-- Generated from infrastructure/sample-data/{service}/*.csv by load.py. Do not edit by hand.\n'
+              '-- Additive development samples: rows whose key already exists are kept as-is (ON CONFLICT DO NOTHING).']
     for table, columns in tables.items():
-        names = ','.join(columns)
-        output += [f'CREATE TEMP TABLE sample_expected_{table} (LIKE {table} INCLUDING DEFAULTS) ON COMMIT DROP;',
-            f'COPY sample_expected_{table} ({names}) FROM STDIN WITH (FORMAT text);', copy_data(columns, rows[table]) + '\\.']
-        join = ' AND '.join(f'a.{c}=e.{c}' for c in KEYS.get(table, ['id']))
-        unequal = ' OR '.join(f'a.{c} IS DISTINCT FROM e.{c}' for c in columns)
-        output += [f'DO $$ BEGIN IF EXISTS(SELECT 1 FROM {table} a JOIN sample_expected_{table} e ON {join} WHERE {unequal}) THEN',
-            f" RAISE EXCEPTION 'Conflicting existing {table} sample row; no overwrite is permitted'; END IF; END $$;"]
-    for table, columns in tables.items():
-        names = ','.join(columns)
-        keys = ','.join(KEYS.get(table, ['id']))
-        output += [f'INSERT INTO {table} ({names}) SELECT {names} FROM sample_expected_{table} ON CONFLICT ({keys}) DO NOTHING;']
-    return '\n'.join(output + ['COMMIT;', ''])
-
-
-def load(service, root, connection_service, database, schema, approval):
-    script = build_script(service, root, database, schema, approval)  # Validate all input before opening psql.
-    command = ['psql', '--no-psqlrc', '--no-password', '--quiet', '--set=ON_ERROR_STOP=1']
-    if connection_service:
-        if not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', connection_service):
-            raise ValueError('Invalid PostgreSQL connection service name')
-        command.append('service=' + connection_service)
-    try:
-        result = subprocess.run(command, input=script, text=True, encoding='utf-8', capture_output=True, timeout=120)
-    except subprocess.TimeoutExpired:
-        raise RuntimeError(f'Sample {service} import timed out; commit outcome is unconfirmed, inspect the approved target before retrying') from None
-    if result.returncode:
-        # psql errors can echo row values/credentials; expose only a known fixed error, never raw stderr.
-        reason = next((f'Conflicting existing {t} sample row; no overwrite is permitted' for t in TABLES[service]
-            if f'Conflicting existing {t} sample row; no overwrite is permitted' in result.stderr), 'Approval, target, identity, lock, schema or constraint check failed')
-        raise RuntimeError(f'Sample {service} import failed (psql exit {result.returncode}); {reason}; uncommitted work rolls back on disconnect; confirm the target if commit outcome is uncertain')
+        if not rows[table]:
+            continue
+        values = ',\n'.join('(' + ', '.join(sql_literal(row[c]) for c in columns) + ')' for row in rows[table])
+        keys = ', '.join(KEYS.get(table, ['id']))
+        output.append(f'INSERT INTO {table} ({", ".join(columns)}) VALUES\n{values}\nON CONFLICT ({keys}) DO NOTHING;')
+    return '\n\n'.join(output) + '\n'
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--service', choices=TABLES, required=True)
-    parser.add_argument('--connection-service', help='Pre-approved libpq service; otherwise use pre-approved PG connection environment')
-    parser.add_argument('--database', required=True)
-    parser.add_argument('--schema', required=True)
-    parser.add_argument('--approval', required=True)
-    args = parser.parse_args()
-    try:
-        load(args.service, HERE, args.connection_service, args.database, args.schema, args.approval)
-    except (ValueError, OSError, RuntimeError) as failure:
-        parser.exit(1, str(failure) + '\n')
-    print(f'CSV {args.service} import committed; identical replay allowed; no database credentials logged.')
+    for service, path in MIGRATIONS.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(render_sql(service), encoding='utf-8')
+        print(f'wrote {path.relative_to(ROOT)}')

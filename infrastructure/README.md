@@ -38,7 +38,7 @@ Browser → web nginx
 
 로컬 Core에는 직접 준비한 `DATABASE_USER/PASSWORD`, `AUTH_MAIL_FROM`, `AUTH_JWT_SECRET`이 필요합니다. JWT 키는 32바이트 이상 무작위 값의 Base64 인코딩이며 Core에만 전달합니다. 기본 비밀번호나 서명 키는 제공하지 않습니다. `AUTH_PUBLIC_ORIGIN`을 실제 web 주소에 맞추고 HTTP 로컬 검증에서만 `AUTH_COOKIE_SECURE=false`를 사용합니다. 로컬 DB URL·SMTP는 Compose 내부 PostgreSQL·Mailpit으로 고정합니다. Mailpit 화면(기본 8025)은 인증 메일을 포함하므로 로컬 전용입니다. dev도 내부 PostgreSQL·Mailpit을 쓰지만 호스트에 노출하지 않으며, prod만 외부 DB·SMTP를 사용합니다. 가입 인증 24시간, 복구·이메일 변경 1시간 계약과 실제 API는 [Core 문서](../backend/core-api/README.md#공개-계약)를 따릅니다.
 
-Content 활성화에는 `CONTENT_ENABLED=true`와 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 32자 이상·개행 없는 값을 Core/Content에만 동일하게 설정합니다. 사용자 Bearer·JWT 서명 키·AI의 `INTERNAL_TOKEN`과 다른 자격입니다. 생성은 Content/AI의 동일한 `INTERNAL_TOKEN` 및 AI에만 주입한 키/모델을 사용합니다. 인증 확인에는 캐시·자동 재시도·fallback이 없으며 Core 장애를 사용자 401로 숨기지 않습니다([Content 계약](../backend/content-service/README.md#core-인증-클라이언트--실제-연결)).
+Content는 항상 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 32자 이상·개행 없는 값을 Core/Content에만 동일하게 설정합니다. 사용자 Bearer·JWT 서명 키·AI의 `INTERNAL_TOKEN`과 다른 자격입니다. 생성은 Content/AI의 동일한 `INTERNAL_TOKEN` 및 AI에만 주입한 키/모델을 사용합니다. 인증 확인에는 캐시·자동 재시도·fallback이 없으며 Core 장애를 사용자 401로 숨기지 않습니다([Content 계약](../backend/content-service/README.md#core-인증-클라이언트--실제-연결)).
 
 각 스택 안에서 Core와 Content는 **같은 DB 대상·계정**을 사용합니다. local/dev/prod 모두 같은 `DATABASE_*` 이름을 쓰고 값만 각 서버의 `.env`가 정합니다. 스택 사이의 DB·자격증명을 공유한다는 뜻이 아니며 DB 복사·추가 WorldStudio pool은 없습니다. Core Auth 초기화/Health 뒤에 Content를 시작하며 각 서비스는 자기 Entity/Repository·migration만 소유합니다. Content의 7개 leaf/전역 V1~V9와 이전 이력의 비호환성은 [fresh migration 안내](../backend/content-service/README.md#같은-db와-fresh-콘텐츠-migration)를 따릅니다.
 
@@ -63,7 +63,6 @@ docker compose down
 | `CORE_AUTH_BASE_URL` | native `http://127.0.0.1:8080`, Compose 내부 DNS | Content → Core 인증 확인 |
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
-| `CONTENT_ENABLED` | `false` | Content 업무 opt-in |
 | `DATABASE_*` | 빈 계정, `storyfork` DB | Core·Content(Studio 포함)·운영 공용 PostgreSQL(운영은 전용 `operations` schema) |
 | `INTERNAL_TOKEN` | 빈 값 | Content/AI 생성만 |
 | `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content |
@@ -93,7 +92,7 @@ prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP*
 | `CONTENT_CORE_AUTH_TOKEN` / `INTERNAL_TOKEN` | 각각 Core↔Content / Content↔AI의 별도 무작위 서비스 자격 |
 | `WEB_PORT` | 담당자가 준비한 비충돌 loopback 포트, TLS ingress는 별도 |
 
-SMTP 인증은 기본 `CORE_SMTP_AUTH=true`이며 제공사가 요구하는 `CORE_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `CORE_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `OPENAI_API_KEY/MODEL`은 선택적 생성 설정으로 AI에만 전달합니다. `CONTENT_ENABLED`·`APP_WORLDSTUDIO_ENABLED`는 기본 false이며 WorldStudio의 실제 DB 준비·명시 migration은 별도 승인 대상입니다.
+SMTP 인증은 기본 `CORE_SMTP_AUTH=true`이며 제공사가 요구하는 `CORE_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `CORE_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `OPENAI_API_KEY/MODEL`은 선택적 생성 설정으로 AI에만 전달합니다. `APP_WORLDSTUDIO_ENABLED`는 기본 false이며 WorldStudio의 실제 DB 준비·명시 migration은 별도 승인 대상입니다.
 
 prod의 `AUTH_COOKIE_SECURE`는 **항상 true**이므로 로컬 HTTP용 `AUTH_COOKIE_SECURE=false`가 있어도 약화되지 않습니다. HTTP로 그대로 공개해도 되는 설정이 아니며 HTTPS ingress·DNS·인증/메일·백업 복원·관측·운영 수용 검증은 이 파일이 제공하지 않습니다.
 
@@ -121,7 +120,7 @@ MinIO Console은 `127.0.0.1:${MINIO_CONSOLE_PORT:-9001}`, API는 `${MINIO_API_PO
 `backend/content-service` 터미널에 공용 `DATABASE_*`, `CONTENT_CORE_AUTH_TOKEN`, Core 인증 origin과 필요 시 생성 `INTERNAL_TOKEN`을 준비합니다. 다음 명령의 S3 설정은 Content 프로세스에만 적용됩니다. Frontend·Core·AI에 AWS 설정을 export하지 않습니다.
 
 ```bash
-env CONTENT_ENABLED=true SETTING_ATTACHMENTS_ENABLED=true \
+env SETTING_ATTACHMENTS_ENABLED=true \
   ATTACHMENT_S3_ENDPOINT=http://127.0.0.1:9000 \
   ATTACHMENT_S3_REGION=us-east-1 ATTACHMENT_S3_BUCKET=storyfork-setting-attachments \
   AWS_ACCESS_KEY_ID='<local-access-key>' AWS_SECRET_ACCESS_KEY='<local-secret-key>' \

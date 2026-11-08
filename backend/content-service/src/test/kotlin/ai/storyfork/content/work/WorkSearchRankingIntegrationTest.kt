@@ -34,7 +34,7 @@ import tools.jackson.databind.json.JsonMapper
  * DB는 다른 테스트의 작품과 공유하므로 각 테스트는 자신이 만든 작품 id만 골라 비교한다.
  */
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties=[
-    "app.content.enabled=true","DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
+    "DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
     "DATABASE_USER=content_test","DATABASE_PASSWORD=",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
 ])

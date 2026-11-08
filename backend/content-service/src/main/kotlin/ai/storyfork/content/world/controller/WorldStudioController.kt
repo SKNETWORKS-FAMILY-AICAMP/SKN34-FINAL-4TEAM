@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 /** 인증된 소유자의 독립 세계관과 현재 관계를 제공한다. 공개 조회·관계 이력 API는 제공하지 않는다. */
 @RestController
 @RequestMapping("/api/v1/world-studios")
-@ConditionalOnProperty(name=["app.content.enabled","app.worldstudio.enabled"],havingValue="true")
+@ConditionalOnProperty(name=["app.worldstudio.enabled"],havingValue="true")
 class WorldStudioController(private val service:WorldStudioService) {
     /** 소유 세계관 요약을 반환하며 미전환·미완료 상태도 표시한다. */
     @GetMapping
