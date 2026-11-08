@@ -18,6 +18,12 @@ const chrome = { id: 'c', deviceLabel: 'Chrome/140.0 (Windows NT 10.0) Safari/53
 const safari = { id: 's', deviceLabel: 'Safari/605.1.15 (Macintosh; Intel Mac OS X 14_0)', current: false, createdAt: '2026-01-01T00:00:00Z' }
 const logout = (name: string) => screen.findByRole<HTMLButtonElement>('button', { name: `${name} 로그아웃` })
 
+/**
+ * `settled`가 처음 통과하는 DOM 상태에서의 초점. waitFor는 DOM 변경 직후(커밋 뒤 microtask)에 처음 확인하므로,
+ * 행이 사라진 그 상태에서 초점이 이미 옮겨져 있어야 통과한다. passive effect로 옮기면 다음 task까지 초점이 body에 놓인다.
+ */
+const focusWhenSettled = (settled: () => void) => waitFor(() => { settled(); return document.activeElement })
+
 /** 서버가 가진 기기 목록을 흉내 낸다. 삭제 요청은 `revoke`가 정하며 성공하면 목록에서 빠진다. */
 async function setup(devices: object[], revoke: () => Promise<Response> = async () => new Response(null, { status: 204 })) {
   let list = devices
@@ -59,8 +65,8 @@ describe('기기 로그아웃 뒤 초점', () => {
     const button = await logout(removed)
     button.focus()
     fireEvent.click(button)
-    await waitFor(() => expect(screen.queryByRole('button', { name: `${removed} 로그아웃` })).toBeNull())
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: `${expected} 로그아웃` }))
+    const focused = await focusWhenSettled(() => expect(screen.queryByRole('button', { name: `${removed} 로그아웃` })).toBeNull())
+    expect(focused).toBe(screen.getByRole('button', { name: `${expected} 로그아웃` }))
   })
 
   it('남은 기기가 없으면 로그인 기기 제목으로 초점이 간다', async () => {
@@ -68,10 +74,10 @@ describe('기기 로그아웃 뒤 초점', () => {
     const button = await logout('Firefox · Linux')
     button.focus()
     fireEvent.click(button)
-    await screen.findByText('로그인 기기가 없어요.')
+    const focused = await focusWhenSettled(() => screen.getByText('로그인 기기가 없어요.'))
     const title = screen.getByRole('heading', { name: '로그인 기기' })
     expect(title.getAttribute('tabindex')).toBe('-1')
-    expect(document.activeElement).toBe(title)
+    expect(focused).toBe(title)
   })
 
   it('로그아웃에 실패하면 초점을 잃은 사용자를 잠겼다 풀린 같은 버튼으로 돌려보낸다', async () => {
