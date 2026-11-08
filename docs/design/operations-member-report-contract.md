@@ -23,11 +23,11 @@
 
 ## Core 내부 API (운영 전용)
 
-공통: `X-Operations-Service-Token` + 관리자 본인의 `Authorization: Bearer`(운영 서비스가 전달). JWT의 회원이 `operator=true`가 아니면 403.
+공통: `X-Operations-Service-Token` + 관리자 본인의 `Authorization: Bearer`(운영 서비스가 전달). JWT의 회원이 이용 제한 상태면 401, `operator=true`가 아니면 403.
 
 | 메서드·경로 | 요청 | 응답 |
 |---|---|---|
-| `POST /internal/v1/auth/verify` | Bearer + `X-Content-Service-Token` 또는 `X-Operations-Service-Token` | `{ memberId, operator }`. 제한 회원 403 |
+| `POST /internal/v1/auth/verify` | Bearer + `X-Content-Service-Token` 또는 `X-Operations-Service-Token` | `{ memberId, operator }`. 없는 회원·제한 회원 401(403은 서비스 자격 오류) |
 | `GET /internal/v1/members?role=ALL\|MEMBER\|ADMIN&q=&sort=newest\|oldest` | `q`: 닉네임·이메일 부분 일치(대소문자 무시) | `{ items: MemberItem[] }` 최대 200개 |
 | `PUT /internal/v1/members/{id}/restriction` | — | `MemberItem`. 자기 자신은 400, 없는 회원 404 |
 | `DELETE /internal/v1/members/{id}/restriction` | — | `MemberItem` |
