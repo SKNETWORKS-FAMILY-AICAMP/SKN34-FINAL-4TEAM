@@ -53,10 +53,10 @@ class WorkSearchServiceTest {
     private val rows = mutableListOf<WorkEntity>()
 
     /** [age]가 클수록 늦게 만든 작품이다. */
-    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public") {
-        rows += WorkEntity(id = id, ownerId = "author", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age))
+    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false) {
+        rows += WorkEntity(id = id, ownerId = "author", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted)
         `when`(works.findAll()).thenReturn(rows)
-        `when`(access.get(id)).thenReturn(WorkAccessResult(id, "author", title, "", 0, "world", visible, false, false, null))
+        `when`(access.get(id)).thenReturn(WorkAccessResult(id, "author", title, "", 0, "world", visible, false, false, null, restricted))
         if (visible != "public") return
         `when`(works.findById(id)).thenReturn(Optional.of(rows.last()))
         `when`(publication.publishedEpisodes(id)).thenReturn(PublishedEpisodeListResponse(emptyList()))
@@ -111,6 +111,17 @@ class WorkSearchServiceTest {
         assertEquals(listOf("a", "b"), top.map { it.id })
         assertEquals(listOf(3L, 2L), top.map { it.views })
         assertEquals(listOf("a"), rising.map { it.id })
+    }
+
+    @Test fun `restricted public works are left out of list search and both rankings`() {
+        work("open", "공개 작품", 1)
+        work("blocked", "제한 작품", 2, restricted = true)
+        views(Triple("open", 1, 0), Triple("blocked", 9, 0))
+
+        assertEquals(listOf("open"), service.publicList(null, null, null).items.map { it.id })
+        assertEquals(listOf("open"), service.publicList("작품", "title", "view").items.map { it.id })
+        assertEquals(listOf("open"), service.ranking("top").items.map { it.id })
+        assertEquals(listOf("open"), service.ranking("rising").items.map { it.id })
     }
 
     @Test fun `unknown options fail with 422 before any lookup`() {

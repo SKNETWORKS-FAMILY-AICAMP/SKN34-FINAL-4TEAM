@@ -29,36 +29,11 @@ function fakes() {
   return { uc, db, works: () => works, admin: () => admin }
 }
 
-const item = (id: string, status: string): ReviewItem => ({ id, w: 'starlight', n: null, type: '권리 침해', text: '신고', quote: '', status, who: '독자' })
-
 describe('관리자 신고 처리 (목업 data-qact)', () => {
-  it('비공개 조치는 작품을 숨기고 신고자 기록에 결과를 남긴다', async () => {
-    const { uc, db, works, admin } = fakes()
-    db.queue.push(item('r1', '접수'))
-    db.reports.push({ id: 'r1', w: 'starlight', n: null, type: '신고 · 권리 침해', text: '신고', status: '접수됨', reply: '' })
-    expect(await uc.review('r1', 'hide')).toEqual({ ok: true, msg: '처리 결과를 기록하고 신고자에게 알렸어요 (데모)' })
-    expect(works().find((w) => w.id === 'starlight')!.hidden).toBe(true)
-    expect(db.reports[0]).toMatchObject({ status: '조치 완료', reply: '운영팀이 확인하고 해당 소설을 비공개로 전환했어요.' })
-    expect(admin().audit[0]).toMatchObject({ action: '신고 처리', detail: '권리 침해 · 비공개 조치' })
-  })
-
-  it('다른 제한이 남아 있으면 소명을 인정해도 복원하지 않는다', async () => {
-    const { uc, db } = fakes()
-    db.queue.push({ ...item('r1', '소명 제출'), beforeHidden: false }, item('r2', '비공개 조치'))
-    expect(await uc.review('r1', 'restore')).toEqual({ ok: false, msg: '다른 제한이 남아 있어 복원할 수 없어요' })
-    expect(db.queue[0].status).toBe('소명 제출')
-  })
-
   it('정기 작업 재시도는 실패한 작업만 기록한다', async () => {
     const { uc } = fakes()
     expect(await uc.runJob('series')).toBeNull()
     expect((await uc.runJob('notification-cleanup'))?.msg).toMatch('수동 재시도')
-  })
-
-  it('없는 사용자는 바꾸지 않고 로그도 남기지 않는다', async () => {
-    const { uc, admin } = fakes()
-    expect(await uc.toggleUser('nope')).toBeNull()
-    expect(admin().audit).toEqual([])
   })
 
   it('없는 댓글은 숨기지 않고 로그도 남기지 않는다 (목업 data-comment-action)', async () => {

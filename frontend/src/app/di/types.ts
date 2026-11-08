@@ -37,6 +37,10 @@ export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth
 export type AppCradle = {
   operationsRepository: import('../../domain/repositories/OperationsRepository').OperationsRepository
   operationsUseCase: import('../../domain/usecases/OperationsUseCase').OperationsUseCase
+  reportRepository: import('../../domain/repositories/ReportRepository').ReportRepository
+  reportUseCase: import('../../domain/usecases/ReportUseCase').ReportUseCase
+  memberRepository: import('../../domain/repositories/MemberRepository').MemberRepository
+  memberUseCase: import('../../domain/usecases/MemberUseCase').MemberUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase

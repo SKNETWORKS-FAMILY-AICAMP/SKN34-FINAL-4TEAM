@@ -11,6 +11,7 @@ class CoreServiceHttpBoundaryTest {
         "auth/service/ProfileService.kt",
         "auth/service/WithdrawalService.kt",
         "auth/service/AuthVerificationService.kt",
+        "auth/service/MemberAdminService.kt",
         "notification/service/NoticeService.kt",
     )
 

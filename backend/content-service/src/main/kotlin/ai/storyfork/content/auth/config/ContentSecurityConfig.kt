@@ -2,7 +2,10 @@ package ai.storyfork.content.auth.config
 
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
 import jakarta.servlet.DispatcherType
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -16,6 +19,19 @@ import tools.jackson.databind.json.JsonMapper
 
 @Configuration(proxyBeanMethods = false)
 class ContentSecurityConfig {
+    // 운영 전용 /internal/v1 하위: 회원 Bearer·CSRF 없이 서비스 토큰만 확인한다. 공개 체인보다 먼저 매칭한다.
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @ConditionalOnProperty(name = ["app.content.enabled"], havingValue = "true")
+    fun operationsInternalSecurityFilterChain(http: HttpSecurity, @Value("\${OPERATIONS_SERVICE_TOKEN:}") token: String): SecurityFilterChain {
+        http.securityMatcher("/internal/v1/**").csrf { it.disable() }.cors { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .authorizeHttpRequests { it.anyRequest().hasAuthority("OPERATIONS_SERVICE") }
+            .addFilterBefore(OperationsServiceTokenFilter(token), AnonymousAuthenticationFilter::class.java)
+            .httpBasic { it.disable() }.formLogin { it.disable() }.logout { it.disable() }
+        return http.build()
+    }
+
     @Bean
     @ConditionalOnProperty(name = ["app.content.enabled"], havingValue = "true")
     fun contentSecurityFilterChain(http: HttpSecurity, service: CoreAuthVerificationService, mapper: JsonMapper): SecurityFilterChain {

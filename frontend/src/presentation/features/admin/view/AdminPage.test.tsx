@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it } from 'vitest'
@@ -16,24 +16,15 @@ const renderAdmin = (tab: string) => render(
 )
 const tables = () => [...document.querySelectorAll('table')]
 
-it('신고·권리 행은 첫 셀의 버튼으로도 선택하고 선택 상태를 알린다', async () => {
+it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로 숨기지 않는다', async () => {
   renderAdmin('rights')
-  const pick = await screen.findByRole('button', { name: '○○○ 2차 연재' })
-  expect(pick.closest('td')?.cellIndex).toBe(0)
-  expect(pick.getAttribute('aria-pressed')).toBe('false')
-  fireEvent.click(pick)
-  await screen.findByText('신고 상세 · ○○○ 2차 연재')
-  expect(screen.getByRole('button', { name: '○○○ 2차 연재' }).getAttribute('aria-pressed')).toBe('true')
+  await screen.findByText(/신고 목록을 불러오지 못했어요/)
+  expect(screen.queryByText('○○○ 2차 연재')).toBeNull()
+  expect(screen.getByText('운영 API 연결')).toBeTruthy()
 })
 
-it('신고·권리 행을 마우스로 눌러도 그대로 선택된다', async () => {
-  renderAdmin('rights')
-  fireEvent.click((await screen.findByText('○○○ 2차 연재')).closest('tr')!)
-  await screen.findByText('신고 상세 · ○○○ 2차 연재')
-  expect(screen.getByRole('button', { name: '○○○ 2차 연재' }).getAttribute('aria-pressed')).toBe('true')
-})
-
-it.each(['data', 'rights', 'llm', 'users', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'events', 'notices', 'credits', 'admins'])(
+// users·admins 표는 운영 API 응답이 있어야 그려지므로 렌더 통합 대상에서 뺍니다.
+it.each(['data', 'rights', 'llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'events', 'notices', 'credits'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
     renderAdmin(tab)

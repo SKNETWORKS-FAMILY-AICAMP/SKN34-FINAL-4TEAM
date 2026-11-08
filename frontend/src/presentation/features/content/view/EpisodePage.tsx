@@ -6,6 +6,7 @@ import { WorldPanel } from './WorldPanel'
 import { ContextPreview } from './ContextPreview'
 import { ManuscriptBody, MediaPanel, StoredImage } from '../../../shared/media/MediaPanel'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
+import { ReportWorkForm } from '../../../shared/reports/ReportWorkForm'
 
 export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   useDocumentTitle('회차 에디터')
@@ -228,6 +229,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                         ? `「${w.source.title}」 ${w.source.episode}화 · 버전 ${w.source.version}에서 분기`
                         : w.summary || '당신의 이야기를 한 문장씩 채워 보세요.'}
                     </p>
+                    {w.readOnly && !vm.activeIsMine && <ReportWorkForm key={w.id} workId={w.id} workTitle={w.title} />}
                   </div>
                   <span className={'chip ' + (w.visibility === 'public' ? 'ok' : '')}>
                     {w.visibility === 'public' ? '공개 중' : '비공개 작품'}

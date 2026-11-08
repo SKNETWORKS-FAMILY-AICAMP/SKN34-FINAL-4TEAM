@@ -67,7 +67,7 @@ class ContentBoundaryTest {
     }
 
     @Test fun `work view table follows the search ranking contract`() {
-        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V13__work_view.sql"))
+        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V14__work_view.sql"))
         assertTrue(sql.contains("CREATE TABLE work_view"))
         assertTrue(sql.contains("work_id varchar(36) NOT NULL REFERENCES work(id)"))
         assertTrue(sql.contains("episode_number integer NOT NULL CHECK (episode_number > 0)"))
@@ -89,7 +89,7 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        assertEquals((1..13).toList(), versions.sorted())
+        assertEquals((1..14).toList(), versions.sorted())
         Files.list(migration).use { paths ->
             assertFalse(paths.anyMatch { it.toString().endsWith(".sql") }, "Unscoped Flyway SQL")
         }

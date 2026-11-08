@@ -3,15 +3,28 @@ package ai.storyfork.content.work
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.episode.entity.EpisodeCurrentEntity
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
+import ai.storyfork.content.episode.repository.EpisodeRepository
+import ai.storyfork.content.episode_version.repository.CheckpointRepository
+import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
+import ai.storyfork.content.fork.repository.ForkRepository
+import ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity
+import ai.storyfork.content.publication.repository.WorkPublicationHistoryRepository
 import ai.storyfork.content.work.domain.WorkViews
 import ai.storyfork.content.work.domain.viewDate
+import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.entity.WorkViewEntity
+import ai.storyfork.content.work.entity.WorkWorldHistoryEntity
+import ai.storyfork.content.work.repository.ForkPolicyHistoryRepository
+import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.repository.WorkViewRepository
+import ai.storyfork.content.work.repository.WorkWorldHistoryRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkViewService
+import jakarta.persistence.EntityManager
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
+import java.util.Optional
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -64,6 +77,21 @@ class WorkViewServiceTest {
         `when`(access.published("work")).thenThrow(ContentFailure(404, "공개 작품을 찾을 수 없어요."))
 
         assertEquals(404, failure { service.record("work", 1, "reader") }.status)
+
+        verifyNoInteractions(current, views)
+    }
+
+    @Test fun `restricted public work is 404 before any episode lookup`() {
+        val works = mock(WorkRepository::class.java)
+        val worlds = mock(WorkWorldHistoryRepository::class.java)
+        val visibility = mock(WorkPublicationHistoryRepository::class.java)
+        `when`(works.findById("work")).thenReturn(Optional.of(WorkEntity(id = "work", ownerId = "author", restricted = true)))
+        `when`(worlds.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkWorldHistoryEntity(workId = "work", worldId = "world"))
+        `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkPublicationHistoryEntity(workId = "work", visibility = "public"))
+        val restricted = WorkAccessService(works, worlds, visibility, mock(ForkPolicyHistoryRepository::class.java), mock(ForkRepository::class.java),
+            mock(CheckpointRepository::class.java), mock(EpisodeRepository::class.java), mock(EpisodeVersionRepository::class.java), mock(EntityManager::class.java))
+
+        assertEquals(404, failure { WorkViewService(restricted, current, views).record("work", 1, "reader") }.status)
 
         verifyNoInteractions(current, views)
     }

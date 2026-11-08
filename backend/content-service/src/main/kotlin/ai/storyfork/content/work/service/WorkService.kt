@@ -67,7 +67,7 @@ class WorkService(
     private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> =
         works.findAll().sortedByDescending {it.createdAt}.mapNotNull {
             val w=access.get(it.id)
-            if(w.visibility=="public") view(w,true).copy(views=counts[it.id]?.recent ?: 0) else null
+            if(w.publiclyVisible()) view(w,true).copy(views=counts[it.id]?.recent ?: 0) else null
         }
     fun read(id: String,owner: String): WorkResponse = view(access.own(id,owner))
     fun publicRead(id: String): WorkResponse = view(access.published(id),true)

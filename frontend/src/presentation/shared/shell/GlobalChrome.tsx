@@ -117,7 +117,8 @@ export function GlobalChrome() {
       {showTools && <>{import.meta.env.DEV && <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>}
       <div className="screen-controls">
         {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(uiActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
-        <ThemeButton className="btn sm" />
+        {/* 관리자 화면은 상단바에 테마 버튼이 있어 떠 있는 버튼이 표를 가리지 않게 뺍니다. */}
+        {pathname !== '/admin' && <ThemeButton className="btn sm" />}
       </div></>}
     </>
   )

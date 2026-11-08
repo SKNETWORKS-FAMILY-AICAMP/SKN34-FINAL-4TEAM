@@ -1,8 +1,8 @@
 # STORYFORK Operations Service
 
-공지·이벤트·고객지원 문의/답변 **레코드의 독립 백엔드 CRUD**입니다. Core·Content·AI 호출, 프런트엔드·공개 proxy·Compose/CD 연결은 없습니다. `Controller → Service → JpaRepository`를 사용하며 DTO는 각 리소스의 `service/dto`, Entity는 `entity`에 둡니다. 목표 책임과 후속 업무는 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
+공지·이벤트·고객지원 문의/답변 **레코드의 독립 백엔드 CRUD**와 회원 Bearer 기반 **신고·회원·관리자 운영 API**입니다. 신고·회원·관리자 API만 Core(인증 확인·회원)와 Content(작품 제한)를 호출하며 AI 호출은 없습니다. `Controller → Service → JpaRepository`를 사용하며 DTO는 각 리소스의 `service/dto`, Entity는 `entity`에 둡니다. 목표 책임과 후속 업무는 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
 
-> 현재는 서비스 자격 인증입니다. 사람의 관리자 권한, 회원 신원·소유권, ‘내 문의’, 공개 게시·이벤트 진행 상태·참여·보상·알림·감사는 구현하지 않습니다. 서비스 토큰을 가진 호출 서버는 이 서비스의 모든 레코드에 접근할 수 있으므로 브라우저에 직접 연결하면 안 됩니다.
+> 인증은 두 갈래입니다. 공지·이벤트·문의 API는 **서비스 자격 인증만** 사용하며 사람의 관리자 권한, 회원 신원·소유권, ‘내 문의’, 공개 게시·이벤트 진행 상태·참여·보상·알림·감사는 구현하지 않습니다. 서비스 토큰을 가진 호출 서버는 이 레코드에 모두 접근할 수 있으므로 브라우저에 직접 연결하면 안 됩니다. 신고·회원·관리자 API(`/reports`·`/members`·`/admins`)는 회원 Bearer를 Core로 확인하고 운영자(`operator`)+업무 권한으로 인가합니다([계약](../../docs/design/operations-member-report-contract.md)).
 
 ## 실행 기반·설정
 
@@ -18,11 +18,13 @@
 | `OPERATIONS_DATABASE_URL` | `jdbc:postgresql://127.0.0.1:5432/storyfork` — 기존 PostgreSQL 연결 |
 | `OPERATIONS_DATABASE_USER` | `storyfork` — 운영 schema에 필요한 권한을 가진 DB 사용자 |
 | `OPERATIONS_DATABASE_PASSWORD` | 빈 값 — 실제 실행 환경의 DB 자격을 별도 설정 |
-| `OPERATIONS_SERVICE_TOKEN` | 빈 값 — 비어 있거나 공백뿐이면 **보호 접근을 허용하지 않음** |
+| `OPERATIONS_SERVICE_TOKEN` | 빈 값 — 비어 있거나 공백뿐이면 **보호 접근을 허용하지 않음**. Core·Content 호출 시 같은 값을 `X-Operations-Service-Token`으로 전송 |
+| `OPERATIONS_CORE_BASE_URL` | `http://127.0.0.1:8080` — Core(인증 확인·회원 API) |
+| `OPERATIONS_CONTENT_BASE_URL` | `http://127.0.0.1:8081` — Content(작품 조회·제한 API) |
 
 DB 자격과 서비스 토큰은 Operations 및 허용된 서버에만 주입합니다. 서비스 토큰은 JWT 서명 키·회원 Bearer·Content 인증 토큰과 재사용하지 말고 충분히 긴 무작위 값(32자 이상 권장)을 생성합니다. 로그·스크린샷·브라우저 번들·`VITE_*`·build ARG·저장소에 넣지 않습니다. 외부 네트워크에서 사용할 때 TLS와 신뢰 서버 경계를 별도 마련해야 하며, loopback 바깥 바인딩이나 배포는 이번 범위가 아닙니다.
 
-아래는 **수동 실행 안내**이며 개발 검증이 앱·DB를 자동 기동하지는 않습니다. 필요한 네 환경변수만 이미 해당 프로세스 환경에 제공한 뒤 실행합니다.
+아래는 **수동 실행 안내**이며 개발 검증이 앱·DB를 자동 기동하지는 않습니다. 필요한 환경변수만 이미 해당 프로세스 환경에 제공한 뒤 실행합니다.
 
 ```bash
 JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew bootRun
@@ -32,7 +34,7 @@ DB 연결과 schema 초기화 권한이 필요합니다. 이전의 ‘DB 없이 
 
 ## 서비스 인증·오류
 
-모든 `/api/v1/operations/**` 요청은 단일 `X-Operations-Service-Token` 헤더를 요구합니다. 고정 길이 SHA-256 digest를 `MessageDigest.isEqual`로 비교하며 중복 헤더·빈 값·틀린 값·누락 설정은 401입니다. 입력 토큰을 임의로 trim하지 않습니다. `Authorization: Bearer`, 쿠키, `X-Auth-User` 등은 인증 대체 수단이 아닙니다.
+아래 회원 Bearer API를 제외한 모든 `/api/v1/operations/**` 요청은 단일 `X-Operations-Service-Token` 헤더를 요구합니다. 고정 길이 SHA-256 digest를 `MessageDigest.isEqual`로 비교하며 중복 헤더·빈 값·틀린 값·누락 설정은 401입니다. 입력 토큰을 임의로 trim하지 않습니다. `Authorization: Bearer`, 쿠키, `X-Auth-User` 등은 인증 대체 수단이 아닙니다.
 
 Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·세션 쿠키 인증을 사용하지 않습니다. 기본 사용자 계정도 만들지 않습니다. 변경 요청의 권한은 브라우저 CSRF 쿠키가 아니라 서비스 헤더에만 의존합니다. 브라우저 CORS 허용을 추가하지 않으며 토큰 보관·사람별 권한 검사를 프런트엔드에 맡기지 않습니다. 서비스 자격을 갖춰도 운영 API 밖의 경로는 403으로 거절합니다.
 
@@ -47,6 +49,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | 405 등 | `REQUEST_FAILED` | MVC HTTP 오류의 상태를 보존하고 상세 reason은 숨김 |
 | 409 | `CONFLICT` | 낙관적 동시성 충돌, 답변이 남은 문의 삭제, DB 참조 충돌 |
 | 500 | `INTERNAL_ERROR` | 예상하지 못한 실패; 성공 fallback 없음 |
+| 502 | `UPSTREAM_FAILED` | Core/Content 호출 실패(아래 회원 Bearer API); 상태·이력 미기록 |
 
 ## API 계약
 
@@ -101,11 +104,21 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 { "body": "답변 내용" }
 ```
 
+## 회원 Bearer API (신고·회원·관리자)
+
+`/api/v1/operations/{reports,members,admins}`와 하위 경로는 별도 SecurityFilterChain입니다. `Authorization: Bearer …`를 Core `POST /internal/v1/auth/verify`(받은 Authorization + 서비스 토큰)로 확인해 `{memberId, operator}`를 principal로 씁니다. Bearer 없음은 401, Core 401/403은 그대로, 그 밖의 확인 실패는 502입니다. stateless·쿠키 없음이므로 CSRF를 쓰지 않으며, 이 경로에서는 서비스 토큰이 인증 수단이 아닙니다.
+
+- 관리자 = Core `operator=true` **이면서** `operations.admin_permission`에 해당 키 보유(`rights`·`users`·`admins`). 아니면 403.
+- 신고: 접수·`mine`·운영 목록(`?status=`)·상세(+`history`)·`evidence`·`explanations`(POST/GET)·`review`·`restriction`(POST/DELETE)·`evidence-requests`. 접수는 201, 신고 변경 POST/DELETE는 200으로 갱신된 상세(`history` 포함), `GET …/explanations`는 `{ items: History[] }`. 증거 보완·소명·증빙 요청 본문은 1~5000자.
+- 회원: `GET /members?role=&q=&sort=`, `PUT|DELETE /members/{id}/restriction` — Core에 관리자 Bearer를 그대로 전달.
+- 관리자: `GET /admins`(Core `role=ADMIN` + `permissions`), `POST /admins`(알려진 키 1개 이상 검증 → Core 생성 → 권한 저장, 201).
+- Core·Content 하위 400/404/409는 보존하고 그 외 실패는 502 `UPSTREAM_FAILED`이며 성공·이력으로 숨기지 않습니다. 고정 timeout(connect 2s, read 5s)·재시도 없음.
+
 ## 저장·동시성
 
-기존 PostgreSQL 아키텍처 안에서 **`operations` schema만** 사용합니다. Flyway location은 `classpath:db/migration/operations`, 기본 schema는 `operations`, 전용 history는 `operations.operations_flyway_schema_history`입니다. V1은 공지, V2는 이벤트, V3은 문의/답변이며 Core/Auth·Content·WorldStudio 이력이나 테이블을 읽고 쓰지 않습니다. 다른 서비스 Entity/Repository 스캔을 추가하지 않습니다.
+기존 PostgreSQL 아키텍처 안에서 **`operations` schema만** 사용합니다. Flyway location은 `classpath:db/migration/operations`, 기본 schema는 `operations`, 전용 history는 `operations.operations_flyway_schema_history`입니다. V1은 공지, V2는 이벤트, V3은 문의/답변, V4는 관리자 업무 권한(샘플 관리자 12개 권한 시드), V5는 신고/신고 이력이며 Core/Auth·Content·WorldStudio 이력이나 테이블을 읽고 쓰지 않습니다. 다른 서비스 Entity/Repository 스캔을 추가하지 않습니다.
 
-Hibernate는 `ddl-auto=validate`, `open-in-view=false`, JDBC 시간대 UTC입니다. DDL의 소유자는 운영 Flyway이고 JPA가 schema를 자동 변경하지 않습니다. 모든 Entity의 `@Version`은 겹치는 수정/삭제 트랜잭션의 충돌을 409로 드러냅니다. 공개 DTO에는 version/ETag가 없으므로 **과거 화면의 순차적인 덮어쓰기까지 막는 클라이언트 revision 계약은 아닙니다**. 새 서버 호출·retry·락 관리 프레임워크를 추가하지 않습니다.
+Hibernate는 `ddl-auto=validate`, `open-in-view=false`, JDBC 시간대 UTC입니다. DDL의 소유자는 운영 Flyway이고 JPA가 schema를 자동 변경하지 않습니다. append-only인 신고 이력·권한 행을 제외한 Entity의 `@Version`은 겹치는 수정/삭제 트랜잭션의 충돌을 409로 드러냅니다. 공개 DTO에는 version/ETag가 없으므로 **과거 화면의 순차적인 덮어쓰기까지 막는 클라이언트 revision 계약은 아닙니다**. 새 서버 호출·retry·락 관리 프레임워크를 추가하지 않습니다.
 
 ### 분리 PR의 Flyway 의존성과 순서
 
@@ -134,7 +147,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew unitTest \
   --tests ai.storyfork.operations._common.OperationsExceptionHandlerTest --no-daemon
 ```
 
-리소스별 `NoticeServiceTest`/`NoticeControllerTest`, `EventServiceTest`/`EventControllerTest`, `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`도 정확한 클래스 필터로 선택합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
+리소스별 `NoticeServiceTest`/`NoticeControllerTest`, `EventServiceTest`/`EventControllerTest`, `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`, 신고·회원·관리자의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
 
 이번 U+0000 회귀는 `EventServiceTest`·`InquiryServiceTest`·`InquiryReplyServiceTest`만 선택해 **Red 12건**(예외가 발생하지 않아 assertion 실패) 후 최소 검증식 수정으로 **Green 69건**(각각 34·21·14건)을 확인했습니다. Spring/HTTP/DB 테스트는 실행하지 않았습니다.
 
