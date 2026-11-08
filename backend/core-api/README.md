@@ -52,6 +52,19 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `GET /api/v1/me/withdrawal` | Bearer 인증; 진행 중이면 `{"status":"PENDING","requestedAt","dueAt"}`, 없으면 `{"status":"NONE"}`, 200 |
 | `DELETE /api/v1/me/withdrawal` | Bearer 인증; 유예 중인 탈퇴 요청 취소(복구), 204. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409 |
 
+### 내부 API (Content·운영 서비스 전용, nginx 비노출)
+
+[운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 모두 회원 Bearer가 필요합니다.
+
+| 메서드·경로 | 서비스 자격 | 동작 |
+|---|---|---|
+| `POST /internal/v1/auth/verify` | `X-Content-Service-Token` 또는 `X-Operations-Service-Token` | `{memberId, operator}`. 없는 회원·이용 제한 회원 401 |
+| `GET /internal/v1/members?role=ALL\|MEMBER\|ADMIN&q=&sort=newest\|oldest` | `X-Operations-Service-Token`만 | `{items: MemberItem[]}` 최대 200개, `q`는 닉네임·이메일 대소문자 무시 부분 일치 |
+| `PUT`·`DELETE /internal/v1/members/{id}/restriction` | 〃 | 이용 제한·해제 후 `MemberItem`. 자기 자신 400, 없는 회원 404 |
+| `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |
+
+`MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다.
+
 탈퇴 요청은 계정 상태와 30일 유예 기한만 기록하며 유예 중에도 로그인해 복구할 수 있습니다. 작품·세계관 숨김·삭제·익명화, 유예 만료 후 최종 처리, 남은 크레딧·결제 내역 처리는 콘텐츠 서비스 계약과 정책이 정해진 뒤 연결하므로 아직 없습니다.
 
 알림 분류는 `reading`·`creation`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·모바일 푸시는 아직 없습니다. SSE 연결 목록은 Core 인스턴스 메모리에 있으므로 단일 Core 인스턴스를 전제로 하며, 여러 인스턴스로 늘리면 인스턴스 간 신호 전달을 추가해야 합니다. 전송은 연결별 가상 스레드에서 직렬화하고 대기 신호는 종류별로 병합합니다. 전송이 5초를 넘으면 논리적으로 등록 해제하고 종료 처리를 호출자와 분리합니다. 이 기한은 막힌 Servlet 소켓의 물리적 종료를 보장하지 않으며, 실제 자원 회수에는 컨테이너의 쓰기 타임아웃이 필요합니다.
@@ -111,6 +124,7 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` (Health) |
 | `CONTENT_CORE_AUTH_TOKEN` | 기본 빈 값; Content 인증 연결 시 32자 이상·개행 없는 별도 자격 |
+| `OPERATIONS_SERVICE_TOKEN` | 기본 빈 값; 운영 서비스 연결 시 32자 이상. 비면 운영 자격은 항상 403 |
 | `APP_CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
 | `CORE_DATABASE_URL`, `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD` | 필수 |
 | `CORE_SMTP_HOST`, `CORE_SMTP_PORT` | 필수 |
