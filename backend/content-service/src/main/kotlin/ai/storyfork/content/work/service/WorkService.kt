@@ -39,6 +39,7 @@ class WorkService(
     private val publication: ai.storyfork.content.publication.service.PublicationService,
     private val versions: ai.storyfork.content.episode_version.service.EpisodeVersionService,
     private val proposals: ai.storyfork.content.proposal.service.ProposalService,
+    private val viewService: WorkViewService,
 ) {
 
     fun list(owner: String): WorkListResponse {
@@ -46,13 +47,28 @@ class WorkService(
         access.lockScopes(rows.map {it.id})
         return WorkListResponse(rows.map {view(access.own(it.id,owner))})
     }
-    fun publicList(): WorkListResponse {
-        val rows=works.findAll().sortedByDescending {it.createdAt}
-        return WorkListResponse(rows.mapNotNull {
-            val w=access.get(it.id)
-            if(w.visibility=="public") view(w,true) else null
-        })
+    /** 공개 작품 목록이다. q·f·sort를 모두 생략하면 기존처럼 작품 생성 최신순이며, 잘못된 f·sort는 422다. */
+    fun publicList(q: String?,f: String?,sort: String?): WorkListResponse {
+        val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort")
+        val counts=viewService.counts()
+        val found=publicWorks(counts).filter {matchesSearch(it.title,it.genres,it.hashtags,q,field)}
+        if(order==WorkSort.LATEST) return WorkListResponse(found)
+        val byId=found.associateBy {it.id}
+        return WorkListResponse(orderByViews(found.map {it.id},counts).map {byId.getValue(it)})
     }
+    /** 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 잘못된 kind는 422다. */
+    fun ranking(kind: String): WorkListResponse {
+        val rankingKind=queryOption(kind,RankingKind.TOP,"kind")
+        val counts=viewService.counts()
+        val all=publicWorks(counts)
+        val byId=all.associateBy {it.id}
+        return WorkListResponse(rankingIds(rankingKind,all.map {it.id},counts).map {byId.getValue(it)})
+    }
+    private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> =
+        works.findAll().sortedByDescending {it.createdAt}.mapNotNull {
+            val w=access.get(it.id)
+            if(w.visibility=="public") view(w,true).copy(views=counts[it.id]?.recent ?: 0) else null
+        }
     fun read(id: String,owner: String): WorkResponse = view(access.own(id,owner))
     fun publicRead(id: String): WorkResponse = view(access.published(id),true)
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {

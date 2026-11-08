@@ -62,12 +62,17 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V10 | `db/migration/plan` | 11번 비공개 플롯·장면 계획, 참조, revision·논리 삭제 |
 | V11 | `db/migration/plan` | 작품 실제 삭제 시 해당 계획·참조만 종속 정리 |
 | V12 | `db/migration/plan` | 인물·장소 순서 목록의 중복 검사를 커밋까지 지연 |
+| V13 | `db/migration/work` | 공개 회차 조회 기록 `work_view`(작품 검색·실시간 랭킹의 조회 수 정본) |
 
 [`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 8개 leaf만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 
 11번 계획 API는 `/api/v1/works/{workId}/story-plans`의 GET·POST와 `/{id}`의 GET·PUT·DELETE를 제공합니다. 기존 인증·CSRF·작품 소유권 검사를 사용하며 다른 소유자의 작품·계획은 404입니다. 수정·삭제에는 계획의 `revision`을 사용하고 충돌은 409입니다. 인물·장소는 현재 작품의 `WorldService.read().settings`에서 분류와 허용 범위를 확인하고, 회차는 해당 작품에서 확인한 내부 ID로 연결합니다. 회차 삭제 후에는 계획을 유지하고 `episodeMissing`으로 안내하며 재사용된 번호에 자동 연결하지 않습니다. 논리 삭제된 계획은 일반 조회에서 제외하고, 하위 장면이 남은 플롯은 삭제하지 않습니다. 원고·사전·Fork 독립 상태는 변경하지 않습니다. V11은 V10을 포함한 기존 SQL·체크섬을 보존하며 작품이 실제 삭제될 때 그 작품의 계획(논리 삭제 포함)과 계획의 인물·장소 참조만 함께 정리합니다. 작품 삭제의 기존 권한·발행 이력·분기·세계관 설정 보호 조건은 바꾸지 않습니다. 운영·공유 개발 DB 적용은 별도 절차이며 자동 repair/clean하지 않습니다.
 
 V12는 기존 V1~V11을 보존하고 계획의 인물·장소 `(plan_id, setting_id)` unique 제약만 `DEFERRABLE INITIALLY DEFERRED`로 교체합니다. Hibernate가 `[A,B,C] → [B,C]` 또는 `[A,B] → [B,A]`를 저장하는 중간의 일시 중복은 허용하되, 트랜잭션 커밋 시 최종 중복은 거부합니다. API의 중복 입력 검증, 순서 위치 PK, 작품·계획 외래키와 V11 삭제 동작은 유지합니다.
+
+V13은 기존 V1~V12를 보존하고 `work_view`(작품·회차·회원·Asia/Seoul 날짜가 기본키, `viewed_at` 인덱스)만 추가합니다. 작품 삭제 경로는 바꾸지 않습니다. 조회 기록은 공개 작품의 발행 회차에만 생기고 발행 이력이 있는 작품의 삭제는 이미 409이기 때문입니다.
+
+작품 검색·실시간 랭킹 API는 [계약](../../docs/design/work-search-ranking-contract.md)을 따릅니다. `GET /api/v1/public/works`는 선택 query `q`(제목·해시태그·장르의 대소문자 무시 부분 일치, 해시태그는 앞 `#` 무시)·`f`(all·title·tag·genre)·`sort`(latest·view)를 받고 매개변수가 없으면 기존 목록(작품 생성 최신순)과 같습니다. `GET /api/v1/public/works/ranking?kind=top|rising`은 최근 24시간 조회 수 또는 그 전 24시간 대비 증가분이 큰 순서로 0 이하를 제외한 최대 10개를 반환하며 동점은 작품 생성 최신순입니다. 잘못된 `f`·`sort`·`kind`는 422이고 `kind` 누락은 400입니다. `POST /api/v1/works/{id}/episodes/{number}/views`는 로그인 회원이 공개 작품의 발행 회차를 열 때 회원·회차·서울 날짜별 1회만 기록하고(같은 날 중복은 무시) 204를 반환하며 비공개 작품·미발행 회차는 404입니다. 기존 인증·CSRF를 그대로 따르고 소유자 검사는 없습니다. `WorkResponse.views`는 공개 목록·검색·랭킹 응답에서만 최근 24시간 조회 수이며 그 밖의 응답은 0입니다. 검색·랭킹은 공개 작품을 메모리에서 거르고 정렬하는 시연 규모 구현이며 서버 페이지네이션은 없습니다.
 
 이 변경은 **사용자가 허용한 개발용 재초기화 전제**이며 과거 Content V1~V9 checksum과 호환되지 않습니다. 기존 적용 이력을 자동 repair/baseline 변경/clean하지 않습니다. 정확한 대상·중단 시간·보존 범위·복구 증거를 운영자가 확인하고 별도 승인하기 전 실제 DB/volume을 지우지 않습니다. 특히 같은 DB의 Auth·WorldStudio·첨부까지 일괄 폐기하는 승인이 아닙니다.
 
