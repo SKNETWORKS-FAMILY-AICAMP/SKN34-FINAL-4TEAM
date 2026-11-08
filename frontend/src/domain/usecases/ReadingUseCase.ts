@@ -129,6 +129,8 @@ export class ReadingUseCase {
     const read = (progress.read[id] ??= [])
     if (!read.includes(n)) read.push(n)
     await this.readingRepository.saveProgress(progress)
+    // 로그인 회원이 서버 작품의 자체 회차를 열면 그 회차의 조회를 기록한다(상속 회차는 원작 몫). 실패는 읽기를 막지 않는다.
+    if (role && w.canonical && n > (w.snap?.eps.length ?? 0)) this.workSearchRepository?.recordView(w.id, n).catch(() => {})
     return {
       work: w,
       n,

@@ -124,3 +124,49 @@ describe('ReadingUseCase.recordViews 공개 열람 기록', () => {
     expect(recordView).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('ReadingUseCase.openEpisode 회차 열람 조회 기록', () => {
+  const server = () => seedWorks(0).map((w) => ({ ...w, canonical: true }))
+
+  it('로그인 회원이 서버 작품의 회차를 열면 그 회차 번호로 기록한다', async () => {
+    const recordView = vi.fn(async () => {})
+    const result = await setup({ recordView }, server()).useCase.openEpisode('guunmong', 2, 'user')
+    expect(result).toMatchObject({ n: 2 })
+    expect(recordView.mock.calls).toEqual([['guunmong', 2]])
+  })
+
+  it('Fork는 상속분이 아닌 자체 회차만 이어진 번호로 기록한다(상속 회차는 원작 몫)', async () => {
+    const recordView = vi.fn(async () => {})
+    const { useCase } = setup({ recordView }, server())
+    await useCase.openEpisode('cloud', 1, 'user')
+    await useCase.openEpisode('cloud', 2, 'user')
+    expect(recordView).not.toHaveBeenCalled()
+    await useCase.openEpisode('cloud', 3, 'user')
+    expect(recordView.mock.calls).toEqual([['cloud', 3]])
+  })
+
+  it('익명·메모리 데모 작품·검색 저장소가 없는 목업은 요청하지 않는다', async () => {
+    const recordView = vi.fn(async () => {})
+    await setup({ recordView }, server()).useCase.openEpisode('guunmong', 2, null)
+    await setup({ recordView }).useCase.openEpisode('guunmong', 2, 'user')
+    await expect(setup(undefined, server()).useCase.openEpisode('guunmong', 2, 'user')).resolves.toMatchObject({ n: 2 })
+    expect(recordView).not.toHaveBeenCalled()
+  })
+
+  it('숨긴 회차와 볼 수 없는 작품은 기록하지 않는다', async () => {
+    const recordView = vi.fn(async () => {})
+    const works = server()
+    works.find((w) => w.id === 'postman')!.eps[0].hidden = true
+    const { useCase } = setup({ recordView }, works)
+    expect(await useCase.openEpisode('postman', 1, 'user')).toBe('hidden')
+    expect(await useCase.openEpisode('nope', 1, 'user')).toBeNull()
+    expect(recordView).not.toHaveBeenCalled()
+  })
+
+  it('기록이 실패해도 읽기를 막지 않는다', async () => {
+    const recordView = vi.fn(async () => { throw new Error('offline') })
+    const result = await setup({ recordView }, server()).useCase.openEpisode('guunmong', 3, 'user')
+    expect(result).toMatchObject({ n: 3 })
+    expect(recordView).toHaveBeenCalledTimes(1)
+  })
+})

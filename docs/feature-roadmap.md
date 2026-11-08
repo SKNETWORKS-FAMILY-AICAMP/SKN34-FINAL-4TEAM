@@ -27,6 +27,7 @@
 - CI 인증·Health 통합 회귀는 Core의 503 오류를 대역으로 고정하고, Content의 정상 응답에는 기본 3초·시간 초과 검증에는 별도 150ms를 적용하도록 테스트만 보완했다. 503/504/502·자격 분리·redirect 금지·재시도/캐시 금지 계약과 기존 완료 표시는 유지하며, 최신 Required CI 재검증은 대기다.
 - PR #142 충돌 정렬에서 Neo4j opt-in 컨테이너·volume은 local Compose로 옮기고 prod의 외부 서비스·이미지 전용 구성을 유지했다. WorldStudio packaged migration 시스템 기대값은 기존 V1+V2의 최초 적용 2건·테이블 13개와 재실행 적용 0건으로 정정했으며 Auth/Content 이력 보존 검사는 유지한다. 최신 Required CI 재검증은 대기이며 완료 체크는 변경하지 않는다.
 - 2026-11-06 샘플 정본 이관: 사용자 요청으로 sample SQL 파일을 제거하고 Core/Content 테이블별 UTF-8 CSV 31개와 stdlib/psql COPY 승인형 loader로 전환했다. Content V14(샘플 이관 당시 V10, develop의 V10~V13 뒤로 번호만 이동)는 샘플 없는 스키마 SQL이며 기존 migration 19개 바이트·11작품/17자체/32회차/120wiki/9링크를 보존한다. 속성별 실제 원문 공개 map으로 카엘 관계는 2화부터, 근거 미확인 속성은 비공개로 처리한다. rich 대상/실제 detach·복사만 409로 보호하고 원작의 새 단순 설정 초안·확정은 허용한다. 기존 공개 API·Fork·Frontend 변경은 유지하고 관심/진행은 창 메모리, aggregate/rich 편집·관계 과거 복원·인물 quick-search 선조회는 미지원/미확장이다. 선택 순수 단위만 성공했으며 실제 적용·hosted CI·React/브라우저·병합 전이므로 관련 행은 ❌를 유지한다. [CSV 이관 안내](../infrastructure/sample-data/README.md)를 따른다.
+- 2026-11-08 샘플 정본 이관과 작품 검색·랭킹(PR #174) 병합: Content 검색 `f=author`(작가 표시명)·검색·목록 카드 매퍼 일원화·회차별 열람(`/read/:id/:n`)의 조회 기록을 로컬 구현하고 단위로 확인했다. 병합·최신 head `Required CI` 확인 전이므로 44·45와 관련 행은 ❌를 유지한다. [계약](design/work-search-ranking-contract.md)을 따른다.
 - 작성 기준: 2026-11-04 로컬 코드·요구사항·설계, 샘플 CSV 전환·공개/편집 경계는 2026-11-06 추가 확인. HTML 표를 지원하는 Markdown 뷰어에서 병합 셀이 표시된다.
 
 
