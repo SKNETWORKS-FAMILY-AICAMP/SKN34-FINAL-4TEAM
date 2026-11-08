@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 
 import { avatarOf, epsOf, type Work } from '../../../../domain/entities/work'
 import { Art, Cov, CoverOf, Tags } from '../../../shared/art'
@@ -93,23 +93,31 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
   )
 }
 
-function Top10({ list, works }: { list: Work[]; works: Work[] }) {
+/** 순위 목록 상태: 서버 실패는 빈 목록으로 숨기지 않고, 집계 결과가 없으면 빈 상태 문구를 보입니다. */
+function RankState({ failed, list, empty, children }: { failed: boolean; list: Work[]; empty: string; children: ReactNode }) {
+  if (failed) return <p className="muted small">순위를 불러오지 못했어요.</p>
+  return list.length ? children : <p className="muted small">{empty}</p>
+}
+
+function Top10({ list, works, failed }: { list: Work[]; works: Work[]; failed: boolean }) {
   return (
     <aside className="t10" aria-label="실시간 인기 TOP10">
-      <div className="t10h"><h2>실시간 인기</h2><span className="live" title="좋아요 순 · 데모 데이터">24시 · 데모</span><Go to="/rank" className="more">더보기 ›</Go></div>
-      <ol>
-        {list.map((w, i) => (
-          <li key={w.id}>
-            <Go to={`/work/${w.id}`}>
-              <span className={`n ${i < 3 ? 'md md' + (i + 1) : ''}`}>{i + 1}</span>
-              <span className="tx">
-                <b>{w.parent && <i className="ift">포크</i>}{w.parent ? shortTitle(w) : w.title}</b>
-                <small>{w.author}{w.parent && ` · ${works.find((p) => p.id === w.parent)?.title} ${w.forkAt}화에서`}</small>
-              </span>
-            </Go>
-          </li>
-        ))}
-      </ol>
+      <div className="t10h"><h2>실시간 인기</h2><span className="live" title="최근 24시간 조회 수 순">24시간 조회</span><Go to="/rank" className="more">더보기 ›</Go></div>
+      <RankState failed={failed} list={list} empty="최근 24시간 동안 조회된 소설이 아직 없어요.">
+        <ol>
+          {list.map((w, i) => (
+            <li key={w.id}>
+              <Go to={`/work/${w.id}`}>
+                <span className={`n ${i < 3 ? 'md md' + (i + 1) : ''}`}>{i + 1}</span>
+                <span className="tx">
+                  <b>{w.parent && <i className="ift">포크</i>}{w.parent ? shortTitle(w) : w.title}</b>
+                  <small>{w.author}{w.parent && ` · ${works.find((p) => p.id === w.parent)?.title ?? '원작'} ${w.forkAt}화에서`}</small>
+                </span>
+              </Go>
+            </li>
+          ))}
+        </ol>
+      </RankState>
     </aside>
   )
 }
@@ -185,12 +193,12 @@ export function HomePage() {
                   ))}
                 </div>
               </section>
-              <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} /></div>
+              <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} failed={h.rankingFailed} /></div>
               <section className="sec">
                 <div className="tri">
-                  <div><h2>24시간 인기 급상승</h2>{h.rising.map((w, i) => (
+                  <div><h2>24시간 인기 급상승</h2><RankState failed={h.rankingFailed} list={h.rising} empty="최근 24시간 동안 조회가 늘어난 소설이 아직 없어요.">{h.rising.map((w, i) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${i < 3 ? 'top' : ''}`}>{['1st', '2nd', '3rd'][i] || i + 1 + 'th'}</span><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>👁 {kfmt(w.views)}</em></Go>
-                  ))}</div>
+                  ))}</RankState></div>
                   <div><h2>방금 업데이트</h2>{h.fresh.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{ago(w.upd)}</em></Go>
                   ))}</div>

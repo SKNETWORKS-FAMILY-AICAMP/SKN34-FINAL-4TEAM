@@ -2,12 +2,15 @@
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
+import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
+import { stubWorkSearch } from '../../../../test/stubWorkSearch'
 import { IfsPage, RankPage, SearchPage, TagPage } from './ExplorePages'
 
-afterEach(cleanup)
+beforeEach(() => { stubWorkSearch() })
+afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 function renderAt(path: string) {
   return render(<Provider store={createAppStore()}><MemoryRouter initialEntries={[path]} useTransitions={false}>
@@ -32,13 +35,50 @@ it.each([['/search', '소설 검색'], ['/rank', '랭킹'], ['/tag/%EA%BF%88', '
 })
 
 it('검색 범위와 정렬의 선택 상태를 aria-current로 알린다', async () => {
-  renderAt('/search?f=title&sort=new')
+  renderAt('/search?f=title&sort=latest')
   const scope = await screen.findByRole('group', { name: '검색 범위' })
   const sort = screen.getByRole('group', { name: '정렬' })
   expect(current(scope, '제목')).toBe('true')
   expect(scope.querySelectorAll('[aria-current]')).toHaveLength(1)
   expect(current(sort, '최신 순')).toBe('true')
   expect(sort.querySelectorAll('[aria-current]')).toHaveLength(1)
+})
+
+it('서버가 지원하지 않는 옛 주소의 범위·정렬 값은 기본값(전체·최신 순)으로 읽는다', async () => {
+  renderAt('/search?f=author&sort=pop')
+  const scope = await screen.findByRole('group', { name: '검색 범위' })
+  const sort = screen.getByRole('group', { name: '정렬' })
+  expect(current(scope, '전체')).toBe('true')
+  expect(current(sort, '최신 순')).toBe('true')
+  expect(within(scope).queryByRole('link', { name: '작가' })).toBeNull()
+  expect(within(sort).queryByRole('link', { name: '인기 순' })).toBeNull()
+})
+
+it('검색이 실패하면 빈 결과가 아니라 오류 안내를 보여 준다', async () => {
+  vi.spyOn(appContainer.resolve('workSearchRepository'), 'search').mockRejectedValue(new Error('offline'))
+  renderAt('/search?q=구운몽')
+  expect((await screen.findByRole('alert')).textContent).toBe('소설을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+  expect(screen.queryByText('0편')).toBeNull()
+  expect(screen.queryByText('검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.')).toBeNull()
+})
+
+it('검색·랭킹 결과가 없으면 0편과 빈 상태 문구를 보여 준다', async () => {
+  vi.spyOn(appContainer.resolve('workSearchRepository'), 'search').mockResolvedValue([])
+  renderAt('/search?q=없는소설')
+  await screen.findByText('검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.')
+  screen.getByText('0편')
+  cleanup()
+  renderAt('/rank')
+  await screen.findByText('조건에 맞는 소설이 없어요.')
+})
+
+it('랭킹은 조회 순일 때 최근 24시간 조회 기준임을 알리고 데모 데이터 문구를 쓰지 않는다', async () => {
+  renderAt('/rank')
+  await screen.findByText('조회 순 · 최근 24시간 조회 기준')
+  expect(screen.queryByText(/데모 데이터/)).toBeNull()
+  cleanup()
+  renderAt('/rank?sort=latest')
+  await waitFor(() => expect(document.querySelector('.sec-h .muted')?.textContent).toBe('최신 순'))
 })
 
 it('랭킹 탭과 태그 링크, 포크 소설 정렬도 선택 상태를 aria-current로 알린다', async () => {

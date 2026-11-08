@@ -39,6 +39,8 @@ export type Work = {
   cmts: number
   /** 마지막 업데이트 후 지난 분 */
   upd: number
+  /** false면 서버가 좋아요·갱신 시각을 주지 않는 작품이라 likes·upd는 자리표시 값이다. 화면은 이 둘을 표시하지 않는다. 생략하면 표시한다. */
+  statisticsSupported?: boolean
   hero?: [string, string]
   heroBg?: string
   lite?: boolean
@@ -179,18 +181,24 @@ export const avatarOf = (s: string) => AVATAR_COLORS[[...s].reduce((a, c) => a +
 /** 목업 tagsOf(): 포크는 원작의 해시태그를 이어받습니다. */
 export const tagsOf = (w: Work, works: Work[]) => w.hash?.length ? w.hash : (w.parent && works.find((x) => x.id === w.parent)?.hash) || []
 
-/** 목업 FIELDS·SORTS: 검색 범위와 정렬 */
-export const FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그']] as const
+/** 목업 SORTS: 소설·캐릭터 챗 목록 정렬. 검색·랭킹은 서버 계약인 SEARCH_SORTS를 씁니다. */
 export const SORTS = [['new', '최신 순'], ['pop', '인기 순'], ['view', '조회 순']] as const
 
-/** 목업 matchW(): 장르는 검색하지 않습니다. */
+/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 작가·인기 순은 서버가 지원하지 않습니다. */
+export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['tag', '태그'], ['genre', '장르']] as const
+export const SEARCH_SORTS = [['latest', '최신 순'], ['view', '조회 순']] as const
+export type SearchField = (typeof SEARCH_FIELDS)[number][0]
+export type SearchSort = (typeof SEARCH_SORTS)[number][0]
+
+/** 목업 matchW(): 범위가 장르일 때만 장르를 검색하고, 전체 범위는 제목·작가·태그만 봅니다. */
 export function matchW(w: Work, q: string, f: string, works: Work[]) {
   if (!q) return true
   q = q.replace(/^#/, '').toLowerCase()
   const t = w.title.toLowerCase().includes(q)
   const au = String(w.author).toLowerCase().includes(q)
   const tg = tagsOf(w, works).some((h) => h.slice(1).toLowerCase().includes(q))
-  return f === 'title' ? t : f === 'author' ? au : f === 'tag' ? tg : t || au || tg
+  const g = w.genre.toLowerCase().includes(q)
+  return f === 'title' ? t : f === 'author' ? au : f === 'tag' ? tg : f === 'genre' ? g : t || au || tg
 }
 
 export const sorter = (k: string) => k === 'new'

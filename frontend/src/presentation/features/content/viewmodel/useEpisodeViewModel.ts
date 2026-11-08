@@ -10,10 +10,12 @@ import type {
 } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
+import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 
 export function useEpisodeViewModel(
   useCase: EpisodeUseCase = appContainer.resolve('episodeUseCase'),
   media: Pick<MediaUseCase, 'upload'> = appContainer.resolve('mediaUseCase'),
+  reading: Pick<ReadingUseCase, 'recordViews'> = appContainer.resolve('readingUseCase'),
 ) {
   const [publicWorks, setPublicWorks] = useState<Work[]>([])
   const [works, setWorks] = useState<Work[]>([])
@@ -141,6 +143,8 @@ export function useEpisodeViewModel(
       setSelectedVersion(null)
       setError('')
       setNotice('')
+      // 공개 열람 작품을 열면 로그인 회원의 조회를 기록한다. 기록 실패·익명은 UseCase가 읽기를 막지 않고 넘긴다.
+      if (w) void reading.recordViews(w)
       return true
     },
     create: (title: string, summary: string, cover?: File) =>
