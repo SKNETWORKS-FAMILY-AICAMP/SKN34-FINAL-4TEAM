@@ -54,8 +54,8 @@ class WorkSearchServiceTest {
     private val rows = mutableListOf<WorkEntity>()
 
     /** [age]가 클수록 늦게 만든 작품이다. */
-    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public") {
-        rows += WorkEntity(id = id, ownerId = "author", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age))
+    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", author: String = "작성자") {
+        rows += WorkEntity(id = id, ownerId = "author", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), authorName = author)
         `when`(works.findAll()).thenReturn(rows)
         `when`(access.get(id)).thenReturn(WorkAccessResult(id, "author", title, "", 0, "world", visible, false, false, null))
         if (visible != "public") return
@@ -100,6 +100,21 @@ class WorkSearchServiceTest {
         assertEquals(listOf("c", "b", "a"), ids(null, null, null))
     }
 
+    @Test fun `author search matches the author name only and all includes it`() {
+        work("a", "달빛 정원", 1, author = "윤서하")
+        work("b", "별빛 서점", 2, author = "Writer Kim")
+        work("c", "우주 정거장", 3)
+        views()
+
+        fun ids(q: String?, f: String?) = service.publicList(q, f, null).items.map { it.id }
+
+        assertEquals(listOf("a"), ids("윤서", "author"))
+        assertEquals(listOf("b"), ids(" writer ", "author"))
+        assertEquals(emptyList<String>(), ids("정원", "author"))
+        assertEquals(listOf("b"), ids("kim", "all"))
+        assertEquals(listOf("c", "b", "a"), ids(" ", "author"))
+    }
+
     @Test fun `ranking lists only works with a positive score and fills their recent views`() {
         work("a", "첫째", 1)
         work("b", "둘째", 2)
@@ -115,7 +130,7 @@ class WorkSearchServiceTest {
     }
 
     @Test fun `unknown options fail with 422 before any lookup`() {
-        for (call in listOf<() -> Any>({ service.publicList(null, "author", null) }, { service.publicList(null, null, "popular") }, { service.ranking("daily") })) {
+        for (call in listOf<() -> Any>({ service.publicList(null, "body", null) }, { service.publicList(null, null, "popular") }, { service.ranking("daily") })) {
             assertEquals(422, failure { call() }.status)
         }
 

@@ -52,7 +52,7 @@ class WorkService(
     fun publicList(q: String?,f: String?,sort: String?): WorkListResponse {
         val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort")
         val counts=viewService.counts()
-        val found=publicWorks(counts).filter {matchesSearch(it.title,it.genres,it.hashtags,q,field)}
+        val found=publicWorks(counts).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)}
         if(order==WorkSort.LATEST) return WorkListResponse(found)
         val byId=found.associateBy {it.id}
         return WorkListResponse(orderByViews(found.map {it.id},counts).map {byId.getValue(it)})

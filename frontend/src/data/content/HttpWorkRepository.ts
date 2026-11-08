@@ -1,45 +1,9 @@
 import type { Draft } from '../../domain/entities/draft'
-import type { StoryEvent, Work } from '../../domain/entities/work'
+import type { Work } from '../../domain/entities/work'
 import { AGGREGATE_WRITE_UNSUPPORTED, type WorkRepository } from '../../domain/repositories/WorkRepository'
-import { WCATS } from '../../domain/entities/wiki'
 import { getAccessToken, authVersion, assertAuthVersion } from '../api/auth'
-import { HttpEpisodeRepository, type ReadingWorkRecord, type ReadingWorldRecord } from './HttpEpisodeRepository'
-
-export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
-  const episodes = [...row.episodes].sort((a, b) => a.number - b.number)
-  const mapEpisode = (e: typeof episodes[number]) => ({ t: e.title, p: e.body.split('\n\n'), versionId: e.versionId })
-  const inherited = episodes.filter(e => e.inherited).map(mapEpisode)
-  return {
-    id: row.id, slug: row.slug ?? undefined, canonical: true, title: row.title, summary: row.summary, theme: row.theme,
-    author: row.authorName, owner: row.ownerId, mine, genre: (row.genres ?? []).join(' · '),
-    kind: row.source ? '포크' : '원작', rights: '권리 진술 별도 확인', by: row.authorName,
-    tags: row.source ? ['if'] : [], hash: (row.hashtags ?? []).map(t => '#' + t),
-    statisticsSupported: false, likes: 0, views: 0, cmts: 0, upd: 0,
-    hook: row.hook, hanja: row.hanja ?? undefined, hero: row.hero ?? undefined, heroBg: row.heroBg ?? undefined,
-    private: row.visibility !== 'public', forksAllowed: row.allowFork, forkAll: false, forkEps: row.forkableEpisodes,
-    forkFrom: row.forkableEpisodes[0] ?? 0, parent: row.source?.workId, forkAt: row.source?.episode, dir: row.source?.direction,
-    eps: episodes.filter(e => !e.inherited).map(mapEpisode), cast: [], rules: [], events: [],
-    wiki: { docs: [], cats: structuredClone(WCATS) },
-    ...(row.source ? { snap: { eps: inherited, rules: [], cast: [], events: [], takenAt: 0, srcHash: '' } } : {}),
-  }
-}
-
-export function withReadingWorld(work: Work, world: ReadingWorldRecord): Work {
-  if (world.workId !== work.id) throw new Error('세계관 응답의 작품을 확인할 수 없어요.')
-  const docs = world.documents.map(d => ({ id: d.id, cat: d.category, t: d.name, body: d.body,
-    alias: d.aliases, tags: d.tags, props: Object.fromEntries(d.properties.map(p => [p.name, p.value])),
-    at: {}, img: d.image, knowledge: d.knowledge, ep: d.episode ?? undefined, line: d.line ?? undefined,
-    who: d.participants, links: d.links.map(l => ({ to: l.to, k: l.kind })),
-  }))
-  const cast = world.documents.filter(d => d.category === 'char').map(d => ({ n: d.name, c: d.color,
-    d: d.properties.find(p => p.name === '설명')?.value ?? d.body, st: d.properties.find(p => p.name === '상태')?.value ?? '—', knowledge: d.knowledge }))
-  const rules = world.documents.filter(d => d.category === 'world').map(d => d.name)
-  const events: StoryEvent[] = world.documents.filter(d => d.category === 'event' && d.episode != null)
-    .map(d => [d.episode!, d.line ?? 'm', d.name, d.participants])
-  return { ...work, cast, rules, events, wiki: { docs, cats: structuredClone(WCATS) },
-    ...(work.snap ? { snap: { ...work.snap, cast, rules, events } } : {}),
-  }
-}
+import { HttpEpisodeRepository } from './HttpEpisodeRepository'
+import { mapReadingWork, withReadingWorld } from './readingWork'
 
 /** Canonical reads and Fork writes only; rich demo mutations never pretend to persist. */
 export class HttpWorkRepository implements WorkRepository {

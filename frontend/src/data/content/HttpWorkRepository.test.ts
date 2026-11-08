@@ -5,7 +5,7 @@ import { epsOf, isMine } from '../../domain/entities/work'
 
 const record = (extra: Partial<ReadingWorkRecord> = {}): ReadingWorkRecord => ({
   id: 'work-uuid', slug: 'old-slug', title: '원고', summary: '소개', visibility: 'public', authorName: '나', ownerId: 'other-member',
-  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: ['서약'],
+  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: ['서약'], views: 0,
   allowFork: true, allowForkPublication: true, forkableEpisodes: [2], source: null, episodes: [
     { number: 1, version: 1, versionId: 'v1', title: '하나', body: '첫 문단\n\n둘째 문단', inherited: false },
     { number: 2, version: 1, versionId: 'v2', title: '둘', body: '셋째 문단', inherited: false },

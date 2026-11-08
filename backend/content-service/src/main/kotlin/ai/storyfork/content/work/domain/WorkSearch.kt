@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 /** 공개 작품 검색 대상(f). */
-enum class SearchField { ALL, TITLE, TAG, GENRE }
+enum class SearchField { ALL, TITLE, AUTHOR, TAG, GENRE }
 
 /** 공개 작품 목록 정렬(sort). LATEST는 기존 순서인 작품 생성 최신순이다. */
 enum class WorkSort { LATEST, VIEW }
@@ -28,21 +28,23 @@ inline fun <reified E : Enum<E>> queryOption(code: String?, default: E, name: St
     else enumValues<E>().firstOrNull { it.name.lowercase() == code } ?: throw ContentFailure(422, "$name 값을 확인해 주세요.")
 
 /**
- * 제목·해시태그·장르(본문 제외)에서 대소문자 무시 부분 일치를 찾는다. 검색어는 앞뒤 공백을 자르며 비어 있으면 모두 일치한다.
+ * 제목·작가명·해시태그·장르(본문 제외)에서 대소문자 무시 부분 일치를 찾는다. 검색어는 앞뒤 공백을 자르며 비어 있으면 모두 일치한다.
  * 해시태그는 검색어와 저장값 모두 앞 `#`을 무시한다.
  */
-fun matchesSearch(title: String, genres: List<String>, hashtags: List<String>, query: String?, field: SearchField): Boolean {
+fun matchesSearch(title: String, author: String, genres: List<String>, hashtags: List<String>, query: String?, field: SearchField): Boolean {
     val q = query?.trim().orEmpty()
     if (q.isEmpty()) return true
     val tag = q.trimStart('#')
     val byTitle = title.contains(q, ignoreCase = true)
+    val byAuthor = author.contains(q, ignoreCase = true)
     val byTag = hashtags.any { it.trimStart('#').contains(tag, ignoreCase = true) }
     val byGenre = genres.any { it.contains(q, ignoreCase = true) }
     return when (field) {
         SearchField.TITLE -> byTitle
+        SearchField.AUTHOR -> byAuthor
         SearchField.TAG -> byTag
         SearchField.GENRE -> byGenre
-        SearchField.ALL -> byTitle || byTag || byGenre
+        SearchField.ALL -> byTitle || byAuthor || byTag || byGenre
     }
 }
 

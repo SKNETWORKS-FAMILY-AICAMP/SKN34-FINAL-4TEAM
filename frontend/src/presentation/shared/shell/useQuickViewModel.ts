@@ -28,7 +28,7 @@ export function useQuickViewModel(readingUseCase: ReadingUseCase = appContainer.
 
   const query = q.trim()
   const list = query
-    ? [{ k: '검색', label: `‘${query}’ 검색 결과 모두 보기`, sub: 'Enter · 제목·태그·장르에서 찾기', go: `/search?q=${encodeURIComponent(query)}` }, ...items.filter((x) => (x.label + x.sub).includes(query)).slice(0, 7)]
+    ? [{ k: '검색', label: `‘${query}’ 검색 결과 모두 보기`, sub: 'Enter · 제목·작가·태그·장르에서 찾기', go: `/search?q=${encodeURIComponent(query)}` }, ...items.filter((x) => (x.label + x.sub).includes(query)).slice(0, 7)]
     : items.filter((x) => x.k === '소설' || x.k === '이동').slice(0, 8)
   const current = sel < list.length ? sel : 0
 

@@ -190,8 +190,8 @@ const SERVER_SORTS = [['title', '제목 순'], ['author', '작가 순']] as cons
 export const sortsOf = (works: Pick<Work, 'statisticsSupported'>[]): readonly (readonly [string, string])[] =>
   works.some((w) => w.statisticsSupported === false) ? SERVER_SORTS : SORTS
 
-/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 작가·인기 순은 서버가 지원하지 않습니다. */
-export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['tag', '태그'], ['genre', '장르']] as const
+/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 인기 순은 서버가 지원하지 않습니다. */
+export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그'], ['genre', '장르']] as const
 export const SEARCH_SORTS = [['latest', '최신 순'], ['view', '조회 순']] as const
 export type SearchField = (typeof SEARCH_FIELDS)[number][0]
 export type SearchSort = (typeof SEARCH_SORTS)[number][0]

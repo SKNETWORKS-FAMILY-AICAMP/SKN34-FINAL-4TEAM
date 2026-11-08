@@ -23,7 +23,7 @@ function ListTools({ base, st, onSubmit }: { base: string; st: St; onSubmit: (q:
     <div className="ltools">
       <form className="lq" key={st.q} onSubmit={(e) => { e.preventDefault(); onSubmit(new FormData(e.currentTarget).get('q')?.toString() ?? '') }}>
         <span aria-hidden="true">🔍</span>
-        <input name="q" defaultValue={st.q} placeholder="제목·태그·장르로 찾기" aria-label="검색어" />
+        <input name="q" defaultValue={st.q} placeholder="제목·작가·태그·장르로 찾기" aria-label="검색어" />
         <button className="btn sm pri" type="submit">검색</button>
       </form>
       <div className="lrow">

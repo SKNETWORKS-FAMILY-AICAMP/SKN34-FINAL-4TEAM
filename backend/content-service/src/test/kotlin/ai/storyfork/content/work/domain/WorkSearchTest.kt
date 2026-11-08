@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class WorkSearchTest {
     private fun matches(query: String?, field: SearchField = SearchField.ALL) =
-        matchesSearch("달빛 정원 Garden", listOf("판타지", "로맨스판타지"), listOf("회귀", "#먼치킨", "Dark"), query, field)
+        matchesSearch("달빛 정원 Garden", "윤서하 Writer", listOf("판타지", "로맨스판타지"), listOf("회귀", "#먼치킨", "Dark"), query, field)
     private fun counts(vararg rows: Triple<String, Long, Long>) = rows.associate { (id, recent, prior) -> id to WorkViews(recent, prior) }
     private fun rejected(block: () -> Unit): ContentFailure = assertThrows(ContentFailure::class.java, block)
 
@@ -24,6 +24,15 @@ class WorkSearchTest {
         assertTrue(matches("빛 정", SearchField.TITLE))
         assertFalse(matches("회귀", SearchField.TITLE))
         assertFalse(matches("판타지", SearchField.TITLE))
+        assertFalse(matches("윤서", SearchField.TITLE))
+    }
+
+    @Test fun `author search is a case-insensitive partial match on the author name only`() {
+        assertTrue(matches("윤서", SearchField.AUTHOR))
+        assertTrue(matches("  writer ", SearchField.AUTHOR))
+        assertTrue(matches("하 wri", SearchField.AUTHOR))
+        for (query in listOf("정원", "회귀", "판타지")) assertFalse(matches(query, SearchField.AUTHOR), query)
+        for (field in listOf(SearchField.TAG, SearchField.GENRE)) assertFalse(matches("윤서", field), "$field")
     }
 
     @Test fun `tag search ignores a leading hash on the query and on the stored tag`() {
@@ -39,17 +48,18 @@ class WorkSearchTest {
         assertFalse(matches("회귀", SearchField.GENRE))
     }
 
-    @Test fun `all searches title tag and genre together`() {
-        for (query in listOf("정원", "회귀", "#회귀", "로맨스")) assertTrue(matches(query, SearchField.ALL), query)
+    @Test fun `all searches title author tag and genre together`() {
+        for (query in listOf("정원", "윤서", "writer", "회귀", "#회귀", "로맨스")) assertTrue(matches(query, SearchField.ALL), query)
         assertFalse(matches("없는검색어", SearchField.ALL))
     }
 
     @Test fun `query options default when absent and reject unknown values with 422`() {
         assertEquals(SearchField.ALL, queryOption(null, SearchField.ALL, "f"))
         assertEquals(SearchField.GENRE, queryOption("genre", SearchField.ALL, "f"))
+        assertEquals(SearchField.AUTHOR, queryOption("author", SearchField.ALL, "f"))
         assertEquals(WorkSort.VIEW, queryOption("view", WorkSort.LATEST, "sort"))
         assertEquals(RankingKind.RISING, queryOption("rising", RankingKind.TOP, "kind"))
-        for (bad in listOf("", " ", "author", "TAG", " tag")) assertEquals(422, rejected { queryOption(bad, SearchField.ALL, "f") }.status, bad)
+        for (bad in listOf("", " ", "body", "AUTHOR", "TAG", " tag")) assertEquals(422, rejected { queryOption(bad, SearchField.ALL, "f") }.status, bad)
         assertEquals(422, rejected { queryOption("popular", WorkSort.LATEST, "sort") }.status)
         assertEquals(422, rejected { queryOption("daily", RankingKind.TOP, "kind") }.status)
     }

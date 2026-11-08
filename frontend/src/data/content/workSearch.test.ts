@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { login, refresh } from '../api/auth'
+import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
+import { HttpWorkRepository } from './HttpWorkRepository'
 
 beforeEach(async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
@@ -15,9 +17,10 @@ afterEach(() => vi.unstubAllGlobals())
 const dto = (over: object = {}) => ({
   id: 'w1', title: '별빛 서약의 탑', summary: '소개', visibility: 'public', allowFork: true, allowForkPublication: false,
   creationType: 'ORIGINAL', genres: ['판타지', 'SF'], hashtags: ['서약'], source: null, views: 7,
+  slug: 'starlight', authorName: '윤서하', ownerId: 'owner-uuid', revision: 0, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, forkableEpisodes: [],
   episodes: [
-    { number: 1, version: 1, title: '첫 화', body: '본문', inherited: false },
-    { number: 2, version: 1, title: '둘째 화', body: '본문2', inherited: false },
+    { number: 1, version: 1, versionId: 'v1', title: '첫 화', body: '본문', inherited: false },
+    { number: 2, version: 1, versionId: 'v2', title: '둘째 화', body: '본문2', inherited: false },
   ],
   ...over,
 })
@@ -33,7 +36,7 @@ describe('공개 작품 검색 (GET /api/v1/public/works)', () => {
     expect(init.credentials).toBe('same-origin')
     expect(new Headers(init.headers).has('Authorization')).toBe(false)
     expect(new Headers(init.headers).has('X-CSRF-TOKEN')).toBe(false)
-    expect(w).toMatchObject({ id: 'w1', title: '별빛 서약의 탑', genre: '판타지 · SF', summary: '소개', kind: '원작', views: 7, likes: 0, cmts: 0, upd: 0, statisticsSupported: false, tags: [] })
+    expect(w).toMatchObject({ id: 'w1', title: '별빛 서약의 탑', genre: '판타지 · SF', summary: '소개', kind: '원작', views: 7, likes: 0, cmts: 0, upd: 0, statisticsSupported: false, tags: [], author: '윤서하', hash: ['#서약'], canonical: true })
     expect(w.parent).toBeUndefined()
     expect(w.forkAt).toBeUndefined()
     expect(w.eps.map((e) => e.t)).toEqual(['첫 화', '둘째 화'])
@@ -44,6 +47,13 @@ describe('공개 작품 검색 (GET /api/v1/public/works)', () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json([dto({ id: 'f1', source })]))
     const [w] = await new HttpEpisodeRepository(fetcher).search({ q: '', f: 'all', sort: 'latest' })
     expect(w).toMatchObject({ id: 'f1', parent: 'o1', forkAt: 3, dir: '다른 선택을 했다면', kind: '포크', tags: ['if'] })
+  })
+
+  it('작가 범위는 작가 표시명 검색으로 보내고 카드에 작가명을 채운다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json([dto()]))
+    const [w] = await new HttpEpisodeRepository(fetcher).search({ q: '윤서', f: 'author', sort: 'latest' })
+    expect(query(fetcher.mock.calls[0][0])).toEqual({ q: '윤서', f: 'author', sort: 'latest' })
+    expect(w.author).toBe('윤서하')
   })
 
   it('빈 검색어는 보내지 않아 기존 공개 목록과 같은 요청이 된다', async () => {
@@ -103,5 +113,19 @@ describe('조회 기록 (POST /api/v1/works/{id}/episodes/{number}/views)', () =
   it('서버가 거절하면 오류를 던진다(삼킬지는 UseCase가 정한다)', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json({ detail: '공개 회차를 찾을 수 없어요.' }, { status: 404 }))
     await expect(new HttpEpisodeRepository(fetcher).recordView('w1', 9)).rejects.toThrow('공개 회차를 찾을 수 없어요.')
+  })
+})
+
+describe('검색 카드 → /work/:id 상세', () => {
+  it('카드의 id로 같은 서버 작품의 상세를 연다(공개 목록에서 찾고 마지막 회차 기준 세계관을 읽는다)', async () => {
+    const fetcher = vi.fn(async (path: RequestInfo | URL) => Response.json(String(path).includes('/world?') ? { workId: 'w1', episode: 2, documents: [] } : [dto()]))
+    const api = new HttpEpisodeRepository(fetcher)
+    const reading = { getProgress: async () => ({ last: {}, read: {}, seen: {}, liked: {} }), markSeen: async () => {}, saveProgress: async () => {} }
+    const useCase = new ReadingUseCase(new HttpWorkRepository(api, () => false), reading, api)
+    const [card] = await useCase.findWorks({ sort: 'latest' })
+    const detail = await useCase.getWork(card.id, null)
+    expect(detail?.work).toMatchObject({ id: card.id, title: '별빛 서약의 탑', author: '윤서하' })
+    expect(detail?.visible).toHaveLength(2)
+    expect(fetcher).toHaveBeenLastCalledWith('/api/v1/public/works/w1/world?episode=2', expect.objectContaining({ method: 'GET' }))
   })
 })

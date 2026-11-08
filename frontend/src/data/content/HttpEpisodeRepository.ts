@@ -5,7 +5,7 @@ import {settingCategories, type Draft, type SettingInput, type WorkRegistration}
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
-import { publicWork, toCardWork } from './publicWork'
+import { mapReadingWork } from './readingWork'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
 const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
@@ -21,6 +21,8 @@ const readingWork = work.omit({draft:true}).extend({
   slug:z.string().nullable(),authorName:z.string(),ownerId:z.string().min(1),revision:z.number().int().nonnegative(),
   theme:z.enum(['hanji','star','neon']),hook:z.string(),hanja:z.string().nullable(),hero:z.tuple([z.string(),z.string()]).nullable(),heroBg:z.string().nullable(),
   forkableEpisodes:z.array(z.number().int().positive()),episodes:z.array(episode.extend({versionId:z.string()})),
+  /** 최근 24시간 조회 수(서버 값). 공개 목록·검색·랭킹 응답에서만 채워지고 그 밖에는 0이다. */
+  views:z.number().int().nonnegative(),
 })
 const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.string(),name:z.string(),body:z.string(),
   aliases:z.array(z.string()),tags:z.array(z.string()),properties:z.array(z.object({name:z.string(),value:z.string()})),
@@ -77,10 +79,10 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   async search(query: WorkSearchQuery, signal?: AbortSignal) {
     const params = new URLSearchParams({ f: query.f, sort: query.sort })
     if (query.q) params.set('q', query.q)
-    return (await this.request(`/public/works?${params}`, z.array(publicWork), 'GET', undefined, signal)).map(toCardWork)
+    return (await this.request(`/public/works?${params}`, z.array(readingWork), 'GET', undefined, signal)).map((w) => mapReadingWork(w))
   }
   async ranking(kind: WorkRankingKind, signal?: AbortSignal) {
-    return (await this.request(`/public/works/ranking?kind=${kind}`, z.array(publicWork), 'GET', undefined, signal)).map(toCardWork)
+    return (await this.request(`/public/works/ranking?kind=${kind}`, z.array(readingWork), 'GET', undefined, signal)).map((w) => mapReadingWork(w))
   }
   async recordView(id: string, number: number, signal?: AbortSignal) {
     if (!getAccessToken()) return // 익명 열람은 회원 식별이 없어 기록하지 않는다.
