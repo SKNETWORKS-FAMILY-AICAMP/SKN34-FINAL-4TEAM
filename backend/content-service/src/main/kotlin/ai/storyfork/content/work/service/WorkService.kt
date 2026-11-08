@@ -30,6 +30,7 @@ class WorkService(
     private val workWorlds: WorkWorldHistoryRepository,
     private val visibility: WorkPublicationHistoryRepository,
     private val policies: ForkPolicyHistoryRepository,
+    private val selectedPolicyEpisodes: ForkPolicyEpisodeRepository,
     private val genreRows: GenreRepository,
     private val workGenres: WorkGenreRepository,
     private val hashtagRows: WorkHashtagRepository,
@@ -112,8 +113,21 @@ class WorkService(
     fun policy(id: String,owner: String,data: PolicyRequest): WorkResponse {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
         checkContent(w.source==null,403,"분기 작품에서 재분기할 수 없어요.")
-        val revision=(policies.findFirstByWorkIdOrderByRevisionNoDesc(id)?.revisionNo ?: -1)+1
-        policies.saveAndFlush(ForkPolicyHistoryEntity(id=contentKey("policy",id,revision.toString()),workId=id,revisionNo=revision,allowCreation=data.allowFork,allowPublication=data.allowForkPublication,episodeScope="all"))
+        val last=policies.findFirstByWorkIdOrderByRevisionNoDesc(id)
+        val scope=data.episodeScope ?: last?.episodeScope ?: "all"
+        checkContent(scope in setOf("all","from","selected"),message="분기 허용 범위를 확인해 주세요.")
+        checkContent((data.fromEpisode==null || data.episodeScope=="from") && (data.episodes.isEmpty() || data.episodeScope=="selected"),message="분기 허용 범위와 회차를 함께 확인해 주세요.")
+        val published=if(data.episodeScope!=null && scope!="all") publication.publishedEpisodes(id).items.map {it.number} else emptyList()
+        if(data.episodeScope=="from") checkContent(data.fromEpisode in published,message="공개된 시작 회차를 선택해 주세요.")
+        if(data.episodeScope=="selected") checkContent(data.episodes.isNotEmpty() && data.episodes.distinct().size==data.episodes.size && data.episodes.all {it in published},message="공개된 허용 회차를 선택해 주세요.")
+        val revision=(last?.revisionNo ?: -1)+1
+        val policyId=contentKey("policy",id,revision.toString())
+        val start=if(scope=="from") { if(data.episodeScope==null) last?.startEpisodeId else episodeId(id,data.fromEpisode!!) } else null
+        val selected=if(scope!="selected") emptyList() else if(data.episodeScope==null) {
+            last?.let {selectedPolicyEpisodes.findAllByPolicyHistoryId(it.id).map {row->row.episodeId}}.orEmpty()
+        } else episodes.findAllByWorkIdOrderBySequence(id).filter {it.sequence in data.episodes}.map {it.id}
+        policies.saveAndFlush(ForkPolicyHistoryEntity(id=policyId,workId=id,revisionNo=revision,allowCreation=data.allowFork,allowPublication=data.allowForkPublication,episodeScope=scope,startEpisodeId=start))
+        if(scope=="selected") selectedPolicyEpisodes.saveAll(selected.map {ForkPolicyEpisodeEntity(policyId,it,id)})
         works.findById(id).orElseThrow().revision++
         return read(id,owner)
     }
@@ -133,7 +147,11 @@ class WorkService(
         val genres=genreRows.findAllById(workGenres.findAllByWorkId(w.id).map {it.genreId}).map {it.name}.sortedBy {WORK_GENRES.indexOf(it)}
         val tags=hashtagRows.findAllByWorkIdOrderByPosition(w.id).map {it.tag}
         val type=CreationType.entries.first {it.code==row.creationType}.name
-        return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0,creationType=type,genres=genres,hashtags=tags)
+        return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,
+            hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0,creationType=type,genres=genres,hashtags=tags,
+            slug=row.slug,authorName=row.authorName,ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
+            hero=row.heroLine1?.let {listOf(it,row.heroLine2.orEmpty())},heroBg=row.heroBackground,
+            forkableEpisodes=if(w.source==null) access.forkable(w.id,published.map {it.number}) else emptyList())
     }
 
 }

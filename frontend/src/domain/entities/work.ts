@@ -5,7 +5,7 @@ export type Theme = 'hanji' | 'star' | 'neon'
 
 export type Knowledge = { text: string; knownAt: number; publicAt?: number }
 export type CastMember = { n: string; c: string; d: string; st: string; knowledge?: Knowledge[] }
-export type Episode = { t: string; p: string[]; hidden?: boolean; note?: string; authorNote?: string; ai?: boolean }
+export type Episode = { t: string; p: string[]; versionId?: string; hidden?: boolean; note?: string; authorNote?: string; ai?: boolean }
 /** 목업 autoOf(w): AI 자율 연재 데모 상태 */
 export type AutoSerial = { on: boolean; status: string; react: boolean; requireReview: boolean; log: string[]; failures?: number }
 /** [회차, 종류(m 주요·f 복선·s 설정), 내용, 관련 인물] */
@@ -24,6 +24,9 @@ export type Snapshot = {
 export type Work = {
   id: string
   title: string
+  slug?: string
+  canonical?: boolean
+  statisticsSupported?: boolean
   hanja?: string
   theme: Theme
   genre: string
@@ -124,7 +127,7 @@ export const isPub = (w: Work) => !w.hidden && !w.private && (w.parent ? w.eps.l
 export const epsOf = (w: Work) => (w.parent && w.snap ? w.snap.eps.concat(w.eps) : w.eps)
 /** 설정(규칙·인물·사건) 출처: 포크는 자기 스냅샷만 본다 */
 export const baseOf = (w: Work): Pick<Snapshot, 'rules' | 'cast' | 'events'> => (w.parent && w.snap ? w.snap : w)
-export const isMine = (w: Work) => w.owner === 'me' || w.author === '나'
+export const isMine = (w: Work) => w.mine ?? (w.owner === 'me' || w.author === '나')
 export const canView = (w: Work | undefined, role: Role): w is Work => !!w && (isPub(w) || (role === 'user' && isMine(w)))
 export const visibleEpisode = (w: Work, e: Episode, role: Role) => !e.hidden || (role === 'user' && isMine(w))
 export const originals = (works: Work[]) => works.filter((w) => !w.parent && !w.private)
@@ -181,7 +184,7 @@ export const tagsOf = (w: Work, works: Work[]) => w.hash?.length ? w.hash : (w.p
 
 /** 목업 FIELDS·SORTS: 검색 범위와 정렬 */
 export const FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그']] as const
-export const SORTS = [['new', '최신 순'], ['pop', '인기 순'], ['view', '조회 순']] as const
+export const SORTS = [['title', '제목 순'], ['author', '작가 순']] as const
 
 /** 목업 matchW(): 장르는 검색하지 않습니다. */
 export function matchW(w: Work, q: string, f: string, works: Work[]) {
@@ -193,6 +196,8 @@ export function matchW(w: Work, q: string, f: string, works: Work[]) {
   return f === 'title' ? t : f === 'author' ? au : f === 'tag' ? tg : t || au || tg
 }
 
-export const sorter = (k: string) => k === 'new'
-  ? (a: Work, b: Work) => (a.upd || 0) - (b.upd || 0)
-  : k === 'pop' ? (a: Work, b: Work) => (b.likes || 0) - (a.likes || 0) : (a: Work, b: Work) => (b.views || 0) - (a.views || 0)
+export const sorter = (k: string) => (a: Work,b: Work) => {
+  if(k==='author') return a.author.localeCompare(b.author,'ko') || a.title.localeCompare(b.title,'ko')
+  if(k==='title' || a.statisticsSupported===false || b.statisticsSupported===false) return a.title.localeCompare(b.title,'ko')
+  return k==='new' ? a.upd-b.upd : k==='pop' ? b.likes-a.likes : b.views-a.views
+}

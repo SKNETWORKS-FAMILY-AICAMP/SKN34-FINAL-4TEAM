@@ -6,12 +6,13 @@ import { Provider } from 'react-redux'
 import { describe, expect, it } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
-import { createMockDb, InMemoryReadingRepository, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../../../data/mock/fixtureDb'
+import { InMemoryReadingRepository, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
 import { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { useHomeViewModel } from './useHomeViewModel'
 
 function setup() {
-  const db = createMockDb()
+  const db = createFixtureDb()
   const store = createAppStore()
   const useCase = new ReadingUseCase(new InMemoryWorkRepository(db), new InMemoryReadingRepository(db))
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>

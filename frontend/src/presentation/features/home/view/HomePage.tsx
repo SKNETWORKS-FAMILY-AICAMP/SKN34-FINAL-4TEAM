@@ -4,6 +4,7 @@ import { avatarOf, epsOf, type Work } from '../../../../domain/entities/work'
 import { Art, Cov, CoverOf, Tags } from '../../../shared/art'
 import { ago, kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
+import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useHomeViewModel } from '../viewmodel/useHomeViewModel'
 
@@ -70,7 +71,7 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
               <div className="bgart"><Art theme={w.theme} w={400} h={400} seed={w.id + 'bg'} /></div>
               <div className="tg"><Tags w={w} /></div>
               <div className="cv"><CoverOf w={w} k="h" /></div>
-              <h3>{w.hero?.[0]}<br />{w.hero?.[1]}</h3>
+              <h3>{w.hero?.[0] || w.title}<br />{w.hero?.[1]}</h3>
               <p>&lt;{w.title}&gt; {w.author}</p>
             </Go>
           })}
@@ -94,13 +95,13 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
 
 function Top10({ list, works }: { list: Work[]; works: Work[] }) {
   return (
-    <aside className="t10" aria-label="실시간 인기 TOP10">
-      <div className="t10h"><h2>실시간 인기</h2><span className="live" title="좋아요 순 · 데모 데이터">24시 · 데모</span><Go to="/rank" className="more">더보기 ›</Go></div>
+    <aside className="t10" aria-label="공개 소설 목록">
+      <div className="t10h"><h2>공개 소설</h2><span className="live">둘러보기</span><Go to="/rank" className="more">더보기 ›</Go></div>
       <ol>
         {list.map((w, i) => (
           <li key={w.id}>
             <Go to={`/work/${w.id}`}>
-              <span className={`n ${i < 3 ? 'md md' + (i + 1) : ''}`}>{i + 1}</span>
+              <span className={`n ${!w.canonical && i < 3 ? 'md md' + (i + 1) : ''}`}>{i + 1}</span>
               <span className="tx">
                 <b>{w.parent && <i className="ift">포크</i>}{w.parent ? shortTitle(w) : w.title}</b>
                 <small>{w.author}{w.parent && ` · ${works.find((p) => p.id === w.parent)?.title} ${w.forkAt}화에서`}</small>
@@ -121,14 +122,7 @@ const BookCard = ({ w, k, label, sub, source }: { w: Work; k: string; label?: st
 export function HomePage() {
   const vm = useHomeViewModel()
   const shelf = useRef<HTMLDivElement>(null)
-  const [loading, setLoading] = useState(vm.firstHome)
-  useEffect(() => {
-    if (!vm.firstHome) return
-    vm.homeVisited()
-    const t = setTimeout(() => setLoading(false), 650)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 첫 방문 한 번만
-  }, [])
+  const loading = vm.isLoading
   const h = vm.home
   const scrollShelf = (d: number) => shelf.current?.scrollBy({ left: d * shelf.current.clientWidth * 0.8, behavior: 'smooth' })
 
@@ -143,11 +137,12 @@ export function HomePage() {
         {vm.guide && (
           <div className="guide">
             <b>처음 오셨나요?</b>
-            <ol><li><i>1</i>읽기</li><li><i>2</i>문장을 눌러 댓글·피드백</li><li><i>3</i>원하는 회차에서 포크하기</li></ol>
+            <ol><li><i>1</i>소설 고르기</li><li><i>2</i>공개 회차 읽기</li><li><i>3</i>허용된 회차에서 포크하기</li></ol>
             <button type="button" className="x" aria-label="안내 닫기" onClick={vm.closeGuide}>✕</button>
           </div>
         )}
-        {vm.isError && <p className="muted">소설을 불러오지 못했어요.</p>}
+        {!h && <ContentLoadState failed={vm.isError} retry={vm.retry} />}
+        {h && h.works.length===0 && <p role="status" className="panel">아직 공개된 소설이 없어요.</p>}
         {h && h.filtered && (
           <section className="sec">
             <div className="sec-h"><h2>{vm.chip}</h2><span className="muted small">{h.filtered.length}편</span></div>
@@ -170,13 +165,13 @@ export function HomePage() {
               )
             })()}
             <section className="sec" style={{ marginTop: 28 }}>
-              <div className="sec-h"><h2>방금 올라온 포크 소설</h2><span className="muted small">원작의 한 회차에서 포크됐어요</span><Go to="/rank?t=if" className="more">전체 보기 ›</Go></div>
+              <div className="sec-h"><h2>다르게 이어진 포크 소설</h2><span className="muted small">원작의 한 회차에서 포크됐어요</span><Go to="/rank?t=if" className="more">전체 보기 ›</Go></div>
               <div className="rings">
-                <Go to="/work/guunmong" className="ring add"><div className="o">＋</div><b>나도 쓰기</b><small>원작에서 포크하기</small></Go>
+                <Go to="/rank?t=orig" className="ring add"><div className="o">＋</div><b>나도 쓰기</b><small>원작에서 포크하기</small></Go>
                 {h.forkFeed.map((w) => (
                   <Go key={w.id} to={`/work/${w.id}`} className={`ring ${h.seen[w.id] ? 'seen' : ''} prox`} onClick={() => vm.markSeen(w.id)}>
                     <div className="o"><span><CoverOf w={w} k="r" /></span></div>
-                    <b>{w.title.split(': ')[1] || w.title}</b><small>{w.author} · {ago(w.upd)}</small>
+                    <b>{w.title.split(': ')[1] || w.title}</b><small>{w.author}{!w.canonical && ` · ${ago(w.upd)}`}</small>
                   </Go>
                 ))}
               </div>
@@ -184,13 +179,13 @@ export function HomePage() {
             <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} /></div>
             <section className="sec">
               <div className="tri">
-                <div><h2>24시간 인기 급상승</h2>{h.rising.map((w, i) => (
-                  <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${i < 3 ? 'top' : ''}`}>{['1st', '2nd', '3rd'][i] || i + 1 + 'th'}</span><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>👁 {kfmt(w.views)}</em></Go>
+                <div><h2>이야기의 시작, 원작 소설</h2>{h.rising.map((w, i) => (
+                  <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${!w.canonical && i < 3 ? 'top' : ''}`}>{w.canonical ? i + 1 : ['1st', '2nd', '3rd'][i] || i + 1 + 'th'}</span><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b>{w.statisticsSupported!==false && <em>👁 {kfmt(w.views)}</em>}</Go>
                 ))}</div>
-                <div><h2>방금 업데이트</h2>{h.fresh.map((w) => (
-                  <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{ago(w.upd)}</em></Go>
+                <div><h2>함께 읽을 소설</h2>{h.fresh.map((w) => (
+                  <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{w.canonical?`${epsOf(w).length}화`:ago(w.upd)}</em></Go>
                 ))}</div>
-                <div><h2>에디터 Pick</h2><div className="picks">{h.picks.map((w) => (
+                <div><h2>소설 모아 보기</h2><div className="picks">{h.picks.map((w) => (
                   <Go key={w.id} to={`/work/${w.id}`} className="pick prox"><Cov w={w} /><b>{shortTitle(w)}</b></Go>
                 ))}</div></div>
               </div>
@@ -204,13 +199,13 @@ export function HomePage() {
               </div>
             </section>
             <section className="sec">
-              <div className="sec-h"><h2>이번 주 인기 무료 소설</h2></div>
+              <div className="sec-h"><h2>원작부터 읽어 보세요</h2></div>
               <div className="wk">{h.weekly.map((w) => (
                 <Go key={w.id} to={`/work/${w.id}`} className="wc prox">
                   <div>
-                    <div className="tgs"><Tags w={w} /><span className="tag dk">연재중</span></div>
+                    <div className="tgs"><Tags w={w} /><span className="tag dk">공개 소설</span></div>
                     <h3>{w.title}</h3><p>{w.summary}</p>
-                    <div className="ft"><i style={{ background: avatarOf(w.author) }} />{w.author}<span>👁 {kfmt(w.views)} · ♥ {kfmt(w.likes)}</span></div>
+                    <div className="ft"><i style={{ background: avatarOf(w.author) }} />{w.author}{w.statisticsSupported!==false && <span>👁 {kfmt(w.views)} · ♥ {kfmt(w.likes)}</span>}</div>
                   </div>
                   <Cov w={w} k="w" />
                 </Go>

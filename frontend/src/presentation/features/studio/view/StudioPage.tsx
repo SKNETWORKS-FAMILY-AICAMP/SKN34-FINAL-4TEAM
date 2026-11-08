@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
@@ -11,6 +11,8 @@ import { PublishSettingsSheet } from './StudioSheets'
 import { MemoView, NarrativeView, StudioTools, WikiView } from './StudioViews'
 import { WritingStudio } from './WritingStudio'
 import { RequireRole } from '../../../shared/session/RequireRole'
+import { ContentLoadState } from '../../../shared/ContentLoadState'
+import { useStudioRouteViewModel } from '../viewmodel/useStudioRouteViewModel'
 
 type VM = ReturnType<typeof useStudioViewModel>
 const readParas = (el: HTMLElement) => {
@@ -23,8 +25,15 @@ const VIEW_ID: Record<string, string> = { wiki: 'U38', overview: 'U38', narrativ
 /** 집필실의 사전·플롯·원고·콘티를 주소로 고릅니다. */
 export function StudioPage() {
   const { id = '' } = useParams()
-  // Server work IDs use the persisted writing flow; existing named fixtures remain an explicit demo.
-  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? <WritingStudio key={id} id={id}/> : <RequireRole><DemoStudioPage/></RequireRole>
+  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? <WritingStudio key={id} id={id}/> : <NamedStudioRoute key={id} id={id}/>
+}
+function NamedStudioRoute({id}:{id:string}) {
+  const [query]=useSearchParams()
+  const vm=useStudioRouteViewModel(id)
+  if(vm.data===undefined) return <><Gnb/><main className="wrap"><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
+  if(vm.data===null) return <><Gnb/><main className="wrap"><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><Go to="/content" className="btn">내 소설 관리</Go></main></>
+  if(vm.data.work.canonical) return <Navigate replace to={`/studio/${vm.data.work.id}${query.size?'?'+query.toString():''}`}/>
+  return <RequireRole><DemoStudioPage/></RequireRole>
 }
 function DemoStudioPage() {
   const { id = '' } = useParams()

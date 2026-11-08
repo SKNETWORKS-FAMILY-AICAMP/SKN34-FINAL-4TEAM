@@ -15,22 +15,26 @@ export function useFeedbackViewModel(feedbackUseCase: FeedbackUseCase = appConta
     addComment: async (workId: string, n: number, text: string, sent: Sentence | null, spoiler = false) => {
       const v = text.trim()
       if (!v) return toast('댓글 내용을 입력해 주세요'), false
-      const note = await feedbackUseCase.addComment(workId, n, nick, v, sent, spoiler)
-      changed()
-      toast(note)
-      return true
+      try {
+        const note = await feedbackUseCase.addComment(workId, n, nick, v, sent, spoiler)
+        changed()
+        toast(note)
+        return true
+      } catch(error) { toast(error instanceof Error?error.message:'댓글을 저장하지 못했어요.'); return false }
     },
     /** 빈 내용이면 null, 접수하면 상태와 안내 문구 */
     sendFeedback: async (o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; storyCheck: boolean }) => {
       const text = o.text.trim()
       if (!text) return toast('내용을 입력해 주세요'), null
       const verified = o.type === '스토리 오류' && o.storyCheck && window.confirm('스토리 오류 검증을 시연할까요? 비용과 한도는 미정이며 실제 AI 호출이나 차감은 없습니다.')
-      return feedbackUseCase.sendFeedback({ workId: o.workId, n: o.n, sentence: o.sentence, type: o.type, text, verified, nick })
+      try { return await feedbackUseCase.sendFeedback({ workId: o.workId, n: o.n, sentence: o.sentence, type: o.type, text, verified, nick }) }
+      catch(error) { toast(error instanceof Error?error.message:'피드백을 접수하지 못했어요.'); return null }
     },
     reportWork: async (workId: string, type: string, text: string) => {
       const v = text.trim()
       if (!v) return toast('신고 내용을 입력해 주세요'), null
-      return feedbackUseCase.reportWork({ workId, type, text: v, nick })
+      try { return await feedbackUseCase.reportWork({ workId, type, text: v, nick }) }
+      catch(error) { toast(error instanceof Error?error.message:'신고를 접수하지 못했어요.'); return null }
     },
   }
 }

@@ -17,6 +17,10 @@ class WorldController(private val service: ai.storyfork.content.world.service.Wo
     @GetMapping("/works/{id}/world")
     fun read(@PathVariable id: String,principal: Principal): WorldResponse = service.read(id,principal.name)
 
+    /** 공개 회차 기준의 공개 설정만 반환한다. 미래 정보·비공개 지식은 제외하며 비공개 작품·회차는 404다. */
+    @GetMapping("/public/works/{id}/world")
+    fun publicRead(@PathVariable id: String,@RequestParam episode: Int): ReadingWorldResponse = service.publicRead(id,episode)
+
     /** 설정 초안 DTO를 저장한다. 소유자만 가능하며 revision·원본 토큰 충돌은 409, 입력 오류는 422다. */
     @PutMapping("/works/{id}/settings/{sid}/draft")
     fun draft(@PathVariable id: String,@PathVariable sid: String,principal: Principal,@Valid @RequestBody data: SettingRequest): WorldResponse = service.saveDraft(id,sid,principal.name,data)

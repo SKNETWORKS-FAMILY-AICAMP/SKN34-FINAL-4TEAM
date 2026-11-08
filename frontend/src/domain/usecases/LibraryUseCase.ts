@@ -1,7 +1,7 @@
 import { AVATAR_COLORS, epsOf, forkLabel, forksOf, isMine, isPub, nid, original, type Work } from '../entities/work'
 import { publicWorldRules, worldVersion, type World, type WorldVersion } from '../entities/world'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
+import { AGGREGATE_WRITE_UNSUPPORTED, FEEDBACK_UNAVAILABLE, type ReadingRepository, type WorkRepository } from '../repositories/WorkRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
 
 export const NOVEL_GENRES = ['판타지','현대판타지','무협','선협','퓨전','로맨스','로맨스판타지','BL','GL','현대','시대물','역사','대체역사','SF','게임','스포츠','드라마','미스터리','추리','스릴러','공포','오컬트','액션','전쟁·밀리터리','라이트노벨','학원','일상','고전','일반소설','기타']
@@ -71,8 +71,9 @@ export class LibraryUseCase {
   /** U12 내가 쓰는 소설 */
   async getWrite() {
     const [works, worlds, pending, queue] = await Promise.all([this.workRepository.listWorks(), this.worldRepository.list(), this.pending(), this.feedbackRepository.listReview()])
-    const appeals = queue.flatMap((q) => { const w = works.find((x) => x.id === q.w); return w && isMine(w) && q.status === '비공개 조치' ? [{ ...q, title: w.title }] : [] })
-    const mine = await Promise.all(works.filter(isMine).map(async (work) => ({
+    // 정본 작품은 서버 저장 목록과 정본 집필 경로에서 별도로 제공한다.
+    const appeals = queue.flatMap((q) => { const w = works.find((x) => x.id === q.w); return w && !w.canonical && isMine(w) && q.status === '비공개 조치' ? [{ ...q, title: w.title }] : [] })
+    const mine = await Promise.all(works.filter(w=>!w.canonical && isMine(w)).map(async (work) => ({
       work,
       parent: works.find((w) => w.id === work.parent),
       writingNext: !!(await this.workRepository.getDraft(work.id))?.paras.length,
@@ -87,6 +88,7 @@ export class LibraryUseCase {
   async appeal(id: string, text: string) {
     const [queue, works] = await Promise.all([this.feedbackRepository.listReview(), this.workRepository.listWorks()])
     const q = queue.find((x) => x.id === id), w = q && works.find((x) => x.id === q.w)
+    if (w?.canonical) return FEEDBACK_UNAVAILABLE
     if (!q || !w || !isMine(w) || q.status !== '비공개 조치' || !text.trim()) return '소명 내용을 입력해 주세요'
     await this.feedbackRepository.saveReview({ ...q, appeal: text.trim(), status: '소명 제출' })
     return '소명을 제출했어요 (데모)'
@@ -140,6 +142,7 @@ export class LibraryUseCase {
     const works = await this.workRepository.listWorks()
     const worlds = await this.worldRepository.list()
     const linked = works.filter((w) => (w.worldIds ?? []).includes(world.id))
+    if(linked.some(w=>w.canonical)) throw new Error(AGGREGATE_WRITE_UNSUPPORTED)
     const removed = world.rules.filter((r) => !next.rules.includes(r))
     const added = next.rules.filter((r) => !world.rules.includes(r))
     if (linked.length && removed.length && !confirmed) return false

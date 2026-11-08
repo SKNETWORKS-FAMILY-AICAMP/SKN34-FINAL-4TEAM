@@ -23,6 +23,7 @@ class WorkAccessService(
     private val worlds: WorkWorldHistoryRepository,
     private val visibility: WorkPublicationHistoryRepository,
     private val policies: ForkPolicyHistoryRepository,
+    private val selectedPolicyEpisodes: ForkPolicyEpisodeRepository,
     private val forks: ForkRepository,
     private val checkpoints: CheckpointRepository,
     private val episodes: EpisodeRepository,
@@ -45,6 +46,13 @@ class WorkAccessService(
             worlds.findFirstByWorkIdOrderByRevisionNoDesc(id)?.worldId ?: throw ContentFailure(409,"작품의 세계관 연결이 없어요."),
             visibility.findFirstByWorkIdOrderByRevisionNoDesc(id)?.visibility ?: "private",
             policy?.allowCreation ?: false,policy?.allowPublication ?: false,source)
+    }
+    fun forkable(id: String, published: List<Int>): List<Int> {
+        val policy=policies.findFirstByWorkIdOrderByRevisionNoDesc(id) ?: return emptyList()
+        val selected=if(policy.episodeScope=="selected") selectedPolicyEpisodes.findAllByPolicyHistoryId(policy.id).map {it.episodeId} else emptyList()
+        val rows=episodes.findAllById(selected+listOfNotNull(policy.startEpisodeId)).filter {it.workId==id}
+        return ai.storyfork.content.work.domain.forkableEpisodes(policy.allowCreation,policy.episodeScope,
+            rows.find {it.id==policy.startEpisodeId}?.sequence,rows.filter {it.id in selected}.map {it.sequence},published)
     }
     fun own(id: String, owner: String): WorkAccessResult {
         checkContent(owner.isNotBlank() && owner.length<=200,401,"서버 인증이 필요합니다.")

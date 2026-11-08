@@ -5,6 +5,7 @@ import { epsOf, FIELDS, SORTS, type Work } from '../../../../domain/entities/wor
 import { CoverOf, Cov } from '../../../shared/art'
 import { ago, kfmt, qs } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
+import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Crown } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useIfsViewModel, useRankViewModel, useSearchViewModel, useTagViewModel } from '../viewmodel/useExploreViewModel'
@@ -43,10 +44,10 @@ function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolea
         <div className="ri">
           <small className="g">{w.genre}</small><b>{w.title}</b>
           <small>{w.author}{w.parent && ` · 원작 ${w.forkAt}화에서 포크`}</small>
-          <span className="m">총 {epsOf(w).length}화 <i></i> 조회 {kfmt(w.views || 0)} <i></i> ♥ {kfmt(w.likes || 0)} <i></i> {ago(w.upd || 0)}</span>
+          <span className="m">총 {epsOf(w).length}화{w.statisticsSupported!==false && <> <i></i> 조회 {kfmt(w.views || 0)} <i></i> ♥ {kfmt(w.likes || 0)} <i></i> {ago(w.upd || 0)}</>}</span>
         </div>
       </Go>
-      {!ranked && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport?.(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}
+      {!ranked && !w.canonical && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport?.(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}
     </div>
   )
 }
@@ -61,6 +62,7 @@ export function SearchPage() {
       <main className="wrap">
         <div className="sec-h"><h2>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h2><span className="muted small">{L.length}편</span></div>
         <ListTools base="/search" st={vm.st} onSubmit={vm.submit} />
+        {!vm.list && <ContentLoadState failed={vm.isError} retry={vm.retry}/>}
         <div className="rgrid" style={{ marginTop: 20 }}>
           {vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.setReporting} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
         </div>
@@ -79,11 +81,12 @@ export function RankPage() {
     <>
       <Gnb on="rank" />
       <main className="wrap">
-        <div className="sec-h" style={{ marginBottom: 0 }}><h2>랭킹</h2><span className="muted small">{SORTS.find((x) => x[0] === vm.st.sort)?.[1]} · 데모 데이터</span></div>
+        <div className="sec-h" style={{ marginBottom: 0 }}><h2>소설 둘러보기</h2><span className="muted small">인기·조회·업데이트 집계는 제공하지 않아요.</span></div>
         <nav className="libtabs">{([['all', '전체'], ['orig', '원작 소설'], ['if', '포크 소설']] as const).map(([k, l]) => <Go key={k} to={qs('/rank', { ...vm.st, t: k })} className={vm.st.t === k ? 'on' : ''}>{l}</Go>)}</nav>
         <ListTools base="/rank" st={vm.st} onSubmit={vm.submit} />
+        {!vm.list && <ContentLoadState failed={vm.isError} retry={vm.retry}/>}
         <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
+          {vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked={!w.canonical} />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
         </div>
       </main>
       <Footer />
@@ -94,10 +97,12 @@ export function RankPage() {
 /** 목업 tagPage(t): U29 */
 export function TagPage() {
   const { tag } = useParams()
-  const d = useTagViewModel(tag)
+  const vm = useTagViewModel(tag)
+  const d = vm.data
   return (
     <>
       <Gnb />
+      {!d && <main className="wrap"><ContentLoadState failed={vm.isError} retry={vm.retry}/></main>}
       {d && (
         <main className="wrap">
           <div className="sec-h"><h2>{d.cur}</h2><span className="muted small">이 해시태그가 붙은 소설 {d.list.length}편 · 포크 소설은 원작의 해시태그를 이어받아요</span></div>
@@ -132,6 +137,7 @@ export function IfsPage() {
         <div className="lrow" style={{ justifyContent: 'flex-end', margin: '12px 0 8px' }}>
           <div className="sortt" role="group" aria-label="정렬">{SORTS.map(([k, l]) => <Go key={k} className={vm.sort === k ? 'on' : ''} to={qs('/ifs', { w: vm.w, sort: k })}>{l}</Go>)}</div>
         </div>
+        {!vm.groups && <ContentLoadState failed={vm.isError} retry={vm.retry}/>}
         {vm.groups && (vm.groups.length ? vm.groups.map(({ o, label, forkList, forks }) => (
           <section key={o.id} className="ifg">
             <div className="o">
@@ -143,7 +149,7 @@ export function IfsPage() {
               {forks.length ? forks.map((f) => (
                 <Go key={f.id} className="ifc" to={`/work/${f.id}`}>
                   <div className="th"><CoverOf w={f} /></div>
-                  <div><b>{f.title.split(': ').pop()}</b><small>{f.forkAt}화에서 포크 · {f.author} · “{f.dir}”</small><small className="muted">조회 {kfmt(f.views || 0)} · ♥ {kfmt(f.likes || 0)} · {ago(f.upd || 0)}</small></div>
+                  <div><b>{f.title.split(': ').pop()}</b><small>{f.forkAt}화에서 포크 · {f.author} · “{f.dir}”</small>{f.statisticsSupported!==false && <small className="muted">조회 {kfmt(f.views || 0)} · ♥ {kfmt(f.likes || 0)} · {ago(f.upd || 0)}</small>}</div>
                 </Go>
               )) : <div className="rp muted">{o.forksAllowed ? '아직 포크 소설이 없어요. 첫 번째로 포크해 보세요.' : '소설 소유자가 포크를 허용하지 않았어요.'}</div>}
             </div>

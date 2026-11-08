@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import './test/fixtureApp'
+import { seedWorks } from './data/mock/seed'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -37,13 +39,13 @@ describe('검색 결과 (U36)', () => {
     renderApp('/search')
     await screen.findByRole('heading', { name: '소설 검색' })
     await waitFor(() => expect(titles()[0]).toBe('구운몽'))
-    fireEvent.click(screen.getByRole('link', { name: '최신 순' }))
-    await waitFor(() => expect(titles()[0]).toBe('구운몽: 저승의 문'))
-    expect(screen.getByRole('link', { name: '최신 순' }).className).toBe('on')
+    fireEvent.click(screen.getByRole('link', { name: '작가 순' }))
+    await waitFor(() => expect(screen.getByRole('link', { name: '작가 순' }).className).toBe('on'))
     fireEvent.change(screen.getByLabelText('검색어'), { target: { value: '회색' } })
     fireEvent.click(screen.getByRole('button', { name: '검색' }))
     await screen.findByRole('heading', { name: '‘회색’ 검색 결과' })
-    await waitFor(() => expect(titles()).toEqual(['회색 도시: 송신탑 아래', '회색 도시: 답장', '회색 도시의 우편배달부']))
+    const expected=seedWorks().filter(w=>w.title.startsWith('회색')).sort((a,b)=>a.author.localeCompare(b.author,'ko') || a.title.localeCompare(b.title,'ko')).map(w=>w.title)
+    await waitFor(() => expect(titles()).toEqual(expected))
   })
 
   it('검색 카드에서 소설 신고 시트를 연다 (랭킹 카드에는 없다)', async () => {
@@ -52,7 +54,7 @@ describe('검색 결과 (U36)', () => {
     screen.getByRole('heading', { name: '🚩 소설 신고 · 홍길동전' })
     cleanup()
     renderApp('/rank')
-    await screen.findByRole('heading', { name: '랭킹' })
+    await screen.findByRole('heading', { name: '소설 둘러보기' })
     await waitFor(() => expect(titles().length).toBeGreaterThan(0))
     expect(screen.queryByRole('button', { name: /소설 신고/ })).toBeNull()
   })
@@ -62,13 +64,13 @@ describe('랭킹 (U25)·포크 소설 (U26)', () => {
   it('GNB 랭킹에서 열고 원작·포크 탭을 바꾼다', async () => {
     renderApp('/')
     fireEvent.click(within(screen.getByRole('navigation', { name: '주요 메뉴' })).getByRole('link', { name: /랭킹/ }))
-    await screen.findByRole('heading', { name: '랭킹' })
+    await screen.findByRole('heading', { name: '소설 둘러보기' })
     await waitFor(() => expect(sid()).toBe('U25 랭킹'))
-    screen.getByText('조회 순 · 데모 데이터')
+    screen.getByText('인기·조회·업데이트 집계는 제공하지 않아요.')
     await waitFor(() => expect(titles()).toHaveLength(11))
     expect(document.querySelector('.crown')).toBeTruthy()
     fireEvent.click(screen.getByRole('link', { name: '원작 소설' }))
-    await waitFor(() => expect(titles()).toEqual(['구운몽', '회색 도시의 우편배달부', '홍길동전', '별빛 서약의 탑']))
+    await waitFor(() => expect(titles()).toEqual(['구운몽', '별빛 서약의 탑', '홍길동전', '회색 도시의 우편배달부']))
     fireEvent.click(screen.getByRole('link', { name: '포크 소설' }))
     await waitFor(() => expect(titles()).toHaveLength(7))
     fireEvent.change(screen.getByLabelText('검색어'), { target: { value: '없는소설' } })
@@ -78,7 +80,7 @@ describe('랭킹 (U25)·포크 소설 (U26)', () => {
 
   it('/ifs에 원작이 없으면 랭킹 포크 탭으로 보낸다', async () => {
     renderApp('/ifs')
-    await screen.findByRole('heading', { name: '랭킹' })
+    await screen.findByRole('heading', { name: '소설 둘러보기' })
     await waitFor(() => expect(titles()).toHaveLength(7))
     expect(screen.getByRole('link', { name: '포크 소설' }).className).toBe('on')
   })
@@ -91,8 +93,9 @@ describe('랭킹 (U25)·포크 소설 (U26)', () => {
     await waitFor(() => expect(forks()).toEqual(['구름 위의 길', '저승의 문', '스승의 용서']))
     screen.getByText('2·3·4화 포크 허용')
     screen.getByRole('link', { name: '✎ 나도 포크하기' })
-    fireEvent.click(screen.getByRole('link', { name: '최신 순' }))
-    await waitFor(() => expect(forks()).toEqual(['저승의 문', '구름 위의 길', '스승의 용서']))
+    fireEvent.click(screen.getByRole('link', { name: '작가 순' }))
+    const expected=seedWorks().filter(w=>w.parent==='guunmong').sort((a,b)=>a.author.localeCompare(b.author,'ko') || a.title.localeCompare(b.title,'ko')).map(w=>w.title.replace(/^.*?:\s*/,''))
+    await waitFor(() => expect(forks()).toEqual(expected))
   })
 
   it('포크를 허용하지 않은 원작은 안내 문구를 보여 준다', async () => {

@@ -30,6 +30,7 @@ class WorkDeleteServiceTest {
     @Mock lateinit var workWorlds: WorkWorldHistoryRepository
     @Mock lateinit var visibility: WorkPublicationHistoryRepository
     @Mock lateinit var policies: ForkPolicyHistoryRepository
+    @Mock lateinit var selectedPolicyEpisodes: ForkPolicyEpisodeRepository
     @Mock lateinit var genreRows: GenreRepository
     @Mock lateinit var workGenres: WorkGenreRepository
     @Mock lateinit var hashtagRows: WorkHashtagRepository

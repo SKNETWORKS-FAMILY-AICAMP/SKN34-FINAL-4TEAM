@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import './test/fixtureApp'
 import './testLocks'
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'

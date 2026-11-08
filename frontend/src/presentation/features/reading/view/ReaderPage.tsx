@@ -4,6 +4,8 @@ import { Navigate, useParams } from 'react-router'
 
 import { avatarOf, epsOf, type Theme } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
+import { ContentLoadState } from '../../../shared/ContentLoadState'
+import { FEEDBACK_UNAVAILABLE } from '../../../../domain/repositories/WorkRepository'
 import { BackChev } from '../../../shared/icons'
 import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { useReaderViewModel } from '../viewmodel/useReaderViewModel'
@@ -51,7 +53,7 @@ export function ReaderPage() {
   const fb = useFeedbackViewModel()
   const r = vm.reader
   const refs = useReaderScroll(!!r, vm.setEnd)
-  if (vm.state === undefined) return null
+  if (vm.state === undefined) return <main className="wrap"><ContentLoadState failed={vm.isError} retry={vm.retry}/></main>
   if (vm.state === null) return <UnavailableWork />
   if (!r) return <Navigate replace to={`/work/${id}`} />
   const { work: w, ep: e } = r
@@ -72,12 +74,13 @@ export function ReaderPage() {
         <div className="prog"><i id="prog" ref={refs.prog} /></div>
       </div>
       <article className="page">
-        <div className="chap"><small>{chapLabel(w.theme, r.n)}</small><h2>{e.t}</h2><div className="orn">{ORN[w.theme]}</div><div className="reading"><i />지금 {30 + ((r.n * 37) % 90)}명이 함께 읽는 중 <span className="demo">데모</span></div></div>
-        <div className="hint">☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.</div>
+        <div className="chap"><small>{chapLabel(w.theme, r.n)}</small><h2>{e.t}</h2><div className="orn">{ORN[w.theme]}</div>{!w.canonical && <div className="reading"><i />지금 {30 + ((r.n * 37) % 90)}명이 함께 읽는 중 <span className="demo">데모</span></div>}</div>
+        <div className="hint">{w.canonical?'공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 읽기 기록과 관심 표시는 이 창에서만 유지돼요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
         <div className="text" id="text">
           {r.paragraphs.map((ss, pi) => (
             <p key={pi}>{ss.map((s, j) => {
               const i = k++
+              if (w.canonical) return <span key={j}>{j > 0 && ' '}{s.t}</span>
               return <span key={j}>{j > 0 && ' '}<span className={`s${vm.selected?.k === i ? ' sel' : ''}`} data-s={i} onClick={(ev) => {
                 const b = ev.currentTarget.getBoundingClientRect()
                 vm.select({ k: i, top: b.bottom + scrollY + 8, left: Math.max(12, Math.min(b.left + scrollX, innerWidth - 420)) })
@@ -94,7 +97,7 @@ export function ReaderPage() {
           {r.canFork && (
             <div className="tcard ifend">
               <h3>여기서 포크해 볼까요?</h3>
-              <p>{r.n}화가 끝난 시점의 세계관과 인물을 복사해서 나만의 다음 화를 쓸 수 있어요. 원작은 바뀌지 않아요.{r.forks.length > 0 && ` 이미 ${r.forks.length}편이 포크됐어요.`}</p>
+              <p>{w.canonical ? `${r.n}화의 공개된 원고·설정을 기준으로 분기해요. 관계의 과거 snapshot·복원은 지원하지 않아요.` : `${r.n}화가 끝난 시점의 세계관과 인물을 복사해서 나만의 다음 화를 쓸 수 있어요.`} 원작은 바뀌지 않아요.{r.forks.length > 0 && ` 이미 ${r.forks.length}편이 포크됐어요.`}</p>
               <div className="acts">
                 <Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}?at=${r.n}` }} className="tbtn pri" id="forkHere">✎ {r.n}화에서 포크하기</Go>
                 {r.forks.map((f) => <Go key={f.id} to={`/work/${f.id}`} className="tbtn">「{f.title.split(': ')[1] || f.title}」 읽기</Go>)}
@@ -102,15 +105,16 @@ export function ReaderPage() {
             </div>
           )}
           <section className="tcard cms">
-            <h3>댓글 {r.comments.length}</h3>
-            <form className="cmf" id="cmf" onSubmit={(ev) => {
+            <h3>{w.canonical?'댓글·피드백':`댓글 ${r.comments.length}`}</h3>
+            {w.canonical && <p className="muted">{FEEDBACK_UNAVAILABLE}</p>}
+            {!w.canonical && <form className="cmf" id="cmf" onSubmit={(ev) => {
               ev.preventDefault()
               const input = ev.currentTarget.elements.namedItem('cmt')
               if (input instanceof HTMLInputElement) void fb.addComment(id, r.n, input.value, null).then((ok) => { if (ok) input.value = '' })
             }}>
               <input id="cmt" name="cmt" aria-label="댓글 입력" placeholder="감상이나 궁금한 점을 남겨 주세요" maxLength={200} />
               <button className="tbtn pri" style={{ height: 44 }}>등록</button>
-            </form>
+            </form>}
             {r.comments.map((c, i) => {
               const ck = rk + 'c' + i
               const on = !!r.liked[ck]
@@ -136,7 +140,7 @@ export function ReaderPage() {
           <Go to={`/read/${id}/${r.next ?? r.n}`} disabled={!r.next}>다음 화 ›</Go>
         </div>
       </nav>
-      {selected && vm.selected?.pop && createPortal(
+      {!w.canonical && selected && vm.selected?.pop && createPortal(
         <div className="pop" style={{ top: vm.selected?.top, left: vm.selected?.left }}>
           <button type="button" onClick={() => vm.openSheet({ kind: 'comment', k: vm.selected?.k ?? 0 })}>💬 댓글 달기</button>
           <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>✉ 피드백 보내기</button>

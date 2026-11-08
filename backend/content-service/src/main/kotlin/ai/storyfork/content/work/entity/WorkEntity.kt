@@ -26,4 +26,12 @@ class WorkEntity(
     var audienceRating: String? = null,
     @field:Column(name = "creation_type")
     var creationType: String = "original",
+    @field:Column(name = "slug") var slug: String? = null,
+    @field:Column(name = "author_name") var authorName: String = "작성자",
+    @field:Column(name = "theme") var theme: String = "star",
+    @field:Column(name = "hook") var hook: String = "",
+    @field:Column(name = "hanja") var hanja: String? = null,
+    @field:Column(name = "hero_line1") var heroLine1: String? = null,
+    @field:Column(name = "hero_line2") var heroLine2: String? = null,
+    @field:Column(name = "hero_background") var heroBackground: String? = null,
 )

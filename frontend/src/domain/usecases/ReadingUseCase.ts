@@ -38,21 +38,20 @@ export class ReadingUseCase {
       return !!w && !!e && visibleEpisode(w, e, role)
     })
     const lastWork = works.find((w) => w.id === lastId)
-    const pick = (ids: string[]) => ids.map((id) => works.find((w) => w.id === id)).filter((w): w is Work => !!w)
     return {
       works,
       forkSources,
       seen: progress.seen,
       filtered: filter ? pub.filter((w) => filter(w, works)) : null,
       originals: origs,
-      forkFeed: pub.filter((w) => w.parent).sort((a, b) => a.upd - b.upd),
+      forkFeed: pub.filter((w) => w.parent).sort(sorter('new')),
       continueReading: lastWork ? { work: lastWork, episode: progress.last[lastWork.id] } : null,
-      top10: pub.slice().sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 10),
-      rising: origs.slice().sort((a, b) => b.views - a.views),
-      fresh: pub.slice().sort((a, b) => a.upd - b.upd).slice(0, 5),
-      picks: pick(['guunmong', 'postman', 'gate', 'hong', 'crown', 'starlight']),
+      top10: pub.slice().sort(sorter('pop')).slice(0, 10),
+      rising: origs.slice().sort(sorter('view')),
+      fresh: pub.slice().sort(sorter('new')).slice(0, 5),
+      picks: pub.slice(0, 6),
       discover: pub,
-      weekly: pick(['guunmong', 'hong', 'postman', 'starlight']),
+      weekly: origs.slice(0, 4),
     }
   }
 
@@ -62,24 +61,25 @@ export class ReadingUseCase {
 
   private async load(id: string) {
     const [works, worlds, progress] = await Promise.all([this.workRepository.listWorks(), this.workRepository.listWorlds(), this.readingRepository.getProgress()])
-    return { works, worlds, progress, w: works.find((x) => x.id === id) }
+    return { works, worlds, progress, w: works.find((x) => x.id === id || x.slug === id) }
   }
 
   /** 목업 work(): 볼 수 없는 작품이면 null (unavailableWork) */
   async getWork(id: string, role: Role) {
-    const { works, worlds, progress, w } = await this.load(id)
-    if (!canView(w, role)) return null
-    const forks = forksOf(works, id)
+    const { works, worlds, progress, w: loaded } = await this.load(id)
+    if (!canView(loaded, role)) return null
+    const w = await this.workRepository.readWorld(loaded,epsOf(loaded).length)
+    const forks = forksOf(works, w.id)
     return {
       work: w,
       parent: works.find((x) => x.id === w.parent),
       visible: epsOf(w).map((e, i) => [e, i] as const).filter(([e]) => visibleEpisode(w, e, role)),
-      last: progress.last[id] as number | undefined,
-      read: progress.read[id] ?? [],
-      liked: !!progress.liked[id],
+      last: progress.last[w.id] as number | undefined,
+      read: progress.read[w.id] ?? [],
+      liked: !!progress.liked[w.id],
       forks,
       forkList: forkList(w, worlds),
-      topForks: forks.slice().sort((a, b) => b.likes - a.likes),
+      topForks: forks.slice().sort(sorter('pop')),
     }
   }
 
@@ -88,10 +88,12 @@ export class ReadingUseCase {
    * 볼 수 없는 작품은 null, 숨긴 회차는 'hidden'(상세로 보냄)입니다.
    */
   async openEpisode(id: string, at: number, role: Role) {
-    const { works, worlds, progress, w } = await this.load(id)
-    if (!canView(w, role)) return null
-    const eps = epsOf(w)
+    const { works, worlds, progress, w: loaded } = await this.load(id)
+    if (!canView(loaded, role)) return null
+    const eps = epsOf(loaded)
     const n = Math.max(1, Math.min(+at || 1, eps.length))
+    const w = await this.workRepository.readWorld(loaded,n)
+    id = w.id
     const ep = eps[n - 1]
     if (!ep || !visibleEpisode(w, ep, role)) return 'hidden' as const
     const shown = eps.map((e, i) => [e, i + 1] as const).filter(([e]) => visibleEpisode(w, e, role)).map(([, i]) => i)
@@ -138,14 +140,14 @@ export class ReadingUseCase {
     return {
       cur,
       tags: Object.entries(all).sort((a, b) => b[1] - a[1]),
-      list: pub.filter((w) => tagsOf(w, works).includes(cur)).sort((a, b) => (b.likes || 0) - (a.likes || 0)).map((w) => ({ w, tags: tagsOf(w, works) })),
+      list: pub.filter((w) => tagsOf(w, works).includes(cur)).sort(sorter('pop')).map((w) => ({ w, tags: tagsOf(w, works) })),
     }
   }
 
   /** 목업 ifs(): 공개 원작 하나와 그 포크 */
   async getForkCollection(id: string, sort: string) {
     const [works, worlds] = await Promise.all([this.workRepository.listWorks(), this.workRepository.listWorlds()])
-    return originals(works).filter(isPub).filter((o) => o.id === id).map((o) => ({
+    return originals(works).filter(isPub).filter((o) => o.id === id || o.slug === id).map((o) => ({
       o, label: forkLabel(o, worlds), forkList: forkList(o, worlds), forks: forksOf(works, o.id).sort(sorter(sort)),
     }))
   }

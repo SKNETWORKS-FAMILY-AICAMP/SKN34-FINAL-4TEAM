@@ -2,6 +2,7 @@ import { Navigate, useParams, useSearchParams } from 'react-router'
 
 import { Art } from '../../../shared/art'
 import { Go } from '../../../shared/Go'
+import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useForkViewModel } from '../viewmodel/useForkViewModel'
@@ -9,10 +10,13 @@ import { useForkViewModel } from '../viewmodel/useForkViewModel'
 /** 목업 fork(id): U09 포크 (3단계 폼) */
 export function ForkPage() {
   const { id = '' } = useParams()
+  return <ForkForm key={id} id={id}/>
+}
+function ForkForm({id}:{id:string}) {
   const [q] = useSearchParams()
   const vm = useForkViewModel(id, Number(q.get('at')))
   const d = vm.form
-  if (d === undefined) return null
+  if (d === undefined) return <><Gnb/><main className="wrap"><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   if (d === null) return <Navigate replace to={`/work/${id}`} />
   if (d.existing) {
     return (
@@ -45,7 +49,8 @@ export function ForkPage() {
         <section className="tcard fstep"><h3><i>2</i>무엇이 달라지나요?</h3><input className="tinp" id="fdir" value={vm.dir} onChange={(e) => vm.setDir(e.target.value)} placeholder="한 줄로 적어 주세요" maxLength={60} aria-label="무엇이 달라지나요?" /></section>
         <section className="tcard fstep"><h3><i>3</i>제목</h3><input className="tinp" id="ftit" value={vm.title} onChange={(e) => vm.setTitle(e.target.value)} maxLength={40} aria-label="제목" /></section>
         <p className="bm">포크 생성과 직접 쓰기는 무료예요. AI 도움의 과금 기준은 아직 정해지지 않았어요. 원작 링크가 함께 표시되고, 현금 수익 배분은 없어요.</p>
-        <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" onClick={vm.start}>포크 소설 시작하기 →</button>
+        {vm.error && <p role="alert">{vm.error}</p>}
+        <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" disabled={vm.submitting} onClick={vm.start}>{vm.submitting?'포크 생성 중…':'포크 소설 시작하기 →'}</button>
       </div>
     </div>
   )
