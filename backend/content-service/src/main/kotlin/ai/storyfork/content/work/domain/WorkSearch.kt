@@ -20,9 +20,7 @@ data class WorkViews(val recent: Long, val prior: Long)
 private const val RANKING_SIZE = 10
 
 /** 조회 기록의 "하루"는 서울 날짜다(회원·회차별 하루 1회 규칙). */
-private val VIEW_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
-
-fun viewDate(now: Instant): LocalDate = now.atZone(VIEW_ZONE).toLocalDate()
+fun viewDate(now: Instant): LocalDate = now.atZone(ZoneId.of("Asia/Seoul")).toLocalDate()
 
 /** 쿼리 값(소문자 이름)을 enum으로 바꾼다. 값이 없으면 [default], 모르는 값은 422다. */
 inline fun <reified E : Enum<E>> queryOption(code: String?, default: E, name: String): E =
