@@ -8,6 +8,7 @@ import ai.storyfork.content.proposal.service.ProposalService
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
+import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
 import ai.storyfork.content.work.domain.WorkViews
 import ai.storyfork.content.work.entity.*
 import ai.storyfork.content.work.repository.*
@@ -258,5 +259,17 @@ class WorkSearchServiceTest {
         assertEquals(emptyList<String>(), service.list("nobody").items.map { it.id })
         assertEquals(404, failure { service.publicRead("hidden") }.status)
         assertEquals(emptyList<String>(), lookups.flatten())
+    }
+
+    @Test fun `public episodes gate attachments without asking Core for author names`() {
+        work("a", "달빛 정원", 1)
+        val visible = access.get("a")
+        `when`(access.published("a")).thenReturn(visible)
+        `when`(publication.publishedEpisodes("a")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1, 1, "v1", "1화", "본문"))))
+        `when`(access.published("hidden")).thenThrow(ContentFailure(404, "공개 작품을 찾을 수 없어요."))
+
+        assertEquals(listOf(1), service.publicEpisodes("a").map { it.number })
+        assertEquals(404, failure { service.publicEpisodes("hidden") }.status)
+        verifyNoInteractions(nicknames)
     }
 }

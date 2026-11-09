@@ -81,6 +81,11 @@ class WorkService(
     }
     fun read(id: String,owner: String): WorkResponse = access.own(id,owner).let {view(it,authorNames(listOf(it)))}
     fun publicRead(id: String): WorkResponse = access.published(id).let {view(it,authorNames(listOf(it)),true)}
+    /** 공개 작품의 발행 회차(비공개·없는 작품은 404). 작품 응답이 필요 없는 공개 첨부 확인용이라 작가명을 위해 Core를 부르지 않는다. */
+    fun publicEpisodes(id: String): List<ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse> {
+        access.published(id)
+        return publication.publishedEpisodes(id).items
+    }
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
         val registered=data.creationType!=null || data.genres.isNotEmpty() || data.hashtags.isNotEmpty() || data.rightsConfirmed!=null

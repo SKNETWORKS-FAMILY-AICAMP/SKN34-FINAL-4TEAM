@@ -26,7 +26,6 @@ import ai.storyfork.content.work.repository.*
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
-import ai.storyfork.content.work.service.dto.WorkResponse
 import ai.storyfork.content.world.service.WorldService
 import jakarta.persistence.EntityManager
 import java.util.Optional
@@ -112,8 +111,7 @@ class EpisodeImageAuthorizationTest {
         `when`(versions.findByEpisodeIdAndContentVersionId("episode", "saved")).thenReturn(it)
     }
     private fun published(body: String, inherited: Boolean = false) {
-        `when`(content.publicRead("work")).thenReturn(WorkResponse("work", "title", "", "public", false, false, null,
-            listOf(PublishedEpisodeResponse(1, 3, "published", "title", body, inherited)), null))
+        `when`(content.publicEpisodes("work")).thenReturn(listOf(PublishedEpisodeResponse(1, 3, "published", "title", body, inherited)))
     }
     private fun inherited(image: ContentImage, pinnedBody: String = marker(image)) {
         row.inherited = true

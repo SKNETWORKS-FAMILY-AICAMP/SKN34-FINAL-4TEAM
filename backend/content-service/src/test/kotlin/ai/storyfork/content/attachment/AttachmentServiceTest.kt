@@ -1,7 +1,6 @@
 package ai.storyfork.content.attachment
 
 import ai.storyfork.content.attachment.service.AttachmentService
-import ai.storyfork.content.work.service.dto.WorkResponse
 import ai.storyfork.content.episode.service.dto.DraftResponse as Draft
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse as Episode
 import ai.storyfork.content.episode.service.dto.EpisodeResponse as WritingEpisode
@@ -174,8 +173,7 @@ class AttachmentServiceTest {
         `when`(images.findById(image.id)).thenReturn(Optional.of(image))
         `when`(episodeService.permitsImageReference("work", 1, image)).thenReturn(true)
         `when`(storage.read(image.objectKey)).thenReturn(AttachmentObjectResult(png))
-        `when`(content.publicRead("work")).thenReturn(WorkResponse("work", "공개 작품", "", "public", false, false, null,
-            listOf(Episode(1, 1, "version", "1화", "공개[[image:${image.id}]]")), null))
+        `when`(content.publicEpisodes("work")).thenReturn(listOf(Episode(1, 1, "version", "1화", "공개[[image:${image.id}]]")))
         assertArrayEquals(png, service.downloadEpisodeImage("work", 1, image.id, null, true).bytes)
         assertEquals("IMAGE_NOT_FOUND", assertThrows(AttachmentFailure::class.java) {
             service.downloadEpisodeImage("work", 2, image.id, null, true)
@@ -189,7 +187,7 @@ class AttachmentServiceTest {
         val downloaded = service.downloadCover("work", null, true)
         assertArrayEquals(png, downloaded.bytes)
         assertEquals("/api/v1/works/work/cover/content", downloaded.attachment.url)
-        verify(content, times(4)).publicRead("work")
+        verify(content, times(4)).publicEpisodes("work")
         verifyNoInteractions(works)
     }
 

@@ -145,7 +145,7 @@ class AttachmentService(
     }
     fun readCover(work: String, owner: String) = imageTransaction { ownedWork(work, owner); response(cover(work)) }
     fun downloadCover(work: String, owner: String?, public: Boolean): AttachmentDownloadResult {
-        if (public) content.publicRead(work)
+        if (public) content.publicEpisodes(work)
         return imageTransaction { if (!public) ownedWork(work, owner ?: ""); val image = cover(work); AttachmentDownloadResult(response(image), imageBytes(image)) }
     }
     fun putCover(work: String, owner: String, payload: AttachmentUploadPayload) = imageTransaction {
@@ -184,7 +184,7 @@ class AttachmentService(
         val marker = "[[image:$id]]"
         // Public access is granted by the exact existing published body, never by a guessed image ID or a draft.
         val referenced = if (public) {
-            content.publicRead(work).episodes.any { it.number == number && marker in it.body }
+            content.publicEpisodes(work).any { it.number == number && marker in it.body }
         } else {
             val episode = episodeService.read(work, owner ?: "", number)
             episode.inherited && marker in episode.draft.body
