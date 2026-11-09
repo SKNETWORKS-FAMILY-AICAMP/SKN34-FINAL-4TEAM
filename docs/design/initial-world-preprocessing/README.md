@@ -36,6 +36,10 @@ Content가 소유권·원문·revision·검토·반영을 관리하고 AI는 전
 `sourceId`는 `world:{uuid}:description` 또는 `card:{uuid}:{title|body}`이며 분석 안에서 유일하다.
 source 소유 ID/필드는 실제 같은 세계관의 원본과 대조한다. `entities`는 같은 초안의 기존 활성 엔터티 ID/유형/이름/별칭이다.
 원문 소유 카드가 반드시 인물 카드는 아니다. 규칙·사건 카드도 출처가 될 수 있다.
+실행 계약은 sourceId가 ownerId/field로 구성한 값과 정확히 같은지 검사하고,
+description 출처의 ownerId가 input.worldId인지 검사한다. 카드가 실제 같은 세계관에 속하는지,
+활성 상태인지, 본문이 DB 원문과 같은지는 Content의 snapshot 구성 단계에서 따로 검증한다.
+entities에 없는 규칙·사건 카드도 출처가 되므로 entities 목록만으로 출처 소속을 판정하지 않는다.
 
 좌표는 [집필 AI 검색 계약](../../writing-ai-architecture/07-retrieval-contract-and-mocks.md)과 같은 **UTF-16 코드 단위 `[start,end)`**다.
 공백·CRLF·Unicode 정규화를 바꾸지 않는다. 입력의 고립 surrogate는 거부한다.
@@ -121,6 +125,9 @@ UI는 subjectId와 relatedIds로 “이 인물/장소의 관련 설정”을 묶
 
 분석 상세의 candidateIds는 output.localRef → 후보 UUID 매핑이다. decisions는 불변 검토 이력을 순번과 함께 반환한다.
 검토 기록이 없는 후보는 sequence=0/pending이며, 이후 가장 큰 sequence의 state/content가 최신 검토 상태다.
+동일 후보의 다중 검토 이력을 허용하고 `(candidateId, sequence)`만 유일해야 한다.
+배열 순서와 무관하게 최대 sequence가 최신이다. 이후 edit/hold/reject가 있으면 과거 승인으로 반영할 수 없다.
+기존 후보 edit는 `author_revision`만 허용한다. `author_addition` 자료형은 보존하지만 독립 추가 API는 범위 밖이다.
 검토 API의 expectedDecisionSequence는 이 최신 sequence와 비교한다. edit→pending, approve→approved, hold→held, reject→rejected이다.
 인가 실패는 기존 404 정책, 입력/근거/참조 오류는 422, 모델 실패·결과 미확인은 503과 analysisId를 반환한다. 인증 실패는 기존 인증 계층을 따른다.
 기존 오류 DTO 형식을 유지하고 구체 오류 code는 후속 API PR에서 추가한다.

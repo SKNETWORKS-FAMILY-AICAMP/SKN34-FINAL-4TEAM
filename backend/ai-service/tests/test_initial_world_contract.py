@@ -66,7 +66,12 @@ def test_author_content_keeps_original_evidence_separate(provenance):
     edited = value['decisions'][0]['content']
     edited.update(provenance=provenance, evidence=[], text='작가가 새로 정한 설정')
     value['decisionRequest'].update(action='edit', editedCandidate=edited)
-    DecisionRequest.model_validate(value['decisionRequest'])
+    if provenance == 'author_revision':
+        DecisionRequest.model_validate(value['decisionRequest'])
+    else:
+        with pytest.raises(ValueError, match='AUTHOR_PROVENANCE'):
+            DecisionRequest.model_validate(value['decisionRequest'])
+        value['decisionRequest'].update(action='approve', editedCandidate=None)
     # 반영 검증은 별도의 후속 승인 기록을 대상으로 한다.
     Contract.model_validate(value)
     assert value['output']['candidates'][0]['evidence']
@@ -93,3 +98,74 @@ def test_application_cannot_substitute_candidate_identity():
     value['applicationRequest']['candidates'][0]['candidateId'] = forged_id
     with pytest.raises(ValueError, match='CANDIDATE_BINDING'):
         Contract.model_validate(value)
+
+
+def history_fixture():
+    value = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']
+    first = value['decisions'][0]
+    edited = copy.deepcopy(first)
+    edited.update(sequence=2, state='pending')
+    edited['content'].update(provenance='author_revision', evidence=[], text='작가 수정')
+    approved = copy.deepcopy(edited)
+    approved.update(sequence=3, state='approved')
+    # 조회 정렬 순서에 의존하지 않고 최대 순번을 선택한다.
+    value['decisions'] = [approved, *value['decisions'], edited]
+    value['analysisResponse']['decisions'] = copy.deepcopy(value['decisions'])
+    value['applicationRequest']['candidates'][0]['decisionSequence'] = 3
+    return value
+
+
+def test_same_candidate_can_have_multiple_review_records():
+    from initial_world_contract import Contract
+    Contract.model_validate(history_fixture())
+
+
+@pytest.mark.parametrize('failure', ['duplicate', 'old_approval', 'latest_held', 'response_binding'])
+def test_review_history_rejects_invalid_selection(failure):
+    from initial_world_contract import Contract
+    value = history_fixture()
+    if failure == 'duplicate':
+        value['decisions'].append(copy.deepcopy(value['decisions'][0]))
+    elif failure == 'old_approval':
+        value['applicationRequest']['candidates'][0]['decisionSequence'] = 1
+    elif failure == 'latest_held':
+        value['decisions'][0]['state'] = 'held'
+    else:
+        value['analysisResponse']['decisions'][0]['content']['localRef'] = 'forged'
+    error = {'duplicate': 'DUPLICATE', 'old_approval': 'NOT_APPROVED',
+             'latest_held': 'NOT_APPROVED', 'response_binding': 'CANDIDATE_BINDING'}[failure]
+    with pytest.raises(ValueError, match=error):
+        Contract.model_validate(value)
+
+
+def test_rule_card_is_a_valid_source_without_being_an_entity():
+    from initial_world_contract import Input
+    data = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']['input']
+    data['sources'][0]['ownerId'] = '00000000-0000-4000-8000-000000000999'
+    data['sources'][0]['sourceId'] = f"card:{data['sources'][0]['ownerId']}:body"
+    Input.model_validate(data)  # 실제 저장 카드의 소속·원문 비교는 Content에서 별도로 수행한다.
+
+
+@pytest.mark.parametrize('field,value', [
+    ('ownerId', '00000000-0000-4000-8000-000000000999'),
+    ('field', 'title'), ('sourceId', 'world:00000000-0000-4000-8000-000000000002:body'),
+])
+def test_source_identity_rejected_even_with_recomputed_input_hash(field, value):
+    from initial_world_contract import Contract, Input, input_hash
+    data = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']
+    data['input']['sources'][0][field] = value
+    with pytest.raises(ValueError, match='SOURCE_IDENTITY'):
+        parsed = Input.model_validate(data['input'])
+        data['input']['basis']['inputHash'] = input_hash(parsed)
+        data['analysisResponse']['basis'] = copy.deepcopy(data['input']['basis'])
+        Contract.model_validate(data)
+
+
+def test_world_description_source_cannot_claim_another_world():
+    from initial_world_contract import Input
+    data = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']['input']
+    source = data['sources'][0]
+    source['field'] = 'description'
+    source['sourceId'] = f"world:{source['ownerId']}:description"
+    with pytest.raises(ValueError, match='SOURCE_IDENTITY'):
+        Input.model_validate(data)

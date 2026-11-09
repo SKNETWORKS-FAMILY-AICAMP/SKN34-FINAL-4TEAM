@@ -54,6 +54,15 @@ class Input(Model):
     sources: list[Source] = Field(min_length=1)
     entities: list[Entity]
 
+    @model_validator(mode='after')
+    def source_identity(self):
+        for source in self.sources:
+            prefix = 'world' if source.field == 'description' else 'card'
+            if (source.sourceId != f'{prefix}:{source.ownerId}:{source.field}'
+                    or (prefix == 'world' and source.ownerId != self.worldId)):
+                raise ValueError('SOURCE_IDENTITY')
+        return self
+
 
 class Relation(Model):
     sourceCardId: UUID
@@ -130,11 +139,14 @@ class AnalysisResponse(Model):
         if self.output is None and (self.candidateIds or self.decisions):
             raise ValueError('OUTPUT_STATE')
         if self.output is not None:
+            unique([c.localRef for c in self.output.candidates])
             if set(self.candidateIds) != {c.localRef for c in self.output.candidates}:
                 raise ValueError('CANDIDATE_BINDING')
             unique(list(self.candidateIds.values()))
+            unique([(d.candidateId, d.sequence) for d in self.decisions])
             for d in self.decisions:
-                if self.candidateIds.get(d.candidateRef) != d.candidateId:
+                if (self.candidateIds.get(d.candidateRef) != d.candidateId
+                        or d.content.localRef != d.candidateRef):
                     raise ValueError('CANDIDATE_BINDING')
         return self
 
@@ -150,7 +162,7 @@ class DecisionRequest(Model):
     def edit_only(self):
         if (self.action == 'edit') != (self.editedCandidate is not None):
             raise ValueError('EDIT_REQUIRED')
-        if self.editedCandidate and self.editedCandidate.provenance == 'ai_extraction':
+        if self.editedCandidate and self.editedCandidate.provenance != 'author_revision':
             raise ValueError('AUTHOR_PROVENANCE')
         return self
 
@@ -241,7 +253,7 @@ class Contract(Model):
         unique([s.sourceId for s in self.input.sources])
         unique([e.cardId for e in self.input.entities])
         unique([c.localRef for c in self.output.candidates])
-        unique([d.candidateId for d in self.decisions])
+        unique([(d.candidateId, d.sequence) for d in self.decisions])
         unique([s.candidateId for s in self.applicationRequest.candidates])
         if input_hash(self.input) != self.input.basis.inputHash:
             raise ValueError('INPUT_HASH')
@@ -273,7 +285,10 @@ class Contract(Model):
                 or self.currentDraftRevision != self.input.basis.draftRevision
                 or self.currentRelationshipVersion != self.input.basis.relationshipVersion):
             raise ValueError('ANALYSIS_STALE')
-        decisions = {d.candidateId: d for d in self.decisions}
+        decisions = {}
+        for d in self.decisions:
+            if d.candidateId not in decisions or d.sequence > decisions[d.candidateId].sequence:
+                decisions[d.candidateId] = d
         originals = {c.localRef: c for c in self.output.candidates}
         for d in self.decisions:
             if (d.candidateRef not in originals or d.content.localRef != d.candidateRef
