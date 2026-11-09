@@ -28,7 +28,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect(within(screen.getByLabelText('실시간 인기 TOP10')).getAllByRole('listitem')).toHaveLength(10)
     expect(document.getElementById('sid')!.textContent).toBe('U01 홈')
     const footer = within(screen.getByRole('contentinfo'))
-    expect(footer.getByText('SKN34 최종 프로젝트 4팀 · 인터랙티브 MVP (오프라인 · AI 응답은 미리 정한 데모)')).toBeTruthy()
+    expect(footer.getByText('SKN34 최종 프로젝트 4팀')).toBeTruthy()
     expect(footer.queryByRole('button', { name: '데모 초기화' })).toBeNull()
     expect(footer.queryByRole('link', { name: '로그인' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '로그인·회원가입 메뉴' }))
