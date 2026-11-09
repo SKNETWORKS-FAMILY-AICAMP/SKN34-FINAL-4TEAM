@@ -172,6 +172,7 @@ export function ReaderPage() {
             {w.canonical && <p className="muted">{FEEDBACK_UNAVAILABLE}</p>}
             {!w.canonical && <form className="cmf" id="cmf" onSubmit={(ev) => {
               ev.preventDefault()
+              if (!vm.requireMember('comment')) return
               const input = ev.currentTarget.elements.namedItem('cmt')
               if (input instanceof HTMLInputElement) void fb.addComment(id, r.n, input.value, null).then((ok) => { if (ok) input.value = '' })
             }}>

@@ -16,10 +16,12 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const user = () => createAppStore({ role: 'user' })
 const sid = () => document.getElementById('sid')!.textContent
 const sentence = async (t: string) => (await screen.findAllByText(t)).find((el) => el.classList.contains('s'))!
-/** 비회원 시나리오: 세션 복원이 401로 끝나 비로그인 상태가 유지된다. */
-function guestSession() {
+/** 비회원 시나리오: 세션 복원이 401로 끝나 비로그인 상태가 유지된다. [canLogin]이면 로그인 요청만 성공한다. */
+function guestSession(canLogin = false) {
   vi.stubGlobal('navigator', { locks: { request: (_name: string, _options: object, callback: (lock: object) => Promise<unknown>) => callback({}) } })
-  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' }) : new Response(null, { status: 401 })))
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' })
+    : canLogin && path.endsWith('/login') ? Response.json({ accessToken: 'token', user: { id: 'reader', email: 'reader@example.invalid', nickname: '독자', operator: false } })
+      : new Response(null, { status: 401 })))
 }
 
 describe('소설 상세 (U04)', () => {
@@ -229,6 +231,59 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
     cleanup()
     renderApp('/', user())
     await screen.findByRole('link', { name: /별빛 서약의 탑 · 3화 재의 사절/ })
+  })
+})
+
+describe('비회원의 회원 전용 동작 (기능 20)', () => {
+  // 데모(메모리) 작품의 댓글·좋아요·피드백은 회원 전용이다. 비회원은 포크와 같이 로그인 안내로 가고 메모리에는 아무것도 남지 않는다.
+  const memory = () => appContainer.resolve('mockDb')
+  const snapshot = () => JSON.stringify([memory().comments, memory().cmLiked, memory().reports])
+  const prompt = async (store: ReturnType<typeof createAppStore>, message: string) => {
+    await screen.findByText(message)
+    expect(store.getState().session).toMatchObject({ role: null, next: '/read/postman/1', loginMsg: message })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  }
+
+  it('문장 팝업의 댓글·피드백은 로그인 안내로 보내고 시트도 저장도 만들지 않는다', async () => {
+    guestSession()
+    const before = snapshot()
+    const first = renderApp('/read/postman/1')
+    fireEvent.click(await sentence('“이건 어디로 가야 하지.”'))
+    fireEvent.click(screen.getByRole('button', { name: '💬 댓글 달기' }))
+    await prompt(first.store, '댓글은 로그인한 회원만 남길 수 있어요.')
+    cleanup()
+    const second = renderApp('/read/postman/1')
+    fireEvent.click(await sentence('“이건 어디로 가야 하지.”'))
+    fireEvent.click(screen.getByRole('button', { name: '✉ 피드백 보내기' }))
+    await prompt(second.store, '피드백은 로그인한 회원만 보낼 수 있어요.')
+    expect(snapshot()).toBe(before)
+  })
+
+  it('댓글 입력과 댓글 좋아요도 로그인 안내로 보내고 저장하지 않는다', async () => {
+    guestSession()
+    const before = snapshot()
+    const first = renderApp('/read/postman/1')
+    fireEvent.change(await screen.findByLabelText('댓글 입력'), { target: { value: '비회원 댓글' } })
+    fireEvent.click(screen.getByRole('button', { name: '등록' }))
+    await prompt(first.store, '댓글은 로그인한 회원만 남길 수 있어요.')
+    cleanup()
+    const second = renderApp('/read/postman/1')
+    fireEvent.click((await screen.findAllByRole('button', { name: /^[♡♥] \d+$/ }))[0])
+    await prompt(second.store, '댓글 좋아요는 로그인한 회원만 누를 수 있어요.')
+    expect(snapshot()).toBe(before)
+  })
+
+  it('로그인하면 원래 회차로 돌아온다', async () => {
+    guestSession(true)
+    const { store } = renderApp('/read/postman/1')
+    fireEvent.click(await sentence('“이건 어디로 가야 하지.”'))
+    fireEvent.click(screen.getByRole('button', { name: '💬 댓글 달기' }))
+    await screen.findByText('댓글은 로그인한 회원만 남길 수 있어요.')
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'reader@example.invalid' } })
+    fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'test-password' } })
+    fireEvent.click(screen.getByRole('button', { name: '로그인' }))
+    await screen.findByRole('heading', { name: '수취인 불명' })
+    expect(store.getState().session.role).toBe('user')
   })
 })
 
