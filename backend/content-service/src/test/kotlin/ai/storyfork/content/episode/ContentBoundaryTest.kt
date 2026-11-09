@@ -90,7 +90,7 @@ class ContentBoundaryTest {
             }
         }
         // Development samples are an ordinary migration in the same global order (sample/V16).
-        assertEquals((1..17).toList(), versions.sorted())
+        assertEquals((1..16).toList(), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

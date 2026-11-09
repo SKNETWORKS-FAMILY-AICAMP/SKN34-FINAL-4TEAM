@@ -63,6 +63,18 @@ WorldStudio는 기능 플래그 없이 항상 켜져 있다. Content 서버 시�
 
 로컬은 선택 순수 단위·설정 계약·Compose `config --quiet`만 확인한다. Content HTTP/PG/Neo4j 및 React/Hook 통합 회귀는 CI 소스에 두고 격리 자원으로 실행한다. 실제 Core 로그인·nginx를 통과한 Studio HTTP 시스템 시나리오는 추가하지 않았다. hosted `Required CI`·브라우저·실제 이관·배포는 별도 대기이며 관계 이력·시점 복원 기능표는 ❌로 유지한다.
 
+## 플랫폼 장르 템플릿 세계관
+
+장르별 예시 템플릿 11개(카드 248장, [안내](../../infrastructure/sample-data/genre-templates/README.md))는 플랫폼 제공 콘텐츠로, 관리자 계정 `STORYFORK`(회원 UUID `b09cdf87-6901-50df-9c76-881c81f4f034`, Core `auth/V11`, `operator=true`, 로그인 불가 해시)가 소유하는 **WorldStudio 독립 세계관으로만** 둔다. 작품·회차·체크포인트로는 넣지 않으며 사용자 샘플 CSV와 섞지 않는다.
+
+- **적재 경로:** WorldStudio 읽기는 Neo4j 현재 상태 노드가 필요해 SQL로 넣을 수 없다. Content 서버 시작(`ApplicationReadyEvent`) 때 `GenreTemplateSeeder`가 classpath `genre-templates.json`을 읽어 기존 `WorldStudioService`의 create → edit(`expectedDraftRevision=0`) → save를 STORYFORK subject로 호출한다. 별도 쓰기 경로나 Neo4j 직접 쓰기는 없다.
+- **멱등:** 세계관 ID는 장르별 고정, edit·save key는 `genre-template-<장르>`다. 저장까지 끝난 세계관(`currentRevisionId`가 있음)은 건너뛴다. save가 draft revision을 올려 같은 edit의 중복 판정이 `WORLD_CONFLICT`로 바뀌기 때문이다. 앞선 edit가 미완료(`RELATIONSHIP_WRITE_INCOMPLETE`)로 남은 세계관은 create가 같은 코드로 거절하므로 이를 무시하고 같은 요청으로 edit를 재시도한다.
+- **실패:** Neo4j·PG 장애 등 장르별 실패는 장르·예외 클래스·메시지만 `error`로 남기고 다음 장르와 서버 기동을 계속한다. 다음 시작 때 같은 방식으로 다시 시도한다. `genre-templates.json`을 읽지 못해도 `error`만 남기고 기동하며 그 시작에서는 적재하지 않는다.
+- **한계(PG만 초기화):** PostgreSQL만 초기화하고 Neo4j 데이터가 남으면 고정 worldId의 create가 graph mismatch(`RELATIONSHIP_VERSION_MISMATCH`)로 실패해 해당 장르가 재시작마다 오류 로그만 남기고 적재되지 않는다. 둘을 함께 초기화해야 한다. CI처럼 여러 PG가 Neo4j 하나를 공유하면 컨텍스트마다 오류 로그가 나오지만 테스트는 깨지지 않는다.
+- **내용 변경:** 저장된 세계관은 내용 비교 없이 건너뛴다. 같은 key로 입력이 바뀌면 hash 충돌이고 새 key만으로는 낡은 expected revision으로 거절된다. 내용을 바꾸려면 새 세계관 ID와 새 카드 ID(카드 ID는 세계관 사이에서도 유일)의 새 항목을 추가한다.
+- **기존 정책과의 관계:** 카드는 DEC-36의 기본값인 비공개로 둔다. 후속 "가져오기"는 [요구사항 F-WLD-01](../requirements.md#f-wld-01)·[유스케이스 6.2](../usecase.md)의 "장르 기본 세계관을 복사해 시작"(원본 관계 없는 새 세계관)이며, 작품 Fork와 무관한 타인 세계관의 직접 이용(DEC-35)은 MVP 제외다.
+- **후속(미구현):** 목록은 소유자 전용이라 STORYFORK만 볼 수 있다. 공개/비공개 설정, 다른 사용자의 템플릿 가져오기, Fork 연계는 이번 범위 밖이다. 서버 시작 적재는 로컬 단위(서비스 대역)로만 확인했고 실제 PG·Neo4j 실행은 CI·개발 환경 확인 대기다.
+
 ## 기준
 
 초기 세계관은 작품과 회차가 없어도 생성·편집·확정 저장할 수 있다. WorldStudio가 자신의 논리 식별자·초안·불변 버전·확정 묶음을 소유한다. 기존 Content 테이블과 migration 순서에 의존하지 않는다.
