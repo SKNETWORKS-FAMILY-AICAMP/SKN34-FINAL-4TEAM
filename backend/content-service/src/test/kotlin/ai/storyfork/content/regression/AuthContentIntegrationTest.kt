@@ -99,6 +99,33 @@ class AuthContentIntegrationTest {
         assertEquals(401,send(request("/api/v1/works/${work.id}/world").header("X-User-Id",owner)).statusCode())
     }
 
+    @Test fun `author name is the owner Core nickname on public and owner reads and author search matches it`() {
+        val owner=actor()
+        val work=works.create(owner.toString(),CreateWorkRequest("작가명 조회 검증"))
+        val saved=versions.saveCurrent(work.id,owner.toString(),DraftRequest("1화","published body",work.revision))
+        publication.publishCurrent(work.id,owner.toString(),PublishRequest(saved.draft.revision,true,versionId=saved.version.id))
+        // Core 대역: 이 소유자만 알고 나머지는 Core에 없는(탈퇴한) 회원이다.
+        val nickname="작가-${owner.toString().take(8)}"
+        `when`(nicknames.nicknames(org.mockito.ArgumentMatchers.anyCollection<String>())).thenAnswer {call ->
+            (call.arguments[0] as Collection<*>).map {it as String}.filter {it==owner.toString()}.associateWith {nickname}
+        }
+        fun author(response:HttpResponse<String>):String {
+            assertEquals(200,response.statusCode(),response.body())
+            return json.readTree(response.body()).path("authorName").asString()
+        }
+        assertEquals(nickname,author(send(request("/api/v1/public/works/${work.id}"))))
+        assertEquals(nickname,author(send(request("/api/v1/works/${work.id}").header("Authorization","Bearer $owner"))))
+        for(path in listOf("/api/v1/public/works","/api/v1/works")) {
+            val response=send(request(path+if(path.startsWith("/api/v1/public")) "?f=author&q="+java.net.URLEncoder.encode(nickname,Charsets.UTF_8) else "").header("Authorization","Bearer $owner"))
+            assertEquals(200,response.statusCode(),response.body())
+            val mine=json.readTree(response.body()).toList().filter {it.path("id").asString()==work.id}
+            assertEquals(listOf(nickname),mine.map {it.path("authorName").asString()},path)
+        }
+        // Core에 없는 소유자는 임의 이름이 아니라 탈퇴한 회원으로 보인다.
+        val unknown=works.create("legacy-owner",CreateWorkRequest("Core에 없는 소유자"))
+        assertEquals("탈퇴한 회원",works.read(unknown.id,"legacy-owner").authorName)
+    }
+
     @Test fun `only public GET is anonymous and private writes require csrf and allowed origin`() {
         assertEquals(200,send(request("/api/v1/public/works")).statusCode())
         assertEquals(401,send(request("/api/v1/works").header("X-User-Id","forged-owner")).statusCode())

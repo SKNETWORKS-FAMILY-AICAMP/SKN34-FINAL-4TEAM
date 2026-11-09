@@ -1,12 +1,13 @@
 import { expect, it } from 'vitest'
 
 import { createFixtureDb } from '../../data/mock/fixtureDb'
-import { InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { LibraryUseCase } from '../usecases/LibraryUseCase'
 
 const setup = () => {
   const db = createFixtureDb()
-  return { db, useCase: new LibraryUseCase(new InMemoryWorkRepository(db), new InMemoryWorldRepository(db), new InMemoryReadingRepository(db), new InMemoryFeedbackRepository(db), new InMemoryReadingRecordRepository(db)) }
+  return { db, useCase: new LibraryUseCase(new InMemoryWorkRepository(db), new InMemoryWorldRepository(db), new InMemoryFeedbackRepository(db), new InMemoryWorkInterestRepository(), new InMemoryReadingRecordRepository(db)) }
 }
 
 // #30: 목업(메모리 저장소)에서도 UseCase가 소유권·공개 범위 불변식을 직접 지킨다.

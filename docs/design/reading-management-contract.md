@@ -19,8 +19,9 @@
 
 ## 저장 (Content Flyway)
 
-각 PR은 `db/migration/work/` 아래에 develop 최댓값 다음 번호 **V17**을 쓴다(현재 develop 최댓값 V16). 열린 PR #221·#228도 V17을 쓰므로
+각 PR은 `db/migration/work/` 아래에 develop 최댓값 다음 번호를 쓴다(계약 작성 때 **V17**, 최댓값 V16). 열린 PR들이 같은 번호를 쓰므로
 나중에 병합되는 PR이 내용 불변으로 다음 번호로 바꾸고 마이그레이션 수 기대값을 함께 올린다(번호를 미리 건너뛰면 연속 버전 단언이 실패한다).
+21-B는 먼저 병합된 댓글(V17)·좋아요(V18) 뒤로 밀려 현재 `V19__work_interest.sql`이다. 21-C는 좋아요(V18)·관심 작품(V19) 뒤로 밀려 `V20__reading_record.sql`이다.
 
 | PR | 테이블 | 핵심 제약 |
 |---|---|---|
@@ -52,12 +53,15 @@
   `X-Content-Service-Token`만 허용한다(`/internal/v1/auth/verify`와 같은 신뢰 판정, `InternalAuthSecurityConfig`). Content는 응답 하나를 만들 때 소유자 ID를 모아 **한 번만** 호출한다(N+1 금지).
 - **21-B — 사건 `content.episode.published`**: Content가 공개 작품의 회차를 발행하면 같은 트랜잭션에서 관심 등록한 회원마다(작가 본인 제외) `content_event_outbox`에 한 행을 쓰고,
   스케줄 발행기가 [알림 사건 계약](../notification-event-contract.md) 형식(`target.type = "work"`, `target.id = 작품 id`)으로 `storyfork.events`에 보낸 뒤 `published_at`을 채운다.
+  처음 발행하는 **새 회차**만 사건이 되고(UC-01 A7), 이미 발행한 회차의 재발행·체크포인트 되돌리기와 공개가 아닌(비공개·제한) 작품의 발행은 보내지 않는다.
   Core는 `NoticeEventType`에 `EPISODE_PUBLISHED("content.episode.published", READING, "관심 작품에 새 회차가 올라왔어요", "work")`를 추가한다.
   Content에 `spring-boot-starter-amqp`(Core가 이미 쓰는 의존성)와 compose RabbitMQ 연결 설정을 추가한다.
 
 ## Frontend
 
-- 20: 기존 Http 저장소·화면을 점검만 하고 필요한 곳만 고친다.
+- 20: 기존 Http 저장소·화면을 점검하고 빈 곳만 고친다. `/read/:id`·`/read/:id/:n`의 로그인 가드를 풀어 비회원도 공개 회차를 읽게 하고(UC-01, 세션 복원이 끝난 뒤 열기),
+  포크 등 회원 전용 동작은 해당 화면의 로그인 안내를 그대로 두고, 데모 작품 회차 화면의 댓글·댓글 좋아요·피드백도 비회원이 누르면 로그인 안내로 보낸다. 서버 작품의 작품 상세(최신 공개 회차 기준 카드)와 회차 화면(그 회차 기준 시트, 화면 ID U44)에
+  `readWorld`가 채운 `Work.wiki`(서버가 기준 회차까지 공개한 설정만 준다)를 읽기 전용 패널로 보여 주고, 비어 있으면 "공개된 설정이 없어요"를 보인다. 새 API·서버 변경은 없다.
 - 21-A: `toggleLike`·작품 상세 `liked`·좋아요 수를 서버로. `ReadingProgress.liked` 필드는 서재가 아직 쓰므로 21-A는 지우지 않는다.
 - 21-B: 작품 화면 관심 등록 버튼(로그인 회원만 활성, 비회원은 로그인 안내), `LibraryUseCase.getRead().liked`를 관심 목록 기준으로 바꾼다. 21-B가 서재에서 `progress.liked` 사용을 없앤다.
 - 21-C: `ReadingUseCase`의 `last`·`read`(홈 이어 읽기, 작품 읽음 표시, 회차 열기 기록)와 서재 `recent`를 서버 기록으로. 서재 읽는 중 목록에 기록 삭제 버튼. `seen`은 메모리 그대로 둔다.
@@ -73,7 +77,7 @@
 
 ## 21-C 구현 메모 (독서 기록)
 
-- **Content**: `ai.storyfork.content.reading`(`ReadingService`)이 `work/V18__reading_record.sql`의 두 테이블을 맡는다(develop의 V17 회차 댓글이 먼저 병합돼 한 칸 밀렸고, 21-A·21-B와 겹치면 나중에 병합되는 쪽이 다시 민다). nativeQuery 없이 처리하므로 쓰기는 서비스 트랜잭션 없이 저장소 호출마다 독립 트랜잭션이고,
+- **Content**: `ai.storyfork.content.reading`(`ReadingService`)이 `work/V20__reading_record.sql`의 두 테이블을 맡는다(develop의 V17 회차 댓글·V18 좋아요·V19 관심 작품이 먼저 병합돼 V20이 됐다. 이후 병합되는 PR이 있으면 다시 민다). nativeQuery 없이 처리하므로 쓰기는 서비스 트랜잭션 없이 저장소 호출마다 독립 트랜잭션이고,
   위치의 첫 행이 겹치면 한 번 더 시도해 갱신하며 연 회차의 중복은 무시한다. 삭제는 작품 공개 여부와 무관하게 본인 행만 지운다.
 - **Frontend**: 새 `ReadingRecordRepository`(`list`·`record`·`remove`)를 실서비스는 `HttpReadingRecordRepository`, 목업·테스트는 `mockDb.progress`를 정본으로 쓰는 `InMemoryReadingRecordRepository`로 등록한다.
   `ReadingUseCase`는 로그인 회원(`role`)일 때만 기록을 읽고 쓰며(비회원은 호출하지 않음), 작가가 자기 비공개 작품을 미리 읽을 때는 서버가 404로 거절하므로 기록하지 않는다.

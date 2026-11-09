@@ -16,6 +16,7 @@ import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
 import ai.storyfork.content.world.entity.*
 import ai.storyfork.content.world.repository.*
 import ai.storyfork.content.work.domain.*
+import ai.storyfork.content.like.service.WorkLikeService
 import org.springframework.dao.DataIntegrityViolationException
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
@@ -43,21 +44,24 @@ class WorkService(
     private val proposals: ai.storyfork.content.proposal.service.ProposalService,
     private val viewService: WorkViewService,
     private val nicknames: CoreNicknameService,
+    private val likeService: WorkLikeService,
 ) {
 
     fun list(owner: String): WorkListResponse {
         val rows=works.findAllByOwnerIdOrderByCreatedAtDesc(owner)
+        // 목록의 소유자는 모두 owner다. 잠금(원작 행 포함)을 쥔 채 Core를 기다리지 않도록 닉네임은 잠금 전에 한 번 조회한다. 작품이 없으면 부르지 않는다.
+        val name=rows.firstOrNull()?.let {nicknames.nicknames(listOf(owner))[owner]} ?: WITHDRAWN_MEMBER_NAME
         access.lockScopes(rows.map {it.id})
-        return WorkListResponse(views(rows.map {access.own(it.id,owner)}))
+        return WorkListResponse(rows.map {view(access.own(it.id,owner),false,name)})
     }
     /** 공개 작품 목록이다. q·f·sort를 모두 생략하면 기존처럼 작품 생성 최신순이며, 잘못된 f·sort는 422다. */
     fun publicList(q: String?,f: String?,sort: String?): WorkListResponse {
         val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort")
         val counts=viewService.counts()
         val found=publicWorks(counts).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)}
-        if(order==WorkSort.LATEST) return WorkListResponse(found)
+        if(order==WorkSort.LATEST) return WorkListResponse(withLikes(found))
         val byId=found.associateBy {it.id}
-        return WorkListResponse(orderByViews(found.map {it.id},counts).map {byId.getValue(it)})
+        return WorkListResponse(withLikes(orderByViews(found.map {it.id},counts).map {byId.getValue(it)}))
     }
     /**
      * 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 잘못된 kind는 422다.
@@ -69,13 +73,15 @@ class WorkService(
         val visible=works.findAllById(counts.keys).sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()}
         val byId=visible.associateBy {it.id}
         val ranked=rankingIds(rankingKind,visible.map {it.id},counts).map {byId.getValue(it)}
-        return WorkListResponse(views(ranked,true).map {it.copy(views=counts.getValue(it.id).recent)})
+        return WorkListResponse(withLikes(views(ranked,true).map {it.copy(views=counts.getValue(it.id).recent)}))
     }
     private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> =
         views(works.findAll().sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()},true)
             .map {it.copy(views=counts[it.id]?.recent ?: 0)}
     fun read(id: String,owner: String): WorkResponse = views(listOf(access.own(id,owner))).single()
-    fun publicRead(id: String): WorkResponse = views(listOf(access.published(id)),true).single()
+    /** 공개 상세다. [member]가 있으면(Bearer가 온 요청) 그 회원의 좋아요 여부(liked)를 채우고 익명은 false다. */
+    fun publicRead(id: String,member: String? = null): WorkResponse =
+        views(listOf(access.published(id)),true).single().copy(likes=likeService.counts(listOf(id))[id] ?: 0,liked=member!=null && likeService.liked(id,member))
     /** 공개 작품의 발행 회차(본문 포함)다. 작가명이 필요 없는 내부 호출(표지·이미지 공개 열람)이 Core 조회 없이 공개 여부와 본문을 확인한다. 비공개·제한 작품은 404다. */
     fun publicEpisodes(id: String): List<PublishedEpisodeResponse> {
         access.published(id)
@@ -161,7 +167,16 @@ class WorkService(
         return HistoryResponse(versions.history(id).items,proposals.history(id,owner).items,
             policies.findAllByWorkIdOrderByRevisionNo(id).map {PolicyResponse(it.allowCreation,it.allowPublication,it.changedAt.toString())},publication.history(id).items)
     }
-    /** 작가명은 소유자의 Core 최신 닉네임이다. 소유자 ID를 모아 한 번만 조회하고, Core에 없는 소유자는 탈퇴한 회원으로 보인다. */
+    /** 공개 목록 응답에 좋아요 수를 채운다. 작품 id 묶음으로 한 번에 세어 작품마다 조회하지 않는다. */
+    private fun withLikes(items: List<WorkResponse>): List<WorkResponse> {
+        val counts=likeService.counts(items.map {it.id})
+        return items.map {it.copy(likes=counts[it.id] ?: 0)}
+    }
+    /**
+     * 작가명은 소유자의 Core 최신 닉네임이다. 소유자 ID를 모아 한 번만 조회하고, Core에 없는 소유자는 탈퇴한 회원으로 보인다.
+     * ponytail: 트랜잭션 안에서 Core를 부른다(시연 규모). 목록(list)은 잠금 전에 부르지만 단건 경로(read·생성·수정·정책·분기)는 잠금을 쥔 채 Core를 1회 부른다(최대 약 4초: 연결 1s + 읽기 3s).
+     * Core 지연이 커지면 단건 경로도 잠금 전에 부르거나 조회를 마친 뒤 트랜잭션 밖에서 채운다.
+     */
     private fun views(ws: List<WorkAccessResult>,public: Boolean = false): List<WorkResponse> {
         val names=nicknames.nicknames(ws.map {it.ownerId})
         return ws.map {view(it,public,names[it.ownerId] ?: WITHDRAWN_MEMBER_NAME)}

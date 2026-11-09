@@ -2,6 +2,8 @@ import type { Work as ContentWork } from '../entities/content'
 import { splitSentences } from '../entities/feedback'
 import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
+import { SessionExpired } from '../repositories/ProfileRepository'
+import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import type { WorkSearchRepository } from '../repositories/WorkSearchRepository'
 
@@ -22,11 +24,14 @@ export class ReadingUseCase {
   private readonly readingRecordRepository: ReadingRecordRepository
   /** 있으면 홈 순위·검색을 서버(Content 공개 API)로 채웁니다. 없으면(목업) 메모리 데모입니다. */
   private readonly workSearchRepository?: WorkSearchRepository
-  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, readingRecordRepository: ReadingRecordRepository, workSearchRepository?: WorkSearchRepository) {
+  /** 있으면 서버 작품(canonical)의 좋아요를 Content로 보냅니다. 없으면(목업) 메모리 데모입니다. */
+  private readonly workLikeRepository?: WorkLikeRepository
+  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, readingRecordRepository: ReadingRecordRepository, workSearchRepository?: WorkSearchRepository, workLikeRepository?: WorkLikeRepository) {
     this.workRepository = workRepository
     this.readingRepository = readingRepository
     this.readingRecordRepository = readingRecordRepository
     this.workSearchRepository = workSearchRepository
+    this.workLikeRepository = workLikeRepository
   }
 
   /** 로그인 회원의 서버 독서 기록(최근 순). 비회원은 기록이 없고(서버를 부르지 않음), 읽지 못하면 빈 기록으로 숨기지 않고 던집니다. */
@@ -100,6 +105,20 @@ export class ReadingUseCase {
     return { works, worlds, progress, w: works.find((x) => x.id === id || x.slug === id) }
   }
 
+  /**
+   * 좋아요 수와 내 좋아요 여부. 서버 작품(canonical)은 목록의 공개 수를 쓰되, 내 여부는 로그인 회원만 서버에 묻습니다.
+   * 익명·공개가 아니라는 답(null: 소유자가 여는 비공개·운영 제한 작품)·만료된 세션은 안 누른 상태로 열고 그 밖의 조회 실패는 던집니다.
+   * 데모 작품은 메모리 진행 기록이며 시드 수에 내 좋아요 1을 더합니다.
+   */
+  private async likeStateOf(work: Pick<Work, 'id' | 'likes' | 'canonical'>, role: Role, memoryLiked: boolean): Promise<WorkLikeState> {
+    const repo = this.workLikeRepository
+    if (!repo || !work.canonical) return { likes: work.likes + (memoryLiked ? 1 : 0), liked: memoryLiked }
+    const unliked = { likes: work.likes, liked: false }
+    if (!role) return unliked
+    const read = await repo.read(work.id).catch((error: unknown) => { if (error instanceof SessionExpired) return null; throw error })
+    return read ?? unliked
+  }
+
   /** 목업 work(): 볼 수 없는 작품이면 null (unavailableWork) */
   async getWork(id: string, role: Role) {
     const { works, worlds, progress, w: loaded } = await this.load(id)
@@ -107,13 +126,16 @@ export class ReadingUseCase {
     const [w, records] = await Promise.all([this.workRepository.readWorld(loaded,epsOf(loaded).length), this.memberRecords(role)])
     const record = records.find((r) => r.workId === w.id)
     const forks = forksOf(works, w.id)
+    const like = await this.likeStateOf(w, role, !!progress.liked[w.id])
     return {
       work: w,
       parent: works.find((x) => x.id === w.parent),
       visible: epsOf(w).map((e, i) => [e, i] as const).filter(([e]) => visibleEpisode(w, e, role)),
       last: record?.lastEpisode,
       read: record?.readEpisodes ?? [],
-      liked: !!progress.liked[w.id],
+      liked: like.liked,
+      /** 화면에 보일 좋아요 수(서버 작품은 서버 값, 데모 작품은 시드 수 + 내 좋아요) */
+      likes: like.likes,
       forks,
       forkList: forkList(w, worlds),
       topForks: forks.slice().sort(sorter('pop')),
@@ -155,7 +177,13 @@ export class ReadingUseCase {
     }
   }
 
-  async toggleLike(id: string) {
+  /**
+   * 좋아요를 토글해 새 상태(true: 눌림)를 돌려줍니다. 화면이 보여 준 상태(`shown`)가 서버 작품이면 그 반대를 Content에 보내
+   * 서버가 확정한 상태를 돌려주고 실패는 던집니다(성공으로 숨기지 않음). 그 밖의 데모 작품은 메모리 진행 기록을 뒤집습니다.
+   */
+  async toggleLike(id: string, shown?: { canonical?: boolean; liked: boolean }) {
+    const repo = this.workLikeRepository
+    if (repo && shown?.canonical) return (await (shown.liked ? repo.unlike(id) : repo.like(id))).liked
     const progress = await this.readingRepository.getProgress()
     progress.liked[id] = !progress.liked[id]
     await this.readingRepository.saveProgress(progress)

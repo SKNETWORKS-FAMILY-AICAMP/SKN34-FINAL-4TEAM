@@ -10,3 +10,6 @@
 .media-cover .stored-image { max-height: 240px; }
 .media-message { white-space: normal; overflow-wrap: anywhere; }
 .manuscript-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; }
+.media-rename { margin-block-start: 12px; }
+.media-rename-row { display: flex; align-items: center; gap: 6px; max-width: 420px; }
+.media-rename-row .inp { min-width: 0; }

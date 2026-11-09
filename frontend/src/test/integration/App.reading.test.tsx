@@ -11,6 +11,7 @@ import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 import type { CommentSort, EpisodeComment } from '../../domain/entities/episodeComment'
 import type { Sentence } from '../../domain/entities/feedback'
+import { WCATS, type Doc } from '../../domain/entities/wiki'
 import type { EpisodeCommentRepository } from '../../domain/repositories/EpisodeCommentRepository'
 import { EpisodeCommentUseCase } from '../../domain/usecases/EpisodeCommentUseCase'
 import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
@@ -23,6 +24,13 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const user = () => createAppStore({ role: 'user' })
 const sid = () => document.getElementById('sid')!.textContent
 const sentence = async (t: string) => (await screen.findAllByText(t)).find((el) => el.classList.contains('s'))!
+/** 비회원 시나리오: 세션 복원이 401로 끝나 비로그인 상태가 유지된다. [canLogin]이면 로그인 요청만 성공한다. */
+function guestSession(canLogin = false) {
+  vi.stubGlobal('navigator', { locks: { request: (_name: string, _options: object, callback: (lock: object) => Promise<unknown>) => callback({}) } })
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' })
+    : canLogin && path.endsWith('/login') ? Response.json({ accessToken: 'token', user: { id: 'reader', email: 'reader@example.invalid', nickname: '독자', operator: false } })
+      : new Response(null, { status: 401 })))
+}
 
 describe('소설 상세 (U04)', () => {
   it('없는 작품은 목업 unavailableWork 화면을 보여 준다', async () => {
@@ -60,7 +68,7 @@ describe('소설 상세 (U04)', () => {
     expect(list()).toEqual(['4', '3', '2', '1'])
     fireEvent.click(screen.getByRole('button', { name: '관심 소설' }))
     await waitFor(() => expect(screen.getByRole('button', { name: '관심 소설' }).getAttribute('aria-pressed')).toBe('true'))
-    expect(screen.getByRole('status').textContent).toBe('이 창의 관심 소설에 담았어요 · 계정에 저장되지 않아요')
+    expect(screen.getByRole('status').textContent).toBe('이 창에서만 좋아요를 눌렀어요 · 계정에 저장되지 않아요')
     expect(document.getElementById('lkc')!.textContent).toBe('1.2만')
     fireEvent.click(screen.getByRole('button', { name: '공유' }))
     expect(screen.getByRole('status').textContent).toBe('링크 공유는 데모예요 (실제 복사 없음)')
@@ -126,20 +134,45 @@ describe('소설 상세 (U04)', () => {
 })
 
 describe('회차 뷰어 (U05·U07·U08)', () => {
-  it('비로그인으로 열면 로그인 안내 후 원래 회차로 돌아온다', async () => {
-    vi.stubGlobal('navigator', { locks: { request: (_name: string, _options: object, callback: (lock: object) => Promise<unknown>) => callback({}) } })
-    const fetch = vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' })
-      : path.endsWith('/refresh') ? new Response(null, { status: 401 })
-        : Response.json({ accessToken: 'token', user: { id: 'reader', email: 'reader@example.invalid', nickname: '독자', operator: false } }))
-    vi.stubGlobal('fetch', fetch)
+  it('비회원도 로그인 없이 공개 회차를 읽는다 (UC-01)', async () => {
+    guestSession()
     const { store } = renderApp('/read/guunmong/2')
-    await screen.findByText('소설을 읽으려면 로그인해 주세요.')
-    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'reader@example.invalid' } })
-    fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'test-password' } })
-    fireEvent.click(screen.getByRole('button', { name: '로그인' }))
     await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
-    expect(store.getState().session.role).toBe('user')
-    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/login', expect.objectContaining({ body: JSON.stringify({ email: 'reader@example.invalid', password: 'test-password' }) }))
+    expect(screen.queryByText('소설을 읽으려면 로그인해 주세요.')).toBeNull()
+    expect(store.getState().session).toMatchObject({ role: null, next: null })
+    screen.getByRole('link', { name: '‹ 이전 화' })
+    fireEvent.click(screen.getByRole('link', { name: '다음 화 ›' }))
+    await screen.findByRole('heading', { name: '인간 세상으로' })
+    expect(store.getState().session.role).toBeNull()
+  })
+
+  it('비회원의 열람은 서버 조회 기록을 보내지 않고, 회원의 열람만 보낸다', async () => {
+    const works = appContainer.resolve('mockDb').works
+    for (const work of works) work.canonical = true
+    try {
+      guestSession()
+      renderApp('/read/guunmong/2')
+      await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
+      const record = appContainer.resolve('workSearchRepository').recordView
+      expect(record).not.toHaveBeenCalled()
+      cleanup()
+      // 회원 시나리오는 세션 복원 401 대역을 걷어 내야 한다(401이면 복원이 로그아웃시킨다).
+      vi.unstubAllGlobals()
+      renderApp('/read/guunmong/2', user())
+      await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
+      expect(record).toHaveBeenCalledWith('guunmong', 2)
+    } finally {
+      cleanup()
+      for (const work of works) delete work.canonical
+    }
+  })
+
+  it('비회원이 포크하려 하면 읽기는 그대로 두고 포크 화면에서만 로그인 안내를 받는다', async () => {
+    guestSession()
+    const { store } = renderApp('/read/guunmong/2')
+    fireEvent.click(await screen.findByRole('link', { name: '✎ 2화에서 포크하기' }))
+    await screen.findByText('로그인이 필요한 화면이에요.')
+    expect(store.getState().session).toMatchObject({ role: null, next: '/writing-policy?method=fork' })
   })
 
   it('작가의 말은 본문 뒤에 있고 감정 반응 없이 댓글 좋아요만 있다', async () => {
@@ -222,6 +255,59 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
   })
 })
 
+describe('비회원의 회원 전용 동작 (기능 20)', () => {
+  // 데모(메모리) 작품의 댓글·좋아요·피드백은 회원 전용이다. 비회원은 포크와 같이 로그인 안내로 가고 메모리에는 아무것도 남지 않는다.
+  const memory = () => appContainer.resolve('mockDb')
+  const snapshot = () => JSON.stringify([memory().comments, memory().cmLiked, memory().reports])
+  const prompt = async (store: ReturnType<typeof createAppStore>, message: string) => {
+    await screen.findByText(message)
+    expect(store.getState().session).toMatchObject({ role: null, next: '/read/postman/1', loginMsg: message })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  }
+
+  it('문장 팝업의 댓글·피드백은 로그인 안내로 보내고 시트도 저장도 만들지 않는다', async () => {
+    guestSession()
+    const before = snapshot()
+    const first = renderApp('/read/postman/1')
+    fireEvent.click(await sentence('“이건 어디로 가야 하지.”'))
+    fireEvent.click(screen.getByRole('button', { name: '💬 댓글 달기' }))
+    await prompt(first.store, '댓글은 로그인한 회원만 남길 수 있어요.')
+    cleanup()
+    const second = renderApp('/read/postman/1')
+    fireEvent.click(await sentence('“이건 어디로 가야 하지.”'))
+    fireEvent.click(screen.getByRole('button', { name: '✉ 피드백 보내기' }))
+    await prompt(second.store, '피드백은 로그인한 회원만 보낼 수 있어요.')
+    expect(snapshot()).toBe(before)
+  })
+
+  it('댓글 입력과 댓글 좋아요도 로그인 안내로 보내고 저장하지 않는다', async () => {
+    guestSession()
+    const before = snapshot()
+    const first = renderApp('/read/postman/1')
+    fireEvent.change(await screen.findByLabelText('댓글 입력'), { target: { value: '비회원 댓글' } })
+    fireEvent.click(screen.getByRole('button', { name: '등록' }))
+    await prompt(first.store, '댓글은 로그인한 회원만 남길 수 있어요.')
+    cleanup()
+    const second = renderApp('/read/postman/1')
+    fireEvent.click((await screen.findAllByRole('button', { name: /^[♡♥] \d+$/ }))[0])
+    await prompt(second.store, '댓글 좋아요는 로그인한 회원만 누를 수 있어요.')
+    expect(snapshot()).toBe(before)
+  })
+
+  it('로그인하면 원래 회차로 돌아온다', async () => {
+    guestSession(true)
+    const { store } = renderApp('/read/postman/1')
+    fireEvent.click(await sentence('“이건 어디로 가야 하지.”'))
+    fireEvent.click(screen.getByRole('button', { name: '💬 댓글 달기' }))
+    await screen.findByText('댓글은 로그인한 회원만 남길 수 있어요.')
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'reader@example.invalid' } })
+    fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'test-password' } })
+    fireEvent.click(screen.getByRole('button', { name: '로그인' }))
+    await screen.findByRole('heading', { name: '수취인 불명' })
+    expect(store.getState().session.role).toBe('user')
+  })
+})
+
 describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
   it('does not present canonical placeholders as rankings or editable sentence actions', async () => {
     const works = appContainer.resolve('mockDb').works
@@ -233,7 +319,9 @@ describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
       renderApp('/work/guunmong')
       await screen.findByRole('heading', { name: '구운몽' })
       expect(document.querySelector('.ifs .md')).toBeNull()
-      expect(document.getElementById('lkc')).toBeNull()
+      // 좋아요 수는 서버 값이라 보이지만, 서버에 없는 조회·댓글 지표는 자리표시로 그리지 않는다.
+      expect(document.getElementById('lkc')).not.toBeNull()
+      expect(document.querySelector('.stats')!.textContent).not.toMatch(/👁|💬/)
       cleanup()
       renderApp('/read/guunmong/2', user())
       await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
@@ -252,6 +340,83 @@ describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
       appContainer.register({ readingUseCase: asValue(searchedUseCase), episodeCommentUseCase: asValue(commentUseCase) })
       for (const work of works) { delete work.canonical; delete work.statisticsSupported }
     }
+  })
+})
+
+/** 서버가 기준 회차까지 공개한 설정만 준다는 계약을 메모리 저장소로 흉내 낸다. 각 항목은 [공개되는 첫 회차, 문서]다. */
+const doc = (id: string, cat: string, t: string, extra: Partial<Doc> = {}): Doc => ({ id, cat, t, alias: [], tags: [], props: {}, at: {}, body: '', ...extra })
+const scoped: [number, Doc][] = [
+  [1, doc('seongjin', 'char', '성진', { body: '연화봉의 젊은 승려', props: { 나이: '20' } })],
+  [1, doc('lotus', 'place', '연화봉', { body: '육관대사의 도량이 있는 봉우리' })],
+  [2, doc('bridge', 'place', '돌다리', { body: '성진이 팔선녀를 만난 좁은 다리' })],
+  [3, doc('banish', 'event', '스승의 벌', { ep: 3, line: 'm', who: ['성진'] })],
+]
+
+/** 시드 작품을 정본(서버) 작품처럼 보이게 하고 readWorld가 기준 회차까지 공개된 문서만 돌려주게 한다. 되돌리는 함수를 돌려준다. */
+function servePublicWiki(docs: [number, Doc][] = scoped) {
+  const works = appContainer.resolve('mockDb').works
+  const repo = appContainer.resolve('workRepository')
+  const original = repo.readWorld
+  for (const work of works) work.canonical = true
+  repo.readWorld = async (work, episode) => ({ ...work, wiki: { docs: docs.filter(([from]) => from <= episode).map(([, d]) => d), cats: structuredClone(WCATS) } })
+  return () => { repo.readWorld = original; for (const work of works) delete work.canonical }
+}
+
+describe('공개 설정 읽기 패널 (기능 20)', () => {
+  let restore = () => {}
+  afterEach(() => { restore(); restore = () => {} })
+
+  it('작품 상세는 최신 공개 회차 기준의 공개 설정을 비회원에게도 읽기 전용으로 보여 준다', async () => {
+    restore = servePublicWiki()
+    guestSession()
+    renderApp('/work/guunmong')
+    const panel = await screen.findByRole('region', { name: '공개된 설정' })
+    within(panel).getByText('4화까지 공개된 설정만 보여요.')
+    for (const name of ['성진', '연화봉', '돌다리']) within(panel).getByRole('heading', { name })
+    within(panel).getByRole('heading', { name: /^스승의 벌/ })
+    expect(panel.querySelector('input, textarea, select, button, [contenteditable]')).toBeNull()
+  })
+
+  it('회차 화면은 그 회차까지 공개된 설정만 시트로 보여 준다', async () => {
+    restore = servePublicWiki()
+    guestSession()
+    renderApp('/read/guunmong/1')
+    const open = await screen.findByRole('button', { name: '공개 설정 보기' })
+    open.focus()
+    fireEvent.click(open)
+    const dialog = screen.getByRole('dialog', { name: '공개된 설정' })
+    expect(sid()).toBe('U44 공개 설정 보기')
+    within(dialog).getByText('1화까지 공개된 설정만 보여요.')
+    within(dialog).getByRole('heading', { name: '성진' })
+    within(dialog).getByRole('heading', { name: '연화봉' })
+    expect(within(dialog).queryByRole('heading', { name: '돌다리' })).toBeNull()
+    expect(within(dialog).queryByRole('heading', { name: /^스승의 벌/ })).toBeNull()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(open)
+    cleanup()
+    renderApp('/read/guunmong/2')
+    fireEvent.click(await screen.findByRole('button', { name: '공개 설정 보기' }))
+    const second = screen.getByRole('dialog', { name: '공개된 설정' })
+    within(second).getByText('2화까지 공개된 설정만 보여요.')
+    within(second).getByRole('heading', { name: '돌다리' })
+    expect(within(second).queryByRole('heading', { name: /^스승의 벌/ })).toBeNull()
+  })
+
+  it('공개된 설정이 없으면 빈 상태를 보여 주고, 서버 작품이 아니면 패널을 만들지 않는다', async () => {
+    restore = servePublicWiki([])
+    renderApp('/work/guunmong')
+    within(await screen.findByRole('region', { name: '공개된 설정' })).getByText('공개된 설정이 없어요.')
+    cleanup()
+    restore()
+    restore = () => {}
+    renderApp('/work/guunmong')
+    await screen.findByRole('heading', { name: '구운몽' })
+    expect(screen.queryByRole('region', { name: '공개된 설정' })).toBeNull()
+    cleanup()
+    renderApp('/read/guunmong/1', user())
+    await screen.findByRole('heading', { name: '연화봉의 젊은 승려' })
+    expect(screen.queryByRole('button', { name: '공개 설정 보기' })).toBeNull()
   })
 })
 
@@ -580,7 +745,8 @@ describe('빠른 이동 (U03)', () => {
     const dialog = screen.getByRole('dialog', { name: '빠른 이동' })
     fireEvent.change(within(dialog).getByRole('combobox'), { target: { value: '팔선녀' } })
     fireEvent.click(await within(dialog).findByText('구운몽 2화 돌다리 위의 팔선녀'))
-    await screen.findByText('소설을 읽으려면 로그인해 주세요.')
+    await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
+    expect(screen.queryByText('소설을 읽으려면 로그인해 주세요.')).toBeNull()
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

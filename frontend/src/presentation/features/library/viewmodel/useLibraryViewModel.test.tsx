@@ -7,7 +7,8 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../../app/store'
 import { createFixtureDb } from '../../../../data/mock/fixtureDb'
-import { InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../../../data/mock/InMemoryRepositories'
+import { InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../../../data/mock/InMemoryRepositories'
+import { InMemoryWorkInterestRepository } from '../../../../data/mock/InMemoryWorkInterestRepository'
 import { LibraryUseCase } from '../../../../domain/usecases/LibraryUseCase'
 import { StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
 import { AGGREGATE_WRITE_UNSUPPORTED } from '../../../../domain/repositories/WorkRepository'
@@ -17,7 +18,7 @@ afterEach(()=>{cleanup();vi.restoreAllMocks()})
 it('exposes retryable failures and keeps a rejected publication sheet open',async()=>{
   const db=createFixtureDb(), store=createAppStore({role:'user'})
   const works=new InMemoryWorkRepository(db), worlds=new InMemoryWorldRepository(db), feedback=new InMemoryFeedbackRepository(db)
-  const library=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback,new InMemoryReadingRecordRepository(db))
+  const library=new LibraryUseCase(works,worlds,feedback,new InMemoryWorkInterestRepository(),new InMemoryReadingRecordRepository(db))
   const studio=new StudioUseCase(works,new InMemoryCreditRepository(db),feedback,worlds)
   vi.spyOn(library,'getWrite').mockRejectedValueOnce(new Error('연결 실패'))
   vi.spyOn(studio,'savePublishSettings').mockRejectedValue(new Error(AGGREGATE_WRITE_UNSUPPORTED))
@@ -38,7 +39,7 @@ it('exposes retryable failures and keeps a rejected publication sheet open',asyn
 it('removes a reading record through the use case, refreshes the list and reports a failure without refreshing',async()=>{
   const db=createFixtureDb(), store=createAppStore({role:'user'}), records=new InMemoryReadingRecordRepository(db)
   const works=new InMemoryWorkRepository(db), worlds=new InMemoryWorldRepository(db), feedback=new InMemoryFeedbackRepository(db)
-  const library=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback,records)
+  const library=new LibraryUseCase(works,worlds,feedback,new InMemoryWorkInterestRepository(),records)
   const studio=new StudioUseCase(works,new InMemoryCreditRepository(db),feedback,worlds)
   const messages:string[]=[]
   const listen=(event:Event)=>messages.push((event as CustomEvent<string>).detail)
@@ -64,7 +65,7 @@ it('removes a reading record through the use case, refreshes the list and report
 it('ignores a second removal while one is still in flight',async()=>{
   const db=createFixtureDb(), store=createAppStore({role:'user'}), records=new InMemoryReadingRecordRepository(db)
   const works=new InMemoryWorkRepository(db), worlds=new InMemoryWorldRepository(db), feedback=new InMemoryFeedbackRepository(db)
-  const library=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback,records)
+  const library=new LibraryUseCase(works,worlds,feedback,new InMemoryWorkInterestRepository(),records)
   const studio=new StudioUseCase(works,new InMemoryCreditRepository(db),feedback,worlds)
   let release=()=>{}
   const remove=vi.spyOn(records,'remove').mockImplementation(()=>new Promise<void>(resolve=>{release=resolve}))

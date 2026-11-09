@@ -243,6 +243,8 @@ CI Content 통합 job이 임시 MinIO(`127.0.0.1:19087`)와 전용 `attachment_t
 
 ## 작품 표지·원고 이미지 (#92)
 
+> 회차 이미지 목록·대체 텍스트(`content_image.alt_text`, contentimage V2)·공개 대체 텍스트 조회는 [원고 가져오기·내보내기 계약](../../docs/design/manuscript-import-export-contract.md) 5절을 따릅니다.
+
 기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `attachment/controller → AttachmentService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. Auth·설정 첨부·이미지·독립 Studio SQL 바이트/history는 보존합니다. Content 업무 초기 스키마만 사용자 승인 fresh 이력으로 재작성했습니다.
 
 | 메서드·경로 (`/api/v1` 기준) | 요청·응답·권한 |
