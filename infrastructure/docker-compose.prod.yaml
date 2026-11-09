@@ -4,50 +4,55 @@
 name: storyfork-production
 
 services:
+  # Variable names match local/dev; the production server's own .env supplies values. Blank required values fail config.
   ai-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
     platform: linux/amd64
     environment:
-      OPENAI_API_KEY: ${PROD_OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${PROD_OPENAI_MODEL:-}
-      INTERNAL_TOKEN: ${PROD_INTERNAL_TOKEN:?Set PROD_INTERNAL_TOKEN}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
 
   core-api:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:main
     platform: linux/amd64
     environment:
-      CORE_DATABASE_URL: ${PROD_DATABASE_URL:?Set PROD_DATABASE_URL to the external PostgreSQL JDBC URL}
-      CORE_DATABASE_USER: ${PROD_DATABASE_USER:?Set PROD_DATABASE_USER}
-      CORE_DATABASE_PASSWORD: ${PROD_DATABASE_PASSWORD:?Set PROD_DATABASE_PASSWORD}
-      CORE_SMTP_HOST: ${PROD_SMTP_HOST:?Set PROD_SMTP_HOST to the external SMTP host}
-      CORE_SMTP_PORT: ${PROD_SMTP_PORT:?Set PROD_SMTP_PORT}
-      SPRING_MAIL_USERNAME: ${PROD_SMTP_USERNAME:-}
-      SPRING_MAIL_PASSWORD: ${PROD_SMTP_PASSWORD:-}
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${PROD_SMTP_AUTH:-true}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL to the external PostgreSQL JDBC URL}
+      DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
+      CORE_SMTP_HOST: ${CORE_SMTP_HOST:?Set CORE_SMTP_HOST to the external SMTP host}
+      CORE_SMTP_PORT: ${CORE_SMTP_PORT:?Set CORE_SMTP_PORT}
+      SPRING_MAIL_USERNAME: ${CORE_SMTP_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${CORE_SMTP_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${CORE_SMTP_AUTH:-true}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: "true"
-      AUTH_PUBLIC_ORIGIN: ${PROD_PUBLIC_ORIGIN:?Set PROD_PUBLIC_ORIGIN to the public HTTPS origin}
-      AUTH_MAIL_FROM: ${PROD_MAIL_FROM:?Set PROD_MAIL_FROM}
-      AUTH_JWT_SECRET: ${PROD_AUTH_JWT_SECRET:?Set PROD_AUTH_JWT_SECRET}
+      AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN to the public HTTPS origin}
+      AUTH_MAIL_FROM: ${AUTH_MAIL_FROM:?Set AUTH_MAIL_FROM}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Set AUTH_JWT_SECRET}
       AUTH_COOKIE_SECURE: "true"
-      CONTENT_CORE_AUTH_TOKEN: ${PROD_CONTENT_CORE_AUTH_TOKEN:?Set PROD_CONTENT_CORE_AUTH_TOKEN}
-      APP_CORS_ALLOWED_ORIGIN: ${PROD_PUBLIC_ORIGIN:?Set PROD_PUBLIC_ORIGIN to the public HTTPS origin}
+      CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
+      APP_CORS_ALLOWED_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN to the public HTTPS origin}
 
   content-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:main
     platform: linux/amd64
     environment:
-      CONTENT_ENABLED: ${PROD_CONTENT_ENABLED:-false}
-      APP_WORLDSTUDIO_ENABLED: ${PROD_WORLDSTUDIO_ENABLED:-false}
-      CONTENT_DATABASE_URL: ${PROD_DATABASE_URL:?Set PROD_DATABASE_URL to the external PostgreSQL JDBC URL}
-      CONTENT_DATABASE_USER: ${PROD_DATABASE_USER:?Set PROD_DATABASE_USER}
-      CONTENT_DATABASE_PASSWORD: ${PROD_DATABASE_PASSWORD:?Set PROD_DATABASE_PASSWORD}
-      CONTENT_CORE_AUTH_TOKEN: ${PROD_CONTENT_CORE_AUTH_TOKEN:?Set PROD_CONTENT_CORE_AUTH_TOKEN}
-      INTERNAL_TOKEN: ${PROD_INTERNAL_TOKEN:?Set PROD_INTERNAL_TOKEN}
-      APP_CORS_ALLOWED_ORIGIN: ${PROD_PUBLIC_ORIGIN:?Set PROD_PUBLIC_ORIGIN to the public HTTPS origin}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL to the external PostgreSQL JDBC URL}
+      DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
+      CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+      APP_CORS_ALLOWED_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN to the public HTTPS origin}
+
+  operations-service:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-operations-service:main
+    platform: linux/amd64
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL to the external PostgreSQL JDBC URL}
+      DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
 
   web:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-web:main
     platform: linux/amd64
     ports:
-      - "127.0.0.1:${PROD_WEB_PORT:?Provision a free production loopback port}:80"
+      - "127.0.0.1:${WEB_PORT:?Provision a free production loopback port}:80"

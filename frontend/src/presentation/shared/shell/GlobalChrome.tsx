@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 
 import { useAppDispatch, useAppSelector } from '../../../app/store'
 import { screenLabel } from '../screenIds'
-import { sessionActions } from '../session/sessionSlice'
+import { uiActions } from '../ui/uiSlice'
 import { ThemeButton } from './ThemeButton'
 import { useNotificationStream } from './useNotificationStream'
 import { useApplyTheme } from './useTheme'
@@ -53,14 +53,20 @@ function Toast() {
 }
 
 function TopButton() {
+  const button = useRef<HTMLButtonElement>(null)
   const [on, setOn] = useState(false)
   useEffect(() => {
-    const f = () => setOn(scrollY > 600)
+    const f = () => {
+      const visible = scrollY > 600
+      // 숨긴 버튼의 포커스·스크롤 위치를 React가 복원하지 않도록 먼저 해제한다.
+      if (!visible) button.current?.blur()
+      setOn(visible)
+    }
     f()
     addEventListener('scroll', f, { passive: true })
     return () => removeEventListener('scroll', f)
   }, [])
-  return <button type="button" id="top" className={on ? 'on' : ''} hidden={!on} tabIndex={on ? 0 : -1} aria-label="맨 위로" onClick={() => scrollTo({ top: 0, behavior: typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button>
+  return <button ref={button} type="button" id="top" className={on ? 'on' : ''} hidden={!on} tabIndex={on ? 0 : -1} aria-label="맨 위로" onClick={() => scrollTo({ top: 0, behavior: typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button>
 }
 
 /** 목업 applyProx(): 마우스 근처 .prox 카드를 살짝 키웁니다. 터치 기기에서는 끕니다. */
@@ -99,7 +105,7 @@ export function GlobalChrome() {
   useApplyTheme()
   useProximity()
   useNotificationStream()
-  const { showSid, screen } = useAppSelector((s) => s.session)
+  const { showSid, screen } = useAppSelector((s) => s.ui)
   const { pathname } = useLocation()
   const showTools = pathname !== '/login' && pathname !== '/me' && !pathname.startsWith('/me/') && !pathname.startsWith('/auth/')
   const dispatch = useAppDispatch()
@@ -110,8 +116,9 @@ export function GlobalChrome() {
       <TopButton />
       {showTools && <>{import.meta.env.DEV && <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>}
       <div className="screen-controls">
-        {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(sessionActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
-        <ThemeButton className="btn sm" />
+        {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(uiActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
+        {/* 관리자 화면은 상단바에 테마 버튼이 있어 떠 있는 버튼이 표를 가리지 않게 뺍니다. */}
+        {pathname !== '/admin' && <ThemeButton className="btn sm" />}
       </div></>}
     </>
   )

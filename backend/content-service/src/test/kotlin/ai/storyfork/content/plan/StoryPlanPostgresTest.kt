@@ -18,7 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /** CI 전용 임시 PostgreSQL에서 계획 저장·권한·참조·논리 삭제를 검증한다. */
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
-@SpringBootTest(properties=["app.content.enabled=true","CONTENT_DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","CONTENT_DATABASE_USER=\${TEST_CONTENT_DATABASE_USER:content_test}","CONTENT_DATABASE_PASSWORD=\${TEST_CONTENT_DATABASE_PASSWORD:}"])
+@SpringBootTest(properties=["DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=\${TEST_CONTENT_DATABASE_USER:content_test}","DATABASE_PASSWORD=\${TEST_CONTENT_DATABASE_PASSWORD:}"])
 class StoryPlanPostgresTest {
     @MockitoBean lateinit var auth: ai.storyfork.content.auth.client.CoreAuthClient
     @MockitoBean lateinit var ai: ai.storyfork.content.proposal.client.GenerationClient

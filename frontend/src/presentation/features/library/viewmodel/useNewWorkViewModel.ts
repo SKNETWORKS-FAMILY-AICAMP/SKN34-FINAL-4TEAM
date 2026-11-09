@@ -106,12 +106,14 @@ export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContaine
       changed('세계관을 삭제했어요 (데모)')
     },
     create: async () => {
-      const r = await libraryUseCase.createWork(form)
-      if ('error' in r) return toast(r.error)
-      dispatch(newWorkActions.created())
-      dispatch(sessionActions.dataChanged())
-      toast('소설을 만들었어요 · 나만 보기 상태예요')
-      navigate('/studio/' + r.id)
+      try {
+        const r = await libraryUseCase.createWork(form)
+        if ('error' in r) return toast(r.error)
+        dispatch(newWorkActions.created())
+        dispatch(sessionActions.dataChanged())
+        toast('소설을 만들었어요 · 나만 보기 상태예요')
+        navigate('/studio/' + r.id)
+      } catch(error) { toast(error instanceof Error?error.message:'소설을 저장하지 못했어요. 입력은 유지했어요.') }
     },
   }
 }

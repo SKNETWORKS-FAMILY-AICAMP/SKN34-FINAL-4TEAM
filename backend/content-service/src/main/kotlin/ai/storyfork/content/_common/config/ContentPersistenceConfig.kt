@@ -5,7 +5,6 @@ import jakarta.persistence.EntityManagerFactory
 import javax.sql.DataSource
 import org.flywaydb.core.Flyway
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.*
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.orm.jpa.*
@@ -15,7 +14,6 @@ import org.springframework.transaction.support.TransactionTemplate
 /** 같은 DB 대상에서 콘텐츠만 소유한다. 새 개발 스키마 전용이며 기존 이력을 자동 repair하지 않는다. */
 @Configuration(proxyBeanMethods = false)
 @org.springframework.transaction.annotation.EnableTransactionManagement
-@ConditionalOnProperty(name = ["app.content.enabled"], havingValue = "true")
 @EnableJpaRepositories(
     basePackages = ["ai.storyfork.content.work.repository", "ai.storyfork.content.episode.repository", "ai.storyfork.content.episode_version.repository", "ai.storyfork.content.publication.repository", "ai.storyfork.content.world.repository", "ai.storyfork.content.fork.repository", "ai.storyfork.content.proposal.repository", "ai.storyfork.content.plan.repository"],
     entityManagerFactoryRef = "contentEntityManagerFactory",
@@ -30,6 +28,8 @@ class ContentPersistenceConfig {
             "classpath:db/migration/publication", "classpath:db/migration/fork",
             "classpath:db/migration/proposal",
             "classpath:db/migration/plan",
+            // Development sample rows (generated from infrastructure/sample-data CSV), same global version order.
+            "classpath:db/migration/sample",
         )
     }
 

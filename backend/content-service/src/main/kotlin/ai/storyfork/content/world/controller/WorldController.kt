@@ -2,7 +2,6 @@ package ai.storyfork.content.world.controller
 
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 import ai.storyfork.content.episode_version.service.dto.*
 import ai.storyfork.content.world.service.dto.*
@@ -10,12 +9,15 @@ import ai.storyfork.content.world.service.dto.*
 /** 세계관 설정의 조회·초안·확정·복원을 담당한다. */
 @RestController
 @RequestMapping("/api/v1")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class WorldController(private val service: ai.storyfork.content.world.service.WorldService) {
 
     /** 설정집과 공개 범위 DTO를 반환한다. 소유자만 가능하며 접근 불가는 404다. */
     @GetMapping("/works/{id}/world")
     fun read(@PathVariable id: String,principal: Principal): WorldResponse = service.read(id,principal.name)
+
+    /** 공개 회차 기준의 공개 설정만 반환한다. 미래 정보·비공개 지식은 제외하며 비공개 작품·회차는 404다. */
+    @GetMapping("/public/works/{id}/world")
+    fun publicRead(@PathVariable id: String,@RequestParam episode: Int): ReadingWorldResponse = service.publicRead(id,episode)
 
     /** 설정 초안 DTO를 저장한다. 소유자만 가능하며 revision·원본 토큰 충돌은 409, 입력 오류는 422다. */
     @PutMapping("/works/{id}/settings/{sid}/draft")

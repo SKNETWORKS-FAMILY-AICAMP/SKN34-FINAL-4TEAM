@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import {act, cleanup, render, screen, fireEvent, waitFor} from '@testing-library/react'
 import {afterEach, beforeEach, expect, it, vi} from 'vitest'
-import '../../../../testLocks'
+import '../../../../test/testLocks'
 import {WorldPanel} from './WorldPanel'
 import {EpisodeUseCase} from '../../../../domain/usecases/EpisodeUseCase'
 import {HttpEpisodeRepository} from '../../../../data/content/HttpEpisodeRepository'

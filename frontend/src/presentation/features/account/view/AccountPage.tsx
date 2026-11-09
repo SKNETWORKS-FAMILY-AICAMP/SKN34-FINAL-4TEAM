@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
 import { Cov } from '../../../shared/art'
@@ -8,11 +8,13 @@ import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { Sheet } from '../../../shared/Sheet'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useAccountViewModel } from '../viewmodel/useAccountViewModel'
 import { Devices } from './Devices'
 
 type VM = ReturnType<typeof useAccountViewModel>
 const PRIVATE = ['profile', 'liked', 'pay', 'storage']
+const TITLE: Record<string, string> = { profile: '프로필', liked: '관심 소설', storage: '저장 공간', pay: '결제 내역', inquiry: '문의하기', notice: '공지사항', event: '이벤트' }
 
 /** 목업 mePage(sub): 로그인 전에는 프로필·관심 소설·결제 내역·저장 공간을 막습니다. */
 export function AccountPage() {
@@ -38,6 +40,7 @@ function MeNav({ vm, cur }: { vm: VM; cur: string }) {
 
 function Account({ sub }: { sub: string }) {
   const vm = useAccountViewModel(sub)
+  useDocumentTitle(TITLE[sub] ?? '계정')
   const [q] = useSearchParams()
   const id = q.get('id')
   const NOTICE = vm.data?.board?.notices ?? [], EVENTS = vm.data?.board?.events ?? []
@@ -72,7 +75,7 @@ function Account({ sub }: { sub: string }) {
   return (
     <>
       <Gnb on="me" />
-      <main className="wrap"><div className="meg"><MeNav vm={vm} cur={sub} /><section className="mec">{T}</section></div></main>
+      <main id="main" tabIndex={-1} className="wrap"><h1 className="sr-only">내 계정</h1><div className="meg"><MeNav vm={vm} cur={sub} /><section className="mec">{T}</section></div></main>
       <Footer />
     </>
   )
@@ -82,16 +85,32 @@ function Profile({ vm }: { vm: VM }) {
   const [nick, setNick] = useState(vm.user.nick)
   const [email, setEmail] = useState(vm.user.email)
   const [withdraw, setWithdraw] = useState(false)
+  const form = useRef<HTMLFormElement>(null)
+  const resume = useRef<Element | null>(null)
+  useEffect(() => { form.current?.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus() }, [vm.profileErrors])
+  // 저장 중 입력이 잠기며 초점을 잃었으면, 저장이 끝난 뒤 제출하던 자리로 돌려줍니다.
+  useEffect(() => {
+    if (vm.saving || !(resume.current instanceof HTMLElement)) return
+    if (document.activeElement === document.body) resume.current.focus()
+    resume.current = null
+  }, [vm.saving])
   return (
     <>
       <h2>프로필</h2>
-      <div className="tcard mecard auth-form" aria-busy={vm.saving}><div className="mehead"><span className="meav big">{vm.user.nick.slice(0, 1)}</span><div><b>{vm.user.nick}</b>{vm.user.joined && <small>가입일 {vm.user.joined}</small>}</div><div style={{ marginLeft: 'auto' }}><ThemeButton className="btn" /></div></div>
-        <label className="field">닉네임<input className="inp" id="pfn" autoComplete="nickname" disabled={vm.saving} value={nick} maxLength={12} onChange={(e) => setNick(e.target.value)} /></label>
-        <label className="field">이메일<input className="inp" id="pfe" type="email" autoComplete="email" disabled={vm.saving} value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+      <form ref={form} className="tcard mecard auth-form" noValidate aria-busy={vm.saving} onSubmit={(e) => {
+        e.preventDefault()
+        resume.current = document.activeElement
+        void vm.saveProfile(nick, email).then((ok) => { if (ok) { setNick(nick.trim()); setEmail(email.trim()) } })
+      }}><div className="mehead"><span className="meav big">{vm.user.nick.slice(0, 1)}</span><div><b>{vm.user.nick}</b>{vm.user.joined && <small>가입일 {vm.user.joined}</small>}</div><div style={{ marginLeft: 'auto' }}><ThemeButton className="btn" /></div></div>
+        <label className="field">닉네임<input className="inp" id="pfn" autoComplete="nickname" required disabled={vm.saving} value={nick} maxLength={12} aria-invalid={!!vm.profileErrors.nick} aria-describedby={vm.profileErrors.nick ? 'pfn-error' : undefined} onChange={(e) => setNick(e.target.value)} /></label>
+        {vm.profileErrors.nick && <p id="pfn-error" role="alert">{vm.profileErrors.nick}</p>}
+        <label className="field">이메일<input className="inp" id="pfe" type="email" autoComplete="email" required disabled={vm.saving} value={email} aria-invalid={!!vm.profileErrors.email} aria-describedby={vm.profileErrors.email ? 'pfe-error' : undefined} onChange={(e) => setEmail(e.target.value)} /></label>
+        {vm.profileErrors.email && <p id="pfe-error" role="alert">{vm.profileErrors.email}</p>}
         <p className="small muted">이메일을 변경하면 새 주소의 확인이 끝날 때까지 기존 이메일이 유지돼요.</p>
         {vm.pendingEmail && <p className="small" role="status" style={{ overflowWrap: 'anywhere' }}>{vm.pendingEmail} 주소로 확인 메일을 요청했어요. 확인 전에는 {vm.user.email} 주소를 계속 사용해요.</p>}
+        {vm.profileNotice && <p role="status">{vm.profileNotice}</p>}
         {vm.profileError && <p role="alert">{vm.profileError}</p>}
-        <div className="rowend"><button type="button" className="btn pri" id="saveProfile" disabled={vm.saving} onClick={() => { void vm.saveProfile(nick, email).then((ok) => { if (ok) { setNick(nick.trim()); setEmail(email.trim()) } }) }}>{vm.saving ? '저장 중…' : '저장'}</button></div></div>
+        <div className="rowend"><button type="submit" className="btn pri" id="saveProfile" disabled={vm.saving}>{vm.saving ? '저장 중…' : '저장'}</button></div></form>
       <section className="tcard mecard" aria-labelledby="security-title"><h3 id="security-title">계정 보안</h3><p className="small muted">비밀번호를 바꾸려면 가입한 이메일로 재설정 링크를 요청해 주세요.</p><Link to="/auth/forgot-password" className="btn">비밀번호 재설정</Link></section>
       <Devices />
       <div className="tcard mecard danger"><b>회원탈퇴</b><p className="small muted" style={{ margin: '6px 0 12px' }}>탈퇴 기능은 준비 중이에요. 현재는 실제 계정을 삭제할 수 없으며, 정책 기획안만 확인할 수 있어요.</p><button type="button" className="btn" id="withdrawBtn" onClick={() => setWithdraw(true)}>회원탈퇴</button></div>
@@ -117,16 +136,23 @@ function InquiryView({ vm }: { vm: VM }) {
   const [t, setT] = useState('이용 문의')
   const [s, setS] = useState('')
   const [b, setB] = useState('')
+  const form = useRef<HTMLFormElement>(null)
+  useEffect(() => { if (vm.inquiry?.ok === false) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus() }, [vm.inquiry])
   const list = vm.data?.inquiries ?? []
+  const failed = vm.inquiry?.ok === false
+  // 비어 있는 채로 보낸 필드만 오류로 표시하고, 다시 채우면 바로 풀립니다.
+  const missing = (value: string) => ({ 'aria-invalid': failed && !value.trim(), 'aria-describedby': failed && !value.trim() ? 'iq-error' : undefined })
   return (
     <>
       <h2>문의하기</h2>
-      <form className="tcard mecard" id="iqf" onSubmit={async (e) => { e.preventDefault(); if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
-        <label className="field">문의 유형<select className="inp" id="iqt" value={t} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>
-        <label className="field">제목<input className="inp" id="iqs" maxLength={40} value={s} onChange={(e) => setS(e.target.value)} /></label>
-        <label className="field">내용<textarea className="ta" id="iqb" maxLength={500} value={b} onChange={(e) => setB(e.target.value)} /></label>
-        <div className="rowend"><button className="btn pri" type="submit" id="iqBtn">문의 보내기</button></div>
+      <form ref={form} className="tcard mecard" id="iqf" noValidate aria-busy={vm.asking} onSubmit={async (e) => { e.preventDefault(); if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
+        <label className="field">문의 유형<select className="inp" id="iqt" value={t} disabled={vm.asking} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>
+        <label className="field">제목<input className="inp" id="iqs" maxLength={40} required readOnly={vm.asking} value={s} {...missing(s)} onChange={(e) => setS(e.target.value)} /></label>
+        <label className="field">내용<textarea className="ta" id="iqb" maxLength={500} required readOnly={vm.asking} value={b} {...missing(b)} onChange={(e) => setB(e.target.value)} /></label>
+        {failed && <p id="iq-error" role="alert">{vm.inquiry?.msg}</p>}
+        <div className="rowend"><button className="btn pri" type="submit" id="iqBtn" disabled={vm.asking}>{vm.asking ? '보내는 중…' : '문의 보내기'}</button></div>
       </form>
+      {vm.inquiry?.ok && <p role="status">{vm.inquiry.msg}</p>}
       {vm.data && <><h3 className="st" style={{ marginTop: 22 }}>내 문의 {list.length}</h3>
       <div className="list">{list.length ? list.map((x) => (
         <div className="rp" key={x.id}><div className="top"><b>[{x.t}] {x.s}</b><span className={`chip ${x.reply ? 'ok' : 'wait'}`}>{x.st}</span></div><div className="small muted" style={{ marginTop: 4 }}>{x.d} · {x.b}</div>{x.reply && <p className="inquiry-reply"><b>운영팀 답변</b><br />{x.reply}</p>}</div>

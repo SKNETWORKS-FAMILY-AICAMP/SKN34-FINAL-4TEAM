@@ -10,7 +10,7 @@ import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 function fakes() {
   const works = seedWorks(0)
   const db = { comments: {} as Record<string, Comment[]>, cmLiked: {} as Record<string, boolean>, reports: [] as ReaderReport[], inbox: [] as InboxItem[], queue: [] as ReviewItem[], hidden: [] as string[] }
-  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
+  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async w => w, createFork: async () => { throw new Error('not used') }, saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const feedbackRepository: FeedbackRepository = {
     listComments: async (theme, key) => [...(SEED_COMMENTS[theme] ?? []), ...(db.comments[key] ?? [])],
     addComment: async (key, c) => { (db.comments[key] ??= []).push(c) },
@@ -46,7 +46,7 @@ describe('FeedbackUseCase (목업 addComment·feedbackSheet·reportSheet)', () =
     const { comments } = await useCase.getComments(w, 2)
     expect(comments).toHaveLength(4)
     expect(comments[3]).toEqual(['읽는사람', '좋아요', 0, { q: '문장', spoiler: true }])
-    await useCase.toggleCommentLike('guunmong2c0')
+    await useCase.toggleCommentLike('guunmong','guunmong2c0')
     expect((await useCase.getComments(w, 2)).liked).toEqual({ guunmong2c0: true })
   })
 

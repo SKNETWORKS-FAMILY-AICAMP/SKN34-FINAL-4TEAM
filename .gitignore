@@ -27,3 +27,6 @@ coverage/
 .vscode/
 # Do not ignore *.jar: Gradle wrapper JAR must remain versioned.
 **/graphify-out/**
+
+# Local recording fixtures, captures and recorder output.
+/.recordings/

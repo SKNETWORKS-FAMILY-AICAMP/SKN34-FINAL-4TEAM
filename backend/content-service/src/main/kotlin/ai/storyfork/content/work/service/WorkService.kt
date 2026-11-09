@@ -3,7 +3,6 @@ package ai.storyfork.content.work.service
 import ai.storyfork.content._common.exception.*
 import ai.storyfork.content._common.helper.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.transaction.annotation.Transactional
 import ai.storyfork.content.work.entity.*
 import ai.storyfork.content.work.repository.*
@@ -19,7 +18,6 @@ import ai.storyfork.content.work.domain.*
 import org.springframework.dao.DataIntegrityViolationException
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class WorkService(
     private val access: WorkAccessService,
@@ -30,6 +28,7 @@ class WorkService(
     private val workWorlds: WorkWorldHistoryRepository,
     private val visibility: WorkPublicationHistoryRepository,
     private val policies: ForkPolicyHistoryRepository,
+    private val selectedPolicyEpisodes: ForkPolicyEpisodeRepository,
     private val genreRows: GenreRepository,
     private val workGenres: WorkGenreRepository,
     private val hashtagRows: WorkHashtagRepository,
@@ -39,6 +38,7 @@ class WorkService(
     private val publication: ai.storyfork.content.publication.service.PublicationService,
     private val versions: ai.storyfork.content.episode_version.service.EpisodeVersionService,
     private val proposals: ai.storyfork.content.proposal.service.ProposalService,
+    private val viewService: WorkViewService,
 ) {
 
     fun list(owner: String): WorkListResponse {
@@ -46,13 +46,31 @@ class WorkService(
         access.lockScopes(rows.map {it.id})
         return WorkListResponse(rows.map {view(access.own(it.id,owner))})
     }
-    fun publicList(): WorkListResponse {
-        val rows=works.findAll().sortedByDescending {it.createdAt}
-        return WorkListResponse(rows.mapNotNull {
-            val w=access.get(it.id)
-            if(w.visibility=="public") view(w,true) else null
-        })
+    /** 공개 작품 목록이다. q·f·sort를 모두 생략하면 기존처럼 작품 생성 최신순이며, 잘못된 f·sort는 422다. */
+    fun publicList(q: String?,f: String?,sort: String?): WorkListResponse {
+        val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort")
+        val counts=viewService.counts()
+        val found=publicWorks(counts).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)}
+        if(order==WorkSort.LATEST) return WorkListResponse(found)
+        val byId=found.associateBy {it.id}
+        return WorkListResponse(orderByViews(found.map {it.id},counts).map {byId.getValue(it)})
     }
+    /**
+     * 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 잘못된 kind는 422다.
+     * 조회 기록이 있는 작품만 읽어 공개 여부로 거르고 순위(최대 10개)를 정한 뒤, 그 작품만 응답으로 조립한다.
+     */
+    fun ranking(kind: String): WorkListResponse {
+        val rankingKind=queryOption(kind,RankingKind.TOP,"kind")
+        val counts=viewService.counts()
+        val visible=works.findAllById(counts.keys).sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()}
+        val byId=visible.associateBy {it.id}
+        return WorkListResponse(rankingIds(rankingKind,visible.map {it.id},counts).map {view(byId.getValue(it),true).copy(views=counts.getValue(it).recent)})
+    }
+    private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> =
+        works.findAll().sortedByDescending {it.createdAt}.mapNotNull {
+            val w=access.get(it.id)
+            if(w.publiclyVisible()) view(w,true).copy(views=counts[it.id]?.recent ?: 0) else null
+        }
     fun read(id: String,owner: String): WorkResponse = view(access.own(id,owner))
     fun publicRead(id: String): WorkResponse = view(access.published(id),true)
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {
@@ -112,8 +130,21 @@ class WorkService(
     fun policy(id: String,owner: String,data: PolicyRequest): WorkResponse {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
         checkContent(w.source==null,403,"분기 작품에서 재분기할 수 없어요.")
-        val revision=(policies.findFirstByWorkIdOrderByRevisionNoDesc(id)?.revisionNo ?: -1)+1
-        policies.saveAndFlush(ForkPolicyHistoryEntity(id=contentKey("policy",id,revision.toString()),workId=id,revisionNo=revision,allowCreation=data.allowFork,allowPublication=data.allowForkPublication,episodeScope="all"))
+        val last=policies.findFirstByWorkIdOrderByRevisionNoDesc(id)
+        val scope=data.episodeScope ?: last?.episodeScope ?: "all"
+        checkContent(scope in setOf("all","from","selected"),message="분기 허용 범위를 확인해 주세요.")
+        checkContent((data.fromEpisode==null || data.episodeScope=="from") && (data.episodes.isEmpty() || data.episodeScope=="selected"),message="분기 허용 범위와 회차를 함께 확인해 주세요.")
+        val published=if(data.episodeScope!=null && scope!="all") publication.publishedEpisodes(id).items.map {it.number} else emptyList()
+        if(data.episodeScope=="from") checkContent(data.fromEpisode in published,message="공개된 시작 회차를 선택해 주세요.")
+        if(data.episodeScope=="selected") checkContent(data.episodes.isNotEmpty() && data.episodes.distinct().size==data.episodes.size && data.episodes.all {it in published},message="공개된 허용 회차를 선택해 주세요.")
+        val revision=(last?.revisionNo ?: -1)+1
+        val policyId=contentKey("policy",id,revision.toString())
+        val start=if(scope=="from") { if(data.episodeScope==null) last?.startEpisodeId else episodeId(id,data.fromEpisode!!) } else null
+        val selected=if(scope!="selected") emptyList() else if(data.episodeScope==null) {
+            last?.let {selectedPolicyEpisodes.findAllByPolicyHistoryId(it.id).map {row->row.episodeId}}.orEmpty()
+        } else episodes.findAllByWorkIdOrderBySequence(id).filter {it.sequence in data.episodes}.map {it.id}
+        policies.saveAndFlush(ForkPolicyHistoryEntity(id=policyId,workId=id,revisionNo=revision,allowCreation=data.allowFork,allowPublication=data.allowForkPublication,episodeScope=scope,startEpisodeId=start))
+        if(scope=="selected") selectedPolicyEpisodes.saveAll(selected.map {ForkPolicyEpisodeEntity(policyId,it,id)})
         works.findById(id).orElseThrow().revision++
         return read(id,owner)
     }
@@ -133,7 +164,11 @@ class WorkService(
         val genres=genreRows.findAllById(workGenres.findAllByWorkId(w.id).map {it.genreId}).map {it.name}.sortedBy {WORK_GENRES.indexOf(it)}
         val tags=hashtagRows.findAllByWorkIdOrderByPosition(w.id).map {it.tag}
         val type=CreationType.entries.first {it.code==row.creationType}.name
-        return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0,creationType=type,genres=genres,hashtags=tags)
+        return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,
+            hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0,creationType=type,genres=genres,hashtags=tags,
+            slug=row.slug,authorName=row.authorName,ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
+            hero=row.heroLine1?.let {listOf(it,row.heroLine2.orEmpty())},heroBg=row.heroBackground,
+            forkableEpisodes=if(w.source==null) access.forkable(w.id,published.map {it.number}) else emptyList())
     }
 
 }

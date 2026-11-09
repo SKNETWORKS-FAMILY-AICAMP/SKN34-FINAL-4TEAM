@@ -2,7 +2,6 @@ package ai.storyfork.content.context.service
 
 import ai.storyfork.content._common.exception.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.transaction.annotation.Transactional
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.context.service.dto.*
@@ -12,7 +11,6 @@ import ai.storyfork.content.world.domain.selectSettings
 import ai.storyfork.content.context.domain.sourceExcerpts
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class ContextService(
     private val access: ai.storyfork.content.work.service.WorkAccessService,

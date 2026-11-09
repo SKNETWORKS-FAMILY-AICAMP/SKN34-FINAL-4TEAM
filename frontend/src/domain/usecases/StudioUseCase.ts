@@ -4,7 +4,7 @@ import { AVATAR_COLORS, baseOf, epsOf, forkLabel, isMine, nid, type AutoSerial, 
 import { worldVersion } from '../entities/world'
 import type { CreditRepository } from '../repositories/CreditRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import type { WorkRepository } from '../repositories/WorkRepository'
+import { AGGREGATE_WRITE_UNSUPPORTED, type WorkRepository } from '../repositories/WorkRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
 import { AI_FAIL_MSG, AI_SHORT_MSG, CreditUseCase } from './CreditUseCase'
 
@@ -85,7 +85,11 @@ export class StudioUseCase {
     return r
   }
 
-  private async work(id: string) { return (await this.workRepository.listWorks()).find((w) => w.id === id) }
+  private async work(id: string) {
+    const work=(await this.workRepository.listWorks()).find(w=>w.id===id || w.slug===id)
+    if(work?.canonical) throw new Error(AGGREGATE_WRITE_UNSUPPORTED)
+    return work
+  }
 
   /** 목업 ownedWorld(): 작품에 연결한 내 세계관 */
   private async ownedWorld(w: Work) { return (await this.worldRepository.list()).find((x) => !x.owner && (w.worldIds ?? []).includes(x.id)) }

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { AuthSession } from '../../../../domain/repositories/AuthRepository'
 import { useDevicesViewModel } from '../viewmodel/useDevicesViewModel'
 
 function deviceName(raw: string) {
@@ -11,23 +12,42 @@ function deviceName(raw: string) {
 export function Devices() {
   const vm = useDevicesViewModel()
   const [confirmAll, setConfirmAll] = useState(false)
+  const opener = useRef<HTMLButtonElement>(null)
+  const cancel = useRef<HTMLButtonElement>(null)
+  const title = useRef<HTMLHeadingElement>(null)
+  /** 요청이 끝난 뒤 초점을 되돌릴 요소 id 후보: 누른 버튼 → 다음 기기 → 이전 기기. 마지막엔 제목으로 갑니다. */
+  const restore = useRef<string[] | null>(null)
+  useEffect(() => { if (confirmAll) cancel.current?.focus() }, [confirmAll])
+  // 초점을 잃은 행이 사라지는 같은 커밋 안에서 옮긴다. passive effect는 다음 task라 그 사이 초점이 body에 놓인다.
+  useLayoutEffect(() => {
+    const ids = restore.current
+    if (!ids || vm.pending) return
+    restore.current = null
+    if (document.activeElement !== document.body) return
+    ;(ids.map((id) => document.getElementById(id)).find(Boolean) ?? title.current)?.focus()
+  }, [vm.devices, vm.pending])
+  const revoke = (device: AuthSession, all: AuthSession[]) => {
+    const i = all.indexOf(device)
+    restore.current = [device, ...all.slice(i + 1), ...all.slice(0, i).reverse()].map(({ id }) => `revoke-${id}`)
+    void vm.revoke(device)
+  }
   return <section className="tcard mecard" aria-labelledby="devices-title" aria-busy={vm.pending || (!vm.devices && !vm.loadError)}>
-    <h3 id="devices-title">로그인 기기</h3>
+    <h3 id="devices-title" ref={title} tabIndex={-1}>로그인 기기</h3>
     {vm.message && <p role={vm.loadError ? 'alert' : 'status'}>{vm.message}</p>}
     {vm.loadError && <button className="btn" type="button" onClick={vm.retry}>기기 목록 다시 시도</button>}
-    {vm.devices && <>{vm.devices.length ? <ul className="device-list">{vm.devices.map((device) => {
+    {vm.devices && <>{vm.devices.length ? <ul className="device-list">{vm.devices.map((device, _index, all) => {
       const name = deviceName(device.deviceLabel)
       return <li key={device.id} className="rp">
         {device.current && <span className="chip ok">현재 기기</span>}
         <b>{name}</b><p className="small muted">로그인: {new Date(device.createdAt).toLocaleString('ko-KR')}</p>
         <details className="device-details"><summary>기기 상세 정보</summary><p className="small muted" style={{ overflowWrap: 'anywhere' }}>{device.deviceLabel || '기기 정보가 제공되지 않았어요.'}</p></details>
-        <button className="btn" type="button" disabled={vm.pending} onClick={() => void vm.revoke(device)} aria-label={device.current ? '이 기기에서 로그아웃' : `${name} 로그아웃`}>{device.current ? '이 기기에서 로그아웃' : '로그아웃'}</button>
+        <button id={`revoke-${device.id}`} className="btn" type="button" disabled={vm.pending} onClick={() => revoke(device, all)} aria-label={device.current ? '이 기기에서 로그아웃' : `${name} 로그아웃`}>{device.current ? '이 기기에서 로그아웃' : '로그아웃'}</button>
       </li>
     })}</ul> : <p>로그인 기기가 없어요.</p>}
-    <button className="btn" type="button" disabled={vm.pending || !vm.devices.length} aria-expanded={confirmAll} aria-controls="logout-all-confirmation" onClick={() => setConfirmAll(true)}>모든 기기 로그아웃</button>
+    <button ref={opener} className="btn" type="button" disabled={vm.pending || !vm.devices.length} aria-expanded={confirmAll} aria-controls="logout-all-confirmation" onClick={() => setConfirmAll(true)}>모든 기기 로그아웃</button>
     {confirmAll && <div id="logout-all-confirmation" role="group" aria-label="모든 기기 로그아웃 확인">
       <p>이 기기를 포함한 모든 기기에서 로그아웃돼요. 계속할까요?</p>
-      <div className="rowend" style={{ flexWrap: 'wrap', marginTop: 12 }}><button className="btn" type="button" disabled={vm.pending} onClick={() => setConfirmAll(false)}>취소</button><button className="btn" type="button" disabled={vm.pending} onClick={() => void vm.revoke()}>모든 기기에서 로그아웃</button></div>
+      <div className="rowend" style={{ flexWrap: 'wrap', marginTop: 12 }}><button ref={cancel} className="btn" type="button" disabled={vm.pending} onClick={() => { setConfirmAll(false); opener.current?.focus() }}>취소</button><button id="revoke-all" className="btn" type="button" disabled={vm.pending} onClick={() => { restore.current = ['revoke-all']; void vm.revoke() }}>모든 기기에서 로그아웃</button></div>
     </div>}</>}
   </section>
 }

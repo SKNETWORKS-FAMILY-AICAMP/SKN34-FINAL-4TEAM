@@ -103,3 +103,29 @@ it('clears deleted input even when refreshing the list fails',async()=>{
     expect(api.writeEpisode).not.toHaveBeenCalled()
   } finally {confirm.mockRestore()}
 })
+
+it('reports whether leaving the studio would lose work: clean may leave, dirty asks first, in-flight requests block',async()=>{
+  const episode={number:1,draft:{title:'1화',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}
+  let release:()=>void=()=>{}
+  const api={writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockImplementation(()=>new Promise(resolve=>{release=()=>resolve(episode)})),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+  try {
+    const {result}=renderHook(()=>useWritingViewModel('w',api))
+    await act(async()=>{})
+    expect(result.current.mayLeave()).toBe(true)
+    expect(confirm).not.toHaveBeenCalled()
+    act(()=>result.current.edit({body:'저장 전'}))
+    expect(result.current.mayLeave()).toBe(false)
+    expect(confirm).toHaveBeenCalledWith('저장하지 않은 입력을 버리고 이동할까요?')
+    confirm.mockClear().mockReturnValue(true)
+    expect(result.current.mayLeave()).toBe(true)
+    let saving:Promise<unknown>=Promise.resolve()
+    act(()=>{saving=result.current.save()})
+    confirm.mockClear()
+    expect(result.current.mayLeave()).toBe(false)
+    expect(confirm).not.toHaveBeenCalled()
+    await act(async()=>{release();await saving})
+  } finally {
+    confirm.mockRestore()
+  }
+})

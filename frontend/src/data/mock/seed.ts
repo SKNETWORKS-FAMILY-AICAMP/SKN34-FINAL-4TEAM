@@ -1,4 +1,4 @@
-// 목업(frontend/mockup/index.html) 1절 데이터를 그대로 옮긴 메모리 시드입니다. 실제 작품·사용자 데이터가 아닙니다.
+// 목업(frontend/mockup/legacy-index.html) 1절 데이터를 그대로 옮긴 메모리 시드입니다. 실제 작품·사용자 데이터가 아닙니다.
 import { makeFork, original, type Work } from '../../domain/entities/work'
 import type { World } from '../../domain/entities/world'
 import { ADMIN_PERMISSIONS, type AdminState } from '../../domain/entities/admin'

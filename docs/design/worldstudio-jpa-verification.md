@@ -1,3 +1,7 @@
+[메인 README](../../README.md) · [문서 목록](../README.md)
+
+> **작성 시점 기록:** PR #98 시점의 검증 기록입니다. 현재 관계 계약은 [WorldStudio 현재 관계 MVP 계약](worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따릅니다.
+
 > 최신 develop `0784535`의 #91 통합 반영: WorldStudio Entity/Repository는 기존 분리 경로 `world.studio.*`를 보존한다. Core 기본 EntityManagerFactory/TransactionManager는 최신 AuthPersistenceConfig의 기존 @Primary Bean을 재사용하고, 고정 Auth 패키지 대신 조건부 EntityScanPackages 등록을 읽도록 스캔 범위만 확장했다. 별도 Content persistence unit과 Core의 기존 자동 구성 제외 정책은 변경하지 않는다. 아래 `48de6a1` CI는 #91 병합 이전 결과이며 최신 통합 결과는 PR #98 최신 head에서 별도로 확인한다.
 
 # PR #98 Core 기본 JPA 재사용 검증 계약

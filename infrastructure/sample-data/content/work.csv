@@ -1,0 +1,12 @@
+id,owner_id,title,description,origin_kind,creation_type,revision,deleted_episode_revision,created_at,slug,author_name,theme,hook,hanja,hero_line1,hero_line2,hero_background
+d384e2a3-d131-3d31-b25e-a3f85ebe2240,b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44,구운몽,연화봉의 젊은 승려 성진은 돌다리 위에서 여덟 선녀를 만난 뒤 마음이 흔들린다. 스승의 벌로 인간 세상에 양소유로 다시 태어나는데…,original,original,0,0,2026-11-01T00:00:00Z,guunmong,김만중,hanji,"꿈에서 깨면, 이 모든 게 사라질까?",九雲夢,"연화봉의 젊은 승려,",꿈속에서 한 생을 살다,#E6D6B8
+ba084057-8d94-3da5-86f0-ab54ce5703b0,b832d965-0352-4eb1-b896-7a307ba09a68,별빛 서약의 탑,"사라진 스승을 찾아 별빛 탑에 도착한 견습 서약사 리안. 탑의 봉인이 약해지는 밤, 세 사람의 서약이 얽히기 시작한다.",original,original,0,0,2026-11-01T00:00:00Z,starlight,나,star,"사라진 스승의 서한 한 장, 그리고 꺼져 가는 별빛",\N,"봉인이 약해지는 밤,",세 사람의 서약이 얽힌다,#232A63
+a06ba0b1-5cfd-3a15-860a-183cf6a799d7,42031238-8164-35ef-afc4-8d59fad533e0,회색 도시의 우편배달부,모든 통신이 끊긴 도시에서 종이 편지만이 유일한 연결이다. 열일곱 살 배달부 도윤은 오늘도 비 오는 고가도로를 달린다.,original,original,0,0,2026-11-01T00:00:00Z,postman,윤서하,neon,"주소가 지워진 편지에 적힌 단 한 단어, 집",\N,"통신이 끊긴 도시,",종이 편지만이 유일한 연결,#0F3A40
+011d0e83-a553-36aa-b856-14709539a0d0,b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44,홍길동전,서자로 태어나 아버지를 아버지라 부르지 못한 길동. 집을 떠난 그는 도적 무리를 모아 활빈당을 세운다.,original,original,0,0,2026-11-01T00:00:00Z,hong,허균(전함),hanji,"아버지를 아버지라 부르지 못한 소년, 활빈당을 세우다",洪吉童傳,아버지를 아버지라,부르지 못한 소년,#5B4A3A
+4ddb7bae-d68c-3114-9479-39d24a1e6750,9cf2042a-05eb-31c5-ab1e-22faffe6612a,구운몽: 저승의 문,성진이 환생을 거부했다면?,fork,original,0,0,2026-11-01T00:00:00Z,gate,민준,hanji,,\N,\N,\N,\N
+361f71bf-b9a2-399c-a90e-8a991f47a8ce,7baae385-c852-3697-a7fe-8ad6d527111c,별빛 서약의 탑: 재의 왕관,리안이 카엘 대신 세라핀의 손을 잡았다면?,fork,original,0,0,2026-11-01T00:00:00Z,crown,하은,star,,\N,\N,\N,\N
+c58d9b2d-76ac-3a94-807b-56db8ef164a7,4bb7204a-0680-367e-82ae-ff1ffcfe54e1,구운몽: 구름 위의 길,성진이 선녀들을 따라 구름에 올랐다면?,fork,original,0,0,2026-11-01T00:00:00Z,cloud,민서,hanji,,\N,\N,\N,\N
+e2315b93-b1eb-30e0-a5ed-9167190f86fe,108a6f26-be0a-3fef-8efa-9798220e1f1d,구운몽: 스승의 용서,육관대사가 성진을 용서했다면?,fork,original,0,0,2026-11-01T00:00:00Z,pardon,서진,hanji,,\N,\N,\N,\N
+cc30821e-4318-334c-ba8c-0b4720475bff,a59701e8-69ec-35ba-afb3-0a2b3c75781f,별빛 서약의 탑: 열린 봉인,리안이 속삭임을 따라 봉인을 열었다면?,fork,original,0,0,2026-11-01T00:00:00Z,seal,지우,star,,\N,\N,\N,\N
+c56c08cf-2011-3ad1-9098-0742f55adfe3,fa06ea41-16ad-3f50-b6f0-7f5ac0556f74,회색 도시: 답장,도윤이 편지에 답장을 썼다면?,fork,original,0,0,2026-11-01T00:00:00Z,reply,유나,neon,,\N,\N,\N,\N
+87177832-967b-3a57-8cf5-5ed94648fb62,991e8ea4-bda8-389d-83e8-679041ea3f79,회색 도시: 송신탑 아래,도윤이 편지를 뜯어 읽었다면?,fork,original,0,0,2026-11-01T00:00:00Z,postif,tokki,neon,,\N,\N,\N,\N

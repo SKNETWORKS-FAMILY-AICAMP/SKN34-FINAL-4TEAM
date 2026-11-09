@@ -52,11 +52,13 @@ export function useImportViewModel(libraryUseCase: LibraryUseCase = appContainer
     },
     rerun: () => run('원고 설정 재추출'),
     save: async () => {
-      const r = await libraryUseCase.saveImport({ kind: imp.kind, worldId: imp.worldId, cast: imp.cast, world: imp.world, events: imp.events })
-      if ('error' in r) return toast(r.error)
-      dispatch(sessionActions.dataChanged())
-      toast('세계관·인물·사건을 저장했어요 (비공개 상태)')
-      navigate('/lib?tab=write')
+      try {
+        const r = await libraryUseCase.saveImport({ kind: imp.kind, worldId: imp.worldId, cast: imp.cast, world: imp.world, events: imp.events })
+        if ('error' in r) return toast(r.error)
+        dispatch(sessionActions.dataChanged())
+        toast('세계관·인물·사건을 저장했어요 (비공개 상태)')
+        navigate('/lib?tab=write')
+      } catch(error) { toast(error instanceof Error?error.message:'원고를 저장하지 못했어요. 정리한 입력은 유지했어요.') }
     },
   }
 }

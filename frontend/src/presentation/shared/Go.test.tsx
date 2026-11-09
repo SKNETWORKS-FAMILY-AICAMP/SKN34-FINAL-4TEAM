@@ -27,7 +27,18 @@ describe('Go의 네이티브 링크 계약', () => {
 
   it('수정키 클릭은 기본 링크 동작에 맡기고 콜백의 preventDefault를 존중한다', () => {
     render(<MemoryRouter><Go to="/next">새 탭</Go><Go to="/blocked" onClick={(e) => e.preventDefault()}>취소</Go><Where /></MemoryRouter>)
-    fireEvent.click(screen.getByRole('link', { name: '새 탭' }), { ctrlKey: true })
+    const link = screen.getByRole('link', { name: '새 탭' })
+    expect(link.getAttribute('href')).toBe('/next')
+    // Observe after React Router, then cancel only this native activation in jsdom.
+    const nativeClick = vi.fn((event: MouseEvent) => {
+      const preventedByApp = event.defaultPrevented
+      if (event.target === link && event.ctrlKey) event.preventDefault()
+      return preventedByApp
+    })
+    document.addEventListener('click', nativeClick, { once: true })
+    fireEvent.click(link, { ctrlKey: true })
+    expect(nativeClick).toHaveBeenCalledTimes(1)
+    expect(nativeClick).toHaveReturnedWith(false)
     expect(screen.getByLabelText('현재 경로').textContent).toBe('/ null')
     fireEvent.click(screen.getByRole('link', { name: '취소' }))
     expect(screen.getByLabelText('현재 경로').textContent).toBe('/ null')

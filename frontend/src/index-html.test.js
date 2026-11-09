@@ -2,8 +2,42 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { JSDOM } from 'jsdom'
 
-const demo = readFileSync(new URL('../mockup/index.html', import.meta.url), 'utf8')
+const demo = readFileSync(new URL('../mockup/legacy-index.html', import.meta.url), 'utf8')
 const includes = (text) => expect(demo.includes(text), `missing documented demo content: ${text}`).toBe(true)
+
+const css = readFileSync(new URL('./styles/storyfork.css', import.meta.url), 'utf8')
+// 중첩 @media를 펼쳐 [{ media, selector, body }]로 만든다. @keyframes 등 다른 at-rule은 건너뛴다.
+function parseRules(source, media = '') {
+  const rules = []
+  const text = source.replace(/\/\*[\s\S]*?\*\//g, '')
+  for (let i = 0; i < text.length;) {
+    const open = text.indexOf('{', i)
+    if (open < 0) break
+    let depth = 1
+    let end = open + 1
+    for (; end < text.length && depth; end++) depth += text[end] === '{' ? 1 : text[end] === '}' ? -1 : 0
+    const head = text.slice(i, open).trim()
+    const body = text.slice(open + 1, end - 1)
+    if (head.startsWith('@media')) rules.push(...parseRules(body, head.slice(6).trim()))
+    else if (!head.startsWith('@')) rules.push({ media, selector: head, body })
+    i = end
+  }
+  return rules
+}
+const sheet = parseRules(css)
+const declOf = (rule, prop) => rule?.body.match(new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]*)`))?.[1].trim()
+const selectorsOf = (rule) => rule.selector.split(/,(?![^()]*\))/).map((s) => s.trim())
+const root = sheet.find((r) => r.selector === ':root' && !r.media)
+// 테마 토큰은 `--name:var(--l,라이트) var(--d,다크)` 한 줄로만 정의한다. [라이트, 다크]를 돌려준다.
+const pair = (name) => declOf(root, `--${name}`).match(/^var\(--l,\s*(#[0-9A-Fa-f]{6})\)\s+var\(--d,\s*(#[0-9A-Fa-f]{6})\)$/).slice(1)
+const luminance = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+const contrast = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+  return (hi + 0.05) / (lo + 0.05)
+}
 
 describe('frontend shell source contracts', () => {
   it('guards the complete optional worldstudio route with the existing RequireRole', () => {
@@ -37,6 +71,135 @@ describe('frontend shell source contracts', () => {
     expect(svg).toContain('viewBox="0 0 300 400"')
     expect(svg).toMatch(/<title[^>]*>기본 작품 표지<\/title>/)
     expect(svg).not.toMatch(/<\s*(?:script|foreignObject|image)\b|\bon\w+\s*=|\b(?:href|src)\s*=|url\(\s*['"]?(?:https?:|\/\/|data:)/i)
+  })
+})
+
+describe('browser tab title and icons', () => {
+  const head = new JSDOM(readFileSync(new URL('../index.html', import.meta.url), 'utf8')).window.document.head
+  // 라이트 토큰이 브랜드 기준이다.
+  const token = (name) => pair(name)[0].toLowerCase()
+  const href = (selector) => head.querySelector(selector)?.getAttribute('href')
+
+  it('keeps the brand name as the default title until a screen sets its own', () => {
+    expect(head.querySelector('title')?.textContent).toBe('STORYFORK')
+  })
+
+  it('links the SVG favicon with PNG and touch-icon fallbacks', () => {
+    expect(href('link[rel="icon"][type="image/svg+xml"]')).toBe('/favicon.svg')
+    expect(href('link[rel="icon"][type="image/png"][sizes="32x32"]')).toBe('/favicon-32.png')
+    expect(href('link[rel="apple-touch-icon"]')).toBe('/apple-touch-icon.png')
+  })
+
+  it('uses the primary brand token as the browser theme color', () => {
+    expect(head.querySelector('meta[name="theme-color"]')?.getAttribute('content')?.toLowerCase()).toBe(token('pri'))
+  })
+
+  it('draws the SF badge in brand tokens without fonts, scripts or external content', () => {
+    const svg = readFileSync(new URL('../public/favicon.svg', import.meta.url), 'utf8')
+    expect(svg).toContain('viewBox="0 0 32 32"')
+    expect(svg.toLowerCase()).toContain(`fill="${token('pri')}"`)
+    expect(svg.toLowerCase()).toContain(`stroke="${token('on-pri')}"`)
+    expect(svg).not.toMatch(/<\s*(?:script|foreignObject|image|text)\b|font-family|\bon\w+\s*=|\b(?:href|src)\s*=|url\(\s*['"]?(?:https?:|\/\/|data:)/i)
+  })
+
+  it.each([['favicon-32.png', 32], ['apple-touch-icon.png', 180]])('ships %s as a %i px square PNG', (file, size) => {
+    const png = readFileSync(new URL(`../public/${file}`, import.meta.url))
+    expect(png.subarray(1, 4).toString()).toBe('PNG')
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([size, size])
+  })
+})
+
+describe('storyfork.css theme tokens', () => {
+  it('defines each theme token once and switches dark with the same two toggles for the picked and the OS theme', () => {
+    expect(sheet.filter((r) => declOf(r, '--bg'))).toHaveLength(1)
+    expect([declOf(root, '--l'), declOf(root, '--d'), declOf(root, 'color-scheme')]).toEqual(['initial', '', 'light'])
+    const picked = sheet.find((r) => r.selector === ':root[data-theme="dark"]' && !r.media)
+    const system = sheet.find((r) => r.selector === ':root:not([data-theme="light"])' && r.media === '(prefers-color-scheme:dark)')
+    for (const rule of [picked, system]) expect(rule.body).toBe('--l:;--d:initial;color-scheme:dark')
+    // light-dark()는 계산값이 평가되지 않은 문자열이라 getComputedStyle로 색을 읽는 곳(세계관 지도 캔버스)이 깨진다.
+    expect(sheet.some((r) => r.body.includes('light-dark('))).toBe(false)
+  })
+
+  it.each([['light', 0], ['dark', 1]])('keeps --faint text at 4.5:1 on every %s page surface', (_, mode) => {
+    for (const bg of ['bg', 'surface', 'muted-bg', 'read-bg']) {
+      expect(contrast(pair('faint')[mode], pair(bg)[mode]), `--faint on --${bg}`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('keeps every reading-theme secondary text at 4.5:1 on its own background', () => {
+    const themed = sheet.filter((r) => /^\.th-/.test(r.selector) && declOf(r, '--tsub') && declOf(r, '--tbg'))
+    expect(themed.length).toBeGreaterThanOrEqual(4)
+    for (const r of themed) expect(contrast(declOf(r, '--tsub'), declOf(r, '--tbg')), r.selector).toBeGreaterThanOrEqual(4.5)
+  })
+})
+
+describe('storyfork.css accessibility contracts', () => {
+  const mobile = '(max-width:600px)'
+  const decls = (selector, media) => sheet.filter((r) => selectorsOf(r).includes(selector) && (media === undefined || r.media === media))
+
+  it('shows the skip link only while it has keyboard focus', () => {
+    expect(declOf(decls('.skip-link', '')[0], 'position')).toMatch(/^(?:absolute|fixed)$/)
+    expect(declOf(decls('.skip-link', '')[0], 'transform')).toMatch(/translateY\(-\d+%\)/)
+    expect(decls('.skip-link:focus', '').length + decls('.skip-link:focus-visible', '').length).toBeGreaterThan(0)
+    expect(decls('main[tabindex="-1"]:focus', '')[0]?.body).toContain('outline:none')
+  })
+
+  it('keeps the writing studio inputs visibly focusable', () => {
+    for (const selector of ['.eb', '.editor .et']) expect(decls(selector, '')[0].body, selector).not.toMatch(/outline\s*:\s*none/)
+  })
+
+  it.each(['.btn.sm', '.rib', '.pop button', '.cm .lk', '.sheet .x', '.seg button', '.sortt :is(button,a)', '.chq button', '.tagbar :is(button,a)', '.eps-q input', '.logo'])('%s는 모바일에서 44px 이상이다', (selector) => {
+    expect(decls(selector, mobile).some((r) => /(?:^|;)\s*(?:min-)?height\s*:\s*44px/.test(r.body)), selector).toBe(true)
+  })
+
+  it('makes the whole checkbox label a 44px touch target on mobile', () => {
+    expect(decls('label:has(>input[type="checkbox"])', mobile).some((r) => /min-height\s*:\s*44px/.test(r.body))).toBe(true)
+    const box = decls('input[type="checkbox"]', mobile)[0]
+    expect(declOf(box, 'width')).toBe('24px')
+    expect(declOf(box, 'height')).toBe('24px')
+    expect(declOf(box, 'accent-color')).toBe('var(--pri)')
+  })
+
+  it('keeps short color and opacity feedback under reduced motion instead of freezing everything', () => {
+    const rule = sheet.find((r) => r.media === '(prefers-reduced-motion:reduce)' && selectorsOf(r).includes('*'))
+    expect(declOf(rule, 'animation')).toBe('none!important')
+    expect(rule.body).not.toMatch(/(?:^|;)\s*transition\s*:\s*none/)
+    expect(declOf(rule, 'transition-property')).not.toMatch(/transform|\ball\b|width|height|clip-path/)
+    expect(declOf(rule, 'transition-property')).toMatch(/background-color/)
+    expect(parseFloat(declOf(rule, 'transition-duration'))).toBeLessThanOrEqual(0.15)
+  })
+
+  it('scrolls wide admin tables inside .adm-scroll instead of turning the table into a block', () => {
+    expect(sheet.filter((r) => r.selector.includes('.adm table') && /display\s*:\s*block/.test(r.body))).toHaveLength(0)
+    expect(declOf(decls('.adm-scroll', '')[0], 'overflow-x')).toBe('auto')
+  })
+
+  it('builds the always-dark admin bar from tokens, not literal colors', () => {
+    for (const selector of ['.adm .top', '.adm .tabs button', '.adm .tabs button.on']) {
+      expect(decls(selector, '').map((r) => r.body).join(';'), selector).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
+    }
+  })
+
+  it('draws the import result editor focus with the global ring (3:1) instead of a faint glow', () => {
+    expect(declOf(decls(':focus-visible', '')[0], 'outline')).toBe('2px solid var(--pri)')
+    const editor = [...decls('.rc [contenteditable]', ''), ...decls('.rc [contenteditable]:focus', '')].map((r) => r.body).join(';')
+    expect(editor).not.toMatch(/outline\s*:\s*none|box-shadow/)
+    // 카드 배경(--muted-bg)과 포커스 배경(--surface) 어디서나 링 색(--pri)은 비텍스트 대비 3:1 이상이다.
+    for (const mode of [0, 1]) for (const bg of ['muted-bg', 'surface']) expect(contrast(pair('pri')[mode], pair(bg)[mode]), `--pri on --${bg}`).toBeGreaterThanOrEqual(3)
+  })
+
+  it('keeps the selection popover button focus ring at 3:1 on its always-dark background without touching the account menu ring', () => {
+    expect(declOf(decls('.pop:not(.acctm) button:focus-visible', '')[0], 'outline-color')).toBe('var(--fixed-pri)')
+    expect(contrast(declOf(root, '--fixed-pri'), declOf(decls('.pop', '')[0], 'background'))).toBeGreaterThanOrEqual(3)
+    // 계정 메뉴(.pop.acctm)는 배경이 테마 표면이라 전역 링(--pri)을 그대로 쓴다.
+    expect(decls('.pop button:focus-visible', '')).toHaveLength(0)
+    for (const mode of [0, 1]) expect(contrast(pair('pri')[mode], pair('surface')[mode])).toBeGreaterThanOrEqual(3)
+  })
+
+  it('keeps the studio and plot workspaces edge to edge now that they are main landmarks, leaving the default main padding alone', () => {
+    // .studio-workspace(집필실 2곳)와 .sview(플롯)는 HEAD의 div처럼 여백이 없어야 한다. 그 밖의 main은 자체 padding 클래스를 가진다.
+    for (const selector of ['.studio-workspace', '.sview']) expect(declOf(decls(selector, '')[0], 'padding'), selector).toBe('0')
+    expect(declOf(sheet.find((r) => r.selector === 'main'), 'padding')).toBe('32px 0 72px')
   })
 })
 

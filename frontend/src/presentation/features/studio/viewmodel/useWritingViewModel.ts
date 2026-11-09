@@ -78,7 +78,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       setNotice(whole?'회차를 삭제했어요.':'작업 초안을 삭제했어요. 새로 입력하면 새 초안으로 저장돼요.')
     })
   }
-  return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,
+  return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
     deleteDraft:()=>remove(false),

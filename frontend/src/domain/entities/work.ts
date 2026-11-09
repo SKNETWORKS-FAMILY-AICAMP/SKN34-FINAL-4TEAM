@@ -5,7 +5,7 @@ export type Theme = 'hanji' | 'star' | 'neon'
 
 export type Knowledge = { text: string; knownAt: number; publicAt?: number }
 export type CastMember = { n: string; c: string; d: string; st: string; knowledge?: Knowledge[] }
-export type Episode = { t: string; p: string[]; hidden?: boolean; note?: string; authorNote?: string; ai?: boolean }
+export type Episode = { t: string; p: string[]; versionId?: string; hidden?: boolean; note?: string; authorNote?: string; ai?: boolean }
 /** 목업 autoOf(w): AI 자율 연재 데모 상태 */
 export type AutoSerial = { on: boolean; status: string; react: boolean; requireReview: boolean; log: string[]; failures?: number }
 /** [회차, 종류(m 주요·f 복선·s 설정), 내용, 관련 인물] */
@@ -24,6 +24,8 @@ export type Snapshot = {
 export type Work = {
   id: string
   title: string
+  slug?: string
+  canonical?: boolean
   hanja?: string
   theme: Theme
   genre: string
@@ -39,6 +41,8 @@ export type Work = {
   cmts: number
   /** 마지막 업데이트 후 지난 분 */
   upd: number
+  /** false면 서버가 좋아요·갱신 시각을 주지 않는 작품이라 likes·upd는 자리표시 값이다. 화면은 이 둘을 표시하지 않는다. 생략하면 표시한다. */
+  statisticsSupported?: boolean
   hero?: [string, string]
   heroBg?: string
   lite?: boolean
@@ -124,7 +128,7 @@ export const isPub = (w: Work) => !w.hidden && !w.private && (w.parent ? w.eps.l
 export const epsOf = (w: Work) => (w.parent && w.snap ? w.snap.eps.concat(w.eps) : w.eps)
 /** 설정(규칙·인물·사건) 출처: 포크는 자기 스냅샷만 본다 */
 export const baseOf = (w: Work): Pick<Snapshot, 'rules' | 'cast' | 'events'> => (w.parent && w.snap ? w.snap : w)
-export const isMine = (w: Work) => w.owner === 'me' || w.author === '나'
+export const isMine = (w: Work) => w.mine ?? (w.owner === 'me' || w.author === '나')
 export const canView = (w: Work | undefined, role: Role): w is Work => !!w && (isPub(w) || (role === 'user' && isMine(w)))
 export const visibleEpisode = (w: Work, e: Episode, role: Role) => !e.hidden || (role === 'user' && isMine(w))
 export const originals = (works: Work[]) => works.filter((w) => !w.parent && !w.private)
@@ -179,20 +183,32 @@ export const avatarOf = (s: string) => AVATAR_COLORS[[...s].reduce((a, c) => a +
 /** 목업 tagsOf(): 포크는 원작의 해시태그를 이어받습니다. */
 export const tagsOf = (w: Work, works: Work[]) => w.hash?.length ? w.hash : (w.parent && works.find((x) => x.id === w.parent)?.hash) || []
 
-/** 목업 FIELDS·SORTS: 검색 범위와 정렬 */
-export const FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그']] as const
+/** 목업 SORTS: /ifs 포크 모음·캐릭터 챗 목록 정렬. 검색·랭킹은 서버 계약인 SEARCH_SORTS를 씁니다. */
 export const SORTS = [['new', '최신 순'], ['pop', '인기 순'], ['view', '조회 순']] as const
+const SERVER_SORTS = [['title', '제목 순'], ['author', '작가 순']] as const
+/** 서버 작품(statisticsSupported:false)은 좋아요·갱신 시각이 없어 만들 수 없는 지표 대신 제목·작가 순만 고르게 합니다. */
+export const sortsOf = (works: Pick<Work, 'statisticsSupported'>[]): readonly (readonly [string, string])[] =>
+  works.some((w) => w.statisticsSupported === false) ? SERVER_SORTS : SORTS
 
-/** 목업 matchW(): 장르는 검색하지 않습니다. */
+/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 인기 순은 서버가 지원하지 않습니다. */
+export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그'], ['genre', '장르']] as const
+export const SEARCH_SORTS = [['latest', '최신 순'], ['view', '조회 순']] as const
+export type SearchField = (typeof SEARCH_FIELDS)[number][0]
+export type SearchSort = (typeof SEARCH_SORTS)[number][0]
+
+/** 목업 matchW(): 범위가 장르일 때만 장르를 검색하고, 전체 범위는 제목·작가·태그만 봅니다. */
 export function matchW(w: Work, q: string, f: string, works: Work[]) {
   if (!q) return true
   q = q.replace(/^#/, '').toLowerCase()
   const t = w.title.toLowerCase().includes(q)
   const au = String(w.author).toLowerCase().includes(q)
   const tg = tagsOf(w, works).some((h) => h.slice(1).toLowerCase().includes(q))
-  return f === 'title' ? t : f === 'author' ? au : f === 'tag' ? tg : t || au || tg
+  const g = w.genre.toLowerCase().includes(q)
+  return f === 'title' ? t : f === 'author' ? au : f === 'tag' ? tg : f === 'genre' ? g : t || au || tg
 }
 
-export const sorter = (k: string) => k === 'new'
-  ? (a: Work, b: Work) => (a.upd || 0) - (b.upd || 0)
-  : k === 'pop' ? (a: Work, b: Work) => (b.likes || 0) - (a.likes || 0) : (a: Work, b: Work) => (b.views || 0) - (a.views || 0)
+export const sorter = (k: string) => (a: Work,b: Work) => {
+  if(k==='author') return a.author.localeCompare(b.author,'ko') || a.title.localeCompare(b.title,'ko')
+  if(k==='title' || a.statisticsSupported===false || b.statisticsSupported===false) return a.title.localeCompare(b.title,'ko')
+  return k==='new' ? a.upd-b.upd : k==='pop' ? b.likes-a.likes : b.views-a.views
+}

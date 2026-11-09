@@ -1,16 +1,20 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { Sheet } from '../../../shared/Sheet'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useStudioViewModel } from '../viewmodel/useStudioViewModel'
-import { PublishSettingsSheet } from './StudioSheets'
-import { MemoView, NarrativeView, StudioTools, WikiView } from './StudioViews'
+import { PublishSettingsSheet } from '../../../shared/PublishSettingsSheet'
+import { MemoView, NarrativeView, StudioTools } from './StudioViews'
+import { WikiView } from './StudioWikiView'
 import { WritingStudio } from './WritingStudio'
 import { RequireRole } from '../../../shared/session/RequireRole'
+import { ContentLoadState } from '../../../shared/ContentLoadState'
+import { useStudioRouteViewModel } from '../viewmodel/useStudioRouteViewModel'
 import { StoryPlanPage } from '../../plans/view/StoryPlanPage'
 
 type VM = ReturnType<typeof useStudioViewModel>
@@ -25,8 +29,16 @@ const VIEW_ID: Record<string, string> = { wiki: 'U38', overview: 'U38', narrativ
 export function StudioPage() {
   const { id = '' } = useParams()
   const [query] = useSearchParams()
-  // Server work IDs use the persisted writing flow; existing named fixtures remain an explicit demo.
-  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id}/> : <RequireRole><DemoStudioPage/></RequireRole>
+  // Server work IDs use the persisted writing flow(narrative는 플롯·장면 계획); 이름 경로는 서버 작품을 찾아 UUID로 보내고 없으면 명시적 데모입니다.
+  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id}/> : <NamedStudioRoute key={id} id={id}/>
+}
+function NamedStudioRoute({id}:{id:string}) {
+  const [query]=useSearchParams()
+  const vm=useStudioRouteViewModel(id)
+  if(vm.data===undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
+  if(vm.data===null) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><Go to="/content" className="btn">내 소설 관리</Go></main></>
+  if(vm.data.work.canonical) return <Navigate replace to={`/studio/${vm.data.work.id}${query.size?'?'+query.toString():''}`}/>
+  return <RequireRole><DemoStudioPage/></RequireRole>
 }
 function DemoStudioPage() {
   const { id = '' } = useParams()
@@ -40,15 +52,16 @@ function DemoStudioPage() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   useEffect(() => { if (q.get('panel') === 'chat') setChatOpen(true); if (q.get('panel') === 'settings') setSettingsOpen(true) }, [q])
   const { data, studio: s, draft: d } = vm
+  useDocumentTitle(data ? `집필실 · ${data.work.title}` : '집필실')
   if (data === undefined) return null
-  if (data === null) return <><Gnb on="lib" /><main className="wrap"><div className="panel"><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><Go to="/lib?tab=write" className="btn">내가 쓰는 소설</Go></div></main><Footer /></>
+  if (data === null) return <><Gnb on="lib" /><main id="main" tabIndex={-1} className="wrap"><div className="panel"><h1>소설을 찾을 수 없거나 볼 수 없어요.</h1><Go to="/lib?tab=write" className="btn">내가 쓰는 소설</Go></div></main><Footer /></>
   if (!s || !d) {
     const w = data.work
     return (
       <>
         <Gnb on="lib" />
-        <main className="wrap"><div className="tcard" style={{ maxWidth: 560, margin: '60px auto', padding: 32, textAlign: 'center' }}>
-          <h2 style={{ fontSize: 21, fontWeight: 800 }}>내 소설만 쓸 수 있어요</h2>
+        <main id="main" tabIndex={-1} className="wrap"><div className="tcard" style={{ maxWidth: 560, margin: '60px auto', padding: 32, textAlign: 'center' }}>
+          <h1 style={{ fontSize: 21, fontWeight: 800 }}>내 소설만 쓸 수 있어요</h1>
           <p className="muted" style={{ margin: '10px 0 20px' }}>「{w.title}」 — {w.author}님의 소설이에요. 이 소설에서 포크해 나만의 전개를 쓰고 싶다면 포크를 이용해 주세요.</p>
           <div className="rowend" style={{ justifyContent: 'center' }}><Go to={`/work/${w.id}`} className="btn">소설 보기</Go>{!w.parent && w.forksAllowed && <Go to={`/fork/${w.id}`} className="btn pri">✎ 포크하기</Go>}</div>
         </div></main>
@@ -65,14 +78,14 @@ function DemoStudioPage() {
   return (
     <div className={`calm rd calm-${w.theme} studio`}>
       <div className="sbar">
-        <Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><span className="t">{w.title}</span>
+        <Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 className="t">{w.title}</h1>
         <StudioTools id={id} view={view} ep={ep} />
         {view !== 'narrative' && <span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span>}
         <button type="button" className="tbtn" onClick={() => setSettingsOpen(true)}>집필 설정</button>
         {view === 'write' && <><button type="button" className="tbtn" style={{ height: 40 }} disabled={ro} onClick={vm.preview}>미리 보기</button>
         <button type="button" className="tbtn pri" style={{ height: 40 }} id="pubep" disabled={ro || vm.publishBusy || vm.autoGenerating} onClick={vm.openPublish}>{ro ? '원작 원고' : d.editingEpisode ? '수정 공개하기' : '공개하기'}</button></>}
       </div>
-      <div className={`studio-workspace${chatOpen ? ' chat-open' : ''}`}>
+      <main id="main" tabIndex={-1} className={`studio-workspace${chatOpen ? ' chat-open' : ''}`}>
       {V ? <div className="sview"><V vm={vm} /></div> : <div className="sgrid">
         <nav className="seps"><div className="lab">회차</div>
           {s.eps.map((x, i) => {
@@ -89,7 +102,7 @@ function DemoStudioPage() {
         <Editor vm={vm} />
       </div>}
       {chatOpen && <aside className="studio-chat" role="region" aria-label="AI 채팅"><div className="studio-chat-head"><b>AI 채팅</b><button type="button" className="btn sm" onClick={() => setChatOpen(false)}>접기</button></div><p className="small muted studio-chat-intro">사전 조회와 세계관 시뮬레이션, 요청에 따른 사전·플롯 수정과 콘티 구체화 및 반영을 도울 수 있어요. 이 화면은 데모입니다.</p><AiPanel vm={vm} /></aside>}
-      </div>
+      </main>
       {!chatOpen && <button type="button" className="studio-chat-toggle btn pri" onClick={() => setChatOpen(true)}>AI 채팅 열기</button>}
       {settingsOpen && <Sheet sid="U19" label="집필 설정" onClose={() => setSettingsOpen(false)}><div className="studio-settings-head"><h2>집필 설정</h2><button type="button" className="btn sm" onClick={() => setSettingsOpen(false)}>닫기</button></div><AutoBox vm={vm} /><NotePanel vm={vm} /></Sheet>}
       {vm.publishing && <PublishEpisodeSheet vm={vm} />}
@@ -128,16 +141,19 @@ function Editor({ vm }: { vm: VM }) {
   const ro = vm.readOnly
   const bad = d.check?.issues.map((x) => x.sent) ?? []
   const image = useRef<HTMLInputElement>(null)
-  const [mlist, setMlist] = useState<{ left: number; top: number } | null>(null)
+  const [mlist, setMlist] = useState<{ left: number; top: number; active: number } | null>(null)
   const [textAi, setTextAi] = useState(false)
   const [selection, setSelection] = useState('')
   const base = vm.studio!.base
+  // 목록 항목(인물 → 최근 사건 3개)과 같은 순서의 이름입니다. ↑↓·Enter가 이 순서로 고릅니다.
+  const names = [...base.cast.map((c) => c.n), ...base.events.slice(-3).map((x) => x[2])]
+  const moveMention = (step: 1 | -1) => setMlist((m) => m && names.length ? { ...m, active: m.active < 0 ? (step > 0 ? 0 : names.length - 1) : (m.active + step + names.length) % names.length } : m)
   // 목업 openMention(): 커서 위치에 인물과 최근 사건 3개를 띄웁니다.
   const openMention = (eb: HTMLElement) => {
     const sel = getSelection()
     if (!sel?.rangeCount) return
     const rr = sel.getRangeAt(0).getBoundingClientRect(), ed = eb.closest('.editor')!, eR = ed.getBoundingClientRect()
-    setMlist({ left: Math.max(8, (rr.left || eR.left + 40) - eR.left), top: (rr.bottom || eR.top + 120) - eR.top + ed.scrollTop + 6 })
+    setMlist({ left: Math.max(8, (rr.left || eR.left + 40) - eR.left), top: (rr.bottom || eR.top + 120) - eR.top + ed.scrollTop + 6, active: -1 })
   }
   const pickMention = (name: string) => {
     const s = getSelection(), eb = document.getElementById('eb')
@@ -163,16 +179,22 @@ function Editor({ vm }: { vm: VM }) {
       {d.editingEpisode && !ro ? <div className="revision-note">공개 원고를 복사한 수정 초안이에요. 수정 내용은 ‘수정 공개하기’를 누르기 전까지 공개 원고에 반영되지 않아요.</div>
         : ro ? <div className="revision-note">원작 스냅샷 원고는 읽기 전용이에요. Fork 이후 회차부터 수정할 수 있어요.</div> : null}
       {d.auto && <div className="abanner">🤖 AI 자율 연재가 쓴 초안이에요. 읽어 보고 고친 뒤 직접 공개해 주세요.</div>}
-      <div className="eb" id="eb" key={vm.bodyKey} contentEditable={!ro} suppressContentEditableWarning spellCheck={false} role="textbox" aria-multiline="true" aria-label="원고 본문"
-        data-ph={`여기에 ${d.no}화를 써 보세요. AI 채팅으로 시작할 수도 있어요.`} onInput={(e) => vm.edit({ paras: readParas(e.currentTarget) })}
+      <div className="eb" id="eb" key={vm.bodyKey} contentEditable={!ro} suppressContentEditableWarning spellCheck={false} role="combobox" aria-expanded={!!mlist} aria-controls={mlist ? 'mention-list' : undefined} aria-activedescendant={mlist && mlist.active >= 0 ? `mention-opt-${mlist.active}` : undefined} aria-label="원고 본문"
+        data-ph={`여기에 ${d.no}화를 써 보세요. AI 채팅으로 시작할 수도 있어요.`} onInput={(e) => { setMlist(null); vm.edit({ paras: readParas(e.currentTarget) }) }}
         onMouseUp={(e) => { const s = window.getSelection(); if (s && e.currentTarget.contains(s.anchorNode) && e.currentTarget.contains(s.focusNode)) setSelection(s.toString().trim()) }}
-        onKeyUp={(e) => { if (e.key === '@') openMention(e.currentTarget); const s = window.getSelection(); if (s && e.currentTarget.contains(s.anchorNode) && e.currentTarget.contains(s.focusNode) && s.toString().trim()) setSelection(s.toString().trim()) }} onKeyDown={(e) => { if (e.key === 'Escape') setMlist(null) }}
+        onKeyUp={(e) => { if (e.key === '@') openMention(e.currentTarget); const s = window.getSelection(); if (s && e.currentTarget.contains(s.anchorNode) && e.currentTarget.contains(s.focusNode) && s.toString().trim()) setSelection(s.toString().trim()) }} onKeyDown={(e) => {
+          if (!mlist) return
+          if (e.key === 'Escape') return setMlist(null)
+          if (e.nativeEvent.isComposing) return
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); moveMention(e.key === 'ArrowDown' ? 1 : -1) }
+          else if (e.key === 'Enter' && mlist.active >= 0) { e.preventDefault(); pickMention(names[mlist.active]) }
+        }}
         ref={(el) => { if (el && !filled.has(el)) { filled.add(el); fillBody(el, d.paras, bad, d.links) } }}>
       </div>
       <div className="text-ai"><button type="button" className="btn sm" aria-expanded={textAi} onClick={() => setTextAi(!textAi)}>문장 AI 도구</button>{textAi && <div className="text-ai-panel"><b>문장 AI 채팅</b><p className="small muted">선택한 문장을 수정하거나 새로운 장면을 요청하세요. 화면 예시이며 AI 요청과 원고 반영은 연결되지 않았어요.</p><div className="text-ai-selection">{selection || '선택한 문장이 여기에 표시됩니다.'}</div><label className="field">문장 또는 장면 요청<textarea className="ta" placeholder="수정하거나 작성할 내용을 적어 주세요" /></label><div className="text-ai-modes"><button type="button" className="btn sm" disabled>＋ 문맥</button><button type="button" className="btn sm" disabled>생성</button><button type="button" className="btn sm" disabled>적용</button><button type="button" className="btn sm" disabled>다시 생성</button><button type="button" className="btn sm" disabled>버리기</button></div></div>}</div>
-      {mlist && <div className="mlist" role="listbox" aria-label="연결할 인물·사건" style={mlist}>
-        {base.cast.map((c) => <button type="button" role="option" aria-selected="false" key={c.n} onMouseDown={(e) => { e.preventDefault(); pickMention(c.n) }}><i style={{ width: 18, height: 18, borderRadius: '50%', background: c.c, display: 'inline-block' }} />{c.n}<small>인물</small></button>)}
-        {base.events.slice(-3).map((x) => <button type="button" role="option" aria-selected="false" key={x[2]} onMouseDown={(e) => { e.preventDefault(); pickMention(x[2]) }}>📍 {x[2]}<small>사건</small></button>)}
+      {mlist && <div className="mlist" id="mention-list" role="listbox" aria-label="연결할 인물·사건" style={{ left: mlist.left, top: mlist.top }}>
+        {base.cast.map((c, i) => <button type="button" role="option" id={`mention-opt-${i}`} aria-selected={mlist.active === i} tabIndex={-1} className={mlist.active === i ? 'on' : undefined} key={c.n} onMouseDown={(e) => { e.preventDefault(); pickMention(c.n) }}><i style={{ width: 18, height: 18, borderRadius: '50%', background: c.c, display: 'inline-block' }} />{c.n}<small>인물</small></button>)}
+        {base.events.slice(-3).map((x, i) => <button type="button" role="option" id={`mention-opt-${base.cast.length + i}`} aria-selected={mlist.active === base.cast.length + i} tabIndex={-1} className={mlist.active === base.cast.length + i ? 'on' : undefined} key={x[2]} onMouseDown={(e) => { e.preventDefault(); pickMention(x[2]) }}>📍 {x[2]}<small>사건</small></button>)}
       </div>}
       <label className="field author-note-editor">작가의 말<textarea className="ta" id="authorNote" key={vm.bodyKey + 'n'} aria-label="작가의 말" placeholder="회차를 읽은 독자에게 전할 말을 적어 주세요" disabled={ro} defaultValue={d.authorNote} onInput={(e) => vm.edit({ authorNote: e.currentTarget.value })} /></label>
       <div className="wordtools"><output id="wordcount" aria-live="polite">{vm.wordCount}</output><div className="acts">

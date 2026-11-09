@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 import { useAppDispatch } from '../../app/store'
-import { sessionActions } from './session/sessionSlice'
+import { uiActions } from './ui/uiSlice'
 
 /** 목업 SID: 화면 ID와 이름 (docs/prototype-alignment.md 2절의 키) */
 export const SID: Record<string, string> = {
@@ -25,5 +25,5 @@ export const screenLabel = (id: string) => id.split('+').map((x) => x + ' ' + SI
 /** 페이지가 렌더링될 때 화면 ID를 기록합니다 (목업 baseId·setId). null이면 이전 ID를 둡니다. */
 export function useScreenId(id: string | null) {
   const dispatch = useAppDispatch()
-  useEffect(() => { if (id) dispatch(sessionActions.setBaseScreen(id)) }, [dispatch, id])
+  useEffect(() => { if (id) dispatch(uiActions.setBaseScreen(id)) }, [dispatch, id])
 }

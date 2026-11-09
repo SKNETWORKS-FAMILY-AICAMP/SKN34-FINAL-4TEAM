@@ -3,7 +3,6 @@ package ai.storyfork.content.publication.service
 import ai.storyfork.content._common.exception.*
 import ai.storyfork.content._common.helper.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.beans.factory.annotation.Qualifier
 import jakarta.persistence.EntityManager
@@ -19,7 +18,6 @@ import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.dto.*
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class PublicationService(
     private val access: ai.storyfork.content.work.service.WorkAccessService,
@@ -33,6 +31,7 @@ class PublicationService(
     private val drafts: EpisodeDraftRepository,
     private val works: WorkRepository,
     private val policies: ForkPolicyHistoryRepository,
+    private val selectedPolicyEpisodes: ForkPolicyEpisodeRepository,
     @Qualifier("contentEntityManager") private val em: EntityManager,
 ) {
 
@@ -79,7 +78,9 @@ class PublicationService(
             val last=policies.findFirstByWorkIdOrderByRevisionNoDesc(id)
             if(last==null || last.allowCreation!=data.allowFork || last.allowPublication!=data.allowForkPublication) {
                 val revision=(last?.revisionNo ?: -1)+1
-                policies.save(ForkPolicyHistoryEntity(id=contentKey("policy",id,revision.toString()),workId=id,allowCreation=data.allowFork,allowPublication=data.allowForkPublication,revisionNo=revision,episodeScope="all"))
+                val policyId=contentKey("policy",id,revision.toString())
+                policies.saveAndFlush(ForkPolicyHistoryEntity(id=policyId,workId=id,allowCreation=data.allowFork,allowPublication=data.allowForkPublication,revisionNo=revision,episodeScope=last?.episodeScope ?: "all",startEpisodeId=last?.startEpisodeId))
+                if(last?.episodeScope=="selected") selectedPolicyEpisodes.saveAll(selectedPolicyEpisodes.findAllByPolicyHistoryId(last.id).map {ForkPolicyEpisodeEntity(policyId,it.episodeId,id)})
             }
         }
         val next=number+1
@@ -94,6 +95,7 @@ class PublicationService(
     private fun apply(id: String, owner: String, number: Int, version: String) {
         val row=episodes.findByWorkIdAndSequence(id,number) ?: throw ContentFailure(404,"회차를 찾을 수 없어요.")
         val v=versions.findByEpisodeIdAndContentVersionId(row.id,version) ?: throw ContentFailure(409,"저장 버전을 확인해 주세요.")
+        episodeService.requireImageReferences(id,number,v.content)
         events.saveAndFlush(PublicationEventEntity(id=contentId(),episodeVersionId=v.id,actorId=owner,action="publish",outcome="applied",triggerKind="manual"))
         val currentVisibility=visibility.findFirstByWorkIdOrderByRevisionNoDesc(id)
         if(currentVisibility?.visibility!="public") visibility.save(WorkPublicationHistoryEntity(id=contentId(),workId=id,revisionNo=(currentVisibility?.revisionNo ?: -1)+1,visibility="public"))

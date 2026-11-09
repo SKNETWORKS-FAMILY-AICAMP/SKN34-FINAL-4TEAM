@@ -26,7 +26,7 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 워크플로가 이 디렉터리에서 `uv run --locked --extra dev python -m pytest`와 해당 marker를 직접 호출하며 별도 runner·shell wrapper는 없습니다.
 제공사 단위 테스트는 monkeypatch 대역이며 AI 계약 변경 시 Core·web 소비자와 실제 HTTP 시스템 회귀도 선택합니다.
 시스템의 AI 키/모델은 빈 값으로 고정해 명시적인 503과 DB 실패 상태를 확인하며 유료 모델은 호출하지 않습니다.
-자세한 선택/계층 정책은 [공통 검증](../../README.md#검증)을 따릅니다. hosted `Required CI` 성공 확인 전에는 검증 대기입니다.
+자세한 선택/계층 정책은 [공통 검증](../../docs/development.md#검증)을 따릅니다. hosted `Required CI` 성공 확인 전에는 검증 대기입니다.
 
 `GET /internal/v1/health`는 `{"status":"up","service":"storyfork-ai-service"}`를 반환합니다.
 실제 흐름은 `HTTP → health/router.py → HealthResponse → JSON`입니다.

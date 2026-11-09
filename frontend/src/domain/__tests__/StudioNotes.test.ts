@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockDb, InMemoryAdminRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../data/mock/fixtureDb'
+import { InMemoryAdminRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
 const ok = () => true
 const setup = (owned = true) => {
-  const db = createMockDb()
+  const db = createFixtureDb()
   if (owned) {
     db.worlds.push({ id: 'my-world', name: '별빛 세계', description: '', rules: [], public: false })
     db.works.find((w) => w.id === 'starlight')!.worldIds = ['my-world']

@@ -1,5 +1,7 @@
 # AI Service 설계 (현재 실행 모듈: `ai-service`)
 
+[메인 README](../../../README.md) · [문서 목록](../../README.md)
+
 > **DEC-41 목표 경계 · 분리 구현 전.** [Core·콘텐츠·운영·AI 책임](../service-boundaries.md)에 맞춰 아래 본문을 구분합니다. 현재 `core-api`의 인증·콘텐츠·첨부 공존과 기존 URL·데이터·Flyway 이력은 유지하며 별도 콘텐츠·운영 앱과 DB 이전은 아직 실행하지 않았습니다.
 
 > **상태: 선택적 원고 생성 구현 · 전체 AI 업무는 목표 설계.** [상위 설계](../design.md)와 [결정 기록](../decisions.md#결정-목록), 특히 DEC-41을 따릅니다. 이전 [KAG 설계](../archive/kag-design/services/ai-service.md)는 현행 MVP가 아닙니다.

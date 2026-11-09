@@ -1,35 +1,21 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 import type { Role } from '../../../domain/entities/work'
-import type { StreamState } from '../../../data/api/notificationStream'
+import type { StreamState } from '../../../domain/entities/notificationStream'
 import type { AuthUser } from '../../../domain/repositories/AuthRepository'
 
-/** 화면 사이에서 유지하는 세션·보기 상태 (목업 S의 화면 상태 부분). 업무 데이터는 Repository에 둡니다. */
-export type Look = 'auto' | 'world' | 'ivory' | 'white' | 'night'
-
+/** 인증·로그인 안내와 기존 조회 무효화 신호. 표시 상태는 uiSlice, 업무 데이터는 Repository가 소유합니다. */
 export type SessionState = {
   role: Role
   user: { nick: string; email: string; joined: string }
+  /** Core 회원 ID. 신고자·작품 소유자 표시 판단에만 쓰며 권한 검사는 서버가 합니다. */
+  memberId: string | null
   /** 로그인 후 돌아갈 경로와 로그인 화면 안내 (목업 S.next·S.loginMsg) */
   next: string | null
   loginMsg: string
   /** 로그인 화면에서 고른 데모 종류 (목업 LOGIN_ROLE) */
   loginRole: 'user' | 'admin'
-  theme: 'light' | 'dark' | null
-  showSid: boolean
-  /** 페이지 화면 ID와 그 위에 열린 시트의 화면 ID */
-  screen: { base: string; sheet: string | null }
-  chip: string
-  /** 홈 캐러셀 위치 (목업 S.hero) */
-  hero: number
-  /** 회차 뷰어 보기 설정 (목업 S.look·S.fs·S.motion)과 상세 회차 정렬 (S.epSort) */
-  look: Look
-  fs: number
-  motion: boolean
-  epSort: 'old' | 'new'
-  guide: boolean
-  firstHome: boolean
-  /** Repository 데이터가 바뀔 때마다 올려 화면 조회를 다시 실행합니다 (목업의 render() 재호출). */
+  /** ponytail: 데모의 전역 재조회 신호를 유지합니다. 실제 조회 범위를 분리할 때 기능별 무효화로 좁힙니다. */
   dataVersion: number
   /** 알림 변경 신호(SSE)를 받을 때마다 올라갑니다. 알림 배지·목록이 이 값으로 다시 조회합니다. */
   noticeVersion: number
@@ -39,20 +25,10 @@ export type SessionState = {
 export const initialSession: SessionState = {
   role: null,
   user: { nick: '읽는사람', email: 'reader@storyfork.demo', joined: '2026.10.20' },
+  memberId: null,
   next: null,
   loginMsg: '',
   loginRole: 'user',
-  theme: null,
-  showSid: true,
-  screen: { base: 'U01', sheet: null },
-  chip: '추천',
-  hero: 0,
-  look: 'auto',
-  fs: 19,
-  motion: true,
-  epSort: 'old',
-  guide: true,
-  firstHome: true,
   dataVersion: 0,
   noticeVersion: 0,
   noticeStream: 'off',
@@ -71,6 +47,7 @@ export const sessionSlice = createSlice({
     login: (s, a: PayloadAction<AuthUser>) => {
       s.role = a.payload.operator ? 'admin' : 'user'
       s.user = { nick: a.payload.nickname, email: a.payload.email, joined: '' }
+      s.memberId = a.payload.id
       s.loginMsg = ''
       s.next = null
     },
@@ -79,22 +56,10 @@ export const sessionSlice = createSlice({
     logout: (s) => {
       s.role = null
       s.user = { ...initialSession.user }
+      s.memberId = null
       s.loginRole = 'user'
       s.next = null
     },
-    setTheme: (s, a: PayloadAction<'light' | 'dark'>) => { s.theme = a.payload },
-    toggleSid: (s) => { s.showSid = !s.showSid },
-    setBaseScreen: (s, a: PayloadAction<string>) => { s.screen.base = a.payload },
-    setSheetScreen: (s, a: PayloadAction<string | null>) => { s.screen.sheet = a.payload },
-    setLook: (s, a: PayloadAction<Look>) => { s.look = a.payload },
-    changeFs: (s, a: PayloadAction<number>) => { s.fs = Math.max(15, Math.min(24, s.fs + a.payload)) },
-    setMotion: (s, a: PayloadAction<boolean>) => { s.motion = a.payload },
-    setEpSort: (s, a: PayloadAction<'old' | 'new'>) => { s.epSort = a.payload },
-    setChip: (s, a: PayloadAction<string>) => { s.chip = a.payload },
-    setHero: (s, a: PayloadAction<number>) => { s.hero = a.payload },
-    stepHero: (s, a: PayloadAction<number>) => { s.hero += a.payload },
-    closeGuide: (s) => { s.guide = false },
-    homeVisited: (s) => { s.firstHome = false },
     dataChanged: (s) => { s.dataVersion += 1 },
     noticeSignal: (s) => { s.noticeVersion += 1 },
     noticeStreamState: (s, a: PayloadAction<StreamState>) => { s.noticeStream = a.payload },

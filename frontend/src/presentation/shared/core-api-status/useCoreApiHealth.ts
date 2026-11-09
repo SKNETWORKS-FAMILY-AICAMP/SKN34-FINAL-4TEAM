@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { appContainer } from '../../../app/appContainer'
 import type { FetchCoreApiHealth } from '../../../app/di/types'
-import type { CoreApiHealth } from '../../../data/api/coreApiHealth'
+import type { CoreApiHealth } from '../../../domain/entities/serviceHealth'
 
 type CoreApiHealthState = {
   data: CoreApiHealth | undefined
@@ -18,10 +18,10 @@ const initialState: CoreApiHealthState = {
 
 /** Core API Health 요청과 화면 수명에 따른 취소를 직접 관리합니다. */
 export function useCoreApiHealth(
-  fetchCoreApiHealth: FetchCoreApiHealth = appContainer.resolve(
-    'fetchCoreApiHealth',
-  ),
+  fetchHealth?: FetchCoreApiHealth,
+  target: 'core-api' | 'ai-service' = 'core-api',
 ) {
+  const fetchCoreApiHealth = fetchHealth ?? appContainer.resolve(target === 'core-api' ? 'fetchCoreApiHealth' : 'fetchAiServiceHealth')
   const activeController = useRef<AbortController | null>(null)
   const activeRequestId = useRef(0)
   const isMounted = useRef(false)
