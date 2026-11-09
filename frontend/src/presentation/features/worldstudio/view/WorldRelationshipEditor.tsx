@@ -1,5 +1,5 @@
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { isFreeRelation, relationLabel } from '../../../../domain/entities/studioRelations'
 import { useRelationPairViewModel } from '../viewmodel/useRelationPairViewModel'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
@@ -11,18 +11,30 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const [source, setSource] = useState(''),
     [target, setTarget] = useState(''),
     [open, setOpen] = useState(false)
+  const [focusRequest, setFocusRequest] = useState<{ id: string; seq: number } | null>(null)
+  const handledRequest = useRef(0)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const validDeletion = !!deleteConfirm && people.some((s) =>
     s.item.id === deleteConfirm && s.item.kind === 'entity' && s.item.entityType === 'character'
   )
   const deletion = deleteConfirm && validDeletion ? studio.personDeletionInfo(deleteConfirm) : null
   useEffect(() => { if (deleteConfirm && !validDeletion) setDeleteConfirm(null) }, [deleteConfirm, validDeletion])
-  const selectPair = (nextSource: string, nextTarget: string, nextOpen: boolean) => {
-    if (open && (nextSource !== source || nextTarget !== target) && !studio.confirmRelationDiscard()) return
+  const selectPair = useCallback((nextSource: string, nextTarget: string, nextOpen: boolean) => {
+    if (open && (nextSource !== source || nextTarget !== target) && !studio.confirmRelationDiscard()) return false
     setSource(nextSource)
     setTarget(nextTarget)
     setOpen(nextOpen)
-  }
+    return true
+  }, [open, source, target, studio])
+  useEffect(() => {
+    const request = studio.relationRequest
+    if (!request || request.seq === handledRequest.current) return
+    handledRequest.current = request.seq
+    const item = studio.editing?.settings.find((row) => row.item.id === request.id && row.item.kind === 'relation')?.item
+    if (!item?.subjectId || !item.targetId) return
+    const samePair = open && (item.subjectId === source && item.targetId === target || item.subjectId === target && item.targetId === source)
+    if (samePair || selectPair(item.subjectId, item.targetId, true)) setFocusRequest(request)
+  }, [studio.relationRequest, studio.editing?.settings, open, source, target, selectPair])
   const relations = studio.editing!.settings.filter((s) => s.item.kind === 'relation')
   const name = (id: string | null) =>
     people.find((s) => s.item.id === id)?.item.title || '선택 안 함'
@@ -156,6 +168,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
             studio={studio}
             source={source}
             target={target}
+            focusRequest={focusRequest}
             onClose={() => setOpen(false)}
           />
         )}
@@ -165,13 +178,20 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
 }
 
 function PairEditor(
-  { studio, source, target, onClose }: {
+  { studio, source, target, focusRequest, onClose }: {
     studio: VM
     source: string
     target: string
+    focusRequest: { id: string; seq: number } | null
     onClose: () => void
   },
 ) {
+  const focusedRow = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!focusRequest) return
+    const frame = requestAnimationFrame(() => focusedRow.current?.querySelector<HTMLElement>('input,textarea,select')?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [focusRequest])
   const name = (id: string | null) =>
     studio.editing!.settings.find((s) => s.item.id === id)?.item.title || '새 설정'
   const vm = useRelationPairViewModel(studio, source, target, onClose)
@@ -188,7 +208,7 @@ function PairEditor(
           const direction = vm.direction(r)
           const write = (text: string) => vm.write(r, text)
           return (
-            <div className='relationship-row' key={r.key}>
+            <div className='relationship-row' key={r.key} ref={r.value.id === focusRequest?.id ? focusedRow : undefined}>
               <label className='field'>
                 {field}
                 {kind === 'fact'
