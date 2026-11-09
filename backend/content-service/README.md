@@ -91,6 +91,8 @@ V14는 기존 V1~V13을 보존하고 `work_view`(작품·회차·회원·Asia/Se
 
 샘플 데이터는 [테이블별 UTF-8 CSV 정본에서 생성한 Flyway `db/migration/sample/V16`](../../infrastructure/sample-data/README.md)으로 서버 시작 시 적용됩니다. V15(샘플 이관 시점의 V10을 develop의 V10~V14 뒤로 옮긴 번호)는 샘플 행 없는 스키마 SQL로 유지하고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개 바이트는 보존합니다. CSV 속성은 원문 근거가 있는 공개 시점만 부여하며 불확실한 값은 비공개입니다. rich 대상 편집/following Fork의 rich detach는 409로 보호하되 원작의 새 단순 설정 초안·확정은 기존 rich 상세를 바꾸지 않고 허용합니다. 실제 적용·hosted CI·브라우저 수용은 별도 확인 대기입니다.
 
+장르 예시 템플릿은 SQL이 아니라, 서버 시작 시 `GenreTemplateSeeder`가 `genre-templates.json`을 읽어 `WorldStudioService`로 Core 운영 관리자(`auth/V8`의 `admin@example.test`, `GenreTemplateSeeder.TEMPLATE_OWNER`) 소유의 WorldStudio 세계관 11개(카드 248장)를 임시 할당으로 적재합니다. 공개된 샘플 관리자 비밀번호로 누구나 수정·삭제할 수 있고 다른 사용자에게는 보이지 않습니다. 장르별 실패(Neo4j 장애 등)는 오류 로그만 남기고 서버는 계속 뜨며 다음 시작 때 다시 시도합니다. [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)·[템플릿 안내](../../infrastructure/sample-data/genre-templates/README.md)를 따릅니다.
+
 Auth SQL은 Core의 `db/migration/auth`/`flyway_schema_history`에 원본 그대로 남습니다. 설정 첨부·이미지는 독립 leaf/history 및 바이트를 유지합니다. WorldStudio V1도 바이트/`worldstudio.world_studio_schema_history`를 유지하고 [명시 migration](src/main/resources/db/migration/worldstudio/README.md) 뒤에만 활성화합니다. 같은 `contentDataSource`를 사용하지만 studio-only EntityManager/TransactionManager이며 서버 시작은 `validate`만 합니다. 별도 WorldStudio DB/pool·Auth 스캔은 없습니다.
 
 ## 이미지·전환과 검증
