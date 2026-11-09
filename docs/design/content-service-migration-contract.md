@@ -47,7 +47,7 @@ Core는 회원·인증·세션·크레딧·정산·회원 알림을 유지한다
 |---|---|
 | 구현 endpoint | `POST /internal/v1/auth/verify` — Core 내부 전용, 공개 proxy 미등록 |
 | 사용자 인증 입력 | 원 요청의 `Authorization: Bearer …`. 본문 사용자 ID는 인증 근거로 사용하지 않음 |
-| 최소 성공 응답 | `VerifiedMemberResponse(memberId: UUID)` |
+| 최소 성공 응답 | `VerifiedMemberResponse(memberId: UUID, operator, nickname)` — Content는 `memberId`를 Principal로, `nickname`을 댓글 작성자 표시명 스냅샷용 인증 details로만 쓴다([회차 댓글 계약](episode-comment-contract.md)) |
 | Core 책임 | 기존 인증·세션 정책으로 유효한 인증 주체를 판단. 세션 폐기 반영 범위도 기존 정책과 맞춤 |
 | 콘텐츠 책임 | 보호 요청의 인증 경계에서 확인 후 Principal 구성. 업무 Service에서 작품·세계관·회차·Fork 권한 검사 |
 | 호출 서비스 인증 | 별도 `X-Content-Service-Token`; `CONTENT_CORE_AUTH_TOKEN`은 32자 이상·개행 없음, Core 상수 시간 비교. 루트 예시는 빈 값, Core/Content만 주입 |
