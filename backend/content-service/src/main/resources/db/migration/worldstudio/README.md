@@ -62,7 +62,7 @@ Service는 검증된 JWT subject를 인자로 받아 world.owner_subject를 먼�
 기존 테스트 의존성의 Flyway와 PostgreSQL 드라이버를 사용한다. 추가 라이브러리는 없다. 별도 일회용 PostgreSQL의 테스트 전용 superuser URL/user/password와 `TEST_WORLDSTUDIO_DISPOSABLE=true`를 테스트 프로세스에만 전달하고 다음 선택 테스트를 실행한다. 실제 `.env`를 source하거나 공유하지 않는다.
 
 ```text
-./gradlew unitTest --tests '*WorldStudioServiceTest' --tests '*WorldStudioMigrationIdentityTest' integrationTest --tests '*WorldStudioServicePostgresTest' --tests '*WorldStudioFlywayPostgresTest' --tests '*WorldStudioHistoryPostgresTest' --tests '*WorldStudioConfigIntegrationTest' --no-daemon
+./gradlew unitTest --tests '*WorldStudioServiceTest' --tests '*WorldStudioMigrationIdentityTest' integrationTest --tests '*WorldStudioServicePostgresTest' --tests '*WorldStudioFlywayPostgresTest' --tests '*WorldStudioHistoryPostgresTest' --no-daemon
 ```
 
 각 fixture는 `ws_independent_<uuid>` DB를 생성하고 자신이 만든 DB만 제거한다. 독립 SQL은 Auth/Content 없는 DB에서, 공통 JPA는 Auth를 포함한 Core 기본 연결에서 Content 없이 저장·복원·과거 조회·커밋 실패·동시성·무결성을 검증한다. CI도 전용 임시 PostgreSQL service에서만 실행한다. 사용자·공용 개발·운영 DB에 이 환경변수를 설정하지 않는다.
