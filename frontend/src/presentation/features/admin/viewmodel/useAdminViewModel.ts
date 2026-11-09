@@ -9,7 +9,7 @@ import { OperationsError, toUtcFromKoreanInput, type InquiryInput, type NoticeIn
 import { type AdminResult, type AdminUseCase, canToggleWork } from '../../../../domain/usecases/AdminUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
 import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
-import type { ReportStatus, ReviewDecision } from '../../../../domain/entities/report'
+import { REPORT_STATUSES, type ReviewDecision } from '../../../../domain/entities/report'
 import type { MemberUseCase } from '../../../../domain/usecases/MemberUseCase'
 import type { ReportUseCase } from '../../../../domain/usecases/ReportUseCase'
 import { toast } from '../../../shared/events'
@@ -26,7 +26,6 @@ const demoDeleted = (name: string) => ({ ok: true, msg: `${name} 삭제했어요
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
 export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'profile']
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
-const STATUSES: ReportStatus[] = ['RECEIVED', 'ACCEPTED', 'REJECTED']
 
 /** 기존 회원/제보 데모와 독립 운영 CRUD를 함께 보여 주되 정본과 조치를 섞지 않습니다. */
 export function useAdminViewModel(
@@ -53,7 +52,7 @@ export function useAdminViewModel(
   const role = ROLES.find((r) => r === filter?.category) ?? 'ALL'
   const q = tab === 'users' ? filter?.query ?? '' : ''
   const sort = filter?.sort === 'oldest' ? 'oldest' : 'newest'
-  const status = STATUSES.find((x) => x === filter?.category) ?? null
+  const status = REPORT_STATUSES.find(([value]) => value === filter?.category)?.[0] ?? null
   const live = useAsyncData(async () => ({
     members: tab === 'users' ? await memberUseCase.listMembers({ role, q, sort }) : [],
     admins: tab === 'admins' ? await memberUseCase.listAdmins() : [],
