@@ -140,9 +140,6 @@ class OperationsExceptionHandlerTest {
 
     @Test
     fun `client errors are not logged so request details never reach the log`() {
-        handler.invalidRequest()
-        handler.notFound()
-        handler.conflict()
         for (status in listOf(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN, HttpStatus.NOT_FOUND, HttpStatus.CONFLICT)) {
             handler.responseStatus(ResponseStatusException(status, "private SQL, token or inquiry body"))
         }

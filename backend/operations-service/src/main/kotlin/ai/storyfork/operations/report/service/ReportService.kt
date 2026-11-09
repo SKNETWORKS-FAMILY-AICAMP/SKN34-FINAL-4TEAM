@@ -24,10 +24,8 @@ import org.springframework.web.server.ResponseStatusException
 private const val RIGHTS = "rights"
 
 /**
- * Content calls run before any local write, so an upstream failure records neither state nor history.
- * Methods that call Content (`create`, `restrict`, `unrestrict`) carry no `@Transactional`, so a slow Content never holds
- * a DB connection. Not even NOT_SUPPORTED: it still binds a non-transactional EntityManager, and its connection, until the
- * method returns. Their local writes are one explicit transaction instead.
+ * Content is called before any local write, so a failure records neither state nor history. `create`, `restrict` and
+ * `unrestrict` carry no `@Transactional`: even NOT_SUPPORTED keeps an EntityManager, and its connection, bound until return.
  */
 @Service
 class ReportService(

@@ -45,7 +45,6 @@ class OperationsExceptionHandler {
         401 -> ResponseEntity.status(401).body(OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
         403 -> ResponseEntity.status(403).body(OperationsErrorResponse("FORBIDDEN", "Access denied."))
         502 -> {
-            // The cause chain only goes to the server log; the response keeps the generic DTO.
             log.warn("Upstream request failed", error as? Throwable)
             ResponseEntity.status(502).body(OperationsErrorResponse("UPSTREAM_FAILED", "Upstream service request failed."))
         }
