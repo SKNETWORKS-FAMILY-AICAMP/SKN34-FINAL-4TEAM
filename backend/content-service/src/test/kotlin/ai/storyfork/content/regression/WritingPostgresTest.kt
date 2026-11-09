@@ -46,6 +46,28 @@ class WritingPostgresTest {
         assertEquals(409,assertThrows(ContentFailure::class.java) { service.publishEpisode(w.id,"writer",2,PublishRequest(second.draft.revision,true,versionId=version.id)) }.status)
     }
 
+    @Test fun `a checkpoint is a published version so saving makes none and reverting reactivates an earlier one without erasing history`() {
+        val w=service.create("writer",CreateWorkRequest("체크포인트 검증"))
+        fun applied()=jdbc.queryForObject("SELECT count(*) FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id JOIN episode e ON e.id=v.episode_id WHERE e.work_id=? AND p.action='publish' AND p.outcome='applied'",Int::class.java,w.id)
+        val first=service.writeEpisode(w.id,"writer",1,DraftRequest("1화","첫 원고",0),true)
+        assertTrue(first.checkpoints.isEmpty())
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM checkpoint WHERE work_id=?",Int::class.java,w.id))
+        val v1=first.versions.single().id
+        val live1=service.publishEpisode(w.id,"writer",1,PublishRequest(first.draft.revision,true,versionId=v1))
+        assertEquals(listOf(v1 to true),live1.checkpoints.map { it.versionId to it.active })
+        val second=service.writeEpisode(w.id,"writer",1,DraftRequest("1화","고친 원고",live1.draft.revision),true)
+        assertEquals(listOf(v1 to true),second.checkpoints.map { it.versionId to it.active })
+        val v2=second.versions.last().id
+        val live2=service.publishEpisode(w.id,"writer",1,PublishRequest(second.draft.revision,true,versionId=v2))
+        assertEquals(listOf(v1 to false,v2 to true),live2.checkpoints.map { it.versionId to it.active })
+        assertEquals("고친 원고",service.publicRead(w.id).episodes.single().body)
+        val reverted=service.publishEpisode(w.id,"writer",1,PublishRequest(live2.draft.revision,true,versionId=v1))
+        assertEquals(v1,reverted.publishedVersionId)
+        assertEquals(listOf(v1 to true,v2 to false),reverted.checkpoints.map { it.versionId to it.active })
+        assertEquals("첫 원고",service.publicRead(w.id).episodes.single().body)
+        assertEquals(3,applied())
+    }
+
     @Test fun `version insert failure rolls back draft and inherited fork episodes reject writes`() {
         val w=service.create("writer",CreateWorkRequest("실패 및 분기 검증"))
         val saved=service.writeEpisode(w.id,"writer",1,DraftRequest("원고","보존",0),true)
