@@ -298,6 +298,32 @@ class WorkSearchServiceTest {
         assertEquals(listOf("윤서하"), service.list("owner-a").items.map { it.authorName })
     }
 
+    @Test fun `the owner list asks Core before taking the row locks`() {
+        work("a", "첫째", 1, author = "윤서하")
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("owner-a")).thenReturn(rows.toList())
+
+        assertEquals(listOf("윤서하"), service.list("owner-a").items.map { it.authorName })
+
+        // lockScopes는 PESSIMISTIC_WRITE 잠금(원작 행 포함)을 쥐므로 그 전에 외부 호출을 끝내야 한다. 목록의 소유자는 모두 owner라 한 번이면 된다.
+        val order = inOrder(nicknames, access)
+        order.verify(nicknames).nicknames(listOf("owner-a"))
+        order.verify(access).lockScopes(ArgumentMatchers.anyCollection<String>())
+        assertEquals(listOf(listOf("owner-a")), asked)
+    }
+
+    @Test fun `the owner list takes no row locks when Core fails and asks nobody when the owner has no works`() {
+        work("a", "첫째", 1)
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("owner-a")).thenReturn(rows.toList())
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("nobody")).thenReturn(emptyList())
+        val failure = CoreAuthException(503, "CORE_MEMBER_UNAVAILABLE", "회원 정보 서비스를 사용할 수 없습니다.")
+        doThrow(failure).`when`(nicknames).nicknames(ArgumentMatchers.anyCollection<String>())
+
+        assertSame(failure, assertThrows(CoreAuthException::class.java) { service.list("owner-a") })
+        verify(access, never()).lockScopes(ArgumentMatchers.anyCollection<String>())
+        // 작품이 없으면 Core를 부르지 않으므로 Core가 장애여도 빈 목록은 그대로 돌려준다.
+        assertEquals(emptyList<String>(), service.list("nobody").items.map { it.id })
+    }
+
     @Test fun `public episodes check the work is public and read its published episodes without asking Core`() {
         work("a", "첫째", 1)
         `when`(publication.publishedEpisodes("a")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1, 3, "v1", "1화", "본문", false))))

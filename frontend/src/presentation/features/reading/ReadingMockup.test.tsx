@@ -17,7 +17,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 const wrap = () => {
   const store = createAppStore({ role: 'user' })
-  // useWorkViewModel은 로그인 안내 이동에 라우터가 필요하다.
+  // useReaderViewModel·useWorkViewModel은 로그인 안내 이동에 라우터가 필요하다.
   return ({ children }: { children: ReactNode }) => <Provider store={store}><MemoryRouter>{children}</MemoryRouter></Provider>
 }
 const sentence = { t: '이건 어디로 가야 하지.', pi: 0 }

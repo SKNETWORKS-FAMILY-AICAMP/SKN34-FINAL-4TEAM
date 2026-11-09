@@ -18,6 +18,7 @@
 ## 2. 책임 경계
 
 - **인증과 콘텐츠 인가:** Core가 회원·인증을 소유한다. Content는 보호 요청마다 별도 서비스 자격과 사용자 Bearer로 Core `POST /internal/v1/auth/verify`를 호출하고 검증된 회원 UUID에 대해 작품 소유권·공개·회차·Fork 범위를 판단한다. 인증 캐시·재시도·fallback·JWT 서명 키 공유는 없다. Core 장애는 사용자 무효 401과 구분한다. 기존 access JWT의 즉시 세션 폐기 전파는 보장하지 않는다. 운영 인증·권한(회원·관리자·신고 MVP)은 [운영 회원·관리자·신고 계약](operations-member-report-contract.md)을 따른다. 고객지원 문의·답변은 [운영 고객지원 문의 계약](operations-support-inquiry-contract.md)을, 공지 관리·독자 공지 조회는 [운영 공지 계약](operations-notice-contract.md)을, 이벤트 관리자 CRUD·독자 조회는 [운영 이벤트 계약](operations-event-contract.md)을, 운영 작품 조회·제한은 [운영 작품 조회 계약](operations-work-contract.md)을 따른다.
+- **작가·작성자 표시명:** 회원 닉네임의 정본은 Core다. Content는 작품·댓글 응답을 만들 때마다 소유자·작성자 ID를 모아 별도 서비스 자격으로 Core `POST /internal/v1/members/nicknames`를 호출해 `authorName`을 채우고(공개 목록·검색·랭킹·상세, 소유자 목록·상세 포함), 닉네임 사본을 저장하지 않는다. Core에 없는 회원은 `탈퇴한 회원`, Core 실패는 임의 이름 없이 오류(503·504·502)로 전한다([독서 관리 계약](reading-management-contract.md), [회차 댓글 계약](episode-comment-contract.md)).
 - **AI 작업:** 콘텐츠 요청의 대상·기준 버전·허용 문맥·사용자 채택·저장은 콘텐츠 서비스 책임이다. AI는 제안·사용량·실행 결과를 반환한다. 생성과 승인·정본 반영·발행을 구분한다. 운영 목적의 AI 검사·평가는 운영 관리 서비스가 소유하는 작업으로 구분한다.
 - **크레딧:** Core만 지급·차감·복구·잔액·정산을 확정한다. 콘텐츠/AI/운영 서비스는 작업 ID·부담 주체·실제 결과·사용량 등 합의된 정보를 전달한다. 이벤트 보상도 운영 서비스가 원장을 직접 수정하지 않고 Core에 요청한다. 과금 미정 정책을 이 분리 결정으로 확정하지 않는다.
 - **회원 운영:** 운영 서비스는 회원 조회·이용 제한 요청·사유·감사를 관리한다. 실제 계정·세션 제한 적용은 Core 책임이다. 비밀번호·토큰·인증 비밀을 운영 서비스에 복제하지 않는다.
@@ -42,7 +43,7 @@ Web / 모바일 클라이언트
            └─ AI 서비스: 필요한 운영 검사·평가
 ```
 
-그림의 정산·알림·운영 호출은 목표 흐름이다. 현재 nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`의 exact·하위 경로를 Content로 보내며 나머지 `/api`는 Core로 보낸다. Core 인증 확인과 Content → AI 생성은 동기 HTTP다. 내부 인증 endpoint는 공개 proxy에 등록하지 않는다. Core를 중앙 콘텐츠 프록시로 만들거나 별도 게이트웨이를 추가하지 않는다. 브라우저는 내부 AI·DB·모델 API를 직접 호출하지 않으며 기존 공개 URL·쿠키·CSRF·응답 계약을 유지한다.
+그림의 정산·알림·운영 호출은 목표 흐름이다. 현재 nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`의 exact·하위 경로를 Content로 보내며 나머지 `/api`는 Core로 보낸다. Core 인증 확인·작가 닉네임 조회와 Content → AI 생성은 동기 HTTP다. 내부 인증 endpoint는 공개 proxy에 등록하지 않는다. Core를 중앙 콘텐츠 프록시로 만들거나 별도 게이트웨이를 추가하지 않는다. 브라우저는 내부 AI·DB·모델 API를 직접 호출하지 않으며 기존 공개 URL·쿠키·CSRF·응답 계약을 유지한다.
 
 ## 4. DB·트랜잭션·실패 경계
 
