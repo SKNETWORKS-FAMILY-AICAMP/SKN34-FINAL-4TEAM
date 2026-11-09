@@ -134,13 +134,13 @@ it('protects an unapplied relationship draft without blocking preserved step nav
 it.each([false,true])('shows the world library after Gnb navigation (dirty: %s)',async(edit)=>{
  const router=await show(undefined,edit),confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
  if(edit){
-  fireEvent.click(screen.getByRole('link',{name:'세계관',exact:true}))
+  fireEvent.click(screen.getByRole('link',{name:/세계관/}))
   await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
   expect(router.state.location.pathname).toBe('/worldstudio/qa')
   expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
   confirm.mockReturnValue(true)
  }
- fireEvent.click(screen.getByRole('link',{name:'세계관',exact:true}))
+ fireEvent.click(screen.getByRole('link',{name:/세계관/}))
  await waitFor(()=>expect(router.state.location.pathname).toBe('/worldstudio'))
  expect(await screen.findByRole('heading',{name:'내 세계관',level:2})).toBeTruthy()
  expect(screen.getByRole('button',{name:'세계관 만들기'})).toBeTruthy()
