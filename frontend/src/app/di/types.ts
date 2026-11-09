@@ -17,6 +17,7 @@ import type { CreditRepository } from '../../domain/repositories/CreditRepositor
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
+import type { WorkLikeRepository } from '../../domain/repositories/WorkLikeRepository'
 import type { WorkSearchRepository } from '../../domain/repositories/WorkSearchRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
 import type { AdminUseCase } from '../../domain/usecases/AdminUseCase'
@@ -71,6 +72,7 @@ export type AppCradle = {
   mockDb: MockDb
   workRepository: WorkRepository
   workSearchRepository: WorkSearchRepository
+  workLikeRepository: WorkLikeRepository
   readingRepository: ReadingRepository
   notificationRepository: NotificationRepository
   feedbackRepository: FeedbackRepository
