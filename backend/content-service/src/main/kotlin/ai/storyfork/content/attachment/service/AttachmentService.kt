@@ -14,14 +14,12 @@ import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.episode.service.EpisodeService
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.dao.DataAccessException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.TransactionException
 import org.springframework.transaction.support.TransactionTemplate
 
 @Service
-@ConditionalOnProperty(name = ["app.setting-attachments.enabled"], havingValue = "true")
 class AttachmentService(
     private val settings: AttachmentSettingRepository,
     private val attachments: SettingAttachmentRepository,

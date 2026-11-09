@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.amqp.core.Message
 import org.springframework.amqp.rabbit.annotation.RabbitListener
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 
@@ -16,7 +15,6 @@ import tools.jackson.databind.ObjectMapper
  * 형식이 잘못된 메시지는 재시도 없이 DLQ로 보내고, 일시적 오류(DB 등)는 재시도 후 DLQ로 간다.
  */
 @Component
-@ConditionalOnProperty(name = ["app.notification.events.enabled"], havingValue = "true")
 class NoticeEventListener(private val events: NoticeEventService, private val mapper: ObjectMapper) {
     private val log = LoggerFactory.getLogger(NoticeEventListener::class.java)
 

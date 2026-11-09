@@ -6,14 +6,12 @@ import ai.storyfork.content.attachment.service.dto.*
 import jakarta.validation.Valid
 import java.nio.charset.StandardCharsets
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.*
 import org.springframework.web.bind.annotation.*
 
 /** 소유한 로컬 설정의 이미지·일반 첨부 CRUD를 바인딩한다. 권한·저장 판단은 Service에 위임한다. */
 @RestController
 @RequestMapping("/api/v1/works/{workId}/settings/{settingId}/attachments")
-@ConditionalOnProperty(name = ["app.setting-attachments.enabled"], havingValue = "true")
 class SettingAttachmentController(private val service: AttachmentService) {
     /** 인증된 소유자의 첨부 목록을 AttachmentListResponse로 반환한다. 타인·following Fork·미존재 설정은 404다. */
     @GetMapping

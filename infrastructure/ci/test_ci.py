@@ -340,8 +340,10 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertNotIn('build:', dev)
         self.assertIn('  postgres:', dev)
         self.assertIn('  mailpit:', dev)
-        self.assertEqual(2, dev.count('file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}'))
-        self.assertEqual(2, dev.count('ports: !reset []'))
+        self.assertEqual(4, dev.count('file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}'))
+        for service in ('  neo4j:', '  rabbitmq:'):
+            self.assertIn(service, dev)
+        self.assertEqual(3, dev.count('ports: !reset []'))
         self.assertIn('DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
         self.assertIn('CORE_SMTP_HOST: mailpit', dev)
         self.assertNotIn('${DATABASE_URL', dev)
@@ -350,7 +352,7 @@ class ComposeSplitTest(unittest.TestCase):
         workflow = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
         self.assertIn('COMPOSE_LOCAL_YAML', workflow)
         self.assertIn('docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE"', workflow)
-        self.assertIn("vars.DEVELOP_INTERNAL_DB_APPROVED == 'true'", workflow)
+        self.assertIn("if: ${{ needs.publish.result == 'success' }}", workflow)
 
     def test_ci_and_attachment_callers_keep_source_builds(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
@@ -363,7 +365,6 @@ class ComposeSplitTest(unittest.TestCase):
         attachment = (ci.ROOT / 'infrastructure/tests/test_attachment_environment.py').read_text()
         self.assertIn('infrastructure/docker-compose.local.yaml', attachment)
         self.assertNotIn('infrastructure/docker-compose.prod.yaml', attachment)
-        self.assertIn('docker-compose.local.yaml', (ci.ROOT / 'infrastructure/compose.attachments.yaml').read_text())
         overlay = (ci.ROOT / 'infrastructure/ci/compose.test.yaml').read_text()
         for service in ('postgres', 'core-api', 'content-service'):
             block = re.split(r'\n  [a-z][\w-]*:\n', overlay.split('  ' + service + ':\n', 1)[1], maxsplit=1)[0]
@@ -499,8 +500,8 @@ class ConfigurationTest(unittest.TestCase):
         self.assertIn('NEO4J_PASSWORD:', integration)
         self.assertIn('"$RUNNER_TEMP/neo4j.log"', integration)
         configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
-        self.assertIn('APP_WORLDSTUDIO_ENABLED=true', configuration)
-        self.assertIn('--profile worldstudio config --quiet', configuration)
+        self.assertIn('NEO4J_PASSWORD: synthetic-config-only', configuration)
+        self.assertNotIn('--profile', configuration)
 
     def test_world_studio_graph_public_routes_stay_content_owned(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:

@@ -101,6 +101,8 @@ class EpisodeService(
     }
     /** 원고 저장·복원·발행에서 동일한 이미지 참조 권한을 확인한다. 첨부 비활성 시 참조는 거부한다. */
     fun requireImageReferences(work: String, number: Int, body: String) {
+        // README 계약: 원고 이미지는 업로드 참조([[image:<UUID>]])만 허용하고 본문 인라인 data:image는 거절한다.
+        checkContent(!body.contains("data:image",ignoreCase=true),422,"원고에 이미지를 직접 넣을 수 없어요. 이미지 업로드를 사용해 주세요.")
         val ids=Regex("\\[\\[image:([^\\]]+)\\]\\]").findAll(body).map {it.groupValues[1]}.toSet()
         if(ids.isEmpty()) return
         val images=imageRepositories.getIfAvailable()
