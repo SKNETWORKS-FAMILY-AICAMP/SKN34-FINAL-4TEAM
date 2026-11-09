@@ -64,6 +64,24 @@ it('탭 제목에 관리자와 현재 섹션 이름을 쓴다', async () => {
   await waitFor(() => expect(document.title).toBe('관리자 · 사용자 관리 · STORYFORK'))
 })
 
+it('작품 탭은 정본 작품의 운영상 비공개 버튼을 막고 사유를 연결하며 메모리 작품은 막지 않는다', async () => {
+  const work = appContainer.resolve('mockDb').works.find((w) => w.id === 'starlight')!
+  work.canonical = true
+  try {
+    renderAdmin('works')
+    const canonicalRow = (await screen.findByText('별빛 서약의 탑', { selector: 'b' })).closest('tr') as HTMLElement
+    const blocked = within(canonicalRow).getByRole('button', { name: '운영상 비공개' }) as HTMLButtonElement
+    expect(blocked.disabled).toBe(true)
+    expect(document.getElementById(blocked.getAttribute('aria-describedby')!)?.textContent).toMatch('정본 작품')
+    const demoRow = screen.getByText('구운몽', { selector: 'b' }).closest('tr') as HTMLElement
+    const open = within(demoRow).getByRole('button', { name: '운영상 비공개' }) as HTMLButtonElement
+    expect(open.disabled).toBe(false)
+    expect(open.hasAttribute('aria-describedby')).toBe(false)
+  } finally {
+    delete work.canonical
+  }
+})
+
 it('운영 API 탭은 데모 조회가 실패해도 본문과 조치 버튼을 그리고 데모 조회 오류 안내는 데모 탭에만 보인다', async () => {
   const load = vi.spyOn(appContainer.resolve('adminUseCase'), 'load').mockRejectedValue(new Error('데모 조회 실패'))
   vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([
