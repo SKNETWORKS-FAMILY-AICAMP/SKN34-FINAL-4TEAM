@@ -82,7 +82,7 @@ class ContentBoundaryTest {
     }
 
     @Test fun `reading tables follow the reading management contract`() {
-        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V17__reading_record.sql"))
+        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V18__reading_record.sql"))
         val tables = sql.split("CREATE TABLE ").drop(1).associate { it.substringBefore(" (") to it }
         assertEquals(setOf("reading_record", "reading_episode"), tables.keys)
         val record = tables.getValue("reading_record")
@@ -116,8 +116,8 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is reading_record.
-        assertEquals((1..17).toList(), versions.sorted())
+        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is the episode comment tables and V18 is reading_record (work leaf).
+        assertEquals((1..18).toList(), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

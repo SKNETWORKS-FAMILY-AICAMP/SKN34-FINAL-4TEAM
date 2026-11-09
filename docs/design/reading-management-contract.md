@@ -73,7 +73,7 @@
 
 ## 21-C 구현 메모 (독서 기록)
 
-- **Content**: `ai.storyfork.content.reading`(`ReadingService`)이 V17 두 테이블을 맡는다. nativeQuery 없이 처리하므로 쓰기는 서비스 트랜잭션 없이 저장소 호출마다 독립 트랜잭션이고,
+- **Content**: `ai.storyfork.content.reading`(`ReadingService`)이 V18 두 테이블을 맡는다. nativeQuery 없이 처리하므로 쓰기는 서비스 트랜잭션 없이 저장소 호출마다 독립 트랜잭션이고,
   위치의 첫 행이 겹치면 한 번 더 시도해 갱신하며 연 회차의 중복은 무시한다. 삭제는 작품 공개 여부와 무관하게 본인 행만 지운다.
 - **Frontend**: 새 `ReadingRecordRepository`(`list`·`record`·`remove`)를 실서비스는 `HttpReadingRecordRepository`, 목업·테스트는 `mockDb.progress`를 정본으로 쓰는 `InMemoryReadingRecordRepository`로 등록한다.
   `ReadingUseCase`는 로그인 회원(`role`)일 때만 기록을 읽고 쓰며(비회원은 호출하지 않음), 작가가 자기 비공개 작품을 미리 읽을 때는 서버가 404로 거절하므로 기록하지 않는다.

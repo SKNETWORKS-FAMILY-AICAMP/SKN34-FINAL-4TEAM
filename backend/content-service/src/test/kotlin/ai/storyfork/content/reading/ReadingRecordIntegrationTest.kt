@@ -2,6 +2,7 @@ package ai.storyfork.content.reading
 
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.fixture.ContentTestConfig
 import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
@@ -45,6 +46,8 @@ import tools.jackson.databind.json.JsonMapper
 class ReadingRecordIntegrationTest {
     @LocalServerPort var port=0
     @MockitoBean lateinit var core: CoreAuthClient
+    // 작품 응답의 작가명은 Core 닉네임 조회라 대역을 둔다(기본 대역은 빈 결과). 이 테스트는 작가명을 보지 않는다.
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
     @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource

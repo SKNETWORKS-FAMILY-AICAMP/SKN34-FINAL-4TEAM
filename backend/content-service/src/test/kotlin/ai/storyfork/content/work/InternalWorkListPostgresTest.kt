@@ -1,5 +1,6 @@
 package ai.storyfork.content.work
 
+import ai.storyfork.content.auth.service.CoreNicknameService
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -8,13 +9,17 @@ import java.util.UUID
 import javax.sql.DataSource
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
@@ -27,6 +32,8 @@ import tools.jackson.databind.json.JsonMapper
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 class InternalWorkListPostgresTest {
     @LocalServerPort var port=0
+    // 작가명은 소유자의 Core 최신 닉네임이다. Core는 이 테스트 소유자만 아는 대역이라 그 밖의 작품은 탈퇴한 회원으로 보인다.
+    @MockitoBean lateinit var nicknames:CoreNicknameService
     @Autowired @Qualifier("contentDataSource") lateinit var source:DataSource
     @Autowired lateinit var json:JsonMapper
     private val jdbc get()=JdbcTemplate(source)
@@ -35,6 +42,11 @@ class InternalWorkListPostgresTest {
     /** 공유 DB에서 이 테스트의 행만 골라내고 지우기 위한 제목 접두사다. */
     private val tag="ops-list-"+UUID.randomUUID()
     private val owner="ops-list-owner"
+    private val coreNickname="코어 닉네임"
+
+    @BeforeEach fun coreNicknames() {
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenReturn(mapOf(owner to coreNickname))
+    }
 
     private fun call(method:String,path:String,serviceToken:String?=token):HttpResponse<String> {
         val request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).header("Accept","application/json")
@@ -93,7 +105,8 @@ class InternalWorkListPostgresTest {
         assertEquals(listOf<Any>("original","original",true,"public",true),byId.getValue(restrictedWork).summary(),"제한은 공개 범위와 독립")
         val first=byId.getValue(publicOriginal)
         assertEquals(9,first.size(),"계약의 필드만 노출한다")
-        assertEquals(listOf(owner,"$tag-a","작가-a"),listOf(first.path("ownerId").asString(),first.path("title").asString(),first.path("authorName").asString()))
+        assertEquals(listOf(owner,"$tag-a",coreNickname),listOf(first.path("ownerId").asString(),first.path("title").asString(),first.path("authorName").asString()),
+            "작가명은 저장된 author_name(작가-a)이 아니라 소유자의 Core 닉네임")
 
         // 기존 단건·제한 해제 경로는 그대로 동작한다.
         assertEquals(403,call("GET","/internal/v1/works/$restrictedWork",null).statusCode())

@@ -34,13 +34,15 @@ describe('회차 뷰어의 독서 기록', () => {
     expect(screen.queryByText(/저장하지 못했어요/)).toBeNull()
   })
 
-  it('정본 작품의 안내는 읽은 회차가 계정에 저장된다고만 말하고 관심 표시는 따로 적지 않는다', async () => {
+  it('정본 작품의 안내는 댓글·포크에 이어 읽은 회차가 계정에 저장된다고만 말하고 관심 표시는 따로 적지 않는다', async () => {
     const work = appContainer.resolve('mockDb').works.find((w) => w.id === 'postman')!
     work.canonical = true
+    // 정본 열람은 서버 회차 댓글을 읽으므로(기능 22) 서버 호출만 비운다. 복원은 afterEach의 restoreAllMocks다.
+    vi.spyOn(appContainer.resolve('episodeCommentRepository'), 'list').mockResolvedValue([])
     try {
       renderApp('/read/postman/1', createAppStore({ role: 'user' }))
       await screen.findByRole('heading', { name: '수취인 불명' })
-      expect(document.querySelector('.hint')!.textContent).toBe('공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장돼요.')
+      expect(document.querySelector('.hint')!.textContent).toBe('☝ 문장을 누르면 댓글을 남길 수 있어요. 공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장돼요.')
     } finally { cleanup(); delete work.canonical }
   })
 })
