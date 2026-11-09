@@ -59,8 +59,8 @@ function DemoReportSheet({ work, onClose }: { work: Work; onClose: () => void })
   )
 }
 
-/** 목업 commentSheet(id,n,k): 문장에 댓글 달기 */
-export function CommentSheet({ workId, n, sentence, onClose, onAdded }: { workId: string; n: number; sentence: Sentence; onClose: () => void; onAdded: () => void }) {
+/** 목업 commentSheet(id,n,k): 문장에 댓글 달기. 서버 작품은 submit으로 서버에 보내고 글자 수 한도도 서버 계약(maxLength)을 따릅니다. */
+export function CommentSheet({ workId, n, sentence, onClose, onAdded, submit, maxLength = 200 }: { workId: string; n: number; sentence: Sentence; onClose: () => void; onAdded?: () => void; submit?: (text: string, sentence: Sentence, spoiler: boolean) => Promise<boolean>; maxLength?: number }) {
   const vm = useFeedbackViewModel()
   const [text, setText] = useState('')
   const [spoiler, setSpoiler] = useState(false)
@@ -69,12 +69,12 @@ export function CommentSheet({ workId, n, sentence, onClose, onAdded }: { workId
     <Sheet sid="U06" label="문장에 댓글 달기" onClose={onClose}>
       <Head title={`${n}화 문장에 댓글 달기`} onClose={onClose} />
       <div className="quote">{sentence.t}</div>
-      <label className="field">댓글<textarea className="ta" id="ct" aria-label="댓글" data-autofocus maxLength={200} placeholder="감상, 의견, 궁금한 점을 자유롭게 남겨 주세요" value={text} onChange={(e) => setText(e.target.value)} /></label>
+      <label className="field">댓글<textarea className="ta" id="ct" aria-label="댓글" data-autofocus maxLength={maxLength} placeholder="감상, 의견, 궁금한 점을 자유롭게 남겨 주세요" value={text} onChange={(e) => setText(e.target.value)} /></label>
       <label className="ck"><input type="checkbox" checked={spoiler} onChange={(e) => setSpoiler(e.target.checked)} /> 스포일러 표시</label>
       <div className="note">댓글만 등록되며 자동 답변은 제공하지 않아요.</div>
       <div className="rowend">
         <button type="button" className="btn" onClick={onClose}>취소</button>
-        <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.addComment(workId, n, text, sentence, spoiler).then((ok) => { if (ok) { onClose(); onAdded() } }).finally(() => setBusy(false)) }}>등록</button>
+        <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void (submit ? submit(text, sentence, spoiler) : vm.addComment(workId, n, text, sentence, spoiler)).then((ok) => { if (ok) { onClose(); onAdded?.() } }).finally(() => setBusy(false)) }}>등록</button>
       </div>
     </Sheet>
   )
