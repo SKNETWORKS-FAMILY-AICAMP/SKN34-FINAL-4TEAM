@@ -1,0 +1,45 @@
+import { z } from 'zod'
+import type { ReadingRecord, ReadingRecordRepository } from '../../domain/repositories/ReadingRecordRepository'
+import { SessionExpired } from '../../domain/repositories/ProfileRepository'
+import { authVersion, protectedRequest } from '../api/auth'
+import { csrf } from '../api/csrf'
+
+const records = z.object({ records: z.array(z.object({
+  workId: z.string().min(1), lastEpisode: z.number().int().positive(), readEpisodes: z.array(z.number().int().positive()), updatedAt: z.string(),
+})) })
+
+/** Content 독서 기록 API(GET·PUT·DELETE /api/v1/works/…/reading). 모두 본인 Bearer이며 쓰기는 CSRF를 붙인다. */
+export class HttpReadingRecordRepository implements ReadingRecordRepository {
+  private readonly fetcher?: typeof fetch
+  constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
+  private async request(path: string, method: string, signal?: AbortSignal) {
+    const fetcher = this.fetcher ?? fetch
+    const version = authVersion()
+    const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000)
+    const headers: Record<string, string> = {}
+    if (method !== 'GET') headers['X-CSRF-TOKEN'] = await csrf(requestSignal)
+    let response: Response
+    try {
+      response = await protectedRequest('/api/v1/works' + path, { method, headers, signal: requestSignal }, version, false, { fetcher, allowHttpError: true })
+    } catch (error) {
+      if (error instanceof SessionExpired) throw new SessionExpired('서버 인증이 필요합니다. 로그인한 뒤 다시 시도해 주세요.')
+      throw error
+    }
+    if (!response.ok) {
+      const error = z.object({ detail: z.string() }).safeParse(await response.json().catch(() => undefined))
+      throw new Error(error.success ? error.data.detail : '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.')
+    }
+    return response
+  }
+  async list(signal?: AbortSignal): Promise<ReadingRecord[]> {
+    const parsed = records.safeParse(await (await this.request('/reading', 'GET', signal)).json().catch(() => undefined))
+    if (!parsed.success) throw new Error('서버 응답 형식을 확인할 수 없어요.')
+    return parsed.data.records.map(({ workId, lastEpisode, readEpisodes }) => ({ workId, lastEpisode, readEpisodes }))
+  }
+  async record(workId: string, episode: number, signal?: AbortSignal) {
+    if ((await this.request(`/${encodeURIComponent(workId)}/reading/${episode}`, 'PUT', signal)).status !== 204) throw new Error('저장 완료 응답을 확인할 수 없어요. 다시 불러와 상태를 확인해 주세요.')
+  }
+  async remove(workId: string, signal?: AbortSignal) {
+    if ((await this.request(`/${encodeURIComponent(workId)}/reading`, 'DELETE', signal)).status !== 204) throw new Error('삭제 완료 응답을 확인할 수 없어요. 다시 불러와 상태를 확인해 주세요.')
+  }
+}

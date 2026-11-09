@@ -23,6 +23,19 @@ describe('소설 상세 (U04)', () => {
     screen.getByRole('link', { name: '홈으로' })
   })
 
+  it('회원의 상세는 독서 기록으로 읽은 회차를 표시하고 처음부터 버튼을 보이며 비회원에는 표시하지 않는다', async () => {
+    renderApp('/work/guunmong', user())
+    await screen.findByRole('heading', { name: '구운몽' })
+    const read = () => [...document.querySelectorAll('#eplist .ep.read .no')].map((el) => el.textContent)
+    await waitFor(() => expect(read()).toEqual(['1', '2']))
+    screen.getByRole('link', { name: '처음부터' })
+    cleanup()
+    renderApp('/work/guunmong')
+    await screen.findByRole('heading', { name: '구운몽' })
+    expect(read()).toEqual([])
+    expect(screen.queryByRole('link', { name: '처음부터' })).toBeNull()
+  })
+
   it('회차 검색·결과 없음·정렬·좋아요·포크 허용 회차를 보여 준다', async () => {
     renderApp('/work/guunmong')
     await screen.findByRole('heading', { name: '구운몽' })

@@ -41,11 +41,11 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(16,flyway.migrate().migrationsExecuted)
-        assertEquals((1..16).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(17,flyway.migrate().migrationsExecuted)
+        assertEquals((1..17).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
-        for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
+        for(table in listOf("work","work_view","reading_record","reading_episode","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
             assertNotNull(jdbc.queryForObject("SELECT to_regclass(?)::text",String::class.java,table))
         }
         for(view in listOf("work_current","episode_current","setting_version_read")) {
@@ -115,7 +115,7 @@ class ContentMigrationTest {
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
         jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
-        assertEquals(1,flyway.migrate().migrationsExecuted)
+        assertEquals(2,flyway.migrate().migrationsExecuted) // V16 samples and V17 reading tables
         assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
@@ -145,10 +145,32 @@ class ContentMigrationTest {
         assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM pg_indexes WHERE schemaname=current_schema() AND indexname='work_view_viewed_at'",Int::class.java))
     }
 
+    @Test fun `reading records keep one position per member and work and one row per read episode`() = isolated { flyway,jdbc ->
+        flyway.migrate()
+        jdbc.update("INSERT INTO member(id) VALUES ('owner')")
+        jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','제목','','original',0),('other','owner','다른 작품','','original',0)")
+        val position="INSERT INTO reading_record(member_id,work_id,last_episode) VALUES (?,?,?)"
+        jdbc.update(position,"reader","w",2)
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM reading_record WHERE updated_at IS NOT NULL",Int::class.java))
+        for(row in listOf(arrayOf<Any>("reader","w",3),arrayOf<Any>("reader","other",0),arrayOf<Any>("reader","missing",1))) {
+            assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(position,*row)}
+        }
+        for(row in listOf(arrayOf<Any>("reader","other",1),arrayOf<Any>("someone","w",1))) jdbc.update(position,*row)
+        val read="INSERT INTO reading_episode(member_id,work_id,episode_number) VALUES (?,?,?)"
+        jdbc.update(read,"reader","w",1)
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM reading_episode WHERE read_at IS NOT NULL",Int::class.java))
+        for(row in listOf(arrayOf<Any>("reader","w",1),arrayOf<Any>("reader","w",0),arrayOf<Any>("reader","missing",1))) {
+            assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(read,*row)}
+        }
+        for(row in listOf(arrayOf<Any>("reader","w",2),arrayOf<Any>("reader","other",1),arrayOf<Any>("someone","w",1))) jdbc.update(read,*row)
+        assertEquals(3,jdbc.queryForObject("SELECT count(*) FROM reading_record",Int::class.java))
+        assertEquals(4,jdbc.queryForObject("SELECT count(*) FROM reading_episode",Int::class.java))
+    }
+
     @Test fun `changed history fails validation instead of silently repairing`() = isolated { flyway,jdbc ->
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(16,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(17,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

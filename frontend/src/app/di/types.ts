@@ -16,6 +16,7 @@ import type { ChatRepository } from '../../domain/repositories/ChatRepository'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
+import type { ReadingRecordRepository } from '../../domain/repositories/ReadingRecordRepository'
 import type { ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
 import type { WorkSearchRepository } from '../../domain/repositories/WorkSearchRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
@@ -68,6 +69,7 @@ export type AppCradle = {
   workRepository: WorkRepository
   workSearchRepository: WorkSearchRepository
   readingRepository: ReadingRepository
+  readingRecordRepository: ReadingRecordRepository
   notificationRepository: NotificationRepository
   feedbackRepository: FeedbackRepository
   worldRepository: WorldRepository

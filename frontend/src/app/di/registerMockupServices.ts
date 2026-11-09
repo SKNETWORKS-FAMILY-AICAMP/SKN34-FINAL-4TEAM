@@ -2,7 +2,7 @@ import { asValue } from 'awilix/browser'
 
 import { createFixtureDb } from '../../data/mock/fixtureDb'
 import { InMemoryNoticeRepository } from '../../data/mock/InMemoryNoticeRepository'
-import { InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
 import { InMemoryOperationsWorkRepository } from '../../data/mock/InMemoryOperationsWorkRepository'
 import { seedNotices } from '../../data/mock/seed'
@@ -22,8 +22,8 @@ import type { AppContainer } from './types'
 export function registerMockupServices(container: AppContainer) {
   // 서버가 없는 발표용 빌드이므로 production의 Content HTTP 작품 저장소 대신 시드 메모리 DB를 명시 연결한다(통합 테스트의 fixtureApp과 같다).
   const mockDb = createFixtureDb()
-  container.register({ mockDb: asValue(mockDb), workRepository: asValue(new InMemoryWorkRepository(mockDb)), supportInquiryRepository: asValue(new InMemorySupportInquiryRepository(mockDb)) })
-  const { workRepository, readingRepository, feedbackRepository } = container.cradle
+  container.register({ mockDb: asValue(mockDb), workRepository: asValue(new InMemoryWorkRepository(mockDb)), supportInquiryRepository: asValue(new InMemorySupportInquiryRepository(mockDb)), readingRecordRepository: asValue(new InMemoryReadingRecordRepository(mockDb)) })
+  const { workRepository, readingRepository, readingRecordRepository, feedbackRepository } = container.cradle
   // 시연 ①의 작품 목록·집필·저장·발행만 메모리로 바꾸고, 나머지 서버 원고 기능은 실패 안내를 그대로 보입니다.
   const episodeRepository = Object.assign(new HttpEpisodeRepository(), createMockupWritingRepository())
   const eventRepository = new InMemoryEventRepository()
@@ -33,8 +33,8 @@ export function registerMockupServices(container: AppContainer) {
     eventUseCase: asValue(new EventUseCase(eventRepository)),
     // 운영 작품 API 대신 데모 작품 DB를 운영 작품 형태로 보여 주고, 운영 제한은 데모 작품의 공개 제외로 반영합니다.
     operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(mockDb)),
-    // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지합니다.
-    readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository)),
+    // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지하고, 독서 기록도 mockDb.progress 메모리입니다.
+    readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, undefined, readingRecordRepository)),
     episodeRepository: asValue(episodeRepository),
     episodeUseCase: asValue(new EpisodeUseCase(episodeRepository)),
     authRepository: asValue(mockupAuthRepository),

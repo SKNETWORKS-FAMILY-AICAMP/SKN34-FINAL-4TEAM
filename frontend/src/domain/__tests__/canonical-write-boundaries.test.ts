@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createFixtureDb } from '../../data/mock/fixtureDb'
-import { InMemoryAdminRepository, InMemoryChatRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryAdminRepository, InMemoryChatRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 import { InboxUseCase } from '../usecases/InboxUseCase'
@@ -50,7 +50,7 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
   it('keeps canonical works out of the separate demo writing and appeal controls',async()=>{
     const {db,w,works,feedback,worlds}=setup()
     db.reviewQueue.push({id:'q',w:w.id,n:null,type:'신고',text:'내용',quote:'',status:'비공개 조치',who:'독자'})
-    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback)
+    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback,new InMemoryReadingRecordRepository(db))
     const result=await uc.getWrite()
     expect(result.mine.some(row=>row.work.canonical)).toBe(false)
     expect(result.appeals).toEqual([])
@@ -59,7 +59,7 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
     const {db,w,works,feedback,worlds}=setup()
     db.reviewQueue.push({id:'q',w:w.id,n:null,type:'신고',text:'내용',quote:'',status:'비공개 조치',who:'독자'})
     const before=structuredClone(db)
-    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback)
+    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback,new InMemoryReadingRecordRepository(db))
     expect(await uc.appeal('q','권리 확인')).toContain('아직 연결되지')
     expect(db).toEqual(before)
   })
@@ -68,7 +68,7 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
     db.worlds.push({id:'mine',name:'세계',description:'',rules:['규칙'],public:false,history:[]})
     w.worldIds=['mine']
     const before=structuredClone(db)
-    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback)
+    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback,new InMemoryReadingRecordRepository(db))
     await expect(uc.editWorld('mine',{name:'변경',description:'',rules:'새 규칙'},true)).rejects.toThrow('정본 집필실')
     expect(db).toEqual(before)
   })

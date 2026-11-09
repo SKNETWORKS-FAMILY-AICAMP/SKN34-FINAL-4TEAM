@@ -1,6 +1,7 @@
 import { AVATAR_COLORS, epsOf, forkLabel, forksOf, isMine, isPub, nid, original, type StoryEvent, type Work } from '../entities/work'
 import { publicWorldRules, worldVersion, type World, type WorldVersion } from '../entities/world'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
+import type { ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { AGGREGATE_WRITE_UNSUPPORTED, FEEDBACK_UNAVAILABLE, type ReadingRepository, type WorkRepository } from '../repositories/WorkRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
 
@@ -45,23 +46,30 @@ export class LibraryUseCase {
   private readonly worldRepository: WorldRepository
   private readonly readingRepository: ReadingRepository
   private readonly feedbackRepository: FeedbackRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository) {
+  private readonly readingRecordRepository: ReadingRecordRepository
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository, readingRecordRepository: ReadingRecordRepository) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
     this.readingRepository = readingRepository
     this.feedbackRepository = feedbackRepository
+    this.readingRecordRepository = readingRecordRepository
   }
 
-  /** U11 읽는 중: 이어 읽기와 관심 소설 */
+  /** U11 읽는 중: 서버 독서 기록의 이어 읽기와 관심 소설. 기록을 읽지 못하면 빈 목록으로 숨기지 않고 던집니다. */
   async getRead() {
-    const [works, progress] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress()])
+    const [works, records, progress] = await Promise.all([this.workRepository.listWorks(), this.readingRecordRepository.list(), this.readingRepository.getProgress()])
     const byId = (id: string) => works.find((w) => w.id === id)
     return {
-      recent: Object.keys(progress.last).map(byId).filter((w): w is Work => !!w && epsOf(w).length > 0)
-        .map((work) => ({ work, n: Math.min(progress.last[work.id], epsOf(work).length), tot: epsOf(work).length })),
+      recent: records.flatMap((r) => {
+        const work = byId(r.workId), tot = work ? epsOf(work).length : 0
+        return work && tot > 0 ? [{ work, n: Math.min(r.lastEpisode, tot), tot }] : []
+      }),
       liked: Object.keys(progress.liked).filter((k) => progress.liked[k]).map(byId).filter((w): w is Work => !!w),
     }
   }
+
+  /** U11 읽는 중: 한 작품의 이어 읽기 기록(위치·읽은 회차)을 서버에서 지웁니다. 지우지 못하면 던집니다. */
+  removeReading(workId: string) { return this.readingRecordRepository.remove(workId) }
 
   /** U11 내 댓글·신고 */
   async getReports() {

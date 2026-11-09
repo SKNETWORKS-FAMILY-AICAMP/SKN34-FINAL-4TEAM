@@ -43,7 +43,7 @@
 | 21-B | `PUT /api/v1/works/{id}/interest` · `DELETE /api/v1/works/{id}/interest` | 204, 멱등 |
 | 21-B | `GET /api/v1/works/interests` | 200 `{ "workIds": [...] }` 최근 등록순, 본인 것만. 지금은 비공개가 된 작품은 제외 |
 | 21-C | `PUT /api/v1/works/{id}/reading/{number}` | 204. `last_episode = number`, 읽은 회차에 `number` 추가 |
-| 21-C | `GET /api/v1/works/reading` | 200 `{ "records": [{ "workId", "lastEpisode", "readEpisodes": [...], "updatedAt" }] }` 최근순, 본인 것만 |
+| 21-C | `GET /api/v1/works/reading` | 200 `{ "records": [{ "workId", "lastEpisode", "readEpisodes": [...오름차순], "updatedAt" }] }` 최근순, 본인 것만. 지금 공개가 아닌(비공개·운영 제한) 작품은 제외하되 행은 남긴다 |
 | 21-C | `DELETE /api/v1/works/{id}/reading` | 204. 그 작품의 이어 읽기·읽은 회차 기록 삭제, 멱등 |
 
 ## 내부 API·사건
@@ -70,3 +70,13 @@
 - 좋아요 수는 요청 때 `count`로 계산한다(집계 칼럼 없음).
 - `ReadingProgress.liked`의 최종 제거는 21-A·21-B가 모두 병합된 뒤 나중 PR이 한다.
 - 알림 발행기는 단일 인스턴스 스케줄 폴링이며 실패 행은 다음 주기에 다시 보낸다(같은 eventId라 Core가 중복을 거른다).
+
+## 21-C 구현 메모 (독서 기록)
+
+- **Content**: `ai.storyfork.content.reading`(`ReadingService`)이 V17 두 테이블을 맡는다. nativeQuery 없이 처리하므로 쓰기는 서비스 트랜잭션 없이 저장소 호출마다 독립 트랜잭션이고,
+  위치의 첫 행이 겹치면 한 번 더 시도해 갱신하며 연 회차의 중복은 무시한다. 삭제는 작품 공개 여부와 무관하게 본인 행만 지운다.
+- **Frontend**: 새 `ReadingRecordRepository`(`list`·`record`·`remove`)를 실서비스는 `HttpReadingRecordRepository`, 목업·테스트는 `mockDb.progress`를 정본으로 쓰는 `InMemoryReadingRecordRepository`로 등록한다.
+  `ReadingUseCase`는 로그인 회원(`role`)일 때만 기록을 읽고 쓰며(비회원은 호출하지 않음), 작가가 자기 비공개 작품을 미리 읽을 때는 서버가 404로 거절하므로 기록하지 않는다.
+  회차 열람 기록이 실패해도 읽기는 계속되지만 `recordFailed`로 알려 토스트로 표시하고 성공으로 보이지 않게 한다. 홈·작품·서재의 기록 조회 실패는 빈 기록으로 숨기지 않고 화면 조회 실패로 알린다.
+- **남은 것**: 캐릭터 챗 목업의 읽은 회차 기준은 아직 메모리 진행 상태(`ReadingProgress.last`)를 읽는다. 목업·테스트에서는 같은 상태라 맞지만 실서비스 기록과는 이어지지 않는다.
+

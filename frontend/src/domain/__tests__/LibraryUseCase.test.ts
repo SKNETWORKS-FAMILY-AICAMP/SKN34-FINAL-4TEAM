@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { createFixtureDb } from '../../data/mock/fixtureDb'
-import { InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { LibraryUseCase, IMPORT, NOVEL_GENRES, type NewWorkInput } from '../usecases/LibraryUseCase'
 
 const setup = () => {
-  const db = createFixtureDb()
-  return { db, useCase: new LibraryUseCase(new InMemoryWorkRepository(db), new InMemoryWorldRepository(db), new InMemoryReadingRepository(db), new InMemoryFeedbackRepository(db)) }
+  const db = createFixtureDb(), records = new InMemoryReadingRecordRepository(db)
+  return { db, records, useCase: new LibraryUseCase(new InMemoryWorkRepository(db), new InMemoryWorldRepository(db), new InMemoryReadingRepository(db), new InMemoryFeedbackRepository(db), records) }
 }
 const base = (worldIds: string[]): NewWorkInput => ({
   worldIds, schedule: ['비정기'], tags: ['회귀', '성장'], title: '안개 등대', summary: '', localRules: '등대는 밤에 꺼진다',
@@ -115,5 +115,31 @@ describe('LibraryUseCase · 가져오기와 서재', () => {
     expect(write.mine.map((m) => m.work.id)).toEqual(expect.arrayContaining(['starlight']))
     const read = await useCase.getRead()
     expect(read.recent.map((r) => [r.work.id, r.n])).toEqual([['guunmong', 2], ['starlight', 1]])
+  })
+})
+
+describe('LibraryUseCase · 읽는 중 (서버 독서 기록)', () => {
+  it('이어 읽기는 독서 기록의 최근 순과 마지막으로 연 회차를 작품 회차 수에 맞춰 보여 주고 볼 수 없는 작품은 건너뛴다', async () => {
+    const { records, useCase } = setup()
+    await records.record('starlight', 3)
+    await records.record('guunmong', 9)
+    await records.record('missing', 1)
+    expect((await useCase.getRead()).recent.map((r) => [r.work.id, r.n, r.tot])).toEqual([['guunmong', 4, 4], ['starlight', 3, 3]])
+  })
+
+  it('기록을 지우면 이어 읽기에서 빠지고, 지우지 못하면 실패를 알리며 목록은 그대로다', async () => {
+    const { db, records, useCase } = setup()
+    await useCase.removeReading('guunmong')
+    expect((await useCase.getRead()).recent.map((r) => r.work.id)).toEqual(['starlight'])
+    expect(db.progress.last.guunmong).toBeUndefined()
+    vi.spyOn(records, 'remove').mockRejectedValueOnce(new Error('offline'))
+    await expect(useCase.removeReading('starlight')).rejects.toThrow('offline')
+    expect((await useCase.getRead()).recent.map((r) => r.work.id)).toEqual(['starlight'])
+  })
+
+  it('독서 기록을 읽지 못하면 빈 목록으로 숨기지 않고 실패를 알린다', async () => {
+    const { records, useCase } = setup()
+    vi.spyOn(records, 'list').mockRejectedValueOnce(new Error('offline'))
+    await expect(useCase.getRead()).rejects.toThrow('offline')
   })
 })

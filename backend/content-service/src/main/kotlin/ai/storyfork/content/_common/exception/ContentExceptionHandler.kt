@@ -13,7 +13,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException
 
 /** 콘텐츠 API의 기존 상태 코드와 안전한 detail JSON을 보존한다. */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(basePackages=["ai.storyfork.content.work.controller","ai.storyfork.content.episode.controller","ai.storyfork.content.episode_version.controller","ai.storyfork.content.publication.controller","ai.storyfork.content.world.controller","ai.storyfork.content.fork.controller","ai.storyfork.content.context.controller","ai.storyfork.content.proposal.controller","ai.storyfork.content.plan.controller"])
+@RestControllerAdvice(basePackages=["ai.storyfork.content.work.controller","ai.storyfork.content.episode.controller","ai.storyfork.content.episode_version.controller","ai.storyfork.content.publication.controller","ai.storyfork.content.world.controller","ai.storyfork.content.fork.controller","ai.storyfork.content.context.controller","ai.storyfork.content.proposal.controller","ai.storyfork.content.plan.controller","ai.storyfork.content.reading.controller"])
 class ContentExceptionHandler {
     @ExceptionHandler(ContentFailure::class)
     fun failure(error: ContentFailure): ResponseEntity<ContentErrorResponse> = ResponseEntity.status(error.status).body(ContentErrorResponse(error.message))

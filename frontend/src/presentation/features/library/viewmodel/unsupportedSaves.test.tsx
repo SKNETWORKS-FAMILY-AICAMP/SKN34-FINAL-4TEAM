@@ -7,7 +7,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../../app/store'
 import { createFixtureDb } from '../../../../data/mock/fixtureDb'
-import { InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../../../data/mock/InMemoryRepositories'
+import { InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../../../data/mock/InMemoryRepositories'
 import { AGGREGATE_WRITE_UNSUPPORTED } from '../../../../domain/repositories/WorkRepository'
 import { LibraryUseCase } from '../../../../domain/usecases/LibraryUseCase'
 import { useNewWorkViewModel } from './useNewWorkViewModel'
@@ -16,7 +16,7 @@ import { useImportViewModel } from './useImportViewModel'
 afterEach(()=>{cleanup();vi.restoreAllMocks()})
 it('handles unsupported create/import without clearing entered values or claiming success',async()=>{
   const db=createFixtureDb(),store=createAppStore({role:'user'})
-  const uc=new LibraryUseCase(new InMemoryWorkRepository(db),new InMemoryWorldRepository(db),new InMemoryReadingRepository(db),new InMemoryFeedbackRepository(db))
+  const uc=new LibraryUseCase(new InMemoryWorkRepository(db),new InMemoryWorldRepository(db),new InMemoryReadingRepository(db),new InMemoryFeedbackRepository(db),new InMemoryReadingRecordRepository(db))
   vi.spyOn(uc,'createWork').mockRejectedValue(new Error(AGGREGATE_WRITE_UNSUPPORTED))
   vi.spyOn(uc,'saveImport').mockRejectedValue(new Error(AGGREGATE_WRITE_UNSUPPORTED))
   const messages:string[]=[]

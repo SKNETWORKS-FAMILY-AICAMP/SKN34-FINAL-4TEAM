@@ -32,10 +32,10 @@ export function LibraryPage() {
         )}
         {d.read && (
           <>
-            <p className="note2">읽기 기록과 관심 소설은 이 창에서만 유지돼요. 계정에 저장하거나 다른 기기와 동기화하지 않아요.</p>
+            <p className="note2">이어 읽기 기록은 계정에 저장돼요. 관심 소설은 이 창에서만 유지돼요(계정에 저장하거나 다른 기기와 동기화하지 않아요).</p>
             <div className="sec-h"><h2>이어 읽기</h2></div>
             <div className="list">{d.read.recent.map(({ work: w, n, tot }) => (
-              <div className="li" key={w.id}><div className="th"><CoverOf w={w} /></div><div><b>{w.title}</b><div className="m">{n}화까지 읽음 · {w.genre}</div><div className="bar"><i style={{ width: `${n / tot * 100}%` }} /></div></div><Go to={`/read/${w.id}/${n}`} className="btn sm pri">▶ {n}화 이어 읽기</Go></div>
+              <div className="li" key={w.id}><div className="th"><CoverOf w={w} /></div><div><b>{w.title}</b><div className="m">{n}화까지 읽음 · {w.genre}</div><div className="bar"><i style={{ width: `${n / tot * 100}%` }} /></div></div><div className="acts"><Go to={`/read/${w.id}/${n}`} className="btn sm pri">▶ {n}화 이어 읽기</Go><button type="button" className="btn sm" aria-label={`${w.title} 이어 읽기 기록 삭제`} disabled={!!d.removing} onClick={() => d.removeReading(w.id)}>기록 삭제</button></div></div>
             ))}</div>
             <div className="sec"><div className="sec-h"><h2>관심 소설</h2></div>{d.read.liked.length
               ? <div className="grid6">{d.read.liked.map((w) => <Go key={w.id} to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><span className="hk">{w.title}</span></Go>)}</div>
