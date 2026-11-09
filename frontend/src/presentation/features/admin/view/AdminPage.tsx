@@ -156,16 +156,16 @@ export function AdminPage() {
                 {live ? '운영 API 연결' : '데모 화면'}
               </span>
             </header>
-            {vm.isLoading && (
+            {!live && vm.isLoading && (
               <p className='admin-data-state' role='status'>관리자 데이터를 불러오고 있어요.</p>
             )}
             {vm.lastSuccess && <p className='admin-data-state' role='status'>{vm.lastSuccess}</p>}
-            {vm.isRefreshing && (
+            {!live && vm.isRefreshing && (
               <p className='admin-data-state' role='status'>
                 목록을 새로고침하고 있어요. 이전 조회 내용은 유지하며 처리 버튼은 잠시 사용할 수 없어요.
               </p>
             )}
-            {vm.isError && (
+            {!live && vm.isError && (
               <div className='admin-data-state admin-action-error' role='alert'>
                 <p>
                   {d
@@ -192,7 +192,7 @@ export function AdminPage() {
             {Object.entries(vm.actions)
               .filter(([key]) => !/^(notice:|event:|inquiry:|reply:|legacy:|report:)/.test(key))
               .map(([key, state]) => <AdminActionStatus key={key} state={state} />)}
-            {d && (
+            {(d || live) && (
               <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} />
             )}
           </section>
@@ -204,7 +204,8 @@ export function AdminPage() {
 
 type BodyProps = {
   tab: AdminTab
-  d: Data
+  /** 데모 조회 결과. 운영 API 탭(users·admins·rights·profile)은 이 값 없이도 그립니다. */
+  d: Data | undefined
   vm: VM
   f: Filter
   setF: (x: Partial<Filter>) => void
@@ -272,16 +273,18 @@ function Controls(
 
 function Body(p: BodyProps) {
   const { tab, d, vm, f } = p
+  if (tab === 'rights') return <Rights {...p} />
+  if (tab === 'admins') return <Admins vm={vm} />
+  if (tab === 'users') return <Users {...p} />
+  if (tab === 'profile') return <Profile vm={vm} />
+  if (!d) return null
   const titleSort = (
     a: string,
     b: string,
   ) => (f.sort === 'titleDesc' ? b.localeCompare(a, 'ko') : a.localeCompare(b, 'ko'))
   let T: ReactNode
   if (tab === 'data') T = <Overview d={d} vm={vm} />
-  else if (tab === 'rights') T = <Rights {...p} />
   else if (tab === 'llm') T = <Llm d={d} vm={vm} />
-  else if (tab === 'admins') T = <Admins vm={vm} />
-  else if (tab === 'users') T = <Users {...p} />
   else if (tab === 'works') {
     const list = d.works.filter((w) =>
       ofKind(f.category, w) && has(f.query, w.title, w.author, w.kind, w.rights)
@@ -324,11 +327,20 @@ function Body(p: BodyProps) {
                     <button
                       type='button'
                       className='btn sm'
-                      disabled={blocked(vm, `work:${w.id}`)}
+                      disabled={!vm.canToggleWork(w) || blocked(vm, `work:${w.id}`)}
+                      aria-describedby={vm.canToggleWork(w) ? undefined : `work-block-${w.id}`}
                       onClick={() => vm.toggleWork(w.id)}
                     >
                       {w.hidden ? '제한 해제' : '운영상 비공개'}
                     </button>
+                    {!vm.canToggleWork(w) && (
+                      <>
+                        <br />
+                        <span id={`work-block-${w.id}`} className='small muted'>
+                          정본 작품은 이 데모 화면에서 바꿀 수 없어요.
+                        </span>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
@@ -601,7 +613,7 @@ function Body(p: BodyProps) {
         </p>
       </div>
     )
-  } else T = <Profile vm={vm} />
+  }
   return T
 }
 
@@ -990,40 +1002,42 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
           )}
         </div>
       )}
-      <details className='panel admin-legacy-demo' style={{ marginTop: 14 }}>
-        <summary>원작·포크 데이터 격리 점검 (예시 데이터)</summary>
-        <Table label='원작·포크 격리 점검 표'>
-          <thead>
-            <tr>
-              <th scope='col'>포크</th>
-              <th scope='col'>원작 · 분기</th>
-              <th scope='col'>스냅샷 해시</th>
-              <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
-              <th scope='col'>인물 상태 차이</th>
-              <th scope='col'>판정</th>
-            </tr>
-          </thead>
-          <tbody>
-            {d.isolation.map((x) => (
-              <tr key={x.title}>
-                <td>{x.title}</td>
-                <td>{x.parent} · {x.forkAt}화</td>
-                <td className='mono'>{x.snapNow}</td>
-                <td className='mono'>{x.now}</td>
-                <td>{x.diff.length ? x.diff.join(', ') : '없음'}</td>
-                <td>
-                  <span className={`chip ${x.ok ? 'ok' : 'wait'}`}>
-                    {x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}
-                  </span>
-                </td>
+      {d && (
+        <details className='panel admin-legacy-demo' style={{ marginTop: 14 }}>
+          <summary>원작·포크 데이터 격리 점검 (예시 데이터)</summary>
+          <Table label='원작·포크 격리 점검 표'>
+            <thead>
+              <tr>
+                <th scope='col'>포크</th>
+                <th scope='col'>원작 · 분기</th>
+                <th scope='col'>스냅샷 해시</th>
+                <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
+                <th scope='col'>인물 상태 차이</th>
+                <th scope='col'>판정</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
-        <p className='small muted' style={{ marginTop: 10 }}>
-          스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
-        </p>
-      </details>
+            </thead>
+            <tbody>
+              {d.isolation.map((x) => (
+                <tr key={x.title}>
+                  <td>{x.title}</td>
+                  <td>{x.parent} · {x.forkAt}화</td>
+                  <td className='mono'>{x.snapNow}</td>
+                  <td className='mono'>{x.now}</td>
+                  <td>{x.diff.length ? x.diff.join(', ') : '없음'}</td>
+                  <td>
+                    <span className={`chip ${x.ok ? 'ok' : 'wait'}`}>
+                      {x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <p className='small muted' style={{ marginTop: 10 }}>
+            스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
+          </p>
+        </details>
+      )}
     </>
   )
 }

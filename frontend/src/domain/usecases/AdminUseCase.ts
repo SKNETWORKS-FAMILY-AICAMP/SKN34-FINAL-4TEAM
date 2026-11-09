@@ -12,6 +12,9 @@ import { chatsOf } from './ChatUseCase'
 export type AdminResult = { ok: boolean; msg: string } | null
 const ok = (msg: string) => ({ ok: true, msg }), fail = (msg: string) => ({ ok: false, msg })
 
+/** 정본(Content API) 작품은 이 화면의 데모 공개 상태 조치 대상이 아닙니다. toggleWork 거절과 작품 탭 버튼 비활성화가 같은 기준을 씁니다. */
+export const canToggleWork = (w: Pick<Work, 'canonical'>) => !w.canonical
+
 /** 목업 admin()·adminLegacy()·adminExtra()와 15절 관리자 핸들러. 실제 권한 판단은 Core가 맡아야 합니다. */
 export class AdminUseCase {
   private readonly adminRepository: AdminRepository
@@ -78,7 +81,7 @@ export class AdminUseCase {
   async toggleWork(id: string): Promise<AdminResult> {
     const w = (await this.workRepository.listWorks()).find((x) => x.id === id)
     if (!w) return null
-    if (w.canonical) return fail(AGGREGATE_WRITE_UNSUPPORTED)
+    if (!canToggleWork(w)) return fail(AGGREGATE_WRITE_UNSUPPORTED)
     w.hidden = !w.hidden
     await this.workRepository.saveWork(w)
     await this.log('작품 공개 상태 변경', () => w.title + ' · ' + (w.hidden ? '운영상 비공개' : '제한 해제'))
