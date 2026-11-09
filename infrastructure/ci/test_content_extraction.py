@@ -44,7 +44,8 @@ class ContentExtractionTest(unittest.TestCase):
         root=ROOT / "backend/content-service/src/main/resources/db/migration"
         self.assertFalse((root / "content").exists())
         files=sorted((p for p in root.glob('*/*.sql') if p.parent.name in {"work","episode","episode_version","publication","world","fork","proposal"}),key=lambda p:int(re.match(r'V(\d+)__',p.name)[1]))
-        self.assertEqual(list(range(1,10)),[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
+        # plan leaf(V10~V12)는 이 검사 대상 밖이고, work leaf의 V13은 work_restriction(운영 작품 제한), V14는 work_view(작품 검색·랭킹 조회 기록), V15는 샘플 이관의 공개 표시 메타데이터다.
+        self.assertEqual([*range(1,10),13,14,15],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
         created=set()
         for path in files:
             for statement in re.split(r'(?=CREATE TABLE )',path.read_text()):
@@ -112,12 +113,13 @@ class ContentExtractionTest(unittest.TestCase):
                 self.assertIn("content", plan["system"])
         self.assertIn("content", {r["service"] for r in ci.select(["backend/core-api/src/main/kotlin/ai/storyfork/core/auth/config/AuthSecurityConfig.kt"])["integration"]})
 
-    def test_worldstudio_has_no_auth_scan_and_no_automatic_migration(self):
+    def test_worldstudio_has_no_auth_scan_and_migrates_its_own_schema_on_startup(self):
         source = (ROOT / 'backend/content-service/src/main/kotlin/ai/storyfork/content/world/WorldStudioConfig.kt').read_text()
         self.assertIn('worldStudioEntityManagerFactory', source)
         self.assertIn('worldStudioTransactionManager', source)
         self.assertNotIn('auth.entity', source)
-        self.assertNotIn('.migrate()', source)
+        self.assertIn('.table("world_studio_schema_history")', source)
+        self.assertIn('.baselineOnMigrate(false)', source)
         self.assertIn('"validate"', source)
 
     def test_content_image_and_runtime_are_connected(self):

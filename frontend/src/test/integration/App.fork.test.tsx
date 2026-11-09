@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -70,6 +71,7 @@ describe('포크 (U09·U10)', () => {
     fireEvent.click(screen.getByRole('button', { name: '포크 소설 시작하기 →' }))
     await toastIs('무엇이 달라지는지 한 줄 적어 주세요')
     fireEvent.change(screen.getByPlaceholderText('한 줄로 적어 주세요'), { target: { value: '성진이 털어놓았다면?' } })
+    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '구운몽: 연화봉에 남은 성진' } })
     fireEvent.click(screen.getByRole('button', { name: '포크 소설 시작하기 →' }))
     await screen.findByRole('heading', { name: '포크 소설을 만들었어요' })
     await toastIs('원작 3화 시점을 복사해 포크 소설을 만들었어요')

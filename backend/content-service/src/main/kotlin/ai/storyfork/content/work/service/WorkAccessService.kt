@@ -3,7 +3,6 @@ package ai.storyfork.content.work.service
 import ai.storyfork.content._common.exception.*
 import ai.storyfork.content._common.helper.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.beans.factory.annotation.Qualifier
 import jakarta.persistence.EntityManager
@@ -16,13 +15,13 @@ import ai.storyfork.content.fork.repository.*
 import ai.storyfork.content.fork.service.dto.*
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 @Transactional(transactionManager="contentTransactionManager")
 class WorkAccessService(
     private val works: WorkRepository,
     private val worlds: WorkWorldHistoryRepository,
     private val visibility: WorkPublicationHistoryRepository,
     private val policies: ForkPolicyHistoryRepository,
+    private val selectedPolicyEpisodes: ForkPolicyEpisodeRepository,
     private val forks: ForkRepository,
     private val checkpoints: CheckpointRepository,
     private val episodes: EpisodeRepository,
@@ -44,7 +43,14 @@ class WorkAccessService(
         return WorkAccessResult(w.id,w.ownerId,w.title,w.description,w.revision,
             worlds.findFirstByWorkIdOrderByRevisionNoDesc(id)?.worldId ?: throw ContentFailure(409,"작품의 세계관 연결이 없어요."),
             visibility.findFirstByWorkIdOrderByRevisionNoDesc(id)?.visibility ?: "private",
-            policy?.allowCreation ?: false,policy?.allowPublication ?: false,source)
+            policy?.allowCreation ?: false,policy?.allowPublication ?: false,source,w.restricted)
+    }
+    fun forkable(id: String, published: List<Int>): List<Int> {
+        val policy=policies.findFirstByWorkIdOrderByRevisionNoDesc(id) ?: return emptyList()
+        val selected=if(policy.episodeScope=="selected") selectedPolicyEpisodes.findAllByPolicyHistoryId(policy.id).map {it.episodeId} else emptyList()
+        val rows=episodes.findAllById(selected+listOfNotNull(policy.startEpisodeId)).filter {it.workId==id}
+        return ai.storyfork.content.work.domain.forkableEpisodes(policy.allowCreation,policy.episodeScope,
+            rows.find {it.id==policy.startEpisodeId}?.sequence,rows.filter {it.id in selected}.map {it.sequence},published)
     }
     fun own(id: String, owner: String): WorkAccessResult {
         checkContent(owner.isNotBlank() && owner.length<=200,401,"서버 인증이 필요합니다.")
@@ -52,7 +58,7 @@ class WorkAccessService(
         return get(id).also { checkContent(it.ownerId==owner,404,"작품을 찾을 수 없어요.") }
     }
     fun published(id: String): WorkAccessResult {
-        return get(id).also { checkContent(it.visibility=="public",404,"공개 작품을 찾을 수 없어요.") }
+        return get(id).also { checkContent(it.publiclyVisible(),404,"공개 작품을 찾을 수 없어요.") }
     }
     fun lockScope(id: String) = lockScopes(listOf(id))
     fun lockScopes(ids: Collection<String>) {

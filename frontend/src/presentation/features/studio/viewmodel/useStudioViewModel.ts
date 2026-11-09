@@ -21,7 +21,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
   const navigate = useNavigate()
   const aiDemo = useAiDemo()
   const { data } = useAsyncData(async () => {
-    // 조회 중 입력이 더 들어오면, 그 입력까지 저장된 초안으로 다시 조회합니다.
+    // 탭을 전환하거나 조회 중 편집이 들어오면 최신 저장 초안을 읽습니다.
     let pending: Promise<unknown>
     let opened: Awaited<ReturnType<StudioUseCase['open']>>
     do {
@@ -30,7 +30,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
       opened = await studioUseCase.open(id, ep, role)
     } while (pending !== sync.current)
     return opened
-  }, [studioUseCase, id, ep, role, screen])
+  }, [studioUseCase, id, ep, role], [screen])
   const [typed, setTyped] = useState<{ key: string; paras: string[] } | null>(null)
   const [invalidatedCheck, setInvalidatedCheck] = useState<InvalidatedCheck | null>(null)
   const [prompt, setPrompt] = useState<{ key: string; v: string } | null>(null)

@@ -5,10 +5,15 @@ import type {StudioSetting,SettingItem} from '../../../../domain/entities/studio
 import {relationDefinitions,relationLabel} from '../../../../domain/entities/studioRelations'
 import {Go} from '../../../shared/Go'
 import {useScreenId} from '../../../shared/screenIds'
+import {useDocumentTitle} from '../../../shared/useDocumentTitle'
 import {Gnb} from '../../../shared/shell/Gnb'
 import {useWorldStudioViewModel} from '../viewmodel/useWorldStudioViewModel'
 import {WorldMap} from './WorldMap'
 import {WorldRelationshipEditor} from './WorldRelationshipEditor'
+import {WorldWiki} from './WorldWiki'
+import {WorldTimeline} from './WorldTimeline'
+import {WorldCandidates} from './WorldCandidates'
+import {presentationPortrait} from '../../../../app/presentationPortraits'
 import './world-studio.css'
 
 type VM=ReturnType<typeof useWorldStudioViewModel>
@@ -19,11 +24,12 @@ const labelOf=(setting:StudioSetting)=>cardTypes.find(t=>t.id===cardTypeOf(setti
 
 export function WorldStudioPage(){
  useScreenId('W01')
+ useDocumentTitle('세계관')
  const vm=useWorldStudioViewModel(),heading=useRef<HTMLHeadingElement>(null),tools=useRef<HTMLDetailsElement>(null)
  useEffect(()=>{if(vm.flow.screen==='editor')heading.current?.focus({preventScroll:true})},[vm.flow.step,vm.flow.screen])
  const current=steps.findIndex(([id])=>id===vm.flow.step)
  const chooseTool=(tool:'explore'|'analysis')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
- return <><Gnb on="worldstudio"/><main className="wrap world-studio world-writing">
+ return <><Gnb on="worldstudio"/><main id="main" tabIndex={-1} className="wrap world-studio world-writing">
   <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">로그인한 내 세계관을 서버에 저장합니다. 관계는 현재 상태만 보관하며 관계 이력·과거 세계관 전체 복원은 지원하지 않습니다.</p></div></header>
   {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}
   {vm.message&&<p role="status" className="world-message">{vm.message}</p>}
@@ -46,7 +52,7 @@ export function WorldStudioPage(){
     <div hidden={vm.flow.step!=='review'}><WritingReview vm={vm}/></div>
     <nav className="world-step-actions" aria-label="단계 이동"><button className="btn" type="button" disabled={current===0} onClick={()=>vm.goStep(steps[current-1][0])}>이전 단계</button>{current<3&&<button className="btn pri" type="button" onClick={()=>vm.goStep(steps[current+1][0])}>{vm.flow.step==='relations'?'검토·저장으로':'다음 단계'}</button>}{vm.flow.step==='cards'&&<button className="btn" type="button" onClick={()=>vm.goStep('review')}>관계 없이 검토·저장</button>}</nav>
    </div>
-   {vm.tool==='explore'&&<><nav className="libtabs" aria-label="세계관 탐색 보기">{exploreTabs.map(([id,label])=><button type="button" key={id} className={vm.explore===id?'on':''} onClick={()=>vm.setExplore(id)}>{label}</button>)}</nav>{(vm.explore==='map'||vm.explore==='relations')&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}:${vm.explore}`} world={vm.saved} charactersOnly={vm.explore==='relations'}/>:<Confirmed vm={vm} tab={vm.explore}/>}</>}
+   {vm.tool==='explore'&&<><nav className="libtabs" aria-label="세계관 탐색 보기">{exploreTabs.map(([id,label])=><button type="button" key={id} className={vm.explore===id?'on':''} aria-pressed={vm.explore===id} onClick={()=>vm.setExplore(id)}>{label}</button>)}</nav>{(vm.explore==='map'||vm.explore==='relations')&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}:${vm.explore}`} world={vm.saved} charactersOnly={vm.explore==='relations'}/>:<Confirmed vm={vm} tab={vm.explore}/>}</>}
    <div hidden={vm.tool!=='analysis'}><Analysis key={vm.editing.id} vm={vm}/></div>
   </section>}
  </main><footer className="foot"><div className="wrap"><b>STORYFORK</b><Go to="/lib">내 서재</Go></div></footer></>
@@ -78,7 +84,7 @@ function CardWriting({vm}:{vm:VM}){
     {!vm.cardRows.length&&<p className="small muted">{world.settings.length?'조건에 맞는 설정이 없어요.':'설정을 추가해 시작해 보세요.'}</p>}
     {!!legacy.length&&<details className="world-legacy-list"><summary>기존 설정·관계 {legacy.length}개</summary><nav aria-label="기존 설정과 관계">{legacy.map(s=><button type="button" key={s.item.id} onClick={()=>select(s.item.id)}>{s.item.title||'이름 없는 설정'}<small>{labelOf(s)}</small></button>)}</nav></details>}
    </aside>
-   {setting?<section className="world-writing-editor" aria-label="선택한 설정 편집"><button className="btn sm world-mobile-list" type="button" onClick={()=>vm.setCardDetail(false)}>설정 목록으로</button><div className="world-editor-heading"><SettingIcon setting={setting}/><span>{labelOf(setting)}</span></div>
+   {setting?<section className="world-writing-editor" aria-label="선택한 설정 편집"><button className="btn sm world-mobile-list" type="button" onClick={()=>vm.setCardDetail(false)}>설정 목록으로</button><div className="world-editor-heading">{cardTypeOf(setting.item)==='character'&&presentationPortrait(setting.item.title)?<img src={presentationPortrait(setting.item.title)} alt={`${setting.item.title} 인물 이미지`} width={72} height={72} style={{objectFit:'cover',borderRadius:12}}/>:<SettingIcon setting={setting}/>}<span>{labelOf(setting)}</span></div>
     <label className="field">설정 이름<input ref={field} className="inp world-name" required value={setting.item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={e=>vm.update(setting.item.id,{title:e.target.value})}/></label>
     <label className="field">설명<textarea className="ta world-natural-input" rows={5} value={setting.item.text} maxLength={3000} placeholder="어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요." onChange={e=>vm.update(setting.item.id,{text:e.target.value})}/></label>
     {cardTypeOf(setting.item)==='character'&&<button className="btn sm world-relation-link" type="button" onClick={()=>vm.openRelations(setting.item.id)}>관계 연결로 이동</button>}
@@ -106,14 +112,16 @@ function WritingReview({vm}:{vm:VM}){
 }
 
 function Confirmed({vm,tab}:{vm:VM;tab:string}) {
+ if(tab==='wiki'&&vm.saved)return <WorldWiki key={vm.saved.id} world={vm.saved}/>
  const items=vm.saved?.settings.map(s=>s.item)??[]
+ if(tab==='timeline')return <section className="world-confirmed"><h3>저장된 시간선</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p><WorldTimeline items={items}/></section>
  const byId=(id:string|null)=>items.find(i=>i.id===id)?.title??'알 수 없는 항목'
- const rows=tab==='relations'?items.filter(i=>i.kind==='relation'):tab==='timeline'?items.filter(i=>i.kind==='event'):items
- return <section className="world-confirmed"><h3>{tab==='relations'?'저장된 현재 관계도':tab==='timeline'?'저장된 시간선':'저장된 설정집'}</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{!rows.length?<p className="world-empty">아직 확정한 {tab==='relations'?'관계':tab==='timeline'?'과거 사건':'설정'}가 없습니다.</p>:rows.map(i=><article key={i.id}>
-  <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relationLabel(i)} → ${byId(i.targetId)}`:i.title}</h4>{tab==='timeline' && <p className="small muted">{i.timeText||'시점 미지정'}{i.afterId?' · '+byId(i.afterId)+' 이후':''}</p>}<p className="world-prose">{i.text}</p>
+ const rows=tab==='relations'?items.filter(i=>i.kind==='relation'):items
+ return <section className="world-confirmed"><h3>{tab==='relations'?'저장된 현재 관계도':'저장된 설정집'}</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{!rows.length?<p className="world-empty">아직 확정한 {tab==='relations'?'관계':'설정'}가 없습니다.</p>:rows.map(i=><article key={i.id}>
+  <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relationLabel(i)} → ${byId(i.targetId)}`:i.title}</h4><p className="world-prose">{i.text}</p>
  </article>)}</section>
 }
 
 function Analysis({vm}:{vm:VM}) {
- return <section className="world-analysis"><h3>AI 후보 검토</h3><p>현재 데모는 AI 모델/API와 연결되지 않았습니다. 후보를 생성하거나 서버에 반영하지 않습니다.</p><button type="button" className="btn" disabled>AI 분석 요청 · 미연결</button><button type="button" className="btn" onClick={()=>vm.setTool('write')}>작성으로 돌아가기</button></section>
+ return <section className="world-analysis"><h3>AI 후보 검토</h3><p>현재 데모는 AI 모델/API와 연결되지 않았습니다. 후보를 생성하거나 서버에 반영하지 않습니다.</p><button type="button" className="btn" disabled>AI 분석 요청 · 미연결</button><button type="button" className="btn" onClick={()=>vm.setTool('write')}>작성으로 돌아가기</button><WorldCandidates analysis={vm.saved?.analysis??null}/></section>
 }

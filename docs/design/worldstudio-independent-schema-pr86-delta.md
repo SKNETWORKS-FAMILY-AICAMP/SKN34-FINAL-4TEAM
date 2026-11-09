@@ -1,5 +1,9 @@
 # PR #86 설계와 독립 초기 스키마의 차이
 
+[메인 README](../../README.md) · [문서 목록](../README.md)
+
+> **작성 시점 기록:** PR #86 시점의 비교 기록입니다. 현재 관계 계약은 [WorldStudio 현재 관계 MVP 계약](worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따릅니다.
+
 원본 문서 두 개는 수정하지 않는다. 비교 대상은 `world-card-classification` worktree의 `docs/design/world-studio-initial-model.md`, `world-episode-interface.md`이다. 아래 문구는 후속 공동 검토용 교체안이며 #86에 반영된 것이 아니다.
 
 | 원본 위치 | 충돌 | 교체 문구 제안 |

@@ -9,11 +9,9 @@ import ai.storyfork.core.auth.service.dto.WithdrawalResponse
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 
 /**
  * 회원 탈퇴 요청과 30일 유예 중 복구를 관리한다(UC-22 A3).
@@ -30,9 +28,9 @@ class WithdrawalService(
     /** 비밀번호를 확인한 뒤 유예 요청을 만들고 모든 refresh 세션을 폐기한다. 이미 진행 중이면 409, 비밀번호가 다르면 403이다. */
     @Transactional
     fun request(memberId: UUID, request: WithdrawalRequest): WithdrawalResponse {
-        val member = members.lockById(memberId) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
-        if (!passwords.matches(request.password, member.passwordHash)) throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        if (withdrawals.findByMemberIdAndStatus(memberId, AuthWithdrawal.PENDING) != null) throw ResponseStatusException(HttpStatus.CONFLICT)
+        val member = members.lockById(memberId) ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED)
+        if (!passwords.matches(request.password, member.passwordHash)) throw AuthException(AuthException.Reason.FORBIDDEN)
+        if (withdrawals.findByMemberIdAndStatus(memberId, AuthWithdrawal.PENDING) != null) throw AuthException(AuthException.Reason.CONFLICT)
         val now = Instant.now().truncatedTo(ChronoUnit.MICROS)
         val saved = withdrawals.save(AuthWithdrawal(
             id = UUID.randomUUID(), memberId = memberId, requestedAt = now, dueAt = now.plus(GRACE_DAYS, ChronoUnit.DAYS),
@@ -50,11 +48,11 @@ class WithdrawalService(
     /** 유예 중인 요청을 취소(복구)한다. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409다. */
     @Transactional
     fun restore(memberId: UUID) {
-        members.lockById(memberId) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
-        val pending = withdrawals.findByMemberIdAndStatus(memberId, AuthWithdrawal.PENDING) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        members.lockById(memberId) ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED)
+        val pending = withdrawals.findByMemberIdAndStatus(memberId, AuthWithdrawal.PENDING) ?: throw AuthException(AuthException.Reason.NOT_FOUND)
         val now = Instant.now()
         // 유예 만료 후 실제 처리는 아직 없어 행이 PENDING으로 남을 수 있다. 기한이 지났으면 복구를 허용하지 않는다.
-        if (!now.isBefore(pending.dueAt)) throw ResponseStatusException(HttpStatus.CONFLICT)
+        if (!now.isBefore(pending.dueAt)) throw AuthException(AuthException.Reason.CONFLICT)
         pending.status = AuthWithdrawal.RESTORED
         pending.restoredAt = now
     }

@@ -2,7 +2,7 @@
 
 **원작을 나만의 이야기로 — 다중 AI 에이전트 기반 독자 참여형 스토리 창작·피드백 플랫폼**
 
-> **현재 상태:** Core(회원·인증·세션·알림)와 Content(작품·회차·세계관·Fork·첨부·AI 제안)를 분리한 소스가 반영되어 있습니다. hosted CI·실제 DB 전환·배포는 확인 대기이며 운영 서비스는 실행 골격입니다. 기능별 개발 완료 여부는 [개발 기능표](docs/feature-roadmap.md)(✅ = PR 병합 + 최신 `Required CI` 성공)를 기준으로 합니다.
+> **현재 상태:** Core(회원·인증·세션·알림)와 Content(작품·회차·세계관·Fork·첨부·AI 제안)를 분리한 소스가 반영되어 있습니다. 운영 서비스는 서비스 토큰으로 보호하는 독립 공지·이벤트·문의/답변 CRUD와 `operations` schema를 소스에 추가했습니다. hosted CI·실제 DB 전환·배포는 확인 대기입니다. 기능별 개발 완료 여부는 [개발 기능표](docs/feature-roadmap.md)(✅ = PR 병합 + 최신 `Required CI` 성공)를 기준으로 합니다.
 
 ## 1. 팀 소개
 
@@ -131,7 +131,7 @@ flowchart LR
     R -.-> M[(SMTP · Mailpit)]
 ```
 
-실선은 서비스 호출, 점선은 저장소·외부 접근입니다. Operations(:8082)는 독립 실행 골격이며 공개 proxy·배포 대상이 아닙니다.
+실선은 서비스 호출, 점선은 저장소·외부 접근입니다. Operations(:8082)는 서비스 토큰으로 보호하는 독립 CRUD(PostgreSQL `operations` schema)이며 Frontend/Core/Content 연결·공개 proxy·Compose/CD 대상이 아닙니다.
 브라우저는 AI·DB·외부 모델을 직접 호출하지 않으며 OpenAI 키는 AI 런타임에만 전달합니다.
 
 ### 5.2 구성별 책임
@@ -141,7 +141,7 @@ flowchart LR
 | Frontend | React·TypeScript·Vite, Redux Toolkit·Awilix·Zod·Tailwind CSS | 실제 인증·일부 콘텐츠/첨부와 메모리 데모 공존. 기존 URL로 Core/Content 분기 |
 | Core Service (`core-api` 모듈) | Kotlin·Spring Boot, JDK 21 | Auth·세션·Health·서비스 인증 확인·알림함. 크레딧은 목표 |
 | Content Service | Kotlin·Spring Boot, JDK 21 | 기존 작품·회차·버전·발행·세계관/Studio·Fork·제안·문맥·첨부·플롯 계획 |
-| Operations Service | Kotlin·Spring Boot, JDK 21 | 독립 실행 골격만, 업무·Compose/CD 미구현 |
+| Operations Service | Kotlin·Spring Boot·JPA·Flyway, JDK 21 | 서비스 자격의 독립 공지·이벤트·문의/답변 CRUD 소스. `operations` schema, 실제 DB 적용·CI·배포 확인 대기; 공개 proxy·Compose/CD 미연결 |
 | AI Service | 현재 Python·FastAPI; MVP 모델·프레임워크 미정 | 선택적 설정 추출·인물 시뮬레이션·집필 제안. 정본 직접 변경 금지 |
 | 실행 환경 | Docker Compose, Vite 개발 서버, nginx 정적 배포 이미지 | 로컬 개발 및 서비스 연결·배포 이미지 검증 |
 
@@ -155,7 +155,7 @@ Redis·큐 worker는 도입하지 않았습니다. 합의된 향후 구성요소
 |---|---|---|
 | Core | 회원·인증·세션·크레딧·회원 알림 | 기존 core-api의 Auth·Health 유지. 콘텐츠 writer/migration 제거 |
 | 콘텐츠 | 작품·세계관·회차·버전·Fork·발행·독서·검색·피드백·첨부 | [독립 Content 앱](backend/content-service/README.md)으로 구현된 업무·테스트 추출. hosted CI·실제 DB/배포 전환 대기 |
-| 운영 | 문의·공지·이벤트·신고·소명·운영 판단·감사·작업 감시 | [독립 Spring Boot 실행 골격](backend/operations-service/README.md) 추가, 업무·DB·배포 미구현 |
+| 운영 | 문의·공지·이벤트·신고·소명·운영 판단·감사·작업 감시 | [독립 공지·이벤트·문의/답변 CRUD](backend/operations-service/README.md) 소스 구현. 신고·소명·감사·작업 감시·실제 DB 적용·배포 미구현 |
 | AI | 요청된 생성·추출·시뮬레이션·검토 실행 | 기존 FastAPI 재사용 |
 
 LLMOps는 운영 영역입니다. Langfuse는 도입 시 별도 제품으로 배포하며 자체 UI와 운영 화면 API 통합 중 선택은 미정입니다. 정기 작업은 업무 소유 서비스가 실행하고 운영이 감시합니다. 콘텐츠 제한은 콘텐츠, 회원 제한·크레딧은 Core가 적용합니다. 상세 소유권·DB·통신·이전 절차는 [서비스 구조](docs/design/service-boundaries.md)를 따릅니다.
@@ -231,7 +231,7 @@ SKN34-FINAL-4TEAM/
 ├─ backend/
 │  ├─ core-api/              Core: 회원·인증·세션·알림·Health
 │  ├─ content-service/       Content: 작품·회차·세계관·Fork·첨부·AI 제안
-│  ├─ operations-service/    운영: 실행 골격
+│  ├─ operations-service/    운영: 공지·이벤트·문의 CRUD
 │  └─ ai-service/            AI: 내부 Health·이어쓰기 제안
 ├─ infrastructure/           Compose·nginx·MinIO, CI 변경 선택기, HTTP 시스템 테스트
 ├─ docs/                     설계·결정·ERD·유스케이스·조사·산출물
@@ -255,6 +255,7 @@ docker compose down           # DB volume은 보존
 
 | 보고 싶은 내용 | 문서 |
 |---|---|
+| 전체 문서 목록 | [docs 문서 안내](docs/README.md): 현재 기준 문서와 작성 시점 기록 구분 |
 | 기획 산출물 | [기획서](<docs/deliverables/SKN34-final-4Team_기획서.pdf>) · [요구사항 정의서](<docs/deliverables/SKN34-final-4Team_요구사항정의서.xlsx>)([기능 ID 색인](docs/requirements.md)) · [WBS](docs/deliverables/SKN34-final-4Team_WBS.xlsx) · [화면 설계서](<docs/deliverables/SKN34-final-4Team_화면설계서.pdf>) · [시스템 구상도](<docs/deliverables/SKN34-final-4Team_시스템 구상도.pdf>) · [AI 시스템 아키텍처](<docs/deliverables/SKN34-final-4Team_AI 시스템 아키텍처.pdf>) |
 | 개발 현황 | [개발 기능표](docs/feature-roadmap.md) · [콘텐츠 통합 안내](docs/content-integration.md) · [이슈 #50 대응](docs/issue-50-alignment.md) |
 | 설계·결정 | [MVP 설계](docs/design/design.md) · [결정 기록](docs/design/decisions.md) · [서비스 구조(DEC-41)](docs/design/service-boundaries.md) · [현재 아키텍처](docs/architecture.md) · [ERD](docs/design/erd/README.md) |

@@ -19,7 +19,12 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
   const [saving, setSaving] = useState(false)
   const [pendingEmail, setPendingEmail] = useState('')
   const [profileError, setProfileError] = useState('')
+  const [profileErrors, setProfileErrors] = useState<{ nick?: string; email?: string }>({})
+  const [profileNotice, setProfileNotice] = useState('')
+  const [asking, setAsking] = useState(false)
+  const [inquiry, setInquiry] = useState<{ ok: boolean; msg: string } | null>(null)
   const busy = useRef(false)
+  const askBusy = useRef(false)
   const controller = useRef<AbortController | null>(null)
   useEffect(() => {
     if (sub !== 'profile' || !role) return
@@ -46,10 +51,12 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
     board: sub === 'notice' || sub === 'event' ? await accountUseCase.board() : null,
   }), [accountUseCase, sub])
   return {
-    role, user, profileState, saving, pendingEmail, profileError, data: data?.sub === sub ? data : undefined,
+    role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, data: data?.sub === sub ? data : undefined,
     retryProfile: () => setProfileAttempt((attempt) => attempt + 1),
     saveProfile: async (nick: string, email: string) => {
       const err = checkProfile(nick, email)
+      // checkProfile은 첫 오류만 돌려줍니다. 이메일을 올바른 값으로 바꿔도 오류가 남으면 닉네임이 문제인 겁니다.
+      setProfileErrors(err ? { [checkProfile(nick, 'a@a.aa') ? 'nick' : 'email']: err } : {})
       if (err) { toast(err); return }
       if (busy.current || !controller.current) return
       const signal = controller.current.signal
@@ -57,6 +64,7 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
       busy.current = true
       setSaving(true)
       setProfileError('')
+      setProfileNotice('')
       let nicknameSaved = false
       try {
         if (nick.trim() !== user.nick) {
@@ -70,7 +78,7 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
           if (signal.aborted) return
           setPendingEmail(email.trim())
           toast('확인 메일을 보냈어요. 인증 전에는 기존 이메일이 유지돼요.')
-        } else toast('프로필을 저장했어요')
+        } else { setProfileNotice('프로필을 저장했어요'); toast('프로필을 저장했어요') }
         return true
       } catch (error) {
         if (signal.aborted) return
@@ -83,10 +91,17 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
       } finally { busy.current = false; if (!signal.aborted) setSaving(false) }
     },
     ask: async (t: string, s: string, b: string) => {
-      const r = await accountUseCase.ask(t, s, b)
-      toast(r.msg)
-      if (r.ok) dispatch(sessionActions.dataChanged())
-      return r.ok
+      if (askBusy.current) return false
+      askBusy.current = true
+      setAsking(true)
+      setInquiry(null)
+      try {
+        const r = await accountUseCase.ask(t, s, b)
+        setInquiry(r)
+        toast(r.msg)
+        if (r.ok) dispatch(sessionActions.dataChanged())
+        return r.ok
+      } finally { askBusy.current = false; setAsking(false) }
     },
   }
 }

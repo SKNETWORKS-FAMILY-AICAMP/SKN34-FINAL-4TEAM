@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createMockDb, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../data/mock/fixtureDb'
+import { InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 
 const setup = () => {
-  const db = createMockDb()
+  const db = createFixtureDb()
   return { db, useCase: new StudioUseCase(new InMemoryWorkRepository(db), new InMemoryCreditRepository(db), new InMemoryFeedbackRepository(db), new InMemoryWorldRepository(db)) }
 }
 const opened = async (u: StudioUseCase, id: string, ep?: number) => {

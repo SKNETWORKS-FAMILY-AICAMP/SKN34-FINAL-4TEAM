@@ -1,3 +1,5 @@
+[메인 README](../../README.md) · [문서 목록](../README.md)
+
 > PR #98 리뷰 반영: 독립성은 worldstudio 스키마·Flyway 이력·업무 경계에 적용한다. 실행 시 기존 Core PostgreSQL DataSource와 기본 JPA/트랜잭션 인프라를 공유한다. 조건부 등록으로 비활성 시작 계약을 유지한다. 독립 SQL에는 Auth/Content migration 선행 조건이 없으며 기존 Content 테이블·코드에 대한 업무 의존을 추가하지 않는다. 아래의 과거 전용 연결/JPA 검증 설명은 [현재 실행 계약](../../backend/content-service/src/main/resources/db/migration/worldstudio/README.md)으로 대체한다.
 
 # WorldStudio 독립 초기 스키마 재설계안
@@ -55,7 +57,7 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 
 ### 설정과 검증 경계
 
-루트 `.env.example`의 `APP_WORLDSTUDIO_ENABLED=false`가 기본값이다. 승인된 SQL 적용 후 Content 활성화·Core 인증 자격·Neo4j 연결이 모두 필요하며 서버 시작은 SQL을 migrate하지 않고 validate만 한다. `NEO4J_URI/USERNAME/PASSWORD/DATABASE`는 Content 런타임만 받으며 Frontend·Core·AI·build ARG로 전달하지 않는다. 네이티브 기본 URI는 `bolt://127.0.0.1:7687`다.
+WorldStudio는 기능 플래그 없이 항상 켜져 있다. Content 서버 시작 시 `world_studio_schema_history`로 전용 schema를 migrate한 뒤 validate하며(repair·baseline 없음), Core 인증 자격과 Neo4j 연결(local·dev compose의 `neo4j` 컨테이너)이 필요하다. `NEO4J_URI/USERNAME/PASSWORD/DATABASE`는 Content 런타임만 받으며 Frontend·Core·AI·build ARG로 전달하지 않는다. 네이티브 기본 URI는 `bolt://127.0.0.1:7687`다.
 
 소스 검증용 `base + docker-compose.prod.yaml`에는 opt-in `worldstudio` profile의 `neo4j:5.26.0-community`, 별도 `worldstudio-neo4j` volume, loopback Bolt 포트만 둔다. 이 조합의 username은 `neo4j`, password는 별도 비밀값(8자 이상), URI는 내부 `bolt://neo4j:7687`을 사용한다. 이미지 전용 `docker-compose.dev.yaml`은 그래프를 자동 배포하지 않으며 승인된 외부 Neo4j가 필요하다. profile·flag가 실제 migration/데이터 이관/기동을 승인하지 않는다.
 
@@ -74,6 +76,8 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 Flyway location은 `classpath:db/migration/worldstudio`로 유지하되 독립 V1 내용을 새로 작성한다. history는 `worldstudio.world_studio_schema_history`에 둔다. 이전 SQL이 적용된 DB에서는 체크섬 변경·repair로 바꾸지 않는다. 기존 적용 여부를 먼저 확인하고, 적용돼 있다면 별도 전환 migration을 설계한다. 빈 schema의 V1에는 다른 서비스 이력을 baseline으로 재사용하지 않는다.
 
 평소 서버 시작으로 DDL을 실행하지 않는다. 명시적인 migration 실행에서만 대상 DB/schema와 기존 이력을 검사하고 migrate/validate를 수행한다. WorldStudio API를 활성화하는 것과 migration 실행은 별도 설정이다.
+
+> 현재: `WorldStudioConfig`는 조건 없이 Content DataSource로 전용 persistence unit을 만든다. 아래는 과거 기록이다.
 
 `WorldStudioConfig`는 명시적으로 `app.worldstudio.enabled=true`인 경우에만 전용 WORLDSTUDIO_DATABASE_*와 JPA persistence unit을 만든다. Core/Content DB URL로 fallback하지 않으며 Auth/Content 초기화 의존도 없다. 기존 Auth는 자기 Entity 패키지만 스캔하므로 수정하지 않는다. 기존 Content 공존 검증은 데이터 보호를 위한 일회성 opt-in 테스트이며 이후 독립 저장 검증의 선행 조건이 아니다.
 

@@ -51,6 +51,7 @@ class SessionService(
         // Load the managed entity only after BCrypt; reset/email changes may have committed meanwhile.
         val member = members.lockByEmail(email) ?: return null
         if (member.id != credentials.get("id", UUID::class.java) || member.email != email || member.passwordHash != passwordHash) return null
+        if (member.restricted) throw AuthException(AuthException.Reason.RESTRICTED)
         val now = Instant.now()
         val session = sessions.save(AuthSession(UUID.randomUUID(), member.id, device.take(200).ifBlank { "Unknown device" }, now, now.plusSeconds(1209600)))
         val token = secrets.newToken()
@@ -65,7 +66,7 @@ class SessionService(
     fun refresh(token: String?, expectedMemberId: UUID? = null): LoginResult? {
         val memberId = owner(token) ?: return null
         if (expectedMemberId != null && expectedMemberId != memberId) return null
-        val member = members.lockById(memberId) ?: return null
+        val member = members.lockById(memberId)?.takeUnless { it.restricted } ?: return null
         val previous = tokens.findById(secrets.hash(requireNotNull(token))).orElse(null) ?: return null
         val session = sessions.findById(previous.sessionId).orElse(null) ?: return null
         if (session.revoked || !session.expiresAt.isAfter(Instant.now())) return null

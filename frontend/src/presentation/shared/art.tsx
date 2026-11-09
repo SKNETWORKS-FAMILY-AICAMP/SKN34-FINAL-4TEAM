@@ -78,7 +78,7 @@ export function Cov({ w, k = '', likes = false }: { w: Work; k?: string; likes?:
     <div className="cov">
       <CoverOf w={w} k={k} />
       <div className="tg"><Tags w={w} /></div>
-      {likes && <span className="lk">♥ {kfmt(w.likes)}</span>}
+      {likes && w.statisticsSupported !== false && <span className="lk">♥ {kfmt(w.likes)}</span>}
     </div>
   )
 }

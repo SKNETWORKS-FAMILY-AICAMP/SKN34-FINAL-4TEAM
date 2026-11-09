@@ -9,7 +9,6 @@ import javax.sql.DataSource
 import org.flywaydb.core.Flyway
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.*
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
@@ -22,7 +21,6 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = ["app.content.enabled", "app.setting-attachments.enabled"], havingValue = "true")
 @EnableConfigurationProperties(AttachmentProperties::class)
 @EnableJpaRepositories(basePackages = ["ai.storyfork.content.attachment.repository"],
     entityManagerFactoryRef = "attachmentEntityManagerFactory", transactionManagerRef = "attachmentTransactionManager")
@@ -43,13 +41,15 @@ class AttachmentConfig {
         return builder.build()
     }
 
+    // 사용자 지정 endpoint(MinIO)일 때만 버킷을 만든다. AWS S3 버킷은 운영자가 준비한다.
     @Bean fun attachmentStorageClient(s3: S3Client, properties: AttachmentProperties) = AttachmentStorageClient(s3, properties.bucket)
+        .also { if (properties.endpoint.isNotBlank()) it.ensureBucket() }
 
     @Bean(defaultCandidate = false, destroyMethod = "close")
     fun attachmentDataSource(
-        @Value("\${CONTENT_DATABASE_URL}") url: String,
-        @Value("\${CONTENT_DATABASE_USER}") user: String,
-        @Value("\${CONTENT_DATABASE_PASSWORD}") password: String,
+        @Value("\${DATABASE_URL}") url: String,
+        @Value("\${DATABASE_USER}") user: String,
+        @Value("\${DATABASE_PASSWORD}") password: String,
     ): HikariDataSource {
         require(url.startsWith("jdbc:postgresql:")) { "Attachment storage requires PostgreSQL" }
         return HikariDataSource().apply {

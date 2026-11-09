@@ -1,5 +1,4 @@
-import { newEpisodeDraft } from '../entities/draft'
-import { canView, forkList, isMine, makeFork, nid, type Role } from '../entities/work'
+import { canView, forkList, isMine, type Role } from '../entities/work'
 import type { WorkRepository } from '../repositories/WorkRepository'
 
 export type ForkInput = { dir: string; title: string; historyConsent: boolean }
@@ -13,33 +12,31 @@ export class ForkUseCase {
 
   private async load(id: string) {
     const [works, worlds] = await Promise.all([this.workRepository.listWorks(), this.workRepository.listWorlds()])
-    const work = works.find((w) => w.id === id)
+    const work = works.find((w) => w.id === id || w.slug === id)
     return { works, work, list: forkList(work, worlds) }
   }
 
   /** 포크 폼(U09). 원작이 없으면 null, 이미 포크했으면 existing */
-  async getForm(id: string) {
+  async getForm(id: string, episode?: number) {
     const { works, work, list } = await this.load(id)
     if (!work) return null
+    const at=episode && list.includes(episode)?episode:list[0]
     return {
-      work,
+      work: work.canonical && at ? await this.workRepository.readWorld(work,at) : work,
       forkList: list,
-      existing: works.find((w) => w.parent === id && isMine(w)) ?? null,
-      historyConsentNeeded: !work.worldIds && !work.ruleFrom,
+      existing: works.find((w) => w.parent === work.id && isMine(w)) ?? null,
+      historyConsentNeeded: !work.canonical && !work.worldIds && !work.ruleFrom,
     }
   }
 
   async startFork(id: string, at: number, input: ForkInput): Promise<{ error: string } | { id: string }> {
     const { works, work, list } = await this.load(id)
-    if (!work || !list.includes(at) || works.some((w) => w.parent === id && isMine(w))) return { error: DENIED }
-    if (!work.worldIds && !work.ruleFrom && !input.historyConsent) return { error: '설정 이력 안내를 확인해 주세요' }
+    if (!work || !list.includes(at) || works.some((w) => w.parent === work.id && isMine(w))) return { error: DENIED }
+    if (!work.canonical && !work.worldIds && !work.ruleFrom && !input.historyConsent) return { error: '설정 이력 안내를 확인해 주세요' }
     const dir = input.dir.trim(), title = input.title.trim()
     if (!dir) return { error: '무엇이 달라지는지 한 줄 적어 주세요' }
     if (!title || title.endsWith(':')) return { error: '제목을 적어 주세요' }
-    const f = makeFork(work, at, { id: nid('fork'), title, dir, author: '나', owner: 'me', mine: true })
-    await this.workRepository.saveWork(f)
-    await this.workRepository.saveDraft(f.id, newEpisodeDraft(f))
-    return { id: f.id }
+    return this.workRepository.createFork(work.id, at, title, dir)
   }
 
   /** 포크 생성 완료(U10) */

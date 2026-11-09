@@ -1,0 +1,121 @@
+setting_version_id,source_key,wiki_category,color,image,event_episode,event_line,source_basis_episode
+6290b663-70cb-3931-b564-d295c34b87f9,char:성진,char,#B48A5A,\N,\N,\N,\N
+449de62d-7e0f-3058-8256-7e0bb780b182,char:육관대사,char,#7C8A9E,\N,\N,\N,\N
+5f42ef44-34bb-3958-99ff-2743db12876a,char:팔선녀,char,#C98F8A,\N,\N,\N,\N
+60345e37-2afa-373a-8ed2-a91eff665539,char:양소유,char,#7E9A78,\N,\N,\N,\N
+e7ff95de-2930-359d-975d-9d3db02a1be6,world:연화봉의 승려는 속세의 욕망을 품지 않는다,world,#7C8A9E,\N,\N,\N,\N
+1be4a97a-f8b9-303f-a80a-937164b81af7,world:연화봉의 승려는 스승의 허락 없이 산을 내려가지 않는다,world,#7C8A9E,\N,\N,\N,\N
+77f4c2f3-0097-3ded-947e-00bd1b6c3759,world:양소유는 전생(성진)을 기억하지 못한다,world,#7C8A9E,\N,\N,\N,\N
+b7d0360f-893a-3cfc-9ce2-1c3c9c80f7bf,place:연화봉,place,#7C8A9E,\N,\N,\N,\N
+c7af2828-9e5b-36ed-a467-e0c9d0cd5c37,place:동정호 용궁,place,#7C8A9E,\N,\N,\N,\N
+6a1e8f37-e026-3d14-86b8-e3bd8b672f2e,place:돌다리,place,#7C8A9E,\N,\N,\N,\N
+e96639b7-06c9-37f7-9a33-13bbaefe3a00,item:여덟 구슬,item,#7C8A9E,\N,\N,\N,\N
+45e6c38d-58c2-34ce-914d-892ef42bacdd,org:연화봉 도량,org,#7C8A9E,\N,\N,\N,\N
+407af758-5338-3290-a409-6b9fba2f3c08,"event:성진, 용궁 심부름을 다녀오다",event,#7C8A9E,\N,1,m,\N
+ace02c44-2c1e-3eec-81e6-15901358a6e5,event:돌다리에서 팔선녀를 만나다,event,#7C8A9E,\N,2,m,\N
+644dca16-2444-3271-9c07-018b00807c3a,event:복숭아꽃이 여덟 구슬이 되다,event,#7C8A9E,\N,2,f,\N
+2a511825-ed55-33a0-a010-871e859148eb,event:스승의 벌로 인간 세상으로,event,#7C8A9E,\N,3,m,\N
+dbfa438d-1589-3894-9687-9453e089c7eb,"event:양소유, 세상에 나다",event,#7C8A9E,\N,4,s,\N
+e46c7067-96b1-3306-a3b6-a6635d80d636,char:리안,char,#C9A04A,\N,\N,\N,\N
+0e45274d-beb4-3702-a62c-8cebed035168,char:카엘,char,#6F93C9,\N,\N,\N,\N
+f01dfb68-a727-362e-93d8-2ed259320f98,char:세라핀,char,#B07A9A,\N,\N,\N,\N
+992da447-a345-321b-b199-d058350b5834,world:해가 지면 탑의 문은 열리지 않는다,world,#7C8A9E,\N,\N,\N,\N
+bca34746-2078-35a4-b731-f27265a14a33,world:탑 안에서는 어떤 마법도 허락되지 않는다,world,#7C8A9E,\N,\N,\N,\N
+eaf90033-fcc3-337e-b5bf-dde8aae7a425,place:별빛 탑,place,#7C8A9E,\N,\N,\N,\N
+5c66ec29-5f2e-3e1d-bfef-b378fe6f6ea6,place:지하서고,place,#7C8A9E,\N,\N,\N,\N
+41ab6bb9-82d5-3882-b54c-fb6591ef2761,item:별빛 수정,item,#7C8A9E,\N,\N,\N,\N
+6e983070-a40a-393b-9f1e-493017f1c89b,item:오르벤의 서한,item,#7C8A9E,\N,\N,\N,\N
+a36ee60b-4245-369a-9ba6-d7386f512057,org:재의 왕국 사절단,org,#7C8A9E,\N,\N,\N,\N
+383b303f-2ef7-339f-87f9-112016fd7f8e,event:탑 앞에서 밤을 지새우다,event,#7C8A9E,\N,1,m,\N
+d7006d05-c5b4-3ad4-a960-ca194a162227,event:봉인 아래의 속삭임,event,#7C8A9E,\N,2,m,\N
+3f3b6a3a-1925-3516-9953-dc08b3f750cb,event:재의 사절 도착,event,#7C8A9E,\N,3,s,\N
+2ac24e7d-30ac-33ca-b83e-889872da2811,char:도윤,char,#5FA89A,\N,\N,\N,\N
+9c4274f5-5adb-3bb7-b478-ab3229caf6a7,char:하람,char,#B58AA6,\N,\N,\N,\N
+e5576927-9c44-31d3-b9ca-18cd1424cbff,world:도시 안에서는 전자 통신이 작동하지 않는다,world,#7C8A9E,\N,\N,\N,\N
+59eb8075-b12b-3270-892d-9e9d6f371ed9,place:고가도로,place,#7C8A9E,\N,\N,\N,\N
+fdba58bc-3952-30e9-b98b-0ca258b9d82f,place:7구역 배급소,place,#7C8A9E,\N,\N,\N,\N
+8cd7af0c-0a9e-3732-9970-67dbcc3e4248,item:주소가 지워진 편지,item,#7C8A9E,\N,\N,\N,\N
+026ac7ff-6f8f-3ad0-8c47-0dd124da0240,event:수취인 불명의 편지,event,#7C8A9E,\N,1,m,\N
+3770091b-520c-3170-a2a5-349d0859cb27,event:7구역의 소녀,event,#7C8A9E,\N,2,m,\N
+c4b1030d-e5ba-34ec-95a4-56ce3d888a90,char:길동,char,#A88158,\N,\N,\N,\N
+1b0db4f1-b497-3da6-a598-b31e0c41c12b,char:홍 판서,char,#7A6A55,\N,\N,\N,\N
+2dc597b2-ccba-36d1-92cd-a06a51b5dc9d,world:길동은 아버지를 아버지라 부를 수 없다,world,#7C8A9E,\N,\N,\N,\N
+b4ce8999-8113-39f9-828a-341616e23f40,place:홍 판서 댁,place,#7C8A9E,\N,\N,\N,\N
+bcd6c4f6-1c61-3286-a21e-7eeb672f58f5,event:호부호형을 하지 못하다,event,#7C8A9E,\N,1,m,\N
+2656c4b5-8262-3f51-9859-692634055345,char:성진,char,#B48A5A,\N,\N,\N,3
+c2c4d589-98a8-395a-a227-7b0ab6a64d86,char:육관대사,char,#7C8A9E,\N,\N,\N,3
+c5361b02-53de-3031-bbd3-0b4aca6099c6,char:팔선녀,char,#C98F8A,\N,\N,\N,3
+a911de23-6114-3482-8231-8d38f9901dad,world:연화봉의 승려는 속세의 욕망을 품지 않는다,world,#7C8A9E,\N,\N,\N,3
+b9f7aee1-94ed-33e8-b28e-c468b08359fa,world:연화봉의 승려는 스승의 허락 없이 산을 내려가지 않는다,world,#7C8A9E,\N,\N,\N,3
+a4663640-7431-37e4-9d2e-7559cd6ce001,place:연화봉,place,#7C8A9E,\N,\N,\N,3
+31e927fd-bf67-3a8e-9372-bd86d3c012a8,place:동정호 용궁,place,#7C8A9E,\N,\N,\N,3
+23c4d925-9041-3533-8f93-5b6a1200e496,place:돌다리,place,#7C8A9E,\N,\N,\N,3
+3b7adae9-3fee-30ac-8e2b-1529a924c4ef,item:여덟 구슬,item,#7C8A9E,\N,\N,\N,3
+7d0600ff-92de-315b-9a13-d4fed95f3aeb,org:연화봉 도량,org,#7C8A9E,\N,\N,\N,3
+fa0c8839-c00b-3700-a37b-0cf0d7bc197f,"event:성진, 용궁 심부름을 다녀오다",event,#7C8A9E,\N,1,m,3
+b0b117e9-8960-3a05-a6e3-b7e32a90e395,event:돌다리에서 팔선녀를 만나다,event,#7C8A9E,\N,2,m,3
+232e44da-bd01-33a2-a0bb-474141c60adb,event:복숭아꽃이 여덟 구슬이 되다,event,#7C8A9E,\N,2,f,3
+bbe0358d-df13-387f-97fc-03a54c21e1fc,event:스승의 벌로 인간 세상으로,event,#7C8A9E,\N,3,m,3
+45f4cdf4-9b2b-317b-84ca-216a156f7710,char:리안,char,#C9A04A,\N,\N,\N,3
+d833039d-def1-3aa9-b6f2-5407e95536da,char:카엘,char,#6F93C9,\N,\N,\N,3
+903cfebf-13ed-3570-ba54-8b3c42a2db01,char:세라핀,char,#B07A9A,\N,\N,\N,3
+ffc53118-e667-3127-a379-f87a45cff7f7,world:해가 지면 탑의 문은 열리지 않는다,world,#7C8A9E,\N,\N,\N,3
+50566908-3294-3f4a-bfa7-2d14678104bf,world:탑 안에서는 어떤 마법도 허락되지 않는다,world,#7C8A9E,\N,\N,\N,3
+a658b9bf-44a9-3548-945e-0b568341ff62,place:별빛 탑,place,#7C8A9E,\N,\N,\N,3
+4ba8760c-2789-3f10-a02d-58c3199e1543,place:지하서고,place,#7C8A9E,\N,\N,\N,3
+4f776a44-a75a-3141-82c3-5781fe8d2b99,item:별빛 수정,item,#7C8A9E,\N,\N,\N,3
+3478ae12-b322-3d03-84cb-1ed4db84b453,item:오르벤의 서한,item,#7C8A9E,\N,\N,\N,3
+c08acda9-e504-3233-8e2f-9db9b95b6a6e,org:재의 왕국 사절단,org,#7C8A9E,\N,\N,\N,3
+66402832-fd25-381b-98bf-ecf355765da5,event:탑 앞에서 밤을 지새우다,event,#7C8A9E,\N,1,m,3
+fb362b11-7c43-34f5-930c-c17306d99a81,event:봉인 아래의 속삭임,event,#7C8A9E,\N,2,m,3
+8533c362-cff1-3663-b227-3d741354b529,event:재의 사절 도착,event,#7C8A9E,\N,3,s,3
+09dd1fa7-636b-3fb1-bc14-0d40ecb10d79,char:성진,char,#B48A5A,\N,\N,\N,2
+9338a6aa-678a-3a9f-acaf-53fd070ac2e6,char:육관대사,char,#7C8A9E,\N,\N,\N,2
+79cc573e-ec8d-3b68-9cb6-73e12f7cac06,char:팔선녀,char,#C98F8A,\N,\N,\N,2
+fed63a1f-72b9-3ae0-bd23-49232bc34506,world:연화봉의 승려는 속세의 욕망을 품지 않는다,world,#7C8A9E,\N,\N,\N,2
+df7f2b13-c753-32a0-9462-19a0cd696011,world:연화봉의 승려는 스승의 허락 없이 산을 내려가지 않는다,world,#7C8A9E,\N,\N,\N,2
+bfed536f-8cc9-3fa9-ad2b-843fb9745392,place:연화봉,place,#7C8A9E,\N,\N,\N,2
+951b925c-06fd-3302-84be-96a6e22bb13b,place:동정호 용궁,place,#7C8A9E,\N,\N,\N,2
+bc436200-987a-3267-b42a-b5510beade32,place:돌다리,place,#7C8A9E,\N,\N,\N,2
+f1096544-2819-3354-ad0e-5440d07eb849,item:여덟 구슬,item,#7C8A9E,\N,\N,\N,2
+9252a818-3228-306b-a5a3-5c4785b44e08,org:연화봉 도량,org,#7C8A9E,\N,\N,\N,2
+049e5f91-c1ae-320c-bb4f-0d05d6ef7a22,"event:성진, 용궁 심부름을 다녀오다",event,#7C8A9E,\N,1,m,2
+607db690-0333-3236-88bb-ebf0db1f47c9,event:돌다리에서 팔선녀를 만나다,event,#7C8A9E,\N,2,m,2
+2cedb18d-fe7c-3f09-b94d-ba7c584d2318,event:복숭아꽃이 여덟 구슬이 되다,event,#7C8A9E,\N,2,f,2
+4049dac5-172b-311f-87e3-29fb5a0dc056,char:성진,char,#B48A5A,\N,\N,\N,3
+906f83b3-a43b-3fae-b1cb-159c9b240b13,char:육관대사,char,#7C8A9E,\N,\N,\N,3
+ff49a866-d8a1-39e9-b08d-7e31c871ac08,char:팔선녀,char,#C98F8A,\N,\N,\N,3
+a482195d-6603-3c49-afe9-e503fa415f3f,world:연화봉의 승려는 속세의 욕망을 품지 않는다,world,#7C8A9E,\N,\N,\N,3
+18510142-dfc5-3e37-b7a6-f10bff9ba0fd,world:연화봉의 승려는 스승의 허락 없이 산을 내려가지 않는다,world,#7C8A9E,\N,\N,\N,3
+99c3fd35-aedd-366b-82c1-0bdc2aae5f68,place:연화봉,place,#7C8A9E,\N,\N,\N,3
+40b6061b-7b3c-3fcf-a18a-d6e1d64ddf81,place:동정호 용궁,place,#7C8A9E,\N,\N,\N,3
+2f58696d-05dd-331d-89c6-c8510d16906a,place:돌다리,place,#7C8A9E,\N,\N,\N,3
+936a6ff5-fa1c-3f31-ae75-5c23a60f935a,item:여덟 구슬,item,#7C8A9E,\N,\N,\N,3
+a11d2bac-9e8b-3422-a63a-20ca54fcce88,org:연화봉 도량,org,#7C8A9E,\N,\N,\N,3
+b63aedda-1ca6-3749-822e-9521592bf757,"event:성진, 용궁 심부름을 다녀오다",event,#7C8A9E,\N,1,m,3
+4bba31bb-a120-36fa-8954-ef4247dfc563,event:돌다리에서 팔선녀를 만나다,event,#7C8A9E,\N,2,m,3
+2b78da7d-e94a-3641-96e7-63665103e28d,event:복숭아꽃이 여덟 구슬이 되다,event,#7C8A9E,\N,2,f,3
+3cf31e8e-c9a5-3005-88a5-bb1574c445b1,event:스승의 벌로 인간 세상으로,event,#7C8A9E,\N,3,m,3
+7b2329cc-0226-343b-9e2f-d3684fcd0a09,char:리안,char,#C9A04A,\N,\N,\N,2
+f9e8f08b-e076-3c62-b567-1f7b805b6e67,char:카엘,char,#6F93C9,\N,\N,\N,2
+9d15f942-2bd0-3fcf-9041-8b6a1f8275f9,world:해가 지면 탑의 문은 열리지 않는다,world,#7C8A9E,\N,\N,\N,2
+9818e2c3-5616-3824-8ade-a73aef9014e5,place:별빛 탑,place,#7C8A9E,\N,\N,\N,2
+96fa0429-687a-3f36-ba69-d275ed5c9bc5,place:지하서고,place,#7C8A9E,\N,\N,\N,2
+ab7b5a49-5bd8-3acb-98b3-aeaf87513326,item:별빛 수정,item,#7C8A9E,\N,\N,\N,2
+252e45c0-6b05-3916-a465-1b8eff2cf415,item:오르벤의 서한,item,#7C8A9E,\N,\N,\N,2
+4dc3b08c-0840-3904-ad0b-5491edd52abc,event:탑 앞에서 밤을 지새우다,event,#7C8A9E,\N,1,m,2
+f6f303b8-50c5-3629-a694-57b5106a2d86,event:봉인 아래의 속삭임,event,#7C8A9E,\N,2,m,2
+7ade5301-0d97-3e4a-bb0c-724fff2ee374,char:도윤,char,#5FA89A,\N,\N,\N,1
+f675db8a-4ed0-3869-9d62-4a499cf8640e,char:하람,char,#B58AA6,\N,\N,\N,1
+a7023a2b-c017-3092-a5e5-5f8f6213cf90,world:도시 안에서는 전자 통신이 작동하지 않는다,world,#7C8A9E,\N,\N,\N,1
+5954ccb4-49cb-3f2e-97ec-c256e88f17c4,place:고가도로,place,#7C8A9E,\N,\N,\N,1
+eef8b296-cb17-3b4c-bb5a-43c611ca5747,item:주소가 지워진 편지,item,#7C8A9E,\N,\N,\N,1
+2a080644-3058-32d8-9a28-463c33305749,event:수취인 불명의 편지,event,#7C8A9E,\N,1,m,1
+967e82a7-95c3-3771-83ed-fed82a7a8a05,event:7구역의 소녀,event,#7C8A9E,\N,2,m,1
+9eff8a1e-96c5-3260-b491-cf135e3cd3e3,char:도윤,char,#5FA89A,\N,\N,\N,1
+9d47c138-8e9d-3ed2-af07-d43ce7af283b,char:하람,char,#B58AA6,\N,\N,\N,1
+3a802459-24ed-342f-b6b5-e6384e3cb393,world:도시 안에서는 전자 통신이 작동하지 않는다,world,#7C8A9E,\N,\N,\N,1
+1c9856e4-48b0-33dc-8da0-aba13e648be4,place:고가도로,place,#7C8A9E,\N,\N,\N,1
+fb7fc9cf-7dde-307b-8cee-3a1188c05610,item:주소가 지워진 편지,item,#7C8A9E,\N,\N,\N,1
+2b46db51-78c4-3905-8e27-ceb2b1af234c,event:수취인 불명의 편지,event,#7C8A9E,\N,1,m,1
+ed81be13-a155-3bff-bcb2-4567f2c5fcfb,event:7구역의 소녀,event,#7C8A9E,\N,2,m,1

@@ -1,5 +1,7 @@
 # 알림 사건 계약 (RabbitMQ, schemaVersion 1)
 
+[메인 README](../README.md) · [문서 목록](README.md)
+
 사건을 만든 서비스(예: Content)가 브로커에 사건을 발행하면 Core가 소비해 회원의 알림함에 한 건을 만든다.
 이 문서는 발행·소비 양쪽이 지켜야 할 메시지 형식이다. 처음 연결할 사건(`content.world.changed`)은 팀 확인 전의 후보다.
 
@@ -11,7 +13,7 @@
 | 큐 | `core.notification.events` (durable) |
 | 실패 보관 | `storyfork.events.dlx` → `core.notification.events.dlq` |
 | routing key | 사건 `type`과 같은 값 |
-| 소비 켜기 | Core 환경변수 `CORE_NOTIFICATION_EVENTS_ENABLED=true` (기본 꺼짐) |
+| 소비 | 항상 켜짐. local·개발 배포 compose의 `rabbitmq` 컨테이너에 연결(`CORE_RABBITMQ_PASSWORD` 필요) |
 
 Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선언해도 되지만 같은 설정이어야 한다.
 

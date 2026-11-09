@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -11,7 +12,7 @@ const sid = () => document.getElementById('sid')!.textContent
 const titles = () => [...document.querySelectorAll('.rgrid .ri b')].map((b) => b.textContent)
 
 describe('검색 결과 (U36)', () => {
-  it('제목·작가·태그 범위로 찾고 결과 수를 보여 준다', async () => {
+  it('제목·작가·태그·장르 범위로 찾고 결과 수를 보여 준다', async () => {
     renderApp('/search?q=구운몽')
     await screen.findByRole('heading', { name: '‘구운몽’ 검색 결과' })
     await waitFor(() => expect(sid()).toBe('U36 검색 결과'))
@@ -20,6 +21,10 @@ describe('검색 결과 (U36)', () => {
     renderApp('/search?q=윤서하&f=author')
     await screen.findByText('1편')
     expect(titles()).toEqual(['회색 도시의 우편배달부'])
+    cleanup()
+    renderApp('/search?q=SF&f=genre')
+    await screen.findByText('3편')
+    expect(titles()).toEqual(['회색 도시: 송신탑 아래', '회색 도시: 답장', '회색 도시의 우편배달부'])
     cleanup()
     // 포크 소설은 원작의 해시태그를 이어받습니다.
     renderApp('/search?q=%23꿈&f=tag')
@@ -36,14 +41,24 @@ describe('검색 결과 (U36)', () => {
   it('정렬을 바꾸고 검색어를 제출하면 결과가 바뀐다', async () => {
     renderApp('/search')
     await screen.findByRole('heading', { name: '소설 검색' })
-    await waitFor(() => expect(titles()[0]).toBe('구운몽'))
-    fireEvent.click(screen.getByRole('link', { name: '최신 순' }))
+    // 기본 정렬은 서버 계약의 최신 순(latest)이다.
     await waitFor(() => expect(titles()[0]).toBe('구운몽: 저승의 문'))
     expect(screen.getByRole('link', { name: '최신 순' }).className).toBe('on')
+    fireEvent.click(screen.getByRole('link', { name: '조회 순' }))
+    await waitFor(() => expect(titles()[0]).toBe('구운몽'))
+    expect(screen.getByRole('link', { name: '조회 순' }).className).toBe('on')
     fireEvent.change(screen.getByLabelText('검색어'), { target: { value: '회색' } })
     fireEvent.click(screen.getByRole('button', { name: '검색' }))
     await screen.findByRole('heading', { name: '‘회색’ 검색 결과' })
-    await waitFor(() => expect(titles()).toEqual(['회색 도시: 송신탑 아래', '회색 도시: 답장', '회색 도시의 우편배달부']))
+    await waitFor(() => expect(titles()).toEqual(['회색 도시의 우편배달부', '회색 도시: 송신탑 아래', '회색 도시: 답장']))
+  })
+
+  it('검색 범위·정렬은 서버가 지원하는 값만 고르게 한다 (인기 순 없음)', async () => {
+    renderApp('/search')
+    const scope = await screen.findByRole('group', { name: '검색 범위' })
+    const sort = screen.getByRole('group', { name: '정렬' })
+    expect([...scope.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['전체', '제목', '작가', '태그', '장르'])
+    expect([...sort.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['최신 순', '조회 순'])
   })
 
   it('검색 카드에서 소설 신고 시트를 연다 (랭킹 카드에는 없다)', async () => {
@@ -64,7 +79,7 @@ describe('랭킹 (U25)·포크 소설 (U26)', () => {
     fireEvent.click(within(screen.getByRole('navigation', { name: '주요 메뉴' })).getByRole('link', { name: /랭킹/ }))
     await screen.findByRole('heading', { name: '랭킹' })
     await waitFor(() => expect(sid()).toBe('U25 랭킹'))
-    screen.getByText('조회 순 · 데모 데이터')
+    screen.getByText('조회 순 · 최근 24시간 조회 기준')
     await waitFor(() => expect(titles()).toHaveLength(11))
     expect(document.querySelector('.crown')).toBeTruthy()
     fireEvent.click(screen.getByRole('link', { name: '원작 소설' }))
@@ -91,6 +106,7 @@ describe('랭킹 (U25)·포크 소설 (U26)', () => {
     await waitFor(() => expect(forks()).toEqual(['구름 위의 길', '저승의 문', '스승의 용서']))
     screen.getByText('2·3·4화 포크 허용')
     screen.getByRole('link', { name: '✎ 나도 포크하기' })
+    // 통계가 있는 목업 작품은 최신·인기·조회 순을 고른다(서버 작품의 제목·작가 순은 sortOptions 단위 테스트).
     fireEvent.click(screen.getByRole('link', { name: '최신 순' }))
     await waitFor(() => expect(forks()).toEqual(['저승의 문', '구름 위의 길', '스승의 용서']))
   })

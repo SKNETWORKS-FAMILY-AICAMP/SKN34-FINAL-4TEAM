@@ -13,26 +13,58 @@ services:
   mailpit:
     ports: !override ["127.0.0.1::8025"]
 
+  neo4j:
+    ports: !reset []
+
+  # CI는 고정 버전 이미지를 받거나(없으면 workflow가 먼저 한 번 빌드) 그대로 쓴다. 매번 소스 빌드하지 않는다.
+  minio:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-minio:RELEASE.2025-10-15T17-29-55Z
+    build: !reset null
+    ports: !reset []
+
   ai-service:
+    # GitHub Actions 캐시에 Docker 레이어를 저장해 바뀐 레이어만 다시 빌드한다.
+    build:
+      cache_from: ["type=gha,scope=ai-service"]
+      cache_to: ["type=gha,scope=ai-service,mode=max"]
     environment:
       # 누락 제공사 설정의 명시적 503을 검증한다. 실제 키/유료 호출/대역 서버는 불필요하다.
       OPENAI_API_KEY: ""
       OPENAI_MODEL: ""
 
   core-api:
+    # GitHub Actions 캐시에 Docker 레이어를 저장해 바뀐 레이어만 다시 빌드한다.
+    build:
+      cache_from: ["type=gha,scope=core-api"]
+      cache_to: ["type=gha,scope=core-api,mode=max"]
     ports: !reset []
     environment:
-      CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
       AUTH_COOKIE_SECURE: "false"
       APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:8088
 
   content-service:
+    # GitHub Actions 캐시에 Docker 레이어를 저장해 바뀐 레이어만 다시 빌드한다.
+    build:
+      cache_from: ["type=gha,scope=content-service"]
+      cache_to: ["type=gha,scope=content-service,mode=max"]
     ports: !reset []
     environment:
-      CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
-      CONTENT_ENABLED: "true"
-      APP_WORLDSTUDIO_ENABLED: "false"
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
       APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:8088
 
+  operations-service:
+    ports: !reset []
+    # GitHub Actions 캐시에 Docker 레이어를 저장해 바뀐 레이어만 다시 빌드한다.
+    build:
+      cache_from: ["type=gha,scope=operations-service"]
+      cache_to: ["type=gha,scope=operations-service,mode=max"]
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork_test
+
   web:
+    # GitHub Actions 캐시에 Docker 레이어를 저장해 바뀐 레이어만 다시 빌드한다.
+    build:
+      cache_from: ["type=gha,scope=web"]
+      cache_to: ["type=gha,scope=web,mode=max"]
     ports: !override ["127.0.0.1::80"]

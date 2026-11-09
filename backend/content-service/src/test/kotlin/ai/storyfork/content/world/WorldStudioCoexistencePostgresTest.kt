@@ -15,20 +15,19 @@ import java.util.UUID
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class WorldStudioCoexistencePostgresTest {
-    private fun context(db:WorldStudioPostgresFixture, studio:Boolean)=SpringApplicationBuilder(ContentServiceApplication::class.java).run(
+    private fun context(db:WorldStudioPostgresFixture)=SpringApplicationBuilder(ContentServiceApplication::class.java).run(
         "--spring.datasource.hikari.maximum-pool-size=3", "--spring.datasource.hikari.minimum-idle=0",
-        "--server.port=0", "--app.content.enabled=true", "--app.worldstudio.enabled=$studio",
-        "--app.setting-attachments.enabled=false",
-        "--CONTENT_DATABASE_URL=${db.url}", "--CONTENT_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
-        "--CONTENT_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+        "--server.port=0",
+        "--DATABASE_URL=${db.url}", "--DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
+        "--DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
         "--CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32")
 
-    @Test fun `independent migration preserves content and both JPA services coexist`() {
+    @Test fun `startup studio migration preserves content and both JPA services coexist`() {
         WorldStudioPostgresFixture("coexist").use { db ->
             val actor=UUID.randomUUID().toString()
             var workId=""; var settingId=""; var versionId=""
             val original="  원문 | 보존\n둘째 줄"
-            context(db,false).use { ctx ->
+            context(db).use { ctx ->
                 workId=ctx.getBean(WorkService::class.java).create(actor,CreateWorkRequest("기존 작품")).id
                 val world=ctx.getBean(WorldService::class.java)
                 val before=world.read(workId,actor)
@@ -39,11 +38,10 @@ class WorldStudioCoexistencePostgresTest {
             }
             val before=db.connect().use(::fingerprint)
             val studio=db.studio()
-            assertEquals(2,studio.migrate().migrationsExecuted)
             studio.validate()
             assertEquals(0,studio.migrate().migrationsExecuted)
             assertEquals(before,db.connect().use(::fingerprint))
-            context(db,true).use { ctx ->
+            context(db).use { ctx ->
                 val content=ctx.getBean(WorldService::class.java)
                 val current=content.read(workId,actor)
                 assertEquals(original,current.settings.single().content)

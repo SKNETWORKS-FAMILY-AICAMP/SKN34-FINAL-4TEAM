@@ -66,6 +66,18 @@ class ContentBoundaryTest {
         assertFalse(Files.exists(Path.of("../core-api/src/main/resources/db/migration/content")))
     }
 
+    @Test fun `work view table follows the search ranking contract`() {
+        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V14__work_view.sql"))
+        assertTrue(sql.contains("CREATE TABLE work_view"))
+        assertTrue(sql.contains("work_id varchar(36) NOT NULL REFERENCES work(id)"))
+        assertTrue(sql.contains("episode_number integer NOT NULL CHECK (episode_number > 0)"))
+        assertTrue(sql.contains("member_id varchar(200) NOT NULL"))
+        assertTrue(sql.contains("view_date date NOT NULL"))
+        assertTrue(sql.contains("viewed_at timestamptz NOT NULL DEFAULT now()"))
+        assertTrue(sql.contains("PRIMARY KEY (work_id, episode_number, member_id, view_date)"))
+        assertTrue(sql.contains("CREATE INDEX work_view_viewed_at ON work_view (viewed_at)"))
+    }
+
     @Test fun `fresh SQL lives in feature leaves with one global version order`() {
         val migration = Path.of("src/main/resources/db/migration")
         assertFalse(Files.exists(migration.resolve("auth")))
@@ -77,7 +89,10 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        assertEquals((1..12).toList(), versions.sorted())
+        // Development samples are an ordinary migration in the same global order (sample/V16).
+        assertEquals((1..16).toList(), versions.sorted())
+        assertTrue(leaves.contains("classpath:db/migration/sample"))
+        assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->
             assertFalse(paths.anyMatch { it.toString().endsWith(".sql") }, "Unscoped Flyway SQL")
         }

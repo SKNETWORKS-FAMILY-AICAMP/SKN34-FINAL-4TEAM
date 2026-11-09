@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockDb, InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../data/mock/fixtureDb'
+import { InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { LibraryUseCase, IMPORT, NOVEL_GENRES, type NewWorkInput } from '../usecases/LibraryUseCase'
 
 const setup = () => {
-  const db = createMockDb()
+  const db = createFixtureDb()
   return { db, useCase: new LibraryUseCase(new InMemoryWorkRepository(db), new InMemoryWorldRepository(db), new InMemoryReadingRepository(db), new InMemoryFeedbackRepository(db)) }
 }
 const base = (worldIds: string[]): NewWorkInput => ({

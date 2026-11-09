@@ -8,7 +8,6 @@ import org.springframework.amqp.core.DirectExchange
 import org.springframework.amqp.core.QueueBuilder
 import org.springframework.amqp.core.TopicExchange
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -17,7 +16,6 @@ import org.springframework.context.annotation.Configuration
  * 큐에는 NoticeEventType 목록의 routing key만 묶는다. 처리 못 한 메시지는 <queue>.dlq로 모인다.
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = ["app.notification.events.enabled"], havingValue = "true")
 class NoticeEventTopologyConfig {
     @Bean
     fun noticeEventDeclarables(

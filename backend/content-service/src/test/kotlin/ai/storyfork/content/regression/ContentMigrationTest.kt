@@ -2,6 +2,11 @@ package ai.storyfork.content.regression
 
 import ai.storyfork.content._common.config.ContentPersistenceConfig
 import java.util.UUID
+import java.nio.file.Files
+import java.nio.file.Path
+import java.security.MessageDigest
+import java.util.HexFormat
+import tools.jackson.databind.json.JsonMapper
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.FlywayException
 import org.junit.jupiter.api.Assertions.*
@@ -36,11 +41,11 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(12,flyway.migrate().migrationsExecuted)
-        assertEquals((1..12).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(16,flyway.migrate().migrationsExecuted)
+        assertEquals((1..16).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
-        for(table in listOf("work","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place")) {
+        for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
             assertNotNull(jdbc.queryForObject("SELECT to_regclass(?)::text",String::class.java,table))
         }
         for(view in listOf("work_current","episode_current","setting_version_read")) {
@@ -64,10 +69,86 @@ class ContentMigrationTest {
         assertEquals("보존",jdbc.queryForObject("SELECT content FROM episode_version WHERE id='v'",String::class.java))
     }
 
+    private val sampleDir = Path.of("..", "..", "infrastructure", "sample-data")
+
+    @Test fun `V16 samples preserve bodies source versions wiki and replay without changes`() = isolated { flyway,jdbc ->
+        flyway.migrate()
+        assertEquals(0,flyway.migrate().migrationsExecuted)
+        for ((table, count) in mapOf("member" to 10, "work" to 11, "fork" to 7, "episode_version" to 32,
+            "publication_event" to 17, "checkpoint_episode" to 15, "setting_document" to 120, "setting_reading_detail" to 120)) {
+            assertEquals(count, jdbc.queryForObject("SELECT count(*) FROM $table", Int::class.java), table)
+        }
+        assertEquals(15, jdbc.queryForObject("SELECT count(*) FROM episode_version WHERE NOT is_saved", Int::class.java))
+        assertEquals(7, jdbc.queryForObject("SELECT count(*) FROM fork_world_reference WHERE reference_status='independent'", Int::class.java))
+        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id WHERE NOT v.is_saved", Int::class.java))
+        val inventory=JsonMapper.builder().build().readTree(Files.readString(sampleDir.resolve("source-inventory.json")))
+        for (work in inventory.path("canonicalMappings")) {
+            assertEquals(work.path("ownerSubjectId").asText(), jdbc.queryForObject("SELECT owner_id FROM work WHERE id=?", String::class.java, work.path("workId").asText()))
+            for (episode in work.path("episodes")) {
+                val body=jdbc.queryForObject("SELECT content FROM episode_version WHERE id=?", String::class.java, episode.path("versionRowId").asText())!!
+                assertEquals(episode.path("bodySha256").asText(), HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(body.toByteArray(Charsets.UTF_8))))
+            }
+            for (inherited in work.path("sourceEpisodeVersionIds")) {
+                assertEquals(inherited.path("contentVersionId").asText(), jdbc.queryForObject("SELECT content_version_id FROM episode_version WHERE id=?", String::class.java, inherited.path("localVersionRowId").asText()))
+            }
+        }
+        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM setting_reading_detail d JOIN setting_version v ON v.id=d.setting_version_id JOIN setting_visibility_range r ON r.visibility_history_id=v.visibility_history_id JOIN episode e ON e.id=r.start_episode_id WHERE d.source_basis_episode IS NOT NULL AND (e.sequence>d.source_basis_episode OR d.event_episode>d.source_basis_episode)", Int::class.java))
+        assertEquals(3,jdbc.queryForObject("SELECT count(*) FROM setting_reading_property p JOIN setting_reading_detail d ON d.setting_version_id=p.setting_version_id WHERE d.source_key='char:카엘' AND p.name='관계' AND p.public_from_episode=2",Int::class.java))
+        assertTrue(jdbc.queryForObject("SELECT count(*) FROM setting_reading_property WHERE public_from_episode IS NULL",Int::class.java)!!>0)
+        // Frozen samples have no aliases/knowledge; row-level immutability probes need actual rows.
+        val detailId=jdbc.queryForObject("SELECT setting_version_id FROM setting_reading_detail ORDER BY setting_version_id LIMIT 1",String::class.java)
+        jdbc.update("INSERT INTO setting_reading_alias(setting_version_id,position,alias) VALUES (?,0,'CI immutable probe')",detailId)
+        jdbc.update("INSERT INTO setting_reading_knowledge(setting_version_id,position,content,known_at) VALUES (?,0,'CI immutable probe',1)",detailId)
+        for (table in listOf("setting_reading_detail", "setting_reading_property", "setting_reading_alias", "setting_reading_participant", "setting_reading_link", "setting_reading_knowledge")) {
+            assertTrue(jdbc.queryForObject("SELECT count(*) FROM $table",Int::class.java)!!>0)
+            assertThrows(DataIntegrityViolationException::class.java) { jdbc.update("DELETE FROM $table") }
+        }
+        flyway.validate()
+    }
+
+    private fun upTo15(jdbc: JdbcTemplate)=Flyway.configure().dataSource(jdbc.dataSource!!).schemas(jdbc.queryForObject("SELECT current_schema()",String::class.java))
+        .defaultSchema(jdbc.queryForObject("SELECT current_schema()",String::class.java)).locations(*ContentPersistenceConfig.MIGRATION_LOCATIONS)
+        .table("content_schema_history").baselineOnMigrate(true).baselineVersion("0").target("15").load()
+
+    @Test fun `V16 keeps an existing row with the same key instead of overwriting it`() = isolated { flyway,jdbc ->
+        upTo15(jdbc).migrate()
+        // Same sample owner and tag id, different local value: the sample row must not overwrite it.
+        jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
+        jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
+        assertEquals(1,flyway.migrate().migrationsExecuted)
+        assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
+        assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
+    }
+
+    @Test fun `V16 secondary unique conflict fails atomically instead of partial samples`() = isolated { flyway,jdbc ->
+        upTo15(jdbc).migrate()
+        jdbc.update("INSERT INTO member(id) VALUES ('unrelated')")
+        jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision,slug) VALUES ('unrelated','unrelated','keep local','','original',0,'guunmong')")
+        assertThrows(FlywayException::class.java) { flyway.migrate() }
+        assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM member", Int::class.java))
+        assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
+        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM world", Int::class.java))
+    }
+
+    @Test fun `work view keeps one row per member episode and day and rejects broken references`() = isolated { flyway,jdbc ->
+        flyway.migrate()
+        jdbc.update("INSERT INTO member(id) VALUES ('owner')")
+        jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','제목','','original',0)")
+        val insert="INSERT INTO work_view(work_id,episode_number,member_id,view_date) VALUES (?,?,?,?::date)"
+        jdbc.update(insert,"w",1,"reader","2026-11-08")
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM work_view WHERE viewed_at IS NOT NULL",Int::class.java))
+        for(row in listOf(arrayOf<Any>("w",1,"reader","2026-11-08"),arrayOf<Any>("w",0,"reader","2026-11-08"),arrayOf<Any>("missing",1,"reader","2026-11-08"))) {
+            assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(insert,*row)}
+        }
+        for(row in listOf(arrayOf<Any>("w",1,"reader","2026-11-09"),arrayOf<Any>("w",2,"reader","2026-11-08"),arrayOf<Any>("w",1,"other","2026-11-08"))) jdbc.update(insert,*row)
+        assertEquals(4,jdbc.queryForObject("SELECT count(*) FROM work_view",Int::class.java))
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM pg_indexes WHERE schemaname=current_schema() AND indexname='work_view_viewed_at'",Int::class.java))
+    }
+
     @Test fun `changed history fails validation instead of silently repairing`() = isolated { flyway,jdbc ->
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(12,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(16,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

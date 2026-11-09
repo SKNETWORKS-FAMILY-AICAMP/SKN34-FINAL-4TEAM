@@ -1,17 +1,22 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link, useLocation } from 'react-router'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useSignupViewModel } from '../viewmodel/useSignupViewModel'
 import { AuthLayout } from './AuthLayout'
+import { useFocusOnAppear } from './useFocusOnAppear'
 
 export function Signup() {
   const vm = useSignupViewModel()
+  useDocumentTitle('회원가입')
   const form = useRef<HTMLFormElement>(null)
+  const alertRef = useFocusOnAppear<HTMLParagraphElement>(vm.error)
+  const statusRef = useFocusOnAppear<HTMLParagraphElement>(vm.submittedEmail)
   const [f, setF] = useState({ email: '', nick: '', p1: '', p2: '' })
   const set = (k: keyof typeof f) => (e: ChangeEvent<HTMLInputElement>) => setF((current) => ({ ...current, [k]: e.target.value }))
   useEffect(() => { form.current?.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus() }, [vm.errors])
   return <AuthLayout title="회원가입" intro="가입 후 이메일 확인을 마치면 로그인할 수 있어요.">
-    {vm.error && <p role="alert">{vm.error}</p>}
-    {vm.message && <p role="status">{vm.message}</p>}
+    {vm.error && <p ref={alertRef} role="alert" tabIndex={-1}>{vm.error}</p>}
+    {vm.message && <p ref={statusRef} role="status" tabIndex={-1}>{vm.message}</p>}
     {vm.submittedEmail ? <div className="auth-result">
       <p className="auth-email">{vm.submittedEmail}</p>
       <p>이 주소로 확인 메일이 도착하면 열어 주세요. 이메일 인증을 마친 뒤 로그인해 주세요.</p>
@@ -43,13 +48,16 @@ export function Signup() {
 
 export function ResendVerificationPage() {
   const vm = useSignupViewModel()
+  useDocumentTitle('인증 메일 재발송')
   const { state } = useLocation()
   const [email, setEmail] = useState<string>(typeof state?.email === 'string' ? state.email : '')
   const input = useRef<HTMLInputElement>(null)
+  const alertRef = useFocusOnAppear<HTMLParagraphElement>(vm.error)
+  const statusRef = useFocusOnAppear<HTMLParagraphElement>(vm.submittedEmail)
   useEffect(() => { if (vm.errors.email) input.current?.focus() }, [vm.errors])
   return <AuthLayout title="확인 메일 재발송" intro="가입할 때 입력한 이메일로 확인 메일을 다시 요청해 주세요.">
-    {vm.error && <p role="alert">{vm.error}</p>}
-    {vm.message && <p role="status">{vm.message}</p>}
+    {vm.error && <p ref={alertRef} role="alert" tabIndex={-1}>{vm.error}</p>}
+    {vm.message && <p ref={statusRef} role="status" tabIndex={-1}>{vm.message}</p>}
     {vm.submittedEmail ? <div className="auth-result">
       <p className="auth-email">{vm.submittedEmail}</p>
       <p className="muted">메일이 오지 않으면 스팸함과 주소를 확인해 주세요. 주소를 수정하거나 다시 요청할 수 있어요.</p>
@@ -57,7 +65,7 @@ export function ResendVerificationPage() {
       <button type="button" className="btn" onClick={vm.startOver}>주소 수정·다시 요청</button>
     </div> : <>
       <form className="auth-form" noValidate aria-busy={vm.pending} onSubmit={(event) => { event.preventDefault(); void vm.resend(email) }}>
-        <label className="field">이메일<input ref={input} className="inp" name="email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={vm.pending} aria-invalid={!!vm.errors.email} aria-describedby={vm.errors.email ? 'resend-email-error' : undefined} onChange={(event) => setEmail(event.target.value)} /></label>
+        <label className="field">이메일<input ref={input} className="inp" name="email" type="email" autoComplete="email" required maxLength={254} value={email} readOnly={vm.pending} aria-invalid={!!vm.errors.email} aria-describedby={vm.errors.email ? 'resend-email-error' : undefined} onChange={(event) => setEmail(event.target.value)} /></label>
         {vm.errors.email && <p id="resend-email-error" role="alert">{vm.errors.email}</p>}
         <button className="btn pri" type="submit" disabled={vm.pending}>{vm.pending ? '재발송 중…' : '확인 메일 재발송'}</button>
       </form>

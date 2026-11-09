@@ -5,7 +5,6 @@ import ai.storyfork.content.world.relationship.Neo4jRelationshipConfig
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.*
-import ai.storyfork.content.world.studio.repository.StudioWorldRepository
 import jakarta.persistence.EntityManagerFactory
 import java.util.UUID
 import java.util.concurrent.Callable
@@ -23,10 +22,9 @@ import tools.jackson.module.kotlin.KotlinModule
 /** CI only: isolated PostgreSQL plus real Neo4j. No production/legacy data transition. */
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class WorldStudioServicePostgresTest {
-    private fun context(db:WorldStudioPostgresFixture,enabled:Boolean=true)=AnnotationConfigApplicationContext().apply {
-        TestPropertyValues.of("app.worldstudio.enabled=$enabled","app.content.enabled=false",
-            "CONTENT_DATABASE_URL=${db.url}","CONTENT_DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
-            "CONTENT_DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+    private fun context(db:WorldStudioPostgresFixture)=AnnotationConfigApplicationContext().apply {
+        TestPropertyValues.of("DATABASE_URL=${db.url}","DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
+            "DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
             "app.worldstudio.neo4j.uri=${System.getenv("NEO4J_URI")}","app.worldstudio.neo4j.username=neo4j",
             "app.worldstudio.neo4j.password=${System.getenv("NEO4J_PASSWORD")}").applyTo(this)
         beanFactory.registerSingleton("jsonMapper",JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())
@@ -34,17 +32,11 @@ class WorldStudioServicePostgresTest {
             Neo4jRelationshipConfig::class.java,Neo4jRelationshipRepository::class.java,WorldStudioService::class.java)
         refresh()
     }
-    @Test fun `disabled feature creates no persistence beans and no worldstudio schema`() {
-        WorldStudioPostgresFixture("independent").use { db -> context(db,false).use { ctx ->
-            assertFalse(ctx.containsBean("worldStudioService"));assertTrue(ctx.getBeansOfType(StudioWorldRepository::class.java).isEmpty())
-            assertTrue(ctx.getBeansOfType(EntityManagerFactory::class.java).isEmpty());assertTrue(ctx.getBeansOfType(DataSource::class.java).isEmpty())
-            db.connect().use { c -> assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'")) }
-        } }
-    }
-    @Test fun `enabled feature fails validate without explicit migration`() {
+    @Test fun `startup migrates the worldstudio schema once and validates it`() {
         WorldStudioPostgresFixture("independent").use { db ->
-            assertThrows(RuntimeException::class.java) { context(db).close() }
-            db.connect().use { c -> assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'")) }
+            context(db).use { ctx -> assertTrue(ctx.containsBean("worldStudioService")) }
+            context(db).close()
+            assertEquals(0,db.studio().migrate().migrationsExecuted)
         }
     }
     @Test fun `current relation CRUD survives restart without PostgreSQL relationship copies or history`() {

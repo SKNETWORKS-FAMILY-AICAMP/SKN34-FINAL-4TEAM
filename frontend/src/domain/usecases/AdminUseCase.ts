@@ -1,12 +1,11 @@
-import { ADMIN_PERMISSIONS, today, type AdminState } from '../entities/admin'
-import { checkProfile, EMAIL } from '../entities/account'
+import { today, type AdminState } from '../entities/admin'
 import { forkList, hashText, isPub, nid, ofKind, publicCast, type Work } from '../entities/work'
 import type { AdminRepository } from '../repositories/AdminRepository'
 import type { ChatRepository } from '../repositories/ChatRepository'
 import type { CreditRepository } from '../repositories/CreditRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import type { InquiryRepository } from '../repositories/InquiryRepository'
-import type { WorkRepository } from '../repositories/WorkRepository'
+import { AGGREGATE_WRITE_UNSUPPORTED, type WorkRepository } from '../repositories/WorkRepository'
 import { chatsOf } from './ChatUseCase'
 
 /** 조치 결과: ok면 데이터를 다시 읽습니다. null이면 대상이 없어 아무것도 하지 않았습니다. */
@@ -54,7 +53,7 @@ export class AdminUseCase {
       fork: forkList(w, worlds).length ? (w.forkAll ? '전체 회차' : forkList(w, worlds).join('·') + '화') : '불가',
       reports: queue.filter((q) => q.w === w.id).length, state: w.hidden ? '비공개 (신고 조치)' : w.private ? '비공개' : '공개',
     })).concat([admin.flagged])
-    const isolation = works.filter((f) => f.parent && f.snap).map((fk) => {
+    const isolation = works.filter((f) => !f.canonical && f.parent && f.snap && works.some(w=>w.id===f.parent)).map((fk) => {
       const p = works.find((w) => w.id === fk.parent)!, snap = fk.snap!
       const now = hashText(JSON.stringify(p.eps.slice(0, fk.forkAt))), snapNow = hashText(JSON.stringify(snap.eps))
       const diff = snap.cast.flatMap((c) => { const pc = p.cast.find((x) => x.n === c.n); return pc && pc.st !== c.st ? [c.n + ': ' + pc.st + ' → ' + c.st] : [] })
@@ -76,14 +75,10 @@ export class AdminUseCase {
     return works.filter((w) => isPub(w) && ofKind(kind, w)).map((w) => ({ w, cast: publicCast(w, Math.max(w.eps.length, 1)) }))
   }
 
-  async toggleUser(id: string): Promise<AdminResult> {
-    const done = await this.log('사용자 상태 변경', (a) => { const u = a.users.find((x) => x.id === id); if (!u) return null; u.status = u.status === '활동' ? '제한' : '활동'; return u.nick + ' · ' + u.status })
-    return done ? ok('사용자 상태를 변경했어요 (데모)') : null
-  }
-
   async toggleWork(id: string): Promise<AdminResult> {
     const w = (await this.workRepository.listWorks()).find((x) => x.id === id)
     if (!w) return null
+    if (w.canonical) return fail(AGGREGATE_WRITE_UNSUPPORTED)
     w.hidden = !w.hidden
     await this.workRepository.saveWork(w)
     await this.log('작품 공개 상태 변경', () => w.title + ' · ' + (w.hidden ? '운영상 비공개' : '제한 해제'))
@@ -157,54 +152,4 @@ export class AdminUseCase {
     return ok('조치를 기록했어요. 자동 재처리는 하지 않아요')
   }
 
-  /** 목업 data-adm: 예시 제한 작품(flag1) 조치 */
-  async flag(k: 'proof' | 'hide' | 'lift'): Promise<AdminResult> {
-    await this.log('권리 상태 조정', (a) => {
-      const f = a.flagged
-      if (k === 'proof') { f.state = '증빙 요청 중'; f.log.push('· 등록자에게 권리 증빙 요청 (7일)') }
-      if (k === 'hide') { f.state = '비공개'; f.log.push('· 비공개 전환') }
-      if (k === 'lift') { f.state = '공개'; f.rights = '확인됨'; f.fork = '허용'; f.log.push('· 소명 확인 → 제한 해제') }
-      return f.title + ' · ' + f.state
-    })
-    return ok('조치를 기록했어요 (데모)')
-  }
-
-  /** 목업 data-qact: 신고 처리 결과를 신고자 기록(S.reports)에도 남깁니다. */
-  async review(id: string, act: 'ok' | 'hide' | 'keep' | 'restore'): Promise<AdminResult> {
-    const [queue, works, reports] = await Promise.all([this.feedbackRepository.listReview(), this.workRepository.listWorks(), this.feedbackRepository.listReports()])
-    const q = queue.find((z) => z.id === id), w = q && works.find((x) => x.id === q.w)
-    if (!q || !w) return null
-    const r = reports.find((z) => z.id === q.id)
-    const set = (status: string, reply: string) => { if (r) Object.assign(r, { status, reply }) }
-    if (act === 'ok') { q.status = '문제 없음'; set('처리 완료', '운영팀이 확인했어요. 운영 기준 위반은 아니었어요.') }
-    else if (act === 'hide') { q.status = '비공개 조치'; q.beforeHidden = !!w.hidden; w.hidden = true; set('조치 완료', '운영팀이 확인하고 해당 소설을 비공개로 전환했어요.') }
-    else if (act === 'restore') {
-      if (queue.some((o) => o !== q && o.w === q.w && ['비공개 조치', '소명 제출', '비공개 유지'].includes(o.status))) return fail('다른 제한이 남아 있어 복원할 수 없어요')
-      q.status = '소명 인정'; w.hidden = !!q.beforeHidden; set('처리 완료', '소명이 인정되어 이전 공개 상태로 복원했어요.')
-    } else { q.status = '비공개 유지'; set('처리 완료', '소명을 검토한 뒤 비공개 조치를 유지했어요.') }
-    await Promise.all([this.feedbackRepository.saveReview(q), this.workRepository.saveWork(w), r && this.feedbackRepository.saveReport(r)])
-    await this.log('신고 처리', () => q.type + ' · ' + q.status)
-    return ok('처리 결과를 기록하고 신고자에게 알렸어요 (데모)')
-  }
-
-  async saveProfile(nick: string, email: string): Promise<AdminResult> {
-    const err = checkProfile(nick, email)
-    if (err) return fail(err)
-    nick = nick.trim(); email = email.trim()
-    if ((await this.adminRepository.get()).admins.some((x) => x.id !== 'primary-admin' && x.email.toLocaleLowerCase() === email.toLocaleLowerCase())) return fail('이미 등록된 이메일이에요')
-    await this.log('프로필 변경', (x) => { Object.assign(x.profile, { nick, email }); const p = x.admins.find((y) => y.id === 'primary-admin'); if (p) Object.assign(p, { nick, email }); return nick + ' · ' + email })
-    return ok('프로필을 저장했어요 (데모 · 현재 화면에만 반영)')
-  }
-
-  async addAdmin(nick: string, email: string, permissions: string[]): Promise<AdminResult> {
-    const a = await this.adminRepository.get()
-    nick = nick.trim(); email = email.trim()
-    if (nick.length < 2) return fail('이름은 2자 이상 입력해 주세요')
-    if (!EMAIL.test(email)) return fail('이메일 형식을 확인해 주세요')
-    if (a.admins.some((x) => x.email.toLocaleLowerCase() === email.toLocaleLowerCase())) return fail('이미 등록된 이메일이에요')
-    const perms = permissions.filter((p) => ADMIN_PERMISSIONS.some(([k]) => k === p))
-    if (!perms.length) return fail('한 가지 이상 권한을 선택해 주세요')
-    await this.log('관리자 계정 추가', (x) => { x.admins.unshift({ id: nid('admin'), nick, email, permissions: perms, created: today() }); return nick + ' · ' + email + ' · ' + perms.length + '개 권한' })
-    return ok('관리자 계정을 추가했어요 (데모)')
-  }
 }

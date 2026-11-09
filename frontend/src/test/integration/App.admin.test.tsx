@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -38,7 +39,7 @@ describe('관리자 (A01~A18)', () => {
   it('일반 회원·비로그인은 관리자 로그인 안내로 보낸다', async () => {
     const { store } = renderAt('/admin?tab=users', 'user')
     await waitFor(() => expect(where()).toBe('/login'))
-    expect(store.getState().session).toMatchObject({ next: '/admin', loginRole: 'admin', loginMsg: '관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.' })
+    expect(store.getState().session).toMatchObject({ next: '/admin?tab=users', loginRole: 'admin', loginMsg: '관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.' })
     cleanup()
     renderAt('/admin', null)
     await waitFor(() => expect(where()).toBe('/login'))
@@ -50,7 +51,7 @@ describe('관리자 (A01~A18)', () => {
     expect(sid()).toContain('A01')
     expect(within(document.querySelector<HTMLElement>('.priority-links')!).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['/admin?tab=feedback', '/admin?tab=rights'])
     expect(within(nav()).getByRole('link', { name: '개요' }).getAttribute('aria-current')).toBe('page')
-    screen.getByText('이 관리자 UI는 오프라인 데모입니다. 실제 권한 확인과 데이터 반영은 서버 연결이 필요합니다.')
+    screen.getByText('데모 화면')
     expect(document.querySelector('.gnb')).toBeNull()
     cleanup()
     renderAt('/admin?tab=ai')
@@ -80,25 +81,16 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByText(text)).not.toBeNull()
   })
 
-  it('사용자 이용 제한은 활동 로그에 남는다', async () => {
-    renderAt('/admin?tab=users')
-    const row = (await screen.findByText('연화봉러')).closest('tr') as HTMLElement
-    fireEvent.click(within(row).getByRole('button', { name: '이용 제한' }))
-    await toastIs('사용자 상태를 변경했어요 (데모)')
-    await within(row).findByRole('button', { name: '제한 해제' })
-    fireEvent.click(within(nav()).getByRole('link', { name: '활동 로그' }))
-    await screen.findByText('사용자 상태 변경')
-    screen.getByText('관리자 · 연화봉러 · 제한')
-  })
-
   it('공지·이벤트를 게시하면 회원 화면에 보인다', async () => {
     renderAt('/admin?tab=notices')
+    fireEvent.click(await screen.findByText('기존 회원 화면 공지 데모'))
     expect((await screen.findByLabelText<HTMLInputElement>('제목')).required).toBe(true)
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '점검 안내' } })
     fireEvent.change(screen.getByLabelText('내용'), { target: { value: '오늘 밤 점검해요' } })
     fireEvent.click(screen.getByRole('button', { name: '공지 게시' }))
     await toastIs('공지를 게시했어요 (데모 · 현재 화면에만 반영)')
     fireEvent.click(within(nav()).getByRole('link', { name: '이벤트' }))
+    fireEvent.click(await screen.findByText('기존 회원 화면 이벤트 데모'))
     fireEvent.change(await screen.findByLabelText('이벤트명'), { target: { value: '새 이벤트' } })
     fireEvent.change(screen.getByLabelText('안내 내용'), { target: { value: '참여해 보세요' } })
     fireEvent.click(screen.getByRole('button', { name: '이벤트 추가' }))
@@ -123,7 +115,9 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByText('[이용 문의] 답변 요청')
     cleanup()
     renderAt('/admin?tab=feedback')
-    const item = (await screen.findByText('[이용 문의] 답변 요청')).closest('article') as HTMLElement
+    fireEvent.click(await screen.findByText('기존 회원 문의 데모'))
+    fireEvent.click(await screen.findByRole('button', { name: /답변 요청.*답변 대기/ }))
+    const item = (await screen.findByRole('heading', { name: '[이용 문의] 답변 요청' })).closest('article') as HTMLElement
     fireEvent.change(within(item).getByLabelText('답변'), { target: { value: '확인했어요' } })
     fireEvent.click(within(item).getByRole('button', { name: '답변 등록' }))
     await toastIs('답변을 등록했어요 (데모 · 실제 전송 없음)')
@@ -142,28 +136,9 @@ describe('관리자 (A01~A18)', () => {
     await within(row).findByText('수동 재시도 흐름 시연 · 실제 작업 없음')
   })
 
-  it('신고·권리: 제한 작품 상세에서 증빙을 요청한다', async () => {
-    renderAt('/admin?tab=rights')
-    expect(sid()).toContain('A03')
-    fireEvent.click((await screen.findByText('○○○ 2차 연재')).closest('tr')!)
-    await screen.findByText('신고 상세 · ○○○ 2차 연재')
-    await waitFor(() => expect(sid()).toContain('A04'))
-    fireEvent.click(screen.getByRole('button', { name: '증빙 요청' }))
-    await toastIs('조치를 기록했어요 (데모)')
-    await screen.findByText(/등록자에게 권리 증빙 요청/)
-  })
-
-  it('신고 행 선택·분류·캐릭터챗 입력은 다른 화면에 갔다 와도 유지된다 (목업 S.admin.sel·filters·chatForm)', async () => {
-    const { store } = renderAt('/admin?tab=rights')
-    fireEvent.click((await screen.findByText('○○○ 2차 연재')).closest('tr')!)
-    await screen.findByText('신고 상세 · ○○○ 2차 연재')
-    cleanup()
-    renderAt('/', 'admin', store)
-    cleanup()
-    renderAt('/admin?tab=rights', 'admin', store)
-    await screen.findByText('신고 상세 · ○○○ 2차 연재')
-    await waitFor(() => expect(sid()).toContain('A04'))
-
+  it('분류·캐릭터챗 입력은 다른 화면에 갔다 와도 유지된다 (목업 S.admin.filters·chatForm)', async () => {
+    const { store } = renderAt('/admin?tab=characterChats')
+    await screen.findByLabelText('작품 유형')
     fireEvent.click(within(nav()).getByRole('link', { name: '캐릭터챗' }))
     const kind = await screen.findByLabelText('작품 유형') as HTMLSelectElement
     fireEvent.change(kind, { target: { value: 'original' } })
@@ -177,16 +152,12 @@ describe('관리자 (A01~A18)', () => {
     expect((await screen.findByLabelText('분류') as HTMLSelectElement).value).toBe('fork')
   })
 
-  it('프로필 이메일 형식을 확인하고 상단바 이름을 바꾼다', async () => {
-    renderAt('/admin?tab=profile')
-    const nick = await screen.findByLabelText('닉네임')
-    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'bad@x' } })
-    fireEvent.click(screen.getByRole('button', { name: '프로필 저장' }))
-    await toastIs('이메일 형식을 확인해 주세요')
-    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'ops@storyfork.demo' } })
-    fireEvent.change(nick, { target: { value: '운영자' } })
-    fireEvent.click(screen.getByRole('button', { name: '프로필 저장' }))
-    await toastIs('프로필을 저장했어요 (데모 · 현재 화면에만 반영)')
-    await screen.findByRole('link', { name: '운영자 · 프로필' })
+  it('프로필 탭은 로그인한 계정을 보여 주고 변경은 회원 계정 화면으로 보낸다', async () => {
+    const { store } = renderAt('/admin?tab=profile')
+    const { nick, email } = store.getState().session.user
+    await screen.findByText(nick, { selector: '.mehead b' })
+    screen.getByText(`${email} · 관리자 계정`)
+    expect(screen.getByRole('link', { name: '닉네임·이메일 변경' }).getAttribute('href')).toBe('/me/profile')
+    expect(screen.queryByRole('button', { name: '프로필 저장' })).toBeNull()
   })
 })

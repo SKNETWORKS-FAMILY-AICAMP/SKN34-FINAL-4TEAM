@@ -179,9 +179,10 @@ export function useNotificationsViewModel(
           () => shellUseCase.removeNotification(n.id),
           '알림을 삭제하지 못했어요. 다시 시도해 주세요.',
         )
-      ) return
+      ) return false
       setState((s) => ({ ...s, items: s.items.filter((o) => o.id !== n.id) }))
       changed()
+      return true
     },
     setPref: async (k: keyof NotificationPrefs, on: boolean) => {
       if (!state.prefs || state.saving) return

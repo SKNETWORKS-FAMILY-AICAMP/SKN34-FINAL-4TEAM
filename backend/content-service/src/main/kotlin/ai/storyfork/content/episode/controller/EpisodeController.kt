@@ -2,7 +2,6 @@ package ai.storyfork.content.episode.controller
 
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 import org.springframework.http.HttpStatus
 import ai.storyfork.content.episode.service.dto.*
@@ -10,7 +9,6 @@ import ai.storyfork.content.episode.service.dto.*
 /** 회차 CRUD와 순서 변경 제약 조회를 제공한다. 참조 이력은 연쇄 삭제하지 않는다. */
 @RestController
 @RequestMapping("/api/v1")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class EpisodeController(private val service: ai.storyfork.content.episode.service.EpisodeService) {
 
     /** 소유자의 회차 목록을 JSON 배열로 반환한다. 인증 필요, 접근 불가 작품은 404다. */

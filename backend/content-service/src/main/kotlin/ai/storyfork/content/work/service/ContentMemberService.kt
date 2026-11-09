@@ -2,14 +2,12 @@ package ai.storyfork.content.work.service
 
 import ai.storyfork.content._common.exception.*
 import org.springframework.stereotype.Service
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.transaction.support.TransactionTemplate
 import ai.storyfork.content.work.entity.*
 import ai.storyfork.content.work.repository.*
 
 @Service
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class ContentMemberService(
     private val members: MemberRepository,
     @Qualifier("contentTransactionManager") manager: org.springframework.transaction.PlatformTransactionManager,

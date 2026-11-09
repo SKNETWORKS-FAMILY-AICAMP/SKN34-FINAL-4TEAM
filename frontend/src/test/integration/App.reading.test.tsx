@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { asValue } from 'awilix/browser'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { renderApp } from '../renderApp'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
@@ -36,11 +39,11 @@ describe('소설 상세 (U04)', () => {
     expect(list()).toEqual(['4', '3', '2', '1'])
     fireEvent.click(screen.getByRole('button', { name: '관심 소설' }))
     await waitFor(() => expect(screen.getByRole('button', { name: '관심 소설' }).getAttribute('aria-pressed')).toBe('true'))
-    expect(screen.getByRole('status').textContent).toBe('관심 소설에 담았어요')
+    expect(screen.getByRole('status').textContent).toBe('이 창의 관심 소설에 담았어요 · 계정에 저장되지 않아요')
     expect(document.getElementById('lkc')!.textContent).toBe('1.2만')
     fireEvent.click(screen.getByRole('button', { name: '공유' }))
     expect(screen.getByRole('status').textContent).toBe('링크 공유는 데모예요 (실제 복사 없음)')
-    screen.getByText('🔥 인기 포크')
+    screen.getByText('이 원작의 포크 소설')
   })
 
   it('소설 신고는 소설 단위 시트로 열리고 Esc로 닫으면 포커스가 신고 버튼으로 돌아온다', async () => {
@@ -101,8 +104,8 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
     appContainer.resolve('mockDb').works.find((w) => w.id === 'guunmong')!.eps[0].authorNote = '첫 화를 열어 주셔서 고마워요.'
     renderApp('/read/guunmong/1', user())
     await screen.findByRole('heading', { name: '연화봉의 젊은 승려' })
-    // jsdom은 레이아웃이 없어 회차 끝 표시가 늘 화면 안에 있으므로 U08로 바뀐다.
-    expect(sid()).toBe('U08 회차 끝 · 포크·댓글')
+    // jsdom은 레이아웃이 없어 회차 끝 표시가 늘 화면 안에 있으므로 U08로 바뀐다. 라벨은 effect 뒤에 갱신되므로 기다린다.
+    await waitFor(() => expect(sid()).toBe('U08 회차 끝 · 포크·댓글'))
     const note = screen.getByRole('heading', { name: '작가의 말' }).closest('section')!
     expect(document.getElementById('text')!.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     screen.getByText('第 一 回')
@@ -177,6 +180,36 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
   })
 })
 
+describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
+  it('does not present canonical placeholders as rankings or editable sentence actions', async () => {
+    const works = appContainer.resolve('mockDb').works
+    const searchedUseCase = appContainer.resolve('readingUseCase')
+    for (const work of works) { work.canonical = true; work.statisticsSupported = false }
+    try {
+      renderApp('/work/guunmong')
+      await screen.findByRole('heading', { name: '구운몽' })
+      expect(document.querySelector('.ifs .md')).toBeNull()
+      expect(document.getElementById('lkc')).toBeNull()
+      cleanup()
+      renderApp('/read/guunmong/2', user())
+      await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
+      expect(document.querySelector('#text [data-s]')).toBeNull()
+      expect(screen.queryByRole('button', { name: '등록' })).toBeNull()
+      cleanup()
+      // 서버 순위가 없는 목록(지표 없는 정본 작품)은 순위·메달로 보이지 않는다(서버 랭킹이 있는 홈은 App.home이 다룬다).
+      const { workRepository, readingRepository } = appContainer.cradle
+      appContainer.register({ readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository)) })
+      renderApp('/')
+      await screen.findByRole('heading', { name: '공개 소설' })
+      expect(document.querySelector('#home .md, #home .rk .top')).toBeNull()
+    } finally {
+      cleanup()
+      appContainer.register({ readingUseCase: asValue(searchedUseCase) })
+      for (const work of works) { delete work.canonical; delete work.statisticsSupported }
+    }
+  })
+})
+
 describe('빠른 이동 (U03)', () => {
   it('Ctrl K와 GNB 검색 버튼으로 열고 고른 항목으로 이동한다', async () => {
     renderApp('/')
@@ -187,7 +220,7 @@ describe('빠른 이동 (U03)', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
     const dialog = screen.getByRole('dialog', { name: '빠른 이동' })
-    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '팔선녀' } })
+    fireEvent.change(within(dialog).getByRole('combobox'), { target: { value: '팔선녀' } })
     fireEvent.click(await within(dialog).findByText('구운몽 2화 돌다리 위의 팔선녀'))
     await screen.findByText('소설을 읽으려면 로그인해 주세요.')
     expect(screen.queryByRole('dialog')).toBeNull()

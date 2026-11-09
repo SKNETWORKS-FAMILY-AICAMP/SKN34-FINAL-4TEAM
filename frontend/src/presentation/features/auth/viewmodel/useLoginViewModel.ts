@@ -15,15 +15,18 @@ export function useLoginViewModel() {
   const navigate = useNavigate()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  /** 오류가 입력한 이메일·비밀번호 때문일 때만 참입니다. 서버·잠금 장애는 입력을 탓하지 않습니다. */
+  const [invalid, setInvalid] = useState(false)
   const busy = useRef(false)
   const active = useRef(true)
   useEffect(() => { active.current = true; return () => { active.current = false } }, [])
   const submit = async (email: string, password: string) => {
     if (busy.current) return
-    if (!EMAIL.test(email) || !password) { setError('이메일과 비밀번호를 확인해 주세요.'); return }
+    if (!EMAIL.test(email) || !password) { setError('이메일과 비밀번호를 확인해 주세요.'); setInvalid(true); return }
     busy.current = true
     setPending(true)
     setError('')
+    setInvalid(false)
     try {
       const user = await appContainer.resolve('authUseCase').login(email, password)
       if (!active.current) return
@@ -31,6 +34,7 @@ export function useLoginViewModel() {
       navigate(next && next !== '/login' && (!next.startsWith('/admin') || user.operator) ? next : '/')
     } catch (cause) {
       if (!active.current) return
+      setInvalid(cause instanceof InvalidCredentials)
       setError(cause instanceof LockUnavailable
         ? cause.message === 'Browser lock busy'
           ? '다른 탭에서 인증을 처리하고 있어요. 잠시 후 다시 시도해 주세요.'
@@ -43,5 +47,5 @@ export function useLoginViewModel() {
       if (active.current) setPending(false)
     }
   }
-  return { loginMsg, pending, error, submit }
+  return { loginMsg, pending, error, invalid, submit }
 }

@@ -2,7 +2,6 @@ package ai.storyfork.content.episode_version.controller
 
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 import ai.storyfork.content.episode.service.dto.*
 import ai.storyfork.content.episode_version.service.dto.*
@@ -10,7 +9,6 @@ import ai.storyfork.content.episode_version.service.dto.*
 /** 명시적 원고 버전 저장과 복원을 담당한다. 발행 상태는 변경하지 않는다. */
 @RestController
 @RequestMapping("/api/v1")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class EpisodeVersionController(private val service: ai.storyfork.content.episode_version.service.EpisodeVersionService) {
 
     /** 입력 원고를 새 버전·부분 체크포인트로 저장한다. 소유자만 가능하며 상속은 403, 충돌은 409다. */

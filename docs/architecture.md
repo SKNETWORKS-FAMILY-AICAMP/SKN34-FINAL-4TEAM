@@ -1,6 +1,16 @@
 # STORYFORK 아키텍처
 
-> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 현재 상태 하나이며 관계 이력·과거 snapshot·전체 세계관 복원은 지원하지 않는다. 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+[메인 README](../README.md) · [문서 목록](README.md)
+
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 현재 상태 하나이며 관계 이력·과거 snapshot·전체 세계관 복원은 지원하지 않는다. 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. Operations는 loopback 8082의 독립 공지·이벤트·문의/답변 CRUD와 전용 서비스 토큰 인증, operations schema/Flyway/JPA 설정을 소스 구현했다(Core/Content/프런트 호출 없음). hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+
+## 운영 서비스의 현재 범위
+
+[Operations API 인계](../backend/operations-service/README.md)는 `/api/v1/operations/{notices,events,inquiries}` 및 문의 하위 답변의 UUID CRUD를 정의한다. 각 리소스의 `Controller → Service → JpaRepository`와 명시적 DTO를 사용하고 `X-Operations-Service-Token`으로 모든 운영 접근을 보호한다. 설정이 없거나 공백뿐이면 거절하며 서비스 자격을 사람의 관리자·회원 신원/소유권으로 해석하지 않는다. 쿠키/세션·브라우저 직접 연결·Core/Content 호출은 없다.
+
+기존 PostgreSQL에서 `operations` schema와 `operations.operations_flyway_schema_history`를 독립 소유한다. V1 공지·V2 이벤트·V3 문의/답변만 운영 location에서 적용하고 다른 서비스 이력을 재실행하지 않는다. JPA `validate`/UTC/`@Version`, 기본 20·최대 100개 고정 정렬 목록과 안전한 400/404/409를 사용한다. 공개 게시·이벤트 진행 상태·내 문의·처리 상태·알림·사람별 관리자 권한·배포는 제외한다.
+
+선택 순수 단위만 로컬 실행하며 Spring/HTTP/PostgreSQL/Flyway 통합은 CI의 Operations job에서 격리 DB로 실행하도록 구성한다. 실제 hosted `Required CI` 결과와 DB 적용·배포는 아직 확인하지 않았고 기능표는 ❌를 유지한다. 아래 기존 Core/Content 본문은 상단 고지대로 분리 전 역사 설명이다.
 
 ## 현재 구현
 
@@ -8,7 +18,7 @@
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
-> 기존 연결·배포 백엔드는 core-api·ai-service이며 Core에 인증·콘텐츠·첨부가 공존합니다. 별도로 [콘텐츠](../backend/content-service/README.md)·[운영](../backend/operations-service/README.md)의 독립 Spring Boot 실행 골격을 추가했습니다(loopback 8081·8082, JDK 21). 업무·DB·인증·Compose·공개 라우팅은 옮기지 않았고 실제 기동 검증도 대기입니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
+> 현재 Content의 실제 코드 추출·8081 라우팅과 Operations의 독립 CRUD·8082 서비스 자격/저장은 위 현재 소스 상태 및 각 서비스 README를 따릅니다. Operations는 Compose·공개 proxy·배포에 연결하지 않습니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
 
 STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴의 최종 처리(콘텐츠 삭제·익명화)는 미구현이므로 운영 가입용이 아닙니다.
 서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
@@ -22,7 +32,7 @@ Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
 
 사용자가 명시적으로 생성할 때 AI Service에서 OpenAI Responses API를 호출합니다. 개인 브랜치의 모델 설정은 팀 전체 모델 선정 결정과 구분합니다. 새 Agent 프레임워크·그래프 DB는 도입하지 않았습니다.
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
-가입 후보·회원·refresh 세션·복구/이메일 변경 challenge 저장에 PostgreSQL·Flyway, 로컬 메일 확인에 Mailpit을 사용합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경에 사용하며, 가입 인증은 24시간, 복구·이메일 변경 challenge는 1시간 유효합니다. `CONTENT_ENABLED=true`일 때 같은 PostgreSQL에서 별도 `content_schema_history`로 콘텐츠 저장을 활성화합니다. 비공개 콘텐츠 API는 JWT Bearer 인증을 요구하고 공개 작품은 GET만 익명으로 조회합니다. Redis·큐·worker·운영 seed는 없습니다.
+가입 후보·회원·refresh 세션·복구/이메일 변경 challenge 저장에 PostgreSQL·Flyway, 로컬 메일 확인에 Mailpit을 사용합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경에 사용하며, 가입 인증은 24시간, 복구·이메일 변경 challenge는 1시간 유효합니다. Content는 같은 PostgreSQL에서 별도 `content_schema_history`로 콘텐츠를 저장합니다. 비공개 콘텐츠 API는 JWT Bearer 인증을 요구하고 공개 작품은 GET만 익명으로 조회합니다. Redis·큐·worker·운영 seed는 없습니다.
 
 ## 합의된 향후 구성요소 (미구현)
 
@@ -96,7 +106,7 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 Auth SQL은 내용과 기존 이력을 보존한 채 `db/migration/auth`로 이동하여 독립 V1과 충돌하지 않게 합니다.
 
 공식 AWS SDK는 배포에서 기본 자격증명 체인·S3 region을, 로컬 MinIO에서는 endpoint override·path-style을 사용합니다.
-MinIO는 [선택 overlay](../infrastructure/compose.attachments.yaml)의 소스 빌드 로컬 runtime이며 AWS 인프라·버킷을 자동 생성하지 않습니다.
+MinIO는 local·개발 배포 compose에 항상 포함된 소스 빌드 runtime이며(고정 버전 `storyfork-minio:RELEASE…` 이미지를 버전당 한 번만 빌드해 재사용), 버킷은 Content 시작 시 만듭니다. AWS 인프라는 자동 생성하지 않습니다.
 교체/삭제의 일반적인 DB/저장소 실패는 제한된 메모리 백업으로 복원하지만 분산 원자성·프로세스 종료 복구를 보장하지 않습니다.
 복원 실패는 명시적인 503이고 미참조 object는 수동 대조 대상입니다. worker/outbox는 없습니다.
 허용 형식·10 MiB 기술 제한·안전한 attachment 응답·API·한계는 [Core 계약](../backend/core-api/README.md#설정-이미지일반-파일-87)에 있습니다.
@@ -126,7 +136,7 @@ base + `docker-compose.prod.yaml`은 `:main` 앱 이미지와 외부 PostgreSQL�
 선택 첨부 overlay는 base + local 뒤에 추가하는 로컬 MinIO 구성입니다. 소스 빌드 web은 nginx 정적 이미지이지 HMR이 아니며, hot reload는 각 서비스의 기본 네이티브 명령을 사용합니다.
 브라우저는 nginx 단일 주소에서 `/api`를 사용하고 nginx가 Core·Content 내부 DNS로 중계합니다. API 404는 SPA HTML로 바꾸지 않고 UI deep link만 index.html로 연결합니다.
 
-local은 web 5173·Core 8080·Content 8081·PostgreSQL 5432·Mailpit 1025/8025를 기본 loopback 포트로 공개하며 AI는 내부 전용입니다. dev는 기존 `CD_WEB_PORT` loopback 바인딩만 유지하고 DB·Mailpit은 호스트에 공개하지 않습니다. prod도 별도 `PROD_WEB_PORT` loopback 바인딩이며 필수 `PROD_*` 입력과 항상 Secure인 쿠키를 사용합니다. 선택 MinIO도 loopback 전용입니다.
+local은 web 5173·Core 8080·Content 8081·PostgreSQL 5432·Mailpit 1025/8025를 기본 loopback 포트로 공개하며 AI는 내부 전용입니다. dev는 기존 `CD_WEB_PORT` loopback 바인딩만 유지하고 DB·Mailpit은 호스트에 공개하지 않습니다. prod도 `WEB_PORT` loopback 바인딩이며 local과 같은 이름의 필수 입력과 항상 Secure인 쿠키를 사용합니다. 선택 MinIO도 loopback 전용입니다.
 TLS·공개 ingress·외부 서비스는 제공하지 않으며 운영 준비 완료가 아닙니다. 모든 환경의 기본 Auth V4에 공개 비밀번호 샘플 회원 생성이 남아 있어 운영 사용 전 별도 보안 판단이 필요합니다. 이번 설정 변경에서 기존 migration은 수정하지 않습니다.
 OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build ARG에는 키를 넣지 않습니다.
 실행과 검증, 환경파일 경계는 [인프라 안내](../infrastructure/README.md)를 따릅니다.

@@ -1,8 +1,12 @@
 # 독립 WorldStudio V1 배포
 
+> **현재(플래그 제거 후):** WorldStudio는 기능 플래그 없이 항상 켜지고, 전용 schema는 Content 서버 시작 시 `WorldStudioConfig`가 Flyway로 migrate·validate한다. 별도 `worldstudio-migrate` 명령·`WORLDSTUDIO_CD_MIGRATION_ENABLED` 승인 변수·`APP_WORLDSTUDIO_ENABLED`는 삭제됐다. 아래의 opt-in·명시 실행 설명은 과거 기록이다.
+
+[메인 README](../../README.md) · [문서 목록](../README.md)
+
 ## develop CD 실행 계약
 
-> **Core→Content 추출 후 현재 소스 계약:** 네 이미지(web/Core/Content/AI)의 revision 확인과 fresh 전환 승인 뒤 web·구 Core·Content writer를 중지한다. opt-in 명령은 **Content 이미지**의 `ai.storyfork.content.world.migration.WorldStudioMigration`이고 기존 Core DB 설정을 `CONTENT_DATABASE_*`로 매핑한다. migration 성공 후 새 앱을 시작하며 중지 뒤 실패는 ingress 중단 상태로 남기고 자동 rollback하지 않는다. 서버는 같은 `contentDataSource`와 studio-only EntityManager/TransactionManager를 사용한다. 통합/시스템 검증은 Content job/이미지로 옮겼으며 이번 hosted CI·실제 DB 전환·배포는 미실행이다. 현재 실행 정본은 [인프라 안내](../../infrastructure/README.md#배포-설정과-전환)와 [Content 안내](../../backend/content-service/README.md)다. **아래 세 이미지·Core main·기본 Auth 영속성 공유·기존 컨테이너 무중단 설명은 추출 전 기록이며 현재 실행 지침이 아니다. 이전 사전 확인 기록은 당시 사실로만 보존한다.**
+> **Core→Content 추출 후 현재 소스 계약:** 네 이미지(web/Core/Content/AI)의 revision 확인과 fresh 전환 승인 뒤 web·구 Core·Content writer를 중지한다. opt-in 명령은 **Content 이미지**의 `ai.storyfork.content.world.migration.WorldStudioMigration`이고 공용 `DATABASE_*` 설정을 사용한다. migration 성공 후 새 앱을 시작하며 중지 뒤 실패는 ingress 중단 상태로 남기고 자동 rollback하지 않는다. 서버는 같은 `contentDataSource`와 studio-only EntityManager/TransactionManager를 사용한다. 통합/시스템 검증은 Content job/이미지로 옮겼으며 이번 hosted CI·실제 DB 전환·배포는 미실행이다. 현재 실행 정본은 [인프라 안내](../../infrastructure/README.md#배포-설정과-전환)와 [Content 안내](../../backend/content-service/README.md)다. **아래 세 이미지·Core main·기본 Auth 영속성 공유·기존 컨테이너 무중단 설명은 추출 전 기록이며 현재 실행 지침이 아니다. 이전 사전 확인 기록은 당시 사실로만 보존한다.**
 
 기본 Auth Flyway는 `classpath:db/migration/auth`, Content는 `ContentConfig`에서 별도 migrate를 실행한다.
 WorldStudio는 독립 EntityManager의 Hibernate `validate`만 수행했으므로 #97 병합과 일반 Core 시작만으로 V1이 실행되지 않았다.
@@ -27,7 +31,7 @@ Service의 소유권·잠금·초안 충돌·멱등 저장·확정/복원 규칙
 
 **현재 실제 개발 DB 식별·백업 복원 증거는 미확인이다. 이 작업에서 GitHub 변수를 활성화하거나 공용 DB에 적용하지 않는다.**
 
-1. 개발 서버 루트 `.env`에 기존 `CORE_DATABASE_URL`, `CORE_DATABASE_USER`, `CORE_DATABASE_PASSWORD`를 설정한다. 비밀번호·실제 주소를 커밋하거나 출력하지 않는다.
+1. 개발 서버 루트 `.env`에 기존 `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD`를 설정한다. 비밀번호·실제 주소를 커밋하거나 출력하지 않는다.
 2. 개발 DB임을 배포 설정·담당자 확인으로 확정한다. 운영 DB는 금지한다. SQL은 URL 문자열만으로 개발/운영을 판별할 수 없다.
 3. 최초 적용 직전 기존 DB 전체와 모든 Flyway 이력을 백업한다. 격리 DB에 복원하여 데이터·이력 조회 성공을 확인하고, 백업 위치·시각·복원 결과·복구 담당자를 팀 내부 기록에 남긴다. 백업 실패 시 활성화하지 않는다.
 4. 기존 WorldStudio schema/history와 과거 확장 SQL 이력을 읽기 전용으로 검토한다. 모호하면 중단한다. 이미 독립 V1을 적용했다면 체크섬·이력 정합성 확인 후 재실행 0건을 기대한다.

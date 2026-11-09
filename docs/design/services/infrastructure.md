@@ -1,5 +1,7 @@
 # 인프라 설계 — PostgreSQL·관계 그래프 기반 MVP
 
+[메인 README](../../../README.md) · [문서 목록](../../README.md)
+
 > [상위 설계](../design.md) · [결정 기록](../decisions.md#결정-목록)(특히 DEC-41). 이 문서는 **목표 방향**이며 설치·운영·검증 완료가 아닙니다. 이전 [KAG 기반 구성](../archive/kag-design/services/infrastructure.md)은 현행 MVP가 아닙니다.
 
 ## 현재와 MVP 방향

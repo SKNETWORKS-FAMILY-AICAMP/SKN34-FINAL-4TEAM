@@ -4,11 +4,9 @@ import ai.storyfork.content._common.helper.executeHttpCall
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.exception.CoreAuthException
 import java.util.UUID
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
 @Service
-@ConditionalOnProperty(name = ["app.content.enabled"], havingValue = "true")
 class CoreAuthVerificationService(private val client: CoreAuthClient) {
     fun verify(authorization: String): UUID = executeHttpCall(
         onTimeout = { CoreAuthException(504, "CORE_AUTH_TIMEOUT", "인증 서비스 응답 시간이 초과되었습니다.") },
