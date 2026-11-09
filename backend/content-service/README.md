@@ -12,6 +12,7 @@ Core에 있던 작품·회차·원고 버전·발행·세계관·독립 WorldStu
 - `work`, `episode`, `episode_version`, `publication`, `world`, `fork`, `proposal`, `context`, `attachment`, `plan`의 Controller → Service → Repository를 유지합니다. 중복 `content.content`와 중앙 production ContentService는 없습니다.
 - 공개 API는 기존 `/api/v1/works`와 `/api/v1/public/works`를 유지합니다. nginx 및 Vite가 이 경로만 Content로 보내고 나머지 `/api`는 Core로 보냅니다. 내부 인증 endpoint는 공개 proxy에 등록하지 않습니다.
 - [콘텐츠 사용자 흐름](../../docs/content-integration.md), [설정 첨부 계약](../core-api/README.md#설정-이미지일반-파일-87), [표지·원고 이미지 계약](../core-api/README.md#작품-표지원고-이미지-92)은 기존 URL 호환을 유지합니다. 첨부 계약 문서의 위치는 호환 링크를 위해 남겨 두었지만 실행 소유자는 Content입니다.
+- 원고 TXT·EPUB 가져오기(미리보기·확정)·내보내기(`manuscript` 패키지), 설정 첨부 파일명 수정, 원고 이미지 목록·대체 텍스트(`content_image.alt_text`, `db/migration/contentimage/V2`)는 [원고 가져오기·내보내기 계약](../../docs/design/manuscript-import-export-contract.md)을 따릅니다. multipart 한도는 `max-file-size=50MB`·`max-request-size=51MB`이고 첨부 업로드의 10 MiB 검사는 그대로입니다. 새 의존성과 Content 전역 Flyway 버전은 추가하지 않았습니다.
 
 ## 네이티브 실행
 
