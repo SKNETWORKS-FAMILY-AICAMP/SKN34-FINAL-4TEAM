@@ -7,7 +7,9 @@ import { BackChev } from '../../../shared/icons'
 import { resizeImg } from '../../../shared/resizeImg'
 import { toast } from '../../../shared/events'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useNewWorkViewModel } from '../viewmodel/useNewWorkViewModel'
+import './server-writing.css'
 
 type VM = ReturnType<typeof useNewWorkViewModel>
 const DAYS = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
@@ -21,10 +23,11 @@ const worldForm = (e: FormEvent<HTMLFormElement>): WorldForm => {
 /** 목업 newWork(): U28 새 소설 만들기 */
 export function NewWorkPage() {
   const vm = useNewWorkViewModel()
+  useDocumentTitle('새 소설 만들기')
   return (
     <>
       <Gnb on="lib" />
-      <main className="wrap"><p className="note2">이 화면은 브라우저 메모리에서만 동작하는 데모예요. 표지·원고·설정 파일을 서버에 보관하려면 <Go to="/content">서버 작품 만들기·관리</Go>를 이용해 주세요.</p>{vm.policyAccepted ? <NewWorkForm vm={vm} /> : <PolicyGate vm={vm} />}</main>
+      <main id="main" tabIndex={-1} className="wrap"><p className="note2">이 화면은 브라우저 메모리에서만 동작하는 데모예요. 표지·원고·설정 파일을 서버에 보관하려면 <Go to="/content" className="server-link">서버 작품 만들기·관리</Go>를 이용해 주세요.</p>{vm.policyAccepted ? <NewWorkForm vm={vm} /> : <PolicyGate vm={vm} />}</main>
       <Footer />
     </>
   )

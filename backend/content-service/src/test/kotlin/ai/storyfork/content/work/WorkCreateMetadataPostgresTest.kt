@@ -19,7 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 /** 작품 등록 메타데이터(유형·장르·해시태그·권리 확인)를 실제 PostgreSQL에서 검증한다. TEST_CONTENT_DATABASE_URL이 있을 때만 실행한다. */
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 @Import(ContentTestConfig::class)
-@SpringBootTest(properties=["app.content.enabled=true","CONTENT_DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","CONTENT_DATABASE_USER=content_test","CONTENT_DATABASE_PASSWORD="])
+@SpringBootTest(properties=["DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=content_test","DATABASE_PASSWORD="])
 class WorkCreateMetadataPostgresTest {
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver

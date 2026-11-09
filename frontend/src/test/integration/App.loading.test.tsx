@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 import { use } from 'react'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -6,6 +7,7 @@ import { MemoryRouter, useNavigate } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import '../scrollToSpy'
+import { stubWorkSearch } from '../stubWorkSearch'
 import App from '../../App'
 import { createAppStore } from '../../app/store'
 
@@ -22,7 +24,7 @@ vi.mock('../../presentation/features/admin/view/AdminPage', () => {
   return { AdminPage: () => <h1>관리자 화면</h1> }
 })
 vi.mock('../../presentation/features/chat/view/ChatPages', () => { throw new Error('route chunk unavailable') })
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 function OpenStudio() {
   const navigate = useNavigate()
@@ -52,6 +54,7 @@ it('비관리자의 관리자 경로는 모듈을 불러오지 않고 기존 로
 
 it('화면 로드 실패는 오류를 알리고 홈으로 이동하면 복구한다', async () => {
   const onCaughtError = vi.fn()
+  stubWorkSearch()
   render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={['/chat/owned-work']} useTransitions={false}><App /></MemoryRouter></Provider>, { onCaughtError })
   expect((await screen.findByRole('alert')).textContent).toContain('화면을 불러오지 못했어요.')
   expect(onCaughtError).toHaveBeenCalledWith(expect.objectContaining({ cause: new Error('route chunk unavailable') }), expect.anything())

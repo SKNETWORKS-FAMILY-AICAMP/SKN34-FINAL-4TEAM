@@ -29,4 +29,10 @@ export const ADMIN_TABS = ['data', 'users', 'works', 'comments', 'characterChats
 export type AdminTab = (typeof ADMIN_TABS)[number]
 export const adminTab = (t: string | null): AdminTab => ADMIN_TABS.find((x) => x === (t === 'ai' ? 'llm' : t)) ?? 'data'
 
+/** 로그인 복귀에는 알려진 내부 관리자 탭 하나만 남깁니다. 임의 next/외부 URL은 전달하지 않습니다. */
+export function adminReturnPath(search: string): string {
+  const query = new URLSearchParams(search)
+  return query.has('tab') ? `/admin?tab=${adminTab(query.get('tab'))}` : '/admin'
+}
+
 export const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date()).replaceAll('-', '.')

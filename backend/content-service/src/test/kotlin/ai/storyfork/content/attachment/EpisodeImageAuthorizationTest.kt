@@ -59,7 +59,8 @@ class EpisodeImageAuthorizationTest {
     private val visibility = mock(WorkPublicationHistoryRepository::class.java)
     private val rights = mock(WorkRightsDeclarationRepository::class.java)
     private val policies = mock(ForkPolicyHistoryRepository::class.java)
-    private val publication = PublicationService(access, writing, episodes, current, versions, events, visibility, rights, drafts, works, policies, em)
+    private val publication = PublicationService(access, writing, episodes, current, versions, events, visibility, rights, drafts, works, policies,
+        mock(ForkPolicyEpisodeRepository::class.java), em)
     private val world = mock(WorldService::class.java)
     private val savedVersions = EpisodeVersionService(access, writing, publication, world, episodes, drafts, versions,
         mock(CheckpointRepository::class.java), checkpointEpisodes, mock(CheckpointSettingRepository::class.java), em)

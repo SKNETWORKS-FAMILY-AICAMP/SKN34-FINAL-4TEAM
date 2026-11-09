@@ -5,3 +5,4 @@
 .server-writing .mywork p:not(:empty) { margin: 8px 0 12px; line-height: 1.7; }
 .server-writing .btn { min-height: 44px; }
 .server-writing .chip { white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .server-link { display: inline-flex; align-items: center; min-height: 44px; } }

@@ -4,6 +4,7 @@ import { Navigate } from 'react-router'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useWritingPolicyViewModel } from '../viewmodel/useWritingPolicyViewModel'
 
 const TEXT = {
@@ -22,6 +23,7 @@ const TEXT = {
 /** 목업 writingPolicy(): U43 집필 방식·저작권 안내 */
 export function WritingPolicyPage() {
   const vm = useWritingPolicyViewModel()
+  useDocumentTitle('집필 방식·저작권 안내')
   const [rule, setRule] = useState(false)
   const [rights, setRights] = useState(false)
   if (!vm.method) return <Navigate replace to="/write" />
@@ -29,7 +31,7 @@ export function WritingPolicyPage() {
   return (
     <>
       <Gnb on="lib" />
-      <main className="wrap"><div className="fork newwork-page">
+      <main id="main" tabIndex={-1} className="wrap"><div className="fork newwork-page">
         <Go to="/write" className="back"><BackChev />내가 쓰는 소설</Go>
         <h1 style={{ fontSize: 30, fontWeight: 800, margin: '14px 0 6px' }}>{t.title} 전 확인</h1>
         <p className="muted">집필 방식과 저작권 안내를 각각 확인해 주세요.</p>

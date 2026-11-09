@@ -5,13 +5,11 @@ import ai.storyfork.content.attachment.service.AttachmentService
 import ai.storyfork.content.attachment.service.dto.*
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.*
 import org.springframework.web.bind.annotation.*
 
 /** 작품 표지 CRUD를 바인딩한다. 소유권·기존 작품 공개 범위와 저장 판단은 Service가 검사한다. */
 @RestController
-@ConditionalOnProperty(name = ["app.content.enabled", "app.setting-attachments.enabled"], havingValue = "true")
 class WorkCoverController(private val service: AttachmentService) {
     /** 소유자에게 현재 표지 메타데이터를 반환한다. 타인·미존재 표지는 404다. */
     @GetMapping("/api/v1/works/{work}/cover")

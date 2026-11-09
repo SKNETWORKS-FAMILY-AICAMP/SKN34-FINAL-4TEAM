@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -14,8 +15,8 @@ describe('홈·공통 셸 (U01·U02)', () => {
     renderAt('/')
     expect(screen.getByRole('link', { name: 'STORYFORK 홈으로' }).getAttribute('href')).toBe('/')
     await screen.findByRole('link', { name: '알림함, 읽지 않은 알림 2건' })
-    await screen.findByText('방금 올라온 포크 소설')
-    for (const h of ['24시간 인기 급상승', '방금 업데이트', '에디터 Pick', '오늘, 스토리포크의 발견', '이번 주 인기 무료 소설']) screen.getByText(h)
+    await screen.findByText('다르게 이어진 포크 소설')
+    for (const h of ['24시간 인기 급상승', '함께 읽을 소설', '소설 모아 보기', '오늘, 스토리포크의 발견', '원작부터 읽어 보세요']) screen.getByText(h)
     expect(screen.getByText('1 / 4')).toBeTruthy()
     expect(screen.getByRole('link', { name: /2화 이어 읽기/ })).toBeTruthy()
     expect([...document.querySelectorAll('#home .cont, #home .rings, #home .hero, #home .t10')].map((el) => el.className)).toEqual(['cont', 'rings', 'hero', 't10'])
@@ -49,7 +50,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
 
   it('칩을 고르면 필터 결과(U02)를 보여 주고 안내를 닫을 수 있다', async () => {
     renderAt('/')
-    await screen.findByText('방금 올라온 포크 소설')
+    await screen.findByText('다르게 이어진 포크 소설')
     expect(screen.getByRole('button', { name: '추천' }).getAttribute('aria-pressed')).toBe('true')
     fireEvent.click(screen.getByRole('button', { name: '🛰 SF' }))
     await screen.findByText('3편')
@@ -67,7 +68,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
 
   it('테마·화면 ID 토글이 동작한다', async () => {
     renderAt('/')
-    await screen.findByText('방금 올라온 포크 소설')
+    await screen.findByText('다르게 이어진 포크 소설')
     fireEvent.click(screen.getAllByRole('button', { name: '다크 모드로' })[0])
     expect(document.documentElement.dataset.theme).toBe('dark')
     expect(screen.getAllByRole('button', { name: '라이트 모드로' }).length).toBeGreaterThan(0)

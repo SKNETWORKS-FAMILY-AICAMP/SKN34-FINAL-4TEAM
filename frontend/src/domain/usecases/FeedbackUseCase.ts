@@ -2,7 +2,7 @@ import { TYPO, type Comment, type FeedbackType, type Sentence } from '../entitie
 import { epsOf, isMine, type Work } from '../entities/work'
 import type { AdminRepository } from '../repositories/AdminRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import type { WorkRepository } from '../repositories/WorkRepository'
+import { FEEDBACK_UNAVAILABLE, type WorkRepository } from '../repositories/WorkRepository'
 
 let uid = 1
 const nid = (p: string) => p + uid++
@@ -29,11 +29,13 @@ export class FeedbackUseCase {
   private async work(id: string) {
     const w = (await this.workRepository.listWorks()).find((x) => x.id === id)
     if (!w) throw new Error('소설을 찾을 수 없어요')
+    if (w.canonical) throw new Error(FEEDBACK_UNAVAILABLE)
     return w
   }
 
   /** 관리자가 숨긴 댓글(시드 `테마-i`, 독자 `runtime-작품-회차-i`)은 뺍니다. 좋아요 key는 목업처럼 작품 ID + 회차 + 'c' + 걸러진 순번입니다. */
   async getComments(w: Work, n: number) {
+    if (w.canonical) return {comments:[] as Comment[],liked:{} as Record<string,boolean>}
     const [all, liked, { hiddenComments }] = await Promise.all([this.feedbackRepository.listComments(w.theme, w.id + n), this.feedbackRepository.listCommentLikes(), this.adminRepository.get()])
     // 회차 키는 항상 작품ID+회차라서 빈 키로 조회하면 시드만 돌아온다
     const seeds = (await this.feedbackRepository.listComments(w.theme, '')).length
@@ -42,12 +44,14 @@ export class FeedbackUseCase {
   }
 
   async addComment(workId: string, n: number, nick: string, text: string, sent: Sentence | null, spoiler = false) {
+    await this.work(workId)
     const comment: Comment = [nick, text, 0, { q: sent ? sent.t : '', spoiler }]
     await this.feedbackRepository.addComment(workId + n, comment)
     return '댓글을 남겼어요'
   }
 
-  toggleCommentLike(key: string) {
+  async toggleCommentLike(workId: string, key: string) {
+    await this.work(workId)
     return this.feedbackRepository.toggleCommentLike(key)
   }
 

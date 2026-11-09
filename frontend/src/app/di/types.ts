@@ -18,6 +18,7 @@ import type { CreditRepository } from '../../domain/repositories/CreditRepositor
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
+import type { WorkSearchRepository } from '../../domain/repositories/WorkSearchRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
 import type { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import type { AccountUseCase } from '../../domain/usecases/AccountUseCase'
@@ -34,6 +35,12 @@ import type { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
 export type AppCradle = {
+  operationsRepository: import('../../domain/repositories/OperationsRepository').OperationsRepository
+  operationsUseCase: import('../../domain/usecases/OperationsUseCase').OperationsUseCase
+  reportRepository: import('../../domain/repositories/ReportRepository').ReportRepository
+  reportUseCase: import('../../domain/usecases/ReportUseCase').ReportUseCase
+  memberRepository: import('../../domain/repositories/MemberRepository').MemberRepository
+  memberUseCase: import('../../domain/usecases/MemberUseCase').MemberUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
@@ -52,6 +59,7 @@ export type AppCradle = {
   signupUseCase: SignupUseCase
   mockDb: MockDb
   workRepository: WorkRepository
+  workSearchRepository: WorkSearchRepository
   readingRepository: ReadingRepository
   notificationRepository: NotificationRepository
   feedbackRepository: FeedbackRepository

@@ -15,7 +15,7 @@ export function useLibraryViewModel(libraryUseCase: LibraryUseCase = appContaine
   const [q] = useSearchParams()
   const dispatch = useAppDispatch()
   const tab = q.get('tab') === 'write' ? 'write' : q.get('tab') === 'qa' ? 'qa' : 'read'
-  const { data } = useAsyncData(async () => ({
+  const { data, isError, retry } = useAsyncData(async () => ({
     tab,
     pending: await libraryUseCase.pending(),
     read: tab === 'read' ? await libraryUseCase.getRead() : null,
@@ -28,12 +28,17 @@ export function useLibraryViewModel(libraryUseCase: LibraryUseCase = appContaine
   /** 목업 data-act="publish": 서재 위에 publishSheet(U21)를 띄우고 저장하면 서재에 머뭅니다. */
   const [publishId, setPublishId] = useState<string | null>(null)
   const savePublish = async (st: PublishSettings) => {
-    const r = await studioUseCase.savePublishSettings(publishId!, st)
-    toast('error' in r ? r.error : r.ok)
-    if ('error' in r) return false
-    dispatch(sessionActions.dataChanged())
-    return true
+    try {
+      const r = await studioUseCase.savePublishSettings(publishId!, st)
+      toast('error' in r ? r.error : r.ok)
+      if ('error' in r) return false
+      dispatch(sessionActions.dataChanged())
+      return true
+    } catch(error) {
+      toast(error instanceof Error ? error.message : '공개 설정을 저장하지 못했어요.')
+      return false
+    }
   }
   const publishing = data?.write?.mine.find((m) => m.work.id === publishId)?.work
-  return data?.tab === tab ? { ...data, appeal, publishing, openPublish: setPublishId, closePublish: () => setPublishId(null), savePublish } : undefined
+  return { data: data?.tab === tab ? { ...data, appeal, publishing, openPublish: setPublishId, closePublish: () => setPublishId(null), savePublish } : undefined, isError, retry }
 }

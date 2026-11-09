@@ -10,4 +10,10 @@ data class WorkResponse(
     val episodes: List<PublishedEpisodeResponse>, val draft: DraftResponse?,
     val hasWritingEpisode: Boolean = true,
     val creationType: String = "ORIGINAL", val genres: List<String> = emptyList(), val hashtags: List<String> = emptyList(),
+    val slug: String? = null, val authorName: String = "작성자", val ownerId: String = "", val revision: Int = 0,
+    val theme: String = "star", val hook: String = "", val hanja: String? = null,
+    val hero: List<String>? = null, val heroBg: String? = null,
+    val forkableEpisodes: List<Int> = emptyList(),
+    /** 최근 24시간 조회 수. 공개 목록·검색·랭킹 응답에서만 채우고 그 밖에는 0이다. */
+    val views: Long = 0,
 )

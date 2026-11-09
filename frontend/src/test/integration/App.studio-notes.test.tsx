@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../fixtureApp'
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
@@ -27,12 +28,13 @@ const renderAt = async (path: string) => {
   // 세션 복원이 lazy import를 시작하게 한 뒤, findBy의 기본 제한과 별개로 모듈을 기다린다.
   await act(async () => { view = render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={[path]}><App /></MemoryRouter></Provider>) })
   await act(async () => { await vi.dynamicImportSettled() })
+  // 느린 CI에서는 세션 복원·lazy import·변환이 한꺼번에 몰려 waitFor 기본 1초를 넘길 수 있다.
   await waitFor(() => {
     expect(screen.queryByText('화면을 불러오고 있어요.')).toBeNull()
     if (path.startsWith('/studio/')) screen.getByRole('button', { name: '집필 설정' })
     else if (path.startsWith('/read/')) screen.getByRole('button', { name: '보기 설정' })
     else screen.getByRole('heading', { name: '내 서재' })
-  })
+  }, { timeout: 10_000 })
   return view
 }
 const box = (name: string) => screen.findByLabelText(name) as Promise<HTMLInputElement>

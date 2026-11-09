@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockDb, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
+import { createFixtureDb } from '../../data/mock/fixtureDb'
+import { InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { ForkUseCase } from '../usecases/ForkUseCase'
 
 const setup = () => {
-  const db = createMockDb()
+  const db = createFixtureDb()
   const repo = new InMemoryWorkRepository(db)
   return { db, repo, useCase: new ForkUseCase(repo) }
 }

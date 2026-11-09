@@ -118,6 +118,23 @@ it('shows the server authentication error instead of claiming the server is offl
 })
 
 
+it('exposes one focusable main landmark with one h1 and names the browser tab',async()=>{
+ render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response('[]'))))}/>)
+ const h1=await screen.findByRole('heading',{level:1,name:'첫 이야기를 시작해 보세요'})
+ const main=screen.getByRole('main')
+ expect(main.id).toBe('main')
+ expect(main.getAttribute('tabindex')).toBe('-1')
+ expect(main.contains(h1)).toBe(true)
+ expect(screen.getAllByRole('heading',{level:1})).toHaveLength(1)
+ expect(document.title).toBe('회차 에디터 · STORYFORK')
+})
+
+it('wraps the studio label so compact headers can hide it visually without losing it',async()=>{
+ render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response('[]'))))}/>)
+ await screen.findByText('첫 이야기를 시작해 보세요')
+ expect(screen.getByText('에피소드 스튜디오').className).toBe('ep-top-label')
+})
+
 it('shows a creation link instead of save and AI controls when the writing episode is missing',async()=>{
  const w={id:'w',title:'회차 삭제됨',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([w]))))}/>)

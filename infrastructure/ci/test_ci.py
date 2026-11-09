@@ -23,6 +23,11 @@ class SelectionTest(unittest.TestCase):
         self.assertEqual([], plan["integration"])
         self.assertEqual([], plan["system"])
 
+    def test_agent_tooling_has_no_runtime_jobs(self):
+        plan = ci.select([".agent-hooks/guard.py", ".agents/skills/ponytail/SKILL.md",
+                          ".claude/settings.json", ".claude/skills", ".codex/hooks.json"])
+        self.assertEqual(([], [], [], False), (plan["unit"], plan["integration"], plan["system"], plan["infra"]))
+
     def test_auth_change_selects_content_and_web_consumers(self):
         plan = ci.select(["backend/core-api/src/main/kotlin/ai/storyfork/core/auth/service/SessionService.kt"])
         self.assertEqual({"web", "core", "content"}, {row["service"] for row in plan["integration"]})
@@ -69,29 +74,39 @@ class SelectionTest(unittest.TestCase):
                 self.assertEqual(plan["unit"], plan["integration"])
                 self.assertEqual([], plan["system"])
 
-    def test_independent_spring_skeletons_select_only_their_unit_tests(self):
-        for service in ("operations",):
-            for suffix in ("build.gradle", "src/main/resources/application.properties",
-                           f"src/main/kotlin/ai/storyfork/{service}/Application.kt",
-                           f"src/test/kotlin/ai/storyfork/{service}/ApplicationPropertiesTest.kt",
-                           "gradlew", "gradle/wrapper/gradle-wrapper.jar"):
-                with self.subTest(service=service, path=suffix):
-                    plan = ci.select([f"backend/{service}-service/{suffix}"])
-                    self.assertEqual([{"service": service, "scope": "all"}], plan["unit"])
-                    self.assertEqual([], plan["integration"])
-                    self.assertEqual([], plan["system"])
-                    self.assertFalse(plan["infra"])
+    def test_operations_changes_select_only_its_unit_and_integration_tests(self):
+        for suffix in ("build.gradle", "src/main/resources/application.properties",
+                       "src/main/kotlin/ai/storyfork/operations/security/OperationsSecurityConfig.kt",
+                       "src/main/kotlin/ai/storyfork/operations/notice/service/NoticeService.kt",
+                       "src/main/kotlin/ai/storyfork/operations/event/service/EventService.kt",
+                       "src/main/kotlin/ai/storyfork/operations/inquiry/service/InquiryService.kt",
+                       "src/test/kotlin/ai/storyfork/operations/security/OperationsSecurityIntegrationTest.kt",
+                       "src/main/resources/db/migration/operations/V3__inquiries.sql",
+                       "gradlew", "gradle/wrapper/gradle-wrapper.jar"):
+            with self.subTest(path=suffix):
+                plan = ci.select([f"backend/operations-service/{suffix}"])
+                self.assertEqual([{"service": "operations", "scope": "all"}], plan["unit"])
+                self.assertEqual(plan["unit"], plan["integration"])
+                self.assertEqual([], plan["system"])
+                self.assertFalse(plan["infra"])
 
-    def test_skeleton_ci_runs_scoped_junit_without_empty_integration_rows(self):
+    def test_operations_ci_runs_native_gradle_and_isolated_postgres(self):
         workflow = (ci.ROOT / ".github/workflows/ci.yml").read_text()
         unit = workflow.split("\n  unit:\n", 1)[1].split("\n  integration:\n", 1)[0]
-        self.assertIn("matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations'", unit)
-        self.assertIn("working-directory: backend/${{ matrix.service }}-service", unit)
-        self.assertIn('test --tests "ai.storyfork.${SERVICE}.*" --no-daemon', unit)
-        self.assertEqual({"web", "core", "ai", "content", "operations"},
-                         {row["service"] for row in ci.select([], full=True)["unit"]})
-        self.assertEqual({"web", "core", "ai", "content"},
-                         {row["service"] for row in ci.select([], full=True)["integration"]})
+        integration = workflow.split("\n  integration:\n", 1)[1].split("\n  system:\n", 1)[0]
+        java_condition = "matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations'"
+        for block, task in ((unit, "unitTest"), (integration, "integrationTest")):
+            self.assertIn(java_condition, block)
+            operation_step = block.split("if: ${{ matrix.service == 'operations' }}", 1)[1].split("      - ", 1)[0]
+            self.assertIn("working-directory: backend/operations-service", operation_step)
+            self.assertIn(f"run: ./gradlew {task} --no-daemon", operation_step)
+        self.assertIn(f"({java_condition}) && 'postgres:17-alpine'", integration)
+        self.assertIn("TEST_OPERATIONS_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test", integration)
+        self.assertIn("TEST_OPERATIONS_DATABASE_USER: content_test", integration)
+        self.assertIn('TEST_OPERATIONS_DATABASE_PASSWORD: ""', integration)
+        self.assertIn("backend/operations-service/build/test-results", integration)
+        for tier in ("unit", "integration"):
+            self.assertEqual(set(ci.SERVICES), {row["service"] for row in ci.select([], full=True)[tier]})
 
     def test_content_runtime_selects_its_integration_and_current_consumers(self):
         plan = ci.select(["backend/content-service/src/main/kotlin/ai/storyfork/content/work/service/WorkService.kt"])
@@ -172,6 +187,7 @@ class SelectionTest(unittest.TestCase):
         self.assertIn('CONFIGURATION_NEEDED:', workflow)
         configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
         self.assertIn('python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v', configuration)
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data -p test_import.py -v', configuration)
 
     def test_unit_and_integration_run_in_parallel_before_system(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
@@ -258,7 +274,7 @@ class PlanGitTest(unittest.TestCase):
                 plan = json.loads(result.stdout)
                 self.assertIsNone(plan['base'])
                 self.assertEqual(set(ci.SERVICES), {row['service'] for row in plan['unit']})
-                self.assertEqual({'web', 'core', 'ai', 'content'}, {row['service'] for row in plan['integration']})
+                self.assertEqual(set(ci.SERVICES), {row['service'] for row in plan['integration']})
                 self.assertEqual(ci.SCENARIOS, plan['system'])
                 self.assertTrue(plan['infra'])
         self.commit('new.txt', 'new \n')
@@ -291,8 +307,8 @@ class ComposeSplitTest(unittest.TestCase):
         for context in ('../frontend', '../backend/core-api', '../backend/content-service', '../backend/ai-service'):
             self.assertIn('context: ' + context, local)
             self.assertTrue((ci.ROOT / 'infrastructure' / context / 'Dockerfile').is_file())
-        for port in ('${DEV_WEB_PORT:-5173}:80', '${CORE_API_PORT:-8080}:8080',
-                     '${CONTENT_SERVICE_PORT:-8081}:8081', '${CORE_DATABASE_PORT:-5432}:5432',
+        for port in ('${WEB_PORT:-5173}:80', '${CORE_API_PORT:-8080}:8080',
+                     '${CONTENT_SERVICE_PORT:-8081}:8081', '${DATABASE_PORT:-5432}:5432',
                      '${CORE_MAILPIT_SMTP_PORT:-1025}:1025', '${CORE_MAILPIT_WEB_PORT:-8025}:8025'):
             self.assertIn('127.0.0.1:' + port, local)
         self.assertIn('core-postgres:/var/lib/postgresql/data', local)
@@ -304,40 +320,39 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertIn('name: storyfork-production', source)
         for service in ('web', 'core-api', 'content-service', 'ai-service'):
             self.assertIn(f'image: ghcr.io/sknetworks-family-aicamp/storyfork-{service}:main', source)
-        for forbidden in ('build:', 'volumes:', '  postgres:', '  mailpit:', 'env_file:', ':develop',
-                          '${CORE_DATABASE_', '${AUTH_JWT_SECRET', '${OPENAI_API_KEY', '${INTERNAL_TOKEN'):
+        for forbidden in ('build:', 'volumes:', '  postgres:', '  mailpit:', 'env_file:', ':develop', 'PROD_'):
             self.assertNotIn(forbidden, source)
-        for variable in ('PROD_DATABASE_URL', 'PROD_DATABASE_USER', 'PROD_DATABASE_PASSWORD',
-                         'PROD_SMTP_HOST', 'PROD_SMTP_PORT', 'PROD_PUBLIC_ORIGIN', 'PROD_MAIL_FROM',
-                         'PROD_AUTH_JWT_SECRET', 'PROD_CONTENT_CORE_AUTH_TOKEN', 'PROD_INTERNAL_TOKEN', 'PROD_WEB_PORT'):
+        # Same variable names as local/dev; the server's own .env supplies values and blanks fail config.
+        for variable in ('DATABASE_URL', 'DATABASE_USER', 'DATABASE_PASSWORD',
+                         'CORE_SMTP_HOST', 'CORE_SMTP_PORT', 'AUTH_PUBLIC_ORIGIN', 'AUTH_MAIL_FROM',
+                         'AUTH_JWT_SECRET', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN', 'WEB_PORT'):
             self.assertIn('${' + variable + ':?', source)
         self.assertIn('AUTH_COOKIE_SECURE: "true"', source)
-        self.assertIn('CONTENT_ENABLED: ${PROD_CONTENT_ENABLED:-false}', source)
-        self.assertIn('OPENAI_API_KEY: ${PROD_OPENAI_API_KEY:-}', source)
-        self.assertIn('127.0.0.1:${PROD_WEB_PORT:?', source)
+        self.assertIn('127.0.0.1:${WEB_PORT:?', source)
         # Base interpolation must not demand local secrets before prod overrides can apply.
         base = (ci.ROOT / 'infrastructure/docker-compose.yaml').read_text()
         self.assertNotIn(':?', base)
         dev = (ci.ROOT / 'infrastructure/docker-compose.dev.yaml').read_text()
         for service in ('web', 'core-api', 'content-service', 'ai-service'):
             self.assertIn(f'image: ghcr.io/sknetworks-family-aicamp/storyfork-{service}:develop', dev)
-        for variable in ('CORE_DATABASE_USER', 'CORE_DATABASE_PASSWORD', 'AUTH_JWT_SECRET'):
+        for variable in ('DATABASE_USER', 'DATABASE_PASSWORD', 'AUTH_JWT_SECRET'):
             self.assertIn('${' + variable + ':?', dev)
         self.assertNotIn('build:', dev)
         self.assertIn('  postgres:', dev)
         self.assertIn('  mailpit:', dev)
-        self.assertEqual(2, dev.count('file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}'))
-        self.assertEqual(2, dev.count('ports: !reset []'))
-        self.assertIn('CORE_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
+        self.assertEqual(4, dev.count('file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}'))
+        for service in ('  neo4j:', '  rabbitmq:'):
+            self.assertIn(service, dev)
+        self.assertEqual(3, dev.count('ports: !reset []'))
+        self.assertIn('DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
         self.assertIn('CORE_SMTP_HOST: mailpit', dev)
-        self.assertIn('CONTENT_DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork', dev)
-        self.assertNotIn('${CORE_DATABASE_URL', dev)
+        self.assertNotIn('${DATABASE_URL', dev)
         self.assertIn('  core-postgres:', dev)
         self.assertNotIn('external:', dev)
         workflow = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
         self.assertIn('COMPOSE_LOCAL_YAML', workflow)
         self.assertIn('docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE"', workflow)
-        self.assertIn("vars.DEVELOP_INTERNAL_DB_APPROVED == 'true'", workflow)
+        self.assertIn("if: ${{ needs.publish.result == 'success' }}", workflow)
 
     def test_ci_and_attachment_callers_keep_source_builds(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
@@ -350,7 +365,6 @@ class ComposeSplitTest(unittest.TestCase):
         attachment = (ci.ROOT / 'infrastructure/tests/test_attachment_environment.py').read_text()
         self.assertIn('infrastructure/docker-compose.local.yaml', attachment)
         self.assertNotIn('infrastructure/docker-compose.prod.yaml', attachment)
-        self.assertIn('docker-compose.local.yaml', (ci.ROOT / 'infrastructure/compose.attachments.yaml').read_text())
         overlay = (ci.ROOT / 'infrastructure/ci/compose.test.yaml').read_text()
         for service in ('postgres', 'core-api', 'content-service'):
             block = re.split(r'\n  [a-z][\w-]*:\n', overlay.split('  ' + service + ':\n', 1)[1], maxsplit=1)[0]
@@ -360,13 +374,13 @@ class ComposeSplitTest(unittest.TestCase):
         source = (ci.ROOT / '.env.example').read_text()
         active = dict(line.split('=', 1) for line in source.splitlines() if line and not line.startswith('#'))
         self.assertFalse(any(key.startswith(('PROD_', 'CD_')) for key in active))
-        for key in ('AUTH_JWT_SECRET', 'CORE_DATABASE_USER', 'CORE_DATABASE_PASSWORD', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN'):
+        for key in ('AUTH_JWT_SECRET', 'DATABASE_USER', 'DATABASE_PASSWORD', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN'):
             self.assertEqual('', active[key])
         self.assertEqual('false', active['AUTH_COOKIE_SECURE'])
-        self.assertEqual('5173', active['DEV_WEB_PORT'])
-        self.assertIn('# PROD_DATABASE_URL=', source)
-        self.assertIn('# PROD_AUTH_JWT_SECRET=', source)
-        self.assertIn('# CD_DIRECTORY=', source)
+        self.assertEqual('5173', active['WEB_PORT'])
+        self.assertNotIn('PROD_', source)
+        self.assertNotIn('GETSTREAM_API_KEY', source)
+        self.assertIn('CD_DIRECTORY', source)
 
 
 class SystemContractTest(unittest.TestCase):
@@ -456,17 +470,21 @@ class SystemContractTest(unittest.TestCase):
 
 
 class ConfigurationTest(unittest.TestCase):
-    def test_core_and_content_context_http_and_db_tests_are_not_unit_tests(self):
+    def test_spring_context_http_and_db_tests_are_not_unit_tests(self):
         import fnmatch
         import re
         boundary = re.compile(r"SpringBootTest|WebMvcTest|ApplicationContextRunner|AnnotationConfigApplicationContext|SpringApplicationBuilder|MockMvc|\bHttpClient\b|\bHttpServer\b|MockRestServiceServer|DriverManagerDataSource|Flyway\.configure")
-        for service in ("core-api", "content-service"):
+        for service in ("core-api", "content-service", "operations-service"):
             root = ci.ROOT / "backend" / service
             build = (root / "build.gradle").read_text()
             block = build.split("def integrationTestClasses = [", 1)[1].split("]", 1)[0]
             patterns = re.findall(r"'([^']+)'", block)
             for source in (root / "src/test").rglob("*Test.*"):
-                if source.suffix in {".kt", ".java"} and boundary.search(source.read_text()):
+                if source.suffix not in {".kt", ".java"}:
+                    continue
+                # 설명의 'MockMvc 없이' 같은 문구는 실행 의존성이 아니다.
+                code = re.sub(r"/\*.*?\*/|(?m:^\s*//[^\n]*)", "", source.read_text(), flags=re.DOTALL)
+                if boundary.search(code):
                     with self.subTest(service=service, test=source.name):
                         self.assertTrue(any(fnmatch.fnmatch("classes/" + source.stem + ".class", p) for p in patterns))
             self.assertIn("exclude integrationTestClasses", build)
@@ -482,8 +500,8 @@ class ConfigurationTest(unittest.TestCase):
         self.assertIn('NEO4J_PASSWORD:', integration)
         self.assertIn('"$RUNNER_TEMP/neo4j.log"', integration)
         configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
-        self.assertIn('APP_WORLDSTUDIO_ENABLED=true', configuration)
-        self.assertIn('--profile worldstudio config --quiet', configuration)
+        self.assertIn('NEO4J_PASSWORD: synthetic-config-only', configuration)
+        self.assertNotIn('--profile', configuration)
 
     def test_world_studio_graph_public_routes_stay_content_owned(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -497,6 +515,11 @@ class ConfigurationTest(unittest.TestCase):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)
         for secret in ['abc.def.ghi', 'test@example.invalid', 'opaque-token', 'a' * 64]:
             self.assertNotIn(secret, text)
+
+    def test_operations_credentials_are_removed_from_failure_reports(self):
+        secrets = {"OPERATIONS_SERVICE_TOKEN": "short-test-token", "DATABASE_PASSWORD": "test-password"}
+        with patch.dict(os.environ, secrets):
+            self.assertEqual("[redacted] [redacted]", ci.redact("short-test-token test-password"))
 
     def test_cd_publish_and_deploy_checkout_same_exact_source_sha(self):
         source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()

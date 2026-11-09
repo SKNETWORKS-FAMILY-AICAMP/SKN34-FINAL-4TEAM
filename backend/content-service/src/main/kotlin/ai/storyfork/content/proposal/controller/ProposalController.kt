@@ -2,7 +2,6 @@ package ai.storyfork.content.proposal.controller
 
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 import ai.storyfork.content.episode.service.dto.*
 import ai.storyfork.content.proposal.service.dto.*
@@ -10,7 +9,6 @@ import ai.storyfork.content.proposal.service.dto.*
 /** AI 제안 접수와 명시적 승인·반영을 담당한다. */
 @RestController
 @RequestMapping("/api/v1")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class ProposalController(private val service: ai.storyfork.content.proposal.service.ProposalService) {
 
     /** 동의한 허용 문맥으로 AI 제안을 생성한다. 소유자만 가능, 기준 충돌은 409, 외부 장애는 503다. 원고는 바꾸지 않는다. */

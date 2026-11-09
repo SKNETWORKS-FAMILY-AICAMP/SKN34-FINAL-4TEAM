@@ -1,7 +1,5 @@
 package ai.storyfork.content.world;
 
-import ai.storyfork.content.world.migration.WorldStudioMigration;
-import ai.storyfork.content.world.migration.WorldStudioMigrationProperties;
 import ai.storyfork.content._common.config.ContentPersistenceConfig;
 import java.nio.file.Path;
 import org.flywaydb.core.Flyway;
@@ -13,19 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DISPOSABLE", matches="true")
 class WorldStudioMigrationPostgresTest {
-    private WorldStudioMigrationProperties settings(WorldStudioPostgresFixture db) {
-        var password = java.util.Objects.requireNonNull(System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD"));
-        return WorldStudioMigrationProperties.Companion.from(Map.of(
-            "WORLDSTUDIO_MIGRATION_ENVIRONMENT", "development",
-            "CONTENT_DATABASE_URL", db.url,
-            "CONTENT_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
-            // trust의 빈 비밀번호에만 대체값을 사용한다. 비밀번호 인증은 fixture와 같은 값을 쓴다.
-            "CONTENT_DATABASE_PASSWORD", password.isEmpty() ? "ci-only" : password,
-            "WORLDSTUDIO_EXPECTED_DATABASE_URL", db.url,
-            "WORLDSTUDIO_EXPECTED_DATABASE_USER", System.getenv("TEST_WORLDSTUDIO_DATABASE_USER"),
-            "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE", "disposable-ci-database"));
-    }
-
+    // Content 시작 시 WorldStudioConfig가 쓰는 것과 같은 Flyway 설정(fixture.studio())을 검증한다.
     @Test void independentCommandAppliesV1AndRerunsWithoutChanges() throws Exception {
         try (var db = new WorldStudioPostgresFixture("independent")) {
             if ("true".equals(System.getenv("TEST_WORLDSTUDIO_PASSWORD_AUTH"))) {
@@ -38,8 +24,8 @@ class WorldStudioMigrationPostgresTest {
                 });
                 assertEquals("28P01", failure.getSQLState());
             }
-            assertEquals(2, WorldStudioMigration.INSTANCE.migrate(settings(db)));
-            assertEquals(0, WorldStudioMigration.INSTANCE.migrate(settings(db)));
+            assertEquals(2, db.studio().migrate().migrationsExecuted);
+            assertEquals(0, db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try (var c = db.connect()) {
                 assertEquals("13", WorldStudioPostgresFixture.rows(c,
@@ -66,8 +52,8 @@ class WorldStudioMigrationPostgresTest {
             content.migrate();
             try (var c = db.connect()) {
                 var before = publicRows(c);
-                assertEquals(2, WorldStudioMigration.INSTANCE.migrate(settings(db)));
-                assertEquals(0, WorldStudioMigration.INSTANCE.migrate(settings(db)));
+                assertEquals(2, db.studio().migrate().migrationsExecuted);
+                assertEquals(0, db.studio().migrate().migrationsExecuted);
                 assertEquals(before, publicRows(c));
             }
             auth.validate(); content.validate();
@@ -80,9 +66,10 @@ class WorldStudioMigrationPostgresTest {
         try (var db = new WorldStudioPostgresFixture("independent"); var c = db.connect()) {
             WorldStudioPostgresFixture.sql(c, "CREATE TABLE public.flyway_schema_history(version text, script text, checksum integer, type text, success boolean)");
             WorldStudioPostgresFixture.sql(c, "INSERT INTO public.flyway_schema_history VALUES ('1','V1__initial_world_schema.sql',943880700,'SQL',true)");
-            assertThrows(IllegalStateException.class, () -> WorldStudioMigration.INSTANCE.migrate(settings(db)));
+            assertThrows(org.flywaydb.core.api.FlywayException.class, () -> db.studio().migrate());
+            // V1 SQL의 과거 이력 검사가 실패시키므로 studio 테이블은 하나도 생기지 않는다(빈 schema/이력은 Flyway가 남길 수 있다).
             assertEquals("0", WorldStudioPostgresFixture.rows(c,
-                "SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'").getFirst());
+                "SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'").getFirst());
         }
     }
 

@@ -2,7 +2,9 @@ package ai.storyfork.content.auth.config
 
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
 import jakarta.servlet.DispatcherType
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -16,8 +18,19 @@ import tools.jackson.databind.json.JsonMapper
 
 @Configuration(proxyBeanMethods = false)
 class ContentSecurityConfig {
+    // 운영 전용 /internal/v1 하위: 회원 Bearer·CSRF 없이 서비스 토큰만 확인한다. 공개 체인보다 먼저 매칭한다.
     @Bean
-    @ConditionalOnProperty(name = ["app.content.enabled"], havingValue = "true")
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    fun operationsInternalSecurityFilterChain(http: HttpSecurity, @Value("\${OPERATIONS_SERVICE_TOKEN:}") token: String): SecurityFilterChain {
+        http.securityMatcher("/internal/v1/**").csrf { it.disable() }.cors { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .authorizeHttpRequests { it.anyRequest().hasAuthority("OPERATIONS_SERVICE") }
+            .addFilterBefore(OperationsServiceTokenFilter(token), AnonymousAuthenticationFilter::class.java)
+            .httpBasic { it.disable() }.formLogin { it.disable() }.logout { it.disable() }
+        return http.build()
+    }
+
+    @Bean
     fun contentSecurityFilterChain(http: HttpSecurity, service: CoreAuthVerificationService, mapper: JsonMapper): SecurityFilterChain {
         val csrf = CookieCsrfTokenRepository().apply { setHeaderName("X-CSRF-TOKEN") }
         http.cors(withDefaults()).csrf { it.csrfTokenRepository(csrf) }
@@ -32,14 +45,6 @@ class ContentSecurityConfig {
                 response.setHeader("WWW-Authenticate", "Bearer"); response.status = 401
             } }
             .addFilterBefore(ContentAuthenticationFilter(service, mapper), AnonymousAuthenticationFilter::class.java)
-            .httpBasic { it.disable() }.formLogin { it.disable() }.logout { it.disable() }
-        return http.build()
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = ["app.content.enabled"], havingValue = "false", matchIfMissing = true)
-    fun disabledContentSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http.authorizeHttpRequests { it.anyRequest().denyAll() }
             .httpBasic { it.disable() }.formLogin { it.disable() }.logout { it.disable() }
         return http.build()
     }

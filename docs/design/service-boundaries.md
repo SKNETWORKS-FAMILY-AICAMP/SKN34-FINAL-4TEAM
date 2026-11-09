@@ -13,11 +13,11 @@
 | 운영 관리 서비스 | 독립 Kotlin·Spring Boot 골격 `backend/operations-service` | 고객지원·공지·이벤트·권리/유해 신고 사건·증거·소명·운영 결정·운영 권한·감사·작업 감시·LLMOps 관리 | 문의·답변·공지·이벤트·신고 사건·운영 판단·조치 요청/결과·감사·관측 기록 |
 | AI 서비스 | 기존 `backend/ai-service`, Python·FastAPI 재사용 | 집필·추출·시뮬레이션·검토·캐릭터 응답·이미지 생성·유해 판정 등 요청된 모델 실행 | 필요한 실행 상태. 콘텐츠·회원·정산·운영 판단 정본을 직접 변경하지 않음 |
 
-표의 담당 기능은 목표 책임이며 전부 구현됐다는 뜻이 아니다. 현재 Core는 Auth·Health, Content는 이전된 콘텐츠·첨부·WorldStudio를 구현하며 운영은 골격뿐이다. Core/Content/운영 기본 포트는 8080/8081/8082이고 독립 Gradle main·패키지를 가진다. Frontend와 향후 Android/iOS 앱은 클라이언트다. 모바일 실제 지원과 미구현 업무는 후속 대상이며 역할마다 AI 서버를 만들거나 검색·파일·랭킹마다 별도 서버를 선제 생성하지 않는다.
+표의 담당 기능은 목표 책임이며 전부 구현됐다는 뜻이 아니다. 현재 Core는 Auth·Health, Content는 이전된 콘텐츠·첨부·WorldStudio를 구현하며 운영은 골격뿐이다. Core/Content/운영 기본 포트는 8080/8081/8082이고 독립 Gradle main·패키지를 가진다. Frontend와 향후 Android/iOS 앱은 클라이언트다. 모바일 실제 지원과 미구현 업무는 후속 대상이며 역할마다 AI 서버를 만들거나 검색·파일·랭킹마다 별도 서버를 선제 생성하지 않는다. 작품 검색·실시간 랭킹은 Content 안에서 [검색·랭킹 계약](work-search-ranking-contract.md)을 따른다.
 
 ## 2. 책임 경계
 
-- **인증과 콘텐츠 인가:** Core가 회원·인증을 소유한다. Content는 보호 요청마다 별도 서비스 자격과 사용자 Bearer로 Core `POST /internal/v1/auth/verify`를 호출하고 검증된 회원 UUID에 대해 작품 소유권·공개·회차·Fork 범위를 판단한다. 인증 캐시·재시도·fallback·JWT 서명 키 공유는 없다. Core 장애는 사용자 무효 401과 구분한다. 기존 access JWT의 즉시 세션 폐기 전파는 보장하지 않으며 운영 인증·권한 계약은 후속 대상이다.
+- **인증과 콘텐츠 인가:** Core가 회원·인증을 소유한다. Content는 보호 요청마다 별도 서비스 자격과 사용자 Bearer로 Core `POST /internal/v1/auth/verify`를 호출하고 검증된 회원 UUID에 대해 작품 소유권·공개·회차·Fork 범위를 판단한다. 인증 캐시·재시도·fallback·JWT 서명 키 공유는 없다. Core 장애는 사용자 무효 401과 구분한다. 기존 access JWT의 즉시 세션 폐기 전파는 보장하지 않는다. 운영 인증·권한(회원·관리자·신고 MVP)은 [운영 회원·관리자·신고 계약](operations-member-report-contract.md)을 따른다.
 - **AI 작업:** 콘텐츠 요청의 대상·기준 버전·허용 문맥·사용자 채택·저장은 콘텐츠 서비스 책임이다. AI는 제안·사용량·실행 결과를 반환한다. 생성과 승인·정본 반영·발행을 구분한다. 운영 목적의 AI 검사·평가는 운영 관리 서비스가 소유하는 작업으로 구분한다.
 - **크레딧:** Core만 지급·차감·복구·잔액·정산을 확정한다. 콘텐츠/AI/운영 서비스는 작업 ID·부담 주체·실제 결과·사용량 등 합의된 정보를 전달한다. 이벤트 보상도 운영 서비스가 원장을 직접 수정하지 않고 Core에 요청한다. 과금 미정 정책을 이 분리 결정으로 확정하지 않는다.
 - **회원 운영:** 운영 서비스는 회원 조회·이용 제한 요청·사유·감사를 관리한다. 실제 계정·세션 제한 적용은 Core 책임이다. 비밀번호·토큰·인증 비밀을 운영 서비스에 복제하지 않는다.
@@ -70,7 +70,7 @@ Web / 모바일 클라이언트
 1. 기존 업무·테스트·공개 계약을 Content로 추출하고 중복 패키지·legacy importer를 제거했다. Auth·Health는 Core, 운영은 골격 그대로다.
 2. 인증 확인·라우팅·같은 DB의 migration 소유·Content 이미지·CI 선택/통합/HTTP 시스템 검증 소스를 연결했다. fresh Content 초기화와 기존 이력 거부는 hosted CI 대상이다.
 3. 로컬은 선택 순수 단위·구문/계약 검사만 수행한다. 최신 head `Required CI` 성공 확인, 실제 대상 DB 준비, writer 전환·배포 검증은 남아 있다.
-4. CD는 `DEVELOP_CD_ENABLED`·`CONTENT_FRESH_SCHEMA_APPROVED`가 모두 true일 때 같은 revision 확인 → 공개 ingress/구 writer 중지 → 선택 Studio migration → 새 앱 기동으로 진행한다. 실패 시 자동 rollback/repair하지 않는다. 이 문서는 실제 실행 승인이 아니다.
+4. CD는 `DEVELOP_CD_ENABLED`·`CONTENT_FRESH_SCHEMA_APPROVED`가 모두 true일 때 같은 revision 확인 → 공개 ingress/구 writer 중지 → 선택 Studio migration → 새 앱 기동으로 진행한다. 실패 시 자동 rollback/repair하지 않는다. 이 문서는 실제 실행 승인이 아니다. _(과거 기록: 활성화·승인 변수와 별도 Studio migration은 삭제됐고, 지금은 develop CI 성공 시 항상 배포하며 Studio schema는 Content 시작 시 적용한다.)_
 5. 기능표 ✅는 병합·최신 Required CI 근거를 따르며 소스 이동·데이터 전환·운영 배포 완료를 서로 구분한다. 브라우저는 별도 승인 대상이다.
 
 미정/대기: 실제 재초기화 대상·보존/복구 범위·중단 시간·운영 DB 권한, 정산/알림/운영 연계의 계약 버전·timeout/재시도/보상·권한 모델, 모바일 지원·운영 리소스 구성. 기존 Draft #86·#91은 자동 채택하지 않는다.

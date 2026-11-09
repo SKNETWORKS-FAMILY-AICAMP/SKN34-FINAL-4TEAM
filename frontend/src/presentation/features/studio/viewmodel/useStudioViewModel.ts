@@ -17,8 +17,8 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const aiDemo = useAiDemo()
-  // 목업 render(): 탭(screen)을 바꾸면 저장 중인 입력을 기다렸다가 초안(연결·AI 요청)을 다시 불러옵니다.
-  const { data } = useAsyncData(() => sync.current.then(() => studioUseCase.open(id, ep, role)), [studioUseCase, id, ep, role, screen])
+  // 목업 render(): 탭(screen)을 바꾸면 저장 중인 입력을 기다렸다가 초안(연결·AI 요청)을 다시 불러옵니다. 같은 작품·회차이므로 집필실을 비우지 않습니다.
+  const { data } = useAsyncData(() => sync.current.then(() => studioUseCase.open(id, ep, role)), [studioUseCase, id, ep, role], [screen])
   const [typed, setTyped] = useState<{ key: string; paras: string[] } | null>(null)
   const [prompt, setPrompt] = useState<{ key: string; v: string } | null>(null)
   const [saving, setSaving] = useState(false)

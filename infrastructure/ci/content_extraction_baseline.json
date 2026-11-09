@@ -54,7 +54,15 @@
       ],
       [
         "GetMapping",
+        "\"/public/works/ranking\""
+      ],
+      [
+        "GetMapping",
         "\"/public/works/{id}\""
+      ],
+      [
+        "PostMapping",
+        "\"/works/{id}/episodes/{number}/views\") @ResponseStatus(HttpStatus.NO_CONTENT"
       ]
     ],
     "episode/controller/EpisodeController.kt": [
@@ -131,6 +139,10 @@
       [
         "GetMapping",
         "\"/works/{id}/world\""
+      ],
+      [
+        "GetMapping",
+        "\"/public/works/{id}/world\""
       ],
       [
         "PutMapping",

@@ -4,14 +4,12 @@ import ai.storyfork.content.plan.service.StoryPlanService
 import ai.storyfork.content.plan.service.dto.*
 import jakarta.validation.Valid
 import java.security.Principal
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 /** 비공개 플롯·장면 계획만 관리하며 원고·세계관 정본을 변경하지 않는다. */
 @RestController
 @RequestMapping("/api/v1/works/{workId}/story-plans")
-@ConditionalOnProperty(name=["app.content.enabled"], havingValue="true")
 class StoryPlanController(private val service: StoryPlanService) {
     /** 소유자의 삭제되지 않은 계획 목록 DTO를 반환한다. 타인 작품은 404다. */
     @GetMapping

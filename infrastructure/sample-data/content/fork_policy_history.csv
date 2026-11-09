@@ -1,0 +1,5 @@
+id,work_id,allow_creation,allow_publication,episode_scope,start_episode_id,changed_at,revision_no
+3dc5d10a-211a-3ba7-865a-055b51cc1a2f,d384e2a3-d131-3d31-b25e-a3f85ebe2240,true,true,from,46648855-103b-3c57-be6e-f51c0bb06570,2026-11-01T00:00:00Z,0
+a1da7356-b871-33de-95eb-0be2c529fa44,ba084057-8d94-3da5-86f0-ab54ce5703b0,true,true,from,79d6157c-eaa9-354f-809e-b72b1fbcdeec,2026-11-01T00:00:00Z,0
+babaf79e-c82b-3f21-b302-743e50ccbe40,a06ba0b1-5cfd-3a15-860a-183cf6a799d7,true,true,all,8a41db68-e553-39a2-9f2d-2e9a5ad8344e,2026-11-01T00:00:00Z,0
+fda58ec6-9274-3aff-96f0-357c87b52647,011d0e83-a553-36aa-b856-14709539a0d0,false,false,all,\N,2026-11-01T00:00:00Z,0
