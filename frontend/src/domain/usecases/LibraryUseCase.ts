@@ -2,6 +2,7 @@ import { AVATAR_COLORS, epsOf, forkLabel, forksOf, isMine, isPub, nid, original,
 import { publicWorldRules, worldVersion, type World, type WorldVersion } from '../entities/world'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import { AGGREGATE_WRITE_UNSUPPORTED, FEEDBACK_UNAVAILABLE, type ReadingRepository, type WorkRepository } from '../repositories/WorkRepository'
+import type { WorkInterestRepository } from '../repositories/WorkInterestRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
 
 export const NOVEL_GENRES = ['판타지','현대판타지','무협','선협','퓨전','로맨스','로맨스판타지','BL','GL','현대','시대물','역사','대체역사','SF','게임','스포츠','드라마','미스터리','추리','스릴러','공포','오컬트','액션','전쟁·밀리터리','라이트노벨','학원','일상','고전','일반소설','기타']
@@ -45,21 +46,23 @@ export class LibraryUseCase {
   private readonly worldRepository: WorldRepository
   private readonly readingRepository: ReadingRepository
   private readonly feedbackRepository: FeedbackRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository) {
+  private readonly interestRepository: WorkInterestRepository
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository, interestRepository: WorkInterestRepository) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
     this.readingRepository = readingRepository
     this.feedbackRepository = feedbackRepository
+    this.interestRepository = interestRepository
   }
 
-  /** U11 읽는 중: 이어 읽기와 관심 소설 */
+  /** U11 읽는 중: 이어 읽기와 관심 소설(관심 등록한 작품만, 최근 등록순. 좋아요 표시와는 별개) */
   async getRead() {
-    const [works, progress] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress()])
+    const [works, progress, interestIds] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.interestRepository.list()])
     const byId = (id: string) => works.find((w) => w.id === id)
     return {
       recent: Object.keys(progress.last).map(byId).filter((w): w is Work => !!w && epsOf(w).length > 0)
         .map((work) => ({ work, n: Math.min(progress.last[work.id], epsOf(work).length), tot: epsOf(work).length })),
-      liked: Object.keys(progress.liked).filter((k) => progress.liked[k]).map(byId).filter((w): w is Work => !!w),
+      liked: interestIds.map(byId).filter((w): w is Work => !!w),
     }
   }
 

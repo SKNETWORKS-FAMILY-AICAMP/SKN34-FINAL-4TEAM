@@ -43,6 +43,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 | type | 알림 분류 | target.type | 비고 |
 | --- | --- | --- | --- |
 | `content.world.changed` | 읽기(끌 수 있음) | `work` | 후보. 수신자 결정 규칙은 Content 쪽 확인 필요 |
+| `content.episode.published` | 읽기(끌 수 있음) | `work` | 관심 작품에 새 회차(처음 발행한 회차 번호)가 올라왔을 때. 수신자는 그 작품을 관심 작품으로 담은 회원(작가 본인 제외), `target.id`는 작품 id. 회차 번호·제목은 싣지 않는다 |
 
 새 종류는 `NoticeEventType`에 추가하고 이 표도 같이 고친다.
 
@@ -57,3 +58,4 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 ## 발행 쪽 약속
 
 - 사건은 업무 변경과 같은 트랜잭션에서 Outbox 테이블에 기록하고 별도 발행기가 브로커로 보낸다(변경은 됐는데 사건이 사라지는 일을 막는다). 재전송이 일어나므로 `eventId`는 Outbox 행에서 고정한다.
+- Content는 `content_event_outbox`(`id`=`eventId`)에 쓰고, 단일 인스턴스의 스케줄 발행기가 5초마다 `published_at`이 빈 행을 오래된 순으로 `storyfork.events`(routing key=`type`)에 보낸다. 보낸 행만 `published_at`을 채우고, 실패하면 그 주기를 멈춰 다음 주기에 같은 `eventId`로 다시 보낸다. 발행 쪽이 교환기를 먼저 선언해도 되도록 Content도 같은 설정(topic, durable)으로 선언한다. 큐는 Core만 선언하므로 Core가 한 번도 뜬 적 없는 브로커에는 보낸 사건이 보관되지 않는다.

@@ -17,6 +17,7 @@ import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.episode_version.service.dto.RevertRequest
 import ai.storyfork.content.fork.entity.ForkEntity
 import ai.storyfork.content.fork.repository.ForkRepository
+import ai.storyfork.content.interest.service.WorkInterestService
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.PublishRequest
@@ -62,7 +63,7 @@ class EpisodeImageAuthorizationTest {
     private val rights = mock(WorkRightsDeclarationRepository::class.java)
     private val policies = mock(ForkPolicyHistoryRepository::class.java)
     private val publication = PublicationService(access, writing, episodes, current, versions, events, visibility, rights, drafts, works, policies,
-        mock(ForkPolicyEpisodeRepository::class.java), em)
+        mock(ForkPolicyEpisodeRepository::class.java), mock(WorkInterestService::class.java), em)
     private val world = mock(WorldService::class.java)
     private val checkpointRows = mock(CheckpointRepository::class.java)
     private val checkpointSettings = mock(CheckpointSettingRepository::class.java)

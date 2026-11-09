@@ -29,7 +29,7 @@ describe('내 서재 (U11·U12)', () => {
     renderAt('/lib')
     await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
     await waitFor(() => expect(sid()).toBe('U11 내 서재'))
-    screen.getByText('소설 화면에서 ♡를 누르면 여기에 모여요.')
+    screen.getByText("소설 화면에서 '관심 등록'을 누르면 여기에 모여요.")
     fireEvent.click(screen.getByRole('link', { name: '내 댓글·신고' }))
     await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
     fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
