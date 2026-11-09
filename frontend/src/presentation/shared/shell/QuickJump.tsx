@@ -13,6 +13,7 @@ export function QuickJump() {
         aria-label="소설·인물·회차 검색" placeholder="소설·인물·회차 검색 (Enter: 전체 결과 보기)" value={vm.q}
         onChange={(e) => vm.setQuery(e.target.value)}
         onKeyDown={(e) => {
+          if (e.nativeEvent.isComposing) return
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); vm.move(e.key === 'ArrowDown' ? 1 : -1) }
           if (e.key === 'Enter') vm.go(vm.sel)
         }} />

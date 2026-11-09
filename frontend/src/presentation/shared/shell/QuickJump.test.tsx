@@ -42,3 +42,13 @@ it('목록이 비어 있으면 닫힘으로 알리고 옵션이 아닌 안내만
   expect(screen.queryAllByRole('option')).toHaveLength(0)
   expect(screen.getByText('검색 결과가 없어요.')).toBeTruthy()
 })
+
+it('한글 조합 중 Enter는 이동하지 않고 조합이 끝난 Enter만 이동한다', () => {
+  open()
+  const input = screen.getByRole('combobox', { name: '소설·인물·회차 검색' })
+  fireEvent.change(input, { target: { value: '용사' } })
+  fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+  expect(screen.queryByRole('dialog')).not.toBeNull()
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
