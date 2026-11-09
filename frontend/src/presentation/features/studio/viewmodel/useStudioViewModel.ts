@@ -42,9 +42,17 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     if (redraw) setTyped(null)
     dispatch(sessionActions.dataChanged())
   }
+<<<<<<< HEAD
   const run = async <T>(fn: () => Promise<T>, redraw = false) => {
     await sync.current
     const result = await fn()
+=======
+  // queue·edit과 같은 대기열에 이어 붙입니다. 실패는 호출한 쪽에만 돌려주고 다음 저장은 막지 않습니다.
+  const run = async (fn: () => Promise<unknown>, redraw = false) => {
+    const pending = sync.current.then(fn)
+    sync.current = pending.catch(() => undefined)
+    await pending
+>>>>>>> 6b40a4fba7e4ca10f77745fa118b7791d23869e7
     refresh(redraw)
     return result
   }

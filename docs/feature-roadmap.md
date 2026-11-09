@@ -1001,6 +1001,7 @@
 | [PR #83](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/83) | fix: 집필실 중복 발행 방지 및 공개 시트 제목 동기화 | OPEN | SUCCESS |
 | [PR #86](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86) | docs: 초기 세계관 저장 모델 및 회차 연동 계약 제안 | OPEN | SUCCESS |
 | [PR #88](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88) | refactor: Auth 계층과 JPA 영속성 책임 정리 | MERGED | SUCCESS |
+| [PR #129](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/129) | feat(core): 알림함·알림 설정 API 1차 (#89) | MERGED | SUCCESS |
 | [PR #90](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90) | feat: 설정 이미지·파일 CRUD와 S3 저장 연동 구현 | MERGED | SUCCESS |
 | [PR #91](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91) | refactor: 콘텐츠 업무 책임 분리 및 기존 ERD 기반 JPA 전환 | OPEN | 미확인 |
 | [PR #93](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93) | feat: 이미지·파일 업로드와 작품 표지·원고 이미지 저장 연결 | MERGED | SUCCESS |

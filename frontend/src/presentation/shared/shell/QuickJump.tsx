@@ -13,6 +13,8 @@ export function QuickJump() {
         aria-label="소설·인물·회차 검색" placeholder="소설·인물·회차 검색 (Enter: 전체 결과 보기)" value={vm.q}
         onChange={(e) => vm.setQuery(e.target.value)}
         onKeyDown={(e) => {
+          // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다
+          if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); vm.move(e.key === 'ArrowDown' ? 1 : -1) }
           if (e.key === 'Enter') vm.go(vm.sel)
         }} />

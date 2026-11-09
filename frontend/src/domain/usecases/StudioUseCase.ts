@@ -32,7 +32,7 @@ function runCheck(w: Work, d: Draft) {
       issues.push({ sent, rule: b.rules.find((r) => /산을 내려가지/.test(r))!, fix: FIX[sent] || sent.replace('몰래 산을 내려가', '산문 앞까지 갔다가 돌아와') })
     }
     const opened = p.match(/[^.]*문이 열렸[^.]*\./)
-    if (/해가 진 뒤.*문이 열렸/.test(p) && opened && b.rules.some((r) => /문은 열리지/.test(r))) issues.push({ sent: opened[0].trim(), rule: b.rules[0], fix: '해가 진 뒤라 문은 열리지 않았다.' })
+    if (/해가 진 뒤.*문이 열렸/.test(p) && opened && b.rules.some((r) => /문은 열리지/.test(r))) issues.push({ sent: opened[0].trim(), rule: b.rules.find((r) => /문은 열리지/.test(r))!, fix: '해가 진 뒤라 문은 열리지 않았다.' })
   }
   d.check = { issues, stale: false, at: Date.now() }
 }
@@ -190,7 +190,7 @@ export class StudioUseCase {
     const current = (await this.draftOf(w)).draft
     const parentCast = w.parent ? (await this.work(w.parent))?.cast : undefined
     // 목업 shared: 남이 소유한 공개 세계관이 연결돼 있으면 복사 전까지 사전 편집을 막습니다.
-    const worlds = await this.workRepository.listWorlds()
+    const worlds = await this.worldRepository.list()
     const shared = (w.worldIds ?? []).map((x) => worlds.find((y) => y.id === x)).find((x) => x?.owner) ?? null
     return { work: w, eps: epsOf(w), base: baseOf(w), key, draft, current, proposal: propOf(w), parentCast, shared }
   }
@@ -323,7 +323,7 @@ export class StudioUseCase {
   }
 
   private async worldRules() {
-    const m = new Map((await this.workRepository.listWorlds()).map((x) => [x.id, x.rules]))
+    const m = new Map((await this.worldRepository.list()).map((x) => [x.id, x.rules]))
     return (x: string) => m.get(x) ?? []
   }
 
@@ -438,11 +438,12 @@ export class StudioUseCase {
       const A = w.auto = autoOf(w)
       A.on = !A.on
       A.status = A.on ? '실행 중' : '꺼짐'
+      if (A.on) A.failures = 0
       return A.on ? 'AI 자율 연재를 켰어요 (데모 · 실제 예약 없음)' : 'AI 자율 연재를 껐어요'
     })
   }
 
-  pauseAuto(id: string) { return this.change(id, (w) => { const A = w.auto = autoOf(w); A.status = A.status === '실행 중' ? '일시 중지' : '실행 중' }) }
+  pauseAuto(id: string) { return this.change(id, (w) => { const A = w.auto = autoOf(w); if (A.status === '실행 중') A.status = '일시 중지'; else { A.status = '실행 중'; A.failures = 0 } }) }
 
   setAuto(id: string, k: 'react' | 'requireReview', v: boolean) { return this.change(id, (w) => { (w.auto = autoOf(w))[k] = v }) }
 
@@ -492,7 +493,7 @@ export class StudioUseCase {
   async savePublishSettings(id: string, st: PublishSettings): Promise<{ error: string } | { ok: string }> {
     if (!st.ok && st.vis === '모두') return { error: '공개하려면 권리 확인에 체크해 주세요' }
     if (st.on && !st.all && !st.eps.length) return { error: '포크를 허용할 회차를 하나 이상 골라 주세요' }
-    const worlds = await this.workRepository.listWorlds()
+    const worlds = await this.worldRepository.list()
     const label = await this.change(id, (w) => {
       w.private = st.vis === '나만'
       w.forkAll = st.on && st.all
