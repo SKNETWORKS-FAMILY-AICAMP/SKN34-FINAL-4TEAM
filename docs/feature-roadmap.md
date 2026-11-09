@@ -508,7 +508,7 @@
 
 ## 운영 관리 서비스 — 운영 업무·LLMOps
 
-독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). 68 공지 게시·조회도 관리자 회원 Bearer·`notices` 권한·독자 공개 조회·화면 연결까지 로컬 단위 테스트와 브라우저 E2E로 확인한 행만 ✅로 표시한다(입력 검증 행은 단위·API로만 확인해 ❌ 유지, [공지 계약](design/operations-notice-contract.md)). 67의 회원 문의 접수·내 문의·상태·답변과 관리자 회원 문의 조회·답변 관리 행도 회원 Bearer·`feedback` 권한·화면 연결까지 구현해 로컬 단위·브라우저 E2E로 확인했으므로 ✅로 표시하며, 서비스 자격 레코드 행은 ❌를 유지한다([문의 계약](design/operations-support-inquiry-contract.md)). 69 이벤트 안내·운영도 관리자 Bearer·`events` 권한 CRUD와 독자 공개 조회·화면 연결을 로컬 단위 테스트와 브라우저 E2E로 확인해 해당 행을 ✅로 표시한다(검증·U+0000 행은 단위 확인만이라 ❌ 유지, [이벤트 계약](design/operations-event-contract.md)). hosted CI 결과는 PR에서 확인한다.
+독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). 68 공지 게시·조회도 관리자 회원 Bearer·`notices` 권한·독자 공개 조회·화면 연결까지 로컬 단위 테스트와 브라우저 E2E로 확인한 행만 ✅로 표시한다(입력 검증 행은 단위·API로만 확인해 ❌ 유지, [공지 계약](design/operations-notice-contract.md)). 67의 회원 문의 접수·내 문의·상태·답변과 관리자 회원 문의 조회·답변 관리 행도 회원 Bearer·`feedback` 권한·화면 연결까지 구현해 로컬 단위·브라우저 E2E로 확인했으므로 ✅로 표시하며, 서비스 자격 레코드 행은 ❌를 유지한다([문의 계약](design/operations-support-inquiry-contract.md)). 69 이벤트 안내·운영도 관리자 Bearer·`events` 권한 CRUD와 독자 공개 조회·화면 연결을 로컬 단위 테스트와 브라우저 E2E로 확인해 해당 행을 ✅로 표시한다(검증·U+0000 행은 단위 확인만이라 ❌ 유지, [이벤트 계약](design/operations-event-contract.md)). 74 운영 작품 조회도 관리자 Bearer·`works` 권한 조회와 Content 제한·해제·화면 연결을 로컬 단위 테스트와 브라우저 E2E로 확인해 ✅로 표시한다([작품 계약](design/operations-work-contract.md)). hosted CI 결과는 PR에서 확인한다.
 
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
@@ -593,11 +593,11 @@
 <tr><td>회원 가입 오래된순 정렬</td><td>✅</td></tr>
 <tr><td>회원 이용 제한</td><td>✅</td></tr>
 <tr><td>회원 이용 제한 해제</td><td>✅</td></tr>
-<tr><td rowspan="9">콘텐츠 운영 관리</td><td rowspan="5">74 운영 작품 조회</td><td>운영 작품 목록·작성자·권리·공개 상태 조회</td><td>❌</td><td rowspan="5"><a href="#미등록-099">미등록-099</a></td></tr>
-<tr><td>운영 작품 원작·Fork 필터</td><td>❌</td></tr>
-<tr><td>운영 작품명·작성자·권리 유형 검색</td><td>❌</td></tr>
-<tr><td>운영 작품 제목순 정렬</td><td>❌</td></tr>
-<tr><td>운영 작품 제목 역순 정렬</td><td>❌</td></tr>
+<tr><td rowspan="9">콘텐츠 운영 관리</td><td rowspan="5">74 운영 작품 조회</td><td>운영 작품 목록·작성자·권리·공개 상태 조회</td><td>✅</td><td rowspan="5"><a href="#미등록-099">미등록-099</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/226">PR #226</a></td></tr>
+<tr><td>운영 작품 원작·Fork 필터</td><td>✅</td></tr>
+<tr><td>운영 작품명·작성자·권리 유형 검색</td><td>✅</td></tr>
+<tr><td>운영 작품 제목순 정렬</td><td>✅</td></tr>
+<tr><td>운영 작품 제목 역순 정렬</td><td>✅</td></tr>
 <tr><td rowspan="4">75 운영 댓글 조회·조치</td><td>작품별 운영 댓글 필터</td><td>❌</td><td rowspan="4"><a href="#미등록-100">미등록-100</a></td></tr>
 <tr><td>운영 댓글 내용·작품명·작성자 검색</td><td>❌</td></tr>
 <tr><td>운영 댓글 공감 많은순 정렬</td><td>❌</td></tr>

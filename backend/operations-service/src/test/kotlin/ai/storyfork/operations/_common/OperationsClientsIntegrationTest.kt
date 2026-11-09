@@ -5,6 +5,7 @@ import ai.storyfork.operations._common.client.CoreAdminRequest
 import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.client.operationsRestClient
 import ai.storyfork.operations.security.OperationsMember
+import ai.storyfork.operations.work.service.dto.OperationsWork
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -121,5 +122,26 @@ class OperationsClientsIntegrationTest {
         assertTrue(restricted.restricted)
         assertFalse(client.unrestrict(id).restricted)
         server.verify()
+    }
+
+    @Test
+    fun `Content work list sends only the service token parses OperationsWorkList and maps failure to 502`() {
+        val (client, server) = content()
+        val owner = UUID.randomUUID()
+        val body = """
+            {"items":[{"workId":"$id","ownerId":"$owner","title":"작품","authorName":"작가","originKind":"fork",
+            "creationType":"external_derivative","rightsConfirmed":true,"visibility":"public","restricted":false}]}
+        """.trimIndent()
+        server.expect(requestTo("http://content.test/internal/v1/works")).andExpect(method(HttpMethod.GET))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess(body, MediaType.APPLICATION_JSON))
+
+        assertEquals(listOf(OperationsWork(id, owner, "작품", "작가", "fork", "external_derivative", true, "public", false)), client.works().items)
+        server.verify()
+
+        val (failing, failingServer) = content()
+        failingServer.expect(requestTo("http://content.test/internal/v1/works")).andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE))
+        assertEquals(502, status { failing.works() })
     }
 }
