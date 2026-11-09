@@ -101,6 +101,10 @@ describe('새 소설 만들기 (U28)', () => {
 })
 
 describe('가져오기 (U24)', () => {
+  // 실제 모드의 /import는 원고 파일 가져오기라서, 데모 화면 시나리오는 --mode mockup으로 연다.
+  beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
+  afterEach(() => { vi.unstubAllEnvs() })
+
   it('정책 동의 → 예시 원고 정리 → 저장하면 내가 쓰는 소설로 간다', async () => {
     renderAt('/writing-policy?method=import')
     fireEvent.click(await screen.findByLabelText('이 집필 방식의 정책과 안내를 확인했습니다.'))

@@ -1,7 +1,10 @@
 import type { Draft, SavedSetting, Work, World, WritingEpisode } from '../../domain/entities/content'
+import { manuscriptText } from '../../domain/entities/media'
 import { newSetting, type SettingItem, type StudioSetting } from '../../domain/entities/studioWorld'
 import type { AuthRepository, AuthUser } from '../../domain/repositories/AuthRepository'
 import type { EpisodeRepository } from '../../domain/repositories/EpisodeRepository'
+import type { ManuscriptRepository } from '../../domain/repositories/ManuscriptRepository'
+import type { MediaRepository } from '../../domain/repositories/MediaRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import { InMemoryWorldStudioRepository } from '../world-studio/InMemoryWorldStudioRepository'
 
@@ -31,6 +34,33 @@ export const mockupNotificationRepository: NotificationRepository = {
   remove: async () => {},
   getPrefs: async () => ({ read: true, creator: true }),
   savePrefs: async (prefs) => prefs,
+}
+
+const demoUnsupported = () => Promise.reject(new Error('데모에서는 지원하지 않아요.'))
+
+/**
+ * 원고 가져오기와 EPUB·발행본 내보내기는 성공을 흉내 내지 않고 데모 미지원 오류로 답합니다.
+ * 데모 집필실의 TXT 초안 내보내기만 메모리 원고로 실제 파일을 만듭니다(이미지 표식 제외).
+ */
+export function createMockupManuscriptRepository(writing: Pick<EpisodeRepository, 'list' | 'writingList'>): ManuscriptRepository {
+  return {
+    preview: demoUnsupported,
+    confirm: demoUnsupported,
+    exportManuscript: async (workId, query, signal) => {
+      if (query.format !== 'txt' || query.source !== 'draft') return demoUnsupported()
+      const whole = query.episode === undefined
+      const own = (await writing.writingList(workId, signal)).filter((e) => !e.inherited && (whole || e.number === query.episode))
+      if (!own.length) throw new Error('내보낼 수 있는 회차가 없어요.')
+      const title = whole ? (await writing.list(signal)).find((w) => w.id === workId)?.title ?? '원고' : own[0].draft.title
+      const chapters = own.map((e) => `${e.draft.title}\n\n${manuscriptText(e.draft.body)}`).join('\n\n\n')
+      return { blob: new Blob(['\uFEFF', whole ? `${title}\n\n\n${chapters}` : chapters], { type: 'text/plain;charset=utf-8' }), filename: `${title.replace(/[\\/:*?"<>|]/g, '_')}.txt` }
+    },
+  }
+}
+
+/** 설정 첨부 이름 변경과 회차 이미지 목록·대체 텍스트·공개 설명 조회도 같습니다. 나머지 첨부 동작은 기존 HTTP 저장소 그대로입니다. */
+export const mockupUnsupportedMedia: Pick<MediaRepository, 'rename' | 'listEpisodeImages' | 'updateEpisodeImageAlt' | 'publicEpisodeImageAlts'> = {
+  rename: demoUnsupported, listEpisodeImages: demoUnsupported, updateEpisodeImageAlt: demoUnsupported, publicEpisodeImageAlts: demoUnsupported,
 }
 
 const now = () => new Date().toISOString()
