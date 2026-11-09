@@ -28,7 +28,7 @@ class ContentServiceCredentialTest {
         assertTrue(service.isTrusted(content, null))
         assertTrue(service.isTrusted("wrong", operations))
         assertTrue(service.isOperations(operations))
-        // Content credential is limited to verify; operations-only APIs never accept it.
+        // Content credential is limited to verify and the nickname lookup; operations-only APIs never accept it.
         assertFalse(service.isOperations(content))
         assertFalse(service.isTrusted(operations, content))
     }

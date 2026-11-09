@@ -40,6 +40,7 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 
 - `CONTENT_CORE_AUTH_TOKEN`은 32자 이상·개행 없는 별도 비밀값이며 루트 예시는 빈 값입니다. 사용자 Bearer·JWT 서명 키와 대체할 수 없습니다. Core는 상수 시간 비교와 기존 JWT 서명/만료 검증을 수행합니다.
 - 인증 필수 요청마다 실제 확인하며 캐시·자동 재시도·개발 사용자 fallback은 없습니다. Content는 JWT 서명 키·Auth Entity/Repository를 받지 않습니다.
+- 같은 Core 주소·서비스 자격·제한시간으로 `CoreMemberClient`가 작가 닉네임을 조회합니다(`POST /internal/v1/members/nicknames`, 사용자 Bearer 없음). 이 호출의 실패는 위 분류와 달리 모두 503이며 아래 "작품 응답" 문단에서 설명합니다.
 - 사용자 무효 401 `UNAUTHORIZED`, 연결 불가/상대 503은 503 `CORE_AUTH_UNAVAILABLE`, timeout은 504 `CORE_AUTH_TIMEOUT`, 기타 상대 오류는 502 `CORE_AUTH_UPSTREAM_ERROR`, 빈/잘못된 응답·redirect는 502 `CORE_AUTH_INVALID_RESPONSE`입니다. 오류 원문·토큰을 노출하지 않습니다.
 - 공개 작품 GET만 익명 허용하고 소유권·Fork·공개 회차 검사는 업무 Service가 담당합니다. 모든 공개 변경 요청의 CSRF 쿠키/`X-CSRF-TOKEN`·XOR 계약과 CORS를 유지합니다. 로그인·refresh·CSRF 발급은 Core 책임입니다.
 - 기존 access JWT에는 세션 ID가 없어 refresh 세션 폐기 후 access token의 즉시 무효화를 새로 보장하지 않습니다.
