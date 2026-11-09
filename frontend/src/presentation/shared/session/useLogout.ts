@@ -1,33 +1,29 @@
-import { useRef } from 'react'
+import { useContext, useRef } from 'react'
 import { useNavigate } from 'react-router'
 import { appContainer } from '../../../app/appContainer'
 import { useAppDispatch } from '../../../app/store'
-import { SessionExpired } from '../../../domain/repositories/ProfileRepository'
+import type { AuthUseCase } from '../../../domain/usecases/AuthUseCase'
+import { WorldStudioLeaveContext } from '../../features/worldstudio/viewmodel/worldStudioLeaveGuard'
 import { toast } from '../events'
 import { sessionActions } from './sessionSlice'
+import { logoutSession } from './logoutSession'
 
-export function useLogout() {
+export function useLogout(auth: Pick<AuthUseCase, 'logout'> = appContainer.resolve('authUseCase')) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const busy = useRef(false)
+  const guard = useContext(WorldStudioLeaveContext)
   return async () => {
     if (busy.current) return
     busy.current = true
     try {
-      await appContainer.resolve('authUseCase').logout()
-      dispatch(sessionActions.logout())
-      navigate('/')
-      toast('로그아웃했어요')
-      return true
-    } catch (error) {
-      if (error instanceof SessionExpired) {
-        dispatch(sessionActions.logout())
-        navigate('/login')
-        toast('세션이 만료됐어요. 다시 로그인해 주세요.')
-        return true
-      }
-      toast('로그아웃하지 못했어요. 다시 시도해 주세요.')
-      return false
+      return await logoutSession({
+        logout: () => auth.logout(),
+        clearSession: () => dispatch(sessionActions.logout()),
+        navigate,
+        notify: toast,
+        guard,
+      })
     } finally {
       busy.current = false
     }
