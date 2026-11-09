@@ -52,3 +52,9 @@
 .world-map-expanded .world-map-layout{grid-template-columns:190px minmax(0,1fr) 280px}
 .world-map-expanded .world-map-detail{grid-column:auto;border-top:0;border-left:1px solid var(--line)}
 @media(max-width:900px){.world-map-expanded{padding:12px}.world-map-expanded .world-map-layout{grid-template-columns:150px minmax(0,1fr)}.world-map-expanded .world-map-detail{grid-column:1/-1}}
+
+.relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;border:1px solid var(--line);border-radius:0 0 12px 12px;overflow:hidden}
+.relationship-service-form{padding:20px;border-left:1px solid var(--line);background:var(--surface);min-width:0;max-height:760px;overflow:auto}
+.relationship-service-form>nav{display:flex;gap:8px;flex-wrap:wrap;margin-block:16px}
+@media(max-width:1050px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{border-left:0;border-top:1px solid var(--line);max-height:none}}
+@media(max-width:600px){.relationship-service-form{padding:12px}}

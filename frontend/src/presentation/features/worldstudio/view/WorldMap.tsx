@@ -15,7 +15,8 @@ export class MapBoundary extends Component<{children:ReactNode},{failed:boolean}
 
 export function WorldMap({world,charactersOnly=false}:{world:StudioWorld;charactersOnly?:boolean}) {
  const vm=useWorldMapViewModel(world.settings,charactersOnly?buildCharacterMap:buildWorldMap)
- const mockup=import.meta.env.MODE==='mockup',cards=charactersOnly&&mockup,presentation=!charactersOnly&&mockup
+ const [cardView,setCardView]=useState(true)
+ const cards=charactersOnly&&cardView,presentation=!charactersOnly
  const [expanded,setExpanded]=useState(false),toggle=useRef<HTMLButtonElement>(null)
  useEffect(()=>{
   if(!expanded)return
@@ -25,6 +26,7 @@ export function WorldMap({world,charactersOnly=false}:{world:StudioWorld;charact
  const title=charactersOnly?'인물 관계도 · 2D':'전체 세계관 지도'
  return <section className={'world-map'+(presentation?' presentation-world-map':'')+(expanded?' world-map-expanded':'')} aria-label={title}>
   <div className="world-map-intro"><h3>{title}</h3><p>저장한 설정의 연결을 살펴보세요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{presentation&&<button ref={toggle} type="button" className="btn sm" aria-expanded={expanded} onClick={()=>setExpanded(!expanded)}>{expanded?'지도 접기':'지도 넓게 보기'}</button>}</div>
+  {charactersOnly&&<div className="world-map-controls" role="group" aria-label="관계도 보기 방식"><button className="btn sm" type="button" aria-pressed={cardView} onClick={()=>setCardView(true)}>카드형</button><button className="btn sm" type="button" aria-pressed={!cardView} onClick={()=>setCardView(false)}>그래프형</button></div>}
   {!vm.graph.nodes.length?<p className="world-map-empty">저장된 설정이 없습니다.</p>:<div className="world-map-layout">
    <aside className="world-map-search"><h4>설정 탐색</h4><label className="field">설정 검색<input type="search" className="inp" value={vm.query} onChange={e=>vm.setQuery(e.target.value)} placeholder="이름, 내용, 태그"/></label>
     <div className="world-map-filters" role="group" aria-label="설정 종류">{(['전체',...Object.keys(mapColors)] as const).map(k=><button key={k} type="button" aria-pressed={vm.kind===k} onClick={()=>vm.setKind(k as typeof vm.kind)}>{k}</button>)}</div>

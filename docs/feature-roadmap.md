@@ -1252,6 +1252,12 @@
 | Frontend | WorldStudio | 세계관 탐색 | 다중 관계선 구분과 비대칭 방향 표시 (로컬 구현·미병합) | ❌ | [#128](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/128) |
 | Frontend | WorldStudio | 세계관 탐색 | 상세 연결의 관계 설명 원문 표시 (로컬 구현·미병합) | ❌ | [#127](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/127) |
 
+### WorldStudio 발표 디자인 통합
+
+| 영역 | 기능 | 상태 |
+|---|---|---|
+| 전체 지도·관계 화면 | 발표용 지도/카드 디자인 서비스 연결, 기존 입력 보호·방향/곡률 유지 | 소스 구현·검증 진행, 미병합·미배포. [전체 차이 점검](worldstudio-presentation-ui-audit.md) |
+
 ### WorldStudio 진입 보호·기본 표지 — 미등록-119
 
 | 서비스 | 서브시스템 | 중간 기능 | 세부 기능 | 개발 완료 | 관련 이슈 |

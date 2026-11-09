@@ -16,7 +16,7 @@ afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
 })
-it('selects source and target, applies free prose and preserves the relation ID on edit', async () => {
+it('connects character and location cards, applies free prose and preserves the relation ID on edit', async () => {
   const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
   const world = await useCase.create('세계', ''), a = newSetting('people'), b = newSetting('places')
   a.item.title = '가람'
@@ -41,13 +41,9 @@ it('selects source and target, applies free prose and preserves the relation ID 
       </Routes>
     </MemoryRouter>,
   )
-  fireEvent.change(await screen.findByRole('combobox', { name: 'source · 관계 주체' }), {
-    target: { value: a.item.id },
-  })
-  fireEvent.change(screen.getByRole('combobox', { name: 'target · 관계 대상' }), {
-    target: { value: b.item.id },
-  })
-  fireEvent.click(screen.getByRole('button', { name: '관계 작성' }))
+  fireEvent.click(await screen.findByRole('button', { name: '가람 관계 연결' }))
+  expect(screen.getByRole('group', { name: '항구 장소 카드' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '항구 상대 선택' }))
   fireEvent.change(screen.getByRole('combobox', { name: '실제 관계 1' }), {
     target: { value: '지키는 장소' },
   })
