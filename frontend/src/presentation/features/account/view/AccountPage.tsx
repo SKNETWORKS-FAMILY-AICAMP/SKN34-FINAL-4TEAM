@@ -43,9 +43,10 @@ function Account({ sub }: { sub: string }) {
   useDocumentTitle(TITLE[sub] ?? '계정')
   const [q] = useSearchParams()
   const id = q.get('id')
-  const NOTICE = vm.data?.board?.notices ?? [], EVENTS = vm.data?.board?.events ?? []
+  const EVENTS = vm.data?.events ?? []
   let T: ReactNode = null
-  if (!vm.data && ['liked', 'notice', 'event'].includes(sub)) T = null
+  if (sub === 'notice') T = <NoticeBoard vm={vm} id={id} />
+  else if (!vm.data && ['liked', 'event'].includes(sub)) T = null
   else if (sub === 'profile') T = vm.profileState === 'ready' ? <Profile vm={vm} /> : <section className="tcard mecard" aria-busy={vm.profileState === 'loading'}>
     <p role={vm.profileState === 'error' ? 'alert' : 'status'}>{vm.profileState === 'loading' ? '프로필을 불러오고 있어요.' : '프로필을 불러오지 못했어요. 다시 시도해 주세요.'}</p>
     {vm.profileState === 'error' && <button type="button" className="btn" onClick={vm.retryProfile}>프로필 다시 시도</button>}
@@ -60,11 +61,6 @@ function Account({ sub }: { sub: string }) {
     <div className="tcard mecard" style={{ marginTop: 14 }}><div className="eptool" style={{ border: 0, padding: 0 }}><div className="sortt"><button type="button" className="on">전체</button><button type="button" disabled title="결제 기능 미정">충전</button><button type="button" disabled title="결제 기능 미정">사용</button></div></div>
       <p className="muted" style={{ padding: '28px 0', textAlign: 'center' }}>결제 내역이 없어요.</p><div className="policy">유료 열람·크레딧 충전은 기획서 V장에서 ‘추후 확정’이라 이 목업에서는 결제가 일어나지 않아요. <button type="button" className="btn sm" onClick={openPolicy}>정책 안내</button></div></div></>
   else if (sub === 'inquiry') T = <InquiryView vm={vm} />
-  else if (sub === 'notice' && id !== null) {
-    const n = NOTICE[Number(id)]
-    T = n ? <><h2>공지사항</h2><article className="tcard mecard"><Go to="/me/notice" className="btn sm">← 목록으로</Go><small className="muted">{n[0]}</small><h3>{n[1]}</h3><p>{n[2]}</p></article></>
-      : <><h2>공지사항</h2><p className="note2">공지사항을 찾을 수 없어요.</p><Go to="/me/notice" className="btn sm">목록으로</Go></>
-  } else if (sub === 'notice') T = <><h2>공지사항</h2><div className="list">{NOTICE.map((n, i) => <Link key={i} className="ntc" to={`/me/notice?id=${i}`}><b>{n[1]}</b><small>{n[0]}</small></Link>)}</div></>
   else if (sub === 'event' && id !== null) {
     const e = EVENTS[Number(id)]
     T = e ? <><h2>이벤트</h2><article className="tcard mecard" style={{ maxWidth: 740 }}><Go to="/me/event" className="btn sm">← 목록으로</Go><div className="top"><span className={`chip ${e.st === '진행 중' ? 'ok' : 'wait'}`}>{e.st}</span><small className="muted">{e.p}</small></div><h3>{e.t}</h3><p>{e.d}</p><Go to={e.go} className={`btn ${e.st === '진행 중' ? 'pri' : ''}`}>{e.cta} →</Go></article></>
@@ -79,6 +75,24 @@ function Account({ sub }: { sub: string }) {
       <Footer />
     </>
   )
+}
+
+const noticeDay = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' })
+const noticeDate = (iso: string) => noticeDay.format(new Date(iso)).replaceAll('-', '.')
+
+/** U35 공지사항: 운영 공지 API(로그인 불필요)의 목록·상세. 로딩·실패·없음은 실제 조회 결과대로 보입니다. */
+function NoticeBoard({ vm, id }: { vm: VM; id: string | null }) {
+  const { data } = vm
+  let body: ReactNode
+  if (vm.loadFailed) body = <><p role="alert">공지사항을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={vm.retryLoad}>다시 불러오기</button></>
+  else if (!data) body = <p role="status">공지사항을 불러오고 있어요.</p>
+  else if (id === null) body = data.notices.length
+    ? <div className="list">{data.notices.map((n) => <Link key={n.id} className="ntc" to={`/me/notice?id=${n.id}`}><b>{n.title}</b><small>{noticeDate(n.createdAt)}</small></Link>)}</div>
+    : <p className="note2">등록된 공지사항이 없어요.</p>
+  else body = data.notice
+    ? <article className="tcard mecard"><Go to="/me/notice" className="btn sm">← 목록으로</Go><small className="muted">{noticeDate(data.notice.createdAt)}</small><h3>{data.notice.title}</h3><p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{data.notice.body}</p></article>
+    : <><p className="note2">공지사항을 찾을 수 없어요.</p><Go to="/me/notice" className="btn sm">목록으로</Go></>
+  return <><h2>공지사항</h2>{body}</>
 }
 
 function Profile({ vm }: { vm: VM }) {
