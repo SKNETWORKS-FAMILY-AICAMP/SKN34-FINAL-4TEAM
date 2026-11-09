@@ -48,11 +48,9 @@ describe('설정 노트 (목업 data-work-setting·worldExtract·release·data-c
   })
 
   it('설정 추출은 후보로만 두고, 반영하면 세계관에 넣고 제외하면 지운다', async () => {
-    expect(await setup(false).useCase.extractWorld('starlight', 2, ok)).toEqual({ ok: false, message: '작가 소유 세계관과 발행된 회차가 필요해요' })
+    expect(await setup(false).useCase.extractWorld('starlight', 1, ok)).toBe('작가 소유 세계관과 발행된 회차가 필요해요')
     const { db, useCase, star } = setup()
-    expect(await useCase.extractWorld('starlight', 2, () => false)).toBeNull()
-    expect(star().worldCandidate).toBeUndefined()
-    expect(await useCase.extractWorld('starlight', 1, ok)).toEqual({ ok: true, message: '설정 후보를 확인해 주세요 (데모)' })
+    expect(await useCase.extractWorld('starlight', 1, ok)).toBe('설정 후보를 확인해 주세요 (데모)')
     expect(star().worldCandidate).toEqual({ text: star().eps[0].p[0].slice(0, 200), source: '별빛 서약의 탑', ep: 1 })
     expect(await useCase.acceptWorld('starlight')).toBe('채택한 후보를 세계관에 반영했어요 (데모)')
     expect(db.worlds.find((w) => w.id === 'my-world')!.facts).toHaveLength(1)

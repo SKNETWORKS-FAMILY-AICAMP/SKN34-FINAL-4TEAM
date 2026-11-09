@@ -130,10 +130,9 @@ export class StudioUseCase {
     const w = await this.work(id)
     if (!w || !isMine(w)) return null
     const r = await this.worldExtract(w, n, approve, false)
-    if (r === null) return null
-    if (r !== '') return { ok: false, message: r }
+    if (r !== '') return r
     await this.workRepository.saveWork(w)
-    return { ok: true, message: '설정 후보를 확인해 주세요 (데모)' }
+    return '설정 후보를 확인해 주세요 (데모)'
   }
 
   /** 목업 act==='acceptWorld' */

@@ -53,7 +53,9 @@ class SavedFlowTest(unittest.TestCase):
             self.assertEqual(version['revision_no'],draft['edit_revision'])
             self.assertEqual(len(docs),world['revision'])
             self.assertEqual(list(range(len(docs))),[v['revision_no'] for v in rows['setting_version']])
-            self.assertEqual(genre['content_markdown'].encode(),(path/'source/original.md').read_bytes())
+            # JSON retains CRLF escapes; Git stored original.md with LF. Keep all other whitespace.
+            self.assertEqual(genre['content_markdown'].replace('\r\n', '\n'),
+                             (path/'source/original.md').read_bytes().decode('utf-8').replace('\r\n', '\n'))
             for service in ('core','content'):
                 self.assertEqual(loader.render_sql(service,path).encode(),(path/'sql'/f'{service}.sql').read_bytes())
             for t in ('fork','publication_event'):

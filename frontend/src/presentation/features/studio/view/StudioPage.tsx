@@ -282,9 +282,7 @@ function NotePanel({ vm }: { vm: VM }) {
       <label className="field"><span><input type="checkbox" checked={st.autoWorld} onChange={(e) => vm.setSetting('autoWorld', e.target.checked)} /> 새 회차 발행 후 세계관 자동 업데이트</span></label>
       <label className="field"><span><input type="checkbox" checked={st.typoAuto} onChange={(e) => vm.setSetting('typoAuto', e.target.checked)} /> 표기 오류 수정안 자동 승인·발행</span></label>
       <label className="field">추출할 발행 회차<select className="inp" id="extractEpisode" value={extractNo} onChange={(e) => setExtractNo(+e.target.value)}>{w.eps.map((ep, i) => <option key={i} value={i + 1}>{i + 1}화 · {ep.t}</option>)}</select></label>
-      <button type="button" className="btn sm" onClick={async () => {
-        if (await vm.extractWorld(extractNo)) setExtractNo(1)
-      }}>설정 추출 (데모)</button>
+      <button type="button" className="btn sm" onClick={() => vm.extractWorld(extractNo)}>설정 추출 (데모)</button>
       {w.worldCandidate && <div className="note2"><b>검토 대기 · 원고 발췌 예시</b><p>{w.worldCandidate.text}</p><button type="button" className="btn sm" onClick={vm.acceptWorld}>세계관에 반영</button><button type="button" className="btn sm" onClick={vm.discardWorld}>제외</button></div>}
       <Go to={`/studio/${w.id}?view=wiki`} className="btn sm">📖 사전에서 인물·세계관 자세히 관리 →</Go>
       <h4>세계관 규칙 {w.parent ? '(스냅샷)' : ''}</h4><ul>{s.base.rules.map((r, i) => <li key={r}>{r}{release && releaseInput('rule', i, from(w.ruleFrom, r), '독자 공개 시작 회차 (비우면 비공개)')}</li>)}</ul>

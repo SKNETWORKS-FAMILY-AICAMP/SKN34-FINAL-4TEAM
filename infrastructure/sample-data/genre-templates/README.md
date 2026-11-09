@@ -49,3 +49,13 @@
 [저장 흐름 검증 및 한계](./SAVE_FLOW.md)를 확인하세요. 추가된 episode_draft를 지원하는 이 폴더의 load.py를 사용합니다. 예: `python load.py wuxia`. 지정한 장르의 준비 SQL만 갱신하며 DB나 migration에는 접근하지 않습니다. 부모 loader는 테이블 31개만 허용하므로 이 32개 패키지에 직접 사용하지 않습니다.
 
 검증 재실행: `python -B test_saved_flow.py -v` (오프라인 단위 검증).
+
+## 원문 보존과 CI 공백 검사
+
+원문의 Markdown 줄바꿈용 끝 공백과 마지막 빈 줄은 그대로 보존합니다.
+루트 `.gitattributes`는 장르별 `source/original.md`에만 줄 끝 공백·마지막 빈 줄 검사 예외를,
+원문을 담은 `setting_version.csv`, `episode_version.csv`, `episode_draft.csv`, `work.csv`, `sql/content.sql`에는
+줄 끝 공백 검사 예외만 적용합니다. 로더·테스트·안내 문서와 그 외 파일의 공백 검사는 유지합니다.
+CI의 `git diff --check` 자체와 테스트 선택·실행 규칙은 변경하지 않습니다.
+원문·콘텐츠 CSV·SQL에는 `-text`를 적용해 Windows 체크아웃에서도 Git이 줄바꿈 바이트를 변환하지 않도록 합니다.
+원문 비교 테스트는 JSON의 CRLF와 Git에 저장된 원문의 LF만 동일하게 취급하며, 본문·끝 공백·빈 줄은 비교합니다.
