@@ -6,7 +6,7 @@ import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector, type RootState } from '../../../../app/store'
 import type { AdminTab } from '../../../../domain/entities/admin'
 import { OperationsError, toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
-import type { AdminResult, AdminUseCase } from '../../../../domain/usecases/AdminUseCase'
+import { type AdminResult, type AdminUseCase, canToggleWork } from '../../../../domain/usecases/AdminUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
 import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
 import type { ReportStatus, ReviewDecision } from '../../../../domain/entities/report'
@@ -68,9 +68,12 @@ export function useAdminViewModel(
   const [lastSuccess, setLastSuccess] = useState('')
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
 
+  // 데모 조회(query) 중·실패 때는 데모 탭 조치만 막습니다. 실제 운영 API 탭은 데모 조회와 무관하게 조치합니다.
+  const mutationsBlocked = !LIVE_TABS.includes(tab) && (query.isLoading || query.isRefreshing || query.isError)
+
   /** 지연 실행으로 중복 호출 자체를 막습니다. 저장 결과와 뒤이은 목록 재조회 결과는 별개입니다. */
   const run = async (key: string, action: () => Promise<AdminResult>): Promise<boolean> => {
-    if (busy.current.has(key) || query.isLoading || query.isRefreshing || query.isError) return false
+    if (busy.current.has(key) || mutationsBlocked) return false
     busy.current.add(key)
     setLastSuccess('')
     setActions((s) => ({ ...s, [key]: { pending: true, error: '', message: '' } }))
@@ -96,8 +99,21 @@ export function useAdminViewModel(
   /** 서버 응답 성공만 완료로 표시하고 dataChanged로 목록·상세를 다시 조회합니다. */
   const runLive = (key: string, msg: string, action: () => Promise<void>) => run(key, async () => { await action(); return { ok: true, msg } })
   const selectRecord = (kind: OperationsRecordKind, id: string | null) => { dispatch(adminViewActions.selectRecord({ kind, id })) }
+  /**
+   * 요청을 보내는 순간의 초안(`draftOf`)을 기억해 두었다가, 완료 때 호출하면 같은 mount·같은 선택에서
+   * 초안이 그대로일 때만 true입니다. 화면을 떠났거나 다른 레코드를 골랐거나 초안을 고쳤다면(같은 내용으로 다시 쓴 새 초안 포함) false입니다.
+   */
+  const watchForm = (kind: OperationsRecordKind, id: string, draftOf: (s: RootState['adminView']) => unknown) => {
+    const before = draftOf(store.getState().adminView)
+    return () => {
+      const now = store.getState().adminView
+      return mounted.current && now.recordSelection[kind] === id && draftOf(now) === before
+    }
+  }
   return {
     ...query, ...view, actions, lastSuccess,
+    /** 개요의 '답변 대기 문의': 운영 패널(메모리) 문의 중 답변이 하나도 없는 건수. 회원 문의는 세지 않습니다. */
+    unansweredInquiries: query.data?.operations.inquiries.filter((q) => !q.replies.length).length ?? 0,
     /** 본인 계정 조치 버튼을 막는 화면용 값. 서버도 본인 제한을 400으로 거절합니다. */
     selfId: memberId,
     me,
@@ -109,7 +125,7 @@ export function useAdminViewModel(
       setContentRestriction: (id: string, restricted: boolean) => runLive(`report:${id}:restrict`, restricted ? '대상 작품을 제한했어요.' : '대상 작품 제한을 해제했어요.', () => reportUseCase.setContentRestriction(id, restricted)),
       requestEvidence: (id: string, body: string) => runLive(`report:${id}:evidence`, '작품 등록자에게 권리 증빙을 요청했어요.', () => reportUseCase.requestEvidence(id, body)),
     },
-    mutationsBlocked: query.isLoading || query.isRefreshing || query.isError,
+    mutationsBlocked,
     setSel: (id: string) => { dispatch(adminViewActions.select(id)) },
     setFilter: (t: AdminTab, filter: AdminFilter) => { dispatch(adminViewActions.setFilter({ tab: t, filter })) },
     setChatForm: (form: AdminChatForm) => { dispatch(adminViewActions.setChatForm(form)) },
@@ -118,90 +134,64 @@ export function useAdminViewModel(
     setEventDraft: (id: string, value: EventDraft) => { dispatch(adminViewActions.setEventDraft({ id, value })) },
     setInquiryDraft: (id: string, value: InquiryInput) => { dispatch(adminViewActions.setInquiryDraft({ id, value })) },
     setReplyDraft: (id: string, value: string) => { dispatch(adminViewActions.setReplyDraft({ id, value })) },
-    selectLegacyInquiry: (id: string | null) => { dispatch(adminViewActions.selectLegacyInquiry(id)) },
-    setLegacyDraft: (id: string, field: string, value: string) => { dispatch(adminViewActions.setLegacyDraft({ id, field, value })) },
-    clearLegacyDraft: (id: string) => {
-      const current = store.getState().adminView
-      if (mounted.current && current.legacyDrafts[id] === view.legacyDrafts[id] && (!id.startsWith('inquiry:') || current.legacyInquiryId === view.legacyInquiryId)) dispatch(adminViewActions.clearLegacyDraft(id))
-    },
     // 성공·dataChanged는 유지하되 UI 정리는 살아 있는 폼의 제출 초안·선택에만 적용합니다.
     saveNotice: (id: string | null, input: NoticeInput) => run(`notice:${id ?? 'new'}`, async () => {
+      const key = id ?? 'new', untouched = watchForm('notices', key, (s) => s.noticeDrafts[key])
       const row = await operationsUseCase.saveNotice(id, input)
-      const current = store.getState().adminView
-      const draft = current.noticeDrafts[id ?? 'new']
-      if (mounted.current && current.recordSelection.notices === (id ?? 'new') && draft === view.noticeDrafts[id ?? 'new'] && (!draft || draft.title === input.title && draft.body === input.body)) {
-        dispatch(adminViewActions.clearNoticeDraft(id ?? 'new')); selectRecord('notices', row.id)
-      }
+      if (untouched()) { dispatch(adminViewActions.clearNoticeDraft(key)); selectRecord('notices', row.id) }
       return demoSaved('공지를')
     }),
     deleteNotice: (id: string) => run(`notice:${id}`, async () => {
-      const draft = store.getState().adminView.noticeDrafts[id]
+      const untouched = watchForm('notices', id, (s) => s.noticeDrafts[id])
       await operationsUseCase.deleteNotice(id)
-      const current = store.getState().adminView
-      if (mounted.current && current.recordSelection.notices === id && current.noticeDrafts[id] === draft) {
-        dispatch(adminViewActions.clearNoticeDraft(id)); selectRecord('notices', null)
-      }
+      if (untouched()) { dispatch(adminViewActions.clearNoticeDraft(id)); selectRecord('notices', null) }
       return demoDeleted('공지를')
     }),
     saveEvent: (id: string | null, input: EventDraft) => run(`event:${id ?? 'new'}`, async () => {
+      const key = id ?? 'new', untouched = watchForm('events', key, (s) => s.eventDrafts[key])
       const row = await operationsUseCase.saveEvent(id, { title: input.title, body: input.body, startsAt: toUtcFromKoreanInput(input.startsAt), endsAt: toUtcFromKoreanInput(input.endsAt) })
-      const current = store.getState().adminView
-      const draft = current.eventDrafts[id ?? 'new']
-      if (mounted.current && current.recordSelection.events === (id ?? 'new') && draft === view.eventDrafts[id ?? 'new'] && (!draft || draft.title === input.title && draft.body === input.body && draft.startsAt === input.startsAt && draft.endsAt === input.endsAt)) {
-        dispatch(adminViewActions.clearEventDraft(id ?? 'new')); selectRecord('events', row.id)
-      }
+      if (untouched()) { dispatch(adminViewActions.clearEventDraft(key)); selectRecord('events', row.id) }
       return demoSaved('이벤트를')
     }),
     deleteEvent: (id: string) => run(`event:${id}`, async () => {
-      const draft = store.getState().adminView.eventDrafts[id]
+      const untouched = watchForm('events', id, (s) => s.eventDrafts[id])
       await operationsUseCase.deleteEvent(id)
-      const current = store.getState().adminView
-      if (mounted.current && current.recordSelection.events === id && current.eventDrafts[id] === draft) {
-        dispatch(adminViewActions.clearEventDraft(id)); selectRecord('events', null)
-      }
+      if (untouched()) { dispatch(adminViewActions.clearEventDraft(id)); selectRecord('events', null) }
       return demoDeleted('이벤트를')
     }),
     saveInquiry: (id: string | null, input: InquiryInput) => run(`inquiry:${id ?? 'new'}`, async () => {
+      const key = id ?? 'new', untouched = watchForm('inquiries', key, (s) => s.inquiryDrafts[key])
       const row = await operationsUseCase.saveInquiry(id, input)
-      const current = store.getState().adminView
-      const draft = current.inquiryDrafts[id ?? 'new']
-      if (mounted.current && current.recordSelection.inquiries === (id ?? 'new') && draft === view.inquiryDrafts[id ?? 'new'] && (!draft || draft.title === input.title && draft.body === input.body && draft.category === input.category)) {
-        dispatch(adminViewActions.clearInquiryDraft(id ?? 'new')); selectRecord('inquiries', row.id)
-      }
+      if (untouched()) { dispatch(adminViewActions.clearInquiryDraft(key)); selectRecord('inquiries', row.id) }
       return demoSaved('문의를')
     }),
     deleteInquiry: (id: string) => run(`inquiry:${id}`, async () => {
-      const submitted = store.getState().adminView
+      const replyDrafts = store.getState().adminView.replyDrafts, untouched = watchForm('inquiries', id, (s) => s.inquiryDrafts[id])
       await operationsUseCase.deleteInquiry(id)
-      const current = store.getState().adminView
-      if (mounted.current && current.recordSelection.inquiries === id && current.inquiryDrafts[id] === submitted.inquiryDrafts[id] && Object.entries(current.replyDrafts).every(([key, body]) => !key.startsWith(id + ':') || body === submitted.replyDrafts[key])) {
+      // 문의에 딸린 답변 초안도 요청 중에 새로 쓰거나 고치지 않았을 때만 함께 정리합니다.
+      if (untouched() && Object.entries(store.getState().adminView.replyDrafts).every(([key, body]) => !key.startsWith(id + ':') || body === replyDrafts[key])) {
         dispatch(adminViewActions.clearInquiryDraft(id)); dispatch(adminViewActions.clearInquiryReplies(id)); selectRecord('inquiries', null)
       }
       return demoDeleted('문의를')
     }),
     saveReply: (inquiryId: string, id: string | null, body: string) => run(`reply:${inquiryId}:${id ?? 'new'}`, async () => {
+      const key = `${inquiryId}:${id ?? 'new'}`, untouched = watchForm('inquiries', inquiryId, (s) => s.replyDrafts[key])
       await operationsUseCase.saveReply(inquiryId, id, body)
-      const current = store.getState().adminView
-      const draft = current.replyDrafts[`${inquiryId}:${id ?? 'new'}`]
-      if (mounted.current && current.recordSelection.inquiries === inquiryId && (draft === undefined || draft === body)) dispatch(adminViewActions.clearReplyDraft(`${inquiryId}:${id ?? 'new'}`))
+      if (untouched()) dispatch(adminViewActions.clearReplyDraft(key))
       return demoSaved('답변을')
     }),
     deleteReply: (inquiryId: string, id: string) => run(`reply:${inquiryId}:${id}`, async () => {
-      const draft = store.getState().adminView.replyDrafts[`${inquiryId}:${id}`]
+      const key = `${inquiryId}:${id}`, untouched = watchForm('inquiries', inquiryId, (s) => s.replyDrafts[key])
       await operationsUseCase.deleteReply(inquiryId, id)
-      const current = store.getState().adminView
-      if (mounted.current && current.recordSelection.inquiries === inquiryId && current.replyDrafts[`${inquiryId}:${id}`] === draft) dispatch(adminViewActions.clearReplyDraft(`${inquiryId}:${id}`))
+      if (untouched()) dispatch(adminViewActions.clearReplyDraft(key))
       return demoDeleted('답변을')
     }),
     chatChoices: adminUseCase.chatChoices.bind(adminUseCase),
+    canToggleWork,
     toggleWork: (id: string) => run(`work:${id}`, () => adminUseCase.toggleWork(id)),
     toggleComment: (id: string, label: string) => run(`comment:${id}`, () => adminUseCase.toggleComment(id, label)),
     toggleChat: (id: string) => run(`chat:${id}`, () => adminUseCase.toggleChat(id)),
     addChat: (workId: string, character: string) => run('chat:new', () => adminUseCase.addChat(workId, character)),
-    reply: (id: string, text: string) => run(`legacy:reply:${id}`, () => adminUseCase.reply(id, text)),
-    addNotice: (t: string, b: string) => run('legacy:notice', () => adminUseCase.addNotice(t, b)),
-    addEvent: (t: string, p: string, b: string) => run('legacy:event:new', () => adminUseCase.addEvent(t, p, b)),
-    toggleEvent: (i: number) => run(`legacy:event:${i}`, () => adminUseCase.toggleEvent(i)),
     runJob: (id: string) => run(`job:${id}`, () => adminUseCase.runJob(id)),
     resolveAlert: (id: string) => run(`alert:${id}`, () => adminUseCase.resolveAlert(id)),
     logout,

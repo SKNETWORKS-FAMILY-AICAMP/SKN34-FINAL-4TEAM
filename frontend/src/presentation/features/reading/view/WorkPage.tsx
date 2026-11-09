@@ -54,7 +54,7 @@ export function WorkPage() {
               {!!last && <Go to={`/read/${id}/1`} className="tbtn">처음부터</Go>}
               <LikeButton liked={liked} onClick={vm.toggleLike} />
               <button type="button" className="ib" aria-label="공유" onClick={vm.share}>↗</button>
-              {!w.canonical && <button type="button" className="btn sm" aria-label={`${w.title} 소설 신고`} onClick={() => vm.setReporting(true)}>🚩 소설 신고</button>}
+              {vm.canReport && <button type="button" className="btn sm" aria-label={`${w.title} 소설 신고`} onClick={() => vm.setReporting(true)}>🚩 소설 신고</button>}
             </div>
           </div>
         </section>
