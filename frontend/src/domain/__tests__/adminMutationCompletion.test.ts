@@ -12,7 +12,8 @@ const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
   admin: { chatChoices: vi.fn(), toggleWork: vi.fn() },
   toast: vi.fn(),
-  operations: { saveNotice: vi.fn(), deleteNotice: vi.fn(), saveEvent: vi.fn(), deleteEvent: vi.fn() },
+  operations: { saveEvent: vi.fn(), deleteEvent: vi.fn() },
+  notices: { save: vi.fn(), delete: vi.fn() },
   support: { listAll: vi.fn(), get: vi.fn(), addReply: vi.fn(), updateReply: vi.fn(), deleteReply: vi.fn() },
   member: { setRestriction: vi.fn(), createAdmin: vi.fn() },
   report: { review: vi.fn(), setContentRestriction: vi.fn(), requestEvidence: vi.fn() },
@@ -25,7 +26,7 @@ vi.mock('react', () => ({
   useEffect: (setup: () => (() => void)) => { doubles.cleanups.push(setup()) },
 }))
 vi.mock('react-redux', () => ({ useStore: () => ({ getState: doubles.getState }) }))
-vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report, supportInquiryUseCase: doubles.support } as Record<string, unknown>)[name] ?? doubles.operations } }))
+vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report, noticeUseCase: doubles.notices, supportInquiryUseCase: doubles.support } as Record<string, unknown>)[name] ?? doubles.operations } }))
 vi.mock('../../app/store', () => ({ useAppDispatch: () => doubles.dispatch, useAppSelector: (select: (state: RootState) => unknown) => select(doubles.getState()) }))
 vi.mock('../../presentation/shared/session/useLogout', () => ({ useLogout: () => vi.fn() }))
 vi.mock('../../presentation/shared/screenIds', () => ({ useScreenId: vi.fn() }))
@@ -52,7 +53,9 @@ beforeEach(() => {
 
 const notice = { title: '제출한 제목', body: '제출한 본문' }
 const event = { ...notice, startsAt: '', endsAt: '' }
-const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: keyof typeof doubles.operations; other?: (vm: VM) => void }[] = [
+// 공지 저장·삭제는 NoticeUseCase(save·delete) 대역으로 보내므로 메서드 이름은 사례 구분용입니다.
+type Method = 'saveNotice' | 'deleteNotice' | keyof typeof doubles.operations
+const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: Method; other?: (vm: VM) => void }[] = [
   ...(['new', 'existing'] as const).flatMap((id) => [
     { name: `notice save ${id}`, method: 'saveNotice' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('notices', id); vm.setNoticeDraft(id, { ...notice, body: changed ? '새 본문' : notice.body }) }, submit: (vm: VM) => vm.saveNotice(id === 'new' ? null : id, notice), other: (vm: VM) => vm.selectRecord('notices', 'other') },
     { name: `event save ${id}`, method: 'saveEvent' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('events', id); vm.setEventDraft(id, { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm: VM) => vm.saveEvent(id === 'new' ? null : id, event), other: (vm: VM) => vm.selectRecord('events', 'other') },
@@ -64,7 +67,8 @@ const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submi
 function useStartedSubmission(test: typeof cases[number]) {
   let finish!: (result: { id: string; ok: boolean; msg: string }) => void
   const response = new Promise<{ id: string; ok: boolean; msg: string }>((done) => { finish = done })
-  doubles.operations[test.method].mockReturnValueOnce(response)
+  const method = test.method === 'saveNotice' ? doubles.notices.save : test.method === 'deleteNotice' ? doubles.notices.delete : doubles.operations[test.method]
+  method.mockReturnValueOnce(response)
   let vm = useAdminViewModel('notices')
   test.prepare(vm)
   // 실제 View가 제출한 렌더의 vm을 보존하듯, 최신 선택/초안을 읽은 callback을 보존합니다.
@@ -187,6 +191,7 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     { tab: 'admins', name: '관리자 계정 생성', submit: (vm) => vm.live.createAdmin({ email: 'new@example.invalid', nickname: '새 관리자', password: 'password-1', permissions: ['works'] }), backend: () => doubles.member.createAdmin },
     { tab: 'rights', name: '신고 검토', submit: (vm) => vm.live.review('report-1', 'ACCEPTED', '확인'), backend: () => doubles.report.review },
     { tab: 'feedback', name: '고객지원 문의 답변 등록', submit: (vm) => vm.live.addReply('inquiry-1', '답변'), backend: () => doubles.support.addReply },
+    { tab: 'notices', name: '공지 삭제', submit: (vm) => vm.deleteNotice('notice-1'), backend: () => doubles.notices.delete },
   ]
 
   describe.each(demoStates)('데모 조회가 %s일 때', (_name, state) => {
@@ -202,19 +207,19 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     })
 
     it('데모 탭의 조치는 기존처럼 막혀 실행되지 않는다', async () => {
-      const vm = useAdminViewModel('notices')
+      const vm = useAdminViewModel('events')
       expect(vm.mutationsBlocked).toBe(true)
-      expect(await vm.saveNotice(null, notice)).toBe(false)
-      expect(doubles.operations.saveNotice).not.toHaveBeenCalled()
+      expect(await vm.saveEvent(null, event)).toBe(false)
+      expect(doubles.operations.saveEvent).not.toHaveBeenCalled()
       expect(dataVersion).toBe(0)
     })
   })
 
   it('데모 조회가 끝나 있으면 데모 탭 조치는 실행된다', async () => {
-    doubles.operations.saveNotice.mockResolvedValueOnce({ id: 'saved' })
-    const vm = useAdminViewModel('notices')
+    doubles.operations.saveEvent.mockResolvedValueOnce({ id: 'saved' })
+    const vm = useAdminViewModel('events')
     expect(vm.mutationsBlocked).toBe(false)
-    expect(await vm.saveNotice(null, notice)).toBe(true)
+    expect(await vm.saveEvent(null, event)).toBe(true)
     expect(dataVersion).toBe(1)
   })
 })

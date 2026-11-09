@@ -1,8 +1,10 @@
 import { OperationsUseCase } from '../../domain/usecases/OperationsUseCase'
 import { MemberUseCase } from '../../domain/usecases/MemberUseCase'
+import { NoticeUseCase } from '../../domain/usecases/NoticeUseCase'
 import { ReportUseCase } from '../../domain/usecases/ReportUseCase'
 import { SupportInquiryUseCase } from '../../domain/usecases/SupportInquiryUseCase'
 import { HttpMemberRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
+import { HttpNoticeRepository } from '../../data/api/noticeApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
@@ -50,6 +52,8 @@ export function registerAppServices(container: AppContainer) {
   container.register({
     operationsRepository: asFunction(() => new InMemoryOperationsRepository()).singleton(),
     operationsUseCase: asFunction(({ operationsRepository }) => new OperationsUseCase(operationsRepository)).singleton(),
+    noticeRepository: asFunction(() => new HttpNoticeRepository()).singleton(),
+    noticeUseCase: asFunction(({ noticeRepository }) => new NoticeUseCase(noticeRepository)).singleton(),
     reportRepository: asFunction(() => new HttpReportRepository()).singleton(),
     reportUseCase: asFunction(({ reportRepository }) => new ReportUseCase(reportRepository)).singleton(),
     memberRepository: asFunction(() => new HttpMemberRepository()).singleton(),

@@ -1,7 +1,9 @@
 import { asValue } from 'awilix/browser'
 
 import { createFixtureDb } from '../../data/mock/fixtureDb'
+import { InMemoryNoticeRepository } from '../../data/mock/InMemoryNoticeRepository'
 import { InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
+import { seedNotices } from '../../data/mock/seed'
 import { createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupNotificationRepository } from '../../data/mock/mockupRepositories'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
@@ -33,5 +35,7 @@ export function registerMockupServices(container: AppContainer) {
     worldStudioUseCase: asValue(new WorldStudioUseCase(createMockupWorldStudioRepository())),
     storyPlanUseCase: asValue(new StoryPlanUseCase(new InMemoryStoryPlanRepository(workRepository))),
     openNotificationStream: asValue(() => () => {}),
+    // 공지는 관리자 탭에서 쓰면 /me/notice에 보이는 메모리 저장소. 기존 목업 공지 4건으로 시작합니다.
+    noticeRepository: asValue(new InMemoryNoticeRepository(seedNotices())),
   })
 }

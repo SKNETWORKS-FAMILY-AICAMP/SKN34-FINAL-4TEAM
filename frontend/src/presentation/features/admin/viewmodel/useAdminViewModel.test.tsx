@@ -16,10 +16,11 @@ function setup(tab: AdminTab = 'notices') {
   const container = createFixtureContainer()
   const admin = container.resolve('adminUseCase')
   const operations = container.resolve('operationsUseCase')
-  const support = container.resolve('supportInquiryUseCase')
+  const notices = container.resolve('noticeUseCase'), support = container.resolve('supportInquiryUseCase')
   const store = createAppStore({ role: 'admin' })
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}><MemoryRouter>{children}</MemoryRouter></Provider>
-  return { admin, operations, support, store, mount: () => renderHook(({ tab }) => useAdminViewModel(tab, admin, operations, undefined, undefined, support), { wrapper, initialProps: { tab } }) }
+  const members = container.resolve('memberUseCase'), reports = container.resolve('reportUseCase')
+  return { admin, operations, notices, support, store, mount: () => renderHook(({ tab }) => useAdminViewModel(tab, admin, operations, members, reports, notices, support), { wrapper, initialProps: { tab } }) }
 }
 
 describe('관리자 비동기 상태와 입력 보존', () => {
@@ -41,7 +42,7 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     const { result } = f.mount()
     await waitFor(() => expect(result.current.data).toBeTruthy())
     let reject!: (error: Error) => void
-    const save = vi.spyOn(f.operations, 'saveNotice').mockImplementation(() => new Promise((_, no) => { reject = no }))
+    const save = vi.spyOn(f.notices, 'save').mockImplementation(() => new Promise((_, no) => { reject = no }))
     let pending!: Promise<boolean>
     await act(async () => {
       pending = result.current.saveNotice(null, { title: '제목', body: '본문' })
@@ -57,17 +58,17 @@ describe('관리자 비동기 상태와 입력 보존', () => {
   it('저장 성공 뒤 재조회만 실패하면 성공 결과를 뒤집지 않고 이전 목록과 stale 오류를 남긴다', async () => {
     const f = setup()
     const { result } = f.mount()
-    await waitFor(() => expect(result.current.data).toBeTruthy())
-    const before = result.current.data
-    vi.spyOn(f.operations, 'load').mockRejectedValueOnce(new Error('새로고침 실패'))
+    await waitFor(() => expect(result.current.data && result.current.live.data).toBeTruthy())
+    const before = result.current.live.data
+    vi.spyOn(f.notices, 'list').mockRejectedValueOnce(new Error('새로고침 실패'))
     await act(async () => { expect(await result.current.saveNotice(null, { title: '저장된 공지', body: '본문' })).toBe(true) })
-    await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(result.current.data).toBe(before)
+    await waitFor(() => expect(result.current.live.isError).toBe(true))
+    expect(result.current.live.data).toBe(before)
     expect(result.current.actions['notice:new'].message).toContain('저장')
     expect(result.current.lastSuccess).toContain('저장')
-    expect((await f.operations.load()).notices).toHaveLength(1)
-    act(() => result.current.retry())
-    await waitFor(() => expect(result.current.data?.operations.notices).toHaveLength(1))
+    expect(await f.notices.list()).toHaveLength(1)
+    act(() => result.current.live.retry())
+    await waitFor(() => expect(result.current.live.data?.notices).toHaveLength(1))
   })
 
   it('답변 등록 실패는 내부 예외 내용을 노출하지 않고 처리 중 표시를 풀며 다시 읽지 않는다', async () => {
@@ -120,8 +121,8 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     const submitted = { title: '제출한 공지', body: '원래 본문' }
     const replacement = { title: '재진입 후 새 공지', body: '잃으면 안 되는 새 본문' }
     act(() => { hook.result.current.selectRecord('notices', 'new'); hook.result.current.setNoticeDraft('new', submitted) })
-    let finish!: (row: Awaited<ReturnType<typeof f.operations.saveNotice>>) => void
-    vi.spyOn(f.operations, 'saveNotice').mockImplementationOnce(() => new Promise((done) => { finish = done }))
+    let finish!: (row: Awaited<ReturnType<typeof f.notices.save>>) => void
+    vi.spyOn(f.notices, 'save').mockImplementationOnce(() => new Promise((done) => { finish = done }))
     let pending!: Promise<boolean>
     act(() => { pending = hook.result.current.saveNotice(null, submitted) })
     hook.unmount()
@@ -144,8 +145,8 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     await waitFor(() => expect(result.current.data).toBeTruthy())
     const submitted = { title: '제출한 공지', body: '원래 본문' }
     act(() => { result.current.selectRecord('notices', 'new'); result.current.setNoticeDraft('new', submitted) })
-    let finish!: (row: Awaited<ReturnType<typeof f.operations.saveNotice>>) => void
-    vi.spyOn(f.operations, 'saveNotice').mockImplementationOnce(() => new Promise((done) => { finish = done }))
+    let finish!: (row: Awaited<ReturnType<typeof f.notices.save>>) => void
+    vi.spyOn(f.notices, 'save').mockImplementationOnce(() => new Promise((done) => { finish = done }))
     const vm = result.current
     let pending!: Promise<boolean>
     act(() => { pending = vm.saveNotice(null, submitted) })

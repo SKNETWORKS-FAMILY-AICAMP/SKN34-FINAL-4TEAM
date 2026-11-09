@@ -30,7 +30,7 @@ export function WorldStudioPage(){
  const current=steps.findIndex(([id])=>id===vm.flow.step)
  const chooseTool=(tool:'explore'|'analysis')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
  return <><Gnb on="worldstudio"/><main id="main" tabIndex={-1} className="wrap world-studio world-writing">
-  <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">로그인한 내 세계관을 서버에 저장합니다. 관계는 현재 상태만 보관하며 관계 이력·과거 세계관 전체 복원은 지원하지 않습니다.</p></div></header>
+  <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">{vm.storage.intro}</p></div></header>
   {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}
   {vm.message&&<p role="status" className="world-message">{vm.message}</p>}
   <WorldLibrary vm={vm}/>
@@ -60,7 +60,7 @@ export function WorldStudioPage(){
 function WorldLibrary({vm}:{vm:VM}){
  const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const form=new FormData(e.currentTarget);vm.create(String(form.get('name')??''),String(form.get('description')??''))}
  return <section className="world-library" hidden={vm.flow.screen!=='list'} aria-busy={vm.busy}><div className="world-toolbar"><h2>내 세계관</h2>{vm.editing&&<button className="btn" type="button" onClick={vm.resume}>이어서 작성</button>}</div>
-  <p className="small muted">내 계정의 서버 저장 목록입니다. 저장 실패 시 입력을 보존하고 같은 입력으로 다시 저장하세요. 미완료 요청은 새로고침만으로 복구되지 않습니다.</p>
+  <p className="small muted">{vm.storage.library}</p>
   <nav aria-label="내 세계관">{vm.worlds.map(w=><button key={w.id} type="button" disabled={vm.busy} onClick={()=>vm.editing?.id===w.id?vm.resume():vm.open(w.id)}><strong>{w.name}</strong><small>{w.description||'세계관 설명 없음'}{w.relationshipStatus==='incomplete'?' · 저장 미완료':w.relationshipStatus==='migration_required'?' · 기존 데이터 전환 필요':''}</small></button>)}</nav>
   {!vm.busy&&!vm.worlds.length&&!vm.error&&<p className="muted">아직 저장한 세계관이 없어요. 이름부터 정해 시작해 보세요.</p>}
   <form onSubmit={create}><h3>새 세계관 만들기</h3><label className="field">세계관 이름<input name="name" className="inp" required maxLength={100}/></label><label className="field">설명 (선택)<textarea name="description" className="ta" rows={3} maxLength={20000}/></label><button className="btn pri" disabled={vm.busy}>세계관 만들기</button></form>

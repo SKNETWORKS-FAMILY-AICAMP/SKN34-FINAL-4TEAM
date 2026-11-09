@@ -30,6 +30,6 @@ export class AccountUseCase {
     return { bytes, drafts }
   }
 
-  /** U35·U35E: 관리자가 게시한 공지·이벤트를 포함합니다. */
-  async board() { const { notices, events } = await this.adminRepository.get(); return { notices, events } }
+  /** U35E: 관리자가 게시한 이벤트(메모리 데모). 공지(U35)는 NoticeUseCase가 운영 공지 API로 읽습니다. */
+  async events() { return (await this.adminRepository.get()).events }
 }

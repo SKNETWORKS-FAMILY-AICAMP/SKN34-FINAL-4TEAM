@@ -506,7 +506,7 @@
 
 ## 운영 관리 서비스 — 운영 업무·LLMOps
 
-독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). 67의 회원 문의 접수·내 문의·상태·답변과 관리자 회원 문의 조회·답변 관리 행도 회원 Bearer·`feedback` 권한·화면 연결까지 구현해 로컬 단위·브라우저 E2E로 확인했으므로 ✅로 표시하며, 서비스 자격 레코드 행은 ❌를 유지한다([계약](design/operations-support-inquiry-contract.md)). hosted CI 결과는 PR에서 확인한다.
+독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). 68 공지 게시·조회도 관리자 회원 Bearer·`notices` 권한·독자 공개 조회·화면 연결까지 로컬 단위 테스트와 브라우저 E2E로 확인한 행만 ✅로 표시한다(입력 검증 행은 단위·API로만 확인해 ❌ 유지, [공지 계약](design/operations-notice-contract.md)). 67의 회원 문의 접수·내 문의·상태·답변과 관리자 회원 문의 조회·답변 관리 행도 회원 Bearer·`feedback` 권한·화면 연결까지 구현해 로컬 단위·브라우저 E2E로 확인했으므로 ✅로 표시하며, 서비스 자격 레코드 행은 ❌를 유지한다([계약](design/operations-support-inquiry-contract.md)). hosted CI 결과는 PR에서 확인한다.
 
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
@@ -561,12 +561,12 @@
 <tr><td>로그인 회원 고객지원 문의 접수(비로그인은 로그인 안내)</td><td>✅</td></tr>
 <tr><td>관리자 회원 문의 목록·상태 필터·상세 조회(feedback 권한)</td><td>✅</td></tr>
 <tr><td>관리자 회원 문의 답변 등록·수정·삭제(feedback 권한)</td><td>✅</td></tr>
-<tr><td rowspan="7">공지 관리</td><td rowspan="7">68 공지 게시·조회</td><td>공지 레코드 목록 조회(서비스 자격·최대 100개)</td><td>❌</td><td rowspan="7"><a href="#미등록-093">미등록-093</a> · <a href="#미등록-121">미등록-121</a></td></tr>
-<tr><td>공지 레코드 상세 조회(서비스 자격)</td><td>❌</td></tr>
-<tr><td>운영 공지 공개 게시(후속 공개 정책)</td><td>❌</td></tr>
-<tr><td>공지 레코드 등록(서비스 자격)</td><td>❌</td></tr>
-<tr><td>공지 레코드 PUT 전체 수정(서비스 자격)</td><td>❌</td></tr>
-<tr><td>공지 레코드 DELETE 삭제(서비스 자격)</td><td>❌</td></tr>
+<tr><td rowspan="7">공지 관리</td><td rowspan="7">68 공지 게시·조회</td><td>관리자 공지 목록 조회(회원 Bearer·<code>notices</code> 권한·최신 100개)</td><td>✅</td><td rowspan="7"><a href="#미등록-093">미등록-093</a> · <a href="#미등록-121">미등록-121</a> · <a href="design/operations-notice-contract.md">공지 계약</a></td></tr>
+<tr><td>독자 공지 목록·상세 조회(<code>/me/notice</code>, 인증 없음)</td><td>✅</td></tr>
+<tr><td>운영 공지 공개 게시(등록 즉시 공개, 예약·고정 없음)</td><td>✅</td></tr>
+<tr><td>관리자 공지 등록</td><td>✅</td></tr>
+<tr><td>관리자 공지 PUT 전체 수정</td><td>✅</td></tr>
+<tr><td>관리자 공지 DELETE 삭제</td><td>✅</td></tr>
 <tr><td>공지 필수 값·길이 검증 후 변경</td><td>❌</td></tr>
 <tr><td rowspan="10">이벤트 관리</td><td rowspan="10">69 이벤트 안내·운영</td><td>독자용 공개 이벤트 목록 조회(후속 공개 정책)</td><td>❌</td><td rowspan="10"><a href="#미등록-094">미등록-094</a> · <a href="#미등록-122">미등록-122</a></td></tr>
 <tr><td>이벤트 레코드 상세·선택 UTC 기간 조회(서비스 자격)</td><td>❌</td></tr>
@@ -636,14 +636,14 @@
 
 ## Frontend · 앱 · 운영 기반
 
-미등록-124의 [운영 패널](../frontend/src/presentation/features/admin/view/OperationsPanels.tsx)·[ViewModel](../frontend/src/presentation/features/admin/viewmodel/useAdminViewModel.ts)은 별도 메모리 저장소의 로컬 소스 구현이다. `/admin?tab=notices|events|feedback`은 독립 백엔드 API·서버 저장·실제 관리자 인증에 연결하지 않으며 기존 회원·작가 데모도 별도로 보존한다. 아래 UI 동작은 한 행씩 구분하되 모두 ❌를 유지한다.
+미등록-124의 [운영 패널](../frontend/src/presentation/features/admin/view/OperationsPanels.tsx)·[ViewModel](../frontend/src/presentation/features/admin/viewmodel/useAdminViewModel.ts)은 별도 메모리 저장소의 로컬 소스 구현이다. `/admin?tab=notices|events|feedback`은 독립 백엔드 API·서버 저장·실제 관리자 인증에 연결하지 않으며 기존 회원·작가 데모도 별도로 보존한다. 공지 탭은 68에서 실제 관리자 공지 API로 바뀌어 아래 공지 데모 행은 더 이상 화면 경로가 아니다([공지 계약](design/operations-notice-contract.md)). 아래 UI 동작은 한 행씩 구분하되 모두 ❌를 유지한다.
 
 인계 검증은 Domain 선택 `OperationsUseCase.test.ts`·`adminNavigation.test.ts`·`AdminUseCase.test.ts` **3파일 32건 통과** 및 변경 범위 정적 검사 통과다. 기존 **Node 22** 재사용 결과로 고정 **Node 24** 검증을 대신하지 않는다. React/Hook/App 통합·전체 lint/build·최신 `Required CI`는 확인 대기이며 브라우저/Aside는 미실행이다. 화면 소스 존재나 단위 통과를 실제 UI·HTTP·관리자 인증 성공으로 표현하지 않는다([검증·인계](../backend/operations-service/README.md#검증인계)).
 
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="111">Frontend</td><td rowspan="51">웹 화면</td><td rowspan="8">92 정본 읽기 전환</td><td>런타임 샘플 주입을 제거하고 명시적 테스트 fixture로 격리</td><td>❌</td><td rowspan="8"><a href="#미등록-126">미등록-126</a></td></tr>
+<tr><td rowspan="114">Frontend</td><td rowspan="54">웹 화면</td><td rowspan="8">92 정본 읽기 전환</td><td>런타임 샘플 주입을 제거하고 명시적 테스트 fixture로 격리</td><td>❌</td><td rowspan="8"><a href="#미등록-126">미등록-126</a></td></tr>
 <tr><td>서버 slug 메타데이터로 기존 경로의 UUID 집필실 연결</td><td>❌</td></tr>
 <tr><td>조회 실패 시 샘플 fallback 없이 오류·재시도 제공</td><td>❌</td></tr>
 <tr><td>인증·작품·회차 범위 변경 후 오래된 비동기 결과 차단</td><td>❌</td></tr>
@@ -688,7 +688,10 @@
 <tr><td>크레딧 메뉴의 데모 꼬리표 제거·정책의 실제 결제 및 차감 없음 안내 유지</td><td>❌</td></tr>
 <tr><td>개발 환경에서만 화면 ID 표시·토글 제공 (일반 화면 테마 전환·인증 경로 제외 유지)</td><td>❌</td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
-<tr><td rowspan="1">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
+<tr><td rowspan="4">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
+<tr><td>데모 집필실에서 동작별 저장 표시 제어</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/6">#6</a></td></tr>
+<tr><td>저장 표시 없이 AI 요청 입력을 데모 초안에 보존</td><td>❌</td></tr>
+<tr><td>원고 수정 후 재검사 전까지 설정 검사 무효 표시 유지</td><td>❌</td></tr>
 <tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기 <small>(팀 공통 시트 연결, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-089">미등록-089</a></td></tr>
 <tr><td rowspan="1">65 미저장 작업 보호</td><td>미저장 원고·설정이 있을 때 이탈 또는 대상 전환 확인</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-090">미등록-090</a></td></tr>
 <tr><td rowspan="3">66 요청 제어</td><td>진행 중 원고 저장 요청 취소</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="#미등록-091">미등록-091</a></td></tr>
@@ -1233,6 +1236,8 @@
 | Frontend | WorldStudio | 세계관 탐색 | 연결된 설정 탐색 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
 | Frontend | WorldStudio | 세계관 탐색 | 인물 관계도 표시 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) · [#132](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132) |
 | Frontend | WorldStudio | 세계관 탐색 | 빈 세계관 안내 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 단계형 작성 | 상단 세계관 메뉴 이동 후 목록 복귀 (미저장 이동 보호 유지) | ✅ | [PR #205](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/205) |
+| Frontend | WorldStudio | 저장 안내 | 목업 메모리 보관·새로고침 초기화와 서버 저장 안내 구분 | ✅ | [PR #205](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/205) |
 | Frontend | WorldStudio | 단계형 작성 | 작성 4단계 이동 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
 | Frontend | WorldStudio | 단계형 작성 | 단계 이동 후 입력 유지 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
 | Frontend | WorldStudio | 단계형 작성 | 설정 검색·유형 필터 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) · [#130](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/130) |

@@ -1,7 +1,7 @@
 # Frontend 구현 지침
 
 `frontend/**`에 적용한다. [루트 공통 지침](../AGENTS.md)을 함께 따른다.
-nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`와 하위 경로를 Content, `/api/v1/operations/{reports,members,admins,support}`와 하위 경로를 Operations, 나머지 `/api`를 Core로 라우팅한다.
+nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`와 하위 경로를 Content, `/api/v1/operations/{reports,members,admins,support,admin/notices,public/notices}`와 하위 경로를 Operations, 나머지 `/api`를 Core로 라우팅한다.
 `/content`·UUID `/studio/{id}`와 작품 목록·상세·회차 열람·공개 wiki·Fork 생성은 Content API(`HttpWorkRepository`)를 쓰고,
 관심·진행률 등 나머지 데모는 별도 메모리 저장소다. 화면 존재와 서버 기능 완료를 구분한다.
 홈 실시간 인기·급상승과 `/search`·`/rank`도 Content 공개 검색·랭킹 API를 쓴다(`--mode mockup`은 시드 메모리 작품·검색).

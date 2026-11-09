@@ -136,6 +136,19 @@ describe('관리자 (A01~A18)', () => {
     within(failed).getByText('—')
   })
 
+  it('공지를 게시하면 회원 공지사항에 보인다', async () => {
+    renderAt('/admin?tab=notices')
+    fireEvent.click(await screen.findByRole('button', { name: '공지 작성' }))
+    expect((await screen.findByLabelText<HTMLInputElement>('공지 제목')).required).toBe(true)
+    fireEvent.change(screen.getByLabelText('공지 제목'), { target: { value: '점검 안내' } })
+    fireEvent.change(screen.getByLabelText('공지 내용'), { target: { value: '오늘 밤 점검해요' } })
+    fireEvent.click(screen.getByRole('button', { name: '공지 저장' }))
+    await toastIs('공지를 저장했어요. 회원 공지사항에 바로 공개돼요.')
+    cleanup()
+    renderAt('/me/notice', 'user')
+    await screen.findByRole('link', { name: /점검 안내/ })
+  })
+
   it('실패한 정기 작업은 수동 재시도 시연만 기록한다', async () => {
     renderAt('/admin?tab=jobs')
     const row = (await screen.findByText('알림 90일 보관기간 정리')).closest('tr') as HTMLElement

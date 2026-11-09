@@ -201,3 +201,38 @@ describe('독립 운영 CRUD 화면 (오프라인 데모)', () => {
     await screen.findByText('등록된 운영 이벤트가 없어요. 이벤트를 작성해 보세요.')
   })
 })
+
+describe('공지 탭 (운영 공지 API, 메모리 fixture)', () => {
+  it('운영 API 연결 탭이며 서버에 저장되지 않는다는 데모 문구와 구 공지 데모가 없다', async () => {
+    renderAt('/admin?tab=notices')
+    await screen.findByRole('button', { name: '공지 작성' })
+    screen.getByText('운영 API 연결')
+    expect(screen.queryByText(/서버에 저장되지 않아요/)).toBeNull()
+    expect(screen.queryByText('기존 회원 공지 표')).toBeNull()
+    expect(screen.queryByText('기존 회원 화면 공지 데모')).toBeNull()
+    screen.getByText('저장한 공지는 바로 회원 공지사항에 공개돼요. 예약·고정·회원 알림은 지원하지 않아요.')
+  })
+
+  it('공지 목록 조회 실패는 빈 목록으로 숨기지 않고 다시 불러오기로 복구한다', async () => {
+    const list = vi.spyOn(appContainer.resolve('noticeUseCase'), 'list').mockRejectedValueOnce(new Error('서버 오류'))
+    renderAt('/admin?tab=notices')
+    await screen.findByText(/공지 목록을 불러오지 못했어요/)
+    expect(screen.queryByText('등록된 운영 공지가 없어요. 공지를 작성해 보세요.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByText('등록된 운영 공지가 없어요. 공지를 작성해 보세요.')
+    expect(screen.queryByText(/공지 목록을 불러오지 못했어요/)).toBeNull()
+    expect(list).toHaveBeenCalledTimes(2)
+  })
+
+  it('저장 실패(권한 없음 등)는 입력을 남기고 안내 문구로 보인다', async () => {
+    vi.spyOn(appContainer.resolve('noticeUseCase'), 'save').mockRejectedValueOnce(new OperationsError('이 작업을 할 권한이 없어요.'))
+    renderAt('/admin?tab=notices')
+    fireEvent.click(await screen.findByRole('button', { name: '공지 작성' }))
+    fill('공지 제목', '권한 없는 공지')
+    fill('공지 내용', '본문')
+    fireEvent.click(screen.getByRole('button', { name: '공지 저장' }))
+    await within(screen.getByRole('region', { name: '운영 공지' })).findByText('이 작업을 할 권한이 없어요.')
+    expect((screen.getByLabelText('공지 제목') as HTMLInputElement).value).toBe('권한 없는 공지')
+    expect(screen.queryByText(/공지를 저장했어요/)).toBeNull()
+  })
+})

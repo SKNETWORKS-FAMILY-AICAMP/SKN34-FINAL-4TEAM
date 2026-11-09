@@ -38,7 +38,7 @@ const MESSAGES: Record<number, string> = {
  * 운영 공개 API(/api/v1/operations) 공통 요청. 운영 서비스는 회원 Bearer만 확인하는 stateless API라 CSRF를 보내지 않습니다.
  * 실패 상태는 성공으로 숨기지 않고 화면에 보일 OperationsError로 바꿉니다.
  */
-async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES) {
+export async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES) {
   const init: RequestInit = { method, signal: AbortSignal.timeout(15000), headers: body === undefined ? {} : { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }
   let response: Response
   try {
@@ -50,7 +50,7 @@ async function send(fetcher: typeof fetch | undefined, path: string, method = 'G
   if (!response.ok) throw new OperationsError(messages[response.status] ?? '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
   return response
 }
-async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>): Promise<T> {
+export async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>): Promise<T> {
   const parsed = schema.safeParse(await (await send(fetcher, path)).json().catch(() => undefined))
   if (!parsed.success) throw new OperationsError('서버 응답 형식을 확인할 수 없어요.')
   return parsed.data

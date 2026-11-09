@@ -1,10 +1,12 @@
 import { useContext, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { SessionExpired } from '../../../../domain/repositories/ProfileRepository'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import { checkProfile } from '../../../../domain/entities/account'
 import { OperationsError } from '../../../../domain/entities/operations'
 import type { AccountUseCase } from '../../../../domain/usecases/AccountUseCase'
+import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
 import type { SupportInquiryUseCase } from '../../../../domain/usecases/SupportInquiryUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
@@ -12,11 +14,12 @@ import { RestoreContext } from '../../../shared/session/restoreContext'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
-/** 목업 mePage(sub)·saveProfile·#suf·withdrawSheet와 실제 고객지원 문의(#iqf): U30~U35E 계정 */
+/** 목업 mePage(sub)·saveProfile·#suf·withdrawSheet와 실제 고객지원 문의(#iqf)·운영 공지: U30~U35E 계정 */
 export function useAccountViewModel(
   sub: string,
   accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase'),
   supportInquiryUseCase: SupportInquiryUseCase = appContainer.resolve('supportInquiryUseCase'),
+  noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'),
 ) {
   const { role, user } = useAppSelector((s) => s.session)
   const restoring = useContext(RestoreContext)
@@ -51,16 +54,22 @@ export function useAccountViewModel(
     return () => { request.abort(); controller.current = null }
   }, [sub, role, dispatch, profileUseCase, profileAttempt])
   useScreenId(sub === 'liked' ? 'U32' : sub === 'pay' ? 'U33' : sub === 'inquiry' ? 'U34' : sub === 'notice' ? 'U35' : sub === 'event' ? 'U35E' : 'U30')
-  const { data } = useAsyncData(async () => ({
+  // 공지는 인증 없는 운영 공지 API: ?id가 없으면 목록, 있으면 그 공지 하나(없으면 null)를 읽습니다. id는 조회 범위라 바뀌면 이전 결과를 감춥니다.
+  const [params] = useSearchParams()
+  const noticeId = sub === 'notice' ? params.get('id') : null
+  const { data, isError, retry } = useAsyncData(async () => ({
     sub,
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
     storage: sub === 'storage' ? await accountUseCase.storage() : null,
-    board: sub === 'notice' || sub === 'event' ? await accountUseCase.board() : null,
-  }), [accountUseCase, sub])
+    events: sub === 'event' ? await accountUseCase.events() : [],
+    notices: sub === 'notice' && noticeId === null ? await noticeUseCase.listPublic() : [],
+    notice: sub === 'notice' && noticeId ? await noticeUseCase.getPublic(noticeId) : null,
+  }), [accountUseCase, noticeUseCase, sub, noticeId])
   // 내 문의: 로그인한 회원의 문의하기 화면에서만 실제 목록을 읽습니다. 로딩·실패·빈 목록은 화면이 구분합니다.
   const mine = useAsyncData(async () => sub === 'inquiry' && role ? supportInquiryUseCase.listMine() : [], [supportInquiryUseCase, sub])
   return {
     role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, mine, restoring, data: data?.sub === sub ? data : undefined,
+    loadFailed: isError, retryLoad: retry,
     /** 로그인 후 문의하기로 돌아오도록 안내를 남깁니다. 이동은 로그인 링크가 맡습니다. */
     requireLogin: () => { dispatch(sessionActions.requireLogin({ next: '/me/inquiry', msg: '문의는 로그인한 회원만 보낼 수 있어요.', role: 'user' })) },
     retryProfile: () => setProfileAttempt((attempt) => attempt + 1),
