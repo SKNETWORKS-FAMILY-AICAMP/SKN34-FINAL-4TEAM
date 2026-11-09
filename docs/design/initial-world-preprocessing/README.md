@@ -146,6 +146,9 @@ Content가 저장된 최신 name/description을 유지하고 승인된 신규 �
 application에는 요청 hash, 승인된 decision sequence, 생성 ID 매핑, **추가 payload**, basis revision, 상태를 저장한다.
 전체 과거 관계 그래프는 저장하지 않는다. 새 UUID는 준비 단계에서 한번 정해 영속화하고 이후 변경하지 않는다.
 동일 후보가 다른 application key로 중복 반영되지 않도록 후보별 예약/완료를 잠금·제약으로 보호한다.
+검토·반영의 candidateId는 해당 분석이 발급한 localRef→UUID 매핑과 일치해야 한다.
+검토와 반영 요청의 UUID를 함께 바꿔도 다른 후보로 인정하지 않는다. 후속 저장 PR은
+world→analysis→candidate 소속을 외래 키/검증으로 보호하고 검토 순번은 후보 안에서 유일하게 둔다.
 
 | 장애 위치 | 보존되는 값 | 재시도/완료 판정 |
 |---|---|---|

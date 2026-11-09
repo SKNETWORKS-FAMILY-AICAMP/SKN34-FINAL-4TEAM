@@ -82,3 +82,14 @@ def test_edit_requires_separate_approval():
     request['action'] = 'edit'
     with pytest.raises(ValueError, match='AUTHOR_PROVENANCE'):
         DecisionRequest.model_validate(request)
+
+
+def test_application_cannot_substitute_candidate_identity():
+    from initial_world_contract import Contract
+    value = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']
+    forged_id = '00000000-0000-4000-8000-000000000999'
+    # 검토와 반영 요청을 함께 바꿔도 분석이 발급한 후보 UUID와 일치해야 한다.
+    value['decisions'][0]['candidateId'] = forged_id
+    value['applicationRequest']['candidates'][0]['candidateId'] = forged_id
+    with pytest.raises(ValueError, match='CANDIDATE_BINDING'):
+        Contract.model_validate(value)

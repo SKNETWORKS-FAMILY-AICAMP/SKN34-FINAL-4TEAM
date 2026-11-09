@@ -276,7 +276,8 @@ class Contract(Model):
         decisions = {d.candidateId: d for d in self.decisions}
         originals = {c.localRef: c for c in self.output.candidates}
         for d in self.decisions:
-            if d.candidateRef not in originals or d.content.localRef != d.candidateRef:
+            if (d.candidateRef not in originals or d.content.localRef != d.candidateRef
+                    or self.analysisResponse.candidateIds.get(d.candidateRef) != d.candidateId):
                 raise ValueError('CANDIDATE_BINDING')
             if d.content.provenance == 'ai_extraction' and d.content != originals[d.candidateRef]:
                 raise ValueError('FALSE_EXTRACTION')
