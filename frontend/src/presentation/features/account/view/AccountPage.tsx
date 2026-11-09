@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
+import { supportStatusLabel } from '../../../../domain/entities/supportInquiry'
 import { Cov } from '../../../shared/art'
 import { openPolicy } from '../../../shared/events'
+import { kstDateTime } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
@@ -131,32 +133,52 @@ function WithdrawSheet({ onClose }: { onClose: () => void }) {
   )
 }
 
-/** 목업 #iqf: U34 문의하기 */
+/** 목업 #iqf: U34 문의하기. 로그인한 회원만 운영 서버에 접수하고 내 문의·답변을 읽습니다. */
 function InquiryView({ vm }: { vm: VM }) {
+  return (
+    <>
+      <h2>문의하기</h2>
+      {vm.role ? <InquiryForm vm={vm} /> : vm.restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : (
+        <section className="tcard mecard" aria-labelledby="iq-login-title">
+          <h3 id="iq-login-title">로그인한 뒤 문의할 수 있어요</h3>
+          <p className="small muted">문의와 운영팀 답변은 회원 계정에 연결돼요. 로그인하면 문의를 보내고 내 문의에서 답변을 확인할 수 있어요.</p>
+          <Link to="/login" className="btn pri" onClick={vm.requireLogin}>로그인하고 문의하기</Link>
+        </section>
+      )}
+    </>
+  )
+}
+
+function InquiryForm({ vm }: { vm: VM }) {
   const [t, setT] = useState('이용 문의')
   const [s, setS] = useState('')
   const [b, setB] = useState('')
   const form = useRef<HTMLFormElement>(null)
   useEffect(() => { if (vm.inquiry?.ok === false) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus() }, [vm.inquiry])
-  const list = vm.data?.inquiries ?? []
+  const list = vm.mine.data ?? []
   const failed = vm.inquiry?.ok === false
   // 비어 있는 채로 보낸 필드만 오류로 표시하고, 다시 채우면 바로 풀립니다.
   const missing = (value: string) => ({ 'aria-invalid': failed && !value.trim(), 'aria-describedby': failed && !value.trim() ? 'iq-error' : undefined })
   return (
     <>
-      <h2>문의하기</h2>
+      <p className="small muted">보낸 문의와 운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
       <form ref={form} className="tcard mecard" id="iqf" noValidate aria-busy={vm.asking} onSubmit={async (e) => { e.preventDefault(); if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
         <label className="field">문의 유형<select className="inp" id="iqt" value={t} disabled={vm.asking} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>
-        <label className="field">제목<input className="inp" id="iqs" maxLength={40} required readOnly={vm.asking} value={s} {...missing(s)} onChange={(e) => setS(e.target.value)} /></label>
-        <label className="field">내용<textarea className="ta" id="iqb" maxLength={500} required readOnly={vm.asking} value={b} {...missing(b)} onChange={(e) => setB(e.target.value)} /></label>
+        <label className="field">제목<input className="inp" id="iqs" maxLength={200} required readOnly={vm.asking} value={s} {...missing(s)} onChange={(e) => setS(e.target.value)} /></label>
+        <label className="field">내용<textarea className="ta" id="iqb" maxLength={20000} required readOnly={vm.asking} value={b} {...missing(b)} onChange={(e) => setB(e.target.value)} /></label>
         {failed && <p id="iq-error" role="alert">{vm.inquiry?.msg}</p>}
         <div className="rowend"><button className="btn pri" type="submit" id="iqBtn" disabled={vm.asking}>{vm.asking ? '보내는 중…' : '문의 보내기'}</button></div>
       </form>
       {vm.inquiry?.ok && <p role="status">{vm.inquiry.msg}</p>}
-      {vm.data && <><h3 className="st" style={{ marginTop: 22 }}>내 문의 {list.length}</h3>
-      <div className="list">{list.length ? list.map((x) => (
-        <div className="rp" key={x.id}><div className="top"><b>[{x.t}] {x.s}</b><span className={`chip ${x.reply ? 'ok' : 'wait'}`}>{x.st}</span></div><div className="small muted" style={{ marginTop: 4 }}>{x.d} · {x.b}</div>{x.reply && <p className="inquiry-reply"><b>운영팀 답변</b><br />{x.reply}</p>}</div>
-      )) : <div className="rp muted">아직 보낸 문의가 없어요.</div>}</div></>}
+      <h3 className="st" style={{ marginTop: 22 }}>내 문의{vm.mine.data ? ` ${list.length}` : ''}</h3>
+      {vm.mine.isLoading && <p role="status">내 문의를 불러오고 있어요.</p>}
+      {vm.mine.isError && <div role="alert"><p>내 문의를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={vm.mine.retry}>다시 불러오기</button></div>}
+      {vm.mine.data && <div className="list">{list.length ? list.map((x) => (
+        <div className="rp" key={x.id} style={{ overflowWrap: 'anywhere' }}><div className="top"><b>[{x.category}] {x.title}</b><span className={`chip ${x.status === 'ANSWERED' ? 'ok' : 'wait'}`}>{supportStatusLabel(x.status)}</span></div>
+          <div className="small muted" style={{ marginTop: 4 }}>{kstDateTime(x.createdAt)}</div>
+          <p className="small" style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>{x.body}</p>
+          {x.replies.map((r, i) => <p className="inquiry-reply" key={r.id}><b>운영팀 답변{x.replies.length > 1 ? ` ${i + 1}` : ''}</b><br />{r.body}</p>)}</div>
+      )) : <div className="rp muted">아직 보낸 문의가 없어요.</div>}</div>}
     </>
   )
 }

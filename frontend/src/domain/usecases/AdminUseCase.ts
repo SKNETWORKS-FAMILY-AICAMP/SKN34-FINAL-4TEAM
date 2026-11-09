@@ -4,7 +4,6 @@ import type { AdminRepository } from '../repositories/AdminRepository'
 import type { ChatRepository } from '../repositories/ChatRepository'
 import type { CreditRepository } from '../repositories/CreditRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import type { InquiryRepository } from '../repositories/InquiryRepository'
 import { AGGREGATE_WRITE_UNSUPPORTED, type WorkRepository } from '../repositories/WorkRepository'
 import { chatsOf } from './ChatUseCase'
 
@@ -17,14 +16,12 @@ export class AdminUseCase {
   private readonly adminRepository: AdminRepository
   private readonly workRepository: WorkRepository
   private readonly feedbackRepository: FeedbackRepository
-  private readonly inquiryRepository: InquiryRepository
   private readonly creditRepository: CreditRepository
   private readonly chatRepository: ChatRepository
-  constructor(adminRepository: AdminRepository, workRepository: WorkRepository, feedbackRepository: FeedbackRepository, inquiryRepository: InquiryRepository, creditRepository: CreditRepository, chatRepository: ChatRepository) {
+  constructor(adminRepository: AdminRepository, workRepository: WorkRepository, feedbackRepository: FeedbackRepository, creditRepository: CreditRepository, chatRepository: ChatRepository) {
     this.adminRepository = adminRepository
     this.workRepository = workRepository
     this.feedbackRepository = feedbackRepository
-    this.inquiryRepository = inquiryRepository
     this.creditRepository = creditRepository
     this.chatRepository = chatRepository
   }
@@ -41,8 +38,8 @@ export class AdminUseCase {
 
   /** 화면 하나에 필요한 데이터를 한 번에 모읍니다. */
   async load() {
-    const [admin, works, worlds, inquiries, queue, reports, credits, inbox] = await Promise.all([
-      this.adminRepository.get(), this.workRepository.listWorks(), this.workRepository.listWorlds(), this.inquiryRepository.list(),
+    const [admin, works, worlds, queue, reports, credits, inbox] = await Promise.all([
+      this.adminRepository.get(), this.workRepository.listWorks(), this.workRepository.listWorlds(),
       this.feedbackRepository.listReview(), this.feedbackRepository.listReports(), this.creditRepository.get(), this.feedbackRepository.listInbox(),
     ])
     const chats = await chatsOf(this.chatRepository, works)
@@ -60,7 +57,7 @@ export class AdminUseCase {
       return { title: fk.title, parent: p.title, forkAt: fk.forkAt, snapNow, now, diff, ok: snapNow === snap.srcHash, same: now === snapNow }
     })
     return {
-      admin, works, inquiries, queue, comments, rights, isolation,
+      admin, works, queue, comments, rights, isolation,
       alerts: credits.alerts,
       chats: chats.flatMap((c) => { const w = works.find((x) => x.id === c.workId); return w ? [{ ...c, w }] : [] }),
       reports: reports.filter((r) => !r.type.startsWith('신고 ·')),
@@ -110,14 +107,6 @@ export class AdminUseCase {
     await this.chatRepository.saveChats(chats)
     await this.log('캐릭터챗 추가', () => w.title + ' · ' + character)
     return ok('캐릭터챗을 추가했어요 (데모)')
-  }
-
-  async reply(id: string, text: string): Promise<AdminResult> {
-    const q = (await this.inquiryRepository.list()).find((x) => x.id === id), reply = text.trim()
-    if (!q || !reply) return fail('답변을 입력해 주세요')
-    await this.inquiryRepository.save({ ...q, reply, st: '답변 완료' })
-    await this.log('문의 답변', () => q.s)
-    return ok('답변을 등록했어요 (데모 · 실제 전송 없음)')
   }
 
   async addNotice(title: string, body: string): Promise<AdminResult> {

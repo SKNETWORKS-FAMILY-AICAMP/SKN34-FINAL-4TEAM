@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createFixtureDb } from '../../data/mock/fixtureDb'
-import { InMemoryAdminRepository, InMemoryChatRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryInquiryRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryAdminRepository, InMemoryChatRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 import { InboxUseCase } from '../usecases/InboxUseCase'
@@ -43,7 +43,7 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
     db.reviewQueue.push({id:'q',w:w.id,n:null,type:'신고',text:'내용',quote:'',status:'접수',who:'독자'})
     const before=structuredClone(db)
     expect(await new InboxUseCase(works,feedback).act('i','reject')).toContain('아직 연결되지')
-    const uc=new AdminUseCase(admin,works,feedback,new InMemoryInquiryRepository(db),credits,new InMemoryChatRepository(db))
+    const uc=new AdminUseCase(admin,works,feedback,credits,new InMemoryChatRepository(db))
     expect((await uc.toggleWork(w.id))?.ok).toBe(false)
     expect(db).toEqual(before)
     expect((await uc.load()).isolation.some(x=>x.title===w.title)).toBe(false)

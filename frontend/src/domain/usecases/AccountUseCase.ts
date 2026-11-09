@@ -1,23 +1,18 @@
-import type { Inquiry } from '../entities/account'
-import { today } from '../entities/admin'
-import { isMine, nid } from '../entities/work'
+import { isMine } from '../entities/work'
 import type { AdminRepository } from '../repositories/AdminRepository'
-import type { InquiryRepository } from '../repositories/InquiryRepository'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
 
-/** 목업 mePage(): U30~U35E 계정 메뉴의 데이터 */
+/** 목업 mePage(): U30~U33·U35·U35E 계정 메뉴의 데이터. 문의하기(U34)는 SupportInquiryUseCase가 맡습니다. */
 export class AccountUseCase {
   private readonly workRepository: WorkRepository
   private readonly worldRepository: WorldRepository
   private readonly readingRepository: ReadingRepository
-  private readonly inquiryRepository: InquiryRepository
   private readonly adminRepository: AdminRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, inquiryRepository: InquiryRepository, adminRepository: AdminRepository) {
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, adminRepository: AdminRepository) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
     this.readingRepository = readingRepository
-    this.inquiryRepository = inquiryRepository
     this.adminRepository = adminRepository
   }
 
@@ -37,14 +32,4 @@ export class AccountUseCase {
 
   /** U35·U35E: 관리자가 게시한 공지·이벤트를 포함합니다. */
   async board() { const { notices, events } = await this.adminRepository.get(); return { notices, events } }
-
-  inquiries() { return this.inquiryRepository.list() }
-
-  /** 목업 #iqf 제출. 문제가 있으면 안내 문구 */
-  async ask(t: string, s: string, b: string) {
-    if (!s.trim() || !b.trim()) return { ok: false, msg: '제목과 내용을 입력해 주세요' }
-    const q: Inquiry = { id: nid('q'), t, s: s.trim(), b: b.trim(), d: today(), st: '답변 대기' }
-    await this.inquiryRepository.add(q)
-    return { ok: true, msg: '문의를 보냈어요 (데모 · 실제 전송 없음)' }
-  }
 }

@@ -8,7 +8,7 @@ React·TypeScript·Vite·Tailwind CSS 기반의 개발 화면입니다.
 
 [4개 백엔드 서비스 구조](../docs/design/service-boundaries.md)에 따라 Core는 회원·인증·크레딧·회원 알림, 별도 Kotlin/Spring Boot 콘텐츠 앱은 창작·독서·콘텐츠 정본과 인가, 별도 Kotlin/Spring Boot 운영 앱은 문의·공지·신고 사건·운영 결정·감사·작업 감시를 담당합니다. Python AI 앱은 허용 문맥에서 생성·검토를 실행하며 정본·권한·발행·정산을 확정하지 않습니다. LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합니다. 자체 UI와 운영 화면 API 통합 중 방식은 미정입니다.
 
-nginx/Vite는 기존 `/api/v1/works`·`/api/v1/public/works`와 하위 경로를 Content:8081, `/api/v1/operations/{reports,members,admins}`와 하위 경로를 Operations:8082, 나머지 `/api`를 Core:8080으로 분기합니다. 관리자 사용자·관리자 계정·신고 탭, `/content` 공개 작품의 신고, `/reports`(내 신고)는 운영 API를 호출하며 그 밖의 관리자 탭은 메모리 데모입니다. 브라우저는 상대 URL·기존 Bearer/쿠키/CSRF를 유지하며 내부 인증 endpoint·AI·DB·모델을 직접 호출하지 않습니다. 소스 연결과 hosted CI·실제 DB 전환·배포는 구분하며 운영·알림 데모를 서버 완료로 간주하지 않습니다.
+nginx/Vite는 기존 `/api/v1/works`·`/api/v1/public/works`와 하위 경로를 Content:8081, `/api/v1/operations/{reports,members,admins,support}`와 하위 경로를 Operations:8082, 나머지 `/api`를 Core:8080으로 분기합니다. 관리자 사용자·관리자 계정·신고 탭, 제보·문의 탭의 회원 고객지원 문의(작가 검토 제보는 메모리 데모), `/me/inquiry`(문의하기·내 문의), `/content` 공개 작품의 신고, `/reports`(내 신고)는 운영 API를 호출하며 그 밖의 관리자 탭은 메모리 데모입니다. 브라우저는 상대 URL·기존 Bearer/쿠키/CSRF를 유지하며 내부 인증 endpoint·AI·DB·모델을 직접 호출하지 않습니다. 소스 연결과 hosted CI·실제 DB 전환·배포는 구분하며 운영·알림 데모를 서버 완료로 간주하지 않습니다.
 
 ## 실행
 

@@ -3,9 +3,11 @@ import { z } from 'zod'
 import type { AdminAccount, AdminInput, MemberItem, MemberQuery } from '../../domain/entities/member'
 import { OperationsError } from '../../domain/entities/operations'
 import type { Report, ReportInput, ReportStatus, ReviewDecision } from '../../domain/entities/report'
+import type { SupportInquiry, SupportInquiryInput, SupportInquiryStatus } from '../../domain/entities/supportInquiry'
 import type { MemberRepository } from '../../domain/repositories/MemberRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import type { ReportRepository } from '../../domain/repositories/ReportRepository'
+import type { SupportInquiryRepository } from '../../domain/repositories/SupportInquiryRepository'
 import { authVersion, protectedRequest } from './auth'
 
 const instant = z.string().datetime({ offset: true })
@@ -17,6 +19,11 @@ const report = z.object({
 })
 const member = z.object({ id: z.string(), email: z.string(), nickname: z.string(), role: z.enum(['MEMBER', 'ADMIN']), restricted: z.boolean(), createdAt: instant })
 const admin = member.extend({ permissions: z.array(z.string()) })
+const supportReply = z.object({ id: z.string(), body: z.string(), createdAt: instant, updatedAt: instant })
+const supportInquiry = z.object({
+  id: z.string(), memberId: z.string(), category: z.string(), title: z.string(), body: z.string(), status: z.enum(['WAITING', 'ANSWERED']),
+  createdAt: instant, updatedAt: instant, replies: z.array(supportReply),
+})
 const items = <T extends z.ZodType>(item: T) => z.object({ items: z.array(item) }).transform((v) => v.items)
 
 const MESSAGES: Record<number, string> = {
@@ -74,4 +81,19 @@ export class HttpMemberRepository implements MemberRepository {
   async setRestriction(memberId: string, restricted: boolean) { await send(this.fetcher, `/members/${id(memberId)}/restriction`, restricted ? 'PUT' : 'DELETE') }
   listAdmins(): Promise<AdminAccount[]> { return read(this.fetcher, '/admins', items(admin)) }
   async createAdmin(input: AdminInput) { await send(this.fetcher, '/admins', 'POST', input, { ...MESSAGES, 409: '이미 등록된 이메일이에요.' }) }
+}
+
+/** 고객지원 문의(67): 변경 응답의 SupportInquiry는 쓰지 않고, 화면이 목록·상세를 다시 조회합니다. */
+export class HttpSupportInquiryRepository implements SupportInquiryRepository {
+  private readonly fetcher?: typeof fetch
+  constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
+  private async send(path: string, method: string, body?: unknown) { await send(this.fetcher, path, method, body) }
+
+  listMine(): Promise<SupportInquiry[]> { return read(this.fetcher, '/support/inquiries/mine', items(supportInquiry)) }
+  create(input: SupportInquiryInput) { return this.send('/support/inquiries', 'POST', input) }
+  listAll(status: SupportInquiryStatus | null): Promise<SupportInquiry[]> { return read(this.fetcher, '/support/inquiries' + (status ? `?status=${status}` : ''), items(supportInquiry)) }
+  get(inquiryId: string): Promise<SupportInquiry> { return read(this.fetcher, `/support/inquiries/${id(inquiryId)}`, supportInquiry) }
+  addReply(inquiryId: string, body: string) { return this.send(`/support/inquiries/${id(inquiryId)}/replies`, 'POST', { body }) }
+  updateReply(inquiryId: string, replyId: string, body: string) { return this.send(`/support/inquiries/${id(inquiryId)}/replies/${id(replyId)}`, 'PUT', { body }) }
+  deleteReply(inquiryId: string, replyId: string) { return this.send(`/support/inquiries/${id(inquiryId)}/replies/${id(replyId)}`, 'DELETE') }
 }

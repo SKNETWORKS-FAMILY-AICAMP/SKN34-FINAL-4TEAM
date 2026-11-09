@@ -16,9 +16,10 @@ function setup(tab: AdminTab = 'notices') {
   const container = createFixtureContainer()
   const admin = container.resolve('adminUseCase')
   const operations = container.resolve('operationsUseCase')
+  const support = container.resolve('supportInquiryUseCase')
   const store = createAppStore({ role: 'admin' })
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}><MemoryRouter>{children}</MemoryRouter></Provider>
-  return { admin, operations, store, mount: () => renderHook(({ tab }) => useAdminViewModel(tab, admin, operations), { wrapper, initialProps: { tab } }) }
+  return { admin, operations, support, store, mount: () => renderHook(({ tab }) => useAdminViewModel(tab, admin, operations, undefined, undefined, support), { wrapper, initialProps: { tab } }) }
 }
 
 describe('관리자 비동기 상태와 입력 보존', () => {
@@ -69,36 +70,47 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     await waitFor(() => expect(result.current.data?.operations.notices).toHaveLength(1))
   })
 
-  it('운영 저장 실패 뒤 문의 입력을 지우지 않고 내부 예외 내용을 노출하지 않는다', async () => {
+  it('답변 등록 실패는 내부 예외 내용을 노출하지 않고 처리 중 표시를 풀며 다시 읽지 않는다', async () => {
     const f = setup('feedback')
     const { result } = f.mount()
     await waitFor(() => expect(result.current.data).toBeTruthy())
-    const draft = { category: '계정', title: '실패해도 남을 제목', body: '첫 줄\n둘째 줄' }
-    act(() => { result.current.selectRecord('inquiries', 'new'); result.current.setInquiryDraft('new', draft) })
-    vi.spyOn(f.operations, 'saveInquiry').mockRejectedValueOnce(new Error('비공개 내부 응답'))
-    await act(async () => { expect(await result.current.saveInquiry(null, draft)).toBe(false) })
-    expect(result.current.inquiryDrafts.new).toEqual(draft)
-    expect(result.current.recordSelection.inquiries).toBe('new')
-    expect(result.current.actions['inquiry:new'].pending).toBe(false)
-    expect(result.current.actions['inquiry:new'].error).not.toContain('비공개 내부 응답')
+    vi.spyOn(f.support, 'addReply').mockRejectedValueOnce(new Error('비공개 내부 응답'))
+    await act(async () => { expect(await result.current.live.addReply('q1', '보낼 답변')).toBe(false) })
+    expect(result.current.actions['inquiry:q1:reply'].pending).toBe(false)
+    expect(result.current.actions['inquiry:q1:reply'].error).not.toContain('비공개 내부 응답')
     expect(f.store.getState().session.dataVersion).toBe(0)
   })
 
-  it('운영 문의 선택·초안·답변 초안은 탭과 화면 재진입 후에도 Redux에 유지된다', async () => {
+  it('고객지원 문의의 선택은 탭과 화면 재진입 후에도 Redux에 유지된다', async () => {
     const f = setup('feedback')
     const hook = f.mount()
     await waitFor(() => expect(hook.result.current.data).toBeTruthy())
-    act(() => {
-      hook.result.current.selectRecord('inquiries', 'new')
-      hook.result.current.setInquiryDraft('new', { category: '분류', title: '작성 중 문의', body: '줄1\n줄2' })
-      hook.result.current.setReplyDraft('q:new', '작성 중 답변')
-    })
+    act(() => { hook.result.current.selectRecord('inquiries', 'q1') })
     hook.rerender({ tab: 'notices' })
     hook.unmount()
     const again = f.mount()
-    expect(again.result.current.recordSelection.inquiries).toBe('new')
-    expect(again.result.current.inquiryDrafts.new.title).toBe('작성 중 문의')
-    expect(again.result.current.replyDrafts['q:new']).toBe('작성 중 답변')
+    expect(again.result.current.recordSelection.inquiries).toBe('q1')
+  })
+
+  it('제보·문의 탭은 상태 필터를 서버 조회 조건으로, 선택한 문의는 상세로 읽는다', async () => {
+    const f = setup('feedback')
+    const listAll = vi.spyOn(f.support, 'listAll')
+    const get = vi.spyOn(f.support, 'get')
+    const { result } = f.mount()
+    await waitFor(() => expect(listAll).toHaveBeenCalledWith(null))
+    act(() => { result.current.setFilter('feedback', { category: 'WAITING', sort: 'title', query: '', search: '' }) })
+    await waitFor(() => expect(listAll).toHaveBeenLastCalledWith('WAITING'))
+    act(() => { result.current.selectRecord('inquiries', 'q1') })
+    await waitFor(() => expect(get).toHaveBeenCalledWith('q1'))
+  })
+
+  it('개요 탭은 답변 대기 문의만 서버에서 읽고 조회 실패를 빈 목록으로 숨기지 않는다', async () => {
+    const f = setup('data')
+    const listAll = vi.spyOn(f.support, 'listAll').mockRejectedValueOnce(new Error('조회 실패'))
+    const { result } = f.mount()
+    await waitFor(() => expect(result.current.live.inquiries.isError).toBe(true))
+    expect(result.current.live.inquiries.data).toBeUndefined()
+    expect(listAll).toHaveBeenCalledWith('WAITING')
   })
 
   it('공지 저장 중 이탈·재진입해 같은 폼을 새로 쓰면 오래된 성공은 새 초안과 선택을 보존한다', async () => {
@@ -145,28 +157,6 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     })
     expect(result.current.noticeDrafts.new.body).toBe('제출 뒤 새 본문')
     expect(result.current.recordSelection.notices).toBe('other')
-    expect(f.store.getState().session.dataVersion).toBe(1)
-  })
-
-  it('답변 저장 중 재진입해 같은 문의의 답변을 새로 쓰면 오래된 성공은 새 답변을 지우지 않는다', async () => {
-    const f = setup('feedback')
-    const hook = f.mount()
-    await waitFor(() => expect(hook.result.current.data).toBeTruthy())
-    act(() => { hook.result.current.selectRecord('inquiries', 'question'); hook.result.current.setReplyDraft('question:new', '제출한 답변') })
-    let finish!: (row: Awaited<ReturnType<typeof f.operations.saveReply>>) => void
-    vi.spyOn(f.operations, 'saveReply').mockImplementationOnce(() => new Promise((done) => { finish = done }))
-    let pending!: Promise<boolean>
-    act(() => { pending = hook.result.current.saveReply('question', null, '제출한 답변') })
-    hook.unmount()
-    const again = f.mount()
-    await waitFor(() => expect(again.result.current.data).toBeTruthy())
-    act(() => again.result.current.setReplyDraft('question:new', '재진입 후 새 답변'))
-    await act(async () => {
-      finish({ id: 'saved-reply', inquiryId: 'question', body: '제출한 답변', createdAt: '2026-11-05T00:00:00Z', updatedAt: '2026-11-05T00:00:00Z' })
-      expect(await pending).toBe(true)
-    })
-    expect(again.result.current.replyDrafts['question:new']).toBe('재진입 후 새 답변')
-    expect(again.result.current.recordSelection.inquiries).toBe('question')
     expect(f.store.getState().session.dataVersion).toBe(1)
   })
 

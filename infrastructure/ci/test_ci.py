@@ -511,6 +511,17 @@ class ConfigurationTest(unittest.TestCase):
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
         self.assertIn('world-studios', text)
 
+    def test_operations_support_public_routes_expose_only_the_support_prefix(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/support {', 'location ^~ /api/v1/operations/support/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+            # 서비스 토큰 CRUD(inquiries·notices·events)는 공개 진입점에 열지 않는다.
+            for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
+                self.assertNotIn(private, text)
+        text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
+        self.assertIn('(?:reports|members|admins|support)', text)
+
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)
         for secret in ['abc.def.ghi', 'test@example.invalid', 'opaque-token', 'a' * 64]:

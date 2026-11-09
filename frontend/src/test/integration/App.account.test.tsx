@@ -126,9 +126,19 @@ describe('계정 (U30~U35E)', () => {
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '포크 질문' } })
     fireEvent.change(screen.getByLabelText('내용'), { target: { value: '어떻게 하나요?' } })
     fireEvent.click(screen.getByRole('button', { name: '문의 보내기' }))
-    await toastIs('문의를 보냈어요 (데모 · 실제 전송 없음)')
+    await toastIs('문의를 보냈어요')
     const q = await screen.findByText('[이용 문의] 포크 질문')
     within(q.closest('.rp') as HTMLElement).getByText('답변 대기')
+  })
+
+  it('로그인 전 문의하기는 폼 대신 로그인 안내를 보이고 로그인 화면으로 보낸다', async () => {
+    renderAt('/me/inquiry', null)
+    await screen.findByRole('heading', { name: '로그인한 뒤 문의할 수 있어요' })
+    expect(screen.queryByRole('button', { name: '문의 보내기' })).toBeNull()
+    expect(screen.queryByLabelText('제목')).toBeNull()
+    fireEvent.click(screen.getByRole('link', { name: '로그인하고 문의하기' }))
+    expect(await screen.findByRole('heading', { name: '로그인' })).toBeTruthy()
+    expect(where()).toBe('/login')
   })
 
   it('로그인 전에는 보호 메뉴가 로그인으로 가고, 가입 화면은 미정 약관을 안내한다', async () => {
