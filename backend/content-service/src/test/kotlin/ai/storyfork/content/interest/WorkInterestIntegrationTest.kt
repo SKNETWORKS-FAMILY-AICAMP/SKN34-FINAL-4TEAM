@@ -2,6 +2,7 @@ package ai.storyfork.content.interest
 
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.fixture.ContentTestConfig
 import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
@@ -14,10 +15,13 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import javax.sql.DataSource
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -44,14 +48,28 @@ import tools.jackson.databind.json.JsonMapper
 class WorkInterestIntegrationTest {
     @LocalServerPort var port=0
     @MockitoBean lateinit var core: CoreAuthClient
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
     @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource
     @Autowired lateinit var json: JsonMapper
     private val jdbc get()=JdbcTemplate(source)
     private val client=HttpClient.newHttpClient()
+    /** Core 닉네임 대역이다. 회원 id → 최신 닉네임이며, 없는 회원은 Core에 없는(탈퇴한) 회원이다. */
+    private val names: MutableMap<String,String> = ConcurrentHashMap()
 
-    private fun actor(): UUID=UUID.randomUUID().also { id -> `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id)) }
+    /** 작품을 만들고 읽는 `WorkService`가 작가명을 Core 닉네임 조회로 채우므로(기능 22) 대역이 없으면 `CoreAuthClient` 목의 null 응답이 502가 된다. */
+    @BeforeEach fun coreNicknames() {
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer {call ->
+            (call.arguments[0] as Collection<*>).map {it as String}.filter {it in names}.associateWith {names.getValue(it)}
+        }
+    }
+
+    /** Core가 확인해 주는 회원이며 Core 닉네임 대역에도 등록한다. */
+    private fun actor(): UUID=UUID.randomUUID().also { id ->
+        `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id))
+        names[id.toString()]="관심 테스트 회원"
+    }
     private fun call(method: String,path: String,member: UUID?,csrf: Boolean=true): HttpResponse<String> {
         val request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).method(method,HttpRequest.BodyPublishers.noBody()).header("Accept","application/json")
         if(csrf) request.header("Cookie",CsrfFixture.cookie).header("X-CSRF-TOKEN",CsrfFixture.token())
