@@ -53,6 +53,8 @@ export type AppCradle = {
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
   mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository
+  manuscriptUseCase: import('../../domain/usecases/ManuscriptUseCase').ManuscriptUseCase
+  manuscriptRepository: import('../../domain/repositories/ManuscriptRepository').ManuscriptRepository
   episodeUseCase: EpisodeUseCase
   episodeRepository: EpisodeRepository
   openNotificationStream: OpenNotificationStream
