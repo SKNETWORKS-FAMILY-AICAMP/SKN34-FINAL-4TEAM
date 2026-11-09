@@ -34,7 +34,7 @@ CREATE TABLE work_view (
 CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 ```
 
-발행 이력이 있는 작품은 삭제가 409이므로 조회 기록이 있는 작품의 삭제 경로는 생기지 않는다.
+작품 삭제는 소프트 삭제이므로(DEC-42) 조회 기록은 보존하고, 삭제된 작품은 검색·랭킹에서 제외한다.
 
 ## 공개 API
 
