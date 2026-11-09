@@ -16,6 +16,7 @@ import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
 
 /** Spring context나 HTTP 서버 없이 리소스별 응답 계약을 확인한다. */
 @ExtendWith(MockitoExtension::class)
@@ -62,9 +63,11 @@ class EventControllerTest {
 
     @Test
     fun `delete delegates once and returns 204 without a body`() {
-        val response = controller.delete(id)
-        assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
-        assertNull(response.body)
+        controller.delete(id)
+        // Like the other controllers: a void handler with @ResponseStatus answers 204 with no body.
+        val handler = EventController::class.java.getMethod("delete", UUID::class.java)
+        assertEquals(HttpStatus.NO_CONTENT, handler.getAnnotation(ResponseStatus::class.java).value)
+        assertEquals(Void.TYPE, handler.returnType)
         verify(service).delete(id)
         verifyNoMoreInteractions(service)
     }

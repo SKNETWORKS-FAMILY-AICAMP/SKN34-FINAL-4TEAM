@@ -8,6 +8,7 @@ import jakarta.validation.Valid
 import java.net.URI
 import java.util.UUID
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -36,8 +37,6 @@ class EventController(private val service: EventService) {
 
     /** 버전 검사를 거쳐 안내를 삭제하고 204를 반환한다. 없음은 404, 동시 수정 충돌은 409다. */
     @DeleteMapping("/{id}")
-    fun delete(@PathVariable id: UUID): ResponseEntity<Void> {
-        service.delete(id)
-        return ResponseEntity.noContent().build()
-    }
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun delete(@PathVariable id: UUID) = service.delete(id)
 }
