@@ -7,13 +7,14 @@ import { checkProfile } from '../../../../domain/entities/account'
 import { eventStatus, type EventPeriod } from '../../../../domain/entities/event'
 import type { AccountUseCase } from '../../../../domain/usecases/AccountUseCase'
 import type { EventUseCase } from '../../../../domain/usecases/EventUseCase'
+import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
 /** 목업 mePage(sub)·saveProfile·#suf·#iqf·withdrawSheet: U30~U35E 계정 */
-export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase'), eventUseCase: EventUseCase = appContainer.resolve('eventUseCase')) {
+export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase'), noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'), eventUseCase: EventUseCase = appContainer.resolve('eventUseCase')) {
   const { role, user } = useAppSelector((s) => s.session)
   const dispatch = useAppDispatch()
   const profileUseCase = appContainer.resolve('profileUseCase')
@@ -46,18 +47,21 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
     return () => { request.abort(); controller.current = null }
   }, [sub, role, dispatch, profileUseCase, profileAttempt])
   useScreenId(sub === 'liked' ? 'U32' : sub === 'pay' ? 'U33' : sub === 'inquiry' ? 'U34' : sub === 'notice' ? 'U35' : sub === 'event' ? 'U35E' : 'U30')
+  // 공지는 인증 없는 운영 공지 API: ?id가 없으면 목록, 있으면 그 공지 하나(없으면 null)를 읽습니다. id는 조회 범위라 바뀌면 이전 결과를 감춥니다.
+  const [params] = useSearchParams()
+  const noticeId = sub === 'notice' ? params.get('id') : null
   // 이벤트는 운영 공개 API로 읽는다: ?id=가 없으면 목록, 있으면 그 UUID의 상세. 비로그인도 열람한다.
-  const eventId = useSearchParams()[0].get('id')
-  const eventKey = sub === 'event' ? eventId : null
+  const eventKey = sub === 'event' ? params.get('id') : null
   const { data, isError, retry } = useAsyncData(async () => ({
     sub,
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
     storage: sub === 'storage' ? await accountUseCase.storage() : null,
     inquiries: sub === 'inquiry' ? await accountUseCase.inquiries() : [],
-    board: sub === 'notice' ? await accountUseCase.board() : null,
+    notices: sub === 'notice' && noticeId === null ? await noticeUseCase.listPublic() : [],
+    notice: sub === 'notice' && noticeId ? await noticeUseCase.getPublic(noticeId) : null,
     events: sub === 'event' && eventKey === null ? await eventUseCase.listPublic() : [],
     event: sub === 'event' && eventKey !== null ? await eventUseCase.getPublic(eventKey) : null,
-  }), [accountUseCase, eventUseCase, sub, eventKey])
+  }), [accountUseCase, noticeUseCase, eventUseCase, sub, noticeId, eventKey])
   return {
     role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, data: data?.sub === sub ? data : undefined,
     loadFailed: isError, retryLoad: retry,

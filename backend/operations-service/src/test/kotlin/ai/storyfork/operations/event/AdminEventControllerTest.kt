@@ -1,8 +1,8 @@
 package ai.storyfork.operations.event
 
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.event.controller.AdminEventController
 import ai.storyfork.operations.event.service.AdminEventService
-import ai.storyfork.operations.event.service.dto.EventListResponse
 import ai.storyfork.operations.event.service.dto.EventRequest
 import ai.storyfork.operations.event.service.dto.EventResponse
 import ai.storyfork.operations.security.OperationsMember
@@ -37,7 +37,7 @@ class AdminEventControllerTest {
 
     @Test
     fun `list detail and update pass the authenticated member and return the service DTOs`() {
-        val page = EventListResponse(listOf(event), 0, 100, 1, 1)
+        val page = PageResponse(listOf(event), 0, 100, 1, 1)
         val request = EventRequest("수정", "수정 본문", time, time.plusSeconds(3600))
         val updated = event.copy(title = request.title, body = request.body, startsAt = request.startsAt, endsAt = request.endsAt)
         `when`(service.list(member)).thenReturn(page)

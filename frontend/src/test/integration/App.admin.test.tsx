@@ -81,14 +81,21 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByText(text)).not.toBeNull()
   })
 
-  it('공지·이벤트를 게시하면 회원 화면에 보인다', async () => {
+  it('공지를 게시하면 회원 공지사항에 보인다', async () => {
     renderAt('/admin?tab=notices')
-    fireEvent.click(await screen.findByText('기존 회원 화면 공지 데모'))
-    expect((await screen.findByLabelText<HTMLInputElement>('제목')).required).toBe(true)
-    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '점검 안내' } })
-    fireEvent.change(screen.getByLabelText('내용'), { target: { value: '오늘 밤 점검해요' } })
-    fireEvent.click(screen.getByRole('button', { name: '공지 게시' }))
-    await toastIs('공지를 게시했어요 (데모 · 현재 화면에만 반영)')
+    fireEvent.click(await screen.findByRole('button', { name: '공지 작성' }))
+    expect((await screen.findByLabelText<HTMLInputElement>('공지 제목')).required).toBe(true)
+    fireEvent.change(screen.getByLabelText('공지 제목'), { target: { value: '점검 안내' } })
+    fireEvent.change(screen.getByLabelText('공지 내용'), { target: { value: '오늘 밤 점검해요' } })
+    fireEvent.click(screen.getByRole('button', { name: '공지 저장' }))
+    await toastIs('공지를 저장했어요. 회원 공지사항에 바로 공개돼요.')
+    cleanup()
+    renderAt('/me/notice', 'user')
+    await screen.findByRole('link', { name: /점검 안내/ })
+  })
+
+  it('이벤트를 등록하면 회원 이벤트 화면에 보인다', async () => {
+    renderAt('/admin?tab=notices')
     fireEvent.click(within(nav()).getByRole('link', { name: '이벤트' }))
     // 이벤트는 운영 API(대역: 메모리 저장소)로 등록하고, 회원 화면은 같은 공개 API로 읽는다.
     fireEvent.click(await screen.findByRole('button', { name: '이벤트 작성' }))
@@ -99,33 +106,9 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByRole('heading', { name: '새 이벤트' })
     within(screen.getByRole('region', { name: '운영 이벤트' })).getByText('상시')
     cleanup()
-    renderAt('/me/notice', 'user')
-    await screen.findByRole('link', { name: /점검 안내/ })
-    cleanup()
     renderAt('/me/event', 'user')
     await screen.findByText('새 이벤트')
     screen.getByText('상시')
-  })
-
-  it('문의에 답변하면 회원 문의 목록에 운영팀 답변이 보인다', async () => {
-    renderAt('/me/inquiry', 'user')
-    fireEvent.change(await screen.findByLabelText('제목'), { target: { value: '답변 요청' } })
-    fireEvent.change(screen.getByLabelText('내용'), { target: { value: '확인 부탁해요' } })
-    fireEvent.click(screen.getByRole('button', { name: '문의 보내기' }))
-    await screen.findByText('[이용 문의] 답변 요청')
-    cleanup()
-    renderAt('/admin?tab=feedback')
-    fireEvent.click(await screen.findByText('기존 회원 문의 데모'))
-    fireEvent.click(await screen.findByRole('button', { name: /답변 요청.*답변 대기/ }))
-    const item = (await screen.findByRole('heading', { name: '[이용 문의] 답변 요청' })).closest('article') as HTMLElement
-    fireEvent.change(within(item).getByLabelText('답변'), { target: { value: '확인했어요' } })
-    fireEvent.click(within(item).getByRole('button', { name: '답변 등록' }))
-    await toastIs('답변을 등록했어요 (데모 · 실제 전송 없음)')
-    cleanup()
-    renderAt('/me/inquiry', 'user')
-    const q = (await screen.findByText('[이용 문의] 답변 요청')).closest('.rp') as HTMLElement
-    within(q).getByText('답변 완료')
-    within(q).getByText('확인했어요')
   })
 
   it('실패한 정기 작업은 수동 재시도 시연만 기록한다', async () => {

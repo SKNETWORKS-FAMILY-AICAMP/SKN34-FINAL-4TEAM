@@ -6,9 +6,7 @@
 
 ## 운영 서비스의 현재 범위
 
-[Operations API 인계](../backend/operations-service/README.md)는 `/api/v1/operations/{notices,events,inquiries}` 및 문의 하위 답변의 UUID CRUD를 정의한다. 각 리소스의 `Controller → Service → JpaRepository`와 명시적 DTO를 사용하고 `X-Operations-Service-Token`으로 모든 운영 접근을 보호한다. 설정이 없거나 공백뿐이면 거절하며 서비스 자격을 사람의 관리자·회원 신원/소유권으로 해석하지 않는다. 쿠키/세션·브라우저 직접 연결·Core/Content 호출은 없다.
-
-이 서비스 토큰 경로와 별도로, 브라우저용 회원 Bearer 경로(신고·회원·관리자, [계약](design/operations-member-report-contract.md))와 이벤트 관리자 `/api/v1/operations/admin/events`·독자 공개 GET `/api/v1/operations/public/events`([이벤트 계약](design/operations-event-contract.md))가 있다. nginx/Vite는 이 하위 경로만 운영 서비스로 열고 서비스 토큰 경로는 열지 않는다.
+[Operations API 인계](../backend/operations-service/README.md)는 `/api/v1/operations/{notices,events,inquiries}` 및 문의 하위 답변의 UUID CRUD를 정의한다. 각 리소스의 `Controller → Service → JpaRepository`와 명시적 DTO를 사용하고 `X-Operations-Service-Token`으로 모든 운영 접근을 보호한다. 설정이 없거나 공백뿐이면 거절하며 서비스 자격을 사람의 관리자·회원 신원/소유권으로 해석하지 않는다. 이 서비스 토큰 CRUD는 브라우저에 노출하지 않는다. 브라우저용 `/api/v1/operations/{reports,members,admins,admin/notices,admin/events}`는 회원 Bearer를 Core로 확인하고 운영자 권한으로 인가하며([회원·관리자·신고 계약](design/operations-member-report-contract.md)), `/api/v1/operations/public/{notices,events}`는 인증 없는 공지·이벤트 조회(GET)다([운영 공지 계약](design/operations-notice-contract.md), [운영 이벤트 계약](design/operations-event-contract.md)). nginx/Vite는 이 경로만 운영 서비스로 보내고 서비스 토큰 경로는 열지 않는다.
 
 기존 PostgreSQL에서 `operations` schema와 `operations.operations_flyway_schema_history`를 독립 소유한다. V1 공지·V2 이벤트·V3 문의/답변만 운영 location에서 적용하고 다른 서비스 이력을 재실행하지 않는다. JPA `validate`/UTC/`@Version`, 기본 20·최대 100개 고정 정렬 목록과 안전한 400/404/409를 사용한다. 공개 게시·이벤트 진행 상태·내 문의·처리 상태·알림·사람별 관리자 권한·배포는 제외한다.
 

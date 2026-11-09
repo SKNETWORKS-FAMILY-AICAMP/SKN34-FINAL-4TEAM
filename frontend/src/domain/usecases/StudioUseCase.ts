@@ -34,7 +34,7 @@ function runCheck(w: Work, d: Draft) {
     const opened = p.match(/[^.]*문이 열렸[^.]*\./)
     if (/해가 진 뒤.*문이 열렸/.test(p) && opened && b.rules.some((r) => /문은 열리지/.test(r))) issues.push({ sent: opened[0].trim(), rule: b.rules.find((r) => /문은 열리지/.test(r))!, fix: '해가 진 뒤라 문은 열리지 않았다.' })
   }
-  d.check = { issues, stale: false, at: Date.now() }
+  d.check = { issues, stale: false, at: Math.max(Date.now(), (d.check?.at ?? 0) + 1) }
 }
 
 const SIMS_GUUNMONG: [string, string][] = [['팔선녀', '“어제 그 스님은 어디 계신가요?” 선녀들이 도량 문 앞에서 웃으며 묻는다.'], ['성진', '문 뒤에서 대답하지 못하고 염주만 굴린다.'], ['육관대사', '“만나고 싶거든 문을 열어라. 숨는 것도 마음이 흔들린 증거다.”'], ['성진', '문을 열고, 어제 받은 구슬을 돌려 달라고 정중히 청한다.'], ['팔선녀', '구슬 하나만 남기고 웃으며 구름에 오른다.']]
@@ -222,11 +222,11 @@ export class StudioUseCase {
 
   dropProposal(key: string) { return this.update(key, (d) => { d.proposal = null }) }
 
-  /** 어긋난 곳의 수를 돌려줍니다. */
+  /** 어긋난 곳의 수를 돌려줍니다. 검사할 초안이 없으면 null입니다. */
   async check(id: string, key: string) {
     const w = await this.work(id)
     const d = w && await this.update(key, (x) => runCheck(w, x))
-    return d?.check?.issues.length ?? 0
+    return d?.check?.issues.length ?? null
   }
 
   async fix(id: string, key: string, i: number) {

@@ -43,7 +43,7 @@ export async function send(fetcher: typeof fetch | undefined, path: string, meth
   if (!response.ok) throw new OperationsError(messages[response.status] ?? '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
   return response
 }
-async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>): Promise<T> {
+export async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>): Promise<T> {
   const parsed = schema.safeParse(await (await send(fetcher, path)).json().catch(() => undefined))
   if (!parsed.success) throw new OperationsError('서버 응답 형식을 확인할 수 없어요.')
   return parsed.data

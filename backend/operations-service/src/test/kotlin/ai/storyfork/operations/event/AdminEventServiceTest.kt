@@ -1,12 +1,14 @@
 package ai.storyfork.operations.event
 
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.event.service.AdminEventService
 import ai.storyfork.operations.event.service.EventService
-import ai.storyfork.operations.event.service.dto.EventListResponse
 import ai.storyfork.operations.event.service.dto.EventRequest
 import ai.storyfork.operations.event.service.dto.EventResponse
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.security.OperationsMember
+import jakarta.validation.ConstraintViolationException
+import jakarta.validation.Validation
 import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
@@ -20,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException
 class AdminEventServiceTest {
     private val events = mock(EventService::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
-    private val service = AdminEventService(events, permissions)
+    private val service = AdminEventService(events, permissions, Validation.buildDefaultValidatorFactory().validator)
 
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutEvents = OperationsMember(UUID.randomUUID(), true)
@@ -45,12 +47,27 @@ class AdminEventServiceTest {
     @Test
     fun `every operation is forbidden before touching events unless an operator holds the events permission`() {
         givenEventsPermission()
+        // 잘못된 입력도 검증보다 권한 검사가 먼저라 400이 아니라 403이다.
+        val invalid = request.copy(title = "가".repeat(201))
         for (member in listOf(staleGrant, operatorWithoutEvents)) {
             assertForbidden { service.list(member) }
             assertForbidden { service.read(member, id) }
             assertForbidden { service.create(member, request) }
+            assertForbidden { service.create(member, invalid) }
             assertForbidden { service.update(member, id, request) }
+            assertForbidden { service.update(member, id, invalid) }
             assertForbidden { service.delete(member, id) }
+        }
+        verifyNoInteractions(events)
+    }
+
+    @Test
+    fun `an events admin gets 400 for over long input before the event service is called`() {
+        givenEventsPermission()
+        // 길이 규칙의 출처는 EventRequest의 @Size다. 컨트롤러에 @Valid가 없으므로 권한 확인 뒤 서비스가 같은 규칙을 직접 검증해야 한다.
+        for (invalid in listOf(request.copy(title = "가".repeat(201)), request.copy(body = "나".repeat(20_001)))) {
+            assertThrows(ConstraintViolationException::class.java) { service.create(admin, invalid) }
+            assertThrows(ConstraintViolationException::class.java) { service.update(admin, id, invalid) }
         }
         verifyNoInteractions(events)
     }
@@ -73,7 +90,7 @@ class AdminEventServiceTest {
     @Test
     fun `list asks the event service for the latest 100 events`() {
         givenEventsPermission()
-        val page = EventListResponse(listOf(event), 0, 100, 1, 1)
+        val page = PageResponse(listOf(event), 0, 100, 1, 1)
         `when`(events.list(PageRequest.of(0, 100))).thenReturn(page)
 
         assertEquals(page, service.list(admin))

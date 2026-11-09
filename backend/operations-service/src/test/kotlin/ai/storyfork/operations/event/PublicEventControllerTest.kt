@@ -1,8 +1,8 @@
 package ai.storyfork.operations.event
 
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.EventService
-import ai.storyfork.operations.event.service.dto.EventListResponse
 import ai.storyfork.operations.event.service.dto.EventResponse
 import java.time.Instant
 import java.util.UUID
@@ -22,7 +22,7 @@ class PublicEventControllerTest {
 
     @Test
     fun `list returns the latest 100 events including ended ones`() {
-        val page = EventListResponse(listOf(ended), 0, 100, 1, 1)
+        val page = PageResponse(listOf(ended), 0, 100, 1, 1)
         `when`(service.list(PageRequest.of(0, 100))).thenReturn(page)
 
         assertEquals(page, controller.list())

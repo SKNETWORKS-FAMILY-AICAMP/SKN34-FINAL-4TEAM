@@ -13,14 +13,12 @@ type AdminViewState = {
   recordSelection: Record<OperationsRecordKind, string | null>
   noticeDrafts: Record<string, NoticeInput>; eventDrafts: Record<string, EventDraft>; inquiryDrafts: Record<string, InquiryInput>
   replyDrafts: Record<string, string>
-  legacyInquiryId: string | null
-  legacyDrafts: Record<string, Record<string, string>>
 }
 
 const initialState: AdminViewState = {
   sel: null, filters: {}, chatForm: { kind: 'fork', workId: '', character: '' },
   recordSelection: { notices: null, events: null, inquiries: null },
-  noticeDrafts: {}, eventDrafts: {}, inquiryDrafts: {}, replyDrafts: {}, legacyInquiryId: null, legacyDrafts: {},
+  noticeDrafts: {}, eventDrafts: {}, inquiryDrafts: {}, replyDrafts: {},
 }
 
 export const adminViewSlice = createSlice({
@@ -39,9 +37,6 @@ export const adminViewSlice = createSlice({
     setReplyDraft: (s, a: PayloadAction<{ id: string; value: string }>) => { s.replyDrafts[a.payload.id] = a.payload.value },
     clearReplyDraft: (s, a: PayloadAction<string>) => { delete s.replyDrafts[a.payload] },
     clearInquiryReplies: (s, a: PayloadAction<string>) => { for (const key of Object.keys(s.replyDrafts)) if (key.startsWith(a.payload + ':')) delete s.replyDrafts[key] },
-    selectLegacyInquiry: (s, a: PayloadAction<string | null>) => { s.legacyInquiryId = a.payload },
-    setLegacyDraft: (s, a: PayloadAction<{ id: string; field: string; value: string }>) => { (s.legacyDrafts[a.payload.id] ??= {})[a.payload.field] = a.payload.value },
-    clearLegacyDraft: (s, a: PayloadAction<string>) => { delete s.legacyDrafts[a.payload] },
   },
 })
 

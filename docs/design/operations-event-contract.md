@@ -27,7 +27,7 @@
 
 ```text
 Event = { id, title, body, startsAt|null, endsAt|null, createdAt, updatedAt }   // 기존 EventResponse
-EventList = { items: Event[], page, size, totalElements, totalPages }          // 기존 EventListResponse
+EventList = { items: Event[], page, size, totalElements, totalPages }          // 공통 PageResponse<Event>
 EventInput = { title, body, startsAt?|null, endsAt?|null }                     // 기존 EventRequest
 ```
 
@@ -53,8 +53,8 @@ GET 이외 메서드는 거절한다(403 또는 405). 서비스 토큰·Bearer�
 ## 실행 연결
 
 - 운영 서비스 `MemberSecurityConfig`의 회원 Bearer 경로 목록에 `admin/events`를 추가한다.
-- `/api/v1/operations/public/events`와 하위 경로는 별도 SecurityFilterChain에서 GET만 `permitAll`, 나머지 거절한다.
-  서비스 토큰 체인은 그대로 다른 모든 경로를 소유한다.
+- `/api/v1/operations/public/events`와 하위 경로는 공개 공지 조회와 같은 별도 SecurityFilterChain(`PublicSecurityConfig`)에서
+  GET만 `permitAll`, 나머지 거절한다. 서비스 토큰 체인은 그대로 다른 모든 경로를 소유한다.
 - nginx(`frontend/nginx.conf`, `infrastructure/nginx.dev.conf`)·Vite 프록시에 `/api/v1/operations/admin/events`,
   `/api/v1/operations/public/events`와 하위 경로만 운영 서비스로 추가한다. `/api/v1/operations/events`는 열지 않는다.
 - 프런트: 이벤트 전용 `EventRepository`·`EventUseCase`·`HttpEventRepository`를 두고 `registerAppServices`에 등록한다.

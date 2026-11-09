@@ -145,9 +145,11 @@ describe('계정 (U30~U35E)', () => {
   })
 
   it('공지와 이벤트를 상세까지 연다', async () => {
+    await appContainer.resolve('noticeUseCase').save(null, { title: '포크 이용 안내', body: '작가가 허용한 회차에서만\n포크할 수 있어요.' })
     renderAt('/me/notice', null)
     fireEvent.click(await screen.findByRole('link', { name: /포크 이용 안내/ }))
     await screen.findByRole('heading', { name: '포크 이용 안내' })
+    expect(screen.getByText(/포크할 수 있어요/).textContent).toBe('작가가 허용한 회차에서만\n포크할 수 있어요.')
     cleanup()
     // 운영 이벤트 공개 API의 대역(메모리 저장소)에 이벤트를 등록해 두고 비로그인으로 목록→상세를 연다.
     const events = appContainer.resolve('eventRepository')
@@ -187,6 +189,39 @@ describe('계정 (U30~U35E)', () => {
     renderAt('/me/event?id=0b6f3e5a-2c9d-4c0e-9a55-1f6f6d1f7a01', null)
     await screen.findByText('이벤트를 찾을 수 없어요.')
     expect(screen.getByRole('link', { name: '목록으로' }).getAttribute('href')).toBe('/me/event')
+  })
+
+  it('공지 목록은 로그인 전에도 최신순으로 보이고 없는 공지는 찾을 수 없다고 알린다', async () => {
+    const notices = appContainer.resolve('noticeUseCase')
+    const older = await notices.save(null, { title: '먼저 올린 공지', body: '본문' })
+    await new Promise((done) => setTimeout(done, 2))
+    await notices.save(null, { title: '나중에 올린 공지', body: '본문' })
+    renderAt('/me/notice', null)
+    await screen.findByRole('link', { name: /나중에 올린 공지/ })
+    const titles = [...document.querySelectorAll('.ntc b')].map((x) => x.textContent)
+    expect(titles.indexOf('나중에 올린 공지')).toBeLessThan(titles.indexOf('먼저 올린 공지'))
+    expect(screen.getByRole('link', { name: /먼저 올린 공지/ }).getAttribute('href')).toBe(`/me/notice?id=${older.id}`)
+    cleanup()
+    renderAt('/me/notice?id=missing', null)
+    await screen.findByText('공지사항을 찾을 수 없어요.')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('공지 조회 실패는 빈 목록·없음으로 숨기지 않고 오류와 다시 불러오기를 보인다', async () => {
+    const notices = appContainer.resolve('noticeUseCase')
+    await notices.save(null, { title: '복구 뒤 보일 공지', body: '본문' })
+    const list = vi.spyOn(notices, 'listPublic').mockRejectedValueOnce(new Error('서버 오류'))
+    renderAt('/me/notice', null)
+    expect((await screen.findByRole('alert')).textContent).toBe('공지사항을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+    expect(screen.queryByText('등록된 공지사항이 없어요.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByRole('link', { name: /복구 뒤 보일 공지/ })
+    expect(list).toHaveBeenCalledTimes(2)
+    cleanup()
+    vi.spyOn(notices, 'getPublic').mockRejectedValueOnce(new Error('서버 오류'))
+    renderAt('/me/notice?id=any', null)
+    await screen.findByRole('alert')
+    expect(screen.queryByText('공지사항을 찾을 수 없어요.')).toBeNull()
   })
 
   it('관심 소설은 처음 누른 순서대로 보인다 (목업 Object.keys(S.liked))', async () => {

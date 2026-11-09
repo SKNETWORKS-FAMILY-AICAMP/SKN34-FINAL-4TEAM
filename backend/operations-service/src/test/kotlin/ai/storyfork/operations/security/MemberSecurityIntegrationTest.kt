@@ -2,11 +2,12 @@ package ai.storyfork.operations.security
 
 import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.event.controller.AdminEventController
 import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.AdminEventService
 import ai.storyfork.operations.event.service.EventService
-import ai.storyfork.operations.event.service.dto.EventListResponse
+import ai.storyfork.operations.event.service.dto.EventResponse
 import ai.storyfork.operations.report.controller.ReportController
 import ai.storyfork.operations.report.service.ReportService
 import ai.storyfork.operations.report.service.dto.ReportListResponse
@@ -33,7 +34,7 @@ import tools.jackson.databind.json.JsonMapper
 @WebMvcTest(controllers = [ReportController::class, AdminEventController::class, PublicEventController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
-@Import(MemberSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
+@Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
     MemberSecurityIntegrationTest.MvcSecurity::class)
 class MemberSecurityIntegrationTest {
     @TestConfiguration(proxyBeanMethods = false)
@@ -115,7 +116,7 @@ class MemberSecurityIntegrationTest {
     fun `verified member reaches the admin events controller as principal`() {
         val member = OperationsMember(UUID.randomUUID(), true)
         `when`(core.verify(bearer)).thenReturn(member)
-        `when`(adminEvents.list(member)).thenReturn(EventListResponse(emptyList(), 0, 100, 0, 0))
+        `when`(adminEvents.list(member)).thenReturn(PageResponse<EventResponse>(emptyList(), 0, 100, 0, 0))
 
         mvc.perform(get("/api/v1/operations/admin/events").header("Authorization", bearer)).andExpect(status().isOk())
 
@@ -125,7 +126,7 @@ class MemberSecurityIntegrationTest {
     @Test
     fun `public events are readable without credentials and ignore any Bearer or service token`() {
         val missing = UUID.randomUUID()
-        `when`(events.list(PageRequest.of(0, 100))).thenReturn(EventListResponse(emptyList(), 0, 100, 0, 0))
+        `when`(events.list(PageRequest.of(0, 100))).thenReturn(PageResponse<EventResponse>(emptyList(), 0, 100, 0, 0))
         `when`(events.read(missing)).thenThrow(NoSuchElementException())
 
         mvc.perform(get("/api/v1/operations/public/events")).andExpect(status().isOk())

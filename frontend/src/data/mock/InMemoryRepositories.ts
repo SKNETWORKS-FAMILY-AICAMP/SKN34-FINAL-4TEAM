@@ -29,7 +29,7 @@ export function createMockDb() {
     inbox: [] as InboxItem[],
     reviewQueue: [] as ReviewItem[],
     drafts: {} as Record<string, Draft>,
-    admin: {profile:{nick:'',email:'',joined:''},audit:[],users:[],jobs:[],admins:[],hiddenComments:[],notices:[],events:[],flagged:{id:'',title:'',owner:'',kind:'',rights:'',fork:'',reports:0,state:'',log:[]}} as AdminState,
+    admin: {profile:{nick:'',email:'',joined:''},audit:[],users:[],jobs:[],admins:[],hiddenComments:[],events:[],flagged:{id:'',title:'',owner:'',kind:'',rights:'',fork:'',reports:0,state:'',log:[]}} as AdminState,
     credits: { credits: 100, usage: [], failNext: false, alerts: [] } as DemoCredits,
   }
 }
@@ -123,7 +123,6 @@ export class InMemoryInquiryRepository implements InquiryRepository {
   constructor(db: MockDb) { this.db = db }
   list() { return copy(this.db.inq) }
   async add(inquiry: Inquiry) { this.db.inq.unshift(structuredClone(inquiry)) }
-  async save(inquiry: Inquiry) { replace(this.db.inq, inquiry) }
 }
 
 export class InMemoryAdminRepository implements AdminRepository {
