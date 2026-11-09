@@ -6,7 +6,7 @@ import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector, type RootState } from '../../../../app/store'
 import type { AdminTab } from '../../../../domain/entities/admin'
 import { OperationsError, toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
-import type { AdminResult, AdminUseCase } from '../../../../domain/usecases/AdminUseCase'
+import { type AdminResult, type AdminUseCase, canToggleWork } from '../../../../domain/usecases/AdminUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
 import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
 import type { ReportStatus, ReviewDecision } from '../../../../domain/entities/report'
@@ -197,6 +197,7 @@ export function useAdminViewModel(
       return demoDeleted('답변을')
     }),
     chatChoices: adminUseCase.chatChoices.bind(adminUseCase),
+    canToggleWork,
     toggleWork: (id: string) => run(`work:${id}`, () => adminUseCase.toggleWork(id)),
     toggleComment: (id: string, label: string) => run(`comment:${id}`, () => adminUseCase.toggleComment(id, label)),
     toggleChat: (id: string) => run(`chat:${id}`, () => adminUseCase.toggleChat(id)),

@@ -4,7 +4,6 @@ import { Link, useSearchParams } from 'react-router'
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
 import { ofKind } from '../../../../domain/entities/work'
-import { canToggleWork } from '../../../../domain/usecases/AdminUseCase'
 import { kstDateTime } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
@@ -328,13 +327,13 @@ function Body(p: BodyProps) {
                     <button
                       type='button'
                       className='btn sm'
-                      disabled={!canToggleWork(w) || blocked(vm, `work:${w.id}`)}
-                      aria-describedby={canToggleWork(w) ? undefined : `work-block-${w.id}`}
+                      disabled={!vm.canToggleWork(w) || blocked(vm, `work:${w.id}`)}
+                      aria-describedby={vm.canToggleWork(w) ? undefined : `work-block-${w.id}`}
                       onClick={() => vm.toggleWork(w.id)}
                     >
                       {w.hidden ? '제한 해제' : '운영상 비공개'}
                     </button>
-                    {!canToggleWork(w) && (
+                    {!vm.canToggleWork(w) && (
                       <>
                         <br />
                         <span id={`work-block-${w.id}`} className='small muted'>

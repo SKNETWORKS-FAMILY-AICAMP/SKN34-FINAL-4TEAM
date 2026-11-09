@@ -184,3 +184,9 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     expect(dataVersion).toBe(1)
   })
 })
+
+it('작품 탭 View가 쓰는 정본 작품 조치 불가 판단을 ViewModel이 노출한다 (#197)', () => {
+  const vm = useAdminViewModel('works')
+  expect(vm.canToggleWork({ canonical: true })).toBe(false)
+  expect(vm.canToggleWork({})).toBe(true)
+})
