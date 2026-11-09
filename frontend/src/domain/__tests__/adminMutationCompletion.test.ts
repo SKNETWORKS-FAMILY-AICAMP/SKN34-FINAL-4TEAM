@@ -9,12 +9,12 @@ import type { RootState } from '../../app/store'
 // 실제 Hook mount/unmount 통합 회귀는 useAdminViewModel.test.tsx에서 CI 전용으로 유지합니다.
 const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
-  admin: { chatChoices: vi.fn(), addNotice: vi.fn(), addEvent: vi.fn(), reply: vi.fn() },
+  admin: { chatChoices: vi.fn() },
   operations: { saveNotice: vi.fn(), deleteNotice: vi.fn(), saveEvent: vi.fn(), deleteEvent: vi.fn(), saveInquiry: vi.fn(), deleteInquiry: vi.fn(), saveReply: vi.fn(), deleteReply: vi.fn() },
   member: { setRestriction: vi.fn(), createAdmin: vi.fn() },
   report: { review: vi.fn(), setContentRestriction: vi.fn(), requestEvidence: vi.fn() },
   /** 데모 조회(adminUseCase를 deps로 가진 useAsyncData)의 상태. 운영 API 조회(live·report)는 항상 완료로 둔다. */
-  demoQuery: { isLoading: false, isRefreshing: false, isError: false },
+  demoQuery: { isLoading: false, isRefreshing: false, isError: false } as { isLoading: boolean; isRefreshing: boolean; isError: boolean; data?: unknown },
 }))
 vi.mock('react', () => ({
   useRef: <T>(current: T) => ({ current }),
@@ -51,7 +51,7 @@ const notice = { title: '제출한 제목', body: '제출한 본문' }
 const event = { ...notice, startsAt: '', endsAt: '' }
 const inquiry = { ...notice, category: '계정' }
 const replyKey = 'question:reply'
-const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: keyof typeof doubles.operations | keyof typeof doubles.admin; other?: (vm: VM) => void }[] = [
+const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: keyof typeof doubles.operations; other?: (vm: VM) => void }[] = [
   ...(['new', 'existing'] as const).flatMap((id) => [
     { name: `notice save ${id}`, method: 'saveNotice' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('notices', id); vm.setNoticeDraft(id, { ...notice, body: changed ? '새 본문' : notice.body }) }, submit: (vm: VM) => vm.saveNotice(id === 'new' ? null : id, notice), other: (vm: VM) => vm.selectRecord('notices', 'other') },
     { name: `event save ${id}`, method: 'saveEvent' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('events', id); vm.setEventDraft(id, { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm: VM) => vm.saveEvent(id === 'new' ? null : id, event), other: (vm: VM) => vm.selectRecord('events', 'other') },
@@ -62,16 +62,12 @@ const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submi
   { name: 'event delete', method: 'deleteEvent', prepare: (vm, changed = false) => { vm.selectRecord('events', 'existing'); vm.setEventDraft('existing', { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm) => vm.deleteEvent('existing'), other: (vm) => vm.selectRecord('events', 'other') },
   { name: 'inquiry delete', method: 'deleteInquiry', prepare: (vm, changed = false) => { vm.selectRecord('inquiries', 'existing'); vm.setInquiryDraft('existing', { ...inquiry, body: changed ? '새 본문' : inquiry.body }); vm.setReplyDraft('existing:new', changed ? '새 답변' : '기존 답변') }, submit: (vm) => vm.deleteInquiry('existing'), other: (vm) => vm.selectRecord('inquiries', 'other') },
   { name: 'reply delete', method: 'deleteReply', prepare: (vm, changed = false) => { vm.selectRecord('inquiries', 'question'); vm.setReplyDraft(replyKey, changed ? '새 답변' : '기존 답변') }, submit: (vm) => vm.deleteReply('question', 'reply'), other: (vm) => vm.selectRecord('inquiries', 'other') },
-  { name: 'legacy notice', method: 'addNotice', prepare: (vm, changed = false) => { vm.setLegacyDraft('notice', 'title', notice.title); vm.setLegacyDraft('notice', 'body', changed ? '새 본문' : notice.body) }, submit: async (vm) => { const ok = await vm.addNotice(notice.title, notice.body); if (ok) vm.clearLegacyDraft('notice'); return ok } },
-  { name: 'legacy event', method: 'addEvent', prepare: (vm, changed = false) => { vm.setLegacyDraft('event', 'title', notice.title); vm.setLegacyDraft('event', 'body', changed ? '새 본문' : notice.body) }, submit: async (vm) => { const ok = await vm.addEvent(notice.title, '', notice.body); if (ok) vm.clearLegacyDraft('event'); return ok } },
-  { name: 'legacy reply', method: 'reply', prepare: (vm, changed = false) => { vm.selectLegacyInquiry('question'); vm.setLegacyDraft('inquiry:question', 'answer', changed ? '새 답변' : '제출한 답변') }, submit: async (vm) => { const ok = await vm.reply('question', '제출한 답변'); if (ok) vm.clearLegacyDraft('inquiry:question'); return ok }, other: (vm) => vm.selectLegacyInquiry('other') },
 ]
 
 function useStartedSubmission(test: typeof cases[number]) {
   let finish!: (result: { id: string; ok: boolean; msg: string }) => void
   const response = new Promise<{ id: string; ok: boolean; msg: string }>((done) => { finish = done })
-  const method = test.method in doubles.operations ? doubles.operations[test.method as keyof typeof doubles.operations] : doubles.admin[test.method as keyof typeof doubles.admin]
-  method.mockReturnValueOnce(response)
+  doubles.operations[test.method].mockReturnValueOnce(response)
   let vm = useAdminViewModel('notices')
   test.prepare(vm)
   // 실제 View가 제출한 렌더의 vm을 보존하듯, 최신 선택/초안을 읽은 callback을 보존합니다.
@@ -85,6 +81,16 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
     const request = useStartedSubmission(test)
     doubles.cleanups.splice(0).forEach((cleanup) => cleanup())
     test.prepare(useAdminViewModel('notices'), true)
+    const expected = view
+    request.finish()
+    expect(await request.pending).toBe(true)
+    expect(view).toEqual(expected)
+    expect(dataVersion).toBe(1)
+  })
+
+  it('이탈만 하고 돌아오지 않아도 같은 초안·선택을 정리하지 않고 성공과 dataChanged는 유지한다', async () => {
+    const request = useStartedSubmission(test)
+    doubles.cleanups.splice(0).forEach((cleanup) => cleanup())
     const expected = view
     request.finish()
     expect(await request.pending).toBe(true)
@@ -130,7 +136,6 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
     expect(view.eventDrafts).toEqual({})
     expect(view.inquiryDrafts).toEqual({})
     expect(view.replyDrafts).toEqual({})
-    expect(view.legacyDrafts).toEqual({})
     expect(dataVersion).toBe(1)
   })
 })
@@ -170,17 +175,17 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     it('데모 탭의 조치는 기존처럼 막혀 실행되지 않는다', async () => {
       const vm = useAdminViewModel('notices')
       expect(vm.mutationsBlocked).toBe(true)
-      expect(await vm.addNotice('제목', '본문')).toBe(false)
-      expect(doubles.admin.addNotice).not.toHaveBeenCalled()
+      expect(await vm.saveNotice(null, notice)).toBe(false)
+      expect(doubles.operations.saveNotice).not.toHaveBeenCalled()
       expect(dataVersion).toBe(0)
     })
   })
 
   it('데모 조회가 끝나 있으면 데모 탭 조치는 실행된다', async () => {
-    doubles.admin.addNotice.mockResolvedValueOnce({ ok: true, msg: '저장 성공' })
+    doubles.operations.saveNotice.mockResolvedValueOnce({ id: 'saved' })
     const vm = useAdminViewModel('notices')
     expect(vm.mutationsBlocked).toBe(false)
-    expect(await vm.addNotice('제목', '본문')).toBe(true)
+    expect(await vm.saveNotice(null, notice)).toBe(true)
     expect(dataVersion).toBe(1)
   })
 })
@@ -189,4 +194,31 @@ it('작품 탭 View가 쓰는 정본 작품 조치 불가 판단을 ViewModel이
   const vm = useAdminViewModel('works')
   expect(vm.canToggleWork({ canonical: true })).toBe(false)
   expect(vm.canToggleWork({})).toBe(true)
+})
+
+describe('개요의 답변 대기 문의 (#202)', () => {
+  it('운영 패널 문의 중 답변이 하나도 없는 건수를 센다', () => {
+    doubles.demoQuery = {
+      isLoading: false, isRefreshing: false, isError: false,
+      data: { operations: { inquiries: [{ replies: [] }, { replies: [{ id: 'reply' }] }, { replies: [] }] } },
+    }
+    expect(useAdminViewModel('data').unansweredInquiries).toBe(2)
+  })
+})
+
+// OperationsUseCase는 UTC 형식을 다시 검사하지 않으므로, 형식 검사는 이 경계가 맡습니다 (#202).
+describe('이벤트 기간 입력 경계', () => {
+  it('한국시간 입력은 UTC로, 빈 입력은 null로 UseCase에 전달한다', async () => {
+    doubles.operations.saveEvent.mockResolvedValueOnce({ id: 'saved' })
+    const vm = useAdminViewModel('events')
+    expect(await vm.saveEvent(null, { ...event, startsAt: '2026-11-05T09:30', endsAt: '' })).toBe(true)
+    expect(doubles.operations.saveEvent).toHaveBeenCalledWith(null, { title: event.title, body: event.body, startsAt: '2026-11-05T00:30:00.000Z', endsAt: null })
+  })
+
+  it.each(['2026-02-30T09:00', '2026-11-05T24:00', '2026-11-05', '임의 기간'])('형식이 틀린 입력은 UseCase에 닿기 전에 거절한다: %s', async (startsAt) => {
+    const vm = useAdminViewModel('events')
+    expect(await vm.saveEvent(null, { ...event, startsAt })).toBe(false)
+    expect(doubles.operations.saveEvent).not.toHaveBeenCalled()
+    expect(dataVersion).toBe(0)
+  })
 })

@@ -23,12 +23,8 @@ export class InMemoryOperationsRepository implements OperationsRepository {
   async listReplies(inquiryId: string) { return structuredClone([...this.replies.values()].filter((row) => row.inquiryId === inquiryId)) }
   async saveReply(row: OperationsReply) {
     if (!this.inquiries.has(row.inquiryId)) throw new OperationsError('문의를 찾을 수 없어요. 목록을 새로고침해 주세요.')
-    const previous = this.replies.get(row.id)
-    if (previous && previous.inquiryId !== row.inquiryId) throw new OperationsError('답변을 찾을 수 없어요. 목록을 새로고침해 주세요.')
     this.replies.set(row.id, structuredClone(row))
   }
-  async deleteReply(inquiryId: string, id: string) {
-    if (this.replies.get(id)?.inquiryId !== inquiryId) throw new OperationsError('답변을 찾을 수 없어요. 목록을 새로고침해 주세요.')
-    this.replies.delete(id)
-  }
+  // 답변이 이 문의의 것인지는 UseCase.reply()가 이미 확인하므로 id만 지운다.
+  async deleteReply(_inquiryId: string, id: string) { this.replies.delete(id) }
 }
