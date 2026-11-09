@@ -70,7 +70,7 @@ Web / 모바일 클라이언트
 1. 기존 업무·테스트·공개 계약을 Content로 추출하고 중복 패키지·legacy importer를 제거했다. Auth·Health는 Core, 운영은 골격 그대로다.
 2. 인증 확인·라우팅·같은 DB의 migration 소유·Content 이미지·CI 선택/통합/HTTP 시스템 검증 소스를 연결했다. fresh Content 초기화와 기존 이력 거부는 hosted CI 대상이다.
 3. 로컬은 선택 순수 단위·구문/계약 검사만 수행한다. 최신 head `Required CI` 성공 확인, 실제 대상 DB 준비, writer 전환·배포 검증은 남아 있다.
-4. CD는 `DEVELOP_CD_ENABLED`·`CONTENT_FRESH_SCHEMA_APPROVED`가 모두 true일 때 같은 revision 확인 → 공개 ingress/구 writer 중지 → 선택 Studio migration → 새 앱 기동으로 진행한다. 실패 시 자동 rollback/repair하지 않는다. 이 문서는 실제 실행 승인이 아니다.
+4. CD는 `DEVELOP_CD_ENABLED`·`CONTENT_FRESH_SCHEMA_APPROVED`가 모두 true일 때 같은 revision 확인 → 공개 ingress/구 writer 중지 → 선택 Studio migration → 새 앱 기동으로 진행한다. 실패 시 자동 rollback/repair하지 않는다. 이 문서는 실제 실행 승인이 아니다. _(과거 기록: 활성화·승인 변수와 별도 Studio migration은 삭제됐고, 지금은 develop CI 성공 시 항상 배포하며 Studio schema는 Content 시작 시 적용한다.)_
 5. 기능표 ✅는 병합·최신 Required CI 근거를 따르며 소스 이동·데이터 전환·운영 배포 완료를 서로 구분한다. 브라우저는 별도 승인 대상이다.
 
 미정/대기: 실제 재초기화 대상·보존/복구 범위·중단 시간·운영 DB 권한, 정산/알림/운영 연계의 계약 버전·timeout/재시도/보상·권한 모델, 모바일 지원·운영 리소스 구성. 기존 Draft #86·#91은 자동 채택하지 않는다.

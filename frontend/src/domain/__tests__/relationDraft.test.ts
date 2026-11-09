@@ -183,6 +183,10 @@ it('detects unapplied changes without marking initial blank rows dirty', () => {
   expect(edited[0].value.text).toBe(' 아직 적용하지 않은 원문 ')
   edited[0].value.text = undefined
   expect(hasRelationDraftChanges(initial, edited, [])).toBe(false)
+  // 입력했다가 모두 지운 빈 설명은 원래 빈 행과 같다.
+  edited[0].value.text = ''
+  expect(hasRelationDraftChanges(initial, edited, [])).toBe(false)
+  expect(hasIncompleteRelationDraft(initial, edited)).toBe(false)
   expect(hasRelationDraftChanges(initial, rows, ['relation-id'])).toBe(true)
   const extra = [...rows, newRelationDraftRow('fact', 'a', 'b')]
   expect(hasRelationDraftChanges(initial, extra, [])).toBe(true)

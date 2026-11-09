@@ -1,5 +1,7 @@
 # 독립 WorldStudio V1 배포
 
+> **현재(플래그 제거 후):** WorldStudio는 기능 플래그 없이 항상 켜지고, 전용 schema는 Content 서버 시작 시 `WorldStudioConfig`가 Flyway로 migrate·validate한다. 별도 `worldstudio-migrate` 명령·`WORLDSTUDIO_CD_MIGRATION_ENABLED` 승인 변수·`APP_WORLDSTUDIO_ENABLED`는 삭제됐다. 아래의 opt-in·명시 실행 설명은 과거 기록이다.
+
 [메인 README](../../README.md) · [문서 목록](../README.md)
 
 ## develop CD 실행 계약

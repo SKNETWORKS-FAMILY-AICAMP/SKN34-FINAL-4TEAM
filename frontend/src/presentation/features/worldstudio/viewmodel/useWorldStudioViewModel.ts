@@ -272,6 +272,7 @@ export function useWorldStudioViewModel(
         const world = await useCase.read(id, signal)
         if (generation.current === current && !signal.aborted) {
           setRelationKey((key) => key + 1)
+          setRelationRequest(null)
           setRelationDirty(false)
           apply(world, current)
         }
@@ -307,6 +308,7 @@ export function useWorldStudioViewModel(
       else Object.assign(s.item, cardTypePatch(s.item, type, []))
       patch({ settings: [...editing.settings, s] })
       setSelected(s.item.id)
+      return s.item.id
     },
     changeCardType: (id: string, type: CardType) => {
       if (!editing || busy) return
