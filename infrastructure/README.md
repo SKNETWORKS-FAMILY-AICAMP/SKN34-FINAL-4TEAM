@@ -104,6 +104,21 @@ prod의 `AUTH_COOKIE_SECURE`는 **항상 true**이므로 로컬 HTTP용 `AUTH_CO
 docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml config --quiet
 ```
 
+## 빌드용 이미지와 Gradle 배포판 보관
+
+서비스 Dockerfile의 builder 단계는 의존성을 미리 받아 둔 GHCR 이미지에서 시작합니다. 이미지 빌드(CI·CD·local)가 매번 외부 저장소에서 내려받지 않게 하기 위해서입니다.
+
+| 이미지 | 내용 | 정의 |
+|---|---|---|
+| `storyfork-jvm-builder:latest` | Java 21, Gradle 9.5.1, Core·Content·Operations Maven 의존성 | `builders/jvm.Dockerfile` |
+| `storyfork-python-builder:latest` | Python 3.11, uv 0.12.5, ai-service `uv.lock` 라이브러리 | `builders/python.Dockerfile` |
+| `storyfork-web-builder:latest` | Node 24, `packageManager`의 pnpm, `pnpm-lock.yaml` 라이브러리 | `builders/web.Dockerfile` |
+
+- `.github/workflows/builder-images.yml`이 의존성 정의(`build.gradle`·wrapper·`uv.lock`·`pnpm-lock.yaml`·`builders/**`)가 develop에 반영될 때 세 이미지를 다시 만듭니다. 수동 실행도 됩니다.
+- 이미지가 갱신되기 전 PR에서 새로 추가된 의존성만 그 빌드가 외부에서 받습니다. 빌드는 깨지지 않습니다.
+- Gradle wrapper는 `services.gradle.org` 대신 저장소 Release `tools-gradle-9.5.1`의 `gradle-9.5.1-bin.zip`을 받고, `distributionSha256Sum`으로 공식 파일과 같은지 검증합니다. Gradle 버전을 올릴 때는 새 zip을 같은 형식의 Release에 올리고 세 wrapper의 `distributionUrl`을 함께 바꿉니다.
+- local `docker compose up --build`도 이 이미지를 받습니다. GHCR 패키지가 public이 아니면 먼저 `docker login ghcr.io`가 필요합니다.
+
 ## 로컬 설정 첨부 저장소 (#87)
 
 첨부 저장소(MinIO)는 플래그 없이 local·개발 배포 compose에 항상 포함됩니다. Content만 `http://minio:9000`과 `AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY`를 받으며 Core에는 S3 설정을 전달하지 않습니다. 이미지는 Dockerfile의 고정 버전 태그(`storyfork-minio:RELEASE…`)로 ghcr에 없을 때만 CD가 한 번 빌드·게시하고, 개발 배포·CI는 그 이미지를 받아 씁니다(local은 받을 수 없으면 처음 한 번 빌드).

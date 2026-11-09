@@ -1,0 +1,56 @@
+name: Builder images
+
+# 서비스 Dockerfile의 builder 단계가 쓰는 의존성 포함 이미지를 다시 만든다.
+# 의존성 정의가 develop에 반영될 때만 실행되고, 그 사이 바뀐 의존성은 서비스 빌드가 외부에서 받는다.
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'backend/*/build.gradle'
+      - 'backend/*/settings.gradle'
+      - 'backend/*/gradle/wrapper/gradle-wrapper.properties'
+      - 'backend/ai-service/pyproject.toml'
+      - 'backend/ai-service/uv.lock'
+      - 'frontend/package.json'
+      - 'frontend/pnpm-lock.yaml'
+      - 'infrastructure/builders/**'
+      - '.github/workflows/builder-images.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: storyfork-builder-images
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish builder images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build and push builder images
+        run: |
+          set -euo pipefail
+          umask 077
+          scratch=$(mktemp -d)
+          trap 'rm -rf -- "$scratch"' EXIT
+          export DOCKER_CONFIG="$scratch"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          for builder in jvm python web; do
+            image="ghcr.io/sknetworks-family-aicamp/storyfork-$builder-builder:latest"
+            docker build --platform linux/amd64 --pull \
+              --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+              --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+              --file "infrastructure/builders/$builder.Dockerfile" --tag "$image" .
+            docker push "$image"
+          done

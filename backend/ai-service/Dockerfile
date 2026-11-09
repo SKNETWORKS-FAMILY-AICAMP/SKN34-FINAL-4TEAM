@@ -1,8 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.11-slim-bookworm AS builder
-
-COPY --from=ghcr.io/astral-sh/uv:0.12.5 /uv /uvx /bin/
+FROM ghcr.io/sknetworks-family-aicamp/storyfork-python-builder:latest AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -11,12 +9,10 @@ ENV UV_COMPILE_BYTECODE=1 \
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --no-install-project
+RUN uv sync --locked --no-dev --no-install-project
 
 COPY app ./app
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --no-editable
+RUN uv sync --locked --no-dev --no-editable
 
 FROM python:3.11-slim-bookworm AS runtime
 

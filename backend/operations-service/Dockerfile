@@ -1,14 +1,12 @@
 # syntax=docker/dockerfile:1
-FROM eclipse-temurin:21-jdk-jammy AS builder
+FROM ghcr.io/sknetworks-family-aicamp/storyfork-jvm-builder:latest AS builder
 WORKDIR /workspace
 COPY gradlew ./gradlew
 COPY gradle ./gradle
 COPY build.gradle settings.gradle ./
 RUN chmod +x ./gradlew
 COPY src ./src
-# ponytail: shared cache serializes Gradle; split cache IDs if build throughput matters.
-RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
-    ./gradlew bootJar --no-daemon && \
+RUN ./gradlew bootJar --no-daemon && \
     artifact="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' -print -quit)" && \
     test -n "${artifact}" && cp "${artifact}" /workspace/application.jar
 FROM eclipse-temurin:21-jre-jammy AS runtime
