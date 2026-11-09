@@ -185,3 +185,20 @@ it('작품 탭 View가 쓰는 정본 작품 조치 불가 판단을 ViewModel이
   expect(vm.canToggleWork({ canonical: true })).toBe(false)
   expect(vm.canToggleWork({})).toBe(true)
 })
+
+// OperationsUseCase는 UTC 형식을 다시 검사하지 않으므로, 형식 검사는 이 경계가 맡습니다 (#202).
+describe('이벤트 기간 입력 경계', () => {
+  it('한국시간 입력은 UTC로, 빈 입력은 null로 UseCase에 전달한다', async () => {
+    doubles.operations.saveEvent.mockResolvedValueOnce({ id: 'saved' })
+    const vm = useAdminViewModel('events')
+    expect(await vm.saveEvent(null, { ...event, startsAt: '2026-11-05T09:30', endsAt: '' })).toBe(true)
+    expect(doubles.operations.saveEvent).toHaveBeenCalledWith(null, { title: event.title, body: event.body, startsAt: '2026-11-05T00:30:00.000Z', endsAt: null })
+  })
+
+  it.each(['2026-02-30T09:00', '2026-11-05T24:00', '2026-11-05', '임의 기간'])('형식이 틀린 입력은 UseCase에 닿기 전에 거절한다: %s', async (startsAt) => {
+    const vm = useAdminViewModel('events')
+    expect(await vm.saveEvent(null, { ...event, startsAt })).toBe(false)
+    expect(doubles.operations.saveEvent).not.toHaveBeenCalled()
+    expect(dataVersion).toBe(0)
+  })
+})
