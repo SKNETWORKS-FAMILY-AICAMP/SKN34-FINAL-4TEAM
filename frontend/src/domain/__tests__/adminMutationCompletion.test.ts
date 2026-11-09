@@ -14,7 +14,7 @@ const doubles = vi.hoisted(() => ({
   member: { setRestriction: vi.fn(), createAdmin: vi.fn() },
   report: { review: vi.fn(), setContentRestriction: vi.fn(), requestEvidence: vi.fn() },
   /** 데모 조회(adminUseCase를 deps로 가진 useAsyncData)의 상태. 운영 API 조회(live·report)는 항상 완료로 둔다. */
-  demoQuery: { isLoading: false, isRefreshing: false, isError: false },
+  demoQuery: { isLoading: false, isRefreshing: false, isError: false } as { isLoading: boolean; isRefreshing: boolean; isError: boolean; data?: unknown },
 }))
 vi.mock('react', () => ({
   useRef: <T>(current: T) => ({ current }),
@@ -194,6 +194,16 @@ it('작품 탭 View가 쓰는 정본 작품 조치 불가 판단을 ViewModel이
   const vm = useAdminViewModel('works')
   expect(vm.canToggleWork({ canonical: true })).toBe(false)
   expect(vm.canToggleWork({})).toBe(true)
+})
+
+describe('개요의 답변 대기 문의 (#202)', () => {
+  it('운영 패널 문의 중 답변이 하나도 없는 건수만 세고 회원 문의는 세지 않는다', () => {
+    doubles.demoQuery = {
+      isLoading: false, isRefreshing: false, isError: false,
+      data: { inquiries: [{ id: 'member', st: '답변 대기' }], operations: { inquiries: [{ replies: [] }, { replies: [{ id: 'reply' }] }, { replies: [] }] } },
+    }
+    expect(useAdminViewModel('data').unansweredInquiries).toBe(2)
+  })
 })
 
 // OperationsUseCase는 UTC 형식을 다시 검사하지 않으므로, 형식 검사는 이 경계가 맡습니다 (#202).

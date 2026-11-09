@@ -112,6 +112,8 @@ export function useAdminViewModel(
   }
   return {
     ...query, ...view, actions, lastSuccess,
+    /** 개요의 '답변 대기 문의': 운영 패널(메모리) 문의 중 답변이 하나도 없는 건수. 회원 문의는 세지 않습니다. */
+    unansweredInquiries: query.data?.operations.inquiries.filter((q) => !q.replies.length).length ?? 0,
     /** 본인 계정 조치 버튼을 막는 화면용 값. 서버도 본인 제한을 400으로 거절합니다. */
     selfId: memberId,
     me,

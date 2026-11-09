@@ -616,7 +616,7 @@ function Overview({ d, vm }: { d: Data; vm: VM }) {
         </div>
         <div className='priority-links'>
           <Go to='/admin?tab=feedback'>
-            <b>{d.inquiries.filter((q) => q.st === '답변 대기').length}</b>
+            <b>{vm.unansweredInquiries}</b>
             <span>답변 대기 문의 (데모)</span>
           </Go>
           <Go to='/admin?tab=rights'>
