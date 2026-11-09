@@ -44,7 +44,8 @@ class MemberSecurityIntegrationTest {
 
     @Test
     fun `member routes require a Core verified Bearer and ignore the service token`() {
-        for (path in listOf("/api/v1/operations/reports", "/api/v1/operations/reports/mine", "/api/v1/operations/members", "/api/v1/operations/admins")) {
+        for (path in listOf("/api/v1/operations/reports", "/api/v1/operations/reports/mine", "/api/v1/operations/members", "/api/v1/operations/admins",
+            "/api/v1/operations/support/inquiries", "/api/v1/operations/support/inquiries/mine")) {
             val response = mvc.perform(get(path).header("X-Operations-Service-Token", serviceToken))
                 .andExpect(status().isUnauthorized()).andReturn().response
             assertEquals("UNAUTHORIZED", code(response.contentAsString))

@@ -57,7 +57,7 @@ class InquiryService(
     }
 
     fun createReply(inquiryId: UUID, request: InquiryReplyRequest): InquiryReplyResponse {
-        validateBody(request.body)
+        validateInquiryBody(request.body)
         requireParent(inquiryId)
         return replies.saveAndFlush(InquiryReplyEntity(inquiryId = inquiryId, body = request.body)).response()
     }
@@ -74,7 +74,7 @@ class InquiryService(
     fun readReply(inquiryId: UUID, replyId: UUID): InquiryReplyResponse = reply(inquiryId, replyId).response()
 
     fun updateReply(inquiryId: UUID, replyId: UUID, request: InquiryReplyRequest): InquiryReplyResponse {
-        validateBody(request.body)
+        validateInquiryBody(request.body)
         val row = reply(inquiryId, replyId)
         row.body = request.body
         row.updatedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
@@ -101,16 +101,19 @@ class InquiryService(
         return PageRequest.of(pageable.pageNumber, pageable.pageSize.coerceAtMost(100), Sort.by(direction, "createdAt", "id"))
     }
 
-    private fun validate(request: InquiryRequest) {
-        require(request.title.isNotBlank() && request.title.length <= 200 && '\u0000' !in request.title) { "Invalid inquiry title." }
-        require(request.category.isNotBlank() && request.category.length <= 50 && '\u0000' !in request.category) { "Invalid inquiry category." }
-        validateBody(request.body)
-    }
-
-    private fun validateBody(body: String) {
-        require(body.isNotBlank() && body.length <= 20000 && '\u0000' !in body) { "Invalid body." }
-    }
+    private fun validate(request: InquiryRequest) = validateInquiryFields(request.title, request.category, request.body)
 
     private fun InquiryEntity.response() = InquiryResponse(id, title, body, category, createdAt, updatedAt)
     private fun InquiryReplyEntity.response() = InquiryReplyResponse(id, inquiryId, body, createdAt, updatedAt)
+}
+
+/** Shared with [SupportInquiryService] so the service-token and member entry points enforce the same limits. */
+internal fun validateInquiryFields(title: String, category: String, body: String) {
+    require(title.isNotBlank() && title.length <= 200 && '\u0000' !in title) { "Invalid inquiry title." }
+    require(category.isNotBlank() && category.length <= 50 && '\u0000' !in category) { "Invalid inquiry category." }
+    validateInquiryBody(body)
+}
+
+internal fun validateInquiryBody(body: String) {
+    require(body.isNotBlank() && body.length <= 20000 && '\u0000' !in body) { "Invalid body." }
 }
