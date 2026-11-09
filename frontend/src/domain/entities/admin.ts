@@ -34,5 +34,3 @@ export function adminReturnPath(search: string): string {
   const query = new URLSearchParams(search)
   return query.has('tab') ? `/admin?tab=${adminTab(query.get('tab'))}` : '/admin'
 }
-
-export const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date()).replaceAll('-', '.')
