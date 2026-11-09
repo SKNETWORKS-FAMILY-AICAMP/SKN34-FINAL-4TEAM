@@ -14,7 +14,7 @@
 
 ## 현재 구현
 
-11번 플롯·장면 계획은 Content의 `plan` 기능과 추가 `db/migration/plan/V10__story_plan.sql`에 분리했습니다. V11은 작품의 실제 삭제 시 해당 계획과 계획 참조만 종속 정리합니다. V12는 인물·장소 순서 목록 갱신의 일시 중복을 허용하고 커밋 시 최종 중복을 거부하며 기존 V1~V11 SQL·체크섬을 보존합니다. 기존 7개 leaf에 plan을 더한 8개 leaf를 사용합니다. `/studio/{id}?view=narrative`에서 실제 작품은 계획 API를, 메모리 데모는 독립 계획 저장소를 사용하고 기존 설정집·회차 조회를 참조합니다. 계획 저장은 원고·사전·인물 상태·Fork 독립을 변경하지 않습니다. 사용자 승인으로 5433의 별도 검증 DB에서 신규 생성·V10/V11 업그레이드·작품 삭제·인물/장소 선택 해제와 순서 교체 회귀를 확인했으며 공유 DB 적용은 별도 절차이며 후속 변경의 hosted 검증은 해당 head의 Required CI 결과로 판정합니다.
+11번 플롯·장면 계획은 Content의 `plan` 기능과 추가 `db/migration/plan/V10__story_plan.sql`에 분리했습니다. V11은 작품의 실제 삭제 시 해당 계획과 계획 참조만 종속 정리합니다(DEC-42 이후 작품 삭제는 소프트 삭제라 실제 삭제 경로는 없음). V12는 인물·장소 순서 목록 갱신의 일시 중복을 허용하고 커밋 시 최종 중복을 거부하며 기존 V1~V11 SQL·체크섬을 보존합니다. 기존 7개 leaf에 plan을 더한 8개 leaf를 사용합니다. `/studio/{id}?view=narrative`에서 실제 작품은 계획 API를, 메모리 데모는 독립 계획 저장소를 사용하고 기존 설정집·회차 조회를 참조합니다. 계획 저장은 원고·사전·인물 상태·Fork 독립을 변경하지 않습니다. 사용자 승인으로 5433의 별도 검증 DB에서 신규 생성·V10/V11 업그레이드·작품 삭제·인물/장소 선택 해제와 순서 교체 회귀를 확인했으며 공유 DB 적용은 별도 절차이며 후속 변경의 hosted 검증은 해당 head의 Required CI 결과로 판정합니다.
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
@@ -76,7 +76,7 @@ Auth는 `auth/controller → SignupService·SessionService·ProfileService → a
 
 Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼리·JPQL·Entity 변경으로 처리합니다. 기존 UUID·Flyway SQL 바이트·`flyway_schema_history`는 유지하며 Hibernate는 스키마 검증만 수행합니다(`ddl-auto=validate`, `open-in-view=false`). 기존 Content JDBC 저장과 별도 `content_schema_history`는 이번 전환 범위 밖입니다. 회원별 `PESSIMISTIC_WRITE` 잠금 뒤에 자격 증명·refresh 상태를 읽어 로그인/비밀번호 재설정 및 refresh/로그아웃의 경합을 보호합니다. 재사용 감지 시 세션 폐기는 Service가 커밋한 뒤 HTTP 401로 변환합니다. 가입 후보는 행 잠금을 사용하며 아직 행이 없는 최초 가입의 삽입 충돌만 새 트랜잭션에서 한 번 재시도합니다. 미인증 후보는 재가입 요청으로 교체하고 가입 인증은 최신 토큰과 가입 시 정한 비밀번호를 모두 요구합니다. 이메일 변경 확인은 별도 token-only 계약을 유지합니다. CSRF는 모든 변경 요청에 적용하며 실제 약관 동의와 회원 탈퇴는 후속 범위입니다. 공개 경로와 요청·응답은 [Core API 계약](../backend/core-api/README.md#공개-계약)을 따릅니다.
 
-회원 탈퇴 요청은 `auth/controller → WithdrawalService → JpaRepository`가 `auth_withdrawal`(Flyway V7, `db/migration/auth`)에 요청·30일 유예·복구 상태만 기록하고 refresh 세션을 폐기합니다. 콘텐츠 숨김·삭제·익명화와 유예 만료 후 최종 처리는 콘텐츠 서비스와의 계약이 확정된 뒤 후속으로 연결합니다.
+회원 탈퇴 요청은 `auth/controller → WithdrawalService → JpaRepository`가 `auth_withdrawal`(Flyway V7, `db/migration/auth`)에 요청·30일 유예·복구 상태만 기록하고 refresh 세션을 폐기합니다. 콘텐츠 소프트 삭제(DEC-42)·익명화와 유예 만료 후 최종 처리는 콘텐츠 서비스와의 계약이 확정된 뒤 후속으로 연결합니다.
 
 알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V5~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ outbox·소비자와 모바일 푸시는 후속 범위입니다.
 

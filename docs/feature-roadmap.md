@@ -16,14 +16,14 @@
 - 서브시스템은 회원 관리·세계관 관리·Fork 관리 같은 업무 분류다. 서비스 열은 Core·콘텐츠·운영·AI 및 클라이언트의 목표 책임을 나타낸다. 콘텐츠 서비스 + AI 서비스는 콘텐츠의 인가·기록·승인·반영과 AI의 생성·실행이 함께 필요한 기능이다. 업무 분류마다 서버를 추가하지 않는다.
 - 같은 서브시스템·중간 기능은 셀을 병합했다. 관련 이슈도 중간 기능 단위로 묶고 기존 이슈·PR·미등록 번호 링크를 중복 없이 모았다. 각 항목은 관련 GitHub 이슈 링크 또는 문서 내 미등록 번호로 추적한다.
 - 현재/향후·범위 열은 삭제했다. GitHub 이슈 링크는 관련 범위의 추적 근거이며, 그 이슈가 해당 칸의 모든 세부 정책을 확정하거나 구현을 완료했다는 뜻은 아니다.
-- 삭제 요청은 정책 검토 대상이다. 세계관·설정·상태는 이력 보존·revert 원칙을 적용한다. #132 최신 사용자 결정의 관계만 MVP 예외로 Neo4j 현재 상태를 교체·제거하고 관계 이력·시점 복원을 지원하지 않는다. 기존 SQL/데이터·인물/설정/원고 버전은 보존한다. 회원·작품·Fork·파일 삭제는 참조·보관 정책을 따른다.
+- 삭제 정책은 DEC-42로 확정했다. 작품·회차·세계관·Fork·댓글·피드백·운영 데이터는 소프트 삭제, 초안·참조 없는 첨부·알림은 하드 삭제다. 세계관·설정·상태는 이력 보존·revert 원칙을 적용한다. #132 최신 사용자 결정의 관계만 MVP 예외로 Neo4j 현재 상태를 교체·제거하고 관계 이력·시점 복원을 지원하지 않는다. 기존 SQL/데이터·인물/설정/원고 버전은 보존한다.
 - 향후 기능도 포함하지만 미정인 API·스키마·가격·한도·MVP 포함 여부를 확정하지 않는다. 중간 기능 이름 앞의 두 자리 번호는 기능 묶음 번호다. `#숫자` 링크는 실제 GitHub 이슈, `미등록-숫자`는 아직 대응 이슈가 없는 문서 내 관리 번호다.
 - LLMOps는 전체 서비스 개발 대상으로 명시했으며 이번 문서 변경으로 Langfuse 설치·연동 또는 평가 구현이 완료되는 것은 아니다. 프롬프트·모델 변경이 과거 생성 결과를 바꾸지 않으며, 추적에는 원고 전문·비공개 설정·개인정보·키를 기록하지 않는다. 원고 이미지의 목록·대체 텍스트·참조 제거는 이번 완료 근거를 확인하지 않아 ❌로 유지했다.
 - 검색·랭킹·홈 편성은 기존 데모 화면을 기준으로 분류했다. 최신 순·인기 순·조회 순은 작품 정렬이지 검색어 순위가 아니다. 실시간·24시간·주간 문구만으로 실제 기간 집계 구현을 인정하지 않는다. 인기 검색어는 추가 검토로 도입 미확정이며, 별도 검색 MSA·검색 엔진을 이 표로 확정하지 않는다.
 - 중간 기능 또는 세부 기능의 `(Draft 검토 후보)` 표시는 채택 미확정을 뜻한다. 다른 기능과 같은 표 안에 있어도 구현·정책 채택이 확정된 것은 아니며 관련 PR과 검토 근거를 확인한다.
 - 중간 기능 통합: 58→05, 49→20, 52→21-C, 79→31, 82→34, 81→40-D. 21은 좋아요(21-A)·관심 작품(21-B)·독서 기록(21-C)으로 구분했다. 기존 기능을 삭제하거나 미등록 번호를 재발급하지 않았으며, 05·08의 Draft 보완 동작은 해당 세부 행에 후보 표시를 유지한다.
 - WorldStudio는 같은 contentDataSource와 전용 EntityManager/TransactionManager를 사용한다. #132의 Content HTTP·프론트 HTTP DI·Neo4j 현재 관계 CRUD/관계도 연결은 소스 구현이며 기존 관계 SQL/데이터는 보존한다. pending·불일치·미전환은 성공/빈 관계로 숨기지 않는다. 관계 이력/시점 복원·전체 세계관 restore는 미지원이며 카드 revision은 관계를 not_recorded로 반환한다. 로컬 선택 백엔드 단위·설정만 확인했고 프론트 단위는 pnpm 부재(exit 127)로 Red/Green 미확인이다. PR 병합·최신 Required CI·통합/브라우저·실제 이관/배포는 대기이므로 ❌를 유지한다. [현재 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따른다.
-- 작품 삭제 PR #106은 병합됐고(develop `f46be23`, `Required CI` #160 성공 확인) 소유자·이력 없는 원작 범위만 ✅로 둔다. 세계관 설정이 있거나 저장 버전·Fork 연결 등 DB 참조가 걸린 작품은 409로 보호하며 데이터를 지우지 않는다(설정·저장 버전 케이스만 테스트로 검증했고 Fork·표지 이미지 케이스는 미검증). 설정 연쇄 삭제와 원작 삭제 시 Fork 독립 유지는 #108에서 별도 행으로 추적한다.
+- 작품 삭제 PR #106은 병합됐고(develop `f46be23`, `Required CI` #160 성공 확인) 소유자·이력 없는 원작 범위만 ✅로 둔다. 세계관 설정이 있거나 저장 버전·Fork 연결 등 DB 참조가 걸린 작품은 409로 보호하며 데이터를 지우지 않는다(설정·저장 버전 케이스만 테스트로 검증했고 Fork·표지 이미지 케이스는 미검증). DEC-42에 따라 작품 삭제를 소프트 삭제로 바꾸고 원작 삭제 시 Fork 참조 유지는 #108에서 별도 행으로 추적한다.
 - CI 인증·Health 통합 회귀는 Core의 503 오류를 대역으로 고정하고, Content의 정상 응답에는 기본 3초·시간 초과 검증에는 별도 150ms를 적용하도록 테스트만 보완했다. 503/504/502·자격 분리·redirect 금지·재시도/캐시 금지 계약과 기존 완료 표시는 유지하며, 최신 Required CI 재검증은 대기다.
 - PR #142 충돌 정렬에서 Neo4j opt-in 컨테이너·volume은 local Compose로 옮기고 prod의 외부 서비스·이미지 전용 구성을 유지했다. WorldStudio packaged migration 시스템 기대값은 기존 V1+V2의 최초 적용 2건·테이블 13개와 재실행 적용 0건으로 정정했으며 Auth/Content 이력 보존 검사는 유지한다. 최신 Required CI 재검증은 대기이며 완료 체크는 변경하지 않는다.
 - 2026-11-06 샘플 정본 이관: 사용자 요청으로 sample SQL 파일을 제거하고 Core/Content 테이블별 UTF-8 CSV 31개와 stdlib/psql COPY 승인형 loader로 전환했다. Content V15(샘플 이관 당시 V10, develop의 V10~V14 뒤로 번호만 이동)는 샘플 없는 스키마 SQL이며 기존 migration 19개 바이트·11작품/17자체/32회차/120wiki/9링크를 보존한다. 속성별 실제 원문 공개 map으로 카엘 관계는 2화부터, 근거 미확인 속성은 비공개로 처리한다. rich 대상/실제 detach·복사만 409로 보호하고 원작의 새 단순 설정 초안·확정은 허용한다. 기존 공개 API·Fork·Frontend 변경은 유지하고 관심/진행은 창 메모리, aggregate/rich 편집·관계 과거 복원·인물 quick-search 선조회는 미지원/미확장이다. 선택 순수 단위만 성공했으며 실제 적용·hosted CI·React/브라우저·병합 전이므로 관련 행은 ❌를 유지한다. [CSV 이관 안내](../infrastructure/sample-data/README.md)를 따른다.
@@ -187,8 +187,8 @@
 <tr><td>내 작품 목록 조회</td><td>❌</td></tr>
 <tr><td>작품 기본 정보 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a></td></tr>
 <tr><td>작품 삭제 요청 <small>(소유자·이력 없는 원작 범위, 세계관 설정 존재 시 삭제 전 409)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a></td></tr>
-<tr><td>원작 삭제 시 Fork 작품 독립 유지 <small>(Fork가 물려받은 회차·설정 복사 후 연결 해제, #108)</small></td><td>❌</td></tr>
-<tr><td>세계관 설정 문서가 있는 작품 삭제 <small>(현재 삭제 전 409로 보존, 삭제 순서·보존 정책 미정, #108)</small></td><td>❌</td></tr>
+<tr><td>원작 삭제 시 Fork 작품 유지 <small>(원작 소프트 삭제, Fork는 원작 참조 유지·"삭제된 원작" 표시·분기 전 회차 독자 숨김, DEC-42, #108)</small></td><td>❌</td></tr>
+<tr><td>세계관 설정 문서가 있는 작품 삭제 <small>(소프트 삭제로 전환, 현재는 삭제 전 409, DEC-42, #108)</small></td><td>❌</td></tr>
 <tr><td rowspan="41">회차·원고 관리</td><td rowspan="9">10 회차·원고 CRUD</td><td>회차 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-006">미등록-006</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>회차 상세 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
@@ -560,13 +560,13 @@
 <tr><td>운영 고객지원 문의 처리 상태 조회(후속 업무 계약)</td><td>✅</td></tr>
 <tr><td>로그인 회원 고객지원 문의 접수(비로그인은 로그인 안내)</td><td>✅</td></tr>
 <tr><td>관리자 회원 문의 목록·상태 필터·상세 조회(feedback 권한)</td><td>✅</td></tr>
-<tr><td>관리자 회원 문의 답변 등록·수정·삭제(feedback 권한)</td><td>✅</td></tr>
+<tr><td>관리자 회원 문의 답변 등록·수정·삭제(feedback 권한) <small>(답변 삭제는 현재 행 삭제, DEC-42 소프트 삭제 전환 필요)</small></td><td>✅</td></tr>
 <tr><td rowspan="7">공지 관리</td><td rowspan="7">68 공지 게시·조회</td><td>관리자 공지 목록 조회(회원 Bearer·<code>notices</code> 권한·최신 100개)</td><td>✅</td><td rowspan="7"><a href="#미등록-093">미등록-093</a> · <a href="#미등록-121">미등록-121</a> · <a href="design/operations-notice-contract.md">공지 계약</a></td></tr>
 <tr><td>독자 공지 목록·상세 조회(<code>/me/notice</code>, 인증 없음)</td><td>✅</td></tr>
 <tr><td>운영 공지 공개 게시(등록 즉시 공개, 예약·고정 없음)</td><td>✅</td></tr>
 <tr><td>관리자 공지 등록</td><td>✅</td></tr>
 <tr><td>관리자 공지 PUT 전체 수정</td><td>✅</td></tr>
-<tr><td>관리자 공지 DELETE 삭제</td><td>✅</td></tr>
+<tr><td>관리자 공지 DELETE 삭제 <small>(현재 행 삭제, DEC-42 소프트 삭제 전환 필요)</small></td><td>✅</td></tr>
 <tr><td>공지 필수 값·길이 검증 후 변경</td><td>❌</td></tr>
 <tr><td rowspan="10">이벤트 관리</td><td rowspan="10">69 이벤트 안내·운영</td><td>독자용 공개 이벤트 목록 조회(후속 공개 정책)</td><td>❌</td><td rowspan="10"><a href="#미등록-094">미등록-094</a> · <a href="#미등록-122">미등록-122</a></td></tr>
 <tr><td>이벤트 레코드 상세·선택 UTC 기간 조회(서비스 자격)</td><td>❌</td></tr>
