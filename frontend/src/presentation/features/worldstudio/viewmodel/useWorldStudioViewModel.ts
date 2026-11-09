@@ -1,5 +1,6 @@
 import { cardLibraryRows, selectCardForFilter, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
 import { initialWorldStudioFlow, type StudioStep, worldStudioFlow } from './worldStudioFlow'
+import { worldStudioStorage } from './worldStudioStorage'
 import {
   applyRelationChanges,
   assertNoNewRelationDuplicates,
@@ -69,7 +70,7 @@ export function useWorldStudioViewModel(
   }, [relationDirty, leaveGuard])
   const editingId = editing?.id
   useEffect(() => {
-    if (editingId) dispatchFlow({ type: 'open' })
+    dispatchFlow({ type: 'world', id: editingId })
     setTool('write')
     setCardFilter('all')
     setCardQuery('')
@@ -189,6 +190,7 @@ export function useWorldStudioViewModel(
     }
   }
   return {
+    storage: worldStudioStorage(import.meta.env.MODE),
     canUndoPersonDeletion: !!personUndo,
     flow,
     tool,
@@ -355,9 +357,7 @@ export function useWorldStudioViewModel(
           }
           apply(await useCase.save(editing, signal), current)
           if (current === generation.current) {
-            setMessage(
-              '서버에 현재 세계관을 저장했어요. 관계는 현재 상태만 보관하며 과거 관계 복원은 지원하지 않습니다.',
-            )
+            setMessage(worldStudioStorage(import.meta.env.MODE).saved)
           }
         } catch (e) {
           if (current === generation.current) setSaveState('failed')
