@@ -4,7 +4,7 @@
 
 이 디렉터리는 작품 1개와 세계관 1개만 포함합니다. 다른 장르의 CSV를 병합하거나 설정을 같은 world_id에 넣지 마세요.
 
-- `core/*.csv`, `content/*.csv`: 기존 sample-data와 동일한 테이블 CSV 31개.
+- `core/*.csv`, `content/*.csv`: 기존 sample-data와 동일한 테이블 CSV 32개.
 - `sql/core.sql`, `sql/content.sql`: 이 장르만 적재하는 준비 SQL.
 - `source/`: 이 장르의 전체 원문과 구조화 데이터. 축약 없음.
 - `source-inventory.json`: 해당 장르의 ID와 원문 해시.
@@ -13,4 +13,6 @@
 - 설정은 일반 규칙 카테고리로 보존하며 rich 상세와 관계를 자동 생성하지 않습니다.
 - 원문 보관 문서와 항목별 문서는 내용이 중복되므로 AI에 둘을 동시에 전부 넣지 마세요.
 
-선택한 장르만 기존 loader의 `render_sql(service, 이_디렉터리)` 입력으로 사용하세요. 기존 적용 migration을 수정하지 말고 실제 적재 시 해당 서비스의 새 migration 번호를 선택해야 합니다. DB 적재·공개 발행·기본 템플릿 UI 연결은 수행하지 않았습니다.
+선택한 장르만 패키지 루트 load.py의 `render_sql(service, 이_디렉터리)` 입력으로 사용하세요. 기존 적용 migration을 수정하지 말고 실제 적재 시 해당 서비스의 새 migration 번호를 선택해야 합니다. DB 적재·공개 발행·기본 템플릿 UI 연결은 수행하지 않았습니다.
+
+저장 흐름 보완: `episode_draft`, `content_only` 체크포인트, 회차 및 전체 확정 설정 버전 연결, 1화부터 적용되는 비공개 설정 범위를 포함합니다. 스냅샷은 소유자 기준으로 비공개 설정도 포함합니다. 자세한 계약 및 한계는 루트 SAVE_FLOW.md를 확인하세요.

@@ -1,5 +1,5 @@
 id,setting_document_id,content_version_id,revision_no,name,category_id,content,evidence,created_at,lifecycle,visibility_history_id
-dab88dd5-e4f0-585c-b65c-a8d76a148452,919f3bda-7f72-51bf-9677-f1d58716ed27,dbf8e7fc-c7f8-5ec8-9a15-e3dc08b66675,0,연예계물 전체 원문,규칙,"## 11. 연예계물
+11d37cf6-143a-3d02-b34d-91c5c47b8586,750559d8-b52c-3ba3-b8ab-9c563840eeda,dbf8e7fc-c7f8-5ec8-9a15-e3dc08b66675,0,연예계물 전체 원문,규칙,"## 11. 연예계물
 
 *장편 설정집 원문*
 
@@ -1042,8 +1042,8 @@ dab88dd5-e4f0-585c-b65c-a8d76a148452,919f3bda-7f72-51bf-9677-f1d58716ed27,dbf8e7
 그가 말했다.
 
 “다시 해 보겠습니다.”
-",사용자 요청 창작 샘플; source/templates.json#/templates/10/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,83407fa2-d9e2-5c44-99ce-396d1a0a79d5
-db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a680-2393-55ce-b900-65cc8e916714,1,01. 작품의 기본 전제,규칙,"한서준은 서른네 살의 배우다.
+",사용자 요청 창작 샘플; source/template.json#/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,4a2d6e2d-7ba5-37c0-955e-0b0884674d64
+c1c4091e-133b-38c4-8e4a-dddd04ce5f08,5549fd05-1933-3366-8f36-15fe26706c2b,ce18a680-2393-55ce-b900-65cc8e916714,1,01. 작품의 기본 전제,규칙,"한서준은 서른네 살의 배우다.
 
 어릴 때는 누구나 알아보았다.
 
@@ -1071,8 +1071,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 논란이 터지기까지 두 달.
 
-당장 오늘은 성인 배우로서 첫 번째 중요한 기회를 놓쳤던 날이다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/0/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,6fed3d3d-827a-5a5f-a99d-e2926ef4b67e
-359b884d-a88d-51a9-a3bb-63278fcf82a6,9911b1bb-9bb5-5303-af58-61577d0ae53e,64a7710e-d23e-57d0-9fca-e7ae75ea93c4,2,02. 작품의 연예계와 시대,규칙,"배경은 현대 한국과 유사한 가상의 대중문화 산업이다.
+당장 오늘은 성인 배우로서 첫 번째 중요한 기회를 놓쳤던 날이다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/0/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,a5a8e996-642e-38f9-83e6-b50d5e9c1cfd
+c557812e-92bd-32a5-9c55-167e9986221c,d259e3e4-a15a-3ceb-8d40-c979431e1d4e,64a7710e-d23e-57d0-9fca-e7ae75ea93c4,2,02. 작품의 연예계와 시대,규칙,"배경은 현대 한국과 유사한 가상의 대중문화 산업이다.
 
 지상파와 케이블 방송, 온라인 플랫폼, 극장 영화와 독립영화, 광고와 예능이 공존한다. 해외 플랫폼과 국제 공동 제작의 영향력이 점차 커지는 시기다.
 
@@ -1090,8 +1090,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 좋은 연기를 하면 결국 알아줄 것이라고 생각했고, 자신이 실패한 이유도 나쁜 사람 한 명의 방해로 설명하려 했다.
 
-회귀 이후에는 재능과 성실함만큼 작품의 조건과 협력 관계, 자기 선택의 책임도 중요하다는 사실을 받아들인다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/1/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,d012f631-d30b-5dd3-a19f-ed23d3a4601a
-30a0a563-ea9d-5763-a223-1421bfd91a27,10c60832-f6a6-57b4-8e47-b00040b697cc,ca07d77a-99a4-5eeb-83d6-532a54eab489,3,03. 한서준의 전생 연표,규칙,"| 나이 | 전생의 주요 사건 | 이후에 남긴 영향 |
+회귀 이후에는 재능과 성실함만큼 작품의 조건과 협력 관계, 자기 선택의 책임도 중요하다는 사실을 받아들인다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/1/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,d7c18e68-4e52-3f44-bd93-c38af32528fd
+9e69ddee-ec2b-3805-baa7-9312246554fd,57a5da48-f7f1-39e9-baab-b021243d2fd1,ca07d77a-99a4-5eeb-83d6-532a54eab489,3,03. 한서준의 전생 연표,규칙,"| 나이 | 전생의 주요 사건 | 이후에 남긴 영향 |
 |---|---|---|
 | 8세 | 가족 드라마로 데뷔 | 천재 아역 이미지 형성 |
 | 12~16세 | 아역과 청소년 배역으로 인기 | 현장 경험은 많지만 평범한 생활 경험은 부족 |
@@ -1109,8 +1109,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 회귀 후에는 이 차이가 드러난다.
 
-장면 하나를 훌륭하게 연기하는 것과, 수개월 동안 작품의 중심을 유지하는 것은 다른 일이다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/2/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,a614d038-bac1-54ce-a6b7-02b59f085b1a
-5a85f1da-ad94-52ed-9918-024cb4c8f1aa,3305f91c-7dee-5914-be33-3a38d95de483,1dba43d5-33e3-5e1b-b5fc-88fe97276884,4,04. 회귀의 원리와 제한,규칙,"회귀는 한 번만 일어난다.
+장면 하나를 훌륭하게 연기하는 것과, 수개월 동안 작품의 중심을 유지하는 것은 다른 일이다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/2/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,47153267-a5d7-3888-8a30-aa26b07ef2e4
+62bd4b4d-a613-3a71-8557-e184825c7373,d1100571-af21-3b2b-9aaf-9d9713ccee09,1dba43d5-33e3-5e1b-b5fc-88fe97276884,4,04. 회귀의 원리와 제한,규칙,"회귀는 한 번만 일어난다.
 
 서준은 정확한 원인을 알지 못한다. 사고 순간의 기억과 이후의 감각이 단절되어 있으며, 이를 반복할 방법도 없다.
 
@@ -1130,8 +1130,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 서준이 출연하면서 원래 배우가 만들어 냈던 분위기가 사라지거나, 유명해진 뒤 더 큰 기대를 받아 같은 연기도 다르게 평가될 수 있다.
 
-중후반에는 전생에서 경험하지 못한 수준의 성공을 얻으면서 미래 지식의 활용 범위가 줄어든다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/3/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,98acb379-c733-5246-a78d-fa83a0a7fc59
-05d48fb7-0e6a-5296-bd62-4861df9d71b3,2124ad25-260d-5e46-a7bc-b9f232be418f,e21d6a2a-fea8-5982-8da2-6dc9059071ff,5,05. 주인공 한서준,규칙,"- **회귀 시점 나이:** 22세.
+중후반에는 전생에서 경험하지 못한 수준의 성공을 얻으면서 미래 지식의 활용 범위가 줄어든다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/3/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,f59d70da-c7bd-3707-8283-b43ae78ed7a6
+7ddf4494-7a4e-3ef5-9faf-04b358089b65,777b92da-cab5-36d0-b184-73d090dab0c4,e21d6a2a-fea8-5982-8da2-6dc9059071ff,5,05. 주인공 한서준,규칙,"- **회귀 시점 나이:** 22세.
 - **전생 사고 시점 나이:** 34세.
 - **직업:** 배우.
 - **외형:** 부드럽고 단정한 인상. 어린 시절의 얼굴이 남아 있어 대중은 쉽게 친근함을 느낀다.
@@ -1152,8 +1152,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 그의 말버릇은 “한 번만 더 해도 될까요?”다.
 
-초반에는 자신이 만족할 때까지 다시 하려는 요구다. 이후에는 왜 한 번 더 필요한지, 다른 사람의 시간과 체력을 쓸 가치가 있는지 설명할 줄 알게 된다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/4/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,0fb4e489-5cd6-583e-b95e-a62238eab730
-64a7fc76-9aa8-52ad-81f1-ae03d033f64a,786a3a13-f3d4-5b9f-84ef-729c58a63742,4511450e-3dd6-58f2-84d9-72d985209fa6,6,06. 연기 능력의 성장 방향,규칙,"서준의 연기는 네 가지 영역에서 발전한다.
+초반에는 자신이 만족할 때까지 다시 하려는 요구다. 이후에는 왜 한 번 더 필요한지, 다른 사람의 시간과 체력을 쓸 가치가 있는지 설명할 줄 알게 된다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/4/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,20d393a0-335e-387d-8115-b32039fac3c5
+9cf009e8-1c92-3ed4-84c8-d4d95d68a769,772692f9-68d7-3d86-9a9c-f9c83e9a9f79,4511450e-3dd6-58f2-84d9-72d985209fa6,6,06. 연기 능력의 성장 방향,규칙,"서준의 연기는 네 가지 영역에서 발전한다.
 
 **대본 해석**
 
@@ -1181,8 +1181,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 성장한다고 매번 더 강렬한 연기를 하는 것은 아니다.
 
-때로는 힘을 빼고, 상대를 바라보고, 대사를 하지 않는 순간을 견디는 능력이 더 중요하다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/5/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,54a91d03-1623-5833-a37c-ee193d4e66c3
-2b649044-2fbf-533e-a58b-03709308b049,58ead219-bcb8-50a0-b5a7-11eaf4075f04,5e030d60-e51d-5fcd-9031-65e1cca684fd,7,07. 주요 기획사와 제작사,규칙,"**루미너스 엔터테인먼트**
+때로는 힘을 빼고, 상대를 바라보고, 대사를 하지 않는 순간을 견디는 능력이 더 중요하다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/5/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,30f5c1c8-ab4a-3930-9f27-cdfb246d1a3a
+ee07f838-efd8-3ee0-bd58-f7b1c01a9f5b,4c4a48b5-a996-3017-8e29-d357f38bf193,5e030d60-e51d-5fcd-9031-65e1cca684fd,7,07. 주요 기획사와 제작사,규칙,"**루미너스 엔터테인먼트**
 
 서준이 아역 시절부터 소속된 회사다.
 
@@ -1218,8 +1218,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 장르물과 국제 배급에 적극적이다. 기존 방송에서 하기 어려운 작품에 기회를 주지만, 성과 지표와 계약 조건이 배우와 제작자의 선택에 영향을 준다.
 
-서준은 새로운 매체라는 이유만으로 모든 조건이 더 좋다고 판단하지 않는다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/6/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,fe611a3d-a807-54c9-8812-ba7e51952466
-2aba4d6d-2df3-5501-98ec-3f5e5cc62480,c63cd41b-4802-57ef-8db4-16a03176a043,c75fad2b-dc71-5af7-86e1-ab5d4b9445d2,8,08. 연예계의 일과 평가,규칙,"배우의 커리어는 오디션과 촬영만으로 이루어지지 않는다.
+서준은 새로운 매체라는 이유만으로 모든 조건이 더 좋다고 판단하지 않는다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/6/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,f5fdd8de-023d-30ed-a3c3-7149bc2d5e54
+620fbf54-5c44-308a-be5f-d56d167d315c,3dbcdecf-aaa4-3810-988a-2b7d31dab8c2,c75fad2b-dc71-5af7-86e1-ab5d4b9445d2,8,08. 연예계의 일과 평가,규칙,"배우의 커리어는 오디션과 촬영만으로 이루어지지 않는다.
 
 대본 검토와 미팅, 분장과 의상 테스트, 리딩과 동선 연습, 홍보와 인터뷰, 광고와 행사, 다음 작품 준비가 이어진다.
 
@@ -1236,8 +1236,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 연기를 잘해도 제작 조건과 맞지 않으면 캐스팅되지 않을 수 있다. 반대로 유명한 배우의 참여가 작품을 제작 가능하게 만들기도 한다.
 
-서준은 자신의 이름이 기회를 얻는 도구인 동시에 다른 사람의 선택을 바꾸는 힘이라는 사실을 배운다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/7/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,ad2d9e3f-cc13-53a8-842c-c853da4f528c
-475ec65c-e8bd-50c5-a845-f7d8686c7680,2d93930c-2d7b-533f-a587-b5abbe353f8d,e4679c60-f5ab-5f68-8e65-ee076e951f62,9,09. 가족,규칙,"**한경수 — 아버지**
+서준은 자신의 이름이 기회를 얻는 도구인 동시에 다른 사람의 선택을 바꾸는 힘이라는 사실을 배운다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/7/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,4c540ec3-bee1-35f6-8c3c-545c385601ad
+c4b7c845-8134-37a0-bb78-bbad591a71bf,63ffddf5-299c-36c7-bd84-a26a6aaeb5ad,e4679c60-f5ab-5f68-8e65-ee076e951f62,9,09. 가족,규칙,"**한경수 — 아버지**
 
 50세.
 
@@ -1267,8 +1267,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 서준은 전생에 가족을 위해 성공하겠다고 말하면서도, 정작 동생의 생활을 제대로 묻지 않았다.
 
-이번에는 가족에게 돈과 선물을 주는 것 외에 시간을 쓰는 법을 배워야 한다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/8/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,494cbe90-ed77-5bbb-904b-7ffd4f2f0afc
-091060dd-52a3-5f5d-8f12-e218367333dc,36cde873-fa41-509b-9b01-9629e167bfa7,1f1e3f1c-bdce-5e1c-8702-958f6d471a78,10,10. 초기 동료와 현장 인물,규칙,"**김민호 — 매니저**
+이번에는 가족에게 돈과 선물을 주는 것 외에 시간을 쓰는 법을 배워야 한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/8/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,aaf85e84-a104-37ea-8d47-dae01f437273
+28932bb7-163a-3708-a480-c9c1c2f12828,a5c8813c-9b78-303c-bc18-3a56b71dcf1b,1f1e3f1c-bdce-5e1c-8702-958f6d471a78,10,10. 초기 동료와 현장 인물,규칙,"**김민호 — 매니저**
 
 29세.
 
@@ -1320,8 +1320,8 @@ db6951ce-e6a7-5ee7-a76a-cb4377c8f218,a51318ef-35ee-53b1-be2c-a4121e087ff0,ce18a6
 
 배우가 스태프에게 어떤 태도를 보이는지, 피로와 불안을 어떻게 감추는지 잘 안다.
 
-주인공의 변화를 가장 현실적으로 확인하는 인물이다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/9/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,127c4a95-c1be-56ae-865b-bb4bedc855b8
-da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efedc-da8a-5799-a1b4-a7077a5ac6b3,11,11. 라이벌과 상대 배우,규칙,"**차우혁 — 동시대의 인기 배우**
+주인공의 변화를 가장 현실적으로 확인하는 인물이다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/9/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,e90b10b2-1254-3084-a494-f859bb6bba34
+f8ac158f-f01f-3ac0-873f-fc37dc94379c,e80db485-6b16-3ffb-a35e-8608410a6d2c,238efedc-da8a-5799-a1b4-a7077a5ac6b3,11,11. 라이벌과 상대 배우,규칙,"**차우혁 — 동시대의 인기 배우**
 
 24세.
 
@@ -1363,8 +1363,8 @@ da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efe
 
 서준은 오랜 경험과 분석을 쌓아 온 자신보다 도현이 어떤 장면을 더 쉽게 해내는 것처럼 보여 질투한다.
 
-재능과 경험은 서로 다른 형태로 존재하며, 회귀한 주인공도 현재의 배우에게 자극받아야 한다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/10/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,4f5ba5e8-cec2-5ece-aa19-ee72313c842c
-3c822c3c-e489-5df9-bd5c-37673fb5c9e9,40b7d40a-0fea-5222-a06f-d9b44ee7f05e,dfa294b8-e1cb-5e22-a807-3e62d0db2ddf,12,12. 주요 적대자와 이해관계,규칙,"**백정훈 — 루미너스 대표**
+재능과 경험은 서로 다른 형태로 존재하며, 회귀한 주인공도 현재의 배우에게 자극받아야 한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/10/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,3d147022-2641-3238-a3ad-436ca628cb1c
+16013d78-a733-3ddd-84e4-7f85997157f0,7f8a3c13-551b-3ece-a293-dde12a3ade2c,dfa294b8-e1cb-5e22-a807-3e62d0db2ddf,12,12. 주요 적대자와 이해관계,규칙,"**백정훈 — 루미너스 대표**
 
 47세.
 
@@ -1398,8 +1398,8 @@ da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efe
 
 이미 많은 돈이 투입된 작품에서 문제를 공개하면 모두가 손해를 본다는 이유로, 약한 위치의 사람에게 침묵을 요구할 수 있다.
 
-서준은 개인의 복수뿐 아니라 그런 선택이 반복되는 방식까지 이해해야 한다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/11/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,c5ebed6f-69de-5d10-9c6a-0c4fd5c32ca0
-11a2343f-9ea2-50f4-a1f3-f44499661f2f,e1e86075-1ce0-50fc-b8df-c80d927d061a,35aac066-33eb-5e17-a647-3c074c63738b,13,13. 전생의 논란과 이번 생의 대응,규칙,"전생의 논란은 촬영장 밖의 짧은 충돌에서 시작되었다.
+서준은 개인의 복수뿐 아니라 그런 선택이 반복되는 방식까지 이해해야 한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/11/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,7c9d1a5a-ceba-306a-a99d-021a4a94ea2e
+ec0ede91-efa8-3063-93fa-3c20006ad45d,8b3bd0c5-41c7-319c-aad6-8e1f83d2bdfd,35aac066-33eb-5e17-a647-3c074c63738b,13,13. 전생의 논란과 이번 생의 대응,규칙,"전생의 논란은 촬영장 밖의 짧은 충돌에서 시작되었다.
 
 도진석이 스태프를 모욕하고 물건을 거칠게 다루는 상황에서 서준이 끼어들었다. 언쟁과 몸싸움에 가까운 접촉이 발생했다.
 
@@ -1419,8 +1419,8 @@ da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efe
 
 피해를 본 사람에게 공개 증언을 강요할 수 없고, 사적인 자료와 사실 확인에는 시간이 필요하다. 법적 문제와 계약 문제는 전문가의 도움을 받는다.
 
-그 과정에서 서준은 자신의 무죄를 증명하는 일과 다른 사람을 보호하는 일이 언제나 같은 방향으로 움직이지 않을 수 있음을 배운다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/12/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,702abf46-2820-5f80-b0b5-68a9350c41fd
-24b0400b-6510-59fe-ab59-be5b1d53f4ba,977d6cba-b421-54f1-91ce-8dcd0591a500,1bff21e9-2a81-5628-8102-e60bd286c4c9,14,14. 작품 선택과 미래 지식,규칙,"서준은 미래의 흥행작과 수상작을 일부 기억한다.
+그 과정에서 서준은 자신의 무죄를 증명하는 일과 다른 사람을 보호하는 일이 언제나 같은 방향으로 움직이지 않을 수 있음을 배운다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/12/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,ab935ce9-ffc9-3871-ad13-1e9bf9e4b3ee
+f8936a29-189d-309c-a316-9fc1ef37d5a5,166736d7-cbaa-396a-8430-d231005a696a,1bff21e9-2a81-5628-8102-e60bd286c4c9,14,14. 작품 선택과 미래 지식,규칙,"서준은 미래의 흥행작과 수상작을 일부 기억한다.
 
 하지만 성공의 이유까지 모두 아는 것은 아니다.
 
@@ -1446,8 +1446,8 @@ da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efe
 
 서준은 다른 사람의 미래 작품을 기억한다고 그 내용을 자신의 창작물처럼 발표하지 않는다.
 
-아직 완성되지 않은 작품에 관심을 가질 수는 있지만, 작가의 선택과 저작의 주체를 존중한다. 자신의 기억을 이용해 창작 과정을 대신하려 하면 오히려 원래의 장점이 사라질 수 있다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/13/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,1362d3ef-cea2-5f32-b6c7-0ceec4a45ac2
-4d485f25-f8dc-5820-b664-3194b63b7adb,84563b0e-a1aa-546d-bf1e-6b2f2f0e7b75,6a2b8587-e584-57e9-a76c-93682400d4d6,15,15. 커리어를 구성하는 주요 작품,규칙,"| 작품 | 형식과 배역 | 서준에게 주는 과제 |
+아직 완성되지 않은 작품에 관심을 가질 수는 있지만, 작가의 선택과 저작의 주체를 존중한다. 자신의 기억을 이용해 창작 과정을 대신하려 하면 오히려 원래의 장점이 사라질 수 있다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/13/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,59aca219-edb0-38f6-99d6-0b8ccfc99f7a
+53e0f0cf-2fb8-3d90-8d30-31a5d6e8a17b,4a5b0ef9-5c0e-3e5c-8f84-3b4645be2a0c,6a2b8587-e584-57e9-a76c-93682400d4d6,15,15. 커리어를 구성하는 주요 작품,규칙,"| 작품 | 형식과 배역 | 서준에게 주는 과제 |
 |---|---|---|
 | 《마지막 버스》 | 저예산 영화, 형을 기다리는 청년 | 감정을 설명하지 않고 장면 안에서 행동하기 |
 | 《야간병동》 | 메디컬 드라마의 조연 | 빠른 제작 환경에서 일관된 인물 유지 |
@@ -1464,8 +1464,8 @@ da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efe
 
 미래에 성공했던 작품도 서준의 참여로 제작 조건이 달라질 수 있다.
 
-그가 주연을 맡으면서 예산이 커지고 기대가 높아진 결과, 오히려 작품의 장점이 흐려지는 사례도 가능하다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/14/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,2b8181cb-294b-59e4-8eb3-a8080b90cefd
-4fb17f0b-c1f8-517c-8d03-e8c2a4e0915d,00232a85-6250-5937-b8d6-16e00c94281d,e5cc851c-9216-5dc4-80df-7ad436a0ef45,16,"16. 인기와 팬덤, 홍보",규칙,"팬덤은 하나의 의지를 가진 집단이 아니다.
+그가 주연을 맡으면서 예산이 커지고 기대가 높아진 결과, 오히려 작품의 장점이 흐려지는 사례도 가능하다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/14/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,da675087-1230-331d-aae5-517233b4c9ba
+80c28012-66c1-3c39-9d05-338817fbbcd0,b8f3dbb4-ef3c-3500-99ad-a7c27efe200c,e5cc851c-9216-5dc4-80df-7ad436a0ef45,16,"16. 인기와 팬덤, 홍보",규칙,"팬덤은 하나의 의지를 가진 집단이 아니다.
 
 오래전부터 서준을 좋아한 사람, 새 작품으로 알게 된 사람, 특정 배역만 좋아하는 사람, 배우의 일상에 관심을 가진 사람이 함께 존재한다.
 
@@ -1485,8 +1485,8 @@ da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efe
 
 다만 인터뷰에서 자극적인 한마디를 얻으려는 요구와 작품을 정확히 설명하려는 태도가 충돌한다.
 
-회귀한 서준이 모든 인터뷰에서 완벽한 답변을 하는 것은 아니다. 때로는 너무 준비된 말만 해서 거리감이 느껴지고, 때로는 솔직함이 불필요한 오해를 만든다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/15/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,27ad2c1e-923f-5045-8e09-9c350bd1a0ec
-7e91c3db-9f4e-54ad-94aa-016ef26d8c24,b6b981d7-884f-538c-9d44-3a024eb6cd1d,a101c6d8-5973-5780-a093-ff5e0360f4c9,17,17. 주요 비밀과 공개 순서,규칙,"**첫 번째 비밀: 오디션 실패는 인맥만의 문제가 아니었다.**
+회귀한 서준이 모든 인터뷰에서 완벽한 답변을 하는 것은 아니다. 때로는 너무 준비된 말만 해서 거리감이 느껴지고, 때로는 솔직함이 불필요한 오해를 만든다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/15/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,b8644800-14bf-328c-a1af-35f19a6edf8c
+23902b49-c3eb-341a-81cf-17e5f4e1ce5e,c36daab6-c3bc-33ad-be2f-1853e2c55cad,a101c6d8-5973-5780-a093-ff5e0360f4c9,17,17. 주요 비밀과 공개 순서,규칙,"**첫 번째 비밀: 오디션 실패는 인맥만의 문제가 아니었다.**
 
 전생의 서준은 감정을 크게 드러내며 연기력을 보여 주려 했다. 감독이 찾던 배역과는 맞지 않았다.
 
@@ -1514,8 +1514,8 @@ da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efe
 
 과거의 진실이 밝혀진 뒤에도 서준은 평가와 실패를 두려워한다.
 
-그가 해결해야 할 마지막 문제는 자신을 무너뜨린 사람들의 처벌만이 아니라, 더 이상 그들의 판단을 자기 삶의 중심에 두지 않는 것이다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/16/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,8c2d4659-6fbf-5d5a-9f28-1d036c4946c4
-157fafc5-e8b8-5e01-bfc0-8fd3b0ea1a0e,3ad9d679-f7ec-5a7e-bb6f-c7d4abf0408b,5f2c9361-fa87-5b46-98be-aa40a7ad4d0a,18,18. 장편 전개 구조,규칙,"**제1부 — 오디션을 다시 본 배우**
+그가 해결해야 할 마지막 문제는 자신을 무너뜨린 사람들의 처벌만이 아니라, 더 이상 그들의 판단을 자기 삶의 중심에 두지 않는 것이다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/16/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,d5e55a50-7f90-3e1c-b789-f223b95611b9
+bc1d7b56-dfe7-3b2b-ab08-0f3120a73cc8,0dea203e-370c-3a29-9e64-36f25e6291cb,5f2c9361-fa87-5b46-98be-aa40a7ad4d0a,18,18. 장편 전개 구조,규칙,"**제1부 — 오디션을 다시 본 배우**
 
 서준은 스물두 살의 오디션장에서 회귀를 확인한다.
 
@@ -1593,8 +1593,8 @@ da585aa2-f4bd-5dc8-8f96-aa14e51ca60f,e1c1ee07-4379-5755-ba31-4902983e995a,238efe
 
 서준은 다음 작품을 고르고, 후배와 대본을 읽고, 가족과 평범한 약속을 지킨다.
 
-이번 삶은 자신의 억울함을 증명하는 마지막 무대가 아니라 계속 살아갈 커리어가 된다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/17/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,97de3771-23e8-5984-acbc-a2ee2553ff06
-ac6da20d-4617-550c-9faa-e8b9d8a2bd42,9b2ac8e0-784f-5144-bdde-3455ca64a846,3bbeb854-1b41-58a9-a82a-07cab1797f48,19,19. 관계와 감정의 흐름,규칙,"서준은 회귀 직후 사람들을 전생의 결말로 판단한다.
+이번 삶은 자신의 억울함을 증명하는 마지막 무대가 아니라 계속 살아갈 커리어가 된다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/17/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,7e7872f4-6906-35f1-8fa7-686404a3fba5
+087eede0-f220-30c7-92d5-7eccf3f14fd0,100e1216-c8fb-34bc-966a-4f2d4b5b7e70,3bbeb854-1b41-58a9-a82a-07cab1797f48,19,19. 관계와 감정의 흐름,규칙,"서준은 회귀 직후 사람들을 전생의 결말로 판단한다.
 
 자신을 떠난 사람, 성공한 사람, 배신한 사람, 기회를 준 사람.
 
@@ -1614,8 +1614,8 @@ ac6da20d-4617-550c-9faa-e8b9d8a2bd42,9b2ac8e0-784f-5144-bdde-3455ca64a846,3bbeb8
 
 서준의 가장 큰 변화는 모든 사람에게 오해받지 않으려는 목표를 내려놓는 것이다.
 
-설명해야 할 사실은 설명하고, 잘못한 일은 사과하며, 작품으로 할 말은 작품에 남긴다. 그 뒤의 모든 반응을 통제할 수는 없다는 사실을 받아들인다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/18/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,5e49dc03-f848-52d4-9c6b-20e3265f08bc
-b81fdc2a-0a47-5d16-a76e-78ad3107cdac,e7728f80-0bf1-5425-a4a6-e6a139ff2f72,0b04ac7f-107c-5e36-9c8f-4145cdaa42a6,20,20. 반복해서 사용할 장면과 상징,규칙,"**오디션 번호표**
+설명해야 할 사실은 설명하고, 잘못한 일은 사과하며, 작품으로 할 말은 작품에 남긴다. 그 뒤의 모든 반응을 통제할 수는 없다는 사실을 받아들인다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/18/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,a77e548f-4727-354c-a11b-b7825f901161
+f458880f-5ce7-3630-9e9f-cbc6b16bf5c9,68948549-feed-3620-8e8f-f6e262b99eda,0b04ac7f-107c-5e36-9c8f-4145cdaa42a6,20,20. 반복해서 사용할 장면과 상징,규칙,"**오디션 번호표**
 
 처음에는 자신이 다시 평가받아야 한다는 불안을 상징한다.
 
@@ -1649,8 +1649,8 @@ b81fdc2a-0a47-5d16-a76e-78ad3107cdac,e7728f80-0bf1-5425-a4a6-e6a139ff2f72,0b04ac
 
 단역 시절에는 자신의 이름이 크레디트에 제대로 들어갔는지 확인했다.
 
-주연이 된 뒤에는 자기 이름의 크기보다 함께 일한 사람들의 이름이 빠지지 않았는지 살핀다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/19/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,88f5804f-7ac1-5a46-8965-53c55713d8c5
-c6749189-a18f-5ff0-a0ae-1bfa80af499e,27216288-9c9e-5dab-8487-b8c900e1b88c,3e3a9928-2f00-5fd9-ab92-bf69b7eef7ec,21,21. 이야기에서 지켜야 할 설정 규칙,규칙,"1. **회귀는 기회를 주지만 연기와 흥행을 보장하지 않는다.**  
+주연이 된 뒤에는 자기 이름의 크기보다 함께 일한 사람들의 이름이 빠지지 않았는지 살핀다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/19/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,77dda720-e3f1-3a89-8b8a-a334f6d58c28
+703e98d9-447e-3eef-94ad-124e709f885d,8e9e0a61-b436-30b0-acd9-27aa4823b26e,3e3a9928-2f00-5fd9-ab92-bf69b7eef7ec,21,21. 이야기에서 지켜야 할 설정 규칙,규칙,"1. **회귀는 기회를 주지만 연기와 흥행을 보장하지 않는다.**  
    현재의 준비와 협력, 실제 결과가 필요하다.
 
 2. **미래의 작품을 안다고 창작자의 선택을 대신하지 않는다.**  
@@ -1678,8 +1678,8 @@ c6749189-a18f-5ff0-a0ae-1bfa80af499e,27216288-9c9e-5dab-8487-b8c900e1b88c,3e3a99
    좋은 호흡이 자동으로 연애를 의미하지 않는다.
 
 10. **결말은 복수와 수상 이후에도 이어지는 삶을 포함한다.**  
-    자신이 원하는 방식으로 오래 일할 수 있는 배우가 되는 것이 중요하다.",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/20/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,f60954e3-01d4-54c3-bb23-71ce6edc9974
-074bcba2-f91d-571d-aa74-26e941624458,e65b447a-be07-54f1-a9ea-d4e68319820c,14a918c5-75ba-5ece-9d11-f28fe6a4b950,22,22. 첫 화 도입 예시,규칙,"“17번, 한서준 씨.”
+    자신이 원하는 방식으로 오래 일할 수 있는 배우가 되는 것이 중요하다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/20/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,72bdfb6b-19ea-38c2-8305-2456b1c183f5
+4e8508da-3b9b-3c1d-b226-bf92b90029d2,446cf0bf-497a-39a2-951c-60888319b806,14a918c5-75ba-5ece-9d11-f28fe6a4b950,22,22. 첫 화 도입 예시,규칙,"“17번, 한서준 씨.”
 
 누군가 이름을 불렀다.
 
@@ -1941,4 +1941,4 @@ c6749189-a18f-5ff0-a0ae-1bfa80af499e,27216288-9c9e-5dab-8487-b8c900e1b88c,3e3a99
 
 그가 말했다.
 
-“다시 해 보겠습니다.”",사용자 요청 창작 샘플; source/templates.json#/templates/10/setting_bible/sections/21/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,df3caec0-3942-5379-9573-e70180c7982d
+“다시 해 보겠습니다.”",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/21/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,0d5088f6-47ef-38ed-bfb8-217b9c962444

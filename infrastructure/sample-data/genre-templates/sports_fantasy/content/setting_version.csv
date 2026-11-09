@@ -1,5 +1,5 @@
 id,setting_document_id,content_version_id,revision_no,name,category_id,content,evidence,created_at,lifecycle,visibility_history_id
-0c539641-7392-5549-aaa8-6bca8d62e200,e4945d4c-dd96-585e-9618-c7651c6d21c5,64fe13e7-fa08-5ded-89b8-b512f3e3bdf2,0,스포츠 판타지 전체 원문,규칙,"## 10. 스포츠 판타지
+8670e8e1-80de-3301-95ff-390ed806afa8,72158bc7-74bc-37cc-83a0-18d9b778ce71,64fe13e7-fa08-5ded-89b8-b512f3e3bdf2,0,스포츠 판타지 전체 원문,규칙,"## 10. 스포츠 판타지
 
 *장편 설정집 원문*
 
@@ -1076,8 +1076,8 @@ id,setting_document_id,content_version_id,revision_no,name,category_id,content,e
 
 ---
 
-",사용자 요청 창작 샘플; source/templates.json#/templates/9/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,69fe671e-d92d-55be-8051-3db8225a09e0
-5b9832a5-f5d9-520a-9a4e-d34f374fbc4a,520954c1-22cd-58df-8f39-0636dfb23899,a0fbd910-5d21-5fb8-847b-c7a8b438c67c,1,01. 작품의 기본 전제,규칙,"한도윤은 서른다섯 살의 전직 프로축구 선수다.
+",사용자 요청 창작 샘플; source/template.json#/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,68ad7dd9-e6c8-3c46-80b6-e3a8bb940137
+3fe867d4-e557-3e07-9745-441c3c5d0060,53209ab6-f2db-333d-995d-4ecf5c685014,a0fbd910-5d21-5fb8-847b-c7a8b438c67c,1,01. 작품의 기본 전제,규칙,"한도윤은 서른다섯 살의 전직 프로축구 선수다.
 
 열일곱 살까지는 지역에서 이름난 공격수였다. 빠르고, 발재간이 좋고, 또래보다 골을 많이 넣었다.
 
@@ -1111,8 +1111,8 @@ id,setting_document_id,content_version_id,revision_no,name,category_id,content,e
 
 그런데도 방출되었다.
 
-이번에는 그 이유를 안다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/0/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,7d86adcb-e11a-5f58-8fb6-1650089cad3b
-f49b2e11-3c65-5f5b-9372-38016c5d69ee,e5d6b7ae-1447-5381-ba3b-7e75dc683853,3d08a630-8140-5f25-86a0-5b071bfd8a0c,2,02. 작품의 축구 세계,규칙,"작품의 무대는 현대와 유사한 가상의 축구계다.
+이번에는 그 이유를 안다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/0/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,03d6fd34-021f-37ee-b375-48eda94b12c6
+8476fadc-5e8a-3084-82b5-aa86974626d5,04d7770e-8475-3adb-aa59-8d97cc5bd53a,3d08a630-8140-5f25-86a0-5b071bfd8a0c,2,02. 작품의 축구 세계,규칙,"작품의 무대는 현대와 유사한 가상의 축구계다.
 
 대한민국의 프로리그와 유소년 시스템, 유럽의 여러 리그, 국가대표 대회가 존재한다. 실제 구단과 선수 대신 독립적인 이름과 역사를 사용한다.
 
@@ -1136,8 +1136,8 @@ f49b2e11-3c65-5f5b-9372-38016c5d69ee,e5d6b7ae-1447-5381-ba3b-7e75dc683853,3d08a6
 
 이적은 더 큰 이름의 구단으로 올라가는 단순한 계단이 아니다.
 
-출전 시간과 감독의 계획, 경쟁 선수와 생활 환경을 함께 고려해야 한다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/1/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,511539ad-83e1-59d1-b56d-8474105a262e
-c0328150-8086-5088-a32a-8264ffcf1c65,5f30a640-0b5d-556e-9672-01ef7ca94553,d189b0c1-0829-59dd-98d2-432c85f6f5c1,3,03. 주인공의 전생 연표,규칙,"| 나이 | 전생의 주요 사건 | 실제로 남긴 문제 |
+출전 시간과 감독의 계획, 경쟁 선수와 생활 환경을 함께 고려해야 한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/1/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,ebfe7409-184d-3120-a8f4-47f1b3a7a75e
+76ce9d75-7dad-366b-9591-99684fa7f1d0,de8d1f32-58c6-3ef2-bd89-67348952ff23,d189b0c1-0829-59dd-98d2-432c85f6f5c1,3,03. 주인공의 전생 연표,규칙,"| 나이 | 전생의 주요 사건 | 실제로 남긴 문제 |
 |---|---|---|
 | 17세 | 프로 산하 유소년 팀에서 방출 | 득점 외의 기여가 부족했고 피드백을 거부 |
 | 18~20세 | 지역 팀과 작은 무대를 전전 | 개인 능력에 의존하며 불안정한 생활 지속 |
@@ -1157,8 +1157,8 @@ c0328150-8086-5088-a32a-8264ffcf1c65,5f30a640-0b5d-556e-9672-01ef7ca94553,d189b0
 
 직접 뛰며 배운 경험, 지도와 분석을 통해 익힌 지식, 유명 경기와 보도를 통해 기억하는 미래다.
 
-이 셋의 신뢰도는 다르다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/2/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,3d62149f-ed01-5cd2-86a1-088499dac5c4
-0b6d8c84-2f1a-5b9f-a469-053292686b97,3de26c65-6652-5bdd-a355-d538378f76e2,82ddf868-cd80-5f22-bac6-a729e75caff3,4,04. 회귀의 원리와 한계,규칙,"회귀는 작품에서 한 번만 일어난다.
+이 셋의 신뢰도는 다르다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/2/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,d928c871-5f6a-37e8-b761-74080bdf7aee
+abb3e23f-1fdd-30c0-8e76-effbbc1e47b3,62c672fa-9247-33ac-b443-c5d729fb6dc8,82ddf868-cd80-5f22-bac6-a729e75caff3,4,04. 회귀의 원리와 한계,규칙,"회귀는 작품에서 한 번만 일어난다.
 
 도윤은 자신이 왜 돌아왔는지 처음에는 알지 못한다. 특정 물건을 사용하거나 조건을 충족해 반복할 수 있는 능력이 아니다.
 
@@ -1178,8 +1178,8 @@ c0328150-8086-5088-a32a-8264ffcf1c65,5f30a640-0b5d-556e-9672-01ef7ca94553,d189b0
 
 중반 이후 미래 지식은 확정된 답보다 참고 자료에 가까워진다.
 
-그를 끝까지 지탱하는 것은 앞으로 무슨 일이 일어나는지 아는 능력이 아니라, 지금 벌어지는 일을 읽는 능력이다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/3/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,24cec810-be0f-5f78-9218-897b509fdbde
-e3a1515f-534e-5a74-aff4-5c0104a6cbdb,7a21957f-5e96-5eed-8d73-92d5a83c18da,602c6d37-e656-58f4-b2b9-1c00d52b3c24,5,05. 스포츠 판타지의 핵심 성장 구조,규칙,"도윤의 성장은 네 가지 축으로 이루어진다.
+그를 끝까지 지탱하는 것은 앞으로 무슨 일이 일어나는지 아는 능력이 아니라, 지금 벌어지는 일을 읽는 능력이다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/3/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,b48dd438-4575-36ce-8def-1c91f91e4286
+43f25c34-2e2a-3d46-9a50-e9d62874f52e,5b85c6b7-edbb-3944-a186-417e700173a8,602c6d37-e656-58f4-b2b9-1c00d52b3c24,5,05. 스포츠 판타지의 핵심 성장 구조,규칙,"도윤의 성장은 네 가지 축으로 이루어진다.
 
 **기술**
 
@@ -1207,8 +1207,8 @@ e3a1515f-534e-5a74-aff4-5c0104a6cbdb,7a21957f-5e96-5eed-8d73-92d5a83c18da,602c6d
 
 이 네 가지가 함께 발전해야 경기력이 안정된다.
 
-골과 도움은 중요한 결과지만, 모든 성장을 한 경기의 공격 포인트로만 평가하지 않는다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/4/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,505328dd-2855-54cf-984a-699b7547c63a
-e57e4e9f-6304-50b0-a584-5f0765afa46f,0101b6bf-71ad-5436-8d19-a4ae888e5c73,234806df-d09c-55c5-81a5-683de7dc1f88,6,06. 주인공 한도윤,규칙,"- **회귀 시점 나이:** 17세.
+골과 도움은 중요한 결과지만, 모든 성장을 한 경기의 공격 포인트로만 평가하지 않는다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/4/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,39224f3f-4163-354b-ada8-a9d743033177
+e579d0c7-8d3e-331e-b73f-b7b09131c2cb,3d6d1098-ea8e-3d24-88a1-4a6b1984febf,234806df-d09c-55c5-81a5-683de7dc1f88,6,06. 주인공 한도윤,규칙,"- **회귀 시점 나이:** 17세.
 - **전생 사망 시점 나이:** 35세.
 - **주발:** 오른발.
 - **초기 포지션:** 왼쪽 측면 공격수와 세컨드 스트라이커.
@@ -1232,8 +1232,8 @@ e57e4e9f-6304-50b0-a584-5f0765afa46f,0101b6bf-71ad-5436-8d19-a4ae888e5c73,234806
 
 말버릇은 “다음 장면을 봐”이다.
 
-초반에는 어린 동료에게 훈계처럼 들린다. 나중에는 경기 중 서로 공유하는 약속이 된다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/5/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,25d1a73a-a723-5594-901c-913edd002bad
-f319ea35-0703-53eb-a030-584e23e14601,7be27973-babe-5b49-b776-af2e98d17428,c66ae50a-0154-5ab2-ad77-59207543a317,7,07. 몸과 훈련의 현실,규칙,"도윤은 전생의 몸으로 돌아온 것이 아니다.
+초반에는 어린 동료에게 훈계처럼 들린다. 나중에는 경기 중 서로 공유하는 약속이 된다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/5/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,3c6c4a6c-6147-3df1-93af-5587d7548f49
+7694b7d3-651b-3624-91f6-cef565dcef7e,b59ccea2-5109-3acb-92d0-b6ed9e8f8fa7,c66ae50a-0154-5ab2-ad77-59207543a317,7,07. 몸과 훈련의 현실,규칙,"도윤은 전생의 몸으로 돌아온 것이 아니다.
 
 열일곱 살의 근력과 지구력, 균형 감각을 다시 확인해야 한다. 기억 속 속도와 실제 움직임의 차이 때문에 첫 훈련에서 실수가 생긴다.
 
@@ -1256,8 +1256,8 @@ f319ea35-0703-53eb-a030-584e23e14601,7be27973-babe-5b49-b776-af2e98d17428,c66ae5
 
 회복 기간의 불안과 팀 내 경쟁, 경기 감각의 저하, 복귀 후 움직임에 대한 두려움이 이어진다.
 
-통증을 참는 행동이 무조건 투혼으로 칭찬받지도 않는다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/6/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,933d4883-3e1f-59cc-b6b8-8fe391b7b438
-f4fe0b31-bc04-5acf-bd70-303da2c79b21,4c4297db-b04c-539f-8404-5a2e779cac96,b842c1fe-38b2-55da-9965-627c5a4af6c9,8,08. 첫 번째 팀 — 인천 하버스 U-18,규칙,"도윤이 속한 팀은 가상의 프로구단 **인천 하버스**의 유소년 팀이다.
+통증을 참는 행동이 무조건 투혼으로 칭찬받지도 않는다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/6/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,e711923f-e3f0-33ce-963d-111735b43e1b
+a88f021d-feab-3638-8250-80eac0e233d4,664699d4-4985-34cc-bd30-d4c2888de0c6,b842c1fe-38b2-55da-9965-627c5a4af6c9,8,08. 첫 번째 팀 — 인천 하버스 U-18,규칙,"도윤이 속한 팀은 가상의 프로구단 **인천 하버스**의 유소년 팀이다.
 
 항구 도시를 연고로 하며, 많은 자금을 쓰기보다 육성한 선수를 성인 팀에 올리는 운영을 중시한다.
 
@@ -1273,8 +1273,8 @@ f4fe0b31-bc04-5acf-bd70-303da2c79b21,4c4297db-b04c-539f-8404-5a2e779cac96,b842c1
 
 도윤의 방출은 전부 감독의 잘못도, 전부 도윤의 잘못도 아니다.
 
-그는 자신의 문제를 바꿀 수 있지만, 팀이 자신을 어떻게 보아 왔는지도 뒤집어야 한다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/7/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,7e526143-4dbc-5fca-9bf5-005c6997b494
-0c20f6cb-5778-5c6e-81f4-7340b807b917,573bb855-6190-5fd9-81cb-90c52660e493,e5853d55-1455-55ea-b316-0d3807279295,9,09. 가족,규칙,"**한정호 — 아버지**
+그는 자신의 문제를 바꿀 수 있지만, 팀이 자신을 어떻게 보아 왔는지도 뒤집어야 한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/7/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,6fe3108e-2a99-337f-b11d-52c5e7e6d17b
+3f3c2745-227f-3577-bb3a-7d5c9705d0e9,83d1a3c6-f3c7-3964-9447-fad3e461a7f2,e5853d55-1455-55ea-b316-0d3807279295,9,09. 가족,규칙,"**한정호 — 아버지**
 
 48세. 버스 기사.
 
@@ -1304,8 +1304,8 @@ f4fe0b31-bc04-5acf-bd70-303da2c79b21,4c4297db-b04c-539f-8404-5a2e779cac96,b842c1
 
 이번 삶에서는 돈을 많이 버는 것만으로 관계가 회복되지 않는다는 사실을 배운다.
 
-가족은 주인공의 성공을 기다리는 관객이 아니라 각자의 삶과 요구를 가진 사람들이다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/8/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,69cb5b75-55cd-5c1f-9ef1-624fac4e2d7d
-9e5c4893-8c61-552b-8717-f0f209daf5df,84dfb875-468e-5e77-a8b9-9e39104149e4,fdaa3ab9-997b-5bf8-92be-02049ad605a9,10,10. 유소년 시기의 동료와 지도자,규칙,"**박성진 — 유소년 감독**
+가족은 주인공의 성공을 기다리는 관객이 아니라 각자의 삶과 요구를 가진 사람들이다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/8/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,2f55c86e-041a-3de7-aa74-62476997809f
+99e85eb1-11ed-3ce3-b695-4fe00acf6c9d,168c214b-c70c-301e-b421-1f68c217046a,fdaa3ab9-997b-5bf8-92be-02049ad605a9,10,10. 유소년 시기의 동료와 지도자,규칙,"**박성진 — 유소년 감독**
 
 44세.
 
@@ -1351,8 +1351,8 @@ f4fe0b31-bc04-5acf-bd70-303da2c79b21,4c4297db-b04c-539f-8404-5a2e779cac96,b842c1
 
 선수의 신체 상태와 훈련 부담을 관리한다.
 
-도윤이 미래의 부상을 피하려고 혼자 훈련량을 조정하는 것을 경계한다. 기억과 불안을 근거로 자기 몸을 완전히 안다고 생각하지 말라고 요구한다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/9/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,2d80da3d-08a9-5956-b1d8-a45389d89beb
-9fc5edaf-62ce-5b11-9dd9-669b172c5317,cc8da0a6-d0ae-5ea1-b1df-2f9afeb77b92,6f7001e7-418f-5384-95c7-adaf581ae99a,11,11. 성인 무대의 주요 인물,규칙,"**최도혁 — 인천 하버스 1군 감독**
+도윤이 미래의 부상을 피하려고 혼자 훈련량을 조정하는 것을 경계한다. 기억과 불안을 근거로 자기 몸을 완전히 안다고 생각하지 말라고 요구한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/9/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,03609cba-494c-3bef-b94c-73e27457333b
+4966dcba-a1a7-38a6-bbf4-abd289d7aa24,a3265012-eb83-323d-bf35-e5ea99300b17,6f7001e7-418f-5384-95c7-adaf581ae99a,11,11. 성인 무대의 주요 인물,규칙,"**최도혁 — 인천 하버스 1군 감독**
 
 51세.
 
@@ -1400,8 +1400,8 @@ f4fe0b31-bc04-5acf-bd70-303da2c79b21,4c4297db-b04c-539f-8404-5a2e779cac96,b842c1
 
 창의적인 볼 터치와 순간적인 판단이 뛰어나다. 도윤보다 경험이 적어도 특정 상황에서는 더 자연스럽게 정답을 찾는다.
 
-회귀한 주인공에게도 타고난 재능과 현재의 경쟁은 여전히 위협이라는 사실을 보여 준다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/10/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,e837de49-b3c9-59a1-8201-5edc7b8b01b6
-067f97f7-d350-53ca-ab66-81b33919813b,89282d3e-f31e-5397-af1f-74f635e18165,1ba5dac5-0b81-5532-889b-52b384baac83,12,12. 갈등과 적대 세력,규칙,"스포츠물의 모든 갈등을 악당 한 명이 만드는 구조로 구성하지 않는다.
+회귀한 주인공에게도 타고난 재능과 현재의 경쟁은 여전히 위협이라는 사실을 보여 준다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/10/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,c18a52e9-bf09-3e3a-8e74-8d2ef2326435
+a89b2c06-ce19-38b4-9e48-a8342dad6f33,0e059813-8795-3f8e-985d-8eb64e8c6794,1ba5dac5-0b81-5532-889b-52b384baac83,12,12. 갈등과 적대 세력,규칙,"스포츠물의 모든 갈등을 악당 한 명이 만드는 구조로 구성하지 않는다.
 
 경쟁 선수와 감독, 구단은 서로 다른 목표를 가진다. 주인공과 이해가 충돌한다고 모두 부당한 것은 아니다.
 
@@ -1433,8 +1433,8 @@ f4fe0b31-bc04-5acf-bd70-303da2c79b21,4c4297db-b04c-539f-8404-5a2e779cac96,b842c1
 
 상대는 주인공의 성장을 보여 주기 위해 멍청하게 대응하지 않는다.
 
-도윤의 움직임이 알려지면 분석하고, 공간을 막고, 체력과 약점을 공략한다. 한 번 성공한 패턴을 계속 반복할 수 없다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/11/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,0b48a707-fb29-5a7d-9434-0bd5a6ec9443
-6094d5c1-0c4d-56c0-ba27-718a65e2102e,fd77be03-7b4c-5e0c-8197-9e985e05a122,b3285b53-2f46-5fd9-b7bb-7ae82dc37744,13,13. 포지션 전환과 플레이 스타일,규칙,"도윤은 전생에 자신을 득점형 공격수라고 규정했다.
+도윤의 움직임이 알려지면 분석하고, 공간을 막고, 체력과 약점을 공략한다. 한 번 성공한 패턴을 계속 반복할 수 없다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/11/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,4062b662-301b-33f6-919d-d482c11da4cf
+498ffeb7-bf4c-3132-aa6a-ed5730021e33,b2991025-4d05-35f3-8c07-a24d39e30938,b3285b53-2f46-5fd9-b7bb-7ae82dc37744,13,13. 포지션 전환과 플레이 스타일,규칙,"도윤은 전생에 자신을 득점형 공격수라고 규정했다.
 
 이번 생에서는 자신의 장점을 다시 본다.
 
@@ -1457,8 +1457,8 @@ f4fe0b31-bc04-5acf-bd70-303da2c79b21,4c4297db-b04c-539f-8404-5a2e779cac96,b842c1
 
 하지만 너무 안전하게만 플레이하면 위협이 줄어든다.
 
-후반의 도윤은 팀을 살리는 판단과 개인적으로 승부를 거는 능력을 함께 갖춰야 한다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/12/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,abdde4a4-bbea-52ac-8d9e-286f51f2bc0b
-82fc56c1-ab4e-5f2c-a818-a1e329977914,768de1ff-ebac-5cd8-b371-26c3ea6ec51c,a53281f0-a1d2-54e1-a524-b31ec8fb2b84,14,14. 미래 지식의 활용과 실패,규칙,"도윤은 미래의 선수와 감독, 전술 흐름을 일부 기억한다.
+후반의 도윤은 팀을 살리는 판단과 개인적으로 승부를 거는 능력을 함께 갖춰야 한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/12/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,0e0ad0db-4306-36f7-99fc-eccef6e5a97d
+1bc5c88e-2941-3cee-8099-fee582e64c95,19cda0e5-6193-3031-92a0-f51f6bce1cab,a53281f0-a1d2-54e1-a524-b31ec8fb2b84,14,14. 미래 지식의 활용과 실패,규칙,"도윤은 미래의 선수와 감독, 전술 흐름을 일부 기억한다.
 
 이를 활용할 수 있는 영역은 다음과 같다.
 
@@ -1492,8 +1492,8 @@ f4fe0b31-bc04-5acf-bd70-303da2c79b21,4c4297db-b04c-539f-8404-5a2e779cac96,b842c1
 
 도윤은 익숙한 답을 찾다가 경기의 실제 변화를 늦게 읽는다.
 
-회귀한 선수도 현재의 상대에게 배워야 한다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/13/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,dea0bb9e-d9bc-5508-9f2d-8e585c755a6d
-fc6bafea-3935-5112-bd80-ac00bac4f04e,42d5e53a-8183-5c8f-84d9-a4d3f800a35a,67730275-8503-503e-a25d-526ca24b32ed,15,15. 경기 묘사의 기본 원칙,규칙,"경기는 슛과 골 장면만 이어 붙이지 않는다.
+회귀한 선수도 현재의 상대에게 배워야 한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/13/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,d6ed8052-7e52-3ef3-b7f1-5d72c47b79ac
+94d33346-e161-3038-8312-5576b7af03ad,0fd423b0-fb4d-3bb6-ab91-0db4531f9c4e,67730275-8503-503e-a25d-526ca24b32ed,15,15. 경기 묘사의 기본 원칙,규칙,"경기는 슛과 골 장면만 이어 붙이지 않는다.
 
 선수의 의도와 상대의 대응, 그 결과 생긴 공간을 연결해 보여 준다.
 
@@ -1521,8 +1521,8 @@ fc6bafea-3935-5112-bd80-ac00bac4f04e,42d5e53a-8183-5c8f-84d9-a4d3f800a35a,677302
 
 전술 용어는 필요한 만큼만 사용한다.
 
-독자가 용어를 몰라도 “이 선수가 움직여서 상대가 따라왔고, 그 결과 다른 선수가 비었다”는 관계를 이해할 수 있어야 한다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/14/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,d8ccfd3e-40e7-56ba-b554-62becf74aa3f
-a6c36e50-8e74-5f59-88d9-cb1719cc6d8c,6a13fbc4-437f-5e41-a751-8a106e59be85,4b392d10-3472-54f0-bb6d-116168a08d87,16,16. 선수 생활과 경기 밖의 문제,규칙,"프로가 된 뒤에도 축구 외의 문제가 경기력에 영향을 준다.
+독자가 용어를 몰라도 “이 선수가 움직여서 상대가 따라왔고, 그 결과 다른 선수가 비었다”는 관계를 이해할 수 있어야 한다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/14/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,c10e8ec6-9410-328e-959d-4f0656760bdd
+fda8600b-1c74-38d3-9eba-7ce13e329808,e2b3557f-91f0-386e-a246-81a6164c19b5,4b392d10-3472-54f0-bb6d-116168a08d87,16,16. 선수 생활과 경기 밖의 문제,규칙,"프로가 된 뒤에도 축구 외의 문제가 경기력에 영향을 준다.
 
 **계약**
 
@@ -1550,8 +1550,8 @@ a6c36e50-8e74-5f59-88d9-cb1719cc6d8c,6a13fbc4-437f-5e41-a751-8a106e59be85,4b392d
 
 전생의 경험 때문에 미래를 생각하지만, 현역 선수로서 지금에 집중하는 일과 균형을 잡아야 한다.
 
-주인공이 어른의 기억을 가졌다고 모든 감정 문제를 이미 해결한 것은 아니다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/15/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,60af1216-56b8-58c8-ba39-74a6d9cbc0df
-574b4d58-025b-597d-959e-587a6c2f4944,fcc33e1b-655b-547a-b1cf-c8b093db0971,8355e73c-86ca-5487-a86b-ddc12d063530,17,17. 주요 비밀과 공개 순서,규칙,"**첫 번째 비밀: 방출 경기에서 두 골을 넣어도 소용없었던 이유**
+주인공이 어른의 기억을 가졌다고 모든 감정 문제를 이미 해결한 것은 아니다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/15/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,d17b174f-72b8-3716-8e71-33b1c69edfaa
+7afe249e-d1a9-3714-a7c2-8adee8d213db,3299d7af-1cd1-358a-827f-4fbf38b14a18,8355e73c-86ca-5487-a86b-ddc12d063530,17,17. 주요 비밀과 공개 순서,규칙,"**첫 번째 비밀: 방출 경기에서 두 골을 넣어도 소용없었던 이유**
 
 도윤이 득점한 장면 뒤에는 동료들이 감당한 수비와 전술적 손실이 있었다.
 
@@ -1583,8 +1583,8 @@ a6c36e50-8e74-5f59-88d9-cb1719cc6d8c,6a13fbc4-437f-5e41-a751-8a106e59be85,4b392d
 
 최상위 무대에서는 더 이상 미래의 결과를 기억할 수 없다. 그때부터는 순수하게 현재의 선수로 경쟁해야 한다.
 
-회귀의 비밀은 모두에게 공개하지 않는다. 가까운 사람에게 이해하기 어려운 경험을 조심스럽게 털어놓을 수는 있지만, 경기의 성과를 설명하는 공개적인 증거로 사용하지 않는다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/16/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,4809844b-408b-5d2b-a811-0c94e32289ce
-28ada23c-d3ba-50ee-a705-90e8a5c92240,d3efbed7-6973-5b4a-98e8-75e6d892e205,35d79fe4-6bc2-5739-b785-c4bcbb2af959,18,18. 장편 전개 구조,규칙,"**제1부 — 두 골을 넣고 방출된 날**
+회귀의 비밀은 모두에게 공개하지 않는다. 가까운 사람에게 이해하기 어려운 경험을 조심스럽게 털어놓을 수는 있지만, 경기의 성과를 설명하는 공개적인 증거로 사용하지 않는다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/16/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,dcfb60c2-7978-308c-8efe-26a59502bc8f
+8efd51e6-414e-3f5f-9652-f4500b8e56a9,cfde1deb-552d-3583-bd7d-3e2ab2cdbae2,35d79fe4-6bc2-5739-b785-c4bcbb2af959,18,18. 장편 전개 구조,규칙,"**제1부 — 두 골을 넣고 방출된 날**
 
 도윤은 평가전 당일로 돌아온다.
 
@@ -1670,8 +1670,8 @@ a6c36e50-8e74-5f59-88d9-cb1719cc6d8c,6a13fbc4-437f-5e41-a751-8a106e59be85,4b392d
 
 에필로그의 도윤은 여전히 현역이다.
 
-최고의 순간을 얻었다고 축구와 삶이 끝나지는 않는다. 다음 경기와 가족의 약속, 후배의 질문이 기다린다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/17/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,682479b2-2822-5abe-8411-572fb4ba2231
-3bc8d021-4017-5fd8-be01-600a44a3f56f,a349abd0-f171-54a6-98b1-9799820523a0,f12c2fce-d86d-581c-9b10-f9bceadd80d7,19,19. 관계와 감정의 흐름,규칙,"도윤은 회귀 후 동료들을 어린아이처럼 대하기 쉽다.
+최고의 순간을 얻었다고 축구와 삶이 끝나지는 않는다. 다음 경기와 가족의 약속, 후배의 질문이 기다린다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/17/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,af775c32-bd75-32a0-a635-d4ca15ebdc51
+1dea6fca-b520-3722-ae27-93dc9687d185,655ddc11-040c-3fdb-a0ed-f1b1e2b23d24,f12c2fce-d86d-581c-9b10-f9bceadd80d7,19,19. 관계와 감정의 흐름,규칙,"도윤은 회귀 후 동료들을 어린아이처럼 대하기 쉽다.
 
 실제로 자신은 오랜 실패와 사회생활을 겪었고, 동료들은 아직 진로와 경쟁을 처음 경험하고 있다.
 
@@ -1691,8 +1691,8 @@ a6c36e50-8e74-5f59-88d9-cb1719cc6d8c,6a13fbc4-437f-5e41-a751-8a106e59be85,4b392d
 
 기본 설정에서는 미디어 제작 분야에서 일하는 또래 인물 **정수빈**을 장기적인 관계의 후보로 둘 수 있다.
 
-해외 생활과 일정, 공개된 직업에서 오는 부담을 함께 조정하지만, 경기 부진을 해결하는 보상이나 우승 이후 주어지는 결말로 사용하지 않는다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/18/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,6458b954-8838-5af7-848a-4e853d5bfd42
-e6dbdf37-7788-506a-a960-40b62ab8c021,f46b3d6f-526d-5855-950d-f7c4c897d5ba,eb4892d6-d8b4-513c-894a-cad15af8ce91,20,20. 반복해서 사용할 장면과 상징,규칙,"**축구화 끈**
+해외 생활과 일정, 공개된 직업에서 오는 부담을 함께 조정하지만, 경기 부진을 해결하는 보상이나 우승 이후 주어지는 결말로 사용하지 않는다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/18/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,4a323abf-4196-3b34-8a35-fca7257419cd
+97c9f4cf-c5bc-3636-84e9-b328d6edadf1,fa7ddd97-5855-34a4-9c09-56f3fdd4296e,eb4892d6-d8b4-513c-894a-cad15af8ce91,20,20. 반복해서 사용할 장면과 상징,규칙,"**축구화 끈**
 
 첫 회귀 장면에서 다시 묶는 물건이다.
 
@@ -1728,8 +1728,8 @@ e6dbdf37-7788-506a-a960-40b62ab8c021,f46b3d6f-526d-5855-950d-f7c4c897d5ba,eb4892
 
 초반에는 공을 넘긴 뒤 멈췄다.
 
-후반에는 패스 이후가 다음 장면의 시작이다. 경기 안의 습관이 사람에게 도움을 주고 관계를 끝내는 것이 아니라, 이후의 책임까지 생각하는 태도와 연결된다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/19/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,1720ecf1-6618-5642-bd2c-9e7845333436
-89fa0503-ea1d-5b10-9a2f-d2f989a90d4a,0031455f-5569-52f4-8821-54ffadda1b66,cef5ab52-c600-5dfe-93b8-11722f61ae09,21,21. 이야기에서 지켜야 할 설정 규칙,규칙,"1. **회귀는 한 번이며 경기를 다시 시도할 수 없다.**  
+후반에는 패스 이후가 다음 장면의 시작이다. 경기 안의 습관이 사람에게 도움을 주고 관계를 끝내는 것이 아니라, 이후의 책임까지 생각하는 태도와 연결된다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/19/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,f1d31aaf-d98d-381d-a58f-c8e0c6207460
+4b2f85fe-a429-3cde-a36a-5505f8ea13f1,b495f169-2363-31d5-af96-24ca84eff3ee,cef5ab52-c600-5dfe-93b8-11722f61ae09,21,21. 이야기에서 지켜야 할 설정 규칙,규칙,"1. **회귀는 한 번이며 경기를 다시 시도할 수 없다.**  
    실수와 패배가 현재의 결과로 남는다.
 
 2. **전술 지식과 실제 수행 능력을 구분한다.**  
@@ -1757,8 +1757,8 @@ e6dbdf37-7788-506a-a960-40b62ab8c021,f46b3d6f-526d-5855-950d-f7c4c897d5ba,eb4892
    역할과 출전, 감독과 환경이 중요하다.
 
 10. **최종적인 성장은 과거의 평가를 뒤집는 데서 끝나지 않는다.**  
-    자신의 이름뿐 아니라 함께 뛰는 팀을 강하게 만드는 선수로 완성된다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/20/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,488383d4-0205-58fb-8bba-753232250eba
-c201ae8d-21cc-549a-8b75-eba89530e0b5,1707cfad-a5b8-5440-a531-ec74d1f36679,de37b4fb-c5d0-5c50-b037-1c936bf7b007,22,22. 첫 화 도입 예시,규칙,"공이 얼굴 옆으로 날아왔다.
+    자신의 이름뿐 아니라 함께 뛰는 팀을 강하게 만드는 선수로 완성된다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/20/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,241c0919-f8a1-3810-b2c9-0310a16ca248
+93b1fd11-e178-33ab-9c6d-6beb294a92d9,1ec8295b-6f9e-3987-bd5c-7309ecf8c77f,de37b4fb-c5d0-5c50-b037-1c936bf7b007,22,22. 첫 화 도입 예시,규칙,"공이 얼굴 옆으로 날아왔다.
 
 도윤은 반사적으로 고개를 숙였다.
 
@@ -2008,4 +2008,4 @@ c201ae8d-21cc-549a-8b75-eba89530e0b5,1707cfad-a5b8-5440-a531-ec74d1f36679,de37b4
 
 이번에는 득점 뒤에 자기 이름이 불리기를 기다리지 않았다.
 
-다음 장면을 보았다.",사용자 요청 창작 샘플; source/templates.json#/templates/9/setting_bible/sections/21/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,f4421ff9-7aec-5754-b18d-57df6fbbe857
+다음 장면을 보았다.",사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/21/content_markdown; 실제 이용·발행 증거 아님,2026-11-09T00:00:00Z,active,f3e0c01c-5538-354e-8f45-5e2939d8a835

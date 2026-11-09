@@ -10,7 +10,7 @@ INSERT INTO work (id, owner_id, title, description, origin_kind, creation_type, 
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO world (id, owner_id, name, description, revision, created_at) VALUES
-('c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'b09cdf87-6901-50df-9c76-881c81f4f034', '눈 떠 보니 몰락 예정 왕자 설정집', '대체역사 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.', 0, '2026-11-09T00:00:00Z')
+('c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'b09cdf87-6901-50df-9c76-881c81f4f034', '눈 떠 보니 몰락 예정 왕자 설정집', '대체역사 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.', 24, '2026-11-09T00:00:00Z')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO work_world_history (id, work_id, world_id, revision_no, changed_at) VALUES
@@ -32,11 +32,11 @@ INSERT INTO work_hashtag (id, work_id, tag, position) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO episode (id, work_id, sequence) VALUES
-('b1b562d4-8975-55bf-a6d7-b54a10bd2052', '2854e5cc-d54b-54fd-a116-f97284ccd090', 1)
+('cc28bc58-23e3-334d-91cd-21a07b449940', '2854e5cc-d54b-54fd-a116-f97284ccd090', 1)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO episode_version (id, episode_id, content_version_id, revision_no, title, content, created_at, is_saved, work_world_history_id) VALUES
-('ff9b9113-f083-504a-93bc-fea28e83addf', 'b1b562d4-8975-55bf-a6d7-b54a10bd2052', 'cc4ac9a5-c496-573e-8b0a-a5cf12e1ced0', 1, '1화 도입 예시', '이환은 천장을 보고 있었다.
+('535160ba-51a1-3afe-8ffb-bd9217680967', 'cc28bc58-23e3-334d-91cd-21a07b449940', 'cc4ac9a5-c496-573e-8b0a-a5cf12e1ced0', 1, '1화 도입 예시', '이환은 천장을 보고 있었다.
 
 나무였다.
 
@@ -310,61 +310,88 @@ INSERT INTO fork_policy_history (id, work_id, allow_creation, allow_publication,
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO setting_document (id, world_id, logical_id, created_at) VALUES
-('653f8b22-238a-5a96-8f78-b67937479a76', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '15bdf2d2-9cfd-5cb8-a945-e9077f54d5bd', '2026-11-09T00:00:00Z'),
-('0520dea6-7f9c-59c8-a0fe-d755c4ec1731', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '2cd75c7f-26f1-50de-a703-c876df90fba1', '2026-11-09T00:00:00Z'),
-('b3bc87c9-4a2a-59bb-a9a0-66805ba9bc89', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'ff349868-0ed2-5acf-90b3-21dbfa2d2eb6', '2026-11-09T00:00:00Z'),
-('4d4cddaf-5a26-5e2c-9aaf-80b1fa98ee57', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '4dbbbc54-d8ee-50f6-97ee-288a1a1c70b2', '2026-11-09T00:00:00Z'),
-('7e29fde7-9fcc-5261-836e-28eeeab43418', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '790799c4-60da-516a-8d65-2f3791f6f713', '2026-11-09T00:00:00Z'),
-('222277ac-1a49-59e3-bf1b-5722d16581d3', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'e7129ce5-1a51-5395-be5a-5c2d846bfb72', '2026-11-09T00:00:00Z'),
-('b56569fe-de3d-5fbe-a093-0a87a00a9af6', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'e2fa104b-e5a0-5a10-81d0-04687fbdd11f', '2026-11-09T00:00:00Z'),
-('683bfdc9-cd08-597b-881f-06a931eabdd4', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '75a49c34-1e7c-5dbd-8df3-4adbb3d4c82f', '2026-11-09T00:00:00Z'),
-('94c73683-9bf1-5d69-b0ca-4a5336b5d588', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'fe177b36-4218-548d-b5f8-07a45526b589', '2026-11-09T00:00:00Z'),
-('0ab18acd-b049-5902-b8a6-e76fb04895e1', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '29445397-83b0-53a5-aa64-1c3d340db7be', '2026-11-09T00:00:00Z'),
-('c4cf6a3d-af8a-5156-9024-b661aeb22466', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '4c3c2a9a-5697-55b3-bc92-c3fb84f1a8d2', '2026-11-09T00:00:00Z'),
-('8a80f075-9f95-5794-99ec-0455c4b05f62', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'f56cafe3-ad4c-52f1-bc8c-a3ced2b9fef8', '2026-11-09T00:00:00Z'),
-('f17aed65-0929-555b-9daa-986bda4e891b', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'd60a1b7b-dddd-5704-84a7-b5b6caf24bc8', '2026-11-09T00:00:00Z'),
-('ffa7518e-f64e-5e44-89b8-f3b95c35b86e', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '4f1f35ce-8a2e-521e-a2b8-240a0f163475', '2026-11-09T00:00:00Z'),
-('69a73e51-7b1c-589b-8c65-3e68d43564d6', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'bdd18433-9dcd-5d36-972c-88e19983d0a0', '2026-11-09T00:00:00Z'),
-('8bf94dfd-0660-5007-82ea-20b4552f43bb', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '474f3934-cf16-52fd-a2de-fd24bccd4b11', '2026-11-09T00:00:00Z'),
-('a3434475-99a7-53b2-92b4-fad918469fc6', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '5369ef8a-e137-5b49-8c56-daca624f813c', '2026-11-09T00:00:00Z'),
-('9778b6f5-8c3e-5346-8304-281a98fe1430', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '559ad726-a375-5ce4-aaee-8ee3cd1de269', '2026-11-09T00:00:00Z'),
-('19920d7b-ce60-5a80-aed7-45f89fe86b5f', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '5f92b50d-d1f4-5935-a3ca-4612095e09d3', '2026-11-09T00:00:00Z'),
-('47cf1cf1-1105-53b6-97d4-eea84c1be96b', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '720969b3-1068-5f8f-8907-ada0f29b9bbe', '2026-11-09T00:00:00Z'),
-('7f01f0b1-6274-5138-a7e3-5e1f20641d85', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '75cff6bb-c048-561c-bf92-f6f9105794b5', '2026-11-09T00:00:00Z'),
-('4475fe70-bdc3-5d61-9481-8e76d43f4dc5', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '9fbd65b8-42d1-50f6-a252-f2da4614915c', '2026-11-09T00:00:00Z'),
-('293aa442-fd41-5188-963a-b493f13964d2', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '68abe604-1906-5b1e-acb9-b113b176305f', '2026-11-09T00:00:00Z'),
-('ff3aae4f-d409-5915-9058-30248ad6b87f', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'b472f778-56ac-54a6-9019-f0abd041d9c7', '2026-11-09T00:00:00Z')
+('402dca95-661c-3394-91b6-72327c1391b7', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '15bdf2d2-9cfd-5cb8-a945-e9077f54d5bd', '2026-11-09T00:00:00Z'),
+('201d76f5-d71e-356b-b4c0-f3c01fa5f217', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '2cd75c7f-26f1-50de-a703-c876df90fba1', '2026-11-09T00:00:00Z'),
+('2c7dd116-8e95-3078-a2df-9fc137ddbee2', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'ff349868-0ed2-5acf-90b3-21dbfa2d2eb6', '2026-11-09T00:00:00Z'),
+('151de66a-2f54-3d4f-9fcc-972b7a0e0089', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '4dbbbc54-d8ee-50f6-97ee-288a1a1c70b2', '2026-11-09T00:00:00Z'),
+('52fbf849-0a2d-33f9-8827-7aeba0abc130', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '790799c4-60da-516a-8d65-2f3791f6f713', '2026-11-09T00:00:00Z'),
+('214bcaad-1ecd-3571-b325-b2d07bba4d0b', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'e7129ce5-1a51-5395-be5a-5c2d846bfb72', '2026-11-09T00:00:00Z'),
+('851dc6bf-3070-3451-8157-b69c57c9f1b1', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'e2fa104b-e5a0-5a10-81d0-04687fbdd11f', '2026-11-09T00:00:00Z'),
+('056040bb-6134-3534-b45c-2c20cd132812', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '75a49c34-1e7c-5dbd-8df3-4adbb3d4c82f', '2026-11-09T00:00:00Z'),
+('158fa320-5246-37b2-9040-c4d6c5b7c22a', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'fe177b36-4218-548d-b5f8-07a45526b589', '2026-11-09T00:00:00Z'),
+('a82feb75-e815-3dd8-924d-55f817d67c85', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '29445397-83b0-53a5-aa64-1c3d340db7be', '2026-11-09T00:00:00Z'),
+('44236ae7-c8b0-3bf6-80db-a400803d8546', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '4c3c2a9a-5697-55b3-bc92-c3fb84f1a8d2', '2026-11-09T00:00:00Z'),
+('845835ad-c851-3fcd-a640-daf32f329c51', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'f56cafe3-ad4c-52f1-bc8c-a3ced2b9fef8', '2026-11-09T00:00:00Z'),
+('cbad2ebd-780e-39d6-b283-81cef9671f3d', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'd60a1b7b-dddd-5704-84a7-b5b6caf24bc8', '2026-11-09T00:00:00Z'),
+('c3e64209-52e1-3e11-9a49-97be8b9577e5', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '4f1f35ce-8a2e-521e-a2b8-240a0f163475', '2026-11-09T00:00:00Z'),
+('b6ad7be7-bb9c-3e2d-8228-2d0eeeb30cc7', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'bdd18433-9dcd-5d36-972c-88e19983d0a0', '2026-11-09T00:00:00Z'),
+('5fa8dfe3-6084-32a7-a2cd-33898acd3d1a', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '474f3934-cf16-52fd-a2de-fd24bccd4b11', '2026-11-09T00:00:00Z'),
+('3270c252-2c2f-3e3f-935e-875d147ea0e5', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '5369ef8a-e137-5b49-8c56-daca624f813c', '2026-11-09T00:00:00Z'),
+('7b21e2b8-953c-3b2e-af39-88c23e746277', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '559ad726-a375-5ce4-aaee-8ee3cd1de269', '2026-11-09T00:00:00Z'),
+('b5b917b4-282e-3886-9474-d6247c02a5e4', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '5f92b50d-d1f4-5935-a3ca-4612095e09d3', '2026-11-09T00:00:00Z'),
+('e781ef6b-0fea-319c-a0e4-2870ab9d4ee6', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '720969b3-1068-5f8f-8907-ada0f29b9bbe', '2026-11-09T00:00:00Z'),
+('1db86086-8153-3179-887d-8f1edc0159e1', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '75cff6bb-c048-561c-bf92-f6f9105794b5', '2026-11-09T00:00:00Z'),
+('0874fb2f-f551-369a-aa24-ae89c834d617', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '9fbd65b8-42d1-50f6-a252-f2da4614915c', '2026-11-09T00:00:00Z'),
+('95fbaacb-d1c7-35ef-827f-5219b35df71a', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', '68abe604-1906-5b1e-acb9-b113b176305f', '2026-11-09T00:00:00Z'),
+('56d043b0-0b41-3d96-8e8a-68332266faac', 'c5d42f50-d2e6-5e25-8a2e-99e68e23ff05', 'b472f778-56ac-54a6-9019-f0abd041d9c7', '2026-11-09T00:00:00Z')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO setting_visibility_history (id, setting_document_id, revision_no, default_visibility, changed_at) VALUES
-('f7c86b6b-8db4-54f4-b863-87502f73cd31', '653f8b22-238a-5a96-8f78-b67937479a76', 0, 'private', '2026-11-09T00:00:00Z'),
-('e4a4ddbc-257f-50b0-b71a-187cb5076db8', '0520dea6-7f9c-59c8-a0fe-d755c4ec1731', 0, 'private', '2026-11-09T00:00:00Z'),
-('e507b6d3-113d-5069-ba37-55c518462544', 'b3bc87c9-4a2a-59bb-a9a0-66805ba9bc89', 0, 'private', '2026-11-09T00:00:00Z'),
-('2e5cf52e-fb89-5634-8872-45132c175d52', '4d4cddaf-5a26-5e2c-9aaf-80b1fa98ee57', 0, 'private', '2026-11-09T00:00:00Z'),
-('4ac440c8-e459-501a-81f3-dff11be492c2', '7e29fde7-9fcc-5261-836e-28eeeab43418', 0, 'private', '2026-11-09T00:00:00Z'),
-('c4aa0d21-dba3-5395-b432-0db2b123e5f8', '222277ac-1a49-59e3-bf1b-5722d16581d3', 0, 'private', '2026-11-09T00:00:00Z'),
-('d6f90869-c0e7-5aaf-8cf0-aa1ba5dad3a7', 'b56569fe-de3d-5fbe-a093-0a87a00a9af6', 0, 'private', '2026-11-09T00:00:00Z'),
-('3d16ad24-7d84-59f4-812f-801a5af20e21', '683bfdc9-cd08-597b-881f-06a931eabdd4', 0, 'private', '2026-11-09T00:00:00Z'),
-('23363b93-93a6-56a5-b3c5-43601097b7d2', '94c73683-9bf1-5d69-b0ca-4a5336b5d588', 0, 'private', '2026-11-09T00:00:00Z'),
-('9a6ab905-fca1-58ff-87d7-4d40ad0aaae7', '0ab18acd-b049-5902-b8a6-e76fb04895e1', 0, 'private', '2026-11-09T00:00:00Z'),
-('9f624b2c-bd56-52ab-b912-4e93f945b9bc', 'c4cf6a3d-af8a-5156-9024-b661aeb22466', 0, 'private', '2026-11-09T00:00:00Z'),
-('6de06337-f081-524a-bd47-bbd86b99a695', '8a80f075-9f95-5794-99ec-0455c4b05f62', 0, 'private', '2026-11-09T00:00:00Z'),
-('3d19bff4-6513-5210-934d-3b670e61e33b', 'f17aed65-0929-555b-9daa-986bda4e891b', 0, 'private', '2026-11-09T00:00:00Z'),
-('d439f116-7e45-5db6-a2aa-24f63c717656', 'ffa7518e-f64e-5e44-89b8-f3b95c35b86e', 0, 'private', '2026-11-09T00:00:00Z'),
-('f91dacd4-48b1-559e-83f4-6c0cd5a5983d', '69a73e51-7b1c-589b-8c65-3e68d43564d6', 0, 'private', '2026-11-09T00:00:00Z'),
-('a995d596-3204-5d5a-9446-c0deb0eb41f3', '8bf94dfd-0660-5007-82ea-20b4552f43bb', 0, 'private', '2026-11-09T00:00:00Z'),
-('b865c8ab-9173-5ebb-8b75-ddad5286ab5a', 'a3434475-99a7-53b2-92b4-fad918469fc6', 0, 'private', '2026-11-09T00:00:00Z'),
-('2e261a05-948b-59b2-ae47-08f8b3faca32', '9778b6f5-8c3e-5346-8304-281a98fe1430', 0, 'private', '2026-11-09T00:00:00Z'),
-('f466eb45-9f20-55b4-8e7a-dab40834af0f', '19920d7b-ce60-5a80-aed7-45f89fe86b5f', 0, 'private', '2026-11-09T00:00:00Z'),
-('4ea1282c-4512-5806-8db6-b372e63d6d30', '47cf1cf1-1105-53b6-97d4-eea84c1be96b', 0, 'private', '2026-11-09T00:00:00Z'),
-('ce200173-12b1-58c1-9d96-220528593ff2', '7f01f0b1-6274-5138-a7e3-5e1f20641d85', 0, 'private', '2026-11-09T00:00:00Z'),
-('8ad7000b-7d20-5008-abd7-dbb811f1e71b', '4475fe70-bdc3-5d61-9481-8e76d43f4dc5', 0, 'private', '2026-11-09T00:00:00Z'),
-('092cf477-b075-5859-8c13-8adab755bbff', '293aa442-fd41-5188-963a-b493f13964d2', 0, 'private', '2026-11-09T00:00:00Z'),
-('3b9d191f-b873-5032-ac60-514c69be268e', 'ff3aae4f-d409-5915-9058-30248ad6b87f', 0, 'private', '2026-11-09T00:00:00Z')
+('0471db33-5102-3837-90ce-5f4fe7940ea0', '402dca95-661c-3394-91b6-72327c1391b7', 0, 'private', '2026-11-09T00:00:00Z'),
+('b7bbf4af-242a-32d8-8697-1e7d0c0456bc', '201d76f5-d71e-356b-b4c0-f3c01fa5f217', 1, 'private', '2026-11-09T00:00:00Z'),
+('1dec208e-5b1e-3ef5-a855-f37b3d8eabee', '2c7dd116-8e95-3078-a2df-9fc137ddbee2', 2, 'private', '2026-11-09T00:00:00Z'),
+('8d252999-ffdd-313f-8cb1-590c572dae2a', '151de66a-2f54-3d4f-9fcc-972b7a0e0089', 3, 'private', '2026-11-09T00:00:00Z'),
+('b8260cf3-d7c0-388a-b0e4-2739d6f75394', '52fbf849-0a2d-33f9-8827-7aeba0abc130', 4, 'private', '2026-11-09T00:00:00Z'),
+('e027e935-ab14-322c-9e56-29a7a9109bcb', '214bcaad-1ecd-3571-b325-b2d07bba4d0b', 5, 'private', '2026-11-09T00:00:00Z'),
+('5a2ddd49-a85e-300d-82e5-bf1cfc37fb0c', '851dc6bf-3070-3451-8157-b69c57c9f1b1', 6, 'private', '2026-11-09T00:00:00Z'),
+('df398e16-d2c3-3c42-9677-b9bde8a08279', '056040bb-6134-3534-b45c-2c20cd132812', 7, 'private', '2026-11-09T00:00:00Z'),
+('e3515a6e-0b2b-3cbc-97b8-a855e41217b3', '158fa320-5246-37b2-9040-c4d6c5b7c22a', 8, 'private', '2026-11-09T00:00:00Z'),
+('93cb2916-7f27-3ccc-aa89-14abf41cafed', 'a82feb75-e815-3dd8-924d-55f817d67c85', 9, 'private', '2026-11-09T00:00:00Z'),
+('802c60d9-9adc-31c6-8060-f816d8685507', '44236ae7-c8b0-3bf6-80db-a400803d8546', 10, 'private', '2026-11-09T00:00:00Z'),
+('63ca6c05-cca4-3dbf-a4f1-06bb0e9bc95c', '845835ad-c851-3fcd-a640-daf32f329c51', 11, 'private', '2026-11-09T00:00:00Z'),
+('74398f33-f4c7-39f9-b348-9bfe8ad131ec', 'cbad2ebd-780e-39d6-b283-81cef9671f3d', 12, 'private', '2026-11-09T00:00:00Z'),
+('40b7bcbe-78df-39e1-a717-69bb7937bb1d', 'c3e64209-52e1-3e11-9a49-97be8b9577e5', 13, 'private', '2026-11-09T00:00:00Z'),
+('71a23fc3-ca7c-3e12-9b84-6e09638f9d1e', 'b6ad7be7-bb9c-3e2d-8228-2d0eeeb30cc7', 14, 'private', '2026-11-09T00:00:00Z'),
+('1efd8de1-1344-356a-a014-4d8b12f28131', '5fa8dfe3-6084-32a7-a2cd-33898acd3d1a', 15, 'private', '2026-11-09T00:00:00Z'),
+('db6773bd-e31e-303f-beea-bd397d2b346a', '3270c252-2c2f-3e3f-935e-875d147ea0e5', 16, 'private', '2026-11-09T00:00:00Z'),
+('2808ed33-c3b8-3a79-81d7-a53cd64e16ee', '7b21e2b8-953c-3b2e-af39-88c23e746277', 17, 'private', '2026-11-09T00:00:00Z'),
+('3d969a59-a3c2-31dd-9a61-e9b1bc83a765', 'b5b917b4-282e-3886-9474-d6247c02a5e4', 18, 'private', '2026-11-09T00:00:00Z'),
+('6adffbca-a04a-36d4-9c9d-97dfe6c981a2', 'e781ef6b-0fea-319c-a0e4-2870ab9d4ee6', 19, 'private', '2026-11-09T00:00:00Z'),
+('c389bddf-c0ca-3ac6-aeae-43f071df80fd', '1db86086-8153-3179-887d-8f1edc0159e1', 20, 'private', '2026-11-09T00:00:00Z'),
+('0217406a-8521-3503-b35c-7207e0ca2a3c', '0874fb2f-f551-369a-aa24-ae89c834d617', 21, 'private', '2026-11-09T00:00:00Z'),
+('ab31f325-4ff7-3ec7-afbe-83087f7e9484', '95fbaacb-d1c7-35ef-827f-5219b35df71a', 22, 'private', '2026-11-09T00:00:00Z'),
+('8b7328c2-c9cf-3294-9dae-77b4c37a0dee', '56d043b0-0b41-3d96-8e8a-68332266faac', 23, 'private', '2026-11-09T00:00:00Z')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO setting_visibility_range (id, visibility_history_id, start_episode_id, end_episode_id, visibility) VALUES
+('2855b123-36c8-3351-b953-1ea1e7858826', '0471db33-5102-3837-90ce-5f4fe7940ea0', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('fc476f67-4340-3bf8-bce4-d13832895a59', 'b7bbf4af-242a-32d8-8697-1e7d0c0456bc', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('108e3641-53e8-36f0-aab4-bd20832bf522', '1dec208e-5b1e-3ef5-a855-f37b3d8eabee', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('d218a4e4-72b9-3503-b18e-0683fd404fe9', '8d252999-ffdd-313f-8cb1-590c572dae2a', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('378b3e6a-eac6-32eb-a63a-d2701bd5ec34', 'b8260cf3-d7c0-388a-b0e4-2739d6f75394', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('a1961c36-1631-335a-84ed-e0b7cec93a14', 'e027e935-ab14-322c-9e56-29a7a9109bcb', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('32992e37-8d25-330e-8d4a-93983acd799a', '5a2ddd49-a85e-300d-82e5-bf1cfc37fb0c', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('54a06731-823c-3fbb-b769-521af4c7eb78', 'df398e16-d2c3-3c42-9677-b9bde8a08279', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('a3f183b5-031c-3926-a266-fab5671d1476', 'e3515a6e-0b2b-3cbc-97b8-a855e41217b3', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('bf54199f-4796-36ae-8e9b-d63e15c6dc3d', '93cb2916-7f27-3ccc-aa89-14abf41cafed', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('ca6b54cf-89c1-3fa0-aaba-cb2459611e5c', '802c60d9-9adc-31c6-8060-f816d8685507', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('7be2a961-bc4b-3343-98ea-daec2fca0937', '63ca6c05-cca4-3dbf-a4f1-06bb0e9bc95c', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('16fd8117-187c-3d91-bb19-3a56b24af3ea', '74398f33-f4c7-39f9-b348-9bfe8ad131ec', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('9e06055e-9162-3ab1-bfa2-652994f2a82f', '40b7bcbe-78df-39e1-a717-69bb7937bb1d', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('08132d51-febb-347f-92af-77945fa9e070', '71a23fc3-ca7c-3e12-9b84-6e09638f9d1e', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('1382a00d-a17f-30a4-b7e3-78ab076460db', '1efd8de1-1344-356a-a014-4d8b12f28131', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('b2856bb9-9b57-3297-bb05-00428c8c7a5c', 'db6773bd-e31e-303f-beea-bd397d2b346a', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('b93a3427-786a-3ef4-9074-182c33801f6e', '2808ed33-c3b8-3a79-81d7-a53cd64e16ee', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('84968d1f-3f80-361a-8e89-62d6f41f2ef1', '3d969a59-a3c2-31dd-9a61-e9b1bc83a765', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('b31c652b-7abc-3b2d-9bb2-791bf0680ddc', '6adffbca-a04a-36d4-9c9d-97dfe6c981a2', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('c9c3627f-47f5-385a-8ae6-c266361d620d', 'c389bddf-c0ca-3ac6-aeae-43f071df80fd', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('581ec769-6637-3cf9-a9c1-ea3cd0fdc62e', '0217406a-8521-3503-b35c-7207e0ca2a3c', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('c29b78c8-adbc-3120-9fb3-c48dc4d8b42f', 'ab31f325-4ff7-3ec7-afbe-83087f7e9484', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private'),
+('b9e26e15-5a7f-34c3-8122-f417d0afe69c', '8b7328c2-c9cf-3294-9dae-77b4c37a0dee', 'cc28bc58-23e3-334d-91cd-21a07b449940', NULL, 'private')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO setting_version (id, setting_document_id, content_version_id, revision_no, name, category_id, content, evidence, created_at, lifecycle, visibility_history_id) VALUES
-('54663632-6314-5b9a-9a39-bf9ae5eee74d', '653f8b22-238a-5a96-8f78-b67937479a76', 'd4788535-e8a8-54f5-91b8-df3d8b150dd1', 0, '대체역사 전체 원문', '규칙', '## 5. 대체역사
+('3780c583-1361-3807-862b-f42dcf0fa1dc', '402dca95-661c-3394-91b6-72327c1391b7', 'd4788535-e8a8-54f5-91b8-df3d8b150dd1', 0, '대체역사 전체 원문', '규칙', '## 5. 대체역사
 
 ### 최초 기본 템플릿
 
@@ -1492,8 +1519,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 ---
 
-', '사용자 요청 창작 샘플; source/templates.json#/templates/4/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'f7c86b6b-8db4-54f4-b863-87502f73cd31'),
-('24afdda6-60fc-5948-8600-578902466bc1', '0520dea6-7f9c-59c8-a0fe-d755c4ec1731', '5ad17367-7639-530b-a6f0-a9f37ed06e84', 1, '최초 기본 템플릿', '규칙', '#### 5. 대체역사 — 《눈 떠 보니 몰락 예정 왕자》
+', '사용자 요청 창작 샘플; source/template.json#/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '0471db33-5102-3837-90ce-5f4fe7940ea0'),
+('c5ca41d9-5ffa-3317-84d7-1fdfea39985c', '201d76f5-d71e-356b-b4c0-f3c01fa5f217', '5ad17367-7639-530b-a6f0-a9f37ed06e84', 1, '최초 기본 템플릿', '규칙', '#### 5. 대체역사 — 《눈 떠 보니 몰락 예정 왕자》
 
 **한 줄 소개**  
 현대의 기계공학자가 왕위 계승에서 밀려난 가상의 조선 왕자로 깨어나, 다가올 전쟁과 자신의 죽음을 막으려 한다.
@@ -1505,8 +1532,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 - **주요 인물:** 신분 때문에 재능을 펼치지 못하는 장인, 원칙을 중시하는 젊은 관료, 주인공을 견제하는 세자, 실리적인 거상, 변방에서 잊힌 명장.
 - **핵심 갈등과 목표:** 전쟁에 대비해 군수와 식량 체계를 정비하고 숙청을 피해야 한다. 하지만 개혁으로 얻은 민심과 군사력이 오히려 역모 의심을 부르면서, 왕좌를 피하려던 선택이 어려워진다.
 - **시작 장면:** 병상에서 깨어난 주인공은 날짜를 듣고 얼어붙는다. 자신이 기억하는 대규모 침략까지 삼 년, 이 왕자가 죽는 사건까지는 반년밖에 남지 않았다.
-- **대표 클리셰:** 공학 지식 무쌍, 인재 선점, 부국강병, 군제 개혁, 왕의 비밀 시험, 능력을 감추던 왕자의 부상.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'e4a4ddbc-257f-50b0-b71a-187cb5076db8'),
-('fefd671d-069d-5dc7-9172-0506d5cfaaa2', 'b3bc87c9-4a2a-59bb-a9a0-66805ba9bc89', 'b6bbcb28-3799-5bd4-8143-a9cce8197164', 2, '01. 작품의 기본 전제', '규칙', '이환은 왕의 셋째 아들인 경안군이다.
+- **대표 클리셰:** 공학 지식 무쌍, 인재 선점, 부국강병, 군제 개혁, 왕의 비밀 시험, 능력을 감추던 왕자의 부상.', '사용자 요청 창작 샘플; source/template.json#/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'b7bbf4af-242a-32d8-8697-1e7d0c0456bc'),
+('1dfa0f4c-0bdb-3a45-9498-c25f7839f392', '2c7dd116-8e95-3078-a2df-9fc137ddbee2', 'b6bbcb28-3799-5bd4-8143-a9cce8197164', 2, '01. 작품의 기본 전제', '규칙', '이환은 왕의 셋째 아들인 경안군이다.
 
 스물네 살. 후궁 소생이며, 어릴 때부터 몸이 약하고 정사에 관심이 없는 왕자로 알려졌다. 책과 서화를 좋아하고 궁 밖에서는 조용히 지낸다.
 
@@ -1536,8 +1563,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 장인을 모으고, 무인을 만나고, 돈을 구하고, 군기를 고친다.
 
-살아남기 위한 준비가 다시 죽음의 증거가 될 수 있다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/0/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'e507b6d3-113d-5069-ba37-55c518462544'),
-('40440dc5-8ea0-5447-8a78-cdb4f2abe27f', '4d4cddaf-5a26-5e2c-9aaf-80b1fa98ee57', 'a3ce9f50-cbb3-5de6-b2c1-8b5ff622b9d9', 3, '02. 역사적 분기와 작품의 범위', '규칙', '이 세계는 실제 조선과 닮았지만 동일하지 않다.
+살아남기 위한 준비가 다시 죽음의 증거가 될 수 있다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/0/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '1dec208e-5b1e-3ef5-a855-f37b3d8eabee'),
+('ee125a62-db6e-30bd-b254-f1f8e2b92878', '151de66a-2f54-3d4f-9fcc-972b7a0e0089', 'a3ce9f50-cbb3-5de6-b2c1-8b5ff622b9d9', 3, '02. 역사적 분기와 작품의 범위', '규칙', '이 세계는 실제 조선과 닮았지만 동일하지 않다.
 
 지리와 농업 환경, 유교적 국가 운영, 관료제와 신분 질서는 유사하다. 반면 왕실 계보와 주요 정쟁, 주변국의 지도자와 전쟁 일정은 작품 안에서 별도로 설정한다.
 
@@ -1560,8 +1587,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 작품의 시간 범위는 빙의 직후부터 전쟁의 주요 국면이 끝나고 개혁이 제도로 자리 잡기 시작하는 시점까지다.
 
-단기간에 산업혁명을 완성하거나 세계를 정복하지 않는다. 대신 몇 년의 준비가 수많은 사람의 생존과 국가의 향방을 바꾸는 과정을 충분히 보여 준다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/1/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '2e5cf52e-fb89-5634-8872-45132c175d52'),
-('62c6c595-5769-595f-9c7a-63aa860eab43', '7e29fde7-9fcc-5261-836e-28eeeab43418', 'ab44c7b0-2ef2-52bc-8ade-9bcc9cd1f08c', 4, '03. 왕실과 권력 구조', '규칙', '현재의 왕은 쉰여섯 살이다.
+단기간에 산업혁명을 완성하거나 세계를 정복하지 않는다. 대신 몇 년의 준비가 수많은 사람의 생존과 국가의 향방을 바꾸는 과정을 충분히 보여 준다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/1/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '8d252999-ffdd-313f-8cb1-590c572dae2a'),
+('e65511cb-e19f-3bbe-a435-69bac8a34129', '52fbf849-0a2d-33f9-8827-7aeba0abc130', 'ab44c7b0-2ef2-52bc-8ade-9bcc9cd1f08c', 4, '03. 왕실과 권력 구조', '규칙', '현재의 왕은 쉰여섯 살이다.
 
 젊은 시절에는 강한 추진력으로 정국을 이끌었지만, 재위가 길어지면서 신하와 왕족을 쉽게 믿지 못하게 되었다.
 
@@ -1586,8 +1613,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 무슨 권한으로, 누구의 돈으로, 어떤 목적으로 모았는가.
 
-이 질문을 피하는 대신 대답할 수 있어야 살아남는다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/2/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '4ac440c8-e459-501a-81f3-dff11be492c2'),
-('4826e904-8d52-5702-9f13-f90a209425a9', '222277ac-1a49-59e3-bf1b-5722d16581d3', '7e50b381-1d0a-5f1a-92cb-c39c93dad836', 5, '04. 조정의 주요 세력', '규칙', '조정은 단순히 개혁파와 수구파로 나뉘지 않는다.
+이 질문을 피하는 대신 대답할 수 있어야 살아남는다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/2/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'b8260cf3-d7c0-388a-b0e4-2739d6f75394'),
+('fa8f35ab-33d8-3800-aa55-30b8b57cd1c6', '214bcaad-1ecd-3571-b325-b2d07bba4d0b', '7e50b381-1d0a-5f1a-92cb-c39c93dad836', 5, '04. 조정의 주요 세력', '규칙', '조정은 단순히 개혁파와 수구파로 나뉘지 않는다.
 
 같은 사안에서도 재정과 왕권, 지역 기반, 학문적 원칙에 따라 입장이 달라진다.
 
@@ -1621,8 +1648,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 백성을 보호하는 인물도 있고, 세금과 부역을 약자에게 떠넘기는 인물도 있다. 중앙의 명령을 무조건 적대하기보다 자신들의 지위와 이익을 기준으로 대응한다.
 
-주인공이 중앙에서 승리했다고 지방에서 곧바로 정책이 시행되지는 않는다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/3/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'c4aa0d21-dba3-5395-b432-0db2b123e5f8'),
-('39855d7e-070a-5d18-bc36-4cbf12ce91b3', 'b56569fe-de3d-5fbe-a093-0a87a00a9af6', '0ba2b7af-cc42-5d2a-8e7a-c574ab5c7b0e', 6, '05. 나라의 경제와 백성의 생활', '규칙', '조선의 기본은 농업이다.
+주인공이 중앙에서 승리했다고 지방에서 곧바로 정책이 시행되지는 않는다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/3/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'e027e935-ab14-322c-9e56-29a7a9109bcb'),
+('ade237e7-414a-3146-bd90-e7ef276d0ebc', '851dc6bf-3070-3451-8157-b69c57c9f1b1', '0ba2b7af-cc42-5d2a-8e7a-c574ab5c7b0e', 6, '05. 나라의 경제와 백성의 생활', '규칙', '조선의 기본은 농업이다.
 
 군사를 늘리면 농사짓는 사람이 줄고, 성을 수리하면 그만큼 노동력과 식량이 필요하다. 전쟁 준비를 서두르다 백성의 생계를 무너뜨리면 실제 전쟁이 시작되기도 전에 나라가 약해진다.
 
@@ -1640,8 +1667,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 생산을 늘리는 일과 생산한 것을 제대로 전달하는 일은 서로 다르다.
 
-그가 가장 먼저 바꾸려는 것은 거대한 무기가 아니라 도량형, 창고 관리, 공구의 품질과 작업 방식이다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/4/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'd6f90869-c0e7-5aaf-8cf0-aa1ba5dad3a7'),
-('4820a9ee-6251-5771-83c9-f84d2e668d5b', '683bfdc9-cd08-597b-881f-06a931eabdd4', '43cd08d9-baa1-5172-8946-a7889226dabe', 7, '06. 주변국과 전쟁의 배경', '규칙', '**바다 건너 군사 정권**
+그가 가장 먼저 바꾸려는 것은 거대한 무기가 아니라 도량형, 창고 관리, 공구의 품질과 작업 방식이다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/4/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '5a2ddd49-a85e-300d-82e5-bf1cfc37fb0c'),
+('043b93bb-ce25-3bb8-8bd8-da72191ec77d', '056040bb-6134-3534-b45c-2c20cd132812', '43cd08d9-baa1-5172-8946-a7889226dabe', 7, '06. 주변국과 전쟁의 배경', '규칙', '**바다 건너 군사 정권**
 
 여러 지역의 전쟁을 정리하고 강한 지도자가 권력을 모은 상태다.
 
@@ -1665,8 +1692,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 남쪽 전쟁에 대비한다는 이유로 북방 병력을 무조건 빼낼 수 없는 이유가 된다.
 
-이환은 외교를 전쟁을 막는 마법의 열쇠로 생각하지 않는다. 상대의 결정을 완전히 통제할 수는 없지만, 시간을 벌고 적의 준비를 관찰하며 내부의 이해 차이를 활용할 수 있다고 본다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/5/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '3d16ad24-7d84-59f4-812f-801a5af20e21'),
-('cbfa818e-6fc7-5e2a-82ad-4b8bc037f218', '94c73683-9bf1-5d69-b0ca-4a5336b5d588', '8276a9d3-5ffa-5812-9a9e-c3d1c5b53e12', 8, '07. 주요 장소', '규칙', '**한양의 경안군 저택**
+이환은 외교를 전쟁을 막는 마법의 열쇠로 생각하지 않는다. 상대의 결정을 완전히 통제할 수는 없지만, 시간을 벌고 적의 준비를 관찰하며 내부의 이해 차이를 활용할 수 있다고 본다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/5/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'df398e16-d2c3-3c42-9677-b9bde8a08279'),
+('aad69ee1-6ed1-3c02-be9d-65fb0eb6116c', '158fa320-5246-37b2-9040-c4d6c5b7c22a', '8276a9d3-5ffa-5812-9a9e-c3d1c5b53e12', 8, '07. 주요 장소', '규칙', '**한양의 경안군 저택**
 
 이환의 생활 공간이자 초기 작업장이다.
 
@@ -1708,8 +1735,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 중후반에는 사찰, 읍성, 나루, 산간 창고가 연결된 피난망이 중요해진다.
 
-백성을 단순히 전쟁의 피해자로 묘사하는 데 그치지 않고, 이동과 식량, 가족의 재결합을 실제 행정 문제로 다룬다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/6/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '23363b93-93a6-56a5-b3c5-43601097b7d2'),
-('3199b239-c36b-571a-ad92-65234938083a', '0ab18acd-b049-5902-b8a6-e76fb04895e1', '16853d29-4e69-5afb-b334-f1d185e21697', 9, '08. 주인공 이환', '규칙', '- **나이:** 육체 24세. 빙의 전 한도현은 34세.
+백성을 단순히 전쟁의 피해자로 묘사하는 데 그치지 않고, 이동과 식량, 가족의 재결합을 실제 행정 문제로 다룬다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/6/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'e3515a6e-0b2b-3cbc-97b8-a855e41217b3'),
+('b7923d34-ad81-3d67-8ebe-8134b468c956', 'a82feb75-e815-3dd8-924d-55f817d67c85', '16853d29-4e69-5afb-b334-f1d185e21697', 9, '08. 주인공 이환', '규칙', '- **나이:** 육체 24세. 빙의 전 한도현은 34세.
 - **신분:** 후궁 소생 왕자, 경안군.
 - **빙의 전 직업:** 공장 설비와 생산 공정 개선을 맡은 기계공학자.
 - **장점:** 문제를 여러 단계로 나누고, 병목과 반복 손실을 찾아낸다.
@@ -1732,8 +1759,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 그의 말버릇은 “그렇게 하면 됩니다”이다.
 
-초반에는 자신감의 표현이다. 시간이 지나면 그는 말하기 전에 “지금 무엇이 부족합니까?”부터 묻게 된다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/7/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '9a6ab905-fca1-58ff-87d7-4d40ad0aaae7'),
-('99af9e83-710d-52f9-a867-5b4058fdb050', 'c4cf6a3d-af8a-5156-9024-b661aeb22466', 'aaac4a4f-45e6-51d7-b18f-226357a47fe5', 10, '09. 빙의 이전의 경안군', '규칙', '원래의 이환은 무능하거나 세상에 무관심한 사람이 아니었다.
+초반에는 자신감의 표현이다. 시간이 지나면 그는 말하기 전에 “지금 무엇이 부족합니까?”부터 묻게 된다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/7/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '93cb2916-7f27-3ccc-aa89-14abf41cafed'),
+('0c692481-b031-3e16-8543-942622b35280', '44236ae7-c8b0-3bf6-80db-a400803d8546', 'aaac4a4f-45e6-51d7-b18f-226357a47fe5', 10, '09. 빙의 이전의 경안군', '규칙', '원래의 이환은 무능하거나 세상에 무관심한 사람이 아니었다.
 
 그는 왕실의 권력 다툼에서 살아남기 위해 병약하고 조용한 왕자로 남는 법을 배웠다.
 
@@ -1751,8 +1778,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 몸에 남은 기억은 생활 습관과 단편적인 감정 정도다. 필요한 정치 정보를 언제든 꺼낼 수 있는 완전한 기억 저장고는 아니다.
 
-원래 이환의 서신과 장부를 읽어야 자신의 처지를 정확히 이해할 수 있다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/8/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '9f624b2c-bd56-52ab-b912-4e93f945b9bc'),
-('c796f169-b460-53c6-b8fc-49e93ffd9aca', '8a80f075-9f95-5794-99ec-0455c4b05f62', 'f8506dab-7101-53ac-a94f-755d1242edc1', 11, '10. 왕실의 주요 인물', '규칙', '**왕**
+원래 이환의 서신과 장부를 읽어야 자신의 처지를 정확히 이해할 수 있다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/8/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '802c60d9-9adc-31c6-8060-f816d8685507'),
+('f3b3df15-5ea0-3c1d-b386-d8ca783c1a88', '845835ad-c851-3fcd-a640-daf32f329c51', 'f8506dab-7101-53ac-a94f-755d1242edc1', 11, '10. 왕실의 주요 인물', '규칙', '**왕**
 
 56세.
 
@@ -1792,8 +1819,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 저택의 재산과 물자, 사람들의 사정을 정확히 안다. 이환이 숫자만 보고 놓치는 관계를 짚는다.
 
-여성이라는 이유로 공식 관직을 얻지는 못하지만, 재산 관리와 구휼 물자 조달에서 실제 역할을 한다. 작품은 그녀의 활동에 사회적 제약이 있다는 사실도 함께 다룬다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/9/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '6de06337-f081-524a-bd47-bbd86b99a695'),
-('d2d9247d-2cf2-5f5f-a580-fbb92e620dea', 'f17aed65-0929-555b-9daa-986bda4e891b', '3afb1943-4ab9-5122-a2bd-95a93f7fde94', 12, '11. 주요 동료와 인재', '규칙', '**최덕수 — 장인**
+여성이라는 이유로 공식 관직을 얻지는 못하지만, 재산 관리와 구휼 물자 조달에서 실제 역할을 한다. 작품은 그녀의 활동에 사회적 제약이 있다는 사실도 함께 다룬다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/9/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '63ca6c05-cca4-3dbf-a4f1-06bb0e9bc95c'),
+('490183fb-b6d9-3205-98f0-0b13f9e7d835', 'cbad2ebd-780e-39d6-b283-81cef9671f3d', '3afb1943-4ab9-5122-a2bd-95a93f7fde94', 12, '11. 주요 동료와 인재', '규칙', '**최덕수 — 장인**
 
 47세.
 
@@ -1859,8 +1886,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 주인공의 현대적인 직설을 막고, 같은 내용을 살아남을 수 있는 언어로 전달하도록 돕는다.
 
-정보를 모두 알고 있는 만능 인물이 아니라, 오래 살아남은 사람의 신중함을 보여 준다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/10/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '3d19bff4-6513-5210-934d-3b670e61e33b'),
-('607eda8f-4e2c-5290-b725-cbd51da13e0e', 'ffa7518e-f64e-5e44-89b8-f3b95c35b86e', 'efc6a238-3a02-5e8a-9330-01e3c7f040d6', 13, '12. 주요 적대자', '규칙', '**심치원 — 권세 있는 대신**
+정보를 모두 알고 있는 만능 인물이 아니라, 오래 살아남은 사람의 신중함을 보여 준다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/10/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '74398f33-f4c7-39f9-b348-9bfe8ad131ec'),
+('a53eb5fe-00d1-3dc1-99f1-e7de8a5fc8e5', 'c3e64209-52e1-3e11-9a49-97be8b9577e5', 'efc6a238-3a02-5e8a-9330-01e3c7f040d6', 13, '12. 주요 적대자', '규칙', '**심치원 — 권세 있는 대신**
 
 59세.
 
@@ -1900,8 +1927,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 정치적 승리를 거두어도 나무는 마르기를 기다려야 하고, 농사는 때를 놓치면 다시 지을 수 없으며, 장인은 하루아침에 늘어나지 않는다.
 
-돈이 있어도 겨울의 강과 장마의 길을 마음대로 바꿀 수 없다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/11/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'd439f116-7e45-5db6-a2aa-24f63c717656'),
-('cb604353-1c32-544c-aefd-1126744675ee', '69a73e51-7b1c-589b-8c65-3e68d43564d6', '013a3ee6-81d7-5b03-9b28-035fa4323fd8', 14, '13. 현대 지식의 활용 범위와 한계', '규칙', '이환의 강점은 완성된 미래 기술보다 생산과 관리의 기본 원리다.
+돈이 있어도 겨울의 강과 장마의 길을 마음대로 바꿀 수 없다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/11/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '40b7bcbe-78df-39e1-a717-69bb7937bb1d'),
+('ac784ff2-83fd-3694-a805-d392c4f8fccc', 'b6ad7be7-bb9c-3e2d-8228-2d0eeeb30cc7', '013a3ee6-81d7-5b03-9b28-035fa4323fd8', 14, '13. 현대 지식의 활용 범위와 한계', '규칙', '이환의 강점은 완성된 미래 기술보다 생산과 관리의 기본 원리다.
 
 그는 다음 분야에서 비교적 자신 있게 방향을 제시할 수 있다.
 
@@ -1928,8 +1955,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 필요한 금속과 가공 정밀도, 일정한 품질, 유지 보수와 보급 체계가 없으면 시험품 하나가 만들어져도 군사적 의미는 작다.
 
-작품에서 기술 설명은 문제와 해결 방향, 실패와 생산상의 제약을 중심으로 한다. 무기나 위험 물질의 실제 제작법을 상세한 절차로 제시하지 않는다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/12/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'f91dacd4-48b1-559e-83f4-6c0cd5a5983d'),
-('3b5f3515-3bae-546a-aceb-1ae8db6aff50', '8bf94dfd-0660-5007-82ea-20b4552f43bb', '3d07077a-1fe1-50a4-ab9e-b241626fa672', 15, '14. 초기 개혁과 성공의 규모', '규칙', '첫 번째 성과는 거창하지 않다.
+작품에서 기술 설명은 문제와 해결 방향, 실패와 생산상의 제약을 중심으로 한다. 무기나 위험 물질의 실제 제작법을 상세한 절차로 제시하지 않는다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/12/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '71a23fc3-ca7c-3e12-9b84-6e09638f9d1e'),
+('af52a828-a289-3e31-b50f-c7651efb1abe', '5fa8dfe3-6084-32a7-a2cd-33898acd3d1a', '3d07077a-1fe1-50a4-ab9e-b241626fa672', 15, '14. 초기 개혁과 성공의 규모', '규칙', '첫 번째 성과는 거창하지 않다.
 
 저택의 물자를 정리하다가 같은 물건을 여러 이름과 단위로 기록하고 있다는 사실을 발견한다. 이환은 기준을 맞추고 실제 재고를 확인한다.
 
@@ -1953,8 +1980,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 새로운 농기구가 특정 땅에서는 불편할 수 있고, 표준 부품이 기존 장비와 맞지 않을 수 있으며, 공구의 품질이 높아져도 수리할 사람이 없으면 쓰이지 않는다.
 
-실패를 인정하고 수정하는 과정 자체가 주인공의 신뢰를 만든다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/13/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'a995d596-3204-5d5a-9446-c0deb0eb41f3'),
-('35eb68cd-b71d-52a0-9530-70d479f640b6', 'a3434475-99a7-53b2-92b4-fad918469fc6', 'e358a6ae-5b17-56d2-b774-094ac48fbca6', 16, '15. 군사 개혁의 방향', '규칙', '이환은 처음에 강력한 무기 하나가 전쟁의 흐름을 바꿀 수 있다고 생각한다.
+실패를 인정하고 수정하는 과정 자체가 주인공의 신뢰를 만든다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/13/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '1efd8de1-1344-356a-a014-4d8b12f28131'),
+('ac6c14ef-aa07-3fd9-9a16-194190a37476', '3270c252-2c2f-3e3f-935e-875d147ea0e5', 'e358a6ae-5b17-56d2-b774-094ac48fbca6', 16, '15. 군사 개혁의 방향', '규칙', '이환은 처음에 강력한 무기 하나가 전쟁의 흐름을 바꿀 수 있다고 생각한다.
 
 그러나 군영을 확인한 뒤 우선순위가 달라진다.
 
@@ -1982,8 +2009,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 수군과 육군이 각자의 실적만 따지지 않도록 항구와 보급 거점을 함께 계획한다.
 
-주인공은 전투의 모든 결정을 대신하지 않는다. 실제 지휘는 경험 있는 장수에게 맡기고, 자신은 준비와 조정, 정치적 지원에서 강점을 발휘한다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/14/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'b865c8ab-9173-5ebb-8b75-ddad5286ab5a'),
-('b5cecb9a-58c1-5ce5-a76d-8ccc260375c6', '9778b6f5-8c3e-5346-8304-281a98fe1430', '07668872-0ca0-5e60-8aa8-6c455a23c9fd', 17, '16. 죽음까지 반년, 전쟁까지 삼 년', '규칙', '| 시점 | 원래 역사 | 이환이 시도하는 변화 |
+주인공은 전투의 모든 결정을 대신하지 않는다. 실제 지휘는 경험 있는 장수에게 맡기고, 자신은 준비와 조정, 정치적 지원에서 강점을 발휘한다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/14/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'db6773bd-e31e-303f-beea-bd397d2b346a'),
+('c635fe3a-bc2c-3635-9d56-41168c310af0', '7b21e2b8-953c-3b2e-af39-88c23e746277', '07668872-0ca0-5e60-8aa8-6c455a23c9fd', 17, '16. 죽음까지 반년, 전쟁까지 삼 년', '규칙', '| 시점 | 원래 역사 | 이환이 시도하는 변화 |
 |---|---|---|
 | 빙의 직후 | 병환 이후 외부 교류 감소 | 저택의 관계와 장부부터 확인 |
 | 2개월 뒤 | 왕자의 사적인 지출이 문제 됨 | 자금과 목적을 공식적으로 기록 |
@@ -2000,8 +2027,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 이환이 살아남는 순간부터 정치적 구도가 달라진다. 방어 준비가 알려지면 적도 계획을 바꾼다.
 
-원래의 상륙 날짜를 기억하고 있다는 이유로 다른 계절과 항구를 방치하면 오히려 더 큰 피해를 입을 수 있다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/15/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '2e261a05-948b-59b2-ae47-08f8b3faca32'),
-('a3f0fa95-9387-5f83-844d-befd8c5f9b1f', '19920d7b-ce60-5a80-aed7-45f89fe86b5f', '9181f473-23c0-5c8d-a400-db35e0314a44', 18, '17. 주요 비밀과 공개 순서', '규칙', '**첫 번째 비밀: 원래 이환은 이미 누군가를 돕고 있었다.**
+원래의 상륙 날짜를 기억하고 있다는 이유로 다른 계절과 항구를 방치하면 오히려 더 큰 피해를 입을 수 있다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/15/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '2808ed33-c3b8-3a79-81d7-a53cd64e16ee'),
+('98c55747-3cae-3e0c-8421-f0d05b43d7ff', 'b5b917b4-282e-3886-9474-d6247c02a5e4', '9181f473-23c0-5c8d-a400-db35e0314a44', 18, '17. 주요 비밀과 공개 순서', '규칙', '**첫 번째 비밀: 원래 이환은 이미 누군가를 돕고 있었다.**
 
 그가 만난 장인과 군인, 선비들은 역모를 꾸민 사람들이 아니다. 왕자의 작은 후원으로 살아가던 사람들이다.
 
@@ -2033,8 +2060,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 이환이 공식적인 후계자가 아니어도, 그의 말 한마디에 돈과 인력이 움직이기 시작한다.
 
-그는 왕좌에 앉을지 여부와 별개로 자신이 이미 권력을 행사하고 있다는 사실을 인정해야 한다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/16/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'f466eb45-9f20-55b4-8e7a-dab40834af0f'),
-('c469a86a-a56d-555b-9baa-0a5977f30813', '47cf1cf1-1105-53b6-97d4-eea84c1be96b', '73cffb50-317c-54fb-91db-d22796c465d4', 19, '18. 장편 전개 구조', '규칙', '**제1부 — 병약한 왕자가 장부를 찾았다**
+그는 왕좌에 앉을지 여부와 별개로 자신이 이미 권력을 행사하고 있다는 사실을 인정해야 한다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/16/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '3d969a59-a3c2-31dd-9a61-e9b1bc83a765'),
+('4923dad8-901e-3edc-a745-ae38495c9378', 'e781ef6b-0fea-319c-a0e4-2870ab9d4ee6', '73cffb50-317c-54fb-91db-d22796c465d4', 19, '18. 장편 전개 구조', '규칙', '**제1부 — 병약한 왕자가 장부를 찾았다**
 
 이환은 시대와 신분을 확인하고 자신이 죽을 날짜를 떠올린다.
 
@@ -2122,8 +2149,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 세자가 왕위를 계승하고, 이환은 한시적이고 감독받는 국가 사업을 맡는다. 자신이 없어도 기술과 행정이 이어질 수 있도록 교육과 기록, 책임 절차를 남긴다.
 
-그가 세운 가장 중요한 것은 비밀 병기 하나가 아니라, 다음 사람이 같은 문제를 처음부터 다시 풀지 않아도 되는 기반이다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/17/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '4ea1282c-4512-5806-8db6-b372e63d6d30'),
-('b33a579c-cb2c-5355-93f7-049f7015bf6c', '7f01f0b1-6274-5138-a7e3-5e1f20641d85', 'b838385f-6cd8-5812-8ee7-4486c5b4c9f2', 20, '19. 정치와 감정의 흐름', '규칙', '이환은 처음에 역사 속 사람들을 평가표처럼 본다.
+그가 세운 가장 중요한 것은 비밀 병기 하나가 아니라, 다음 사람이 같은 문제를 처음부터 다시 풀지 않아도 되는 기반이다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/17/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '6adffbca-a04a-36d4-9c9d-97dfe6c981a2'),
+('f8ef9efb-e1f0-3306-9645-250707ede213', '1db86086-8153-3179-887d-8f1edc0159e1', 'b838385f-6cd8-5812-8ee7-4486c5b4c9f2', 20, '19. 정치와 감정의 흐름', '규칙', '이환은 처음에 역사 속 사람들을 평가표처럼 본다.
 
 충신, 간신, 명장, 무능한 왕.
 
@@ -2145,8 +2172,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 이환이 친근하게 말한다고 장인과 시종이 즉시 평등한 친구처럼 행동하지 않는다. 그의 농담도 명령으로 받아들여질 수 있다.
 
-주인공은 자신이 가진 신분의 힘을 의식하고, 거절해도 불이익을 받지 않는 상황을 실제로 만들어야 한다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/18/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'ce200173-12b1-58c1-9d96-220528593ff2'),
-('5832752c-5d71-51f8-b06d-1f1ab9429edf', '4475fe70-bdc3-5d61-9481-8e76d43f4dc5', 'c89a2a42-c6b6-5765-a9a7-07e3260829d9', 21, '20. 반복해서 사용할 장면과 상징', '규칙', '**빈 종이**
+주인공은 자신이 가진 신분의 힘을 의식하고, 거절해도 불이익을 받지 않는 상황을 실제로 만들어야 한다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/18/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'c389bddf-c0ca-3ac6-aeae-43f071df80fd'),
+('2a4012e1-c437-3f2d-a383-e41a8cc10869', '0874fb2f-f551-369a-aa24-ae89c834d617', 'c89a2a42-c6b6-5765-a9a7-07e3260829d9', 21, '20. 반복해서 사용할 장면과 상징', '규칙', '**빈 종이**
 
 처음에는 미래 기술의 설계도를 그리는 종이다.
 
@@ -2182,8 +2209,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 그날을 넘긴 뒤에도 종이를 버리지 못한다. 자신만 살아남으면 충분하다고 생각했던 시절의 흔적이기 때문이다.
 
-후반에는 그 뒷면에 다음 해의 파종과 복구 일정을 적는다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/19/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '8ad7000b-7d20-5008-abd7-dbb811f1e71b'),
-('b021a87a-e382-538f-b601-ea2e2c426ff0', '293aa442-fd41-5188-963a-b493f13964d2', '6831d0f6-28d9-5e29-b0bc-2e3ade56d95f', 22, '21. 이야기에서 지켜야 할 설정 규칙', '규칙', '1. **현대 지식은 생산 기반을 대신하지 않는다.**  
+후반에는 그 뒷면에 다음 해의 파종과 복구 일정을 적는다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/19/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '0217406a-8521-3503-b35c-7207e0ca2a3c'),
+('4d805a90-c240-3f82-8568-df38a5574298', '95fbaacb-d1c7-35ef-827f-5219b35df71a', '6831d0f6-28d9-5e29-b0bc-2e3ade56d95f', 22, '21. 이야기에서 지켜야 할 설정 규칙', '규칙', '1. **현대 지식은 생산 기반을 대신하지 않는다.**  
    원리를 알아도 재료, 도구, 숙련과 시간이 필요하다.
 
 2. **왕자의 신분에는 권한과 제약이 함께 있다.**  
@@ -2211,8 +2238,8 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
    권력 집중과 절차 위반을 걱정하는 비판에는 실제 이유가 있을 수 있다.
 
 10. **결말의 개혁은 주인공 개인의 생존을 넘어 지속되어야 한다.**  
-    기록과 교육, 책임과 인력 양성이 남아야 한다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/20/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '092cf477-b075-5859-8c13-8adab755bbff'),
-('b8384a02-bfc0-519f-a053-386aec741a59', 'ff3aae4f-d409-5915-9058-30248ad6b87f', '0f822b83-e1a6-5092-9d03-2c35141a123d', 23, '22. 첫 화 도입 예시', '규칙', '이환은 천장을 보고 있었다.
+    기록과 교육, 책임과 인력 양성이 남아야 한다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/20/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', 'ab31f325-4ff7-3ec7-afbe-83087f7e9484'),
+('b8e963f1-cebf-3155-855a-3e7bb27af8d9', '56d043b0-0b41-3d96-8e8a-68332266faac', '0f822b83-e1a6-5092-9d03-2c35141a123d', 23, '22. 첫 화 도입 예시', '규칙', '이환은 천장을 보고 있었다.
 
 나무였다.
 
@@ -2478,114 +2505,419 @@ INSERT INTO setting_version (id, setting_document_id, content_version_id, revisi
 
 나라를 구하기 전에 해야 할 일이 생겼다.
 
-먼저 자신이 무슨 일을 했는지 알아야 했다.', '사용자 요청 창작 샘플; source/templates.json#/templates/4/setting_bible/sections/21/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '3b9d191f-b873-5032-ac60-514c69be268e')
+먼저 자신이 무슨 일을 했는지 알아야 했다.', '사용자 요청 창작 샘플; source/template.json#/setting_bible/sections/21/content_markdown; 실제 이용·발행 증거 아님', '2026-11-09T00:00:00Z', 'active', '8b7328c2-c9cf-3294-9dae-77b4c37a0dee')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO setting_tag (id, owner_id, name) VALUES
-('7035f221-b18b-5025-aae3-d615948d3007', 'b09cdf87-6901-50df-9c76-881c81f4f034', '원문전체'),
-('b5d82c3a-77b8-5d6c-ac5d-75399e3f752e', 'b09cdf87-6901-50df-9c76-881c81f4f034', '초기템플릿'),
-('14e227bb-d2a5-5c46-882a-19df4438aed6', 'b09cdf87-6901-50df-9c76-881c81f4f034', '설정항목'),
-('ec38b584-0b38-5c16-aab4-7c80b405920b', 'b09cdf87-6901-50df-9c76-881c81f4f034', '대체역사')
+('b397a26e-c88b-3d34-add8-49bc11685704', 'b09cdf87-6901-50df-9c76-881c81f4f034', '원문전체'),
+('d5b04ef6-ef8d-38c5-ada4-15bce3e91b1e', 'b09cdf87-6901-50df-9c76-881c81f4f034', '초기템플릿'),
+('5a8f3128-14db-321e-982d-1121d0404270', 'b09cdf87-6901-50df-9c76-881c81f4f034', '설정항목'),
+('f7b32099-dcea-33a7-b889-235f269ac0e5', 'b09cdf87-6901-50df-9c76-881c81f4f034', '대체역사')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO setting_version_tag (setting_version_id, setting_tag_id, position) VALUES
-('54663632-6314-5b9a-9a39-bf9ae5eee74d', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('54663632-6314-5b9a-9a39-bf9ae5eee74d', '7035f221-b18b-5025-aae3-d615948d3007', 1),
-('24afdda6-60fc-5948-8600-578902466bc1', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('24afdda6-60fc-5948-8600-578902466bc1', 'b5d82c3a-77b8-5d6c-ac5d-75399e3f752e', 1),
-('fefd671d-069d-5dc7-9172-0506d5cfaaa2', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('fefd671d-069d-5dc7-9172-0506d5cfaaa2', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('40440dc5-8ea0-5447-8a78-cdb4f2abe27f', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('40440dc5-8ea0-5447-8a78-cdb4f2abe27f', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('62c6c595-5769-595f-9c7a-63aa860eab43', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('62c6c595-5769-595f-9c7a-63aa860eab43', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('4826e904-8d52-5702-9f13-f90a209425a9', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('4826e904-8d52-5702-9f13-f90a209425a9', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('39855d7e-070a-5d18-bc36-4cbf12ce91b3', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('39855d7e-070a-5d18-bc36-4cbf12ce91b3', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('4820a9ee-6251-5771-83c9-f84d2e668d5b', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('4820a9ee-6251-5771-83c9-f84d2e668d5b', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('cbfa818e-6fc7-5e2a-82ad-4b8bc037f218', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('cbfa818e-6fc7-5e2a-82ad-4b8bc037f218', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('3199b239-c36b-571a-ad92-65234938083a', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('3199b239-c36b-571a-ad92-65234938083a', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('99af9e83-710d-52f9-a867-5b4058fdb050', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('99af9e83-710d-52f9-a867-5b4058fdb050', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('c796f169-b460-53c6-b8fc-49e93ffd9aca', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('c796f169-b460-53c6-b8fc-49e93ffd9aca', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('d2d9247d-2cf2-5f5f-a580-fbb92e620dea', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('d2d9247d-2cf2-5f5f-a580-fbb92e620dea', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('607eda8f-4e2c-5290-b725-cbd51da13e0e', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('607eda8f-4e2c-5290-b725-cbd51da13e0e', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('cb604353-1c32-544c-aefd-1126744675ee', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('cb604353-1c32-544c-aefd-1126744675ee', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('3b5f3515-3bae-546a-aceb-1ae8db6aff50', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('3b5f3515-3bae-546a-aceb-1ae8db6aff50', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('35eb68cd-b71d-52a0-9530-70d479f640b6', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('35eb68cd-b71d-52a0-9530-70d479f640b6', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('b5cecb9a-58c1-5ce5-a76d-8ccc260375c6', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('b5cecb9a-58c1-5ce5-a76d-8ccc260375c6', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('a3f0fa95-9387-5f83-844d-befd8c5f9b1f', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('a3f0fa95-9387-5f83-844d-befd8c5f9b1f', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('c469a86a-a56d-555b-9baa-0a5977f30813', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('c469a86a-a56d-555b-9baa-0a5977f30813', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('b33a579c-cb2c-5355-93f7-049f7015bf6c', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('b33a579c-cb2c-5355-93f7-049f7015bf6c', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('5832752c-5d71-51f8-b06d-1f1ab9429edf', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('5832752c-5d71-51f8-b06d-1f1ab9429edf', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('b021a87a-e382-538f-b601-ea2e2c426ff0', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('b021a87a-e382-538f-b601-ea2e2c426ff0', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1),
-('b8384a02-bfc0-519f-a053-386aec741a59', 'ec38b584-0b38-5c16-aab4-7c80b405920b', 0),
-('b8384a02-bfc0-519f-a053-386aec741a59', '14e227bb-d2a5-5c46-882a-19df4438aed6', 1)
+('3780c583-1361-3807-862b-f42dcf0fa1dc', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('3780c583-1361-3807-862b-f42dcf0fa1dc', 'b397a26e-c88b-3d34-add8-49bc11685704', 1),
+('c5ca41d9-5ffa-3317-84d7-1fdfea39985c', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('c5ca41d9-5ffa-3317-84d7-1fdfea39985c', 'd5b04ef6-ef8d-38c5-ada4-15bce3e91b1e', 1),
+('1dfa0f4c-0bdb-3a45-9498-c25f7839f392', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('1dfa0f4c-0bdb-3a45-9498-c25f7839f392', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('ee125a62-db6e-30bd-b254-f1f8e2b92878', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('ee125a62-db6e-30bd-b254-f1f8e2b92878', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('e65511cb-e19f-3bbe-a435-69bac8a34129', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('e65511cb-e19f-3bbe-a435-69bac8a34129', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('fa8f35ab-33d8-3800-aa55-30b8b57cd1c6', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('fa8f35ab-33d8-3800-aa55-30b8b57cd1c6', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('ade237e7-414a-3146-bd90-e7ef276d0ebc', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('ade237e7-414a-3146-bd90-e7ef276d0ebc', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('043b93bb-ce25-3bb8-8bd8-da72191ec77d', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('043b93bb-ce25-3bb8-8bd8-da72191ec77d', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('aad69ee1-6ed1-3c02-be9d-65fb0eb6116c', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('aad69ee1-6ed1-3c02-be9d-65fb0eb6116c', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('b7923d34-ad81-3d67-8ebe-8134b468c956', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('b7923d34-ad81-3d67-8ebe-8134b468c956', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('0c692481-b031-3e16-8543-942622b35280', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('0c692481-b031-3e16-8543-942622b35280', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('f3b3df15-5ea0-3c1d-b386-d8ca783c1a88', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('f3b3df15-5ea0-3c1d-b386-d8ca783c1a88', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('490183fb-b6d9-3205-98f0-0b13f9e7d835', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('490183fb-b6d9-3205-98f0-0b13f9e7d835', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('a53eb5fe-00d1-3dc1-99f1-e7de8a5fc8e5', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('a53eb5fe-00d1-3dc1-99f1-e7de8a5fc8e5', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('ac784ff2-83fd-3694-a805-d392c4f8fccc', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('ac784ff2-83fd-3694-a805-d392c4f8fccc', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('af52a828-a289-3e31-b50f-c7651efb1abe', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('af52a828-a289-3e31-b50f-c7651efb1abe', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('ac6c14ef-aa07-3fd9-9a16-194190a37476', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('ac6c14ef-aa07-3fd9-9a16-194190a37476', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('c635fe3a-bc2c-3635-9d56-41168c310af0', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('c635fe3a-bc2c-3635-9d56-41168c310af0', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('98c55747-3cae-3e0c-8421-f0d05b43d7ff', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('98c55747-3cae-3e0c-8421-f0d05b43d7ff', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('4923dad8-901e-3edc-a745-ae38495c9378', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('4923dad8-901e-3edc-a745-ae38495c9378', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('f8ef9efb-e1f0-3306-9645-250707ede213', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('f8ef9efb-e1f0-3306-9645-250707ede213', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('2a4012e1-c437-3f2d-a383-e41a8cc10869', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('2a4012e1-c437-3f2d-a383-e41a8cc10869', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('4d805a90-c240-3f82-8568-df38a5574298', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('4d805a90-c240-3f82-8568-df38a5574298', '5a8f3128-14db-321e-982d-1121d0404270', 1),
+('b8e963f1-cebf-3155-855a-3e7bb27af8d9', 'f7b32099-dcea-33a7-b889-235f269ac0e5', 0),
+('b8e963f1-cebf-3155-855a-3e7bb27af8d9', '5a8f3128-14db-321e-982d-1121d0404270', 1)
 ON CONFLICT (setting_version_id, setting_tag_id) DO NOTHING;
 
 INSERT INTO setting_document_tag (setting_document_id, setting_tag_id) VALUES
-('653f8b22-238a-5a96-8f78-b67937479a76', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('653f8b22-238a-5a96-8f78-b67937479a76', '7035f221-b18b-5025-aae3-d615948d3007'),
-('0520dea6-7f9c-59c8-a0fe-d755c4ec1731', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('0520dea6-7f9c-59c8-a0fe-d755c4ec1731', 'b5d82c3a-77b8-5d6c-ac5d-75399e3f752e'),
-('b3bc87c9-4a2a-59bb-a9a0-66805ba9bc89', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('b3bc87c9-4a2a-59bb-a9a0-66805ba9bc89', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('4d4cddaf-5a26-5e2c-9aaf-80b1fa98ee57', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('4d4cddaf-5a26-5e2c-9aaf-80b1fa98ee57', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('7e29fde7-9fcc-5261-836e-28eeeab43418', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('7e29fde7-9fcc-5261-836e-28eeeab43418', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('222277ac-1a49-59e3-bf1b-5722d16581d3', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('222277ac-1a49-59e3-bf1b-5722d16581d3', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('b56569fe-de3d-5fbe-a093-0a87a00a9af6', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('b56569fe-de3d-5fbe-a093-0a87a00a9af6', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('683bfdc9-cd08-597b-881f-06a931eabdd4', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('683bfdc9-cd08-597b-881f-06a931eabdd4', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('94c73683-9bf1-5d69-b0ca-4a5336b5d588', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('94c73683-9bf1-5d69-b0ca-4a5336b5d588', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('0ab18acd-b049-5902-b8a6-e76fb04895e1', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('0ab18acd-b049-5902-b8a6-e76fb04895e1', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('c4cf6a3d-af8a-5156-9024-b661aeb22466', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('c4cf6a3d-af8a-5156-9024-b661aeb22466', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('8a80f075-9f95-5794-99ec-0455c4b05f62', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('8a80f075-9f95-5794-99ec-0455c4b05f62', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('f17aed65-0929-555b-9daa-986bda4e891b', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('f17aed65-0929-555b-9daa-986bda4e891b', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('ffa7518e-f64e-5e44-89b8-f3b95c35b86e', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('ffa7518e-f64e-5e44-89b8-f3b95c35b86e', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('69a73e51-7b1c-589b-8c65-3e68d43564d6', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('69a73e51-7b1c-589b-8c65-3e68d43564d6', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('8bf94dfd-0660-5007-82ea-20b4552f43bb', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('8bf94dfd-0660-5007-82ea-20b4552f43bb', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('a3434475-99a7-53b2-92b4-fad918469fc6', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('a3434475-99a7-53b2-92b4-fad918469fc6', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('9778b6f5-8c3e-5346-8304-281a98fe1430', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('9778b6f5-8c3e-5346-8304-281a98fe1430', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('19920d7b-ce60-5a80-aed7-45f89fe86b5f', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('19920d7b-ce60-5a80-aed7-45f89fe86b5f', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('47cf1cf1-1105-53b6-97d4-eea84c1be96b', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('47cf1cf1-1105-53b6-97d4-eea84c1be96b', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('7f01f0b1-6274-5138-a7e3-5e1f20641d85', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('7f01f0b1-6274-5138-a7e3-5e1f20641d85', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('4475fe70-bdc3-5d61-9481-8e76d43f4dc5', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('4475fe70-bdc3-5d61-9481-8e76d43f4dc5', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('293aa442-fd41-5188-963a-b493f13964d2', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('293aa442-fd41-5188-963a-b493f13964d2', '14e227bb-d2a5-5c46-882a-19df4438aed6'),
-('ff3aae4f-d409-5915-9058-30248ad6b87f', 'ec38b584-0b38-5c16-aab4-7c80b405920b'),
-('ff3aae4f-d409-5915-9058-30248ad6b87f', '14e227bb-d2a5-5c46-882a-19df4438aed6')
+('402dca95-661c-3394-91b6-72327c1391b7', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('402dca95-661c-3394-91b6-72327c1391b7', 'b397a26e-c88b-3d34-add8-49bc11685704'),
+('201d76f5-d71e-356b-b4c0-f3c01fa5f217', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('201d76f5-d71e-356b-b4c0-f3c01fa5f217', 'd5b04ef6-ef8d-38c5-ada4-15bce3e91b1e'),
+('2c7dd116-8e95-3078-a2df-9fc137ddbee2', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('2c7dd116-8e95-3078-a2df-9fc137ddbee2', '5a8f3128-14db-321e-982d-1121d0404270'),
+('151de66a-2f54-3d4f-9fcc-972b7a0e0089', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('151de66a-2f54-3d4f-9fcc-972b7a0e0089', '5a8f3128-14db-321e-982d-1121d0404270'),
+('52fbf849-0a2d-33f9-8827-7aeba0abc130', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('52fbf849-0a2d-33f9-8827-7aeba0abc130', '5a8f3128-14db-321e-982d-1121d0404270'),
+('214bcaad-1ecd-3571-b325-b2d07bba4d0b', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('214bcaad-1ecd-3571-b325-b2d07bba4d0b', '5a8f3128-14db-321e-982d-1121d0404270'),
+('851dc6bf-3070-3451-8157-b69c57c9f1b1', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('851dc6bf-3070-3451-8157-b69c57c9f1b1', '5a8f3128-14db-321e-982d-1121d0404270'),
+('056040bb-6134-3534-b45c-2c20cd132812', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('056040bb-6134-3534-b45c-2c20cd132812', '5a8f3128-14db-321e-982d-1121d0404270'),
+('158fa320-5246-37b2-9040-c4d6c5b7c22a', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('158fa320-5246-37b2-9040-c4d6c5b7c22a', '5a8f3128-14db-321e-982d-1121d0404270'),
+('a82feb75-e815-3dd8-924d-55f817d67c85', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('a82feb75-e815-3dd8-924d-55f817d67c85', '5a8f3128-14db-321e-982d-1121d0404270'),
+('44236ae7-c8b0-3bf6-80db-a400803d8546', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('44236ae7-c8b0-3bf6-80db-a400803d8546', '5a8f3128-14db-321e-982d-1121d0404270'),
+('845835ad-c851-3fcd-a640-daf32f329c51', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('845835ad-c851-3fcd-a640-daf32f329c51', '5a8f3128-14db-321e-982d-1121d0404270'),
+('cbad2ebd-780e-39d6-b283-81cef9671f3d', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('cbad2ebd-780e-39d6-b283-81cef9671f3d', '5a8f3128-14db-321e-982d-1121d0404270'),
+('c3e64209-52e1-3e11-9a49-97be8b9577e5', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('c3e64209-52e1-3e11-9a49-97be8b9577e5', '5a8f3128-14db-321e-982d-1121d0404270'),
+('b6ad7be7-bb9c-3e2d-8228-2d0eeeb30cc7', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('b6ad7be7-bb9c-3e2d-8228-2d0eeeb30cc7', '5a8f3128-14db-321e-982d-1121d0404270'),
+('5fa8dfe3-6084-32a7-a2cd-33898acd3d1a', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('5fa8dfe3-6084-32a7-a2cd-33898acd3d1a', '5a8f3128-14db-321e-982d-1121d0404270'),
+('3270c252-2c2f-3e3f-935e-875d147ea0e5', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('3270c252-2c2f-3e3f-935e-875d147ea0e5', '5a8f3128-14db-321e-982d-1121d0404270'),
+('7b21e2b8-953c-3b2e-af39-88c23e746277', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('7b21e2b8-953c-3b2e-af39-88c23e746277', '5a8f3128-14db-321e-982d-1121d0404270'),
+('b5b917b4-282e-3886-9474-d6247c02a5e4', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('b5b917b4-282e-3886-9474-d6247c02a5e4', '5a8f3128-14db-321e-982d-1121d0404270'),
+('e781ef6b-0fea-319c-a0e4-2870ab9d4ee6', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('e781ef6b-0fea-319c-a0e4-2870ab9d4ee6', '5a8f3128-14db-321e-982d-1121d0404270'),
+('1db86086-8153-3179-887d-8f1edc0159e1', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('1db86086-8153-3179-887d-8f1edc0159e1', '5a8f3128-14db-321e-982d-1121d0404270'),
+('0874fb2f-f551-369a-aa24-ae89c834d617', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('0874fb2f-f551-369a-aa24-ae89c834d617', '5a8f3128-14db-321e-982d-1121d0404270'),
+('95fbaacb-d1c7-35ef-827f-5219b35df71a', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('95fbaacb-d1c7-35ef-827f-5219b35df71a', '5a8f3128-14db-321e-982d-1121d0404270'),
+('56d043b0-0b41-3d96-8e8a-68332266faac', 'f7b32099-dcea-33a7-b889-235f269ac0e5'),
+('56d043b0-0b41-3d96-8e8a-68332266faac', '5a8f3128-14db-321e-982d-1121d0404270')
 ON CONFLICT (setting_document_id, setting_tag_id) DO NOTHING;
+
+INSERT INTO checkpoint (id, work_id, episode_id, basis_episode_version_id, status, created_at) VALUES
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '2854e5cc-d54b-54fd-a116-f97284ccd090', 'cc28bc58-23e3-334d-91cd-21a07b449940', '535160ba-51a1-3afe-8ffb-bd9217680967', 'content_only', '2026-11-09T00:00:00Z')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO checkpoint_episode (checkpoint_id, source_work_id, episode_id, episode_version_id) VALUES
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '2854e5cc-d54b-54fd-a116-f97284ccd090', 'cc28bc58-23e3-334d-91cd-21a07b449940', '535160ba-51a1-3afe-8ffb-bd9217680967')
+ON CONFLICT (checkpoint_id, episode_id) DO NOTHING;
+
+INSERT INTO checkpoint_setting (checkpoint_id, setting_document_id, setting_version_id) VALUES
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '402dca95-661c-3394-91b6-72327c1391b7', '3780c583-1361-3807-862b-f42dcf0fa1dc'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '201d76f5-d71e-356b-b4c0-f3c01fa5f217', 'c5ca41d9-5ffa-3317-84d7-1fdfea39985c'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '2c7dd116-8e95-3078-a2df-9fc137ddbee2', '1dfa0f4c-0bdb-3a45-9498-c25f7839f392'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '151de66a-2f54-3d4f-9fcc-972b7a0e0089', 'ee125a62-db6e-30bd-b254-f1f8e2b92878'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '52fbf849-0a2d-33f9-8827-7aeba0abc130', 'e65511cb-e19f-3bbe-a435-69bac8a34129'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '214bcaad-1ecd-3571-b325-b2d07bba4d0b', 'fa8f35ab-33d8-3800-aa55-30b8b57cd1c6'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '851dc6bf-3070-3451-8157-b69c57c9f1b1', 'ade237e7-414a-3146-bd90-e7ef276d0ebc'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '056040bb-6134-3534-b45c-2c20cd132812', '043b93bb-ce25-3bb8-8bd8-da72191ec77d'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '158fa320-5246-37b2-9040-c4d6c5b7c22a', 'aad69ee1-6ed1-3c02-be9d-65fb0eb6116c'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', 'a82feb75-e815-3dd8-924d-55f817d67c85', 'b7923d34-ad81-3d67-8ebe-8134b468c956'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '44236ae7-c8b0-3bf6-80db-a400803d8546', '0c692481-b031-3e16-8543-942622b35280'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '845835ad-c851-3fcd-a640-daf32f329c51', 'f3b3df15-5ea0-3c1d-b386-d8ca783c1a88'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', 'cbad2ebd-780e-39d6-b283-81cef9671f3d', '490183fb-b6d9-3205-98f0-0b13f9e7d835'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', 'c3e64209-52e1-3e11-9a49-97be8b9577e5', 'a53eb5fe-00d1-3dc1-99f1-e7de8a5fc8e5'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', 'b6ad7be7-bb9c-3e2d-8228-2d0eeeb30cc7', 'ac784ff2-83fd-3694-a805-d392c4f8fccc'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '5fa8dfe3-6084-32a7-a2cd-33898acd3d1a', 'af52a828-a289-3e31-b50f-c7651efb1abe'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '3270c252-2c2f-3e3f-935e-875d147ea0e5', 'ac6c14ef-aa07-3fd9-9a16-194190a37476'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '7b21e2b8-953c-3b2e-af39-88c23e746277', 'c635fe3a-bc2c-3635-9d56-41168c310af0'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', 'b5b917b4-282e-3886-9474-d6247c02a5e4', '98c55747-3cae-3e0c-8421-f0d05b43d7ff'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', 'e781ef6b-0fea-319c-a0e4-2870ab9d4ee6', '4923dad8-901e-3edc-a745-ae38495c9378'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '1db86086-8153-3179-887d-8f1edc0159e1', 'f8ef9efb-e1f0-3306-9645-250707ede213'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '0874fb2f-f551-369a-aa24-ae89c834d617', '2a4012e1-c437-3f2d-a383-e41a8cc10869'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '95fbaacb-d1c7-35ef-827f-5219b35df71a', '4d805a90-c240-3f82-8568-df38a5574298'),
+('94e4faf4-595a-33e9-aefc-17d57f4a4f1e', '56d043b0-0b41-3d96-8e8a-68332266faac', 'b8e963f1-cebf-3155-855a-3e7bb27af8d9')
+ON CONFLICT (checkpoint_id, setting_document_id) DO NOTHING;
+
+INSERT INTO episode_draft (episode_id, title, content, edit_revision, updated_at) VALUES
+('cc28bc58-23e3-334d-91cd-21a07b449940', '1화 도입 예시', '이환은 천장을 보고 있었다.
+
+나무였다.
+
+나무 천장이라는 사실 자체는 이상하지 않았다. 한옥 숙소라면 그럴 수 있었다.
+
+문제는 옆에서 울고 있는 사람이었다.
+
+“마마.”
+
+노인이 말했다.
+
+“정신이 드십니까.”
+
+마마.
+
+이환은 눈을 감았다가 다시 떴다.
+
+노인은 그대로였다.
+
+옷도 그대로였다. 방 안의 냄새도, 몸을 누르고 있는 두꺼운 이불도 바뀌지 않았다.
+
+열이 심했던 것 같았다.
+
+목은 말랐고, 등은 땀으로 젖어 있었다.
+
+“물.”
+
+자신의 목소리가 낯설었다.
+
+조금 더 젊고, 조금 더 가벼웠다.
+
+노인은 거의 넘어질 듯 움직여 물그릇을 가져왔다. 이환은 몸을 일으키려다 팔에 힘이 들어가지 않아 멈췄다.
+
+손이 보였다.
+
+깨끗했다.
+
+오른쪽 검지 마디에 있어야 할 흉터가 없었다.
+
+작년 여름, 설비 덮개를 교체하다가 베인 자리였다. 몇 바늘을 꿰맸고, 추울 때마다 당겼다.
+
+없었다.
+
+그는 한동안 손을 바라보았다.
+
+“마마?”
+
+“거울.”
+
+노인이 얼어붙었다.
+
+“지금은 기력을 먼저—”
+
+“거울 좀.”
+
+잠시 뒤 흐릿한 금속 거울이 눈앞에 놓였다.
+
+얼굴은 젊었다.
+
+잘생겼다고 할 수도 있었다. 다만 지금은 그 사실이 전혀 반갑지 않았다.
+
+이환은 거울을 내려놓았다.
+
+질문을 정리해야 했다.
+
+장소.
+
+시간.
+
+이름.
+
+순서대로.
+
+“여기가 어디지?”
+
+노인의 얼굴에서 피가 빠졌다.
+
+“대군…… 아니, 군마마의 사저이옵니다.”
+
+왕자.
+
+대군은 아니고 군.
+
+머릿속에서 쓸데없이 그런 구분부터 떠올랐다.
+
+이환은 입술을 적셨다.
+
+“내 이름은.”
+
+이번에는 노인이 대답하지 못했다.
+
+방문 밖에서 여자의 목소리가 들렸다.
+
+“오라버니가 깨어나셨다면서.”
+
+젊은 여자가 들어왔다.
+
+그녀는 침상 옆으로 다가오다가 거울과 노인의 얼굴을 보고 걸음을 멈췄다.
+
+“무슨 일이에요?”
+
+이환은 그녀를 바라보았다.
+
+알 것 같았다.
+
+처음 보는 얼굴인데, 오래 알고 지낸 사람처럼 가슴이 잠깐 움직였다.
+
+그러나 이름은 떠오르지 않았다.
+
+여자가 조심스럽게 말했다.
+
+“오라버니?”
+
+이환은 숨을 골랐다.
+
+“내가 누구지.”
+
+여자의 표정이 무너졌다.
+
+노인이 급히 의원을 부르러 나갔다.
+
+그 사이 여자가 그의 손을 붙잡았다.
+
+“경안군.”
+
+작은 목소리였다.
+
+“이환. 제 오라버니시잖아요.”
+
+이환은 움직이지 않았다.
+
+그 이름을 알고 있었다.
+
+유명한 왕은 아니었다. 전쟁의 영웅도 아니었다.
+
+책의 한쪽 귀퉁이에 몇 줄 나온 이름이었다.
+
+장인을 모으고.
+
+군인과 교류하고.
+
+사사로이 재물을 받아.
+
+역모 혐의로.
+
+죽은 왕자.
+
+그는 손을 쥔 여자를 바라보았다.
+
+“지금이.”
+
+목이 다시 말랐다.
+
+“지금이 몇 년이지?”
+
+그녀가 왕의 재위 연수를 말했다.
+
+이환은 머릿속으로 계산했다.
+
+틀렸기를 바랐다.
+
+다시 계산했다.
+
+전쟁까지 삼 년.
+
+죽기까지 반년.
+
+창밖에서 새가 울었다.
+
+이렇게 평화로운 소리가 나도 되는 것인지 알 수 없었다.
+
+***
+
+오후가 되자 의원이 돌아갔다.
+
+병을 크게 앓은 탓에 기억이 흐려졌을 수 있다고 했다.
+
+편히 쉬라고 했다.
+
+근심을 줄이라고도 했다.
+
+이환은 그 충고 중 어느 것도 지킬 수 없었다.
+
+그는 종이와 붓을 가져오게 했다.
+
+붓을 잡는 손은 생각보다 자연스러웠다. 몸에 남은 습관인지, 자신이 모르는 기억인지 알 수 없었다.
+
+종이 위에 세 줄을 적었다.
+
+돈.
+
+사람.
+
+시간.
+
+한참 바라보다가 그 위에 한 줄을 더 썼다.
+
+살아남을 것.
+
+문이 열렸다.
+
+아까의 노인이 들어왔다. 이름은 박내관이라고 했다.
+
+그의 뒤로 하인 둘이 상자를 들고 있었다.
+
+이환은 고개를 들었다.
+
+“그건 뭡니까.”
+
+박내관이 조심스럽게 대답했다.
+
+“지난달에 명하신 물건이옵니다.”
+
+“내가?”
+
+“예. 장인들에게 나누어 주라 하신 쇠붙이와 공구입니다.”
+
+이환의 손이 멈췄다.
+
+하인들이 상자를 내려놓았다.
+
+무거운 소리가 났다.
+
+박내관이 품에서 접힌 종이를 꺼냈다.
+
+“그리고 북방에 계신 한 무관에게서 답장이 왔습니다. 군마마께서 보내신 돈으로 다친 군졸들의 겨울옷을 마련하였다 합니다.”
+
+이환은 종이를 바라보았다.
+
+장인.
+
+군인.
+
+돈.
+
+역사책에서 읽었던 세 단어였다.
+
+박내관이 물었다.
+
+“답장을 쓰시겠습니까?”
+
+이환은 바로 대답하지 않았다.
+
+자신이 아무것도 시작하지 않았다고 생각했다.
+
+아직은 조용히 지내며 살길부터 찾을 수 있을 줄 알았다.
+
+그러나 이 몸의 원래 주인은 이미 사람들을 돕고 있었다.
+
+그리고 누군가는, 그 일을 죄로 만들 준비를 하고 있을 것이다.
+
+이환은 천천히 붓을 내려놓았다.
+
+“장부를 가져오세요.”
+
+“어느 장부를 말씀하시는지.”
+
+“전부.”
+
+박내관의 눈이 조금 커졌다.
+
+이환은 방 한가운데 놓인 상자를 다시 보았다.
+
+나라를 구하기 전에 해야 할 일이 생겼다.
+
+먼저 자신이 무슨 일을 했는지 알아야 했다.', 1, '2026-11-09T00:00:00Z')
+ON CONFLICT (episode_id) DO NOTHING;
