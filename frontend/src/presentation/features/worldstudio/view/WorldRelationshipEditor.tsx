@@ -1,6 +1,6 @@
 import { CharacterRelationshipEditor } from './CharacterRelationshipEditor'
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { PersonDeletionConfirm } from './PersonDeletionConfirm'
 import { RelationPairEditor } from './RelationPairEditor'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
@@ -19,18 +19,32 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
   const [source, setSource] = useState(''),
     [target, setTarget] = useState(''),
     [open, setOpen] = useState(false)
+  const [focusRequest, setFocusRequest] = useState<{ id: string; seq: number } | null>(null)
+  const handledRequest = useRef(0)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const validDeletion = !!deleteConfirm && people.some((s) =>
     s.item.id === deleteConfirm && s.item.kind === 'entity' && s.item.entityType === 'character'
   )
   const deletion = deleteConfirm && validDeletion ? studio.personDeletionInfo(deleteConfirm) : null
   useEffect(() => { if (deleteConfirm && !validDeletion) setDeleteConfirm(null) }, [deleteConfirm, validDeletion])
-  const selectPair = (nextSource: string, nextTarget: string, nextOpen: boolean) => {
-    if (open && (nextSource !== source || nextTarget !== target) && !studio.confirmRelationDiscard()) return
+  const selectPair = useCallback((nextSource: string, nextTarget: string, nextOpen: boolean) => {
+    // 열린 패널과 같은 두 인물(방향 무관)을 다시 고르면 작성 중인 초안을 그대로 둔다.
+    if (open && nextOpen && nextSource === target && nextTarget === source) return true
+    if (open && (nextSource !== source || nextTarget !== target) && !studio.confirmRelationDiscard()) return false
     setSource(nextSource)
     setTarget(nextTarget)
     setOpen(nextOpen)
-  }
+    return true
+  }, [open, source, target, studio])
+  useEffect(() => {
+    const request = studio.relationRequest
+    if (!request || request.seq === handledRequest.current) return
+    handledRequest.current = request.seq
+    const item = studio.editing?.settings.find((row) => row.item.id === request.id && row.item.kind === 'relation')?.item
+    if (!item?.subjectId || !item.targetId) return
+    const samePair = open && (item.subjectId === source && item.targetId === target || item.subjectId === target && item.targetId === source)
+    if (samePair || selectPair(item.subjectId, item.targetId, true)) setFocusRequest(request)
+  }, [studio.relationRequest, studio.editing?.settings, open, source, target, selectPair])
   const relations = studio.editing!.settings.filter((s) => s.item.kind === 'relation')
   const name = (id: string | null) =>
     people.find((s) => s.item.id === id)?.item.title || '선택 안 함'
@@ -140,6 +154,7 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
             studio={studio}
             source={source}
             target={target}
+            focusRequest={focusRequest}
             onClose={() => setOpen(false)}
           />
         )}

@@ -324,3 +324,20 @@ it('does not discard a new relation with a custom name but no description on app
  expect(screen.getByRole('alert').textContent).toContain('설명')
  expect(within(group).getByRole<HTMLInputElement>('textbox',{name:'나래 → 가람 감정 1 이름'}).value).toBe('남겨 둔 이름')
 })
+
+it('keeps the open pair draft when the same two people are chosen in the opposite direction',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('people')
+ a.item.title='가람';b.item.title='나래'
+ world.settings=putRelation([a,b],{subjectId:b.item.id,targetId:a.item.id,predicate:'trusts',polarity:'asserted'});await useCase.save(world)
+ function Harness(){const vm=useWorldStudioViewModel(useCase);return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ vi.spyOn(window,'confirm').mockReturnValue(true)
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.change(await screen.findByRole('combobox',{name:'source · 관계 주체'}),{target:{value:a.item.id}})
+ fireEvent.change(screen.getByRole('combobox',{name:'target · 관계 대상'}),{target:{value:b.item.id}})
+ fireEvent.click(screen.getByRole('button',{name:'관계 작성'}))
+ fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'작성 중인 관계'}})
+ fireEvent.click(within(screen.getByRole('navigation',{name:'저장할 관계 목록'})).getByRole('button'))
+ expect(window.confirm).not.toHaveBeenCalled()
+ expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('작성 중인 관계')
+})

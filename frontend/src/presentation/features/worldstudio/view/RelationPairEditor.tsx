@@ -1,18 +1,25 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { isFreeRelation, relationLabel } from '../../../../domain/entities/studioRelations'
 import { useRelationPairViewModel } from '../viewmodel/useRelationPairViewModel'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
 export function RelationPairEditor(
-  { studio, source, target, onClose, onDirty }: {
+  { studio, source, target, focusRequest, onClose, onDirty }: {
     studio: VM
     source: string
     target: string
+    focusRequest?: { id: string; seq: number } | null
     onClose: () => void
     onDirty?: (dirty: boolean) => void
   },
 ) {
+  const focusedRow = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!focusRequest) return
+    const frame = requestAnimationFrame(() => focusedRow.current?.querySelector<HTMLElement>('input,textarea,select')?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [focusRequest])
   const name = (id: string | null) =>
     studio.editing!.settings.find((s) => s.item.id === id)?.item.title || '새 설정'
   const vm = useRelationPairViewModel(studio, source, target, onClose)
@@ -30,7 +37,7 @@ export function RelationPairEditor(
           const direction = vm.direction(r)
           const write = (text: string) => vm.write(r, text)
           return (
-            <div className='relationship-row' key={r.key}>
+            <div className='relationship-row' key={r.key} ref={r.value.id === focusRequest?.id ? focusedRow : undefined}>
               <label className='field'>
                 {field}
                 {kind === 'fact'

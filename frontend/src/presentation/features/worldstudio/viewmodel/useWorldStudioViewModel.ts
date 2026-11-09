@@ -1,4 +1,4 @@
-import { cardLibraryRows, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
+import { cardLibraryRows, selectCardForFilter, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
 import { initialWorldStudioFlow, type StudioStep, worldStudioFlow } from './worldStudioFlow'
 import {
   applyRelationChanges,
@@ -37,6 +37,7 @@ export function useWorldStudioViewModel(
   const [newCardType, setNewCardType] = useState<CardType>('character')
   const [cardDetail, setCardDetail] = useState(false)
   const [relationWorld, setRelationWorld] = useState('')
+  const [relationRequest, setRelationRequest] = useState<{ id: string; seq: number } | null>(null)
   const [relationKey, setRelationKey] = useState(0)
   const returnCard = useRef('')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'failed'>('idle')
@@ -74,6 +75,7 @@ export function useWorldStudioViewModel(
     setCardQuery('')
     setCardDetail(false)
     setRelationWorld('')
+    setRelationRequest(null)
     returnCard.current = ''
   }, [editingId])
   const goStep = (step: StudioStep) => {
@@ -82,9 +84,19 @@ export function useWorldStudioViewModel(
     if (step === 'relations' && editing) setRelationWorld(editing.id)
   }
   const editCard = (id: string) => {
+    const row = editing?.settings.find((item) => item.item.id === id)
+    if (row && cardLibraryRows([row], 'all', '').length && !cardLibraryRows([row], cardFilter, cardQuery).length) {
+      setCardFilter('all')
+      setCardQuery('')
+    }
     setSelected(id)
     setCardDetail(true)
     goStep('cards')
+  }
+  const filterCards = (type: CardType | 'all', query: string) => {
+    setCardFilter(type)
+    setCardQuery(query)
+    setSelected(selectCardForFilter(editing?.settings ?? [], selected, type, query))
   }
   const generation = useRef(0)
   const mutation = useRef<AbortController | null>(null)
@@ -187,12 +199,14 @@ export function useWorldStudioViewModel(
     setCardFilter,
     cardQuery,
     setCardQuery,
+    filterCards,
     newCardType,
     setNewCardType,
     cardDetail,
     setCardDetail,
     relationWorld,
     relationKey,
+    relationRequest,
     goStep,
     editCard,
     saveState,
@@ -201,6 +215,10 @@ export function useWorldStudioViewModel(
     openRelations: (id: string) => {
       returnCard.current = id
       setSelected(id)
+      goStep('relations')
+    },
+    editRelation: (id: string) => {
+      setRelationRequest((previous) => ({ id, seq: (previous?.seq ?? 0) + 1 }))
       goStep('relations')
     },
     returnToCard: () => {
@@ -254,6 +272,7 @@ export function useWorldStudioViewModel(
         const world = await useCase.read(id, signal)
         if (generation.current === current && !signal.aborted) {
           setRelationKey((key) => key + 1)
+          setRelationRequest(null)
           setRelationDirty(false)
           apply(world, current)
         }
