@@ -17,7 +17,9 @@ import {HttpWorldStudioRepository} from '../../data/world-studio/HttpWorldStudio
 import { MediaUseCase } from '../../domain/usecases/MediaUseCase'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
+import { EpisodeCommentUseCase } from '../../domain/usecases/EpisodeCommentUseCase'
 import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
+import { HttpEpisodeCommentRepository } from '../../data/content/HttpEpisodeCommentRepository'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { HttpWorkRepository } from '../../data/content/HttpWorkRepository'
 import { HttpWorkInterestRepository } from '../../data/content/HttpWorkInterestRepository'
@@ -80,6 +82,8 @@ export function registerAppServices(container: AppContainer) {
     mediaUseCase: asFunction(({ mediaRepository }) => new MediaUseCase(mediaRepository)).singleton(),
     episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
+    episodeCommentRepository: asFunction(() => new HttpEpisodeCommentRepository()).singleton(),
+    episodeCommentUseCase: asFunction(({ episodeCommentRepository }) => new EpisodeCommentUseCase(episodeCommentRepository)).singleton(),
     storyPlanUseCase: asFunction(({ episodeRepository }) => new StoryPlanUseCase(new HttpStoryPlanRepository(episodeRepository))).singleton(),
     demoStoryPlanUseCase: asFunction(({ workRepository }) => new StoryPlanUseCase(new InMemoryStoryPlanRepository(workRepository))).singleton(),
     mockDb: asValue(createMockDb()),

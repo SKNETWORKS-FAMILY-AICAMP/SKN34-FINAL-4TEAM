@@ -41,11 +41,11 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(17,flyway.migrate().migrationsExecuted)
-        assertEquals((1..17).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(18,flyway.migrate().migrationsExecuted)
+        assertEquals((1..18).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
-        for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","work_interest","content_event_outbox","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
+        for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge","episode_comment","episode_comment_like","work_interest","content_event_outbox")) {
             assertNotNull(jdbc.queryForObject("SELECT to_regclass(?)::text",String::class.java,table))
         }
         for(view in listOf("work_current","episode_current","setting_version_read")) {
@@ -115,7 +115,8 @@ class ContentMigrationTest {
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
         jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
-        assertEquals(2,flyway.migrate().migrationsExecuted)
+        // 남은 V16(샘플)·V17(댓글)·V18(관심 작품)이 적용된다.
+        assertEquals(3,flyway.migrate().migrationsExecuted)
         assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
@@ -145,10 +146,40 @@ class ContentMigrationTest {
         assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM pg_indexes WHERE schemaname=current_schema() AND indexname='work_view_viewed_at'",Int::class.java))
     }
 
+    @Test fun `episode comments keep fixed references defaults and one like per member`() = isolated { flyway,jdbc ->
+        flyway.migrate()
+        jdbc.update("INSERT INTO member(id) VALUES ('owner')")
+        jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','제목','','original',0)")
+        jdbc.update("INSERT INTO episode(id,work_id,sequence) VALUES ('e','w',1)")
+        jdbc.update("INSERT INTO episode_version(id,episode_id,content_version_id,revision_no,title,content,created_at) VALUES ('v','e','cv',1,'원문','본문',now())")
+        val insert="INSERT INTO episode_comment(id,work_id,episode_number,published_version_id,author_id,body,created_at,updated_at) VALUES (?,?,?,?,'reader','댓글',now(),now())"
+        jdbc.update(insert,"c","w",1,"v")
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM episode_comment WHERE NOT spoiler AND quote IS NULL AND deleted_at IS NULL",Int::class.java))
+        // 작성자 이름은 저장하지 않는다(Core 닉네임을 응답 때마다 조회).
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='episode_comment' AND column_name='author_name'",Int::class.java))
+        // 같은 id, 회차 번호 0, 없는 작품, 없는 발행 버전은 저장할 수 없다.
+        for(row in listOf(arrayOf<Any>("c","w",1,"v"),arrayOf<Any>("d","w",0,"v"),arrayOf<Any>("d","missing",1,"v"),arrayOf<Any>("d","w",1,"missing"))) {
+            assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(insert,*row)}
+        }
+        val like="INSERT INTO episode_comment_like(comment_id,member_id,created_at) VALUES (?,?,now())"
+        jdbc.update(like,"c","fan")
+        // 같은 회원의 중복 좋아요와 없는 댓글의 좋아요는 거절한다.
+        for(row in listOf(arrayOf<Any>("c","fan"),arrayOf<Any>("missing","other"))) {
+            assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(like,*row)}
+        }
+        jdbc.update(like,"c","other-fan")
+        assertEquals(2,jdbc.queryForObject("SELECT count(*) FROM episode_comment_like WHERE comment_id='c'",Int::class.java))
+        // 삭제는 deleted_at 기록뿐이다. 좋아요가 달린 댓글의 물리 삭제는 FK가 막는다.
+        assertEquals(1,jdbc.update("UPDATE episode_comment SET deleted_at=now() WHERE id='c'"))
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("DELETE FROM episode_comment WHERE id='c'")}
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM episode_comment",Int::class.java))
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM pg_indexes WHERE schemaname=current_schema() AND indexname='episode_comment_episode'",Int::class.java))
+    }
+
     @Test fun `changed history fails validation instead of silently repairing`() = isolated { flyway,jdbc ->
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(17,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(18,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

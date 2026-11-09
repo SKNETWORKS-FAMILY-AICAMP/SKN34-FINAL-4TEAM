@@ -36,7 +36,8 @@ export type ReadingWorldRecord = z.infer<typeof readingWorld>
 export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepository {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
-  private async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
+  /** anonymous면 Bearer 없이 보낸다. 기본은 공개 목록·세계관 같은 /public/works 읽기이고, 회차 댓글은 로그인 상태면 Bearer로 읽어 mine·liked를 받는다. */
+  async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal, anonymous = path.startsWith('/public/works') && method === 'GET'): Promise<T> {
     const fetcher = this.fetcher ?? fetch
     const version = authVersion()
     const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(80000)]) : AbortSignal.timeout(80000)
@@ -45,7 +46,7 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     const init = {method, headers, credentials: 'same-origin' as const, body:body === undefined ? undefined : JSON.stringify(body), signal:requestSignal}
     let response: Response
     try {
-      response = path.startsWith('/public/works') && method === 'GET'
+      response = anonymous
         ? await fetcher('/api/v1' + path, init)
         : await protectedRequest('/api/v1' + path, init, version, false, { fetcher, allowHttpError: true })
     } catch (error) {
