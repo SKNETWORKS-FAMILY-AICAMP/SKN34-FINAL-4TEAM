@@ -10,14 +10,10 @@ import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.ErrorResponse
-import org.springframework.web.bind.MethodArgumentNotValidException
-import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.client.RestClientResponseException
-import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
-import org.springframework.web.server.ResponseStatusException
 
 // No basePackages: a selector never matches errors raised before a controller is chosen (unknown path, wrong method).
 @RestControllerAdvice
@@ -29,9 +25,7 @@ class OperationsExceptionHandler {
         ResponseEntity.status(404).body(OperationsErrorResponse("NOT_FOUND", "Resource not found."))
 
     @ExceptionHandler(IllegalArgumentException::class, ConstraintViolationException::class,
-        MethodArgumentNotValidException::class, HandlerMethodValidationException::class,
-        MethodArgumentTypeMismatchException::class, HttpMessageNotReadableException::class,
-        MissingServletRequestParameterException::class)
+        MethodArgumentTypeMismatchException::class, HttpMessageNotReadableException::class)
     fun invalidRequest(): ResponseEntity<OperationsErrorResponse> =
         ResponseEntity.badRequest().body(OperationsErrorResponse("INVALID_REQUEST", "Invalid request."))
 
@@ -39,7 +33,8 @@ class OperationsExceptionHandler {
     fun conflict(): ResponseEntity<OperationsErrorResponse> =
         ResponseEntity.status(409).body(OperationsErrorResponse("CONFLICT", "Resource conflicts with its current state."))
 
-    @ExceptionHandler(ResponseStatusException::class)
+    // Every Spring ErrorResponse (ResponseStatusException, validation and missing-parameter errors, framework 404/405) reaches
+    // unexpected() and is answered here by its status, so none of them needs a handler of its own.
     fun responseStatus(error: ErrorResponse, request: HttpServletRequest): ResponseEntity<OperationsErrorResponse> = when (error.statusCode.value()) {
         400 -> invalidRequest()
         404 -> notFound()
