@@ -35,7 +35,7 @@ class WorkServiceTest {
     fun `list returns the Content list as is for an operator with works permission`() {
         grantWorks(admin)
         val list = OperationsWorkList(listOf(
-            OperationsWork(workId, work.ownerId, "작품", "작가", "fork", "external_derivative", true, "public", false),
+            OperationsWork(workId, "ops-list-owner", "작품", "작가", "fork", "external_derivative", true, "public", false),
         ))
         `when`(content.works()).thenReturn(list)
 

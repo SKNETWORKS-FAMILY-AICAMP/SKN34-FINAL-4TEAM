@@ -127,7 +127,7 @@ class OperationsClientsIntegrationTest {
     @Test
     fun `Content work list sends only the service token parses OperationsWorkList and maps failure to 502`() {
         val (client, server) = content()
-        val owner = UUID.randomUUID()
+        val owner = "ops-list-owner"
         val body = """
             {"items":[{"workId":"$id","ownerId":"$owner","title":"작품","authorName":"작가","originKind":"fork",
             "creationType":"external_derivative","rightsConfirmed":true,"visibility":"public","restricted":false}]}
