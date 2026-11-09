@@ -8,7 +8,7 @@ Content가, 관리자 업무 권한은 운영 서비스가 소유한다. 인증�
 
 - **조회 범위**: 공개·비공개·운영 제한 작품을 모두 보여 준다(원작·Fork 포함). 새 컬럼·마이그레이션은 없다.
 - **표시 값**(모두 Content 기존 데이터에서 계산):
-  - 작성자: `work.author_name`
+  - 작성자: 소유자의 Core 최신 닉네임(없으면 `탈퇴한 회원`, [회차 댓글 계약](episode-comment-contract.md#core-회원-닉네임-조회-내부))
   - 종류: `work.origin_kind`(`original`→원작, `fork`→포크)
   - 권리: `work.creation_type`(`original`→원작, `external_derivative`→외부 2차 창작) + 권리 진술 확인 여부
     (`work_rights_declaration` 행이 하나라도 있으면 확인됨, 없으면 미확인)
