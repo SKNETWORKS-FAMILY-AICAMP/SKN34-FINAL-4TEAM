@@ -1,0 +1,47 @@
+{
+  "fixture_version": 1,
+  "is_mock": true,
+  "scope": {
+    "grant_ref": "synthetic-grant", "subject_ref": "author-A", "work_id": "w1",
+    "fork_id": null, "basis_episode": 3, "audience": "owner", "character_id": null,
+    "purpose": "story-context", "manifest_ref": "synthetic-manifest-v1"
+  },
+  "manifest": [
+    {"episode": 1, "revision": "r1"},
+    {"episode": 2, "revision": "r2"},
+    {"episode": 3, "revision": "r3"}
+  ],
+  "sources": [
+    {"id": "m1", "work_id": "w1", "kind": "manuscript", "episode": 1, "revision": "r1", "text": "카이는 문을 닫았다.", "public": true, "known_by": ["kai", "lina"]},
+    {"id": "m2", "work_id": "w1", "kind": "manuscript", "episode": 2, "revision": "r2", "text": "리나만 암호를 들었다.", "public": true, "known_by": ["lina"]},
+    {"id": "m3", "work_id": "w1", "kind": "manuscript", "episode": 3, "revision": "r3", "text": "카이는 암호를 물었다.", "public": true, "known_by": ["kai", "lina"]},
+    {"id": "unicode", "work_id": "w1", "kind": "manuscript", "episode": 3, "revision": "u3", "text": "가🌙\r\n리나", "public": true, "known_by": []},
+    {"id": "private", "work_id": "w1", "kind": "setting", "episode": 2, "revision": "s2", "text": "비공개 암호는 달빛이다.", "public": false, "known_by": ["lina"]},
+    {"id": "future", "work_id": "w1", "kind": "manuscript", "episode": 4, "revision": "r4", "text": "카이는 나중에 암호를 배운다.", "public": true, "known_by": ["kai"]},
+    {"id": "f3", "work_id": "f1", "kind": "manuscript", "episode": 3, "revision": "f3", "text": "카이는 떠났다.", "public": true, "known_by": ["kai"]},
+    {"id": "other", "work_id": "other-work", "kind": "manuscript", "episode": 1, "revision": "o1", "text": "다른 작품의 비밀.", "public": true, "known_by": ["kai"]}
+  ],
+  "wiki": [
+    {"id": "e1", "episode": 1, "scene_id": "scene-1", "entity_ids": ["kai"], "kind": "event", "ref": "m1", "revision": "r1"},
+    {"id": "e2", "episode": 2, "scene_id": "scene-2", "entity_ids": ["lina"], "kind": "learns", "fact": "password", "known_by": ["lina"], "ref": "m2", "revision": "r2"},
+    {"id": "e3", "episode": 3, "scene_id": "scene-3", "entity_ids": ["kai", "lina"], "kind": "asks", "actor": "kai", "ref": "m3", "revision": "r3", "caused_by": "e2"}
+  ],
+  "relationship_binding": {"world_id": "synthetic-world", "graph_version": "7", "allowed_entity_ids": ["kai", "lina"]},
+  "relationship": [
+    {"id": "rel1", "source": "kai", "target": "lina", "label": "동료", "directed": false, "graph_version": 7, "temporal": "current"}
+  ],
+  "manuscript": [
+    {"id": "c2", "doc": "m2", "revision": "r2", "span": [0, 12], "rank": 1}
+  ],
+  "template": [
+    {"id": "magic1", "revision": "t2", "name": "대가가 있는 마법", "license_ref": "demo_allowed", "tags": ["마법", "제약"], "language": "ko", "genre": "fantasy", "public": true, "license_active": true}
+  ],
+  "variants": {
+    "fork": {"work_id": "f1", "fork_id": "f1", "episode": 3, "fact": "카이는 떠났다.", "revision": "f3"},
+    "conflict": {"claim": "카이도 암호를 들었다", "status": "disputed", "contradicts": "e2"},
+    "missing": {"omit_wiki_episode": 2},
+    "stale": {"override_chunk_revision": "old2"},
+    "unauthorized": {"inject_result_from": "other"},
+    "timeout": {"backend": "wiki", "error": "timeout"}
+  }
+}
