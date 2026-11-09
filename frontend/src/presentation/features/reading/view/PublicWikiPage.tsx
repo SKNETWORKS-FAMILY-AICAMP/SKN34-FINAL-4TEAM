@@ -13,14 +13,14 @@ import './publicWiki.css'
 
 const docAnchor = (d: Doc) => 'doc-' + d.id
 /** 문서 안 이동 링크. 목업 모드는 해시 라우터라 `#앵커`가 경로를 바꾸므로 기본 이동을 막고 직접 스크롤한다. */
-function Jump({ to, children, className }: { to: string; children: ReactNode; className?: string }) {
+function Jump({ to, children, className, describedBy }: { to: string; children: ReactNode; className?: string; describedBy?: string }) {
   const go = (e: MouseEvent) => {
     e.preventDefault()
     const el = document.getElementById(to)
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    el?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
     el?.focus({ preventScroll: true })
   }
-  return <a href={`#${to}`} className={className} onClick={go}>{children}</a>
+  return <a href={`#${to}`} className={className} aria-describedby={describedBy} onClick={go}>{children}</a>
 }
 
 /** 나무위키 정보 상자: 분류 색 띠 아래 이름, 이어서 별칭·첫 등장·공개된 속성을 표로 보인다. */
@@ -42,8 +42,8 @@ function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; d
   const byName = (n: string) => docs.find((d) => d.t === n)
   const links = (doc.links ?? []).flatMap((l) => { const to = docs.find((d) => d.id === l.to); return to ? [{ to, k: l.k }] : [] })
   return (
-    <section className="nw-doc" id={docAnchor(doc)} tabIndex={-1} aria-labelledby={docAnchor(doc) + '-h'}>
-      <h3 id={docAnchor(doc) + '-h'}><Jump to="nw-toc" className="nw-no">{no}</Jump> {doc.t}</h3>
+    <div className="nw-doc" id={docAnchor(doc)} tabIndex={-1}>
+      <h3><Jump to="nw-toc" className="nw-no" describedBy="nw-back">{no}</Jump> {doc.t}</h3>
       <InfoBox doc={doc} cat={cat} />
       {doc.body ? <p>{doc.body}</p> : <p className="nw-empty">아직 설명이 공개되지 않았어요.</p>}
       {!!doc.knowledge?.length && (
@@ -55,7 +55,7 @@ function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; d
       {links.length > 0 && (
         <p className="nw-rel"><b>연결</b> {links.map(({ to, k }, i) => <span key={to.id + k}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump> ({k})</span>)}</p>
       )}
-    </section>
+    </div>
   )
 }
 
@@ -87,6 +87,8 @@ export function PublicWikiPage() {
             </header>
             {groups.length === 0 ? <p className="nw-empty">공개된 설정이 없어요.</p> : (
               <>
+                {/* 문서 번호 링크의 목적 설명. 제목 이름(1.1. 리안)을 흐리지 않도록 aria-label 대신 설명으로 붙인다. */}
+                <span id="nw-back" hidden>목차로 돌아가기</span>
                 <nav className="nw-toc" id="nw-toc" tabIndex={-1} aria-label="목차">
                   <b>목차</b>
                   <ol>{groups.map(({ cat, list }, i) => (
