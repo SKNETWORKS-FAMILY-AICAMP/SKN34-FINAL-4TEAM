@@ -14,6 +14,8 @@ MVP 기능은 위 1~4의 모든 Agent를 합성 자료로 조합할 수 있는 �
 
 ## 프로젝트 루트 기준 파일 배치안
 
+2026-11-09 TASK 09에서 `runs/{router,schemas,service}.py`와 앱 등록을 추가했다. FixtureContent의 작업별 위임 확인 후 메모리 MainGraph로 실행하며 상태·취소·중복 차단을 제공한다. 선택 단위 166개·HTTP/그래프 통합 40개 통과. 새 production 의존성·실제 Content·공개 URL·원고 저장·SSE 연결은 없으며 [TASK 09 인수 기록](task09-handoff.md)을 따른다.
+
 2026-11-09 TASK 08에서 `runs/state.py`·`graph.py`를 추가해 실제 메모리 StateGraph를 조립했다. 요청된 그래프 조립 통합 21개와 직접 영향 단위 152개가 Python 3.11.15·lock 버전에서 통과했다. 공개 run API·실제 모델·Saver·승인 연결은 이 증거에 포함하지 않는다. [TASK 08 인수 기록](task08-handoff.md).
 
 표의 `{a,b}`는 같은 위치에 둘 구체적인 파일 이름의 열거다. 신규 경로는 제안이며 이 설계에서 생성하지 않는다. 작은 capability는 같은 파일 안 함수로 시작한다.

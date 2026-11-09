@@ -94,7 +94,8 @@ class MainGraph:
         self.checkpointer = checkpointer if checkpointer is not None else InMemorySaver()
         self._sessions = {}
 
-    async def run(self, request: MainRequest, *, cancel=None) -> GraphResult:
+    async def run(self, request: MainRequest, *, cancel=None, limits=None) -> GraphResult:
+        limits = limits if limits is not None else self.limits
         request = MainRequest.model_validate(request.model_dump())
         if request.run_id in self._sessions:
             raise PlanError("run_already_started")
@@ -150,7 +151,7 @@ class MainGraph:
             try:
                 tasks = self.plan_factory(state.classification, request.scope)
                 allowed = tuple(dict.fromkeys(("context", *(c for op in request.allowed_operations for c in OPERATIONS[op]))))
-                validate_plan(tasks, scope=request.scope, manifest=manifest, allowed_operations=allowed, limits=self.limits.plan)
+                validate_plan(tasks, scope=request.scope, manifest=manifest, allowed_operations=allowed, limits=limits.plan)
                 return {"task_plan": tasks}
             except Exception:
                 return {"execution_status": "failed", "errors": ("invalid_plan",)}
@@ -173,7 +174,7 @@ class MainGraph:
                 return TaskOutput(output_schema="ContextPacket.v1", output_ref=f"context:{request.run_id}",
                                   status="succeeded" if packet.can_conclude else "partial", is_mock=True)
             runner = TaskRunner(request.run_id, state.task_plan, scope=request.scope, manifest=manifest,
-                allowed_operations=tuple(REGISTRY), handlers={**self.handlers, "context": context_handler}, limits=self.limits,
+                allowed_operations=tuple(REGISTRY), handlers={**self.handlers, "context": context_handler}, limits=limits,
                 wants_change=state.classification.wants_change,
                 draft_requested=state.classification.primary_intent == "next_draft")
             async def watch_cancel():

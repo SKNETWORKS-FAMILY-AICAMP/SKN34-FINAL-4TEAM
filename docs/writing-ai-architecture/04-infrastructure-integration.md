@@ -30,6 +30,33 @@
 
 **서버 간 계약 후보.** Content가 run과 요청 해시를 먼저 기록한다. `POST /internal/v1/ai/runs`는 `{runId,threadRef,grantRef,operation,targetRefs,budget}`를 받고 같은 run을 중복 실행하지 않는다. AI가 반환하는 task 결과 `{runId,taskId,attempt,outputSchema,resultRefs,evidenceRefs,usage,error?}`를 Content가 run 소유·판본·허용 타입에 맞춰 수락한다. scope 없는 내부 토큰만으로 원고를 읽을 수 없게 서비스 자격과 만료가 짧은 작업별 위임을 함께 검증한다. 정본 조회는 Content가 grant에서 주체를 복구한다. [#163의 읽기 전용 MCP](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/163)는 transport 후보이며 원고 쓰기·승인을 노출하지 않는다. 일회성 내부 호출은 TLS와 서비스 인증 적용을 전제로 한다. 모델·브라우저에는 토큰/직접 DB 접근을 주지 않는다.
 
+## TASK 09 합성 내부 Run HTTP 계약
+
+2026-11-09에 아래 내부 경계를 구현했다. 이 절은 위 공개 API·실제 Content/MCP 목표와 달리 **서버가 주입한 FixtureContent만** 검증한 계약이다. 실제 grant 발급·서명·최대 TTL·갱신·철회 전송 방식은 #163의 미결 사항이며 이번 구현으로 확정하지 않는다. 기본 `create_app()`에서는 서비스 인증 후 `503 run_service_unconfigured`로 종료한다. fixture를 켜는 환경 변수나 HTTP 발급 경로는 없다.
+
+| 경로 | 구현한 입출력·인증 |
+|---|---|
+| `POST /internal/v1/ai/runs` | `X-Internal-Token`과 아래 DTO. `202 {runId,threadRef,status:pending,isMock:true,...}`. 메모리 실행 task를 예약한다. |
+| `GET /internal/v1/ai/runs/{runId}` | `X-Internal-Token`·`X-Grant-Ref`·`X-Thread-Ref` 필수. 매번 현재 위임·manifest를 확인해 `200 {runId,threadRef,status,isMock,tasks,coverage,result,error}` 반환. |
+| `POST /internal/v1/ai/runs/{runId}/cancel` | 조회와 같은 인증·재인가. 실행 중이면 취소·늦은 결과 차단, 이미 취소/완료면 현재 종료 상태 반환. 실제 적용 상태는 없다. |
+
+```json
+{
+  "runId": "run1", "threadRef": "thread1", "grantRef": "synthetic-grant",
+  "workId": "w1", "forkId": null, "basisEpisode": 3, "operation": "ask",
+  "targetRefs": [{"work_id": "w1", "kind": "manuscript", "document_id": "m1", "revision": "r1"}],
+  "budget": {"modelCalls": 1, "inputTokens": 4000, "outputTokens": 1000, "timeoutMs": 20000}
+}
+```
+
+`targetRefs`는 기존 SourceVersion 계약의 snake_case 필드를 재사용한다. 상위 요청은 camelCase이며 추가 필드는 거부한다. Scope·Query·prompt·handler·plan은 HTTP로 입력받지 않는다. FixtureContent는 미리 등록한 전체 DTO와 대조하고 Content 대역의 subject·scope·만료/active·manifest를 복원한다. work/Fork/회차·thread/run·operation·targetRefs·budget 치환은 원문 조회 전에 거부한다. Query의 문서/kind 필터와 target 판본 집합이 일치해야 하며, 같은 문서/kind에 복수 판본이 있으면 이 단계에서는 거부한다. 실제 Content adapter는 FixtureContent에서 사용할 수 없다.
+
+예산은 설계 02의 상한(20회·입력 48,000·출력 12,000·120,000ms) 안에서 기존 DAG Validator/TaskRunner에 전달한다. 기존 계획의 예약 시간 합계보다 작은 예산은 계획 실패로 끝나며 자동으로 계획을 변경하지 않는다. 실행 전체 timeout도 별도로 감싼다. 서비스 토큰 미설정/공백/오류/중복은 403, 위임 불일치·만료·철회는 403, 접수 전 Content 대역 장애는 503, 유효한 위임의 미접수 run은 404, 중복 run·같은 thread의 활성 run은 409, DTO 오류는 422다. 입력 오류는 grant·본문 없이 `invalid_request`만 반환한다.
+
+접수 후의 거부는 상태 조회 `200 status=denied,error.code=refused`, timeout은 `200 status=failed,error.code=timeout`, 일반 실패는 `execution_failed`, Scope 의존 장애는 `dependency_unavailable`이다. `partial/clarification/cancelled/proposal`을 성공으로 바꾸지 않는다. `result`는 기존 GraphResponse, `tasks`는 TaskResult 계약을 재사용한다. 내부 grant·원문을 오류/로그/체크포인트에 추가하지 않으며 검증된 합성 인용 본문은 권한 재검증 후 응답에만 실린다.
+
+중복 claim·상태·결과는 단일 프로세스 메모리에만 존재한다. 재시작·다중 worker·영속 lease·grant 갱신·SSE·승인·실제 저장·공개 nginx는 지원하지 않는다. lifespan 종료 때 실행 task를 취소·회수한다. [TASK 09 실제 검증](task09-handoff.md).
+
 ## Checkpointer와 복원
 
 **기존 요청 보호를 그대로 적용한다.** 웹의 상태 변경 POST는 Bearer와 기존 CSRF 발급 절차의 `X-CSRF-TOKEN`을 함께 보낸다. AI 측 callback은 공개 nginx 라우트로 노출하지 않는다. 기존 이어쓰기가 외부 전송과 API 비용에 대한 `data.consent`를 확인하므로 새 실행에도 `options.modelConsent={providers,purpose,maxCalls,noticeVersion}` 계약을 둔다. 서버는 사용자에게 표시한 동의 범위와 허용 예산을 검증한다. 분류기만 쓰는 호출도 외부 전송에 포함한다. 동의 누락 시 유료 호출 0회로 중단하고 필요한 동의를 안내한다. [Content 보안 설정](../../backend/content-service/src/main/kotlin/ai/storyfork/content/auth/config/ContentSecurityConfig.kt) · [기존 생성 흐름](../../backend/content-service/src/main/kotlin/ai/storyfork/content/proposal/service/ProposalService.kt)

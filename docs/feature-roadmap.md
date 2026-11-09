@@ -35,6 +35,7 @@
 - 2026-11-09 TASK 06: #55의 고정 Registry·Task DTO·DAG Validator를 로컬 구현했다. A~G 합성 계획·악성 참조·범위 혼합·예산·Patch 충돌과 Router 회귀 선택 단위 104개 통과. handler는 미연결 stub이며 실행·화면·병합·Required CI가 대기이므로 관련 ❌를 유지한다. [TASK 06 인수 기록](writing-ai-architecture/task06-handoff.md).
 - 2026-11-09 TASK 07: #55·#57의 메모리 TaskRunner·동시 상한 2·조건/실패 skip·Send slice·중복 reducer·예산 예약·취소/늦은 결과 차단·partial을 합성 실행으로 구현했다. TASK 05·06 회귀 포함 선택 단위 125개 통과. 실제 Agent·LangGraph·모델·Saver·화면·병합·Required CI는 대기이므로 관련 ❌를 유지한다. [TASK 07 인수 기록](writing-ai-architecture/task07-handoff.md).
 - 2026-11-09 TASK 08: #55·#57의 MainState·실제 LangGraph StateGraph·참조 전용 InMemorySaver·검색/TaskRunner·citation 출력 검증을 조립했다. lock 환경에서 요청된 메모리 그래프 통합 21개·관련 단위 152개 통과(HTTP 통합 1개 제외). 실제 모델·승인/저장·운영 Saver/재개·HTTP/화면·병합·Required CI는 대기여서 관련 ❌는 유지한다. [TASK 08 인수 기록](writing-ai-architecture/task08-handoff.md).
+- 2026-11-09 TASK 09: #54의 내부 Run 접수·조회·취소와 FixtureContent 작업별 위임·단일 프로세스 중복 dispatch 차단을 연결했다. 선택 단위 166개·명시 요청 HTTP/메모리 그래프 통합 40개·오프라인 lock 검사 통과. 실제 Content/MCP·공개 API·화면·영속 재개·모델·승인/저장·병합·Required CI는 대기이므로 관련 ❌는 유지한다. #157은 완료된 Core/Content 별도 범위, #163은 실제 전송 미결 이슈다. [TASK 09 인수 기록](writing-ai-architecture/task09-handoff.md).
 - 작성 기준: 2026-11-04 로컬 코드·요구사항·설계, 샘플 CSV 전환·공개/편집 경계는 2026-11-06 추가 확인. HTML 표를 지원하는 Markdown 뷰어에서 병합 셀이 표시된다.
 
 

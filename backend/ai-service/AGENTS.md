@@ -1,7 +1,7 @@
 # AI Service 구현 지침
 
 `backend/ai-service/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
-현재 내부 Health와 이어쓰기 제안 API가 있다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
+현재 내부 Health·이어쓰기 제안과 명시적으로 FixtureContent를 주입하는 Run API가 있다. 기본 앱의 Run은 503이며 실제 Content 위임·읽기는 미연결이다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
 
 ## 구조
 

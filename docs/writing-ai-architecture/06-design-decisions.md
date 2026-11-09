@@ -28,6 +28,8 @@ TASK 05는 기존 SDK의 `OpenAI.post('/decisions', ...)`로 공식 HTTP 계약�
 
 ## 서비스와 저장
 
+TASK 09의 내부 HTTP 경계는 FixtureContent에 명시 주입한 작업별 합성 grant만 복원한다. 실제 Content 발급/검증 정책·MCP 전송은 결정하지 않았으며 미설정 앱은 503으로 거부한다. 공개 API·원고 저장·영속 재개도 연결하지 않는다. [구현 계약과 단일 프로세스 한계](04-infrastructure-integration.md#task-09-합성-내부-run-http-계약).
+
 | 문제·현재 근거 | 선택지 A / 비용과 영향 | 선택지 B / 비용과 영향 | 추천·결정 시점·미결 영향 |
 |---|---|---|---|
 | 11. Python 분리. 내부 FastAPI 앱과 GenerationClient 존재 | 기존 Python 앱 확장 시 LangGraph 생태계·테스트 재사용, 네트워크 장애 표면 추가 | Kotlin에 통합 시 트랜잭션 인접, Python SDK 통합·서비스 결합 비용 큼 | MVP A. 에이전트별 배포 없음. 도입할 LangGraph/Saver 의존성은 구현 전 공유 |

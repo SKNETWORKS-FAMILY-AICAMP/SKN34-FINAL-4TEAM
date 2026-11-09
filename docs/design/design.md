@@ -29,7 +29,7 @@
 | Core Service | 기존 `core-api`에 인증·세션·프로필 및 콘텐츠·첨부 구현 공존 | 회원·인증·세션·크레딧·정산·회원 알림 정본. 기존 앱 재사용 |
 | 콘텐츠 서비스 | 별도 앱 없음. 현재 콘텐츠·첨부는 `core-api`에서 실행 | 별도 Kotlin/Spring Boot 앱에 작품·세계관·회차·버전·Fork·발행·독서·검색·작품 피드백·파일 및 콘텐츠 인가·채택·반영 |
 | 운영 서비스 | 별도 앱 및 고객지원·신고 사건 등 업무 기능 미구현 | 별도 Kotlin/Spring Boot 앱에 문의·공지·이벤트·신고·소명·판단·감사·작업 감시·LLMOps 영역 |
-| AI Service | 내부 Health와 선택적 `/internal/v1/proposals` 모델 실행 | Python/FastAPI 실행. 팀 모델·프레임워크 선정은 별도 |
+| AI Service | 내부 Health·선택적 `/internal/v1/proposals` 모델 실행·FixtureContent 전용 `/internal/v1/ai/runs` | Python/FastAPI 실행. Run의 실제 Content·모델·저장 연결은 미구현. [TASK 09](../writing-ai-architecture/task09-handoff.md) |
 | 저장소 | PostgreSQL·Flyway 인증 및 선택적 콘텐츠/첨부 저장, 선택 MinIO 구성. 그래프 DB 없음 | 서비스별 정본·쓰기·migration 소유 분리. PostgreSQL 원문·버전·체크포인트·Fork와 관계 그래프 역할 유지 |
 
 `Core Service`는 설계상 서비스 명칭이며 현재 디렉터리·컨테이너·패키지·HTTP 경로의 `core-api`를 지금 변경한다는 뜻은 아닙니다. `Core API`는 공개·내부 HTTP 인터페이스를 뜻할 때만 씁니다. DEC-41은 별도 콘텐츠·운영 앱을 목표로 확정하지만 실제 앱·포트·DB 소유 전환은 후속 작업입니다. [현재 실행 구조](../architecture.md)를 구분해 읽습니다.

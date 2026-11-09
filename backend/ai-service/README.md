@@ -35,7 +35,9 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 
 ## OpenAI와 향후 경계
 
-TASK 08은 `app/runs/state.py`·`graph.py`의 실제 LangGraph StateGraph로 Scope 확인→규칙 Router→고정 계획 검증→TaskRunner→검색/테스트 Agent→출력 검증→조회/합성 제안 종료를 연결합니다. `langgraph==1.2.12`와 전이 의존성을 추가했습니다. MainState와 InMemorySaver에는 참조·실행 상태만 저장하고 원고·요청문·grant는 넣지 않습니다. 이 모듈은 아직 HTTP 서버에 등록하지 않았습니다. 실제 승인·쓰기·모델 호출·Saver 재개는 연결하지 않았으며 [TASK 08 계약과 잠금 환경 검증](../../docs/writing-ai-architecture/task08-handoff.md)을 참고하세요.
+TASK 08은 `app/runs/state.py`·`graph.py`의 실제 LangGraph StateGraph로 Scope 확인→규칙 Router→고정 계획 검증→TaskRunner→검색/테스트 Agent→출력 검증→조회/합성 제안 종료를 연결합니다. `langgraph==1.2.12`와 전이 의존성을 추가했습니다. MainState와 InMemorySaver에는 참조·실행 상태만 저장하고 원고·요청문·grant는 넣지 않습니다. 실제 승인·쓰기·모델 호출·Saver 재개는 연결하지 않았으며 [TASK 08 계약과 잠금 환경 검증](../../docs/writing-ai-architecture/task08-handoff.md)을 참고하세요.
+
+TASK 09는 `POST /internal/v1/ai/runs`, `GET /internal/v1/ai/runs/{runId}`, `POST /internal/v1/ai/runs/{runId}/cancel`을 등록합니다. `create_app(run_service=RunService(FixtureContent(...)))`로 서버가 합성 grant·MainRequest·MainGraph를 명시 주입해야 실행됩니다. 기본 `create_app()`은 인증 후 503을 반환하며 자동 fixture·실제 Content transport·모델은 연결하지 않습니다. 서비스 토큰과 작업별 scope 위임을 함께 확인하고 같은 run 중복 접수는 409입니다. 상태·취소에는 `X-Internal-Token`, `X-Grant-Ref`, `X-Thread-Ref`가 필요합니다. [내부 HTTP 계약](../../docs/writing-ai-architecture/04-infrastructure-integration.md#task-09-합성-내부-run-http-계약)과 [TASK 09 검증·한계](../../docs/writing-ai-architecture/task09-handoff.md)를 참고하세요.
 
 2026-11-09 TASK 05 사용자 결정으로 **모델 호출은 모두 OpenAI API**를 사용합니다. `app/runs/routing.py`의 `OpenAIDecisionsRouterAdapter`는 명시 경로를 규칙으로 처리하고 모호한 자유문만 Decisions(`gpt-6-luna`)에 최대 1회 요청합니다. `app/runs/slots.py`는 Content가 허용한 후보로 대상을 확인합니다. 두 모듈은 아직 HTTP 실행 경로에 등록하지 않았으며 기존 이어쓰기 API는 유지합니다. 설정 추가·의존성 변경 없이 기존 `OPENAI_API_KEY`를 사용합니다. [TASK 05 계약과 검증](../../docs/writing-ai-architecture/task05-handoff.md)을 참고하세요. 아래 전체 역할·프레임워크 미정 설명은 이 공급자 결정으로 구체화됩니다.
 
