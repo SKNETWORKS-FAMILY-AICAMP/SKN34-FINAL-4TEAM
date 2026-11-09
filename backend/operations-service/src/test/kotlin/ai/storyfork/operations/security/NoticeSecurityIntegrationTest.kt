@@ -43,7 +43,7 @@ import tools.jackson.databind.json.JsonMapper
 @WebMvcTest(controllers = [AdminNoticeController::class, PublicNoticeController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
-@Import(MemberSecurityConfig::class, PublicNoticeSecurityConfig::class, OperationsSecurityConfig::class,
+@Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class,
     OperationsExceptionHandler::class, NoticeSecurityIntegrationTest.MvcSecurity::class)
 class NoticeSecurityIntegrationTest {
     @TestConfiguration(proxyBeanMethods = false)

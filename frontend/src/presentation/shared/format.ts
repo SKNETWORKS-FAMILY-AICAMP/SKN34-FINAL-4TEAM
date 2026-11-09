@@ -17,3 +17,6 @@ export function qs(base: string, o: Record<string, string | undefined>) {
 const kst = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'short', timeStyle: 'short' })
 /** 서버 UTC 시각을 한국시간으로 표시합니다. */
 export const kstDateTime = (iso: string) => kst.format(new Date(iso))
+/** 서버 UTC 기간을 한국시간 문구로 바꿉니다. 비어 있는 쪽은 미정입니다. */
+export const kstPeriod = ({ startsAt, endsAt }: { startsAt: string | null; endsAt: string | null }) =>
+  `${startsAt ? kstDateTime(startsAt) : '시작 미정'} ~ ${endsAt ? kstDateTime(endsAt) : '종료 미정'} · 한국시간`

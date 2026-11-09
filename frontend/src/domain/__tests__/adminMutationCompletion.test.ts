@@ -12,8 +12,11 @@ const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
   admin: { chatChoices: vi.fn(), toggleWork: vi.fn() },
   toast: vi.fn(),
-  operations: { saveEvent: vi.fn(), deleteEvent: vi.fn() },
+  // VM이 직접 호출하는 메모리 운영 메서드는 없다(공지·이벤트·문의가 모두 실제 API). operationsUseCase 자리 표시자일 뿐이다.
+  operations: {},
   notices: { save: vi.fn(), delete: vi.fn() },
+  // 이벤트 탭은 운영 API의 EventUseCase를 호출한다(운영 메모리 저장소 아님).
+  event: { save: vi.fn(), remove: vi.fn() },
   support: { listAll: vi.fn(), get: vi.fn(), addReply: vi.fn(), updateReply: vi.fn(), deleteReply: vi.fn() },
   member: { setRestriction: vi.fn(), createAdmin: vi.fn() },
   report: { review: vi.fn(), setContentRestriction: vi.fn(), requestEvidence: vi.fn() },
@@ -26,7 +29,7 @@ vi.mock('react', () => ({
   useEffect: (setup: () => (() => void)) => { doubles.cleanups.push(setup()) },
 }))
 vi.mock('react-redux', () => ({ useStore: () => ({ getState: doubles.getState }) }))
-vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report, noticeUseCase: doubles.notices, supportInquiryUseCase: doubles.support } as Record<string, unknown>)[name] ?? doubles.operations } }))
+vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report, noticeUseCase: doubles.notices, eventUseCase: doubles.event, supportInquiryUseCase: doubles.support } as Record<string, unknown>)[name] ?? doubles.operations } }))
 vi.mock('../../app/store', () => ({ useAppDispatch: () => doubles.dispatch, useAppSelector: (select: (state: RootState) => unknown) => select(doubles.getState()) }))
 vi.mock('../../presentation/shared/session/useLogout', () => ({ useLogout: () => vi.fn() }))
 vi.mock('../../presentation/shared/screenIds', () => ({ useScreenId: vi.fn() }))
@@ -53,8 +56,8 @@ beforeEach(() => {
 
 const notice = { title: '제출한 제목', body: '제출한 본문' }
 const event = { ...notice, startsAt: '', endsAt: '' }
-// 공지 저장·삭제는 NoticeUseCase(save·delete) 대역으로 보내므로 메서드 이름은 사례 구분용입니다.
-type Method = 'saveNotice' | 'deleteNotice' | keyof typeof doubles.operations
+// 공지·이벤트 저장·삭제는 NoticeUseCase(save·delete)·EventUseCase(save·remove) 대역으로 보내므로 메서드 이름은 사례 구분용입니다.
+type Method = 'saveNotice' | 'deleteNotice' | 'saveEvent' | 'deleteEvent'
 const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: Method; other?: (vm: VM) => void }[] = [
   ...(['new', 'existing'] as const).flatMap((id) => [
     { name: `notice save ${id}`, method: 'saveNotice' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('notices', id); vm.setNoticeDraft(id, { ...notice, body: changed ? '새 본문' : notice.body }) }, submit: (vm: VM) => vm.saveNotice(id === 'new' ? null : id, notice), other: (vm: VM) => vm.selectRecord('notices', 'other') },
@@ -67,7 +70,8 @@ const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submi
 function useStartedSubmission(test: typeof cases[number]) {
   let finish!: (result: { id: string; ok: boolean; msg: string }) => void
   const response = new Promise<{ id: string; ok: boolean; msg: string }>((done) => { finish = done })
-  const method = test.method === 'saveNotice' ? doubles.notices.save : test.method === 'deleteNotice' ? doubles.notices.delete : doubles.operations[test.method]
+  const method = test.method === 'saveNotice' ? doubles.notices.save : test.method === 'deleteNotice' ? doubles.notices.delete
+    : test.method === 'saveEvent' ? doubles.event.save : doubles.event.remove
   method.mockReturnValueOnce(response)
   let vm = useAdminViewModel('notices')
   test.prepare(vm)
@@ -192,6 +196,7 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     { tab: 'rights', name: '신고 검토', submit: (vm) => vm.live.review('report-1', 'ACCEPTED', '확인'), backend: () => doubles.report.review },
     { tab: 'feedback', name: '고객지원 문의 답변 등록', submit: (vm) => vm.live.addReply('inquiry-1', '답변'), backend: () => doubles.support.addReply },
     { tab: 'notices', name: '공지 삭제', submit: (vm) => vm.deleteNotice('notice-1'), backend: () => doubles.notices.delete },
+    { tab: 'events', name: '이벤트 삭제', submit: (vm) => vm.deleteEvent('event-1'), backend: () => doubles.event.remove },
   ]
 
   describe.each(demoStates)('데모 조회가 %s일 때', (_name, state) => {
@@ -207,19 +212,19 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     })
 
     it('데모 탭의 조치는 기존처럼 막혀 실행되지 않는다', async () => {
-      const vm = useAdminViewModel('events')
+      const vm = useAdminViewModel('works')
       expect(vm.mutationsBlocked).toBe(true)
-      expect(await vm.saveEvent(null, event)).toBe(false)
-      expect(doubles.operations.saveEvent).not.toHaveBeenCalled()
+      expect(await vm.toggleWork('w1')).toBe(false)
+      expect(doubles.admin.toggleWork).not.toHaveBeenCalled()
       expect(dataVersion).toBe(0)
     })
   })
 
   it('데모 조회가 끝나 있으면 데모 탭 조치는 실행된다', async () => {
-    doubles.operations.saveEvent.mockResolvedValueOnce({ id: 'saved' })
-    const vm = useAdminViewModel('events')
+    doubles.admin.toggleWork.mockResolvedValueOnce({ ok: true, msg: '작품 공개 상태를 변경했어요' })
+    const vm = useAdminViewModel('works')
     expect(vm.mutationsBlocked).toBe(false)
-    expect(await vm.saveEvent(null, event)).toBe(true)
+    expect(await vm.toggleWork('w1')).toBe(true)
     expect(dataVersion).toBe(1)
   })
 })
@@ -230,19 +235,19 @@ it('작품 탭 View가 쓰는 정본 작품 조치 불가 판단을 ViewModel이
   expect(vm.canToggleWork({})).toBe(true)
 })
 
-// OperationsUseCase는 UTC 형식을 다시 검사하지 않으므로, 형식 검사는 이 경계가 맡습니다 (#202).
+// EventUseCase는 UTC 형식을 다시 검사하지 않으므로, 형식 검사는 이 경계가 맡습니다 (#202).
 describe('이벤트 기간 입력 경계', () => {
   it('한국시간 입력은 UTC로, 빈 입력은 null로 UseCase에 전달한다', async () => {
-    doubles.operations.saveEvent.mockResolvedValueOnce({ id: 'saved' })
+    doubles.event.save.mockResolvedValueOnce({ id: 'saved' })
     const vm = useAdminViewModel('events')
     expect(await vm.saveEvent(null, { ...event, startsAt: '2026-11-05T09:30', endsAt: '' })).toBe(true)
-    expect(doubles.operations.saveEvent).toHaveBeenCalledWith(null, { title: event.title, body: event.body, startsAt: '2026-11-05T00:30:00.000Z', endsAt: null })
+    expect(doubles.event.save).toHaveBeenCalledWith(null, { title: event.title, body: event.body, startsAt: '2026-11-05T00:30:00.000Z', endsAt: null })
   })
 
   it.each(['2026-02-30T09:00', '2026-11-05T24:00', '2026-11-05', '임의 기간'])('형식이 틀린 입력은 UseCase에 닿기 전에 거절한다: %s', async (startsAt) => {
     const vm = useAdminViewModel('events')
     expect(await vm.saveEvent(null, { ...event, startsAt })).toBe(false)
-    expect(doubles.operations.saveEvent).not.toHaveBeenCalled()
+    expect(doubles.event.save).not.toHaveBeenCalled()
     expect(dataVersion).toBe(0)
   })
 })

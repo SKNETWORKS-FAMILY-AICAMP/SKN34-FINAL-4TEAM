@@ -3,12 +3,14 @@ import { asValue } from 'awilix/browser'
 import { createFixtureDb } from '../../data/mock/fixtureDb'
 import { InMemoryNoticeRepository } from '../../data/mock/InMemoryNoticeRepository'
 import { InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
 import { seedNotices } from '../../data/mock/seed'
 import { createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupNotificationRepository } from '../../data/mock/mockupRepositories'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import { AuthUseCase } from '../../domain/usecases/AuthUseCase'
+import { EventUseCase } from '../../domain/usecases/EventUseCase'
 import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
@@ -23,7 +25,11 @@ export function registerMockupServices(container: AppContainer) {
   const { workRepository, readingRepository, feedbackRepository } = container.cradle
   // 시연 ①의 작품 목록·집필·저장·발행만 메모리로 바꾸고, 나머지 서버 원고 기능은 실패 안내를 그대로 보입니다.
   const episodeRepository = Object.assign(new HttpEpisodeRepository(), createMockupWritingRepository())
+  const eventRepository = new InMemoryEventRepository()
   container.register({
+    // 운영 이벤트 API 대신 메모리에만 등록·공개합니다.
+    eventRepository: asValue(eventRepository),
+    eventUseCase: asValue(new EventUseCase(eventRepository)),
     // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지합니다.
     readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository)),
     episodeRepository: asValue(episodeRepository),

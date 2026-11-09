@@ -3,16 +3,18 @@ import { Link, useSearchParams } from 'react-router'
 
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
+import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
 import { SUPPORT_STATUSES, supportStatusLabel, type SupportReply } from '../../../../domain/entities/supportInquiry'
 import { ofKind } from '../../../../domain/entities/work'
-import { kstDateTime } from '../../../shared/format'
+import { kstDateTime, kstPeriod } from '../../../shared/format'
+import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { Go } from '../../../shared/Go'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel } from '../viewmodel/useAdminViewModel'
-import { AdminActionStatus, OperationsEvents, OperationsNotices } from './OperationsPanels'
+import { AdminActionStatus, OperationsNotices } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 type VM = ReturnType<typeof useAdminViewModel>
@@ -542,8 +544,9 @@ function Body(p: BodyProps) {
         </p>
       </div>
     )
-  } else if (tab === 'events') T = <OperationsEvents vm={vm} />
-  else if (tab === 'notices') {
+  } else if (tab === 'events') {
+    T = <Events vm={vm} />
+  } else if (tab === 'notices') {
     T = (
       <>
         <LiveState vm={vm} label='공지 목록' />
@@ -1182,6 +1185,157 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
         반영됩니다.
       </p>
     </form>
+  )
+}
+
+/** 69 이벤트 안내·운영: 운영 API의 이벤트 목록·상세·등록·전체 수정·삭제. 진행 상태는 기간으로 계산해 보여 줍니다. */
+function Events({ vm }: { vm: VM }) {
+  const selection = vm.recordSelection.events
+  const rows = vm.live.data?.events ?? []
+  const row = rows.find((item) => item.id === selection)
+  const root = useAdminDetailFocus(selection, !!row, rows.length)
+  const key = selection ?? 'new'
+  const form = vm.eventDrafts[key] ?? {
+    title: row?.title ?? '',
+    body: row?.body ?? '',
+    startsAt: toKoreanDateTimeInput(row?.startsAt ?? null),
+    endsAt: toKoreanDateTimeInput(row?.endsAt ?? null),
+  }
+  const state = vm.actions[`event:${key}`]
+  const busy = vm.mutationsBlocked || !!state?.pending
+  const loading = vm.live.isLoading || vm.live.isRefreshing
+  return (
+    <section className='panel admin-operations' aria-label='운영 이벤트' ref={root}>
+      {!selection
+        ? (
+          <>
+            <div className='table-head'>
+              <h2 tabIndex={-1}>운영 이벤트 목록</h2>
+              <button type='button' className='btn pri' data-record-id='new' onClick={() => vm.selectRecord('events', 'new')}>
+                이벤트 작성
+              </button>
+            </div>
+            <LiveState vm={vm} label='이벤트 목록' />
+            {vm.live.data && (rows.length
+              ? (
+                <ul className='admin-record-list'>
+                  {rows.map((item) => (
+                    <li key={item.id}>
+                      <button
+                        type='button'
+                        className='admin-record-link'
+                        data-record-id={item.id}
+                        onClick={() => vm.selectRecord('events', item.id)}
+                      >
+                        <b>{item.title}</b>
+                        <span className='small muted'>
+                          <EventStatusChip status={vm.eventStatusNow(item)} /> {kstPeriod(item)}
+                          {vm.eventDrafts[item.id] ? ' · 수정 초안 있음' : ''}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )
+              : <p className='admin-empty'>등록된 운영 이벤트가 없어요. 이벤트를 작성해 보세요.</p>)}
+          </>
+        )
+        : (
+          <>
+            <button type='button' className='btn sm' onClick={() => vm.selectRecord('events', null)}>이벤트 목록으로</button>
+            <h2 tabIndex={-1}>{selection === 'new' ? '새 운영 이벤트' : row?.title ?? '이벤트 확인'}</h2>
+            <LiveState vm={vm} label='이벤트 목록' />
+            {selection !== 'new' && !row
+              ? (!loading && !vm.live.isError && (
+                <p role='alert'>이벤트를 표시할 수 없어요. 목록 새로고침 후 다시 선택해 주세요.</p>
+              ))
+              : (
+                <>
+                  {row && (
+                    <>
+                      <p className='small muted'><EventStatusChip status={vm.eventStatusNow(row)} /> {kstPeriod(row)}</p>
+                      <p className='small muted'>UTC: {row.startsAt ?? '시작 미정'} / {row.endsAt ?? '종료 미정'}</p>
+                      <p className='small muted'>등록 {kstDateTime(row.createdAt)} · 수정 {kstDateTime(row.updatedAt)}</p>
+                      <p className='admin-prose'>{row.body}</p>
+                      <h3>이벤트 수정</h3>
+                    </>
+                  )}
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      void vm.saveEvent(row?.id ?? null, form)
+                    }}
+                  >
+                    <fieldset disabled={busy} className='form-grid'>
+                      <label className='field wide'>
+                        이벤트 제목<input
+                          className='inp'
+                          required
+                          maxLength={200}
+                          value={form.title}
+                          onChange={(e) => vm.setEventDraft(key, { ...form, title: e.target.value })}
+                        />
+                      </label>
+                      <label className='field wide'>
+                        이벤트 내용<textarea
+                          className='ta'
+                          required
+                          maxLength={20000}
+                          rows={8}
+                          value={form.body}
+                          onChange={(e) => vm.setEventDraft(key, { ...form, body: e.target.value })}
+                        />
+                      </label>
+                      <label className='field'>
+                        시작 (한국시간)<input
+                          className='inp'
+                          type='datetime-local'
+                          step={60}
+                          value={form.startsAt}
+                          aria-describedby='event-time-help'
+                          onChange={(e) => vm.setEventDraft(key, { ...form, startsAt: e.target.value })}
+                        />
+                      </label>
+                      <label className='field'>
+                        종료 (한국시간)<input
+                          className='inp'
+                          type='datetime-local'
+                          step={60}
+                          value={form.endsAt}
+                          aria-describedby='event-time-help'
+                          onChange={(e) => vm.setEventDraft(key, { ...form, endsAt: e.target.value })}
+                        />
+                      </label>
+                      <p id='event-time-help' className='small muted wide'>
+                        두 기간은 선택 사항이에요. 한국시간(UTC+09:00)으로 입력하면 UTC로 저장해요. 비우면 해당 기간은 미정이며, 종료는
+                        시작보다 빠를 수 없어요.
+                      </p>
+                      <div className='rowend wide'>
+                        <button type='submit' className='btn pri'>{state?.pending ? '저장 중…' : '이벤트 저장'}</button>
+                        {row && (
+                          <button
+                            type='button'
+                            className='btn'
+                            onClick={() => {
+                              if (window.confirm('이 이벤트를 삭제할까요? 공개 목록에서도 바로 사라지고 복구할 수 없어요.')) void vm.deleteEvent(row.id)
+                            }}
+                          >
+                            이벤트 삭제
+                          </button>
+                        )}
+                      </div>
+                    </fieldset>
+                    <AdminActionStatus state={state} />
+                  </form>
+                </>
+              )}
+          </>
+        )}
+      <p className='admin-note'>
+        진행 상태(상시·예정·진행 중·종료)는 시작·종료 시각으로 정해져요. 이벤트를 끝내려면 종료 시각을 수정해 주세요. 등록하면 바로
+        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요.
+      </p>
+    </section>
   )
 }
 
