@@ -149,7 +149,7 @@ class MemberSecurityIntegrationTest {
     fun `verified member reaches the works controller as principal and gets the service DTOs`() {
         val member = OperationsMember(UUID.randomUUID(), true)
         val id = UUID.randomUUID()
-        val work = ContentWork(id, UUID.randomUUID(), "작품", true)
+        val work = ContentWork(id, UUID.randomUUID().toString(), "작품", true)
         `when`(core.verify(bearer)).thenReturn(member)
         `when`(works.list(member)).thenReturn(OperationsWorkList(emptyList()))
         `when`(works.restrict(member, id)).thenReturn(work)
