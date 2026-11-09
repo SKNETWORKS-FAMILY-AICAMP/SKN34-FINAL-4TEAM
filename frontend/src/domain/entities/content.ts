@@ -14,6 +14,8 @@ export type StoryContext = {title:string;summary:string;basisEpisode:number;char
 export type Version = Draft & { id: string; episode: number; savedAt: string }
 export type History = { versions: Version[]; proposals: Proposal[] }
 
-export type WritingEpisode = {hasDraft?:boolean;number:number;draft:Draft;versions:Version[];publishedVersionId:string|null;inherited:boolean;updatedAt:string|null;checkpointStatus:string}
+/** 회차 체크포인트(DEC-43)는 발행본이다. versionId는 저장 버전 id, active는 현재 독자 공개본이며 발행 시각 오름차순이다. */
+export type EpisodeCheckpoint = {versionId:string;publishedAt:string;active:boolean}
+export type WritingEpisode = {hasDraft?:boolean;number:number;draft:Draft;versions:Version[];publishedVersionId:string|null;inherited:boolean;updatedAt:string|null;checkpointStatus:string;checkpoints:EpisodeCheckpoint[]}
 
 export type EpisodeOrderScope = {number:number;candidateNumbers:number[];reasons:string[];executable:false}

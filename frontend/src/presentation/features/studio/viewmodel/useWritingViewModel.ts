@@ -54,6 +54,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     put(current.current.title===sent.title && current.current.body===sent.body ? result.draft : {...current.current,revision:result.draft.revision})
     setNotice(version?'새 원고 버전을 저장했어요. 발행본은 그대로예요.':'작업 초안을 저장했어요.')
   },version)
+  // 발행과 체크포인트 되돌리기는 같은 회차 발행 요청이다. 완료 안내만 다르고, 성공 표시는 실제 응답을 받은 뒤에만 한다.
+  const publishVersion=(versionId:string,rights:boolean,done:string)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){merge(e);put({...current.current,revision:e.draft.revision});setNotice(done)}})
   const autoSave=useEffectEvent(()=>{void save(false)})
   useEffect(()=>{
     if(!dirty||busy||error||active?.inherited)return
@@ -110,6 +112,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
     reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})},
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},
-    publish:(versionId:string,rights:boolean)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){merge(e);put({...current.current,revision:e.draft.revision});setNotice('선택한 저장 버전을 공개했어요.')}}),
+    publish:(versionId:string,rights:boolean)=>publishVersion(versionId,rights,'선택한 저장 버전을 공개했어요.'),
+    revertCheckpoint:(versionId:string,rights:boolean)=>publishVersion(versionId,rights,'선택한 체크포인트로 되돌렸어요. 작업 초안과 체크포인트 이력은 그대로예요.'),
   }
 }
