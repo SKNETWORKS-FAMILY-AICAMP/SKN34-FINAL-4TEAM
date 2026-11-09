@@ -11,7 +11,6 @@ import ai.storyfork.content.episode.service.dto.*
 import ai.storyfork.content.episode_version.entity.*
 import ai.storyfork.content.episode_version.repository.*
 import ai.storyfork.content.episode_version.service.dto.*
-import ai.storyfork.content.publication.service.dto.*
 
 @Service
 @Transactional(transactionManager="contentTransactionManager")
@@ -69,9 +68,6 @@ class EpisodeVersionService(
         val contentVersion=contentId()
         val v=EpisodeVersionEntity(id=episodeVersionId(id,number,contentVersion),episodeId=e.id,contentVersionId=contentVersion,revisionNo=draft.revision,title=draft.title,content=draft.body,isSaved=true,workWorldHistoryId=snapshot.workWorldHistoryId,restoredFromId=restoredFrom)
         versions.saveAndFlush(v)
-        val prefix=publication.publishedEpisodes(id).items.filter {it.number<number}
-        capture(CheckpointRequest(contentKey("writing-checkpoint",contentVersion),id,id,number,
-            prefix+PublishedEpisodeResponse(number,v.revisionNo,contentVersion,v.title,v.content),snapshot.worldId,snapshot.settings))
         return VersionResponse(v.contentVersionId,v.title,v.content,v.revisionNo,number,v.createdAt.toString())
     }
     /** 권한·기준 검증을 마친 서비스가 사용하는 부분 체크포인트 저장 계약. */

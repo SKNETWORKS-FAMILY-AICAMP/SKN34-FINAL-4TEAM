@@ -57,7 +57,7 @@ export function createMockupWritingRepository() {
     creationType: 'ORIGINAL', genres: ['고전 영웅'], hashtags: ['#활빈당'], hasWritingEpisode: true,
   }
   const episodes: WritingEpisode[] = [
-    { number: 1, draft: { title: '아버지라 부르지 못한 밤', body: HONG_BODY, revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true },
+    { number: 1, draft: { title: '아버지라 부르지 못한 밤', body: HONG_BODY, revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true, checkpoints: [] },
   ]
   const find = (number: number) => {
     const episode = episodes.find((e) => e.number === number)
@@ -77,7 +77,7 @@ export function createMockupWritingRepository() {
     publicList: async () => [],
     writingList: async (_id: string) => structuredClone(episodes),
     createEpisode: async (_id: string, title: string) => {
-      const episode: WritingEpisode = { number: episodes.length + 1, draft: { title, body: '', revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true }
+      const episode: WritingEpisode = { number: episodes.length + 1, draft: { title, body: '', revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true, checkpoints: [] }
       episodes.push(episode)
       return structuredClone(episode)
     },

@@ -7,7 +7,8 @@ import java.util.UUID
 // No legacy aggregate, importer, persistence implementation or duplicated business logic lives here.
 fun contentId(): String = UUID.randomUUID().toString()
 data class Draft(val title: String = "새 회차", val body: String = "", val revision: Int = 0)
-data class WritingEpisode(val number: Int, val draft: Draft, val versions: List<Version>, val publishedVersionId: String?, val inherited: Boolean, val updatedAt: String?, val checkpointStatus: String = "content_only")
+data class Checkpoint(val versionId: String, val publishedAt: String, val active: Boolean)
+data class WritingEpisode(val number: Int, val draft: Draft, val versions: List<Version>, val publishedVersionId: String?, val inherited: Boolean, val updatedAt: String?, val checkpointStatus: String = "content_only", val checkpoints: List<Checkpoint> = emptyList())
 data class Episode(val number: Int, val version: Int, val versionId: String, val title: String, val body: String, val inherited: Boolean = false)
 data class Source(val workId: String, val title: String, val episode: Int, val version: Int, val direction: String,
     val confirmedPolicyRevision: Int? = null, val conditionsConfirmedAt: String? = null)

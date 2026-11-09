@@ -43,12 +43,15 @@ class ContentBoundaryTest {
     @Test fun `episode list keeps the existing JSON array and deletion endpoints preserve resource boundaries`() {
         val mapper=tools.jackson.databind.json.JsonMapper.builder().findAndAddModules().build()
         val dto=ai.storyfork.content.episode.service.dto.EpisodeListResponse(listOf(
-            ai.storyfork.content.episode.service.dto.EpisodeResponse(1,ai.storyfork.content.episode.service.dto.DraftResponse("제목","원고",2),emptyList(),null,false,null)))
+            ai.storyfork.content.episode.service.dto.EpisodeResponse(1,ai.storyfork.content.episode.service.dto.DraftResponse("제목","원고",2),emptyList(),null,false,null,
+                checkpoints=listOf(ai.storyfork.content.episode.service.dto.EpisodeCheckpointResponse("v1","2026-11-01T00:00:00Z",true)))))
         val value=mapper.readTree(mapper.writeValueAsString(dto))
         assertTrue(value.isArray)
         assertEquals("원고",value[0].path("draft").path("body").asText())
         assertEquals(2,value[0].path("draft").path("revision").asInt())
         assertEquals("content_only",value[0].path("checkpointStatus").asText())
+        val checkpoint=value[0].path("checkpoints")[0]
+        assertEquals(listOf("v1","2026-11-01T00:00:00Z",true),listOf(checkpoint.path("versionId").asText(),checkpoint.path("publishedAt").asText(),checkpoint.path("active").asBoolean()))
         assertTrue(Files.readString(root.resolve("episode/controller/EpisodeController.kt")).contains("@DeleteMapping"))
     }
 
