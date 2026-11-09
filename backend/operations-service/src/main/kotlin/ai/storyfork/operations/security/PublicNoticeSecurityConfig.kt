@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -26,9 +25,7 @@ class PublicNoticeSecurityConfig {
             // Callers are always anonymous, so a refused write reaches the entry point; answer 403 directly, never sendError.
             .exceptionHandling {
                 it.authenticationEntryPoint { _, response, _ ->
-                    response.status = 403
-                    response.contentType = MediaType.APPLICATION_JSON_VALUE
-                    mapper.writeValue(response.writer, OperationsErrorResponse("FORBIDDEN", "Access denied."))
+                    response.writeError(mapper, 403, OperationsErrorResponse("FORBIDDEN", "Access denied."))
                 }
             }
             .httpBasic { it.disable() }.formLogin { it.disable() }.logout { it.disable() }
