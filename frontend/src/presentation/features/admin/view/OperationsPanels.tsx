@@ -1,6 +1,4 @@
-import { useRef } from 'react'
-
-import { toKoreanDateTimeInput, type OperationsReply } from '../../../../domain/entities/operations'
+import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
 import { kstDateTime } from '../../../shared/format'
 import type { AdminActionState, useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
@@ -85,69 +83,4 @@ export function OperationsEvents({ vm }: { vm: VM }) {
     <p className="admin-note">이 운영 경로는 안내 기록만 관리해요. 임의 기간 문구·진행 상태 토글·참여·보상은 지원하지 않아요.</p>
     <DemoNote />
   </section>
-}
-
-export function OperationsInquiries({ vm }: { vm: VM }) {
-  const selection = vm.recordSelection.inquiries
-  const rows = vm.data?.operations.inquiries ?? []
-  const row = rows.find((item) => item.id === selection)
-  const root = useAdminDetailFocus(selection, !!row, rows.length)
-  const replyHeading = useRef<HTMLHeadingElement>(null)
-  const key = selection ?? 'new'
-  const form = vm.inquiryDrafts[key] ?? { title: row?.title ?? '', body: row?.body ?? '', category: row?.category ?? '' }
-  const state = vm.actions[`inquiry:${key}`]
-  const blocked = vm.mutationsBlocked || !!state?.pending
-  const answer = row ? vm.replyDrafts[`${row.id}:new`] ?? '' : ''
-  const answerState = row ? vm.actions[`reply:${row.id}:new`] : undefined
-  return <section className="panel admin-operations" aria-label="운영 문의 기록" ref={root}>
-    {!selection ? <>
-      <div className="table-head"><h2 tabIndex={-1}>운영 문의 기록 목록</h2><button type="button" className="btn pri" data-record-id="new" onClick={() => vm.selectRecord('inquiries', 'new')}>문의 기록 추가</button></div>
-      {rows.length ? <ul className="admin-record-list">{rows.map((item) => <li key={item.id}><button type="button" className="admin-record-link" data-record-id={item.id} onClick={() => vm.selectRecord('inquiries', item.id)}><b>[{item.category}] {item.title}</b><span className="small muted">{item.replies.length ? `답변 ${item.replies.length}개` : '답변 없음'} · {kstDateTime(item.createdAt)}{vm.inquiryDrafts[item.id] ? ' · 수정 초안 있음' : ''}</span></button></li>)}</ul> : <p className="admin-empty">등록된 운영 문의 기록이 없어요. 문의 기록을 추가해 보세요.</p>}
-    </> : <>
-      <button type="button" className="btn sm" onClick={() => vm.selectRecord('inquiries', null)}>문의 목록으로</button>
-      <h2 tabIndex={-1}>{selection === 'new' ? '새 운영 문의 기록' : row?.title ?? '문의 확인'}</h2>
-      {selection !== 'new' && !row ? <p role="alert">문의를 표시할 수 없어요. 목록 새로고침 후 다시 선택해 주세요.</p> : <>
-        {row && <><p className="small muted">분류: {row.category} · {row.replies.length ? `답변 ${row.replies.length}개` : '답변 없음'} · {kstDateTime(row.createdAt)}</p><p className="admin-prose">{row.body}</p><h3>문의 기록 수정</h3></>}
-        <form onSubmit={(event) => { event.preventDefault(); void vm.saveInquiry(row?.id ?? null, form) }}>
-          <fieldset disabled={blocked} className="form-grid">
-            <label className="field wide">문의 분류<input className="inp" required maxLength={50} value={form.category} onChange={(e) => vm.setInquiryDraft(key, { ...form, category: e.target.value })} /></label>
-            <label className="field wide">문의 제목<input className="inp" required maxLength={200} value={form.title} onChange={(e) => vm.setInquiryDraft(key, { ...form, title: e.target.value })} /></label>
-            <label className="field wide">문의 내용<textarea className="ta" required maxLength={20000} rows={8} value={form.body} onChange={(e) => vm.setInquiryDraft(key, { ...form, body: e.target.value })} /></label>
-            <div className="rowend wide"><button type="submit" className="btn pri">{state?.pending ? '저장 중…' : '문의 저장'}</button>{row && <button type="button" className="btn" disabled={!!row.replies.length} aria-describedby="inquiry-delete-help" onClick={() => { if (window.confirm('이 운영 문의 기록을 삭제할까요? 삭제 후 복구할 수 없어요.')) void vm.deleteInquiry(row.id) }}>문의 삭제</button>}</div>
-          </fieldset>
-          {row && <p id="inquiry-delete-help" className="admin-note">답변이 남아 있으면 문의를 삭제할 수 없어요. 답변을 각각 삭제한 뒤 문의를 삭제해 주세요.</p>}
-          <AdminActionStatus state={state} />
-        </form>
-        {row && <section className="admin-replies" aria-label="문의 답변">
-          <h3 tabIndex={-1} ref={replyHeading}>답변 기록</h3>
-          {row.replies.length ? row.replies.map((reply, index) => <ReplyEditor key={reply.id} reply={reply} index={index} vm={vm} onDeleted={() => replyHeading.current?.focus()} />) : <p className="muted">아직 등록된 답변이 없어요.</p>}
-          <h3>새 답변</h3>
-          <form onSubmit={(event) => { event.preventDefault(); void vm.saveReply(row.id, null, answer) }}>
-            <fieldset disabled={vm.mutationsBlocked || !!answerState?.pending}>
-              <label className="field">새 답변 내용<textarea className="ta" required maxLength={20000} rows={5} value={answer} onChange={(e) => vm.setReplyDraft(`${row.id}:new`, e.target.value)} /></label>
-              <div className="rowend"><button type="submit" className="btn pri">{answerState?.pending ? '저장 중…' : '답변 추가'}</button></div>
-            </fieldset>
-            <AdminActionStatus state={answerState} />
-          </form>
-          <p className="admin-note">각 답변은 이 문의 아래의 독립 기록이에요. 실제 회원 문의 처리 상태나 답변 전송·알림은 변경하지 않아요.</p>
-        </section>}
-      </>}
-    </>}
-    <DemoNote />
-  </section>
-}
-
-function ReplyEditor({ reply, index, vm, onDeleted }: { reply: OperationsReply; index: number; vm: VM; onDeleted: () => void }) {
-  const state = vm.actions[`reply:${reply.inquiryId}:${reply.id}`]
-  const draft = vm.replyDrafts[`${reply.inquiryId}:${reply.id}`] ?? reply.body
-  return <article className="inquiry-item" aria-label={`답변 ${index + 1}`}>
-    <h4>답변 {index + 1}</h4><p className="small muted">등록 {kstDateTime(reply.createdAt)} · 수정 {kstDateTime(reply.updatedAt)}</p><p className="admin-prose">{reply.body}</p>
-    <form onSubmit={(event) => { event.preventDefault(); void vm.saveReply(reply.inquiryId, reply.id, draft) }}>
-      <fieldset disabled={vm.mutationsBlocked || !!state?.pending}>
-        <label className="field">답변 내용<textarea className="ta" required maxLength={20000} rows={4} value={draft} onChange={(e) => vm.setReplyDraft(`${reply.inquiryId}:${reply.id}`, e.target.value)} /></label>
-        <div className="rowend"><button type="submit" className="btn sm pri">{state?.pending ? '처리 중…' : '답변 저장'}</button><button type="button" className="btn sm" onClick={async () => { if (window.confirm('이 답변 기록을 삭제할까요? 삭제 후 복구할 수 없어요.') && await vm.deleteReply(reply.inquiryId, reply.id)) onDeleted() }}>답변 삭제</button></div>
-      </fieldset>
-      <AdminActionStatus state={state} />
-    </form>
-  </article>
 }

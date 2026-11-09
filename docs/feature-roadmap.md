@@ -506,12 +506,12 @@
 
 ## 운영 관리 서비스 — 운영 업무·LLMOps
 
-독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). 68 공지 게시·조회도 관리자 회원 Bearer·`notices` 권한·독자 공개 조회·화면 연결까지 로컬 단위 테스트와 브라우저 E2E로 확인한 행만 ✅로 표시한다(입력 검증 행은 단위·API로만 확인해 ❌ 유지, [공지 계약](design/operations-notice-contract.md)). hosted CI 결과는 PR에서 확인한다.
+독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). 68 공지 게시·조회도 관리자 회원 Bearer·`notices` 권한·독자 공개 조회·화면 연결까지 로컬 단위 테스트와 브라우저 E2E로 확인한 행만 ✅로 표시한다(입력 검증 행은 단위·API로만 확인해 ❌ 유지, [공지 계약](design/operations-notice-contract.md)). 67의 회원 문의 접수·내 문의·상태·답변과 관리자 회원 문의 조회·답변 관리 행도 회원 Bearer·`feedback` 권한·화면 연결까지 구현해 로컬 단위·브라우저 E2E로 확인했으므로 ✅로 표시하며, 서비스 자격 레코드 행은 ❌를 유지한다([계약](design/operations-support-inquiry-contract.md)). hosted CI 결과는 PR에서 확인한다.
 
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="117">운영 관리 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>운영 서비스 독립 Spring Boot 실행 기반(loopback 8082 유지)</td><td>❌</td><td><a href="#미등록-112">미등록-112</a></td></tr>
+<tr><td rowspan="120">운영 관리 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>운영 서비스 독립 Spring Boot 실행 기반(loopback 8082 유지)</td><td>❌</td><td><a href="#미등록-112">미등록-112</a></td></tr>
 <tr><td rowspan="6">운영 API 공통 기반</td><td rowspan="6">91 서비스 자격·저장 격리</td><td>전용 X-Operations-Service-Token으로 서비스 호출 인증(사람의 관리자 권한 아님)</td><td>❌</td><td rowspan="6"><a href="#미등록-120">미등록-120</a></td></tr>
 <tr><td>미설정·공백·잘못된 서비스 자격의 보호 접근 거절</td><td>❌</td></tr>
 <tr><td>독립 operations schema·전용 Flyway 이력과 JPA validate 저장</td><td>❌</td></tr>
@@ -540,10 +540,10 @@
 <tr><td>작업 실행 기록 조회</td><td>❌</td></tr>
 <tr><td>실패 작업 조회</td><td>❌</td></tr>
 <tr><td>실패 작업 수동 재실행</td><td>❌</td></tr>
-<tr><td rowspan="18">고객지원 관리</td><td rowspan="18">67 문의 접수·답변</td><td>문의 유형(category)을 포함한 문의 레코드 등록(서비스 자격)</td><td>❌</td><td rowspan="18"><a href="#미등록-092">미등록-092</a> · <a href="#미등록-123">미등록-123</a></td></tr>
-<tr><td>내 고객지원 문의 목록 조회</td><td>❌</td></tr>
-<tr><td>내 고객지원 문의 본문·처리 상태 조회</td><td>❌</td></tr>
-<tr><td>내 고객지원 문의의 운영팀 답변 조회</td><td>❌</td></tr>
+<tr><td rowspan="21">고객지원 관리</td><td rowspan="21">67 문의 접수·답변</td><td>문의 유형(category)을 포함한 문의 레코드 등록(서비스 자격)</td><td>❌</td><td rowspan="21"><a href="#미등록-092">미등록-092</a> · <a href="#미등록-123">미등록-123</a> · <a href="design/operations-support-inquiry-contract.md">계약</a></td></tr>
+<tr><td>내 고객지원 문의 목록 조회</td><td>✅</td></tr>
+<tr><td>내 고객지원 문의 본문·처리 상태 조회</td><td>✅</td></tr>
+<tr><td>내 고객지원 문의의 운영팀 답변 조회</td><td>✅</td></tr>
 <tr><td>운영 문의 레코드 목록 조회(서비스 자격·최대 100개)</td><td>❌</td></tr>
 <tr><td>문의에 속한 답변 레코드 등록(서비스 자격)</td><td>❌</td></tr>
 <tr><td>운영 문의 레코드 상세 조회(서비스 자격)</td><td>❌</td></tr>
@@ -557,7 +557,10 @@
 <tr><td>문의·답변의 필수 값·길이·부모 문의 범위 검증</td><td>❌</td></tr>
 <tr><td>문의 분류·제목·본문의 U+0000을 저장·변경 전에 거절하고 기존 필드 보존(로컬 단위 확인)</td><td>❌</td></tr>
 <tr><td>답변 본문의 U+0000을 저장·변경 전에 거절하고 기존 필드 보존(로컬 단위 확인)</td><td>❌</td></tr>
-<tr><td>운영 고객지원 문의 처리 상태 조회(후속 업무 계약)</td><td>❌</td></tr>
+<tr><td>운영 고객지원 문의 처리 상태 조회(후속 업무 계약)</td><td>✅</td></tr>
+<tr><td>로그인 회원 고객지원 문의 접수(비로그인은 로그인 안내)</td><td>✅</td></tr>
+<tr><td>관리자 회원 문의 목록·상태 필터·상세 조회(feedback 권한)</td><td>✅</td></tr>
+<tr><td>관리자 회원 문의 답변 등록·수정·삭제(feedback 권한)</td><td>✅</td></tr>
 <tr><td rowspan="7">공지 관리</td><td rowspan="7">68 공지 게시·조회</td><td>관리자 공지 목록 조회(회원 Bearer·<code>notices</code> 권한·최신 100개)</td><td>✅</td><td rowspan="7"><a href="#미등록-093">미등록-093</a> · <a href="#미등록-121">미등록-121</a> · <a href="design/operations-notice-contract.md">공지 계약</a></td></tr>
 <tr><td>독자 공지 목록·상세 조회(<code>/me/notice</code>, 인증 없음)</td><td>✅</td></tr>
 <tr><td>운영 공지 공개 게시(등록 즉시 공개, 예약·고정 없음)</td><td>✅</td></tr>
@@ -939,7 +942,7 @@
 | <a id="미등록-121"></a>미등록-121 | 68 | 독립 공지 CRUD | 서비스 자격의 UUID 공지 POST 201/Location·GET 목록/상세·PUT 전체 수정·DELETE 204, 최대 100개 고정 정렬 DTO·입력 검증·@Version 충돌을 로컬 구현. 공개 게시/사람별 권한은 제외; 병합·최신 Required CI 미확인으로 ❌ 유지 |
 | <a id="미등록-122"></a>미등록-122 | 69 | 독립 이벤트 CRUD | 서비스 자격의 UUID 이벤트 POST 201/Location·GET 목록/상세·PUT 전체 수정·DELETE 204, 선택 UTC 기간·기간 순서/입력 검증·최대 100개 고정 정렬 DTO·@Version 충돌을 로컬 구현. 제목/본문 U+0000의 저장 전 거절·기존 필드 보존 회귀를 Red → Green으로 확인(EventServiceTest 34건 통과). 진행 상태/참여/보상/공개 UI는 제외; 병합·최신 Required CI 미확인으로 ❌ 유지 |
 | <a id="미등록-123"></a>미등록-123 | 67 | 독립 문의·답변 CRUD | 서비스 자격의 UUID 문의 및 문의 하위 답변 각각 POST 201/Location·GET 목록/상세·PUT 전체 수정·DELETE 204, 부모 범위·필수 값/길이 검증·답변 잔존 부모 삭제 409·@Version 충돌을 로컬 구현. 문의 분류/제목/본문·답변 본문 U+0000의 저장 전 거절·기존 필드 보존 회귀를 Red → Green으로 확인(InquiryServiceTest 21건·InquiryReplyServiceTest 14건 통과). 회원 신원/소유권·내 문의/처리 상태/알림은 제외; 병합·최신 Required CI 미확인으로 ❌ 유지 |
-| <a id="미등록-124"></a>미등록-124 | 92 | 독립 운영 UI 메모리 데모 | 공지·이벤트·문의 레코드 및 부모 범위의 여러 답변 CRUD, 답변 우선 삭제, KST 선택 기간/UTC 변환·검증, 비동기 조회/변경 상태·중복 방지·저장 성공/재조회 실패 구분, 탭 초안/선택·포커스·줄바꿈·안전한 관리자 복귀를 소스 구현. 기존 회원용 공지/이벤트·내 문의/단일 답변·작가 제보 데모는 분리 보존; 실제 HTTP/서버 저장/관리자 인증/발행/알림/버전 충돌 미연결. 인계된 Domain 선택 3파일 32건 및 범위 정적 검사 통과는 기존 Node 22 결과이며 Node 24·React/Hook/App CI·전체 build·브라우저 검증과 다르다. 미병합·최신 Required CI 미확인으로 ❌ 유지 |
+| <a id="미등록-124"></a>미등록-124 | 92 | 독립 운영 UI 메모리 데모 | 공지·이벤트·문의 레코드 및 부모 범위의 여러 답변 CRUD, 답변 우선 삭제, KST 선택 기간/UTC 변환·검증, 비동기 조회/변경 상태·중복 방지·저장 성공/재조회 실패 구분, 탭 초안/선택·포커스·줄바꿈·안전한 관리자 복귀를 소스 구현. 기존 회원용 공지/이벤트·작가 제보 데모는 분리 보존(문의 레코드·답변 데모와 회원 내 문의/단일 답변 데모는 67 실제 API 화면으로 교체·제거); 실제 HTTP/서버 저장/관리자 인증/발행/알림/버전 충돌 미연결. 인계된 Domain 선택 3파일 32건 및 범위 정적 검사 통과는 기존 Node 22 결과이며 Node 24·React/Hook/App CI·전체 build·브라우저 검증과 다르다. 미병합·최신 Required CI 미확인으로 ❌ 유지 |
 | <a id="미등록-116"></a>미등록-116 | 56 | 홈·공유 탐색 접근성 | 메모리 데모 홈의 보조 텍스트 대비·Hero 정지/재생·동작 줄이기 타이머 제외·비활성 카드 제외·모바일 우선순위/TOP3·실제 Fork 출처·필터/제목 의미·44px 더보기 및 공유 Go 링크·직접 소비 스타일/회귀를 로컬 구현. `.prox` 상시 will-change만 제거하고 기존 근접 효과·작품 팔레트·일러스트·폰트는 유지. 후속으로 GNB 크레딧 버튼 줄바꿈 방지와 기존 DEV 조건의 화면 ID 표시·토글 제한을 반영하고 테마 전환·인증 경로 제외·데모 고지는 보존. 모바일 홈·공유 셸의 검색·계정·필터·알림·테마를 최소 44×44px 클릭 박스로 조정하고 좁은 GNB 메뉴의 줄바꿈을 허용; 전역 `.btn.sm`·기존 Hero/더보기는 유지하며 CSS 정적 검사만 수행. 추가 요청으로 Footer의 데모 초기화·로그인만 제거하고 상단 계정/로그인·푸터 데모 고지는 유지; 관련 React 회귀를 먼저 갱신했으며 CI 실행 대기. Fork 출처 선택 단위 RED→GREEN 확인; 화면 ID 환경별 React 회귀는 구현 전에 작성했으나 CI 전용으로 로컬 미실행. React 통합·브라우저 수용 검증·병합·최신 head Required CI 미확인으로 세부 행 모두 ❌ 유지. #24 전체 완료를 뜻하지 않음. PR #151 충돌 해결에서 최신 develop의 알림 API·SSE 회귀를 보존하고 GNB 알림 탐색의 link 역할 기대값을 정렬. 첫 CI의 WorldStudio 이탈 보호 테스트도 같은 link 역할로 정렬했으며 확인 횟수·편집 보존 검증은 유지; 수정본 통합 테스트는 CI 실행 대기 |
 | <a id="미등록-117"></a>미등록-117 | 43 | Compose 실행 경계 | 루트 local 소스 빌드·loopback 포트, local/dev 내부 PostgreSQL·Mailpit과 프로젝트별 volume, dev develop 이미지·내부 DB 전환 승인, prod main runtime 이미지·외부 DB/SMTP·필수 PROD 입력·Secure 쿠키, CI/첨부 소스 빌드 조합을 설정·선택 회귀로 구현. 실제 컨테이너 기동·외부/공유 DB 전환·데이터 이관·main 이미지 게시/가용성·배포는 미실행/미확인이고 병합·최신 head Required CI 전이므로 모든 세부 행은 ❌ 유지. 기본 Auth V4 샘플 회원의 공개 비밀번호 위험은 별도 운영 판단 대상이며 기존 migration은 변경하지 않음 |
 | <a id="미등록-118"></a>미등록-118 | 91 | Core 샘플 subject | 기존 일반 개발 작가 identity·credentials 보존 guard와 비활성 일반 subject 9개의 CSV/COPY loader로 전환. 승인/정확한 대상/잠금/충돌·동일 replay·별도 transaction과 무덮어쓰기 유지. 선택 Python CSV 계약 성공·격리 로컬 PostgreSQL에서 기존 작가 guard 통과·9개 적재·replay 무변경 확인. CI DB 회귀 실행·공유 대상 적용·hosted CI·병합 전이므로 ❌ 유지 |

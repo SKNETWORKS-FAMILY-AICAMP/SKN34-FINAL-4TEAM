@@ -97,15 +97,3 @@ it('운영 API 탭은 데모 조회가 실패해도 본문과 조치 버튼을 �
   renderAdmin('works')
   await screen.findByText(/관리자 데이터를 불러오지 못했어요/)
 })
-
-it('개요의 답변 대기 문의는 운영 패널의 답변 없는 문의만 세고 제보·문의 탭으로 연결한다', async () => {
-  const operations = appContainer.resolve('operationsUseCase')
-  const answered = await operations.saveInquiry(null, { category: '계정', title: '답변된 문의', body: '본문' })
-  await operations.saveReply(answered.id, null, '답변')
-  for (const title of ['첫 문의', '둘째 문의']) await operations.saveInquiry(null, { category: '계정', title, body: '본문' })
-  await appContainer.resolve('accountUseCase').ask('이용 문의', '회원 문의', '본문')
-  renderAdmin('data')
-  const link = (await screen.findByText('답변 대기 문의 (데모)')).closest('a') as HTMLElement
-  expect(link.getAttribute('href')).toBe('/admin?tab=feedback')
-  expect(link.querySelector('b')!.textContent).toBe('2')
-})

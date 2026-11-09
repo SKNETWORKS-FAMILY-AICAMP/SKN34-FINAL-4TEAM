@@ -1,16 +1,17 @@
-import type { Inquiry } from '../../domain/entities/account'
 import type { AdminState } from '../../domain/entities/admin'
 import type { CharacterChat, ChatLine } from '../../domain/entities/chat'
 import type { DemoCredits } from '../../domain/entities/credit'
 import { newEpisodeDraft, type Draft } from '../../domain/entities/draft'
 import type { Comment, InboxItem, ReaderReport, ReviewItem } from '../../domain/entities/feedback'
+import { OperationsError } from '../../domain/entities/operations'
+import type { SupportInquiry, SupportInquiryInput, SupportInquiryStatus } from '../../domain/entities/supportInquiry'
 import { makeFork, nid, type Theme, type Work } from '../../domain/entities/work'
 import type { World } from '../../domain/entities/world'
 import type { AdminRepository } from '../../domain/repositories/AdminRepository'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
-import type { InquiryRepository } from '../../domain/repositories/InquiryRepository'
+import type { SupportInquiryRepository } from '../../domain/repositories/SupportInquiryRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
 /** 정본 저장소가 아닌 세션 전용 데모 상태. 운영 연결에는 샘플 원문·이용 이력을 넣지 않는다. */
@@ -22,7 +23,7 @@ export function createMockDb() {
     progress: {last:{},read:{},seen:{},liked:{}} as ReadingProgress,
     characterChats: null as CharacterChat[] | null,
     chat: {} as Record<string, ChatLine[]>,
-    inq: [] as Inquiry[],
+    inq: [] as SupportInquiry[],
     comments: {} as Record<string, Comment[]>,
     cmLiked: {} as Record<string, boolean>,
     reports: [] as ReaderReport[],
@@ -118,11 +119,47 @@ export class InMemoryChatRepository implements ChatRepository {
   async saveLog(key: string, log: ChatLine[]) { this.db.chat[key] = structuredClone(log) }
 }
 
-export class InMemoryInquiryRepository implements InquiryRepository {
+/** 서버 없는 데모(`--mode mockup`·통합 테스트)에서 운영 고객지원 문의 계약을 메모리로 흉내 냅니다. 로그인 회원은 하나뿐이라 내 문의가 곧 전체입니다. */
+export class InMemorySupportInquiryRepository implements SupportInquiryRepository {
   private readonly db: MockDb
   constructor(db: MockDb) { this.db = db }
-  list() { return copy(this.db.inq) }
-  async add(inquiry: Inquiry) { this.db.inq.unshift(structuredClone(inquiry)) }
+  private find(id: string) {
+    const inquiry = this.db.inq.find((x) => x.id === id)
+    if (!inquiry) throw new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.')
+    return inquiry
+  }
+  /** 답변 유무로 상태를 다시 계산합니다. */
+  private touch(inquiry: SupportInquiry) {
+    inquiry.status = inquiry.replies.length ? 'ANSWERED' : 'WAITING'
+    inquiry.updatedAt = new Date().toISOString()
+  }
+  private reply(id: string, replyId: string) {
+    const inquiry = this.find(id), reply = inquiry.replies.find((x) => x.id === replyId)
+    if (!reply) throw new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.')
+    return { inquiry, reply }
+  }
+  listMine() { return copy(this.db.inq) }
+  async create(input: SupportInquiryInput) {
+    const now = new Date().toISOString()
+    this.db.inq.unshift({ id: nid('q'), memberId: 'demo-member', ...input, status: 'WAITING', createdAt: now, updatedAt: now, replies: [] })
+  }
+  listAll(status: SupportInquiryStatus | null) { return copy(this.db.inq.filter((x) => !status || x.status === status)) }
+  async get(id: string) { return structuredClone(this.find(id)) }
+  async addReply(id: string, body: string) {
+    const inquiry = this.find(id), now = new Date().toISOString()
+    inquiry.replies.push({ id: nid('r'), body, createdAt: now, updatedAt: now })
+    this.touch(inquiry)
+  }
+  async updateReply(id: string, replyId: string, body: string) {
+    const { inquiry, reply } = this.reply(id, replyId)
+    Object.assign(reply, { body, updatedAt: new Date().toISOString() })
+    this.touch(inquiry)
+  }
+  async deleteReply(id: string, replyId: string) {
+    const { inquiry } = this.reply(id, replyId)
+    inquiry.replies = inquiry.replies.filter((x) => x.id !== replyId)
+    this.touch(inquiry)
+  }
 }
 
 export class InMemoryAdminRepository implements AdminRepository {
