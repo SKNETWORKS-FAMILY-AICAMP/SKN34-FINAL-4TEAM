@@ -1,0 +1,9 @@
+Memo: 저장 중… visible
+Cover upload: preview added, no saving display
+Cover removal: preview removed, no saving display
+Prompt: no saving display, retained after tab switch
+Dialog: confirm 설정 검사 · 예시 비용 5 크레딧 · 데모 잔액 100. 실제 요금은 미정이며 실제 차감은 없어요. 계속할까요?
+Initial setting check: 통과
+Reverted body: stale in editor and publish sheet
+Dialog: confirm 설정 검사 · 예시 비용 5 크레딧 · 데모 잔액 95. 실제 요금은 미정이며 실제 차감은 없어요. 계속할까요?
+Recheck: 통과, stale cleared
