@@ -57,8 +57,7 @@ class EpisodeCommentService(
         val body=cleanBody(data.body)
         val quote=cleanQuote(data.quote)
         val version=publishedVersion(id,number)
-        val now=Instant.now().truncatedTo(ChronoUnit.MICROS)
-        val row=EpisodeCommentEntity(contentId(),id,number,version,member,body,quote,data.spoiler,now,now)
+        val row=EpisodeCommentEntity(contentId(),id,number,version,member,body,quote,data.spoiler)
         comments.save(row)
         return respond(listOf(row),member).single()
     }
@@ -134,7 +133,7 @@ class EpisodeCommentService(
         return rows.map {row ->
             val by=liked[row.id].orEmpty()
             CommentResponse(row.id,row.workId,row.episodeNumber,row.publishedVersionId,names[row.authorId] ?: WITHDRAWN_MEMBER_NAME,row.body,row.quote,row.spoiler,
-                by.size,viewer!=null && by.any {it.memberId==viewer},viewer!=null && row.authorId==viewer,
+                by.size,by.any {it.memberId==viewer},row.authorId==viewer,
                 row.updatedAt>row.createdAt,row.createdAt,row.updatedAt)
         }
     }
