@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { SessionExpired } from '../../../../domain/repositories/ProfileRepository'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import { checkProfile } from '../../../../domain/entities/account'
 import type { AccountUseCase } from '../../../../domain/usecases/AccountUseCase'
+import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
 /** 목업 mePage(sub)·saveProfile·#suf·#iqf·withdrawSheet: U30~U35E 계정 */
-export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase')) {
+export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase'), noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase')) {
   const { role, user } = useAppSelector((s) => s.session)
   const dispatch = useAppDispatch()
   const profileUseCase = appContainer.resolve('profileUseCase')
@@ -43,15 +45,21 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
     return () => { request.abort(); controller.current = null }
   }, [sub, role, dispatch, profileUseCase, profileAttempt])
   useScreenId(sub === 'liked' ? 'U32' : sub === 'pay' ? 'U33' : sub === 'inquiry' ? 'U34' : sub === 'notice' ? 'U35' : sub === 'event' ? 'U35E' : 'U30')
-  const { data } = useAsyncData(async () => ({
+  // 공지는 인증 없는 운영 공지 API: ?id가 없으면 목록, 있으면 그 공지 하나(없으면 null)를 읽습니다. id는 조회 범위라 바뀌면 이전 결과를 감춥니다.
+  const [params] = useSearchParams()
+  const noticeId = sub === 'notice' ? params.get('id') : null
+  const { data, isError, retry } = useAsyncData(async () => ({
     sub,
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
     storage: sub === 'storage' ? await accountUseCase.storage() : null,
     inquiries: sub === 'inquiry' ? await accountUseCase.inquiries() : [],
-    board: sub === 'notice' || sub === 'event' ? await accountUseCase.board() : null,
-  }), [accountUseCase, sub])
+    events: sub === 'event' ? await accountUseCase.events() : [],
+    notices: sub === 'notice' && noticeId === null ? await noticeUseCase.listPublic() : [],
+    notice: sub === 'notice' && noticeId ? await noticeUseCase.getPublic(noticeId) : null,
+  }), [accountUseCase, noticeUseCase, sub, noticeId])
   return {
     role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, data: data?.sub === sub ? data : undefined,
+    loadFailed: isError, retryLoad: retry,
     retryProfile: () => setProfileAttempt((attempt) => attempt + 1),
     saveProfile: async (nick: string, email: string) => {
       const err = checkProfile(nick, email)

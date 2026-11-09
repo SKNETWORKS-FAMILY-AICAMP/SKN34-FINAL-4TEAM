@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector, type RootState } from '../../../../app/
 import type { AdminTab } from '../../../../domain/entities/admin'
 import { toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
 import { type AdminResult, type AdminUseCase, canToggleWork } from '../../../../domain/usecases/AdminUseCase'
+import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
 import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
 import { REPORT_STATUSES, type ReviewDecision } from '../../../../domain/entities/report'
@@ -25,7 +26,7 @@ export type AdminActionState = ActionState
 const demoSaved = (name: string) => ({ ok: true, msg: `${name} 저장했어요 (독립 운영 데모 · 서버 저장 없음)` })
 const demoDeleted = (name: string) => ({ ok: true, msg: `${name} 삭제했어요 (독립 운영 데모 · 서버 삭제 없음)` })
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'profile']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'profile', 'notices']
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
 
 /** 기존 회원/제보 데모와 독립 운영 CRUD를 함께 보여 주되 정본과 조치를 섞지 않습니다. */
@@ -35,6 +36,7 @@ export function useAdminViewModel(
   operationsUseCase: OperationsUseCase = appContainer.resolve('operationsUseCase'),
   memberUseCase: MemberUseCase = appContainer.resolve('memberUseCase'),
   reportUseCase: ReportUseCase = appContainer.resolve('reportUseCase'),
+  noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'),
 ) {
   const dispatch = useAppDispatch()
   const store = useStore<RootState>()
@@ -59,7 +61,8 @@ export function useAdminViewModel(
     admins: tab === 'admins' ? await memberUseCase.listAdmins() : [],
     // 개요의 '접수된 신고' 수도 실제 신고 목록에서 셉니다.
     reports: tab === 'rights' ? await reportUseCase.listAll(status) : tab === 'data' ? await reportUseCase.listAll('RECEIVED') : [],
-  }), [tab, role, q, sort, status, memberUseCase, reportUseCase])
+    notices: tab === 'notices' ? await noticeUseCase.list() : [],
+  }), [tab, role, q, sort, status, memberUseCase, reportUseCase, noticeUseCase])
   const reportId = tab === 'rights' ? sel : null
   const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
   // mounted는 화면을 떠난 뒤 끝난 조치가 다른 화면에 알림을 띄우거나 Redux 초안·선택을 정리하지 않게 하는 데만 씁니다.
@@ -125,15 +128,15 @@ export function useAdminViewModel(
     // 성공·dataChanged는 유지하되 UI 정리는 살아 있는 폼의 제출 초안·선택에만 적용합니다.
     saveNotice: (id: string | null, input: NoticeInput) => run(`notice:${id ?? 'new'}`, async () => {
       const key = id ?? 'new', untouched = watchForm('notices', key, (s) => s.noticeDrafts[key])
-      const row = await operationsUseCase.saveNotice(id, input)
+      const row = await noticeUseCase.save(id, input)
       if (untouched()) { dispatch(adminViewActions.clearNoticeDraft(key)); selectRecord('notices', row.id) }
-      return demoSaved('공지를')
+      return { ok: true, msg: '공지를 저장했어요. 회원 공지사항에 바로 공개돼요.' }
     }),
     deleteNotice: (id: string) => run(`notice:${id}`, async () => {
       const untouched = watchForm('notices', id, (s) => s.noticeDrafts[id])
-      await operationsUseCase.deleteNotice(id)
+      await noticeUseCase.delete(id)
       if (untouched()) { dispatch(adminViewActions.clearNoticeDraft(id)); selectRecord('notices', null) }
-      return demoDeleted('공지를')
+      return { ok: true, msg: '공지를 삭제했어요. 회원 공지사항에서도 사라져요.' }
     }),
     saveEvent: (id: string | null, input: EventDraft) => run(`event:${id ?? 'new'}`, async () => {
       const key = id ?? 'new', untouched = watchForm('events', key, (s) => s.eventDrafts[key])

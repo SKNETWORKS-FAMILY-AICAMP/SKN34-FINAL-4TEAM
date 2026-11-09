@@ -546,8 +546,14 @@ function Body(p: BodyProps) {
       </div>
     )
   } else if (tab === 'events') T = <OperationsEvents vm={vm} />
-  else if (tab === 'notices') T = <OperationsNotices vm={vm} />
-  else if (tab === 'credits') {
+  else if (tab === 'notices') {
+    T = (
+      <>
+        <LiveState vm={vm} label='공지 목록' />
+        <OperationsNotices vm={vm} />
+      </>
+    )
+  } else if (tab === 'credits') {
     T = (
       <div className='panel'>
         <div className='table-head'>
