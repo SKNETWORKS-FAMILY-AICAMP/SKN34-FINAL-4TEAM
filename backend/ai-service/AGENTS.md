@@ -9,7 +9,9 @@
 - 요청·응답은 Pydantic DTO(`Request`·`Payload`·`Response`·`Result`)로 정의한다. 임의 `dict`·외부 SDK 응답을 계약으로 노출하지 않는다.
 - 구체 클래스와 직접 함수 호출을 기본으로 한다. production 구현체가 둘 이상이거나 사용자가 요청하지 않으면
   `Protocol`·ABC·provider·registry·factory 추상화를 만들지 않는다. 테스트 편의를 위해 production 추상화를 추가하지 않는다.
-- 모델·제공사·에이전트 프레임워크는 미정이다(DEC-28). 의존성·lockfile을 미리 바꾸지 않는다.
+- 2026-11-09 사용자 결정: 모델 호출은 OpenAI API, TASK 05 분류는 Decisions(`gpt-6-luna`)를 사용한다.
+  TASK 08의 Main 실행 조립은 LangGraph StateGraph를 사용한다. 개별 Agent 구성·운영 연결은 후속 범위다.
+  요청된 단계에 필요한 경우 외에는 의존성·lockfile을 미리 바꾸지 않는다.
 - 장애는 명시적 오류로 반환하고 fallback으로 숨기지 않는다. 역할·인물마다 서버나 클래스를 만들지 않는다.
 
 ## 생성 경계

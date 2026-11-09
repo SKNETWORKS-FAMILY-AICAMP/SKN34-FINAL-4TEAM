@@ -31,6 +31,8 @@ flowchart LR
 
 ### 2. Main StateGraph 상세
 
+2026-11-09 TASK 08: `runs/state.py`·`graph.py`에서 실제 LangGraph 1.2.12 StateGraph와 참조 전용 InMemorySaver를 연결했다. Scope 확인·Router·고정 계획·기존 TaskRunner·합성 검색/Agent·출력 검증·제안 종료를 조립한다. 아래 목표 흐름 중 승인/적용·SSE·영속 재개는 아직 없다. TaskRunner의 ready/dispatch/merge 루프는 dispatch 노드 안에서 재사용하고 StateGraph는 그 바깥 노드 경계를 checkpoint한다. [상세 계약·증거](task08-handoff.md).
+
 ```mermaid
 flowchart TD
     I[Content 인증 및 ACL] --> S[대상과 thread 복원]
@@ -115,7 +117,11 @@ flowchart TD
 
 Slot Resolver는 인증된 UI 대상 → 같은 scope의 이전 대상 → 회차·이름 parser → Content의 허용 후보 → 후보 내 선택 → 필요 시 구조화 추출 → 사용자 확인 순으로 진행한다. “5화”와 UI의 “3화”가 다르면 명시한 범위를 Content에서 다시 확인한다. 다른 작품·Fork나 동명이인은 확인 전 실행을 멈춘다. 검색 문구는 인가 정보나 tool 이름으로 해석하지 않는다.
 
+**2026-11-09 TASK 05 구현 결정.** 사용자 요청으로 공급자를 OpenAI로 선택했다. 명시 UI·등록 단일/복합 표현은 규칙으로 0회, 나머지 입력은 `OpenAIDecisionsRouterAdapter`의 `gpt-6-luna` 선택형 질문 1회로 분류한다. 실제 승인·저장 요구는 실행하지 않는다. 등록 복합 enum은 위 검수→조건부 수정 예제의 `review_then_edit`만 구현하며, 다른 조합은 `clarify`다. 대상 확인은 별도 `SlotResolver`에서 Content 후보를 매번 재검증한다. 서버 API·DAG 실행·Content 실제 후보 transport는 이 단계에 연결하지 않았다. [계약·검증·사용 예](task05-handoff.md).
+
 ## Registry와 작업 상태 계약
+
+2026-11-09 TASK 06: `runs/orchestrator.py`에 불변 Registry·참조 타입 Task DTO·위상 검증·보수적 예산 예약 검사를 구현했다. 모든 handler는 미연결 stub이며 LangGraph·Agent·저장 실행은 없다. 겹치는 Patch는 사용자 선택 오류로 거부한다. [상세 계약과 검증](task06-handoff.md).
 
 | capability | 허용 입력 → 출력 | 허용 후속 조건 |
 |---|---|---|
@@ -148,6 +154,8 @@ result: null
 `MainState`에는 `thread_id/run_id, request_ref, messages(허용된 최근 참조), conversation_summary_ref, scope, security_decision_ref, classification, task_plan, task_results, evidence_refs, coverage, simulation_ref, generated_content_ref, change_set_ref, approval_ref, response_ref, execution_status, budget_usage, errors`를 둔다. task는 pending → running → succeeded/partial/failed/cancelled/skipped. `Send`는 필요한 읽기 전용 slice만 전달한다. reducer는 `(run_id,task_id,attempt)`로 중복 병합을 방지하고 고정된 task 순서로 결과를 조립한다. 병렬 작업끼리 messages를 덮어쓰지 않는다. `Command`는 검증된 다음 노드와 일부 상태만 갱신한다. [LangGraph Graph API](https://docs.langchain.com/oss/python/langgraph/graph-api)
 
 ## 비용·실패 제어
+
+2026-11-09 TASK 07: `runs/runner.py`에 ready Task 실행·동시 상한 2·조건/실패 skip·Send용 참조 slice·lease/attempt reducer·호출 전 예약과 사용량 미확인 보존·취소/deadline·1회 확장 제한을 구현했다. 선택적 SimulationReport의 조건 skip만 optional 참조로 허용한다. 실제 Agent·LangGraph·모델·Saver·승인은 연결하지 않았다. [계약·합성 검증](task07-handoff.md).
 
 새 채팅 턴은 같은 thread에서 최근 대상 참조와 승인된 대화 요약만 복원한다. 이전 턴의 분류, 선택 에이전트, 시뮬레이션, 승인 및 비용 예약은 새 run의 초기값으로 재사용하지 않는다. 동일 run의 장애 복구에서는 반대로 이미 사용한 예산·완료 task를 유지한다.
 

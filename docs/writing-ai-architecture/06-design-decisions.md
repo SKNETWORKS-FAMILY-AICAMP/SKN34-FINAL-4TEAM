@@ -1,8 +1,12 @@
 # 결정 기록과 구현 전 확인 사항
 
-이 기록은 집필 AI의 **추천 설계**다. 제품에서 이미 확정된 경계는 Core 인증, Content의 작품 인가·정본 반영, Neo4j의 현재 관계 단일 정본, 승인 전 원고 보존이다. LangGraph와 모델 제공사, 검색 인프라 도입 및 운영 예산은 추천안에 대한 별도 결정이 필요하다. [프로젝트 결정](../design/decisions.md) · [현재 관계 계약](../design/worldstudio-independent-schema.md)
+이 기록은 집필 AI의 **추천 설계**다. 제품에서 이미 확정된 경계는 Core 인증, Content의 작품 인가·정본 반영, Neo4j의 현재 관계 단일 정본, 승인 전 원고 보존이다. 2026-11-09 사용자 요청으로 모델 제공사는 OpenAI API, TASK 05 분류는 Decisions(`gpt-6-luna`)로 결정했다. 아래 JEV 비교는 이전 검토 기록이다. LangGraph·검색 인프라·운영 예산은 별도 결정이 필요하다. [프로젝트 결정](../design/decisions.md) · [현재 관계 계약](../design/worldstudio-independent-schema.md)
+
+TASK 05는 기존 SDK의 `OpenAI.post('/decisions', ...)`로 공식 HTTP 계약을 구현했다. 키는 서버 `OPENAI_API_KEY`만 사용하고 공식 OpenAI base URL·15초 timeout·재시도 0회로 제한한다. 사용자 요청에 따라 실제 공급자 어댑터 구현까지 허용하되 유료 호출·실사용자 원고 전송은 검증하지 않았다. 모델의 확신 점수 임계값을 임의 정책으로 정하지 않고 `clarify` 선택지와 결정적 enum·허용 작업 검사를 사용한다. 한국어 정확도·지연·계정 접근 검증은 대기다. [TASK 05 인수 기록](task05-handoff.md).
 
 ## 실행과 모델
+
+2026-11-09 TASK 08 요청으로 Main 실행 조립에 LangGraph StateGraph를 채택하고 `langgraph==1.2.12`를 의존성에 추가했다. OpenAI 전용 모델 결정은 유지하며 이 단계에서 모델을 호출하지 않는다. InMemorySaver는 참조 전용 상태의 개발 대역이고 실제 Saver·운영 재개 결정은 후속이다. [TASK 08 계약과 검증](task08-handoff.md).
 
 | 문제·현재 근거 | 선택지 A / 비용과 영향 | 선택지 B / 비용과 영향 | 추천·결정 시점·미결 영향 |
 |---|---|---|---|
