@@ -88,6 +88,16 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
     expect(dataVersion).toBe(1)
   })
 
+  it('이탈만 하고 돌아오지 않아도 같은 초안·선택을 정리하지 않고 성공과 dataChanged는 유지한다', async () => {
+    const request = useStartedSubmission(test)
+    doubles.cleanups.splice(0).forEach((cleanup) => cleanup())
+    const expected = view
+    request.finish()
+    expect(await request.pending).toBe(true)
+    expect(view).toEqual(expected)
+    expect(dataVersion).toBe(1)
+  })
+
   it('같은 mount에서 제출 뒤 바뀐 초안을 지우지 않는다', async () => {
     const request = useStartedSubmission(test)
     test.prepare(request.vm, true)
