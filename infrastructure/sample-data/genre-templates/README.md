@@ -24,16 +24,19 @@
 
 ## 적재 방식
 
-Content 서버가 시작될 때 `GenreTemplateSeeder`가 [`genre-templates.json`](../../../backend/content-service/src/main/resources/genre-templates.json)을 읽어 **STORYFORK 플랫폼 계정이 소유한 WorldStudio 세계관 11개(카드 248장)** 를 만듭니다. 기존 `WorldStudioService`의 create → edit → save를 그대로 호출하며, 세계관 ID와 key(`genre-template-<장르>`)가 고정이라 시작할 때마다 다시 시도해도 안전합니다. 한 장르가 실패(Neo4j 장애 등)해도 장르별 오류 로그만 남기고 서버는 계속 뜨며, 다음 시작 때 다시 시도합니다. `genre-templates.json`을 읽지 못해도 오류 로그만 남기고 기동합니다. 이미 저장된 세계관은 건너뜁니다.
+Content 서버가 시작될 때 `GenreTemplateSeeder`가 [`genre-templates.json`](../../../backend/content-service/src/main/resources/genre-templates.json)을 읽어 **기존 운영 관리자 계정이 소유한 WorldStudio 세계관 11개(카드 248장)** 를 만듭니다. 기존 `WorldStudioService`의 create → edit → save를 그대로 호출하며, 세계관 ID와 key(`genre-template-<장르>`)가 고정이라 시작할 때마다 다시 시도해도 안전합니다. 한 장르가 실패(Neo4j 장애 등)해도 장르별 오류 로그만 남기고 서버는 계속 뜨며, 다음 시작 때 다시 시도합니다. `genre-templates.json`을 읽지 못해도 오류 로그만 남기고 기동합니다. 이미 저장된 세계관은 건너뜁니다.
 
-- 소유 계정: `STORYFORK`(관리자, 로그인 불가), 회원 UUID `b09cdf87-6901-50df-9c76-881c81f4f034`. Core `auth/V11__storyfork_platform_account.sql`이 만듭니다.
+- 소유 계정(임시 할당): Core `auth/V8__member_admin_operations.sql`의 운영 관리자 `admin@example.test`(`operator=true`), 회원 UUID `5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01`. 새 계정은 만들지 않으며, 운영자로 로그인하면 세계관 목록에서 보입니다.
 - 카드: 장르마다 22~23장. 본문은 `source/original.md`의 해당 항목 그대로이며 인물→`character`, 장소→`location`, 규칙→`rule`, 그 외→`other`, 영역은 `basic`입니다. “전체 원문” 보관본 11개는 카드로 넣지 않습니다.
 - 작품·회차·체크포인트·Fork는 만들지 않습니다. 세계관 이름·설명은 이전 샘플 데이터의 문구를 그대로 썼습니다.
 
 ## 현재 한계
 
-- 세계관 목록은 소유자 전용이라 STORYFORK만 볼 수 있습니다. 다른 사용자에게는 아직 보이지 않습니다.
+- 소유자는 임시로 할당한 운영 관리자 계정입니다. V8 샘플 관리자 비밀번호가 마이그레이션 주석에 공개되어 있어, 그 계정으로 로그인하면 누구나 템플릿을 수정·삭제할 수 있습니다. 실제 운영 계정·공개 템플릿 조회가 생기면 소유자를 바꿉니다.
+- V8은 `ON CONFLICT (email) DO NOTHING`이라 기존 DB에 `admin@example.test`가 다른 id로 있으면 템플릿 소유자가 실제 로그인 계정과 다를 수 있습니다.
+- 세계관 목록은 소유자 전용이라 다른 사용자에게는 여전히 보이지 않습니다.
 - 사용자가 템플릿을 가져오는 기능, 공개/비공개 설정, Fork 연계는 후속 작업입니다.
+- 소유자를 바꿔도 이미 적재된 세계관은 새 소유자로 옮겨지지 않습니다. 고정 worldId의 create가 소유자 불일치로 거절되어 장르별 오류 로그만 남으므로, 소유자 변경 때는 기존 세계관(PostgreSQL·Neo4j)을 승인 하에 정리해야 합니다.
 - PostgreSQL만 초기화하고 Neo4j 데이터가 남으면 고정 worldId의 create가 graph mismatch(`RELATIONSHIP_VERSION_MISMATCH`)로 실패해 해당 장르가 재시작마다 오류 로그만 남기고 적재되지 않습니다. 둘을 함께 초기화해야 합니다. CI처럼 여러 PostgreSQL이 Neo4j 하나를 공유하면 컨텍스트마다 오류 로그가 나오지만 테스트는 깨지지 않습니다.
 
 ## 내용을 바꿀 때

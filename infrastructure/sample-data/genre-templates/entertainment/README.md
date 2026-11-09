@@ -25,4 +25,4 @@
 - `source/original.md`: 수정하지 않은 전체 원문(보관본).
 - `source/template.json`: 구조화 데이터(`basic_template`, `setting_bible`).
 
-Content 서버가 시작될 때 이 장르의 설정 항목 22장이 STORYFORK 플랫폼 계정 소유 WorldStudio 세계관(ID `2d96298b-88e4-5737-8efe-a85ee2e2fffe`, key `genre-template-entertainment`)으로 적재됩니다. 카드 본문은 `source/original.md`의 해당 항목 그대로이며, 전체 원문 보관본은 카드로 넣지 않습니다. 작품·회차·체크포인트는 만들지 않습니다. 적재 방식과 현재 한계는 [장르 템플릿 README](../README.md)를 참고하세요.
+Content 서버가 시작될 때 이 장르의 설정 항목 22장이 운영 관리자 계정 소유 WorldStudio 세계관(ID `2d96298b-88e4-5737-8efe-a85ee2e2fffe`, key `genre-template-entertainment`)으로 적재됩니다. 카드 본문은 `source/original.md`의 해당 항목 그대로이며, 전체 원문 보관본은 카드로 넣지 않습니다. 작품·회차·체크포인트는 만들지 않습니다. 적재 방식과 현재 한계는 [장르 템플릿 README](../README.md)를 참고하세요.

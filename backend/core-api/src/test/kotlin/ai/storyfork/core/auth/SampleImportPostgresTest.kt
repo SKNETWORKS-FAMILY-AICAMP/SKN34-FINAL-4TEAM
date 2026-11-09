@@ -43,7 +43,7 @@ class SampleImportPostgresTest {
     @Test fun `V9 adds ordinary disabled sample accounts without changing the existing writer`() = isolated { jdbc, flyway ->
         flyway("8").migrate()
         val before = jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer)
-        assertEquals(2, flyway(null).migrate().migrationsExecuted) // V9 샘플 계정 + V11 STORYFORK 플랫폼 계정
+        assertEquals(1, flyway(null).migrate().migrationsExecuted)
         assertEquals(9, samples(jdbc))
         assertTrue(before == jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer), "Existing writer must remain unchanged")
         assertEquals(0, flyway(null).migrate().migrationsExecuted)
