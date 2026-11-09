@@ -44,6 +44,8 @@ export function useReaderViewModel(id: string, n: number,
   const { data, isError, retry } = useAsyncData(async () => {
     const r = await readingUseCase.openEpisode(id, n, role)
     if (!r || r === 'hidden') return r
+    // 독서 기록 저장은 기다리지 않는다. 실패해도 읽기는 계속되지만, 저장된 것처럼 보이지 않게 알립니다.
+    r.recording.catch(() => toast('이어 읽기 위치를 저장하지 못했어요 · 읽기는 계속할 수 있어요'))
     return { ...r, ...(await feedbackUseCase.getComments(r.work, r.n)) }
   }, [readingUseCase, feedbackUseCase, id, n, role])
   const [selected, setSelected] = useState<{ k: number; top: number; left: number; pop: boolean } | null>(null)

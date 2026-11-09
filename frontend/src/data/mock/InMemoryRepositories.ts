@@ -11,6 +11,7 @@ import type { AdminRepository } from '../../domain/repositories/AdminRepository'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
+import type { ReadingRecord, ReadingRecordRepository } from '../../domain/repositories/ReadingRecordRepository'
 import type { SupportInquiryRepository } from '../../domain/repositories/SupportInquiryRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
@@ -89,6 +90,27 @@ export class InMemoryReadingRepository implements ReadingRepository {
   getProgress() { return copy(this.db.progress) }
   async markSeen(workId: string) { this.db.progress.seen[workId] = true }
   async saveProgress(progress: ReadingProgress) { this.db.progress = structuredClone(progress) }
+}
+
+/** 서버 독서 기록의 목업 대역: 같은 상태를 읽는 다른 목업(캐릭터 챗 등)을 위해 mockDb.progress의 last·read를 정본으로 씁니다. */
+export class InMemoryReadingRecordRepository implements ReadingRecordRepository {
+  private readonly db: MockDb
+  constructor(db: MockDb) { this.db = db }
+  /** last의 키 순서가 곧 최근 순입니다(record가 작품을 맨 앞으로 옮김). */
+  async list() {
+    const { last, read } = this.db.progress
+    return Object.keys(last).map((workId): ReadingRecord => ({ workId, lastEpisode: last[workId], readEpisodes: [...(read[workId] ?? [])].sort((a, b) => a - b) }))
+  }
+  async record(workId: string, episode: number) {
+    const { [workId]: _, ...others } = this.db.progress.last
+    this.db.progress.last = { [workId]: episode, ...others }
+    const read = (this.db.progress.read[workId] ??= [])
+    if (!read.includes(episode)) read.push(episode)
+  }
+  async remove(workId: string) {
+    delete this.db.progress.last[workId]
+    delete this.db.progress.read[workId]
+  }
 }
 
 export class InMemoryFeedbackRepository implements FeedbackRepository {

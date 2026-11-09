@@ -1,6 +1,7 @@
 import type { Work as ContentWork } from '../entities/content'
 import { splitSentences } from '../entities/feedback'
 import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
@@ -19,15 +20,23 @@ export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] 
 export class ReadingUseCase {
   private readonly workRepository: WorkRepository
   private readonly readingRepository: ReadingRepository
+  /** 로그인 회원의 이어 읽기·읽은 회차(서버 독서 기록. 목업은 메모리) */
+  private readonly readingRecordRepository: ReadingRecordRepository
   /** 있으면 홈 순위·검색을 서버(Content 공개 API)로 채웁니다. 없으면(목업) 메모리 데모입니다. */
   private readonly workSearchRepository?: WorkSearchRepository
   /** 있으면 서버 작품(canonical)의 좋아요를 Content로 보냅니다. 없으면(목업) 메모리 데모입니다. */
   private readonly workLikeRepository?: WorkLikeRepository
-  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, workSearchRepository?: WorkSearchRepository, workLikeRepository?: WorkLikeRepository) {
+  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, readingRecordRepository: ReadingRecordRepository, workSearchRepository?: WorkSearchRepository, workLikeRepository?: WorkLikeRepository) {
     this.workRepository = workRepository
     this.readingRepository = readingRepository
+    this.readingRecordRepository = readingRecordRepository
     this.workSearchRepository = workSearchRepository
     this.workLikeRepository = workLikeRepository
+  }
+
+  /** 로그인 회원의 서버 독서 기록(최근 순). 비회원은 기록이 없고(서버를 부르지 않음), 읽지 못하면 빈 기록으로 숨기지 않고 던집니다. */
+  private memberRecords(role: Role): Promise<ReadingRecord[]> {
+    return role ? this.readingRecordRepository.list() : Promise.resolve([])
   }
 
   /** 서버 랭킹(최근 24시간 조회). 실패는 빈 목록으로 숨기지 않고 failed로 알립니다. */
@@ -39,7 +48,7 @@ export class ReadingUseCase {
 
   /** 목업 home(): 칩이 '추천'이 아니면 filtered(U02)만 채웁니다. */
   async getHome(role: Role, chip: string) {
-    const [works, progress, ranking] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverRanking()])
+    const [works, progress, ranking, records] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverRanking(), this.memberRecords(role)])
     const pub = works.filter(isPub)
     const filter = (HOME_CHIPS.find((c) => c[0] === chip) ?? HOME_CHIPS[0])[1]
     const origs = originals(works).filter(isPub)
@@ -49,12 +58,12 @@ export class ReadingUseCase {
       const parent = pub.find((p) => p.id === w.parent)
       if (parent && w.forkAt) forkSources[w.id] = { title: parent.title, episode: w.forkAt }
     }
-    const lastId = Object.keys(progress.last).find((id) => {
-      const w = works.find((x) => x.id === id)
-      const e = w && isPub(w) && epsOf(w)[progress.last[id] - 1]
-      return !!w && !!e && visibleEpisode(w, e, role)
-    })
-    const lastWork = works.find((w) => w.id === lastId)
+    // 서버 기록 중 가장 최근에 읽은 작품의, 지금도 볼 수 있는 이어 읽기 회차
+    const resume = records.flatMap((r) => {
+      const w = works.find((x) => x.id === r.workId)
+      const e = w && isPub(w) && epsOf(w)[r.lastEpisode - 1]
+      return w && e && visibleEpisode(w, e, role) ? [{ work: w, episode: r.lastEpisode }] : []
+    })[0]
     return {
       works,
       forkSources,
@@ -62,7 +71,7 @@ export class ReadingUseCase {
       filtered: filter ? pub.filter((w) => filter(w, works)) : null,
       originals: origs,
       forkFeed: pub.filter((w) => w.parent).sort(sorter('new')),
-      continueReading: lastWork ? { work: lastWork, episode: progress.last[lastWork.id] } : null,
+      continueReading: resume ?? null,
       top10: ranking ? ranking.top10 : pub.slice().sort(sorter('pop')).slice(0, 10),
       rising: ranking ? ranking.rising : origs.slice().sort(sorter('view')),
       rankingFailed: !!ranking?.failed,
@@ -114,15 +123,16 @@ export class ReadingUseCase {
   async getWork(id: string, role: Role) {
     const { works, worlds, progress, w: loaded } = await this.load(id)
     if (!canView(loaded, role)) return null
-    const w = await this.workRepository.readWorld(loaded,epsOf(loaded).length)
+    const [w, records] = await Promise.all([this.workRepository.readWorld(loaded,epsOf(loaded).length), this.memberRecords(role)])
+    const record = records.find((r) => r.workId === w.id)
     const forks = forksOf(works, w.id)
     const like = await this.likeStateOf(w, role, !!progress.liked[w.id])
     return {
       work: w,
       parent: works.find((x) => x.id === w.parent),
       visible: epsOf(w).map((e, i) => [e, i] as const).filter(([e]) => visibleEpisode(w, e, role)),
-      last: progress.last[w.id] as number | undefined,
-      read: progress.read[w.id] ?? [],
+      last: record?.lastEpisode,
+      read: record?.readEpisodes ?? [],
       liked: like.liked,
       /** 화면에 보일 좋아요 수(서버 작품은 서버 값, 데모 작품은 시드 수 + 내 좋아요) */
       likes: like.likes,
@@ -133,11 +143,12 @@ export class ReadingUseCase {
   }
 
   /**
-   * 목업 reader(): 회차를 열면서 이어 읽기(last)와 읽음(read)을 기록합니다.
-   * 볼 수 없는 작품은 null, 숨긴 회차는 'hidden'(상세로 보냄)입니다.
+   * 목업 reader(): 회차를 열면서 이어 읽기와 읽음을 서버 독서 기록에 남깁니다. 볼 수 없는 작품은 null,
+   * 숨긴 회차는 'hidden'(상세로 보냄)입니다. 기록은 기다리지 않고 회차를 먼저 돌려주며, 저장 결과는 recording으로 받습니다
+   * (실패하면 reject하므로 호출자가 알려야 합니다. 기록하지 않는 경우는 바로 끝납니다).
    */
   async openEpisode(id: string, at: number, role: Role) {
-    const { works, worlds, progress, w: loaded } = await this.load(id)
+    const { works, worlds, w: loaded } = await this.load(id)
     if (!canView(loaded, role)) return null
     const eps = epsOf(loaded)
     const n = Math.max(1, Math.min(+at || 1, eps.length))
@@ -146,11 +157,10 @@ export class ReadingUseCase {
     const ep = eps[n - 1]
     if (!ep || !visibleEpisode(w, ep, role)) return 'hidden' as const
     const shown = eps.map((e, i) => [e, i + 1] as const).filter(([e]) => visibleEpisode(w, e, role)).map(([, i]) => i)
-    const { [id]: prev = 0, ...others } = progress.last
-    progress.last = { [id]: Math.max(n, prev), ...others }
-    const read = (progress.read[id] ??= [])
-    if (!read.includes(n)) read.push(n)
-    await this.readingRepository.saveProgress(progress)
+    // 로그인 회원이 공개 작품(상속 회차 포함)의 회차를 열면 기록한다. 이어 읽기 위치는 최댓값이 아니라 방금 연 회차다.
+    // 비회원·작가가 자기 비공개 작품을 미리 읽을 때는 서버가 404로 거절하므로 보내지 않는다.
+    const recording = role && isPub(w) ? this.readingRecordRepository.record(w.id, n) : Promise.resolve()
+    recording.catch(() => {}) // 호출자가 recording을 받지 않아도 처리되지 않은 reject 경고가 나지 않게 한다.
     // 로그인 회원이 서버 작품의 자체 회차를 열면 그 회차의 조회를 기록한다(상속 회차는 원작 몫). 소유자가 여는 비공개 작품은
     // 서버가 404로 거절하므로 공개 작품만 보낸다. 실패는 읽기를 막지 않는다.
     if (role && w.canonical && isPub(w) && n > (w.snap?.eps.length ?? 0)) this.workSearchRepository?.recordView(w.id, n).catch(() => {})
@@ -163,6 +173,7 @@ export class ReadingUseCase {
       next: shown.find((i) => i > n) ?? null,
       forks: w.parent ? [] : forksOf(works, id).filter((f) => f.forkAt === n),
       canFork: forkOK(w, n, worlds),
+      recording,
     }
   }
 

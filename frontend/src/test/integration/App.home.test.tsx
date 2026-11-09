@@ -5,6 +5,7 @@ import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../app/appContainer'
+import { createAppStore } from '../../app/store'
 import { renderApp as renderAt } from '../renderApp'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); delete document.documentElement.dataset.theme })
@@ -18,8 +19,9 @@ describe('홈·공통 셸 (U01·U02)', () => {
     await screen.findByText('다르게 이어진 포크 소설')
     for (const h of ['24시간 인기 급상승', '함께 읽을 소설', '소설 모아 보기', '오늘, 스토리포크의 발견', '원작부터 읽어 보세요']) screen.getByText(h)
     expect(screen.getByText('1 / 4')).toBeTruthy()
-    expect(screen.getByRole('link', { name: /2화 이어 읽기/ })).toBeTruthy()
-    expect([...document.querySelectorAll('#home .cont, #home .rings, #home .hero, #home .t10')].map((el) => el.className)).toEqual(['cont', 'rings', 'hero', 't10'])
+    // 비회원은 서버 독서 기록이 없어 이어 읽기 카드가 없다(회원 홈은 아래 테스트).
+    expect(screen.queryByRole('link', { name: /이어 읽기/ })).toBeNull()
+    expect([...document.querySelectorAll('#home .cont, #home .rings, #home .hero, #home .t10')].map((el) => el.className)).toEqual(['rings', 'hero', 't10'])
     expect(screen.getByRole('heading', { level: 1, name: 'STORYFORK' })).toBeTruthy()
     expect(document.querySelector('#home h4')).toBeNull()
     expect(within(screen.getByLabelText('실시간 인기 TOP10')).getByRole('link', { name: '더보기 ›' }).getAttribute('href')).toBe('/rank')
@@ -31,6 +33,12 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect(footer.queryByRole('link', { name: '로그인' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '로그인·회원가입 메뉴' }))
     expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: '로그인' })).toBeTruthy()
+  })
+
+  it('회원 홈은 독서 기록의 이어 읽기 카드를 맨 앞에 보여 준다', async () => {
+    renderAt('/', createAppStore({ role: 'user' }))
+    await screen.findByRole('link', { name: /2화 이어 읽기/ })
+    expect([...document.querySelectorAll('#home .cont, #home .rings, #home .hero, #home .t10')].map((el) => el.className)).toEqual(['cont', 'rings', 'hero', 't10'])
   })
 
   it('세계관·크레딧 메뉴의 데모 꼬리표만 없애고 정책의 실제 차감 없음 안내는 유지한다', async () => {

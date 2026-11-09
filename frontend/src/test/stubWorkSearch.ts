@@ -8,8 +8,8 @@ import { ReadingUseCase } from '../domain/usecases/ReadingUseCase'
  * HTTP 계약·응답 변환은 data/domain 단위 테스트가 맡고, 여기서는 화면 조립만 확인한다. 복원은 vi.restoreAllMocks()다.
  */
 export function stubWorkSearch() {
-  const { workRepository, readingRepository, workSearchRepository } = appContainer.cradle
-  const memory = new ReadingUseCase(workRepository, readingRepository)
+  const { workRepository, readingRepository, readingRecordRepository, workSearchRepository } = appContainer.cradle
+  const memory = new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)
   vi.spyOn(workSearchRepository, 'search').mockImplementation((query) => memory.findWorks(query))
   vi.spyOn(workSearchRepository, 'ranking').mockImplementation(async (kind) => {
     const home = await memory.getHome(null, '추천')

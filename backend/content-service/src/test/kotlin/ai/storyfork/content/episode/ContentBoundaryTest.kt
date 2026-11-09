@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 /** #84: ownership boundaries must hold even when no PostgreSQL server is available. */
 class ContentBoundaryTest {
     private val root = Path.of("src/main/kotlin/ai/storyfork/content")
-    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like")
+    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading")
 
     @Test fun `content HTTP resources have distinct controllers without raw servlet arguments`() {
         val controllers = mapOf(
@@ -90,6 +90,30 @@ class ContentBoundaryTest {
         assertTrue(sql.contains("PRIMARY KEY (work_id, member_id)"))
     }
 
+    @Test fun `reading tables follow the reading management contract`() {
+        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V20__reading_record.sql"))
+        val tables = sql.split("CREATE TABLE ").drop(1).associate { it.substringBefore(" (") to it }
+        assertEquals(setOf("reading_record", "reading_episode"), tables.keys)
+        val record = tables.getValue("reading_record")
+        assertTrue(record.contains("member_id varchar(200) NOT NULL"))
+        assertTrue(record.contains("work_id varchar(36) NOT NULL REFERENCES work(id)"))
+        assertTrue(record.contains("last_episode integer NOT NULL CHECK (last_episode > 0)"))
+        assertTrue(record.contains("updated_at timestamptz NOT NULL DEFAULT now()"))
+        assertTrue(record.contains("PRIMARY KEY (member_id, work_id)"))
+        val episode = tables.getValue("reading_episode")
+        assertTrue(episode.contains("work_id varchar(36) NOT NULL REFERENCES work(id)"))
+        assertTrue(episode.contains("episode_number integer NOT NULL CHECK (episode_number > 0)"))
+        assertTrue(episode.contains("read_at timestamptz NOT NULL DEFAULT now()"))
+        assertTrue(episode.contains("PRIMARY KEY (member_id, work_id, episode_number)"))
+    }
+
+    @Test fun `reading package is registered for JPA scanning and the content exception handler`() {
+        val config = Files.readString(root.resolve("_common/config/ContentPersistenceConfig.kt"))
+        assertTrue(config.contains("\"ai.storyfork.content.reading.repository\""))
+        assertTrue(config.contains("\"ai.storyfork.content.reading.entity\""))
+        assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.reading.controller\""))
+    }
+
     @Test fun `fresh SQL lives in feature leaves with one global version order`() {
         val migration = Path.of("src/main/resources/db/migration")
         assertFalse(Files.exists(migration.resolve("auth")))
@@ -101,8 +125,8 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is the episode comment tables, V18 the work like table and V19 the work interest/outbox tables (work leaf).
-        assertEquals((1..19).toList(), versions.sorted())
+        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is the episode comment tables, V18 the work like table, V19 the work interest/outbox tables and V20 reading_record (work leaf).
+        assertEquals((1..20).toList(), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

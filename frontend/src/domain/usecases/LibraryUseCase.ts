@@ -1,7 +1,8 @@
 import { AVATAR_COLORS, epsOf, forkLabel, forksOf, isMine, isPub, nid, original, type StoryEvent, type Work } from '../entities/work'
 import { publicWorldRules, worldVersion, type World, type WorldVersion } from '../entities/world'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import { AGGREGATE_WRITE_UNSUPPORTED, FEEDBACK_UNAVAILABLE, type ReadingRepository, type WorkRepository } from '../repositories/WorkRepository'
+import type { ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
+import { AGGREGATE_WRITE_UNSUPPORTED, FEEDBACK_UNAVAILABLE, type WorkRepository } from '../repositories/WorkRepository'
 import type { WorkInterestRepository } from '../repositories/WorkInterestRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
 
@@ -44,27 +45,32 @@ const mineOnly = (worlds: World[], id: string) => worlds.find((w) => w.id === id
 export class LibraryUseCase {
   private readonly workRepository: WorkRepository
   private readonly worldRepository: WorldRepository
-  private readonly readingRepository: ReadingRepository
   private readonly feedbackRepository: FeedbackRepository
   private readonly interestRepository: WorkInterestRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository, interestRepository: WorkInterestRepository) {
+  private readonly readingRecordRepository: ReadingRecordRepository
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, feedbackRepository: FeedbackRepository, interestRepository: WorkInterestRepository, readingRecordRepository: ReadingRecordRepository) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
-    this.readingRepository = readingRepository
     this.feedbackRepository = feedbackRepository
     this.interestRepository = interestRepository
+    this.readingRecordRepository = readingRecordRepository
   }
 
-  /** U11 읽는 중: 이어 읽기와 관심 소설(관심 등록한 작품만, 최근 등록순. 좋아요 표시와는 별개) */
+  /** U11 읽는 중: 서버 독서 기록의 이어 읽기와 관심 소설(관심 등록한 작품만, 최근 등록순. 좋아요 표시와는 별개). 둘 중 하나라도 읽지 못하면 빈 목록으로 숨기지 않고 던집니다. */
   async getRead() {
-    const [works, progress, interestIds] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.interestRepository.list()])
+    const [works, records, interestIds] = await Promise.all([this.workRepository.listWorks(), this.readingRecordRepository.list(), this.interestRepository.list()])
     const byId = (id: string) => works.find((w) => w.id === id)
     return {
-      recent: Object.keys(progress.last).map(byId).filter((w): w is Work => !!w && epsOf(w).length > 0)
-        .map((work) => ({ work, n: Math.min(progress.last[work.id], epsOf(work).length), tot: epsOf(work).length })),
+      recent: records.flatMap((r) => {
+        const work = byId(r.workId), tot = work ? epsOf(work).length : 0
+        return work && tot > 0 ? [{ work, n: Math.min(r.lastEpisode, tot), tot }] : []
+      }),
       liked: interestIds.map(byId).filter((w): w is Work => !!w),
     }
   }
+
+  /** U11 읽는 중: 한 작품의 이어 읽기 기록(위치·읽은 회차)을 서버에서 지웁니다. 지우지 못하면 던집니다. */
+  removeReading(workId: string) { return this.readingRecordRepository.remove(workId) }
 
   /** U11 내 댓글·신고 */
   async getReports() {

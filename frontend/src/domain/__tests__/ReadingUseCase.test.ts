@@ -1,21 +1,37 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
+import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
 
+/** 서버 독서 기록 대역: 계약대로 위치를 그 회차로 옮기고 읽은 회차에 더하며 작품을 맨 앞으로 올립니다. */
+function recordFake(seed: ReadingRecord[]) {
+  let records = seed.map((r) => ({ ...r, readEpisodes: [...r.readEpisodes] }))
+  const repository: ReadingRecordRepository = {
+    list: vi.fn(async () => records.map((r) => ({ ...r, readEpisodes: [...r.readEpisodes] }))),
+    record: vi.fn(async (workId: string, episode: number) => {
+      const read = new Set(records.find((r) => r.workId === workId)?.readEpisodes).add(episode)
+      records = [{ workId, lastEpisode: episode, readEpisodes: [...read].sort((a, b) => a - b) }, ...records.filter((r) => r.workId !== workId)]
+    }),
+    remove: vi.fn(async () => {}),
+  }
+  return { repository, current: () => records }
+}
+
 function fakes(progress: Partial<ReadingProgress> = {}) {
   const works = seedWorks(0)
-  const state: ReadingProgress = { last: { guunmong: 2, starlight: 1 }, read: {}, seen: {}, liked: {}, ...progress }
+  const state: ReadingProgress = { last: {}, read: {}, seen: {}, liked: {}, ...progress }
+  const server = recordFake([{ workId: 'guunmong', lastEpisode: 2, readEpisodes: [1, 2] }, { workId: 'starlight', lastEpisode: 1, readEpisodes: [1] }])
   const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async w => w, createFork: async () => { throw new Error('not used') }, saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = {
     getProgress: async () => state,
     markSeen: async (id) => { state.seen[id] = true },
     saveProgress: async (p) => { Object.assign(state, p) },
   }
-  return { works, state, useCase: new ReadingUseCase(workRepository, readingRepository) }
+  return { works, state, server, useCase: new ReadingUseCase(workRepository, readingRepository, server.repository) }
 }
 
 /** 서버(정본) 작품 좋아요: 저장소 대역은 서버가 확정하는 수·상태를 그대로 돌려준다. canonical이 아닌 시드 작품은 메모리 데모다. */
@@ -25,7 +41,7 @@ function likeFakes(server: WorkLikeState | null = { likes: 7, liked: false }, ca
   const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (w) => w, createFork: async () => { throw new Error('not used') }, saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async (p) => { Object.assign(state, p) } }
   const likes = { read: vi.fn(async () => server), like: vi.fn(async () => ({ likes: 8, liked: true })), unlike: vi.fn(async () => ({ likes: 6, liked: false })) } satisfies WorkLikeRepository
-  return { state, likes, useCase: new ReadingUseCase(workRepository, readingRepository, undefined, likes) }
+  return { state, likes, useCase: new ReadingUseCase(workRepository, readingRepository, recordFake([]).repository, undefined, likes) }
 }
 
 describe('ReadingUseCase 좋아요 (서버 작품)', () => {
@@ -104,7 +120,7 @@ describe('ReadingUseCase 좋아요 (서버 작품)', () => {
 
 describe('ReadingUseCase.getHome (목업 home())', () => {
   it('원작 캐러셀, 최신 포크 순, 이어 읽기를 만든다', async () => {
-    const home = await fakes().useCase.getHome(null, '추천')
+    const home = await fakes().useCase.getHome('user', '추천')
     expect(home.filtered).toBeNull()
     expect(home.originals.map((w) => w.id)).toEqual(['guunmong', 'starlight', 'postman', 'hong'])
     expect(home.forkFeed.map((w) => w.id)).toEqual(['gate', 'crown', 'postif', 'cloud', 'seal', 'pardon', 'reply'])
@@ -153,9 +169,21 @@ describe('ReadingUseCase.getHome (목업 home())', () => {
   it('숨긴 회차는 이어 읽기에서 건너뛰고 본 포크를 기록한다', async () => {
     const { works, state, useCase } = fakes()
     works.find((w) => w.id === 'guunmong')!.eps[1].hidden = true
-    expect((await useCase.getHome(null, '추천')).continueReading?.work.id).toBe('starlight')
+    expect((await useCase.getHome('user', '추천')).continueReading?.work.id).toBe('starlight')
     await useCase.markSeen('gate')
     expect(state.seen.gate).toBe(true)
+  })
+
+  it('비회원은 서버 독서 기록을 읽지 않아 이어 읽기가 없다', async () => {
+    const { server, useCase } = fakes()
+    expect((await useCase.getHome(null, '추천')).continueReading).toBeNull()
+    expect(server.repository.list).not.toHaveBeenCalled()
+  })
+
+  it('서버 기록을 읽지 못하면 이어 읽기를 비워 숨기지 않고 홈 조회 실패로 알린다', async () => {
+    const { server, useCase } = fakes()
+    vi.mocked(server.repository.list).mockRejectedValueOnce(new Error('offline'))
+    await expect(useCase.getHome('user', '추천')).rejects.toThrow('offline')
   })
 })
 
@@ -169,29 +197,86 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(d.visible.map(([, i]) => i + 1)).toEqual([1, 2, 3, 4])
     expect(d.forkList).toEqual([2, 3, 4])
     expect(d.topForks.map((f) => f.id)).toEqual(['cloud', 'gate', 'pardon'])
-    expect(d.last).toBe(2)
   })
 
-  it('회차를 열면 이어 읽기를 맨 앞으로 옮기고 읽음을 기록한다', async () => {
-    const { state, useCase } = fakes()
+  it('회원의 상세는 서버 기록의 이어 읽기 위치와 읽은 회차를 주고, 비회원은 기록이 없다', async () => {
+    const { server, useCase } = fakes()
+    expect(await useCase.getWork('guunmong', 'user')).toMatchObject({ last: 2, read: [1, 2] })
+    expect(await useCase.getWork('postman', 'user')).toMatchObject({ last: undefined, read: [] })
+    expect(await useCase.getWork('guunmong', null)).toMatchObject({ last: undefined, read: [] })
+    expect(vi.mocked(server.repository.list)).toHaveBeenCalledTimes(2)
+  })
+
+  it('회원이 회차를 열면 서버에 열람을 기록해 홈 이어 읽기를 맨 앞으로 옮긴다', async () => {
+    const { server, useCase } = fakes()
     const r = await useCase.openEpisode('starlight', 3, 'user')
     if (!r || r === 'hidden') throw new Error('episode')
     expect(r.n).toBe(3)
     expect(r.previous).toBe(2)
     expect(r.next).toBeNull()
     expect(r.paragraphs[0][0]).toEqual({ t: '정오가 지나자 재의 왕국의 사절단이 탑 앞에 도착했다.', pi: 0 })
-    expect(Object.keys(state.last)[0]).toBe('starlight')
-    expect(state.last.starlight).toBe(3)
-    expect(state.read.starlight).toEqual([3])
+    await expect(r.recording).resolves.toBeUndefined()
+    expect(server.repository.record).toHaveBeenCalledWith('starlight', 3)
+    expect(server.current()[0]).toEqual({ workId: 'starlight', lastEpisode: 3, readEpisodes: [1, 3] })
     expect((await useCase.getHome('user', '추천')).continueReading).toMatchObject({ work: { id: 'starlight' }, episode: 3 })
   })
 
-  it('범위를 벗어난 회차는 마지막 회차로, 숨긴 회차는 hidden으로 돌려준다', async () => {
-    const { works, useCase } = fakes()
+  it('이전 회차를 다시 열면 이어 읽기 위치는 최댓값이 아니라 방금 연 회차다', async () => {
+    const { server, useCase } = fakes()
+    await useCase.openEpisode('guunmong', 4, 'user')
+    await useCase.openEpisode('guunmong', 1, 'user')
+    expect(vi.mocked(server.repository.record).mock.calls).toEqual([['guunmong', 4], ['guunmong', 1]])
+    expect((await useCase.getWork('guunmong', 'user'))).toMatchObject({ last: 1, read: [1, 2, 4] })
+  })
+
+  it('비회원이 열면 읽기만 하고 서버에 기록하지 않는다', async () => {
+    const { server, useCase } = fakes()
+    const r = await useCase.openEpisode('starlight', 3, null)
+    if (!r || r === 'hidden') throw new Error('episode')
+    expect(r.n).toBe(3)
+    await expect(r.recording).resolves.toBeUndefined()
+    expect(server.repository.record).not.toHaveBeenCalled()
+  })
+
+  it('기록이 실패해도 회차는 열리고, 실패를 성공으로 숨기지 않고 알린다', async () => {
+    const { server, useCase } = fakes()
+    vi.mocked(server.repository.record).mockRejectedValueOnce(new Error('offline'))
+    const r = await useCase.openEpisode('starlight', 3, 'user')
+    if (!r || r === 'hidden') throw new Error('episode')
+    expect(r.n).toBe(3)
+    expect(r.paragraphs.length).toBeGreaterThan(0)
+    await expect(r.recording).rejects.toThrow('offline')
+    expect(server.current().find((x) => x.workId === 'starlight')).toEqual({ workId: 'starlight', lastEpisode: 1, readEpisodes: [1] })
+  })
+
+  it('기록 저장이 끝나기를 기다리지 않고 회차를 먼저 돌려주며, 저장 결과는 recording으로 받는다', async () => {
+    const { server, useCase } = fakes()
+    let finish = () => {}
+    vi.mocked(server.repository.record).mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve }))
+    const r = await useCase.openEpisode('starlight', 3, 'user')
+    if (!r || r === 'hidden') throw new Error('episode')
+    expect(r.n).toBe(3)
+    finish()
+    await expect(r.recording).resolves.toBeUndefined()
+  }, 1000)
+
+  it('범위를 벗어난 회차는 마지막 회차로, 숨긴 회차는 기록 없이 hidden으로 돌려준다', async () => {
+    const { works, server, useCase } = fakes()
     const r = await useCase.openEpisode('postman', 9, 'user')
     expect(r && r !== 'hidden' && r.n).toBe(2)
+    expect(server.repository.record).toHaveBeenLastCalledWith('postman', 2)
     works.find((w) => w.id === 'postman')!.eps[0].hidden = true
+    vi.mocked(server.repository.record).mockClear()
     expect(await useCase.openEpisode('postman', 1, 'user')).toBe('hidden')
+    expect(server.repository.record).not.toHaveBeenCalled()
+  })
+
+  it('작가가 자기 비공개 작품을 미리 읽을 때는 서버 기록을 남기지 않는다', async () => {
+    const { works, server, useCase } = fakes()
+    works.find((w) => w.id === 'starlight')!.private = true
+    const r = await useCase.openEpisode('starlight', 1, 'user')
+    expect(r && r !== 'hidden' && r.n).toBe(1)
+    expect(server.repository.record).not.toHaveBeenCalled()
   })
 
   it('관심 소설을 토글한다', async () => {
