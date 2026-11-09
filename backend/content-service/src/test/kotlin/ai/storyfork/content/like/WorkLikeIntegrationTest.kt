@@ -144,14 +144,4 @@ class WorkLikeIntegrationTest {
         assertFalse(body(get("/api/v1/public/works/$id",actor())).path("liked").asBoolean())
         assertEquals(404,get("/api/v1/public/works/${UUID.randomUUID()}",fan).statusCode())
     }
-
-    @Test fun `owner list and detail carry the like count`() {
-        val owner=actor()
-        val id=work("소유자 수 표시",owner=owner.toString())
-        like(id,actor())
-
-        assertEquals(1L,body(get("/api/v1/works/$id",owner)).path("likes").asLong())
-        val mine=json.readTree(get("/api/v1/works",owner).body()).toList().first {it.path("id").asText()==id}
-        assertEquals(1L,mine.path("likes").asLong())
-    }
 }

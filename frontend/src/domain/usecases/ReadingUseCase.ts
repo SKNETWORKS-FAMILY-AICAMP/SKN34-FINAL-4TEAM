@@ -97,15 +97,15 @@ export class ReadingUseCase {
   }
 
   /**
-   * 좋아요 수와 내 좋아요 여부. 서버 작품(canonical)은 목록의 공개 수를 쓰되, 내 여부는 로그인 회원이 여는 공개 작품만 서버에 묻습니다.
-   * 익명·비공개(소유자 상세)·공개가 아니라는 답(null)·만료된 세션은 안 누른 상태로 열고 그 밖의 조회 실패는 던집니다.
+   * 좋아요 수와 내 좋아요 여부. 서버 작품(canonical)은 목록의 공개 수를 쓰되, 내 여부는 로그인 회원만 서버에 묻습니다.
+   * 익명·공개가 아니라는 답(null: 소유자가 여는 비공개·운영 제한 작품)·만료된 세션은 안 누른 상태로 열고 그 밖의 조회 실패는 던집니다.
    * 데모 작품은 메모리 진행 기록이며 시드 수에 내 좋아요 1을 더합니다.
    */
-  private async likeStateOf(work: Pick<Work, 'id' | 'likes' | 'canonical' | 'private'>, role: Role, memoryLiked: boolean): Promise<WorkLikeState> {
+  private async likeStateOf(work: Pick<Work, 'id' | 'likes' | 'canonical'>, role: Role, memoryLiked: boolean): Promise<WorkLikeState> {
     const repo = this.workLikeRepository
     if (!repo || !work.canonical) return { likes: work.likes + (memoryLiked ? 1 : 0), liked: memoryLiked }
     const unliked = { likes: work.likes, liked: false }
-    if (!role || work.private) return unliked
+    if (!role) return unliked
     const read = await repo.read(work.id).catch((error: unknown) => { if (error instanceof SessionExpired) return null; throw error })
     return read ?? unliked
   }

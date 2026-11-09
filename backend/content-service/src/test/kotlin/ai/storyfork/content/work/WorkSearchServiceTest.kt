@@ -213,18 +213,6 @@ class WorkSearchServiceTest {
         verify(likeService, times(1)).liked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
     }
 
-    @Test fun `owner list and detail carry the same like counts`() {
-        work("a", "첫째", 1)
-        work("b", "둘째", 2)
-        likes("a" to 7)
-        for (id in listOf("a", "b")) `when`(access.own(id, "author")).thenReturn(WorkAccessResult(id, "author", id, "", 0, "world", "public", false, false, null))
-        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("author")).thenReturn(rows.reversed())
-
-        assertEquals(listOf(0L, 7L), service.list("author").items.map { it.likes })
-        assertEquals(7L, service.read("a", "author").likes)
-        assertFalse(service.read("a", "author").liked)
-    }
-
     @Test fun `unknown options fail with 422 before any lookup`() {
         for (call in listOf<() -> Any>({ service.publicList(null, "body", null) }, { service.publicList(null, null, "popular") }, { service.ranking("daily") })) {
             assertEquals(422, failure { call() }.status)

@@ -7,7 +7,7 @@ export type WorkLikeState = { likes: number; liked: boolean }
  */
 export interface WorkLikeRepository {
   /** 현재 회원의 좋아요 상태(공개 상세의 likes·liked). 공개 작품이 아니면(비공개·운영 제한·없음) null이다. */
-  read(workId: string, signal?: AbortSignal): Promise<WorkLikeState | null>
-  like(workId: string, signal?: AbortSignal): Promise<WorkLikeState>
-  unlike(workId: string, signal?: AbortSignal): Promise<WorkLikeState>
+  read(workId: string): Promise<WorkLikeState | null>
+  like(workId: string): Promise<WorkLikeState>
+  unlike(workId: string): Promise<WorkLikeState>
 }

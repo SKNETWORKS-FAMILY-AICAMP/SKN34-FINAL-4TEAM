@@ -3,8 +3,9 @@ import { WCATS } from '../../domain/entities/wiki'
 import type { ReadingWorkRecord, ReadingWorldRecord } from './HttpEpisodeRepository'
 
 /**
- * Content 작품 응답을 화면의 Work로 바꾼다. 목록·검색·랭킹 카드가 같이 쓴다. likes는 공개 좋아요 수, views는 최근 24시간 조회 수(둘 다
- * 서버 값)이고, 서버에 없는 댓글 수·갱신 시각은 statisticsSupported:false로 화면이 표시하지 않게 한다. 원작/Fork는 source 유무로 가른다.
+ * Content 작품 응답을 화면의 Work로 바꾼다. 목록·검색·랭킹 카드가 같이 쓴다. likes(공개 좋아요 수)·views(최근 24시간 조회 수)는 공개 응답의
+ * 서버 값이고 소유자 응답에서는 0이다. 서버에 없는 댓글 수·갱신 시각은 statisticsSupported:false로 화면이 표시하지 않게 한다.
+ * 원작/Fork는 source 유무로 가른다.
  */
 export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
   const episodes = [...row.episodes].sort((a, b) => a.number - b.number)

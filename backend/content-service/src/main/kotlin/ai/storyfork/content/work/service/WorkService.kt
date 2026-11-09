@@ -46,7 +46,7 @@ class WorkService(
     fun list(owner: String): WorkListResponse {
         val rows=works.findAllByOwnerIdOrderByCreatedAtDesc(owner)
         access.lockScopes(rows.map {it.id})
-        return WorkListResponse(withLikes(rows.map {view(access.own(it.id,owner))}))
+        return WorkListResponse(rows.map {view(access.own(it.id,owner))})
     }
     /** 공개 작품 목록이다. q·f·sort를 모두 생략하면 기존처럼 작품 생성 최신순이며, 잘못된 f·sort는 422다. */
     fun publicList(q: String?,f: String?,sort: String?): WorkListResponse {
@@ -73,12 +73,10 @@ class WorkService(
             val w=access.get(it.id)
             if(w.publiclyVisible()) view(w,true).copy(views=counts[it.id]?.recent ?: 0) else null
         }
-    fun read(id: String,owner: String): WorkResponse = withLikes(view(access.own(id,owner)))
+    fun read(id: String,owner: String): WorkResponse = view(access.own(id,owner))
     /** 공개 상세다. [member]가 있으면(Bearer가 온 요청) 그 회원의 좋아요 여부(liked)를 채우고 익명은 false다. */
-    fun publicRead(id: String,member: String? = null): WorkResponse {
-        val work=withLikes(view(access.published(id),true))
-        return work.copy(liked=member!=null && likeService.liked(id,member))
-    }
+    fun publicRead(id: String,member: String? = null): WorkResponse =
+        view(access.published(id),true).copy(likes=likeService.counts(listOf(id))[id] ?: 0,liked=member!=null && likeService.liked(id,member))
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
         val registered=data.creationType!=null || data.genres.isNotEmpty() || data.hashtags.isNotEmpty() || data.rightsConfirmed!=null
@@ -159,12 +157,11 @@ class WorkService(
         return HistoryResponse(versions.history(id).items,proposals.history(id,owner).items,
             policies.findAllByWorkIdOrderByRevisionNo(id).map {PolicyResponse(it.allowCreation,it.allowPublication,it.changedAt.toString())},publication.history(id).items)
     }
-    /** 응답에 좋아요 수를 채운다. 작품 id 묶음으로 한 번에 세어 작품마다 조회하지 않는다. */
+    /** 공개 목록 응답에 좋아요 수를 채운다. 작품 id 묶음으로 한 번에 세어 작품마다 조회하지 않는다. */
     private fun withLikes(items: List<WorkResponse>): List<WorkResponse> {
         val counts=likeService.counts(items.map {it.id})
         return items.map {it.copy(likes=counts[it.id] ?: 0)}
     }
-    private fun withLikes(item: WorkResponse): WorkResponse = withLikes(listOf(item)).single()
     private fun view(w: WorkAccessResult,public: Boolean = false): WorkResponse {
         val published=publication.publishedEpisodes(w.id).items
         val draft=if(public) null else {

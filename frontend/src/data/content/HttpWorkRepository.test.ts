@@ -33,12 +33,6 @@ describe('canonical WorkRepository', () => {
     expect(work.forkEps).toEqual([2])
     expect(work.wiki?.docs).toEqual([])
   })
-  it('keeps the server like count of my own public work from the owner list too', async () => {
-    const { repository } = setup([record({ likes: 4 })], [record({ ownerId: 'verified-member', likes: 9 })], true)
-    const [work] = await repository.listWorks()
-    expect(work.mine).toBe(true)
-    expect(work.likes).toBe(9)
-  })
   it('merges only verified owned API records and propagates failures without a fixture fallback', async () => {
     const { api, repository } = setup([record()], [record({ ownerId: 'verified-member' })], true)
     expect((await repository.listWorks()).filter(isMine)).toHaveLength(1)

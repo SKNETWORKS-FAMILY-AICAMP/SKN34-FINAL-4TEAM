@@ -25,7 +25,7 @@ function likeFakes(server: WorkLikeState | null = { likes: 7, liked: false }, ca
   const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (w) => w, createFork: async () => { throw new Error('not used') }, saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async (p) => { Object.assign(state, p) } }
   const likes = { read: vi.fn(async () => server), like: vi.fn(async () => ({ likes: 8, liked: true })), unlike: vi.fn(async () => ({ likes: 6, liked: false })) } satisfies WorkLikeRepository
-  return { works, state, likes, useCase: new ReadingUseCase(workRepository, readingRepository, undefined, likes) }
+  return { state, likes, useCase: new ReadingUseCase(workRepository, readingRepository, undefined, likes) }
 }
 
 describe('ReadingUseCase 좋아요 (서버 작품)', () => {
@@ -52,7 +52,7 @@ describe('ReadingUseCase 좋아요 (서버 작품)', () => {
     await expect(useCase.getWork('guunmong', 'user')).rejects.toThrow('offline')
   })
 
-  it('공개 작품이 아니라고 서버가 답하면(null) 상세를 막지 않고 목록의 수와 안 눌린 상태로 연다', async () => {
+  it('공개 작품이 아니라고 서버가 답하면(null: 소유자의 비공개·운영 제한 작품) 상세를 막지 않고 목록의 수와 안 눌린 상태로 연다', async () => {
     const { useCase } = likeFakes(null)
     const d = (await useCase.getWork('guunmong', 'user'))!
     expect(d.liked).toBe(false)
@@ -63,16 +63,6 @@ describe('ReadingUseCase 좋아요 (서버 작품)', () => {
     const { likes, useCase } = likeFakes()
     likes.read.mockRejectedValueOnce(new SessionExpired())
     const d = (await useCase.getWork('guunmong', 'user'))!
-    expect(d.liked).toBe(false)
-    expect(d.likes).toBe(5)
-  })
-
-  it('소유자가 여는 비공개 서버 작품은 서버에 묻지 않고 목록의 수와 안 눌린 상태로 연다', async () => {
-    const { works, likes, useCase } = likeFakes()
-    works.find((w) => w.id === 'starlight')!.private = true
-    const d = (await useCase.getWork('starlight', 'user'))!
-    expect(d.work.id).toBe('starlight')
-    expect(likes.read).not.toHaveBeenCalled()
     expect(d.liked).toBe(false)
     expect(d.likes).toBe(5)
   })

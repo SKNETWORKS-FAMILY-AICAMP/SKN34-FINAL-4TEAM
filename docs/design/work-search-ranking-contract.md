@@ -46,7 +46,7 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 
 `WorkResponse`에 `views: Long`(최근 24시간 조회 수, 기본 0)을 추가한다. 기존 필드·응답 구조는 바꾸지 않는다.
 작품 좋아요(21-A)가 같은 방식으로 `likes: Long`(공개 좋아요 수, 기본 0)과 `liked: Boolean`(공개 상세에서 Bearer가 온 회원의 좋아요 여부, 그 밖은 false)을 더한다.
-`likes`는 공개 목록·검색·랭킹·상세와 소유자 목록·상세에서 작품 ID 묶음으로 한 번에 센다.
+`likes`는 공개 목록·검색·랭킹·상세에서 작품 ID 묶음으로 한 번에 세며(`views`처럼) 소유자 목록·상세 응답에서는 0이다.
 
 ## Frontend
 
