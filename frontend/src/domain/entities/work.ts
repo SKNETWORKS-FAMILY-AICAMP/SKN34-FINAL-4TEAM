@@ -130,6 +130,8 @@ export const epsOf = (w: Work) => (w.parent && w.snap ? w.snap.eps.concat(w.eps)
 export const baseOf = (w: Work): Pick<Snapshot, 'rules' | 'cast' | 'events'> => (w.parent && w.snap ? w.snap : w)
 export const isMine = (w: Work) => w.mine ?? (w.owner === 'me' || w.author === '나')
 export const canView = (w: Work | undefined, role: Role): w is Work => !!w && (isPub(w) || (role === 'user' && isMine(w)))
+/** 신고 버튼 노출(#172): 공개 작품이고 본인 작품이 아닐 때. 검색 카드의 서버 작품은 mine을 모르므로 소유자 회원 ID로도 가른다. 로그인·접수 권한은 서버가 검사한다(비로그인은 접수 때 로그인 안내). */
+export const canReport = (w: Work, memberId: string | null) => isPub(w) && !isMine(w) && (memberId === null || w.owner !== memberId)
 export const visibleEpisode = (w: Work, e: Episode, role: Role) => !e.hidden || (role === 'user' && isMine(w))
 export const originals = (works: Work[]) => works.filter((w) => !w.parent && !w.private)
 /** 목업 분류 필터(관리자·캐릭터 챗 목록): 전체·원작·포크 */

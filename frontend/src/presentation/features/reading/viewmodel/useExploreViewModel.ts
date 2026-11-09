@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
-import { SEARCH_FIELDS, SEARCH_SORTS, type SearchSort, type Work } from '../../../../domain/entities/work'
+import { useAppSelector } from '../../../../app/store'
+import { canReport, SEARCH_FIELDS, SEARCH_SORTS, type SearchSort, type Work } from '../../../../domain/entities/work'
 import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { qs } from '../../../shared/format'
 import { useScreenId } from '../../../shared/screenIds'
@@ -29,8 +30,14 @@ export function useSearchViewModel(readingUseCase = resolve()) {
   const { st, submit } = useListQuery('/search', 'latest')
   const { data: list, isError, retry } = useAsyncData(() => readingUseCase.findWorks({ q: st.q, f: st.f, sort: st.sort }), [readingUseCase, st.q, st.f, st.sort])
   const [reporting, setReporting] = useState<Work | null>(null)
+  const memberId = useAppSelector((s) => s.session.memberId)
   useScreenId('U36')
-  return { st: { q: st.q, f: st.f, sort: st.sort }, list, isError, retry, submit: (q: string) => submit(q, { t: '' }), reporting, setReporting }
+  return {
+    st: { q: st.q, f: st.f, sort: st.sort }, list, isError, retry, submit: (q: string) => submit(q, { t: '' }),
+    /** 남의 공개 작품 카드에서만 신고 버튼을 보입니다. */
+    canReport: (w: Work) => canReport(w, memberId),
+    reporting, setReporting,
+  }
 }
 
 /** 목업 rank(): U25 */

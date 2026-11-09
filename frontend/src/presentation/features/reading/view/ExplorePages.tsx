@@ -56,7 +56,7 @@ function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolea
           <span className="m">총 {epsOf(w).length}화 <i></i> 조회 {kfmt(w.views || 0)}{w.statisticsSupported !== false && <> <i></i> ♥ {kfmt(w.likes || 0)} <i></i> {ago(w.upd || 0)}</>}</span>
         </div>
       </Go>
-      {!ranked && !w.canonical && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport?.(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}
+      {!ranked && onReport && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}
     </div>
   )
 }
@@ -74,7 +74,7 @@ export function SearchPage() {
         <ListTools base="/search" st={vm.st} onSubmit={vm.submit} />
         {!vm.list && !vm.isError && <ContentLoadState failed={false} retry={vm.retry}/>}
         <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.setReporting} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
+          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.canReport(w) ? vm.setReporting : undefined} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
         </div>
       </main>
       <Footer />
