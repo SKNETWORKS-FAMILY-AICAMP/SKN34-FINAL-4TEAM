@@ -90,7 +90,7 @@ class PublicationService(
         drafts.save(d)
     }
     private fun checkForkPublication(w: WorkAccessResult) {
-        if(w.source!=null && w.visibility!="public") checkContent(access.get(w.source.workId).allowForkPublication,403,"원작이 분기 작품의 최초 공개를 허용하지 않아요.")
+        if(w.source!=null && !w.source.deleted && w.visibility!="public") checkContent(access.get(w.source.workId).allowForkPublication,403,"원작이 분기 작품의 최초 공개를 허용하지 않아요.")
     }
     private fun apply(id: String, owner: String, number: Int, version: String) {
         val row=episodes.findByWorkIdAndSequence(id,number) ?: throw ContentFailure(404,"회차를 찾을 수 없어요.")

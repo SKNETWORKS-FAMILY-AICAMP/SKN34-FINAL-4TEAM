@@ -13,7 +13,7 @@ class AttachmentMigrationLocationTest {
         assertFalse(locations.any {it.endsWith("/content") || it.endsWith("/auth") || it.endsWith("/worldstudio")})
         val migrations=Flyway.configure().dataSource("jdbc:h2:mem:attachment-discovery","sa","")
             .locations(*locations).table("content_schema_history").load().info().all()
-        assertEquals((1..16).map(Int::toString),migrations.map {it.version.toString()})
+        assertEquals((1..17).map(Int::toString),migrations.map {it.version.toString()})
         val attachments=Flyway.configure().dataSource("jdbc:h2:mem:attachment-discovery-other","sa","")
             .locations("classpath:db/migration/settingattachment").table("setting_attachment_schema_history").load().info().all()
         assertEquals(listOf("1"),attachments.map {it.version.toString()})

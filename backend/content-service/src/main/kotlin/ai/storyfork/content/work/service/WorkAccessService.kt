@@ -34,10 +34,12 @@ class WorkAccessService(
         val policy=policies.findFirstByWorkIdOrderByRevisionNoDesc(id)
         val f=forks.findById(id).orElse(null)
         val source=f?.let {
-            val cp=checkpoints.findById(it.sourceCheckpointId).orElseThrow()
+            // 원작이 삭제된 Fork는 원작·체크포인트를 읽지 않고 Fork에 남긴 기준 정보로 응답한다.
+            if(it.sourceDeletedAt!=null) return@let SourceResponse("",it.sourceTitle,it.basisEpisode!!,it.basisVersion!!,it.direction,null,it.conditionsConfirmedAt?.toString(),true)
+            val cp=checkpoints.findById(it.sourceCheckpointId!!).orElseThrow()
             val episode=episodes.findById(cp.episodeId).orElseThrow()
             val version=versions.findById(cp.basisEpisodeVersionId).orElseThrow()
-            SourceResponse(it.sourceWorkId,it.sourceTitle,episode.sequence,version.revisionNo,it.direction,
+            SourceResponse(it.sourceWorkId!!,it.sourceTitle,episode.sequence,version.revisionNo,it.direction,
                 it.confirmedPolicyHistoryId?.let { pid -> policies.findById(pid).orElseThrow().revisionNo },it.conditionsConfirmedAt?.toString())
         }
         return WorkAccessResult(w.id,w.ownerId,w.title,w.description,w.revision,
@@ -65,7 +67,7 @@ class WorkAccessService(
         // Flush changes already protected by this transaction before refreshing cached rows.
         em.flush()
         val sources=forks.findAllById(ids)
-        val scope=(ids+sources.map {it.sourceWorkId}).distinct().sorted()
+        val scope=(ids+sources.mapNotNull {it.sourceWorkId}).distinct().sorted()
         works.lockAll(scope).forEach(em::refresh)
         sources.forEach(em::refresh)
     }

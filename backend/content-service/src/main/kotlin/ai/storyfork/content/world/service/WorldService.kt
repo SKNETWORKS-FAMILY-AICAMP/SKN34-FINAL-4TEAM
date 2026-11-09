@@ -109,10 +109,17 @@ class WorldService(
     }
     fun readCheckpoint(checkpoint: String, scopeWork: String): SettingListResponse = SettingListResponse(readRows(
         versions.findAllById(checkpointSettings.findAllByCheckpointId(checkpoint).map {it.settingVersionId}).sortedBy {it.revisionNo},scopeWork).map {it.toPayload()})
+    /** 원작 삭제 전에 아직 원작을 따르는 Fork의 세계관을 Fork 소유 복사본으로 확정한다. 이미 독립한 Fork는 그대로 둔다. */
+    fun detachForSourceDeletion(id: String) {
+        val l=load(access.get(id))
+        if(l.state.mode!="following") return
+        detach(l)
+        persist(l)
+    }
     fun sourceSnapshots(id: String,owner: String): SourceSnapshotsResult {
         val l=load(access.own(id,owner))
         val basis=l.work.source?.episode ?: throw ContentFailure(409,"원작이 없는 작품이에요.")
-        return SourceSnapshotsResult(l.sourceWorld!!,l.state.sourceSnapshot.map {it.toPayload()},selectSettings(l.sourceHistory,basis,true).map {it.toPayload()})
+        return SourceSnapshotsResult(l.sourceWorld ?: throw ContentFailure(409,"원작이 삭제돼 비교할 수 없어요."),l.state.sourceSnapshot.map {it.toPayload()},selectSettings(l.sourceHistory,basis,true).map {it.toPayload()})
     }
     private fun load(w: WorkAccessResult): Loaded {
         em.flush()
@@ -129,11 +136,14 @@ class WorldService(
                 state.drafts[docs.getValue(d.settingDocumentId).logicalId]=Setting(id=docs.getValue(d.settingDocumentId).logicalId,name=d.name,content=d.content,category=d.categoryId,tags=d.tags,visibility=d.visibilityStatus,fromEpisode=d.fromEpisode,toEpisode=d.toEpisode,knownBy=d.knownBy,evidence=d.evidence)
             }
         }
-        val source=w.source?.let {access.get(it.workId)}
+        val source=w.source?.takeUnless {it.deleted}?.let {access.get(it.workId)}
         val sourceHistory=if(source==null) emptyList() else readHistory(source.worldId,source.id)
-        val basis=f?.let { BasisResponse(w.source!!.episode,w.source.version,readCheckpoint(it.sourceCheckpointId,it.sourceWorkId).items) }
+        val basis=f?.let {
+            if(it.sourceDeletedAt!=null) BasisResponse(w.source!!.episode,w.source.version,emptyList())
+            else BasisResponse(w.source!!.episode,w.source.version,readCheckpoint(it.sourceCheckpointId!!,it.sourceWorkId!!).items)
+        }
         if(f!=null) {
-            state.sourceSnapshot=readRows(versions.findAllById(sourceSettings.findAllByForkWorkId(w.id).map {it.settingVersionId}).sortedBy {it.revisionNo},f.sourceWorkId)
+            f.sourceWorkId?.let {scope -> state.sourceSnapshot=readRows(versions.findAllById(sourceSettings.findAllByForkWorkId(w.id).map {it.settingVersionId}).sortedBy {it.revisionNo},scope)}
             val byId=changes.findAllByForkWorkId(w.id).associateBy {it.id}
             decisions.findAllBySourceChangeIdInOrderByDecidedAtAscIdAsc(byId.keys).forEach {state.decisions[byId.getValue(it.sourceChangeId).sourceChangeRef]=it.decision}
         }

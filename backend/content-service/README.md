@@ -75,6 +75,7 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V14 | `db/migration/work` | 공개 회차 조회 기록 `work_view`(작품 검색·실시간 랭킹의 조회 수 정본) |
 | V15 | `db/migration/work` | 공개 표시 메타데이터·불변 rich wiki 상세 추가 (샘플 자동 insert 없음) |
 | V16 | `db/migration/sample` | 개발 샘플 행(CSV 정본에서 생성, 직접 편집 금지) |
+| V17 | `db/migration/fork` | 원작이 삭제된 Fork를 위해 원작 참조를 비울 수 있게 하고 "삭제된 원작" 기준 정보 추가 |
 
 [`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V16이며 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 

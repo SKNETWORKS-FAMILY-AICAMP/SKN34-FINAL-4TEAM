@@ -117,10 +117,13 @@ class EpisodeService(
         if(number<1 || image.episodeNo!=number) return false
         if(image.workId==work) return true
         val fork=forks.findById(work).orElse(null) ?: return false
-        if(image.workId!=fork.sourceWorkId) return false
-        val source=episodes.findByWorkIdAndSequence(fork.sourceWorkId,number) ?: return false
-        val pinned=checkpointEpisodes.findById(ai.storyfork.content.episode_version.entity.CheckpointEpisodeEntity.Key(fork.sourceCheckpointId,source.id)).orElse(null) ?: return false
-        if(pinned.sourceWorkId!=fork.sourceWorkId) return false
+        // 원작이 삭제된 Fork는 원작 이미지를 상속하지 않는다.
+        val sourceWork=fork.sourceWorkId ?: return false
+        val sourceCheckpoint=fork.sourceCheckpointId ?: return false
+        if(image.workId!=sourceWork) return false
+        val source=episodes.findByWorkIdAndSequence(sourceWork,number) ?: return false
+        val pinned=checkpointEpisodes.findById(ai.storyfork.content.episode_version.entity.CheckpointEpisodeEntity.Key(sourceCheckpoint,source.id)).orElse(null) ?: return false
+        if(pinned.sourceWorkId!=sourceWork) return false
         val version=versions.findById(pinned.episodeVersionId).orElse(null) ?: return false
         return version.episodeId==source.id && "[[image:${image.id}]]" in version.content
     }

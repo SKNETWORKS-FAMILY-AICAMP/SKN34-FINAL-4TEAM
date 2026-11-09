@@ -76,6 +76,7 @@ class ForkService(
         val w=access.own(id,owner)
         checkContent(data.decision in setOf("apply","reject"),message="변경 선택을 확인해 주세요.")
         val source=w.source ?: throw ContentFailure(409,"원작 변경이 없는 작품이에요.")
+        checkContent(!source.deleted,409,"원작이 삭제돼 반영할 변경이 없어요.")
         val before=world.read(id,owner)
         checkContent(before.revision==data.revision,409,"설정집이 변경됐어요. 최신 데이터를 불러와 주세요.")
         val change=before.changes.find {it.id==data.changeId} ?: throw ContentFailure(409,"원본 변경이 달라졌어요. 알림을 다시 확인해 주세요.")
