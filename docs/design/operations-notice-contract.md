@@ -5,8 +5,8 @@
 
 ## 결정
 
-- **저장**: 기존 `operations.notice`(V1)와 `NoticeService`의 검증(제목 1~200자·본문 1~20,000자·공백만/U+0000 거절)을 재사용한다.
-  새 컬럼·마이그레이션은 없다.
+- **저장**: 기존 `operations.notice`(V1)와 검증(제목 1~200자·본문 1~20,000자는 `NoticeRequest`의 `@NotBlank`·`@Size`, 공백만/U+0000 거절은 `NoticeService`)을 재사용한다.
+  새 컬럼·마이그레이션은 없다. `@Valid`는 권한보다 먼저 400을 내므로 관리자 경로는 권한 확인 뒤 `AdminNoticeService`가 같은 어노테이션을 직접 검증한다.
 - **게시 상태**: 별도 발행·예약 상태를 두지 않는다. 관리자가 등록한 공지는 즉시 공개 공지다. 삭제하면 공개 목록에서도 사라진다.
 - **관리자 권한**: Core `operator=true`이면서 운영 `admin_permission`의 `notices`(공지 게시) 권한이 있어야 한다.
 - **독자 조회**: 인증 없이 누구나 목록·상세를 읽는다. 쓰기 경로는 없다.
@@ -21,7 +21,7 @@
 
 ```text
 Notice = { id, title, body, createdAt, updatedAt }          // 기존 NoticeResponse
-NoticeList = { items: Notice[], page, size, totalElements, totalPages }   // 기존 NoticeListResponse
+NoticeList = { items: Notice[], page, size, totalElements, totalPages }   // 공통 PageResponse<Notice>
 ```
 
 관리자 `/api/v1/operations/admin/notices` (회원 Bearer, `operator` + `notices` 권한, 없으면 401/403)

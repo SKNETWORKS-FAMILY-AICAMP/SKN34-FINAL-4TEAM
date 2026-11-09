@@ -7,6 +7,8 @@ import ai.storyfork.operations.notice.service.AdminNoticeService
 import ai.storyfork.operations.notice.service.NoticeService
 import ai.storyfork.operations.notice.service.dto.NoticeRequest
 import ai.storyfork.operations.security.OperationsMember
+import jakarta.validation.ConstraintViolationException
+import jakarta.validation.Validation
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
@@ -29,7 +32,7 @@ import org.springframework.web.server.ResponseStatusException
 class AdminNoticeServiceTest {
     private val notices = mock(NoticeRepository::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
-    private val service = AdminNoticeService(NoticeService(notices), permissions)
+    private val service = AdminNoticeService(NoticeService(notices), permissions, Validation.buildDefaultValidatorFactory().validator)
 
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutNotices = OperationsMember(UUID.randomUUID(), true)
@@ -61,6 +64,17 @@ class AdminNoticeServiceTest {
         }
 
         verifyNoInteractions(notices)
+    }
+
+    @Test
+    fun `a notices admin gets 400 for over long input before anything is saved`() {
+        // 길이 규칙의 출처는 NoticeRequest의 @Size다. 컨트롤러에 @Valid가 없으므로 권한 확인 뒤 서비스가 같은 규칙을 직접 검증해야 한다.
+        for (request in listOf(NoticeRequest("가".repeat(201), "본문"), NoticeRequest("제목", "나".repeat(20_001)))) {
+            assertThrows(ConstraintViolationException::class.java) { service.create(admin, request) }
+            assertThrows(ConstraintViolationException::class.java) { service.update(admin, entity.id, request) }
+        }
+
+        verify(notices, never()).saveAndFlush(any())
     }
 
     @Test

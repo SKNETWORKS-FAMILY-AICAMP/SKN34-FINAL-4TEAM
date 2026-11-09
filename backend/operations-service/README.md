@@ -79,7 +79,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | `DELETE R/{resourceId}` | 204, 응답 본문 없음 | 명시적 삭제; 없는 ID는 404 |
 
 - PUT은 PATCH가 아닙니다. 이벤트에서 기간을 생략하거나 null로 보내면 기존 기간을 비웁니다.
-- 생성/수정 전 필수 값·길이는 요청 DTO의 `@NotBlank`·`@Size`가 컨트롤러의 `@Valid`에서 검증하고, 서비스는 공백·이벤트 기간 순서·모든 문자열의 U+0000 포함 여부를 다시 검증합니다. `@NotBlank`(Hibernate Validator의 `String.isBlank`)는 U+00A0·U+2007·U+202F만 있는 값을 통과시키고 DB `CHECK (~ '[^[:space:]]')`도 이 문자를 통과시키므로 서비스의 `isNotBlank`가 이를 400으로 거절합니다. 길이는 DTO `@Size`만 검사하며 서비스가 되풀이하지 않습니다(현재 서비스를 호출하는 곳은 컨트롤러뿐). 공지·이벤트의 제목/본문, 문의의 분류/제목/본문, 답변 본문에 U+0000이 있으면 저장·변경 전에 거절하며 기존 필드와 수정 시각을 보존합니다. 잘못된 생성 요청은 Repository를 호출하지 않습니다.
+- 생성/수정 전 필수 값·길이는 요청 DTO의 `@NotBlank`·`@Size`가 컨트롤러의 `@Valid`에서 검증하고, 서비스는 공백·이벤트 기간 순서·모든 문자열의 U+0000 포함 여부를 다시 검증합니다. `@NotBlank`(Hibernate Validator의 `String.isBlank`)는 U+00A0·U+2007·U+202F만 있는 값을 통과시키고 DB `CHECK (~ '[^[:space:]]')`도 이 문자를 통과시키므로 서비스의 `isNotBlank`가 이를 400으로 거절합니다. 길이는 DTO `@Size`만 검사하며 서비스가 되풀이하지 않습니다(서비스 토큰 컨트롤러는 `@Valid`로, `/admin/notices`는 권한 확인 뒤 `AdminNoticeService`가 같은 어노테이션을 직접 검증합니다). 공지·이벤트의 제목/본문, 문의의 분류/제목/본문, 답변 본문에 U+0000이 있으면 저장·변경 전에 거절하며 기존 필드와 수정 시각을 보존합니다. 잘못된 생성 요청은 Repository를 호출하지 않습니다.
 - 공지/이벤트/문의 응답은 `id`, 요청 필드, `createdAt`, `updatedAt`입니다. 답변에는 `inquiryId`도 있습니다. 모든 시각은 UTC Instant입니다.
 - 목록은 `items`, `page`, `size`, `totalElements`, `totalPages`를 갖는 명시적 DTO이며 네 목록이 제네릭 `PageResponse<T>`(`_common/service/dto`) 하나를 공유합니다. JPA Entity나 Spring `Page`를 그대로 노출하지 않습니다.
 - Pageable 기본값은 0부터 시작하는 page와 size 20이며 size는 최대 100입니다. 컨트롤러·서비스 코드가 아니라 `spring.data.web.pageable.default-page-size=20`·`max-page-size=100` 설정이 정하며 `ApplicationPropertiesTest`가 값을 고정합니다. 공지·이벤트·문의 목록은 `createdAt DESC, id DESC`, 문의 하위 답변 목록은 대화 순서인 `createdAt ASC, id ASC`로 고정합니다. 클라이언트 sort를 사용하지 않고 같은 시각도 UUID로 순서를 안정화합니다.
@@ -116,7 +116,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 - 신고: 접수·`mine`·운영 목록(`?status=`)·상세(+`history`)·`evidence`·`explanations`(POST/GET)·`review`·`restriction`(POST/DELETE)·`evidence-requests`. 접수는 201, 신고 변경 POST/DELETE는 200으로 갱신된 상세(`history` 포함), `GET …/explanations`는 `{ items: History[] }`. 증거 보완·소명·증빙 요청 본문은 1~5000자.
 - 회원: `GET /members?role=&q=&sort=`, `PUT|DELETE /members/{id}/restriction` — Core에 관리자 Bearer를 그대로 전달.
 - 관리자: `GET /admins`(Core `role=ADMIN` + `permissions`), `POST /admins`(알려진 키 1개 이상 검증 → Core 생성 → 권한 저장, 201).
-- 공지 관리: `/admin/notices`의 `GET`(최신 100개)·`GET /{id}`·`POST`(201+`Location`)·`PUT /{id}`·`DELETE /{id}`(204). `notices` 권한 검사가 입력 값 검증·저장소 호출보다 먼저라 JSON 형식이 맞는 한 비관리자는 입력 값과 무관하게 403이고, 검증·정렬·응답 DTO는 `/notices`와 같은 `NoticeService`를 재사용합니다([공지 계약](../../docs/design/operations-notice-contract.md)).
+- 공지 관리: `/admin/notices`의 `GET`(최신 100개)·`GET /{id}`·`POST`(201+`Location`)·`PUT /{id}`·`DELETE /{id}`(204). `notices` 권한 검사가 입력 값 검증·저장소 호출보다 먼저라 JSON 형식이 맞는 한 비관리자는 입력 값과 무관하게 403입니다. `@Valid`는 권한보다 먼저 400을 내므로 컨트롤러에 쓰지 않고, 권한 확인 뒤 `AdminNoticeService`가 `NoticeRequest`의 `@NotBlank`·`@Size`를 직접 검증해 위반은 400입니다. 공백·U+0000 검증·정렬·응답 DTO는 `/notices`와 같은 `NoticeService`를 재사용합니다([공지 계약](../../docs/design/operations-notice-contract.md)).
 - 공개 공지 조회: `GET /api/v1/operations/public/notices`(최신 100개)·`/{id}`는 인증 없는 별도 SecurityFilterChain입니다. GET 이외는 서비스 토큰·Bearer가 있어도 403이고, 서비스 토큰 체인은 나머지 경로를 그대로 소유합니다.
 - Core·Content 하위 400/404/409는 보존하고 그 외 실패는 502 `UPSTREAM_FAILED`이며 성공·이력으로 숨기지 않습니다. 고정 timeout(connect 2s, read 5s)·재시도 없음.
 - Content 호출(접수의 작품 조회, 제한·해제)은 DB 트랜잭션 밖에서 실행해 커넥션을 점유하지 않습니다. 호출이 성공한 뒤 신고 갱신과 이력만 한 트랜잭션으로 저장하고, 조회 이후 신고가 바뀌었으면 `@Version`이 409로 거절합니다. 제한·해제는 저장이 실패하면 Content 쪽만 이미 바뀐 상태이며(분산 트랜잭션 없음) 같은 요청을 다시 보내면 맞춰집니다(Content PUT/DELETE는 멱등).
@@ -137,9 +137,9 @@ CRUD는 별도 PR로 전달하더라도 **공통 기반 → 공지 V1 → 이벤
 
 ## 관리자 UI 메모리 데모
 
-`/admin?tab=notices`, `/admin?tab=events`, `/admin?tab=feedback`의 [독립 운영 패널](../../frontend/src/presentation/features/admin/view/OperationsPanels.tsx)은 별도 `InMemoryOperationsRepository`에 공지·이벤트·문의 및 문의별 여러 답변을 저장합니다. 등록·목록/상세·전체 수정·확인 후 삭제와 답변 우선 삭제 안내를 소스 구현했지만 **이 API·서비스 토큰·실제 관리자 인증·서버 저장·발행·알림·버전 충돌과는 연결하지 않았습니다**. 브라우저 새로고침 시 데모 기록·초안이 사라집니다.
+`/admin?tab=events`, `/admin?tab=feedback`의 [독립 운영 패널](../../frontend/src/presentation/features/admin/view/OperationsPanels.tsx)은 별도 `InMemoryOperationsRepository`에 이벤트·문의 및 문의별 여러 답변을 저장합니다. 등록·목록/상세·전체 수정·확인 후 삭제와 답변 우선 삭제 안내를 소스 구현했지만 **이 API·서비스 토큰·실제 관리자 인증·서버 저장·발행·알림·버전 충돌과는 연결하지 않았습니다**. 브라우저 새로고침 시 데모 기록·초안이 사라집니다. `/admin?tab=notices`는 같은 패널 UI이지만 위 회원 Bearer `/admin/notices` API에 저장하는 실제 연결입니다([공지 계약](../../docs/design/operations-notice-contract.md)).
 
-이벤트 선택 기간은 명시적인 한국시간(KST, UTC+09:00) 입력을 UTC로 변환하고 한국시간으로 표시하며 유효하지 않은 날짜·역전 기간을 거절합니다. UI에는 조회 로딩/실패/빈 목록/재시도·늦은 응답 무시, 요청별 pending/중복 방지, 저장 성공과 후속 목록 재조회 실패 구분, 탭별 초안·선택 유지, 상세/목록 포커스 이동과 줄바꿈 표시가 있습니다. 관리자 공지·이벤트·문의 탭에 있던 기존 회원 화면 호환 데모(공지 게시·이벤트 추가·문의 단일 답변)는 이 패널로 대체해 제거했고, 회원용 `/me/notice`·`/me/event`·`/me/inquiry` 데모와 제보·문의 탭의 작가 제보 표만 별도 저장소로 남깁니다. [기능표 미등록-124](../../docs/feature-roadmap.md#미등록-124)는 각 UI 동작을 별도 행으로 추적하며, 이 설명은 브라우저 동작 검증 결과가 아닙니다.
+이벤트 선택 기간은 명시적인 한국시간(KST, UTC+09:00) 입력을 UTC로 변환하고 한국시간으로 표시하며 유효하지 않은 날짜·역전 기간을 거절합니다. UI에는 조회 로딩/실패/빈 목록/재시도·늦은 응답 무시, 요청별 pending/중복 방지, 저장 성공과 후속 목록 재조회 실패 구분, 탭별 초안·선택 유지, 상세/목록 포커스 이동과 줄바꿈 표시가 있습니다. 관리자 공지·이벤트·문의 탭에 있던 기존 회원 화면 호환 데모(공지 게시·이벤트 추가·문의 단일 답변)는 이 패널(공지 탭은 실제 API 패널)로 대체해 제거했고, 회원용 `/me/event`·`/me/inquiry` 데모와 제보·문의 탭의 작가 제보 표만 별도 저장소로 남깁니다. `/me/notice`는 공개 공지 API를 읽습니다. [기능표 미등록-124](../../docs/feature-roadmap.md#미등록-124)는 각 UI 동작을 별도 행으로 추적하며, 이 설명은 브라우저 동작 검증 결과가 아닙니다.
 
 ## 검증·인계
 
