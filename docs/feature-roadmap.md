@@ -225,8 +225,8 @@
 <tr><td>설정 이전 버전 복원</td><td>❌</td></tr>
 <tr><td>세계관 체크포인트 생성</td><td>❌</td></tr>
 <tr><td>체크포인트 상세 조회</td><td>❌</td></tr>
-<tr><td>회차 발행 시 체크포인트(발행본) 생성 <small>(DEC-43)</small></td><td>❌ <small>로컬 구현(버전 저장 시 생성 제거·작가용 체크포인트 목록), PR·Required CI·E2E 확인 대기</small></td></tr>
-<tr><td>발행 회차를 이전 체크포인트로 되돌리기</td><td>❌ <small>로컬 구현(기존 발행 API 재사용·집필실 목록), PR·Required CI·E2E 확인 대기</small></td></tr>
+<tr><td>회차 발행 시 체크포인트(발행본) 생성 <small>(DEC-43)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/227">PR #227</a></td></tr>
+<tr><td>발행 회차를 이전 체크포인트로 되돌리기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/227">PR #227</a></td></tr>
 <tr><td rowspan="2">62 회차 부가 내용 편집</td><td>회차 작가의 말 작성</td><td>❌</td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="#미등록-087">미등록-087</a></td></tr>
 <tr><td>회차 작가의 말 수정</td><td>❌</td></tr>
 <tr><td rowspan="3">87 기준 세계관 연결 관리 <small>(Draft 검토 후보)</small></td><td>회차의 기준 세계관 버전 선택</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
