@@ -95,7 +95,7 @@ class ReportServiceTest {
 
     @Test
     fun `create stores Content owner and title with RECEIVED status for the authenticated reporter`() {
-        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId, "원작 제목", false))
+        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "원작 제목", false))
         `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: report())).thenAnswer { it.arguments[0] }
 
         val result = service.create(reporter, ReportRequest(ReportKind.HARMFUL, workId, "유해", "링크"))
@@ -125,6 +125,21 @@ class ReportServiceTest {
 
         assertStatus(HttpStatus.BAD_GATEWAY) { service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", "")) }
 
+        verifyNoInteractions(reports, histories)
+    }
+
+    @Test
+    fun `create rejects a work whose owner cannot be a member with 409 before storing anything`() {
+        `when`(content.work(workId)).thenReturn(ContentWork(workId, "ops-work-owner", "작품", false))
+
+        val failure = assertThrows(ResponseStatusException::class.java) {
+            service.create(reporter, ReportRequest(ReportKind.HARMFUL, workId, "유해", "링크"))
+        }
+
+        assertEquals(HttpStatus.CONFLICT, failure.statusCode)
+        assertEquals("작품 소유자를 확인할 수 없어 신고할 수 없어요.", failure.reason)
+        verify(content).work(workId)
+        verifyNoMoreInteractions(content)
         verifyNoInteractions(reports, histories)
     }
 
@@ -222,13 +237,13 @@ class ReportServiceTest {
     fun `restriction calls Content then sets the flag and records RESTRICT and UNRESTRICT`() {
         givenReport()
         givenRights()
-        `when`(content.restrict(workId)).thenReturn(ContentWork(workId, owner.memberId, "작품", true))
+        `when`(content.restrict(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "작품", true))
 
         assertTrue(service.restrict(admin, reportId).contentRestricted)
         assertEquals(ReportHistoryType.RESTRICT, savedHistory().type)
 
         reset(histories)
-        `when`(content.unrestrict(workId)).thenReturn(ContentWork(workId, owner.memberId, "작품", false))
+        `when`(content.unrestrict(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "작품", false))
         assertFalse(service.unrestrict(admin, reportId).contentRestricted)
         assertEquals(ReportHistoryType.UNRESTRICT, savedHistory().type)
     }
@@ -252,9 +267,9 @@ class ReportServiceTest {
     private fun recordSteps(): MutableList<String> {
         val steps = mutableListOf<String>()
         fun step(name: String) { steps += "$name:${inTransaction()}" }
-        `when`(content.work(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId, "작품", false) }
-        `when`(content.restrict(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId, "작품", true) }
-        `when`(content.unrestrict(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId, "작품", false) }
+        `when`(content.work(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId.toString(), "작품", false) }
+        `when`(content.restrict(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId.toString(), "작품", true) }
+        `when`(content.unrestrict(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId.toString(), "작품", false) }
         doAnswer { step("report"); it.arguments[0] }.`when`(reports).saveAndFlush(any(ReportEntity::class.java) ?: report())
         doAnswer { step("history"); it.arguments[0] }.`when`(histories).saveAndFlush(
             any(ReportHistoryEntity::class.java) ?: ReportHistoryEntity(reportId = reportId, type = ReportHistoryType.REVIEW, actorId = admin.memberId, body = null),

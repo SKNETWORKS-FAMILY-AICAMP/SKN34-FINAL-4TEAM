@@ -5,7 +5,8 @@ import java.util.UUID
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 
-data class ContentWork(val workId: UUID, val ownerId: UUID, val title: String, val restricted: Boolean)
+/** [ownerId] stays a String because Content `work.owner_id` is a varchar: a non-UUID owner must not turn get/restrict/unrestrict into 502. */
+data class ContentWork(val workId: UUID, val ownerId: String, val title: String, val restricted: Boolean)
 
 /** Content internal work APIs; only the service token is sent, never a member Bearer. */
 class ContentClient(private val http: RestClient) {

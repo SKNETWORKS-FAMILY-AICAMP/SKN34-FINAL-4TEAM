@@ -16,7 +16,7 @@ class WorkControllerTest {
     private val controller = WorkController(service)
     private val member = OperationsMember(UUID.randomUUID(), true)
     private val id = UUID.randomUUID()
-    private val restricted = ContentWork(id, UUID.randomUUID(), "작품", true)
+    private val restricted = ContentWork(id, UUID.randomUUID().toString(), "작품", true)
 
     @Test
     fun `list restrict and unrestrict pass the authenticated member and return the service DTOs`() {
