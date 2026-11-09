@@ -36,6 +36,7 @@
 | [MVP 설계](design/design.md) | MVP 포함·제외 범위, 저장 방향 |
 | [서비스별 설계](design/services/core-api.md) | [Core](design/services/core-api.md) · [AI](design/services/ai-service.md) · [Frontend](design/services/web.md) · [인프라](design/services/infrastructure.md) 목표 설계 |
 | [WorldStudio 관계 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132) | Neo4j 현재 관계 정본, PG 메타데이터, 재시도·실패 경계(#132) |
+| [초기 세계관 AI 전처리 v1](design/initial-world-preprocessing/README.md) | 계약·JSON Schema·홍길동전 fixture. 실제 분석·검토·반영 기능은 후속 구현 |
 
 ## 데이터
 
