@@ -1,5 +1,6 @@
 package ai.storyfork.content.work
 
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.fixture.ContentTestConfig
 import ai.storyfork.content.fixture.ContentTestDriver
@@ -27,6 +28,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @Import(ContentTestConfig::class)
 @SpringBootTest(properties=["DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=content_test","DATABASE_PASSWORD="])
 class WorkDeletePostgresTest {
+    // 작가명·작성자명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다.
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
     @MockitoBean lateinit var ai: GenerationClient

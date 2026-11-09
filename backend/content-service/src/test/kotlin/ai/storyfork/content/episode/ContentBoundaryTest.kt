@@ -82,7 +82,7 @@ class ContentBoundaryTest {
     }
 
     @Test fun `work like table follows the reading management contract`() {
-        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V17__work_like.sql"))
+        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V18__work_like.sql"))
         assertTrue(sql.contains("CREATE TABLE work_like"))
         assertTrue(sql.contains("work_id varchar(36) NOT NULL REFERENCES work(id)"))
         assertTrue(sql.contains("member_id varchar(200) NOT NULL"))
@@ -101,8 +101,8 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples are an ordinary migration in the same global order (sample/V16).
-        assertEquals((1..17).toList(), versions.sorted())
+        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is the episode comment tables and V18 the work like table (work leaf).
+        assertEquals((1..18).toList(), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

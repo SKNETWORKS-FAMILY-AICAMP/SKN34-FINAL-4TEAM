@@ -42,6 +42,8 @@ import tools.jackson.databind.ObjectMapper
 ])
 @EnabledIfEnvironmentVariable(named = "TEST_ATTACHMENT_DATABASE_URL", matches = ".+")
 class SettingAttachmentHttpTest {
+    // 작가명·작성자명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다.
+    @org.springframework.test.context.bean.override.mockito.MockitoBean lateinit var nicknames: ai.storyfork.content.auth.service.CoreNicknameService
     @LocalServerPort var port = 0
     @Autowired lateinit var members: MemberRepository
     @org.springframework.test.context.bean.override.mockito.MockitoBean lateinit var core: CoreAuthClient
@@ -106,7 +108,7 @@ class SettingAttachmentHttpTest {
     @Test fun `content JPA transactions stay separate from attachment transactions`() {
         val authManager = assertInstanceOf(org.springframework.orm.jpa.JpaTransactionManager::class.java, authTransactions.transactionManager)
         assertNotSame(attachmentTransactions.transactionManager, authManager)
-        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity"), requireNotNull(authManager.entityManagerFactory)
+        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity","ai.storyfork.content.comment.entity","ai.storyfork.content.like.entity"), requireNotNull(authManager.entityManagerFactory)
             .metamodel.entities.map { it.javaType.packageName }.toSet())
         val id = UUID.randomUUID().toString()
         authTransactions.executeWithoutResult { status ->

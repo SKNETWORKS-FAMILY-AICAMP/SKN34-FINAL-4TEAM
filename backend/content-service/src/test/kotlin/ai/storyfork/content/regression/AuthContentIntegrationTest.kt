@@ -1,5 +1,6 @@
 package ai.storyfork.content.regression
 
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.fixture.CsrfFixture
@@ -38,6 +39,8 @@ import tools.jackson.databind.json.JsonMapper
 ])
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 class AuthContentIntegrationTest {
+    // 작가명·작성자명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다.
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @LocalServerPort var port=0
     @MockitoBean lateinit var core:CoreAuthClient
     @Autowired @Qualifier("contentDataSource") lateinit var source:DataSource

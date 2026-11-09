@@ -2,6 +2,7 @@ package ai.storyfork.content.like
 
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.fixture.ContentTestConfig
 import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
@@ -43,6 +44,8 @@ import tools.jackson.databind.json.JsonMapper
 class WorkLikeIntegrationTest {
     @LocalServerPort var port=0
     @MockitoBean lateinit var core: CoreAuthClient
+    // 작가명은 소유자의 Core 닉네임이라 응답을 만들 때마다 Core를 부른다. 이 테스트는 이름을 보지 않으니 빈 결과를 돌려주는 대역이면 된다.
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
     @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource

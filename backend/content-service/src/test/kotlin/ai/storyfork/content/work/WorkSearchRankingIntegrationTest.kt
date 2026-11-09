@@ -2,6 +2,7 @@ package ai.storyfork.content.work
 
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.fixture.ContentTestConfig
 import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
@@ -15,10 +16,13 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import javax.sql.DataSource
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -32,6 +36,7 @@ import tools.jackson.databind.json.JsonMapper
 /**
  * 공개 작품 검색·랭킹·조회 기록 HTTP 계약을 실제 PostgreSQL로 검증한다. TEST_CONTENT_DATABASE_URL이 있을 때만 실행한다.
  * DB는 다른 테스트의 작품과 공유하므로 각 테스트는 자신이 만든 작품 id만 골라 비교한다.
+ * 작가명·작가 검색은 소유자의 Core 최신 닉네임이라 Core는 [names]를 돌려주는 대역이다.
  */
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties=[
     "DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
@@ -43,12 +48,21 @@ import tools.jackson.databind.json.JsonMapper
 class WorkSearchRankingIntegrationTest {
     @LocalServerPort var port=0
     @MockitoBean lateinit var core: CoreAuthClient
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
     @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource
     @Autowired lateinit var json: JsonMapper
     private val jdbc get()=JdbcTemplate(source)
     private val client=HttpClient.newHttpClient()
+    /** Core 닉네임 대역이다. 소유자 id → 최신 닉네임이며, 없는 소유자는 Core에 없는(탈퇴한) 회원이다. */
+    private val names: MutableMap<String,String> = ConcurrentHashMap()
+
+    @BeforeEach fun coreNicknames() {
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer {call ->
+            (call.arguments[0] as Collection<*>).map {it as String}.filter {it in names}.associateWith {names.getValue(it)}
+        }
+    }
 
     private fun actor(): UUID=UUID.randomUUID().also { id -> `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id)) }
     private fun send(request: HttpRequest.Builder): HttpResponse<String> = client.send(request.build(),HttpResponse.BodyHandlers.ofString())
@@ -67,11 +81,11 @@ class WorkSearchRankingIntegrationTest {
     }
     private fun ids(path: String)=items(path).map {it.path("id").asText()}
     private fun count(work: String)=jdbc.queryForObject("SELECT count(*) FROM work_view WHERE work_id=?",Int::class.java,work)!!
-    private fun work(title: String,genres: List<String> = listOf("판타지"),tags: List<String> = emptyList(),publish: Boolean = true): String {
-        val id=works.create("author",CreateWorkRequest(title,"소개","ORIGINAL",genres,tags,true)).id
+    private fun work(title: String,genres: List<String> = listOf("판타지"),tags: List<String> = emptyList(),publish: Boolean = true,owner: String = "author"): String {
+        val id=works.create(owner,CreateWorkRequest(title,"소개","ORIGINAL",genres,tags,true)).id
         if(publish) {
-            val draft=driver.edit(id,"author",DraftRequest("1화","본문",0))
-            driver.publish(id,"author",PublishRequest(draft.revision,true,true,true,driver.history(id,"author").versions.last().id))
+            val draft=driver.edit(id,owner,DraftRequest("1화","본문",0))
+            driver.publish(id,owner,PublishRequest(draft.revision,true,true,true,driver.history(id,owner).versions.last().id))
         }
         return id
     }
@@ -152,5 +166,31 @@ class WorkSearchRankingIntegrationTest {
         assertEquals(403,recordView(open,1,reader,csrf=false).statusCode())
         assertEquals(0,count(draftOnly))
         assertEquals(4,count(open))
+    }
+
+    @Test fun `author search and author names follow the owner's latest Core nickname`() {
+        val tag=UUID.randomUUID().toString().take(8)
+        val writer="writer-$tag"
+        names[writer]="작가-$tag"
+        val first=work("작가 검색 하나",owner=writer)
+        // Core에 없는 소유자의 작품은 작가명이 탈퇴한 회원이다.
+        val second=work("작가 검색 둘",owner="gone-$tag")
+        val hidden=work("작가 검색 비공개",owner=writer,publish=false)
+        val mine=setOf(first,second,hidden)
+        fun found(query: String)=ids("/api/v1/public/works?$query").filter {it in mine}
+        fun nameOf(id: String)=items("/api/v1/public/works").first {it.path("id").asText()==id}.path("authorName").asText()
+
+        assertEquals(listOf(first),found("f=author&q=${encoded("작가-$tag")}"))
+        assertEquals(listOf(first),found("f=all&q=${encoded("작가-$tag")}"))
+        assertEquals(emptyList<String>(),found("f=title&q=${encoded("작가-$tag")}"))
+        assertEquals("작가-$tag",nameOf(first))
+        assertEquals("탈퇴한 회원",nameOf(second))
+
+        // 닉네임을 바꾸면 검색·목록·상세가 바로 따라간다. Content에 저장된 작가명은 읽지 않는다.
+        names[writer]="바뀐-$tag"
+        assertEquals(emptyList<String>(),found("f=author&q=${encoded("작가-$tag")}"))
+        assertEquals(listOf(first),found("f=author&q=${encoded("바뀐-$tag")}"))
+        assertEquals("바뀐-$tag",nameOf(first))
+        assertEquals("바뀐-$tag",json.readTree(get("/api/v1/public/works/$first").body()).path("authorName").asText())
     }
 }
