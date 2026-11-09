@@ -1,5 +1,6 @@
 package ai.storyfork.operations.inquiry
 
+import ai.storyfork.operations._common.blankTexts
 import ai.storyfork.operations.inquiry.entity.InquiryEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
 import ai.storyfork.operations.inquiry.repository.InquiryRepository
@@ -33,6 +34,11 @@ class InquiryServiceTest {
         createdAt = Instant.parse("2026-01-01T00:00:00Z"),
     )
 
+    // 길이는 요청 DTO의 @Size가 거절한다(RequestValidationTest). 서비스는 공백(@NotBlank가 놓치는 NBSP류 포함)과 U+0000을 거절한다.
+    private fun blankRequests() = blankTexts.flatMap {
+        listOf(request.copy(title = it), request.copy(body = it), request.copy(category = it))
+    }
+
     @Test
     fun `create stores operator record and returns a UUID and UTC timestamps`() {
         `when`(inquiries.saveAndFlush(any(InquiryEntity::class.java) ?: inquiry())).thenAnswer { it.arguments[0] }
@@ -59,6 +65,13 @@ class InquiryServiceTest {
         assertEquals(200, result.title.length)
         assertEquals(20000, result.body.length)
         assertEquals(50, result.category.length)
+    }
+
+    @Test
+    fun `invalid create is rejected before touching repositories`() {
+        blankRequests().forEach { input -> assertThrows(IllegalArgumentException::class.java) { service.create(input) } }
+
+        verifyNoInteractions(inquiries, replies)
     }
 
     @ParameterizedTest
@@ -139,6 +152,21 @@ class InquiryServiceTest {
         assertEquals(Instant.parse("2026-01-01T00:00:00Z"), result.createdAt)
         assertTrue(result.updatedAt.isAfter(result.createdAt))
         verify(inquiries).saveAndFlush(row)
+    }
+
+    @Test
+    fun `invalid update preserves every original field before any mutation`() {
+        val row = inquiry()
+        `when`(inquiries.findById(id)).thenReturn(Optional.of(row))
+
+        for (invalid in blankRequests()) {
+            assertThrows(IllegalArgumentException::class.java) { service.update(id, invalid) }
+            assertEquals("이전 제목", row.title)
+            assertEquals("이전 본문", row.body)
+            assertEquals("이전 분류", row.category)
+            assertEquals(row.createdAt, row.updatedAt)
+        }
+        verify(inquiries, never()).saveAndFlush(row)
     }
 
     @Test

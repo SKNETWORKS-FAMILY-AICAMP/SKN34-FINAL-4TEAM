@@ -54,10 +54,10 @@ class NoticeService(private val repository: NoticeRepository) {
 
     private fun find(id: UUID): NoticeEntity = repository.findById(id).orElseThrow()
 
-    /** 공백·길이는 요청 DTO의 `@Valid`가 검증하고, PostgreSQL text가 저장하지 못하는 U+0000만 여기서 거절한다. */
+    /** 길이는 요청 DTO의 `@Size`가 검증한다. 공백은 `@NotBlank`(String.isBlank)가 통과시키는 U+00A0·U+2007·U+202F까지 `isNotBlank`로 거절하고, PostgreSQL text가 저장하지 못하는 U+0000도 거절한다. */
     private fun validate(request: NoticeRequest) {
-        require('\u0000' !in request.title)
-        require('\u0000' !in request.body)
+        require(request.title.isNotBlank() && '\u0000' !in request.title)
+        require(request.body.isNotBlank() && '\u0000' !in request.body)
     }
 
     private fun response(entity: NoticeEntity) = NoticeResponse(

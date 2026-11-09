@@ -8,7 +8,7 @@ import jakarta.validation.Validation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-/** 공백·길이 규칙의 유일한 출처는 요청 DTO 어노테이션이다(서비스는 U+0000과 이벤트 기간만 다시 검사한다). */
+/** 길이 규칙의 유일한 출처는 요청 DTO 어노테이션이다. 공백은 서비스도 `isNotBlank`로 다시 검사한다(`@NotBlank`는 NBSP류를 통과시킨다, `blankTexts`). */
 class RequestValidationTest {
     private val validator = Validation.buildDefaultValidatorFactory().validator
     private val notice = NoticeRequest("제목", "본문")

@@ -1,5 +1,6 @@
 package ai.storyfork.operations.notice
 
+import ai.storyfork.operations._common.blankTexts
 import ai.storyfork.operations.notice.entity.NoticeEntity
 import ai.storyfork.operations.notice.repository.NoticeRepository
 import ai.storyfork.operations.notice.service.NoticeService
@@ -208,11 +209,12 @@ class NoticeServiceTest {
     )
 
     companion object {
-        // 공백·길이는 NoticeRequest의 @Valid가 거절한다(RequestValidationTest). 서비스는 U+0000만 거절한다.
+        // 길이는 NoticeRequest의 @Size가 거절한다(RequestValidationTest). 서비스는 공백(@NotBlank가 놓치는 NBSP류 포함)과 U+0000을 거절한다.
         @JvmStatic
-        fun invalidRequests(): List<NoticeRequest> = listOf(
-            NoticeRequest("제\u0000목", "본문"),
-            NoticeRequest("제목", "본\u0000문"),
-        )
+        fun invalidRequests(): List<NoticeRequest> =
+            blankTexts.flatMap { listOf(NoticeRequest(it, "본문"), NoticeRequest("제목", it)) } + listOf(
+                NoticeRequest("제\u0000목", "본문"),
+                NoticeRequest("제목", "본\u0000문"),
+            )
     }
 }

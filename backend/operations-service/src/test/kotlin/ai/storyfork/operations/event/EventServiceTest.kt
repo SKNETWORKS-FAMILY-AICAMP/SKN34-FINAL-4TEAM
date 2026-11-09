@@ -1,5 +1,6 @@
 package ai.storyfork.operations.event
 
+import ai.storyfork.operations._common.blankTexts
 import ai.storyfork.operations.event.entity.EventEntity
 import ai.storyfork.operations.event.repository.EventRepository
 import ai.storyfork.operations.event.service.EventService
@@ -228,9 +229,9 @@ class EventServiceTest {
             )
         }
 
-        // 공백·길이는 EventRequest의 @Valid가 거절한다(RequestValidationTest). 서비스는 U+0000과 기간 순서만 거절한다.
+        // 길이는 EventRequest의 @Size가 거절한다(RequestValidationTest). 서비스는 공백(@NotBlank가 놓치는 NBSP류 포함)·U+0000·기간 순서를 거절한다.
         @JvmStatic
-        fun invalidRequests(): Stream<EventRequest> = Stream.of(
+        fun invalidRequests(): List<EventRequest> = blankTexts.flatMap { listOf(EventRequest(it, "본문"), EventRequest("제목", it)) } + listOf(
             EventRequest("제\u0000목", "본문"),
             EventRequest("제목", "본\u0000문"),
             EventRequest("제목", "본문", Instant.parse("2026-11-06T00:00:00Z"), Instant.parse("2026-11-05T00:00:00Z")),

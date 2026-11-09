@@ -1,5 +1,6 @@
 package ai.storyfork.operations.inquiry
 
+import ai.storyfork.operations._common.blankTexts
 import ai.storyfork.operations.inquiry.entity.InquiryReplyEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
 import ai.storyfork.operations.inquiry.repository.InquiryRepository
@@ -58,7 +59,9 @@ class InquiryReplyServiceTest {
     fun `invalid reply creation fails before parent lookup or persistence`() {
         `when`(inquiries.existsById(inquiryId)).thenReturn(true)
         `when`(replies.saveAndFlush(any(InquiryReplyEntity::class.java) ?: reply())).thenAnswer { it.arguments[0] }
-        assertThrows(IllegalArgumentException::class.java) { service.createReply(inquiryId, InquiryReplyRequest("답\u0000변")) }
+        for (body in blankTexts + "답\u0000변") {
+            assertThrows(IllegalArgumentException::class.java) { service.createReply(inquiryId, InquiryReplyRequest(body)) }
+        }
         verifyNoInteractions(inquiries, replies)
     }
 
@@ -144,9 +147,11 @@ class InquiryReplyServiceTest {
         `when`(replies.findByIdAndInquiryId(replyId, inquiryId)).thenReturn(row)
         `when`(replies.saveAndFlush(row)).thenReturn(row)
 
-        assertThrows(IllegalArgumentException::class.java) { service.updateReply(inquiryId, replyId, InquiryReplyRequest("답\u0000변")) }
-        assertEquals("이전 답변", row.body)
-        assertEquals(row.createdAt, row.updatedAt)
+        for (body in blankTexts + "답\u0000변") {
+            assertThrows(IllegalArgumentException::class.java) { service.updateReply(inquiryId, replyId, InquiryReplyRequest(body)) }
+            assertEquals("이전 답변", row.body)
+            assertEquals(row.createdAt, row.updatedAt)
+        }
         verify(replies, never()).saveAndFlush(row)
     }
 

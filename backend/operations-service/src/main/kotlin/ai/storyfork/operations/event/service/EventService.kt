@@ -51,10 +51,11 @@ class EventService(private val events: EventRepository) {
 
     private fun find(id: UUID): EventEntity = events.findById(id).orElseThrow { NoSuchElementException() }
 
-    // Blank and length rules are @Valid on EventRequest; PostgreSQL text cannot hold U+0000 and the period order spans two fields.
+    // Length is @Size on EventRequest. Blank is re-checked because @NotBlank (String.isBlank) accepts U+00A0, U+2007 and U+202F;
+    // PostgreSQL text cannot hold U+0000 and the period order spans two fields.
     private fun validate(request: EventRequest) {
-        require('\u0000' !in request.title)
-        require('\u0000' !in request.body)
+        require(request.title.isNotBlank() && '\u0000' !in request.title)
+        require(request.body.isNotBlank() && '\u0000' !in request.body)
         require(request.startsAt == null || request.endsAt == null || !request.endsAt.isBefore(request.startsAt))
     }
 
