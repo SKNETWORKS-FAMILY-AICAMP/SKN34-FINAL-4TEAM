@@ -21,9 +21,9 @@ JDK 21의 `JAVA_HOME`과 필요한 변수만 해당 프로세스에 설정하고
 ./gradlew bootRun
 ```
 
-기본 주소는 `127.0.0.1:8081`, 앱 이름은 `storyfork-content-service`입니다. Core 8080·운영 골격 8082와 구분합니다. 콘텐츠와 WorldStudio가 모두 비활성이면 DB/인증 클라이언트를 만들지 않습니다. 이 기본 실행은 업무 API 준비 완료를 뜻하지 않습니다. 포트는 Spring 표준 `--server.port`로 변경할 수 있습니다.
+기본 주소는 `127.0.0.1:8081`, 앱 이름은 `storyfork-content-service`입니다. Core 8080·운영 골격 8082와 구분합니다. 콘텐츠·WorldStudio·첨부는 활성화 변수 없이 항상 켜져 있어 아래 필수 설정이 없으면 기동이 실패합니다. 이 기본 실행은 업무 API 준비 완료를 뜻하지 않습니다. 포트는 Spring 표준 `--server.port`로 변경할 수 있습니다.
 
-Content 실행에는 기존 대상의 `DATABASE_URL/USER/PASSWORD`, Core와 동일한 별도 `CONTENT_CORE_AUTH_TOKEN`이 필요합니다. 기본 Core 인증 origin은 `http://127.0.0.1:8080`, 연결/읽기 timeout은 `1s`/`3s`입니다. 생성은 Content와 AI의 동일한 `INTERNAL_TOKEN`을 사용하며 OpenAI 키·모델은 AI에만 전달합니다. 첨부 설정은 [네이티브 Content 안내](../../infrastructure/README.md#네이티브-content-첨부-설정)를 따릅니다.
+Content 기동에는 기존 대상의 `DATABASE_URL/USER/PASSWORD`(기본값 없음, `jdbc:postgresql:` URL), Core와 동일한 별도 `CONTENT_CORE_AUTH_TOKEN`(32자 이상·개행 없음), WorldStudio 관계 정본용 `NEO4J_PASSWORD`(`NEO4J_URI`·`NEO4J_USERNAME` 기본값 `bolt://127.0.0.1:7687`·`neo4j`)가 필수이며, 없거나 형식이 맞지 않으면 시작이 실패합니다. 시작할 때 Content·WorldStudio·설정 첨부·콘텐츠 이미지 migration을 각자의 history에 적용하고 JPA는 `validate`만 합니다. `OPERATIONS_SERVICE_TOKEN`은 비어도 기동하지만 운영 전용 내부 API는 403입니다. 기본 Core 인증 origin은 `http://127.0.0.1:8080`, 연결/읽기 timeout은 `1s`/`3s`입니다. 생성은 Content와 AI의 동일한 `INTERNAL_TOKEN`을 사용하며 OpenAI 키·모델은 AI에만 전달합니다. 첨부 설정은 [네이티브 Content 안내](../../infrastructure/README.md#네이티브-content-첨부-설정)를 따릅니다.
 
 루트 `.env` 한 곳에서 관리하고 서비스별 `.env`를 만들거나 전체 파일을 source하지 않습니다. 실제 `.env`는 자동 변경하지 않습니다. 네이티브 Frontend는 같은 origin의 `/api` proxy를 사용해야 두 소유 서비스로 라우팅됩니다(`VITE_DEV_PROXY_TARGET`, `VITE_CONTENT_DEV_PROXY_TARGET`). Compose는 필요한 값만 각 런타임에 전달하며 DB 대상·계정은 기존 Core 설정과 같습니다.
 
@@ -74,8 +74,9 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V13 | `db/migration/work` | 운영 작품 제한 플래그 `work.restricted`(기본 false) |
 | V14 | `db/migration/work` | 공개 회차 조회 기록 `work_view`(작품 검색·실시간 랭킹의 조회 수 정본) |
 | V15 | `db/migration/work` | 공개 표시 메타데이터·불변 rich wiki 상세 추가 (샘플 자동 insert 없음) |
+| V16 | `db/migration/sample` | 개발 샘플 행(CSV 정본에서 생성, 직접 편집 금지) |
 
-[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 8개 leaf만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
+[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V16이며 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 
 11번 계획 API는 `/api/v1/works/{workId}/story-plans`의 GET·POST와 `/{id}`의 GET·PUT·DELETE를 제공합니다. 기존 인증·CSRF·작품 소유권 검사를 사용하며 다른 소유자의 작품·계획은 404입니다. 수정·삭제에는 계획의 `revision`을 사용하고 충돌은 409입니다. 인물·장소는 현재 작품의 `WorldService.read().settings`에서 분류와 허용 범위를 확인하고, 회차는 해당 작품에서 확인한 내부 ID로 연결합니다. 회차 삭제 후에는 계획을 유지하고 `episodeMissing`으로 안내하며 재사용된 번호에 자동 연결하지 않습니다. 논리 삭제된 계획은 일반 조회에서 제외하고, 하위 장면이 남은 플롯은 삭제하지 않습니다. 원고·사전·Fork 독립 상태는 변경하지 않습니다. V11은 V10을 포함한 기존 SQL·체크섬을 보존하며 작품이 실제 삭제될 때 그 작품의 계획(논리 삭제 포함)과 계획의 인물·장소 참조만 함께 정리합니다. 작품 삭제의 기존 권한·발행 이력·분기·세계관 설정 보호 조건은 바꾸지 않습니다. 운영·공유 개발 DB 적용은 별도 절차이며 자동 repair/clean하지 않습니다.
 

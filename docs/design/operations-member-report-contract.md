@@ -16,6 +16,8 @@
 - **서비스 간 자격**: 운영 → Core·Content 호출은 기존 `OPERATIONS_SERVICE_TOKEN` 값을 `X-Operations-Service-Token` 헤더로 보낸다.
   Core·Content는 같은 환경변수(32자 이상)와 상수 시간 비교로 확인한다. 새 비밀 값을 추가하지 않는다.
 - **회원 이용 제한**: Core `auth_member.restricted`. 제한 회원은 로그인과 내부 인증 확인(verify)이 거절된다.
+  로그인은 올바른 비밀번호일 때만 403 `application/problem+json` 본문에 `code: "ACCOUNT_RESTRICTED"`를 담아 사유를 알리고
+  (틀린 비밀번호는 401이라 제한 여부가 드러나지 않는다), 화면은 이 코드가 있을 때만 이용 제한 안내를 표시한다. 코드 없는 403은 일반 오류다.
   ponytail: 이미 발급된 access token의 Core 공개 API 사용은 만료까지 남는다. 즉시 차단이 필요하면 세션 폐기를 추가한다.
 - **콘텐츠 제한**: Content 작품 `restricted`. 제한 작품은 공개 작품 목록·공개 상세·공개 회차 열람에서 제외(404)된다.
   ponytail: 제한 원인이 여러 개여도 단일 플래그이며 Fork 전파·"작가 확인 신고 즉시 비공개"는 후속이다.
