@@ -52,6 +52,7 @@ export function useRelationPairViewModel(
   }
   return {
     ...draft,
+    dirty: changed,
     error,
     change,
     direction: (row: RelationDraftRow) => relationDirection(row.value, source),

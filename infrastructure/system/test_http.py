@@ -112,36 +112,13 @@ def test_health(web):
     assert response.json() == {"status": "up", "service": "storyfork-ai-service"}
 
 
-def test_health_worldstudio_packaged_migration():
-    """실제 Content jar의 별도 main과 동일 DB의 독립 Auth/Content 이력 공존을 확인한다."""
-    url = "jdbc:postgresql://postgres:5432/storyfork_test"
-    user = os.environ["DATABASE_USER"]
-    histories = scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
-    content_history = scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")
-    args = ["run", "--rm", "--no-deps", "--entrypoint", "java"]
-    for key, value in {
-        "WORLDSTUDIO_MIGRATION_ENVIRONMENT": "development",
-        "DATABASE_URL": url, "DATABASE_USER": user,
-        "DATABASE_PASSWORD": os.environ["DATABASE_PASSWORD"],
-        "WORLDSTUDIO_EXPECTED_DATABASE_URL": url, "WORLDSTUDIO_EXPECTED_DATABASE_USER": user,
-        "WORLDSTUDIO_BACKUP_RESTORE_REFERENCE": "isolated-ci-project",
-    }.items():
-        args.extend(["-e", key + "=" + value])
-    args.extend(["content-service", "-Dloader.main=ai.storyfork.content.world.migration.WorldStudioMigration",
-                 "-cp", "/app/application.jar", "org.springframework.boot.loader.launch.PropertiesLauncher"])
-    wrong_target = args.copy()
-    wrong_target[wrong_target.index("WORLDSTUDIO_EXPECTED_DATABASE_URL=" + url)] = "WORLDSTUDIO_EXPECTED_DATABASE_URL=jdbc:postgresql://wrong/production"
-    with pytest.raises(subprocess.CalledProcessError):
-        compose(*wrong_target)
-    assert scalar("SELECT count(*) FROM pg_namespace WHERE nspname='worldstudio'") == "0"
-    first = compose(*args)
-    again = compose(*args)
-    assert url not in first + again
-    assert "applied=2; pending=0; tables=13" in first
-    assert "applied=0; pending=0; tables=13" in again
+def test_health_worldstudio_startup_migration():
+    """Content 시작 시 WorldStudio 전용 schema가 자기 이력으로 적용되고 Auth/Content 이력과 공존하는지 확인한다."""
     assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "13"
-    assert histories == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.flyway_schema_history t")
-    assert content_history == scalar("SELECT jsonb_agg(to_jsonb(t) ORDER BY installed_rank)::text FROM public.content_schema_history t")
+    assert scalar("SELECT string_agg(version, ',' ORDER BY installed_rank) FROM worldstudio.world_studio_schema_history WHERE success AND type='SQL'") == "1,2"
+    for table in ("flyway_schema_history", "content_schema_history"):
+        assert scalar(f"SELECT count(*) FROM public.{table} WHERE NOT success") == "0"
+        assert int(scalar(f"SELECT count(*) FROM public.{table} WHERE success")) > 0
 
 
 def test_auth(signed_in):

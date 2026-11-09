@@ -31,7 +31,7 @@ class WorldStudioHttpIntegrationTest {
         WorldStudioPostgresFixture("coexist").use { db ->
             db.studio().migrate()
             SpringApplicationBuilder(ContentServiceApplication::class.java,Auth::class.java).run(
-                "--server.port=0","--app.worldstudio.enabled=true","--app.setting-attachments.enabled=false",
+                "--server.port=0",
                 "--DATABASE_URL=${db.url}","--DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
                 "--DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
                 "--CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32").use { ctx ->

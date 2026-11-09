@@ -1,5 +1,7 @@
 # WorldStudio 독립 초기 migration
 
+> **현재(플래그 제거 후):** WorldStudio는 기능 플래그 없이 항상 켜지고, 전용 schema는 Content 서버 시작 시 `WorldStudioConfig`가 Flyway로 migrate·validate한다. 별도 `worldstudio-migrate` 명령·`WORLDSTUDIO_CD_MIGRATION_ENABLED` 승인 변수·`APP_WORLDSTUDIO_ENABLED`는 삭제됐다. 아래의 opt-in·명시 실행 설명은 과거 기록이다.
+
 이 디렉터리는 기존 독립 V1 바이트와 additive `V2__neo4j_current_relationship_state.sql`을 둔다. 이전 Content 확장 V1/V2는 저장소의 `docs/archive/worldstudio-content-extension/`에 원본 바이트로 보존했다. 자동 import·기존 Content 테이블 변경·기존 관계 데이터 삭제는 하지 않는다.
 
 > **#132 현재 상태 MVP:** 관계 정본은 Neo4j 현재 상태 하나다. V2는 관계 내용 없이 graph token·key/hash·예상 draft revision·완료 여부만 PG에 추가한다. 기존 V1의 관계/버전 테이블은 보존하지만 새 경로가 관계 payload를 쓰지 않는다. Content HTTP·프론트 연결은 소스 구현이며 실제 이관·hosted CI·배포 완료가 아니다. 짧은 PG prepare → transaction 밖 Neo4j CAS → PG finalization으로 처리하고 과거 카드 revision은 관계 `null/not_recorded`, 전체 restore는 미지원이다. 아래 V1 당시의 `@Transactional`·관계 version/restore·HTTP 미연결 설명은 역사적 기록이며 [최신 계약](../../../../../../../../docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 우선한다. 기존 데이터 이관·migration 실제 실행은 별도 승인 대상이다.
@@ -60,7 +62,7 @@ Service는 검증된 JWT subject를 인자로 받아 world.owner_subject를 먼�
 기존 테스트 의존성의 Flyway와 PostgreSQL 드라이버를 사용한다. 추가 라이브러리는 없다. 별도 일회용 PostgreSQL의 테스트 전용 superuser URL/user/password와 `TEST_WORLDSTUDIO_DISPOSABLE=true`를 테스트 프로세스에만 전달하고 다음 선택 테스트를 실행한다. 실제 `.env`를 source하거나 공유하지 않는다.
 
 ```text
-./gradlew unitTest --tests '*WorldStudioServiceTest' --tests '*WorldStudioMigrationIdentityTest' integrationTest --tests '*WorldStudioServicePostgresTest' --tests '*WorldStudioFlywayPostgresTest' --tests '*WorldStudioHistoryPostgresTest' --tests '*WorldStudioConfigIntegrationTest' --no-daemon
+./gradlew unitTest --tests '*WorldStudioServiceTest' --tests '*WorldStudioMigrationIdentityTest' integrationTest --tests '*WorldStudioServicePostgresTest' --tests '*WorldStudioFlywayPostgresTest' --tests '*WorldStudioHistoryPostgresTest' --no-daemon
 ```
 
 각 fixture는 `ws_independent_<uuid>` DB를 생성하고 자신이 만든 DB만 제거한다. 독립 SQL은 Auth/Content 없는 DB에서, 공통 JPA는 Auth를 포함한 Core 기본 연결에서 Content 없이 저장·복원·과거 조회·커밋 실패·동시성·무결성을 검증한다. CI도 전용 임시 PostgreSQL service에서만 실행한다. 사용자·공용 개발·운영 DB에 이 환경변수를 설정하지 않는다.

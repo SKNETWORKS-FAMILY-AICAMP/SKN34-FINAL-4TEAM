@@ -12,7 +12,6 @@ import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -20,7 +19,6 @@ import tools.jackson.databind.json.JsonMapper
 
 /** PostgreSQL은 권한·카드·버전을, Neo4j는 관계의 현재 상태 하나만 소유한다. 네트워크 호출은 PG transaction 밖이다. */
 @Service
-@ConditionalOnProperty(name=["app.worldstudio.enabled"],havingValue="true")
 class WorldStudioService(
     private val worlds:StudioWorldRepository,private val drafts:WorldDraftRepository,
     private val cards:SettingCardRepository,private val cardDrafts:SettingCardDraftRepository,

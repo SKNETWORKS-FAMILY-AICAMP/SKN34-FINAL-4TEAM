@@ -106,7 +106,7 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 Auth SQL은 내용과 기존 이력을 보존한 채 `db/migration/auth`로 이동하여 독립 V1과 충돌하지 않게 합니다.
 
 공식 AWS SDK는 배포에서 기본 자격증명 체인·S3 region을, 로컬 MinIO에서는 endpoint override·path-style을 사용합니다.
-MinIO는 [선택 overlay](../infrastructure/compose.attachments.yaml)의 소스 빌드 로컬 runtime이며 AWS 인프라·버킷을 자동 생성하지 않습니다.
+MinIO는 local·개발 배포 compose에 항상 포함된 소스 빌드 runtime이며(고정 버전 `storyfork-minio:RELEASE…` 이미지를 버전당 한 번만 빌드해 재사용), 버킷은 Content 시작 시 만듭니다. AWS 인프라는 자동 생성하지 않습니다.
 교체/삭제의 일반적인 DB/저장소 실패는 제한된 메모리 백업으로 복원하지만 분산 원자성·프로세스 종료 복구를 보장하지 않습니다.
 복원 실패는 명시적인 503이고 미참조 object는 수동 대조 대상입니다. worker/outbox는 없습니다.
 허용 형식·10 MiB 기술 제한·안전한 attachment 응답·API·한계는 [Core 계약](../backend/core-api/README.md#설정-이미지일반-파일-87)에 있습니다.

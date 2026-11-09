@@ -12,13 +12,11 @@ import org.neo4j.driver.TransactionConfig
 import org.neo4j.driver.TransactionContext
 import org.neo4j.driver.exceptions.Neo4jException
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Repository
 import tools.jackson.databind.json.JsonMapper
 
 /** Neo4j 한 트랜잭션에서 현재 관계 전체를 CAS 교체한다. payload 이력·버전 노드는 만들지 않는다. */
 @Repository
-@ConditionalOnProperty(name=["app.worldstudio.enabled"],havingValue="true")
 class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:JsonMapper,
     @Value("\${app.worldstudio.neo4j.database:neo4j}") private val database:String) {
     @Volatile private var schemaReady=false

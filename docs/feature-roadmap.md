@@ -1178,6 +1178,8 @@
 
 ## WorldStudio 프런트엔드 선별 통합
 
+2026-11-09 기준 구형 데모와 현재 HTTP 작업실의 구분, 후속 이슈 및 #48 수용 기준별 남은 범위는 [후속 이슈 재평가](worldstudio-followup-status-20261109.md)를 참고한다. 이 문서 추가로 아래 완료 체크를 변경하지 않는다.
+
 기존 메모리 화면을 #132에서 인증된 Content HTTP 현재 상태 저장소에 연결했다. 서버가 확인한 현재 관계만 기존 관계 편집·관계도에 사용하며 관계 이력·과거 세계관 복원은 지원하지 않는다. 프론트 단위는 pnpm/의존성 부재로 실행 실패(exit 127)·Red/Green 미확인이고, 통합·브라우저·최신 Required CI·병합도 대기이므로 ❌를 유지한다. #126·#127·#128의 독립 UI 결함은 이번 변경 범위 밖이다.
 
 | 서비스 | 서브시스템 | 중간 기능 | 세부 기능 | 개발 완료 | 관련 이슈 |
@@ -1194,6 +1196,8 @@
 | Frontend | WorldStudio 데모 | 설정 카드 | 사용자 분류 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio 데모 | 설정 카드 | 기존 메타데이터 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) · [#116](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/116) |
 | Frontend | WorldStudio 데모 | 작성 보호 | 미저장 편집 중 화면 이탈·세계관 전환 확인 | ❌ | [#116](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/116) |
+| Frontend | WorldStudio | 작성 보호 | 명시적 로그아웃 취소 시 API·세션·편집본 유지 | ❌ | [#138](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/138) |
+| Frontend | WorldStudio | 작성 보호 | 로그아웃 승인 후 중복 이탈 확인 없이 이동 | ❌ | [#138](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/138) |
 | Frontend | WorldStudio 데모 | 설정 카드 | 태그·별칭 무변경 포커스 이동 시 저장 상태 보존 | ❌ | [PR #112](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112) |
 | Frontend | WorldStudio | HTTP 현재 상태 | 인증된 내 세계관 목록 조회 | ❌ | [#132](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132) |
 | Frontend | WorldStudio | HTTP 현재 상태 | 서버의 카드·현재 관계 조회 | ❌ | [#132](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132) |

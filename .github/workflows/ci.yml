@@ -27,6 +27,9 @@ env:
   AUTH_COOKIE_SECURE: "false"
   INTERNAL_TOKEN: ci-test-only-internal-token
   CONTENT_CORE_AUTH_TOKEN: ci-content-core-auth-only-0123456789abcdef
+  NEO4J_PASSWORD: ci-test-only-graph
+  CORE_RABBITMQ_PASSWORD: ci-test-only-broker
+  OPERATIONS_SERVICE_TOKEN: ci-test-only-operations-token
   OPENAI_API_KEY: ""
   OPENAI_MODEL: ""
 
@@ -71,6 +74,10 @@ jobs:
       AUTH_JWT_SECRET: synthetic-config-only
       CONTENT_CORE_AUTH_TOKEN: synthetic-config-only
       INTERNAL_TOKEN: synthetic-config-only
+      NEO4J_PASSWORD: synthetic-config-only
+      CORE_RABBITMQ_PASSWORD: synthetic-config-only
+      OPERATIONS_SERVICE_TOKEN: synthetic-config-only
+      OPENAI_API_KEY: synthetic-config-only
       WEB_PORT: "18088"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -83,8 +90,6 @@ jobs:
           for mode in local prod dev; do
             docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f "infrastructure/docker-compose.$mode.yaml" config --quiet
           done
-      - name: Validate opt-in current relationship graph configuration without starting services
-        run: APP_WORLDSTUDIO_ENABLED=true NEO4J_PASSWORD=graph-config-test-only docker compose --env-file .env.example -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml --profile worldstudio config --quiet
       - name: Validate isolated CI overlay
         run: docker compose --env-file .env.example -p storyfork-ci-config -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml -f infrastructure/ci/compose.test.yaml config --quiet
       - name: Validate optional attachment environment contract
@@ -183,6 +188,9 @@ jobs:
     name: Integration / ${{ matrix.service }}
     needs: changes
     if: ${{ needs.changes.outputs.integration_needed == 'true' }}
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
@@ -236,6 +244,11 @@ jobs:
       NEO4J_DATABASE: neo4j
       AUTH_INTEGRATION_TEST: "true"
       AUTH_MAILPIT_API: http://127.0.0.1:8025
+      # 첨부 통합 테스트: 아래 단계가 띄우는 임시 MinIO와 전용 DB. CI 전용 가짜 자격이다.
+      TEST_ATTACHMENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/attachment_test
+      TEST_ATTACHMENT_S3_ENDPOINT: http://127.0.0.1:19087
+      AWS_ACCESS_KEY_ID: ci-test-only-minio
+      AWS_SECRET_ACCESS_KEY: ci-test-only-minio-secret
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -287,6 +300,21 @@ jobs:
             done
           fi
           ./gradlew integrationTest --no-daemon "${filters[@]}"
+      - name: Start isolated MinIO and attachment database for Content
+        if: ${{ matrix.service == 'content' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POSTGRES_ID: ${{ job.services.postgres.id }}
+        run: |
+          set -euo pipefail
+          minio="ghcr.io/sknetworks-family-aicamp/storyfork-minio:$(grep -oE 'RELEASE\.[0-9TZ-]+' infrastructure/minio/Dockerfile | head -1)"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin || true
+          docker pull "$minio" || docker build --tag "$minio" infrastructure/minio
+          docker run -d --name ci-minio -p 127.0.0.1:19087:9000 \
+            -e MINIO_ROOT_USER="$AWS_ACCESS_KEY_ID" -e MINIO_ROOT_PASSWORD="$AWS_SECRET_ACCESS_KEY" "$minio" server /data
+          for _ in $(seq 60); do curl -fsS http://127.0.0.1:19087/minio/health/live >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:19087/minio/health/live >/dev/null
+          docker exec "$POSTGRES_ID" createdb -U content_test attachment_test
       - name: JUnit Content Spring HTTP and fresh PostgreSQL integration tests
         if: ${{ matrix.service == 'content' }}
         working-directory: backend/content-service
@@ -303,7 +331,7 @@ jobs:
           TEST_WORLDSTUDIO_DATABASE_USER: worldstudio_test
           TEST_WORLDSTUDIO_DATABASE_PASSWORD: worldstudio-ci-password
           TEST_WORLDSTUDIO_PASSWORD_AUTH: "true"
-        run: ./gradlew integrationTest --tests ai.storyfork.content.world.WorldStudioMigrationPostgresTest --no-daemon --rerun-tasks
+        run: ./gradlew integrationTest --tests ai.storyfork.content.world.WorldStudioMigrationPostgresTest --no-daemon --rerun
       - name: pytest FastAPI HTTP integration tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
@@ -336,12 +364,17 @@ jobs:
     name: Selected HTTP system scenarios
     needs: [changes, unit, integration, configuration]
     if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.unit.result == 'success' && needs.integration.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.system_needed == 'true' }}
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       COMPOSE_PROJECT_NAME: storyfork-ci-${{ github.run_id }}-${{ github.run_attempt }}
       COMPOSE_FILE: infrastructure/docker-compose.yaml:infrastructure/docker-compose.local.yaml:infrastructure/ci/compose.test.yaml
       SCENARIOS: ${{ needs.changes.outputs.system }}
+      # compose 필수값만 채운다. compose.test.yaml이 ai-service의 실제 키를 빈 값으로 덮어 503을 검증한다.
+      OPENAI_API_KEY: ci-unused-placeholder
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -352,6 +385,17 @@ jobs:
           working-directory: backend/ai-service
           enable-cache: true
           cache-dependency-glob: backend/ai-service/uv.lock
+      # compose build의 type=gha 레이어 캐시용: buildx builder와 Actions 캐시 토큰을 준비한다.
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: crazy-max/ghaction-github-runtime@04d248b84655b509d8c44dc1d6f990c879747487 # v4.0.0
+      - name: Reuse the pinned MinIO image (build once only when it is not published yet)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          minio="ghcr.io/sknetworks-family-aicamp/storyfork-minio:$(grep -oE 'RELEASE\.[0-9TZ-]+' infrastructure/minio/Dockerfile | head -1)"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin || true
+          docker pull "$minio" || docker build --load --tag "$minio" infrastructure/minio
       - name: Launch only the isolated CI Compose project
         run: docker compose --env-file .env.example up --build -d --wait --wait-timeout 240
       - name: Discover loopback ports and wait for HTTP readiness
