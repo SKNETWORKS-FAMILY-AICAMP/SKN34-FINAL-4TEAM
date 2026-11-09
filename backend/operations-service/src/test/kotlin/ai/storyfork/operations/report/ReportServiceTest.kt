@@ -22,8 +22,27 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
+import org.springframework.aop.framework.ProxyFactory
 import org.springframework.http.HttpStatus
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource
+import org.springframework.transaction.interceptor.TransactionInterceptor
+import org.springframework.transaction.support.AbstractPlatformTransactionManager
+import org.springframework.transaction.support.DefaultTransactionStatus
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.server.ResponseStatusException
+
+/** Counts transaction boundaries without any resource, so the service runs under the real `@Transactional` advice. */
+private class RecordingTransactionManager : AbstractPlatformTransactionManager() {
+    var begins = 0
+    var commits = 0
+
+    override fun doGetTransaction(): Any = Any()
+    override fun doBegin(transaction: Any, definition: TransactionDefinition) { begins++ }
+    override fun doCommit(status: DefaultTransactionStatus) { commits++ }
+    override fun doRollback(status: DefaultTransactionStatus) {}
+}
 
 /** Mocked repositories and Content client: no Spring context, HTTP or database. */
 class ReportServiceTest {
@@ -31,7 +50,14 @@ class ReportServiceTest {
     private val histories = mock(ReportHistoryRepository::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
     private val content = mock(ContentClient::class.java)
-    private val service = ReportService(reports, histories, permissions, content)
+    private val txManager = RecordingTransactionManager()
+    private val service = ProxyFactory(ReportService(reports, histories, permissions, content, TransactionTemplate(txManager))).apply {
+        isProxyTargetClass = true
+        addAdvice(TransactionInterceptor().apply {
+            transactionManager = txManager
+            transactionAttributeSource = AnnotationTransactionAttributeSource()
+        })
+    }.proxy as ReportService
 
     private val reporter = OperationsMember(UUID.randomUUID(), false)
     private val owner = OperationsMember(UUID.randomUUID(), false)
@@ -218,6 +244,67 @@ class ReportServiceTest {
         assertFalse(row.contentRestricted)
         verifyNoInteractions(histories)
         verify(reports, never()).saveAndFlush(any(ReportEntity::class.java))
+    }
+
+    private fun inTransaction() = TransactionSynchronizationManager.isActualTransactionActive()
+
+    /** Logs each Content call and local save with whether it ran inside a transaction. */
+    private fun recordSteps(): MutableList<String> {
+        val steps = mutableListOf<String>()
+        fun step(name: String) { steps += "$name:${inTransaction()}" }
+        `when`(content.work(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId, "작품", false) }
+        `when`(content.restrict(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId, "작품", true) }
+        `when`(content.unrestrict(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId, "작품", false) }
+        doAnswer { step("report"); it.arguments[0] }.`when`(reports).saveAndFlush(any(ReportEntity::class.java) ?: report())
+        doAnswer { step("history"); it.arguments[0] }.`when`(histories).saveAndFlush(
+            any(ReportHistoryEntity::class.java) ?: ReportHistoryEntity(reportId = reportId, type = ReportHistoryType.REVIEW, actorId = admin.memberId, body = null),
+        )
+        return steps
+    }
+
+    /** Runs [action] and expects [expected] steps with exactly one committed transaction around the saves. */
+    private fun assertOneTransaction(steps: MutableList<String>, expected: List<String>, action: () -> Unit) {
+        steps.clear()
+        val (begun, committed) = txManager.begins to txManager.commits
+
+        action()
+
+        assertEquals(expected, steps)
+        assertEquals(begun + 1, txManager.begins)
+        assertEquals(committed + 1, txManager.commits)
+    }
+
+    @Test
+    fun `create calls Content outside any transaction`() {
+        val steps = recordSteps()
+
+        service.create(reporter, ReportRequest(ReportKind.HARMFUL, workId, "유해", "링크"))
+
+        assertEquals("content:false", steps.first())
+    }
+
+    @Test
+    fun `restriction calls Content outside a transaction then saves the report and history in one`() {
+        givenReport()
+        givenRights()
+        val steps = recordSteps()
+
+        for (action in listOf(service::restrict, service::unrestrict)) {
+            assertOneTransaction(steps, listOf("content:false", "report:true", "history:true")) { action(admin, reportId) }
+        }
+    }
+
+    @Test
+    fun `changes without Content still save the report and history in one transaction`() {
+        givenReport()
+        givenRights()
+        val steps = recordSteps()
+        val saves = listOf("report:true", "history:true")
+
+        assertOneTransaction(steps, saves) { service.addEvidence(reporter, reportId, ReportBodyRequest("추가")) }
+        assertOneTransaction(steps, saves) { service.addExplanation(owner, reportId, ReportBodyRequest("소명")) }
+        assertOneTransaction(steps, saves) { service.review(admin, reportId, ReportReviewRequest(ReportStatus.ACCEPTED, "인정")) }
+        assertOneTransaction(steps, saves) { service.requestEvidence(admin, reportId, ReportBodyRequest("증빙")) }
     }
 
     @Test
