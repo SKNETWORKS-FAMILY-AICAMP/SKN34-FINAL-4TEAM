@@ -55,8 +55,10 @@ export function MemoView({ vm }: { vm: VM }) {
             placeholder='콘티를 적어 두세요.'
             value={memo}
             onChange={(e) => {
-              setMemo(e.target.value)
-              vm.saveNotes({ memo: e.target.value })
+              const value = e.currentTarget.value
+              setMemo(value)
+              vm.markSaving()
+              void vm.saveNotes({ memo: value })
             }}
           />
         </div>
@@ -89,8 +91,9 @@ export function OverviewView({ vm }: { vm: VM }) {
             hidden
             onChange={(e) =>
               resizeImg(e.target.files?.[0], async (url) => {
-                await vm.saveNotes({ coverImg: url })
-                toast('데모 표지 미리보기만 바꿨어요. 서버에는 저장되지 않아요')
+                if (await vm.saveNotes({ coverImg: url })) {
+                  toast('데모 표지 미리보기만 바꿨어요. 서버에는 저장되지 않아요')
+                }
               })}
           />
         </label>
@@ -101,7 +104,10 @@ export function OverviewView({ vm }: { vm: VM }) {
             suppressContentEditableWarning
             spellCheck={false}
             aria-label='한 줄 소개'
-            onBlur={(e) => vm.saveNotes({ hook: (e.currentTarget.textContent ?? '').trim() })}
+            onBlur={(e) => {
+              vm.markSaving()
+              void vm.saveNotes({ hook: (e.currentTarget.textContent ?? '').trim() })
+            }}
           >
             {w.hook || w.dir || ''}
           </h2>
@@ -112,8 +118,9 @@ export function OverviewView({ vm }: { vm: VM }) {
                 type='button'
                 className='btn sm'
                 onClick={async () => {
-                  await vm.saveNotes({ coverImg: null })
-                  toast('데모 표지 미리보기를 지웠어요. 서버 파일 삭제는 아니에요')
+                  if (await vm.saveNotes({ coverImg: null })) {
+                    toast('데모 표지 미리보기를 지웠어요. 서버 파일 삭제는 아니에요')
+                  }
                 }}
               >
                 표지 이미지 지우기
@@ -134,7 +141,10 @@ export function OverviewView({ vm }: { vm: VM }) {
         role='textbox'
         aria-label='시놉시스'
         data-ph='전체 줄거리를 적어 보세요.'
-        onBlur={(e) => vm.saveNotes({ synopsis: (e.currentTarget.textContent ?? '').trim() })}
+        onBlur={(e) => {
+          vm.markSaving()
+          void vm.saveNotes({ synopsis: (e.currentTarget.textContent ?? '').trim() })
+        }}
       >
         {w.synopsis || w.summary || ''}
       </div>
