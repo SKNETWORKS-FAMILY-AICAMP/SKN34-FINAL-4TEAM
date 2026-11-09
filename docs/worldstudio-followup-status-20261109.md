@@ -4,7 +4,7 @@
 
 ## 작업 경계
 
-- [PR #160](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/160)은 사용자 결정에 따라 **발표용으로 보존**한다. 현행 서비스 이관·충돌 해결·병합·삭제 대상에서 제외한다.
+- [PR #160](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/160)은 사용자 결정에 따라 **발표용으로 보존**하는 변경이다. 이 문서 작성(기준 SHA) 이후인 2026-11-09에 develop(`d29fd59`)에 뒤늦게 머지됐다. 현행 서비스 이관 판단은 이 문서 기준을 유지한다.
 - [#118](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/118)과 [#130](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/130)의 기존 수정 이관은 별도 구현 작업에서 진행한다. #118 보완은 [PR #185](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/185)로 제출됐다. 문서 작성 시점 열린 상태다.
 - [#138](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/138)은 [PR #183](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/183), HEAD `1207c7c1770b021fb79f968ba0a440b92ee1f2b7`의 Required CI 성공을 확인했다. 로컬 순수 단위 9건, CI Web 단위·통합·선택 HTTP 시스템 검증 통과. 실제 브라우저 확인과 병합이 남아 있어 이슈는 열린 상태다.
 - #7/#10/#30/#33은 기존 지시대로 최신 상태만 재평가한다. 구형 데모를 위한 임시 구조나 새로운 권한·버전 정책을 구현하지 않는다. #48은 에픽으로 유지한다.
