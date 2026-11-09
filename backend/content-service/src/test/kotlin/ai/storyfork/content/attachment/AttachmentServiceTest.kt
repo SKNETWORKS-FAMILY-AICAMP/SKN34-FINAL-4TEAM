@@ -143,6 +143,14 @@ class AttachmentServiceTest {
         verify(storage, times(1)).upload(anyString(), any(AttachmentObjectPayload::class.java) ?: AttachmentObjectPayload(ByteArray(0), ""))
     }
 
+    @Test fun `episode upload access checks the episode before the file is read`() {
+        `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, true, null))
+        assertEquals(403, assertThrows(AttachmentFailure::class.java) { service.requireEpisodeUploadAccess("work", 1, "owner") }.status)
+        `when`(episodeService.read("work", "owner", 2)).thenReturn(WritingEpisode(2, Draft(), emptyList(), null, false, null))
+        service.requireEpisodeUploadAccess("work", 2, "owner")
+        verify(episodeService).read("work", "owner", 2)
+    }
+
     @Test fun `inherited episode images use frozen body references and cannot be created`() {
         val image = ContentImage(workId = "original", episodeNo = 1, objectKey = "episode-images/old", filename = "map.png", mediaType = "image/png", byteSize = png.size.toLong())
         `when`(images.findById(image.id)).thenReturn(Optional.of(image))

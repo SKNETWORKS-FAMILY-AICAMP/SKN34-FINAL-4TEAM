@@ -163,9 +163,13 @@ class AttachmentService(
         response(image)
     }
     fun deleteCover(work: String, owner: String) { imageTransaction { ownedWork(work, owner); images.delete(cover(work)); images.flush(); true } }
-    fun createEpisodeImage(work: String, number: Int, owner: String, payload: AttachmentUploadPayload): AttachmentResponse {
+    /** 파일을 읽기 전에 회차 존재·소유·원작 기준 회차 여부를 리팩터 전과 같은 순서·응답으로 확인한다. 저장 전 재확인은 createEpisodeImage가 유지한다. */
+    fun requireEpisodeUploadAccess(work: String, number: Int, owner: String) {
         val episode = episodeService.read(work, owner, number)
         if (episode.inherited) throw AttachmentFailure(403, "IMAGE_INHERITED", "원작 기준 회차에는 이미지를 추가할 수 없어요.")
+    }
+    fun createEpisodeImage(work: String, number: Int, owner: String, payload: AttachmentUploadPayload): AttachmentResponse {
+        requireEpisodeUploadAccess(work, number, owner)
         return imageTransaction {
             ownedWork(work, owner)
             // The attachment work lock and Core deletion lock target the same database row.
