@@ -18,20 +18,20 @@ export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] 
 export class ReadingUseCase {
   private readonly workRepository: WorkRepository
   private readonly readingRepository: ReadingRepository
+  /** 로그인 회원의 이어 읽기·읽은 회차(서버 독서 기록. 목업은 메모리) */
+  private readonly readingRecordRepository: ReadingRecordRepository
   /** 있으면 홈 순위·검색을 서버(Content 공개 API)로 채웁니다. 없으면(목업) 메모리 데모입니다. */
   private readonly workSearchRepository?: WorkSearchRepository
-  /** 있으면 로그인 회원의 이어 읽기·읽은 회차를 서버 독서 기록으로 읽고 씁니다. 없으면 기록 없이 읽기만 합니다. */
-  private readonly readingRecordRepository?: ReadingRecordRepository
-  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, workSearchRepository?: WorkSearchRepository, readingRecordRepository?: ReadingRecordRepository) {
+  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, readingRecordRepository: ReadingRecordRepository, workSearchRepository?: WorkSearchRepository) {
     this.workRepository = workRepository
     this.readingRepository = readingRepository
-    this.workSearchRepository = workSearchRepository
     this.readingRecordRepository = readingRecordRepository
+    this.workSearchRepository = workSearchRepository
   }
 
-  /** 로그인 회원의 서버 독서 기록(최근 순). 비회원이거나 저장소가 없으면 기록이 없고, 읽지 못하면 빈 기록으로 숨기지 않고 던집니다. */
+  /** 로그인 회원의 서버 독서 기록(최근 순). 비회원은 기록이 없고(서버를 부르지 않음), 읽지 못하면 빈 기록으로 숨기지 않고 던집니다. */
   private memberRecords(role: Role): Promise<ReadingRecord[]> {
-    return role && this.readingRecordRepository ? this.readingRecordRepository.list() : Promise.resolve([])
+    return role ? this.readingRecordRepository.list() : Promise.resolve([])
   }
 
   /** 서버 랭킹(최근 24시간 조회). 실패는 빈 목록으로 숨기지 않고 failed로 알립니다. */
@@ -137,7 +137,7 @@ export class ReadingUseCase {
     const shown = eps.map((e, i) => [e, i + 1] as const).filter(([e]) => visibleEpisode(w, e, role)).map(([, i]) => i)
     // 로그인 회원이 공개 작품(상속 회차 포함)의 회차를 열면 기록한다. 이어 읽기 위치는 최댓값이 아니라 방금 연 회차다.
     // 비회원·작가가 자기 비공개 작품을 미리 읽을 때는 서버가 404로 거절하므로 보내지 않는다.
-    const recording = role && this.readingRecordRepository && isPub(w) ? this.readingRecordRepository.record(w.id, n) : Promise.resolve()
+    const recording = role && isPub(w) ? this.readingRecordRepository.record(w.id, n) : Promise.resolve()
     recording.catch(() => {}) // 호출자가 recording을 받지 않아도 처리되지 않은 reject 경고가 나지 않게 한다.
     // 로그인 회원이 서버 작품의 자체 회차를 열면 그 회차의 조회를 기록한다(상속 회차는 원작 몫). 소유자가 여는 비공개 작품은
     // 서버가 404로 거절하므로 공개 작품만 보낸다. 실패는 읽기를 막지 않는다.

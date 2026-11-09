@@ -231,8 +231,8 @@ describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
       expect(screen.queryByRole('button', { name: '등록' })).toBeNull()
       cleanup()
       // 서버 순위가 없는 목록(지표 없는 정본 작품)은 순위·메달로 보이지 않는다(서버 랭킹이 있는 홈은 App.home이 다룬다).
-      const { workRepository, readingRepository } = appContainer.cradle
-      appContainer.register({ readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository)) })
+      const { workRepository, readingRepository, readingRecordRepository } = appContainer.cradle
+      appContainer.register({ readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)) })
       renderApp('/')
       await screen.findByRole('heading', { name: '공개 소설' })
       expect(document.querySelector('#home .md, #home .rk .top')).toBeNull()

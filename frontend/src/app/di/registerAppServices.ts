@@ -98,7 +98,7 @@ export function registerAppServices(container: AppContainer) {
     inboxUseCase: asFunction(({ workRepository, feedbackRepository }) => new InboxUseCase(workRepository, feedbackRepository)).singleton(),
     libraryUseCase: asFunction(({ workRepository, worldRepository, readingRepository, feedbackRepository, readingRecordRepository }) => new LibraryUseCase(workRepository, worldRepository, readingRepository, feedbackRepository, readingRecordRepository)).singleton(),
     creditUseCase: asFunction(({ creditRepository }) => new CreditUseCase(creditRepository)).singleton(),
-    readingUseCase: asFunction(({ workRepository, readingRepository, workSearchRepository, readingRecordRepository }) => new ReadingUseCase(workRepository, readingRepository, workSearchRepository, readingRecordRepository)).singleton(),
+    readingUseCase: asFunction(({ workRepository, readingRepository, readingRecordRepository, workSearchRepository }) => new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, workSearchRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository, adminRepository }) => new FeedbackUseCase(workRepository, feedbackRepository, adminRepository)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
     studioUseCase: asFunction(({ workRepository, creditRepository, feedbackRepository, worldRepository }) => new StudioUseCase(workRepository, creditRepository, feedbackRepository, worldRepository)).singleton(),

@@ -34,7 +34,7 @@ export function registerMockupServices(container: AppContainer) {
     // 운영 작품 API 대신 데모 작품 DB를 운영 작품 형태로 보여 주고, 운영 제한은 데모 작품의 공개 제외로 반영합니다.
     operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(mockDb)),
     // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지하고, 독서 기록도 mockDb.progress 메모리입니다.
-    readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, undefined, readingRecordRepository)),
+    readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)),
     episodeRepository: asValue(episodeRepository),
     episodeUseCase: asValue(new EpisodeUseCase(episodeRepository)),
     authRepository: asValue(mockupAuthRepository),

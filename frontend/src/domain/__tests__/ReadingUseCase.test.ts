@@ -29,7 +29,7 @@ function fakes(progress: Partial<ReadingProgress> = {}) {
     markSeen: async (id) => { state.seen[id] = true },
     saveProgress: async (p) => { Object.assign(state, p) },
   }
-  return { works, state, server, workRepository, readingRepository, useCase: new ReadingUseCase(workRepository, readingRepository, undefined, server.repository) }
+  return { works, state, server, useCase: new ReadingUseCase(workRepository, readingRepository, server.repository) }
 }
 
 describe('ReadingUseCase.getHome (목업 home())', () => {
@@ -191,17 +191,6 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     const r = await useCase.openEpisode('starlight', 1, 'user')
     expect(r && r !== 'hidden' && r.n).toBe(1)
     expect(server.repository.record).not.toHaveBeenCalled()
-  })
-
-  it('독서 기록 저장소를 주지 않은 구성은 기록 없이 읽기만 한다', async () => {
-    const { workRepository, readingRepository } = fakes()
-    const useCase = new ReadingUseCase(workRepository, readingRepository)
-    expect((await useCase.getHome('user', '추천')).continueReading).toBeNull()
-    expect(await useCase.getWork('guunmong', 'user')).toMatchObject({ last: undefined, read: [] })
-    const r = await useCase.openEpisode('starlight', 3, 'user')
-    if (!r || r === 'hidden') throw new Error('episode')
-    expect(r.n).toBe(3)
-    await expect(r.recording).resolves.toBeUndefined()
   })
 
   it('관심 소설을 토글한다', async () => {

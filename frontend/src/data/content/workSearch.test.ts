@@ -129,7 +129,8 @@ describe('검색 카드 → /work/:id 상세', () => {
     const fetcher = vi.fn(async (path: RequestInfo | URL) => Response.json(String(path).includes('/world?') ? { workId: 'w1', episode: 2, documents: [] } : [dto()]))
     const api = new HttpEpisodeRepository(fetcher)
     const reading = { getProgress: async () => ({ last: {}, read: {}, seen: {}, liked: {} }), markSeen: async () => {}, saveProgress: async () => {} }
-    const useCase = new ReadingUseCase(new HttpWorkRepository(api, () => false), reading, api)
+    const records = { list: async () => [], record: async () => {}, remove: async () => {} }
+    const useCase = new ReadingUseCase(new HttpWorkRepository(api, () => false), reading, records, api)
     const [card] = await useCase.findWorks({ sort: 'latest' })
     const detail = await useCase.getWork(card.id, null)
     expect(detail?.work).toMatchObject({ id: card.id, title: '별빛 서약의 탑', author: '윤서하' })
