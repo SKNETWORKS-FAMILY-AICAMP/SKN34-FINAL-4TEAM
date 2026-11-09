@@ -362,6 +362,9 @@ jobs:
           working-directory: backend/ai-service
           enable-cache: true
           cache-dependency-glob: backend/ai-service/uv.lock
+      # compose build의 type=gha 레이어 캐시용: buildx builder와 Actions 캐시 토큰을 준비한다.
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: crazy-max/ghaction-github-runtime@04d248b84655b509d8c44dc1d6f990c879747487 # v4.0.0
       - name: Reuse the pinned MinIO image (build once only when it is not published yet)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -369,7 +372,7 @@ jobs:
           set -euo pipefail
           minio="ghcr.io/sknetworks-family-aicamp/storyfork-minio:$(grep -oE 'RELEASE\.[0-9TZ-]+' infrastructure/minio/Dockerfile | head -1)"
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin || true
-          docker pull "$minio" || docker build --tag "$minio" infrastructure/minio
+          docker pull "$minio" || docker build --load --tag "$minio" infrastructure/minio
       - name: Launch only the isolated CI Compose project
         run: docker compose --env-file .env.example up --build -d --wait --wait-timeout 240
       - name: Discover loopback ports and wait for HTTP readiness

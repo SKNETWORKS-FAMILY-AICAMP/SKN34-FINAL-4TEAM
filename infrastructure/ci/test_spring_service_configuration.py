@@ -100,7 +100,16 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         self.assertNotIn("ai-service minio; do", publish)
         self.assertIn('docker manifest inspect "$minio"', publish)
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-        self.assertIn('docker pull "$minio" || docker build', ci)
+        self.assertIn('docker pull "$minio" || docker build --load', ci)
+
+    def test_system_images_reuse_github_actions_layer_cache(self):
+        overlay = (ROOT / "infrastructure/ci/compose.test.yaml").read_text(encoding="utf-8")
+        for service in ("ai-service", "core-api", "content-service", "operations-service", "web"):
+            self.assertIn(f"cache_from: [\"type=gha,scope={service}\"]", overlay, service)
+            self.assertIn(f"cache_to: [\"type=gha,scope={service},mode=max\"]", overlay, service)
+        system = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8").split("\n  system:\n", 1)[1]
+        self.assertIn("docker/setup-buildx-action@", system)
+        self.assertIn("crazy-max/ghaction-github-runtime@", system)
 
     def test_content_boot_entry_point_is_explicit(self):
         service = ROOT / "backend/content-service"
