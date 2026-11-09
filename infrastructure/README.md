@@ -115,6 +115,7 @@ docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastr
 | `storyfork-web-builder:latest` | Node 24, `packageManager`의 pnpm, `pnpm-lock.yaml` 라이브러리 | `builders/web.Dockerfile` |
 
 - `.github/workflows/builder-images.yml`이 의존성 정의(`build.gradle`·wrapper·`uv.lock`·`pnpm-lock.yaml`·`builders/**`)가 develop에 반영될 때 세 이미지를 다시 만듭니다. 수동 실행도 됩니다.
+- CI Unit·Integration의 JVM 잡도 `jvm-builder`의 `/root/.gradle`을 runner `~/.gradle`로 복사해 씁니다. Maven Central의 Kotlin 컴파일러처럼 GitHub Releases로 리다이렉트되는 다운로드가 504로 실패하던 경로를 피합니다.
 - 이미지가 갱신되기 전 PR에서 새로 추가된 의존성만 그 빌드가 외부에서 받습니다. 빌드는 깨지지 않습니다.
 - Gradle wrapper는 `services.gradle.org` 대신 저장소 Release `tools-gradle-9.5.1`의 `gradle-9.5.1-bin.zip`을 받고, `distributionSha256Sum`으로 공식 파일과 같은지 검증합니다. Gradle 버전을 올릴 때는 새 zip을 같은 형식의 Release에 올리고 세 wrapper의 `distributionUrl`을 함께 바꿉니다.
 - local `docker compose up --build`도 이 이미지를 받습니다. GHCR 패키지가 public이 아니면 먼저 `docker login ghcr.io`가 필요합니다.

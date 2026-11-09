@@ -101,6 +101,9 @@ jobs:
     name: Unit / ${{ matrix.service }}
     needs: changes
     if: ${{ needs.changes.outputs.unit_needed == 'true' }}
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -127,6 +130,18 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: gradle
+      # 캐시가 비어도 외부(GitHub Releases 경유 Maven 포함) 대신 빌드용 이미지의 Gradle 배포판·의존성을 쓴다.
+      - if: ${{ matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' }}
+        name: Seed Gradle home from the prebuilt JVM builder image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          id=$(docker create ghcr.io/sknetworks-family-aicamp/storyfork-jvm-builder:latest)
+          mkdir -p "$HOME/.gradle"
+          docker cp "$id:/root/.gradle/." "$HOME/.gradle/"
+          docker rm "$id" > /dev/null
       - if: ${{ matrix.service == 'ai' }}
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
@@ -270,6 +285,18 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: gradle
+      # 캐시가 비어도 외부(GitHub Releases 경유 Maven 포함) 대신 빌드용 이미지의 Gradle 배포판·의존성을 쓴다.
+      - if: ${{ matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' }}
+        name: Seed Gradle home from the prebuilt JVM builder image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          id=$(docker create ghcr.io/sknetworks-family-aicamp/storyfork-jvm-builder:latest)
+          mkdir -p "$HOME/.gradle"
+          docker cp "$id:/root/.gradle/." "$HOME/.gradle/"
+          docker rm "$id" > /dev/null
       - if: ${{ matrix.service == 'ai' }}
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:

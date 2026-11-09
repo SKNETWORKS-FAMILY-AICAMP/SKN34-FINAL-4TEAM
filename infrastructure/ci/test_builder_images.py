@@ -59,6 +59,16 @@ class BuilderImagesTest(unittest.TestCase):
         self.assertIn("for builder in jvm python web; do", workflow)
         self.assertIn(f'image="{REGISTRY}storyfork-$builder-builder:latest"', workflow)
 
+    def test_gradle_test_jobs_seed_gradle_home_from_jvm_builder(self):
+        # Unit·Integration 잡도 캐시가 비었을 때 외부(GitHub Releases 경유 Maven 포함) 대신 빌드용 이미지를 쓴다.
+        ci = read(".github/workflows/ci.yml")
+        for job, end in (("unit", "integration"), ("integration", "system")):
+            section = ci.split(f"\n  {job}:\n", 1)[1].split(f"\n  {end}:\n", 1)[0]
+            with self.subTest(job=job):
+                self.assertIn(f'docker create {REGISTRY}storyfork-jvm-builder:latest', section)
+                self.assertIn('docker cp "$id:/root/.gradle/." "$HOME/.gradle/"', section)
+                self.assertIn("packages: read", section)
+
 
 if __name__ == "__main__":
     unittest.main()
