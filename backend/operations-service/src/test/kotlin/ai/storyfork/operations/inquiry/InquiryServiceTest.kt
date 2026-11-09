@@ -61,19 +61,6 @@ class InquiryServiceTest {
         assertEquals(50, result.category.length)
     }
 
-    @Test
-    fun `invalid create is rejected before touching repositories`() {
-        val invalid = listOf(
-            request.copy(title = ""), request.copy(title = " \t\n"), request.copy(title = "t".repeat(201)),
-            request.copy(body = ""), request.copy(body = " \t\n"), request.copy(body = "b".repeat(20001)),
-            request.copy(category = ""), request.copy(category = " \t\n"), request.copy(category = "c".repeat(51)),
-        )
-
-        invalid.forEach { input -> assertThrows(IllegalArgumentException::class.java) { service.create(input) } }
-
-        verifyNoInteractions(inquiries, replies)
-    }
-
     @ParameterizedTest
     @MethodSource("nullCharacterRequests")
     fun `null character creation is rejected before touching repositories`(input: InquiryRequest) {
@@ -152,21 +139,6 @@ class InquiryServiceTest {
         assertEquals(Instant.parse("2026-01-01T00:00:00Z"), result.createdAt)
         assertTrue(result.updatedAt.isAfter(result.createdAt))
         verify(inquiries).saveAndFlush(row)
-    }
-
-    @Test
-    fun `invalid update preserves every original field before any mutation`() {
-        val row = inquiry()
-        `when`(inquiries.findById(id)).thenReturn(Optional.of(row))
-
-        for (invalid in listOf(request.copy(title = " "), request.copy(body = "b".repeat(20001)), request.copy(category = ""))) {
-            assertThrows(IllegalArgumentException::class.java) { service.update(id, invalid) }
-            assertEquals("이전 제목", row.title)
-            assertEquals("이전 본문", row.body)
-            assertEquals("이전 분류", row.category)
-            assertEquals(row.createdAt, row.updatedAt)
-        }
-        verify(inquiries, never()).saveAndFlush(row)
     }
 
     @Test

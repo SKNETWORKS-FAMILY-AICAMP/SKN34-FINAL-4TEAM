@@ -99,14 +99,15 @@ class InquiryService(
     private fun bounded(pageable: Pageable, direction: Sort.Direction): Pageable =
         PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.by(direction, "createdAt", "id"))
 
+    // Blank and length rules are @Valid on the request DTOs; PostgreSQL text cannot hold U+0000, so only that is re-checked.
     private fun validate(request: InquiryRequest) {
-        require(request.title.isNotBlank() && request.title.length <= 200 && '\u0000' !in request.title) { "Invalid inquiry title." }
-        require(request.category.isNotBlank() && request.category.length <= 50 && '\u0000' !in request.category) { "Invalid inquiry category." }
+        require('\u0000' !in request.title) { "Invalid inquiry title." }
+        require('\u0000' !in request.category) { "Invalid inquiry category." }
         validateBody(request.body)
     }
 
     private fun validateBody(body: String) {
-        require(body.isNotBlank() && body.length <= 20000 && '\u0000' !in body) { "Invalid body." }
+        require('\u0000' !in body) { "Invalid body." }
     }
 
     private fun InquiryEntity.response() = InquiryResponse(id, title, body, category, createdAt, updatedAt)

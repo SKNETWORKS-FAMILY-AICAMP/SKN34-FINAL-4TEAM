@@ -208,14 +208,9 @@ class NoticeServiceTest {
     )
 
     companion object {
+        // 공백·길이는 NoticeRequest의 @Valid가 거절한다(RequestValidationTest). 서비스는 U+0000만 거절한다.
         @JvmStatic
         fun invalidRequests(): List<NoticeRequest> = listOf(
-            NoticeRequest("", "본문"),
-            NoticeRequest(" \t\n", "본문"),
-            NoticeRequest("가".repeat(201), "본문"),
-            NoticeRequest("제목", ""),
-            NoticeRequest("제목", " \t\n"),
-            NoticeRequest("제목", "나".repeat(20_001)),
             NoticeRequest("제\u0000목", "본문"),
             NoticeRequest("제목", "본\u0000문"),
         )

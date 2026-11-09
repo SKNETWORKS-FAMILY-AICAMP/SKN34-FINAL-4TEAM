@@ -79,7 +79,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | `DELETE R/{resourceId}` | 204, 응답 본문 없음 | 명시적 삭제; 없는 ID는 404 |
 
 - PUT은 PATCH가 아닙니다. 이벤트에서 기간을 생략하거나 null로 보내면 기존 기간을 비웁니다.
-- 생성/수정 전 필수 값·길이·기간과 모든 문자열의 U+0000 포함 여부를 검증합니다. 공지·이벤트의 제목/본문, 문의의 분류/제목/본문, 답변 본문에 U+0000이 있으면 저장·변경 전에 거절하며 기존 필드와 수정 시각을 보존합니다. 잘못된 생성 요청은 Repository를 호출하지 않습니다.
+- 생성/수정 전 필수 값·길이는 요청 DTO의 `@NotBlank`·`@Size`가 컨트롤러의 `@Valid`에서, 이벤트 기간 순서와 모든 문자열의 U+0000 포함 여부는 서비스가 검증합니다. 서비스는 이 DTO 검증을 통과한 요청만 받는 전제이며(현재 서비스를 호출하는 곳은 컨트롤러뿐) 공백·길이 검사를 되풀이하지 않습니다. 공지·이벤트의 제목/본문, 문의의 분류/제목/본문, 답변 본문에 U+0000이 있으면 저장·변경 전에 거절하며 기존 필드와 수정 시각을 보존합니다. 잘못된 생성 요청은 Repository를 호출하지 않습니다.
 - 공지/이벤트/문의 응답은 `id`, 요청 필드, `createdAt`, `updatedAt`입니다. 답변에는 `inquiryId`도 있습니다. 모든 시각은 UTC Instant입니다.
 - 목록은 `items`, `page`, `size`, `totalElements`, `totalPages`를 갖는 명시적 DTO이며 네 목록이 제네릭 `PageResponse<T>`(`_common/service/dto`) 하나를 공유합니다. JPA Entity나 Spring `Page`를 그대로 노출하지 않습니다.
 - Pageable 기본값은 0부터 시작하는 page와 size 20이며 size는 최대 100입니다. 컨트롤러·서비스 코드가 아니라 `spring.data.web.pageable.default-page-size=20`·`max-page-size=100` 설정이 정하며 `ApplicationPropertiesTest`가 값을 고정합니다. 공지·이벤트·문의 목록은 `createdAt DESC, id DESC`, 문의 하위 답변 목록은 대화 순서인 `createdAt ASC, id ASC`로 고정합니다. 클라이언트 sort를 사용하지 않고 같은 시각도 UUID로 순서를 안정화합니다.

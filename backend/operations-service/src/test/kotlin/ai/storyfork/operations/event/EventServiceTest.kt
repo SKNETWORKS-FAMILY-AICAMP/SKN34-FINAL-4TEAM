@@ -228,14 +228,9 @@ class EventServiceTest {
             )
         }
 
+        // 공백·길이는 EventRequest의 @Valid가 거절한다(RequestValidationTest). 서비스는 U+0000과 기간 순서만 거절한다.
         @JvmStatic
         fun invalidRequests(): Stream<EventRequest> = Stream.of(
-            EventRequest("", "본문"),
-            EventRequest(" \t\n", "본문"),
-            EventRequest("가".repeat(201), "본문"),
-            EventRequest("제목", ""),
-            EventRequest("제목", " \t\n"),
-            EventRequest("제목", "나".repeat(20_001)),
             EventRequest("제\u0000목", "본문"),
             EventRequest("제목", "본\u0000문"),
             EventRequest("제목", "본문", Instant.parse("2026-11-06T00:00:00Z"), Instant.parse("2026-11-05T00:00:00Z")),
