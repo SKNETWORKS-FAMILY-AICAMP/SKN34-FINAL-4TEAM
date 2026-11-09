@@ -1,5 +1,6 @@
-"""기존 제안 API와 합성 Run 내부 경계를 조립한다."""
+"""기존 제안 API와 작업별 위임을 검증하는 내부 Run 경계를 조립한다."""
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.exception_handlers import request_validation_exception_handler
@@ -10,10 +11,14 @@ from app.health.router import router as health_router
 from app.generation.router import router as generation_router
 from app.runs.router import router as runs_router
 from app.runs.service import RunService
+from app.runs.remote_content import RemoteContent
 
 
 def create_app(*, run_service: RunService | None = None) -> FastAPI:
     """기존 API와 내부 Run 경계를 조립하고 주입된 합성 실행을 종료 정리한다."""
+    if run_service is None and os.environ.get("CONTENT_AI_RUN_BASE_URL"):
+        run_service = RunService(RemoteContent(os.environ["CONTENT_AI_RUN_BASE_URL"], os.environ.get("INTERNAL_TOKEN", "")))
+
     @asynccontextmanager
     async def lifespan(application):
         try:

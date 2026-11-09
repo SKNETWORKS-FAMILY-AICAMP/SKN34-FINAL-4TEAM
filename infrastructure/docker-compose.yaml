@@ -7,6 +7,7 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      CONTENT_AI_RUN_BASE_URL: http://content-service:8081
     expose:
       - "8000"
 
@@ -56,6 +57,7 @@ services:
       AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-12s}
       AI_GENERATION_READ_TIMEOUT: ${AI_GENERATION_READ_TIMEOUT:-75s}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      AI_RUN_GRANT_SECRET: ${AI_RUN_GRANT_SECRET:-}
     expose:
       - "8081"
 

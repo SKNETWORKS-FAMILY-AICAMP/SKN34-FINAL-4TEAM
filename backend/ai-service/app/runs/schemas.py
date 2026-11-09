@@ -10,6 +10,12 @@ from .runner import TaskResult
 from .state import GraphResponse, Ref, Status
 
 
+class RunError(Exception):
+    def __init__(self, status: int, code: str):
+        self.status, self.code = status, code
+        super().__init__(code)
+
+
 class RunBudget(Contract):
     model_calls: Annotated[int, Field(strict=True, ge=0, le=20, alias="modelCalls")]
     input_tokens: Annotated[int, Field(strict=True, ge=0, le=48000, alias="inputTokens")]
@@ -38,7 +44,7 @@ class RunResponse(Contract):
     run_id: Ref = Field(serialization_alias="runId")
     thread_ref: Ref = Field(serialization_alias="threadRef")
     status: Status
-    is_mock: Literal[True] = Field(default=True, serialization_alias="isMock")
+    is_mock: bool = Field(default=True, serialization_alias="isMock")
     tasks: tuple[TaskResult, ...] = ()
     coverage: Coverage | None = None
     result: GraphResponse | None = None

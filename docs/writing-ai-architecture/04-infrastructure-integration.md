@@ -1,5 +1,7 @@
 # Content API, 진행 스트림, 승인 및 재개
 
+2026-11-09 TASK 10에서 공개 Run·상태·thread의 최소 API와 실제 5분 서명 grant의 Content↔AI HTTP 재검증을 구현했다. 상세 요청·멱등·설정·오류는 [TASK 10 계약](task10-api-contract.md)을 따른다. 아래 공개 SSE/승인/재개는 계속 목표 계약이며 TASK 09 절은 당시 합성 구현의 기록이다. 실제 전문 Agent/원고 읽기·유료 모델·저장은 연결하지 않는다.
+
 **Content가 작업과 제안을 소유하고, AI가 재개 가능한 실행을 소유한다.** 지시서의 “Core 정본 조회 / Core Apply”는 이 저장소에서 Content의 인가·조회·적용과 Core 회원 인증의 조합이다. 사용자가 보는 성공 상태의 근거는 Content의 적용 영수증이다.
 
 ## 공개·내부 API 제안

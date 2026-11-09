@@ -11,6 +11,10 @@ import org.springframework.web.client.RestClient
 
 @Configuration(proxyBeanMethods=false)
 class GenerationClientConfig {
+    @Bean fun aiRunClient(builder: RestClient.Builder,properties: AiServiceClientProperties,
+        @Value("\${INTERNAL_TOKEN:}") token: String) = ai.storyfork.content.proposal.client.AiRunClient(
+            buildRestClient(builder,properties.baseUrl,properties.connectTimeout,properties.readTimeout),token)
+
     @Bean fun generationClient(builder: RestClient.Builder, properties: AiServiceClientProperties,
         @Value("\${AI_GENERATION_READ_TIMEOUT:75s}") timeout: Duration,
         @Value("\${INTERNAL_TOKEN:}") token: String): GenerationClient {

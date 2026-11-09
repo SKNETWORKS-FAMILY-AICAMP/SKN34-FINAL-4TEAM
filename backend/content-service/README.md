@@ -27,6 +27,12 @@ Content 실행에는 기존 대상의 `DATABASE_URL/USER/PASSWORD`, Core와 동�
 
 루트 `.env` 한 곳에서 관리하고 서비스별 `.env`를 만들거나 전체 파일을 source하지 않습니다. 실제 `.env`는 자동 변경하지 않습니다. 네이티브 Frontend는 같은 origin의 `/api` proxy를 사용해야 두 소유 서비스로 라우팅됩니다(`VITE_DEV_PROXY_TARGET`, `VITE_CONTENT_DEV_PROXY_TARGET`). Compose는 필요한 값만 각 런타임에 전달하며 DB 대상·계정은 기존 Core 설정과 같습니다.
 
+## 공개 Run과 작업 위임
+
+TASK 10은 `/api/v1/works/{id}/ai/runs` 접수·상태와 `/threads/{threadId}` 실행 참조 목록을 추가합니다. Core 인증·기존 CSRF·작품/Fork 소유권을 유지하며 같은 멱등 키의 재요청은 기존 run을 반환합니다. V17은 thread·run·dispatch 의도를 기존 `ai_job`에 연결하는 신규 SQL이며 이 작업에서 실제 DB에 적용하지 않습니다.
+
+Content 전용 `AI_RUN_GRANT_SECRET`과 양쪽의 `INTERNAL_TOKEN`을 각각 무작위 32자 이상으로 설정해야 합니다. Content가 발급한 5분 위임을 AI가 `POST /internal/v1/ai/runs/{runId}/verify`로 재확인합니다. 실제 원고/프롬프트를 전송하지 않으며 미연결 전문 Agent는 `AI_RUN_EXECUTOR_UNAVAILABLE`로 표시합니다. [요청 예제·권한·미지원 범위](../../docs/writing-ai-architecture/task10-api-contract.md)와 [실제 검증·인수 기록](../../docs/writing-ai-architecture/task10-handoff.md)을 참고하세요.
+
 ## Core 인증 클라이언트 — 실제 연결
 
 [`CoreAuthClient`](src/main/kotlin/ai/storyfork/content/auth/client/CoreAuthClient.kt)는 Spring HTTP Service proxy Bean입니다. 보호 요청의 Bearer를 Core에 보내고 `VerifiedMemberResponse(memberId: UUID)`만 받아 Principal을 구성합니다.

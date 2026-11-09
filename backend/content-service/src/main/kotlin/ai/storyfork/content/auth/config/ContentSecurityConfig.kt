@@ -18,9 +18,20 @@ import tools.jackson.databind.json.JsonMapper
 
 @Configuration(proxyBeanMethods = false)
 class ContentSecurityConfig {
-    // 운영 전용 /internal/v1 하위: 회원 Bearer·CSRF 없이 서비스 토큰만 확인한다. 공개 체인보다 먼저 매칭한다.
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
+    fun aiRunInternalSecurityFilterChain(http: HttpSecurity,@Value("\${INTERNAL_TOKEN:}") token: String): SecurityFilterChain {
+        http.securityMatcher("/internal/v1/ai/runs/**").csrf {it.disable()}.cors {it.disable()}
+            .sessionManagement {it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)}
+            .authorizeHttpRequests {it.anyRequest().hasAuthority("AI_RUN_SERVICE")}
+            .addFilterBefore(AiRunServiceTokenFilter(token),AnonymousAuthenticationFilter::class.java)
+            .httpBasic {it.disable()}.formLogin {it.disable()}.logout {it.disable()}
+        return http.build()
+    }
+
+    // 운영 전용 /internal/v1 하위: 회원 Bearer·CSRF 없이 서비스 토큰만 확인한다. 공개 체인보다 먼저 매칭한다.
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE+1)
     fun operationsInternalSecurityFilterChain(http: HttpSecurity, @Value("\${OPERATIONS_SERVICE_TOKEN:}") token: String): SecurityFilterChain {
         http.securityMatcher("/internal/v1/**").csrf { it.disable() }.cors { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

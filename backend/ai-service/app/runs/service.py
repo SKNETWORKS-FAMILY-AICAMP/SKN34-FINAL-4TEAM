@@ -1,4 +1,4 @@
-"""합성 Content 위임과 단일 프로세스 Run 실행. 실제 전송·DB·모델은 연결하지 않는다."""
+"""Content 위임과 단일 프로세스 Run 실행. 실제 원고·DB·모델은 연결하지 않는다."""
 import asyncio
 from dataclasses import dataclass, field
 from hashlib import sha256
@@ -8,14 +8,9 @@ from app.retrieval.mock_content import MockContentReadPort
 from .graph import MainGraph
 from .orchestrator import PlanLimits
 from .runner import ExecutionLimits
-from .schemas import RunFailure, RunRequest, RunResponse
+from .schemas import RunError, RunFailure, RunRequest, RunResponse
+from .remote_content import RemoteContent, RemoteGrant
 from .state import MainRequest
-
-
-class RunError(Exception):
-    def __init__(self, status: int, code: str):
-        self.status, self.code = status, code
-        super().__init__(code)
 
 
 @dataclass(frozen=True)
@@ -80,7 +75,7 @@ def fingerprint(request: RunRequest) -> str:
 
 
 class RunService:
-    def __init__(self, content: FixtureContent):
+    def __init__(self, content: FixtureContent | RemoteContent):
         self.content = content
         # shortcut: 프로세스 메모리 claim만 지원, 다중 worker·영속 재개 도입 시 Content lease로 교체한다.
         self.records: dict[str, RunRecord] = {}
@@ -92,13 +87,19 @@ class RunService:
         if any(r.response.thread_ref == request.thread_ref and r.response.status in ("pending", "running")
                for r in self.records.values()):
             raise RunError(409, "thread_busy")
-        response = RunResponse(run_id=request.run_id, thread_ref=request.thread_ref, status="pending")
+        response = RunResponse(run_id=request.run_id, thread_ref=request.thread_ref, status="pending",
+                               is_mock=not isinstance(grant, RemoteGrant))
         record = RunRecord(fingerprint(request), response)
         self.records[request.run_id] = record
         record.task = asyncio.create_task(self._execute(grant, record))
         return response
 
-    async def _execute(self, grant: FixtureGrant, record: RunRecord):
+    async def _execute(self, grant: FixtureGrant | RemoteGrant, record: RunRecord):
+        if isinstance(grant, RemoteGrant):
+            # 실제 전문 Agent/검색 실행은 미연결이다. 합성 자료로 성공 대체하거나 모델을 호출하지 않는다.
+            record.response = record.response.model_copy(update={"status": "failed",
+                "error": RunFailure(code="dependency_unavailable")})
+            return
         record.response = record.response.model_copy(update={"status": "running"})
         budget = grant.request.budget
         limits = ExecutionLimits(plan=PlanLimits(**budget.model_dump()))

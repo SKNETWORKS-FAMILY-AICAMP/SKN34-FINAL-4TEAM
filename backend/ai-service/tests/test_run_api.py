@@ -86,6 +86,7 @@ def test_forged_scope_rejected_before_read(content, monkeypatch, change):
 
 
 def test_input_errors_redact_secrets_and_unconfigured_service_is_explicit(content, monkeypatch):
+    monkeypatch.delenv("CONTENT_AI_RUN_BASE_URL", raising=False)
     monkeypatch.setenv("INTERNAL_TOKEN", "fixture-service-token")
     req, _, service = binding(content)
     body = req.model_dump(mode="json", by_alias=True)

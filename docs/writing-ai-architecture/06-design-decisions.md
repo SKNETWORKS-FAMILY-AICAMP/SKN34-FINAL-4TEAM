@@ -28,7 +28,9 @@ TASK 05는 기존 SDK의 `OpenAI.post('/decisions', ...)`로 공식 HTTP 계약�
 
 ## 서비스와 저장
 
-TASK 09의 내부 HTTP 경계는 FixtureContent에 명시 주입한 작업별 합성 grant만 복원한다. 실제 Content 발급/검증 정책·MCP 전송은 결정하지 않았으며 미설정 앱은 503으로 거부한다. 공개 API·원고 저장·영속 재개도 연결하지 않는다. [구현 계약과 단일 프로세스 한계](04-infrastructure-integration.md#task-09-합성-내부-run-http-계약).
+TASK 10에서 사용자가 실제 grant·AI 전송 연결을 승인했다. Content 전용 HMAC 키와 5분 위임, 기존 내부 토큰의 서버 간 인증, 좁은 HTTP 검증 경로로 현재 인가를 재확인한다. 이 결정은 실제 MCP 원문 읽기·모델·승인·자동 복구를 확정하지 않는다. [확정한 계약과 한계](task10-api-contract.md).
+
+TASK 09 당시 내부 HTTP 경계는 FixtureContent에 명시 주입한 작업별 합성 grant만 복원했다. TASK 10이 실제 Content 위임과 공개 최소 API를 추가했으며 MCP 원문 읽기·원고 저장·영속 재개는 계속 미연결이다. [TASK 09의 합성 계약과 단일 프로세스 한계](04-infrastructure-integration.md#task-09-합성-내부-run-http-계약).
 
 | 문제·현재 근거 | 선택지 A / 비용과 영향 | 선택지 B / 비용과 영향 | 추천·결정 시점·미결 영향 |
 |---|---|---|---|
