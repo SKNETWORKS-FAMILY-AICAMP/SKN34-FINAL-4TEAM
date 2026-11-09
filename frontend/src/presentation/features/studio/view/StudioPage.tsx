@@ -80,7 +80,7 @@ function DemoStudioPage() {
       <div className="sbar">
         <Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 className="t">{w.title}</h1>
         <StudioTools id={id} view={view} ep={ep} />
-        {view !== 'narrative' && <span className={`st${vm.saving ? ' saving' : ''}`} id="saved"><i />{vm.saving ? '저장 중…' : '저장됨'}</span>}
+        {view !== 'narrative' && <span className={`st${vm.saving && !vm.saveFailed ? ' saving' : ''}`} id="saved"><i />{vm.saveFailed ? '저장 실패' : vm.saving ? '저장 중…' : '저장됨'}</span>}
         <button type="button" className="tbtn" onClick={() => setSettingsOpen(true)}>집필 설정</button>
         {view === 'write' && <><button type="button" className="tbtn" style={{ height: 40 }} disabled={ro} onClick={vm.preview}>미리 보기</button>
         <button type="button" className="tbtn pri" style={{ height: 40 }} id="pubep" disabled={ro || vm.publishBusy || vm.autoGenerating} onClick={vm.openPublish}>{ro ? '원작 원고' : d.editingEpisode ? '수정 공개하기' : '공개하기'}</button></>}
@@ -179,6 +179,7 @@ function Editor({ vm }: { vm: VM }) {
       {d.editingEpisode && !ro ? <div className="revision-note">공개 원고를 복사한 수정 초안이에요. 수정 내용은 ‘수정 공개하기’를 누르기 전까지 공개 원고에 반영되지 않아요.</div>
         : ro ? <div className="revision-note">원작 스냅샷 원고는 읽기 전용이에요. Fork 이후 회차부터 수정할 수 있어요.</div> : null}
       {d.auto && <div className="abanner">🤖 AI 자율 연재가 쓴 초안이에요. 읽어 보고 고친 뒤 직접 공개해 주세요.</div>}
+      {vm.checkStale && <p className="note2" role="status">원고가 변경됐어요. 다시 검사해 주세요.</p>}
       <div className="eb" id="eb" key={vm.bodyKey} contentEditable={!ro} suppressContentEditableWarning spellCheck={false} role="combobox" aria-expanded={!!mlist} aria-controls={mlist ? 'mention-list' : undefined} aria-activedescendant={mlist && mlist.active >= 0 ? `mention-opt-${mlist.active}` : undefined} aria-label="원고 본문"
         data-ph={`여기에 ${d.no}화를 써 보세요. AI 채팅으로 시작할 수도 있어요.`} onInput={(e) => { setMlist(null); vm.edit({ paras: readParas(e.currentTarget) }) }}
         onMouseUp={(e) => { const s = window.getSelection(); if (s && e.currentTarget.contains(s.anchorNode) && e.currentTarget.contains(s.focusNode)) setSelection(s.toString().trim()) }}
@@ -190,7 +191,7 @@ function Editor({ vm }: { vm: VM }) {
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); moveMention(e.key === 'ArrowDown' ? 1 : -1) }
           else if (e.key === 'Enter' && mlist.active >= 0) { e.preventDefault(); pickMention(names[mlist.active]) }
         }}
-        ref={(el) => { if (el && !filled.has(el)) { filled.add(el); fillBody(el, d.paras, bad, d.links) } }}>
+        ref={(el) => { if (el && !filled.has(el)) { filled.add(el); fillBody(el, vm.paragraphs, bad, d.links) } }}>
       </div>
       <div className="text-ai"><button type="button" className="btn sm" aria-expanded={textAi} onClick={() => setTextAi(!textAi)}>문장 AI 도구</button>{textAi && <div className="text-ai-panel"><b>문장 AI 채팅</b><p className="small muted">선택한 문장을 수정하거나 새로운 장면을 요청하세요. 화면 예시이며 AI 요청과 원고 반영은 연결되지 않았어요.</p><div className="text-ai-selection">{selection || '선택한 문장이 여기에 표시됩니다.'}</div><label className="field">문장 또는 장면 요청<textarea className="ta" placeholder="수정하거나 작성할 내용을 적어 주세요" /></label><div className="text-ai-modes"><button type="button" className="btn sm" disabled>＋ 문맥</button><button type="button" className="btn sm" disabled>생성</button><button type="button" className="btn sm" disabled>적용</button><button type="button" className="btn sm" disabled>다시 생성</button><button type="button" className="btn sm" disabled>버리기</button></div></div>}</div>
       {mlist && <div className="mlist" id="mention-list" role="listbox" aria-label="연결할 인물·사건" style={{ left: mlist.left, top: mlist.top }}>
@@ -308,7 +309,7 @@ function PublishEpisodeSheet({ vm }: { vm: VM }) {
   const [edited, setTitle] = useState<string | null>(null)
   const title = edited ?? d.title
   const ready = d.paras.length > 0
-  const checked = !!d.check && !d.check.stale
+  const checked = !!d.check && !vm.checkStale
   const clean = checked && !d.check!.issues.length
   const label = d.editingEpisode ? '수정 공개하기' : '공개하기'
   return (
@@ -317,7 +318,10 @@ function PublishEpisodeSheet({ vm }: { vm: VM }) {
       <label className="field">회차 제목<input className="inp" id="pubt" value={title} disabled={vm.publishBusy} onChange={(e) => setTitle(e.target.value)} /></label>
       <div className="list" style={{ borderRadius: 16 }}>
         <div className="rp"><div className="top"><b>소설</b><span className={`chip ${ready ? 'ok' : 'wait'}`}>{ready ? d.paras.length + '문단' : '비어 있음'}</span></div></div>
-        <div className="rp"><div className="top"><b>설정 검사</b><span className={`chip ${clean ? 'ok' : 'wait'}`}>{!checked ? '선택 사항' : clean ? '통과' : d.check!.issues.length + '곳 확인 필요'}</span></div></div>
+        <div className="rp">
+          <div className="top"><b>설정 검사</b><span className={`chip ${clean ? 'ok' : 'wait'}`}>{vm.checkStale ? '재검사 필요' : !checked ? '선택 사항' : clean ? '통과' : d.check!.issues.length + '곳 확인 필요'}</span></div>
+          {vm.checkStale && <p className="note2" role="status">원고가 변경됐어요. 다시 검사해 주세요.</p>}
+        </div>
         <div className="rp"><div className="top"><b>공개 대상</b><span className="chip ok">{w.private ? '작품 비공개 · 나만 보기' : w.parent ? '포크 · 원작 링크 표시' : '모두'}</span></div></div>
       </div>
       {!ready ? <div className="policy">소설을 먼저 써 주세요.</div> : !clean ? <div className="note2">설정 검사는 선택 사항이에요. 확인하지 않아도 공개할 수 있어요.</div> : <div className="note">발행 후 공개 범위는 작품 설정을 따릅니다. 원작은 바뀌지 않아요.</div>}

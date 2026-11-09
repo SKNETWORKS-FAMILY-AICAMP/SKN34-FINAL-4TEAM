@@ -11,22 +11,38 @@ import { sessionActions } from '../../../shared/session/sessionSlice'
 import { confirmAi, useAiDemo } from '../../../shared/useAiDemo'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
+type DraftPatch = Parameters<StudioUseCase['edit']>[1]
+type InvalidatedCheck = { key: string; at: number | null }
+
 /** 목업 studio()·bindStudio·syncDraft·markSaving: U13 집필실 원고 화면 */
 export function useStudioViewModel(id: string, ep: number | undefined, screen: string, studioUseCase: StudioUseCase = appContainer.resolve('studioUseCase'), libraryUseCase: LibraryUseCase = appContainer.resolve('libraryUseCase')) {
   const role = useAppSelector((s) => s.session.role)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const aiDemo = useAiDemo()
-  // 목업 render(): 탭(screen)을 바꾸면 저장 중인 입력을 기다렸다가 초안(연결·AI 요청)을 다시 불러옵니다. 같은 작품·회차이므로 집필실을 비우지 않습니다.
-  const { data } = useAsyncData(() => sync.current.then(() => studioUseCase.open(id, ep, role)), [studioUseCase, id, ep, role], [screen])
+  const { data } = useAsyncData(async () => {
+    // 탭을 전환하거나 조회 중 편집이 들어오면 최신 저장 초안을 읽습니다.
+    let pending: Promise<unknown>
+    let opened: Awaited<ReturnType<StudioUseCase['open']>>
+    do {
+      pending = sync.current
+      await pending
+      opened = await studioUseCase.open(id, ep, role)
+    } while (pending !== sync.current)
+    return opened
+  }, [studioUseCase, id, ep, role], [screen])
   const [typed, setTyped] = useState<{ key: string; paras: string[] } | null>(null)
+  const [invalidatedCheck, setInvalidatedCheck] = useState<InvalidatedCheck | null>(null)
   const [prompt, setPrompt] = useState<{ key: string; v: string } | null>(null)
   const [saving, setSaving] = useState(false)
+  const [failedNotesFor, setFailedNotesFor] = useState<string | null>(null)
+  const [draftSaveFailed, setDraftSaveFailed] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [publishBusy, setPublishBusy] = useState(false)
   const [autoGenerating, setAutoGenerating] = useState(false)
   const actionBusy = useRef(false)
   const sync = useRef<Promise<unknown>>(Promise.resolve())
+  const failedEdits = useRef(new Map<string, { patch: DraftPatch; invalidation: InvalidatedCheck | null }>())
   const savedTimer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(savedTimer.current), [])
 
@@ -61,28 +77,62 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     window.clearTimeout(savedTimer.current)
     savedTimer.current = window.setTimeout(() => setSaving(false), 600)
   }
-  // 사전 편집은 blur마다 저장하므로 순서대로 이어 붙여 앞선 저장을 덮어쓰지 않게 합니다.
-  const queue = (fn: () => Promise<unknown>, saving = true) => {
-    if (saving) flash()
-    sync.current = sync.current.then(fn)
-    return sync.current.then(() => refresh())
+  const enqueue = <T,>(fn: () => Promise<T>) => {
+    const pending = sync.current.then(fn)
+    // 실패는 해당 호출에 돌려주고, 다음 작업도 실행할 수 있게 합니다.
+    sync.current = pending.catch(() => undefined)
+    return pending
   }
-  const edit = (patch: Parameters<StudioUseCase['edit']>[1]) => {
+  const queue = <T,>(fn: () => Promise<T>, saving = true) => {
+    if (saving) flash()
+    return enqueue(fn).then((result) => {
+      refresh()
+      return result
+    })
+  }
+  const edit = (patch: DraftPatch, showSaving = true) => {
+    if (!d || d.locked) return
+    // 저장 전에는 어느 검사 결과가 무효가 될지 알 수 없습니다.
+    const invalidation = patch.paras && JSON.stringify(patch.paras) !== JSON.stringify(shown)
+      ? { key, at: null }
+      : null
+    if (invalidation) setInvalidatedCheck(invalidation)
     if (patch.paras) setTyped({ key, paras: patch.paras })
-    flash()
-    sync.current = sync.current.then(() => studioUseCase.edit(key, patch))
+    if (showSaving) flash()
+    void enqueue(async () => {
+      const failed = failedEdits.current.get(key)
+      const nextPatch = failed ? { ...failed.patch, ...patch } : patch
+      const nextInvalidation = invalidation ?? failed?.invalidation ?? null
+      try {
+        const saved = await studioUseCase.edit(key, nextPatch)
+        if (!saved) throw new Error('초안을 찾을 수 없어요.')
+        failedEdits.current.delete(key)
+        setDraftSaveFailed(failedEdits.current.size > 0)
+        if (!nextInvalidation) return
+        const check = saved.check
+        setInvalidatedCheck((current) => {
+          if (current !== nextInvalidation) return current
+          return check?.stale ? { key, at: check.at } : null
+        })
+      } catch {
+        failedEdits.current.set(key, { patch: nextPatch, invalidation: nextInvalidation })
+        setDraftSaveFailed(true)
+        toast('초안을 저장하지 못했어요. 편집을 계속하면 다시 저장을 시도해요.')
+      }
+    })
   }
 
   return {
     data, studio: s, draft: d, // 입력은 다시 그리지 않고, 저장된 원고·검사 결과가 바뀌어 다시 불러왔을 때만 본문을 새로 그립니다.
-    bodyKey: key + JSON.stringify([d?.paras, d?.check?.issues]), saving,
+    bodyKey: key + JSON.stringify([d?.paras, d?.check?.issues]), saving, paragraphs: shown,
+    saveFailed: failedNotesFor === id || draftSaveFailed,
     readOnly: !!d?.locked,
     wordCount: `공백 포함 ${Array.from(text).length.toLocaleString('ko-KR')}자 · 공백 제외 ${Array.from(text.replace(/\s/g, '')).length.toLocaleString('ko-KR')}자`,
     edit,
-    // 목업 syncDraft: 입력 직후에도 지난 설정 검사를 무효로 보여 주고, AI 요청 문구는 초안에 남겨 탭을 바꿔도 유지합니다.
-    checkStale: !!d?.check && (d.check.stale || (typed?.key === key && JSON.stringify(typed.paras) !== JSON.stringify(d.paras))),
+    checkStale: !!d?.check && (d.check.stale
+      || (invalidatedCheck?.key === key && (invalidatedCheck.at === null || d.check.at <= invalidatedCheck.at))),
     prompt: (prompt?.key === key ? prompt.v : null) ?? d?.aiPrompt ?? '',
-    setPrompt: (v: string) => { setPrompt({ key, v }); edit({ aiPrompt: v }) },
+    setPrompt: (v: string) => { setPrompt({ key, v }); edit({ aiPrompt: v }, false) },
     propose: async (prompt: string) => {
       if (d?.locked) return toast('원작 스냅샷은 수정할 수 없어요')
       if (!await aiDemo('장면 이어쓰기', 5)) return
@@ -92,11 +142,23 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     accept: async () => { await run(() => studioUseCase.acceptProposal(id, key), true); toast('소설에 넣었어요 · 설정 검사를 해 보세요') },
     drop: async () => { await run(() => studioUseCase.dropProposal(key)); toast('제안을 버렸어요') },
     check: async () => {
-      if (!await aiDemo('설정 검사', 5)) return false
-      let n = 0
-      await run(async () => { n = await studioUseCase.check(id, key) }, true)
-      toast(n ? `${n}곳이 설정과 어긋나요` : '설정과 어긋난 곳이 없어요')
-      return true
+      if (!d || d.locked) return false
+      try {
+        return await queue(async () => {
+          if (failedEdits.current.has(key)) {
+            toast('저장되지 않은 편집이 있어요. 초안을 저장한 뒤 검사해 주세요.')
+            return false
+          }
+          if (!await aiDemo('설정 검사', 5)) return false
+          const count = await studioUseCase.check(id, key)
+          if (count === null) throw new Error('검사할 초안을 찾을 수 없어요.')
+          toast(count ? `${count}곳이 설정과 어긋나요` : '설정과 어긋난 곳이 없어요')
+          return true
+        }, false)
+      } catch {
+        toast('설정 검사를 완료하지 못했어요. 다시 시도해 주세요.')
+        return false
+      }
     },
     fix: async (i: number) => { await run(() => studioUseCase.fix(id, key, i), true); toast('문장을 고쳤어요 · 다시 검사했어요') },
     ignore: async (i: number) => { await run(() => studioUseCase.ignore(key, i)); toast('의도한 표현으로 남겼어요') },
@@ -121,6 +183,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
       setPublishBusy(true)
       try {
         await sync.current
+        if (failedEdits.current.has(key)) return toast('저장되지 않은 편집이 있어요. 초안을 저장한 뒤 공개해 주세요.')
         const r = await studioUseCase.publish(id, key, title)
         if ('error' in r) return toast(r.error)
         setPublishing(false)
@@ -181,7 +244,18 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     removeAlias: (docId: string, i: number) => run(() => studioUseCase.removeAlias(id, docId, i)),
     goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),
     auto: s ? autoOf(s.work) : null,
-    saveNotes: (patch: Parameters<StudioUseCase['saveNotes']>[1]) => { flash(); return run(() => studioUseCase.saveNotes(id, patch)) },
+    saveNotes: async (patch: Parameters<StudioUseCase['saveNotes']>[1], showSaving = false) => {
+      try {
+        const result = await queue(() => studioUseCase.saveNotes(id, patch), showSaving)
+        if (result === null) throw new Error('작품을 저장할 수 없어요.')
+        setFailedNotesFor((current) => current === id ? null : current)
+        return true
+      } catch {
+        setFailedNotesFor(id)
+        toast('작품 정보를 저장하지 못했어요. 다시 시도해 주세요.')
+        return false
+      }
+    },
     setCastStatus: async (i: number, st: string) => {
       let msg: string | null = null
       await run(async () => { msg = await studioUseCase.setCastStatus(id, i, st) })

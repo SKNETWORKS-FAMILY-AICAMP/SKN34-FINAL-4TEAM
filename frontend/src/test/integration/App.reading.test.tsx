@@ -81,6 +81,27 @@ describe('소설 상세 (U04)', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: '확인' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
+
+  it('내 소설 상세에는 신고 버튼이 없다 (#196)', async () => {
+    renderApp('/work/starlight')
+    await screen.findByRole('heading', { name: '별빛 서약의 탑' })
+    expect(screen.queryByRole('button', { name: /소설 신고/ })).toBeNull()
+  })
+
+  it('서버(정본) 작품 상세도 남의 공개 작품이면 신고 버튼이 보이고 운영 신고 폼이 열린다 (#196)', async () => {
+    const works = appContainer.resolve('mockDb').works
+    for (const work of works) work.canonical = true
+    try {
+      renderApp('/work/guunmong')
+      fireEvent.click(await screen.findByRole('button', { name: '구운몽 소설 신고' }))
+      const dialog = screen.getByRole('dialog', { name: '소설 신고' })
+      within(dialog).getByLabelText('신고 사유')
+      within(dialog).getByRole('button', { name: '신고 접수' })
+    } finally {
+      cleanup()
+      for (const work of works) delete work.canonical
+    }
+  })
 })
 
 describe('회차 뷰어 (U05·U07·U08)', () => {

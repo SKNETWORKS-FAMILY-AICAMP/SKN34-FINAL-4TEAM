@@ -640,7 +640,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="111">Frontend</td><td rowspan="51">웹 화면</td><td rowspan="8">92 정본 읽기 전환</td><td>런타임 샘플 주입을 제거하고 명시적 테스트 fixture로 격리</td><td>❌</td><td rowspan="8"><a href="#미등록-126">미등록-126</a></td></tr>
+<tr><td rowspan="114">Frontend</td><td rowspan="54">웹 화면</td><td rowspan="8">92 정본 읽기 전환</td><td>런타임 샘플 주입을 제거하고 명시적 테스트 fixture로 격리</td><td>❌</td><td rowspan="8"><a href="#미등록-126">미등록-126</a></td></tr>
 <tr><td>서버 slug 메타데이터로 기존 경로의 UUID 집필실 연결</td><td>❌</td></tr>
 <tr><td>조회 실패 시 샘플 fallback 없이 오류·재시도 제공</td><td>❌</td></tr>
 <tr><td>인증·작품·회차 범위 변경 후 오래된 비동기 결과 차단</td><td>❌</td></tr>
@@ -685,7 +685,10 @@
 <tr><td>크레딧 메뉴의 데모 꼬리표 제거·정책의 실제 결제 및 차감 없음 안내 유지</td><td>❌</td></tr>
 <tr><td>개발 환경에서만 화면 ID 표시·토글 제공 (일반 화면 테마 전환·인증 경로 제외 유지)</td><td>❌</td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-085">미등록-085</a></td></tr>
-<tr><td rowspan="1">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
+<tr><td rowspan="4">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-088">미등록-088</a></td></tr>
+<tr><td>데모 집필실에서 동작별 저장 표시 제어</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/6">#6</a></td></tr>
+<tr><td>저장 표시 없이 AI 요청 입력을 데모 초안에 보존</td><td>❌</td></tr>
+<tr><td>원고 수정 후 재검사 전까지 설정 검사 무효 표시 유지</td><td>❌</td></tr>
 <tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기 <small>(팀 공통 시트 연결, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-089">미등록-089</a></td></tr>
 <tr><td rowspan="1">65 미저장 작업 보호</td><td>미저장 원고·설정이 있을 때 이탈 또는 대상 전환 확인</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="#미등록-090">미등록-090</a></td></tr>
 <tr><td rowspan="3">66 요청 제어</td><td>진행 중 원고 저장 요청 취소</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="#미등록-091">미등록-091</a></td></tr>

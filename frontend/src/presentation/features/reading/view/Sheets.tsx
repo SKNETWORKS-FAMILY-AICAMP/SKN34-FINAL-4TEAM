@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { FEEDBACK_TYPES, REPORT_TYPES, type FeedbackType, type Sentence } from '../../../../domain/entities/feedback'
 import type { Work } from '../../../../domain/entities/work'
 import type { Look } from '../../../shared/ui/uiSlice'
+import { ReportWorkForm } from '../../../shared/reports/ReportWorkForm'
 import { Sheet } from '../../../shared/Sheet'
 import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { useLook } from '../viewmodel/useLook'
@@ -21,8 +22,19 @@ const Done = ({ status, message, onClose }: { status: string; message: string; o
 /** 보낼 내용이 있을 때만 제출 버튼을 잠급니다. 빈 내용은 ViewModel이 안내만 하고 거절하므로(제출이 시작되지 않음) 바로 다시 누를 수 있어야 합니다. */
 const willSubmit = (text: string) => text.trim() !== ''
 
-/** 목업 reportSheet(id): 소설 전체 신고 */
+/** 소설 전체 신고 시트. 서버(Content API) 작품은 운영 신고 API(34)로 접수하고, 데모 작품은 메모리 데모로 접수합니다. */
 export function ReportSheet({ work, onClose }: { work: Work; onClose: () => void }) {
+  if (!work.canonical) return <DemoReportSheet work={work} onClose={onClose} />
+  return (
+    <Sheet sid="U06" label="소설 신고" onClose={onClose}>
+      <Head title={`🚩 소설 신고 · ${work.title}`} onClose={onClose} />
+      <ReportWorkForm key={work.id} workId={work.id} workTitle={work.title} alwaysOpen />
+    </Sheet>
+  )
+}
+
+/** 목업 reportSheet(id): 소설 전체 신고 */
+function DemoReportSheet({ work, onClose }: { work: Work; onClose: () => void }) {
   const vm = useFeedbackViewModel()
   const [type, setType] = useState(REPORT_TYPES[0][0])
   const [text, setText] = useState('')
