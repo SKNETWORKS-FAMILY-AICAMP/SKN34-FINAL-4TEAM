@@ -7,17 +7,12 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import tools.jackson.databind.json.JsonMapper
 
 @Configuration(proxyBeanMethods = false)
 class OperationsSecurityConfig {
-    // Prevent Boot from creating/logging an unused default human-login password.
-    @Bean
-    fun operationsUsers() = InMemoryUserDetailsManager()
-
     @Bean
     fun operationsSecurityFilterChain(
         http: HttpSecurity,

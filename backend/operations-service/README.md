@@ -36,7 +36,7 @@ DB 연결과 schema 초기화 권한이 필요합니다. 이전의 ‘DB 없이 
 
 아래 회원 Bearer API를 제외한 모든 `/api/v1/operations/**` 요청은 단일 `X-Operations-Service-Token` 헤더를 요구합니다. 고정 길이 SHA-256 digest를 `MessageDigest.isEqual`로 비교하며 중복 헤더·빈 값·틀린 값·누락 설정은 401입니다. 입력 토큰을 임의로 trim하지 않습니다. `Authorization: Bearer`, 쿠키, `X-Auth-User` 등은 인증 대체 수단이 아닙니다.
 
-Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·세션 쿠키 인증을 사용하지 않습니다. 기본 사용자 계정도 만들지 않습니다. 변경 요청의 권한은 브라우저 CSRF 쿠키가 아니라 서비스 헤더에만 의존합니다. 브라우저 CORS 허용을 추가하지 않으며 토큰 보관·사람별 권한 검사를 프런트엔드에 맡기지 않습니다. 서비스 자격을 갖춰도 운영 API 밖의 경로는 403으로 거절합니다.
+Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·세션 쿠키 인증을 사용하지 않습니다. 기본 사용자 계정도 만들지 않습니다(`spring.autoconfigure.exclude`로 Boot의 `UserDetailsServiceAutoConfiguration`을 제외하며 `ApplicationPropertiesTest`가 고정합니다). 변경 요청의 권한은 브라우저 CSRF 쿠키가 아니라 서비스 헤더에만 의존합니다. 브라우저 CORS 허용을 추가하지 않으며 토큰 보관·사람별 권한 검사를 프런트엔드에 맡기지 않습니다. 서비스 자격을 갖춰도 운영 API 밖의 경로는 403으로 거절합니다.
 
 안전한 공통 오류 DTO는 `{ "code": "...", "message": "..." }`입니다. 원문 입력·토큰·SQL·예외 reason/stack을 응답에 넣지 않습니다.
 
