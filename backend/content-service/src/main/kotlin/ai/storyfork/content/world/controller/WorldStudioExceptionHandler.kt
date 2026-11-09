@@ -1,10 +1,12 @@
 package ai.storyfork.content.world.controller
 
 import ai.storyfork.content.world.domain.*
+import ai.storyfork.content.world.domain.WorldStudioFailure.Reason
 import ai.storyfork.content.world.service.dto.WorldStudioErrorResponse
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.dao.DataAccessException
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.transaction.TransactionException
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -15,7 +17,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @RestControllerAdvice(assignableTypes=[WorldStudioController::class])
 class WorldStudioExceptionHandler {
     @ExceptionHandler(WorldStudioFailure::class)
-    fun failure(error:WorldStudioFailure)=ResponseEntity.status(error.statusCode).body(WorldStudioErrorResponse(error.code,error.detail))
+    fun failure(error:WorldStudioFailure)=ResponseEntity.status(status(error.reason)).body(WorldStudioErrorResponse(error.code,error.detail))
+    private fun status(reason:Reason)=when(reason) {
+        Reason.MIGRATION,Reason.REJECTED,Reason.MISMATCH,Reason.HISTORY->HttpStatus.CONFLICT
+        Reason.INCOMPLETE,Reason.UNAVAILABLE->HttpStatus.SERVICE_UNAVAILABLE
+    }
     @ExceptionHandler(WorldNotFound::class)
     fun missing()=ResponseEntity.status(404).body(WorldStudioErrorResponse("WORLD_NOT_FOUND","세계관을 찾을 수 없습니다."))
     @ExceptionHandler(WorldConflict::class)
