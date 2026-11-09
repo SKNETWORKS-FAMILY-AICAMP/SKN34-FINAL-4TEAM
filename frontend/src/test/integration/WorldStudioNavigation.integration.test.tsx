@@ -27,7 +27,7 @@ async function show(entries=['/before','/worldstudio/qa','/after'],edit=true,two
  createWorld=vi.fn(async(_name:string,_description:string)=>({...structuredClone(world),id:'created',name:'새 세계'}))
  const repository={listStudio:async()=>[world,other],read:async(id:string)=>structuredClone(id==='other'?other:world),create:createWorld,saveStudio:async(next:StudioWorld)=>next}
  useCase=new WorldStudioUseCase(repository)
- const router=createMemoryRouter([{path:'*',element:<WorldStudioLeaveProvider><Routes><Route path="/worldstudio/:worldId" element={<Links/>}/><Route path="*" element={<Destination/>}/></Routes></WorldStudioLeaveProvider>}],{initialEntries:entries,initialIndex:1})
+ const router=createMemoryRouter([{path:'*',element:<WorldStudioLeaveProvider><Routes><Route path="/worldstudio/:worldId?" element={<Links/>}/><Route path="*" element={<Destination/>}/></Routes></WorldStudioLeaveProvider>}],{initialEntries:entries,initialIndex:1})
  render(<Provider store={createAppStore({role:'user'})}><RouterProvider router={router} useTransitions={false}/></Provider>)
  await screen.findByRole('heading',{name:'검증 세계',level:2})
  if(edit){fireEvent.click(screen.getByRole('button',{name:'설정 카드'}));fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'보존할 편집 내용'}})}
@@ -128,4 +128,22 @@ it('protects an unapplied relationship draft without blocking preserved step nav
  await waitFor(()=>expect(confirm).toHaveBeenCalledTimes(3));expect(createWorld).not.toHaveBeenCalled()
  fireEvent.click(screen.getByRole('button',{name:'이어서 작성'}))
  expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
+})
+
+
+it.each([false,true])('shows the world library after Gnb navigation (dirty: %s)',async(edit)=>{
+ const router=await show(undefined,edit),confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+ if(edit){
+  fireEvent.click(screen.getByRole('link',{name:'세계관',exact:true}))
+  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
+  expect(router.state.location.pathname).toBe('/worldstudio/qa')
+  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
+  confirm.mockReturnValue(true)
+ }
+ fireEvent.click(screen.getByRole('link',{name:'세계관',exact:true}))
+ await waitFor(()=>expect(router.state.location.pathname).toBe('/worldstudio'))
+ expect(await screen.findByRole('heading',{name:'내 세계관',level:2})).toBeTruthy()
+ expect(screen.getByRole('button',{name:'세계관 만들기'})).toBeTruthy()
+ expect(screen.getByRole('navigation',{name:'내 세계관'}).textContent).toContain('검증 세계')
+ expect(confirm).toHaveBeenCalledTimes(edit?2:0)
 })
