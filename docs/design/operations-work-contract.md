@@ -7,7 +7,7 @@ Content가, 관리자 업무 권한은 운영 서비스가 소유한다. 인증�
 ## 결정
 
 - **조회 범위**: 공개·비공개·운영 제한 작품을 모두 보여 준다(원작·Fork 포함). 새 컬럼·마이그레이션은 없다.
-- **표시 값**(모두 Content 기존 데이터에서 계산):
+- **표시 값**(작성자는 Core 닉네임 조회, 나머지는 Content 기존 데이터에서 계산):
   - 작성자: 소유자의 Core 최신 닉네임(없으면 `탈퇴한 회원`, [회차 댓글 계약](episode-comment-contract.md#core-회원-닉네임-조회-내부))
   - 종류: `work.origin_kind`(`original`→원작, `fork`→포크)
   - 권리: `work.creation_type`(`original`→원작, `external_derivative`→외부 2차 창작) + 권리 진술 확인 여부
@@ -56,6 +56,8 @@ OperationsWorkList = { items: OperationsWork[] }
   `--mode mockup`은 메모리 구현을 등록한다.
 
 ## ponytail 한계
+
+- 운영 작품 목록도 Core 닉네임 조회에 의존한다(캐시 없음, Core 장애 시 Content 503/504/502).
 
 - 페이지네이션이 없다. 작품이 많아지면 서버 필터·페이지(`q`·`kind`·`sort`·`page`)로 옮긴다.
 - 캐릭터챗 탭 등 다른 관리자 탭이 쓰는 데모 작품 목록(`AdminUseCase.load().works`)은 그대로 둔다. 작품 탭의 데모 `toggleWork`는
