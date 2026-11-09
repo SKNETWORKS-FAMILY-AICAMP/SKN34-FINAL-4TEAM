@@ -54,6 +54,15 @@ it('읽기 기록은 계정에 저장되고 관심 소설만 이 창에서 유�
   expect(note.textContent).not.toContain('읽기 기록과 관심 소설은 이 창에서만')
 })
 
+it('서버가 없는 목업 빌드는 읽기 기록도 이 창에서만 유지된다고 안내한다', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  try {
+    renderLibrary()
+    const note = await screen.findByText(/읽기 기록과 관심 소설은 이 창에서만 유지돼요/)
+    expect(note.textContent).not.toContain('계정에 저장돼요')
+  } finally { vi.unstubAllEnvs() }
+})
+
 it('이어 읽기 목록의 기록 삭제 버튼은 그 작품의 기록만 지우고 목록에서 뺀다', async () => {
   renderLibrary()
   const del = await screen.findByRole('button', { name: '구운몽 이어 읽기 기록 삭제' })
