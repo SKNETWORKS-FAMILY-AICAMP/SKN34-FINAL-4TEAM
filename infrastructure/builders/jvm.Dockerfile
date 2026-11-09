@@ -9,8 +9,9 @@ COPY backend/content-service/gradlew backend/content-service/build.gradle backen
 COPY backend/content-service/gradle content-service/gradle
 COPY backend/operations-service/gradlew backend/operations-service/build.gradle backend/operations-service/settings.gradle operations-service/
 COPY backend/operations-service/gradle operations-service/gradle
+COPY infrastructure/builders/resolve-all.gradle ./
 RUN for service in core-api content-service operations-service; do \
-      (cd "$service" && chmod +x gradlew && ./gradlew dependencies --no-daemon > /dev/null) || exit 1; \
+      (cd "$service" && chmod +x gradlew && ./gradlew --init-script ../resolve-all.gradle resolveAllDependencies --no-daemon --no-configuration-cache) || exit 1; \
     done && \
     rm -rf /warm /root/.gradle/daemon
 WORKDIR /workspace

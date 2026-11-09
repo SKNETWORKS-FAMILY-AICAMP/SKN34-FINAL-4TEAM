@@ -1,0 +1,10 @@
+// 빌드용 이미지에 jar까지 받아 두기 위한 init script. `dependencies`는 메타데이터만 받아 컴파일 시 다시 다운로드한다.
+allprojects {
+    tasks.register('resolveAllDependencies') {
+        notCompatibleWithConfigurationCache('resolves every configuration once while building the builder image')
+        doLast {
+            project.configurations.findAll { it.canBeResolved }.each { it.resolve() }
+            project.buildscript.configurations.findAll { it.canBeResolved }.each { it.resolve() }
+        }
+    }
+}

@@ -41,7 +41,9 @@ class BuilderImagesTest(unittest.TestCase):
         jvm = read("infrastructure/builders/jvm.Dockerfile")
         for service in ("core-api", "content-service", "operations-service"):
             self.assertIn(f"backend/{service}/build.gradle", jvm)
-        self.assertIn("./gradlew dependencies --no-daemon", jvm)
+        # `dependencies`는 jar를 받지 않으므로 모든 구성의 파일을 실제로 resolve한다.
+        self.assertIn("resolveAllDependencies", jvm)
+        self.assertIn("it.resolve()", read("infrastructure/builders/resolve-all.gradle"))
         python = read("infrastructure/builders/python.Dockerfile")
         self.assertIn("backend/ai-service/uv.lock", python)
         self.assertIn("uv sync --locked --no-dev --no-install-project", python)
