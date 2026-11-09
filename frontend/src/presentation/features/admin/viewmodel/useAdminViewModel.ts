@@ -121,12 +121,6 @@ export function useAdminViewModel(
     setEventDraft: (id: string, value: EventDraft) => { dispatch(adminViewActions.setEventDraft({ id, value })) },
     setInquiryDraft: (id: string, value: InquiryInput) => { dispatch(adminViewActions.setInquiryDraft({ id, value })) },
     setReplyDraft: (id: string, value: string) => { dispatch(adminViewActions.setReplyDraft({ id, value })) },
-    selectLegacyInquiry: (id: string | null) => { dispatch(adminViewActions.selectLegacyInquiry(id)) },
-    setLegacyDraft: (id: string, field: string, value: string) => { dispatch(adminViewActions.setLegacyDraft({ id, field, value })) },
-    clearLegacyDraft: (id: string) => {
-      const current = store.getState().adminView
-      if (mounted.current && current.legacyDrafts[id] === view.legacyDrafts[id] && (!id.startsWith('inquiry:') || current.legacyInquiryId === view.legacyInquiryId)) dispatch(adminViewActions.clearLegacyDraft(id))
-    },
     // 성공·dataChanged는 유지하되 UI 정리는 살아 있는 폼의 제출 초안·선택에만 적용합니다.
     saveNotice: (id: string | null, input: NoticeInput) => run(`notice:${id ?? 'new'}`, async () => {
       const row = await operationsUseCase.saveNotice(id, input)
@@ -202,10 +196,6 @@ export function useAdminViewModel(
     toggleComment: (id: string, label: string) => run(`comment:${id}`, () => adminUseCase.toggleComment(id, label)),
     toggleChat: (id: string) => run(`chat:${id}`, () => adminUseCase.toggleChat(id)),
     addChat: (workId: string, character: string) => run('chat:new', () => adminUseCase.addChat(workId, character)),
-    reply: (id: string, text: string) => run(`legacy:reply:${id}`, () => adminUseCase.reply(id, text)),
-    addNotice: (t: string, b: string) => run('legacy:notice', () => adminUseCase.addNotice(t, b)),
-    addEvent: (t: string, p: string, b: string) => run('legacy:event:new', () => adminUseCase.addEvent(t, p, b)),
-    toggleEvent: (i: number) => run(`legacy:event:${i}`, () => adminUseCase.toggleEvent(i)),
     runJob: (id: string) => run(`job:${id}`, () => adminUseCase.runJob(id)),
     resolveAlert: (id: string) => run(`alert:${id}`, () => adminUseCase.resolveAlert(id)),
     logout,
