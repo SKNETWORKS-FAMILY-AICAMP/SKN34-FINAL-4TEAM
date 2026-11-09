@@ -18,18 +18,24 @@ import java.util.UUID
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionOperations
 import org.springframework.web.server.ResponseStatusException
 
 private const val RIGHTS = "rights"
 
-/** Content calls run before any local write, so an upstream failure records neither state nor history. */
+/**
+ * Content calls run before any local write, so an upstream failure records neither state nor history.
+ * Methods that call Content (`create`, `restrict`, `unrestrict`) carry no `@Transactional`, so a slow Content never holds
+ * a DB connection. Not even NOT_SUPPORTED: it still binds a non-transactional EntityManager, and its connection, until the
+ * method returns. Their local writes are one explicit transaction instead.
+ */
 @Service
-@Transactional
 class ReportService(
     private val reports: ReportRepository,
     private val histories: ReportHistoryRepository,
     private val permissions: AdminPermissionRepository,
     private val content: ContentClient,
+    private val tx: TransactionOperations,
 ) {
     fun create(member: OperationsMember, request: ReportRequest): ReportResponse {
         text(request.reason, 2000)
@@ -64,18 +70,21 @@ class ReportService(
         )
     }
 
+    @Transactional
     fun addEvidence(member: OperationsMember, id: UUID, request: ReportBodyRequest): ReportResponse {
         val row = report(id)
         if (row.reporterId != member.memberId) forbidden()
         return record(row, ReportHistoryType.EVIDENCE, member, text(request.body, 5000))
     }
 
+    @Transactional
     fun addExplanation(member: OperationsMember, id: UUID, request: ReportBodyRequest): ReportResponse {
         val row = report(id)
         if (row.workOwnerId != member.memberId) forbidden()
         return record(row, ReportHistoryType.EXPLANATION, member, text(request.body, 5000))
     }
 
+    @Transactional
     fun review(member: OperationsMember, id: UUID, request: ReportReviewRequest): ReportResponse {
         permissions.requirePermission(member, RIGHTS)
         require(request.decision != ReportStatus.RECEIVED) { "Decision must be ACCEPTED or REJECTED." }
@@ -89,6 +98,7 @@ class ReportService(
 
     fun unrestrict(member: OperationsMember, id: UUID): ReportResponse = restriction(member, id, false)
 
+    @Transactional
     fun requestEvidence(member: OperationsMember, id: UUID, request: ReportBodyRequest): ReportResponse {
         permissions.requirePermission(member, RIGHTS)
         val body = text(request.body, 5000)
@@ -100,7 +110,8 @@ class ReportService(
         val row = report(id)
         if (restricted) content.restrict(row.workId) else content.unrestrict(row.workId)
         row.contentRestricted = restricted
-        return record(row, if (restricted) ReportHistoryType.RESTRICT else ReportHistoryType.UNRESTRICT, member, null)
+        // The row was read before the Content call, so `@Version` still turns a concurrent edit into a 409 here.
+        return tx.execute { record(row, if (restricted) ReportHistoryType.RESTRICT else ReportHistoryType.UNRESTRICT, member, null) }
     }
 
     private fun record(row: ReportEntity, type: ReportHistoryType, member: OperationsMember, body: String?): ReportResponse {
