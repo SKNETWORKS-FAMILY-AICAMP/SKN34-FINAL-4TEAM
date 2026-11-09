@@ -5,7 +5,7 @@ import { useLogout } from '../../../shared/session/useLogout'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector, type RootState } from '../../../../app/store'
 import type { AdminTab } from '../../../../domain/entities/admin'
-import { OperationsError, toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
+import { toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
 import { type AdminResult, type AdminUseCase, canToggleWork } from '../../../../domain/usecases/AdminUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
 import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
@@ -15,12 +15,13 @@ import type { ReportUseCase } from '../../../../domain/usecases/ReportUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
+import { type ActionState, useActionRunner } from '../../../shared/useActionRunner'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { adminViewActions, type AdminChatForm, type AdminFilter, type EventDraft, type OperationsRecordKind } from '../state/adminViewSlice'
 
 /** 목업 adminExtra()·adminLegacy()의 baseId */
 const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', profile: 'A15' }
-export type AdminActionState = { pending: boolean; error: string; message: string }
+export type AdminActionState = ActionState
 const demoSaved = (name: string) => ({ ok: true, msg: `${name} 저장했어요 (독립 운영 데모 · 서버 저장 없음)` })
 const demoDeleted = (name: string) => ({ ok: true, msg: `${name} 삭제했어요 (독립 운영 데모 · 서버 삭제 없음)` })
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
@@ -61,39 +62,27 @@ export function useAdminViewModel(
   }), [tab, role, q, sort, status, memberUseCase, reportUseCase])
   const reportId = tab === 'rights' ? sel : null
   const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
-  const busy = useRef(new Set<string>())
+  // mounted는 화면을 떠난 뒤 끝난 조치가 다른 화면에 알림을 띄우거나 Redux 초안·선택을 정리하지 않게 하는 데만 씁니다.
   const mounted = useRef(true)
-  const [actions, setActions] = useState<Record<string, AdminActionState>>({})
   const [lastSuccess, setLastSuccess] = useState('')
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
+  const notify = (message: string) => { if (mounted.current) toast(message) }
+  const { actions, run: exec } = useActionRunner('완료 여부를 확인하지 못했어요. 입력은 유지했어요. 목록을 새로고침해 처리 여부를 확인한 뒤 다시 시도해 주세요.', notify)
 
   // 데모 조회(query) 중·실패 때는 데모 탭 조치만 막습니다. 실제 운영 API 탭은 데모 조회와 무관하게 조치합니다.
   const mutationsBlocked = !LIVE_TABS.includes(tab) && (query.isLoading || query.isRefreshing || query.isError)
 
   /** 지연 실행으로 중복 호출 자체를 막습니다. 저장 결과와 뒤이은 목록 재조회 결과는 별개입니다. */
   const run = async (key: string, action: () => Promise<AdminResult>): Promise<boolean> => {
-    if (busy.current.has(key) || mutationsBlocked) return false
-    busy.current.add(key)
-    setLastSuccess('')
-    setActions((s) => ({ ...s, [key]: { pending: true, error: '', message: '' } }))
-    try {
+    if (mutationsBlocked) return false
+    return exec(key, async () => {
+      setLastSuccess('')
       const result = await action()
-      if (result?.ok) dispatch(sessionActions.dataChanged())
-      if (mounted.current) {
-        const error = result ? (result.ok ? '' : result.msg) : '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'
-        setActions((s) => ({ ...s, [key]: { pending: false, error, message: result?.ok ? result.msg : '' } }))
-        if (result?.ok) setLastSuccess(result.msg)
-        if (result) toast(result.msg)
-      }
-      return result?.ok ?? false
-    } catch (error) {
-      if (mounted.current) {
-        const message = error instanceof OperationsError ? error.message : '완료 여부를 확인하지 못했어요. 입력은 유지했어요. 목록을 새로고침해 처리 여부를 확인한 뒤 다시 시도해 주세요.'
-        setActions((s) => ({ ...s, [key]: { pending: false, error: message, message: '' } }))
-        toast(message)
-      }
-      return false
-    } finally { busy.current.delete(key) }
+      if (!result) return { ok: false, msg: '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.' }
+      if (result.ok) { dispatch(sessionActions.dataChanged()); setLastSuccess(result.msg) }
+      notify(result.msg)
+      return result
+    })
   }
   /** 서버 응답 성공만 완료로 표시하고 dataChanged로 목록·상세를 다시 조회합니다. */
   const runLive = (key: string, msg: string, action: () => Promise<void>) => run(key, async () => { await action(); return { ok: true, msg } })

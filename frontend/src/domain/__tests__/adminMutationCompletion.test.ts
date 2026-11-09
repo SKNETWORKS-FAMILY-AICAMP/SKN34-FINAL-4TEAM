@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { adminViewSlice } from '../../presentation/features/admin/state/adminViewSlice'
 import type { AdminTab } from '../entities/admin'
+import { OperationsError } from '../entities/operations'
 import { useAdminViewModel } from '../../presentation/features/admin/viewmodel/useAdminViewModel'
 import type { RootState } from '../../app/store'
 
@@ -9,7 +10,8 @@ import type { RootState } from '../../app/store'
 // 실제 Hook mount/unmount 통합 회귀는 useAdminViewModel.test.tsx에서 CI 전용으로 유지합니다.
 const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
-  admin: { chatChoices: vi.fn() },
+  admin: { chatChoices: vi.fn(), toggleWork: vi.fn() },
+  toast: vi.fn(),
   operations: { saveNotice: vi.fn(), deleteNotice: vi.fn(), saveEvent: vi.fn(), deleteEvent: vi.fn(), saveInquiry: vi.fn(), deleteInquiry: vi.fn(), saveReply: vi.fn(), deleteReply: vi.fn() },
   member: { setRestriction: vi.fn(), createAdmin: vi.fn() },
   report: { review: vi.fn(), setContentRestriction: vi.fn(), requestEvidence: vi.fn() },
@@ -26,7 +28,7 @@ vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: strin
 vi.mock('../../app/store', () => ({ useAppDispatch: () => doubles.dispatch, useAppSelector: (select: (state: RootState) => unknown) => select(doubles.getState()) }))
 vi.mock('../../presentation/shared/session/useLogout', () => ({ useLogout: () => vi.fn() }))
 vi.mock('../../presentation/shared/screenIds', () => ({ useScreenId: vi.fn() }))
-vi.mock('../../presentation/shared/events', () => ({ toast: vi.fn() }))
+vi.mock('../../presentation/shared/events', () => ({ toast: doubles.toast }))
 vi.mock('../../presentation/shared/useAsyncData', () => ({
   useAsyncData: (_load: unknown, deps: readonly unknown[]) => deps.includes(doubles.admin) ? doubles.demoQuery : { isLoading: false, isRefreshing: false, isError: false },
 }))
@@ -219,6 +221,68 @@ describe('이벤트 기간 입력 경계', () => {
     const vm = useAdminViewModel('events')
     expect(await vm.saveEvent(null, { ...event, startsAt })).toBe(false)
     expect(doubles.operations.saveEvent).not.toHaveBeenCalled()
+    expect(dataVersion).toBe(0)
+  })
+})
+
+// 기존 데모 조치(AdminUseCase)는 ok·실패·대상 없음(null)을 결과로 돌려줍니다. 알림·재조회 규칙을 실행기 정리 전후로 고정합니다 (#203).
+describe('조치 결과의 알림과 재조회', () => {
+  const FALLBACK = '완료 여부를 확인하지 못했어요. 입력은 유지했어요. 목록을 새로고침해 처리 여부를 확인한 뒤 다시 시도해 주세요.'
+
+  it('성공하면 결과 문구를 알리고 목록을 다시 읽는다', async () => {
+    doubles.admin.toggleWork.mockResolvedValueOnce({ ok: true, msg: '작품 공개 상태를 변경했어요' })
+    expect(await useAdminViewModel('works').toggleWork('w1')).toBe(true)
+    expect(doubles.toast).toHaveBeenCalledWith('작품 공개 상태를 변경했어요')
+    expect(dataVersion).toBe(1)
+  })
+
+  it('거절 결과는 그 문구를 알리되 목록을 다시 읽지 않고 false를 돌려준다', async () => {
+    doubles.admin.toggleWork.mockResolvedValueOnce({ ok: false, msg: '정본 작품은 조치할 수 없어요' })
+    expect(await useAdminViewModel('works').toggleWork('w1')).toBe(false)
+    expect(doubles.toast).toHaveBeenCalledWith('정본 작품은 조치할 수 없어요')
+    expect(dataVersion).toBe(0)
+  })
+
+  it('대상을 찾지 못하면(null) 알림 없이 false를 돌려주고 목록을 다시 읽지 않는다', async () => {
+    doubles.admin.toggleWork.mockResolvedValueOnce(null)
+    expect(await useAdminViewModel('works').toggleWork('w1')).toBe(false)
+    expect(doubles.toast).not.toHaveBeenCalled()
+    expect(dataVersion).toBe(0)
+  })
+
+  it.each([
+    ['OperationsError는 그 문구를', new OperationsError('운영 서버가 거절했어요'), '운영 서버가 거절했어요'],
+    ['그 밖의 예외는 내부 내용 없이 안내 문구를', new Error('내부 스택 정보'), FALLBACK],
+  ])('예외가 나면 %s 알리고 false를 돌려준다', async (_name, error, message) => {
+    doubles.admin.toggleWork.mockRejectedValueOnce(error)
+    expect(await useAdminViewModel('works').toggleWork('w1')).toBe(false)
+    expect(doubles.toast).toHaveBeenCalledWith(message)
+    expect(dataVersion).toBe(0)
+  })
+
+  /** 조치를 시작한 뒤 화면을 떠난 상태에서 끝낼 수 있게 합니다. */
+  function useToggleLeftMidway() {
+    let finish!: (result: unknown) => void
+    let fail!: (error: Error) => void
+    doubles.admin.toggleWork.mockReturnValueOnce(new Promise((done, no) => { finish = done; fail = no }))
+    const pending = useAdminViewModel('works').toggleWork('w1')
+    doubles.cleanups.splice(0).forEach((cleanup) => cleanup())
+    return { pending, finish, fail }
+  }
+
+  it('화면을 떠난 뒤 성공해도 다른 화면에 알림은 띄우지 않고 목록은 다시 읽는다', async () => {
+    const { pending, finish } = useToggleLeftMidway()
+    finish({ ok: true, msg: '변경했어요' })
+    expect(await pending).toBe(true)
+    expect(doubles.toast).not.toHaveBeenCalled()
+    expect(dataVersion).toBe(1)
+  })
+
+  it('화면을 떠난 뒤 실패해도 다른 화면에 알림을 띄우지 않는다', async () => {
+    const { pending, fail } = useToggleLeftMidway()
+    fail(new Error('내부 스택 정보'))
+    expect(await pending).toBe(false)
+    expect(doubles.toast).not.toHaveBeenCalled()
     expect(dataVersion).toBe(0)
   })
 })
