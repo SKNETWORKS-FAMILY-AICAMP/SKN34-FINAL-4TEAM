@@ -2,13 +2,14 @@ package ai.storyfork.content.auth.service
 
 import ai.storyfork.content._common.helper.executeHttpCall
 import ai.storyfork.content.auth.client.CoreAuthClient
+import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.auth.client.exception.CoreAuthException
-import java.util.UUID
 import org.springframework.stereotype.Service
 
 @Service
 class CoreAuthVerificationService(private val client: CoreAuthClient) {
-    fun verify(authorization: String): UUID = executeHttpCall(
+    /** Core가 확인한 회원 UUID와 표시용 닉네임이다. 응답 본문이 비면 잘못된 응답(502)이다. */
+    fun verify(authorization: String): VerifiedMemberResponse = executeHttpCall(
         onTimeout = { CoreAuthException(504, "CORE_AUTH_TIMEOUT", "인증 서비스 응답 시간이 초과되었습니다.") },
         onUnavailable = { CoreAuthException(503, "CORE_AUTH_UNAVAILABLE", "인증 서비스를 사용할 수 없습니다.") },
         onUpstreamError = {
@@ -21,7 +22,7 @@ class CoreAuthVerificationService(private val client: CoreAuthClient) {
         },
         onInvalidResponse = { CoreAuthException(502, "CORE_AUTH_INVALID_RESPONSE", "인증 서비스 응답을 확인할 수 없습니다.") },
     ) {
-        val response: ai.storyfork.content.auth.client.VerifiedMemberResponse? = client.verify(authorization)
-        response?.memberId ?: throw org.springframework.web.client.RestClientException("Empty verification response")
+        val response: VerifiedMemberResponse? = client.verify(authorization)
+        response ?: throw org.springframework.web.client.RestClientException("Empty verification response")
     }
 }

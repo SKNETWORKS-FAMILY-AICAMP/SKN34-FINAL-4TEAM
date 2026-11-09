@@ -31,6 +31,6 @@ class AuthVerificationService(
         val member = members.findById(id).orElseThrow { AuthException(AuthException.Reason.UNAUTHENTICATED) }
         // 제한 회원은 유효한 세션이 없는 것으로 본다(401). 403은 서비스 자격 오류로 남겨 Content가 구분하게 한다.
         if (member.restricted) throw AuthException(AuthException.Reason.UNAUTHENTICATED)
-        return VerifiedMemberResponse(id, member.operator)
+        return VerifiedMemberResponse(id, member.operator, member.nickname)
     }
 }

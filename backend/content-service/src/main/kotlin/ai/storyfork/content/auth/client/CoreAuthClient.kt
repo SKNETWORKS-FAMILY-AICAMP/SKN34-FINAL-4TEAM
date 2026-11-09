@@ -14,5 +14,5 @@ interface CoreAuthClient {
     fun verify(@RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String): VerifiedMemberResponse
 }
 
-/** Core의 내부 확인 응답이며 공개 MemberResponse나 회원 정본 사본이 아니다. */
-data class VerifiedMemberResponse(val memberId: UUID)
+/** Core의 내부 확인 응답이며 공개 MemberResponse나 회원 정본 사본이 아니다. 닉네임은 댓글 작성자 표시명 스냅샷에만 쓴다. */
+data class VerifiedMemberResponse(val memberId: UUID, val nickname: String? = null)

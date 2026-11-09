@@ -58,7 +58,7 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 
 | 메서드·경로 | 서비스 자격 | 동작 |
 |---|---|---|
-| `POST /internal/v1/auth/verify` | `X-Content-Service-Token` 또는 `X-Operations-Service-Token` | `{memberId, operator}`. 없는 회원·이용 제한 회원 401 |
+| `POST /internal/v1/auth/verify` | `X-Content-Service-Token` 또는 `X-Operations-Service-Token` | `{memberId, operator, nickname}`(닉네임은 Content 댓글 작성자 표시명 스냅샷용). 없는 회원·이용 제한 회원 401 |
 | `GET /internal/v1/members?role=ALL\|MEMBER\|ADMIN&q=&sort=newest\|oldest` | `X-Operations-Service-Token`만 | `{items: MemberItem[]}` 최대 200개, `q`는 닉네임·이메일 대소문자 무시 부분 일치 |
 | `PUT`·`DELETE /internal/v1/members/{id}/restriction` | 〃 | 이용 제한·해제 후 `MemberItem`. 자기 자신 400, 없는 회원 404 |
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |

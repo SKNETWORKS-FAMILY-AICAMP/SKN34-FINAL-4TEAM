@@ -72,9 +72,10 @@ class InternalAuthVerificationIntegrationTest {
             .header("X-Content-Service-Token",credential).header("Authorization",bearer()))
             .andExpect(status().isOk()).andReturn().response
         val body=JsonMapper.builder().build().readTree(response.contentAsString)
-        assertEquals(2,body.size())
+        assertEquals(3,body.size())
         assertEquals(member.toString(),body.path("memberId").asText())
         assertEquals(false,body.path("operator").asBoolean())
+        assertEquals("Reader",body.path("nickname").asText())
         for(token in listOf(null,"Bearer invalid",bearer(expired=true),bearer("not-a-uuid"),bearer(UUID.randomUUID().toString()))) {
             val request=post("/internal/v1/auth/verify").header("X-Content-Service-Token",credential)
             if(token!=null) request.header("Authorization",token)

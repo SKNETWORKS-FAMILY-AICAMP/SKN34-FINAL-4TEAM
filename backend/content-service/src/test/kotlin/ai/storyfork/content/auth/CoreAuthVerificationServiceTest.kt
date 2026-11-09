@@ -16,12 +16,12 @@ class CoreAuthVerificationServiceTest {
         override fun verify(authorization: String) = call(authorization)
     }
 
-    @Test fun `forwards only the bearer and returns the verified UUID without caching`() {
+    @Test fun `forwards only the bearer and returns the verified UUID with its nickname without caching`() {
         val id = UUID.randomUUID(); var calls = 0
         val service = CoreAuthVerificationService(client { header ->
-            assertEquals("Bearer opaque-user-token", header); calls++; VerifiedMemberResponse(id)
+            assertEquals("Bearer opaque-user-token", header); calls++; VerifiedMemberResponse(id, "닉네임")
         })
-        repeat(2) { assertEquals(id, service.verify("Bearer opaque-user-token")) }
+        repeat(2) { assertEquals(VerifiedMemberResponse(id, "닉네임"), service.verify("Bearer opaque-user-token")) }
         assertEquals(2, calls)
     }
 

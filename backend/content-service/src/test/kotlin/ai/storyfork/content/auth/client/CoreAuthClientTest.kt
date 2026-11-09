@@ -12,7 +12,7 @@ import org.springframework.web.service.annotation.PostExchange
 
 class CoreAuthClientTest {
     @Test
-    fun `draft verification declares a header-only credential and UUID-only response`() {
+    fun `draft verification declares a header-only credential and a UUID plus nickname response`() {
         val client = Class.forName("ai.storyfork.content.auth.client.CoreAuthClient")
         assertTrue(client.isInterface)
         assertEquals(listOf(MediaType.APPLICATION_JSON_VALUE), client.getAnnotation(HttpExchange::class.java)?.accept?.toList())
@@ -25,9 +25,11 @@ class CoreAuthClientTest {
 
         val response = verify.returnType
         assertEquals("ai.storyfork.content.auth.client.VerifiedMemberResponse", response.name)
+        // 닉네임은 댓글 작성자 표시명 스냅샷용이며 없어도(구버전 Core) 확인은 성공해야 하므로 기본값 null이다.
         assertEquals(
-            listOf("memberId" to UUID::class.java),
+            listOf("memberId" to UUID::class.java, "nickname" to String::class.java),
             response.declaredFields.filterNot { it.isSynthetic }.map { it.name to it.type },
         )
+        assertEquals(null, VerifiedMemberResponse(UUID.randomUUID()).nickname)
     }
 }

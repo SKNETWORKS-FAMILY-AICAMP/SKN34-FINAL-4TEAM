@@ -53,7 +53,7 @@ class ContentAuthorizationTest {
     @MockitoBean lateinit var context: ai.storyfork.content.context.service.ContextService
     @MockitoBean lateinit var plans: ai.storyfork.content.plan.service.StoryPlanService
     private fun token(): String {
-        `when`(verification.verify("Bearer opaque-user-token")).thenReturn(verifiedUser)
+        `when`(verification.verify("Bearer opaque-user-token")).thenReturn(ai.storyfork.content.auth.client.VerifiedMemberResponse(verifiedUser))
         return "opaque-user-token"
     }
     private fun mutation(path: String) = post(path).cookie(Cookie("XSRF-TOKEN","test-csrf")).header("X-CSRF-TOKEN",csrfValue()).contentType("application/json")

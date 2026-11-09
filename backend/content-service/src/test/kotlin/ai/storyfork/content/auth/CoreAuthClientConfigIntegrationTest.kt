@@ -24,7 +24,8 @@ class CoreAuthClientConfigIntegrationTest {
         val calls=AtomicInteger()
         val targetCalls=AtomicInteger()
         var status=200
-        var body="""{"memberId":"12345678-1234-4234-8234-123456789abc"}"""
+        // 실제 Core 응답처럼 operator도 보내 알 수 없는 필드를 무시하는지 함께 본다.
+        var body="""{"memberId":"12345678-1234-4234-8234-123456789abc","operator":false,"nickname":"닉네임"}"""
         var delay=0L
         server.createContext("/internal/v1/auth/verify") { exchange ->
             calls.incrementAndGet()
@@ -49,7 +50,11 @@ class CoreAuthClientConfigIntegrationTest {
             val properties=CoreAuthClientProperties(URI.create("http://127.0.0.1:${server.address.port}"),Duration.ofSeconds(1),Duration.ofSeconds(3))
             val client=CoreAuthClientConfig().coreAuthClient(RestClient.builder(),properties,"service-credential-0123456789abcdef")
             val service=CoreAuthVerificationService(client)
-            repeat(2) {assertEquals("12345678-1234-4234-8234-123456789abc",service.verify("Bearer user-token").toString())}
+            repeat(2) {
+                val verified=service.verify("Bearer user-token")
+                assertEquals("12345678-1234-4234-8234-123456789abc",verified.memberId.toString())
+                assertEquals("닉네임",verified.nickname)
+            }
             assertEquals(2,calls.get())
             status=302
             assertEquals(502,assertThrows(CoreAuthException::class.java) {service.verify("Bearer user-token")}.status)
