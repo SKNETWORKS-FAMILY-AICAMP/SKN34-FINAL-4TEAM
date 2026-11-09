@@ -7,7 +7,6 @@ import ai.storyfork.content.attachment.service.dto.EpisodeImageAltTextRequest
 import ai.storyfork.content.attachment.service.dto.EpisodeImageListResponse
 import ai.storyfork.content.attachment.service.dto.PublicEpisodeImageListResponse
 import ai.storyfork.content.attachment.service.dto.PublicEpisodeImageResponse
-import ai.storyfork.content.work.service.dto.WorkResponse
 import ai.storyfork.content.episode.service.dto.DraftResponse as Draft
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse as Episode
 import ai.storyfork.content.episode.service.dto.EpisodeResponse as WritingEpisode
@@ -180,8 +179,7 @@ class AttachmentServiceTest {
         `when`(images.findById(image.id)).thenReturn(Optional.of(image))
         `when`(episodeService.permitsImageReference("work", 1, image)).thenReturn(true)
         `when`(storage.read(image.objectKey)).thenReturn(AttachmentObjectResult(png))
-        `when`(content.publicRead("work")).thenReturn(WorkResponse("work", "공개 작품", "", "public", false, false, null,
-            listOf(Episode(1, 1, "version", "1화", "공개[[image:${image.id}]]")), null))
+        `when`(content.publicEpisodes("work")).thenReturn(listOf(Episode(1, 1, "version", "1화", "공개[[image:${image.id}]]")))
         assertArrayEquals(png, service.downloadEpisodeImage("work", 1, image.id, null, true).bytes)
         assertEquals("IMAGE_NOT_FOUND", assertThrows(AttachmentFailure::class.java) {
             service.downloadEpisodeImage("work", 2, image.id, null, true)
@@ -195,7 +193,9 @@ class AttachmentServiceTest {
         val downloaded = service.downloadCover("work", null, true)
         assertArrayEquals(png, downloaded.bytes)
         assertEquals("/api/v1/works/work/cover/content", downloaded.attachment.url)
-        verify(content, times(4)).publicRead("work")
+        // 표지·이미지 공개 열람은 작가명 조회(WorkService.publicRead)가 아니라 이름 없는 공개 회차 확인만 쓴다.
+        verify(content, times(4)).publicEpisodes("work")
+        verify(content, never()).publicRead("work")
         verifyNoInteractions(works)
     }
 
@@ -360,15 +360,17 @@ class AttachmentServiceTest {
         `when`(episodeService.permitsImageReference("work", 1, second)).thenReturn(true)
         `when`(episodeService.permitsImageReference("work", 1, foreign)).thenReturn(false)
         `when`(images.findAllById(listOf(second.id, first.id, foreign.id, "gone"))).thenReturn(listOf(first, foreign, second))
-        `when`(content.publicRead("work")).thenReturn(WorkResponse("work", "공개 작품", "", "public", false, false, null, listOf(
+        `when`(content.publicEpisodes("work")).thenReturn(listOf(
             Episode(1, 1, "version", "1화", "앞[[image:${second.id}]]중[[image:${first.id}]]뒤[[image:${second.id}]][[image:${foreign.id}]][[image:gone]]"),
-            Episode(2, 1, "version2", "2화", "[[image:${draftOnly.id}]]")), null))
+            Episode(2, 1, "version2", "2화", "[[image:${draftOnly.id}]]")))
         val listed = service.publicEpisodeImageAltTexts("work", 1).images
         assertEquals(listOf(second.id to "둘째", first.id to "첫째"), listed.map { it.id to it.altText })
         assertTrue(service.publicEpisodeImageAltTexts("work", 3).images.isEmpty())
         verifyNoInteractions(works)
-        `when`(content.publicRead("private")).thenThrow(ai.storyfork.content._common.exception.ContentFailure(404, "공개 작품을 찾을 수 없어요."))
+        `when`(content.publicEpisodes("private")).thenThrow(ai.storyfork.content._common.exception.ContentFailure(404, "공개 작품을 찾을 수 없어요."))
         assertEquals(404, assertThrows(ai.storyfork.content._common.exception.ContentFailure::class.java) { service.publicEpisodeImageAltTexts("private", 1) }.status)
+        // 대체 텍스트 공개 조회도 작가명(Core 닉네임) 조회가 필요 없어 publicRead를 부르지 않는다. Core 장애가 공개 이미지 설명을 막지 않는다.
+        verify(content, never()).publicRead("work"); verify(content, never()).publicRead("private")
     }
 
     @Test fun `an uploaded episode image can carry an alt text but an invalid one is refused before any upload`() {

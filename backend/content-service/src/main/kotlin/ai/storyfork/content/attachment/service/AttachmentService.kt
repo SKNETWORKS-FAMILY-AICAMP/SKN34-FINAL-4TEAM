@@ -156,7 +156,8 @@ class AttachmentService(
     }
     fun readCover(work: String, owner: String) = imageTransaction { ownedWork(work, owner); response(cover(work)) }
     fun downloadCover(work: String, owner: String?, public: Boolean): AttachmentDownloadResult {
-        if (public) content.publicRead(work)
+        // 공개 작품이 아니면 404다. 작가명(Core 조회)이 필요 없으므로 publicRead 대신 이름 없는 확인을 쓴다.
+        if (public) content.publicEpisodes(work)
         return imageTransaction { if (!public) ownedWork(work, owner ?: ""); val image = cover(work); AttachmentDownloadResult(response(image), imageBytes(image)) }
     }
     fun putCover(work: String, owner: String, payload: AttachmentUploadPayload) = imageTransaction {
@@ -218,9 +219,9 @@ class AttachmentService(
         }
     }
 
-    /** 공개 작품의 발행본 본문이 참조하고 공개 이미지 규칙이 허용하는 이미지의 대체 텍스트만 본문 순서대로 반환한다. */
+    /** 공개 작품의 발행본 본문이 참조하고 공개 이미지 규칙이 허용하는 이미지의 대체 텍스트만 본문 순서대로 반환한다. 작가명(Core 조회)이 필요 없어 publicRead 대신 이름 없는 확인을 쓴다. */
     fun publicEpisodeImageAltTexts(work: String, number: Int): PublicEpisodeImageListResponse {
-        val body = content.publicRead(work).episodes.firstOrNull { it.number == number }?.body ?: return PublicEpisodeImageListResponse(emptyList())
+        val body = content.publicEpisodes(work).firstOrNull { it.number == number }?.body ?: return PublicEpisodeImageListResponse(emptyList())
         val ids = Regex("\\[\\[image:([^\\]]+)\\]\\]").findAll(body).map { it.groupValues[1] }.distinct().toList()
         if (ids.isEmpty()) return PublicEpisodeImageListResponse(emptyList())
         val found = imageTransaction { images.findAllById(ids).associateBy { it.id } }
@@ -246,7 +247,7 @@ class AttachmentService(
         val marker = "[[image:$id]]"
         // Public access is granted by the exact existing published body, never by a guessed image ID or a draft.
         val referenced = if (public) {
-            content.publicRead(work).episodes.any { it.number == number && marker in it.body }
+            content.publicEpisodes(work).any { it.number == number && marker in it.body }
         } else {
             val episode = episodeService.read(work, owner ?: "", number)
             episode.inherited && marker in episode.draft.body
