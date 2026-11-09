@@ -5,7 +5,6 @@ import ai.storyfork.operations._common.service.dto.OperationsErrorResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
-import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -27,10 +26,8 @@ class MemberSecurityConfig {
             .authorizeHttpRequests { it.anyRequest().authenticated() }
             .exceptionHandling {
                 it.authenticationEntryPoint { _, response, _ ->
-                    response.status = 401
                     response.setHeader("WWW-Authenticate", "Bearer")
-                    response.contentType = MediaType.APPLICATION_JSON_VALUE
-                    mapper.writeValue(response.writer, OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
+                    response.writeError(mapper, 401, OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
                 }
             }
             .addFilterBefore(MemberBearerFilter(core, mapper), AnonymousAuthenticationFilter::class.java)

@@ -17,7 +17,6 @@ import {
   OperationsInquiries,
   OperationsNotices,
 } from './OperationsPanels'
-import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 type VM = ReturnType<typeof useAdminViewModel>
 type Data = NonNullable<VM['data']>
@@ -45,7 +44,7 @@ const TITLES: Record<AdminTab, [string, string]> = {
   comments: ['댓글 관리', '댓글 목록을 확인하고 데모 상태에서 숨김 처리할 수 있어요.'],
   feedback: [
     '제보·문의',
-    '운영 문의 기록과 회원 문의·작가 제보를 확인합니다.',
+    '운영 문의 기록과 작가 제보를 확인합니다.',
   ],
   jobs: ['정기 작업', '서버가 주기적으로 실행할 작업과 최근 결과를 확인합니다.'],
   events: ['이벤트 관리', '이벤트 내용과 기간을 관리합니다.'],
@@ -156,16 +155,16 @@ export function AdminPage() {
                 {live ? '운영 API 연결' : '데모 화면'}
               </span>
             </header>
-            {vm.isLoading && (
+            {!live && vm.isLoading && (
               <p className='admin-data-state' role='status'>관리자 데이터를 불러오고 있어요.</p>
             )}
             {vm.lastSuccess && <p className='admin-data-state' role='status'>{vm.lastSuccess}</p>}
-            {vm.isRefreshing && (
+            {!live && vm.isRefreshing && (
               <p className='admin-data-state' role='status'>
                 목록을 새로고침하고 있어요. 이전 조회 내용은 유지하며 처리 버튼은 잠시 사용할 수 없어요.
               </p>
             )}
-            {vm.isError && (
+            {!live && vm.isError && (
               <div className='admin-data-state admin-action-error' role='alert'>
                 <p>
                   {d
@@ -190,9 +189,9 @@ export function AdminPage() {
               </div>
             )}
             {Object.entries(vm.actions)
-              .filter(([key]) => !/^(notice:|event:|inquiry:|reply:|legacy:|report:)/.test(key))
+              .filter(([key]) => !/^(notice:|event:|inquiry:|reply:|report:)/.test(key))
               .map(([key, state]) => <AdminActionStatus key={key} state={state} />)}
-            {d && (
+            {(d || live) && (
               <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} />
             )}
           </section>
@@ -204,7 +203,8 @@ export function AdminPage() {
 
 type BodyProps = {
   tab: AdminTab
-  d: Data
+  /** 데모 조회 결과. 운영 API 탭(users·admins·rights·profile)은 이 값 없이도 그립니다. */
+  d: Data | undefined
   vm: VM
   f: Filter
   setF: (x: Partial<Filter>) => void
@@ -272,16 +272,18 @@ function Controls(
 
 function Body(p: BodyProps) {
   const { tab, d, vm, f } = p
+  if (tab === 'rights') return <Rights {...p} />
+  if (tab === 'admins') return <Admins vm={vm} />
+  if (tab === 'users') return <Users {...p} />
+  if (tab === 'profile') return <Profile vm={vm} />
+  if (!d) return null
   const titleSort = (
     a: string,
     b: string,
   ) => (f.sort === 'titleDesc' ? b.localeCompare(a, 'ko') : a.localeCompare(b, 'ko'))
   let T: ReactNode
   if (tab === 'data') T = <Overview d={d} vm={vm} />
-  else if (tab === 'rights') T = <Rights {...p} />
   else if (tab === 'llm') T = <Llm d={d} vm={vm} />
-  else if (tab === 'admins') T = <Admins vm={vm} />
-  else if (tab === 'users') T = <Users {...p} />
   else if (tab === 'works') {
     const list = d.works.filter((w) =>
       ofKind(f.category, w) && has(f.query, w.title, w.author, w.kind, w.rights)
@@ -324,11 +326,20 @@ function Body(p: BodyProps) {
                     <button
                       type='button'
                       className='btn sm'
-                      disabled={blocked(vm, `work:${w.id}`)}
+                      disabled={!vm.canToggleWork(w) || blocked(vm, `work:${w.id}`)}
+                      aria-describedby={vm.canToggleWork(w) ? undefined : `work-block-${w.id}`}
                       onClick={() => vm.toggleWork(w.id)}
                     >
                       {w.hidden ? '제한 해제' : '운영상 비공개'}
                     </button>
+                    {!vm.canToggleWork(w) && (
+                      <>
+                        <br />
+                        <span id={`work-block-${w.id}`} className='small muted'>
+                          정본 작품은 이 데모 화면에서 바꿀 수 없어요.
+                        </span>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
@@ -534,14 +545,8 @@ function Body(p: BodyProps) {
         </p>
       </div>
     )
-  } else if (tab === 'events') {
-    T = (
-      <>
-        <OperationsEvents vm={vm} />
-        <LegacyEvents d={d} vm={vm} />
-      </>
-    )
-  } else if (tab === 'notices') {
+  } else if (tab === 'events') T = <OperationsEvents vm={vm} />
+  else if (tab === 'notices') {
     T = (
       <>
         <LiveState vm={vm} label='공지 목록' />
@@ -601,7 +606,7 @@ function Body(p: BodyProps) {
         </p>
       </div>
     )
-  } else T = <Profile vm={vm} />
+  }
   return T
 }
 
@@ -617,7 +622,7 @@ function Overview({ d, vm }: { d: Data; vm: VM }) {
         </div>
         <div className='priority-links'>
           <Go to='/admin?tab=feedback'>
-            <b>{d.inquiries.filter((q) => q.st === '답변 대기').length}</b>
+            <b>{vm.unansweredInquiries}</b>
             <span>답변 대기 문의 (데모)</span>
           </Go>
           <Go to='/admin?tab=rights'>
@@ -990,40 +995,42 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
           )}
         </div>
       )}
-      <details className='panel admin-legacy-demo' style={{ marginTop: 14 }}>
-        <summary>원작·포크 데이터 격리 점검 (예시 데이터)</summary>
-        <Table label='원작·포크 격리 점검 표'>
-          <thead>
-            <tr>
-              <th scope='col'>포크</th>
-              <th scope='col'>원작 · 분기</th>
-              <th scope='col'>스냅샷 해시</th>
-              <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
-              <th scope='col'>인물 상태 차이</th>
-              <th scope='col'>판정</th>
-            </tr>
-          </thead>
-          <tbody>
-            {d.isolation.map((x) => (
-              <tr key={x.title}>
-                <td>{x.title}</td>
-                <td>{x.parent} · {x.forkAt}화</td>
-                <td className='mono'>{x.snapNow}</td>
-                <td className='mono'>{x.now}</td>
-                <td>{x.diff.length ? x.diff.join(', ') : '없음'}</td>
-                <td>
-                  <span className={`chip ${x.ok ? 'ok' : 'wait'}`}>
-                    {x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}
-                  </span>
-                </td>
+      {d && (
+        <details className='panel admin-legacy-demo' style={{ marginTop: 14 }}>
+          <summary>원작·포크 데이터 격리 점검 (예시 데이터)</summary>
+          <Table label='원작·포크 격리 점검 표'>
+            <thead>
+              <tr>
+                <th scope='col'>포크</th>
+                <th scope='col'>원작 · 분기</th>
+                <th scope='col'>스냅샷 해시</th>
+                <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
+                <th scope='col'>인물 상태 차이</th>
+                <th scope='col'>판정</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
-        <p className='small muted' style={{ marginTop: 10 }}>
-          스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
-        </p>
-      </details>
+            </thead>
+            <tbody>
+              {d.isolation.map((x) => (
+                <tr key={x.title}>
+                  <td>{x.title}</td>
+                  <td>{x.parent} · {x.forkAt}화</td>
+                  <td className='mono'>{x.snapNow}</td>
+                  <td className='mono'>{x.now}</td>
+                  <td>{x.diff.length ? x.diff.join(', ') : '없음'}</td>
+                  <td>
+                    <span className={`chip ${x.ok ? 'ok' : 'wait'}`}>
+                      {x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <p className='small muted' style={{ marginTop: 10 }}>
+            스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
+          </p>
+        </details>
+      )}
     </>
   )
 }
@@ -1178,205 +1185,11 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
   )
 }
 
-/** 회원 화면의 기존 단순 데모는 독립 운영 기록으로 이관하지 않습니다. */
-function LegacyEvents({ d, vm }: { d: Data; vm: VM }) {
-  const form = vm.legacyDrafts.event ?? {}
-  const state = vm.actions['legacy:event:new']
-  return (
-    <details className='panel admin-legacy-demo'>
-      <summary>기존 회원 화면 이벤트 데모</summary>
-      <p className='admin-note'>
-        기존 회원 화면의 문자열 기간·상태 변경만 유지하는 호환 데모예요. 위 운영 이벤트의 UTC 기간
-        계약과는 별개예요.
-      </p>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault()
-          if (await vm.addEvent(form.title ?? '', form.period ?? '', form.body ?? '')) {
-            vm.clearLegacyDraft('event')
-          }
-        }}
-      >
-        <fieldset disabled={vm.mutationsBlocked || !!state?.pending} className='form-grid'>
-          <label className='field'>
-            이벤트명<input
-              className='inp'
-              maxLength={50}
-              required
-              value={form.title ?? ''}
-              onChange={(e) => vm.setLegacyDraft('event', 'title', e.target.value)}
-            />
-          </label>
-          <label className='field'>
-            기간<input
-              className='inp'
-              maxLength={40}
-              placeholder='기간 미정'
-              value={form.period ?? ''}
-              onChange={(e) => vm.setLegacyDraft('event', 'period', e.target.value)}
-            />
-          </label>
-          <label className='field wide'>
-            안내 내용<textarea
-              className='ta'
-              maxLength={300}
-              required
-              value={form.body ?? ''}
-              onChange={(e) => vm.setLegacyDraft('event', 'body', e.target.value)}
-            />
-          </label>
-          <div className='rowend wide'>
-            <button className='btn pri' type='submit'>
-              {state?.pending ? '추가 중…' : '이벤트 추가'}
-            </button>
-          </div>
-        </fieldset>
-        <AdminActionStatus state={state} />
-      </form>
-      <Table label='기존 회원 이벤트 표'>
-        <thead>
-          <tr>
-            <th scope='col'>이벤트</th>
-            <th scope='col'>기간</th>
-            <th scope='col'>상태</th>
-            <th scope='col' className='act'>조치</th>
-          </tr>
-        </thead>
-        <tbody>
-          {d.admin.events.map((event, i) => (
-            <tr key={i}>
-              <td>
-                <b>{event.t}</b>
-                <p className='small muted admin-prose'>{event.d}</p>
-              </td>
-              <td>{event.p}</td>
-              <td>{event.st}</td>
-              <td>
-                <button
-                  type='button'
-                  className='btn sm'
-                  disabled={vm.mutationsBlocked || !!vm.actions[`legacy:event:${i}`]?.pending}
-                  onClick={() => vm.toggleEvent(i)}
-                >
-                  상태 변경
-                </button>
-                <AdminActionStatus state={vm.actions[`legacy:event:${i}`]} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </details>
-  )
-}
-
-/** 기존 회원 문의는 단일 답변을 그대로 유지하고, 운영 문의 CRUD와 섞지 않습니다. */
+/** 운영 문의 기록(독립 메모리 CRUD)과 기존 작가 검토 제보 표입니다. */
 function Feedback({ d, vm }: { d: Data; vm: VM }) {
-  const inquiry = d.inquiries.find((row) => row.id === vm.legacyInquiryId)
-  const root = useAdminDetailFocus(vm.legacyInquiryId, !!inquiry)
-  const draftKey = `inquiry:${vm.legacyInquiryId}`
-  const answer = vm.legacyDrafts[draftKey]?.answer ?? ''
-  const state = vm.actions[`legacy:reply:${vm.legacyInquiryId}`]
   return (
     <>
       <OperationsInquiries vm={vm} />
-      <details className='panel admin-legacy-demo'>
-        <summary>기존 회원 문의 데모</summary>
-        <section ref={root} aria-label='기존 회원 문의'>
-          <p className='admin-note'>
-            회원의 내 문의에 연결된 기존 단일 답변 데모예요. 운영 문의 기록과 저장소가 다르고 실제
-            전송·알림은 없어요.
-          </p>
-          {!vm.legacyInquiryId
-            ? (
-              <>
-                <h2 tabIndex={-1}>기존 회원 문의 목록</h2>
-                {d.inquiries.length
-                  ? (
-                    <ul className='admin-record-list'>
-                      {d.inquiries.map((q) => (
-                        <li key={q.id}>
-                          <button
-                            type='button'
-                            className='admin-record-link'
-                            data-record-id={q.id}
-                            onClick={() => vm.selectLegacyInquiry(q.id)}
-                          >
-                            <b>[{q.t}] {q.s}</b>
-                            <span className='small muted'>{q.st} · {q.d}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )
-                  : (
-                    <p className='muted'>
-                      아직 접수된 문의가 없어요. 사용자가 문의를 보내면 이곳에서 답변할 수 있어요.
-                    </p>
-                  )}
-              </>
-            )
-            : (
-              <>
-                <button
-                  type='button'
-                  className='btn sm'
-                  onClick={() => vm.selectLegacyInquiry(null)}
-                >
-                  회원 문의 목록으로
-                </button>
-                {inquiry
-                  ? (
-                    <article className='inquiry-item'>
-                      <h2 tabIndex={-1}>[{inquiry.t}] {inquiry.s}</h2>
-                      <p className='small muted'>{inquiry.d} · {inquiry.st}</p>
-                      <p className='admin-prose'>{inquiry.b}</p>
-                      {inquiry.reply
-                        ? (
-                          <p className='inquiry-reply'>
-                            <b>운영팀 답변</b>
-                            <br />
-                            {inquiry.reply}
-                          </p>
-                        )
-                        : (
-                          <form
-                            onSubmit={async (e) => {
-                              e.preventDefault()
-                              if (await vm.reply(inquiry.id, answer)) vm.clearLegacyDraft(draftKey)
-                            }}
-                          >
-                            <fieldset disabled={vm.mutationsBlocked || !!state?.pending}>
-                              <label className='field'>
-                                답변<textarea
-                                  className='ta'
-                                  maxLength={1000}
-                                  required
-                                  value={answer}
-                                  onChange={(e) =>
-                                    vm.setLegacyDraft(draftKey, 'answer', e.target.value)}
-                                />
-                              </label>
-                              <div className='rowend'>
-                                <button className='btn pri sm' type='submit'>
-                                  {state?.pending ? '등록 중…' : '답변 등록'}
-                                </button>
-                              </div>
-                            </fieldset>
-                          </form>
-                        )}
-                      <AdminActionStatus state={state} />
-                    </article>
-                  )
-                  : (
-                    <p role='alert'>
-                      선택한 회원 문의를 찾을 수 없어요. 목록으로 돌아가 다시 선택해 주세요.
-                    </p>
-                  )}
-              </>
-            )}
-        </section>
-      </details>
       <div className='panel' style={{ marginTop: 14 }}>
         <b>작가 검토 제보</b>
         <p className='small muted'>

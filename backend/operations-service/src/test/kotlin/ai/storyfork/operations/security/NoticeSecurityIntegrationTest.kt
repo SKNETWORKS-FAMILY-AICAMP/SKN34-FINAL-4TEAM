@@ -2,11 +2,11 @@ package ai.storyfork.operations.security
 
 import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.notice.controller.AdminNoticeController
 import ai.storyfork.operations.notice.controller.PublicNoticeController
 import ai.storyfork.operations.notice.service.AdminNoticeService
 import ai.storyfork.operations.notice.service.NoticeService
-import ai.storyfork.operations.notice.service.dto.NoticeListResponse
 import ai.storyfork.operations.notice.service.dto.NoticeRequest
 import ai.storyfork.operations.notice.service.dto.NoticeResponse
 import java.time.Instant
@@ -61,7 +61,7 @@ class NoticeSecurityIntegrationTest {
     private val id = UUID.randomUUID()
     private val adminBase = "/api/v1/operations/admin/notices"
     private val publicBase = "/api/v1/operations/public/notices"
-    private val empty = NoticeListResponse(emptyList(), 0, 100, 0, 0)
+    private val empty = PageResponse<NoticeResponse>(emptyList(), 0, 100, 0, 0)
     private val notice = NoticeResponse(id, "제목", "본문", Instant.EPOCH, Instant.EPOCH)
     private val writes = listOf<(String) -> MockHttpServletRequestBuilder>({ post(it) }, { put(it) }, { patch(it) }, { delete(it) })
     private val credentials = listOf<Pair<String, String>?>(null, "X-Operations-Service-Token" to serviceToken, "Authorization" to bearer)

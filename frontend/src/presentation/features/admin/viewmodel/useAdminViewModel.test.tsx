@@ -172,25 +172,6 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     expect(f.store.getState().session.dataVersion).toBe(1)
   })
 
-  it('기존 폼의 await 뒤 clearLegacyDraft 호출도 재진입한 폼의 초안을 지우지 않는다', async () => {
-    const f = setup()
-    const hook = f.mount()
-    await waitFor(() => expect(hook.result.current.data).toBeTruthy())
-    act(() => { hook.result.current.setLegacyDraft('event', 'title', '제출 제목'); hook.result.current.setLegacyDraft('event', 'body', '제출 본문') })
-    let finish!: (result: Awaited<ReturnType<typeof f.admin.addEvent>>) => void
-    vi.spyOn(f.admin, 'addEvent').mockImplementationOnce(() => new Promise((done) => { finish = done }))
-    const vm = hook.result.current
-    let pending!: Promise<boolean>
-    act(() => { pending = vm.addEvent('제출 제목', '', '제출 본문').then((ok) => { if (ok) vm.clearLegacyDraft('event'); return ok }) })
-    hook.unmount()
-    const again = f.mount()
-    await waitFor(() => expect(again.result.current.data).toBeTruthy())
-    act(() => again.result.current.setLegacyDraft('event', 'body', '새 본문'))
-    await act(async () => { finish({ ok: true, msg: '저장 성공' }); expect(await pending).toBe(true) })
-    expect(again.result.current.legacyDrafts.event.body).toBe('새 본문')
-    expect(f.store.getState().session.dataVersion).toBe(1)
-  })
-
   it('오래된 조회 응답은 새 데이터와 오류 상태를 덮지 않는다', async () => {
     const f = setup()
     const current = await f.admin.load()
