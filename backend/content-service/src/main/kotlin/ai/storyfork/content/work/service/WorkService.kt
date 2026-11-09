@@ -17,9 +17,6 @@ import ai.storyfork.content.world.repository.*
 import ai.storyfork.content.work.domain.*
 import org.springframework.dao.DataIntegrityViolationException
 
-/** Core에 없는(탈퇴한) 소유자의 작가 표시명이다. */
-private const val WITHDRAWN_AUTHOR="탈퇴한 회원"
-
 @Service
 @Transactional(transactionManager="contentTransactionManager")
 class WorkService(
@@ -82,10 +79,7 @@ class WorkService(
     fun read(id: String,owner: String): WorkResponse = access.own(id,owner).let {view(it,authorNames(listOf(it)))}
     fun publicRead(id: String): WorkResponse = access.published(id).let {view(it,authorNames(listOf(it)),true)}
     /** 공개 작품의 발행 회차(비공개·없는 작품은 404). 작품 응답이 필요 없는 공개 첨부 확인용이라 작가명을 위해 Core를 부르지 않는다. */
-    fun publicEpisodes(id: String): List<ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse> {
-        access.published(id)
-        return publication.publishedEpisodes(id).items
-    }
+    fun publicEpisodes(id: String) = publication.publishedEpisodes(access.published(id).id).items
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
         val registered=data.creationType!=null || data.genres.isNotEmpty() || data.hashtags.isNotEmpty() || data.rightsConfirmed!=null
@@ -184,7 +178,7 @@ class WorkService(
         val type=CreationType.entries.first {it.code==row.creationType}.name
         return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,
             hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0,creationType=type,genres=genres,hashtags=tags,
-            slug=row.slug,authorName=authors[w.ownerId] ?: WITHDRAWN_AUTHOR,ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
+            slug=row.slug,authorName=authors[w.ownerId] ?: "탈퇴한 회원",ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
             hero=row.heroLine1?.let {listOf(it,row.heroLine2.orEmpty())},heroBg=row.heroBackground,
             forkableEpisodes=if(w.source==null) access.forkable(w.id,published.map {it.number}) else emptyList())
     }
