@@ -117,12 +117,8 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
   })
 
   it('설정 추출 후보는 반영하거나 제외할 수 있다', async () => {
-<<<<<<< HEAD:frontend/src/App.studio-notes.test.tsx
-    renderAt('/studio/starlight?panel=settings')
-    fireEvent.change(await screen.findByLabelText('추출할 발행 회차'), { target: { value: '2' } })
-=======
     await renderAt('/studio/starlight?panel=settings')
->>>>>>> b887ebe6ebd1949122bb0fe62e43b2846e3e42e9:frontend/src/test/integration/App.studio-notes.test.tsx
+    fireEvent.change(await screen.findByLabelText('추출할 발행 회차'), { target: { value: '2' } })
     fireEvent.click(await screen.findByRole('button', { name: '설정 추출 (데모)' }))
     await toastIs('작가 소유 세계관과 발행된 회차가 필요해요')
     expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '추출할 발행 회차' }).value).toBe('2')
