@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
+import { canReport } from '../../../../domain/entities/work'
 import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
@@ -13,6 +14,7 @@ import { useLook } from './useLook'
 /** 목업 work(id): 소설 상세 U04 */
 export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = appContainer.resolve('readingUseCase')) {
   const role = useAppSelector((s) => s.session.role)
+  const memberId = useAppSelector((s) => s.session.memberId)
   const epSort = useAppSelector((s) => s.ui.epSort)
   const dispatch = useAppDispatch()
   const look = useLook()
@@ -43,6 +45,8 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
       toast(on ? '이 창의 관심 소설에 담았어요 · 계정에 저장되지 않아요' : '이 창의 관심 소설에서 뺐어요')
     }),
     share: () => toast('링크 공유는 데모예요 (실제 복사 없음)'),
+    /** 남의 공개 작품에서만 신고 버튼을 보입니다. */
+    canReport: !!data && canReport(data.work, memberId),
     reporting,
     setReporting,
   }
