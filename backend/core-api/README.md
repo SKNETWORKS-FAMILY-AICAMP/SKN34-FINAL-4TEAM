@@ -230,7 +230,7 @@ Compose의 Core Auth Health → Content fresh 업무 migration → 첨부 Entity
 설정·HTTP 검사는 `TEST_ATTACHMENT_DATABASE_URL`이 있을 때만 활성화합니다. 격리 DB 사용자는 `content_test`/빈 비밀번호이며 공유 DB에는 실행하지 않습니다.
 HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필요하고 전용 `issue87-test` 비공개 버킷을 만듭니다.
 실제 DB flush/deferred commit 실패와 저장소 응답 유실의 보상 동작을 검사하며 fault test 외의 HTTP lifecycle은 실제 MinIO를 사용합니다.
-현재 CI는 임시 PostgreSQL·Mailpit을 제공하지만 MinIO와 `TEST_ATTACHMENT_DATABASE_URL`은 설정하지 않아 첨부 설정·실제 HTTP 검사는 조건부 skip입니다.
+CI Content 통합 job이 임시 MinIO(`127.0.0.1:19087`)와 전용 `attachment_test` DB를 띄우고 `TEST_ATTACHMENT_*`를 설정하므로 첨부 설정·실제 HTTP 검사도 실행됩니다.
 대역 HTTP·H2/Flyway 검사는 CI 통합 계층에 포함되며 실제 첨부 lifecycle 검증은 별도 승인된 격리 환경의 증거가 필요합니다.
 `Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다.
 #92는 화면·브라우저 호출부를 변경하므로 Aside에서 실제 정상·실패 입력/클릭/API/화면 결과 확인이 필요합니다. HTTP·저장소 검증만으로 브라우저 E2E를 통과 처리하지 않습니다.

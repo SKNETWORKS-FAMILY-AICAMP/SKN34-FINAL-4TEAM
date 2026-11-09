@@ -102,6 +102,14 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
         self.assertIn('docker pull "$minio" || docker build --load', ci)
 
+    def test_attachment_integration_tests_run_in_ci_against_minio(self):
+        # TEST_ATTACHMENT_*가 없으면 첨부 통합 테스트가 조건부 skip된다. CI가 직접 MinIO·전용 DB를 준비한다.
+        integration = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8").split("\n  integration:\n", 1)[1].split("\n  system:\n", 1)[0]
+        for name in ("TEST_ATTACHMENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/attachment_test",
+                     "TEST_ATTACHMENT_S3_ENDPOINT: http://127.0.0.1:19087", "AWS_ACCESS_KEY_ID:", "AWS_SECRET_ACCESS_KEY:",
+                     "createdb -U content_test attachment_test", "127.0.0.1:19087:9000", "packages: read"):
+            self.assertIn(name, integration)
+
     def test_system_images_reuse_github_actions_layer_cache(self):
         overlay = (ROOT / "infrastructure/ci/compose.test.yaml").read_text(encoding="utf-8")
         for service in ("ai-service", "core-api", "content-service", "operations-service", "web"):
