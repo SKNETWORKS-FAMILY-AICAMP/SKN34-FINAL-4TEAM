@@ -17,5 +17,8 @@ class AttachmentMigrationLocationTest {
         val attachments=Flyway.configure().dataSource("jdbc:h2:mem:attachment-discovery-other","sa","")
             .locations("classpath:db/migration/settingattachment").table("setting_attachment_schema_history").load().info().all()
         assertEquals(listOf("1"),attachments.map {it.version.toString()})
+        val images=Flyway.configure().dataSource("jdbc:h2:mem:attachment-discovery-images","sa","")
+            .locations("classpath:db/migration/contentimage").table("content_image_schema_history").load().info().all()
+        assertEquals(listOf("1","2"),images.map {it.version.toString()})
     }
 }
