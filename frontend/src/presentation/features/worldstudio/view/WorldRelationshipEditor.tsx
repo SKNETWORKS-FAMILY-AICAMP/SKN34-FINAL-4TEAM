@@ -1,6 +1,6 @@
 import { CharacterRelationshipEditor } from './CharacterRelationshipEditor'
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PersonDeletionConfirm } from './PersonDeletionConfirm'
 import { RelationPairEditor } from './RelationPairEditor'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
@@ -20,7 +20,17 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
     [target, setTarget] = useState(''),
     [open, setOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const deletion = deleteConfirm ? studio.personDeletionInfo(deleteConfirm) : null
+  const validDeletion = !!deleteConfirm && people.some((s) =>
+    s.item.id === deleteConfirm && s.item.kind === 'entity' && s.item.entityType === 'character'
+  )
+  const deletion = deleteConfirm && validDeletion ? studio.personDeletionInfo(deleteConfirm) : null
+  useEffect(() => { if (deleteConfirm && !validDeletion) setDeleteConfirm(null) }, [deleteConfirm, validDeletion])
+  const selectPair = (nextSource: string, nextTarget: string, nextOpen: boolean) => {
+    if (open && (nextSource !== source || nextTarget !== target) && !studio.confirmRelationDiscard()) return
+    setSource(nextSource)
+    setTarget(nextTarget)
+    setOpen(nextOpen)
+  }
   const relations = studio.editing!.settings.filter((s) => s.item.kind === 'relation')
   const name = (id: string | null) =>
     people.find((s) => s.item.id === id)?.item.title || '선택 안 함'
@@ -35,10 +45,7 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
             source · 관계 주체<select
               className='inp'
               value={source}
-              onChange={(e) => {
-                setSource(e.target.value)
-                setOpen(false)
-              }}
+              onChange={(e) => selectPair(e.target.value, target, false)}
             >
               <option value=''>선택하세요</option>
               {people.map((s) => (
@@ -52,10 +59,7 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
             target · 관계 대상<select
               className='inp'
               value={target}
-              onChange={(e) => {
-                setTarget(e.target.value)
-                setOpen(false)
-              }}
+              onChange={(e) => selectPair(source, e.target.value, false)}
             >
               <option value=''>선택하세요</option>
               {people.map((s) => (
@@ -93,8 +97,9 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
               className='btn'
               type='button'
               onClick={() => {
+                if (open && !studio.confirmRelationDiscard()) return
                 const id = studio.undoPersonDeletion()
-                if (id) setSource(id)
+                if (id) { setSource(id); setOpen(false) }
               }}
             >
               인물 삭제 되돌리기
@@ -105,6 +110,7 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
           <PersonDeletionConfirm
             deletion={deletion}
             onDelete={() => {
+              if (open && !studio.confirmRelationDiscard()) return
               if (studio.deletePerson(deletion.person.item.id)) {
                 setDeleteConfirm(null)
                 setSource('')
@@ -122,11 +128,7 @@ function SettingsRelationshipEditor({ studio }: { studio: VM }) {
               className='btn'
               key={s.item.id}
               type='button'
-              onClick={() => {
-                setSource(s.item.subjectId ?? '')
-                setTarget(s.item.targetId ?? '')
-                setOpen(true)
-              }}
+              onClick={() => selectPair(s.item.subjectId ?? '', s.item.targetId ?? '', true)}
             >
               {name(s.item.subjectId)} · {relationLabel(s.item)} · {name(s.item.targetId)}
             </button>

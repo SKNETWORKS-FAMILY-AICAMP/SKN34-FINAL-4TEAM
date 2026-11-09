@@ -35,7 +35,7 @@ export function WorldStudioPage(){
   {vm.message&&<p role="status" className="world-message">{vm.message}</p>}
   <WorldLibrary vm={vm}/>
   {vm.editing&&<section className="world-content" hidden={vm.flow.screen!=='editor'} aria-busy={vm.busy}>
-   <div className="world-toolbar"><button type="button" className="btn sm" onClick={vm.showList}>내 세계관</button><h2>{vm.saved?.name}</h2><span role="status" className="world-save-state">{vm.saveState==='saving'?'저장 중':vm.saveState==='failed'?'저장 실패 · 입력은 유지됩니다':vm.dirty?'작성 중 · 미저장':'저장됨'}</span>
+   <div className="world-toolbar"><button type="button" className="btn sm" onClick={vm.showList}>내 세계관</button><h2>{vm.saved?.name}</h2><span role="status" className="world-save-state">{vm.saveState==='saving'?'저장 중':vm.saveState==='failed'?'저장 실패 · 입력은 유지됩니다':vm.dirty?'작성 중 · 미저장':'저장됨'}</span>{vm.relationDirty&&<span role="status" className="small muted">관계 입력 미적용</span>}
     <details className="world-tools" ref={tools}><summary>도구</summary><div><button type="button" onClick={()=>chooseTool('explore')}>세계관 탐색</button><button type="button" onClick={()=>chooseTool('analysis')}>AI 후보 검토</button><button type="button" onClick={()=>{vm.goStep('cards');vm.addCard('note');vm.setCardDetail(true);if(tools.current)tools.current.open=false}}>집필 메모 추가</button><Go to="/new">새 소설 등록으로</Go></div></details>
    </div>
    {vm.tool!=='write'&&<button className="btn sm world-return" type="button" onClick={()=>vm.setTool('write')}>작성으로 돌아가기</button>}
@@ -48,7 +48,7 @@ export function WorldStudioPage(){
      <p className="small muted">이름만 정해도 시작할 수 있어요. 자세한 설정은 나중에 추가하세요.</p>
     </fieldset>
     <div hidden={vm.flow.step!=='cards'}><CardWriting vm={vm}/></div>
-    {vm.relationWorld===vm.editing.id&&<div hidden={vm.flow.step!=='relations'}><p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p><button className="btn sm" type="button" onClick={vm.returnToCard}>설정 카드로 돌아가기</button><WorldRelationshipEditor key={vm.editing.id} studio={vm}/></div>}
+    {vm.relationWorld===vm.editing.id&&<div hidden={vm.flow.step!=='relations'}><p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p><button className="btn sm" type="button" onClick={vm.returnToCard}>설정 카드로 돌아가기</button><WorldRelationshipEditor key={`${vm.editing.id}:${vm.relationKey}`} studio={vm}/></div>}
     <div hidden={vm.flow.step!=='review'}><WritingReview vm={vm}/></div>
     <nav className="world-step-actions" aria-label="단계 이동"><button className="btn" type="button" disabled={current===0} onClick={()=>vm.goStep(steps[current-1][0])}>이전 단계</button>{current<3&&<button className="btn pri" type="button" onClick={()=>vm.goStep(steps[current+1][0])}>{vm.flow.step==='relations'?'검토·저장으로':'다음 단계'}</button>}{vm.flow.step==='cards'&&<button className="btn" type="button" onClick={()=>vm.goStep('review')}>관계 없이 검토·저장</button>}</nav>
    </div>

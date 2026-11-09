@@ -2,6 +2,7 @@ import { cardLibraryRows, worldWritingIssues } from '../../../../domain/entities
 import { initialWorldStudioFlow, type StudioStep, worldStudioFlow } from './worldStudioFlow'
 import {
   applyRelationChanges,
+  assertNoNewRelationDuplicates,
   editStudioSetting,
   personDeletionInfo,
   type RelationInput,
@@ -36,6 +37,7 @@ export function useWorldStudioViewModel(
   const [newCardType, setNewCardType] = useState<CardType>('character')
   const [cardDetail, setCardDetail] = useState(false)
   const [relationWorld, setRelationWorld] = useState('')
+  const [relationKey, setRelationKey] = useState(0)
   const returnCard = useRef('')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'failed'>('idle')
   const [worlds, setWorlds] = useState<StudioWorld[]>([])
@@ -51,6 +53,7 @@ export function useWorldStudioViewModel(
     } | null
   >(null)
   const [dirty, setDirty] = useState(false)
+  const [relationDirty, setRelationDirty] = useState(false)
   const [selected, setSelected] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -59,6 +62,10 @@ export function useWorldStudioViewModel(
     leaveGuard?.setDirty(dirty)
     return () => leaveGuard?.setDirty(false)
   }, [dirty, leaveGuard])
+  useEffect(() => {
+    leaveGuard?.setRelationDirty(relationDirty)
+    return () => leaveGuard?.setRelationDirty(false)
+  }, [relationDirty, leaveGuard])
   const editingId = editing?.id
   useEffect(() => {
     if (editingId) dispatchFlow({ type: 'open' })
@@ -125,11 +132,11 @@ export function useWorldStudioViewModel(
     }
   }, [useCase, worldId, restoring])
   useEffect(() => {
-    if (!dirty) return
+    if (!dirty && !relationDirty) return
     const warn = (e: BeforeUnloadEvent) => e.preventDefault()
     window.addEventListener('beforeunload', warn)
     return () => window.removeEventListener('beforeunload', warn)
-  }, [dirty])
+  }, [dirty, relationDirty])
   const perform = async (action: (signal: AbortSignal) => Promise<void>) => {
     if (mutation.current) return
     const controller = new AbortController()
@@ -185,6 +192,7 @@ export function useWorldStudioViewModel(
     cardDetail,
     setCardDetail,
     relationWorld,
+    relationKey,
     goStep,
     editCard,
     saveState,
@@ -206,6 +214,11 @@ export function useWorldStudioViewModel(
     saved,
     editing,
     dirty,
+    relationDirty,
+    setRelationDirty,
+    confirmRelationDiscard: () => leaveGuard
+      ? leaveGuard.confirmRelationDiscard()
+      : !relationDirty || window.confirm('적용하지 않은 관계 입력을 버릴까요?'),
     selected,
     setSelected,
     error,
@@ -216,7 +229,7 @@ export function useWorldStudioViewModel(
         if (
           leaveGuard
             ? !leaveGuard.confirmBeforeAction()
-            : dirty && !window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?')
+            : (dirty || relationDirty) && !window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?')
         ) return
         const current = generation.current
         const w = await useCase.create(name, description, signal)
@@ -229,7 +242,7 @@ export function useWorldStudioViewModel(
       if (
         leaveGuard
           ? !leaveGuard.confirmBeforeAction()
-          : dirty && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?')
+          : (dirty || relationDirty) && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?')
       ) return
       if (id !== worldId) {
         leaveGuard?.allowNextNavigation()
@@ -238,12 +251,17 @@ export function useWorldStudioViewModel(
       }
       return perform(async (signal) => {
         const current = generation.current
-        apply(await useCase.read(id, signal), current)
+        const world = await useCase.read(id, signal)
+        if (generation.current === current && !signal.aborted) {
+          setRelationKey((key) => key + 1)
+          setRelationDirty(false)
+          apply(world, current)
+        }
       })
     },
     patch,
     applyRelations: (changes: RelationInput[], removed: string[]) =>
-      !!changeRelations((settings) => applyRelationChanges(settings, changes, removed)),
+      !!changeRelations((settings) => applyRelationChanges(settings, changes, removed, saved?.settings ?? settings)),
     personDeletionInfo: (id: string) => personDeletionInfo(editing?.settings ?? [], id),
     deletePerson: (id: string) => {
       if (!editing) return false
@@ -308,12 +326,14 @@ export function useWorldStudioViewModel(
       if (editing) patch({ settings: editStudioSetting(editing.settings, id, item, labels) })
     },
     save: () => {
-      setPersonUndo(null)
       return perform(async (signal) => {
         if (!editing) return
         const current = generation.current
         setSaveState('saving')
         try {
+          if (saved && saved.id === editing.id) {
+            assertNoNewRelationDuplicates(editing.settings, saved.settings)
+          }
           apply(await useCase.save(editing, signal), current)
           if (current === generation.current) {
             setMessage(

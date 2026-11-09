@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   createPairRelationDraft,
+  hasRelationDraftChanges,
+  hasIncompleteRelationDraft,
   newRelationDraftRow,
   relationDirection,
   relationDirectionPatch,
@@ -169,4 +171,31 @@ describe('pair relationship drafts', () => {
     expect(changes).toEqual(draft)
     expect(applyRelationChanges(structuredClone(settings), changes, [])).toHaveLength(4)
   })
+})
+
+it('detects unapplied changes without marking initial blank rows dirty', () => {
+  const rows = createPairRelationDraft([], 'a', 'b')
+  const initial = structuredClone(rows)
+  expect(hasRelationDraftChanges(initial, rows, [])).toBe(false)
+  const edited = structuredClone(rows)
+  edited[0].value.text = ' 아직 적용하지 않은 원문 '
+  expect(hasRelationDraftChanges(initial, edited, [])).toBe(true)
+  expect(edited[0].value.text).toBe(' 아직 적용하지 않은 원문 ')
+  edited[0].value.text = undefined
+  expect(hasRelationDraftChanges(initial, edited, [])).toBe(false)
+  expect(hasRelationDraftChanges(initial, rows, ['relation-id'])).toBe(true)
+  const extra = [...rows, newRelationDraftRow('fact', 'a', 'b')]
+  expect(hasRelationDraftChanges(initial, extra, [])).toBe(true)
+})
+
+it('detects incomplete new rows with any entered content even beside valid rows', () => {
+  const first = newRelationDraftRow('fact', 'a', 'b')
+  const second = newRelationDraftRow('emotion', 'b', 'a')
+  const originals = structuredClone([first, second])
+  expect(hasIncompleteRelationDraft(originals, [first, second])).toBe(false)
+  for (const patch of [{title:'임시 이름'}, {text:' '}, {polarity:'denied' as const}, {subjectId:'a',targetId:'b'}]) {
+    const changed = {...second,value:{...second.value,...patch}}
+    expect(hasIncompleteRelationDraft(originals, [{...first,value:{...first.value,text:'유효한 관계'}}, changed])).toBe(true)
+  }
+  expect(hasIncompleteRelationDraft(originals, [{...first,value:{...first.value,text:'유효한 관계'}}, second])).toBe(false)
 })

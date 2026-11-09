@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { newSetting } from '../entities/studioWorld'
-import { applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions, personDeletionInfo, removePerson } from '../entities/studioRelations'
+import { assertNoNewRelationDuplicates, applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions, personDeletionInfo, removePerson } from '../entities/studioRelations'
 
 it('keeps mutual facts separate from independent directed emotions and stable IDs',()=>{
  const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
@@ -135,4 +135,96 @@ it.each(['pending','held','rejected'] as const)('preserves metadata when only la
  const edited=editStudioSetting([row],row.item.id,{text:'작성자가 고친 원문'})[0]
  expect(edited.item).toMatchObject({origin:'author_addition',decision:'approved',text:'작성자가 고친 원문',evidence:[],orderEvidence:[]})
  expect(row).toEqual(original)
+})
+
+it('rejects only newly introduced relation identity duplicates while preserving existing data and drafts',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ let saved=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'동료'})
+ saved=putRelation(saved,{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'경쟁자'})
+ const first=saved[2].item,second=saved[3].item
+ const draft=editStudioSetting(saved,second.id,{text:'동료'}),before=structuredClone(draft)
+ expect(()=>assertNoNewRelationDuplicates(draft,saved)).toThrow(/이미/)
+ expect(draft).toEqual(before)
+ expect(draft[3].item.id).toBe(second.id)
+ const legacy=structuredClone(draft)
+ expect(()=>assertNoNewRelationDuplicates(legacy,legacy)).not.toThrow()
+ const legacyTitleEdit=editStudioSetting(legacy,first.id,{title:'기존 관계 이름'})
+ expect(()=>assertNoNewRelationDuplicates(legacyTitleEdit,legacy)).not.toThrow()
+ const duplicateThird={...structuredClone(legacy[2]),item:{...structuredClone(legacy[2].item),id:crypto.randomUUID()}}
+ expect(()=>assertNoNewRelationDuplicates([...legacy,duplicateThird],legacy)).toThrow(/이미/)
+ const changedTogether=legacy.map(s=>s.item.kind==='relation'?{...s,item:{...s.item,text:'새로운 중복'}}:s)
+ expect(()=>assertNoNewRelationDuplicates(changedTogether,legacy)).toThrow(/이미/)
+})
+
+it('uses existing relation direction and polarity semantics in duplicate checks',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const base=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'friend_of',polarity:'asserted'})
+ const r=base[2]
+ const reverse={...structuredClone(r),item:{...structuredClone(r.item),id:crypto.randomUUID(),subjectId:b.item.id,targetId:a.item.id}}
+ expect(()=>assertNoNewRelationDuplicates([...base,reverse],base)).toThrow(/이미/)
+ const denied={...reverse,item:{...reverse.item,polarity:'denied' as const}}
+ expect(()=>assertNoNewRelationDuplicates([...base,denied],base)).not.toThrow()
+ const directed={...r,item:{...r.item,predicate:'custom_relation_directed',text:'따라간다'}}
+ const directedReverse={...reverse,item:{...reverse.item,predicate:'custom_relation_directed',text:'따라간다'}}
+ expect(()=>assertNoNewRelationDuplicates([a,b,directed,directedReverse],[])).not.toThrow()
+})
+
+it('allows editing existing duplicate compatibility rows but rejects new panel collisions atomically',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const initial=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'동료'})
+ const copy={...structuredClone(initial[2]),item:{...structuredClone(initial[2].item),id:crypto.randomUUID()}}
+ const legacy=[...initial,copy],before=structuredClone(legacy)
+ const updated=applyRelationChanges(legacy,[{...legacy[2].item,title:'유지할 새 이름'}],[])
+ expect(updated[2].item).toMatchObject({id:legacy[2].item.id,text:'동료',title:'유지할 새 이름'})
+ expect(updated[3]).toEqual(legacy[3])
+ expect(legacy).toEqual(before)
+ expect(()=>applyRelationChanges(legacy,[{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'동료'}],[])).toThrow(/이미/)
+ expect(legacy).toEqual(before)
+})
+
+it('restores automatic names for cleared relation titles without changing IDs or prose',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const input={subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted' as const,text:'동료'}
+ const automatic=putRelation([a,b],input)[2].item
+ const cleared=putRelation([a,b],{...input,title:''})[2].item
+ expect(cleared.title).toBe(automatic.title)
+ expect(cleared.text).toBe('동료')
+ const manual=putRelation([a,b],{...input,title:'직접 적은 이름'})
+ const existing=manual[2].item
+ const restored=applyRelationChanges(manual,[{...existing,title:''}],[])[2].item
+ expect(restored).toMatchObject({id:existing.id,title:automatic.title,text:'동료'})
+ expect(manual[2].item.title).toBe('직접 적은 이름')
+})
+
+it('allows atomic relation identity exchanges without changing relation IDs',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ let settings=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'friend_of',polarity:'asserted'})
+ settings=putRelation(settings,{subjectId:a.item.id,targetId:b.item.id,predicate:'spouse_of',polarity:'asserted'})
+ const first=settings[2].item,second=settings[3].item
+ const changed=applyRelationChanges(settings,[{...first,predicate:'spouse_of'},{...second,predicate:'friend_of'}],[])
+ expect(changed[2].item).toMatchObject({id:first.id,predicate:'spouse_of'})
+ expect(changed[3].item).toMatchObject({id:second.id,predicate:'friend_of'})
+})
+
+
+it('compares pair edits against the saved state rather than a temporarily duplicated draft',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ let saved=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'동료'})
+ saved=putRelation(saved,{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'경쟁자'})
+ const draft=editStudioSetting(saved,saved[3].item.id,{text:'동료'}),before=structuredClone(draft)
+ expect(()=>applyRelationChanges(draft,[{...draft[2].item,title:'고친 이름'}],[],saved)).toThrow(/이미/)
+ const unrelated={subjectId:b.item.id,targetId:a.item.id,predicate:'custom_emotion',polarity:'asserted' as const,text:'믿는다'}
+ expect(()=>applyRelationChanges(draft,[unrelated],[],saved)).toThrow(/이미/)
+ expect(draft).toEqual(before)
+})
+
+it('allows unrelated single edits of legacy duplicates without changing ids or text',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const base=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'동료'})
+ const copy={...structuredClone(base[2]),item:{...structuredClone(base[2].item),id:crypto.randomUUID()}}
+ const legacy=[...base,copy],before=structuredClone(legacy)
+ const updated=putRelation(legacy,{...legacy[2].item,title:'고친 이름'})
+ expect(updated[2].item).toMatchObject({id:legacy[2].item.id,title:'고친 이름',text:'동료'})
+ expect(updated[3]).toEqual(legacy[3])
+ expect(legacy).toEqual(before)
 })

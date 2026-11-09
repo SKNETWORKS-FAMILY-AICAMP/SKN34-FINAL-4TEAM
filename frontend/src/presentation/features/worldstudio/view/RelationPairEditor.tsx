@@ -167,7 +167,7 @@ export function RelationPairEditor(
       {error && <p role='alert' className='world-error'>{studio.error || error}</p>}
       <div className='relationship-apply'>
         <button type='button' className='btn pri' onClick={vm.apply}>편집본에 적용</button>
-        <button type='button' className='btn' onClick={onClose}>취소</button>
+        <button type='button' className='btn' onClick={() => { if (studio.confirmRelationDiscard()) onClose() }}>취소</button>
       </div>
       <p className='small muted'>
         적용 후 세계관 저장 버튼을 눌러야 저장됩니다. 취소하면 이 패널에서 입력한 변경만 버립니다.
