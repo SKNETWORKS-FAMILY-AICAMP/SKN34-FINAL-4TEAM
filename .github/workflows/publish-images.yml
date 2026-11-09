@@ -45,11 +45,16 @@ jobs:
           trap 'rm -rf -- "$scratch"' EXIT
           export DOCKER_CONFIG="$scratch"
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-          for service in web core-api content-service operations-service ai-service minio; do
+          # MinIO는 고정 버전 소스 빌드라 내용이 같다. 그 버전 태그가 ghcr에 없을 때만 한 번 빌드·게시한다.
+          minio="ghcr.io/sknetworks-family-aicamp/storyfork-minio:$(grep -oE 'RELEASE\.[0-9TZ-]+' infrastructure/minio/Dockerfile | head -1)"
+          if ! docker manifest inspect "$minio" >/dev/null 2>&1; then
+            docker build --platform linux/amd64 --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --tag "$minio" infrastructure/minio
+            docker push "$minio"
+          fi
+          for service in web core-api content-service operations-service ai-service; do
             image="ghcr.io/sknetworks-family-aicamp/storyfork-$service"
             context="backend/$service"
             if [[ "$service" == web ]]; then context=frontend; fi
-            if [[ "$service" == minio ]]; then context=infrastructure/minio; fi
             docker build --platform linux/amd64 \
               --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
               --label "org.opencontainers.image.revision=$TARGET_SHA" \
@@ -57,7 +62,7 @@ jobs:
             docker push "$image:sha-$TARGET_SHA"
           done
           # 모든 SHA 이미지 게시 후에만 develop을 갱신한다.
-          for service in web core-api content-service operations-service ai-service minio; do
+          for service in web core-api content-service operations-service ai-service; do
             docker push "ghcr.io/sknetworks-family-aicamp/storyfork-$service:develop"
           done
 
@@ -144,9 +149,8 @@ jobs:
           export CD_CONTENT_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
           export CD_AI_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
           export CD_OPERATIONS_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-operations-service:develop
-          export CD_MINIO_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-minio:develop
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env pull
-          revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" "$CD_OPERATIONS_SERVICE_IMAGE" "$CD_MINIO_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
+          revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" "$CD_OPERATIONS_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
           # 재실행된 이전 run이 더 새 develop 이미지와 이전 Compose를 섞어 배포하지 않게 한다.
           [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ && "$revisions" == "$TARGET_SHA" ]] || { printf 'develop images are not this run revision; rerun CD for current develop.\n' >&2; exit 1; }
           # Stop public writes and the old Core content writer before any new migration/writer starts.

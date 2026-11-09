@@ -87,9 +87,20 @@ class SpringServiceConfigurationTest(unittest.TestCase):
             self.assertIn("\n  minio:\n", compose)
             for secret in ("OPERATIONS_SERVICE_TOKEN", "OPENAI_API_KEY", "INTERNAL_TOKEN", "CONTENT_CORE_AUTH_TOKEN"):
                 self.assertIn("${" + secret + ":?", compose, f"{path}: {secret}")
+
+    def test_minio_is_built_once_per_pinned_version_and_reused(self):
+        # 고정 버전 이미지는 내용이 같으므로 ghcr에 그 태그가 없을 때만 한 번 빌드한다.
+        import re
+        version = re.search(r"--branch (RELEASE\.[0-9TZ-]+)", (ROOT / "infrastructure/minio/Dockerfile").read_text(encoding="utf-8")).group(1)
+        image = "ghcr.io/sknetworks-family-aicamp/storyfork-minio:" + version
+        for path in ("infrastructure/docker-compose.local.yaml", "infrastructure/docker-compose.dev.yaml", "infrastructure/ci/compose.test.yaml"):
+            self.assertIn("image: " + image, (ROOT / path).read_text(encoding="utf-8"), path)
+        self.assertIn("build: !reset null", (ROOT / "infrastructure/ci/compose.test.yaml").read_text(encoding="utf-8"))
         publish = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
-        self.assertIn("operations-service ai-service minio; do", publish)
-        self.assertIn('"$CD_MINIO_IMAGE"', publish)
+        self.assertNotIn("ai-service minio; do", publish)
+        self.assertIn('docker manifest inspect "$minio"', publish)
+        ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn('docker pull "$minio" || docker build', ci)
 
     def test_content_boot_entry_point_is_explicit(self):
         service = ROOT / "backend/content-service"

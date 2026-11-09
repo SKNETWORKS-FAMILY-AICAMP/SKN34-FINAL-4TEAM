@@ -34,9 +34,9 @@ services:
       service: rabbitmq
     labels: *cd-labels
 
-  # local과 같은 소스(infrastructure/minio)를 CD가 빌드해 게시한 이미지.
+  # local과 같은 소스(infrastructure/minio)로 버전당 한 번 빌드해 게시한 이미지.
   minio:
-    image: ghcr.io/sknetworks-family-aicamp/storyfork-minio:develop
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-minio:RELEASE.2025-10-15T17-29-55Z
     platform: linux/amd64
     labels: *cd-labels
     environment:

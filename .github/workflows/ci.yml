@@ -308,7 +308,7 @@ jobs:
           TEST_WORLDSTUDIO_DATABASE_USER: worldstudio_test
           TEST_WORLDSTUDIO_DATABASE_PASSWORD: worldstudio-ci-password
           TEST_WORLDSTUDIO_PASSWORD_AUTH: "true"
-        run: ./gradlew integrationTest --tests ai.storyfork.content.world.WorldStudioMigrationPostgresTest --no-daemon --rerun-tasks
+        run: ./gradlew integrationTest --tests ai.storyfork.content.world.WorldStudioMigrationPostgresTest --no-daemon --rerun
       - name: pytest FastAPI HTTP integration tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
@@ -341,6 +341,9 @@ jobs:
     name: Selected HTTP system scenarios
     needs: [changes, unit, integration, configuration]
     if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.unit.result == 'success' && needs.integration.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.system_needed == 'true' }}
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -359,6 +362,14 @@ jobs:
           working-directory: backend/ai-service
           enable-cache: true
           cache-dependency-glob: backend/ai-service/uv.lock
+      - name: Reuse the pinned MinIO image (build once only when it is not published yet)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          minio="ghcr.io/sknetworks-family-aicamp/storyfork-minio:$(grep -oE 'RELEASE\.[0-9TZ-]+' infrastructure/minio/Dockerfile | head -1)"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin || true
+          docker pull "$minio" || docker build --tag "$minio" infrastructure/minio
       - name: Launch only the isolated CI Compose project
         run: docker compose --env-file .env.example up --build -d --wait --wait-timeout 240
       - name: Discover loopback ports and wait for HTTP readiness

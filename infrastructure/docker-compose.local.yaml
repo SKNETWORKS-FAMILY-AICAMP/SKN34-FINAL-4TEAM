@@ -57,8 +57,10 @@ services:
       retries: 20
       start_period: 20s
 
-  # 첨부 파일 저장소(S3 호환). 공식 이미지 배포 중단으로 소스 빌드한다. local·개발 배포 모두 항상 띄운다.
+  # 첨부 파일 저장소(S3 호환). 공식 이미지 배포 중단으로 소스 빌드하며, 태그는 Dockerfile의 고정 버전과 같다.
+  # 한 번 빌드한 이미지를 계속 쓴다(ghcr에서 받을 수 없으면 처음 한 번만 빌드). local·개발 배포 모두 항상 띄운다.
   minio:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-minio:RELEASE.2025-10-15T17-29-55Z
     build:
       context: ./minio
     environment:

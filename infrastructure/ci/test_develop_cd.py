@@ -28,7 +28,7 @@ class DevelopDeploymentTest(unittest.TestCase):
                 'case "$*" in\n'
                 ' "image inspect"*)\n'
                 '   [[ "${CD_LOCAL_COMPOSE_FILE:-}" == "$DOCKER_CONFIG/docker-compose.local.yaml" && -f "${CD_LOCAL_COMPOSE_FILE:-}" ]] || exit 25\n'
-                '   [[ "$3 $4 $5 $6 $7 $8" == "$CD_WEB_IMAGE $CD_CORE_API_IMAGE $CD_CONTENT_SERVICE_IMAGE $CD_AI_SERVICE_IMAGE $CD_OPERATIONS_SERVICE_IMAGE $CD_MINIO_IMAGE" ]] || exit 26\n'
+                '   [[ "$3 $4 $5 $6 $7" == "$CD_WEB_IMAGE $CD_CORE_API_IMAGE $CD_CONTENT_SERVICE_IMAGE $CD_AI_SERVICE_IMAGE $CD_OPERATIONS_SERVICE_IMAGE" ]] || exit 26\n'
                 '   printf "%040d\\n" 1 ;;\n'
                 'esac\n', encoding="utf-8")
             docker.chmod(0o755)

@@ -16,7 +16,10 @@ services:
   neo4j:
     ports: !reset []
 
+  # CI는 고정 버전 이미지를 받거나(없으면 workflow가 먼저 한 번 빌드) 그대로 쓴다. 매번 소스 빌드하지 않는다.
   minio:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-minio:RELEASE.2025-10-15T17-29-55Z
+    build: !reset null
     ports: !reset []
 
   ai-service:

@@ -105,7 +105,7 @@ docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastr
 
 ## 로컬 설정 첨부 저장소 (#87)
 
-첨부 저장소(MinIO)는 플래그 없이 local·개발 배포 compose에 항상 포함됩니다. Content만 `http://minio:9000`과 `AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY`를 받으며 Core에는 S3 설정을 전달하지 않습니다. 개발 배포는 CD가 같은 소스로 빌드·게시한 `storyfork-minio:develop` 이미지를 씁니다.
+첨부 저장소(MinIO)는 플래그 없이 local·개발 배포 compose에 항상 포함됩니다. Content만 `http://minio:9000`과 `AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY`를 받으며 Core에는 S3 설정을 전달하지 않습니다. 이미지는 Dockerfile의 고정 버전 태그(`storyfork-minio:RELEASE…`)로 ghcr에 없을 때만 CD가 한 번 빌드·게시하고, 개발 배포·CI는 그 이미지를 받아 씁니다(local은 받을 수 없으면 처음 한 번 빌드).
 
 MinIO는 승인된 [기존 minio.dockerfile](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-5Team/blob/HEAD/minio.dockerfile) 방식의 소스 빌드입니다. Go `1.24.8`/MinIO `RELEASE.2025-10-15T17-29-55Z`를 고정하며 다운로드/빌드는 네트워크가 필요합니다.
 
