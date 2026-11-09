@@ -18,6 +18,7 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 })
 vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 그래프 대역</div>}))
 vi.mock('../../presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=> <div>세계관 지도 대역</div>}))
+vi.mock('../../presentation/features/worldstudio/view/PresentationWorldMapCanvas',()=>({default:()=> <div>전체 지도 대역</div>}))
 beforeEach(()=>{
  const a=newSetting('people');a.item.title='가람';a.item.text='기존 원문';a.tags=['주인공']
  world={id:'qa-writing',name:'작성 검증',description:'세계의 배경',version:1,settings:[a],analysis:null}
@@ -115,12 +116,14 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  expect(world.version).toBe(before.version+1)
 })
 
-it('exposes exploration shortcuts and renders the character view through the 2D map component',async()=>{
+it('exposes exploration shortcuts and switches from character cards to the existing 2D graph',async()=>{
  await show()
  fireEvent.click(screen.getByText('도구'))
  fireEvent.click(screen.getByRole('button',{name:'세계관 탐색'}))
  fireEvent.click(screen.getByRole('button',{name:'인물 관계도'}))
  expect(screen.getByRole('heading',{name:'인물 관계도 · 2D'})).toBeTruthy()
+ expect(await screen.findByText('인물 그래프 대역')).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'그래프형'}))
  expect(await screen.findByText('세계관 지도 대역')).toBeTruthy()
  expect(screen.queryByRole('heading',{name:'저장된 현재 관계도'})).toBeNull()
  fireEvent.click(screen.getByRole('button',{name:'설정집'}))
