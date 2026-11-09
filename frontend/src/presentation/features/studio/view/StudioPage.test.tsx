@@ -87,6 +87,19 @@ describe('@ 멘션 목록은 combobox로 조작한다', () => {
     expect(body.hasAttribute('aria-activedescendant')).toBe(false)
   })
 
+  it('조합 중 Enter와 Safari의 조합 확정 Enter(isComposing=false, keyCode=229)는 멘션을 고르지 않는다', async () => {
+    renderStudio('/studio/starlight')
+    const { body } = await openMentions()
+    fireEvent.keyDown(body, { key: 'ArrowDown' })
+    for (const init of [{ isComposing: true }, { isComposing: false, keyCode: 229 }]) {
+      expect(fireEvent.keyDown(body, { key: 'Enter', ...init })).toBe(true)
+      expect(body.querySelector('.mention')).toBeNull()
+      expect(screen.getByRole('listbox')).toBeTruthy()
+    }
+    expect(fireEvent.keyDown(body, { key: 'Enter' })).toBe(false)
+    expect(body.querySelector('.mention')?.textContent).toBe('@리안')
+  })
+
   it('활성 항목이 없으면 Enter는 목록을 건드리지 않고 줄바꿈에 맡긴다', async () => {
     renderStudio('/studio/starlight')
     const { body } = await openMentions()

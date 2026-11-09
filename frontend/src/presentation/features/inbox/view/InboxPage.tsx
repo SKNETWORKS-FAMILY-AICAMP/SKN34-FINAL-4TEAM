@@ -24,6 +24,9 @@ export function InboxPage() {
   if (!vm.data) return <><Gnb on="lib" /><main id="main" tabIndex={-1} className="wrap">{top}<p className="muted" role="status">독자 피드백을 불러오고 있어요.</p></main><Footer /></>
   const { items, it, current: cur } = vm.data
   const act = (kind: InboxAct, text?: string) => it && vm.act(it.id, kind, text)
+  // 발행(publishRevision)은 첫 번째 일치만 바꾸므로, 미리보기도 그 위치에서 앞·뒤를 나눠 그립니다.
+  const from = it?.from ?? '', at = cur.indexOf(from)
+  const [head, tail] = at < 0 ? [cur, ''] : [cur.slice(0, at), cur.slice(at + from.length)]
   return (
     <>
       <Gnb on="lib" />
@@ -38,13 +41,13 @@ export function InboxPage() {
               {vm.notice?.id === it.id && <p ref={status} role="status" tabIndex={-1}>{vm.notice.msg}</p>}<dl className="ai"><dt>유형</dt><dd>{it.ai.cls}</dd><dt>안내</dt><dd>{it.ai.why}</dd><dt>참고 문장</dt><dd>{it.ai.ev}</dd></dl>
               {it.from ? <>
                 <b>수정 제안 (PR)</b>
-                <div className="diff"><div className="o"><small>지금</small>{cur.split(it.from).flatMap((part, i) => i ? [<del key={i}>{it.from}</del>, part] : [part])}</div>
-                  <div className="n"><small>바꾸면</small>{cur.replace(it.from, it.to ?? '').split(it.to ?? '').flatMap((part, i) => i ? [<ins key={i}>{it.to}</ins>, part] : [part])}</div></div>
+                <div className="diff"><div className="o"><small>지금</small>{head}{at >= 0 && <del>{from}</del>}{tail}</div>
+                  <div className="n"><small>바꾸면</small>{head}{at >= 0 && <ins>{it.to}</ins>}{tail}</div></div>
                 <p className="small muted">영향: {it.n}화 1곳 · 줄거리·설정 변화 없음 · 이미 포크 소설의 스냅샷에는 반영되지 않음</p>
-                <div className="rowend" style={{ marginTop: 14 }}>{['검토 대기', '수정 제안'].includes(it.status)
+                <div className="rowend" style={{ marginTop: 14 }}>{['검토 대기', '수정 제안', '작가 검토 대기'].includes(it.status)
                   ? <><button type="button" className="btn" disabled={vm.pending} onClick={() => act('reject')}>거절</button><button type="button" className="btn pri" id="approve" disabled={vm.pending} onClick={() => act('approve')}>수정안 승인</button></>
                   : it.status === '승인됨' ? <><span className="chip wait">승인됨 · 발행 전</span><button type="button" className="btn pri" disabled={vm.pending} onClick={() => act('publishRevision')}>수정안 발행</button></>
-                  : <span className={`chip ${inboxCls(it.status)}`}>{it.status}</span>}</div>
+                  : <><span className={`chip ${inboxCls(it.status)}`}>{it.status}</span>{it.status === '반영 실패' && <button type="button" className="btn" disabled={vm.pending} onClick={() => act('reject')}>거절</button>}</>}</div>
               </> : <>
                 <b>작가 판단이 필요해요</b><p className="small muted" style={{ margin: '6px 0 10px' }}>AI가 오류로 단정하지 않았어요. 답변을 쓰거나, 의도한 설정이면 그대로 두세요.</p>
                 <textarea className="ta" id="ans" aria-label="작가 답변" readOnly={vm.pending} value={answer} onChange={(e) => setAnswer(e.target.value)} />

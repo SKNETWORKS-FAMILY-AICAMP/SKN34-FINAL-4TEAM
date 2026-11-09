@@ -18,10 +18,10 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
   const look = useLook()
   const { data, isError, retry } = useAsyncData(() => readingUseCase.getWork(id, role), [readingUseCase, id, role])
   const [query, setQuery] = useState('')
-  // 목업 render(): 다른 작품으로 옮기면 회차 검색어(#epq)를 비웁니다.
-  const [shown, setShown] = useState(id)
-  if (shown !== id) { setShown(id); setQuery('') }
   const [reporting, setReporting] = useState(false)
+  // 목업 render(): 다른 작품으로 옮기면 회차 검색어(#epq)를 비우고, 열린 신고 시트도 닫습니다(이전 작품용 신고가 새 작품에 접수되지 않게).
+  const [shown, setShown] = useState(id)
+  if (shown !== id) { setShown(id); setQuery(''); setReporting(false) }
   useScreenId(data ? 'U04' : null)
 
   const v = query.trim().toLowerCase()

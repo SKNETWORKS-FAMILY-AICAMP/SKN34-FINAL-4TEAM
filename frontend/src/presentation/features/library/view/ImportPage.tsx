@@ -1,4 +1,4 @@
-import { IMPORT } from '../../../../domain/usecases/LibraryUseCase'
+import { IMPORT, parseImportEvent } from '../../../../domain/usecases/LibraryUseCase'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
@@ -16,7 +16,7 @@ export function ImportPage() {
     title: '춘향전', source: vm.kind,
     world: { era: '조선 숙종 대', places: ['남원 광한루', '오작교', '한양'], rules: vm.result.world.filter((x) => x.startsWith('규칙')).map((x) => x.slice(4)) },
     characters: vm.result.cast.map((c, i) => ({ name: c.split(' · ')[0], role: c.split(' · ')[1], first_ep: i < 2 ? 1 : i === 2 ? 3 : 1 })),
-    events: vm.result.events.map((e) => ({ ep: +e[0], summary: e.slice(3) })), episodes: 4,
+    events: vm.result.events.map((e) => { const p = parseImportEvent(e); return { ep: p?.[0] ?? null, summary: p?.[1] ?? e } }), episodes: 4,
   }, null, 2)
   return (
     <>

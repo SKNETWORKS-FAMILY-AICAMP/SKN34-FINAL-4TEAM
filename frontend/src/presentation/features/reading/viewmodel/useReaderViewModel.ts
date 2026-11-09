@@ -34,9 +34,9 @@ export function useReaderViewModel(id: string, n: number,
   const [sheet, setSheet] = useState<ReaderSheet>(null)
   // 키보드 탭 정지점(roving tabindex): 본문은 문장 하나만 Tab 순서에 두고 방향키로 옮깁니다.
   const [tabStop, setTabStop] = useState(0)
-  // 목업 render(): 다른 회차로 옮기면 문장 팝업과 선택을 지웁니다.
+  // 목업 render(): 다른 회차로 옮기면 문장 팝업과 선택을 지우고, 열린 문장 시트도 닫습니다(이전 회차의 문장 번호가 남지 않게).
   const [shown, setShown] = useState(id + '/' + n)
-  if (shown !== id + '/' + n) { setShown(id + '/' + n); setSelected(null); setTabStop(0) }
+  if (shown !== id + '/' + n) { setShown(id + '/' + n); setSelected(null); setSheet(null); setTabStop(0) }
   const ok = data && data !== 'hidden' ? data : null
   const setEnd = useCallback((end: boolean) => { dispatch(uiActions.setBaseScreen(end ? 'U08' : 'U05')) }, [dispatch])
   useScreenId(ok ? 'U05' : null)
