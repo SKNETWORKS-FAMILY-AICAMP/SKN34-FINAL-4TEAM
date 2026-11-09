@@ -1,0 +1,186 @@
+[
+  {
+    "document_id": "72158bc7-74bc-37cc-83a0-18d9b778ce71",
+    "version_id": "8670e8e1-80de-3301-95ff-390ed806afa8",
+    "name": "스포츠 판타지 전체 원문",
+    "category": "기타",
+    "role": "source_archive",
+    "source_pointer": "/templates/9/content_markdown"
+  },
+  {
+    "document_id": "53209ab6-f2db-333d-995d-4ecf5c685014",
+    "version_id": "3fe867d4-e557-3e07-9745-441c3c5d0060",
+    "name": "01. 작품의 기본 전제",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/0/content_markdown"
+  },
+  {
+    "document_id": "04d7770e-8475-3adb-aa59-8d97cc5bd53a",
+    "version_id": "8476fadc-5e8a-3084-82b5-aa86974626d5",
+    "name": "02. 작품의 축구 세계",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/1/content_markdown"
+  },
+  {
+    "document_id": "de8d1f32-58c6-3ef2-bd89-67348952ff23",
+    "version_id": "76ce9d75-7dad-366b-9591-99684fa7f1d0",
+    "name": "03. 주인공의 전생 연표",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/2/content_markdown"
+  },
+  {
+    "document_id": "62c672fa-9247-33ac-b443-c5d729fb6dc8",
+    "version_id": "abb3e23f-1fdd-30c0-8e76-effbbc1e47b3",
+    "name": "04. 회귀의 원리와 한계",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/3/content_markdown"
+  },
+  {
+    "document_id": "5b85c6b7-edbb-3944-a186-417e700173a8",
+    "version_id": "43f25c34-2e2a-3d46-9a50-e9d62874f52e",
+    "name": "05. 스포츠 판타지의 핵심 성장 구조",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/4/content_markdown"
+  },
+  {
+    "document_id": "3d6d1098-ea8e-3d24-88a1-4a6b1984febf",
+    "version_id": "e579d0c7-8d3e-331e-b73f-b7b09131c2cb",
+    "name": "06. 주인공 한도윤",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/5/content_markdown"
+  },
+  {
+    "document_id": "b59ccea2-5109-3acb-92d0-b6ed9e8f8fa7",
+    "version_id": "7694b7d3-651b-3624-91f6-cef565dcef7e",
+    "name": "07. 몸과 훈련의 현실",
+    "category": "상태",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/6/content_markdown"
+  },
+  {
+    "document_id": "664699d4-4985-34cc-bd30-d4c2888de0c6",
+    "version_id": "a88f021d-feab-3638-8250-80eac0e233d4",
+    "name": "08. 첫 번째 팀 — 인천 하버스 U-18",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/7/content_markdown"
+  },
+  {
+    "document_id": "83d1a3c6-f3c7-3964-9447-fad3e461a7f2",
+    "version_id": "3f3c2745-227f-3577-bb3a-7d5c9705d0e9",
+    "name": "09. 가족",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/8/content_markdown"
+  },
+  {
+    "document_id": "168c214b-c70c-301e-b421-1f68c217046a",
+    "version_id": "99e85eb1-11ed-3ce3-b695-4fe00acf6c9d",
+    "name": "10. 유소년 시기의 동료와 지도자",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/9/content_markdown"
+  },
+  {
+    "document_id": "a3265012-eb83-323d-bf35-e5ea99300b17",
+    "version_id": "4966dcba-a1a7-38a6-bbf4-abd289d7aa24",
+    "name": "11. 성인 무대의 주요 인물",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/10/content_markdown"
+  },
+  {
+    "document_id": "0e059813-8795-3f8e-985d-8eb64e8c6794",
+    "version_id": "a89b2c06-ce19-38b4-9e48-a8342dad6f33",
+    "name": "12. 갈등과 적대 세력",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/11/content_markdown"
+  },
+  {
+    "document_id": "b2991025-4d05-35f3-8c07-a24d39e30938",
+    "version_id": "498ffeb7-bf4c-3132-aa6a-ed5730021e33",
+    "name": "13. 포지션 전환과 플레이 스타일",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/12/content_markdown"
+  },
+  {
+    "document_id": "19cda0e5-6193-3031-92a0-f51f6bce1cab",
+    "version_id": "1bc5c88e-2941-3cee-8099-fee582e64c95",
+    "name": "14. 미래 지식의 활용과 실패",
+    "category": "지식",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/13/content_markdown"
+  },
+  {
+    "document_id": "0fd423b0-fb4d-3bb6-ab91-0db4531f9c4e",
+    "version_id": "94d33346-e161-3038-8312-5576b7af03ad",
+    "name": "15. 경기 묘사의 기본 원칙",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/14/content_markdown"
+  },
+  {
+    "document_id": "e2b3557f-91f0-386e-a246-81a6164c19b5",
+    "version_id": "fda8600b-1c74-38d3-9eba-7ce13e329808",
+    "name": "16. 선수 생활과 경기 밖의 문제",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/15/content_markdown"
+  },
+  {
+    "document_id": "3299d7af-1cd1-358a-827f-4fbf38b14a18",
+    "version_id": "7afe249e-d1a9-3714-a7c2-8adee8d213db",
+    "name": "17. 주요 비밀과 공개 순서",
+    "category": "지식",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/16/content_markdown"
+  },
+  {
+    "document_id": "cfde1deb-552d-3583-bd7d-3e2ab2cdbae2",
+    "version_id": "8efd51e6-414e-3f5f-9652-f4500b8e56a9",
+    "name": "18. 장편 전개 구조",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/17/content_markdown"
+  },
+  {
+    "document_id": "655ddc11-040c-3fdb-a0ed-f1b1e2b23d24",
+    "version_id": "1dea6fca-b520-3722-ae27-93dc9687d185",
+    "name": "19. 관계와 감정의 흐름",
+    "category": "관계",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/18/content_markdown"
+  },
+  {
+    "document_id": "fa7ddd97-5855-34a4-9c09-56f3fdd4296e",
+    "version_id": "97c9f4cf-c5bc-3636-84e9-b328d6edadf1",
+    "name": "20. 반복해서 사용할 장면과 상징",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/19/content_markdown"
+  },
+  {
+    "document_id": "b495f169-2363-31d5-af96-24ca84eff3ee",
+    "version_id": "4b2f85fe-a429-3cde-a36a-5505f8ea13f1",
+    "name": "21. 이야기에서 지켜야 할 설정 규칙",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/20/content_markdown"
+  },
+  {
+    "document_id": "1ec8295b-6f9e-3987-bd5c-7309ecf8c77f",
+    "version_id": "93b1fd11-e178-33ab-9c6d-6beb294a92d9",
+    "name": "22. 첫 화 도입 예시",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/9/setting_bible/sections/21/content_markdown"
+  }
+]

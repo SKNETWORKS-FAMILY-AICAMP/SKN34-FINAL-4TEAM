@@ -1,0 +1,194 @@
+[
+  {
+    "document_id": "edda9360-545e-34e8-a83e-976d1792d7d7",
+    "version_id": "de5b1810-b2e0-310f-b75a-ff774f40d5e5",
+    "name": "현대 판타지 전체 원문",
+    "category": "기타",
+    "role": "source_archive",
+    "source_pointer": "/templates/2/content_markdown"
+  },
+  {
+    "document_id": "a20b05d4-bcb0-3148-bbf8-9ad1a72a7b2d",
+    "version_id": "f4e047c1-1291-35e8-8997-037d31c8c6f1",
+    "name": "최초 기본 템플릿",
+    "category": "기타",
+    "role": "basic_example",
+    "source_pointer": "/templates/2/content_markdown"
+  },
+  {
+    "document_id": "5434e2c4-5652-36ca-a837-4f9262f8a2a7",
+    "version_id": "12cb82da-3fd0-3bbb-9ccd-13472406c4fe",
+    "name": "01. 작품의 기본 전제",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/0/content_markdown"
+  },
+  {
+    "document_id": "9dbb77fc-f88b-3b31-b9a3-48ac10162bf5",
+    "version_id": "fc6630c2-c288-3c3a-8031-78bc322aa48f",
+    "name": "02. 게이트 출현 이후의 세계",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/1/content_markdown"
+  },
+  {
+    "document_id": "2eef6917-1b56-380a-84f1-0dcb3978428b",
+    "version_id": "a19f0b57-c702-3aee-80bd-3ba356ef93fa",
+    "name": "03. 각성과 헌터 등급",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/2/content_markdown"
+  },
+  {
+    "document_id": "2fbf68ee-1593-33c7-8841-3d4f72b89f66",
+    "version_id": "ac3ea141-e81c-3f47-99f4-00c94bbb5afa",
+    "name": "04. 게이트와 던전의 작동 원리",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/3/content_markdown"
+  },
+  {
+    "document_id": "9676d8a2-d2ac-3aed-bbbe-68c1899ca7d6",
+    "version_id": "cc7664d6-9707-32f7-86f9-6ad71d80d6e3",
+    "name": "05. 던전의 현실적인 제약",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/4/content_markdown"
+  },
+  {
+    "document_id": "bb53735d-6f7b-393c-af1c-4878434681e4",
+    "version_id": "7a6fbe17-28ab-33d1-a62d-b0ae103b7a29",
+    "name": "06. 주요 기관과 세력",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/5/content_markdown"
+  },
+  {
+    "document_id": "39451e54-4fb3-39b7-89db-1f1b244621d4",
+    "version_id": "1b945f6a-e322-3910-81ad-d89569a7cfc6",
+    "name": "07. 주요 장소",
+    "category": "장소",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/6/content_markdown"
+  },
+  {
+    "document_id": "dab7b518-afec-3ebc-b05a-5d3b09ddbb84",
+    "version_id": "24fcb25d-7139-330e-9d48-156161de31ce",
+    "name": "08. 주인공 강도윤",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/7/content_markdown"
+  },
+  {
+    "document_id": "782afad2-bff8-32fb-a2f9-9fb2ddd4b8d4",
+    "version_id": "35193b5f-6cfa-395d-80c5-a17d4f93a1d2",
+    "name": "09. 가족",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/8/content_markdown"
+  },
+  {
+    "document_id": "16c55672-5a0f-3232-ada5-bacdebba88f3",
+    "version_id": "61fc49e9-d8d6-32c2-8dfd-d7cead999ff3",
+    "name": "10. 주요 동료",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/9/content_markdown"
+  },
+  {
+    "document_id": "20ed4dba-4361-3d67-80b1-ea68034816ab",
+    "version_id": "999a901c-4321-3aa1-a6ce-413d9acc81de",
+    "name": "11. 주요 적대자",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/10/content_markdown"
+  },
+  {
+    "document_id": "5979ac87-4b54-3416-8ea4-6ec204812037",
+    "version_id": "bf2cc326-bee9-3c2f-b73a-48a9c1fc5b5b",
+    "name": "12. 성장 시스템의 기본 구성",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/11/content_markdown"
+  },
+  {
+    "document_id": "1f0097ba-d020-3731-b90e-d6c63ddd7ab7",
+    "version_id": "9d9bfc52-1a81-343c-ba12-a4ed912015b9",
+    "name": "13. 레벨업과 스킬의 규칙",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/12/content_markdown"
+  },
+  {
+    "document_id": "2b9b4a36-f6b0-3c01-a3e9-c61c0dce02a4",
+    "version_id": "18dad82a-cf45-319b-bb18-59ce83f8c638",
+    "name": "14. 주인공의 대표 스킬과 전투 방식",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/13/content_markdown"
+  },
+  {
+    "document_id": "1ef84f10-0e6c-3a6a-9f58-a95301936a2a",
+    "version_id": "cf2f090c-d317-3583-8baa-c289cd42e483",
+    "name": "15. 퀘스트의 보상과 위험",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/14/content_markdown"
+  },
+  {
+    "document_id": "272b773a-6b99-3693-95c6-da17ec739c93",
+    "version_id": "e3d160c0-1986-38ef-8d9a-ec21da325598",
+    "name": "16. 시스템과 게이트의 진실",
+    "category": "지식",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/15/content_markdown"
+  },
+  {
+    "document_id": "2bb8bb00-e940-3111-b7d4-f89eb7ee4407",
+    "version_id": "db614221-b0db-3062-9f20-90e97b0c4d41",
+    "name": "17. 주요 비밀과 공개 순서",
+    "category": "지식",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/16/content_markdown"
+  },
+  {
+    "document_id": "eb87b54d-70e5-3c53-9898-7ed86481d590",
+    "version_id": "a00d4620-1032-32b9-a99a-8d821fedea97",
+    "name": "18. 장편 전개 구조",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/17/content_markdown"
+  },
+  {
+    "document_id": "8c460e17-33e4-3b6f-bc57-696ae851c691",
+    "version_id": "1d776025-a718-3f72-a329-aa44584d7e6c",
+    "name": "19. 감정과 관계의 흐름",
+    "category": "관계",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/18/content_markdown"
+  },
+  {
+    "document_id": "028519e9-b89f-3c19-ab19-8df19732708f",
+    "version_id": "69a2e121-2dcb-3efd-8676-510153b97593",
+    "name": "20. 반복해서 사용할 장면과 상징",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/19/content_markdown"
+  },
+  {
+    "document_id": "bc143bca-800b-3c42-9781-79e0bf880e67",
+    "version_id": "3cf78af2-b8e2-3474-b0ec-5c83becf0fbf",
+    "name": "21. 이야기에서 지켜야 할 설정 규칙",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/20/content_markdown"
+  },
+  {
+    "document_id": "023118eb-8b4c-356d-8043-b940c962f559",
+    "version_id": "a81b8e0e-2113-3ac3-a8b2-7a33b779b36a",
+    "name": "22. 첫 화 도입 예시",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/2/setting_bible/sections/21/content_markdown"
+  }
+]

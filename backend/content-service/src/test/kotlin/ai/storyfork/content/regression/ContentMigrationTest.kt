@@ -41,8 +41,9 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(16,flyway.migrate().migrationsExecuted)
-        assertEquals((1..16).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(17,flyway.migrate().migrationsExecuted)
+        assertEquals((1..17).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals("기타",jdbc.queryForObject("SELECT name FROM setting_category WHERE id='기타'",String::class.java))
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
@@ -149,6 +150,6 @@ class ContentMigrationTest {
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(16,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(17,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

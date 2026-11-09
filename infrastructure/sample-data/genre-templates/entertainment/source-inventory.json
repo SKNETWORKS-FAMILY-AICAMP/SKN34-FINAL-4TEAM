@@ -16,161 +16,207 @@
       "version_id": "11d37cf6-143a-3d02-b34d-91c5c47b8586",
       "name": "연예계물 전체 원문",
       "source_pointer": "/templates/10/content_markdown",
-      "body_sha256": "c8752d107267134e514e298ddc752d5a02fe5e2320a4bb77a8f80dc1190f4db6"
+      "body_sha256": "c8752d107267134e514e298ddc752d5a02fe5e2320a4bb77a8f80dc1190f4db6",
+      "imported_body_sha256": "b92300e26ac10885d0e18662b3429b63ad458a47fa432a9f8b0d51606a7ad000",
+      "category": "기타"
     },
     {
       "document_id": "5549fd05-1933-3366-8f36-15fe26706c2b",
       "version_id": "c1c4091e-133b-38c4-8e4a-dddd04ce5f08",
       "name": "01. 작품의 기본 전제",
       "source_pointer": "/templates/10/setting_bible/sections/0/content_markdown",
-      "body_sha256": "44ba506e01abd9bdf5e3b189b28cc51a6139652966b656359ca4afc30b20da6f"
+      "body_sha256": "44ba506e01abd9bdf5e3b189b28cc51a6139652966b656359ca4afc30b20da6f",
+      "imported_body_sha256": "13083c1ebff67df05190f18ae6405ca1fbb1630f1e42c74c0b8983579f11c644",
+      "category": "기타"
     },
     {
       "document_id": "d259e3e4-a15a-3ceb-8d40-c979431e1d4e",
       "version_id": "c557812e-92bd-32a5-9c55-167e9986221c",
       "name": "02. 작품의 연예계와 시대",
       "source_pointer": "/templates/10/setting_bible/sections/1/content_markdown",
-      "body_sha256": "f6315e04013226e77e3501df41f74a8d1a39a23e4f5ff51e387cd8d15b25d903"
+      "body_sha256": "f6315e04013226e77e3501df41f74a8d1a39a23e4f5ff51e387cd8d15b25d903",
+      "imported_body_sha256": "f89ff60dbf481db5bad222a3765650dc9ec89cae52f2fcfdeb4c63fbb9781881",
+      "category": "기타"
     },
     {
       "document_id": "57a5da48-f7f1-39e9-baab-b021243d2fd1",
       "version_id": "9e69ddee-ec2b-3805-baa7-9312246554fd",
       "name": "03. 한서준의 전생 연표",
       "source_pointer": "/templates/10/setting_bible/sections/2/content_markdown",
-      "body_sha256": "fe213699349427e37e711fd054f5d0ef048d4138c94e1100e3dad8ef96e87c55"
+      "body_sha256": "fe213699349427e37e711fd054f5d0ef048d4138c94e1100e3dad8ef96e87c55",
+      "imported_body_sha256": "bf4704aed1936eb376477916cfc9898dd0c76b40a949224d76f0385f4fab3a4a",
+      "category": "기타"
     },
     {
       "document_id": "d1100571-af21-3b2b-9aaf-9d9713ccee09",
       "version_id": "62bd4b4d-a613-3a71-8557-e184825c7373",
       "name": "04. 회귀의 원리와 제한",
       "source_pointer": "/templates/10/setting_bible/sections/3/content_markdown",
-      "body_sha256": "09811390d0c74f70c6dd8c9da51118488144896cd4e659ce5d5dbdff30b0d1d2"
+      "body_sha256": "09811390d0c74f70c6dd8c9da51118488144896cd4e659ce5d5dbdff30b0d1d2",
+      "imported_body_sha256": "af55de2696df7a708c011cde6227ac09921e5b9d6f12b3668c22f997153c95c0",
+      "category": "규칙"
     },
     {
       "document_id": "777b92da-cab5-36d0-b184-73d090dab0c4",
       "version_id": "7ddf4494-7a4e-3ef5-9faf-04b358089b65",
       "name": "05. 주인공 한서준",
       "source_pointer": "/templates/10/setting_bible/sections/4/content_markdown",
-      "body_sha256": "6eee14537d84a50dfc9a615ea0cc5d6a902be22b84066e3f5f614840b893fdf9"
+      "body_sha256": "6eee14537d84a50dfc9a615ea0cc5d6a902be22b84066e3f5f614840b893fdf9",
+      "imported_body_sha256": "2168b2011926e84ac63c38e30a96b2d64a3f006c4102905128f3a10640dd970d",
+      "category": "인물"
     },
     {
       "document_id": "772692f9-68d7-3d86-9a9c-f9c83e9a9f79",
       "version_id": "9cf009e8-1c92-3ed4-84c8-d4d95d68a769",
       "name": "06. 연기 능력의 성장 방향",
       "source_pointer": "/templates/10/setting_bible/sections/5/content_markdown",
-      "body_sha256": "ecdb4f95ea2b4e28f8b7d6b6208904d5d9e755b45d931ba06b877ca14f4ac143"
+      "body_sha256": "ecdb4f95ea2b4e28f8b7d6b6208904d5d9e755b45d931ba06b877ca14f4ac143",
+      "imported_body_sha256": "ca85ea5c0263c5b8df8634d338c36143ca84678f502e820631b3f528ccc62fd2",
+      "category": "규칙"
     },
     {
       "document_id": "4c4a48b5-a996-3017-8e29-d357f38bf193",
       "version_id": "ee07f838-efd8-3ee0-bd58-f7b1c01a9f5b",
       "name": "07. 주요 기획사와 제작사",
       "source_pointer": "/templates/10/setting_bible/sections/6/content_markdown",
-      "body_sha256": "5b6688e294287b705c7dc3c04ca25c85c9e12a4d0bb5efa222d467c65c72bab7"
+      "body_sha256": "5b6688e294287b705c7dc3c04ca25c85c9e12a4d0bb5efa222d467c65c72bab7",
+      "imported_body_sha256": "aa0111d3df8b45a376a097d709e1337dcac7ab7bc4a063ac12e1b32e030c8545",
+      "category": "기타"
     },
     {
       "document_id": "3dbcdecf-aaa4-3810-988a-2b7d31dab8c2",
       "version_id": "620fbf54-5c44-308a-be5f-d56d167d315c",
       "name": "08. 연예계의 일과 평가",
       "source_pointer": "/templates/10/setting_bible/sections/7/content_markdown",
-      "body_sha256": "da02f1e65b6ebe031ffaad9616e8d5bb60e92019831003c03e29efde2d7fe9ca"
+      "body_sha256": "da02f1e65b6ebe031ffaad9616e8d5bb60e92019831003c03e29efde2d7fe9ca",
+      "imported_body_sha256": "fe1d54befe79c70b6a16b9df026db1bd7981b6765cf6f87f9a63301846ed425f",
+      "category": "기타"
     },
     {
       "document_id": "63ffddf5-299c-36c7-bd84-a26a6aaeb5ad",
       "version_id": "c4b7c845-8134-37a0-bb78-bbad591a71bf",
       "name": "09. 가족",
       "source_pointer": "/templates/10/setting_bible/sections/8/content_markdown",
-      "body_sha256": "c74ebde5513b6d033247b1d45f2b37cdf3b8e01272a648148e3e3a464befc0cb"
+      "body_sha256": "c74ebde5513b6d033247b1d45f2b37cdf3b8e01272a648148e3e3a464befc0cb",
+      "imported_body_sha256": "814d45c8350d4d4f654763ebe04bd51a020b8c0ddd4779e2260f9762cae623f4",
+      "category": "인물"
     },
     {
       "document_id": "a5c8813c-9b78-303c-bc18-3a56b71dcf1b",
       "version_id": "28932bb7-163a-3708-a480-c9c1c2f12828",
       "name": "10. 초기 동료와 현장 인물",
       "source_pointer": "/templates/10/setting_bible/sections/9/content_markdown",
-      "body_sha256": "e8118fe2e25a687daa605b0aead4626767626bb8b176c542b37c99124d60286e"
+      "body_sha256": "e8118fe2e25a687daa605b0aead4626767626bb8b176c542b37c99124d60286e",
+      "imported_body_sha256": "0f473d5e2d0f127e8d83c1deb3f4b2398609852e178a8d29dbf04355346fb41b",
+      "category": "인물"
     },
     {
       "document_id": "e80db485-6b16-3ffb-a35e-8608410a6d2c",
       "version_id": "f8ac158f-f01f-3ac0-873f-fc37dc94379c",
       "name": "11. 라이벌과 상대 배우",
       "source_pointer": "/templates/10/setting_bible/sections/10/content_markdown",
-      "body_sha256": "e0ac7c6fab1e90e1f36b9b949a628224667b1a3f99e9057fc3cdd9f84b81ea39"
+      "body_sha256": "e0ac7c6fab1e90e1f36b9b949a628224667b1a3f99e9057fc3cdd9f84b81ea39",
+      "imported_body_sha256": "6503ed1a79b0c3ac968cf100aedb71c4846e4bc8d0f0d04a2e07fef4c988e0e2",
+      "category": "인물"
     },
     {
       "document_id": "7f8a3c13-551b-3ece-a293-dde12a3ade2c",
       "version_id": "16013d78-a733-3ddd-84e4-7f85997157f0",
       "name": "12. 주요 적대자와 이해관계",
       "source_pointer": "/templates/10/setting_bible/sections/11/content_markdown",
-      "body_sha256": "db5d91aff0880674957213f6028f8ec4b63bf9acc03d68aca59bdf85d4bda955"
+      "body_sha256": "db5d91aff0880674957213f6028f8ec4b63bf9acc03d68aca59bdf85d4bda955",
+      "imported_body_sha256": "b0412c32cbad4bbd07f28d864b5723fd5b285ae4d0c1d3b04c0dd8901ee5ce9a",
+      "category": "인물"
     },
     {
       "document_id": "8b3bd0c5-41c7-319c-aad6-8e1f83d2bdfd",
       "version_id": "ec0ede91-efa8-3063-93fa-3c20006ad45d",
       "name": "13. 전생의 논란과 이번 생의 대응",
       "source_pointer": "/templates/10/setting_bible/sections/12/content_markdown",
-      "body_sha256": "a7be113b61f2c3322739d6ec2ad21f8f416e4301885602e4aa8ec8f20b975a58"
+      "body_sha256": "a7be113b61f2c3322739d6ec2ad21f8f416e4301885602e4aa8ec8f20b975a58",
+      "imported_body_sha256": "70d39bb735da26cece2b7a1d5c8cbd7f1c4ec379672afd11eaca2e34438b20a8",
+      "category": "기타"
     },
     {
       "document_id": "166736d7-cbaa-396a-8430-d231005a696a",
       "version_id": "f8936a29-189d-309c-a316-9fc1ef37d5a5",
       "name": "14. 작품 선택과 미래 지식",
       "source_pointer": "/templates/10/setting_bible/sections/13/content_markdown",
-      "body_sha256": "cb47016d27c8f80f42af4c39cb953b19a0da748d5f02941d22ed1cd3db2f5873"
+      "body_sha256": "cb47016d27c8f80f42af4c39cb953b19a0da748d5f02941d22ed1cd3db2f5873",
+      "imported_body_sha256": "0ebc11af0cd61fa23917c5f05d9c458a49c95e378fac353902674e0cb0c88697",
+      "category": "지식"
     },
     {
       "document_id": "4a5b0ef9-5c0e-3e5c-8f84-3b4645be2a0c",
       "version_id": "53e0f0cf-2fb8-3d90-8d30-31a5d6e8a17b",
       "name": "15. 커리어를 구성하는 주요 작품",
       "source_pointer": "/templates/10/setting_bible/sections/14/content_markdown",
-      "body_sha256": "03e642349affc2ac0479cd427979cf12875c26a63a0c6a377aaaea366a8dafcc"
+      "body_sha256": "03e642349affc2ac0479cd427979cf12875c26a63a0c6a377aaaea366a8dafcc",
+      "imported_body_sha256": "6b845ff5886adb1f518361fb3cd1dae1f94e97bae76f18b550f4fcb8f4fe45a3",
+      "category": "기타"
     },
     {
       "document_id": "b8f3dbb4-ef3c-3500-99ad-a7c27efe200c",
       "version_id": "80c28012-66c1-3c39-9d05-338817fbbcd0",
       "name": "16. 인기와 팬덤, 홍보",
       "source_pointer": "/templates/10/setting_bible/sections/15/content_markdown",
-      "body_sha256": "dffcf3081f9842d05d676575bb849d22e0a5a536f2c6965b2e03c56f867440c0"
+      "body_sha256": "dffcf3081f9842d05d676575bb849d22e0a5a536f2c6965b2e03c56f867440c0",
+      "imported_body_sha256": "7f17e13bf5c460a264b3451fea81330602909e5866f84d1e065f19730d7ac378",
+      "category": "기타"
     },
     {
       "document_id": "c36daab6-c3bc-33ad-be2f-1853e2c55cad",
       "version_id": "23902b49-c3eb-341a-81cf-17e5f4e1ce5e",
       "name": "17. 주요 비밀과 공개 순서",
       "source_pointer": "/templates/10/setting_bible/sections/16/content_markdown",
-      "body_sha256": "15555224f121c76957e67a6df0115e1926167b822090931735f643e74e80c2c7"
+      "body_sha256": "15555224f121c76957e67a6df0115e1926167b822090931735f643e74e80c2c7",
+      "imported_body_sha256": "cd18fc2f25e5c8dafe24b19fac6412e71bff19e5a17872fead4cb201527ca518",
+      "category": "지식"
     },
     {
       "document_id": "0dea203e-370c-3a29-9e64-36f25e6291cb",
       "version_id": "bc1d7b56-dfe7-3b2b-ab08-0f3120a73cc8",
       "name": "18. 장편 전개 구조",
       "source_pointer": "/templates/10/setting_bible/sections/17/content_markdown",
-      "body_sha256": "cb23550499c877ad249db3cfd28cfa93b41780f7d96bf0924557c35e5da8cbe4"
+      "body_sha256": "cb23550499c877ad249db3cfd28cfa93b41780f7d96bf0924557c35e5da8cbe4",
+      "imported_body_sha256": "69ad57471c5e3be09886381c0ebb9c1b80017e74d3ddde668f2da4053a47db09",
+      "category": "기타"
     },
     {
       "document_id": "100e1216-c8fb-34bc-966a-4f2d4b5b7e70",
       "version_id": "087eede0-f220-30c7-92d5-7eccf3f14fd0",
       "name": "19. 관계와 감정의 흐름",
       "source_pointer": "/templates/10/setting_bible/sections/18/content_markdown",
-      "body_sha256": "bc50f2c148bba70e4d9dc96b9ca119c4f488ca69b14ee0d88b9d12385ba279e5"
+      "body_sha256": "bc50f2c148bba70e4d9dc96b9ca119c4f488ca69b14ee0d88b9d12385ba279e5",
+      "imported_body_sha256": "18583e41f5142e0b38435d5f106db96c2eee7442bcb746f131a9eb20068ad54a",
+      "category": "관계"
     },
     {
       "document_id": "68948549-feed-3620-8e8f-f6e262b99eda",
       "version_id": "f458880f-5ce7-3630-9e9f-cbc6b16bf5c9",
       "name": "20. 반복해서 사용할 장면과 상징",
       "source_pointer": "/templates/10/setting_bible/sections/19/content_markdown",
-      "body_sha256": "e297a312c2ff2b9995a466e585d5f7a765c41d986010489fb9a20e11311f86b3"
+      "body_sha256": "e297a312c2ff2b9995a466e585d5f7a765c41d986010489fb9a20e11311f86b3",
+      "imported_body_sha256": "950350fd227188bb963b273227820a107055e6ff25adf552732ea2f0a6df15a1",
+      "category": "기타"
     },
     {
       "document_id": "8e9e0a61-b436-30b0-acd9-27aa4823b26e",
       "version_id": "703e98d9-447e-3eef-94ad-124e709f885d",
       "name": "21. 이야기에서 지켜야 할 설정 규칙",
       "source_pointer": "/templates/10/setting_bible/sections/20/content_markdown",
-      "body_sha256": "7079d0bfa7e34c0687b13009d52ad03af3263fdbd0afa83ee36b45fa884b5b5d"
+      "body_sha256": "7079d0bfa7e34c0687b13009d52ad03af3263fdbd0afa83ee36b45fa884b5b5d",
+      "imported_body_sha256": "71801dcf35a3adf5b3b59c189cf7a26a8ad7fa8c192f75d3d802f9ee822a92cd",
+      "category": "규칙"
     },
     {
       "document_id": "446cf0bf-497a-39a2-951c-60888319b806",
       "version_id": "4e8508da-3b9b-3c1d-b226-bf92b90029d2",
       "name": "22. 첫 화 도입 예시",
       "source_pointer": "/templates/10/setting_bible/sections/21/content_markdown",
-      "body_sha256": "bee4a45cb8d5e3a8f2df14942eaa6eab314b2ab460f0695776ae8e9128a2b285"
+      "body_sha256": "bee4a45cb8d5e3a8f2df14942eaa6eab314b2ab460f0695776ae8e9128a2b285",
+      "imported_body_sha256": "c1cb24a2e4325e839f47a95b428698465fa9281de37cc8d2115e09e84ecf8bf2",
+      "category": "기타"
     }
   ],
   "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다.",
@@ -288,5 +334,13 @@
       "fork_world_reference": 0,
       "episode_draft": 1
     }
-  }
+  },
+  "categories": {
+    "기타": 12,
+    "규칙": 3,
+    "인물": 5,
+    "지식": 2,
+    "관계": 1
+  },
+  "content_migration": "entertainment/migrations/content/V28__genre_template_entertainment.sql"
 }

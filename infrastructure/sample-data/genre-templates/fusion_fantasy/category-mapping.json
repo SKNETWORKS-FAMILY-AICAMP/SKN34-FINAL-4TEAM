@@ -1,0 +1,194 @@
+[
+  {
+    "document_id": "a9f013ca-2356-30d9-b5fd-06f90ea6a9c4",
+    "version_id": "e68ddcb4-8acc-3b16-9935-f0c67d50a668",
+    "name": "퓨전 판타지 전체 원문",
+    "category": "기타",
+    "role": "source_archive",
+    "source_pointer": "/templates/6/content_markdown"
+  },
+  {
+    "document_id": "37b4655a-5191-3da0-b0fd-4056e16c32ff",
+    "version_id": "588dcd3a-70c1-37aa-a6de-d4359e0752c7",
+    "name": "최초 기본 템플릿",
+    "category": "기타",
+    "role": "basic_example",
+    "source_pointer": "/templates/6/content_markdown"
+  },
+  {
+    "document_id": "dfed7e60-e1ba-3d79-a756-23129b5a173b",
+    "version_id": "57c10441-1e4e-3844-9c9e-840bf9e16604",
+    "name": "01. 작품의 기본 전제",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/0/content_markdown"
+  },
+  {
+    "document_id": "4d3ce319-b699-3db8-a5bc-5179af76a2b2",
+    "version_id": "910b8542-6c27-3de1-8ed9-c743efd929d2",
+    "name": "02. 두 세계의 관계",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/1/content_markdown"
+  },
+  {
+    "document_id": "9f5b4950-dcfd-320d-a384-d0b203ad30aa",
+    "version_id": "c81c326e-c8fd-381d-b0b7-5608951b9d88",
+    "name": "03. 에테리아 대륙의 역사",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/2/content_markdown"
+  },
+  {
+    "document_id": "d414e13f-8c1b-35d2-9325-0d9910dd4077",
+    "version_id": "15e261de-873d-3866-8021-d20275bc6839",
+    "name": "04. 제국과 귀족 사회",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/3/content_markdown"
+  },
+  {
+    "document_id": "42d4d907-cc7e-3c60-8905-409f747c5c5f",
+    "version_id": "c283f6e2-c881-3d8e-9682-9e428ff41128",
+    "name": "05. 주요 세력",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/4/content_markdown"
+  },
+  {
+    "document_id": "7e54a293-4a7e-3961-8529-eb97851b8431",
+    "version_id": "ec2cb808-62dc-33ee-8026-9896bcffcb6f",
+    "name": "06. 주요 장소",
+    "category": "장소",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/5/content_markdown"
+  },
+  {
+    "document_id": "f21a77e9-bd7e-3750-8f04-0251e5bbce19",
+    "version_id": "22e0db37-fc03-3195-ae94-c5073958ce34",
+    "name": "07. 기, 마나, 오러의 차이",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/6/content_markdown"
+  },
+  {
+    "document_id": "67a14156-6f3d-3272-b354-d7c13df93e31",
+    "version_id": "98bfd25d-e3c4-3e86-9cbb-c2da1862bb59",
+    "name": "08. 경지와 전투력",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/7/content_markdown"
+  },
+  {
+    "document_id": "bbd46420-7182-3f01-93b9-64b022cc8c41",
+    "version_id": "15d0a489-22cd-39d8-b3ae-574e6b462322",
+    "name": "09. 아스테르 가문",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/8/content_markdown"
+  },
+  {
+    "document_id": "f0e82220-f1a3-34b6-9874-2769297426b1",
+    "version_id": "8d5bd50c-c5e2-3e27-9ed1-08b8dc923b00",
+    "name": "10. 주인공 레온 아스테르와 백무진",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/9/content_markdown"
+  },
+  {
+    "document_id": "1dc47c5f-2fb6-3e62-8e76-614507efb30f",
+    "version_id": "7ce10ffa-ac17-3857-9b94-5b5dbc6a80b4",
+    "name": "11. 원래 레온과 육체의 기억",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/10/content_markdown"
+  },
+  {
+    "document_id": "5a085988-d5ab-385d-8d53-6129b81112a3",
+    "version_id": "771dd00d-0da5-3f58-91f2-000e568111dc",
+    "name": "12. 주요 동료",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/11/content_markdown"
+  },
+  {
+    "document_id": "db87ff80-c723-32e9-b1e6-cf367e7717c9",
+    "version_id": "31319926-30f2-3103-bf6e-aca1223bb7d3",
+    "name": "13. 아카데미의 교육과 생활",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/12/content_markdown"
+  },
+  {
+    "document_id": "e256589c-5a4a-3eb7-b85e-96de76c7c3ca",
+    "version_id": "588fed34-fa7f-3fa8-84d5-853e3ffc650d",
+    "name": "14. 주인공의 무공과 성장 방식",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/13/content_markdown"
+  },
+  {
+    "document_id": "25855f75-c292-364c-8987-394a37e1c9f0",
+    "version_id": "c3a851b4-d5a1-3762-b4c8-0c65d8d2975b",
+    "name": "15. 주요 적대자",
+    "category": "인물",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/14/content_markdown"
+  },
+  {
+    "document_id": "ef6f0281-75c8-34be-b59d-f13a1c37c038",
+    "version_id": "db16cc48-3c80-3e6b-a585-bb3d9f819983",
+    "name": "16. 천마와 신의 진실",
+    "category": "지식",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/15/content_markdown"
+  },
+  {
+    "document_id": "515f366c-0ccb-3caa-b82a-abf23d1f5a81",
+    "version_id": "f0b331fc-c5e5-33f0-8506-1b89aaaf7800",
+    "name": "17. 주요 비밀과 공개 순서",
+    "category": "지식",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/16/content_markdown"
+  },
+  {
+    "document_id": "253cd78d-7d0c-3fec-9564-8adc11e92376",
+    "version_id": "d1823d8b-c73a-3e62-92c0-f8b7c4b384c5",
+    "name": "18. 장편 전개 구조",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/17/content_markdown"
+  },
+  {
+    "document_id": "085dd121-e5ea-3b11-b81b-e78ba9bd5e22",
+    "version_id": "108cc998-301d-3994-8884-6cdde988994a",
+    "name": "19. 관계와 감정의 흐름",
+    "category": "관계",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/18/content_markdown"
+  },
+  {
+    "document_id": "daf5ac16-7374-32ea-b2fa-2c4eb69df803",
+    "version_id": "2a5a6b52-99ca-3f6e-a617-cd1798dec633",
+    "name": "20. 반복해서 사용할 장면과 상징",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/19/content_markdown"
+  },
+  {
+    "document_id": "0001ebc0-846a-35a4-95c8-9029fa02fb3c",
+    "version_id": "c74438f1-950f-3706-8910-fcb494cf71f7",
+    "name": "21. 이야기에서 지켜야 할 설정 규칙",
+    "category": "규칙",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/20/content_markdown"
+  },
+  {
+    "document_id": "da1362ce-a3ac-3bb6-8146-f7dfc278ecb5",
+    "version_id": "fed3c3a7-7cee-3e1d-91f7-05d621c5eb55",
+    "name": "22. 첫 화 도입 예시",
+    "category": "기타",
+    "role": "setting_section",
+    "source_pointer": "/templates/6/setting_bible/sections/21/content_markdown"
+  }
+]

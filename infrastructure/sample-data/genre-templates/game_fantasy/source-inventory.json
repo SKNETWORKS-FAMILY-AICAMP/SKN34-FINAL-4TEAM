@@ -16,168 +16,216 @@
       "version_id": "e8d634ab-21f4-3069-9b1c-aa90c488f2bf",
       "name": "게임 판타지 전체 원문",
       "source_pointer": "/templates/5/content_markdown",
-      "body_sha256": "6bb806be4b58614ad62df1749edf1bb228be8f3edf984b2265cadd2362ca892d"
+      "body_sha256": "6bb806be4b58614ad62df1749edf1bb228be8f3edf984b2265cadd2362ca892d",
+      "imported_body_sha256": "71f46dad684b4a90438ab34a7da60415f1ebc0b56a725f0b003f1ae9ca2bb06f",
+      "category": "기타"
     },
     {
       "document_id": "5054021b-c0be-32b6-afe2-1a7370357d5e",
       "version_id": "acaba766-3360-3e26-8a22-371abb78ca10",
       "name": "최초 기본 템플릿",
       "source_pointer": "/templates/5/content_markdown",
-      "body_sha256": "39c654005fb908c5bf1027f5a24d8b342b31b08f9758bfff05c69bab67581ad3"
+      "body_sha256": "39c654005fb908c5bf1027f5a24d8b342b31b08f9758bfff05c69bab67581ad3",
+      "imported_body_sha256": "47bad5dc983cf727329f850185d2805c377c426de32f141d02257341763c66dd",
+      "category": "기타"
     },
     {
       "document_id": "b69af9f2-3306-3dff-956d-2a93ecf56a16",
       "version_id": "41d0fd68-5033-37b2-8708-cd58b4718bba",
       "name": "01. 작품의 기본 전제",
       "source_pointer": "/templates/5/setting_bible/sections/0/content_markdown",
-      "body_sha256": "a8a01b6e9ec99b7d5be45718f3dfebce9270d7250ef6984e24c6039c918d6946"
+      "body_sha256": "a8a01b6e9ec99b7d5be45718f3dfebce9270d7250ef6984e24c6039c918d6946",
+      "imported_body_sha256": "cac53f88449f07bc976644947e347a8e3d94fece65900c149c5d8dd0f78bcfbe",
+      "category": "기타"
     },
     {
       "document_id": "ea9a7ef3-c9b9-327b-bb89-264e0a2ab6f8",
       "version_id": "6c615a8c-34e5-3682-96a0-38ed9a973603",
       "name": "02. 게임 《라스트 크로니클》",
       "source_pointer": "/templates/5/setting_bible/sections/1/content_markdown",
-      "body_sha256": "44a47a65477a6d9319dcddb240878de867f1eeb2c78f0c85ce4bc7133e2d6d85"
+      "body_sha256": "44a47a65477a6d9319dcddb240878de867f1eeb2c78f0c85ce4bc7133e2d6d85",
+      "imported_body_sha256": "008efa1b88b3f180ac8311d91218368f66a048e7677a8c01d8af4f3d33366fc4",
+      "category": "기타"
     },
     {
       "document_id": "85413d40-32cf-333f-b227-e29f9a8ddb1c",
       "version_id": "a1b02733-8b6a-3c19-891f-a464838b0654",
       "name": "03. 서비스 종료 후의 세계",
       "source_pointer": "/templates/5/setting_bible/sections/2/content_markdown",
-      "body_sha256": "30cc3e3837863ab884234ef07393515a9746f3c916d6be1e3f26419258e0b0ff"
+      "body_sha256": "30cc3e3837863ab884234ef07393515a9746f3c916d6be1e3f26419258e0b0ff",
+      "imported_body_sha256": "9f3abce056c2c4bab1009b76e3e906305fb8952bf826e3ee876c6181387642d7",
+      "category": "기타"
     },
     {
       "document_id": "98974e79-4467-3554-b8b2-4d7c452e0408",
       "version_id": "66d07e4a-0b78-3a95-974c-8c2f785242ec",
       "name": "04. 세계의 기원",
       "source_pointer": "/templates/5/setting_bible/sections/3/content_markdown",
-      "body_sha256": "51342cbb2768f371b278aef74cfcc9faabce0b88743be1c041908761815fae49"
+      "body_sha256": "51342cbb2768f371b278aef74cfcc9faabce0b88743be1c041908761815fae49",
+      "imported_body_sha256": "897727ef369843adaf7dc687745086c69f09d6fddfd952d19b3b2d5989c2fe90",
+      "category": "기타"
     },
     {
       "document_id": "dd7726a1-3f20-384f-97cd-ef1b5b343df1",
       "version_id": "fe52e571-e2e9-3f96-b969-5b308c86a117",
       "name": "05. 주요 국가와 세력",
       "source_pointer": "/templates/5/setting_bible/sections/4/content_markdown",
-      "body_sha256": "59fa06a7c1987e9febd15d4b4413b69a4ec5cee959f6afad86c31df5f32b22d5"
+      "body_sha256": "59fa06a7c1987e9febd15d4b4413b69a4ec5cee959f6afad86c31df5f32b22d5",
+      "imported_body_sha256": "cf47a13acbb3f2d67c8f886e09aed2d429c02369656b712890fc04f6bdf51e90",
+      "category": "기타"
     },
     {
       "document_id": "a48e9cf6-a536-38f5-9fc1-4fa7420618c5",
       "version_id": "289b63b0-010d-3ade-94d4-cd3b1bc21ee4",
       "name": "06. 주요 지역",
       "source_pointer": "/templates/5/setting_bible/sections/5/content_markdown",
-      "body_sha256": "17fed211645ae6dde986131aa70fe363e96ef570ac501e9ea1115ca7145060b8"
+      "body_sha256": "17fed211645ae6dde986131aa70fe363e96ef570ac501e9ea1115ca7145060b8",
+      "imported_body_sha256": "7b6b537a95403834126e68e7c6a9e87c5361554bcd2ee51cd891c0e046086d4f",
+      "category": "장소"
     },
     {
       "document_id": "ba650a81-529a-330b-8c40-378b11e862f9",
       "version_id": "db382453-c2fd-30b3-82ab-0a7bee3a7b7f",
       "name": "07. 종족과 생활",
       "source_pointer": "/templates/5/setting_bible/sections/6/content_markdown",
-      "body_sha256": "d2de9a48ce743a2eb0c8f89ef62447be58050bd2022f2320c4160d9f8e674deb"
+      "body_sha256": "d2de9a48ce743a2eb0c8f89ef62447be58050bd2022f2320c4160d9f8e674deb",
+      "imported_body_sha256": "3014759f100e81c5e1725f132013f3b6465cda6aa4056b7f4c95e875d8b16db7",
+      "category": "기타"
     },
     {
       "document_id": "b95d9491-11f4-3f94-8597-a5239dac49af",
       "version_id": "fd0c7f98-690f-30b9-985f-6d3d71259f62",
       "name": "08. 레벨과 능력치",
       "source_pointer": "/templates/5/setting_bible/sections/7/content_markdown",
-      "body_sha256": "84aaa1626858df16876261b7d12d60bfaeffd59e367a5df42dc88a44fe228a70"
+      "body_sha256": "84aaa1626858df16876261b7d12d60bfaeffd59e367a5df42dc88a44fe228a70",
+      "imported_body_sha256": "ad7f1d7e645e94d259129d5d8fb38250f163f283e4340ab009a41d027fa50209",
+      "category": "규칙"
     },
     {
       "document_id": "4d07ecfd-7e97-35c7-b826-7f26d7acbb26",
       "version_id": "56e23b01-1e93-33e5-8ac4-702a2c9331fb",
       "name": "09. 직업과 전직",
       "source_pointer": "/templates/5/setting_bible/sections/8/content_markdown",
-      "body_sha256": "10719166f72d78a9d0dbe5d8c48af986ce420ba4cfbf89a435aa18a2a6434d15"
+      "body_sha256": "10719166f72d78a9d0dbe5d8c48af986ce420ba4cfbf89a435aa18a2a6434d15",
+      "imported_body_sha256": "6a2dac2086801a3837af87237d4c5be864f1a75a381a5f2cba12c5b44730ead7",
+      "category": "규칙"
     },
     {
       "document_id": "27894ffc-6707-3628-9423-da0d8dff2251",
       "version_id": "77129280-73a6-384c-934c-41c0074423e9",
       "name": "10. 기록술사의 능력과 제약",
       "source_pointer": "/templates/5/setting_bible/sections/9/content_markdown",
-      "body_sha256": "c2a27a2fbeaf8003904c93d929824d03b7e3212185789b7469e3e17868b8f33c"
+      "body_sha256": "c2a27a2fbeaf8003904c93d929824d03b7e3212185789b7469e3e17868b8f33c",
+      "imported_body_sha256": "af8057587a9355a377362ae8e086e360176e7f99bdf9124bd4d48e917641ec99",
+      "category": "규칙"
     },
     {
       "document_id": "02eb9b08-8617-370c-bcf0-4e4c3695da38",
       "version_id": "ea3c8cb0-1660-33c9-abf2-3268aed0178a",
       "name": "11. 죽음과 부활",
       "source_pointer": "/templates/5/setting_bible/sections/10/content_markdown",
-      "body_sha256": "272d79ef016dc4ba9adec469a4b9a6ecaecec811269c9f4a137d40c3f8298191"
+      "body_sha256": "272d79ef016dc4ba9adec469a4b9a6ecaecec811269c9f4a137d40c3f8298191",
+      "imported_body_sha256": "7c4c7bc31bb0dcb4fe4d54cde8f83b923280fbfb98260697bfdc8ad1a394e63f",
+      "category": "규칙"
     },
     {
       "document_id": "e68af890-b372-3177-a419-770dbdc2d0f7",
       "version_id": "766741f6-7342-3321-b75b-f467bf220d28",
       "name": "12. 주인공 한시우와 캐릭터 로그",
       "source_pointer": "/templates/5/setting_bible/sections/11/content_markdown",
-      "body_sha256": "ce86de7cc200b1c56ce80e3a47cf24b99e43154c783ea3af82f076409facfdbc"
+      "body_sha256": "ce86de7cc200b1c56ce80e3a47cf24b99e43154c783ea3af82f076409facfdbc",
+      "imported_body_sha256": "c6de1513a623209ba64147a75967598830d8ec796acb03594c6d0440b86f0348",
+      "category": "인물"
     },
     {
       "document_id": "715b8b1c-0983-3514-86b9-75887e0c267f",
       "version_id": "89040cec-355a-3973-8afa-8ff735a825ca",
       "name": "13. 주요 동료",
       "source_pointer": "/templates/5/setting_bible/sections/12/content_markdown",
-      "body_sha256": "21456e30cfeb8a00c7832e8f26e52060e0735629ddecfccc05e23b109eff4755"
+      "body_sha256": "21456e30cfeb8a00c7832e8f26e52060e0735629ddecfccc05e23b109eff4755",
+      "imported_body_sha256": "65a48662406d822a30700e0b3025af76320b56b9cdacfc88ef06d0a94312ba15",
+      "category": "인물"
     },
     {
       "document_id": "c3dc5cf9-f48d-3880-80a3-56ac66dc4eab",
       "version_id": "1a2d4328-33ba-3140-beb2-2cd80f5fcaf2",
       "name": "14. 주요 적대자",
       "source_pointer": "/templates/5/setting_bible/sections/13/content_markdown",
-      "body_sha256": "2651099343fd63ffa2314e279f5afccbac8f6e494a36416f7c4245aa0adf0862"
+      "body_sha256": "2651099343fd63ffa2314e279f5afccbac8f6e494a36416f7c4245aa0adf0862",
+      "imported_body_sha256": "e3dceb97a852d4a5a95508b92cdc5aacd7e2e0be4b8b61f6dcd7d80784167d54",
+      "category": "인물"
     },
     {
       "document_id": "54df916e-050f-35c4-bbde-dd40f774e02f",
       "version_id": "d2417d80-d5f8-3175-afe4-0b394a3ef3e9",
       "name": "15. 퀘스트와 선택의 규칙",
       "source_pointer": "/templates/5/setting_bible/sections/14/content_markdown",
-      "body_sha256": "47a7416cc827bd043822de5f031d4d67ae2da913864291717287b87336865690"
+      "body_sha256": "47a7416cc827bd043822de5f031d4d67ae2da913864291717287b87336865690",
+      "imported_body_sha256": "20ecd032ff3462edc695d5ee5fd5d3e908831539f740708689b4400a49771e61",
+      "category": "규칙"
     },
     {
       "document_id": "22ae274e-c177-351c-b9ec-2fc3f4dbeaa3",
       "version_id": "316dc997-c045-3a6a-917a-e30f49aee4ac",
       "name": "16. 공략 지식의 활용과 한계",
       "source_pointer": "/templates/5/setting_bible/sections/15/content_markdown",
-      "body_sha256": "f1e8720db8f769fae6de4053e5ad15fc81839250b271e97651e6540fdcdd3aff"
+      "body_sha256": "f1e8720db8f769fae6de4053e5ad15fc81839250b271e97651e6540fdcdd3aff",
+      "imported_body_sha256": "fd81b6504d8cf0bc0bf886135954b9b6d1359570898697d4f7372def4ef1f1a4",
+      "category": "지식"
     },
     {
       "document_id": "61bd91da-bb2b-380e-bbe9-4f289cbf19f7",
       "version_id": "438cc5bf-691f-375a-9e50-d48ab298b811",
       "name": "17. 주요 비밀과 공개 순서",
       "source_pointer": "/templates/5/setting_bible/sections/16/content_markdown",
-      "body_sha256": "4602524d19c6404fe6d472bef99eb1308fd9232578993ca0b6be2d38816713aa"
+      "body_sha256": "4602524d19c6404fe6d472bef99eb1308fd9232578993ca0b6be2d38816713aa",
+      "imported_body_sha256": "6207fcd93845cef6dc38bcf7500c4fa0889e2fdbeac22042e721ce96ed67446d",
+      "category": "지식"
     },
     {
       "document_id": "e4f26dee-ac0c-3156-bdb3-398337e17846",
       "version_id": "a327568c-ac95-3800-b821-859387bebe8b",
       "name": "18. 장편 전개 구조",
       "source_pointer": "/templates/5/setting_bible/sections/17/content_markdown",
-      "body_sha256": "7c581683725def2fb61aaa76e58d644c2715f371b10e3a5bcf8efe04f550b576"
+      "body_sha256": "7c581683725def2fb61aaa76e58d644c2715f371b10e3a5bcf8efe04f550b576",
+      "imported_body_sha256": "e752be871e72b7132bb5c8e3b7f7712f3323d5f72229c349f6a7a5bb138e83e9",
+      "category": "기타"
     },
     {
       "document_id": "0377b2cc-a68d-3717-97cc-c916acc98b18",
       "version_id": "972123c0-6a91-3cc8-a4a1-d723c17ff182",
       "name": "19. 관계와 감정의 흐름",
       "source_pointer": "/templates/5/setting_bible/sections/18/content_markdown",
-      "body_sha256": "5a6f49369286d596a3715119df9d4c9b669cc9c22dcffc466a3c04fe7bd803cb"
+      "body_sha256": "5a6f49369286d596a3715119df9d4c9b669cc9c22dcffc466a3c04fe7bd803cb",
+      "imported_body_sha256": "7b2911b62d4a9e51c09bd6d4e0ae67fee2b08d8093832a50aeedd35349bca902",
+      "category": "관계"
     },
     {
       "document_id": "250bd9f7-b8f4-37b1-89a3-e910ad2ca7fc",
       "version_id": "fa64641c-254f-3840-8240-9c01f0cf7731",
       "name": "20. 반복해서 사용할 장면과 상징",
       "source_pointer": "/templates/5/setting_bible/sections/19/content_markdown",
-      "body_sha256": "f58a9ff14599dd6ca5c362387b8242c370ade8148da4f5c292415da95f945a52"
+      "body_sha256": "f58a9ff14599dd6ca5c362387b8242c370ade8148da4f5c292415da95f945a52",
+      "imported_body_sha256": "5f3525e78299589616d652ed44e29b063c48a061da3c4666f85e60c5a7c595df",
+      "category": "기타"
     },
     {
       "document_id": "51a34993-7612-3576-8472-fc3dabb2b9d3",
       "version_id": "dc0060ee-d542-38f3-87c7-adb098aa9319",
       "name": "21. 이야기에서 지켜야 할 설정 규칙",
       "source_pointer": "/templates/5/setting_bible/sections/20/content_markdown",
-      "body_sha256": "bd8e49d91d1125ba419cbb3b099db085e18717f8022cd4bc4f6d3b0c2d81b035"
+      "body_sha256": "bd8e49d91d1125ba419cbb3b099db085e18717f8022cd4bc4f6d3b0c2d81b035",
+      "imported_body_sha256": "487f5a926f48af7413278e84b4a0adccd8bbd6830801d91a3470496fc707f148",
+      "category": "규칙"
     },
     {
       "document_id": "8cf5f45e-fb64-3138-8777-9484f7899800",
       "version_id": "6dc74507-f861-3881-8a9f-351a7854b38a",
       "name": "22. 첫 화 도입 예시",
       "source_pointer": "/templates/5/setting_bible/sections/21/content_markdown",
-      "body_sha256": "d3f5e0856ab9adc9a2134ffc98414e9cf20149d6798e67d1d1e0d1a7b7196bd0"
+      "body_sha256": "d3f5e0856ab9adc9a2134ffc98414e9cf20149d6798e67d1d1e0d1a7b7196bd0",
+      "imported_body_sha256": "bbbb06f46bce4cbbe746158ce0dd220fc0c850cd0cb68acddddfd9d7d203bd91",
+      "category": "기타"
     }
   ],
   "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다.",
@@ -299,5 +347,14 @@
       "fork_world_reference": 0,
       "episode_draft": 1
     }
-  }
+  },
+  "categories": {
+    "기타": 11,
+    "장소": 1,
+    "규칙": 6,
+    "인물": 3,
+    "지식": 2,
+    "관계": 1
+  },
+  "content_migration": "game_fantasy/migrations/content/V23__genre_template_game_fantasy.sql"
 }

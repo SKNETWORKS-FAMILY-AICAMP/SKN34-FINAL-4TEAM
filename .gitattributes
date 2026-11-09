@@ -4,10 +4,11 @@ docs/archive/worldstudio-content-extension/*.txt -text
 infrastructure/sample-data/genre-templates/*/source/original.md -text whitespace=-blank-at-eol,-blank-at-eof
 # Avoid platform-dependent line ending conversion in byte-verified data.
 infrastructure/sample-data/genre-templates/*/content/*.csv -text
-infrastructure/sample-data/genre-templates/*/sql/*.sql -text
 # These generated data files embed the source text verbatim.
 infrastructure/sample-data/genre-templates/*/content/setting_version.csv whitespace=-blank-at-eol
 infrastructure/sample-data/genre-templates/*/content/episode_version.csv whitespace=-blank-at-eol
 infrastructure/sample-data/genre-templates/*/content/episode_draft.csv whitespace=-blank-at-eol
 infrastructure/sample-data/genre-templates/*/content/work.csv whitespace=-blank-at-eol
-infrastructure/sample-data/genre-templates/*/sql/content.sql whitespace=-blank-at-eol
+
+# Genre Flyway migrations embed original Markdown text.
+infrastructure/sample-data/genre-templates/*/migrations/content/*.sql -text whitespace=-blank-at-eol

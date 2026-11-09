@@ -15,168 +15,216 @@
       "version_id": "de5b1810-b2e0-310f-b75a-ff774f40d5e5",
       "name": "현대 판타지 전체 원문",
       "source_pointer": "/templates/2/content_markdown",
-      "body_sha256": "a45f1ded32cef730b6eaaa5b8e5c871ba7e246fb0d90a373e93cec13e51064c6"
+      "body_sha256": "a45f1ded32cef730b6eaaa5b8e5c871ba7e246fb0d90a373e93cec13e51064c6",
+      "imported_body_sha256": "de9ec7c0b537b866ba10749469f6b82119a7a9c9464227b37ed57ce840040292",
+      "category": "기타"
     },
     {
       "document_id": "a20b05d4-bcb0-3148-bbf8-9ad1a72a7b2d",
       "version_id": "f4e047c1-1291-35e8-8997-037d31c8c6f1",
       "name": "최초 기본 템플릿",
       "source_pointer": "/templates/2/content_markdown",
-      "body_sha256": "9ab99f4c70324cec28a8e46d4d1a6164d218cd9815847312a123e1b0bad8811a"
+      "body_sha256": "9ab99f4c70324cec28a8e46d4d1a6164d218cd9815847312a123e1b0bad8811a",
+      "imported_body_sha256": "609689aed6fd4061b32abdfdea4744e050099022148f22bad9c40e60aeb5ece5",
+      "category": "기타"
     },
     {
       "document_id": "5434e2c4-5652-36ca-a837-4f9262f8a2a7",
       "version_id": "12cb82da-3fd0-3bbb-9ccd-13472406c4fe",
       "name": "01. 작품의 기본 전제",
       "source_pointer": "/templates/2/setting_bible/sections/0/content_markdown",
-      "body_sha256": "a0a79f79dbd41edc6c68554a06b1492fd6b73e87e811032fbc3732473eb86d4b"
+      "body_sha256": "a0a79f79dbd41edc6c68554a06b1492fd6b73e87e811032fbc3732473eb86d4b",
+      "imported_body_sha256": "35f218d983a1f747ced7a0e754dc09a65401c7544d7dfe08afe594cc567128e6",
+      "category": "기타"
     },
     {
       "document_id": "9dbb77fc-f88b-3b31-b9a3-48ac10162bf5",
       "version_id": "fc6630c2-c288-3c3a-8031-78bc322aa48f",
       "name": "02. 게이트 출현 이후의 세계",
       "source_pointer": "/templates/2/setting_bible/sections/1/content_markdown",
-      "body_sha256": "49cd4a43a9ad3886237a095baf93f2e90d29868d3c04e549a6e2039c4ffd0733"
+      "body_sha256": "49cd4a43a9ad3886237a095baf93f2e90d29868d3c04e549a6e2039c4ffd0733",
+      "imported_body_sha256": "1c5054d2a0ed78fdc3edfc921bb0d0b0b0a8cfc2f7c73b1d858b71b42f06bf5b",
+      "category": "기타"
     },
     {
       "document_id": "2eef6917-1b56-380a-84f1-0dcb3978428b",
       "version_id": "a19f0b57-c702-3aee-80bd-3ba356ef93fa",
       "name": "03. 각성과 헌터 등급",
       "source_pointer": "/templates/2/setting_bible/sections/2/content_markdown",
-      "body_sha256": "e743a83921e521938298030d71aa7dad759c5081e7d76d652a456ab9ac21764a"
+      "body_sha256": "e743a83921e521938298030d71aa7dad759c5081e7d76d652a456ab9ac21764a",
+      "imported_body_sha256": "c95d0d4e86114a7546a97165bdd353b0510a9003f7bffa7ceba368978a2af913",
+      "category": "규칙"
     },
     {
       "document_id": "2fbf68ee-1593-33c7-8841-3d4f72b89f66",
       "version_id": "ac3ea141-e81c-3f47-99f4-00c94bbb5afa",
       "name": "04. 게이트와 던전의 작동 원리",
       "source_pointer": "/templates/2/setting_bible/sections/3/content_markdown",
-      "body_sha256": "c24d68c23a66a3cace895d3613eee762403924d58a0af01ee1ead98ed1166f7b"
+      "body_sha256": "c24d68c23a66a3cace895d3613eee762403924d58a0af01ee1ead98ed1166f7b",
+      "imported_body_sha256": "9fc6f1e812bf21ccca21fe91809ddb4ecb0ab4ed482f0823ecfcb9a73b0cc8a6",
+      "category": "규칙"
     },
     {
       "document_id": "9676d8a2-d2ac-3aed-bbbe-68c1899ca7d6",
       "version_id": "cc7664d6-9707-32f7-86f9-6ad71d80d6e3",
       "name": "05. 던전의 현실적인 제약",
       "source_pointer": "/templates/2/setting_bible/sections/4/content_markdown",
-      "body_sha256": "13c3d2a1a75d42628cf31b935b16bcfdd699a745d885aba96520dbc9d2e94490"
+      "body_sha256": "13c3d2a1a75d42628cf31b935b16bcfdd699a745d885aba96520dbc9d2e94490",
+      "imported_body_sha256": "5a0425d09af25492e7b37aaa3756116508d90830c67bdab06ccbd32e7cbb0f2e",
+      "category": "규칙"
     },
     {
       "document_id": "bb53735d-6f7b-393c-af1c-4878434681e4",
       "version_id": "7a6fbe17-28ab-33d1-a62d-b0ae103b7a29",
       "name": "06. 주요 기관과 세력",
       "source_pointer": "/templates/2/setting_bible/sections/5/content_markdown",
-      "body_sha256": "55a41ddcd01805dff0064410e4373d7b2e743eb0beb77c6dd8c82a23abb47906"
+      "body_sha256": "55a41ddcd01805dff0064410e4373d7b2e743eb0beb77c6dd8c82a23abb47906",
+      "imported_body_sha256": "86a2e2b0b59f4da5b0941def1dcb46762570077f6594c5562eb63bc1f26773db",
+      "category": "기타"
     },
     {
       "document_id": "39451e54-4fb3-39b7-89db-1f1b244621d4",
       "version_id": "1b945f6a-e322-3910-81ad-d89569a7cfc6",
       "name": "07. 주요 장소",
       "source_pointer": "/templates/2/setting_bible/sections/6/content_markdown",
-      "body_sha256": "d4b7f8e4b7d0090f49fd4c167067e5faf2030344e0faca2eb14fb02b0791b8bc"
+      "body_sha256": "d4b7f8e4b7d0090f49fd4c167067e5faf2030344e0faca2eb14fb02b0791b8bc",
+      "imported_body_sha256": "5ad32de4c73611b48375708e8b9aec8f627df5826d06bf9e66a959a2f2bcd1be",
+      "category": "장소"
     },
     {
       "document_id": "dab7b518-afec-3ebc-b05a-5d3b09ddbb84",
       "version_id": "24fcb25d-7139-330e-9d48-156161de31ce",
       "name": "08. 주인공 강도윤",
       "source_pointer": "/templates/2/setting_bible/sections/7/content_markdown",
-      "body_sha256": "316cb4d304e85a03e8075af0a41124550b6db025317defe3d3da68c4885d56d4"
+      "body_sha256": "316cb4d304e85a03e8075af0a41124550b6db025317defe3d3da68c4885d56d4",
+      "imported_body_sha256": "35083320aaddab8c90ac0650dd631d43e0fa1eb250a88338c72e10b92fe60871",
+      "category": "인물"
     },
     {
       "document_id": "782afad2-bff8-32fb-a2f9-9fb2ddd4b8d4",
       "version_id": "35193b5f-6cfa-395d-80c5-a17d4f93a1d2",
       "name": "09. 가족",
       "source_pointer": "/templates/2/setting_bible/sections/8/content_markdown",
-      "body_sha256": "99a9425ca48ad03f33fa1b934f8adb2befa13e8c0a5dec05f40679b6c9c06b52"
+      "body_sha256": "99a9425ca48ad03f33fa1b934f8adb2befa13e8c0a5dec05f40679b6c9c06b52",
+      "imported_body_sha256": "a8d4be61f7323a59d62472abc07e4e4cf04db3d20126a28c4623b9a2667bf641",
+      "category": "인물"
     },
     {
       "document_id": "16c55672-5a0f-3232-ada5-bacdebba88f3",
       "version_id": "61fc49e9-d8d6-32c2-8dfd-d7cead999ff3",
       "name": "10. 주요 동료",
       "source_pointer": "/templates/2/setting_bible/sections/9/content_markdown",
-      "body_sha256": "226816a7f3bae2ac15b9ee2b5cb4c1d34b6d011fba6f1b28af1eeef168e2dc75"
+      "body_sha256": "226816a7f3bae2ac15b9ee2b5cb4c1d34b6d011fba6f1b28af1eeef168e2dc75",
+      "imported_body_sha256": "1bfc2dc9fe590647f284a7c15ad956a9b353174cb56801668274547acc371977",
+      "category": "인물"
     },
     {
       "document_id": "20ed4dba-4361-3d67-80b1-ea68034816ab",
       "version_id": "999a901c-4321-3aa1-a6ce-413d9acc81de",
       "name": "11. 주요 적대자",
       "source_pointer": "/templates/2/setting_bible/sections/10/content_markdown",
-      "body_sha256": "a25696b4725b5860db273f1515ed7d21f8b72fe24ea9baefd3f3b069213326ce"
+      "body_sha256": "a25696b4725b5860db273f1515ed7d21f8b72fe24ea9baefd3f3b069213326ce",
+      "imported_body_sha256": "e7391c0ed89fd5941ed72fdc693930831c19b53bfaa334903d4fef69bc7d5b15",
+      "category": "인물"
     },
     {
       "document_id": "5979ac87-4b54-3416-8ea4-6ec204812037",
       "version_id": "bf2cc326-bee9-3c2f-b73a-48a9c1fc5b5b",
       "name": "12. 성장 시스템의 기본 구성",
       "source_pointer": "/templates/2/setting_bible/sections/11/content_markdown",
-      "body_sha256": "cf54fe3514f36a112181fbb217450847533ff44f239c63341ca634023e16aa51"
+      "body_sha256": "cf54fe3514f36a112181fbb217450847533ff44f239c63341ca634023e16aa51",
+      "imported_body_sha256": "4c8679b0f6ac264d5f1d2258ba4324157329a8ccfeb3664eeb575184299d3036",
+      "category": "규칙"
     },
     {
       "document_id": "1f0097ba-d020-3731-b90e-d6c63ddd7ab7",
       "version_id": "9d9bfc52-1a81-343c-ba12-a4ed912015b9",
       "name": "13. 레벨업과 스킬의 규칙",
       "source_pointer": "/templates/2/setting_bible/sections/12/content_markdown",
-      "body_sha256": "507a4a04af68ef37001cd0d394d0c861aa039ad9404357dc002bb7c321a901db"
+      "body_sha256": "507a4a04af68ef37001cd0d394d0c861aa039ad9404357dc002bb7c321a901db",
+      "imported_body_sha256": "19b4bfef5b3d518cb43c7f27e6aad8cf5484787494919f3e41fb00bd28b89a14",
+      "category": "규칙"
     },
     {
       "document_id": "2b9b4a36-f6b0-3c01-a3e9-c61c0dce02a4",
       "version_id": "18dad82a-cf45-319b-bb18-59ce83f8c638",
       "name": "14. 주인공의 대표 스킬과 전투 방식",
       "source_pointer": "/templates/2/setting_bible/sections/13/content_markdown",
-      "body_sha256": "30192b75ecefad9efe2899c687ba405dc0a8d5abc234da1178549510e416fb42"
+      "body_sha256": "30192b75ecefad9efe2899c687ba405dc0a8d5abc234da1178549510e416fb42",
+      "imported_body_sha256": "ec07dd5177a356161b556effdc1dc90d80ec2ff363e9d00c4b3c9c2600185f29",
+      "category": "규칙"
     },
     {
       "document_id": "1ef84f10-0e6c-3a6a-9f58-a95301936a2a",
       "version_id": "cf2f090c-d317-3583-8baa-c289cd42e483",
       "name": "15. 퀘스트의 보상과 위험",
       "source_pointer": "/templates/2/setting_bible/sections/14/content_markdown",
-      "body_sha256": "3066fa3a4f6b31adc40e15c815e56528660fc74bb2faa819f2b2f259b5678427"
+      "body_sha256": "3066fa3a4f6b31adc40e15c815e56528660fc74bb2faa819f2b2f259b5678427",
+      "imported_body_sha256": "e3c60466684232c03de18b053bb46e804f3cc6a55f96c65fb179fbffecaa4040",
+      "category": "규칙"
     },
     {
       "document_id": "272b773a-6b99-3693-95c6-da17ec739c93",
       "version_id": "e3d160c0-1986-38ef-8d9a-ec21da325598",
       "name": "16. 시스템과 게이트의 진실",
       "source_pointer": "/templates/2/setting_bible/sections/15/content_markdown",
-      "body_sha256": "1daa08b51c420a00c285cd4be85a4e74e34768505cd9ba0ddf0ebe83c1b0d023"
+      "body_sha256": "1daa08b51c420a00c285cd4be85a4e74e34768505cd9ba0ddf0ebe83c1b0d023",
+      "imported_body_sha256": "b452a2a355da13383821e87ebd5e956b264d796e146229771b91a9eebdbe1498",
+      "category": "지식"
     },
     {
       "document_id": "2bb8bb00-e940-3111-b7d4-f89eb7ee4407",
       "version_id": "db614221-b0db-3062-9f20-90e97b0c4d41",
       "name": "17. 주요 비밀과 공개 순서",
       "source_pointer": "/templates/2/setting_bible/sections/16/content_markdown",
-      "body_sha256": "d4009feb52303b8e23ca4809e595259b1f14d21be51a7903e191472dee0d73b6"
+      "body_sha256": "d4009feb52303b8e23ca4809e595259b1f14d21be51a7903e191472dee0d73b6",
+      "imported_body_sha256": "5ebcbaf7ad3f96dab44885287186d7a7361a348c14e80e3508d589b36dfc5762",
+      "category": "지식"
     },
     {
       "document_id": "eb87b54d-70e5-3c53-9898-7ed86481d590",
       "version_id": "a00d4620-1032-32b9-a99a-8d821fedea97",
       "name": "18. 장편 전개 구조",
       "source_pointer": "/templates/2/setting_bible/sections/17/content_markdown",
-      "body_sha256": "b0ecaf7069b91edbd5e7bb9d77a781052f78a1b10d36f0ae57405857b392414a"
+      "body_sha256": "b0ecaf7069b91edbd5e7bb9d77a781052f78a1b10d36f0ae57405857b392414a",
+      "imported_body_sha256": "f4f114cccef3376fa3f48c36bb3b3c52950da32a780c669d14c8b136218fe977",
+      "category": "기타"
     },
     {
       "document_id": "8c460e17-33e4-3b6f-bc57-696ae851c691",
       "version_id": "1d776025-a718-3f72-a329-aa44584d7e6c",
       "name": "19. 감정과 관계의 흐름",
       "source_pointer": "/templates/2/setting_bible/sections/18/content_markdown",
-      "body_sha256": "07006c1abe01595e20ebcee2c0a022bcf07a12e660375efe4171c45506956a32"
+      "body_sha256": "07006c1abe01595e20ebcee2c0a022bcf07a12e660375efe4171c45506956a32",
+      "imported_body_sha256": "6ddbca0801e48216d875c0d54b0ee90c524aa0113530100b20849e4739036426",
+      "category": "관계"
     },
     {
       "document_id": "028519e9-b89f-3c19-ab19-8df19732708f",
       "version_id": "69a2e121-2dcb-3efd-8676-510153b97593",
       "name": "20. 반복해서 사용할 장면과 상징",
       "source_pointer": "/templates/2/setting_bible/sections/19/content_markdown",
-      "body_sha256": "6a9258f621a2b13b02bdaf5345a2baee43b7f7a0a054700f85d4f7a334f8d60f"
+      "body_sha256": "6a9258f621a2b13b02bdaf5345a2baee43b7f7a0a054700f85d4f7a334f8d60f",
+      "imported_body_sha256": "e2cdf16b9fae4d247cdeb77d649146b0aa0bc825d7d20d6e3cab12c53d5f77b0",
+      "category": "기타"
     },
     {
       "document_id": "bc143bca-800b-3c42-9781-79e0bf880e67",
       "version_id": "3cf78af2-b8e2-3474-b0ec-5c83becf0fbf",
       "name": "21. 이야기에서 지켜야 할 설정 규칙",
       "source_pointer": "/templates/2/setting_bible/sections/20/content_markdown",
-      "body_sha256": "fee4943ab743b2a0f7327612ec413b6849cb6f1659787ac6dd1d77ad86a40156"
+      "body_sha256": "fee4943ab743b2a0f7327612ec413b6849cb6f1659787ac6dd1d77ad86a40156",
+      "imported_body_sha256": "0eabeeff0a5b553ce7ba0258155d0937f65c885c469debf67c1f57df06423382",
+      "category": "규칙"
     },
     {
       "document_id": "023118eb-8b4c-356d-8043-b940c962f559",
       "version_id": "a81b8e0e-2113-3ac3-a8b2-7a33b779b36a",
       "name": "22. 첫 화 도입 예시",
       "source_pointer": "/templates/2/setting_bible/sections/21/content_markdown",
-      "body_sha256": "5534e36892119403091e807cf3c93212f68ad57e9cccc70124123ac07aa25b33"
+      "body_sha256": "5534e36892119403091e807cf3c93212f68ad57e9cccc70124123ac07aa25b33",
+      "imported_body_sha256": "7885d873c5be77989e5c77cf4bd318987098ed78bb709fea406991b81193184f",
+      "category": "기타"
     }
   ],
   "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다.",
@@ -298,5 +346,14 @@
       "fork_world_reference": 0,
       "episode_draft": 1
     }
-  }
+  },
+  "categories": {
+    "기타": 8,
+    "규칙": 8,
+    "장소": 1,
+    "인물": 4,
+    "지식": 2,
+    "관계": 1
+  },
+  "content_migration": "modern_fantasy/migrations/content/V20__genre_template_modern_fantasy.sql"
 }

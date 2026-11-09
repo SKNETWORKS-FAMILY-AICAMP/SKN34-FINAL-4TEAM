@@ -16,161 +16,207 @@
       "version_id": "20355f23-eaf7-3b38-a5c7-c517a5f18fd3",
       "name": "아포칼립스 전체 원문",
       "source_pointer": "/templates/8/content_markdown",
-      "body_sha256": "d2bd28d83d4637cbe6f08d0121973eddbc4e13afb958c413a8cc6453255d7928"
+      "body_sha256": "d2bd28d83d4637cbe6f08d0121973eddbc4e13afb958c413a8cc6453255d7928",
+      "imported_body_sha256": "0ab5e80b15aa2afa467dd8171865b33bed94d2651a27088fc6bdb698bdd3355d",
+      "category": "기타"
     },
     {
       "document_id": "4a5b034c-3233-3599-8011-1e4157cb3521",
       "version_id": "b64b3040-a0fd-3e08-9972-b7885f1d7cd6",
       "name": "01. 작품의 기본 전제",
       "source_pointer": "/templates/8/setting_bible/sections/0/content_markdown",
-      "body_sha256": "6ed5ad39fefee6da51e8671de310da3380a42cd42ab08e8c56ba948179c54d9c"
+      "body_sha256": "6ed5ad39fefee6da51e8671de310da3380a42cd42ab08e8c56ba948179c54d9c",
+      "imported_body_sha256": "ce74ba54f5511c8bd05fb056088d46e9b3a84246221ac5ee23f83bd3db2e9fdb",
+      "category": "기타"
     },
     {
       "document_id": "e992e100-8ea7-334a-bde4-dd5eed626f21",
       "version_id": "4a320413-3c53-3a17-b2d7-ad226c0b175d",
       "name": "02. 재난의 이름과 첫날",
       "source_pointer": "/templates/8/setting_bible/sections/1/content_markdown",
-      "body_sha256": "4d8e326ea5ac93af7f938f739afeb951297eae71f0bc93351ec4a501fcd3fb56"
+      "body_sha256": "4d8e326ea5ac93af7f938f739afeb951297eae71f0bc93351ec4a501fcd3fb56",
+      "imported_body_sha256": "0ec50c64875d536dbfb6edd478208dd91e8ee3cb13cd9985a9ccffc6efb7ffc2",
+      "category": "기타"
     },
     {
       "document_id": "dba77b4d-3585-3ebe-9a04-1063a539ff24",
       "version_id": "5cdbce3e-c07e-3612-b437-fd354c579762",
       "name": "03. 회색 오염의 기본 규칙",
       "source_pointer": "/templates/8/setting_bible/sections/2/content_markdown",
-      "body_sha256": "4d6406a196760f333fbabc552390bac05c2f29cfc541d4b14d21488bd655a10c"
+      "body_sha256": "4d6406a196760f333fbabc552390bac05c2f29cfc541d4b14d21488bd655a10c",
+      "imported_body_sha256": "3cfb446bb7bd15251611162938825376804375001528d3c172cbae0143c1b214",
+      "category": "규칙"
     },
     {
       "document_id": "0fa96f67-09b1-38f3-a0f4-426f1a801338",
       "version_id": "8fdca4cd-00f1-3013-866c-090c81f329c8",
       "name": "04. 붕괴의 속도와 일상",
       "source_pointer": "/templates/8/setting_bible/sections/3/content_markdown",
-      "body_sha256": "f47c9d204d147907917b19d95f1f2a0cad0193f04834ba3312d93a48d526afec"
+      "body_sha256": "f47c9d204d147907917b19d95f1f2a0cad0193f04834ba3312d93a48d526afec",
+      "imported_body_sha256": "d664283b2c7a2dcc9ff5c42eda55a25d24848eee78b4c7d8acd9f930ad3dda53",
+      "category": "기타"
     },
     {
       "document_id": "ca773e29-3d59-3718-bfe1-1b0693c7bf1a",
       "version_id": "ba88575a-4d05-3fe1-a8aa-07cd078f70f5",
       "name": "05. 감염자와 변이체",
       "source_pointer": "/templates/8/setting_bible/sections/4/content_markdown",
-      "body_sha256": "0fbbd7b4d1d99661c5dd76b46252d0300af3dfcd950065dd99699ec2fcea3fb6"
+      "body_sha256": "0fbbd7b4d1d99661c5dd76b46252d0300af3dfcd950065dd99699ec2fcea3fb6",
+      "imported_body_sha256": "a8b610c931ab0b78e5944f402c6e88901db8722b041497b3ff9436e1433ee217",
+      "category": "기타"
     },
     {
       "document_id": "e9b663e2-c35b-3530-a195-2b8596789e2d",
       "version_id": "167bd594-c635-3832-9b25-b495c7277755",
       "name": "06. 각성자와 능력의 한계",
       "source_pointer": "/templates/8/setting_bible/sections/5/content_markdown",
-      "body_sha256": "67433be3361ad94fb86d4be115c6e6b28c146d1ee93ff6d49a27cb8acaaca5ba"
+      "body_sha256": "67433be3361ad94fb86d4be115c6e6b28c146d1ee93ff6d49a27cb8acaaca5ba",
+      "imported_body_sha256": "ad997e4bdd488b84543b3135329ffc4200f694fdeaf02e9a32d2aba46d9fa803",
+      "category": "규칙"
     },
     {
       "document_id": "d32c66b6-e467-3b20-b7aa-6033d0991f40",
       "version_id": "41c6f585-16de-3fac-9812-b73cccf9af85",
       "name": "07. 주인공의 능력 — 잔향 감지",
       "source_pointer": "/templates/8/setting_bible/sections/6/content_markdown",
-      "body_sha256": "e25ae7f03717ce43967301578f1efbf724ab213f9ca3ea0a2d91dfe7ba793d8e"
+      "body_sha256": "e25ae7f03717ce43967301578f1efbf724ab213f9ca3ea0a2d91dfe7ba793d8e",
+      "imported_body_sha256": "bca7b3d1f12642d8f0d62183270101029d1d9406ddbe1eb0fae31d64173598d9",
+      "category": "규칙"
     },
     {
       "document_id": "c0fe6689-9abf-31a7-83b8-d7d8b627db98",
       "version_id": "9dd581cf-112d-3da6-8e67-c9f9d1802a41",
       "name": "08. 주요 장소",
       "source_pointer": "/templates/8/setting_bible/sections/7/content_markdown",
-      "body_sha256": "66e29cc05a83760d6b1082ce60f04bafe72eba2da040d13e5e86d8ef091c5b84"
+      "body_sha256": "66e29cc05a83760d6b1082ce60f04bafe72eba2da040d13e5e86d8ef091c5b84",
+      "imported_body_sha256": "300ba88d777caa6c19fe91d2489e5a69650d7d4f62331e013e51516e6434ccac",
+      "category": "장소"
     },
     {
       "document_id": "7b9d6544-8201-3c89-a789-f15f7acc10c0",
       "version_id": "7817badd-820d-3fac-b34f-cad903e70ff7",
       "name": "09. 주인공 윤태건",
       "source_pointer": "/templates/8/setting_bible/sections/8/content_markdown",
-      "body_sha256": "3b743c5124eb2c2cdf775446147bc50aed98fa0eabcd4c2049100aa114c87982"
+      "body_sha256": "3b743c5124eb2c2cdf775446147bc50aed98fa0eabcd4c2049100aa114c87982",
+      "imported_body_sha256": "d948a1bbc7655a033d80e3bdf57b84711724d5f233749f0bb4d1dcaf7cd66eac",
+      "category": "인물"
     },
     {
       "document_id": "e7354572-3e7d-3082-b104-b7c58cde7ce6",
       "version_id": "90984b98-1a84-3137-893f-52b9e6eca05a",
       "name": "10. 가족과 가까운 사람들",
       "source_pointer": "/templates/8/setting_bible/sections/9/content_markdown",
-      "body_sha256": "79ee723f015172eb9feeda708e804526f229e2e0d8b84308f493282236b4a23d"
+      "body_sha256": "79ee723f015172eb9feeda708e804526f229e2e0d8b84308f493282236b4a23d",
+      "imported_body_sha256": "5a6f4cd3655956049561387703f6764a5f87cc483043a977270d910927767e8c",
+      "category": "인물"
     },
     {
       "document_id": "b12b44fe-6a61-3129-8997-9f765746f269",
       "version_id": "d8715fa2-c2a3-309f-a615-440b3bdd57c3",
       "name": "11. 주요 동료",
       "source_pointer": "/templates/8/setting_bible/sections/10/content_markdown",
-      "body_sha256": "5c05e4c61efa1946ca1bbe4cea07ec0bcc3908353aa63a150ef3b61e553f4d3e"
+      "body_sha256": "5c05e4c61efa1946ca1bbe4cea07ec0bcc3908353aa63a150ef3b61e553f4d3e",
+      "imported_body_sha256": "a57a2fdba7a4e79a97d22abd5381118ea77ac127d07553205e94746c57fb25a9",
+      "category": "인물"
     },
     {
       "document_id": "67b1446e-8f3a-34f4-87ea-fbdd4b169994",
       "version_id": "e61e94d9-0391-3183-ad7b-c49f7a9f3527",
       "name": "12. 주요 생존자 세력",
       "source_pointer": "/templates/8/setting_bible/sections/11/content_markdown",
-      "body_sha256": "9544514e4a3f69f2d02fc64dc0a63b4fbb7e10fe4a02adde6fdf41f6207aadd5"
+      "body_sha256": "9544514e4a3f69f2d02fc64dc0a63b4fbb7e10fe4a02adde6fdf41f6207aadd5",
+      "imported_body_sha256": "056a69e200ab26e04cdf91cff8963703545e3b573c920ad46ad2a24694c73444",
+      "category": "기타"
     },
     {
       "document_id": "57804dee-5139-37ee-8850-eeec64ecbb15",
       "version_id": "74644685-7ac7-3c21-9928-8c9a3471cc38",
       "name": "13. 주요 적대자",
       "source_pointer": "/templates/8/setting_bible/sections/12/content_markdown",
-      "body_sha256": "c33dad72444d9e4af3c3ca1852a48d40ca117e7bf47820099f0e5fb3ba519b63"
+      "body_sha256": "c33dad72444d9e4af3c3ca1852a48d40ca117e7bf47820099f0e5fb3ba519b63",
+      "imported_body_sha256": "d095e8d862476b45763e2b3b61cf0123c8fc0be2515bd8ab21c2bb133b81b6c4",
+      "category": "인물"
     },
     {
       "document_id": "769437ab-56ba-3f27-b048-fb149c7468e8",
       "version_id": "39c6544a-693f-3b34-b56a-95156c950e92",
       "name": "14. 회귀의 원리와 제한",
       "source_pointer": "/templates/8/setting_bible/sections/13/content_markdown",
-      "body_sha256": "6ea2cafc42596c2de16bcdd3f38368a0f9b83e3db2484f64dcb2beec5aec2063"
+      "body_sha256": "6ea2cafc42596c2de16bcdd3f38368a0f9b83e3db2484f64dcb2beec5aec2063",
+      "imported_body_sha256": "84af84ce4f972e9a9d60ff36d8dca2d3f513441a9f9a40062817d0a27a0cf6b8",
+      "category": "규칙"
     },
     {
       "document_id": "cf7f2da7-5262-3c4a-98d8-3e6d8f7e4131",
       "version_id": "486168cc-f218-324f-9eb5-b7bc902cb03a",
       "name": "15. 멸망 전 삼십 일의 준비",
       "source_pointer": "/templates/8/setting_bible/sections/14/content_markdown",
-      "body_sha256": "42befa3cd1d90ddf77b07546c7080cfb75078abb27cac185d39f9f40772f4189"
+      "body_sha256": "42befa3cd1d90ddf77b07546c7080cfb75078abb27cac185d39f9f40772f4189",
+      "imported_body_sha256": "4398a8bdc6de5152336bef5f52e53da806d7cb6cf7db706189a8e1452e710630",
+      "category": "기타"
     },
     {
       "document_id": "6be616a3-cf37-35bb-bf8d-3751ac27803f",
       "version_id": "4f4fa420-9573-3715-9b68-a8a3472c5f3c",
       "name": "16. 거점 운영의 핵심",
       "source_pointer": "/templates/8/setting_bible/sections/15/content_markdown",
-      "body_sha256": "3a7a7f7163773283fe5d8d5d0e0c8016cc3f980a8bfc9bd59676e8b698ec2bbe"
+      "body_sha256": "3a7a7f7163773283fe5d8d5d0e0c8016cc3f980a8bfc9bd59676e8b698ec2bbe",
+      "imported_body_sha256": "1893224bf7e92a74cc721cc8cf8264a3e727f7c8f799dc9ee0e18ba70f23b4a3",
+      "category": "규칙"
     },
     {
       "document_id": "3d3dbac8-faa3-3651-aea6-180a82c1204d",
       "version_id": "921126a6-8650-3156-bcb6-1fa1fb41d79c",
       "name": "17. 주요 비밀과 공개 순서",
       "source_pointer": "/templates/8/setting_bible/sections/16/content_markdown",
-      "body_sha256": "7e860a466cbf17dc7fa606b881aa8c03552c97b3d45c181f1008ccb790ae356b"
+      "body_sha256": "7e860a466cbf17dc7fa606b881aa8c03552c97b3d45c181f1008ccb790ae356b",
+      "imported_body_sha256": "c961770c8f144de345caa42372cb249602bf71640d5ce0b007207bb55e6ff166",
+      "category": "지식"
     },
     {
       "document_id": "cee463da-2cf8-304a-a072-89528a112a9b",
       "version_id": "c751bcca-3d25-37c4-9bd4-3a51936a15e1",
       "name": "18. 장편 전개 구조",
       "source_pointer": "/templates/8/setting_bible/sections/17/content_markdown",
-      "body_sha256": "73b29e092e8435d6fd12a79e3a6052c29714925b60357fccad2f7538dc002d7a"
+      "body_sha256": "73b29e092e8435d6fd12a79e3a6052c29714925b60357fccad2f7538dc002d7a",
+      "imported_body_sha256": "c19919f3328d3169cbca65f0ad9e7951d092bd2f7204b3e50737c89ac0e3ad8a",
+      "category": "기타"
     },
     {
       "document_id": "0a746533-d183-3948-a5b0-0bd5559627e4",
       "version_id": "c79f5c00-2364-39fa-9119-2332793b872e",
       "name": "19. 관계와 감정의 흐름",
       "source_pointer": "/templates/8/setting_bible/sections/18/content_markdown",
-      "body_sha256": "44af02e4c044a9ca598c7ba29ee50c65dadcb8a229f989e7b6c7ac1ee3e8d538"
+      "body_sha256": "44af02e4c044a9ca598c7ba29ee50c65dadcb8a229f989e7b6c7ac1ee3e8d538",
+      "imported_body_sha256": "0d6741c2cbbb5e9d273a877d932229ee93a3482e82ad2ea0a958ff43735d94be",
+      "category": "관계"
     },
     {
       "document_id": "43a0b909-c10a-34da-87c3-3453b20f46ae",
       "version_id": "d73cc76a-bc37-316c-8703-76d1909a80e6",
       "name": "20. 반복해서 사용할 장면과 상징",
       "source_pointer": "/templates/8/setting_bible/sections/19/content_markdown",
-      "body_sha256": "684f24474d698bd0cf403f15042649e8d90c57173ce3549a62c1b8deb7ea04cd"
+      "body_sha256": "684f24474d698bd0cf403f15042649e8d90c57173ce3549a62c1b8deb7ea04cd",
+      "imported_body_sha256": "be9b8b965fb2547d56f3a4ffe3f43d7b2cf19b9d306188483919f8c39ba0a234",
+      "category": "기타"
     },
     {
       "document_id": "a28662c0-7835-3522-8431-a8c76178d0be",
       "version_id": "a8c569f7-af00-33a8-ac88-d26d3f10792e",
       "name": "21. 이야기에서 지켜야 할 설정 규칙",
       "source_pointer": "/templates/8/setting_bible/sections/20/content_markdown",
-      "body_sha256": "a0c8b1f3f5b2779176c1c95ecbee79a77efd179ca714959da3414f6b89fb9ed6"
+      "body_sha256": "a0c8b1f3f5b2779176c1c95ecbee79a77efd179ca714959da3414f6b89fb9ed6",
+      "imported_body_sha256": "19264f6126f8cf08ee2bd23dfe3dfcebd52b5642b7d4267fda0634cb1717de1b",
+      "category": "규칙"
     },
     {
       "document_id": "70b49b17-2541-3a97-9447-c99b9af23f73",
       "version_id": "2db60ad1-139f-368b-a387-f075fa16ab91",
       "name": "22. 첫 화 도입 예시",
       "source_pointer": "/templates/8/setting_bible/sections/21/content_markdown",
-      "body_sha256": "7916f850b359184b7306fd2316ce9421efb2728ef31d57bf4443c0de1d282f48"
+      "body_sha256": "7916f850b359184b7306fd2316ce9421efb2728ef31d57bf4443c0de1d282f48",
+      "imported_body_sha256": "844a3c7e520882ab9700d65486899a33ec048913b6954145b9bb69c3dff89389",
+      "category": "기타"
     }
   ],
   "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다.",
@@ -288,5 +334,14 @@
       "fork_world_reference": 0,
       "episode_draft": 1
     }
-  }
+  },
+  "categories": {
+    "기타": 10,
+    "규칙": 6,
+    "장소": 1,
+    "인물": 4,
+    "지식": 1,
+    "관계": 1
+  },
+  "content_migration": "apocalypse/migrations/content/V26__genre_template_apocalypse.sql"
 }

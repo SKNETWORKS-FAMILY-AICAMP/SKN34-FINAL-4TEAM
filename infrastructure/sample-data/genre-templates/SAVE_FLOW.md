@@ -19,7 +19,7 @@
 
 ## 적용 및 한계
 
-장르별 CSV는 기존 31개와 episode_draft 1개로 총 32개입니다. 루트 load.py는 기존 파서/SQL renderer를 바탕으로 이 테이블과 edit_revision 정수 타입·기본키만 추가한 패키지 전용 버전입니다. 한 번에 하나의 장르만 선택하며 migration 경로에 쓰지 않습니다.
+장르별 데이터는 Flyway 버전 SQL로 제공합니다. 적용 순서와 서비스별 이력 경계는 FLYWAY.md에, 문서별 분류는 CATEGORY_MAPPING.md에 설명합니다. CSV는 확인용 스냅샷입니다.
 
 기존 미적용 준비본을 대체합니다. 이전 준비본을 이미 DB에 적재했다면 새 INSERT를 그대로 중복 적용하지 마세요. ID 및 revision 정정은 ON CONFLICT DO NOTHING으로 갱신되지 않으므로 별도의 데이터 이관이 필요합니다. 이 작업에서는 DB 적용을 수행하지 않았습니다.
 

@@ -15,168 +15,216 @@
       "version_id": "3780c583-1361-3807-862b-f42dcf0fa1dc",
       "name": "대체역사 전체 원문",
       "source_pointer": "/templates/4/content_markdown",
-      "body_sha256": "dab6fda2a9b4f53b9cc44aa9bd33de4c131036ab6882895cbb9e470bedb0cf31"
+      "body_sha256": "dab6fda2a9b4f53b9cc44aa9bd33de4c131036ab6882895cbb9e470bedb0cf31",
+      "imported_body_sha256": "dc7d5ec6768facb99d3b9e94a004c497af9242e93361da56a60cd81f0a801e95",
+      "category": "기타"
     },
     {
       "document_id": "201d76f5-d71e-356b-b4c0-f3c01fa5f217",
       "version_id": "c5ca41d9-5ffa-3317-84d7-1fdfea39985c",
       "name": "최초 기본 템플릿",
       "source_pointer": "/templates/4/content_markdown",
-      "body_sha256": "89930b4f6055fe20c4bff87f26f444d91d3522e019bb6e5521254244313684ee"
+      "body_sha256": "89930b4f6055fe20c4bff87f26f444d91d3522e019bb6e5521254244313684ee",
+      "imported_body_sha256": "1859ea8dfc009b915fec686d56dea563d6291ebe866c1edac8cce5e5f2601d6b",
+      "category": "기타"
     },
     {
       "document_id": "2c7dd116-8e95-3078-a2df-9fc137ddbee2",
       "version_id": "1dfa0f4c-0bdb-3a45-9498-c25f7839f392",
       "name": "01. 작품의 기본 전제",
       "source_pointer": "/templates/4/setting_bible/sections/0/content_markdown",
-      "body_sha256": "acc63707d62c2cbd80b08e4d82da6913974c566cbedab4df8fc282d9d7808d4a"
+      "body_sha256": "acc63707d62c2cbd80b08e4d82da6913974c566cbedab4df8fc282d9d7808d4a",
+      "imported_body_sha256": "25b8006d50e853a80e14b91e9e48e6538f2bdb49b9a8e353af5ad7e50558b896",
+      "category": "기타"
     },
     {
       "document_id": "151de66a-2f54-3d4f-9fcc-972b7a0e0089",
       "version_id": "ee125a62-db6e-30bd-b254-f1f8e2b92878",
       "name": "02. 역사적 분기와 작품의 범위",
       "source_pointer": "/templates/4/setting_bible/sections/1/content_markdown",
-      "body_sha256": "dc501dc1e539471879e0eadc06fd83d0b7e36b5e47a01bf8c9c899d3d41f6a28"
+      "body_sha256": "dc501dc1e539471879e0eadc06fd83d0b7e36b5e47a01bf8c9c899d3d41f6a28",
+      "imported_body_sha256": "89b4919143a1157a7602fa4c3d42e69ee1290b37fd46bed1028a88b1f11b4ac4",
+      "category": "기타"
     },
     {
       "document_id": "52fbf849-0a2d-33f9-8827-7aeba0abc130",
       "version_id": "e65511cb-e19f-3bbe-a435-69bac8a34129",
       "name": "03. 왕실과 권력 구조",
       "source_pointer": "/templates/4/setting_bible/sections/2/content_markdown",
-      "body_sha256": "4e057a3d26d3aa7dfa5b8dcf961322860315b72e1b8fa7c3f3fc74c9ff53ae43"
+      "body_sha256": "4e057a3d26d3aa7dfa5b8dcf961322860315b72e1b8fa7c3f3fc74c9ff53ae43",
+      "imported_body_sha256": "368d0881e2eb563b8cd983b4d7826b655eee98ca5fe2bc32f21aca20023d2af5",
+      "category": "기타"
     },
     {
       "document_id": "214bcaad-1ecd-3571-b325-b2d07bba4d0b",
       "version_id": "fa8f35ab-33d8-3800-aa55-30b8b57cd1c6",
       "name": "04. 조정의 주요 세력",
       "source_pointer": "/templates/4/setting_bible/sections/3/content_markdown",
-      "body_sha256": "95514ba390bd32406fe1d058c77e30e6be2017cf905bb54c59dad8d50d43312f"
+      "body_sha256": "95514ba390bd32406fe1d058c77e30e6be2017cf905bb54c59dad8d50d43312f",
+      "imported_body_sha256": "740c0ee7ffc97a8ddb7ed50542a0c1b2ea2da526001ca79dcc261e06766d95cf",
+      "category": "기타"
     },
     {
       "document_id": "851dc6bf-3070-3451-8157-b69c57c9f1b1",
       "version_id": "ade237e7-414a-3146-bd90-e7ef276d0ebc",
       "name": "05. 나라의 경제와 백성의 생활",
       "source_pointer": "/templates/4/setting_bible/sections/4/content_markdown",
-      "body_sha256": "686512a0cc6388bab982f1aaf85a7aef335415c042f9857cdf2d9a770f9d4b52"
+      "body_sha256": "686512a0cc6388bab982f1aaf85a7aef335415c042f9857cdf2d9a770f9d4b52",
+      "imported_body_sha256": "f49371652fd09522913681047189fe37066b7c722eefabadd0c5232da8c0ccce",
+      "category": "기타"
     },
     {
       "document_id": "056040bb-6134-3534-b45c-2c20cd132812",
       "version_id": "043b93bb-ce25-3bb8-8bd8-da72191ec77d",
       "name": "06. 주변국과 전쟁의 배경",
       "source_pointer": "/templates/4/setting_bible/sections/5/content_markdown",
-      "body_sha256": "3936592b06310deb02de80f1c36cb177d2a41ecc6023b01ab3ea5e3648830843"
+      "body_sha256": "3936592b06310deb02de80f1c36cb177d2a41ecc6023b01ab3ea5e3648830843",
+      "imported_body_sha256": "d1e82c8cc7ae4d66d798bf5ca70dbedd9aa7a8055b8eae1659f7c9ed083cbbb8",
+      "category": "기타"
     },
     {
       "document_id": "158fa320-5246-37b2-9040-c4d6c5b7c22a",
       "version_id": "aad69ee1-6ed1-3c02-be9d-65fb0eb6116c",
       "name": "07. 주요 장소",
       "source_pointer": "/templates/4/setting_bible/sections/6/content_markdown",
-      "body_sha256": "ada110cac9e081f7ffe405563eeb1b6cf7e565950637b47d25d809202c5f6ce6"
+      "body_sha256": "ada110cac9e081f7ffe405563eeb1b6cf7e565950637b47d25d809202c5f6ce6",
+      "imported_body_sha256": "d86d683867f663d65ca0cde842f01e0ce85ed95f948f233561c61dda3e96cc26",
+      "category": "장소"
     },
     {
       "document_id": "a82feb75-e815-3dd8-924d-55f817d67c85",
       "version_id": "b7923d34-ad81-3d67-8ebe-8134b468c956",
       "name": "08. 주인공 이환",
       "source_pointer": "/templates/4/setting_bible/sections/7/content_markdown",
-      "body_sha256": "99482222ce9180263bb9b39c1eca301b917f25027fc152c6a1c849def2dd23c0"
+      "body_sha256": "99482222ce9180263bb9b39c1eca301b917f25027fc152c6a1c849def2dd23c0",
+      "imported_body_sha256": "df815c6528e440a8ec0c53ede799c4d23a628d1b1720520c8f497b35161845ca",
+      "category": "인물"
     },
     {
       "document_id": "44236ae7-c8b0-3bf6-80db-a400803d8546",
       "version_id": "0c692481-b031-3e16-8543-942622b35280",
       "name": "09. 빙의 이전의 경안군",
       "source_pointer": "/templates/4/setting_bible/sections/8/content_markdown",
-      "body_sha256": "657edc2a057c2cb8971add84e60d4de173e35c305fdc889ca1a5483e5404c135"
+      "body_sha256": "657edc2a057c2cb8971add84e60d4de173e35c305fdc889ca1a5483e5404c135",
+      "imported_body_sha256": "fac3c1ac82462ab9198a54412221bc1a105a912b301344ac4e2c9e1cafd0ad1f",
+      "category": "인물"
     },
     {
       "document_id": "845835ad-c851-3fcd-a640-daf32f329c51",
       "version_id": "f3b3df15-5ea0-3c1d-b386-d8ca783c1a88",
       "name": "10. 왕실의 주요 인물",
       "source_pointer": "/templates/4/setting_bible/sections/9/content_markdown",
-      "body_sha256": "38462536893e899e9533e70de2062d009f7c89bf60e5126da8a7bdfecf4549fd"
+      "body_sha256": "38462536893e899e9533e70de2062d009f7c89bf60e5126da8a7bdfecf4549fd",
+      "imported_body_sha256": "1717980092cbe934a7b939700d0cc4f4cf4ca40325e19ca6e3c9b93abc6cbc82",
+      "category": "인물"
     },
     {
       "document_id": "cbad2ebd-780e-39d6-b283-81cef9671f3d",
       "version_id": "490183fb-b6d9-3205-98f0-0b13f9e7d835",
       "name": "11. 주요 동료와 인재",
       "source_pointer": "/templates/4/setting_bible/sections/10/content_markdown",
-      "body_sha256": "e95340121dde1327b0cde49875bddab9f686e0c26a4a5e714b2b059a7940d635"
+      "body_sha256": "e95340121dde1327b0cde49875bddab9f686e0c26a4a5e714b2b059a7940d635",
+      "imported_body_sha256": "f444a58ff7552d42f7d949b860c7f8fac0f91c93fff6f26ae6ffc3529779f23f",
+      "category": "인물"
     },
     {
       "document_id": "c3e64209-52e1-3e11-9a49-97be8b9577e5",
       "version_id": "a53eb5fe-00d1-3dc1-99f1-e7de8a5fc8e5",
       "name": "12. 주요 적대자",
       "source_pointer": "/templates/4/setting_bible/sections/11/content_markdown",
-      "body_sha256": "0f9ab1494a919c58b06a00c222dc9f722e1c8d1cdb483c75816b7cd641b2d4ed"
+      "body_sha256": "0f9ab1494a919c58b06a00c222dc9f722e1c8d1cdb483c75816b7cd641b2d4ed",
+      "imported_body_sha256": "2a4bbd8a5e9db88fca489c57c264f8fbf35894eabf121d56e23ab5a5be2ed89b",
+      "category": "인물"
     },
     {
       "document_id": "b6ad7be7-bb9c-3e2d-8228-2d0eeeb30cc7",
       "version_id": "ac784ff2-83fd-3694-a805-d392c4f8fccc",
       "name": "13. 현대 지식의 활용 범위와 한계",
       "source_pointer": "/templates/4/setting_bible/sections/12/content_markdown",
-      "body_sha256": "ffcd2ea5309cb03697151f2f4b71bcce314fb94f0100be95e334162f628ccdb2"
+      "body_sha256": "ffcd2ea5309cb03697151f2f4b71bcce314fb94f0100be95e334162f628ccdb2",
+      "imported_body_sha256": "3b6cd02b1596e7968b21cee6abae289700cc4829080161642a28fb326a5b49b0",
+      "category": "지식"
     },
     {
       "document_id": "5fa8dfe3-6084-32a7-a2cd-33898acd3d1a",
       "version_id": "af52a828-a289-3e31-b50f-c7651efb1abe",
       "name": "14. 초기 개혁과 성공의 규모",
       "source_pointer": "/templates/4/setting_bible/sections/13/content_markdown",
-      "body_sha256": "c015cc04abf95956da91648e69a174e55da87bb5723cd0c85ee944b2b6ddd90f"
+      "body_sha256": "c015cc04abf95956da91648e69a174e55da87bb5723cd0c85ee944b2b6ddd90f",
+      "imported_body_sha256": "a58905e8f26f985409890306601687bfb9312e1c2bea351491af3d083eaaafe7",
+      "category": "기타"
     },
     {
       "document_id": "3270c252-2c2f-3e3f-935e-875d147ea0e5",
       "version_id": "ac6c14ef-aa07-3fd9-9a16-194190a37476",
       "name": "15. 군사 개혁의 방향",
       "source_pointer": "/templates/4/setting_bible/sections/14/content_markdown",
-      "body_sha256": "09ebb6789771ac6fb83610f74422f23eeb4a56156b78045aaabc49991418b9db"
+      "body_sha256": "09ebb6789771ac6fb83610f74422f23eeb4a56156b78045aaabc49991418b9db",
+      "imported_body_sha256": "d32f15789a7e94c2a5bbbffe93b445bb5af0fd3397700d441249bcf35fca6bb4",
+      "category": "기타"
     },
     {
       "document_id": "7b21e2b8-953c-3b2e-af39-88c23e746277",
       "version_id": "c635fe3a-bc2c-3635-9d56-41168c310af0",
       "name": "16. 죽음까지 반년, 전쟁까지 삼 년",
       "source_pointer": "/templates/4/setting_bible/sections/15/content_markdown",
-      "body_sha256": "ee781ded122baca87a22ee01d39a7eab27c6d32677b8964ce18fd74081c9cc12"
+      "body_sha256": "ee781ded122baca87a22ee01d39a7eab27c6d32677b8964ce18fd74081c9cc12",
+      "imported_body_sha256": "0b53fbaffdd8de8c4715ccc5e49830f5709fd40b192a8c757e881c5ba7e16840",
+      "category": "기타"
     },
     {
       "document_id": "b5b917b4-282e-3886-9474-d6247c02a5e4",
       "version_id": "98c55747-3cae-3e0c-8421-f0d05b43d7ff",
       "name": "17. 주요 비밀과 공개 순서",
       "source_pointer": "/templates/4/setting_bible/sections/16/content_markdown",
-      "body_sha256": "7bb4bad60713d513b9999595426b5cbb3e790bbd80d77da74ee44eb7f17a0cf8"
+      "body_sha256": "7bb4bad60713d513b9999595426b5cbb3e790bbd80d77da74ee44eb7f17a0cf8",
+      "imported_body_sha256": "c936f727f854ef98684e2dd8e0fbdb5d82336e762580280ec595a2676937a5bc",
+      "category": "지식"
     },
     {
       "document_id": "e781ef6b-0fea-319c-a0e4-2870ab9d4ee6",
       "version_id": "4923dad8-901e-3edc-a745-ae38495c9378",
       "name": "18. 장편 전개 구조",
       "source_pointer": "/templates/4/setting_bible/sections/17/content_markdown",
-      "body_sha256": "23c712e13bd8b4f95ffb66729704ba2955c90cfb9844a2cbaaff6be669ea0031"
+      "body_sha256": "23c712e13bd8b4f95ffb66729704ba2955c90cfb9844a2cbaaff6be669ea0031",
+      "imported_body_sha256": "21a6d08bd8a3e3745c8cd4a61d4f3d602f802d3c4cf016305a71254e41382c97",
+      "category": "기타"
     },
     {
       "document_id": "1db86086-8153-3179-887d-8f1edc0159e1",
       "version_id": "f8ef9efb-e1f0-3306-9645-250707ede213",
       "name": "19. 정치와 감정의 흐름",
       "source_pointer": "/templates/4/setting_bible/sections/18/content_markdown",
-      "body_sha256": "f2c6bb6bcbe74c1f1992127407ca5f90a477a452da2c245ae9c1ab8dbb0a19dc"
+      "body_sha256": "f2c6bb6bcbe74c1f1992127407ca5f90a477a452da2c245ae9c1ab8dbb0a19dc",
+      "imported_body_sha256": "d67131520d9e41346fe5d6c74722619f21d17335ed1b5c592c8c1baa2b7cbd70",
+      "category": "관계"
     },
     {
       "document_id": "0874fb2f-f551-369a-aa24-ae89c834d617",
       "version_id": "2a4012e1-c437-3f2d-a383-e41a8cc10869",
       "name": "20. 반복해서 사용할 장면과 상징",
       "source_pointer": "/templates/4/setting_bible/sections/19/content_markdown",
-      "body_sha256": "9873c69e21c29ab90290a8452ac311991e3a728d02bb869cb9dca37375b443c9"
+      "body_sha256": "9873c69e21c29ab90290a8452ac311991e3a728d02bb869cb9dca37375b443c9",
+      "imported_body_sha256": "be1017fa120ef9228613508dd6eed12ba5a410cf86509986a9e8983fafdb9724",
+      "category": "기타"
     },
     {
       "document_id": "95fbaacb-d1c7-35ef-827f-5219b35df71a",
       "version_id": "4d805a90-c240-3f82-8568-df38a5574298",
       "name": "21. 이야기에서 지켜야 할 설정 규칙",
       "source_pointer": "/templates/4/setting_bible/sections/20/content_markdown",
-      "body_sha256": "c3420e546fbf5d56d97a76ace50ab5126e3ede17cf303e6f4120fc230ecde808"
+      "body_sha256": "c3420e546fbf5d56d97a76ace50ab5126e3ede17cf303e6f4120fc230ecde808",
+      "imported_body_sha256": "a3e0dd2c54280ed75ad715f9b99dc6c21cfb9acb93a6239001b59f9c756419d6",
+      "category": "규칙"
     },
     {
       "document_id": "56d043b0-0b41-3d96-8e8a-68332266faac",
       "version_id": "b8e963f1-cebf-3155-855a-3e7bb27af8d9",
       "name": "22. 첫 화 도입 예시",
       "source_pointer": "/templates/4/setting_bible/sections/21/content_markdown",
-      "body_sha256": "61e6bb2a8e9ded99f255c7308941f6a068d14aaf26864215d5bfbdf0bb1f22eb"
+      "body_sha256": "61e6bb2a8e9ded99f255c7308941f6a068d14aaf26864215d5bfbdf0bb1f22eb",
+      "imported_body_sha256": "23a86facfcb9b2456b37ef79234fdc717739dc528bb3dd1a5847a1cf73eab168",
+      "category": "기타"
     }
   ],
   "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다.",
@@ -298,5 +346,14 @@
       "fork_world_reference": 0,
       "episode_draft": 1
     }
-  }
+  },
+  "categories": {
+    "기타": 14,
+    "장소": 1,
+    "인물": 5,
+    "지식": 2,
+    "관계": 1,
+    "규칙": 1
+  },
+  "content_migration": "alternate_history/migrations/content/V22__genre_template_alternate_history.sql"
 }

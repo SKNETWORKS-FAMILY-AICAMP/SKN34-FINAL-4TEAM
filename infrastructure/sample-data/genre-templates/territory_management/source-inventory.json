@@ -15,161 +15,207 @@
       "version_id": "e69846ed-ef8a-324b-a970-715a43995713",
       "name": "영지물 전체 원문",
       "source_pointer": "/templates/7/content_markdown",
-      "body_sha256": "831cfee272171f648a500cc0eae80bd264fa5b1a6507903f3f611bcf832bdd88"
+      "body_sha256": "831cfee272171f648a500cc0eae80bd264fa5b1a6507903f3f611bcf832bdd88",
+      "imported_body_sha256": "7dc386c2343efde501523b3d0c46de923ec9696d5ae552c12a90ecd1a3d07b47",
+      "category": "기타"
     },
     {
       "document_id": "6985fe7a-241b-34be-aecc-177b715e4ae8",
       "version_id": "f66fd222-42ca-31a5-a6a2-45283c80f189",
       "name": "01. 작품의 기본 전제",
       "source_pointer": "/templates/7/setting_bible/sections/0/content_markdown",
-      "body_sha256": "7540f789456cbf36c5ea9a022d300c15460a40e0af614c1783af0bda57f200f0"
+      "body_sha256": "7540f789456cbf36c5ea9a022d300c15460a40e0af614c1783af0bda57f200f0",
+      "imported_body_sha256": "25ecfbf3877acdb61aba69027b0cf4b53ab709d7c34b01947c0e4c0d01096a97",
+      "category": "기타"
     },
     {
       "document_id": "90ecb59b-5fb1-395c-9140-fcb344f7b583",
       "version_id": "085340f7-54c6-3767-bd9d-9577777505dd",
       "name": "02. 작품의 무대와 시대",
       "source_pointer": "/templates/7/setting_bible/sections/1/content_markdown",
-      "body_sha256": "50175e4b1475c44da2a2787401b5d601675f854d5edb6fc36bb8939efcdc0594"
+      "body_sha256": "50175e4b1475c44da2a2787401b5d601675f854d5edb6fc36bb8939efcdc0594",
+      "imported_body_sha256": "6950497932eb88d30019233b2a758427a5bc40ec00fc8841ec74a2307075e94b",
+      "category": "기타"
     },
     {
       "document_id": "32d5c055-7eab-396a-944d-0e4d8cf54c68",
       "version_id": "55f30429-1675-3114-a364-45b8ea92b759",
       "name": "03. 영지의 시작 상태",
       "source_pointer": "/templates/7/setting_bible/sections/2/content_markdown",
-      "body_sha256": "f0978aff0780c3284b1e67e6dd971bb926e019360d281b4e8d787a338592fd0b"
+      "body_sha256": "f0978aff0780c3284b1e67e6dd971bb926e019360d281b4e8d787a338592fd0b",
+      "imported_body_sha256": "033d46142372056b3255e62abec2dddbe74d8c0c53f8274c2b6935f4ccc28b90",
+      "category": "상태"
     },
     {
       "document_id": "c12099fd-d76d-3e33-bbf6-ffde49de442c",
       "version_id": "a61fe9ad-5f9c-3d09-adde-b9510ddcd8f9",
       "name": "04. 로웰 영지의 지리",
       "source_pointer": "/templates/7/setting_bible/sections/3/content_markdown",
-      "body_sha256": "85bc87bf4440a5d192c47ac3433eb6a4fb4be9e63a778d0f37cc84e882e0c05d"
+      "body_sha256": "85bc87bf4440a5d192c47ac3433eb6a4fb4be9e63a778d0f37cc84e882e0c05d",
+      "imported_body_sha256": "d3ee7145ff8d75fff15c986336a814b3a24774adf1ee0aec56c0614c83d8bbf6",
+      "category": "장소"
     },
     {
       "document_id": "cdd9f0b4-64be-327b-9708-cc3ffc870cc7",
       "version_id": "f54107f4-fb73-38b7-9ac9-4a5e64edd0a3",
       "name": "05. 영주의 권한과 한계",
       "source_pointer": "/templates/7/setting_bible/sections/4/content_markdown",
-      "body_sha256": "dd2f2487b589ee26da90f45ccdaf8717f8d1af1ef46ed3eb9b185f789f32dad8"
+      "body_sha256": "dd2f2487b589ee26da90f45ccdaf8717f8d1af1ef46ed3eb9b185f789f32dad8",
+      "imported_body_sha256": "e1f6ba42822ba46c07429fde830a23d3de2570fa51f98f5976b533742f9d234f",
+      "category": "규칙"
     },
     {
       "document_id": "e3a6421b-15e7-3e54-b7e6-dd8a718d790b",
       "version_id": "837585d8-9d1f-3da6-9627-8f355d11ba1b",
       "name": "06. 마법과 생산의 관계",
       "source_pointer": "/templates/7/setting_bible/sections/5/content_markdown",
-      "body_sha256": "c54674f2f91130f997c84fbf45f8b0927b019b40c4169146f73910e9aea910f4"
+      "body_sha256": "c54674f2f91130f997c84fbf45f8b0927b019b40c4169146f73910e9aea910f4",
+      "imported_body_sha256": "efe1b4edd1b49845a0d6cbd754c748b012c75d224d0f49affe8fc8f33bf36fcc",
+      "category": "규칙"
     },
     {
       "document_id": "3023bb7c-6a1c-380f-b270-2f491b3bdd71",
       "version_id": "d23eb1cb-a4e3-374c-bb20-2103d82ce589",
       "name": "07. 주인공 에드릭 로웰",
       "source_pointer": "/templates/7/setting_bible/sections/6/content_markdown",
-      "body_sha256": "2a11885394cc4c39babf859f0e85d71522cb9e6d8789a171ccc03fe5d403ac04"
+      "body_sha256": "2a11885394cc4c39babf859f0e85d71522cb9e6d8789a171ccc03fe5d403ac04",
+      "imported_body_sha256": "cdf99b8dae7433c26cdddc93ed997d506e73d5000e2761248ebd94ff8c0a37c1",
+      "category": "인물"
     },
     {
       "document_id": "32a8cc0e-c2e2-381f-95b7-00da52ffe4a8",
       "version_id": "a84a27e7-6dca-3732-b5fa-36db035cfa89",
       "name": "08. 원래 에드릭과 악명",
       "source_pointer": "/templates/7/setting_bible/sections/7/content_markdown",
-      "body_sha256": "92078c0d70d12f04355c0f376f1bc1ba2ccad374fac16493716724f4d14010cf"
+      "body_sha256": "92078c0d70d12f04355c0f376f1bc1ba2ccad374fac16493716724f4d14010cf",
+      "imported_body_sha256": "4cc884161b34924884bc087e107b1523bf12e9b7b74eefa8fa1cfaf788227c0e",
+      "category": "인물"
     },
     {
       "document_id": "fc171c9c-f813-3c6b-b77d-dc797cf20bca",
       "version_id": "4bc49f13-c323-35be-b3c7-dc81f5b6f9be",
       "name": "09. 초기 핵심 인물",
       "source_pointer": "/templates/7/setting_bible/sections/8/content_markdown",
-      "body_sha256": "24095aa2c2362b8b355f6948067448b786f1e7a1c2c9d4bb0738145484a70cd5"
+      "body_sha256": "24095aa2c2362b8b355f6948067448b786f1e7a1c2c9d4bb0738145484a70cd5",
+      "imported_body_sha256": "fec3f7190a6e23acbfc23bc2ef6aef4666bfb5b280ea05d2c4716e52c33e399a",
+      "category": "인물"
     },
     {
       "document_id": "8910ca95-a3ba-35b5-aa5a-f210c0666cad",
       "version_id": "42024157-ef8e-30ec-b872-4984f52cc39a",
       "name": "10. 영입되는 인재와 이종족",
       "source_pointer": "/templates/7/setting_bible/sections/9/content_markdown",
-      "body_sha256": "d8feefb73a0e90e0e575b5e703e473ea294bacedeba52d4a652981b2ff37d5bd"
+      "body_sha256": "d8feefb73a0e90e0e575b5e703e473ea294bacedeba52d4a652981b2ff37d5bd",
+      "imported_body_sha256": "00e383c4e932613865e3b3bcb085e32c38e5dc23735d188e80e15ab418d3f098",
+      "category": "인물"
     },
     {
       "document_id": "38498809-8e75-3c7e-a603-6489e546c5c2",
       "version_id": "3a9ef67a-eb9a-336a-aa19-ab41d713652a",
       "name": "11. 주요 외부 인물",
       "source_pointer": "/templates/7/setting_bible/sections/10/content_markdown",
-      "body_sha256": "ef5540b2ac97e24c3e5210fb6c239c77255d13c2529fca4a7ac62bf92485cb0a"
+      "body_sha256": "ef5540b2ac97e24c3e5210fb6c239c77255d13c2529fca4a7ac62bf92485cb0a",
+      "imported_body_sha256": "9f1c8e63dfbb719836d431f370a9428c5e3f76fb0756dd67e453a54e535765ae",
+      "category": "인물"
     },
     {
       "document_id": "2f2c9659-bf10-34cb-b158-4239b555ba9a",
       "version_id": "d0e0abbe-085b-3a2c-bd37-9e0fdb072022",
       "name": "12. 주요 적대자",
       "source_pointer": "/templates/7/setting_bible/sections/11/content_markdown",
-      "body_sha256": "f72ba538f7a495a20f8ce6c6ec85f0304b21586037ebd20b911baee07b512650"
+      "body_sha256": "f72ba538f7a495a20f8ce6c6ec85f0304b21586037ebd20b911baee07b512650",
+      "imported_body_sha256": "e15b85653dd1d4fd92558224698e574c1c9ea3b26527dd286f778e56865c8d1f",
+      "category": "인물"
     },
     {
       "document_id": "f3fe307a-8d3a-39ca-91d5-aa6dcaedcc19",
       "version_id": "1a741ede-2754-319f-a4cf-61a200c08e15",
       "name": "13. 첫 백 일의 우선순위",
       "source_pointer": "/templates/7/setting_bible/sections/12/content_markdown",
-      "body_sha256": "3c9501b27ace1117d95fcb99a401264a078c37bde97a48259737913684c1a71e"
+      "body_sha256": "3c9501b27ace1117d95fcb99a401264a078c37bde97a48259737913684c1a71e",
+      "imported_body_sha256": "31bca3c276b90201b0677b13b72120a7a9e7e6bf944ff6dbeb2f66f398451dcc",
+      "category": "기타"
     },
     {
       "document_id": "c8dcedc4-3a3c-3a40-a3f7-a351e227d250",
       "version_id": "bbc8b73f-8d43-3d7e-acc4-d595482b3687",
       "name": "14. 영지의 산업 성장 단계",
       "source_pointer": "/templates/7/setting_bible/sections/13/content_markdown",
-      "body_sha256": "0a50245f8443139ef336577d28a4a70112bfac475e3f5b3de491e434d9b24a60"
+      "body_sha256": "0a50245f8443139ef336577d28a4a70112bfac475e3f5b3de491e434d9b24a60",
+      "imported_body_sha256": "f6306eca41d7f8d47148f666ce0d233147603d3f8c4cfb830283c2a612c2070a",
+      "category": "기타"
     },
     {
       "document_id": "26d88c49-c69c-31da-8487-820168b9957c",
       "version_id": "ce45ef3f-dee2-387f-a36c-610aa6286d8b",
       "name": "15. 고대 영지핵과 마나 기반 시설",
       "source_pointer": "/templates/7/setting_bible/sections/14/content_markdown",
-      "body_sha256": "76ee85c548b68bca5e054270ccc690f9096e799246a204057d5db0e50df90d0b"
+      "body_sha256": "76ee85c548b68bca5e054270ccc690f9096e799246a204057d5db0e50df90d0b",
+      "imported_body_sha256": "d9697b0888e7da2ea3a6aa5330f1cae9d4f851ee02459ab330bd10345da42dfe",
+      "category": "기타"
     },
     {
       "document_id": "8154a935-4da4-3027-a791-44037071da5f",
       "version_id": "4ecc1727-2289-3d27-86b9-0cf6837f25ed",
       "name": "16. 인구와 정착 정책",
       "source_pointer": "/templates/7/setting_bible/sections/15/content_markdown",
-      "body_sha256": "3ed3783203bb8a59dc676e02fd414edd662762bffa318ad45d5e486ad43c7b7f"
+      "body_sha256": "3ed3783203bb8a59dc676e02fd414edd662762bffa318ad45d5e486ad43c7b7f",
+      "imported_body_sha256": "272a681075390344df64bbe292416b9963ecefc9f18ae2684ecc4af471a87a9a",
+      "category": "기타"
     },
     {
       "document_id": "025e17f9-f325-3d3f-a015-3866d47bebcc",
       "version_id": "3afef9a6-7c21-3577-a730-1ba264b3bff7",
       "name": "17. 주요 비밀과 공개 순서",
       "source_pointer": "/templates/7/setting_bible/sections/16/content_markdown",
-      "body_sha256": "0a339c0b88d22fa1cca45486bba0382da443ab468fe8a9becf5608ba0140c501"
+      "body_sha256": "0a339c0b88d22fa1cca45486bba0382da443ab468fe8a9becf5608ba0140c501",
+      "imported_body_sha256": "1ff155afb5bd6ad462ab0e3d14e1da5984c3582a0300a500d55bfca008569884",
+      "category": "지식"
     },
     {
       "document_id": "851206c4-0a2e-3d11-84c2-aaad31ef67ec",
       "version_id": "4c4bbd7d-3123-3a27-8929-7756c771c677",
       "name": "18. 장편 전개 구조",
       "source_pointer": "/templates/7/setting_bible/sections/17/content_markdown",
-      "body_sha256": "fb8607cc3cf17dbbe3aa68972b26cae76f098d035f1538f80d420b31280fa1ab"
+      "body_sha256": "fb8607cc3cf17dbbe3aa68972b26cae76f098d035f1538f80d420b31280fa1ab",
+      "imported_body_sha256": "64bd8f32db8c9384f3fc91e27ad0453934b2485de7cb596257004fc87bacb605",
+      "category": "기타"
     },
     {
       "document_id": "61016d8c-4465-3675-8600-f6b7e074b6d8",
       "version_id": "03f1c555-55be-3747-b566-b4de98027239",
       "name": "19. 관계와 감정의 흐름",
       "source_pointer": "/templates/7/setting_bible/sections/18/content_markdown",
-      "body_sha256": "a657e673bcef430f59e5312ff9d820f265910ad0d8f64c8848eeecd44ff10760"
+      "body_sha256": "a657e673bcef430f59e5312ff9d820f265910ad0d8f64c8848eeecd44ff10760",
+      "imported_body_sha256": "83903c50edb35795dc430f134cd1b6dea921590321a176771c8e21032f99bdca",
+      "category": "관계"
     },
     {
       "document_id": "e8719af8-e282-3488-9a97-b51585410897",
       "version_id": "a58fc6c7-b1b6-32c8-aca4-947e81c33a4a",
       "name": "20. 반복해서 사용할 장면과 상징",
       "source_pointer": "/templates/7/setting_bible/sections/19/content_markdown",
-      "body_sha256": "ec805fe2299785e5d7f54244d9cf1b006e078a894021f2da5572b724077cec5a"
+      "body_sha256": "ec805fe2299785e5d7f54244d9cf1b006e078a894021f2da5572b724077cec5a",
+      "imported_body_sha256": "2c47c7d00f9c3707c637acd56ecfea8806eb52a683c83c22e1f6427aa65b1d62",
+      "category": "기타"
     },
     {
       "document_id": "277b82ee-9956-3021-b106-8562c05300d6",
       "version_id": "ca2a658b-4421-3125-8157-50e08fd3772a",
       "name": "21. 이야기에서 지켜야 할 설정 규칙",
       "source_pointer": "/templates/7/setting_bible/sections/20/content_markdown",
-      "body_sha256": "37e458c692dd44def2bd20f6e9d46f87da97f932fc773a775b921c6251ab216c"
+      "body_sha256": "37e458c692dd44def2bd20f6e9d46f87da97f932fc773a775b921c6251ab216c",
+      "imported_body_sha256": "5f0ab2055aaefcd745632f54b34966a523ef4d272e350de4f31f290deb5b3987",
+      "category": "규칙"
     },
     {
       "document_id": "5e2afa7d-34bf-3b6d-9a89-af333d554a5e",
       "version_id": "dca5980e-96cf-3884-a9c1-df48a7f5af89",
       "name": "22. 첫 화 도입 예시",
       "source_pointer": "/templates/7/setting_bible/sections/21/content_markdown",
-      "body_sha256": "8ddc661428dcbc73258b126fb8e4c00e8e91cf988465eba119dc21b9a3a1bf36"
+      "body_sha256": "8ddc661428dcbc73258b126fb8e4c00e8e91cf988465eba119dc21b9a3a1bf36",
+      "imported_body_sha256": "1f9df369c50120a6b90c6f09cee1cd509f9067013e96aea9b344990b8345d31a",
+      "category": "기타"
     }
   ],
   "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다.",
@@ -287,5 +333,15 @@
       "fork_world_reference": 0,
       "episode_draft": 1
     }
-  }
+  },
+  "categories": {
+    "기타": 10,
+    "상태": 1,
+    "장소": 1,
+    "규칙": 3,
+    "인물": 6,
+    "지식": 1,
+    "관계": 1
+  },
+  "content_migration": "territory_management/migrations/content/V25__genre_template_territory_management.sql"
 }
