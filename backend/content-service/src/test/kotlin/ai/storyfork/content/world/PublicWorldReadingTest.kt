@@ -31,4 +31,11 @@ class PublicWorldReadingTest {
         val response=toReadingResponse(Setting(id="c",versionId="v",name="인물",content="본문",category="인물"),detail,3,emptySet(),sourceBasis=1)
         assertEquals(listOf("시작"),response.properties.map {it.value})
     }
+    @Test fun `public wiki copies aliases and participants out of the entity collections`() {
+        val detail=SettingReadingDetailEntity(aliases=mutableListOf("성진"),participants=mutableListOf("육관대사"))
+        val response=toReadingResponse(Setting(id="c",versionId="v",name="양소유",content="본문",category="인물"),detail,1,emptySet())
+        detail.aliases.clear(); detail.participants.clear() // 트랜잭션 밖 지연 컬렉션 대신: 응답이 엔티티 컬렉션을 참조하면 함께 비워진다
+        assertEquals(listOf("성진"),response.aliases)
+        assertEquals(listOf("육관대사"),response.participants)
+    }
 }
