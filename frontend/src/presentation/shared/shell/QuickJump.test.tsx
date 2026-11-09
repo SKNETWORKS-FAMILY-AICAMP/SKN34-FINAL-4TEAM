@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import '../../../test/fixtureApp'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, expect, it } from 'vitest'
 
 import { createAppStore } from '../../../app/store'
@@ -10,8 +10,9 @@ import { QuickJump } from './QuickJump'
 
 afterEach(cleanup)
 
+const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const open = () => {
-  render(<Provider store={createAppStore()}><MemoryRouter><QuickJump /></MemoryRouter></Provider>)
+  render(<Provider store={createAppStore()}><MemoryRouter><QuickJump /><Where /></MemoryRouter></Provider>)
   act(() => { window.dispatchEvent(new Event('sf-quick')) })
 }
 
@@ -43,12 +44,25 @@ it('목록이 비어 있으면 닫힘으로 알리고 옵션이 아닌 안내만
   expect(screen.getByText('검색 결과가 없어요.')).toBeTruthy()
 })
 
-it('한글 조합 중 Enter는 이동하지 않고 조합이 끝난 Enter만 이동한다', () => {
+it('한글 조합 중 Enter는 이동하지 않고 조합이 끝난 Enter만 이동한다', async () => {
   open()
   const input = screen.getByRole('combobox', { name: '소설·인물·회차 검색' })
-  fireEvent.change(input, { target: { value: '용사' } })
-  fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
-  expect(screen.queryByRole('dialog')).not.toBeNull()
+  fireEvent.change(input, { target: { value: '구운몽' } })
+  const options = await waitFor(() => { const o = screen.getAllByRole('option'); expect(o.length).toBeGreaterThan(1); return o })
+  const selected = () => input.getAttribute('aria-activedescendant')
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  expect(selected()).toBe(options[1].id)
+  // 조합 중 방향키는 선택을 바꾸지 않는다 (키마다 확인해야 ↓↑가 상쇄되지 않는다)
+  for (const key of ['ArrowDown', 'ArrowUp']) {
+    fireEvent.keyDown(input, { key, isComposing: true })
+    expect(selected()).toBe(options[1].id)
+  }
+  // 조합 중 Enter와 Safari의 조합 확정 Enter(isComposing=false, keyCode=229)는 이동하지 않는다
+  for (const init of [{ isComposing: true }, { isComposing: false, keyCode: 229 }]) {
+    fireEvent.keyDown(input, { key: 'Enter', ...init })
+    expect(screen.queryByRole('dialog')).not.toBeNull()
+  }
   fireEvent.keyDown(input, { key: 'Enter' })
   expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByTestId('where').textContent).toBe('/work/guunmong')
 })
