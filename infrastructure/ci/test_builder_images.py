@@ -4,8 +4,6 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = "ghcr.io/sknetworks-family-aicamp/"
-GRADLE_RELEASE = ("https\\://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/releases/download/"
-                  "tools-gradle-9.5.1/gradle-9.5.1-bin.zip")
 # 서비스 Dockerfile → 그 builder 단계가 쓰는 빌드용 이미지
 SERVICE_BUILDERS = {
     "backend/core-api": "jvm",
@@ -21,13 +19,14 @@ def read(path):
 
 
 class BuilderImagesTest(unittest.TestCase):
-    def test_gradle_wrapper_downloads_our_release_copy_with_checksum(self):
+    def test_gradle_wrapper_keeps_official_distribution_and_longer_timeout(self):
+        # 배포판은 빌드용 이미지에 들어 있어 CI가 받지 않는다. 이미지 생성 시 첫 다운로드만 60초를 기다린다.
         for service in ("core-api", "content-service", "operations-service"):
             with self.subTest(service=service):
                 props = read(f"backend/{service}/gradle/wrapper/gradle-wrapper.properties")
-                self.assertIn("distributionUrl=" + GRADLE_RELEASE + "\n", props)
+                self.assertIn("distributionUrl=https\\://services.gradle.org/distributions/gradle-9.5.1-bin.zip\n", props)
                 self.assertIn("distributionSha256Sum=bafc141b619ad6350fd975fc903156dd5c151998cc8b058e8c1044ab5f7b031f", props)
-                self.assertNotIn("services.gradle.org", props)
+                self.assertIn("networkTimeout=60000\n", props)
 
     def test_service_builds_start_from_prebuilt_dependency_images(self):
         for context, builder in SERVICE_BUILDERS.items():
