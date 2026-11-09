@@ -1,6 +1,7 @@
 package ai.storyfork.content.work
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.auth.service.MemberNicknameService
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.proposal.service.ProposalService
@@ -16,6 +17,7 @@ import ai.storyfork.content.world.repository.*
 import java.time.Instant
 import java.util.Optional
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers
@@ -26,7 +28,10 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.quality.Strictness
 
-/** 공개 목록·검색·랭킹의 Service 조립(필터→정렬→views 채우기)을 저장소 대역으로 검증한다. 순수 규칙은 WorkSearchTest가 맡는다. */
+/**
+ * 공개 목록·검색·랭킹의 Service 조립(필터→정렬→views 채우기)과 소유자 Core 닉네임으로 채우는 작가명을 저장소·Core 대역으로 검증한다.
+ * 순수 규칙은 WorkSearchTest가 맡는다.
+ */
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness=Strictness.LENIENT)
 class WorkSearchServiceTest {
@@ -49,20 +54,34 @@ class WorkSearchServiceTest {
     @Mock lateinit var proposals: ProposalService
     @Mock lateinit var settings: SettingDocumentRepository
     @Mock lateinit var viewService: WorkViewService
+    @Mock lateinit var nicknames: MemberNicknameService
     @InjectMocks lateinit var service: WorkService
 
     private val start = Instant.parse("2026-11-01T00:00:00Z")
     private val rows = mutableListOf<WorkEntity>()
+    /** Core가 아는 소유자 닉네임. 소유자 id는 `owner-<작품 id>`이고 [work]가 채운다. */
+    private val coreNames = mutableMapOf<String, String>()
+    private val lookups = mutableListOf<Collection<String>>()
+
+    @BeforeEach fun coreNicknames() {
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer { call ->
+            val owners = call.getArgument<Collection<String>>(0)
+            lookups += owners
+            coreNames.filterKeys { it in owners }
+        }
+    }
 
     /** [age]가 클수록 늦게 만든 작품이다. */
     private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false, author: String = "작성자") {
-        rows += WorkEntity(id = id, ownerId = "author", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted, authorName = author)
+        // work.author_name 칼럼은 더 이상 읽지 않는다. 일부러 다른 값을 넣어 칼럼이 새어 나오면 단언이 깨지게 한다.
+        rows += WorkEntity(id = id, ownerId = "owner-$id", title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted, authorName = "칼럼 작가")
+        coreNames["owner-$id"] = author
         `when`(works.findAll()).thenReturn(rows)
         `when`(works.findAllById(ArgumentMatchers.anyIterable<String>())).thenAnswer { call ->
             val ids = call.getArgument<Iterable<String>>(0).toSet()
             rows.filter { it.id in ids }
         }
-        `when`(access.get(id)).thenReturn(WorkAccessResult(id, "author", title, "", 0, "world", visible, false, false, null, restricted))
+        `when`(access.get(id)).thenReturn(WorkAccessResult(id, "owner-$id", title, "", 0, "world", visible, false, false, null, restricted))
         if (visible != "public") return
         `when`(works.findById(id)).thenReturn(Optional.of(rows.last()))
         `when`(publication.publishedEpisodes(id)).thenReturn(PublishedEpisodeListResponse(emptyList()))
@@ -156,6 +175,8 @@ class WorkSearchServiceTest {
         verify(works, never()).findAll()
         verify(access, never()).get("quiet")
         verify(publication, times(10)).publishedEpisodes(ArgumentMatchers.anyString())
+        assertEquals(1, lookups.size, "순위 응답 하나에 Core를 한 번만 부른다")
+        assertEquals((3..12).map { "owner-w$it" }.toSet(), lookups.single().toSet(), "순위에 든 작품의 소유자만 조회한다")
     }
 
     @Test fun `restricted public works are left out of list search and both rankings`() {
@@ -175,5 +196,67 @@ class WorkSearchServiceTest {
         }
 
         verifyNoInteractions(works, access, viewService)
+    }
+
+    @Test fun `list fills author names from one nickname lookup and shows unknown owners as withdrawn`() {
+        work("a", "달빛 정원", 1, author = "윤서하")
+        work("b", "별빛 서점", 2, author = "Writer Kim")
+        work("c", "우주 정거장", 3)
+        work("hidden", "비공개", 4, visible = "private")
+        coreNames.remove("owner-c")
+        views()
+
+        val items = service.publicList(null, null, null).items
+
+        assertEquals(listOf("c", "b", "a"), items.map { it.id })
+        assertEquals(listOf("탈퇴한 회원", "Writer Kim", "윤서하"), items.map { it.authorName })
+        assertEquals(listOf("owner-c", "owner-b", "owner-a"), items.map { it.ownerId })
+        assertEquals(1, lookups.size, "응답 하나에 소유자 조회는 한 번(N+1 금지)")
+        assertEquals(setOf("owner-a", "owner-b", "owner-c"), lookups.single().toSet(), "공개 작품의 소유자만 조회한다")
+    }
+
+    @Test fun `author search matches the looked up nickname and not the stored column`() {
+        work("a", "달빛 정원", 1, author = "윤서하")
+        work("b", "별빛 서점", 2)
+        coreNames.remove("owner-b")
+        views()
+
+        fun ids(q: String?, f: String?) = service.publicList(q, f, null).items.map { it.id }
+
+        assertEquals(listOf("a"), ids("윤서", "author"))
+        assertEquals(emptyList<String>(), ids("칼럼", "all"), "work.author_name 칼럼은 검색에도 쓰지 않는다")
+        assertEquals(listOf("b"), ids("탈퇴한", "author"), "Core에 없는 소유자는 탈퇴한 회원으로 검색된다")
+    }
+
+    @Test fun `Core failure is not hidden behind a made up author name`() {
+        work("a", "달빛 정원", 1)
+        views(Triple("a", 3, 0))
+        doThrow(ContentFailure(503, "작가 정보를 불러오지 못했어요.")).`when`(nicknames).nicknames(ArgumentMatchers.anyCollection<String>())
+
+        assertEquals(503, failure { service.publicList(null, null, null) }.status)
+        assertEquals(503, failure { service.ranking("top") }.status)
+    }
+
+    @Test fun `public detail owner detail and owner list use the Core nickname with one lookup each`() {
+        work("a", "달빛 정원", 1, author = "윤서하")
+        val visible = access.get("a")
+        `when`(access.published("a")).thenReturn(visible)
+        `when`(access.own("a", "owner-a")).thenReturn(visible)
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("owner-a")).thenReturn(rows.toList())
+
+        assertEquals("윤서하", service.publicRead("a").authorName)
+        assertEquals("윤서하", service.read("a", "owner-a").authorName)
+        assertEquals(listOf("윤서하"), service.list("owner-a").items.map { it.authorName })
+
+        assertEquals(List(3) { listOf("owner-a") }, lookups.map { it.toList() })
+    }
+
+    @Test fun `owner without works looks up no owners and a hidden public work fails before any lookup`() {
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("nobody")).thenReturn(emptyList())
+        `when`(access.published("hidden")).thenThrow(ContentFailure(404, "공개 작품을 찾을 수 없어요."))
+
+        assertEquals(emptyList<String>(), service.list("nobody").items.map { it.id })
+        assertEquals(404, failure { service.publicRead("hidden") }.status)
+        assertEquals(emptyList<String>(), lookups.flatten())
     }
 }

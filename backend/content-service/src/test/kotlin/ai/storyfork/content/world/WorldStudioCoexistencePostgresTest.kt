@@ -1,6 +1,7 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.ContentServiceApplication
+import ai.storyfork.content.fixture.CoreMemberFixture
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.dto.CreateWorkRequest
 import ai.storyfork.content.world.service.WorldService
@@ -15,7 +16,7 @@ import java.util.UUID
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class WorldStudioCoexistencePostgresTest {
-    private fun context(db:WorldStudioPostgresFixture)=SpringApplicationBuilder(ContentServiceApplication::class.java).run(
+    private fun context(db:WorldStudioPostgresFixture)=SpringApplicationBuilder(ContentServiceApplication::class.java,CoreMemberFixture::class.java).run(
         "--spring.datasource.hikari.maximum-pool-size=3", "--spring.datasource.hikari.minimum-idle=0",
         "--server.port=0",
         "--DATABASE_URL=${db.url}", "--DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",

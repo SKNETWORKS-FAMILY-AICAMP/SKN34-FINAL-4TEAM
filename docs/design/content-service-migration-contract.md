@@ -56,6 +56,8 @@ Core는 회원·인증·세션·크레딧·정산·회원 알림을 유지한다
 | 연동 장애 | 연결/상대 503 → 503 `CORE_AUTH_UNAVAILABLE`, timeout → 504 `CORE_AUTH_TIMEOUT`, 기타 상대 오류 → 502 `CORE_AUTH_UPSTREAM_ERROR`, 빈/잘못된 응답·redirect → 502 `CORE_AUTH_INVALID_RESPONSE`. 사용자 무효만 401 `UNAUTHORIZED` |
 | 제한시간/세션 | 기본 Core origin `http://127.0.0.1:8080`, connect/read `1s`/`3s`. 기존 access JWT의 세션 폐기 즉시 전파는 보장하지 않음 |
 
+작가 닉네임 일괄 조회(`POST /internal/v1/members/nicknames`, [독서 관리 계약](reading-management-contract.md))는 같은 서비스 자격·Core origin·제한시간을 쓰지만 사용자 Bearer 없이 `X-Content-Service-Token`만 보내며, 실패는 위 분류와 달리 모두 503이다(재시도·캐시·임의 이름 대체 없음).
+
 인증 필수 요청마다 확인하며 인증 캐시·자동 재시도는 없다. 공개 조회는 GET만 익명 허용한다. 장애를 임의 회원·개발 사용자·성공 응답으로 대체하지 않는다. Core 회원 DB·비밀번호·세션·JWT 서명 비밀을 콘텐츠에 복제하지 않는다. 실제 보안·HTTP proxy·장애 검증 소스는 hosted CI에 두고 실제 성공 확인 전에는 검증 대기로 보고한다.
 
 로그인·refresh·로그아웃은 Core가 계속 담당한다. 콘텐츠 라우팅으로 옮겨도 기존 변경 요청의 CSRF 보호를 유지한다. Core 보안 설정을 통째로 복사하지 않고 콘텐츠가 받아야 하는 인증·CSRF 경계를 명시한다.

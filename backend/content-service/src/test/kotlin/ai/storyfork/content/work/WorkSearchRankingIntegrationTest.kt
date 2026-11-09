@@ -3,6 +3,7 @@ package ai.storyfork.content.work
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.fixture.ContentTestConfig
+import ai.storyfork.content.fixture.CoreMemberFixture
 import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.fixture.DraftRequest
@@ -38,7 +39,7 @@ import tools.jackson.databind.json.JsonMapper
     "DATABASE_USER=content_test","DATABASE_PASSWORD=",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
 ])
-@Import(ContentTestConfig::class)
+@Import(ContentTestConfig::class,CoreMemberFixture::class)
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 class WorkSearchRankingIntegrationTest {
     @LocalServerPort var port=0

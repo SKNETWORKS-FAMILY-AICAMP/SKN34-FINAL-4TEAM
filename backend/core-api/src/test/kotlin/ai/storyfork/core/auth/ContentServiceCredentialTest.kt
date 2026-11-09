@@ -33,6 +33,15 @@ class ContentServiceCredentialTest {
         assertFalse(service.isTrusted(operations, content))
     }
 
+    @Test fun `member nickname lookup trusts only the content credential`() {
+        assertFalse(AuthVerificationService(members, "", "").isContent(""))
+        assertFalse(AuthVerificationService(members, "short", "short").isContent("short"))
+        val service = AuthVerificationService(members, content, operations)
+        assertTrue(service.isContent(content))
+        // 운영 토큰·사용자 Bearer 문자열·빈 값은 Content 자격이 아니다.
+        for (input in listOf(null, "", "wrong", operations, "Bearer $content")) assertFalse(service.isContent(input))
+    }
+
     @Test fun `only an existing unrestricted member with a canonical UUID subject is verified with its role`() {
         val service = AuthVerificationService(members, "", "")
         val admin = AuthMember(UUID.randomUUID(), "admin@example.test", "hash", "admin", operator = true)

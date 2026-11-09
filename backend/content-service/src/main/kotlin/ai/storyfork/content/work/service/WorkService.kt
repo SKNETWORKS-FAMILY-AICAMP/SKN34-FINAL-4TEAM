@@ -17,6 +17,9 @@ import ai.storyfork.content.world.repository.*
 import ai.storyfork.content.work.domain.*
 import org.springframework.dao.DataIntegrityViolationException
 
+/** Core에 없는(탈퇴한) 소유자의 작가 표시명이다. */
+private const val WITHDRAWN_AUTHOR="탈퇴한 회원"
+
 @Service
 @Transactional(transactionManager="contentTransactionManager")
 class WorkService(
@@ -39,12 +42,15 @@ class WorkService(
     private val versions: ai.storyfork.content.episode_version.service.EpisodeVersionService,
     private val proposals: ai.storyfork.content.proposal.service.ProposalService,
     private val viewService: WorkViewService,
+    private val nicknames: ai.storyfork.content.auth.service.MemberNicknameService,
 ) {
 
     fun list(owner: String): WorkListResponse {
         val rows=works.findAllByOwnerIdOrderByCreatedAtDesc(owner)
         access.lockScopes(rows.map {it.id})
-        return WorkListResponse(rows.map {view(access.own(it.id,owner))})
+        val owned=rows.map {access.own(it.id,owner)}
+        val authors=authorNames(owned)
+        return WorkListResponse(owned.map {view(it,authors)})
     }
     /** 공개 작품 목록이다. q·f·sort를 모두 생략하면 기존처럼 작품 생성 최신순이며, 잘못된 f·sort는 422다. */
     fun publicList(q: String?,f: String?,sort: String?): WorkListResponse {
@@ -64,15 +70,17 @@ class WorkService(
         val counts=viewService.counts()
         val visible=works.findAllById(counts.keys).sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()}
         val byId=visible.associateBy {it.id}
-        return WorkListResponse(rankingIds(rankingKind,visible.map {it.id},counts).map {view(byId.getValue(it),true).copy(views=counts.getValue(it).recent)})
+        val top=rankingIds(rankingKind,visible.map {it.id},counts).map {byId.getValue(it)}
+        val authors=authorNames(top)
+        return WorkListResponse(top.map {view(it,authors,true).copy(views=counts.getValue(it.id).recent)})
     }
-    private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> =
-        works.findAll().sortedByDescending {it.createdAt}.mapNotNull {
-            val w=access.get(it.id)
-            if(w.publiclyVisible()) view(w,true).copy(views=counts[it.id]?.recent ?: 0) else null
-        }
-    fun read(id: String,owner: String): WorkResponse = view(access.own(id,owner))
-    fun publicRead(id: String): WorkResponse = view(access.published(id),true)
+    private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> {
+        val visible=works.findAll().sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()}
+        val authors=authorNames(visible)
+        return visible.map {view(it,authors,true).copy(views=counts[it.id]?.recent ?: 0)}
+    }
+    fun read(id: String,owner: String): WorkResponse = access.own(id,owner).let {view(it,authorNames(listOf(it)))}
+    fun publicRead(id: String): WorkResponse = access.published(id).let {view(it,authorNames(listOf(it)),true)}
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
         val registered=data.creationType!=null || data.genres.isNotEmpty() || data.hashtags.isNotEmpty() || data.rightsConfirmed!=null
@@ -153,7 +161,12 @@ class WorkService(
         return HistoryResponse(versions.history(id).items,proposals.history(id,owner).items,
             policies.findAllByWorkIdOrderByRevisionNo(id).map {PolicyResponse(it.allowCreation,it.allowPublication,it.changedAt.toString())},publication.history(id).items)
     }
-    private fun view(w: WorkAccessResult,public: Boolean = false): WorkResponse {
+    /**
+     * 응답 하나에 담을 작품들의 소유자 Core 닉네임을 한 번에 조회한다(N+1 금지). Core 실패는 503으로 올라가며, 응답에 없는 소유자는 [view]가 탈퇴한 회원으로 표시한다.
+     * ponytail: 트랜잭션 안에서 Core를 부른다(시연 규모). Core 지연이 커지면 조회를 마친 뒤 트랜잭션 밖에서 채운다.
+     */
+    private fun authorNames(rows: Collection<WorkAccessResult>): Map<String,String> = nicknames.nicknames(rows.map {it.ownerId})
+    private fun view(w: WorkAccessResult,authors: Map<String,String>,public: Boolean = false): WorkResponse {
         val published=publication.publishedEpisodes(w.id).items
         val draft=if(public) null else {
             val e=episodes.findByWorkIdAndSequence(w.id,published.size+1)
@@ -166,7 +179,7 @@ class WorkService(
         val type=CreationType.entries.first {it.code==row.creationType}.name
         return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,
             hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0,creationType=type,genres=genres,hashtags=tags,
-            slug=row.slug,authorName=row.authorName,ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
+            slug=row.slug,authorName=authors[w.ownerId] ?: WITHDRAWN_AUTHOR,ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
             hero=row.heroLine1?.let {listOf(it,row.heroLine2.orEmpty())},heroBg=row.heroBackground,
             forkableEpisodes=if(w.source==null) access.forkable(w.id,published.map {it.number}) else emptyList())
     }

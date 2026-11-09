@@ -29,7 +29,7 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
 
 /** 실제 HTTP·PostgreSQL·S3 호환 저장소를 사용하는 선택적 통합 검증. */
-@org.springframework.context.annotation.Import(ai.storyfork.content.fixture.ContentTestConfig::class)
+@org.springframework.context.annotation.Import(ai.storyfork.content.fixture.ContentTestConfig::class, ai.storyfork.content.fixture.CoreMemberFixture::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [
     "spring.datasource.url=\${TEST_ATTACHMENT_DATABASE_URL}",
     "spring.datasource.username=content_test", "spring.datasource.password=",

@@ -54,7 +54,7 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 
 ### 내부 API (Content·운영 서비스 전용, nginx 비노출)
 
-[운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 모두 회원 Bearer가 필요합니다.
+[운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 닉네임 일괄 조회를 뺀 모든 API는 회원 Bearer가 필요합니다.
 
 | 메서드·경로 | 서비스 자격 | 동작 |
 |---|---|---|
@@ -62,6 +62,7 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `GET /internal/v1/members?role=ALL\|MEMBER\|ADMIN&q=&sort=newest\|oldest` | `X-Operations-Service-Token`만 | `{items: MemberItem[]}` 최대 200개, `q`는 닉네임·이메일 대소문자 무시 부분 일치 |
 | `PUT`·`DELETE /internal/v1/members/{id}/restriction` | 〃 | 이용 제한·해제 후 `MemberItem`. 자기 자신 400, 없는 회원 404 |
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |
+| `POST /internal/v1/members/nicknames` | `X-Content-Service-Token`만(운영 토큰·Bearer만으로는 403, 사용자 Bearer 불필요) | `{ids: [UUID 1~200개]}` → `{nicknames: {<id>: <닉네임>}}`. 없는 회원은 맵에서 빠지고 이용 제한 회원도 닉네임을 돌려줍니다. 개수 범위·UUID 형식 오류 400. Content가 작품 응답의 작가명을 채우는 데 씁니다([독서 관리 계약](../../docs/design/reading-management-contract.md)) |
 
 `MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403, `code: "ACCOUNT_RESTRICTED"`)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다.
 

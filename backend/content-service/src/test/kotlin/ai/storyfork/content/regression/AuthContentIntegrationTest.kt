@@ -2,6 +2,7 @@ package ai.storyfork.content.regression
 
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.fixture.CoreMemberFixture
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.mockito.Mockito.`when`
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.annotation.Import
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.jdbc.core.JdbcTemplate
@@ -36,6 +38,7 @@ import tools.jackson.databind.json.JsonMapper
     "DATABASE_USER=content_test","DATABASE_PASSWORD=",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
 ])
+@Import(CoreMemberFixture::class)
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 class AuthContentIntegrationTest {
     @LocalServerPort var port=0
@@ -94,6 +97,29 @@ class AuthContentIntegrationTest {
         for(episode in listOf(0,-1,2)) assertEquals(404,send(request("$path?episode=$episode").header("X-User-Id",owner)).statusCode())
         assertEquals(404,send(request("/api/v1/public/works/${UUID.randomUUID()}/world?episode=1")).statusCode())
         assertEquals(401,send(request("/api/v1/works/${work.id}/world").header("X-User-Id",owner)).statusCode())
+    }
+
+    @Test fun `author name is the owner Core nickname on public and owner reads and author search matches it`() {
+        val owner=actor()
+        val work=works.create(owner.toString(),CreateWorkRequest("작가명 조회 검증"))
+        val saved=versions.saveCurrent(work.id,owner.toString(),DraftRequest("1화","published body",work.revision))
+        publication.publishCurrent(work.id,owner.toString(),PublishRequest(saved.draft.revision,true,versionId=saved.version.id))
+        val nickname=CoreMemberFixture.nickname(owner)
+        fun author(response:HttpResponse<String>):String {
+            assertEquals(200,response.statusCode(),response.body())
+            return json.readTree(response.body()).path("authorName").asString()
+        }
+        assertEquals(nickname,author(send(request("/api/v1/public/works/${work.id}"))))
+        assertEquals(nickname,author(send(request("/api/v1/works/${work.id}").header("Authorization","Bearer $owner"))))
+        for(path in listOf("/api/v1/public/works","/api/v1/works")) {
+            val response=send(request(path+if(path.startsWith("/api/v1/public")) "?f=author&q="+java.net.URLEncoder.encode(nickname,Charsets.UTF_8) else "").header("Authorization","Bearer $owner"))
+            assertEquals(200,response.statusCode(),response.body())
+            val mine=json.readTree(response.body()).toList().filter {it.path("id").asString()==work.id}
+            assertEquals(listOf(nickname),mine.map {it.path("authorName").asString()},path)
+        }
+        // Core에 없는 소유자는 임의 이름이 아니라 탈퇴한 회원으로 보인다(비 UUID 소유자는 Core에 묻지 않는다).
+        val legacy=works.create("legacy-owner",CreateWorkRequest("비 UUID 소유자"))
+        assertEquals("탈퇴한 회원",works.read(legacy.id,"legacy-owner").authorName)
     }
 
     @Test fun `only public GET is anonymous and private writes require csrf and allowed origin`() {

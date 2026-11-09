@@ -1,6 +1,7 @@
 package ai.storyfork.content.episode
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.fixture.CoreMemberFixture
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.episode.service.dto.*
 import ai.storyfork.content.work.service.WorkService
@@ -12,8 +13,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
+@Import(CoreMemberFixture::class)
 @SpringBootTest(properties=["DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=content_test","DATABASE_PASSWORD="])
 class EpisodeConcurrencyPostgresTest {
     @Autowired lateinit var works: WorkService

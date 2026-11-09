@@ -42,6 +42,7 @@ class WorkDeleteServiceTest {
     @Mock lateinit var proposals: ProposalService
     @Mock lateinit var settings: SettingDocumentRepository
     @Mock lateinit var viewService: WorkViewService
+    @Mock lateinit var nicknames: ai.storyfork.content.auth.service.MemberNicknameService
     @InjectMocks lateinit var service: WorkService
 
     private val work=WorkAccessResult("work","author","작품","소개",0,"world","private",false,false,null)

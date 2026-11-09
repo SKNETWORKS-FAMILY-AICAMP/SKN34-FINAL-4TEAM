@@ -4,10 +4,12 @@ import ai.storyfork.core.auth.config.AuthSecurityConfig
 import ai.storyfork.core.auth.config.InternalAuthSecurityConfig
 import ai.storyfork.core.auth.controller.AuthVerificationController
 import ai.storyfork.core.auth.controller.MemberAdminController
+import ai.storyfork.core.auth.controller.MemberNicknameController
 import ai.storyfork.core.auth.entity.AuthMember
 import ai.storyfork.core.auth.repository.MemberRepository
 import ai.storyfork.core.auth.service.AuthVerificationService
 import ai.storyfork.core.auth.service.MemberAdminService
+import ai.storyfork.core.auth.service.MemberNicknameService
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -26,13 +28,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.json.JsonMapper
 
-@WebMvcTest(controllers=[AuthVerificationController::class,MemberAdminController::class],properties=[
+@WebMvcTest(controllers=[AuthVerificationController::class,MemberAdminController::class,MemberNicknameController::class],properties=[
     "AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     "CONTENT_CORE_AUTH_TOKEN=ci-content-core-auth-only-0123456789abcdef",
     "OPERATIONS_SERVICE_TOKEN=ci-operations-service-only-0123456789abcdef",
 ])
 @Import(AuthSecurityConfig::class,InternalAuthSecurityConfig::class,AuthVerificationService::class,MemberAdminService::class,
-    InternalAuthVerificationIntegrationTest.Security::class)
+    MemberNicknameService::class,InternalAuthVerificationIntegrationTest.Security::class)
 class InternalAuthVerificationIntegrationTest {
     @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods=false)
     @org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -121,5 +123,39 @@ class InternalAuthVerificationIntegrationTest {
         mvc.perform(post("/internal/v1/members/admins").header("X-Operations-Service-Token",operations)
             .header("Authorization",bearer(admin.toString())).contentType("application/json").content("{}"))
             .andExpect(status().isBadRequest())
+    }
+
+    private fun nicknames(body: String)=post("/internal/v1/members/nicknames").contentType("application/json").content(body)
+
+    @Test fun `nickname lookup needs only the content credential and omits unknown members`() {
+        val unknown=UUID.randomUUID()
+        `when`(members.findAllById(setOf(member,unknown))).thenReturn(listOf(AuthMember(member,"reader@example.test","hash","Reader")))
+        val response=mvc.perform(nicknames("""{"ids":["$member","$unknown"]}""").header("X-Content-Service-Token",credential))
+            .andExpect(status().isOk()).andReturn().response
+        val body=JsonMapper.builder().build().readTree(response.contentAsString)
+        assertEquals(1,body.size())
+        assertEquals(1,body.path("nicknames").size())
+        assertEquals("Reader",body.path("nicknames").path(member.toString()).asString())
+    }
+
+    @Test fun `nickname lookup refuses missing wrong operations and bearer only credentials`() {
+        val body="""{"ids":["$member"]}"""
+        mvc.perform(nicknames(body)).andExpect(status().isForbidden())
+        mvc.perform(nicknames(body).header("X-Content-Service-Token","wrong")).andExpect(status().isForbidden())
+        mvc.perform(nicknames(body).header("X-Content-Service-Token",operations)).andExpect(status().isForbidden())
+        mvc.perform(nicknames(body).header("X-Operations-Service-Token",operations)).andExpect(status().isForbidden())
+        mvc.perform(nicknames(body).header("Authorization",bearer())).andExpect(status().isForbidden())
+        mvc.perform(nicknames(body).header("X-Operations-Service-Token",operations).header("Authorization",bearer(admin.toString())))
+            .andExpect(status().isForbidden())
+        // 허용 경로는 POST 하나뿐이다(인증된 사용자도 GET은 거절).
+        mvc.perform(get("/internal/v1/members/nicknames").header("X-Content-Service-Token",credential).header("Authorization",bearer()))
+            .andExpect(status().isForbidden())
+    }
+
+    @Test fun `nickname lookup rejects out of range and malformed id lists with 400`() {
+        val tooMany=List(201) {UUID.randomUUID()}.joinToString(",") {"\"$it\""}
+        for(body in listOf("{}","""{"ids":[]}""","""{"ids":[$tooMany]}""","""{"ids":["not-a-uuid"]}""","[]","")) {
+            mvc.perform(nicknames(body).header("X-Content-Service-Token",credential)).andExpect(status().isBadRequest())
+        }
     }
 }

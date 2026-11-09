@@ -50,6 +50,8 @@
 
 - **20 — Core `POST /internal/v1/members/nicknames`**: 요청 `{ "ids": [uuid...] }`(1~200개), 응답 `{ "nicknames": { "<id>": "<닉네임>" } }`(없는 회원은 맵에서 제외).
   `X-Content-Service-Token`만 허용한다(`/internal/v1/auth/verify`와 같은 신뢰 판정, `InternalAuthSecurityConfig`). Content는 응답 하나를 만들 때 소유자 ID를 모아 **한 번만** 호출한다(N+1 금지).
+  구현 메모: Core 회원 ID는 UUID라 UUID가 아닌 소유자(레거시·테스트 행)는 Core에 묻지 않고 `탈퇴한 회원`으로 본다. 한도(200개)를 넘는 소유자 수만 200개씩 나눠 보낸다(응답 하나가 분할 호출 중 하나라도 실패하면 전체 503).
+  Core 실패(연결·시간 초과·상대 오류·빈/잘못된 응답)는 인증 확인의 504·502 구분 없이 모두 503이며 재시도·캐시·임의 이름 대체가 없다.
 - **21-B — 사건 `content.episode.published`**: Content가 공개 작품의 회차를 발행하면 같은 트랜잭션에서 관심 등록한 회원마다(작가 본인 제외) `content_event_outbox`에 한 행을 쓰고,
   스케줄 발행기가 [알림 사건 계약](../notification-event-contract.md) 형식(`target.type = "work"`, `target.id = 작품 id`)으로 `storyfork.events`에 보낸 뒤 `published_at`을 채운다.
   Core는 `NoticeEventType`에 `EPISODE_PUBLISHED("content.episode.published", READING, "관심 작품에 새 회차가 올라왔어요", "work")`를 추가한다.

@@ -6,9 +6,9 @@
 
 ## 결정
 
-- 검색 대상: 공개 작품의 제목·작가명·해시태그·장르(본문 제외). 작가명은 Content `work.author_name`(작가 표시명)이며 `f=author`로 찾고
-  `f=all`에도 포함한다. 작가 닉네임의 정본은 Core이고 Content에는 샘플 이관 등으로 채운 표시명뿐이다. API로 새로 만든 작품은 기본값
-  `작성자`다(Core 닉네임과 동기화하지 않는다).
+- 검색 대상: 공개 작품의 제목·작가명·해시태그·장르(본문 제외). 작가명은 소유자의 Core 닉네임이며 `f=author`로 찾고 `f=all`에도 포함한다.
+  Content는 닉네임 사본을 두지 않고(`work.author_name`은 읽지 않는다) 응답을 만들 때마다 소유자 ID를 모아 Core에서 한 번에 조회한다
+  ([독서 관리 계약](reading-management-contract.md)). Core에 없는 소유자는 `탈퇴한 회원`이고 Core 실패는 503이다.
 - 정렬: `latest`(기본, 기존 공개 목록 순서인 작품 생성 최신순)·`view`(최근 24시간 조회수). 좋아요(인기 순)는 좋아요 기능이 없어 범위 밖이다.
 - 조회 기록: 로그인 회원이 공개 작품의 발행 회차를 열 때 **회원·회차별 하루(Asia/Seoul 날짜) 1회**만 기록한다(유스케이스 규칙).
   익명 열람은 회원 식별이 없어 기록하지 않는다.
@@ -40,7 +40,7 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 
 | 메서드·경로 | 인증 | 동작 |
 |---|---|---|
-| `GET /api/v1/public/works?q=&f=all\|title\|author\|tag\|genre&sort=latest\|view` | 익명 | 매개변수 없으면 기존 공개 목록과 같다. `q`는 trim 후 대소문자 무시 부분 일치(`author`는 `author_name`), `tag`는 앞 `#` 무시. 잘못된 `f`·`sort`는 422 |
+| `GET /api/v1/public/works?q=&f=all\|title\|author\|tag\|genre&sort=latest\|view` | 익명 | 매개변수 없으면 기존 공개 목록과 같다. `q`는 trim 후 대소문자 무시 부분 일치(`author`는 소유자 Core 닉네임), `tag`는 앞 `#` 무시. 잘못된 `f`·`sort`는 422 |
 | `GET /api/v1/public/works/ranking?kind=top\|rising` | 익명 | 위 규칙의 최대 10개 `WorkListResponse`. 잘못된 `kind`는 422 |
 | `POST /api/v1/works/{id}/episodes/{number}/views` | 회원 | 공개 작품의 발행 회차면 기록(같은 날 중복은 무시)하고 204. 비공개·운영 제한·미발행 회차는 404. 소유자 검사 없음 |
 
@@ -63,7 +63,7 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 
 ## ponytail 한계
 
-- 작가 검색은 `author_name` 표시명만 본다(Core 닉네임·계정과 동기화하지 않는다).
+- 작가 검색은 공개 작품 소유자의 Core 닉네임을 요청 때마다 조회해 메모리에서 맞춘다. Core 조회가 실패하면 목록·검색·랭킹이 함께 503이다.
 - 검색은 공개 작품 목록을 메모리에서 거르고 정렬한다(시연 규모). 랭킹은 조회 기록이 있는 작품만 읽어 순위 10개만 응답으로 조립한다.
   작품 수가 늘면 SQL 조건·페이지네이션으로 옮긴다.
 - 서버 페이지네이션 없음. 기간 집계는 롤링 24시간 두 구간만 있고 주간 집계는 없다.
