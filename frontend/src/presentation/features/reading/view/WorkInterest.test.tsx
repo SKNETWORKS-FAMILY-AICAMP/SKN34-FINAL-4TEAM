@@ -46,12 +46,17 @@ describe('작품 화면 관심 등록/해제', () => {
     await button('관심 해제')
   })
 
-  it('좋아요(♥) 버튼은 관심 등록과 별개라 관심 목록을 바꾸지 않는다', async () => {
+  it('좋아요(♥) 버튼은 관심 등록과 별개라 관심 목록을 바꾸지 않고 좋아요 문구로 알린다', async () => {
     renderApp('/work/guunmong', createAppStore({ role: 'user' }))
     await button('관심 등록')
-    fireEvent.click(screen.getByRole('button', { name: '관심 소설' }))
-    await waitFor(() => expect(screen.getByRole('button', { name: '관심 소설' }).getAttribute('aria-pressed')).toBe('true'))
+    const heart = () => screen.getByRole('button', { name: '관심 소설' })
+    fireEvent.click(heart())
+    await waitFor(() => expect(heart().getAttribute('aria-pressed')).toBe('true'))
+    expect(screen.getByRole('status').textContent).toBe('이 창에서만 좋아요를 눌렀어요 · 계정에 저장되지 않아요')
     expect(await interests().list()).toEqual([])
+    fireEvent.click(heart())
+    await waitFor(() => expect(heart().getAttribute('aria-pressed')).toBe('false'))
+    expect(screen.getByRole('status').textContent).toBe('좋아요를 취소했어요')
     screen.getByRole('button', { name: '관심 등록' })
   })
 

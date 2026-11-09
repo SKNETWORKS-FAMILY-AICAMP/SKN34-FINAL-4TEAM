@@ -39,7 +39,7 @@ describe('소설 상세 (U04)', () => {
     expect(list()).toEqual(['4', '3', '2', '1'])
     fireEvent.click(screen.getByRole('button', { name: '관심 소설' }))
     await waitFor(() => expect(screen.getByRole('button', { name: '관심 소설' }).getAttribute('aria-pressed')).toBe('true'))
-    expect(screen.getByRole('status').textContent).toBe('이 창의 관심 소설에 담았어요 · 계정에 저장되지 않아요')
+    expect(screen.getByRole('status').textContent).toBe('이 창에서만 좋아요를 눌렀어요 · 계정에 저장되지 않아요')
     expect(document.getElementById('lkc')!.textContent).toBe('1.2만')
     fireEvent.click(screen.getByRole('button', { name: '공유' }))
     expect(screen.getByRole('status').textContent).toBe('링크 공유는 데모예요 (실제 복사 없음)')

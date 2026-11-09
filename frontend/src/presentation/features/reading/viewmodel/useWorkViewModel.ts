@@ -68,7 +68,7 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
     requireLogin: () => { dispatch(sessionActions.requireLogin({ next: `/work/${id}`, msg: '관심 소설은 로그인한 뒤 담을 수 있어요.', role: 'user' })) },
     toggleLike: () => readingUseCase.toggleLike(data?.work.id ?? id).then((on) => {
       dispatch(sessionActions.dataChanged())
-      toast(on ? '이 창의 관심 소설에 담았어요 · 계정에 저장되지 않아요' : '이 창의 관심 소설에서 뺐어요')
+      toast(on ? '이 창에서만 좋아요를 눌렀어요 · 계정에 저장되지 않아요' : '좋아요를 취소했어요')
     }),
     share: () => toast('링크 공유는 데모예요 (실제 복사 없음)'),
     /** 남의 공개 작품에서만 신고 버튼을 보입니다. */
