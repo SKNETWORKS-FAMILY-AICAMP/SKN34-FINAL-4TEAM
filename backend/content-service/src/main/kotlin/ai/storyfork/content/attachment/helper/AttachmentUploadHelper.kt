@@ -2,19 +2,20 @@ package ai.storyfork.content.attachment.helper
 
 import ai.storyfork.content.attachment.domain.AttachmentFailure
 import ai.storyfork.content.attachment.service.dto.AttachmentUploadPayload
-import ai.storyfork.content.attachment.service.dto.AttachmentUploadRequest
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import javax.imageio.ImageIO
 import javax.imageio.stream.MemoryCacheImageInputStream
+import org.springframework.web.multipart.MultipartFile
 
 object AttachmentUploadHelper {
     const val MAX_BYTES = 10 * 1024 * 1024
     private fun invalid(): Nothing = throw AttachmentFailure(422, "ATTACHMENT_INVALID", "파일명·형식·이미지 내용을 확인해 주세요.")
 
-    fun validate(request: AttachmentUploadRequest): AttachmentUploadPayload {
-        val file = request.file ?: invalid()
+    /** 업로드 파일의 이름·크기·형식·내용을 검사해 서비스에 넘길 AttachmentUploadPayload로 바꾼다. 컨트롤러에서 DB 잠금 전에 호출한다. */
+    fun validate(source: MultipartFile?): AttachmentUploadPayload {
+        val file = source ?: invalid()
         val name = file.originalFilename ?: invalid()
         if (!name.matches(Regex("[\\p{L}\\p{N} _().-]{1,120}")) || name.startsWith('.') || ".." in name || name.trim() != name) invalid()
         if (file.size > MAX_BYTES) throw AttachmentFailure(413, "ATTACHMENT_TOO_LARGE", "파일은 10 MiB 이하만 업로드할 수 있어요.")

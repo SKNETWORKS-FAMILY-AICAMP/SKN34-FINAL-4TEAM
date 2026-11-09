@@ -130,6 +130,8 @@ class SettingAttachmentHttpTest {
         val path = "/api/v1/works/${work.id}/cover"
         assertEquals(401, get(path, null).statusCode())
         assertEquals(404, upload(path, other, method="PUT").statusCode())
+        // Ownership is checked before the file, so a stranger cannot probe work IDs with an invalid file.
+        assertEquals(404, upload(path, other, "text".toByteArray(), "note.txt", "text/plain", "PUT").statusCode())
         val created = upload(path, owner, method="PUT")
         assertEquals(200, created.statusCode(), String(created.body()))
         val url = node(created).path("url").asText()
@@ -152,6 +154,7 @@ class SettingAttachmentHttpTest {
         val base = "/api/v1/works/${work.id}/episodes/1/images"
         assertEquals(401, upload(base, null).statusCode())
         assertEquals(404, upload(base, other).statusCode())
+        assertEquals(404, upload(base, other, "text".toByteArray(), "note.txt", "text/plain").statusCode())
         val created = upload(base, owner)
         assertEquals(201, created.statusCode(), String(created.body()))
         val id = node(created).path("id").asText()
@@ -294,6 +297,7 @@ class SettingAttachmentHttpTest {
         assertEquals(403, upload(base, owner, origin="https://evil.example").statusCode())
         for (url in listOf(base, path, "$path/content")) assertEquals(404, get(url, other).statusCode())
         assertEquals(404, upload(base, other).statusCode()); assertEquals(404, upload(path, other, method="PUT").statusCode())
+        assertEquals(404, upload(base, other, "text".toByteArray(), "note.txt", "text/plain").statusCode()); assertEquals(404, upload(path, other, "text".toByteArray(), "note.txt", "text/plain", "PUT").statusCode())
         assertEquals(404, delete(path, other).statusCode())
         assertEquals(404, get("$base/missing", owner).statusCode())
         assertEquals(404, upload(base.replace("/settings/", "/settings/missing-"), owner).statusCode())

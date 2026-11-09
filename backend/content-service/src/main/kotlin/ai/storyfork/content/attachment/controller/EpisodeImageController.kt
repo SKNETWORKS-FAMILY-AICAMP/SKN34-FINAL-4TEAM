@@ -1,5 +1,6 @@
 package ai.storyfork.content.attachment.controller
 
+import ai.storyfork.content.attachment.helper.AttachmentUploadHelper
 import ai.storyfork.content.attachment.helper.ImageDownloadHelper
 import ai.storyfork.content.attachment.service.AttachmentService
 import ai.storyfork.content.attachment.service.dto.*
@@ -16,7 +17,7 @@ class EpisodeImageController(private val service: AttachmentService) {
     /** 소유자의 편집 가능한 실제 회차에 PNG·JPEG를 추가한다. 형식·10개 한도·원작 회차·저장 실패를 검사한다. */
     @PostMapping("/api/v1/works/{work}/episodes/{number}/images", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun create(@PathVariable work: String, @PathVariable number: Int, principal: Principal, @Valid @ModelAttribute request: AttachmentUploadRequest): ResponseEntity<AttachmentResponse> =
-        ResponseEntity.status(HttpStatus.CREATED).body(service.createEpisodeImage(work, number, principal.name, request))
+        ResponseEntity.status(HttpStatus.CREATED).body(service.createEpisodeImage(work, number, principal.name, checked(work, principal, request)))
 
     /** 소유자에게 회차 이미지를 반환한다. 원작 기준 회차는 보존된 본문 참조만 조회할 수 있다. */
     @GetMapping("/api/v1/works/{work}/episodes/{number}/images/{id}/content")
@@ -27,4 +28,10 @@ class EpisodeImageController(private val service: AttachmentService) {
     @GetMapping("/api/v1/public/works/{work}/episodes/{number}/images/{id}/content")
     fun publicDownload(@PathVariable work: String, @PathVariable number: Int, @PathVariable id: String) =
         ImageDownloadHelper.response(service.downloadEpisodeImage(work, number, id, null, true))
+
+    /** 소유 작품인지 짧은 잠금 트랜잭션으로 먼저 확인한 뒤 업로드 파일을 읽고 검증한다. 파일 처리는 DB 잠금 밖에서 끝난다. */
+    private fun checked(work: String, principal: Principal, request: AttachmentUploadRequest): AttachmentUploadPayload {
+        service.requireWorkUploadAccess(work, principal.name)
+        return AttachmentUploadHelper.validate(request.file)
+    }
 }
