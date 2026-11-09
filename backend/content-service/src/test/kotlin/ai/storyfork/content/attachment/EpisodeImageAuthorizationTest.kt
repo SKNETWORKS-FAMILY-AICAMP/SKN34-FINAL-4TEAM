@@ -26,6 +26,7 @@ import ai.storyfork.content.work.repository.*
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
+import ai.storyfork.content.work.service.dto.WorkResponse
 import ai.storyfork.content.world.service.WorldService
 import jakarta.persistence.EntityManager
 import java.util.Optional

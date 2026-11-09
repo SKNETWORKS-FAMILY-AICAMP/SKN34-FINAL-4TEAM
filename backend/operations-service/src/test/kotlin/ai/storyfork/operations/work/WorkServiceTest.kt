@@ -23,7 +23,7 @@ class WorkServiceTest {
     private val operatorWithoutWorks = OperationsMember(UUID.randomUUID(), true)
     private val staleGrant = OperationsMember(UUID.randomUUID(), false)
     private val workId = UUID.randomUUID()
-    private val work = ContentWork(workId, UUID.randomUUID(), "작품", false)
+    private val work = ContentWork(workId, UUID.randomUUID().toString(), "작품", false)
 
     private fun grantWorks(vararg members: OperationsMember) = members.forEach {
         `when`(permissions.existsByMemberIdAndPermission(it.memberId, "works")).thenReturn(true)

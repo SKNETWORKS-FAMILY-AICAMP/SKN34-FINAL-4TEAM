@@ -15,10 +15,7 @@ class AuthVerificationService(
     @Value("\${OPERATIONS_SERVICE_TOKEN:}") private val operationsToken: String,
 ) {
     /** verify 호출 자격: Content 또는 운영 서비스 토큰 중 하나. */
-    fun isTrusted(content: String?, operations: String?): Boolean = isContent(content) || isOperations(operations)
-
-    /** 회원 닉네임 일괄 조회 호출 자격: Content 서비스 토큰만. */
-    fun isContent(candidate: String?): Boolean = matches(contentToken, candidate)
+    fun isTrusted(content: String?, operations: String?): Boolean = matches(contentToken, content) || isOperations(operations)
 
     /** 운영 전용 API 호출 자격: 운영 서비스 토큰만. */
     fun isOperations(candidate: String?): Boolean = matches(operationsToken, candidate)

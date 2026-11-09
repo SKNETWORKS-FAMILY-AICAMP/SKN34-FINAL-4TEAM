@@ -118,7 +118,7 @@ class OperationsClientsIntegrationTest {
             .andRespond(withSuccess(body.replace("true", "false"), MediaType.APPLICATION_JSON))
 
         val restricted = client.restrict(id)
-        assertEquals(owner, restricted.ownerId)
+        assertEquals(owner.toString(), restricted.ownerId)
         assertTrue(restricted.restricted)
         assertFalse(client.unrestrict(id).restricted)
         server.verify()

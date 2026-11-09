@@ -145,6 +145,7 @@ class AttachmentService(
     }
     fun readCover(work: String, owner: String) = imageTransaction { ownedWork(work, owner); response(cover(work)) }
     fun downloadCover(work: String, owner: String?, public: Boolean): AttachmentDownloadResult {
+        // 공개 작품이 아니면 404다. 작가명(Core 조회)이 필요 없으므로 publicRead 대신 이름 없는 확인을 쓴다.
         if (public) content.publicEpisodes(work)
         return imageTransaction { if (!public) ownedWork(work, owner ?: ""); val image = cover(work); AttachmentDownloadResult(response(image), imageBytes(image)) }
     }

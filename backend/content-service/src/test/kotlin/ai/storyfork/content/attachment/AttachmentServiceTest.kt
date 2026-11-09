@@ -1,6 +1,7 @@
 package ai.storyfork.content.attachment
 
 import ai.storyfork.content.attachment.service.AttachmentService
+import ai.storyfork.content.work.service.dto.WorkResponse
 import ai.storyfork.content.episode.service.dto.DraftResponse as Draft
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse as Episode
 import ai.storyfork.content.episode.service.dto.EpisodeResponse as WritingEpisode
@@ -187,7 +188,9 @@ class AttachmentServiceTest {
         val downloaded = service.downloadCover("work", null, true)
         assertArrayEquals(png, downloaded.bytes)
         assertEquals("/api/v1/works/work/cover/content", downloaded.attachment.url)
+        // 표지·이미지 공개 열람은 작가명 조회(WorkService.publicRead)가 아니라 이름 없는 공개 회차 확인만 쓴다.
         verify(content, times(4)).publicEpisodes("work")
+        verify(content, never()).publicRead("work")
         verifyNoInteractions(works)
     }
 

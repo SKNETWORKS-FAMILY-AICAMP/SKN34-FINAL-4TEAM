@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import { NOVEL_GENRES } from '../../../../domain/usecases/LibraryUseCase'
+import { parseHashtags, workMetaLabel, type WorkCreationType } from '../../../../domain/entities/content'
 import { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import './episode.css'
 import { WorldPanel } from './WorldPanel'
@@ -20,6 +22,11 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   const [title, setTitle] = useState('')
   const [summary, setSummary] = useState('')
   const [cover, setCover] = useState<File>()
+  const [creationType, setCreationType] = useState<WorkCreationType>('ORIGINAL')
+  const [genre1, setGenre1] = useState('')
+  const [genre2, setGenre2] = useState('')
+  const [hashtags, setHashtags] = useState('')
+  const [registerRights, setRegisterRights] = useState(false)
   const [mediaBusy, setMediaBusy] = useState(false)
   const locked = vm.busy || mediaBusy
   const [prompt, setPrompt] = useState('현재 장면을 자연스럽게 이어 써 주세요.')
@@ -45,6 +52,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
     vm.clearContext()
     setTab(item?.readOnly ? 'read' : 'write')
     setRights(false)
+    setRegisterRights(false)
     setAllowFork(item?.allowFork ?? false)
     setAllowForkPublication(item?.allowForkPublication ?? false)
     setPreview(false)
@@ -162,7 +170,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault()
-                    void vm.create(title, summary, cover)
+                    void vm.create(title, summary, cover, { creationType, genres: [...new Set([genre1, genre2].filter(Boolean))], hashtags: parseHashtags(hashtags), rightsConfirmed: registerRights })
                   }}
                 >
                   <label>
@@ -185,6 +193,35 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                       rows={4}
                       disabled={locked}
                     />
+                  </label>
+                  <fieldset disabled={locked}>
+                    <legend>작품 유형</legend>
+                    <label className='ep-check'><input type='radio' name='creationType' checked={creationType === 'ORIGINAL'} onChange={() => setCreationType('ORIGINAL')} /> 원작</label>
+                    <label className='ep-check'><input type='radio' name='creationType' checked={creationType === 'EXTERNAL_DERIVATIVE'} onChange={() => setCreationType('EXTERNAL_DERIVATIVE')} /> 외부 2차 창작 <span className='ep-optional'>무료 공개만 가능</span></label>
+                  </fieldset>
+                  <label>
+                    장르<select aria-label='장르' value={genre1} onChange={(e) => setGenre1(e.target.value)} required disabled={locked}>
+                      <option value=''>장르를 선택해 주세요</option>
+                      {NOVEL_GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    두 번째 장르 <span className='ep-optional'>선택</span><select aria-label='두 번째 장르' value={genre2} onChange={(e) => setGenre2(e.target.value)} disabled={locked}>
+                      <option value=''>선택 안 함</option>
+                      {NOVEL_GENRES.filter((g) => g !== genre1).map((g) => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    해시태그 <span className='ep-optional'>선택 · 쉼표로 구분 · 10개까지</span><input
+                      aria-label='해시태그'
+                      value={hashtags}
+                      onChange={(e) => setHashtags(e.target.value)}
+                      placeholder='#회귀, #성장'
+                      disabled={locked}
+                    />
+                  </label>
+                  <label className='ep-check'>
+                    <input type='checkbox' checked={registerRights} onChange={(e) => setRegisterRights(e.target.checked)} required disabled={locked} /> 이 작품을 등록할 권리가 있음을 확인합니다.
                   </label>
                   <label>
                     작품 표지 (선택)<input
@@ -229,6 +266,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                         ? `「${w.source.title}」 ${w.source.episode}화 · 버전 ${w.source.version}에서 분기`
                         : w.summary || '당신의 이야기를 한 문장씩 채워 보세요.'}
                     </p>
+                    {!w.source && workMetaLabel(w) && <p>{workMetaLabel(w)}</p>}
                     {w.readOnly && !vm.activeIsMine && <ReportWorkForm key={w.id} workId={w.id} workTitle={w.title} />}
                   </div>
                   <span className={'chip ' + (w.visibility === 'public' ? 'ok' : '')}>

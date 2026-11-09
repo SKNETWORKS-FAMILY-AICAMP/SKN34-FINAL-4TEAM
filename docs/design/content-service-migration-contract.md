@@ -47,7 +47,7 @@ Core는 회원·인증·세션·크레딧·정산·회원 알림을 유지한다
 |---|---|
 | 구현 endpoint | `POST /internal/v1/auth/verify` — Core 내부 전용, 공개 proxy 미등록 |
 | 사용자 인증 입력 | 원 요청의 `Authorization: Bearer …`. 본문 사용자 ID는 인증 근거로 사용하지 않음 |
-| 최소 성공 응답 | `VerifiedMemberResponse(memberId: UUID)` |
+| 최소 성공 응답 | `VerifiedMemberResponse(memberId: UUID)` (표시용 닉네임은 별도 내부 조회 `POST /internal/v1/members/nicknames`, [회차 댓글 계약](episode-comment-contract.md#core-회원-닉네임-조회-내부)) |
 | Core 책임 | 기존 인증·세션 정책으로 유효한 인증 주체를 판단. 세션 폐기 반영 범위도 기존 정책과 맞춤 |
 | 콘텐츠 책임 | 보호 요청의 인증 경계에서 확인 후 Principal 구성. 업무 Service에서 작품·세계관·회차·Fork 권한 검사 |
 | 호출 서비스 인증 | 별도 `X-Content-Service-Token`; `CONTENT_CORE_AUTH_TOKEN`은 32자 이상·개행 없음, Core 상수 시간 비교. 루트 예시는 빈 값, Core/Content만 주입 |
@@ -55,8 +55,6 @@ Core는 회원·인증·세션·크레딧·정산·회원 알림을 유지한다
 | 인증 실패 | Core가 사용자 인증 무효를 확인한 경우 `401`. 콘텐츠 권한 거부·리소스 비공개 응답은 기존 정책 유지 |
 | 연동 장애 | 연결/상대 503 → 503 `CORE_AUTH_UNAVAILABLE`, timeout → 504 `CORE_AUTH_TIMEOUT`, 기타 상대 오류 → 502 `CORE_AUTH_UPSTREAM_ERROR`, 빈/잘못된 응답·redirect → 502 `CORE_AUTH_INVALID_RESPONSE`. 사용자 무효만 401 `UNAUTHORIZED` |
 | 제한시간/세션 | 기본 Core origin `http://127.0.0.1:8080`, connect/read `1s`/`3s`. 기존 access JWT의 세션 폐기 즉시 전파는 보장하지 않음 |
-
-작가 닉네임 일괄 조회(`POST /internal/v1/members/nicknames`, [독서 관리 계약](reading-management-contract.md))는 같은 서비스 자격·Core origin·제한시간을 쓰지만 사용자 Bearer 없이 `X-Content-Service-Token`만 보내며, 실패는 위 분류와 달리 모두 503이다(재시도·캐시·임의 이름 대체 없음).
 
 인증 필수 요청마다 확인하며 인증 캐시·자동 재시도는 없다. 공개 조회는 GET만 익명 허용한다. 장애를 임의 회원·개발 사용자·성공 응답으로 대체하지 않는다. Core 회원 DB·비밀번호·세션·JWT 서명 비밀을 콘텐츠에 복제하지 않는다. 실제 보안·HTTP proxy·장애 검증 소스는 hosted CI에 두고 실제 성공 확인 전에는 검증 대기로 보고한다.
 

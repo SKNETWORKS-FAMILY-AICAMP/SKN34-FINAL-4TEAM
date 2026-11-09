@@ -1,11 +1,10 @@
 package ai.storyfork.content.auth
 
-import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.auth.client.config.CoreAuthClientConfig
 import ai.storyfork.content.auth.client.config.CoreAuthClientProperties
 import ai.storyfork.content.auth.client.exception.CoreAuthException
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
-import ai.storyfork.content.auth.service.MemberNicknameService
+import ai.storyfork.content.auth.service.CoreNicknameService
 import com.sun.net.httpserver.HttpServer
 import java.net.InetSocketAddress
 import java.net.URI
@@ -17,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.web.client.RestClient
+import tools.jackson.databind.json.JsonMapper
 
 /** Real local HTTP transport is hosted integration only, never a local unit test. */
 class CoreAuthClientConfigIntegrationTest {
@@ -72,20 +72,22 @@ class CoreAuthClientConfigIntegrationTest {
         }
     }
 
-    @Test fun `nickname lookup sends only the id list with the service credential and every failure is a 503`() {
+    @Test fun `nickname lookup posts the distinct ids as JSON with only the service credential and separates failures`() {
         val server=HttpServer.create(InetSocketAddress("127.0.0.1",0),0)
         val executor=Executors.newCachedThreadPool()
         server.executor=executor
-        val seen=CopyOnWriteArrayList<Map<String,String?>>()
+        val received=CopyOnWriteArrayList<String>()
         var status=200
-        var body="""{"nicknames":{"12345678-1234-4234-8234-123456789abc":"작가"}}"""
+        var body="""{"nicknames":{"12345678-1234-4234-8234-123456789abc":"닉네임"}}"""
         server.createContext("/internal/v1/members/nicknames") { exchange ->
             try {
-                seen+=mapOf("method" to exchange.requestMethod,"token" to exchange.requestHeaders.getFirst("X-Content-Service-Token"),
-                    "authorization" to exchange.requestHeaders.getFirst("Authorization"),"type" to exchange.requestHeaders.getFirst("Content-Type"),
-                    "body" to String(exchange.requestBody.readAllBytes()))
+                assertEquals("POST",exchange.requestMethod)
+                assertEquals("service-credential-0123456789abcdef",exchange.requestHeaders.getFirst("X-Content-Service-Token"))
+                // 닉네임 조회에는 사용자 Bearer가 없다.
+                assertNull(exchange.requestHeaders.getFirst("Authorization"))
+                assertTrue(exchange.requestHeaders.getFirst("Content-Type").startsWith("application/json"))
+                received+=exchange.requestBody.readAllBytes().toString(Charsets.UTF_8)
                 exchange.responseHeaders.add("Content-Type","application/json")
-                if(status==302) exchange.responseHeaders.add("Location","/redirect-target")
                 val bytes=body.toByteArray()
                 exchange.sendResponseHeaders(status,bytes.size.toLong())
                 exchange.responseBody.use {it.write(bytes)}
@@ -94,22 +96,19 @@ class CoreAuthClientConfigIntegrationTest {
         server.start()
         try {
             val properties=CoreAuthClientProperties(URI.create("http://127.0.0.1:${server.address.port}"),Duration.ofSeconds(1),Duration.ofSeconds(3))
-            val service=MemberNicknameService(CoreAuthClientConfig().coreMemberClient(RestClient.builder(),properties,"service-credential-0123456789abcdef"))
+            val service=CoreNicknameService(CoreAuthClientConfig().coreAuthClient(RestClient.builder(),properties,"service-credential-0123456789abcdef"))
             val id="12345678-1234-4234-8234-123456789abc"
-            assertEquals(mapOf(id to "작가"),service.nicknames(listOf(id,"author")))
-            val request=seen.single()
-            assertEquals("POST",request["method"])
-            assertEquals("service-credential-0123456789abcdef",request["token"])
-            assertNull(request["authorization"],"사용자 Bearer는 보내지 않는다")
-            assertTrue(request["type"].orEmpty().startsWith("application/json"))
-            assertEquals("""{"ids":["$id"]}""",request["body"])
-            for(code in listOf(401,403,404,500,503,302)) {
-                status=code;body="{}"
-                assertEquals(503,assertThrows(ContentFailure::class.java) {service.nicknames(listOf(id))}.status,"HTTP $code")
-            }
+            assertEquals(mapOf(id to "닉네임"),service.nicknames(listOf(id,id)))
+            val mapper=JsonMapper.builder().build()
+            assertEquals(mapper.readTree("""{"ids":["$id"]}"""),mapper.readTree(received.single()))
+            // 서비스 자격 오류(403)·잘못된 응답·장애는 이름을 지어내지 않고 각각 502·502·503이다.
+            status=403;body="{}"
+            assertEquals(502,assertThrows(CoreAuthException::class.java) {service.nicknames(listOf(id))}.status)
             status=200;body="{}"
-            assertEquals(503,assertThrows(ContentFailure::class.java) {service.nicknames(listOf(id))}.status,"본문에 nicknames가 없는 응답")
-            assertEquals(8,seen.size,"재시도 없음")
+            assertEquals(502,assertThrows(CoreAuthException::class.java) {service.nicknames(listOf(id))}.status)
+            status=503;body="{}"
+            assertEquals(503,assertThrows(CoreAuthException::class.java) {service.nicknames(listOf(id))}.status)
+            assertEquals(4,received.size)
         } finally {
             server.stop(0);executor.shutdownNow();executor.awaitTermination(2,TimeUnit.SECONDS)
         }

@@ -1,7 +1,8 @@
 package ai.storyfork.content.episode
 
+import ai.storyfork.content.auth.service.CoreNicknameService
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import ai.storyfork.content._common.exception.ContentFailure
-import ai.storyfork.content.fixture.CoreMemberFixture
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.episode.service.dto.*
 import ai.storyfork.content.work.service.WorkService
@@ -13,12 +14,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
-@Import(CoreMemberFixture::class)
 @SpringBootTest(properties=["DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=content_test","DATABASE_PASSWORD="])
 class EpisodeConcurrencyPostgresTest {
+    // 작가명·작성자명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다.
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var episodes: EpisodeService
     @Autowired lateinit var access: ai.storyfork.content.work.service.WorkAccessService

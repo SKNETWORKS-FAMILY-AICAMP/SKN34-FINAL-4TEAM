@@ -15,6 +15,9 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.filter.OncePerRequestFilter
 
+// Content 서비스 토큰을 허용하는 정확한 경로. 나머지 /internal 경로는 운영 서비스 토큰만 받는다.
+private val CONTENT_SERVICE_PATHS = setOf("/internal/v1/auth/verify", "/internal/v1/members/nicknames")
+
 @Configuration(proxyBeanMethods = false)
 class InternalAuthSecurityConfig {
     @Bean
@@ -23,14 +26,10 @@ class InternalAuthSecurityConfig {
         val serviceCredential = object : OncePerRequestFilter() {
             override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
                 val operations = request.getHeader("X-Operations-Service-Token")
-                val content = request.getHeader("X-Content-Service-Token")
-                // 운영 전용 회원 API는 운영 서비스 토큰만, verify는 Content·운영 토큰 중 하나, 닉네임 일괄 조회는 Content 토큰만 받는다.
-                // 정확한 verify·nicknames 경로만 Content 토큰을 허용하고, 인코딩 변형을 포함한 나머지는 운영 토큰만 받는다.
-                val trusted = when (request.requestURI) {
-                    "/internal/v1/auth/verify" -> service.isTrusted(content, operations)
-                    "/internal/v1/members/nicknames" -> service.isContent(content)
-                    else -> service.isOperations(operations)
-                }
+                // 운영 전용 회원 API는 운영 서비스 토큰만, verify·닉네임 조회는 Content·운영 토큰 중 하나를 받는다.
+                // 정확한 두 경로만 Content 토큰을 허용하고, 인코딩 변형을 포함한 나머지는 운영 토큰만 받는다.
+                val trusted = if (request.requestURI in CONTENT_SERVICE_PATHS) service.isTrusted(request.getHeader("X-Content-Service-Token"), operations)
+                    else service.isOperations(operations)
                 if (!trusted) {
                     response.status = 403
                     return
@@ -42,9 +41,9 @@ class InternalAuthSecurityConfig {
         http.securityMatcher("/internal/**").csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
-                it.requestMatchers(HttpMethod.POST, "/internal/v1/auth/verify", "/internal/v1/members/admins").authenticated()
-                    // 닉네임 일괄 조회는 사용자 Bearer가 없다. 위 서비스 자격 필터가 Content 토큰이 아니면 이미 403으로 막는다.
-                    .requestMatchers(HttpMethod.POST, "/internal/v1/members/nicknames").permitAll()
+                // 닉네임 조회는 사용자 JWT 없이 위 서비스 자격 필터만 통과하면 된다(필터가 403으로 걸러낸 요청은 여기 오지 않는다).
+                it.requestMatchers(HttpMethod.POST, "/internal/v1/members/nicknames").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/internal/v1/auth/verify", "/internal/v1/members/admins").authenticated()
                     .requestMatchers(HttpMethod.GET, "/internal/v1/members").authenticated()
                     .requestMatchers(HttpMethod.PUT, "/internal/v1/members/*/restriction").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/internal/v1/members/*/restriction").authenticated()

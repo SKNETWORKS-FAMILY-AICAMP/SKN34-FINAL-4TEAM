@@ -42,7 +42,7 @@ class WorkDeleteServiceTest {
     @Mock lateinit var proposals: ProposalService
     @Mock lateinit var settings: SettingDocumentRepository
     @Mock lateinit var viewService: WorkViewService
-    @Mock lateinit var nicknames: ai.storyfork.content.auth.service.MemberNicknameService
+    @Mock lateinit var nicknames: ai.storyfork.content.auth.service.CoreNicknameService
     @InjectMocks lateinit var service: WorkService
 
     private val work=WorkAccessResult("work","author","작품","소개",0,"world","private",false,false,null)
@@ -52,7 +52,7 @@ class WorkDeleteServiceTest {
     }
     private fun noDeletionInteractions() = verifyNoInteractions(
         works,worlds,workWorlds,visibility,policies,workGenres,hashtagRows,rightsRows,episodes,drafts,
-        members,genreRows,publication,versions,proposals,viewService,
+        members,genreRows,publication,versions,proposals,viewService,nicknames,
     )
 
     @Test fun `unauthorized deletion returns 404 without looking up settings`() {

@@ -1,8 +1,8 @@
 package ai.storyfork.content.regression
 
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
-import ai.storyfork.content.fixture.CoreMemberFixture
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
@@ -24,7 +24,6 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.mockito.Mockito.`when`
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.context.annotation.Import
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.jdbc.core.JdbcTemplate
@@ -38,9 +37,10 @@ import tools.jackson.databind.json.JsonMapper
     "DATABASE_USER=content_test","DATABASE_PASSWORD=",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
 ])
-@Import(CoreMemberFixture::class)
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 class AuthContentIntegrationTest {
+    // 작가명·작성자명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다.
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @LocalServerPort var port=0
     @MockitoBean lateinit var core:CoreAuthClient
     @Autowired @Qualifier("contentDataSource") lateinit var source:DataSource
@@ -104,7 +104,11 @@ class AuthContentIntegrationTest {
         val work=works.create(owner.toString(),CreateWorkRequest("작가명 조회 검증"))
         val saved=versions.saveCurrent(work.id,owner.toString(),DraftRequest("1화","published body",work.revision))
         publication.publishCurrent(work.id,owner.toString(),PublishRequest(saved.draft.revision,true,versionId=saved.version.id))
-        val nickname=CoreMemberFixture.nickname(owner)
+        // Core 대역: 이 소유자만 알고 나머지는 Core에 없는(탈퇴한) 회원이다.
+        val nickname="작가-${owner.toString().take(8)}"
+        `when`(nicknames.nicknames(org.mockito.ArgumentMatchers.anyCollection<String>())).thenAnswer {call ->
+            (call.arguments[0] as Collection<*>).map {it as String}.filter {it==owner.toString()}.associateWith {nickname}
+        }
         fun author(response:HttpResponse<String>):String {
             assertEquals(200,response.statusCode(),response.body())
             return json.readTree(response.body()).path("authorName").asString()
@@ -117,9 +121,9 @@ class AuthContentIntegrationTest {
             val mine=json.readTree(response.body()).toList().filter {it.path("id").asString()==work.id}
             assertEquals(listOf(nickname),mine.map {it.path("authorName").asString()},path)
         }
-        // Core에 없는 소유자는 임의 이름이 아니라 탈퇴한 회원으로 보인다(비 UUID 소유자는 Core에 묻지 않는다).
-        val legacy=works.create("legacy-owner",CreateWorkRequest("비 UUID 소유자"))
-        assertEquals("탈퇴한 회원",works.read(legacy.id,"legacy-owner").authorName)
+        // Core에 없는 소유자는 임의 이름이 아니라 탈퇴한 회원으로 보인다.
+        val unknown=works.create("legacy-owner",CreateWorkRequest("Core에 없는 소유자"))
+        assertEquals("탈퇴한 회원",works.read(unknown.id,"legacy-owner").authorName)
     }
 
     @Test fun `only public GET is anonymous and private writes require csrf and allowed origin`() {
