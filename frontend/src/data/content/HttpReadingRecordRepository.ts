@@ -38,9 +38,9 @@ export class HttpReadingRecordRepository implements ReadingRecordRepository {
     return parsed.data.records
   }
   async record(workId: string, episode: number) {
-    if ((await this.request(`/${encodeURIComponent(workId)}/reading/${episode}`, 'PUT')).status !== 204) throw new Error('저장 완료 응답을 확인할 수 없어요. 다시 불러와 상태를 확인해 주세요.')
+    await this.request(`/${encodeURIComponent(workId)}/reading/${episode}`, 'PUT')
   }
   async remove(workId: string) {
-    if ((await this.request(`/${encodeURIComponent(workId)}/reading`, 'DELETE')).status !== 204) throw new Error('삭제 완료 응답을 확인할 수 없어요. 다시 불러와 상태를 확인해 주세요.')
+    await this.request(`/${encodeURIComponent(workId)}/reading`, 'DELETE')
   }
 }

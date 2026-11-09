@@ -66,9 +66,14 @@ describe('독서 기록 Http 저장소 (/api/v1/works/reading)', () => {
       .rejects.toThrow('요청을 처리하지 못했어요')
   })
 
-  it('204가 아닌 성공 응답과 계약에 없는 목록 응답은 성공으로 받지 않는다', async () => {
-    await expect(new HttpReadingRecordRepository(vi.fn().mockResolvedValue(Response.json({ ok: true }))).record('w1', 1)).rejects.toThrow('저장 완료 응답을 확인할 수 없어요')
-    await expect(new HttpReadingRecordRepository(vi.fn().mockResolvedValue(Response.json({ ok: true }))).remove('w1')).rejects.toThrow('삭제 완료 응답을 확인할 수 없어요')
+  it('쓰기는 2xx 응답이면 본문과 상관없이 성공으로 본다(서버 계약은 204)', async () => {
+    for (const respond of [() => new Response(null, { status: 204 }), () => Response.json({ ok: true })]) {
+      await expect(new HttpReadingRecordRepository(vi.fn(async () => respond())).record('w1', 1)).resolves.toBeUndefined()
+      await expect(new HttpReadingRecordRepository(vi.fn(async () => respond())).remove('w1')).resolves.toBeUndefined()
+    }
+  })
+
+  it('계약에 없는 목록 응답은 성공으로 받지 않는다', async () => {
     for (const body of [{ records: [{ workId: 'w1', lastEpisode: 0, readEpisodes: [], updatedAt: 'x' }] }, { records: [row({ readEpisodes: ['1'] })] }, { records: 'none' }, []]) {
       await expect(new HttpReadingRecordRepository(vi.fn().mockResolvedValue(Response.json(body))).list()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
     }
