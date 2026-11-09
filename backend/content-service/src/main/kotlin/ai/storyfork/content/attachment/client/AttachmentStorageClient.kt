@@ -6,8 +6,17 @@ import ai.storyfork.content.attachment.domain.AttachmentFailure
 import ai.storyfork.content.attachment.helper.AttachmentUploadHelper
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 
 class AttachmentStorageClient(private val s3: S3Client, private val bucket: String) {
+    /** local·dev MinIO용: 버킷이 없으면 시작 시 한 번 만든다. 다른 오류는 그대로 던져 기동을 멈춘다. */
+    fun ensureBucket() {
+        try { s3.headBucket(HeadBucketRequest.builder().bucket(bucket).build()) }
+        catch (_: NoSuchBucketException) { s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build()) }
+    }
+
     fun upload(key: String, payload: AttachmentObjectPayload) = storageCall {
         s3.putObject({ it.bucket(bucket).key(key).contentType(payload.mediaType).contentLength(payload.bytes.size.toLong()) }, RequestBody.fromBytes(payload.bytes))
         Unit

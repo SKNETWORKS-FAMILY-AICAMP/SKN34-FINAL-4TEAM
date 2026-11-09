@@ -93,7 +93,7 @@ Auth SQL은 Core의 `db/migration/auth`/`flyway_schema_history`에 원본 그대
 
 ## 이미지·전환과 검증
 
-Content Dockerfile·Compose·GHCR 게시 대상·nginx/Vite·CI 소비 선택을 연결했습니다. CD 배포는 `DEVELOP_CD_ENABLED=true`와 `CONTENT_FRESH_SCHEMA_APPROVED=true`가 모두 필요합니다. 승인 변수는 실제 DB 준비를 대신하지 않습니다. 동일 revision 이미지 확인 후 web/구 Core/Content writer를 중단하고 선택 WorldStudio migration → 새 앱 기동 순서이며 실패하면 자동 rollback/repair 없이 ingress를 멈춘 상태로 남깁니다. [인프라 절차](../../infrastructure/README.md#ci--cd-publish--deploy)를 따릅니다.
+Content Dockerfile·Compose·GHCR 게시 대상·nginx/Vite·CI 소비 선택을 연결했습니다. CD 배포는 develop CI 성공 후 별도 활성화·승인 변수 없이 실행됩니다. 동일 revision 이미지 확인 후 web/구 Core/Content writer를 중단하고 선택 WorldStudio migration → 새 앱 기동 순서이며 실패하면 자동 rollback/repair 없이 ingress를 멈춘 상태로 남깁니다. [인프라 절차](../../infrastructure/README.md#ci--cd-publish--deploy)를 따릅니다.
 
 ```bash
 # 로컬: 순수 단위만 명시 선택

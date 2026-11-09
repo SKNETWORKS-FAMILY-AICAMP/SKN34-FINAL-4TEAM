@@ -31,7 +31,6 @@ import tools.jackson.databind.ObjectMapper
 /** 실제 HTTP·PostgreSQL·S3 호환 저장소를 사용하는 선택적 통합 검증. */
 @org.springframework.context.annotation.Import(ai.storyfork.content.fixture.ContentTestConfig::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [
-    "app.setting-attachments.enabled=true",
     "spring.datasource.url=\${TEST_ATTACHMENT_DATABASE_URL}",
     "spring.datasource.username=content_test", "spring.datasource.password=",
     "DATABASE_URL=\${TEST_ATTACHMENT_DATABASE_URL}", "DATABASE_USER=content_test", "DATABASE_PASSWORD=",
@@ -107,7 +106,7 @@ class SettingAttachmentHttpTest {
     @Test fun `content JPA transactions stay separate from attachment transactions`() {
         val authManager = assertInstanceOf(org.springframework.orm.jpa.JpaTransactionManager::class.java, authTransactions.transactionManager)
         assertNotSame(attachmentTransactions.transactionManager, authManager)
-        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity"), requireNotNull(authManager.entityManagerFactory)
+        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity"), requireNotNull(authManager.entityManagerFactory)
             .metamodel.entities.map { it.javaType.packageName }.toSet())
         val id = UUID.randomUUID().toString()
         authTransactions.executeWithoutResult { status ->

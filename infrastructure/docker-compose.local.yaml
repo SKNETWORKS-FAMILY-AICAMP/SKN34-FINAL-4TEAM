@@ -19,12 +19,11 @@ services:
       timeout: 3s
       retries: 20
 
-  # Explicit opt-in only; never launched by local validation. Data transition requires separate approval.
+  # WorldStudio 관계 정본. local·개발 배포 모두 항상 띄운다.
   neo4j:
     image: neo4j:5.26.0-community
-    profiles: [worldstudio]
     environment:
-      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-}
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?Set NEO4J_PASSWORD}
     ports:
       - "127.0.0.1:${NEO4J_BOLT_PORT:-7687}:7687"
     volumes:
@@ -42,15 +41,13 @@ services:
       - "127.0.0.1:${CORE_MAILPIT_SMTP_PORT:-1025}:1025"
       - "127.0.0.1:${CORE_MAILPIT_WEB_PORT:-8025}:8025"
 
-  # 알림 사건 검증용 브로커. 기본 스택에는 포함하지 않으며 `--profile events`로만 켠다.
-  # 관리 UI·포트는 열지 않고 상태 확인은 컨테이너 안의 rabbitmqctl로 한다.
+  # 알림 사건 브로커. local·개발 배포 모두 항상 띄운다. 관리 UI·포트는 열지 않는다.
   rabbitmq:
     image: rabbitmq:4.1.0-alpine
-    profiles: [events]
     hostname: storyfork-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${CORE_RABBITMQ_USER:-storyfork}
-      RABBITMQ_DEFAULT_PASS: ${CORE_RABBITMQ_PASSWORD:-}
+      RABBITMQ_DEFAULT_PASS: ${CORE_RABBITMQ_PASSWORD:?Set CORE_RABBITMQ_PASSWORD}
     volumes:
       - core-rabbitmq:/var/lib/rabbitmq
     healthcheck:
@@ -60,10 +57,34 @@ services:
       retries: 20
       start_period: 20s
 
+  # 첨부 파일 저장소(S3 호환). 공식 이미지 배포 중단으로 소스 빌드하며, 태그는 Dockerfile의 고정 버전과 같다.
+  # 한 번 빌드한 이미지를 계속 쓴다(ghcr에서 받을 수 없으면 처음 한 번만 빌드). local·개발 배포 모두 항상 띄운다.
+  minio:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-minio:RELEASE.2025-10-15T17-29-55Z
+    build:
+      context: ./minio
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:?Set AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
+    command: [server, /data, --console-address, ':9001']
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - setting-attachments:/data
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://localhost:9000/minio/health/live]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   ai-service:
     build:
       context: ../backend/ai-service
       dockerfile: Dockerfile
+    environment:
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
 
   core-api:
     build:
@@ -72,11 +93,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
+      CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
       CORE_SMTP_HOST: mailpit
+      CORE_RABBITMQ_HOST: rabbitmq
       CORE_SMTP_PORT: 1025
       AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:-http://127.0.0.1:${WEB_PORT:-5173}}
       AUTH_MAIL_FROM: ${AUTH_MAIL_FROM:?Set AUTH_MAIL_FROM}
@@ -93,10 +119,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
     environment:
+      CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
+      ATTACHMENT_S3_BUCKET: ${ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}
+      ATTACHMENT_S3_REGION: ${ATTACHMENT_S3_REGION:-us-east-1}
+      ATTACHMENT_S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?Set AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
+      NEO4J_URI: bolt://neo4j:7687
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${WEB_PORT:-5173}}
     ports:
       - "127.0.0.1:${CONTENT_SERVICE_PORT:-8081}:8081"
@@ -109,9 +148,12 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
+    ports:
+      - "127.0.0.1:${OPERATIONS_SERVICE_PORT:-8082}:8082"
 
   web:
     build:
@@ -124,3 +166,4 @@ volumes:
   core-postgres:
   worldstudio-neo4j:
   core-rabbitmq:
+  setting-attachments:

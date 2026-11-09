@@ -92,7 +92,7 @@ prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP*
 | `CONTENT_CORE_AUTH_TOKEN` / `INTERNAL_TOKEN` | 각각 Core↔Content / Content↔AI의 별도 무작위 서비스 자격 |
 | `WEB_PORT` | 담당자가 준비한 비충돌 loopback 포트, TLS ingress는 별도 |
 
-SMTP 인증은 기본 `CORE_SMTP_AUTH=true`이며 제공사가 요구하는 `CORE_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `CORE_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `OPENAI_API_KEY/MODEL`은 선택적 생성 설정으로 AI에만 전달합니다. `APP_WORLDSTUDIO_ENABLED`는 기본 false이며 WorldStudio의 실제 DB 준비·명시 migration은 별도 승인 대상입니다.
+SMTP 인증은 기본 `CORE_SMTP_AUTH=true`이며 제공사가 요구하는 `CORE_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `CORE_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `OPENAI_API_KEY/MODEL`은 AI에만 전달합니다(local·dev에서 `OPENAI_API_KEY`·`OPERATIONS_SERVICE_TOKEN`은 필수). Neo4j·RabbitMQ는 local·개발 배포에서 항상 뜨며 `NEO4J_PASSWORD`·`CORE_RABBITMQ_PASSWORD`가 필요합니다. WorldStudio schema는 Content 시작 시 적용됩니다.
 
 prod의 `AUTH_COOKIE_SECURE`는 **항상 true**이므로 로컬 HTTP용 `AUTH_COOKIE_SECURE=false`가 있어도 약화되지 않습니다. HTTP로 그대로 공개해도 되는 설정이 아니며 HTTPS ingress·DNS·인증/메일·백업 복원·관측·운영 수용 검증은 이 파일이 제공하지 않습니다.
 
@@ -105,29 +105,24 @@ docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastr
 
 ## 로컬 설정 첨부 저장소 (#87)
 
-base + local 뒤에 [`compose.attachments.yaml`](compose.attachments.yaml)을 추가하면 **Content**와 첨부를 활성화하고 로컬 MinIO를 연결합니다. 기존 DB·계정·volume을 사용하며 Core에는 S3 설정을 전달하지 않습니다. Core/Content 서비스 자격과 Content/AI 생성 토큰은 각각 준비합니다.
+첨부 저장소(MinIO)는 플래그 없이 local·개발 배포 compose에 항상 포함됩니다. Content만 `http://minio:9000`과 `AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY`를 받으며 Core에는 S3 설정을 전달하지 않습니다. 이미지는 Dockerfile의 고정 버전 태그(`storyfork-minio:RELEASE…`)로 ghcr에 없을 때만 CD가 한 번 빌드·게시하고, 개발 배포·CI는 그 이미지를 받아 씁니다(local은 받을 수 없으면 처음 한 번 빌드).
 
 MinIO는 승인된 [기존 minio.dockerfile](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-5Team/blob/HEAD/minio.dockerfile) 방식의 소스 빌드입니다. Go `1.24.8`/MinIO `RELEASE.2025-10-15T17-29-55Z`를 고정하며 다운로드/빌드는 네트워크가 필요합니다.
 
-```bash
-docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.local.yaml -f infrastructure/compose.attachments.yaml up --build -d
-```
-
-MinIO Console은 `127.0.0.1:${MINIO_CONSOLE_PORT:-9001}`, API는 `${MINIO_API_PORT:-9000}`입니다. 점유 포트가 있으면 다른 스택을 멈추지 말고 포트를 바꿉니다. **private** 버킷은 담당자가 먼저 생성하며 앱이 버킷/공개 정책을 만들지 않습니다. AWS credentials는 Content와 로컬 MinIO runtime만 받습니다. 예시 credentials는 공개 로컬 전용이므로 실제 루트 `.env`에서 교체합니다. 종료 시 같은 파일 조합의 해당 프로젝트만 `down`하고 volume을 보존합니다.
+MinIO Console은 `127.0.0.1:${MINIO_CONSOLE_PORT:-9001}`, API는 `${MINIO_API_PORT:-9000}`입니다. 점유 포트가 있으면 다른 스택을 멈추지 말고 포트를 바꿉니다. 버킷은 endpoint(MinIO)가 지정된 경우 Content가 시작할 때 없으면 private으로 만듭니다. AWS S3 버킷과 공개 정책은 앱이 만들지 않습니다. AWS credentials는 Content와 로컬 MinIO runtime만 받습니다. 예시 credentials는 공개 로컬 전용이므로 실제 루트 `.env`에서 교체합니다. 종료 시 같은 파일 조합의 해당 프로젝트만 `down`하고 volume을 보존합니다.
 
 ### 네이티브 Content 첨부 설정
 
 `backend/content-service` 터미널에 공용 `DATABASE_*`, `CONTENT_CORE_AUTH_TOKEN`, Core 인증 origin과 필요 시 생성 `INTERNAL_TOKEN`을 준비합니다. 다음 명령의 S3 설정은 Content 프로세스에만 적용됩니다. Frontend·Core·AI에 AWS 설정을 export하지 않습니다.
 
 ```bash
-env SETTING_ATTACHMENTS_ENABLED=true \
-  ATTACHMENT_S3_ENDPOINT=http://127.0.0.1:9000 \
+env ATTACHMENT_S3_ENDPOINT=http://127.0.0.1:9000 \
   ATTACHMENT_S3_REGION=us-east-1 ATTACHMENT_S3_BUCKET=storyfork-setting-attachments \
   AWS_ACCESS_KEY_ID='<local-access-key>' AWS_SECRET_ACCESS_KEY='<local-secret-key>' \
   ./gradlew bootRun
 ```
 
-임시 credentials의 `AWS_SESSION_TOKEN`도 같은 Content 명령에만 추가합니다. region 생략 시 `AWS_REGION`을 사용합니다. 실제 배포 대상은 **AWS S3**이며 endpoint를 비우고 region/bucket을 지정한 뒤 로컬 access/secret/session 값을 제거하고 SDK 기본 role/profile 체인을 사용합니다. native `AWS_PROFILE`도 Content에만 전달합니다. AWS provisioning·유료 호출·실제 IAM·TLS는 미검증입니다. MinIO overlay는 CD에 자동 추가하지 않습니다.
+임시 credentials의 `AWS_SESSION_TOKEN`도 같은 Content 명령에만 추가합니다. region 생략 시 `AWS_REGION`을 사용합니다. 실제 배포 대상은 **AWS S3**이며 endpoint를 비우고 region/bucket을 지정한 뒤 로컬 access/secret/session 값을 제거하고 SDK 기본 role/profile 체인을 사용합니다. native `AWS_PROFILE`도 Content에만 전달합니다. AWS provisioning·유료 호출·실제 IAM·TLS는 미검증입니다.
 
 API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core-api/README.md#설정-이미지일반-파일-87)을 따릅니다. 설정 검사 `infrastructure/tests/test_attachment_environment.py`는 앱/DB/컨테이너를 시작하지 않지만 전체 클래스의 Compose JSON 렌더링은 CI configuration에서 실행합니다. 로컬 자동 검사는 native 문서 계약 같은 순수 메서드와 `config --quiet`만 선택합니다.
 
@@ -138,7 +133,7 @@ API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core
 - CI는 변경 선택 → 단위·통합·설정 병렬 → 선택 HTTP 시스템 → `Required CI`입니다.
 - 자동 CD publish는 신뢰된 같은 저장소 develop의 성공한 push/수동 CI만 받습니다. PR·fork·main·실패·취소 CI는 게시/배포 권한이 없습니다.
 - 수동 **CD → Run workflow → develop**은 해당 커밋 네 이미지를 게시합니다. 이 수동 경로가 CI 재검증을 대신하지는 않습니다. 다른 ref는 생략합니다.
-- deploy는 publish 성공과 repository variables **`DEVELOP_CD_ENABLED=true`·`CONTENT_FRESH_SCHEMA_APPROVED=true`·`DEVELOP_INTERNAL_DB_APPROVED=true` 모두**를 요구합니다. 새 내부 DB 전환은 과거 외부 DB용 승인만으로 자동 시작하지 않습니다. GitHub environment 승인과 Tailscale·SSH host key 검증을 유지합니다.
+- deploy는 publish 성공만 요구하며 별도 활성화·승인 변수는 없습니다. GitHub environment 승인과 Tailscale·SSH host key 검증을 유지합니다.
 - packages write는 publish, packages read/id-token write는 deploy에만 부여합니다. `storyfork-develop-cd` concurrency로 직렬화하고 실행 중 취소하지 않습니다.
 
 자동 `workflow_run`은 기본 브랜치 main, 수동은 develop ref를 사용하므로 `develop-cd` environment의 allowed deployment branches에 둘을 허용하고 승인 정책을 유지해야 합니다. 소스 파일만으로 실제 GitHub 설정·branch protection·게시·배포가 완료되지 않습니다.
@@ -158,9 +153,6 @@ API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core
 
 | 위치 | 이름 | 역할 |
 |---|---|---|
-| Repository variable | `DEVELOP_CD_ENABLED` | 배포 허용 시 `true` |
-| Repository variable | `CONTENT_FRESH_SCHEMA_APPROVED` | 정확한 개발 DB의 Content fresh 전환 준비/복구 승인 후 `true` |
-| Repository variable | `DEVELOP_INTERNAL_DB_APPROVED` | 외부/공유 DB 보존·별도 내부 DB로의 전환/이관 계획을 담당자가 승인한 후만 `true`; 기본 미설정이면 배포 생략 |
 | Environment | `develop-cd` | main/develop ref와 필요한 승인 정책 |
 | Environment variable | `CD_DEPLOY_DIR` / `CD_WEB_PORT` | 기존 전용 절대 실경로 / 비충돌 loopback 1024–65535 |
 | Environment secret | `CD_SSH_PRIVATE_KEY` / `CD_SSH_KNOWN_HOSTS` | 전용 SSH 키 / 검증한 host key |
