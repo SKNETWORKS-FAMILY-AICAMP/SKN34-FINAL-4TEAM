@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { createFixtureDb } from '../../data/mock/fixtureDb'
 import { InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
@@ -53,6 +53,27 @@ describe('StudioUseCase (목업 studio()·draftOf·pubEpSheet)', () => {
     expect(db.drafts.starlight.paras).toEqual(['해가 진 뒤라 문은 열리지 않았다.'])
     await useCase.edit(made.key, { paras: ['바뀐 문장'] })
     expect(db.drafts.starlight.check).toMatchObject({ stale: true })
+  })
+
+  it('원문으로 되돌려도 무효를 유지하고, 같은 시각의 재검사를 구분한다', async () => {
+    const { db, useCase } = setup()
+    const { key } = await opened(useCase, 'starlight')
+    const original = ['해가 진 뒤 탑의 문이 열렸다.']
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(100)
+    try {
+      await useCase.edit(key, { paras: original })
+      await useCase.check('starlight', key)
+      const first = db.drafts[key].check!
+      await useCase.edit(key, { paras: ['바꾼 문장'] })
+      await useCase.edit(key, { paras: original })
+      expect(db.drafts[key].check).toMatchObject({ at: first.at, stale: true })
+
+      await useCase.check('starlight', key)
+      expect(db.drafts[key].check?.stale).toBe(false)
+      expect(db.drafts[key].check?.at).toBeGreaterThan(first.at)
+    } finally {
+      clock.mockRestore()
+    }
   })
 
   it('새 회차 공개는 원고가 있어야 하고, 회차 공개 중단을 토글한다', async () => {

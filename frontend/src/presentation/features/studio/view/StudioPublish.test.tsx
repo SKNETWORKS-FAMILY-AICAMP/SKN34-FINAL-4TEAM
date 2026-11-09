@@ -41,6 +41,202 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
+it('keeps cover and plot saves and AI prompt input quiet while preserving their data', async () => {
+  const { result } = await hook()
+  const key = result.current.studio!.key
+  await act(async () => {
+    await result.current.saveNotes({ coverImg: 'demo-cover' })
+    expect(work().coverImg).toBe('demo-cover')
+    await result.current.saveNotes({ coverImg: null, narrativeOrder: ['첫 사건'] })
+  })
+  expect(work()).toMatchObject({ coverImg: null, narrativeOrder: ['첫 사건'] })
+  expect(result.current.saving).toBe(false)
+  act(() => result.current.setPrompt('다음 장면을 이어 써 주세요'))
+  expect(result.current.saving).toBe(false)
+  await waitFor(() => expect(appContainer.resolve('mockDb').drafts[key].aiPrompt)
+    .toBe('다음 장면을 이어 써 주세요'))
+})
+
+it('shows saving when the demo memo is edited', async () => {
+  render(<Provider store={createAppStore({ role: 'user' })}>
+    <MemoryRouter initialEntries={['/studio/starlight?view=memo']}>
+      <Routes><Route path="/studio/:id" element={<StudioPage />} /></Routes>
+    </MemoryRouter>
+  </Provider>)
+  fireEvent.change(await screen.findByLabelText('콘티 내용'), { target: { value: '다음 장면 메모' } })
+  expect(screen.getByText('저장 중…')).toBeTruthy()
+  await waitFor(() => expect(work().memo).toBe('다음 장면 메모'))
+})
+
+it('serializes note and cover saves and reports a failed save separately', async () => {
+  const { result } = await hook()
+  const pending = deferred()
+  const saves = vi.spyOn(api(), 'saveNotes').mockImplementationOnce(async () => {
+    await pending.promise
+    throw new Error('메모 저장 실패')
+  })
+
+  const memo = result.current.saveNotes({ memo: '저장할 메모' })
+  const cover = result.current.saveNotes({ coverImg: 'new-cover' })
+  try {
+    await waitFor(() => expect(saves).toHaveBeenCalledOnce())
+  } finally {
+    await act(async () => {
+      pending.resolve()
+      expect(await memo).toBe(false)
+      expect(await cover).toBe(true)
+    })
+  }
+  expect(saves).toHaveBeenCalledTimes(2)
+  expect(work().coverImg).toBe('new-cover')
+  expect(result.current.saving).toBe(false)
+
+  saves.mockRejectedValueOnce(new Error('표지 저장 실패'))
+  await act(async () => {
+    expect(await result.current.saveNotes({ coverImg: null })).toBe(false)
+  })
+  expect(result.current.saveFailed).toBe(true)
+  expect(work().coverImg).toBe('new-cover')
+
+  await act(async () => {
+    expect(await result.current.saveNotes({ coverImg: null })).toBe(true)
+  })
+  expect(result.current.saveFailed).toBe(false)
+  expect(work().coverImg).toBeNull()
+  expect(saves).toHaveBeenLastCalledWith('starlight', { coverImg: null })
+})
+
+it('keeps a reverted body stale before reload and when a recheck is cancelled or fails', async () => {
+  const key = 'starlight'
+  const original = ['해가 진 뒤 탑의 문이 열렸다.']
+  await api().open(key, undefined, 'user')
+  await api().edit(key, { paras: original })
+  await api().check(key, key)
+  const { result } = await hook()
+
+  act(() => result.current.edit({ paras: ['바뀐 원고'] }))
+  expect(result.current.checkStale).toBe(true)
+  act(() => result.current.edit({ paras: original }))
+  expect(result.current.checkStale).toBe(true)
+
+  vi.mocked(window.confirm).mockReturnValueOnce(false)
+  await act(async () => { expect(await result.current.check()).toBe(false) })
+  expect(result.current.checkStale).toBe(true)
+
+  vi.spyOn(api(), 'check').mockRejectedValueOnce(new Error('검사 실패'))
+  await act(async () => { expect(await result.current.check()).toBe(false) })
+  expect(result.current.checkStale).toBe(true)
+
+  await act(async () => { expect(await result.current.check()).toBe(true) })
+  await waitFor(() => expect(result.current.checkStale).toBe(false))
+})
+
+it('saves an edit made during a check after the check and keeps its result stale', async () => {
+  const key = 'starlight'
+  await api().open(key, undefined, 'user')
+  await api().edit(key, { paras: ['검사할 원고'] })
+  const { result } = await hook()
+  const pending = deferred()
+  const check = api().check.bind(api())
+  const checking = vi.spyOn(api(), 'check').mockImplementation((...args) =>
+    pending.promise.then(() => check(...args)))
+  let request: Promise<boolean> | undefined
+  act(() => { request = result.current.check() })
+  try {
+    await waitFor(() => expect(checking).toHaveBeenCalledOnce())
+    await act(async () => result.current.edit({ paras: ['검사 중 추가한 원고'] }))
+    expect(appContainer.resolve('mockDb').drafts[key].paras).toEqual(['검사할 원고'])
+  } finally {
+    await act(async () => { pending.resolve(); await request })
+  }
+
+  await waitFor(() => expect(result.current.draft?.paras).toEqual(['검사 중 추가한 원고']))
+  expect(result.current.checkStale).toBe(true)
+  expect(appContainer.resolve('mockDb').drafts[key].check?.stale).toBe(true)
+})
+
+it('shows the stale check in the publish sheet without blocking publication', async () => {
+  const key = 'starlight'
+  await api().open(key, undefined, 'user')
+  await api().edit(key, { paras: ['검사할 원고'] })
+  await api().check(key, key)
+  await api().edit(key, { paras: ['검사 후 바꾼 원고'] })
+  render(wrapper({ children: <Routes><Route path="/studio/:id" element={<StudioPage />} /></Routes> }))
+  fireEvent.click(await screen.findByRole('button', { name: '공개하기' }))
+  const sheet = await screen.findByRole('dialog', { name: /화 공개하기$/ })
+  expect(within(sheet).getByText('원고가 변경됐어요. 다시 검사해 주세요.')).toBeTruthy()
+  expect(within(sheet).getByRole('button', { name: '공개하기' }).hasAttribute('disabled')).toBe(false)
+})
+
+it('reloads the draft if a check refresh captured it before a later edit', async () => {
+  const key = 'starlight'
+  await api().open(key, undefined, 'user')
+  await api().edit(key, { paras: ['검사할 원고'] })
+  const { result } = await hook()
+  const snapshotRead = deferred()
+  const response = deferred()
+  const open = api().open.bind(api())
+  vi.spyOn(api(), 'open').mockImplementation(async (...args) => {
+    const snapshot = await open(...args)
+    if (snapshot && !('notMine' in snapshot) && snapshot.draft.check?.stale === false) {
+      snapshotRead.resolve()
+      await response.promise
+    }
+    return snapshot
+  })
+
+  await act(async () => { expect(await result.current.check()).toBe(true) })
+  try {
+    await snapshotRead.promise
+    await act(async () => result.current.edit({ paras: ['재조회 중 추가한 원고'] }))
+  } finally {
+    await act(async () => { response.resolve() })
+  }
+
+  await waitFor(() => expect(result.current.draft?.paras).toEqual(['재조회 중 추가한 원고']))
+  expect(result.current.checkStale).toBe(true)
+})
+
+it('preserves a failed body edit for the next save and prevents checking or publishing the older body', async () => {
+  const key = 'starlight'
+  await api().open(key, undefined, 'user')
+  await api().edit(key, { paras: ['저장된 원고'] })
+  await api().check(key, key)
+  const { result } = await hook()
+  vi.spyOn(api(), 'edit').mockRejectedValueOnce(new Error('저장 실패'))
+  const check = vi.spyOn(api(), 'check')
+  const publish = vi.spyOn(api(), 'publish')
+
+  await act(async () => result.current.edit({ paras: ['실패한 원고 입력'] }))
+  await act(async () => {
+    expect(await result.current.check()).toBe(false)
+    await result.current.publish('공개 제목')
+  })
+  expect(check).not.toHaveBeenCalled()
+  expect(publish).not.toHaveBeenCalled()
+  expect(result.current.checkStale).toBe(true)
+  expect(result.current.saveFailed).toBe(true)
+
+  await act(async () => result.current.setPrompt('재저장할 요청'))
+  await waitFor(() => expect(appContainer.resolve('mockDb').drafts[key]).toMatchObject({
+    paras: ['실패한 원고 입력'],
+    aiPrompt: '재저장할 요청',
+    check: { stale: true },
+  }))
+  await waitFor(() => expect(result.current.saveFailed).toBe(false))
+})
+
+it('allows a draft edit after a queued wiki save fails', async () => {
+  const { result } = await hook()
+  const key = result.current.studio!.key
+  vi.spyOn(api(), 'setDocText').mockRejectedValueOnce(new Error('사전 저장 실패'))
+  await act(async () => {
+    await expect(result.current.setDocText('demo-doc', 'body', '설정')).rejects.toThrow('사전 저장 실패')
+    result.current.edit({ title: '계속 저장할 제목' })
+  })
+  await waitFor(() => expect(appContainer.resolve('mockDb').drafts[key].title).toBe('계속 저장할 제목'))
+})
+
 it.each([undefined, 1])('publishes a draft only once during repeated calls (editing episode %s)', async ep => {
   const { result } = await hook(ep)
   act(() => result.current.edit({ paras: ['중복 없이 발행할 원고'] }))
