@@ -1,7 +1,7 @@
 # 초기 세계관 전처리 4단계 — PostgreSQL 저장 구조
 
 기준 develop `b723e8b`. 계약 의존성은 [PR #219](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/219)
-HEAD `7f7f622`이다. 확인 시점 #219는 OPEN, Required CI 성공, 사람 리뷰 없음,
+HEAD `6c5ed7d8`이다. 확인 시점 #219는 OPEN, Required CI 성공, 사람 리뷰 없음,
 CodeRabbit은 review-ready 라벨 조건으로 생략됐다. 승인 완료로 간주하지 않는다.
 이 PR은 develop 기준이며 #219 계약 파일이나 #223 UI diff를 복사하지 않는다. 병합 순서는 계약 검토 후 #219 → 이 저장 구조 PR이다.
 
@@ -63,3 +63,7 @@ initial_application_item은 새 정보의 ID만 예약한다. 기존 인물/장�
 - 배포 DB migration, 실제 AI, Neo4j↔PG 반영 장애 복구, 브라우저는 이번 PR 미검증/미구현이다.
 
 #122 회차 추출, Fork 시점 복원, 확정 UI, 집필 AI Context 연결은 완료 처리하지 않는다.
+
+## 2026-11-09 후속 계약 점검
+
+#219의 다중 검토 순번·출처 식별·edit provenance 보완을 대조했다. [5단계 준비](initial-world-extraction-readiness.md)에 실행 순서와 검토 API 이전 저장 보완(key/hash/comment)을 기록했다. 이 저장 구조만으로 실행/검토 API 완료를 뜻하지 않는다.
