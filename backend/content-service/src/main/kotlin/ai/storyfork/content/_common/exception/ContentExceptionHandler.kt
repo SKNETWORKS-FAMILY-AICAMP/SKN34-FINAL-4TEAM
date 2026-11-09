@@ -2,6 +2,7 @@ package ai.storyfork.content._common.exception
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.service.dto.ContentErrorResponse
+import ai.storyfork.content.auth.client.exception.CoreAuthException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.ResponseEntity
@@ -17,6 +18,10 @@ import org.springframework.http.converter.HttpMessageNotReadableException
 class ContentExceptionHandler {
     @ExceptionHandler(ContentFailure::class)
     fun failure(error: ContentFailure): ResponseEntity<ContentErrorResponse> = ResponseEntity.status(error.status).body(ContentErrorResponse(error.message))
+
+    /** 표시명 조회에 쓰는 Core 호출의 실패(503·504·502)를 500으로 흐리거나 성공으로 숨기지 않고 상태 그대로 전한다. */
+    @ExceptionHandler(CoreAuthException::class)
+    fun core(error: CoreAuthException): ResponseEntity<ContentErrorResponse> = ResponseEntity.status(error.status).body(ContentErrorResponse(error.message.orEmpty()))
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun invalid(error: MethodArgumentNotValidException): ResponseEntity<ContentErrorResponse> {

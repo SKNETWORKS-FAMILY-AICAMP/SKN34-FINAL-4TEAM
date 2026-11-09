@@ -152,9 +152,11 @@ class ContentMigrationTest {
         jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','제목','','original',0)")
         jdbc.update("INSERT INTO episode(id,work_id,sequence) VALUES ('e','w',1)")
         jdbc.update("INSERT INTO episode_version(id,episode_id,content_version_id,revision_no,title,content,created_at) VALUES ('v','e','cv',1,'원문','본문',now())")
-        val insert="INSERT INTO episode_comment(id,work_id,episode_number,published_version_id,author_id,author_name,body,created_at,updated_at) VALUES (?,?,?,?,'reader','닉네임','댓글',now(),now())"
+        val insert="INSERT INTO episode_comment(id,work_id,episode_number,published_version_id,author_id,body,created_at,updated_at) VALUES (?,?,?,?,'reader','댓글',now(),now())"
         jdbc.update(insert,"c","w",1,"v")
         assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM episode_comment WHERE NOT spoiler AND quote IS NULL AND deleted_at IS NULL",Int::class.java))
+        // 작성자 이름은 저장하지 않는다(Core 닉네임을 응답 때마다 조회).
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='episode_comment' AND column_name='author_name'",Int::class.java))
         // 같은 id, 회차 번호 0, 없는 작품, 없는 발행 버전은 저장할 수 없다.
         for(row in listOf(arrayOf<Any>("c","w",1,"v"),arrayOf<Any>("d","w",0,"v"),arrayOf<Any>("d","missing",1,"v"),arrayOf<Any>("d","w",1,"missing"))) {
             assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(insert,*row)}

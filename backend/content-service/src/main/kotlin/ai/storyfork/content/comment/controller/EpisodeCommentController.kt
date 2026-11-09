@@ -6,7 +6,6 @@ import java.net.URI
 import java.security.Principal
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 /** 공개 회차 댓글의 작성·상세·목록·수정·삭제와 좋아요를 제공한다. 목록·상세는 익명도 볼 수 있고 나머지는 로그인 회원만 쓴다. */
@@ -24,10 +23,10 @@ class EpisodeCommentController(private val service: EpisodeCommentService) {
     fun read(@PathVariable id: String,@PathVariable number: Int,@PathVariable commentId: String,principal: Principal?): CommentResponse =
         service.read(id,number,commentId,principal?.name)
 
-    /** 댓글을 쓰고 201과 공개 상세 경로(Location)를 반환한다. 작성자 표시명은 인증 객체 details의 닉네임이며 입력 오류는 422, 비공개 작품·미발행 회차는 404다. */
+    /** 댓글을 쓰고 201과 공개 상세 경로(Location)를 반환한다. 작성자 표시명은 Core 최신 닉네임이며 입력 오류는 422, 비공개 작품·미발행 회차는 404, Core 조회 실패는 503·504·502다. */
     @PostMapping("/works/{id}/episodes/{number}/comments")
     fun create(@PathVariable id: String,@PathVariable number: Int,principal: Principal,@RequestBody data: CreateCommentRequest): ResponseEntity<CommentResponse> {
-        val created=service.create(id,number,principal.name,(principal as? Authentication)?.details as? String,data)
+        val created=service.create(id,number,principal.name,data)
         return ResponseEntity.created(URI.create("/api/v1/public/works/$id/episodes/$number/comments/${created.id}")).body(created)
     }
 

@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.filter.OncePerRequestFilter
 import tools.jackson.databind.json.JsonMapper
 
-/** 사용자 ID 헤더/쿠키는 신뢰하지 않고 Core가 확인한 UUID만 Principal 이름으로 쓴다. 닉네임(String?)은 인증 객체 details에 담는다. */
+/** 사용자 ID 헤더/쿠키는 신뢰하지 않고 Core가 확인한 UUID만 Principal로 만든다. */
 class ContentAuthenticationFilter(private val service: CoreAuthVerificationService, private val mapper: JsonMapper) : OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         val authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
@@ -26,8 +26,7 @@ class ContentAuthenticationFilter(private val service: CoreAuthVerificationServi
                 return
             }
             val context = SecurityContextHolder.createEmptyContext()
-            context.authentication = UsernamePasswordAuthenticationToken.authenticated(member.memberId.toString(), null, emptyList())
-                .apply { details = member.nickname }
+            context.authentication = UsernamePasswordAuthenticationToken.authenticated(member.toString(), null, emptyList())
             SecurityContextHolder.setContext(context)
         }
         chain.doFilter(request, response)

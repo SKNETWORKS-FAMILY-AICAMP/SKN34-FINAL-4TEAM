@@ -29,14 +29,25 @@ Content 기동에는 기존 대상의 `DATABASE_URL/USER/PASSWORD`(기본값 없
 
 ## Core 인증 클라이언트 — 실제 연결
 
-[`CoreAuthClient`](src/main/kotlin/ai/storyfork/content/auth/client/CoreAuthClient.kt)는 Spring HTTP Service proxy Bean입니다. 보호 요청의 Bearer를 Core에 보내고 `VerifiedMemberResponse(memberId: UUID, nickname: String? = null)`만 읽어 Principal을 구성합니다. Principal 이름은 회원 UUID 문자열이고, 닉네임은 인증 객체 `details`(String)에 담겨 댓글 작성자 표시명 스냅샷에만 쓰입니다.
+[`CoreAuthClient`](src/main/kotlin/ai/storyfork/content/auth/client/CoreAuthClient.kt)는 Spring HTTP Service proxy Bean입니다. 보호 요청의 Bearer를 Core에 보내고 `VerifiedMemberResponse(memberId: UUID)`만 읽어 Principal을 구성합니다.
 
 ```text
 POST /internal/v1/auth/verify
 Authorization: Bearer <사용자 access token>
 X-Content-Service-Token: <별도 서비스 자격증명>
-→ {"memberId":"<회원 UUID>","operator":false,"nickname":"<닉네임>"}   # Content는 memberId·nickname만 읽는다
+→ {"memberId":"<회원 UUID>","operator":false}   # Content는 memberId만 읽는다
 ```
+
+작성자·작가 표시명은 Content에 저장하지 않습니다. 같은 `CoreAuthClient`(같은 서비스 토큰, 사용자 Bearer 없음)로 응답을 만들 때마다 회원 UUID 묶음을 Core에 물어 채웁니다([`CoreNicknameService`](src/main/kotlin/ai/storyfork/content/auth/service/CoreNicknameService.kt)).
+
+```text
+POST /internal/v1/members/nicknames
+X-Content-Service-Token: <별도 서비스 자격증명>
+{"ids":["<회원 UUID>", …]}  →  {"nicknames":{"<회원 UUID>":"<닉네임>"}}   # Core에 없는 회원은 키가 없다
+```
+
+- 목록·검색·랭킹은 ID를 모아 한 번만 호출하고(중복 제거, Core 상한 200개를 넘을 때만 나눠 호출), ID가 없으면 호출하지 않습니다. 캐시·자동 재시도는 없습니다.
+- Core에 없는 회원은 `탈퇴한 회원`으로 표시합니다. 호출 실패는 이름을 지어내거나 성공으로 숨기지 않고 503 `CORE_MEMBER_UNAVAILABLE`·504 `CORE_MEMBER_TIMEOUT`·502 `CORE_MEMBER_UPSTREAM_ERROR`/`CORE_MEMBER_INVALID_RESPONSE`로 응답합니다(이 호출에는 사용자 Bearer가 없어 상대의 401·403도 502입니다). 쓰기(댓글 작성·수정)는 응답을 만들지 못하면 같은 트랜잭션이 되돌려집니다.
 
 - `CONTENT_CORE_AUTH_TOKEN`은 32자 이상·개행 없는 별도 비밀값이며 루트 예시는 빈 값입니다. 사용자 Bearer·JWT 서명 키와 대체할 수 없습니다. Core는 상수 시간 비교와 기존 JWT 서명/만료 검증을 수행합니다.
 - 인증 필수 요청마다 실제 확인하며 캐시·자동 재시도·개발 사용자 fallback은 없습니다. Content는 JWT 서명 키·Auth Entity/Repository를 받지 않습니다.
@@ -75,7 +86,7 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V14 | `db/migration/work` | 공개 회차 조회 기록 `work_view`(작품 검색·실시간 랭킹의 조회 수 정본) |
 | V15 | `db/migration/work` | 공개 표시 메타데이터·불변 rich wiki 상세 추가 (샘플 자동 insert 없음) |
 | V16 | `db/migration/sample` | 개발 샘플 행(CSV 정본에서 생성, 직접 편집 금지) |
-| V17 | `db/migration/work` | 회차 댓글 `episode_comment`(작성 시점 발행 버전·작성자 표시명 스냅샷, 삭제는 `deleted_at` 소프트 삭제)와 좋아요 `episode_comment_like` |
+| V17 | `db/migration/work` | 회차 댓글 `episode_comment`(작성 시점 발행 버전 고정, 작성자 이름은 저장하지 않고 Core 닉네임 조회, 삭제는 `deleted_at` 소프트 삭제)와 좋아요 `episode_comment_like` |
 
 [`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V17이며 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 
@@ -85,7 +96,7 @@ V12는 기존 V1~V11을 보존하고 계획의 인물·장소 `(plan_id, setting
 
 V14는 기존 V1~V13을 보존하고 `work_view`(작품·회차·회원·Asia/Seoul 날짜가 기본키, `viewed_at` 인덱스)만 추가합니다. 작품 삭제 경로는 바꾸지 않습니다. 조회 기록은 공개 작품의 발행 회차에만 생기고 발행 이력이 있는 작품의 삭제는 이미 409이기 때문입니다.
 
-작품 검색·실시간 랭킹·조회 기록 API(`GET /api/v1/public/works?q&f&sort`, `GET /api/v1/public/works/ranking?kind`, `POST /api/v1/works/{id}/episodes/{number}/views`)는 [계약](../../docs/design/work-search-ranking-contract.md)을 따르고, `work_view` 기록과 24시간 집계는 `WorkViewService`가 맡습니다. 계약에 없는 경계는 `kind` 누락 400, `f`·`sort`·`kind`는 소문자 정확 일치 외(빈 문자열 포함) 422, 공백뿐인 `q`는 필터 없음, 해시태그는 검색어·저장값 모두 앞 `#` 무시로 정했고, `f=author`는 `work.author_name`(작가 표시명)을 보고 `f=all`에도 포함합니다. `WorkResponse.views`는 공개 목록·검색·랭킹 응답에서만 채우며 그 밖은 0입니다. 같은 날 중복 기록은 nativeQuery 없이 처리합니다. 서비스 트랜잭션을 쓰지 않고 저장소 호출마다 독립 트랜잭션으로 선검사한 뒤, unique 위반이 나면 행이 이미 있는지 다시 확인해 중복일 때만 무시합니다. 공개 여부는 운영 제한을 뺀 `WorkAccessResult.publiclyVisible()` 하나로 판단하므로 제한 작품은 작가 검색을 포함한 검색·랭킹에서 빠지고 조회 기록도 404입니다. 검색은 공개 작품을 메모리에서 거르고 정렬하는 시연 규모 구현이고, 랭킹은 최근 48시간 조회 기록이 있는 작품만 읽어 순위 10개만 응답으로 조립하며, 서버 페이지네이션은 없습니다.
+작품 검색·실시간 랭킹·조회 기록 API(`GET /api/v1/public/works?q&f&sort`, `GET /api/v1/public/works/ranking?kind`, `POST /api/v1/works/{id}/episodes/{number}/views`)는 [계약](../../docs/design/work-search-ranking-contract.md)을 따르고, `work_view` 기록과 24시간 집계는 `WorkViewService`가 맡습니다. 계약에 없는 경계는 `kind` 누락 400, `f`·`sort`·`kind`는 소문자 정확 일치 외(빈 문자열 포함) 422, 공백뿐인 `q`는 필터 없음, 해시태그는 검색어·저장값 모두 앞 `#` 무시로 정했고, `f=author`는 소유자(`owner_id`)의 Core 최신 닉네임을 보고(없는 소유자는 `탈퇴한 회원`) `f=all`에도 포함합니다. `WorkResponse.authorName`은 모든 응답(공개 목록·검색·랭킹·공개 상세·소유자 목록/상세)에서 같은 방식으로 채우며, `work.author_name` 칼럼은 읽지 않습니다. `WorkResponse.views`는 공개 목록·검색·랭킹 응답에서만 채우며 그 밖은 0입니다. 같은 날 중복 기록은 nativeQuery 없이 처리합니다. 서비스 트랜잭션을 쓰지 않고 저장소 호출마다 독립 트랜잭션으로 선검사한 뒤, unique 위반이 나면 행이 이미 있는지 다시 확인해 중복일 때만 무시합니다. 공개 여부는 운영 제한을 뺀 `WorkAccessResult.publiclyVisible()` 하나로 판단하므로 제한 작품은 작가 검색을 포함한 검색·랭킹에서 빠지고 조회 기록도 404입니다. 검색은 공개 작품을 메모리에서 거르고 정렬하는 시연 규모 구현이고, 랭킹은 최근 48시간 조회 기록이 있는 작품만 읽어 순위 10개만 응답으로 조립하며, 서버 페이지네이션은 없습니다.
 
 회차 댓글 API(기능 22: 공개 목록·상세 GET, 회원 작성·수정·삭제·좋아요)의 경로·상태 코드·검증은 [계약](../../docs/design/episode-comment-contract.md)이 정본이고 기존 보안 설정·CSRF를 그대로 씁니다. 계약에 없는 구현 선택만 적습니다: 본문·인용은 앞뒤 공백을 잘라 저장하고 공백뿐인 인용은 `null`이며, 입력 검증(422)은 작품·댓글 조회(404)와 작성자 확인(403)보다 먼저 합니다. 공개 작품·발행 회차 판정은 `WorkAccessService.published`와 `episode_current.published_version_id`를 재사용해 비공개·제한 작품은 `공개 작품을 찾을 수 없어요.`, 미발행 회차는 `공개 회차를 찾을 수 없어요.`(둘 다 404)입니다. 좋아요 `INSERT`는 `WorkViewService`와 같은 이유로 서비스 트랜잭션 밖에서 독립 실행해 동시 중복을 멱등으로 처리하고, `likes` 정렬은 최근 200개 안에서 서비스 메모리로 합니다.
 

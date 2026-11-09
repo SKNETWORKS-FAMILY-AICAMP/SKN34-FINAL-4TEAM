@@ -174,8 +174,7 @@ class AttachmentServiceTest {
         `when`(images.findById(image.id)).thenReturn(Optional.of(image))
         `when`(episodeService.permitsImageReference("work", 1, image)).thenReturn(true)
         `when`(storage.read(image.objectKey)).thenReturn(AttachmentObjectResult(png))
-        `when`(content.publicRead("work")).thenReturn(WorkResponse("work", "공개 작품", "", "public", false, false, null,
-            listOf(Episode(1, 1, "version", "1화", "공개[[image:${image.id}]]")), null))
+        `when`(content.publicEpisodes("work")).thenReturn(listOf(Episode(1, 1, "version", "1화", "공개[[image:${image.id}]]")))
         assertArrayEquals(png, service.downloadEpisodeImage("work", 1, image.id, null, true).bytes)
         assertEquals("IMAGE_NOT_FOUND", assertThrows(AttachmentFailure::class.java) {
             service.downloadEpisodeImage("work", 2, image.id, null, true)
@@ -189,7 +188,9 @@ class AttachmentServiceTest {
         val downloaded = service.downloadCover("work", null, true)
         assertArrayEquals(png, downloaded.bytes)
         assertEquals("/api/v1/works/work/cover/content", downloaded.attachment.url)
-        verify(content, times(4)).publicRead("work")
+        // 표지·이미지 공개 열람은 작가명 조회(WorkService.publicRead)가 아니라 이름 없는 공개 회차 확인만 쓴다.
+        verify(content, times(4)).publicEpisodes("work")
+        verify(content, never()).publicRead("work")
         verifyNoInteractions(works)
     }
 

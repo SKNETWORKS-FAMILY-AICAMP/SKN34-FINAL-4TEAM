@@ -2,6 +2,8 @@ package ai.storyfork.content.auth
 
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.auth.client.dto.NicknamesPayload
+import ai.storyfork.content.auth.client.dto.NicknamesResponse
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
 import ai.storyfork.content.auth.client.exception.CoreAuthException
 import java.net.SocketTimeoutException
@@ -14,14 +16,15 @@ import org.springframework.web.client.*
 class CoreAuthVerificationServiceTest {
     private fun client(call: (String) -> VerifiedMemberResponse) = object : CoreAuthClient {
         override fun verify(authorization: String) = call(authorization)
+        override fun nicknames(request: NicknamesPayload): NicknamesResponse = throw UnsupportedOperationException("verify only")
     }
 
-    @Test fun `forwards only the bearer and returns the verified UUID with its nickname without caching`() {
+    @Test fun `forwards only the bearer and returns the verified UUID without caching`() {
         val id = UUID.randomUUID(); var calls = 0
         val service = CoreAuthVerificationService(client { header ->
-            assertEquals("Bearer opaque-user-token", header); calls++; VerifiedMemberResponse(id, "닉네임")
+            assertEquals("Bearer opaque-user-token", header); calls++; VerifiedMemberResponse(id)
         })
-        repeat(2) { assertEquals(VerifiedMemberResponse(id, "닉네임"), service.verify("Bearer opaque-user-token")) }
+        repeat(2) { assertEquals(id, service.verify("Bearer opaque-user-token")) }
         assertEquals(2, calls)
     }
 

@@ -40,8 +40,6 @@ class ContentServiceCredentialTest {
         val verified = service.verify(admin.id.toString())
         assertEquals(admin.id, verified.memberId)
         assertTrue(verified.operator)
-        // 댓글 작성자 표시명의 정본은 회원 닉네임이다(Content가 작성 시 스냅샷으로 저장).
-        assertEquals("admin", verified.nickname)
         for (value in listOf(null, "forged-owner", "1-1-1-1-1", "", UUID.randomUUID().toString())) {
             assertEquals(AuthException.Reason.UNAUTHENTICATED, assertThrows(AuthException::class.java) { service.verify(value) }.reason)
         }

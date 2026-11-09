@@ -3,6 +3,8 @@ package ai.storyfork.content.comment.service
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.exception.checkContent
 import ai.storyfork.content._common.helper.contentId
+import ai.storyfork.content.auth.service.CoreNicknameService
+import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
 import ai.storyfork.content.comment.entity.EpisodeCommentEntity
 import ai.storyfork.content.comment.entity.EpisodeCommentLikeEntity
 import ai.storyfork.content.comment.repository.EpisodeCommentLikeRepository
@@ -19,7 +21,6 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
 private const val MAX_LENGTH = 500
-private const val DEFAULT_AUTHOR = "독자"
 private const val INVALID_INPUT = "댓글은 1~500자, 인용 문장은 500자 이내로 입력해 주세요."
 
 private enum class CommentSort { LATEST, LIKES }
@@ -32,6 +33,7 @@ class EpisodeCommentService(
     private val current: EpisodeCurrentRepository,
     private val comments: EpisodeCommentRepository,
     private val likes: EpisodeCommentLikeRepository,
+    private val nicknames: CoreNicknameService,
 ) {
 
     /** 댓글 목록이다. sort는 latest(기본)·likes이며 잘못된 값은 422다. [viewer]가 없으면 익명이라 liked·mine이 false다. */
@@ -47,13 +49,16 @@ class EpisodeCommentService(
     fun read(id: String, number: Int, commentId: String, viewer: String?): CommentResponse =
         respond(listOf(find(id,number,commentId)),viewer).single()
 
-    /** 댓글을 쓴다. 작성 시점의 발행 버전 ID와 닉네임(없거나 비면 "독자")을 고정 저장하며 입력 오류는 저장 전에 422다. */
-    fun create(id: String, number: Int, member: String, nickname: String?, data: CreateCommentRequest): CommentResponse {
+    /**
+     * 댓글을 쓴다. 작성 시점의 발행 버전 ID를 고정 저장하며 입력 오류는 저장 전에 422다.
+     * 응답의 작성자 이름은 Core 닉네임이고, 조회에 실패하면 예외가 트랜잭션을 되돌려 댓글이 저장되지 않는다.
+     */
+    fun create(id: String, number: Int, member: String, data: CreateCommentRequest): CommentResponse {
         val body=cleanBody(data.body)
         val quote=cleanQuote(data.quote)
         val version=publishedVersion(id,number)
         val now=Instant.now().truncatedTo(ChronoUnit.MICROS)
-        val row=EpisodeCommentEntity(contentId(),id,number,version,member,nickname?.takeIf {it.isNotBlank()} ?: DEFAULT_AUTHOR,body,quote,data.spoiler,now,now)
+        val row=EpisodeCommentEntity(contentId(),id,number,version,member,body,quote,data.spoiler,now,now)
         comments.save(row)
         return respond(listOf(row),member).single()
     }
@@ -124,9 +129,11 @@ class EpisodeCommentService(
     private fun respond(rows: List<EpisodeCommentEntity>, viewer: String?): List<CommentResponse> {
         if(rows.isEmpty()) return emptyList()
         val liked=likes.findAllByCommentIdIn(rows.map {it.id}).groupBy {it.commentId}
+        // 작성자 표시명은 Core 닉네임이다. 작성자 ID를 모아 한 번만 조회하고 Core에 없는 회원은 탈퇴한 회원으로 보인다.
+        val names=nicknames.nicknames(rows.map {it.authorId})
         return rows.map {row ->
             val by=liked[row.id].orEmpty()
-            CommentResponse(row.id,row.workId,row.episodeNumber,row.publishedVersionId,row.authorName,row.body,row.quote,row.spoiler,
+            CommentResponse(row.id,row.workId,row.episodeNumber,row.publishedVersionId,names[row.authorId] ?: WITHDRAWN_MEMBER_NAME,row.body,row.quote,row.spoiler,
                 by.size,viewer!=null && by.any {it.memberId==viewer},viewer!=null && row.authorId==viewer,
                 row.updatedAt>row.createdAt,row.createdAt,row.updatedAt)
         }

@@ -1,6 +1,8 @@
 package ai.storyfork.content.comment
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.auth.client.exception.CoreAuthException
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.comment.entity.EpisodeCommentEntity
 import ai.storyfork.content.comment.entity.EpisodeCommentLikeEntity
 import ai.storyfork.content.comment.repository.EpisodeCommentLikeRepository
@@ -23,7 +25,8 @@ import org.mockito.Mockito.*
 import org.springframework.dao.DataIntegrityViolationException
 
 /**
- * 회차 댓글 규칙을 DB 없이 검증한다. 저장소는 삭제 제외(deleted_at IS NULL)와 작품·회차 일치 조회를 흉내 내는 메모리 대역이다.
+ * 회차 댓글 규칙을 DB 없이 검증한다. 저장소는 삭제 제외(deleted_at IS NULL)와 작품·회차 일치 조회를 흉내 내는 메모리 대역이고,
+ * 작성자 표시명의 정본인 Core 닉네임 조회는 "<회원 id>-닉"을 돌려주는 대역이다([withdrawn]에 넣은 회원은 Core에 없다).
  * 실제 SQL·Security·HTTP는 CI의 EpisodeCommentPostgresTest가 확인한다.
  */
 class EpisodeCommentServiceTest {
@@ -31,8 +34,12 @@ class EpisodeCommentServiceTest {
     private val current = mock(EpisodeCurrentRepository::class.java)
     private val comments = mock(EpisodeCommentRepository::class.java)
     private val likes = mock(EpisodeCommentLikeRepository::class.java)
-    private val service = EpisodeCommentService(access, current, comments, likes)
+    private val nicknames = mock(CoreNicknameService::class.java)
+    private val service = EpisodeCommentService(access, current, comments, likes, nicknames)
     private val rows = mutableListOf<EpisodeCommentEntity>()
+    // Core에 없는(탈퇴한) 회원 id와, Core에 물은 id 묶음(호출마다 하나)이다.
+    private val withdrawn = mutableSetOf<String>()
+    private val asked = mutableListOf<List<String>>()
     private val likeRows = mutableListOf<EpisodeCommentLikeEntity>()
     // 수정 시각이 항상 이보다 늦도록 충분히 오래된 고정 시각이다.
     private val t0 = Instant.parse("2020-01-01T00:00:00Z")
@@ -59,6 +66,11 @@ class EpisodeCommentServiceTest {
         }
         `when`(likes.saveAndFlush(anyLike())).thenAnswer { call -> (call.arguments[0] as EpisodeCommentLikeEntity).also { likeRows.add(it) } }
         doAnswer { call -> likeRows.removeAll { EpisodeCommentLikeEntity.Key(it.commentId, it.memberId) == call.arguments[0] }; null }.`when`(likes).deleteById(anyKey())
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer { call ->
+            val ids = (call.arguments[0] as Collection<*>).map { it as String }
+            asked += ids
+            ids.filter { it !in withdrawn }.associateWith { "$it-닉" }
+        }
     }
 
     private fun published(number: Int = 1, version: String? = "version-$number", work: String = "work") {
@@ -66,7 +78,7 @@ class EpisodeCommentServiceTest {
     }
     private fun comment(id: String, author: String = "author", at: Instant = t0, body: String = "본문", spoiler: Boolean = false, quote: String? = null,
         version: String = "version-1", number: Int = 1, work: String = "work") =
-        EpisodeCommentEntity(id = id, workId = work, episodeNumber = number, publishedVersionId = version, authorId = author, authorName = "$author-닉",
+        EpisodeCommentEntity(id = id, workId = work, episodeNumber = number, publishedVersionId = version, authorId = author,
             body = body, quote = quote, spoiler = spoiler, createdAt = at, updatedAt = at).also { rows.add(it) }
     private fun like(comment: String, member: String) { likeRows.add(EpisodeCommentLikeEntity(comment, member)) }
     private fun failure(block: () -> Unit) = assertThrows(ContentFailure::class.java, block)
@@ -74,7 +86,7 @@ class EpisodeCommentServiceTest {
     private val operations: List<Pair<String, () -> Any?>> = listOf(
         "list" to { service.list("work", 1, null, null) },
         "read" to { service.read("work", 1, "c1", null) },
-        "create" to { service.create("work", 1, "reader", "닉", CreateCommentRequest("본문")) },
+        "create" to { service.create("work", 1, "reader", CreateCommentRequest("본문")) },
         "update" to { service.update("work", 1, "c1", "author", UpdateCommentRequest("본문")) },
         "delete" to { service.delete("work", 1, "c1", "author") },
         "like" to { service.like("work", 1, "c1", "reader") },
@@ -96,14 +108,16 @@ class EpisodeCommentServiceTest {
         assertEquals(UpdateCommentRequest("본문", true), mapper.readValue("""{"body":"본문","spoiler":true}""", UpdateCommentRequest::class.java))
     }
 
-    @Test fun `create pins the published version at write time and snapshots the nickname`() {
+    @Test fun `create pins the published version at write time and answers with the latest Core nickname`() {
         published(3, "version-3a")
 
-        val created = service.create("work", 3, "reader", "닉네임", CreateCommentRequest("  좋았어요  ", " 인용 문장 ", true))
+        val created = service.create("work", 3, "reader", CreateCommentRequest("  좋았어요  ", " 인용 문장 ", true))
 
         val saved = rows.single()
-        assertEquals(listOf<Any?>("work", 3, "version-3a", "reader", "닉네임", "좋았어요", "인용 문장", true),
-            listOf(saved.workId, saved.episodeNumber, saved.publishedVersionId, saved.authorId, saved.authorName, saved.body, saved.quote, saved.spoiler))
+        assertEquals(listOf<Any?>("work", 3, "version-3a", "reader", "좋았어요", "인용 문장", true),
+            listOf(saved.workId, saved.episodeNumber, saved.publishedVersionId, saved.authorId, saved.body, saved.quote, saved.spoiler))
+        assertEquals("reader-닉", created.authorName)
+        assertEquals(listOf(listOf("reader")), asked)
         assertEquals(saved.id, UUID.fromString(saved.id).toString())
         assertNull(saved.deletedAt)
         assertEquals(saved.createdAt, saved.updatedAt)
@@ -114,26 +128,60 @@ class EpisodeCommentServiceTest {
 
     @Test fun `each comment keeps the version published when it was written even after a newer one is published`() {
         published(1, "version-1")
-        val first = service.create("work", 1, "reader", "닉", CreateCommentRequest("첫 댓글"))
+        val first = service.create("work", 1, "reader", CreateCommentRequest("첫 댓글"))
         published(1, "version-2")
-        val second = service.create("work", 1, "reader", "닉", CreateCommentRequest("둘째 댓글"))
+        val second = service.create("work", 1, "reader", CreateCommentRequest("둘째 댓글"))
 
         val shown = service.list("work", 1, null, null).items.associate { it.id to it.publishedVersionId }
         assertEquals(mapOf(first.id to "version-1", second.id to "version-2"), shown)
     }
 
-    @Test fun `a missing or blank nickname is stored as the default reader name`() {
+    @Test fun `the author name follows the latest Core nickname and a member Core no longer knows is the withdrawn member`() {
         published()
+        comment("c1", author = "author")
+        comment("c2", author = "gone", at = t0.plusSeconds(1))
+        withdrawn += "gone"
 
-        for (nickname in listOf(null, "", "    ")) service.create("work", 1, "reader", nickname, CreateCommentRequest("본문"))
+        val names = service.list("work", 1, null, null).items.associate { it.id to it.authorName }
+        assertEquals(mapOf("c1" to "author-닉", "c2" to "탈퇴한 회원"), names)
+        assertEquals("탈퇴한 회원", service.read("work", 1, "c2", null).authorName)
+        // 쓰기 응답도 같다. 작성자 본인이 Core에서 사라졌어도 이름을 지어내지 않는다.
+        assertEquals("탈퇴한 회원", service.create("work", 1, "gone", CreateCommentRequest("남긴 글")).authorName)
+        assertEquals("탈퇴한 회원", service.update("work", 1, "c2", "gone", UpdateCommentRequest("고친 글")).authorName)
+    }
 
-        assertEquals(listOf("독자", "독자", "독자"), rows.map { it.authorName })
+    @Test fun `a list asks Core once for its distinct authors and an empty list never asks`() {
+        published()
+        comment("c1", author = "a"); comment("c2", author = "b", at = t0.plusSeconds(1)); comment("c3", author = "a", at = t0.plusSeconds(2))
+
+        service.list("work", 1, "likes", "a")
+
+        assertEquals(1, asked.size)
+        assertEquals(setOf("a", "b"), asked.single().toSet())
+        rows.clear(); asked.clear()
+        assertEquals(emptyList<CommentResponse>(), service.list("work", 1, null, null).items)
+        assertTrue(asked.isEmpty())
+    }
+
+    @Test fun `a Core failure fails the operation and is never replaced by a name`() {
+        published()
+        comment("c1", author = "author")
+        val failure = CoreAuthException(503, "CORE_MEMBER_UNAVAILABLE", "회원 정보 서비스를 사용할 수 없습니다.")
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenThrow(failure)
+
+        val calls = listOf<Pair<String, () -> Any?>>(
+            "list" to { service.list("work", 1, null, null) },
+            "read" to { service.read("work", 1, "c1", null) },
+            "create" to { service.create("work", 1, "reader", CreateCommentRequest("본문")) },
+            "update" to { service.update("work", 1, "c1", "author", UpdateCommentRequest("고침")) },
+        )
+        for ((name, call) in calls) assertSame(failure, assertThrows(CoreAuthException::class.java) { call() }, name)
     }
 
     @Test fun `an absent or blank quote is stored as null`() {
         published()
 
-        for (quote in listOf(null, "", "   ")) service.create("work", 1, "reader", "닉", CreateCommentRequest("본문", quote))
+        for (quote in listOf(null, "", "   ")) service.create("work", 1, "reader", CreateCommentRequest("본문", quote))
 
         assertEquals(listOf(null, null, null), rows.map { it.quote })
     }
@@ -142,7 +190,7 @@ class EpisodeCommentServiceTest {
         published()
         val edge = "가".repeat(500)
 
-        service.create("work", 1, "reader", "닉", CreateCommentRequest("  $edge  ", " $edge "))
+        service.create("work", 1, "reader", CreateCommentRequest("  $edge  ", " $edge "))
 
         assertEquals(listOf(edge, edge), rows.single().let { listOf(it.body, it.quote) })
     }
@@ -160,7 +208,7 @@ class EpisodeCommentServiceTest {
             CreateCommentRequest("본문", "인용\u0000"), CreateCommentRequest("본문", "\u0000"), CreateCommentRequest("본문", tooLong),
         )
 
-        for (data in invalid) assertEquals(422, failure { service.create("work", 1, "reader", "닉", data) }.status, data.toString())
+        for (data in invalid) assertEquals(422, failure { service.create("work", 1, "reader", data) }.status, data.toString())
 
         assertTrue(rows.isEmpty())
     }
@@ -231,7 +279,7 @@ class EpisodeCommentServiceTest {
 
         val updated = service.update("work", 1, "c1", "author", UpdateCommentRequest("  고친 글  ", true))
 
-        assertEquals(listOf<Any?>("고친 글", true, "인용", "version-1", "author-닉", t0), listOf(row.body, row.spoiler, row.quote, row.publishedVersionId, row.authorName, row.createdAt))
+        assertEquals(listOf<Any?>("고친 글", true, "인용", "version-1", t0), listOf(row.body, row.spoiler, row.quote, row.publishedVersionId, row.createdAt))
         assertTrue(row.updatedAt > row.createdAt)
         assertEquals(listOf<Any?>("고친 글", true, "인용", true, true), listOf(updated.body, updated.spoiler, updated.quote, updated.edited, updated.mine))
     }
@@ -304,7 +352,7 @@ class EpisodeCommentServiceTest {
         `when`(racing.existsById(anyKey())).thenReturn(false, true)
         `when`(racing.saveAndFlush(anyLike())).thenThrow(DataIntegrityViolationException("duplicate key"))
 
-        assertDoesNotThrow { EpisodeCommentService(access, current, comments, racing).like("work", 1, "c1", "fan") }
+        assertDoesNotThrow { EpisodeCommentService(access, current, comments, racing, nicknames).like("work", 1, "c1", "fan") }
 
         verify(racing, times(2)).existsById(anyKey())
     }
@@ -316,7 +364,7 @@ class EpisodeCommentServiceTest {
         `when`(failing.existsById(anyKey())).thenReturn(false)
         `when`(failing.saveAndFlush(anyLike())).thenThrow(DataIntegrityViolationException("foreign key"))
 
-        assertThrows(DataIntegrityViolationException::class.java) { EpisodeCommentService(access, current, comments, failing).like("work", 1, "c1", "fan") }
+        assertThrows(DataIntegrityViolationException::class.java) { EpisodeCommentService(access, current, comments, failing, nicknames).like("work", 1, "c1", "fan") }
     }
 
     @Test fun `private or missing works are 404 for every operation before any comment access`() {
@@ -324,7 +372,7 @@ class EpisodeCommentServiceTest {
 
         for ((name, call) in operations) assertEquals(404, failure { call() }.status, name)
 
-        verifyNoInteractions(current, comments, likes)
+        verifyNoInteractions(current, comments, likes, nicknames)
     }
 
     @Test fun `unpublished or unknown episodes are 404 for every operation before any comment access`() {
@@ -333,6 +381,6 @@ class EpisodeCommentServiceTest {
         for ((name, call) in operations) assertEquals(404, failure { call() }.status, name)
         for (number in listOf(2, 0, -1)) assertEquals(404, failure { service.list("work", number, null, null) }.status, "episode $number")
 
-        verifyNoInteractions(comments, likes)
+        verifyNoInteractions(comments, likes, nicknames)
     }
 }

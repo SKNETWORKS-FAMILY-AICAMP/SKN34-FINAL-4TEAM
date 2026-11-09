@@ -4,7 +4,6 @@ CREATE TABLE episode_comment (
     episode_number integer NOT NULL CHECK (episode_number > 0),
     published_version_id varchar(36) NOT NULL REFERENCES episode_version(id),
     author_id varchar(200) NOT NULL,
-    author_name text NOT NULL,
     body text NOT NULL,
     quote text,
     spoiler boolean NOT NULL DEFAULT false,

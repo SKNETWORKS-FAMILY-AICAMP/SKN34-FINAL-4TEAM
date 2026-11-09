@@ -2,6 +2,8 @@ package ai.storyfork.content.comment
 
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.auth.client.exception.CoreAuthException
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.fixture.ContentTestConfig
 import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
@@ -15,10 +17,13 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Instant
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import javax.sql.DataSource
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -32,6 +37,7 @@ import tools.jackson.databind.json.JsonMapper
 
 /**
  * 회차 댓글 HTTP 계약(경로·Security·CSRF·상태 코드·Location)과 V17 저장을 실제 PostgreSQL로 검증한다.
+ * 작성자 표시명의 정본은 Core 닉네임이라 Content에는 저장하지 않으며, Core는 [names]를 돌려주는 대역이다.
  * TEST_CONTENT_DATABASE_URL이 있을 때만 실행하며, DB는 다른 테스트와 공유하므로 각 테스트는 자신이 만든 작품의 행만 비교한다.
  */
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties=[
@@ -44,16 +50,26 @@ import tools.jackson.databind.json.JsonMapper
 class EpisodeCommentPostgresTest {
     @LocalServerPort var port=0
     @MockitoBean lateinit var core: CoreAuthClient
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
     @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource
     @Autowired lateinit var json: JsonMapper
     private val jdbc get()=JdbcTemplate(source)
     private val client=HttpClient.newHttpClient()
+    /** Core 닉네임 대역이다. 회원 id → 최신 닉네임이며, 없는 회원은 Core에 없는(탈퇴한) 회원이다. */
+    private val names: MutableMap<String,String> = ConcurrentHashMap()
 
-    /** Core가 확인해 주는 회원이다. 닉네임이 null이면 구버전 Core 응답처럼 닉네임 없이 확인된다. */
+    @BeforeEach fun coreNicknames() {
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer {call ->
+            (call.arguments[0] as Collection<*>).map {it as String}.filter {it in names}.associateWith {names.getValue(it)}
+        }
+    }
+
+    /** Core가 확인해 주는 회원이다. 닉네임을 주면 Core 닉네임 대역에도 등록한다. */
     private fun member(nickname: String? = "닉네임"): UUID=UUID.randomUUID().also { id ->
-        `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id,nickname))
+        `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id))
+        if(nickname!=null) names[id.toString()]=nickname
     }
     private fun call(method: String,path: String,member: UUID? = null,body: String? = null,csrf: Boolean = true): HttpResponse<String> {
         val request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).header("Accept","application/json")
@@ -86,7 +102,7 @@ class EpisodeCommentPostgresTest {
         return id
     }
 
-    @Test fun `comment lifecycle stores a fixed version and name snapshot and soft deletes`() {
+    @Test fun `comment lifecycle stores a fixed version and no name and soft deletes`() {
         val owner=member("작가")
         val id=work(owner.toString())
         val author=member("닉네임")
@@ -104,6 +120,8 @@ class EpisodeCommentPostgresTest {
         Instant.parse(body.path("createdAt").asString())
         Instant.parse(body.path("updatedAt").asString())
         assertEquals(version,jdbc.queryForObject("SELECT published_version_id FROM episode_comment WHERE id=?",String::class.java,cid))
+        // 작성자 이름은 저장하지 않는다. 응답 때마다 Core 닉네임을 조회한다.
+        assertEquals(0,count("SELECT count(*) FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='episode_comment' AND column_name='author_name'"))
 
         // 익명도 상세·목록을 볼 수 있고 mine은 Bearer 회원 기준이다.
         val anonymous=detail(id,cid)
@@ -187,13 +205,41 @@ class EpisodeCommentPostgresTest {
         assertEquals(200,list(id,"likes").statusCode())
     }
 
-    @Test fun `a member without a usable nickname is shown as the default reader`() {
+    @Test fun `the author name follows the latest Core nickname and a member Core no longer knows is the withdrawn member`() {
         val id=work()
-        for(nickname in listOf(null,"   ")) {
-            val response=post(id,member(nickname),"""{"body":"이름 없는 독자"}""")
-            created(response)
-            assertEquals("독자",node(response).path("authorName").asString())
+        val author=member("처음 닉네임")
+        val response=post(id,author,"""{"body":"이름이 바뀌는 독자"}""")
+        val cid=created(response)
+        assertEquals("처음 닉네임",node(response).path("authorName").asString())
+
+        names[author.toString()]="바꾼 닉네임"
+        assertEquals("바꾼 닉네임",node(detail(id,cid)).path("authorName").asString())
+        assertEquals(listOf("바꾼 닉네임"),node(list(id)).path("items").toList().map {it.path("authorName").asString()})
+
+        names.remove(author.toString())
+        assertEquals("탈퇴한 회원",node(detail(id,cid)).path("authorName").asString())
+        val edited=call("PUT","${write(id)}/$cid",author,"""{"body":"고침","spoiler":false}""")
+        assertEquals("탈퇴한 회원",node(edited).path("authorName").asString())
+        assertEquals("탈퇴한 회원",node(post(id,author,"""{"body":"남긴 글"}""")).path("authorName").asString())
+    }
+
+    @Test fun `a Core failure is a 503 and never a made up name or a stored comment`() {
+        val id=work()
+        val author=member()
+        val first=created(post(id,author,"""{"body":"저장된 글"}"""))
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>()))
+            .thenThrow(CoreAuthException(503,"CORE_MEMBER_UNAVAILABLE","회원 정보 서비스를 사용할 수 없습니다."))
+
+        for(response in listOf(list(id),detail(id,first),post(id,author,"""{"body":"저장되면 안 되는 글"}"""),
+            call("PUT","${write(id)}/$first",author,"""{"body":"고치면 안 되는 글","spoiler":false}"""))) {
+            assertEquals(503,response.statusCode(),response.body())
+            assertEquals("회원 정보 서비스를 사용할 수 없습니다.",node(response).path("detail").asString())
         }
+        // 응답을 만들지 못한 쓰기는 같은 트랜잭션에서 되돌려진다.
+        assertEquals(listOf("저장된 글"),jdbc.queryForList("SELECT body FROM episode_comment WHERE work_id=?",String::class.java,id))
+        // 좋아요·삭제는 응답에 이름이 없어 Core를 부르지 않는다.
+        assertEquals(204,call("PUT","${write(id)}/$first/like",author).statusCode())
+        assertEquals(204,call("DELETE","${write(id)}/$first",author).statusCode())
     }
 
     @Test fun `only published episodes of public works take comments and writing needs a verified member and csrf`() {
