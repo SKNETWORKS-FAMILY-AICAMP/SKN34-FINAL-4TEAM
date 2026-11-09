@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { Fragment, useId } from 'react'
 
 import { LINE, WCATS, type Doc } from '../../../../domain/entities/wiki'
 import type { Work } from '../../../../domain/entities/work'
@@ -18,7 +18,7 @@ function PublicDoc({ doc, docs }: { doc: Doc; docs: Doc[] }) {
       {doc.ep != null && <p className="pw-meta">{doc.ep}화{doc.line && ` · ${LINE[doc.line] ?? doc.line}`}</p>}
       {doc.alias.length > 0 && <p className="pw-meta">별칭 · {doc.alias.join(', ')}</p>}
       {doc.body && <p>{doc.body}</p>}
-      {props.length > 0 && <dl className="pw-props">{props.map(([k, v]) => <div key={k} className="pw-prop"><dt>{k}</dt><dd>{v}</dd></div>)}</dl>}
+      {props.length > 0 && <dl className="pw-props">{props.map(([k, v]) => <Fragment key={k}><dt>{k}</dt><dd>{v}</dd></Fragment>)}</dl>}
       {!!doc.knowledge?.length && <ul className="pw-know" aria-label="알려진 사실">{doc.knowledge.map((k, i) => <li key={i}>{k.text}{k.publicAt != null && ` · ${k.publicAt}화 공개`}</li>)}</ul>}
       {!!doc.who?.length && <p className="pw-meta">등장 · {doc.who.join(', ')}</p>}
       {links.length > 0 && <p className="pw-meta">연결 · {links.join(', ')}</p>}

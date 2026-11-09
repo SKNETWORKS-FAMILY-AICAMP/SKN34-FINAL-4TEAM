@@ -13,7 +13,6 @@
 .pw-doc p { margin: 0; line-height: 1.7; white-space: pre-wrap; }
 .pw-doc .pw-meta { font-size: 13px; color: var(--tsub, var(--sub)); }
 .pw-props { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; font-size: 14px; }
-.pw-prop { display: contents; }
 .pw-props dt { font-weight: 600; color: var(--tsub, var(--sub)); }
 .pw-props dd { margin: 0; }
 .pw-know { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; }
