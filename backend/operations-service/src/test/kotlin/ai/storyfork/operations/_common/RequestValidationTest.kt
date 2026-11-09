@@ -3,6 +3,8 @@ package ai.storyfork.operations._common
 import ai.storyfork.operations.event.service.dto.EventRequest
 import ai.storyfork.operations.inquiry.service.dto.InquiryReplyRequest
 import ai.storyfork.operations.inquiry.service.dto.InquiryRequest
+import ai.storyfork.operations.inquiry.service.dto.SupportInquiryRequest
+import ai.storyfork.operations.inquiry.service.dto.SupportReplyRequest
 import ai.storyfork.operations.notice.service.dto.NoticeRequest
 import jakarta.validation.Validation
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -15,6 +17,8 @@ class RequestValidationTest {
     private val event = EventRequest("제목", "본문")
     private val inquiry = InquiryRequest("제목", "본문", "분류")
     private val reply = InquiryReplyRequest("본문")
+    private val support = SupportInquiryRequest("분류", "제목", "본문")
+    private val supportReply = SupportReplyRequest("본문")
 
     private fun violatedFields(request: Any) = validator.validate(request).map { it.propertyPath.toString() }.sorted()
 
@@ -27,14 +31,20 @@ class RequestValidationTest {
                 add(notice.copy(title = value) to "title")
                 add(event.copy(title = value) to "title")
                 add(inquiry.copy(title = value) to "title")
+                add(support.copy(title = value) to "title")
             }
             for (value in rejected(20_000)) {
                 add(notice.copy(body = value) to "body")
                 add(event.copy(body = value) to "body")
                 add(inquiry.copy(body = value) to "body")
                 add(reply.copy(body = value) to "body")
+                add(support.copy(body = value) to "body")
+                add(supportReply.copy(body = value) to "body")
             }
-            for (value in rejected(50)) add(inquiry.copy(category = value) to "category")
+            for (value in rejected(50)) {
+                add(inquiry.copy(category = value) to "category")
+                add(support.copy(category = value) to "category")
+            }
         }
 
         for ((request, field) in cases) assertEquals(listOf(field), violatedFields(request), request.toString())
@@ -46,7 +56,7 @@ class RequestValidationTest {
         val body = "나".repeat(20_000)
 
         for (request in listOf(NoticeRequest(title, body), EventRequest(title, body), InquiryRequest(title, body, "분".repeat(50)),
-            InquiryReplyRequest(body))) {
+            InquiryReplyRequest(body), SupportInquiryRequest("분".repeat(50), title, body), SupportReplyRequest(body))) {
             assertEquals(emptyList<String>(), violatedFields(request), request.javaClass.simpleName)
         }
     }
