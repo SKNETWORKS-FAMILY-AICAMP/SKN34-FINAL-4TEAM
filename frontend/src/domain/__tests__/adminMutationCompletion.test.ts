@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { adminViewSlice } from '../../presentation/features/admin/state/adminViewSlice'
+import type { AdminTab } from '../entities/admin'
 import { useAdminViewModel } from '../../presentation/features/admin/viewmodel/useAdminViewModel'
 import type { RootState } from '../../app/store'
 
@@ -10,6 +11,10 @@ const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
   admin: { chatChoices: vi.fn(), addNotice: vi.fn(), addEvent: vi.fn(), reply: vi.fn() },
   operations: { saveNotice: vi.fn(), deleteNotice: vi.fn(), saveEvent: vi.fn(), deleteEvent: vi.fn(), saveInquiry: vi.fn(), deleteInquiry: vi.fn(), saveReply: vi.fn(), deleteReply: vi.fn() },
+  member: { setRestriction: vi.fn(), createAdmin: vi.fn() },
+  report: { review: vi.fn(), setContentRestriction: vi.fn(), requestEvidence: vi.fn() },
+  /** 데모 조회(adminUseCase를 deps로 가진 useAsyncData)의 상태. 운영 API 조회(live·report)는 항상 완료로 둔다. */
+  demoQuery: { isLoading: false, isRefreshing: false, isError: false },
 }))
 vi.mock('react', () => ({
   useRef: <T>(current: T) => ({ current }),
@@ -17,12 +22,14 @@ vi.mock('react', () => ({
   useEffect: (setup: () => (() => void)) => { doubles.cleanups.push(setup()) },
 }))
 vi.mock('react-redux', () => ({ useStore: () => ({ getState: doubles.getState }) }))
-vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => name === 'adminUseCase' ? doubles.admin : doubles.operations } }))
+vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report } as Record<string, unknown>)[name] ?? doubles.operations } }))
 vi.mock('../../app/store', () => ({ useAppDispatch: () => doubles.dispatch, useAppSelector: (select: (state: RootState) => unknown) => select(doubles.getState()) }))
 vi.mock('../../presentation/shared/session/useLogout', () => ({ useLogout: () => vi.fn() }))
 vi.mock('../../presentation/shared/screenIds', () => ({ useScreenId: vi.fn() }))
 vi.mock('../../presentation/shared/events', () => ({ toast: vi.fn() }))
-vi.mock('../../presentation/shared/useAsyncData', () => ({ useAsyncData: () => ({ isLoading: false, isRefreshing: false, isError: false }) }))
+vi.mock('../../presentation/shared/useAsyncData', () => ({
+  useAsyncData: (_load: unknown, deps: readonly unknown[]) => deps.includes(doubles.admin) ? doubles.demoQuery : { isLoading: false, isRefreshing: false, isError: false },
+}))
 
 type VM = ReturnType<typeof useAdminViewModel>
 let view: ReturnType<typeof adminViewSlice.reducer>
@@ -32,6 +39,7 @@ beforeEach(() => {
   doubles.cleanups.length = 0
   view = adminViewSlice.reducer(undefined, { type: 'init' })
   dataVersion = 0
+  doubles.demoQuery = { isLoading: false, isRefreshing: false, isError: false }
   doubles.getState.mockImplementation(() => ({ adminView: view, session: { memberId: null, user: { nick: '관리자', email: '', joined: '' } } }))
   doubles.dispatch.mockImplementation((action: { type: string }) => {
     view = adminViewSlice.reducer(view, action)
@@ -136,4 +144,43 @@ it('문의 삭제 중 새로 쓴 답변 초안도 지우지 않는다', async ()
   expect(await request.pending).toBe(true)
   expect(view).toEqual(expected)
   expect(dataVersion).toBe(1)
+})
+
+describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
+  const settled = { isLoading: false, isRefreshing: false, isError: false }
+  const demoStates = [['조회 중', { isLoading: true }], ['새로고침 중', { isRefreshing: true }], ['조회 실패', { isError: true }]] as const
+  const liveActions: { tab: AdminTab; name: string; submit: (vm: VM) => Promise<boolean>; backend: () => ReturnType<typeof vi.fn> }[] = [
+    { tab: 'users', name: '회원 이용 제한', submit: (vm) => vm.live.setMemberRestriction('member-1', true), backend: () => doubles.member.setRestriction },
+    { tab: 'admins', name: '관리자 계정 생성', submit: (vm) => vm.live.createAdmin({ email: 'new@example.invalid', nickname: '새 관리자', password: 'password-1', permissions: ['works'] }), backend: () => doubles.member.createAdmin },
+    { tab: 'rights', name: '신고 검토', submit: (vm) => vm.live.review('report-1', 'ACCEPTED', '확인'), backend: () => doubles.report.review },
+  ]
+
+  describe.each(demoStates)('데모 조회가 %s일 때', (_name, state) => {
+    beforeEach(() => { doubles.demoQuery = { ...settled, ...state } })
+
+    it.each(liveActions)('운영 API 탭($tab)의 $name 조치는 막히지 않고 실행되어 목록을 다시 읽는다', async ({ tab, submit, backend }) => {
+      backend().mockResolvedValueOnce(undefined)
+      const vm = useAdminViewModel(tab)
+      expect(vm.mutationsBlocked).toBe(false)
+      expect(await submit(vm)).toBe(true)
+      expect(backend()).toHaveBeenCalledTimes(1)
+      expect(dataVersion).toBe(1)
+    })
+
+    it('데모 탭의 조치는 기존처럼 막혀 실행되지 않는다', async () => {
+      const vm = useAdminViewModel('notices')
+      expect(vm.mutationsBlocked).toBe(true)
+      expect(await vm.addNotice('제목', '본문')).toBe(false)
+      expect(doubles.admin.addNotice).not.toHaveBeenCalled()
+      expect(dataVersion).toBe(0)
+    })
+  })
+
+  it('데모 조회가 끝나 있으면 데모 탭 조치는 실행된다', async () => {
+    doubles.admin.addNotice.mockResolvedValueOnce({ ok: true, msg: '저장 성공' })
+    const vm = useAdminViewModel('notices')
+    expect(vm.mutationsBlocked).toBe(false)
+    expect(await vm.addNotice('제목', '본문')).toBe(true)
+    expect(dataVersion).toBe(1)
+  })
 })

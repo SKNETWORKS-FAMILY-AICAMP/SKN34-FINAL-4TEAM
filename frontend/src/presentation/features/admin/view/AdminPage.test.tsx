@@ -1,14 +1,15 @@
 // @vitest-environment jsdom
 import '../../../../test/fixtureApp'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 
+import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { AdminPage } from './AdminPage'
 
-afterEach(() => { cleanup(); document.title = 'STORYFORK' })
+afterEach(() => { cleanup(); vi.restoreAllMocks(); document.title = 'STORYFORK' })
 
 const renderAdmin = (tab: string) => render(
   <Provider store={createAppStore({ role: 'admin' })}>
@@ -61,4 +62,20 @@ it('상단바 글자·버튼 색은 하드코딩하지 않고 고정 어두운 �
 it('탭 제목에 관리자와 현재 섹션 이름을 쓴다', async () => {
   renderAdmin('users')
   await waitFor(() => expect(document.title).toBe('관리자 · 사용자 관리 · STORYFORK'))
+})
+
+it('운영 API 탭은 데모 조회가 실패해도 본문과 조치 버튼을 그리고 데모 조회 오류 안내는 데모 탭에만 보인다', async () => {
+  const load = vi.spyOn(appContainer.resolve('adminUseCase'), 'load').mockRejectedValue(new Error('데모 조회 실패'))
+  vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([
+    { id: 'member-1', email: 'member@example.invalid', nickname: '연화봉러', role: 'MEMBER', restricted: false, createdAt: '2026-11-01T00:00:00Z' },
+  ])
+  renderAdmin('users')
+  const row = (await screen.findByText('연화봉러')).closest('tr') as HTMLElement
+  await waitFor(() => expect(load).toHaveBeenCalled())
+  await act(async () => { await new Promise((done) => setTimeout(done, 0)) })
+  expect((within(row).getByRole('button', { name: '이용 제한' }) as HTMLButtonElement).disabled).toBe(false)
+  expect(screen.queryByText(/관리자 데이터를 불러오지 못했어요/)).toBeNull()
+  cleanup()
+  renderAdmin('works')
+  await screen.findByText(/관리자 데이터를 불러오지 못했어요/)
 })

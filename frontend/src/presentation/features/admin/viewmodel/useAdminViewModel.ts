@@ -68,9 +68,12 @@ export function useAdminViewModel(
   const [lastSuccess, setLastSuccess] = useState('')
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
 
+  // 데모 조회(query) 중·실패 때는 데모 탭 조치만 막습니다. 실제 운영 API 탭은 데모 조회와 무관하게 조치합니다.
+  const mutationsBlocked = !LIVE_TABS.includes(tab) && (query.isLoading || query.isRefreshing || query.isError)
+
   /** 지연 실행으로 중복 호출 자체를 막습니다. 저장 결과와 뒤이은 목록 재조회 결과는 별개입니다. */
   const run = async (key: string, action: () => Promise<AdminResult>): Promise<boolean> => {
-    if (busy.current.has(key) || query.isLoading || query.isRefreshing || query.isError) return false
+    if (busy.current.has(key) || mutationsBlocked) return false
     busy.current.add(key)
     setLastSuccess('')
     setActions((s) => ({ ...s, [key]: { pending: true, error: '', message: '' } }))
@@ -109,7 +112,7 @@ export function useAdminViewModel(
       setContentRestriction: (id: string, restricted: boolean) => runLive(`report:${id}:restrict`, restricted ? '대상 작품을 제한했어요.' : '대상 작품 제한을 해제했어요.', () => reportUseCase.setContentRestriction(id, restricted)),
       requestEvidence: (id: string, body: string) => runLive(`report:${id}:evidence`, '작품 등록자에게 권리 증빙을 요청했어요.', () => reportUseCase.requestEvidence(id, body)),
     },
-    mutationsBlocked: query.isLoading || query.isRefreshing || query.isError,
+    mutationsBlocked,
     setSel: (id: string) => { dispatch(adminViewActions.select(id)) },
     setFilter: (t: AdminTab, filter: AdminFilter) => { dispatch(adminViewActions.setFilter({ tab: t, filter })) },
     setChatForm: (form: AdminChatForm) => { dispatch(adminViewActions.setChatForm(form)) },
