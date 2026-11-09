@@ -78,4 +78,4 @@
 - **Frontend**: 새 `ReadingRecordRepository`(`list`·`record`·`remove`)를 실서비스는 `HttpReadingRecordRepository`, 목업·테스트는 `mockDb.progress`를 정본으로 쓰는 `InMemoryReadingRecordRepository`로 등록한다.
   `ReadingUseCase`는 로그인 회원(`role`)일 때만 기록을 읽고 쓰며(비회원은 호출하지 않음), 작가가 자기 비공개 작품을 미리 읽을 때는 서버가 404로 거절하므로 기록하지 않는다.
   회차 열람 기록은 기다리지 않고 회차를 먼저 돌려주며(서버가 느려도 표시가 늦어지지 않는다), 결과의 `recording` Promise가 실패하면 뷰어가 토스트로 알려 성공으로 보이지 않게 한다. 홈·작품·서재의 기록 조회 실패는 빈 기록으로 숨기지 않고 화면 조회 실패로 알린다.
-- **남은 것**: 캐릭터 챗 목업의 읽은 회차 기준은 아직 메모리 진행 상태(`ReadingProgress.last`)를 읽는다. 목업·테스트에서는 같은 상태라 맞지만 실서비스 기록과는 이어지지 않는다.
+- **남은 것**: 캐릭터 챗 목업의 읽은 회차 기준은 아직 메모리 진행 상태(`ReadingProgress.last`)를 읽는다. 목업·테스트에서는 같은 상태라 맞지만 실서비스 기록과는 이어지지 않는다. 집필실 라우트(`useStudioRouteViewModel`)는 작품 식별만 필요한데 `ReadingUseCase.getWork`를 재사용해 회원의 독서 기록 조회에도 묶인다(조회가 실패하면 집필실도 작품을 불러오지 못한다). 식별 전용 조회로 나누는 일은 남아 있다.
