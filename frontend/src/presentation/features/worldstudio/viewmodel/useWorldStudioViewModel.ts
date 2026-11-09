@@ -271,6 +271,7 @@ export function useWorldStudioViewModel(
       else Object.assign(s.item, cardTypePatch(s.item, type, []))
       patch({ settings: [...editing.settings, s] })
       setSelected(s.item.id)
+      return s.item.id
     },
     changeCardType: (id: string, type: CardType) => {
       if (!editing || busy) return
