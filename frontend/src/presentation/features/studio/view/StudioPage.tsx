@@ -46,7 +46,7 @@ function DemoStudioPage() {
   const navigate = useNavigate()
   const ep = Number(q.get('ep')) || undefined
   const requested = q.get('view') ?? ''
-  const view = requested === 'overview' ? 'wiki' : VIEW_ID[requested] ? requested : 'write'
+  const view = requested === 'overview' ? 'wiki' : Object.hasOwn(VIEW_ID, requested) ? requested : 'write'
   const vm = useStudioViewModel(id, ep, VIEW_ID[view] ?? 'ai')
   const [chatOpen, setChatOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -185,7 +185,8 @@ function Editor({ vm }: { vm: VM }) {
         onKeyUp={(e) => { if (e.key === '@') openMention(e.currentTarget); const s = window.getSelection(); if (s && e.currentTarget.contains(s.anchorNode) && e.currentTarget.contains(s.focusNode) && s.toString().trim()) setSelection(s.toString().trim()) }} onKeyDown={(e) => {
           if (!mlist) return
           if (e.key === 'Escape') return setMlist(null)
-          if (e.nativeEvent.isComposing) return
+          // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다
+          if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); moveMention(e.key === 'ArrowDown' ? 1 : -1) }
           else if (e.key === 'Enter' && mlist.active >= 0) { e.preventDefault(); pickMention(names[mlist.active]) }
         }}
