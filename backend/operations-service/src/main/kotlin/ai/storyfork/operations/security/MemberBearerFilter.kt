@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.util.UUID
 import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.filter.OncePerRequestFilter
@@ -27,9 +26,7 @@ class MemberBearerFilter(private val core: CoreClient, private val mapper: JsonM
         } catch (error: ResponseStatusException) {
             SecurityContextHolder.clearContext()
             val status = error.statusCode.value()
-            response.status = status
-            response.contentType = MediaType.APPLICATION_JSON_VALUE
-            mapper.writeValue(response.writer, when (status) {
+            response.writeError(mapper, status, when (status) {
                 401 -> OperationsErrorResponse("UNAUTHORIZED", "Authentication required.")
                 403 -> OperationsErrorResponse("FORBIDDEN", "Access denied.")
                 else -> OperationsErrorResponse("UPSTREAM_FAILED", "Upstream service request failed.")

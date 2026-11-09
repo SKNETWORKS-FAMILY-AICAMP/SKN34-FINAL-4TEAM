@@ -4,7 +4,6 @@ import ai.storyfork.operations._common.service.dto.OperationsErrorResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -29,13 +28,9 @@ class OperationsSecurityConfig {
             }
             .exceptionHandling {
                 it.authenticationEntryPoint { _, response, _ ->
-                    response.status = 401
-                    response.contentType = MediaType.APPLICATION_JSON_VALUE
-                    mapper.writeValue(response.writer, OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
+                    response.writeError(mapper, 401, OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
                 }.accessDeniedHandler { _, response, _ ->
-                    response.status = 403
-                    response.contentType = MediaType.APPLICATION_JSON_VALUE
-                    mapper.writeValue(response.writer, OperationsErrorResponse("FORBIDDEN", "Access denied."))
+                    response.writeError(mapper, 403, OperationsErrorResponse("FORBIDDEN", "Access denied."))
                 }
             }
             .addFilterBefore(OperationsServiceTokenFilter(token, mapper), AnonymousAuthenticationFilter::class.java)
