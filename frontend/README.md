@@ -96,3 +96,5 @@ Core API 변경 시 web 소비자 회귀도 선택합니다. 실제 HTTP 시스�
 Aside는 별도 요청·승인 시에만 사용합니다. hosted `Required CI` 결과 확인 전에는 검증 대기로 보고합니다.
 
 서버 작품은 `/studio/{UUID}`에서 회차별 실제 저장 API를 사용합니다. 데모 세션 대신 Core의 인증 결과를 따르며, 기존 이름 기반 데모 집필실과 구분합니다. 자동저장·버전 저장·복원과 검증 범위는 [이슈 #50 대응](../docs/issue-50-alignment.md)을 참고하세요.
+
+데모 집필실의 설정 추출은 선택한 회차에서 후보를 저장한 뒤 드롭다운을 1화로 되돌립니다. 확인을 취소하거나 추출에 실패하면 선택을 유지합니다([#8](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/8)).

@@ -42,10 +42,11 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     if (redraw) setTyped(null)
     dispatch(sessionActions.dataChanged())
   }
-  const run = async (fn: () => Promise<unknown>, redraw = false) => {
+  const run = async <T>(fn: () => Promise<T>, redraw = false) => {
     await sync.current
-    await fn()
+    const result = await fn()
     refresh(redraw)
+    return result
   }
   const flash = () => {
     setSaving(true)
@@ -185,9 +186,14 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
       if (msg) toast(msg)
     },
     extractWorld: async (n: number) => {
-      let msg: string | null = null
-      await run(async () => { msg = await studioUseCase.extractWorld(id, n, (credits) => confirmAi('세계관 설정 추출', 5, credits)) })
-      if (msg) toast(msg)
+      try {
+        const result = await run(() => studioUseCase.extractWorld(id, n, (credits) => confirmAi('세계관 설정 추출', 5, credits)))
+        if (result) toast(result.message)
+        return result?.ok === true
+      } catch {
+        toast('설정 추출에 실패했어요. 다시 시도해 주세요.')
+        return false
+      }
     },
     acceptWorld: async () => { let msg = ''; await run(async () => { msg = await studioUseCase.acceptWorld(id) }); toast(msg) },
     discardWorld: async () => { let msg: string | null = null; await run(async () => { msg = await studioUseCase.discardWorld(id) }); if (msg) toast(msg) },

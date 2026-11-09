@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -81,15 +81,23 @@ describe('설정 노트 (U19 작품 설정·설정 추출·독자 공개 회차�
 
   it('설정 추출 후보는 반영하거나 제외할 수 있다', async () => {
     renderAt('/studio/starlight?panel=settings')
+    fireEvent.change(await screen.findByLabelText('추출할 발행 회차'), { target: { value: '2' } })
     fireEvent.click(await screen.findByRole('button', { name: '설정 추출 (데모)' }))
     await toastIs('작가 소유 세계관과 발행된 회차가 필요해요')
+    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '추출할 발행 회차' }).value).toBe('2')
     cleanup()
     ownWorld()
     renderAt('/studio/starlight?panel=settings')
     fireEvent.change(await screen.findByLabelText('추출할 발행 회차'), { target: { value: '2' } })
+    vi.mocked(window.confirm).mockReturnValueOnce(false)
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: '설정 추출 (데모)' })) })
+    expect(window.confirm).toHaveBeenCalled()
+    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '추출할 발행 회차' }).value).toBe('2')
+    expect(star().worldCandidate).toBeUndefined()
     fireEvent.click(screen.getByRole('button', { name: '설정 추출 (데모)' }))
     await toastIs('설정 후보를 확인해 주세요 (데모)')
     await screen.findByText('검토 대기 · 원고 발췌 예시')
+    await waitFor(() => expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '추출할 발행 회차' }).value).toBe('1'))
     screen.getByText(star().eps[1].p[0])
     const facts = db().worlds.find((w) => w.id === 'my-world')!.facts?.length ?? 0
     fireEvent.click(screen.getByRole('button', { name: '세계관에 반영' }))
