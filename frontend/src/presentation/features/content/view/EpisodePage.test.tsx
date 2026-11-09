@@ -15,6 +15,13 @@ beforeEach(async () => {
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
+
+/** 작품 등록 필수값(장르 1개·권리 확인)을 채운다. 권리 확인은 '＋ 새 작품'마다 다시 풀린다. */
+const fillRegistration=()=>{
+  fireEvent.change(screen.getByLabelText('장르'),{target:{value:'판타지'}})
+  fireEvent.click(screen.getByLabelText('이 작품을 등록할 권리가 있음을 확인합니다.'))
+}
+
 it('requires selecting a saved version before opening publication preview', async()=>{
   const w={id:'w',title:'선택 필요',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'회차',body:'초안',revision:0}}
   render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response(JSON.stringify([w])))))}/>)
@@ -45,9 +52,14 @@ it('creates a private work through the API and shows its editor', async()=>{
   render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))}/> )
   await screen.findByText('첫 이야기를 시작해 보세요')
   fireEvent.change(screen.getByLabelText('작품 제목'),{target:{value:'별의 기록'}})
+  fireEvent.click(screen.getByLabelText('외부 2차 창작',{exact:false}))
+  fillRegistration()
+  fireEvent.change(screen.getByLabelText('두 번째 장르'),{target:{value:'SF'}})
+  fireEvent.change(screen.getByLabelText('해시태그'),{target:{value:'#회귀, 성장'}})
   fireEvent.click(screen.getByRole('button',{name:'작품 만들기'}))
   await waitFor(()=>expect(screen.getByLabelText('원고 본문')).toBeTruthy())
   expect(calls.mock.calls[1][0]).toBe('/api/v1/works')
+  expect(JSON.parse(calls.mock.calls[1][1].body)).toEqual({title:'별의 기록',summary:'',creationType:'EXTERNAL_DERIVATIVE',genres:['판타지','SF'],hashtags:['회귀','성장'],rightsConfirmed:true})
 })
 
 it('does not reuse the previous cover when creating another work',async()=>{
@@ -63,12 +75,15 @@ it('does not reuse the previous cover when creating another work',async()=>{
   await screen.findByText('첫 이야기를 시작해 보세요')
   fireEvent.change(screen.getByLabelText('작품 제목'),{target:{value:first.title}})
   fireEvent.change(screen.getByLabelText('작품 표지 (선택)'),{target:{files:[new File(['png'],'first.png',{type:'image/png'})]}})
+  fillRegistration()
   fireEvent.click(screen.getByRole('button',{name:'작품 만들기'}))
   await screen.findByText('비공개 작품과 표지를 저장했어요.')
   expect(uploads).toHaveBeenCalledTimes(1)
   expect(uploads.mock.calls[0][0]).toBe(`/api/v1/works/${first.id}/cover`)
   fireEvent.click(screen.getByRole('button',{name:'＋ 새 작품'}))
   fireEvent.change(screen.getByLabelText('작품 제목'),{target:{value:second.title}})
+  expect((screen.getByLabelText('이 작품을 등록할 권리가 있음을 확인합니다.') as HTMLInputElement).checked).toBe(false)
+  fillRegistration()
   fireEvent.click(screen.getByRole('button',{name:'작품 만들기'}))
   await screen.findByRole('heading',{name:second.title})
   await waitFor(()=>expect((screen.getByRole('button',{name:'＋ 새 작품'}) as HTMLButtonElement).disabled).toBe(false))
