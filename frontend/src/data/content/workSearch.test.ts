@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { login, refresh } from '../api/auth'
+import { canReport } from '../../domain/entities/work'
 import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
 import { HttpWorkRepository } from './HttpWorkRepository'
@@ -40,6 +41,13 @@ describe('공개 작품 검색 (GET /api/v1/public/works)', () => {
     expect(w.parent).toBeUndefined()
     expect(w.forkAt).toBeUndefined()
     expect(w.eps.map((e) => e.t)).toEqual(['첫 화', '둘째 화'])
+  })
+
+  it('검색 카드의 서버 작품은 남의 공개 작품만 신고할 수 있다 — 내 작품·비공개는 불가 (#196)', async () => {
+    const rows = [dto({ id: 'other' }), dto({ id: 'mine', ownerId: 'reader' }), dto({ id: 'closed', visibility: 'private' })]
+    const found = await new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json(rows))).search({ q: '', f: 'all', sort: 'latest' })
+    expect(found.every((w) => w.canonical)).toBe(true)
+    expect(found.map((w) => canReport(w, 'reader'))).toEqual([true, false, false])
   })
 
   it('원작과 Fork는 source 유무로 가르고 기준 회차·분기 방향을 옮긴다', async () => {
