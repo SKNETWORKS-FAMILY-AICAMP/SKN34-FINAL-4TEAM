@@ -56,4 +56,9 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 
 ## 발행 쪽 약속
 
-- 사건은 업무 변경과 같은 트랜잭션에서 Outbox 테이블에 기록하고 별도 발행기가 브로커로 보낸다(변경은 됐는데 사건이 사라지는 일을 막는다). 재전송이 일어나므로 `eventId`는 Outbox 행에서 고정한다.
+- 사건은 업무 변경과 같은 트랜잭션에서 **발행하는 서비스 자신의** Outbox 테이블에 기록하고 별도 발행기가 브로커로 보낸다(변경은 됐는데 사건이 사라지는 일을 막는다). 재전송이 일어나므로 `eventId`는 Outbox 행에서 고정한다.
+- Core가 만드는 사건은 Core의 `notification_outbox`(V10)를 쓴다. 사건을 만드는 코드는 업무 트랜잭션 안에서 `NoticeOutboxService.enqueue(type, recipientId, targetId)`만 호출한다(열린 트랜잭션이 없으면 예외).
+  `NoticeOutboxRelay`가 2초마다 보낼 차례인 행을 발행하고 브로커 확인(publisher confirm)을 받으면 `SENT`로 표시한다.
+  실패하면 5초부터 두 배씩(최대 5분) 늦춰 다시 보내고 10회에 이르면 `FAILED`로 남겨 더 보내지 않는다. 값은 `app.notification.outbox.*`로 바꾼다.
+  같은 사건이 두 번 나가도 위 `eventId` 규칙으로 알림은 한 건만 생긴다. 1차는 Core 한 대 기준이다.
+- Content 등 다른 서비스가 사건을 만들 때도 같은 형식을 지키되 Outbox는 그 서비스가 가진다(Core는 소비만 한다).
