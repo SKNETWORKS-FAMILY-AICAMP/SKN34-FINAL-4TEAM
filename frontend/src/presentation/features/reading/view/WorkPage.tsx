@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
 
+import { epsOf } from '../../../../domain/entities/work'
 import { Art, CoverOf } from '../../../shared/art'
 import { kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
@@ -10,6 +11,7 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useWorkViewModel } from '../viewmodel/useWorkViewModel'
 import { Amb } from './Amb'
+import { PublicWikiPanel } from './PublicWiki'
 import { ReportSheet } from './Sheets'
 
 /** 목업 unavailableWork() */
@@ -101,6 +103,7 @@ export function WorkPage() {
               </div>
             )}
           </aside>
+          {w.canonical && <PublicWikiPanel work={w} upto={epsOf(w).length} />}
         </div>
       </main>
     </div>

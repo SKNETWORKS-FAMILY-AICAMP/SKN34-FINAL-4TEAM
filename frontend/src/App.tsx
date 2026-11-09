@@ -105,8 +105,9 @@ function App() {
             <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
             <Route path="/auth/verify-email-change" element={<VerifyEmailChangePage />} />
             <Route path="/work/:id" element={<WorkPage />} />
-            <Route path="/read/:id/:n" element={<RequireRole><ReaderPage /></RequireRole>} />
-            <Route path="/read/:id" element={<RequireRole><ReaderPage /></RequireRole>} />
+            {/* 공개 회차 열람은 비회원도 할 수 있다(UC-01). 세션 복원이 끝난 뒤에 열어 로그인 회원이 새로 고칠 때 두 번 불러오지 않게 한다. */}
+            <Route path="/read/:id/:n" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <ReaderPage />} />
+            <Route path="/read/:id" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <ReaderPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/rank" element={<RankPage />} />
             <Route path="/ifs" element={<IfsPage />} />

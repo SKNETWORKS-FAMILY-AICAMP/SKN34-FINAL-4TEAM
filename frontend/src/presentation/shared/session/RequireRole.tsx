@@ -7,7 +7,6 @@ import { sessionActions } from './sessionSlice'
 import { adminReturnPath } from '../../../domain/entities/admin'
 
 const MESSAGES: Record<string, string> = {
-  read: '소설을 읽으려면 로그인해 주세요.',
   lib: '내 서재는 로그인 후 볼 수 있어요.',
   chat: '캐릭터 챗은 로그인 후 이용할 수 있어요.',
 }

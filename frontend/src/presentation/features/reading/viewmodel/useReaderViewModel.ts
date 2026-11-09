@@ -16,7 +16,7 @@ const LOOK_VARS = {
   night: { '--tbg': '#0E0E10', '--tfg': '#D9D9DE', '--tsub': '#8C8E97', '--tline': '#25252B', '--tcard': '#18181C', '--tacc': '#9D87FF', '--tbtn': '#9D87FF', '--tbtnfg': '#140E2B', colorScheme: 'dark' },
 } as const
 
-type ReaderSheet = { kind: 'comment' | 'feedback'; k: number } | { kind: 'look' } | null
+type ReaderSheet = { kind: 'comment' | 'feedback'; k: number } | { kind: 'look' } | { kind: 'wiki' } | null
 
 /** 목업 reader(id,n)·bindReader: 회차 뷰어 U05·U08 */
 export function useReaderViewModel(id: string, n: number,

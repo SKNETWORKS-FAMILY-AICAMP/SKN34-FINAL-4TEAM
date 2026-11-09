@@ -11,6 +11,7 @@ import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { useReaderViewModel } from '../viewmodel/useReaderViewModel'
 import { Amb } from './Amb'
+import { PublicWikiSheet } from './PublicWiki'
 import { UnavailableWork } from './WorkPage'
 import { CommentSheet, FeedbackSheet, LookSheet } from './Sheets'
 
@@ -119,7 +120,7 @@ export function ReaderPage() {
   const closeSheet = () => {
     const s = vm.sheet
     vm.closeSheet()
-    if (s && s.kind !== 'look') focusSentence(s.k)
+    if (s?.kind === 'comment' || s?.kind === 'feedback') focusSentence(s.k)
   }
   let k = 0
   return (
@@ -130,6 +131,7 @@ export function ReaderPage() {
           <Go to={`/work/${id}`} className="back rback" aria-label="소설 목록으로"><BackChev /><span>목록</span></Go>
           <div className="t"><b>{w.title}</b><small>{r.n}화 · {e.t}{w.parent && r.n <= (w.forkAt ?? 0) ? ' · 원작 스냅샷' : ''}</small></div>
           <button type="button" className="rib" aria-label="공유" onClick={vm.share}>↗</button>
+          {w.canonical && <button type="button" className="rib" aria-label="공개 설정 보기" title="공개 설정 보기" onClick={() => vm.openSheet({ kind: 'wiki' })}>설정</button>}
           <button type="button" className="rib" aria-label="보기 설정" onClick={() => vm.openSheet({ kind: 'look' })}>Aa</button>
         </div>
         <div className="prog"><i id="prog" ref={refs.prog} /></div>
@@ -209,6 +211,7 @@ export function ReaderPage() {
         </SentencePop>
       )}
       {vm.sheet?.kind === 'look' && <LookSheet onClose={closeSheet} />}
+      {vm.sheet?.kind === 'wiki' && <PublicWikiSheet work={w} upto={r.n} onClose={closeSheet} />}
       {vm.sheet?.kind === 'comment' && <CommentSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet}
         onAdded={() => setTimeout(() => document.querySelector('.cm:last-of-type')?.scrollIntoView?.({ block: 'center' }), 60)} />}
       {vm.sheet?.kind === 'feedback' && <FeedbackSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet} />}

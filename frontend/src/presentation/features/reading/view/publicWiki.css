@@ -1,0 +1,20 @@
+/* 독자용 공개 설정(읽기 전용). 작품 상세 카드(.tcard)와 회차 시트(.sheet, 포털) 양쪽에서 쓰므로 테마 토큰이 없으면 전역 토큰으로 되돌린다. */
+.pubwiki { display: grid; gap: 14px; min-width: 0; padding: 24px; }
+.wgrid > .pubwiki { grid-column: 1 / -1; }
+.pubwiki h3 { font-size: 19px; font-weight: 800; }
+.pw-list { display: grid; gap: 12px; min-width: 0; }
+.pw-scope { margin: 0; font-size: 13px; color: var(--tsub, var(--sub)); }
+.pw-group { border-top: 1px solid var(--tline, var(--line)); }
+.pw-group > summary { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; font-weight: 800; }
+.pw-group > summary i { flex: none; width: 9px; height: 9px; border-radius: 50%; }
+.pw-group > summary small { margin-left: auto; font-weight: 600; color: var(--tsub, var(--sub)); }
+.pw-doc { display: grid; gap: 6px; min-width: 0; padding: 12px 0 14px 17px; border-top: 1px dashed var(--tline, var(--line)); overflow-wrap: anywhere; }
+.pw-doc h4 { font-size: 16px; font-weight: 800; }
+.pw-doc p { margin: 0; line-height: 1.7; white-space: pre-wrap; }
+.pw-doc .pw-meta { font-size: 13px; color: var(--tsub, var(--sub)); }
+.pw-props { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; font-size: 14px; }
+.pw-prop { display: contents; }
+.pw-props dt { font-weight: 600; color: var(--tsub, var(--sub)); }
+.pw-props dd { margin: 0; }
+.pw-know { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; }
+@media (max-width: 600px) { .pubwiki { padding: 18px 16px; } }
