@@ -30,7 +30,8 @@ flowchart LR
 Scope = {grant_ref, subject_ref, work_id, fork_id?, world_id?, basis_episode,
          audience: owner|reader|character, character_id?, purpose, manifest_ref}
 Query = {scope, operation, query_text?, entity_ids[], episode_range?,
-         document_ids[], top_k, token_budget, deadline, required_fields[]}
+         document_ids[], top_k, token_budget, deadline, required_fields[],
+         source_kinds[], language?, genre?}
 RetrievalPort.search(query: Query) async -> RetrievalResult
 CanonicalAdapter.manifest(scope) -> {expected_episodes[], source_versions, scope_digest}
 CanonicalAdapter.read(scope, typed_target, revision, span?) -> VerifiedSource
@@ -62,6 +63,108 @@ Coverage = {manifest_ref, requested_range, expected_count, verified_count,
 4. **실패.** 만료·철회·위조·비허용 판본이나 잘못된 구간은 `denied`, 전송 장애는 `unavailable`이다. 유효한 위임으로 요청해도 현재·과거 Studio 관계 읽기는 `unsupported`다. 조회 결과가 없는 경우는 빈 허용 목록이다. 합성 원문에는 항상 `is_mock=true`가 붙는다.
 
 실제 전송은 [#163](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/163)에서 내부 HTTP 또는 읽기 전용 MCP와 서비스 인증·위임 만료/철회를 확정한 뒤 연결한다. 작품과 독립 Studio world의 연결은 [#109](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/109), 관계의 현재 상태 한정은 [#132](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132)를 따른다.
+
+### TASK 02 구현 상태 — DTO·네 Port·합성 fixture
+
+2026-11-09 로컬 구현. 시작 브랜치는 `feat/54-canonical-read-scope`, 기준 HEAD는 `6d86cc7`이며 시작 작업 트리는 clean이었다. 기존 TASK 01 위에 변경했으며 develop 재기반·기존 API 변경은 하지 않았다.
+
+| 파일 | 구현 범위 |
+|---|---|
+| [contracts.py](../../backend/ai-service/app/retrieval/contracts.py) | Pydantic `Query/Evidence/Gap/Conflict/Coverage/RetrievalResult`, 비동기 `RetrievalPort`와 relationship/wiki/manuscript/template 네 Port |
+| [story.json](../../backend/ai-service/tests/fixtures/story.json) | 합성 1~3화·카이/리나/암호·현재 관계·템플릿, 다른 작품/Fork·미래·비공개·stale/timeout/conflict/missing/unauthorized 변형 |
+| [test_retrieval_contract.py](../../backend/ai-service/tests/test_retrieval_contract.py) | 공통 반환 스키마, mock 표시, coverage, UTF-16·UTF-8 SHA-256, 기존 Content 대역의 인가·판본·정확 인용 계약 |
+
+`Scope`, `SourceVersion`, `CanonicalAdapter`, `MockContentReadPort`는 TASK 01 구현을 재사용한다. `CanonicalAdapter`는 contracts에서도 같은 클래스를 내보내며 중복 구현하지 않는다. Evidence의 `source_revision`은 기존 `SourceVersion`의 `(work_id, kind, document_id, revision)`을 보존한다. 템플릿 fixture의 `catalog` 출처 식별자는 합성 카탈로그 전용이며 Content 읽기 권한을 부여하지 않는다.
+
+회차 범위는 양 끝 포함, 원문 span은 UTF-16 `[start,end)`이다. 점수와 score kind를 함께 요구하며 점수를 사실 확률로 바꾸지 않는다. `known_by=null`은 지식 미확인으로 보존한다. Coverage는 승인 manifest의 대상 회차별 항목을 누락 상태까지 담고, 개수·중복·요청 범위를 검증한다. 미완전 coverage나 gap이 있으면 `ok`를 거부한다. 정상 0건은 `ok`·빈 evidence이며, 실패 상태는 evidence를 담을 수 없다. mock evidence/coverage를 실제 결과로 표시할 수 없다.
+
+TASK 02 완료 당시에는 네 Port의 구체 검색 구현·후보 필터·전체 응답 격리가 없었다(후속 TASK 03 상태는 아래 참조). 테스트의 I/O 없는 Stub은 같은 async 반환 계약만 확인하며, 인가 부정 사례는 실제 기존 합성 Content 대역으로 검증한다. DTO의 `verified_source` 값 자체는 검증 증명이 아니며, 소비자는 여전히 Content manifest/read로 모든 후보를 확인해야 한다. 결과를 모으는 Coordinator·Normalizer는 이번 단계에서 구현하지 않았다. Query에는 서버 Scope가 있으므로 모델 입력이나 로그로 DTO 전체를 직렬화하지 않는다.
+
+설계 근거는 [05 구현 순서의 1단계](05-implementation-roadmap.md#구현-순서와-수용-기준), 이 문서의 입력·반환 규약 및 Fixture 절, DEC-36·37·41이다. [#56](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56)(담당 kyo-135), [#125](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/125)(담당 미지정)는 2026-11-09 조회 당시 open이었다. #56의 종전 Core 읽기 표현에는 현재 Content 소유권을 적용했다.
+
+검증은 `backend/ai-service`에서 다음 선택 단위만 실행했다.
+
+```powershell
+python -B -m pytest -p no:cacheprovider -o addopts= -q -m 'not integration' tests/test_retrieval_contract.py tests/test_canonical_read.py tests/test_generation.py
+```
+
+결과: **90 passed, 1 deselected**(TASK 02 48개 + 기존 42개, HTTP 통합 1개 제외). Red는 contracts 모듈 미구현과 미완전 coverage의 `ok` 허용 실패로 확인한 뒤 Green으로 전환했다. 표준 `uv run --locked --extra dev ...`는 sandbox의 uv interpreter cache 쓰기 권한 오류로 실패해 기존 설치 Python으로 실행했다. 따라서 locked 환경 재현 확인은 대기다. 기본 asyncio 이벤트 루프조차 이 환경에서 대기해 중단했으며, I/O 없는 async Stub의 반환 계약은 coroutine 완료 값으로 검사했다. 실제 비동기 I/O를 검증한 결과는 아니다.
+
+`ponytail-review` 자체 점검에서 제거할 추가 계층·의존성은 없었다. CodeRabbit CLI는 발견했으나 설치 출처를 확인하지 못해 외부 리뷰는 실행하지 않았다. 통합·시스템·브라우저·빌드·실제 모델 품질/검색 성능 평가는 미실행이다. production 의존성·lockfile·설정·DB·서비스 등록·정본 데이터는 변경하지 않았다. 유료 호출·실 사용자 원고 전송은 없으며 합성 증거만 `is_mock=true`로 사용했다.
+
+제안 커밋: `feat: 검색 DTO와 네 Port의 합성 계약 추가`(#56·#125). 새 로컬 커밋·push·PR·배포는 수행하지 않았다. TASK 03은 새 요청 시 착수 가능하지만 이번 작업에서는 시작하지 않는다. 실제 Content 전송·서비스 인증·위임 수명(#163)과 작품↔Studio 연결(#109)은 기존 결정 대기이며, 추천은 결정 전 합성 대역 유지다. 실제 연결은 계약 확정 후 별도 단계에서 진행한다. 관계 정본 읽기는 계속 `unsupported`다.
+
+### TASK 03 구현 상태 — 네 합성 검색기
+
+2026-11-09 로컬 구현. 시작 브랜치는 `feat/54-canonical-read-scope`, HEAD는 `6d86cc7`이다. 시작 시 TASK 02의 `contracts.py`, `test_retrieval_contract.py`, `tests/fixtures/story.json`과 이 문서·기능표가 미커밋 상태였으며 그대로 보존·확장했다. develop 재기반이나 다른 변경 덮어쓰기는 하지 않았다.
+
+| 파일 | 동작·범위 |
+|---|---|
+| [relationships.py](../../backend/ai-service/app/retrieval/relationships.py) | `RelationshipGraphRetriever`와 명시 주입한 합성 `MockRelationshipGraph`. 같은 Content Scope·작품·world에 바인딩한 작가 개인의 현재 보기만 지원. 허용 카드 양 끝·방향·라벨·현재 CAS token을 보존하고 history/snapshot/회차 제한 조회는 unsupported |
+| [episode_wiki.py](../../backend/ai-service/app/retrieval/episode_wiki.py) | `EpisodeWikiRetriever`. 회차·장면·사건·지식 습득·복선의 합성 Evidence와 판본·인과 참조를 보존. 누락/stale/비허용 출처를 참조한 파생 경로도 제거하고 partial로 구분 |
+| [manuscript.py](../../backend/ai-service/app/retrieval/manuscript.py) | `ManuscriptVectorRetriever`. 미리 분할한 합성 문단 chunk를 작품/Fork·문서·종류(manuscript/draft/conti)·회차·revision으로 필터링한 뒤 Content의 UTF-16 구간·UTF-8 SHA-256 확인. 다른 회차로 span을 확장하지 않음 |
+| [templates.py](../../backend/ai-service/app/retrieval/templates.py) | `TemplateVectorRetriever`. 서버가 명시한 허용 라이선스와 공개·활성/만료·언어·장르를 검사하는 별도 카탈로그. Evidence의 work/fork/document ID는 null. 반환 직전 철회·권리 변경도 폐기 |
+| [_mock.py](../../backend/ai-service/app/retrieval/_mock.py), [contracts.py](../../backend/ai-service/app/retrieval/contracts.py), [fixture](../../backend/ai-service/tests/fixtures/story.json), [단위 테스트](../../backend/ai-service/tests/test_mock_retrievers.py) | Mock 전용 공통 인가·정확 인용·고정 순위/상한, Query의 선택적 source_kinds/language/genre, 명시적 합성 Studio 연결·언어/권리 메타데이터, 부정/회귀 계약 |
+
+모든 결과·Evidence는 `is_mock=true`다. 이 표시는 실제 원고 적용 금지이며 `apply` 등 쓰기 작업은 unsupported다. 실행 router·실제 Content 적용 경로에 등록하지 않았다. 기존 CanonicalAdapter의 현재/과거 관계 읽기는 여전히 unsupported다. 합성 관계 binding은 #109의 실제 작품↔Studio 계약이나 #163의 실제 전송·서비스 인증·위임 수명을 확정하지 않는다.
+
+Mock의 검색어는 검증된 발췌의 대소문자 무시 부분 문자열로 비교하고, fixture rank→ID 순서로 재현한다. Wiki의 `scene_id`, JSON 문자열인 `fact_or_relation`의 kind/fact/actor, `evidence_refs`의 노드 ID로 장면·지식·인과를 보존한다. 추론·disputed 표시는 그대로 유지하며 진실로 승격하지 않는다. 실제 semantic/Vector 검색, Wiki 추출이나 원고 chunk 생성기는 구현하지 않았다. Wiki의 missing/stale gap은 요청 문서·회차 범위 안에서만 기록하며 전체 Coverage 집계는 TASK 04에 남긴다.
+
+검색 corpus에 있는 다른 작품·미래·비공개 행은 Content manifest로 사전 제외한다. 허용된 출처와 응답의 work/fork/document/회차 메타데이터가 모순되거나 span/hash가 위조된 경우에는 성공분을 포함한 응답 전체를 denied로 폐기한다. 반환 본문은 후보의 캐시 문자열을 사용하지 않고 Content 정확 조회 결과로 교체한다. 인물 known_by·공개 범위도 합성 Content 행에서 얻는다. 시작·정확 조회·반환 직전에 위임과 manifest를 재확인하며 캐시·원문 로그는 만들지 않는다.
+
+`top_k`와 deadline은 검사한다. Mock의 `token_budget`은 본문·관계/사실 문자열의 UTF-8 byte 수를 상한으로 쓰는 보수적 대역이며 정확한 모델 토큰 수나 metadata를 포함한 전체 ContextPacket 예산이 아니다. 상한 초과·필수 필드 부족은 unverified gap/partial, 알 수 없는 필수 필드·작업은 unsupported, timeout/전송 실패는 unavailable다. 실제 tokenizer·통합 예산은 모델/Coordinator 단계에서 연결한다.
+
+설계 근거는 [05 구현 순서 1단계](05-implementation-roadmap.md#구현-순서와-수용-기준), 이 문서의 입력/반환 규약·네 Adapter 책임·Fixture 절, DEC-36·37·41과 [#132 현재 관계 계약](../design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)이다. [#56](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56)(kyo-135), [#125](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/125)(담당 미지정)를 다시 조회했으며 모두 open이었다. 실제 소유권은 #56의 종전 Core 표현보다 현재 Content 서비스 경계를 따른다.
+
+`backend/ai-service`에서 다음 선택 단위를 실행했다.
+
+```powershell
+python -B -m pytest -p no:cacheprovider -o addopts= -q -m 'not integration' tests/test_mock_retrievers.py tests/test_retrieval_contract.py tests/test_canonical_read.py tests/test_generation.py
+```
+
+결과: **127 passed, 1 deselected**(TASK 03 37개 + 기존 90개, HTTP 통합 1개 제외). Red는 검색 모듈 부재, 요청 밖 원고까지 읽는 prefilter 부재, 반환 중 템플릿 철회 미반영, 요청 밖 Wiki 누락 gap으로 확인한 뒤 Green으로 바꿨다. 권한 철회/만료/주체 교체, 타 Fork/미래/비공개·인물 지식, old revision·누락 의존 경로, timeout, 라이선스 철회/만료, 캐시 오염·조회 후 변경, 방향·CAS·정확 span을 검증했다. 네 검색기의 공통 계약 검사에 실제 네 구현체를 사용했고 소켓 생성/연결 spy로 외부 네트워크 호출 0회를 확인했다.
+
+`uv run --offline --no-cache --locked --extra dev ...`도 interpreter 임시 cache 쓰기 권한 오류로 실패했다. 기존 설치 Python으로 단위를 실행했으므로 locked 환경 재현은 대기다. I/O 없는 async 검색은 coroutine 완료 값으로 검사했으며 실제 비동기 네트워크 실행의 증거는 아니다. 로컬 통합·시스템·브라우저·전체 suite·빌드·실 모델/DB 평가와 CodeRabbit 외부 리뷰(설치 출처 미확인)는 미실행이다. `ponytail-review` 자체 점검으로 중복된 템플릿 선택 ID 집합 계산을 루프 밖으로 옮겼으며 추가 계층·의존성은 도입하지 않았다.
+
+production 의존성·lockfile·설정·정본 DB·Neo4j·인덱스·실제 provider 호출/인프라 설치·유료 호출·실 사용자 원고 전송은 모두 0건이다. 실제 품질/recall/부하·권리 계약이 검증된 것은 아니다. 권한 밖 노출 방지와 Mock 계약의 단위 증거로만 해석한다.
+
+제안 커밋: `feat: 네 합성 검색기의 범위와 근거 검증 구현`(#56·#125). TASK 02 미커밋분과 이번 변경은 작업 트리에 남기고 새 로컬 커밋·push·PR·배포는 하지 않았다. 다음 TASK 04는 새 요청 시 착수 가능하며 자동 시작하지 않는다. 추천은 실제 연결 결정 전 합성 대역 유지이고, 대안인 실제 Content/검색기 연결은 #109/#163·권리·환경 계약 확정 후 별도 승인 단계에서 수행한다.
+
+### TASK 04 구현 상태 — Coordinator·문맥 투영·Coverage
+
+2026-11-09 로컬 구현. 브랜치 `feat/54-canonical-read-scope`, 시작 HEAD `6d86cc7`. TASK 02·03의 미커밋 파일과 문서 변경을 보존하면서 확장했다. develop 재기반·기존 API 교체는 하지 않았다.
+
+| 파일 | 변경·동작 |
+|---|---|
+| [coordinator.py](../../backend/ai-service/app/retrieval/coordinator.py) | `RetrievalCoordinator`, `ContextPacket/ContextItem`, 경로 선택·async 병렬 실행·deadline·정본 재검증·중복 제거·예산/누락·확정 판정 보류 |
+| [episode_wiki.py](../../backend/ai-service/app/retrieval/episode_wiki.py) | 질문 관련 top-k와 독립된 `coverage(query)` 전체 합성 색인 읽기 |
+| [_mock.py](../../backend/ai-service/app/retrieval/_mock.py) | inventory 모드에서 회차 자체의 원문 근거를 유지한다. 일반 검색의 파생 경로 제거는 그대로 유지 |
+| [test_retrieval_coordinator.py](../../backend/ai-service/tests/test_retrieval_coordinator.py) | 전체/부분 coverage·보안 격리·점수·인용·병렬 실행·캐시 키·projection·철회 단위 검사 |
+| 이 문서·[기능표](../feature-roadmap.md) | 내부 호출 계약·검증 결과·한계를 기록. 서비스 흐름 완료 체크는 승격하지 않음 |
+
+내부 `Query.operation`은 quote→원고, current→현재 관계, templates→카탈로그, review/full_context→Wiki+원고와 별도 전체 Wiki 조회, context→Wiki+원고다. search에서는 required_fields의 템플릿 필드→카탈로그, 장면/지식/사건 참조→Wiki, span/hash→원고 순으로 경로를 좁힌다. 알 수 없는 operation은 unsupported다. 이는 내부 읽기 계약이며 자연어 Router·Agent/DAG는 구현하지 않았다. 선택된 독립 검색은 `asyncio.gather`로 병렬 실행하고 각 호출은 남은 deadline으로 제한한다. 재시도·Mock 자동 대체·무한 재검색은 없다.
+
+현재 Coordinator는 기존 합성 Content 대역 전용이다. source revision·문서/작품/Fork·허용 시점·인물 knownBy·UTF-16 span·UTF-8 hash와 실제 반환 본문을 Content에서 재확인한다. 한 Adapter에 범위 밖/위조 항목이 섞이면 성공분도 노출하지 않고 packet 전체를 denied로 폐기한다. 현재 관계/Catalog는 반환 직전 해당 공급자를 한 번 더 읽어 현재 CAS/라이선스와 일치하는지 확인한다. 현재 관계의 과거 복원은 계속 미지원이다. grants/Scope 원문은 ContextPacket에 포함하지 않고 scope digest만 기록한다.
+
+전체 coverage는 manifest 중 요청 범위·허용 출처가 있는 회차를 분모로 삼으며, top-k를 분자로 쓰지 않는다. Mock Wiki의 별도 coverage는 유한한 주입 fixture를 한 번 전수 검증한다. 실 provider의 페이지/대용량 전체 확인 계약은 아직 구현하지 않았다. 정상 1~3화는 3/3, 2화 Wiki 누락은 2/3이다. 누락된 회차 범위와 그 누락을 원인으로 하는 다른 회차의 인과 경로 미확인은 구분한다. 회차 자체의 원문/색인 판본이 확인되어도 인과 참조가 없으면 critical gap을 남기므로 complete/확정 판정을 허용하지 않는다. 분모 0건도 complete로 표시하지 않는다. 필수 Wiki 장애·stale·disputed는 확정을 보류하고, 독립된 선택 자료 장애는 확보한 자료와 partial로 반환한다. can_conclude는 읽기 판단 가능성일 뿐 실제 저장 승인 권한이 아니다.
+
+Evidence는 `(source kind/출처 문서, id, revision, span)`을 기준으로 중복 제거하며 원고의 동일 판본·동일 span은 chunk ID가 달라도 한 번만 담는다. 공급자 순서를 유지하고 cosine·rank 등 서로 다른 점수를 산술 합산하지 않는다. 같은 근거의 상태/주장이 상충하면 disputed와 conflict 참조를 남기고 확정을 보류한다. ContextItem은 요청한 필드만 투영하되 판본·hash·retrieval_type·canonical_status는 항상 포함한다. Agent에는 packet 전체가 아니라 context slice를 전달해야 한다. 사용량은 projection의 `exclude_none=True` JSON 기준 UTF-8 byte 상한이며 모델 tokenizer의 정확한 토큰 수는 아니다. 예산으로 제외된 ID를 기록하고 하위 공급자가 이미 제외해 ID를 모르면 확인 가능한 허용 회차 범위를 보수적으로 기록한다.
+
+캐시 본문·관계 snapshot은 저장하지 않는다. `cache_key(query)`는 subject/grant/purpose/audience/character/work/fork/world/basis/manifest를 담은 Scope digest, 전체 Query와 index_generation을 결합한 SHA-256이다. 권한/철회는 매번 확인하므로 키가 같아도 이전 성공을 재사용하지 않는다. 실제 캐시 도입에는 Content의 grant epoch·삭제/철회 전파 계약이 먼저 필요하다.
+
+근거는 [02 실행·실패 제어](02-ai-architecture.md), [03 Coverage 판정과 ContextPacket](03-rag-simulation-design.md), [06 결정 7·10·15](06-design-decisions.md), 이 문서의 입력/반환·정규화 계약과 DEC-36·37·41이다. [#56](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56)(kyo-135), [#125](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/125)(담당 미지정)를 다시 조회했으며 모두 open이었다. 실제 내부 인증/위임·Studio 연결의 #163/#109 결정은 여전히 대기다.
+
+검증은 AI 서비스 디렉터리에서 선택 단위만 실행했다.
+
+```powershell
+python -B -m pytest -p no:cacheprovider -o addopts= -q -m 'not integration' tests/test_retrieval_coordinator.py tests/test_mock_retrievers.py tests/test_retrieval_contract.py tests/test_canonical_read.py tests/test_generation.py
+```
+
+결과: **152 passed, 1 deselected**(TASK 04 25개 + 기존 127개, HTTP 통합 1개 제외). 모듈 부재 Red를 먼저 확인했고 예산 누락 기록·인과 critical gap의 추가 실패를 확인한 뒤 수정했다. 회차 색인 누락과 인과 참조 누락의 missing_ranges를 분리해 회귀를 통과했다. 테스트는 sandbox 기본 asyncio 대기 문제 때문에 승인된 호스트 실행으로 수행했으며 Event 기반 양방향 대기 테스트로 독립 경로의 실제 중첩 실행을 확인했다. 외부 모델/DB/검색기 호출은 없었다. `uv run --offline --no-cache --locked --extra dev ...`는 Python 3.11을 찾지 못해 실패했고 설치된 Python으로 검사했다. locked 환경 재현은 대기다.
+
+`ponytail-review` 자체 점검을 수행했으며 검색 DB·LangGraph·캐시 저장 계층·새 의존성을 추가하지 않았다. CodeRabbit 외부 리뷰는 설치 출처 미확인으로 미실행이다. 통합·시스템·브라우저·전체 suite·빌드·실 검색 품질/성능 평가는 미실행이다. production 의존성·lockfile·설정·DB/DDL·실제 provider/유료 호출·원고 적용은 변경/실행하지 않았다. Mock 근거는 모두 is_mock=true이며 실제 원고에 적용할 수 없다.
+
+제안 커밋: `feat: 검색 문맥 조립과 전체 회차 근거 검증 구현`(#56·#125). 기존 미커밋분과 함께 작업 트리에 남기며 새 로컬 커밋·push·PR·배포는 하지 않았다. TASK 05는 새 요청 시 착수 가능하고 자동 시작하지 않는다. 실제 연결/캐시는 Content 위임·인덱스 세대·삭제 전파 계약 확정 후 별도 단계에서 진행하는 것을 추천하며, 그전에는 현재 합성 대역과 매 요청 재검증을 유지한다.
 
 ### 네 Adapter의 책임
 
