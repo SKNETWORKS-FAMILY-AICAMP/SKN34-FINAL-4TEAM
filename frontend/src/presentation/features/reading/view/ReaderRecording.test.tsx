@@ -34,13 +34,13 @@ describe('회차 뷰어의 독서 기록', () => {
     expect(screen.queryByText(/저장하지 못했어요/)).toBeNull()
   })
 
-  it('정본 작품의 안내는 읽은 회차가 계정에 저장되고 관심 표시만 이 창에 남는다고 말한다', async () => {
+  it('정본 작품의 안내는 읽은 회차가 계정에 저장된다고만 말하고 관심 표시는 따로 적지 않는다', async () => {
     const work = appContainer.resolve('mockDb').works.find((w) => w.id === 'postman')!
     work.canonical = true
     try {
       renderApp('/read/postman/1', createAppStore({ role: 'user' }))
       await screen.findByRole('heading', { name: '수취인 불명' })
-      expect(document.querySelector('.hint')!.textContent).toBe('공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장되고, 관심 표시는 이 창에서만 유지돼요.')
+      expect(document.querySelector('.hint')!.textContent).toBe('공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장돼요.')
     } finally { cleanup(); delete work.canonical }
   })
 })

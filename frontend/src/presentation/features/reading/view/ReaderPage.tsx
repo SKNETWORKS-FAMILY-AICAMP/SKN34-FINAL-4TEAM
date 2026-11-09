@@ -137,7 +137,7 @@ export function ReaderPage() {
       <main className="page" id="main" tabIndex={-1}>
         <h1 className="sr-only">{w.title} {r.n}화</h1>
         <div className="chap"><small>{chapLabel(w.theme, r.n)}</small><h2>{e.t}</h2><div className="orn">{ORN[w.theme]}</div>{!w.canonical && <div className="reading"><i />지금 {30 + ((r.n * 37) % 90)}명이 함께 읽는 중 <span className="demo">데모</span></div>}</div>
-        <div className="hint">{w.canonical?'공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장되고, 관심 표시는 이 창에서만 유지돼요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
+        <div className="hint">{w.canonical?'공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장돼요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
         {!w.canonical && <span id="sentence-help" className="sr-only">댓글·피드백 열기</span>}
         <div className="text" id="text">
           {r.paragraphs.map((ss, pi) => (
