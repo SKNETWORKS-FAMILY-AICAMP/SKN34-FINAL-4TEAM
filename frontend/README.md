@@ -53,7 +53,7 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 | `/me/signup` | 가입 요청 → 이메일 확인 대기 (자동 로그인 없음) | `POST /api/v1/auth/signup` |
 | `/auth/resend-verification`, 로그인·가입·인증 실패 화면의 안내 | 이메일 1항목으로 확인 메일 재발송 (계정 존재 여부를 구분하지 않는 안내) | `POST /api/v1/auth/resend-verification` |
 | `/auth/verify-email#token=…` | 메일 링크의 이메일 확인 → 로그인 | `POST /api/v1/auth/verify-email` |
-| `/login` | 이메일·비밀번호 로그인, Core가 반환한 사용자·권한 반영 | `POST /api/v1/auth/login` |
+| `/login` | 이메일·비밀번호 로그인, Core가 반환한 사용자·권한 반영. 403 + `code: "ACCOUNT_RESTRICTED"`는 이용 제한 안내(로그인 문의 링크 가리킴), 코드 없는 403은 일반 오류 | `POST /api/v1/auth/login` |
 | 앱 시작 | HttpOnly refresh 쿠키를 통한 세션 복원 | `POST /api/v1/auth/refresh` |
 | 상단 계정 메뉴 | 현재 기기 로그아웃 | `POST /api/v1/auth/logout` |
 | `/me/profile` | 서버 프로필 조회·오류 재시도, 닉네임 저장 | `GET /api/v1/me`, `PATCH /api/v1/me` |

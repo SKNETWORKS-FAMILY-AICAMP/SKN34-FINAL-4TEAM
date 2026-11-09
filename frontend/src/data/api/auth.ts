@@ -1,10 +1,12 @@
 import { z } from 'zod'
-import { InvalidCredentials, InvalidResetLink } from '../../domain/repositories/AuthRepository'
+import { AccountRestricted, InvalidCredentials, InvalidResetLink } from '../../domain/repositories/AuthRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { csrf, withLock } from './csrf'
 
 export const userSchema = z.object({ id: z.string(), email: z.string().email(), nickname: z.string(), operator: z.boolean() })
 const responseSchema = z.object({ accessToken: z.string().min(1), user: userSchema })
+/** Core가 이용 제한 계정의 로그인 403에 담는 사유 코드입니다. CSRF 등 코드 없는 403과 구분합니다. */
+const restrictedSchema = z.object({ code: z.literal('ACCOUNT_RESTRICTED') })
 type AuthUser = z.infer<typeof userSchema>
 
 let accessToken: string | null = null
@@ -28,6 +30,7 @@ async function post(path: string, body?: object, expectedUser?: string | null) {
   if (path === 'logout' && response.status === 409) throw new SessionExpired()
   if (path === 'reset-password' && [400, 401, 410].includes(response.status)) throw new InvalidResetLink()
   if (path === 'login' && response.status === 401) throw new InvalidCredentials()
+  if (path === 'login' && response.status === 403 && restrictedSchema.safeParse(await response.json().catch(() => null)).success) throw new AccountRestricted()
   if (path === 'refresh' && [401, 403, 409].includes(response.status)) throw new SessionExpired()
   if (!response.ok) throw new Error('Authentication request failed')
   return response
