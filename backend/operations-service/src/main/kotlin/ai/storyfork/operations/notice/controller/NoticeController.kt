@@ -1,7 +1,7 @@
 package ai.storyfork.operations.notice.controller
 
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.notice.service.NoticeService
-import ai.storyfork.operations.notice.service.dto.NoticeListResponse
 import ai.storyfork.operations.notice.service.dto.NoticeRequest
 import ai.storyfork.operations.notice.service.dto.NoticeResponse
 import jakarta.validation.Valid
@@ -34,7 +34,7 @@ class NoticeController(private val service: NoticeService) {
 
     /** 기본 20개·최대 100개 범위의 안정 정렬된 목록을 반환한다. */
     @GetMapping
-    fun list(@PageableDefault(size = 20) pageable: Pageable): NoticeListResponse = service.list(pageable)
+    fun list(@PageableDefault(size = 20) pageable: Pageable): PageResponse<NoticeResponse> = service.list(pageable)
 
     /** UUID 공지를 조회하며 없는 공지는 공통 처리기로 404를 반환한다. */
     @GetMapping("/{id}")

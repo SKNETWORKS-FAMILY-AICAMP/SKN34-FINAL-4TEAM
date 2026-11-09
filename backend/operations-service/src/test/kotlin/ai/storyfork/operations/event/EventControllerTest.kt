@@ -1,8 +1,8 @@
 package ai.storyfork.operations.event
 
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.event.controller.EventController
 import ai.storyfork.operations.event.service.EventService
-import ai.storyfork.operations.event.service.dto.EventListResponse
 import ai.storyfork.operations.event.service.dto.EventRequest
 import ai.storyfork.operations.event.service.dto.EventResponse
 import java.net.URI
@@ -40,7 +40,7 @@ class EventControllerTest {
     @Test
     fun `list returns the explicit paged DTO`() {
         val pageable = PageRequest.of(0, 20)
-        val saved = EventListResponse(listOf(event), 0, 20, 1, 1)
+        val saved = PageResponse(listOf(event), 0, 20, 1, 1)
         `when`(service.list(pageable)).thenReturn(saved)
         assertEquals(saved, controller.list(pageable))
     }

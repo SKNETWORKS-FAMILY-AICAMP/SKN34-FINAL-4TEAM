@@ -1,5 +1,7 @@
 package ai.storyfork.operations.inquiry.service
 
+import ai.storyfork.operations._common.service.dto.PageResponse
+import ai.storyfork.operations._common.service.dto.toResponse
 import ai.storyfork.operations.inquiry.entity.InquiryEntity
 import ai.storyfork.operations.inquiry.entity.InquiryReplyEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
@@ -30,10 +32,8 @@ class InquiryService(
     }
 
     @Transactional(readOnly = true)
-    fun list(pageable: Pageable): InquiryListResponse {
-        val page = inquiries.findAll(bounded(pageable, Sort.Direction.DESC))
-        return InquiryListResponse(page.content.map { it.response() }, page.number, page.size, page.totalElements, page.totalPages)
-    }
+    fun list(pageable: Pageable): PageResponse<InquiryResponse> =
+        inquiries.findAll(bounded(pageable, Sort.Direction.DESC)).toResponse { it.response() }
 
     @Transactional(readOnly = true)
     fun read(id: UUID): InquiryResponse = inquiry(id).response()
@@ -63,11 +63,10 @@ class InquiryService(
     }
 
     @Transactional(readOnly = true)
-    fun listReplies(inquiryId: UUID, pageable: Pageable): InquiryReplyListResponse {
+    fun listReplies(inquiryId: UUID, pageable: Pageable): PageResponse<InquiryReplyResponse> {
         val bounded = bounded(pageable, Sort.Direction.ASC)
         requireParent(inquiryId)
-        val page = replies.findAllByInquiryId(inquiryId, bounded)
-        return InquiryReplyListResponse(page.content.map { it.response() }, page.number, page.size, page.totalElements, page.totalPages)
+        return replies.findAllByInquiryId(inquiryId, bounded).toResponse { it.response() }
     }
 
     @Transactional(readOnly = true)

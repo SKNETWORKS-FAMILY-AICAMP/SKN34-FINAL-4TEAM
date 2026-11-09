@@ -1,7 +1,7 @@
 package ai.storyfork.operations.event.controller
 
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.event.service.EventService
-import ai.storyfork.operations.event.service.dto.EventListResponse
 import ai.storyfork.operations.event.service.dto.EventRequest
 import ai.storyfork.operations.event.service.dto.EventResponse
 import jakarta.validation.Valid
@@ -25,7 +25,7 @@ class EventController(private val service: EventService) {
 
     /** 고정 정렬된 이벤트 안내 목록을 기본 20개, 최대 100개인 명시적 페이지 DTO로 반환한다. */
     @GetMapping
-    fun list(@PageableDefault(size = 20) pageable: Pageable): EventListResponse = service.list(pageable)
+    fun list(@PageableDefault(size = 20) pageable: Pageable): PageResponse<EventResponse> = service.list(pageable)
 
     /** 이벤트 안내와 UTC 기간을 반환하며, 없는 UUID는 404다. */
     @GetMapping("/{id}")

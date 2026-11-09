@@ -1,8 +1,9 @@
 package ai.storyfork.operations.event.service
 
+import ai.storyfork.operations._common.service.dto.PageResponse
+import ai.storyfork.operations._common.service.dto.toResponse
 import ai.storyfork.operations.event.entity.EventEntity
 import ai.storyfork.operations.event.repository.EventRepository
-import ai.storyfork.operations.event.service.dto.EventListResponse
 import ai.storyfork.operations.event.service.dto.EventRequest
 import ai.storyfork.operations.event.service.dto.EventResponse
 import java.time.Instant
@@ -26,13 +27,12 @@ class EventService(private val events: EventRepository) {
         )).toResponse()
     }
 
-    fun list(pageable: Pageable): EventListResponse {
+    fun list(pageable: Pageable): PageResponse<EventResponse> {
         val bounded = PageRequest.of(
             pageable.pageNumber, pageable.pageSize.coerceAtMost(100),
             Sort.by(Sort.Direction.DESC, "createdAt", "id"),
         )
-        val page = events.findAll(bounded)
-        return EventListResponse(page.content.map { it.toResponse() }, page.number, page.size, page.totalElements, page.totalPages)
+        return events.findAll(bounded).toResponse { it.toResponse() }
     }
 
     fun read(id: UUID): EventResponse = find(id).toResponse()

@@ -1,5 +1,6 @@
 package ai.storyfork.operations.inquiry.controller
 
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.inquiry.service.InquiryService
 import ai.storyfork.operations.inquiry.service.dto.*
 import jakarta.validation.Valid
@@ -22,7 +23,7 @@ class InquiryController(private val service: InquiryService) {
     }
 
     @GetMapping
-    fun list(@PageableDefault(size = 20) pageable: Pageable): InquiryListResponse = service.list(pageable)
+    fun list(@PageableDefault(size = 20) pageable: Pageable): PageResponse<InquiryResponse> = service.list(pageable)
 
     @GetMapping("/{id}")
     fun read(@PathVariable id: UUID): InquiryResponse = service.read(id)
@@ -43,7 +44,7 @@ class InquiryController(private val service: InquiryService) {
     }
 
     @GetMapping("/{id}/replies")
-    fun listReplies(@PathVariable id: UUID, @PageableDefault(size = 20) pageable: Pageable): InquiryReplyListResponse =
+    fun listReplies(@PathVariable id: UUID, @PageableDefault(size = 20) pageable: Pageable): PageResponse<InquiryReplyResponse> =
         service.listReplies(id, pageable)
 
     @GetMapping("/{id}/replies/{replyId}")
