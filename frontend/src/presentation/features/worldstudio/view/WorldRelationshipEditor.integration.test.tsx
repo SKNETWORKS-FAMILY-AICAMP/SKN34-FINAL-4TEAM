@@ -308,3 +308,19 @@ it('closes stale deletion confirmation safely after the person changes type',asy
  expect(screen.queryByRole('region',{name:'인물 삭제 확인'})).toBeNull()
  expect(current!.editing!.settings[0].item.id).toBe(person.item.id)
 })
+
+it('does not discard a new relation with a custom name but no description on apply',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('people')
+ a.item.title='가람';b.item.title='나래'
+ world.settings=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'friend_of',polarity:'asserted'});await useCase.save(world)
+ function Harness(){const vm=useWorldStudioViewModel(useCase);return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.click(await screen.findByRole('button',{name:'가람 · 친구 · 나래'}))
+ const group=screen.getByRole('heading',{name:'나래 → 가람 감정'}).closest('section')!
+ fireEvent.click(within(group).getByText('항목 이름 직접 쓰기'))
+ fireEvent.change(within(group).getByRole('textbox',{name:'나래 → 가람 감정 1 이름'}),{target:{value:'남겨 둔 이름'}})
+ fireEvent.click(screen.getByRole('button',{name:'편집본에 적용'}))
+ expect(screen.getByRole('alert').textContent).toContain('설명')
+ expect(within(group).getByRole<HTMLInputElement>('textbox',{name:'나래 → 가람 감정 1 이름'}).value).toBe('남겨 둔 이름')
+})

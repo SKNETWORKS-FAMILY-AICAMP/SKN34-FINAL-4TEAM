@@ -125,3 +125,12 @@ export function hasRelationDraftChanges(
 ): boolean {
   return removed.length > 0 || JSON.stringify(initial) !== JSON.stringify(rows)
 }
+
+/** 일부만 작성한 새 행을 적용 과정에서 조용히 버리지 않습니다. */
+export function hasIncompleteRelationDraft(initial: RelationDraftRow[], rows: RelationDraftRow[]): boolean {
+  return rows.some((row) => {
+    if (row.value.id || row.value.text?.trim()) return false
+    const original = initial.find((candidate) => candidate.key === row.key)
+    return !original || JSON.stringify(original.value) !== JSON.stringify(row.value)
+  })
+}
