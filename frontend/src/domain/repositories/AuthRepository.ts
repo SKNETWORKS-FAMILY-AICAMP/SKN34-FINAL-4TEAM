@@ -2,6 +2,8 @@ export type AuthUser = { id: string; email: string; nickname: string; operator: 
 
 export class InvalidResetLink extends Error {}
 export class InvalidCredentials extends Error {}
+/** 운영이 이용을 제한한 계정의 로그인입니다(Core 403 + `ACCOUNT_RESTRICTED`). 자격 증명은 맞았습니다. */
+export class AccountRestricted extends Error {}
 export class LockUnavailable extends Error {}
 
 export interface AuthRepository {

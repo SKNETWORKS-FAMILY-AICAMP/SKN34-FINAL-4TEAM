@@ -50,6 +50,28 @@ describe('로그인 실패와 요청 중 (L01)', () => {
     if (credentials) expect(alert.id).not.toBe('')
   })
 
+  it('이용 제한 코드가 담긴 403은 제한 안내와 로그인 문의 링크를 보이고 입력 오류로 표시하지 않는다', async () => {
+    vi.stubGlobal('fetch', respond(403, (path) => path.endsWith('/login')
+      ? Promise.resolve(Response.json({ type: 'about:blank', title: 'Forbidden', status: 403, code: 'ACCOUNT_RESTRICTED' }, { status: 403 }))
+      : undefined))
+    renderApp('/login')
+    submitLogin()
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('이용이 제한된 계정이에요.')
+    expect(alert.textContent).toContain('로그인 문의')
+    expect(screen.getByRole('link', { name: '로그인 문의' }).getAttribute('href')).toBe('/me/inquiry')
+    for (const label of ['이메일', '비밀번호']) expect(field(label).getAttribute('aria-invalid')).toBe('false')
+  })
+
+  it('코드가 없는 403은 제한 안내가 아니라 일반 오류로 안내한다', async () => {
+    vi.stubGlobal('fetch', respond(403))
+    renderApp('/login')
+    submitLogin()
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('로그인 요청을 처리하지 못했어요.')
+    expect(alert.textContent).not.toContain('이용이 제한된')
+  })
+
   it('요청 중에는 입력을 disabled 대신 읽기 전용으로 잠가 초점을 유지하고 중복 제출하지 않는다', async () => {
     let finish!: (response: Response) => void
     const pending = new Promise<Response>((resolve) => { finish = resolve })

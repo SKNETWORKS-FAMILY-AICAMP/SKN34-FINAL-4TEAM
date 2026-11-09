@@ -185,6 +185,21 @@ class AuthHttpErrorIntegrationTest {
     }
 
     @Test
+    fun `restricted member login is a 403 problem with the restriction code only after the correct password`() {
+        val email = "${UUID.randomUUID()}@example.invalid"
+        members.saveAndFlush(AuthMember(UUID.randomUUID(), email, requireNotNull(BCryptPasswordEncoder().encode("test-password")), "Reader", restricted = true))
+        fun signIn(password: String) = send(mutation("/api/v1/auth/login", """{"email":"$email","password":"$password"}"""))
+
+        assertEquals(401, signIn("wrong-password").statusCode())
+        val restricted = signIn("test-password")
+        assertEquals(403, restricted.statusCode())
+        assertTrue(restricted.headers().firstValue("Content-Type").orElse("").startsWith("application/problem+json"))
+        assertEquals("ACCOUNT_RESTRICTED", json.readTree(restricted.body()).path("code").asText())
+        assertFalse(restricted.body().contains("test-password"))
+        assertTrue(restricted.headers().allValues("Set-Cookie").none { it.startsWith("refresh_token=") })
+    }
+
+    @Test
     fun `anonymous protected requests remain 401 and mutations without csrf remain 403`() {
         for (path in listOf("/api/v1/me", "/api/v1/auth/sessions")) {
             assertEquals(401, send(request(path)).statusCode())
