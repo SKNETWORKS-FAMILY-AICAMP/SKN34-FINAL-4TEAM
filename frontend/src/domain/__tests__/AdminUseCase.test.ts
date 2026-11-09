@@ -23,7 +23,7 @@ function fakes() {
   const uc = new AdminUseCase(
     { get: async () => structuredClone(admin), save: async (a) => { admin = a }, listComments: async () => [{ id: 'hanji-0', work: '구운몽', workId: 'guunmong', author: '연화봉러', text: '좋아요', likes: 1 }] },
     workRepository, feedbackRepository,
-    { list: async () => db.inq, add: async () => {}, save: async (q) => { replace(db.inq, q) } },
+    { list: async () => db.inq, add: async () => {} },
     { get: async () => db.credits, save: async (c) => { db.credits = c } },
     chatRepository,
   )
