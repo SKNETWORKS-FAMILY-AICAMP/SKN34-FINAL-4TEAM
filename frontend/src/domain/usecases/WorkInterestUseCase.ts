@@ -7,8 +7,8 @@ export class WorkInterestUseCase {
     this.repository = repository
   }
 
-  async isInterested(workId: string, signal?: AbortSignal) {
-    return (await this.repository.list(signal)).includes(workId)
+  async isInterested(workId: string) {
+    return (await this.repository.list()).includes(workId)
   }
 
   /** 켜면 관심 작품에 담고 끄면 뺍니다. 실패는 호출자에게 그대로 알립니다. */

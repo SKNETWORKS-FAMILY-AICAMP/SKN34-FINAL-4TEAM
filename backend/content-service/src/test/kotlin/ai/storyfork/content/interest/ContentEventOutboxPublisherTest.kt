@@ -26,7 +26,7 @@ class ContentEventOutboxPublisherTest {
     private val mapper = JsonMapper.builder().build()
     private lateinit var publisher: ContentEventOutboxPublisher
 
-    @BeforeEach fun setUp() { publisher = ContentEventOutboxPublisher(outbox, amqp, mapper, "storyfork.events") }
+    @BeforeEach fun setUp() { publisher = ContentEventOutboxPublisher(outbox, amqp, mapper) }
 
     private fun row(recipient: String, at: String = "2026-11-09T01:02:03.123456Z") = ContentEventOutboxEntity(
         id = UUID.randomUUID(), type = "content.episode.published", recipientId = recipient, targetType = "work", targetId = "work-1", occurredAt = Instant.parse(at))
