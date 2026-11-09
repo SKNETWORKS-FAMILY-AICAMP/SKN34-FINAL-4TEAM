@@ -6,10 +6,13 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.classic.spi.ThrowableProxy
+import ch.qos.logback.classic.spi.ThrowableProxyUtil
 import ch.qos.logback.core.read.ListAppender
 import jakarta.persistence.OptimisticLockException
 import jakarta.validation.ConstraintViolationException
 import java.io.IOException
+import java.net.ConnectException
+import java.nio.charset.StandardCharsets
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -24,6 +27,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.web.HttpRequestMethodNotSupportedException
+import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.servlet.NoHandlerFoundException
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
@@ -44,6 +48,8 @@ class OperationsExceptionHandlerTest {
     private val handler = OperationsExceptionHandler()
     private val logger = LoggerFactory.getLogger(OperationsExceptionHandler::class.java) as Logger
     private val logs = ListAppender<ILoggingEvent>()
+    // The inbound query (a member search term) must never reach the log; only the path may.
+    private val request = MockHttpServletRequest("GET", "/api/v1/operations/members").apply { queryString = "q=secret-search" }
 
     @BeforeEach
     fun captureLogs() {
@@ -59,6 +65,11 @@ class OperationsExceptionHandlerTest {
     /** The logged exception followed by its causes. */
     private fun loggedChain(): List<Throwable> =
         generateSequence((logs.list.single().throwableProxy as? ThrowableProxy)?.throwable) { it.cause }.toList()
+
+    /** What reaches the log file: every formatted message plus the messages and frames of any logged throwable. */
+    private fun rendered(): String = logs.list.joinToString("\n") { event ->
+        event.formattedMessage + (event.throwableProxy?.let { ThrowableProxyUtil.asString(it) } ?: "")
+    }
 
     private fun assertError(response: ResponseEntity<OperationsErrorResponse>, status: Int, code: String, message: String) {
         assertEquals(status, response.statusCode.value())
@@ -99,21 +110,21 @@ class OperationsExceptionHandlerTest {
             Triple(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required."),
             Triple(HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied."),
             Triple(HttpStatus.BAD_GATEWAY, "UPSTREAM_FAILED", "Upstream service request failed."))) {
-            assertError(handler.responseStatus(ResponseStatusException(status, "private SQL, token or inquiry body")),
+            assertError(handler.responseStatus(ResponseStatusException(status, "private SQL, token or inquiry body"), request),
                 status.value(), code, message)
         }
     }
 
     @Test
     fun `unexpected failures return a generic server error`() {
-        assertError(handler.unexpected(IllegalStateException("private token")), 500, "INTERNAL_ERROR", "Request could not be completed.")
+        assertError(handler.unexpected(IllegalStateException("private token"), request), 500, "INTERNAL_ERROR", "Request could not be completed.")
     }
 
     @Test
     fun `framework not found and method errors retain their HTTP status rather than becoming 500`() {
-        assertError(handler.unexpected(NoResourceFoundException(HttpMethod.GET, "/api/v1/operations/private", "private path")),
+        assertError(handler.unexpected(NoResourceFoundException(HttpMethod.GET, "/api/v1/operations/private", "private path"), request),
             404, "NOT_FOUND", "Resource not found.")
-        assertError(handler.unexpected(HttpRequestMethodNotSupportedException("PATCH")),
+        assertError(handler.unexpected(HttpRequestMethodNotSupportedException("PATCH"), request),
             405, "REQUEST_FAILED", "Request could not be completed.")
     }
 
@@ -121,29 +132,58 @@ class OperationsExceptionHandlerTest {
     fun `unexpected failures log their cause at ERROR`() {
         val failure = IllegalStateException("private token", IOException("socket closed"))
 
-        handler.unexpected(failure)
+        handler.unexpected(failure, request)
 
         assertEquals(Level.ERROR, logs.list.single().level)
         assertTrue(failure in loggedChain())
     }
 
     @Test
-    fun `upstream failures log the Core or Content cause at WARN and keep the generic response`() {
-        val cause = ResourceAccessException("I/O error on GET request", IOException("Connection refused"))
+    fun `upstream failures log only class names upstream status and request path at WARN and keep the generic response`() {
+        val unavailable = HttpServerErrorException.create(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders(),
+            ByteArray(0), StandardCharsets.UTF_8)
+        val unreachable = ResourceAccessException("I/O error on GET request", ConnectException("Connection refused"))
+        val prefix = "Upstream request failed: path=/api/v1/operations/members"
 
-        assertError(handler.responseStatus(ResponseStatusException(HttpStatus.BAD_GATEWAY, null, cause)),
-            502, "UPSTREAM_FAILED", "Upstream service request failed.")
+        for ((cause, expected) in listOf(
+            unavailable to "$prefix upstreamStatus=503 causes=${unavailable.javaClass.name}",
+            unreachable to "$prefix upstreamStatus=- causes=${ResourceAccessException::class.java.name} > ${ConnectException::class.java.name}",
+            null to "$prefix upstreamStatus=- causes=-")) {
+            logs.list.clear()
 
-        assertEquals(Level.WARN, logs.list.single().level)
-        assertTrue(cause in loggedChain())
+            assertError(handler.responseStatus(ResponseStatusException(HttpStatus.BAD_GATEWAY, null, cause), request),
+                502, "UPSTREAM_FAILED", "Upstream service request failed.")
+
+            val event = logs.list.single()
+            assertEquals(Level.WARN, event.level)
+            assertEquals(expected, event.formattedMessage)
+            assertNull(event.throwableProxy)
+        }
+    }
+
+    @Test
+    fun `upstream failure logs leave out request queries and upstream response bodies`() {
+        val body = """{"detail":"secret-body"}"""
+        val causes = listOf(
+            ResourceAccessException("I/O error on GET request for \"http://core.test/internal/v1/members?q=secret-search\": connect failed",
+                ConnectException("connect failed for http://core.test/internal/v1/members?q=secret-search")),
+            HttpServerErrorException.create("503 Service Unavailable: \"$body\"", HttpStatus.SERVICE_UNAVAILABLE,
+                "Service Unavailable", HttpHeaders(), body.toByteArray(), StandardCharsets.UTF_8))
+
+        for (cause in causes) handler.responseStatus(ResponseStatusException(HttpStatus.BAD_GATEWAY, null, cause), request)
+
+        assertEquals(2, logs.list.size)
+        val logged = rendered()
+        val leaked = listOf("secret-search", "secret-body", "connect failed").filter { it in logged }
+        assertTrue(leaked.isEmpty(), "leaked into the log: $leaked")
     }
 
     @Test
     fun `client errors are not logged so request details never reach the log`() {
         for (status in listOf(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN, HttpStatus.NOT_FOUND, HttpStatus.CONFLICT)) {
-            handler.responseStatus(ResponseStatusException(status, "private SQL, token or inquiry body"))
+            handler.responseStatus(ResponseStatusException(status, "private SQL, token or inquiry body"), request)
         }
-        handler.unexpected(HttpRequestMethodNotSupportedException("PATCH"))
+        handler.unexpected(HttpRequestMethodNotSupportedException("PATCH"), request)
 
         assertTrue(logs.list.isEmpty())
     }
@@ -172,5 +212,8 @@ class OperationsExceptionHandlerTest {
         assertAnswered(null, NoHandlerFoundException("GET", "/api/v1/operations/missing", HttpHeaders()), 404, "NOT_FOUND")
         assertAnswered(null, HttpRequestMethodNotSupportedException("PATCH"), 405, "REQUEST_FAILED")
         assertAnswered(ResourceHttpRequestHandler(), NoResourceFoundException(HttpMethod.GET, "/api/v1/operations/missing", "missing"), 404, "NOT_FOUND")
+        // The 502 handler method takes the servlet request itself, so resolve it through the real argument resolvers too.
+        assertAnswered(null, ResponseStatusException(HttpStatus.BAD_GATEWAY, null, ResourceAccessException("I/O error", IOException("down"))),
+            502, "UPSTREAM_FAILED")
     }
 }
