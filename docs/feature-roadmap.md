@@ -309,9 +309,9 @@
 <tr><td>공개 작품의 slug·표시 작가·테마·회차 versionId 메타데이터 조회</td><td>❌</td><td>—</td></tr>
 <tr><td>공개 회차의 wiki·속성별 원문 공개 근거/비공개 기본값·지식·보이는 대상 링크만 조회</td><td>❌</td><td>—</td></tr>
 <tr><td>작품 내 공개 회차 제목·본문 검색</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
-<tr><td rowspan="3">21-A 작품 좋아요 관리</td><td>작품 좋아요</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
-<tr><td>작품 좋아요 취소</td><td>❌</td></tr>
-<tr><td>작품 좋아요 수 조회</td><td>❌</td></tr>
+<tr><td rowspan="3">21-A 작품 좋아요 관리</td><td>작품 좋아요</td><td>✅</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/234">PR #234</a></td></tr>
+<tr><td>작품 좋아요 취소</td><td>✅</td></tr>
+<tr><td>작품 좋아요 수 조회</td><td>✅</td></tr>
 <tr><td rowspan="3">21-B 관심 작품 관리</td><td>관심 작품 등록</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a></td></tr>
 <tr><td>내 관심 작품 목록 조회</td><td>❌</td></tr>
 <tr><td>관심 작품 해제</td><td>❌</td></tr>
