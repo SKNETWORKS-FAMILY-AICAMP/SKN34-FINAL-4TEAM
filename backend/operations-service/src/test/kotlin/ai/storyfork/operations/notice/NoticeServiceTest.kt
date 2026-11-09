@@ -25,7 +25,6 @@ import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 
@@ -93,12 +92,12 @@ class NoticeServiceTest {
     }
 
     @Test
-    fun `list bounds an unpaged request and returns explicit page metadata`() {
+    fun `list returns explicit page metadata`() {
         val entity = notice()
         val bounded = PageRequest.of(0, 20, sort)
         `when`(repository.findAll(bounded)).thenReturn(PageImpl(listOf(entity), bounded, 21))
 
-        val result = service.list(Pageable.unpaged())
+        val result = service.list(PageRequest.of(0, 20))
 
         assertEquals(listOf(entity.id), result.items.map { it.id })
         assertEquals(0, result.page)
@@ -109,8 +108,8 @@ class NoticeServiceTest {
     }
 
     @Test
-    fun `list caps size at 100 and uses a stable timestamp and UUID sort`() {
-        val requested = PageRequest.of(2, 5_000, Sort.by("title"))
+    fun `list ignores the caller sort and uses a stable timestamp and UUID sort`() {
+        val requested = PageRequest.of(2, 100, Sort.by("title"))
         val bounded = PageRequest.of(2, 100, sort)
         `when`(repository.findAll(bounded)).thenReturn(PageImpl(emptyList(), bounded, 0))
 

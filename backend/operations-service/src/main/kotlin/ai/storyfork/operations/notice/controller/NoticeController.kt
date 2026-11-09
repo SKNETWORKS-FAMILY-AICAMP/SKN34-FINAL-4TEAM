@@ -8,7 +8,6 @@ import jakarta.validation.Valid
 import java.net.URI
 import java.util.UUID
 import org.springframework.data.domain.Pageable
-import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -34,7 +33,7 @@ class NoticeController(private val service: NoticeService) {
 
     /** 기본 20개·최대 100개 범위의 안정 정렬된 목록을 반환한다. */
     @GetMapping
-    fun list(@PageableDefault(size = 20) pageable: Pageable): PageResponse<NoticeResponse> = service.list(pageable)
+    fun list(pageable: Pageable): PageResponse<NoticeResponse> = service.list(pageable)
 
     /** UUID 공지를 조회하며 없는 공지는 공통 처리기로 404를 반환한다. */
     @GetMapping("/{id}")

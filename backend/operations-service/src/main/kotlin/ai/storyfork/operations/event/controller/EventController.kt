@@ -8,7 +8,6 @@ import jakarta.validation.Valid
 import java.net.URI
 import java.util.UUID
 import org.springframework.data.domain.Pageable
-import org.springframework.data.web.PageableDefault
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -25,7 +24,7 @@ class EventController(private val service: EventService) {
 
     /** 고정 정렬된 이벤트 안내 목록을 기본 20개, 최대 100개인 명시적 페이지 DTO로 반환한다. */
     @GetMapping
-    fun list(@PageableDefault(size = 20) pageable: Pageable): PageResponse<EventResponse> = service.list(pageable)
+    fun list(pageable: Pageable): PageResponse<EventResponse> = service.list(pageable)
 
     /** 이벤트 안내와 UTC 기간을 반환하며, 없는 UUID는 404다. */
     @GetMapping("/{id}")

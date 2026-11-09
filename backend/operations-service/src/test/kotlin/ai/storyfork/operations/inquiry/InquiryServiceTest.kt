@@ -102,11 +102,11 @@ class InquiryServiceTest {
     }
 
     @Test
-    fun `list caps size and overrides client sort with stable creation time and UUID order`() {
+    fun `list overrides client sort with stable creation time and UUID order`() {
         val bounded = PageRequest.of(2, 100, Sort.by(Sort.Direction.DESC, "createdAt", "id"))
         `when`(inquiries.findAll(bounded)).thenReturn(PageImpl(listOf(inquiry()), bounded, 501))
 
-        val result = service.list(PageRequest.of(2, 1000, Sort.by("body")))
+        val result = service.list(PageRequest.of(2, 100, Sort.by("body")))
 
         assertEquals(listOf(id), result.items.map { it.id })
         assertEquals(2, result.page)
@@ -114,12 +114,6 @@ class InquiryServiceTest {
         assertEquals(501L, result.totalElements)
         assertEquals(6, result.totalPages)
         verify(inquiries).findAll(bounded)
-    }
-
-    @Test
-    fun `unpaged list is rejected rather than loading all records`() {
-        assertThrows(IllegalArgumentException::class.java) { service.list(org.springframework.data.domain.Pageable.unpaged()) }
-        verifyNoInteractions(inquiries, replies)
     }
 
     @Test

@@ -7,7 +7,6 @@ import jakarta.validation.Valid
 import java.net.URI
 import java.util.UUID
 import org.springframework.data.domain.Pageable
-import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -23,7 +22,7 @@ class InquiryController(private val service: InquiryService) {
     }
 
     @GetMapping
-    fun list(@PageableDefault(size = 20) pageable: Pageable): PageResponse<InquiryResponse> = service.list(pageable)
+    fun list(pageable: Pageable): PageResponse<InquiryResponse> = service.list(pageable)
 
     @GetMapping("/{id}")
     fun read(@PathVariable id: UUID): InquiryResponse = service.read(id)
@@ -44,8 +43,7 @@ class InquiryController(private val service: InquiryService) {
     }
 
     @GetMapping("/{id}/replies")
-    fun listReplies(@PathVariable id: UUID, @PageableDefault(size = 20) pageable: Pageable): PageResponse<InquiryReplyResponse> =
-        service.listReplies(id, pageable)
+    fun listReplies(@PathVariable id: UUID, pageable: Pageable): PageResponse<InquiryReplyResponse> = service.listReplies(id, pageable)
 
     @GetMapping("/{id}/replies/{replyId}")
     fun readReply(@PathVariable id: UUID, @PathVariable replyId: UUID): InquiryReplyResponse = service.readReply(id, replyId)

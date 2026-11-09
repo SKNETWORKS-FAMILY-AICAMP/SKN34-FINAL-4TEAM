@@ -95,10 +95,9 @@ class InquiryService(
         if (!inquiries.existsById(inquiryId)) throw NoSuchElementException("Inquiry not found.")
     }
 
-    private fun bounded(pageable: Pageable, direction: Sort.Direction): Pageable {
-        require(pageable.isPaged) { "Pagination is required." }
-        return PageRequest.of(pageable.pageNumber, pageable.pageSize.coerceAtMost(100), Sort.by(direction, "createdAt", "id"))
-    }
+    // Page size defaults and the maximum come from spring.data.web.pageable.*; only the sort is fixed here.
+    private fun bounded(pageable: Pageable, direction: Sort.Direction): Pageable =
+        PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.by(direction, "createdAt", "id"))
 
     private fun validate(request: InquiryRequest) {
         require(request.title.isNotBlank() && request.title.length <= 200 && '\u0000' !in request.title) { "Invalid inquiry title." }

@@ -101,7 +101,7 @@ class EventServiceTest {
 
     @Test
     fun `list uses bounded pageable and fixed timestamp then UUID ordering`() {
-        val request = PageRequest.of(2, 500, Sort.by("body"))
+        val request = PageRequest.of(2, 100, Sort.by("body"))
         val expected = PageRequest.of(2, 100, Sort.by(Sort.Direction.DESC, "createdAt", "id"))
         val event = existing()
         `when`(events.findAll(any(Pageable::class.java))).thenReturn(PageImpl(listOf(event), expected, 201))

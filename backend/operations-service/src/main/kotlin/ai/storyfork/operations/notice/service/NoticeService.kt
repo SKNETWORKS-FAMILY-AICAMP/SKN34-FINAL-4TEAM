@@ -26,12 +26,10 @@ class NoticeService(private val repository: NoticeRepository) {
         return response(repository.saveAndFlush(NoticeEntity(title = request.title, body = request.body)))
     }
 
-    /** 호출자의 정렬 대신 생성 시각·UUID 내림차순으로 최대 100개를 조회한다. */
+    /** 호출자의 정렬 대신 생성 시각·UUID 내림차순으로 조회한다. 기본·최대 크기는 `spring.data.web.pageable.*` 설정이 정한다. */
     fun list(pageable: Pageable): PageResponse<NoticeResponse> {
         val bounded = PageRequest.of(
-            if (pageable.isPaged) pageable.pageNumber else 0,
-            if (pageable.isPaged) pageable.pageSize.coerceAtMost(100) else 20,
-            Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")),
+            pageable.pageNumber, pageable.pageSize, Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")),
         )
         return repository.findAll(bounded).toResponse(::response)
     }

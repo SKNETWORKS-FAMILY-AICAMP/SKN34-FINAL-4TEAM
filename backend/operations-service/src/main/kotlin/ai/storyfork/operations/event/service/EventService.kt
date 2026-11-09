@@ -28,10 +28,7 @@ class EventService(private val events: EventRepository) {
     }
 
     fun list(pageable: Pageable): PageResponse<EventResponse> {
-        val bounded = PageRequest.of(
-            pageable.pageNumber, pageable.pageSize.coerceAtMost(100),
-            Sort.by(Sort.Direction.DESC, "createdAt", "id"),
-        )
+        val bounded = PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.by(Sort.Direction.DESC, "createdAt", "id"))
         return events.findAll(bounded).toResponse { it.toResponse() }
     }
 
