@@ -52,6 +52,8 @@
 | `PUT /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=true`) |
 | `DELETE /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=false`) |
 
+`ownerId`는 Content `work.owner_id`(varchar) 문자열이라 UUID가 아닐 수 있고, 운영은 신고 접수에서만 UUID로 변환하며 비 UUID 소유자 작품 신고는 저장 없이 409다(제한·해제는 `ownerId`를 쓰지 않아 영향 없음).
+
 ## 운영 공개 API (브라우저, 회원 Bearer)
 
 기본 경로 `/api/v1/operations`. 오류는 기존 `{ code, message }`이며 401(인증 없음)·403(권한 없음)·404·400·502다.
