@@ -5,6 +5,7 @@ import ai.storyfork.content.episode.entity.EpisodeEntity
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode.service.dto.*
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
+import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.proposal.service.ProposalService
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.PublicationService
@@ -44,6 +45,7 @@ class WorkPolicyServiceTest {
     @Mock lateinit var versions: EpisodeVersionService
     @Mock lateinit var proposals: ProposalService
     @Mock lateinit var viewService: WorkViewService
+    @Mock lateinit var likeService: WorkLikeService
     @InjectMocks lateinit var service: WorkService
 
     private val work=WorkAccessResult("w","owner","제목","소개",4,"world","public",true,true,null)

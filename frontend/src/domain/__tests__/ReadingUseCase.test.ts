@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
+import { SessionExpired } from '../repositories/ProfileRepository'
+import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
 
@@ -15,6 +17,100 @@ function fakes(progress: Partial<ReadingProgress> = {}) {
   }
   return { works, state, useCase: new ReadingUseCase(workRepository, readingRepository) }
 }
+
+/** 서버(정본) 작품 좋아요: 저장소 대역은 서버가 확정하는 수·상태를 그대로 돌려준다. canonical이 아닌 시드 작품은 메모리 데모다. */
+function likeFakes(server: WorkLikeState | null = { likes: 7, liked: false }, canonical = true) {
+  const works = seedWorks(0).map((w) => ({ ...w, ...(canonical ? { canonical: true, statisticsSupported: false } : {}), likes: 5 }))
+  const state: ReadingProgress = { last: {}, read: {}, seen: {}, liked: {} }
+  const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (w) => w, createFork: async () => { throw new Error('not used') }, saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
+  const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async (p) => { Object.assign(state, p) } }
+  const likes = { read: vi.fn(async () => server), like: vi.fn(async () => ({ likes: 8, liked: true })), unlike: vi.fn(async () => ({ likes: 6, liked: false })) } satisfies WorkLikeRepository
+  return { works, state, likes, useCase: new ReadingUseCase(workRepository, readingRepository, undefined, likes) }
+}
+
+describe('ReadingUseCase 좋아요 (서버 작품)', () => {
+  it('로그인 회원의 상세는 서버가 알려 준 내 좋아요 여부와 수를 쓴다', async () => {
+    const { likes, state, useCase } = likeFakes({ likes: 9, liked: true })
+    const d = (await useCase.getWork('guunmong', 'user'))!
+    expect(likes.read).toHaveBeenCalledWith('guunmong')
+    expect(d.liked).toBe(true)
+    expect(d.likes).toBe(9)
+    expect(state.liked).toEqual({})
+  })
+
+  it('익명 상세는 서버를 부르지 않고 목록의 수와 liked=false를 쓴다', async () => {
+    const { likes, useCase } = likeFakes()
+    const d = (await useCase.getWork('guunmong', null))!
+    expect(likes.read).not.toHaveBeenCalled()
+    expect(d.liked).toBe(false)
+    expect(d.likes).toBe(5)
+  })
+
+  it('좋아요 상태를 못 읽으면 안 눌린 척하지 않고 실패로 알린다', async () => {
+    const { likes, useCase } = likeFakes()
+    likes.read.mockRejectedValueOnce(new Error('offline'))
+    await expect(useCase.getWork('guunmong', 'user')).rejects.toThrow('offline')
+  })
+
+  it('공개 작품이 아니라고 서버가 답하면(null) 상세를 막지 않고 목록의 수와 안 눌린 상태로 연다', async () => {
+    const { useCase } = likeFakes(null)
+    const d = (await useCase.getWork('guunmong', 'user'))!
+    expect(d.liked).toBe(false)
+    expect(d.likes).toBe(5)
+  })
+
+  it('만료된 세션은 익명처럼 상세를 열고 그 밖의 오류만 실패로 던진다', async () => {
+    const { likes, useCase } = likeFakes()
+    likes.read.mockRejectedValueOnce(new SessionExpired())
+    const d = (await useCase.getWork('guunmong', 'user'))!
+    expect(d.liked).toBe(false)
+    expect(d.likes).toBe(5)
+  })
+
+  it('소유자가 여는 비공개 서버 작품은 서버에 묻지 않고 목록의 수와 안 눌린 상태로 연다', async () => {
+    const { works, likes, useCase } = likeFakes()
+    works.find((w) => w.id === 'starlight')!.private = true
+    const d = (await useCase.getWork('starlight', 'user'))!
+    expect(d.work.id).toBe('starlight')
+    expect(likes.read).not.toHaveBeenCalled()
+    expect(d.liked).toBe(false)
+    expect(d.likes).toBe(5)
+  })
+
+  it('데모(canonical 아님) 작품은 저장소가 있어도 메모리 기록과 시드 수에 내 1을 더한 값을 쓴다', async () => {
+    const { likes, state, useCase } = likeFakes(undefined, false)
+    state.liked.guunmong = true
+    const d = (await useCase.getWork('guunmong', 'user'))!
+    expect(likes.read).not.toHaveBeenCalled()
+    expect(d.liked).toBe(true)
+    expect(d.likes).toBe(6)
+  })
+
+  it('누르기·취소는 화면이 보여 준 상태의 반대를 서버에 보내고 서버가 확정한 상태를 돌려준다', async () => {
+    const { likes, state, useCase } = likeFakes()
+    expect(await useCase.toggleLike('guunmong', { canonical: true, liked: false })).toBe(true)
+    expect(likes.like).toHaveBeenCalledWith('guunmong')
+    expect(likes.unlike).not.toHaveBeenCalled()
+    expect(await useCase.toggleLike('guunmong', { canonical: true, liked: true })).toBe(false)
+    expect(likes.unlike).toHaveBeenCalledWith('guunmong')
+    expect(state.liked).toEqual({})
+  })
+
+  it('서버 실패는 성공으로 바꾸지 않고 던지며 메모리 기록을 건드리지 않는다', async () => {
+    const { likes, state, useCase } = likeFakes()
+    likes.like.mockRejectedValueOnce(new Error('공개 작품을 찾을 수 없어요.'))
+    await expect(useCase.toggleLike('guunmong', { canonical: true, liked: false })).rejects.toThrow('공개 작품을 찾을 수 없어요.')
+    expect(state.liked).toEqual({})
+  })
+
+  it('canonical이 아니거나 상태를 주지 않으면 저장소가 있어도 메모리 데모로 토글한다', async () => {
+    const { likes, state, useCase } = likeFakes()
+    expect(await useCase.toggleLike('guunmong')).toBe(true)
+    expect(await useCase.toggleLike('postman', { canonical: false, liked: false })).toBe(true)
+    expect(state.liked).toEqual({ guunmong: true, postman: true })
+    expect(likes.like).not.toHaveBeenCalled()
+  })
+})
 
 describe('ReadingUseCase.getHome (목업 home())', () => {
   it('원작 캐러셀, 최신 포크 순, 이어 읽기를 만든다', async () => {
@@ -113,6 +209,17 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(await useCase.toggleLike('guunmong')).toBe(true)
     expect(state.liked.guunmong).toBe(true)
     expect(await useCase.toggleLike('guunmong')).toBe(false)
+  })
+
+  it('데모 상세의 좋아요 수는 시드 수에 내 좋아요 1을 더한 값이다', async () => {
+    const { state, useCase } = fakes()
+    const base = (await useCase.getWork('guunmong', null))!
+    expect(base.likes).toBe(12400)
+    expect(base.liked).toBe(false)
+    state.liked.guunmong = true
+    const liked = (await useCase.getWork('guunmong', null))!
+    expect(liked.likes).toBe(12401)
+    expect(liked.liked).toBe(true)
   })
 
   it('빠른 이동 목록은 공개 소설·인물·회차를 담는다', async () => {

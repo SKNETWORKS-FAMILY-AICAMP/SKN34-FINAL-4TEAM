@@ -16,4 +16,8 @@ data class WorkResponse(
     val forkableEpisodes: List<Int> = emptyList(),
     /** 최근 24시간 조회 수. 공개 목록·검색·랭킹 응답에서만 채우고 그 밖에는 0이다. */
     val views: Long = 0,
+    /** 공개 좋아요 수. 작품 목록·검색·랭킹·상세 응답이 채운다. */
+    val likes: Long = 0,
+    /** 요청한 회원이 좋아요를 눌렀는지. 공개 상세에서만 채우고 익명이거나 그 밖의 응답이면 false다. */
+    val liked: Boolean = false,
 )

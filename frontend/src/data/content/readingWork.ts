@@ -3,8 +3,8 @@ import { WCATS } from '../../domain/entities/wiki'
 import type { ReadingWorkRecord, ReadingWorldRecord } from './HttpEpisodeRepository'
 
 /**
- * Content 작품 응답을 화면의 Work로 바꾼다. 목록·검색·랭킹 카드가 같이 쓴다. 서버에 없는 좋아요·갱신 시각은 statisticsSupported:false로
- * 화면이 표시하지 않게 하고, views는 최근 24시간 조회 수(서버 값)다. 원작/Fork는 source 유무로 가른다.
+ * Content 작품 응답을 화면의 Work로 바꾼다. 목록·검색·랭킹 카드가 같이 쓴다. likes는 공개 좋아요 수, views는 최근 24시간 조회 수(둘 다
+ * 서버 값)이고, 서버에 없는 댓글 수·갱신 시각은 statisticsSupported:false로 화면이 표시하지 않게 한다. 원작/Fork는 source 유무로 가른다.
  */
 export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
   const episodes = [...row.episodes].sort((a, b) => a.number - b.number)
@@ -15,7 +15,7 @@ export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
     author: row.authorName, owner: row.ownerId, mine, genre: (row.genres ?? []).join(' · '),
     kind: row.source ? '포크' : '원작', rights: '권리 진술 별도 확인', by: row.authorName,
     tags: row.source ? ['if'] : [], hash: (row.hashtags ?? []).map(t => '#' + t),
-    statisticsSupported: false, likes: 0, views: row.views, cmts: 0, upd: 0,
+    statisticsSupported: false, likes: row.likes, views: row.views, cmts: 0, upd: 0,
     hook: row.hook, hanja: row.hanja ?? undefined, hero: row.hero ?? undefined, heroBg: row.heroBg ?? undefined,
     private: row.visibility !== 'public', forksAllowed: row.allowFork, forkAll: false, forkEps: row.forkableEpisodes,
     forkFrom: row.forkableEpisodes[0] ?? 0, parent: row.source?.workId, forkAt: row.source?.episode, dir: row.source?.direction,

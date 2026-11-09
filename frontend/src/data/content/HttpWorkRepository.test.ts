@@ -5,7 +5,7 @@ import { epsOf, isMine } from '../../domain/entities/work'
 
 const record = (extra: Partial<ReadingWorkRecord> = {}): ReadingWorkRecord => ({
   id: 'work-uuid', slug: 'old-slug', title: '원고', summary: '소개', visibility: 'public', authorName: '나', ownerId: 'other-member',
-  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: ['서약'], views: 0,
+  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: ['서약'], views: 0, likes: 4,
   allowFork: true, allowForkPublication: true, forkableEpisodes: [2], source: null, episodes: [
     { number: 1, version: 1, versionId: 'v1', title: '하나', body: '첫 문단\n\n둘째 문단', inherited: false },
     { number: 2, version: 1, versionId: 'v2', title: '둘', body: '셋째 문단', inherited: false },
@@ -27,9 +27,17 @@ describe('canonical WorkRepository', () => {
     expect(work.slug).toBe('old-slug')
     expect(work.eps[0].p).toEqual(['첫 문단', '둘째 문단'])
     expect(isMine(work)).toBe(false)
+    // 좋아요 수는 서버 값이지만 댓글 수·갱신 시각은 서버에 없으니 지표 전체를 "지원"으로 표시하지 않는다.
+    expect(work.likes).toBe(4)
     expect(work.statisticsSupported).toBe(false)
     expect(work.forkEps).toEqual([2])
     expect(work.wiki?.docs).toEqual([])
+  })
+  it('keeps the server like count of my own public work from the owner list too', async () => {
+    const { repository } = setup([record({ likes: 4 })], [record({ ownerId: 'verified-member', likes: 9 })], true)
+    const [work] = await repository.listWorks()
+    expect(work.mine).toBe(true)
+    expect(work.likes).toBe(9)
   })
   it('merges only verified owned API records and propagates failures without a fixture fallback', async () => {
     const { api, repository } = setup([record()], [record({ ownerId: 'verified-member' })], true)

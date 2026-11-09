@@ -3,6 +3,7 @@ package ai.storyfork.content.work
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
+import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.proposal.service.ProposalService
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.PublicationService
@@ -49,6 +50,7 @@ class WorkSearchServiceTest {
     @Mock lateinit var proposals: ProposalService
     @Mock lateinit var settings: SettingDocumentRepository
     @Mock lateinit var viewService: WorkViewService
+    @Mock lateinit var likeService: WorkLikeService
     @InjectMocks lateinit var service: WorkService
 
     private val start = Instant.parse("2026-11-01T00:00:00Z")
@@ -74,6 +76,12 @@ class WorkSearchServiceTest {
     }
     private fun views(vararg counts: Triple<String, Long, Long>) {
         `when`(viewService.counts()).thenReturn(counts.associate { (id, recent, prior) -> id to WorkViews(recent, prior) })
+    }
+    /** 좋아요가 없는 작품은 맵에 담지 않는다(실제 집계 행과 같다). */
+    private fun likes(vararg counts: Pair<String, Long>) {
+        `when`(likeService.counts(ArgumentMatchers.anyCollection<String>())).thenAnswer { call ->
+            call.getArgument<Collection<String>>(0).mapNotNull { id -> counts.toMap()[id]?.let { id to it } }.toMap()
+        }
     }
     private fun failure(block: () -> Unit) = assertThrows(ContentFailure::class.java, block)
 
@@ -167,6 +175,54 @@ class WorkSearchServiceTest {
         assertEquals(listOf("open"), service.publicList("작품", "title", "view").items.map { it.id })
         assertEquals(listOf("open"), service.ranking("top").items.map { it.id })
         assertEquals(listOf("open"), service.ranking("rising").items.map { it.id })
+    }
+
+    @Test fun `list search and ranking fill likes with one batched count of the shown works`() {
+        work("a", "첫째", 1)
+        work("b", "둘째", 2)
+        work("c", "셋째", 3)
+        views(Triple("a", 5, 0), Triple("b", 1, 0))
+        likes("a" to 7, "b" to 2)
+
+        val list = service.publicList(null, null, null).items
+        assertEquals(listOf("c", "b", "a"), list.map { it.id })
+        assertEquals(listOf(0L, 2L, 7L), list.map { it.likes })
+        verify(likeService).counts(listOf("c", "b", "a"))
+
+        assertEquals(listOf(7L), service.publicList("첫째", "title", null).items.map { it.likes })
+        verify(likeService).counts(listOf("a"))
+
+        assertEquals(listOf(7L, 2L), service.ranking("top").items.map { it.likes })
+        verify(likeService).counts(listOf("a", "b"))
+        assertTrue(list.none { it.liked })
+    }
+
+    @Test fun `public detail fills the like count and whether the signed in member liked it`() {
+        work("a", "첫째", 1)
+        likes("a" to 4)
+        `when`(access.published("a")).thenReturn(WorkAccessResult("a", "author", "첫째", "", 0, "world", "public", false, false, null))
+        `when`(likeService.liked("a", "reader")).thenReturn(true)
+
+        val signedIn = service.publicRead("a", "reader")
+        assertEquals(4L, signedIn.likes)
+        assertTrue(signedIn.liked)
+
+        val anonymous = service.publicRead("a")
+        assertEquals(4L, anonymous.likes)
+        assertFalse(anonymous.liked)
+        verify(likeService, times(1)).liked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+    }
+
+    @Test fun `owner list and detail carry the same like counts`() {
+        work("a", "첫째", 1)
+        work("b", "둘째", 2)
+        likes("a" to 7)
+        for (id in listOf("a", "b")) `when`(access.own(id, "author")).thenReturn(WorkAccessResult(id, "author", id, "", 0, "world", "public", false, false, null))
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("author")).thenReturn(rows.reversed())
+
+        assertEquals(listOf(0L, 7L), service.list("author").items.map { it.likes })
+        assertEquals(7L, service.read("a", "author").likes)
+        assertFalse(service.read("a", "author").liked)
     }
 
     @Test fun `unknown options fail with 422 before any lookup`() {

@@ -23,6 +23,8 @@ const readingWork = work.omit({draft:true}).extend({
   forkableEpisodes:z.array(z.number().int().positive()),episodes:z.array(episode.extend({versionId:z.string()})),
   /** 최근 24시간 조회 수(서버 값). 공개 목록·검색·랭킹 응답에서만 채워지고 그 밖에는 0이다. */
   views:z.number().int().nonnegative(),
+  /** 공개 좋아요 수(서버 값). 공개·소유자 목록, 검색, 랭킹 응답이 모두 채운다. */
+  likes:z.number().int().nonnegative(),
 })
 const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.string(),name:z.string(),body:z.string(),
   aliases:z.array(z.string()),tags:z.array(z.string()),properties:z.array(z.object({name:z.string(),value:z.string()})),
