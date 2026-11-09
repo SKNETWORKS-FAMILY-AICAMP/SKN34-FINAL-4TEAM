@@ -1,0 +1,183 @@
+{
+  "genre_id": "science_fiction",
+  "genre_name": "SF",
+  "database_genres": [
+    "genre-14"
+  ],
+  "work_id": "77e1a51f-be64-5cf0-acaf-eac2b8550678",
+  "world_id": "568970f1-b862-5dd4-bfbb-adea96e17a26",
+  "owner_id": "b09cdf87-6901-50df-9c76-881c81f4f034",
+  "episode_version_id": "3e7db53b-b2d4-5253-86e4-d2d7abf478b6",
+  "episode_body_sha256": "418d20644282e8508d1b3ff86e7f08fc3d66deb3d354d176bbab80e1c6bdeff8",
+  "documents": [
+    {
+      "document_id": "7c16fa76-0e07-5c1b-bf19-5f35dabc348b",
+      "version_id": "e072897c-fe03-5342-a801-6574c54ef842",
+      "name": "SF 전체 원문",
+      "source_pointer": "/templates/3/content_markdown",
+      "body_sha256": "eb567fa2ebe673d1443ff16991c2611d2c8cd22b18643ffad1b1567d2150d222"
+    },
+    {
+      "document_id": "7d01310c-9217-50e8-b4e8-4693bfcd5429",
+      "version_id": "649a8219-bad4-5f90-8fcd-f8942902d594",
+      "name": "최초 기본 템플릿",
+      "source_pointer": "/templates/3/content_markdown",
+      "body_sha256": "ae52eafbfbda46e9d9d19dcaae03435f5b0a33f9e466ea9b5a27c0a16e07407b"
+    },
+    {
+      "document_id": "4a528965-ab71-5c1a-a80f-28d7689bb85d",
+      "version_id": "9a4f6918-5688-5123-b17b-5b0a0894fa6d",
+      "name": "01. 작품의 기본 전제",
+      "source_pointer": "/templates/3/setting_bible/sections/0/content_markdown",
+      "body_sha256": "48a4d61103214dcf72c0034a00c7bb6ffac091eb67bada03dee67af6b7fb39ca"
+    },
+    {
+      "document_id": "b087179c-9eca-57d9-91a7-cf8c58341c3f",
+      "version_id": "300805fa-afe4-5b48-8024-fe12380ffe1c",
+      "name": "02. 시대와 인류 문명의 범위",
+      "source_pointer": "/templates/3/setting_bible/sections/1/content_markdown",
+      "body_sha256": "aad76564493628a837747620ac57aedd46cdd3dacc40dadc07eb3f0550da53a5"
+    },
+    {
+      "document_id": "7c9c1aad-4786-5386-b023-52de609b6932",
+      "version_id": "fe51b01d-9c51-5a79-ac6c-df2da71ef9b9",
+      "name": "03. 우주 이동과 통신의 규칙",
+      "source_pointer": "/templates/3/setting_bible/sections/2/content_markdown",
+      "body_sha256": "bd73d2ed9854e41268e9fca3c6344eab78cab434a1ea8b0d4ba30ca6d2476f08"
+    },
+    {
+      "document_id": "fbbf5bd4-9501-5813-9961-e142cdecfa2e",
+      "version_id": "e10d57c6-4af7-5bb2-ab01-572990e7273b",
+      "name": "04. 우주에서 살아가는 사람들",
+      "source_pointer": "/templates/3/setting_bible/sections/3/content_markdown",
+      "body_sha256": "26129083b60e487eb8b319615f87b2c04960501b41935567747aad4e851c467f"
+    },
+    {
+      "document_id": "6e9cb947-6a64-5831-8fa1-c9f9429abf30",
+      "version_id": "07aebf0a-d575-5587-bbba-81d27f06e174",
+      "name": "05. 주요 세력",
+      "source_pointer": "/templates/3/setting_bible/sections/4/content_markdown",
+      "body_sha256": "6dfac97f37415eb0b5069282b5838330dff73885f50e84b710dbf9f3bcadd85a"
+    },
+    {
+      "document_id": "ac44f5e2-6b0a-59d3-8b0f-ab8c0d11183c",
+      "version_id": "69e9ef73-e3d8-5950-a6b4-6de6d0e5cdee",
+      "name": "06. 주요 장소",
+      "source_pointer": "/templates/3/setting_bible/sections/5/content_markdown",
+      "body_sha256": "bcef61b760a3ac281822b7b1101cd7170af24d70e5c52cad181463330cb22d8f"
+    },
+    {
+      "document_id": "ecedb428-2d61-5551-84d7-c03449c0f4ed",
+      "version_id": "ec28d0cf-ebe3-5eca-a4c4-971cecb33cca",
+      "name": "07. 고대 전함 아르카디아",
+      "source_pointer": "/templates/3/setting_bible/sections/6/content_markdown",
+      "body_sha256": "1ed42c836a2cf2cd912c6bcf88341e441d4f80e6f8b9b68cadd0ff60b5feb426"
+    },
+    {
+      "document_id": "0c530597-155b-5a53-93d1-09c66b1a8201",
+      "version_id": "91a96e3b-667b-59e6-94d6-aa8d3dd9f6c0",
+      "name": "08. 아르카디아의 핵심 기술과 제한",
+      "source_pointer": "/templates/3/setting_bible/sections/7/content_markdown",
+      "body_sha256": "ba7f70402a123d4d447dee3fd7ca43457fca6660cecd4483e04981fffdbd7453"
+    },
+    {
+      "document_id": "4cb4ce3c-37ed-59b1-884b-db93aad16d05",
+      "version_id": "68efbf7b-51ee-5c31-9ce9-2b3c78282454",
+      "name": "09. 주인공 이안 서",
+      "source_pointer": "/templates/3/setting_bible/sections/8/content_markdown",
+      "body_sha256": "0b70809f91b869f6c24c788fc9673e73c9a721cbb9e69cdc6b79d7203f092674"
+    },
+    {
+      "document_id": "00c84797-4f4c-5050-be0d-ef730f0b414e",
+      "version_id": "d4ba0805-7911-5281-8571-90f4dc7fe51d",
+      "name": "10. 함선 AI 아리아",
+      "source_pointer": "/templates/3/setting_bible/sections/9/content_markdown",
+      "body_sha256": "92000967f1cb6554b7d95890b806013be02af0fbc65c6ece68051fa09b715230"
+    },
+    {
+      "document_id": "8b3a26e8-892b-53db-888b-2e0ba7c2366d",
+      "version_id": "8b9fa28a-55f3-539a-86e2-1d2e8aa3cc30",
+      "name": "11. 주요 승무원",
+      "source_pointer": "/templates/3/setting_bible/sections/10/content_markdown",
+      "body_sha256": "ae67eb67a83c252db50b642335ce3981e68a730791c7021b500ad3b4686d38f2"
+    },
+    {
+      "document_id": "975eb89c-b1c7-5280-9b95-c06ad5a6b881",
+      "version_id": "d3829c19-e8c4-5b33-9b56-c56b493580c2",
+      "name": "12. 주요 적대자",
+      "source_pointer": "/templates/3/setting_bible/sections/11/content_markdown",
+      "body_sha256": "71cee7027b51694780904c3ec8298cb5eb54a1c749e52957e5786e3def2379fd"
+    },
+    {
+      "document_id": "2b6cc508-9e0e-53fb-a15a-a9e47c635dde",
+      "version_id": "9bc6fef6-daf5-56f8-b9c1-781052c32ddf",
+      "name": "13. 이안의 출생과 유전자 열쇠",
+      "source_pointer": "/templates/3/setting_bible/sections/12/content_markdown",
+      "body_sha256": "d5e1abee85dcc8832c43a3a132082630f698f2c7c315d0fd7b8f935719077e05"
+    },
+    {
+      "document_id": "688b92ae-22a2-5dd6-8716-b9c5b3ac578d",
+      "version_id": "c75f0760-8361-546d-a81b-2bcbfb9b7122",
+      "name": "14. 함장 인증과 지휘권",
+      "source_pointer": "/templates/3/setting_bible/sections/13/content_markdown",
+      "body_sha256": "fb39be83b746fb909338e5a9c4af9725453f79f9f4a8d9aeff8a3aaf9f1c30d9"
+    },
+    {
+      "document_id": "68a58c53-1c30-55ad-a5d7-642ee8468c47",
+      "version_id": "44f52859-1e1d-54e0-bfd9-0917aef48a9d",
+      "name": "15. 함선 복구와 자원 경제",
+      "source_pointer": "/templates/3/setting_bible/sections/14/content_markdown",
+      "body_sha256": "2625b745fddb54e54c306bb5c29758453687dda8c79366c12dbe199f38582fb1"
+    },
+    {
+      "document_id": "358ecaaa-fff8-5a62-9a60-f4607c91f2eb",
+      "version_id": "6abd4e84-33d8-5a29-bcea-fc8cc5bafc2d",
+      "name": "16. 우주 전투의 원칙",
+      "source_pointer": "/templates/3/setting_bible/sections/15/content_markdown",
+      "body_sha256": "0e06cd272b286dd17289e06b2ee9743e15dddd558374eea97d103eadaff55e58"
+    },
+    {
+      "document_id": "e95e605a-db21-5a92-893a-3e7e2682d85d",
+      "version_id": "fba45d9f-fbe7-53a6-ac3a-64dc1210c7fb",
+      "name": "17. 주요 비밀과 공개 순서",
+      "source_pointer": "/templates/3/setting_bible/sections/16/content_markdown",
+      "body_sha256": "acfe3ebd1445a6b43adb434e3ab2980a325b47204925fc7e8e567adfa49d0135"
+    },
+    {
+      "document_id": "3ab9f92c-e5b3-5bda-a670-574a0a70e918",
+      "version_id": "bbf50b20-438c-572d-a8c2-a5fab1521c52",
+      "name": "18. 장편 전개 구조",
+      "source_pointer": "/templates/3/setting_bible/sections/17/content_markdown",
+      "body_sha256": "b3d87ba6aca3600b3e2bf9c0cd215bfc421bf08591216fb20de69f7c6d7bebb8"
+    },
+    {
+      "document_id": "cc399144-7644-5e9a-b9a6-355a7780d4f3",
+      "version_id": "73476964-6a27-554f-bd1b-5e1907a04ff8",
+      "name": "19. 관계와 감정의 흐름",
+      "source_pointer": "/templates/3/setting_bible/sections/18/content_markdown",
+      "body_sha256": "3319ca94648718182be7f3f66f916b39ca2be318c90210446768c8e1111ff607"
+    },
+    {
+      "document_id": "fcdd8533-da08-5ca7-8dc8-a6a85532faa4",
+      "version_id": "3391aa34-84aa-5439-8fd2-9925dc9eb14a",
+      "name": "20. 반복해서 사용할 장면과 상징",
+      "source_pointer": "/templates/3/setting_bible/sections/19/content_markdown",
+      "body_sha256": "c7594bff98610f85d4940f14eb1c5c0a98eeaf91f9830a1fc8fc6daf5d8c168f"
+    },
+    {
+      "document_id": "441341c9-7dc0-5c9f-b617-5b999a5dce7c",
+      "version_id": "58b41f8e-a3eb-5af9-8549-c407932ff33b",
+      "name": "21. 이야기에서 지켜야 할 설정 규칙",
+      "source_pointer": "/templates/3/setting_bible/sections/20/content_markdown",
+      "body_sha256": "3440d6f6fc4c9ec8413e24f421e833ca6666041811d9a3d3596e837835c4d7b9"
+    },
+    {
+      "document_id": "458d1dfa-2b95-51a3-acda-ade77d6988a1",
+      "version_id": "88f97df5-33f8-5860-9bdb-6a299b20a6a9",
+      "name": "22. 첫 화 도입 예시",
+      "source_pointer": "/templates/3/setting_bible/sections/21/content_markdown",
+      "body_sha256": "418d20644282e8508d1b3ff86e7f08fc3d66deb3d354d176bbab80e1c6bdeff8"
+    }
+  ],
+  "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다."
+}

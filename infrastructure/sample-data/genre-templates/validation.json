@@ -1,0 +1,12 @@
+{
+  "application_mode": "select_one_genre",
+  "independent_packages": 11,
+  "csv_files": 341,
+  "works_per_package": 1,
+  "worlds_per_package": 1,
+  "settings_total": 259,
+  "original_genre_content_preserved": true,
+  "isolation_unit_test": "passed",
+  "existing_files_unchanged": 70,
+  "database_applied": false
+}

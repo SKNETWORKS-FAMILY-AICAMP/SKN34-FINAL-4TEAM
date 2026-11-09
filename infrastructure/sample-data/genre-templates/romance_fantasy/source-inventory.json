@@ -1,0 +1,183 @@
+{
+  "genre_id": "romance_fantasy",
+  "genre_name": "로맨스 판타지",
+  "database_genres": [
+    "genre-07"
+  ],
+  "work_id": "24065ef5-90c8-5ede-8b0c-9a4aa80aad91",
+  "world_id": "b96f7f39-02ea-5b33-bcc8-d5234df4b815",
+  "owner_id": "b09cdf87-6901-50df-9c76-881c81f4f034",
+  "episode_version_id": "119d22f9-b50d-59bd-b771-d1649dad2e06",
+  "episode_body_sha256": "dd94f71ec8b7e374c80ec94e4a07e4520a09ea96f8795bbe02754f1c83d4131a",
+  "documents": [
+    {
+      "document_id": "94f0664a-8828-5262-bf21-735594fa84d0",
+      "version_id": "4d13e7ce-26d9-53ee-9323-d06ca5e9c2ac",
+      "name": "로맨스 판타지 전체 원문",
+      "source_pointer": "/templates/1/content_markdown",
+      "body_sha256": "cc8d8d8df64e286e0fee76050ed2d82b717075c673dc22cc14ad715044e2fe54"
+    },
+    {
+      "document_id": "a685d8cf-118d-523f-84d5-31b1dfcbbb85",
+      "version_id": "23b7a0a2-a605-5d62-9cc0-1a831933bbcb",
+      "name": "최초 기본 템플릿",
+      "source_pointer": "/templates/1/content_markdown",
+      "body_sha256": "a7187e4ff1cdd7e9714875af9bc7a023140933cb6e133f547372330255a17103"
+    },
+    {
+      "document_id": "624f5de6-998b-50f7-a4b2-f9f074461fa7",
+      "version_id": "bdadc363-ed43-5e7f-83bb-09f3e4c6cb93",
+      "name": "01. 작품의 기본 전제",
+      "source_pointer": "/templates/1/setting_bible/sections/0/content_markdown",
+      "body_sha256": "f8dd3e1f8315e5f22ad3c15585884dcd9933f2b3cef566aa32c5426758d91e0f"
+    },
+    {
+      "document_id": "12fe8c3b-d782-5fe6-b2bd-76fa96d2647c",
+      "version_id": "5364eef8-1b3d-5153-9969-1624ec0ef3e8",
+      "name": "02. 아르델 제국의 역사와 현재",
+      "source_pointer": "/templates/1/setting_bible/sections/1/content_markdown",
+      "body_sha256": "67f9a33ce0ab5acc3dbf5651ec9dae8d572865112d286f3599bf8d7ef34db776"
+    },
+    {
+      "document_id": "2cda0daa-859b-531d-be56-379f7beeb035",
+      "version_id": "0b304192-c01a-5fbc-9aa7-eece60e9cf4d",
+      "name": "03. 귀족 사회와 여성의 지위",
+      "source_pointer": "/templates/1/setting_bible/sections/2/content_markdown",
+      "body_sha256": "746b5a9ce1b78eff21adc74abc26295f862d4d0345d26f48bff0bff8c2d0caa6"
+    },
+    {
+      "document_id": "e6635171-6d95-5357-8b60-2d0fd004fd84",
+      "version_id": "e4f2919c-ba8d-538a-abd0-3d009bfb145c",
+      "name": "04. 주요 지역",
+      "source_pointer": "/templates/1/setting_bible/sections/3/content_markdown",
+      "body_sha256": "ffd5b5537d2360eb61701976aaffe4aa5fed8bf2a83126a5eafef654313ee04b"
+    },
+    {
+      "document_id": "1c74aba0-ba2c-5616-bc7a-30b11746e1f3",
+      "version_id": "180da936-43fa-50fb-b995-ee3ae2f585fb",
+      "name": "05. 마력과 신성력",
+      "source_pointer": "/templates/1/setting_bible/sections/4/content_markdown",
+      "body_sha256": "86adbc5c03afe6e5ff74ebbe69184b26571fdab383437cfa393b4bb37bba3d4c"
+    },
+    {
+      "document_id": "19d7d741-7c57-5906-a628-79eec6b120ab",
+      "version_id": "9ab88eba-56fa-5979-9e29-f7c49ccf7710",
+      "name": "06. 북부 대공가의 저주",
+      "source_pointer": "/templates/1/setting_bible/sections/5/content_markdown",
+      "body_sha256": "3f2a9c92531668d45605bd2d0b483e4502edebef19b08afd80a857046345b86d"
+    },
+    {
+      "document_id": "0205fad0-850b-5bd4-96cc-8ad2ace1c1a9",
+      "version_id": "1262a5ea-668d-5660-82aa-179b4ef06f81",
+      "name": "07. 에블린의 능력과 대가",
+      "source_pointer": "/templates/1/setting_bible/sections/6/content_markdown",
+      "body_sha256": "b771d2589ff51a8c93c8d224ce489683cabb5860663e05fdb9ed6037f4e25421"
+    },
+    {
+      "document_id": "3b7d100b-10bb-54d1-a2fb-8d80a01311a4",
+      "version_id": "75b386c8-56b2-5c97-9862-05ad3e794339",
+      "name": "08. 주인공 에블린 로제트",
+      "source_pointer": "/templates/1/setting_bible/sections/7/content_markdown",
+      "body_sha256": "8fccf828c2b5f1d76d352fd8ffaeb7fbca941832226fd6231a9db29630a374b4"
+    },
+    {
+      "document_id": "a7e978e8-dba3-5524-a7fc-c10ef74f117e",
+      "version_id": "89ff31b4-ca97-5001-ba5d-41d2f6daafdc",
+      "name": "09. 빙의 이전의 에블린",
+      "source_pointer": "/templates/1/setting_bible/sections/8/content_markdown",
+      "body_sha256": "5eb6db9fb2b84bcdcd22388631831153b680f4c9283859867047ae9af80394a4"
+    },
+    {
+      "document_id": "2216a08f-08fd-5716-b0cd-b6f6bde14511",
+      "version_id": "d652d422-cf05-50ea-a82c-fc0fd502ae72",
+      "name": "10. 남자 주인공 카시안 발테른",
+      "source_pointer": "/templates/1/setting_bible/sections/9/content_markdown",
+      "body_sha256": "d94bd8291e9366084f08acd8acd736455e5561dec9d057da92241f4699f665dd"
+    },
+    {
+      "document_id": "2cd11682-ecb3-5bfe-b681-89a0dac6fb61",
+      "version_id": "34773fb6-f32d-567d-889f-6d45291ccb18",
+      "name": "11. 주요 조연",
+      "source_pointer": "/templates/1/setting_bible/sections/10/content_markdown",
+      "body_sha256": "5082dd921a5e49e32fbdc79d2b3165354d37d0a4e24529da1ae65454744bcf8b"
+    },
+    {
+      "document_id": "e11392d8-b8dd-5ad5-a6ab-0d8a2e61db1a",
+      "version_id": "d326725b-43d0-550b-84e2-599abc6592b3",
+      "name": "12. 주요 적대자",
+      "source_pointer": "/templates/1/setting_bible/sections/11/content_markdown",
+      "body_sha256": "1ebe66fd45540c8371b127b0d7dc1465a8f8d1b5fade61bfb684dc453dd2d63f"
+    },
+    {
+      "document_id": "339775a5-36ae-5240-8e30-0ce42264bf24",
+      "version_id": "27cb46e1-e760-547a-a23b-20472edf728d",
+      "name": "13. 계약 결혼의 구체적인 조건",
+      "source_pointer": "/templates/1/setting_bible/sections/12/content_markdown",
+      "body_sha256": "d42831c3a97ba89ba1f04056150ece18b8105eb22d4565119c5d1b6a6afc71a1"
+    },
+    {
+      "document_id": "b593ea83-d073-5dc2-96e7-442ac585a766",
+      "version_id": "81204b88-0f30-52fc-b6bb-f5db247ba9a7",
+      "name": "14. 빙의와 원작 지식의 한계",
+      "source_pointer": "/templates/1/setting_bible/sections/13/content_markdown",
+      "body_sha256": "0d580600920ab33aac9becb9415260b232c2f7c3c6a09028692b3731ab49d4f4"
+    },
+    {
+      "document_id": "c463f5bb-1049-5352-a94c-d88c5aee0a73",
+      "version_id": "ca71b413-49f8-5675-927d-becfbaf65a24",
+      "name": "15. 원작의 사건과 실제 진실",
+      "source_pointer": "/templates/1/setting_bible/sections/14/content_markdown",
+      "body_sha256": "5ef5089adab708f4626e569d6e0cd12b08788bd5bba4e66278858d068368d4bb"
+    },
+    {
+      "document_id": "4c30a6e2-1121-53a9-9d8c-f86cbc069638",
+      "version_id": "af0a0c79-2153-5f92-9bcb-f398a1e6f574",
+      "name": "16. 일 년의 주요 일정",
+      "source_pointer": "/templates/1/setting_bible/sections/15/content_markdown",
+      "body_sha256": "fb0e6a0b18a405ee59d3e616571784cb9a070bb52870f49ade13acc522e24ed6"
+    },
+    {
+      "document_id": "1a1faf74-031d-573d-a77b-f682ed729f7e",
+      "version_id": "540022ad-6cb8-5012-a9be-9f4511a56f2b",
+      "name": "17. 주요 비밀과 공개 순서",
+      "source_pointer": "/templates/1/setting_bible/sections/16/content_markdown",
+      "body_sha256": "1b190cd19f094a0f767a1eed47f353e290ec2453c70ecd8bce48814d346f8f9b"
+    },
+    {
+      "document_id": "39d3c0f2-42fb-5fa0-8fce-318f6c46bd1e",
+      "version_id": "dc6673e4-5267-5b89-9192-5e6510d6d34a",
+      "name": "18. 장편 전개 구조",
+      "source_pointer": "/templates/1/setting_bible/sections/17/content_markdown",
+      "body_sha256": "cdd1432b092684a08dd4b1d3c6cdc9018a436f5fe43ea2fd67577245b33f37cf"
+    },
+    {
+      "document_id": "17680211-6cfe-5f84-86a4-bdf7afd3d7a0",
+      "version_id": "0c285fa8-72be-541b-ab7f-2ed74fa02e18",
+      "name": "19. 로맨스의 단계와 대표 장면",
+      "source_pointer": "/templates/1/setting_bible/sections/18/content_markdown",
+      "body_sha256": "6bcc8c5438a63965a36a064e4c41959ff91ff7d80d781d9830bde08ab0197379"
+    },
+    {
+      "document_id": "675bd67e-177f-5113-8bf2-83bce1f53faf",
+      "version_id": "9d6fbe17-c8b0-5d43-b422-5fd185667bd1",
+      "name": "20. 반복해서 사용할 상징과 분위기",
+      "source_pointer": "/templates/1/setting_bible/sections/19/content_markdown",
+      "body_sha256": "be9d836b03497a877c1b90de58d997900f2ecb5640d1e9c37cc1ac05bc4b4590"
+    },
+    {
+      "document_id": "9113dd4d-013f-59ff-8b2c-dd2a6e3672a9",
+      "version_id": "aab35ba9-6730-5b6c-a44f-cc68a30bee56",
+      "name": "21. 이야기에서 지켜야 할 설정 규칙",
+      "source_pointer": "/templates/1/setting_bible/sections/20/content_markdown",
+      "body_sha256": "eb10afa66ce606dfb88d580e6a22865184c65d2e7161468e16353691ee1428a4"
+    },
+    {
+      "document_id": "b73fe5d4-4bbd-5c59-bbdf-c9b4a5873c1b",
+      "version_id": "66fc76f5-07fb-5aee-b857-835c6bfb7476",
+      "name": "22. 첫 화 도입 예시",
+      "source_pointer": "/templates/1/setting_bible/sections/21/content_markdown",
+      "body_sha256": "dd94f71ec8b7e374c80ec94e4a07e4520a09ea96f8795bbe02754f1c83d4131a"
+    }
+  ],
+  "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다."
+}

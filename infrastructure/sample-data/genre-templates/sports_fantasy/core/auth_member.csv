@@ -1,0 +1,2 @@
+id,email,password_hash,nickname,operator
+b09cdf87-6901-50df-9c76-881c81f4f034,genre-templates-v1@sample.invalid,!sample-import-login-disabled,장르 템플릿 샘플,false

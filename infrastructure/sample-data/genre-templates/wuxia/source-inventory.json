@@ -1,0 +1,176 @@
+{
+  "genre_id": "wuxia",
+  "genre_name": "무협",
+  "database_genres": [
+    "genre-03"
+  ],
+  "work_id": "ce5aa438-2b6a-5e63-8582-b5144c73d4be",
+  "world_id": "4fe1e070-e9f4-5d85-8923-c34da0b276e5",
+  "owner_id": "b09cdf87-6901-50df-9c76-881c81f4f034",
+  "episode_version_id": "343145a3-527a-58ec-b731-de21eb390141",
+  "episode_body_sha256": "01a3e6ed8c8d4a41275a2fb1c13a728b9673b49a6b2484eda8026279590cb39a",
+  "documents": [
+    {
+      "document_id": "683a321e-b24e-52d1-9ae7-713b708f6e40",
+      "version_id": "c8cf36e5-1bdc-5dd5-bbed-a55f365be311",
+      "name": "무협 전체 원문",
+      "source_pointer": "/templates/0/content_markdown",
+      "body_sha256": "ac4f713977b63668c6b8a0531caa9afff273bdcb22c6dede52e1b8f73468791b"
+    },
+    {
+      "document_id": "ea925798-2605-527e-a379-875de52cc49c",
+      "version_id": "0e8327a2-5677-5e4b-9d89-c318666107db",
+      "name": "최초 기본 템플릿",
+      "source_pointer": "/templates/0/content_markdown",
+      "body_sha256": "6e88dfc6780e88e2bab44c0afbee22da84c2613559cb3aa79661639ec4cf068b"
+    },
+    {
+      "document_id": "b7e9688e-b6b3-5cbc-8f6e-48fbbeace5ad",
+      "version_id": "8737319d-f760-5f4d-a6e7-9c27299988b3",
+      "name": "01. 작품의 기본 전제",
+      "source_pointer": "/templates/0/setting_bible/sections/0/content_markdown",
+      "body_sha256": "c1a5095a953253ba794282cca855bb2d87fe4a134df2c33d5a91e571632abd64"
+    },
+    {
+      "document_id": "0fc97caf-6a53-5131-9f73-1ba6b81c5380",
+      "version_id": "4f4f006b-4d94-5f06-9ffb-30d69534ec6b",
+      "name": "02. 시대와 중원의 질서",
+      "source_pointer": "/templates/0/setting_bible/sections/1/content_markdown",
+      "body_sha256": "07dcccccc89002954fa69691ddc132959abc113f69d8c7136daba00e92e7917a"
+    },
+    {
+      "document_id": "e84bc2a9-abf9-5790-99ce-71f6a7faf90d",
+      "version_id": "ec2a2db3-19ca-5375-b7f2-e803e2024d9d",
+      "name": "03. 일반인의 생활과 강호의 현실",
+      "source_pointer": "/templates/0/setting_bible/sections/2/content_markdown",
+      "body_sha256": "b4aabae632cb9283acb265f572b7d7bcdab9baadb246bbbc6588b5d3b59f5cdb"
+    },
+    {
+      "document_id": "d8314183-d811-5462-988e-e08fc048f3ea",
+      "version_id": "c2f4591b-0865-5d57-b1e2-31945fa1ef18",
+      "name": "04. 주요 지역",
+      "source_pointer": "/templates/0/setting_bible/sections/3/content_markdown",
+      "body_sha256": "5607975aef79337a61351d49e7529515614147e16e1e0b776a80c774eb3cb20e"
+    },
+    {
+      "document_id": "d6cdf76b-d4c9-5945-a8dc-d934387fe589",
+      "version_id": "eaf5d2c7-c360-5d80-b367-ea32d2b3567d",
+      "name": "05. 무공의 기본 원리",
+      "source_pointer": "/templates/0/setting_bible/sections/4/content_markdown",
+      "body_sha256": "645e29b74df38f73b85696605ea2341fe4734cfab4250f1238e658f7e78709f4"
+    },
+    {
+      "document_id": "ef9adc42-6838-5f7f-911d-019c0524024f",
+      "version_id": "fce2bb2c-a84d-58cc-be3a-eff2632ab633",
+      "name": "06. 무공의 경지와 전투 규모",
+      "source_pointer": "/templates/0/setting_bible/sections/5/content_markdown",
+      "body_sha256": "43ac320fe8c40c8276c5fbf50c1b29cc8c3ce4306729b7a331075ad81fcd1787"
+    },
+    {
+      "document_id": "cb9f9527-675c-5d51-86cd-7814cb4b3a6f",
+      "version_id": "f74003ee-b902-5a06-9a01-6cda635a2ff7",
+      "name": "07. 남궁세가",
+      "source_pointer": "/templates/0/setting_bible/sections/6/content_markdown",
+      "body_sha256": "db8bbc3ce7cfc5ea61766199fbc0ebb19fc1e6cc518c3568be30d25b869fd74e"
+    },
+    {
+      "document_id": "5e20aaae-b278-5edb-9deb-ad9608b33a3f",
+      "version_id": "076f1cef-5139-54ee-981c-29c5a13b8584",
+      "name": "08. 정파, 사파, 마교, 황실",
+      "source_pointer": "/templates/0/setting_bible/sections/7/content_markdown",
+      "body_sha256": "d15cbca2e893152ab39cb5f2749c1c0b4a195dd66849fd6bd1eb436fd6ac5fff"
+    },
+    {
+      "document_id": "41c12261-a7ce-58c4-9bdf-b890a5188529",
+      "version_id": "496673e9-739d-5d42-8af9-56b0b046ee0d",
+      "name": "09. 주인공 남궁현",
+      "source_pointer": "/templates/0/setting_bible/sections/8/content_markdown",
+      "body_sha256": "7be3d19954aa960aa249bcb3f573422a6f75d3621f55f31be0e11eec5d788dbb"
+    },
+    {
+      "document_id": "4519968d-89c4-522f-800e-c6e98af3f86e",
+      "version_id": "d04a4277-99d8-5a47-98a6-5ccddd2bd87f",
+      "name": "10. 주요 인물",
+      "source_pointer": "/templates/0/setting_bible/sections/9/content_markdown",
+      "body_sha256": "52e0e31074718ead244f538b2e923e1222237e8f79d0da4c7f1ce79691c6111d"
+    },
+    {
+      "document_id": "4d4b3c8b-f775-5b97-8665-5034b7339267",
+      "version_id": "43039ecc-065c-526f-956c-bc1accf66023",
+      "name": "11. 주요 적대자",
+      "source_pointer": "/templates/0/setting_bible/sections/10/content_markdown",
+      "body_sha256": "608b7be28f28ffeb580d54fcef916aeee3197a9e5789b3c1834457f156b8d585"
+    },
+    {
+      "document_id": "12721d8e-1d38-56a5-b47e-2fc3fa160316",
+      "version_id": "c5b50f5d-90aa-5a78-8672-fe1a71187f9d",
+      "name": "12. 회귀의 원리와 한계",
+      "source_pointer": "/templates/0/setting_bible/sections/11/content_markdown",
+      "body_sha256": "a49c651a11be55fa39ab08d264fd1ef709d2abc023f6efde9c3005df27ab7e1a"
+    },
+    {
+      "document_id": "d1b62b69-1866-5b33-b19d-b31b22a59ec7",
+      "version_id": "9f598eb1-d2f3-50cc-a154-09b7f9a10fe7",
+      "name": "13. 주인공의 무공과 성장",
+      "source_pointer": "/templates/0/setting_bible/sections/12/content_markdown",
+      "body_sha256": "55eba1b25b251118a8515c38e900750c8370cfa5b55152cab7149b894bfa6cf3"
+    },
+    {
+      "document_id": "5f6ea649-bac9-555c-9b71-eda627d070a0",
+      "version_id": "91a676d3-373e-5637-a0bc-ca590d49c108",
+      "name": "14. 전생의 사건 연표",
+      "source_pointer": "/templates/0/setting_bible/sections/13/content_markdown",
+      "body_sha256": "55f97358719b1d4483086e02f33838c4d84a3061ccf1cde00316038810321fa5"
+    },
+    {
+      "document_id": "4f85573b-92e3-54e4-868b-aafdca247b52",
+      "version_id": "bc998104-9ef7-5657-b3f7-eb4da4d64b6e",
+      "name": "15. 주요 비밀과 공개 순서",
+      "source_pointer": "/templates/0/setting_bible/sections/14/content_markdown",
+      "body_sha256": "f3af4d979db8895fcb5408d6f8a4dac066b5587cd36acd0ce2b47e5b22b34b05"
+    },
+    {
+      "document_id": "f1e1a20c-557e-5a8d-9cdf-4cb58da45716",
+      "version_id": "cbcfe091-f0ed-5411-a46b-b3fa82e0ec78",
+      "name": "16. 장편 전개 구조",
+      "source_pointer": "/templates/0/setting_bible/sections/15/content_markdown",
+      "body_sha256": "c90f4cd5cff1e9d41b43ee62af7581e1feb0864be9f1be0d5a9aa45606c3fb83"
+    },
+    {
+      "document_id": "8dd952c5-476a-5f83-8d94-15b9d965a583",
+      "version_id": "d610f3c2-9379-5315-845d-e6791b9381b3",
+      "name": "17. 관계와 감정의 흐름",
+      "source_pointer": "/templates/0/setting_bible/sections/16/content_markdown",
+      "body_sha256": "2ece42ca76d82527a504ffa3d18c392806e0c0239b341e8b239d663dc0117d4a"
+    },
+    {
+      "document_id": "1f5e572a-45ab-5777-a47f-464b31344631",
+      "version_id": "6d3f52cb-3636-5954-abbf-dc213967ee6d",
+      "name": "18. 반복해서 사용할 장면과 상징",
+      "source_pointer": "/templates/0/setting_bible/sections/17/content_markdown",
+      "body_sha256": "9e292ac0996d6cb944f5dfd2276249a6100e379289a9abb356d3de13bd47b861"
+    },
+    {
+      "document_id": "8ea0452f-6a34-54d6-98e9-d333f426a29a",
+      "version_id": "67c89745-84d7-53f3-aaf7-4b064de867c7",
+      "name": "19. 서술과 분위기",
+      "source_pointer": "/templates/0/setting_bible/sections/18/content_markdown",
+      "body_sha256": "abe0b0f46ea5e9c80eacf4fc0cfa38c62860d812d0d029d92830ae9e575d73fb"
+    },
+    {
+      "document_id": "aab8eda2-fec9-523a-994e-d7743b748854",
+      "version_id": "1925890a-a070-53e2-a15c-4e0c9559b91f",
+      "name": "20. 이야기에서 지켜야 할 설정 규칙",
+      "source_pointer": "/templates/0/setting_bible/sections/19/content_markdown",
+      "body_sha256": "5792cc86c9aa2bbe180d21827791dee82142b4ab7b7c0f57a16be8c268ed0fb4"
+    },
+    {
+      "document_id": "107eb20f-abc6-5ec1-b2eb-28840e36b8a9",
+      "version_id": "536418cf-027e-595a-961c-47db15dec7af",
+      "name": "21. 첫 화 도입 예시",
+      "source_pointer": "/templates/0/setting_bible/sections/20/content_markdown",
+      "body_sha256": "01a3e6ed8c8d4a41275a2fb1c13a728b9673b49a6b2484eda8026279590cb39a"
+    }
+  ],
+  "source_pointer_note": "기존 source_pointer의 /templates/N/ 접두부 이후 경로는 source/template.json의 해당 경로에 대응합니다."
+}

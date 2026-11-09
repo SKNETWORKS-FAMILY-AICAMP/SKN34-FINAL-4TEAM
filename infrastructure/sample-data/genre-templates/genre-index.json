@@ -1,0 +1,115 @@
+{
+  "application_mode": "select_one_genre",
+  "genres": [
+    {
+      "genre_id": "wuxia",
+      "genre_name": "무협",
+      "title": "회귀한 망나니 소공자",
+      "directory": "wuxia",
+      "work_id": "ce5aa438-2b6a-5e63-8582-b5144c73d4be",
+      "world_id": "4fe1e070-e9f4-5d85-8923-c34da0b276e5",
+      "settings": 23,
+      "episodes": 1
+    },
+    {
+      "genre_id": "romance_fantasy",
+      "genre_name": "로맨스 판타지",
+      "title": "악녀는 북부 대공과 계약한다",
+      "directory": "romance_fantasy",
+      "work_id": "24065ef5-90c8-5ede-8b0c-9a4aa80aad91",
+      "world_id": "b96f7f39-02ea-5b33-bcc8-d5234df4b815",
+      "settings": 24,
+      "episodes": 1
+    },
+    {
+      "genre_id": "modern_fantasy",
+      "genre_name": "현대 판타지",
+      "title": "나만 보이는 EX급 성장창",
+      "directory": "modern_fantasy",
+      "work_id": "432a66a1-6f67-5ce2-96d0-491eca37fbe2",
+      "world_id": "6e7238c5-6da9-5b21-bd5c-74a12c7953a0",
+      "settings": 24,
+      "episodes": 1
+    },
+    {
+      "genre_id": "science_fiction",
+      "genre_name": "SF",
+      "title": "폐함의 함장이 된 정비공",
+      "directory": "science_fiction",
+      "work_id": "77e1a51f-be64-5cf0-acaf-eac2b8550678",
+      "world_id": "568970f1-b862-5dd4-bfbb-adea96e17a26",
+      "settings": 24,
+      "episodes": 1
+    },
+    {
+      "genre_id": "alternate_history",
+      "genre_name": "대체역사",
+      "title": "눈 떠 보니 몰락 예정 왕자",
+      "directory": "alternate_history",
+      "work_id": "2854e5cc-d54b-54fd-a116-f97284ccd090",
+      "world_id": "c5d42f50-d2e6-5e25-8a2e-99e68e23ff05",
+      "settings": 24,
+      "episodes": 1
+    },
+    {
+      "genre_id": "game_fantasy",
+      "genre_name": "게임 판타지",
+      "title": "서비스 종료한 게임의 유일한 공략자",
+      "directory": "game_fantasy",
+      "work_id": "c92b1f97-9def-5fff-af04-3b24c6651781",
+      "world_id": "0942bc5d-0aa2-5c59-807f-fa1825735e29",
+      "settings": 24,
+      "episodes": 1
+    },
+    {
+      "genre_id": "fusion_fantasy",
+      "genre_name": "퓨전 판타지",
+      "title": "무림에서 돌아온 마법 아카데미의 낙제생",
+      "directory": "fusion_fantasy",
+      "work_id": "ddbcde17-88ad-5d7f-ba38-00e5102e13af",
+      "world_id": "2d5fd476-d31d-5b35-9e58-e7451014a81a",
+      "settings": 24,
+      "episodes": 1
+    },
+    {
+      "genre_id": "territory_management",
+      "genre_name": "영지물",
+      "title": "망나니 영주는 황무지에 도시를 세운다",
+      "directory": "territory_management",
+      "work_id": "76dc5036-a831-5b10-9a24-0d7112e63a59",
+      "world_id": "5f75d486-b70e-5399-83f5-c49a5a784603",
+      "settings": 23,
+      "episodes": 1
+    },
+    {
+      "genre_id": "apocalypse",
+      "genre_name": "아포칼립스",
+      "title": "멸망 30일 전, 마지막 생존자가 돌아왔다",
+      "directory": "apocalypse",
+      "work_id": "8b37cfa9-160c-5428-a855-c77498e20fc5",
+      "world_id": "3cf7aea1-14ed-58af-9f2e-74f13d171cad",
+      "settings": 23,
+      "episodes": 1
+    },
+    {
+      "genre_id": "sports_fantasy",
+      "genre_name": "스포츠 판타지",
+      "title": "방출된 유망주가 미래의 축구를 안다",
+      "directory": "sports_fantasy",
+      "work_id": "1a021b36-8066-5618-b758-aa29b1d1c0bb",
+      "world_id": "1625407b-9bf9-5946-88c2-ca911a6e1466",
+      "settings": 23,
+      "episodes": 1
+    },
+    {
+      "genre_id": "entertainment",
+      "genre_name": "연예계물",
+      "title": "추락한 천재 배우가 회귀했다",
+      "directory": "entertainment",
+      "work_id": "138eef13-65a9-5ec7-bd54-6202e922c01d",
+      "world_id": "2d96298b-88e4-5737-8efe-a85ee2e2fffe",
+      "settings": 23,
+      "episodes": 1
+    }
+  ]
+}
