@@ -6,7 +6,10 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import App from '../../../../App'
+import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
+import { OperationsError } from '../../../../domain/entities/operations'
+import { kstDateTime } from '../../../shared/format'
 
 // 화면 조립·키보드 포커스 회귀는 CI에서만 실행합니다.
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
@@ -128,5 +131,84 @@ describe('독립 운영 CRUD 화면 (오프라인 데모)', () => {
     expect((screen.getByLabelText('시작 (한국시간)') as HTMLInputElement).value).toBe('')
     fireEvent.click(screen.getByRole('button', { name: '이벤트 삭제' }))
     await screen.findByText('등록된 운영 이벤트가 없어요. 이벤트를 작성해 보세요.')
+  })
+})
+
+// 이벤트 탭은 운영 API(대역: 메모리 저장소)를 쓴다. 실패는 빈 목록·성공으로 숨기지 않고 입력은 지킨다.
+describe('이벤트 운영 API 화면', () => {
+  const repository = () => appContainer.resolve('eventRepository')
+  const useCase = () => appContainer.resolve('eventUseCase')
+  const region = () => screen.getByRole('region', { name: '운영 이벤트' })
+  const seeded: string[] = []
+  const seed = async (title: string, startsAt: string | null, endsAt: string | null) => {
+    const row = await repository().create({ title, body: `${title} 본문`, startsAt, endsAt })
+    seeded.push(row.id)
+    return row
+  }
+  afterEach(async () => { for (const id of seeded.splice(0)) await repository().remove(id).catch(() => {}) })
+
+  it('목록은 진행 상태 칩과 한국시간 기간을 보여 주고 데모 표기가 없다', async () => {
+    await seed('상시 이벤트', null, null)
+    await seed('예정 이벤트', '2999-01-01T00:00:00.000Z', null)
+    await seed('진행 이벤트', '2020-01-01T00:00:00.000Z', null)
+    await seed('종료 이벤트', null, '2020-01-02T00:00:00.000Z')
+    renderAt('/admin?tab=events')
+    for (const [title, chip] of [['상시 이벤트', '상시'], ['예정 이벤트', '예정'], ['진행 이벤트', '진행 중'], ['종료 이벤트', '종료']]) {
+      within(await screen.findByRole('button', { name: new RegExp(title) })).getByText(chip)
+    }
+    within(screen.getByRole('button', { name: /진행 이벤트/ })).getByText(`${kstDateTime('2020-01-01T00:00:00.000Z')} ~ 종료 미정 · 한국시간`)
+    expect(region().textContent).not.toContain('데모')
+    screen.getByText('운영 API 연결')
+  })
+
+  it('저장이 실패하면 입력을 지키고 안내하며, 응답을 기다리는 동안 다시 보낼 수 없다', async () => {
+    let fail!: (error: Error) => void
+    const save = vi.spyOn(useCase(), 'save').mockImplementationOnce(() => new Promise<never>((_, reject) => { fail = reject }))
+    renderAt('/admin?tab=events')
+    fireEvent.click(await screen.findByRole('button', { name: '이벤트 작성' }))
+    fill('이벤트 제목', '실패해도 남을 제목')
+    fill('이벤트 내용', '첫 줄\n둘째 줄')
+    fill('시작 (한국시간)', '2026-11-05T10:00')
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: '저장 중…' }).closest('fieldset')?.disabled).toBe(true))
+    fireEvent.click(screen.getByRole('button', { name: '저장 중…' }))
+    expect(save).toHaveBeenCalledTimes(1)
+    fail(new OperationsError('이 작업을 할 권한이 없어요.'))
+    await within(region()).findByText('이 작업을 할 권한이 없어요.')
+    expect((screen.getByLabelText('이벤트 제목') as HTMLInputElement).value).toBe('실패해도 남을 제목')
+    expect((screen.getByLabelText('이벤트 내용') as HTMLTextAreaElement).value).toBe('첫 줄\n둘째 줄')
+    expect((screen.getByLabelText('시작 (한국시간)') as HTMLInputElement).value).toBe('2026-11-05T10:00')
+    expect(screen.getByRole('button', { name: '이벤트 저장' }).closest('fieldset')?.disabled).toBe(false)
+    expect(await repository().listAdmin()).toEqual([])
+  })
+
+  it('목록을 불러오지 못하면 빈 목록으로 숨기지 않고 다시 불러오기로 복구한다', async () => {
+    await seed('복구 이벤트', null, null)
+    const list = vi.spyOn(useCase(), 'listAdmin').mockRejectedValueOnce(new Error('boom'))
+    renderAt('/admin?tab=events')
+    await screen.findByText(/이벤트 목록을 불러오지 못했어요/)
+    expect(screen.queryByText('등록된 운영 이벤트가 없어요. 이벤트를 작성해 보세요.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByRole('button', { name: /복구 이벤트/ })
+    expect(list).toHaveBeenCalledTimes(2)
+  })
+
+  it('삭제는 확인을 거치고 서버가 거절하면 안내하며 이벤트를 남기고, 성공하면 공개 목록에서도 사라진다', async () => {
+    const row = await seed('삭제 대상', null, null)
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    renderAt('/admin?tab=events')
+    fireEvent.click(await screen.findByRole('button', { name: /삭제 대상/ }))
+    fireEvent.click(await screen.findByRole('button', { name: '이벤트 삭제' }))
+    expect(confirm).toHaveBeenCalledTimes(1)
+    expect(await repository().getPublic(row.id)).not.toBeNull()
+    confirm.mockReturnValue(true)
+    vi.spyOn(useCase(), 'remove').mockRejectedValueOnce(new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'))
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 삭제' }))
+    await within(region()).findByText('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.')
+    screen.getByRole('heading', { name: '삭제 대상' })
+    expect(await repository().getPublic(row.id)).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 삭제' }))
+    await screen.findByText('등록된 운영 이벤트가 없어요. 이벤트를 작성해 보세요.')
+    expect(await useCase().listPublic()).toEqual([])
   })
 })

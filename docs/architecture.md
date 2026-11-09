@@ -8,6 +8,8 @@
 
 [Operations API 인계](../backend/operations-service/README.md)는 `/api/v1/operations/{notices,events,inquiries}` 및 문의 하위 답변의 UUID CRUD를 정의한다. 각 리소스의 `Controller → Service → JpaRepository`와 명시적 DTO를 사용하고 `X-Operations-Service-Token`으로 모든 운영 접근을 보호한다. 설정이 없거나 공백뿐이면 거절하며 서비스 자격을 사람의 관리자·회원 신원/소유권으로 해석하지 않는다. 쿠키/세션·브라우저 직접 연결·Core/Content 호출은 없다.
 
+이 서비스 토큰 경로와 별도로, 브라우저용 회원 Bearer 경로(신고·회원·관리자, [계약](design/operations-member-report-contract.md))와 이벤트 관리자 `/api/v1/operations/admin/events`·독자 공개 GET `/api/v1/operations/public/events`([이벤트 계약](design/operations-event-contract.md))가 있다. nginx/Vite는 이 하위 경로만 운영 서비스로 열고 서비스 토큰 경로는 열지 않는다.
+
 기존 PostgreSQL에서 `operations` schema와 `operations.operations_flyway_schema_history`를 독립 소유한다. V1 공지·V2 이벤트·V3 문의/답변만 운영 location에서 적용하고 다른 서비스 이력을 재실행하지 않는다. JPA `validate`/UTC/`@Version`, 기본 20·최대 100개 고정 정렬 목록과 안전한 400/404/409를 사용한다. 공개 게시·이벤트 진행 상태·내 문의·처리 상태·알림·사람별 관리자 권한·배포는 제외한다.
 
 선택 순수 단위만 로컬 실행하며 Spring/HTTP/PostgreSQL/Flyway 통합은 CI의 Operations job에서 격리 DB로 실행하도록 구성한다. 실제 hosted `Required CI` 결과와 DB 적용·배포는 아직 확인하지 않았고 기능표는 ❌를 유지한다. 아래 기존 Core/Content 본문은 상단 고지대로 분리 전 역사 설명이다.

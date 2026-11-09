@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
 import { Cov } from '../../../shared/art'
+import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { openPolicy } from '../../../shared/events'
+import { kstPeriod } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
@@ -43,9 +45,9 @@ function Account({ sub }: { sub: string }) {
   useDocumentTitle(TITLE[sub] ?? '계정')
   const [q] = useSearchParams()
   const id = q.get('id')
-  const NOTICE = vm.data?.board?.notices ?? [], EVENTS = vm.data?.board?.events ?? []
+  const NOTICE = vm.data?.board?.notices ?? []
   let T: ReactNode = null
-  if (!vm.data && ['liked', 'notice', 'event'].includes(sub)) T = null
+  if (!vm.data && ['liked', 'notice'].includes(sub)) T = null
   else if (sub === 'profile') T = vm.profileState === 'ready' ? <Profile vm={vm} /> : <section className="tcard mecard" aria-busy={vm.profileState === 'loading'}>
     <p role={vm.profileState === 'error' ? 'alert' : 'status'}>{vm.profileState === 'loading' ? '프로필을 불러오고 있어요.' : '프로필을 불러오지 못했어요. 다시 시도해 주세요.'}</p>
     {vm.profileState === 'error' && <button type="button" className="btn" onClick={vm.retryProfile}>프로필 다시 시도</button>}
@@ -65,13 +67,7 @@ function Account({ sub }: { sub: string }) {
     T = n ? <><h2>공지사항</h2><article className="tcard mecard"><Go to="/me/notice" className="btn sm">← 목록으로</Go><small className="muted">{n[0]}</small><h3>{n[1]}</h3><p>{n[2]}</p></article></>
       : <><h2>공지사항</h2><p className="note2">공지사항을 찾을 수 없어요.</p><Go to="/me/notice" className="btn sm">목록으로</Go></>
   } else if (sub === 'notice') T = <><h2>공지사항</h2><div className="list">{NOTICE.map((n, i) => <Link key={i} className="ntc" to={`/me/notice?id=${i}`}><b>{n[1]}</b><small>{n[0]}</small></Link>)}</div></>
-  else if (sub === 'event' && id !== null) {
-    const e = EVENTS[Number(id)]
-    T = e ? <><h2>이벤트</h2><article className="tcard mecard" style={{ maxWidth: 740 }}><Go to="/me/event" className="btn sm">← 목록으로</Go><div className="top"><span className={`chip ${e.st === '진행 중' ? 'ok' : 'wait'}`}>{e.st}</span><small className="muted">{e.p}</small></div><h3>{e.t}</h3><p>{e.d}</p><Go to={e.go} className={`btn ${e.st === '진행 중' ? 'pri' : ''}`}>{e.cta} →</Go></article></>
-      : <><h2>이벤트</h2><p className="note2">이벤트를 찾을 수 없어요.</p><Go to="/me/event" className="btn sm">목록으로</Go></>
-  } else if (sub === 'event') T = <><h2>이벤트 <span className="demo">데모</span></h2><div className="evg">{EVENTS.map((e, i) => (
-    <div className="tcard evc" key={i}><Link className="evmain" to={`/me/event?id=${i}`}><div className="top"><span className={`chip ${e.st === '진행 중' ? 'ok' : 'wait'}`}>{e.st}</span><small className="muted">{e.p}</small></div><b>{e.t}</b><p>{e.d}</p></Link><Go to={e.go} className={`btn sm ${e.st === '진행 중' ? 'pri' : ''}`}>{e.cta} →</Go></div>
-  ))}</div><p className="note2" style={{ marginTop: 12 }}>보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.</p></>
+  else if (sub === 'event') T = <EventBoard vm={vm} id={id} />
   return (
     <>
       <Gnb on="me" />
@@ -79,6 +75,24 @@ function Account({ sub }: { sub: string }) {
       <Footer />
     </>
   )
+}
+
+const CLAMP: CSSProperties = { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }
+const PROSE: CSSProperties = { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }
+
+/** U35E 이벤트: 운영 공개 API의 목록과 UUID 상세. 참여·보상·기능 이동은 연결하지 않았습니다. */
+function EventBoard({ vm, id }: { vm: VM; id: string | null }) {
+  if (vm.loadFailed) return <><h2>이벤트</h2><p role="alert">이벤트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn" onClick={vm.retryLoad}>다시 불러오기</button></>
+  if (!vm.data) return <><h2>이벤트</h2><p role="status" className="note2">이벤트를 불러오고 있어요.</p></>
+  const { events, event } = vm.data
+  if (id !== null) return event
+    ? <><h2>이벤트</h2><article className="tcard mecard" style={{ maxWidth: 740 }}><Go to="/me/event" className="btn sm">← 목록으로</Go><div className="top"><EventStatusChip status={vm.eventStatusNow(event)} /><small className="muted">{kstPeriod(event)}</small></div><h3>{event.title}</h3><p style={PROSE}>{event.body}</p></article></>
+    : <><h2>이벤트</h2><p className="note2">이벤트를 찾을 수 없어요.</p><Go to="/me/event" className="btn sm">목록으로</Go></>
+  return <><h2>이벤트</h2>{events.length
+    ? <div className="evg">{events.map((e) => (
+      <div className="tcard evc" key={e.id}><Link className="evmain" to={`/me/event?id=${e.id}`}><div className="top"><EventStatusChip status={vm.eventStatusNow(e)} /><small className="muted">{kstPeriod(e)}</small></div><b>{e.title}</b><p style={CLAMP}>{e.body}</p></Link></div>
+    ))}</div>
+    : <p className="note2">등록된 이벤트가 없어요.</p>}<p className="note2" style={{ marginTop: 12 }}>보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.</p></>
 }
 
 function Profile({ vm }: { vm: VM }) {

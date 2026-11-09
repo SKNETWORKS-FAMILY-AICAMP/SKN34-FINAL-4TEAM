@@ -5,8 +5,10 @@ import { useLogout } from '../../../shared/session/useLogout'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector, type RootState } from '../../../../app/store'
 import type { AdminTab } from '../../../../domain/entities/admin'
+import { eventStatus, type EventPeriod } from '../../../../domain/entities/event'
 import { OperationsError, toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
 import type { AdminResult, AdminUseCase } from '../../../../domain/usecases/AdminUseCase'
+import type { EventUseCase } from '../../../../domain/usecases/EventUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
 import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
 import type { ReportStatus, ReviewDecision } from '../../../../domain/entities/report'
@@ -24,7 +26,7 @@ export type AdminActionState = { pending: boolean; error: string; message: strin
 const demoSaved = (name: string) => ({ ok: true, msg: `${name} 저장했어요 (독립 운영 데모 · 서버 저장 없음)` })
 const demoDeleted = (name: string) => ({ ok: true, msg: `${name} 삭제했어요 (독립 운영 데모 · 서버 삭제 없음)` })
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'profile']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'events', 'profile']
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
 const STATUSES: ReportStatus[] = ['RECEIVED', 'ACCEPTED', 'REJECTED']
 
@@ -35,6 +37,7 @@ export function useAdminViewModel(
   operationsUseCase: OperationsUseCase = appContainer.resolve('operationsUseCase'),
   memberUseCase: MemberUseCase = appContainer.resolve('memberUseCase'),
   reportUseCase: ReportUseCase = appContainer.resolve('reportUseCase'),
+  eventUseCase: EventUseCase = appContainer.resolve('eventUseCase'),
 ) {
   const dispatch = useAppDispatch()
   const store = useStore<RootState>()
@@ -59,7 +62,8 @@ export function useAdminViewModel(
     admins: tab === 'admins' ? await memberUseCase.listAdmins() : [],
     // 개요의 '접수된 신고' 수도 실제 신고 목록에서 셉니다.
     reports: tab === 'rights' ? await reportUseCase.listAll(status) : tab === 'data' ? await reportUseCase.listAll('RECEIVED') : [],
-  }), [tab, role, q, sort, status, memberUseCase, reportUseCase])
+    events: tab === 'events' ? await eventUseCase.listAdmin() : [],
+  }), [tab, role, q, sort, status, memberUseCase, reportUseCase, eventUseCase])
   const reportId = tab === 'rights' ? sel : null
   const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
   const busy = useRef(new Set<string>())
@@ -101,6 +105,8 @@ export function useAdminViewModel(
     /** 본인 계정 조치 버튼을 막는 화면용 값. 서버도 본인 제한을 400으로 거절합니다. */
     selfId: memberId,
     me,
+    /** 이벤트 기간으로 계산한, 지금 시각 기준 진행 상태(브라우저 시계). */
+    eventStatusNow: (event: EventPeriod) => eventStatus(event, new Date()),
     live: {
       ...live, report,
       setMemberRestriction: (id: string, restricted: boolean) => runLive(`member:${id}`, restricted ? '회원 이용을 제한했어요.' : '회원 이용 제한을 해제했어요.', () => memberUseCase.setRestriction(id, restricted)),
@@ -144,22 +150,22 @@ export function useAdminViewModel(
       return demoDeleted('공지를')
     }),
     saveEvent: (id: string | null, input: EventDraft) => run(`event:${id ?? 'new'}`, async () => {
-      const row = await operationsUseCase.saveEvent(id, { title: input.title, body: input.body, startsAt: toUtcFromKoreanInput(input.startsAt), endsAt: toUtcFromKoreanInput(input.endsAt) })
+      const row = await eventUseCase.save(id, { title: input.title, body: input.body, startsAt: toUtcFromKoreanInput(input.startsAt), endsAt: toUtcFromKoreanInput(input.endsAt) })
       const current = store.getState().adminView
       const draft = current.eventDrafts[id ?? 'new']
       if (mounted.current && current.recordSelection.events === (id ?? 'new') && draft === view.eventDrafts[id ?? 'new'] && (!draft || draft.title === input.title && draft.body === input.body && draft.startsAt === input.startsAt && draft.endsAt === input.endsAt)) {
         dispatch(adminViewActions.clearEventDraft(id ?? 'new')); selectRecord('events', row.id)
       }
-      return demoSaved('이벤트를')
+      return { ok: true, msg: id ? '이벤트를 수정했어요.' : '이벤트를 등록했어요.' }
     }),
     deleteEvent: (id: string) => run(`event:${id}`, async () => {
       const draft = store.getState().adminView.eventDrafts[id]
-      await operationsUseCase.deleteEvent(id)
+      await eventUseCase.remove(id)
       const current = store.getState().adminView
       if (mounted.current && current.recordSelection.events === id && current.eventDrafts[id] === draft) {
         dispatch(adminViewActions.clearEventDraft(id)); selectRecord('events', null)
       }
-      return demoDeleted('이벤트를')
+      return { ok: true, msg: '이벤트를 삭제했어요.' }
     }),
     saveInquiry: (id: string | null, input: InquiryInput) => run(`inquiry:${id ?? 'new'}`, async () => {
       const row = await operationsUseCase.saveInquiry(id, input)

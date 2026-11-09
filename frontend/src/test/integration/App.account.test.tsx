@@ -149,9 +149,44 @@ describe('계정 (U30~U35E)', () => {
     fireEvent.click(await screen.findByRole('link', { name: /포크 이용 안내/ }))
     await screen.findByRole('heading', { name: '포크 이용 안내' })
     cleanup()
-    const { store } = renderAt('/me/event', null)
-    await waitFor(() => expect(store.getState().ui.screen.base).toBe('U35E'))
-    screen.getByText('보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.')
+    // 운영 이벤트 공개 API의 대역(메모리 저장소)에 이벤트를 등록해 두고 비로그인으로 목록→상세를 연다.
+    const events = appContainer.resolve('eventRepository')
+    const saved = await events.create({ title: '가을 맞이 이벤트', body: '첫 줄\n둘째 줄', startsAt: '2026-11-01T00:00:00.000Z', endsAt: null })
+    try {
+      const { store } = renderAt('/me/event', null)
+      await waitFor(() => expect(store.getState().ui.screen.base).toBe('U35E'))
+      await screen.findByText('보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.')
+      fireEvent.click(await screen.findByRole('link', { name: /가을 맞이 이벤트/ }))
+      await screen.findByRole('heading', { name: '가을 맞이 이벤트' })
+      expect(where()).toBe(`/me/event?id=${saved.id}`)
+      screen.getByText('진행 중')
+      expect(screen.getByText(/첫 줄/).textContent).toBe('첫 줄\n둘째 줄')
+      expect(screen.queryByRole('link', { name: /서비스 둘러보기/ })).toBeNull()
+    } finally { await events.remove(saved.id) }
+  })
+
+  it('이벤트가 없으면 빈 안내를, 불러오기에 실패하면 실패를 알리고 다시 불러오기로 복구한다', async () => {
+    const events = appContainer.resolve('eventUseCase')
+    renderAt('/me/event', null)
+    await screen.findByText('등록된 이벤트가 없어요.')
+    cleanup()
+    const list = vi.spyOn(events, 'listPublic').mockRejectedValueOnce(new Error('boom'))
+    renderAt('/me/event', null)
+    await screen.findByRole('alert')
+    expect(screen.queryByText('등록된 이벤트가 없어요.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByText('등록된 이벤트가 없어요.')
+    expect(list).toHaveBeenCalledTimes(2)
+    list.mockRestore()
+  })
+
+  it('없는 이벤트 UUID와 옛 데모 링크(?id=0)는 찾을 수 없다고 안내한다', async () => {
+    renderAt('/me/event?id=0', null)
+    await screen.findByText('이벤트를 찾을 수 없어요.')
+    cleanup()
+    renderAt('/me/event?id=0b6f3e5a-2c9d-4c0e-9a55-1f6f6d1f7a01', null)
+    await screen.findByText('이벤트를 찾을 수 없어요.')
+    expect(screen.getByRole('link', { name: '목록으로' }).getAttribute('href')).toBe('/me/event')
   })
 
   it('관심 소설은 처음 누른 순서대로 보인다 (목업 Object.keys(S.liked))', async () => {

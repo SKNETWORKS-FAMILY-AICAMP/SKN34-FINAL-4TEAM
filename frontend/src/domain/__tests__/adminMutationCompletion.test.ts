@@ -9,7 +9,9 @@ import type { RootState } from '../../app/store'
 const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
   admin: { chatChoices: vi.fn(), addNotice: vi.fn(), addEvent: vi.fn(), reply: vi.fn() },
-  operations: { saveNotice: vi.fn(), deleteNotice: vi.fn(), saveEvent: vi.fn(), deleteEvent: vi.fn(), saveInquiry: vi.fn(), deleteInquiry: vi.fn(), saveReply: vi.fn(), deleteReply: vi.fn() },
+  operations: { saveNotice: vi.fn(), deleteNotice: vi.fn(), saveInquiry: vi.fn(), deleteInquiry: vi.fn(), saveReply: vi.fn(), deleteReply: vi.fn() },
+  // 이벤트 탭은 운영 API의 EventUseCase를 호출한다(운영 메모리 저장소 아님).
+  event: { save: vi.fn(), remove: vi.fn() },
 }))
 vi.mock('react', () => ({
   useRef: <T>(current: T) => ({ current }),
@@ -17,7 +19,7 @@ vi.mock('react', () => ({
   useEffect: (setup: () => (() => void)) => { doubles.cleanups.push(setup()) },
 }))
 vi.mock('react-redux', () => ({ useStore: () => ({ getState: doubles.getState }) }))
-vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => name === 'adminUseCase' ? doubles.admin : doubles.operations } }))
+vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => name === 'adminUseCase' ? doubles.admin : name === 'eventUseCase' ? doubles.event : doubles.operations } }))
 vi.mock('../../app/store', () => ({ useAppDispatch: () => doubles.dispatch, useAppSelector: (select: (state: RootState) => unknown) => select(doubles.getState()) }))
 vi.mock('../../presentation/shared/session/useLogout', () => ({ useLogout: () => vi.fn() }))
 vi.mock('../../presentation/shared/screenIds', () => ({ useScreenId: vi.fn() }))
@@ -43,15 +45,15 @@ const notice = { title: '제출한 제목', body: '제출한 본문' }
 const event = { ...notice, startsAt: '', endsAt: '' }
 const inquiry = { ...notice, category: '계정' }
 const replyKey = 'question:reply'
-const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: keyof typeof doubles.operations | keyof typeof doubles.admin; other?: (vm: VM) => void }[] = [
+const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: keyof typeof doubles.operations | keyof typeof doubles.admin | keyof typeof doubles.event; other?: (vm: VM) => void }[] = [
   ...(['new', 'existing'] as const).flatMap((id) => [
     { name: `notice save ${id}`, method: 'saveNotice' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('notices', id); vm.setNoticeDraft(id, { ...notice, body: changed ? '새 본문' : notice.body }) }, submit: (vm: VM) => vm.saveNotice(id === 'new' ? null : id, notice), other: (vm: VM) => vm.selectRecord('notices', 'other') },
-    { name: `event save ${id}`, method: 'saveEvent' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('events', id); vm.setEventDraft(id, { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm: VM) => vm.saveEvent(id === 'new' ? null : id, event), other: (vm: VM) => vm.selectRecord('events', 'other') },
+    { name: `event save ${id}`, method: 'save' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('events', id); vm.setEventDraft(id, { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm: VM) => vm.saveEvent(id === 'new' ? null : id, event), other: (vm: VM) => vm.selectRecord('events', 'other') },
     { name: `inquiry save ${id}`, method: 'saveInquiry' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('inquiries', id); vm.setInquiryDraft(id, { ...inquiry, body: changed ? '새 본문' : inquiry.body }) }, submit: (vm: VM) => vm.saveInquiry(id === 'new' ? null : id, inquiry), other: (vm: VM) => vm.selectRecord('inquiries', 'other') },
     { name: `reply save ${id}`, method: 'saveReply' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('inquiries', 'question'); vm.setReplyDraft(`question:${id}`, changed ? '새 답변' : '제출한 답변') }, submit: (vm: VM) => vm.saveReply('question', id === 'new' ? null : id, '제출한 답변'), other: (vm: VM) => vm.selectRecord('inquiries', 'other') },
   ]),
   { name: 'notice delete', method: 'deleteNotice', prepare: (vm, changed = false) => { vm.selectRecord('notices', 'existing'); vm.setNoticeDraft('existing', { ...notice, body: changed ? '새 본문' : notice.body }) }, submit: (vm) => vm.deleteNotice('existing'), other: (vm) => vm.selectRecord('notices', 'other') },
-  { name: 'event delete', method: 'deleteEvent', prepare: (vm, changed = false) => { vm.selectRecord('events', 'existing'); vm.setEventDraft('existing', { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm) => vm.deleteEvent('existing'), other: (vm) => vm.selectRecord('events', 'other') },
+  { name: 'event delete', method: 'remove', prepare: (vm, changed = false) => { vm.selectRecord('events', 'existing'); vm.setEventDraft('existing', { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm) => vm.deleteEvent('existing'), other: (vm) => vm.selectRecord('events', 'other') },
   { name: 'inquiry delete', method: 'deleteInquiry', prepare: (vm, changed = false) => { vm.selectRecord('inquiries', 'existing'); vm.setInquiryDraft('existing', { ...inquiry, body: changed ? '새 본문' : inquiry.body }); vm.setReplyDraft('existing:new', changed ? '새 답변' : '기존 답변') }, submit: (vm) => vm.deleteInquiry('existing'), other: (vm) => vm.selectRecord('inquiries', 'other') },
   { name: 'reply delete', method: 'deleteReply', prepare: (vm, changed = false) => { vm.selectRecord('inquiries', 'question'); vm.setReplyDraft(replyKey, changed ? '새 답변' : '기존 답변') }, submit: (vm) => vm.deleteReply('question', 'reply'), other: (vm) => vm.selectRecord('inquiries', 'other') },
   { name: 'legacy notice', method: 'addNotice', prepare: (vm, changed = false) => { vm.setLegacyDraft('notice', 'title', notice.title); vm.setLegacyDraft('notice', 'body', changed ? '새 본문' : notice.body) }, submit: async (vm) => { const ok = await vm.addNotice(notice.title, notice.body); if (ok) vm.clearLegacyDraft('notice'); return ok } },
@@ -62,8 +64,8 @@ const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submi
 function useStartedSubmission(test: typeof cases[number]) {
   let finish!: (result: { id: string; ok: boolean; msg: string }) => void
   const response = new Promise<{ id: string; ok: boolean; msg: string }>((done) => { finish = done })
-  const method = test.method in doubles.operations ? doubles.operations[test.method as keyof typeof doubles.operations] : doubles.admin[test.method as keyof typeof doubles.admin]
-  method.mockReturnValueOnce(response)
+  const target = [doubles.operations, doubles.event, doubles.admin].find((double) => test.method in double) as Record<string, ReturnType<typeof vi.fn>>
+  target[test.method].mockReturnValueOnce(response)
   let vm = useAdminViewModel('notices')
   test.prepare(vm)
   // 실제 View가 제출한 렌더의 vm을 보존하듯, 최신 선택/초안을 읽은 callback을 보존합니다.
@@ -94,7 +96,7 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
     expect(dataVersion).toBe(1)
   })
 
-  if (['saveNotice', 'saveEvent', 'saveInquiry'].includes(test.method)) it('제출 뒤 동일 내용으로 다시 만든 새 초안도 오래된 완료가 지우지 않는다', async () => {
+  if (['saveNotice', 'save', 'saveInquiry'].includes(test.method)) it('제출 뒤 동일 내용으로 다시 만든 새 초안도 오래된 완료가 지우지 않는다', async () => {
     const request = useStartedSubmission(test)
     test.prepare(request.vm)
     const expected = view

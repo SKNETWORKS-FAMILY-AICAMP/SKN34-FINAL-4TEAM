@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { SessionExpired } from '../../../../domain/repositories/ProfileRepository'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import { checkProfile } from '../../../../domain/entities/account'
+import { eventStatus, type EventPeriod } from '../../../../domain/entities/event'
 import type { AccountUseCase } from '../../../../domain/usecases/AccountUseCase'
+import type { EventUseCase } from '../../../../domain/usecases/EventUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
 /** 목업 mePage(sub)·saveProfile·#suf·#iqf·withdrawSheet: U30~U35E 계정 */
-export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase')) {
+export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase'), eventUseCase: EventUseCase = appContainer.resolve('eventUseCase')) {
   const { role, user } = useAppSelector((s) => s.session)
   const dispatch = useAppDispatch()
   const profileUseCase = appContainer.resolve('profileUseCase')
@@ -43,15 +46,23 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
     return () => { request.abort(); controller.current = null }
   }, [sub, role, dispatch, profileUseCase, profileAttempt])
   useScreenId(sub === 'liked' ? 'U32' : sub === 'pay' ? 'U33' : sub === 'inquiry' ? 'U34' : sub === 'notice' ? 'U35' : sub === 'event' ? 'U35E' : 'U30')
-  const { data } = useAsyncData(async () => ({
+  // 이벤트는 운영 공개 API로 읽는다: ?id=가 없으면 목록, 있으면 그 UUID의 상세. 비로그인도 열람한다.
+  const eventId = useSearchParams()[0].get('id')
+  const eventKey = sub === 'event' ? eventId : null
+  const { data, isError, retry } = useAsyncData(async () => ({
     sub,
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
     storage: sub === 'storage' ? await accountUseCase.storage() : null,
     inquiries: sub === 'inquiry' ? await accountUseCase.inquiries() : [],
-    board: sub === 'notice' || sub === 'event' ? await accountUseCase.board() : null,
-  }), [accountUseCase, sub])
+    board: sub === 'notice' ? await accountUseCase.board() : null,
+    events: sub === 'event' && eventKey === null ? await eventUseCase.listPublic() : [],
+    event: sub === 'event' && eventKey !== null ? await eventUseCase.getPublic(eventKey) : null,
+  }), [accountUseCase, eventUseCase, sub, eventKey])
   return {
     role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, data: data?.sub === sub ? data : undefined,
+    loadFailed: isError, retryLoad: retry,
+    /** 이벤트 기간으로 계산한, 지금 시각 기준 진행 상태(브라우저 시계). */
+    eventStatusNow: (event: EventPeriod) => eventStatus(event, new Date()),
     retryProfile: () => setProfileAttempt((attempt) => attempt + 1),
     saveProfile: async (nick: string, email: string) => {
       const err = checkProfile(nick, email)

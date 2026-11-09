@@ -24,8 +24,8 @@ it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로
   expect(screen.getByText('운영 API 연결')).toBeTruthy()
 })
 
-// users·admins 표는 운영 API 응답이 있어야 그려지므로 렌더 통합 대상에서 뺍니다.
-it.each(['data', 'rights', 'llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'events', 'notices', 'credits'])(
+// users·admins 표는 운영 API 응답이 있어야 그려지므로 렌더 통합 대상에서 뺍니다. events는 표 없이 목록·폼만 있는 운영 API 패널입니다.
+it.each(['data', 'rights', 'llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'notices', 'credits'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
     renderAdmin(tab)
