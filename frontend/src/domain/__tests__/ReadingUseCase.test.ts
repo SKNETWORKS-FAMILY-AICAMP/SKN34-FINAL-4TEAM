@@ -129,7 +129,7 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(r.previous).toBe(2)
     expect(r.next).toBeNull()
     expect(r.paragraphs[0][0]).toEqual({ t: '정오가 지나자 재의 왕국의 사절단이 탑 앞에 도착했다.', pi: 0 })
-    expect(r.recordFailed).toBe(false)
+    await expect(r.recording).resolves.toBeUndefined()
     expect(server.repository.record).toHaveBeenCalledWith('starlight', 3)
     expect(server.current()[0]).toEqual({ workId: 'starlight', lastEpisode: 3, readEpisodes: [1, 3] })
     expect((await useCase.getHome('user', '추천')).continueReading).toMatchObject({ work: { id: 'starlight' }, episode: 3 })
@@ -146,8 +146,9 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
   it('비회원이 열면 읽기만 하고 서버에 기록하지 않는다', async () => {
     const { server, useCase } = fakes()
     const r = await useCase.openEpisode('starlight', 3, null)
-    expect(r && r !== 'hidden' && r.n).toBe(3)
-    expect(r && r !== 'hidden' && r.recordFailed).toBe(false)
+    if (!r || r === 'hidden') throw new Error('episode')
+    expect(r.n).toBe(3)
+    await expect(r.recording).resolves.toBeUndefined()
     expect(server.repository.record).not.toHaveBeenCalled()
   })
 
@@ -158,9 +159,20 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     if (!r || r === 'hidden') throw new Error('episode')
     expect(r.n).toBe(3)
     expect(r.paragraphs.length).toBeGreaterThan(0)
-    expect(r.recordFailed).toBe(true)
+    await expect(r.recording).rejects.toThrow('offline')
     expect(server.current().find((x) => x.workId === 'starlight')).toEqual({ workId: 'starlight', lastEpisode: 1, readEpisodes: [1] })
   })
+
+  it('기록 저장이 끝나기를 기다리지 않고 회차를 먼저 돌려주며, 저장 결과는 recording으로 받는다', async () => {
+    const { server, useCase } = fakes()
+    let finish = () => {}
+    vi.mocked(server.repository.record).mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve }))
+    const r = await useCase.openEpisode('starlight', 3, 'user')
+    if (!r || r === 'hidden') throw new Error('episode')
+    expect(r.n).toBe(3)
+    finish()
+    await expect(r.recording).resolves.toBeUndefined()
+  }, 1000)
 
   it('범위를 벗어난 회차는 마지막 회차로, 숨긴 회차는 기록 없이 hidden으로 돌려준다', async () => {
     const { works, server, useCase } = fakes()
@@ -187,7 +199,9 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect((await useCase.getHome('user', '추천')).continueReading).toBeNull()
     expect(await useCase.getWork('guunmong', 'user')).toMatchObject({ last: undefined, read: [] })
     const r = await useCase.openEpisode('starlight', 3, 'user')
-    expect(r && r !== 'hidden' && [r.n, r.recordFailed]).toEqual([3, false])
+    if (!r || r === 'hidden') throw new Error('episode')
+    expect(r.n).toBe(3)
+    await expect(r.recording).resolves.toBeUndefined()
   })
 
   it('관심 소설을 토글한다', async () => {

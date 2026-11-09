@@ -27,6 +27,13 @@ describe('회차 뷰어의 독서 기록', () => {
     expect((await records().list()).some((r) => r.workId === 'postman')).toBe(false)
   })
 
+  it('기록 저장이 끝나기를 기다리지 않고 회차를 바로 보여 주며, 저장 중에는 실패도 알리지 않는다', async () => {
+    vi.spyOn(records(), 'record').mockReturnValue(new Promise<void>(() => {}))
+    renderApp('/read/postman/1', createAppStore({ role: 'user' }))
+    await screen.findByRole('heading', { name: '수취인 불명' })
+    expect(screen.queryByText(/저장하지 못했어요/)).toBeNull()
+  })
+
   it('정본 작품의 안내는 읽은 회차가 계정에 저장되고 관심 표시만 이 창에 남는다고 말한다', async () => {
     const work = appContainer.resolve('mockDb').works.find((w) => w.id === 'postman')!
     work.canonical = true

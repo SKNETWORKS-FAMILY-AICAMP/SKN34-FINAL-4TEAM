@@ -122,7 +122,8 @@ export class ReadingUseCase {
 
   /**
    * 목업 reader(): 회차를 열면서 이어 읽기와 읽음을 서버 독서 기록에 남깁니다. 볼 수 없는 작품은 null,
-   * 숨긴 회차는 'hidden'(상세로 보냄)입니다. 기록 실패는 읽기를 막지 않되 숨기지 않고 recordFailed로 알립니다.
+   * 숨긴 회차는 'hidden'(상세로 보냄)입니다. 기록은 기다리지 않고 회차를 먼저 돌려주며, 저장 결과는 recording으로 받습니다
+   * (실패하면 reject하므로 호출자가 알려야 합니다. 기록하지 않는 경우는 바로 끝납니다).
    */
   async openEpisode(id: string, at: number, role: Role) {
     const { works, worlds, w: loaded } = await this.load(id)
@@ -136,8 +137,8 @@ export class ReadingUseCase {
     const shown = eps.map((e, i) => [e, i + 1] as const).filter(([e]) => visibleEpisode(w, e, role)).map(([, i]) => i)
     // 로그인 회원이 공개 작품(상속 회차 포함)의 회차를 열면 기록한다. 이어 읽기 위치는 최댓값이 아니라 방금 연 회차다.
     // 비회원·작가가 자기 비공개 작품을 미리 읽을 때는 서버가 404로 거절하므로 보내지 않는다.
-    let recordFailed = false
-    if (role && this.readingRecordRepository && isPub(w)) await this.readingRecordRepository.record(w.id, n).catch(() => { recordFailed = true })
+    const recording = role && this.readingRecordRepository && isPub(w) ? this.readingRecordRepository.record(w.id, n) : Promise.resolve()
+    recording.catch(() => {}) // 호출자가 recording을 받지 않아도 처리되지 않은 reject 경고가 나지 않게 한다.
     // 로그인 회원이 서버 작품의 자체 회차를 열면 그 회차의 조회를 기록한다(상속 회차는 원작 몫). 소유자가 여는 비공개 작품은
     // 서버가 404로 거절하므로 공개 작품만 보낸다. 실패는 읽기를 막지 않는다.
     if (role && w.canonical && isPub(w) && n > (w.snap?.eps.length ?? 0)) this.workSearchRepository?.recordView(w.id, n).catch(() => {})
@@ -150,7 +151,7 @@ export class ReadingUseCase {
       next: shown.find((i) => i > n) ?? null,
       forks: w.parent ? [] : forksOf(works, id).filter((f) => f.forkAt === n),
       canFork: forkOK(w, n, worlds),
-      recordFailed,
+      recording,
     }
   }
 
