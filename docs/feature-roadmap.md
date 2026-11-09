@@ -178,13 +178,13 @@
 <tr><td>동일 key·입력 재시도로 관계 저장을 한 번만 완료</td><td>❌ <small>(선택 단위 확인·CI 대기)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132">#132</a></td></tr>
 <tr><td>저장소 간 미완료·관계 token 불일치를 조회 성공으로 숨기지 않음</td><td>❌ <small>(선택 단위 확인·CI 대기)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132">#132</a></td></tr>
 <tr><td>미전환 기존 세계관의 관계 조회에 migration_required 안내</td><td>❌ <small>(선택 단위 확인·실제 이관 미승인)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132">#132</a></td></tr>
-<tr><td rowspan="11">작품 관리</td><td rowspan="11">09 작품 CRUD</td><td>작품 생성</td><td>❌</td><td rowspan="11"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/108">#108</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/102">PR #102</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
-<tr><td>작품 유형 선택·저장</td><td>❌ <small>(Content 통합·최신 Required CI 확인 대기)</small></td></tr>
-<tr><td>승인 장르 1~2개 선택·저장</td><td>❌ <small>(Content 통합·최신 Required CI 확인 대기)</small></td></tr>
-<tr><td>해시태그 0~10개 검증·저장</td><td>❌ <small>(Content 통합·최신 Required CI 확인 대기)</small></td></tr>
-<tr><td>작품 등록 권리 확인·기록</td><td>❌ <small>(Content 통합·최신 Required CI 확인 대기)</small></td></tr>
-<tr><td>작품 상세 조회 <small>(유형·장르·해시태그 Content 통합·CI 대기)</small></td><td>❌</td></tr>
-<tr><td>내 작품 목록 조회</td><td>❌</td></tr>
+<tr><td rowspan="11">작품 관리</td><td rowspan="11">09 작품 CRUD</td><td>작품 생성</td><td>✅</td><td rowspan="11"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/108">#108</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/102">PR #102</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td>작품 유형 선택·저장</td><td>✅</td></tr>
+<tr><td>승인 장르 1~2개 선택·저장</td><td>✅</td></tr>
+<tr><td>해시태그 0~10개 검증·저장</td><td>✅</td></tr>
+<tr><td>작품 등록 권리 확인·기록</td><td>✅</td></tr>
+<tr><td>작품 상세 조회</td><td>✅</td></tr>
+<tr><td>내 작품 목록 조회</td><td>✅</td></tr>
 <tr><td>작품 기본 정보 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a></td></tr>
 <tr><td>작품 삭제 요청 <small>(소유자·이력 없는 원작 범위, 세계관 설정 존재 시 삭제 전 409)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a></td></tr>
 <tr><td>원작 삭제 시 Fork 작품 유지 <small>(원작 소프트 삭제, Fork는 원작 참조 유지·"삭제된 원작" 표시·분기 전 회차 독자 숨김, DEC-42, #108)</small></td><td>❌</td></tr>
@@ -225,8 +225,8 @@
 <tr><td>설정 이전 버전 복원</td><td>❌</td></tr>
 <tr><td>세계관 체크포인트 생성</td><td>❌</td></tr>
 <tr><td>체크포인트 상세 조회</td><td>❌</td></tr>
-<tr><td>회차 발행 시 체크포인트(발행본) 생성 <small>(DEC-43, 저장 버전마다 생성하는 현재 코드 미전환)</small></td><td>❌</td></tr>
-<tr><td>발행 회차를 이전 체크포인트로 되돌리기</td><td>❌</td></tr>
+<tr><td>회차 발행 시 체크포인트(발행본) 생성 <small>(DEC-43)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/227">PR #227</a></td></tr>
+<tr><td>발행 회차를 이전 체크포인트로 되돌리기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/227">PR #227</a></td></tr>
 <tr><td rowspan="2">62 회차 부가 내용 편집</td><td>회차 작가의 말 작성</td><td>❌</td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="#미등록-087">미등록-087</a></td></tr>
 <tr><td>회차 작가의 말 수정</td><td>❌</td></tr>
 <tr><td rowspan="3">87 기준 세계관 연결 관리 <small>(Draft 검토 후보)</small></td><td>회차의 기준 세계관 버전 선택</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
@@ -508,7 +508,7 @@
 
 ## 운영 관리 서비스 — 운영 업무·LLMOps
 
-독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). 68 공지 게시·조회도 관리자 회원 Bearer·`notices` 권한·독자 공개 조회·화면 연결까지 로컬 단위 테스트와 브라우저 E2E로 확인한 행만 ✅로 표시한다(입력 검증 행은 단위·API로만 확인해 ❌ 유지, [공지 계약](design/operations-notice-contract.md)). 67의 회원 문의 접수·내 문의·상태·답변과 관리자 회원 문의 조회·답변 관리 행도 회원 Bearer·`feedback` 권한·화면 연결까지 구현해 로컬 단위·브라우저 E2E로 확인했으므로 ✅로 표시하며, 서비스 자격 레코드 행은 ❌를 유지한다([문의 계약](design/operations-support-inquiry-contract.md)). 69 이벤트 안내·운영도 관리자 Bearer·`events` 권한 CRUD와 독자 공개 조회·화면 연결을 로컬 단위 테스트와 브라우저 E2E로 확인해 해당 행을 ✅로 표시한다(검증·U+0000 행은 단위 확인만이라 ❌ 유지, [이벤트 계약](design/operations-event-contract.md)). hosted CI 결과는 PR에서 확인한다.
+독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). 68 공지 게시·조회도 관리자 회원 Bearer·`notices` 권한·독자 공개 조회·화면 연결까지 로컬 단위 테스트와 브라우저 E2E로 확인한 행만 ✅로 표시한다(입력 검증 행은 단위·API로만 확인해 ❌ 유지, [공지 계약](design/operations-notice-contract.md)). 67의 회원 문의 접수·내 문의·상태·답변과 관리자 회원 문의 조회·답변 관리 행도 회원 Bearer·`feedback` 권한·화면 연결까지 구현해 로컬 단위·브라우저 E2E로 확인했으므로 ✅로 표시하며, 서비스 자격 레코드 행은 ❌를 유지한다([문의 계약](design/operations-support-inquiry-contract.md)). 69 이벤트 안내·운영도 관리자 Bearer·`events` 권한 CRUD와 독자 공개 조회·화면 연결을 로컬 단위 테스트와 브라우저 E2E로 확인해 해당 행을 ✅로 표시한다(검증·U+0000 행은 단위 확인만이라 ❌ 유지, [이벤트 계약](design/operations-event-contract.md)). 74 운영 작품 조회도 관리자 Bearer·`works` 권한 조회와 Content 제한·해제·화면 연결을 로컬 단위 테스트와 브라우저 E2E로 확인해 ✅로 표시한다([작품 계약](design/operations-work-contract.md)). hosted CI 결과는 PR에서 확인한다.
 
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
@@ -593,11 +593,11 @@
 <tr><td>회원 가입 오래된순 정렬</td><td>✅</td></tr>
 <tr><td>회원 이용 제한</td><td>✅</td></tr>
 <tr><td>회원 이용 제한 해제</td><td>✅</td></tr>
-<tr><td rowspan="9">콘텐츠 운영 관리</td><td rowspan="5">74 운영 작품 조회</td><td>운영 작품 목록·작성자·권리·공개 상태 조회</td><td>❌</td><td rowspan="5"><a href="#미등록-099">미등록-099</a></td></tr>
-<tr><td>운영 작품 원작·Fork 필터</td><td>❌</td></tr>
-<tr><td>운영 작품명·작성자·권리 유형 검색</td><td>❌</td></tr>
-<tr><td>운영 작품 제목순 정렬</td><td>❌</td></tr>
-<tr><td>운영 작품 제목 역순 정렬</td><td>❌</td></tr>
+<tr><td rowspan="9">콘텐츠 운영 관리</td><td rowspan="5">74 운영 작품 조회</td><td>운영 작품 목록·작성자·권리·공개 상태 조회</td><td>✅</td><td rowspan="5"><a href="#미등록-099">미등록-099</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/226">PR #226</a></td></tr>
+<tr><td>운영 작품 원작·Fork 필터</td><td>✅</td></tr>
+<tr><td>운영 작품명·작성자·권리 유형 검색</td><td>✅</td></tr>
+<tr><td>운영 작품 제목순 정렬</td><td>✅</td></tr>
+<tr><td>운영 작품 제목 역순 정렬</td><td>✅</td></tr>
 <tr><td rowspan="4">75 운영 댓글 조회·조치</td><td>작품별 운영 댓글 필터</td><td>❌</td><td rowspan="4"><a href="#미등록-100">미등록-100</a></td></tr>
 <tr><td>운영 댓글 내용·작품명·작성자 검색</td><td>❌</td></tr>
 <tr><td>운영 댓글 공감 많은순 정렬</td><td>❌</td></tr>

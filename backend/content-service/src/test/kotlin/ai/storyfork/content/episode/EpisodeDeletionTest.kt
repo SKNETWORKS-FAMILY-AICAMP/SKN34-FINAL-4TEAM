@@ -27,7 +27,8 @@ class EpisodeDeletionTest {
     @Suppress("UNCHECKED_CAST")
     private val imageProviders=mock(org.springframework.beans.factory.ObjectProvider::class.java) as org.springframework.beans.factory.ObjectProvider<ai.storyfork.content.attachment.repository.ContentImageRepository>
     private val service=EpisodeService(access,works,episodes,drafts,current,versions,imageProviders,em,
-        mock(ai.storyfork.content.fork.repository.ForkRepository::class.java),mock(ai.storyfork.content.episode_version.repository.CheckpointEpisodeRepository::class.java))
+        mock(ai.storyfork.content.fork.repository.ForkRepository::class.java),mock(ai.storyfork.content.episode_version.repository.CheckpointEpisodeRepository::class.java),
+        mock(ai.storyfork.content.publication.repository.PublicationEventRepository::class.java))
     private val episode=EpisodeEntity("e","w",1)
     private val draft=EpisodeDraftEntity("e","title","original",4)
     private val row=EpisodeCurrentEntity("e","w",1)

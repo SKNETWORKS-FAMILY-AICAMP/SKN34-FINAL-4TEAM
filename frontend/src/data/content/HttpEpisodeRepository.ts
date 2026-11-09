@@ -8,7 +8,7 @@ import { csrf } from '../api/csrf'
 import { mapReadingWork } from './readingWork'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
-const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
+const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string(),checkpoints:z.array(z.object({versionId:z.string(),publishedAt:z.string(),active:z.boolean()}))})
 const episode = z.object({number:z.number().int().positive(),version:z.number().int().positive(),versionId:z.string().optional(),title:z.string(),body:z.string(),inherited:z.boolean()})
 const source = z.object({workId:z.string(),title:z.string(),episode:z.number().int(),version:z.number().int(),direction:z.string()})
 const work = z.object({creationType:z.enum(['ORIGINAL','EXTERNAL_DERIVATIVE']).optional(),genres:z.array(z.string()).optional(),hashtags:z.array(z.string()).optional(),hasWritingEpisode:z.boolean().optional(),id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft})

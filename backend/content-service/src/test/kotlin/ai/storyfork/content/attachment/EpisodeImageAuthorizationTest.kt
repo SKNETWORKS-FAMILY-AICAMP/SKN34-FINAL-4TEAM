@@ -54,7 +54,9 @@ class EpisodeImageAuthorizationTest {
     private val em = mock(EntityManager::class.java)
     @Suppress("UNCHECKED_CAST")
     private val imageProviders = mock(ObjectProvider::class.java) as ObjectProvider<ContentImageRepository>
-    private val writing = EpisodeService(access, works, episodes, drafts, current, versions, imageProviders, em, forks, checkpointEpisodes)
+    // 회차 응답용 발행 기록 저장소는 발행 서비스가 쓰는 events와 분리해, 발행 전 거절 검증이 events 무호출을 그대로 확인하게 한다.
+    private val writing = EpisodeService(access, works, episodes, drafts, current, versions, imageProviders, em, forks, checkpointEpisodes,
+        mock(PublicationEventRepository::class.java))
     private val events = mock(PublicationEventRepository::class.java)
     private val visibility = mock(WorkPublicationHistoryRepository::class.java)
     private val rights = mock(WorkRightsDeclarationRepository::class.java)
@@ -62,8 +64,10 @@ class EpisodeImageAuthorizationTest {
     private val publication = PublicationService(access, writing, episodes, current, versions, events, visibility, rights, drafts, works, policies,
         mock(ForkPolicyEpisodeRepository::class.java), em)
     private val world = mock(WorldService::class.java)
+    private val checkpointRows = mock(CheckpointRepository::class.java)
+    private val checkpointSettings = mock(CheckpointSettingRepository::class.java)
     private val savedVersions = EpisodeVersionService(access, writing, publication, world, episodes, drafts, versions,
-        mock(CheckpointRepository::class.java), checkpointEpisodes, mock(CheckpointSettingRepository::class.java), em)
+        checkpointRows, checkpointEpisodes, checkpointSettings, em)
     private val content = mock(WorkService::class.java)
     private val storage = mock(AttachmentStorageClient::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
@@ -170,6 +174,12 @@ class EpisodeImageAuthorizationTest {
         assertDraftPreserved()
         verifyNoInteractions(world)
         verify(versions, never()).saveAndFlush(any(EpisodeVersionEntity::class.java))
+    }
+
+    @Test fun `saving a version creates no checkpoint because only publication does`() {
+        savedVersions.save("work", "owner", 1, DraftRequest("changed", "plain body", 4))
+        verify(versions).saveAndFlush(any(EpisodeVersionEntity::class.java) ?: EpisodeVersionEntity())
+        verifyNoInteractions(checkpointRows, checkpointEpisodes, checkpointSettings)
     }
 
     @Test fun `both publication entry points reject a previously saved foreign marker before publishing`() {

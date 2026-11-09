@@ -15,5 +15,8 @@
   `sample/V16`은 CSV에서 생성한 개발 샘플 행이며 직접 편집하지 않는다. 샘플 변경은 다음 번호의 새 마이그레이션으로 한다.
   `db/migration/content`·root 직하 SQL을 다시 만들지 않는다. Auth·첨부·WorldStudio SQL 이력은 보존하고 자동 repair/reset하지 않는다.
 - WorldStudio는 `contentDataSource`를 재사용하고 시작 시 전용 schema(`world_studio_schema_history`)를 migrate한 뒤 전용 EntityManager/TransactionManager로 validate한다. 별도 DB·분산 transaction을 추가하지 않는다.
+- 장르 템플릿 세계관은 SQL 마이그레이션이 아니라 `GenreTemplateSeeder`가 서버 시작 시 `WorldStudioService`(create → edit → save)로
+  Core `auth/V8` 운영 관리자(`GenreTemplateSeeder.TEMPLATE_OWNER`, 임시 할당) 소유 WorldStudio 세계관으로 적재한다. 리소스는 `genre-templates.json`이며
+  소유자 한계(공개 비밀번호·소유자 불일치·타 사용자 미노출)를 포함한 [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)를 따른다.
 - 로컬은 이 디렉터리에서 `./gradlew unitTest --tests 'ai.storyfork.content.<대상 클래스>' --no-daemon`으로 순수 단위만 실행한다.
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.

@@ -37,14 +37,13 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
     expect(db.reports).toEqual([])
     expect(db.reviewQueue).toEqual([])
   })
-  it('blocks inbox and admin actions before any demo status or audit changes',async()=>{
+  it('blocks inbox actions before any demo status or audit changes',async()=>{
     const {db,w,works,feedback,admin,credits}=setup()
     db.inbox.push({id:'i',rid:'r',w:w.id,n:1,pi:0,type:'질문',who:'독자',text:'질문',baseText:'',status:'작가 검토 대기',ai:{cls:'질문',why:'',ev:''}})
     db.reviewQueue.push({id:'q',w:w.id,n:null,type:'신고',text:'내용',quote:'',status:'접수',who:'독자'})
     const before=structuredClone(db)
     expect(await new InboxUseCase(works,feedback).act('i','reject')).toContain('아직 연결되지')
     const uc=new AdminUseCase(admin,works,feedback,credits,new InMemoryChatRepository(db))
-    expect((await uc.toggleWork(w.id))?.ok).toBe(false)
     expect(db).toEqual(before)
     expect((await uc.load()).isolation.some(x=>x.title===w.title)).toBe(false)
   })

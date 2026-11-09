@@ -4,6 +4,7 @@ import { createFixtureDb } from '../../data/mock/fixtureDb'
 import { InMemoryNoticeRepository } from '../../data/mock/InMemoryNoticeRepository'
 import { InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
+import { InMemoryOperationsWorkRepository } from '../../data/mock/InMemoryOperationsWorkRepository'
 import { seedNotices } from '../../data/mock/seed'
 import { createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupNotificationRepository } from '../../data/mock/mockupRepositories'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
@@ -30,6 +31,8 @@ export function registerMockupServices(container: AppContainer) {
     // 운영 이벤트 API 대신 메모리에만 등록·공개합니다.
     eventRepository: asValue(eventRepository),
     eventUseCase: asValue(new EventUseCase(eventRepository)),
+    // 운영 작품 API 대신 데모 작품 DB를 운영 작품 형태로 보여 주고, 운영 제한은 데모 작품의 공개 제외로 반영합니다.
+    operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(mockDb)),
     // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지합니다.
     readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository)),
     episodeRepository: asValue(episodeRepository),
