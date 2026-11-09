@@ -41,16 +41,16 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     const { result } = f.mount()
     await waitFor(() => expect(result.current.data).toBeTruthy())
     let reject!: (error: Error) => void
-    const add = vi.spyOn(f.admin, 'addNotice').mockImplementation(() => new Promise((_, no) => { reject = no }))
+    const save = vi.spyOn(f.operations, 'saveNotice').mockImplementation(() => new Promise((_, no) => { reject = no }))
     let pending!: Promise<boolean>
     await act(async () => {
-      pending = result.current.addNotice('제목', '본문')
-      expect(await result.current.addNotice('제목', '본문')).toBe(false)
+      pending = result.current.saveNotice(null, { title: '제목', body: '본문' })
+      expect(await result.current.saveNotice(null, { title: '제목', body: '본문' })).toBe(false)
     })
-    expect(add).toHaveBeenCalledTimes(1)
-    expect(result.current.actions['legacy:notice'].pending).toBe(true)
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(result.current.actions['notice:new'].pending).toBe(true)
     await act(async () => { reject(new Error('노출하면 안 되는 내부 응답')); expect(await pending).toBe(false) })
-    expect(result.current.actions['legacy:notice']).toMatchObject({ pending: false, error: expect.stringContaining('입력은 유지') })
+    expect(result.current.actions['notice:new']).toMatchObject({ pending: false, error: expect.stringContaining('입력은 유지') })
     expect(f.store.getState().session.dataVersion).toBe(0)
   })
 
@@ -157,25 +157,6 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     })
     expect(result.current.noticeDrafts.new.body).toBe('제출 뒤 새 본문')
     expect(result.current.recordSelection.notices).toBe('other')
-    expect(f.store.getState().session.dataVersion).toBe(1)
-  })
-
-  it('기존 폼의 await 뒤 clearLegacyDraft 호출도 재진입한 폼의 초안을 지우지 않는다', async () => {
-    const f = setup()
-    const hook = f.mount()
-    await waitFor(() => expect(hook.result.current.data).toBeTruthy())
-    act(() => { hook.result.current.setLegacyDraft('notice', 'title', '제출 제목'); hook.result.current.setLegacyDraft('notice', 'body', '제출 본문') })
-    let finish!: (result: Awaited<ReturnType<typeof f.admin.addNotice>>) => void
-    vi.spyOn(f.admin, 'addNotice').mockImplementationOnce(() => new Promise((done) => { finish = done }))
-    const vm = hook.result.current
-    let pending!: Promise<boolean>
-    act(() => { pending = vm.addNotice('제출 제목', '제출 본문').then((ok) => { if (ok) vm.clearLegacyDraft('notice'); return ok }) })
-    hook.unmount()
-    const again = f.mount()
-    await waitFor(() => expect(again.result.current.data).toBeTruthy())
-    act(() => again.result.current.setLegacyDraft('notice', 'body', '새 본문'))
-    await act(async () => { finish({ ok: true, msg: '저장 성공' }); expect(await pending).toBe(true) })
-    expect(again.result.current.legacyDrafts.notice.body).toBe('새 본문')
     expect(f.store.getState().session.dataVersion).toBe(1)
   })
 

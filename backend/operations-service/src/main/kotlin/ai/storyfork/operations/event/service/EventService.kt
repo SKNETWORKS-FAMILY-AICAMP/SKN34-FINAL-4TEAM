@@ -1,8 +1,9 @@
 package ai.storyfork.operations.event.service
 
+import ai.storyfork.operations._common.service.dto.PageResponse
+import ai.storyfork.operations._common.service.dto.toResponse
 import ai.storyfork.operations.event.entity.EventEntity
 import ai.storyfork.operations.event.repository.EventRepository
-import ai.storyfork.operations.event.service.dto.EventListResponse
 import ai.storyfork.operations.event.service.dto.EventRequest
 import ai.storyfork.operations.event.service.dto.EventResponse
 import java.time.Instant
@@ -26,13 +27,9 @@ class EventService(private val events: EventRepository) {
         )).toResponse()
     }
 
-    fun list(pageable: Pageable): EventListResponse {
-        val bounded = PageRequest.of(
-            pageable.pageNumber, pageable.pageSize.coerceAtMost(100),
-            Sort.by(Sort.Direction.DESC, "createdAt", "id"),
-        )
-        val page = events.findAll(bounded)
-        return EventListResponse(page.content.map { it.toResponse() }, page.number, page.size, page.totalElements, page.totalPages)
+    fun list(pageable: Pageable): PageResponse<EventResponse> {
+        val bounded = PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.by(Sort.Direction.DESC, "createdAt", "id"))
+        return events.findAll(bounded).toResponse { it.toResponse() }
     }
 
     fun read(id: UUID): EventResponse = find(id).toResponse()
@@ -54,9 +51,11 @@ class EventService(private val events: EventRepository) {
 
     private fun find(id: UUID): EventEntity = events.findById(id).orElseThrow { NoSuchElementException() }
 
+    // Length is @Size on EventRequest. Blank is re-checked because @NotBlank (String.isBlank) accepts U+00A0, U+2007 and U+202F;
+    // PostgreSQL text cannot hold U+0000 and the period order spans two fields.
     private fun validate(request: EventRequest) {
-        require(request.title.isNotBlank() && request.title.length <= 200 && '\u0000' !in request.title)
-        require(request.body.isNotBlank() && request.body.length <= 20_000 && '\u0000' !in request.body)
+        require(request.title.isNotBlank() && '\u0000' !in request.title)
+        require(request.body.isNotBlank() && '\u0000' !in request.body)
         require(request.startsAt == null || request.endsAt == null || !request.endsAt.isBefore(request.startsAt))
     }
 

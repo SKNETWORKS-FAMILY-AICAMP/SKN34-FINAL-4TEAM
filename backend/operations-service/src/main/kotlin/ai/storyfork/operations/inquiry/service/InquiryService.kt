@@ -1,5 +1,7 @@
 package ai.storyfork.operations.inquiry.service
 
+import ai.storyfork.operations._common.service.dto.PageResponse
+import ai.storyfork.operations._common.service.dto.toResponse
 import ai.storyfork.operations.inquiry.entity.InquiryEntity
 import ai.storyfork.operations.inquiry.entity.InquiryReplyEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
@@ -30,10 +32,8 @@ class InquiryService(
     }
 
     @Transactional(readOnly = true)
-    fun list(pageable: Pageable): InquiryListResponse {
-        val page = inquiries.findAll(bounded(pageable, Sort.Direction.DESC))
-        return InquiryListResponse(page.content.map { it.response() }, page.number, page.size, page.totalElements, page.totalPages)
-    }
+    fun list(pageable: Pageable): PageResponse<InquiryResponse> =
+        inquiries.findAll(bounded(pageable, Sort.Direction.DESC)).toResponse { it.response() }
 
     @Transactional(readOnly = true)
     fun read(id: UUID): InquiryResponse = inquiry(id).response()
@@ -63,11 +63,10 @@ class InquiryService(
     }
 
     @Transactional(readOnly = true)
-    fun listReplies(inquiryId: UUID, pageable: Pageable): InquiryReplyListResponse {
+    fun listReplies(inquiryId: UUID, pageable: Pageable): PageResponse<InquiryReplyResponse> {
         val bounded = bounded(pageable, Sort.Direction.ASC)
         requireParent(inquiryId)
-        val page = replies.findAllByInquiryId(inquiryId, bounded)
-        return InquiryReplyListResponse(page.content.map { it.response() }, page.number, page.size, page.totalElements, page.totalPages)
+        return replies.findAllByInquiryId(inquiryId, bounded).toResponse { it.response() }
     }
 
     @Transactional(readOnly = true)
@@ -96,10 +95,9 @@ class InquiryService(
         if (!inquiries.existsById(inquiryId)) throw NoSuchElementException("Inquiry not found.")
     }
 
-    private fun bounded(pageable: Pageable, direction: Sort.Direction): Pageable {
-        require(pageable.isPaged) { "Pagination is required." }
-        return PageRequest.of(pageable.pageNumber, pageable.pageSize.coerceAtMost(100), Sort.by(direction, "createdAt", "id"))
-    }
+    // Page size defaults and the maximum come from spring.data.web.pageable.*; only the sort is fixed here.
+    private fun bounded(pageable: Pageable, direction: Sort.Direction): Pageable =
+        PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.by(direction, "createdAt", "id"))
 
     private fun validate(request: InquiryRequest) = validateInquiryFields(request.title, request.category, request.body)
 
@@ -107,13 +105,14 @@ class InquiryService(
     private fun InquiryReplyEntity.response() = InquiryReplyResponse(id, inquiryId, body, createdAt, updatedAt)
 }
 
-/** Shared with [SupportInquiryService] so the service-token and member entry points enforce the same limits. */
+// Length is @Size on the request DTOs (inquiry and support alike). Blank is re-checked because @NotBlank accepts U+00A0, U+2007 and
+// U+202F; PostgreSQL text cannot hold U+0000. Shared with [SupportInquiryService] so both entry points apply the same rule.
 internal fun validateInquiryFields(title: String, category: String, body: String) {
-    require(title.isNotBlank() && title.length <= 200 && '\u0000' !in title) { "Invalid inquiry title." }
-    require(category.isNotBlank() && category.length <= 50 && '\u0000' !in category) { "Invalid inquiry category." }
+    require(title.isNotBlank() && '\u0000' !in title) { "Invalid inquiry title." }
+    require(category.isNotBlank() && '\u0000' !in category) { "Invalid inquiry category." }
     validateInquiryBody(body)
 }
 
 internal fun validateInquiryBody(body: String) {
-    require(body.isNotBlank() && body.length <= 20000 && '\u0000' !in body) { "Invalid body." }
+    require(body.isNotBlank() && '\u0000' !in body) { "Invalid body." }
 }

@@ -2,13 +2,16 @@ import { REPORT_KINDS, type ReportKind } from '../../../domain/entities/report'
 import { Go } from '../Go'
 import { useReportWorkViewModel } from './useReportWorkViewModel'
 
-/** 공개 작품 상세의 신고 버튼과 접수 폼(34). 작품이 바뀌면 호출 측이 key로 새로 만듭니다. */
-export function ReportWorkForm({ workId, workTitle }: { workId: string; workTitle: string }) {
+/**
+ * 공개 작품 신고 접수 폼(34). `/content` 공개 보기는 토글 버튼과 함께, 작품 신고 시트는 alwaysOpen으로 바로 펼쳐 씁니다.
+ * 작품이 바뀌면 호출 측이 key로 새로 만듭니다.
+ */
+export function ReportWorkForm({ workId, workTitle, alwaysOpen = false }: { workId: string; workTitle: string; alwaysOpen?: boolean }) {
   const vm = useReportWorkViewModel(workId)
   return (
     <div className='mt-3'>
-      <button type='button' className='btn sm' aria-expanded={vm.open} onClick={vm.toggle}>{vm.open ? '신고 닫기' : '신고'}</button>
-      {vm.open && (
+      {!alwaysOpen && <button type='button' className='btn sm' aria-expanded={vm.open} onClick={vm.toggle}>{vm.open ? '신고 닫기' : '신고'}</button>}
+      {(alwaysOpen || vm.open) && (
         <form
           className='mt-3 grid gap-3'
           aria-label={`${workTitle} 신고`}
@@ -27,7 +30,7 @@ export function ReportWorkForm({ workId, workTitle }: { workId: string; workTitl
               </select>
             </label>
             <label className='field'>
-              신고 사유<textarea className='ta' name='reason' required maxLength={2000} rows={3} />
+              신고 사유<textarea className='ta' name='reason' required maxLength={2000} rows={3} data-autofocus />
             </label>
             <label className='field'>
               증거 (선택)<textarea className='ta' name='evidence' maxLength={5000} rows={3} placeholder='원작 링크, 문제 회차·문장 등' />

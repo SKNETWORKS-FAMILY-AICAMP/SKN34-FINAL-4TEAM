@@ -82,32 +82,6 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByText(text)).not.toBeNull()
   })
 
-  it('공지·이벤트를 게시하면 회원 화면에 보인다', async () => {
-    renderAt('/admin?tab=notices')
-    fireEvent.click(await screen.findByText('기존 회원 화면 공지 데모'))
-    expect((await screen.findByLabelText<HTMLInputElement>('제목')).required).toBe(true)
-    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '점검 안내' } })
-    fireEvent.change(screen.getByLabelText('내용'), { target: { value: '오늘 밤 점검해요' } })
-    fireEvent.click(screen.getByRole('button', { name: '공지 게시' }))
-    await toastIs('공지를 게시했어요 (데모 · 현재 화면에만 반영)')
-    fireEvent.click(within(nav()).getByRole('link', { name: '이벤트' }))
-    fireEvent.click(await screen.findByText('기존 회원 화면 이벤트 데모'))
-    fireEvent.change(await screen.findByLabelText('이벤트명'), { target: { value: '새 이벤트' } })
-    fireEvent.change(screen.getByLabelText('안내 내용'), { target: { value: '참여해 보세요' } })
-    fireEvent.click(screen.getByRole('button', { name: '이벤트 추가' }))
-    await toastIs('이벤트를 추가했어요 (데모 · 현재 화면에만 반영)')
-    const row = (await screen.findByText('새 이벤트')).closest('tr') as HTMLElement
-    within(row).getByText('기간 미정')
-    fireEvent.click(within(row).getByRole('button', { name: '상태 변경' }))
-    await within(row).findByText('진행 중')
-    cleanup()
-    renderAt('/me/notice', 'user')
-    await screen.findByRole('link', { name: /점검 안내/ })
-    cleanup()
-    renderAt('/me/event', 'user')
-    await screen.findByText('새 이벤트')
-  })
-
   it('문의에 답변하면 회원 문의 목록에 운영팀 답변이 보인다', async () => {
     renderAt('/me/inquiry', 'user')
     fireEvent.change(await screen.findByLabelText('제목'), { target: { value: '답변 요청' } })
@@ -144,6 +118,7 @@ describe('관리자 (A01~A18)', () => {
     const waiting = (await support.listAll('WAITING')).length
     renderAt('/admin?tab=data')
     const link = (await screen.findByText('답변 대기 문의')).closest('a') as HTMLElement
+    expect(link.getAttribute('href')).toBe('/admin?tab=feedback')
     await waitFor(() => within(link).getByText(String(waiting)))
     expect(within(link).queryByText(/데모/)).toBeNull()
     expect(screen.queryByText('신고와 문의 수는 운영 서버 기준이에요.')).not.toBeNull()

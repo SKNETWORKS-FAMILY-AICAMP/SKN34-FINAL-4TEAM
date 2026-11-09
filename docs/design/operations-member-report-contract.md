@@ -16,10 +16,17 @@
 - **서비스 간 자격**: 운영 → Core·Content 호출은 기존 `OPERATIONS_SERVICE_TOKEN` 값을 `X-Operations-Service-Token` 헤더로 보낸다.
   Core·Content는 같은 환경변수(32자 이상)와 상수 시간 비교로 확인한다. 새 비밀 값을 추가하지 않는다.
 - **회원 이용 제한**: Core `auth_member.restricted`. 제한 회원은 로그인과 내부 인증 확인(verify)이 거절된다.
+  로그인은 올바른 비밀번호일 때만 403 `application/problem+json` 본문에 `code: "ACCOUNT_RESTRICTED"`를 담아 사유를 알리고
+  (틀린 비밀번호는 401이라 제한 여부가 드러나지 않는다), 화면은 이 코드가 있을 때만 이용 제한 안내를 표시한다. 코드 없는 403은 일반 오류다.
   ponytail: 이미 발급된 access token의 Core 공개 API 사용은 만료까지 남는다. 즉시 차단이 필요하면 세션 폐기를 추가한다.
 - **콘텐츠 제한**: Content 작품 `restricted`. 제한 작품은 공개 작품 목록·공개 상세·공개 회차 열람에서 제외(404)된다.
   ponytail: 제한 원인이 여러 개여도 단일 플래그이며 Fork 전파·"작가 확인 신고 즉시 비공개"는 후속이다.
 - **실패**: 운영 → Core/Content 호출 실패는 성공으로 숨기지 않고 502 `UPSTREAM_FAILED`를 반환하며 이력도 남기지 않는다.
+  원인은 응답이 아니라 서버 로그에만 남긴다(500은 원인 예외를 `ERROR`로, 502는 예외 메시지·스택 없이 예외 클래스명·하위 HTTP 상태·요청 경로(쿼리 제외)만 `WARN`으로).
+  하위 응답 본문과 회원 검색어 같은 쿼리가 로그에 남지 않게 하기 위함이다. 없는 경로·메서드 불일치도 같은 `{ code, message }`로 응답한다.
+- **트랜잭션**: Content 호출은 DB 트랜잭션 밖에서 실행하고, 성공한 뒤 신고 갱신과 이력만 한 트랜잭션으로 저장한다.
+  ponytail: 제한·해제의 Content 호출이 성공한 뒤 저장이 실패(409 등)하면 Content만 바뀐 상태로 남는다(분산 트랜잭션 없음).
+  같은 요청을 다시 보내면 Content PUT/DELETE가 멱등이라 맞춰진다.
 
 ## Core 내부 API (운영 전용)
 

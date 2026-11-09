@@ -1,11 +1,10 @@
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
+import { kstDateTime } from '../../../shared/format'
 import type { AdminActionState, useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 import './admin-operations.css'
 
 type VM = ReturnType<typeof useAdminViewModel>
-const koreanTime = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'short', timeStyle: 'short' })
-const dateLabel = (value: string) => koreanTime.format(new Date(value))
 
 export function AdminActionStatus({ state }: { state?: AdminActionState }) {
   return <>
@@ -29,12 +28,12 @@ export function OperationsNotices({ vm }: { vm: VM }) {
   return <section className="panel admin-operations" aria-label="운영 공지" ref={root}>
     {!selection ? <>
       <div className="table-head"><h2 tabIndex={-1}>운영 공지 목록</h2><button type="button" className="btn pri" data-record-id="new" onClick={() => vm.selectRecord('notices', 'new')}>공지 작성</button></div>
-      {rows.length ? <ul className="admin-record-list">{rows.map((item) => <li key={item.id}><button type="button" className="admin-record-link" data-record-id={item.id} onClick={() => vm.selectRecord('notices', item.id)}><b>{item.title}</b><span className="small muted">{dateLabel(item.createdAt)} · 상세 보기{vm.noticeDrafts[item.id] ? ' · 수정 초안 있음' : ''}</span></button></li>)}</ul> : <p className="admin-empty">등록된 운영 공지가 없어요. 공지를 작성해 보세요.</p>}
+      {rows.length ? <ul className="admin-record-list">{rows.map((item) => <li key={item.id}><button type="button" className="admin-record-link" data-record-id={item.id} onClick={() => vm.selectRecord('notices', item.id)}><b>{item.title}</b><span className="small muted">{kstDateTime(item.createdAt)} · 상세 보기{vm.noticeDrafts[item.id] ? ' · 수정 초안 있음' : ''}</span></button></li>)}</ul> : <p className="admin-empty">등록된 운영 공지가 없어요. 공지를 작성해 보세요.</p>}
     </> : <>
       <button type="button" className="btn sm" onClick={() => vm.selectRecord('notices', null)}>공지 목록으로</button>
       <h2 tabIndex={-1}>{selection === 'new' ? '새 운영 공지' : row?.title ?? '공지 확인'}</h2>
       {selection !== 'new' && !row ? <p role="alert">공지를 표시할 수 없어요. 목록 새로고침 후 다시 선택해 주세요.</p> : <>
-        {row && <><p className="small muted">등록 {dateLabel(row.createdAt)} · 수정 {dateLabel(row.updatedAt)}</p><p className="admin-prose">{row.body}</p><h3>공지 수정</h3></>}
+        {row && <><p className="small muted">등록 {kstDateTime(row.createdAt)} · 수정 {kstDateTime(row.updatedAt)}</p><p className="admin-prose">{row.body}</p><h3>공지 수정</h3></>}
         <form onSubmit={(event) => { event.preventDefault(); void vm.saveNotice(row?.id ?? null, form) }}>
           <fieldset disabled={blocked} className="form-grid">
             <label className="field wide">공지 제목<input className="inp" required maxLength={200} value={form.title} onChange={(e) => vm.setNoticeDraft(key, { ...form, title: e.target.value })} /></label>
@@ -61,12 +60,12 @@ export function OperationsEvents({ vm }: { vm: VM }) {
   return <section className="panel admin-operations" aria-label="운영 이벤트" ref={root}>
     {!selection ? <>
       <div className="table-head"><h2 tabIndex={-1}>운영 이벤트 목록</h2><button type="button" className="btn pri" data-record-id="new" onClick={() => vm.selectRecord('events', 'new')}>이벤트 작성</button></div>
-      {rows.length ? <ul className="admin-record-list">{rows.map((item) => <li key={item.id}><button type="button" className="admin-record-link" data-record-id={item.id} onClick={() => vm.selectRecord('events', item.id)}><b>{item.title}</b><span className="small muted">{item.startsAt ? dateLabel(item.startsAt) : '시작 미정'} ~ {item.endsAt ? dateLabel(item.endsAt) : '종료 미정'} · 한국시간{vm.eventDrafts[item.id] ? ' · 수정 초안 있음' : ''}</span></button></li>)}</ul> : <p className="admin-empty">등록된 운영 이벤트가 없어요. 이벤트를 작성해 보세요.</p>}
+      {rows.length ? <ul className="admin-record-list">{rows.map((item) => <li key={item.id}><button type="button" className="admin-record-link" data-record-id={item.id} onClick={() => vm.selectRecord('events', item.id)}><b>{item.title}</b><span className="small muted">{item.startsAt ? kstDateTime(item.startsAt) : '시작 미정'} ~ {item.endsAt ? kstDateTime(item.endsAt) : '종료 미정'} · 한국시간{vm.eventDrafts[item.id] ? ' · 수정 초안 있음' : ''}</span></button></li>)}</ul> : <p className="admin-empty">등록된 운영 이벤트가 없어요. 이벤트를 작성해 보세요.</p>}
     </> : <>
       <button type="button" className="btn sm" onClick={() => vm.selectRecord('events', null)}>이벤트 목록으로</button>
       <h2 tabIndex={-1}>{selection === 'new' ? '새 운영 이벤트' : row?.title ?? '이벤트 확인'}</h2>
       {selection !== 'new' && !row ? <p role="alert">이벤트를 표시할 수 없어요. 목록 새로고침 후 다시 선택해 주세요.</p> : <>
-        {row && <><p className="small muted">{row.startsAt ? dateLabel(row.startsAt) : '시작 미정'} ~ {row.endsAt ? dateLabel(row.endsAt) : '종료 미정'} · 한국시간</p><p className="small muted">UTC: {row.startsAt ?? '시작 미정'} / {row.endsAt ?? '종료 미정'}</p><p className="admin-prose">{row.body}</p><h3>이벤트 수정</h3></>}
+        {row && <><p className="small muted">{row.startsAt ? kstDateTime(row.startsAt) : '시작 미정'} ~ {row.endsAt ? kstDateTime(row.endsAt) : '종료 미정'} · 한국시간</p><p className="small muted">UTC: {row.startsAt ?? '시작 미정'} / {row.endsAt ?? '종료 미정'}</p><p className="admin-prose">{row.body}</p><h3>이벤트 수정</h3></>}
         <form onSubmit={(event) => { event.preventDefault(); void vm.saveEvent(row?.id ?? null, form) }}>
           <fieldset disabled={blocked} className="form-grid">
             <label className="field wide">이벤트 제목<input className="inp" required maxLength={200} value={form.title} onChange={(e) => vm.setEventDraft(key, { ...form, title: e.target.value })} /></label>

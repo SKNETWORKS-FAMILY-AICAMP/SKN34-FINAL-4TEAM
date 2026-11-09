@@ -1,5 +1,6 @@
 package ai.storyfork.operations.inquiry
 
+import ai.storyfork.operations._common.blankTexts
 import ai.storyfork.operations.inquiry.entity.InquiryEntity
 import ai.storyfork.operations.inquiry.entity.InquiryReplyEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
@@ -83,13 +84,12 @@ class SupportInquiryServiceTest {
         verifyNoInteractions(replies, permissions)
     }
 
+    // 길이는 요청 DTO의 @Size가 거절한다(RequestValidationTest). 서비스는 공백(@NotBlank가 놓치는 NBSP류 포함)과 U+0000을 거절한다.
     @Test
-    fun `create rejects blank oversized or NUL fields before saving anything`() {
+    fun `create rejects blank or NUL fields before saving anything`() {
         val ok = SupportInquiryRequest("이용", "제목", "본문")
-        val invalid = listOf(
-            ok.copy(category = " "), ok.copy(category = "c".repeat(51)), ok.copy(category = "이\u0000용"),
-            ok.copy(title = "\t"), ok.copy(title = "t".repeat(201)), ok.copy(title = "제\u0000목"),
-            ok.copy(body = "\n"), ok.copy(body = "b".repeat(20001)), ok.copy(body = "본\u0000문"),
+        val invalid = blankTexts.flatMap { listOf(ok.copy(category = it), ok.copy(title = it), ok.copy(body = it)) } + listOf(
+            ok.copy(category = "이\u0000용"), ok.copy(title = "제\u0000목"), ok.copy(body = "본\u0000문"),
         )
 
         invalid.forEach { assertThrows(IllegalArgumentException::class.java) { service.create(author, it) } }
@@ -236,7 +236,7 @@ class SupportInquiryServiceTest {
         givenInquiry()
         givenFeedback()
 
-        for (text in listOf("", " \t\n", "b".repeat(20001), "답\u0000변")) {
+        for (text in blankTexts + "답\u0000변") {
             assertThrows(IllegalArgumentException::class.java) { service.reply(admin, inquiryId, SupportReplyRequest(text)) }
             assertThrows(IllegalArgumentException::class.java) { service.updateReply(admin, inquiryId, replyId, SupportReplyRequest(text)) }
         }

@@ -1,4 +1,4 @@
-import { today, type AdminState } from '../entities/admin'
+import type { AdminState } from '../entities/admin'
 import { forkList, hashText, isPub, nid, ofKind, publicCast, type Work } from '../entities/work'
 import type { AdminRepository } from '../repositories/AdminRepository'
 import type { ChatRepository } from '../repositories/ChatRepository'
@@ -10,6 +10,9 @@ import { chatsOf } from './ChatUseCase'
 /** 조치 결과: ok면 데이터를 다시 읽습니다. null이면 대상이 없어 아무것도 하지 않았습니다. */
 export type AdminResult = { ok: boolean; msg: string } | null
 const ok = (msg: string) => ({ ok: true, msg }), fail = (msg: string) => ({ ok: false, msg })
+
+/** 정본(Content API) 작품은 이 화면의 데모 공개 상태 조치 대상이 아닙니다. toggleWork 거절과 작품 탭 버튼 비활성화가 같은 기준을 씁니다. */
+export const canToggleWork = (w: Pick<Work, 'canonical'>) => !w.canonical
 
 /** 목업 admin()·adminLegacy()·adminExtra()와 15절 관리자 핸들러. 실제 권한 판단은 Core가 맡아야 합니다. */
 export class AdminUseCase {
@@ -75,7 +78,7 @@ export class AdminUseCase {
   async toggleWork(id: string): Promise<AdminResult> {
     const w = (await this.workRepository.listWorks()).find((x) => x.id === id)
     if (!w) return null
-    if (w.canonical) return fail(AGGREGATE_WRITE_UNSUPPORTED)
+    if (!canToggleWork(w)) return fail(AGGREGATE_WRITE_UNSUPPORTED)
     w.hidden = !w.hidden
     await this.workRepository.saveWork(w)
     await this.log('작품 공개 상태 변경', () => w.title + ' · ' + (w.hidden ? '운영상 비공개' : '제한 해제'))
@@ -107,23 +110,6 @@ export class AdminUseCase {
     await this.chatRepository.saveChats(chats)
     await this.log('캐릭터챗 추가', () => w.title + ' · ' + character)
     return ok('캐릭터챗을 추가했어요 (데모)')
-  }
-
-  async addNotice(title: string, body: string): Promise<AdminResult> {
-    if (!title.trim() || !body.trim()) return fail('제목과 내용을 입력해 주세요')
-    await this.log('공지 게시', (a) => { a.notices.unshift([today(), title.trim(), body.trim()]); return title.trim() })
-    return ok('공지를 게시했어요 (데모 · 현재 화면에만 반영)')
-  }
-
-  async addEvent(title: string, period: string, body: string): Promise<AdminResult> {
-    if (!title.trim() || !body.trim()) return fail('이벤트명과 안내 내용을 입력해 주세요')
-    await this.log('이벤트 추가', (a) => { a.events.unshift({ t: title.trim(), p: period.trim() || '기간 미정', st: '예정', d: body.trim(), go: '/', cta: '서비스 둘러보기' }); return title.trim() })
-    return ok('이벤트를 추가했어요 (데모 · 현재 화면에만 반영)')
-  }
-
-  async toggleEvent(i: number): Promise<AdminResult> {
-    const done = await this.log('이벤트 상태 변경', (a) => { const e = a.events[i]; if (!e) return null; e.st = e.st === '진행 중' ? '종료' : '진행 중'; return e.t + ' · ' + e.st })
-    return done ? ok('이벤트 상태를 변경했어요 (데모)') : null
   }
 
   /** 목업 data-run-job: 실패 작업만, 실제 실행 없이 기록합니다. */

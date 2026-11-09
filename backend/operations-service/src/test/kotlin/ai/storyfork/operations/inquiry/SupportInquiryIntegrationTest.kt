@@ -151,10 +151,12 @@ class SupportInquiryIntegrationTest {
     fun `invalid input is a 400 and stores nothing`() {
         val id = file()
 
-        // Blank, oversized and NUL fields are covered by SupportInquiryServiceTest; only the HTTP-level missing-field mapping is checked here.
-        for (body in listOf("""{"category":"이용","title":"제목"}""", "{}"))
-            assertEquals(400, send("POST", base, memberBearer, body).statusCode(), body)
+        // Blank and NUL fields are covered by SupportInquiryServiceTest and the @Size limits by RequestValidationTest;
+        // here only the HTTP wiring is checked: missing fields and @Valid on the controller (an oversized value must stop there).
+        for (body in listOf("""{"category":"이용","title":"제목"}""", "{}", """{"category":"이용","title":"${"t".repeat(201)}","body":"본문"}"""))
+            assertEquals(400, send("POST", base, memberBearer, body).statusCode(), body.take(60))
         assertEquals(400, send("POST", "$base/$id/replies", adminBearer, """{"body":" "}""").statusCode())
+        assertEquals(400, send("POST", "$base/$id/replies", adminBearer, """{"body":"${"b".repeat(20001)}"}""").statusCode())
         assertEquals(400, send("GET", "$base?status=DONE", adminBearer).statusCode())
 
         assertEquals(1, tree(send("GET", "$base/mine", memberBearer)).path("items").size())

@@ -13,13 +13,12 @@ type AdminViewState = {
   sel: string | null; filters: Record<string, AdminFilter>; chatForm: AdminChatForm
   recordSelection: Record<OperationsRecordKind, string | null>
   noticeDrafts: Record<string, NoticeInput>; eventDrafts: Record<string, EventDraft>
-  legacyDrafts: Record<string, Record<string, string>>
 }
 
 const initialState: AdminViewState = {
   sel: null, filters: {}, chatForm: { kind: 'fork', workId: '', character: '' },
   recordSelection: { notices: null, events: null, inquiries: null },
-  noticeDrafts: {}, eventDrafts: {}, legacyDrafts: {},
+  noticeDrafts: {}, eventDrafts: {},
 }
 
 export const adminViewSlice = createSlice({
@@ -33,8 +32,6 @@ export const adminViewSlice = createSlice({
     clearNoticeDraft: (s, a: PayloadAction<string>) => { delete s.noticeDrafts[a.payload] },
     setEventDraft: (s, a: PayloadAction<{ id: string; value: EventDraft }>) => { s.eventDrafts[a.payload.id] = a.payload.value },
     clearEventDraft: (s, a: PayloadAction<string>) => { delete s.eventDrafts[a.payload] },
-    setLegacyDraft: (s, a: PayloadAction<{ id: string; field: string; value: string }>) => { (s.legacyDrafts[a.payload.id] ??= {})[a.payload.field] = a.payload.value },
-    clearLegacyDraft: (s, a: PayloadAction<string>) => { delete s.legacyDrafts[a.payload] },
   },
 })
 

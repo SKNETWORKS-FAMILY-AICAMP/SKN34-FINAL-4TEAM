@@ -325,7 +325,8 @@ class ComposeSplitTest(unittest.TestCase):
         # Same variable names as local/dev; the server's own .env supplies values and blanks fail config.
         for variable in ('DATABASE_URL', 'DATABASE_USER', 'DATABASE_PASSWORD',
                          'CORE_SMTP_HOST', 'CORE_SMTP_PORT', 'AUTH_PUBLIC_ORIGIN', 'AUTH_MAIL_FROM',
-                         'AUTH_JWT_SECRET', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN', 'WEB_PORT'):
+                         'AUTH_JWT_SECRET', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN', 'OPERATIONS_SERVICE_TOKEN',
+                         'WEB_PORT'):
             self.assertIn('${' + variable + ':?', source)
         self.assertIn('AUTH_COOKIE_SECURE: "true"', source)
         self.assertIn('127.0.0.1:${WEB_PORT:?', source)

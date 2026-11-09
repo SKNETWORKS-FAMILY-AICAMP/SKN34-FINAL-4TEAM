@@ -2,8 +2,9 @@
 import '../fixtureApp'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { appContainer } from '../../app/appContainer'
 import { renderApp } from '../renderApp'
 
 afterEach(cleanup)
@@ -70,6 +71,32 @@ describe('검색 결과 (U36)', () => {
     await screen.findByRole('heading', { name: '랭킹' })
     await waitFor(() => expect(titles().length).toBeGreaterThan(0))
     expect(screen.queryByRole('button', { name: /소설 신고/ })).toBeNull()
+  })
+
+  it('내 소설 카드에는 신고 버튼이 없고 남의 소설 카드에는 있다 (#196)', async () => {
+    renderApp('/search?q=별빛')
+    await screen.findByRole('button', { name: '별빛 서약의 탑: 재의 왕관 소설 신고' })
+    expect(titles()).toContain('별빛 서약의 탑')
+    expect(screen.queryByRole('button', { name: '별빛 서약의 탑 소설 신고' })).toBeNull()
+  })
+
+  it('서버(정본) 작품도 남의 공개 작품이면 신고 버튼이 보이고 운영 신고 폼으로 접수한다 (#196)', async () => {
+    const works = appContainer.resolve('mockDb').works
+    const submit = vi.spyOn(appContainer.resolve('reportUseCase'), 'submit').mockResolvedValue(undefined)
+    for (const work of works) work.canonical = true
+    try {
+      renderApp('/search?q=홍길동')
+      fireEvent.click(await screen.findByRole('button', { name: '홍길동전 소설 신고' }))
+      const dialog = screen.getByRole('dialog', { name: '소설 신고' })
+      fireEvent.change(within(dialog).getByLabelText('신고 사유'), { target: { value: '권리 확인 부탁' } })
+      fireEvent.click(within(dialog).getByRole('button', { name: '신고 접수' }))
+      await within(dialog).findByText(/신고를 접수했어요/)
+      expect(submit).toHaveBeenCalledWith({ kind: 'RIGHTS', workId: 'hong', reason: '권리 확인 부탁', evidence: '' })
+    } finally {
+      cleanup()
+      submit.mockRestore()
+      for (const work of works) delete work.canonical
+    }
   })
 })
 

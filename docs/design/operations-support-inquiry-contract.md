@@ -23,7 +23,8 @@
 
 기본 경로 `/api/v1/operations/support/inquiries`. 오류는 기존 `{ code, message }`이며 401(인증 없음)·403(권한 없음)·
 404(없음·남의 문의·서비스 토큰 레코드)·400(입력 오류)이다. 시각은 UTC ISO-8601이다. 목록은 끝 슬래시 없이 호출한다
-(`/support/inquiries?status=`). 길이 검증은 기존 `InquiryService` 규칙대로 trim 이전 문자열에 적용한다. POST 201은 `Location` 없이 본문만 반환한다.
+(`/support/inquiries?status=`). 입력 규칙은 기존 `/inquiries`와 같다. 길이는 요청 DTO의 `@Size`가 trim 이전 문자열에 적용하고,
+공백만(NBSP류 포함)·U+0000은 서비스가 거절해 400이며 저장하지 않는다. POST 201은 `Location` 없이 본문만 반환한다.
 
 | 메서드·경로 | 권한 | 동작 |
 |---|---|---|

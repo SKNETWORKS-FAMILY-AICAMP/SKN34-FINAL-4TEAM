@@ -57,15 +57,10 @@ describe('독립 운영 메모리 데모 CRUD', () => {
     await expect(uc.event(row.id)).rejects.toThrow('이벤트를 찾을 수 없어요')
   })
 
-  it.each([
-    { startsAt: '잘못된 날짜', endsAt: null },
-    { startsAt: '2026-11-06T00:00:00Z', endsAt: '2026-11-05T00:00:00Z' },
-    { startsAt: '2026-11-05T09:00', endsAt: null },
-    { startsAt: '2026-02-30T00:00:00Z', endsAt: null },
-    { startsAt: null, endsAt: '2026-11-05T24:00:00Z' },
-  ])('유효하지 않은 UTC 또는 역전 기간을 거절한다: %j', async (period) => {
+  // UTC 형식은 UseCase가 아니라 한국시간 입력 변환(toUtcFromKoreanInput)과 ViewModel 경계가 검사한다.
+  it('종료가 시작보다 빠른 역전 기간을 거절한다', async () => {
     const { uc } = setup()
-    await expect(uc.saveEvent(null, { ...text, ...period })).rejects.toThrow()
+    await expect(uc.saveEvent(null, { ...text, startsAt: '2026-11-06T00:00:00Z', endsAt: '2026-11-05T00:00:00Z' })).rejects.toThrow('종료는 시작과 같거나 늦어야 해요')
     expect((await uc.load()).events).toEqual([])
   })
 

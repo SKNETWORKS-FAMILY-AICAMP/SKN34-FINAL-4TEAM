@@ -152,16 +152,16 @@ export function AdminPage() {
                 {live ? '운영 API 연결' : '데모 화면'}
               </span>
             </header>
-            {vm.isLoading && (
+            {!live && vm.isLoading && (
               <p className='admin-data-state' role='status'>관리자 데이터를 불러오고 있어요.</p>
             )}
             {vm.lastSuccess && <p className='admin-data-state' role='status'>{vm.lastSuccess}</p>}
-            {vm.isRefreshing && (
+            {!live && vm.isRefreshing && (
               <p className='admin-data-state' role='status'>
                 목록을 새로고침하고 있어요. 이전 조회 내용은 유지하며 처리 버튼은 잠시 사용할 수 없어요.
               </p>
             )}
-            {vm.isError && (
+            {!live && vm.isError && (
               <div className='admin-data-state admin-action-error' role='alert'>
                 <p>
                   {d
@@ -186,9 +186,9 @@ export function AdminPage() {
               </div>
             )}
             {Object.entries(vm.actions)
-              .filter(([key]) => !/^(notice:|event:|inquiry:|legacy:|report:)/.test(key))
+              .filter(([key]) => !/^(notice:|event:|inquiry:|report:)/.test(key))
               .map(([key, state]) => <AdminActionStatus key={key} state={state} />)}
-            {d && (
+            {(d || live) && (
               <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} />
             )}
           </section>
@@ -200,7 +200,8 @@ export function AdminPage() {
 
 type BodyProps = {
   tab: AdminTab
-  d: Data
+  /** 데모 조회 결과. 운영 API 탭(users·admins·rights·profile)은 이 값 없이도 그립니다. */
+  d: Data | undefined
   vm: VM
   f: Filter
   setF: (x: Partial<Filter>) => void
@@ -268,16 +269,18 @@ function Controls(
 
 function Body(p: BodyProps) {
   const { tab, d, vm, f } = p
+  if (tab === 'rights') return <Rights {...p} />
+  if (tab === 'admins') return <Admins vm={vm} />
+  if (tab === 'users') return <Users {...p} />
+  if (tab === 'profile') return <Profile vm={vm} />
+  if (!d) return null
   const titleSort = (
     a: string,
     b: string,
   ) => (f.sort === 'titleDesc' ? b.localeCompare(a, 'ko') : a.localeCompare(b, 'ko'))
   let T: ReactNode
   if (tab === 'data') T = <Overview d={d} vm={vm} />
-  else if (tab === 'rights') T = <Rights {...p} />
   else if (tab === 'llm') T = <Llm d={d} vm={vm} />
-  else if (tab === 'admins') T = <Admins vm={vm} />
-  else if (tab === 'users') T = <Users {...p} />
   else if (tab === 'works') {
     const list = d.works.filter((w) =>
       ofKind(f.category, w) && has(f.query, w.title, w.author, w.kind, w.rights)
@@ -320,11 +323,20 @@ function Body(p: BodyProps) {
                     <button
                       type='button'
                       className='btn sm'
-                      disabled={blocked(vm, `work:${w.id}`)}
+                      disabled={!vm.canToggleWork(w) || blocked(vm, `work:${w.id}`)}
+                      aria-describedby={vm.canToggleWork(w) ? undefined : `work-block-${w.id}`}
                       onClick={() => vm.toggleWork(w.id)}
                     >
                       {w.hidden ? '제한 해제' : '운영상 비공개'}
                     </button>
+                    {!vm.canToggleWork(w) && (
+                      <>
+                        <br />
+                        <span id={`work-block-${w.id}`} className='small muted'>
+                          정본 작품은 이 데모 화면에서 바꿀 수 없어요.
+                        </span>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
@@ -530,21 +542,9 @@ function Body(p: BodyProps) {
         </p>
       </div>
     )
-  } else if (tab === 'events') {
-    T = (
-      <>
-        <OperationsEvents vm={vm} />
-        <LegacyEvents d={d} vm={vm} />
-      </>
-    )
-  } else if (tab === 'notices') {
-    T = (
-      <>
-        <OperationsNotices vm={vm} />
-        <LegacyNotices d={d} vm={vm} />
-      </>
-    )
-  } else if (tab === 'credits') {
+  } else if (tab === 'events') T = <OperationsEvents vm={vm} />
+  else if (tab === 'notices') T = <OperationsNotices vm={vm} />
+  else if (tab === 'credits') {
     T = (
       <div className='panel'>
         <div className='table-head'>
@@ -597,7 +597,7 @@ function Body(p: BodyProps) {
         </p>
       </div>
     )
-  } else T = <Profile vm={vm} />
+  }
   return T
 }
 
@@ -989,40 +989,42 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
           )}
         </div>
       )}
-      <details className='panel admin-legacy-demo' style={{ marginTop: 14 }}>
-        <summary>원작·포크 데이터 격리 점검 (예시 데이터)</summary>
-        <Table label='원작·포크 격리 점검 표'>
-          <thead>
-            <tr>
-              <th scope='col'>포크</th>
-              <th scope='col'>원작 · 분기</th>
-              <th scope='col'>스냅샷 해시</th>
-              <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
-              <th scope='col'>인물 상태 차이</th>
-              <th scope='col'>판정</th>
-            </tr>
-          </thead>
-          <tbody>
-            {d.isolation.map((x) => (
-              <tr key={x.title}>
-                <td>{x.title}</td>
-                <td>{x.parent} · {x.forkAt}화</td>
-                <td className='mono'>{x.snapNow}</td>
-                <td className='mono'>{x.now}</td>
-                <td>{x.diff.length ? x.diff.join(', ') : '없음'}</td>
-                <td>
-                  <span className={`chip ${x.ok ? 'ok' : 'wait'}`}>
-                    {x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}
-                  </span>
-                </td>
+      {d && (
+        <details className='panel admin-legacy-demo' style={{ marginTop: 14 }}>
+          <summary>원작·포크 데이터 격리 점검 (예시 데이터)</summary>
+          <Table label='원작·포크 격리 점검 표'>
+            <thead>
+              <tr>
+                <th scope='col'>포크</th>
+                <th scope='col'>원작 · 분기</th>
+                <th scope='col'>스냅샷 해시</th>
+                <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
+                <th scope='col'>인물 상태 차이</th>
+                <th scope='col'>판정</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
-        <p className='small muted' style={{ marginTop: 10 }}>
-          스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
-        </p>
-      </details>
+            </thead>
+            <tbody>
+              {d.isolation.map((x) => (
+                <tr key={x.title}>
+                  <td>{x.title}</td>
+                  <td>{x.parent} · {x.forkAt}화</td>
+                  <td className='mono'>{x.snapNow}</td>
+                  <td className='mono'>{x.now}</td>
+                  <td>{x.diff.length ? x.diff.join(', ') : '없음'}</td>
+                  <td>
+                    <span className={`chip ${x.ok ? 'ok' : 'wait'}`}>
+                      {x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <p className='small muted' style={{ marginTop: 10 }}>
+            스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
+          </p>
+        </details>
+      )}
     </>
   )
 }
@@ -1177,165 +1179,6 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
   )
 }
 
-/** 회원 화면의 기존 단순 데모는 독립 운영 기록으로 이관하지 않습니다. */
-function LegacyNotices({ d, vm }: { d: Data; vm: VM }) {
-  const form = vm.legacyDrafts.notice ?? {}
-  const state = vm.actions['legacy:notice']
-  return (
-    <details className='panel admin-legacy-demo'>
-      <summary>기존 회원 화면 공지 데모</summary>
-      <p className='admin-note'>
-        기존 회원 공지 목록과 이어지는 별도 호환 데모예요. 위 운영 공지 기록의 서버 발행 기능이
-        아니에요.
-      </p>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault()
-          if (await vm.addNotice(form.title ?? '', form.body ?? '')) vm.clearLegacyDraft('notice')
-        }}
-      >
-        <fieldset disabled={vm.mutationsBlocked || !!state?.pending} className='form-grid'>
-          <label className='field wide'>
-            제목<input
-              className='inp'
-              maxLength={60}
-              required
-              value={form.title ?? ''}
-              onChange={(e) => vm.setLegacyDraft('notice', 'title', e.target.value)}
-            />
-          </label>
-          <label className='field wide'>
-            내용<textarea
-              className='ta'
-              maxLength={1000}
-              required
-              value={form.body ?? ''}
-              onChange={(e) => vm.setLegacyDraft('notice', 'body', e.target.value)}
-            />
-          </label>
-          <div className='rowend wide'>
-            <button className='btn pri' type='submit'>
-              {state?.pending ? '게시 중…' : '공지 게시'}
-            </button>
-          </div>
-        </fieldset>
-        <AdminActionStatus state={state} />
-      </form>
-      <Table label='기존 회원 공지 표'>
-        <thead>
-          <tr>
-            <th scope='col'>게시일</th>
-            <th scope='col'>제목</th>
-            <th scope='col'>내용</th>
-          </tr>
-        </thead>
-        <tbody>
-          {d.admin.notices.map((n, i) => (
-            <tr key={i}>
-              <td>{n[0]}</td>
-              <td>
-                <b>{n[1]}</b>
-              </td>
-              <td className='admin-prose'>{n[2]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </details>
-  )
-}
-
-function LegacyEvents({ d, vm }: { d: Data; vm: VM }) {
-  const form = vm.legacyDrafts.event ?? {}
-  const state = vm.actions['legacy:event:new']
-  return (
-    <details className='panel admin-legacy-demo'>
-      <summary>기존 회원 화면 이벤트 데모</summary>
-      <p className='admin-note'>
-        기존 회원 화면의 문자열 기간·상태 변경만 유지하는 호환 데모예요. 위 운영 이벤트의 UTC 기간
-        계약과는 별개예요.
-      </p>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault()
-          if (await vm.addEvent(form.title ?? '', form.period ?? '', form.body ?? '')) {
-            vm.clearLegacyDraft('event')
-          }
-        }}
-      >
-        <fieldset disabled={vm.mutationsBlocked || !!state?.pending} className='form-grid'>
-          <label className='field'>
-            이벤트명<input
-              className='inp'
-              maxLength={50}
-              required
-              value={form.title ?? ''}
-              onChange={(e) => vm.setLegacyDraft('event', 'title', e.target.value)}
-            />
-          </label>
-          <label className='field'>
-            기간<input
-              className='inp'
-              maxLength={40}
-              placeholder='기간 미정'
-              value={form.period ?? ''}
-              onChange={(e) => vm.setLegacyDraft('event', 'period', e.target.value)}
-            />
-          </label>
-          <label className='field wide'>
-            안내 내용<textarea
-              className='ta'
-              maxLength={300}
-              required
-              value={form.body ?? ''}
-              onChange={(e) => vm.setLegacyDraft('event', 'body', e.target.value)}
-            />
-          </label>
-          <div className='rowend wide'>
-            <button className='btn pri' type='submit'>
-              {state?.pending ? '추가 중…' : '이벤트 추가'}
-            </button>
-          </div>
-        </fieldset>
-        <AdminActionStatus state={state} />
-      </form>
-      <Table label='기존 회원 이벤트 표'>
-        <thead>
-          <tr>
-            <th scope='col'>이벤트</th>
-            <th scope='col'>기간</th>
-            <th scope='col'>상태</th>
-            <th scope='col' className='act'>조치</th>
-          </tr>
-        </thead>
-        <tbody>
-          {d.admin.events.map((event, i) => (
-            <tr key={i}>
-              <td>
-                <b>{event.t}</b>
-                <p className='small muted admin-prose'>{event.d}</p>
-              </td>
-              <td>{event.p}</td>
-              <td>{event.st}</td>
-              <td>
-                <button
-                  type='button'
-                  className='btn sm'
-                  disabled={vm.mutationsBlocked || !!vm.actions[`legacy:event:${i}`]?.pending}
-                  onClick={() => vm.toggleEvent(i)}
-                >
-                  상태 변경
-                </button>
-                <AdminActionStatus state={vm.actions[`legacy:event:${i}`]} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </details>
-  )
-}
-
 /** 67 고객지원 문의: 회원이 보낸 문의 목록·상세와 답변 등록·수정·삭제. 작가 검토 제보는 기존 데모를 그대로 둡니다. */
 function Feedback({ d, vm, f, setF }: BodyProps) {
   const selection = vm.recordSelection.inquiries
@@ -1452,49 +1295,51 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
             </>
           )}
       </section>
-      <div className='panel' style={{ marginTop: 14 }}>
-        <b>작가 검토 제보</b>
-        <p className='small muted'>
-          원고 반영은 작가가 검토합니다. 위 회원 문의와는 별도의 시연용 제보예요.
-        </p>
-        <Table label='작가 검토 제보 표' style={{ marginTop: 10 }}>
-          <thead>
-            <tr>
-              <th scope='col'>유형</th>
-              <th scope='col'>내용</th>
-              <th scope='col'>접수일</th>
-              <th scope='col'>상태</th>
-            </tr>
-          </thead>
-          <tbody>
-            {d.reports.length
-              ? d.reports.map((r) => (
-                <tr key={r.id}>
-                  <td>{r.type || '제보'}</td>
-                  <td>
-                    <b>{r.text}</b>
-                    {r.reply && (
-                      <>
-                        <br />
-                        <span className='small muted'>{r.reply}</span>
-                      </>
-                    )}
-                  </td>
-                  <td>—</td>
-                  <td>{r.status}</td>
-                </tr>
-              ))
-              : (
-                <tr>
-                  <td colSpan={4} className='muted'>접수된 제보가 없어요.</td>
-                </tr>
-              )}
-          </tbody>
-        </Table>
-        <p className='admin-note'>
-          답변과 상태는 현재 브라우저에만 반영되며 실제 전송되지 않습니다.
-        </p>
-      </div>
+      {d && (
+        <div className='panel' style={{ marginTop: 14 }}>
+          <b>작가 검토 제보</b>
+          <p className='small muted'>
+            원고 반영은 작가가 검토합니다. 위 회원 문의와는 별도의 시연용 제보예요.
+          </p>
+          <Table label='작가 검토 제보 표' style={{ marginTop: 10 }}>
+            <thead>
+              <tr>
+                <th scope='col'>유형</th>
+                <th scope='col'>내용</th>
+                <th scope='col'>접수일</th>
+                <th scope='col'>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.reports.length
+                ? d.reports.map((r) => (
+                  <tr key={r.id}>
+                    <td>{r.type || '제보'}</td>
+                    <td>
+                      <b>{r.text}</b>
+                      {r.reply && (
+                        <>
+                          <br />
+                          <span className='small muted'>{r.reply}</span>
+                        </>
+                      )}
+                    </td>
+                    <td>—</td>
+                    <td>{r.status}</td>
+                  </tr>
+                ))
+                : (
+                  <tr>
+                    <td colSpan={4} className='muted'>접수된 제보가 없어요.</td>
+                  </tr>
+                )}
+            </tbody>
+          </Table>
+          <p className='admin-note'>
+            답변과 상태는 현재 브라우저에만 반영되며 실제 전송되지 않습니다.
+          </p>
+        </div>
+      )}
     </>
   )
 }
