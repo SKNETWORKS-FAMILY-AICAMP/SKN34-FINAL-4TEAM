@@ -119,16 +119,22 @@ export class ReadingUseCase {
     return read ?? unliked
   }
 
-  /** 목업 work(): 볼 수 없는 작품이면 null (unavailableWork) */
-  async getWork(id: string, role: Role) {
+  /**
+   * 목업 work(): 볼 수 없는 작품이면 null (unavailableWork). 공개 설정(wiki)은 [upto]회차(1~마지막 회차로 맞춤) 기준이고,
+   * 없으면 최신 회차 기준이다. 맞춘 기준 회차는 upto로 돌려준다.
+   */
+  async getWork(id: string, role: Role, upto?: number) {
     const { works, worlds, progress, w: loaded } = await this.load(id)
     if (!canView(loaded, role)) return null
-    const [w, records] = await Promise.all([this.workRepository.readWorld(loaded,epsOf(loaded).length), this.memberRecords(role)])
+    const last = epsOf(loaded).length
+    const n = upto && upto >= 1 ? Math.min(Math.floor(upto), last) : last
+    const [w, records] = await Promise.all([this.workRepository.readWorld(loaded, n), this.memberRecords(role)])
     const record = records.find((r) => r.workId === w.id)
     const forks = forksOf(works, w.id)
     const like = await this.likeStateOf(w, role, !!progress.liked[w.id])
     return {
       work: w,
+      upto: n,
       parent: works.find((x) => x.id === w.parent),
       visible: epsOf(w).map((e, i) => [e, i] as const).filter(([e]) => visibleEpisode(w, e, role)),
       last: record?.lastEpisode,

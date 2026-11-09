@@ -33,6 +33,7 @@ const NewWorkPage = lazy(() => import('./presentation/features/library/view/NewW
 const StudioPage = lazy(() => import('./presentation/features/studio/view/StudioPage').then((m) => ({ default: m.StudioPage })))
 const WorldStudioPage = lazy(() => import('./presentation/features/worldstudio/view/WorldStudioPage').then((m) => ({ default: m.WorldStudioPage })))
 const ReaderPage = lazy(() => import('./presentation/features/reading/view/ReaderPage').then((m) => ({ default: m.ReaderPage })))
+const PublicWikiPage = lazy(() => import('./presentation/features/reading/view/PublicWikiPage').then((m) => ({ default: m.PublicWikiPage })))
 const WorkPage = lazy(() => import('./presentation/features/reading/view/WorkPage').then((m) => ({ default: m.WorkPage })))
 const IfsPage = lazy(() => import('./presentation/features/reading/view/ExplorePages').then((m) => ({ default: m.IfsPage })))
 const RankPage = lazy(() => import('./presentation/features/reading/view/ExplorePages').then((m) => ({ default: m.RankPage })))
@@ -109,6 +110,7 @@ function App() {
             <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
             <Route path="/auth/verify-email-change" element={<VerifyEmailChangePage />} />
             <Route path="/work/:id" element={<WorkPage />} />
+            <Route path="/work/:id/wiki" element={<PublicWikiPage />} />
             {/* 공개 회차 열람은 비회원도 할 수 있다(UC-01). 세션 복원이 끝난 뒤에 열어 로그인 회원이 새로 고칠 때 두 번 불러오지 않게 한다. */}
             <Route path="/read/:id/:n" element={restoring ? checkingSession : <ReaderPage />} />
             <Route path="/read/:id" element={restoring ? checkingSession : <ReaderPage />} />

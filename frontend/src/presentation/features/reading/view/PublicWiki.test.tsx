@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import type { ReadingWorkRecord, ReadingWorldRecord } from '../../../../data/content/HttpEpisodeRepository'
 import { mapReadingWork, withReadingWorld } from '../../../../data/content/readingWork'
-import { PublicWikiPanel } from './PublicWiki'
+import { PublicWikiArticle } from './PublicWiki'
 
 afterEach(cleanup)
 
@@ -32,43 +33,47 @@ const documents = [
     properties: [{ name: '나이', value: '17' }, { name: '상태', value: '봉인의 속삭임을 들음' }] }),
 ]
 
-describe('독자용 공개 설정 패널', () => {
-  it('분류 순서대로 묶어 이름·별칭·설명·공개된 속성을 읽기 전용으로 보여 준다', () => {
-    render(<PublicWikiPanel work={served(documents)} upto={2} />)
-    const panel = screen.getByRole('region', { name: '공개된 설정' })
-    // 서버가 준 문서 순서와 상관없이 사전 분류 순서(캐릭터·사건·장소·…·세계관 설정)로 묶고 개수를 함께 보여 준다.
-    expect([...panel.querySelectorAll('details > summary')].map((s) => s.textContent)).toEqual(['캐릭터1', '사건1', '장소1', '세계관 설정1'])
-    const rian = within(panel).getByRole('heading', { name: '리안', level: 4 }).closest('article')!
-    within(rian).getByText('별칭 · 견습 서약사')
+/** 설정 위키 본문을 그린다(분류 상자의 작품 링크 때문에 라우터 안에서). */
+const show = (docs: ReadingWorldRecord['documents'], upto = 2) => render(<MemoryRouter><PublicWikiArticle work={served(docs)} upto={upto} /></MemoryRouter>).container
+
+describe('독자용 설정 위키 본문 (U45)', () => {
+  it('분류 순서대로 목차·번호 문단을 만들고 이름·별칭·설명·공개된 속성을 정보 상자로 읽기 전용 표시한다', () => {
+    const panel = show(documents)
+    // 서버가 준 문서 순서와 상관없이 사전 분류 순서(캐릭터·사건·장소·…·세계관 설정)로 묶는다.
+    expect([...panel.querySelectorAll('details > summary')].map((s) => s.textContent)).toEqual(['1. 캐릭터', '2. 사건', '3. 장소', '4. 세계관 설정'])
+    within(within(panel).getByRole('navigation', { name: '목차' })).getByRole('link', { name: '1.1. 리안' })
+    const rian = within(panel).getByRole('heading', { name: '1.1. 리안', level: 3 }).closest('.nw-doc') as HTMLElement
     within(rian).getByText('끈질기고 확신이 강한 견습생.')
-    expect([...rian.querySelectorAll('dt')].map((e) => e.textContent)).toEqual(['나이', '상태'])
-    expect([...rian.querySelectorAll('dd')].map((e) => e.textContent)).toEqual(['17', '봉인의 속삭임을 들음'])
+    const info = within(rian).getByRole('table', { name: '리안' })
+    expect([...info.querySelectorAll('th')].map((e) => e.textContent)).toEqual(['분류', '별칭', '나이', '상태'])
+    expect([...info.querySelectorAll('td')].map((e) => e.textContent)).toEqual(['캐릭터', '견습 서약사', '17', '봉인의 속삭임을 들음'])
     // 읽기 전용: 입력·버튼·편집 영역이 없다.
     expect(panel.querySelector('input, textarea, select, button, [contenteditable]')).toBeNull()
   })
 
   it('사건은 회차·종류·등장 인물을, 연결과 지식은 이름과 공개 회차로 보여 주고 문서 ID는 노출하지 않는다', () => {
-    render(<PublicWikiPanel work={served(documents)} upto={2} />)
-    const panel = screen.getByRole('region', { name: '공개된 설정' })
-    const event = within(panel).getByRole('heading', { name: /탑 앞에서 밤을 지새우다/ }).closest('article')!
-    within(event).getByText('1화 · 메인')
-    within(event).getByText('등장 · 리안, 카엘')
-    const tower = within(panel).getByRole('heading', { name: '별빛 탑' }).closest('article')!
-    within(tower).getByText('연결 · 봉인 규칙(소속)')
-    const rule = within(panel).getByRole('heading', { name: '봉인 규칙' }).closest('article')!
-    within(rule).getByText('봉인은 새벽에 약해진다 · 2화 공개')
+    const panel = show(documents)
+    const event = within(panel).getByRole('heading', { name: /탑 앞에서 밤을 지새우다/ }).closest('.nw-doc') as HTMLElement
+    within(within(event).getByRole('table')).getByText('1화 · 메인')
+    // 위키에 문서가 있는 인물(리안)은 링크, 없는 인물(카엘)은 글자로 둔다.
+    within(event).getByRole('link', { name: '리안' })
+    expect(within(event).queryByRole('link', { name: '카엘' })).toBeNull()
+    const tower = within(panel).getByRole('heading', { name: /별빛 탑$/ }).closest('.nw-doc') as HTMLElement
+    within(tower).getByRole('link', { name: '봉인 규칙' })
+    within(tower).getByText('(소속)', { exact: false })
+    const rule = within(panel).getByRole('heading', { name: /봉인 규칙$/ }).closest('.nw-doc') as HTMLElement
+    within(rule).getByText('(2화 공개)', { exact: false })
     expect(panel.textContent).not.toContain('tower')
     expect(panel.textContent).not.toContain('rule')
   })
 
   it('공개 범위를 회차로 알려 준다', () => {
-    render(<PublicWikiPanel work={served(documents)} upto={2} />)
-    screen.getByText('2화까지 공개된 설정만 보여요.')
+    show(documents, 1)
+    screen.getByText('1화까지 공개된 설정만 보여요.')
   })
 
   it('공개된 설정이 없으면 빈 상태를 보여 준다', () => {
-    render(<PublicWikiPanel work={served([])} upto={1} />)
-    const panel = screen.getByRole('region', { name: '공개된 설정' })
+    const panel = show([], 1)
     within(panel).getByText('공개된 설정이 없어요.')
     expect(panel.querySelector('details')).toBeNull()
   })

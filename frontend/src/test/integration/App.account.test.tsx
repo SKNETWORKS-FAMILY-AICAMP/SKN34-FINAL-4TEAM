@@ -234,13 +234,16 @@ describe('계정 (U30~U35E)', () => {
     expect(screen.queryByText('공지사항을 찾을 수 없어요.')).toBeNull()
   })
 
-  it('관심 소설은 처음 누른 순서대로 보인다 (목업 Object.keys(S.liked))', async () => {
+  it('관심 소설은 서재와 같은 관심 목록을 최근 등록순으로 보이고, 좋아요는 섞지 않는다', async () => {
+    const interest = appContainer.resolve('workInterestUseCase')
     const reading = appContainer.resolve('readingUseCase')
-    await reading.toggleLike('postman'); await reading.toggleLike('guunmong')
+    await interest.setInterested('postman', true); await interest.setInterested('guunmong', true)
+    await reading.toggleLike('hong')
     renderAt('/me/liked')
     await screen.findByText('2편')
-    expect([...document.querySelectorAll('.grid6 .hk')].map((x) => x.textContent)).toEqual(['회색 도시의 우편배달부', '구운몽'].map((t) => expect.stringContaining(t.split(' ')[0])))
-    await reading.toggleLike('postman'); await reading.toggleLike('guunmong')
+    expect([...document.querySelectorAll('.grid6 .hk')].map((x) => x.textContent)).toEqual(['구운몽', '회색 도시의 우편배달부'].map((t) => expect.stringContaining(t.split(' ')[0])))
+    await interest.setInterested('postman', false); await interest.setInterested('guunmong', false)
+    await reading.toggleLike('hong')
   })
 
   it('불러오기 전에는 없음·0 상태를 먼저 그리지 않는다', () => {

@@ -199,6 +199,16 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(d.topForks.map((f) => f.id)).toEqual(['cloud', 'gate', 'pardon'])
   })
 
+  it('설정 위키의 기준 회차를 주면 그 회차(1~마지막 회차로 맞춤)로 공개 설정을 받고, 없으면 최신 회차로 받는다', async () => {
+    const { useCase } = fakes()
+    const readWorld = vi.spyOn(useCase['workRepository'], 'readWorld')
+    expect((await useCase.getWork('guunmong', null, 2))!.upto).toBe(2)
+    expect((await useCase.getWork('guunmong', null, 99))!.upto).toBe(4)
+    expect((await useCase.getWork('guunmong', null, 0))!.upto).toBe(4)
+    expect((await useCase.getWork('guunmong', null))!.upto).toBe(4)
+    expect(readWorld.mock.calls.map(([, n]) => n)).toEqual([2, 4, 4, 4])
+  })
+
   it('회원의 상세는 서버 기록의 이어 읽기 위치와 읽은 회차를 주고, 비회원은 기록이 없다', async () => {
     const { server, useCase } = fakes()
     expect(await useCase.getWork('guunmong', 'user')).toMatchObject({ last: 2, read: [1, 2] })
