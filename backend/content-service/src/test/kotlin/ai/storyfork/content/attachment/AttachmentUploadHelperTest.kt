@@ -2,7 +2,6 @@ package ai.storyfork.content.attachment
 
 import ai.storyfork.content.attachment.domain.AttachmentFailure
 import ai.storyfork.content.attachment.helper.AttachmentUploadHelper
-import ai.storyfork.content.attachment.service.dto.AttachmentUploadRequest
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
@@ -11,8 +10,12 @@ import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockMultipartFile
 
 class AttachmentUploadHelperTest {
-    private fun request(name: String, type: String?, bytes: ByteArray) = AttachmentUploadRequest(MockMultipartFile("file", name, type, bytes))
+    private fun request(name: String, type: String?, bytes: ByteArray) = MockMultipartFile("file", name, type, bytes)
     private fun png(width: Int = 2) = ByteArrayOutputStream().also { ImageIO.write(BufferedImage(width, 2, BufferedImage.TYPE_INT_RGB), "png", it) }.toByteArray()
+
+    @Test fun `missing file is rejected as invalid`() {
+        assertEquals(422, assertThrows(AttachmentFailure::class.java) { AttachmentUploadHelper.validate(null) }.status)
+    }
 
     @Test fun `supported bytes are validated and classified without trusting MIME alone`() {
         assertEquals("IMAGE", AttachmentUploadHelper.validate(request("map.png", "image/png", png())).kind)

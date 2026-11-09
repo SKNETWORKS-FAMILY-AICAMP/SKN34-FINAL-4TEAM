@@ -19,7 +19,7 @@ import ai.storyfork.content.attachment.entity.AttachmentSetting
 import ai.storyfork.content.attachment.entity.SettingAttachment
 import ai.storyfork.content.attachment.repository.AttachmentSettingRepository
 import ai.storyfork.content.attachment.repository.SettingAttachmentRepository
-import ai.storyfork.content.attachment.service.dto.AttachmentUploadRequest
+import ai.storyfork.content.attachment.helper.AttachmentUploadHelper
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.util.Optional
@@ -52,7 +52,7 @@ class AttachmentServiceTest {
         ImageIO.write(BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB), "png", it)
     }.toByteArray()
     private fun request(name: String = "map.png", type: String = "image/png", bytes: ByteArray = png) =
-        AttachmentUploadRequest(MockMultipartFile("file", name, type, bytes))
+        AttachmentUploadHelper.validate(MockMultipartFile("file", name, type, bytes))
 
     @BeforeEach fun repositories() {
         `when`(manager.getTransaction(any())).thenReturn(SimpleTransactionStatus())
@@ -62,6 +62,17 @@ class AttachmentServiceTest {
         `when`(images.saveAndFlush(any(ContentImage::class.java) ?: ContentImage())).thenAnswer { it.arguments[0] }
         `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, false, null))
         `when`(imageEpisodes.existsByWorkIdAndSequence("work",1)).thenReturn(true)
+    }
+
+    @Test fun `upload access is checked with the existing ownership rules before any file is read`() {
+        service.requireSettingUploadAccess("work", "setting", "owner")
+        service.requireWorkUploadAccess("work", "owner")
+        fun failure(code: String, action: () -> Any?) { assertEquals(code, assertThrows(AttachmentFailure::class.java) { action() }.code) }
+        failure("ATTACHMENT_NOT_FOUND") { service.requireSettingUploadAccess("work", "setting", "stranger") }
+        failure("IMAGE_NOT_FOUND") { service.requireWorkUploadAccess("work", "stranger") }
+        failure("ATTACHMENT_UNAUTHENTICATED") { service.requireSettingUploadAccess("work", "setting", "") }
+        failure("IMAGE_UNAUTHENTICATED") { service.requireWorkUploadAccess("work", "") }
+        verifyNoInteractions(storage)
     }
 
     @Test fun `upload rechecks deleted episode under the work lock before writing a file`() {
@@ -130,6 +141,14 @@ class AttachmentServiceTest {
             service.createEpisodeImage("work", 1, "owner", request("note.txt", "text/plain", "본문".toByteArray()))
         }.code)
         verify(storage, times(1)).upload(anyString(), any(AttachmentObjectPayload::class.java) ?: AttachmentObjectPayload(ByteArray(0), ""))
+    }
+
+    @Test fun `episode upload access checks the episode before the file is read`() {
+        `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, true, null))
+        assertEquals(403, assertThrows(AttachmentFailure::class.java) { service.requireEpisodeUploadAccess("work", 1, "owner") }.status)
+        `when`(episodeService.read("work", "owner", 2)).thenReturn(WritingEpisode(2, Draft(), emptyList(), null, false, null))
+        service.requireEpisodeUploadAccess("work", 2, "owner")
+        verify(episodeService).read("work", "owner", 2)
     }
 
     @Test fun `inherited episode images use frozen body references and cannot be created`() {
