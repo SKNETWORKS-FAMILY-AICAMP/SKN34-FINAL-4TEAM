@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 /** #84: ownership boundaries must hold even when no PostgreSQL server is available. */
 class ContentBoundaryTest {
     private val root = Path.of("src/main/kotlin/ai/storyfork/content")
-    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context")
+    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "reading")
 
     @Test fun `content HTTP resources have distinct controllers without raw servlet arguments`() {
         val controllers = mapOf(
@@ -103,12 +103,6 @@ class ContentBoundaryTest {
         assertTrue(config.contains("\"ai.storyfork.content.reading.repository\""))
         assertTrue(config.contains("\"ai.storyfork.content.reading.entity\""))
         assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.reading.controller\""))
-        // Same rule as the other content features: JPA only, no native SQL.
-        Files.walk(root.resolve("reading")).use { paths ->
-            paths.filter { it.toString().endsWith(".kt") }.forEach {
-                assertFalse(Regex("JdbcTemplate|nativeQuery\\s*=\\s*true").containsMatchIn(Files.readString(it)), "Runtime SQL: $it")
-            }
-        }
     }
 
     @Test fun `fresh SQL lives in feature leaves with one global version order`() {
