@@ -17,7 +17,7 @@ const LOOK_VARS = {
   night: { '--tbg': '#0E0E10', '--tfg': '#D9D9DE', '--tsub': '#8C8E97', '--tline': '#25252B', '--tcard': '#18181C', '--tacc': '#9D87FF', '--tbtn': '#9D87FF', '--tbtnfg': '#140E2B', colorScheme: 'dark' },
 } as const
 
-type ReaderSheet = { kind: 'comment' | 'feedback'; k: number } | { kind: 'look' } | { kind: 'wiki' } | null
+type ReaderSheet = { kind: 'comment' | 'feedback'; k: number } | { kind: 'look' } | null
 
 /** 비회원이 회원 전용 동작을 누를 때 로그인 화면에 보여 줄 안내 */
 const MEMBER_ONLY = {
