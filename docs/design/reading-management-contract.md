@@ -19,8 +19,9 @@
 
 ## 저장 (Content Flyway)
 
-각 PR은 `db/migration/work/` 아래에 develop 최댓값 다음 번호 **V17**을 쓴다(현재 develop 최댓값 V16). 열린 PR #221·#228도 V17을 쓰므로
+각 PR은 `db/migration/work/` 아래에 develop 최댓값 다음 번호를 쓴다(계약 작성 때 **V17**, 최댓값 V16). 열린 PR들이 같은 번호를 쓰므로
 나중에 병합되는 PR이 내용 불변으로 다음 번호로 바꾸고 마이그레이션 수 기대값을 함께 올린다(번호를 미리 건너뛰면 연속 버전 단언이 실패한다).
+21-B는 먼저 병합된 댓글(V17)·좋아요(V18) 뒤로 밀려 현재 `V19__work_interest.sql`이다. 21-C가 나중에 병합되면 한 칸 더 민다.
 
 | PR | 테이블 | 핵심 제약 |
 |---|---|---|
@@ -52,6 +53,7 @@
   `X-Content-Service-Token`만 허용한다(`/internal/v1/auth/verify`와 같은 신뢰 판정, `InternalAuthSecurityConfig`). Content는 응답 하나를 만들 때 소유자 ID를 모아 **한 번만** 호출한다(N+1 금지).
 - **21-B — 사건 `content.episode.published`**: Content가 공개 작품의 회차를 발행하면 같은 트랜잭션에서 관심 등록한 회원마다(작가 본인 제외) `content_event_outbox`에 한 행을 쓰고,
   스케줄 발행기가 [알림 사건 계약](../notification-event-contract.md) 형식(`target.type = "work"`, `target.id = 작품 id`)으로 `storyfork.events`에 보낸 뒤 `published_at`을 채운다.
+  처음 발행하는 **새 회차**만 사건이 되고(UC-01 A7), 이미 발행한 회차의 재발행·체크포인트 되돌리기와 공개가 아닌(비공개·제한) 작품의 발행은 보내지 않는다.
   Core는 `NoticeEventType`에 `EPISODE_PUBLISHED("content.episode.published", READING, "관심 작품에 새 회차가 올라왔어요", "work")`를 추가한다.
   Content에 `spring-boot-starter-amqp`(Core가 이미 쓰는 의존성)와 compose RabbitMQ 연결 설정을 추가한다.
 

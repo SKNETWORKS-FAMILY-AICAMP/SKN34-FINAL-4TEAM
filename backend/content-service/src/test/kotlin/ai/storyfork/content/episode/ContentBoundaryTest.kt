@@ -101,8 +101,8 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is the episode comment tables and V18 the work like table (work leaf).
-        assertEquals((1..18).toList(), versions.sorted())
+        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is the episode comment tables, V18 the work like table and V19 the work interest/outbox tables (work leaf).
+        assertEquals((1..19).toList(), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

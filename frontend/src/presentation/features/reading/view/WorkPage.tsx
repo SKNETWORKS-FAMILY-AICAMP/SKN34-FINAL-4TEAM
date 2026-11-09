@@ -56,6 +56,9 @@ export function WorkPage() {
               {!!last && <Go to={`/read/${id}/1`} className="tbtn">처음부터</Go>}
               <LikeButton liked={liked} label={w.canonical ? '좋아요' : '관심 소설'} pending={vm.likePending} onClick={vm.toggleLike} />
               <button type="button" className="ib" aria-label="공유" onClick={vm.share}>↗</button>
+              {vm.canInterest && (vm.isMember
+                ? <button type="button" className="tbtn" disabled={vm.interestBusy} onClick={vm.toggleInterest}>{vm.interested ? '관심 해제' : '관심 등록'}</button>
+                : <Go to="/login" className="tbtn" onClick={vm.requireLogin}>관심 등록</Go>)}
               {vm.canReport && <button type="button" className="btn sm" aria-label={`${w.title} 소설 신고`} onClick={() => vm.setReporting(true)}>🚩 소설 신고</button>}
             </div>
           </div>

@@ -41,11 +41,11 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(18,flyway.migrate().migrationsExecuted)
-        assertEquals((1..18).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(19,flyway.migrate().migrationsExecuted)
+        assertEquals((1..19).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
-        for(table in listOf("work","work_view","work_like","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge","episode_comment","episode_comment_like")) {
+        for(table in listOf("work","work_view","work_like","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge","episode_comment","episode_comment_like","work_interest","content_event_outbox")) {
             assertNotNull(jdbc.queryForObject("SELECT to_regclass(?)::text",String::class.java,table))
         }
         for(view in listOf("work_current","episode_current","setting_version_read")) {
@@ -115,8 +115,8 @@ class ContentMigrationTest {
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
         jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
-        // 남은 V16(샘플)·V17(댓글)·V18(좋아요)이 적용된다.
-        assertEquals(3,flyway.migrate().migrationsExecuted)
+        // 남은 V16(샘플)·V17(댓글)·V18(좋아요)·V19(관심 작품)이 적용된다.
+        assertEquals(4,flyway.migrate().migrationsExecuted)
         assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
@@ -194,6 +194,6 @@ class ContentMigrationTest {
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(18,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(19,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

@@ -17,6 +17,7 @@ import type { CreditRepository } from '../../domain/repositories/CreditRepositor
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import type { ReadingRepository, WorkRepository } from '../../domain/repositories/WorkRepository'
+import type { WorkInterestRepository } from '../../domain/repositories/WorkInterestRepository'
 import type { WorkLikeRepository } from '../../domain/repositories/WorkLikeRepository'
 import type { WorkSearchRepository } from '../../domain/repositories/WorkSearchRepository'
 import type { WorldRepository } from '../../domain/repositories/WorldRepository'
@@ -31,6 +32,7 @@ import type { LibraryUseCase } from '../../domain/usecases/LibraryUseCase'
 import type { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import type { StudioUseCase } from '../../domain/usecases/StudioUseCase'
 import type { ShellUseCase } from '../../domain/usecases/ShellUseCase'
+import type { WorkInterestUseCase } from '../../domain/usecases/WorkInterestUseCase'
 
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
@@ -72,6 +74,8 @@ export type AppCradle = {
   mockDb: MockDb
   workRepository: WorkRepository
   workSearchRepository: WorkSearchRepository
+  workInterestRepository: WorkInterestRepository
+  workInterestUseCase: WorkInterestUseCase
   workLikeRepository: WorkLikeRepository
   readingRepository: ReadingRepository
   notificationRepository: NotificationRepository

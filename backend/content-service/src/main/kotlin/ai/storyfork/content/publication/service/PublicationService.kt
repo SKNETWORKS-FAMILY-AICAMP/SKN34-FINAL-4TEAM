@@ -32,6 +32,7 @@ class PublicationService(
     private val works: WorkRepository,
     private val policies: ForkPolicyHistoryRepository,
     private val selectedPolicyEpisodes: ForkPolicyEpisodeRepository,
+    private val interests: ai.storyfork.content.interest.service.WorkInterestService,
     @Qualifier("contentEntityManager") private val em: EntityManager,
 ) {
 
@@ -96,6 +97,7 @@ class PublicationService(
         val row=episodes.findByWorkIdAndSequence(id,number) ?: throw ContentFailure(404,"회차를 찾을 수 없어요.")
         val v=versions.findByEpisodeIdAndContentVersionId(row.id,version) ?: throw ContentFailure(409,"저장 버전을 확인해 주세요.")
         episodeService.requireImageReferences(id,number,v.content)
+        interests.episodePublished(id,owner,number)
         events.saveAndFlush(PublicationEventEntity(id=contentId(),episodeVersionId=v.id,actorId=owner,action="publish",outcome="applied",triggerKind="manual"))
         val currentVisibility=visibility.findFirstByWorkIdOrderByRevisionNoDesc(id)
         if(currentVisibility?.visibility!="public") visibility.save(WorkPublicationHistoryEntity(id=contentId(),workId=id,revisionNo=(currentVisibility?.revisionNo ?: -1)+1,visibility="public"))

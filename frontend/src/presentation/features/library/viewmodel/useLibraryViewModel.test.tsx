@@ -8,6 +8,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../../app/store'
 import { createFixtureDb } from '../../../../data/mock/fixtureDb'
 import { InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../../../data/mock/InMemoryRepositories'
+import { InMemoryWorkInterestRepository } from '../../../../data/mock/InMemoryWorkInterestRepository'
 import { LibraryUseCase } from '../../../../domain/usecases/LibraryUseCase'
 import { StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
 import { AGGREGATE_WRITE_UNSUPPORTED } from '../../../../domain/repositories/WorkRepository'
@@ -17,7 +18,7 @@ afterEach(()=>{cleanup();vi.restoreAllMocks()})
 it('exposes retryable failures and keeps a rejected publication sheet open',async()=>{
   const db=createFixtureDb(), store=createAppStore({role:'user'})
   const works=new InMemoryWorkRepository(db), worlds=new InMemoryWorldRepository(db), feedback=new InMemoryFeedbackRepository(db)
-  const library=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback)
+  const library=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback,new InMemoryWorkInterestRepository())
   const studio=new StudioUseCase(works,new InMemoryCreditRepository(db),feedback,worlds)
   vi.spyOn(library,'getWrite').mockRejectedValueOnce(new Error('연결 실패'))
   vi.spyOn(studio,'savePublishSettings').mockRejectedValue(new Error(AGGREGATE_WRITE_UNSUPPORTED))
