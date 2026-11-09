@@ -4,7 +4,8 @@ name: Builder images
 # 의존성 정의가 develop에 반영될 때만 실행되고, 그 사이 바뀐 의존성은 서비스 빌드가 외부에서 받는다.
 on:
   push:
-    branches: [develop]
+    # 임시: PR CI 전에 첫 이미지를 게시하기 위한 부트스트랩 트리거. 다음 커밋에서 제거한다.
+    branches: [develop, ci/prebuilt-builder-images]
     paths:
       - 'backend/*/build.gradle'
       - 'backend/*/settings.gradle'
