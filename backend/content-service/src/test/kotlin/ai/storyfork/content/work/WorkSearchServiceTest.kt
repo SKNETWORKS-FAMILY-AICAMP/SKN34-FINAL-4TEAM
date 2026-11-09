@@ -252,6 +252,31 @@ class WorkSearchServiceTest {
         assertEquals(List(3) { listOf("owner-a") }, lookups.map { it.toList() })
     }
 
+    @Test fun `owner list asks Core before taking the row locks`() {
+        work("a", "달빛 정원", 1, author = "윤서하")
+        val visible = access.get("a")
+        `when`(access.own("a", "owner-a")).thenReturn(visible)
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("owner-a")).thenReturn(rows.toList())
+
+        assertEquals(listOf("윤서하"), service.list("owner-a").items.map { it.authorName })
+
+        // lockScopes는 PESSIMISTIC_WRITE 잠금(원작 행 포함)을 쥐므로 그 전에 외부 호출을 끝내야 한다.
+        val order = inOrder(nicknames, access)
+        order.verify(nicknames).nicknames(ArgumentMatchers.anyCollection<String>())
+        order.verify(access).lockScopes(ArgumentMatchers.anyCollection<String>())
+    }
+
+    @Test fun `owner list takes no row locks when the Core lookup fails`() {
+        work("a", "달빛 정원", 1)
+        val visible = access.get("a")
+        `when`(access.own("a", "owner-a")).thenReturn(visible)
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("owner-a")).thenReturn(rows.toList())
+        doThrow(ContentFailure(503, "작가 정보를 불러오지 못했어요.")).`when`(nicknames).nicknames(ArgumentMatchers.anyCollection<String>())
+
+        assertEquals(503, failure { service.list("owner-a") }.status)
+        verify(access, never()).lockScopes(ArgumentMatchers.anyCollection<String>())
+    }
+
     @Test fun `owner without works looks up no owners and a hidden public work fails before any lookup`() {
         `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("nobody")).thenReturn(emptyList())
         `when`(access.published("hidden")).thenThrow(ContentFailure(404, "공개 작품을 찾을 수 없어요."))
