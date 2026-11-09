@@ -45,11 +45,15 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | 400 | `INVALID_REQUEST` | 잘못된 UUID/JSON·필수 값·길이·U+0000·기간 순서 등 입력 검증 실패 |
 | 401 | `UNAUTHORIZED` | 서비스 토큰 없음/오류/중복 또는 서버 토큰 미설정 |
 | 403 | `FORBIDDEN` | 서비스 자격으로 허용되지 않은 경로 접근 |
-| 404 | `NOT_FOUND` | 레코드 없음, 다른 문의에 속한 답변 접근 |
-| 405 등 | `REQUEST_FAILED` | MVC HTTP 오류의 상태를 보존하고 상세 reason은 숨김 |
+| 404 | `NOT_FOUND` | 레코드 없음, 다른 문의에 속한 답변 접근, 없는 운영 API 경로 |
+| 405 등 | `REQUEST_FAILED` | 메서드 불일치 등 MVC HTTP 오류의 상태를 보존하고 상세 reason은 숨김 |
 | 409 | `CONFLICT` | 낙관적 동시성 충돌, 답변이 남은 문의 삭제, DB 참조 충돌 |
 | 500 | `INTERNAL_ERROR` | 예상하지 못한 실패; 성공 fallback 없음 |
 | 502 | `UPSTREAM_FAILED` | Core/Content 호출 실패(아래 회원 Bearer API); 상태·이력 미기록 |
+
+오류 advice에는 `basePackages` 같은 선택자를 두지 않습니다. 선택자가 있으면 컨트롤러가 정해지기 전에 나는 오류(없는 경로 404, 메서드 불일치 405 등)에는 advice가 적용되지 않아 위 DTO로 응답하지 못합니다.
+
+원인은 응답이 아니라 서버 로그에만 남깁니다. 500은 우리 쪽 결함이므로 `ERROR`로 원인 사슬과 스택을 남깁니다. 502는 Core/Content 장애를 계약대로 처리한 결과이므로 `WARN` 한 줄에 예외 클래스명(원인 사슬)·하위 HTTP 상태(있으면)·요청 경로만 남깁니다. RestClient 5xx 예외 메시지에는 하위 응답 본문이, I/O 원인 메시지에는 URL이 들어갈 수 있어 502는 예외 메시지와 스택을 쓰지 않으며, 그래서 쿼리(회원 검색어 등)와 하위 응답 본문이 로그에 남지 않습니다. 핸들러는 5xx만 기록하며 요청 본문·헤더·토큰·쿼리를 직접 쓰지 않습니다(500은 예외를 그대로 남기므로 예외 메시지에 든 값까지는 걸러지지 않습니다).
 
 ## API 계약
 
@@ -113,6 +117,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 - 회원: `GET /members?role=&q=&sort=`, `PUT|DELETE /members/{id}/restriction` — Core에 관리자 Bearer를 그대로 전달.
 - 관리자: `GET /admins`(Core `role=ADMIN` + `permissions`), `POST /admins`(알려진 키 1개 이상 검증 → Core 생성 → 권한 저장, 201).
 - Core·Content 하위 400/404/409는 보존하고 그 외 실패는 502 `UPSTREAM_FAILED`이며 성공·이력으로 숨기지 않습니다. 고정 timeout(connect 2s, read 5s)·재시도 없음.
+- Content 호출(접수의 작품 조회, 제한·해제)은 DB 트랜잭션 밖에서 실행해 커넥션을 점유하지 않습니다. 호출이 성공한 뒤 신고 갱신과 이력만 한 트랜잭션으로 저장하고, 조회 이후 신고가 바뀌었으면 `@Version`이 409로 거절합니다. 제한·해제는 저장이 실패하면 Content 쪽만 이미 바뀐 상태이며(분산 트랜잭션 없음) 같은 요청을 다시 보내면 맞춰집니다(Content PUT/DELETE는 멱등).
 
 ## 저장·동시성
 
@@ -136,7 +141,7 @@ CRUD는 별도 PR로 전달하더라도 **공통 기반 → 공지 V1 → 이벤
 
 ## 검증·인계
 
-로컬은 외부 의존성을 격리한 **선택 순수 단위 테스트만** 실행합니다. Gradle의 `unitTest`는 `*IntegrationTest`/`*PostgresTest`를 제외하고 `integrationTest`는 해당 클래스만 포함합니다. 두 task 모두 빈 발견/선택 불일치를 실패로 처리합니다. 필터·오류 handler 테스트는 servlet 대역/직접 호출이며 Spring context·실제 HTTP·DB가 없습니다.
+로컬은 외부 의존성을 격리한 **선택 순수 단위 테스트만** 실행합니다. Gradle의 `unitTest`는 `*IntegrationTest`/`*PostgresTest`를 제외하고 `integrationTest`는 해당 클래스만 포함합니다. 두 task 모두 빈 발견/선택 불일치를 실패로 처리합니다. 필터·오류 handler 테스트는 servlet 대역·직접 호출·`ExceptionHandlerExceptionResolver` 단독 조립이며 Spring Boot context·실제 HTTP·DB가 없습니다. `ReportServiceTest`는 자원 없는 기록용 트랜잭션 매니저와 AOP 프록시로 `@Transactional` 경계(Content 호출 시 트랜잭션 비활성, 쓰기는 한 트랜잭션)만 확인합니다.
 
 공통 기반 선택 예시:
 
