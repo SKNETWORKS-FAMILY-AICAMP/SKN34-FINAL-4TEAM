@@ -12,7 +12,6 @@ import type { AuthUseCase } from '../../domain/usecases/AuthUseCase'
 import type { SignupRepository } from '../../domain/repositories/SignupRepository'
 import type { SignupUseCase } from '../../domain/usecases/SignupUseCase'
 import type { AdminRepository } from '../../domain/repositories/AdminRepository'
-import type { InquiryRepository } from '../../domain/repositories/InquiryRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
@@ -43,6 +42,8 @@ export type AppCradle = {
   reportUseCase: import('../../domain/usecases/ReportUseCase').ReportUseCase
   memberRepository: import('../../domain/repositories/MemberRepository').MemberRepository
   memberUseCase: import('../../domain/usecases/MemberUseCase').MemberUseCase
+  supportInquiryRepository: import('../../domain/repositories/SupportInquiryRepository').SupportInquiryRepository
+  supportInquiryUseCase: import('../../domain/usecases/SupportInquiryUseCase').SupportInquiryUseCase
   eventRepository: import('../../domain/repositories/EventRepository').EventRepository
   eventUseCase: import('../../domain/usecases/EventUseCase').EventUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
@@ -70,7 +71,6 @@ export type AppCradle = {
   worldRepository: WorldRepository
   creditRepository: CreditRepository
   chatRepository: ChatRepository
-  inquiryRepository: InquiryRepository
   adminRepository: AdminRepository
   adminUseCase: AdminUseCase
   accountUseCase: AccountUseCase

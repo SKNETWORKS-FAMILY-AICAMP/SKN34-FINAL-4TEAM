@@ -1,24 +1,24 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
-import type { InquiryInput, NoticeInput } from '../../../../domain/entities/operations'
+import type { NoticeInput } from '../../../../domain/entities/operations'
 
 /** 화면을 떠났다 돌아와도 남는 관리자 보기 상태 (목업 S.admin.sel·filters·chatForm) */
 export type AdminFilter = { category: string; sort: string; query: string; search: string }
 export type AdminChatForm = { kind: string; workId: string; character: string }
+/** inquiries는 실제 고객지원 문의(67)의 선택 id이고, 공지·이벤트는 메모리 데모의 선택입니다. */
 export type OperationsRecordKind = 'notices' | 'events' | 'inquiries'
 export type EventDraft = NoticeInput & { startsAt: string; endsAt: string }
 
 type AdminViewState = {
   sel: string | null; filters: Record<string, AdminFilter>; chatForm: AdminChatForm
   recordSelection: Record<OperationsRecordKind, string | null>
-  noticeDrafts: Record<string, NoticeInput>; eventDrafts: Record<string, EventDraft>; inquiryDrafts: Record<string, InquiryInput>
-  replyDrafts: Record<string, string>
+  noticeDrafts: Record<string, NoticeInput>; eventDrafts: Record<string, EventDraft>
 }
 
 const initialState: AdminViewState = {
   sel: null, filters: {}, chatForm: { kind: 'fork', workId: '', character: '' },
   recordSelection: { notices: null, events: null, inquiries: null },
-  noticeDrafts: {}, eventDrafts: {}, inquiryDrafts: {}, replyDrafts: {},
+  noticeDrafts: {}, eventDrafts: {},
 }
 
 export const adminViewSlice = createSlice({
@@ -32,11 +32,6 @@ export const adminViewSlice = createSlice({
     clearNoticeDraft: (s, a: PayloadAction<string>) => { delete s.noticeDrafts[a.payload] },
     setEventDraft: (s, a: PayloadAction<{ id: string; value: EventDraft }>) => { s.eventDrafts[a.payload.id] = a.payload.value },
     clearEventDraft: (s, a: PayloadAction<string>) => { delete s.eventDrafts[a.payload] },
-    setInquiryDraft: (s, a: PayloadAction<{ id: string; value: InquiryInput }>) => { s.inquiryDrafts[a.payload.id] = a.payload.value },
-    clearInquiryDraft: (s, a: PayloadAction<string>) => { delete s.inquiryDrafts[a.payload] },
-    setReplyDraft: (s, a: PayloadAction<{ id: string; value: string }>) => { s.replyDrafts[a.payload.id] = a.payload.value },
-    clearReplyDraft: (s, a: PayloadAction<string>) => { delete s.replyDrafts[a.payload] },
-    clearInquiryReplies: (s, a: PayloadAction<string>) => { for (const key of Object.keys(s.replyDrafts)) if (key.startsWith(a.payload + ':')) delete s.replyDrafts[key] },
   },
 })
 

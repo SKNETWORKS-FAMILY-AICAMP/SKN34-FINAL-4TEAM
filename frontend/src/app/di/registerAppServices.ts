@@ -2,9 +2,10 @@ import { OperationsUseCase } from '../../domain/usecases/OperationsUseCase'
 import { MemberUseCase } from '../../domain/usecases/MemberUseCase'
 import { NoticeUseCase } from '../../domain/usecases/NoticeUseCase'
 import { ReportUseCase } from '../../domain/usecases/ReportUseCase'
+import { SupportInquiryUseCase } from '../../domain/usecases/SupportInquiryUseCase'
 import { EventUseCase } from '../../domain/usecases/EventUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
-import { HttpMemberRepository, HttpReportRepository } from '../../data/api/operationsApi'
+import { HttpMemberRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
@@ -26,7 +27,6 @@ import {
   InMemoryChatRepository,
   InMemoryCreditRepository,
   InMemoryFeedbackRepository,
-  InMemoryInquiryRepository,
   InMemoryReadingRepository,
   InMemoryWorldRepository,
 } from '../../data/mock/InMemoryRepositories'
@@ -60,6 +60,8 @@ export function registerAppServices(container: AppContainer) {
     reportUseCase: asFunction(({ reportRepository }) => new ReportUseCase(reportRepository)).singleton(),
     memberRepository: asFunction(() => new HttpMemberRepository()).singleton(),
     memberUseCase: asFunction(({ memberRepository }) => new MemberUseCase(memberRepository)).singleton(),
+    supportInquiryRepository: asFunction(() => new HttpSupportInquiryRepository()).singleton(),
+    supportInquiryUseCase: asFunction(({ supportInquiryRepository }) => new SupportInquiryUseCase(supportInquiryRepository)).singleton(),
     eventRepository: asFunction(() => new HttpEventRepository()).singleton(),
     eventUseCase: asFunction(({ eventRepository }) => new EventUseCase(eventRepository)).singleton(),
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
@@ -83,10 +85,9 @@ export function registerAppServices(container: AppContainer) {
     feedbackRepository: asFunction(({ mockDb }) => new InMemoryFeedbackRepository(mockDb)).singleton(),
     worldRepository: asFunction(({ mockDb }) => new InMemoryWorldRepository(mockDb)).singleton(),
     creditRepository: asFunction(({ mockDb }) => new InMemoryCreditRepository(mockDb)).singleton(),
-    inquiryRepository: asFunction(({ mockDb }) => new InMemoryInquiryRepository(mockDb)).singleton(),
     adminRepository: asFunction(({ mockDb }) => new InMemoryAdminRepository(mockDb)).singleton(),
     adminUseCase: asFunction(({ adminRepository, workRepository, feedbackRepository, creditRepository, chatRepository }) => new AdminUseCase(adminRepository, workRepository, feedbackRepository, creditRepository, chatRepository)).singleton(),
-    accountUseCase: asFunction(({ workRepository, worldRepository, readingRepository, inquiryRepository, adminRepository }) => new AccountUseCase(workRepository, worldRepository, readingRepository, inquiryRepository, adminRepository)).singleton(),
+    accountUseCase: asFunction(({ workRepository, worldRepository, readingRepository, adminRepository }) => new AccountUseCase(workRepository, worldRepository, readingRepository, adminRepository)).singleton(),
     chatRepository: asFunction(({ mockDb }) => new InMemoryChatRepository(mockDb)).singleton(),
     chatUseCase: asFunction(({ workRepository, readingRepository, chatRepository }) => new ChatUseCase(workRepository, readingRepository, chatRepository)).singleton(),
     inboxUseCase: asFunction(({ workRepository, feedbackRepository }) => new InboxUseCase(workRepository, feedbackRepository)).singleton(),

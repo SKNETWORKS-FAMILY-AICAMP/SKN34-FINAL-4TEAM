@@ -1,8 +1,8 @@
 # STORYFORK Operations Service
 
-공지·이벤트·고객지원 문의/답변 **레코드의 독립 백엔드 CRUD**와 회원 Bearer 기반 **신고·회원·관리자 운영 API**입니다. 회원 Bearer API만 Core(인증 확인·회원)를, 신고만 Content(작품 제한)를 호출하며 AI 호출은 없습니다. `Controller → Service → JpaRepository`를 사용하며 DTO는 각 리소스의 `service/dto`, Entity는 `entity`에 둡니다. 목표 책임과 후속 업무는 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
+공지·이벤트·고객지원 문의/답변 **레코드의 독립 백엔드 CRUD**와 회원 Bearer 기반 **신고·회원·관리자·고객지원 문의 운영 API**입니다. 회원 Bearer API(신고·회원·관리자·고객지원 문의)만 Core(인증 확인·회원)를, 신고만 Content(작품 제한)를 호출하며 AI 호출은 없습니다. `Controller → Service → JpaRepository`를 사용하며 DTO는 각 리소스의 `service/dto`, Entity는 `entity`에 둡니다. 목표 책임과 후속 업무는 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
 
-> 인증은 세 갈래입니다. 공지·이벤트·문의의 `/notices`·`/events`·`/inquiries` API는 **서비스 자격 인증만** 사용하며 사람의 관리자 권한, 회원 신원·소유권, ‘내 문의’, 공개 게시·이벤트 진행 상태·참여·보상·알림·감사는 구현하지 않습니다. 서비스 토큰을 가진 호출 서버는 이 레코드에 모두 접근할 수 있으므로 브라우저에 직접 연결하면 안 됩니다. 신고·회원·관리자 API(`/reports`·`/members`·`/admins`)와 공지·이벤트 관리자 API(`/admin/notices`·`/admin/events`)는 회원 Bearer를 Core로 확인하고 운영자(`operator`)+업무 권한으로 인가합니다([계약](../../docs/design/operations-member-report-contract.md)). 공지·이벤트 독자 조회(`/public/notices`·`/public/events`)는 인증 없이 GET만 허용합니다([공지 계약](../../docs/design/operations-notice-contract.md)). 이벤트의 관리자 CRUD와 공개 조회는 [이벤트 관리자·공개 API](#이벤트-관리자공개-api)를 따릅니다.
+> 인증은 세 갈래입니다. 공지·이벤트·문의의 `/notices`·`/events`·`/inquiries` API는 **서비스 자격 인증만** 사용하며 사람의 관리자 권한, 회원 신원·소유권, ‘내 문의’, 공개 게시·이벤트 진행 상태·참여·보상·알림·감사는 구현하지 않습니다. 서비스 토큰을 가진 호출 서버는 이 레코드에 모두 접근할 수 있으므로 브라우저에 직접 연결하면 안 됩니다. 신고·회원·관리자 API(`/reports`·`/members`·`/admins`), 회원 고객지원 문의 API(`/support/inquiries`), 공지·이벤트 관리자 API(`/admin/notices`·`/admin/events`)는 회원 Bearer를 Core로 확인하고 운영자(`operator`)+업무 권한으로 인가합니다([신고·회원·관리자 계약](../../docs/design/operations-member-report-contract.md), [고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)). 공지·이벤트 독자 조회(`/public/notices`·`/public/events`)는 인증 없이 GET만 허용합니다([공지 계약](../../docs/design/operations-notice-contract.md)). 이벤트의 관리자 CRUD와 공개 조회는 [이벤트 관리자·공개 API](#이벤트-관리자공개-api)를 따릅니다.
 
 ## 실행 기반·설정
 
@@ -110,12 +110,13 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 
 ## 회원 Bearer API (신고·회원·관리자·공지 관리)
 
-`/api/v1/operations/{reports,members,admins,admin/notices,admin/events}`와 하위 경로는 별도 SecurityFilterChain입니다. `Authorization: Bearer …`를 Core `POST /internal/v1/auth/verify`(받은 Authorization + 서비스 토큰)로 확인해 `{memberId, operator}`를 principal로 씁니다. Bearer 없음은 401, Core 401/403은 그대로, 그 밖의 확인 실패는 502입니다. stateless·쿠키 없음이므로 CSRF를 쓰지 않으며, 이 경로에서는 서비스 토큰이 인증 수단이 아닙니다.
+`/api/v1/operations/{reports,members,admins,support,admin/notices,admin/events}`와 하위 경로는 별도 SecurityFilterChain입니다. `Authorization: Bearer …`를 Core `POST /internal/v1/auth/verify`(받은 Authorization + 서비스 토큰)로 확인해 `{memberId, operator}`를 principal로 씁니다. Bearer 없음은 401, Core 401/403은 그대로, 그 밖의 확인 실패는 502입니다. stateless·쿠키 없음이므로 CSRF를 쓰지 않으며, 이 경로에서는 서비스 토큰이 인증 수단이 아닙니다.
 
-- 관리자 = Core `operator=true` **이면서** `operations.admin_permission`에 해당 키 보유(`rights`·`users`·`admins`·`notices`·`events`). 아니면 403.
+- 관리자 = Core `operator=true` **이면서** `operations.admin_permission`에 해당 키 보유(`rights`·`users`·`admins`·`feedback`·`notices`·`events`). 아니면 403.
 - 신고: 접수·`mine`·운영 목록(`?status=`)·상세(+`history`)·`evidence`·`explanations`(POST/GET)·`review`·`restriction`(POST/DELETE)·`evidence-requests`. 접수는 201, 신고 변경 POST/DELETE는 200으로 갱신된 상세(`history` 포함), `GET …/explanations`는 `{ items: History[] }`. 증거 보완·소명·증빙 요청 본문은 1~5000자.
 - 회원: `GET /members?role=&q=&sort=`, `PUT|DELETE /members/{id}/restriction` — Core에 관리자 Bearer를 그대로 전달.
 - 관리자: `GET /admins`(Core `role=ADMIN` + `permissions`), `POST /admins`(알려진 키 1개 이상 검증 → Core 생성 → 권한 저장, 201).
+- 고객지원 문의 `/support/inquiries`: 로그인 회원이 접수(`POST`, 201)·내 문의(`GET /mine`)·상세(`GET /{id}`, 작성자 또는 관리자)를 쓰고, `feedback` 관리자가 목록(`GET ?status=WAITING|ANSWERED`, 최신 100개)과 답변 등록·수정·삭제(`/{id}/replies[/{replyId}]`)를 합니다. 모든 응답은 답변을 오래된 순으로 담은 `SupportInquiry`이고 `status`는 답변 유무로 계산합니다. `member_id`(V6)가 있는 문의만 다루므로 서비스 토큰 API로 만든 기존 레코드는 404이며 `/inquiries` 서비스 토큰 API는 그대로입니다. 다른 사람의 문의는 404, 접수 입력 검증은 `/inquiries`와 같은 규칙(category·title 앞뒤 공백 제거)입니다. 경로·응답 형태는 [고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)을 따릅니다.
 - 공지 관리: `/admin/notices`의 `GET`(최신 100개)·`GET /{id}`·`POST`(201+`Location`)·`PUT /{id}`·`DELETE /{id}`(204). `notices` 권한 검사가 입력 값 검증·저장소 호출보다 먼저라 JSON 형식이 맞는 한 비관리자는 입력 값과 무관하게 403입니다. `@Valid`는 권한보다 먼저 400을 내므로 컨트롤러에 쓰지 않고, 권한 확인 뒤 `AdminNoticeService`가 `NoticeRequest`의 `@NotBlank`·`@Size`를 직접 검증해 위반은 400입니다. 공백·U+0000 검증·정렬·응답 DTO는 `/notices`와 같은 `NoticeService`를 재사용합니다([공지 계약](../../docs/design/operations-notice-contract.md)).
 - 공개 공지 조회: `GET /api/v1/operations/public/notices`(최신 100개)·`/{id}`는 인증 없는 별도 SecurityFilterChain입니다. GET 이외는 서비스 토큰·Bearer가 있어도 403이고, 서비스 토큰 체인은 나머지 경로를 그대로 소유합니다. 이 체인(`PublicSecurityConfig`)은 `public/events`도 함께 맡습니다.
 - Core·Content 하위 400/404/409는 보존하고 그 외 실패는 502 `UPSTREAM_FAILED`이며 성공·이력으로 숨기지 않습니다. 고정 timeout(connect 2s, read 5s)·재시도 없음.
@@ -135,7 +136,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 
 ## 저장·동시성
 
-기존 PostgreSQL 아키텍처 안에서 **`operations` schema만** 사용합니다. Flyway location은 `classpath:db/migration/operations`, 기본 schema는 `operations`, 전용 history는 `operations.operations_flyway_schema_history`입니다. V1은 공지, V2는 이벤트, V3은 문의/답변, V4는 관리자 업무 권한(샘플 관리자 12개 권한 시드), V5는 신고/신고 이력이며 Core/Auth·Content·WorldStudio 이력이나 테이블을 읽고 쓰지 않습니다. 다른 서비스 Entity/Repository 스캔을 추가하지 않습니다.
+기존 PostgreSQL 아키텍처 안에서 **`operations` schema만** 사용합니다. Flyway location은 `classpath:db/migration/operations`, 기본 schema는 `operations`, 전용 history는 `operations.operations_flyway_schema_history`입니다. V1은 공지, V2는 이벤트, V3은 문의/답변, V4는 관리자 업무 권한(샘플 관리자 12개 권한 시드), V5는 신고/신고 이력, V6은 문의 작성자 `member_id`(회원 접수 문의만 값이 있고 기존 서비스 토큰 레코드는 NULL)이며 Core/Auth·Content·WorldStudio 이력이나 테이블을 읽고 쓰지 않습니다. 다른 서비스 Entity/Repository 스캔을 추가하지 않습니다.
 
 Hibernate는 `ddl-auto=validate`, `open-in-view=false`, JDBC 시간대 UTC입니다. DDL의 소유자는 운영 Flyway이고 JPA가 schema를 자동 변경하지 않습니다. append-only인 신고 이력·권한 행을 제외한 Entity의 `@Version`은 겹치는 수정/삭제 트랜잭션의 충돌을 409로 드러냅니다. 공개 DTO에는 version/ETag가 없으므로 **과거 화면의 순차적인 덮어쓰기까지 막는 클라이언트 revision 계약은 아닙니다**. 새 서버 호출·retry·락 관리 프레임워크를 추가하지 않습니다.
 
@@ -149,9 +150,9 @@ CRUD는 별도 PR로 전달하더라도 **공통 기반 → 공지 V1 → 이벤
 
 ## 관리자 UI 메모리 데모
 
-`/admin?tab=feedback`의 [독립 운영 패널](../../frontend/src/presentation/features/admin/view/OperationsPanels.tsx)은 별도 `InMemoryOperationsRepository`에 문의 및 문의별 여러 답변을 저장합니다. 등록·목록/상세·전체 수정·확인 후 삭제와 답변 우선 삭제 안내를 소스 구현했지만 **이 API·서비스 토큰·실제 관리자 인증·서버 저장·발행·알림·버전 충돌과는 연결하지 않았습니다**. 브라우저 새로고침 시 데모 기록·초안이 사라집니다. `/admin?tab=notices`는 같은 패널 UI이지만 위 회원 Bearer `/admin/notices` API에 저장하는 실제 연결이고([공지 계약](../../docs/design/operations-notice-contract.md)), `/admin?tab=events`도 위 [이벤트 관리자·공개 API](#이벤트-관리자공개-api)에 저장하는 실제 연결입니다([이벤트 계약](../../docs/design/operations-event-contract.md)).
+`/admin?tab=notices`는 [독립 운영 패널](../../frontend/src/presentation/features/admin/view/OperationsPanels.tsx) UI로 위 회원 Bearer `/admin/notices` API에 저장하고([공지 계약](../../docs/design/operations-notice-contract.md)), `/admin?tab=events`는 위 [이벤트 관리자·공개 API](#이벤트-관리자공개-api)에([이벤트 계약](../../docs/design/operations-event-contract.md)), `/admin?tab=feedback`의 회원 문의는 위 support 실제 API에([고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)) 저장하는 실제 연결입니다. 별도 `InMemoryOperationsRepository`·`OperationsUseCase`에 남은 공지·이벤트 메모리 메서드는 화면 연결 없이 남아 있으며 이 API·서비스 토큰과 연결하지 않았습니다(정리는 후속 작업). 제보·문의 탭의 작가 제보 표는 별도 메모리 저장소이며 브라우저 새로고침 시 데모 기록·초안이 사라집니다.
 
-이벤트 선택 기간은 명시적인 한국시간(KST, UTC+09:00) 입력을 UTC로 변환하고 한국시간으로 표시하며 유효하지 않은 날짜·역전 기간을 거절합니다. UI에는 조회 로딩/실패/빈 목록/재시도·늦은 응답 무시, 요청별 pending/중복 방지, 저장 성공과 후속 목록 재조회 실패 구분, 탭별 초안·선택 유지, 상세/목록 포커스 이동과 줄바꿈 표시가 있습니다. 관리자 공지·이벤트·문의 탭에 있던 기존 회원 화면 호환 데모(공지 게시·이벤트 추가·문의 단일 답변)는 이 패널(공지·이벤트 탭은 실제 API 패널)로 대체해 제거했고, 회원용 `/me/inquiry` 데모와 제보·문의 탭의 작가 제보 표만 별도 저장소로 남깁니다. `/me/notice`는 공개 공지 API를, `/me/event`는 공개 이벤트 API를 읽습니다. [기능표 미등록-124](../../docs/feature-roadmap.md#미등록-124)는 각 UI 동작을 별도 행으로 추적하며, 이 설명은 브라우저 동작 검증 결과가 아닙니다.
+이벤트 선택 기간은 명시적인 한국시간(KST, UTC+09:00) 입력을 UTC로 변환하고 한국시간으로 표시하며 유효하지 않은 날짜·역전 기간을 거절합니다. UI에는 조회 로딩/실패/빈 목록/재시도·늦은 응답 무시, 요청별 pending/중복 방지, 저장 성공과 후속 목록 재조회 실패 구분, 탭별 초안·선택 유지, 상세/목록 포커스 이동과 줄바꿈 표시가 있습니다. 관리자 공지·이벤트·문의 탭에 있던 기존 회원 화면 호환 데모(공지 게시·이벤트 추가·문의 단일 답변)는 실제 API 패널로 대체해 제거했고, 회원 `/me/inquiry` 데모는 support 실제 API로 바꿨습니다. `/me/notice`는 공개 공지 API를, `/me/event`는 공개 이벤트 API를 읽습니다. [기능표 미등록-124](../../docs/feature-roadmap.md#미등록-124)는 각 UI 동작을 별도 행으로 추적하며, 이 설명은 브라우저 동작 검증 결과가 아닙니다.
 
 ## 검증·인계
 
@@ -167,7 +168,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew unitTest \
   --tests ai.storyfork.operations._common.PageResponseTest --no-daemon
 ```
 
-리소스별 `NoticeServiceTest`/`NoticeControllerTest`(공지 관리·공개는 `AdminNoticeServiceTest`/`AdminNoticeControllerTest`/`PublicNoticeControllerTest`), `EventServiceTest`/`EventControllerTest`(관리자·공개 이벤트는 `AdminEventServiceTest`/`AdminEventControllerTest`/`PublicEventControllerTest`), `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`, 신고·회원·관리자의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인(관리자 이벤트 포함)과 공개 이벤트(GET 전용) 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`, 공지 관리자·공개 조회 체인은 `NoticeSecurityIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
+리소스별 `NoticeServiceTest`/`NoticeControllerTest`(공지 관리·공개는 `AdminNoticeServiceTest`/`AdminNoticeControllerTest`/`PublicNoticeControllerTest`), `EventServiceTest`/`EventControllerTest`(관리자·공개 이벤트는 `AdminEventServiceTest`/`AdminEventControllerTest`/`PublicEventControllerTest`), `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`/`SupportInquiryServiceTest`, 신고·회원·관리자의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인(관리자 이벤트 포함)과 공개 이벤트(GET 전용) 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`, 공지 관리자·공개 조회 체인은 `NoticeSecurityIntegrationTest`, 고객지원 문의의 Bearer 체인·PostgreSQL 흐름(`@Query` 상태 필터·V6)은 `SupportInquiryIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
 
 이번 U+0000 회귀는 `EventServiceTest`·`InquiryServiceTest`·`InquiryReplyServiceTest`만 선택해 **Red 12건**(예외가 발생하지 않아 assertion 실패) 후 최소 검증식 수정으로 **Green 69건**(각각 34·21·14건)을 확인했습니다. Spring/HTTP/DB 테스트는 실행하지 않았습니다.
 

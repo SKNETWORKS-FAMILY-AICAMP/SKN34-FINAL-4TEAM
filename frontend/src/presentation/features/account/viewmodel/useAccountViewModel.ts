@@ -1,21 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { SessionExpired } from '../../../../domain/repositories/ProfileRepository'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import { checkProfile } from '../../../../domain/entities/account'
 import { eventStatus, type EventPeriod } from '../../../../domain/entities/event'
+import { OperationsError } from '../../../../domain/entities/operations'
 import type { AccountUseCase } from '../../../../domain/usecases/AccountUseCase'
 import type { EventUseCase } from '../../../../domain/usecases/EventUseCase'
 import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
+import type { SupportInquiryUseCase } from '../../../../domain/usecases/SupportInquiryUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
+import { RestoreContext } from '../../../shared/session/restoreContext'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
-/** 목업 mePage(sub)·saveProfile·#suf·#iqf·withdrawSheet: U30~U35E 계정 */
-export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase'), noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'), eventUseCase: EventUseCase = appContainer.resolve('eventUseCase')) {
+/** 목업 mePage(sub)·saveProfile·#suf·withdrawSheet와 실제 고객지원 문의(#iqf)·운영 공지·이벤트: U30~U35E 계정 */
+export function useAccountViewModel(
+  sub: string,
+  accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase'),
+  supportInquiryUseCase: SupportInquiryUseCase = appContainer.resolve('supportInquiryUseCase'),
+  noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'),
+  eventUseCase: EventUseCase = appContainer.resolve('eventUseCase'),
+) {
   const { role, user } = useAppSelector((s) => s.session)
+  const restoring = useContext(RestoreContext)
   const dispatch = useAppDispatch()
   const profileUseCase = appContainer.resolve('profileUseCase')
   const [profileState, setProfileState] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -56,17 +66,20 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
     sub,
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
     storage: sub === 'storage' ? await accountUseCase.storage() : null,
-    inquiries: sub === 'inquiry' ? await accountUseCase.inquiries() : [],
     notices: sub === 'notice' && noticeId === null ? await noticeUseCase.listPublic() : [],
     notice: sub === 'notice' && noticeId ? await noticeUseCase.getPublic(noticeId) : null,
     events: sub === 'event' && eventKey === null ? await eventUseCase.listPublic() : [],
     event: sub === 'event' && eventKey !== null ? await eventUseCase.getPublic(eventKey) : null,
   }), [accountUseCase, noticeUseCase, eventUseCase, sub, noticeId, eventKey])
+  // 내 문의: 로그인한 회원의 문의하기 화면에서만 실제 목록을 읽습니다. 로딩·실패·빈 목록은 화면이 구분합니다.
+  const mine = useAsyncData(async () => sub === 'inquiry' && role ? supportInquiryUseCase.listMine() : [], [supportInquiryUseCase, sub])
   return {
-    role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, data: data?.sub === sub ? data : undefined,
+    role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, mine, restoring, data: data?.sub === sub ? data : undefined,
     loadFailed: isError, retryLoad: retry,
     /** 이벤트 기간으로 계산한, 지금 시각 기준 진행 상태(브라우저 시계). */
     eventStatusNow: (event: EventPeriod) => eventStatus(event, new Date()),
+    /** 로그인 후 문의하기로 돌아오도록 안내를 남깁니다. 이동은 로그인 링크가 맡습니다. */
+    requireLogin: () => { dispatch(sessionActions.requireLogin({ next: '/me/inquiry', msg: '문의는 로그인한 회원만 보낼 수 있어요.', role: 'user' })) },
     retryProfile: () => setProfileAttempt((attempt) => attempt + 1),
     saveProfile: async (nick: string, email: string) => {
       const err = checkProfile(nick, email)
@@ -105,17 +118,25 @@ export function useAccountViewModel(sub: string, accountUseCase: AccountUseCase 
         }
       } finally { busy.current = false; if (!signal.aborted) setSaving(false) }
     },
-    ask: async (t: string, s: string, b: string) => {
+    /** 실제 접수. 성공했을 때만 true이며, 실패하면 입력을 그대로 두고 이유를 안내합니다. */
+    ask: async (category: string, title: string, body: string) => {
       if (askBusy.current) return false
       askBusy.current = true
       setAsking(true)
       setInquiry(null)
       try {
-        const r = await accountUseCase.ask(t, s, b)
+        await supportInquiryUseCase.create({ category, title, body })
+        const r = { ok: true, msg: '문의를 보냈어요' }
         setInquiry(r)
         toast(r.msg)
-        if (r.ok) dispatch(sessionActions.dataChanged())
-        return r.ok
+        dispatch(sessionActions.dataChanged())
+        return true
+      } catch (error) {
+        // 서버 응답이 없거나 늦은 경우는 접수 여부를 알 수 없으므로 목록 확인을 안내합니다.
+        const r = { ok: false, msg: error instanceof OperationsError ? error.message : '문의를 보냈는지 확인하지 못했어요. 입력은 그대로 두었어요. 아래 내 문의를 확인한 뒤 다시 시도해 주세요.' }
+        setInquiry(r)
+        toast(r.msg)
+        return false
       } finally { askBusy.current = false; setAsking(false) }
     },
   }

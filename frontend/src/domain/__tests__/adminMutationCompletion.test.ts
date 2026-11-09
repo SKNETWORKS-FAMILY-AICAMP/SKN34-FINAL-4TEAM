@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { OperationsError } from '../entities/operations'
 import { adminViewSlice } from '../../presentation/features/admin/state/adminViewSlice'
 import type { AdminTab } from '../entities/admin'
-import { OperationsError } from '../entities/operations'
 import { useAdminViewModel } from '../../presentation/features/admin/viewmodel/useAdminViewModel'
 import type { RootState } from '../../app/store'
 
@@ -12,10 +12,12 @@ const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
   admin: { chatChoices: vi.fn(), toggleWork: vi.fn() },
   toast: vi.fn(),
-  operations: { saveInquiry: vi.fn(), deleteInquiry: vi.fn(), saveReply: vi.fn(), deleteReply: vi.fn() },
+  // VM이 직접 호출하는 메모리 운영 메서드는 없다(공지·이벤트·문의가 모두 실제 API). operationsUseCase 자리 표시자일 뿐이다.
+  operations: {},
   notices: { save: vi.fn(), delete: vi.fn() },
   // 이벤트 탭은 운영 API의 EventUseCase를 호출한다(운영 메모리 저장소 아님).
   event: { save: vi.fn(), remove: vi.fn() },
+  support: { listAll: vi.fn(), get: vi.fn(), addReply: vi.fn(), updateReply: vi.fn(), deleteReply: vi.fn() },
   member: { setRestriction: vi.fn(), createAdmin: vi.fn() },
   report: { review: vi.fn(), setContentRestriction: vi.fn(), requestEvidence: vi.fn() },
   /** 데모 조회(adminUseCase를 deps로 가진 useAsyncData)의 상태. 운영 API 조회(live·report)는 항상 완료로 둔다. */
@@ -27,7 +29,7 @@ vi.mock('react', () => ({
   useEffect: (setup: () => (() => void)) => { doubles.cleanups.push(setup()) },
 }))
 vi.mock('react-redux', () => ({ useStore: () => ({ getState: doubles.getState }) }))
-vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report, noticeUseCase: doubles.notices, eventUseCase: doubles.event } as Record<string, unknown>)[name] ?? doubles.operations } }))
+vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report, noticeUseCase: doubles.notices, eventUseCase: doubles.event, supportInquiryUseCase: doubles.support } as Record<string, unknown>)[name] ?? doubles.operations } }))
 vi.mock('../../app/store', () => ({ useAppDispatch: () => doubles.dispatch, useAppSelector: (select: (state: RootState) => unknown) => select(doubles.getState()) }))
 vi.mock('../../presentation/shared/session/useLogout', () => ({ useLogout: () => vi.fn() }))
 vi.mock('../../presentation/shared/screenIds', () => ({ useScreenId: vi.fn() }))
@@ -54,28 +56,22 @@ beforeEach(() => {
 
 const notice = { title: '제출한 제목', body: '제출한 본문' }
 const event = { ...notice, startsAt: '', endsAt: '' }
-const inquiry = { ...notice, category: '계정' }
-const replyKey = 'question:reply'
-// 공지·이벤트 저장·삭제는 NoticeUseCase(save·delete)·EventUseCase(save·remove) 대역으로 보내므로 해당 메서드 이름은 사례 구분용입니다.
-type Method = 'saveNotice' | 'deleteNotice' | 'saveEvent' | 'deleteEvent' | keyof typeof doubles.operations
+// 공지·이벤트 저장·삭제는 NoticeUseCase(save·delete)·EventUseCase(save·remove) 대역으로 보내므로 메서드 이름은 사례 구분용입니다.
+type Method = 'saveNotice' | 'deleteNotice' | 'saveEvent' | 'deleteEvent'
 const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: Method; other?: (vm: VM) => void }[] = [
   ...(['new', 'existing'] as const).flatMap((id) => [
     { name: `notice save ${id}`, method: 'saveNotice' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('notices', id); vm.setNoticeDraft(id, { ...notice, body: changed ? '새 본문' : notice.body }) }, submit: (vm: VM) => vm.saveNotice(id === 'new' ? null : id, notice), other: (vm: VM) => vm.selectRecord('notices', 'other') },
     { name: `event save ${id}`, method: 'saveEvent' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('events', id); vm.setEventDraft(id, { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm: VM) => vm.saveEvent(id === 'new' ? null : id, event), other: (vm: VM) => vm.selectRecord('events', 'other') },
-    { name: `inquiry save ${id}`, method: 'saveInquiry' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('inquiries', id); vm.setInquiryDraft(id, { ...inquiry, body: changed ? '새 본문' : inquiry.body }) }, submit: (vm: VM) => vm.saveInquiry(id === 'new' ? null : id, inquiry), other: (vm: VM) => vm.selectRecord('inquiries', 'other') },
-    { name: `reply save ${id}`, method: 'saveReply' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('inquiries', 'question'); vm.setReplyDraft(`question:${id}`, changed ? '새 답변' : '제출한 답변') }, submit: (vm: VM) => vm.saveReply('question', id === 'new' ? null : id, '제출한 답변'), other: (vm: VM) => vm.selectRecord('inquiries', 'other') },
   ]),
   { name: 'notice delete', method: 'deleteNotice', prepare: (vm, changed = false) => { vm.selectRecord('notices', 'existing'); vm.setNoticeDraft('existing', { ...notice, body: changed ? '새 본문' : notice.body }) }, submit: (vm) => vm.deleteNotice('existing'), other: (vm) => vm.selectRecord('notices', 'other') },
   { name: 'event delete', method: 'deleteEvent', prepare: (vm, changed = false) => { vm.selectRecord('events', 'existing'); vm.setEventDraft('existing', { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm) => vm.deleteEvent('existing'), other: (vm) => vm.selectRecord('events', 'other') },
-  { name: 'inquiry delete', method: 'deleteInquiry', prepare: (vm, changed = false) => { vm.selectRecord('inquiries', 'existing'); vm.setInquiryDraft('existing', { ...inquiry, body: changed ? '새 본문' : inquiry.body }); vm.setReplyDraft('existing:new', changed ? '새 답변' : '기존 답변') }, submit: (vm) => vm.deleteInquiry('existing'), other: (vm) => vm.selectRecord('inquiries', 'other') },
-  { name: 'reply delete', method: 'deleteReply', prepare: (vm, changed = false) => { vm.selectRecord('inquiries', 'question'); vm.setReplyDraft(replyKey, changed ? '새 답변' : '기존 답변') }, submit: (vm) => vm.deleteReply('question', 'reply'), other: (vm) => vm.selectRecord('inquiries', 'other') },
 ]
 
 function useStartedSubmission(test: typeof cases[number]) {
   let finish!: (result: { id: string; ok: boolean; msg: string }) => void
   const response = new Promise<{ id: string; ok: boolean; msg: string }>((done) => { finish = done })
   const method = test.method === 'saveNotice' ? doubles.notices.save : test.method === 'deleteNotice' ? doubles.notices.delete
-    : test.method === 'saveEvent' ? doubles.event.save : test.method === 'deleteEvent' ? doubles.event.remove : doubles.operations[test.method]
+    : test.method === 'saveEvent' ? doubles.event.save : doubles.event.remove
   method.mockReturnValueOnce(response)
   let vm = useAdminViewModel('notices')
   test.prepare(vm)
@@ -117,7 +113,7 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
     expect(dataVersion).toBe(1)
   })
 
-  if (['saveNotice', 'saveEvent', 'saveInquiry'].includes(test.method)) it('제출 뒤 동일 내용으로 다시 만든 새 초안도 오래된 완료가 지우지 않는다', async () => {
+  if (['saveNotice', 'saveEvent'].includes(test.method)) it('제출 뒤 동일 내용으로 다시 만든 새 초안도 오래된 완료가 지우지 않는다', async () => {
     const request = useStartedSubmission(test)
     test.prepare(request.vm)
     const expected = view
@@ -143,21 +139,52 @@ describe.each(cases)('$name 지연 완료의 초안 소유권', (test) => {
     expect(await request.pending).toBe(true)
     expect(view.noticeDrafts).toEqual({})
     expect(view.eventDrafts).toEqual({})
-    expect(view.inquiryDrafts).toEqual({})
-    expect(view.replyDrafts).toEqual({})
     expect(dataVersion).toBe(1)
   })
 })
 
-it('문의 삭제 중 새로 쓴 답변 초안도 지우지 않는다', async () => {
-  const test = cases.find((test) => test.name === 'inquiry delete')!
-  const request = useStartedSubmission(test)
-  request.vm.setReplyDraft('existing:new', '삭제 대기 중 작성한 답변')
-  const expected = view
-  request.finish()
-  expect(await request.pending).toBe(true)
-  expect(view).toEqual(expected)
-  expect(dataVersion).toBe(1)
+describe('고객지원 문의 답변 동작 (67)', () => {
+  it('답변 등록·수정·삭제는 서버 호출이 끝난 뒤 true를 돌려주고 dataChanged로 목록·상세를 다시 읽게 한다', async () => {
+    const vm = useAdminViewModel('feedback')
+    expect(await vm.live.addReply('q1', ' 답변\n')).toBe(true)
+    expect(await vm.live.updateReply('q1', 'p1', '수정')).toBe(true)
+    expect(await vm.live.deleteReply('q1', 'p1')).toBe(true)
+    expect(doubles.support.addReply).toHaveBeenCalledWith('q1', ' 답변\n')
+    expect(doubles.support.updateReply).toHaveBeenCalledWith('q1', 'p1', '수정')
+    expect(doubles.support.deleteReply).toHaveBeenCalledWith('q1', 'p1')
+    expect(dataVersion).toBe(3)
+  })
+
+  it('실패는 성공으로 바꾸지 않고 false를 돌려주며 다시 읽기도 요청하지 않는다', async () => {
+    doubles.support.addReply.mockRejectedValueOnce(new OperationsError('이 작업을 할 권한이 없어요.'))
+    doubles.support.updateReply.mockRejectedValueOnce(new Error('비공개 내부 응답'))
+    const vm = useAdminViewModel('feedback')
+    expect(await vm.live.addReply('q1', '답변')).toBe(false)
+    expect(await vm.live.updateReply('q1', 'p1', '수정')).toBe(false)
+    expect(dataVersion).toBe(0)
+  })
+
+  it('같은 문의에 대한 답변 등록 요청이 진행 중이면 중복 요청을 보내지 않는다', async () => {
+    let finish!: () => void
+    doubles.support.addReply.mockReturnValueOnce(new Promise<void>((done) => { finish = done }))
+    const vm = useAdminViewModel('feedback')
+    const first = vm.live.addReply('q1', '답변')
+    expect(await vm.live.addReply('q1', '답변')).toBe(false)
+    expect(doubles.support.addReply).toHaveBeenCalledTimes(1)
+    finish()
+    expect(await first).toBe(true)
+  })
+
+  it('같은 답변의 수정과 삭제는 서로 기다린다', async () => {
+    let finish!: () => void
+    doubles.support.updateReply.mockReturnValueOnce(new Promise<void>((done) => { finish = done }))
+    const vm = useAdminViewModel('feedback')
+    const update = vm.live.updateReply('q1', 'p1', '수정')
+    expect(await vm.live.deleteReply('q1', 'p1')).toBe(false)
+    expect(doubles.support.deleteReply).not.toHaveBeenCalled()
+    finish()
+    expect(await update).toBe(true)
+  })
 })
 
 describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
@@ -167,6 +194,7 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     { tab: 'users', name: '회원 이용 제한', submit: (vm) => vm.live.setMemberRestriction('member-1', true), backend: () => doubles.member.setRestriction },
     { tab: 'admins', name: '관리자 계정 생성', submit: (vm) => vm.live.createAdmin({ email: 'new@example.invalid', nickname: '새 관리자', password: 'password-1', permissions: ['works'] }), backend: () => doubles.member.createAdmin },
     { tab: 'rights', name: '신고 검토', submit: (vm) => vm.live.review('report-1', 'ACCEPTED', '확인'), backend: () => doubles.report.review },
+    { tab: 'feedback', name: '고객지원 문의 답변 등록', submit: (vm) => vm.live.addReply('inquiry-1', '답변'), backend: () => doubles.support.addReply },
     { tab: 'notices', name: '공지 삭제', submit: (vm) => vm.deleteNotice('notice-1'), backend: () => doubles.notices.delete },
     { tab: 'events', name: '이벤트 삭제', submit: (vm) => vm.deleteEvent('event-1'), backend: () => doubles.event.remove },
   ]
@@ -184,19 +212,19 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     })
 
     it('데모 탭의 조치는 기존처럼 막혀 실행되지 않는다', async () => {
-      const vm = useAdminViewModel('feedback')
+      const vm = useAdminViewModel('works')
       expect(vm.mutationsBlocked).toBe(true)
-      expect(await vm.saveInquiry(null, inquiry)).toBe(false)
-      expect(doubles.operations.saveInquiry).not.toHaveBeenCalled()
+      expect(await vm.toggleWork('w1')).toBe(false)
+      expect(doubles.admin.toggleWork).not.toHaveBeenCalled()
       expect(dataVersion).toBe(0)
     })
   })
 
   it('데모 조회가 끝나 있으면 데모 탭 조치는 실행된다', async () => {
-    doubles.operations.saveInquiry.mockResolvedValueOnce({ id: 'saved' })
-    const vm = useAdminViewModel('feedback')
+    doubles.admin.toggleWork.mockResolvedValueOnce({ ok: true, msg: '작품 공개 상태를 변경했어요' })
+    const vm = useAdminViewModel('works')
     expect(vm.mutationsBlocked).toBe(false)
-    expect(await vm.saveInquiry(null, inquiry)).toBe(true)
+    expect(await vm.toggleWork('w1')).toBe(true)
     expect(dataVersion).toBe(1)
   })
 })
@@ -205,16 +233,6 @@ it('작품 탭 View가 쓰는 정본 작품 조치 불가 판단을 ViewModel이
   const vm = useAdminViewModel('works')
   expect(vm.canToggleWork({ canonical: true })).toBe(false)
   expect(vm.canToggleWork({})).toBe(true)
-})
-
-describe('개요의 답변 대기 문의 (#202)', () => {
-  it('운영 패널 문의 중 답변이 하나도 없는 건수를 센다', () => {
-    doubles.demoQuery = {
-      isLoading: false, isRefreshing: false, isError: false,
-      data: { operations: { inquiries: [{ replies: [] }, { replies: [{ id: 'reply' }] }, { replies: [] }] } },
-    }
-    expect(useAdminViewModel('data').unansweredInquiries).toBe(2)
-  })
 })
 
 // EventUseCase는 UTC 형식을 다시 검사하지 않으므로, 형식 검사는 이 경계가 맡습니다 (#202).
