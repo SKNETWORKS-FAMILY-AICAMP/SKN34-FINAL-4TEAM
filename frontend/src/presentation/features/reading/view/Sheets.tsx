@@ -18,12 +18,16 @@ const Done = ({ status, message, onClose }: { status: string; message: string; o
   </>
 )
 
+/** 보낼 내용이 있을 때만 제출 버튼을 잠급니다. 빈 내용은 ViewModel이 안내만 하고 거절하므로(제출이 시작되지 않음) 바로 다시 누를 수 있어야 합니다. */
+const willSubmit = (text: string) => text.trim() !== ''
+
 /** 목업 reportSheet(id): 소설 전체 신고 */
 export function ReportSheet({ work, onClose }: { work: Work; onClose: () => void }) {
   const vm = useFeedbackViewModel()
   const [type, setType] = useState(REPORT_TYPES[0][0])
   const [text, setText] = useState('')
   const [done, setDone] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   return (
     <Sheet sid="U06" label="소설 신고" onClose={onClose}>
       <Head title={`🚩 소설 신고 · ${work.title}`} onClose={onClose} />
@@ -36,7 +40,7 @@ export function ReportSheet({ work, onClose }: { work: Work; onClose: () => void
       {done ? <Done status="접수됨" message={done} onClose={onClose} /> : (
         <>
           <p className="note">권리 침해·유해 콘텐츠 신고는 운영팀이 검토해요. 피드백과 별도로 처리돼요.</p>
-          <div className="rowend"><button type="button" className="btn" onClick={onClose}>취소</button><button type="button" className="btn pri" onClick={() => void vm.reportWork(work.id, type, text).then((m) => m && setDone(m))}>신고하기</button></div>
+          <div className="rowend"><button type="button" className="btn" onClick={onClose}>취소</button><button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.reportWork(work.id, type, text).then((m) => m && setDone(m)).finally(() => setBusy(false)) }}>신고하기</button></div>
         </>
       )}
     </Sheet>
@@ -48,6 +52,7 @@ export function CommentSheet({ workId, n, sentence, onClose, onAdded }: { workId
   const vm = useFeedbackViewModel()
   const [text, setText] = useState('')
   const [spoiler, setSpoiler] = useState(false)
+  const [busy, setBusy] = useState(false)
   return (
     <Sheet sid="U06" label="문장에 댓글 달기" onClose={onClose}>
       <Head title={`${n}화 문장에 댓글 달기`} onClose={onClose} />
@@ -57,7 +62,7 @@ export function CommentSheet({ workId, n, sentence, onClose, onAdded }: { workId
       <div className="note">댓글만 등록되며 자동 답변은 제공하지 않아요.</div>
       <div className="rowend">
         <button type="button" className="btn" onClick={onClose}>취소</button>
-        <button type="button" className="btn pri" onClick={() => void vm.addComment(workId, n, text, sentence, spoiler).then((ok) => { if (ok) { onClose(); onAdded() } })}>등록</button>
+        <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.addComment(workId, n, text, sentence, spoiler).then((ok) => { if (ok) { onClose(); onAdded() } }).finally(() => setBusy(false)) }}>등록</button>
       </div>
     </Sheet>
   )
@@ -70,6 +75,7 @@ export function FeedbackSheet({ workId, n, sentence, onClose }: { workId: string
   const [text, setText] = useState('')
   const [storyCheck, setStoryCheck] = useState(false)
   const [done, setDone] = useState<{ status: string; message: string } | null>(null)
+  const [busy, setBusy] = useState(false)
   return (
     <Sheet sid="U06" label="피드백 보내기" onClose={onClose}>
       <Head title={`✉ 피드백 보내기 · ${n}화`} onClose={onClose} />
@@ -87,7 +93,7 @@ export function FeedbackSheet({ workId, n, sentence, onClose }: { workId: string
       {done ? <Done status={done.status} message={done.message} onClose={onClose} /> : (
         <div className="rowend">
           <button type="button" className="btn" onClick={onClose}>취소</button>
-          <button type="button" className="btn pri" onClick={() => void vm.sendFeedback({ workId, n, sentence, type, text, storyCheck }).then((r) => r && setDone(r))}>피드백 보내기</button>
+          <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.sendFeedback({ workId, n, sentence, type, text, storyCheck }).then((r) => r && setDone(r)).finally(() => setBusy(false)) }}>피드백 보내기</button>
         </div>
       )}
     </Sheet>
