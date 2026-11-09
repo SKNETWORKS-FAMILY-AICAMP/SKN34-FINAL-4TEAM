@@ -3,7 +3,7 @@ import { appContainer } from '../../../../app/appContainer'
 import type { Draft, WritingEpisode } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
-import {imageMarker,manuscriptText} from '../../../../domain/entities/media'
+import {imageMarker} from '../../../../domain/entities/media'
 
 type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'>
 export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
@@ -17,7 +17,6 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [notice,setNotice]=useState('')
   const current=useRef(draft)
   const pending=useRef<AbortController|null>(null)
-  const downloads=useRef(new Map<string,ReturnType<typeof setTimeout>>())
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body)
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const install=(e:WritingEpisode)=>{setActive(e);put(e.draft);setNotice('');setError('')}
@@ -27,8 +26,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       if(controller.signal.aborted)return
       setEpisodes(rows);if(rows[0])install(rows[0]);setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
-    const urls=downloads.current
-    return ()=>{controller.abort();pending.current?.abort();for(const [url,timer] of urls){clearTimeout(timer);URL.revokeObjectURL(url)}urls.clear()}
+    return ()=>{controller.abort();pending.current?.abort()}
   },[id,api])
   useEffect(()=>{
     const leave=(e:BeforeUnloadEvent)=>{if(dirty||busy)e.preventDefault()}
@@ -102,13 +100,6 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       setNotice('이미지를 서버에 업로드했어요. 본문 참조는 초안·버전 저장 후 유지돼요. 참조를 지워도 과거 저장본의 이미지는 보존돼요.')
     }),
     cancel:()=>{pending.current?.abort();pending.current=null;setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
-    downloadText:()=>{
-      const url=URL.createObjectURL(new Blob(['﻿'+current.current.title+'\n\n'+manuscriptText(current.current.body)],{type:'text/plain;charset=utf-8'}))
-      const link=document.createElement('a');link.href=url;link.download=`${current.current.title.replace(/[\\/:*?"<>|]/g,'_')||'원고'}.txt`;link.click()
-      downloads.current.set(url,setTimeout(()=>{URL.revokeObjectURL(url);downloads.current.delete(url)},1000))
-      setNotice('TXT는 이미지와 참조 ID를 제외한 텍스트만 내보내요.')
-    },
-
     create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
     reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})},
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},

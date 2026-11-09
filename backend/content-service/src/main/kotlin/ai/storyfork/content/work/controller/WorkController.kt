@@ -50,9 +50,9 @@ class WorkController(
     @GetMapping("/public/works/ranking")
     fun ranking(@RequestParam kind: String): WorkListResponse = service.ranking(kind)
 
-    /** 공개 작품 DTO를 초안 없이 반환한다. 익명 가능, 비공개·없는 작품은 404다. */
+    /** 공개 작품 DTO를 초안 없이 반환한다. 익명 가능(liked는 false)하고 Bearer가 오면 그 회원의 좋아요 여부(liked)를 채운다. 비공개·없는 작품은 404다. */
     @GetMapping("/public/works/{id}")
-    fun publicRead(@PathVariable id: String): WorkResponse = service.publicRead(id)
+    fun publicRead(@PathVariable id: String,principal: Principal?): WorkResponse = service.publicRead(id,principal?.name)
 
     /** 공개 작품의 발행 회차 열람을 회원·회차별 하루 1회 기록한다. 같은 날 중복은 무시하고 204이며, 비공개 작품·미발행 회차는 404다. */
     @PostMapping("/works/{id}/episodes/{number}/views") @ResponseStatus(HttpStatus.NO_CONTENT)

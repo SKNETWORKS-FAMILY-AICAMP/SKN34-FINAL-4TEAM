@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 /** #84: ownership boundaries must hold even when no PostgreSQL server is available. */
 class ContentBoundaryTest {
     private val root = Path.of("src/main/kotlin/ai/storyfork/content")
-    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context")
+    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like")
 
     @Test fun `content HTTP resources have distinct controllers without raw servlet arguments`() {
         val controllers = mapOf(
@@ -81,6 +81,15 @@ class ContentBoundaryTest {
         assertTrue(sql.contains("CREATE INDEX work_view_viewed_at ON work_view (viewed_at)"))
     }
 
+    @Test fun `work like table follows the reading management contract`() {
+        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V18__work_like.sql"))
+        assertTrue(sql.contains("CREATE TABLE work_like"))
+        assertTrue(sql.contains("work_id varchar(36) NOT NULL REFERENCES work(id)"))
+        assertTrue(sql.contains("member_id varchar(200) NOT NULL"))
+        assertTrue(sql.contains("created_at timestamptz NOT NULL DEFAULT now()"))
+        assertTrue(sql.contains("PRIMARY KEY (work_id, member_id)"))
+    }
+
     @Test fun `fresh SQL lives in feature leaves with one global version order`() {
         val migration = Path.of("src/main/resources/db/migration")
         assertFalse(Files.exists(migration.resolve("auth")))
@@ -92,8 +101,8 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is the episode comment tables and V18 the work interest/outbox tables (work leaf).
-        assertEquals((1..18).toList(), versions.sorted())
+        // Development samples are an ordinary migration in the same global order (sample/V16); V17 is the episode comment tables, V18 the work like table and V19 the work interest/outbox tables (work leaf).
+        assertEquals((1..19).toList(), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

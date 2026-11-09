@@ -80,13 +80,30 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 `MediaPanel / useMediaViewModel → MediaUseCase → MediaRepository → HttpMediaRepository`를 Awilix에서 조립합니다. 실제 작품·설정 UUID만 허용하고 데모 ID·실패 시 메모리 성공 fallback을 보내지 않습니다.
 
 - `/content`: 작품 생성 시 PNG/JPEG 표지 선택, 생성된 작품의 표지 조회·교체·삭제·새로고침. 작품만 생성되고 표지 업로드가 실패하면 생성된 작품을 유지하며 표지만 재시도합니다.
-- `/content` 설정집: 서버에 설정 초안을 먼저 저장한 뒤 이미지·TXT/MD/CSV/PDF 목록/업로드/다운로드/교체/삭제. following 설정은 로컬 독립 전 첨부하지 않습니다. 공개 설정도 첨부 자체는 소유자 전용입니다.
+- `/content` 설정집: 서버에 설정 초안을 먼저 저장한 뒤 이미지·TXT/MD/CSV/PDF 목록/업로드/다운로드/교체/이름 변경/삭제. 이름 변경은 확장자를 고정하고 서버의 거부 사유를 그대로 보이며 실패하면 입력을 남깁니다. following 설정은 로컬 독립 전 첨부하지 않습니다. 공개 설정도 첨부 자체는 소유자 전용입니다.
 - `/studio/{UUID}`: 실제 회차 본문의 커서/선택 영역에 불변 이미지 `[[image:<UUID>]]` 참조 삽입, 초안·버전 저장/재진입/복원/발행 및 읽기 미리보기. 업로드 후 초안이나 버전을 저장해야 참조가 보존됩니다. 과거 버전을 위해 원본을 지우지 않으므로 회차당 업로드 총 10개는 marker 삭제로 반환되지 않습니다.
 - 같은 출처의 Bearer/CSRF multipart 요청을 사용하며 JSON Content-Type을 강제하지 않습니다. 비공개 이미지 bytes를 인증 fetch 후 Blob URL로 표시하고 교체·이탈 때 revoke합니다. 토큰·스토리지 URL·base64를 서버 원고에 저장하지 않습니다.
 - 중복 요청을 막고 취소·이탈 뒤 늦은 결과를 적용하지 않습니다. 취소/네트워크 응답 유실은 서버 rollback을 의미하지 않으므로 목록 새로고침으로 실제 상태를 확인합니다. 실패하면 기존 파일/원고를 유지합니다.
-- PNG/JPEG 표지·본문 및 설정 파일은 파일당 10 MiB 이하입니다. 서버가 바이트·픽셀·권한·한도를 최종 검증합니다. TXT 내보내기는 이미지·참조 marker를 제외한 텍스트 전용이며 EPUB은 제공하지 않습니다.
+- PNG/JPEG 표지·본문 및 설정 파일은 파일당 10 MiB 이하입니다. 서버가 바이트·픽셀·권한·한도를 최종 검증합니다. 집필실 원고 내보내기는 아래 절처럼 서버가 만든 TXT(이미지 제외)·EPUB(이미지 포함)입니다.
 
 `/new`, 이름 기반 `/studio/starlight` 등 개요·Wiki 이미지 선택은 브라우저 메모리 데모입니다. 인접 안내·toast에서 서버 미저장을 알리고 `/content`로 연결합니다. 무관한 데모 데이터 전체의 서버 이관은 포함하지 않습니다. 표지 논리 삭제·미참조 원본 보존과 API/권한/운영 한계는 [Core 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 참고하세요.
+
+## 원고 가져오기·내보내기 (기능 17·18)
+
+[계약](../docs/design/manuscript-import-export-contract.md)대로 `ManuscriptRepository`·`ManuscriptUseCase`·`HttpManuscriptRepository`를 Awilix에서 조립합니다.
+
+- `/import`(실제 모드): 내 작품 선택(`?work=<UUID>`로 사전 선택) → 권리 확인 3가지 → `.txt`·`.epub` 파일 → 서버 미리보기(회차별 제목 수정·제외·다음 회차와 합치기·경고) → 확정 → 회차별 성공·일부 성공·실패 결과. 확정 회차 번호는 조정 목록의 순서이고 제외한 회차도 번호를 차지합니다. 실패 항목은 확정 응답에만 있어 화면을 떠나면 다시 볼 수 없습니다. `--mode mockup`은 기존 데모 가져오기 화면(`ImportPage`)을 그대로 씁니다.
+- `/studio/{UUID}` 내보내기: 형식(TXT·EPUB)·범위(현재 회차·작품 전체)·원본(초안·발행본)을 골라 서버 GET을 Blob으로 받고 `Content-Disposition`의 `filename*`로 저장합니다. 서버에 저장된 원고를 내보내므로 입력 중·저장 중에는 잠급니다.
+- `--mode mockup`의 가져오기·EPUB/발행본 내보내기·첨부 이름 변경은 성공을 흉내 내지 않고 "데모에서는 지원하지 않아요" 오류를 냅니다. 데모 집필실의 TXT 초안 내보내기만 메모리 원고로 실제 파일을 만듭니다(`createMockupManuscriptRepository`).
+- nginx(`frontend/nginx.conf`, `infrastructure/nginx.dev.conf`)의 `/api/v1/works/`는 요청 본문을 51MB까지 받습니다.
+
+## 회차 이미지 설명·본문에서 빼기 (기능 16-C)
+
+[계약 5절](../docs/design/manuscript-import-export-contract.md)대로 `MediaRepository`에 회차 이미지 목록·대체 텍스트 PATCH·공개 대체 텍스트 조회를 두고 응답은 Zod로 검증합니다(소유자 목록의 `url`은 기존 다운로드 경로와 같아야 합니다).
+
+- `/studio/{UUID}`의 `EpisodeImagePanel`: 현재 회차에 올린 이미지(파일명·크기·본문 사용 여부), 이미지별 설명(최대 300자) 저장, '본문에서 빼기'. 빼기는 현재 초안에서 `[[image:ID]]` 표식(과 앞뒤 빈 줄)만 지우고 기존 초안 저장(`PUT .../draft`, revision 검사)으로 저장한 뒤 집필실의 `reload`로 최신 초안을 다시 읽습니다. 저장하지 않은 입력이 있거나 저장 중이면 막고 먼저 저장하도록 안내하며, 저장이 실패(revision 충돌 등)하면 서버 사유와 다시 불러오기 안내를 보이고 입력한 설명은 그대로 둡니다. 이미지 파일은 저장 버전·발행본이 참조할 수 있어 지우지 않습니다.
+- 독자 화면: 공개 보기(`ManuscriptBody publicView`, `/content`의 공개 원고 탭)는 이미지 표식이 있을 때만 `GET /api/v1/public/works/{id}/episodes/{n}/images`를 익명으로 불러 `img alt`에 쓰고, 없거나 불러오지 못하면 기존 `본문 이미지 N` 문구를 씁니다. 문장 단위 `/read` 화면은 이미지를 그리지 않습니다.
+- `--mode mockup`에서는 목록·설명 저장·공개 설명 조회가 "데모에서는 지원하지 않아요" 오류입니다(성공을 흉내 내지 않음).
 
 ## 검증
 

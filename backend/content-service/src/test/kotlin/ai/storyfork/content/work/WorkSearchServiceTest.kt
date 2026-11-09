@@ -5,6 +5,7 @@ import ai.storyfork.content.auth.client.exception.CoreAuthException
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
+import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.proposal.service.ProposalService
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.PublicationService
@@ -57,6 +58,7 @@ class WorkSearchServiceTest {
     @Mock lateinit var settings: SettingDocumentRepository
     @Mock lateinit var viewService: WorkViewService
     @Mock lateinit var nicknames: CoreNicknameService
+    @Mock lateinit var likeService: WorkLikeService
     @InjectMocks lateinit var service: WorkService
 
     private val start = Instant.parse("2026-11-01T00:00:00Z")
@@ -100,6 +102,12 @@ class WorkSearchServiceTest {
     }
     private fun views(vararg counts: Triple<String, Long, Long>) {
         `when`(viewService.counts()).thenReturn(counts.associate { (id, recent, prior) -> id to WorkViews(recent, prior) })
+    }
+    /** 좋아요가 없는 작품은 맵에 담지 않는다(실제 집계 행과 같다). */
+    private fun likes(vararg counts: Pair<String, Long>) {
+        `when`(likeService.counts(ArgumentMatchers.anyCollection<String>())).thenAnswer { call ->
+            call.getArgument<Collection<String>>(0).mapNotNull { id -> counts.toMap()[id]?.let { id to it } }.toMap()
+        }
     }
     private fun failure(block: () -> Unit) = assertThrows(ContentFailure::class.java, block)
 
@@ -198,12 +206,51 @@ class WorkSearchServiceTest {
         assertEquals(listOf("open"), service.ranking("rising").items.map { it.id })
     }
 
+    @Test fun `list search and ranking fill likes with one batched count of the shown works`() {
+        work("a", "첫째", 1, author = "윤서하")
+        work("b", "둘째", 2)
+        work("c", "셋째", 3)
+        views(Triple("a", 5, 0), Triple("b", 1, 0))
+        likes("a" to 7, "b" to 2)
+
+        val list = service.publicList(null, null, null).items
+        assertEquals(listOf("c", "b", "a"), list.map { it.id })
+        assertEquals(listOf(0L, 2L, 7L), list.map { it.likes })
+        verify(likeService).counts(listOf("c", "b", "a"))
+
+        assertEquals(listOf(7L), service.publicList("첫째", "title", null).items.map { it.likes })
+        verify(likeService).counts(listOf("a"))
+
+        val ranked = service.ranking("top").items
+        assertEquals(listOf(7L, 2L), ranked.map { it.likes })
+        // 좋아요를 얹어도 작가명은 소유자의 Core 닉네임이다(작품 행 author_name을 읽지 않는다).
+        assertEquals(listOf("윤서하", "작성자"), ranked.map { it.authorName })
+        verify(likeService).counts(listOf("a", "b"))
+        assertTrue(list.none { it.liked })
+    }
+
+    @Test fun `public detail fills the like count and whether the signed in member liked it`() {
+        work("a", "첫째", 1, author = "윤서하")
+        likes("a" to 4)
+        `when`(likeService.liked("a", "reader")).thenReturn(true)
+
+        val signedIn = service.publicRead("a", "reader")
+        assertEquals(4L, signedIn.likes)
+        assertTrue(signedIn.liked)
+        assertEquals("윤서하", signedIn.authorName)
+
+        val anonymous = service.publicRead("a")
+        assertEquals(4L, anonymous.likes)
+        assertFalse(anonymous.liked)
+        verify(likeService, times(1)).liked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+    }
+
     @Test fun `unknown options fail with 422 before any lookup`() {
         for (call in listOf<() -> Any>({ service.publicList(null, "body", null) }, { service.publicList(null, null, "popular") }, { service.ranking("daily") })) {
             assertEquals(422, failure { call() }.status)
         }
 
-        verifyNoInteractions(works, access, viewService, nicknames)
+        verifyNoInteractions(works, access, viewService, nicknames, likeService)
     }
 
     @Test fun `a public list asks Core once for its distinct owners and shows their latest nicknames`() {
