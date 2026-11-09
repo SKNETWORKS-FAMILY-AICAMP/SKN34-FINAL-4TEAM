@@ -1230,6 +1230,8 @@
 | Frontend | WorldStudio | 세계관 탐색 | 연결된 설정 탐색 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
 | Frontend | WorldStudio | 세계관 탐색 | 인물 관계도 표시 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) · [#132](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132) |
 | Frontend | WorldStudio | 세계관 탐색 | 빈 세계관 안내 | ❌ | [PR #114](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/114) |
+| Frontend | WorldStudio | 단계형 작성 | 상단 세계관 메뉴 이동 후 목록 복귀 (미저장 이동 보호 유지·미병합) | ❌ | [PR #205](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/205) |
+| Frontend | WorldStudio | 저장 안내 | 목업 메모리 보관·새로고침 초기화와 서버 저장 안내 구분 (미병합) | ❌ | [PR #205](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/205) |
 | Frontend | WorldStudio | 단계형 작성 | 작성 4단계 이동 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
 | Frontend | WorldStudio | 단계형 작성 | 단계 이동 후 입력 유지 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) |
 | Frontend | WorldStudio | 단계형 작성 | 설정 검색·유형 필터 | ❌ | [PR #115](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/115) · [#130](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/130) |
