@@ -46,8 +46,9 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 
 ## 운영 전용 내부 API
 
-[운영 회원·신고 계약](../../docs/design/operations-member-report-contract.md#content-내부-api-운영-전용)의 작품 제한 API입니다. 회원 Bearer·CSRF 없이 `X-Operations-Service-Token`이 환경변수 `OPERATIONS_SERVICE_TOKEN`(32자 이상)과 같을 때만 허용하고, 미설정·짧음·불일치는 403입니다. 공개 proxy에 등록하지 않습니다.
+[운영 회원·신고 계약](../../docs/design/operations-member-report-contract.md#content-내부-api-운영-전용)의 작품 제한 API와 [운영 작품 조회 계약](../../docs/design/operations-work-contract.md#content-내부-api-서비스-토큰)의 작품 목록 API입니다. 회원 Bearer·CSRF 없이 `X-Operations-Service-Token`이 환경변수 `OPERATIONS_SERVICE_TOKEN`(32자 이상)과 같을 때만 허용하고, 미설정·짧음·불일치는 403입니다. 공개 proxy에 등록하지 않습니다.
 
+- `GET /internal/v1/works` → `{ items: [{ workId, ownerId, title, authorName, originKind, creationType, rightsConfirmed, visibility, restricted }] }`. 공개·비공개·제한 작품 전체를 `title, id` 오름차순으로 쿼리 한 번에 읽습니다(페이지네이션 없음). `rightsConfirmed`는 권리 진술 행 존재 여부, `visibility`는 최신 발행 이력(없으면 `private`)이며 `restricted`와 독립입니다.
 - `GET /internal/v1/works/{workId}` → `{ workId, ownerId, title, restricted }`, 없으면 404
 - `PUT`·`DELETE /internal/v1/works/{workId}/restriction` → 같은 본문(`restricted` true/false)
 
