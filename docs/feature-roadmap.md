@@ -506,7 +506,7 @@
 
 ## 운영 관리 서비스 — 운영 업무·LLMOps
 
-독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). hosted CI 결과는 PR에서 확인한다.
+독립 운영 CRUD는 서비스 자격으로 공지·이벤트·문의/답변 **레코드**만 관리한다([API 인계](../backend/operations-service/README.md)). 아래 로컬 구현 표시는 사람의 관리자 권한·회원 신원/소유권·‘내 문의’·공개 게시·진행 상태·프런트엔드 API 연결의 완료 근거가 아니다. 미등록-120~118로 공통 기반과 각 리소스를 나누며, 분리 PR도 공유 Flyway 이력에 따라 **공통 → 공지 V1 → 이벤트 V2 → 문의/답변 V3** 순서로 의존성을 포함한다. 각 head는 앞선 migration을 포함한 fresh 임시 CI DB에서 검증하며 `outOfOrder`·DB reset으로 순서를 우회하지 않는다. 별도 운영 UI 메모리 데모는 Frontend 미등록-124로 추적하고, 병합·최신 head `Required CI` 확인 전이므로 모두 ❌를 유지한다. 단, 34 신고·소명·조치 관리, 71 관리자 계정 등록·권한, 73 운영 회원 조회·조치는 회원 Bearer·관리자 권한·Core/Content 연동·화면 연결까지 구현해 로컬 단위 테스트와 브라우저 E2E로 확인했으므로 ✅로 표시한다([계약](design/operations-member-report-contract.md)). hosted CI 결과는 PR에서 확인한다. 69 이벤트 안내·운영도 관리자 Bearer·`events` 권한 CRUD와 독자 공개 조회·화면 연결을 로컬 단위 테스트와 브라우저 E2E로 확인해 해당 행을 ✅로 표시한다(검증·U+0000 행은 단위 확인만이라 ❌ 유지, [계약](design/operations-event-contract.md)).
 
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
@@ -565,14 +565,14 @@
 <tr><td>공지 레코드 PUT 전체 수정(서비스 자격)</td><td>❌</td></tr>
 <tr><td>공지 레코드 DELETE 삭제(서비스 자격)</td><td>❌</td></tr>
 <tr><td>공지 필수 값·길이 검증 후 변경</td><td>❌</td></tr>
-<tr><td rowspan="10">이벤트 관리</td><td rowspan="10">69 이벤트 안내·운영</td><td>독자용 공개 이벤트 목록 조회(후속 공개 정책)</td><td>❌</td><td rowspan="10"><a href="#미등록-094">미등록-094</a> · <a href="#미등록-122">미등록-122</a></td></tr>
-<tr><td>이벤트 레코드 상세·선택 UTC 기간 조회(서비스 자격)</td><td>❌</td></tr>
-<tr><td>운영 이벤트 레코드 등록(서비스 자격)</td><td>❌</td></tr>
-<tr><td>운영 이벤트 레코드 목록 조회(서비스 자격·최대 100개)</td><td>❌</td></tr>
-<tr><td>이벤트 진행·종료 상태 변경</td><td>❌</td></tr>
-<tr><td>이벤트 진행 상태 조회(후속 상태 계약)</td><td>❌</td></tr>
-<tr><td>운영 이벤트 레코드 PUT 전체 수정(서비스 자격)</td><td>❌</td></tr>
-<tr><td>운영 이벤트 레코드 DELETE 삭제(서비스 자격)</td><td>❌</td></tr>
+<tr><td rowspan="10">이벤트 관리</td><td rowspan="10">69 이벤트 안내·운영</td><td>독자용 공개 이벤트 목록 조회(비로그인·종료 포함·최신 100개)</td><td>✅</td><td rowspan="10"><a href="#미등록-094">미등록-094</a> · <a href="#미등록-122">미등록-122</a></td></tr>
+<tr><td>이벤트 상세·선택 기간 조회(관리자·독자, KST 표시·UTC 저장)</td><td>✅</td></tr>
+<tr><td>관리자 이벤트 등록(회원 Bearer·events 권한)</td><td>✅</td></tr>
+<tr><td>관리자 이벤트 목록 조회(최대 100개)</td><td>✅</td></tr>
+<tr><td>이벤트 진행·종료 상태 변경(종료 시각 수정)</td><td>✅</td></tr>
+<tr><td>이벤트 진행 상태 조회(기간으로 상시·예정·진행 중·종료 계산)</td><td>✅</td></tr>
+<tr><td>관리자 이벤트 전체 수정(기간 비우기 포함)</td><td>✅</td></tr>
+<tr><td>관리자 이벤트 확인 후 삭제</td><td>✅</td></tr>
 <tr><td>이벤트 기간 역전·필수 값·길이 검증 후 변경</td><td>❌</td></tr>
 <tr><td>이벤트 제목·본문의 U+0000을 저장·변경 전에 거절하고 기존 필드·기간 보존(로컬 단위 확인)</td><td>❌</td></tr>
 <tr><td rowspan="4">관리자 계정·권한 관리</td><td rowspan="4">71 관리자 계정 등록·권한</td><td>관리자 계정 목록 조회</td><td>✅</td><td rowspan="4"><a href="#미등록-096">미등록-096</a></td></tr>
