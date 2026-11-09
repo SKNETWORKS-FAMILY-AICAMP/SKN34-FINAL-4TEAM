@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector, type RootState } from '../../../../app/
 import type { AdminTab } from '../../../../domain/entities/admin'
 import { OperationsError, toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
 import type { AdminResult, AdminUseCase } from '../../../../domain/usecases/AdminUseCase'
+import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
 import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
 import type { ReportStatus, ReviewDecision } from '../../../../domain/entities/report'
@@ -24,7 +25,7 @@ export type AdminActionState = { pending: boolean; error: string; message: strin
 const demoSaved = (name: string) => ({ ok: true, msg: `${name} 저장했어요 (독립 운영 데모 · 서버 저장 없음)` })
 const demoDeleted = (name: string) => ({ ok: true, msg: `${name} 삭제했어요 (독립 운영 데모 · 서버 삭제 없음)` })
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'profile']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'profile', 'notices']
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
 const STATUSES: ReportStatus[] = ['RECEIVED', 'ACCEPTED', 'REJECTED']
 
@@ -35,6 +36,7 @@ export function useAdminViewModel(
   operationsUseCase: OperationsUseCase = appContainer.resolve('operationsUseCase'),
   memberUseCase: MemberUseCase = appContainer.resolve('memberUseCase'),
   reportUseCase: ReportUseCase = appContainer.resolve('reportUseCase'),
+  noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'),
 ) {
   const dispatch = useAppDispatch()
   const store = useStore<RootState>()
@@ -59,7 +61,8 @@ export function useAdminViewModel(
     admins: tab === 'admins' ? await memberUseCase.listAdmins() : [],
     // 개요의 '접수된 신고' 수도 실제 신고 목록에서 셉니다.
     reports: tab === 'rights' ? await reportUseCase.listAll(status) : tab === 'data' ? await reportUseCase.listAll('RECEIVED') : [],
-  }), [tab, role, q, sort, status, memberUseCase, reportUseCase])
+    notices: tab === 'notices' ? await noticeUseCase.list() : [],
+  }), [tab, role, q, sort, status, memberUseCase, reportUseCase, noticeUseCase])
   const reportId = tab === 'rights' ? sel : null
   const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
   const busy = useRef(new Set<string>())
@@ -126,22 +129,22 @@ export function useAdminViewModel(
     },
     // 성공·dataChanged는 유지하되 UI 정리는 살아 있는 폼의 제출 초안·선택에만 적용합니다.
     saveNotice: (id: string | null, input: NoticeInput) => run(`notice:${id ?? 'new'}`, async () => {
-      const row = await operationsUseCase.saveNotice(id, input)
+      const row = await noticeUseCase.save(id, input)
       const current = store.getState().adminView
       const draft = current.noticeDrafts[id ?? 'new']
       if (mounted.current && current.recordSelection.notices === (id ?? 'new') && draft === view.noticeDrafts[id ?? 'new'] && (!draft || draft.title === input.title && draft.body === input.body)) {
         dispatch(adminViewActions.clearNoticeDraft(id ?? 'new')); selectRecord('notices', row.id)
       }
-      return demoSaved('공지를')
+      return { ok: true, msg: '공지를 저장했어요. 회원 공지사항에 바로 공개돼요.' }
     }),
     deleteNotice: (id: string) => run(`notice:${id}`, async () => {
       const draft = store.getState().adminView.noticeDrafts[id]
-      await operationsUseCase.deleteNotice(id)
+      await noticeUseCase.delete(id)
       const current = store.getState().adminView
       if (mounted.current && current.recordSelection.notices === id && current.noticeDrafts[id] === draft) {
         dispatch(adminViewActions.clearNoticeDraft(id)); selectRecord('notices', null)
       }
-      return demoDeleted('공지를')
+      return { ok: true, msg: '공지를 삭제했어요. 회원 공지사항에서도 사라져요.' }
     }),
     saveEvent: (id: string | null, input: EventDraft) => run(`event:${id ?? 'new'}`, async () => {
       const row = await operationsUseCase.saveEvent(id, { title: input.title, body: input.body, startsAt: toUtcFromKoreanInput(input.startsAt), endsAt: toUtcFromKoreanInput(input.endsAt) })
@@ -199,7 +202,6 @@ export function useAdminViewModel(
     toggleChat: (id: string) => run(`chat:${id}`, () => adminUseCase.toggleChat(id)),
     addChat: (workId: string, character: string) => run('chat:new', () => adminUseCase.addChat(workId, character)),
     reply: (id: string, text: string) => run(`legacy:reply:${id}`, () => adminUseCase.reply(id, text)),
-    addNotice: (t: string, b: string) => run('legacy:notice', () => adminUseCase.addNotice(t, b)),
     addEvent: (t: string, p: string, b: string) => run('legacy:event:new', () => adminUseCase.addEvent(t, p, b)),
     toggleEvent: (i: number) => run(`legacy:event:${i}`, () => adminUseCase.toggleEvent(i)),
     runJob: (id: string) => run(`job:${id}`, () => adminUseCase.runJob(id)),

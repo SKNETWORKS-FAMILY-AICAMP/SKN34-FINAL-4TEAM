@@ -1,4 +1,4 @@
-import { today, type AdminState } from '../entities/admin'
+import type { AdminState } from '../entities/admin'
 import { forkList, hashText, isPub, nid, ofKind, publicCast, type Work } from '../entities/work'
 import type { AdminRepository } from '../repositories/AdminRepository'
 import type { ChatRepository } from '../repositories/ChatRepository'
@@ -118,12 +118,6 @@ export class AdminUseCase {
     await this.inquiryRepository.save({ ...q, reply, st: '답변 완료' })
     await this.log('문의 답변', () => q.s)
     return ok('답변을 등록했어요 (데모 · 실제 전송 없음)')
-  }
-
-  async addNotice(title: string, body: string): Promise<AdminResult> {
-    if (!title.trim() || !body.trim()) return fail('제목과 내용을 입력해 주세요')
-    await this.log('공지 게시', (a) => { a.notices.unshift([today(), title.trim(), body.trim()]); return title.trim() })
-    return ok('공지를 게시했어요 (데모 · 현재 화면에만 반영)')
   }
 
   async addEvent(title: string, period: string, body: string): Promise<AdminResult> {

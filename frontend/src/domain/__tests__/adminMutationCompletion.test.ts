@@ -8,8 +8,9 @@ import type { RootState } from '../../app/store'
 // 실제 Hook mount/unmount 통합 회귀는 useAdminViewModel.test.tsx에서 CI 전용으로 유지합니다.
 const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
-  admin: { chatChoices: vi.fn(), addNotice: vi.fn(), addEvent: vi.fn(), reply: vi.fn() },
-  operations: { saveNotice: vi.fn(), deleteNotice: vi.fn(), saveEvent: vi.fn(), deleteEvent: vi.fn(), saveInquiry: vi.fn(), deleteInquiry: vi.fn(), saveReply: vi.fn(), deleteReply: vi.fn() },
+  admin: { chatChoices: vi.fn(), addEvent: vi.fn(), reply: vi.fn() },
+  operations: { saveEvent: vi.fn(), deleteEvent: vi.fn(), saveInquiry: vi.fn(), deleteInquiry: vi.fn(), saveReply: vi.fn(), deleteReply: vi.fn() },
+  notices: { save: vi.fn(), delete: vi.fn() },
 }))
 vi.mock('react', () => ({
   useRef: <T>(current: T) => ({ current }),
@@ -17,7 +18,7 @@ vi.mock('react', () => ({
   useEffect: (setup: () => (() => void)) => { doubles.cleanups.push(setup()) },
 }))
 vi.mock('react-redux', () => ({ useStore: () => ({ getState: doubles.getState }) }))
-vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => name === 'adminUseCase' ? doubles.admin : doubles.operations } }))
+vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => name === 'adminUseCase' ? doubles.admin : name === 'noticeUseCase' ? doubles.notices : doubles.operations } }))
 vi.mock('../../app/store', () => ({ useAppDispatch: () => doubles.dispatch, useAppSelector: (select: (state: RootState) => unknown) => select(doubles.getState()) }))
 vi.mock('../../presentation/shared/session/useLogout', () => ({ useLogout: () => vi.fn() }))
 vi.mock('../../presentation/shared/screenIds', () => ({ useScreenId: vi.fn() }))
@@ -43,7 +44,9 @@ const notice = { title: '제출한 제목', body: '제출한 본문' }
 const event = { ...notice, startsAt: '', endsAt: '' }
 const inquiry = { ...notice, category: '계정' }
 const replyKey = 'question:reply'
-const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: keyof typeof doubles.operations | keyof typeof doubles.admin; other?: (vm: VM) => void }[] = [
+// 공지 저장·삭제는 NoticeUseCase(save·delete) 대역으로 보내므로 메서드 이름은 사례 구분용입니다.
+type Method = 'saveNotice' | 'deleteNotice' | keyof typeof doubles.operations | keyof typeof doubles.admin
+const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: Method; other?: (vm: VM) => void }[] = [
   ...(['new', 'existing'] as const).flatMap((id) => [
     { name: `notice save ${id}`, method: 'saveNotice' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('notices', id); vm.setNoticeDraft(id, { ...notice, body: changed ? '새 본문' : notice.body }) }, submit: (vm: VM) => vm.saveNotice(id === 'new' ? null : id, notice), other: (vm: VM) => vm.selectRecord('notices', 'other') },
     { name: `event save ${id}`, method: 'saveEvent' as const, prepare: (vm: VM, changed = false) => { vm.selectRecord('events', id); vm.setEventDraft(id, { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm: VM) => vm.saveEvent(id === 'new' ? null : id, event), other: (vm: VM) => vm.selectRecord('events', 'other') },
@@ -54,7 +57,6 @@ const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submi
   { name: 'event delete', method: 'deleteEvent', prepare: (vm, changed = false) => { vm.selectRecord('events', 'existing'); vm.setEventDraft('existing', { ...event, body: changed ? '새 본문' : event.body }) }, submit: (vm) => vm.deleteEvent('existing'), other: (vm) => vm.selectRecord('events', 'other') },
   { name: 'inquiry delete', method: 'deleteInquiry', prepare: (vm, changed = false) => { vm.selectRecord('inquiries', 'existing'); vm.setInquiryDraft('existing', { ...inquiry, body: changed ? '새 본문' : inquiry.body }); vm.setReplyDraft('existing:new', changed ? '새 답변' : '기존 답변') }, submit: (vm) => vm.deleteInquiry('existing'), other: (vm) => vm.selectRecord('inquiries', 'other') },
   { name: 'reply delete', method: 'deleteReply', prepare: (vm, changed = false) => { vm.selectRecord('inquiries', 'question'); vm.setReplyDraft(replyKey, changed ? '새 답변' : '기존 답변') }, submit: (vm) => vm.deleteReply('question', 'reply'), other: (vm) => vm.selectRecord('inquiries', 'other') },
-  { name: 'legacy notice', method: 'addNotice', prepare: (vm, changed = false) => { vm.setLegacyDraft('notice', 'title', notice.title); vm.setLegacyDraft('notice', 'body', changed ? '새 본문' : notice.body) }, submit: async (vm) => { const ok = await vm.addNotice(notice.title, notice.body); if (ok) vm.clearLegacyDraft('notice'); return ok } },
   { name: 'legacy event', method: 'addEvent', prepare: (vm, changed = false) => { vm.setLegacyDraft('event', 'title', notice.title); vm.setLegacyDraft('event', 'body', changed ? '새 본문' : notice.body) }, submit: async (vm) => { const ok = await vm.addEvent(notice.title, '', notice.body); if (ok) vm.clearLegacyDraft('event'); return ok } },
   { name: 'legacy reply', method: 'reply', prepare: (vm, changed = false) => { vm.selectLegacyInquiry('question'); vm.setLegacyDraft('inquiry:question', 'answer', changed ? '새 답변' : '제출한 답변') }, submit: async (vm) => { const ok = await vm.reply('question', '제출한 답변'); if (ok) vm.clearLegacyDraft('inquiry:question'); return ok }, other: (vm) => vm.selectLegacyInquiry('other') },
 ]
@@ -62,7 +64,8 @@ const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submi
 function useStartedSubmission(test: typeof cases[number]) {
   let finish!: (result: { id: string; ok: boolean; msg: string }) => void
   const response = new Promise<{ id: string; ok: boolean; msg: string }>((done) => { finish = done })
-  const method = test.method in doubles.operations ? doubles.operations[test.method as keyof typeof doubles.operations] : doubles.admin[test.method as keyof typeof doubles.admin]
+  const method = test.method === 'saveNotice' ? doubles.notices.save : test.method === 'deleteNotice' ? doubles.notices.delete
+    : test.method in doubles.operations ? doubles.operations[test.method as keyof typeof doubles.operations] : doubles.admin[test.method as keyof typeof doubles.admin]
   method.mockReturnValueOnce(response)
   let vm = useAdminViewModel('notices')
   test.prepare(vm)

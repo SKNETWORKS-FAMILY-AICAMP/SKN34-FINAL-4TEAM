@@ -83,12 +83,12 @@ describe('관리자 (A01~A18)', () => {
 
   it('공지·이벤트를 게시하면 회원 화면에 보인다', async () => {
     renderAt('/admin?tab=notices')
-    fireEvent.click(await screen.findByText('기존 회원 화면 공지 데모'))
-    expect((await screen.findByLabelText<HTMLInputElement>('제목')).required).toBe(true)
-    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '점검 안내' } })
-    fireEvent.change(screen.getByLabelText('내용'), { target: { value: '오늘 밤 점검해요' } })
-    fireEvent.click(screen.getByRole('button', { name: '공지 게시' }))
-    await toastIs('공지를 게시했어요 (데모 · 현재 화면에만 반영)')
+    fireEvent.click(await screen.findByRole('button', { name: '공지 작성' }))
+    expect((await screen.findByLabelText<HTMLInputElement>('공지 제목')).required).toBe(true)
+    fireEvent.change(screen.getByLabelText('공지 제목'), { target: { value: '점검 안내' } })
+    fireEvent.change(screen.getByLabelText('공지 내용'), { target: { value: '오늘 밤 점검해요' } })
+    fireEvent.click(screen.getByRole('button', { name: '공지 저장' }))
+    await toastIs('공지를 저장했어요. 회원 공지사항에 바로 공개돼요.')
     fireEvent.click(within(nav()).getByRole('link', { name: '이벤트' }))
     fireEvent.click(await screen.findByText('기존 회원 화면 이벤트 데모'))
     fireEvent.change(await screen.findByLabelText('이벤트명'), { target: { value: '새 이벤트' } })

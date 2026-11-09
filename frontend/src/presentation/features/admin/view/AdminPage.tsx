@@ -544,8 +544,8 @@ function Body(p: BodyProps) {
   } else if (tab === 'notices') {
     T = (
       <>
+        <LiveState vm={vm} label='공지 목록' />
         <OperationsNotices vm={vm} />
-        <LegacyNotices d={d} vm={vm} />
       </>
     )
   } else if (tab === 'credits') {
@@ -1179,73 +1179,6 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
 }
 
 /** 회원 화면의 기존 단순 데모는 독립 운영 기록으로 이관하지 않습니다. */
-function LegacyNotices({ d, vm }: { d: Data; vm: VM }) {
-  const form = vm.legacyDrafts.notice ?? {}
-  const state = vm.actions['legacy:notice']
-  return (
-    <details className='panel admin-legacy-demo'>
-      <summary>기존 회원 화면 공지 데모</summary>
-      <p className='admin-note'>
-        기존 회원 공지 목록과 이어지는 별도 호환 데모예요. 위 운영 공지 기록의 서버 발행 기능이
-        아니에요.
-      </p>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault()
-          if (await vm.addNotice(form.title ?? '', form.body ?? '')) vm.clearLegacyDraft('notice')
-        }}
-      >
-        <fieldset disabled={vm.mutationsBlocked || !!state?.pending} className='form-grid'>
-          <label className='field wide'>
-            제목<input
-              className='inp'
-              maxLength={60}
-              required
-              value={form.title ?? ''}
-              onChange={(e) => vm.setLegacyDraft('notice', 'title', e.target.value)}
-            />
-          </label>
-          <label className='field wide'>
-            내용<textarea
-              className='ta'
-              maxLength={1000}
-              required
-              value={form.body ?? ''}
-              onChange={(e) => vm.setLegacyDraft('notice', 'body', e.target.value)}
-            />
-          </label>
-          <div className='rowend wide'>
-            <button className='btn pri' type='submit'>
-              {state?.pending ? '게시 중…' : '공지 게시'}
-            </button>
-          </div>
-        </fieldset>
-        <AdminActionStatus state={state} />
-      </form>
-      <Table label='기존 회원 공지 표'>
-        <thead>
-          <tr>
-            <th scope='col'>게시일</th>
-            <th scope='col'>제목</th>
-            <th scope='col'>내용</th>
-          </tr>
-        </thead>
-        <tbody>
-          {d.admin.notices.map((n, i) => (
-            <tr key={i}>
-              <td>{n[0]}</td>
-              <td>
-                <b>{n[1]}</b>
-              </td>
-              <td className='admin-prose'>{n[2]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </details>
-  )
-}
-
 function LegacyEvents({ d, vm }: { d: Data; vm: VM }) {
   const form = vm.legacyDrafts.event ?? {}
   const state = vm.actions['legacy:event:new']
