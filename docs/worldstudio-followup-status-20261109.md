@@ -13,7 +13,7 @@
 
 | 경로 | 실제 연결 | 판단 |
 |---|---|---|
-| `/worldstudio/:worldId?` | `WorldStudioUseCase → HttpWorldStudioRepository → /api/v1/world-studios` | 현재 Content HTTP API에 연결됨. 모든 기능이 메모리 데모뿐이라는 과거 설명은 더 이상 맞지 않음 |
+| `/worldstudio/:worldId?` | 일반 모드: `WorldStudioUseCase → HttpWorldStudioRepository → /api/v1/world-studios`. `mockup` 모드: `WorldStudioUseCase → InMemoryWorldStudioRepository` | 일반 모드만 Content HTTP API에 연결됨. 발표용 `mockup` 모드는 서버에 저장하지 않으며 새로고침하면 데이터가 초기화됨 |
 | `/new` 및 `/worlds → /new` | `LibraryUseCase → InMemoryWorldRepository` | 구형 세계관 관리가 여전히 존재. 서버 저장 화면과 구분하는 안내가 있음 |
 | 구형 집필실 사전 | `StudioUseCase`, `useStudioViewModel` | 메모리 목업의 사전 수정 흐름. 정본 작품에 대한 통째 쓰기는 차단됨 |
 
@@ -55,7 +55,7 @@
 | 14 | 이미지 제한·권한·참조 안전성 | WorldStudio 전용 전체 흐름은 미확인 | 이미지 등록 기능 및 수용 검증 후속 |
 | 15 | 자동화·브라우저·접근성 전체 검증 | 기존 기능 PR의 Required CI 성공 확인 | 브라우저 생성→작성→확정→재조회 및 권한·실패 수용 미실행 |
 
-현재 계약상 가장 중요한 구분: **작업실의 ‘저장’은 현재 초안 PUT이며 카드 revision POST·공개·발행을 자동 실행하지 않는다.** 현재 관계는 Neo4j 상태 하나이며 과거 관계로 복원하지 않는다. 과거 #97의 내부 버전 구현만 보고 현행 전체 복원 완료로 표시하면 안 된다.
+현재 계약상 가장 중요한 구분: **일반 모드 작업실의 ‘저장’은 현재 초안 PUT이며 카드 revision POST·공개·발행을 자동 실행하지 않는다.** 현재 관계는 Neo4j 상태 하나이며 과거 관계로 복원하지 않는다. 발표용 `mockup` 모드의 저장은 메모리에만 반영되므로 이 서버 저장 설명에 포함하지 않는다. 과거 #97의 내부 버전 구현만 보고 현행 전체 복원 완료로 표시하면 안 된다.
 
 근거: [현재 관계 MVP 계약](design/worldstudio-independent-schema.md), [HTTP Controller](../backend/content-service/src/main/kotlin/ai/storyfork/content/world/controller/WorldStudioController.kt), [서비스](../backend/content-service/src/main/kotlin/ai/storyfork/content/world/service/WorldStudioService.kt), [프런트 HTTP 저장소](../frontend/src/data/world-studio/HttpWorldStudioRepository.ts).
 
