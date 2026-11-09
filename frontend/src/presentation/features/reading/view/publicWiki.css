@@ -1,7 +1,4 @@
-/* 독자용 공개 설정(읽기 전용). 작품 상세 카드(.tcard)와 회차 시트(.sheet, 포털) 양쪽에서 쓰므로 테마 토큰이 없으면 전역 토큰으로 되돌린다. */
-.pubwiki { display: grid; gap: 14px; min-width: 0; padding: 24px; }
-.wgrid > .pubwiki { grid-column: 1 / -1; }
-.pubwiki h3 { font-size: 19px; font-weight: 800; }
+/* 독자용 공개 설정(읽기 전용). 회차 시트(.sheet, 포털)의 목록(.pw-*)과 설정 위키 페이지(.nw-*)가 함께 쓰므로 쓰므로 테마 토큰이 없으면 전역 토큰으로 되돌린다. */
 .pw-list { display: grid; gap: 12px; min-width: 0; }
 .pw-scope { margin: 0; font-size: 13px; color: var(--tsub, var(--sub)); }
 .pw-group { border-top: 1px solid var(--tline, var(--line)); }
@@ -16,4 +13,48 @@
 .pw-props dt { font-weight: 600; color: var(--tsub, var(--sub)); }
 .pw-props dd { margin: 0; }
 .pw-know { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; }
-@media (max-width: 600px) { .pubwiki { padding: 18px 16px; } }
+
+/* U45 설정 위키: 나무위키 형식(분류 상자 · 문서 제목 · 목차 · 번호 매긴 접이식 문단 · 오른쪽 정보 상자). */
+.nw { --nw-acc: var(--tacc, var(--pri)); max-width: 1040px; margin: 0 auto; padding: 28px 36px 40px; min-width: 0; }
+.nw a { color: var(--nw-acc); text-decoration: none; text-underline-offset: 3px; }
+.nw a:hover, .nw-rel a { text-decoration: underline; }
+.nw-cat { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 18px; padding: 8px 12px; border: 1px solid var(--tline); border-radius: 8px; font-size: 13px; }
+.nw-cat b { padding-right: 10px; border-right: 1px solid var(--tline); }
+.nw-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; padding-bottom: 12px; margin-bottom: 20px; border-bottom: 2px solid var(--nw-acc); }
+.nw-head h1 { font-size: clamp(24px, 3.4vw, 32px); font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+.nw-head h1 span { color: var(--tsub); font-weight: 600; }
+.nw-head p { margin: 0; font-size: 13px; color: var(--tsub); }
+.nw-no { color: var(--nw-acc); font-variant-numeric: tabular-nums; }
+.nw-toc { display: inline-block; min-width: min(280px, 100%); max-width: 100%; margin: 0 0 28px; padding: 14px 22px 16px 16px; border: 1px solid var(--tline); border-radius: 8px; }
+.nw-toc > b { display: block; margin-bottom: 8px; font-size: 15px; }
+.nw-toc ol { margin: 0; padding: 0; list-style: none; }
+.nw-toc ol ol { padding-left: 18px; }
+.nw-toc li a { display: inline-block; padding: 3px 0; color: var(--tfg); font-size: 14px; }
+.nw-toc li a:hover { color: var(--nw-acc); }
+.nw-sec { margin-top: 8px; }
+.nw-sec > summary { list-style: none; display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--tline); cursor: pointer; }
+.nw-sec > summary::-webkit-details-marker { display: none; }
+.nw-sec > summary::before { content: '▾'; width: 22px; font-size: 16px; color: var(--tsub); transition: transform .2s ease-out; }
+.nw-sec:not([open]) > summary::before { transform: rotate(-90deg); }
+.nw-sec > summary h2 { font-size: 24px; font-weight: 800; }
+.nw-doc, .nw-sec > summary, .nw-toc { scroll-margin-top: 80px; }
+.nw-doc { display: flow-root; padding: 20px 0 8px; }
+.nw-doc + .nw-doc { border-top: 1px dashed var(--tline); }
+.nw-doc h3 { margin: 0 0 12px; font-size: 19px; font-weight: 800; }
+.nw-doc h4 { margin: 16px 0 6px; font-size: 15px; font-weight: 800; }
+.nw-doc p, .nw-doc li { line-height: 1.75; max-width: 68ch; overflow-wrap: anywhere; white-space: pre-wrap; }
+.nw-doc p { margin: 0 0 10px; }
+.nw-doc ul { margin: 0 0 10px; padding-left: 20px; }
+.nw-doc small, .nw-empty { color: var(--tsub); }
+.nw-rel { font-size: 14px; }
+.nw-rel b { margin-right: 6px; color: var(--tsub); }
+.nw-info { float: right; width: 300px; margin: 0 0 14px 24px; border-collapse: collapse; border: 1px solid var(--tline); font-size: 14px; }
+.nw-info caption { caption-side: top; padding: 10px 12px; border: 1px solid var(--tline); border-top: 4px solid var(--cat); border-bottom: 0; background: color-mix(in srgb, var(--cat) 16%, transparent); font-weight: 800; font-size: 16px; text-align: center; }
+.nw-info th, .nw-info td { padding: 7px 10px; border-top: 1px solid var(--tline); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.nw-info th { width: 34%; background: color-mix(in srgb, var(--cat) 8%, transparent); font-weight: 700; color: var(--tsub); }
+.nw :focus-visible { outline: 2px solid var(--nw-acc); outline-offset: 2px; }
+@media (max-width: 720px) {
+  .nw { padding: 18px 16px 28px; }
+  .nw-info { float: none; width: 100%; margin: 0 0 14px; }
+  .nw-toc { display: block; }
+}

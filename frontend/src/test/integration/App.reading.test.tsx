@@ -366,14 +366,20 @@ describe('공개 설정 읽기 패널 (기능 20)', () => {
   let restore = () => {}
   afterEach(() => { restore(); restore = () => {} })
 
-  it('작품 상세는 최신 공개 회차 기준의 공개 설정을 비회원에게도 읽기 전용으로 보여 준다', async () => {
+  it('작품 상세의 설정 위키 링크로 최신 공개 회차 기준의 공개 설정 페이지를 비회원에게도 읽기 전용으로 보여 준다', async () => {
     restore = servePublicWiki()
     guestSession()
     renderApp('/work/guunmong')
-    const panel = await screen.findByRole('region', { name: '공개된 설정' })
+    fireEvent.click(await screen.findByRole('link', { name: '설정 위키' }))
+    const panel = await screen.findByRole('article', { name: '구운몽/설정 위키' })
+    expect(sid()).toBe('U45 설정 위키')
+    screen.getByRole('link', { name: '구운몽 소설 상세로 돌아가기' })
     within(panel).getByText('4화까지 공개된 설정만 보여요.')
-    for (const name of ['성진', '연화봉', '돌다리']) within(panel).getByRole('heading', { name })
-    within(panel).getByRole('heading', { name: /^스승의 벌/ })
+    // 나무위키 형식: 목차에서 분류·문서로 건너가고, 문서 제목은 목차 번호를 단다.
+    const toc = within(panel).getByRole('navigation', { name: '목차' })
+    within(toc).getByRole('link', { name: /^\d+\.\d+\. 성진$/ })
+    for (const name of ['성진', '연화봉', '돌다리']) within(panel).getByRole('heading', { name: new RegExp(`^\\d+\\.\\d+\\. ${name}$`) })
+    within(panel).getByRole('heading', { name: /^\d+\.\d+\. 스승의 벌/ })
     expect(panel.querySelector('input, textarea, select, button, [contenteditable]')).toBeNull()
   })
 
@@ -403,16 +409,20 @@ describe('공개 설정 읽기 패널 (기능 20)', () => {
     expect(within(second).queryByRole('heading', { name: /^스승의 벌/ })).toBeNull()
   })
 
-  it('공개된 설정이 없으면 빈 상태를 보여 주고, 서버 작품이 아니면 패널을 만들지 않는다', async () => {
+  it('공개된 설정이 없으면 빈 상태를 보여 주고, 서버 작품이 아니면 위키 링크를 만들지 않고 위키 주소도 작품 상세로 돌려보낸다', async () => {
     restore = servePublicWiki([])
-    renderApp('/work/guunmong')
-    within(await screen.findByRole('region', { name: '공개된 설정' })).getByText('공개된 설정이 없어요.')
+    renderApp('/work/guunmong/wiki')
+    within(await screen.findByRole('article', { name: '구운몽/설정 위키' })).getByText('공개된 설정이 없어요.')
     cleanup()
     restore()
     restore = () => {}
     renderApp('/work/guunmong')
     await screen.findByRole('heading', { name: '구운몽' })
-    expect(screen.queryByRole('region', { name: '공개된 설정' })).toBeNull()
+    expect(screen.queryByRole('link', { name: '설정 위키' })).toBeNull()
+    cleanup()
+    renderApp('/work/guunmong/wiki')
+    await screen.findByRole('heading', { name: '구운몽' })
+    expect(screen.queryByRole('article', { name: '구운몽/설정 위키' })).toBeNull()
     cleanup()
     renderApp('/read/guunmong/1', user())
     await screen.findByRole('heading', { name: '연화봉의 젊은 승려' })

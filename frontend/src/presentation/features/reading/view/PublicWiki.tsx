@@ -1,4 +1,4 @@
-import { Fragment, useId } from 'react'
+import { Fragment } from 'react'
 
 import { LINE, WCATS, type Doc } from '../../../../domain/entities/wiki'
 import type { Work } from '../../../../domain/entities/work'
@@ -27,7 +27,7 @@ function PublicDoc({ doc, docs }: { doc: Doc; docs: Doc[] }) {
 }
 
 /** 분류(사전 순서)별로 묶은 공개 설정 목록과 공개 범위 안내. 비어 있으면 빈 상태를 보여 줍니다. */
-function PublicWikiList({ work, upto }: { work: Work; upto: number }) {
+export function PublicWikiList({ work, upto }: { work: Work; upto: number }) {
   const docs = work.wiki?.docs ?? []
   const groups = (work.wiki?.cats ?? WCATS).map((cat) => ({ cat, list: docs.filter((d) => d.cat === cat.id) })).filter((g) => g.list.length)
   return (
@@ -40,17 +40,6 @@ function PublicWikiList({ work, upto }: { work: Work; upto: number }) {
         </details>
       ))}
     </div>
-  )
-}
-
-/** 작품 상세에 놓는 읽기 전용 공개 설정 카드. [upto]는 서버가 설정을 공개한 기준 회차(최신 공개 회차)입니다. */
-export function PublicWikiPanel({ work, upto }: { work: Work; upto: number }) {
-  const heading = useId()
-  return (
-    <section className="tcard pubwiki" aria-labelledby={heading}>
-      <h3 id={heading}>공개된 설정</h3>
-      <PublicWikiList work={work} upto={upto} />
-    </section>
   )
 }
 

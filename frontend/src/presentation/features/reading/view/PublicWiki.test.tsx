@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import type { ReadingWorkRecord, ReadingWorldRecord } from '../../../../data/content/HttpEpisodeRepository'
 import { mapReadingWork, withReadingWorld } from '../../../../data/content/readingWork'
-import { PublicWikiPanel } from './PublicWiki'
+import { PublicWikiList } from './PublicWiki'
 
 afterEach(cleanup)
 
@@ -32,10 +32,9 @@ const documents = [
     properties: [{ name: '나이', value: '17' }, { name: '상태', value: '봉인의 속삭임을 들음' }] }),
 ]
 
-describe('독자용 공개 설정 패널', () => {
+describe('독자용 공개 설정 목록', () => {
   it('분류 순서대로 묶어 이름·별칭·설명·공개된 속성을 읽기 전용으로 보여 준다', () => {
-    render(<PublicWikiPanel work={served(documents)} upto={2} />)
-    const panel = screen.getByRole('region', { name: '공개된 설정' })
+    const { container: panel } = render(<PublicWikiList work={served(documents)} upto={2} />)
     // 서버가 준 문서 순서와 상관없이 사전 분류 순서(캐릭터·사건·장소·…·세계관 설정)로 묶고 개수를 함께 보여 준다.
     expect([...panel.querySelectorAll('details > summary')].map((s) => s.textContent)).toEqual(['캐릭터1', '사건1', '장소1', '세계관 설정1'])
     const rian = within(panel).getByRole('heading', { name: '리안', level: 4 }).closest('article')!
@@ -48,8 +47,7 @@ describe('독자용 공개 설정 패널', () => {
   })
 
   it('사건은 회차·종류·등장 인물을, 연결과 지식은 이름과 공개 회차로 보여 주고 문서 ID는 노출하지 않는다', () => {
-    render(<PublicWikiPanel work={served(documents)} upto={2} />)
-    const panel = screen.getByRole('region', { name: '공개된 설정' })
+    const { container: panel } = render(<PublicWikiList work={served(documents)} upto={2} />)
     const event = within(panel).getByRole('heading', { name: /탑 앞에서 밤을 지새우다/ }).closest('article')!
     within(event).getByText('1화 · 메인')
     within(event).getByText('등장 · 리안, 카엘')
@@ -62,13 +60,12 @@ describe('독자용 공개 설정 패널', () => {
   })
 
   it('공개 범위를 회차로 알려 준다', () => {
-    render(<PublicWikiPanel work={served(documents)} upto={2} />)
+    render(<PublicWikiList work={served(documents)} upto={2} />)
     screen.getByText('2화까지 공개된 설정만 보여요.')
   })
 
   it('공개된 설정이 없으면 빈 상태를 보여 준다', () => {
-    render(<PublicWikiPanel work={served([])} upto={1} />)
-    const panel = screen.getByRole('region', { name: '공개된 설정' })
+    const { container: panel } = render(<PublicWikiList work={served([])} upto={1} />)
     within(panel).getByText('공개된 설정이 없어요.')
     expect(panel.querySelector('details')).toBeNull()
   })

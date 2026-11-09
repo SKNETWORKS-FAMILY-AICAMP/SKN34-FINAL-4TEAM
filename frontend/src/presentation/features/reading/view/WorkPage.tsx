@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
 
-import { epsOf } from '../../../../domain/entities/work'
 import { Art, CoverOf } from '../../../shared/art'
 import { kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
@@ -11,7 +10,6 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useWorkViewModel } from '../viewmodel/useWorkViewModel'
 import { Amb } from './Amb'
-import { PublicWikiPanel } from './PublicWiki'
 import { ReportSheet } from './Sheets'
 
 /** 목업 unavailableWork() */
@@ -54,6 +52,7 @@ export function WorkPage() {
             <div className="acts">
               {visible.length > 0 && <Go to={`/read/${id}/${start}`} className="tbtn pri">읽기 시작</Go>}
               {!!last && <Go to={`/read/${id}/1`} className="tbtn">처음부터</Go>}
+              {w.canonical && <Go to={`/work/${id}/wiki`} className="tbtn">설정 위키</Go>}
               <LikeButton liked={liked} label={w.canonical ? '좋아요' : '관심 소설'} pending={vm.likePending} onClick={vm.toggleLike} />
               <button type="button" className="ib" aria-label="공유" onClick={vm.share}>↗</button>
               {vm.canInterest && (vm.isMember
@@ -106,7 +105,6 @@ export function WorkPage() {
               </div>
             )}
           </aside>
-          {w.canonical && <PublicWikiPanel work={w} upto={epsOf(w).length} />}
         </div>
       </main>
     </div>
