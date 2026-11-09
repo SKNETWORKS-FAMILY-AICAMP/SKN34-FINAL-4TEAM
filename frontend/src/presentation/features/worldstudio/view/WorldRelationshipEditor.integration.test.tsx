@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { Provider } from 'react-redux'
@@ -275,3 +275,36 @@ it.each(['text', 'title', 'name'] as const)(
     expect((await useCase.read(world.id)).settings).toEqual(latest.settings)
   },
 )
+
+it('preserves the unapplied relationship text when changing the target is cancelled',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('people'),c=newSetting('people')
+ a.item.title='가람';b.item.title='나래';c.item.title='다온';world.settings=[a,b,c];await useCase.save(world)
+ let current:ReturnType<typeof useWorldStudioViewModel>|undefined
+ function Harness(){const vm=useWorldStudioViewModel(useCase);current=vm;return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ vi.spyOn(window,'confirm').mockReturnValue(false)
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.change(await screen.findByRole('combobox',{name:'source · 관계 주체'}),{target:{value:a.item.id}})
+ fireEvent.change(screen.getByRole('combobox',{name:'target · 관계 대상'}),{target:{value:b.item.id}})
+ fireEvent.click(screen.getByRole('button',{name:'관계 작성'}))
+ fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'작성 중인 관계'}})
+ await waitFor(()=>expect(current!.relationDirty).toBe(true))
+ fireEvent.change(screen.getByRole('combobox',{name:'target · 관계 대상'}),{target:{value:c.item.id}})
+ expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'target · 관계 대상'}).value).toBe(b.item.id)
+ expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('작성 중인 관계')
+ expect(window.confirm).toHaveBeenCalledOnce()
+})
+
+it('closes stale deletion confirmation safely after the person changes type',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),person=newSetting('people');person.item.title='가람';world.settings=[person];await useCase.save(world)
+ let current:ReturnType<typeof useWorldStudioViewModel>|undefined
+ function Harness(){const vm=useWorldStudioViewModel(useCase);current=vm;return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.change(await screen.findByRole('combobox',{name:'source · 관계 주체'}),{target:{value:person.item.id}})
+ fireEvent.click(screen.getByRole('button',{name:'선택한 인물 삭제'}))
+ expect(screen.getByRole('region',{name:'인물 삭제 확인'})).toBeTruthy()
+ act(()=>current!.changeCardType(person.item.id,'location'))
+ expect(screen.queryByRole('region',{name:'인물 삭제 확인'})).toBeNull()
+ expect(current!.editing!.settings[0].item.id).toBe(person.item.id)
+})

@@ -1,5 +1,5 @@
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { isFreeRelation, relationLabel } from '../../../../domain/entities/studioRelations'
 import { useRelationPairViewModel } from '../viewmodel/useRelationPairViewModel'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
@@ -12,7 +12,17 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
     [target, setTarget] = useState(''),
     [open, setOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const deletion = deleteConfirm ? studio.personDeletionInfo(deleteConfirm) : null
+  const validDeletion = !!deleteConfirm && people.some((s) =>
+    s.item.id === deleteConfirm && s.item.kind === 'entity' && s.item.entityType === 'character'
+  )
+  const deletion = deleteConfirm && validDeletion ? studio.personDeletionInfo(deleteConfirm) : null
+  useEffect(() => { if (deleteConfirm && !validDeletion) setDeleteConfirm(null) }, [deleteConfirm, validDeletion])
+  const selectPair = (nextSource: string, nextTarget: string, nextOpen: boolean) => {
+    if (open && (nextSource !== source || nextTarget !== target) && !studio.confirmRelationDiscard()) return
+    setSource(nextSource)
+    setTarget(nextTarget)
+    setOpen(nextOpen)
+  }
   const relations = studio.editing!.settings.filter((s) => s.item.kind === 'relation')
   const name = (id: string | null) =>
     people.find((s) => s.item.id === id)?.item.title || '선택 안 함'
@@ -27,10 +37,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
             source · 관계 주체<select
               className='inp'
               value={source}
-              onChange={(e) => {
-                setSource(e.target.value)
-                setOpen(false)
-              }}
+              onChange={(e) => selectPair(e.target.value, target, false)}
             >
               <option value=''>선택하세요</option>
               {people.map((s) => (
@@ -44,10 +51,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
             target · 관계 대상<select
               className='inp'
               value={target}
-              onChange={(e) => {
-                setTarget(e.target.value)
-                setOpen(false)
-              }}
+              onChange={(e) => selectPair(source, e.target.value, false)}
             >
               <option value=''>선택하세요</option>
               {people.map((s) => (
@@ -85,8 +89,9 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               className='btn'
               type='button'
               onClick={() => {
+                if (open && !studio.confirmRelationDiscard()) return
                 const id = studio.undoPersonDeletion()
-                if (id) setSource(id)
+                if (id) { setSource(id); setOpen(false) }
               }}
             >
               인물 삭제 되돌리기
@@ -116,6 +121,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               type='button'
               disabled={!!deletion.blockers.length}
               onClick={() => {
+                if (open && !studio.confirmRelationDiscard()) return
                 if (studio.deletePerson(deletion.person.item.id)) {
                   setDeleteConfirm(null)
                   setSource('')
@@ -138,11 +144,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               className='btn'
               key={s.item.id}
               type='button'
-              onClick={() => {
-                setSource(s.item.subjectId ?? '')
-                setTarget(s.item.targetId ?? '')
-                setOpen(true)
-              }}
+              onClick={() => selectPair(s.item.subjectId ?? '', s.item.targetId ?? '', true)}
             >
               {name(s.item.subjectId)} · {relationLabel(s.item)} · {name(s.item.targetId)}
             </button>
@@ -323,7 +325,7 @@ function PairEditor(
       {error && <p role='alert' className='world-error'>{studio.error || error}</p>}
       <div className='relationship-apply'>
         <button type='button' className='btn pri' onClick={vm.apply}>편집본에 적용</button>
-        <button type='button' className='btn' onClick={onClose}>취소</button>
+        <button type='button' className='btn' onClick={() => { if (studio.confirmRelationDiscard()) onClose() }}>취소</button>
       </div>
       <p className='small muted'>
         적용 후 세계관 저장 버튼을 눌러야 저장됩니다. 취소하면 이 패널에서 입력한 변경만 버립니다.

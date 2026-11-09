@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   createPairRelationDraft,
+  hasRelationDraftChanges,
   newRelationDraftRow,
   type RelationDirection,
   relationDirection,
@@ -18,6 +19,7 @@ import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 type PairEditor = {
   editing: { settings: StudioSetting[] } | null
   applyRelations: (changes: RelationInput[], removed: string[]) => boolean
+  setRelationDirty: (value: boolean) => void
 }
 
 /** 열린 패널의 입력은 재조회로 덮어쓰지 않고, 최초 baseline을 기존 Domain 검증으로 전달합니다. */
@@ -31,6 +33,11 @@ export function useRelationPairViewModel(
     rows: createPairRelationDraft(studio.editing!.settings, source, target),
     removed: [] as string[],
   }))
+  const initialRows = useRef(draft.rows)
+  const changed = hasRelationDraftChanges(initialRows.current, draft.rows, draft.removed)
+  const { setRelationDirty } = studio
+  useEffect(() => { setRelationDirty(changed) }, [changed, setRelationDirty])
+  useEffect(() => () => setRelationDirty(false), [setRelationDirty])
   const [error, setError] = useState('')
   const change = (key: string, patch: Partial<RelationInput>) => {
     setDraft((current) => ({

@@ -116,3 +116,12 @@ export function removeRelationDraftRow(
     removed: row.value.id ? [...draft.removed, row.value.id] : draft.removed,
   }
 }
+
+/** 비교 기준은 패널을 연 순간이며 미적용 입력을 원문 그대로 보존합니다. */
+export function hasRelationDraftChanges(
+  initial: RelationDraftRow[],
+  rows: RelationDraftRow[],
+  removed: string[],
+): boolean {
+  return removed.length > 0 || JSON.stringify(initial) !== JSON.stringify(rows)
+}
