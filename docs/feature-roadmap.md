@@ -1270,4 +1270,3 @@
 
 - 진행 중·미병합: 분석 snapshot, 후보, 검토 이력, 반영 ID 예약의 PostgreSQL/JPA 저장 구조. [범위와 후속 조건](design/initial-world-analysis-storage.md).
 - #219 계약 의존. AI 실행·공개 API·실제 초안 반영·검토 UI는 미구현이며 전체 기능 완료로 체크하지 않는다. #223 디자인과 분리.
-
