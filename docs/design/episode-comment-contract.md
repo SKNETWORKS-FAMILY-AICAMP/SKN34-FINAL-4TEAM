@@ -13,19 +13,18 @@
 - 수정·삭제는 작성자만(타인 403). 작품 소유자도 남의 댓글을 지울 수 없다. 수정 가능 필드는 본문·스포일러 여부다.
 - 삭제는 소프트 삭제(DEC-42): `deleted_at`만 기록하고 목록·상세·수정·좋아요에서 404로 제외한다.
 - 정렬: `latest`(기본, 작성 최신순)·`likes`(좋아요 수 내림차순, 동점은 최신순).
-- 작성자 표시명: Core `POST /internal/v1/auth/verify` 응답에 `nickname`을 추가하고 Content가 **작성 시 스냅샷**으로 저장한다.
+- 작성자 표시명: Content에 저장하지 않는다. 응답 때마다 Core에서 작성자 ID 묶음으로 **최신 닉네임**을 조회해 DTO에 채운다(API composition, 2026-11-09 사용자 결정). Content와 Core 테이블을 JOIN하지 않는다.
 - 범위 밖: 1차 유해 필터·신고·숨김/복원(UC-14 A6·A7, DEC-22), 답글, 페이지네이션, 메모리 데모 댓글의 서버 이관.
 
-## Core 변경
+## Core 회원 닉네임 조회 (내부)
 
-`VerifiedMemberResponse(memberId, operator, nickname)` — 기존 필드 유지, `nickname`(회원 닉네임) 추가.
-호출자(Content·Operations)는 알 수 없는 필드를 무시하므로 기존 호출자는 영향이 없다.
+`POST /internal/v1/members/nicknames` 본문 `{ "ids": ["uuid", …] }`(배열 길이 최대 200개, 중복 ID는 무시) → `{ "nicknames": { "<uuid>": "닉네임" } }`.
 
-## Content 인증 변경
-
-- `auth/client`의 `VerifiedMemberResponse(memberId: UUID, nickname: String? = null)`로 받는다.
-- Principal 이름은 지금처럼 회원 UUID 문자열을 유지한다. 닉네임은 인증 객체 `details`(String)에 담는다.
-- 닉네임이 없거나 빈 값이면 댓글 작성자 표시명은 `독자`다.
+- 사용자 Bearer 없이 서비스 토큰만으로 호출한다(Content 토큰, verify와 같이 운영 서비스 토큰도 허용). 공개 진입점에는 열지 않는다.
+- 공개 표지·회차 이미지 열람처럼 작가명이 필요 없는 공개 경로는 Core를 호출하지 않는다.
+- 없는 회원(탈퇴·삭제)은 맵에서 빠지고 Content는 `탈퇴한 회원`으로 표시한다. 잘못된 UUID·200개 초과는 400.
+- Content는 목록마다 ID를 모아 중복을 빼고 200개 단위로 호출한다(N+1 금지). Core 호출 실패는 성공으로 숨기지 않고 503/504/502로 응답한다.
+- 같은 조회로 작품 작가명도 소유자 닉네임으로 채운다([검색·랭킹 계약](work-search-ranking-contract.md)).
 
 ## 저장
 
@@ -38,7 +37,6 @@ CREATE TABLE episode_comment (
     episode_number integer NOT NULL CHECK (episode_number > 0),
     published_version_id varchar(36) NOT NULL REFERENCES episode_version(id),
     author_id varchar(200) NOT NULL,
-    author_name text NOT NULL,
     body text NOT NULL,
     quote text,
     spoiler boolean NOT NULL DEFAULT false,
@@ -63,7 +61,7 @@ CREATE TABLE episode_comment_like (
 
 ```json
 { "id": "uuid", "workId": "…", "episodeNumber": 3, "publishedVersionId": "…",
-  "authorName": "닉네임", "body": "…", "quote": "선택 문장 또는 null", "spoiler": false,
+  "authorName": "Core 최신 닉네임 또는 탈퇴한 회원", "body": "…", "quote": "선택 문장 또는 null", "spoiler": false,
   "likeCount": 2, "liked": false, "mine": false, "edited": false,
   "createdAt": "2026-11-09T01:23:45Z", "updatedAt": "2026-11-09T01:23:45Z" }
 ```
@@ -100,6 +98,6 @@ CREATE TABLE episode_comment_like (
 
 ## ponytail 한계
 
-- 닉네임은 작성 시 스냅샷이라 이후 닉네임 변경이 기존 댓글에 반영되지 않는다. 필요하면 Core 회원 조회 API로 표시 시점 조회로 바꾼다.
+- 공개 댓글·작품 목록이 Core 가용성에 의존한다(Core 장애 시 503). 캐시는 두지 않았다. 필요하면 짧은 TTL 캐시나 닉네임 변경 사건 동기화로 바꾼다.
 - 목록은 최대 200개 고정이고 `likes` 정렬은 서비스 메모리에서 한다. 댓글이 많아지면 페이지네이션·DB 정렬로 바꾼다.
 - 유해 필터·신고·숨김이 없어 등록 즉시 공개된다(DEC-22 MVP 범위).
