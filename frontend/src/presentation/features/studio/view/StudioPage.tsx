@@ -80,7 +80,7 @@ function DemoStudioPage() {
       <div className="sbar">
         <Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 className="t">{w.title}</h1>
         <StudioTools id={id} view={view} ep={ep} />
-        {view !== 'narrative' && <span className={`st${vm.saving && !vm.notesSaveFailed ? ' saving' : ''}`} id="saved"><i />{vm.notesSaveFailed ? '저장 실패' : vm.saving ? '저장 중…' : '저장됨'}</span>}
+        {view !== 'narrative' && <span className={`st${vm.saving && !vm.saveFailed ? ' saving' : ''}`} id="saved"><i />{vm.saveFailed ? '저장 실패' : vm.saving ? '저장 중…' : '저장됨'}</span>}
         <button type="button" className="tbtn" onClick={() => setSettingsOpen(true)}>집필 설정</button>
         {view === 'write' && <><button type="button" className="tbtn" style={{ height: 40 }} disabled={ro} onClick={vm.preview}>미리 보기</button>
         <button type="button" className="tbtn pri" style={{ height: 40 }} id="pubep" disabled={ro || vm.publishBusy || vm.autoGenerating} onClick={vm.openPublish}>{ro ? '원작 원고' : d.editingEpisode ? '수정 공개하기' : '공개하기'}</button></>}

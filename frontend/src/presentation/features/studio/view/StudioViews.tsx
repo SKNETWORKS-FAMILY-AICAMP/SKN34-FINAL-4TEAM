@@ -57,8 +57,7 @@ export function MemoView({ vm }: { vm: VM }) {
             onChange={(e) => {
               const value = e.currentTarget.value
               setMemo(value)
-              vm.markSaving()
-              void vm.saveNotes({ memo: value })
+              void vm.saveNotes({ memo: value }, true)
             }}
           />
         </div>
@@ -105,8 +104,7 @@ export function OverviewView({ vm }: { vm: VM }) {
             spellCheck={false}
             aria-label='한 줄 소개'
             onBlur={(e) => {
-              vm.markSaving()
-              void vm.saveNotes({ hook: (e.currentTarget.textContent ?? '').trim() })
+              void vm.saveNotes({ hook: (e.currentTarget.textContent ?? '').trim() }, true)
             }}
           >
             {w.hook || w.dir || ''}
@@ -142,8 +140,7 @@ export function OverviewView({ vm }: { vm: VM }) {
         aria-label='시놉시스'
         data-ph='전체 줄거리를 적어 보세요.'
         onBlur={(e) => {
-          vm.markSaving()
-          void vm.saveNotes({ synopsis: (e.currentTarget.textContent ?? '').trim() })
+          void vm.saveNotes({ synopsis: (e.currentTarget.textContent ?? '').trim() }, true)
         }}
       >
         {w.synopsis || w.summary || ''}

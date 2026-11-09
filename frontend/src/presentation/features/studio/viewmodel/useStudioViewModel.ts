@@ -36,6 +36,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
   const [prompt, setPrompt] = useState<{ key: string; v: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const [failedNotesFor, setFailedNotesFor] = useState<string | null>(null)
+  const [draftSaveFailed, setDraftSaveFailed] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [publishBusy, setPublishBusy] = useState(false)
   const [autoGenerating, setAutoGenerating] = useState(false)
@@ -97,6 +98,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
         const saved = await studioUseCase.edit(key, nextPatch)
         if (!saved) throw new Error('초안을 찾을 수 없어요.')
         failedEdits.current.delete(key)
+        setDraftSaveFailed(failedEdits.current.size > 0)
         if (!nextInvalidation) return
         const check = saved.check
         setInvalidatedCheck((current) => {
@@ -105,6 +107,7 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
         })
       } catch {
         failedEdits.current.set(key, { patch: nextPatch, invalidation: nextInvalidation })
+        setDraftSaveFailed(true)
         toast('초안을 저장하지 못했어요. 편집을 계속하면 다시 저장을 시도해요.')
       }
     })
@@ -113,10 +116,10 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
   return {
     data, studio: s, draft: d, // 입력은 다시 그리지 않고, 저장된 원고·검사 결과가 바뀌어 다시 불러왔을 때만 본문을 새로 그립니다.
     bodyKey: key + JSON.stringify([d?.paras, d?.check?.issues]), saving, paragraphs: shown,
-    notesSaveFailed: failedNotesFor === id,
+    saveFailed: failedNotesFor === id || draftSaveFailed,
     readOnly: !!d?.locked,
     wordCount: `공백 포함 ${Array.from(text).length.toLocaleString('ko-KR')}자 · 공백 제외 ${Array.from(text.replace(/\s/g, '')).length.toLocaleString('ko-KR')}자`,
-    edit, markSaving: flash,
+    edit,
     checkStale: !!d?.check && (d.check.stale
       || (invalidatedCheck?.key === key && (invalidatedCheck.at === null || d.check.at <= invalidatedCheck.at))),
     prompt: (prompt?.key === key ? prompt.v : null) ?? d?.aiPrompt ?? '',
@@ -232,9 +235,9 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
     removeAlias: (docId: string, i: number) => run(() => studioUseCase.removeAlias(id, docId, i)),
     goWiki: (q: string) => navigate(`/studio/${id}?view=wiki${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`),
     auto: s ? autoOf(s.work) : null,
-    saveNotes: async (patch: Parameters<StudioUseCase['saveNotes']>[1]) => {
+    saveNotes: async (patch: Parameters<StudioUseCase['saveNotes']>[1], showSaving = false) => {
       try {
-        const result = await queue(() => studioUseCase.saveNotes(id, patch), false)
+        const result = await queue(() => studioUseCase.saveNotes(id, patch), showSaving)
         if (result === null) throw new Error('작품을 저장할 수 없어요.')
         setFailedNotesFor((current) => current === id ? null : current)
         return true

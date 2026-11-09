@@ -95,13 +95,13 @@ it('serializes note and cover saves and reports a failed save separately', async
   await act(async () => {
     expect(await result.current.saveNotes({ coverImg: null })).toBe(false)
   })
-  expect(result.current.notesSaveFailed).toBe(true)
+  expect(result.current.saveFailed).toBe(true)
   expect(work().coverImg).toBe('new-cover')
 
   await act(async () => {
     expect(await result.current.saveNotes({ coverImg: null })).toBe(true)
   })
-  expect(result.current.notesSaveFailed).toBe(false)
+  expect(result.current.saveFailed).toBe(false)
   expect(work().coverImg).toBeNull()
   expect(saves).toHaveBeenLastCalledWith('starlight', { coverImg: null })
 })
@@ -215,6 +215,7 @@ it('preserves a failed body edit for the next save and prevents checking or publ
   expect(check).not.toHaveBeenCalled()
   expect(publish).not.toHaveBeenCalled()
   expect(result.current.checkStale).toBe(true)
+  expect(result.current.saveFailed).toBe(true)
 
   await act(async () => result.current.setPrompt('재저장할 요청'))
   await waitFor(() => expect(appContainer.resolve('mockDb').drafts[key]).toMatchObject({
@@ -222,6 +223,7 @@ it('preserves a failed body edit for the next save and prevents checking or publ
     aiPrompt: '재저장할 요청',
     check: { stale: true },
   }))
+  await waitFor(() => expect(result.current.saveFailed).toBe(false))
 })
 
 it('allows a draft edit after a queued wiki save fails', async () => {
