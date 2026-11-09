@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import { seedAdmin, seedWorks, seedWorlds } from '../../data/mock/seed'
-import type { Inquiry } from '../entities/account'
 import type { DemoCredits } from '../entities/credit'
 import type { ReaderReport, ReviewItem } from '../entities/feedback'
 import type { Work } from '../entities/work'
@@ -10,7 +9,7 @@ import { AdminUseCase, canToggleWork } from '../usecases/AdminUseCase'
 
 function fakes() {
   let works = seedWorks(0), admin = seedAdmin(), chats = null as null | { id: string; workId: string; character: string; enabled: boolean }[]
-  const db = { queue: [] as ReviewItem[], reports: [] as ReaderReport[], inq: [] as Inquiry[], credits: { credits: 100, usage: [], failNext: false, alerts: [] } as DemoCredits }
+  const db = { queue: [] as ReviewItem[], reports: [] as ReaderReport[], credits: { credits: 100, usage: [], failNext: false, alerts: [] } as DemoCredits }
   const workRepository = { listWorks: async () => structuredClone(works), listWorlds: async () => seedWorlds(), readWorld: async (w: Work) => w, createFork: async () => { throw new Error('not used') }, saveWork: async (w: Work) => { works = works.map((x) => (x.id === w.id ? w : x)) }, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const replace = <T extends { id: string }>(l: T[], x: T) => l.splice(l.findIndex((y) => y.id === x.id), 1, x)
   const feedbackRepository = {
@@ -23,7 +22,6 @@ function fakes() {
   const uc = new AdminUseCase(
     { get: async () => structuredClone(admin), save: async (a) => { admin = a }, listComments: async () => [{ id: 'hanji-0', work: '구운몽', workId: 'guunmong', author: '연화봉러', text: '좋아요', likes: 1 }] },
     workRepository, feedbackRepository,
-    { list: async () => db.inq, add: async () => {} },
     { get: async () => db.credits, save: async (c) => { db.credits = c } },
     chatRepository,
   )

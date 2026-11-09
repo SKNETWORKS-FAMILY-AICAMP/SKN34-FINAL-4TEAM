@@ -197,10 +197,10 @@ it('작품 탭 View가 쓰는 정본 작품 조치 불가 판단을 ViewModel이
 })
 
 describe('개요의 답변 대기 문의 (#202)', () => {
-  it('운영 패널 문의 중 답변이 하나도 없는 건수만 세고 회원 문의는 세지 않는다', () => {
+  it('운영 패널 문의 중 답변이 하나도 없는 건수를 센다', () => {
     doubles.demoQuery = {
       isLoading: false, isRefreshing: false, isError: false,
-      data: { inquiries: [{ id: 'member', st: '답변 대기' }], operations: { inquiries: [{ replies: [] }, { replies: [{ id: 'reply' }] }, { replies: [] }] } },
+      data: { operations: { inquiries: [{ replies: [] }, { replies: [{ id: 'reply' }] }, { replies: [] }] } },
     }
     expect(useAdminViewModel('data').unansweredInquiries).toBe(2)
   })
