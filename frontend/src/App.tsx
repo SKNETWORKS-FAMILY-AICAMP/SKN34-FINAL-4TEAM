@@ -26,6 +26,7 @@ const AccountPage = lazy(() => import('./presentation/features/account/view/Acco
 const ChatPage = lazy(() => import('./presentation/features/chat/view/ChatPages').then((m) => ({ default: m.ChatPage })))
 const EpisodePage = lazy(() => import('./presentation/features/content/view/EpisodePage').then((m) => ({ default: m.EpisodePage })))
 const ImportPage = lazy(() => import('./presentation/features/library/view/ImportPage').then((m) => ({ default: m.ImportPage })))
+const ManuscriptImportPage = lazy(() => import('./presentation/features/library/view/ManuscriptImportPage').then((m) => ({ default: m.ManuscriptImportPage })))
 const LibraryPage = lazy(() => import('./presentation/features/library/view/LibraryPage').then((m) => ({ default: m.LibraryPage })))
 const NewWorkPage = lazy(() => import('./presentation/features/library/view/NewWorkPage').then((m) => ({ default: m.NewWorkPage })))
 
@@ -123,7 +124,7 @@ function App() {
             <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
             <Route path="/worlds" element={<Navigate replace to="/new" />} />
             <Route path="/worldstudio/:worldId?" element={<RequireRole><WorldStudioPage /></RequireRole>} />
-            <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
+            <Route path="/import" element={<RequireRole>{import.meta.env.MODE === 'mockup' ? <ImportPage /> : <ManuscriptImportPage />}</RequireRole>} />
             <Route path="/studio/:id" element={restoring ? checkingSession : <StudioPage />} />
             <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
             <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />

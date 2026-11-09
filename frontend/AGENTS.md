@@ -7,6 +7,9 @@ nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`�
 관심·진행률 등 나머지 데모는 별도 메모리 저장소다. 관리자 이벤트 탭과 회원 `/me/event`는 운영 이벤트 API(`HttpEventRepository`)를 쓴다([계약](../docs/design/operations-event-contract.md)). 관리자 작품 탭은 운영 작품 API(`HttpOperationsWorkRepository`)를 쓴다([계약](../docs/design/operations-work-contract.md)). 화면 존재와 서버 기능 완료를 구분한다.
 홈 실시간 인기·급상승과 `/search`·`/rank`도 Content 공개 검색·랭킹 API를 쓴다(`--mode mockup`은 시드 메모리 작품·검색).
 계약은 [작품 검색·랭킹](../docs/design/work-search-ranking-contract.md)이다.
+실제 모드 `/import`·집필실 원고 내보내기·설정 첨부 이름 변경·회차 이미지 목록과 대체 텍스트는 Content 원고 가져오기·내보내기 API(`HttpManuscriptRepository`·`HttpMediaRepository`)를 쓴다.
+`--mode mockup`은 기존 데모 가져오기 화면을 유지하고, 데모 집필실의 TXT 초안 내보내기만 메모리로 만들며 나머지는 "데모에서는 지원하지 않아요" 오류를 낸다.
+계약은 [원고 가져오기·내보내기](../docs/design/manuscript-import-export-contract.md)다.
 
 화면은 세 규칙을 함께 쓴다. **Clean Architecture**는 계층 의존 방향을, **MVVM**은 화면 책임 분리를,
 **Flux**는 상태 변경·전달 순서를 정한다. 하나가 다른 것을 대신하지 않는다.

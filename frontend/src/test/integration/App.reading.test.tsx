@@ -306,7 +306,9 @@ describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
       renderApp('/work/guunmong')
       await screen.findByRole('heading', { name: '구운몽' })
       expect(document.querySelector('.ifs .md')).toBeNull()
-      expect(document.getElementById('lkc')).toBeNull()
+      // 좋아요 수는 서버 값이라 보이지만, 서버에 없는 조회·댓글 지표는 자리표시로 그리지 않는다.
+      expect(document.getElementById('lkc')).not.toBeNull()
+      expect(document.querySelector('.stats')!.textContent).not.toMatch(/👁|💬/)
       cleanup()
       renderApp('/read/guunmong/2', user())
       await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })

@@ -34,7 +34,7 @@ export function WorkPage() {
   useDocumentTitle(d?.work.title ?? '소설 상세')
   if (d === undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   if (d === null) return <UnavailableWork />
-  const { work: w, parent: p, visible, last, read, liked, forks, forkList } = d
+  const { work: w, parent: p, visible, last, read, liked, likes, forks, forkList } = d
   const start = last && visible.some(([, i]) => i + 1 === last) ? last : (visible[0]?.[1] ?? 0) + 1
   return (
     <>
@@ -50,11 +50,11 @@ export function WorkPage() {
             <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
             <p className="sum">{w.summary || '원작 「' + p?.title + '」의 ' + w.forkAt + '화 이후, 다른 길로 간 포크 소설.'}</p>
             <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>
-            <div className="stats">{w.statisticsSupported!==false && <><span>♥ <b id="lkc">{kfmt(w.likes + (liked ? 1 : 0))}</b></span><span>👁 <b>{kfmt(w.views)}</b></span><span>💬 <b>{w.cmts || 0}</b></span></>}<span>포크 소설 <b>{forks.length}</b></span></div>
+            <div className="stats">{(w.canonical || w.statisticsSupported!==false) && <span>♥ <b id="lkc">{kfmt(likes)}</b></span>}{w.statisticsSupported!==false && <><span>👁 <b>{kfmt(w.views)}</b></span><span>💬 <b>{w.cmts || 0}</b></span></>}<span>포크 소설 <b>{forks.length}</b></span></div>
             <div className="acts">
               {visible.length > 0 && <Go to={`/read/${id}/${start}`} className="tbtn pri">읽기 시작</Go>}
               {!!last && <Go to={`/read/${id}/1`} className="tbtn">처음부터</Go>}
-              <LikeButton liked={liked} onClick={vm.toggleLike} />
+              <LikeButton liked={liked} label={w.canonical ? '좋아요' : '관심 소설'} pending={vm.likePending} onClick={vm.toggleLike} />
               <button type="button" className="ib" aria-label="공유" onClick={vm.share}>↗</button>
               {vm.canReport && <button type="button" className="btn sm" aria-label={`${w.title} 소설 신고`} onClick={() => vm.setReporting(true)}>🚩 소설 신고</button>}
             </div>
@@ -113,11 +113,11 @@ export function WorkPage() {
   )
 }
 
-/** 목업 data-act="like": 누를 때마다 하트가 튀는 pop1 효과 */
-function LikeButton({ liked, onClick }: { liked: boolean; onClick: () => void }) {
+/** 목업 data-act="like": 누를 때마다 하트가 튀는 pop1 효과. 서버 요청이 진행 중이면(pending) 다시 누를 수 없다. */
+function LikeButton({ liked, label, pending, onClick }: { liked: boolean; label: string; pending: boolean; onClick: () => void }) {
   const [pop, setPop] = useState(false)
   return (
-    <button type="button" className={`ib ${liked ? 'on' : ''}${pop ? ' pop1' : ''}`} aria-label="관심 소설" aria-pressed={liked}
+    <button type="button" className={`ib ${liked ? 'on' : ''}${pop ? ' pop1' : ''}`} aria-label={label} aria-pressed={liked} disabled={pending}
       onClick={() => { setPop(true); onClick() }} onAnimationEnd={() => setPop(false)}><Heart /></button>
   )
 }

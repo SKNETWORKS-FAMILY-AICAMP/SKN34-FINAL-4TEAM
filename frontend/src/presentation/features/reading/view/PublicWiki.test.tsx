@@ -11,7 +11,7 @@ afterEach(cleanup)
 
 const record: ReadingWorkRecord = {
   id: 'work-uuid', slug: null, title: '별빛 서약의 탑', summary: '소개', visibility: 'public', authorName: '윤서하', ownerId: 'owner-uuid',
-  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: [], views: 0,
+  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: [], views: 0, likes: 0,
   allowFork: true, allowForkPublication: true, forkableEpisodes: [2], source: null, episodes: [
     { number: 1, version: 1, versionId: 'v1', title: '하나', body: '첫 문단', inherited: false },
     { number: 2, version: 1, versionId: 'v2', title: '둘', body: '둘째 문단', inherited: false },
