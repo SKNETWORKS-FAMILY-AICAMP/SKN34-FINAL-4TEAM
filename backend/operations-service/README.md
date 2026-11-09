@@ -45,11 +45,15 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | 400 | `INVALID_REQUEST` | 잘못된 UUID/JSON·필수 값·길이·U+0000·기간 순서 등 입력 검증 실패 |
 | 401 | `UNAUTHORIZED` | 서비스 토큰 없음/오류/중복 또는 서버 토큰 미설정 |
 | 403 | `FORBIDDEN` | 서비스 자격으로 허용되지 않은 경로 접근 |
-| 404 | `NOT_FOUND` | 레코드 없음, 다른 문의에 속한 답변 접근 |
-| 405 등 | `REQUEST_FAILED` | MVC HTTP 오류의 상태를 보존하고 상세 reason은 숨김 |
+| 404 | `NOT_FOUND` | 레코드 없음, 다른 문의에 속한 답변 접근, 없는 운영 API 경로 |
+| 405 등 | `REQUEST_FAILED` | 메서드 불일치 등 MVC HTTP 오류의 상태를 보존하고 상세 reason은 숨김 |
 | 409 | `CONFLICT` | 낙관적 동시성 충돌, 답변이 남은 문의 삭제, DB 참조 충돌 |
 | 500 | `INTERNAL_ERROR` | 예상하지 못한 실패; 성공 fallback 없음 |
 | 502 | `UPSTREAM_FAILED` | Core/Content 호출 실패(아래 회원 Bearer API); 상태·이력 미기록 |
+
+오류 advice에는 `basePackages` 같은 선택자를 두지 않습니다. 선택자가 있으면 컨트롤러가 정해지기 전에 나는 오류(없는 경로 404, 메서드 불일치 405 등)에는 advice가 적용되지 않아 위 DTO로 응답하지 못합니다.
+
+원인은 응답이 아니라 서버 로그에만 남깁니다. 500은 우리 쪽 결함이므로 `ERROR`, 502는 Core/Content 장애를 계약대로 처리한 결과이므로 `WARN`이며, 둘 다 원인 사슬과 스택을 포함합니다. 핸들러는 5xx만 기록하며 요청 본문·헤더·토큰·쿼리는 로그에 쓰지 않습니다.
 
 ## API 계약
 
@@ -136,7 +140,7 @@ CRUD는 별도 PR로 전달하더라도 **공통 기반 → 공지 V1 → 이벤
 
 ## 검증·인계
 
-로컬은 외부 의존성을 격리한 **선택 순수 단위 테스트만** 실행합니다. Gradle의 `unitTest`는 `*IntegrationTest`/`*PostgresTest`를 제외하고 `integrationTest`는 해당 클래스만 포함합니다. 두 task 모두 빈 발견/선택 불일치를 실패로 처리합니다. 필터·오류 handler 테스트는 servlet 대역/직접 호출이며 Spring context·실제 HTTP·DB가 없습니다.
+로컬은 외부 의존성을 격리한 **선택 순수 단위 테스트만** 실행합니다. Gradle의 `unitTest`는 `*IntegrationTest`/`*PostgresTest`를 제외하고 `integrationTest`는 해당 클래스만 포함합니다. 두 task 모두 빈 발견/선택 불일치를 실패로 처리합니다. 필터·오류 handler 테스트는 servlet 대역·직접 호출·`ExceptionHandlerExceptionResolver` 단독 조립이며 Spring Boot context·실제 HTTP·DB가 없습니다.
 
 공통 기반 선택 예시:
 
