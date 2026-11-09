@@ -17,8 +17,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
 import org.slf4j.LoggerFactory
 import org.springframework.context.support.StaticApplicationContext
+import org.springframework.core.MethodParameter
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.HttpHeaders
@@ -26,6 +28,8 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
+import org.springframework.validation.BeanPropertyBindingResult
+import org.springframework.validation.method.MethodValidationResult
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
@@ -35,6 +39,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -46,6 +51,7 @@ import tools.jackson.databind.json.JsonMapper
 /** Calls the advice directly or through a bare exception resolver; no Spring Boot context or HTTP dispatcher. */
 class OperationsExceptionHandlerTest {
     private val handler = OperationsExceptionHandler()
+    private val mapper = JsonMapper.builder().build()
     private val logger = LoggerFactory.getLogger(OperationsExceptionHandler::class.java) as Logger
     private val logs = ListAppender<ILoggingEvent>()
     // The inbound query (a member search term) must never reach the log; only the path may.
@@ -90,7 +96,6 @@ class OperationsExceptionHandlerTest {
             .flatMap { method -> method.getAnnotation(ExceptionHandler::class.java).value.map { it.java to method.name } }
             .toMap()
         for (type in listOf(IllegalArgumentException::class.java, ConstraintViolationException::class.java,
-            MethodArgumentNotValidException::class.java, HandlerMethodValidationException::class.java,
             MethodArgumentTypeMismatchException::class.java, HttpMessageNotReadableException::class.java)) {
             assertEquals("invalidRequest", mapping[type], type.name)
         }
@@ -188,18 +193,41 @@ class OperationsExceptionHandlerTest {
         assertTrue(logs.list.isEmpty())
     }
 
-    @Test
-    fun `advice also answers errors raised before a controller was chosen`() {
-        val mapper = JsonMapper.builder().build()
+    /** The real advice behind a bare exception resolver, so handler selection is the framework's own. */
+    private fun adviceResolver(): ExceptionHandlerExceptionResolver {
         val context = StaticApplicationContext().apply {
             registerSingleton("operationsExceptionHandler", OperationsExceptionHandler::class.java)
             refresh()
         }
-        val resolver = ExceptionHandlerExceptionResolver().apply {
+        return ExceptionHandlerExceptionResolver().apply {
             setMessageConverters(listOf(JacksonJsonHttpMessageConverter(mapper)))
             setApplicationContext(context)
             afterPropertiesSet()
         }
+    }
+
+    @Test
+    fun `validation and missing parameter errors answer 400 with the shared error DTO through the real resolver`() {
+        val resolver = adviceResolver()
+        val parameter = MethodParameter(String::class.java.getMethod("compareTo", String::class.java), 0)
+
+        for (failure in listOf<Exception>(
+            MethodArgumentNotValidException(parameter, BeanPropertyBindingResult(Any(), "request")),
+            HandlerMethodValidationException(mock(MethodValidationResult::class.java)),
+            MissingServletRequestParameterException("q", "String"),
+            ResponseStatusException(HttpStatus.BAD_REQUEST, "private body"))) {
+            val response = MockHttpServletResponse()
+
+            assertNotNull(resolver.resolveException(MockHttpServletRequest("GET", "/api/v1/operations/members"), response, null, failure))
+
+            assertEquals(400, response.status, failure.javaClass.simpleName)
+            assertEquals("""{"code":"INVALID_REQUEST","message":"Invalid request."}""", response.contentAsString, failure.javaClass.simpleName)
+        }
+    }
+
+    @Test
+    fun `advice also answers errors raised before a controller was chosen`() {
+        val resolver = adviceResolver()
         // The handler is null when mapping fails and the static resource handler for unmatched paths.
         fun assertAnswered(handlerOrNull: Any?, failure: Exception, status: Int, code: String) {
             val response = MockHttpServletResponse()
