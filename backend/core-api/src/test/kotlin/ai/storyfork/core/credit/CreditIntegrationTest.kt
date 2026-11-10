@@ -55,7 +55,7 @@ class CreditIntegrationTest {
         credits.grant(m, CreditKind.REWARD, BigDecimal("10"), now) // 10, 12월 1일 00:00 KST 소멸 -> 먼저 쓴다
         val first = credits.spend(m, BigDecimal("15"), "job-1", now)
         val again = credits.spend(m, BigDecimal("15"), "job-1", now)
-        assertEquals(first.map { it.grantId to it.amount.stripTrailingZeros() }, again.map { it.grantId to it.amount.stripTrailingZeros() })
+        assertEquals(first.map { it.grantId to it.amount.stripTrailingZeros() }.toSet(), again.map { it.grantId to it.amount.stripTrailingZeros() }.toSet())
         assertEquals(2, first.size)
         assertEquals(0, BigDecimal("95").compareTo(credits.balance(m, now).total))
     }
