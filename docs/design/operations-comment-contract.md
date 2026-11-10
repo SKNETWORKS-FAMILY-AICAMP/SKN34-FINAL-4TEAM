@@ -68,8 +68,8 @@ OperationsCommentList = { items: OperationsComment[] }
 - 운영 `MemberSecurityConfig` 경로 목록에 `comments`를 추가한다.
 - `frontend/nginx.conf`·`infrastructure/nginx.dev.conf`에 `/api/v1/operations/comments`(정확 일치·하위)만 운영 서비스로 추가하고,
   Vite 프록시 정규식에 `comments`를 넣는다. `infrastructure/ci/test_ci.py`의 고정 단언도 함께 고친다.
-- 관리자 `/admin?tab=comments`는 실제 API를 쓰고 `LIVE_TABS`에 `comments`를 넣어 데모 표기를 없앤다. 표는 댓글·작품·작성자·공감·상태(게시/숨김)·조치
-  (숨김/게시 복구)이며 조치 후 목록을 다시 조회한다. `--mode mockup`은 메모리 구현을 등록한다.
+- 관리자 `/admin?tab=comments`는 실제 API를 쓰고 `LIVE_TABS`에 `comments`를 넣어 데모 표기를 없앤다. 표는 댓글(줄바꿈 유지·긴 글자 줄바꿈)·작품(`작품 제목 · N화`)·작성자·공감·상태(게시/숨김)·작성일(한국시간,
+  회원·신고 표와 같은 형식)·조치(숨김/게시 복구, 버튼 이름은 `작성자 댓글 숨김`·`작성자 댓글 게시 복구`)이며 조치 후 목록을 다시 조회한다. `--mode mockup`은 메모리 구현을 등록한다.
 - 실제 작품 회차 댓글 목록은 `hidden` 댓글을 자리표시로 그리고, 그 댓글의 수정·좋아요 버튼을 숨긴다(작성자 삭제 버튼은 유지).
 
 ## ponytail 한계
