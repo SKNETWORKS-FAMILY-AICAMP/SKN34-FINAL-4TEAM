@@ -73,6 +73,7 @@ export function useAdminViewModel(
     events: tab === 'events' ? await eventUseCase.listAdmin() : [],
   }), [tab, role, q, sort, status, memberUseCase, reportUseCase, noticeUseCase, eventUseCase, operationsWorkUseCase])
   const [integrityWork, setIntegrityWork] = useState<{ id: string; title: string } | null>(null)
+  useEffect(() => { if (tab !== 'works') setIntegrityWork(null) }, [tab])
   const integrityTarget = tab === 'works' ? integrityWork : null
   const integrity = useAsyncData(async () => integrityTarget ? operationsWorkUseCase.forkIntegrity(integrityTarget.id) : null,
     [integrityTarget, operationsWorkUseCase])
