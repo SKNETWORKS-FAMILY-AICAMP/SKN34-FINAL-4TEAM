@@ -22,6 +22,7 @@ import java.util.Optional
 import ai.storyfork.content.proposal.client.dto.AiRunDispatchRequest
 import ai.storyfork.content.proposal.client.dto.*
 import ai.storyfork.content.proposal.service.AiRunGrantService
+import ai.storyfork.content.proposal.service.AiRunProgressService
 import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.episode.entity.EpisodeEntity
 
@@ -38,16 +39,31 @@ class AiRunServiceTest {
     private val manager=mock(PlatformTransactionManager::class.java)
     private val signer=AiRunGrantService("fixture-grant-secret-at-least-32-characters")
     private val episodes=mock(EpisodeRepository::class.java)
+    private val events=mock(AiRunEventRepository::class.java)
+    private val proposals=mock(ChangeProposalVersionRepository::class.java)
+    private val receipts=mock(ChangeProposalReceiptRepository::class.java)
+    private val progress=AiRunProgressService(events,jacksonMapperBuilder().build())
+    private val em=mock(jakarta.persistence.EntityManager::class.java)
     private val service=AiRunService(access,context,runs,threads,jobs,client,
-        TransactionTemplate(manager),jacksonMapperBuilder().build(),signer,episodes)
+        TransactionTemplate(manager),jacksonMapperBuilder().build(),signer,episodes,progress,proposals,receipts,em)
     private val rows=mutableMapOf<String,AiRunEntity>()
     private val conversations=mutableMapOf<String,AiThreadEntity>()
     private val jobRows=mutableMapOf<String,AiJobEntity>()
+    private val eventRows=mutableListOf<AiRunEventEntity>()
     private fun input()=AiRunRequest(operation="ask",prompt="질문",target=AiRunTarget(1,baseRevision=0),
         options=AiRunOptions(ModelConsent(listOf("openai"),"ask",1,"notice-v1")))
     private fun anyDispatch()=any(AiRunDispatchRequest::class.java) ?: dispatchFixture()
 
     @BeforeEach fun setup() {
+        `when`(events.saveAndFlush(any(AiRunEventEntity::class.java))).thenAnswer { i ->
+            (i.arguments[0] as AiRunEventEntity).also {eventRows+=it}
+        }
+        `when`(events.findAllByRunIdAndSeqGreaterThanOrderBySeqAsc(anyString(),anyLong(),
+            any(org.springframework.data.domain.Pageable::class.java) ?: org.springframework.data.domain.PageRequest.of(0,100))).thenAnswer { i ->
+            eventRows.filter {it.runId==i.arguments[0] && it.seq>(i.arguments[1] as Long)}
+        }
+        `when`(events.findFirstByRunIdAndTaskIdAndAttemptAndPhaseOrderByStepDesc(anyString(),anyString(),anyInt(),anyString()))
+            .thenAnswer { i -> eventRows.filter {it.runId==i.arguments[0] && it.taskId==i.arguments[1] && it.attempt==i.arguments[2] && it.phase==i.arguments[3]}.maxByOrNull {it.step} }
         `when`(manager.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
         `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(EpisodeEntity("episode","w",1))
         `when`(access.own("w","owner")).thenReturn(WorkAccessResult("w","owner","제목","",0,"world","private",false,false,null))
@@ -185,5 +201,95 @@ class AiRunServiceTest {
             AiRunRemoteResponse(it.runId,it.threadRef,"pending",false)
         }}.`when`(client).status(anyDispatch())
         assertEquals("failed",service.read("w","owner",first.runId).status)
+    }
+
+    private fun running(): AiRunResponse {
+        doAnswer {i -> (i.arguments[0] as AiRunDispatchRequest).let {
+            AiRunRemoteResponse(it.runId,it.threadRef,"running",false)
+        }}.`when`(client).dispatch(anyDispatch())
+        return service.create("w","owner","key",input())
+    }
+
+    @Test fun `grant verification refreshes cached run only after acquiring work lock`() {
+        val first=running()
+        val payload=org.mockito.ArgumentCaptor.forClass(AiRunDispatchRequest::class.java)
+        verify(client).dispatch(payload.capture() ?: dispatchFixture())
+        clearInvocations(access,em)
+        doAnswer { i -> (i.arguments[0] as AiRunEntity).status="cancelled";null }.`when`(em).refresh(any(AiRunEntity::class.java))
+        assertTrue(service.verifyGrant(first.runId,payload.value).cancelled)
+        val order=inOrder(access,em)
+        order.verify(access).own("w","owner")
+        order.verify(em).refresh(rows.getValue(first.runId))
+    }
+
+    @Test fun `reconnect only replays cursor after it without dispatching a new run`() {
+        val first=running()
+        val initial=service.events("w","owner",first.runId,null,null)
+        val replay=service.events("w","owner",first.runId,initial.lastEventId.toString(),null)
+        assertTrue(replay.events.isEmpty())
+        assertEquals(1,rows.size)
+        verify(client,times(1)).dispatch(anyDispatch())
+        verify(client,never()).status(anyDispatch())
+        assertEquals(first.runId,initial.runId)
+        assertEquals(422,assertThrows(ContentFailure::class.java) {service.events("w","owner",first.runId,"0","1")}.status)
+        assertEquals(422,assertThrows(ContentFailure::class.java) {service.events("w","owner",first.runId,"999",null)}.status)
+    }
+
+    @Test fun `cancel is durable idempotent and late poll cannot overwrite it`() {
+        val first=running()
+        doAnswer {i -> (i.arguments[0] as AiRunDispatchRequest).let {AiRunRemoteResponse(it.runId,it.threadRef,"cancelled",false)}}
+            .`when`(client).cancel(anyDispatch())
+        doAnswer {i ->
+            service.cancel("w","owner",first.runId)
+            val request=i.arguments[0] as AiRunDispatchRequest
+            AiRunRemoteResponse(request.runId,request.threadRef,"running",false)
+        }.`when`(client).status(anyDispatch())
+        assertEquals("cancelled",service.read("w","owner",first.runId).status)
+        assertEquals("cancelled",service.cancel("w","owner",first.runId).status)
+        assertEquals(1,eventRows.count {it.code=="CANCELLED"})
+        verify(client,times(1)).cancel(anyDispatch())
+        assertEquals("cancelled",service.read("w","owner",first.runId).status)
+    }
+
+    @Test fun `applied run rejects cancel and events require current owner`() {
+        val first=running()
+        rows.getValue(first.runId).status="applied"
+        assertEquals(409,assertThrows(ContentFailure::class.java) {service.cancel("w","owner",first.runId)}.status)
+        doThrow(ContentFailure(404,"없음")).`when`(access).own("w","other")
+        assertEquals(404,assertThrows(ContentFailure::class.java) {service.events("w","other",first.runId,null,null)}.status)
+        verify(client,never()).cancel(anyDispatch())
+    }
+
+    @Test fun `cancel remains available after manual edit and failed signal retries same run`() {
+        val first=running()
+        `when`(access.own("w","owner")).thenReturn(WorkAccessResult("w","owner","제목","",1,"world","private",false,false,null))
+        doThrow(AiRunDispatchException(AiRunFailure.AI_RUN_TIMEOUT)).`when`(client).cancel(anyDispatch())
+        assertEquals(503,assertThrows(ContentFailure::class.java) {service.cancel("w","owner",first.runId)}.status)
+        assertEquals("cancelled",rows.getValue(first.runId).status)
+        assertFalse(rows.getValue(first.runId).cancelSignalled)
+        doAnswer {i -> (i.arguments[0] as AiRunDispatchRequest).let {AiRunRemoteResponse(it.runId,it.threadRef,"cancelled",false)}}
+            .`when`(client).cancel(anyDispatch())
+        assertEquals("cancelled",service.cancel("w","owner",first.runId).status)
+        assertTrue(rows.getValue(first.runId).cancelSignalled)
+        assertEquals(1,eventRows.count {it.code=="CANCELLED"})
+    }
+
+    @Test fun `terminal result and unique events commit together and contain no manuscript`() {
+        val first=running()
+        val event=AiRunProgressInput("qa",1,"task",2,"TEXT_LOADING","succeeded")
+        doAnswer {i -> (i.arguments[0] as AiRunDispatchRequest).let {
+            AiRunRemoteResponse(it.runId,it.threadRef,"succeeded",false,progress=listOf(event,event.copy(step=1,status="running"),event),
+                outcome=AiRunOutcome(responseRef="response:run"))
+        }}.`when`(client).status(anyDispatch())
+        val result=service.read("w","owner",first.runId)
+        assertEquals("response:run",result.result?.responseRef)
+        assertEquals(1,eventRows.count {it.phase=="task"})
+        assertEquals("RESULT_READY",eventRows.last().code)
+        val encoded=jacksonMapperBuilder().build().writeValueAsString(service.events("w","owner",first.runId,null,null))
+        assertFalse(encoded.contains("비밀 원고"));assertFalse(encoded.contains("grant"))
+        val order=inOrder(events,runs,manager)
+        order.verify(events,atLeastOnce()).saveAndFlush(any(AiRunEventEntity::class.java))
+        order.verify(runs,atLeastOnce()).saveAndFlush(any(AiRunEntity::class.java))
+        order.verify(manager,atLeastOnce()).commit(any())
     }
 }

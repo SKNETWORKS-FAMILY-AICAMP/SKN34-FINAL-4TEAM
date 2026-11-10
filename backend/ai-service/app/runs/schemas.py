@@ -8,6 +8,16 @@ from app.retrieval.contracts import Contract, Coverage
 from .routing import Intent
 from .runner import TaskResult
 from .state import GraphResponse, Ref, Status
+from .progress import ProgressEvent
+
+
+class RunOutcome(Contract):
+    """Content에 영속화할 결과 참조. 생성문·인용·추론은 포함하지 않는다."""
+    response_ref: Ref | None = Field(default=None, serialization_alias="responseRef")
+    proposal_id: Ref | None = Field(default=None, serialization_alias="proposalId")
+    decision_id: Ref | None = Field(default=None, serialization_alias="decisionId")
+    application_id: Ref | None = Field(default=None, serialization_alias="applicationId")
+    is_mock: bool = Field(default=True, serialization_alias="isMock")
 
 
 class RunError(Exception):
@@ -49,3 +59,5 @@ class RunResponse(Contract):
     coverage: Coverage | None = None
     result: GraphResponse | None = None
     error: RunFailure | None = None
+    progress: tuple[ProgressEvent, ...] = ()
+    outcome: RunOutcome | None = None

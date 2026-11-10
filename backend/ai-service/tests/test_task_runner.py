@@ -19,6 +19,25 @@ def make(scope, manifest, tasks, handlers, **kwargs):
                         handlers=handlers, **kwargs)
 
 
+def test_cancel_during_checkpoint_reservation_prevents_model_call(scope, manifest):
+    async def scenario():
+        root=task(scope,"root","context")
+        review=task(scope,"review","review",(root,))
+        invoke=AsyncMock(return_value=r.ModelReply(output_ref="candidate",usage=review.budget))
+        run=None
+        async def persist(state):
+            if state.accounted.model_calls:
+                run.cancel()
+        async def generate(slice,ctx):
+            await ctx.call_model(review.budget,invoke)
+            return outcome(slice)
+        run=make(scope,manifest,(root,review),{"context":AsyncMock(side_effect=lambda s,c:outcome(s)),"review":generate},persist=persist)
+        result=await run.run()
+        invoke.assert_not_awaited()
+        assert result.status=="cancelled"
+    asyncio.run(scenario())
+
+
 def test_dependencies_parallel_limit_slices_and_stable_order(scope, manifest):
     async def scenario():
         root = task(scope, "root", "context")

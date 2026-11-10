@@ -1,5 +1,9 @@
 # STORYFORK 기능 분류표
 
+- 2026-11-10 TASK 23: #54·#57의 Content Run별 영속 진행 seq·SSE cursor 재접속/410·polling 결과 참조·취소 CAS를 구현했다.
+  실제 SSE writer/인가·격리 PG의 승인/취소 단일 승자와 rollback은 [인수보고](writing-ai-architecture/task23-handoff.md)에 기록한다.
+  실제 전문 Agent/본문 resolver·UI·hosted CI·병합은 대기이므로 관련 제품 행 ❌를 유지한다. Core 회원 알림 SSE와 분리한다.
+
 [메인 README](../README.md) · [문서 목록](README.md)
 
 > 예시 이미지처럼 **서비스 → 서브시스템 → 중간 기능 → 세부 기능**을 계층으로 묶고, **세부 동작 하나당 한 행**으로 정리한다. 현재 구현과 앞으로 개발할 전체 서비스 기능을 함께 포함한다.

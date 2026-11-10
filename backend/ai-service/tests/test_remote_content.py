@@ -67,3 +67,20 @@ def test_verified_real_run_reports_unconnected_executor_without_model_call(conte
         assert result.result is None and not result.tasks
         await service.close()
     asyncio.run(scenario())
+
+
+def test_content_committed_cancellation_prevents_start_and_converges_existing_record(content):
+    async def scenario():
+        request,remote,body=authority(content)
+        service=RunService(remote)
+        service.start(request)
+        await service.records[request.run_id].task
+        body["cancelled"]=True
+        assert service.cancel(request.run_id,request.grant_ref,request.thread_ref).status=="cancelled"
+        assert service.cancel(request.run_id,request.grant_ref,request.thread_ref).status=="cancelled"
+        fresh=RunService(remote)
+        with pytest.raises(RunError,match="run_cancelled"):
+            fresh.start(request)
+        assert not fresh.records
+        await service.close()
+    asyncio.run(scenario())

@@ -13,6 +13,7 @@ from .orchestrator import (
     TaskId, condition_satisfied, validate_plan,
 )
 from .routing import Capability
+from .progress import task_event
 
 
 class ExecutionLimits(Contract):
@@ -163,6 +164,7 @@ class CallContext:
         self.runner.inflight_calls += 1
         try:
             await self.runner._save()
+            self.checkpoint()
             reply = await invoke(reservation)
             self.checkpoint()
             reply = ModelReply.model_validate(reply.model_dump())
@@ -189,7 +191,7 @@ class CallContext:
 class TaskRunner:
     def __init__(self, run_id, tasks, *, scope, manifest, allowed_operations, handlers=None,
                  limits=ExecutionLimits(), used=Budget(), wants_change=False, draft_requested=False,
-                 saved: RunnerState | None = None, persist=None):
+                 saved: RunnerState | None = None, persist=None, progress=None):
         self.limits = ExecutionLimits.model_validate(limits.model_dump())
         if type(wants_change) is not bool or type(draft_requested) is not bool:
             raise PlanError("invalid_request_flags")
@@ -214,6 +216,7 @@ class TaskRunner:
         self.deadline_epoch = 0
         self.attempts = {}
         self.persist = persist
+        self.progress = progress
         self._save_lock = asyncio.Lock()
         if saved is not None:
             saved = RunnerState.model_validate_json(saved.model_dump_json())
@@ -281,6 +284,12 @@ class TaskRunner:
     def _finish(self, result):
         if self.reducer.add(result):
             self.transitions.append(Transition(task_id=result.task_id, attempt=result.attempt, status=result.status))
+            self._progress(result.task_id, result.attempt, result.status)
+
+    def _progress(self, task_id, attempt, status):
+        if self.progress is not None:
+            task = next(t for t in self.tasks if t.task_id == task_id)
+            self.progress(task_event(task_id, task.operation, attempt, status))
 
     def _facts(self, task):
         parents = [self.reducer.results[ref.task_id] for ref in task.input_refs
@@ -371,6 +380,7 @@ class TaskRunner:
                         await self._save()
                         continue
                     self.transitions.append(Transition(task_id=id, attempt=attempt, status="running"))
+                    self._progress(id, attempt, "running")
                     await self._save()
                     future = asyncio.create_task(self._execute(task, attempt, lease))
                     active[future] = task
@@ -385,6 +395,7 @@ class TaskRunner:
                     if retry and result.attempt <= task.retry_policy.max_extra_attempts:
                         del self.reducer.live[task.task_id]
                         self.transitions.append(Transition(task_id=task.task_id, attempt=result.attempt, status="failed"))
+                        self._progress(task.task_id, result.attempt, "failed")
                     else:
                         self._finish(result)
                     await self._save()

@@ -1,12 +1,17 @@
 # Content API, 진행 스트림, 승인 및 재개
 
+2026-11-10 TASK 23: Content의 별도 Run SSE·cursor replay·410·polling 결과 참조·취소 CAS를 구현했다.
+custom stream의 고정 이벤트만 받고 결과/terminal event와 기존 승인 결정을 같은 transaction에 기록한다.
+사용자 결정으로 자동 이벤트 삭제와 외부 코드 리뷰 전송은 하지 않는다.
+실제 전문 Agent/결과 본문 resolver·UI 소비자는 미연결이다. [현재 계약](task23-contract.md) · [검증](task23-handoff.md).
+
 2026-11-10 TASK 22: B/proposals/{pid}의 approve/reject/revise 공개 경로와 기존 Content 결정 transaction을 연결했다.
 전체 baseVersions·키·판/hash 대조, 실제 PG의 동시 결정/전체 rollback을 검증했다. AI의 선택적 준비 seam 뒤
 읽기 전용 interrupt와 영수증 기반 resume를 연결했다. 사용자 결정으로 revise는 **200 revision_requested 영수증**이며
 아래 목표안의 202 새 run 자동 생성은 이번에 구현하지 않는다. 실제 준비 전송·후보 resolver·자동 복구는 미연결이다.
 [현재 API·읽기 전용 재개 계약](task22-contract.md) · [검증/한계](task22-handoff.md).
 
-2026-11-09 TASK 10에서 공개 Run·상태·thread의 최소 API와 실제 5분 서명 grant의 Content↔AI HTTP 재검증을 구현했다. 상세 요청·멱등·설정·오류는 [TASK 10 계약](task10-api-contract.md)을 따른다. 아래 공개 SSE/승인/재개는 계속 목표 계약이며 TASK 09 절은 당시 합성 구현의 기록이다. 실제 전문 Agent/원고 읽기·유료 모델·저장은 연결하지 않는다.
+2026-11-09 TASK 10에서 공개 Run·상태·thread의 최소 API와 실제 5분 서명 grant의 Content↔AI HTTP 재검증을 구현했다. 당시 계약은 [TASK 10](task10-api-contract.md), 현재 SSE/결정/재개 구현은 위 TASK 22·23 계약을 우선한다. TASK 09 절은 당시 합성 구현의 기록이다. 실제 전문 Agent/원고 읽기·유료 모델은 연결하지 않는다.
 
 **Content가 작업과 제안을 소유하고, AI가 재개 가능한 실행을 소유한다.** 지시서의 “Core 정본 조회 / Core Apply”는 이 저장소에서 Content의 인가·조회·적용과 Core 회원 인증의 조합이다. 사용자가 보는 성공 상태의 근거는 Content의 적용 영수증이다.
 
@@ -89,6 +94,10 @@ PUBLIC TEMP와 schema CREATE가 없어야 시작하며 공유 DB의 권한을 ru
 [관리·재개 계약](../../backend/ai-service/docs/checkpoints.md) · [TASK 21 검증](task21-handoff.md).
 
 ### 14. SSE 진행 시퀀스
+
+TASK 23의 실제 delivery는 AI 내부 custom DTO→상태 snapshot→Content 영속 기록→공개 SSE다.
+아래 흐름의 publisher는 기존 작품 잠금을 재사용하며, 자동 보관 만료/삭제 없이 없는 과거 cursor만 410으로 처리한다.
+결과는 본문 대신 안전한 참조만 영속화한다. 세부 시간/상태/취소 전달 계약은 [TASK 23](task23-contract.md)을 따른다.
 
 ```mermaid
 sequenceDiagram

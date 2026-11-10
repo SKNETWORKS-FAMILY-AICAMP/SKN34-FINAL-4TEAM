@@ -9,6 +9,7 @@ import ai.storyfork.content.proposal.controller.AiRunController
 import ai.storyfork.content.proposal.controller.AiRunGrantController
 import ai.storyfork.content.proposal.controller.ProposalController
 import ai.storyfork.content.proposal.service.AiRunService
+import ai.storyfork.content.proposal.service.AiRunStreamService
 import ai.storyfork.content.proposal.service.dto.*
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
@@ -34,6 +35,7 @@ class AiRunHttpIntegrationTest {
     @Autowired lateinit var mvc: MockMvc
     @MockitoBean lateinit var verification: CoreAuthVerificationService
     @MockitoBean lateinit var service: AiRunService
+    @MockitoBean lateinit var stream: AiRunStreamService
     @MockitoBean lateinit var proposals: ai.storyfork.content.proposal.service.ProposalService
     private val owner=UUID.fromString("12345678-1234-4234-8234-123456789abc")
     private val path="/api/v1/works/w/ai"
@@ -85,10 +87,28 @@ class AiRunHttpIntegrationTest {
         verifyNoMoreInteractions(service)
     }
 
-    @Test fun `no approval or SSE implementation is exposed`() {
-        mvc.perform(get("$path/runs/run1/events").header("Authorization","Bearer fixture-user"))
-            .andExpect(status().isNotFound())
+    @Test fun `SSE preflight preserves expired cursor and safe response headers`() {
+        doThrow(ContentFailure(410,"상태를 다시 조회해 주세요.")).`when`(stream).open("w",owner.toString(),"run1","1",null)
+        mvc.perform(get("$path/runs/run1/events").header("Authorization","Bearer fixture-user").header("Last-Event-ID","1"))
+            .andExpect(status().isGone())
+        val emitter=org.springframework.web.servlet.mvc.method.annotation.SseEmitter(1000)
+        `when`(stream.open("w",owner.toString(),"run1",null,"2")).thenReturn(emitter)
+        val response=mvc.perform(get("$path/runs/run1/events").header("Authorization","Bearer fixture-user").param("cursor","2"))
+            .andExpect(status().isOk()).andExpect(header().string("X-Accel-Buffering","no"))
+            .andExpect(header().string("Cache-Control","no-store")).andReturn()
+        emitter.complete()
+        mvc.perform(asyncDispatch(response)).andExpect(status().isOk())
         verifyNoInteractions(service)
+    }
+
+    @Test fun `SSE requires bearer and cancel requires csrf then forwards verified owner`() {
+        mvc.perform(get("$path/runs/run1/events")).andExpect(status().isUnauthorized())
+        mvc.perform(post("$path/runs/run1/cancel").header("Authorization","Bearer fixture-user"))
+            .andExpect(status().isForbidden())
+        `when`(service.cancel("w",owner.toString(),"run1")).thenReturn(AiRunResponse("run1","thread1","w","cancelled","accepted"))
+        mvc.perform(post("$path/runs/run1/cancel").header("Authorization","Bearer fixture-user")
+            .cookie(Cookie("XSRF-TOKEN",CsrfFixture.raw)).header("X-CSRF-TOKEN",CsrfFixture.token()))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("cancelled"))
     }
 
     @Test fun `internal grant verification has independent service auth and no public csrf exemption`() {

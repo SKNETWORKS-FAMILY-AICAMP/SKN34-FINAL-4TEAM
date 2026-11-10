@@ -5,6 +5,11 @@
 
 ## 구조
 
+- TASK 23의 `runs/progress.py`는 고정 code/task/attempt/phase/step만 custom stream으로 내보낸다.
+  messages/debug/추론·원문·토큰을 스트림에 넣지 않는다. Content가 seq와 결과 참조를 영속화한다.
+  모델 예약 checkpoint 뒤에도 취소를 재확인하고 늦은 결과를 버린다. 실제 전문 실행·결과 resolver는 미연결이다.
+  [TASK 23 계약](../../docs/writing-ai-architecture/task23-contract.md)을 따른다.
+
 - TASK 22의 `runs/approval.py`는 신뢰된 Content prepare/read/receipt 함수만 주입받는다.
   Main의 별도 준비 노드 뒤 읽기 전용 interrupt를 두고 정확한 결정/interrupt와 커밋된 영수증으로 재개한다.
   자연어 승인·AI 원고 쓰기·Mock real 승격은 금지한다. 준비 후 취소는 Content 결정으로 처리한다.

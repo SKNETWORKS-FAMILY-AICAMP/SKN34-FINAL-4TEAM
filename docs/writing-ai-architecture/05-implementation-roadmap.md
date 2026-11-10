@@ -1,5 +1,9 @@
 # 구현 순서와 수용 기준
 
+2026-11-10 TASK 23: 고정 custom 진행 DTO·Content 영속 seq와 terminal 결과 참조·별도 SSE·재접속/410·취소 CAS를 연결했다.
+이벤트 자동 삭제는 사용자 결정으로 제외했다. 실제 전문 실행·본문 resolver·UI 소비자와 운영 복구는 미연결이다.
+[TASK 23 계약](task23-contract.md) · [실행한 검증과 한계](task23-handoff.md). TASK 24는 새 요청 전 시작하지 않는다.
+
 2026-11-10 TASK 22: Content 공개 결정 경로와 Main interrupt/resume·현재 권한/영수증 대조를 구현했다.
 재수정 자동 생성은 사용자 결정으로 제외하고 revision_requested 영수증까지만 처리한다.
 로컬 격리 PG/HTTP와 단위 증거·실제 전송 미연결 범위는 [TASK 22 인수보고](task22-handoff.md)를 따른다.

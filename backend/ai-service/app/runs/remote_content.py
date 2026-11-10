@@ -7,7 +7,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, HTTPRedirectHandler, ProxyHandler, build_opener
 
-from pydantic import AwareDatetime, Field, ValidationError
+from pydantic import AwareDatetime, Field, ValidationError, StrictBool
 
 from app.retrieval.contracts import Contract
 from .schemas import RunError, RunRequest
@@ -19,12 +19,14 @@ class GrantVerification(Contract):
     thread_ref: Ref = Field(alias="threadRef")
     scope_ref: Ref = Field(alias="scopeRef")
     expires_at: AwareDatetime = Field(alias="expiresAt")
+    cancelled: StrictBool = False
 
 
 @dataclass(frozen=True)
 class RemoteGrant:
     request: RunRequest = field(repr=False)
     scope_ref: str
+    cancelled: bool = False
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -64,7 +66,7 @@ class RemoteContent:
                 or verified.expires_at <= datetime.now(timezone.utc)):
             raise RunError(403, "invalid_scope")
         self._requests[request.run_id] = request
-        return RemoteGrant(request, verified.scope_ref)
+        return RemoteGrant(request, verified.scope_ref, verified.cancelled)
 
     def restore(self, run_id: str, grant_ref: str, thread_ref: str) -> RemoteGrant:
         request = self._requests.get(run_id)

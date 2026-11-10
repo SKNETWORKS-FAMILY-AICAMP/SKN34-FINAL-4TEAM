@@ -24,5 +24,8 @@ class AiRunEntity(
     @field:Column(name="status") var status: String = "pending",
     @field:Column(name="dispatch_status") var dispatchStatus: String = "pending",
     @field:Column(name="error_code") var errorCode: String? = null,
+    @field:Column(name="last_event_id") var lastEventId: Long = 0,
+    @field:Column(name="result_json") var resultJson: String? = null,
+    @field:Column(name="cancel_signalled") var cancelSignalled: Boolean = false,
     @field:Column(name="created_at") var createdAt: Instant = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS),
 )

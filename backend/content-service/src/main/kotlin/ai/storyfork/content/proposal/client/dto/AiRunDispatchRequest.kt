@@ -2,6 +2,8 @@ package ai.storyfork.content.proposal.client.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import ai.storyfork.content.proposal.service.dto.AiRunProgressInput
+import ai.storyfork.content.proposal.service.dto.AiRunOutcome
 
 /** TASK 09의 내부 Run DTO. grant는 전송 중에만 존재하며 원고·요청문은 포함하지 않는다. */
 data class AiRunDispatchRequest(val runId: String,val threadRef: String,val grantRef: String,
@@ -12,7 +14,8 @@ data class AiRunSourceRef(@param:JsonProperty("work_id") @get:JsonProperty("work
 data class AiRunBudget(val modelCalls: Int,val inputTokens: Int = 48000,val outputTokens: Int = 12000,val timeoutMs: Int = 120000)
 @JsonIgnoreProperties(ignoreUnknown=true)
 data class AiRunRemoteResponse(val runId: String,val threadRef: String,val status: String,
-    @param:JsonProperty("isMock") @get:JsonProperty("isMock") val isMock: Boolean?,val error: AiRunRemoteError? = null)
+    @param:JsonProperty("isMock") @get:JsonProperty("isMock") val isMock: Boolean?,val error: AiRunRemoteError? = null,
+    val progress: List<AiRunProgressInput> = emptyList(),val outcome: AiRunOutcome? = null)
 @JsonIgnoreProperties(ignoreUnknown=true)
 data class AiRunRemoteError(val code: String)
-data class AiRunGrantResponse(val runId: String,val threadRef: String,val scopeRef: String,val expiresAt: java.time.Instant)
+data class AiRunGrantResponse(val runId: String,val threadRef: String,val scopeRef: String,val expiresAt: java.time.Instant,val cancelled: Boolean = false)

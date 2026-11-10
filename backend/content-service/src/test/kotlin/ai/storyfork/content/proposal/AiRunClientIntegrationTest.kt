@@ -40,7 +40,9 @@ class AiRunClientIntegrationTest {
         server.start()
         try {
             val properties=AiServiceClientProperties(URI("http://127.0.0.1:${server.address.port}"),Duration.ofSeconds(1),Duration.ofSeconds(3))
-            val client=GenerationClientConfig().aiRunClient(RestClient.builder(),properties,token)
+            val builder=RestClient.builder().messageConverters(listOf(
+                org.springframework.http.converter.json.JacksonJsonHttpMessageConverter(jacksonMapperBuilder().build())))
+            val client=GenerationClientConfig().aiRunClient(builder,properties,token)
             assertEquals("dependency_unavailable",client.dispatch(dispatchFixture()).error?.code)
             assertEquals("failed",client.status(dispatchFixture()).status)
             assertEquals(1,posts);assertEquals(1,gets)

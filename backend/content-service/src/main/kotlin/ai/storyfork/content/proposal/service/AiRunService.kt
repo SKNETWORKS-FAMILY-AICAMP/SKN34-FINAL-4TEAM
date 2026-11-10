@@ -33,7 +33,12 @@ class AiRunService(
     private val mapper: JsonMapper,
     private val grants: AiRunGrantService,
     private val episodes: EpisodeRepository,
+    private val progress: AiRunProgressService,
+    private val proposals: ChangeProposalVersionRepository,
+    private val receipts: ChangeProposalReceiptRepository,
+    @Qualifier("contentEntityManager") private val em: jakarta.persistence.EntityManager,
 ) {
+    private val active=setOf("pending","running","awaiting_approval")
     private val operations=setOf("ask","simulate","next_draft","next_insights","review","edit",
         "expand_conti","world_plot_change","recommend_template","auto")
     private data class Prepared(val response: AiRunResponse,val run: AiRunEntity?)
@@ -57,7 +62,7 @@ class AiRunService(
             access.requireRevision(work,data.target.baseRevision)
             val thread=data.threadId?.let {ownThread(it,workId,subject,forkId)}
                 ?: AiThreadEntity(id=contentId(),requesterId=subject,workId=workId,forkId=forkId)
-            checkContent(!runs.existsByThreadIdAndStatusIn(thread.id,listOf("pending","running")),409,"이 대화에서 실행 중인 작업이 있어요.")
+            checkContent(!runs.existsByThreadIdAndStatusIn(thread.id,active),409,"이 대화에서 실행 중인 작업이 있어요.")
             val scope=snapshot(workId,subject,data.target)
             if(data.threadId==null) threads.saveAndFlush(thread)
             val consent=data.options.modelConsent!!
@@ -69,6 +74,8 @@ class AiRunService(
                 grantExpiresAt=Instant.now().plusSeconds(300).truncatedTo(java.time.temporal.ChronoUnit.SECONDS),
                 characterName=data.target.character,maxCalls=consent.maxCalls,noticeVersion=consent.noticeVersion)
             runs.saveAndFlush(run)
+            progress.state(run,"pending")
+            runs.saveAndFlush(run)
             Prepared(response(run),run)
         }
         val run=prepared.run ?: return prepared.response
@@ -78,14 +85,63 @@ class AiRunService(
 
     fun read(workId: String,subject: String,runId: String): AiRunResponse {
         val run=transaction.execute { authorizedRun(workId,subject,runId) }
-        return if(run.dispatchStatus=="accepted" && run.status in listOf("pending","running")) transfer(run,workId,subject,true) else response(run)
+        return if(run.dispatchStatus=="accepted" && run.status in active) transfer(run,workId,subject,true) else response(run)
     }
 
-    private fun authorizedRun(workId: String,subject: String,runId: String): AiRunEntity {
+    /** SSE 구독은 실행을 만들거나 AI를 호출하지 않는다. 모든 배치마다 현재 소유권을 재확인한다. */
+    fun events(workId: String,subject: String,runId: String,lastId: String?,cursor: String?): AiRunEventsResponse = transaction.execute {
+        val run=authorizedRun(workId,subject,runId)
+        checkContent(lastId==null || cursor==null || lastId==cursor,message="진행 cursor가 서로 달라요.")
+        val raw=lastId ?: cursor ?: "0"
+        checkContent(raw.matches(Regex("0|[1-9][0-9]{0,18}")),message="진행 cursor를 확인해 주세요.")
+        val after=raw.toLongOrNull()
+        checkContent(after!=null,message="진행 cursor를 확인해 주세요.")
+        progress.page(run,after!!)
+    }
+
+    /** 작품 잠금 아래 취소 CAS를 먼저 커밋한다. 늦은 AI 응답과 승인 쓰기는 이 상태를 넘을 수 없다. */
+    fun cancel(workId: String,subject: String,runId: String): AiRunResponse {
+        val run=transaction.execute {
+            val current=authorizedRun(workId,subject,runId,false)
+            checkContent(current.status!="applied",409,"이미 적용한 작업은 취소할 수 없어요.")
+            val applied=proposals.findAllByRunId(runId).any {p ->
+                receipts.findByProposalIdAndProposalVersion(p.proposalId,p.proposalVersion)?.decision=="approved"
+            }
+            checkContent(!applied,409,"이미 적용한 작업은 취소할 수 없어요.")
+            if(current.status in active || current.status=="proposal") {
+                progress.state(current,"cancelled")
+                current.resultJson=null
+                current.errorCode=null
+                runs.saveAndFlush(current)
+                val job=jobs.findById(runId).orElseThrow()
+                job.status="failed";job.failureReason="CANCELLED";job.finishedAt=Instant.now()
+                jobs.saveAndFlush(job)
+            }
+            current
+        }
+        if(run.status=="cancelled" && !run.cancelSignalled) {
+            val remote=try {client.cancel(dispatchRequest(run))}
+                catch(_: RuntimeException) {throw ContentFailure(503,"취소는 기록했지만 실행 중단 확인에 실패했어요. 같은 작업으로 다시 요청해 주세요.")}
+            checkContent(remote.status=="cancelled",503,"실행 중단을 확인하지 못했어요. 같은 작업으로 다시 요청해 주세요.")
+            return transaction.execute {
+                val current=authorizedRun(workId,subject,runId,false)
+                current.cancelSignalled=true
+                runs.saveAndFlush(current)
+                response(current)
+            }
+        }
+        return response(run)
+    }
+
+    private fun authorizedRun(workId: String,subject: String,runId: String,requireScope: Boolean = true): AiRunEntity {
         val work=access.own(workId,subject)
         val run=runs.findById(runId).orElse(null)
+        // verifyGrant가 먼저 읽은 JPA 캐시도 작품 잠금 뒤 최신 취소/결정 상태로 맞춘다.
+        if(run!=null) em.refresh(run)
         checkContent(run!=null && run.workId==workId && run.requesterId==subject,404,"작업을 찾을 수 없어요.")
         ownThread(run!!.threadId,workId,subject,if(work.source==null) null else workId)
+        // 종료 응답은 참조·고정 상태만 보관한다. 적용으로 바뀐 revision 때문에 영수증 조회를 막지 않는다.
+        if(!requireScope || run.status !in active && run.status!="proposal") return run
         checkContent(work.revision==run.baseRevision,409,"작업 기준 판본이 변경됐어요.")
         val scope=snapshot(workId,subject,AiRunTarget(run.basisEpisode,if(work.source==null) null else workId,run.characterName,run.baseRevision))
         checkContent(scope.digest==run.scopeHash,409,"작업의 허용 문맥이 변경됐어요.")
@@ -93,6 +149,7 @@ class AiRunService(
     }
 
     private fun transfer(run: AiRunEntity,workId: String,subject: String,poll: Boolean): AiRunResponse {
+        val expectedEventId=run.lastEventId
         var remote: AiRunRemoteResponse?=null
         val failure=try {
             val request=dispatchRequest(run)
@@ -110,14 +167,18 @@ class AiRunService(
           catch(_: RuntimeException) {AiRunFailure.AI_RUN_UNAVAILABLE}
         return transaction.execute {
             val current=authorizedRun(workId,subject,run.id)
-            if(current.status in listOf("failed","denied")) return@execute response(current)
+            if(current.status !in active || current.lastEventId!=expectedEventId) return@execute response(current)
             val job=jobs.findById(run.id).orElseThrow()
-            current.status=if(failure==null) remote!!.status else if(failure==AiRunFailure.AI_RUN_REFUSED) "denied" else "failed"
+            val status=if(failure==null) remote!!.status else if(failure==AiRunFailure.AI_RUN_REFUSED) "denied" else "failed"
+            if(current.status=="awaiting_approval" && status in setOf("pending","running","proposal")) return@execute response(current)
+            if(current.status=="running" && status=="pending") return@execute response(current)
+            remote?.progress?.forEach { if(it.phase=="task") progress.append(current,it) }
+            progress.state(current,status,remote?.outcome)
             current.dispatchStatus=if(failure==null || remote!=null) "accepted" else if(failure==AiRunFailure.AI_RUN_UNCONFIGURED) "blocked" else "failed"
             current.errorCode=failure?.name
-            job.status=if(failure==null) "running" else "failed"
+            job.status=if(status in active) "running" else if(failure==null && status!="cancelled") "completed" else "failed"
             job.failureReason=failure?.name
-            if(failure!=null) job.finishedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
+            if(status !in active) job.finishedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
             jobs.saveAndFlush(job);runs.saveAndFlush(current)
             response(current)
         }
@@ -128,7 +189,7 @@ class AiRunService(
         grants.requireValid(run,data.grantRef)
         checkContent(data==dispatchRequest(run),403,"작업 위임의 범위를 확인할 수 없어요.")
         authorizedRun(run.workId,run.requesterId,run.id)
-        AiRunGrantResponse(run.id,run.threadId,run.scopeHash,run.grantExpiresAt)
+        AiRunGrantResponse(run.id,run.threadId,run.scopeHash,run.grantExpiresAt,run.status=="cancelled")
     }
 
     private fun dispatchRequest(run: AiRunEntity): AiRunDispatchRequest {
@@ -176,6 +237,6 @@ class AiRunService(
     }
 
     private fun response(run: AiRunEntity)=AiRunResponse(run.id,run.threadId,run.workId,run.status,run.dispatchStatus,
-        run.errorCode?.let {AiRunErrorResponse(it)})
+        run.errorCode?.let {AiRunErrorResponse(it)},run.lastEventId,progress.result(run))
     private fun hash(value: String)=java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8)))
 }

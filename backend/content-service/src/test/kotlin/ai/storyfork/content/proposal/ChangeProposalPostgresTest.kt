@@ -13,6 +13,10 @@ import ai.storyfork.content.proposal.domain.ChangeSetPolicy
 import ai.storyfork.content.proposal.entity.*
 import ai.storyfork.content.proposal.repository.*
 import ai.storyfork.content.proposal.service.ChangeProposalService
+import ai.storyfork.content.proposal.service.AiRunService
+import ai.storyfork.content.proposal.client.AiRunClient
+import ai.storyfork.content.proposal.client.dto.AiRunDispatchRequest
+import ai.storyfork.content.proposal.client.dto.AiRunRemoteResponse
 import ai.storyfork.content.proposal.service.dto.*
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkService
@@ -37,12 +41,15 @@ import java.util.concurrent.TimeUnit
 
 /** CI 전용 격리 PG에서 실제 row lock·다중 대상 rollback·불변 판·영수증을 검증한다. */
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
-@SpringBootTest(properties=["DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=\${TEST_CONTENT_DATABASE_USER:content_test}","DATABASE_PASSWORD=\${TEST_CONTENT_DATABASE_PASSWORD:}"])
+@SpringBootTest(properties=["DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=\${TEST_CONTENT_DATABASE_USER:content_test}","DATABASE_PASSWORD=\${TEST_CONTENT_DATABASE_PASSWORD:}","AI_RUN_GRANT_SECRET=fixture-grant-secret-at-least-32-characters"])
 class ChangeProposalPostgresTest {
     @MockitoBean lateinit var auth: ai.storyfork.content.auth.client.CoreAuthClient
     @MockitoBean lateinit var ai: ai.storyfork.content.proposal.client.GenerationClient
     @MockitoBean(name="relationshipDriver") lateinit var neo4j: org.neo4j.driver.Driver
     @Autowired lateinit var service: ChangeProposalService
+    @Autowired lateinit var runService: AiRunService
+    @Autowired lateinit var progressEvents: AiRunEventRepository
+    @MockitoBean lateinit var runClient: AiRunClient
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var access: WorkAccessService
     @Autowired lateinit var episodes: EpisodeService
@@ -75,6 +82,7 @@ class ChangeProposalPostgresTest {
                 keyHash=ChangeSetPolicy.hash(contentId()),requestHash=ChangeSetPolicy.hash("fixture"),
                 scopeHash=ChangeSetPolicy.hash(current.revision.toString()+":"+mapper.writeValueAsString(selected)),
                 baseRevision=current.revision,basisEpisode=1,targetRefsJson=mapper.writeValueAsString(refs),
+                grantExpiresAt=java.time.Instant.now().plusSeconds(300),
                 maxCalls=1,noticeVersion="fixture-v1",status="running"))
         }
         val ops=(if(two) 1..2 else 1..1).map {n ->
@@ -88,6 +96,31 @@ class ChangeProposalPostgresTest {
     }
     private fun decision(f: Fixture,action: String="approved")=ChangeDecisionRequest(1,f.proposal.proposalHash,action)
     private fun count(f: Fixture)=versions.findAllByEpisodeIdInOrderByCreatedAtAscIdAsc(listOf(episodeId(f.work,1),episodeId(f.work,2))).size
+
+    @Test fun `public run cancel and approval serialize into one durable winner`() {
+        val f=fixture();val before=count(f);val runId=f.proposal.changeSet.runId
+        doAnswer { i -> (i.arguments[0] as AiRunDispatchRequest).let {AiRunRemoteResponse(it.runId,it.threadRef,"cancelled",false)} }
+            .`when`(runClient).cancel(any(AiRunDispatchRequest::class.java) ?: dispatchFixture())
+        val start=CountDownLatch(1);val pool=Executors.newFixedThreadPool(2)
+        try {
+            val approval=pool.submit(Callable {start.await();runCatching {service.decide(f.work,f.proposal.changeSet.proposalId,f.owner,"approve",decision(f))}})
+            val cancel=pool.submit(Callable {start.await();runCatching {runService.cancel(f.work,f.owner,runId)}})
+            start.countDown()
+            val results=listOf(approval.get(15,TimeUnit.SECONDS),cancel.get(15,TimeUnit.SECONDS))
+            assertEquals(1,results.count {it.isSuccess},results.map {it.exceptionOrNull()?.message}.toString())
+            assertEquals(409,(results.single {it.isFailure}.exceptionOrNull() as ContentFailure).status)
+            val stored=runs.findById(runId).orElseThrow()
+            val events=progressEvents.findAllByRunIdAndSeqGreaterThanOrderBySeqAsc(runId,0,org.springframework.data.domain.PageRequest.of(0,100))
+            assertEquals((1L..stored.lastEventId).toList(),events.map {it.seq})
+            if(stored.status=="applied") {
+                assertEquals(before+1,count(f));assertEquals("APPLIED",events.last().code)
+                assertNotNull(runService.read(f.work,f.owner,runId).result?.applicationId)
+            } else {
+                assertEquals("cancelled",stored.status);assertEquals(before,count(f));assertEquals("CANCELLED",events.last().code)
+                assertEquals("cancelled",runService.cancel(f.work,f.owner,runId).status)
+            }
+        } finally {pool.shutdownNow()}
+    }
 
     @ParameterizedTest @ValueSource(strings=["approved","cancelled","rejected","revision_requested"])
     fun `concurrent approvals cancellations and rejections have one durable winner`(other: String) {
@@ -144,6 +177,10 @@ class ChangeProposalPostgresTest {
 
     @Test fun `second PG target storage failure rolls back every manuscript version and final receipt`() {
         val f=fixture(true);val before=count(f)
+        val runId=f.proposal.changeSet.runId
+        val prior=runs.findById(runId).orElseThrow()
+        val beforeEvents=prior.lastEventId
+        val beforeResult=prior.resultJson
         val drafts=(1..2).map {episodes.read(f.work,f.owner,it)}
         val revision=access.get(f.work).revision
         doThrow(IllegalStateException("injected storage failure")).`when`(saved).save((eq(f.work) ?: f.work),
@@ -153,6 +190,10 @@ class ChangeProposalPostgresTest {
         }.status)
         assertEquals(drafts,(1..2).map {episodes.read(f.work,f.owner,it)})
         assertEquals(before,count(f));assertEquals(revision,access.get(f.work).revision)
+        val stored=runs.findById(runId).orElseThrow()
+        assertEquals(beforeEvents,stored.lastEventId);assertEquals(beforeResult,stored.resultJson)
+        assertEquals("awaiting_approval",stored.status)
+        assertTrue(progressEvents.findAllByRunIdAndSeqGreaterThanOrderBySeqAsc(runId,beforeEvents,org.springframework.data.domain.PageRequest.of(0,100)).isEmpty())
         assertEquals("failed",attempts.findByWorkIdAndActorIdAndKeyHash(f.work,f.owner,ChangeSetPolicy.hash("rollback"))!!.status)
         assertEquals(404,assertThrows(ContentFailure::class.java) {service.receipt(f.work,f.owner,f.proposal.changeSet.proposalId,1)}.status)
     }

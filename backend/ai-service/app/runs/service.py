@@ -8,7 +8,8 @@ from app.retrieval.mock_content import MockContentReadPort
 from .graph import MainGraph, checkpoint_config
 from .orchestrator import PlanLimits
 from .runner import ExecutionLimits
-from .schemas import RunError, RunFailure, RunRequest, RunResponse
+from .schemas import RunError, RunFailure, RunRequest, RunResponse, RunOutcome
+from .progress import ProgressEvent, STATUS_CODES
 from .remote_content import RemoteContent, RemoteGrant
 from .state import MainRequest
 from .approval import ApprovalError, DecisionSignal
@@ -81,9 +82,32 @@ class RunService:
         self.checkpointer = None
         # shortcut: 접수 상태는 프로세스 메모리, Content 영속 lease/자동 재전달을 연결할 때 교체한다.
         self.records: dict[str, RunRecord] = {}
+        self.resuming: set[str] = set()
+
+    def _progress(self, record, event):
+        event = ProgressEvent.model_validate(event.model_dump(by_alias=True))
+        if record.cancel.is_set():
+            return
+        key = (event.task_id, event.attempt, event.phase)
+        if any((e.task_id, e.attempt, e.phase) == key and e.step >= event.step for e in record.response.progress):
+            return
+        record.response = record.response.model_copy(update={"progress": (*record.response.progress, event)})
+
+    def _status(self, record, status, **changes):
+        if record.cancel.is_set() and status != "cancelled":
+            return
+        previous = next((e for e in reversed(record.response.progress) if e.phase == "run"), None)
+        # 취소 이벤트도 1회만 기록한다. 이후 실행 결과는 _complete에서 버린다.
+        if previous is None or previous.status != status:
+            event = ProgressEvent(taskId="run", phase="run", step=previous.step + 1 if previous else 1,
+                                  code=STATUS_CODES[status], status=status)
+            record.response = record.response.model_copy(update={"progress": (*record.response.progress, event)})
+        record.response = record.response.model_copy(update={"status": status, **changes})
 
     def start(self, request: RunRequest) -> RunResponse:
         grant = self.content.authorize(request)
+        if isinstance(grant, RemoteGrant) and grant.cancelled:
+            raise RunError(409, "run_cancelled")
         if request.run_id in self.records:
             raise RunError(409, "duplicate_run")
         if any(r.response.thread_ref == request.thread_ref and r.response.status in ("pending", "running", "awaiting_approval")
@@ -93,16 +117,18 @@ class RunService:
                                is_mock=not isinstance(grant, RemoteGrant))
         record = RunRecord(fingerprint(request), response)
         self.records[request.run_id] = record
+        self._status(record, "pending")
         record.task = asyncio.create_task(self._execute(grant, record))
-        return response
+        return record.response
 
     async def _execute(self, grant: FixtureGrant | RemoteGrant, record: RunRecord):
+        if record.cancel.is_set():
+            return
         if isinstance(grant, RemoteGrant):
             # 실제 전문 Agent/검색 실행은 미연결이다. 합성 자료로 성공 대체하거나 모델을 호출하지 않는다.
-            record.response = record.response.model_copy(update={"status": "failed",
-                "error": RunFailure(code="dependency_unavailable")})
+            self._status(record, "failed", error=RunFailure(code="dependency_unavailable"))
             return
-        record.response = record.response.model_copy(update={"status": "running"})
+        self._status(record, "running")
         budget = grant.request.budget
         limits = ExecutionLimits(plan=PlanLimits(**budget.model_dump()))
         try:
@@ -110,18 +136,21 @@ class RunService:
             if self.checkpointer is not None:
                 grant.graph.checkpointer = self.checkpointer
                 resume = await self.checkpointer.aget_tuple(checkpoint_config(grant.main)) is not None
-            result = await asyncio.wait_for(grant.graph.run(grant.main, cancel=record.cancel, limits=limits, resume=resume),
+            result = await asyncio.wait_for(grant.graph.run(grant.main, cancel=record.cancel, limits=limits, resume=resume,
+                progress=lambda event: self._progress(record, event)),
                                             timeout=budget.timeout_ms / 1000)
             self._complete(record, result)
         except TimeoutError:
-            record.response = record.response.model_copy(update={"status": "failed", "error": RunFailure(code="timeout")})
+            self._status(record, "failed", error=RunFailure(code="timeout"))
         except asyncio.CancelledError:
             record.cancel.set()
-            record.response = record.response.model_copy(update={"status": "cancelled"})
+            self._status(record, "cancelled")
         except Exception:
-            record.response = record.response.model_copy(update={"status": "failed", "error": RunFailure(code="execution_failed")})
+            self._status(record, "failed", error=RunFailure(code="execution_failed"))
 
     def _complete(self, record, result):
+        if record.cancel.is_set():
+            return
         error = None
         if result.state.execution_status == "denied":
             error = RunFailure(code="refused")
@@ -130,12 +159,18 @@ class RunService:
             code = ("timeout" if timed_out else "dependency_unavailable"
                     if "scope_unavailable" in result.state.errors else "execution_failed")
             error = RunFailure(code=code)
-        record.response = record.response.model_copy(update={"status": result.state.execution_status,
-            "tasks": result.state.task_results, "coverage": result.state.coverage, "result": result.response, "error": error})
+        receipt = result.state.approval_receipt
+        self._status(record, result.state.execution_status, tasks=result.state.task_results,
+            coverage=result.state.coverage, result=result.response, error=error,
+            outcome=RunOutcome(response_ref=result.state.response_ref, proposal_id=result.response.proposal_id,
+                decision_id=receipt.decision_id if receipt else None, application_id=receipt.application_id if receipt else None,
+                is_mock=result.response.is_mock))
 
     async def resume(self, run_id: str, grant_ref: str, thread_ref: str, signal: DecisionSignal) -> RunResponse:
         """현재 Content 위임과 정확한 interrupt/영수증을 대조한다. 승인·원고 쓰기는 호출하지 않는다."""
         grant = self.content.restore(run_id, grant_ref, thread_ref)
+        if run_id in self.resuming:
+            raise RunError(409, "thread_busy")
         if isinstance(grant, RemoteGrant):
             raise RunError(503, "dependency_unavailable")
         record = self.records.get(run_id)
@@ -144,14 +179,18 @@ class RunService:
                 raise RunError(403, "invalid_scope")
             if record.task is not None and not record.task.done():
                 raise RunError(409, "thread_busy")
+            if record.cancel.is_set():
+                raise RunError(409, "run_cancelled")
         else:
             record = RunRecord(fingerprint(grant.request), RunResponse(run_id=run_id,thread_ref=thread_ref,status="pending"))
         if self.checkpointer is not None:
             grant.graph.checkpointer = self.checkpointer
         limits = ExecutionLimits(plan=PlanLimits(**grant.request.budget.model_dump()))
+        self.resuming.add(run_id)
         try:
             result = await asyncio.wait_for(grant.graph.run(grant.main, limits=limits, resume=True,
-                decision_ref=signal.decision_ref, interrupt_ref=signal.interrupt_ref),
+                decision_ref=signal.decision_ref, interrupt_ref=signal.interrupt_ref,
+                progress=lambda event: self._progress(record, event)),
                 timeout=grant.request.budget.timeout_ms / 1000)
         except ApprovalError:
             raise RunError(409, "invalid_approval_signal") from None
@@ -160,6 +199,8 @@ class RunService:
                            "invalid_scope" if error.status == "denied" else "content_unavailable") from None
         except Exception:
             raise RunError(503, "execution_unavailable") from None
+        finally:
+            self.resuming.discard(run_id)
         self._complete(record, result)
         self.records[run_id] = record
         return record.response
@@ -175,16 +216,20 @@ class RunService:
 
     def cancel(self, run_id: str, grant_ref: str, thread_ref: str) -> RunResponse:
         response = self.status(run_id, grant_ref, thread_ref)
-        if response.status == "awaiting_approval":
+        if response.status == "applied":
+            raise RunError(409, "already_applied")
+        grant = self.content.restore(run_id, grant_ref, thread_ref)
+        committed_cancel = isinstance(grant, RemoteGrant) and grant.cancelled
+        if response.status == "awaiting_approval" and not committed_cancel:
             raise RunError(409, "decision_requires_content")
-        if response.status in ("pending", "running"):
-            grant = self.content.restore(run_id, grant_ref, thread_ref)
+        if response.status in ("pending", "running") or committed_cancel:
             if isinstance(grant, FixtureGrant) and run_id in getattr(grant.graph, "_approval_runs", ()):
                 raise RunError(409, "decision_requires_content")
             record = self.records[run_id]
             record.cancel.set()
-            record.task.cancel()
-            record.response = response.model_copy(update={"status": "cancelled"})
+            if record.task is not None:
+                record.task.cancel()
+            self._status(record, "cancelled", result=None, outcome=None)
         return self.records[run_id].response
 
     async def close(self):

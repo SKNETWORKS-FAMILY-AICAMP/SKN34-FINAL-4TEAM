@@ -37,6 +37,17 @@ async def agent(slice, ctx):
     return TaskOutput(output_schema=slice.output_schema, output_ref="answer1", is_mock=True)
 
 
+def test_custom_stream_projects_only_fixed_progress_not_values_or_messages(content,wiki,manuscripts):
+    events=[]
+    g=graph(content,wiki,manuscripts,handlers={"qa":agent})
+    result=asyncio.run(g.run(request(content),progress=events.append))
+    assert result.state.execution_status=="succeeded"
+    assert [(e.task_id,e.step) for e in events]==[("context",1),("context",2),("qa",1),("qa",2)]
+    encoded=" ".join(e.model_dump_json(by_alias=True) for e in events)
+    assert content.scope.grant_ref not in encoded and "reasoning" not in encoded
+    assert all(row.text not in encoded for row in content.rows)
+
+
 def test_three_episode_query_returns_verified_mock_citations_and_safe_checkpoints(content, wiki, manuscripts):
     g = graph(content, wiki, manuscripts, handlers={"qa": agent})
     req = request(content)

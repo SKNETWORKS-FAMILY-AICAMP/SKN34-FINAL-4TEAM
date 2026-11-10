@@ -14,6 +14,7 @@ import ai.storyfork.content.proposal.domain.ChangeSetPolicy
 import ai.storyfork.content.proposal.entity.*
 import ai.storyfork.content.proposal.repository.*
 import ai.storyfork.content.proposal.service.ChangeProposalService
+import ai.storyfork.content.proposal.service.AiRunProgressService
 import ai.storyfork.content.proposal.service.dto.*
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
@@ -42,7 +43,7 @@ class ChangeProposalServiceTest {
     private val manager=mock(PlatformTransactionManager::class.java)
     private val mapper=jacksonMapperBuilder().build()
     private val service=ChangeProposalService(access,context,runs,threads,proposals,receipts,attempts,episodes,episodeRows,saved,
-        TransactionTemplate(manager),mapper)
+        TransactionTemplate(manager),mapper,mock(AiRunProgressService::class.java))
     private val versions=mutableListOf<ChangeProposalVersionEntity>()
     private val decisions=mutableListOf<ChangeProposalReceiptEntity>()
     private val attemptRows=mutableListOf<ChangeDecisionAttemptEntity>()

@@ -19,6 +19,11 @@ class AiRunClient(private val client: RestClient,private val token: String) {
             .header("X-Grant-Ref",request.grantRef).header("X-Thread-Ref",request.threadRef)
             .retrieve().body(AiRunRemoteResponse::class.java)
     }
+    fun cancel(request: AiRunDispatchRequest): AiRunRemoteResponse = call(request) {
+        client.post().uri("/internal/v1/ai/runs/{id}/cancel",request.runId).header("X-Internal-Token",token)
+            .header("X-Grant-Ref",request.grantRef).header("X-Thread-Ref",request.threadRef)
+            .retrieve().body(AiRunRemoteResponse::class.java)
+    }
     private fun call(request: AiRunDispatchRequest,block: () -> AiRunRemoteResponse?): AiRunRemoteResponse {
         if(token.length<32 || token.any {it=='\r' || it=='\n'}) throw AiRunDispatchException(AiRunFailure.AI_RUN_UNCONFIGURED)
         val response=executeHttpCall(
@@ -27,7 +32,10 @@ class AiRunClient(private val client: RestClient,private val token: String) {
             onUpstreamError={AiRunDispatchException(if(it.statusCode.value()==403) AiRunFailure.AI_RUN_REFUSED else AiRunFailure.AI_RUN_UNAVAILABLE)},
             onInvalidResponse={AiRunDispatchException(AiRunFailure.AI_RUN_INVALID_RESPONSE)},block=block)
         if(response==null || response.runId!=request.runId || response.threadRef!=request.threadRef || response.isMock!=false
-            || response.status !in setOf("pending","running","failed","denied")) throw AiRunDispatchException(AiRunFailure.AI_RUN_INVALID_RESPONSE)
+            || response.status !in setOf("pending","running","failed","denied","cancelled","succeeded","partial","clarification","proposal","awaiting_approval")
+            || response.progress.size>500 || response.outcome?.isMock==true || response.outcome?.let {o -> listOfNotNull(o.responseRef,o.proposalId,o.decisionId,o.applicationId)
+                .any {!it.matches(Regex("[A-Za-z0-9][A-Za-z0-9:_-]{0,127}"))}}==true)
+            throw AiRunDispatchException(AiRunFailure.AI_RUN_INVALID_RESPONSE)
         return response
     }
 }

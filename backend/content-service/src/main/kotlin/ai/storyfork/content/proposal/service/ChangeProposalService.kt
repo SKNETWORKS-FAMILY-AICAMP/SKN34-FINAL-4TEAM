@@ -40,6 +40,7 @@ class ChangeProposalService(
     private val saved: EpisodeVersionService,
     @Qualifier("contentTransactions") private val transaction: TransactionTemplate,
     private val mapper: JsonMapper,
+    private val progress: AiRunProgressService,
 ) {
     private val fields=listOf("title","body")
 
@@ -49,6 +50,7 @@ class ChangeProposalService(
         validKey(key)
         val run=runs.findById(data.runId).orElse(null)
         checkContent(run!=null && run.workId==workId && run.requesterId==actor,404,"작업을 찾을 수 없어요.")
+        checkContent(run!!.status!="cancelled",409,"취소한 작업에는 제안을 준비할 수 없어요.")
         val fork=if(work.source==null) null else workId
         checkContent(data.forkId==fork,message="작품과 Fork 범위를 확인해 주세요.")
         val requestHash=hash(mapper.writeValueAsString(data))
@@ -59,7 +61,7 @@ class ChangeProposalService(
         }
         access.requireRevision(work,data.baseVersion)
         checkContent(work.revision<=Int.MAX_VALUE-40,409,"편집 번호 한도에 도달했어요.")
-        val selected=scope(workId,actor,run!!,fork,data.baseVersion)
+        val selected=scope(workId,actor,run,fork,data.baseVersion)
         validateEvidence(data.evidence,run,selected,workId,actor)
         planned(data.operations,data.evidence,run,workId,actor)
         val prior=data.previous?.let {ref ->
@@ -74,8 +76,11 @@ class ChangeProposalService(
         val manifest=ChangeSet(id,(prior?.proposalVersion ?: 0)+1,run.id,workId,fork,data.baseVersion,
             data.operations.map {it.target},data.operations,data.evidence,data.isMock,key)
         val json=mapper.writeValueAsString(manifest)
-        response(proposals.saveAndFlush(ChangeProposalVersionEntity(contentId(),id,manifest.proposalVersion,workId,
-            run.id,json,hash(json),hash(key),requestHash)))
+        val prepared=proposals.saveAndFlush(ChangeProposalVersionEntity(contentId(),id,manifest.proposalVersion,workId,
+            run.id,json,hash(json),hash(key),requestHash))
+        progress.state(run,"awaiting_approval",AiRunOutcome(proposalId=id,isMock=data.isMock))
+        runs.saveAndFlush(run)
+        response(prepared)
     }
 
     fun read(workId: String,actor: String,proposalId: String,proposalVersion: Int? = null): ChangeSetResponse = transaction.execute {
@@ -173,6 +178,11 @@ class ChangeProposalService(
             data.decision,hash(key),requestHash,mapper.writeValueAsString(receipt)))
         attempt.status="succeeded"
         attempts.saveAndFlush(attempt)
+        val run=runs.findById(manifest.runId).orElseThrow()
+        if(run.status!="cancelled") {
+            progress.state(run,receipt.outcome,AiRunOutcome(proposalId=proposalId,decisionId=receipt.decisionId,applicationId=receipt.applicationId,isMock=manifest.isMock))
+            runs.saveAndFlush(run)
+        }
         receipt
     }
 

@@ -9,6 +9,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.errors import GraphInterrupt
 from langgraph.types import Command
+from langgraph.config import get_stream_writer
 from pydantic_core import to_jsonable_python
 
 from app.retrieval.content_client import CanonicalAdapter, ContentReadError
@@ -19,6 +20,7 @@ from .runner import ExecutionLimits, TaskOutput, TaskResult, TaskRunner
 from .checkpoints import RunnerJournal, run_lease, serializer
 from .approval import ApprovalError, DecisionSignal, PreparedProposal, validated
 from .state import Citation, GraphResponse, GraphResult, MainRequest, MainState, ScopeRef
+from .progress import ProgressEvent
 
 
 def checkpoint_binding(request, limits):
@@ -78,13 +80,13 @@ class MainGraph:
         self.approval = approval
 
     async def run(self, request: MainRequest, *, cancel=None, limits=None, resume=False,
-                  decision_ref=None, interrupt_ref=None) -> GraphResult:
+                  decision_ref=None, interrupt_ref=None, progress=None) -> GraphResult:
         async with run_lease(self.checkpointer, request.thread_id):
             return await self._run(request, cancel=cancel, limits=limits, resume=resume,
-                                   decision_ref=decision_ref, interrupt_ref=interrupt_ref)
+                                   decision_ref=decision_ref, interrupt_ref=interrupt_ref, progress=progress)
 
     async def _run(self, request: MainRequest, *, cancel=None, limits=None, resume=False,
-                   decision_ref=None, interrupt_ref=None) -> GraphResult:
+                   decision_ref=None, interrupt_ref=None, progress=None) -> GraphResult:
         limits = limits if limits is not None else self.limits
         request = MainRequest.model_validate(request.model_dump())
         signal = validated(DecisionSignal, {"decision_ref":decision_ref,"interrupt_ref":interrupt_ref}) if decision_ref is not None else None
@@ -209,7 +211,8 @@ class MainGraph:
                 allowed_operations=tuple(REGISTRY), handlers={**self.handlers, "context": context_handler}, limits=limits,
                 wants_change=state.classification.wants_change,
                 draft_requested=state.classification.primary_intent == "next_draft",
-                saved=saved_runner, persist=journal.write)
+                saved=saved_runner, persist=journal.write,
+                progress=lambda event: get_stream_writer()(event.model_dump(by_alias=True)))
             async def watch_cancel():
                 await cancel.wait()
                 runner.cancel()
@@ -315,8 +318,20 @@ class MainGraph:
                     raise ApprovalError("interrupt_mismatch")
                 invoke_input = Command(resume={active[0].id:receipt_before.decision_id}, update={"approval_interrupt_ref":active[0].id})
         visible_interrupt = None
+        async def invoke(value):
+            if progress is None:
+                return await compiled.ainvoke(value, config, durability="sync")
+            final_values = None
+            async for mode, data in compiled.astream(value, config, stream_mode=["custom", "values"], durability="sync"):
+                if mode == "custom":
+                    progress(ProgressEvent.model_validate(data))
+                else:
+                    final_values = data
+            if final_values is None:
+                raise PlanError("missing_final_state")
+            return final_values
         try:
-            final = result_state(await compiled.ainvoke(invoke_input, config, durability="sync"))
+            final = result_state(await invoke(invoke_input))
             if final.execution_status == "awaiting_approval":
                 snapshot = await compiled.aget_state(config)
                 if len(snapshot.interrupts) != 1:
@@ -326,7 +341,7 @@ class MainGraph:
                 receipt = await self.approval.resolve(request, final.prepared_proposal)
                 if receipt is not None:
                     command = Command(resume={visible_interrupt:receipt.decision_id}, update={"approval_interrupt_ref":visible_interrupt})
-                    final = result_state(await compiled.ainvoke(command, config, durability="sync"))
+                    final = result_state(await invoke(command))
         except asyncio.CancelledError:
             cancel.set()
             raise

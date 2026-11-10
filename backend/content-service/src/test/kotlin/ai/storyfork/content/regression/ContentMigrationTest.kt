@@ -41,8 +41,8 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(18,flyway.migrate().migrationsExecuted)
-        assertEquals((1..18).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(19,flyway.migrate().migrationsExecuted)
+        assertEquals((1..19).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","ai_run","ai_thread","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
@@ -51,7 +51,7 @@ class ContentMigrationTest {
         for(view in listOf("work_current","episode_current","setting_version_read")) {
             assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM information_schema.views WHERE table_schema=current_schema() AND table_name=?",Int::class.java,view))
         }
-        for(table in listOf("change_proposal_version","change_proposal_receipt","change_decision_attempt")) {
+        for(table in listOf("change_proposal_version","change_proposal_receipt","change_decision_attempt","ai_run_event")) {
             assertNotNull(jdbc.queryForObject("SELECT to_regclass(?)::text",String::class.java,table))
         }
         assertNull(jdbc.queryForObject("SELECT to_regclass('content_work')::text",String::class.java))
@@ -88,6 +88,13 @@ class ContentMigrationTest {
         }
         assertEquals("running",jdbc.queryForObject("SELECT status FROM ai_run WHERE id='run'",String::class.java))
         assertEquals("completed",jdbc.queryForObject("SELECT status FROM ai_job WHERE id='run'",String::class.java))
+        jdbc.update("INSERT INTO ai_run_event(id,run_id,seq,task_id,attempt,phase,step,code,status) VALUES ('ev','run',1,'qa',1,'task',1,'TEXT_LOADING','running')")
+        for(statement in listOf(
+            "INSERT INTO ai_run_event SELECT 'duplicate_seq',run_id,seq,task_id,attempt,phase,2,code,status FROM ai_run_event",
+            "INSERT INTO ai_run_event SELECT 'duplicate_step',run_id,2,task_id,attempt,phase,step,code,status FROM ai_run_event",
+            "INSERT INTO ai_run_event SELECT 'unsafe',run_id,2,task_id,attempt,phase,2,'model reasoning',status FROM ai_run_event")) {
+            assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(statement)}
+        }
     }
 
     private val sampleDir = Path.of("..", "..", "infrastructure", "sample-data")
@@ -136,7 +143,7 @@ class ContentMigrationTest {
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
         jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
-        assertEquals(2,flyway.migrate().migrationsExecuted)
+        assertEquals(4,flyway.migrate().migrationsExecuted)
         assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
@@ -170,6 +177,6 @@ class ContentMigrationTest {
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(18,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(19,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }
