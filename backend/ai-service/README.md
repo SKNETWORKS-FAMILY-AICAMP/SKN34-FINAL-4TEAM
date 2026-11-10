@@ -37,6 +37,8 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 
 ## OpenAI와 향후 경계
 
+TASK 16은 `agents/development.py`의 `development` Registry와 run별 adapter를 연결했습니다. `next_insights/alternative_plot/next_episode_planning/expand_conti`에서 요청 개수의 가상 인사이트·BeatPlan만 반환합니다. 전체 coverage·직전 회차·선택 복선/콘티/플롯/인물 refs를 검증하고 선택 Simulation은 독립 Task로 실행합니다. 실제 원고 생성·저장·공개 Run 자동 조립은 없습니다. [TASK 16 계약·검증·한계](../../docs/writing-ai-architecture/task16-handoff.md).
+
 TASK 15는 `agents/semantic_review.py`를 고정 `review` Registry에 등록했습니다. 지식·인과·감정·세계 규칙·복선/회수·대사 시점·행동의 Mock 정형 판정을 근거와 대조합니다. 모델 해석과 Simulation은 suspected로 반환하고 반대 근거·의도적 변경이 겹치는 수치 차이도 오류 확정을 보류합니다. 명시 재현 필요와 opt-in에만 TASK 14를 별도 예산의 선행 Task로 실행합니다. 원문 span·판본·hash, 전체 coverage·반대 근거·비확정 이유를 검증하며 수정 요청과 확정 Findings가 있어야 editing 후속을 등록합니다. 실제 모델·공개 Run 자동 조립·Writing 구현·원고 반영은 추가하지 않았습니다. [TASK 15 DTO·실행 예·검증·한계](../../docs/writing-ai-architecture/task15-handoff.md).
 
 TASK 14는 `agents/simulation.py`를 고정 `simulation` Registry에 등록했습니다. 기본 두 인물·3턴을 LangGraph에서 순차 실행하며 인물별 Content knownBy·선택 근거만 전달합니다. 비교 상태는 독립이고 시도 한도는 기본 6·비교 12·절대 14회와 남은 Run 예산 중 작은 값입니다. 무효 행동 1회 재생성, 실제 들은 주장만 기억에 추가, 가상 상태 reducer·부분 종료·인과 분석을 제공합니다. 발화는 허용된 원문 조합만 지원합니다. run별 `SimulationHandler`가 기존 호출 예약을 사용하며, 실제 모델·Content 상태 공급·공개 Run 자동 조립·정본 저장은 미연결입니다. [TASK 14 DTO·단위 결과·한계](../../docs/writing-ai-architecture/task14-handoff.md).

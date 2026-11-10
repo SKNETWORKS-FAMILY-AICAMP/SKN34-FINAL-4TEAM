@@ -6,6 +6,8 @@
 
 ### 1. 시스템 경계
 
+TASK 16의 `development`는 `BeatPlan.v1` 참조를 반환하는 run별 handler로 구현했다. 선택 Simulation→Development 계획은 `development_tasks`로 명시 조립하며 Writing 후속은 등록하지 않는다. [계약·검증](task16-handoff.md).
+
 ```mermaid
 flowchart LR
     subgraph Product[기존 제품]

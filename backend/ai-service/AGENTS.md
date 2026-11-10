@@ -5,6 +5,10 @@
 
 ## 구조
 
+- TASK 16의 `agents/development.py`는 인사이트·대안·다음 회차 계획·콘티 확장의 가상 계획만 반환한다.
+  `development_tasks`와 run별 `DevelopmentHandler`를 주입한다. 선택 Simulation은 별도 Task이며 Writing·저장은 호출하지 않는다.
+  [입력·검증·제약](../../docs/writing-ai-architecture/task16-handoff.md).
+
 - TASK 15의 `agents/semantic_review.py`는 선택 원문·Wiki·반대 근거를 재검증하는 의미 검수다.
   모델 해석·가상 반응은 suspected, 기존 기계 검사의 입증된 수치 차이만 confirmed 후보로 유지한다.
   `semantic_review_tasks`와 run별 `SemanticReviewHandler`를 명시 주입한다. 재현 필요·opt-in에만 별도 Simulation Task를 사용한다.

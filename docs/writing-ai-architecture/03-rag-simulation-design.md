@@ -93,6 +93,8 @@ flowchart LR
 
 ### 10. Story Development와 다음 회차
 
+2026-11-10 TASK 16은 네 전개 모드의 Mock 모델 입력·Insights/BeatPlan·개수/출처 검증을 구현했다. 전체 coverage와 직전 회차, 명시 선택한 복선·콘티·플롯·인물 근거를 확인한다. 선택 Simulation은 별도 예산 Task로 실행하고 기존 검수기의 보고 재생 검증을 재사용한다. 반환 전체는 가상 계획이며 Writing·저장은 호출하지 않는다. [실제 DTO·검증·제약](task16-handoff.md).
+
 ```mermaid
 flowchart TD
     I[목표 회차 및 모드] --> C[전체 범위 Coverage와 직전 회차]
