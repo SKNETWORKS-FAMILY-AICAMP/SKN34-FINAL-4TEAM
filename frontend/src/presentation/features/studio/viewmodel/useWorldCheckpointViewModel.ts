@@ -39,7 +39,6 @@ export function useWorldCheckpointViewModel(workId: string) {
   return {
     rows, detail, busy, error, notice, reload,
     read: (id: string) => run(async signal => {
-      setDetail(null)
       const result = await api.worldCheckpoint(workId, id, signal)
       if (!signal.aborted) setDetail(result)
     }),
