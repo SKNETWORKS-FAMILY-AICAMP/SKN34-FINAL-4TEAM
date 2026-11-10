@@ -3,13 +3,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { OperationsError } from '../../domain/entities/operations'
 import { login } from './auth'
-import { HttpMemberRepository, HttpReportRepository } from './operationsApi'
+import { HttpMemberRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from './operationsApi'
 
+const reply = { id: 'p1', body: '답변\n내용', createdAt: '2026-11-08T01:00:00Z', updatedAt: '2026-11-08T02:00:00Z' }
+const inquiry = {
+  id: 'q1', memberId: '3f2c9a10-0000-4000-8000-000000000001', category: '계정', title: '로그인 문의', body: '첫 줄\n둘째 줄', status: 'ANSWERED',
+  createdAt: '2026-11-08T00:00:00Z', updatedAt: '2026-11-08T02:00:00Z', replies: [reply],
+}
 const report = {
   id: 'r1', kind: 'RIGHTS', workId: 'w1', workTitle: '별빛', workOwnerId: 'owner', reporterId: 'u1', reason: '무단 사용', evidence: '',
   status: 'RECEIVED', contentRestricted: false, createdAt: '2026-11-08T00:00:00Z', updatedAt: '2026-11-08T00:00:00Z',
 }
 const member = { id: 'm1', email: 'm1@example.test', nickname: '연화', role: 'MEMBER', restricted: false, createdAt: '2026-11-08T00:00:00Z' }
+const work = {
+  workId: 'w1', ownerId: 'owner-1', title: '별빛 서약의 탑', authorName: '연화봉러', originKind: 'fork', creationType: 'external_derivative',
+  rightsConfirmed: false, visibility: 'private', restricted: true,
+}
 type Call = [string, { method?: string; body?: string; headers: Record<string, string> }]
 const callsOf = (f: { mock: { calls: unknown[] } }) => f.mock.calls as Call[]
 const ok = (value: unknown, status = 200) => vi.fn(async () => Response.json(value, { status }))
@@ -117,5 +126,100 @@ describe('HttpMemberRepository', () => {
   it('중복 이메일(409)을 안내한다', async () => {
     const repo = new HttpMemberRepository(empty(409))
     await expect(repo.createAdmin({ email: 'a@example.test', nickname: '운영', password: 'StoryforkDev123!', permissions: ['users'] })).rejects.toThrow('이미 등록된 이메일이에요.')
+  })
+})
+
+describe('HttpOperationsWorkRepository (74 운영 작품 조회)', () => {
+  it('작품 목록은 Bearer로 끝 슬래시 없는 경로를 GET하고 응답을 검증한다', async () => {
+    const fetcher = ok({ items: [work] })
+    expect(await new HttpOperationsWorkRepository(fetcher).list()).toEqual([work])
+    expect(callsOf(fetcher)).toHaveLength(1)
+    const [[url, init]] = callsOf(fetcher)
+    expect(url).toBe('/api/v1/operations/works')
+    expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer o-bearer' } })
+  })
+
+  it('계약에 없는 값이나 빠진 필드는 거부한다', async () => {
+    const failed = '서버 응답 형식을 확인할 수 없어요.'
+    for (const patch of [{ originKind: 'derived' }, { creationType: 'copy' }, { visibility: 'hidden' }, { rightsConfirmed: 'yes' }, { restricted: null }, { authorName: undefined }, { workId: 1 }]) {
+      await expect(new HttpOperationsWorkRepository(ok({ items: [{ ...work, ...patch }] })).list()).rejects.toThrow(failed)
+    }
+    await expect(new HttpOperationsWorkRepository(ok([work])).list()).rejects.toThrow(failed)
+  })
+
+  it('운영 제한은 PUT, 해제는 DELETE를 쓰고 작품 id를 인코딩한다', async () => {
+    const fetcher = ok({ workId: 'w 1', ownerId: 'owner-1', title: '별빛 서약의 탑', restricted: true })
+    const repo = new HttpOperationsWorkRepository(fetcher)
+    await repo.setRestriction('w 1', true)
+    await repo.setRestriction('w 1', false)
+    expect(callsOf(fetcher).map(([url, init]) => [url, init.method, init.body])).toEqual([
+      ['/api/v1/operations/works/w%201/restriction', 'PUT', undefined], ['/api/v1/operations/works/w%201/restriction', 'DELETE', undefined],
+    ])
+  })
+
+  it.each([
+    [403, '이 작업을 할 권한이 없어요.'],
+    [404, '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'],
+    [502, '연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.'],
+    [500, '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'],
+  ])('%s 응답은 성공으로 숨기지 않고 안내 오류로 바꾼다', async (status, message) => {
+    const repo = new HttpOperationsWorkRepository(vi.fn(async () => Response.json({ code: 'X', message: 'internal' }, { status })))
+    await expect(repo.list()).rejects.toThrow(new OperationsError(message))
+    await expect(repo.setRestriction('w1', true)).rejects.toThrow(new OperationsError(message))
+    await expect(repo.setRestriction('w1', false)).rejects.toThrow(new OperationsError(message))
+  })
+})
+
+describe('HttpSupportInquiryRepository', () => {
+  it('내 문의와 운영 목록은 Bearer로 조회하고 선택 상태만 query로 보낸다', async () => {
+    const fetcher = ok({ items: [inquiry] })
+    const repo = new HttpSupportInquiryRepository(fetcher)
+    expect(await repo.listMine()).toEqual([inquiry])
+    await repo.listAll(null)
+    await repo.listAll('WAITING')
+    const [[mine, init], [all], [waiting]] = callsOf(fetcher)
+    expect(mine).toBe('/api/v1/operations/support/inquiries/mine')
+    expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer o-bearer' } })
+    expect(all).toBe('/api/v1/operations/support/inquiries')
+    expect(waiting).toBe('/api/v1/operations/support/inquiries?status=WAITING')
+  })
+
+  it('상세는 답변까지 검증하고 알 수 없는 상태·잘못된 답변은 거부한다', async () => {
+    const fetcher = ok(inquiry)
+    expect(await new HttpSupportInquiryRepository(fetcher).get('q 1')).toEqual(inquiry)
+    expect(callsOf(fetcher)[0][0]).toBe('/api/v1/operations/support/inquiries/q%201')
+    const failed = '서버 응답 형식을 확인할 수 없어요.'
+    await expect(new HttpSupportInquiryRepository(ok({ ...inquiry, status: 'DONE' })).get('q1')).rejects.toThrow(failed)
+    await expect(new HttpSupportInquiryRepository(ok({ ...inquiry, replies: [{ ...reply, body: 1 }] })).get('q1')).rejects.toThrow(failed)
+    await expect(new HttpSupportInquiryRepository(ok({ items: [{ ...inquiry, memberId: undefined }] })).listMine()).rejects.toThrow(failed)
+    await expect(new HttpSupportInquiryRepository(ok({ items: [{ ...inquiry, createdAt: '어제' }] })).listAll(null)).rejects.toThrow(failed)
+  })
+
+  it('접수와 답변 등록·수정은 JSON 본문으로, 답변 삭제는 본문 없이 보낸다', async () => {
+    const fetcher = ok(inquiry, 201)
+    const repo = new HttpSupportInquiryRepository(fetcher)
+    await repo.create({ category: '계정', title: '제목', body: '첫 줄\n둘째 줄' })
+    await repo.addReply('q1', '답변')
+    await repo.updateReply('q 1', 'p 1', '수정')
+    await repo.deleteReply('q1', 'p1')
+    expect(callsOf(fetcher).map(([url, init]) => [url, init.method, init.body, init.headers['Content-Type']])).toEqual([
+      ['/api/v1/operations/support/inquiries', 'POST', JSON.stringify({ category: '계정', title: '제목', body: '첫 줄\n둘째 줄' }), 'application/json'],
+      ['/api/v1/operations/support/inquiries/q1/replies', 'POST', JSON.stringify({ body: '답변' }), 'application/json'],
+      ['/api/v1/operations/support/inquiries/q%201/replies/p%201', 'PUT', JSON.stringify({ body: '수정' }), 'application/json'],
+      ['/api/v1/operations/support/inquiries/q1/replies/p1', 'DELETE', undefined, undefined],
+    ])
+  })
+
+  it.each([
+    [400, '입력값을 확인해 주세요.'],
+    [403, '이 작업을 할 권한이 없어요.'],
+    [404, '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'],
+    [500, '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'],
+  ])('%s 응답은 성공으로 숨기지 않고 안내 오류로 바꾼다', async (status, message) => {
+    const repo = new HttpSupportInquiryRepository(vi.fn(async () => Response.json({ code: 'X', message: 'internal' }, { status })))
+    await expect(repo.addReply('q1', '답변')).rejects.toThrow(new OperationsError(message))
+    await expect(repo.create({ category: '계정', title: '제목', body: '본문' })).rejects.toThrow(new OperationsError(message))
+    await expect(repo.listAll('ANSWERED')).rejects.toThrow(new OperationsError(message))
+    await expect(repo.get('q1')).rejects.toThrow(new OperationsError(message))
   })
 })

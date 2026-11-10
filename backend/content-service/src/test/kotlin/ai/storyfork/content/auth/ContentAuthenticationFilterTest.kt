@@ -1,6 +1,8 @@
 package ai.storyfork.content.auth
 
 import ai.storyfork.content.auth.client.CoreAuthClient
+import ai.storyfork.content.auth.client.dto.NicknamesPayload
+import ai.storyfork.content.auth.client.dto.NicknamesResponse
 import ai.storyfork.content.auth.config.ContentAuthenticationFilter
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
 import jakarta.servlet.FilterChain
@@ -34,6 +36,7 @@ class ContentAuthenticationFilterTest {
                     calls++
                     throw HttpClientErrorException(HttpStatus.UNAUTHORIZED)
                 }
+                override fun nicknames(request: NicknamesPayload): NicknamesResponse = throw UnsupportedOperationException("verify only")
             }
             try {
                 ContentAuthenticationFilter(CoreAuthVerificationService(client), JsonMapper.builder().build())

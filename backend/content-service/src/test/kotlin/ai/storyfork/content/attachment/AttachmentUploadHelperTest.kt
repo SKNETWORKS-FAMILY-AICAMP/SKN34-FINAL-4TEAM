@@ -13,6 +13,13 @@ class AttachmentUploadHelperTest {
     private fun request(name: String, type: String?, bytes: ByteArray) = MockMultipartFile("file", name, type, bytes)
     private fun png(width: Int = 2) = ByteArrayOutputStream().also { ImageIO.write(BufferedImage(width, 2, BufferedImage.TYPE_INT_RGB), "png", it) }.toByteArray()
 
+    @Test fun `filename rule is shared by upload and rename`() {
+        for (name in listOf("map.png", "메모 (1).txt", "a_b-c.pdf", "x".repeat(116) + ".png")) assertTrue(AttachmentUploadHelper.validFilename(name), name)
+        for (name in listOf("", " a.png", "a.png ", ".a.png", "a..png", "a/b.png", "a\\b.png", "a\r\nb.png", "a\u202Eb.png", "a:b.png", "x".repeat(117) + ".png")) {
+            assertFalse(AttachmentUploadHelper.validFilename(name), name)
+        }
+    }
+
     @Test fun `missing file is rejected as invalid`() {
         assertEquals(422, assertThrows(AttachmentFailure::class.java) { AttachmentUploadHelper.validate(null) }.status)
     }

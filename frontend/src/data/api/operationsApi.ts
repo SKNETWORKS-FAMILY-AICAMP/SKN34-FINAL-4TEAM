@@ -2,10 +2,14 @@ import { z } from 'zod'
 
 import type { AdminAccount, AdminInput, MemberItem, MemberQuery } from '../../domain/entities/member'
 import { OperationsError } from '../../domain/entities/operations'
+import type { OperationsWork } from '../../domain/entities/operationsWork'
 import type { Report, ReportInput, ReportStatus, ReviewDecision } from '../../domain/entities/report'
+import type { SupportInquiry, SupportInquiryInput, SupportInquiryStatus } from '../../domain/entities/supportInquiry'
 import type { MemberRepository } from '../../domain/repositories/MemberRepository'
+import type { OperationsWorkRepository } from '../../domain/repositories/OperationsWorkRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import type { ReportRepository } from '../../domain/repositories/ReportRepository'
+import type { SupportInquiryRepository } from '../../domain/repositories/SupportInquiryRepository'
 import { authVersion, protectedRequest } from './auth'
 
 const instant = z.string().datetime({ offset: true })
@@ -17,6 +21,16 @@ const report = z.object({
 })
 const member = z.object({ id: z.string(), email: z.string(), nickname: z.string(), role: z.enum(['MEMBER', 'ADMIN']), restricted: z.boolean(), createdAt: instant })
 const admin = member.extend({ permissions: z.array(z.string()) })
+const operationsWork = z.object({
+  workId: z.string(), ownerId: z.string(), title: z.string(), authorName: z.string(),
+  originKind: z.enum(['original', 'fork']), creationType: z.enum(['original', 'external_derivative']),
+  rightsConfirmed: z.boolean(), visibility: z.enum(['public', 'private']), restricted: z.boolean(),
+})
+const supportReply = z.object({ id: z.string(), body: z.string(), createdAt: instant, updatedAt: instant })
+const supportInquiry = z.object({
+  id: z.string(), memberId: z.string(), category: z.string(), title: z.string(), body: z.string(), status: z.enum(['WAITING', 'ANSWERED']),
+  createdAt: instant, updatedAt: instant, replies: z.array(supportReply),
+})
 const items = <T extends z.ZodType>(item: T) => z.object({ items: z.array(item) }).transform((v) => v.items)
 
 const MESSAGES: Record<number, string> = {
@@ -31,7 +45,7 @@ const MESSAGES: Record<number, string> = {
  * 운영 공개 API(/api/v1/operations) 공통 요청. 운영 서비스는 회원 Bearer만 확인하는 stateless API라 CSRF를 보내지 않습니다.
  * 실패 상태는 성공으로 숨기지 않고 화면에 보일 OperationsError로 바꿉니다.
  */
-async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES) {
+export async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES) {
   const init: RequestInit = { method, signal: AbortSignal.timeout(15000), headers: body === undefined ? {} : { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }
   let response: Response
   try {
@@ -43,7 +57,7 @@ async function send(fetcher: typeof fetch | undefined, path: string, method = 'G
   if (!response.ok) throw new OperationsError(messages[response.status] ?? '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
   return response
 }
-async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>): Promise<T> {
+export async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>): Promise<T> {
   const parsed = schema.safeParse(await (await send(fetcher, path)).json().catch(() => undefined))
   if (!parsed.success) throw new OperationsError('서버 응답 형식을 확인할 수 없어요.')
   return parsed.data
@@ -74,4 +88,28 @@ export class HttpMemberRepository implements MemberRepository {
   async setRestriction(memberId: string, restricted: boolean) { await send(this.fetcher, `/members/${id(memberId)}/restriction`, restricted ? 'PUT' : 'DELETE') }
   listAdmins(): Promise<AdminAccount[]> { return read(this.fetcher, '/admins', items(admin)) }
   async createAdmin(input: AdminInput) { await send(this.fetcher, '/admins', 'POST', input, { ...MESSAGES, 409: '이미 등록된 이메일이에요.' }) }
+}
+
+/** 운영 작품(74): 목록은 Content의 전체 작품이고, 제한·해제 응답(ContentWork)은 쓰지 않고 화면이 목록을 다시 조회합니다. */
+export class HttpOperationsWorkRepository implements OperationsWorkRepository {
+  private readonly fetcher?: typeof fetch
+  constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
+
+  list(): Promise<OperationsWork[]> { return read(this.fetcher, '/works', items(operationsWork)) }
+  async setRestriction(workId: string, restricted: boolean) { await send(this.fetcher, `/works/${id(workId)}/restriction`, restricted ? 'PUT' : 'DELETE') }
+}
+
+/** 고객지원 문의(67): 변경 응답의 SupportInquiry는 쓰지 않고, 화면이 목록·상세를 다시 조회합니다. */
+export class HttpSupportInquiryRepository implements SupportInquiryRepository {
+  private readonly fetcher?: typeof fetch
+  constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
+  private async send(path: string, method: string, body?: unknown) { await send(this.fetcher, path, method, body) }
+
+  listMine(): Promise<SupportInquiry[]> { return read(this.fetcher, '/support/inquiries/mine', items(supportInquiry)) }
+  create(input: SupportInquiryInput) { return this.send('/support/inquiries', 'POST', input) }
+  listAll(status: SupportInquiryStatus | null): Promise<SupportInquiry[]> { return read(this.fetcher, '/support/inquiries' + (status ? `?status=${status}` : ''), items(supportInquiry)) }
+  get(inquiryId: string): Promise<SupportInquiry> { return read(this.fetcher, `/support/inquiries/${id(inquiryId)}`, supportInquiry) }
+  addReply(inquiryId: string, body: string) { return this.send(`/support/inquiries/${id(inquiryId)}/replies`, 'POST', { body }) }
+  updateReply(inquiryId: string, replyId: string, body: string) { return this.send(`/support/inquiries/${id(inquiryId)}/replies/${id(replyId)}`, 'PUT', { body }) }
+  deleteReply(inquiryId: string, replyId: string) { return this.send(`/support/inquiries/${id(inquiryId)}/replies/${id(replyId)}`, 'DELETE') }
 }

@@ -8,7 +8,7 @@ import { csrf } from '../api/csrf'
 import { mapReadingWork } from './readingWork'
 
 const draft = z.object({title:z.string(),body:z.string(),revision:z.number().int().nonnegative()})
-const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string()})
+const writing = z.object({hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string(),checkpoints:z.array(z.object({versionId:z.string(),publishedAt:z.string(),active:z.boolean()}))})
 const episode = z.object({number:z.number().int().positive(),version:z.number().int().positive(),versionId:z.string().optional(),title:z.string(),body:z.string(),inherited:z.boolean()})
 const source = z.object({workId:z.string(),title:z.string(),episode:z.number().int(),version:z.number().int(),direction:z.string()})
 const work = z.object({creationType:z.enum(['ORIGINAL','EXTERNAL_DERIVATIVE']).optional(),genres:z.array(z.string()).optional(),hashtags:z.array(z.string()).optional(),hasWritingEpisode:z.boolean().optional(),id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft})
@@ -23,6 +23,8 @@ const readingWork = work.omit({draft:true}).extend({
   forkableEpisodes:z.array(z.number().int().positive()),episodes:z.array(episode.extend({versionId:z.string()})),
   /** 최근 24시간 조회 수(서버 값). 공개 목록·검색·랭킹 응답에서만 채워지고 그 밖에는 0이다. */
   views:z.number().int().nonnegative(),
+  /** 공개 좋아요 수(서버 값). 공개 목록·검색·랭킹 응답에서만 채워지고 소유자 응답에서는 0이다. */
+  likes:z.number().int().nonnegative(),
 })
 const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.string(),name:z.string(),body:z.string(),
   aliases:z.array(z.string()),tags:z.array(z.string()),properties:z.array(z.object({name:z.string(),value:z.string()})),
@@ -36,7 +38,8 @@ export type ReadingWorldRecord = z.infer<typeof readingWorld>
 export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepository {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
-  private async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
+  /** anonymous면 Bearer 없이 보낸다. 기본은 공개 목록·세계관 같은 /public/works 읽기이고, 회차 댓글은 로그인 상태면 Bearer로 읽어 mine·liked를 받는다. */
+  async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal, anonymous = path.startsWith('/public/works') && method === 'GET'): Promise<T> {
     const fetcher = this.fetcher ?? fetch
     const version = authVersion()
     const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(80000)]) : AbortSignal.timeout(80000)
@@ -45,7 +48,7 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     const init = {method, headers, credentials: 'same-origin' as const, body:body === undefined ? undefined : JSON.stringify(body), signal:requestSignal}
     let response: Response
     try {
-      response = path.startsWith('/public/works') && method === 'GET'
+      response = anonymous
         ? await fetcher('/api/v1' + path, init)
         : await protectedRequest('/api/v1' + path, init, version, false, { fetcher, allowHttpError: true })
     } catch (error) {

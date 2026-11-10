@@ -5,5 +5,4 @@ import org.springframework.data.jpa.repository.*
 
 interface ForkRepository : JpaRepository<ForkEntity, String> {
     fun findAllByOwnerIdAndSourceWorkId(ownerId: String, sourceWorkId: String): List<ForkEntity>
-    fun findAllBySourceWorkId(sourceWorkId: String): List<ForkEntity>
 }

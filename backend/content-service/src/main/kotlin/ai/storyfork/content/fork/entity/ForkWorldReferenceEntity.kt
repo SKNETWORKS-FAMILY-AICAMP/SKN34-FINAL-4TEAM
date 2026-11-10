@@ -9,7 +9,7 @@ class ForkWorldReferenceEntity(
     @field:Id @field:Column(name = "fork_work_id")
     var forkWorkId: String = "",
     @field:Column(name = "source_world_id")
-    var sourceWorldId: String? = null,
+    var sourceWorldId: String = "",
     @field:Column(name = "reference_status")
     var referenceStatus: String = "",
     @field:Column(name = "last_followed_checkpoint_id")

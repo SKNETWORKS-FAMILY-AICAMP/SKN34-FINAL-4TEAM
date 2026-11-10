@@ -27,6 +27,7 @@ class EpisodeService(
     @Qualifier("contentEntityManager") private val em: EntityManager,
     private val forks: ai.storyfork.content.fork.repository.ForkRepository,
     private val checkpointEpisodes: CheckpointEpisodeRepository,
+    private val publicationEvents: ai.storyfork.content.publication.repository.PublicationEventRepository,
 ) {
 
     fun list(id: String, owner: String): EpisodeListResponse {
@@ -117,13 +118,10 @@ class EpisodeService(
         if(number<1 || image.episodeNo!=number) return false
         if(image.workId==work) return true
         val fork=forks.findById(work).orElse(null) ?: return false
-        // 원작이 삭제된 Fork는 원작 이미지를 상속하지 않는다.
-        val sourceWork=fork.sourceWorkId ?: return false
-        val sourceCheckpoint=fork.sourceCheckpointId ?: return false
-        if(image.workId!=sourceWork) return false
-        val source=episodes.findByWorkIdAndSequence(sourceWork,number) ?: return false
-        val pinned=checkpointEpisodes.findById(ai.storyfork.content.episode_version.entity.CheckpointEpisodeEntity.Key(sourceCheckpoint,source.id)).orElse(null) ?: return false
-        if(pinned.sourceWorkId!=sourceWork) return false
+        if(image.workId!=fork.sourceWorkId) return false
+        val source=episodes.findByWorkIdAndSequence(fork.sourceWorkId,number) ?: return false
+        val pinned=checkpointEpisodes.findById(ai.storyfork.content.episode_version.entity.CheckpointEpisodeEntity.Key(fork.sourceCheckpointId,source.id)).orElse(null) ?: return false
+        if(pinned.sourceWorkId!=fork.sourceWorkId) return false
         val version=versions.findById(pinned.episodeVersionId).orElse(null) ?: return false
         return version.episodeId==source.id && "[[image:${image.id}]]" in version.content
     }
@@ -147,13 +145,18 @@ class EpisodeService(
         val saved=versions.findAllByEpisodeIdInOrderByCreatedAtAscIdAsc(rows.map {it.id}).filter {it.isSaved}.groupBy {it.episodeId}
         val entities=episodes.findAllById(rows.map {it.id}).associateBy {it.id}
         val published=versions.findAllById(rows.mapNotNull {it.publishedVersionId}).associateBy {it.id}
+        // DEC-43: 체크포인트는 저장 버전의 발행(publish·applied) 기록이다. 되돌리기는 같은 버전을 다시 발행하므로 버전당 최초 발행 한 건만 센다.
+        val savedList=saved.values.flatten();val versionById=savedList.associateBy {it.id}
+        val checkpointLog=publicationEvents.findAllByEpisodeVersionIdInOrderByOccurredAtAscIdAsc(savedList.map {it.id})
+            .filter {it.action=="publish" && it.outcome=="applied"}.distinctBy {it.episodeVersionId}.groupBy {versionById.getValue(it.episodeVersionId).episodeId}
         return rows.mapNotNull { row ->
             val draft=draftById[row.id];val p=published[row.publishedVersionId]
             val floor=entities[row.id]?.draftRevisionFloor ?: -1
             if(draft==null && p==null && saved[row.id].isNullOrEmpty() && floor<0) null else EpisodeResponse(row.sequence,
                 DraftResponse(draft?.title ?: p?.title ?: saved[row.id]?.lastOrNull()?.title ?: "새 회차",draft?.content ?: if(floor<0) p?.content.orEmpty() else "",draft?.editRevision ?: maxOf(0,floor)),
                 saved[row.id].orEmpty().map { VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,row.sequence,it.createdAt.toString()) },
-                p?.contentVersionId,row.inherited,draft?.updatedAt?.toString(),hasDraft=draft!=null)
+                p?.contentVersionId,row.inherited,draft?.updatedAt?.toString(),hasDraft=draft!=null,
+                checkpoints=checkpointLog[row.id].orEmpty().map { EpisodeCheckpointResponse(versionById.getValue(it.episodeVersionId).contentVersionId,it.occurredAt.toString(),it.episodeVersionId==row.publishedVersionId) })
         }
     }
     private fun missing(): Nothing = throw ContentFailure(404,"회차를 찾을 수 없어요.")

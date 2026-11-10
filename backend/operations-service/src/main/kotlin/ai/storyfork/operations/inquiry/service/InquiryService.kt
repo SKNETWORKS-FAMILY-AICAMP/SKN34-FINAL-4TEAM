@@ -57,7 +57,7 @@ class InquiryService(
     }
 
     fun createReply(inquiryId: UUID, request: InquiryReplyRequest): InquiryReplyResponse {
-        validateBody(request.body)
+        validateInquiryBody(request.body)
         requireParent(inquiryId)
         return replies.saveAndFlush(InquiryReplyEntity(inquiryId = inquiryId, body = request.body)).response()
     }
@@ -73,7 +73,7 @@ class InquiryService(
     fun readReply(inquiryId: UUID, replyId: UUID): InquiryReplyResponse = reply(inquiryId, replyId).response()
 
     fun updateReply(inquiryId: UUID, replyId: UUID, request: InquiryReplyRequest): InquiryReplyResponse {
-        validateBody(request.body)
+        validateInquiryBody(request.body)
         val row = reply(inquiryId, replyId)
         row.body = request.body
         row.updatedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
@@ -99,18 +99,20 @@ class InquiryService(
     private fun bounded(pageable: Pageable, direction: Sort.Direction): Pageable =
         PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.by(direction, "createdAt", "id"))
 
-    // Length is @Size on the request DTOs. Blank is re-checked because @NotBlank (String.isBlank) accepts U+00A0, U+2007 and U+202F;
-    // PostgreSQL text cannot hold U+0000.
-    private fun validate(request: InquiryRequest) {
-        require(request.title.isNotBlank() && '\u0000' !in request.title) { "Invalid inquiry title." }
-        require(request.category.isNotBlank() && '\u0000' !in request.category) { "Invalid inquiry category." }
-        validateBody(request.body)
-    }
-
-    private fun validateBody(body: String) {
-        require(body.isNotBlank() && '\u0000' !in body) { "Invalid body." }
-    }
+    private fun validate(request: InquiryRequest) = validateInquiryFields(request.title, request.category, request.body)
 
     private fun InquiryEntity.response() = InquiryResponse(id, title, body, category, createdAt, updatedAt)
     private fun InquiryReplyEntity.response() = InquiryReplyResponse(id, inquiryId, body, createdAt, updatedAt)
+}
+
+// Length is @Size on the request DTOs (inquiry and support alike). Blank is re-checked because @NotBlank accepts U+00A0, U+2007 and
+// U+202F; PostgreSQL text cannot hold U+0000. Shared with [SupportInquiryService] so both entry points apply the same rule.
+internal fun validateInquiryFields(title: String, category: String, body: String) {
+    require(title.isNotBlank() && '\u0000' !in title) { "Invalid inquiry title." }
+    require(category.isNotBlank() && '\u0000' !in category) { "Invalid inquiry category." }
+    validateInquiryBody(body)
+}
+
+internal fun validateInquiryBody(body: String) {
+    require(body.isNotBlank() && '\u0000' !in body) { "Invalid body." }
 }

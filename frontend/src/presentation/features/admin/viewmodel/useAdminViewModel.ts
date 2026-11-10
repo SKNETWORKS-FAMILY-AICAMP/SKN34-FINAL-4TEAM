@@ -5,13 +5,19 @@ import { useLogout } from '../../../shared/session/useLogout'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector, type RootState } from '../../../../app/store'
 import type { AdminTab } from '../../../../domain/entities/admin'
-import { toUtcFromKoreanInput, type InquiryInput, type NoticeInput } from '../../../../domain/entities/operations'
-import { type AdminResult, type AdminUseCase, canToggleWork } from '../../../../domain/usecases/AdminUseCase'
+import { eventStatus, type EventPeriod } from '../../../../domain/entities/event'
+import { toUtcFromKoreanInput, type NoticeInput } from '../../../../domain/entities/operations'
+import type { AdminResult, AdminUseCase } from '../../../../domain/usecases/AdminUseCase'
+import type { EventUseCase } from '../../../../domain/usecases/EventUseCase'
+import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
 import type { OperationsUseCase } from '../../../../domain/usecases/OperationsUseCase'
+import type { OperationsWorkUseCase } from '../../../../domain/usecases/OperationsWorkUseCase'
 import type { AdminInput, MemberQuery } from '../../../../domain/entities/member'
 import { REPORT_STATUSES, type ReviewDecision } from '../../../../domain/entities/report'
+import { SUPPORT_STATUSES } from '../../../../domain/entities/supportInquiry'
 import type { MemberUseCase } from '../../../../domain/usecases/MemberUseCase'
 import type { ReportUseCase } from '../../../../domain/usecases/ReportUseCase'
+import type { SupportInquiryUseCase } from '../../../../domain/usecases/SupportInquiryUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -22,19 +28,21 @@ import { adminViewActions, type AdminChatForm, type AdminFilter, type EventDraft
 /** 목업 adminExtra()·adminLegacy()의 baseId */
 const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', profile: 'A15' }
 export type AdminActionState = ActionState
-const demoSaved = (name: string) => ({ ok: true, msg: `${name} 저장했어요 (독립 운영 데모 · 서버 저장 없음)` })
-const demoDeleted = (name: string) => ({ ok: true, msg: `${name} 삭제했어요 (독립 운영 데모 · 서버 삭제 없음)` })
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'rights', 'profile']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'rights', 'feedback', 'profile', 'notices', 'events']
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
 
-/** 기존 회원/제보 데모와 독립 운영 CRUD를 함께 보여 주되 정본과 조치를 섞지 않습니다. */
+/** 기존 제보 데모와 실제 운영 API(회원·신고·작품·고객지원 문의·공지·이벤트)를 함께 보여 주되 정본과 조치를 섞지 않습니다. */
 export function useAdminViewModel(
   tab: AdminTab,
   adminUseCase: AdminUseCase = appContainer.resolve('adminUseCase'),
   operationsUseCase: OperationsUseCase = appContainer.resolve('operationsUseCase'),
   memberUseCase: MemberUseCase = appContainer.resolve('memberUseCase'),
   reportUseCase: ReportUseCase = appContainer.resolve('reportUseCase'),
+  noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'),
+  supportInquiryUseCase: SupportInquiryUseCase = appContainer.resolve('supportInquiryUseCase'),
+  eventUseCase: EventUseCase = appContainer.resolve('eventUseCase'),
+  operationsWorkUseCase: OperationsWorkUseCase = appContainer.resolve('operationsWorkUseCase'),
 ) {
   const dispatch = useAppDispatch()
   const store = useStore<RootState>()
@@ -57,11 +65,20 @@ export function useAdminViewModel(
   const live = useAsyncData(async () => ({
     members: tab === 'users' ? await memberUseCase.listMembers({ role, q, sort }) : [],
     admins: tab === 'admins' ? await memberUseCase.listAdmins() : [],
+    // 작품 탭은 전체 목록을 한 번에 받고 필터·검색·정렬은 화면이 합니다.
+    works: tab === 'works' ? await operationsWorkUseCase.list() : [],
     // 개요의 '접수된 신고' 수도 실제 신고 목록에서 셉니다.
     reports: tab === 'rights' ? await reportUseCase.listAll(status) : tab === 'data' ? await reportUseCase.listAll('RECEIVED') : [],
-  }), [tab, role, q, sort, status, memberUseCase, reportUseCase])
+    notices: tab === 'notices' ? await noticeUseCase.list() : [],
+    events: tab === 'events' ? await eventUseCase.listAdmin() : [],
+  }), [tab, role, q, sort, status, memberUseCase, reportUseCase, noticeUseCase, eventUseCase, operationsWorkUseCase])
   const reportId = tab === 'rights' ? sel : null
   const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
+  // 고객지원 문의(67): 제보·문의 탭은 상태 필터 목록과 선택한 문의 상세를, 개요는 답변 대기 수만 서버에서 읽습니다.
+  const inquiryStatus = SUPPORT_STATUSES.find(([s]) => s === filter?.category)?.[0] ?? null
+  const inquiries = useAsyncData(async () => tab === 'feedback' ? supportInquiryUseCase.listAll(inquiryStatus) : tab === 'data' ? supportInquiryUseCase.listAll('WAITING') : [], [tab, inquiryStatus, supportInquiryUseCase])
+  const inquiryId = tab === 'feedback' ? view.recordSelection.inquiries : null
+  const inquiry = useAsyncData(async () => inquiryId ? supportInquiryUseCase.get(inquiryId) : null, [inquiryId, supportInquiryUseCase])
   // mounted는 화면을 떠난 뒤 끝난 조치가 다른 화면에 알림을 띄우거나 Redux 초안·선택을 정리하지 않게 하는 데만 씁니다.
   const mounted = useRef(true)
   const [lastSuccess, setLastSuccess] = useState('')
@@ -100,18 +117,23 @@ export function useAdminViewModel(
   }
   return {
     ...query, ...view, actions, lastSuccess,
-    /** 개요의 '답변 대기 문의': 운영 패널(메모리) 문의 중 답변이 하나도 없는 건수. 회원 문의는 세지 않습니다. */
-    unansweredInquiries: query.data?.operations.inquiries.filter((q) => !q.replies.length).length ?? 0,
     /** 본인 계정 조치 버튼을 막는 화면용 값. 서버도 본인 제한을 400으로 거절합니다. */
     selfId: memberId,
     me,
+    /** 이벤트 기간으로 계산한, 지금 시각 기준 진행 상태(브라우저 시계). */
+    eventStatusNow: (event: EventPeriod) => eventStatus(event, new Date()),
     live: {
-      ...live, report,
+      ...live, report, inquiries, inquiry,
       setMemberRestriction: (id: string, restricted: boolean) => runLive(`member:${id}`, restricted ? '회원 이용을 제한했어요.' : '회원 이용 제한을 해제했어요.', () => memberUseCase.setRestriction(id, restricted)),
       createAdmin: (input: AdminInput) => runLive('admin:new', '관리자 계정을 만들고 권한을 저장했어요.', () => memberUseCase.createAdmin(input)),
+      setWorkRestriction: (id: string, restricted: boolean) => runLive(`work:${id}`, restricted ? '작품을 운영 제한했어요.' : '작품 운영 제한을 해제했어요.', () => operationsWorkUseCase.setRestriction(id, restricted)),
       review: (id: string, decision: ReviewDecision, note: string) => runLive(`report:${id}:review`, '검토 결과를 기록했어요.', () => reportUseCase.review(id, decision, note)),
       setContentRestriction: (id: string, restricted: boolean) => runLive(`report:${id}:restrict`, restricted ? '대상 작품을 제한했어요.' : '대상 작품 제한을 해제했어요.', () => reportUseCase.setContentRestriction(id, restricted)),
       requestEvidence: (id: string, body: string) => runLive(`report:${id}:evidence`, '작품 등록자에게 권리 증빙을 요청했어요.', () => reportUseCase.requestEvidence(id, body)),
+      // 답변 수정·삭제는 같은 키를 써서 한 답변에 동시에 두 요청이 나가지 않게 합니다.
+      addReply: (id: string, body: string) => runLive(`inquiry:${id}:reply`, '답변을 등록했어요.', () => supportInquiryUseCase.addReply(id, body)),
+      updateReply: (id: string, replyId: string, body: string) => runLive(`inquiry:${id}:reply:${replyId}`, '답변을 수정했어요.', () => supportInquiryUseCase.updateReply(id, replyId, body)),
+      deleteReply: (id: string, replyId: string) => runLive(`inquiry:${id}:reply:${replyId}`, '답변을 삭제했어요.', () => supportInquiryUseCase.deleteReply(id, replyId)),
     },
     mutationsBlocked,
     setSel: (id: string) => { dispatch(adminViewActions.select(id)) },
@@ -120,63 +142,32 @@ export function useAdminViewModel(
     selectRecord,
     setNoticeDraft: (id: string, value: NoticeInput) => { dispatch(adminViewActions.setNoticeDraft({ id, value })) },
     setEventDraft: (id: string, value: EventDraft) => { dispatch(adminViewActions.setEventDraft({ id, value })) },
-    setInquiryDraft: (id: string, value: InquiryInput) => { dispatch(adminViewActions.setInquiryDraft({ id, value })) },
-    setReplyDraft: (id: string, value: string) => { dispatch(adminViewActions.setReplyDraft({ id, value })) },
     // 성공·dataChanged는 유지하되 UI 정리는 살아 있는 폼의 제출 초안·선택에만 적용합니다.
     saveNotice: (id: string | null, input: NoticeInput) => run(`notice:${id ?? 'new'}`, async () => {
       const key = id ?? 'new', untouched = watchForm('notices', key, (s) => s.noticeDrafts[key])
-      const row = await operationsUseCase.saveNotice(id, input)
+      const row = await noticeUseCase.save(id, input)
       if (untouched()) { dispatch(adminViewActions.clearNoticeDraft(key)); selectRecord('notices', row.id) }
-      return demoSaved('공지를')
+      return { ok: true, msg: '공지를 저장했어요. 회원 공지사항에 바로 공개돼요.' }
     }),
     deleteNotice: (id: string) => run(`notice:${id}`, async () => {
       const untouched = watchForm('notices', id, (s) => s.noticeDrafts[id])
-      await operationsUseCase.deleteNotice(id)
+      await noticeUseCase.delete(id)
       if (untouched()) { dispatch(adminViewActions.clearNoticeDraft(id)); selectRecord('notices', null) }
-      return demoDeleted('공지를')
+      return { ok: true, msg: '공지를 삭제했어요. 회원 공지사항에서도 사라져요.' }
     }),
     saveEvent: (id: string | null, input: EventDraft) => run(`event:${id ?? 'new'}`, async () => {
       const key = id ?? 'new', untouched = watchForm('events', key, (s) => s.eventDrafts[key])
-      const row = await operationsUseCase.saveEvent(id, { title: input.title, body: input.body, startsAt: toUtcFromKoreanInput(input.startsAt), endsAt: toUtcFromKoreanInput(input.endsAt) })
+      const row = await eventUseCase.save(id, { title: input.title, body: input.body, startsAt: toUtcFromKoreanInput(input.startsAt), endsAt: toUtcFromKoreanInput(input.endsAt) })
       if (untouched()) { dispatch(adminViewActions.clearEventDraft(key)); selectRecord('events', row.id) }
-      return demoSaved('이벤트를')
+      return { ok: true, msg: id ? '이벤트를 수정했어요.' : '이벤트를 등록했어요.' }
     }),
     deleteEvent: (id: string) => run(`event:${id}`, async () => {
       const untouched = watchForm('events', id, (s) => s.eventDrafts[id])
-      await operationsUseCase.deleteEvent(id)
+      await eventUseCase.remove(id)
       if (untouched()) { dispatch(adminViewActions.clearEventDraft(id)); selectRecord('events', null) }
-      return demoDeleted('이벤트를')
-    }),
-    saveInquiry: (id: string | null, input: InquiryInput) => run(`inquiry:${id ?? 'new'}`, async () => {
-      const key = id ?? 'new', untouched = watchForm('inquiries', key, (s) => s.inquiryDrafts[key])
-      const row = await operationsUseCase.saveInquiry(id, input)
-      if (untouched()) { dispatch(adminViewActions.clearInquiryDraft(key)); selectRecord('inquiries', row.id) }
-      return demoSaved('문의를')
-    }),
-    deleteInquiry: (id: string) => run(`inquiry:${id}`, async () => {
-      const replyDrafts = store.getState().adminView.replyDrafts, untouched = watchForm('inquiries', id, (s) => s.inquiryDrafts[id])
-      await operationsUseCase.deleteInquiry(id)
-      // 문의에 딸린 답변 초안도 요청 중에 새로 쓰거나 고치지 않았을 때만 함께 정리합니다.
-      if (untouched() && Object.entries(store.getState().adminView.replyDrafts).every(([key, body]) => !key.startsWith(id + ':') || body === replyDrafts[key])) {
-        dispatch(adminViewActions.clearInquiryDraft(id)); dispatch(adminViewActions.clearInquiryReplies(id)); selectRecord('inquiries', null)
-      }
-      return demoDeleted('문의를')
-    }),
-    saveReply: (inquiryId: string, id: string | null, body: string) => run(`reply:${inquiryId}:${id ?? 'new'}`, async () => {
-      const key = `${inquiryId}:${id ?? 'new'}`, untouched = watchForm('inquiries', inquiryId, (s) => s.replyDrafts[key])
-      await operationsUseCase.saveReply(inquiryId, id, body)
-      if (untouched()) dispatch(adminViewActions.clearReplyDraft(key))
-      return demoSaved('답변을')
-    }),
-    deleteReply: (inquiryId: string, id: string) => run(`reply:${inquiryId}:${id}`, async () => {
-      const key = `${inquiryId}:${id}`, untouched = watchForm('inquiries', inquiryId, (s) => s.replyDrafts[key])
-      await operationsUseCase.deleteReply(inquiryId, id)
-      if (untouched()) dispatch(adminViewActions.clearReplyDraft(key))
-      return demoDeleted('답변을')
+      return { ok: true, msg: '이벤트를 삭제했어요.' }
     }),
     chatChoices: adminUseCase.chatChoices.bind(adminUseCase),
-    canToggleWork,
-    toggleWork: (id: string) => run(`work:${id}`, () => adminUseCase.toggleWork(id)),
     toggleComment: (id: string, label: string) => run(`comment:${id}`, () => adminUseCase.toggleComment(id, label)),
     toggleChat: (id: string) => run(`chat:${id}`, () => adminUseCase.toggleChat(id)),
     addChat: (workId: string, character: string) => run('chat:new', () => adminUseCase.addChat(workId, character)),

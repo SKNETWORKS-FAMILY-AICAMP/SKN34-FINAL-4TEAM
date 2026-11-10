@@ -11,7 +11,7 @@
 - **업무별 권한**: 운영 서비스 `operations.admin_permission(member_id, permission)`에 저장한다. 권한 키는 프런트
   `ADMIN_PERMISSIONS`와 같은 `works, users, comments, characterChats, feedback, rights, events, notices, llm, jobs, credits, admins`다.
   샘플 관리자는 모든 권한을 시드한다. 회원·관리자·신고 운영 API는 `operator=true`이면서 해당 권한(`users`·`admins`·`rights`)이 있어야 한다.
-- **인증**: 브라우저는 `/api/v1/operations/{reports,members,admins}`에 기존 회원 Bearer를 보낸다. 운영 서비스는 Content와 같이
+- **인증**: 브라우저는 `/api/v1/operations/{reports,members,admins}`에 기존 회원 Bearer를 보낸다(고객지원 문의 `support`는 [별도 계약](operations-support-inquiry-contract.md), 공지 관리 `admin/notices`·공개 `public/notices`는 [운영 공지 계약](operations-notice-contract.md), 이벤트 관리 `admin/events`·공개 `public/events`는 [운영 이벤트 계약](operations-event-contract.md), 작품 관리 `works`는 [운영 작품 조회 계약](operations-work-contract.md)). 운영 서비스는 Content와 같이
   Core `POST /internal/v1/auth/verify`로 확인한다. 기존 공지·이벤트·문의 서비스 토큰 API와 nginx 비노출은 유지한다.
 - **서비스 간 자격**: 운영 → Core·Content 호출은 기존 `OPERATIONS_SERVICE_TOKEN` 값을 `X-Operations-Service-Token` 헤더로 보낸다.
   Core·Content는 같은 환경변수(32자 이상)와 상수 시간 비교로 확인한다. 새 비밀 값을 추가하지 않는다.
@@ -52,6 +52,8 @@
 | `PUT /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=true`) |
 | `DELETE /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=false`) |
 
+`ownerId`는 Content `work.owner_id`(varchar) 문자열이라 UUID가 아닐 수 있고, 운영은 신고 접수에서만 UUID로 변환하며 비 UUID 소유자 작품 신고는 저장 없이 409다(제한·해제는 `ownerId`를 쓰지 않아 영향 없음).
+
 ## 운영 공개 API (브라우저, 회원 Bearer)
 
 기본 경로 `/api/v1/operations`. 오류는 기존 `{ code, message }`이며 401(인증 없음)·403(권한 없음)·404·400·502다.
@@ -90,5 +92,5 @@ ponytail: Core 생성 성공 후 권한 저장이 실패하면 권한 없는 관
 ## 실행 연결
 
 - `operations-service`를 compose에 추가하고 `--server.address=0.0.0.0`으로 컨테이너 네트워크에서만 노출한다.
-- nginx·Vite는 `/api/v1/operations/reports`·`/members`·`/admins`와 하위 경로만 `operations-service:8082`로 보낸다.
+- nginx·Vite는 `/api/v1/operations/reports`·`/members`·`/admins`(고객지원 문의 `/support`도 같은 방식)와 하위 경로만 `operations-service:8082`로 보낸다.
 - 운영 서비스 설정: `OPERATIONS_CORE_BASE_URL`(기본 `http://127.0.0.1:8080`), `OPERATIONS_CONTENT_BASE_URL`(기본 `http://127.0.0.1:8081`).

@@ -1,11 +1,10 @@
-/** 목업 S.admin의 운영 데모 상태와 공지(NOTICE)·이벤트(EVENTS). 브라우저 메모리에만 있습니다. */
+/** 목업 S.admin의 운영 데모 상태와 이벤트(EVENTS). 브라우저 메모리에만 있습니다. 공지는 운영 공지 API(NoticeRepository)가 맡습니다. */
 type AdminUser = { id: string; nick: string; email: string; role: string; status: string; joined: string }
 type AdminJob = { id: string; name: string; status: string; last: string }
 type AdminAccount = { id: string; nick: string; email: string; permissions: string[]; created: string }
 type AuditEntry = { at: string; actor: string; action: string; detail: string }
 type Flagged = { id: string; title: string; owner: string; kind: string; rights: string; fork: string; reports: number; state: string; log: string[] }
 export type AdminComment = { id: string; work: string; workId: string; author: string; text: string; likes: number; status: string }
-type Notice = [date: string, title: string, body: string]
 type EventItem = { t: string; p: string; st: string; d: string; go: string; cta: string }
 
 export type AdminState = {
@@ -17,7 +16,6 @@ export type AdminState = {
   flagged: Flagged
   /** 댓글 관리에서 숨긴 댓글 id (목업 A.comments[].status) */
   hiddenComments: string[]
-  notices: Notice[]
   events: EventItem[]
 }
 
@@ -34,5 +32,3 @@ export function adminReturnPath(search: string): string {
   const query = new URLSearchParams(search)
   return query.has('tab') ? `/admin?tab=${adminTab(query.get('tab'))}` : '/admin'
 }
-
-export const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date()).replaceAll('-', '.')

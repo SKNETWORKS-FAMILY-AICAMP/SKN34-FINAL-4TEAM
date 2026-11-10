@@ -1,5 +1,7 @@
 package ai.storyfork.content.regression
 
+import ai.storyfork.content.auth.service.CoreNicknameService
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import ai.storyfork.content.fixture.*
 import ai.storyfork.content.fixture.model.ContentFailure
 import ai.storyfork.content.fixture.ContentTestDriver
@@ -15,6 +17,8 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource
 @org.springframework.context.annotation.Import(ai.storyfork.content.fixture.ContentTestConfig::class)
 @SpringBootTest(properties=["DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=content_test","DATABASE_PASSWORD="])
 class WritingPostgresTest {
+    // 작가명·작성자명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다.
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var service: ContentTestDriver
     private val jdbc get() = JdbcTemplate(DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test",""))
 
@@ -44,6 +48,28 @@ class WritingPostgresTest {
         assertEquals(404,assertThrows(ContentFailure::class.java) { service.writing(w.id,"other",1) }.status)
         assertEquals(404,assertThrows(ContentFailure::class.java) { service.createEpisode(w.id,"other",CreateWorkRequest("침입")) }.status)
         assertEquals(409,assertThrows(ContentFailure::class.java) { service.publishEpisode(w.id,"writer",2,PublishRequest(second.draft.revision,true,versionId=version.id)) }.status)
+    }
+
+    @Test fun `a checkpoint is a published version so saving makes none and reverting reactivates an earlier one without erasing history`() {
+        val w=service.create("writer",CreateWorkRequest("체크포인트 검증"))
+        fun applied()=jdbc.queryForObject("SELECT count(*) FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id JOIN episode e ON e.id=v.episode_id WHERE e.work_id=? AND p.action='publish' AND p.outcome='applied'",Int::class.java,w.id)
+        val first=service.writeEpisode(w.id,"writer",1,DraftRequest("1화","첫 원고",0),true)
+        assertTrue(first.checkpoints.isEmpty())
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM checkpoint WHERE work_id=?",Int::class.java,w.id))
+        val v1=first.versions.single().id
+        val live1=service.publishEpisode(w.id,"writer",1,PublishRequest(first.draft.revision,true,versionId=v1))
+        assertEquals(listOf(v1 to true),live1.checkpoints.map { it.versionId to it.active })
+        val second=service.writeEpisode(w.id,"writer",1,DraftRequest("1화","고친 원고",live1.draft.revision),true)
+        assertEquals(listOf(v1 to true),second.checkpoints.map { it.versionId to it.active })
+        val v2=second.versions.last().id
+        val live2=service.publishEpisode(w.id,"writer",1,PublishRequest(second.draft.revision,true,versionId=v2))
+        assertEquals(listOf(v1 to false,v2 to true),live2.checkpoints.map { it.versionId to it.active })
+        assertEquals("고친 원고",service.publicRead(w.id).episodes.single().body)
+        val reverted=service.publishEpisode(w.id,"writer",1,PublishRequest(live2.draft.revision,true,versionId=v1))
+        assertEquals(v1,reverted.publishedVersionId)
+        assertEquals(listOf(v1 to true,v2 to false),reverted.checkpoints.map { it.versionId to it.active })
+        assertEquals("첫 원고",service.publicRead(w.id).episodes.single().body)
+        assertEquals(3,applied())
     }
 
     @Test fun `version insert failure rolls back draft and inherited fork episodes reject writes`() {

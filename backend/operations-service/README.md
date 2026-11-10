@@ -1,8 +1,8 @@
 # STORYFORK Operations Service
 
-공지·이벤트·고객지원 문의/답변 **레코드의 독립 백엔드 CRUD**와 회원 Bearer 기반 **신고·회원·관리자 운영 API**입니다. 신고·회원·관리자 API만 Core(인증 확인·회원)와 Content(작품 제한)를 호출하며 AI 호출은 없습니다. `Controller → Service → JpaRepository`를 사용하며 DTO는 각 리소스의 `service/dto`, Entity는 `entity`에 둡니다. 목표 책임과 후속 업무는 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
+공지·이벤트·고객지원 문의/답변 **레코드의 독립 백엔드 CRUD**와 회원 Bearer 기반 **신고·회원·관리자·작품·고객지원 문의 운영 API**입니다. 회원 Bearer API(신고·회원·관리자·작품·고객지원 문의)만 Core(인증 확인·회원)를, 신고·작품만 Content(작품 조회·제한)를 호출하며 AI 호출은 없습니다. `Controller → Service → JpaRepository`를 사용하며 DTO는 각 리소스의 `service/dto`, Entity는 `entity`에 둡니다. 목표 책임과 후속 업무는 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
 
-> 인증은 두 갈래입니다. 공지·이벤트·문의 API는 **서비스 자격 인증만** 사용하며 사람의 관리자 권한, 회원 신원·소유권, ‘내 문의’, 공개 게시·이벤트 진행 상태·참여·보상·알림·감사는 구현하지 않습니다. 서비스 토큰을 가진 호출 서버는 이 레코드에 모두 접근할 수 있으므로 브라우저에 직접 연결하면 안 됩니다. 신고·회원·관리자 API(`/reports`·`/members`·`/admins`)는 회원 Bearer를 Core로 확인하고 운영자(`operator`)+업무 권한으로 인가합니다([계약](../../docs/design/operations-member-report-contract.md)).
+> 인증은 세 갈래입니다. 공지·이벤트·문의의 `/notices`·`/events`·`/inquiries` API는 **서비스 자격 인증만** 사용하며 사람의 관리자 권한, 회원 신원·소유권, ‘내 문의’, 공개 게시·이벤트 진행 상태·참여·보상·알림·감사는 구현하지 않습니다. 서비스 토큰을 가진 호출 서버는 이 레코드에 모두 접근할 수 있으므로 브라우저에 직접 연결하면 안 됩니다. 신고·회원·관리자 API(`/reports`·`/members`·`/admins`), 운영 작품 API(`/works`), 회원 고객지원 문의 API(`/support/inquiries`), 공지·이벤트 관리자 API(`/admin/notices`·`/admin/events`)는 회원 Bearer를 Core로 확인하고 운영자(`operator`)+업무 권한으로 인가합니다([신고·회원·관리자 계약](../../docs/design/operations-member-report-contract.md), [고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)). 공지·이벤트 독자 조회(`/public/notices`·`/public/events`)는 인증 없이 GET만 허용합니다([공지 계약](../../docs/design/operations-notice-contract.md)). 이벤트의 관리자 CRUD와 공개 조회는 [이벤트 관리자·공개 API](#이벤트-관리자공개-api)를 따릅니다.
 
 ## 실행 기반·설정
 
@@ -34,7 +34,7 @@ DB 연결과 schema 초기화 권한이 필요합니다. 이전의 ‘DB 없이 
 
 ## 서비스 인증·오류
 
-아래 회원 Bearer API를 제외한 모든 `/api/v1/operations/**` 요청은 단일 `X-Operations-Service-Token` 헤더를 요구합니다. 고정 길이 SHA-256 digest를 `MessageDigest.isEqual`로 비교하며 중복 헤더·빈 값·틀린 값·누락 설정은 401입니다. 입력 토큰을 임의로 trim하지 않습니다. `Authorization: Bearer`, 쿠키, `X-Auth-User` 등은 인증 대체 수단이 아닙니다.
+아래 회원 Bearer API와 공개 공지·이벤트 조회를 제외한 모든 `/api/v1/operations/**` 요청은 단일 `X-Operations-Service-Token` 헤더를 요구합니다. 고정 길이 SHA-256 digest를 `MessageDigest.isEqual`로 비교하며 중복 헤더·빈 값·틀린 값·누락 설정은 401입니다. 입력 토큰을 임의로 trim하지 않습니다. `Authorization: Bearer`, 쿠키, `X-Auth-User` 등은 인증 대체 수단이 아닙니다.
 
 Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·세션 쿠키 인증을 사용하지 않습니다. 기본 사용자 계정도 만들지 않습니다(`spring.autoconfigure.exclude`로 Boot의 `UserDetailsServiceAutoConfiguration`을 제외하며 `ApplicationPropertiesTest`가 고정합니다). 변경 요청의 권한은 브라우저 CSRF 쿠키가 아니라 서비스 헤더에만 의존합니다. 브라우저 CORS 허용을 추가하지 않으며 토큰 보관·사람별 권한 검사를 프런트엔드에 맡기지 않습니다. 서비스 자격을 갖춰도 운영 API 밖의 경로는 403으로 거절합니다.
 
@@ -79,7 +79,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | `DELETE R/{resourceId}` | 204, 응답 본문 없음 | 명시적 삭제; 없는 ID는 404 |
 
 - PUT은 PATCH가 아닙니다. 이벤트에서 기간을 생략하거나 null로 보내면 기존 기간을 비웁니다.
-- 생성/수정 전 필수 값·길이는 요청 DTO의 `@NotBlank`·`@Size`가 컨트롤러의 `@Valid`에서 검증하고, 서비스는 공백·이벤트 기간 순서·모든 문자열의 U+0000 포함 여부를 다시 검증합니다. `@NotBlank`(Hibernate Validator의 `String.isBlank`)는 U+00A0·U+2007·U+202F만 있는 값을 통과시키고 DB `CHECK (~ '[^[:space:]]')`도 이 문자를 통과시키므로 서비스의 `isNotBlank`가 이를 400으로 거절합니다. 길이는 DTO `@Size`만 검사하며 서비스가 되풀이하지 않습니다(현재 서비스를 호출하는 곳은 컨트롤러뿐). 공지·이벤트의 제목/본문, 문의의 분류/제목/본문, 답변 본문에 U+0000이 있으면 저장·변경 전에 거절하며 기존 필드와 수정 시각을 보존합니다. 잘못된 생성 요청은 Repository를 호출하지 않습니다.
+- 생성/수정 전 필수 값·길이는 요청 DTO의 `@NotBlank`·`@Size`가 컨트롤러의 `@Valid`에서 검증하고, 서비스는 공백·이벤트 기간 순서·모든 문자열의 U+0000 포함 여부를 다시 검증합니다. `@NotBlank`(Hibernate Validator의 `String.isBlank`)는 U+00A0·U+2007·U+202F만 있는 값을 통과시키고 DB `CHECK (~ '[^[:space:]]')`도 이 문자를 통과시키므로 서비스의 `isNotBlank`가 이를 400으로 거절합니다. 길이는 DTO `@Size`만 검사하며 서비스가 되풀이하지 않습니다(서비스 토큰 컨트롤러는 `@Valid`로, `/admin/notices`·`/admin/events`는 권한 확인 뒤 `AdminNoticeService`·`AdminEventService`가 같은 어노테이션을 직접 검증합니다). 공지·이벤트의 제목/본문, 문의의 분류/제목/본문, 답변 본문에 U+0000이 있으면 저장·변경 전에 거절하며 기존 필드와 수정 시각을 보존합니다. 잘못된 생성 요청은 Repository를 호출하지 않습니다.
 - 공지/이벤트/문의 응답은 `id`, 요청 필드, `createdAt`, `updatedAt`입니다. 답변에는 `inquiryId`도 있습니다. 모든 시각은 UTC Instant입니다.
 - 목록은 `items`, `page`, `size`, `totalElements`, `totalPages`를 갖는 명시적 DTO이며 네 목록이 제네릭 `PageResponse<T>`(`_common/service/dto`) 하나를 공유합니다. JPA Entity나 Spring `Page`를 그대로 노출하지 않습니다.
 - Pageable 기본값은 0부터 시작하는 page와 size 20이며 size는 최대 100입니다. 컨트롤러·서비스 코드가 아니라 `spring.data.web.pageable.default-page-size=20`·`max-page-size=100` 설정이 정하며 `ApplicationPropertiesTest`가 값을 고정합니다. 공지·이벤트·문의 목록은 `createdAt DESC, id DESC`, 문의 하위 답변 목록은 대화 순서인 `createdAt ASC, id ASC`로 고정합니다. 클라이언트 sort를 사용하지 않고 같은 시각도 UUID로 순서를 안정화합니다.
@@ -108,20 +108,36 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 { "body": "답변 내용" }
 ```
 
-## 회원 Bearer API (신고·회원·관리자)
+## 회원 Bearer API (신고·회원·관리자·공지 관리)
 
-`/api/v1/operations/{reports,members,admins}`와 하위 경로는 별도 SecurityFilterChain입니다. `Authorization: Bearer …`를 Core `POST /internal/v1/auth/verify`(받은 Authorization + 서비스 토큰)로 확인해 `{memberId, operator}`를 principal로 씁니다. Bearer 없음은 401, Core 401/403은 그대로, 그 밖의 확인 실패는 502입니다. stateless·쿠키 없음이므로 CSRF를 쓰지 않으며, 이 경로에서는 서비스 토큰이 인증 수단이 아닙니다.
+`/api/v1/operations/{reports,members,admins,support,admin/notices,admin/events,works}`와 하위 경로는 별도 SecurityFilterChain입니다. `Authorization: Bearer …`를 Core `POST /internal/v1/auth/verify`(받은 Authorization + 서비스 토큰)로 확인해 `{memberId, operator}`를 principal로 씁니다. Bearer 없음은 401, Core 401/403은 그대로, 그 밖의 확인 실패는 502입니다. stateless·쿠키 없음이므로 CSRF를 쓰지 않으며, 이 경로에서는 서비스 토큰이 인증 수단이 아닙니다.
 
-- 관리자 = Core `operator=true` **이면서** `operations.admin_permission`에 해당 키 보유(`rights`·`users`·`admins`). 아니면 403.
+- 관리자 = Core `operator=true` **이면서** `operations.admin_permission`에 해당 키 보유(`rights`·`users`·`admins`·`feedback`·`notices`·`events`·`works`). 아니면 403.
 - 신고: 접수·`mine`·운영 목록(`?status=`)·상세(+`history`)·`evidence`·`explanations`(POST/GET)·`review`·`restriction`(POST/DELETE)·`evidence-requests`. 접수는 201, 신고 변경 POST/DELETE는 200으로 갱신된 상세(`history` 포함), `GET …/explanations`는 `{ items: History[] }`. 증거 보완·소명·증빙 요청 본문은 1~5000자.
 - 회원: `GET /members?role=&q=&sort=`, `PUT|DELETE /members/{id}/restriction` — Core에 관리자 Bearer를 그대로 전달.
 - 관리자: `GET /admins`(Core `role=ADMIN` + `permissions`), `POST /admins`(알려진 키 1개 이상 검증 → Core 생성 → 권한 저장, 201).
+- 작품: `GET /works`는 Content `GET /internal/v1/works`의 전체 목록을 `{ items }`로 그대로 돌려주고, `PUT|DELETE /works/{id}/restriction`은 Content 내부 제한 API를 재사용해 `{ workId, ownerId, title, restricted }`를 돌려줍니다. `works` 권한 확인이 Content 호출보다 먼저이고 서비스 트랜잭션·신고 이력은 없습니다. 없는 작품은 404, 그 밖의 Content 실패는 502입니다. 경로 끝에 슬래시를 붙이지 않습니다([작품 조회 계약](../../docs/design/operations-work-contract.md)).
+- 고객지원 문의 `/support/inquiries`: 로그인 회원이 접수(`POST`, 201)·내 문의(`GET /mine`)·상세(`GET /{id}`, 작성자 또는 관리자)를 쓰고, `feedback` 관리자가 목록(`GET ?status=WAITING|ANSWERED`, 최신 100개)과 답변 등록·수정·삭제(`/{id}/replies[/{replyId}]`)를 합니다. 모든 응답은 답변을 오래된 순으로 담은 `SupportInquiry`이고 `status`는 답변 유무로 계산합니다. `member_id`(V6)가 있는 문의만 다루므로 서비스 토큰 API로 만든 기존 레코드는 404이며 `/inquiries` 서비스 토큰 API는 그대로입니다. 다른 사람의 문의는 404, 접수 입력 검증은 `/inquiries`와 같은 규칙(category·title 앞뒤 공백 제거)입니다. 경로·응답 형태는 [고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)을 따릅니다.
+- 공지 관리: `/admin/notices`의 `GET`(최신 100개)·`GET /{id}`·`POST`(201+`Location`)·`PUT /{id}`·`DELETE /{id}`(204). `notices` 권한 검사가 입력 값 검증·저장소 호출보다 먼저라 JSON 형식이 맞는 한 비관리자는 입력 값과 무관하게 403입니다. `@Valid`는 권한보다 먼저 400을 내므로 컨트롤러에 쓰지 않고, 권한 확인 뒤 `AdminNoticeService`가 `NoticeRequest`의 `@NotBlank`·`@Size`를 직접 검증해 위반은 400입니다. 공백·U+0000 검증·정렬·응답 DTO는 `/notices`와 같은 `NoticeService`를 재사용합니다([공지 계약](../../docs/design/operations-notice-contract.md)).
+- 공개 공지 조회: `GET /api/v1/operations/public/notices`(최신 100개)·`/{id}`는 인증 없는 별도 SecurityFilterChain입니다. GET 이외는 서비스 토큰·Bearer가 있어도 403이고, 서비스 토큰 체인은 나머지 경로를 그대로 소유합니다. 이 체인(`PublicSecurityConfig`)은 `public/events`도 함께 맡습니다.
 - Core·Content 하위 400/404/409는 보존하고 그 외 실패는 502 `UPSTREAM_FAILED`이며 성공·이력으로 숨기지 않습니다. 고정 timeout(connect 2s, read 5s)·재시도 없음.
 - Content 호출(접수의 작품 조회, 제한·해제)은 DB 트랜잭션 밖에서 실행해 커넥션을 점유하지 않습니다. 호출이 성공한 뒤 신고 갱신과 이력만 한 트랜잭션으로 저장하고, 조회 이후 신고가 바뀌었으면 `@Version`이 409로 거절합니다. 제한·해제는 저장이 실패하면 Content 쪽만 이미 바뀐 상태이며(분산 트랜잭션 없음) 같은 요청을 다시 보내면 맞춰집니다(Content PUT/DELETE는 멱등).
 
+## 이벤트 관리자·공개 API
+
+[이벤트 계약](../../docs/design/operations-event-contract.md)대로 기존 `EventService`의 저장·검증을 재사용하며 새 컬럼·마이그레이션은 없습니다. 서비스 토큰 `/events`는 그대로이고 브라우저에 열지 않습니다.
+
+| 경로 | 인증 | 동작 |
+|---|---|---|
+| `/api/v1/operations/admin/events` `GET`·`POST`, `/{id}` `GET`·`PUT`·`DELETE` | 회원 Bearer + `operator` + `events` 권한(없으면 401/403) | 목록은 최신 등록순(`createdAt DESC, id DESC`) 최대 100개, 등록 201 + `Location`, 삭제 204, 없는 id 404 |
+| `/api/v1/operations/public/events` `GET`, `/{id}` `GET` | 없음 | 같은 목록·상세(종료된 이벤트 포함). 쓰기 경로 없음 |
+
+- 관리자 API는 권한 확인 뒤 `AdminEventService`가 `EventRequest`의 `@NotBlank`·`@Size`를 직접 검증하고 `EventService`가 공백·기간 순서·U+0000을 검증하므로(컨트롤러에 `@Valid` 없음) 권한 없는 요청은 입력 검증 400보다 403을 먼저 받습니다(깨진 JSON은 본문 해석 단계에서 먼저 400). 목록은 page 0·size 100 고정이며 페이지 매개변수를 받지 않습니다.
+- `public/events`와 하위 경로는 `public/notices`와 같은 SecurityFilterChain(`PublicSecurityConfig`)이 `GET`만 `permitAll`하고 다른 메서드는 403 `FORBIDDEN`으로 거절합니다. 이 체인에는 인증 필터가 없어 Bearer·서비스 토큰이 있어도 결과가 바뀌지 않습니다.
+
 ## 저장·동시성
 
-기존 PostgreSQL 아키텍처 안에서 **`operations` schema만** 사용합니다. Flyway location은 `classpath:db/migration/operations`, 기본 schema는 `operations`, 전용 history는 `operations.operations_flyway_schema_history`입니다. V1은 공지, V2는 이벤트, V3은 문의/답변, V4는 관리자 업무 권한(샘플 관리자 12개 권한 시드), V5는 신고/신고 이력이며 Core/Auth·Content·WorldStudio 이력이나 테이블을 읽고 쓰지 않습니다. 다른 서비스 Entity/Repository 스캔을 추가하지 않습니다.
+기존 PostgreSQL 아키텍처 안에서 **`operations` schema만** 사용합니다. Flyway location은 `classpath:db/migration/operations`, 기본 schema는 `operations`, 전용 history는 `operations.operations_flyway_schema_history`입니다. V1은 공지, V2는 이벤트, V3은 문의/답변, V4는 관리자 업무 권한(샘플 관리자 12개 권한 시드), V5는 신고/신고 이력, V6은 문의 작성자 `member_id`(회원 접수 문의만 값이 있고 기존 서비스 토큰 레코드는 NULL)이며 Core/Auth·Content·WorldStudio 이력이나 테이블을 읽고 쓰지 않습니다. 다른 서비스 Entity/Repository 스캔을 추가하지 않습니다.
 
 Hibernate는 `ddl-auto=validate`, `open-in-view=false`, JDBC 시간대 UTC입니다. DDL의 소유자는 운영 Flyway이고 JPA가 schema를 자동 변경하지 않습니다. append-only인 신고 이력·권한 행을 제외한 Entity의 `@Version`은 겹치는 수정/삭제 트랜잭션의 충돌을 409로 드러냅니다. 공개 DTO에는 version/ETag가 없으므로 **과거 화면의 순차적인 덮어쓰기까지 막는 클라이언트 revision 계약은 아닙니다**. 새 서버 호출·retry·락 관리 프레임워크를 추가하지 않습니다.
 
@@ -135,9 +151,9 @@ CRUD는 별도 PR로 전달하더라도 **공통 기반 → 공지 V1 → 이벤
 
 ## 관리자 UI 메모리 데모
 
-`/admin?tab=notices`, `/admin?tab=events`, `/admin?tab=feedback`의 [독립 운영 패널](../../frontend/src/presentation/features/admin/view/OperationsPanels.tsx)은 별도 `InMemoryOperationsRepository`에 공지·이벤트·문의 및 문의별 여러 답변을 저장합니다. 등록·목록/상세·전체 수정·확인 후 삭제와 답변 우선 삭제 안내를 소스 구현했지만 **이 API·서비스 토큰·실제 관리자 인증·서버 저장·발행·알림·버전 충돌과는 연결하지 않았습니다**. 브라우저 새로고침 시 데모 기록·초안이 사라집니다.
+`/admin?tab=notices`는 [독립 운영 패널](../../frontend/src/presentation/features/admin/view/OperationsPanels.tsx) UI로 위 회원 Bearer `/admin/notices` API에 저장하고([공지 계약](../../docs/design/operations-notice-contract.md)), `/admin?tab=events`는 위 [이벤트 관리자·공개 API](#이벤트-관리자공개-api)에([이벤트 계약](../../docs/design/operations-event-contract.md)), `/admin?tab=feedback`의 회원 문의는 위 support 실제 API에([고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)) 저장하는 실제 연결입니다. 별도 `InMemoryOperationsRepository`·`OperationsUseCase`에 남은 공지·이벤트 메모리 메서드는 화면 연결 없이 남아 있으며 이 API·서비스 토큰과 연결하지 않았습니다(정리는 후속 작업). 제보·문의 탭의 작가 제보 표는 별도 메모리 저장소이며 브라우저 새로고침 시 데모 기록·초안이 사라집니다.
 
-이벤트 선택 기간은 명시적인 한국시간(KST, UTC+09:00) 입력을 UTC로 변환하고 한국시간으로 표시하며 유효하지 않은 날짜·역전 기간을 거절합니다. UI에는 조회 로딩/실패/빈 목록/재시도·늦은 응답 무시, 요청별 pending/중복 방지, 저장 성공과 후속 목록 재조회 실패 구분, 탭별 초안·선택 유지, 상세/목록 포커스 이동과 줄바꿈 표시가 있습니다. 관리자 공지·이벤트·문의 탭에 있던 기존 회원 화면 호환 데모(공지 게시·이벤트 추가·문의 단일 답변)는 이 패널로 대체해 제거했고, 회원용 `/me/notice`·`/me/event`·`/me/inquiry` 데모와 제보·문의 탭의 작가 제보 표만 별도 저장소로 남깁니다. [기능표 미등록-124](../../docs/feature-roadmap.md#미등록-124)는 각 UI 동작을 별도 행으로 추적하며, 이 설명은 브라우저 동작 검증 결과가 아닙니다.
+이벤트 선택 기간은 명시적인 한국시간(KST, UTC+09:00) 입력을 UTC로 변환하고 한국시간으로 표시하며 유효하지 않은 날짜·역전 기간을 거절합니다. UI에는 조회 로딩/실패/빈 목록/재시도·늦은 응답 무시, 요청별 pending/중복 방지, 저장 성공과 후속 목록 재조회 실패 구분, 탭별 초안·선택 유지, 상세/목록 포커스 이동과 줄바꿈 표시가 있습니다. 관리자 공지·이벤트·문의 탭에 있던 기존 회원 화면 호환 데모(공지 게시·이벤트 추가·문의 단일 답변)는 실제 API 패널로 대체해 제거했고, 회원 `/me/inquiry` 데모는 support 실제 API로 바꿨습니다. `/me/notice`는 공개 공지 API를, `/me/event`는 공개 이벤트 API를 읽습니다. [기능표 미등록-124](../../docs/feature-roadmap.md#미등록-124)는 각 UI 동작을 별도 행으로 추적하며, 이 설명은 브라우저 동작 검증 결과가 아닙니다.
 
 ## 검증·인계
 
@@ -153,7 +169,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew unitTest \
   --tests ai.storyfork.operations._common.PageResponseTest --no-daemon
 ```
 
-리소스별 `NoticeServiceTest`/`NoticeControllerTest`, `EventServiceTest`/`EventControllerTest`, `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`, 신고·회원·관리자의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
+리소스별 `NoticeServiceTest`/`NoticeControllerTest`(공지 관리·공개는 `AdminNoticeServiceTest`/`AdminNoticeControllerTest`/`PublicNoticeControllerTest`), `EventServiceTest`/`EventControllerTest`(관리자·공개 이벤트는 `AdminEventServiceTest`/`AdminEventControllerTest`/`PublicEventControllerTest`), `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`/`SupportInquiryServiceTest`, 신고·회원·관리자·작품의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`/`WorkServiceTest`/`WorkControllerTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인(관리자 이벤트·작품 포함)과 공개 이벤트(GET 전용) 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`, 공지 관리자·공개 조회 체인은 `NoticeSecurityIntegrationTest`, 고객지원 문의의 Bearer 체인·PostgreSQL 흐름(`@Query` 상태 필터·V6)은 `SupportInquiryIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
 
 이번 U+0000 회귀는 `EventServiceTest`·`InquiryServiceTest`·`InquiryReplyServiceTest`만 선택해 **Red 12건**(예외가 발생하지 않아 assertion 실패) 후 최소 검증식 수정으로 **Green 69건**(각각 34·21·14건)을 확인했습니다. Spring/HTTP/DB 테스트는 실행하지 않았습니다.
 
