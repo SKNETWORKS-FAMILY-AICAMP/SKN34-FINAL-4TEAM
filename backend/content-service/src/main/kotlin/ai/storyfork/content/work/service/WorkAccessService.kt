@@ -40,7 +40,7 @@ class WorkAccessService(
             // 원작이 삭제돼도 원작 행·체크포인트는 그대로 남아 있어 같은 값을 읽고, 삭제 여부만 deleted로 알린다(DEC-42).
             SourceResponse(it.sourceWorkId,it.sourceTitle,episode.sequence,version.revisionNo,it.direction,
                 it.confirmedPolicyHistoryId?.let { pid -> policies.findById(pid).orElseThrow().revisionNo },it.conditionsConfirmedAt?.toString(),
-                works.findById(it.sourceWorkId).map { s -> s.deletedAt!=null }.orElse(false))
+                works.findById(it.sourceWorkId).orElseThrow().deletedAt!=null)
         }
         return WorkAccessResult(w.id,w.ownerId,w.title,w.description,w.revision,
             worlds.findFirstByWorkIdOrderByRevisionNoDesc(id)?.worldId ?: throw ContentFailure(409,"작품의 세계관 연결이 없어요."),

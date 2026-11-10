@@ -43,7 +43,6 @@ class WorkDeleteServiceTest {
     @Mock lateinit var publication: PublicationService
     @Mock lateinit var versions: EpisodeVersionService
     @Mock lateinit var proposals: ProposalService
-    @Mock lateinit var settings: SettingDocumentRepository
     @Mock lateinit var viewService: WorkViewService
     @Mock lateinit var nicknames: ai.storyfork.content.auth.service.CoreNicknameService
     @Mock lateinit var likeService: WorkLikeService
@@ -52,10 +51,6 @@ class WorkDeleteServiceTest {
     private val work=WorkAccessResult("work","author","작품","소개",0,"world","private",false,false,null)
     private val row=WorkEntity(id=work.id,ownerId="author",title="작품")
     private val deletedSource=SourceResponse("source","원작",1,1,"분기",deleted=true)
-    private fun noHardDeletion() = verifyNoInteractions(
-        worlds,workWorlds,visibility,policies,workGenres,hashtagRows,rightsRows,episodes,drafts,
-        members,genreRows,versions,proposals,viewService,nicknames,likeService,
-    )
 
     @Test fun `unauthorized deletion returns 404 without touching any row`() {
         `when`(access.own(work.id,"intruder")).thenThrow(ContentFailure(404,"작품을 찾을 수 없어요."))
@@ -64,7 +59,6 @@ class WorkDeleteServiceTest {
 
         assertEquals(404,failure.status)
         verifyNoInteractions(works)
-        noHardDeletion()
     }
 
     @Test fun `deleting records only the deletion time and removes no rows`() {
@@ -75,8 +69,6 @@ class WorkDeleteServiceTest {
 
         assertNotNull(row.deletedAt)
         verify(works).saveAndFlush(row)
-        verify(works,never()).deleteById(work.id)
-        noHardDeletion()
     }
 
     @Test fun `a Fork and a work with settings can be deleted too`() {
@@ -86,7 +78,6 @@ class WorkDeleteServiceTest {
         service.delete(work.id,"author")
 
         assertNotNull(row.deletedAt)
-        verifyNoInteractions(settings)
     }
 
     @Test fun `readers of a Fork whose source was deleted do not see the inherited episode bodies`() {

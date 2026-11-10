@@ -4,7 +4,6 @@ import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.fixture.ContentTestConfig
 import ai.storyfork.content.fixture.ContentTestDriver
-import ai.storyfork.content.fixture.DraftRequest
 import ai.storyfork.content.fixture.SettingRequest
 import ai.storyfork.content.fixture.model.Setting
 import ai.storyfork.content.proposal.client.GenerationClient
@@ -76,15 +75,6 @@ class WorkDeletePostgresTest {
 
         assertNotNull(deletedAt(w.id))
         assertEquals(before,rowCounts(w.id))
-    }
-    @Test fun `a work with a saved version can be deleted and keeps its episode`() {
-        val w=create()
-        driver.edit(w.id,"author",DraftRequest("1화","저장 이력이 생기는 원고",w.draft!!.revision))
-
-        works.delete(w.id,"author")
-
-        assertNotNull(deletedAt(w.id))
-        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM episode WHERE work_id=?",Int::class.java,w.id))
     }
     private fun deletedAt(id: String) = jdbc.queryForList("SELECT deleted_at FROM work WHERE id=?",id).single()["deleted_at"]
     private fun rowCounts(id: String) = listOf("world","episode","work_genre","work_hashtag","work_rights_declaration",

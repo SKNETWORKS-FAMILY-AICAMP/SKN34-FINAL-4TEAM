@@ -75,19 +75,17 @@ class ForkCreationPolicyServiceTest {
         original()
         `when`(access.forkable("original",listOf(1,2))).thenReturn(listOf(2))
         `when`(forks.findAllByOwnerIdAndSourceWorkId("reader","original")).thenReturn(listOf(ForkEntity(workId="existing",sourceWorkId="original",ownerId="reader")))
-        `when`(access.get("existing")).thenReturn(fork("existing",deleted=false))
         assertEquals(409,assertThrows(ContentFailure::class.java) {service.create("original","reader",ForkRequest(2,"포크"))}.status)
         noWrites()
         verify(forks,never()).saveAndFlush(org.mockito.ArgumentMatchers.any(ForkEntity::class.java))
     }
 
-    @Test fun `a soft deleted earlier Fork does not block forking the same original again`() {
+    @Test fun `a soft deleted earlier Fork still blocks forking the same original again`() {
+        // fork 테이블의 UNIQUE(owner_id,source_work_id)가 소프트 삭제 행에도 남으므로 저장 단계 500 대신 409로 막는다.
         original()
         `when`(access.forkable("original",listOf(1,2))).thenReturn(listOf(2))
         `when`(forks.findAllByOwnerIdAndSourceWorkId("reader","original")).thenReturn(listOf(ForkEntity(workId="gone",sourceWorkId="original",ownerId="reader")))
-        `when`(access.get("gone")).thenReturn(fork("gone",deleted=true))
-        // 중복 검사를 통과하면 다음 입력 검사(빈 제목)에서 422로 멈춘다.
-        assertEquals(422,assertThrows(ContentFailure::class.java) {service.create("original","reader",ForkRequest(2," "))}.status)
+        assertEquals(409,assertThrows(ContentFailure::class.java) {service.create("original","reader",ForkRequest(2,"포크"))}.status)
         noWrites()
     }
 

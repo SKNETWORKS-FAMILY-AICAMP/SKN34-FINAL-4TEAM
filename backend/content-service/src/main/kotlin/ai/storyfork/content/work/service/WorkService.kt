@@ -27,7 +27,6 @@ class WorkService(
     private val members: ContentMemberService,
     private val works: WorkRepository,
     private val worlds: WorldRepository,
-    private val settings: SettingDocumentRepository,
     private val workWorlds: WorkWorldHistoryRepository,
     private val visibility: WorkPublicationHistoryRepository,
     private val policies: ForkPolicyHistoryRepository,

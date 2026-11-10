@@ -51,8 +51,8 @@ class ForkService(
         val published=publication.publishedEpisodes(id).items
         checkContent(data.episode in published.map {it.number},message="공개된 기준 회차를 선택해 주세요.")
         checkContent(data.episode in access.forkable(id,published.map {it.number}),403,"이 회차에서는 분기할 수 없어요.")
-        // 소프트 삭제한 이전 Fork는 행이 남아도 중복으로 세지 않는다(DEC-42).
-        checkContent(forks.findAllByOwnerIdAndSourceWorkId(owner,id).all {access.get(it.workId).deleted},409,"이미 만든 분기 작품이 있어요.")
+        // 소프트 삭제한 이전 Fork도 행과 UNIQUE(owner_id,source_work_id)가 남으므로 중복으로 센다(DEC-42).
+        checkContent(forks.findAllByOwnerIdAndSourceWorkId(owner,id).isEmpty(),409,"이미 만든 분기 작품이 있어요.")
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000 && data.direction.length<=2000,message="분기 작품 입력을 확인해 주세요.")
         members.ensure(owner)
         val forkId=contentId();val prefix=published.take(data.episode)
