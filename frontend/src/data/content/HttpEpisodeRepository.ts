@@ -2,10 +2,12 @@ import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepositor
 import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput, type WorkRegistration} from '../../domain/entities/content'
+import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
 import { mapReadingWork } from './readingWork'
+import type { EpisodeWorldBasisChoice } from '../../domain/entities/episodeWorldBasis'
 
 const draft = z.object({title:z.string(),body:z.string(),authorNote:z.string().optional(),revision:z.number().int().nonnegative()})
 const writing = z.object({publicationStatus:z.enum(['draft','published','suspended']).optional(),hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string(),checkpoints:z.array(z.object({versionId:z.string(),publishedAt:z.string(),active:z.boolean()}))})
@@ -13,9 +15,20 @@ const episode = z.object({number:z.number().int().positive(),version:z.number().
 const source = z.object({workId:z.string(),title:z.string(),episode:z.number().int(),version:z.number().int(),direction:z.string(),deleted:z.boolean().optional()})
 const work = z.object({revision:z.number().int().nonnegative().optional(),writingEpisodeNumber:z.number().int().positive().nullable().optional(),creationType:z.enum(['ORIGINAL','EXTERNAL_DERIVATIVE']).optional(),genres:z.array(z.string()).optional(),hashtags:z.array(z.string()).optional(),hasWritingEpisode:z.boolean().optional(),id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft})
 const setting = z.object({id:z.string(),versionId:z.string(),name:z.string(),content:z.string(),category:z.enum(settingCategories),tags:z.array(z.string()),visibility:z.enum(['private','public']),fromEpisode:z.number().int().positive(),toEpisode:z.number().int().positive().nullable(),knownBy:z.array(z.string()),evidence:z.string()})
+const worldCheckpointSummary = z.object({ id: z.string().min(1), createdAt: z.iso.datetime() })
+const worldCheckpoint = worldCheckpointSummary.extend({ settings: z.array(setting) })
+const worldCheckpointsPath = (id: string) => `/works/${encodeURIComponent(id)}/world/checkpoints`
 const world = z.object({id:z.string(),name:z.string(),revision:z.number().int(),mode:z.enum(['own','following','independent']),basis:z.object({episode:z.number(),version:z.number(),settings:z.array(setting)}).nullable(),draft:setting.omit({versionId:true}).nullable(),settings:z.array(setting),drafts:z.array(setting.omit({versionId:true})).default([]),history:z.array(setting),sourceToken:z.string(),changes:z.array(z.object({id:z.string(),settingId:z.string(),before:setting.nullable(),after:setting.nullable(),decision:z.enum(['pending','apply','reject'])}))})
 const context = z.object({title:z.string(),summary:z.string(),basisEpisode:z.number().int(),character:z.string(),settings:z.array(setting),draft:z.string(),episodes:z.array(z.object({number:z.number().int(),version:z.number().int(),versionId:z.string(),title:z.string(),sourceCharacters:z.number(),excerpts:z.array(z.object({start:z.number(),end:z.number(),text:z.string()}))})),selection:z.object({method:z.string(),omittedCharacters:z.number(),eligibleEpisodes:z.number(),note:z.string()})})
 const proposal = z.object({id:z.string(),text:z.string().min(1),model:z.string(),revision:z.number().int(),status:z.enum(['pending','accepted']),prompt:z.string().optional(),baseBody:z.string().optional(),createdAt:z.string().optional(),context:context.optional()})
+const worldBasisId = z.object({ worldId: z.uuid(), revisionId: z.uuid() })
+const worldBasisVersion = worldBasisId.extend({ revisionNo: z.number().int().positive(), name: z.string(), createdAt: z.iso.datetime() })
+const worldBasisDetail = worldBasisId.extend({ cards: z.array(z.object({
+  card: z.object({ id: z.uuid(), title: z.string(), body: z.string(), lifecycle: z.enum(['active', 'removed']) }),
+})) })
+const episodeBasis = z.object({ revision: z.number().int().nonnegative(), basis: worldBasisVersion.nullable() })
+const episodeBasisPath = (id: string, number: number) => `/works/${encodeURIComponent(id)}/episodes/${number}/world-basis`
+const worldRevisionsPath = (id: string) => `/world-studios/${encodeURIComponent(id)}/revisions`
 
 const readingWork = work.omit({draft:true}).extend({
   slug:z.string().nullable(),authorName:z.string(),ownerId:z.string().min(1),revision:z.number().int().nonnegative(),
@@ -35,6 +48,16 @@ const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.
   knowledge:z.array(z.object({text:z.string(),knownAt:z.number().int(),publicAt:z.number().int()})),links:z.array(z.object({to:z.string(),kind:z.string()})),
 })
 const readingWorld = z.object({workId:z.string(),episode:z.number().int().positive(),documents:z.array(readingDocument)})
+const publicationSchedule = z.object({
+  id: z.string().min(1),
+  versionId: z.string().min(1),
+  scheduledAt: z.iso.datetime(),
+  status: z.enum(['pending', 'published', 'failed', 'canceled']),
+  revision: z.number().int().nonnegative(),
+  completedAt: z.iso.datetime().nullable(),
+  failureReason: z.string().nullable(),
+})
+const schedulesPath = (id: string, number: number) => `/works/${encodeURIComponent(id)}/episodes/${number}/publication-schedules`
 export type ReadingWorkRecord = z.infer<typeof readingWork>
 export type ReadingWorldRecord = z.infer<typeof readingWorld>
 
@@ -76,6 +99,18 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   writeEpisode(id:string,number:number,value:Draft,version:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/${version?'versions':'draft'}`,writing,version?'POST':'PUT',value,signal)}
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/restore`,writing,'POST',{revision,versionId},signal)}
   publishEpisode(id:string,number:number,revision:number,versionId:string,rightsConfirmed:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/publish`,writing,'POST',{revision,versionId,rightsConfirmed},signal)}
+  publicationSchedules(id: string, number: number, signal?: AbortSignal) {
+    return this.request(schedulesPath(id, number), z.array(publicationSchedule), 'GET', undefined, signal)
+  }
+  savePublicationSchedule(id: string, number: number, input: PublicationScheduleInput, target?: PublicationScheduleRevision, signal?: AbortSignal) {
+    const path = schedulesPath(id, number)
+    return target
+      ? this.request(`${path}/${encodeURIComponent(target.id)}`, publicationSchedule, 'PUT', { ...input, revision: target.revision }, signal)
+      : this.request(path, publicationSchedule, 'POST', input, signal)
+  }
+  cancelPublicationSchedule(id: string, number: number, target: PublicationScheduleRevision, signal?: AbortSignal) {
+    return this.request(`${schedulesPath(id, number)}/${encodeURIComponent(target.id)}?revision=${target.revision}`, z.undefined(), 'DELETE', undefined, signal)
+  }
   async publicList(signal?: AbortSignal) {
     const rows = await this.request('/public/works', z.array(work.omit({draft:true})), 'GET', undefined, signal)
     return rows.map(w=>({...w,readOnly:true,draft:{title:'',body:'',revision:0}}))
@@ -116,9 +151,34 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   propose(id: string, revision: number, prompt: string, consent: boolean, signal?: AbortSignal, episode?:number, character='') { return this.request(`/works/${id}/proposals`,proposal,'POST',{revision,prompt,consent,episode,character},signal) }
   accept(id: string, pid: string, revision: number) { return this.request(`/works/${id}/proposals/${pid}/accept`,draft,'POST',{revision}) }
   world(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/world`,world,'GET',undefined,signal)}
+  createWorldCheckpoint(id: string, signal?: AbortSignal) {
+    return this.request(worldCheckpointsPath(id), worldCheckpoint, 'POST', undefined, signal)
+  }
+  worldCheckpoints(id: string, signal?: AbortSignal) {
+    return this.request(worldCheckpointsPath(id), z.array(worldCheckpointSummary), 'GET', undefined, signal)
+  }
+  worldCheckpoint(id: string, checkpointId: string, signal?: AbortSignal) {
+    return this.request(`${worldCheckpointsPath(id)}/${encodeURIComponent(checkpointId)}`, worldCheckpoint, 'GET', undefined, signal)
+  }
   saveSetting(id:string,sid:string,revision:number,value:SettingInput,sourceToken:string) {return this.request(`/works/${id}/settings/${sid}/draft`,world,'PUT',{revision,setting:value,sourceToken})}
   commitSetting(id:string,sid:string,revision:number) {return this.request(`/works/${id}/settings/${sid}/commit`,world,'POST',{revision})}
   revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/settings/${sid}/revert`,world,'POST',{revision,versionId},signal)}
   decideChange(id:string,revision:number,changeId:string,decision:'apply'|'reject') {return this.request(`/works/${id}/world/changes`,world,'POST',{revision,changeId,decision})}
   context(id:string,episode:number,query:string,character:string,publicView:boolean) {return this.request(`${publicView?'/public':''}/works/${id}/context?${new URLSearchParams({episode:String(episode),query,character})}`,context)}
+  episodeWorldBasis(id: string, number: number, signal?: AbortSignal) {
+    return this.request(episodeBasisPath(id, number), episodeBasis, 'GET', undefined, signal)
+  }
+  chooseEpisodeWorldBasis(id: string, number: number, choice: EpisodeWorldBasisChoice, signal?: AbortSignal) {
+    return this.request(episodeBasisPath(id, number), episodeBasis, 'PUT', choice, signal)
+  }
+  worldBasisVersions(worldId: string, signal?: AbortSignal) {
+    return this.request(worldRevisionsPath(worldId), z.array(worldBasisVersion), 'GET', undefined, signal)
+  }
+  async confirmWorldBasisVersion(worldId: string, expectedDraftRevision: number, key: string, signal?: AbortSignal) {
+    return (await this.request(worldRevisionsPath(worldId), worldBasisId, 'POST', { expectedDraftRevision, key }, signal)).revisionId
+  }
+  async worldBasisCards(worldId: string, revisionId: string, signal?: AbortSignal) {
+    const detail = await this.request(worldRevisionsPath(worldId) + '/' + encodeURIComponent(revisionId), worldBasisDetail, 'GET', undefined, signal)
+    return detail.cards.flatMap(({ card }) => card.lifecycle === 'active' ? [{ id: card.id, title: card.title, body: card.body }] : [])
+  }
 }

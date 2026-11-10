@@ -36,7 +36,10 @@ function serverFork(on: (at: number) => Promise<void> | void) {
   const getForm = forks.getForm.bind(forks)
   vi.spyOn(forks, 'getForm').mockImplementation(async (id, at) => {
     const form = await getForm(id, at)
-    if (form) form.work.canonical = true
+    if (form) {
+      form.work.canonical = true
+      form.work.wiki = { cats: [], docs: [{ id: 'event', cat: 'event', t: `${form.basisEpisode}화 사건`, body: '', alias: [], tags: [], props: {}, at: {} }] }
+    }
     await on(at ?? 0)
     return form
   })
@@ -51,10 +54,13 @@ it('서버 작품은 선택한 회차의 설정을 읽는 동안 이전 회차�
   await screen.findByRole('heading', { name: '「구운몽」 포크' })
   const counts = () => [document.getElementById('rulecount')!.textContent, document.getElementById('castcount')!.textContent]
   expect(counts().every((n) => /^\d+$/.test(n!))).toBe(true)
+  expect(screen.getByText('사건 · 2화 사건')).toBeTruthy()
   fireEvent.click(epcButton(/3화 끝에서/))
   expect(epcButton(/3화 끝에서/).getAttribute('aria-pressed')).toBe('true')
   expect(counts()).toEqual(['…', '…'])
+  expect(screen.queryByText('사건 · 2화 사건')).toBeNull()
   await act(async () => release())
+  await screen.findByText('사건 · 3화 사건')
   await waitFor(() => expect(document.getElementById('rulecount')!.textContent).toBe('2'))
   expect(counts().every((n) => /^\d+$/.test(n!))).toBe(true)
 })

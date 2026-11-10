@@ -6,5 +6,6 @@ export class OperationsWorkUseCase {
   constructor(repository: OperationsWorkRepository) { this.repository = repository }
 
   list() { return this.repository.list() }
+  forkIntegrity(id: string) { return this.repository.forkIntegrity(id) }
   setRestriction(id: string, restricted: boolean) { return this.repository.setRestriction(id, restricted) }
 }

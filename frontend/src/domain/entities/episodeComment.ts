@@ -14,6 +14,8 @@ export type EpisodeComment = {
   liked: boolean
   mine: boolean
   edited: boolean
+  /** 운영 정책으로 숨긴 댓글. 서버가 body를 비워 보내므로 화면은 자리표시만 보이고 수정·좋아요를 막는다(작성자 삭제는 가능). */
+  hidden: boolean
   createdAt: string
   updatedAt: string
 }

@@ -20,6 +20,7 @@ class CoreNicknameServiceTest {
     private class FakeCore(private val known: Map<String, String> = emptyMap(), private val fail: Exception? = null) : CoreAuthClient {
         val calls = mutableListOf<List<String>>()
         override fun verify(authorization: String): VerifiedMemberResponse = throw UnsupportedOperationException("nicknames only")
+        override fun verifyScheduledMember(request: ai.storyfork.content.auth.client.ScheduledMemberPayload) = error("scheduled verification is unused")
         override fun nicknames(request: NicknamesPayload): NicknamesResponse {
             calls += request.ids
             fail?.let { throw it }

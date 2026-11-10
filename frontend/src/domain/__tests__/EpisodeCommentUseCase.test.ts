@@ -6,7 +6,7 @@ import { EpisodeCommentUseCase } from '../usecases/EpisodeCommentUseCase'
 
 const comment = (extra: Partial<EpisodeComment> = {}): EpisodeComment => ({
   id: 'c1', workId: 'w1', episodeNumber: 3, publishedVersionId: 'v1', authorName: '닉네임', body: '본문', quote: null, spoiler: false,
-  likeCount: 0, liked: false, mine: true, edited: false, createdAt: '2026-11-09T01:23:45Z', updatedAt: '2026-11-09T01:23:45Z', ...extra,
+  likeCount: 0, liked: false, mine: true, edited: false, hidden: false, createdAt: '2026-11-09T01:23:45Z', updatedAt: '2026-11-09T01:23:45Z', ...extra,
 })
 const setup = () => {
   const repo = {

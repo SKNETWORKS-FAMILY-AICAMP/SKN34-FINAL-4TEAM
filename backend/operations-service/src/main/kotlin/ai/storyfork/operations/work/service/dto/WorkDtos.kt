@@ -19,3 +19,11 @@ data class OperationsWork(
 )
 
 data class OperationsWorkList(val items: List<OperationsWork>)
+
+data class ForkIntegrity(
+    val basisEpisode: Int,
+    val forkHash: String,
+    val sourceHash: String,
+    val matches: Boolean,
+    val characterStateStatus: String,
+)

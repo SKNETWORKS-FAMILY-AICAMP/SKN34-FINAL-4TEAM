@@ -31,7 +31,7 @@ export class AdminUseCase {
     const a = await this.adminRepository.get()
     const detail = change(a)
     if (detail === null) return false
-    a.audit.unshift({ at: new Intl.DateTimeFormat('ko-KR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date()), actor: a.profile.nick, action, detail })
+    a.audit.unshift({ at: new Date().toISOString(), actor: a.profile.nick, action, detail })
     await this.adminRepository.save(a)
     return true
   }
@@ -70,13 +70,6 @@ export class AdminUseCase {
   /** 목업 #adminCharacterChatForm 선택지: 공개 작품과 공개 인물 */
   chatChoices(works: Work[], kind: string) {
     return works.filter((w) => isPub(w) && ofKind(kind, w)).map((w) => ({ w, cast: publicCast(w, Math.max(w.eps.length, 1)) }))
-  }
-
-  async toggleComment(id: string, label: string): Promise<AdminResult> {
-    const comments = await this.adminRepository.listComments(await this.workRepository.listWorks())
-    if (!comments.some((c) => c.id === id)) return null
-    await this.log('댓글 상태 변경', (a) => { const hidden = a.hiddenComments.includes(id); a.hiddenComments = hidden ? a.hiddenComments.filter((x) => x !== id) : [...a.hiddenComments, id]; return label + ' · ' + (hidden ? '게시' : '숨김') })
-    return ok('댓글 상태를 변경했어요 (데모)')
   }
 
   async toggleChat(id: string): Promise<AdminResult> {

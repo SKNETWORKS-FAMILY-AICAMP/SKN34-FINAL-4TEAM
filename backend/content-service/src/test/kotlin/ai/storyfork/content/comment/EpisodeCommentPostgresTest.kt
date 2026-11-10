@@ -274,4 +274,42 @@ class EpisodeCommentPostgresTest {
         assertEquals(after,node(detail(id,second)).path("publishedVersionId").asString())
         assertEquals(before,jdbc.queryForObject("SELECT published_version_id FROM episode_comment WHERE id=?",String::class.java,first))
     }
+
+    @Test fun `an operator hidden comment is a placeholder that refuses edit and like with 409 but its author can still delete it`() {
+        val id=work()
+        val author=member("작성자")
+        val fan=member()
+        val response=post(id,author,"""{"body":"운영이 숨길 글","quote":"선택 문장","spoiler":true}""")
+        val cid=created(response)
+        val kept=created(post(id,author,"""{"body":"그대로 보이는 글"}"""))
+        assertFalse(node(response).path("hidden").asBoolean())
+        assertEquals(204,call("PUT","${write(id)}/$cid/like",fan).statusCode())
+
+        // 운영 숨김은 V30의 hidden 칼럼만 켠다. 원문은 지우지 않는다.
+        assertEquals(1,jdbc.update("UPDATE episode_comment SET hidden=true WHERE id=?",cid))
+
+        val placeholders=listOf(node(detail(id,cid,fan)),node(list(id,null,fan)).path("items").toList().single {it.path("id").asString()==cid})
+        for(shown in placeholders) {
+            assertEquals(listOf<Any?>(true,"",true,"작성자",1,true,true),
+                listOf(shown.path("hidden").asBoolean(),shown.path("body").asString(),shown.path("quote").isNull,shown.path("authorName").asString(),
+                    shown.path("likeCount").asInt(),shown.path("liked").asBoolean(),shown.path("spoiler").asBoolean()))
+        }
+        assertEquals(listOf<Any?>("그대로 보이는 글",false),node(detail(id,kept)).let {listOf(it.path("body").asString(),it.path("hidden").asBoolean())})
+        assertEquals(listOf<Any?>("운영이 숨길 글","선택 문장"),jdbc.queryForObject("SELECT body,quote FROM episode_comment WHERE id=?",{rs,_ -> listOf<Any?>(rs.getString(1),rs.getString(2))},cid))
+
+        for(refused in listOf(call("PUT","${write(id)}/$cid",author,"""{"body":"고치면 안 되는 글","spoiler":false}"""),
+            call("PUT","${write(id)}/$cid/like",author),call("DELETE","${write(id)}/$cid/like",fan))) {
+            assertEquals(409,refused.statusCode(),refused.body())
+            assertEquals("COMMENT_HIDDEN",node(refused).path("code").asString())
+        }
+        assertEquals(1,count("SELECT count(*) FROM episode_comment_like WHERE comment_id=?",cid))
+        assertEquals("운영이 숨길 글",jdbc.queryForObject("SELECT body FROM episode_comment WHERE id=?",String::class.java,cid))
+
+        // 게시 복구(hidden=false)하면 원문이 그대로 돌아오고, 숨긴 채로도 작성자는 삭제할 수 있다.
+        assertEquals(1,jdbc.update("UPDATE episode_comment SET hidden=false WHERE id=?",cid))
+        assertEquals("운영이 숨길 글",node(detail(id,cid)).path("body").asString())
+        assertEquals(1,jdbc.update("UPDATE episode_comment SET hidden=true WHERE id=?",cid))
+        assertEquals(204,call("DELETE","${write(id)}/$cid",author).statusCode())
+        assertEquals(404,detail(id,cid).statusCode())
+    }
 }

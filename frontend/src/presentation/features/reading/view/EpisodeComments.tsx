@@ -27,7 +27,7 @@ function CommentRow({ c, vm }: { c: EpisodeComment; vm: Vm }) {
     if (wasEditing.current && !editing) editButton.current?.focus()
     wasEditing.current = editing
   }, [editing])
-  const body = <div className="cbody">{c.body}</div>
+  const body = <div className={c.hidden ? 'cbody muted' : 'cbody'}>{c.hidden ? '운영 정책으로 숨겨진 댓글입니다.' : c.body}</div>
   return (
     <div className="cm">
       <i className="av" style={{ background: avatarOf(c.authorName) }} />
@@ -45,19 +45,19 @@ function CommentRow({ c, vm }: { c: EpisodeComment; vm: Vm }) {
           </form>
         ) : (
           <>
-            {c.spoiler ? <details><summary>스포일러 댓글 보기</summary>{body}</details> : body}
+            {c.spoiler && !c.hidden ? <details><summary>스포일러 댓글 보기</summary>{body}</details> : body}
             {c.mine && (
               <div className="cact">
-                <button ref={editButton} type="button" className="lk" onClick={() => { setText(c.body); setSpoiler(c.spoiler); setEditing(true) }}>수정</button>
+                {!c.hidden && <button ref={editButton} type="button" className="lk" onClick={() => { setText(c.body); setSpoiler(c.spoiler); setEditing(true) }}>수정</button>}
                 <button type="button" className="lk" disabled={vm.busy} onClick={() => void vm.remove(c)}>삭제</button>
               </div>
             )}
           </>
         )}
       </div>
-      {vm.loggedIn
+      {!c.hidden && (vm.loggedIn
         ? <button type="button" className={`lk${c.liked ? ' on' : ''}`} aria-pressed={c.liked} aria-label={`좋아요 ${c.likeCount}개`} disabled={vm.busy} onClick={() => void vm.toggleLike(c)}>{c.liked ? '♥' : '♡'} {c.likeCount}</button>
-        : <Go to="/login" className="lk" aria-label={`좋아요 ${c.likeCount}개, 로그인이 필요해요`} onClick={vm.requireLogin}>♡ {c.likeCount}</Go>}
+        : <Go to="/login" className="lk" aria-label={`좋아요 ${c.likeCount}개, 로그인이 필요해요`} onClick={vm.requireLogin}>♡ {c.likeCount}</Go>)}
     </div>
   )
 }

@@ -24,6 +24,7 @@ export class ForkUseCase {
     return {
       work: work.canonical && at ? await this.workRepository.readWorld(work,at) : work,
       forkList: list,
+      basisEpisode: at ?? 0,
       existing: works.find((w) => w.parent === work.id && isMine(w)) ?? null,
       historyConsentNeeded: !work.canonical && !work.worldIds && !work.ruleFrom,
     }

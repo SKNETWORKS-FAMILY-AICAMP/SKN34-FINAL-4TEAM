@@ -12,3 +12,11 @@ export type OperationsWork = {
   /** 운영 제한 중이면 공개 여부와 상관없이 독자에게 보이지 않습니다. */
   restricted: boolean
 }
+
+export type ForkIntegrity = {
+  basisEpisode: number
+  forkHash: string
+  sourceHash: string
+  matches: boolean
+  characterStateStatus: 'unavailable'
+}

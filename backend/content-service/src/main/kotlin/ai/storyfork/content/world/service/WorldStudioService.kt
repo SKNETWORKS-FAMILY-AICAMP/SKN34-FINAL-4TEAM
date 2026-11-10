@@ -190,6 +190,14 @@ class WorldStudioService(
         readRevision(worldId,revision.id)
     }
     fun revision(worldId:UUID,subject:UUID,revisionId:UUID):WorldRevisionResponse=tx { owned(worldId,subject);readRevision(worldId,revisionId) }
+    fun revisionSummaries(worldId: UUID, subject: UUID): List<WorldRevisionSummaryResponse> = tx {
+        owned(worldId, subject)
+        revisions.findAllByWorldIdAndSealedTrueOrderByRevisionNoDesc(worldId).map { it.summary() }
+    }
+    fun revisionSummary(worldId: UUID, subject: UUID, revisionId: UUID): WorldRevisionSummaryResponse = tx {
+        owned(worldId, subject)
+        sealedRevision(worldId, revisionId).summary()
+    }
     fun restore(worldId:UUID,subject:UUID,request:RestoreWorldRequest):WorldRevisionResponse {
         tx { owned(worldId,subject) }
         throw WorldStudioFailure.history()
@@ -201,8 +209,13 @@ class WorldStudioService(
         return WorldDraftResponse(world.id,draft.draftRevision,world.currentRevisionId,draft.baseWorldRevisionId,draft.name,draft.description,
             cardDrafts.findAllByWorldId(world.id).map { payload(it.cardId,it.fields) }.sortedBy { it.id.toString() },emptyList(),state.graphVersion)
     }
+    private fun sealedRevision(worldId: UUID, id: UUID) =
+        revisions.findByIdAndWorldId(id, worldId)?.takeIf { it.sealed } ?: throw WorldNotFound()
+
+    private fun WorldRevision.summary() = WorldRevisionSummaryResponse(worldId, id, revisionNo, name, createdAt.toString())
+
     private fun readRevision(worldId:UUID,id:UUID):WorldRevisionResponse {
-        val revision=revisions.findByIdAndWorldId(id,worldId)?.takeIf { it.sealed } ?: throw WorldNotFound()
+        val revision=sealedRevision(worldId,id)
         val cs=revisionCards.findAllByIdRevisionId(id)
         val saved=cardVersions.findAllById(cs.map { it.versionId }).map { SavedCardResponse(it.id,it.versionNo,it.restoredFromVersionId,payload(it.cardId,it.fields)) }.sortedBy { it.card.id.toString() }
         return WorldRevisionResponse(worldId,id,revision.revisionNo,revision.name,revision.description,revision.parentRevisionId,revision.restoredFromRevisionId,saved,null)

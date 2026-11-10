@@ -1,6 +1,7 @@
 package ai.storyfork.operations.inquiry
 
 import ai.storyfork.operations._common.blankTexts
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.inquiry.entity.InquiryEntity
 import ai.storyfork.operations.inquiry.entity.InquiryReplyEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
@@ -28,7 +29,8 @@ class SupportInquiryServiceTest {
     private val inquiries = mock(InquiryRepository::class.java)
     private val replies = mock(InquiryReplyRepository::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
-    private val service = SupportInquiryService(inquiries, replies, permissions)
+    private val activities = mock(AdminActivityService::class.java)
+    private val service = SupportInquiryService(inquiries, replies, permissions, activities)
 
     private val author = OperationsMember(UUID.randomUUID(), false)
     private val stranger = OperationsMember(UUID.randomUUID(), false)
@@ -81,7 +83,7 @@ class SupportInquiryServiceTest {
         assertEquals(WAITING, result.status)
         assertTrue(result.replies.isEmpty())
         assertEquals(result.createdAt, result.updatedAt)
-        verifyNoInteractions(replies, permissions)
+        verifyNoInteractions(replies, permissions, activities)
     }
 
     // 길이는 요청 DTO의 @Size가 거절한다(RequestValidationTest). 서비스는 공백(@NotBlank가 놓치는 NBSP류 포함)과 U+0000을 거절한다.
@@ -143,6 +145,7 @@ class SupportInquiryServiceTest {
             assertEquals(listOf(replyId, stored.createdAt, stored.updatedAt),
                 result.replies[0].let { listOf(it.id, it.createdAt, it.updatedAt) })
         }
+        verifyNoInteractions(activities)
     }
 
     @Test
@@ -181,7 +184,7 @@ class SupportInquiryServiceTest {
         assertThrows(NoSuchElementException::class.java) { service.updateReply(admin, inquiryId, replyId, answer) }
         assertThrows(NoSuchElementException::class.java) { service.deleteReply(admin, inquiryId, replyId) }
 
-        verifyNoInteractions(replies)
+        verifyNoInteractions(replies, activities)
     }
 
     @Test
@@ -228,7 +231,7 @@ class SupportInquiryServiceTest {
         }
         assertStatus(HttpStatus.FORBIDDEN) { service.reply(author, inquiryId, SupportReplyRequest(" ")) }
 
-        verifyNoInteractions(inquiries, replies)
+        verifyNoInteractions(inquiries, replies, activities)
     }
 
     @Test
@@ -241,7 +244,7 @@ class SupportInquiryServiceTest {
             assertThrows(IllegalArgumentException::class.java) { service.updateReply(admin, inquiryId, replyId, SupportReplyRequest(text)) }
         }
 
-        verifyNoInteractions(replies)
+        verifyNoInteractions(replies, activities)
     }
 
     @Test
@@ -261,6 +264,9 @@ class SupportInquiryServiceTest {
         assertEquals(listOf("답변 본문"), result.replies.map { it.body })
         assertEquals(row.updatedAt, result.updatedAt)
         verify(inquiries, never()).saveAndFlush(any(InquiryEntity::class.java) ?: row)
+        // The activity detail is the id of the reply that was just stored.
+        verify(activities).record(admin, "INQUIRY_REPLY_CREATE", "INQUIRY", inquiryId, stored.single().id.toString())
+        verifyNoMoreInteractions(activities)
     }
 
     @Test
@@ -280,6 +286,8 @@ class SupportInquiryServiceTest {
         assertEquals(ANSWERED, result.status)
         assertEquals(row.updatedAt, result.updatedAt)
         verify(inquiries, never()).saveAndFlush(any(InquiryEntity::class.java) ?: row)
+        verify(activities).record(admin, "INQUIRY_REPLY_UPDATE", "INQUIRY", inquiryId, replyId.toString())
+        verifyNoMoreInteractions(activities)
     }
 
     @Test
@@ -296,6 +304,7 @@ class SupportInquiryServiceTest {
         verify(replies, never()).saveAndFlush(any(InquiryReplyEntity::class.java) ?: reply())
         verify(replies, never()).delete(any(InquiryReplyEntity::class.java) ?: reply())
         verify(replies, never()).flush()
+        verifyNoInteractions(activities)
     }
 
     @Test
@@ -314,6 +323,26 @@ class SupportInquiryServiceTest {
         order.verify(replies).delete(stored)
         order.verify(replies).flush()
         order.verify(replies).findAllByInquiryIdInOrderByCreatedAtAscIdAsc(listOf(inquiryId))
+        // The activity follows the flushed deletion.
+        val recorded = inOrder(replies, activities)
+        recorded.verify(replies).flush()
+        recorded.verify(activities).record(admin, "INQUIRY_REPLY_DELETE", "INQUIRY", inquiryId, replyId.toString())
+    }
+
+    @Test
+    fun `nothing is recorded when saving or removing a reply fails`() {
+        givenInquiry()
+        givenFeedback()
+        val stored = reply()
+        `when`(replies.findByIdAndInquiryId(replyId, inquiryId)).thenReturn(stored)
+        doThrow(IllegalStateException("db down")).`when`(replies).saveAndFlush(any(InquiryReplyEntity::class.java) ?: stored)
+        doThrow(IllegalStateException("db down")).`when`(replies).flush()
+
+        assertThrows(IllegalStateException::class.java) { service.reply(admin, inquiryId, answer) }
+        assertThrows(IllegalStateException::class.java) { service.updateReply(admin, inquiryId, replyId, answer) }
+        assertThrows(IllegalStateException::class.java) { service.deleteReply(admin, inquiryId, replyId) }
+
+        verifyNoInteractions(activities)
     }
 
     @Test
