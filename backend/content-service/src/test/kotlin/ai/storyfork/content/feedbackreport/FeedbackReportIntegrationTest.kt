@@ -36,7 +36,7 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * 제보 관리 HTTP 계약(경로·Security·CSRF·상태 코드·Location)과 V24 저장을 실제 PostgreSQL로 검증한다.
+ * 제보 관리 HTTP 계약(경로·Security·CSRF·상태 코드·Location)과 V28 저장을 실제 PostgreSQL로 검증한다.
  * 표시명의 정본은 Core 닉네임이라 Content에는 저장하지 않으며, Core는 [names]를 돌려주는 대역이다.
  * TEST_CONTENT_DATABASE_URL이 있을 때만 실행하며, DB는 다른 테스트와 공유하므로 각 테스트는 자신이 만든 작품의 행만 비교한다.
  */

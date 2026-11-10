@@ -11,13 +11,13 @@ import App from '../../App'
 import { createAppStore } from '../../app/store'
 
 beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
-afterEach(() => { cleanup(); vi.restoreAllMocks() })
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllEnvs() })
 
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const sid = () => document.getElementById('sid')!.textContent
-const toastIs = (t: string) => waitFor(() => expect(screen.getByRole('status').textContent).toBe(t))
-const renderAt = (path: string) => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={[path]}><App /><Where /></MemoryRouter></Provider>)
+const toastIs = (t: string) => screen.findByText(t, { selector: '#toast' })
+const renderAt = (path: string, store = createAppStore({ role: 'user' })) => render(<Provider store={store}><MemoryRouter initialEntries={[path]} useTransitions={false}><App /><Where /></MemoryRouter></Provider>)
 const acceptPolicy = async () => {
   fireEvent.click(await screen.findByLabelText(/운영 정책을 확인했고/))
   fireEvent.click(screen.getByRole('button', { name: '정책 확인 후 작품 설정하기' }))
@@ -45,7 +45,35 @@ describe('내 서재 (U11·U12)', () => {
   })
 })
 
-describe('새 소설 만들기 (U28)', () => {
+describe('실서버 새 소설 만들기', () => {
+  it.each(['/new', '/worlds'])('%s에서 서버 작품 만들기 화면으로 이동한다', async (path) => {
+    renderAt(path)
+    await screen.findByRole('button', { name: '작품 만들기' })
+    expect(where()).toBe('/content')
+    expect(screen.queryByRole('heading', { name: '집필 전 정책 확인' })).toBeNull()
+  })
+
+  it('내 서재의 새 소설 쓰기 카드는 서버 작품 만들기 화면을 바로 연다', async () => {
+    renderAt('/lib?tab=write')
+    const link = await screen.findByRole('link', { name: /＋ 새 소설 쓰기/ })
+    expect(link.getAttribute('href')).toBe('/content')
+    expect(screen.getByRole('link', { name: '기존 작품·설정집·분기 도구' }).getAttribute('href')).toBe('/content')
+    fireEvent.click(link)
+    await screen.findByRole('button', { name: '작품 만들기' })
+    expect(where()).toBe('/content')
+  })
+
+  it.each(['/new', '/worlds'])('비로그인 %s는 로그인 안내와 돌아갈 경로를 남긴다', async (path) => {
+    const store = createAppStore()
+    renderAt(path, store)
+    await screen.findByRole('heading', { name: '로그인', level: 1 })
+    expect(store.getState().session.next).toBe(path)
+  })
+})
+
+describe('목업 새 소설 만들기 (U28)', () => {
+  beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
+
   it('새 소설 쓰기를 누를 때마다 정책 확인을 다시 요구하고 /worlds는 /new로 보낸다', async () => {
     for (let visit = 0; visit < 2; visit++) {
       renderAt('/lib?tab=write')
@@ -103,7 +131,6 @@ describe('새 소설 만들기 (U28)', () => {
 describe('가져오기 (U24)', () => {
   // 실제 모드의 /import는 원고 파일 가져오기라서, 데모 화면 시나리오는 --mode mockup으로 연다.
   beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
-  afterEach(() => { vi.unstubAllEnvs() })
 
   it('정책 동의 → 예시 원고 정리 → 저장하면 내가 쓰는 소설로 간다', async () => {
     renderAt('/writing-policy?method=import')

@@ -37,6 +37,7 @@ class ContentAuthenticationFilterTest {
                     throw HttpClientErrorException(HttpStatus.UNAUTHORIZED)
                 }
                 override fun nicknames(request: NicknamesPayload): NicknamesResponse = throw UnsupportedOperationException("verify only")
+                override fun verifyScheduledMember(request: ai.storyfork.content.auth.client.ScheduledMemberPayload) = error("scheduled verification is unused")
             }
             try {
                 ContentAuthenticationFilter(CoreAuthVerificationService(client), JsonMapper.builder().build())

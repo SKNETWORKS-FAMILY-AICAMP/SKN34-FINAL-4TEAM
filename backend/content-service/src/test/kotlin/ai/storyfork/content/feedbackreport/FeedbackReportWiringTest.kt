@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test
 
 /**
  * Spring·DB 없이 확인하는 고정 지점이다. 새 기능 패키지는 JPA 스캔과 예외 핸들러에 등록하지 않으면 CI 통합 테스트에서만 한꺼번에 깨지고,
- * V24 SQL은 계약의 저장 정의를 그대로 따라야 한다.
+ * V28 SQL은 계약의 저장 정의를 그대로 따라야 한다.
  */
 class FeedbackReportWiringTest {
     private val root = Path.of("src/main/kotlin/ai/storyfork/content")
-    private val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V24__feedback_report.sql"))
+    private val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V28__feedback_report.sql"))
 
     @Test fun `the package is registered for JPA scanning and the content exception handler`() {
         val config = Files.readString(root.resolve("_common/config/ContentPersistenceConfig.kt"))
@@ -20,7 +20,7 @@ class FeedbackReportWiringTest {
         assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.feedbackreport.controller\""))
     }
 
-    @Test fun `V24 keeps the contract tables constraints and indexes`() {
+    @Test fun `V28 keeps the contract tables constraints and indexes`() {
         val tables = Regex("CREATE TABLE (\\w+) \\((.*?)\\n\\);", RegexOption.DOT_MATCHES_ALL).findAll(sql).associate { it.groupValues[1] to it.groupValues[2] }
         assertEquals(listOf("feedback_report", "feedback_report_amendment", "feedback_report_response"), tables.keys.toList())
         val report = tables.getValue("feedback_report")

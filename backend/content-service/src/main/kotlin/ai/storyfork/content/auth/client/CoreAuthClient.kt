@@ -16,6 +16,9 @@ interface CoreAuthClient {
     @PostExchange("/internal/v1/auth/verify")
     fun verify(@RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String): VerifiedMemberResponse
 
+    @PostExchange("/internal/v1/auth/verify-scheduled-member", contentType = MediaType.APPLICATION_JSON_VALUE)
+    fun verifyScheduledMember(@RequestBody request: ScheduledMemberPayload): VerifiedMemberResponse
+
     /** 회원 UUID 묶음의 최신 닉네임이다. 사용자 Bearer 없이 서비스 자격만 쓰며, Core에 없는 회원은 응답 맵에 없다. */
     @PostExchange("/internal/v1/members/nicknames", contentType = MediaType.APPLICATION_JSON_VALUE)
     fun nicknames(@RequestBody request: NicknamesPayload): NicknamesResponse
@@ -23,3 +26,4 @@ interface CoreAuthClient {
 
 /** Core의 내부 확인 응답이며 공개 MemberResponse나 회원 정본 사본이 아니다. */
 data class VerifiedMemberResponse(val memberId: UUID)
+data class ScheduledMemberPayload(val memberId: String)

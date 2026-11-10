@@ -12,6 +12,53 @@ beforeEach(async () => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+describe('회차 예약 발행', () => {
+  const path = '/api/v1/works/w/episodes/2/publication-schedules'
+  const scheduledAt = '2099-11-10T01:30:00.000Z'
+  const schedule = { id: 's1', versionId: 'v1', scheduledAt, status: 'pending', revision: 0, completedAt: null, failureReason: null }
+
+  it('예약과 실행 결과를 조회하고 취소 신호를 전달한다', async () => {
+    const failed = { ...schedule, id: 'old', status: 'failed', completedAt: scheduledAt, failureReason: '공개 제한 중이에요.' }
+    const fetcher = vi.fn().mockResolvedValue(Response.json([schedule, failed]))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    const controller = new AbortController()
+    expect(await api.publicationSchedules('w', 2, controller.signal)).toEqual([schedule, failed])
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe(path)
+    controller.abort()
+    expect(request.signal.aborted).toBe(true)
+  })
+
+  it.each(['POST', 'PUT'])('%s로 한국 시각과 고정 저장 버전을 전송한다', async method => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(schedule))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await api.savePublicationSchedule('w', 2, 'v1', '2099-11-10T10:30', true, method === 'PUT' ? schedule : undefined)
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe(method === 'PUT' ? path + '/s1' : path)
+    expect(request.method).toBe(method)
+    expect(JSON.parse(request.body)).toEqual({ versionId: 'v1', scheduledAt, rightsConfirmed: true, ...(method === 'PUT' ? { revision: 0 } : {}) })
+  })
+
+  it('권리 확인과 유효한 미래 시각이 필요하다', async () => {
+    const fetcher = vi.fn()
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2099-11-10T10:30', false)).rejects.toThrow('공개 권리')
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2000-11-10T10:30', true)).rejects.toThrow('미래')
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2099-02-30T10:30', true)).rejects.toThrow('시각')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('예약 수정 번호로 취소하고 서버가 거절하면 오류를 반환한다', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(Response.json({ detail: '이미 실행한 예약이에요.' }, { status: 409 }))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.cancelPublicationSchedule('w', 2, schedule)).resolves.toBeUndefined()
+    expect(fetcher.mock.calls[0]).toEqual([path + '/s1?revision=0', expect.objectContaining({ method: 'DELETE' })])
+    await expect(api.cancelPublicationSchedule('w', 2, schedule)).rejects.toThrow('이미 실행한 예약이에요.')
+  })
+})
+
 describe('설정 이력 연결', () => {
   const world = { id: 'w', name: '세계관', revision: 3, mode: 'own', basis: null, draft: null, drafts: [], settings: [], history: [], sourceToken: 't', changes: [] }
   it.each(['read', 'restore'])('이력 %s 요청에 호출자의 취소 신호를 전달한다', async action => {
