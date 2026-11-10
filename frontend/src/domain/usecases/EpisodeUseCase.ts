@@ -62,4 +62,19 @@ export class EpisodeUseCase {
   revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal) {return this.repository.revertSetting(id,sid,revision,versionId,signal)}
   decideChange(id:string,revision:number,changeId:string,decision:'apply'|'reject') {return this.repository.decideChange(id,revision,changeId,decision)}
   context(id:string,episode:number,query:string,character:string,publicView=false) {return this.repository.context(id,episode,query,character,publicView)}
+  episodeWorldBasis(id: string, number: number, signal?: AbortSignal) {
+    return this.repository.episodeWorldBasis(id, number, signal)
+  }
+  chooseEpisodeWorldBasis(id: string, number: number, choice: import('../entities/episodeWorldBasis').EpisodeWorldBasisChoice, signal?: AbortSignal) {
+    return this.repository.chooseEpisodeWorldBasis(id, number, choice, signal)
+  }
+  worldBasisVersions(worldId: string, signal?: AbortSignal) {
+    return this.repository.worldBasisVersions(worldId, signal)
+  }
+  worldBasisCards(worldId: string, revisionId: string, signal?: AbortSignal) {
+    return this.repository.worldBasisCards(worldId, revisionId, signal)
+  }
+  confirmWorldBasisVersion(worldId: string, expectedDraftRevision: number, key: string, signal?: AbortSignal) {
+    return this.repository.confirmWorldBasisVersion(worldId, expectedDraftRevision, key, signal)
+  }
 }

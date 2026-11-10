@@ -139,7 +139,13 @@ card_type은 character/location/organization/ability/object/rule/event/other 8�
 
 JWT 서명·만료 검증과 Principal→UUID 변환은 호출 계층의 책임이다. 독립 Service는 UUID subject를 인자로 받아 모든 읽기/쓰기에서 소유 world를 먼저 잠그고 대조한다. DB 소유자 컬럼이나 FK 부재가 HTTP 인증 완료를 뜻하지 않는다. SQL 관리자 권한으로는 소유권 검사를 우회할 수 있다. 이번에는 독립 Entity·JpaRepository·Service까지만 연결하며 HTTP Controller·기존 작업실 UI는 연결하지 않는다.
 
-향후 회차는 world_id와 확정 world_revision_id를 명시적으로 참조한다. WorldStudio는 회차 번호·작품 ID 없이 동작한다. 회차 쪽 상태 변화·Checkpoint·Fork는 초기 version을 덮어쓰지 않으며 이 초기 migration에 구현하지 않는다. 서비스 간 FK/DTO는 공동 계약 확정 후 후속 migration으로 추가한다.
+### 집필 회차의 기준 세계관 (기능 87)
+
+2026-11-10 사용자 결정에 따라 작가는 소유한 WorldStudio의 봉인된 버전을 집필 회차의 기준으로 선택·조회·변경한다. Content는 회차에 세계관 UUID와 버전 UUID를 함께 기록한다. WorldStudio는 소유권과 해당 세계관의 봉인된 버전을 확인하며 작품·회차를 참조하지 않는다. 두 스키마의 검증과 기록은 각각의 트랜잭션에서 수행하고 회차 선택을 저장할 때 작품 소유권과 회차 수정 가능 여부를 다시 확인한다.
+
+- `GET/PUT /api/v1/works/{id}/episodes/{number}/world-basis`는 소유자의 선택과 변경을 처리한다. 선택 전 응답에는 `basis: null`과 수정 번호가 들어 있다. 수정 번호가 바뀐 상태에서 다른 버전을 선택하면 409로 응답한다. 같은 버전의 재시도는 현재 선택을 돌려준다. 원작에서 상속한 회차는 읽기 전용이다.
+- `GET /api/v1/world-studios/{id}/revisions`는 소유한 세계관의 봉인된 버전 목록을 반환한다. 집필실에서 기존 확정 저장 API로 현재 저장된 인물·설정을 새 버전으로 만들 수 있고, 기준으로 선택한 버전의 설정은 기존 버전 상세 API로 읽는다.
+- 적용 범위는 집필실의 회차 참조다. 발행본·Fork 기준·집필 AI 문맥과 Neo4j 관계의 과거 상태는 이 참조에 포함하지 않는다. 기존 회차는 기준 선택 없이 열 수 있다.
 
 ## 새 SQL 작성 전 확정할 항목
 
