@@ -17,7 +17,6 @@ import ai.storyfork.content.world.entity.*
 import ai.storyfork.content.world.repository.*
 import ai.storyfork.content.work.domain.*
 import ai.storyfork.content.like.service.WorkLikeService
-import org.springframework.dao.DataIntegrityViolationException
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
 
@@ -28,7 +27,6 @@ class WorkService(
     private val members: ContentMemberService,
     private val works: WorkRepository,
     private val worlds: WorldRepository,
-    private val settings: SettingDocumentRepository,
     private val workWorlds: WorkWorldHistoryRepository,
     private val visibility: WorkPublicationHistoryRepository,
     private val policies: ForkPolicyHistoryRepository,
@@ -48,20 +46,28 @@ class WorkService(
 ) {
 
     fun list(owner: String): WorkListResponse {
-        val rows=works.findAllByOwnerIdOrderByCreatedAtDesc(owner)
+        val rows=works.findAllByOwnerIdOrderByCreatedAtDesc(owner).filter {it.deletedAt==null}
         // 목록의 소유자는 모두 owner다. 잠금(원작 행 포함)을 쥔 채 Core를 기다리지 않도록 닉네임은 잠금 전에 한 번 조회한다. 작품이 없으면 부르지 않는다.
         val name=rows.firstOrNull()?.let {nicknames.nicknames(listOf(owner))[owner]} ?: WITHDRAWN_MEMBER_NAME
         access.lockScopes(rows.map {it.id})
         return WorkListResponse(rows.map {view(access.own(it.id,owner),false,name)})
     }
-    /** 공개 작품 목록이다. q·f·sort를 모두 생략하면 기존처럼 작품 생성 최신순이며, 잘못된 f·sort는 422다. */
-    fun publicList(q: String?,f: String?,sort: String?): WorkListResponse {
-        val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort")
+    /**
+     * 공개 작품 목록이다. q·f·sort·page·size를 모두 생략하면 기존처럼 작품 생성 최신순 전체이며, 잘못된 f·sort·page·size는 422다.
+     * 찾은 작품의 좋아요를 먼저 한 번에 세어 채운 뒤(like 정렬이 쓴다) 정렬하고, page·size가 오면 정렬을 마친 결과에서 그 구간만 돌려준다.
+     */
+    fun publicList(q: String?,f: String?,sort: String?,page: String? = null,size: String? = null): WorkListResponse {
+        val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort");val window=workPage(page,size)
         val counts=viewService.counts()
-        val found=publicWorks(counts).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)}
-        if(order==WorkSort.LATEST) return WorkListResponse(withLikes(found))
+        val found=withLikes(publicWorks(counts).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)})
+        val newestFirst=found.map {it.id}
+        val ordered=when(order) {
+            WorkSort.LATEST->newestFirst
+            WorkSort.LIKE->orderByLikes(newestFirst,found.associate {it.id to it.likes})
+            WorkSort.VIEW->orderByViews(newestFirst,counts)
+        }
         val byId=found.associateBy {it.id}
-        return WorkListResponse(withLikes(orderByViews(found.map {it.id},counts).map {byId.getValue(it)}))
+        return WorkListResponse(pageOf(ordered,window).map {byId.getValue(it)})
     }
     /**
      * 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 잘못된 kind는 422다.
@@ -84,8 +90,8 @@ class WorkService(
         views(listOf(access.published(id)),true).single().copy(likes=likeService.counts(listOf(id))[id] ?: 0,liked=member!=null && likeService.liked(id,member))
     /** 공개 작품의 발행 회차(본문 포함)다. 작가명이 필요 없는 내부 호출(표지·이미지 공개 열람)이 Core 조회 없이 공개 여부와 본문을 확인한다. 비공개·제한 작품은 404다. */
     fun publicEpisodes(id: String): List<PublishedEpisodeResponse> {
-        access.published(id)
-        return publication.publishedEpisodes(id).items
+        val w=access.published(id)
+        return w.readerEpisodes(publication.publishedEpisodes(id).items)
     }
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
@@ -119,27 +125,15 @@ class WorkService(
         works.saveAndFlush(row)
         return read(id,owner)
     }
-    /** 세계관 설정이 있으면 삭제 전에 409를 반환하고, 발행·저장 버전 등 참조 충돌은 전체를 되돌린다. */
+    /**
+     * 작품을 소프트 삭제한다(DEC-42). 행은 지우지 않고 삭제 시각만 기록하며, 이후 목록·검색·랭킹·읽기·분기 생성에서 제외된다.
+     * 이 작품을 원작으로 둔 Fork는 원작 행을 그대로 참조하고 "삭제된 원작"으로 표시된다. 분기 작품과 세계관 설정이 있는 작품도 삭제할 수 있다.
+     */
     fun delete(id: String,owner: String) {
-        val w=access.own(id,owner)
-        checkContent(w.source==null,409,"분기 작품은 아직 삭제할 수 없어요.")
-        checkContent(!settings.existsByWorldId(w.worldId),409,"세계관 설정이 있는 작품은 아직 삭제할 수 없어요.")
-        val rows=episodes.findAllByWorkIdOrderBySequence(id)
-        try {
-            drafts.deleteAllById(rows.map {it.id})
-            episodes.deleteAll(rows)
-            workGenres.deleteAllByWorkId(id)
-            hashtagRows.deleteAllByWorkId(id)
-            rightsRows.deleteAllByWorkId(id)
-            workWorlds.deleteAllByWorkId(id)
-            visibility.deleteAllByWorkId(id)
-            policies.deleteAllByWorkId(id)
-            works.deleteById(id)
-            worlds.deleteById(w.worldId)
-            works.flush()
-        } catch(e: DataIntegrityViolationException) {
-            throw ContentFailure(409,"발행·저장 이력이 있거나 분기된 작품은 삭제할 수 없어요.")
-        }
+        access.own(id,owner)
+        val row=works.findById(id).orElseThrow()
+        row.deletedAt=java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
+        works.saveAndFlush(row)
     }
     fun policy(id: String,owner: String,data: PolicyRequest): WorkResponse {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
@@ -182,7 +176,8 @@ class WorkService(
         return ws.map {view(it,public,names[it.ownerId] ?: WITHDRAWN_MEMBER_NAME)}
     }
     private fun view(w: WorkAccessResult,public: Boolean,authorName: String): WorkResponse {
-        val published=publication.publishedEpisodes(w.id).items
+        val all=publication.publishedEpisodes(w.id).items
+        val published=if(public) w.readerEpisodes(all) else all
         val next=if(public) null else publication.nextEpisodeNumber(w.id)
         val draft=if(public) null else {
             val e=episodes.findByWorkIdAndSequence(w.id,next!!)

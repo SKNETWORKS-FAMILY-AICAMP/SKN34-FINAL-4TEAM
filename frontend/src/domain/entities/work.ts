@@ -74,6 +74,10 @@ export type Work = {
   localRules?: string[]
   wiki?: Wiki
   parent?: string
+  /** 원작 제목. 원작이 삭제·비공개라 공개 목록에 없어도 Fork 응답의 source.title로 보여 준다. */
+  parentTitle?: string
+  /** 원작이 소프트 삭제됐는지(DEC-42). 독자에게는 분기 전 회차 본문이 비어 온다. */
+  parentDeleted?: boolean
   forkAt?: number
   snap?: Snapshot
   removedWorldDocs?: Record<string, WikiDoc[]>
@@ -128,6 +132,9 @@ export function forkLabel(w: Work, worlds: World[]) {
 }
 
 export const isPub = (w: Work) => !w.hidden && !w.private && (w.parent ? w.eps.length > 0 : true)
+/** 원작이 삭제된 Fork에서 독자에게 본문이 숨겨져 온 분기 전 회차인지(DEC-42). 소유자는 본문을 받으므로 해당하지 않는다. */
+export const hiddenSourceEpisode = (w: Pick<Work, 'parent' | 'forkAt' | 'parentDeleted'>, n: number, paragraphs: string[]) =>
+  !!w.parent && !!w.parentDeleted && n <= (w.forkAt ?? 0) && !paragraphs.join('').trim()
 export const epsOf = (w: Work) => (w.parent && w.snap ? w.snap.eps.concat(w.eps) : w.eps)
 /** 설정(규칙·인물·사건) 출처: 포크는 자기 스냅샷만 본다 */
 export const baseOf = (w: Work): Pick<Snapshot, 'rules' | 'cast' | 'events'> => (w.parent && w.snap ? w.snap : w)
@@ -195,9 +202,9 @@ const SERVER_SORTS = [['title', '제목 순'], ['author', '작가 순']] as cons
 export const sortsOf = (works: Pick<Work, 'statisticsSupported'>[]): readonly (readonly [string, string])[] =>
   works.some((w) => w.statisticsSupported === false) ? SERVER_SORTS : SORTS
 
-/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 인기 순은 서버가 지원하지 않습니다. */
+/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 인기 순(like)은 공개 좋아요 수 순입니다. */
 export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그'], ['genre', '장르']] as const
-export const SEARCH_SORTS = [['latest', '최신 순'], ['view', '조회 순']] as const
+export const SEARCH_SORTS = [['latest', '최신 순'], ['like', '인기 순'], ['view', '조회 순']] as const
 export type SearchField = (typeof SEARCH_FIELDS)[number][0]
 export type SearchSort = (typeof SEARCH_SORTS)[number][0]
 
@@ -215,5 +222,5 @@ export function matchW(w: Work, q: string, f: string, works: Work[]) {
 export const sorter = (k: string) => (a: Work,b: Work) => {
   if(k==='author') return a.author.localeCompare(b.author,'ko') || a.title.localeCompare(b.title,'ko')
   if(k==='title' || a.statisticsSupported===false || b.statisticsSupported===false) return a.title.localeCompare(b.title,'ko')
-  return k==='new' ? a.upd-b.upd : k==='pop' ? b.likes-a.likes : b.views-a.views
+  return k==='new' ? a.upd-b.upd : k==='pop' || k==='like' ? b.likes-a.likes : b.views-a.views
 }

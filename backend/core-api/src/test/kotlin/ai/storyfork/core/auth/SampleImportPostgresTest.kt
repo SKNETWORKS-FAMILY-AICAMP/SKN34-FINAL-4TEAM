@@ -47,31 +47,31 @@ class SampleImportPostgresTest {
     @Test fun `V9 adds ordinary disabled sample accounts without changing the existing writer`() = isolated { jdbc, flyway ->
         flyway("8").migrate()
         val before = jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer)
-        // 남은 V9(샘플 계정)와 V10(고전 작가 닉네임)이 적용된다.
-        assertEquals(2, flyway(null).migrate().migrationsExecuted)
+        // 남은 V9(샘플 계정)와 V10(고전 작가 닉네임)이 적용된다. 이후 버전(알림 Outbox V11)은 이 테스트의 관심 밖이라 V10으로 고정한다.
+        assertEquals(2, flyway("10").migrate().migrationsExecuted)
         assertEquals(9, samples(jdbc))
         assertTrue(before == jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer), "Existing writer must remain unchanged")
-        assertEquals(0, flyway(null).migrate().migrationsExecuted)
-        flyway(null).validate()
+        assertEquals(0, flyway("10").migrate().migrationsExecuted)
+        flyway("10").validate()
     }
 
     @Test fun `V10 renames only the untouched classic author account and replays idempotently`() = isolated { jdbc, flyway ->
         flyway("9").migrate()
         assertEquals("운영팀", nickname(jdbc, classic))
-        assertEquals(1, flyway(null).migrate().migrationsExecuted)
+        assertEquals(1, flyway("10").migrate().migrationsExecuted)
         assertEquals("고전 아카이브", nickname(jdbc, classic))
         // 다른 샘플 계정과 기존 작가의 닉네임은 그대로다.
         assertEquals("개발 작가", nickname(jdbc, writer))
         assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM auth_member WHERE nickname='윤서하'", Int::class.java))
-        assertEquals(0, flyway(null).migrate().migrationsExecuted)
-        flyway(null).validate()
+        assertEquals(0, flyway("10").migrate().migrationsExecuted)
+        flyway("10").validate()
         assertEquals("고전 아카이브", nickname(jdbc, classic))
     }
 
     @Test fun `V10 keeps a nickname the sample account was already given`() = isolated { jdbc, flyway ->
         flyway("9").migrate()
         jdbc.update("UPDATE auth_member SET nickname='직접 바꾼 이름' WHERE id=?", classic)
-        assertEquals(1, flyway(null).migrate().migrationsExecuted)
+        assertEquals(1, flyway("10").migrate().migrationsExecuted)
         assertEquals("직접 바꾼 이름", nickname(jdbc, classic))
     }
 
@@ -81,7 +81,7 @@ class SampleImportPostgresTest {
             .readTree(Files.readString(sampleDir.resolve("source-inventory.json")))
         val author = inventory.path("authors").first { it.path("canonicalOwnerLabel").asText() != "개발 작가" }
         jdbc.update("INSERT INTO auth_member(id,email,password_hash,nickname,operator) VALUES (?,?,?,'local',false)", UUID.randomUUID(), author.path("proposedEmail").asText(), "!disabled-local")
-        assertThrows(FlywayException::class.java) { flyway(null).migrate() }
+        assertThrows(FlywayException::class.java) { flyway("10").migrate() }
         assertEquals(0, samples(jdbc))
     }
 }

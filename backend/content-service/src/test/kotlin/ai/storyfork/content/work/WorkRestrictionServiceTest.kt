@@ -31,6 +31,16 @@ class WorkRestrictionServiceTest {
         assertEquals(404, assertThrows(ContentFailure::class.java) { InternalWorkService(works, nicknames).read("none") }.status)
     }
 
+    @Test fun `operations cannot read or restrict a soft deleted work`() {
+        val gone = WorkEntity(id = "gone", ownerId = "author", title = "삭제", deletedAt = java.time.Instant.now())
+        `when`(works.findById("gone")).thenReturn(Optional.of(gone))
+        `when`(works.lockAll(listOf("gone"))).thenReturn(listOf(gone))
+        val service = InternalWorkService(works, nicknames)
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.read("gone") }.status)
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.restrict("gone", true) }.status)
+        assertFalse(gone.restricted)
+    }
+
     @Test fun `restrict and unrestrict lock the work row and return the new flag`() {
         `when`(works.lockAll(listOf("work"))).thenReturn(listOf(row))
         val service = InternalWorkService(works, nicknames)

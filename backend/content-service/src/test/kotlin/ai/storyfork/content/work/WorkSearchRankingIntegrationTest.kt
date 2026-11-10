@@ -8,6 +8,7 @@ import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.fixture.DraftRequest
 import ai.storyfork.content.fixture.PublishRequest
+import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.dto.CreateWorkRequest
 import java.net.URI
@@ -50,6 +51,7 @@ class WorkSearchRankingIntegrationTest {
     @MockitoBean lateinit var core: CoreAuthClient
     @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
+    @Autowired lateinit var likes: WorkLikeService
     @Autowired lateinit var driver: ContentTestDriver
     @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource
     @Autowired lateinit var json: JsonMapper
@@ -119,6 +121,32 @@ class WorkSearchRankingIntegrationTest {
 
         assertEquals(422,get("/api/v1/public/works?f=body").statusCode())
         assertEquals(422,get("/api/v1/public/works?sort=popular").statusCode())
+    }
+
+    @Test fun `like sort orders by public likes and page and size cut the sorted result`() {
+        // 제목에 넣은 고유 토큰으로 검색해 다른 테스트의 작품이 페이지에 섞이지 않게 한다.
+        val tag=UUID.randomUUID().toString().take(8)
+        val first=work("인기 $tag 하나")
+        val second=work("인기 $tag 둘")
+        val third=work("인기 $tag 셋")
+        work("인기 $tag 비공개",publish=false)
+        likes.like(first,"fan-1")
+        likes.like(first,"fan-2")
+        likes.like(second,"fan-1")
+        val query="/api/v1/public/works?f=title&q=${encoded(tag)}"
+
+        assertEquals(listOf(third,second,first),ids(query))
+        assertEquals(listOf(first,second,third),ids("$query&sort=like"))
+        assertEquals(listOf(2L,1L,0L),items("$query&sort=like").map {it.path("likes").asLong()})
+        assertEquals(listOf(first,second),ids("$query&sort=like&page=0&size=2"))
+        assertEquals(listOf(third),ids("$query&sort=like&page=1&size=2"))
+        assertEquals(emptyList<String>(),ids("$query&sort=like&page=2&size=2"))
+        // 하나만 오면 나머지는 기본값(page 0, size 20)이다.
+        assertEquals(listOf(third,second),ids("$query&size=2"))
+        assertEquals(listOf(third,second,first),ids("$query&page=0"))
+        assertEquals(emptyList<String>(),ids("$query&page=1"))
+        // 숫자 아닌 값도 400이 아니라 422다.
+        for(bad in listOf("page=-1","page=abc","size=0","size=101","size=abc","page=1.5")) assertEquals(422,get("$query&$bad").statusCode(),bad)
     }
 
     @Test fun `ranking counts the last 24 hours against the 24 hours before`() {

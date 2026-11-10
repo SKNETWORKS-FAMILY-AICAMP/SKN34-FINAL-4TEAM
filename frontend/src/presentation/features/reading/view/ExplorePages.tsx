@@ -39,6 +39,17 @@ const LoadError = ({ retry }: { retry: () => void }) => (
   <div className="rp muted"><p role="alert">소설을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={retry}>다시 불러오기</button></div>
 )
 
+/** 서버 페이지를 이어 붙이는 버튼(마지막 페이지면 없음). 실패해도 이미 보인 목록은 두고 이 버튼 곁에서 다시 시도하게 합니다. */
+function LoadMore({ hasMore, loading, failed, load }: { hasMore: boolean; loading: boolean; failed: boolean; load: () => void }) {
+  if (!hasMore) return null
+  return (
+    <div style={{ display: 'grid', justifyItems: 'center', gap: 8, marginTop: 24 }}>
+      {failed && <p role="alert" className="muted small">소설을 더 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
+      <button type="button" className="btn" disabled={loading} onClick={load}>{loading ? '불러오는 중…' : failed ? '다시 시도' : '더 보기'}</button>
+    </div>
+  )
+}
+
 /** 목업 wcard(w, i, ranked) */
 function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolean; onReport?: (w: Work) => void }) {
   return (
@@ -70,12 +81,14 @@ export function SearchPage() {
     <>
       <Gnb />
       <main className="wrap" id="main" tabIndex={-1}>
-        <div className="sec-h"><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h1>{vm.list && !vm.isError && <span className="muted small">{L.length}편</span>}</div>
+        {/* 총 개수는 서버가 주지 않으니 더 받을 수 있는 동안은 불러온 개수까지만 알립니다. */}
+        <div className="sec-h"><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h1>{vm.list && !vm.isError && <span className="muted small">{L.length}편{vm.more.hasMore && ' 이상'}</span>}</div>
         <ListTools base="/search" st={vm.st} onSubmit={vm.submit} />
         {!vm.list && !vm.isError && <ContentLoadState failed={false} retry={vm.retry}/>}
         <div className="rgrid" style={{ marginTop: 20 }}>
           {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.canReport(w) ? vm.setReporting : undefined} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
         </div>
+        <LoadMore {...vm.more} />
       </main>
       <Footer />
       {vm.reporting && <ReportSheet work={vm.reporting} onClose={() => vm.setReporting(null)} />}
@@ -99,6 +112,7 @@ export function RankPage() {
         <div className="rgrid" style={{ marginTop: 20 }}>
           {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
         </div>
+        <LoadMore {...vm.more} />
       </main>
       <Footer />
     </>

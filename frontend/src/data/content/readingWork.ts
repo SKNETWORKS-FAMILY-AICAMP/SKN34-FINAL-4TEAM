@@ -26,7 +26,7 @@ export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
     statisticsSupported: false, likes: row.likes, views: row.views, cmts: 0, upd: 0,
     hook: row.hook, hanja: row.hanja ?? undefined, hero: row.hero ?? undefined, heroBg: row.heroBg ?? undefined,
     private: row.visibility !== 'public', forksAllowed: row.allowFork, forkAll: false, forkEps: row.forkableEpisodes,
-    forkFrom: row.forkableEpisodes[0] ?? 0, parent: row.source?.workId, forkAt: row.source?.episode, dir: row.source?.direction,
+    forkFrom: row.forkableEpisodes[0] ?? 0, parent: row.source?.workId, parentTitle: row.source?.title, parentDeleted: row.source?.deleted, forkAt: row.source?.episode, dir: row.source?.direction,
     eps: numbered.slice(boundary), cast: [], rules: [], events: [],
     wiki: { docs: [], cats: structuredClone(WCATS) },
     ...(row.source ? { snap: { eps: inherited, rules: [], cast: [], events: [], takenAt: 0, srcHash: '' } } : {}),

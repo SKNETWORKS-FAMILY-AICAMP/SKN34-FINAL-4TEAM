@@ -229,6 +229,80 @@ class WorkSearchServiceTest {
         assertTrue(list.none { it.liked })
     }
 
+    @Test fun `like sort orders by public likes, breaks ties by newest first and counts the likes once`() {
+        work("a", "첫째", 1)
+        work("b", "둘째", 2)
+        work("c", "셋째", 3)
+        work("d", "넷째", 4)
+        views(Triple("a", 9, 0))
+        likes("a" to 2, "c" to 2, "b" to 5)
+
+        val items = service.publicList(null, null, "like").items
+
+        assertEquals(listOf("b", "c", "a", "d"), items.map { it.id })
+        assertEquals(listOf(5L, 2L, 2L, 0L), items.map { it.likes })
+        // 조회 수는 좋아요 정렬과 무관하게 응답에 채워진다.
+        assertEquals(listOf(0L, 0L, 9L, 0L), items.map { it.views })
+        // 정렬에 쓴 묶음 집계를 그대로 채우므로 좋아요 수는 한 번만 센다.
+        verify(likeService, times(1)).counts(ArgumentMatchers.anyCollection<String>())
+        verify(likeService).counts(listOf("d", "c", "b", "a"))
+    }
+
+    @Test fun `like sort applies to the searched works only`() {
+        work("a", "달빛 하나", 1)
+        work("b", "달빛 둘", 2)
+        work("c", "별빛 셋", 3)
+        views()
+        likes("a" to 1, "b" to 4, "c" to 9)
+
+        assertEquals(listOf("b", "a"), service.publicList("달빛", "title", "like").items.map { it.id })
+        verify(likeService).counts(listOf("b", "a"))
+    }
+
+    @Test fun `page and size cut the sorted result and both omitted keep the whole list`() {
+        for (i in 1..5) work("w$i", "작품 $i", i.toLong())
+        views(Triple("w1", 9, 0), Triple("w2", 5, 0))
+        likes("w3" to 3, "w1" to 1)
+
+        fun ids(sort: String?, page: String?, size: String?) = service.publicList(null, null, sort, page, size).items.map { it.id }
+
+        assertEquals(listOf("w5", "w4", "w3", "w2", "w1"), ids(null, null, null))
+        assertEquals(listOf("w5", "w4"), ids(null, "0", "2"))
+        assertEquals(listOf("w3", "w2"), ids(null, "1", "2"))
+        assertEquals(listOf("w1"), ids(null, "2", "2"))
+        assertEquals(emptyList<String>(), ids(null, "3", "2"))
+        // 하나만 오면 나머지는 기본값(page 0, size 20)이다.
+        assertEquals(listOf("w5", "w4", "w3"), ids(null, null, "3"))
+        assertEquals(listOf("w5", "w4", "w3", "w2", "w1"), ids(null, "0", null))
+        assertEquals(emptyList<String>(), ids(null, "1", null))
+        // 정렬을 마친 결과에서 자른다.
+        assertEquals(listOf("w1", "w2"), ids("view", "0", "2"))
+        assertEquals(listOf("w5", "w4"), ids("view", "1", "2"))
+        assertEquals(listOf("w3", "w1"), ids("like", "0", "2"))
+        assertEquals(listOf("w5", "w4"), ids("like", "1", "2"))
+        assertEquals(listOf("w2"), ids("like", "2", "2"))
+    }
+
+    @Test fun `a page keeps the likes and views of its own works and counts the likes once`() {
+        for (i in 1..5) work("w$i", "작품 $i", i.toLong())
+        views(Triple("w4", 7, 0))
+        likes("w4" to 3, "w2" to 8)
+
+        val page = service.publicList(null, null, null, "0", "2").items
+
+        assertEquals(listOf("w5", "w4"), page.map { it.id })
+        assertEquals(listOf(0L, 3L), page.map { it.likes })
+        assertEquals(listOf(0L, 7L), page.map { it.views })
+        verify(likeService, times(1)).counts(ArgumentMatchers.anyCollection<String>())
+    }
+
+    @Test fun `a bad page or size fails with 422 before any lookup`() {
+        val bad = listOf<Pair<String?, String?>>("-1" to null, "abc" to null, "" to null, null to "0", null to "101", null to "abc", "0" to "1.5", "abc" to "10")
+        for ((page, size) in bad) assertEquals(422, failure { service.publicList(null, null, null, page, size) }.status, "$page/$size")
+
+        verifyNoInteractions(works, access, viewService, nicknames, likeService)
+    }
+
     @Test fun `public detail fills the like count and whether the signed in member liked it`() {
         work("a", "첫째", 1, author = "윤서하")
         likes("a" to 4)

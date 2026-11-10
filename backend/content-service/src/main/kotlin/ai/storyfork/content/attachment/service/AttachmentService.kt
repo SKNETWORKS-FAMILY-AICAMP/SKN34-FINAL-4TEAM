@@ -35,6 +35,8 @@ class AttachmentService(
     private fun missingSettingAttachment(): Nothing = throw AttachmentFailure(404, "ATTACHMENT_NOT_FOUND", "설정 또는 첨부를 찾을 수 없어요.")
     private fun ownedSetting(workId: String, settingId: String, owner: String): String {
         if (owner.isBlank() || owner.length > 200) throw AttachmentFailure(401, "ATTACHMENT_UNAUTHENTICATED", "인증이 필요해요.")
+        // 소프트 삭제한 작품의 설정 첨부는 새 행위에서 제외한다(DEC-42).
+        works.lockOwned(workId, owner)?.takeIf { it.deletedAt == null } ?: missingSettingAttachment()
         return settings.lockOwnedLocal(workId, settingId, owner)?.id ?: missingSettingAttachment()
     }
     private fun find(id: String, documentId: String) = attachments.findByIdAndSettingDocumentId(id, documentId) ?: missingSettingAttachment()
@@ -141,7 +143,7 @@ class AttachmentService(
     catch (_: TransactionException) { throw AttachmentFailure(503, "IMAGE_DATABASE_FAILURE", "이미지 정보를 저장하거나 조회하지 못했어요.") }
     private fun ownedWork(work: String, owner: String) {
         if (owner.isBlank()) throw AttachmentFailure(401, "IMAGE_UNAUTHENTICATED", "인증이 필요해요.")
-        works.lockOwned(work, owner) ?: missingImage()
+        works.lockOwned(work, owner)?.takeIf { it.deletedAt == null } ?: missingImage()
     }
     /** 파일을 읽기 전에 소유 작품인지 확인한다. 잠금은 이 조회 트랜잭션 동안만 잡고 파일 처리 전에 풀린다. 저장 전 재확인은 각 업로드 메서드가 유지한다. */
     fun requireWorkUploadAccess(work: String, owner: String) { imageTransaction { ownedWork(work, owner); true } }
