@@ -1,5 +1,6 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
 import type {WorkRegistration,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
+import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
 
 export interface EpisodeRepository {
   orderScope(id:string,number:number,signal?:AbortSignal):Promise<import('../entities/content').EpisodeOrderScope>
@@ -35,4 +36,9 @@ export interface EpisodeRepository {
   revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal):Promise<World>
   decideChange(id:string,revision:number,changeId:string,decision:'apply'|'reject'):Promise<World>
   context(id:string,episode:number,query:string,character:string,publicView:boolean):Promise<StoryContext>
+  episodeWorldBasis(id: string, number: number, signal?: AbortSignal): Promise<EpisodeWorldBasis>
+  chooseEpisodeWorldBasis(id: string, number: number, choice: EpisodeWorldBasisChoice, signal?: AbortSignal): Promise<EpisodeWorldBasis>
+  worldBasisVersions(worldId: string, signal?: AbortSignal): Promise<WorldBasisVersion[]>
+  worldBasisCards(worldId: string, revisionId: string, signal?: AbortSignal): Promise<WorldBasisCard[]>
+  confirmWorldBasisVersion(worldId: string, expectedDraftRevision: number, key: string, signal?: AbortSignal): Promise<string>
 }
