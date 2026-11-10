@@ -2,6 +2,7 @@ import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepositor
 import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput, type WorkRegistration} from '../../domain/entities/content'
+import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
@@ -35,6 +36,16 @@ const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.
   knowledge:z.array(z.object({text:z.string(),knownAt:z.number().int(),publicAt:z.number().int()})),links:z.array(z.object({to:z.string(),kind:z.string()})),
 })
 const readingWorld = z.object({workId:z.string(),episode:z.number().int().positive(),documents:z.array(readingDocument)})
+const publicationSchedule = z.object({
+  id: z.string().min(1),
+  versionId: z.string().min(1),
+  scheduledAt: z.iso.datetime(),
+  status: z.enum(['pending', 'published', 'failed', 'canceled']),
+  revision: z.number().int().nonnegative(),
+  completedAt: z.iso.datetime().nullable(),
+  failureReason: z.string().nullable(),
+})
+const schedulesPath = (id: string, number: number) => `/works/${encodeURIComponent(id)}/episodes/${number}/publication-schedules`
 export type ReadingWorkRecord = z.infer<typeof readingWork>
 export type ReadingWorldRecord = z.infer<typeof readingWorld>
 
@@ -76,6 +87,18 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   writeEpisode(id:string,number:number,value:Draft,version:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/${version?'versions':'draft'}`,writing,version?'POST':'PUT',value,signal)}
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/restore`,writing,'POST',{revision,versionId},signal)}
   publishEpisode(id:string,number:number,revision:number,versionId:string,rightsConfirmed:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/publish`,writing,'POST',{revision,versionId,rightsConfirmed},signal)}
+  publicationSchedules(id: string, number: number, signal?: AbortSignal) {
+    return this.request(schedulesPath(id, number), z.array(publicationSchedule), 'GET', undefined, signal)
+  }
+  savePublicationSchedule(id: string, number: number, input: PublicationScheduleInput, target?: PublicationScheduleRevision, signal?: AbortSignal) {
+    const path = schedulesPath(id, number)
+    return target
+      ? this.request(`${path}/${encodeURIComponent(target.id)}`, publicationSchedule, 'PUT', { ...input, revision: target.revision }, signal)
+      : this.request(path, publicationSchedule, 'POST', input, signal)
+  }
+  cancelPublicationSchedule(id: string, number: number, target: PublicationScheduleRevision, signal?: AbortSignal) {
+    return this.request(`${schedulesPath(id, number)}/${encodeURIComponent(target.id)}?revision=${target.revision}`, z.undefined(), 'DELETE', undefined, signal)
+  }
   async publicList(signal?: AbortSignal) {
     const rows = await this.request('/public/works', z.array(work.omit({draft:true})), 'GET', undefined, signal)
     return rows.map(w=>({...w,readOnly:true,draft:{title:'',body:'',revision:0}}))
