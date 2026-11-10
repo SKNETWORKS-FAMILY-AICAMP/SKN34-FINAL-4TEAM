@@ -47,9 +47,8 @@ class ForkIntegrityService(
 
         val forkNumbers = episodes.findAllByWorkIdOrderBySequence(id).filter { it.sequence <= basis.sequence }
             .associate { it.id to it.sequence }
-        val copied = if (forkNumbers.isEmpty()) emptyList() else
-            versions.findAllByEpisodeIdInOrderByCreatedAtAscIdAsc(forkNumbers.keys)
-                .filter { !it.isSaved }.map { forkNumbers.getValue(it.episodeId) to it }
+        val copied = versions.findAllByEpisodeIdInOrderByCreatedAtAscIdAsc(forkNumbers.keys)
+            .filter { !it.isSaved }.map { forkNumbers.getValue(it.episodeId) to it }
         val forkHash = forkManuscriptHash(copied)
         val sourceHash = forkManuscriptHash(source)
         return ForkIntegrityResponse(basis.sequence, forkHash, sourceHash, forkHash == sourceHash)
