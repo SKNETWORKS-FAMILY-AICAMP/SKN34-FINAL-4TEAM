@@ -11,6 +11,10 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
   const shown = s.editedText ?? s.afterText
   const [edited, setEdited] = useState(shown)
   const [reason, setReason] = useState('')
+  // 거절 사유 입력은 거절을 눌렀을 때만 펼칩니다. 열면 입력으로 초점을 옮깁니다.
+  const [rejecting, setRejecting] = useState(false)
+  const reasonInput = useRef<HTMLInputElement>(null)
+  useEffect(() => { if (rejecting) reasonInput.current?.focus() }, [rejecting])
   const note = useRef<HTMLParagraphElement>(null)
   const mine = vm.notice?.id === s.id ? vm.notice : null
   // 처리한 버튼이 사라지거나 잠겨 초점을 잃어도 결과 안내에서 이어 가게 합니다.
@@ -21,6 +25,7 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
   // 서버에 저장하지 않은 편집안이 있으면 승인돼도 그 문장이 반영되지 않으므로, 먼저 저장하게 승인을 잠근다(앞뒤 공백은 저장 때 잘리므로 무시).
   const unsaved = edited.trim() !== shown
   const hint = `unsaved-${s.id}`
+  const rejectForm = `reject-${s.id}`
   return (
     <article className="panel" style={{ display: 'grid', gap: 12 }} aria-label={`${s.workTitle} ${s.episodeNumber}화 수정 제안`} aria-busy={vm.pending === s.id}>
       <div className="top"><b>{s.workTitle} {s.episodeNumber}화 · 수정 제안</b> <SuggestionStatusChip s={s} /></div>
@@ -33,13 +38,18 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
         <>
           <label className="field">편집안<textarea className="ta" maxLength={SUGGESTION_MAX} readOnly={locked} value={edited} onChange={(e) => setEdited(e.target.value)} /></label>
           <div className="rowend"><button type="button" className="btn sm" disabled={locked} onClick={() => void vm.saveEditedText(s, edited)}>편집안 저장</button></div>
-          <label className="field">거절 사유 (선택)<input className="inp" maxLength={SUGGESTION_MAX} readOnly={locked} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
           <div className="rowend">
             {s.status === 'pending' && <button type="button" className="btn" disabled={locked} onClick={() => void vm.hold(s)}>보류</button>}
-            <button type="button" className="btn" disabled={locked} onClick={() => void vm.reject(s, reason)}>거절</button>
+            <button type="button" className="btn" disabled={locked} aria-expanded={rejecting} aria-controls={rejectForm} onClick={() => setRejecting((open) => !open)}>거절</button>
             <button type="button" className="btn pri" disabled={locked || unsaved} aria-describedby={unsaved ? hint : undefined} onClick={() => void vm.approve(s)}>승인하고 초안에 반영</button>
           </div>
           {unsaved && <p id={hint} className="small muted">편집안을 먼저 저장해 주세요.</p>}
+          {rejecting && (
+            <div id={rejectForm} style={{ display: 'grid', gap: 12 }}>
+              <label className="field">거절 사유 (선택)<input ref={reasonInput} className="inp" maxLength={SUGGESTION_MAX} readOnly={locked} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
+              <div className="rowend"><button type="button" className="btn pri" disabled={locked} onClick={() => void vm.reject(s, reason)}>거절 확인</button></div>
+            </div>
+          )}
         </>
       )}
       {s.status === 'approved' && s.applyResult === 'applied' && (
@@ -73,7 +83,7 @@ export function EditSuggestionInbox() {
   const vm = useEditSuggestionInboxViewModel()
   return (
     <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
-      <div className="sec-h"><h2 id="edit-suggestions-h">독자 수정 제안</h2><span className="muted small">내 서버 작품의 문장 수정 제안</span></div>
+      <div className="sec-h"><h2 id="edit-suggestions-h">독자 수정 제안</h2><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
       {vm.isError && (
         <div className="panel" role="alert">
           <p>수정 제안을 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>

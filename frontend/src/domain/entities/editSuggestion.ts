@@ -30,7 +30,7 @@ export type EditSuggestion = {
 }
 
 /** 계약이 정한 기준 발행본 변경(409) 안내 문구. 화면이 이 경우에만 집필실로 가는 다음 행동을 붙인다. */
-export const BASE_CHANGED_MESSAGE = '기준 발행본이 바뀌어 다시 검토해야 해요.'
+export const BASE_CHANGED_MESSAGE = '원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.'
 
 /** 문장·편집안·사유의 최대 글자 수(공백 제거 후) */
 export const SUGGESTION_MAX = 500

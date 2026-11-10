@@ -159,7 +159,7 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 - 열람: 제안자·작품 소유자만(그 외 404). 작품이 삭제됐으면 누구에게나 404이고 내 제안·피드백함 목록에서도 뺀다. 공개 목록은 없다.
 - 편집안 저장: 소유자만, `pending`/`held`에서만. `editedText`(1~500자, `beforeText`와 같으면 422 — `afterText`와 같은 규칙)를 저장하고 원래 `afterText`는 보존한다(UC-16 4단계). 승인 내용 = `editedText ?: afterText`.
 - 승인: 소유자만, `pending`/`held`에서만(또는 `approved`+`failed`의 재시도).
-  1. 회차의 현재 발행 버전이 제안의 `publishedVersionId`와 다르면 409 `기준 발행본이 바뀌어 다시 검토해야 해요.` — 상태를 바꾸지 않는다(CE-07).
+  1. 회차의 현재 발행 버전이 제안의 `publishedVersionId`와 다르면 409 `원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.` — 상태를 바꾸지 않는다(CE-07).
   2. 현재 초안 본문에서 `beforeText`가 정확히 한 번 나오면 승인 내용으로 바꿔 기존 `EpisodeVersionService.save`(현재 초안 revision 사용)로 새 초안 버전을 만든다 → `approved`+`applied`+`appliedVersionId`.
   3. 초안에 없거나 여러 번 나오거나, Fork가 상속한 원작 회차라 초안을 고칠 수 없거나, 저장이 실패하면 → `approved`+`failed`+`applyFailure`(사유 문장). 반영 완료로 표시하지 않는다(UC-16 E2).
 - 거절: 소유자만, `pending`/`held`에서만. 선택 사유 0~500자 → `rejected`(종결).

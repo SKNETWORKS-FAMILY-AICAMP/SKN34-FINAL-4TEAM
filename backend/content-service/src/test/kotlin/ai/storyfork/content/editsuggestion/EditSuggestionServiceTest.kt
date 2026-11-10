@@ -593,7 +593,7 @@ class EditSuggestionServiceTest {
         val error = failure { service.approve("work", "s1", "owner") }
 
         assertEquals(409, error.status)
-        assertEquals("기준 발행본이 바뀌어 다시 검토해야 해요.", error.message)
+        assertEquals("원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.", error.message)
         assertEquals(listOf<Any?>("pending", null, null), listOf(saved.status, saved.applyResult, saved.decidedAt))
         assertTrue(saveRequests.isEmpty())
         assertEquals(listOf("begin", "rollback(pending)"), events)
