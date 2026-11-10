@@ -56,7 +56,7 @@ Core는 회원·인증·세션·크레딧·정산·회원 알림을 유지한다
 | 연동 장애 | 연결/상대 503 → 503 `CORE_AUTH_UNAVAILABLE`, timeout → 504 `CORE_AUTH_TIMEOUT`, 기타 상대 오류 → 502 `CORE_AUTH_UPSTREAM_ERROR`, 빈/잘못된 응답·redirect → 502 `CORE_AUTH_INVALID_RESPONSE`. 사용자 무효만 401 `UNAUTHORIZED` |
 | 제한시간/세션 | 기본 Core origin `http://127.0.0.1:8080`, connect/read `1s`/`3s`. 기존 access JWT의 세션 폐기 즉시 전파는 보장하지 않음 |
 
-사전 승인한 예약 발행은 Core 내부 전용 `POST /internal/v1/auth/verify-scheduled-member`로 회원 존재·제한 상태를 실행 시점에 확인합니다. 요청은 `{memberId}`와 기존 서비스 자격을 사용합니다. 작품 소유권·권리 제한·발행 판단은 Content가 맡습니다.
+사전 승인한 예약 발행은 Core 내부 전용 `POST /internal/v1/auth/verify-scheduled-member`로 회원 존재·제한 상태를 실행 시점에 확인합니다. 요청은 `{memberId}`와 기존 서비스 자격을 사용합니다. 작품 소유권·권리 제한·발행 판단은 Content가 맡습니다. 이 확인이 일시 장애(503·504)로 실패하면 같은 호출 안에서 재시도하지 않고 예약을 대기로 남겨 다음 스케줄러 주기에 다시 확인합니다. 401과 그 밖의 오류는 예약 실패로 기록합니다.
 
 인증 필수 요청마다 확인하며 인증 캐시·자동 재시도는 없다. 공개 조회는 GET만 익명 허용한다. 장애를 임의 회원·개발 사용자·성공 응답으로 대체하지 않는다. Core 회원 DB·비밀번호·세션·JWT 서명 비밀을 콘텐츠에 복제하지 않는다. 실제 보안·HTTP proxy·장애 검증 소스는 hosted CI에 두고 실제 성공 확인 전에는 검증 대기로 보고한다.
 

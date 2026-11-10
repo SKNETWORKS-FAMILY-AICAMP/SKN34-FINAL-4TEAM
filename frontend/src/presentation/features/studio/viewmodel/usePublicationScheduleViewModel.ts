@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import { toKstDateTimeInput, type PublicationSchedule } from '../../../../domain/entities/publicationSchedule'
+import { resultReloadDelay, toKstDateTimeInput, type PublicationSchedule } from '../../../../domain/entities/publicationSchedule'
 
 const emptyForm = { versionId: '', time: '', rights: false }
 
@@ -13,6 +13,7 @@ export function usePublicationScheduleViewModel(workId: string, episode: number)
   const [notice, setNotice] = useState('')
   const request = useRef<AbortController | null>(null)
   const pending = rows?.find(row => row.status === 'pending')
+  const dueAt = pending?.scheduledAt
 
   const run = useCallback(async (operation: (signal: AbortSignal) => Promise<void>) => {
     if (request.current) return
@@ -48,6 +49,14 @@ export function usePublicationScheduleViewModel(workId: string, episode: number)
       request.current = null
     }
   }, [read, run])
+
+  // 예약 시각 직후 스케줄러가 처리한 결과를 한 번 다시 읽는다. 예약이 바뀌거나 화면을 떠나면 타이머를 지운다.
+  useEffect(() => {
+    const delay = dueAt === undefined ? null : resultReloadDelay(dueAt)
+    if (delay === null) return
+    const timer = setTimeout(() => void run(read), delay)
+    return () => clearTimeout(timer)
+  }, [dueAt, read, run])
 
   return {
     rows, form, pending, busy, error, notice,

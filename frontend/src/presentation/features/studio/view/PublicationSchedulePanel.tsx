@@ -1,4 +1,5 @@
 import type { WritingEpisode } from '../../../../domain/entities/content'
+import { toKstDateTimeInput } from '../../../../domain/entities/publicationSchedule'
 import { usePublicationScheduleViewModel } from '../viewmodel/usePublicationScheduleViewModel'
 
 const statusLabel = { pending: '대기', published: '발행 완료', failed: '실패', canceled: '취소' }
@@ -11,7 +12,7 @@ export function PublicationSchedulePanel({ workId, episode }: { workId: string; 
     <h2>{episode.number}화 예약 발행</h2>
     <p className="small muted">예약 시각은 한국 표준시(KST)입니다. 예약 결과와 실제 발행 결과를 각각 확인할 수 있어요.</p>
     <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.reload()}>예약 결과 새로고침</button>
-    {vm.busy && <p role="status">예약 발행 요청을 처리하고 있어요…</p>}
+    {vm.busy && <p role="status">{vm.rows === null ? '예약 내역을 불러오고 있어요…' : '예약 발행 요청을 처리하고 있어요…'}</p>}
     {vm.error && <p role="alert">{vm.error}</p>}
     {vm.notice && <p role="status">{vm.notice}</p>}
     {vm.rows && <>
@@ -31,7 +32,7 @@ export function PublicationSchedulePanel({ workId, episode }: { workId: string; 
           </select>
         </label>
         <label className="field">발행 시각 (KST)
-          <input className="inp" type="datetime-local" required disabled={vm.busy} value={vm.form.time} onChange={event => vm.edit({ time: event.target.value })} />
+          <input className="inp" type="datetime-local" required min={toKstDateTimeInput(new Date().toISOString())} disabled={vm.busy} value={vm.form.time} onChange={event => vm.edit({ time: event.target.value })} />
         </label>
         <label className="writing-rights">
           <input type="checkbox" checked={vm.form.rights} disabled={vm.busy} onChange={event => vm.edit({ rights: event.target.checked })} />

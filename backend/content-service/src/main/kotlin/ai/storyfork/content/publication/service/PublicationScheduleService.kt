@@ -15,6 +15,7 @@ import ai.storyfork.content.work.service.WorkAccessService
 import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -41,10 +42,15 @@ class PublicationScheduleService(
         val episode = ownedEpisode(work, owner, number)
         validate(work, owner, number, request)
         checkContent(!schedules.existsByEpisodeIdAndStatus(episode, "pending"), 409, "이미 대기 중인 예약이 있어요.")
-        return schedules.save(PublicationScheduleEntity(
-            id = contentId(), workId = work, episodeId = episode, ownerId = owner,
-            versionId = request.versionId, scheduledAt = request.scheduledAt,
-        )).response()
+        return try {
+            schedules.saveAndFlush(PublicationScheduleEntity(
+                id = contentId(), workId = work, episodeId = episode, ownerId = owner,
+                versionId = request.versionId, scheduledAt = request.scheduledAt,
+            )).response()
+        } catch (_: DataIntegrityViolationException) {
+            // 동시 등록은 부분 유니크 인덱스(publication_schedule_one_pending)가 막는다.
+            throw ContentFailure(409, "이미 대기 중인 예약이 있어요.")
+        }
     }
 
     @Transactional("contentTransactionManager")
@@ -64,10 +70,15 @@ class PublicationScheduleService(
 
     @Scheduled(fixedDelay = 5000)
     fun publishDue() {
-        schedules.findTop25ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAscIdAsc("pending", Instant.now()).forEach { candidate ->
+        val due = schedules.findTop25ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAscIdAsc("pending", Instant.now())
+        // 같은 시각의 연속 회차가 앞 회차부터 공개되도록 회차 번호 순서로 실행한다.
+        // ponytail: 같은 시각 예약이 25건을 넘으면 조회된 25건 안에서만 순서를 보장한다. 필요하면 쿼리에서 회차 번호로 정렬한다.
+        val sequence = episodes.findAllById(due.map { it.episodeId }).associate { it.id to it.sequence }
+        due.sortedWith(compareBy({ it.scheduledAt }, { sequence[it.episodeId] })).forEach { candidate ->
             try {
                 try {
-                    checkContent(auth.verifyScheduledMember(candidate.ownerId).toString() == candidate.ownerId, 403, "발행 권한을 확인할 수 없는 회원이에요.")
+                    // Core가 회원 존재·제한 여부와 UUID 일치(불일치는 401)를 확인한다.
+                    auth.verifyScheduledMember(candidate.ownerId)
                     transaction.executeWithoutResult {
                         val row = stillDue(candidate) ?: return@executeWithoutResult
                         val episode = episodes.findById(row.episodeId).orElseThrow { ContentFailure(404, "회차를 찾을 수 없어요.") }
@@ -75,6 +86,11 @@ class PublicationScheduleService(
                         row.complete(Instant.now())
                     }
                 } catch (failure: Exception) {
+                    if (failure is CoreAuthException && failure.status in 503..504) {
+                        // 일시적인 Core 장애는 실패로 확정하지 않고 대기 상태로 두어 다음 주기에 다시 시도한다.
+                        log.warn("Scheduled publication {} deferred: Core auth unavailable ({})", candidate.id, failure.code)
+                        return@forEach
+                    }
                     val reason = when (failure) {
                         is ContentFailure -> failure.message
                         is CoreAuthException -> if (failure.status == 401) "발행 권한을 확인할 수 없는 회원이에요." else "인증 서비스에서 발행 권한을 확인하지 못했어요."

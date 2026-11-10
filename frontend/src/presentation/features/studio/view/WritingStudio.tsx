@@ -110,8 +110,8 @@ export function WritingStudio({id}:{id:string}) {
                   {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
                 </li>)}</ol>
               </>}
-            </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='schedule'&&!active.inherited?
-              <PublicationSchedulePanel key={`${id}:${active.number}`} workId={id} episode={active}/>:historyView==='compare'?<>
+            </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='schedule'?(active.inherited?<p>원작 기준 회차는 예약 발행할 수 없어요.</p>:
+              <PublicationSchedulePanel key={`${id}:${active.number}`} workId={id} episode={active}/>):historyView==='compare'?<>
               <h2>{historyLabel}</h2>
               <VersionComparison workId={id} number={active.number} versions={active.versions} model={comparison}/>
             </>:<>
