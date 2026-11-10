@@ -240,3 +240,9 @@ it('공개 중단 후 서버가 지정한 다음 작성 회차 번호를 유지�
   const fetcher=vi.fn().mockResolvedValue(Response.json([{id:'w',title:'작품',summary:'',visibility:'public',allowFork:false,source:null,episodes:[],draft:{title:'3화',body:'',revision:3},writingEpisodeNumber:3}]))
   expect((await new HttpEpisodeRepository(fetcher).list())[0].writingEpisodeNumber).toBe(3)
 })
+
+it('stops Fork publication through its dedicated authenticated command', async () => {
+  const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+  await new HttpEpisodeRepository(fetcher).stopForkPublication('fork-id')
+  expect(fetcher).toHaveBeenCalledWith('/api/v1/works/fork-id/fork-publication', expect.objectContaining({ method: 'DELETE' }))
+})

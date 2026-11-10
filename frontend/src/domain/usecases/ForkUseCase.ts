@@ -34,7 +34,7 @@ export class ForkUseCase {
     if (!work || !list.includes(at) || works.some((w) => w.parent === work.id && isMine(w))) return { error: DENIED }
     if (!work.canonical && !work.worldIds && !work.ruleFrom && !input.historyConsent) return { error: '설정 이력 안내를 확인해 주세요' }
     const dir = input.dir.trim(), title = input.title.trim()
-    if (!dir) return { error: '무엇이 달라지는지 한 줄 적어 주세요' }
+    if (!work.canonical && !dir) return { error: '무엇이 달라지는지 한 줄 적어 주세요' }
     if (!title || title.endsWith(':')) return { error: '제목을 적어 주세요' }
     return this.workRepository.createFork(work.id, at, title, dir)
   }
@@ -44,6 +44,6 @@ export class ForkUseCase {
     const works = await this.workRepository.listWorks()
     const fork = works.find((w) => w.id === id)
     const parent = works.find((w) => w.id === fork?.parent)
-    return canView(fork, role) && parent && fork.snap ? { fork, parent } : null
+    return canView(fork, role) && fork.snap && (parent || fork.canonical) ? { fork, parent } : null
   }
 }

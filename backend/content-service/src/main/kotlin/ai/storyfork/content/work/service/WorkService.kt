@@ -154,6 +154,15 @@ class WorkService(
         row.deletedAt=java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
         works.saveAndFlush(row)
     }
+    fun stopForkPublication(id: String,owner: String) {
+        val work=access.own(id,owner)
+        checkContent(work.source!=null,404,"포크 작품을 찾을 수 없어요.")
+        val last=visibility.findFirstByWorkIdOrderByRevisionNoDesc(id) ?: return
+        if(last.visibility!="public") return
+        visibility.save(WorkPublicationHistoryEntity(id=contentId(),workId=id,revisionNo=last.revisionNo+1,visibility="private"))
+        works.findById(id).orElseThrow().revision++
+    }
+
     fun policy(id: String,owner: String,data: PolicyRequest): WorkResponse {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
         checkContent(w.source==null,403,"분기 작품에서 재분기할 수 없어요.")

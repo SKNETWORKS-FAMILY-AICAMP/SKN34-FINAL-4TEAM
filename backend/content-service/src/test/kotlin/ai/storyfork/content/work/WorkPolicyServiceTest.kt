@@ -58,6 +58,29 @@ class WorkPolicyServiceTest {
         `when`(nicknames.nicknames(listOf("owner"))).thenReturn(mapOf("owner" to "코어 닉네임"))
     }
 
+    @Test fun `stopping publication appends one private entry for a public Fork`() {
+        val source=ai.storyfork.content.fork.service.dto.SourceResponse("original","원작",1,1,"분기")
+        val row=WorkEntity(id="w",ownerId="owner",revision=4)
+        `when`(access.own("w","owner")).thenReturn(work.copy(source=source))
+        `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("w")).thenReturn(
+            ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity(workId="w",revisionNo=2,visibility="public"),
+            ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity(workId="w",revisionNo=3,visibility="private")
+        )
+        `when`(works.findById("w")).thenReturn(Optional.of(row))
+        repeat(2) { service.stopForkPublication("w","owner") }
+        val event=mockingDetails(visibility).invocations.single {it.method.name=="save"}.getArgument<ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity>(0)
+        assertEquals("private",event.visibility)
+        assertEquals(3,event.revisionNo)
+        assertEquals(5,row.revision)
+        verifyNoInteractions(episodes,drafts,publication)
+    }
+
+    @Test fun `stopping Fork publication rejects an original`() {
+        own()
+        assertEquals(404,assertThrows(ContentFailure::class.java) {service.stopForkPublication("w","owner")}.status)
+        verifyNoInteractions(visibility,works)
+    }
+
     @Test fun `selected policy resolves published episode IDs and returns real reading metadata`() {
         own();response()
         `when`(episodes.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(EpisodeEntity(id="e1",workId="w",sequence=1),EpisodeEntity(id="e2",workId="w",sequence=2)))

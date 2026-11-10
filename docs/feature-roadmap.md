@@ -241,15 +241,15 @@
 <tr><td>예약 발행 조회</td><td>❌</td></tr>
 <tr><td>예약 발행 변경</td><td>❌</td></tr>
 <tr><td>예약 발행 취소</td><td>❌</td></tr>
-<tr><td rowspan="20">Fork 관리</td><td rowspan="9">14 Fork CRUD</td><td>Fork 생성 <small>(공개·허용 기준 회차를 쓰기 전 검사; HTTP 생성 연결·선택 단위 확인)</small></td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a></td></tr>
-<tr><td>Fork 상세 조회</td><td>❌</td></tr>
-<tr><td>내 Fork 목록 조회</td><td>❌</td></tr>
-<tr><td>Fork 원작 정보 조회</td><td>❌</td></tr>
-<tr><td>Fork 기준 회차 조회</td><td>❌</td></tr>
-<tr><td>Fork 기본 정보 수정</td><td>❌</td></tr>
-<tr><td>Fork 후속 원고 수정</td><td>❌</td></tr>
-<tr><td>Fork 삭제 요청</td><td>❌</td></tr>
-<tr><td>Fork 공개 중단</td><td>❌</td></tr>
+<tr><td rowspan="20">Fork 관리</td><td rowspan="9">14 Fork CRUD</td><td>Fork 생성 <small>(공개·허용 기준 회차를 쓰기 전 검사; HTTP 생성 연결·선택 단위 확인)</small></td><td>✅</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a></td></tr>
+<tr><td>Fork 상세 조회</td><td>✅</td></tr>
+<tr><td>내 Fork 목록 조회</td><td>✅</td></tr>
+<tr><td>Fork 원작 정보 조회</td><td>✅</td></tr>
+<tr><td>Fork 기준 회차 조회</td><td>✅</td></tr>
+<tr><td>Fork 기본 정보 수정</td><td>✅</td></tr>
+<tr><td>Fork 후속 원고 수정</td><td>✅</td></tr>
+<tr><td>Fork 삭제 요청</td><td>✅</td></tr>
+<tr><td>Fork 공개 중단</td><td>✅</td></tr>
 <tr><td rowspan="7">15 세계관 독립·원본 변경 관리</td><td>허용된 원본 변경 추종</td><td>❌</td><td rowspan="7"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/108">#108</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a></td></tr>
 <tr><td>최초 수정 시 세계관 독립</td><td>❌</td></tr>
 <tr><td>원본 변경 목록 조회</td><td>❌</td></tr>
