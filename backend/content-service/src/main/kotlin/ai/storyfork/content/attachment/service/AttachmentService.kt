@@ -180,8 +180,9 @@ class AttachmentService(
         createEpisodeImage(work, number, owner, altText) { payload }
 
     internal fun createEpisodeImage(work: String, number: Int, owner: String, altText: String = "", loadPayload: () -> AttachmentUploadPayload): AttachmentResponse {
-        val (episodeId, episode) = episodeService.readWithId(work, owner, number)
+        val episode = episodeService.read(work, owner, number)
         if (episode.inherited) throw AttachmentFailure(403, "IMAGE_INHERITED", "원작 기준 회차에는 이미지를 추가할 수 없어요.")
+        val episodeId = imageEpisodes.findByWorkIdAndSequence(work, number)?.id ?: missingImage()
         val payload = loadPayload()
         return imageTransaction {
             ownedWork(work, owner)

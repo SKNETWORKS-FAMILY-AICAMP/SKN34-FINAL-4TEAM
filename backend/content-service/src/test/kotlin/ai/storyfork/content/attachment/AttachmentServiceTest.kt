@@ -67,9 +67,6 @@ class AttachmentServiceTest {
         `when`(attachments.saveAndFlush(any(SettingAttachment::class.java) ?: SettingAttachment())).thenAnswer { it.arguments[0] }
         `when`(images.saveAndFlush(any(ContentImage::class.java) ?: ContentImage())).thenAnswer { it.arguments[0] }
         `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, false, null))
-        `when`(episodeService.readWithId("work", "owner", 1)).thenReturn(
-            "original" to WritingEpisode(1, Draft(), emptyList(), null, false, null)
-        )
         `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(ImageEpisode(id = "original"))
     }
 
@@ -91,7 +88,7 @@ class AttachmentServiceTest {
     }
 
     @Test fun `upload rechecks deleted episode under the work lock before writing a file`() {
-        `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(null)
+        `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(ImageEpisode(id = "original"), null)
         assertThrows(AttachmentFailure::class.java) {service.createEpisodeImage("work",1,"owner",request())}
         val ordered=inOrder(works,imageEpisodes)
         ordered.verify(works).lockOwned("work","owner")
@@ -131,7 +128,7 @@ class AttachmentServiceTest {
         verify(settings).lockOwnedLocal("work", "setting", "owner")
         // 설정 첨부도 삭제 여부를 보려고 작품 행을 잠근다(설정·표지·회차 이미지 각 1회).
         verify(works, times(3)).lockOwned("work", "owner")
-        verify(episodeService).readWithId("work", "owner", 1)
+        verify(episodeService).read("work", "owner", 1)
         verify(storage, never()).delete(anyString())
     }
 
@@ -178,9 +175,7 @@ class AttachmentServiceTest {
     }
 
     @Test fun `episode upload access checks the episode before the file is read`() {
-        `when`(episodeService.readWithId("work", "owner", 1)).thenReturn(
-            "original" to WritingEpisode(1, Draft(), emptyList(), null, true, null)
-        )
+        `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, true, null))
         val failure = assertThrows(AttachmentFailure::class.java) {
             service.createEpisodeImage("work", 1, "owner") { error("상속 회차의 파일을 읽으면 안 됩니다.") }
         }
@@ -195,9 +190,6 @@ class AttachmentServiceTest {
         `when`(storage.read(image.objectKey)).thenReturn(AttachmentObjectResult(png))
         `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(body = "기준[[image:${image.id}]]"), emptyList(), null, true, null))
         assertArrayEquals(png, service.downloadEpisodeImage("work", 1, image.id, "owner", false).bytes)
-        `when`(episodeService.readWithId("work", "owner", 1)).thenReturn(
-            "original" to WritingEpisode(1, Draft(), emptyList(), null, true, null)
-        )
         assertEquals("IMAGE_INHERITED", assertThrows(AttachmentFailure::class.java) {
             service.createEpisodeImage("work", 1, "owner", request())
         }.code)
