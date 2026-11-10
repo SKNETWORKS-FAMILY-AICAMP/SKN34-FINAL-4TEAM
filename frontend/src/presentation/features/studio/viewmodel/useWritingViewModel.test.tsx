@@ -110,6 +110,77 @@ it.each([
   } finally {confirm.mockRestore()}
 })
 
+const row=(number:number,patch:Record<string,unknown>={})=>({number,draft:{title:`${number}화`,body:'기존',revision:4},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[],...patch})
+const deletionApi=(rows:ReturnType<typeof row>[])=>({setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue(rows),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn().mockResolvedValue(undefined),deleteEpisode:vi.fn().mockResolvedValue(undefined)})
+
+it.each([
+  ['the last episode without versions has nothing to explain',[row(1)],''],
+  ['a published episode',[row(1,{publishedVersionId:'v1'})],'발행본이 있는 회차는 삭제할 수 없어요.'],
+  ['an episode with a saved version',[row(1,{versions:[{id:'v1'}]})],'저장한 버전이 있는 회차는 삭제할 수 없어요.'],
+  ['a published episode with saved versions',[row(1,{publishedVersionId:'v1',versions:[{id:'v1'}]})],'발행본·저장한 버전이 있는 회차는 삭제할 수 없어요.'],
+  ['an episode followed by another one',[row(1),row(2)],'마지막 회차(2화)만 삭제할 수 있어요.'],
+  ['every unmet condition together',[row(1,{versions:[{id:'v1'}]}),row(3)],'저장한 버전이 있는 회차는 삭제할 수 없어요. 마지막 회차(3화)만 삭제할 수 있어요.'],
+  ['an inherited episode',[row(1,{inherited:true,publishedVersionId:'v1'})],'원작 기준 회차는 삭제할 수 없어요.'],
+])('deleteBlocker for %s uses only values the screen already has',async(_name,rows,expected)=>{
+  const api=deletionApi(rows)
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  expect(result.current.deleteBlocker).toBe(expected)
+})
+
+it('deleteBlocker follows the selected episode and is empty before one is loaded',async()=>{
+  const api=deletionApi([row(1),row(2)])
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  expect(result.current.deleteBlocker).toBe('')
+  await act(async()=>{})
+  expect(result.current.deleteBlocker).toBe('마지막 회차(2화)만 삭제할 수 있어요.')
+  act(()=>{result.current.select(result.current.episodes[1])})
+  expect(result.current.deleteBlocker).toBe('')
+})
+
+it('confirms an episode deletion as irreversible and says the number can be reused',async()=>{
+  const api=deletionApi([row(1)])
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+  try {
+    await act(async()=>{expect(await result.current.deleteEpisode()).toBe(false)})
+    const message=String(confirm.mock.calls[0][0])
+    expect(message).toContain('삭제하면 되돌릴 수 없어요.')
+    expect(message).toContain('같은 번호로 새 회차를 만들 수 있어요.')
+    expect(message).toContain('저장하지 않은 입력은 사라져요.')
+    expect(message).not.toContain('숨겨져요')
+    expect(api.deleteEpisode).not.toHaveBeenCalled()
+  } finally {confirm.mockRestore()}
+})
+
+it.each(['deleteDraft','deleteEpisode'] as const)('%s resolves true once the deletion is committed even if refreshing the list fails',async action=>{
+  const api=deletionApi([row(1)])
+  api.writingList.mockResolvedValueOnce([row(1)]).mockRejectedValueOnce(new Error('목록 조회 실패'))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(true)
+  try {
+    await act(async()=>{expect(await result.current[action]()).toBe(true)})
+    expect(result.current.error).toBe('목록 조회 실패')
+    expect(result.current.active).toBeNull()
+  } finally {confirm.mockRestore()}
+})
+
+it.each(['deleteDraft','deleteEpisode'] as const)('%s resolves false and keeps the episode when the server rejects it',async action=>{
+  const api=deletionApi([row(1)])
+  api[action].mockRejectedValue(new Error('삭제할 수 없어요.'))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(true)
+  try {
+    await act(async()=>{expect(await result.current[action]()).toBe(false)})
+    expect(result.current.error).toBe('삭제할 수 없어요.')
+    expect(result.current.active?.number).toBe(1)
+    expect(api.writingList).toHaveBeenCalledTimes(1)
+  } finally {confirm.mockRestore()}
+})
+
 it('keeps an order lookup failure separate from draft saving',async()=>{
   const episode={number:1,draft:{title:'1화',body:'기존',revision:4},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
   const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockResolvedValue(episode),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn().mockRejectedValue(new Error('후보 조회 실패')),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}

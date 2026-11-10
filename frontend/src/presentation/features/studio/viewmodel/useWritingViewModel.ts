@@ -7,6 +7,14 @@ import {imageMarker} from '../../../../domain/entities/media'
 
 type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'|'setPublicationVisibility'|'history'>
 type OrderLookup = { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: EpisodeOrderScope }
+// 서버가 거절하는 조건 중 화면이 이미 아는 값(발행본·저장 버전·마지막 회차)만 미리 알린다. 이미지·설정 범위·AI·Fork 참조는 서버가 판단하고 409로 안내한다.
+function deleteBlocker(active:WritingEpisode|null,episodes:WritingEpisode[]) {
+  if(!active)return ''
+  if(active.inherited)return '원작 기준 회차는 삭제할 수 없어요.'
+  const kept=[active.publishedVersionId&&'발행본',active.versions.length>0&&'저장한 버전'].filter(Boolean).join('·')
+  const last=Math.max(...episodes.map(e=>e.number))
+  return [kept&&`${kept}이 있는 회차는 삭제할 수 없어요.`,active.number<last&&`마지막 회차(${last}화)만 삭제할 수 있어요.`].filter(Boolean).join(' ')
+}
 export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
@@ -73,13 +81,16 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     return ()=>window.clearTimeout(timer)
   },[draft,active,busy,error,dirty])
   const mayLeave=()=>!pending.current&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
-  const remove=(whole:boolean)=>{
-    if(!active||pending.current||active.inherited)return Promise.resolve(false)
-    if(!window.confirm(whole?'회차를 삭제할까요? 참조 없는 마지막 회차만 삭제할 수 있으며 삭제한 회차는 집필실에서 숨겨져요. 저장하지 않은 입력은 사라져요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return Promise.resolve(false)
-    return run(async signal=>{
+  // 삭제가 서버에 확정되면 true다. 뒤이은 목록 재조회가 실패해도 true라서 화면이 사라진 버튼 대신 초점을 옮길 수 있다.
+  const remove=async(whole:boolean)=>{
+    if(!active||pending.current||active.inherited)return false
+    if(!window.confirm(whole?'회차를 삭제할까요? 삭제하면 되돌릴 수 없어요. 같은 번호로 새 회차를 만들 수 있어요. 저장하지 않은 입력은 사라져요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return false
+    let removed=false
+    await run(async signal=>{
       const removeAction=whole?api.deleteEpisode.bind(api):api.deleteDraft.bind(api)
       await removeAction(id,active.number,active.draft.revision,signal)
       if(signal.aborted)return
+      removed=true
       resetOrder()
       setNotice(whole?'회차를 삭제했어요.':'작업 초안을 삭제했어요. 새로 입력하면 새 초안으로 저장돼요.')
       // The deletion is committed: never retain a dirty buffer that could auto-save it back.
@@ -90,6 +101,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       const next=rows.find(e=>e.number===active.number)??rows[0]
       if(next){setActive(next);put(next.draft)}
     })
+    return removed
   }
   const changeVisibility=(visible:boolean,rights:boolean)=>{
     if(!active||active.inherited||dirty||pending.current)return Promise.resolve(false)
@@ -116,7 +128,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       } catch(e) {if(!controller.signal.aborted)setHistoryError(e instanceof Error?e.message:'발행 이력을 불러오지 못했어요.')}
       finally {if(historyRequest.current===controller){historyRequest.current=null;setHistoryLoading(false)}}
     },
-    episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
+    episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,deleteBlocker:deleteBlocker(active,episodes),
     edit:(patch:Partial<Pick<Draft,'title'|'body'|'authorNote'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
     deleteDraft:()=>remove(false),

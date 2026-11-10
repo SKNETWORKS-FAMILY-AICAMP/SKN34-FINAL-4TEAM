@@ -24,6 +24,11 @@ export function WritingStudio({id}:{id:string}) {
   useDocumentTitle('집필실')
   const vm=useWritingViewModel(id)
   const bodyInput=useRef<HTMLTextAreaElement>(null)
+  const main=useRef<HTMLElement>(null)
+  // 삭제한 회차·초안의 버튼은 사라지거나 잠기므로 확정된 뒤에만 초점을 main으로 옮긴다.
+  const settled=(removed:boolean)=>{if(removed)main.current?.focus()}
+  const orderLookup=vm.orderLookup
+  const looking=orderLookup?.status==='loading'
   const [title,setTitle]=useState('')
   const [selection,setSelection]=useState({episode:0,id:''})
   const [rights,setRights]=useState(false)
@@ -53,13 +58,7 @@ export function WritingStudio({id}:{id:string}) {
     </header>
     {vm.error&&<div className="writing-message" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}</div>}
     {vm.notice&&<p className="writing-message" role="status">{vm.notice}</p>}
-    {vm.orderLookup?.status==='loading'&&<p className="writing-message" role="status">순서 변경 후보를 확인하고 있어요…</p>}
-    {vm.orderLookup?.status==='failed'&&<p className="writing-message" role="alert">{vm.orderLookup.message}</p>}
-    {vm.orderLookup?.status==='ready'&&<div className="writing-message" role="status">
-      <p>검토 후보 위치 {vm.orderLookup.scope.candidateNumbers.join(', ')||'없음'}</p>
-      <ul>{vm.orderLookup.scope.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul>
-    </div>}
-    <main id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<div className="sgrid">
+    <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<div className="sgrid">
       <nav className="seps" aria-label="회차 목록">
         <h2 className="lab">회차</h2>
         {vm.episodes.map(e=><button className={`writing-episode ${active?.number===e.number?'on':''}`} key={e.number} aria-pressed={active?.number===e.number} disabled={vm.busy} onClick={()=>{if(!vm.select(e))return;setSelection({episode:0,id:''});setRights(false)}}>
@@ -86,9 +85,16 @@ export function WritingStudio({id}:{id:string}) {
           <details><summary>현재 원고 이미지 미리보기</summary><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></details>
           {!active.inherited&&import.meta.env.MODE!=='mockup'&&<EpisodeWorldBasisControl key={active.number} workId={id} number={active.number}/>}
           <section aria-label="회차 관리">
-            <button className="btn sm" disabled={vm.busy} onClick={()=>void vm.checkOrder()}>순서 변경 가능 범위 확인</button>
-            <button className="btn sm" disabled={vm.busy||active.inherited||active.hasDraft===false} onClick={()=>void vm.deleteDraft()}>초안 삭제</button>
-            <button className="btn sm" disabled={vm.busy||active.inherited} onClick={()=>void vm.deleteEpisode()}>회차 삭제</button>
+            <div className="writing-order">
+              <button className="btn sm" disabled={vm.busy||looking} aria-busy={looking} onClick={()=>void vm.checkOrder()}>순서 변경 가능 범위 확인</button>
+              <div role="status" aria-live="polite" className="small">{orderLookup?.status==='loading'?'순서 변경 후보를 확인하고 있어요…':orderLookup?.status==='failed'?orderLookup.message:orderLookup?.status==='ready'&&<>
+                <p>검토 후보 위치 {orderLookup.scope.candidateNumbers.map(n=>`${n}화`).join(', ')||'없음'}</p>
+                <ul>{orderLookup.scope.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul>
+              </>}</div>
+            </div>
+            <button className="btn sm danger" disabled={vm.busy||active.inherited||active.hasDraft===false} onClick={async()=>settled(await vm.deleteDraft())}>초안 삭제</button>
+            <button className="btn sm danger" disabled={vm.busy||active.inherited||!!vm.deleteBlocker} aria-describedby={vm.deleteBlocker?'episode-delete-reason':undefined} onClick={async()=>settled(await vm.deleteEpisode())}>회차 삭제</button>
+            {vm.deleteBlocker&&<small id="episode-delete-reason" className="muted">{vm.deleteBlocker}</small>}
             {!active.inherited&&active.publishedVersionId&&<button className="btn sm" disabled={vm.busy||vm.dirty} onClick={async()=>{if(await vm.changeVisibility(false,false))setRights(false)}}>회차 공개 중단</button>}
             {!active.inherited&&active.publicationStatus==='suspended'&&<>
               <label><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/> 중단했던 발행본을 다시 공개할 권리를 확인합니다.</label>
