@@ -31,7 +31,7 @@ export class AdminUseCase {
     const a = await this.adminRepository.get()
     const detail = change(a)
     if (detail === null) return false
-    a.audit.unshift({ at: new Intl.DateTimeFormat('ko-KR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date()), actor: a.profile.nick, action, detail })
+    a.audit.unshift({ at: new Date().toISOString(), actor: a.profile.nick, action, detail })
     await this.adminRepository.save(a)
     return true
   }

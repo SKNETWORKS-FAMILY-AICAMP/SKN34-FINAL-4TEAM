@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { OperationsError } from '../../domain/entities/operations'
 import { login } from './auth'
-import { HttpMemberRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from './operationsApi'
+import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from './operationsApi'
 
 const reply = { id: 'p1', body: '답변\n내용', createdAt: '2026-11-08T01:00:00Z', updatedAt: '2026-11-08T02:00:00Z' }
 const inquiry = {
@@ -18,6 +18,10 @@ const member = { id: 'm1', email: 'm1@example.test', nickname: '연화', role: '
 const work = {
   workId: 'w1', ownerId: 'owner-1', title: '별빛 서약의 탑', authorName: '연화봉러', originKind: 'fork', creationType: 'external_derivative',
   rightsConfirmed: false, visibility: 'private', restricted: true,
+}
+const activity = {
+  id: 'a1', actorId: 'admin-1', actorNickname: '운영자', action: 'WORK_RESTRICT', targetType: 'WORK', targetId: 'w1',
+  detail: '별빛 서약의 탑', createdAt: '2026-11-10T01:00:00Z',
 }
 type Call = [string, { method?: string; body?: string; headers: Record<string, string> }]
 const callsOf = (f: { mock: { calls: unknown[] } }) => f.mock.calls as Call[]
@@ -167,6 +171,35 @@ describe('HttpOperationsWorkRepository (74 운영 작품 조회)', () => {
     await expect(repo.list()).rejects.toThrow(new OperationsError(message))
     await expect(repo.setRestriction('w1', true)).rejects.toThrow(new OperationsError(message))
     await expect(repo.setRestriction('w1', false)).rejects.toThrow(new OperationsError(message))
+  })
+})
+
+describe('HttpAdminActivityRepository (72 관리자 활동 기록)', () => {
+  it('활동 기록은 Bearer로 끝 슬래시 없는 경로를 GET하고 닉네임·내역이 null인 행도 받는다', async () => {
+    const rows = [activity, { ...activity, id: 'a2', actorNickname: null, action: 'NOTICE_DELETE', targetType: 'NOTICE', targetId: 'n1', detail: null }]
+    const fetcher = ok({ items: rows })
+    expect(await new HttpAdminActivityRepository(fetcher).list()).toEqual(rows)
+    expect(callsOf(fetcher)).toHaveLength(1)
+    const [[url, init]] = callsOf(fetcher)
+    expect(url).toBe('/api/v1/operations/admin/activities')
+    expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer o-bearer' } })
+  })
+
+  it('계약에 없는 형태나 빠진 필드는 거부한다', async () => {
+    const failed = '서버 응답 형식을 확인할 수 없어요.'
+    for (const patch of [{ createdAt: '어제' }, { actorNickname: undefined }, { detail: undefined }, { actorId: 1 }, { targetId: null }, { action: undefined }]) {
+      await expect(new HttpAdminActivityRepository(ok({ items: [{ ...activity, ...patch }] })).list()).rejects.toThrow(failed)
+    }
+    await expect(new HttpAdminActivityRepository(ok([activity])).list()).rejects.toThrow(failed)
+  })
+
+  it.each([
+    [403, '이 작업을 할 권한이 없어요.'],
+    [502, '연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.'],
+    [500, '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'],
+  ])('%s 응답은 빈 목록으로 숨기지 않고 안내 오류로 바꾼다', async (status, message) => {
+    const repo = new HttpAdminActivityRepository(vi.fn(async () => Response.json({ code: 'X', message: 'internal' }, { status })))
+    await expect(repo.list()).rejects.toThrow(new OperationsError(message))
   })
 })
 

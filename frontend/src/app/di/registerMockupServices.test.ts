@@ -26,3 +26,11 @@ it('실제 모드 컨테이너는 서버 저장소를 쓴다(데모 대역을 �
   expect(container.resolve('manuscriptRepository').constructor.name).toBe('HttpManuscriptRepository')
   for (const method of ['rename', 'listEpisodeImages', 'updateEpisodeImageAlt', 'publicEpisodeImageAlts']) expect(Object.hasOwn(container.resolve('mediaRepository'), method)).toBe(false)
 })
+
+it('활동 기록 저장소는 실제 모드에서 운영 API를, mockup에서 데모 조치 메모리를 쓴다', async () => {
+  expect(createAppContainer().resolve('adminActivityRepository').constructor.name).toBe('HttpAdminActivityRepository')
+  vi.stubEnv('MODE', 'mockup')
+  const container = createAppContainer()
+  expect(container.resolve('adminActivityRepository').constructor.name).toBe('InMemoryAdminActivityRepository')
+  expect(await container.resolve('adminActivityUseCase').list()).toEqual([])
+})
