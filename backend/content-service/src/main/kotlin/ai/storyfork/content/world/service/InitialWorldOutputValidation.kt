@@ -24,13 +24,21 @@ object InitialWorldOutputValidation {
             catch(_:RuntimeException) { throw IllegalArgumentException("INVALID_AI_OUTPUT") }
         require(output.schemaVersion=="initial-world.v1")
         require(output.candidates.map { it.localRef }.distinct().size==output.candidates.size)
-        val entities=input.entities.map { it.cardId }.toSet()
         output.diagnostics.forEach { text(it,3000) }
         output.candidates.forEach { c ->
+            require(c.provenance=="ai_extraction")
+            candidate(input,c)
+        }
+        return output
+    }
+
+    fun candidate(input:InitialWorldInput,c:ai.storyfork.content.world.service.dto.InitialWorldCandidateOutput) {
+        val entities=input.entities.map { it.cardId }.toSet()
             require(c.localRef.matches(Regex("[A-Za-z0-9:_-]{1,200}")))
             require(c.type in setOf("fact","relation","rule","event","conjecture","goal","plan"))
             text(c.title,200);text(c.text,3000);text(c.condition,3000,0);text(c.timeText,3000,0)
-            require(c.provenance=="ai_extraction" && c.evidence.isNotEmpty())
+            require(c.provenance in setOf("ai_extraction","author_revision"))
+            require(if(c.provenance=="ai_extraction") c.evidence.isNotEmpty() else c.evidence.isEmpty())
             require(c.polarity in setOf("asserted","denied"))
             require((c.type=="relation")== (c.relation!=null))
             require(c.type !in setOf("goal","plan") || c.subjectId!=null)
@@ -43,8 +51,6 @@ object InitialWorldOutputValidation {
             }
             require(entities.containsAll(refs))
             c.evidence.forEach { input.validateEvidence(it) }
-        }
-        return output
     }
 
     private fun text(value:String,max:Int,min:Int=1) {

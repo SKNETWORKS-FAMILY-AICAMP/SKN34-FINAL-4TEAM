@@ -36,6 +36,16 @@ class InitialWorldAnalysisController(private val service:InitialWorldAnalysisSer
     fun candidates(@PathVariable worldId:UUID,@PathVariable analysisId:UUID,principal:Principal)=
         service.candidates(worldId,UUID.fromString(principal.name),analysisId)
 
+    /** 검토 결정을 누적하고 반환한다. 초안 반영·확정 저장은 하지 않는다. */
+    @PostMapping("/{analysisId}/candidates/{candidateId}/decisions")
+    fun decide(@PathVariable worldId:UUID,@PathVariable analysisId:UUID,@PathVariable candidateId:UUID,
+        principal:Principal,@RequestBody request:InitialWorldDecisionRequest)=
+        service.decide(worldId,UUID.fromString(principal.name),analysisId,candidateId,request)
+
+    @ExceptionHandler(InitialWorldReviewConflict::class)
+    fun reviewConflict(error:InitialWorldReviewConflict)=ResponseEntity.status(409).body(WorldStudioErrorResponse(error.code,
+        if(error.code=="ANALYSIS_STALE") "원본이 변경되었습니다. 재분석 후 검토하세요." else "완료된 분석 후보만 검토할 수 있습니다."))
+
     @ExceptionHandler(AnalysisStorageUnconfirmed::class)
     fun storage(error:AnalysisStorageUnconfirmed)=ResponseEntity.status(503)
         .location(URI.create("/api/v1/world-studios/${error.worldId}/analyses/${error.analysisId}"))

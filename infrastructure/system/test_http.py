@@ -4,6 +4,8 @@
 이메일·비밀번호·JWT·메일 본문은 출력하지 않으며 보고서는 CI에서 정제한다.
 """
 import os
+import json
+import hashlib
 import re
 import subprocess
 import time
@@ -115,7 +117,7 @@ def test_health(web):
 def test_health_worldstudio_startup_migration():
     """Content 시작 시 WorldStudio 전용 schema가 자기 이력으로 적용되고 Auth/Content 이력과 공존하는지 확인한다."""
     assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "18"
-    assert scalar("SELECT string_agg(version, ',' ORDER BY installed_rank) FROM worldstudio.world_studio_schema_history WHERE success AND type='SQL'") == "1,2,3,4"
+    assert scalar("SELECT string_agg(version, ',' ORDER BY installed_rank) FROM worldstudio.world_studio_schema_history WHERE success AND type='SQL'") == "1,2,3,4,5"
     for table in ("flyway_schema_history", "content_schema_history"):
         assert scalar(f"SELECT count(*) FROM public.{table} WHERE NOT success") == "0"
         assert int(scalar(f"SELECT count(*) FROM public.{table} WHERE success")) > 0
@@ -223,3 +225,66 @@ def test_content_initial_world_analysis_failure_is_persistent_without_reexecutio
     assert scalar(f"SELECT count(*) FROM worldstudio.initial_analysis WHERE world_id='{world}'") == "1"
     assert scalar(f"SELECT count(*) FROM worldstudio.initial_candidate WHERE world_id='{world}'") == "0"
     assert client.get(path + "/" + str(uuid.uuid4())).status_code == 404
+
+
+def test_content_initial_world_review_survives_relogin_and_keeps_original(signed_in):
+    # CI-owned PostgreSQL fixture seeds a completed AI result; no model call or shared DB write.
+    client = signed_in["client"]
+    refresh_csrf(client)
+    created = client.post("/api/v1/world-studios", json={"name": "6-A CI", "description": "원문 사실"})
+    assert created.status_code == 200
+    draft = created.json()
+    world = str(uuid.UUID(draft["worldId"]))
+    analysis, candidate = str(uuid.uuid4()), str(uuid.uuid4())
+    quote = draft["description"]
+    content = {"localRef": "fact-1", "type": "fact", "title": "사실", "text": quote,
+               "subjectId": None, "relatedEntityIds": [], "provenance": "ai_extraction",
+               "evidence": [{"sourceId": f"world:{world}:description", "start": 0, "end": len(quote),
+                             "quote": quote, "quoteHash": hashlib.sha256(quote.encode()).hexdigest()}],
+               "relation": None, "condition": "", "timeText": "", "polarity": "asserted"}
+    # Exact #235 canonical hash (ASCII keys, compact sorted JSON, UTF-8 values).
+    source = {"sourceId": f"world:{world}:description", "ownerId": world, "field": "description",
+              "text": quote, "textHash": hashlib.sha256(quote.encode()).hexdigest()}
+    basis = {"draftRevision": draft["draftRevision"], "relationshipVersion": draft["relationshipVersion"], "currentRevisionId": draft["currentRevisionId"]}
+    snapshot = {"schemaVersion": "initial-world.v1", "worldId": world, "basis": basis, "sources": [source], "entities": []}
+    digest = hashlib.sha256(json.dumps(snapshot, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+    snapshot = {**snapshot, "analysisId": analysis, "basis": {**basis, "inputHash": digest}}
+    output = {"schemaVersion": "initial-world.v1", "candidates": [content], "diagnostics": []}
+    def sql_json(value):
+        return json.dumps(value, ensure_ascii=False).replace("'", "''")
+    scalar("INSERT INTO worldstudio.initial_analysis(id,world_id,request_key,request_hash,draft_revision,relationship_version,input_snapshot,execution_token,deadline,execution_status,output) "
+           f"VALUES ('{analysis}','{world}','review-fixture',repeat('a',64),{basis['draftRevision']},{basis['relationshipVersion']},'{sql_json(snapshot)}','{uuid.uuid4()}',now()+interval '90 seconds','completed','{sql_json(output)}')")
+    scalar("INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) "
+           f"VALUES ('{candidate}','{world}','{analysis}','fact-1','{sql_json(content)}')")
+    path = f"/api/v1/world-studios/{world}/analyses/{analysis}"
+    endpoint = path + f"/candidates/{candidate}/decisions"
+    approve = {"key": "approve", "expectedDecisionSequence": 0, "action": "approve", "editedCandidate": None, "comment": "승인 의견"}
+    refresh_csrf(client)
+    first = client.post(endpoint, json=approve)
+    assert first.status_code == 200 and first.json()["state"] == "approved"
+    refresh_csrf(client)
+    assert client.post(endpoint, json=approve).json() == first.json()
+    refresh_csrf(client)
+    assert client.post(endpoint, json={**approve, "comment": "다른 의견"}).status_code == 409
+    edited = {**content, "text": "작가 수정", "provenance": "author_revision", "evidence": []}
+    refresh_csrf(client)
+    edit = client.post(endpoint, json={"key": "edit", "expectedDecisionSequence": 1, "action": "edit", "editedCandidate": edited, "comment": "수정 의견"})
+    assert edit.status_code == 200 and edit.json()["state"] == "pending"
+    refresh_csrf(client)
+    approved_edit = client.post(endpoint, json={**approve, "key": "approve-edit", "expectedDecisionSequence": 2})
+    assert approved_edit.status_code == 200 and approved_edit.json()["content"] == edited
+    # New login issues a new Principal verification path; stored decisions must survive it.
+    refresh_csrf(client)
+    login = client.post("/api/v1/auth/login", json={"email": signed_in["email"], "password": "ci-only-signup-password"})
+    assert login.status_code == 200
+    client.headers["Authorization"] = "Bearer " + login.json()["accessToken"]
+    detail = client.get(path).json()
+    assert detail["output"] == output
+    assert [d["sequence"] for d in detail["decisions"]] == [1, 2, 3]
+    assert detail["decisions"][-1] == approved_edit.json()
+    assert client.get(f"/api/v1/world-studios/{world}").json() == draft
+    assert scalar(f"SELECT count(*) FROM worldstudio.initial_decision WHERE candidate_id='{candidate}'") == "3"
+    scalar(f"UPDATE worldstudio.world_draft SET draft_revision=draft_revision+1 WHERE world_id='{world}'")
+    refresh_csrf(client)
+    stale = client.post(endpoint, json={**approve, "key": "stale", "expectedDecisionSequence": 3})
+    assert stale.status_code == 409 and stale.json()["code"] == "ANALYSIS_STALE"

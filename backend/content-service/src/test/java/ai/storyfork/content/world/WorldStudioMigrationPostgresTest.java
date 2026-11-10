@@ -24,13 +24,13 @@ class WorldStudioMigrationPostgresTest {
                 });
                 assertEquals("28P01", failure.getSQLState());
             }
-            assertEquals(4, db.studio().migrate().migrationsExecuted);
+            assertEquals(5, db.studio().migrate().migrationsExecuted);
             assertEquals(0, db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try (var c = db.connect()) {
                 assertEquals("18", WorldStudioPostgresFixture.rows(c,
                     "SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'").getFirst());
-                assertEquals(java.util.List.of("1", "2", "3", "4"), WorldStudioPostgresFixture.rows(c,
+                assertEquals(java.util.List.of("1", "2", "3", "4", "5"), WorldStudioPostgresFixture.rows(c,
                     "SELECT version FROM worldstudio.world_studio_schema_history WHERE success AND type='SQL' ORDER BY installed_rank"));
                 assertEquals("0", WorldStudioPostgresFixture.rows(c,
                     "SELECT count(*) FROM pg_tables WHERE schemaname='public'").getFirst());
@@ -52,7 +52,7 @@ class WorldStudioMigrationPostgresTest {
             content.migrate();
             try (var c = db.connect()) {
                 var before = publicRows(c);
-                assertEquals(4, db.studio().migrate().migrationsExecuted);
+                assertEquals(5, db.studio().migrate().migrationsExecuted);
                 assertEquals(0, db.studio().migrate().migrationsExecuted);
                 assertEquals(before, publicRows(c));
             }

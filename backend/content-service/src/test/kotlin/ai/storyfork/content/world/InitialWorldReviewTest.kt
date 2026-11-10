@@ -36,4 +36,15 @@ class InitialWorldReviewTest {
             assertThrows<IllegalArgumentException> { InitialWorldDecisionValidation.review(input,original,bad) }
         }
     }
+    @Test fun `shared decision DTOs round trip without adding response fields`() {
+        val request=mapper.treeToValue(fixture["decisionRequest"],InitialWorldDecisionRequest::class.java)
+        assertEquals(fixture["decisionRequest"],mapper.readTree(mapper.writeValueAsString(request)))
+        fixture["decisions"].forEach { node ->
+            val record=mapper.treeToValue(node,InitialWorldDecisionRecord::class.java)
+            assertEquals(node,mapper.readTree(mapper.writeValueAsString(record)))
+        }
+        assertThrows<RuntimeException> {
+            mapper.readValue("""{"key":"x","expectedDecisionSequence":0,"action":"approve","comment":""}""",InitialWorldDecisionRequest::class.java)
+        }
+    }
 }
