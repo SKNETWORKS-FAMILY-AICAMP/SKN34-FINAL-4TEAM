@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
@@ -61,10 +62,11 @@ class EditSuggestionIntegrationTest {
     private val body="그는 문을 열었다. 않 된다고 말했다. 그리고 떠났다."
     private val overflow="제목은 120자, 원고는 40,000자 이내로 작성해 주세요."
 
+    /** 닉네임 대역을 (다시) 설치한다. 예외를 던지게 스텁한 뒤에도 부를 수 있도록 `when(mock.m())` 대신 `doAnswer`를 쓴다(`when`은 호출 자체가 스텁된 예외를 던진다). */
     @BeforeEach fun coreNicknames() {
-        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer {call ->
+        doAnswer {call ->
             (call.arguments[0] as Collection<*>).map {it as String}.filter {it in names}.associateWith {names.getValue(it)}
-        }
+        }.`when`(nicknames).nicknames(ArgumentMatchers.anyCollection<String>())
     }
 
     /** Core가 확인해 주는 회원이다. 닉네임을 주면 Core 닉네임 대역에도 등록한다. */
