@@ -16,6 +16,10 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
   const [publicationHistory,setPublicationHistory]=useState<PublicationEvent[]|null>(null)
+  const [historyLoading,setHistoryLoading]=useState(false)
+  const [historyError,setHistoryError]=useState('')
+  // 발행 이력은 읽기 전용이라 저장 요청(run)과 분리한다. 실패해도 원고 저장·자동저장을 막지 않는다.
+  const historyRequest=useRef<AbortController|null>(null)
   const current=useRef(draft)
   const pending=useRef<AbortController|null>(null)
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body)
@@ -27,7 +31,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       if(controller.signal.aborted)return
       setEpisodes(rows);if(rows[0])install(rows[0]);setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
-    return ()=>{controller.abort();pending.current?.abort()}
+    return ()=>{controller.abort();pending.current?.abort();historyRequest.current?.abort()}
   },[id,api])
   useEffect(()=>{
     const leave=(e:BeforeUnloadEvent)=>{if(dirty||busy)e.preventDefault()}
@@ -90,13 +94,19 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     })
   }
   return {publicationHistory,changeVisibility,
-    loadPublicationHistory:()=>run(async signal=>{
-      setPublicationHistory(null)
-      const result=await api.history(id,signal)
-      if(signal.aborted)return
-      if(!result.publicationHistory)throw new Error('발행 이력 응답을 확인할 수 없어요.')
-      setPublicationHistory(result.publicationHistory)
-    },false),
+    historyLoading,historyError,
+    loadPublicationHistory:async()=>{
+      historyRequest.current?.abort()
+      const controller=new AbortController();historyRequest.current=controller
+      setPublicationHistory(null);setHistoryError('');setHistoryLoading(true)
+      try {
+        const result=await api.history(id,controller.signal)
+        if(controller.signal.aborted)return
+        if(!result.publicationHistory)throw new Error('발행 이력 응답을 확인할 수 없어요.')
+        setPublicationHistory(result.publicationHistory)
+      } catch(e) {if(!controller.signal.aborted)setHistoryError(e instanceof Error?e.message:'발행 이력을 불러오지 못했어요.')}
+      finally {if(historyRequest.current===controller){historyRequest.current=null;setHistoryLoading(false)}}
+    },
     episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),

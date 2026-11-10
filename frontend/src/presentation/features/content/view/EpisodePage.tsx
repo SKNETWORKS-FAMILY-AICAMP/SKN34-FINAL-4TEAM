@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { NOVEL_GENRES } from '../../../../domain/usecases/LibraryUseCase'
-import { parseHashtags, workMetaLabel, type WorkCreationType } from '../../../../domain/entities/content'
+import { parseHashtags, publicationActionLabel, workMetaLabel, type WorkCreationType } from '../../../../domain/entities/content'
 import { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import './episode.css'
 import { WorldPanel } from './WorldPanel'
@@ -39,6 +39,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   const [direction, setDirection] = useState('')
   const [at, setAt] = useState(1)
   const w = vm.active
+  const writingNo = w ? (w.writingEpisodeNumber ?? w.episodes.length + 1) : 0
   const pick = (item: typeof w) => {
     if (mediaBusy) return
     if (worldDirty && !window.confirm('저장 중이거나 미저장 설정이 있어요. 이동할까요?')) return
@@ -338,7 +339,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                   <div className='ep-writing'>
                     <section className='ep-editor'>
                       <div className='ep-editor-bar'>
-                        <span>{(w.writingEpisodeNumber ?? w.episodes.length + 1)}화 · 새 회차</span>
+                        <span>{writingNo}화 · 새 회차</span>
                         <span>
                           {vm.dirty ? '저장하지 않은 변경' : '서버 저장됨'} · 수정 번호{' '}
                           {vm.draft.revision}
@@ -481,7 +482,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                             vm.clearContext()
                           }}
                         >
-                          <option value={0}>현재 작성 회차 · {(w.writingEpisodeNumber ?? w.episodes.length + 1)}화</option>
+                          <option value={0}>현재 작성 회차 · {writingNo}화</option>
                           {w.episodes.map((e) => (
                             <option key={e.number} value={e.number}>{e.number}화까지</option>
                           ))}
@@ -516,7 +517,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                         disabled={locked || worldDirty}
                         onClick={() =>
                           void vm.loadContext(
-                            contextAt || (w.writingEpisodeNumber ?? w.episodes.length + 1),
+                            contextAt || writingNo,
                             prompt,
                             character,
                             publicContext,
@@ -557,7 +558,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                           void vm.propose(
                             prompt,
                             consent,
-                            contextAt || (w.writingEpisodeNumber ?? w.episodes.length + 1),
+                            contextAt || writingNo,
                             character,
                           )}
                       >
@@ -596,7 +597,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                       <>
                         <h3>발행 이력</h3>
                         {!vm.history.publicationHistory?<p role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol>{vm.history.publicationHistory.map((event,i)=><li key={i}>
-                          {event.episode}화 · {{publish:'발행',replace:'발행본 교체',unpublish:'공개 중단',republish:'재공개'}[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')} · 버전 {event.versionId}
+                          {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')} · 버전 {event.versionId}
                         </li>)}</ol>:<p>발행 이력이 없어요.</p>}
                         <h3>원고 저장본</h3>
                         {vm.history.versions.length === 0 && (
@@ -622,7 +623,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                             >
                               이 원고를 새 버전으로 복원
                             </button>
-                            {v.episode === (w.writingEpisodeNumber ?? w.episodes.length + 1) && (
+                            {v.episode === writingNo && (
                               <button
                                 className='btn sm'
                                 disabled={locked}

@@ -19,6 +19,7 @@ export type World = {id:string;name:string;revision:number;mode:'own'|'following
 export type StoryContext = {title:string;summary:string;basisEpisode:number;character:string;settings:SavedSetting[];draft:string;episodes:{number:number;version:number;versionId:string;title:string;sourceCharacters:number;excerpts:{start:number;end:number;text:string}[]}[];selection:{method:string;omittedCharacters:number;eligibleEpisodes:number;note:string}}
 export type Version = Draft & { id: string; episode: number; savedAt: string }
 export type PublicationEvent = {episode:number;versionId:string;publishedAt:string;action:'publish'|'replace'|'unpublish'|'republish'}
+export const publicationActionLabel:Record<PublicationEvent['action'],string>={publish:'발행',replace:'발행본 교체',unpublish:'공개 중단',republish:'재공개'}
 export type History = { versions: Version[]; proposals: Proposal[]; publicationHistory?:PublicationEvent[] }
 
 /** 회차 체크포인트(DEC-43)는 발행본이다. versionId는 저장 버전 id, active는 현재 독자 공개본이며 발행 시각 오름차순이다. */

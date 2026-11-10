@@ -201,3 +201,17 @@ it('자동저장은 조회한 발행 이력을 유지하고 실제 발행 성공
   await act(async()=>{await result.current.publish('v2',true)})
   expect(result.current.publicationHistory).toBeNull()
 })
+
+it('발행 이력 조회 실패는 이력 오류로만 표시하고 자동저장을 멈추지 않는다',async()=>{
+  vi.useFakeTimers()
+  const episode={number:1,draft:{title:'1화',body:'기존',revision:4},versions:[],publishedVersionId:'v1',inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
+  const api={setPublicationVisibility:vi.fn(),history:vi.fn().mockRejectedValue(new Error('이력 조회 실패')),writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockResolvedValue({...episode,draft:{...episode.draft,body:'새 입력',revision:5}}),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  await act(async()=>{await result.current.loadPublicationHistory()})
+  expect(result.current.historyError).toBe('이력 조회 실패')
+  expect(result.current.error).toBe('')
+  act(()=>result.current.edit({body:'새 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+})

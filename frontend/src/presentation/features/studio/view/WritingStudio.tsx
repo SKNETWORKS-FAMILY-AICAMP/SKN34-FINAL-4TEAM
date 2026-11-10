@@ -1,5 +1,6 @@
 import { useRef,useState } from 'react'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
+import { publicationActionLabel } from '../../../../domain/entities/content'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 import './writing.css'
 import { Go } from '../../../shared/Go'
@@ -81,7 +82,7 @@ export function WritingStudio({id}:{id:string}) {
               <label><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/> 중단했던 발행본을 다시 공개할 권리를 확인합니다.</label>
               <button className="btn sm" disabled={vm.busy||vm.dirty||!rights} onClick={async()=>{if(await vm.changeVisibility(true,rights))setRights(false)}}>회차 재공개</button>
             </>}
-            <button className="btn sm" disabled={vm.busy} onClick={()=>{setHistoryView('publication');setVersionsOpen(true);void vm.loadPublicationHistory()}}>발행 이력</button>
+            <button className="btn sm" disabled={vm.historyLoading} onClick={()=>{setHistoryView('publication');setVersionsOpen(true);void vm.loadPublicationHistory()}}>발행 이력</button>
             {active.hasDraft===false&&<p role="status">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 원고 버전 · 비교 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           </section>
         </>:<p>회차가 없어요. 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
@@ -93,15 +94,15 @@ export function WritingStudio({id}:{id:string}) {
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='versions'} onClick={()=>setHistoryView('versions')}>원고 저장본 · 공개</button>
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='compare'} onClick={()=>setHistoryView('compare')}>원고 버전 비교</button>
               <button type="button" className="btn sm" aria-pressed={historyView==='settings'} onClick={()=>setHistoryView('settings')}>설정 버전 이력</button>
-              <button type="button" className="btn sm" disabled={vm.busy} aria-pressed={historyView==='publication'} onClick={()=>{setHistoryView('publication');void vm.loadPublicationHistory()}}>발행 이력</button>
+              <button type="button" className="btn sm" disabled={vm.historyLoading} aria-pressed={historyView==='publication'} onClick={()=>{setHistoryView('publication');void vm.loadPublicationHistory()}}>발행 이력</button>
             </nav>
             {historyView==='publication'?<>
               <h2>발행 이력</h2>
-              {vm.error&&<p role="alert">{vm.error}</p>}
-              {vm.busy?<p role="status">발행 이력을 불러오고 있어요…</p>:vm.publicationHistory&&<>
+              {vm.historyError&&<p role="alert">{vm.historyError}</p>}
+              {vm.historyLoading?<p role="status">발행 이력을 불러오고 있어요…</p>:vm.publicationHistory&&<>
                 {!vm.publicationHistory.length&&<p>아직 발행 이력이 없어요.</p>}
                 <ol>{vm.publicationHistory.map((event,i)=><li key={i}>
-                  {event.episode}화 · {{publish:'발행',replace:'발행본 교체',unpublish:'공개 중단',republish:'재공개'}[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
+                  {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
                 </li>)}</ol>
               </>}
             </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
