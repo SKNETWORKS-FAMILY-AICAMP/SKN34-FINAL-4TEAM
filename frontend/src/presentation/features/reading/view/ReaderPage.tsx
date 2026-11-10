@@ -13,6 +13,7 @@ import { Amb } from './Amb'
 import { EpisodeComments } from './EpisodeComments'
 import { EpisodeFeedbackReports } from './EpisodeFeedbackReports'
 import { UnavailableWork } from './WorkPage'
+import { EditSuggestionSheet } from './EditSuggestionSheet'
 import { CommentSheet, FeedbackSheet, LookSheet } from './Sheets'
 
 const NUM = ['一', '二', '三', '四', '五', '六', '七', '八']
@@ -122,7 +123,7 @@ export function ReaderPage() {
   const closeSheet = () => {
     const s = vm.sheet
     vm.closeSheet()
-    if (s?.kind === 'comment' || s?.kind === 'feedback') focusSentence(s.k)
+    if (s?.kind === 'comment' || s?.kind === 'feedback' || s?.kind === 'suggest') focusSentence(s.k)
   }
   let k = 0
   return (
@@ -210,8 +211,9 @@ export function ReaderPage() {
       {selected && vm.selected?.pop && (
         <SentencePop at={vm.selected} onDismiss={dismissPop}>
           <button type="button" onClick={() => vm.openSheet({ kind: 'comment', k: vm.selected?.k ?? 0 })}>💬 댓글 달기</button>
-          {/* 정본 작품은 댓글·피드백(제보)만 서버에 연결돼 있어 문장 공유(데모) 동작은 열지 않습니다. */}
+          {/* 정본 작품은 댓글·피드백(제보)·수정 제안만 서버에 연결돼 있어 문장 공유(데모) 동작은 열지 않습니다. */}
           <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>{w.canonical && !vm.loggedIn ? '✉ 로그인하고 피드백 보내기' : '✉ 피드백 보내기'}</button>
+          {w.canonical && <button type="button" onClick={() => vm.openSheet({ kind: 'suggest', k: vm.selected?.k ?? 0 })}>✎ 수정 제안</button>}
           {!w.canonical && <button type="button" onClick={() => { dismissPop(true); vm.shareSentence() }}>⧉ 문장 공유</button>}
         </SentencePop>
       )}
@@ -219,6 +221,7 @@ export function ReaderPage() {
       {!w.canonical && vm.sheet?.kind === 'comment' && <CommentSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet}
         onAdded={() => setTimeout(() => document.querySelector('.cm:last-of-type')?.scrollIntoView?.({ block: 'center' }), 60)} />}
       {vm.sheet?.kind === 'feedback' && <FeedbackSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} canonical={w.canonical} onSent={() => setReportsRefresh((v) => v + 1)} onClose={closeSheet} />}
+      {w.canonical && vm.sheet?.kind === 'suggest' && <EditSuggestionSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet} />}
     </div>
   )
 }

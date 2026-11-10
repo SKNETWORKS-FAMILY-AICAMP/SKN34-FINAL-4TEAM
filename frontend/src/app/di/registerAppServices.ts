@@ -21,9 +21,11 @@ import { ManuscriptUseCase } from '../../domain/usecases/ManuscriptUseCase'
 import { HttpManuscriptRepository } from '../../data/content/HttpManuscriptRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import { EpisodeCommentUseCase } from '../../domain/usecases/EpisodeCommentUseCase'
+import { EditSuggestionUseCase } from '../../domain/usecases/EditSuggestionUseCase'
 import { FeedbackReportUseCase } from '../../domain/usecases/FeedbackReportUseCase'
 import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
 import { HttpEpisodeCommentRepository } from '../../data/content/HttpEpisodeCommentRepository'
+import { HttpEditSuggestionRepository } from '../../data/content/HttpEditSuggestionRepository'
 import { HttpFeedbackReportRepository } from '../../data/content/HttpFeedbackReportRepository'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { HttpReadingRecordRepository } from '../../data/content/HttpReadingRecordRepository'
@@ -95,6 +97,8 @@ export function registerAppServices(container: AppContainer) {
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     episodeCommentRepository: asFunction(() => new HttpEpisodeCommentRepository()).singleton(),
     episodeCommentUseCase: asFunction(({ episodeCommentRepository }) => new EpisodeCommentUseCase(episodeCommentRepository)).singleton(),
+    editSuggestionRepository: asFunction(() => new HttpEditSuggestionRepository()).singleton(),
+    editSuggestionUseCase: asFunction(({ editSuggestionRepository }) => new EditSuggestionUseCase(editSuggestionRepository)).singleton(),
     feedbackReportRepository: asFunction(() => new HttpFeedbackReportRepository()).singleton(),
     feedbackReportUseCase: asFunction(({ feedbackReportRepository }) => new FeedbackReportUseCase(feedbackReportRepository)).singleton(),
     storyPlanUseCase: asFunction(({ episodeRepository }) => new StoryPlanUseCase(new HttpStoryPlanRepository(episodeRepository))).singleton(),
