@@ -41,8 +41,8 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(17,flyway.migrate().migrationsExecuted)
-        assertEquals((1..17).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(18,flyway.migrate().migrationsExecuted)
+        assertEquals((1..18).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for(table in listOf("work","work_view","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","ai_run","ai_thread","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge")) {
@@ -50,6 +50,9 @@ class ContentMigrationTest {
         }
         for(view in listOf("work_current","episode_current","setting_version_read")) {
             assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM information_schema.views WHERE table_schema=current_schema() AND table_name=?",Int::class.java,view))
+        }
+        for(table in listOf("change_proposal_version","change_proposal_receipt","change_decision_attempt")) {
+            assertNotNull(jdbc.queryForObject("SELECT to_regclass(?)::text",String::class.java,table))
         }
         assertNull(jdbc.queryForObject("SELECT to_regclass('content_work')::text",String::class.java))
         assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='member' AND column_name IN ('email','password_hash','nickname')",Int::class.java))
@@ -67,6 +70,24 @@ class ContentMigrationTest {
             assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(statement)}
         }
         assertEquals("보존",jdbc.queryForObject("SELECT content FROM episode_version WHERE id='v'",String::class.java))
+    }
+
+    @Test fun `change proposal versions receipts and winning decision constraints are immutable`() = isolated {flyway,jdbc ->
+        flyway.migrate()
+        jdbc.update("INSERT INTO member(id) VALUES ('owner')")
+        jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','제목','','original',0)")
+        jdbc.update("INSERT INTO ai_job(id,requester_id,work_id,kind,status) VALUES ('run','owner','w','run:edit','completed')")
+        jdbc.update("INSERT INTO ai_thread(id,requester_id,work_id,created_at) VALUES ('thread','owner','w',now())")
+        jdbc.update("INSERT INTO ai_run(id,thread_id,requester_id,work_id,operation,key_hash,request_hash,scope_hash,basis_episode,base_revision,target_refs_json,grant_expires_at,character_name,max_calls,notice_version,status,dispatch_status,created_at) VALUES ('run','thread','owner','w','edit',repeat('a',64),repeat('b',64),repeat('c',64),1,0,'[]',now(),'',1,'v1','running','accepted',now())")
+        jdbc.update("INSERT INTO change_proposal_version(id,proposal_id,proposal_version,work_id,run_id,manifest_json,proposal_hash,key_hash,request_hash) VALUES ('version','p',1,'w','run','{}',repeat('a',64),repeat('b',64),repeat('c',64))")
+        jdbc.update("INSERT INTO change_proposal_receipt(id,proposal_id,proposal_version,work_id,actor_id,decision,key_hash,request_hash,receipt_json) VALUES ('receipt','p',1,'w','owner','rejected',repeat('d',64),repeat('e',64),'{}')")
+        for(statement in listOf("UPDATE change_proposal_version SET manifest_json='tampered'","DELETE FROM change_proposal_version",
+            "UPDATE change_proposal_receipt SET decision='approved'","DELETE FROM change_proposal_receipt",
+            "INSERT INTO change_proposal_receipt SELECT 'other',proposal_id,proposal_version,work_id,actor_id,'approved',repeat('f',64),request_hash,receipt_json FROM change_proposal_receipt")) {
+            assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(statement)}
+        }
+        assertEquals("running",jdbc.queryForObject("SELECT status FROM ai_run WHERE id='run'",String::class.java))
+        assertEquals("completed",jdbc.queryForObject("SELECT status FROM ai_job WHERE id='run'",String::class.java))
     }
 
     private val sampleDir = Path.of("..", "..", "infrastructure", "sample-data")
@@ -149,6 +170,6 @@ class ContentMigrationTest {
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(17,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(18,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

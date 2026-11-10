@@ -14,6 +14,11 @@ MVP 기능은 위 1~4의 모든 Agent를 합성 자료로 조합할 수 있는 �
 
 ## 프로젝트 루트 기준 파일 배치안
 
+TASK 17은 `ChangeProposalService`에 PG 원고의 불변 ChangeSet 판·멱등 결정·적용 영수증과 별도 실패 시도를 구현했다.
+다중 PG 대상의 전검증과 기존 EpisodeVersion 저장을 재사용하며 V18은 코드만 작성했다. 실제 DB rollback·동시 승인과
+HTTP 수용은 CI 대기다. 기존 accept는 유지하고 실제 Writing/모델·자동 준비·재개·설정/플롯 writer는 연결하지 않는다.
+[계약·단위 검증·제한](task17-handoff.md).
+
 TASK 16은 `agents/development.py`에 네 모드의 가상 인사이트·장면 계획과 run별 adapter를 구현했다. 시나리오 G와 선택 Simulation·개수·근거·무저장을 단위로 검증했다. 원고 생성·승인·적용·실 인덱스는 제외한다. [계약·검증](task16-handoff.md).
 
 TASK 15는 `agents/semantic_review.py`에 지식·인과·감정·규칙·복선·대사 시점·행동 검수 DTO와 run별 adapter를 합성 자료로 구현했다. 시나리오 A의 지식 충돌·문제 없음·확정 수치 불일치·의도적 변경·근거 부족을 대조하며 선택적 Simulation은 별도 고정 Task로 호출한다. 수정 요청과 확정 지적이 함께 있을 때만 editing 후속을 등록한다. 실제 Writing·원문 반영·의미 모델 품질·공개 API 자동 연결은 후속 범위다. [호출·검증·인수](task15-handoff.md).

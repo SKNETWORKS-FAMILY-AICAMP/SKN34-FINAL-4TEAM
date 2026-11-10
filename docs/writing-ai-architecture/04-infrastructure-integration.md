@@ -155,6 +155,12 @@ Receipt = {decision_id,proposal_id,proposal_version,proposal_hash,actor_ref,
 
 PG 다중 문서는 **같은 Content 트랜잭션 관리자와 변경 서비스가 지원하는 대상만** 전체 성공/전체 롤백한다. 저장된 각 결과 버전과 대상 수를 대조하고 커밋 뒤 검색 자료를 무효화한다. 원고+Neo4j 등 서로 다른 저장소 조합은 `unsupported_atomic_scope`로 사전 거부하고 사용자에게 독립적으로 승인 가능한 단위를 표시한다. 버전 충돌을 자동 재작성·보상해 사용자의 수정을 지우지 않는다. 기존 accept는 그대로 두고 새 경로만 멱등 영수증 계약을 사용한다.
 
+TASK 17의 현재 구현은 앞 절 중 **Content PG 원고 변경** 계약이다. `ChangeProposalService`가 불변 판과
+결정/적용 영수증·실패 시도를 분리해 보존하고, 기존 `ProposalService.accept`는 그대로 유지한다.
+HTTP 준비·재생성, AI 결과 자동 연결, 설정·콘티·플롯 writer, interrupt/resume 자동 연결은 추가하지 않았다.
+기존 Content 문맥의 정확한 draft 또는 발행 원문 발췌 근거만 검증한다. 실제 Wiki·Mock 검색 근거의 적용은 허용하지 않는다.
+[구현 DTO·범위·로컬 단위와 CI 대기](task17-handoff.md).
+
 ### 16. 멀티턴 복원
 
 ```mermaid

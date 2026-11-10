@@ -29,6 +29,12 @@ Content 실행에는 기존 대상의 `DATABASE_URL/USER/PASSWORD`, Core와 동�
 
 ## 공개 Run과 작업 위임
 
+TASK 17은 기존 proposal accept를 보존하면서 `/works/{id}/change-proposals/{pid}`의 불변 판 조회,
+`POST .../decisions`와 `GET .../versions/{version}/receipt`를 추가한다. 준비·새 판 생성은 Content 내부
+`ChangeProposalService.prepare`만 제공한다. PG 원고 create/replace_span/update_fields를 기존 회차 버전 저장으로 적용하며
+Mock 근거와 Neo4j 혼합은 거부한다. V18은 소스만 추가했으며 실제 DB 적용·HTTP/PG 수용은 CI 대기다.
+[DTO·멱등·검증·한계](../../docs/writing-ai-architecture/task17-handoff.md).
+
 TASK 10은 `/api/v1/works/{id}/ai/runs` 접수·상태와 `/threads/{threadId}` 실행 참조 목록을 추가합니다. Core 인증·기존 CSRF·작품/Fork 소유권을 유지하며 같은 멱등 키의 재요청은 기존 run을 반환합니다. V17은 thread·run·dispatch 의도를 기존 `ai_job`에 연결하는 신규 SQL이며 이 작업에서 실제 DB에 적용하지 않습니다.
 
 Content 전용 `AI_RUN_GRANT_SECRET`과 양쪽의 `INTERNAL_TOKEN`을 각각 무작위 32자 이상으로 설정해야 합니다. Content가 발급한 5분 위임을 AI가 `POST /internal/v1/ai/runs/{runId}/verify`로 재확인합니다. 실제 원고/프롬프트를 전송하지 않으며 미연결 전문 Agent는 `AI_RUN_EXECUTOR_UNAVAILABLE`로 표시합니다. [요청 예제·권한·미지원 범위](../../docs/writing-ai-architecture/task10-api-contract.md)와 [실제 검증·인수 기록](../../docs/writing-ai-architecture/task10-handoff.md)을 참고하세요.
