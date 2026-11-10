@@ -223,8 +223,8 @@
 <tr><td>설정 버전 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td></tr>
 <tr><td>설정 버전 상세의 선택 이력 번호 확인</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/134">PR #134</a></td></tr>
 <tr><td>설정 이전 버전 복원</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td></tr>
-<tr><td>세계관 체크포인트 생성</td><td>❌</td></tr>
-<tr><td>체크포인트 상세 조회</td><td>❌</td></tr>
+<tr><td>세계관 체크포인트 생성 <small>(작품에 연결된 저장 설정)</small></td><td>✅</td></tr>
+<tr><td>체크포인트 상세 조회 <small>(회차 발행본 원고·세계관 저장 설정)</small></td><td>✅</td></tr>
 <tr><td>회차 발행 시 체크포인트(발행본) 생성 <small>(DEC-43)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/227">PR #227</a></td></tr>
 <tr><td>발행 회차를 이전 체크포인트로 되돌리기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/227">PR #227</a></td></tr>
 <tr><td rowspan="2">62 회차 부가 내용 편집</td><td>회차 작가의 말 작성</td><td>✅ <small>(로컬 단위·통합 검증 완료 · 브라우저 전체 검증 대기)</small></td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a></td></tr>

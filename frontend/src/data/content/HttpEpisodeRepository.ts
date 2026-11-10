@@ -13,6 +13,9 @@ const episode = z.object({number:z.number().int().positive(),version:z.number().
 const source = z.object({workId:z.string(),title:z.string(),episode:z.number().int(),version:z.number().int(),direction:z.string(),deleted:z.boolean().optional()})
 const work = z.object({writingEpisodeNumber:z.number().int().positive().nullable().optional(),creationType:z.enum(['ORIGINAL','EXTERNAL_DERIVATIVE']).optional(),genres:z.array(z.string()).optional(),hashtags:z.array(z.string()).optional(),hasWritingEpisode:z.boolean().optional(),id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft})
 const setting = z.object({id:z.string(),versionId:z.string(),name:z.string(),content:z.string(),category:z.enum(settingCategories),tags:z.array(z.string()),visibility:z.enum(['private','public']),fromEpisode:z.number().int().positive(),toEpisode:z.number().int().positive().nullable(),knownBy:z.array(z.string()),evidence:z.string()})
+const worldCheckpointSummary = z.object({ id: z.string().min(1), createdAt: z.iso.datetime() })
+const worldCheckpoint = worldCheckpointSummary.extend({ settings: z.array(setting) })
+const worldCheckpointsPath = (id: string) => `/works/${encodeURIComponent(id)}/world/checkpoints`
 const world = z.object({id:z.string(),name:z.string(),revision:z.number().int(),mode:z.enum(['own','following','independent']),basis:z.object({episode:z.number(),version:z.number(),settings:z.array(setting)}).nullable(),draft:setting.omit({versionId:true}).nullable(),settings:z.array(setting),drafts:z.array(setting.omit({versionId:true})).default([]),history:z.array(setting),sourceToken:z.string(),changes:z.array(z.object({id:z.string(),settingId:z.string(),before:setting.nullable(),after:setting.nullable(),decision:z.enum(['pending','apply','reject'])}))})
 const context = z.object({title:z.string(),summary:z.string(),basisEpisode:z.number().int(),character:z.string(),settings:z.array(setting),draft:z.string(),episodes:z.array(z.object({number:z.number().int(),version:z.number().int(),versionId:z.string(),title:z.string(),sourceCharacters:z.number(),excerpts:z.array(z.object({start:z.number(),end:z.number(),text:z.string()}))})),selection:z.object({method:z.string(),omittedCharacters:z.number(),eligibleEpisodes:z.number(),note:z.string()})})
 const proposal = z.object({id:z.string(),text:z.string().min(1),model:z.string(),revision:z.number().int(),status:z.enum(['pending','accepted']),prompt:z.string().optional(),baseBody:z.string().optional(),createdAt:z.string().optional(),context:context.optional()})
@@ -106,6 +109,15 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   propose(id: string, revision: number, prompt: string, consent: boolean, signal?: AbortSignal, episode?:number, character='') { return this.request(`/works/${id}/proposals`,proposal,'POST',{revision,prompt,consent,episode,character},signal) }
   accept(id: string, pid: string, revision: number) { return this.request(`/works/${id}/proposals/${pid}/accept`,draft,'POST',{revision}) }
   world(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/world`,world,'GET',undefined,signal)}
+  createWorldCheckpoint(id: string, signal?: AbortSignal) {
+    return this.request(worldCheckpointsPath(id), worldCheckpoint, 'POST', undefined, signal)
+  }
+  worldCheckpoints(id: string, signal?: AbortSignal) {
+    return this.request(worldCheckpointsPath(id), z.array(worldCheckpointSummary), 'GET', undefined, signal)
+  }
+  worldCheckpoint(id: string, checkpointId: string, signal?: AbortSignal) {
+    return this.request(`${worldCheckpointsPath(id)}/${encodeURIComponent(checkpointId)}`, worldCheckpoint, 'GET', undefined, signal)
+  }
   saveSetting(id:string,sid:string,revision:number,value:SettingInput,sourceToken:string) {return this.request(`/works/${id}/settings/${sid}/draft`,world,'PUT',{revision,setting:value,sourceToken})}
   commitSetting(id:string,sid:string,revision:number) {return this.request(`/works/${id}/settings/${sid}/commit`,world,'POST',{revision})}
   revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/settings/${sid}/revert`,world,'POST',{revision,versionId},signal)}
