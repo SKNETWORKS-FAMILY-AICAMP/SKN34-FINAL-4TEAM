@@ -26,7 +26,7 @@ class WorldStudioHistoryPostgresTest {
             assertEquals(2,foreign.migrate().migrationsExecuted);
             List<String> before;
             try(var c=db.connect()) { before=rows(c,"SELECT to_jsonb(h)::text FROM foreign_domain.world_studio_schema_history h ORDER BY installed_rank"); }
-            assertEquals(3,db.studio().migrate().migrationsExecuted);
+            assertEquals(4,db.studio().migrate().migrationsExecuted);
             db.studio().validate(); assertEquals(0,db.studio().migrate().migrationsExecuted); foreign.validate();
             try(var c=db.connect()) {
                 assertEquals(before,rows(c,"SELECT to_jsonb(h)::text FROM foreign_domain.world_studio_schema_history h ORDER BY installed_rank"));
@@ -60,7 +60,7 @@ class WorldStudioHistoryPostgresTest {
                 sql(c,"CREATE TABLE public.world_studio_schema_history(version text,type text,script text,checksum integer,success boolean)");
                 sql(c,"INSERT INTO public.world_studio_schema_history VALUES ('1','SQL','V1__initial_world_schema.sql',943880700,false),('1','BASELINE','V1__initial_world_schema.sql',943880700,true),('1','SQL','V1__initial_world_schema.sql',NULL,true),('1','SQL','V1__other_domain.sql',943880700,true)");
             }
-            assertEquals(3,db.studio().migrate().migrationsExecuted);
+            assertEquals(4,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) { assertEquals(List.of("4"),rows(c,"SELECT count(*) FROM public.world_studio_schema_history")); }
         }
     }

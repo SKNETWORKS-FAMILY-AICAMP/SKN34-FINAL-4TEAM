@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 /** 비공개 입력·SQL·Cypher·드라이버 오류를 응답이나 로그에 노출하지 않는다. */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(assignableTypes=[WorldStudioController::class])
+@RestControllerAdvice(assignableTypes=[WorldStudioController::class,InitialWorldAnalysisController::class])
 class WorldStudioExceptionHandler {
     @ExceptionHandler(WorldStudioFailure::class)
     fun failure(error:WorldStudioFailure)=ResponseEntity.status(status(error.reason)).body(WorldStudioErrorResponse(error.code,error.detail))

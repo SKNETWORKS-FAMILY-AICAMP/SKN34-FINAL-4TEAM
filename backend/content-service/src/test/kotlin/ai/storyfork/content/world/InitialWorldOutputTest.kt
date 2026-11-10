@@ -11,7 +11,7 @@ import tools.jackson.module.kotlin.KotlinModule
 
 class InitialWorldOutputTest {
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val valid=mapper.readTree(requireNotNull(javaClass.getResource("/initial-world-contract/honggildong.json")))["valid"]
+    private val valid=mapper.readTree(requireNotNull(javaClass.getResource("/initial-world-contract/honggildong.json")).readText())["valid"]
     private val input=mapper.treeToValue(valid["input"],InitialWorldInput::class.java)
     private val output=mapper.writeValueAsString(valid["output"])
 

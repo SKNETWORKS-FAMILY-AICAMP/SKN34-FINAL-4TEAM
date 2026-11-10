@@ -23,5 +23,6 @@ class InitialWorldAnalysis(
     @Column(name="execution_status", nullable=false) var executionStatus: String = "running",
     @JdbcTypeCode(SqlTypes.JSON) @Column(columnDefinition="jsonb") var output: Map<String,Any?>? = null,
     @Column(name="created_at", nullable=false) val createdAt: Instant = Instant.now(),
+    @Column(name="failure_code") var failureCode: String? = null,
     @Version @Column(name="lock_version", nullable=false) var lockVersion: Long = 0,
 )
