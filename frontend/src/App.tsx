@@ -89,6 +89,7 @@ function StartPage() {
 /** 세션 복원이 끝나기 전에는 로그인 상태에 따라 달라지는 화면(콘텐츠·집필실·회차 열람)을 열지 않는다. */
 const checkingSession = <p role="status">로그인 상태를 확인하고 있어요.</p>
 
+/** 로그인 상태를 복원한 뒤 모드에 맞는 작품 생성·원고 가져오기 경로를 연다. */
 function App() {
   const { pathname } = useLocation()
   const { restoring, restoreError } = useSessionRestore()

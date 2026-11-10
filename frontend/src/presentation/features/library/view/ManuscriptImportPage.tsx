@@ -36,6 +36,7 @@ export function ManuscriptImportPage() {
   )
 }
 
+/** 가져오기 입력과 작업실 링크를 표시한다. 작업실로 이동하면 임시 입력이 사라진다. */
 function ImportSetup({ vm }: { vm: VM }) {
   return (
     <section className="panel mi-setup" aria-label="가져올 원고 설정">

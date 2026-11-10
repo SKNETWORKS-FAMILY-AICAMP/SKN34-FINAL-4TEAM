@@ -11,8 +11,6 @@ import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 
-vi.mock('../../presentation/features/studio/view/StudioPage', () => ({ StudioPage: () => <h1>집필실</h1> }))
-
 beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
@@ -81,8 +79,10 @@ describe('목업 새 소설 만들기 (U28)', () => {
     }
     fireEvent.change(screen.getByLabelText('인물 1 이름'), { target: { value: '등대지기' } })
     fireEvent.click(screen.getByRole('button', { name: '소설 만들고 1화 쓰기 →' }))
-    await screen.findByRole('heading', { name: '집필실' })
+    await screen.findByRole('heading', { name: '남는 제목' })
     expect(where()).toMatch(/^\/studio\//)
+    expect(screen.getByRole('combobox', { name: '원고 본문' }).getAttribute('contenteditable')).toBe('true')
+    expect(screen.getByText(/^1화 · @를 입력하면/)).toBeTruthy()
     act(() => { nav('/new') })
     await acceptPolicy()
     expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe('남는 제목')

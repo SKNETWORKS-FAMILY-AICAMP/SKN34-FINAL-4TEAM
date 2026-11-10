@@ -22,6 +22,7 @@ const steps=[['info','기본 정보'],['cards','설정 카드'],['relations','�
 const exploreTabs=[['map','전체 세계관 지도'],['wiki','설정집'],['relations','인물 관계도'],['timeline','초기 역사 시간선']] as const
 const labelOf=(setting:StudioSetting)=>cardTypes.find(t=>t.id===cardTypeOf(setting.item))?.label??kinds[setting.item.kind]
 
+/** 세계관을 편집하고, 새 소설 등록은 실행 모드의 작품 생성 화면에서 시작한다. */
 export function WorldStudioPage(){
  useScreenId('W01')
  useDocumentTitle('세계관')
