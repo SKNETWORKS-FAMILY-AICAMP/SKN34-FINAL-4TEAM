@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional(transactionManager="contentTransactionManager")
 class InternalWorkService(private val works: WorkRepository, private val nicknames: CoreNicknameService) {
-    fun read(id: String) = view(works.findById(id).orElse(null) ?: missing())
+    fun read(id: String) = view(works.findById(id).orElse(null)?.takeIf { it.deletedAt == null } ?: missing())
 
     /**
      * 공개·비공개·제한 작품 전체. 행마다 추가 조회하지 않고 목록 쿼리 한 번의 결과만 옮긴다.
@@ -24,7 +24,8 @@ class InternalWorkService(private val works: WorkRepository, private val nicknam
      * ponytail: 페이지네이션 없이 전체를 한 번에 준다. 작품이 많아지면 서버 필터·페이지로 옮긴다(operations-work-contract.md).
      */
     fun list(): OperationsWorkListResponse {
-        val rows = works.listForOperations()
+        // 소프트 삭제한 작품은 운영 목록·조회·제한 대상에서도 뺀다(DEC-42).
+        val rows = works.listForOperations().filter { (it[0] as WorkEntity).deletedAt == null }
         val names = nicknames.nicknames(rows.map { (it[0] as WorkEntity).ownerId })
         return OperationsWorkListResponse(rows.map { row ->
             val w = row[0] as WorkEntity
@@ -34,7 +35,7 @@ class InternalWorkService(private val works: WorkRepository, private val nicknam
 
     /** 작가 수정과 같은 작품 행 잠금으로 직렬화해 전체 행 저장이 플래그를 덮어쓰지 않게 한다. */
     fun restrict(id: String, restricted: Boolean): InternalWorkResponse {
-        val row = works.lockAll(listOf(id)).singleOrNull() ?: missing()
+        val row = works.lockAll(listOf(id)).singleOrNull()?.takeIf { it.deletedAt == null } ?: missing()
         row.restricted = restricted
         return view(row)
     }

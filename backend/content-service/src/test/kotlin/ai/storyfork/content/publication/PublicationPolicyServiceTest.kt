@@ -63,6 +63,22 @@ class PublicationPolicyServiceTest {
         order.verify(events).saveAndFlush(ArgumentMatchers.any(PublicationEventEntity::class.java) ?: PublicationEventEntity())
     }
 
+    @Test
+    fun `a private Fork still follows the publication allowance of a deleted source`() {
+        val source=ai.storyfork.content.fork.service.dto.SourceResponse("src","원작",1,1,"분기",deleted=true)
+        `when`(access.own("w","owner")).thenReturn(WorkAccessResult("w","owner","제목","",0,"world","private",false,false,source))
+        `when`(access.get("src")).thenReturn(WorkAccessResult("src","author","원작","",0,"world","public",true,false,null,deleted=true))
+        `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(EpisodeEntity(id="e1",workId="w",sequence=1))
+        `when`(versions.findByEpisodeIdAndContentVersionId("e1","content-v1")).thenReturn(EpisodeVersionEntity(id="v1",episodeId="e1",contentVersionId="content-v1",revisionNo=1,content="본문",isSaved=true))
+
+        val failure=org.junit.jupiter.api.Assertions.assertThrows(ai.storyfork.content._common.exception.ContentFailure::class.java) {
+            service.publishCurrent("w","owner",PublishRequest(0,true,false,false,"content-v1"))
+        }
+
+        org.junit.jupiter.api.Assertions.assertEquals(403,failure.status)
+        verifyNoInteractions(events)
+    }
+
     @ParameterizedTest
     @ValueSource(strings = ["from", "selected"])
     fun `publication boolean change never widens the existing episode scope`(scope: String) {

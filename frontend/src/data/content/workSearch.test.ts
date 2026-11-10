@@ -71,6 +71,17 @@ describe('공개 작품 검색 (GET /api/v1/public/works)', () => {
     expect(query(fetcher.mock.calls[0][0])).toEqual({ f: 'all', sort: 'latest' })
   })
 
+  it('인기 순(like)·페이지(page 0부터)·크기(size)를 쿼리로 보낸다 — 첫 페이지의 page=0도 생략하지 않는다', async () => {
+    const fetcher = vi.fn(async (_url: RequestInfo | URL) => Response.json([]))
+    const repo = new HttpEpisodeRepository(fetcher)
+    await repo.search({ q: '', f: 'all', sort: 'like', page: 0, size: 20 })
+    await repo.search({ q: '별빛', f: 'tag', sort: 'view', page: 3, size: 20 })
+    expect(fetcher.mock.calls.map(([url]) => query(String(url)))).toEqual([
+      { f: 'all', sort: 'like', page: '0', size: '20' },
+      { q: '별빛', f: 'tag', sort: 'view', page: '3', size: '20' },
+    ])
+  })
+
   it('조회 수가 빠진 응답은 빈 목록으로 숨기지 않고 오류로 알린다', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json([{ ...dto(), views: undefined }]))
     await expect(new HttpEpisodeRepository(fetcher).search({ q: '', f: 'all', sort: 'latest' })).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
@@ -168,7 +179,8 @@ describe('검색 카드 → /work/:id 상세', () => {
     const reading = { getProgress: async () => ({ last: {}, read: {}, seen: {}, liked: {} }), markSeen: async () => {}, saveProgress: async () => {} }
     const records = { list: async () => [], record: async () => {}, remove: async () => {} }
     const useCase = new ReadingUseCase(new HttpWorkRepository(api, () => false), reading, records, api)
-    const [card] = await useCase.findWorks({ sort: 'latest' })
+    const { list: [card] } = await useCase.findWorks({ sort: 'latest' })
+    expect(query(String(fetcher.mock.calls[0][0]))).toEqual({ f: 'all', sort: 'latest', page: '0', size: '20' })
     const detail = await useCase.getWork(card.id, null)
     expect(detail?.work).toMatchObject({ id: card.id, title: '별빛 서약의 탑', author: '윤서하' })
     expect(detail?.visible).toHaveLength(2)

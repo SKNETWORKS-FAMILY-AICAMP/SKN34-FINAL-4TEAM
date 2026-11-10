@@ -41,6 +41,14 @@ class InternalWorkListTest {
         verifyNoMoreInteractions(works)
     }
 
+    @Test fun `soft deleted works are left out of the operations list`() {
+        val gone = WorkEntity(id = "gone", ownerId = "o1", title = "삭제", deletedAt = java.time.Instant.now())
+        `when`(works.listForOperations()).thenReturn(listOf(row("w1", "o1"), arrayOf<Any?>(gone, true, "public")))
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenReturn(mapOf("o1" to "코어1"))
+
+        assertEquals(listOf("w1"), service.list().items.map { it.workId })
+    }
+
     @Test fun `an owner Core does not know is shown as a withdrawn member`() {
         `when`(works.listForOperations()).thenReturn(listOf(row("w1", "o1"), row("w2", "gone")))
         `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenReturn(mapOf("o1" to "코어1"))

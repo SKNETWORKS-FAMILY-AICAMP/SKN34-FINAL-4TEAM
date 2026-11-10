@@ -33,7 +33,7 @@ OperationsWorkList = { items: OperationsWork[] }
 
 | 메서드·경로 | 동작 |
 |---|---|
-| `GET /internal/v1/works` | 전체 작품 `OperationsWorkList`, `title ASC, id ASC`. 작품 수만큼 추가 조회하지 않는다(N+1 금지) |
+| `GET /internal/v1/works` | 소프트 삭제(DEC-42)되지 않은 전체 작품 `OperationsWorkList`, `title ASC, id ASC`. 삭제된 작품의 내부 조회·제한은 404다. 작품 수만큼 추가 조회하지 않는다(N+1 금지) |
 | `GET /internal/v1/works/{id}` · `PUT`·`DELETE /internal/v1/works/{id}/restriction` | 기존 그대로 |
 
 ## 운영 공개 API (브라우저)

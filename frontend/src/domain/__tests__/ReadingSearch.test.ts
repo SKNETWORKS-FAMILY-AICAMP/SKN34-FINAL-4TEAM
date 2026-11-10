@@ -171,12 +171,32 @@ describe('ReadingUseCase.rankWorks 랭킹 화면', () => {
 })
 
 describe('ReadingUseCase.findWorks 서버 검색', () => {
-  it('검색어의 앞뒤 공백을 지우고 범위·정렬과 함께 서버에 보낸 결과를 그대로 돌려준다', async () => {
+  const works = (count: number, over: Partial<Work> = {}) => Array.from({ length: count }, (_, i) => serverWork(`w${i}`, over))
+
+  it('검색어의 앞뒤 공백을 지우고 범위·정렬·첫 서버 페이지(page 0, size 20)와 함께 보내 결과를 돌려준다', async () => {
     const found = [serverWork('a'), serverWork('b')]
     const search = vi.fn(async () => found)
-    const list = await setup({ search }).useCase.findWorks({ q: ' 별빛 ', f: 'genre', sort: 'view' })
-    expect(search).toHaveBeenCalledWith({ q: '별빛', f: 'genre', sort: 'view' })
-    expect(list).toEqual(found)
+    const page = await setup({ search }).useCase.findWorks({ q: ' 별빛 ', f: 'genre', sort: 'view' })
+    expect(search).toHaveBeenCalledWith({ q: '별빛', f: 'genre', sort: 'view', page: 0, size: 20 }, undefined)
+    expect(page).toEqual({ list: found, hasMore: false })
+  })
+
+  it('page는 서버 페이지 번호로, 취소 신호는 서버 검색에 그대로 넘긴다', async () => {
+    const search = vi.fn(async () => [])
+    const { signal } = new AbortController()
+    await setup({ search }).useCase.findWorks({ sort: 'like', page: 2 }, signal)
+    expect(search).toHaveBeenCalledWith({ q: '', f: 'all', sort: 'like', page: 2, size: 20 }, signal)
+  })
+
+  it('서버가 20개를 가득 채워 주면 더 있을 수 있어 hasMore이고, 그보다 적으면 마지막 페이지다', async () => {
+    const hasMore = async (count: number) => (await setup({ search: async () => works(count) }).useCase.findWorks({ sort: 'latest' })).hasMore
+    expect(await hasMore(20)).toBe(true)
+    expect(await hasMore(19)).toBe(false)
+    expect(await hasMore(0)).toBe(false)
+  })
+
+  it('페이지를 무시하고 전부 돌려주는 서버(21개 이상)는 마지막 페이지로 본다 — 같은 목록을 이어 붙이지 않는다', async () => {
+    expect((await setup({ search: async () => works(21) }).useCase.findWorks({ sort: 'latest' })).hasMore).toBe(false)
   })
 
   it('서버 실패는 빈 목록으로 숨기지 않고 오류로 알린다', async () => {
@@ -186,16 +206,25 @@ describe('ReadingUseCase.findWorks 서버 검색', () => {
 })
 
 describe('ReadingUseCase.findWorks 메모리(목업)', () => {
-  it('최신 순(latest)은 목업의 새 순과 같다', async () => {
-    const list = await setup().useCase.findWorks({ q: '회색', sort: 'latest' })
-    expect(list.map((w) => w.id)).toEqual(['postif', 'reply', 'postman'])
+  it('최신 순(latest)은 목업의 새 순과 같고 전부 보여 주므로 더 보기가 없다', async () => {
+    const page = await setup().useCase.findWorks({ q: '회색', sort: 'latest' })
+    expect(page.list.map((w) => w.id)).toEqual(['postif', 'reply', 'postman'])
+    expect(page.hasMore).toBe(false)
+  })
+
+  it('인기 순(like)은 목업의 좋아요 수 순이고 조회 순과 따로 정렬한다', async () => {
+    const [base] = seedWorks(0)
+    const works = [{ ...base, id: 'quiet', likes: 900, views: 10 }, { ...base, id: 'seen', likes: 5, views: 5000 }, { ...base, id: 'mid', likes: 300, views: 300 }]
+    const { useCase } = setup(undefined, works)
+    expect((await useCase.findWorks({ sort: 'like' })).list.map((w) => w.id)).toEqual(['quiet', 'mid', 'seen'])
+    expect((await useCase.findWorks({ sort: 'view' })).list.map((w) => w.id)).toEqual(['seen', 'mid', 'quiet'])
   })
 
   it('장르 범위는 장르를 검색하고 전체 범위는 기존처럼 장르를 보지 않는다', async () => {
     const { useCase } = setup()
-    expect((await useCase.findWorks({ q: '판타지', f: 'genre', sort: 'view' })).map((w) => w.id))
+    expect((await useCase.findWorks({ q: '판타지', f: 'genre', sort: 'view' })).list.map((w) => w.id))
       .toEqual(['guunmong', 'starlight', 'cloud', 'gate', 'seal', 'pardon', 'crown'])
-    expect(await useCase.findWorks({ q: '판타지', f: 'all', sort: 'view' })).toEqual([])
+    expect((await useCase.findWorks({ q: '판타지', f: 'all', sort: 'view' })).list).toEqual([])
   })
 })
 

@@ -1,6 +1,7 @@
 import type { RankingKind, RankingPeriod, RankingType, SearchField, SearchSort, Work } from '../entities/work'
 
-export type WorkSearchQuery = { q: string; f: SearchField; sort: SearchSort }
+/** page(0부터)·size는 서버 페이지 구간이다. 둘 다 생략하면 서버가 전체를 돌려준다. */
+export type WorkSearchQuery = { q: string; f: SearchField; sort: SearchSort; page?: number; size?: number }
 /** 빠진 조건은 서버 기본값(기간 day·범위 all·10개)을 따른다. limit은 1~50. */
 export type WorkRankingQuery = { kind: RankingKind; period?: RankingPeriod; type?: RankingType; limit?: number }
 

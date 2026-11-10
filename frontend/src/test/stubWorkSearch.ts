@@ -14,7 +14,7 @@ export const STUB_RANKED_AT = new Date('2026-11-10T05:07:00Z')
 export function stubWorkSearch() {
   const { workRepository, readingRepository, readingRecordRepository, workSearchRepository } = appContainer.cradle
   const memory = new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)
-  vi.spyOn(workSearchRepository, 'search').mockImplementation((query) => memory.findWorks(query))
+  vi.spyOn(workSearchRepository, 'search').mockImplementation(async (query) => (await memory.findWorks(query)).list)
   vi.spyOn(workSearchRepository, 'rankings').mockImplementation(async ({ kind, period = 'day', type, limit = 10 }) => {
     const { items } = await memory.rankWorks({ t: type === 'original' ? 'orig' : type === 'fork' ? 'if' : 'all', kind, period })
     return { items: items.slice(0, limit), computedAt: STUB_RANKED_AT }

@@ -7,6 +7,9 @@ import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLike
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import type { WorkRankingQuery, WorkSearchRepository } from '../repositories/WorkSearchRepository'
 
+/** 서버 검색 목록이 한 번에 받는 개수(계약: size 20). 이만큼 받으면 다음 페이지가 있을 수 있다. */
+const SEARCH_PAGE_SIZE = 20
+
 /** 목업 CHIPS: 홈 장르 칩과 필터 조건 */
 export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] = [
   ['추천', null],
@@ -219,13 +222,21 @@ export class ReadingUseCase {
     return progress.liked[id]
   }
 
-  /** 목업 searchPage(): 서버 저장소가 있으면 검색은 서버가 합니다. 랭킹 화면은 rankWorks를 씁니다. */
-  async findWorks({ q = '', f = 'all', sort }: { q?: string; f?: SearchField; sort: SearchSort }) {
-    if (this.workSearchRepository) return this.workSearchRepository.search({ q: q.trim(), f, sort })
+  /**
+   * 목업 searchPage(): 서버 저장소가 있으면 검색은 서버가 하고 page(0부터) 한 장(20개)만 받습니다. hasMore(더 받을 수 있음)는
+   * 서버 개수가 한 장을 가득 채웠는지로 봅니다(페이지를 무시하고 전부 주는 서버의 21개 이상은 마지막으로 봅니다).
+   * 메모리 데모는 전부 돌려주므로 더 보기가 없습니다. 랭킹 화면은 페이지 없이 rankWorks를 씁니다.
+   */
+  async findWorks({ q = '', f = 'all', sort, page = 0 }: { q?: string; f?: SearchField; sort: SearchSort; page?: number }, signal?: AbortSignal) {
+    if (this.workSearchRepository) {
+      const found = await this.workSearchRepository.search({ q: q.trim(), f, sort, page, size: SEARCH_PAGE_SIZE }, signal)
+      return { list: found, hasMore: found.length === SEARCH_PAGE_SIZE }
+    }
     const works = await this.workRepository.listWorks()
-    return works.filter(isPub)
-      .filter((w) => matchW(w, q, f, works))
-      .sort(sorter(sort === 'latest' ? 'new' : sort))
+    return {
+      list: works.filter(isPub).filter((w) => matchW(w, q, f, works)).sort(sorter(sort === 'latest' ? 'new' : sort)),
+      hasMore: false,
+    }
   }
 
   /**

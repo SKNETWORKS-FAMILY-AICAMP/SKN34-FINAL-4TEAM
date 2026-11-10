@@ -94,6 +94,7 @@ class PublicationService(
         drafts.save(d)
     }
     private fun checkForkPublication(w: WorkAccessResult) {
+        // 원작이 삭제돼도 원작자의 최초 공개 허용 설정은 그대로 따른다(문서에 삭제 예외 없음).
         if(w.source!=null && w.visibility!="public") checkContent(access.get(w.source.workId).allowForkPublication,403,"원작이 분기 작품의 최초 공개를 허용하지 않아요.")
     }
     private fun apply(id: String, owner: String, number: Int, version: String) {

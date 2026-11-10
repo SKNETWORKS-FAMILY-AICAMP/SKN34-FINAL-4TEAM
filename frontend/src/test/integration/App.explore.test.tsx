@@ -54,12 +54,15 @@ describe('검색 결과 (U36)', () => {
     await waitFor(() => expect(titles()).toEqual(['회색 도시의 우편배달부', '회색 도시: 송신탑 아래', '회색 도시: 답장']))
   })
 
-  it('검색 범위·정렬은 서버가 지원하는 값만 고르게 한다 (인기 순 없음)', async () => {
+  it('검색 범위·정렬은 서버가 지원하는 값만 고르게 한다 (인기 순은 좋아요 순 like)', async () => {
     renderApp('/search')
     const scope = await screen.findByRole('group', { name: '검색 범위' })
     const sort = screen.getByRole('group', { name: '정렬' })
     expect([...scope.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['전체', '제목', '작가', '태그', '장르'])
-    expect([...sort.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['최신 순', '조회 순'])
+    expect([...sort.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['최신 순', '인기 순', '조회 순'])
+    fireEvent.click(within(sort).getByRole('link', { name: '인기 순' }))
+    await waitFor(() => expect(screen.getByRole('link', { name: '인기 순' }).className).toBe('on'))
+    await waitFor(() => expect(titles()[0]).toBe('구운몽'))
   })
 
   it('검색 카드에서 소설 신고 시트를 연다 (랭킹 카드에는 없다)', async () => {

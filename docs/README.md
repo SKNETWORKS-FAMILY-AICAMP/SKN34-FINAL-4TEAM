@@ -10,12 +10,12 @@
 
 | 문서 | 확인할 내용 |
 |---|---|
-| [기획서](<deliverables/SKN34-final-4Team_기획서.pdf>) | 기획 기준 v1.4: 문제 정의, 사용자, 핵심 기능, 비용·권리 방향 |
+| [기획서](<deliverables/SKN34-final-4Team_기획서.pdf>) | 기획 기준 v1.5: 문제 정의, 사용자, 핵심 기능, 비용·권리 방향 |
 | [요구사항 정의서](<deliverables/SKN34-final-4Team_요구사항정의서.xlsx>) · [기능 ID 색인](requirements.md) | 원본 요구사항과 Markdown으로 옮긴 기능 ID 색인 |
 | [WBS](deliverables/SKN34-final-4Team_WBS.xlsx) | 일정·작업 분해 |
 | [화면 설계서](<deliverables/SKN34-final-4Team_화면설계서.pdf>) | 화면 구성·흐름 |
 | [시스템 구상도](<deliverables/SKN34-final-4Team_시스템 구상도.pdf>) · [AI 시스템 아키텍처](<deliverables/SKN34-final-4Team_AI 시스템 아키텍처.pdf>) | 제출용 시스템·AI 구성도 |
-| [중간발표 자료](deliverables/) | 버전별 발표 PPT와 미리보기 PDF |
+| [산출물 안내](deliverables/README.md) | 산출물 목록, 중간발표 버전별 설명(최신 v36)과 발표 보조 자료 |
 
 ## 유스케이스·화면
 
@@ -75,6 +75,7 @@
 | [이슈 #50 대응](issue-50-alignment.md) | 회차 생성·원고 관리 구현 진행 기록 |
 | [PR #86 차이 기록](design/worldstudio-independent-schema-pr86-delta.md) | PR #86 설계와 독립 초기 스키마 비교 |
 | [PR #98 JPA 검증 기록](design/worldstudio-jpa-verification.md) | WorldStudio의 Core 기본 JPA 재사용 검증 |
+| [WorldStudio 후속 이슈 재평가(2026-11-09)](worldstudio-followup-status-20261109.md) | 11-09 기준 후속 이슈별 소스 대조·유효성 판정 |
 | [회차 삭제 정책 초안](episode-deletion-policy-draft.md) | 정책 확정 전 이슈 초안 |
 | [이전 설계: KAG](design/archive/kag-design/design.md) · [RDB MVP](design/archive/rdb-mvp/design.md) | 현재 설계 이전의 아키텍처안 |
 | [WorldStudio 콘텐츠 확장안](archive/worldstudio-content-extension/README.md) | 폐기된 Content 확장 스키마 원본 보관 |

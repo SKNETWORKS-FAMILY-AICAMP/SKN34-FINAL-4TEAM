@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '../../../../test/fixtureApp'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -46,13 +46,22 @@ it('검색 범위와 정렬의 선택 상태를 aria-current로 알린다', asyn
   expect(sort.querySelectorAll('[aria-current]')).toHaveLength(1)
 })
 
-it('서버가 지원하지 않는 옛 주소의 범위·정렬 값은 기본값(전체·최신 순)으로 읽는다', async () => {
+it('서버가 지원하지 않는 옛 주소의 범위·정렬 값(f=body·sort=pop)은 기본값(전체·최신 순)으로 읽는다 — 인기 순은 sort=like다', async () => {
   renderAt('/search?f=body&sort=pop')
   const scope = await screen.findByRole('group', { name: '검색 범위' })
   const sort = screen.getByRole('group', { name: '정렬' })
   expect(current(scope, '전체')).toBe('true')
   expect(current(sort, '최신 순')).toBe('true')
-  expect(within(sort).queryByRole('link', { name: '인기 순' })).toBeNull()
+  expect(current(sort, '인기 순')).toBeNull()
+  expect(sort.querySelectorAll('[aria-current]')).toHaveLength(1)
+})
+
+it('정렬은 최신 순·인기 순(like)·조회 순이고 주소의 sort=like가 인기 순으로 선택된다', async () => {
+  renderAt('/search?sort=like')
+  const sort = await screen.findByRole('group', { name: '정렬' })
+  expect([...sort.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['최신 순', '인기 순', '조회 순'])
+  expect(current(sort, '인기 순')).toBe('true')
+  expect(sort.querySelectorAll('[aria-current]')).toHaveLength(1)
 })
 
 it('작가 범위는 서버가 지원하므로 주소의 f=author가 그대로 선택된다', async () => {
@@ -214,4 +223,72 @@ it.each([
   await waitFor(() => expect(document.title).toBe(title))
   view.unmount()
   expect(document.title).toBe('STORYFORK')
+})
+
+// 서버 페이지(size 20)와 더 보기. 시드 작품 수(<20)로는 한 페이지뿐이라 검색 저장소 응답을 직접 만든다.
+const card = (id: string) => ({ ...seedWorks(0)[0], id, title: `소설 ${id}`, parent: undefined, forkAt: undefined })
+const serverPage = (page: number, count: number) => Array.from({ length: count }, (_, i) => card(`p${page}-${i}`))
+const titles = () => [...document.querySelectorAll('.rgrid .ri b')].map((b) => b.textContent)
+const searchRepository = () => appContainer.resolve('workSearchRepository')
+const more = () => screen.getByRole('button', { name: '더 보기' })
+
+it('검색은 첫 20개를 보이고 더 보기로 다음 서버 페이지를 이어 붙이며, 20개보다 적게 오면 버튼이 사라진다', async () => {
+  const search = vi.spyOn(searchRepository(), 'search').mockImplementation(async ({ page = 0 }) => serverPage(page, page === 0 ? 20 : 5))
+  renderAt('/search?q=소설&sort=like')
+  // 총 개수를 모르니 더 보기가 남은 동안은 '20편'이 아니라 '20편 이상'이다.
+  await screen.findByText('20편 이상')
+  expect(search).toHaveBeenLastCalledWith({ q: '소설', f: 'all', sort: 'like', page: 0, size: 20 }, undefined)
+  fireEvent.click(more())
+  await screen.findByText('25편')
+  expect(search).toHaveBeenLastCalledWith({ q: '소설', f: 'all', sort: 'like', page: 1, size: 20 }, expect.any(AbortSignal))
+  expect(titles()).toEqual([...serverPage(0, 20), ...serverPage(1, 5)].map((w) => w.title))
+  expect(screen.queryByRole('button', { name: '더 보기' })).toBeNull()
+})
+
+it('한 페이지에 다 담기는 결과에는 더 보기가 없고 편수도 그대로 보여 준다', async () => {
+  renderAt('/search?q=회색')
+  await screen.findByText('3편')
+  expect(screen.queryByRole('button', { name: '더 보기' })).toBeNull()
+})
+
+it('더 보기 요청 중에는 버튼이 비활성이고 불러오는 중…을 알리며, 끝나면 이어 붙인다', async () => {
+  let finish: (works: ReturnType<typeof serverPage>) => void = () => {}
+  const next = new Promise<ReturnType<typeof serverPage>>((done) => { finish = done })
+  const search = vi.spyOn(searchRepository(), 'search').mockImplementation(({ page = 0 }) => (page === 0 ? Promise.resolve(serverPage(0, 20)) : next))
+  renderAt('/search')
+  fireEvent.click(await screen.findByRole('button', { name: '더 보기' }))
+  const busy = await screen.findByRole('button', { name: '불러오는 중…' })
+  expect(busy.hasAttribute('disabled')).toBe(true)
+  expect(search).toHaveBeenCalledTimes(2)
+  await act(async () => finish(serverPage(1, 3)))
+  await screen.findByText('23편')
+  expect(screen.queryByRole('button', { name: '불러오는 중…' })).toBeNull()
+})
+
+it('더 보기가 실패하면 보인 목록은 그대로 두고 버튼 곁에 실패를 알리며, 다시 시도로 이어 받는다', async () => {
+  let offline = true
+  vi.spyOn(searchRepository(), 'search').mockImplementation(async ({ page = 0 }) => {
+    if (page === 1 && offline) throw new Error('offline')
+    return serverPage(page, page === 0 ? 20 : 2)
+  })
+  renderAt('/search')
+  fireEvent.click(await screen.findByRole('button', { name: '더 보기' }))
+  expect((await screen.findByRole('alert')).textContent).toBe('소설을 더 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+  expect(titles()).toHaveLength(20)
+  expect(screen.getByText('20편 이상')).toBeTruthy()
+  offline = false
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  await screen.findByText('22편')
+  expect(screen.queryByRole('alert')).toBeNull()
+})
+
+it('정렬을 바꾸면 이어 붙인 목록을 버리고 첫 페이지부터 다시 받는다', async () => {
+  const search = vi.spyOn(searchRepository(), 'search').mockImplementation(async ({ page = 0, sort }) => serverPage(page, page === 0 ? 20 : 2).map((w) => ({ ...w, title: `${sort} ${w.title}` })))
+  renderAt('/search')
+  fireEvent.click(await screen.findByRole('button', { name: '더 보기' }))
+  await screen.findByText('22편')
+  fireEvent.click(screen.getByRole('link', { name: '인기 순' }))
+  await waitFor(() => { expect(titles()).toHaveLength(20); expect(titles()[0]).toBe('like 소설 p0-0') })
+  expect(search).toHaveBeenLastCalledWith({ q: '', f: 'all', sort: 'like', page: 0, size: 20 }, undefined)
+  screen.getByText('20편 이상')
 })
