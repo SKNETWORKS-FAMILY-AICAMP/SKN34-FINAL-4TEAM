@@ -11,6 +11,7 @@ from .runner import ExecutionLimits
 from .schemas import RunError, RunFailure, RunRequest, RunResponse
 from .remote_content import RemoteContent, RemoteGrant
 from .state import MainRequest
+from .approval import ApprovalError, DecisionSignal
 
 
 @dataclass(frozen=True)
@@ -85,7 +86,7 @@ class RunService:
         grant = self.content.authorize(request)
         if request.run_id in self.records:
             raise RunError(409, "duplicate_run")
-        if any(r.response.thread_ref == request.thread_ref and r.response.status in ("pending", "running")
+        if any(r.response.thread_ref == request.thread_ref and r.response.status in ("pending", "running", "awaiting_approval")
                for r in self.records.values()):
             raise RunError(409, "thread_busy")
         response = RunResponse(run_id=request.run_id, thread_ref=request.thread_ref, status="pending",
@@ -111,17 +112,7 @@ class RunService:
                 resume = await self.checkpointer.aget_tuple(checkpoint_config(grant.main)) is not None
             result = await asyncio.wait_for(grant.graph.run(grant.main, cancel=record.cancel, limits=limits, resume=resume),
                                             timeout=budget.timeout_ms / 1000)
-            error = None
-            if result.state.execution_status == "denied":
-                error = RunFailure(code="refused")
-            elif result.state.execution_status == "failed":
-                timed_out = any(t.error_code in ("timeout", "deadline") for t in result.state.task_results)
-                code = ("timeout" if timed_out else "dependency_unavailable"
-                        if "scope_unavailable" in result.state.errors else "execution_failed")
-                error = RunFailure(code=code)
-            record.response = record.response.model_copy(update={"status": result.state.execution_status,
-                "tasks": result.state.task_results, "coverage": result.state.coverage,
-                "result": result.response, "error": error})
+            self._complete(record, result)
         except TimeoutError:
             record.response = record.response.model_copy(update={"status": "failed", "error": RunFailure(code="timeout")})
         except asyncio.CancelledError:
@@ -129,6 +120,49 @@ class RunService:
             record.response = record.response.model_copy(update={"status": "cancelled"})
         except Exception:
             record.response = record.response.model_copy(update={"status": "failed", "error": RunFailure(code="execution_failed")})
+
+    def _complete(self, record, result):
+        error = None
+        if result.state.execution_status == "denied":
+            error = RunFailure(code="refused")
+        elif result.state.execution_status == "failed":
+            timed_out = any(t.error_code in ("timeout", "deadline") for t in result.state.task_results)
+            code = ("timeout" if timed_out else "dependency_unavailable"
+                    if "scope_unavailable" in result.state.errors else "execution_failed")
+            error = RunFailure(code=code)
+        record.response = record.response.model_copy(update={"status": result.state.execution_status,
+            "tasks": result.state.task_results, "coverage": result.state.coverage, "result": result.response, "error": error})
+
+    async def resume(self, run_id: str, grant_ref: str, thread_ref: str, signal: DecisionSignal) -> RunResponse:
+        """현재 Content 위임과 정확한 interrupt/영수증을 대조한다. 승인·원고 쓰기는 호출하지 않는다."""
+        grant = self.content.restore(run_id, grant_ref, thread_ref)
+        if isinstance(grant, RemoteGrant):
+            raise RunError(503, "dependency_unavailable")
+        record = self.records.get(run_id)
+        if record is not None:
+            if record.fingerprint != fingerprint(grant.request):
+                raise RunError(403, "invalid_scope")
+            if record.task is not None and not record.task.done():
+                raise RunError(409, "thread_busy")
+        else:
+            record = RunRecord(fingerprint(grant.request), RunResponse(run_id=run_id,thread_ref=thread_ref,status="pending"))
+        if self.checkpointer is not None:
+            grant.graph.checkpointer = self.checkpointer
+        limits = ExecutionLimits(plan=PlanLimits(**grant.request.budget.model_dump()))
+        try:
+            result = await asyncio.wait_for(grant.graph.run(grant.main, limits=limits, resume=True,
+                decision_ref=signal.decision_ref, interrupt_ref=signal.interrupt_ref),
+                timeout=grant.request.budget.timeout_ms / 1000)
+        except ApprovalError:
+            raise RunError(409, "invalid_approval_signal") from None
+        except ContentReadError as error:
+            raise RunError(403 if error.status == "denied" else 503,
+                           "invalid_scope" if error.status == "denied" else "content_unavailable") from None
+        except Exception:
+            raise RunError(503, "execution_unavailable") from None
+        self._complete(record, result)
+        self.records[run_id] = record
+        return record.response
 
     def status(self, run_id: str, grant_ref: str, thread_ref: str) -> RunResponse:
         grant = self.content.restore(run_id, grant_ref, thread_ref)
@@ -141,7 +175,12 @@ class RunService:
 
     def cancel(self, run_id: str, grant_ref: str, thread_ref: str) -> RunResponse:
         response = self.status(run_id, grant_ref, thread_ref)
+        if response.status == "awaiting_approval":
+            raise RunError(409, "decision_requires_content")
         if response.status in ("pending", "running"):
+            grant = self.content.restore(run_id, grant_ref, thread_ref)
+            if isinstance(grant, FixtureGrant) and run_id in getattr(grant.graph, "_approval_runs", ()):
+                raise RunError(409, "decision_requires_content")
             record = self.records[run_id]
             record.cancel.set()
             record.task.cancel()

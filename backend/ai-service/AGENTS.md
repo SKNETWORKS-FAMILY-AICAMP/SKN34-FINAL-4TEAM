@@ -5,6 +5,12 @@
 
 ## 구조
 
+- TASK 22의 `runs/approval.py`는 신뢰된 Content prepare/read/receipt 함수만 주입받는다.
+  Main의 별도 준비 노드 뒤 읽기 전용 interrupt를 두고 정확한 결정/interrupt와 커밋된 영수증으로 재개한다.
+  자연어 승인·AI 원고 쓰기·Mock real 승격은 금지한다. 준비 후 취소는 Content 결정으로 처리한다.
+  재수정은 사용자 결정으로 revision_requested 영수증까지다. 실제 준비 transport/결과 resolver·자동 생성은 미연결이다.
+  [TASK 22 계약](../../docs/writing-ai-architecture/task22-contract.md)과 [검증](../../docs/writing-ai-architecture/task22-handoff.md)을 따른다.
+
 - TASK 21의 `runs/checkpoints.py`는 기본 비활성인 전용 풀·고정 AsyncPostgresSaver 3.2.0을 제공한다.
   runtime DDL/setup 금지, 분리 schema/권한·migration 0~9 사전 검사, 별도 관리 setup을 따른다.
   Main 재개/ahistory와 RunnerJournal의 완료 결과·호출 전 예약을 복원하고 불명 호출은 재호출하지 않는다.

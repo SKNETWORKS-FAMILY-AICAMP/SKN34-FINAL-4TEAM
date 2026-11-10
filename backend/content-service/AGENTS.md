@@ -11,6 +11,10 @@
 - 기존 API·CSRF·UUID·revision·잠금·불변 이력을 유지한다.
 - TASK 10 Run은 공개 접수·상태·thread와 내부 grant 재확인을 제공한다. `AI_RUN_GRANT_SECRET`은 Content에만 둔다. 실제 전문 Agent·모델·적용·자동 재전송은 연결하지 않는다([계약](../../docs/writing-ai-architecture/task10-api-contract.md)).
 - TASK 17은 `ChangeProposalService`의 Content 내부 준비와 공개 판 조회·결정·영수증 계약이다. PG 원고만 지원하며 Mock 승인·타 저장소 원자 적용은 거부한다. 실제 AI 결과 자동 연결은 없다([계약](../../docs/writing-ai-architecture/task17-handoff.md)).
+- TASK 22는 `/ai/proposals/{pid}/approve|reject|revise`에서 같은 결정 transaction을 재사용한다.
+  전체 baseVersions와 멱등 payload를 대조하며 기존 결정 JSON/hash·accept API는 유지한다. 재수정은 영수증만 반환한다.
+  알려진 판 충돌도 실패 키를 보존한다. 실제 준비 transport·새 run 자동 생성·설정/플롯 writer는 추가하지 않는다.
+  [계약·사용자 결정](../../docs/writing-ai-architecture/task22-contract.md) · [검증](../../docs/writing-ai-architecture/task22-handoff.md).
 - Flyway: 콘텐츠 스키마는 `ContentPersistenceConfig.MIGRATION_LOCATIONS`의 `db/migration/{work,episode,world,episode_version,publication,fork,proposal,plan,sample}`와
   단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V18) 새 SQL은 최댓값 다음 번호를 쓴다.
   `sample/V16`은 CSV에서 생성한 개발 샘플 행이며 직접 편집하지 않는다. 샘플 변경은 다음 번호의 새 마이그레이션으로 한다.

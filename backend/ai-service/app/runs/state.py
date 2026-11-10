@@ -8,10 +8,12 @@ from app.retrieval.contracts import Contract, Coverage, Id, Query, Span
 from .orchestrator import Budget, Task
 from .routing import Classification, Intent, OPERATIONS
 from .runner import TaskResult
+from .approval import PreparedProposal, DecisionReceipt
 
 
 Ref = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$")]
-Status = Literal["pending", "running", "succeeded", "partial", "failed", "denied", "clarification", "cancelled", "proposal"]
+Status = Literal["pending", "running", "succeeded", "partial", "failed", "denied", "clarification", "cancelled", "proposal",
+                 "awaiting_approval", "applied", "rejected", "revision_requested"]
 
 
 class MainRequest(Contract):
@@ -52,6 +54,9 @@ class MainState(Contract):
     generated_content_ref: Id | None = None
     change_set_ref: Id | None = None
     approval_ref: Id | None = None
+    prepared_proposal: PreparedProposal | None = None
+    approval_receipt: DecisionReceipt | None = None
+    approval_interrupt_ref: Ref | None = None
     response_ref: Id | None = None
     execution_status: Status = "pending"
     budget_usage: Budget = Budget()
@@ -74,6 +79,11 @@ class GraphResponse(Contract):
     text: str = Field(repr=False)
     citations: tuple[Citation, ...] = ()
     is_mock: StrictBool = True
+    proposal_id: Ref | None = None
+    proposal_version: int | None = None
+    proposal_hash: str | None = None
+    interrupt_ref: Ref | None = None
+    receipt: DecisionReceipt | None = None
 
 
 class GraphResult(Contract):

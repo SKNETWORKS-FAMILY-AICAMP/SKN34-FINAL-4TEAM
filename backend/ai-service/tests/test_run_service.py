@@ -41,6 +41,53 @@ def test_duplicate_is_rejected_before_second_dispatch(content):
     asyncio.run(scenario())
 
 
+def test_approval_wait_cannot_be_cancelled_without_content_decision(content):
+    async def scenario():
+        req, grant, service = binding(content)
+        result=grant.graph.run.return_value
+        grant.graph.run.return_value=result.model_copy(update={"state":result.state.model_copy(update={"execution_status":"awaiting_approval"}),
+            "response":result.response.model_copy(update={"status":"awaiting_approval"})})
+        service.start(req)
+        await service.records[req.run_id].task
+        with pytest.raises(RunError,match="decision_requires_content"):
+            service.cancel(req.run_id,req.grant_ref,req.thread_ref)
+        assert service.status(req.run_id,req.grant_ref,req.thread_ref).status == "awaiting_approval"
+    asyncio.run(scenario())
+
+
+def test_resume_forwards_only_authorized_decision_and_preserves_previous_status_on_conflict(content):
+    from app.runs.approval import DecisionSignal, ApprovalError
+    async def scenario():
+        req, grant, service = binding(content)
+        service.start(req)
+        await service.records[req.run_id].task
+        signal=DecisionSignal(decision_ref="decision",interrupt_ref="interrupt")
+        result=await service.resume(req.run_id,req.grant_ref,req.thread_ref,signal)
+        assert result.status == "succeeded" and grant.graph.run.call_args.kwargs["resume"] is True
+        assert grant.graph.run.call_args.kwargs["decision_ref"] == "decision"
+        assert grant.graph.run.call_args.kwargs["interrupt_ref"] == "interrupt"
+        grant.graph.run.side_effect=ApprovalError("decision_not_committed")
+        with pytest.raises(RunError,match="invalid_approval_signal"):
+            await service.resume(req.run_id,req.grant_ref,req.thread_ref,signal)
+        assert service.status(req.run_id,req.grant_ref,req.thread_ref).status == "succeeded"
+    asyncio.run(scenario())
+
+
+def test_resume_keeps_existing_result_when_receipt_lookup_times_out(content):
+    from app.runs.approval import DecisionSignal
+    async def scenario():
+        req, grant, service = binding(content,timeout_ms=20)
+        service.start(req)
+        await service.records[req.run_id].task
+        async def slow(*args,**kwargs):
+            await asyncio.Event().wait()
+        grant.graph.run.side_effect=slow
+        with pytest.raises(RunError,match="execution_unavailable"):
+            await asyncio.wait_for(service.resume(req.run_id,req.grant_ref,req.thread_ref,DecisionSignal(decision_ref="decision")),1)
+        assert service.status(req.run_id,req.grant_ref,req.thread_ref).status=="succeeded"
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("exists", [False, True])
 def test_lifespan_saver_is_used_for_authorized_fixture_dispatch_or_recovery(content, exists):
     async def scenario():

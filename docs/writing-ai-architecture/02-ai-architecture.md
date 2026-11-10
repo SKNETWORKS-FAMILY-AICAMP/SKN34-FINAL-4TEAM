@@ -1,5 +1,10 @@
 # 작업 계획과 LangGraph 실행
 
+2026-11-10 TASK 22: 선택적으로 주입한 Content 준비/조회/영수증과 Main의 proposal→읽기 전용 interrupt를 연결했다.
+준비 commit/중단 등록 경쟁·정확한 Command resume·결정 중복·현재 권한·Mock 적용 금지와 준비 후 취소 경계를 검증했다.
+재수정은 사용자 결정으로 revision_requested 영수증까지만 처리한다. 실제 AI 후보 준비 전송/결과 resolver와
+Content 자동 재전달은 미연결이다. [계약](task22-contract.md) · [실제 검증](task22-handoff.md).
+
 2026-11-10 TASK 21: MainGraph의 명시적 resume/비동기 이력과 전용 AsyncPostgresSaver를 연결했다.
 노드 경계는 sync durability, dispatch 내부는 별도 RunnerJournal에 완료 결과·active attempt·호출 전 예약을 저장한다.
 현재 Content 인가/manifest·원래 요청/한도·문맥 digest를 재검증하고 불명 호출을 재실행하지 않는다.

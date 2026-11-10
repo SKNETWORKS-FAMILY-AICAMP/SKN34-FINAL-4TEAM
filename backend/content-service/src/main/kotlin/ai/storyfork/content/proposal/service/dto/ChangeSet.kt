@@ -1,6 +1,7 @@
 package ai.storyfork.content.proposal.service.dto
 
 import ai.storyfork.content.proposal.client.dto.AiRunSourceRef
+import com.fasterxml.jackson.annotation.JsonInclude
 
 data class ChangeSpan(val start: Int, val end: Int)
 data class ChangeField(val name: String, val value: String)
@@ -22,7 +23,10 @@ data class ChangeSet(val proposalId: String, val proposalVersion: Int, val runId
     val idempotencyKey: String, val schemaVersion: Int = 1)
 data class ChangeSetResponse(val changeSet: ChangeSet, val proposalHash: String, val status: String,
     val approvalFields: List<String>)
-data class ChangeDecisionRequest(val proposalVersion: Int, val proposalHash: String, val decision: String)
+data class ChangeBaseVersion(val targetId: String, val baseVersion: Int?)
+data class ChangeActionRequest(val proposalVersion: Int, val proposalHash: String, val baseVersions: List<ChangeBaseVersion>)
+data class ChangeDecisionRequest(val proposalVersion: Int, val proposalHash: String, val decision: String,
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val baseVersions: List<ChangeBaseVersion>? = null)
 data class ChangeResultVersion(val targetId: String, val before: Int?, val after: Int, val versionId: String)
 data class ChangeReceipt(val decisionId: String, val proposalId: String, val proposalVersion: Int,
     val proposalHash: String, val actorRef: String, val decision: String, val applicationId: String?,

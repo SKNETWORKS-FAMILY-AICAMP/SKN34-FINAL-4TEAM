@@ -6,6 +6,7 @@ import ai.storyfork.content.auth.config.ContentSecurityConfig
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.proposal.controller.ChangeProposalController
+import ai.storyfork.content.proposal.controller.AiChangeProposalController
 import ai.storyfork.content.proposal.service.ChangeProposalService
 import ai.storyfork.content.proposal.service.dto.*
 import jakarta.servlet.http.Cookie
@@ -22,7 +23,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.util.UUID
 
 /** CI에서 기존 Bearer·CSRF 필터와 신규 결정·영수증 HTTP DTO를 검사한다. */
-@WebMvcTest(controllers=[ChangeProposalController::class],properties=["app.cors.allowed-origin=http://localhost:5173"])
+@WebMvcTest(controllers=[ChangeProposalController::class,AiChangeProposalController::class],properties=["app.cors.allowed-origin=http://localhost:5173"])
 @Import(ContentSecurityConfig::class,WebCorsConfig::class,ContentExceptionHandler::class,ChangeProposalHttpIntegrationTest.Security::class)
 class ChangeProposalHttpIntegrationTest {
     @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods=false)
@@ -68,5 +69,35 @@ class ChangeProposalHttpIntegrationTest {
         mvc.perform(get("$path/versions/1/receipt").header("Authorization","Bearer fixture-user"))
             .andExpect(status().isOk()).andExpect(jsonPath("$.decisionId").value("d"))
         verify(service).receipt("w",owner.toString(),"p",1)
+    }
+
+    @Test fun `ai action paths bind server decision actor idempotency and all bases`() {
+        val bases=listOf(ChangeBaseVersion("e",0))
+        val json="""{"proposalVersion":1,"proposalHash":"$hash","baseVersions":[{"targetId":"e","baseVersion":0}]}"""
+        for((action,decision) in listOf("approve" to "approved","reject" to "rejected","revise" to "revision_requested")) {
+            val expected=data.copy(decision=decision,baseVersions=bases)
+            val result=receipt.copy(decision=decision,outcome=if(decision=="approved") "applied" else decision,
+                applicationId=if(decision=="approved") "app" else null,resultVersions=if(decision=="approved") receipt.resultVersions else emptyList())
+            `when`(service.decide("w","p",owner.toString(),"key",expected)).thenReturn(result)
+            mvc.perform(post("/api/v1/works/w/ai/proposals/p/$action").header("Authorization","Bearer fixture-user")
+                .cookie(Cookie("XSRF-TOKEN",CsrfFixture.raw)).header("X-CSRF-TOKEN",CsrfFixture.token())
+                .header("Idempotency-Key","key").contentType("application/json").content(json))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.decision").value(decision))
+            verify(service).decide("w","p",owner.toString(),"key",expected)
+        }
+    }
+
+    @Test fun `ai action routes preserve csrf and authentication and require bases`() {
+        val base="/api/v1/works/w/ai/proposals/p"
+        mvc.perform(get(base)).andExpect(status().isUnauthorized())
+        for(action in listOf("approve","reject","revise")) {
+            mvc.perform(post("$base/$action").header("Authorization","Bearer fixture-user")
+                .contentType("application/json").content(body)).andExpect(status().isForbidden())
+            mvc.perform(post("$base/$action").header("Authorization","Bearer fixture-user")
+                .cookie(Cookie("XSRF-TOKEN",CsrfFixture.raw)).header("X-CSRF-TOKEN",CsrfFixture.token())
+                .header("Idempotency-Key","key").contentType("application/json").content("{}"))
+                .andExpect(status().isBadRequest())
+        }
+        verifyNoInteractions(service)
     }
 }

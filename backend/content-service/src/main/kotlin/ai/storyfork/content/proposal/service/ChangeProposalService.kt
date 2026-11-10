@@ -94,14 +94,15 @@ class ChangeProposalService(
         mapper.readValue(receipt.receiptJson,ChangeReceipt::class.java)
     }
 
-    /** 클라이언트는 판·hash·결정만 보낸다. 변경 payload와 허용 필드는 서버 저장 판으로 고정한다. */
+    /** 판·hash·결정과 선택 기준 판본만 받는다. 변경 payload와 허용 필드는 서버 저장 판으로 고정한다. */
     fun decide(workId: String,proposalId: String,actor: String,key: String?,data: ChangeDecisionRequest): ChangeReceipt {
         transaction.executeWithoutResult {
             access.own(workId,actor)
             validKey(key)
             checkContent(data.proposalVersion>0 && data.proposalHash.matches(Regex("[0-9a-f]{64}")) &&
                 data.decision in listOf("approved","rejected","revision_requested","cancelled"),message="결정할 판·hash·상태를 확인해 주세요.")
-            version(workId,proposalId,data.proposalVersion)
+            val known=proposals.findFirstByProposalIdOrderByProposalVersionDesc(proposalId)
+            checkContent(known!=null && known.workId==workId,404,"제안을 찾을 수 없어요.")
             val requestHash=hash(proposalId+":"+mapper.writeValueAsString(data))
             val old=attempts.findByWorkIdAndActorIdAndKeyHash(workId,actor,hash(key!!))
             checkContent(old==null || old.requestHash==requestHash,409,"같은 키에 다른 결정이 연결되어 있어요.")
@@ -136,9 +137,16 @@ class ChangeProposalService(
             checkContent(replay.requestHash==requestHash,409,"같은 키에 다른 결정이 연결되어 있어요.")
             return@execute mapper.readValue(replay.receiptJson,ChangeReceipt::class.java)
         }
-        val row=version(workId,proposalId,data.proposalVersion)
+        val row=proposals.findByProposalIdAndProposalVersion(proposalId,data.proposalVersion)
+            ?: throw ContentFailure(409,"최신 제안 판을 확인해 주세요.")
+        checkContent(row.workId==workId,404,"제안을 찾을 수 없어요.")
         val manifest=manifest(row)
         checkContent(row.proposalHash==data.proposalHash && latest(row),409,"최신 제안 판과 hash를 확인해 주세요.")
+        data.baseVersions?.let { bases ->
+            checkContent(bases.size==manifest.affectedDocuments.size && bases.map {it.targetId}.distinct().size==bases.size &&
+                bases.associate {it.targetId to it.baseVersion}==manifest.affectedDocuments.associate {it.id to it.baseVersion},
+                409,"승인할 모든 대상의 기준 판본을 확인해 주세요.")
+        }
         checkContent(manifest.forkId==if(work.source==null) null else workId,message="Fork 범위가 변경됐어요.")
         checkContent(receipts.findByProposalIdAndProposalVersion(proposalId,data.proposalVersion)==null,409,"이미 결정한 제안이에요.")
         val result=if(data.decision=="approved") {

@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit
 class ChangeProposalPostgresTest {
     @MockitoBean lateinit var auth: ai.storyfork.content.auth.client.CoreAuthClient
     @MockitoBean lateinit var ai: ai.storyfork.content.proposal.client.GenerationClient
+    @MockitoBean(name="relationshipDriver") lateinit var neo4j: org.neo4j.driver.Driver
     @Autowired lateinit var service: ChangeProposalService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var access: WorkAccessService
@@ -88,7 +89,7 @@ class ChangeProposalPostgresTest {
     private fun decision(f: Fixture,action: String="approved")=ChangeDecisionRequest(1,f.proposal.proposalHash,action)
     private fun count(f: Fixture)=versions.findAllByEpisodeIdInOrderByCreatedAtAscIdAsc(listOf(episodeId(f.work,1),episodeId(f.work,2))).size
 
-    @ParameterizedTest @ValueSource(strings=["approved","cancelled","rejected"])
+    @ParameterizedTest @ValueSource(strings=["approved","cancelled","rejected","revision_requested"])
     fun `concurrent approvals cancellations and rejections have one durable winner`(other: String) {
         val f=fixture();val before=count(f)
         val start=CountDownLatch(1);val pool=Executors.newFixedThreadPool(2)
@@ -108,6 +109,37 @@ class ChangeProposalPostgresTest {
             assertEquals(before+if(receipt.outcome=="applied") 1 else 0,count(f))
             assertEquals(if(receipt.outcome=="applied") "새원고" else "😀원고",episodes.read(f.work,f.owner,1).draft.body)
         } finally {pool.shutdownNow()}
+    }
+
+    @Test fun `same key parallel approval replay returns one committed application and identical receipt`() {
+        val f=fixture();val before=count(f)
+        val data=decision(f).copy(baseVersions=f.proposal.changeSet.affectedDocuments.map {ChangeBaseVersion(it.id,it.baseVersion)})
+        val start=CountDownLatch(1);val pool=Executors.newFixedThreadPool(2)
+        try {
+            val results=(1..2).map {pool.submit(Callable {
+                start.await(5,TimeUnit.SECONDS)
+                service.decide(f.work,f.proposal.changeSet.proposalId,f.owner,"same-key",data)
+            })}
+            start.countDown()
+            val receipts=results.map {it.get(30,TimeUnit.SECONDS)}
+            assertEquals(receipts[0],receipts[1]);assertNotNull(receipts[0].applicationId)
+            assertEquals(before+1,count(f))
+            assertEquals(409,assertThrows(ContentFailure::class.java) {
+                service.decide(f.work,f.proposal.changeSet.proposalId,f.owner,"same-key",data.copy(decision="rejected"))
+            }.status)
+        } finally {pool.shutdownNow()}
+    }
+
+    @Test fun `version conflict is durable and its key cannot later approve another payload`() {
+        val f=fixture();val before=count(f)
+        assertEquals(409,assertThrows(ContentFailure::class.java) {
+            service.decide(f.work,f.proposal.changeSet.proposalId,f.owner,"version-key",decision(f).copy(proposalVersion=2))
+        }.status)
+        assertEquals("failed",attempts.findByWorkIdAndActorIdAndKeyHash(f.work,f.owner,ChangeSetPolicy.hash("version-key"))!!.status)
+        assertEquals(409,assertThrows(ContentFailure::class.java) {
+            service.decide(f.work,f.proposal.changeSet.proposalId,f.owner,"version-key",decision(f))
+        }.status)
+        assertEquals(before,count(f));assertEquals("😀원고",episodes.read(f.work,f.owner,1).draft.body)
     }
 
     @Test fun `second PG target storage failure rolls back every manuscript version and final receipt`() {

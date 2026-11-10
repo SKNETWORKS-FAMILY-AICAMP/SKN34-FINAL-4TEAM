@@ -56,6 +56,35 @@ def test_authorized_mock_graph_duplicate_and_legacy_routes(content, wiki, manusc
                            headers=headers(req)).json()["text"] == "합성 이어쓰기"
 
 
+def test_authorized_hitl_resume_requires_exact_committed_content_decision(content, wiki, manuscripts, monkeypatch):
+    from test_approval_resume import ApprovalFixture
+    from app.runs.runner import TaskOutput
+    monkeypatch.setenv("INTERNAL_TOKEN","fixture-service-token")
+    monkeypatch.delenv("AI_CHECKPOINT_DATABASE_URL",raising=False)
+    req,grant,_=binding(content)
+    req=req.model_copy(update={"operation":"edit"})
+    main=grant.main.model_copy(update={"ui_mode":"edit","allowed_operations":("edit",),"prompt":"문장 수정"})
+    approvals=ApprovalFixture(content)
+    async def edit(s,ctx):
+        return TaskOutput(output_schema=s.output_schema,output_ref="changes:run1",is_mock=True)
+    g=graph(content,wiki,manuscripts,handlers={"editing":edit},approval=approvals.coordinator)
+    service=RunService(FixtureContent((replace(grant,request=req,main=main,graph=g),)))
+    with TestClient(create_app(run_service=service)) as client:
+        assert client.post(BASE,json=req.model_dump(mode="json",by_alias=True),headers=headers(req)).status_code==202
+        waiting=terminal(client,req)
+        assert waiting["status"]=="awaiting_approval"
+        assert client.post(f"{BASE}/run1/cancel",headers=headers(req)).status_code==409
+        signal={"decision_ref":"decision1","interrupt_ref":waiting["result"]["interrupt_ref"]}
+        assert client.post(f"{BASE}/run1/resume",headers=headers(req),json=signal).status_code==409
+        approvals.decide("revision_requested")
+        result=client.post(f"{BASE}/run1/resume",headers=headers(req),json=signal)
+        assert result.status_code==200 and result.json()["status"]=="revision_requested"
+        assert client.post(f"{BASE}/run1/resume",headers=headers(req),json=signal).json()==result.json()
+        assert client.post(f"{BASE}/run1/resume",headers=headers(req),json={**signal,"interrupt_ref":"other"}).status_code==409
+        assert client.post(f"{BASE}/run1/resume",json=signal).status_code==403
+        assert approvals.prepares==1
+
+
 @pytest.mark.parametrize("token", [None, "wrong", "", " "])
 def test_service_credentials_required_for_every_route(content, monkeypatch, token):
     monkeypatch.setenv("INTERNAL_TOKEN", "fixture-service-token")

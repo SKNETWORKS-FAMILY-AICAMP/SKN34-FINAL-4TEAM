@@ -121,6 +121,46 @@ class ChangeProposalServiceTest {
         assertEquals(1,versions.size);assertEquals(1,decisions.size)
     }
 
+    @Test fun `explicit base versions are bound to idempotency and all frozen targets`() {
+        val first=prepare()
+        val data=decision(first).copy(baseVersions=listOf(ChangeBaseVersion(episodeId("w",1),0)))
+        val receipt=service.decide("w",first.changeSet.proposalId,"owner","base-key",data)
+        assertEquals(receipt,service.decide("w",first.changeSet.proposalId,"owner","base-key",data))
+        assertEquals(409,assertThrows(ContentFailure::class.java) {
+            service.decide("w",first.changeSet.proposalId,"owner","base-key",data.copy(baseVersions=listOf(ChangeBaseVersion(episodeId("w",1),1))))
+        }.status)
+        assertEquals(1,decisions.size)
+        verify(saved,times(1)).save((eq("w") ?: "w"),(eq("owner") ?: "owner"),eq(1),any(DraftRequest::class.java) ?: DraftRequest("","",0))
+    }
+
+    @Test fun `missing duplicate changed or unknown base version never writes`() {
+        val first=prepare()
+        val correct=ChangeBaseVersion(episodeId("w",1),0)
+        val bad=listOf(emptyList(),listOf(correct,correct),listOf(correct.copy(baseVersion=1)),listOf(correct.copy(targetId="other")))
+        bad.forEachIndexed {index,refs ->
+            assertEquals(409,assertThrows(ContentFailure::class.java) {
+                service.decide("w",first.changeSet.proposalId,"owner","base-$index",decision(first).copy(baseVersions=refs))
+            }.status)
+        }
+        verifyNoInteractions(saved)
+    }
+
+    @Test fun `legacy decision canonical JSON remains byte identical without explicit bases`() {
+        assertEquals("""{"proposalVersion":1,"proposalHash":"${"a".repeat(64)}","decision":"approved"}""",
+            mapper.writeValueAsString(ChangeDecisionRequest(1,"a".repeat(64),"approved")))
+    }
+
+    @Test fun `known proposal with nonexistent decision version is conflict and never writes`() {
+        val first=prepare()
+        assertEquals(409,assertThrows(ContentFailure::class.java) {
+            service.decide("w",first.changeSet.proposalId,"owner","future",decision(first).copy(proposalVersion=2))
+        }.status)
+        assertEquals(409,assertThrows(ContentFailure::class.java) {
+            service.decide("w",first.changeSet.proposalId,"owner","future",decision(first))
+        }.status)
+        verifyNoInteractions(saved)
+    }
+
     @Test fun `changed preparation or decision payload with reused key conflicts`() {
         val first=prepare()
         assertEquals(409,assertThrows(ContentFailure::class.java) {

@@ -1,5 +1,9 @@
 # 구현 순서와 수용 기준
 
+2026-11-10 TASK 22: Content 공개 결정 경로와 Main interrupt/resume·현재 권한/영수증 대조를 구현했다.
+재수정 자동 생성은 사용자 결정으로 제외하고 revision_requested 영수증까지만 처리한다.
+로컬 격리 PG/HTTP와 단위 증거·실제 전송 미연결 범위는 [TASK 22 인수보고](task22-handoff.md)를 따른다.
+
 2026-11-10 TASK 21: 전용 AsyncPostgresSaver·Main 재개·dispatch 내부 완료/비용 journal을 구현했다.
 격리 PG 수용 결과와 운영/Content 미연결 범위는 [TASK 21 인수보고](task21-handoff.md)를 따른다.
 TASK 20 실제 적용 미완료는 사용자 결정으로 유지하며 TASK 21만 독립 진행했다. 다음 TASK는 착수하지 않는다.

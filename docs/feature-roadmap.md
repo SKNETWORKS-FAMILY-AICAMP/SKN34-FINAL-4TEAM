@@ -359,10 +359,10 @@
 <tr><td>수정 제안 상세 조회</td><td>❌ <small>(TASK 17 불변 원고 제안 판 조회 구현·HTTP/CI 대기)</small></td></tr>
 <tr><td>수정 제안 목록 조회</td><td>❌</td></tr>
 <tr><td>제안 편집안 저장</td><td>❌</td></tr>
-<tr><td>수정 제안 승인</td><td>❌ <small>(TASK 17 판·hash 고정 멱등 결정·단위 확인, AI/UI/CI 대기)</small></td></tr>
-<tr><td>수정 제안 거절</td><td>❌ <small>(TASK 17 거절·취소·수정 요청 결정·단위 확인, CI 대기)</small></td></tr>
+<tr><td>수정 제안 승인</td><td>❌ <small>(TASK 22 공개 결정·baseVersions·interrupt/영수증 재개와 격리 PG 확인, 실제 AI 준비 전송/UI/hosted CI 대기. <a href="writing-ai-architecture/task22-handoff.md">인수보고</a>)</small></td></tr>
+<tr><td>수정 제안 거절</td><td>❌ <small>(TASK 22 거절·취소·재수정 영수증·경합과 재개 확인, 실제 전송/UI/hosted CI 대기)</small></td></tr>
 <tr><td>수정 제안 보류</td><td>❌</td></tr>
-<tr><td>승인된 수정안 원고 반영</td><td>❌ <small>(TASK 17 PG 원고 다중 대상·영수증·실패 기록 구현, 실제 rollback/동시성 CI 대기)</small></td></tr>
+<tr><td>승인된 수정안 원고 반영</td><td>❌ <small>(TASK 22 격리 Content PG에서 동일 키 동시 승인 1회·다중 대상 전체 rollback 확인, 실제 AI 생성→적용/hosted CI 대기)</small></td></tr>
 <tr><td>자동 표기 교정 적용 범위 검사</td><td>❌</td></tr>
 <tr><td rowspan="6">작품 설정 관리</td><td rowspan="6">30 운영 설정 관리</td><td>작품 운영 설정 조회</td><td>❌</td><td rowspan="6"><a href="#미등록-025">미등록-025</a> · <a href="#미등록-026">미등록-026</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="#미등록-027">미등록-027</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>집필 방식 변경</td><td>❌</td></tr>

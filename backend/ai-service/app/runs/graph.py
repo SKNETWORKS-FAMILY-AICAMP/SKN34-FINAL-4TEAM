@@ -1,4 +1,4 @@
-"""참조 전용 Main StateGraph. 실제 모델·승인·쓰기·공개 HTTP 경로는 연결하지 않는다."""
+"""참조 전용 Main StateGraph와 선택적인 Content 영수증 기반 HITL 조립."""
 import asyncio
 from dataclasses import asdict
 from hashlib import sha256
@@ -7,6 +7,8 @@ import json
 
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.errors import GraphInterrupt
+from langgraph.types import Command
 from pydantic_core import to_jsonable_python
 
 from app.retrieval.content_client import CanonicalAdapter, ContentReadError
@@ -15,6 +17,7 @@ from .orchestrator import REGISTRY, Budget, PlanError, Task, validate_plan
 from .routing import OPERATIONS, RoutingRequest, RuleBasedRouter
 from .runner import ExecutionLimits, TaskOutput, TaskResult, TaskRunner
 from .checkpoints import RunnerJournal, run_lease, serializer
+from .approval import ApprovalError, DecisionSignal, PreparedProposal, validated
 from .state import Citation, GraphResponse, GraphResult, MainRequest, MainState, ScopeRef
 
 
@@ -35,6 +38,11 @@ def packet_ref(packet):
     data = packet.model_dump(mode="json", exclude={"result": {
         "evidence": {"__all__": {"retrieved_at"}}, "coverage": {"checked_at"}}})
     return "context:" + sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
+
+
+def result_state(value):
+    # __interrupt__는 LangGraph 반환 envelope이며 업무 상태 채널이 아니다.
+    return MainState.model_validate({k:v for k,v in value.items() if k != "__interrupt__"})
 
 
 def build_plan(classification, scope):
@@ -58,7 +66,7 @@ def build_plan(classification, scope):
 
 class MainGraph:
     def __init__(self, content, coordinator, *, handlers=None, router=None, plan_factory=build_plan,
-                 checkpointer=None, limits=ExecutionLimits()):
+                 checkpointer=None, limits=ExecutionLimits(), approval=None):
         self.content, self.coordinator = content, coordinator
         self.handlers, self.router = dict(handlers or {}), router or RuleBasedRouter()
         if "context" in self.handlers or any(op not in REGISTRY for op in self.handlers):
@@ -66,14 +74,24 @@ class MainGraph:
         self.plan_factory, self.limits = plan_factory, limits
         self.checkpointer = checkpointer if checkpointer is not None else InMemorySaver(serde=serializer())
         self._sessions = {}
+        self._approval_runs = set()
+        self.approval = approval
 
-    async def run(self, request: MainRequest, *, cancel=None, limits=None, resume=False) -> GraphResult:
+    async def run(self, request: MainRequest, *, cancel=None, limits=None, resume=False,
+                  decision_ref=None, interrupt_ref=None) -> GraphResult:
         async with run_lease(self.checkpointer, request.thread_id):
-            return await self._run(request, cancel=cancel, limits=limits, resume=resume)
+            return await self._run(request, cancel=cancel, limits=limits, resume=resume,
+                                   decision_ref=decision_ref, interrupt_ref=interrupt_ref)
 
-    async def _run(self, request: MainRequest, *, cancel=None, limits=None, resume=False) -> GraphResult:
+    async def _run(self, request: MainRequest, *, cancel=None, limits=None, resume=False,
+                   decision_ref=None, interrupt_ref=None) -> GraphResult:
         limits = limits if limits is not None else self.limits
         request = MainRequest.model_validate(request.model_dump())
+        signal = validated(DecisionSignal, {"decision_ref":decision_ref,"interrupt_ref":interrupt_ref}) if decision_ref is not None else None
+        if interrupt_ref is not None and signal is None:
+            raise ApprovalError("decision_reference_required")
+        if (signal is not None or interrupt_ref is not None) and not resume:
+            raise ApprovalError("resume_required")
         if not resume and request.run_id in self._sessions:
             raise PlanError("run_already_started")
         cancel = cancel if cancel is not None else asyncio.Event()
@@ -90,21 +108,35 @@ class MainGraph:
             raise PlanError("run_already_checkpointed")
         if resume and saved is None:
             raise PlanError("checkpoint_not_found")
+        approval_phase, receipt_before = False, None
         if resume:
             values = saved.checkpoint["channel_values"]
             values = values.get("__start__", values)
-            if (values.get("request_digest") != checkpoint_binding(request, limits)
-                    or values.get("manifest_digest") not in (None, manifest_digest(manifest))):
+            if values.get("request_digest") != checkpoint_binding(request, limits):
+                raise ContentReadError("denied")
+            approval_phase = values.get("prepared_proposal") is not None
+            if approval_phase:
+                self._approval_runs.add(request.run_id)
+                if self.approval is None:
+                    raise ApprovalError("approval_unconfigured")
+                prepared = validated(PreparedProposal, values["prepared_proposal"])
+                receipt_before = await self.approval.resolve(request, prepared, signal.decision_ref if signal else None)
+                if values.get("approval_receipt") is not None and (
+                        receipt_before is None or validated(type(receipt_before), values["approval_receipt"]) != receipt_before):
+                    raise ApprovalError("receipt_binding_mismatch")
+            elif signal is not None:
+                raise ApprovalError("no_approval_interrupt")
+            if receipt_before is None and values.get("manifest_digest") not in (None, manifest_digest(manifest)):
                 raise ContentReadError("denied")
         journal = RunnerJournal(self.checkpointer, config)
-        saved_runner = await journal.read() if resume else None
+        saved_runner = await journal.read() if resume and not approval_phase else None
         async def retrieve_context():
             packet = validate_packet(await self.coordinator.retrieve(request.query), request.query, self.content)
             if packet.result.status in ("denied", "unavailable", "unsupported"):
                 raise ContentReadError(packet.result.status)
             assets["packet"] = packet
             return packet
-        if resume:
+        if resume and not approval_phase:
             completed = values.get("task_results", ()) or (saved_runner.results if saved_runner else ())
             for item in completed:
                 item = TaskResult.model_validate(item) if isinstance(item, dict) else item
@@ -212,18 +244,34 @@ class MainGraph:
                 return {"execution_status": "denied", "evidence_refs": (), "coverage": None, "errors": ("output_invalid",),
                         "simulation_ref": None, "generated_content_ref": None, "change_set_ref": None}
 
-        def proposal(state):
+        async def proposal(state):
             if state.execution_status == "succeeded" and (state.change_set_ref or state.generated_content_ref):
+                if self.approval is not None:
+                    ref = state.change_set_ref or state.generated_content_ref
+                    candidates = [t for t in state.task_results if t.status == "succeeded" and t.output_ref == ref
+                                  and t.output_schema in ("ChangeSet.v1","GeneratedText.v1")]
+                    if len(candidates) != 1 or not state.classification.wants_change:
+                        raise ApprovalError("invalid_approval_task")
+                    self._approval_runs.add(request.run_id)
+                    prepared = await self.approval.prepare(request, candidates[0])
+                    return {"prepared_proposal":prepared,"approval_ref":prepared.proposal_id,
+                            "execution_status":"awaiting_approval"}
                 return {"execution_status": "proposal"}
             return {}
 
+        async def await_decision(state):
+            receipt = await self.approval.wait(request, state.prepared_proposal)
+            return {"approval_receipt":receipt,"approval_ref":receipt.decision_id,
+                    "execution_status":receipt.outcome}
+
         def respond(state):
-            return {"execution_status": "cancelled" if cancel.is_set() else state.execution_status,
+            return {"execution_status": "cancelled" if cancel.is_set() and state.approval_receipt is None else state.execution_status,
                     "response_ref": f"response:{request.run_id}"}
 
         builder = StateGraph(MainState)
         nodes = (("restore", restore), ("route", route), ("plan", plan), ("dispatch", dispatch),
-                 ("merge", merge), ("validate_output", validate_output), ("proposal", proposal), ("respond", respond))
+                 ("merge", merge), ("validate_output", validate_output), ("proposal", proposal),
+                 ("await_decision", await_decision), ("respond", respond))
         for name, fn in nodes:
             async def primitive_node(state, fn=fn):
                 try:
@@ -231,6 +279,8 @@ class MainGraph:
                     if inspect.isawaitable(value):
                         value = await value
                     return to_jsonable_python(value)
+                except GraphInterrupt:
+                    raise
                 except Exception:
                     # LangGraph가 자동 저장하는 ERROR write에도 backend 원문을 남기지 않는다.
                     raise PlanError("graph_node_failed") from None
@@ -243,16 +293,40 @@ class MainGraph:
         builder.add_edge("merge", "validate_output")
         builder.add_conditional_edges("validate_output", lambda s: "proposal" if s.execution_status == "succeeded" else "respond",
                                       ["proposal", "respond"])
-        builder.add_edge("proposal", "respond")
+        builder.add_conditional_edges("proposal", lambda s: "await_decision" if s.execution_status == "awaiting_approval" else "respond",
+                                      ["await_decision","respond"])
+        builder.add_edge("await_decision", "respond")
         builder.add_edge("respond", END)
         compiled = builder.compile(checkpointer=self.checkpointer)
         self._sessions[request.run_id] = (request.thread_id, request.scope.digest(), compiled, config)
         initial = MainState(thread_id=request.thread_id, run_id=request.run_id, request_ref=request.request_ref,
                             messages=request.messages, summary_ref=request.summary_ref,
                             request_digest=checkpoint_binding(request, limits))
+        invoke_input = None if resume else initial.model_dump(mode="json")
+        if approval_phase:
+            snapshot = await compiled.aget_state(config)
+            active = snapshot.interrupts
+            if signal and signal.interrupt_ref is not None:
+                expected = active[0].id if len(active) == 1 else values.get("approval_interrupt_ref")
+                if signal.interrupt_ref != expected:
+                    raise ApprovalError("interrupt_mismatch")
+            if receipt_before is not None and active:
+                if len(active) != 1:
+                    raise ApprovalError("interrupt_mismatch")
+                invoke_input = Command(resume={active[0].id:receipt_before.decision_id}, update={"approval_interrupt_ref":active[0].id})
+        visible_interrupt = None
         try:
-            final = MainState.model_validate(await compiled.ainvoke(None if resume else initial.model_dump(mode="json"),
-                                                                   config, durability="sync"))
+            final = result_state(await compiled.ainvoke(invoke_input, config, durability="sync"))
+            if final.execution_status == "awaiting_approval":
+                snapshot = await compiled.aget_state(config)
+                if len(snapshot.interrupts) != 1:
+                    raise ApprovalError("interrupt_mismatch")
+                visible_interrupt = snapshot.interrupts[0].id
+                # 결정이 interrupt 저장보다 먼저 커밋돼도 여기서 발견한다. 실제 적용은 Content만 한다.
+                receipt = await self.approval.resolve(request, final.prepared_proposal)
+                if receipt is not None:
+                    command = Command(resume={visible_interrupt:receipt.decision_id}, update={"approval_interrupt_ref":visible_interrupt})
+                    final = result_state(await compiled.ainvoke(command, config, durability="sync"))
         except asyncio.CancelledError:
             cancel.set()
             raise
@@ -273,8 +347,15 @@ class MainGraph:
         labels = {"succeeded": "합성 자료에서 확인한 근거입니다.", "partial": "근거가 부족하거나 일부 작업이 완료되지 않았습니다. 합성 자료의 확인 범위만 표시합니다.",
                   "proposal": "합성 변경 제안입니다. 실제 적용은 차단되어 있습니다.", "clarification": "요청할 작업과 대상을 선택해 주세요.",
                   "denied": "허용 범위를 확인할 수 없거나 실행할 수 없는 요청입니다.", "failed": "작업을 완료하지 못했습니다.", "cancelled": "작업이 취소되었습니다."}
+        labels.update(awaiting_approval="변경안을 검토한 뒤 명시적으로 승인·거절·재수정을 선택해 주세요.",
+                      applied="Content의 적용 영수증을 확인했습니다.", rejected="변경 제안이 거절되었습니다.",
+                      revision_requested="재수정 요청이 기록되었습니다.")
         text = labels[final.execution_status] + "".join(f"\n[{c.evidence_ref}] {c.quote}" for c in citations)
-        return GraphResult(state=final, response=GraphResponse(status=final.execution_status, text=text, citations=tuple(citations)))
+        prepared = final.prepared_proposal
+        return GraphResult(state=final, response=GraphResponse(status=final.execution_status, text=text, citations=tuple(citations),
+            proposal_id=prepared.proposal_id if prepared else None, proposal_version=prepared.proposal_version if prepared else None,
+            proposal_hash=prepared.proposal_hash if prepared else None,
+            interrupt_ref=visible_interrupt or final.approval_interrupt_ref, receipt=final.approval_receipt))
 
     def history(self, request: MainRequest) -> tuple[MainState, ...]:
         """현재 권한·scope를 확인한 뒤 참조 전용 체크포인트만 반환한다."""

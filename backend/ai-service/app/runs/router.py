@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request
 from .schemas import RunRequest, RunResponse
 from .service import RunError, RunService
 from .state import Ref
+from .approval import DecisionSignal
 
 
 def service(request: Request, x_internal_token: Annotated[list[str] | None, Header()] = None) -> RunService:
@@ -58,5 +59,16 @@ async def cancel_run(run_id: Annotated[Ref, Path()], instance: Service, x_grant_
     grant, thread = credentials(x_grant_ref, x_thread_ref)
     try:
         return instance.cancel(run_id, grant, thread)
+    except RunError as error:
+        raise HTTPException(error.status, error.code) from None
+
+
+@router.post("/{run_id}/resume", response_model=RunResponse)
+async def resume_run(run_id: Annotated[Ref, Path()], data: DecisionSignal, instance: Service,
+                     x_grant_ref: Grant, x_thread_ref: Thread):
+    """Content에서 이미 커밋한 결정 참조로 정확한 중단만 재개한다. 모델 판단·적용 요청은 받지 않는다."""
+    grant, thread = credentials(x_grant_ref, x_thread_ref)
+    try:
+        return await instance.resume(run_id, grant, thread, data)
     except RunError as error:
         raise HTTPException(error.status, error.code) from None
