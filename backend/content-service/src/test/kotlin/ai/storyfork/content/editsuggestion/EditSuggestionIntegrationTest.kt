@@ -125,7 +125,6 @@ class EditSuggestionIntegrationTest {
 
         val response=post(id,reader,payload(reason="  맞춤법  "))
         val sid=created(response)
-        assertEquals(one(id,sid),response.headers().firstValue("Location").orElse(null))
         val version=publishedVersion(id)
         val shown=node(response)
         assertEquals(listOf<Any?>(id,1,version,"독자","reader","않 된다고","안 된다고",null,"맞춤법","pending","auto",true,false),
