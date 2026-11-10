@@ -62,14 +62,13 @@ export function suggestionStatus(s: Pick<EditSuggestion, 'status' | 'applyResult
   if (s.status === 'pending') return { label: '검토 대기', tone: 'wait' } as const
   if (s.status === 'held') return { label: '보류', tone: 'wait' } as const
   if (s.status === 'rejected') return { label: '거절됨', tone: 'off' } as const
-  if (s.applyResult === 'applied') return { label: '승인됨 · 초안에 반영됨', tone: 'ok' } as const
-  if (s.applyResult === 'failed') return { label: '승인됨 · 반영 실패', tone: 'wait' } as const
-  return { label: '승인됨', tone: 'ok' } as const
+  // 서버는 승인과 함께 반영 결과를 항상 기록한다. 반영됨으로 기록된 것만 완료로 보이고 그 밖은 완료로 읽히지 않게 한다.
+  return s.applyResult === 'applied' ? { label: '승인됨 · 초안에 반영됨', tone: 'ok' } as const : { label: '승인됨 · 반영 실패', tone: 'wait' } as const
 }
 
-/** 승인 요청 뒤 안내 문구. 초안 반영과 발행을 구분하고, 반영 실패를 완료로 안내하지 않는다. */
+/** 승인 요청 뒤 안내 문구. 초안 반영과 발행을 구분하고, 반영됨으로 기록되지 않은 승인을 완료로 안내하지 않는다. */
 export function approvalNotice(s: Pick<EditSuggestion, 'applyResult'>) {
-  if (s.applyResult === 'applied') return '승인했고 초안에 반영했어요 — 발행은 집필실에서 해 주세요.'
-  if (s.applyResult === 'failed') return '승인은 기록했지만 초안에 반영하지 못했어요. 사유를 확인해 주세요.'
-  return '승인했어요.'
+  return s.applyResult === 'applied'
+    ? '승인했고 초안에 반영했어요 — 발행은 집필실에서 해 주세요.'
+    : '승인은 기록했지만 초안에 반영하지 못했어요. 사유를 확인해 주세요.'
 }

@@ -58,6 +58,13 @@ describe('수정 제안 상태 표시', () => {
     expect(suggestionStatus(suggestion({ status: 'approved', applyResult: 'failed' }))).toEqual({ label: '승인됨 · 반영 실패', tone: 'wait' })
   })
 
+  it('반영됨으로 기록되지 않은 승인은 어떤 경우에도 반영 완료로 보이거나 안내하지 않는다', () => {
+    // 서버는 승인과 함께 반영 결과를 항상 기록하지만, 결과가 없는 응답이 와도 완료로 읽히지 않아야 한다.
+    const unrecorded = suggestion({ status: 'approved', applyResult: null })
+    expect(suggestionStatus(unrecorded)).toEqual({ label: '승인됨 · 반영 실패', tone: 'wait' })
+    expect(approvalNotice(unrecorded)).toContain('반영하지 못했어요')
+  })
+
   it('승인 안내는 초안 반영과 발행을 구분하고 실패는 반영 완료로 안내하지 않는다', () => {
     const applied = approvalNotice(suggestion({ status: 'approved', applyResult: 'applied' }))
     expect(applied).toContain('초안에 반영')
