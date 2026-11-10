@@ -4,7 +4,7 @@ import ai.storyfork.content.fixture.model.*
 import jakarta.validation.constraints.*
 
 data class CreateWorkRequest(@field:NotBlank @field:Size(max=120) val title: String, @field:Size(max=2000) val summary: String = "")
-data class DraftRequest(@field:NotBlank @field:Size(max=120) val title: String, @field:Size(max=40000) val body: String, @field:Min(0) val revision: Int)
+data class DraftRequest(@field:NotBlank @field:Size(max=120) val title: String, @field:Size(max=40000) val body: String, @field:Min(0) val revision: Int, val authorNote: String = "")
 data class RevisionRequest(@field:Min(0) val revision: Int)
 data class PublishRequest(@field:Min(0) val revision: Int, val rightsConfirmed: Boolean, val allowFork: Boolean = false, val allowForkPublication: Boolean = false, val versionId: String? = null)
 data class PolicyRequest(@field:Min(0) val revision: Int, val allowFork: Boolean, val allowForkPublication: Boolean)

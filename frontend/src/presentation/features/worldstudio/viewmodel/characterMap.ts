@@ -1,9 +1,16 @@
 import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 import { relationDefinitions, relationLabel } from '../../../../domain/entities/studioRelations'
 import { buildWorldMap, type MapLink } from './useWorldMapViewModel'
+import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 
 export function buildCharacterMap(settings:StudioSetting[]) {
- const nodes=buildWorldMap(settings.filter(s=>s.item.kind==='entity'&&s.item.entityType==='character')).nodes.map(n=>({...n,name:settings.find(s=>s.item.id===n.id)?.item.title||'새 인물',unnamed:!settings.find(s=>s.item.id===n.id)?.item.title.trim()}))
+ return relationshipMap(settings,settings.filter(s=>s.item.kind==='entity'&&s.item.entityType==='character'))
+}
+export function buildSettingRelationshipMap(settings:StudioSetting[]) {
+ return relationshipMap(settings,settings.filter(s=>cardTypes.some(t=>t.id===cardTypeOf(s.item))))
+}
+function relationshipMap(settings:StudioSetting[],cards:StudioSetting[]) {
+ const nodes=buildWorldMap(cards).nodes.map(n=>({...n,name:settings.find(s=>s.item.id===n.id)?.item.title||(n.kind==='인물'?'새 인물':'새 설정'),unnamed:!settings.find(s=>s.item.id===n.id)?.item.title.trim()}))
  const ids=new Set(nodes.map(n=>n.id)),links:MapLink[]=[]
  let missingLinks=0
  for(const {item} of settings.filter(s=>s.item.kind==='relation'&&s.item.decision==='approved')) {

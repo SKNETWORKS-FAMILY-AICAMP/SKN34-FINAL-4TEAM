@@ -17,7 +17,13 @@ export function useForkViewModel(id: string, queryAt: number, forkUseCase: ForkU
   const navigate = useNavigate()
   const [picked, setPicked] = useState<number | null>(null)
   // 회차를 고르면 그 회차의 설정을 다시 읽지만 폼은 그대로 둡니다(포커스·입력 유지). 범위는 작품·기준 주소입니다.
-  const { data, isError, isRefreshing, retry } = useAsyncData(() => forkUseCase.getForm(id,picked??queryAt), [forkUseCase, id, queryAt, role], [picked])
+  const { data, isError, isRefreshing, retry } = useAsyncData(async () => {
+    const form = await forkUseCase.getForm(id,picked??queryAt)
+    // 서버가 고른 회차를 다른 회차로 바꿔 답했으면(허용 회차가 바뀜) 고른 값을 지워, 재조회 중에도 고른 값으로 깜빡이지 않고 서버가 정한 회차를 보입니다.
+    // 그 사이 다른 회차를 새로 골랐다면 그 선택은 지우지 않습니다.
+    if (form && picked !== null && form.basisEpisode !== picked) setPicked((current) => current === picked ? null : current)
+    return form
+  }, [forkUseCase, id, queryAt, role], [picked])
   const [dir, setDir] = useState('')
   const [title, setTitle] = useState<string | null>(null)
   const [historyConsent, setHistoryConsent] = useState(false)
@@ -30,13 +36,14 @@ export function useForkViewModel(id: string, queryAt: number, forkUseCase: ForkU
 
   const w = data?.work
   const shownTitle = title ?? (w ? `${w.title}: ` : '')
-  const at = picked ?? (data?.forkList.includes(queryAt) ? queryAt : data?.forkList[0] ?? 0)
   // 서버 작품은 고른 회차의 설정을 읽는 동안 이전 회차의 개수를 새 회차 값처럼 보이지 않습니다.
   const reading = isRefreshing && !!w?.canonical
+  const at = (isRefreshing ? picked : null) ?? data?.basisEpisode ?? 0
+  const preview = w?.wiki?.docs
   return {
     form: data, isError, retry, submitting, error,
     episodes: w ? w.eps.map((e, i) => ({ e, n: i + 1, ok: data.forkList.includes(i + 1) })).filter(({ e }) => visibleEpisode(w, e, role)) : [],
-    at,
+    at, preview, reading,
     pick: setPicked,
     ruleCount: w && !reading ? w.rules.filter((r) => !(w.ruleFrom && w.ruleFrom[r] > at)).length : null,
     castCount: w && !reading ? publicCast(w, at).length : null,
@@ -45,7 +52,7 @@ export function useForkViewModel(id: string, queryAt: number, forkUseCase: ForkU
     setTitle,
     historyConsent, setHistoryConsent,
     start: async () => {
-      if (busy.current) return
+      if (busy.current || reading) return
       busy.current = true; setSubmitting(true); setError('')
       const request = generation.current
       try {

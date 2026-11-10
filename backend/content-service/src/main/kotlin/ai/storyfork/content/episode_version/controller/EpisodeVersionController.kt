@@ -11,7 +11,7 @@ import ai.storyfork.content.episode_version.service.dto.*
 @RequestMapping("/api/v1")
 class EpisodeVersionController(private val service: ai.storyfork.content.episode_version.service.EpisodeVersionService) {
 
-    /** 입력 원고를 새 버전·부분 체크포인트로 저장한다. 소유자만 가능하며 상속은 403, 충돌은 409다. */
+    /** 입력 원고를 새 저장 버전으로 저장한다. 체크포인트는 발행할 때만 생긴다(DEC-43). 소유자만 가능하며 상속은 403, 충돌은 409다. */
     @PostMapping("/works/{id}/episodes/{number}/versions")
     fun save(@PathVariable id: String,@PathVariable number: Int,principal: Principal,@Valid @RequestBody data: DraftRequest): EpisodeResponse = service.save(id,principal.name,number,data)
 

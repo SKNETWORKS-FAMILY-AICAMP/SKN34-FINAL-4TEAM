@@ -13,6 +13,8 @@
 .writing-body { display: block; width: 100%; min-height: 48vh; resize: vertical; border: 0; background: transparent; color: var(--tfg); }
 .writing-studio .et:focus-visible, .writing-body:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; }
 .writing-editor section[aria-label="회차 관리"] { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.writing-editor section[aria-label="회차 관리"] small { align-self: center; }
+.writing-order { flex: 1 1 100%; }
 .writing-preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 350px; overflow: auto; font: inherit; line-height: 1.8; padding: 16px 0; }
 .writing-rights { display: flex; gap: 10px; align-items: flex-start; margin: 24px 0 16px; }
 .writing-message { margin: 16px 24px; }

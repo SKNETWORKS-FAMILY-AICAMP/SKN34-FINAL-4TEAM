@@ -56,7 +56,7 @@ AI → Content는 **내부 읽기 전용** `POST /internal/v1/ai/runs/{runId}/ve
 
 루트 `.env.example`의 `INTERNAL_TOKEN`은 Content와 AI에 같은 무작위 32자 이상을 설정한다. `AI_RUN_GRANT_SECRET`은 별도의 32자 이상 값으로 Content에만 주입한다. 네이티브 AI의 `CONTENT_AI_RUN_BASE_URL`은 Content origin, Compose에서는 `http://content-service:8081`이다. 키가 없으면 dispatch가 명시적으로 차단되며 자동 개발 키를 발급하지 않는다. 실제 `.env`는 변경하지 않았다.
 
-V17은 신규 마이그레이션 소스만 작성했다. 기존 Flyway SQL·체크섬을 변경하거나 실제 운영 DB에 적용하지 않았다. 기존 ai_job의 참조/삭제 정책을 유지하므로 실패한 run도 업무 이력으로 남고 작품 삭제가 참조 때문에 거부될 수 있다. 실제 사용 전 보존/정리 정책은 별도 결정이 필요하다.
+V32(초기 미병합 V17을 develop V31 이후로 재번호)는 신규 마이그레이션 소스만 작성했다. 기존 Flyway SQL·체크섬을 변경하거나 실제 운영 DB에 적용하지 않았다. 기존 ai_job의 참조/삭제 정책을 유지하므로 실패한 run도 업무 이력으로 남고 작품 삭제가 참조 때문에 거부될 수 있다. 실제 사용 전 보존/정리 정책은 별도 결정이 필요하다.
 
 Content 접수·의도는 영속하지만 자동 dispatcher/재전송·장애 재개는 없다. 커밋 직후 프로세스가 죽으면 pending 의도가 남는다. 원문/프롬프트의 보호된 durable payload 저장도 미구현이므로 실제 전문 Agent 연결 전에 안전한 payload 참조 계약이 필요하다. AI claim/상태는 TASK 09의 단일 프로세스 메모리이며 여러 worker·재시작을 넘어선 중복 실행 보장은 없다. 이번 연결에서 그 한계를 숨기거나 실제 모델을 연결하지 않는다.
 

@@ -103,13 +103,10 @@ class MemberAdminServiceTest {
         assertEquals("ADMIN", item.role)
         assertEquals("new@example.test", item.email)
 
-        `when`(members.existsByEmail("dup@example.test")).thenReturn(true)
+        // 중복 이메일은 사전 조회 없이 saveAndFlush의 DB 유니크 제약 위반으로만 감지해 409로 바꾼다.
+        `when`(members.saveAndFlush(any(AuthMember::class.java))).thenThrow(DataIntegrityViolationException("duplicate key"))
         assertEquals(AuthException.Reason.CONFLICT, reason {
             service.createAdmin(admin.id.toString(), AdminCreateRequest("dup@example.test", "dup", "password-123"))
-        })
-        `when`(members.saveAndFlush(any(AuthMember::class.java))).thenThrow(DataIntegrityViolationException("race"))
-        assertEquals(AuthException.Reason.CONFLICT, reason {
-            service.createAdmin(admin.id.toString(), AdminCreateRequest("race@example.test", "race", "password-123"))
         })
         assertEquals(AuthException.Reason.INVALID, reason {
             service.createAdmin(admin.id.toString(), AdminCreateRequest("long@example.test", "long", "가".repeat(25)))
