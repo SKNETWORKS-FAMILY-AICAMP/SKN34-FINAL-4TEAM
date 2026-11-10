@@ -30,9 +30,13 @@ class WorkController(
     @PutMapping("/works/{id}")
     fun update(@PathVariable id: String,principal: Principal,@Valid @RequestBody data: UpdateWorkRequest): WorkResponse = service.update(id,principal.name,data)
 
-    /** 작품을 삭제한다. 소유자만 가능하며 접근 불가는 404, 세계관 설정·발행·저장 이력이 있거나 분기 작품이면 409다. */
+    /** 작품을 소프트 삭제한다. 원작과 Fork 모두 소유자만 가능하며 접근 불가는 404다. */
     @DeleteMapping("/works/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable id: String,principal: Principal) = service.delete(id,principal.name)
+
+    /** Fork 소유자가 작품 공개를 중단한다. 발행된 회차와 기록은 보존한다. */
+    @DeleteMapping("/works/{id}/fork-publication") @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun stopForkPublication(@PathVariable id: String,principal: Principal) = service.stopForkPublication(id,principal.name)
 
     /** 저장 버전·제안·정책·발행 이력을 기존 복합 DTO로 반환한다. 소유자만 가능하며 접근 불가는 404다. */
     @GetMapping("/works/{id}/history")

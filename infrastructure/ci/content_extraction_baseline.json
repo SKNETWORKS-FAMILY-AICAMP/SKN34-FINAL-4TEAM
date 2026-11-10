@@ -41,6 +41,10 @@
         "\"/works/{id}\") @ResponseStatus(HttpStatus.NO_CONTENT"
       ],
       [
+        "DeleteMapping",
+        "\"/works/{id}/fork-publication\") @ResponseStatus(HttpStatus.NO_CONTENT"
+      ],
+      [
         "GetMapping",
         "\"/works/{id}/history\""
       ],

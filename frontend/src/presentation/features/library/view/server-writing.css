@@ -5,4 +5,7 @@
 .server-writing .mywork p:not(:empty) { margin: 8px 0 12px; line-height: 1.7; }
 .server-writing .btn { min-height: 44px; }
 .server-writing .chip { white-space: normal; overflow-wrap: anywhere; }
+.server-writing .btn[aria-pressed="true"] { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
+.server-writing details { margin-top: 12px; }
+.server-writing details form { display: grid; gap: 12px; margin: 12px 0; }
 @media (max-width: 600px) { .server-link { display: inline-flex; align-items: center; min-height: 44px; } }

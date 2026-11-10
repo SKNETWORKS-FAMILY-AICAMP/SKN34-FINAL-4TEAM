@@ -126,8 +126,8 @@ class PublicationService(
     }
     private fun checkForkPublication(w: WorkAccessResult) {
         checkContent(!w.restricted,403,"권리 제한 중인 작품은 공개할 수 없어요.")
-        // 원작이 삭제돼도 원작자의 최초 공개 허용 설정은 그대로 따른다(문서에 삭제 예외 없음).
-        if(w.source!=null && w.visibility!="public") checkContent(access.get(w.source.workId).allowForkPublication,403,"원작이 분기 작품의 최초 공개를 허용하지 않아요.")
+        // 비공개인 Fork는 최초 공개든 공개 중단 뒤 재공개든 원작의 현재 허용을 따른다. 원작이 삭제돼도 허용 설정은 그대로 따른다(문서에 삭제 예외 없음).
+        if(w.source!=null && w.visibility!="public") checkContent(access.get(w.source.workId).allowForkPublication,403,"원작이 분기 작품의 공개를 허용하지 않아요.")
     }
     private fun apply(id: String, owner: String, number: Int, version: String, action: String = "publish", trigger: String = "manual") {
         val row=episodes.findByWorkIdAndSequence(id,number) ?: throw ContentFailure(404,"회차를 찾을 수 없어요.")

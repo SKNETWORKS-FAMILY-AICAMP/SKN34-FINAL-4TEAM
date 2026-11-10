@@ -53,6 +53,7 @@ export class EpisodeUseCase {
     if (!title.trim() || title.length>120 || summary.length>2000) return Promise.reject(new Error('작품 제목은 120자, 소개는 2,000자 이내로 입력해 주세요.'))
     return this.repository.updateWork(id,title.trim(),summary.trim(),revision,signal)
   }
+  stopForkPublication(id: string, signal?: AbortSignal) { return this.repository.stopForkPublication(id,signal) }
   deleteWork(id: string, signal?: AbortSignal) { return this.repository.deleteWork(id,signal) }
   save(id: string, draft: Draft) { return this.repository.save(id,draft) }
   publish(id: string, draft: Draft, rights: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) {

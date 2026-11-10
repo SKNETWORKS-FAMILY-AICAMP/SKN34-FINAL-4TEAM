@@ -61,6 +61,7 @@ class WorkSearchServiceTest {
     @Mock lateinit var viewService: WorkViewService
     @Mock lateinit var nicknames: CoreNicknameService
     @Mock lateinit var likeService: WorkLikeService
+    @Mock lateinit var schedules: PublicationScheduleRepository
     @InjectMocks lateinit var service: WorkService
 
     private val start = Instant.parse("2026-11-01T00:00:00Z")

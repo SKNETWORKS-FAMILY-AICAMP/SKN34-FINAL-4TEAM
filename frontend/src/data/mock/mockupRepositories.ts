@@ -93,7 +93,7 @@ const confirmedWorld = (id: string): World => {
 export function createMockupWritingRepository() {
   const work: Work = {
     id: '00000000-0000-4000-8000-00000000a001', title: '홍길동전 다시 쓰기', summary: '아버지를 아버지라 부르지 못한 소년의 이야기를 작가가 이어 씁니다.',
-    visibility: 'private', allowFork: true, allowForkPublication: true, source: null, episodes: [], draft: { title: '', body: '', revision: 0 },
+    visibility: 'private', allowFork: true, allowForkPublication: true, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0,
     creationType: 'ORIGINAL', genres: ['고전 영웅'], hashtags: ['#활빈당'], hasWritingEpisode: true,
   }
   const episodes: WritingEpisode[] = [

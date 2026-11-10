@@ -47,6 +47,7 @@ class WorkPolicyServiceTest {
     @Mock lateinit var viewService: WorkViewService
     @Mock lateinit var nicknames: ai.storyfork.content.auth.service.CoreNicknameService
     @Mock lateinit var likeService: WorkLikeService
+    @Mock lateinit var schedules: PublicationScheduleRepository
     @InjectMocks lateinit var service: WorkService
 
     private val work=WorkAccessResult("w","owner","제목","소개",4,"world","public",true,true,null)
@@ -56,6 +57,52 @@ class WorkPolicyServiceTest {
         `when`(publication.publishedEpisodes("w")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1,1,"v1","1화","원고",false),PublishedEpisodeResponse(2,1,"v2","2화","원고",false))))
         // 작가명은 소유자의 Core 닉네임이다. 작품 행의 author_name("표시 작가")은 읽지 않는다.
         `when`(nicknames.nicknames(listOf("owner"))).thenReturn(mapOf("owner" to "코어 닉네임"))
+    }
+
+    @Test fun `stopping publication appends one private entry for a public Fork`() {
+        val source=ai.storyfork.content.fork.service.dto.SourceResponse("original","원작",1,1,"분기")
+        val row=WorkEntity(id="w",ownerId="owner",revision=4)
+        `when`(access.own("w","owner")).thenReturn(work.copy(source=source))
+        `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("w")).thenReturn(
+            ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity(workId="w",revisionNo=2,visibility="public"),
+            ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity(workId="w",revisionNo=3,visibility="private")
+        )
+        `when`(works.findById("w")).thenReturn(Optional.of(row))
+        repeat(2) { service.stopForkPublication("w","owner") }
+        val event=mockingDetails(visibility).invocations.single {it.method.name=="save"}.getArgument<ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity>(0)
+        assertEquals("private",event.visibility)
+        assertEquals(3,event.revisionNo)
+        assertEquals(5,row.revision)
+        verify(schedules).findAllByWorkIdAndStatus("w","pending") // 반복 호출은 비공개 상태에서 바로 끝난다
+        verifyNoInteractions(episodes,drafts,publication)
+    }
+
+    private val forkSource=ai.storyfork.content.fork.service.dto.SourceResponse("original","원작",1,1,"분기")
+    private fun pendingSchedule(id: String,episode: String)=
+        ai.storyfork.content.publication.entity.PublicationScheduleEntity(id=id,workId="w",episodeId=episode,ownerId="owner",versionId="v-$episode",scheduledAt=java.time.Instant.now().plusSeconds(3600))
+
+    @Test fun `stopping publication cancels the pending scheduled publications of the Fork`() {
+        `when`(access.own("w","owner")).thenReturn(work.copy(source=forkSource))
+        `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("w")).thenReturn(ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity(workId="w",revisionNo=2,visibility="public"))
+        `when`(works.findById("w")).thenReturn(Optional.of(WorkEntity(id="w",ownerId="owner",revision=4)))
+        val third=pendingSchedule("s3","e3");val fourth=pendingSchedule("s4","e4")
+        `when`(schedules.findAllByWorkIdAndStatus("w","pending")).thenReturn(listOf(third,fourth))
+        service.stopForkPublication("w","owner")
+        assertEquals(listOf("canceled","canceled"),listOf(third.status,fourth.status))
+        assertNotNull(third.completedAt)
+    }
+
+    @Test fun `stopping a Fork that is not public keeps its pending scheduled publications`() {
+        `when`(access.own("w","owner")).thenReturn(work.copy(source=forkSource))
+        `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("w")).thenReturn(ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity(workId="w",revisionNo=0,visibility="private"))
+        service.stopForkPublication("w","owner")
+        verifyNoInteractions(schedules,works)
+    }
+
+    @Test fun `stopping Fork publication rejects an original`() {
+        own()
+        assertEquals(404,assertThrows(ContentFailure::class.java) {service.stopForkPublication("w","owner")}.status)
+        verifyNoInteractions(visibility,works)
     }
 
     @Test fun `selected policy resolves published episode IDs and returns real reading metadata`() {

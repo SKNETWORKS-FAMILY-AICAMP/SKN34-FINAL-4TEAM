@@ -44,6 +44,7 @@ class WorkService(
     private val viewService: WorkViewService,
     private val nicknames: CoreNicknameService,
     private val likeService: WorkLikeService,
+    private val schedules: PublicationScheduleRepository,
 ) {
 
     fun list(owner: String): WorkListResponse {
@@ -154,6 +155,18 @@ class WorkService(
         row.deletedAt=java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
         works.saveAndFlush(row)
     }
+    fun stopForkPublication(id: String,owner: String) {
+        val work=access.own(id,owner)
+        checkContent(work.source!=null,404,"포크 작품을 찾을 수 없어요.")
+        val last=visibility.findFirstByWorkIdOrderByRevisionNoDesc(id) ?: return
+        if(last.visibility!="public") return
+        visibility.save(WorkPublicationHistoryEntity(id=contentId(),workId=id,revisionNo=last.revisionNo+1,visibility="private"))
+        // 대기 중인 예약 발행이 실행 시점에 중단한 Fork를 다시 공개하지 못하게 함께 취소한다. 작품 잠금 안이라 예약 실행과 겹치지 않는다.
+        val now=Instant.now()
+        schedules.findAllByWorkIdAndStatus(id,"pending").forEach {it.cancel(it.revision,now)}
+        works.findById(id).orElseThrow().revision++
+    }
+
     fun policy(id: String,owner: String,data: PolicyRequest): WorkResponse {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
         checkContent(w.source==null,403,"분기 작품에서 재분기할 수 없어요.")

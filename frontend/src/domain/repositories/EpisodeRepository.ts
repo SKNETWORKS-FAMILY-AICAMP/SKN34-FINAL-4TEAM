@@ -18,6 +18,7 @@ export interface EpisodeRepository {
   list(signal?: AbortSignal): Promise<Work[]>
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal): Promise<Work>
+  stopForkPublication(id: string, signal?: AbortSignal): Promise<void>
   deleteWork(id: string, signal?: AbortSignal): Promise<void>
   save(id: string, draft: Draft): Promise<Draft>
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication?: boolean, versionId?: string): Promise<Work>

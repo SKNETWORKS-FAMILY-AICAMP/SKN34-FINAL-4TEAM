@@ -23,7 +23,7 @@ const fillRegistration=()=>{
 }
 
 it('requires selecting a saved version before opening publication preview', async()=>{
-  const w={id:'w',title:'선택 필요',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'회차',body:'초안',revision:0}}
+  const w={id:'w',title:'선택 필요',summary:'',visibility:'private',allowFork:false,revision:0,source:null,episodes:[],draft:{title:'회차',body:'초안',revision:0}}
   render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response(JSON.stringify([w])))))}/>)
   fireEvent.click(await screen.findByRole('button',{name:/선택 필요/}))
   fireEvent.click(screen.getByLabelText('이 원고를 공개할 권리가 있음을 확인합니다.'))
@@ -32,7 +32,7 @@ it('requires selecting a saved version before opening publication preview', asyn
 })
 
 it('requires a fresh rights confirmation for the next episode after publication', async()=>{
-  const w = {id:'w1',title:'테스트',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'첫 화',body:'저장된 원고',revision:1}}
+  const w = {id:'w1',title:'테스트',summary:'',visibility:'private',allowFork:false,revision:0,source:null,episodes:[],draft:{title:'첫 화',body:'저장된 원고',revision:1}}
   const published = {...w,visibility:'public',episodes:[{number:1,version:1,title:'첫 화',body:'저장된 원고',inherited:false}],draft:{title:'새 회차',body:'',revision:2}}
   const calls = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify([w]))).mockResolvedValueOnce(new Response(JSON.stringify({versions:[{id:'v1',episode:1,title:'첫 화',body:'저장된 원고',revision:1,savedAt:'2026-11-02T00:00:00Z'}],proposals:[]}))).mockResolvedValueOnce(new Response(JSON.stringify(published)))
   render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))}/> )
@@ -48,7 +48,7 @@ it('requires a fresh rights confirmation for the next episode after publication'
 })
 
 it('creates a private work through the API and shows its editor', async()=>{
-  const calls = vi.fn().mockResolvedValueOnce(new Response('[]')).mockResolvedValueOnce(new Response(JSON.stringify({id:'w1',title:'별의 기록',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:0}})))
+  const calls = vi.fn().mockResolvedValueOnce(new Response('[]')).mockResolvedValueOnce(new Response(JSON.stringify({id:'w1',title:'별의 기록',summary:'',visibility:'private',allowFork:false,revision:0,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:0}})))
   render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))}/> )
   await screen.findByText('첫 이야기를 시작해 보세요')
   fireEvent.change(screen.getByLabelText('작품 제목'),{target:{value:'별의 기록'}})
@@ -63,7 +63,7 @@ it('creates a private work through the API and shows its editor', async()=>{
 })
 
 it('does not reuse the previous cover when creating another work',async()=>{
-  const first={id:'11111111-1111-4111-8111-111111111111',title:'첫 작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:0}}
+  const first={id:'11111111-1111-4111-8111-111111111111',title:'첫 작품',summary:'',visibility:'private',allowFork:false,revision:0,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:0}}
   const second={...first,id:'22222222-2222-4222-8222-222222222222',title:'두 번째 작품'}
   const calls=vi.fn().mockResolvedValueOnce(new Response('[]')).mockResolvedValueOnce(Response.json(first)).mockResolvedValueOnce(Response.json(second))
   const uploads=vi.fn(async (path:string,init:RequestInit)=>{
@@ -92,7 +92,7 @@ it('does not reuse the previous cover when creating another work',async()=>{
 })
 
 it('keeps current tab when unsaved navigation is cancelled',async()=>{
-  const w={id:'w',title:'이동 취소',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'회차',body:'기존',revision:0}}
+  const w={id:'w',title:'이동 취소',summary:'',visibility:'private',allowFork:false,revision:0,source:null,episodes:[],draft:{title:'회차',body:'기존',revision:0}}
   const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify([w])))
   render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))}/> )
   fireEvent.click(await screen.findByRole('button',{name:/이동 취소/}))
@@ -105,7 +105,7 @@ it('keeps current tab when unsaved navigation is cancelled',async()=>{
 })
 
 it('shows independent fork publication consent and history navigation',async()=>{
- const w={id:'w',title:'권한 분리',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'회차',body:'본문',revision:0}}
+ const w={id:'w',title:'권한 분리',summary:'',visibility:'private',allowFork:false,revision:0,source:null,episodes:[],draft:{title:'회차',body:'본문',revision:0}}
  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response(JSON.stringify([w])))))}/> )
  fireEvent.click(await screen.findByRole('button',{name:/권한 분리/}))
  expect(screen.getByLabelText('분기 작품의 최초 공개를 허용합니다.')).toBeTruthy()
@@ -113,7 +113,7 @@ it('shows independent fork publication consent and history navigation',async()=>
 })
 
 it('opens restored text in the editor as a new saved version',async()=>{
- const w={id:'w',title:'복원 확인',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'회차',body:'현재',revision:2}}
+ const w={id:'w',title:'복원 확인',summary:'',visibility:'private',allowFork:false,revision:0,source:null,episodes:[],draft:{title:'회차',body:'현재',revision:2}}
  const v={id:'v1',title:'회차',body:'과거 원고',revision:1,episode:1,savedAt:'2026-11-02T00:00:00Z'}
  const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify([w]))).mockResolvedValueOnce(new Response(JSON.stringify({versions:[v],proposals:[]}))).mockResolvedValueOnce(new Response(JSON.stringify({...v,revision:3})))
  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))}/> )
@@ -151,7 +151,7 @@ it('wraps the studio label so compact headers can hide it visually without losin
 })
 
 it('shows a creation link instead of save and AI controls when the writing episode is missing',async()=>{
- const w={id:'w',title:'회차 삭제됨',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
+ const w={id:'w',title:'회차 삭제됨',summary:'',visibility:'private',allowFork:false,revision:0,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([w]))))}/>)
  fireEvent.click(await screen.findByRole('button',{name:/회차 삭제됨/}))
  expect(screen.getByRole('link',{name:'집필실에서 회차 생성'}).getAttribute('href')).toBe('/studio/w')

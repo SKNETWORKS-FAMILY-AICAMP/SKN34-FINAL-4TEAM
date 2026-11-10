@@ -116,6 +116,25 @@ class PublicationServiceTest {
         assertEquals(403,assertThrows(ContentFailure::class.java) {service.visibility("w","owner",2,PublicationVisibilityRequest(4,true,true))}.status)
         verifyNoInteractions(events,versions,works)
     }
+    /** 공개를 중단해 비공개로 돌아온 Fork다. 원작의 Fork 공개 허용은 [sourceAllows]다. */
+    private fun stoppedFork(sourceAllows: Boolean) {
+        val source=ai.storyfork.content.fork.service.dto.SourceResponse("src","원작",1,1,"분기")
+        `when`(access.own("w","owner")).thenReturn(work.copy(visibility="private",source=source))
+        `when`(access.get("src")).thenReturn(WorkAccessResult("src","author","원작","",0,"world","public",true,sourceAllows,null))
+    }
+    @Test fun `stopped Fork cannot be republished after the source revokes Fork publication`() {
+        prepare("suspended");stoppedFork(false)
+        assertEquals(403,assertThrows(ContentFailure::class.java) {service.visibility("w","owner",2,PublicationVisibilityRequest(4,true,true))}.status)
+        verifyNoInteractions(events,versions,works)
+    }
+    @Test fun `stopped Fork becomes public again while the source still allows Fork publication`() {
+        prepare("suspended");history("unpublish");writable();stoppedFork(true)
+        `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("w")).thenReturn(WorkPublicationHistoryEntity(workId="w",revisionNo=2,visibility="private"))
+        service.visibility("w","owner",2,PublicationVisibilityRequest(4,true,true))
+        val reopened=mockingDetails(visibility).invocations.single {it.method.name=="save"}.getArgument<WorkPublicationHistoryEntity>(0)
+        assertEquals("public",reopened.visibility)
+        assertEquals(3,reopened.revisionNo)
+    }
     @Test fun `visibility change advances revision even when the draft was deleted`() {
         prepare("published");writable()
         val row=EpisodeEntity(id="e",workId="w",sequence=2,draftRevisionFloor=4)
