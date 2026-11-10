@@ -115,6 +115,14 @@ it('public browsing never exposes an editable owner draft', async()=>{
 
 
 describe('episode removal contract', () => {
+  it('sends a whole episode deletion with bearer, CSRF and the observed revision', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, {status:204}))
+    await expect(new HttpEpisodeRepository(fetcher).deleteEpisode('w',2,7)).resolves.toBeUndefined()
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w/episodes/2?revision=7', expect.objectContaining({
+      method:'DELETE',
+      headers:expect.objectContaining({Authorization:'Bearer content-bearer','X-CSRF-TOKEN':'content-csrf'}),
+    }))
+  })
   it('sends the observed revision and handles an empty deletion response', async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response(null, {status:204}))
     await new HttpEpisodeRepository(fetcher).deleteDraft('w',2,7)

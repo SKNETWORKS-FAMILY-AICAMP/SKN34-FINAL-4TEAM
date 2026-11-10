@@ -3,6 +3,7 @@ package ai.storyfork.content.regression
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.attachment.repository.ImageEpisodeRepository
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
@@ -49,6 +50,7 @@ class AuthContentIntegrationTest {
     @Autowired lateinit var versions:EpisodeVersionService
     @Autowired lateinit var publication:PublicationService
     @Autowired lateinit var worlds:WorldService
+    @Autowired lateinit var imageEpisodes:ImageEpisodeRepository
     private val jdbc get()=JdbcTemplate(source)
     private val client=HttpClient.newHttpClient()
     private fun request(path:String)=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).header("Accept","application/json")
@@ -56,6 +58,42 @@ class AuthContentIntegrationTest {
     private fun mutation(path:String,body:String)=request(path).header("Cookie",CsrfFixture.cookie)
         .header("X-CSRF-TOKEN",CsrfFixture.token()).header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(body))
     private fun actor():UUID=UUID.randomUUID().also { id -> `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id)) }
+
+    @Test fun `owner deletes a written episode through HTTP and recreates its number without reusing its ID`() {
+        val owner=actor()
+        val work=works.create(owner.toString(),CreateWorkRequest("회차 삭제 HTTP 검증"))
+        val list="/api/v1/works/${work.id}/episodes"
+        val path="$list/1"
+        fun authenticated(path:String,user:UUID=owner)=request(path).header("Authorization","Bearer $user")
+        fun csrf(builder:HttpRequest.Builder)=builder.header("Cookie",CsrfFixture.cookie).header("X-CSRF-TOKEN",CsrfFixture.token())
+        fun episodeId()=jdbc.queryForObject("SELECT id FROM episode_current WHERE work_id=? AND sequence=1",String::class.java,work.id)
+        val oldId=episodeId()
+        val saved=send(csrf(authenticated("$path/draft")).header("Content-Type","application/json")
+            .PUT(HttpRequest.BodyPublishers.ofString("""{"title":"원래 회차","body":"보존할 원고","revision":0}""")))
+        assertEquals(200,saved.statusCode(),saved.body())
+        val revision=json.readTree(saved.body()).path("draft").path("revision").asInt()
+        fun delete(number:Int,user:UUID=owner)=send(csrf(authenticated("$path?revision=$number",user)).DELETE())
+        assertEquals(404,delete(revision,actor()).statusCode())
+        assertEquals(409,delete(revision-1).statusCode())
+        assertEquals(oldId,episodeId())
+        val removed=delete(revision)
+        assertEquals(204,removed.statusCode(),removed.body())
+        assertEquals(404,send(authenticated(path)).statusCode())
+        assertTrue(json.readTree(send(authenticated(list)).body()).isEmpty)
+        assertFalse(imageEpisodes.existsByWorkIdAndSequence(work.id,1))
+        assertEquals(true,jdbc.queryForObject("SELECT deleted_at IS NOT NULL FROM episode WHERE id=?",Boolean::class.java,oldId))
+        assertEquals("보존할 원고",jdbc.queryForObject("SELECT content FROM episode_draft WHERE episode_id=?",String::class.java,oldId))
+
+        val created=send(mutation(list,"""{"title":"새 회차"}""").header("Authorization","Bearer $owner"))
+        assertEquals(201,created.statusCode(),created.body())
+        val replacement=json.readTree(created.body())
+        assertEquals(1,replacement.path("number").asInt())
+        assertTrue(replacement.path("draft").path("revision").asInt()>revision)
+        assertNotEquals(oldId,episodeId())
+        assertTrue(imageEpisodes.existsByWorkIdAndSequence(work.id,1))
+        assertEquals(409,delete(revision).statusCode())
+        assertEquals(200,send(authenticated(path)).statusCode())
+    }
 
     @Test fun `Core verified UUID owns private content and another member receives 404`() {
         val user=actor()
