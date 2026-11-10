@@ -109,7 +109,7 @@ export function FeedbackSheet({ workId, n, sentence, onClose, canonical = false,
           </select>
         </label>
       )}
-      {canonical ? <p className="note">제보는 작가에게 전달되고, 작가가 확인하거나 답변하면 상태가 바뀌어요. 내 서재의 ‘내 댓글·신고’에서 정정·철회·공개 범위 변경을 할 수 있어요. 자동 분석이나 자동 답변은 없어요.</p> : type === '스토리 오류' && !done ? (
+      {canonical ? <p className="note">제보는 작가에게 전달되고, 작가가 확인하거나 답변하면 상태가 바뀌어요. 내 서재의 ‘내 댓글·제보’에서 정정·철회·공개 범위 변경을 할 수 있어요. 자동 분석이나 자동 답변은 없어요.</p> : type === '스토리 오류' && !done ? (
         <>
           <label className="ck"><input type="checkbox" checked={storyCheck} onChange={(e) => setStoryCheck(e.target.checked)} /> 스토리 오류 검증 시뮬레이션에 동의</label>
           <p className="note">기본 피드백은 무료예요. 선택 검증의 비용과 한도는 미정이며, 이 데모는 실제 AI 호출이나 차감이 없어요. 오류가 검증·반영되면 보상 크레딧을 줄 수 있지만 실제 보상은 연결되지 않았어요. 정식 서비스의 유해 콘텐츠 1차 필터는 연결되지 않았어요.</p>
@@ -118,7 +118,7 @@ export function FeedbackSheet({ workId, n, sentence, onClose, canonical = false,
       {done ? <Done status={done.status} message={done.message} onClose={onClose} /> : (
         <div className="rowend">
           <button type="button" className="btn" onClick={onClose}>취소</button>
-          <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.sendFeedback({ workId, n, sentence, type, text, storyCheck, visibility }).then((r) => { if (r) { setDone(r); onSent?.() } }).finally(() => setBusy(false)) }}>피드백 보내기</button>
+          <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.sendFeedback({ workId, n, sentence, type, text, storyCheck, canonical, visibility }).then((r) => { if (r) { setDone(r); onSent?.() } }).finally(() => setBusy(false)) }}>피드백 보내기</button>
         </div>
       )}
     </Sheet>

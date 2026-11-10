@@ -211,7 +211,7 @@ export function ReaderPage() {
         <SentencePop at={vm.selected} onDismiss={dismissPop}>
           <button type="button" onClick={() => vm.openSheet({ kind: 'comment', k: vm.selected?.k ?? 0 })}>💬 댓글 달기</button>
           {/* 정본 작품은 댓글·피드백(제보)만 서버에 연결돼 있어 문장 공유(데모) 동작은 열지 않습니다. */}
-          <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>✉ 피드백 보내기</button>
+          <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>{w.canonical && !vm.loggedIn ? '✉ 로그인하고 피드백 보내기' : '✉ 피드백 보내기'}</button>
           {!w.canonical && <button type="button" onClick={() => { dismissPop(true); vm.shareSentence() }}>⧉ 문장 공유</button>}
         </SentencePop>
       )}

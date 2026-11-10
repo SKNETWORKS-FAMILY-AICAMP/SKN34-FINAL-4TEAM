@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
 import { FeedbackReportCard } from '../../../shared/feedbackReports/FeedbackReportCard'
@@ -10,27 +10,34 @@ type Vm = ReturnType<typeof useFeedbackReportInboxViewModel>
 function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
   const [answer, setAnswer] = useState('')
   const [isPublic, setIsPublic] = useState(false)
+  const card = useRef<HTMLDivElement>(null)
   const label = `${r.workTitle} ${r.episodeNumber}화`
+  // 처리가 성공하면 눌렀던 버튼이 사라지거나 잠겨도 키보드 위치를 이 행 카드에 둔다(WCAG 2.4.3).
+  const settle = (ok: boolean) => { if (ok) card.current?.focus(); return ok }
   return (
-    <FeedbackReportCard report={r} showWork>
+    <FeedbackReportCard report={r} showWork ref={card}>
       <div className="acts" style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-        <Go to={`/read/${r.workId}/${r.episodeNumber}`} className="btn sm">회차 보기</Go>
-        {!r.authorChecked && <button type="button" className="btn sm" aria-label={`확인했어요 · ${label}`} disabled={vm.busy} onClick={() => void vm.check(r)}>확인했어요</button>}
+        <Go to={`/read/${r.workId}/${r.episodeNumber}`} className="btn sm" aria-label={`회차 보기 · ${label}`}>회차 보기</Go>
+        {!r.authorChecked && <button type="button" className="btn sm" aria-label={`확인했어요 · ${label}`} disabled={vm.busy} onClick={() => void vm.check(r).then(settle)}>확인했어요</button>}
         <label className="small">처리 상태{' '}
-          <select className="inp" aria-label={`처리 상태 · ${label}`} disabled={vm.busy} value={r.status}
-            onChange={(e) => { const next = SETTABLE_REPORT_STATUSES.find((s) => s === e.target.value); if (next) void vm.setStatus(r, next) }}>
+          <select className="inp sm" aria-label={`처리 상태 · ${label}`} disabled={vm.busy} value={r.status}
+            onChange={(e) => { const next = SETTABLE_REPORT_STATUSES.find((s) => s === e.target.value); if (next) void vm.setStatus(r, next).then(settle) }}>
             <option value="unchecked" disabled>{REPORT_STATUS_LABEL.unchecked}</option>
             {SETTABLE_REPORT_STATUSES.map((s) => <option key={s} value={s}>{REPORT_STATUS_LABEL[s]}</option>)}
           </select>
         </label>
       </div>
-      <form style={{ marginTop: 8 }} onSubmit={(ev) => { ev.preventDefault(); void vm.answer(r, answer, isPublic).then((ok) => { if (ok) { setAnswer(''); setIsPublic(false) } }) }}>
-        <label className="field">작가 답변
-          <textarea className="ta" aria-label={`작가 답변 · ${label}`} maxLength={REPORT_RESPONSE_MAX} value={answer} onChange={(e) => setAnswer(e.target.value)} />
-        </label>
-        <label className="ck"><input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} /> 공개 답변 (비공개 제보여도 답변만 공개돼요)</label>
-        <button type="submit" className="btn sm pri" disabled={vm.busy}>답변 보내기</button>
-      </form>
+      <details style={{ marginTop: 8 }}>
+        <summary aria-label={`답변하기 · ${label}`}>답변하기</summary>
+        <form onSubmit={(ev) => { ev.preventDefault(); void vm.answer(r, answer, isPublic).then((ok) => { if (settle(ok)) { setAnswer(''); setIsPublic(false) } }) }}>
+          <label className="field">작가 답변
+            <textarea className="ta" aria-label={`작가 답변 · ${label}`} maxLength={REPORT_RESPONSE_MAX} value={answer} onChange={(e) => setAnswer(e.target.value)} />
+          </label>
+          <label className="ck"><input type="checkbox" aria-label={`공개 답변 · ${label}`} checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} /> 공개 답변</label>
+          <p className="small muted">비공개 제보여도 공개 답변은 답변만 다른 독자에게 보여요.</p>
+          <button type="submit" className="btn sm pri" aria-label={`답변 보내기 · ${label}`} disabled={vm.busy || !answer.trim()}>답변 보내기</button>
+        </form>
+      </details>
     </FeedbackReportCard>
   )
 }

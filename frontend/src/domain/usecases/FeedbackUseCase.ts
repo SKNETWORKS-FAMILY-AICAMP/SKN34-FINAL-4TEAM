@@ -70,8 +70,9 @@ export class FeedbackUseCase {
     }
   }
 
-  async sendFeedback(o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; verified: boolean; nick: string; visibility?: FeedbackReportVisibility }) {
-    if (this.reports && (await this.workRepository.listWorks()).find((x) => x.id === o.workId)?.canonical) return this.sendReport(this.reports, o)
+  /** canonical은 시트가 이미 아는 값(실제 작품이면 true)이라 작품 목록을 다시 읽어 알아내지 않는다. 제보 API가 없으면 정본 작품은 아래 work()에서 기존처럼 거절된다. */
+  async sendFeedback(o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; verified: boolean; nick: string; canonical?: boolean; visibility?: FeedbackReportVisibility }) {
+    if (o.canonical && this.reports) return this.sendReport(this.reports, o)
     const w = await this.work(o.workId)
     const proposal = o.type === '단순 오류' ? typoReply(w, o.n, o.sentence, o.text) : null
     // 포크의 n화는 원작 스냅샷을 포함한 번호(epsOf)라 직접 쓴 회차 목록(w.eps)에서는 스냅샷 수만큼 당긴다. 스냅샷 회차는 음수가 되어 자동 수정에서 빠진다.

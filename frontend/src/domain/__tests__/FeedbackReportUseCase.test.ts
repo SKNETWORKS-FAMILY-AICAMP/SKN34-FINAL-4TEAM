@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { seedAdmin, seedWorks } from '../../data/mock/seed'
 import { FEEDBACK_TYPES, type FeedbackType } from '../entities/feedback'
-import { REPORT_KIND_OF, REPORT_STATUS_LABEL, reportStatusChip, type FeedbackReport } from '../entities/feedbackReport'
+import { REPORT_KIND_OF, REPORT_STATUS_LABEL, reportStatusChip, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../entities/feedbackReport'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import type { FeedbackReportRepository } from '../repositories/FeedbackReportRepository'
 import type { WorkRepository } from '../repositories/WorkRepository'
@@ -89,11 +89,15 @@ describe('FeedbackReportUseCase', () => {
     untouched(other)
   })
 
-  it('작가 상태는 확인 전으로 되돌릴 수 없고 서버 값에 없는 상태도 보내지 않는다', async () => {
+  it('작가 상태 인자는 타입으로 확인함·답변함·처리 완료·종료만 받는다(확인 전으로 되돌릴 수 없다)', async () => {
     const { repo, useCase } = setup()
-    // 화면 목록에는 없지만 호출 측 실수를 막는다.
-    await expect(useCase.setStatus(report(), 'unchecked')).rejects.toThrow('되돌릴 수 없어요')
-    untouched(repo)
+    for (const status of SETTABLE_REPORT_STATUSES) {
+      await useCase.setStatus(report(), status)
+      expect(repo.setStatus).toHaveBeenLastCalledWith('w1', 'r1', status)
+    }
+    expect(repo.setStatus).toHaveBeenCalledTimes(4)
+    // @ts-expect-error 확인 전(unchecked)은 작가가 고를 수 있는 상태가 아니다(계약: 되돌리기는 422). 화면 목록에도 없어 컴파일 단계에서 막는다.
+    void useCase.setStatus(report(), 'unchecked')
   })
 })
 
@@ -102,21 +106,24 @@ describe('FeedbackUseCase의 정본 작품 분기', () => {
   const feedbackRepository = { listComments: async () => [], addComment: noop, countComments: async () => 0, listCommentLikes: async () => ({}), toggleCommentLike: noop,
     listReports: async () => [], addReport: vi.fn(noop), listInbox: async () => [], addInbox: vi.fn(noop), saveInbox: noop, saveReport: noop, listReview: async () => [], saveReview: noop, addReview: noop } satisfies FeedbackRepository
   const admin = { get: async () => seedAdmin(), save: noop, listComments: async () => [] }
-  const input = (type: FeedbackType, workId: string, extra: Record<string, unknown> = {}) => ({ workId, n: 2, sentence: { t: '고른 문장', pi: 0 }, type, text: ' 내용이에요 ', verified: false, nick: '독자', ...extra })
+  const input = (type: FeedbackType, workId: string, extra: Record<string, unknown> = {}) => ({ workId, n: 2, sentence: { t: '고른 문장', pi: 0 }, type, text: ' 내용이에요 ', verified: false, nick: '독자', canonical: true, ...extra })
   const setupWorks = () => {
     const works = seedWorks(0)
     works.find((w) => w.id === 'starlight')!.canonical = true
-    const workRepository = { listWorks: async () => works } as unknown as WorkRepository
-    return { works, workRepository }
+    const listWorks = vi.fn(async () => works)
+    const workRepository = { listWorks } as unknown as WorkRepository
+    return { works, workRepository, listWorks }
   }
 
   it('정본 작품의 피드백은 데모 저장소가 아니라 제보 API로 등록하고 실제 상태만 안내한다', async () => {
-    const { workRepository } = setupWorks()
+    const { workRepository, listWorks } = setupWorks()
     const { repo, useCase } = setup()
     repo.create.mockResolvedValue(report({ status: 'unchecked', visibility: 'public' }))
     const uc = new FeedbackUseCase(workRepository, feedbackRepository, admin, useCase)
 
     const result = await uc.sendFeedback(input('단순 오류', 'starlight', { visibility: 'public' }))
+    // 정본 여부는 시트가 이미 알고 있어 값으로 넘기므로 작품 목록(HTTP)을 다시 읽지 않는다.
+    expect(listWorks).not.toHaveBeenCalled()
 
     expect(repo.create).toHaveBeenCalledWith('starlight', 2, { kind: 'typo', body: '내용이에요', quote: '고른 문장', visibility: 'public' })
     expect(result.status).toBe('작가 확인 전')
@@ -151,7 +158,7 @@ describe('FeedbackUseCase의 정본 작품 분기', () => {
     await expect(new FeedbackUseCase(workRepository, feedbackRepository, admin).sendFeedback(input('질문', 'starlight'))).rejects.toThrow('아직 연결되지')
     const { repo, useCase } = setup()
     const demo = works.find((w) => !w.canonical)!
-    const result = await new FeedbackUseCase(workRepository, feedbackRepository, admin, useCase).sendFeedback(input('질문', demo.id))
+    const result = await new FeedbackUseCase(workRepository, feedbackRepository, admin, useCase).sendFeedback(input('질문', demo.id, { canonical: false }))
     expect(repo.create).not.toHaveBeenCalled()
     expect(result.status).toBe('응답 완료')
   })

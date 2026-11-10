@@ -1,6 +1,6 @@
 import {
-  correctionInputError, reportInputError, responseInputError, SETTABLE_REPORT_STATUSES,
-  type FeedbackReport, type FeedbackReportKind, type FeedbackReportStatus, type FeedbackReportVisibility,
+  correctionInputError, reportInputError, responseInputError,
+  type FeedbackReport, type FeedbackReportKind, type FeedbackReportVisibility, type SettableReportStatus,
 } from '../entities/feedbackReport'
 import type { FeedbackReportRepository } from '../repositories/FeedbackReportRepository'
 
@@ -43,8 +43,6 @@ export class FeedbackReportUseCase {
     return this.repository.answer(r.workId, r.id, { body: body.trim(), isPublic })
   }
 
-  async setStatus(r: FeedbackReport, status: FeedbackReportStatus) {
-    valid(SETTABLE_REPORT_STATUSES.some((s) => s === status) ? null : '처리 상태는 확인 전으로 되돌릴 수 없어요.')
-    return this.repository.setStatus(r.workId, r.id, status)
-  }
+  /** 확인 전(unchecked)으로 되돌릴 수 없다는 계약은 인자 타입(SettableReportStatus)이 막는다. */
+  setStatus(r: FeedbackReport, status: SettableReportStatus) { return this.repository.setStatus(r.workId, r.id, status) }
 }

@@ -1,5 +1,5 @@
 import { appContainer } from '../../../../app/appContainer'
-import { REPORT_STATUS_LABEL, type FeedbackReport, type FeedbackReportStatus } from '../../../../domain/entities/feedbackReport'
+import { REPORT_STATUS_LABEL, type FeedbackReport, type SettableReportStatus } from '../../../../domain/entities/feedbackReport'
 import type { FeedbackReportUseCase } from '../../../../domain/usecases/FeedbackReportUseCase'
 import { useReportSender } from '../../../shared/feedbackReports/useReportSender'
 import { useAsyncData } from '../../../shared/useAsyncData'
@@ -17,6 +17,6 @@ export function useFeedbackReportInboxViewModel(useCase: FeedbackReportUseCase =
     isError, retry, busy,
     check: (r: FeedbackReport) => send(() => useCase.check(r), '확인했어요'),
     answer: (r: FeedbackReport, body: string, isPublic: boolean) => send(() => useCase.answer(r, body, isPublic), isPublic ? '공개 답변을 남겼어요' : '비공개 답변을 남겼어요'),
-    setStatus: (r: FeedbackReport, status: FeedbackReportStatus) => send(() => useCase.setStatus(r, status), `처리 상태를 바꿨어요 · ${REPORT_STATUS_LABEL[status]}`),
+    setStatus: (r: FeedbackReport, status: SettableReportStatus) => send(() => useCase.setStatus(r, status), `처리 상태를 바꿨어요 · ${REPORT_STATUS_LABEL[status]}`),
   }
 }

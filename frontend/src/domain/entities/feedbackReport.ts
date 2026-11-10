@@ -46,6 +46,7 @@ export const REPORT_STATUS_LABEL: Record<FeedbackReportStatus, string> = { unche
 export const REPORT_VISIBILITY_LABEL: Record<FeedbackReportVisibility, string> = { public: '공개', private: '비공개' }
 /** 작가가 바꿀 수 있는 처리 상태. 확인 전으로 되돌릴 수 없다(계약). */
 export const SETTABLE_REPORT_STATUSES = ['checked', 'answered', 'resolved', 'closed'] as const satisfies readonly FeedbackReportStatus[]
+export type SettableReportStatus = (typeof SETTABLE_REPORT_STATUSES)[number]
 
 /** 상태 칩 색: 작가 확인 전·확인함은 진행 중(wait), 답변함·처리 완료는 완료(ok), 종료는 중립 */
 export const reportStatusChip = (status: FeedbackReportStatus) => (status === 'unchecked' || status === 'checked' ? 'wait' : status === 'closed' ? '' : 'ok')

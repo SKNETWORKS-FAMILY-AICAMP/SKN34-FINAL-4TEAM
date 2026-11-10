@@ -9,9 +9,9 @@ import { useLibraryViewModel } from '../viewmodel/useLibraryViewModel'
 import { MyFeedbackReports } from './MyFeedbackReports'
 import { ServerWritingList } from './ServerWritingList'
 
-const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['qa', '내 댓글·신고']] as const
+const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['qa', '내 댓글·제보']] as const
 
-/** 목업 lib(): U11 내 서재 (읽는 중·내가 쓰는 소설·내 댓글·신고) */
+/** 목업 lib(): U11 내 서재 (읽는 중·내가 쓰는 소설·내 댓글·제보) */
 export function LibraryPage() {
   const vm = useLibraryViewModel()
   const d = vm.data

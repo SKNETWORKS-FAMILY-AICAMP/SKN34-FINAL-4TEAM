@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { REPORT_BODY_MAX, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
 import { FeedbackReportCard } from '../../../shared/feedbackReports/FeedbackReportCard'
@@ -9,24 +9,27 @@ type Vm = ReturnType<typeof useMyFeedbackReportsViewModel>
 
 function MyReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
   const [text, setText] = useState('')
+  const card = useRef<HTMLDivElement>(null)
   const label = `${r.workTitle} ${r.episodeNumber}화`
+  // 처리가 성공하면 눌렀던 버튼이 사라지거나 잠겨도 키보드 위치를 이 행 카드에 둔다(WCAG 2.4.3).
+  const settle = (ok: boolean) => { if (ok) card.current?.focus(); return ok }
   return (
-    <FeedbackReportCard report={r} showWork>
+    <FeedbackReportCard report={r} showWork ref={card}>
       <div className="acts" style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        <Go to={`/read/${r.workId}/${r.episodeNumber}`} className="btn sm">회차 보기</Go>
+        <Go to={`/read/${r.workId}/${r.episodeNumber}`} className="btn sm" aria-label={`회차 보기 · ${label}`}>회차 보기</Go>
         <button type="button" className="btn sm" aria-label={`${r.visibility === 'public' ? '비공개로 바꾸기' : '공개로 바꾸기'} · ${label}`} disabled={vm.busy}
-          onClick={() => void vm.setVisibility(r, r.visibility === 'public' ? 'private' : 'public')}>{r.visibility === 'public' ? '비공개로 바꾸기' : '공개로 바꾸기'}</button>
-        {!r.withdrawn && <button type="button" className="btn sm" aria-label={`철회 · ${label}`} disabled={vm.busy} onClick={() => void vm.withdraw(r)}>철회</button>}
+          onClick={() => void vm.setVisibility(r, r.visibility === 'public' ? 'private' : 'public').then(settle)}>{r.visibility === 'public' ? '비공개로 바꾸기' : '공개로 바꾸기'}</button>
+        {!r.withdrawn && <button type="button" className="btn sm" aria-label={`철회 · ${label}`} disabled={vm.busy} onClick={() => void vm.withdraw(r).then(settle)}>철회</button>}
       </div>
       {!r.withdrawn && (
         <details style={{ marginTop: 8 }}>
-          <summary>정정하기</summary>
-          <form onSubmit={(ev) => { ev.preventDefault(); void vm.correct(r, text).then((ok) => { if (ok) setText('') }) }}>
+          <summary aria-label={`정정하기 · ${label}`}>정정하기</summary>
+          <form onSubmit={(ev) => { ev.preventDefault(); void vm.correct(r, text).then((ok) => { if (settle(ok)) setText('') }) }}>
             <label className="field">정정 내용
               <textarea className="ta" aria-label={`정정 내용 · ${label}`} maxLength={REPORT_BODY_MAX} value={text} onChange={(e) => setText(e.target.value)} />
             </label>
             <p className="small muted">원문은 그대로 남고 정정이 덧붙어요. 철회한 뒤에는 정정할 수 없어요.</p>
-            <button type="submit" className="btn sm pri" disabled={vm.busy}>정정 남기기</button>
+            <button type="submit" className="btn sm pri" aria-label={`정정 남기기 · ${label}`} disabled={vm.busy || !text.trim()}>정정 남기기</button>
           </form>
         </details>
       )}
@@ -35,7 +38,7 @@ function MyReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
 }
 
 /**
- * 내 서재 ‘내 댓글·신고’ 탭의 내 제보(기능 23). 실제 작품에 남긴 제보를 최신순으로 보이고 공개 범위 변경·정정·철회를 서버로 보냅니다.
+ * 내 서재 ‘내 댓글·제보’ 탭의 내 제보(기능 23). 실제 작품에 남긴 제보를 최신순으로 보이고 공개 범위 변경·정정·철회를 서버로 보냅니다.
  * 데모 작품의 피드백 기록은 같은 탭의 기존 메모리 목록이 그대로 보입니다.
  */
 export function MyFeedbackReports() {

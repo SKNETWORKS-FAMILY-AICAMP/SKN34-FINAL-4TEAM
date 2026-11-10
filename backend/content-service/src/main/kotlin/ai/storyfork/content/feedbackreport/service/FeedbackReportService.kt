@@ -27,9 +27,6 @@ private const val NOT_FOUND = "제보를 찾을 수 없어요."
 /** 응답 조립에 필요한 작품 제목과 소유자다. */
 private data class WorkInfo(val title: String, val ownerId: String)
 
-/** 쓰기를 할 수 있는 사람이다. 제보자는 공개 범위·정정·철회, 작품 소유자는 확인·답변·상태 변경을 한다. */
-private enum class Actor { REPORTER, OWNER }
-
 private fun WorkAccessResult.info() = WorkInfo(title, ownerId)
 
 /**
@@ -98,7 +95,7 @@ class FeedbackReportService(
     /** 제보자만 공개 범위를 바꾼다. 철회한 뒤에도 바꿀 수 있다. */
     fun setVisibility(id: String, reportId: String, member: String, data: VisibilityRequest): ReportResponse {
         val visibility=reportVisibility(data.visibility)
-        val (row,work)=lock(id,reportId,member,Actor.REPORTER)
+        val (row,work)=lock(id,reportId,member,reporter=true)
         row.visibility=visibility
         touch(row)
         return render(listOf(row),mapOf(id to work),member).single()
@@ -107,7 +104,7 @@ class FeedbackReportService(
     /** 제보자만 정정한다. 원문은 그대로 두고 정정 기록을 더하며 철회 뒤에는 409다. */
     fun correct(id: String, reportId: String, member: String, data: CorrectionRequest): ReportResponse {
         val text=correctionBody(data.body)
-        val (row,work)=lock(id,reportId,member,Actor.REPORTER)
+        val (row,work)=lock(id,reportId,member,reporter=true)
         ensureCanCorrect(row.withdrawnAt)
         amendments.save(FeedbackReportAmendmentEntity(contentId(),row.id,"correct",text))
         touch(row)
@@ -116,7 +113,7 @@ class FeedbackReportService(
 
     /** 제보자만 한 번 철회한다. 상태와 원문은 그대로 두고 철회 기록과 시각만 남기며 두 번째는 409다. */
     fun withdraw(id: String, reportId: String, member: String): ReportResponse {
-        val (row,work)=lock(id,reportId,member,Actor.REPORTER)
+        val (row,work)=lock(id,reportId,member,reporter=true)
         ensureCanWithdraw(row.withdrawnAt)
         val now=now()
         amendments.save(FeedbackReportAmendmentEntity(contentId(),row.id,"withdraw",null,now))
@@ -127,12 +124,11 @@ class FeedbackReportService(
 
     /** 작품 소유자만 확인한다. 확인 시각은 처음 한 번만 기록하고 확인 전이면 확인함이 된다. 이미 확인했다면 아무것도 바꾸지 않는다(멱등). */
     fun check(id: String, reportId: String, member: String): ReportResponse {
-        val (row,work)=lock(id,reportId,member,Actor.OWNER)
-        val status=statusAfterCheck(row.status)
-        if(row.authorCheckedAt==null || status!=row.status) {
+        val (row,work)=lock(id,reportId,member,reporter=false)
+        if(row.authorCheckedAt==null) {
             val now=now()
-            if(row.authorCheckedAt==null) row.authorCheckedAt=now
-            row.status=status
+            row.authorCheckedAt=now
+            row.status=statusAfterCheck(row.status)
             row.updatedAt=now
         }
         return render(listOf(row),mapOf(id to work),member).single()
@@ -141,7 +137,7 @@ class FeedbackReportService(
     /** 작품 소유자만 답변한다. 답변하면 확인 전·확인함은 답변함이 되고 공개 답변만 제3자에게 보인다. */
     fun answer(id: String, reportId: String, member: String, data: ResponseRequest): ReportResponse {
         val text=responseBody(data.body)
-        val (row,work)=lock(id,reportId,member,Actor.OWNER)
+        val (row,work)=lock(id,reportId,member,reporter=false)
         responses.save(FeedbackReportResponseEntity(contentId(),row.id,member,text,data.isPublic))
         row.status=statusAfterResponse(row.status)
         touch(row)
@@ -151,7 +147,7 @@ class FeedbackReportService(
     /** 작품 소유자만 처리 상태를 바꾼다. 확인함·답변함·처리 완료·종료 중 아무 값으로나 바꿀 수 있고 확인 전으로는 되돌릴 수 없다(422). */
     fun setStatus(id: String, reportId: String, member: String, data: StatusRequest): ReportResponse {
         val status=settableStatus(data.status)
-        val (row,work)=lock(id,reportId,member,Actor.OWNER)
+        val (row,work)=lock(id,reportId,member,reporter=false)
         row.status=status
         touch(row)
         return render(listOf(row),mapOf(id to work),member).single()
@@ -163,18 +159,19 @@ class FeedbackReportService(
 
     /**
      * 쓰기 대상 제보를 잠그고 읽는다. 작품이 없거나 삭제됐거나 경로의 작품과 제보가 맞지 않으면 404다.
-     * [actor]가 아니면 403이지만, 요청자가 볼 수도 없는 비공개 제보는 존재를 숨기려고 404다.
+     * 제보자([reporter]=true: 공개 범위·정정·철회)나 작품 소유자([reporter]=false: 확인·답변·상태 변경)가 아니면 403이지만,
+     * 요청자가 볼 수도 없는 비공개 제보는 존재를 숨기려고 404다.
      */
-    private fun lock(id: String, reportId: String, member: String, actor: Actor): Pair<FeedbackReportEntity,WorkInfo> {
+    private fun lock(id: String, reportId: String, member: String, reporter: Boolean): Pair<FeedbackReportEntity,WorkInfo> {
         val work=access.get(id)
         checkContent(!work.deleted,404,"작품을 찾을 수 없어요.")
         val row=reports.lockByIdAndWorkId(reportId,id) ?: throw ContentFailure(404,NOT_FOUND)
         val mine=row.reporterId==member
         val owner=work.ownerId==member
-        if(!(if(actor==Actor.REPORTER) mine else owner)) {
+        if(!(if(reporter) mine else owner)) {
             val seen=reportView(row.visibility,mine,owner,responses.findAllByReportIdIn(listOf(row.id)).any {it.isPublic})
             checkContent(seen!=ReportView.HIDDEN,404,NOT_FOUND)
-            throw ContentFailure(403,if(actor==Actor.REPORTER) "제보자만 할 수 있어요." else "작품 소유자만 할 수 있어요.")
+            throw ContentFailure(403,if(reporter) "제보자만 할 수 있어요." else "작품 소유자만 할 수 있어요.")
         }
         return row to work.info()
     }
