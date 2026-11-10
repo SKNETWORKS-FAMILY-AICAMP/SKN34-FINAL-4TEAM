@@ -10,10 +10,11 @@ import jakarta.validation.Validator
 import java.util.UUID
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
- * `events` 권한 확인이 조회·검증보다 먼저이며, 저장·검증은 기존 [EventService]에 위임한다. 트랜잭션은 위임 호출이 각자 가지며,
- * 관리자 활동 기록은 변경이 성공한 뒤 별도로 저장한다(계약의 한계).
+ * `events` 권한 확인이 조회·검증보다 먼저이며, 저장·검증은 기존 [EventService]에 위임한다. 변경(create·update·delete)은 한 트랜잭션이라
+ * [EventService]의 트랜잭션이 여기에 합류하고, 이벤트 저장과 관리자 활동 기록이 함께 커밋되며 기록이 실패하면 저장도 롤백된다.
  * `@Valid`는 권한보다 먼저 400을 내므로 쓰지 않고, 길이 규칙의 출처인 [EventRequest] 어노테이션을 권한 확인 뒤 직접 검증한다.
  */
 @Service
@@ -23,6 +24,7 @@ class AdminEventService(
     private val validator: Validator,
     private val activities: AdminActivityService,
 ) {
+    @Transactional
     fun create(member: OperationsMember, request: EventRequest) =
         admin(member).create(valid(request)).also { activities.record(member, "EVENT_CREATE", "EVENT", it.id, it.title) }
 
@@ -31,9 +33,11 @@ class AdminEventService(
 
     fun read(member: OperationsMember, id: UUID) = admin(member).read(id)
 
+    @Transactional
     fun update(member: OperationsMember, id: UUID, request: EventRequest) =
         admin(member).update(id, valid(request)).also { activities.record(member, "EVENT_UPDATE", "EVENT", id, it.title) }
 
+    @Transactional
     fun delete(member: OperationsMember, id: UUID) {
         admin(member).delete(id)
         activities.record(member, "EVENT_DELETE", "EVENT", id, null)

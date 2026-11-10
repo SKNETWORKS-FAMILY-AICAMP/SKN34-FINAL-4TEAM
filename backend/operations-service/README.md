@@ -38,7 +38,7 @@ DB 연결과 schema 초기화 권한이 필요합니다. 이전의 ‘DB 없이 
 
 Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·세션 쿠키 인증을 사용하지 않습니다. 기본 사용자 계정도 만들지 않습니다(`spring.autoconfigure.exclude`로 Boot의 `UserDetailsServiceAutoConfiguration`을 제외하며 `ApplicationPropertiesTest`가 고정합니다). 변경 요청의 권한은 브라우저 CSRF 쿠키가 아니라 서비스 헤더에만 의존합니다. 브라우저 CORS 허용을 추가하지 않으며 토큰 보관·사람별 권한 검사를 프런트엔드에 맡기지 않습니다. 서비스 자격을 갖춰도 운영 API 밖의 경로는 403으로 거절합니다.
 
-안전한 공통 오류 DTO는 `{ "code": "...", "message": "..." }`입니다. 원문 입력·토큰·SQL·예외 reason/stack을 응답에 넣지 않습니다.
+안전한 공통 오류 DTO는 `{ "code": "...", "message": "..." }`입니다. 원문 입력·토큰·SQL·예외 reason/stack을 응답에 넣지 않습니다. 한 가지 예외로 포크 정합성 점검(`GET /works/{id}/fork-integrity`)은 Content가 보낸 400/404/409 안내 문구(Content 공개 실패 계약이라 원문·DB 예외를 담지 않음)를 `message`에 그대로 전하며 코드는 아래 표 그대로입니다.
 
 | HTTP | code | 상황 |
 |---|---|---|
@@ -119,10 +119,10 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 - 작품: `GET /works`는 Content `GET /internal/v1/works`의 전체 목록을 `{ items }`로 그대로 돌려주고, `PUT|DELETE /works/{id}/restriction`은 Content 내부 제한 API를 재사용해 `{ workId, ownerId, title, restricted }`를 돌려줍니다. `works` 권한 확인이 Content 호출보다 먼저이고 서비스 트랜잭션·신고 이력은 없습니다. 없는 작품은 404, 그 밖의 Content 실패는 502입니다. 경로 끝에 슬래시를 붙이지 않습니다([작품 조회 계약](../../docs/design/operations-work-contract.md)).
 - 댓글: `GET /comments`는 Content `GET /internal/v1/comments`의 전체 댓글(숨김 포함, 원문 `body`)을 `{ items }`로 그대로 돌려주고, `PUT|DELETE /comments/{commentId}/hidden`은 Content 내부 숨김·게시 복구 API를 재사용해 `OperationsComment`를 돌려줍니다(필드는 계약이 정본). `commentId`·`workId`·`authorId`는 모두 String이라(Content id·author_id는 varchar) 비 UUID 값 한 행이 목록 전체를 502로 만들지 않고, 목록에 보인 id는 그대로 조치할 수 있습니다. `comments` 권한 확인이 Content 호출보다 먼저이고 서비스 트랜잭션·신고 이력은 없습니다. 없는 댓글은 404, 그 밖의 Content 실패는 502입니다. 경로 끝에 슬래시를 붙이지 않습니다([댓글 계약](../../docs/design/operations-comment-contract.md)).
 - 고객지원 문의 `/support/inquiries`: 로그인 회원이 접수(`POST`, 201)·내 문의(`GET /mine`)·상세(`GET /{id}`, 작성자 또는 관리자)를 쓰고, `feedback` 관리자가 목록(`GET ?status=WAITING|ANSWERED`, 최신 100개)과 답변 등록·수정·삭제(`/{id}/replies[/{replyId}]`)를 합니다. 모든 응답은 답변을 오래된 순으로 담은 `SupportInquiry`이고 `status`는 답변 유무로 계산합니다. `member_id`(V6)가 있는 문의만 다루므로 서비스 토큰 API로 만든 기존 레코드는 404이며 `/inquiries` 서비스 토큰 API는 그대로입니다. 다른 사람의 문의는 404, 접수 입력 검증은 `/inquiries`와 같은 규칙(category·title 앞뒤 공백 제거)입니다. 경로·응답 형태는 [고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)을 따릅니다.
-- 관리자 활동 기록: `GET /admin/activities`(최신 100개, `admins` 권한, 수행자 닉네임은 Core 관리자 목록으로 채움). 회원·작품·신고 조치, 관리자 생성, 공지·이벤트 등록·수정·삭제, 문의 답변 등록·수정·삭제가 성공하면 수행자·시각·대상·내역을 남깁니다([활동 기록 계약](../../docs/design/operations-admin-activity-contract.md)).
+- 관리자 활동 기록: `GET /admin/activities`(최신 100개, `admins` 권한, 수행자 닉네임은 Core 관리자 목록으로 채움). 회원·작품·신고 조치, 관리자 생성, 공지·이벤트 등록·수정·삭제, 문의 답변 등록·수정·삭제가 성공하면 수행자·시각·대상·내역을 남깁니다. 신고 검토·증빙 요청, 공지·이벤트, 문의 답변처럼 운영 DB만 바꾸는 조치는 변경과 기록을 한 트랜잭션으로 저장해 기록이 실패하면 변경도 롤백됩니다([활동 기록 계약](../../docs/design/operations-admin-activity-contract.md)).
 - 공지 관리: `/admin/notices`의 `GET`(최신 100개)·`GET /{id}`·`POST`(201+`Location`)·`PUT /{id}`·`DELETE /{id}`(204). `notices` 권한 검사가 입력 값 검증·저장소 호출보다 먼저라 JSON 형식이 맞는 한 비관리자는 입력 값과 무관하게 403입니다. `@Valid`는 권한보다 먼저 400을 내므로 컨트롤러에 쓰지 않고, 권한 확인 뒤 `AdminNoticeService`가 `NoticeRequest`의 `@NotBlank`·`@Size`를 직접 검증해 위반은 400입니다. 공백·U+0000 검증·정렬·응답 DTO는 `/notices`와 같은 `NoticeService`를 재사용합니다([공지 계약](../../docs/design/operations-notice-contract.md)).
 - 공개 공지 조회: `GET /api/v1/operations/public/notices`(최신 100개)·`/{id}`는 인증 없는 별도 SecurityFilterChain입니다. GET 이외는 서비스 토큰·Bearer가 있어도 403이고, 서비스 토큰 체인은 나머지 경로를 그대로 소유합니다. 이 체인(`PublicSecurityConfig`)은 `public/events`도 함께 맡습니다.
-- Core·Content 하위 400/404/409는 보존하고 그 외 실패는 502 `UPSTREAM_FAILED`이며 성공·이력으로 숨기지 않습니다. 고정 timeout(connect 2s, read 5s)·재시도 없음.
+- Core·Content 하위 400/404/409는 상태를 보존하고(응답 문구는 위 표의 일반 문구) 그 외 실패는 502 `UPSTREAM_FAILED`이며 성공·이력으로 숨기지 않습니다. 포크 정합성 점검만 `upstream(keepMessage = true)`로 Content의 안내 문구를 `message`에 전합니다([포크 정합성 점검 계약](../../docs/design/fork-integrity-contract.md)). 고정 timeout(connect 2s, read 5s)·재시도 없음.
 - Content 호출(접수의 작품 조회, 제한·해제)은 DB 트랜잭션 밖에서 실행해 커넥션을 점유하지 않습니다. 호출이 성공한 뒤 신고 갱신·이력·관리자 활동 기록만 한 트랜잭션으로 저장하고, 조회 이후 신고가 바뀌었으면 `@Version`이 409로 거절합니다. 제한·해제는 저장이 실패하면 Content 쪽만 이미 바뀐 상태이며(분산 트랜잭션 없음) 같은 요청을 다시 보내면 맞춰집니다(Content PUT/DELETE는 멱등).
 
 ## 이벤트 관리자·공개 API
@@ -159,7 +159,7 @@ CRUD는 별도 PR로 전달하더라도 **공통 기반 → 공지 V1 → 이벤
 
 ## 검증·인계
 
-로컬은 외부 의존성을 격리한 **선택 순수 단위 테스트만** 실행합니다. Gradle의 `unitTest`는 `*IntegrationTest`/`*PostgresTest`를 제외하고 `integrationTest`는 해당 클래스만 포함합니다. 두 task 모두 빈 발견/선택 불일치를 실패로 처리합니다. 필터·오류 handler 테스트는 servlet 대역·직접 호출·`ExceptionHandlerExceptionResolver` 단독 조립이며 Spring Boot context·실제 HTTP·DB가 없습니다. `ReportServiceTest`는 자원 없는 기록용 트랜잭션 매니저와 AOP 프록시로 `@Transactional` 경계(Content 호출 시 트랜잭션 비활성, 신고·이력·관리자 활동 기록 쓰기는 한 트랜잭션)만 확인합니다.
+로컬은 외부 의존성을 격리한 **선택 순수 단위 테스트만** 실행합니다. Gradle의 `unitTest`는 `*IntegrationTest`/`*PostgresTest`를 제외하고 `integrationTest`는 해당 클래스만 포함합니다. 두 task 모두 빈 발견/선택 불일치를 실패로 처리합니다. 필터·오류 handler 테스트는 servlet 대역·직접 호출·`ExceptionHandlerExceptionResolver` 단독 조립이며 Spring Boot context·실제 HTTP·DB가 없습니다. `ReportServiceTest`는 자원 없는 기록용 트랜잭션 매니저와 AOP 프록시로 `@Transactional` 경계(Content 호출 시 트랜잭션 비활성, 신고·이력·관리자 활동 기록 쓰기는 한 트랜잭션)만 확인합니다. `AdminChangeTransactionTest`는 같은 방식(begin·commit·rollback을 순서대로 남기고 열린 트랜잭션에 합류하는 매니저)으로 공지·이벤트 변경과 활동 기록이 한 트랜잭션인지, 기록이 실패하면 변경도 롤백되는지 확인합니다.
 
 공통 기반 선택 예시:
 
@@ -171,7 +171,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew unitTest \
   --tests ai.storyfork.operations._common.PageResponseTest --no-daemon
 ```
 
-리소스별 `NoticeServiceTest`/`NoticeControllerTest`(공지 관리·공개는 `AdminNoticeServiceTest`/`AdminNoticeControllerTest`/`PublicNoticeControllerTest`), `EventServiceTest`/`EventControllerTest`(관리자·공개 이벤트는 `AdminEventServiceTest`/`AdminEventControllerTest`/`PublicEventControllerTest`), `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`/`SupportInquiryServiceTest`, 신고·회원·관리자·작품·댓글의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`/`WorkServiceTest`/`WorkControllerTest`/`CommentServiceTest`/`CommentControllerTest`/`OperationsCommentJsonTest`, 관리자 활동 기록의 `AdminActivityServiceTest`/`AdminActivityControllerTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인(관리자 이벤트·작품·댓글 포함)과 공개 이벤트(GET 전용) 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`, 공지 관리자·공개 조회 체인은 `NoticeSecurityIntegrationTest`, 고객지원 문의의 Bearer 체인·PostgreSQL 흐름(`@Query` 상태 필터·V6)은 `SupportInquiryIntegrationTest`가, 관리자 활동 기록의 Bearer·`admins` 권한·V7·최신순 목록·공지 변경 기록 흐름은 `AdminActivityIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
+리소스별 `NoticeServiceTest`/`NoticeControllerTest`(공지 관리·공개는 `AdminNoticeServiceTest`/`AdminNoticeControllerTest`/`PublicNoticeControllerTest`), `EventServiceTest`/`EventControllerTest`(관리자·공개 이벤트는 `AdminEventServiceTest`/`AdminEventControllerTest`/`PublicEventControllerTest`), `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`/`SupportInquiryServiceTest`, 신고·회원·관리자·작품·댓글의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`/`WorkServiceTest`/`WorkControllerTest`/`CommentServiceTest`/`CommentControllerTest`/`OperationsCommentJsonTest`, 관리자 활동 기록의 `AdminActivityServiceTest`/`AdminActivityControllerTest`/`AdminChangeTransactionTest`, Content 안내 문구를 전하는 `upstream()` 변환의 `UpstreamTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인(관리자 이벤트·작품·댓글 포함)과 공개 이벤트(GET 전용) 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`, 공지 관리자·공개 조회 체인은 `NoticeSecurityIntegrationTest`, 고객지원 문의의 Bearer 체인·PostgreSQL 흐름(`@Query` 상태 필터·V6)은 `SupportInquiryIntegrationTest`가, 관리자 활동 기록의 Bearer·`admins` 권한·V7·최신순 목록·공지 변경 기록 흐름은 `AdminActivityIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
 
 이번 U+0000 회귀는 `EventServiceTest`·`InquiryServiceTest`·`InquiryReplyServiceTest`만 선택해 **Red 12건**(예외가 발생하지 않아 assertion 실패) 후 최소 검증식 수정으로 **Green 69건**(각각 34·21·14건)을 확인했습니다. Spring/HTTP/DB 테스트는 실행하지 않았습니다.
 

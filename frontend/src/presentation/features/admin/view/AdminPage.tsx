@@ -2,7 +2,7 @@ import { type CSSProperties, type FormEvent, type ReactNode, useEffect, useRef }
 import { Link, useSearchParams } from 'react-router'
 
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
-import { activityActionLabel, activityActor, activityTarget } from '../../../../domain/entities/adminActivity'
+import { ACTIVITY_FORBIDDEN, activityActionLabel, activityActor, activityDetail, activityTarget } from '../../../../domain/entities/adminActivity'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
 import { commentWorkOptions, filterOperationsComments } from '../../../../domain/entities/operationsComment'
@@ -591,29 +591,35 @@ function LiveState({ vm, label, state }: { vm: VM; label: string; state?: Pick<V
 
 /** 72 관리자 활동 기록: 운영 서비스가 남긴 관리자 변경 조치 최신 100개. 수행자 닉네임은 서버가 채우며 없으면 ID를 보여 줍니다. */
 function Audit({ vm }: { vm: VM }) {
-  const rows = vm.live.data?.activities ?? []
+  // null은 조회 권한(관리자 계정 관리)이 없다는 뜻입니다. 실패가 아니라서 다시 불러오기 없이 권한 안내만 보입니다.
+  const activities = vm.live.data?.activities
+  const rows = activities ?? []
   return (
     <div className='panel admin-operations'>
       <LiveState vm={vm} label='활동 기록' />
-      {vm.live.data && (
+      {activities === null && <p className='admin-action-error' role='alert'>{ACTIVITY_FORBIDDEN}</p>}
+      {vm.live.data && activities !== null && (
         <ul className='audit-list'>
           {rows.length
-            ? rows.map((x) => (
-              <li key={x.id}>
-                <time dateTime={x.createdAt}>{kstDateTime(x.createdAt)}</time>
-                <div>
-                  <b>{activityActionLabel(x.action)}</b>
-                  <div className='small muted'>수행자 {activityActor(x)} · 대상 {activityTarget(x)}</div>
-                  {x.detail && <div className='small'>{x.detail}</div>}
-                </div>
-              </li>
-            ))
+            ? rows.map((x) => {
+              const detail = activityDetail(x)
+              return (
+                <li key={x.id}>
+                  <time dateTime={x.createdAt}>{kstDateTime(x.createdAt)}</time>
+                  <div>
+                    <b>{activityActionLabel(x.action)}</b>
+                    <div className='small muted'>수행자 {activityActor(x)} · 대상 {activityTarget(x)}</div>
+                    {detail && <div className='small'>{detail}</div>}
+                  </div>
+                </li>
+              )
+            })
             : <li className='muted'>아직 기록된 조치가 없어요.</li>}
         </ul>
       )}
       <p className='admin-note'>
         최신 100건까지 보여 줘요. 회원·관리자 계정·신고·작품·공지·이벤트·문의 답변의 변경 조치가 성공하면 운영 서버에 남고,
-        조회나 실패한 요청은 기록하지 않아요.
+        조회나 실패한 요청은 기록하지 않아요. 활동 로그는 ‘관리자 계정 관리’ 권한이 있는 관리자만 볼 수 있어요.
       </p>
     </div>
   )
@@ -623,11 +629,14 @@ function Audit({ vm }: { vm: VM }) {
 function Works(p: BodyProps) {
   const { vm, f } = p
   const integrity = useForkIntegrity()
+  // 점검 결과를 열면 결과 제목으로, 닫으면 누른 점검 버튼으로 포커스를 옮깁니다(목록 크기는 보지 않아 검색 중 포커스를 뺏지 않습니다).
+  const root = useAdminDetailFocus(integrity.target?.id ?? null)
+  const check = integrity.report.data
   const rows = (vm.live.data?.works ?? [])
     .filter((w) => (f.category === 'all' || w.originKind === f.category) && has(f.query, w.title, w.authorName, rightsLabel(w)))
     .sort((a, b) => (f.sort === 'titleDesc' ? b.title.localeCompare(a.title, 'ko') : a.title.localeCompare(b.title, 'ko')))
   return (
-    <div className='panel'>
+    <section className='panel' ref={root}>
       <Controls {...p} categories={KINDS} sorts={[['title', '제목순'], ['titleDesc', '제목 역순']]} />
       <LiveState vm={vm} label='작품 목록' />
       {vm.live.data && (
@@ -645,7 +654,7 @@ function Works(p: BodyProps) {
           <tbody>
             {rows.length
               ? rows.map((w) => (
-                <tr key={w.workId}>
+                <tr key={w.workId} className={integrity.target?.id === w.workId ? 'sel' : undefined}>
                   <td>
                     <b>{w.title}</b>
                   </td>
@@ -658,19 +667,31 @@ function Works(p: BodyProps) {
                     </span>
                   </td>
                   <td>
-                    <button
-                      type='button'
-                      className='btn sm'
-                      disabled={blocked(vm, `work:${w.workId}`)}
-                      onClick={() => {
-                        if (w.restricted || window.confirm(`「${w.title}」을 제한할까요? 해제 전까지 독자에게 보이지 않아요.`)) {
-                          void vm.live.setWorkRestriction(w.workId, !w.restricted)
-                        }
-                      }}
-                    >
-                      {w.restricted ? '제한 해제' : '운영 제한'}
-                    </button>
-                    {w.originKind === 'fork' && <button type='button' className='btn sm' onClick={() => integrity.select({ id: w.workId, title: w.title })}>포크 정합성 점검</button>}
+                    <div className='rowend'>
+                      <button
+                        type='button'
+                        className='btn sm'
+                        disabled={blocked(vm, `work:${w.workId}`)}
+                        onClick={() => {
+                          if (w.restricted || window.confirm(`「${w.title}」을 제한할까요? 해제 전까지 독자에게 보이지 않아요.`)) {
+                            void vm.live.setWorkRestriction(w.workId, !w.restricted)
+                          }
+                        }}
+                      >
+                        {w.restricted ? '제한 해제' : '운영 제한'}
+                      </button>
+                      {w.originKind === 'fork' && (
+                        <button
+                          type='button'
+                          className='btn sm'
+                          data-record-id={w.workId}
+                          aria-label={`「${w.title}」 포크 정합성 점검`}
+                          onClick={() => integrity.select({ id: w.workId, title: w.title })}
+                        >
+                          포크 정합성 점검
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -682,24 +703,35 @@ function Works(p: BodyProps) {
           </tbody>
         </Table>
       )}
-      {integrity.target && <section className='panel' aria-label='포크 정합성 점검 결과'>
-        <h3>{integrity.target.title} 정합성 점검</h3>
-        <button type='button' className='btn sm' onClick={() => integrity.select(null)}>점검 결과 닫기</button>
-        {integrity.report.isLoading && <p role='status'>고정 기준 기록을 확인하고 있어요…</p>}
-        {integrity.report.isError && <p role='alert'>점검 결과를 불러오지 못했어요. <button type='button' className='btn sm' onClick={integrity.report.retry}>다시 시도</button></p>}
-        {integrity.report.data && <dl>
-          <dt>기준 회차</dt><dd>{integrity.report.data.basisEpisode}화</dd>
-          <dt>원고 비교</dt><dd>{integrity.report.data.matches ? '일치' : '불일치'}</dd>
-          <dt>포크 스냅샷 해시</dt><dd><code style={{overflowWrap:'anywhere'}}>{integrity.report.data.forkHash}</code></dd>
-          <dt>원작 고정 기록 해시</dt><dd><code style={{overflowWrap:'anywhere'}}>{integrity.report.data.sourceHash}</code></dd>
-          <dt>인물 상태</dt><dd>비교 불가 · 기준 회차의 인물 상태 기록이 없어요.</dd>
-        </dl>}
-      </section>}
+      {integrity.target && (
+        <section className='panel admin-operations' aria-label='포크 정합성 점검 결과'>
+          <h2 tabIndex={-1}>{integrity.target.title} 정합성 점검</h2>
+          <button type='button' className='btn sm' onClick={() => integrity.select(null)}>점검 결과 닫기</button>
+          {integrity.report.isLoading && <p role='status'>고정 기준 기록을 확인하고 있어요…</p>}
+          {integrity.report.isError && (
+            <p role='alert' className='admin-action-error'>
+              점검 결과를 불러오지 못했어요. <button type='button' className='btn sm' onClick={integrity.report.retry}>다시 시도</button>
+            </p>
+          )}
+          {/* 서버가 점검할 수 없다고 안내한 포크(404·409)는 다시 시도해도 같아서 그 문구만 보이고 다시 시도 버튼은 두지 않습니다. */}
+          {check && !check.available && <p role='alert' className='admin-action-error'>{check.message}</p>}
+          {check?.available && (
+            <dl className='ai'>
+              <dt>기준 회차</dt><dd>{check.report.basisEpisode}화</dd>
+              <dt>원고 비교</dt>
+              <dd><span className={`chip ${check.report.matches ? 'ok' : 'wait'}`}>{check.report.matches ? '일치' : '불일치'}</span></dd>
+              <dt>포크 스냅샷 해시</dt><dd><code>{check.report.forkHash}</code></dd>
+              <dt>원작 고정 기록 해시</dt><dd><code>{check.report.sourceHash}</code></dd>
+              <dt>인물 상태</dt><dd>비교 불가 · 기준 회차의 인물 상태 기록이 없어요.</dd>
+            </dl>
+          )}
+        </section>
+      )}
       <p className='admin-note'>
         운영 제한한 작품은 공개 작품 목록·상세·회차 열람에서 보이지 않아요. 제한을 해제하면 작가가 정한 공개 상태로 돌아가요.
         이 조치는 신고 사건에는 남기지 않고 활동 로그에만 기록해요.
       </p>
-    </div>
+    </section>
   )
 }
 
@@ -725,6 +757,7 @@ function Comments(p: BodyProps) {
               <th scope='col'>작성자</th>
               <th scope='col'>공감</th>
               <th scope='col'>상태</th>
+              <th scope='col'>작성일</th>
               <th scope='col' className='act'>조치</th>
             </tr>
           </thead>
@@ -732,17 +765,19 @@ function Comments(p: BodyProps) {
             {rows.length
               ? rows.map((c) => (
                 <tr key={c.commentId}>
-                  <td>{c.body}</td>
-                  <td>{c.workTitle}</td>
+                  <td style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{c.body}</td>
+                  <td>{`${c.workTitle} · ${c.episodeNumber}화`}</td>
                   <td>{c.authorName}</td>
                   <td>{c.likeCount}</td>
                   <td>
                     <span className={`chip ${c.hidden ? 'wait' : 'ok'}`}>{c.hidden ? '숨김' : '게시'}</span>
                   </td>
+                  <td>{kstDateTime(c.createdAt)}</td>
                   <td>
                     <button
                       type='button'
                       className='btn sm'
+                      aria-label={`${c.authorName} 댓글 ${c.hidden ? '게시 복구' : '숨김'}`}
                       disabled={blocked(vm, `comment:${c.commentId}`)}
                       onClick={() => {
                         if (c.hidden || window.confirm(`「${c.workTitle}」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.`)) {
@@ -757,7 +792,7 @@ function Comments(p: BodyProps) {
               ))
               : (
                 <tr>
-                  <td colSpan={6} className='muted'>검색 결과가 없어요.</td>
+                  <td colSpan={7} className='muted'>검색 결과가 없어요.</td>
                 </tr>
               )}
           </tbody>

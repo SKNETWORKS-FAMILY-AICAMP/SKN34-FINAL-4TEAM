@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { OperationsError } from '../../domain/entities/operations'
+import { OperationsError, OperationsRejected } from '../../domain/entities/operations'
 import { isPub } from '../../domain/entities/work'
 import { createFixtureDb } from './fixtureDb'
 import { InMemoryOperationsWorkRepository } from './InMemoryOperationsWorkRepository'
@@ -34,5 +34,11 @@ describe('InMemoryOperationsWorkRepository (서버 없는 시연·테스트용)'
 
   it('없는 작품의 제한은 대상을 찾을 수 없다는 안내 오류다', async () => {
     await expect(new InMemoryOperationsWorkRepository(createFixtureDb()).setRestriction('missing', true)).rejects.toThrow(OperationsError)
+  })
+
+  it('포크 정합성 점검은 데모에서 지원하지 않는다는 안내 문구(다시 시도해도 같은 영구 상태)다', async () => {
+    const failure = await new InMemoryOperationsWorkRepository(createFixtureDb()).forkIntegrity().catch((error: unknown) => error)
+    expect(failure).toBeInstanceOf(OperationsRejected)
+    expect(failure).toMatchObject({ message: '데모에서는 포크 정합성 점검을 지원하지 않아요.' })
   })
 })

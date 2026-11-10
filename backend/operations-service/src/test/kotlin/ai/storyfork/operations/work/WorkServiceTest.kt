@@ -2,6 +2,7 @@ package ai.storyfork.operations.work
 
 import ai.storyfork.operations._common.client.ContentClient
 import ai.storyfork.operations._common.client.ContentWork
+import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.security.OperationsMember
@@ -51,6 +52,16 @@ class WorkServiceTest {
         val report = ai.storyfork.operations.work.service.dto.ForkIntegrity(1,"fork","source",false,"unavailable")
         `when`(content.forkIntegrity(workId)).thenReturn(report)
         assertSame(report,service.forkIntegrity(admin,workId))
+    }
+
+    @Test
+    fun `a Content rejection with its own message reaches the caller untouched`() {
+        grantWorks(admin)
+        val rejection = UpstreamRejection(HttpStatus.CONFLICT, "원작의 고정 기준 기록을 확인할 수 없어요.", IllegalStateException("cause"))
+        `when`(content.forkIntegrity(workId)).thenThrow(rejection)
+
+        assertSame(rejection, assertThrows(UpstreamRejection::class.java) { service.forkIntegrity(admin, workId) })
+        verifyNoInteractions(activities)
     }
 
     @Test

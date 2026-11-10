@@ -1,5 +1,6 @@
 package ai.storyfork.operations._common
 
+import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.OperationsErrorResponse
 import ai.storyfork.operations.notice.repository.NoticeRepository
@@ -123,6 +124,29 @@ class OperationsExceptionHandlerTest {
             assertError(handler.responseStatus(ResponseStatusException(status, "private SQL, token or inquiry body"), request),
                 status.value(), code, message)
         }
+    }
+
+    @Test
+    fun `an upstream rejection keeps its status and code but shows the upstream message`() {
+        val message = "원작의 고정 기준 기록을 확인할 수 없어요."
+        for ((status, code) in listOf(HttpStatus.BAD_REQUEST to "INVALID_REQUEST", HttpStatus.NOT_FOUND to "NOT_FOUND", HttpStatus.CONFLICT to "CONFLICT")) {
+            assertError(handler.upstreamRejected(UpstreamRejection(status, message, IllegalStateException("cause")), request), status.value(), code, message)
+        }
+    }
+
+    @Test
+    fun `the real resolver answers an upstream rejection with its message while a plain status exception stays generic`() {
+        val resolver = adviceResolver()
+        val message = "원작의 고정 기준 기록을 확인할 수 없어요."
+        fun answer(failure: Exception): String {
+            val response = MockHttpServletResponse()
+            assertNotNull(resolver.resolveException(MockHttpServletRequest("GET", "/api/v1/operations/works/x/fork-integrity"), response, null, failure))
+            assertEquals(409, response.status)
+            return response.getContentAsString(StandardCharsets.UTF_8)
+        }
+
+        assertEquals("""{"code":"CONFLICT","message":"$message"}""", answer(UpstreamRejection(HttpStatus.CONFLICT, message, IllegalStateException())))
+        assertEquals("""{"code":"CONFLICT","message":"Resource conflicts with its current state."}""", answer(ResponseStatusException(HttpStatus.CONFLICT, message)))
     }
 
     @Test
