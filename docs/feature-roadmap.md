@@ -585,7 +585,7 @@
 <tr><td>관리자 계정 생성</td><td>✅</td></tr>
 <tr><td>관리자 계정 생성 시 업무별 권한 부여</td><td>✅</td></tr>
 <tr><td>관리자별 부여 권한 조회</td><td>✅</td></tr>
-<tr><td rowspan="2">운영 감사 관리</td><td rowspan="2">72 관리자 활동 기록</td><td>관리자 조치의 수행자·시각·대상·내역 기록</td><td>❌</td><td rowspan="2">—</td></tr>
+<tr><td rowspan="2">운영 감사 관리</td><td rowspan="2">72 관리자 활동 기록</td><td>관리자 조치의 수행자·시각·대상·내역 기록</td><td>❌</td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/274">PR #274</a></td></tr>
 <tr><td>관리자 전체 활동 로그 최신순 조회</td><td>❌</td></tr>
 <tr><td rowspan="7">회원 운영 관리</td><td rowspan="7">73 운영 회원 조회·조치</td><td>운영 회원 목록·역할·상태 조회</td><td>✅</td><td rowspan="7">—</td></tr>
 <tr><td>역할별 회원 목록 필터</td><td>✅</td></tr>
