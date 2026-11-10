@@ -10,8 +10,7 @@ import { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 const graphProps=vi.hoisted(()=>({nodeLabel:undefined as undefined|((n:{name:string})=>string)}))
 vi.mock('react-force-graph-2d',()=>({default:(p:{nodeLabel?:(n:{name:string})=>string})=>{graphProps.nodeLabel=p.nodeLabel;return <div aria-label="그래프 캔버스"/>}}))
 afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.unstubAllEnvs()})
-it('expands the presentation map and closes it with Escape',()=>{
- vi.stubEnv('MODE','mockup')
+it('expands the map and closes it with Escape',()=>{
  vi.stubGlobal('ResizeObserver',class{observe(){}disconnect(){}})
  const a=newSetting('people');a.item.title='길동'
  render(<WorldMap world={{id:'demo',version:1,name:'세계',description:'',settings:[a],analysis:null}}/> )
