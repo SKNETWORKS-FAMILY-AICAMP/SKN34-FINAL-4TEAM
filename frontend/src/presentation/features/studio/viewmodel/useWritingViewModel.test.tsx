@@ -215,3 +215,21 @@ it('발행 이력 조회 실패는 이력 오류로만 표시하고 자동저장
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
   expect(api.writeEpisode).toHaveBeenCalledTimes(1)
 })
+
+it('공개 상태 변경 뒤 늦게 도착한 이전 발행 이력 응답은 무시한다',async()=>{
+  const episode={number:1,draft:{title:'1화',body:'원고',revision:4},versions:[],publishedVersionId:'v1',publicationStatus:'published' as const,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
+  const stopped={...episode,publishedVersionId:null,publicationStatus:'suspended' as const,draft:{...episode.draft,revision:5}}
+  let resolveHistory:(value:{versions:never[];proposals:never[];publicationHistory:{episode:number;versionId:string;publishedAt:string;action:'publish'}[]})=>void=()=>{}
+  const api={setPublicationVisibility:vi.fn().mockResolvedValue(stopped),history:vi.fn().mockImplementation(()=>new Promise(resolve=>{resolveHistory=resolve})),writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(true)
+  try {
+    const {result}=renderHook(()=>useWritingViewModel('w',api))
+    await act(async()=>{})
+    let loading:Promise<void>=Promise.resolve()
+    act(()=>{loading=result.current.loadPublicationHistory()})
+    await act(async()=>{expect(await result.current.changeVisibility(false,false)).toBe(true)})
+    await act(async()=>{resolveHistory({versions:[],proposals:[],publicationHistory:[{episode:1,versionId:'v1',publishedAt:'2026-11-09T00:00:00Z',action:'publish'}]});await loading})
+    expect(result.current.publicationHistory).toBeNull()
+    expect(result.current.historyLoading).toBe(false)
+  } finally {confirm.mockRestore()}
+})
