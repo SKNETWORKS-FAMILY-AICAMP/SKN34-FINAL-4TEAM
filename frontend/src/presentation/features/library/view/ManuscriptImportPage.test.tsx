@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import type { Work } from '../../../../domain/entities/content'
@@ -29,13 +29,20 @@ const mixed: ManuscriptImportSummary = { succeeded: 2, failed: 1, results: [
 const RIGHTS = ['이 원고는 내가 쓴 저작물이거나, 등록할 권리를 가지고 있어요.', '출판 계약 등으로 이 원고의 등록·이용이 제한되지 않아요.', '원고에 포함된 이미지를 사용할 권한이 있어요.']
 const upload = () => new File(['1화 시작\n본문'], '원고.txt', { type: 'text/plain' })
 
-afterEach(() => { cleanup(); vi.clearAllMocks(); document.title = 'STORYFORK' })
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.restoreAllMocks(); document.title = 'STORYFORK' })
 
 function renderPage(search = `?work=${A}`) {
   fakes.episodeUseCase.list.mockResolvedValue([work(A, '첫 작품'), work(B, '둘째 작품')])
   fakes.manuscriptUseCase.preview.mockResolvedValue(preview)
   fakes.manuscriptUseCase.confirm.mockResolvedValue(mixed)
-  return render(<MemoryRouter initialEntries={[`/import${search}`]}><ManuscriptImportPage /></MemoryRouter>)
+  return render(
+    <MemoryRouter initialEntries={[`/import${search}`]}>
+      <Routes>
+        <Route path="/import" element={<ManuscriptImportPage />} />
+        <Route path="/worldstudio" element={<h1>세계관 작업실</h1>} />
+      </Routes>
+    </MemoryRouter>,
+  )
 }
 const isLocked = (element: HTMLElement) => element.closest('fieldset')?.disabled
 async function toPreview() {
@@ -47,6 +54,29 @@ async function toPreview() {
   fireEvent.click(screen.getByRole('button', { name: '미리보기' }))
   await screen.findByRole('heading', { name: '미리보기' })
 }
+
+it('세계관으로 이동할 때 취소하면 회차 조정이 남고 확인하면 이동한다', async () => {
+  await toPreview()
+  const title = screen.getByLabelText<HTMLInputElement>('1번째 회차 제목')
+  fireEvent.change(title, { target: { value: '고친 제목' } })
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+  const worldLink = screen.getByRole('link', { name: '세계관 만들기' })
+
+  fireEvent.click(worldLink)
+  expect(confirm).toHaveBeenCalledTimes(1)
+  expect(screen.getByLabelText<HTMLInputElement>('1번째 회차 제목').value).toBe('고친 제목')
+
+  fireEvent.click(worldLink)
+  expect(await screen.findByRole('heading', { name: '세계관 작업실' })).toBeTruthy()
+})
+
+it('입력하기 전에는 확인 없이 세계관 작업실을 연다', async () => {
+  renderPage()
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.click(screen.getByRole('link', { name: '세계관 만들기' }))
+  expect(await screen.findByRole('heading', { name: '세계관 작업실' })).toBeTruthy()
+  expect(confirm).not.toHaveBeenCalled()
+})
 
 it('h1 하나와 건너뛰기 링크가 닿는 main을 가지며 탭 제목에 소설 가져오기를 쓴다', () => {
   renderPage()

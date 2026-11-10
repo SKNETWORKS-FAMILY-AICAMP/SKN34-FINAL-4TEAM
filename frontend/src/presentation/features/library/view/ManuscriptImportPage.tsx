@@ -46,7 +46,8 @@ function ImportSetup({ vm }: { vm: VM }) {
           : vm.worksError ? <p role="alert">{vm.worksError} <button type="button" className="btn sm" onClick={vm.reloadWorks}>다시 불러오기</button></p>
           : !vm.works.length ? <p>서버에 저장된 작품이 없어요. 먼저 작품을 만들어 주세요. <Go to="/content" className="btn sm">작품 만들기</Go></p>
           : <label className="field">원고를 넣을 작품<select className="inp" value={vm.workId} onChange={(e) => vm.selectWork(e.target.value)}><option value="">작품을 선택해 주세요</option>{vm.works.map((work) => <option key={work.id} value={work.id}>{work.title}</option>)}</select></label>}
-        <Go to="/worldstudio" className="btn sm" disabled={!!vm.busy}>세계관 만들기</Go>
+        <Go to="/worldstudio" className="btn sm" disabled={!!vm.busy}
+          onClick={(e) => { if (!vm.confirmLeaveForWorldStudio()) e.preventDefault() }}>세계관 만들기</Go>
         <h2 className="mi-step">2. 권리 확인</h2>
         {RIGHTS.map((text, index) => <label key={text} className="mi-check"><input type="checkbox" checked={vm.rights[index]} onChange={(e) => vm.setRight(index, e.target.checked)} /> {text}</label>)}
         <p className="small muted">등록은 공개·발행·AI 학습 동의가 아니에요. 등록한 원고는 나만 볼 수 있는 초안·저장 버전으로 들어가요.</p>
