@@ -37,6 +37,9 @@ class FeedbackReportWiringTest {
         assertTrue(tables.getValue("feedback_report_response").contains("is_public boolean NOT NULL"))
         assertTrue(sql.contains("CREATE INDEX feedback_report_episode ON feedback_report (work_id, episode_number, created_at DESC);"))
         assertTrue(sql.contains("CREATE INDEX feedback_report_reporter ON feedback_report (reporter_id, created_at DESC);"))
+        // 서비스가 목록·상세·쓰기 응답마다 report_id IN (...)로 읽는 두 자식 테이블은 report_id 단일 칼럼 인덱스를 가진다.
+        assertTrue(sql.contains("CREATE INDEX feedback_report_amendment_report ON feedback_report_amendment (report_id);"))
+        assertTrue(sql.contains("CREATE INDEX feedback_report_response_report ON feedback_report_response (report_id);"))
         // 제보는 지우지 않는다(DEC-42).
         assertFalse(Regex("deleted_at|DROP |DELETE ").containsMatchIn(sql))
     }

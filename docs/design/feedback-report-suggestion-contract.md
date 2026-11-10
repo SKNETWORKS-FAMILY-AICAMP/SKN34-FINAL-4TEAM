@@ -51,6 +51,7 @@ CREATE TABLE feedback_report_amendment (
     body text,
     created_at timestamptz NOT NULL
 );
+CREATE INDEX feedback_report_amendment_report ON feedback_report_amendment (report_id);
 CREATE TABLE feedback_report_response (
     id varchar(36) PRIMARY KEY,
     report_id varchar(36) NOT NULL REFERENCES feedback_report(id),
@@ -59,6 +60,7 @@ CREATE TABLE feedback_report_response (
     is_public boolean NOT NULL,
     created_at timestamptz NOT NULL
 );
+CREATE INDEX feedback_report_response_report ON feedback_report_response (report_id);
 ```
 
 제보는 삭제하지 않는다(DEC-42 피드백 보존, 철회도 행을 지우지 않음).
