@@ -18,7 +18,6 @@ class NoticeOutboxRelay(
     private val outbox: NoticeOutboxService,
     private val publisher: NoticeEventPublisher,
     @Value("\${app.notification.outbox.relay-enabled:true}") private val enabled: Boolean,
-    @Value("\${app.notification.outbox.batch-size:50}") private val batchSize: Int,
 ) {
     private val log = LoggerFactory.getLogger(NoticeOutboxRelay::class.java)
 
@@ -28,19 +27,20 @@ class NoticeOutboxRelay(
         try { relayOnce() } catch (e: RuntimeException) { log.warn("notice outbox relay failed: {}", e.javaClass.simpleName) }
     }
 
-    /** 지금 보낼 차례인 사건을 한 번 처리하고 보낸 건수를 반환한다. 한 건이 실패해도 나머지는 계속 보낸다. */
+    /**
+     * 대기 사건을 오래된 순으로 보내고 보낸 건수를 반환한다. 발행이 실패하면(브로커 장애) 이번 주기를 멈추고
+     * 행은 그대로 둬 다음 주기에 같은 eventId로 다시 보낸다. 시도 횟수 한도가 없어 장애가 길어도 사건이 버려지지 않는다.
+     */
     fun relayOnce(): Int {
         var sent = 0
-        for (message in outbox.due(batchSize)) {
-            val id = UUID.fromString(message.eventId)
+        for (message in outbox.pending()) {
             try {
                 publisher.publish(message)
             } catch (e: Exception) {
-                log.warn("notice outbox publish failed: eventId={} error={}", id, e.javaClass.simpleName)
-                outbox.markFailed(id, e.javaClass.simpleName)
-                continue
+                log.warn("notice outbox publish failed: eventId={} error={}", message.eventId, e.javaClass.simpleName)
+                break
             }
-            outbox.markSent(id)
+            outbox.markSent(UUID.fromString(message.eventId))
             sent += 1
         }
         return sent
