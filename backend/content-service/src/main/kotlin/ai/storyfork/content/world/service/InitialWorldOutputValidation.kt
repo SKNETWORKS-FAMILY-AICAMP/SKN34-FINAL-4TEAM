@@ -15,7 +15,12 @@ object InitialWorldOutputValidation {
         .enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES).build()
 
     fun parse(input:InitialWorldInput,json:String):InitialWorldOutput {
-        val output=try { requireNotNull(mapper.readValue(json,InitialWorldOutput::class.java)) }
+        val output=try {
+            val tree=mapper.readTree(json)
+            // Kotlin nullable constructor fields otherwise accept absence despite JSON Schema required.
+            tree["candidates"].forEach { require(it.has("subjectId") && it.has("relation")) }
+            requireNotNull(mapper.treeToValue(tree,InitialWorldOutput::class.java))
+        }
             catch(_:RuntimeException) { throw IllegalArgumentException("INVALID_AI_OUTPUT") }
         require(output.schemaVersion=="initial-world.v1")
         require(output.candidates.map { it.localRef }.distinct().size==output.candidates.size)
