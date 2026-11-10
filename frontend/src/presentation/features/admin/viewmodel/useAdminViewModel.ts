@@ -72,6 +72,10 @@ export function useAdminViewModel(
     notices: tab === 'notices' ? await noticeUseCase.list() : [],
     events: tab === 'events' ? await eventUseCase.listAdmin() : [],
   }), [tab, role, q, sort, status, memberUseCase, reportUseCase, noticeUseCase, eventUseCase, operationsWorkUseCase])
+  const [integrityWork, setIntegrityWork] = useState<{ id: string; title: string } | null>(null)
+  const integrityTarget = tab === 'works' ? integrityWork : null
+  const integrity = useAsyncData(async () => integrityTarget ? operationsWorkUseCase.forkIntegrity(integrityTarget.id) : null,
+    [integrityTarget, operationsWorkUseCase])
   const reportId = tab === 'rights' ? sel : null
   const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
   // 고객지원 문의(67): 제보·문의 탭은 상태 필터 목록과 선택한 문의 상세를, 개요는 답변 대기 수만 서버에서 읽습니다.
@@ -126,6 +130,7 @@ export function useAdminViewModel(
       ...live, report, inquiries, inquiry,
       setMemberRestriction: (id: string, restricted: boolean) => runLive(`member:${id}`, restricted ? '회원 이용을 제한했어요.' : '회원 이용 제한을 해제했어요.', () => memberUseCase.setRestriction(id, restricted)),
       createAdmin: (input: AdminInput) => runLive('admin:new', '관리자 계정을 만들고 권한을 저장했어요.', () => memberUseCase.createAdmin(input)),
+      integrity, integrityTarget, setIntegrityWork,
       setWorkRestriction: (id: string, restricted: boolean) => runLive(`work:${id}`, restricted ? '작품을 운영 제한했어요.' : '작품 운영 제한을 해제했어요.', () => operationsWorkUseCase.setRestriction(id, restricted)),
       review: (id: string, decision: ReviewDecision, note: string) => runLive(`report:${id}:review`, '검토 결과를 기록했어요.', () => reportUseCase.review(id, decision, note)),
       setContentRestriction: (id: string, restricted: boolean) => runLive(`report:${id}:restrict`, restricted ? '대상 작품을 제한했어요.' : '대상 작품 제한을 해제했어요.', () => reportUseCase.setContentRestriction(id, restricted)),

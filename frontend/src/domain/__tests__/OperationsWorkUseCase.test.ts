@@ -14,6 +14,7 @@ function setup() {
   const calls: [string, ...unknown[]][] = []
   const repository: OperationsWorkRepository = {
     list: async () => { calls.push(['list']); return [row] },
+    forkIntegrity: async () => { throw new Error("테스트에서 사용하지 않음") },
     setRestriction: async (id, restricted) => { calls.push(['setRestriction', id, restricted]) },
   }
   return { calls, uc: new OperationsWorkUseCase(repository) }

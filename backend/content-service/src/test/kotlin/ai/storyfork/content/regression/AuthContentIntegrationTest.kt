@@ -36,6 +36,7 @@ import tools.jackson.databind.json.JsonMapper
     "DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
     "DATABASE_USER=content_test","DATABASE_PASSWORD=",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
+    "OPERATIONS_SERVICE_TOKEN=fork-integrity-test-token-fixture-000",
 ])
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 class AuthContentIntegrationTest {
@@ -56,6 +57,33 @@ class AuthContentIntegrationTest {
     private fun mutation(path:String,body:String)=request(path).header("Cookie",CsrfFixture.cookie)
         .header("X-CSRF-TOKEN",CsrfFixture.token()).header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(body))
     private fun actor():UUID=UUID.randomUUID().also { id -> `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id)) }
+
+    @Test fun `Fork integrity keeps comparing the pinned original after a replacement publication`() {
+        val owner=actor().toString()
+        val reader=actor()
+        val work=works.create(owner,CreateWorkRequest("원작 점검"))
+        val saved=versions.saveCurrent(work.id,owner,DraftRequest("1화","기준 원고",work.revision,"기준 작가의 말"))
+        publication.publishCurrent(work.id,owner,PublishRequest(saved.draft.revision,true,true,true,saved.version.id))
+        val created=send(mutation("/api/v1/works/${work.id}/forks","""{"episode":1,"title":"포크"}""").header("Authorization","Bearer $reader"))
+        assertEquals(201,created.statusCode(),created.body())
+        val id=json.readTree(created.body()).path("id").asString()
+        val path="/internal/v1/works/$id/fork-integrity"
+        assertEquals(403,send(request(path).header("Authorization","Bearer $reader")).statusCode())
+        fun report(): tools.jackson.databind.JsonNode {
+            val response=send(request(path).header("X-Operations-Service-Token","fork-integrity-test-token-fixture-000"))
+            assertEquals(200,response.statusCode(),response.body())
+            assertFalse(response.body().contains("기준 원고"))
+            return json.readTree(response.body())
+        }
+        val before=report()
+        assertTrue(before.path("matches").asBoolean())
+        assertEquals(1,before.path("basisEpisode").asInt())
+        assertEquals(before.path("sourceHash").asString(),before.path("forkHash").asString())
+        assertEquals("unavailable",before.path("characterStateStatus").asString())
+        val replacement=versions.save(work.id,owner,1,DraftRequest("개정 1화","바뀐 원고",saved.draft.revision))
+        publication.publishEpisode(work.id,owner,1,PublishRequest(replacement.draft.revision,true,versionId=replacement.versions.last().id))
+        assertEquals(before,report())
+    }
 
     @Test fun `Core verified UUID owns private content and another member receives 404`() {
         val user=actor()

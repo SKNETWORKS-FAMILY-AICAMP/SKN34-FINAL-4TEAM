@@ -722,6 +722,7 @@ function Works(p: BodyProps) {
                     >
                       {w.restricted ? '제한 해제' : '운영 제한'}
                     </button>
+                    {w.originKind === 'fork' && <button type='button' className='btn sm' onClick={() => vm.live.setIntegrityWork({ id: w.workId, title: w.title })}>포크 정합성 점검</button>}
                   </td>
                 </tr>
               ))
@@ -733,6 +734,19 @@ function Works(p: BodyProps) {
           </tbody>
         </Table>
       )}
+      {vm.live.integrityTarget && <section className='panel' aria-label='포크 정합성 점검 결과'>
+        <h3>{vm.live.integrityTarget.title} 정합성 점검</h3>
+        <button type='button' className='btn sm' onClick={() => vm.live.setIntegrityWork(null)}>점검 결과 닫기</button>
+        {vm.live.integrity.isLoading && <p role='status'>고정 기준 기록을 확인하고 있어요…</p>}
+        {vm.live.integrity.isError && <p role='alert'>점검 결과를 불러오지 못했어요. <button type='button' className='btn sm' onClick={vm.live.integrity.retry}>다시 시도</button></p>}
+        {vm.live.integrity.data && <dl>
+          <dt>기준 회차</dt><dd>{vm.live.integrity.data.basisEpisode}화</dd>
+          <dt>원고 비교</dt><dd>{vm.live.integrity.data.matches ? '일치' : '불일치'}</dd>
+          <dt>포크 스냅샷 해시</dt><dd><code style={{overflowWrap:'anywhere'}}>{vm.live.integrity.data.forkHash}</code></dd>
+          <dt>원작 고정 기록 해시</dt><dd><code style={{overflowWrap:'anywhere'}}>{vm.live.integrity.data.sourceHash}</code></dd>
+          <dt>인물 상태</dt><dd>비교 불가 · 기준 회차의 인물 상태 기록이 없어요.</dd>
+        </dl>}
+      </section>}
       <p className='admin-note'>
         운영 제한한 작품은 공개 작품 목록·상세·회차 열람에서 보이지 않아요. 제한을 해제하면 작가가 정한 공개 상태로 돌아가요.
         이 조치는 신고 사건이나 활동 로그에 기록하지 않아요.
