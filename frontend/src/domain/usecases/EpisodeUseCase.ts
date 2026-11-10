@@ -73,6 +73,9 @@ export class EpisodeUseCase {
   }
   accept(id: string, pid: string, revision: number) { return this.repository.accept(id,pid,revision) }
   world(id:string,signal?:AbortSignal) {return this.repository.world(id,signal)}
+  createWorldCheckpoint(id: string, signal?: AbortSignal) { return this.repository.createWorldCheckpoint(id, signal) }
+  worldCheckpoints(id: string, signal?: AbortSignal) { return this.repository.worldCheckpoints(id, signal) }
+  worldCheckpoint(id: string, checkpointId: string, signal?: AbortSignal) { return this.repository.worldCheckpoint(id, checkpointId, signal) }
   saveSetting(id:string,sid:string,revision:number,value:SettingInput,sourceToken:string) {return this.repository.saveSetting(id,sid,revision,value,sourceToken)}
   commitSetting(id:string,sid:string,revision:number) {return this.repository.commitSetting(id,sid,revision)}
   revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal) {return this.repository.revertSetting(id,sid,revision,versionId,signal)}
