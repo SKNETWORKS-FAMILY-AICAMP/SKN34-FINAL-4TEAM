@@ -76,8 +76,8 @@ export function WritingStudio({id}:{id:string}) {
           {!active.inherited&&<EpisodeImagePanel workId={id} episode={active.number} draft={vm.draft} unsaved={vm.dirty||vm.busy} onDraftSaved={vm.reload}/>}
           {vm.busy&&<button className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
           <details><summary>현재 원고 이미지 미리보기</summary><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></details>
+          {!active.inherited&&import.meta.env.MODE!=='mockup'&&<EpisodeWorldBasisControl key={active.number} workId={id} number={active.number}/>}
           <section aria-label="회차 관리">
-            {!active.inherited&&import.meta.env.MODE!=='mockup'&&<EpisodeWorldBasisControl key={active.number} workId={id} number={active.number}/>}
             <button className="btn sm" disabled={vm.busy} onClick={()=>void vm.checkOrder()}>순서 변경 가능 범위 확인</button>
             <button className="btn sm" disabled={vm.busy||active.inherited||active.hasDraft===false} onClick={()=>void vm.deleteDraft()}>초안 삭제</button>
             <button className="btn sm" disabled={vm.busy||active.inherited} onClick={()=>void vm.deleteEpisode()}>회차 삭제</button>

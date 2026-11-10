@@ -18,7 +18,7 @@ function EpisodeWorldBasisPanel({ workId, number }: { workId: string; number: nu
     {vm.busy && <p role="status">기준 세계관 요청을 처리하고 있어요…</p>}
     {vm.error && <p role="alert">{vm.error}</p>}
     {vm.notice && <p role="status">{vm.notice}</p>}
-    <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.reload()}>기준 세계관 다시 불러오기</button>
+    {vm.error && <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.reload()}>기준 세계관 다시 불러오기</button>}
     {vm.current && (vm.worlds.length === 0 ? <p>소유한 세계관이 없어요. <Go to="/worldstudio">세계관 작업실 열기</Go></p> : <>
       <label className="field">내 세계관
         <select className="inp" disabled={vm.busy} value={vm.worldId} onChange={event => void vm.chooseWorld(event.target.value)}>
@@ -35,13 +35,14 @@ function EpisodeWorldBasisPanel({ workId, number }: { workId: string; number: nu
             </option>)}
           </select>
         </label> : <p>아직 확정한 버전이 없어요.</p>}
-        {vm.world?.relationshipStatus === 'current' && <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.confirm()}>
-          저장된 인물·설정을 확정 버전으로 만들기
-        </button>}
-        {vm.world?.relationshipStatus && vm.world.relationshipStatus !== 'current' && <p>이 세계관은 작업실에서 현재 관계 상태를 확인한 뒤 새 버전을 확정할 수 있어요.</p>}
         <button type="button" className="btn pri" disabled={vm.busy || !vm.revisionId || basis?.revisionId === vm.revisionId} onClick={() => void vm.choose()}>
           {basis ? '기준 버전 변경' : '기준 버전 선택'}
         </button>
+        {vm.world?.relationshipStatus === 'current' && <p className="small muted">원하는 버전이 없나요?{' '}
+          <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.confirm()}>현재 저장된 인물·설정으로 새 확정 버전 만들기</button>
+          {' '}만든 뒤 위 목록에서 선택해 저장하세요.
+        </p>}
+        {vm.world?.relationshipStatus && vm.world.relationshipStatus !== 'current' && <p>이 세계관은 작업실에서 현재 관계 상태를 확인한 뒤 새 버전을 확정할 수 있어요.</p>}
       </>}
     </>)}
   </section>

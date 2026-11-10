@@ -123,26 +123,17 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   episodeWorldBasis(id: string, number: number, signal?: AbortSignal) {
     return this.request(episodeBasisPath(id, number), episodeBasis, 'GET', undefined, signal)
   }
-  async chooseEpisodeWorldBasis(id: string, number: number, choice: EpisodeWorldBasisChoice, signal?: AbortSignal) {
-    const saved = await this.request(episodeBasisPath(id, number), episodeBasis, 'PUT', choice, signal)
-    if (saved.basis?.worldId !== choice.worldId || saved.basis.revisionId !== choice.revisionId) {
-      throw new Error('회차에 저장한 기준 세계관을 확인할 수 없어요.')
-    }
-    return saved
+  chooseEpisodeWorldBasis(id: string, number: number, choice: EpisodeWorldBasisChoice, signal?: AbortSignal) {
+    return this.request(episodeBasisPath(id, number), episodeBasis, 'PUT', choice, signal)
   }
-  async worldBasisVersions(worldId: string, signal?: AbortSignal) {
-    const rows = await this.request(worldRevisionsPath(worldId), z.array(worldBasisVersion), 'GET', undefined, signal)
-    if (rows.some(row => row.worldId !== worldId)) throw new Error('선택한 세계관의 확정 버전을 확인할 수 없어요.')
-    return rows
+  worldBasisVersions(worldId: string, signal?: AbortSignal) {
+    return this.request(worldRevisionsPath(worldId), z.array(worldBasisVersion), 'GET', undefined, signal)
   }
   async confirmWorldBasisVersion(worldId: string, expectedDraftRevision: number, key: string, signal?: AbortSignal) {
-    const saved = await this.request(worldRevisionsPath(worldId), worldBasisId, 'POST', { expectedDraftRevision, key }, signal)
-    if (saved.worldId !== worldId) throw new Error('확정한 세계관 버전을 확인할 수 없어요.')
-    return saved.revisionId
+    return (await this.request(worldRevisionsPath(worldId), worldBasisId, 'POST', { expectedDraftRevision, key }, signal)).revisionId
   }
   async worldBasisCards(worldId: string, revisionId: string, signal?: AbortSignal) {
     const detail = await this.request(worldRevisionsPath(worldId) + '/' + encodeURIComponent(revisionId), worldBasisDetail, 'GET', undefined, signal)
-    if (detail.worldId !== worldId || detail.revisionId !== revisionId) throw new Error('요청한 세계관 버전을 확인할 수 없어요.')
     return detail.cards.flatMap(({ card }) => card.lifecycle === 'active' ? [{ id: card.id, title: card.title, body: card.body }] : [])
   }
 }

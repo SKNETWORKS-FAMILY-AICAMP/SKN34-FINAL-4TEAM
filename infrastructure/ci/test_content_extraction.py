@@ -46,11 +46,7 @@ class ContentExtractionTest(unittest.TestCase):
         files=sorted((p for p in root.glob('*/*.sql') if p.parent.name in {"work","episode","episode_version","publication","world","fork","proposal"}),key=lambda p:int(re.match(r'V(\d+)__',p.name)[1]))
         # plan leaf(V10~V12)는 이 검사 대상 밖이고, work leaf의 V13은 work_restriction(운영 작품 제한), V14는 work_view(작품 검색·랭킹 조회 기록), V15는 샘플 이관의 공개 표시 메타데이터, V17은 회차 댓글(episode_comment), V18은 work_like(작품 좋아요), V19는 work_interest(관심 작품)·content_event_outbox(알림 사건), V20은 reading_record(독서 기록)다.
         # V21 is work soft delete (work leaf); V22 adds episode publication status and V23 episode author notes without changing existing migration bytes.
-        versions = [int(re.match(r'V(\d+)__', p.name)[1]) for p in files]
-        baseline = [*range(1,10),13,14,15,17,18,19,20,21,22,23]
-        self.assertEqual(baseline, versions[:len(baseline)])
-        self.assertGreater(len(versions), len(baseline))
-        self.assertEqual(len(versions), len(set(versions)))
+        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,26],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
         created=set()
         for path in files:
             for statement in re.split(r'(?=CREATE TABLE )',path.read_text()):
