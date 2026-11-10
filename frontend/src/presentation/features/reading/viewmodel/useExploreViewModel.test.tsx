@@ -8,7 +8,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../../app/store'
 import type { Work } from '../../../../domain/entities/work'
 import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
-import { useRankViewModel, useSearchViewModel } from './useExploreViewModel'
+import { useSearchViewModel } from './useExploreViewModel'
 
 afterEach(cleanup)
 
@@ -23,7 +23,7 @@ const page = (ids: string[], hasMore = true): Page => ({ list: ids.map((id) => (
 const ids = (list?: Work[]) => list?.map((w) => w.id)
 
 /** findWorks 호출마다 응답을 대기시켜, 테스트가 응답 순서(늦은 응답 포함)를 직접 정한다. */
-function setup(path: string, hook: typeof useSearchViewModel | typeof useRankViewModel = useSearchViewModel) {
+function setup(path: string) {
   const calls: { query: Parameters<ReadingUseCase['findWorks']>[0]; signal?: AbortSignal; response: ReturnType<typeof deferred<Page>> }[] = []
   const readingUseCase = {
     findWorks: vi.fn((query: Parameters<ReadingUseCase['findWorks']>[0], signal?: AbortSignal) => {
@@ -33,11 +33,11 @@ function setup(path: string, hook: typeof useSearchViewModel | typeof useRankVie
     }),
   } as unknown as ReadingUseCase
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={createAppStore()}><MemoryRouter initialEntries={[path]} useTransitions={false}>{children}</MemoryRouter></Provider>
-  return { ...renderHook(() => hook(readingUseCase), { wrapper }), calls }
+  return { ...renderHook(() => useSearchViewModel(readingUseCase), { wrapper }), calls }
 }
 /** 첫 서버 페이지를 받아 화면이 목록을 보이는 상태까지 만든다. */
-async function loaded(path: string, first: Page, hook?: typeof useSearchViewModel | typeof useRankViewModel) {
-  const view = setup(path, hook)
+async function loaded(path: string, first: Page) {
+  const view = setup(path)
   await waitFor(() => expect(view.calls).toHaveLength(1))
   await act(async () => view.calls[0].response.resolve(first))
   return view
@@ -139,13 +139,4 @@ it('화면을 떠나면 진행 중인 더 보기 요청을 취소한다', async 
   expect(calls[1].signal?.aborted).toBe(false)
   unmount()
   expect(calls[1].signal?.aborted).toBe(true)
-})
-
-it('/rank는 탭(t)을 함께 보내 원작·Fork를 거르게 하고 더 보기도 같은 조건으로 받는다', async () => {
-  const { result, calls } = await loaded('/rank?t=orig', page(['o1']), useRankViewModel)
-  expect(calls[0].query).toEqual({ t: 'orig', q: '', f: 'all', sort: 'view' })
-  act(() => result.current.more.load())
-  expect(calls[1].query).toEqual({ t: 'orig', q: '', f: 'all', sort: 'view', page: 1 })
-  await act(async () => calls[1].response.resolve(page(['o2'], false)))
-  expect(ids(result.current.list)).toEqual(['o1', 'o2'])
 })

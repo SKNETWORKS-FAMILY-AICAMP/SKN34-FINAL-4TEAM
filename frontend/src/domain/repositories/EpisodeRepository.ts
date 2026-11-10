@@ -1,3 +1,4 @@
+import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
 import type {WorkRegistration,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
 
 export interface EpisodeRepository {
@@ -9,6 +10,9 @@ export interface EpisodeRepository {
   writeEpisode(id:string,number:number,draft:Draft,version:boolean,signal?:AbortSignal):Promise<WritingEpisode>
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal):Promise<WritingEpisode>
   publishEpisode(id:string,number:number,revision:number,versionId:string,rights:boolean,signal?:AbortSignal):Promise<WritingEpisode>
+  publicationSchedules(id: string, number: number, signal?: AbortSignal): Promise<PublicationSchedule[]>
+  savePublicationSchedule(id: string, number: number, input: PublicationScheduleInput, target?: PublicationScheduleRevision, signal?: AbortSignal): Promise<PublicationSchedule>
+  cancelPublicationSchedule(id: string, number: number, target: PublicationScheduleRevision, signal?: AbortSignal): Promise<void>
   publicList(signal?: AbortSignal): Promise<Work[]>
   list(signal?: AbortSignal): Promise<Work[]>
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>

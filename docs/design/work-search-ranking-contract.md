@@ -57,10 +57,13 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 ## Frontend
 
 - `domain/repositories`에 검색·랭킹·조회 기록 계약을 두고 `data`에 HTTP 구현(Zod 검증)을 둔다. `ReadingUseCase`가 이 저장소로
-  홈 `top10`·`rising`과 `/search`·`/rank`의 `findWorks`를 채운다. `--mode mockup`은 기존 메모리 동작을 유지한다.
-- `/search`·`/rank` 정렬 선택지는 최신 순·인기 순(`like`)·조회 순이다. 두 화면은 첫 20개를 받고, 마지막으로 받은 서버 페이지가 20개면
-  목록 아래 "더 보기" 버튼으로 다음 페이지를 이어 붙인다. 검색어·범위·정렬이 바뀌면 첫 페이지부터 다시 받는다.
-  `/rank`의 원작·Fork 탭은 받은 페이지를 화면에서 거르므로, 더 보기 여부는 거르기 전 서버 개수로 정한다. 메모리 데모는 한 번에 전부 보여 준다.
+  홈 랭킹 줄과 `/search`의 `findWorks`, `/rank`의 `rankWorks`(아래 기능 45 절의 `rankings`)를 채운다. `--mode mockup`은 기존 메모리 동작을 유지한다.
+- `/search` 정렬 선택지는 최신 순·인기 순(`like`)·조회 순이다. 첫 20개를 받고, 마지막으로 받은 서버 페이지가 20개면
+  목록 아래 "더 보기" 버튼으로 다음 페이지를 이어 붙인다. 검색어·범위·정렬이 바뀌면 첫 페이지부터 다시 받는다. 메모리 데모는 한 번에 전부 보여 준다.
+  `/rank`는 정렬 선택지·더 보기가 없고 기준·기간별 랭킹이다(아래 기능 45 절).
+- 홈 장르 칩(고전·판타지·SF)은 서버 검색 `f=genre&q=<장르>&sort=like`(페이지 없이 전체)로 채우고, 실패는 홈 오류·재시도로 보인다.
+  홈 "오늘, 스토리포크의 발견"은 랭킹·최신과 겹치지 않게 공개 목록(작품 생성 최신순)을 뒤집은 오래된 순이다. 새 API는 없다.
+  에디터 Pick(관리자 선정)은 만들지 않고 기능표 46 추천 시스템(홈 맞춤·비슷한 작품·세계관 추천, 기준 미정)으로 예정한다. 「소설 모아 보기」 줄은 그때까지 공개 목록 앞 6개다.
 - 홈 TOP10·랭킹 화면의 "데모" 문구를 실제 기준(최근 24시간 조회)으로 바꾼다.
 - 검색 범위는 전체·제목·작가·태그·장르다. 결과 카드는 `/work/:id`로 연결한다. 공개 목록·검색·랭킹은 같은 `WorkResponse`를 한 매퍼
   (`mapReadingWork`, 작가=`authorName`)로 `Work`에 옮기고 샘플 이관의 작품 상세·열람은 같은 서버 목록에서 id로 작품을 찾으므로
@@ -80,5 +83,53 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
   작품 수가 늘면 SQL 조건·페이지네이션으로 옮긴다.
 - 페이지는 전체 공개 목록을 메모리에서 정렬한 뒤 자른다(작가 닉네임 조회도 전체 대상). 총 개수가 없어 마지막 페이지가 정확히 20개면
   "더 보기"를 한 번 더 눌러 빈 결과를 받은 뒤 버튼이 사라진다. 작품 수가 늘면 SQL `LIMIT/OFFSET`과 개수 응답으로 옮긴다.
-- `/rank` 원작·Fork 탭은 서버 페이지를 화면에서 거르므로 한 페이지에 20개보다 적게 보일 수 있다.
-- 기간 집계는 롤링 24시간 두 구간만 있고 주간 집계는 없다.
+- 기존 `ranking`(top·rising)은 롤링 24시간 두 구간뿐이다(주간·월간은 아래 기능 45의 `rankings`).
+
+## 기간별 랭킹·인기 추이 (기능표 45)
+
+2026-11-10 사용자 결정으로 기능표 45의 남은 행(전체·원작·Fork 랭킹, 인기 순위, 방금 업데이트, 최신 Fork, 이번 주 인기 무료,
+집계 기준, 기간별 집계, 갱신 시각)을 위 실시간 랭킹 위에 더한다. 새 테이블·마이그레이션은 없다.
+
+### 집계 기준
+
+| `kind` | 점수(큰 순) | 제외 | 동점 |
+|---|---|---|---|
+| `view` | 기간 안 조회 수(`work_view.viewed_at`) | 0 | 작품 생성 최신순 |
+| `rising` | 기간 안 조회 수 − 바로 앞 같은 길이 기간 조회 수 | 0 이하 | 작품 생성 최신순 |
+| `popular` | 기간 안 새 좋아요 수(`work_like.created_at`) | 0 | 기간 안 조회 수 → 작품 생성 최신순 |
+| `latest` | 작품 생성 시각 | 없음 | — |
+| `updated` | 그 작품 회차의 마지막 발행 시각(`episode_current`와 같은 기준으로 `outcome=applied`인 publish·republish·replace `publication_event.occurred_at`의 최댓값) | 발행 기록 없음 | 작품 생성 최신순 |
+
+- `period`: `day`(24시간)·`week`(7일)·`month`(30일), 기본 `day`. 모두 요청 시각 기준 롤링 구간이며 `latest`·`updated`는 기간을 쓰지 않는다.
+- `type`: `all`(기본)·`original`(원작, `source` 없음)·`fork`(Fork). 순위는 이 범위 안에서 매긴다(상위 N개를 자른 뒤 거르지 않는다).
+- `limit`: 1~50, 기본 10.
+- 대상은 위 공개 판단(`publiclyVisible()`)을 통과한 작품뿐이다. 비공개·운영 제한·삭제 작품은 빠진다.
+- 유료 열람이 없으므로 모든 공개 작품은 무료다. "이번 주 인기 무료 소설"은 `kind=popular&period=week`이다.
+- 집계는 요청마다 계산한다(배치·스냅샷 없음). 응답 `computedAt`이 계산 시각이며 화면은 이를 "HH:mm 기준"으로 보인다.
+
+### 공개 API
+
+| 메서드·경로 | 인증 | 동작 |
+|---|---|---|
+| `GET /api/v1/public/works/rankings?kind=view\|rising\|popular\|latest\|updated&period=day\|week\|month&type=all\|original\|fork&limit=` | 익명 | `{ "items": WorkResponse[], "computedAt": ISO-8601, "kind", "period", "type" }`. `kind`는 필수(누락은 400, 기존 `ranking`과 같음), 나머지는 선택. 잘못된 값·숫자가 아니거나 범위 밖인 `limit`은 422 |
+
+- `items[].views`는 그 `period`의 조회 수, `items[].likes`는 기존과 같은 전체 공개 좋아요 수다.
+  `updated`는 `items[].updatedAt`(마지막 발행 시각)을 채운다. `WorkResponse.updatedAt: Instant?`는 다른 응답에서는 null이다.
+- 기존 `GET /api/v1/public/works/ranking?kind=top|rising`은 바꾸지 않는다(새 화면은 `rankings`를 쓴다).
+- 새 매핑은 `WorkController`가 아닌 새 Controller 파일에 두어 Content 매핑 기준선(`content_extraction_baseline.json`)을 건드리지 않는다.
+
+### Frontend
+
+- `WorkSearchRepository`에 `rankings(query)`를 더하고 `{ items: Work[], computedAt: Date }`를 돌려준다. 매퍼는 `mapReadingWork`를 그대로 쓴다.
+  `updatedAt`이 있으면 카드 `Work.upd`(기존 의미: 지난 분)에 `computedAt − updatedAt`을 분으로 넣는다.
+- `/rank`: 범위 탭(전체·원작·포크 = `type`), 기준(조회·인기·급상승·최신·방금 업데이트 = `kind`), 기간(일간·주간·월간 = `period`,
+  `latest`·`updated`에서는 숨기고 주소에서도 뺌)을 주소 쿼리(`t`·`kind`·`period`)로 두고, 머리말에 "HH:mm 기준"을 보인다. 인기 순 카드는 좋아요 수를 보인다. 페이지 없이 상위 최대 50개(기능 44의 더 보기는 `/search`만)다. 검색은 `/search`가 맡는다. `--mode mockup`은 기간을 쓰지 않으므로 기간 선택·문구와 계산 시각을 숨긴다.
+- 홈: 실시간 인기 TOP10 = `view/day`, 급상승 = `rising/day`, 포크 소설 줄 = `latest/fork`, "방금 업데이트" = `updated`(5개),
+  "이번 주 인기 무료 소설" = `popular/week`(4개). TOP10 머리에 계산 시각을 보인다(랭킹 줄이 하나라도 실패하면 숨김). 홈 '무료' 칩은 서버 작품 전체(무료)를 보인다.
+- 실패는 섹션별로 실패 안내를 보이고 빈 목록으로 숨기지 않는다. `--mode mockup`은 기존 메모리 정렬을 유지한다.
+
+### ponytail 한계
+
+- 요청마다 조회·좋아요·발행 기록을 기간 안에서 다시 센다(캐시·배치 없음). 작품·조회가 늘면 집계 테이블이나 캐시로 옮긴다.
+- 좋아요 취소는 하드 삭제라 기간 안 좋아요 수는 "지금 남아 있는 좋아요 중 그 기간에 누른 것"이다.
+- 익명 조회는 기록하지 않으므로(위 결정) 조회 기준 순위에 들어가지 않는다.

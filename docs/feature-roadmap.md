@@ -97,7 +97,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="325">콘텐츠 서비스</td><td rowspan="6">개발 데이터 관리</td><td rowspan="6">91 개발 샘플 정본 이관</td><td>정규 CSV를 승인된 정확한 DB/schema에 COPY·동일 재실행만 허용·충돌 거절</td><td>❌</td><td rowspan="6">—</td></tr>
+<tr><td rowspan="326">콘텐츠 서비스</td><td rowspan="6">개발 데이터 관리</td><td rowspan="6">91 개발 샘플 정본 이관</td><td>정규 CSV를 승인된 정확한 DB/schema에 COPY·동일 재실행만 허용·충돌 거절</td><td>❌</td><td rowspan="6">—</td></tr>
 <tr><td>Core subject에 대응하는 자격증명 없는 Content member 참조 저장</td><td>❌</td></tr>
 <tr><td>샘플 작품 11개를 정규 작품·소유권 행으로 이관</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/180">PR #180</a></td></tr>
 <tr><td>자체 원고 17개의 정확한 본문·버전·발행 사건 이관</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/180">PR #180</a></td></tr>
@@ -178,7 +178,7 @@
 <tr><td>동일 key·입력 재시도로 관계 저장을 한 번만 완료</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/142">PR #142</a></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132">#132</a></td></tr>
 <tr><td>저장소 간 미완료·관계 token 불일치를 조회 성공으로 숨기지 않음</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/142">PR #142</a></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132">#132</a></td></tr>
 <tr><td>미전환 기존 세계관의 관계 조회에 migration_required 안내</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/142">PR #142</a></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132">#132</a></td></tr>
-<tr><td rowspan="11">작품 관리</td><td rowspan="11">09 작품 CRUD</td><td>작품 생성</td><td>✅</td><td rowspan="11"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/108">#108</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/102">PR #102</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
+<tr><td rowspan="11">작품 관리</td><td rowspan="11">09 작품 CRUD</td><td>작품 생성 <small>(실서버 새 소설 진입은 <code>/content</code>, <code>/new</code> 폼은 목업 전용 · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/243">#243</a>)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/255">PR #255</a></td><td rowspan="11"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/108">#108</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/102">PR #102</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
 <tr><td>작품 유형 선택·저장</td><td>✅</td></tr>
 <tr><td>승인 장르 1~2개 선택·저장</td><td>✅</td></tr>
 <tr><td>해시태그 0~10개 검증·저장</td><td>✅</td></tr>
@@ -237,10 +237,10 @@
 <tr><td>회차 공개 중단</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/246">PR #246</a></td></tr>
 <tr><td>회차 재공개</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/246">PR #246</a></td></tr>
 <tr><td>발행 이력 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/246">PR #246</a></td></tr>
-<tr><td>예약 발행 등록</td><td>❌</td></tr>
-<tr><td>예약 발행 조회</td><td>❌</td></tr>
-<tr><td>예약 발행 변경</td><td>❌</td></tr>
-<tr><td>예약 발행 취소</td><td>❌</td></tr>
+<tr><td>예약 발행 등록 <small>(회차당 대기 1건)</small></td><td>❌ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/256">PR #256</a></td></tr>
+<tr><td>예약 발행 조회 <small>(예약 시각·실행 결과)</small></td><td>❌ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/256">PR #256</a></td></tr>
+<tr><td>예약 발행 변경 <small>(실행 전)</small></td><td>❌ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/256">PR #256</a></td></tr>
+<tr><td>예약 발행 취소 <small>(실행 전)</small></td><td>❌ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/256">PR #256</a></td></tr>
 <tr><td rowspan="20">Fork 관리</td><td rowspan="9">14 Fork CRUD</td><td>Fork 생성 <small>(공개·허용 기준 회차를 쓰기 전 검사; HTTP 생성 연결·선택 단위 확인)</small></td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a></td></tr>
 <tr><td>Fork 상세 조회</td><td>❌</td></tr>
 <tr><td>내 Fork 목록 조회</td><td>❌</td></tr>
@@ -378,24 +378,25 @@
 <tr><td>검색 결과 페이지 조회</td><td>❌</td></tr>
 <tr><td>태그별 작품 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/249">PR #249</a></td></tr>
 <tr><td>빠른 이동 검색 후보 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/249">PR #249</a></td></tr>
-<tr><td rowspan="14">랭킹·트렌드 관리</td><td rowspan="14">45 작품 랭킹·인기 추이</td><td>전체 작품 랭킹 조회</td><td>❌</td><td rowspan="14"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/13">PR #13</a></td></tr>
-<tr><td>원작 작품 랭킹 조회</td><td>❌</td></tr>
-<tr><td>Fork 작품 랭킹 조회</td><td>❌</td></tr>
+<tr><td rowspan="14">랭킹·트렌드 관리</td><td rowspan="14">45 작품 랭킹·인기 추이</td><td>전체 작품 랭킹 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td><td rowspan="14"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/13">PR #13</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>원작 작품 랭킹 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>Fork 작품 랭킹 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
 <tr><td>최신 작품 순위 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/175">PR #175</a></td></tr>
-<tr><td>인기 작품 순위 조회</td><td>❌</td></tr>
+<tr><td>인기 작품 순위 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
 <tr><td>조회수 순위 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/175">PR #175</a></td></tr>
 <tr><td>실시간 인기 TOP10 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/175">PR #175</a></td></tr>
 <tr><td>24시간 인기 급상승 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/175">PR #175</a></td></tr>
-<tr><td>방금 업데이트 작품 조회</td><td>❌</td></tr>
-<tr><td>최신 Fork 작품 조회</td><td>❌</td></tr>
-<tr><td>이번 주 인기 무료 소설 조회</td><td>❌</td></tr>
-<tr><td>랭킹 집계 기준 확정</td><td>❌</td></tr>
-<tr><td>기간별 랭킹 집계</td><td>❌</td></tr>
-<tr><td>랭킹 갱신 시각 조회</td><td>❌</td></tr>
-<tr><td rowspan="6">홈 큐레이션 관리</td><td rowspan="4">46 홈 추천·편성</td><td>에디터 Pick 작품 조회</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a></td></tr>
-<tr><td>오늘의 발견 작품 조회</td><td>❌</td></tr>
-<tr><td>홈 장르별 작품 조회</td><td>❌</td></tr>
-<tr><td>에디터 Pick 선정 관리 방식 결정</td><td>❌</td></tr>
+<tr><td>방금 업데이트 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>최신 Fork 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>이번 주 인기 무료 소설 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>랭킹 집계 기준 확정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>기간별 랭킹 집계</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>랭킹 갱신 시각 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td rowspan="7">추천·홈 탐색 관리</td><td rowspan="5">46 추천 시스템</td><td>홈 개인 맞춤 추천(좋아요·관심·독서 기록 기반, 비회원은 인기순)</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a></td></tr>
+<tr><td>작품 상세 비슷한 작품 추천(장르·태그·원작·세계관)</td><td>❌</td></tr>
+<tr><td>세계관 추천·많이 쓰는 세계관(공개 세계관 둘러보기 이후, 예정)</td><td>❌</td></tr>
+<tr><td>홈 장르별 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/commit/e3181356">커밋 e3181356</a></td></tr>
+<tr><td>오늘의 발견 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/commit/e3181356">커밋 e3181356</a></td></tr>
 <tr><td rowspan="2">55 홈 탐색 필터</td><td>홈 무료 작품만 보기</td><td>❌</td><td rowspan="2">—</td></tr>
 <tr><td>홈 Fork가 있는 원작만 보기</td><td>❌</td></tr>
 <tr><td rowspan="3">검색 트렌드 검토</td><td rowspan="3">47 인기 검색어(추가 검토)</td><td>인기 검색어 제공 여부 결정</td><td>❌</td><td rowspan="3">—</td></tr>

@@ -19,6 +19,7 @@ import ai.storyfork.content.work.domain.*
 import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
+import java.time.Instant
 
 @Service
 @Transactional(transactionManager="contentTransactionManager")
@@ -80,6 +81,24 @@ class WorkService(
         val byId=visible.associateBy {it.id}
         val ranked=rankingIds(rankingKind,visible.map {it.id},counts).map {byId.getValue(it)}
         return WorkListResponse(withLikes(views(ranked,true).map {it.copy(views=counts.getValue(it.id).recent)}))
+    }
+    /**
+     * 기간(period)·종류(kind)·범위(type)별 공개 작품 랭킹이다(기능표 45). 점수·제외·동점은 [periodRankingIds]가 정하고,
+     * 공개 여부(`publiclyVisible`)와 type은 그 순위를 앞에서부터 훑으며 걸러 limit개를 모은다(상위 N개를 자른 뒤 거르지 않는다).
+     * 잘못된 kind·period·type·limit은 어떤 조회보다 먼저 422다. 응답의 views는 그 period의 조회 수, likes는 전체 공개 좋아요 수다.
+     * ponytail: 요청마다 조회·좋아요·발행 기록을 기간 안에서 다시 센다(캐시·배치 없음). 작품 수가 늘면 집계 테이블이나 캐시로 옮긴다.
+     */
+    fun rankings(kind: String,period: String?,type: String?,limit: String?): WorkRankingResponse {
+        val rankKind=queryOption(kind,RankKind.VIEW,"kind");val rankPeriod=queryOption(period,RankPeriod.DAY,"period")
+        val rankType=queryOption(type,RankType.ALL,"type");val size=rankLimit(limit)
+        val now=Instant.now()
+        val counts=viewService.counts(rankPeriod.length)
+        val newLikes=if(rankKind==RankKind.POPULAR) likeService.countsSince(now.minus(rankPeriod.length)) else emptyMap()
+        val updated=if(rankKind==RankKind.UPDATED) publication.lastPublished() else emptyMap()
+        val ranked=periodRankingIds(rankKind,works.findAll().sortedByDescending {it.createdAt}.map {it.id},counts,newLikes,updated)
+        val shown=ranked.asSequence().map {access.get(it)}.filter {it.publiclyVisible() && matchesType(rankType,it.source!=null)}.take(size).toList()
+        val items=views(shown,true).map {it.copy(views=counts[it.id]?.recent ?: 0,updatedAt=updated[it.id])}
+        return WorkRankingResponse(withLikes(items),now,rankKind.name.lowercase(),rankPeriod.name.lowercase(),rankType.name.lowercase())
     }
     private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> =
         views(works.findAll().sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()},true)

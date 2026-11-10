@@ -1,7 +1,8 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
-import type {WorkRankingKind, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
+import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput, type WorkRegistration} from '../../domain/entities/content'
+import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
@@ -29,12 +30,25 @@ const readingWork = work.omit({draft:true}).extend({
   /** 공개 좋아요 수(서버 값). 공개 목록·검색·랭킹 응답에서만 채워지고 소유자 응답에서는 0이다. */
   likes:z.number().int().nonnegative(),
 })
+const instant = z.iso.datetime({offset:true})
+/** 기간별 랭킹 응답: items는 공개 작품(방금 업데이트만 updatedAt=마지막 발행 시각)이고 computedAt은 서버가 계산한 시각이다. kind·period·type echo는 쓰지 않는다. */
+const rankingsResponse = z.object({items:z.array(readingWork.extend({updatedAt:instant.nullable().optional()})),computedAt:instant})
 const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.string(),name:z.string(),body:z.string(),
   aliases:z.array(z.string()),tags:z.array(z.string()),properties:z.array(z.object({name:z.string(),value:z.string()})),
   color:z.string(),image:z.string().nullable(),episode:z.number().int().nullable(),line:z.string().nullable(),participants:z.array(z.string()),
   knowledge:z.array(z.object({text:z.string(),knownAt:z.number().int(),publicAt:z.number().int()})),links:z.array(z.object({to:z.string(),kind:z.string()})),
 })
 const readingWorld = z.object({workId:z.string(),episode:z.number().int().positive(),documents:z.array(readingDocument)})
+const publicationSchedule = z.object({
+  id: z.string().min(1),
+  versionId: z.string().min(1),
+  scheduledAt: z.iso.datetime(),
+  status: z.enum(['pending', 'published', 'failed', 'canceled']),
+  revision: z.number().int().nonnegative(),
+  completedAt: z.iso.datetime().nullable(),
+  failureReason: z.string().nullable(),
+})
+const schedulesPath = (id: string, number: number) => `/works/${encodeURIComponent(id)}/episodes/${number}/publication-schedules`
 export type ReadingWorkRecord = z.infer<typeof readingWork>
 export type ReadingWorldRecord = z.infer<typeof readingWorld>
 
@@ -76,6 +90,18 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   writeEpisode(id:string,number:number,value:Draft,version:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/${version?'versions':'draft'}`,writing,version?'POST':'PUT',value,signal)}
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/restore`,writing,'POST',{revision,versionId},signal)}
   publishEpisode(id:string,number:number,revision:number,versionId:string,rightsConfirmed:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/publish`,writing,'POST',{revision,versionId,rightsConfirmed},signal)}
+  publicationSchedules(id: string, number: number, signal?: AbortSignal) {
+    return this.request(schedulesPath(id, number), z.array(publicationSchedule), 'GET', undefined, signal)
+  }
+  savePublicationSchedule(id: string, number: number, input: PublicationScheduleInput, target?: PublicationScheduleRevision, signal?: AbortSignal) {
+    const path = schedulesPath(id, number)
+    return target
+      ? this.request(`${path}/${encodeURIComponent(target.id)}`, publicationSchedule, 'PUT', { ...input, revision: target.revision }, signal)
+      : this.request(path, publicationSchedule, 'POST', input, signal)
+  }
+  cancelPublicationSchedule(id: string, number: number, target: PublicationScheduleRevision, signal?: AbortSignal) {
+    return this.request(`${schedulesPath(id, number)}/${encodeURIComponent(target.id)}?revision=${target.revision}`, z.undefined(), 'DELETE', undefined, signal)
+  }
   async publicList(signal?: AbortSignal) {
     const rows = await this.request('/public/works', z.array(work.omit({draft:true})), 'GET', undefined, signal)
     return rows.map(w=>({...w,readOnly:true,draft:{title:'',body:'',revision:0}}))
@@ -89,8 +115,14 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     if (query.size !== undefined) params.set('size', String(query.size))
     return (await this.request(`/public/works?${params}`, z.array(readingWork), 'GET', undefined, signal)).map((w) => mapReadingWork(w))
   }
-  async ranking(kind: WorkRankingKind, signal?: AbortSignal) {
-    return (await this.request(`/public/works/ranking?kind=${kind}`, z.array(readingWork), 'GET', undefined, signal)).map((w) => mapReadingWork(w))
+  /** Work.upd는 마지막 업데이트 후 지난 분이라, updatedAt은 서버 계산 시각(computedAt) 기준으로 바꾼다(브라우저 시계와 무관). */
+  async rankings(query: WorkRankingQuery, signal?: AbortSignal) {
+    const params = new URLSearchParams({ kind: query.kind })
+    for (const key of ['period', 'type', 'limit'] as const) if (query[key] != null) params.set(key, String(query[key]))
+    const { items, computedAt } = await this.request(`/public/works/rankings?${params}`, rankingsResponse, 'GET', undefined, signal)
+    const at = new Date(computedAt)
+    const minutesSince = (updatedAt: string) => Math.max(0, Math.floor((at.getTime() - Date.parse(updatedAt)) / 60000))
+    return { computedAt: at, items: items.map((w) => ({ ...mapReadingWork(w), ...(w.updatedAt ? { upd: minutesSince(w.updatedAt) } : {}) })) }
   }
   async recordView(id: string, number: number, signal?: AbortSignal) {
     if (!getAccessToken()) return // 익명 열람은 회원 식별이 없어 기록하지 않는다.

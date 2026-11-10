@@ -1,5 +1,6 @@
 import type {EpisodeRepository} from '../repositories/EpisodeRepository'
 import type { Draft, SettingInput, WorkRegistration } from '../entities/content'
+import { toKstDateTimeInput, type PublicationScheduleRevision } from '../entities/publicationSchedule'
 
 export class EpisodeUseCase {
   private readonly repository: EpisodeRepository
@@ -21,6 +22,21 @@ export class EpisodeUseCase {
   publishEpisode(id:string,number:number,revision:number,versionId:string,rights:boolean,signal?:AbortSignal) {
     if(!versionId || !rights) return Promise.reject(new Error('저장 버전 선택과 공개 권리 확인이 필요해요.'))
     return this.repository.publishEpisode(id,number,revision,versionId,rights,signal)
+  }
+  publicationSchedules(id: string, number: number, signal?: AbortSignal) {
+    return this.repository.publicationSchedules(id, number, signal)
+  }
+  async savePublicationSchedule(id: string, number: number, versionId: string, kst: string, rightsConfirmed: boolean, target?: PublicationScheduleRevision, signal?: AbortSignal) {
+    if (!versionId || !rightsConfirmed) throw new Error('저장 버전 선택과 공개 권리 확인이 필요해요.')
+    const timestamp = Date.parse(kst + '+09:00')
+    if (!Number.isFinite(timestamp) || toKstDateTimeInput(new Date(timestamp).toISOString()) !== kst) {
+      throw new Error('한국 시각으로 예약 날짜와 시간을 확인해 주세요.')
+    }
+    if (timestamp <= Date.now()) throw new Error('예약 시각은 미래로 지정해 주세요.')
+    return this.repository.savePublicationSchedule(id, number, { versionId, scheduledAt: new Date(timestamp).toISOString(), rightsConfirmed }, target, signal)
+  }
+  cancelPublicationSchedule(id: string, number: number, target: PublicationScheduleRevision, signal?: AbortSignal) {
+    return this.repository.cancelPublicationSchedule(id, number, target, signal)
   }
   publicList(signal?: AbortSignal) { return this.repository.publicList(signal) }
   list(signal?: AbortSignal) { return this.repository.list(signal) }
