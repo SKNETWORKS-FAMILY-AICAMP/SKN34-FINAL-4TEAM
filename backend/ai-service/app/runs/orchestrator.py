@@ -14,6 +14,7 @@ from app.agents.semantic_review import semantic_review
 from app.agents.development import development
 from app.agents.template_recommendation import template_recommendation
 from app.agents.simulation import simulation
+from app.agents.writing import writing
 from .routing import Capability
 
 
@@ -117,10 +118,10 @@ REGISTRY = MappingProxyType({
                                  ("review", "development", "writing", "world_plot"), 14),
     "development": CapabilitySpec(development, ("context",),
                                   ("ContextPacket.v1", "SimulationReport.v1"), "BeatPlan.v1", ("writing",), 1),
-    "writing": CapabilitySpec(_unavailable_handler, ("context", "canonical"),
+    "writing": CapabilitySpec(writing, ("context", "canonical"),
                               ("ContextPacket.v1", "Findings.v1", "BeatPlan.v1", "SimulationReport.v1", "ChangeSet.v1"),
                               "GeneratedText.v1", ("mechanical", "review"), 1),
-    "editing": CapabilitySpec(_unavailable_handler, ("context", "canonical"),
+    "editing": CapabilitySpec(writing, ("context", "canonical"),
                               ("ContextPacket.v1", "Findings.v1", "ChangeSet.v1"), "ChangeSet.v1", (), 1),
     "world_plot": CapabilitySpec(_unavailable_handler, ("context", "canonical"),
                                  ("ContextPacket.v1", "SimulationReport.v1"), "ChangeSet.v1", ("writing", "editing"), 1),

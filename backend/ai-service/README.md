@@ -37,6 +37,12 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 
 ## OpenAI와 향후 경계
 
+TASK 18은 `agents/writing.py`의 writing/editing Registry와 run별 adapter를 구현했습니다.
+새 글·콘티 확장은 generated_text, 명시 저장 요청과 합성 예약이 있으면 document_create_proposal,
+선택 문단의 문체·말투는 한 호출·한 Patch의 change_set으로 반환합니다. 같은 작품의 예문과 화자별 knownBy를 확인하고
+출력 후 Content 판본·구간·hash·현재 권한을 다시 검증합니다. 모든 결과는 Mock 제안이며 실제 모델·Content prepare/승인·저장은
+연결하지 않았습니다. 기존 generation 이어쓰기 API는 유지합니다. [계약·선택 단위·한계](../../docs/writing-ai-architecture/task18-handoff.md).
+
 TASK 16은 `agents/development.py`의 `development` Registry와 run별 adapter를 연결했습니다. `next_insights/alternative_plot/next_episode_planning/expand_conti`에서 요청 개수의 가상 인사이트·BeatPlan만 반환합니다. 전체 coverage·직전 회차·선택 복선/콘티/플롯/인물 refs를 검증하고 선택 Simulation은 독립 Task로 실행합니다. 실제 원고 생성·저장·공개 Run 자동 조립은 없습니다. [TASK 16 계약·검증·한계](../../docs/writing-ai-architecture/task16-handoff.md).
 
 TASK 15는 `agents/semantic_review.py`를 고정 `review` Registry에 등록했습니다. 지식·인과·감정·세계 규칙·복선/회수·대사 시점·행동의 Mock 정형 판정을 근거와 대조합니다. 모델 해석과 Simulation은 suspected로 반환하고 반대 근거·의도적 변경이 겹치는 수치 차이도 오류 확정을 보류합니다. 명시 재현 필요와 opt-in에만 TASK 14를 별도 예산의 선행 Task로 실행합니다. 원문 span·판본·hash, 전체 coverage·반대 근거·비확정 이유를 검증하며 수정 요청과 확정 Findings가 있어야 editing 후속을 등록합니다. 실제 모델·공개 Run 자동 조립·Writing 구현·원고 반영은 추가하지 않았습니다. [TASK 15 DTO·실행 예·검증·한계](../../docs/writing-ai-architecture/task15-handoff.md).

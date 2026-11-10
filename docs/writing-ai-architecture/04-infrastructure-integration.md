@@ -161,6 +161,10 @@ HTTP 준비·재생성, AI 결과 자동 연결, 설정·콘티·플롯 writer, 
 기존 Content 문맥의 정확한 draft 또는 발행 원문 발췌 근거만 검증한다. 실제 Wiki·Mock 검색 근거의 적용은 허용하지 않는다.
 [구현 DTO·범위·로컬 단위와 CI 대기](task17-handoff.md).
 
+TASK 18의 Python `WritingChangeSet`/`DocumentCreateProposal`은 Mock AI 후보다. Content의 proposal ID/판/hash를
+발급한 불변 manifest가 아니다. Content가 draft·작품 revision과 제목+본문 전체 hash 및 예약 ID를 재검증해 prepare하는
+실 변환·transport는 후속이며, 현재 AI 결과에서 실제 승인 API나 DB를 호출하지 않는다([계약](task18-handoff.md)).
+
 ### 16. 멀티턴 복원
 
 ```mermaid

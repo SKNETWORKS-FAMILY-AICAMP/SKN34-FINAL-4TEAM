@@ -14,6 +14,11 @@ MVP 기능은 위 1~4의 모든 Agent를 합성 자료로 조합할 수 있는 �
 
 ## 프로젝트 루트 기준 파일 배치안
 
+TASK 18은 `agents/writing.py`에 생성문·콘티 확장·선택 문단의 문체/말투 편집과 run별 adapter를 구현했다.
+시나리오 D는 모델 대역 1회·Patch 하나로 처리하며 선택 밖 원문 보존·span/hash/revision·화자 지식·출력 후 Content 재검증을
+선택 단위로 확인한다. 기존 이어쓰기 API는 보존하며 실제 모델·Content 불변 제안 준비/승인·저장은 연결하지 않았다.
+[DTO·검증·품질 한계](task18-handoff.md).
+
 TASK 17은 `ChangeProposalService`에 PG 원고의 불변 ChangeSet 판·멱등 결정·적용 영수증과 별도 실패 시도를 구현했다.
 다중 PG 대상의 전검증과 기존 EpisodeVersion 저장을 재사용하며 V18은 코드만 작성했다. 실제 DB rollback·동시 승인과
 HTTP 수용은 CI 대기다. 기존 accept는 유지하고 실제 Writing/모델·자동 준비·재개·설정/플롯 writer는 연결하지 않는다.

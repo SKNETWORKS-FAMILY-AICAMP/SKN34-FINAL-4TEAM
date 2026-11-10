@@ -141,6 +141,6 @@ CodeRabbit `review --agent --uncommitted --include-untracked`는 TASK 17 코드�
 추천: 현재 내부 준비 seam과 PG 원고 범위 유지 후 CI를 확인한다. 설정/플롯 writer와 실 Agent 연결은 별도 계약·새 단계가 대안이다.
 실제 CI·HTTP·PG 동시성/rollback 증거가 확인되기 전 제품 행은 ❌를 유지한다.
 
-TASK 17 로컬 커밋 예정 메시지: `feat: Content 불변 제안과 멱등 적용 영수증 구현` (Refs #60, #54).
-최종 해시·리뷰 결과는 최종 보고 및 후속 문서 기록에 남긴다. push·PR 생성/변경·병합·배포는 하지 않는다.
-TASK 18은 사용자 새 요청·해당 문서를 받기 전 착수하지 않는다.
+TASK 17 로컬 커밋: `5471bbe feat: Content 불변 제안과 멱등 적용 영수증 구현` (Refs #60, #54).
+push·PR 생성/변경·병합·배포는 하지 않았다.
+후속 TASK 18은 같은 날 사용자 새 요청과 해당 문서를 받은 뒤 별도 `feat/62-writing-editing`에서 시작했다.

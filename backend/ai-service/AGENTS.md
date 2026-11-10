@@ -5,6 +5,10 @@
 
 ## 구조
 
+- TASK 18의 `agents/writing.py`는 생성문·콘티 확장과 선택 문단 편집 후보만 반환한다.
+  `writing_tasks`와 run별 `WritingHandler`를 주입하며 writing/editing은 동일 DTO handler·모델 대역 최대 1회를 사용한다.
+  Content 예약/승인/저장 transport와 실제 모델은 연결하지 않는다([DTO·지식 투영·검증](../../docs/writing-ai-architecture/task18-handoff.md)).
+
 - TASK 16의 `agents/development.py`는 인사이트·대안·다음 회차 계획·콘티 확장의 가상 계획만 반환한다.
   `development_tasks`와 run별 `DevelopmentHandler`를 주입한다. 선택 Simulation은 별도 Task이며 Writing·저장은 호출하지 않는다.
   [입력·검증·제약](../../docs/writing-ai-architecture/task16-handoff.md).

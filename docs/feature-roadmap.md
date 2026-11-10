@@ -466,8 +466,8 @@
 <tr><td>독자 오류 검증 실행</td><td>❌</td></tr>
 <tr><td>검증 근거 조회</td><td>❌</td></tr>
 <tr><td rowspan="13">AI 집필 지원</td><td rowspan="13">27 대화·제안 관리</td><td>허용 문맥 미리보기</td><td>❌</td><td rowspan="13"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/57">#57</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56">#56</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/62">#62</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/60">#60</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/55">#55</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="#미등록-049">미등록-049</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
-<tr><td>이어쓰기 요청</td><td>❌</td></tr>
-<tr><td>부분 수정 요청</td><td>❌</td></tr>
+<tr><td>이어쓰기 요청</td><td>❌ <small>(TASK 18 신규 생성/콘티 확장 Mock handler·단위 확인, 기존 단일 API 유지·실 모델/UI 연결 대기)</small></td></tr>
+<tr><td>부분 수정 요청</td><td>❌ <small>(TASK 18 선택 문단 문체·말투 1회/1 Patch·hash/revision 재검증 단위 확인, Content 실제 연결/CI 대기)</small></td></tr>
 <tr><td>AI 대화 요청</td><td>❌</td></tr>
 <tr><td>대화 목록 조회</td><td>❌</td></tr>
 <tr><td>대화 상세 조회</td><td>❌</td></tr>

@@ -123,6 +123,11 @@ Slot Resolver는 인증된 UI 대상 → 같은 scope의 이전 대상 → 회�
 
 ## Registry와 작업 상태 계약
 
+2026-11-10 TASK 18: writing/editing에 `agents/writing.py`의 동일 DTO handler와 run별 WritingHandler를 등록했다.
+기존 GeneratedText.v1/ChangeSet.v1·model_cap=1을 유지한다. writing_tasks는 Context→생성/편집 한 Task를 만들고
+선택 범위를 기존 PatchTarget에 고정한다. 실제 Content 준비/승인·모델·공개 Run 자동 조립은 추가하지 않았다.
+[입출력·투영·단위·한계](task18-handoff.md).
+
 2026-11-10 TASK 13: 고정 `template` capability에 `agents/template_recommendation.py`의 DTO handler와 run별 adapter를 연결했다. 기본 계획의 모델 0회는 유지하며 명시 맞춤 설명에는 별도 1회 예산이 필요하다. 공개 Content 입력과 카탈로그 권리·판본을 Python에서 재확인한다. [실제 계약·단위 검증·미연결 범위](task13-handoff.md).
 
 2026-11-09 TASK 12: `mechanical`에 `agents/review.py`의 DTO handler와 run별 TaskRunner adapter를 구현했다. model_cap=0을 유지하고 검사 종류별 규칙만 실행한다. 확정 불일치가 있을 때만 `has_confirmed_findings=true`이며 `simulation_required`는 false다. [Finding·입력 기준·검증](task12-handoff.md). 의미 Review·실제 provider·원고 쓰기는 연결하지 않았다.
