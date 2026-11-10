@@ -4,6 +4,10 @@ import ai.storyfork.operations._common.client.ContentWork
 import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.PageResponse
+import ai.storyfork.operations.comment.controller.CommentController
+import ai.storyfork.operations.comment.service.CommentService
+import ai.storyfork.operations.comment.service.dto.OperationsComment
+import ai.storyfork.operations.comment.service.dto.OperationsCommentList
 import ai.storyfork.operations.event.controller.AdminEventController
 import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.AdminEventService
@@ -15,6 +19,7 @@ import ai.storyfork.operations.report.service.dto.ReportListResponse
 import ai.storyfork.operations.work.controller.WorkController
 import ai.storyfork.operations.work.service.WorkService
 import ai.storyfork.operations.work.service.dto.OperationsWorkList
+import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -36,7 +41,7 @@ import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.json.JsonMapper
 
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
-@WebMvcTest(controllers = [ReportController::class, AdminEventController::class, PublicEventController::class, WorkController::class], properties = [
+@WebMvcTest(controllers = [ReportController::class, AdminEventController::class, PublicEventController::class, WorkController::class, CommentController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -53,6 +58,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var adminEvents: AdminEventService
     @MockitoBean lateinit var events: EventService
     @MockitoBean lateinit var works: WorkService
+    @MockitoBean lateinit var comments: CommentService
     private val serviceToken = "ci-operations-test-only-0123456789abcdef"
     private val bearer = "Bearer member-access"
 
@@ -161,6 +167,39 @@ class MemberSecurityIntegrationTest {
             .andExpect(status().isOk()).andExpect(jsonPath("$.restricted").value(true))
         mvc.perform(delete("/api/v1/operations/works/$id/restriction").header("Authorization", bearer))
             .andExpect(status().isOk()).andExpect(jsonPath("$.restricted").value(false))
+    }
+
+    @Test
+    fun `comments routes require a Core verified Bearer and ignore the service token`() {
+        for (builder in listOf(
+            get("/api/v1/operations/comments"), put("/api/v1/operations/comments/ops-comment-1/hidden"),
+            delete("/api/v1/operations/comments/ops-comment-1/hidden"),
+        )) {
+            val response = mvc.perform(builder.header("X-Operations-Service-Token", serviceToken))
+                .andExpect(status().isUnauthorized()).andReturn().response
+            assertEquals("UNAUTHORIZED", code(response.contentAsString))
+            assertNull(response.getHeader("Set-Cookie"))
+        }
+        verifyNoInteractions(core, comments)
+    }
+
+    @Test
+    fun `verified member reaches the comments controller as principal and gets the service DTOs`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val comment = OperationsComment(
+            "ops-comment-1", "ops-work-1", "작품", 3, "ops-comment-author", "작가", "원문", 2, true, Instant.parse("2026-11-10T01:02:03Z"),
+        )
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(comments.list(member)).thenReturn(OperationsCommentList(listOf(comment)))
+        `when`(comments.hide(member, "ops-comment-1")).thenReturn(comment)
+        `when`(comments.unhide(member, "ops-comment-1")).thenReturn(comment.copy(hidden = false))
+
+        mvc.perform(get("/api/v1/operations/comments").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].authorId").value("ops-comment-author"))
+        mvc.perform(put("/api/v1/operations/comments/ops-comment-1/hidden").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.hidden").value(true))
+        mvc.perform(delete("/api/v1/operations/comments/ops-comment-1/hidden").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.hidden").value(false))
     }
 
     @Test

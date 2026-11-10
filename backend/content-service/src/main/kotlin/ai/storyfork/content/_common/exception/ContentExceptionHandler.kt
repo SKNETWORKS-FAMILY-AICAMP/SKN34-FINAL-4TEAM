@@ -17,7 +17,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException
 @RestControllerAdvice(basePackages=["ai.storyfork.content.work.controller","ai.storyfork.content.episode.controller","ai.storyfork.content.episode_version.controller","ai.storyfork.content.publication.controller","ai.storyfork.content.world.controller","ai.storyfork.content.fork.controller","ai.storyfork.content.context.controller","ai.storyfork.content.proposal.controller","ai.storyfork.content.plan.controller","ai.storyfork.content.comment.controller","ai.storyfork.content.manuscript.controller","ai.storyfork.content.like.controller","ai.storyfork.content.interest.controller","ai.storyfork.content.reading.controller"])
 class ContentExceptionHandler {
     @ExceptionHandler(ContentFailure::class)
-    fun failure(error: ContentFailure): ResponseEntity<ContentErrorResponse> = ResponseEntity.status(error.status).body(ContentErrorResponse(error.message))
+    fun failure(error: ContentFailure): ResponseEntity<ContentErrorResponse> = ResponseEntity.status(error.status).body(ContentErrorResponse(error.message, error.code))
 
     /** 표시명 조회에 쓰는 Core 호출의 실패(503·504·502)를 500으로 흐리거나 성공으로 숨기지 않고 상태 그대로 전한다. */
     @ExceptionHandler(CoreAuthException::class)

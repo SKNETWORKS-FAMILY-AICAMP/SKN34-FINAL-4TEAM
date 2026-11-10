@@ -1,8 +1,8 @@
 # STORYFORK Operations Service
 
-공지·이벤트·고객지원 문의/답변 **레코드의 독립 백엔드 CRUD**와 회원 Bearer 기반 **신고·회원·관리자·작품·고객지원 문의 운영 API**입니다. 회원 Bearer API(신고·회원·관리자·작품·고객지원 문의)만 Core(인증 확인·회원)를, 신고·작품만 Content(작품 조회·제한)를 호출하며 AI 호출은 없습니다. `Controller → Service → JpaRepository`를 사용하며 DTO는 각 리소스의 `service/dto`, Entity는 `entity`에 둡니다. 목표 책임과 후속 업무는 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
+공지·이벤트·고객지원 문의/답변 **레코드의 독립 백엔드 CRUD**와 회원 Bearer 기반 **신고·회원·관리자·작품·댓글·고객지원 문의 운영 API**입니다. 회원 Bearer API(신고·회원·관리자·작품·댓글·고객지원 문의)만 Core(인증 확인·회원)를, 신고·작품·댓글만 Content(작품 조회·제한, 댓글 조회·숨김)를 호출하며 AI 호출은 없습니다. `Controller → Service → JpaRepository`를 사용하며 DTO는 각 리소스의 `service/dto`, Entity는 `entity`에 둡니다. 목표 책임과 후속 업무는 [서비스 경계](../../docs/design/service-boundaries.md)를 따릅니다.
 
-> 인증은 세 갈래입니다. 공지·이벤트·문의의 `/notices`·`/events`·`/inquiries` API는 **서비스 자격 인증만** 사용하며 사람의 관리자 권한, 회원 신원·소유권, ‘내 문의’, 공개 게시·이벤트 진행 상태·참여·보상·알림·감사는 구현하지 않습니다. 서비스 토큰을 가진 호출 서버는 이 레코드에 모두 접근할 수 있으므로 브라우저에 직접 연결하면 안 됩니다. 신고·회원·관리자 API(`/reports`·`/members`·`/admins`), 운영 작품 API(`/works`), 회원 고객지원 문의 API(`/support/inquiries`), 공지·이벤트 관리자 API(`/admin/notices`·`/admin/events`)는 회원 Bearer를 Core로 확인하고 운영자(`operator`)+업무 권한으로 인가합니다([신고·회원·관리자 계약](../../docs/design/operations-member-report-contract.md), [고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)). 공지·이벤트 독자 조회(`/public/notices`·`/public/events`)는 인증 없이 GET만 허용합니다([공지 계약](../../docs/design/operations-notice-contract.md)). 이벤트의 관리자 CRUD와 공개 조회는 [이벤트 관리자·공개 API](#이벤트-관리자공개-api)를 따릅니다.
+> 인증은 세 갈래입니다. 공지·이벤트·문의의 `/notices`·`/events`·`/inquiries` API는 **서비스 자격 인증만** 사용하며 사람의 관리자 권한, 회원 신원·소유권, ‘내 문의’, 공개 게시·이벤트 진행 상태·참여·보상·알림·감사는 구현하지 않습니다. 서비스 토큰을 가진 호출 서버는 이 레코드에 모두 접근할 수 있으므로 브라우저에 직접 연결하면 안 됩니다. 신고·회원·관리자 API(`/reports`·`/members`·`/admins`), 운영 작품 API(`/works`), 운영 댓글 API(`/comments`), 회원 고객지원 문의 API(`/support/inquiries`), 공지·이벤트 관리자 API(`/admin/notices`·`/admin/events`)는 회원 Bearer를 Core로 확인하고 운영자(`operator`)+업무 권한으로 인가합니다([신고·회원·관리자 계약](../../docs/design/operations-member-report-contract.md), [고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)). 공지·이벤트 독자 조회(`/public/notices`·`/public/events`)는 인증 없이 GET만 허용합니다([공지 계약](../../docs/design/operations-notice-contract.md)). 이벤트의 관리자 CRUD와 공개 조회는 [이벤트 관리자·공개 API](#이벤트-관리자공개-api)를 따릅니다.
 
 ## 실행 기반·설정
 
@@ -20,7 +20,7 @@
 | `DATABASE_PASSWORD` | 빈 값 — 실제 실행 환경의 DB 자격을 별도 설정 |
 | `OPERATIONS_SERVICE_TOKEN` | 빈 값 — 비어 있거나 공백뿐이면 **보호 접근을 허용하지 않음**. Core·Content 호출 시 같은 값을 `X-Operations-Service-Token`으로 전송 |
 | `OPERATIONS_CORE_BASE_URL` | `http://127.0.0.1:8080` — Core(인증 확인·회원 API) |
-| `OPERATIONS_CONTENT_BASE_URL` | `http://127.0.0.1:8081` — Content(작품 조회·제한 API) |
+| `OPERATIONS_CONTENT_BASE_URL` | `http://127.0.0.1:8081` — Content(작품·댓글 조회·조치 API) |
 
 DB 자격과 서비스 토큰은 Operations 및 허용된 서버에만 주입합니다. 서비스 토큰은 JWT 서명 키·회원 Bearer·Content 인증 토큰과 재사용하지 말고 충분히 긴 무작위 값(32자 이상 권장)을 생성합니다. 로그·스크린샷·브라우저 번들·`VITE_*`·build ARG·저장소에 넣지 않습니다. 외부 네트워크에서 사용할 때 TLS와 신뢰 서버 경계를 별도 마련해야 하며, loopback 바깥 바인딩이나 배포는 이번 범위가 아닙니다.
 
@@ -110,13 +110,14 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 
 ## 회원 Bearer API (신고·회원·관리자·공지 관리)
 
-`/api/v1/operations/{reports,members,admins,support,admin/notices,admin/events,works}`와 하위 경로는 별도 SecurityFilterChain입니다. `Authorization: Bearer …`를 Core `POST /internal/v1/auth/verify`(받은 Authorization + 서비스 토큰)로 확인해 `{memberId, operator}`를 principal로 씁니다. Bearer 없음은 401, Core 401/403은 그대로, 그 밖의 확인 실패는 502입니다. stateless·쿠키 없음이므로 CSRF를 쓰지 않으며, 이 경로에서는 서비스 토큰이 인증 수단이 아닙니다.
+`/api/v1/operations/{reports,members,admins,support,admin/notices,admin/events,works,comments}`와 하위 경로는 별도 SecurityFilterChain입니다. `Authorization: Bearer …`를 Core `POST /internal/v1/auth/verify`(받은 Authorization + 서비스 토큰)로 확인해 `{memberId, operator}`를 principal로 씁니다. Bearer 없음은 401, Core 401/403은 그대로, 그 밖의 확인 실패는 502입니다. stateless·쿠키 없음이므로 CSRF를 쓰지 않으며, 이 경로에서는 서비스 토큰이 인증 수단이 아닙니다.
 
-- 관리자 = Core `operator=true` **이면서** `operations.admin_permission`에 해당 키 보유(`rights`·`users`·`admins`·`feedback`·`notices`·`events`·`works`). 아니면 403.
+- 관리자 = Core `operator=true` **이면서** `operations.admin_permission`에 해당 키 보유(`rights`·`users`·`admins`·`feedback`·`notices`·`events`·`works`·`comments`). 아니면 403.
 - 신고: 접수·`mine`·운영 목록(`?status=`)·상세(+`history`)·`evidence`·`explanations`(POST/GET)·`review`·`restriction`(POST/DELETE)·`evidence-requests`. 접수는 201, 신고 변경 POST/DELETE는 200으로 갱신된 상세(`history` 포함), `GET …/explanations`는 `{ items: History[] }`. 증거 보완·소명·증빙 요청 본문은 1~5000자.
 - 회원: `GET /members?role=&q=&sort=`, `PUT|DELETE /members/{id}/restriction` — Core에 관리자 Bearer를 그대로 전달.
 - 관리자: `GET /admins`(Core `role=ADMIN` + `permissions`), `POST /admins`(알려진 키 1개 이상 검증 → Core 생성 → 권한 저장, 201).
 - 작품: `GET /works`는 Content `GET /internal/v1/works`의 전체 목록을 `{ items }`로 그대로 돌려주고, `PUT|DELETE /works/{id}/restriction`은 Content 내부 제한 API를 재사용해 `{ workId, ownerId, title, restricted }`를 돌려줍니다. `works` 권한 확인이 Content 호출보다 먼저이고 서비스 트랜잭션·신고 이력은 없습니다. 없는 작품은 404, 그 밖의 Content 실패는 502입니다. 경로 끝에 슬래시를 붙이지 않습니다([작품 조회 계약](../../docs/design/operations-work-contract.md)).
+- 댓글: `GET /comments`는 Content `GET /internal/v1/comments`의 전체 댓글(숨김 포함, 원문 `body`)을 `{ items }`로 그대로 돌려주고, `PUT|DELETE /comments/{commentId}/hidden`은 Content 내부 숨김·게시 복구 API를 재사용해 `OperationsComment`를 돌려줍니다(필드는 계약이 정본). `commentId`·`workId`·`authorId`는 모두 String이라(Content id·author_id는 varchar) 비 UUID 값 한 행이 목록 전체를 502로 만들지 않고, 목록에 보인 id는 그대로 조치할 수 있습니다. `comments` 권한 확인이 Content 호출보다 먼저이고 서비스 트랜잭션·신고 이력은 없습니다. 없는 댓글은 404, 그 밖의 Content 실패는 502입니다. 경로 끝에 슬래시를 붙이지 않습니다([댓글 계약](../../docs/design/operations-comment-contract.md)).
 - 고객지원 문의 `/support/inquiries`: 로그인 회원이 접수(`POST`, 201)·내 문의(`GET /mine`)·상세(`GET /{id}`, 작성자 또는 관리자)를 쓰고, `feedback` 관리자가 목록(`GET ?status=WAITING|ANSWERED`, 최신 100개)과 답변 등록·수정·삭제(`/{id}/replies[/{replyId}]`)를 합니다. 모든 응답은 답변을 오래된 순으로 담은 `SupportInquiry`이고 `status`는 답변 유무로 계산합니다. `member_id`(V6)가 있는 문의만 다루므로 서비스 토큰 API로 만든 기존 레코드는 404이며 `/inquiries` 서비스 토큰 API는 그대로입니다. 다른 사람의 문의는 404, 접수 입력 검증은 `/inquiries`와 같은 규칙(category·title 앞뒤 공백 제거)입니다. 경로·응답 형태는 [고객지원 문의 계약](../../docs/design/operations-support-inquiry-contract.md)을 따릅니다.
 - 공지 관리: `/admin/notices`의 `GET`(최신 100개)·`GET /{id}`·`POST`(201+`Location`)·`PUT /{id}`·`DELETE /{id}`(204). `notices` 권한 검사가 입력 값 검증·저장소 호출보다 먼저라 JSON 형식이 맞는 한 비관리자는 입력 값과 무관하게 403입니다. `@Valid`는 권한보다 먼저 400을 내므로 컨트롤러에 쓰지 않고, 권한 확인 뒤 `AdminNoticeService`가 `NoticeRequest`의 `@NotBlank`·`@Size`를 직접 검증해 위반은 400입니다. 공백·U+0000 검증·정렬·응답 DTO는 `/notices`와 같은 `NoticeService`를 재사용합니다([공지 계약](../../docs/design/operations-notice-contract.md)).
 - 공개 공지 조회: `GET /api/v1/operations/public/notices`(최신 100개)·`/{id}`는 인증 없는 별도 SecurityFilterChain입니다. GET 이외는 서비스 토큰·Bearer가 있어도 403이고, 서비스 토큰 체인은 나머지 경로를 그대로 소유합니다. 이 체인(`PublicSecurityConfig`)은 `public/events`도 함께 맡습니다.
@@ -169,7 +170,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew unitTest \
   --tests ai.storyfork.operations._common.PageResponseTest --no-daemon
 ```
 
-리소스별 `NoticeServiceTest`/`NoticeControllerTest`(공지 관리·공개는 `AdminNoticeServiceTest`/`AdminNoticeControllerTest`/`PublicNoticeControllerTest`), `EventServiceTest`/`EventControllerTest`(관리자·공개 이벤트는 `AdminEventServiceTest`/`AdminEventControllerTest`/`PublicEventControllerTest`), `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`/`SupportInquiryServiceTest`, 신고·회원·관리자·작품의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`/`WorkServiceTest`/`WorkControllerTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인(관리자 이벤트·작품 포함)과 공개 이벤트(GET 전용) 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`, 공지 관리자·공개 조회 체인은 `NoticeSecurityIntegrationTest`, 고객지원 문의의 Bearer 체인·PostgreSQL 흐름(`@Query` 상태 필터·V6)은 `SupportInquiryIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
+리소스별 `NoticeServiceTest`/`NoticeControllerTest`(공지 관리·공개는 `AdminNoticeServiceTest`/`AdminNoticeControllerTest`/`PublicNoticeControllerTest`), `EventServiceTest`/`EventControllerTest`(관리자·공개 이벤트는 `AdminEventServiceTest`/`AdminEventControllerTest`/`PublicEventControllerTest`), `InquiryServiceTest`/`InquiryReplyServiceTest`/`InquiryControllerTest`/`SupportInquiryServiceTest`, 신고·회원·관리자·작품·댓글의 `ReportServiceTest`/`MemberServiceTest`/`MemberBearerFilterTest`/`WorkServiceTest`/`WorkControllerTest`/`CommentServiceTest`/`CommentControllerTest`/`OperationsCommentJsonTest`도 정확한 클래스 필터로 선택합니다. in-memory `MockRestServiceServer`를 쓰는 `OperationsClientsIntegrationTest`는 CI 경계 규칙상 통합으로 분류됩니다. 회원 Bearer 체인(관리자 이벤트·작품·댓글 포함)과 공개 이벤트(GET 전용) 체인 조립은 CI 전용 `MemberSecurityIntegrationTest`, 공지 관리자·공개 조회 체인은 `NoticeSecurityIntegrationTest`, 고객지원 문의의 Bearer 체인·PostgreSQL 흐름(`@Query` 상태 필터·V6)은 `SupportInquiryIntegrationTest`가 검증합니다. 전체 앱 테스트/빌드는 로컬 완료 조건으로 실행하지 않습니다.
 
 이번 U+0000 회귀는 `EventServiceTest`·`InquiryServiceTest`·`InquiryReplyServiceTest`만 선택해 **Red 12건**(예외가 발생하지 않아 assertion 실패) 후 최소 검증식 수정으로 **Green 69건**(각각 34·21·14건)을 확인했습니다. Spring/HTTP/DB 테스트는 실행하지 않았습니다.
 

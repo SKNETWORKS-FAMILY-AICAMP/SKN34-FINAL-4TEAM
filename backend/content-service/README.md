@@ -58,11 +58,13 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 
 ## 운영 전용 내부 API
 
-[운영 회원·신고 계약](../../docs/design/operations-member-report-contract.md#content-내부-api-운영-전용)의 작품 제한 API와 [운영 작품 조회 계약](../../docs/design/operations-work-contract.md#content-내부-api-서비스-토큰)의 작품 목록 API입니다. 회원 Bearer·CSRF 없이 `X-Operations-Service-Token`이 환경변수 `OPERATIONS_SERVICE_TOKEN`(32자 이상)과 같을 때만 허용하고, 미설정·짧음·불일치는 403입니다. 공개 proxy에 등록하지 않습니다.
+[운영 회원·신고 계약](../../docs/design/operations-member-report-contract.md#content-내부-api-운영-전용)의 작품 제한 API와 [운영 작품 조회 계약](../../docs/design/operations-work-contract.md#content-내부-api-서비스-토큰)의 작품 목록 API, [운영 댓글 조회·조치 계약](../../docs/design/operations-comment-contract.md#content-내부-api-서비스-토큰)의 댓글 목록·숨김 API입니다. 회원 Bearer·CSRF 없이 `X-Operations-Service-Token`이 환경변수 `OPERATIONS_SERVICE_TOKEN`(32자 이상)과 같을 때만 허용하고, 미설정·짧음·불일치는 403입니다. 공개 proxy에 등록하지 않습니다.
 
 - `GET /internal/v1/works` → `{ items: [{ workId, ownerId, title, authorName, originKind, creationType, rightsConfirmed, visibility, restricted }] }`. 공개·비공개·제한 작품 전체를 `title, id` 오름차순으로 쿼리 한 번에 읽습니다(페이지네이션 없음). `rightsConfirmed`는 권리 진술 행 존재 여부, `visibility`는 최신 발행 이력(없으면 `private`)이며 `restricted`와 독립입니다.
 - `GET /internal/v1/works/{workId}` → `{ workId, ownerId, title, restricted }`, 없으면 404
 - `PUT`·`DELETE /internal/v1/works/{workId}/restriction` → 같은 본문(`restricted` true/false)
+- `GET /internal/v1/comments` → `{ items: [{ commentId, workId, workTitle, episodeNumber, authorId, authorName, body, likeCount, hidden, createdAt }] }`. 삭제되지 않은 댓글 중 삭제되지 않은 작품의 것만(비공개·제한 작품과 숨긴 댓글 포함, 숨긴 댓글도 원문 그대로) `createdAt` 내림차순·`id` 오름차순으로 읽습니다(페이지네이션 없음). 댓글·작품 제목은 쿼리 한 번, 공감 수는 댓글별 group by 쿼리 한 번, 작성자명은 Core 닉네임 한 번 조회입니다.
+- `PUT`·`DELETE /internal/v1/comments/{commentId}/hidden` → 같은 `OperationsComment` 본문(`hidden` true/false). 숨김·게시 복구는 멱등이고 없는·삭제된 댓글과 삭제된 작품의 댓글은 404입니다. 숨겨도 원문과 `updated_at`은 그대로이며 공개 댓글 API만 `hidden: true`·`body: ""`·`quote: null` 자리표시로 답하고, 그 댓글의 수정·좋아요/취소는 409 `COMMENT_HIDDEN`(작성자 삭제는 허용)입니다.
 
 제한 작품은 `/api/v1/public/works` 목록에서 빠지고 공개 상세·문맥·표지·회차 이미지와 새 분기 생성은 404/403입니다. 작가 본인 스튜디오(`/api/v1/works`)는 그대로입니다.
 
@@ -95,8 +97,9 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V21 | `db/migration/work` | 작품 소프트 삭제 `work.deleted_at`(DEC-42) |
 | V22 | `db/migration/publication` | 회차 공개 상태 `episode_current.publication_status`(공개 중단·재공개) |
 | V23 | `db/migration/episode` | 초안·저장 버전의 작가의 말(DEC-44) |
+| V24 | `db/migration/work` | 운영 댓글 숨김 `episode_comment.hidden`(기본 false, 원문은 지우지 않고 공개 응답만 자리표시로 바꿈) |
 
-[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V23이며 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
+[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V24이며 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 
 11번 계획 API는 `/api/v1/works/{workId}/story-plans`의 GET·POST와 `/{id}`의 GET·PUT·DELETE를 제공합니다. 기존 인증·CSRF·작품 소유권 검사를 사용하며 다른 소유자의 작품·계획은 404입니다. 수정·삭제에는 계획의 `revision`을 사용하고 충돌은 409입니다. 인물·장소는 현재 작품의 `WorldService.read().settings`에서 분류와 허용 범위를 확인하고, 회차는 해당 작품에서 확인한 내부 ID로 연결합니다. 회차 삭제 후에는 계획을 유지하고 `episodeMissing`으로 안내하며 재사용된 번호에 자동 연결하지 않습니다. 논리 삭제된 계획은 일반 조회에서 제외하고, 하위 장면이 남은 플롯은 삭제하지 않습니다. 원고·사전·Fork 독립 상태는 변경하지 않습니다. V11은 V10을 포함한 기존 SQL·체크섬을 보존하며 작품이 실제 삭제될 때 그 작품의 계획(논리 삭제 포함)과 계획의 인물·장소 참조만 함께 정리합니다. 작품 삭제의 기존 권한·발행 이력·분기·세계관 설정 보호 조건은 바꾸지 않습니다. 운영·공유 개발 DB 적용은 별도 절차이며 자동 repair/clean하지 않습니다.
 

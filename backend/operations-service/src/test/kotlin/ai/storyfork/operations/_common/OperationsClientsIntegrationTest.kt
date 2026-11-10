@@ -144,4 +144,44 @@ class OperationsClientsIntegrationTest {
         failingServer.expect(requestTo("http://content.test/internal/v1/works")).andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE))
         assertEquals(502, status { failing.works() })
     }
+
+    @Test
+    fun `Content comment calls send only the service token and parse non-UUID ids`() {
+        val (client, server) = content()
+        val row = """
+            {"commentId":"ops-comment-1","workId":"ops-work-1","workTitle":"작품","episodeNumber":3,"authorId":"ops-comment-author",
+            "authorName":"작가","body":"원문","likeCount":2,"hidden":false,"createdAt":"2026-11-10T01:02:03Z"}
+        """.trimIndent()
+        server.expect(requestTo("http://content.test/internal/v1/comments")).andExpect(method(HttpMethod.GET))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess("""{"items":[$row]}""", MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://content.test/internal/v1/comments/ops-comment-1/hidden")).andExpect(method(HttpMethod.PUT))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess(row.replace("\"hidden\":false", "\"hidden\":true"), MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://content.test/internal/v1/comments/ops-comment-1/hidden")).andExpect(method(HttpMethod.DELETE))
+            .andRespond(withSuccess(row, MediaType.APPLICATION_JSON))
+
+        val listed = client.listComments().items.single()
+        assertEquals("ops-comment-author", listed.authorId)
+        assertFalse(listed.hidden)
+        assertTrue(client.hideComment("ops-comment-1").hidden)
+        assertFalse(client.unhideComment("ops-comment-1").hidden)
+        server.verify()
+    }
+
+    @Test
+    fun `Content comment calls keep 404 and map other failures to 502`() {
+        for ((upstream, expected) in listOf(HttpStatus.NOT_FOUND to 404, HttpStatus.SERVICE_UNAVAILABLE to 502)) {
+            val (client, server) = content()
+            server.expect(requestTo("http://content.test/internal/v1/comments")).andRespond(withStatus(upstream))
+            server.expect(requestTo("http://content.test/internal/v1/comments/ops-comment-1/hidden")).andExpect(method(HttpMethod.PUT)).andRespond(withStatus(upstream))
+            server.expect(requestTo("http://content.test/internal/v1/comments/ops-comment-1/hidden")).andExpect(method(HttpMethod.DELETE)).andRespond(withStatus(upstream))
+
+            assertEquals(expected, status { client.listComments() }, upstream.toString())
+            assertEquals(expected, status { client.hideComment("ops-comment-1") }, upstream.toString())
+            assertEquals(expected, status { client.unhideComment("ops-comment-1") }, upstream.toString())
+        }
+    }
 }
