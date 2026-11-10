@@ -29,7 +29,7 @@ it('shows the pinned basis and stops a Fork without deleting its library entry',
   expect(filter.getAttribute('aria-pressed')).toBe('true')
   expect(screen.queryByRole('heading', { name: '원작' })).toBeNull()
   screen.getByText('포크 상세 및 관리').closest('details')!.open = true
-  expect(screen.getByText('원작 「원작」 · 2화 기준 · 버전 7')).toBeTruthy()
+  expect(screen.getByText('「원작」 2화 · 버전 7에서 분기')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '포크 공개 중단' }))
   expect(confirm).toHaveBeenCalledWith('포크 작품의 공개를 중단할까요? 발행된 회차와 원고는 보존돼요. 대기 중인 예약 발행은 취소되고, 원작이 공개를 허용하지 않으면 다시 공개할 수 없어요.')
   expect(await screen.findByText('포크 공개를 중단했어요.')).toBeTruthy()
@@ -37,6 +37,16 @@ it('shows the pinned basis and stops a Fork without deleting its library entry',
   expect(await screen.findByRole('heading', { name: '내 포크' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: '포크 공개 중단' })).toBeNull()
   expect(api.stopForkPublication).toHaveBeenCalledWith('fork', expect.any(AbortSignal))
+})
+
+it('links back to a live original and only explains a deleted one', async () => {
+  await show(fork)
+  expect(screen.getByRole('link', { name: '원작으로 가기' }).getAttribute('href')).toBe('/work/original')
+  cleanup()
+  await show({ ...fork, source: { ...fork.source, deleted: true } })
+  expect(screen.getByText('「원작」 2화 · 버전 7에서 분기')).toBeTruthy()
+  expect(screen.getByText('삭제된 원작이라 이동할 수 없어요.')).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '원작으로 가기' })).toBeNull()
 })
 
 it('keeps the cards while reloading after a save and then shows the saved values in the form', async () => {

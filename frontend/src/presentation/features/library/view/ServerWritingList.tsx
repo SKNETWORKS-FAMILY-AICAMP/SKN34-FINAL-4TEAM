@@ -20,12 +20,13 @@ export function ServerWritingList() {
       : !works.length ? <p className="note2">아직 서버에 저장된 작품이 없어요. {import.meta.env.MODE === 'mockup' ? '아래 새 소설 등록은 현재 데모이며 서버 등록 연결은 준비 중이에요.' : '아래에서 새 소설을 시작해 보세요.'}</p>
       : works.map(work => <article className="mywork" key={work.id}>
         <div className="server-writing-content"><h3>{work.title}</h3><p className="small muted">{work.summary}</p>
-          <div className="tags"><span className="chip">{work.visibility === 'public' ? '공개 중' : '비공개'}</span>{work.source && <span className="chip">Fork · {work.source.title} {work.source.episode}화에서</span>}</div>
+          <div className="tags"><span className="chip">{work.visibility === 'public' ? '공개 중' : '비공개'}</span>{work.source && <span className="chip">Fork</span>}</div>
           <div className="acts"><Go className="btn sm pri" to={`/studio/${work.id}`}>집필실 열기</Go></div>
           {work.source && <details>
             <summary>포크 상세 및 관리</summary>
-            <p>{work.source.deleted ? '삭제된 원작' : '원작'} 「{work.source.title}」 · {work.source.episode}화 기준 · 버전 {work.source.version}</p>
+            <p>「{work.source.title}」 {work.source.episode}화 · 버전 {work.source.version}에서 분기</p>
             {work.source.direction && <p>분기 방향 · {work.source.direction}</p>}
+            {work.source.deleted ? <p>삭제된 원작이라 이동할 수 없어요.</p> : <div className="acts"><Go className="btn sm" to={`/work/${work.source.workId}`}>원작으로 가기</Go></div>}
             <form key={`${work.title}\n${work.summary}`} onSubmit={event => {
               event.preventDefault()
               const fields = new FormData(event.currentTarget)
@@ -35,8 +36,10 @@ export function ServerWritingList() {
               <label className="field">소개<textarea className="inp" name="summary" defaultValue={work.summary} maxLength={2000} /></label>
               <button type="submit" className="btn sm" disabled={locked || work.revision === undefined}>기본 정보 저장</button>
             </form>
-            {work.visibility === 'public' && <button type="button" className="btn sm" disabled={locked} onClick={() => void fork.stop(work.id)}>포크 공개 중단</button>}
-            <button type="button" className="btn sm" disabled={locked} onClick={() => void fork.remove(work)}>포크 삭제</button>
+            <div className="acts">
+              {work.visibility === 'public' && <button type="button" className="btn sm" disabled={locked} onClick={() => void fork.stop(work.id)}>포크 공개 중단</button>}
+              <button type="button" className="btn sm danger" disabled={locked} onClick={() => void fork.remove(work)}>포크 삭제</button>
+            </div>
           </details>}
         </div>
       </article>)}
