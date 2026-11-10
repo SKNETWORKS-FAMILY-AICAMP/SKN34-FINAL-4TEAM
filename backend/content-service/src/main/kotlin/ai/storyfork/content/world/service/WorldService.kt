@@ -213,7 +213,7 @@ class WorldService(
             if(!versions.existsById(id)) {
                 val visibilityId=contentKey("visibility",id)
                 visibility.saveAndFlush(SettingVisibilityHistoryEntity(id=visibilityId,settingDocumentId=doc,revisionNo=index,defaultVisibility="private"))
-                fun ensure(number: Int): EpisodeEntity = episodes.findByWorkIdAndSequence(l.work.id,number) ?: episodes.saveAndFlush(EpisodeEntity(id=episodeId(l.work.id,number),workId=l.work.id,sequence=number))
+                fun ensure(number: Int): EpisodeEntity = episodes.findByWorkIdAndSequence(l.work.id,number) ?: episodes.saveAndFlush(EpisodeEntity(id=contentId(),workId=l.work.id,sequence=number))
                 val first=ensure(s.fromEpisode);val last=s.toEpisode?.let(::ensure)
                 ranges.saveAndFlush(SettingVisibilityRangeEntity(id=contentKey("range",id),visibilityHistoryId=visibilityId,startEpisodeId=first.id,endEpisodeId=last?.id,visibility=s.visibility))
                 versions.saveAndFlush(SettingVersionEntity(id=id,settingDocumentId=doc,contentVersionId=s.versionId,revisionNo=index,name=s.name,categoryId=s.category,content=s.content,evidence=s.evidence,visibilityHistoryId=visibilityId))

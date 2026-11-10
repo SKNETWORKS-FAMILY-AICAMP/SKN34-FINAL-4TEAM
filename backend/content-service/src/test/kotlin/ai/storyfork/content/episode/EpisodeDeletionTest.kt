@@ -65,10 +65,33 @@ class EpisodeDeletionTest {
         assertEquals(409,assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}.status)
         verify(drafts,never()).delete(draft);verify(episodes,never()).delete(episode)
     }
-    @Test fun `unreferenced last episode is physically removed`() {
+    @Test fun `delete conflict names every real condition instead of an unexplained reference`() {
+        setup(); `when`(episodes.referenceCount("e")).thenReturn(1)
+        val message=assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}.message
+        listOf("마지막 회차","저장 버전","발행본","이미지").forEach { assertTrue(message.contains(it),"$it: $message") }
+    }
+    @Test fun `an episode that is not the last written one cannot be deleted`() {
+        setup()
+        val next=EpisodeEntity("next","w",2)
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(row,EpisodeCurrentEntity("next","w",2)))
+        `when`(episodes.findAllById(listOf("e","next"))).thenReturn(listOf(episode,next))
+        `when`(drafts.findAllById(listOf("e","next"))).thenReturn(listOf(draft,EpisodeDraftEntity("next","second","",0)))
+        assertEquals(409,assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}.status)
+        assertNull(episode.deletedAt)
+    }
+    @Test fun `unreferenced last episode is marked deleted and keeps its draft`() {
         setup(); service.deleteEpisode("w","owner",1,4)
-        verify(drafts).delete(draft);verify(episodes).delete(episode)
+        verify(drafts,never()).delete(draft);verify(episodes,never()).delete(episode)
+        assertNotNull(episode.deletedAt)
         assertEquals(6,work.revision)
+        assertEquals(6,work.deletedEpisodeRevision)
+    }
+    @Test fun `inherited episodes have no order candidates even without a reference row`() {
+        setup()
+        row.inherited=true
+        val scope=service.orderScope("w","owner",1)
+        assertTrue(scope.candidateNumbers.isEmpty())
+        assertFalse(scope.executable)
     }
     @Test fun `future setting placeholder does not become a writing candidate`() {
         setup()
@@ -76,6 +99,26 @@ class EpisodeDeletionTest {
         `when`(episodes.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(episode,placeholder))
         `when`(episodes.referenceCount("future")).thenReturn(1)
         assertEquals(listOf(1),service.orderScope("w","owner",1).candidateNumbers)
+    }
+    @Test fun `new episode reuses the hidden number with a fresh ID and edit revision`() {
+        setup()
+        episode.basisWorldId=java.util.UUID.randomUUID();episode.basisWorldRevisionId=java.util.UUID.randomUUID();episode.basisRevision=3
+        service.deleteEpisode("w","owner",1,4)
+        `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(null)
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(emptyList())
+        lateinit var replacement: EpisodeEntity
+        lateinit var replacementDraft: EpisodeDraftEntity
+        doAnswer { replacement=it.getArgument(0);replacement }.`when`(episodes).saveAndFlush(any(EpisodeEntity::class.java))
+        doAnswer { replacementDraft=it.getArgument(0);replacementDraft }.`when`(drafts).save(any(EpisodeDraftEntity::class.java))
+        `when`(current.findByWorkIdAndSequence("w",1)).thenAnswer { EpisodeCurrentEntity(replacement.id,"w",1) }
+        `when`(drafts.findAllById(anyCollection())).thenAnswer { listOf(replacementDraft) }
+        val created=service.create("w","owner",ai.storyfork.content.episode.service.dto.CreateEpisodeRequest("새 회차"))
+        assertEquals(1,created.number)
+        assertNotEquals(episode.id,replacement.id)
+        assertEquals(6,created.draft.revision)
+        // 기준 세계관은 삭제된 행에 남을 뿐 같은 번호의 새 회차로 넘어가지 않는다(UC-10).
+        assertNotNull(episode.basisWorldId)
+        assertNull(replacement.basisWorldId);assertNull(replacement.basisWorldRevisionId);assertEquals(0,replacement.basisRevision)
     }
     @Test fun `disabled image metadata must not be assumed empty`() {
         setup()
@@ -107,7 +150,8 @@ class EpisodeDeletionTest {
     @Test fun `future placeholder does not prevent deleting last written chapter`() {
         setup(); `when`(episodes.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(episode,EpisodeEntity("future","w",10)))
         service.deleteEpisode("w","owner",1,4)
-        verify(episodes).delete(episode)
+        assertNotNull(episode.deletedAt)
+        verify(episodes,never()).delete(episode)
     }
     @Test fun `ownership failure prevents every persistence operation`() {
         `when`(access.own("w","other")).thenThrow(ContentFailure(404,"missing"))

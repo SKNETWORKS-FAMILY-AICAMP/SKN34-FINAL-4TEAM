@@ -10,7 +10,9 @@ const model = vi.hoisted(() => ({
   active: { number: 1, draft: { title: '첫 회차', body: '원고', revision: 1 }, versions: [{ id: 'v1', title: '저장본', body: '저장 원고', savedAt: '2026-11-04T00:00:00Z' }], inherited: false, hasDraft: true, checkpoints: [] as { versionId: string; publishedAt: string; active: boolean }[] },
   episodes: [], draft: { title: '첫 회차', body: '원고', revision: 1 },
   busy: false, error: '', notice: '', ready: true, dirty: false, editingLocked: false,
-  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
+  deleteBlocker: '', orderLookup: null as null | { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: { number: number; candidateNumbers: number[]; reasons: string[]; executable: false } },
+  checkOrder: vi.fn(), deleteDraft: vi.fn(),
+  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
 }))
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
@@ -22,7 +24,7 @@ const comparisonVersions = [
   { ...originalActive.versions[0], id: 'v2', body: '변경 원고' },
   { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
 ]
-afterEach(() => { cleanup(); vi.clearAllMocks(); model.active = originalActive })
+afterEach(() => { cleanup(); vi.clearAllMocks(); model.active = originalActive; model.deleteBlocker = ''; model.orderLookup = null })
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const renderStudio = () => {
@@ -31,6 +33,96 @@ const renderStudio = () => {
     wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={['/studio/work-id']}>{children}<Where /></MemoryRouter></Provider>,
   })
 }
+
+it('connects the whole episode deletion button and disables it for inherited episodes', () => {
+  const { rerender } = renderStudio()
+  fireEvent.click(screen.getByRole('button', { name: '회차 삭제' }))
+  expect(model.deleteEpisode).toHaveBeenCalledTimes(1)
+  model.active = { ...originalActive, inherited: true }
+  rerender(<WritingStudio id="work-id" />)
+  expect(screen.getByRole('button', { name: '회차 삭제' })).toHaveProperty('disabled', true)
+})
+
+const manage = () => screen.getByRole('region', { name: '회차 관리' })
+
+it('uses the danger style for both deletion buttons', () => {
+  renderStudio()
+  expect(screen.getByRole('button', { name: '초안 삭제' }).className).toContain('danger')
+  expect(screen.getByRole('button', { name: '회차 삭제' }).className).toContain('danger')
+})
+
+it('disables an unavailable episode deletion and links the reason with aria-describedby', () => {
+  model.deleteBlocker = '저장한 버전이 있는 회차는 삭제할 수 없어요.'
+  renderStudio()
+  const button = screen.getByRole('button', { name: '회차 삭제' })
+  expect(button).toHaveProperty('disabled', true)
+  const reason = document.getElementById(button.getAttribute('aria-describedby') ?? '')
+  expect(reason?.textContent).toBe('저장한 버전이 있는 회차는 삭제할 수 없어요.')
+  expect(manage().contains(reason)).toBe(true)
+  fireEvent.click(button)
+  expect(model.deleteEpisode).not.toHaveBeenCalled()
+})
+
+it('neither disables nor describes an episode deletion that has no known blocker', () => {
+  renderStudio()
+  const button = screen.getByRole('button', { name: '회차 삭제' })
+  expect(button).toHaveProperty('disabled', false)
+  expect(button.hasAttribute('aria-describedby')).toBe(false)
+})
+
+it.each([['회차 삭제', 'deleteEpisode'], ['초안 삭제', 'deleteDraft']] as const)('%s moves focus to main only after the deletion is committed', async (name, action) => {
+  renderStudio()
+  const button = screen.getByRole('button', { name })
+  button.focus()
+  model[action].mockResolvedValueOnce(false)
+  await act(async () => { fireEvent.click(button) })
+  expect(document.activeElement).toBe(button)
+  model[action].mockResolvedValueOnce(true)
+  await act(async () => { fireEvent.click(button) })
+  expect(document.activeElement).toBe(screen.getByRole('main'))
+})
+
+const orderButton = () => screen.getByRole('button', { name: '순서 변경 가능 범위 확인' })
+const orderLive = () => orderButton().nextElementSibling as HTMLElement
+
+it('keeps an always-mounted live region right under the order button inside the management section', () => {
+  renderStudio()
+  expect(manage().contains(orderButton())).toBe(true)
+  expect(orderLive().getAttribute('role')).toBe('status')
+  expect(orderLive().getAttribute('aria-live')).toBe('polite')
+  expect(orderLive().textContent).toBe('')
+  expect(orderButton()).toHaveProperty('disabled', false)
+  fireEvent.click(orderButton())
+  expect(model.checkOrder).toHaveBeenCalledTimes(1)
+})
+
+it('shows the lookup in progress in that region and blocks repeated lookups with aria-busy', () => {
+  model.orderLookup = { status: 'loading' }
+  renderStudio()
+  expect(orderLive().textContent).toBe('순서 변경 후보를 확인하고 있어요…')
+  expect(screen.getAllByText('순서 변경 후보를 확인하고 있어요…')).toHaveLength(1)
+  expect(orderButton()).toHaveProperty('disabled', true)
+  expect(orderButton().getAttribute('aria-busy')).toBe('true')
+})
+
+it('names the candidates as N화 and keeps the reasons in the same region', () => {
+  model.orderLookup = { status: 'ready', scope: { number: 1, candidateNumbers: [1, 2], reasons: ['저장 버전 제한'], executable: false } }
+  renderStudio()
+  expect(orderLive().textContent).toContain('검토 후보 위치 1화, 2화')
+  expect(within(orderLive()).getByText('저장 버전 제한')).toBeTruthy()
+  expect(orderButton().getAttribute('aria-busy')).not.toBe('true')
+  expect(orderButton()).toHaveProperty('disabled', false)
+})
+
+it('says when there is no candidate and shows a lookup failure in the same region', () => {
+  model.orderLookup = { status: 'ready', scope: { number: 1, candidateNumbers: [], reasons: [], executable: false } }
+  const view = renderStudio()
+  expect(orderLive().textContent).toContain('검토 후보 위치 없음')
+  model.orderLookup = { status: 'failed', message: '후보 조회 실패' }
+  view.rerender(<WritingStudio id="work-id" />)
+  expect(orderLive().textContent).toBe('후보 조회 실패')
+  expect(screen.getAllByText('후보 조회 실패')).toHaveLength(1)
+})
 
 function chooseComparison() {
   fireEvent.click(screen.getByRole('button', { name: '원고 버전 · 비교 · 공개' }))

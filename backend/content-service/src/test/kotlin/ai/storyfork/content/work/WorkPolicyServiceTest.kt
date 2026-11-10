@@ -82,6 +82,14 @@ class WorkPolicyServiceTest {
         assertEquals("e2",saved!!.startEpisodeId)
     }
 
+    @Test fun `from policy points to the active episode ID when a number was reused`() {
+        own();response()
+        `when`(episodes.findByWorkIdAndSequence("w",2)).thenReturn(EpisodeEntity(id="replacement",workId="w",sequence=2))
+        service.policy("w","owner",PolicyRequest(4,true,false,"from",fromEpisode=2))
+        val saved=mockingDetails(policies).invocations.single {it.method.name=="saveAndFlush"}.getArgument<ForkPolicyHistoryEntity>(0)
+        assertEquals("replacement",saved.startEpisodeId)
+    }
+
     @Test fun `invalid scope and unpublished selected episode fail without writes`() {
         own()
         for(data in listOf(PolicyRequest(4,true,true,"unknown"),PolicyRequest(4,true,true,"selected",episodes=listOf(99)))) {

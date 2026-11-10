@@ -66,7 +66,8 @@ class EpisodeService(
     }
     /** 번호 변경은 실행하지 않고 현재 참조 기준의 후보 구간만 반환한다. */
     fun orderScope(id: String, owner: String, number: Int): EpisodeOrderScopeResponse {
-        read(id,owner,number)
+        val source=read(id,owner,number)
+        if(source.inherited) return EpisodeOrderScopeResponse(number,emptyList(),listOf("원작 기준 회차의 순서는 변경할 수 없어요."))
         val rows=episodes.findAllByWorkIdOrderBySequence(id)
         val protected=rows.filter { !imagesAbsent(id,it.sequence) || episodes.referenceCount(it.id)>0 }.map {it.sequence}.toSet()
         val candidates=ai.storyfork.content.episode.domain.EpisodeMutationPolicy.candidates(number,list(id,owner).items.map {it.number},protected)
@@ -90,16 +91,14 @@ class EpisodeService(
         checkContent(before.draft.revision==revision,409,"회차가 변경됐어요. 다시 불러와 주세요.")
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
         val following=list(id,owner).items.any {it.number>number}
-        checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.canDelete(before.inherited,!imagesAbsent(id,number) || episodes.referenceCount(e.id)>0,following),409,"참조 없는 마지막 회차만 삭제할 수 있어요. 이미지 참조가 있거나 확인할 수 없으면 삭제가 제한돼요.")
-        drafts.findById(e.id).ifPresent { drafts.delete(it) }
-        drafts.flush()
-        episodes.delete(e)
-        try { episodes.flush() } catch (_: org.springframework.dao.DataIntegrityViolationException) {
-            throw ContentFailure(409,"회차를 참조하는 기록이 있어 삭제하지 못했어요.")
-        }
+        checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.canDelete(before.inherited,!imagesAbsent(id,number) || episodes.referenceCount(e.id)>0,following),409,"마지막 회차만 삭제할 수 있어요. 저장 버전·발행본·이미지가 있거나 설정 공개 범위·AI·Fork가 참조하는 회차는 삭제할 수 없어요.")
         val work=works.findById(id).orElseThrow()
-        work.revision=maxOf(work.revision,revision)+1
+        val currentRevision=maxOf(work.revision,revision)
+        checkContent(currentRevision<Int.MAX_VALUE,409,"편집 번호 한도에 도달했어요.")
+        e.deletedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
+        work.revision=currentRevision+1
         work.deletedEpisodeRevision=work.revision
+        em.flush()
     }
     /** 원고 저장·복원·발행에서 동일한 이미지 참조 권한을 확인한다. 첨부 비활성 시 참조는 거부한다. */
     fun requireImageReferences(work: String, number: Int, body: String) {
@@ -129,10 +128,10 @@ class EpisodeService(
     private fun imagesAbsent(work: String, number: Int): Boolean {
         val repository=imageRepositories.getIfAvailable() ?: return false
         return try { repository.countByWorkIdAndEpisodeNo(work,number)==0L }
-        catch (_: org.springframework.dao.DataAccessException) { throw ContentFailure(503,"이미지 참조를 확인하지 못했어요. 삭제하지 않았으니 나중에 다시 시도해 주세요.") }
+        catch (_: org.springframework.dao.DataAccessException) { throw ContentFailure(503,"이미지 참조를 확인하지 못했어요. 나중에 다시 시도해 주세요.") }
     }
     private fun ensure(work: String, number: Int): EpisodeEntity = episodes.findByWorkIdAndSequence(work,number)
-        ?: episodes.saveAndFlush(EpisodeEntity(id=episodeId(work,number),workId=work,sequence=number))
+        ?: episodes.saveAndFlush(EpisodeEntity(id=contentId(),workId=work,sequence=number))
     private fun validate(title: String, body: String) = checkContent(title.isNotBlank() && title.length<=120 && body.length<=40000,message="제목은 120자, 원고는 40,000자 이내로 작성해 주세요.")
     private fun readCurrent(id: String, number: Int): EpisodeResponse {
         em.flush()

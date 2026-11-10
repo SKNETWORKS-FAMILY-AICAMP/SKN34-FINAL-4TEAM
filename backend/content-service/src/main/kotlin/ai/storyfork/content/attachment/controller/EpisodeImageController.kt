@@ -15,7 +15,9 @@ class EpisodeImageController(private val service: AttachmentService) {
     /** 소유자의 편집 가능한 실제 회차에 PNG·JPEG를 추가한다. 형식·10개 한도·원작 회차·저장 실패를 검사한다. */
     @PostMapping("/api/v1/works/{work}/episodes/{number}/images", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun create(@PathVariable work: String, @PathVariable number: Int, principal: Principal, @Valid @ModelAttribute request: AttachmentUploadRequest): ResponseEntity<AttachmentResponse> =
-        ResponseEntity.status(HttpStatus.CREATED).body(service.createEpisodeImage(work, number, principal.name, checked(work, number, principal, request)))
+        ResponseEntity.status(HttpStatus.CREATED).body(service.createEpisodeImage(work, number, principal.name) {
+            AttachmentUploadHelper.validate(request.file)
+        })
 
     /** 소유자에게 회차 이미지를 반환한다. 원작 기준 회차는 보존된 본문 참조만 조회할 수 있다. */
     @GetMapping("/api/v1/works/{work}/episodes/{number}/images/{id}/content")
@@ -39,10 +41,4 @@ class EpisodeImageController(private val service: AttachmentService) {
     /** 공개 작품의 발행본이 참조하는 이미지의 대체 텍스트만 반환한다. 초안·다른 회차의 이미지는 포함하지 않는다. */
     @GetMapping("/api/v1/public/works/{work}/episodes/{number}/images")
     fun publicAltTexts(@PathVariable work: String, @PathVariable number: Int) = service.publicEpisodeImageAltTexts(work, number)
-
-    /** 회차 접근(존재·소유·원작 기준 회차)을 먼저 확인한 뒤 업로드 파일을 읽고 검증한다. 파일 처리는 DB 잠금 밖에서 끝난다. */
-    private fun checked(work: String, number: Int, principal: Principal, request: AttachmentUploadRequest): AttachmentUploadPayload {
-        service.requireEpisodeUploadAccess(work, number, principal.name)
-        return AttachmentUploadHelper.validate(request.file)
-    }
 }

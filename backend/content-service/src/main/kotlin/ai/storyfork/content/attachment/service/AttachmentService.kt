@@ -175,19 +175,21 @@ class AttachmentService(
         response(image)
     }
     fun deleteCover(work: String, owner: String) { imageTransaction { ownedWork(work, owner); images.delete(cover(work)); images.flush(); true } }
-    /** 파일을 읽기 전에 회차 존재·소유·원작 기준 회차 여부를 리팩터 전과 같은 순서·응답으로 확인한다. 저장 전 재확인은 createEpisodeImage가 유지한다. */
-    fun requireEpisodeUploadAccess(work: String, number: Int, owner: String) {
+    /** EPUB 가져오기는 검증한 이미지와 대체 텍스트를 전달한다. */
+    fun createEpisodeImage(work: String, number: Int, owner: String, payload: AttachmentUploadPayload, altText: String = ""): AttachmentResponse =
+        createEpisodeImage(work, number, owner, altText) { payload }
+
+    internal fun createEpisodeImage(work: String, number: Int, owner: String, altText: String = "", loadPayload: () -> AttachmentUploadPayload): AttachmentResponse {
+        // 회차 ID는 접근 확인(read)보다 먼저 잡는다. 그 뒤 삭제·같은 번호 재생성이 일어나면 잠금 안 재확인에서 ID가 달라져 거절된다.
+        val episodeId = imageEpisodes.findByWorkIdAndSequence(work, number)?.id
         val episode = episodeService.read(work, owner, number)
         if (episode.inherited) throw AttachmentFailure(403, "IMAGE_INHERITED", "원작 기준 회차에는 이미지를 추가할 수 없어요.")
-    }
-    /** altText는 EPUB 가져오기의 `img alt`처럼 올릴 때 함께 저장할 대체 텍스트이며 규칙을 어기면 파일을 올리기 전에 422다. */
-    fun createEpisodeImage(work: String, number: Int, owner: String, payload: AttachmentUploadPayload, altText: String = ""): AttachmentResponse {
-        requireEpisodeUploadAccess(work, number, owner)
+        if (episodeId == null) missingImage()
+        val payload = loadPayload()
         return imageTransaction {
             ownedWork(work, owner)
-            // The attachment work lock and Core deletion lock target the same database row.
-            // Recheck after locking: deletion may have committed since the initial Core read.
-            if (!imageEpisodes.existsByWorkIdAndSequence(work, number)) missingImage()
+            // 번호를 재사용한 새 회차에 이전 회차의 이미지가 저장되지 않도록 ID를 비교한다.
+            if (imageEpisodes.findByWorkIdAndSequence(work, number)?.id != episodeId) missingImage()
             val data = imagePayload(payload)
             val alt = AttachmentUploadHelper.validAltText(altText) ?: invalidAltText()
             if (images.countByWorkIdAndEpisodeNo(work, number) >= 10) throw AttachmentFailure(409, "IMAGE_LIMIT", "회차 이미지는 최대 10개까지 추가할 수 있어요.")

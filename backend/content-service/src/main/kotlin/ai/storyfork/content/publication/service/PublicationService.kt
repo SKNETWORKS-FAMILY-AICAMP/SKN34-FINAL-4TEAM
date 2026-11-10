@@ -103,7 +103,7 @@ class PublicationService(
             }
         }
         val next=number+1
-        val row=episodes.findByWorkIdAndSequence(id,next) ?: episodes.saveAndFlush(EpisodeEntity(id=episodeId(id,next),workId=id,sequence=next))
+        val row=episodes.findByWorkIdAndSequence(id,next) ?: episodes.saveAndFlush(EpisodeEntity(id=contentId(),workId=id,sequence=next))
         val d=drafts.findById(row.id).orElse(null) ?: EpisodeDraftEntity(episodeId=row.id,title="새 회차",content="")
         d.editRevision=works.findById(id).orElseThrow().revision
         drafts.save(d)
