@@ -29,7 +29,7 @@ class StoryPlanMigrationPostgresTest {
             fun migrations() = Flyway.configure().dataSource(source).schemas(schema).defaultSchema(schema)
                 .locations(*ContentPersistenceConfig.MIGRATION_LOCATIONS).table("content_schema_history")
             val initial=migrations().let { if(version>0) it.target(version.toString()) else it }.load()
-            // 27은 마이그레이션 개수다(V24가 결번이라 최댓값은 28). target 10·11은 결번보다 낮아 개수가 곧 버전이다.
+            // 27은 마이그레이션 개수다(V24·V28이 결번이라 최댓값은 29). target 10·11은 결번보다 낮아 개수가 곧 버전이다.
             assertEquals(if(version>0) version else 27,initial.migrate().migrationsExecuted)
             val checksums=jdbc.queryForList("SELECT version,checksum FROM content_schema_history ORDER BY installed_rank")
             jdbc.update("INSERT INTO member(id) VALUES ('owner')")
