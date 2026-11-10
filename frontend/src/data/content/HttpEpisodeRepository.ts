@@ -82,6 +82,8 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   async search(query: WorkSearchQuery, signal?: AbortSignal) {
     const params = new URLSearchParams({ f: query.f, sort: query.sort })
     if (query.q) params.set('q', query.q)
+    if (query.page !== undefined) params.set('page', String(query.page))
+    if (query.size !== undefined) params.set('size', String(query.size))
     return (await this.request(`/public/works?${params}`, z.array(readingWork), 'GET', undefined, signal)).map((w) => mapReadingWork(w))
   }
   async ranking(kind: WorkRankingKind, signal?: AbortSignal) {

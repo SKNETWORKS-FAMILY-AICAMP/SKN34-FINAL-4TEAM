@@ -10,7 +10,7 @@ import { ReadingUseCase } from '../domain/usecases/ReadingUseCase'
 export function stubWorkSearch() {
   const { workRepository, readingRepository, readingRecordRepository, workSearchRepository } = appContainer.cradle
   const memory = new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)
-  vi.spyOn(workSearchRepository, 'search').mockImplementation((query) => memory.findWorks(query))
+  vi.spyOn(workSearchRepository, 'search').mockImplementation(async (query) => (await memory.findWorks(query)).list)
   vi.spyOn(workSearchRepository, 'ranking').mockImplementation(async (kind) => {
     const home = await memory.getHome(null, '추천')
     return kind === 'top' ? home.top10 : home.rising

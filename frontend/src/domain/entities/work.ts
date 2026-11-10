@@ -195,9 +195,9 @@ const SERVER_SORTS = [['title', '제목 순'], ['author', '작가 순']] as cons
 export const sortsOf = (works: Pick<Work, 'statisticsSupported'>[]): readonly (readonly [string, string])[] =>
   works.some((w) => w.statisticsSupported === false) ? SERVER_SORTS : SORTS
 
-/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 인기 순은 서버가 지원하지 않습니다. */
+/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 인기 순(like)은 공개 좋아요 수 순입니다. */
 export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그'], ['genre', '장르']] as const
-export const SEARCH_SORTS = [['latest', '최신 순'], ['view', '조회 순']] as const
+export const SEARCH_SORTS = [['latest', '최신 순'], ['like', '인기 순'], ['view', '조회 순']] as const
 export type SearchField = (typeof SEARCH_FIELDS)[number][0]
 export type SearchSort = (typeof SEARCH_SORTS)[number][0]
 
@@ -215,5 +215,5 @@ export function matchW(w: Work, q: string, f: string, works: Work[]) {
 export const sorter = (k: string) => (a: Work,b: Work) => {
   if(k==='author') return a.author.localeCompare(b.author,'ko') || a.title.localeCompare(b.title,'ko')
   if(k==='title' || a.statisticsSupported===false || b.statisticsSupported===false) return a.title.localeCompare(b.title,'ko')
-  return k==='new' ? a.upd-b.upd : k==='pop' ? b.likes-a.likes : b.views-a.views
+  return k==='new' ? a.upd-b.upd : k==='pop' || k==='like' ? b.likes-a.likes : b.views-a.views
 }
