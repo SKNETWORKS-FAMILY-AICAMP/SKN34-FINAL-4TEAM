@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 /** #84: ownership boundaries must hold even when no PostgreSQL server is available. */
 class ContentBoundaryTest {
     private val root = Path.of("src/main/kotlin/ai/storyfork/content")
-    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading")
+    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading", "editsuggestion")
 
     @Test fun `content HTTP resources have distinct controllers without raw servlet arguments`() {
         val controllers = mapOf(
@@ -114,6 +114,31 @@ class ContentBoundaryTest {
         assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.reading.controller\""))
     }
 
+    @Test fun `edit suggestion package is registered for JPA scanning and the content exception handler`() {
+        val config = Files.readString(root.resolve("_common/config/ContentPersistenceConfig.kt"))
+        assertTrue(config.contains("\"ai.storyfork.content.editsuggestion.repository\""))
+        assertTrue(config.contains("\"ai.storyfork.content.editsuggestion.entity\""))
+        assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.editsuggestion.controller\""))
+    }
+
+    @Test fun `edit suggestion table follows the contract and keeps the report link free of foreign keys for now`() {
+        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V24__edit_suggestion.sql"))
+        val tables = sql.split("CREATE TABLE ").drop(1).associate { it.substringBefore(" (") to it }
+        assertEquals(setOf("edit_suggestion"), tables.keys)
+        val table = tables.getValue("edit_suggestion")
+        assertTrue(table.contains("work_id varchar(36) NOT NULL REFERENCES work(id)"))
+        assertTrue(table.contains("published_version_id varchar(36) NOT NULL REFERENCES episode_version(id)"))
+        assertTrue(table.contains("applied_version_id varchar(36) REFERENCES episode_version(id)"))
+        assertTrue(table.contains("source text NOT NULL CHECK (source IN ('reader','ai'))"))
+        assertTrue(table.contains("status text NOT NULL CHECK (status IN ('pending','approved','rejected','held'))"))
+        assertTrue(table.contains("apply_result text CHECK (apply_result IN ('applied','failed'))"))
+        // report_id는 제보 연결(계약 3절)용 칸이라 이 슬라이스에서는 FK 없이 둔다. 작성자·제안자 표시명은 저장하지 않는다.
+        assertTrue(table.contains("report_id varchar(36),"))
+        assertFalse(table.contains("proposer_name"))
+        assertTrue(sql.contains("CREATE INDEX edit_suggestion_work ON edit_suggestion (work_id, created_at DESC)"))
+        assertTrue(sql.contains("CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_at DESC)"))
+    }
+
     @Test fun `fresh SQL lives in feature leaves with one global version order`() {
         val migration = Path.of("src/main/resources/db/migration")
         assertFalse(Files.exists(migration.resolve("auth")))
@@ -125,8 +150,8 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf).
-        assertEquals((1..23).toList(), versions.sorted())
+        // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf), V24 edit suggestions.
+        assertEquals((1..24).toList(), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->
