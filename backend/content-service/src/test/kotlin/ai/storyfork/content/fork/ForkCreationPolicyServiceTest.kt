@@ -7,7 +7,9 @@ import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.fork.entity.ForkEntity
 import ai.storyfork.content.fork.repository.*
 import ai.storyfork.content.fork.service.ForkService
+import ai.storyfork.content.fork.service.dto.ChangeRequest
 import ai.storyfork.content.fork.service.dto.ForkRequest
+import ai.storyfork.content.fork.service.dto.SourceResponse
 import ai.storyfork.content.publication.repository.WorkPublicationHistoryRepository
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.*
@@ -73,8 +75,34 @@ class ForkCreationPolicyServiceTest {
         original()
         `when`(access.forkable("original",listOf(1,2))).thenReturn(listOf(2))
         `when`(forks.findAllByOwnerIdAndSourceWorkId("reader","original")).thenReturn(listOf(ForkEntity(workId="existing",sourceWorkId="original",ownerId="reader")))
+        `when`(access.get("existing")).thenReturn(fork("existing",deleted=false))
         assertEquals(409,assertThrows(ContentFailure::class.java) {service.create("original","reader",ForkRequest(2,"포크"))}.status)
         noWrites()
         verify(forks,never()).saveAndFlush(org.mockito.ArgumentMatchers.any(ForkEntity::class.java))
     }
+
+    @Test fun `a soft deleted earlier Fork does not block forking the same original again`() {
+        original()
+        `when`(access.forkable("original",listOf(1,2))).thenReturn(listOf(2))
+        `when`(forks.findAllByOwnerIdAndSourceWorkId("reader","original")).thenReturn(listOf(ForkEntity(workId="gone",sourceWorkId="original",ownerId="reader")))
+        `when`(access.get("gone")).thenReturn(fork("gone",deleted=true))
+        // 중복 검사를 통과하면 다음 입력 검사(빈 제목)에서 422로 멈춘다.
+        assertEquals(422,assertThrows(ContentFailure::class.java) {service.create("original","reader",ForkRequest(2," "))}.status)
+        noWrites()
+    }
+
+    @Test fun `the Fork owner can still reject a change from a deleted original`() {
+        `when`(access.own("fork","reader")).thenReturn(fork("fork",deleted=false,sourceDeleted=true))
+        `when`(world.read("fork","reader")).thenThrow(ContentFailure(418,"검사 통과"))
+        assertEquals(418,assertThrows(ContentFailure::class.java) {service.decideChange("fork","reader",ChangeRequest(0,"c","reject"))}.status)
+    }
+
+    @Test fun `applying a change from a deleted original stays blocked`() {
+        `when`(access.own("fork","reader")).thenReturn(fork("fork",deleted=false,sourceDeleted=true))
+        assertEquals(409,assertThrows(ContentFailure::class.java) {service.decideChange("fork","reader",ChangeRequest(0,"c","apply"))}.status)
+        verifyNoInteractions(world)
+    }
+
+    private fun fork(id: String,deleted: Boolean,sourceDeleted: Boolean=false) = WorkAccessResult(id,"reader","포크","",0,"world","private",false,false,
+        SourceResponse("original","제목",2,1,"",deleted=sourceDeleted),deleted=deleted)
 }
