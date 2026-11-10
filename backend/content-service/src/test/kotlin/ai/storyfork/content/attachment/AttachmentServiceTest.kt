@@ -113,6 +113,13 @@ class AttachmentServiceTest {
         verify(storage, never()).delete(anyString())
     }
 
+    @Test fun `the owner cannot read or replace the cover of a soft deleted work`() {
+        `when`(works.lockOwned("work", "owner")).thenReturn(ImageWork(id = "work", ownerId = "owner", deletedAt = java.time.Instant.now()))
+        assertEquals("IMAGE_NOT_FOUND", assertThrows(AttachmentFailure::class.java) { service.readCover("work", "owner") }.code)
+        assertEquals("IMAGE_NOT_FOUND", assertThrows(AttachmentFailure::class.java) { service.requireWorkUploadAccess("work", "owner") }.code)
+        verifyNoInteractions(images, storage)
+    }
+
     @Test fun `unified service preserves distinct authentication ownership and database errors`() {
         fun failure(code: String, action: () -> Any?) {
             assertEquals(code, assertThrows(AttachmentFailure::class.java) { action() }.code)

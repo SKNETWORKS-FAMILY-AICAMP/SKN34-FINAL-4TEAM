@@ -141,7 +141,7 @@ class AttachmentService(
     catch (_: TransactionException) { throw AttachmentFailure(503, "IMAGE_DATABASE_FAILURE", "이미지 정보를 저장하거나 조회하지 못했어요.") }
     private fun ownedWork(work: String, owner: String) {
         if (owner.isBlank()) throw AttachmentFailure(401, "IMAGE_UNAUTHENTICATED", "인증이 필요해요.")
-        works.lockOwned(work, owner) ?: missingImage()
+        works.lockOwned(work, owner)?.takeIf { it.deletedAt == null } ?: missingImage()
     }
     /** 파일을 읽기 전에 소유 작품인지 확인한다. 잠금은 이 조회 트랜잭션 동안만 잡고 파일 처리 전에 풀린다. 저장 전 재확인은 각 업로드 메서드가 유지한다. */
     fun requireWorkUploadAccess(work: String, owner: String) { imageTransaction { ownedWork(work, owner); true } }
