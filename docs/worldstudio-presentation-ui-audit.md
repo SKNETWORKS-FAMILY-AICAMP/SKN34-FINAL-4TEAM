@@ -28,7 +28,10 @@ AI 저장 구조 PR #219 및 후속 저장 작업과 별도다. 서비스 API/DB
 발표 PR 이후 변경 파일도 대조했다. RelationPairEditor, leave guard, 검토 대상 선택,
 삭제 undo, 서비스 저장 안내 보완을 과거 발표 코드로 되돌리지 않는다.
 기존 CharacterRelationshipEditor를 서비스로 단순 전환하면 장소 관계와 최신 relationRequest/이탈 보호를 잃을 수 있으므로,
-현재 SettingsRelationshipEditor의 동작 위에 카드/스타일만 옮겼다. 인물 상세 편집은 기존 설정 카드 편집으로 이동한다.
+현재 SettingsRelationshipEditor의 동작 위에 카드/스타일만 옮겼다(이후 WorldRelationshipEditor로 통합하고
+쓰이지 않게 된 CharacterRelationshipEditor와 전용 CSS는 삭제). 인물 상세 편집은 기존 설정 카드 편집으로 이동한다.
+상대 선택 중에는 포커스를 `연결 취소`로 옮기고 Escape로 취소하며, 원래 카드의 `관계 연결`로 포커스를 돌린다.
+전체 지도의 범례·목록 색은 캔버스와 같은 발표용 팔레트를 쓴다.
 
 ## 보존 조건과 검증
 

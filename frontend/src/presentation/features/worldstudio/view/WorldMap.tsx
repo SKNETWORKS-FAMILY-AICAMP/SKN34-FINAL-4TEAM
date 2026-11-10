@@ -1,7 +1,7 @@
 import {buildCharacterMap} from '../viewmodel/characterMap'
 import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { StudioWorld } from '../../../../domain/entities/studioWorld'
-import { mapColors, buildWorldMap, useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
+import { mapColors, presentationMapColors, buildWorldMap, useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import './world-map.css'
 
 const PresentationWorldMapCanvas=lazy(()=>import('./PresentationWorldMapCanvas'))
@@ -16,7 +16,7 @@ export class MapBoundary extends Component<{children:ReactNode},{failed:boolean}
 export function WorldMap({world,charactersOnly=false}:{world:StudioWorld;charactersOnly?:boolean}) {
  const vm=useWorldMapViewModel(world.settings,charactersOnly?buildCharacterMap:buildWorldMap)
  const [cardView,setCardView]=useState(true)
- const cards=charactersOnly&&cardView,presentation=!charactersOnly
+ const cards=charactersOnly&&cardView,presentation=!charactersOnly,colors=presentation?presentationMapColors:mapColors
  const [expanded,setExpanded]=useState(false),toggle=useRef<HTMLButtonElement>(null)
  useEffect(()=>{
   if(!expanded)return
@@ -31,12 +31,12 @@ export function WorldMap({world,charactersOnly=false}:{world:StudioWorld;charact
    <aside className="world-map-search"><h4>설정 탐색</h4><label className="field">설정 검색<input type="search" className="inp" value={vm.query} onChange={e=>vm.setQuery(e.target.value)} placeholder="이름, 내용, 태그"/></label>
     <div className="world-map-filters" role="group" aria-label="설정 종류">{(['전체',...Object.keys(mapColors)] as const).map(k=><button key={k} type="button" aria-pressed={vm.kind===k} onClick={()=>vm.setKind(k as typeof vm.kind)}>{k}</button>)}</div>
     <p role="status" className="small muted">검색 결과 {vm.results.length}개 · 전체 {vm.graph.nodes.length}개</p>
-    <nav aria-label="지도 설정 목록">{vm.results.map(n=><button key={n.id} type="button" aria-label={`${n.name} ${n.kind}`} aria-pressed={vm.selected?.id===n.id} onClick={()=>vm.select(n.id)}><i style={{background:mapColors[n.kind]}}/>{n.name}<small>{n.kind}</small></button>)}</nav>
+    <nav aria-label="지도 설정 목록">{vm.results.map(n=><button key={n.id} type="button" aria-label={`${n.name} ${n.kind}`} aria-pressed={vm.selected?.id===n.id} onClick={()=>vm.select(n.id)}><i style={{background:colors[n.kind]}}/>{n.name}<small>{n.kind}</small></button>)}</nav>
     {!vm.results.length&&<div><p>일치하는 설정이 없습니다.</p><button className="btn sm" onClick={()=>{vm.setQuery('');vm.setKind('전체')}}>검색 조건 초기화</button></div>}
    </aside>
    <div className="world-map-center"><p className="small muted">{vm.graph.nodes.length}개 설정 · {vm.graph.links.length}개 연결</p>
     <MapBoundary><Suspense fallback={<p role="status">지도를 불러오고 있습니다.</p>}>{cards?<CharacterCards vm={vm} editing={{busy:false,readOnly:true,selectedRelations:[],targetSource:null,onSelect:vm.select,onConnect:vm.select,onRelation:id=>{const relation=world.settings.find(s=>s.item.id===id)?.item;if(relation?.subjectId)vm.select(relation.subjectId)}}}/>:presentation?<PresentationWorldMapCanvas vm={vm}/>:<WorldMapCanvas vm={vm}/>}</Suspense></MapBoundary>
-    <div className="world-map-legend">{Object.entries(mapColors).map(([name,color])=><span key={name}><i style={{background:color}}/>{name}</span>)}</div>
+    <div className="world-map-legend">{Object.entries(colors).map(([name,color])=><span key={name}><i style={{background:color}}/>{name}</span>)}</div>
     <p className="small muted">{cards?'카드 선택: 상세 보기 · 드래그: 위치 이동 · 실선: 관계 · 점선: 방향별 감정. 위치는 저장되지 않습니다.':'노드 선택: 상세 보기 · 드래그: 위치 이동 · 휠: 확대·축소. 위치는 저장되지 않습니다.'}</p>
     {!!vm.graph.missingLinks&&<p role="status" className="small">현재 설정에서 찾을 수 없는 연결 {vm.graph.missingLinks}개는 표시하지 않았습니다.</p>}
    </div>

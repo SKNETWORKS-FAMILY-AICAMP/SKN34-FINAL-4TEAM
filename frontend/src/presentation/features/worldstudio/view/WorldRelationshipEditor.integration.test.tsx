@@ -337,3 +337,22 @@ it('keeps the open pair draft when the same two people are chosen in the opposit
  expect(window.confirm).not.toHaveBeenCalled()
  expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('작성 중인 관계')
 })
+
+it('focuses connection cancel, cancels choosing with Escape and clears it when the source person is deleted',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('places')
+ a.item.title='가람';b.item.title='항구';world.settings=[a,b];await useCase.save(world)
+ function Harness(){const vm=useWorldStudioViewModel(useCase);return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.click(await screen.findByRole('button',{name:'가람 관계 연결'}))
+ expect(document.activeElement).toBe(screen.getByRole('button',{name:'연결 취소'}))
+ expect(screen.getByRole('status').textContent).toContain('가람의 연결 상대')
+ fireEvent.keyDown(screen.getByRole('button',{name:'연결 취소'}),{key:'Escape'})
+ expect(screen.queryByRole('button',{name:'연결 취소'})).toBeNull()
+ expect(document.activeElement).toBe(screen.getByRole('button',{name:'가람 관계 연결'}))
+ fireEvent.click(screen.getByRole('button',{name:'가람 관계 연결'}))
+ fireEvent.click(screen.getByRole('button',{name:'선택한 인물 삭제'}))
+ fireEvent.click(screen.getByRole('button',{name:'인물과 연결 삭제'}))
+ expect(screen.queryByRole('button',{name:'연결 취소'})).toBeNull()
+ expect(screen.getByRole('button',{name:'항구 관계 연결'})).toBeTruthy()
+})

@@ -16,7 +16,7 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
  const actual=await original<typeof import('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
  return {useWorldStudioViewModel:()=>actual.useWorldStudioViewModel(useCase)}
 })
-vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 그래프 대역</div>}))
+vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 카드 대역</div>}))
 vi.mock('../../presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=> <div>세계관 지도 대역</div>}))
 vi.mock('../../presentation/features/worldstudio/view/PresentationWorldMapCanvas',()=>({default:()=> <div>전체 지도 대역</div>}))
 beforeEach(()=>{
@@ -122,7 +122,7 @@ it('exposes exploration shortcuts and switches from character cards to the exist
  fireEvent.click(screen.getByRole('button',{name:'세계관 탐색'}))
  fireEvent.click(screen.getByRole('button',{name:'인물 관계도'}))
  expect(screen.getByRole('heading',{name:'인물 관계도 · 2D'})).toBeTruthy()
- expect(await screen.findByText('인물 그래프 대역')).toBeTruthy()
+ expect(await screen.findByText('인물 카드 대역')).toBeTruthy()
  fireEvent.click(screen.getByRole('button',{name:'그래프형'}))
  expect(await screen.findByText('세계관 지도 대역')).toBeTruthy()
  expect(screen.queryByRole('heading',{name:'저장된 현재 관계도'})).toBeNull()

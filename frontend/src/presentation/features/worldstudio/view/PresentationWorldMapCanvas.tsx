@@ -1,12 +1,11 @@
 import { useMemo } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { MapControls, useMapCanvas } from './useMapCanvas'
-import { mapEndpoint, type MapNode, type MapLink, type useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
+import { mapEndpoint, presentationMapColors as palette, type MapNode, type MapLink, type useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import { presentationMapLayout } from '../viewmodel/presentationMapLayout'
 
 export default function WorldMapCanvas({vm}:{vm:ReturnType<typeof useWorldMapViewModel>}) {
  const canvas=useMapCanvas(),{host,graph,width,reduced,paused,setSettled}=canvas
- const palette={인물:'#67caff',장소:'#6ce3cb',조직:'#ffca83',규칙:'#c0abff',사건:'#f0a0cf',관계:'#b9a0ed',설정:'#a5b8d8'}
  const data=useMemo(()=>({nodes:presentationMapLayout(vm.graph.nodes),links:vm.graph.links.map(l=>({...l,source:mapEndpoint(l.source),target:mapEndpoint(l.target)}))}),[vm.graph])
  const linked=(l:MapLink)=>!!vm.selected&&(mapEndpoint(l.source)===vm.selected.id||mapEndpoint(l.target)===vm.selected.id)
  const replay=()=>{

@@ -30,9 +30,10 @@ export default function CharacterCards({vm,editing}:{vm:ReturnType<typeof useWor
  }
  const stop=(e:PointerEvent<HTMLDivElement>)=>{const d=drag.current;drag.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId);if(d&&!d.moved)editing.onSelect(d.id)}
  const names=new Map(vm.graph.nodes.map(n=>[n.id,n.name])),title=(id:string)=>names.get(id)??'인물'
- return <div ref={host} className="relationship-cards-scroll" role="group" aria-label={vm.graph.nodes.some(n=>n.kind!=='인물')?'설정 카드 그래프':'인물 카드 그래프'}>
+ const subject=vm.graph.nodes.some(n=>n.kind!=='인물')?'설정':'인물'
+ return <div ref={host} className="relationship-cards-scroll" role="group" aria-label={`${subject} 카드 그래프`}>
   <div className="relationship-cards-board" style={{width:boardWidth,height:boardHeight}}>
-   <svg width={boardWidth} height={boardHeight} className="relationship-card-edges" role="group" aria-label="인물 사이 관계선">
+   <svg width={boardWidth} height={boardHeight} className="relationship-card-edges" role="group" aria-label={`${subject} 사이 관계선`}>
     <defs><marker id={marker} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--pri-ink)"/></marker></defs>
     {vm.graph.links.map((l,i)=>{
      const source=mapEndpoint(l.source),target=mapEndpoint(l.target),a=at(source),b=at(target)
