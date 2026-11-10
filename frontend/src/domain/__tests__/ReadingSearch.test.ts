@@ -5,18 +5,21 @@ import type { Episode as ContentEpisode } from '../entities/content'
 import type { Work } from '../entities/work'
 import type { ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
-import type { WorkSearchRepository } from '../repositories/WorkSearchRepository'
+import type { WorkRankingQuery, WorkSearchRepository } from '../repositories/WorkSearchRepository'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
 
 /** 서버가 돌려주는 카드용 Work(메모리 시드와 id가 겹치지 않는다) */
 const serverWork = (id: string, over: Partial<Work> = {}): Work => ({ ...seedWorks(0)[0], id, title: `서버 ${id}`, views: 10, parent: undefined, forkAt: undefined, ...over })
+/** 서버 기간별 랭킹 응답: 순위 목록과 계산 시각 */
+const at = new Date('2026-11-10T05:07:00Z')
+const ranked = (items: Work[] = [], computedAt = at) => ({ items, computedAt })
 
 function setup(search?: Partial<WorkSearchRepository>, works = seedWorks(0)) {
   const state: ReadingProgress = { last: {}, read: {}, seen: {}, liked: {} }
   const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (work) => work, createFork: async () => ({ id: 'forked' }), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async () => {} }
   const readingRecordRepository: ReadingRecordRepository = { list: async () => [], record: async () => {}, remove: async () => {} }
-  const repo: WorkSearchRepository | undefined = search && { search: vi.fn(async () => []), ranking: vi.fn(async () => []), recordView: vi.fn(async () => {}), ...search }
+  const repo: WorkSearchRepository | undefined = search && { search: vi.fn(async () => []), rankings: vi.fn(async () => ranked()), recordView: vi.fn(async () => {}), ...search }
   return { useCase: new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, repo) }
 }
 
@@ -24,34 +27,77 @@ describe('ReadingUseCase.getHome 서버 랭킹', () => {
   it('실시간 인기와 급상승을 서버 랭킹으로 채우고 나머지 섹션은 그대로 둔다', async () => {
     const top = [serverWork('t1'), serverWork('t2')]
     const rising = [serverWork('r1')]
-    const ranking = vi.fn(async (kind: 'top' | 'rising') => (kind === 'top' ? top : rising))
-    const home = await setup({ ranking }).useCase.getHome(null, '추천')
+    const rankings = vi.fn(async ({ kind }: WorkRankingQuery) => ranked(kind === 'view' ? top : kind === 'rising' ? rising : []))
+    const home = await setup({ rankings }).useCase.getHome(null, '추천')
     expect(home.top10).toEqual(top)
     expect(home.rising).toEqual(rising)
     expect(home.rankingFailed).toBe(false)
-    expect(ranking.mock.calls.map(([kind]) => kind).sort()).toEqual(['rising', 'top'])
+    expect(rankings.mock.calls.map(([query]) => query.kind).sort()).toEqual(['latest', 'popular', 'rising', 'updated', 'view'])
     expect(home.originals.map((w) => w.id)).toEqual(['guunmong', 'starlight', 'postman', 'hong'])
   })
 
+  it('홈의 다섯 줄을 계약의 기준·기간·범위로 서버에 묻는다', async () => {
+    const rankings = vi.fn(async (_query: WorkRankingQuery) => ranked())
+    await setup({ rankings }).useCase.getHome(null, '추천')
+    const asked = rankings.mock.calls.map(([query]) => query)
+    expect(asked).toHaveLength(5)
+    expect(asked).toEqual(expect.arrayContaining([
+      { kind: 'view', period: 'day' }, { kind: 'rising', period: 'day' }, { kind: 'latest', type: 'fork' },
+      { kind: 'updated', limit: 5 }, { kind: 'popular', period: 'week', limit: 4 },
+    ]))
+  })
+
+  it('포크 소설 줄·방금 업데이트·이번 주 인기 무료 소설은 서버 결과를 쓰고 TOP10의 계산 시각을 알린다', async () => {
+    const lists: Record<string, Work[]> = { view: [serverWork('v')], rising: [serverWork('r')], latest: [serverWork('f', { parent: 'v', forkAt: 1 })], updated: [serverWork('u')], popular: [serverWork('p')] }
+    const rankings = vi.fn(async ({ kind }: WorkRankingQuery) => ranked(lists[kind], kind === 'view' ? at : new Date(0)))
+    const home = await setup({ rankings }).useCase.getHome(null, '추천')
+    expect([home.top10, home.rising, home.forkFeed, home.fresh, home.weekly].map((list) => list.map((w) => w.id))).toEqual([['v'], ['r'], ['f'], ['u'], ['p']])
+    expect(home.rankingComputedAt).toEqual(at)
+    expect(home.serverRanking).toBe(true)
+  })
+
   it('서버가 빈 랭킹을 주면 빈 목록 그대로 둔다(실패가 아니다)', async () => {
-    const home = await setup({ ranking: async () => [] }).useCase.getHome(null, '추천')
+    const home = await setup({ rankings: async () => ranked() }).useCase.getHome(null, '추천')
     expect(home.top10).toEqual([])
     expect(home.rising).toEqual([])
     expect(home.rankingFailed).toBe(false)
+    // 메모리 목록으로 채우지 않는다.
+    expect([home.forkFeed, home.fresh, home.weekly]).toEqual([[], [], []])
+    expect([home.forkFeedFailed, home.freshFailed, home.weeklyFailed]).toEqual([false, false, false])
   })
 
   it('랭킹 조회가 실패하면 홈 전체를 막지 않고 rankingFailed로 알린다', async () => {
-    const home = await setup({ ranking: async () => { throw new Error('offline') } }).useCase.getHome(null, '추천')
+    const home = await setup({ rankings: async () => { throw new Error('offline') } }).useCase.getHome(null, '추천')
     expect(home.rankingFailed).toBe(true)
     expect(home.top10).toEqual([])
     expect(home.rising).toEqual([])
     expect(home.originals).toHaveLength(4)
+    expect(home.rankingComputedAt).toBeNull()
+    expect([home.forkFeedFailed, home.freshFailed, home.weeklyFailed]).toEqual([true, true, true])
+  })
+
+  it.each([['view', 'rankingFailed'], ['rising', 'rankingFailed'], ['latest', 'forkFeedFailed'], ['updated', 'freshFailed'], ['popular', 'weeklyFailed']] as const)(
+    '%s 한 줄만 실패하면 %s만 알리고 그 줄을 메모리로 채우지 않으며 나머지는 서버 결과를 쓴다', async (failing, flag) => {
+      const rankings = vi.fn(async ({ kind }: WorkRankingQuery) => { if (kind === failing) throw new Error('offline'); return ranked([serverWork(kind)]) })
+      const home = await setup({ rankings }).useCase.getHome(null, '추천')
+      const flags = { rankingFailed: home.rankingFailed, forkFeedFailed: home.forkFeedFailed, freshFailed: home.freshFailed, weeklyFailed: home.weeklyFailed }
+      expect(flags).toEqual({ rankingFailed: false, forkFeedFailed: false, freshFailed: false, weeklyFailed: false, [flag]: true })
+      const lines = { view: home.top10, rising: home.rising, latest: home.forkFeed, updated: home.fresh, popular: home.weekly }
+      expect(Object.entries(lines).map(([kind, list]) => [kind, list.map((w) => w.id)])).toEqual(
+        Object.keys(lines).map((kind) => [kind, kind === failing ? [] : [kind]]))
+    })
+
+  it.each(['view', 'rising'] as const)('%s 줄이 실패하면 다른 줄이 성공해도 TOP10 머리의 계산 시각을 알리지 않는다(rankingFailed면 rankingComputedAt은 null)', async (failing) => {
+    const rankings = vi.fn(async ({ kind }: WorkRankingQuery) => { if (kind === failing) throw new Error('offline'); return ranked([serverWork(kind)]) })
+    const home = await setup({ rankings }).useCase.getHome(null, '추천')
+    expect(home.rankingFailed).toBe(true)
+    expect(home.rankingComputedAt).toBeNull()
   })
 
   it('순위 섹션이 실제 순위인지(ranked) 알린다: 서버 랭킹(실패 포함)과 지표가 있는 목업은 true, 지표 없는 서버 작품의 메모리 목록은 false', async () => {
     const placeholder = seedWorks(0).map((w) => ({ ...w, canonical: true, statisticsSupported: false }))
-    expect((await setup({ ranking: async () => [serverWork('t1', { statisticsSupported: false })] }, placeholder).useCase.getHome(null, '추천')).ranked).toBe(true)
-    expect((await setup({ ranking: async () => { throw new Error('offline') } }, placeholder).useCase.getHome(null, '추천')).ranked).toBe(true)
+    expect((await setup({ rankings: async () => ranked([serverWork('t1', { statisticsSupported: false })]) }, placeholder).useCase.getHome(null, '추천')).ranked).toBe(true)
+    expect((await setup({ rankings: async () => { throw new Error('offline') } }, placeholder).useCase.getHome(null, '추천')).ranked).toBe(true)
     expect((await setup().useCase.getHome(null, '추천')).ranked).toBe(true)
     expect((await setup(undefined, placeholder).useCase.getHome(null, '추천')).ranked).toBe(false)
   })
@@ -62,6 +108,66 @@ describe('ReadingUseCase.getHome 서버 랭킹', () => {
     expect(home.rising.map((w) => w.id)).toEqual(['guunmong', 'postman', 'hong', 'starlight'])
     expect(home.rankingFailed).toBe(false)
   })
+
+  it('목업의 포크 소설 줄·방금 업데이트·원작 소개는 메모리 정렬이고 실패 플래그·계산 시각이 없다', async () => {
+    const home = await setup().useCase.getHome(null, '추천')
+    expect(home.forkFeed.map((w) => w.id)).toEqual(['gate', 'crown', 'postif', 'cloud', 'seal', 'pardon', 'reply'])
+    expect(home.fresh.map((w) => w.id)).toEqual(['gate', 'crown', 'postif', 'cloud', 'starlight'])
+    expect(home.weekly.map((w) => w.id)).toEqual(['guunmong', 'starlight', 'postman', 'hong'])
+    expect(home).toMatchObject({ forkFeedFailed: false, freshFailed: false, weeklyFailed: false, rankingComputedAt: null, serverRanking: false })
+  })
+
+  it('무료 칩은 서버(canonical) 작품도 무료로 보이고, 목업은 free 태그 작품만 보인다', async () => {
+    const works = seedWorks(0).map((w) => (['starlight', 'cloud'].includes(w.id) ? { ...w, canonical: true } : w))
+    expect((await setup(undefined, works).useCase.getHome(null, '🆓 무료')).filtered!.map((w) => w.id)).toEqual(['guunmong', 'starlight', 'hong', 'cloud'])
+    expect((await setup().useCase.getHome(null, '🆓 무료')).filtered!.map((w) => w.id)).toEqual(['guunmong', 'hong'])
+  })
+})
+
+describe('ReadingUseCase.rankWorks 랭킹 화면', () => {
+  it('서버 저장소가 있으면 범위 탭을 서버 범위로 바꿔 최대 50개를 묻고 응답을 그대로 돌려준다', async () => {
+    const found = ranked([serverWork('a')])
+    const rankings = vi.fn(async (_query: WorkRankingQuery) => found)
+    const { useCase } = setup({ rankings })
+    expect(await useCase.rankWorks({ t: 'all', kind: 'view', period: 'week' })).toBe(found)
+    await useCase.rankWorks({ t: 'orig', kind: 'popular', period: 'month' })
+    await useCase.rankWorks({ t: 'if', kind: 'rising', period: 'day' })
+    await useCase.rankWorks({ kind: 'view', period: 'day' })
+    expect(rankings.mock.calls.map(([query]) => query)).toEqual([
+      { kind: 'view', period: 'week', type: 'all', limit: 50 },
+      { kind: 'popular', period: 'month', type: 'original', limit: 50 },
+      { kind: 'rising', period: 'day', type: 'fork', limit: 50 },
+      { kind: 'view', period: 'day', type: 'all', limit: 50 },
+    ])
+  })
+
+  it('최신·방금 업데이트는 기간을 쓰지 않으므로 기간을 보내지 않는다', async () => {
+    const rankings = vi.fn(async (_query: WorkRankingQuery) => ranked())
+    const { useCase } = setup({ rankings })
+    await useCase.rankWorks({ t: 'all', kind: 'latest', period: 'month' })
+    await useCase.rankWorks({ t: 'if', kind: 'updated', period: 'week' })
+    expect(rankings.mock.calls.map(([query]) => query)).toEqual([
+      { kind: 'latest', type: 'all', limit: 50 }, { kind: 'updated', type: 'fork', limit: 50 },
+    ])
+  })
+
+  it('서버 실패는 빈 목록으로 숨기지 않고 오류로 알린다', async () => {
+    const { useCase } = setup({ rankings: async () => { throw new Error('offline') } })
+    await expect(useCase.rankWorks({ t: 'all', kind: 'view', period: 'day' })).rejects.toThrow('offline')
+  })
+
+  it('목업은 기간 없이 메모리 정렬로 답하고 서버 계산 시각이 없다', async () => {
+    const { useCase } = setup()
+    const ids = async (query: Parameters<typeof useCase.rankWorks>[0]) => (await useCase.rankWorks(query)).items.map((w) => w.id)
+    expect(await ids({ t: 'orig', kind: 'view', period: 'day' })).toEqual(['guunmong', 'postman', 'hong', 'starlight'])
+    expect(await ids({ t: 'orig', kind: 'rising', period: 'week' })).toEqual(['guunmong', 'postman', 'hong', 'starlight'])
+    expect(await ids({ t: 'orig', kind: 'popular', period: 'day' })).toEqual(['guunmong', 'postman', 'hong', 'starlight'])
+    expect(await ids({ t: 'orig', kind: 'latest', period: 'day' })).toEqual(['starlight', 'guunmong', 'postman', 'hong'])
+    expect(await ids({ t: 'if', kind: 'updated', period: 'day' })).toEqual(['gate', 'crown', 'postif', 'cloud', 'seal', 'pardon', 'reply'])
+    expect(await ids({ t: 'if', kind: 'view', period: 'day' })).toEqual(['cloud', 'gate', 'seal', 'pardon', 'crown', 'postif', 'reply'])
+    expect(await ids({ kind: 'view', period: 'day' })).toHaveLength(11)
+    expect((await useCase.rankWorks({ t: 'all', kind: 'view', period: 'day' })).computedAt).toBeNull()
+  })
 })
 
 describe('ReadingUseCase.findWorks 서버 검색', () => {
@@ -71,14 +177,6 @@ describe('ReadingUseCase.findWorks 서버 검색', () => {
     const list = await setup({ search }).useCase.findWorks({ q: ' 별빛 ', f: 'genre', sort: 'view' })
     expect(search).toHaveBeenCalledWith({ q: '별빛', f: 'genre', sort: 'view' })
     expect(list).toEqual(found)
-  })
-
-  it('랭킹 탭 t=orig·if는 서버 결과에서 원작·Fork로 거른다', async () => {
-    const found = [serverWork('o1'), serverWork('f1', { parent: 'o1', forkAt: 2 }), serverWork('o2')]
-    const { useCase } = setup({ search: async () => found })
-    expect((await useCase.findWorks({ t: 'orig', sort: 'view' })).map((w) => w.id)).toEqual(['o1', 'o2'])
-    expect((await useCase.findWorks({ t: 'if', sort: 'view' })).map((w) => w.id)).toEqual(['f1'])
-    expect((await useCase.findWorks({ t: 'all', sort: 'view' })).map((w) => w.id)).toEqual(['o1', 'f1', 'o2'])
   })
 
   it('서버 실패는 빈 목록으로 숨기지 않고 오류로 알린다', async () => {

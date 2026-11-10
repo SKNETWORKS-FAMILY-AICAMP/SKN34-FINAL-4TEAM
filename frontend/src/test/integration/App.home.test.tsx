@@ -17,7 +17,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect(screen.getByRole('link', { name: 'STORYFORK 홈으로' }).getAttribute('href')).toBe('/')
     await screen.findByRole('link', { name: '알림함, 읽지 않은 알림 2건' })
     await screen.findByText('다르게 이어진 포크 소설')
-    for (const h of ['24시간 인기 급상승', '함께 읽을 소설', '소설 모아 보기', '오늘, 스토리포크의 발견', '원작부터 읽어 보세요']) screen.getByText(h)
+    for (const h of ['24시간 인기 급상승', '방금 업데이트', '소설 모아 보기', '오늘, 스토리포크의 발견', '이번 주 인기 무료 소설']) screen.getByText(h)
     expect(screen.getByText('1 / 4')).toBeTruthy()
     // 비회원은 서버 독서 기록이 없어 이어 읽기 카드가 없다(회원 홈은 아래 테스트).
     expect(screen.queryByRole('link', { name: /이어 읽기/ })).toBeNull()
@@ -26,6 +26,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect(document.querySelector('#home h4')).toBeNull()
     expect(within(screen.getByLabelText('실시간 인기 TOP10')).getByRole('link', { name: '더보기 ›' }).getAttribute('href')).toBe('/rank')
     expect(within(screen.getByLabelText('실시간 인기 TOP10')).getAllByRole('listitem')).toHaveLength(10)
+    within(screen.getByLabelText('실시간 인기 TOP10')).getByText('14:07 기준')
     expect(document.getElementById('sid')!.textContent).toBe('U01 홈')
     const footer = within(screen.getByRole('contentinfo'))
     expect(footer.getByText('SKN34 최종 프로젝트 4팀')).toBeTruthy()

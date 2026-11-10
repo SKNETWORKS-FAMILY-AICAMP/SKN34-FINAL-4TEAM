@@ -1,11 +1,11 @@
 import type { Work as ContentWork } from '../entities/content'
 import { splitSentences } from '../entities/feedback'
-import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
-import type { WorkSearchRepository } from '../repositories/WorkSearchRepository'
+import type { WorkRankingQuery, WorkSearchRepository } from '../repositories/WorkSearchRepository'
 
 /** 목업 CHIPS: 홈 장르 칩과 필터 조건 */
 export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] = [
@@ -13,9 +13,12 @@ export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] 
   ['📜 고전', (w) => w.theme === 'hanji'],
   ['✨ 판타지', (w) => /판타지/.test(w.genre)],
   ['🛰 SF', (w) => /SF/.test(w.genre)],
-  ['🆓 무료', (w) => w.tags.includes('free')],
+  ['🆓 무료', (w) => w.tags.includes('free') || !!w.canonical], // 유료 열람이 없어 서버(canonical) 공개 작품은 모두 무료다.
   ['✎ 포크 많은', (w, all) => forksOf(all, w.id).length > 0],
 ]
+
+/** 랭킹 범위 탭 t(all·orig·if)에 드는 작품인가 */
+const inTab = (t: string) => (w: Work) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent)
 
 export class ReadingUseCase {
   private readonly workRepository: WorkRepository
@@ -39,16 +42,27 @@ export class ReadingUseCase {
     return role ? this.readingRecordRepository.list() : Promise.resolve([])
   }
 
-  /** 서버 랭킹(최근 24시간 조회). 실패는 빈 목록으로 숨기지 않고 failed로 알립니다. */
-  private serverRanking() {
+  /**
+   * 홈 다섯 줄(실시간 인기·급상승·포크 소설·방금 업데이트·이번 주 인기)을 서버 기간별 랭킹으로 묻습니다(기능표 45 계약).
+   * 한 줄의 실패는 빈 목록으로 숨기지 않고 그 줄의 failed로만 알려 홈 전체를 막지 않습니다.
+   */
+  private async serverHome() {
     const repo = this.workSearchRepository
     if (!repo) return null
-    return Promise.all([repo.ranking('top'), repo.ranking('rising')]).then(([top10, rising]) => ({ top10, rising, failed: false }), () => ({ top10: [] as Work[], rising: [] as Work[], failed: true }))
+    const line = (query: WorkRankingQuery) => repo.rankings(query).then(
+      ({ items, computedAt }) => ({ items, computedAt, failed: false }),
+      () => ({ items: [] as Work[], computedAt: null, failed: true }),
+    )
+    const [top10, rising, forkFeed, fresh, weekly] = await Promise.all([
+      line({ kind: 'view', period: 'day' }), line({ kind: 'rising', period: 'day' }), line({ kind: 'latest', type: 'fork' }),
+      line({ kind: 'updated', limit: 5 }), line({ kind: 'popular', period: 'week', limit: 4 }),
+    ])
+    return { top10, rising, forkFeed, fresh, weekly }
   }
 
   /** 목업 home(): 칩이 '추천'이 아니면 filtered(U02)만 채웁니다. */
   async getHome(role: Role, chip: string) {
-    const [works, progress, ranking, records] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverRanking(), this.memberRecords(role)])
+    const [works, progress, server, records] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverHome(), this.memberRecords(role)])
     const pub = works.filter(isPub)
     const filter = (HOME_CHIPS.find((c) => c[0] === chip) ?? HOME_CHIPS[0])[1]
     const origs = originals(works).filter(isPub)
@@ -64,23 +78,32 @@ export class ReadingUseCase {
       const e = w && isPub(w) && epsOf(w)[r.lastEpisode - 1]
       return w && e && visibleEpisode(w, e, role) ? [{ work: w, episode: r.lastEpisode }] : []
     })[0]
+    // 실시간 인기·급상승은 한 화면 블록이라 둘 중 하나라도 실패하면 함께 실패로 알립니다.
+    const rankingFailed = !!server && (server.top10.failed || server.rising.failed)
     return {
       works,
       forkSources,
       seen: progress.seen,
       filtered: filter ? pub.filter((w) => filter(w, works)) : null,
       originals: origs,
-      forkFeed: pub.filter((w) => w.parent).sort(sorter('new')),
+      forkFeed: server ? server.forkFeed.items : pub.filter((w) => w.parent).sort(sorter('new')),
       continueReading: resume ?? null,
-      top10: ranking ? ranking.top10 : pub.slice().sort(sorter('pop')).slice(0, 10),
-      rising: ranking ? ranking.rising : origs.slice().sort(sorter('view')),
-      rankingFailed: !!ranking?.failed,
+      top10: server ? server.top10.items : pub.slice().sort(sorter('pop')).slice(0, 10),
+      rising: server ? server.rising.items : origs.slice().sort(sorter('view')),
+      rankingFailed,
+      forkFeedFailed: !!server?.forkFeed.failed,
+      freshFailed: !!server?.fresh.failed,
+      weeklyFailed: !!server?.weekly.failed,
+      /** 서버가 실시간 인기를 계산한 시각(화면의 "HH:mm 기준"). 목업이거나 실시간 인기·급상승이 하나라도 실패하면 실패 안내 위에 남기지 않도록 null */
+      rankingComputedAt: rankingFailed ? null : server?.top10.computedAt ?? null,
+      /** 순위·업데이트·인기 줄을 서버 기간별 랭킹으로 채웠는가(목업은 메모리 데모) */
+      serverRanking: !!server,
       /** 순위 섹션이 실제 순위인가: 서버 랭킹이거나 좋아요·조회 지표가 있는 목업. 지표 없는 서버 작품의 단순 목록이면 false입니다. */
-      ranked: !!ranking || !pub.some((w) => w.statisticsSupported === false),
-      fresh: pub.slice().sort(sorter('new')).slice(0, 5),
+      ranked: !!server || !pub.some((w) => w.statisticsSupported === false),
+      fresh: server ? server.fresh.items : pub.slice().sort(sorter('new')).slice(0, 5),
       picks: pub.slice(0, 6),
       discover: pub,
-      weekly: origs.slice(0, 4),
+      weekly: server ? server.weekly.items : origs.slice(0, 4),
     }
   }
 
@@ -196,15 +219,24 @@ export class ReadingUseCase {
     return progress.liked[id]
   }
 
-  /** 목업 searchPage()·rank(): t는 랭킹 탭(all·orig·if). 서버 저장소가 있으면 검색은 서버가, 원작·Fork 탭은 결과에서 거릅니다. */
-  async findWorks({ t = 'all', q = '', f = 'all', sort }: { t?: string; q?: string; f?: SearchField; sort: SearchSort }) {
-    const kind = (w: Work) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent)
-    if (this.workSearchRepository) return (await this.workSearchRepository.search({ q: q.trim(), f, sort })).filter(kind)
+  /** 목업 searchPage(): 서버 저장소가 있으면 검색은 서버가 합니다. 랭킹 화면은 rankWorks를 씁니다. */
+  async findWorks({ q = '', f = 'all', sort }: { q?: string; f?: SearchField; sort: SearchSort }) {
+    if (this.workSearchRepository) return this.workSearchRepository.search({ q: q.trim(), f, sort })
     const works = await this.workRepository.listWorks()
     return works.filter(isPub)
-      .filter(kind)
       .filter((w) => matchW(w, q, f, works))
       .sort(sorter(sort === 'latest' ? 'new' : sort))
+  }
+
+  /**
+   * /rank: t는 범위 탭(all·orig·if)이다. 서버 저장소가 있으면 서버 기간별 랭킹(기능표 45, 최대 50개)을 묻고(최신·방금 업데이트는 기간을 쓰지 않아 보내지 않음),
+   * 목업이면 메모리 정렬(조회·급상승=조회 수, 인기=좋아요, 최신·방금 업데이트=갱신 순)이며 기간·계산 시각이 없다.
+   */
+  async rankWorks({ t = 'all', kind, period }: { t?: string; kind: RankingKind; period: RankingPeriod }): Promise<{ items: Work[]; computedAt: Date | null }> {
+    const repo = this.workSearchRepository
+    if (repo) return repo.rankings({ kind, ...(rankingUsesPeriod(kind) ? { period } : {}), type: RANKING_TYPES.find(([tab]) => tab === t)?.[2] ?? 'all', limit: 50 })
+    const sort = { view: 'view', rising: 'view', popular: 'pop', latest: 'new', updated: 'new' }[kind]
+    return { items: (await this.workRepository.listWorks()).filter(isPub).filter(inTab(t)).sort(sorter(sort)), computedAt: null }
   }
 
   /** 목업 tagPage(t): 태그가 없으면 첫 태그를 고릅니다. */
