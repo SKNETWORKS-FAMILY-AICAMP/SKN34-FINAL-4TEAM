@@ -34,9 +34,11 @@ class EpisodeService(
         access.own(id,owner)
         return EpisodeListResponse(assemble(current.findAllByWorkIdOrderBySequence(id)))
     }
-    fun read(id: String, owner: String, number: Int): EpisodeResponse {
+    fun read(id: String, owner: String, number: Int): EpisodeResponse = readWithId(id,owner,number).second
+
+    internal fun readWithId(id: String, owner: String, number: Int): Pair<String, EpisodeResponse> {
         access.own(id,owner)
-        return readCurrent(id,number)
+        return readCurrentWithId(id,number)
     }
     fun create(id: String, owner: String, data: CreateEpisodeRequest): EpisodeResponse {
         access.own(id,owner)
@@ -133,11 +135,14 @@ class EpisodeService(
     private fun ensure(work: String, number: Int): EpisodeEntity = episodes.findByWorkIdAndSequence(work,number)
         ?: episodes.saveAndFlush(EpisodeEntity(id=contentId(),workId=work,sequence=number))
     private fun validate(title: String, body: String) = checkContent(title.isNotBlank() && title.length<=120 && body.length<=40000,message="제목은 120자, 원고는 40,000자 이내로 작성해 주세요.")
-    private fun readCurrent(id: String, number: Int): EpisodeResponse {
+    private fun readCurrent(id: String, number: Int): EpisodeResponse = readCurrentWithId(id,number).second
+
+    private fun readCurrentWithId(id: String, number: Int): Pair<String, EpisodeResponse> {
         em.flush()
         val row=current.findByWorkIdAndSequence(id,number) ?: missing()
         em.refresh(row)
-        return assemble(listOf(row)).singleOrNull() ?: missing()
+        val episode=assemble(listOf(row)).singleOrNull() ?: missing()
+        return row.id to episode
     }
     private fun assemble(rows: List<EpisodeCurrentEntity>): List<EpisodeResponse> {
         if(rows.isEmpty()) return emptyList()

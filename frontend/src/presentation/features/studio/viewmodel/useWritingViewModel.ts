@@ -75,7 +75,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const mayLeave=()=>!pending.current&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
   const remove=(whole:boolean)=>{
     if(!active||pending.current||active.inherited)return Promise.resolve(false)
-    if(!window.confirm(whole?'회차를 삭제할까요? 참조 없는 마지막 회차만 삭제할 수 있으며 삭제한 회차는 집필실에서 숨겨져요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return Promise.resolve(false)
+    if(!window.confirm(whole?'회차를 삭제할까요? 참조 없는 마지막 회차만 삭제할 수 있으며 삭제한 회차는 집필실에서 숨겨져요. 저장하지 않은 입력은 사라져요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return Promise.resolve(false)
     return run(async signal=>{
       const removeAction=whole?api.deleteEpisode.bind(api):api.deleteDraft.bind(api)
       await removeAction(id,active.number,active.draft.revision,signal)

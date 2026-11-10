@@ -13,6 +13,7 @@ import ai.storyfork.content.episode.service.dto.EpisodeResponse as WritingEpisod
 import ai.storyfork.content.work.service.WorkService as ContentService
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.attachment.entity.ContentImage
+import ai.storyfork.content.attachment.entity.ImageEpisode
 import ai.storyfork.content.attachment.entity.ImageWork
 import ai.storyfork.content.attachment.repository.ContentImageRepository
 import ai.storyfork.content.attachment.repository.ImageWorkRepository
@@ -66,7 +67,10 @@ class AttachmentServiceTest {
         `when`(attachments.saveAndFlush(any(SettingAttachment::class.java) ?: SettingAttachment())).thenAnswer { it.arguments[0] }
         `when`(images.saveAndFlush(any(ContentImage::class.java) ?: ContentImage())).thenAnswer { it.arguments[0] }
         `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, false, null))
-        `when`(imageEpisodes.existsByWorkIdAndSequence("work",1)).thenReturn(true)
+        `when`(episodeService.readWithId("work", "owner", 1)).thenReturn(
+            "original" to WritingEpisode(1, Draft(), emptyList(), null, false, null)
+        )
+        `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(ImageEpisode(id = "original"))
     }
 
     @Test fun `setting attachments of a soft deleted work are not found`() {
@@ -87,13 +91,24 @@ class AttachmentServiceTest {
     }
 
     @Test fun `upload rechecks deleted episode under the work lock before writing a file`() {
-        `when`(imageEpisodes.existsByWorkIdAndSequence("work",1)).thenReturn(false)
+        `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(null)
         assertThrows(AttachmentFailure::class.java) {service.createEpisodeImage("work",1,"owner",request())}
         val ordered=inOrder(works,imageEpisodes)
         ordered.verify(works).lockOwned("work","owner")
-        ordered.verify(imageEpisodes).existsByWorkIdAndSequence("work",1)
+        ordered.verify(imageEpisodes).findByWorkIdAndSequence("work", 1)
         verifyNoInteractions(storage)
     }
+    @Test fun `upload rejects a replacement episode with the same number before writing a file`() {
+        val failure = assertThrows(AttachmentFailure::class.java) {
+            service.createEpisodeImage("work", 1, "owner") {
+                `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(ImageEpisode(id = "replacement"))
+                request()
+            }
+        }
+        assertEquals("IMAGE_NOT_FOUND", failure.code)
+        verifyNoInteractions(storage)
+    }
+
     @Test fun `one attachment service stores setting files work covers and episode images through shared storage`() {
         val file = "설정 문서".toByteArray()
         val setting = service.createSettingAttachment("work", "setting", "owner", request("note.txt", "text/plain", file))
@@ -116,7 +131,7 @@ class AttachmentServiceTest {
         verify(settings).lockOwnedLocal("work", "setting", "owner")
         // 설정 첨부도 삭제 여부를 보려고 작품 행을 잠근다(설정·표지·회차 이미지 각 1회).
         verify(works, times(3)).lockOwned("work", "owner")
-        verify(episodeService).read("work", "owner", 1)
+        verify(episodeService).readWithId("work", "owner", 1)
         verify(storage, never()).delete(anyString())
     }
 
@@ -163,11 +178,14 @@ class AttachmentServiceTest {
     }
 
     @Test fun `episode upload access checks the episode before the file is read`() {
-        `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, true, null))
-        assertEquals(403, assertThrows(AttachmentFailure::class.java) { service.requireEpisodeUploadAccess("work", 1, "owner") }.status)
-        `when`(episodeService.read("work", "owner", 2)).thenReturn(WritingEpisode(2, Draft(), emptyList(), null, false, null))
-        service.requireEpisodeUploadAccess("work", 2, "owner")
-        verify(episodeService).read("work", "owner", 2)
+        `when`(episodeService.readWithId("work", "owner", 1)).thenReturn(
+            "original" to WritingEpisode(1, Draft(), emptyList(), null, true, null)
+        )
+        val failure = assertThrows(AttachmentFailure::class.java) {
+            service.createEpisodeImage("work", 1, "owner") { error("상속 회차의 파일을 읽으면 안 됩니다.") }
+        }
+        assertEquals(403, failure.status)
+        verifyNoInteractions(storage)
     }
 
     @Test fun `inherited episode images use frozen body references and cannot be created`() {
@@ -177,6 +195,9 @@ class AttachmentServiceTest {
         `when`(storage.read(image.objectKey)).thenReturn(AttachmentObjectResult(png))
         `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(body = "기준[[image:${image.id}]]"), emptyList(), null, true, null))
         assertArrayEquals(png, service.downloadEpisodeImage("work", 1, image.id, "owner", false).bytes)
+        `when`(episodeService.readWithId("work", "owner", 1)).thenReturn(
+            "original" to WritingEpisode(1, Draft(), emptyList(), null, true, null)
+        )
         assertEquals("IMAGE_INHERITED", assertThrows(AttachmentFailure::class.java) {
             service.createEpisodeImage("work", 1, "owner", request())
         }.code)

@@ -3,7 +3,10 @@ package ai.storyfork.content.regression
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.attachment.domain.AttachmentFailure
 import ai.storyfork.content.attachment.repository.ImageEpisodeRepository
+import ai.storyfork.content.attachment.service.AttachmentService
+import ai.storyfork.content.attachment.service.dto.AttachmentUploadPayload
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
@@ -51,6 +54,7 @@ class AuthContentIntegrationTest {
     @Autowired lateinit var publication:PublicationService
     @Autowired lateinit var worlds:WorldService
     @Autowired lateinit var imageEpisodes:ImageEpisodeRepository
+    @Autowired lateinit var attachments:AttachmentService
     private val jdbc get()=JdbcTemplate(source)
     private val client=HttpClient.newHttpClient()
     private fun request(path:String)=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).header("Accept","application/json")
@@ -76,21 +80,28 @@ class AuthContentIntegrationTest {
         assertEquals(404,delete(revision,actor()).statusCode())
         assertEquals(409,delete(revision-1).statusCode())
         assertEquals(oldId,episodeId())
-        val removed=delete(revision)
-        assertEquals(204,removed.statusCode(),removed.body())
-        assertEquals(404,send(authenticated(path)).statusCode())
-        assertTrue(json.readTree(send(authenticated(list)).body()).isEmpty)
-        assertFalse(imageEpisodes.existsByWorkIdAndSequence(work.id,1))
-        assertEquals(true,jdbc.queryForObject("SELECT deleted_at IS NOT NULL FROM episode WHERE id=?",Boolean::class.java,oldId))
-        assertEquals("보존할 원고",jdbc.queryForObject("SELECT content FROM episode_draft WHERE episode_id=?",String::class.java,oldId))
+        val staleUpload=assertThrows(AttachmentFailure::class.java) {
+            attachments.createEpisodeImage(work.id,1,owner.toString()) {
+                val removed=delete(revision)
+                assertEquals(204,removed.statusCode(),removed.body())
+                assertEquals(404,send(authenticated(path)).statusCode())
+                assertTrue(json.readTree(send(authenticated(list)).body()).isEmpty)
+                assertNull(imageEpisodes.findByWorkIdAndSequence(work.id,1))
+                assertEquals(true,jdbc.queryForObject("SELECT deleted_at IS NOT NULL FROM episode WHERE id=?",Boolean::class.java,oldId))
+                assertEquals("보존할 원고",jdbc.queryForObject("SELECT content FROM episode_draft WHERE episode_id=?",String::class.java,oldId))
 
-        val created=send(mutation(list,"""{"title":"새 회차"}""").header("Authorization","Bearer $owner"))
-        assertEquals(201,created.statusCode(),created.body())
-        val replacement=json.readTree(created.body())
-        assertEquals(1,replacement.path("number").asInt())
-        assertTrue(replacement.path("draft").path("revision").asInt()>revision)
-        assertNotEquals(oldId,episodeId())
-        assertTrue(imageEpisodes.existsByWorkIdAndSequence(work.id,1))
+                val created=send(mutation(list,"""{"title":"새 회차"}""").header("Authorization","Bearer $owner"))
+                assertEquals(201,created.statusCode(),created.body())
+                val replacement=json.readTree(created.body())
+                assertEquals(1,replacement.path("number").asInt())
+                assertTrue(replacement.path("draft").path("revision").asInt()>revision)
+                val replacementId=episodeId()
+                assertNotEquals(oldId,replacementId)
+                assertEquals(replacementId,imageEpisodes.findByWorkIdAndSequence(work.id,1)?.id)
+                AttachmentUploadPayload("map.png","image/png","IMAGE",byteArrayOf(1))
+            }
+        }
+        assertEquals("IMAGE_NOT_FOUND",staleUpload.code)
         assertEquals(409,delete(revision).statusCode())
         assertEquals(200,send(authenticated(path)).statusCode())
     }

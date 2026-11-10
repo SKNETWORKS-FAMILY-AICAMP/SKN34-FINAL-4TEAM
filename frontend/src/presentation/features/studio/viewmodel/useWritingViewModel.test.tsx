@@ -88,19 +88,23 @@ it('returns false when episode navigation is cancelled and keeps the dirty draft
 })
 
 
-it('clears deleted input even when refreshing the list fails',async()=>{
+it.each([
+  ['deleteDraft','작업 초안을 삭제했어요.'],
+  ['deleteEpisode','회차를 삭제했어요.'],
+] as const)('%s warns about unsaved input and clears it even when refreshing fails',async(action,notice)=>{
   const episode={number:1,draft:{title:'1화',body:'기존',revision:4},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
-  const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValueOnce([episode]).mockRejectedValueOnce(new Error('목록 조회 실패')),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn().mockResolvedValue(undefined),deleteEpisode:vi.fn()}
+  const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValueOnce([episode]).mockRejectedValueOnce(new Error('목록 조회 실패')),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn().mockResolvedValue(undefined),deleteEpisode:vi.fn().mockResolvedValue(undefined)}
   const {result}=renderHook(()=>useWritingViewModel('w',api))
   await act(async()=>{})
   act(()=>result.current.edit({body:'버릴 입력'}))
   const confirm=vi.spyOn(window,'confirm').mockReturnValue(true)
   try {
-    await act(async()=>{await result.current.deleteDraft()})
-    expect(api.deleteDraft).toHaveBeenCalledWith('w',1,4,expect.any(AbortSignal))
+    await act(async()=>{await result.current[action]()})
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('저장하지 않은 입력은 사라져요.'))
+    expect(api[action]).toHaveBeenCalledWith('w',1,4,expect.any(AbortSignal))
     expect(result.current.active).toBeNull()
     expect(result.current.draft.body).toBe('')
-    expect(result.current.notice).toContain('작업 초안을 삭제했어요.')
+    expect(result.current.notice).toContain(notice)
     expect(result.current.error).toBe('목록 조회 실패')
     expect(api.writeEpisode).not.toHaveBeenCalled()
   } finally {confirm.mockRestore()}
