@@ -23,6 +23,7 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.sql.DataSource
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -68,6 +69,9 @@ class WorkSearchRankingIntegrationTest {
             (call.arguments[0] as Collection<*>).map {it as String}.filter {it in names}.associateWith {names.getValue(it)}
         }
     }
+
+    /** 시드 조회 행(member_id `seed-*`)은 테스트마다 지운다. 남으면 전체 TOP10만 보는 다른 테스트의 작품이 순위 밖으로 밀린다(DB 공유). */
+    @AfterEach fun clearSeededViews() { jdbc.update("DELETE FROM work_view WHERE member_id LIKE 'seed-%'") }
 
     private fun actor(): UUID=UUID.randomUUID().also { id -> `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id)) }
     private fun send(request: HttpRequest.Builder): HttpResponse<String> = client.send(request.build(),HttpResponse.BodyHandlers.ofString())
