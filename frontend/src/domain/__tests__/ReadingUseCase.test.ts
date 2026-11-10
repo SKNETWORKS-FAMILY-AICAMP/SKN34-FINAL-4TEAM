@@ -128,6 +128,12 @@ describe('ReadingUseCase.getHome (목업 home())', () => {
     expect(home.top10[0].id).toBe('guunmong')
   })
 
+  it('오늘의 발견은 갱신이 오래된 작품부터 보여 준다', async () => {
+    const home = await fakes().useCase.getHome(null, '추천')
+    const upd = home.discover.map((w) => w.upd)
+    expect(upd).toEqual(upd.slice().sort((a, b) => b - a))
+  })
+
   it('칩 필터는 공개 작품만 걸러 U02 결과를 만든다', async () => {
     const { works, useCase } = fakes()
     works.find((w) => w.id === 'hong')!.hidden = true

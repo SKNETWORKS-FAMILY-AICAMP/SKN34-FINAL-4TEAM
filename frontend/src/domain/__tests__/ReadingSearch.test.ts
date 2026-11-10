@@ -64,6 +64,38 @@ describe('ReadingUseCase.getHome 서버 랭킹', () => {
   })
 })
 
+describe('ReadingUseCase.getHome 장르 칩·오늘의 발견', () => {
+  it('장르 칩은 서버 검색을 장르 범위·좋아요순으로 불러 결과를 그대로 보여 준다', async () => {
+    const found = [serverWork('g1'), serverWork('g2')]
+    const search = vi.fn(async () => found)
+    const home = await setup({ search }).useCase.getHome(null, '✨ 판타지')
+    expect(search).toHaveBeenCalledWith({ q: '판타지', f: 'genre', sort: 'like' })
+    expect(home.filtered).toEqual(found)
+  })
+
+  it('고전 칩도 서버 장르 검색(고전)으로 부른다', async () => {
+    const search = vi.fn(async () => [])
+    await setup({ search }).useCase.getHome(null, '📜 고전')
+    expect(search).toHaveBeenCalledWith({ q: '고전', f: 'genre', sort: 'like' })
+  })
+
+  it('장르 검색이 실패하면 빈 결과로 숨기지 않고 던진다', async () => {
+    await expect(setup({ search: async () => { throw new Error('offline') } }).useCase.getHome(null, '🛰 SF')).rejects.toThrow('offline')
+  })
+
+  it('추천 화면은 서버 검색을 부르지 않는다', async () => {
+    const search = vi.fn(async () => [])
+    await setup({ search }).useCase.getHome(null, '추천')
+    expect(search).not.toHaveBeenCalled()
+  })
+
+  it('오늘의 발견은 서버 공개 목록(생성 최신순)을 뒤집은 오래된 순이다', async () => {
+    const list = [serverWork('new', { statisticsSupported: false, upd: 0 }), serverWork('mid', { statisticsSupported: false, upd: 0 }), serverWork('old', { statisticsSupported: false, upd: 0 })]
+    const home = await setup({}, list).useCase.getHome(null, '추천')
+    expect(home.discover.map((w) => w.id)).toEqual(['old', 'mid', 'new'])
+  })
+})
+
 describe('ReadingUseCase.findWorks 서버 검색', () => {
   const works = (count: number, over: Partial<Work> = {}) => Array.from({ length: count }, (_, i) => serverWork(`w${i}`, over))
 

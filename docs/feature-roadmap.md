@@ -97,7 +97,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="325">콘텐츠 서비스</td><td rowspan="6">개발 데이터 관리</td><td rowspan="6">91 개발 샘플 정본 이관</td><td>정규 CSV를 승인된 정확한 DB/schema에 COPY·동일 재실행만 허용·충돌 거절</td><td>❌</td><td rowspan="6">—</td></tr>
+<tr><td rowspan="324">콘텐츠 서비스</td><td rowspan="6">개발 데이터 관리</td><td rowspan="6">91 개발 샘플 정본 이관</td><td>정규 CSV를 승인된 정확한 DB/schema에 COPY·동일 재실행만 허용·충돌 거절</td><td>❌</td><td rowspan="6">—</td></tr>
 <tr><td>Core subject에 대응하는 자격증명 없는 Content member 참조 저장</td><td>❌</td></tr>
 <tr><td>샘플 작품 11개를 정규 작품·소유권 행으로 이관</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/180">PR #180</a></td></tr>
 <tr><td>자체 원고 17개의 정확한 본문·버전·발행 사건 이관</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/180">PR #180</a></td></tr>
@@ -392,10 +392,9 @@
 <tr><td>랭킹 집계 기준 확정</td><td>❌</td></tr>
 <tr><td>기간별 랭킹 집계</td><td>❌</td></tr>
 <tr><td>랭킹 갱신 시각 조회</td><td>❌</td></tr>
-<tr><td rowspan="6">홈 큐레이션 관리</td><td rowspan="4">46 홈 추천·편성</td><td>에디터 Pick 작품 조회</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a></td></tr>
+<tr><td rowspan="5">홈 큐레이션 관리</td><td rowspan="3">46 홈 추천·편성</td><td>개인 맞춤 추천 작품 조회(예정)</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a></td></tr>
 <tr><td>오늘의 발견 작품 조회</td><td>❌</td></tr>
 <tr><td>홈 장르별 작품 조회</td><td>❌</td></tr>
-<tr><td>에디터 Pick 선정 관리 방식 결정</td><td>❌</td></tr>
 <tr><td rowspan="2">55 홈 탐색 필터</td><td>홈 무료 작품만 보기</td><td>❌</td><td rowspan="2">—</td></tr>
 <tr><td>홈 Fork가 있는 원작만 보기</td><td>❌</td></tr>
 <tr><td rowspan="3">검색 트렌드 검토</td><td rowspan="3">47 인기 검색어(추가 검토)</td><td>인기 검색어 제공 여부 결정</td><td>❌</td><td rowspan="3">—</td></tr>

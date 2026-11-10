@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 import { renderApp as renderAt } from '../renderApp'
+import { stubWorkSearch } from '../stubWorkSearch'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); delete document.documentElement.dataset.theme })
 
@@ -57,6 +58,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
   })
 
   it('칩을 고르면 필터 결과(U02)를 보여 주고 안내를 닫을 수 있다', async () => {
+    stubWorkSearch()
     renderAt('/')
     await screen.findByText('다르게 이어진 포크 소설')
     expect(screen.getByRole('button', { name: '추천' }).getAttribute('aria-pressed')).toBe('true')
