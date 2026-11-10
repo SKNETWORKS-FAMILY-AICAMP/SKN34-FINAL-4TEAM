@@ -45,6 +45,7 @@ CREATE INDEX admin_activity_created_idx ON operations.admin_activity (created_at
 | `EVENT_CREATE` · `EVENT_UPDATE` | `EVENT` · 이벤트 ID | 제목 |
 | `EVENT_DELETE` | `EVENT` · 이벤트 ID | — |
 | `INQUIRY_REPLY_CREATE` · `INQUIRY_REPLY_UPDATE` · `INQUIRY_REPLY_DELETE` | `INQUIRY` · 문의 ID | 답변 ID |
+| `COMMENT_HIDE` · `COMMENT_UNHIDE` | `COMMENT` · 댓글 ID | 작품 제목(Content 응답, 댓글 본문은 저장하지 않음) |
 
 `detail`은 500자를 넘으면 잘라 저장한다.
 

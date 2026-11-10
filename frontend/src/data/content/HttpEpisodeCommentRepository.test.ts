@@ -33,6 +33,14 @@ describe('회차 댓글 읽기 (공개 API, Bearer 선택)', () => {
     expect(first).toMatchObject({ id: 'c1', authorName: '닉네임', quote: null, likeCount: 2, mine: true, liked: true })
   })
 
+  it('운영 숨김 댓글은 hidden을 그대로 받고, hidden이 없는 이전 응답은 숨기지 않은 댓글로 본다', async () => {
+    await signOut()
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ items: [row({ id: 'h', hidden: true, body: '', quote: null }), row({ id: 'v', hidden: false }), row({ id: 'old' })] }))
+    const rows = await new HttpEpisodeCommentRepository(fetcher).list('w1', 3, 'latest')
+    expect(rows.map((r) => [r.id, r.hidden])).toEqual([['h', true], ['v', false], ['old', false]])
+    expect(rows[0]).toMatchObject({ body: '', quote: null, likeCount: 2, authorName: '닉네임' })
+  })
+
   it('익명이면 Authorization 없이 읽는다', async () => {
     await signOut()
     const fetcher = vi.fn().mockResolvedValue(Response.json({ items: [] }))
@@ -116,6 +124,7 @@ describe('회차 댓글 오류와 응답 검증', () => {
     ['필수 필드 누락', row({ likeCount: undefined })],
     ['잘못된 시각', row({ createdAt: '어제' })],
     ['문자열 좋아요 수', row({ likeCount: '2' })],
+    ['불리언이 아닌 숨김 여부', row({ hidden: 'yes' })],
   ])('Zod가 %s 응답을 거절한다', async (_name, bad) => {
     const repo = new HttpEpisodeCommentRepository(vi.fn().mockResolvedValue(Response.json({ items: [row(), bad] })))
     await expect(repo.list('w1', 3, 'latest')).rejects.toThrow('서버 응답 형식')

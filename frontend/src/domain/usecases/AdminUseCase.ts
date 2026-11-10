@@ -72,13 +72,6 @@ export class AdminUseCase {
     return works.filter((w) => isPub(w) && ofKind(kind, w)).map((w) => ({ w, cast: publicCast(w, Math.max(w.eps.length, 1)) }))
   }
 
-  async toggleComment(id: string, label: string): Promise<AdminResult> {
-    const comments = await this.adminRepository.listComments(await this.workRepository.listWorks())
-    if (!comments.some((c) => c.id === id)) return null
-    await this.log('댓글 상태 변경', (a) => { const hidden = a.hiddenComments.includes(id); a.hiddenComments = hidden ? a.hiddenComments.filter((x) => x !== id) : [...a.hiddenComments, id]; return label + ' · ' + (hidden ? '게시' : '숨김') })
-    return ok('댓글 상태를 변경했어요 (데모)')
-  }
-
   async toggleChat(id: string): Promise<AdminResult> {
     const works = await this.workRepository.listWorks(), chats = await chatsOf(this.chatRepository, works)
     const chat = chats.find((c) => c.id === id), w = chat && works.find((x) => x.id === chat.workId)

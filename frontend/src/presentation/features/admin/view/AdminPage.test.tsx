@@ -9,10 +9,12 @@ import '../../../../test/testLocks'
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { login } from '../../../../data/api/auth'
-import { HttpAdminActivityRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
+import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
+import type { OperationsComment } from '../../../../domain/entities/operationsComment'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
 import { AdminActivityUseCase } from '../../../../domain/usecases/AdminActivityUseCase'
+import { OperationsCommentUseCase } from '../../../../domain/usecases/OperationsCommentUseCase'
 import { OperationsWorkUseCase } from '../../../../domain/usecases/OperationsWorkUseCase'
 import { kstDateTime } from '../../../shared/format'
 import { AdminPage } from './AdminPage'
@@ -84,7 +86,7 @@ it('운영 API 탭은 데모 조회가 실패해도 본문과 조치 버튼을 �
   expect((within(row).getByRole('button', { name: '이용 제한' }) as HTMLButtonElement).disabled).toBe(false)
   expect(screen.queryByText(/관리자 데이터를 불러오지 못했어요/)).toBeNull()
   cleanup()
-  renderAdmin('comments')
+  renderAdmin('characterChats')
   await screen.findByText(/관리자 데이터를 불러오지 못했어요/)
 })
 
@@ -199,6 +201,115 @@ it('작품 탭은 받은 전체 목록에서 원작·포크 분류, 작품명·�
   await waitFor(() => expect(titles()).not.toContain('구운몽'))
   expect(titles().length).toBeGreaterThan(0)
   expect(titles().length).toBeLessThan(all.length)
+})
+
+/** 운영 댓글 API(75)를 흉내 내는 fetch 대역으로 실제 Http 저장소·UseCase·ViewModel·화면을 잇는다. */
+const comment = (patch: Partial<OperationsComment> = {}): OperationsComment => ({
+  commentId: 'c-open', workId: 'w1', workTitle: '달빛 도서관', episodeNumber: 2, authorId: 'user-1', authorName: '연화',
+  body: '첫 감상', likeCount: 3, hidden: false, createdAt: '2026-11-09T01:00:00Z', ...patch,
+})
+
+it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 뒤 목록을 다시 읽으며 실패는 그대로 보여 준다', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c-csrf' })
+    : Response.json({ accessToken: 'c-bearer', user: { id: 'admin', email: 'admin@example.invalid', nickname: '관리자', operator: true } })))
+  await login('admin@example.invalid', 'test-password')
+  const rows = [comment(), comment({ commentId: 'c-hidden', authorName: '하늘', body: '숨긴 댓글의 원문', likeCount: 9, hidden: true })]
+  let failAction = false
+  const fetcher = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+    const target = /\/comments\/([^/]+)\/hidden$/.exec(String(url))?.[1]
+    if (!target) return Response.json({ items: rows })
+    if (failAction) return Response.json({ code: 'BAD_GATEWAY', message: 'content down' }, { status: 502 })
+    const row = rows.find((c) => c.commentId === target)!
+    row.hidden = init?.method === 'PUT'
+    return Response.json(row)
+  })
+  const http = new OperationsCommentUseCase(new HttpOperationsCommentRepository(fetcher))
+  const comments = appContainer.resolve('operationsCommentUseCase')
+  vi.spyOn(comments, 'list').mockImplementation(() => http.list())
+  vi.spyOn(comments, 'hide').mockImplementation((id) => http.hide(id))
+  vi.spyOn(comments, 'unhide').mockImplementation((id) => http.unhide(id))
+  const requests = () => fetcher.mock.calls.map(([url, init]) => `${init?.method} ${String(url)}`)
+
+  renderAdmin('comments')
+  const open = (await screen.findByText('첫 감상')).closest('tr') as HTMLElement
+  const hidden = screen.getByText('숨긴 댓글의 원문').closest('tr') as HTMLElement
+  expect(screen.getByText('운영 API 연결')).toBeTruthy()
+  expect(screen.queryByText(/서버 저장 없음/)).toBeNull()
+  expect(requests()).toEqual(['GET /api/v1/operations/comments'])
+  expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: 'Bearer c-bearer' } })
+  // 숨긴 댓글도 운영자에게는 원문이 보인다.
+  expect(cells(hidden)).toEqual(['숨긴 댓글의 원문', '달빛 도서관', '하늘', '9', '숨김', '게시 복구'])
+  expect(cells(open)).toEqual(['첫 감상', '달빛 도서관', '연화', '3', '게시', '숨김'])
+  expect(within(hidden).getByText('숨김', { selector: '.chip' }).className).toContain('wait')
+  expect(within(open).getByText('게시', { selector: '.chip' }).className).toContain('ok')
+
+  // 숨김은 확인을 거치고, 취소하면 요청하지 않는다.
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.click(within(open).getByRole('button', { name: '숨김' }))
+  expect(confirm).toHaveBeenCalledWith('「달빛 도서관」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.')
+  expect(requests()).toEqual(['GET /api/v1/operations/comments'])
+  // 승인하면 서버에 보낸 뒤 목록을 다시 읽어 상태를 바꾼다.
+  confirm.mockReturnValue(true)
+  fireEvent.click(within(open).getByRole('button', { name: '숨김' }))
+  await within(open).findByRole('button', { name: '게시 복구' })
+  confirm.mockClear()
+  expect(requests()).toEqual(['GET /api/v1/operations/comments', 'PUT /api/v1/operations/comments/c-open/hidden', 'GET /api/v1/operations/comments'])
+  expect(cells(open)[4]).toBe('숨김')
+  expect(within(hidden).getByRole('button', { name: '게시 복구' })).toBeTruthy()
+
+  // 게시 복구는 DELETE로 보내고 목록을 다시 읽어 게시 상태로 돌아온다.
+  fireEvent.click(within(open).getByRole('button', { name: '게시 복구' }))
+  await within(open).findByRole('button', { name: '숨김' })
+  expect(requests().slice(3)).toEqual(['DELETE /api/v1/operations/comments/c-open/hidden', 'GET /api/v1/operations/comments'])
+  expect(cells(open)[4]).toBe('게시')
+  // 게시 복구는 확인 없이 바로 보낸다.
+  expect(confirm).not.toHaveBeenCalled()
+
+  // 서버(Content) 실패는 성공으로 바꾸지 않고 오류를 보이며 목록도 다시 읽지 않는다.
+  failAction = true
+  fireEvent.click(within(hidden).getByRole('button', { name: '게시 복구' }))
+  expect((await screen.findByRole('alert')).textContent).toBe('연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.')
+  expect(cells(hidden)[4]).toBe('숨김')
+  expect(requests()).toHaveLength(6)
+})
+
+it('댓글 탭은 받은 전체 목록에서 작품 분류, 내용·작품명·작성자 검색, 공감순 정렬을 계산한다', async () => {
+  renderAdmin('comments')
+  const column = (n: number) => [...document.querySelectorAll(`tbody tr td:nth-child(${n})`)].map((td) => td.textContent)
+  const likes = () => column(4).map(Number)
+  await waitFor(() => expect(likes()).toEqual([412, 301, 230, 210, 133, 122, 88]))
+  expect(column(1)[0]).toBe('돌다리 장면 묘사 최고… 성진 흔들릴 만하네')
+
+  fireEvent.change(screen.getByLabelText('정렬'), { target: { value: 'likesAsc' } })
+  await waitFor(() => expect(likes()).toEqual([88, 122, 133, 210, 230, 301, 412]))
+
+  const search = (query: string) => {
+    fireEvent.change(screen.getByLabelText('댓글 검색'), { target: { value: query } })
+    fireEvent.click(screen.getByRole('button', { name: '검색' }))
+  }
+  search('별빛')
+  await waitFor(() => expect(likes()).toEqual([122, 301]))
+  search('TOKKI')
+  await waitFor(() => expect(likes()).toEqual([210]))
+  search('7구역')
+  await waitFor(() => expect(likes()).toEqual([133]))
+  search('없는 말')
+  await screen.findByText('검색 결과가 없어요.')
+
+  search('')
+  fireEvent.change(screen.getByLabelText('분류'), { target: { value: 'guunmong' } })
+  await waitFor(() => expect(likes()).toEqual([88, 230, 412]))
+  expect(new Set(column(2))).toEqual(new Set(['구운몽']))
+})
+
+it('댓글 목록을 못 읽으면 빈 표로 숨기지 않고 실패와 다시 불러오기를 보인다', async () => {
+  vi.spyOn(appContainer.resolve('operationsCommentUseCase'), 'list').mockRejectedValueOnce(new Error('offline'))
+  renderAdmin('comments')
+  await screen.findByText(/댓글 목록을 불러오지 못했어요/)
+  expect(document.querySelector('table')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+  await waitFor(() => expect(document.querySelector('table')).not.toBeNull())
+  expect(screen.queryByText(/댓글 목록을 불러오지 못했어요/)).toBeNull()
 })
 
 /** 관리자 활동 기록 API(72)를 흉내 내는 fetch 대역으로 실제 Http 저장소·UseCase·ViewModel·화면을 잇는다. */

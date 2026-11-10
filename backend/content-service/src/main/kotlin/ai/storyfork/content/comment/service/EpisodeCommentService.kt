@@ -22,10 +22,14 @@ import org.springframework.transaction.annotation.Transactional
 
 private const val MAX_LENGTH = 500
 private const val INVALID_INPUT = "댓글은 1~500자, 인용 문장은 500자 이내로 입력해 주세요."
+private const val HIDDEN_CODE = "COMMENT_HIDDEN"
 
 private enum class CommentSort { LATEST, LIKES }
 
-/** 공개 작품의 발행 회차 댓글 작성·조회·수정·삭제와 좋아요를 맡는다. 비공개·제한 작품과 미발행 회차는 모두 404다. */
+/**
+ * 공개 작품의 발행 회차 댓글 작성·조회·수정·삭제와 좋아요를 맡는다. 비공개·제한 작품과 미발행 회차는 모두 404다.
+ * 운영이 숨긴 댓글은 목록·상세에 자리표시(`hidden`, 빈 본문·인용)로 남고 수정·좋아요·취소는 409 `COMMENT_HIDDEN`이며 작성자 삭제만 된다.
+ */
 @Service
 @Transactional(transactionManager="contentTransactionManager")
 class EpisodeCommentService(
@@ -62,10 +66,10 @@ class EpisodeCommentService(
         return respond(listOf(row),member).single()
     }
 
-    /** 작성자만 본문·스포일러 여부를 고친다. 타인은 403이고 잘못된 입력은 기존 값을 바꾸지 않는 422다. */
+    /** 작성자만 본문·스포일러 여부를 고친다. 타인은 403이고 잘못된 입력은 기존 값을 바꾸지 않는 422이며, 운영이 숨긴 댓글은 409다. */
     fun update(id: String, number: Int, commentId: String, member: String, data: UpdateCommentRequest): CommentResponse {
         val body=cleanBody(data.body)
-        val row=own(id,number,commentId,member)
+        val row=notHidden(own(id,number,commentId,member))
         row.body=body
         row.spoiler=data.spoiler
         row.updatedAt=Instant.now().truncatedTo(ChronoUnit.MICROS)
@@ -78,12 +82,12 @@ class EpisodeCommentService(
     }
 
     /**
-     * 좋아요를 누른다. 이미 눌렀으면 그대로 성공(멱등)이다. 동시 중복 INSERT의 unique 위반을 삼켜도 다른 호출이 오염되지 않도록
+     * 좋아요를 누른다. 이미 눌렀으면 그대로 성공(멱등)이고, 운영이 숨긴 댓글은 409다. 동시 중복 INSERT의 unique 위반을 삼켜도 다른 호출이 오염되지 않도록
      * [ai.storyfork.content.work.service.WorkViewService.record]처럼 서비스 트랜잭션 없이 저장소 호출마다 독립 트랜잭션으로 실행한다.
      */
     @Transactional(transactionManager="contentTransactionManager",propagation=Propagation.NOT_SUPPORTED)
     fun like(id: String, number: Int, commentId: String, member: String) {
-        find(id,number,commentId)
+        notHidden(find(id,number,commentId))
         val key=EpisodeCommentLikeEntity.Key(commentId,member)
         if(likes.existsById(key)) return
         try {
@@ -94,9 +98,9 @@ class EpisodeCommentService(
         }
     }
 
-    /** 좋아요를 취소한다. 누른 적이 없어도 성공(멱등)이다. */
+    /** 좋아요를 취소한다. 누른 적이 없어도 성공(멱등)이며, 운영이 숨긴 댓글은 409다. */
     fun unlike(id: String, number: Int, commentId: String, member: String) {
-        find(id,number,commentId)
+        notHidden(find(id,number,commentId))
         likes.deleteById(EpisodeCommentLikeEntity.Key(commentId,member))
     }
 
@@ -115,6 +119,10 @@ class EpisodeCommentService(
     private fun own(id: String, number: Int, commentId: String, member: String) =
         find(id,number,commentId).also {checkContent(it.authorId==member,403,"작성자만 수정·삭제할 수 있어요.")}
 
+    /** 운영이 숨긴 댓글은 수정·좋아요·취소를 받지 않는다(409). 작성자 삭제는 이 검사를 거치지 않아 그대로 된다. */
+    private fun notHidden(row: EpisodeCommentEntity) =
+        row.also {if(it.hidden) throw ContentFailure(409,"운영 정책으로 숨겨진 댓글이에요.",HIDDEN_CODE)}
+
     // Kotlin trim·isNotBlank는 NBSP도 공백으로 본다(Bean Validation @NotBlank와 다르다). U+0000은 PostgreSQL text에 저장할 수 없다.
     private fun cleanBody(text: String): String = text.trim().also {
         checkContent(it.isNotBlank() && it.length<=MAX_LENGTH && '\u0000' !in it,message=INVALID_INPUT)
@@ -132,9 +140,11 @@ class EpisodeCommentService(
         val names=nicknames.nicknames(rows.map {it.authorId})
         return rows.map {row ->
             val by=liked[row.id].orEmpty()
-            CommentResponse(row.id,row.workId,row.episodeNumber,row.publishedVersionId,names[row.authorId] ?: WITHDRAWN_MEMBER_NAME,row.body,row.quote,row.spoiler,
+            // 운영이 숨긴 댓글은 원문·인용을 내보내지 않고 자리표시로 답한다. 저장된 행은 바꾸지 않는다.
+            CommentResponse(row.id,row.workId,row.episodeNumber,row.publishedVersionId,names[row.authorId] ?: WITHDRAWN_MEMBER_NAME,
+                if(row.hidden) "" else row.body,if(row.hidden) null else row.quote,row.spoiler,
                 by.size,by.any {it.memberId==viewer},row.authorId==viewer,
-                row.updatedAt>row.createdAt,row.createdAt,row.updatedAt)
+                row.updatedAt>row.createdAt,row.hidden,row.createdAt,row.updatedAt)
         }
     }
 }

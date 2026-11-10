@@ -33,8 +33,9 @@ describe('관리자 데모 조치 기록', () => {
     vi.setSystemTime(new Date('2026-11-10T01:00:00Z'))
     try {
       const { uc, admin } = fakes()
-      await uc.toggleComment('hanji-0', '구운몽 · 연화봉러')
-      expect(admin().audit).toEqual([{ at: '2026-11-10T01:00:00.000Z', actor: '관리자', action: '댓글 상태 변경', detail: '구운몽 · 연화봉러 · 숨김' }])
+      // 데모 댓글 숨김은 운영 댓글 API(75)로 옮겨져 남은 데모 조치인 정기 작업 재시도로 확인한다.
+      await uc.runJob('notification-cleanup')
+      expect(admin().audit).toEqual([{ at: '2026-11-10T01:00:00.000Z', actor: '관리자', action: '정기 작업 재시도 시연', detail: '알림 90일 보관기간 정리' }])
     } finally { vi.useRealTimers() }
   })
 })
@@ -44,14 +45,5 @@ describe('관리자 신고 처리 (목업 data-qact)', () => {
     const { uc } = fakes()
     expect(await uc.runJob('series')).toBeNull()
     expect((await uc.runJob('notification-cleanup'))?.msg).toMatch('수동 재시도')
-  })
-
-  it('없는 댓글은 숨기지 않고 로그도 남기지 않는다 (목업 data-comment-action)', async () => {
-    const { uc, admin } = fakes()
-    expect(await uc.toggleComment('nope', '구운몽 · 누군가')).toBeNull()
-    expect(admin().hiddenComments).toEqual([])
-    expect(admin().audit).toEqual([])
-    expect(await uc.toggleComment('hanji-0', '구운몽 · 연화봉러')).toEqual({ ok: true, msg: '댓글 상태를 변경했어요 (데모)' })
-    expect(admin().hiddenComments).toEqual(['hanji-0'])
   })
 })

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { activityActionLabel, activityActor, activityTarget } from '../entities/adminActivity'
 
-/** 계약(operations-admin-activity-contract)의 action 18종 */
+/** 계약(operations-admin-activity-contract)의 action 20종 */
 const ACTIONS: [string, string][] = [
   ['MEMBER_RESTRICT', '회원 이용 제한'], ['MEMBER_UNRESTRICT', '회원 이용 제한 해제'],
   ['ADMIN_CREATE', '관리자 계정 생성'],
@@ -12,11 +12,12 @@ const ACTIONS: [string, string][] = [
   ['NOTICE_CREATE', '공지 등록'], ['NOTICE_UPDATE', '공지 수정'], ['NOTICE_DELETE', '공지 삭제'],
   ['EVENT_CREATE', '이벤트 등록'], ['EVENT_UPDATE', '이벤트 수정'], ['EVENT_DELETE', '이벤트 삭제'],
   ['INQUIRY_REPLY_CREATE', '문의 답변 등록'], ['INQUIRY_REPLY_UPDATE', '문의 답변 수정'], ['INQUIRY_REPLY_DELETE', '문의 답변 삭제'],
+  ['COMMENT_HIDE', '댓글 숨김'], ['COMMENT_UNHIDE', '댓글 게시 복구'],
 ]
 
 describe('관리자 활동 기록 표시 규칙 (72)', () => {
-  it('계약의 조치 18종은 모두 한국어 이름으로 보인다', () => {
-    expect(ACTIONS).toHaveLength(18)
+  it('계약의 조치 20종은 모두 한국어 이름으로 보인다', () => {
+    expect(ACTIONS).toHaveLength(20)
     for (const [code, label] of ACTIONS) expect(activityActionLabel(code)).toBe(label)
   })
 
@@ -28,6 +29,7 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
   it('대상은 종류 이름과 ID로 보이고 모르는 종류는 코드 그대로, ID가 없으면 종류만 보인다', () => {
     const target = (targetType: string, targetId: string) => activityTarget({ targetType, targetId })
     expect(target('MEMBER', 'm-1')).toBe('회원 m-1')
+    expect(target('COMMENT', 'c-1')).toBe('댓글 c-1')
     expect(target('REPORT', 'r-1')).toBe('신고 r-1')
     expect(target('WORK', 'w-1')).toBe('작품 w-1')
     expect(target('NOTICE', 'n-1')).toBe('공지 n-1')
