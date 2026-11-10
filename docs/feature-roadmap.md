@@ -378,20 +378,20 @@
 <tr><td>검색 결과 페이지 조회</td><td>❌</td></tr>
 <tr><td>태그별 작품 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/249">PR #249</a></td></tr>
 <tr><td>빠른 이동 검색 후보 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/249">PR #249</a></td></tr>
-<tr><td rowspan="14">랭킹·트렌드 관리</td><td rowspan="14">45 작품 랭킹·인기 추이</td><td>전체 작품 랭킹 조회</td><td>❌</td><td rowspan="14"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/13">PR #13</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
-<tr><td>원작 작품 랭킹 조회</td><td>❌</td></tr>
-<tr><td>Fork 작품 랭킹 조회</td><td>❌</td></tr>
+<tr><td rowspan="14">랭킹·트렌드 관리</td><td rowspan="14">45 작품 랭킹·인기 추이</td><td>전체 작품 랭킹 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td><td rowspan="14"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/13">PR #13</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>원작 작품 랭킹 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>Fork 작품 랭킹 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
 <tr><td>최신 작품 순위 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/175">PR #175</a></td></tr>
-<tr><td>인기 작품 순위 조회</td><td>❌</td></tr>
+<tr><td>인기 작품 순위 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
 <tr><td>조회수 순위 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/175">PR #175</a></td></tr>
 <tr><td>실시간 인기 TOP10 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/175">PR #175</a></td></tr>
 <tr><td>24시간 인기 급상승 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/175">PR #175</a></td></tr>
-<tr><td>방금 업데이트 작품 조회</td><td>❌</td></tr>
-<tr><td>최신 Fork 작품 조회</td><td>❌</td></tr>
-<tr><td>이번 주 인기 무료 소설 조회</td><td>❌</td></tr>
-<tr><td>랭킹 집계 기준 확정</td><td>❌</td></tr>
-<tr><td>기간별 랭킹 집계</td><td>❌</td></tr>
-<tr><td>랭킹 갱신 시각 조회</td><td>❌</td></tr>
+<tr><td>방금 업데이트 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>최신 Fork 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>이번 주 인기 무료 소설 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>랭킹 집계 기준 확정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>기간별 랭킹 집계</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
+<tr><td>랭킹 갱신 시각 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
 <tr><td rowspan="6">홈 큐레이션 관리</td><td rowspan="4">46 홈 추천·편성</td><td>에디터 Pick 작품 조회</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a></td></tr>
 <tr><td>오늘의 발견 작품 조회</td><td>❌</td></tr>
 <tr><td>홈 장르별 작품 조회</td><td>❌</td></tr>
