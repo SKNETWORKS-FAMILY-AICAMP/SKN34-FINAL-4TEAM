@@ -393,8 +393,8 @@
 <tr><td>기간별 랭킹 집계</td><td>❌</td></tr>
 <tr><td>랭킹 갱신 시각 조회</td><td>❌</td></tr>
 <tr><td rowspan="5">홈 큐레이션 관리</td><td rowspan="3">46 홈 추천·편성</td><td>개인 맞춤 추천 작품 조회(예정)</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a></td></tr>
-<tr><td>오늘의 발견 작품 조회</td><td>❌</td></tr>
-<tr><td>홈 장르별 작품 조회</td><td>❌</td></tr>
+<tr><td>오늘의 발견 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/commit/e3181356">커밋 e3181356</a></td></tr>
+<tr><td>홈 장르별 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/commit/e3181356">커밋 e3181356</a></td></tr>
 <tr><td rowspan="2">55 홈 탐색 필터</td><td>홈 무료 작품만 보기</td><td>❌</td><td rowspan="2">—</td></tr>
 <tr><td>홈 Fork가 있는 원작만 보기</td><td>❌</td></tr>
 <tr><td rowspan="3">검색 트렌드 검토</td><td rowspan="3">47 인기 검색어(추가 검토)</td><td>인기 검색어 제공 여부 결정</td><td>❌</td><td rowspan="3">—</td></tr>
