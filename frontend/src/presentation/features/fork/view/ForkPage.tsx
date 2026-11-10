@@ -53,12 +53,12 @@ function ForkForm({id}:{id:string}) {
           {vm.episodes.some(({ ok }) => !ok) && <p id={DENIED_NOTE} className="small muted">작가가 포크를 허용하지 않은 회차는 고를 수 없어요.</p>}
           <div className="carry" id="carry"><span>가져가는 것</span><span>공개된 세계관 규칙 <b id="rulecount">{vm.ruleCount ?? '…'}</b>개</span><span>공개된 인물 <b id="castcount">{vm.castCount ?? '…'}</b>명 (<b id="atl">{vm.at}</b>화 시점 상태)</span><span><b id="atl2">{vm.at}</b>화까지의 사건</span></div>
           {/* 항상 마운트해 둔 안내 영역이다. 회차를 바꿔 설정을 다 읽으면 문구가 바뀌어 스크린 리더가 전환 완료를 알린다(처음 열 때는 읽지 않는다). */}
-          <p className="sr-only" aria-live="polite" aria-atomic="true">{vm.reading ? '선택한 회차의 공개 설정을 불러오고 있어요…' : `${vm.at}화 끝에서 포크해요. 공개된 세계관 규칙 ${vm.ruleCount}개, 인물 ${vm.castCount}명을 가져가요.`}</p>
+          <p className="sr-only" aria-live="polite">{vm.reading ? '선택한 회차의 공개 설정을 불러오고 있어요…' : `${vm.at}화 끝에서 포크해요. 공개된 세계관 규칙 ${vm.ruleCount}개, 인물 ${vm.castCount}명을 가져가요.`}</p>
           {w.canonical && (vm.reading ? <p className="small muted">선택한 회차의 공개 설정을 불러오고 있어요…</p> : <section aria-label={`${vm.at}화 공개 자료 미리보기`}>
             <p className="small muted">선택 회차까지 공개된 자료예요. 관계의 과거 상태는 제공하지 않아요.</p>
             {vm.preview?.length
               ? <ul className="carry">
-                {vm.preview.slice(0, PREVIEW_MAX).map((doc) => <li key={doc.id}>{[w.wiki?.cats.find((cat) => cat.id === doc.cat)?.n, doc.t].filter(Boolean).join(' · ')}</li>)}
+                {vm.preview.slice(0, PREVIEW_MAX).map((doc) => <li key={doc.id}>{w.wiki?.cats.find((cat) => cat.id === doc.cat)?.n} · {doc.t}</li>)}
                 {vm.preview.length > PREVIEW_MAX && <li>외 {vm.preview.length - PREVIEW_MAX}개</li>}
               </ul>
               : <p>이 회차에서 가져올 공개 자료가 없어요.</p>}

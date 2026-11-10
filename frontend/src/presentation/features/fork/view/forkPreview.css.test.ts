@@ -17,6 +17,6 @@ describe('포크 준비 화면의 공개 자료 미리보기 목록(ul.carry)', 
   })
 
   it('긴 제목은 칩 안에서 줄을 바꿔 칩 목록이 화면 밖으로 넘치지 않는다', () => {
-    expect(css).toMatch(/\.carry li\{[^}]*overflow-wrap:\s*anywhere/)
+    expect(css).toMatch(/\.carry span,\.carry li\{[^}]*overflow-wrap:\s*anywhere/)
   })
 })

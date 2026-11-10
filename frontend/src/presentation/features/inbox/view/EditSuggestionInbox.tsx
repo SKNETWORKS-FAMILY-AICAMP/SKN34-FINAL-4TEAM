@@ -25,7 +25,6 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
   // 서버에 저장하지 않은 편집안이 있으면 승인돼도 그 문장이 반영되지 않으므로, 먼저 저장하게 승인을 잠근다(앞뒤 공백은 저장 때 잘리므로 무시).
   const unsaved = edited.trim() !== shown
   const hint = `unsaved-${s.id}`
-  const rejectForm = `reject-${s.id}`
   return (
     <article className="panel" style={{ display: 'grid', gap: 12 }} aria-label={`${s.workTitle} ${s.episodeNumber}화 수정 제안`} aria-busy={vm.pending === s.id}>
       <div className="top"><b>{s.workTitle} {s.episodeNumber}화 · 수정 제안</b> <SuggestionStatusChip s={s} /></div>
@@ -40,15 +39,15 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
           <div className="rowend"><button type="button" className="btn sm" disabled={locked} onClick={() => void vm.saveEditedText(s, edited)}>편집안 저장</button></div>
           <div className="rowend">
             {s.status === 'pending' && <button type="button" className="btn" disabled={locked} onClick={() => void vm.hold(s)}>보류</button>}
-            <button type="button" className="btn" disabled={locked} aria-expanded={rejecting} aria-controls={rejectForm} onClick={() => setRejecting((open) => !open)}>거절</button>
+            <button type="button" className="btn" disabled={locked} aria-expanded={rejecting} onClick={() => setRejecting((open) => !open)}>거절</button>
             <button type="button" className="btn pri" disabled={locked || unsaved} aria-describedby={unsaved ? hint : undefined} onClick={() => void vm.approve(s)}>승인하고 초안에 반영</button>
           </div>
           {unsaved && <p id={hint} className="small muted">편집안을 먼저 저장해 주세요.</p>}
           {rejecting && (
-            <div id={rejectForm} style={{ display: 'grid', gap: 12 }}>
+            <>
               <label className="field">거절 사유 (선택)<input ref={reasonInput} className="inp" maxLength={SUGGESTION_MAX} readOnly={locked} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
               <div className="rowend"><button type="button" className="btn pri" disabled={locked} onClick={() => void vm.reject(s, reason)}>거절 확인</button></div>
-            </div>
+            </>
           )}
         </>
       )}
