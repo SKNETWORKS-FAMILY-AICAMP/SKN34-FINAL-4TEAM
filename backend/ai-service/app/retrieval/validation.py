@@ -53,4 +53,3 @@ def validate_packet(packet, query, content):
         complete if full else True) and not packet.result.conflicts and not packet.result.gaps and not packet.omitted_refs and all(
             item.canonical_status == "verified_source" for item in evidence.values())
     return packet.model_copy(update={"complete": complete, "can_conclude": conclude})
-

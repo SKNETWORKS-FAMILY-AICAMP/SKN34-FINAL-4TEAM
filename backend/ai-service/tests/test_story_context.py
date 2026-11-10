@@ -52,6 +52,16 @@ def test_exact_source_has_zero_model_and_search_calls(content, kind, text):
     search.retrieve.assert_not_called()
 
 
+@pytest.mark.parametrize("kind", ["quote", "attribute"])
+def test_whitespace_only_selection_is_insufficient_evidence(content, kind):
+    version = SourceVersion("w1", "setting" if kind == "attribute" else "manuscript", "blank", "r1")
+    content.rows += (MockRow(version, " \t\n", 1, True, ("kai",)),)
+    content.pinned |= {version}
+    result = answer(exact(content, "blank", kind), content)
+    assert result.status == "insufficient_evidence" and result.gaps
+    assert not result.claims and not result.sources
+
+
 @pytest.mark.parametrize("change", ["hash", "revision", "span", "future", "other", "f3", "private", "knowledge"])
 def test_exact_rejects_invalid_or_forbidden_source_without_model(content, change):
     content.scope = replace(content.scope, audience="character", character_id="kai")

@@ -88,6 +88,8 @@ async def story_context(request: StoryContextRequest, *, content: MockContentRea
                 raise ContentReadError("denied")
             if datetime.now(timezone.utc) >= query.deadline:
                 raise TimeoutError()
+            if not source.text.strip():
+                return Answer(status="insufficient_evidence", gaps=(Gap(code="unverified"),), is_mock=mock)
             evidence = Evidence(id="canonical:exact", retrieval_type="canonical", source_backend="content",
                 is_mock=mock, retrieved_at=datetime.now(timezone.utc), source_revision=source.version,
                 content=source.text, canonical_status="verified_source", work_id=source.version.work_id,
@@ -110,7 +112,7 @@ async def story_context(request: StoryContextRequest, *, content: MockContentRea
         gaps = tuple(dict.fromkeys((*packet.result.gaps,
                                   *(packet.result.coverage.critical_gaps if packet.result.coverage else ()))))
         confirmed = tuple(Claim(text=e.content, status="confirmed", refs=(e.id,))
-                          for e in sources if e.canonical_status == "verified_source")
+                          for e in sources if e.canonical_status == "verified_source" and e.content.strip())
         status = ("timeout" if any(g.code == "timeout" for g in gaps) else
                   "stale" if any(g.code == "stale" for g in gaps) else
                   "partial" if sources else "insufficient_evidence")
