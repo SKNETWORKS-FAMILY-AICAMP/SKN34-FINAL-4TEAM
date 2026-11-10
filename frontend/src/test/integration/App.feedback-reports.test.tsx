@@ -53,10 +53,12 @@ function memoryReports(seed: FeedbackReport[]) {
     answer: vi.fn(async (_w: string, id: string, input: { body: string; isPublic: boolean }) => {
       const r = find(id)
       r.responses.push({ id: `p${r.responses.length}`, authorName: '작가', body: input.body, isPublic: input.isPublic, createdAt: at() })
+      r.authorChecked = true
       if (r.status === 'unchecked' || r.status === 'checked') r.status = 'answered'
       return { ...r }
     }),
-    setStatus: vi.fn(async (_w: string, id: string, status: FeedbackReport['status']) => ({ ...Object.assign(find(id), { status }) })),
+    // 서버처럼 작가가 상태를 바꾸면 확인한 것으로 기록한다.
+    setStatus: vi.fn(async (_w: string, id: string, status: FeedbackReport['status']) => ({ ...Object.assign(find(id), { status, authorChecked: true }) })),
   } satisfies FeedbackReportRepository
 }
 
@@ -183,6 +185,8 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
       fireEvent.click(document.querySelector<HTMLElement>('#text [data-s]')!)
       const popup = within(screen.getByRole('dialog', { name: '문장 작업' }))
+      // 회원 전용인 세 동작은 같은 규칙으로 '로그인하고 …'라고 알린다.
+      expect(popup.getAllByRole('button').map((b) => b.textContent)).toEqual(['💬 로그인하고 댓글 달기', '✉ 로그인하고 피드백 보내기', '✎ 로그인하고 수정 제안'])
       expect(popup.queryByRole('button', { name: '✉ 피드백 보내기' })).toBeNull()
       fireEvent.click(popup.getByRole('button', { name: '✉ 로그인하고 피드백 보내기' }))
       await screen.findByText('피드백은 로그인한 회원만 보낼 수 있어요.')
@@ -308,6 +312,15 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       expect(screen.queryByText(/제보가 없어요\./)).toBeNull()
       expect(screen.queryByRole('heading', { name: /데모 작품 피드백/ })).toBeNull()
       expect(card('n1').getByRole('link', { name: '회차 보기 · 구운몽 2화' })).toBeTruthy()
+      // 섹션 제목은 다른 섹션과 같은 .sec/.sec-h 형식이고, 첫 섹션이라 위쪽 간격만 없다.
+      const title = screen.getByRole('heading', { name: '독자 제보 2' })
+      expect(title.parentElement!.className).toBe('sec-h')
+      expect(title.closest('section')!.className).toBe('sec')
+      expect(parseFloat(title.closest('section')!.style.marginTop)).toBe(0)
+
+      // 확인 전에는 '확인했어요'가 확인함으로 바꾸는 방법이라, 같은 뜻의 '확인함'은 상태 선택지에 없다.
+      const uncheckedSelect = card('n1').getByLabelText<HTMLSelectElement>(/처리 상태 ·/)
+      expect(Array.from(uncheckedSelect.options, (o) => o.textContent)).toEqual(['작가 확인 전', '답변함', '처리 완료', '종료'])
 
       // 확인: 눌렀던 버튼이 사라져도 키보드 위치는 그 행 카드에 남는다.
       const check = card('n1').getByRole('button', { name: /확인했어요/ })
@@ -318,6 +331,8 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       await waitFor(() => expect(card('n1').queryByRole('button', { name: /확인했어요/ })).toBeNull())
       expect(card('n1').getByText('확인함', { selector: '.chip' })).toBeTruthy()
       expect(document.activeElement).toBe(cardEl('n1'))
+      // 확인한 뒤에는 '확인함'이 상태 선택지에 돌아온다.
+      expect(Array.from(card('n1').getByLabelText<HTMLSelectElement>(/처리 상태 ·/).options, (o) => o.textContent)).toEqual(['작가 확인 전', '확인함', '답변함', '처리 완료', '종료'])
 
       // 답변: 폼은 ‘답변하기’로 접혀 있고, 내용이 있어야 보낼 수 있다.
       const summary = card('n1').getByText('답변하기')
@@ -343,25 +358,48 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       expect(document.activeElement).toBe(cardEl('n1'))
 
       // 처리 상태: 줄 안 컨트롤 크기(.inp.sm)를 쓰고, 확인 전으로는 되돌릴 수 없다.
+      // 고르는 것만으로는 저장하지 않고 '상태 변경'을 눌러야 저장한다(서버 값과 같으면 잠긴다).
       const select = card('n1').getByLabelText<HTMLSelectElement>(/처리 상태 ·/)
       expect(select.className).toBe('inp sm')
       expect(select.value).toBe('answered')
       expect(within(select).getByRole('option', { name: '작가 확인 전' }).hasAttribute('disabled')).toBe(true)
+      const change = card('n1').getByRole<HTMLButtonElement>('button', { name: '상태 변경 · 구운몽 2화' })
+      expect(change.disabled).toBe(true)
       fireEvent.change(select, { target: { value: 'resolved' } })
+      expect(repo.setStatus).not.toHaveBeenCalled()
+      expect(change.disabled).toBe(false)
+      fireEvent.click(change)
       await toastIs('처리 상태를 바꿨어요 · 처리 완료')
       expect(repo.setStatus).toHaveBeenCalledWith('guunmong', 'n1', 'resolved')
       await waitFor(() => expect(card('n1').getByText('처리 완료', { selector: '.chip' })).toBeTruthy())
+      await waitFor(() => expect(change.disabled).toBe(true))
+      expect(select.value).toBe('resolved')
     })
 
-    it('서버가 거절하면 안내만 하고 상태 선택은 서버 값으로 남는다', async () => {
+    it('확인 없이 답변하거나 상태를 바꾼 제보에는 확인했어요 버튼이 남지 않고 확인함이 중복돼 보이지 않는다', async () => {
+      connect([
+        report({ id: 'a1', owner: true, status: 'answered', authorChecked: true }),
+        report({ id: 'a2', owner: true, status: 'checked', authorChecked: true }),
+        // 확인 시각을 기록하지 못했던 이전 데이터도 상태가 확인 전이 아니면 같은 화면이다.
+        report({ id: 'a3', owner: true, status: 'checked', authorChecked: false }),
+      ])
+      renderApp('/inbox', user())
+      await screen.findByRole('heading', { name: '독자 제보 3' })
+      for (const id of ['a1', 'a2', 'a3']) expect(card(id).queryByRole('button', { name: /확인했어요/ })).toBeNull()
+      expect(Array.from(card('a3').getByLabelText<HTMLSelectElement>(/처리 상태 ·/).options, (o) => o.textContent)).toContain('확인함')
+    })
+
+    it('서버가 거절하면 안내만 하고 상태 선택은 서버 값으로 돌아온다', async () => {
       const repo = connect(owned(), (r) => r.setStatus.mockRejectedValueOnce(new Error('작품 소유자만 할 수 있어요.')))
       renderApp('/inbox', user())
       await screen.findByRole('heading', { name: '독자 제보 2' })
       const select = card('n1').getByLabelText<HTMLSelectElement>(/처리 상태 ·/)
       fireEvent.change(select, { target: { value: 'closed' } })
+      expect(select.value).toBe('closed')
+      fireEvent.click(card('n1').getByRole('button', { name: '상태 변경 · 구운몽 2화' }))
       await toastIs('작품 소유자만 할 수 있어요.')
       expect(repo.setStatus).toHaveBeenCalledTimes(1)
-      expect(select.value).toBe('unchecked')
+      await waitFor(() => expect(select.value).toBe('unchecked'))
     })
 
     it('접수된 제보가 없으면 안내하고 불러오지 못하면 다시 불러오기를 보인다', async () => {
