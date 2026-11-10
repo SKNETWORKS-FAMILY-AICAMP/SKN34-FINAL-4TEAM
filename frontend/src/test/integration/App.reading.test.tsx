@@ -325,9 +325,9 @@ describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
       cleanup()
       renderApp('/read/guunmong/2', user())
       await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
-      // 댓글은 서버에 연결돼 있지만(기능 22) 피드백·문장 공유는 데모뿐이라 정본 문장에는 댓글 달기만 연다.
+      // 댓글(기능 22)·피드백 제보(기능 23)·수정 제안(기능 24)은 서버에 연결돼 있지만 문장 공유는 데모뿐이라 정본 문장에는 댓글 달기·피드백 보내기·수정 제안만 연다.
       fireEvent.click(document.querySelector<HTMLElement>('#text [data-s]')!)
-      expect(within(screen.getByRole('dialog', { name: '문장 작업' })).getAllByRole('button').map((b) => b.textContent)).toEqual(['💬 댓글 달기'])
+      expect(within(screen.getByRole('dialog', { name: '문장 작업' })).getAllByRole('button').map((b) => b.textContent)).toEqual(['💬 댓글 달기', '✉ 피드백 보내기', '✎ 수정 제안'])
       cleanup()
       // 서버 순위가 없는 목록(지표 없는 정본 작품)은 순위·메달로 보이지 않는다(서버 랭킹이 있는 홈은 App.home이 다룬다).
       const { workRepository, readingRepository, readingRecordRepository } = appContainer.cradle

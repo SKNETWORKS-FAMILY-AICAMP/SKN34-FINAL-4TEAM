@@ -2,6 +2,7 @@ package ai.storyfork.operations.work
 
 import ai.storyfork.operations._common.client.ContentClient
 import ai.storyfork.operations._common.client.ContentWork
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.security.OperationsMember
 import ai.storyfork.operations.work.service.WorkService
@@ -18,7 +19,8 @@ import org.springframework.web.server.ResponseStatusException
 class WorkServiceTest {
     private val content = mock(ContentClient::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
-    private val service = WorkService(content, permissions)
+    private val activities = mock(AdminActivityService::class.java)
+    private val service = WorkService(content, permissions, activities)
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutWorks = OperationsMember(UUID.randomUUID(), true)
     private val staleGrant = OperationsMember(UUID.randomUUID(), false)
@@ -40,6 +42,15 @@ class WorkServiceTest {
         `when`(content.works()).thenReturn(list)
 
         assertSame(list, service.list(admin))
+        verifyNoInteractions(activities)
+    }
+
+    @Test
+    fun `integrity is read through Content with the works permission`() {
+        grantWorks(admin)
+        val report = ai.storyfork.operations.work.service.dto.ForkIntegrity(1,"fork","source",false,"unavailable")
+        `when`(content.forkIntegrity(workId)).thenReturn(report)
+        assertSame(report,service.forkIntegrity(admin,workId))
     }
 
     @Test
@@ -53,14 +64,32 @@ class WorkServiceTest {
     }
 
     @Test
+    fun `restrict and unrestrict record the admin activity with the work title after Content succeeds`() {
+        grantWorks(admin)
+        `when`(content.restrict(workId)).thenReturn(work.copy(restricted = true))
+        `when`(content.unrestrict(workId)).thenReturn(work)
+
+        service.restrict(admin, workId)
+        service.unrestrict(admin, workId)
+
+        val order = inOrder(content, activities)
+        order.verify(content).restrict(workId)
+        order.verify(activities).record(admin, "WORK_RESTRICT", "WORK", workId, "작품")
+        order.verify(content).unrestrict(workId)
+        order.verify(activities).record(admin, "WORK_UNRESTRICT", "WORK", workId, "작품")
+        verifyNoMoreInteractions(activities)
+    }
+
+    @Test
     fun `an operator without works permission or a stale grant without operator is denied before Content`() {
         grantWorks(staleGrant)
         for (member in listOf(operatorWithoutWorks, staleGrant)) {
             assertEquals(HttpStatus.FORBIDDEN, status { service.list(member) })
+            assertEquals(HttpStatus.FORBIDDEN, status { service.forkIntegrity(member, workId) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.restrict(member, workId) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.unrestrict(member, workId) })
         }
-        verifyNoInteractions(content)
+        verifyNoInteractions(content, activities)
     }
 
     @Test
@@ -71,5 +100,6 @@ class WorkServiceTest {
 
         assertEquals(HttpStatus.BAD_GATEWAY, status { service.list(admin) })
         assertEquals(HttpStatus.NOT_FOUND, status { service.restrict(admin, workId) })
+        verifyNoInteractions(activities)
     }
 }

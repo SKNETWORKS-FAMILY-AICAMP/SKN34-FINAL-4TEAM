@@ -2,6 +2,7 @@ package ai.storyfork.operations._common.client
 
 import ai.storyfork.operations.comment.service.dto.OperationsComment
 import ai.storyfork.operations.comment.service.dto.OperationsCommentList
+import ai.storyfork.operations.work.service.dto.ForkIntegrity
 import ai.storyfork.operations.work.service.dto.OperationsWorkList
 import java.util.UUID
 import org.springframework.web.client.RestClient
@@ -19,6 +20,10 @@ class ContentClient(private val http: RestClient) {
     // ponytail: one unpaged call under the fixed 5s read timeout; add server-side q/kind/sort/page (work contract) when the list grows.
     fun works(): OperationsWorkList = upstream {
         http.get().uri("/internal/v1/works").retrieve().body<OperationsWorkList>()
+    }
+
+    fun forkIntegrity(workId: UUID): ForkIntegrity = upstream {
+        http.get().uri("/internal/v1/works/{id}/fork-integrity", workId).retrieve().body<ForkIntegrity>()
     }
 
     fun restrict(workId: UUID): ContentWork = upstream {

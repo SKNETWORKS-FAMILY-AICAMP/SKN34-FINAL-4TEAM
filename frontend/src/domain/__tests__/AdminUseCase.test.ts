@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { seedAdmin, seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { DemoCredits } from '../entities/credit'
@@ -26,6 +26,19 @@ function fakes() {
   )
   return { uc, db, admin: () => admin }
 }
+
+describe('관리자 데모 조치 기록', () => {
+  it('조치 시각은 활동 기록 화면이 한국시간으로 바꿀 수 있는 ISO 시각이다', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-10T01:00:00Z'))
+    try {
+      const { uc, admin } = fakes()
+      // 데모 댓글 숨김은 운영 댓글 API(75)로 옮겨져 남은 데모 조치인 정기 작업 재시도로 확인한다.
+      await uc.runJob('notification-cleanup')
+      expect(admin().audit).toEqual([{ at: '2026-11-10T01:00:00.000Z', actor: '관리자', action: '정기 작업 재시도 시연', detail: '알림 90일 보관기간 정리' }])
+    } finally { vi.useRealTimers() }
+  })
+})
 
 describe('관리자 신고 처리 (목업 data-qact)', () => {
   it('정기 작업 재시도는 실패한 작업만 기록한다', async () => {

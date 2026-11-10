@@ -6,9 +6,10 @@ import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMe
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
 import { InMemoryOperationsCommentRepository } from '../../data/mock/InMemoryOperationsCommentRepository'
+import { InMemoryAdminActivityRepository } from '../../data/mock/InMemoryAdminActivityRepository'
 import { InMemoryOperationsWorkRepository } from '../../data/mock/InMemoryOperationsWorkRepository'
 import { seedNotices } from '../../data/mock/seed'
-import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupNotificationRepository, mockupUnsupportedMedia } from '../../data/mock/mockupRepositories'
+import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupFeedbackReportRepository, mockupNotificationRepository, mockupUnsupportedMedia } from '../../data/mock/mockupRepositories'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
@@ -43,6 +44,8 @@ export function registerMockupServices(container: AppContainer) {
     operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(mockDb)),
     // 운영 댓글 API 대신 데모 관리자 댓글을 운영 댓글 형태로 보여 주고, 숨김은 데모 회차 뷰어가 읽는 숨김 목록에 반영합니다.
     operationsCommentRepository: asValue(new InMemoryOperationsCommentRepository(mockDb)),
+    // 운영 활동 기록 API 대신 데모 관리자 화면이 쌓은 데모 조치를 활동 기록 형태로 보여 줍니다.
+    adminActivityRepository: asValue(new InMemoryAdminActivityRepository(mockDb)),
     // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지하고, 독서 기록도 mockDb.progress 메모리입니다.
     readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)),
     episodeRepository: asValue(episodeRepository),
@@ -52,6 +55,8 @@ export function registerMockupServices(container: AppContainer) {
     mediaUseCase: asValue(new MediaUseCase(mediaRepository)),
     manuscriptRepository: asValue(manuscriptRepository),
     manuscriptUseCase: asValue(new ManuscriptUseCase(manuscriptRepository)),
+    // 서버 제보 API 대신 빈 목록·미지원 오류 대역입니다(데모 작품은 정본이 아니라 기존 메모리 피드백을 씁니다).
+    feedbackReportRepository: asValue(mockupFeedbackReportRepository),
     authRepository: asValue(mockupAuthRepository),
     authUseCase: asValue(new AuthUseCase(mockupAuthRepository)),
     notificationRepository: asValue(mockupNotificationRepository),
