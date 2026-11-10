@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.beans.factory.annotation.Qualifier
 import jakarta.persistence.EntityManager
+import java.time.Instant
 import ai.storyfork.content.work.entity.*
 import ai.storyfork.content.work.repository.*
 import ai.storyfork.content.work.service.dto.*
@@ -45,6 +46,8 @@ class PublicationService(
             PublishedEpisodeResponse(row.sequence,v.revisionNo,v.contentVersionId,v.title,v.content,row.inherited,v.authorNote)
         }})
     }
+    /** 작품별 마지막 발행 시각이다(방금 업데이트 랭킹). 발행 기록이 없는 작품은 맵에 담지 않는다. */
+    fun lastPublished(): Map<String, Instant> = events.lastPublishedByWork().associate { row -> row[0] as String to row[1] as Instant }
     /** 공개를 중단해도 이미 사용한 회차 번호는 다시 쓰지 않는다. */
     fun nextEpisodeNumber(id: String): Int {
         em.flush()

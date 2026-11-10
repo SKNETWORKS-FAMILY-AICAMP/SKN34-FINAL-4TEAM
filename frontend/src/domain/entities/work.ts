@@ -44,6 +44,8 @@ export type Work = {
   /**
    * false면 서버가 댓글 수·갱신 시각을 주지 않는 작품이라 cmts·upd는 자리표시 값이다. 화면은 이 둘을 표시하지 않고 카드·목록의 좋아요도
    * 이 표시 묶음에 두어 감춘다(소유자 응답의 likes는 0). 소설 상세만 서버 작품의 좋아요 수를 서버에서 읽어 직접 보여 준다. 생략하면 모두 표시한다.
+   * 예외로 방금 업데이트 랭킹(rankings kind=updated)의 작품은 upd가 서버 값(마지막 발행 후 지난 분)이라 그 순위 화면이 upd만,
+   * 인기 순 랭킹(kind=popular)은 likes가 서버 값이라 그 순위 화면이 ♥만 보인다.
    */
   statisticsSupported?: boolean
   hero?: [string, string]
@@ -195,18 +197,30 @@ export const avatarOf = (s: string) => AVATAR_COLORS[[...s].reduce((a, c) => a +
 /** 목업 tagsOf(): 포크는 원작의 해시태그를 이어받습니다. */
 export const tagsOf = (w: Work, works: Work[]) => w.hash?.length ? w.hash : (w.parent && works.find((x) => x.id === w.parent)?.hash) || []
 
-/** 목업 SORTS: /ifs 포크 모음·캐릭터 챗 목록 정렬. 검색·랭킹은 서버 계약인 SEARCH_SORTS를 씁니다. */
+/** 목업 SORTS: /ifs 포크 모음·캐릭터 챗 목록 정렬. 검색은 서버 계약인 SEARCH_SORTS, 랭킹은 RANKING_KINDS를 씁니다. */
 export const SORTS = [['new', '최신 순'], ['pop', '인기 순'], ['view', '조회 순']] as const
 const SERVER_SORTS = [['title', '제목 순'], ['author', '작가 순']] as const
 /** 서버 작품(statisticsSupported:false)은 좋아요·갱신 시각이 없어 만들 수 없는 지표 대신 제목·작가 순만 고르게 합니다. */
 export const sortsOf = (works: Pick<Work, 'statisticsSupported'>[]): readonly (readonly [string, string])[] =>
   works.some((w) => w.statisticsSupported === false) ? SERVER_SORTS : SORTS
 
-/** 작품 검색·랭킹 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬. 인기 순(like)은 공개 좋아요 수 순입니다. */
+/** 작품 검색 계약(docs/design/work-search-ranking-contract.md)의 범위·정렬(/search). 인기 순(like)은 공개 좋아요 수 순입니다. */
 export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['author', '작가'], ['tag', '태그'], ['genre', '장르']] as const
 export const SEARCH_SORTS = [['latest', '최신 순'], ['like', '인기 순'], ['view', '조회 순']] as const
 export type SearchField = (typeof SEARCH_FIELDS)[number][0]
 export type SearchSort = (typeof SEARCH_SORTS)[number][0]
+
+/**
+ * 기간별 랭킹(기능표 45)의 범위 탭·기준·기간으로, /rank 주소 쿼리 t·kind·period가 받는 값이다. 항목은 [값, 라벨, …]이며
+ * 범위 탭의 끝은 서버 type, 기간의 끝은 집계 구간 문구다. 최신·방금 업데이트는 기간을 쓰지 않는다.
+ */
+export const RANKING_TYPES = [['all', '전체', 'all'], ['orig', '원작 소설', 'original'], ['if', '포크 소설', 'fork']] as const
+export const RANKING_KINDS = [['view', '조회 순'], ['popular', '인기 순'], ['rising', '급상승'], ['latest', '최신 순'], ['updated', '방금 업데이트']] as const
+export const RANKING_PERIODS = [['day', '일간', '최근 24시간'], ['week', '주간', '최근 7일'], ['month', '월간', '최근 30일']] as const
+export type RankingType = (typeof RANKING_TYPES)[number][2]
+export type RankingKind = (typeof RANKING_KINDS)[number][0]
+export type RankingPeriod = (typeof RANKING_PERIODS)[number][0]
+export const rankingUsesPeriod = (kind: RankingKind) => kind !== 'latest' && kind !== 'updated'
 
 /** 목업 matchW(): 범위가 장르일 때만 장르를 검색하고, 전체 범위는 제목·작가·태그만 봅니다. */
 export function matchW(w: Work, q: string, f: string, works: Work[]) {

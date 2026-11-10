@@ -79,11 +79,11 @@ private fun score(kind: RankingKind, views: WorkViews?): Long = when (kind) {
 }
 
 /**
- * 점수(TOP: 최근 24시간 조회 수, RISING: 그 전 24시간 대비 증가분)가 0 이하인 작품을 빼고 큰 순서로 최대 10개의 id를 돌려준다.
+ * 점수(TOP: 최근 구간 조회 수, RISING: 그 앞 같은 길이 구간 대비 증가분)가 0 이하인 작품을 빼고 큰 순서로 최대 [limit]개(기본 10개)의 id를 돌려준다.
  * 동점은 [newestFirst] 순서(작품 생성 최신순)를 유지한다.
  */
-fun rankingIds(kind: RankingKind, newestFirst: List<String>, counts: Map<String, WorkViews>): List<String> =
-    newestFirst.filter { score(kind, counts[it]) > 0 }.sortedByDescending { score(kind, counts[it]) }.take(RANKING_SIZE)
+fun rankingIds(kind: RankingKind, newestFirst: List<String>, counts: Map<String, WorkViews>, limit: Int = RANKING_SIZE): List<String> =
+    newestFirst.filter { score(kind, counts[it]) > 0 }.sortedByDescending { score(kind, counts[it]) }.take(limit)
 
 /** 최근 24시간 조회 수 내림차순 id 목록이다. 조회가 없는 작품도 남기며 동점은 [newestFirst] 순서(작품 생성 최신순)를 유지한다. */
 fun orderByViews(newestFirst: List<String>, counts: Map<String, WorkViews>): List<String> =

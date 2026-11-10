@@ -7,6 +7,7 @@ import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.like.service.dto.WorkLikeResponse
 import ai.storyfork.content.work.service.WorkAccessService
 import java.math.BigInteger
+import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -111,6 +112,13 @@ class WorkLikeServiceTest {
         assertEquals(emptyMap<String, Long>(), service.counts(emptyList()))
 
         verifyNoInteractions(likes)
+    }
+
+    @Test fun `counts since map the likes pressed from the given instant`() {
+        val since = Instant.parse("2026-11-03T00:00:00Z")
+        `when`(likes.countByWorkSince(since)).thenReturn(listOf(arrayOf<Any>("a", 3L), arrayOf<Any>("c", BigInteger.TWO)))
+
+        assertEquals(mapOf("a" to 3L, "c" to 2L), service.countsSince(since))
     }
 
     @Test fun `liked tells whether this member pressed like`() {
