@@ -10,6 +10,7 @@ from app.retrieval.content_client import Manifest, Scope, SourceVersion
 from app.retrieval.contracts import Contract, PositiveInt, Span
 from app.agents.story_context import story_context
 from app.agents.review import mechanical_review
+from app.agents.semantic_review import semantic_review
 from app.agents.template_recommendation import template_recommendation
 from app.agents.simulation import simulation
 from .routing import Capability
@@ -107,7 +108,7 @@ REGISTRY = MappingProxyType({
     "mechanical": CapabilitySpec(mechanical_review, ("canonical",),
                                  ("ContextPacket.v1", "GeneratedText.v1"), "Findings.v1",
                                  ("review", "simulation", "editing", "writing"), 0),
-    "review": CapabilitySpec(_unavailable_handler, ("context", "canonical"),
+    "review": CapabilitySpec(semantic_review, ("context", "canonical"),
                              ("ContextPacket.v1", "Findings.v1", "SimulationReport.v1", "GeneratedText.v1"),
                              "Findings.v1", ("simulation", "editing", "writing"), 1),
     "simulation": CapabilitySpec(simulation, ("actor_context",),

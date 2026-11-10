@@ -37,6 +37,8 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 
 ## OpenAI와 향후 경계
 
+TASK 15는 `agents/semantic_review.py`를 고정 `review` Registry에 등록했습니다. 지식·인과·감정·세계 규칙·복선/회수·대사 시점·행동의 Mock 정형 판정을 근거와 대조합니다. 모델 해석과 Simulation은 suspected로 반환하고 반대 근거·의도적 변경이 겹치는 수치 차이도 오류 확정을 보류합니다. 명시 재현 필요와 opt-in에만 TASK 14를 별도 예산의 선행 Task로 실행합니다. 원문 span·판본·hash, 전체 coverage·반대 근거·비확정 이유를 검증하며 수정 요청과 확정 Findings가 있어야 editing 후속을 등록합니다. 실제 모델·공개 Run 자동 조립·Writing 구현·원고 반영은 추가하지 않았습니다. [TASK 15 DTO·실행 예·검증·한계](../../docs/writing-ai-architecture/task15-handoff.md).
+
 TASK 14는 `agents/simulation.py`를 고정 `simulation` Registry에 등록했습니다. 기본 두 인물·3턴을 LangGraph에서 순차 실행하며 인물별 Content knownBy·선택 근거만 전달합니다. 비교 상태는 독립이고 시도 한도는 기본 6·비교 12·절대 14회와 남은 Run 예산 중 작은 값입니다. 무효 행동 1회 재생성, 실제 들은 주장만 기억에 추가, 가상 상태 reducer·부분 종료·인과 분석을 제공합니다. 발화는 허용된 원문 조합만 지원합니다. run별 `SimulationHandler`가 기존 호출 예약을 사용하며, 실제 모델·Content 상태 공급·공개 Run 자동 조립·정본 저장은 미연결입니다. [TASK 14 DTO·단위 결과·한계](../../docs/writing-ai-architecture/task14-handoff.md).
 
 TASK 13은 `agents/template_recommendation.py`를 고정 `template` Registry에 등록했습니다. 검색 입력은 Content 대역에서 확인한 공개 설정의 언어·장르·태그만 사용하고 비공개 원고·자유문 검색 요청을 넘기지 않습니다. 권리·만료·판본을 재검증하며 적용된 ID·버전과 카탈로그의 명시 충돌 태그를 표시합니다. 단순 추천은 모델 0회이고 `customize=true`일 때만 선택적으로 설명 대역을 호출합니다. 실제 구매·권리 확정·설정 적용·Vector DB·공개 Run 자동 연결은 없습니다. [TASK 13 DTO·검증·인수](../../docs/writing-ai-architecture/task13-handoff.md).

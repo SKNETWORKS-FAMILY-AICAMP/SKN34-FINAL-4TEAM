@@ -8,12 +8,13 @@ from typing import Annotated, Literal
 from pydantic import AliasChoices, Field, StrictBool, model_validator
 
 from app.retrieval.content_client import CanonicalAdapter, ContentReadError, SourceVersion, utf16_quote
-from app.retrieval.contracts import Contract, Evidence, Gap, Id, PositiveInt, Query, Span
+from app.retrieval.contracts import Contract, Coverage, Evidence, Gap, Id, PositiveInt, Query, Span
 from app.retrieval.mock_content import MockContentReadPort
 from .story_context import ExactSource, StoryContextRequest, story_context
 
 
 CheckType = Literal["names", "numbers", "repetition", "spelling"]
+SemanticCheckType = Literal["knowledge", "causality", "emotion", "world_rule", "foreshadowing", "dialogue_timing", "character_behavior"]
 
 
 class NameCheck(Contract):
@@ -66,7 +67,7 @@ class ReviewLocation(Contract):
 
 class Finding(Contract):
     issue_id: Id
-    issue_type: Literal["name_variant", "number_mismatch", "repeated_word", "spelling_candidate"]
+    issue_type: Literal["name_variant", "number_mismatch", "repeated_word", "spelling_candidate"] | SemanticCheckType
     severity: Literal["warning", "error"]
     target_location: ReviewLocation
     description: str
@@ -74,15 +75,21 @@ class Finding(Contract):
     confirmed_or_suspected: Literal["confirmed", "suspected"]
     explanation: str
     suggested_fix: str | None = Field(default=None, repr=False)
+    counter_evidence_refs: tuple[Id, ...] = ()
+    non_confirmation_reason: Id | None = None
+    confidence_basis: Id | None = None
+    simulation_refs: tuple[Id, ...] = ()
 
 
 class Findings(Contract):
     status: Literal["ok", "partial", "denied", "timeout", "unsupported"]
     findings: tuple[Finding, ...] = ()
-    checked_types: tuple[CheckType, ...] = ()
+    checked_types: tuple[CheckType | SemanticCheckType, ...] = ()
     sources: tuple[Evidence, ...] = Field(default=(), repr=False)
     gaps: tuple[Gap, ...] = ()
     is_mock: StrictBool
+    coverage: Coverage | None = None
+    complete: StrictBool = False
 
 
 def _number(text: str) -> Decimal | None:
@@ -192,7 +199,7 @@ async def mechanical_review(request: ReviewRequest, *, content: MockContentReadP
             raise TimeoutError()
         return Findings(status="partial" if gaps else "ok", findings=tuple(findings.values()),
             checked_types=request.check_types, sources=tuple(sources.values()),
-            gaps=tuple(dict.fromkeys(gaps)), is_mock=True)
+            gaps=tuple(dict.fromkeys(gaps)), is_mock=True, complete=not gaps)
     except (TimeoutError, OSError):
         return Findings(status="timeout", gaps=(Gap(code="timeout"),), is_mock=True)
     except ContentReadError as error:

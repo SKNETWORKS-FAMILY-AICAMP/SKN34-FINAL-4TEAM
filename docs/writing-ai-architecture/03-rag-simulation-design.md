@@ -49,6 +49,8 @@ flowchart LR
 
 ### 8. Review
 
+2026-11-10 TASK 15는 `agents/semantic_review.py`에 Mock 의미 검수와 조건부 Simulation 소비를 구현했다. 모델은 검사 종류·대상 span·근거/반대 근거 ref·비확정 근거 종류만 반환하며 임의 실행 지시나 confirmed를 출력 계약으로 받지 않는다. 의미 해석은 suspected이고, 기존 Mechanical의 같은 회차 수치 비교만 확정 후보로 재사용한다. 의도적 변경·반대 근거와 겹치는 확정 지적도 suspected로 낮춘다. 전체 coverage와 대상 회차/Content basis가 맞아야 검수를 완료한다. 재현 필요는 신뢰된 합성 호출자가 명시하며 자동 필요성 분류나 공개 Run 조립은 아직 없다. [실제 DTO·TDD·한계](task15-handoff.md).
+
 2026-11-09 TASK 12는 이 중 Mechanical만 합성 Content에서 구현했다. 명칭·수치 검사 구간과 설정 기준은 명시 입력하며, 수치의 기준 출처 회차·대상 회차·지정 회차가 같을 때만 숫자 불일치를 확정한다. 미등록 이름·강조 반복·요청에 등록한 제한 맞춤법 후보는 suspected다. 선택된 원문과 Finding 위치의 revision·UTF-16 span·hash를 보존하고 자동 수정하지 않는다. [실제 계약·수용 증거·제외 범위](task12-handoff.md).
 
 ```mermaid

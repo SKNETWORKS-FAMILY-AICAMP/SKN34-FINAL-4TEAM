@@ -5,6 +5,11 @@
 
 ## 구조
 
+- TASK 15의 `agents/semantic_review.py`는 선택 원문·Wiki·반대 근거를 재검증하는 의미 검수다.
+  모델 해석·가상 반응은 suspected, 기존 기계 검사의 입증된 수치 차이만 confirmed 후보로 유지한다.
+  `semantic_review_tasks`와 run별 `SemanticReviewHandler`를 명시 주입한다. 재현 필요·opt-in에만 별도 Simulation Task를 사용한다.
+  수정 요청·완전한 검수·확정 지적이 모두 있을 때만 조건부 editing Task를 등록한다. [DTO·검증·제한](../../docs/writing-ai-architecture/task15-handoff.md).
+
 - TASK 14의 `agents/simulation.py`는 인물별 Content knownBy와 선택된 근거를 투영하는 메모리 전용 LangGraph다.
   기본 두 인물·3개 행동은 순차 실행하고, 비교는 독립 상태·공유 호출 한도를 사용한다. run별 `SimulationHandler`를 명시 주입한다.
   실제 Character 모델·Content 구조화 상태·공개 Run 자동 조립은 미연결이다. [계약·검증·원문 발화 제한](../../docs/writing-ai-architecture/task14-handoff.md).

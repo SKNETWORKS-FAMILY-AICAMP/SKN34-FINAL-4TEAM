@@ -139,6 +139,8 @@ Slot Resolver는 인증된 UI 대상 → 같은 scope의 이전 대상 → 회�
 
 2026-11-10 TASK 14: `simulation`에 인물 투영·순차 LangGraph·행동 검증·임시 reducer·결정적 Analyzer를 연결했다. `SimulationHandler`는 run별 명시 주입하며 호출마다 TaskRunner의 예약·사용량·취소 경계를 사용한다. 보고 본문은 메모리에만 두고 `SimulationReport.v1` 결과 참조만 Main에 반환한다. 실제 모델·공개 Run 자동 조립·의미 Review 연결은 미연결이다. [계약·검증·한계](task14-handoff.md).
 
+2026-11-10 TASK 15: `review`에 Semantic DTO handler·run별 adapter를 등록했다. `semantic_review_tasks`는 신뢰된 요청의 재현 필요/opt-in으로 Simulation 선행 Task를 선택한다. Review의 model_cap=1과 Simulation의 독립 예산은 유지하며, 수정 요청·완전 검수·확정 지적일 때만 기존 TaskRunner의 1회 확장으로 editing Task를 등록한다. 이미 계획된 수정 후속은 중복 등록하지 않는다. 공개 Main 기본 계획·실 모델·Writing 구현은 변경하지 않았다. [계약·단위 결과](task15-handoff.md).
+
 Registry는 Python 고정 매핑 `operation → handler, reads, input_schema, output_schema, allowed_successors, model_cap`. 모델이 임의 함수·URL·쿼리·파일 경로를 선택할 수 없다. `run_if`는 `always / has_confirmed_findings / simulation_required / draft_requested` 같은 enum이다. 코드 실행식은 허용하지 않는다.
 
 ```yaml
