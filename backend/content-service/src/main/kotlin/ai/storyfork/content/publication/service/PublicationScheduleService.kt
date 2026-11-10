@@ -67,9 +67,9 @@ class PublicationScheduleService(
         schedules.findTop25ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAscIdAsc("pending", Instant.now()).forEach { candidate ->
             try {
                 try {
+                    checkContent(auth.verifyScheduledMember(candidate.ownerId).toString() == candidate.ownerId, 403, "발행 권한을 확인할 수 없는 회원이에요.")
                     transaction.executeWithoutResult {
                         val row = stillDue(candidate) ?: return@executeWithoutResult
-                        checkContent(auth.verifyScheduledMember(row.ownerId).toString() == row.ownerId, 403, "발행 권한을 확인할 수 없는 회원이에요.")
                         val episode = episodes.findById(row.episodeId).orElseThrow { ContentFailure(404, "회차를 찾을 수 없어요.") }
                         publication.publishScheduled(row.workId, row.ownerId, episode.sequence, row.versionId)
                         row.complete(Instant.now())
