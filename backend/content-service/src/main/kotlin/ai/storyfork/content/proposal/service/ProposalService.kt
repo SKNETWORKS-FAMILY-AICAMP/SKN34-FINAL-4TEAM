@@ -49,7 +49,7 @@ class ProposalService(
         checkContent(data.prompt.isNotBlank() && data.prompt.length<=2000 && data.character.length<=80,message="AI 요청 범위를 확인해 주세요.")
         val prepared=transaction.execute {
             val w=access.own(id,owner);access.requireRevision(w,data.revision)
-            val target=publication.publishedEpisodes(id).items.size+1
+            val target=publication.nextEpisodeNumber(id)
             val selected=context.read(id,owner,ContextRequest(data.episode ?: target,data.prompt,data.character))
             val row=episodes.findByWorkIdAndSequence(id,target) ?: throw ContentFailure(409,"작성 회차를 확인할 수 없어요.")
             val body=drafts.findById(row.id).orElseThrow().content
@@ -68,7 +68,7 @@ class ProposalService(
             }
             return transaction.execute {
                 val w=access.own(id,owner);access.requireRevision(w,data.revision)
-                checkContent(publication.publishedEpisodes(id).items.size+1==prepared.target,409,"생성 중 대상 회차가 변경됐어요.")
+                checkContent(publication.nextEpisodeNumber(id)==prepared.target,409,"생성 중 대상 회차가 변경됐어요.")
                 checkContent(context.read(id,owner,ContextRequest(prepared.selected.basisEpisode,data.prompt,data.character))==prepared.selected,409,"생성 중 문맥이 변경됐어요. 원고에는 반영하지 않았어요.")
                 val now=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);val inputId=contentKey("input",prepared.jobId)
                 val row=episodes.findByWorkIdAndSequence(id,prepared.target) ?: throw ContentFailure(409,"작성 회차가 변경됐어요.")
@@ -112,7 +112,7 @@ class ProposalService(
         val w=access.own(id,owner);access.requireRevision(w,expected)
         val p=history(id,owner).items.find {it.id==pid && it.status=="pending" && it.revision==expected}
             ?: throw ContentFailure(409,"만료되었거나 이미 적용한 제안이에요.")
-        val target=publication.publishedEpisodes(id).items.size+1
+        val target=publication.nextEpisodeNumber(id)
         checkContent(p.targetEpisode==target,409,"제안의 대상 회차가 변경됐어요. 다시 생성해 주세요.")
         checkContent(context.read(id,owner,ContextRequest(p.context.basisEpisode,p.prompt,p.context.character))==p.context,409,"설정 문맥이 변경됐어요. 최신 문맥으로 검토해 주세요.")
         val row=episodes.findByWorkIdAndSequence(id,target) ?: throw ContentFailure(409,"작성 회차를 확인할 수 없어요.")

@@ -145,17 +145,17 @@ class EpisodeService(
         val saved=versions.findAllByEpisodeIdInOrderByCreatedAtAscIdAsc(rows.map {it.id}).filter {it.isSaved}.groupBy {it.episodeId}
         val entities=episodes.findAllById(rows.map {it.id}).associateBy {it.id}
         val published=versions.findAllById(rows.mapNotNull {it.publishedVersionId}).associateBy {it.id}
-        // DEC-43: 체크포인트는 저장 버전의 발행(publish·applied) 기록이다. 되돌리기는 같은 버전을 다시 발행하므로 버전당 최초 발행 한 건만 센다.
+        // DEC-43: 체크포인트는 저장 버전의 발행(publish/replace/republish·applied) 기록이다. 되돌리기는 같은 버전을 다시 발행하므로 버전당 최초 발행 한 건만 센다.
         val savedList=saved.values.flatten();val versionById=savedList.associateBy {it.id}
         val checkpointLog=publicationEvents.findAllByEpisodeVersionIdInOrderByOccurredAtAscIdAsc(savedList.map {it.id})
-            .filter {it.action=="publish" && it.outcome=="applied"}.distinctBy {it.episodeVersionId}.groupBy {versionById.getValue(it.episodeVersionId).episodeId}
+            .filter {it.action in setOf("publish","replace","republish") && it.outcome=="applied"}.distinctBy {it.episodeVersionId}.groupBy {versionById.getValue(it.episodeVersionId).episodeId}
         return rows.mapNotNull { row ->
             val draft=draftById[row.id];val p=published[row.publishedVersionId]
             val floor=entities[row.id]?.draftRevisionFloor ?: -1
             if(draft==null && p==null && saved[row.id].isNullOrEmpty() && floor<0) null else EpisodeResponse(row.sequence,
                 DraftResponse(draft?.title ?: p?.title ?: saved[row.id]?.lastOrNull()?.title ?: "새 회차",draft?.content ?: if(floor<0) p?.content.orEmpty() else "",draft?.editRevision ?: maxOf(0,floor)),
                 saved[row.id].orEmpty().map { VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,row.sequence,it.createdAt.toString()) },
-                p?.contentVersionId,row.inherited,draft?.updatedAt?.toString(),hasDraft=draft!=null,
+                p?.contentVersionId,row.inherited,draft?.updatedAt?.toString(),hasDraft=draft!=null,publicationStatus=row.publicationStatus,
                 checkpoints=checkpointLog[row.id].orEmpty().map { EpisodeCheckpointResponse(versionById.getValue(it.episodeVersionId).contentVersionId,it.occurredAt.toString(),it.episodeVersionId==row.publishedVersionId) })
         }
     }

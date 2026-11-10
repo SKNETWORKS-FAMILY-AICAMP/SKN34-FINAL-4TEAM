@@ -204,3 +204,39 @@ describe('episode checkpoints (DEC-43)', () => {
     expect(reverted.checkpoints.map(c => [c.versionId, c.active])).toEqual([['v1', true], ['v2', false]])
   })
 })
+
+describe('회차 공개 상태와 발행 이력', () => {
+  const episode = {number:2,draft:{title:'2화',body:'초안',revision:5},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[],publicationStatus:'suspended'}
+  it.each([false,true])('공개 상태 %s 변경에 revision과 권리 확인을 보내고 상태를 반환한다', async visible => {
+    const fetcher=vi.fn().mockResolvedValue(Response.json(episode))
+    const api=new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    const controller=new AbortController()
+    const result=await api.setPublicationVisibility('w',2,4,visible,visible,controller.signal)
+    expect(result.publicationStatus).toBe('suspended')
+    const [url,init]=fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/w/episodes/2/visibility')
+    expect(init.method).toBe('PUT')
+    expect(JSON.parse(init.body)).toEqual({revision:4,visible,rightsConfirmed:visible})
+    controller.abort();expect(init.signal.aborted).toBe(true)
+  })
+  it('권리 확인 없는 재공개는 전송하지 않는다', async () => {
+    const fetcher=vi.fn()
+    const api=new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.setPublicationVisibility('w',2,4,true,false)).rejects.toThrow('권리')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+  it('발행 사건 목록을 보존하고 조회 취소 신호를 연결한다', async () => {
+    const publicationHistory=['publish','replace','unpublish','republish'].map(action=>({episode:2,versionId:'v',publishedAt:'2026-11-09T00:00:00Z',action}))
+    const fetcher=vi.fn().mockResolvedValue(Response.json({versions:[],proposals:[],publicationHistory}))
+    const controller=new AbortController()
+    const result=await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).history('w',controller.signal)
+    expect(result.publicationHistory).toEqual(publicationHistory)
+    controller.abort();expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
+  })
+})
+
+
+it('공개 중단 후 서버가 지정한 다음 작성 회차 번호를 유지한다',async()=>{
+  const fetcher=vi.fn().mockResolvedValue(Response.json([{id:'w',title:'작품',summary:'',visibility:'public',allowFork:false,source:null,episodes:[],draft:{title:'3화',body:'',revision:3},writingEpisodeNumber:3}]))
+  expect((await new HttpEpisodeRepository(fetcher).list())[0].writingEpisodeNumber).toBe(3)
+})

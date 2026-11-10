@@ -20,4 +20,5 @@ data class WorkResponse(
     val likes: Long = 0,
     /** 요청한 회원이 좋아요를 눌렀는지. 공개 상세에서만 채우고 익명이거나 그 밖의 응답이면 false다. */
     val liked: Boolean = false,
+    val writingEpisodeNumber: Int? = null,
 )

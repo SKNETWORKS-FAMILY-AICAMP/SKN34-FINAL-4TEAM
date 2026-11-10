@@ -1,11 +1,11 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { Draft, WritingEpisode } from '../../../../domain/entities/content'
+import type { Draft, WritingEpisode, PublicationEvent } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
 import {imageMarker} from '../../../../domain/entities/media'
 
-type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'>
+type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'|'setPublicationVisibility'|'history'>
 export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
@@ -15,6 +15,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [ready,setReady]=useState(false)
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
+  const [publicationHistory,setPublicationHistory]=useState<PublicationEvent[]|null>(null)
   const current=useRef(draft)
   const pending=useRef<AbortController|null>(null)
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body)
@@ -53,7 +54,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     setNotice(version?'새 원고 버전을 저장했어요. 발행본은 그대로예요.':'작업 초안을 저장했어요.')
   },version)
   // 발행과 체크포인트 되돌리기는 같은 회차 발행 요청이다. 완료 안내만 다르고, 성공 표시는 실제 응답을 받은 뒤에만 한다.
-  const publishVersion=(versionId:string,rights:boolean,done:string)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){merge(e);put({...current.current,revision:e.draft.revision});setNotice(done)}})
+  const publishVersion=(versionId:string,rights:boolean,done:string)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){setPublicationHistory(null);merge(e);put({...current.current,revision:e.draft.revision});setNotice(done)}})
   const autoSave=useEffectEvent(()=>{void save(false)})
   useEffect(()=>{
     if(!dirty||busy||error||active?.inherited)return
@@ -78,7 +79,25 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       setNotice(whole?'회차를 삭제했어요.':'작업 초안을 삭제했어요. 새로 입력하면 새 초안으로 저장돼요.')
     })
   }
-  return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
+  const changeVisibility=(visible:boolean,rights:boolean)=>{
+    if(!active||active.inherited||dirty||pending.current)return Promise.resolve(false)
+    if(!visible&&!window.confirm('이 회차의 공개를 중단할까요? 저장 버전과 기존 Fork는 보존돼요.'))return Promise.resolve(false)
+    return run(async signal=>{
+      const result=await api.setPublicationVisibility(id,active.number,current.current.revision,visible,rights,signal)
+      if(signal.aborted)return
+      setPublicationHistory(null);merge(result);put({...current.current,revision:result.draft.revision})
+      setNotice(visible?'중단했던 발행본을 다시 공개했어요.':'회차 공개를 중단했어요.')
+    })
+  }
+  return {publicationHistory,changeVisibility,
+    loadPublicationHistory:()=>run(async signal=>{
+      setPublicationHistory(null)
+      const result=await api.history(id,signal)
+      if(signal.aborted)return
+      if(!result.publicationHistory)throw new Error('발행 이력 응답을 확인할 수 없어요.')
+      setPublicationHistory(result.publicationHistory)
+    },false),
+    episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
     deleteDraft:()=>remove(false),

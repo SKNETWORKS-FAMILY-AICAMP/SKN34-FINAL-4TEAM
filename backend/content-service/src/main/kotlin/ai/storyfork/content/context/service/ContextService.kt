@@ -27,12 +27,12 @@ class ContextService(
         val character=request.character.take(80)
         val w=if(owner==null) access.published(id) else access.own(id,owner)
         val published=publication.publishedEpisodes(id).items
-        val max=published.size+if(owner==null) 0 else 1
-        checkContent(basis in 1..max,message="공개 회차 또는 현재 작성 회차를 선택해 주세요.")
+        val max=publication.nextEpisodeNumber(id)
+        checkContent(if(owner==null) published.any {it.number==basis} else basis in 1..max,message="공개 회차 또는 현재 작성 회차를 선택해 주세요.")
         val following=w.source!=null && world.isFollowingForContext(id)
         val settings=selectSettings(world.historyForContext(id).items.map {it.toDomain()},basis,owner==null || following,character)
         val draft=if(owner!=null && character.isEmpty() && basis==max) {
-            episodes.findByWorkIdAndSequence(id,published.size+1)?.let {drafts.findById(it.id).orElse(null)?.content} ?: ""
+            episodes.findByWorkIdAndSequence(id,max)?.let {drafts.findById(it.id).orElse(null)?.content} ?: ""
         } else ""
         val budget=48000-draft.length-settings.sumOf {it.content.length+it.name.length+it.evidence.length+it.knownBy.sumOf(String::length)+it.tags.sumOf(String::length)+700}
         checkContent(budget>=0,message="설정과 현재 원고가 문맥 한도를 넘어요. 범위를 좁혀 주세요. 저장본은 보존됩니다.")

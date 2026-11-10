@@ -16,7 +16,8 @@ export interface EpisodeRepository {
   deleteWork(id: string, signal?: AbortSignal): Promise<void>
   save(id: string, draft: Draft): Promise<Draft>
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication?: boolean, versionId?: string): Promise<Work>
-  history(id: string): Promise<History>
+  history(id: string,signal?:AbortSignal): Promise<History>
+  setPublicationVisibility(id:string,number:number,revision:number,visible:boolean,rightsConfirmed:boolean,signal?:AbortSignal):Promise<WritingEpisode>
   policy(id: string, revision: number, allowFork: boolean, allowForkPublication: boolean): Promise<Work>
   fork(id: string, episode: number, title: string, direction: string): Promise<Work>
   propose(id: string, revision: number, prompt: string, consent: boolean, signal?: AbortSignal, episode?:number, character?:string): Promise<Proposal>

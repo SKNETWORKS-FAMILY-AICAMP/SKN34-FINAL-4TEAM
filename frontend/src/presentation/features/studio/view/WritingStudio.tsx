@@ -25,12 +25,13 @@ export function WritingStudio({id}:{id:string}) {
   const [selection,setSelection]=useState({episode:0,id:''})
   const [rights,setRights]=useState(false)
   const [versionsOpen,setVersionsOpen]=useState(false)
-  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'>('versions')
+  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'|'publication'>('versions')
   const active=vm.active
   const historyLabel={
     versions:'원고 저장본 · 공개',
     compare:active?`${active.number}화 원고 버전 비교`:'원고 버전 비교',
     settings:'설정 버전 이력',
+    publication:'발행 이력',
   }[historyView]
   const comparison=useVersionComparisonViewModel(active?.versions??[],versionsOpen&&active?`${id}:${active.number}`:'')
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
@@ -52,7 +53,7 @@ export function WritingStudio({id}:{id:string}) {
       <nav className="seps" aria-label="회차 목록">
         <h2 className="lab">회차</h2>
         {vm.episodes.map(e=><button className={`writing-episode ${active?.number===e.number?'on':''}`} key={e.number} aria-pressed={active?.number===e.number} disabled={vm.busy} onClick={()=>{if(!vm.select(e))return;setSelection({episode:0,id:''});setRights(false)}}>
-          <strong>{e.number}화 · {e.draft.title}</strong><small>{e.inherited?'원작 기준 · 읽기 전용':e.publishedVersionId?'발행본 있음 · 초안 별도':'비공개 초안'}</small>
+          <strong>{e.number}화 · {e.draft.title}</strong><small>{e.inherited?'원작 기준 · 읽기 전용':e.publishedVersionId?'발행본 있음 · 초안 별도':e.publicationStatus==='suspended'?'공개 중단':'비공개 초안'}</small>
         </button>)}
         <form className="writing-create" onSubmit={async e=>{e.preventDefault();if(await vm.create(title)){setTitle('');setRights(false);setSelection({episode:0,id:''})}}}>
           <label className="field">새 회차 제목<input className="inp" value={title} maxLength={120} required disabled={vm.busy} onChange={e=>setTitle(e.target.value)}/></label>
@@ -75,6 +76,12 @@ export function WritingStudio({id}:{id:string}) {
             <button className="btn sm" disabled={vm.busy} onClick={()=>void vm.checkOrder()}>순서 변경 가능 범위 확인</button>
             <button className="btn sm" disabled={vm.busy||active.inherited||active.hasDraft===false} onClick={()=>void vm.deleteDraft()}>초안 삭제</button>
             <button className="btn sm" disabled={vm.busy||active.inherited} onClick={()=>void vm.deleteEpisode()}>회차 삭제</button>
+            {!active.inherited&&active.publishedVersionId&&<button className="btn sm" disabled={vm.busy||vm.dirty} onClick={async()=>{if(await vm.changeVisibility(false,false))setRights(false)}}>회차 공개 중단</button>}
+            {!active.inherited&&active.publicationStatus==='suspended'&&<>
+              <label><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/> 중단했던 발행본을 다시 공개할 권리를 확인합니다.</label>
+              <button className="btn sm" disabled={vm.busy||vm.dirty||!rights} onClick={async()=>{if(await vm.changeVisibility(true,rights))setRights(false)}}>회차 재공개</button>
+            </>}
+            <button className="btn sm" disabled={vm.busy} onClick={()=>{setHistoryView('publication');setVersionsOpen(true);void vm.loadPublicationHistory()}}>발행 이력</button>
             {active.hasDraft===false&&<p role="status">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 원고 버전 · 비교 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           </section>
         </>:<p>회차가 없어요. 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
@@ -86,8 +93,18 @@ export function WritingStudio({id}:{id:string}) {
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='versions'} onClick={()=>setHistoryView('versions')}>원고 저장본 · 공개</button>
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='compare'} onClick={()=>setHistoryView('compare')}>원고 버전 비교</button>
               <button type="button" className="btn sm" aria-pressed={historyView==='settings'} onClick={()=>setHistoryView('settings')}>설정 버전 이력</button>
+              <button type="button" className="btn sm" disabled={vm.busy} aria-pressed={historyView==='publication'} onClick={()=>{setHistoryView('publication');void vm.loadPublicationHistory()}}>발행 이력</button>
             </nav>
-            {historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
+            {historyView==='publication'?<>
+              <h2>발행 이력</h2>
+              {vm.error&&<p role="alert">{vm.error}</p>}
+              {vm.busy?<p role="status">발행 이력을 불러오고 있어요…</p>:vm.publicationHistory&&<>
+                {!vm.publicationHistory.length&&<p>아직 발행 이력이 없어요.</p>}
+                <ol>{vm.publicationHistory.map((event,i)=><li key={i}>
+                  {event.episode}화 · {{publish:'발행',replace:'발행본 교체',unpublish:'공개 중단',republish:'재공개'}[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
+                </li>)}</ol>
+              </>}
+            </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
               <h2>{historyLabel}</h2>
               <VersionComparison workId={id} number={active.number} versions={active.versions} model={comparison}/>
             </>:<>

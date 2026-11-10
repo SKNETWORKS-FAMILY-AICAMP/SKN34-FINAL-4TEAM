@@ -53,7 +53,7 @@ class EpisodeVersionService(
     /** 기존 작품 단위 작성 API: revision은 작품 기준이며 회차 API와 혼동하지 않는다. */
     fun saveCurrent(id: String,owner: String,data: DraftRequest): SavedEpisodeVersionResult {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
-        val number=publication.publishedEpisodes(id).items.size+1
+        val number=publication.nextEpisodeNumber(id)
         val e=episodeService.read(id,owner,number)
         episodeService.update(id,owner,number,DraftRequest(data.title,data.body,e.draft.revision))
         val row=episodes.findByWorkIdAndSequence(id,number)!!
