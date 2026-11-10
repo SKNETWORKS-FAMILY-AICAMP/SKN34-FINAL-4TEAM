@@ -22,6 +22,8 @@ export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] 
 
 /** 랭킹 범위 탭 t(all·orig·if)에 드는 작품인가 */
 const inTab = (t: string) => (w: Work) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent)
+/** 서버 저장소가 있으면 이 칩은 Content 검색(장르 부분 일치·좋아요순)으로 채웁니다. 목업은 위 메모리 필터입니다. */
+const HOME_GENRE_QUERIES: Record<string, string> = { '📜 고전': '고전', '✨ 판타지': '판타지', '🛰 SF': 'SF' }
 
 export class ReadingUseCase {
   private readonly workRepository: WorkRepository
@@ -65,7 +67,9 @@ export class ReadingUseCase {
 
   /** 목업 home(): 칩이 '추천'이 아니면 filtered(U02)만 채웁니다. */
   async getHome(role: Role, chip: string) {
-    const [works, progress, server, records] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverHome(), this.memberRecords(role)])
+    const repo = this.workSearchRepository
+    const genre = HOME_GENRE_QUERIES[chip]
+    const [works, progress, server, records, genreWorks] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverHome(), this.memberRecords(role), repo && genre ? repo.search({ q: genre, f: 'genre', sort: 'like' }) : null])
     const pub = works.filter(isPub)
     const filter = (HOME_CHIPS.find((c) => c[0] === chip) ?? HOME_CHIPS[0])[1]
     const origs = originals(works).filter(isPub)
@@ -87,7 +91,7 @@ export class ReadingUseCase {
       works,
       forkSources,
       seen: progress.seen,
-      filtered: filter ? pub.filter((w) => filter(w, works)) : null,
+      filtered: genreWorks ?? (filter ? pub.filter((w) => filter(w, works)) : null),
       originals: origs,
       forkFeed: server ? server.forkFeed.items : pub.filter((w) => w.parent).sort(sorter('new')),
       continueReading: resume ?? null,
@@ -105,7 +109,8 @@ export class ReadingUseCase {
       ranked: !!server || !pub.some((w) => w.statisticsSupported === false),
       fresh: server ? server.fresh.items : pub.slice().sort(sorter('new')).slice(0, 5),
       picks: pub.slice(0, 6),
-      discover: pub,
+      /** 오늘의 발견: 랭킹·최신과 겹치지 않게 오래된 작품부터. 서버 작품은 갱신 시각이 없어 공개 목록(생성 최신순)을 뒤집습니다. */
+      discover: (pub.some((w) => w.statisticsSupported === false) ? pub.slice() : pub.slice().sort(sorter('new'))).reverse(),
       weekly: server ? server.weekly.items : origs.slice(0, 4),
     }
   }
