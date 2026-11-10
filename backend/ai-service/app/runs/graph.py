@@ -1,15 +1,40 @@
 """참조 전용 Main StateGraph. 실제 모델·승인·쓰기·공개 HTTP 경로는 연결하지 않는다."""
 import asyncio
+from dataclasses import asdict
+from hashlib import sha256
+import inspect
+import json
 
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
+from pydantic_core import to_jsonable_python
 
 from app.retrieval.content_client import CanonicalAdapter, ContentReadError
 from app.retrieval.validation import validate_packet
 from .orchestrator import REGISTRY, Budget, PlanError, Task, validate_plan
 from .routing import OPERATIONS, RoutingRequest, RuleBasedRouter
-from .runner import ExecutionLimits, TaskOutput, TaskRunner
+from .runner import ExecutionLimits, TaskOutput, TaskResult, TaskRunner
+from .checkpoints import RunnerJournal, run_lease, serializer
 from .state import Citation, GraphResponse, GraphResult, MainRequest, MainState, ScopeRef
+
+
+def checkpoint_binding(request, limits):
+    return sha256((request.model_dump_json() + limits.model_dump_json()).encode()).hexdigest()
+
+
+def checkpoint_config(request):
+    return {"configurable": {"thread_id": f"{request.thread_id}:{request.scope.digest()}:{request.run_id}",
+                             "checkpoint_ns": ""}, "recursion_limit": 16}
+
+
+def manifest_digest(manifest):
+    return sha256(json.dumps(asdict(manifest), sort_keys=True).encode()).hexdigest()
+
+
+def packet_ref(packet):
+    data = packet.model_dump(mode="json", exclude={"result": {
+        "evidence": {"__all__": {"retrieved_at"}}, "coverage": {"checked_at"}}})
+    return "context:" + sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
 
 
 def build_plan(classification, scope):
@@ -39,22 +64,53 @@ class MainGraph:
         if "context" in self.handlers or any(op not in REGISTRY for op in self.handlers):
             raise PlanError("unregistered_or_reserved_handler")
         self.plan_factory, self.limits = plan_factory, limits
-        self.checkpointer = checkpointer if checkpointer is not None else InMemorySaver()
+        self.checkpointer = checkpointer if checkpointer is not None else InMemorySaver(serde=serializer())
         self._sessions = {}
 
-    async def run(self, request: MainRequest, *, cancel=None, limits=None) -> GraphResult:
+    async def run(self, request: MainRequest, *, cancel=None, limits=None, resume=False) -> GraphResult:
+        async with run_lease(self.checkpointer, request.thread_id):
+            return await self._run(request, cancel=cancel, limits=limits, resume=resume)
+
+    async def _run(self, request: MainRequest, *, cancel=None, limits=None, resume=False) -> GraphResult:
         limits = limits if limits is not None else self.limits
         request = MainRequest.model_validate(request.model_dump())
-        if request.run_id in self._sessions:
+        if not resume and request.run_id in self._sessions:
             raise PlanError("run_already_started")
         cancel = cancel if cancel is not None else asyncio.Event()
         assets = {"packet": None, "denied": False}
         manifest = None
         compiled = None
-        config = {"configurable": {"thread_id": f"{request.thread_id}:{request.scope.digest()}:{request.run_id}"},
-                  "recursion_limit": 16}
-        if self.checkpointer.get_tuple(config) is not None:
+        config = checkpoint_config(request)
+        if resume:
+            manifest = CanonicalAdapter(self.content).manifest(request.scope)
+            if request.query.scope != request.scope:
+                raise ContentReadError("denied")
+        saved = await self.checkpointer.aget_tuple(config)
+        if saved is not None and not resume:
             raise PlanError("run_already_checkpointed")
+        if resume and saved is None:
+            raise PlanError("checkpoint_not_found")
+        if resume:
+            values = saved.checkpoint["channel_values"]
+            values = values.get("__start__", values)
+            if (values.get("request_digest") != checkpoint_binding(request, limits)
+                    or values.get("manifest_digest") not in (None, manifest_digest(manifest))):
+                raise ContentReadError("denied")
+        journal = RunnerJournal(self.checkpointer, config)
+        saved_runner = await journal.read() if resume else None
+        async def retrieve_context():
+            packet = validate_packet(await self.coordinator.retrieve(request.query), request.query, self.content)
+            if packet.result.status in ("denied", "unavailable", "unsupported"):
+                raise ContentReadError(packet.result.status)
+            assets["packet"] = packet
+            return packet
+        if resume:
+            completed = values.get("task_results", ()) or (saved_runner.results if saved_runner else ())
+            for item in completed:
+                item = TaskResult.model_validate(item) if isinstance(item, dict) else item
+                if item.output_schema == "ContextPacket.v1" and item.status in ("succeeded", "partial"):
+                    if packet_ref(await retrieve_context()) != item.output_ref:
+                        raise ContentReadError("denied")
         self._sessions[request.run_id] = (request.thread_id, request.scope.digest(), None, config)
 
         def halted(state):
@@ -69,7 +125,8 @@ class MainGraph:
                     raise ContentReadError("denied")
                 manifest = CanonicalAdapter(self.content).manifest(request.scope)
                 return {"scope": ScopeRef(digest=request.scope.digest(), manifest_ref=manifest.manifest_ref,
-                    basis_episode=request.scope.basis_episode), "security_ref": "content-verified", "execution_status": "running"}
+                    basis_episode=request.scope.basis_episode), "security_ref": "content-verified", "execution_status": "running",
+                    "manifest_digest": manifest_digest(manifest)}
             except ContentReadError as error:
                 return {"execution_status": "denied" if error.status == "denied" else "failed", "errors": ("scope_unavailable",)}
 
@@ -110,21 +167,17 @@ class MainGraph:
             async def context_handler(slice, ctx):
                 ctx.checkpoint()
                 try:
-                    packet = validate_packet(await self.coordinator.retrieve(request.query), request.query, self.content)
-                    if packet.result.status == "denied":
-                        raise ContentReadError("denied")
-                    if packet.result.status in ("unavailable", "unsupported"):
-                        raise ContentReadError(packet.result.status)
-                    assets["packet"] = packet
+                    packet = await retrieve_context()
                 except ContentReadError as error:
                     assets["denied"] = error.status == "denied"
                     raise
-                return TaskOutput(output_schema="ContextPacket.v1", output_ref=f"context:{request.run_id}",
+                return TaskOutput(output_schema="ContextPacket.v1", output_ref=packet_ref(packet),
                                   status="succeeded" if packet.can_conclude else "partial", is_mock=True)
             runner = TaskRunner(request.run_id, state.task_plan, scope=request.scope, manifest=manifest,
                 allowed_operations=tuple(REGISTRY), handlers={**self.handlers, "context": context_handler}, limits=limits,
                 wants_change=state.classification.wants_change,
-                draft_requested=state.classification.primary_intent == "next_draft")
+                draft_requested=state.classification.primary_intent == "next_draft",
+                saved=saved_runner, persist=journal.write)
             async def watch_cancel():
                 await cancel.wait()
                 runner.cancel()
@@ -172,7 +225,16 @@ class MainGraph:
         nodes = (("restore", restore), ("route", route), ("plan", plan), ("dispatch", dispatch),
                  ("merge", merge), ("validate_output", validate_output), ("proposal", proposal), ("respond", respond))
         for name, fn in nodes:
-            builder.add_node(name, fn)
+            async def primitive_node(state, fn=fn):
+                try:
+                    value = fn(state)
+                    if inspect.isawaitable(value):
+                        value = await value
+                    return to_jsonable_python(value)
+                except Exception:
+                    # LangGraph가 자동 저장하는 ERROR write에도 backend 원문을 남기지 않는다.
+                    raise PlanError("graph_node_failed") from None
+            builder.add_node(name, primitive_node)
         builder.add_edge(START, "restore")
         builder.add_conditional_edges("restore", lambda s: "route" if not halted(s) else "respond", ["route", "respond"])
         builder.add_conditional_edges("route", lambda s: "plan" if not halted(s) else "respond", ["plan", "respond"])
@@ -186,9 +248,11 @@ class MainGraph:
         compiled = builder.compile(checkpointer=self.checkpointer)
         self._sessions[request.run_id] = (request.thread_id, request.scope.digest(), compiled, config)
         initial = MainState(thread_id=request.thread_id, run_id=request.run_id, request_ref=request.request_ref,
-                            messages=request.messages, summary_ref=request.summary_ref)
+                            messages=request.messages, summary_ref=request.summary_ref,
+                            request_digest=checkpoint_binding(request, limits))
         try:
-            final = MainState.model_validate(await compiled.ainvoke(initial.model_dump(), config))
+            final = MainState.model_validate(await compiled.ainvoke(None if resume else initial.model_dump(mode="json"),
+                                                                   config, durability="sync"))
         except asyncio.CancelledError:
             cancel.set()
             raise
@@ -220,3 +284,14 @@ class MainGraph:
             raise ContentReadError("denied")
         return tuple(MainState.model_validate(snapshot.values) for snapshot in compiled.get_state_history(config)
                      if snapshot.values and "thread_id" in snapshot.values)
+
+    async def ahistory(self, request: MainRequest) -> tuple[MainState, ...]:
+        """재시작한 wrapper도 현재 Content 권한을 확인한 뒤 비동기 이력만 읽는다."""
+        CanonicalAdapter(self.content).manifest(request.scope)
+        config = checkpoint_config(request)
+        history = []
+        async for saved in self.checkpointer.alist(config):
+            values = saved.checkpoint["channel_values"]
+            if values.get("thread_id") == request.thread_id and values.get("run_id") == request.run_id:
+                history.append(MainState.model_validate({k: v for k, v in values.items() if k in MainState.model_fields}))
+        return tuple(history)

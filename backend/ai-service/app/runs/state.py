@@ -23,7 +23,7 @@ class MainRequest(Contract):
     prompt: str = Field(default="", max_length=2000, repr=False)
     ui_mode: Intent = "auto"
     allowed_operations: tuple[Intent, ...] = tuple(OPERATIONS)
-    messages: tuple[Ref, ...] = ()
+    messages: tuple[Ref, ...] = Field(default=(), max_length=20)
     summary_ref: Ref | None = None
 
 
@@ -37,8 +37,10 @@ class MainState(Contract):
     thread_id: Ref
     run_id: Ref
     request_ref: Ref
-    messages: tuple[Ref, ...] = ()
+    messages: tuple[Ref, ...] = Field(default=(), max_length=20)
     summary_ref: Ref | None = None
+    request_digest: str | None = None
+    manifest_digest: str | None = None
     scope: ScopeRef | None = None
     security_ref: Id | None = None
     classification: Classification | None = None

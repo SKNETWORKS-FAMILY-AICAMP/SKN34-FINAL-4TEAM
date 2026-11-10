@@ -1,11 +1,11 @@
-"""Content 위임과 단일 프로세스 Run 실행. 실제 원고·DB·모델은 연결하지 않는다."""
+"""Content 위임과 Run 접수. 명시 주입 그래프의 선택적 영속 재개를 연결한다."""
 import asyncio
 from dataclasses import dataclass, field
 from hashlib import sha256
 
 from app.retrieval.content_client import CanonicalAdapter, ContentReadError
 from app.retrieval.mock_content import MockContentReadPort
-from .graph import MainGraph
+from .graph import MainGraph, checkpoint_config
 from .orchestrator import PlanLimits
 from .runner import ExecutionLimits
 from .schemas import RunError, RunFailure, RunRequest, RunResponse
@@ -77,7 +77,8 @@ def fingerprint(request: RunRequest) -> str:
 class RunService:
     def __init__(self, content: FixtureContent | RemoteContent):
         self.content = content
-        # shortcut: 프로세스 메모리 claim만 지원, 다중 worker·영속 재개 도입 시 Content lease로 교체한다.
+        self.checkpointer = None
+        # shortcut: 접수 상태는 프로세스 메모리, Content 영속 lease/자동 재전달을 연결할 때 교체한다.
         self.records: dict[str, RunRecord] = {}
 
     def start(self, request: RunRequest) -> RunResponse:
@@ -104,7 +105,11 @@ class RunService:
         budget = grant.request.budget
         limits = ExecutionLimits(plan=PlanLimits(**budget.model_dump()))
         try:
-            result = await asyncio.wait_for(grant.graph.run(grant.main, cancel=record.cancel, limits=limits),
+            resume = False
+            if self.checkpointer is not None:
+                grant.graph.checkpointer = self.checkpointer
+                resume = await self.checkpointer.aget_tuple(checkpoint_config(grant.main)) is not None
+            result = await asyncio.wait_for(grant.graph.run(grant.main, cancel=record.cancel, limits=limits, resume=resume),
                                             timeout=budget.timeout_ms / 1000)
             error = None
             if result.state.execution_status == "denied":

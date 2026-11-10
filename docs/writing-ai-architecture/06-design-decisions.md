@@ -32,6 +32,13 @@ TASK 05는 기존 SDK의 `OpenAI.post('/decisions', ...)`로 공식 HTTP 계약�
 
 ## 서비스와 저장
 
+TASK 21은 사용자 요청으로 선행 TASK 20의 실제 적용 미완료와 독립 진행했다. AsyncPostgresSaver 3.2.0과
+psycopg 3.3.2를 고정하고 분리 schema를 기본 비활성 개발 후보로 구현했다. runtime DDL 없이 최소 권한과
+migration 0~9를 검사한다. 호출 전 예약과 완료 결과를 같은 Saver의 별도 namespace에 남기고,
+결과 저장 전 중단된 active 작업은 불명 실패로 보존하며 재호출하지 않는다(기존 불명 호출 무재시도 원칙).
+공유 DB PUBLIC 권한 조율·runtime 인증/암호화·TTL/백업 삭제·Content 자동 복구/결과 resolver는 미결이다.
+[실제 수용·한계](task21-handoff.md) · [관리 경로](../../backend/ai-service/docs/checkpoints.md).
+
 TASK 10에서 사용자가 실제 grant·AI 전송 연결을 승인했다. Content 전용 HMAC 키와 5분 위임, 기존 내부 토큰의 서버 간 인증, 좁은 HTTP 검증 경로로 현재 인가를 재확인한다. 이 결정은 실제 MCP 원문 읽기·모델·승인·자동 복구를 확정하지 않는다. [확정한 계약과 한계](task10-api-contract.md).
 
 TASK 09 당시 내부 HTTP 경계는 FixtureContent에 명시 주입한 작업별 합성 grant만 복원했다. TASK 10이 실제 Content 위임과 공개 최소 API를 추가했으며 MCP 원문 읽기·원고 저장·영속 재개는 계속 미연결이다. [TASK 09의 합성 계약과 단일 프로세스 한계](04-infrastructure-integration.md#task-09-합성-내부-run-http-계약).

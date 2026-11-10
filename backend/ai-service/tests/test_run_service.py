@@ -41,6 +41,22 @@ def test_duplicate_is_rejected_before_second_dispatch(content):
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("exists", [False, True])
+def test_lifespan_saver_is_used_for_authorized_fixture_dispatch_or_recovery(content, exists):
+    async def scenario():
+        req, grant, service = binding(content)
+        saver = type("Saver", (), {"aget_tuple": AsyncMock(return_value=object() if exists else None)})()
+        service.checkpointer = saver
+        service.start(req)
+        await service.records[req.run_id].task
+        saver.aget_tuple.assert_awaited_once()
+        assert grant.graph.checkpointer is saver
+        assert grant.graph.run.call_args.kwargs["resume"] is exists
+        assert service.status(req.run_id, req.grant_ref, req.thread_ref).status == "succeeded"
+        await service.close()
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("change", [{"grant_ref": "forged"}, {"work_id": "other"},
     {"fork_id": "other"}, {"basis_episode": 4}, {"thread_ref": "other"},
     {"operation": "edit"}, {"target_refs": ()}, {"run_id": "other"}])

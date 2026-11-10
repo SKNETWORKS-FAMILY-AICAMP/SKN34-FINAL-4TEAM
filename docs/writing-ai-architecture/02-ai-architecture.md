@@ -1,5 +1,10 @@
 # 작업 계획과 LangGraph 실행
 
+2026-11-10 TASK 21: MainGraph의 명시적 resume/비동기 이력과 전용 AsyncPostgresSaver를 연결했다.
+노드 경계는 sync durability, dispatch 내부는 별도 RunnerJournal에 완료 결과·active attempt·호출 전 예약을 저장한다.
+현재 Content 인가/manifest·원래 요청/한도·문맥 digest를 재검증하고 불명 호출을 재실행하지 않는다.
+실제 Content/모델 조립·승인·자동 재전달/운영 채택은 미완료다. [수용·경계](task21-handoff.md).
+
 2026-11-10 TASK 19: `next_draft`·`expand_conti`의 고정 capability는 Context→Development→Writing→Mechanical이다.
 `next_draft_tasks`는 요청 DTO의 명시적 필요·opt-in에만 Simulation을 별도 예산으로 추가하며,
 콘티 전용은 Development에서 종료한다. run별 `NextDraftHandler`는 검증된 BeatPlan/시뮬레이션/현재 관계를

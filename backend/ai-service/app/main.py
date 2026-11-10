@@ -12,6 +12,7 @@ from app.generation.router import router as generation_router
 from app.runs.router import router as runs_router
 from app.runs.service import RunService
 from app.runs.remote_content import RemoteContent
+from app.runs.checkpoints import configured_saver
 
 
 def create_app(*, run_service: RunService | None = None) -> FastAPI:
@@ -21,11 +22,17 @@ def create_app(*, run_service: RunService | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(application):
-        try:
-            yield
-        finally:
+        async with configured_saver() as saver:
+            application.state.checkpointer = saver
             if run_service is not None:
-                await run_service.close()
+                run_service.checkpointer = saver
+            try:
+                yield
+            finally:
+                if run_service is not None:
+                    await run_service.close()
+                    run_service.checkpointer = None
+                application.state.checkpointer = None
 
     application = FastAPI(
         title="STORYFORK AI Service",

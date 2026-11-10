@@ -76,6 +76,12 @@ AsyncPostgresSaver는 기존 PostgreSQL 인스턴스의 분리된 `langgraph` sc
 
 Content의 업무 checkpoint는 Fork 기준판, saver의 checkpoint는 한 사용자 작업의 재개 위치다. `threadId`는 Content가 subject/work/Fork에 결합한 불투명 ID다. 동시 활성 run은 thread당 하나만 허용하는 기본안을 쓴다. 서버가 한 번 실행 lease를 얻고 만료 시 같은 run/attempt를 대조해 재개한다. 이전 작업·결과 참조 및 짧은 허용 요약만 유지한다. 사용자 입력도 원고를 포함할 수 있으므로 암호화·열람 ACL·삭제 기한을 적용한다. 원문 복사·provider secret·권한 토큰·무제한 messages를 저장하지 않는다. 큰 결과는 소유권 있는 결과 참조로 남긴다. 로그아웃으로 재연결을 멈추고, 권한 철회·탈퇴 시 접근 차단 후 Saver의 thread와 blobs/writes, 캐시·요약까지 삭제하는 보존 정책을 마련한다. TTL·백업 삭제 기한은 운영 전 결정한다.
 
+TASK 21 구현 상태: 고정 Saver 3.2.0/psycopg 3.3.2 전용 풀·lifespan, 조회 전용 schema/version/권한 검사,
+별도 관리 setup, thread session lock, Main/TaskRunner 참조·비용 복원을 개발 후보로 구현했다.
+PUBLIC TEMP와 schema CREATE가 없어야 시작하며 공유 DB의 권한을 runtime에서 바꾸지 않는다.
+권한 회수 조율이 어려우면 별도 DB가 대안이다. 실제 승인·SSE·Content 자동 복구·grant 갱신·보존/삭제는 후속이다.
+[관리·재개 계약](../../backend/ai-service/docs/checkpoints.md) · [TASK 21 검증](task21-handoff.md).
+
 ### 14. SSE 진행 시퀀스
 
 ```mermaid

@@ -5,6 +5,12 @@
 
 ## 구조
 
+- TASK 21의 `runs/checkpoints.py`는 기본 비활성인 전용 풀·고정 AsyncPostgresSaver 3.2.0을 제공한다.
+  runtime DDL/setup 금지, 분리 schema/권한·migration 0~9 사전 검사, 별도 관리 setup을 따른다.
+  Main 재개/ahistory와 RunnerJournal의 완료 결과·호출 전 예약을 복원하고 불명 호출은 재호출하지 않는다.
+  [관리·재개·미결](docs/checkpoints.md)과 [수용 결과](../../docs/writing-ai-architecture/task21-handoff.md)를 따른다.
+  RemoteGrant 전문 실행·운영 DB·자동 복구·보존/삭제·TASK 20 실제 적용은 계속 미완료다.
+
 - TASK 20의 `agents/world_plot.py`는 검증한 Wiki 역참조의 영향 대상·모델 추측·유지 대상을 분리한다.
   `world_plot_tasks`/run별 `WorldPlotHandler`를 명시 주입한다. 설정·플롯 writer는 TASK 17에서 미지원이므로
   결과는 Mock 분석/후보이며 `can_apply=false`, `unsupported_atomic_scope`다. 원고와 Neo4j/Studio를 묶지 않는다.

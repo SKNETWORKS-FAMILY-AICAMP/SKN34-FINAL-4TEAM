@@ -100,13 +100,22 @@ class SelectionTest(unittest.TestCase):
             operation_step = block.split("if: ${{ matrix.service == 'operations' }}", 1)[1].split("      - ", 1)[0]
             self.assertIn("working-directory: backend/operations-service", operation_step)
             self.assertIn(f"run: ./gradlew {task} --no-daemon", operation_step)
-        self.assertIn(f"({java_condition}) && 'postgres:17-alpine'", integration)
+        self.assertIn(f"({java_condition} || matrix.service == 'ai') && 'postgres:17-alpine'", integration)
         self.assertIn("TEST_OPERATIONS_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test", integration)
         self.assertIn("TEST_OPERATIONS_DATABASE_USER: content_test", integration)
         self.assertIn('TEST_OPERATIONS_DATABASE_PASSWORD: ""', integration)
         self.assertIn("backend/operations-service/build/test-results", integration)
         for tier in ("unit", "integration"):
             self.assertEqual(set(ci.SERVICES), {row["service"] for row in ci.select([], full=True)[tier]})
+
+    def test_ai_checkpoint_integration_has_explicit_disposable_database(self):
+        workflow = (ci.ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        integration = workflow.split("\n  integration:\n", 1)[1].split("\n  system:\n", 1)[0]
+        step = integration.split("name: pytest FastAPI and isolated checkpoint PostgreSQL", 1)[1].split("      - ", 1)[0]
+        self.assertIn("if: ${{ matrix.service == 'ai' }}", step)
+        self.assertIn("TEST_CHECKPOINT_ADMIN_DATABASE_URL: postgresql://content_test@127.0.0.1:5432/storyfork_test", step)
+        self.assertIn('TEST_CHECKPOINT_DISPOSABLE: "true"', step)
+        self.assertIn("-m integration", step)
 
     def test_content_runtime_selects_its_integration_and_current_consumers(self):
         plan = ci.select(["backend/content-service/src/main/kotlin/ai/storyfork/content/work/service/WorkService.kt"])

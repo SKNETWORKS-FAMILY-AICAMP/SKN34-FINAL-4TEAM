@@ -1,5 +1,6 @@
-"""검증된 DAG의 메모리 실행·Send slice·예산 예약. 외부 제공사는 연결하지 않는다."""
+"""검증된 DAG 실행·Send slice·예산 예약과 선택적 참조 상태 저장."""
 import asyncio
+import time
 from types import MappingProxyType
 from typing import Annotated, Literal
 from uuid import uuid4
@@ -52,6 +53,22 @@ class TaskSlice(Contract):
     lease: Id
     output_schema: Schema
     inputs: tuple[TaskResult, ...] = ()
+
+
+class RunnerState(Contract):
+    run_id: Id
+    tasks: tuple[Task, ...]
+    results: tuple[TaskResult, ...] = ()
+    active: tuple[TaskSlice, ...] = ()
+    attempts: dict[TaskId, PositiveInt] = {}
+    accounted: Budget = Budget()
+    usage_unknown: StrictBool = False
+    deadline: Annotated[float, Field(gt=0, allow_inf_nan=False)]
+    expansions: Annotated[int, Field(strict=True, ge=0, le=1)] = 0
+
+
+class CheckpointError(PlanError):
+    pass
 
 
 class Transition(Contract):
@@ -145,6 +162,7 @@ class CallContext:
         self.model_started = True
         self.runner.inflight_calls += 1
         try:
+            await self.runner._save()
             reply = await invoke(reservation)
             self.checkpoint()
             reply = ModelReply.model_validate(reply.model_dump())
@@ -170,7 +188,8 @@ class CallContext:
 
 class TaskRunner:
     def __init__(self, run_id, tasks, *, scope, manifest, allowed_operations, handlers=None,
-                 limits=ExecutionLimits(), used=Budget(), wants_change=False, draft_requested=False):
+                 limits=ExecutionLimits(), used=Budget(), wants_change=False, draft_requested=False,
+                 saved: RunnerState | None = None, persist=None):
         self.limits = ExecutionLimits.model_validate(limits.model_dump())
         if type(wants_change) is not bool or type(draft_requested) is not bool:
             raise PlanError("invalid_request_flags")
@@ -192,6 +211,55 @@ class TaskRunner:
         self.inflight_calls = 0
         self.transitions = []
         self.deadline = 0
+        self.deadline_epoch = 0
+        self.attempts = {}
+        self.persist = persist
+        self._save_lock = asyncio.Lock()
+        if saved is not None:
+            saved = RunnerState.model_validate_json(saved.model_dump_json())
+            if (saved.run_id != run_id or saved.tasks[:len(self.tasks)] != self.tasks
+                    or not 0 <= saved.expansions <= self.limits.dynamic_expansions
+                    or any(getattr(saved.accounted, k) > getattr(self.limits.plan, k)
+                           or getattr(saved.accounted, k) < getattr(self.used, k) for k in Budget.model_fields)):
+                raise PlanError("invalid_runner_checkpoint")
+            self.tasks = saved.tasks
+            self.order = validate_plan(self.tasks, scope=scope, manifest=manifest,
+                allowed_operations=self.allowed_operations, limits=self.limits.plan, used=self.used)
+            self.reducer.order = self.order
+            by_id = {t.task_id: t for t in self.tasks}
+            self.attempts = dict(saved.attempts)
+            if any(k not in by_id or v > 1 + by_id[k].retry_policy.max_extra_attempts for k, v in self.attempts.items()):
+                raise PlanError("invalid_runner_checkpoint")
+            for event in (*saved.results, *saved.active):
+                task = by_id.get(event.task_id)
+                if (task is None or event.run_id != run_id or event.output_schema != task.output_schema
+                        or event.attempt != self.attempts.get(event.task_id)):
+                    raise PlanError("invalid_runner_checkpoint")
+                self.reducer.activate(event.task_id, event.attempt, event.lease)
+                # 호출 결과가 저장되지 않은 작업은 자동 재실행하지 않는다.
+                result = event if isinstance(event, TaskResult) else self._result(
+                    task, event.attempt, event.lease, "failed", error_code="interrupted_outcome_unknown")
+                self.reducer.add(result)
+            self.accounted = saved.accounted.model_dump()
+            self.usage_unknown = saved.usage_unknown
+            self.deadline_epoch, self.expansions = saved.deadline, saved.expansions
+
+    async def _save(self):
+        if self.persist is None:
+            return
+        async with self._save_lock:
+            state = RunnerState(run_id=self.reducer.run_id, tasks=self.tasks, results=self.reducer.ordered(),
+                active=tuple(TaskSlice(run_id=self.reducer.run_id, task_id=id,
+                    operation=next(t.operation for t in self.tasks if t.task_id == id),
+                    output_schema=next(t.output_schema for t in self.tasks if t.task_id == id),
+                    attempt=attempt, lease=lease) for id, (attempt, lease) in self.reducer.live.items()),
+                attempts=dict(self.attempts), accounted=Budget(**self.accounted),
+                usage_unknown=self.usage_unknown or bool(self.inflight_calls),
+                deadline=self.deadline_epoch, expansions=self.expansions)
+            try:
+                await self.persist(state)
+            except Exception:
+                raise CheckpointError("checkpoint_unavailable") from None
 
     def cancel(self):
         self.cancelled.set()
@@ -239,6 +307,8 @@ class TaskRunner:
                     raise PlanError("output_schema_mismatch")
                 ctx.checkpoint()
                 return self._result(task, attempt, lease, **output.model_dump(exclude={"output_schema"})), False
+        except CheckpointError:
+            raise
         except RetryableTaskError:
             retry = not ctx.model_started and task.operation not in ("writing", "editing", "world_plot")
             return self._result(task, attempt, lease, "failed", error_code="read_unavailable"), retry
@@ -254,11 +324,13 @@ class TaskRunner:
         if self.started:
             raise PlanError("run_already_started")
         self.started = True
-        self.deadline = asyncio.get_running_loop().time() + self.limits.plan.timeout_ms / 1000
+        if not self.deadline_epoch:
+            self.deadline_epoch = time.time() + self.limits.plan.timeout_ms / 1000
+        self.deadline = asyncio.get_running_loop().time() + max(0, self.deadline_epoch - time.time())
         active = {}
-        attempts = {}
         cancel_wait = asyncio.create_task(self.cancelled.wait())
         try:
+            await self._save()
             while len(self.reducer.results) < len(self.tasks):
                 remaining = self.deadline - asyncio.get_running_loop().time()
                 if self.cancelled.is_set() or remaining <= 0:
@@ -271,8 +343,10 @@ class TaskRunner:
                         attempt, lease = self.reducer.live.get(task.task_id, (1, uuid4().hex))
                         if task.task_id not in self.reducer.live:
                             self.reducer.activate(task.task_id, attempt, lease)
+                        self.attempts[task.task_id] = attempt
                         self._finish(self._result(task, attempt, lease,
                             "cancelled" if self.cancelled.is_set() else "failed", error_code="cancelled" if self.cancelled.is_set() else "deadline"))
+                    await self._save()
                     break
                 for id in self.order:
                     if len(active) >= self.limits.concurrency:
@@ -282,9 +356,9 @@ class TaskRunner:
                     task = next(t for t in self.tasks if t.task_id == id)
                     if any(dep not in self.reducer.results for dep in task.depends_on):
                         continue
-                    attempt = attempts.get(id, 0) + 1
+                    attempt = self.attempts.get(id, 0) + 1
                     lease = uuid4().hex
-                    attempts[id] = attempt
+                    self.attempts[id] = attempt
                     self.reducer.activate(id, attempt, lease)
                     optional_skips = {ref.task_id for ref in task.input_refs if ref.optional}
                     failed = any(self.reducer.results[dep].status != "succeeded" and not (
@@ -294,8 +368,10 @@ class TaskRunner:
                     if failed or change_denied or not condition_satisfied(task.run_if, self._facts(task)):
                         self._finish(self._result(task, attempt, lease, "skipped",
                             error_code="dependency_failed" if failed else "condition_unmet"))
+                        await self._save()
                         continue
                     self.transitions.append(Transition(task_id=id, attempt=attempt, status="running"))
+                    await self._save()
                     future = asyncio.create_task(self._execute(task, attempt, lease))
                     active[future] = task
                 if not active:
@@ -311,6 +387,7 @@ class TaskRunner:
                         self.transitions.append(Transition(task_id=task.task_id, attempt=result.attempt, status="failed"))
                     else:
                         self._finish(result)
+                    await self._save()
         except asyncio.CancelledError:
             self.cancel()
             raise

@@ -198,8 +198,8 @@ jobs:
       matrix: ${{ fromJSON(needs.changes.outputs.integration) }}
     services:
       postgres:
-        # Core·Content·Operations 통합 job마다 서로 격리된 임시 DB를 생성한다.
-        image: ${{ (matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations') && 'postgres:17-alpine' || '' }}
+        # 백엔드 통합 job마다 서로 격리된 임시 DB를 생성한다(AI Saver도 전용 schema/role).
+        image: ${{ (matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' || matrix.service == 'ai') && 'postgres:17-alpine' || '' }}
         env:
           POSTGRES_DB: storyfork_test
           POSTGRES_USER: content_test
@@ -332,12 +332,15 @@ jobs:
           TEST_WORLDSTUDIO_DATABASE_PASSWORD: worldstudio-ci-password
           TEST_WORLDSTUDIO_PASSWORD_AUTH: "true"
         run: ./gradlew integrationTest --tests ai.storyfork.content.world.WorldStudioMigrationPostgresTest --no-daemon --rerun
-      - name: pytest FastAPI HTTP integration tests
+      - name: pytest FastAPI and isolated checkpoint PostgreSQL integration tests
         if: ${{ matrix.service == 'ai' }}
         working-directory: backend/ai-service
+        env:
+          TEST_CHECKPOINT_ADMIN_DATABASE_URL: postgresql://content_test@127.0.0.1:5432/storyfork_test
+          TEST_CHECKPOINT_DISPOSABLE: "true"
         run: uv run --locked --extra dev python -m pytest -m integration --junitxml=reports/integration.xml
       - name: Collect isolated dependency logs
-        if: ${{ failure() && (matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations') }}
+        if: ${{ failure() && (matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' || matrix.service == 'ai') }}
         env:
           POSTGRES_ID: ${{ job.services.postgres.id }}
           PASSWORD_POSTGRES_ID: ${{ job.services.postgres-password.id }}
