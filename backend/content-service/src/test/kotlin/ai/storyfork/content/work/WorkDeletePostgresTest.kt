@@ -89,6 +89,8 @@ class WorkDeletePostgresTest {
     private fun deletedAt(id: String) = jdbc.queryForList("SELECT deleted_at FROM work WHERE id=?",id).single()["deleted_at"]
     private fun rowCounts(id: String) = listOf("world","episode","work_genre","work_hashtag","work_rights_declaration",
         "work_world_history","work_publication_history","fork_policy_history").associateWith {
-        jdbc.queryForObject("SELECT count(*) FROM $it WHERE work_id=?",Int::class.java,id)
+        // world에는 work_id가 없어 연결 이력으로 작품의 세계관을 찾는다.
+        val where=if(it=="world") "id IN (SELECT world_id FROM work_world_history WHERE work_id=?)" else "work_id=?"
+        jdbc.queryForObject("SELECT count(*) FROM $it WHERE $where",Int::class.java,id)
     }
 }
