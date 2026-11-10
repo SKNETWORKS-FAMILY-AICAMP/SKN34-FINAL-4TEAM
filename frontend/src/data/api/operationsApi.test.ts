@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '../../test/testLocks'
-import { OperationsError } from '../../domain/entities/operations'
+import { OperationsError, OperationsForbidden, OperationsRejected } from '../../domain/entities/operations'
 import { login } from './auth'
 import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from './operationsApi'
 
@@ -310,4 +310,50 @@ it('loads a Fork integrity report from the protected work endpoint', async () =>
   const fetcher = ok(report)
   expect(await new HttpOperationsWorkRepository(fetcher).forkIntegrity('w 1')).toEqual(report)
   expect(callsOf(fetcher)[0]).toMatchObject(['/api/v1/operations/works/w%201/fork-integrity', { method: 'GET', headers: { Authorization: 'Bearer o-bearer' } }])
+})
+
+describe('포크 정합성 점검의 서버 안내 문구', () => {
+  const text = '원작의 고정 기준 기록을 확인할 수 없어요.'
+  const check = (response: () => Response) => new HttpOperationsWorkRepository(vi.fn(async () => response())).forkIntegrity('w1')
+
+  it.each([[404, 'NOT_FOUND'], [409, 'CONFLICT']])('%s 응답은 서버가 보낸 안내 문구를 그대로 담은 OperationsRejected다', async (status, code) => {
+    const failure = await check(() => Response.json({ code, message: text }, { status })).catch((error: unknown) => error)
+    expect(failure).toBeInstanceOf(OperationsRejected)
+    expect(failure).toMatchObject({ message: text })
+  })
+
+  it('안내 문구가 없거나 읽을 수 없는 404·409는 일반 안내 오류로 남는다', async () => {
+    const generic: [number, () => Response, string][] = [
+      [404, () => Response.json({}, { status: 404 }), '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'],
+      [404, () => new Response('<html>not found</html>', { status: 404 }), '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'],
+      [409, () => Response.json({ code: 'CONFLICT', message: '  ' }, { status: 409 }), '다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'],
+      [409, () => Response.json({ code: 'CONFLICT', message: 7 }, { status: 409 }), '다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'],
+    ]
+    for (const [, response, message] of generic) {
+      const failure = await check(response).catch((error: unknown) => error)
+      expect(failure).toBeInstanceOf(OperationsError)
+      expect(failure).not.toBeInstanceOf(OperationsRejected)
+      expect(failure).toMatchObject({ message })
+    }
+  })
+
+  it('다른 상태는 서버 문구를 쓰지 않고, 같은 상태라도 다른 요청은 기존 일반 문구를 쓴다', async () => {
+    const failure = await check(() => Response.json({ code: 'BAD_GATEWAY', message: 'content down' }, { status: 502 })).catch((error: unknown) => error)
+    expect(failure).not.toBeInstanceOf(OperationsRejected)
+    expect(failure).toMatchObject({ message: '연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.' })
+    const restriction = new HttpOperationsWorkRepository(vi.fn(async () => Response.json({ code: 'CONFLICT', message: text }, { status: 409 })))
+    const other = await restriction.setRestriction('w1', true).catch((error: unknown) => error)
+    expect(other).not.toBeInstanceOf(OperationsRejected)
+    expect(other).toMatchObject({ message: '다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.' })
+  })
+})
+
+describe('403 응답', () => {
+  it('권한이 없다는 OperationsForbidden이며 문구는 기존 그대로다', async () => {
+    const repo = new HttpAdminActivityRepository(vi.fn(async () => Response.json({ code: 'FORBIDDEN', message: 'Access denied.' }, { status: 403 })))
+    const failure = await repo.list().catch((error: unknown) => error)
+    expect(failure).toBeInstanceOf(OperationsForbidden)
+    expect(failure).toBeInstanceOf(OperationsError)
+    expect(failure).toMatchObject({ message: '이 작업을 할 권한이 없어요.' })
+  })
 })

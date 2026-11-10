@@ -82,6 +82,21 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     expect(f.store.getState().session.dataVersion).toBe(0)
   })
 
+  it('탭을 옮기면 이전 탭의 조치 결과 문구를 지우고 같은 탭에서는 유지한다', async () => {
+    const f = setup()
+    const hook = f.mount()
+    await waitFor(() => expect(hook.result.current.data && hook.result.current.live.data).toBeTruthy())
+    await act(async () => { expect(await hook.result.current.saveNotice(null, { title: '저장한 공지', body: '본문' })).toBe(true) })
+    expect(hook.result.current.lastSuccess).toContain('저장')
+    expect(hook.result.current.actions['notice:new'].message).toContain('저장')
+    hook.rerender({ tab: 'notices' })
+    expect(hook.result.current.lastSuccess).toContain('저장')
+
+    hook.rerender({ tab: 'profile' })
+    expect(hook.result.current.lastSuccess).toBe('')
+    expect(hook.result.current.actions).toEqual({})
+  })
+
   it('고객지원 문의의 선택은 탭과 화면 재진입 후에도 Redux에 유지된다', async () => {
     const f = setup('feedback')
     const hook = f.mount()

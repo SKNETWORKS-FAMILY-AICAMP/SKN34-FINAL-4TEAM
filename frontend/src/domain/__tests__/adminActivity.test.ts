@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { activityActionLabel, activityActor, activityTarget } from '../entities/adminActivity'
+import { ADMIN_PERMISSIONS } from '../entities/admin'
+import { ACTIVITY_FORBIDDEN, activityActionLabel, activityActor, activityDetail, activityTarget } from '../entities/adminActivity'
 
 /** 계약(operations-admin-activity-contract)의 action 20종 */
 const ACTIONS: [string, string][] = [
@@ -44,5 +45,41 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
     expect(activityActor({ actorId: 'admin-1', actorNickname: '운영자' })).toBe('운영자')
     expect(activityActor({ actorId: 'admin-1', actorNickname: null })).toBe('admin-1')
     expect(activityActor({ actorId: 'admin-1', actorNickname: '' })).toBe('admin-1')
+  })
+})
+
+describe('관리자 활동 기록 내역 표시 (72)', () => {
+  const detail = (action: string, text: string | null) => activityDetail({ action, detail: text })
+
+  it('신고 검토 내역은 결정 상태를 한국어로 보이고 모르는 값은 그대로 보인다', () => {
+    expect(detail('REPORT_REVIEW', 'ACCEPTED')).toBe('신고 인정')
+    expect(detail('REPORT_REVIEW', 'REJECTED')).toBe('기각')
+    expect(detail('REPORT_REVIEW', 'FUTURE')).toBe('FUTURE')
+  })
+
+  it('관리자 계정 생성 내역은 권한 키를 한국어 권한 이름으로 바꿔 보이고 모르는 키는 그대로, 권한이 없으면 없음으로 보인다', () => {
+    expect(detail('ADMIN_CREATE', 'new@example.invalid · works,notices,admins')).toBe('new@example.invalid · 작품 관리, 공지 게시, 관리자 계정 관리')
+    expect(detail('ADMIN_CREATE', 'a@example.invalid · works,future,toString')).toBe('a@example.invalid · 작품 관리, future, toString')
+    expect(detail('ADMIN_CREATE', 'a@example.invalid · ')).toBe('a@example.invalid · 없음')
+    // 형식이 다른 내역은 가공하지 않고 그대로 보인다.
+    expect(detail('ADMIN_CREATE', 'a@example.invalid')).toBe('a@example.invalid')
+  })
+
+  it('문의 답변 조치의 내역은 답변 ID뿐이라 보이지 않는다', () => {
+    for (const action of ['INQUIRY_REPLY_CREATE', 'INQUIRY_REPLY_UPDATE', 'INQUIRY_REPLY_DELETE']) {
+      expect(detail(action, '3f2c9a10-0000-4000-8000-000000000001')).toBeNull()
+    }
+  })
+
+  it('그 밖의 조치는 서버가 남긴 내역을 그대로 보이고 내역이 없으면 보이지 않는다', () => {
+    expect(detail('WORK_RESTRICT', '별빛 서약의 탑')).toBe('별빛 서약의 탑')
+    expect(detail('FUTURE_ACTION', '새 조치 내역')).toBe('새 조치 내역')
+    expect(detail('NOTICE_DELETE', null)).toBeNull()
+    expect(detail('WORK_RESTRICT', '')).toBeNull()
+  })
+
+  it('활동 기록을 볼 수 없을 때의 안내는 조회에 필요한 관리자 계정 관리 권한 이름을 쓴다', () => {
+    expect(ACTIVITY_FORBIDDEN).toBe("활동 로그를 보려면 '관리자 계정 관리' 권한이 필요해요.")
+    expect(ADMIN_PERMISSIONS).toContainEqual(['admins', '관리자 계정 관리'])
   })
 })

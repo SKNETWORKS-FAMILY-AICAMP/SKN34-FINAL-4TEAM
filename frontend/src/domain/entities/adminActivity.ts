@@ -1,3 +1,6 @@
+import { ADMIN_PERMISSIONS } from './admin'
+import { REPORT_STATUSES, reportStatusLabel, type ReportStatus } from './report'
+
 /** 관리자 활동 기록(72). 정본은 운영 서비스이며 삽입 전용입니다. 수행자 닉네임은 조회 때 Core 관리자 목록에서 채우고, 목록에 없으면 null입니다. */
 export type AdminActivity = {
   id: string
@@ -32,3 +35,26 @@ export const activityTarget = ({ targetType, targetId }: Pick<AdminActivity, 'ta
   [TARGETS.get(targetType) ?? targetType, targetId].filter(Boolean).join(' ')
 /** 수행자는 닉네임이고, 관리자 해제·탈퇴로 닉네임이 없으면 ID입니다. */
 export const activityActor = ({ actorId, actorNickname }: Pick<AdminActivity, 'actorId' | 'actorNickname'>) => actorNickname || actorId
+
+const PERMISSIONS = new Map(ADMIN_PERMISSIONS)
+/** 내역이 답변 ID뿐이라 사람이 읽을 정보가 없는 조치 */
+const ID_ONLY = new Set(['INQUIRY_REPLY_CREATE', 'INQUIRY_REPLY_UPDATE', 'INQUIRY_REPLY_DELETE'])
+const isReportStatus = (value: string): value is ReportStatus => REPORT_STATUSES.some(([status]) => status === value)
+
+/**
+ * 내역 줄: 서버가 조치별로 남긴 짧은 값을 사람이 읽는 문구로 바꿉니다. 신고 검토는 결정 상태 이름으로, 관리자 계정 생성(`이메일 · 권한 키,…`)은
+ * 권한 이름으로 보입니다. 문의 답변 조치는 답변 ID뿐이라 감추고, 보일 내용이 없으면 null입니다. 모르는 값은 그대로 보입니다.
+ */
+export function activityDetail({ action, detail }: Pick<AdminActivity, 'action' | 'detail'>): string | null {
+  if (!detail || ID_ONLY.has(action)) return null
+  if (action === 'REPORT_REVIEW') return isReportStatus(detail) ? reportStatusLabel(detail) : detail
+  if (action === 'ADMIN_CREATE') {
+    const [email, keys] = detail.split(' · ')
+    if (keys === undefined) return detail
+    return `${email} · ${keys.split(',').filter(Boolean).map((key) => PERMISSIONS.get(key) ?? key).join(', ') || '없음'}`
+  }
+  return detail
+}
+
+/** 활동 기록 조회는 `admins` 권한(화면 이름 '관리자 계정 관리')이 있어야 합니다. 403이면 다시 시도 대신 이 안내를 보입니다. */
+export const ACTIVITY_FORBIDDEN = "활동 로그를 보려면 '관리자 계정 관리' 권한이 필요해요."

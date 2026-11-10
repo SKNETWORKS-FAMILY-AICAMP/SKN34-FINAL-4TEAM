@@ -20,3 +20,6 @@ export type ForkIntegrity = {
   matches: boolean
   characterStateStatus: 'unavailable'
 }
+
+/** 점검 결과. 서버가 이 포크는 점검할 수 없다고 안내하면(404·409) 실패가 아니라 그 문구가 영구 상태이므로 다시 시도하게 하지 않습니다. */
+export type ForkIntegrityResult = { available: true; report: ForkIntegrity } | { available: false; message: string }

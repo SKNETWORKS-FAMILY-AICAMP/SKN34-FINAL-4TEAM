@@ -99,7 +99,11 @@ export function useAdminViewModel(
   const [lastSuccess, setLastSuccess] = useState('')
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   const notify = (message: string) => { if (mounted.current) toast(message) }
-  const { actions, run: exec } = useActionRunner('완료 여부를 확인하지 못했어요. 입력은 유지했어요. 목록을 새로고침해 처리 여부를 확인한 뒤 다시 시도해 주세요.', notify)
+  const { actions, run: exec, reset } = useActionRunner('완료 여부를 확인하지 못했어요. 입력은 유지했어요. 목록을 새로고침해 처리 여부를 확인한 뒤 다시 시도해 주세요.', notify)
+  // 탭을 옮기면 이전 탭의 조치 결과 문구는 지웁니다. 지우지 않으면 다른 탭에 남아 같은 문구가 두 번 보입니다(완료 줄 + 조치 상태).
+  // 효과가 아니라 렌더 중에 상태를 조정해(React 권장) 새 탭에 이전 문구가 한 번도 그려지지 않게 합니다.
+  const [actionTab, setActionTab] = useState(tab)
+  if (actionTab !== tab) { setActionTab(tab); setLastSuccess(''); reset() }
 
   // 데모 조회(query) 중·실패 때는 데모 탭 조치만 막습니다. 실제 운영 API 탭은 데모 조회와 무관하게 조치합니다.
   const mutationsBlocked = !LIVE_TABS.includes(tab) && (query.isLoading || query.isRefreshing || query.isError)
