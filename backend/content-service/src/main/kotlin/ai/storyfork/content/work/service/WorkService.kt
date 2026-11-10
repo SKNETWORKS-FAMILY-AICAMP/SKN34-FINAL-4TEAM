@@ -182,7 +182,7 @@ class WorkService(
         val draft=if(public) null else {
             val e=episodes.findByWorkIdAndSequence(w.id,next!!)
             val d=e?.let {drafts.findById(it.id).orElse(null)}
-            DraftResponse(d?.title ?: "새 회차",d?.content ?: "",w.revision)
+            DraftResponse(d?.title ?: "새 회차",d?.content ?: "",w.revision,d?.authorNote.orEmpty())
         }
         val row=works.findById(w.id).orElseThrow()
         val genres=genreRows.findAllById(workGenres.findAllByWorkId(w.id).map {it.genreId}).map {it.name}.sortedBy {WORK_GENRES.indexOf(it)}

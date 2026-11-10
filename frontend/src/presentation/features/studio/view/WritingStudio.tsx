@@ -67,6 +67,8 @@ export function WritingStudio({id}:{id:string}) {
           <label className="field">회차 제목<input className="et" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({title:e.target.value})}/></label>
           <label className="field">원고 본문<textarea ref={bodyInput} className="eb writing-body" value={vm.draft.body} maxLength={40000} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({body:e.target.value})}/></label>
           <p className="small muted">{vm.draft.body.length.toLocaleString('ko-KR')} / 40,000자</p>
+          <label className="field">작가의 말<textarea className="ta" value={vm.draft.authorNote ?? ''} maxLength={2000} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({authorNote:e.target.value})}/></label>
+          <p className="small muted">선택 입력 · 최대 2,000자. 저장 버전을 발행하면 본문 뒤에 공개됩니다.</p>
           {!active.inherited&&<label className="media-file">본문 이미지 추가<input type="file" accept=".png,.jpg,.jpeg" disabled={vm.busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void vm.addImage(file,bodyInput.current?.selectionStart??vm.draft.body.length,bodyInput.current?.selectionEnd??vm.draft.body.length)}}/></label>}
           <p className="small muted">PNG·JPEG · 파일당 10 MiB 이하 · 회차당 업로드 최대 10개. 커서 위치에 이미지 참조를 넣어요. 참조를 지우면 현재 원고에서만 빠지고 저장 버전은 유지돼요.</p>
           <ManuscriptExportPanel workId={id} episode={active.number} inherited={active.inherited} disabled={vm.busy||vm.dirty}/>
@@ -118,6 +120,7 @@ export function WritingStudio({id}:{id:string}) {
                 <option value="">버전 선택</option>{active.versions.map((v,i)=><option value={v.id} key={v.id}>버전 {i+1} · {v.title} · {new Date(v.savedAt).toLocaleString('ko-KR')}{active.publishedVersionId===v.id?' · 현재 발행본':''}</option>)}
               </select></label>
               {selected&&<><h3>{selected.title}</h3><div className="writing-preview"><ManuscriptBody workId={id} number={active.number} body={selected.body||'(빈 원고)'}/></div>
+                {selected.authorNote&&<section className="author-note"><h3>작가의 말</h3><p>{selected.authorNote}</p></section>}
                 <button className="btn" disabled={vm.busy||active.inherited} onClick={()=>void vm.restore(selected.id)}>선택 버전을 새 버전으로 복원</button>
                 <label className="writing-rights"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/> 이 저장 원고를 공개할 권리가 있음을 확인합니다.</label>
                 <button className="btn pri" disabled={vm.busy||vm.dirty||!rights||active.inherited||!selected.body.trim()} onClick={async()=>{if(await vm.publish(selected.id,rights))setRights(false)}}>선택한 저장 버전 공개</button>

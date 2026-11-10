@@ -42,7 +42,7 @@ class PublicationService(
         rows.forEach(em::refresh)
         val byId=versions.findAllById(rows.mapNotNull {it.publishedVersionId}).associateBy {it.id}
         return PublishedEpisodeListResponse(rows.mapNotNull { row -> byId[row.publishedVersionId]?.let {v ->
-            PublishedEpisodeResponse(row.sequence,v.revisionNo,v.contentVersionId,v.title,v.content,row.inherited)
+            PublishedEpisodeResponse(row.sequence,v.revisionNo,v.contentVersionId,v.title,v.content,row.inherited,v.authorNote)
         }})
     }
     /** 공개를 중단해도 이미 사용한 회차 번호는 다시 쓰지 않는다. */

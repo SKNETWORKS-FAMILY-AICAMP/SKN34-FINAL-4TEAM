@@ -1,5 +1,5 @@
-export type Draft = { title: string; body: string; revision: number }
-export type Episode = { number: number; version: number; title: string; body: string; inherited: boolean }
+export type Draft = { title: string; body: string; authorNote?: string; revision: number }
+export type Episode = { number: number; version: number; title: string; body: string; authorNote?: string; inherited: boolean }
 export type Source = { workId: string; title: string; episode: number; version: number; direction: string; deleted?: boolean }
 export type WorkCreationType = 'ORIGINAL' | 'EXTERNAL_DERIVATIVE'
 /** 작품 등록 시 함께 보내는 유형·장르·해시태그·권리 확인이다. 장르 2개·해시태그 10개까지다. */

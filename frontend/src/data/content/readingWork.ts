@@ -9,7 +9,7 @@ import type { ReadingWorkRecord, ReadingWorldRecord } from './HttpEpisodeReposit
  */
 export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
   const episodes = [...row.episodes].sort((a, b) => a.number - b.number)
-  const mapEpisode = (e: typeof episodes[number]) => ({ t: e.title, p: e.body.split('\n\n'), versionId: e.versionId })
+  const mapEpisode = (e: typeof episodes[number]) => ({ t: e.title, p: e.body.split('\n\n'), versionId: e.versionId, authorNote: e.authorNote ?? '' })
   // Reader routes use array index + 1. Keep empty, hidden slots for withheld episode numbers.
   const byNumber=new Map(episodes.map(e=>[e.number,e]))
   const boundary=row.source?.episode??0

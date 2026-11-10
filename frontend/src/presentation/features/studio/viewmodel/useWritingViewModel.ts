@@ -24,7 +24,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const resetHistory=()=>{historyRequest.current?.abort();setPublicationHistory(null)}
   const current=useRef(draft)
   const pending=useRef<AbortController|null>(null)
-  const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body)
+  const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body||(draft.authorNote??'')!==(active.draft.authorNote??''))
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const install=(e:WritingEpisode)=>{setActive(e);put(e.draft);setNotice('');setError('')}
   useEffect(()=>{
@@ -56,7 +56,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     if(signal.aborted)return
     merge(result)
     // A response acknowledges the sent draft, never typing that happened while it was in flight.
-    put(current.current.title===sent.title && current.current.body===sent.body ? result.draft : {...current.current,revision:result.draft.revision})
+    put(current.current.title===sent.title && current.current.body===sent.body && current.current.authorNote===sent.authorNote ? result.draft : {...current.current,revision:result.draft.revision})
     setNotice(version?'새 원고 버전을 저장했어요. 발행본은 그대로예요.':'작업 초안을 저장했어요.')
   },version)
   // 발행과 체크포인트 되돌리기는 같은 회차 발행 요청이다. 완료 안내만 다르고, 성공 표시는 실제 응답을 받은 뒤에만 한다.
@@ -110,7 +110,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       finally {if(historyRequest.current===controller){historyRequest.current=null;setHistoryLoading(false)}}
     },
     episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
-    edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
+    edit:(patch:Partial<Pick<Draft,'title'|'body'|'authorNote'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
     deleteDraft:()=>remove(false),
     deleteEpisode:()=>remove(true),

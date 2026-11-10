@@ -148,15 +148,15 @@ class ManuscriptImportService(
      * 덮어쓰기 전에 그 초안을 그대로 저장 버전으로 남긴다. 두 저장은 한 트랜잭션이라 하나라도 실패하면 함께 취소된다.
      */
     private fun stack(work: String, owner: String, number: Int, existing: EpisodeResponse?, revision: Int, title: String, body: String) {
-        val next = if (existing != null && hasUnsavedDraft(existing)) versions.save(work, owner, number, DraftRequest(existing.draft.title, existing.draft.body, revision)).draft.revision else revision
-        versions.save(work, owner, number, DraftRequest(title, body, next))
+        val next = if (existing != null && hasUnsavedDraft(existing)) versions.save(work, owner, number, DraftRequest(existing.draft.title, existing.draft.body, revision, existing.draft.authorNote)).draft.revision else revision
+        versions.save(work, owner, number, DraftRequest(title, body, next, existing?.draft?.authorNote.orEmpty()))
     }
 
     /** 최신 저장 버전과 제목·본문이 다른 초안이다. 저장 버전이 없으면 본문이 있는 초안이다. 빈 초안과 초안 없는 회차는 보존하지 않는다. */
     private fun hasUnsavedDraft(episode: EpisodeResponse): Boolean {
         if (!episode.hasDraft) return false
-        val latest = episode.versions.lastOrNull() ?: return episode.draft.body.isNotEmpty()
-        return episode.draft.title != latest.title || episode.draft.body != latest.body
+        val latest = episode.versions.lastOrNull() ?: return episode.draft.body.isNotEmpty() || episode.draft.authorNote.isNotEmpty()
+        return episode.draft.title != latest.title || episode.draft.body != latest.body || episode.draft.authorNote != latest.authorNote
     }
 
     /** 다른 편집으로 회차 수가 바뀌어 만든 번호가 어긋나면 엉뚱한 회차에 저장하지 않도록 만든 회차를 정리하고 거절한다. */

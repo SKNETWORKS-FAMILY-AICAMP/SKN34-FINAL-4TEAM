@@ -233,3 +233,20 @@ it('공개 상태 변경 뒤 늦게 도착한 이전 발행 이력 응답은 무
     expect(result.current.historyLoading).toBe(false)
   } finally {confirm.mockRestore()}
 })
+
+it('autosaves note-only edits and preserves notes typed while saving', async () => {
+  vi.useFakeTimers()
+  const episode={number:1,draft:{title:'제목',body:'본문',authorNote:'',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
+  let resolveSave: (value:typeof episode)=>void=()=>{}
+  const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockImplementationOnce(()=>new Promise(resolve=>{resolveSave=resolve})),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({authorNote:'첫 후기'}))
+  expect(result.current.dirty).toBe(true)
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledWith('w',1,{...episode.draft,authorNote:'첫 후기'},false,expect.any(AbortSignal))
+  act(()=>result.current.edit({authorNote:'추가 입력'}))
+  await act(async()=>resolveSave({...episode,draft:{...episode.draft,authorNote:'첫 후기',revision:1}}))
+  expect(result.current.draft.authorNote).toBe('추가 입력')
+  expect(result.current.dirty).toBe(true)
+})

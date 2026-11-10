@@ -104,4 +104,10 @@ class PublicationPolicyServiceTest {
             assertEquals(listOf(Triple(saved.id,"e2","w")),links.map {Triple(it.policyHistoryId,it.episodeId,it.workId)})
         }
     }
+    @Test fun `public reading uses author note from the pinned version`() {
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(EpisodeCurrentEntity("e", "w", 1, "v1")))
+        `when`(versions.findAllById(listOf("v1"))).thenReturn(listOf(EpisodeVersionEntity(id="v1", episodeId="e", content="본문", authorNote="발행 후기")))
+        assertEquals("발행 후기", service.publishedEpisodes("w").items.single().authorNote)
+        verifyNoInteractions(drafts)
+    }
 }
