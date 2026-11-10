@@ -87,6 +87,15 @@ class AiRunHttpIntegrationTest {
         verifyNoMoreInteractions(service)
     }
 
+    @Test fun `result endpoint reuses bearer authorization and returns explicit mock flag`() {
+        `when`(service.result("w",owner.toString(),"run1")).thenReturn(AiRunResultResponse("partial","합성 결과",true,
+            listOf(AiRunQuote("합성 인용",1)),AiRunCoverageResponse(3,1,listOf("missing"))))
+        mvc.perform(get("$path/runs/run1/result")).andExpect(status().isUnauthorized())
+        mvc.perform(get("$path/runs/run1/result").header("Authorization","Bearer fixture-user"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.isMock").value(true))
+            .andExpect(jsonPath("$.coverage.verifiedCount").value(1)).andExpect(jsonPath("$.citations[0].quote").value("합성 인용"))
+    }
+
     @Test fun `SSE preflight preserves expired cursor and safe response headers`() {
         doThrow(ContentFailure(410,"상태를 다시 조회해 주세요.")).`when`(stream).open("w",owner.toString(),"run1","1",null)
         mvc.perform(get("$path/runs/run1/events").header("Authorization","Bearer fixture-user").header("Last-Event-ID","1"))

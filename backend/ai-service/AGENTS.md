@@ -84,3 +84,6 @@
 - 로컬: `backend/ai-service`에서 `uv run --locked --extra dev python -m pytest -m 'not integration' <대상 파일> -k '<대상>'`로 단위만 실행한다.
   제공사는 monkeypatch 대역을 쓰고 FastAPI TestClient는 통합(`integration` marker)으로 분류해 CI에서 실행한다.
 - 유료 OpenAI 호출은 하지 않는다. 상세는 [AI README](README.md)와 [Agent 구조](docs/agent-structure.md)를 본다.
+
+- TASK 24 RunRequest/MainRequest는 prompt와 선택 UTF-16/hash/원고 판을 결합한다. selection 없는 기존 checkpoint bytes는 보존한다.
+  실제 RemoteGrant 전문 실행 조립은 미연결이며 Mock fallback은 금지한다([계약](../../docs/writing-ai-architecture/task24-contract.md)).

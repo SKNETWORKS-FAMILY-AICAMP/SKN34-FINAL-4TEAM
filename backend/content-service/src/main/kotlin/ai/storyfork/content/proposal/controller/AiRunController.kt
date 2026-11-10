@@ -25,6 +25,10 @@ class AiRunController(private val service: AiRunService,private val stream: AiRu
     @GetMapping("/runs/{runId}")
     fun read(@PathVariable id: String,@PathVariable runId: String,principal: Principal): AiRunResponse = service.read(id,principal.name,runId)
 
+    /** 현재 권한과 인용 원문을 확인한 결과만 반환한다. */
+    @GetMapping("/runs/{runId}/result")
+    fun result(@PathVariable id: String,@PathVariable runId: String,principal: Principal): AiRunResultResponse = service.result(id,principal.name,runId)
+
     /** cursor 이후의 고정 진행 기록만 전송한다. 단절은 Run을 취소하거나 새 Run을 만들지 않는다. */
     @GetMapping("/runs/{runId}/events",produces=["text/event-stream"])
     fun events(@PathVariable id: String,@PathVariable runId: String,principal: Principal,

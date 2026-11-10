@@ -26,7 +26,7 @@ class AiRunClientIntegrationTest {
                 val body=jacksonMapperBuilder().build().readTree(exchange.requestBody.readAllBytes())
                 assertEquals("grant",body.path("grantRef").stringValue())
                 assertTrue(body.path("targetRefs").path(0).has("work_id"))
-                assertFalse(body.has("prompt"));assertFalse(body.has("context"))
+                assertEquals("",body.path("prompt").stringValue());assertFalse(body.has("context"))
             } else {
                 gets++
                 assertEquals("grant",exchange.requestHeaders.getFirst("X-Grant-Ref"))

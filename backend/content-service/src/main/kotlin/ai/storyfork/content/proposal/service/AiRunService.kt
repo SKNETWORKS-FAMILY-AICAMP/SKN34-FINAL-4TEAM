@@ -37,6 +37,7 @@ class AiRunService(
     private val proposals: ChangeProposalVersionRepository,
     private val receipts: ChangeProposalReceiptRepository,
     @Qualifier("contentEntityManager") private val em: jakarta.persistence.EntityManager,
+    private val drafts: ai.storyfork.content.episode.repository.EpisodeDraftRepository,
 ) {
     private val active=setOf("pending","running","awaiting_approval")
     private val operations=setOf("ask","simulate","next_draft","next_insights","review","edit",
@@ -64,6 +65,12 @@ class AiRunService(
                 ?: AiThreadEntity(id=contentId(),requesterId=subject,workId=workId,forkId=forkId)
             checkContent(!runs.existsByThreadIdAndStatusIn(thread.id,active),409,"이 대화에서 실행 중인 작업이 있어요.")
             val scope=snapshot(workId,subject,data.target)
+            data.target.selection?.let {
+                checkContent(data.target.character.isEmpty() && it.revision>=0,message="선택 편집은 작가 원고 문맥에서 요청해 주세요.")
+                val draft=drafts.findById(episodeId(workId,data.target.basisEpisode)).orElse(null)
+                checkContent(draft!=null && draft.editRevision==it.revision,409,"선택한 원고 판본이 변경됐어요.")
+                ai.storyfork.content.proposal.domain.validateRunSelection(context.read(workId,subject,ContextRequest(data.target.basisEpisode,"","")).draft,it)
+            }
             if(data.threadId==null) threads.saveAndFlush(thread)
             val consent=data.options.modelConsent!!
             val id=contentId()
@@ -74,6 +81,7 @@ class AiRunService(
                 grantExpiresAt=Instant.now().plusSeconds(300).truncatedTo(java.time.temporal.ChronoUnit.SECONDS),
                 characterName=data.target.character,maxCalls=consent.maxCalls,noticeVersion=consent.noticeVersion)
             runs.saveAndFlush(run)
+            run.inputJson=mapper.writeValueAsString(data)
             progress.state(run,"pending")
             runs.saveAndFlush(run)
             Prepared(response(run),run)
@@ -195,8 +203,37 @@ class AiRunService(
     private fun dispatchRequest(run: AiRunEntity): AiRunDispatchRequest {
         val thread=threads.findById(run.threadId).orElseThrow()
         val targets=mapper.readValue(run.targetRefsJson,Array<AiRunSourceRef>::class.java).toList()
+        val input=run.inputJson?.let {mapper.readValue(it,AiRunRequest::class.java)}
         return AiRunDispatchRequest(run.id,run.threadId,grants.token(run),run.operation,targets,AiRunBudget(run.maxCalls),
-            run.workId,thread.forkId,run.basisEpisode)
+            run.workId,thread.forkId,run.basisEpisode,input?.prompt ?: "",input?.target?.selection)
+    }
+
+    /** 원문은 영속 이벤트에 저장하지 않고 현재 인가·판본·인용을 재검증한 응답에만 반환한다. */
+    fun result(workId: String,subject: String,runId: String): AiRunResultResponse {
+        val run=transaction.execute {authorizedRun(workId,subject,runId)}
+        val remote=client.status(dispatchRequest(run))
+        return transaction.execute {
+            val current=authorizedRun(workId,subject,runId)
+            val work=access.own(workId,subject)
+            checkContent(work.revision==current.baseRevision && current.status !in setOf("cancelled","applied","denied"),409,"현재 원고에서 결과를 다시 요청해 주세요.")
+            val selected=context.read(workId,subject,ContextRequest(current.basisEpisode,"",current.characterName))
+            val text=remote.result ?: throw ContentFailure(503,"결과 본문이 아직 준비되지 않았어요.")
+            checkContent(text.status==remote.status && text.text.length<=40000 && text.citations.size<=100,502,"AI 결과 계약을 확인할 수 없어요.")
+            val refs=mapper.readValue(current.targetRefsJson,Array<AiRunSourceRef>::class.java).toList()
+            val citations=text.citations.map { c ->
+                checkContent(c.source in refs && c.span.size==2 && c.span[0]>=0 && c.span[1]>c.span[0],403,"허용된 인용이 아니에요.")
+                val excerpt=selected.episodes.find {it.number==c.episode && it.versionId==c.source.revision}?.excerpts?.find {c.span[0]>=it.start && c.span[1]<=it.end}
+                    ?: throw ContentFailure(403,"현재 열람 가능한 인용이 아니에요.")
+                val quote=excerpt.text.substring(c.span[0]-excerpt.start,c.span[1]-excerpt.start)
+                checkContent(quote==c.quote && hash(quote)==c.sourceHash,409,"인용 원문이 변경됐어요.")
+                AiRunQuote(quote,c.episode)
+            }
+            AiRunResultResponse(remote.status,text.text,text.isMock,citations,remote.coverage?.let {
+                checkContent(it.expectedCount>=it.verifiedCount && it.verifiedCount>=0,502,"Coverage 계약을 확인할 수 없어요.")
+                AiRunCoverageResponse(it.expectedCount,it.verifiedCount,it.criticalGaps.map {gap ->
+                    checkContent(gap.code in setOf("missing","stale","unsupported","timeout","unverified"),502,"근거 누락 계약을 확인할 수 없어요.");gap.code})
+            })
+        }
     }
 
     fun thread(workId: String,subject: String,threadId: String,cursor: Int,limit: Int): AiThreadResponse = transaction.execute {

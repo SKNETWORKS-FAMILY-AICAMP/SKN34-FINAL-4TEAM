@@ -28,4 +28,5 @@ class AiRunEntity(
     @field:Column(name="result_json") var resultJson: String? = null,
     @field:Column(name="cancel_signalled") var cancelSignalled: Boolean = false,
     @field:Column(name="created_at") var createdAt: Instant = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS),
+    @field:Column(name="input_json") var inputJson: String? = null,
 )

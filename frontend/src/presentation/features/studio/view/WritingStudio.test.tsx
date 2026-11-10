@@ -54,7 +54,7 @@ it('팀 서재로 돌아가며 공개 시트에서 버전 선택과 권리 확�
   fireEvent.change(screen.getByLabelText('검토할 저장 버전'), { target: { value: 'v1' } })
   const publish = screen.getByRole('button', { name: '선택한 저장 버전 공개' }) as HTMLButtonElement
   expect(publish.disabled).toBe(true)
-  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.click(screen.getByRole('checkbox',{name:'이 저장 원고를 공개할 권리가 있음을 확인합니다.'}))
   expect(publish.disabled).toBe(false)
   await act(async () => { fireEvent.click(publish) })
   expect(model.publish).toHaveBeenCalledWith('v1', true)

@@ -9,6 +9,7 @@ from .routing import Intent
 from .runner import TaskResult
 from .state import GraphResponse, Ref, Status
 from .progress import ProgressEvent
+from .selection import RunSelection
 
 
 class RunOutcome(Contract):
@@ -33,6 +34,8 @@ class RunBudget(Contract):
     timeout_ms: Annotated[int, Field(strict=True, ge=1, le=120000, alias="timeoutMs")]
 
 
+
+
 class RunRequest(Contract):
     run_id: Ref = Field(alias="runId")
     thread_ref: Ref = Field(alias="threadRef")
@@ -43,6 +46,8 @@ class RunRequest(Contract):
     operation: Intent
     target_refs: Annotated[tuple[SourceVersion, ...], Field(min_length=1, max_length=100, alias="targetRefs")]
     budget: RunBudget
+    prompt: str = Field(default="", max_length=2000, repr=False)
+    selection: RunSelection | None = None
 
 
 class RunFailure(Contract):

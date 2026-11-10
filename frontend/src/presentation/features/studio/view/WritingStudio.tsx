@@ -10,6 +10,7 @@ import { Sheet } from '../../../shared/Sheet'
 import { BackChev } from '../../../shared/icons'
 import { writingStatus } from '../../../../domain/entities/writingStatus'
 import { VersionComparison } from './VersionComparison'
+import {AiRunPanel} from './AiRunPanel'
 import { SettingHistoryPanel } from './SettingHistoryPanel'
 import './version-panels.css'
 
@@ -19,6 +20,7 @@ export function WritingStudio({id}:{id:string}) {
   const vm=useWritingViewModel(id)
   const bodyInput=useRef<HTMLTextAreaElement>(null)
   const [title,setTitle]=useState('')
+  const [textSelection,setTextSelection]=useState({start:0,end:0})
   const [selection,setSelection]=useState({episode:0,id:''})
   const [rights,setRights]=useState(false)
   const [versionsOpen,setVersionsOpen]=useState(false)
@@ -60,7 +62,7 @@ export function WritingStudio({id}:{id:string}) {
         {active?<>
           <p className="muted">{active.number}화 · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
           <label className="field">회차 제목<input className="et" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({title:e.target.value})}/></label>
-          <label className="field">원고 본문<textarea ref={bodyInput} className="eb writing-body" value={vm.draft.body} maxLength={40000} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({body:e.target.value})}/></label>
+          <label className="field">원고 본문<textarea ref={bodyInput} className="eb writing-body" value={vm.draft.body} maxLength={40000} readOnly={active.inherited||vm.editingLocked} onSelect={e=>{const node=e.currentTarget;setTextSelection({start:node.selectionStart,end:node.selectionEnd})}} onChange={e=>{setTextSelection({start:0,end:0});vm.edit({body:e.target.value})}}/></label>
           <p className="small muted">{vm.draft.body.length.toLocaleString('ko-KR')} / 40,000자</p>
           {!active.inherited&&<label className="media-file">본문 이미지 추가<input type="file" accept=".png,.jpg,.jpeg" disabled={vm.busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void vm.addImage(file,bodyInput.current?.selectionStart??vm.draft.body.length,bodyInput.current?.selectionEnd??vm.draft.body.length)}}/></label>}
           <p className="small muted">PNG·JPEG · 파일당 10 MiB 이하 · 회차당 업로드 최대 10개. 커서 위치에 이미지 참조를 넣어요. 참조를 지우면 현재 원고에서만 빠지고 저장 버전은 유지돼요.</p>
@@ -73,6 +75,7 @@ export function WritingStudio({id}:{id:string}) {
             <button className="btn sm" disabled={vm.busy||active.inherited} onClick={()=>void vm.deleteEpisode()}>회차 삭제</button>
             {active.hasDraft===false&&<p role="status">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 원고 버전 · 비교 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           </section>
+          <AiRunPanel onAccessDenied={vm.clearPrivate} drafts={vm.episodes} work={id} episode={active.number} revision={vm.draft.revision} body={vm.draft.body} selection={textSelection} available={!vm.busy&&!vm.dirty&&!active.inherited&&active.hasDraft!==false} onApplied={()=>void vm.reload()}/>
         </>:<p>회차가 없어요. 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
       </div>
     </div>}</main>

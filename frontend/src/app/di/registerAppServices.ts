@@ -1,4 +1,6 @@
 import { OperationsUseCase } from '../../domain/usecases/OperationsUseCase'
+import {AiRunUseCase} from '../../domain/usecases/AiRunUseCase'
+import {HttpAiRunRepository} from '../../data/api/aiRuns'
 import { MemberUseCase } from '../../domain/usecases/MemberUseCase'
 import { ReportUseCase } from '../../domain/usecases/ReportUseCase'
 import { HttpMemberRepository, HttpReportRepository } from '../../data/api/operationsApi'
@@ -48,6 +50,7 @@ import type { AppContainer } from './types'
 /** 작품·열람·Fork와 홈 순위·검색은 같은 Content API를 사용한다. 나머지 데모 상태에는 샘플 작품·댓글을 주입하지 않는다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
+    aiRunUseCase:asFunction(()=>new AiRunUseCase(new HttpAiRunRepository())).singleton(),
     operationsRepository: asFunction(() => new InMemoryOperationsRepository()).singleton(),
     operationsUseCase: asFunction(({ operationsRepository }) => new OperationsUseCase(operationsRepository)).singleton(),
     reportRepository: asFunction(() => new HttpReportRepository()).singleton(),

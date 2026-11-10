@@ -13,7 +13,9 @@ data class AiRunRequest(
 
 data class AiRunTarget(@field:Min(1) val basisEpisode: Int,
     @field:Size(max=36) val forkId: String? = null, @field:Size(max=80) val character: String = "",
-    @field:Min(0) val baseRevision: Int)
+    @field:Min(0) val baseRevision: Int,@get:com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) val selection: RunSelection? = null)
+
+data class RunSelection(val start: Int,val end: Int,val sourceHash: String,val revision: Int = 0)
 
 data class AiRunOptions(@field:Valid val modelConsent: ModelConsent? = null)
 

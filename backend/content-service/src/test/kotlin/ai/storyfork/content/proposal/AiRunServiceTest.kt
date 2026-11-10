@@ -45,7 +45,8 @@ class AiRunServiceTest {
     private val progress=AiRunProgressService(events,jacksonMapperBuilder().build())
     private val em=mock(jakarta.persistence.EntityManager::class.java)
     private val service=AiRunService(access,context,runs,threads,jobs,client,
-        TransactionTemplate(manager),jacksonMapperBuilder().build(),signer,episodes,progress,proposals,receipts,em)
+        TransactionTemplate(manager),jacksonMapperBuilder().build(),signer,episodes,progress,proposals,receipts,em,
+        mock(ai.storyfork.content.episode.repository.EpisodeDraftRepository::class.java))
     private val rows=mutableMapOf<String,AiRunEntity>()
     private val conversations=mutableMapOf<String,AiThreadEntity>()
     private val jobRows=mutableMapOf<String,AiJobEntity>()
@@ -158,6 +159,27 @@ class AiRunServiceTest {
         assertEquals(AiRunFailure.AI_RUN_UNCONFIGURED,assertThrows(AiRunDispatchException::class.java) {
             AiRunClient(org.springframework.web.client.RestClient.builder().build(),"").dispatch(dispatchFixture())
         }.failure)
+    }
+
+    @Test fun `selected stale revision is rejected before dispatch`() {
+        assertEquals(409,assertThrows(ContentFailure::class.java) {
+            service.create("w","owner","selection",input().copy(target=input().target.copy(selection=RunSelection(0,2,"a".repeat(64),0))))
+        }.status)
+        verify(client,never()).dispatch(anyDispatch())
+    }
+
+    @Test fun `result body is separate from progress and rechecks current authority`() {
+        val first=running()
+        doAnswer {i -> (i.arguments[0] as AiRunDispatchRequest).let {
+            assertEquals("질문",it.prompt)
+            AiRunRemoteResponse(it.runId,it.threadRef,"succeeded",false,result=AiRunText("succeeded","합성 답변",false),coverage=AiRunCoverage(0,0))
+        }}.`when`(client).status(anyDispatch())
+        val result=service.result("w","owner",first.runId)
+        assertEquals("합성 답변",result.text)
+        assertTrue(eventRows.none {it.code.contains("합성 답변")})
+        doThrow(ContentFailure(404,"없음")).`when`(access).own("w","owner")
+        assertEquals(404,assertThrows(ContentFailure::class.java) {service.result("w","owner",first.runId)}.status)
+        verify(client,times(1)).status(anyDispatch())
     }
 
     @Test fun `valid grant verifies but substituted work budget and target fail before context lookup`() {

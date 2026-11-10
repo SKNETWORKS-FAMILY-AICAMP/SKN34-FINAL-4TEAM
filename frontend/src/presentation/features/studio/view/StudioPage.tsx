@@ -16,6 +16,7 @@ import { RequireRole } from '../../../shared/session/RequireRole'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { useStudioRouteViewModel } from '../viewmodel/useStudioRouteViewModel'
 import { StoryPlanPage } from '../../plans/view/StoryPlanPage'
+import {useAppSelector} from '../../../../app/store'
 
 type VM = ReturnType<typeof useStudioViewModel>
 const readParas = (el: HTMLElement) => {
@@ -27,10 +28,11 @@ const VIEW_ID: Record<string, string> = { wiki: 'U38', overview: 'U38', narrativ
 
 /** 집필실의 사전·플롯·원고·콘티를 주소로 고릅니다. */
 export function StudioPage() {
+  const member=useAppSelector(s=>s.session.memberId)
   const { id = '' } = useParams()
   const [query] = useSearchParams()
   // Server work IDs use the persisted writing flow(narrative는 플롯·장면 계획); 이름 경로는 서버 작품을 찾아 UUID로 보내고 없으면 명시적 데모입니다.
-  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id}/> : <NamedStudioRoute key={id} id={id}/>
+  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={`${id}:${member}`} id={id}/></RequireRole> : <RequireRole><WritingStudio key={`${id}:${member}`} id={id}/></RequireRole> : <NamedStudioRoute key={id} id={id}/>
 }
 function NamedStudioRoute({id}:{id:string}) {
   const [query]=useSearchParams()

@@ -176,7 +176,7 @@ def test_internal_cancel_during_content_prepare_cannot_override_durable_decision
     from app.runs.service import FixtureContent, RunService, RunError
     async def scenario():
         req, grant, _ = binding(content)
-        req = req.model_copy(update={"operation":"edit"})
+        req = req.model_copy(update={"operation":"edit","prompt":"문장 수정"})
         g, _, approvals, _ = setup(content, wiki, manuscripts)
         main = grant.main.model_copy(update={"ui_mode":"edit","allowed_operations":("edit",),"prompt":"문장 수정"})
         grant = replace(grant, request=req, main=main, graph=g)

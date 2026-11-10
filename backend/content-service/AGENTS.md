@@ -16,7 +16,7 @@
   알려진 판 충돌도 실패 키를 보존한다. 실제 준비 transport·새 run 자동 생성·설정/플롯 writer는 추가하지 않는다.
   [계약·사용자 결정](../../docs/writing-ai-architecture/task22-contract.md) · [검증](../../docs/writing-ai-architecture/task22-handoff.md).
 - Flyway: 콘텐츠 스키마는 `ContentPersistenceConfig.MIGRATION_LOCATIONS`의 `db/migration/{work,episode,world,episode_version,publication,fork,proposal,plan,sample}`와
-  단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V19) 새 SQL은 최댓값 다음 번호를 쓴다.
+  단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V20) 새 SQL은 최댓값 다음 번호를 쓴다.
   `sample/V16`은 CSV에서 생성한 개발 샘플 행이며 직접 편집하지 않는다. 샘플 변경은 다음 번호의 새 마이그레이션으로 한다.
   `db/migration/content`·root 직하 SQL을 다시 만들지 않는다. Auth·첨부·WorldStudio SQL 이력은 보존하고 자동 repair/reset하지 않는다.
 - WorldStudio는 `contentDataSource`를 재사용하고 시작 시 전용 schema(`world_studio_schema_history`)를 migrate한 뒤 전용 EntityManager/TransactionManager로 validate한다. 별도 DB·분산 transaction을 추가하지 않는다.
@@ -26,4 +26,8 @@
 - TASK 23은 Content Run별 진행 seq·안전한 결과 참조와 terminal event를 동일 transaction으로 기록한다.
   공개 SSE·cursor·410·polling·취소 CAS는 [계약](../../docs/writing-ai-architecture/task23-contract.md)을 따른다.
   이벤트 자동 삭제는 하지 않는다. 취소·승인은 기존 작품 잠금으로 직렬화하며 적용 후 취소는 409다.
-  Core 회원 알림과 합치지 않는다. 실제 전문 Agent/결과 본문 resolver·UI 소비자는 미연결이다.
+  Core 회원 알림과 합치지 않는다. 실제 전문 Agent는 미연결이다. 결과 본문 resolver·UI 소비자는 TASK 24의 제한된 계약을 따른다.
+
+- TASK 24는 선택 구간/원고 판/hash 검증, V20 input_json과 인가된 result 조회를 추가한다.
+  인용은 현재 허용 원고 excerpt와 재대조한다. 설정/초안 인용 및 실제 후보 자동 준비는 미연결이다.
+  [계약·검증](../../docs/writing-ai-architecture/task24-handoff.md).

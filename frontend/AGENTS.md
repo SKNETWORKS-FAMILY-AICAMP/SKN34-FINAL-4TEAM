@@ -87,3 +87,7 @@ View 이벤트 → ViewModel handler → UseCase 메서드 호출
   `src/domain`, `src/data`의 대역 기반 테스트와 `src/index-html.test.js`가 단위 범위이고, React 렌더·Hook·App 조립은 CI 통합 계층이다.
 - UseCase 테스트는 Fake Repository, ViewModel 테스트는 Fake UseCase나 격리 컨테이너를 사용한다(운영 컨테이너를 바꾸지 않음).
 - 상세는 [Frontend README](README.md)를 본다.
+
+- TASK 24 집필실 Run은 AiRunUseCase/aiRuns HTTP를 사용한다. 세션·선택·판본 변경 시 결과를 가리고,
+  동일 결정 판/hash/멱등 키와 Content 영수증으로만 적용을 확인한다. Mock 승인과 단절 시 자동 취소는 금지한다.
+  [계약·실제 연결 한계](../docs/writing-ai-architecture/task24-contract.md).

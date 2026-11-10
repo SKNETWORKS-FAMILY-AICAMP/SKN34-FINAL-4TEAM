@@ -4,6 +4,17 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { useWritingViewModel } from './useWritingViewModel'
 
 afterEach(()=>{cleanup();vi.useRealTimers()})
+it('권한 철회 후 취소를 무시한 늦은 저장 응답도 원고를 되살리지 않는다',async()=>{
+ const episode={number:1,draft:{title:'비공개',body:'비공개 원고',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}
+ let release:(value:typeof episode)=>void=()=>{}
+ const api={writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn(()=>new Promise<typeof episode>(resolve=>{release=resolve})),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+ const {result}=renderHook(()=>useWritingViewModel('w',api));await act(async()=>{})
+ let save:Promise<unknown>=Promise.resolve()
+ act(()=>{save=result.current.save()})
+ act(()=>result.current.clearPrivate())
+ await act(async()=>{release(episode);await save})
+ expect(result.current.draft.body).toBe('');expect(result.current.active).toBeNull()
+})
 it('inserts an uploaded immutable image reference at the cursor and keeps it through a saved version',async()=>{
  const id='b142427a-cd9d-4fdc-a40d-c9e553d87d30';const imageId='e25ffb25-8128-48c0-8d66-e1d56831cd56'
  const episode={number:1,draft:{title:'1화',body:'앞뒤',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}

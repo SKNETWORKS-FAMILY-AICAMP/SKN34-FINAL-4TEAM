@@ -35,6 +35,7 @@ import type { ShellUseCase } from '../../domain/usecases/ShellUseCase'
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
 export type AppCradle = {
+  aiRunUseCase:import('../../domain/usecases/AiRunUseCase').AiRunUseCase
   operationsRepository: import('../../domain/repositories/OperationsRepository').OperationsRepository
   operationsUseCase: import('../../domain/usecases/OperationsUseCase').OperationsUseCase
   reportRepository: import('../../domain/repositories/ReportRepository').ReportRepository

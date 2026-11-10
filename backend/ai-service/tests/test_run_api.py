@@ -62,7 +62,7 @@ def test_authorized_hitl_resume_requires_exact_committed_content_decision(conten
     monkeypatch.setenv("INTERNAL_TOKEN","fixture-service-token")
     monkeypatch.delenv("AI_CHECKPOINT_DATABASE_URL",raising=False)
     req,grant,_=binding(content)
-    req=req.model_copy(update={"operation":"edit"})
+    req=req.model_copy(update={"operation":"edit","prompt":"문장 수정"})
     main=grant.main.model_copy(update={"ui_mode":"edit","allowed_operations":("edit",),"prompt":"문장 수정"})
     approvals=ApprovalFixture(content)
     async def edit(s,ctx):
@@ -121,9 +121,11 @@ def test_input_errors_redact_secrets_and_unconfigured_service_is_explicit(conten
     body = req.model_dump(mode="json", by_alias=True)
     with TestClient(create_app(run_service=service)) as client:
         for change in ({"grantRef": "secret manuscript / invalid ref"}, {"budget": {"modelCalls": -1}},
-                       {"prompt": "secret manuscript"}, {"targetRefs": []}):
+                       {"prompt": "x" * 2001}, {"targetRefs": []}):
             response = client.post(BASE, json=body | change, headers=headers(req))
             assert response.status_code == 422 and response.json() == {"detail": "invalid_request"}
+        response = client.post(BASE, json=body | {"prompt": "secret manuscript"}, headers=headers(req))
+        assert response.status_code == 403 and response.json() == {"detail": "invalid_scope"}
         duplicate = list(headers(req).items()) + [("X-Internal-Token", "fixture-service-token")]
         assert client.post(BASE, json=body, headers=duplicate).status_code == 403
     with TestClient(create_app()) as client:

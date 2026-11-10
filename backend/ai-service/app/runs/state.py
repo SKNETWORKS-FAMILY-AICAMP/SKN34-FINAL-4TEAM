@@ -9,6 +9,7 @@ from .orchestrator import Budget, Task
 from .routing import Classification, Intent, OPERATIONS
 from .runner import TaskResult
 from .approval import PreparedProposal, DecisionReceipt
+from .selection import RunSelection
 
 
 Ref = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$")]
@@ -23,6 +24,7 @@ class MainRequest(Contract):
     scope: Scope = Field(repr=False)
     query: Query = Field(repr=False)
     prompt: str = Field(default="", max_length=2000, repr=False)
+    selection: RunSelection | None = None
     ui_mode: Intent = "auto"
     allowed_operations: tuple[Intent, ...] = tuple(OPERATIONS)
     messages: tuple[Ref, ...] = Field(default=(), max_length=20)

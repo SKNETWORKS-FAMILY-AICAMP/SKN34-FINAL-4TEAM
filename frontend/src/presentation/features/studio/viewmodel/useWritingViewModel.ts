@@ -79,6 +79,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     })
   }
   return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
+    clearPrivate:()=>{pending.current?.abort();pending.current=null;setEpisodes([]);setActive(null);put({title:'',body:'',revision:0});setNotice('');setError('현재 작품을 열람할 권한이 없어요. 로그인과 작품 권한을 확인해 주세요.');setBusy(false);setEditingLocked(false)},
     edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
     deleteDraft:()=>remove(false),

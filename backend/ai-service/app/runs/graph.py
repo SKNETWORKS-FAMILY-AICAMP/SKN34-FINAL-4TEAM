@@ -24,7 +24,7 @@ from .progress import ProgressEvent
 
 
 def checkpoint_binding(request, limits):
-    return sha256((request.model_dump_json() + limits.model_dump_json()).encode()).hexdigest()
+    return sha256((request.model_dump_json(exclude={"selection"} if request.selection is None else None) + limits.model_dump_json()).encode()).hexdigest()
 
 
 def checkpoint_config(request):

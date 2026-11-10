@@ -41,6 +41,7 @@ class FixtureContent:
                 or scope.grant_ref != request.grant_ref or scope.work_id != request.work_id
                 or scope.fork_id != request.fork_id or scope.basis_episode != request.basis_episode
                 or main.query.scope != scope or main.ui_mode != request.operation
+                or main.prompt != request.prompt or main.selection != request.selection
                 or (request.operation != "auto" and main.allowed_operations != (request.operation,))
                 or set(main.query.document_ids) != {t.document_id for t in targets}
                 or set(main.query.source_kinds) != {t.kind for t in targets}

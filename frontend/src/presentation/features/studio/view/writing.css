@@ -17,6 +17,12 @@
 .writing-rights { display: flex; gap: 10px; align-items: flex-start; margin: 24px 0 16px; }
 .writing-message { margin: 16px 24px; }
 .writing-studio button:disabled { cursor: not-allowed; opacity: .55; }
+.writing-ai { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--line); }
+.writing-ai .field { margin-block: 16px; }
+.writing-ai-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.writing-ai-result { margin-top: 24px; overflow-wrap: anywhere; }
+.writing-ai-result pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; max-height: 24rem; overflow: auto; }
+.writing-ai-result del, .writing-ai-result ins { color: inherit; background: var(--pri-soft); }
 @media (max-width: 900px) {
   .writing-studio .seps { align-items: flex-start; }
   .writing-studio .seps .writing-episode { min-height: 44px; max-width: 240px; white-space: normal; }
