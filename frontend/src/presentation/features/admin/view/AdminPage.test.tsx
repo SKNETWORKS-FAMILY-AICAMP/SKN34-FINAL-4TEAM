@@ -103,6 +103,9 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   let failRestriction = false
   const fetcher = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
     const target = /\/works\/([^/]+)\/restriction$/.exec(String(url))?.[1]
+    if (String(url).endsWith('/w-fork/fork-integrity')) return Response.json({
+      basisEpisode: 2, forkHash: 'a'.repeat(64), sourceHash: 'b'.repeat(64), matches: false, characterStateStatus: 'unavailable',
+    })
     if (!target) return Response.json({ items: rows })
     if (failRestriction) return Response.json({ code: 'BAD_GATEWAY', message: 'content down' }, { status: 502 })
     const row = rows.find((w) => w.workId === target)!
@@ -112,6 +115,7 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   const http = new OperationsWorkUseCase(new HttpOperationsWorkRepository(fetcher))
   const works = appContainer.resolve('operationsWorkUseCase')
   vi.spyOn(works, 'list').mockImplementation(() => http.list())
+  vi.spyOn(works, 'forkIntegrity').mockImplementation(id => http.forkIntegrity(id))
   vi.spyOn(works, 'setRestriction').mockImplementation((id, restricted) => http.setRestriction(id, restricted))
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
   const requests = () => fetcher.mock.calls.map(([url, init]) => `${init?.method} ${String(url)}`)
@@ -126,7 +130,7 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   expect(requests()).toEqual(['GET /api/v1/operations/works'])
   expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: 'Bearer w-bearer' } })
   expect(cells(open)).toEqual(['달빛 도서관', '연화', '원작', '원작 · 권리 확인됨', '공개', '운영 제한'])
-  expect(cells(fork)).toEqual(['달빛 도서관 외전', '하늘', '포크', '외부 2차 창작 · 권리 미확인', '비공개', '운영 제한'])
+  expect(cells(fork)).toEqual(['달빛 도서관 외전', '하늘', '포크', '외부 2차 창작 · 권리 미확인', '비공개', '운영 제한포크 정합성 점검'])
 
   // 제한은 확인을 거쳐야 보내고, 취소하면 요청도 목록 재조회도 없다.
   fireEvent.click(within(open).getByRole('button', { name: '운영 제한' }))
@@ -154,6 +158,18 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   expect((await screen.findByRole('alert')).textContent).toBe('연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.')
   expect(cells(fork)[4]).toBe('비공개')
   expect(requests()).toHaveLength(6)
+
+  expect(within(open).queryByRole('button', { name: '포크 정합성 점검' })).toBeNull()
+  fireEvent.click(within(fork).getByRole('button', { name: '포크 정합성 점검' }))
+  expect(await screen.findByText('불일치')).toBeTruthy()
+  expect(screen.getByText('a'.repeat(64))).toBeTruthy()
+  expect(screen.getByText('비교 불가 · 기준 회차의 인물 상태 기록이 없어요.')).toBeTruthy()
+  expect(requests().at(-1)).toBe('GET /api/v1/operations/works/w-fork/fork-integrity')
+  fireEvent.click(screen.getByRole('link', { name: '캐릭터챗' }))
+  fireEvent.click(screen.getByRole('link', { name: /^작품$/ }))
+  await screen.findByText('달빛 도서관 외전', { selector: 'b' })
+  expect(screen.queryByRole('region', { name: '포크 정합성 점검 결과' })).toBeNull()
+  expect(requests().filter(request => request.endsWith('/fork-integrity'))).toHaveLength(1)
 })
 
 it('작품 탭은 받은 전체 목록에서 원작·포크 분류, 작품명·작성자·권리 표시값 검색, 제목 정렬을 계산한다', async () => {

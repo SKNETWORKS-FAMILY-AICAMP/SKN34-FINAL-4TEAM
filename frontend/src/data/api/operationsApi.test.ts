@@ -256,3 +256,10 @@ describe('HttpSupportInquiryRepository', () => {
     await expect(repo.get('q1')).rejects.toThrow(new OperationsError(message))
   })
 })
+
+it('loads a Fork integrity report from the protected work endpoint', async () => {
+  const report = { basisEpisode: 2, forkHash: 'a'.repeat(64), sourceHash: 'b'.repeat(64), matches: false, characterStateStatus: 'unavailable' }
+  const fetcher = ok(report)
+  expect(await new HttpOperationsWorkRepository(fetcher).forkIntegrity('w 1')).toEqual(report)
+  expect(callsOf(fetcher)[0]).toMatchObject(['/api/v1/operations/works/w%201/fork-integrity', { method: 'GET', headers: { Authorization: 'Bearer o-bearer' } }])
+})

@@ -15,7 +15,7 @@ import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
-import { LIVE_TABS, useAdminViewModel } from '../viewmodel/useAdminViewModel'
+import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
 import { AdminActionStatus, OperationsNotices } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
@@ -686,6 +686,7 @@ function Audit({ vm }: { vm: VM }) {
 /** 74 운영 작품 조회·조치: Content의 전체 작품(공개·비공개·운영 제한)과 운영 제한·해제. 분류·검색·정렬은 받은 목록에서 이 화면이 계산합니다. */
 function Works(p: BodyProps) {
   const { vm, f } = p
+  const integrity = useForkIntegrity()
   const rows = (vm.live.data?.works ?? [])
     .filter((w) => (f.category === 'all' || w.originKind === f.category) && has(f.query, w.title, w.authorName, rightsLabel(w)))
     .sort((a, b) => (f.sort === 'titleDesc' ? b.title.localeCompare(a.title, 'ko') : a.title.localeCompare(b.title, 'ko')))
@@ -733,6 +734,7 @@ function Works(p: BodyProps) {
                     >
                       {w.restricted ? '제한 해제' : '운영 제한'}
                     </button>
+                    {w.originKind === 'fork' && <button type='button' className='btn sm' onClick={() => integrity.select({ id: w.workId, title: w.title })}>포크 정합성 점검</button>}
                   </td>
                 </tr>
               ))
@@ -744,6 +746,19 @@ function Works(p: BodyProps) {
           </tbody>
         </Table>
       )}
+      {integrity.target && <section className='panel' aria-label='포크 정합성 점검 결과'>
+        <h3>{integrity.target.title} 정합성 점검</h3>
+        <button type='button' className='btn sm' onClick={() => integrity.select(null)}>점검 결과 닫기</button>
+        {integrity.report.isLoading && <p role='status'>고정 기준 기록을 확인하고 있어요…</p>}
+        {integrity.report.isError && <p role='alert'>점검 결과를 불러오지 못했어요. <button type='button' className='btn sm' onClick={integrity.report.retry}>다시 시도</button></p>}
+        {integrity.report.data && <dl>
+          <dt>기준 회차</dt><dd>{integrity.report.data.basisEpisode}화</dd>
+          <dt>원고 비교</dt><dd>{integrity.report.data.matches ? '일치' : '불일치'}</dd>
+          <dt>포크 스냅샷 해시</dt><dd><code style={{overflowWrap:'anywhere'}}>{integrity.report.data.forkHash}</code></dd>
+          <dt>원작 고정 기록 해시</dt><dd><code style={{overflowWrap:'anywhere'}}>{integrity.report.data.sourceHash}</code></dd>
+          <dt>인물 상태</dt><dd>비교 불가 · 기준 회차의 인물 상태 기록이 없어요.</dd>
+        </dl>}
+      </section>}
       <p className='admin-note'>
         운영 제한한 작품은 공개 작품 목록·상세·회차 열람에서 보이지 않아요. 제한을 해제하면 작가가 정한 공개 상태로 돌아가요.
         이 조치는 신고 사건에는 남기지 않고 활동 로그에만 기록해요.

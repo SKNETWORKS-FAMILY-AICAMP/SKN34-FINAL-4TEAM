@@ -46,6 +46,14 @@ class WorkServiceTest {
     }
 
     @Test
+    fun `integrity is read through Content with the works permission`() {
+        grantWorks(admin)
+        val report = ai.storyfork.operations.work.service.dto.ForkIntegrity(1,"fork","source",false,"unavailable")
+        `when`(content.forkIntegrity(workId)).thenReturn(report)
+        assertSame(report,service.forkIntegrity(admin,workId))
+    }
+
+    @Test
     fun `restrict and unrestrict delegate to Content and return its work`() {
         grantWorks(admin)
         `when`(content.restrict(workId)).thenReturn(work.copy(restricted = true))
@@ -77,6 +85,7 @@ class WorkServiceTest {
         grantWorks(staleGrant)
         for (member in listOf(operatorWithoutWorks, staleGrant)) {
             assertEquals(HttpStatus.FORBIDDEN, status { service.list(member) })
+            assertEquals(HttpStatus.FORBIDDEN, status { service.forkIntegrity(member, workId) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.restrict(member, workId) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.unrestrict(member, workId) })
         }

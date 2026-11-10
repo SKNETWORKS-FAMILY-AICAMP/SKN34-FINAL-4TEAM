@@ -159,6 +159,9 @@ jobs:
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180 postgres mailpit
           # Neo4j·RabbitMQ·MinIO를 포함한 전체 스택을 띄운다. WorldStudio schema는 Content 시작 시 Flyway가 적용한다.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180
+          # 같은 :develop 태그를 다시 pull하면 이전 이미지가 dangling으로 남아 디스크를 채운다.
+          # 새 스택이 healthy가 된 뒤에만 지우며, 컨테이너가 참조하는 이미지와 태그 있는 이미지는 지우지 않는다.
+          docker image prune --force
           REMOTE
           } | ssh -F /dev/null -T -p 5798 -i "$SSH_DIR/key" \
             -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$SSH_DIR/known_hosts" \

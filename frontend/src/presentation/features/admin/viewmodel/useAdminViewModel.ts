@@ -33,6 +33,13 @@ export type AdminActionState = ActionState
 export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit']
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
 
+/** 작품 탭을 떠나면 선택과 조회 결과도 함께 닫힌다. */
+export function useForkIntegrity(api: OperationsWorkUseCase = appContainer.resolve('operationsWorkUseCase')) {
+  const [target, select] = useState<{ id: string; title: string } | null>(null)
+  const report = useAsyncData(async () => target ? api.forkIntegrity(target.id) : null, [target, api])
+  return { target, select, report }
+}
+
 /** 기존 제보 데모와 실제 운영 API(회원·신고·작품·고객지원 문의·공지·이벤트·활동 기록)를 함께 보여 주되 정본과 조치를 섞지 않습니다. */
 export function useAdminViewModel(
   tab: AdminTab,

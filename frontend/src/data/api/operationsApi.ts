@@ -23,6 +23,13 @@ const report = z.object({
 })
 const member = z.object({ id: z.string(), email: z.string(), nickname: z.string(), role: z.enum(['MEMBER', 'ADMIN']), restricted: z.boolean(), createdAt: instant })
 const admin = member.extend({ permissions: z.array(z.string()) })
+const forkIntegrity = z.object({
+  basisEpisode: z.number().int().positive(),
+  forkHash: z.string().regex(/^[0-9a-f]{64}$/),
+  sourceHash: z.string().regex(/^[0-9a-f]{64}$/),
+  matches: z.boolean(),
+  characterStateStatus: z.literal('unavailable'),
+})
 const operationsWork = z.object({
   workId: z.string(), ownerId: z.string(), title: z.string(), authorName: z.string(),
   originKind: z.enum(['original', 'fork']), creationType: z.enum(['original', 'external_derivative']),
@@ -102,6 +109,7 @@ export class HttpOperationsWorkRepository implements OperationsWorkRepository {
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
 
   list(): Promise<OperationsWork[]> { return read(this.fetcher, '/works', items(operationsWork)) }
+  forkIntegrity(workId: string) { return read(this.fetcher, `/works/${id(workId)}/fork-integrity`, forkIntegrity) }
   async setRestriction(workId: string, restricted: boolean) { await send(this.fetcher, `/works/${id(workId)}/restriction`, restricted ? 'PUT' : 'DELETE') }
 }
 

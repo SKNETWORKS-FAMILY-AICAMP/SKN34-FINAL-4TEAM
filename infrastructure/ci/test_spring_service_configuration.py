@@ -42,7 +42,7 @@ class SpringServiceConfigurationTest(unittest.TestCase):
 
     def test_core_flyway_includes_sample_migrations_in_normal_order(self):
         properties = (ROOT / "backend/core-api/src/main/resources/application.properties").read_text(encoding="utf-8")
-        self.assertIn("spring.flyway.locations=classpath:db/migration/auth,classpath:db/migration/notification,classpath:db/migration/sample\n", properties)
+        self.assertIn("spring.flyway.locations=classpath:db/migration/auth,classpath:db/migration/notification,classpath:db/migration/credit,classpath:db/migration/sample\n", properties)
         self.assertNotIn("out-of-order", properties)
 
     def test_content_service_is_always_enabled_without_feature_flag(self):
