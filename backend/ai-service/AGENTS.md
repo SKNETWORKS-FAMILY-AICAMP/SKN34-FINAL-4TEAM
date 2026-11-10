@@ -5,6 +5,10 @@
 
 ## 구조
 
+- TASK 12의 `agents/review.py`는 선택된 원문·설정 기준을 읽는 기계 검사만 제공한다.
+  `checkTypes`로 명칭·수치·중복·제한 맞춤법을 선택하며 모델·Simulation·원문 쓰기를 호출하지 않는다.
+  실행기에는 run별 `MechanicalReviewHandler`를 주입한다. [입력·검증·한계](../../docs/writing-ai-architecture/task12-handoff.md).
+
 - TASK 11의 `agents/story_context.py`는 명시 주입한 합성 Content·검색·모델 대역만 지원한다.
   정확 조회 DTO handler는 Registry에 등록하고, TaskRunner에는 run별 `StoryContextHandler`를 주입한다.
   실제 Run/API의 원문 읽기·모델 조립은 미연결이다. [계약·검증](../../docs/writing-ai-architecture/task11-handoff.md).

@@ -37,6 +37,8 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 
 ## OpenAI와 향후 경계
 
+TASK 12는 `agents/review.py`의 Mechanical 검사를 고정 Registry에 등록했습니다. Content 대역에서 검증한 원문과 설정 기준을 비교하며, `checkTypes`는 `names / numbers / repetition / spelling`만 허용합니다. 수치는 같은 기준 회차의 선택된 값만 확정 비교하고, 미등록 이름·중복 강조·맞춤법 후보는 의심으로 남깁니다. 맞춤법은 요청에서 제공한 표기 쌍의 단어 경계만 검사합니다. 모델·Simulation·원문 쓰기는 없으며 `MechanicalReviewHandler`를 run별로 명시 주입합니다. [TASK 12 DTO·호출 예·검증과 한계](../../docs/writing-ai-architecture/task12-handoff.md).
+
 TASK 11은 `agents/story_context.py`의 정확 조회·근거 기반 해석을 고정 `qa` Registry에 등록했습니다. 정확 조회는 Content 대역의 선택된 설정 값/인용 span·hash·revision을 검증하며 모델·검색 0회입니다. 해석은 Wiki 인과 ref·원고 구간·coverage를 확인한 후 명시 주입한 모델 대역만 사용합니다. `StoryContextHandler`를 run별로 TaskRunner에 주입하면 예산·usage·취소를 재사용하며 본문은 checkpoint 밖에 둡니다. 실제 Content 원문 transport·실 provider·공개 API의 자동 조립은 추가하지 않았습니다. [TASK 11 입력·출력·사용 계약과 검증](../../docs/writing-ai-architecture/task11-handoff.md).
 
 TASK 08은 `app/runs/state.py`·`graph.py`의 실제 LangGraph StateGraph로 Scope 확인→규칙 Router→고정 계획 검증→TaskRunner→검색/테스트 Agent→출력 검증→조회/합성 제안 종료를 연결합니다. `langgraph==1.2.12`와 전이 의존성을 추가했습니다. MainState와 InMemorySaver에는 참조·실행 상태만 저장하고 원고·요청문·grant는 넣지 않습니다. 실제 승인·쓰기·모델 호출·Saver 재개는 연결하지 않았으며 [TASK 08 계약과 잠금 환경 검증](../../docs/writing-ai-architecture/task08-handoff.md)을 참고하세요.

@@ -14,6 +14,8 @@ MVP 기능은 위 1~4의 모든 Agent를 합성 자료로 조합할 수 있는 �
 
 ## 프로젝트 루트 기준 파일 배치안
 
+TASK 12는 `agents/review.py`에 선택된 수치·명칭 기준 비교, 인접 중복 어절, 명시 표기 쌍의 제한 맞춤법 검사와 `Findings.v1` adapter를 구현했다. 검사 F는 수치·명칭만 수행하고 모델·Simulation은 0회다. 자동 추출·의미 검수·원고 수정·실제 API 조립은 추가하지 않았다. [DTO·검증·인수](task12-handoff.md).
+
 TASK 11은 `agents/story_context.py`의 정확 조회·근거별 Q&A와 고정 `qa` Registry·TaskRunner adapter를 합성 자료로 구현했다. 기존 graph 입력 검증을 `retrieval/validation.py`로 옮겨 재사용하며 함수 AST는 보존했다. 실제 공개 Run의 원문/모델 연결과 후속 Agent는 미구현이다. [입출력·TDD·검증·인수](task11-handoff.md).
 
 TASK 10은 Content의 `proposal` 기능 안에 공개 Run/thread·멱등 영속 기록·HMAC 위임 검증·AI 전송을 추가했다. AI는 실제 Content 위임을 재확인하지만 전문 Agent/실 검색이 미연결이어서 실패 상태를 반환한다. 공개 SSE·승인·적용·자동 재개는 미구현이다. [계약](task10-api-contract.md) · [검증과 인수](task10-handoff.md).

@@ -49,6 +49,8 @@ flowchart LR
 
 ### 8. Review
 
+2026-11-09 TASK 12는 이 중 Mechanical만 합성 Content에서 구현했다. 명칭·수치 검사 구간과 설정 기준은 명시 입력하며, 수치의 기준 출처 회차·대상 회차·지정 회차가 같을 때만 숫자 불일치를 확정한다. 미등록 이름·강조 반복·요청에 등록한 제한 맞춤법 후보는 suspected다. 선택된 원문과 Finding 위치의 revision·UTF-16 span·hash를 보존하고 자동 수정하지 않는다. [실제 계약·수용 증거·제외 범위](task12-handoff.md).
+
 ```mermaid
 flowchart TD
     I[검수 범위와 원문] --> M[기계 검사]
