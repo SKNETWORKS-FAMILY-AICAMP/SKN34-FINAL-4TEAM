@@ -68,9 +68,9 @@ export function LibraryPage() {
               </div></div>
             ))}
             </section>}
-            <div className="sec"><div className="sec-h"><h2>새로 시작하기</h2></div><p className="note2">새 소설 등록·가져오기 양식의 일괄 저장은 아직 지원하지 않아요. 서버 작품 등록은 기존 작품·설정집·분기 도구를 사용해 주세요. 허용된 회차의 포크 생성은 서버에 저장돼요.</p><div className="newbox">
-              <Go to="/new" className="newc" id="newWork"><b>＋ 새 소설 쓰기</b><span>세계관·인물을 정하고 1화부터 직접 써요 (오리지널)</span></Go>
-              <Go to="/writing-policy?method=import" className="newc"><b>＋ 내 소설 가져오기</b><span>예시 원고로 세계관·인물·사건 정리 흐름을 살펴봐요 (가상 추출)</span></Go>
+            <div className="sec"><div className="sec-h"><h2>새로 시작하기</h2></div>{mockup && <p className="note2">새 소설 등록·가져오기 양식의 일괄 저장은 아직 지원하지 않아요. 서버 작품 등록은 기존 작품·설정집·분기 도구를 사용해 주세요. 허용된 회차의 포크 생성은 서버에 저장돼요.</p>}<div className="newbox">
+              <Go to={mockup ? '/new' : '/content'} className="newc" id="newWork"><b>＋ 새 소설 쓰기</b><span>{mockup ? '세계관·인물을 정하고 1화부터 직접 써요 (오리지널)' : '비공개 작품을 만들고 1화부터 써요'}</span></Go>
+              <Go to="/writing-policy?method=import" className="newc"><b>＋ 내 소설 가져오기</b><span>{mockup ? '예시 원고로 세계관·인물·사건 정리 흐름을 살펴봐요 (가상 추출)' : 'TXT·EPUB 원고를 내 작품의 회차로 등록해요'}</span></Go>
               <Go to="/writing-policy?method=fork" className="newc"><b>✎ 다른 소설 포크</b><span>원작을 고르고 마음에 드는 회차에서 시작해요</span></Go>
             </div></div>
             <Go to="/content" className="btn sm">기존 작품·설정집·분기 도구</Go>
