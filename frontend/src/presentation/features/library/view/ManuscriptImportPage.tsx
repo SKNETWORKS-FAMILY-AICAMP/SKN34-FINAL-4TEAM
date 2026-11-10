@@ -36,7 +36,7 @@ export function ManuscriptImportPage() {
   )
 }
 
-/** 가져오기 입력과 작업실 링크를 표시한다. 작업실로 이동하면 임시 입력이 사라진다. */
+/** 가져오기 입력과 작품·세계관 링크를 표시한다. 링크로 이동하면 임시 입력이 사라지므로 먼저 확인한다. */
 function ImportSetup({ vm }: { vm: VM }) {
   return (
     <section className="panel mi-setup" aria-label="가져올 원고 설정">
@@ -45,10 +45,11 @@ function ImportSetup({ vm }: { vm: VM }) {
         <h2 className="mi-step">1. 등록할 작품</h2>
         {vm.worksLoading ? <p role="status">작품을 불러오고 있어요…</p>
           : vm.worksError ? <p role="alert">{vm.worksError} <button type="button" className="btn sm" onClick={vm.reloadWorks}>다시 불러오기</button></p>
-          : !vm.works.length ? <p>서버에 저장된 작품이 없어요. 먼저 작품을 만들어 주세요. <Go to="/content" className="btn sm">작품 만들기</Go></p>
+          : !vm.works.length ? <p>서버에 저장된 작품이 없어요. 먼저 작품을 만들어 주세요. <Go to="/content" className="btn sm" onClick={(e) => { if (!vm.confirmLeave()) e.preventDefault() }}>작품 만들기</Go></p>
           : <label className="field">원고를 넣을 작품<select className="inp" value={vm.workId} onChange={(e) => vm.selectWork(e.target.value)}><option value="">작품을 선택해 주세요</option>{vm.works.map((work) => <option key={work.id} value={work.id}>{work.title}</option>)}</select></label>}
-        <Go to="/worldstudio" className="btn sm" disabled={!!vm.busy}
-          onClick={(e) => { if (!vm.confirmLeaveForWorldStudio()) e.preventDefault() }}>세계관 만들기</Go>
+        <p className="small muted">만든 세계관은 이 작품과 연결되지 않고 세계관 작업실에 따로 저장돼요.{' '}
+          <Go to="/worldstudio" className="btn sm" disabled={!!vm.busy}
+            onClick={(e) => { if (!vm.confirmLeave()) e.preventDefault() }}>세계관 만들기</Go></p>
         <h2 className="mi-step">2. 권리 확인</h2>
         {RIGHTS.map((text, index) => <label key={text} className="mi-check"><input type="checkbox" checked={vm.rights[index]} onChange={(e) => vm.setRight(index, e.target.checked)} /> {text}</label>)}
         <p className="small muted">등록은 공개·발행·AI 학습 동의가 아니에요. 등록한 원고는 나만 볼 수 있는 초안·저장 버전으로 들어가요.</p>

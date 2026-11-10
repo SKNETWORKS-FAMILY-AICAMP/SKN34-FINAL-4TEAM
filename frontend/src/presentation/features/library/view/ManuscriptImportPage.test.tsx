@@ -40,6 +40,7 @@ function renderPage(search = `?work=${A}`) {
       <Routes>
         <Route path="/import" element={<ManuscriptImportPage />} />
         <Route path="/worldstudio" element={<h1>세계관 작업실</h1>} />
+        <Route path="/content" element={<h1>작품 만들기</h1>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -76,6 +77,26 @@ it('입력하기 전에는 확인 없이 세계관 작업실을 연다', async (
   fireEvent.click(screen.getByRole('link', { name: '세계관 만들기' }))
   expect(await screen.findByRole('heading', { name: '세계관 작업실' })).toBeTruthy()
   expect(confirm).not.toHaveBeenCalled()
+})
+
+it('작품이 없을 때 입력한 뒤 작품 만들기로 이동하면 먼저 확인한다', async () => {
+  fakes.episodeUseCase.list.mockResolvedValueOnce([])
+  renderPage()
+  const create = await screen.findByRole('link', { name: '작품 만들기' })
+  fireEvent.click(screen.getByLabelText(RIGHTS[0]))
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+
+  fireEvent.click(create)
+  expect(confirm).toHaveBeenCalledTimes(1)
+  expect(screen.getByLabelText<HTMLInputElement>(RIGHTS[0]).checked).toBe(true)
+
+  fireEvent.click(create)
+  expect(await screen.findByRole('heading', { name: '작품 만들기' })).toBeTruthy()
+})
+
+it('세계관은 작품과 따로 저장된다고 링크 옆에 알린다', () => {
+  renderPage()
+  expect(screen.getByText(/만든 세계관은 이 작품과 연결되지 않고 세계관 작업실에 따로 저장돼요/)).toBeTruthy()
 })
 
 it('h1 하나와 건너뛰기 링크가 닿는 main을 가지며 탭 제목에 소설 가져오기를 쓴다', () => {

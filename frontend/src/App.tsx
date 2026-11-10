@@ -126,7 +126,7 @@ function App() {
             <Route path="/lib" element={<RequireRole><LibraryPage /></RequireRole>} />
             <Route path="/write" element={<RequireRole><Navigate replace to="/lib?tab=write" /></RequireRole>} />
             <Route path="/new" element={<RequireRole>{mockup ? <NewWorkPage /> : <Navigate replace to="/content" />}</RequireRole>} />
-            <Route path="/worlds" element={mockup ? <Navigate replace to="/new" /> : <RequireRole><Navigate replace to="/content" /></RequireRole>} />
+            <Route path="/worlds" element={<RequireRole><Navigate replace to={mockup ? '/new' : '/content'} /></RequireRole>} />
             <Route path="/worldstudio/:worldId?" element={<RequireRole><WorldStudioPage /></RequireRole>} />
             <Route path="/import" element={<RequireRole>{mockup ? <ImportPage /> : <ManuscriptImportPage />}</RequireRole>} />
             <Route path="/studio/:id" element={restoring ? checkingSession : <StudioPage />} />

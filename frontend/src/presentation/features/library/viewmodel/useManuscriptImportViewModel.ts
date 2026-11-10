@@ -64,7 +64,7 @@ export function useManuscriptImportViewModel(
   return {
     works, worksLoading, worksError, reloadWorks,
     workId,
-    confirmLeaveForWorldStudio: () => !hasImportInput || window.confirm('이동하면 지금까지 입력한 원고 정보와 회차 조정 내용이 사라져요. 세계관 작업실로 이동할까요?'),
+    confirmLeave: () => !hasImportInput || window.confirm('이동하면 지금까지 입력한 원고 정보와 회차 조정 내용이 사라져요. 이동할까요?'),
     selectWork: (id: string) => { if (pending.current) return; setChosen(id); forget() },
     rights, allRights,
     setRight: (index: number, checked: boolean) => setRights((current) => current.map((value, i) => i === index ? checked : value)),

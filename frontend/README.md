@@ -99,7 +99,7 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
 [계약](../docs/design/manuscript-import-export-contract.md)대로 `ManuscriptRepository`·`ManuscriptUseCase`·`HttpManuscriptRepository`를 Awilix에서 조립합니다.
 
-- `/import`(실제 모드): 내 작품 선택(`?work=<UUID>`로 사전 선택) → 권리 확인 3가지 → `.txt`·`.epub` 파일 → 서버 미리보기(회차별 제목 수정·제외·다음 회차와 합치기·경고) → 확정 → 회차별 성공·일부 성공·실패 결과. 작품이 없으면 `/content`에서 만들고, **세계관 만들기**는 `/worldstudio`를 엽니다. 가져오기 입력이 있으면 세계관 작업실로 이동하기 전에 입력을 버릴지 확인합니다. 확정 회차 번호는 조정 목록의 순서이고 제외한 회차도 번호를 차지합니다. 실패 항목은 확정 응답에만 있어 화면을 떠나면 다시 볼 수 없습니다. `--mode mockup`은 기존 데모 가져오기 화면(`ImportPage`)을 그대로 씁니다.
+- `/import`(실제 모드): 내 작품 선택(`?work=<UUID>`로 사전 선택) → 권리 확인 3가지 → `.txt`·`.epub` 파일 → 서버 미리보기(회차별 제목 수정·제외·다음 회차와 합치기·경고) → 확정 → 회차별 성공·일부 성공·실패 결과. 작품이 없으면 `/content`에서 만들고, **세계관 만들기**는 `/worldstudio`를 엽니다(만든 세계관은 작품과 연결되지 않음). 가져오기 입력이 있으면 두 링크로 이동하기 전에 입력을 버릴지 확인합니다. 확정 회차 번호는 조정 목록의 순서이고 제외한 회차도 번호를 차지합니다. 실패 항목은 확정 응답에만 있어 화면을 떠나면 다시 볼 수 없습니다. `--mode mockup`은 기존 데모 가져오기 화면(`ImportPage`)을 그대로 씁니다.
 - `/studio/{UUID}` 내보내기: 형식(TXT·EPUB)·범위(현재 회차·작품 전체)·원본(초안·발행본)을 골라 서버 GET을 Blob으로 받고 `Content-Disposition`의 `filename*`로 저장합니다. 서버에 저장된 원고를 내보내므로 입력 중·저장 중에는 잠급니다.
 - `--mode mockup`의 가져오기·EPUB/발행본 내보내기·첨부 이름 변경은 성공을 흉내 내지 않고 "데모에서는 지원하지 않아요" 오류를 냅니다. 데모 집필실의 TXT 초안 내보내기만 메모리 원고로 실제 파일을 만듭니다(`createMockupManuscriptRepository`).
 - nginx(`frontend/nginx.conf`, `infrastructure/nginx.dev.conf`)의 `/api/v1/works/`는 요청 본문을 51MB까지 받습니다.
