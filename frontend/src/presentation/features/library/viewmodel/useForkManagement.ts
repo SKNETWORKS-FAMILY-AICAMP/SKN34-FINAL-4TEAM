@@ -31,10 +31,8 @@ export function useForkManagement(works: Work[], reload: () => void) {
   }
 
   return { busy, notice, error, resultRef, forkOnly, setForkOnly, works: forkOnly ? works.filter(work => work.source !== null) : works,
-    update: (work: Work, title: string, summary: string) => {
-      const revision = work.revision
-      if (revision !== undefined) return run(signal => api.updateWork(work.id, title, summary, revision, signal), '포크 기본 정보를 저장했어요.')
-    },
+    update: (work: Work, title: string, summary: string) =>
+      run(signal => api.updateWork(work.id, title, summary, work.revision, signal), '포크 기본 정보를 저장했어요.'),
     stop: (id: string) => {
       if (window.confirm('포크 작품의 공개를 중단할까요? 발행된 회차와 원고는 보존돼요. 대기 중인 예약 발행은 취소되고, 원작이 공개를 허용하지 않으면 다시 공개할 수 없어요.'))
         return run(signal => api.stopForkPublication(id, signal), '포크 공개를 중단했어요.')

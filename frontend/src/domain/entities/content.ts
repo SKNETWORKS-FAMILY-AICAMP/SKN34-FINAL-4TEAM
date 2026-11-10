@@ -10,7 +10,7 @@ export const parseHashtags = (raw: string) => [...new Set(raw.split(',').map((t)
 export const workMetaLabel = (w: Pick<Work, 'creationType' | 'genres' | 'hashtags'>) => w.creationType
   ? [w.creationType === 'EXTERNAL_DERIVATIVE' ? '외부 2차 창작' : '원작', ...(w.genres ?? []), ...(w.hashtags ?? []).map((t) => '#' + t)].join(' · ')
   : ''
-export type Work = {revision?:number; writingEpisodeNumber?:number|null; creationType?: WorkCreationType; genres?: string[]; hashtags?: string[]; hasWritingEpisode?: boolean; readOnly?: boolean; id: string; title: string; summary: string; visibility: 'private' | 'public'; allowFork: boolean; allowForkPublication: boolean; source: Source | null; episodes: Episode[]; draft: Draft }
+export type Work = {revision:number; writingEpisodeNumber?:number|null; creationType?: WorkCreationType; genres?: string[]; hashtags?: string[]; hasWritingEpisode?: boolean; readOnly?: boolean; id: string; title: string; summary: string; visibility: 'private' | 'public'; allowFork: boolean; allowForkPublication: boolean; source: Source | null; episodes: Episode[]; draft: Draft }
 export type Proposal = { id: string; text: string; model: string; revision: number; status: 'pending' | 'accepted'; prompt?: string; baseBody?: string; createdAt?: string; context?: StoryContext }
 export const settingCategories = ['규칙','인물','장소','광물','상태','지식','관계'] as const
 export type SettingInput = {name:string;content:string;category:typeof settingCategories[number];tags:string[];visibility:'private'|'public';fromEpisode:number;toEpisode:number|null;knownBy:string[];evidence:string}

@@ -15,7 +15,7 @@ import { ManuscriptImportPage } from './ManuscriptImportPage'
 
 const A = 'b142427a-cd9d-4fdc-a40d-c9e553d87d30'
 const B = '6f0c6c4e-8f4a-4d0b-9d52-1c3b5a7e9f10'
-const work = (id: string, title: string): Work => ({ id, title, summary: '', visibility: 'private', allowFork: false, allowForkPublication: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 } })
+const work = (id: string, title: string): Work => ({ id, title, summary: '', visibility: 'private', allowFork: false, allowForkPublication: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0 })
 const episode = (title: string, from: number, to: number, extra = {}) => ({ title, from, to, charCount: to - from, excerpt: `${title} 발췌`, imageCount: 0, warnings: [] as string[], ...extra })
 const preview: ManuscriptPreview = {
   format: 'txt', unit: 'line', unitCount: 30, existingEpisodeCount: 2,

@@ -87,7 +87,7 @@ describe('content authentication bridge', () => {
   it.each(['POST', 'PUT'])('adds csrf and bearer to %s without losing the injected fetcher', async method => {
     const value = { title: '제목', body: '본문', revision: 1 }
     const fetcher = vi.fn().mockResolvedValue(method === 'PUT' ? Response.json(value) : Response.json({
-      id: 'w', title: '제목', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: value,
+      id: 'w', title: '제목', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: value, revision: 0,
     }))
     const repo = new HttpEpisodeRepository(fetcher)
     if (method === 'PUT') await repo.save('w', value)
@@ -153,7 +153,7 @@ describe('episode API boundary', () => {
 })
 
 it('public browsing never exposes an editable owner draft', async()=>{
- const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify([{id:'p',title:'공개',summary:'',visibility:'public',allowFork:true,allowForkPublication:true,source:null,episodes:[],draft:null}])))
+ const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify([{id:'p',title:'공개',summary:'',visibility:'public',allowFork:true,allowForkPublication:true,source:null,episodes:[],draft:null,revision:0}])))
  const rows=await new HttpEpisodeRepository(fetcher).publicList()
  expect(rows[0].readOnly).toBe(true)
  expect(rows[0].draft.body).toBe('')
@@ -182,13 +182,13 @@ it('does not treat an unexpected successful deletion response as confirmed remov
 
 
 it('preserves the missing writing episode state from Core',async()=>{
- const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
+ const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false,revision:0}
  const repo=new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value])))
  expect((await repo.list())[0].hasWritingEpisode).toBe(false)
 })
 
 describe('work update and delete', () => {
-  const work = { id: 'w', title: '새 제목', summary: '소개', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 } }
+  const work = { id: 'w', title: '새 제목', summary: '소개', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0 }
   it('puts title, summary and revision to the work and parses the response', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json(work))
     const saved = await new HttpEpisodeRepository(fetcher).updateWork('w', '새 제목', '소개', 3)
@@ -284,7 +284,7 @@ describe('회차 공개 상태와 발행 이력', () => {
 
 
 it('공개 중단 후 서버가 지정한 다음 작성 회차 번호를 유지한다',async()=>{
-  const fetcher=vi.fn().mockResolvedValue(Response.json([{id:'w',title:'작품',summary:'',visibility:'public',allowFork:false,source:null,episodes:[],draft:{title:'3화',body:'',revision:3},writingEpisodeNumber:3}]))
+  const fetcher=vi.fn().mockResolvedValue(Response.json([{id:'w',title:'작품',summary:'',visibility:'public',allowFork:false,source:null,episodes:[],draft:{title:'3화',body:'',revision:3},writingEpisodeNumber:3,revision:0}]))
   expect((await new HttpEpisodeRepository(fetcher).list())[0].writingEpisodeNumber).toBe(3)
 })
 
@@ -292,4 +292,9 @@ it('stops Fork publication through its dedicated authenticated command', async (
   const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
   await new HttpEpisodeRepository(fetcher).stopForkPublication('fork-id')
   expect(fetcher).toHaveBeenCalledWith('/api/v1/works/fork-id/fork-publication', expect.objectContaining({ method: 'DELETE' }))
+})
+
+it('서버가 항상 보내는 작품 revision이 없는 응답은 거절한다', async () => {
+  const value = { id: 'w', title: '작품', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 4 } }
+  await expect(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value]))).list()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
 })

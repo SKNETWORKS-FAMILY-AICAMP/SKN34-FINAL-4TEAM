@@ -34,7 +34,7 @@ export function ServerWritingList() {
             }}>
               <label className="field">포크 제목<input className="inp" name="title" defaultValue={work.title} maxLength={120} required /></label>
               <label className="field">소개<textarea className="inp" name="summary" defaultValue={work.summary} maxLength={2000} /></label>
-              <button type="submit" className="btn sm" disabled={locked || work.revision === undefined}>기본 정보 저장</button>
+              <button type="submit" className="btn sm" disabled={locked}>기본 정보 저장</button>
             </form>
             <div className="acts">
               {work.visibility === 'public' && <button type="button" className="btn sm" disabled={locked} onClick={() => void fork.stop(work.id)}>포크 공개 중단</button>}
