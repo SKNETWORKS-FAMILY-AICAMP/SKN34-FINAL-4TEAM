@@ -37,4 +37,6 @@ class WorkEntity(
     @field:Column(name = "hero_line1") var heroLine1: String? = null,
     @field:Column(name = "hero_line2") var heroLine2: String? = null,
     @field:Column(name = "hero_background") var heroBackground: String? = null,
+    /** 소프트 삭제 시각이다. 값이 있으면 삭제된 작품이며 행은 지우지 않는다(DEC-42). */
+    @field:Column(name = "deleted_at") var deletedAt: Instant? = null,
 )

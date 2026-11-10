@@ -21,8 +21,8 @@
 - 실시간 인기 TOP10: 최근 24시간(`now-24h ~ now`) 조회 수 내림차순, 조회 0인 작품 제외, 최대 10개.
 - 급상승: 최근 24시간 조회 수 − 그 전 24시간 조회 수가 큰 순서, 증가분 0 이하 제외, 최대 10개.
 - 동점은 작품 생성 최신순으로 정한다.
-- 운영이 제한한 작품(`work.restricted`)은 공개 작품이 아니다. 공개 여부는 `WorkAccessResult.publiclyVisible()` 하나로 판단하므로
-  제한 작품은 검색·랭킹에서 빠지고 조회 기록도 404다([운영 계약](operations-member-report-contract.md#content-내부-api-운영-전용)).
+- 운영이 제한한 작품(`work.restricted`)과 소프트 삭제된 작품(`work.deleted_at`)은 공개 작품이 아니다. 공개 여부는 `WorkAccessResult.publiclyVisible()` 하나로 판단하므로
+  제한·삭제 작품은 검색·랭킹에서 빠지고 조회 기록도 404다([운영 계약](operations-member-report-contract.md#content-내부-api-운영-전용)).
 
 ## 저장
 

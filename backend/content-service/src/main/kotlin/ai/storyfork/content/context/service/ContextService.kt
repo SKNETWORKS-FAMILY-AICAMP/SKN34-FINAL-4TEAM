@@ -26,7 +26,7 @@ class ContextService(
         val query=request.query.take(2000)
         val character=request.character.take(80)
         val w=if(owner==null) access.published(id) else access.own(id,owner)
-        val published=publication.publishedEpisodes(id).items
+        val published=publication.publishedEpisodes(id).items.let {if(owner==null) w.readerEpisodes(it) else it}
         val max=published.size+if(owner==null) 0 else 1
         checkContent(basis in 1..max,message="공개 회차 또는 현재 작성 회차를 선택해 주세요.")
         val following=w.source!=null && world.isFollowingForContext(id)
