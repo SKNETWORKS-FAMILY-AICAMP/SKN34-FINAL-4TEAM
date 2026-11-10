@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupNotificationRepository, mockupUnsupportedMedia } from './mockupRepositories'
+import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupFeedbackReportRepository, mockupNotificationRepository, mockupUnsupportedMedia } from './mockupRepositories'
 
 describe('발표용 목업 저장소', () => {
   it('서버 없이 데모 회원으로 로그인 상태를 복원한다', async () => {
@@ -80,6 +80,18 @@ describe('발표용 목업 저장소', () => {
     const whole = await repo.exportManuscript(work.id, { format: 'txt', source: 'draft' })
     expect(whole.filename).toBe('홍길동전 다시 쓰기.txt')
     expect(await whole.blob.text()).toBe('홍길동전 다시 쓰기\n\n\n고친/제목\n\n앞\n\n\n\n뒤\n\n\n둘째 회차\n\n')
+  })
+
+  it('정본 작품이 없는 목업의 제보 저장소는 빈 목록으로 답하고 쓰기는 성공을 흉내 내지 않고 미지원 오류로 답한다', async () => {
+    const repo = mockupFeedbackReportRepository
+    await expect(repo.listEpisode('w', 1)).resolves.toEqual([])
+    await expect(repo.listMine()).resolves.toEqual([])
+    await expect(repo.listInbox()).resolves.toEqual([])
+    const writes = [
+      repo.create('w', 1, { kind: 'typo', body: '본문', visibility: 'private' }), repo.setVisibility('w', 'r', 'public'), repo.correct('w', 'r', '정정'),
+      repo.withdraw('w', 'r'), repo.check('w', 'r'), repo.answer('w', 'r', { body: '답변', isPublic: false }), repo.setStatus('w', 'r', 'closed'),
+    ]
+    for (const write of writes) await expect(write).rejects.toThrow('데모에서는 지원하지 않아요')
   })
 
   it('데모 TXT 내보내기도 EPUB·발행본은 미지원 오류로, 없는 회차는 서버와 같은 안내로 답한다', async () => {

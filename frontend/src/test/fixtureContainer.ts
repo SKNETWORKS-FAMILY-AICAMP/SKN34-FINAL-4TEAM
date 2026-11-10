@@ -8,6 +8,7 @@ import { InMemoryNoticeRepository } from '../data/mock/InMemoryNoticeRepository'
 import { InMemoryOperationsWorkRepository } from '../data/mock/InMemoryOperationsWorkRepository'
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../data/mock/InMemoryWorkInterestRepository'
+import { mockupFeedbackReportRepository } from '../data/mock/mockupRepositories'
 
 /** 시드 작품과 메모리 Work·독서 기록·관심 작품·공지·고객지원 문의·운영 이벤트·운영 작품·관리자 활동 기록 저장소를 명시 연결한 격리 컨테이너. 테스트 전용이며 production DI는 이를 쓰지 않는다. */
 export function createFixtureContainer() {
@@ -22,6 +23,8 @@ export function createFixtureContainer() {
     eventRepository: asValue(new InMemoryEventRepository()),
     operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(db)),
     adminActivityRepository: asValue(new InMemoryAdminActivityRepository(db)),
+    // 정본 작품이 없는 격리 컨테이너라 제보 목록은 비어 있고, 제보 화면을 확인하는 테스트는 저장소 메서드를 spyOn으로 바꾼다.
+    feedbackReportRepository: asValue(mockupFeedbackReportRepository),
   })
   return container
 }

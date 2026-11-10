@@ -23,7 +23,7 @@ AI 분석·응대·수정안 생성(기능 29)·유해 필터·보상은 이 계
 
 ### 저장
 
-`backend/content-service/src/main/resources/db/migration/work/V24__feedback_report.sql`
+`backend/content-service/src/main/resources/db/migration/work/V28__feedback_report.sql`
 
 ```sql
 CREATE TABLE feedback_report (
@@ -51,6 +51,7 @@ CREATE TABLE feedback_report_amendment (
     body text,
     created_at timestamptz NOT NULL
 );
+CREATE INDEX feedback_report_amendment_report ON feedback_report_amendment (report_id);
 CREATE TABLE feedback_report_response (
     id varchar(36) PRIMARY KEY,
     report_id varchar(36) NOT NULL REFERENCES feedback_report(id),
@@ -59,6 +60,7 @@ CREATE TABLE feedback_report_response (
     is_public boolean NOT NULL,
     created_at timestamptz NOT NULL
 );
+CREATE INDEX feedback_report_response_report ON feedback_report_response (report_id);
 ```
 
 제보는 삭제하지 않는다(DEC-42 피드백 보존, 철회도 행을 지우지 않음).
@@ -216,7 +218,7 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 
 ## ponytail 한계
 
-- 두 슬라이스의 V24 표기는 계획 번호다. PR #256이 V25로 먼저 병합됐고 #257은 V26으로 재번호했으므로 Content 전역에서 V24는 결번이며(`outOfOrder` 미사용) 채우지 않는다. 이 슬라이스들은 구현 때 그 시점의 다음 번호로 재번호하고 마이그레이션 개수 기대값을 갱신한다.
+- 두 슬라이스의 V24 표기는 계획 번호다. PR #256이 V25로 먼저 병합됐고 #257은 V26으로 재번호했으므로 Content 전역에서 V24는 결번이며(`outOfOrder` 미사용) 채우지 않는다. 이 슬라이스들은 구현 때 그 시점의 다음 번호로 재번호하고 마이그레이션 개수 기대값을 갱신한다. 기능 23은 V27까지 병합된 develop 위에서 V28로 구현했다(§1). 기능 24도 V28을 쓰므로 나중에 병합되는 쪽이 다음 번호로 재번호하며, §2의 V24 표기는 기능 24가 구현할 때 고친다.
 - 상태 변경 이력 테이블(`FEEDBACK_STATUS_EVENT`)·작가 판단 이력은 두지 않고 현재 상태와 시각만 둔다. 이력이 필요하면 이벤트 테이블을 추가한다.
 - 범위 검사는 고유명사를 알지 못한다. 한 글자만 다른 이름 교체는 `auto`로 보일 수 있어 표시 전용으로만 쓴다. 자동 반영(기능 30) 전에 세계관 인물·장소 이름 대조를 더한다.
 - 반영은 초안 본문 문자열 일치로 한다. 같은 문장이 여러 번이면 반영 실패로 두고 작가가 직접 고친다.

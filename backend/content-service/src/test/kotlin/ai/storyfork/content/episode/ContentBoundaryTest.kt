@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 /** #84: ownership boundaries must hold even when no PostgreSQL server is available. */
 class ContentBoundaryTest {
     private val root = Path.of("src/main/kotlin/ai/storyfork/content")
-    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading")
+    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading", "feedbackreport")
 
     @Test fun `content HTTP resources have distinct controllers without raw servlet arguments`() {
         val controllers = mapOf(
@@ -125,9 +125,9 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf), V25 publication schedule (publication leaf), V26 world checkpoint (world leaf), V27 episode world basis (episode leaf).
+        // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf), V25 publication schedule (publication leaf), V26 world checkpoint (world leaf), V27 episode world basis (episode leaf), V28 feedback reports (work leaf).
         // V24 stays vacant: V25 reached the shared DB first and Flyway runs without outOfOrder, so a lower version could never be applied there.
-        assertEquals((1..23).toList() + listOf(25, 26, 27), versions.sorted())
+        assertEquals((1..23).toList() + listOf(25, 26, 27, 28), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

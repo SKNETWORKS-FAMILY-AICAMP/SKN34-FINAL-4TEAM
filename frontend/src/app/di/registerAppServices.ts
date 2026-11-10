@@ -21,8 +21,10 @@ import { ManuscriptUseCase } from '../../domain/usecases/ManuscriptUseCase'
 import { HttpManuscriptRepository } from '../../data/content/HttpManuscriptRepository'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import { EpisodeCommentUseCase } from '../../domain/usecases/EpisodeCommentUseCase'
+import { FeedbackReportUseCase } from '../../domain/usecases/FeedbackReportUseCase'
 import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
 import { HttpEpisodeCommentRepository } from '../../data/content/HttpEpisodeCommentRepository'
+import { HttpFeedbackReportRepository } from '../../data/content/HttpFeedbackReportRepository'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { HttpReadingRecordRepository } from '../../data/content/HttpReadingRecordRepository'
 import { HttpWorkRepository } from '../../data/content/HttpWorkRepository'
@@ -93,6 +95,8 @@ export function registerAppServices(container: AppContainer) {
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     episodeCommentRepository: asFunction(() => new HttpEpisodeCommentRepository()).singleton(),
     episodeCommentUseCase: asFunction(({ episodeCommentRepository }) => new EpisodeCommentUseCase(episodeCommentRepository)).singleton(),
+    feedbackReportRepository: asFunction(() => new HttpFeedbackReportRepository()).singleton(),
+    feedbackReportUseCase: asFunction(({ feedbackReportRepository }) => new FeedbackReportUseCase(feedbackReportRepository)).singleton(),
     storyPlanUseCase: asFunction(({ episodeRepository }) => new StoryPlanUseCase(new HttpStoryPlanRepository(episodeRepository))).singleton(),
     demoStoryPlanUseCase: asFunction(({ workRepository }) => new StoryPlanUseCase(new InMemoryStoryPlanRepository(workRepository))).singleton(),
     mockDb: asValue(createMockDb()),
@@ -116,7 +120,7 @@ export function registerAppServices(container: AppContainer) {
     libraryUseCase: asFunction(({ workRepository, worldRepository, feedbackRepository, workInterestRepository, readingRecordRepository }) => new LibraryUseCase(workRepository, worldRepository, feedbackRepository, workInterestRepository, readingRecordRepository)).singleton(),
     creditUseCase: asFunction(({ creditRepository }) => new CreditUseCase(creditRepository)).singleton(),
     readingUseCase: asFunction(({ workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository }) => new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository)).singleton(),
-    feedbackUseCase: asFunction(({ workRepository, feedbackRepository, adminRepository }) => new FeedbackUseCase(workRepository, feedbackRepository, adminRepository)).singleton(),
+    feedbackUseCase: asFunction(({ workRepository, feedbackRepository, adminRepository, feedbackReportUseCase }) => new FeedbackUseCase(workRepository, feedbackRepository, adminRepository, feedbackReportUseCase)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
     studioUseCase: asFunction(({ workRepository, creditRepository, feedbackRepository, worldRepository }) => new StudioUseCase(workRepository, creditRepository, feedbackRepository, worldRepository)).singleton(),
     shellUseCase: asFunction(({ notificationRepository, feedbackRepository }) => new ShellUseCase(notificationRepository, feedbackRepository)).singleton(),
