@@ -292,3 +292,12 @@ it('정렬을 바꾸면 이어 붙인 목록을 버리고 첫 페이지부터 �
   expect(search).toHaveBeenLastCalledWith({ q: '', f: 'all', sort: 'like', page: 0, size: 20 }, undefined)
   screen.getByText('20편 이상')
 })
+
+it('랭킹 화면에는 정렬 선택지와 더 보기가 없고 서버 검색(페이지)을 부르지 않는다', async () => {
+  const search = vi.spyOn(searchRepository(), 'search')
+  renderAt('/rank?t=if&kind=popular')
+  await waitFor(() => expect(titles().length).toBeGreaterThan(0))
+  expect(screen.queryByRole('button', { name: '더 보기' })).toBeNull()
+  expect(screen.queryByRole('group', { name: '정렬' })).toBeNull()
+  expect(search).not.toHaveBeenCalled()
+})

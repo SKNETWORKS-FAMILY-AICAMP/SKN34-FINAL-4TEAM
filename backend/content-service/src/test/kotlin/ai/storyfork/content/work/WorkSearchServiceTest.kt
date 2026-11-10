@@ -81,16 +81,16 @@ class WorkSearchServiceTest {
      * [age]가 클수록 늦게 만든 작품이다. 소유자는 [owner]이고 [author]는 그 소유자의 Core 닉네임이다(null이면 등록하지 않는다).
      * 작품 행의 author_name에는 일부러 다른 값을 넣어 두어, 이 값을 읽으면 테스트가 실패하게 한다.
      */
-    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false, author: String? = "작성자", owner: String = "owner-$id", fork: Boolean = false) {
+    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false, author: String? = "작성자", owner: String = "owner-$id", fork: Boolean = false, deleted: Boolean = false) {
         if (author != null) names[owner] = author
-        rows += WorkEntity(id = id, ownerId = owner, title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted, authorName = "DB-작가명")
+        rows += WorkEntity(id = id, ownerId = owner, title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted, authorName = "DB-작가명", deletedAt = if (deleted) start else null)
         `when`(works.findAll()).thenReturn(rows)
         `when`(works.findAllById(ArgumentMatchers.anyIterable<String>())).thenAnswer { call ->
             val ids = call.getArgument<Iterable<String>>(0).toSet()
             rows.filter { it.id in ids }
         }
         val source = if (fork) SourceResponse("original", "원작", 1, 1, "") else null
-        val result = WorkAccessResult(id, owner, title, "", 0, "world", visible, false, false, source, restricted)
+        val result = WorkAccessResult(id, owner, title, "", 0, "world", visible, false, false, source, restricted, deleted)
         `when`(access.get(id)).thenReturn(result)
         `when`(access.published(id)).thenReturn(result)
         `when`(access.own(id, owner)).thenReturn(result)
@@ -565,6 +565,27 @@ class WorkSearchServiceTest {
         assertEquals(listOf("mid", "low"), rankedIds("rising"))
         assertEquals(listOf("low", "mid"), rankedIds("latest"))
         assertEquals(listOf("mid"), rankedIds("updated"))
+    }
+
+    @Test fun `soft deleted works are left out of list search and every ranking before the limit is taken`() {
+        // 삭제 작품(DEC-42, #108)이 모든 점수·최신·발행 순위의 맨 앞이어도 공개 판단(publiclyVisible)에서 빠지고 그 자리는 다음 공개 작품이 채운다.
+        work("gone", "삭제 작품", 3, deleted = true)
+        work("open", "공개 작품", 2)
+        work("also", "공개 작품 둘", 1)
+        views(Triple("gone", 99, 0), Triple("open", 5, 0), Triple("also", 3, 0))
+        periodViews(Duration.ofHours(24), Triple("gone", 99, 0), Triple("open", 5, 0), Triple("also", 3, 0))
+        newLikes("gone" to 9, "open" to 1)
+        lastPublished("gone" to start.plusSeconds(100), "open" to start)
+
+        assertEquals(listOf("open", "also"), service.publicList(null, null, null).items.map { it.id })
+        assertEquals(listOf("open", "also"), service.publicList("작품", "title", "view").items.map { it.id })
+        assertEquals(listOf("open", "also"), service.ranking("top").items.map { it.id })
+        assertEquals(listOf("open", "also"), service.ranking("rising").items.map { it.id })
+        assertEquals(listOf("open"), rankedIds("view", limit = "1"))
+        assertEquals(listOf("open", "also"), rankedIds("rising"))
+        assertEquals(listOf("open"), rankedIds("popular"))
+        assertEquals(listOf("open"), rankedIds("latest", limit = "1"))
+        assertEquals(listOf("open"), rankedIds("updated"))
     }
 
     @Test fun `rankings take at most the limit and answer an empty catalog without asking Core`() {
