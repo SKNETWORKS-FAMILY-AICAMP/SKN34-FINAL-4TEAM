@@ -56,6 +56,11 @@ services:
       AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-12s}
       AI_GENERATION_READ_TIMEOUT: ${AI_GENERATION_READ_TIMEOUT:-75s}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      # 알림 사건 발행(outbox → storyfork.events). Core와 같은 rabbitmq 컨테이너·자격을 쓴다.
+      CORE_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}
+      CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
+      CORE_RABBITMQ_USER: ${CORE_RABBITMQ_USER:-storyfork}
+      CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
     expose:
       - "8081"
 

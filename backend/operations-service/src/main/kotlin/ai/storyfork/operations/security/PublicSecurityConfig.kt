@@ -10,14 +10,15 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import tools.jackson.databind.json.JsonMapper
 
-/** Anonymous public notice reads; ordered before the service-token chain, which still owns every other path. */
+/** Anonymous public notice and event reads; ordered before the service-token chain, which still owns every other path. */
 @Configuration(proxyBeanMethods = false)
-class PublicNoticeSecurityConfig {
+class PublicSecurityConfig {
     @Bean
     @Order(2)
-    fun publicNoticeSecurityFilterChain(http: HttpSecurity, mapper: JsonMapper): SecurityFilterChain {
+    fun publicSecurityFilterChain(http: HttpSecurity, mapper: JsonMapper): SecurityFilterChain {
+        val paths = listOf("notices", "events").flatMap { listOf("/api/v1/operations/public/$it", "/api/v1/operations/public/$it/**") }
         // No credential, cookie or session is read here: Bearer and service token never change the meaning of a request.
-        http.securityMatcher("/api/v1/operations/public/notices", "/api/v1/operations/public/notices/**")
+        http.securityMatcher(*paths.toTypedArray())
             .csrf { it.disable() }.cors { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .requestCache { it.disable() }

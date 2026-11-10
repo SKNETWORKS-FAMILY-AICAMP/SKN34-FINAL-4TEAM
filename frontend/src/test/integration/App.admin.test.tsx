@@ -149,6 +149,23 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByRole('link', { name: /점검 안내/ })
   })
 
+  it('이벤트를 등록하면 회원 이벤트 화면에 보인다', async () => {
+    renderAt('/admin?tab=notices')
+    fireEvent.click(within(nav()).getByRole('link', { name: '이벤트' }))
+    // 이벤트는 운영 API(대역: 메모리 저장소)로 등록하고, 회원 화면은 같은 공개 API로 읽는다.
+    fireEvent.click(await screen.findByRole('button', { name: '이벤트 작성' }))
+    fireEvent.change(await screen.findByLabelText('이벤트 제목'), { target: { value: '새 이벤트' } })
+    fireEvent.change(screen.getByLabelText('이벤트 내용'), { target: { value: '참여해 보세요' } })
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await toastIs('이벤트를 등록했어요.')
+    await screen.findByRole('heading', { name: '새 이벤트' })
+    within(screen.getByRole('region', { name: '운영 이벤트' })).getByText('상시')
+    cleanup()
+    renderAt('/me/event', 'user')
+    await screen.findByText('새 이벤트')
+    screen.getByText('상시')
+  })
+
   it('실패한 정기 작업은 수동 재시도 시연만 기록한다', async () => {
     renderAt('/admin?tab=jobs')
     const row = (await screen.findByText('알림 90일 보관기간 정리')).closest('tr') as HTMLElement

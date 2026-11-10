@@ -26,7 +26,7 @@
 | 새 Core 일반 subject | 9 | 로그인 비활성·operator=false; 기존 개발 작가 1명 그대로 사용 |
 | 독립 WorldStudio 초기 데이터 | 0 | 미연결 공유 `안개 항구`는 증거에만 보존 |
 
-새 Core subject는 정상 비밀번호 hash가 아닌 비활성 marker를 가진다. 비밀번호/로그인 활성화는 별도 승인 대상이고 기존 개발 작가 자격증명·권한은 바꾸지 않는다. `운영팀` 표시 이름도 operator 권한이 아니다. Content `member`는 자격증명이 없는 참조만 담는다. 역사적 표시 작가 둘은 일반 fixture subject 하나를 공유한다. CSV의 `work.owner_id`가 실제 소유 매핑이고 inventory는 그 출처 증거다.
+새 Core subject는 정상 비밀번호 hash가 아닌 비활성 marker를 가진다. 비밀번호/로그인 활성화는 별도 승인 대상이고 기존 개발 작가 자격증명·권한은 바꾸지 않는다. `운영팀` 표시 이름도 operator 권한이 아니며, 작가명이 소유자 Core 닉네임으로 바뀐 뒤 운영자처럼 보이지 않도록 Core `auth/V10__sample_classic_author_nickname.sql`이 이 fixture의 닉네임을 `고전 아카이브`로 바꾼다(기존 값이 `운영팀`일 때만). Content `work.author_name` 표시명은 남아 있지만 더 이상 응답에 쓰지 않는다. Content `member`는 자격증명이 없는 참조만 담는다. 역사적 표시 작가 둘은 일반 fixture subject 하나를 공유한다. CSV의 `work.owner_id`가 실제 소유 매핑이고 inventory는 그 출처 증거다.
 
 좋아요·조회·댓글·신고·독서 진행·관심 기록은 이관하지 않는다. `2026-11-01T00:00:00Z`는 결정적 재현용 합성 시각이며 실제 작성·발행·동의 시각이 아니다. 기존 일러스트·색상은 유지한다.
 

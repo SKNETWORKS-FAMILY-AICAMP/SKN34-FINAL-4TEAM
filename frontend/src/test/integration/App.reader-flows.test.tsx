@@ -59,6 +59,10 @@ describe('빠른 이동 (U03) · 집필실', () => {
 })
 
 describe('가져오기 (U24) · 편집과 진행 상태', () => {
+  // 실제 모드의 /import는 원고 파일 가져오기라서, 데모 화면 시나리오는 --mode mockup으로 연다.
+  beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
+  afterEach(() => { vi.unstubAllEnvs() })
+
   const ready = async () => {
     fireEvent.click(await screen.findByRole('button', { name: /예시 소설 선택/ }))
     const sel = screen.getByLabelText<HTMLSelectElement>('연결할 내 세계관')

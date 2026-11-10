@@ -7,6 +7,7 @@ import ai.storyfork.content.work.repository.MemberRepository
 import ai.storyfork.content.fixture.model.*
 import ai.storyfork.content.fixture.*
 import ai.storyfork.content.fixture.model.Setting
+import ai.storyfork.content.manuscript.EpubFixture
 import ai.storyfork.content.fixture.ContentTestDriver as ContentService
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
@@ -42,6 +43,8 @@ import tools.jackson.databind.ObjectMapper
 ])
 @EnabledIfEnvironmentVariable(named = "TEST_ATTACHMENT_DATABASE_URL", matches = ".+")
 class SettingAttachmentHttpTest {
+    // 작가명·작성자명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다.
+    @org.springframework.test.context.bean.override.mockito.MockitoBean lateinit var nicknames: ai.storyfork.content.auth.service.CoreNicknameService
     @LocalServerPort var port = 0
     @Autowired lateinit var members: MemberRepository
     @org.springframework.test.context.bean.override.mockito.MockitoBean lateinit var core: CoreAuthClient
@@ -106,7 +109,7 @@ class SettingAttachmentHttpTest {
     @Test fun `content JPA transactions stay separate from attachment transactions`() {
         val authManager = assertInstanceOf(org.springframework.orm.jpa.JpaTransactionManager::class.java, authTransactions.transactionManager)
         assertNotSame(attachmentTransactions.transactionManager, authManager)
-        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity"), requireNotNull(authManager.entityManagerFactory)
+        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity","ai.storyfork.content.comment.entity","ai.storyfork.content.like.entity","ai.storyfork.content.interest.entity","ai.storyfork.content.reading.entity"), requireNotNull(authManager.entityManagerFactory)
             .metamodel.entities.map { it.javaType.packageName }.toSet())
         val id = UUID.randomUUID().toString()
         authTransactions.executeWithoutResult { status ->
@@ -447,5 +450,144 @@ class SettingAttachmentHttpTest {
             assertEquals("ATTACHMENT_TOO_LARGE", node(oversized).path("code").asText())
         }
         assertTrue(node(get(base, owner)).path("attachments").isEmpty)
+    }
+
+    @Test fun `setting attachment filename changes in the database only and keeps the extension`() {
+        val owner = actor(); val other = actor(); val base = fixture(owner)
+        val created = upload(base, owner); assertEquals(201, created.statusCode())
+        val path = "$base/${node(created).path("id").asText()}"
+        val renamed = patch(path, owner, """{"filename":"지도 최종.PNG"}""")
+        assertEquals(200, renamed.statusCode(), String(renamed.body()))
+        assertEquals("지도 최종.PNG", node(renamed).path("filename").asText())
+        assertEquals("image/png", node(renamed).path("mediaType").asText())
+        assertEquals("지도 최종.PNG", node(get(path, owner)).path("filename").asText())
+        assertArrayEquals(png, get("$path/content", owner).body())
+        for (body in listOf("""{"filename":"map.jpg"}""", """{"filename":"../x.png"}""", """{"filename":" x.png"}""", "{}", "not json")) {
+            val rejected = patch(path, owner, body)
+            assertEquals(422, rejected.statusCode(), body); assertEquals("ATTACHMENT_INVALID", node(rejected).path("code").asText(), body)
+        }
+        assertEquals(404, patch(path, other, """{"filename":"x.png"}""").statusCode())
+        assertEquals(404, patch("$base/missing", owner, """{"filename":"x.png"}""").statusCode())
+        assertEquals(401, patch(path, null, """{"filename":"x.png"}""").statusCode())
+        assertEquals(403, patch(path, owner, """{"filename":"x.png"}""", token = "").statusCode())
+        assertEquals("지도 최종.PNG", node(get(path, owner)).path("filename").asText())
+    }
+
+    private fun patch(path: String, actor: Actor?, body: String, token: String = csrf()) = send(request(path).header("Content-Type", "application/json").apply {
+        actor?.let { header("Authorization", "Bearer ${it.token}") }
+        if (token.isNotEmpty()) header("X-CSRF-TOKEN", token)
+    }.method("PATCH", HttpRequest.BodyPublishers.ofString(body)))
+
+    private class Part(val name: String, val filename: String?, val type: String, val bytes: ByteArray)
+    private fun parts(path: String, actor: Actor?, vararg parts: Part, token: String = csrf()): HttpResponse<ByteArray> {
+        val boundary = "manuscriptboundary"
+        val body = ByteArrayOutputStream()
+        for (part in parts) {
+            val disposition = "form-data; name=\"${part.name}\"" + (part.filename?.let { "; filename=\"$it\"" } ?: "")
+            body.write("--$boundary\r\nContent-Disposition: $disposition\r\nContent-Type: ${part.type}\r\n\r\n".toByteArray()); body.write(part.bytes); body.write("\r\n".toByteArray())
+        }
+        body.write("--$boundary--\r\n".toByteArray())
+        return send(request(path).header("Content-Type", "multipart/form-data; boundary=$boundary").apply {
+            actor?.let { header("Authorization", "Bearer ${it.token}") }
+            if (token.isNotEmpty()) header("X-CSRF-TOKEN", token)
+        }.POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray())))
+    }
+    private fun importRequest(vararg items: String, rights: Boolean = true) =
+        Part("request", null, "application/json", """{"rightsConfirmed":$rights,"items":[${items.joinToString(",")}]}""".toByteArray())
+
+    @Test fun `episode image list alt text and public alt text follow the manuscript image contract`() {
+        val owner = actor(); val other = actor()
+        val work = content.create(owner.id, CreateWorkRequest("대체 텍스트 검증"))
+        content.createEpisode(work.id, owner.id, CreateWorkRequest("2화"))
+        val base = "/api/v1/works/${work.id}/episodes/1/images"
+        assertEquals(401, get(base, null).statusCode()); assertEquals(404, get(base, other).statusCode())
+        assertTrue(node(get(base, owner)).path("images").isEmpty)
+        val id1 = node(upload(base, owner)).path("id").asText(); val id2 = node(upload(base, owner)).path("id").asText()
+        val elsewhere = node(upload("/api/v1/works/${work.id}/episodes/2/images", owner)).path("id").asText()
+        val listed = node(get(base, owner)).path("images").toList()
+        assertEquals(listOf(id1, id2), listed.map { it.path("id").asText() })
+        assertEquals(listOf(false, false), listed.map { it.path("referenced").asBoolean() })
+        assertEquals(setOf("id", "filename", "mediaType", "byteSize", "altText", "createdAt", "url", "referenced"), listed[0].propertyNames().toSet())
+        assertEquals("$base/$id1/content", listed[0].path("url").asText())
+        val patched = patch("$base/$id1", owner, """{"altText":"  지도 그림  "}""")
+        assertEquals(200, patched.statusCode(), String(patched.body()))
+        assertEquals("지도 그림", node(patched).path("altText").asText())
+        val nul = "{\"altText\":\"a" + "\\" + "u0000b\"}"
+        for (body in listOf("""{"altText":"${"가".repeat(301)}"}""", nul, "{\"altText\":\"a\\nb\"}", "{}", "not json")) assertEquals(422, patch("$base/$id1", owner, body).statusCode(), body.take(30))
+        assertEquals(404, patch("$base/$id1", other, """{"altText":"x"}""").statusCode())
+        assertEquals(404, patch("$base/$elsewhere", owner, """{"altText":"x"}""").statusCode())
+        assertEquals(401, patch("$base/$id1", null, """{"altText":"x"}""").statusCode())
+        assertEquals(403, patch("$base/$id1", owner, """{"altText":"x"}""", token = "").statusCode())
+        val saved = content.writeEpisode(work.id, owner.id, 1, DraftRequest("1화", "앞[[image:$id1]]뒤", 0), true)
+        assertEquals(listOf(true, false), node(get(base, owner)).path("images").toList().map { it.path("referenced").asBoolean() })
+        val publicPath = "/api/v1/public/works/${work.id}/episodes/1/images"
+        assertEquals(404, get(publicPath, null).statusCode())
+        content.publishEpisode(work.id, owner.id, 1, PublishRequest(saved.draft.revision, true, versionId = saved.versions.last().id))
+        assertEquals(listOf(id1 to "지도 그림"), node(get(publicPath, null)).path("images").toList().map { it.path("id").asText() to it.path("altText").asText() })
+        assertEquals(200, patch("$base/$id1", owner, """{"altText":"바뀐 설명"}""").statusCode())
+        assertEquals("바뀐 설명", node(get(publicPath, null)).path("images").get(0).path("altText").asText())
+        assertTrue(node(get(publicPath.replace("/episodes/1/", "/episodes/2/"), null)).path("images").isEmpty)
+    }
+
+    @Test fun `TXT and EPUB manuscripts import in two steps and export back through the real endpoints`() {
+        val owner = actor(); val other = actor()
+        val work = content.create(owner.id, CreateWorkRequest("가져오기 검증"))
+        val previewPath = "/api/v1/works/${work.id}/manuscript-imports/preview"; val confirmPath = "/api/v1/works/${work.id}/manuscript-imports"
+        val txt = "1화 시작\n첫 줄\n둘째 줄\n2화\n다음 이야기".toByteArray()
+        fun file(name: String, type: String, bytes: ByteArray) = Part("file", name, type, bytes)
+        assertEquals(401, parts(previewPath, null, file("a.txt", "text/plain", txt)).statusCode())
+        assertEquals(404, parts(previewPath, other, file("a.txt", "text/plain", txt)).statusCode())
+        assertEquals(422, parts(previewPath, owner, file("a.pdf", "application/pdf", txt)).statusCode())
+        val tooLarge = parts(previewPath, owner, file("big.txt", "text/plain", ByteArray(10 * 1024 * 1024 + 1) { 'a'.code.toByte() }))
+        assertEquals(413, tooLarge.statusCode()); assertTrue("TXT" in node(tooLarge).path("detail").asText())
+        val preview = parts(previewPath, owner, file("novel.txt", "text/plain", txt))
+        assertEquals(200, preview.statusCode(), String(preview.body()))
+        val shown = node(preview)
+        // 새 작품에는 비어 있는 1회차가 이미 있다.
+        assertEquals(listOf("txt", "line", 5, 1), listOf(shown.path("format").asText(), shown.path("unit").asText(), shown.path("unitCount").asInt(), shown.path("existingEpisodeCount").asInt()))
+        assertEquals(listOf("1화 시작", "2화"), shown.path("episodes").toList().map { it.path("title").asText() })
+        assertEquals(1, content.writingList(work.id, owner.id).size)
+        val items = arrayOf("""{"number":1,"title":"1화 시작","from":0,"to":3}""", """{"number":2,"title":"2화","from":3,"to":5}""")
+        assertEquals(422, parts(confirmPath, owner, file("novel.txt", "text/plain", txt), importRequest(*items, rights = false)).statusCode())
+        assertEquals(1, content.writingList(work.id, owner.id).size)
+        val confirmed = parts(confirmPath, owner, file("novel.txt", "text/plain", txt), importRequest(*items))
+        assertEquals(200, confirmed.statusCode(), String(confirmed.body()))
+        assertEquals(listOf("1:versioned", "2:created"), node(confirmed).path("results").toList().map { "${it.path("number").asInt()}:${it.path("status").asText()}" })
+        assertEquals(listOf("1화 시작" to "첫 줄\n둘째 줄", "2화" to "다음 이야기"), (1..2).map { content.writing(work.id, owner.id, it).draft.let { d -> d.title to d.body } })
+        val overlapping = parts(confirmPath, owner, file("novel.txt", "text/plain", txt), importRequest("""{"number":1,"title":"a","from":0,"to":3}""", """{"number":2,"title":"b","from":2,"to":5}"""))
+        assertEquals(422, overlapping.statusCode())
+        val rerun = node(parts(confirmPath, owner, file("novel.txt", "text/plain", txt), importRequest(*items)))
+        assertEquals(listOf("versioned", "versioned"), rerun.path("results").toList().map { it.path("status").asText() })
+        assertEquals(2, content.writing(work.id, owner.id, 1).versions.size)
+        val gap = node(parts(confirmPath, owner, file("novel.txt", "text/plain", txt), importRequest("""{"number":9,"title":"공백","from":0,"to":3}""")))
+        assertEquals(listOf("failed"), gap.path("results").toList().map { it.path("status").asText() })
+        val exportPath = "/api/v1/works/${work.id}/manuscript-export"
+        val exported = get("$exportPath?format=txt&source=draft", owner)
+        assertEquals(200, exported.statusCode())
+        assertTrue(exported.headers().firstValue("Content-Type").orElse("").startsWith("text/plain"))
+        assertTrue(exported.headers().firstValue("Content-Disposition").orElse("").startsWith("attachment; filename*=UTF-8''"))
+        assertEquals("가져오기 검증\n\n\n1화 시작\n\n첫 줄\n둘째 줄\n\n\n2화\n\n다음 이야기\n", String(exported.body(), 3, exported.body().size - 3, Charsets.UTF_8))
+        assertEquals(422, get("$exportPath?format=txt&source=published", owner).statusCode())
+        assertEquals(422, get("$exportPath?format=pdf&source=draft", owner).statusCode())
+        assertEquals(404, get("$exportPath?format=txt&source=draft&episode=9", owner).statusCode())
+        assertEquals(404, get("$exportPath?format=txt&source=draft", other).statusCode()); assertEquals(401, get("$exportPath?format=txt&source=draft", null).statusCode())
+        val png = EpubFixture.png
+        val book = EpubFixture.epub(listOf("c1.xhtml" to EpubFixture.xhtml("<p>앞</p><img src=\"images/a.png\" alt=\"EPUB 지도\"/><p>뒤</p>")),
+            nav = listOf("c1.xhtml" to "EPUB 1화"), extra = mapOf("OEBPS/images/a.png" to png))
+        val epubPreview = node(parts(previewPath, owner, file("book.epub", "application/epub+zip", book)))
+        assertEquals(listOf("epub", "chapter", 1), listOf(epubPreview.path("format").asText(), epubPreview.path("unit").asText(), epubPreview.path("episodes").get(0).path("imageCount").asInt()))
+        val imported = parts(confirmPath, owner, file("book.epub", "application/epub+zip", book), importRequest("""{"number":3,"title":"EPUB 1화","from":0,"to":1}"""))
+        assertEquals(200, imported.statusCode(), String(imported.body()))
+        assertEquals(listOf("created", 0), node(imported).path("results").get(0).let { listOf(it.path("status").asText(), it.path("missingImages").asInt()) })
+        val body = content.writing(work.id, owner.id, 3).draft.body
+        val imageId = Regex("앞\n\\[\\[image:([0-9a-f-]{36})\\]\\]\n뒤").matchEntire(body)!!.groupValues[1]
+        val image = node(get("/api/v1/works/${work.id}/episodes/3/images", owner)).path("images").get(0)
+        assertEquals(listOf(imageId, "EPUB 지도", true), listOf(image.path("id").asText(), image.path("altText").asText(), image.path("referenced").asBoolean()))
+        assertArrayEquals(png, get(image.path("url").asText(), owner).body())
+        val epub = get("$exportPath?format=epub&source=draft&episode=3", owner)
+        assertEquals(200, epub.statusCode()); assertEquals("application/epub+zip", epub.headers().firstValue("Content-Type").orElse(""))
+        val reread = ai.storyfork.content.manuscript.domain.EpubManuscript.parse(epub.body()).episodes.single()
+        assertEquals(listOf("EPUB 1화", 1, "EPUB 지도"), listOf(reread.title, reread.images.size, reread.images.single().altText))
+        assertArrayEquals(png, reread.images.single().bytes)
     }
 }

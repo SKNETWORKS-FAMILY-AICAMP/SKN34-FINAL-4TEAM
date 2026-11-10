@@ -4,15 +4,12 @@ import type { AdminRepository } from '../repositories/AdminRepository'
 import type { ChatRepository } from '../repositories/ChatRepository'
 import type { CreditRepository } from '../repositories/CreditRepository'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import { AGGREGATE_WRITE_UNSUPPORTED, type WorkRepository } from '../repositories/WorkRepository'
+import type { WorkRepository } from '../repositories/WorkRepository'
 import { chatsOf } from './ChatUseCase'
 
 /** 조치 결과: ok면 데이터를 다시 읽습니다. null이면 대상이 없어 아무것도 하지 않았습니다. */
 export type AdminResult = { ok: boolean; msg: string } | null
 const ok = (msg: string) => ({ ok: true, msg }), fail = (msg: string) => ({ ok: false, msg })
-
-/** 정본(Content API) 작품은 이 화면의 데모 공개 상태 조치 대상이 아닙니다. toggleWork 거절과 작품 탭 버튼 비활성화가 같은 기준을 씁니다. */
-export const canToggleWork = (w: Pick<Work, 'canonical'>) => !w.canonical
 
 /** 목업 admin()·adminLegacy()·adminExtra()와 15절 관리자 핸들러. 실제 권한 판단은 Core가 맡아야 합니다. */
 export class AdminUseCase {
@@ -73,16 +70,6 @@ export class AdminUseCase {
   /** 목업 #adminCharacterChatForm 선택지: 공개 작품과 공개 인물 */
   chatChoices(works: Work[], kind: string) {
     return works.filter((w) => isPub(w) && ofKind(kind, w)).map((w) => ({ w, cast: publicCast(w, Math.max(w.eps.length, 1)) }))
-  }
-
-  async toggleWork(id: string): Promise<AdminResult> {
-    const w = (await this.workRepository.listWorks()).find((x) => x.id === id)
-    if (!w) return null
-    if (!canToggleWork(w)) return fail(AGGREGATE_WRITE_UNSUPPORTED)
-    w.hidden = !w.hidden
-    await this.workRepository.saveWork(w)
-    await this.log('작품 공개 상태 변경', () => w.title + ' · ' + (w.hidden ? '운영상 비공개' : '제한 해제'))
-    return ok('작품 공개 상태를 변경했어요 (데모)')
   }
 
   async toggleComment(id: string, label: string): Promise<AdminResult> {

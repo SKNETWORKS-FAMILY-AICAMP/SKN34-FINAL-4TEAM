@@ -12,6 +12,7 @@ Core에 있던 작품·회차·원고 버전·발행·세계관·독립 WorldStu
 - `work`, `episode`, `episode_version`, `publication`, `world`, `fork`, `proposal`, `context`, `attachment`, `plan`의 Controller → Service → Repository를 유지합니다. 중복 `content.content`와 중앙 production ContentService는 없습니다.
 - 공개 API는 기존 `/api/v1/works`와 `/api/v1/public/works`를 유지합니다. nginx 및 Vite가 이 경로만 Content로 보내고 나머지 `/api`는 Core로 보냅니다. 내부 인증 endpoint는 공개 proxy에 등록하지 않습니다.
 - [콘텐츠 사용자 흐름](../../docs/content-integration.md), [설정 첨부 계약](../core-api/README.md#설정-이미지일반-파일-87), [표지·원고 이미지 계약](../core-api/README.md#작품-표지원고-이미지-92)은 기존 URL 호환을 유지합니다. 첨부 계약 문서의 위치는 호환 링크를 위해 남겨 두었지만 실행 소유자는 Content입니다.
+- 원고 TXT·EPUB 가져오기(미리보기·확정)·내보내기(`manuscript` 패키지), 설정 첨부 파일명 수정, 원고 이미지 목록·대체 텍스트(`content_image.alt_text`, `db/migration/contentimage/V2`)는 [원고 가져오기·내보내기 계약](../../docs/design/manuscript-import-export-contract.md)을 따릅니다. multipart 한도는 `max-file-size=50MB`·`max-request-size=51MB`이고 첨부 업로드의 10 MiB 검사는 그대로입니다. 새 의존성과 Content 전역 Flyway 버전은 추가하지 않았습니다.
 
 ## 네이티브 실행
 
@@ -29,14 +30,25 @@ Content 기동에는 기존 대상의 `DATABASE_URL/USER/PASSWORD`(기본값 없
 
 ## Core 인증 클라이언트 — 실제 연결
 
-[`CoreAuthClient`](src/main/kotlin/ai/storyfork/content/auth/client/CoreAuthClient.kt)는 Spring HTTP Service proxy Bean입니다. 보호 요청의 Bearer를 Core에 보내고 `VerifiedMemberResponse(memberId: UUID)`만 받아 Principal을 구성합니다.
+[`CoreAuthClient`](src/main/kotlin/ai/storyfork/content/auth/client/CoreAuthClient.kt)는 Spring HTTP Service proxy Bean입니다. 보호 요청의 Bearer를 Core에 보내고 `VerifiedMemberResponse(memberId: UUID)`만 읽어 Principal을 구성합니다.
 
 ```text
 POST /internal/v1/auth/verify
 Authorization: Bearer <사용자 access token>
 X-Content-Service-Token: <별도 서비스 자격증명>
-→ {"memberId":"<회원 UUID>"}
+→ {"memberId":"<회원 UUID>","operator":false}   # Content는 memberId만 읽는다
 ```
+
+작성자·작가 표시명은 Content에 저장하지 않습니다. 같은 `CoreAuthClient`(같은 서비스 토큰, 사용자 Bearer 없음)로 응답을 만들 때마다 회원 UUID 묶음을 Core에 물어 채웁니다([`CoreNicknameService`](src/main/kotlin/ai/storyfork/content/auth/service/CoreNicknameService.kt)).
+
+```text
+POST /internal/v1/members/nicknames
+X-Content-Service-Token: <별도 서비스 자격증명>
+{"ids":["<회원 UUID>", …]}  →  {"nicknames":{"<회원 UUID>":"<닉네임>"}}   # Core에 없는 회원은 키가 없다
+```
+
+- 목록·검색·랭킹은 ID를 모아 한 번만 호출하고(중복 제거, Core 상한 200개를 넘을 때만 나눠 호출), ID가 없으면 호출하지 않습니다. 캐시·자동 재시도는 없습니다.
+- Core에 없는 회원은 `탈퇴한 회원`으로 표시합니다. 호출 실패는 이름을 지어내거나 성공으로 숨기지 않고 503 `CORE_MEMBER_UNAVAILABLE`·504 `CORE_MEMBER_TIMEOUT`·502 `CORE_MEMBER_UPSTREAM_ERROR`/`CORE_MEMBER_INVALID_RESPONSE`로 응답합니다(이 호출에는 사용자 Bearer가 없어 상대의 401·403도 502입니다). 쓰기(댓글 작성·수정)는 응답을 만들지 못하면 같은 트랜잭션이 되돌려집니다.
 
 - `CONTENT_CORE_AUTH_TOKEN`은 32자 이상·개행 없는 별도 비밀값이며 루트 예시는 빈 값입니다. 사용자 Bearer·JWT 서명 키와 대체할 수 없습니다. Core는 상수 시간 비교와 기존 JWT 서명/만료 검증을 수행합니다.
 - 인증 필수 요청마다 실제 확인하며 캐시·자동 재시도·개발 사용자 fallback은 없습니다. Content는 JWT 서명 키·Auth Entity/Repository를 받지 않습니다.
@@ -46,8 +58,9 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 
 ## 운영 전용 내부 API
 
-[운영 회원·신고 계약](../../docs/design/operations-member-report-contract.md#content-내부-api-운영-전용)의 작품 제한 API입니다. 회원 Bearer·CSRF 없이 `X-Operations-Service-Token`이 환경변수 `OPERATIONS_SERVICE_TOKEN`(32자 이상)과 같을 때만 허용하고, 미설정·짧음·불일치는 403입니다. 공개 proxy에 등록하지 않습니다.
+[운영 회원·신고 계약](../../docs/design/operations-member-report-contract.md#content-내부-api-운영-전용)의 작품 제한 API와 [운영 작품 조회 계약](../../docs/design/operations-work-contract.md#content-내부-api-서비스-토큰)의 작품 목록 API입니다. 회원 Bearer·CSRF 없이 `X-Operations-Service-Token`이 환경변수 `OPERATIONS_SERVICE_TOKEN`(32자 이상)과 같을 때만 허용하고, 미설정·짧음·불일치는 403입니다. 공개 proxy에 등록하지 않습니다.
 
+- `GET /internal/v1/works` → `{ items: [{ workId, ownerId, title, authorName, originKind, creationType, rightsConfirmed, visibility, restricted }] }`. 공개·비공개·제한 작품 전체를 `title, id` 오름차순으로 쿼리 한 번에 읽습니다(페이지네이션 없음). `rightsConfirmed`는 권리 진술 행 존재 여부, `visibility`는 최신 발행 이력(없으면 `private`)이며 `restricted`와 독립입니다.
 - `GET /internal/v1/works/{workId}` → `{ workId, ownerId, title, restricted }`, 없으면 404
 - `PUT`·`DELETE /internal/v1/works/{workId}/restriction` → 같은 본문(`restricted` true/false)
 
@@ -75,8 +88,13 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V14 | `db/migration/work` | 공개 회차 조회 기록 `work_view`(작품 검색·실시간 랭킹의 조회 수 정본) |
 | V15 | `db/migration/work` | 공개 표시 메타데이터·불변 rich wiki 상세 추가 (샘플 자동 insert 없음) |
 | V16 | `db/migration/sample` | 개발 샘플 행(CSV 정본에서 생성, 직접 편집 금지) |
+| V17 | `db/migration/work` | 회차 댓글 `episode_comment`(작성 시점 발행 버전 고정, 작성자 이름은 저장하지 않고 Core 닉네임 조회, 삭제는 `deleted_at` 소프트 삭제)와 좋아요 `episode_comment_like` |
+| V18 | `db/migration/work` | 공개 작품 좋아요 `work_like`(작품·회원이 기본키, 수는 요청 때 계산) |
+| V19 | `db/migration/work` | 관심 작품 `work_interest`와 알림 사건 Outbox `content_event_outbox` |
+| V20 | `db/migration/work` | 독서 기록 `reading_record`(회원·작품당 이어 읽기 위치)·`reading_episode`(회원·작품·연 회차) |
+| V21 | `db/migration/work` | 작품 소프트 삭제 `work.deleted_at`(DEC-42) |
 
-[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V16이며 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
+[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V21이며 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 
 11번 계획 API는 `/api/v1/works/{workId}/story-plans`의 GET·POST와 `/{id}`의 GET·PUT·DELETE를 제공합니다. 기존 인증·CSRF·작품 소유권 검사를 사용하며 다른 소유자의 작품·계획은 404입니다. 수정·삭제에는 계획의 `revision`을 사용하고 충돌은 409입니다. 인물·장소는 현재 작품의 `WorldService.read().settings`에서 분류와 허용 범위를 확인하고, 회차는 해당 작품에서 확인한 내부 ID로 연결합니다. 회차 삭제 후에는 계획을 유지하고 `episodeMissing`으로 안내하며 재사용된 번호에 자동 연결하지 않습니다. 논리 삭제된 계획은 일반 조회에서 제외하고, 하위 장면이 남은 플롯은 삭제하지 않습니다. 원고·사전·Fork 독립 상태는 변경하지 않습니다. V11은 V10을 포함한 기존 SQL·체크섬을 보존하며 작품이 실제 삭제될 때 그 작품의 계획(논리 삭제 포함)과 계획의 인물·장소 참조만 함께 정리합니다. 작품 삭제의 기존 권한·발행 이력·분기·세계관 설정 보호 조건은 바꾸지 않습니다. 운영·공유 개발 DB 적용은 별도 절차이며 자동 repair/clean하지 않습니다.
 
@@ -84,11 +102,21 @@ V12는 기존 V1~V11을 보존하고 계획의 인물·장소 `(plan_id, setting
 
 V14는 기존 V1~V13을 보존하고 `work_view`(작품·회차·회원·Asia/Seoul 날짜가 기본키, `viewed_at` 인덱스)만 추가합니다. 작품 삭제 경로는 바꾸지 않습니다. 조회 기록은 공개 작품의 발행 회차에만 생기고 발행 이력이 있는 작품의 삭제는 이미 409이기 때문입니다.
 
-작품 검색·실시간 랭킹·조회 기록 API(`GET /api/v1/public/works?q&f&sort`, `GET /api/v1/public/works/ranking?kind`, `POST /api/v1/works/{id}/episodes/{number}/views`)는 [계약](../../docs/design/work-search-ranking-contract.md)을 따르고, `work_view` 기록과 24시간 집계는 `WorkViewService`가 맡습니다. 계약에 없는 경계는 `kind` 누락 400, `f`·`sort`·`kind`는 소문자 정확 일치 외(빈 문자열 포함) 422, 공백뿐인 `q`는 필터 없음, 해시태그는 검색어·저장값 모두 앞 `#` 무시로 정했고, `f=author`는 `work.author_name`(작가 표시명)을 보고 `f=all`에도 포함합니다. `WorkResponse.views`는 공개 목록·검색·랭킹 응답에서만 채우며 그 밖은 0입니다. 같은 날 중복 기록은 nativeQuery 없이 처리합니다. 서비스 트랜잭션을 쓰지 않고 저장소 호출마다 독립 트랜잭션으로 선검사한 뒤, unique 위반이 나면 행이 이미 있는지 다시 확인해 중복일 때만 무시합니다. 공개 여부는 운영 제한을 뺀 `WorkAccessResult.publiclyVisible()` 하나로 판단하므로 제한 작품은 작가 검색을 포함한 검색·랭킹에서 빠지고 조회 기록도 404입니다. 검색은 공개 작품을 메모리에서 거르고 정렬하는 시연 규모 구현이고, 랭킹은 최근 48시간 조회 기록이 있는 작품만 읽어 순위 10개만 응답으로 조립하며, 서버 페이지네이션은 없습니다.
+V18은 기존 V1~V17을 보존하고 `work_like`(작품·회원이 기본키)만 추가합니다. 작품 삭제 경로는 바꾸지 않습니다. 좋아요는 공개 작품에만 생기고 발행 이력이 있는 작품의 삭제는 이미 409이기 때문입니다. 좋아요 API(`PUT·DELETE /api/v1/works/{id}/like`)는 [독서 관리 계약](../../docs/design/reading-management-contract.md)을 따르고 `WorkLikeService`가 맡습니다. 공개 작품만 대상이라 비공개·제한·없는 작품은 404, 비로그인은 401이며 작가 본인의 좋아요도 허용하고 누르기·취소는 멱등입니다. `WorkResponse.likes`는 공개 목록·검색·랭킹·상세에서 작품 ID 묶음으로 한 번에 세어 채우고(집계 칼럼 없음) 소유자 목록·상세 응답에서는 0이며, `liked`는 Bearer가 오는 공개 상세에서만 채우고 익명은 false입니다. 회원 탈퇴 시 좋아요 삭제는 하지 않습니다.
+
+작품 검색·실시간 랭킹·조회 기록 API(`GET /api/v1/public/works?q&f&sort`, `GET /api/v1/public/works/ranking?kind`, `POST /api/v1/works/{id}/episodes/{number}/views`)는 [계약](../../docs/design/work-search-ranking-contract.md)을 따르고, `work_view` 기록과 24시간 집계는 `WorkViewService`가 맡습니다. 계약에 없는 경계는 `kind` 누락 400, `f`·`sort`·`kind`는 소문자 정확 일치 외(빈 문자열 포함) 422, 공백뿐인 `q`는 필터 없음, 해시태그는 검색어·저장값 모두 앞 `#` 무시로 정했고, `f=author`는 소유자(`owner_id`)의 Core 최신 닉네임을 보고(없는 소유자는 `탈퇴한 회원`) `f=all`에도 포함합니다. `WorkResponse.authorName`은 모든 응답(공개 목록·검색·랭킹·공개 상세·소유자 목록/상세)에서 같은 방식으로 채우며, `work.author_name` 칼럼은 읽지 않습니다. `WorkResponse.views`는 공개 목록·검색·랭킹 응답에서만 채우며 그 밖은 0입니다. 같은 날 중복 기록은 nativeQuery 없이 처리합니다. 서비스 트랜잭션을 쓰지 않고 저장소 호출마다 독립 트랜잭션으로 선검사한 뒤, unique 위반이 나면 행이 이미 있는지 다시 확인해 중복일 때만 무시합니다. 공개 여부는 운영 제한을 뺀 `WorkAccessResult.publiclyVisible()` 하나로 판단하므로 제한 작품은 작가 검색을 포함한 검색·랭킹에서 빠지고 조회 기록도 404입니다. 검색은 공개 작품을 메모리에서 거르고 정렬하는 시연 규모 구현이고, 랭킹은 최근 48시간 조회 기록이 있는 작품만 읽어 순위 10개만 응답으로 조립하며, 서버 페이지네이션은 없습니다.
+
+회차 댓글 API(기능 22: 공개 목록·상세 GET, 회원 작성·수정·삭제·좋아요)의 경로·상태 코드·검증은 [계약](../../docs/design/episode-comment-contract.md)이 정본이고 기존 보안 설정·CSRF를 그대로 씁니다. 계약에 없는 구현 선택만 적습니다: 본문·인용은 앞뒤 공백을 잘라 저장하고 공백뿐인 인용은 `null`이며, 입력 검증(422)은 작품·댓글 조회(404)와 작성자 확인(403)보다 먼저 합니다. 공개 작품·발행 회차 판정은 `WorkAccessService.published`와 `episode_current.published_version_id`를 재사용해 비공개·제한 작품은 `공개 작품을 찾을 수 없어요.`, 미발행 회차는 `공개 회차를 찾을 수 없어요.`(둘 다 404)입니다. 좋아요 `INSERT`는 `WorkViewService`와 같은 이유로 서비스 트랜잭션 밖에서 독립 실행해 동시 중복을 멱등으로 처리하고, `likes` 정렬은 최근 200개 안에서 서비스 메모리로 합니다.
+
+V19는 기존 V1~V18을 보존하고 `work_interest`(작품·회원이 기본키)와 알림 사건 Outbox `content_event_outbox`만 추가합니다. 관심 작품 API(`PUT·DELETE /api/v1/works/{id}/interest` 204 멱등, `GET /api/v1/works/interests` → `{ "workIds": [...] }`)는 [독서 관리 계약](../../docs/design/reading-management-contract.md)을 따르고 `WorkInterestService`가 맡습니다. 공개 여부는 `publiclyVisible()` 하나로 판단하므로 비공개·제한·없는 작품은 404, 비로그인은 401이며, 목록은 본인 것만 최근 등록순으로 돌려주되 지금은 공개가 아닌 작품을 뺍니다. 새 회차를 처음 발행하면(`PublicationService.apply`가 발행 사건을 저장하기 **전에** 한 줄 호출) 같은 트랜잭션에서 관심 회원마다(작가 본인 제외) outbox에 `content.episode.published` 한 행을 쓰고, 이미 발행한 회차의 재발행이나 공개가 아닌 작품은 쓰지 않습니다. `ContentEventOutboxPublisher`가 5초마다 미발행 행을 [알림 사건 계약](../../docs/notification-event-contract.md) 형식으로 `storyfork.events`에 보내고 보낸 행만 `published_at`을 채웁니다. 실패하면 그 주기를 멈추고 다음 주기에 같은 `eventId`로 다시 보내며 Core가 중복을 거릅니다. 브로커 접속은 Core와 같은 `CORE_RABBITMQ_*`이고 연결은 첫 전송 때 맺으므로 브로커가 없어도 서비스는 뜹니다. 교환기·큐는 Core가 처음 연결할 때 선언하므로 Content는 선언하지 않고, Core가 한 번도 연결하지 않은 브로커로 보낸 사건은 보관되지 않습니다. 한계: 단일 인스턴스 폴링, 관심 회원 수만큼 같은 트랜잭션에서 행을 쓰는 팬아웃, 발행이 끝난 outbox 행 정리 없음, 목록의 작품별 공개 여부 확인(N+1), 회원 탈퇴 시 관심 삭제 없음.
+
+독서 기록 API(`PUT /api/v1/works/{id}/reading/{number}`·`GET /api/v1/works/reading`·`DELETE /api/v1/works/{id}/reading`)는 [독서 관리 계약](../../docs/design/reading-management-contract.md)을 따르고 `reading_record`·`reading_episode`(V20)와 `ReadingService`가 맡습니다. 모두 로그인 회원 본인의 기록만 다루며 쓰기는 기존 CSRF를 씁니다. 기록은 공개 작품(`publiclyVisible()`)의 발행 회차(Fork가 물려받은 회차 포함, `EpisodeCurrentRepository.findByWorkIdAndSequence(id, n)?.publishedVersionId`)만 받고 아니면 404이며, 이어 읽기 위치는 최댓값이 아니라 **방금 연 회차**로 바꾸고 연 회차는 한 번만 더합니다. 목록은 최근 읽은 작품 순이고 읽은 회차는 오름차순이며 지금 공개가 아닌(비공개·운영 제한) 작품은 빼지만 행은 남겨 다시 공개되면 돌아옵니다. 삭제는 작품 공개 여부와 무관하게 본인의 두 테이블 행을 지우고 없어도 204입니다. 같은 회원의 동시 요청(예: 개발 StrictMode의 이중 effect)은 조회 기록과 같은 방식으로 nativeQuery 없이 처리합니다. 서비스 트랜잭션을 쓰지 않고 저장소 호출마다 독립 트랜잭션으로 저장하며, 이어 읽기 위치의 첫 행이 겹쳐 unique 위반이 나면 한 번 더 시도해 갱신하고 연 회차는 행이 이미 있을 때만 무시합니다. 목록은 기록마다 작품 접근을 조회하는 시연 규모 구현이고 회원 탈퇴 시 삭제는 범위 밖입니다.
 
 이 변경은 **사용자가 허용한 개발용 재초기화 전제**이며 과거 Content V1~V9 checksum과 호환되지 않습니다. 기존 적용 이력을 자동 repair/baseline 변경/clean하지 않습니다. 정확한 대상·중단 시간·보존 범위·복구 증거를 운영자가 확인하고 별도 승인하기 전 실제 DB/volume을 지우지 않습니다. 특히 같은 DB의 Auth·WorldStudio·첨부까지 일괄 폐기하는 승인이 아닙니다.
 
 샘플 데이터는 [테이블별 UTF-8 CSV 정본에서 생성한 Flyway `db/migration/sample/V16`](../../infrastructure/sample-data/README.md)으로 서버 시작 시 적용됩니다. V15(샘플 이관 시점의 V10을 develop의 V10~V14 뒤로 옮긴 번호)는 샘플 행 없는 스키마 SQL로 유지하고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개 바이트는 보존합니다. CSV 속성은 원문 근거가 있는 공개 시점만 부여하며 불확실한 값은 비공개입니다. rich 대상 편집/following Fork의 rich detach는 409로 보호하되 원작의 새 단순 설정 초안·확정은 기존 rich 상세를 바꾸지 않고 허용합니다. 실제 적용·hosted CI·브라우저 수용은 별도 확인 대기입니다.
+
+장르 예시 템플릿은 SQL이 아니라, 서버 시작 시 `GenreTemplateSeeder`가 `genre-templates.json`을 읽어 `WorldStudioService`로 Core 운영 관리자(`auth/V8`의 `admin@example.test`, `GenreTemplateSeeder.TEMPLATE_OWNER`) 소유의 WorldStudio 세계관 11개(카드 248장)를 임시 할당으로 적재합니다. 공개된 샘플 관리자 비밀번호로 누구나 수정·삭제할 수 있고 다른 사용자에게는 보이지 않습니다. 장르별 실패(Neo4j 장애 등)는 오류 로그만 남기고 서버는 계속 뜨며 다음 시작 때 다시 시도합니다. [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)·[템플릿 안내](../../infrastructure/sample-data/genre-templates/README.md)를 따릅니다.
 
 Auth SQL은 Core의 `db/migration/auth`/`flyway_schema_history`에 원본 그대로 남습니다. 설정 첨부·이미지는 독립 leaf/history 및 바이트를 유지합니다. WorldStudio V1도 바이트/`worldstudio.world_studio_schema_history`를 유지하고 [명시 migration](src/main/resources/db/migration/worldstudio/README.md) 뒤에만 활성화합니다. 같은 `contentDataSource`를 사용하지만 studio-only EntityManager/TransactionManager이며 서버 시작은 `validate`만 합니다. 별도 WorldStudio DB/pool·Auth 스캔은 없습니다.
 
