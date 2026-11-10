@@ -35,7 +35,8 @@ class InitialWorldAnalysisService(
         if(it.worldId!=world) throw WorldNotFound()
     }
     @Suppress("UNCHECKED_CAST")
-    private fun json(value:Any):Map<String,Any?> = mapper.convertValue(value,Map::class.java) as Map<String,Any?>
+    // Match Hibernate jsonb deep-copy number types; convertValue preserves Long and can dirty terminal rows twice.
+    private fun json(value:Any):Map<String,Any?> = mapper.readValue(mapper.writeValueAsBytes(value),Map::class.java) as Map<String,Any?>
     private fun snapshot(row:InitialWorldAnalysis):InitialWorldInput {
         val input=mapper.convertValue(row.inputSnapshot,InitialWorldInput::class.java)
         check(input.worldId==row.worldId && input.analysisId==row.id && input.basis.draftRevision==row.draftRevision &&
@@ -96,8 +97,8 @@ class InitialWorldAnalysisService(
         // Preparation has committed. No world lock/transaction crosses the HTTP boundary.
         check(!TransactionSynchronizationManager.isActualTransactionActive())
         val output=try { InitialWorldOutputValidation.parse(input,ai.extract(input)) }
-        catch(e:InitialWorldCallFailure) { return fail(worldId,actor,id,token!!,e.code,e.uncertain) }
-        catch(_:IllegalArgumentException) { return fail(worldId,actor,id,token!!,"AI_OUTPUT_INVALID",false) }
+        catch(e:InitialWorldCallFailure) { return fail(worldId,actor,id,token,e.code,e.uncertain) }
+        catch(_:IllegalArgumentException) { return fail(worldId,actor,id,token,"AI_OUTPUT_INVALID",false) }
         return try {
             tx {
                 val world=owned(worldId,actor);val record=row(worldId,id);expire(record)
@@ -112,9 +113,9 @@ class InitialWorldAnalysisService(
                 read(record,world)
             }
         } catch(_:org.springframework.dao.DataAccessException) {
-            fail(worldId,actor,id,token!!,"RESULT_COMMIT_UNCONFIRMED",true)
+            fail(worldId,actor,id,token,"RESULT_COMMIT_UNCONFIRMED",true)
         } catch(_:org.springframework.transaction.TransactionException) {
-            fail(worldId,actor,id,token!!,"RESULT_COMMIT_UNCONFIRMED",true)
+            fail(worldId,actor,id,token,"RESULT_COMMIT_UNCONFIRMED",true)
         }
     }
 

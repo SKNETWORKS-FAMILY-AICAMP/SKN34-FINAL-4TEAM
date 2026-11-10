@@ -39,7 +39,7 @@ class InitialWorldAnalysisPostgresTest {
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
     private val actor=UUID.randomUUID()
     private fun output(input:InitialWorldInput):String {
-        val source=input.sources.first { it.field=="body" && it.text.isNotEmpty() }
+        val source=input.sources.first { it.field=="body" && it.text.startsWith("홍😀") }
         val quote=source.text
         val hash=MessageDigest.getInstance("SHA-256").digest(quote.toByteArray()).joinToString("") { "%02x".format(it.toInt() and 255) }
         return mapper.writeValueAsString(InitialWorldOutput("initial-world.v1",listOf(InitialWorldCandidateOutput(
@@ -153,7 +153,7 @@ class InitialWorldAnalysisPostgresTest {
             val cases=listOf<Pair<Int,(InitialWorldInput)->String>>(
                 200 to { _:InitialWorldInput -> "{" },
                 200 to { i:InitialWorldInput -> output(i).replace("홍😀","다른") },
-                200 to { i:InitialWorldInput -> output(i).replace(i.entities.first().cardId.toString(),UUID.randomUUID().toString()) },
+                200 to { i:InitialWorldInput -> output(i).replace(i.entities.single { it.entityType=="character" }.cardId.toString(),UUID.randomUUID().toString()) },
                 504 to { _:InitialWorldInput -> "{}" },
                 0 to { _:InitialWorldInput -> "" })
             cases.forEachIndexed { index,(status,body) ->
