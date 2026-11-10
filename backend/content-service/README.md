@@ -95,10 +95,10 @@ X-Content-Service-Token: <별도 서비스 자격증명>
 | V21 | `db/migration/work` | 작품 소프트 삭제 `work.deleted_at`(DEC-42) |
 | V22 | `db/migration/publication` | 회차 공개 상태 `episode_current.publication_status`(공개 중단·재공개) |
 | V23 | `db/migration/episode` | 초안·저장 버전의 작가의 말(DEC-44) |
-| V24 | `db/migration/world` | 작가의 세계관 체크포인트 `world_checkpoint`(작품별 저장 설정 스냅샷, 소유자 전용) |
 | V25 | `db/migration/publication` | 회차 예약 발행 `publication_schedule`(회차당 대기 1건 부분 유니크 인덱스, 실행 결과·실패 이유) |
+| V26 | `db/migration/world` | 작가의 세계관 체크포인트 `world_checkpoint`(작품별 저장 설정 스냅샷, 소유자 전용) |
 
-[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V25이며 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
+[`ContentPersistenceConfig.MIGRATION_LOCATIONS`](src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt)는 위 9개 leaf(`work`·`episode`·`world`·`episode_version`·`publication`·`fork`·`proposal`·`plan`·`sample`)만 발견하고 단일 `content_schema_history`에서 전역 순서를 검증합니다. 현재 전역 최댓값은 V26이며 V24는 결번입니다(V25가 먼저 공유 DB에 적용됐고 `outOfOrder`를 쓰지 않으므로 채우지 않습니다). 새 SQL은 다음 번호를 씁니다. root 직하 SQL이나 `db/migration/content` 디렉터리는 없습니다. 과거 JSONB `content_work`·V5 importer·legacy runtime 모델/Repository는 새 초기 스키마에서 제거했습니다. 불변 trigger·복합 FK·revision/잠금·원문/순서 계약은 유지합니다.
 
 11번 계획 API는 `/api/v1/works/{workId}/story-plans`의 GET·POST와 `/{id}`의 GET·PUT·DELETE를 제공합니다. 기존 인증·CSRF·작품 소유권 검사를 사용하며 다른 소유자의 작품·계획은 404입니다. 수정·삭제에는 계획의 `revision`을 사용하고 충돌은 409입니다. 인물·장소는 현재 작품의 `WorldService.read().settings`에서 분류와 허용 범위를 확인하고, 회차는 해당 작품에서 확인한 내부 ID로 연결합니다. 회차 삭제 후에는 계획을 유지하고 `episodeMissing`으로 안내하며 재사용된 번호에 자동 연결하지 않습니다. 논리 삭제된 계획은 일반 조회에서 제외하고, 하위 장면이 남은 플롯은 삭제하지 않습니다. 원고·사전·Fork 독립 상태는 변경하지 않습니다. V11은 V10을 포함한 기존 SQL·체크섬을 보존하며 작품이 실제 삭제될 때 그 작품의 계획(논리 삭제 포함)과 계획의 인물·장소 참조만 함께 정리합니다. 작품 삭제의 기존 권한·발행 이력·분기·세계관 설정 보호 조건은 바꾸지 않습니다. 운영·공유 개발 DB 적용은 별도 절차이며 자동 repair/clean하지 않습니다.
 
