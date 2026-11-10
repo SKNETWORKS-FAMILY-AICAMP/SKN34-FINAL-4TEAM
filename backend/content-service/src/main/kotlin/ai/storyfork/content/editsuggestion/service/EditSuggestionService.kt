@@ -198,10 +198,15 @@ class EditSuggestionService(
         row.updatedAt=at
     }
 
-    /** 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 비공개·제한 작품이나 미발행 회차는 404다. */
+    /**
+     * 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 비공개·제한 작품이나 미발행 회차는 404다.
+     * 원작이 삭제된 Fork의 상속 회차는 독자에게 본문이 가려지므로([WorkAccessResult.readerEpisodes]) 공개 회차가 없는 것과 같게 404다.
+     * 본문 검사보다 먼저 판정해, 숨긴 본문에 그 문장이 있는지가 201/422로 드러나지 않게 한다.
+     */
     private fun publishedVersion(id: String, number: Int): String {
-        access.published(id)
-        return current.findByWorkIdAndSequence(id,number)?.publishedVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
+        val work=access.published(id)
+        val episode=current.findByWorkIdAndSequence(id,number)?.takeUnless {it.inherited && work.source?.deleted==true}
+        return episode?.publishedVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
     }
 
     /** 삭제하지 않은 작품이다. 없거나 삭제됐으면 404이며 삭제된 작품의 제안은 모든 경로에서 없는 것으로 본다. */

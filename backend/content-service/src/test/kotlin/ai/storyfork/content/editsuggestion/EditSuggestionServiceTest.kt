@@ -19,6 +19,7 @@ import ai.storyfork.content.episode_version.entity.EpisodeVersionEntity
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.episode_version.service.dto.VersionResponse
+import ai.storyfork.content.fork.service.dto.SourceResponse
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.WorkAccessService
@@ -69,6 +70,9 @@ class EditSuggestionServiceTest {
     private val hidden = mutableSetOf<String>()
     private val deleted = mutableSetOf<String>()
     private val withdrawn = mutableSetOf<String>()
+    // Fork 작품 → 원작이 삭제됐는지, 그리고 분기 전에 상속한 발행 회차
+    private val forks = mutableMapOf<String, Boolean>()
+    private val inheritedEpisodes = mutableSetOf<Pair<String, Int>>()
     private val asked = mutableListOf<List<String>>()
     // (작품, 회차) → 현재 발행 버전 ID와 발행 버전 본문
     private val publishedVersion = mutableMapOf<Pair<String, Int>, String>()
@@ -87,7 +91,8 @@ class EditSuggestionServiceTest {
 
     private fun accessOf(id: String): WorkAccessResult {
         val work = workRows[id] ?: throw ContentFailure(404, "작품을 찾을 수 없어요.")
-        return WorkAccessResult(work.id, work.ownerId, work.title, "", 0, "world", if (id in hidden) "private" else "public", false, false, null, false, id in deleted || work.deletedAt != null)
+        val source = forks[id]?.let { SourceResponse("origin", "원작", 2, 1, "all", deleted = it) }
+        return WorkAccessResult(work.id, work.ownerId, work.title, "", 0, "world", if (id in hidden) "private" else "public", false, false, source, false, id in deleted || work.deletedAt != null)
     }
 
     init {
@@ -111,7 +116,7 @@ class EditSuggestionServiceTest {
         `when`(current.findByWorkIdAndSequence(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())).thenAnswer { call ->
             val work = call.arguments[0] as String
             val number = call.arguments[1] as Int
-            if (work to number in publishedVersion) EpisodeCurrentEntity("episode-$number", work, number, publishedVersion[work to number]) else null
+            if (work to number in publishedVersion) EpisodeCurrentEntity("episode-$number", work, number, publishedVersion[work to number], work to number in inheritedEpisodes) else null
         }
         `when`(versions.findById(ArgumentMatchers.anyString())).thenAnswer { call ->
             val id = call.arguments[0] as String
@@ -253,6 +258,32 @@ class EditSuggestionServiceTest {
         `when`(current.findByWorkIdAndSequence("work", 3)).thenReturn(EpisodeCurrentEntity("episode-3", "work", 3, null))
 
         assertEquals("공개 회차를 찾을 수 없어요.", failure { service.create("work", 3, "reader", request()) }.message)
+    }
+
+    @Test fun `an inherited episode of a fork whose original was deleted is 404 whether or not the hidden text holds the sentence`() {
+        // 독자에게는 이 회차의 본문이 가려진다(WorkAccessResult.readerEpisodes). 문장이 있느냐에 따라 201/422가 갈리면 숨긴 본문이 새어 나간다.
+        forks["work"] = true
+        inheritedEpisodes += "work" to 1
+
+        val found = failure { service.create("work", 1, "reader", request()) }
+        val missing = failure { service.create("work", 1, "reader", request("본문에 없는 문장", "고친 문장")) }
+
+        assertEquals(404, found.status)
+        assertEquals("공개 회차를 찾을 수 없어요.", found.message)
+        assertEquals(found.status, missing.status)
+        assertEquals(found.message, missing.message)
+        verify(versions, never()).findById(ArgumentMatchers.anyString())
+        assertTrue(rows.isEmpty())
+    }
+
+    @Test fun `the fork's own episodes and inherited episodes of a live original still accept suggestions`() {
+        forks["work"] = true
+        service.create("work", 1, "reader", request())
+        forks["work"] = false
+        inheritedEpisodes += "work" to 1
+        service.create("work", 1, "reader", request())
+
+        assertEquals(2, rows.size)
     }
 
     // ───── 열람 ─────
