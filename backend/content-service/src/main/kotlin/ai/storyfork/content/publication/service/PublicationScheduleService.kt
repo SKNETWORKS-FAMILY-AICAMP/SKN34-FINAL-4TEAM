@@ -73,8 +73,10 @@ class PublicationScheduleService(
 
     @Scheduled(fixedDelay = 5000)
     fun publishDue() {
+        val deferredWorks = mutableSetOf<String>()
         // 같은 시각의 연속 회차가 앞 회차부터 공개되도록 쿼리가 (예약 시각, 회차 번호) 순으로 25건을 고른다.
         schedules.findDue("pending", Instant.now(), PageRequest.of(0, 25)).forEach { candidate ->
+            if (candidate.workId in deferredWorks) return@forEach // 앞 회차가 보류된 작품의 뒤 회차는 같은 주기에 실행하지 않는다.
             try {
                 try {
                     // Core가 회원 존재·제한 여부와 UUID 일치(불일치는 401)를 확인한다.
@@ -88,6 +90,7 @@ class PublicationScheduleService(
                 } catch (failure: Exception) {
                     if (failure.isTransient()) {
                         // 일시적인 Core·DB 장애는 실패로 확정하지 않고 대기 상태로 두어 다음 주기에 다시 시도한다.
+                        deferredWorks += candidate.workId
                         log.warn("Scheduled publication {} deferred: {}", candidate.id, (failure as? CoreAuthException)?.code ?: failure.javaClass.simpleName)
                         return@forEach
                     }
