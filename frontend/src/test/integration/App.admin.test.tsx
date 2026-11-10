@@ -8,9 +8,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '../scrollToSpy'
 import App from '../../App'
+import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
@@ -65,46 +66,24 @@ describe('관리자 (A01~A18)', () => {
 
   it('댓글 관리에서 숨긴 댓글은 회차 뷰어 목록·개수에서 빠지고 게시 복구하면 돌아온다 (목업 reader() cms)', async () => {
     const text = '돌다리 장면 묘사 최고… 성진 흔들릴 만하네'
+    // 숨김은 확인을 거친다(게시 복구는 확인 없음).
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const readerCount = async () => { cleanup(); renderAt('/read/guunmong/1', 'user'); return (await screen.findByRole('heading', { name: /^댓글 \d+$/ })).textContent }
     const before = await readerCount()
     expect(screen.queryByText(text)).not.toBeNull()
-    const toggle = async () => {
+    const toggle = async (done: string) => {
       cleanup(); renderAt('/admin?tab=comments')
       fireEvent.click(within((await screen.findByText(text)).closest('tr') as HTMLElement).getByRole('button'))
-      await toastIs('댓글 상태를 변경했어요 (데모)')
+      await toastIs(done)
     }
-    await toggle()
+    await toggle('댓글을 숨겼어요.')
     expect(await readerCount()).toBe('댓글 ' + (Number(before!.split(' ')[1]) - 1))
     expect(screen.queryByText(text)).toBeNull()
-    await toggle()
+    await toggle('댓글을 게시 상태로 되돌렸어요.')
     expect(await readerCount()).toBe(before)
     expect(screen.queryByText(text)).not.toBeNull()
-  })
-
-  it('공지·이벤트를 게시하면 회원 화면에 보인다', async () => {
-    renderAt('/admin?tab=notices')
-    fireEvent.click(await screen.findByText('기존 회원 화면 공지 데모'))
-    expect((await screen.findByLabelText<HTMLInputElement>('제목')).required).toBe(true)
-    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '점검 안내' } })
-    fireEvent.change(screen.getByLabelText('내용'), { target: { value: '오늘 밤 점검해요' } })
-    fireEvent.click(screen.getByRole('button', { name: '공지 게시' }))
-    await toastIs('공지를 게시했어요 (데모 · 현재 화면에만 반영)')
-    fireEvent.click(within(nav()).getByRole('link', { name: '이벤트' }))
-    fireEvent.click(await screen.findByText('기존 회원 화면 이벤트 데모'))
-    fireEvent.change(await screen.findByLabelText('이벤트명'), { target: { value: '새 이벤트' } })
-    fireEvent.change(screen.getByLabelText('안내 내용'), { target: { value: '참여해 보세요' } })
-    fireEvent.click(screen.getByRole('button', { name: '이벤트 추가' }))
-    await toastIs('이벤트를 추가했어요 (데모 · 현재 화면에만 반영)')
-    const row = (await screen.findByText('새 이벤트')).closest('tr') as HTMLElement
-    within(row).getByText('기간 미정')
-    fireEvent.click(within(row).getByRole('button', { name: '상태 변경' }))
-    await within(row).findByText('진행 중')
-    cleanup()
-    renderAt('/me/notice', 'user')
-    await screen.findByRole('link', { name: /점검 안내/ })
-    cleanup()
-    renderAt('/me/event', 'user')
-    await screen.findByText('새 이벤트')
+    expect(confirm).toHaveBeenCalledTimes(1)
+    confirm.mockRestore()
   })
 
   it('문의에 답변하면 회원 문의 목록에 운영팀 답변이 보인다', async () => {
@@ -115,17 +94,80 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByText('[이용 문의] 답변 요청')
     cleanup()
     renderAt('/admin?tab=feedback')
-    fireEvent.click(await screen.findByText('기존 회원 문의 데모'))
     fireEvent.click(await screen.findByRole('button', { name: /답변 요청.*답변 대기/ }))
-    const item = (await screen.findByRole('heading', { name: '[이용 문의] 답변 요청' })).closest('article') as HTMLElement
-    fireEvent.change(within(item).getByLabelText('답변'), { target: { value: '확인했어요' } })
-    fireEvent.click(within(item).getByRole('button', { name: '답변 등록' }))
-    await toastIs('답변을 등록했어요 (데모 · 실제 전송 없음)')
+    await screen.findByRole('heading', { name: '답변 요청' })
+    screen.getByText('확인 부탁해요', { selector: '.admin-prose' })
+    fireEvent.change(await screen.findByLabelText('새 답변 내용'), { target: { value: '확인했어요' } })
+    fireEvent.click(screen.getByRole('button', { name: '답변 등록' }))
+    await toastIs('답변을 등록했어요.')
     cleanup()
     renderAt('/me/inquiry', 'user')
     const q = (await screen.findByText('[이용 문의] 답변 요청')).closest('.rp') as HTMLElement
     within(q).getByText('답변 완료')
     within(q).getByText('확인했어요')
+  })
+
+  it('제보·문의 탭은 기존 단일 답변 데모와 운영 문의 기록 데모 없이 실제 회원 문의와 작가 제보만 보인다', async () => {
+    renderAt('/admin?tab=feedback')
+    await screen.findByRole('heading', { name: '회원 문의' })
+    expect(screen.queryByText('기존 회원 문의 데모')).toBeNull()
+    expect(screen.queryByRole('button', { name: '문의 기록 추가' })).toBeNull()
+    screen.getByText('작가 검토 제보')
+    screen.getByText('운영 API 연결')
+  })
+
+  it('개요의 답변 대기 문의 수는 서버 목록에서 세고, 조회에 실패하면 숫자 대신 실패를 표시한다', async () => {
+    const support = appContainer.resolve('supportInquiryUseCase')
+    await support.create({ category: '계정', title: '개요 집계 문의', body: '내용' })
+    const waiting = (await support.listAll('WAITING')).length
+    renderAt('/admin?tab=data')
+    const link = (await screen.findByText('답변 대기 문의')).closest('a') as HTMLElement
+    expect(link.getAttribute('href')).toBe('/admin?tab=feedback')
+    await waitFor(() => within(link).getByText(String(waiting)))
+    expect(within(link).queryByText(/데모/)).toBeNull()
+    expect(screen.queryByText('신고와 문의 수는 운영 서버 기준이에요.')).not.toBeNull()
+    cleanup()
+    // 서버 목록 상한(100)에 닿으면 정확한 수를 알 수 없으므로 100+로 표시한다.
+    const [one] = await support.listAll('WAITING')
+    vi.spyOn(support, 'listAll').mockResolvedValueOnce(Array.from({ length: 100 }, () => one))
+    renderAt('/admin?tab=data')
+    const capped = (await screen.findByText('답변 대기 문의')).closest('a') as HTMLElement
+    await waitFor(() => within(capped).getByText('100+'))
+    cleanup()
+    vi.spyOn(support, 'listAll').mockRejectedValueOnce(new Error('조회 실패'))
+    renderAt('/admin?tab=data')
+    const failed = (await screen.findByText('답변 대기 문의 · 불러오지 못함')).closest('a') as HTMLElement
+    within(failed).getByText('—')
+  })
+
+  it('공지를 게시하면 회원 공지사항에 보인다', async () => {
+    renderAt('/admin?tab=notices')
+    fireEvent.click(await screen.findByRole('button', { name: '공지 작성' }))
+    expect((await screen.findByLabelText<HTMLInputElement>('공지 제목')).required).toBe(true)
+    fireEvent.change(screen.getByLabelText('공지 제목'), { target: { value: '점검 안내' } })
+    fireEvent.change(screen.getByLabelText('공지 내용'), { target: { value: '오늘 밤 점검해요' } })
+    fireEvent.click(screen.getByRole('button', { name: '공지 저장' }))
+    await toastIs('공지를 저장했어요. 회원 공지사항에 바로 공개돼요.')
+    cleanup()
+    renderAt('/me/notice', 'user')
+    await screen.findByRole('link', { name: /점검 안내/ })
+  })
+
+  it('이벤트를 등록하면 회원 이벤트 화면에 보인다', async () => {
+    renderAt('/admin?tab=notices')
+    fireEvent.click(within(nav()).getByRole('link', { name: '이벤트' }))
+    // 이벤트는 운영 API(대역: 메모리 저장소)로 등록하고, 회원 화면은 같은 공개 API로 읽는다.
+    fireEvent.click(await screen.findByRole('button', { name: '이벤트 작성' }))
+    fireEvent.change(await screen.findByLabelText('이벤트 제목'), { target: { value: '새 이벤트' } })
+    fireEvent.change(screen.getByLabelText('이벤트 내용'), { target: { value: '참여해 보세요' } })
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await toastIs('이벤트를 등록했어요.')
+    await screen.findByRole('heading', { name: '새 이벤트' })
+    within(screen.getByRole('region', { name: '운영 이벤트' })).getByText('상시')
+    cleanup()
+    renderAt('/me/event', 'user')
+    await screen.findByText('새 이벤트')
+    screen.getByText('상시')
   })
 
   it('실패한 정기 작업은 수동 재시도 시연만 기록한다', async () => {

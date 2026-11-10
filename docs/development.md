@@ -75,11 +75,11 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 ```
 
 이 명령들은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달이 필요하면 Compose를 사용하며, Compose 자동 전달은 Operations에는 적용되지 않습니다.
-루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, Auth/JWT/SMTP는 Core에만, Content DB·S3/생성은 Content에만 전달합니다. 기존 같은 DB 대상·계정을 사용하며 별도 서비스 자격만 Core/Content가 공유합니다. Operations DB 자격은 Operations에만, 별도 `OPERATIONS_SERVICE_TOKEN`은 Operations와 신뢰하는 호출 서버에만 주입하며 Core/Content 토큰과 재사용하거나 브라우저에 전달하지 않습니다.
+루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, Auth/JWT/SMTP·가입 체험 크레딧 지급량(`CREDIT_SIGNUP_TRIAL_AMOUNT`, 기본 0)은 Core에만, Content DB·S3/생성은 Content에만 전달합니다. 기존 같은 DB 대상·계정을 사용하며 별도 서비스 자격만 Core/Content가 공유합니다. Operations DB 자격은 Operations에만, 별도 `OPERATIONS_SERVICE_TOKEN`은 Operations와 신뢰하는 호출 서버에만 주입하며 Core/Content 토큰과 재사용하거나 브라우저에 전달하지 않습니다.
 기존 서비스별 `.env.local` 등이 있으면 Vite가 별도로 읽을 수 있으므로 필요한 값을 루트로 수동 통합하세요.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
 
-[Content](../backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](../backend/operations-service/README.md)은 loopback 8082의 독립 CRUD이며 PostgreSQL 연결과 operations schema 초기화 권한이 필요합니다. 기본 빈 서비스 토큰으로는 보호 접근을 허용하지 않으며 Compose·nginx/Vite에 연결하지 않았습니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
+[Content](../backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](../backend/operations-service/README.md)은 loopback 8082의 독립 CRUD이며 PostgreSQL 연결과 operations schema 초기화 권한이 필요합니다. 기본 빈 서비스 토큰으로는 보호 접근을 허용하지 않습니다. nginx/Vite에는 브라우저용 `/api/v1/operations/{reports,members,admins,support,works,comments,admin/notices,public/notices,admin/events,public/events,admin/activities}` 하위 경로만 연결합니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
 
 ## 검증
 

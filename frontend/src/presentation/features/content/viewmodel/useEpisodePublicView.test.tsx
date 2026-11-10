@@ -10,7 +10,7 @@ afterEach(cleanup)
 
 const publicWork: Work = {
   id: 'p1', title: '공개 작품', summary: '', visibility: 'public', allowFork: true, allowForkPublication: false, source: null,
-  episodes: [{ number: 1, version: 1, title: '1화', body: '본문', inherited: false }], draft: { title: '', body: '', revision: 0 }, readOnly: true,
+  episodes: [{ number: 1, version: 1, title: '1화', body: '본문', inherited: false }], draft: { title: '', body: '', revision: 0 }, readOnly: true, revision: 0,
 }
 
 it('작품을 열면 조회 기록을 요청하고(기록 대상 판단은 UseCase) 선택을 해제하면 요청하지 않는다', async () => {

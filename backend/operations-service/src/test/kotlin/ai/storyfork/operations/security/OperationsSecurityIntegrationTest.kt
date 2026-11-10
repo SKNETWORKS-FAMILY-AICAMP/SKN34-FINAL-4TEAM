@@ -94,4 +94,15 @@ class OperationsSecurityIntegrationTest {
             assertFalse(response.contentAsString.contains("private"))
         }
     }
+
+    @Test
+    fun `unknown routes and wrong methods get the shared error DTO instead of the container error page`() {
+        for ((request, expectedStatus, code) in listOf(
+            Triple(get("/api/v1/operations/unknown"), 404, "NOT_FOUND"),
+            Triple(delete("/api/v1/operations/probe"), 405, "REQUEST_FAILED"))) {
+            val response = mvc.perform(request.header("X-Operations-Service-Token", token))
+                .andExpect(status().`is`(expectedStatus)).andReturn().response
+            assertEquals(code, mapper.readTree(response.contentAsString)["code"].asString())
+        }
+    }
 }

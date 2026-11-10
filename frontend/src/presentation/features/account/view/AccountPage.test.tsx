@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
+import { OperationsError } from '../../../../domain/entities/operations'
+import type { SupportInquiry } from '../../../../domain/entities/supportInquiry'
 import { renderApp } from '../../../../test/renderApp'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
@@ -105,6 +107,7 @@ describe('프로필 폼 (U30)', () => {
 
 describe('문의하기 폼 (U34)', () => {
   const field = (label: string) => screen.getByLabelText<HTMLInputElement>(label)
+  const support = () => appContainer.resolve('supportInquiryUseCase')
 
   it('제목·내용은 필수이고 비어 있으면 필드 옆 경고와 첫 오류 필드 초점을 준다', async () => {
     setup('/me/inquiry')
@@ -126,8 +129,8 @@ describe('문의하기 폼 (U34)', () => {
   })
 
   it('전송 중에는 버튼과 입력을 잠그고 중복 전송하지 않으며 결과를 상태 영역에 남긴다', async () => {
-    let finish!: (result: { ok: boolean; msg: string }) => void
-    const ask = vi.spyOn(appContainer.resolve('accountUseCase'), 'ask').mockImplementation(() => new Promise((resolve) => { finish = resolve }))
+    let finish!: () => void
+    const create = vi.spyOn(support(), 'create').mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
     setup('/me/inquiry')
     await screen.findByRole('heading', { name: '문의하기' })
     fireEvent.change(field('제목'), { target: { value: '포크 질문' } })
@@ -139,11 +142,84 @@ describe('문의하기 폼 (U34)', () => {
     expect(form.getAttribute('aria-busy')).toBe('true')
     expect(field('제목').readOnly).toBe(true)
     fireEvent.submit(form)
-    expect(ask).toHaveBeenCalledTimes(1)
-    await act(async () => { finish({ ok: true, msg: '문의를 보냈어요 (데모 · 실제 전송 없음)' }) })
-    await waitFor(() => expect(screen.getAllByText('문의를 보냈어요 (데모 · 실제 전송 없음)').some((el) => el.getAttribute('role') === 'status')).toBe(true))
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(create).toHaveBeenCalledWith({ category: '이용 문의', title: '포크 질문', body: '어떻게 하나요?' })
+    await act(async () => { finish() })
+    await waitFor(() => expect(screen.getAllByText('문의를 보냈어요').some((el) => el.getAttribute('role') === 'status')).toBe(true))
+    expect(screen.queryByText(/데모 · 실제 전송 없음/)).toBeNull()
     expect(field('제목').value).toBe('')
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '문의 보내기' }).disabled).toBe(false)
+  })
+
+  it('전송이 거절되면 입력을 그대로 두고 서버가 알려 준 이유를 경고로 보여 준다', async () => {
+    vi.spyOn(support(), 'create').mockRejectedValueOnce(new OperationsError('이 작업을 할 권한이 없어요.'))
+    setup('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    fireEvent.change(field('제목'), { target: { value: '실패 질문' } })
+    fireEvent.change(field('내용'), { target: { value: '남아야 하는 내용' } })
+    fireEvent.click(screen.getByRole('button', { name: '문의 보내기' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('이 작업을 할 권한이 없어요.')
+    expect(field('제목').value).toBe('실패 질문')
+    expect(field('내용').value).toBe('남아야 하는 내용')
+    expect(screen.queryByText('문의를 보냈어요')).toBeNull()
+  })
+
+  it('응답을 받지 못한 실패는 접수 여부를 확인하도록 안내하고 내부 오류를 노출하지 않는다', async () => {
+    vi.spyOn(support(), 'create').mockRejectedValueOnce(new TypeError('Failed to fetch: 내부 주소'))
+    setup('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    fireEvent.change(field('제목'), { target: { value: '네트워크 질문' } })
+    fireEvent.change(field('내용'), { target: { value: '내용' } })
+    fireEvent.click(screen.getByRole('button', { name: '문의 보내기' }))
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('문의를 보냈는지 확인하지 못했어요')
+    expect(alert.textContent).not.toContain('내부 주소')
+    expect(field('제목').value).toBe('네트워크 질문')
+  })
+
+  it('로그인 전에는 폼 대신 로그인 안내를 보이고, 로그인 뒤 문의하기로 돌아오도록 안내를 남긴다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : new Response(null, { status: 401 })))
+    const { store } = renderApp('/me/inquiry', createAppStore({ role: null }))
+    await screen.findByRole('heading', { name: '로그인한 뒤 문의할 수 있어요' })
+    expect(screen.queryByLabelText('제목')).toBeNull()
+    expect(screen.queryByRole('button', { name: '문의 보내기' })).toBeNull()
+    fireEvent.click(screen.getByRole('link', { name: '로그인하고 문의하기' }))
+    expect(await screen.findByRole('heading', { name: '로그인' })).toBeTruthy()
+    expect(store.getState().session).toMatchObject({ next: '/me/inquiry', loginRole: 'user', loginMsg: '문의는 로그인한 회원만 보낼 수 있어요.' })
+  })
+})
+
+describe('내 문의 목록 (U34)', () => {
+  const support = () => appContainer.resolve('supportInquiryUseCase')
+  const at = '2026-11-08T00:00:00Z'
+  const row = (patch: Partial<SupportInquiry>): SupportInquiry => ({ id: 'q', memberId: 'm', category: '계정', title: '제목', body: '본문', status: 'WAITING', createdAt: at, updatedAt: at, replies: [], ...patch })
+
+  it('불러오는 중·실패·빈 목록을 구분하고 실패하면 다시 불러올 수 있다', async () => {
+    vi.spyOn(support(), 'listMine').mockRejectedValueOnce(new OperationsError('실패')).mockResolvedValueOnce([])
+    setup('/me/inquiry')
+    await screen.findByText('내 문의를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+    expect(screen.queryByText('아직 보낸 문의가 없어요.')).toBeNull()
+    expect(screen.queryByText('내 문의 0')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByText('아직 보낸 문의가 없어요.')
+    expect(screen.queryByText(/불러오지 못했어요/)).toBeNull()
+  })
+
+  it('상태 칩과 답변 여러 개를 등록 순서대로, 줄바꿈을 유지해 보여 준다', async () => {
+    const reply = (id: string, body: string) => ({ id, body, createdAt: at, updatedAt: at })
+    vi.spyOn(support(), 'listMine').mockResolvedValue([
+      row({ id: 'a', title: '답변된 문의', body: '첫 줄\n둘째 줄', status: 'ANSWERED', replies: [reply('p1', '첫 답변\n줄2'), reply('p2', '둘째 답변')] }),
+      row({ id: 'b', title: '기다리는 문의' }),
+    ])
+    setup('/me/inquiry')
+    const answered = (await screen.findByText('[계정] 답변된 문의')).closest('.rp') as HTMLElement
+    within(answered).getByText('답변 완료')
+    expect([...answered.querySelectorAll('.inquiry-reply')].map((p) => p.textContent)).toEqual(['운영팀 답변 1첫 답변\n줄2', '운영팀 답변 2둘째 답변'])
+    expect(within(answered).getByText('첫 줄 둘째 줄').textContent).toBe('첫 줄\n둘째 줄')
+    const waiting = screen.getByText('[계정] 기다리는 문의').closest('.rp') as HTMLElement
+    within(waiting).getByText('답변 대기')
+    expect(waiting.querySelector('.inquiry-reply')).toBeNull()
+    screen.getByRole('heading', { name: '내 문의 2' })
   })
 })
 

@@ -1,8 +1,14 @@
 import type { Work as ContentWork } from '../entities/content'
 import { splitSentences } from '../entities/feedback'
-import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, sorter, tagsOf, visibleEpisode, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
+import { SessionExpired } from '../repositories/ProfileRepository'
+import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
-import type { WorkSearchRepository } from '../repositories/WorkSearchRepository'
+import type { WorkRankingQuery, WorkSearchRepository } from '../repositories/WorkSearchRepository'
+
+/** 서버 검색 목록이 한 번에 받는 개수(계약: size 20). 이만큼 받으면 다음 페이지가 있을 수 있다. */
+const SEARCH_PAGE_SIZE = 20
 
 /** 목업 CHIPS: 홈 장르 칩과 필터 조건 */
 export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] = [
@@ -10,31 +16,60 @@ export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] 
   ['📜 고전', (w) => w.theme === 'hanji'],
   ['✨ 판타지', (w) => /판타지/.test(w.genre)],
   ['🛰 SF', (w) => /SF/.test(w.genre)],
-  ['🆓 무료', (w) => w.tags.includes('free')],
+  ['🆓 무료', (w) => w.tags.includes('free') || !!w.canonical], // 유료 열람이 없어 서버(canonical) 공개 작품은 모두 무료다.
   ['✎ 포크 많은', (w, all) => forksOf(all, w.id).length > 0],
 ]
+
+/** 랭킹 범위 탭 t(all·orig·if)에 드는 작품인가 */
+const inTab = (t: string) => (w: Work) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent)
+/** 서버 저장소가 있으면 이 칩은 Content 검색(장르 부분 일치·좋아요순)으로 채웁니다. 목업은 위 메모리 필터입니다. */
+const HOME_GENRE_QUERIES: Record<string, string> = { '📜 고전': '고전', '✨ 판타지': '판타지', '🛰 SF': 'SF' }
 
 export class ReadingUseCase {
   private readonly workRepository: WorkRepository
   private readonly readingRepository: ReadingRepository
+  /** 로그인 회원의 이어 읽기·읽은 회차(서버 독서 기록. 목업은 메모리) */
+  private readonly readingRecordRepository: ReadingRecordRepository
   /** 있으면 홈 순위·검색을 서버(Content 공개 API)로 채웁니다. 없으면(목업) 메모리 데모입니다. */
   private readonly workSearchRepository?: WorkSearchRepository
-  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, workSearchRepository?: WorkSearchRepository) {
+  /** 있으면 서버 작품(canonical)의 좋아요를 Content로 보냅니다. 없으면(목업) 메모리 데모입니다. */
+  private readonly workLikeRepository?: WorkLikeRepository
+  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, readingRecordRepository: ReadingRecordRepository, workSearchRepository?: WorkSearchRepository, workLikeRepository?: WorkLikeRepository) {
     this.workRepository = workRepository
     this.readingRepository = readingRepository
+    this.readingRecordRepository = readingRecordRepository
     this.workSearchRepository = workSearchRepository
+    this.workLikeRepository = workLikeRepository
   }
 
-  /** 서버 랭킹(최근 24시간 조회). 실패는 빈 목록으로 숨기지 않고 failed로 알립니다. */
-  private serverRanking() {
+  /** 로그인 회원의 서버 독서 기록(최근 순). 비회원은 기록이 없고(서버를 부르지 않음), 읽지 못하면 빈 기록으로 숨기지 않고 던집니다. */
+  private memberRecords(role: Role): Promise<ReadingRecord[]> {
+    return role ? this.readingRecordRepository.list() : Promise.resolve([])
+  }
+
+  /**
+   * 홈 다섯 줄(실시간 인기·급상승·포크 소설·방금 업데이트·이번 주 인기)을 서버 기간별 랭킹으로 묻습니다(기능표 45 계약).
+   * 한 줄의 실패는 빈 목록으로 숨기지 않고 그 줄의 failed로만 알려 홈 전체를 막지 않습니다.
+   */
+  private async serverHome() {
     const repo = this.workSearchRepository
     if (!repo) return null
-    return Promise.all([repo.ranking('top'), repo.ranking('rising')]).then(([top10, rising]) => ({ top10, rising, failed: false }), () => ({ top10: [] as Work[], rising: [] as Work[], failed: true }))
+    const line = (query: WorkRankingQuery) => repo.rankings(query).then(
+      ({ items, computedAt }) => ({ items, computedAt, failed: false }),
+      () => ({ items: [] as Work[], computedAt: null, failed: true }),
+    )
+    const [top10, rising, forkFeed, fresh, weekly] = await Promise.all([
+      line({ kind: 'view', period: 'day' }), line({ kind: 'rising', period: 'day' }), line({ kind: 'latest', type: 'fork' }),
+      line({ kind: 'updated', limit: 5 }), line({ kind: 'popular', period: 'week', limit: 4 }),
+    ])
+    return { top10, rising, forkFeed, fresh, weekly }
   }
 
   /** 목업 home(): 칩이 '추천'이 아니면 filtered(U02)만 채웁니다. */
   async getHome(role: Role, chip: string) {
-    const [works, progress, ranking] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverRanking()])
+    const repo = this.workSearchRepository
+    const genre = HOME_GENRE_QUERIES[chip]
+    const [works, progress, server, records, genreWorks] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverHome(), this.memberRecords(role), repo && genre ? repo.search({ q: genre, f: 'genre', sort: 'like' }) : null])
     const pub = works.filter(isPub)
     const filter = (HOME_CHIPS.find((c) => c[0] === chip) ?? HOME_CHIPS[0])[1]
     const origs = originals(works).filter(isPub)
@@ -44,29 +79,39 @@ export class ReadingUseCase {
       const parent = pub.find((p) => p.id === w.parent)
       if (parent && w.forkAt) forkSources[w.id] = { title: parent.title, episode: w.forkAt }
     }
-    const lastId = Object.keys(progress.last).find((id) => {
-      const w = works.find((x) => x.id === id)
-      const e = w && isPub(w) && epsOf(w)[progress.last[id] - 1]
-      return !!w && !!e && visibleEpisode(w, e, role)
-    })
-    const lastWork = works.find((w) => w.id === lastId)
+    // 서버 기록 중 가장 최근에 읽은 작품의, 지금도 볼 수 있는 이어 읽기 회차
+    const resume = records.flatMap((r) => {
+      const w = works.find((x) => x.id === r.workId)
+      const e = w && isPub(w) && epsOf(w)[r.lastEpisode - 1]
+      return w && e && visibleEpisode(w, e, role) ? [{ work: w, episode: r.lastEpisode }] : []
+    })[0]
+    // 실시간 인기·급상승은 한 화면 블록이라 둘 중 하나라도 실패하면 함께 실패로 알립니다.
+    const rankingFailed = !!server && (server.top10.failed || server.rising.failed)
     return {
       works,
       forkSources,
       seen: progress.seen,
-      filtered: filter ? pub.filter((w) => filter(w, works)) : null,
+      filtered: genreWorks ?? (filter ? pub.filter((w) => filter(w, works)) : null),
       originals: origs,
-      forkFeed: pub.filter((w) => w.parent).sort(sorter('new')),
-      continueReading: lastWork ? { work: lastWork, episode: progress.last[lastWork.id] } : null,
-      top10: ranking ? ranking.top10 : pub.slice().sort(sorter('pop')).slice(0, 10),
-      rising: ranking ? ranking.rising : origs.slice().sort(sorter('view')),
-      rankingFailed: !!ranking?.failed,
+      forkFeed: server ? server.forkFeed.items : pub.filter((w) => w.parent).sort(sorter('new')),
+      continueReading: resume ?? null,
+      top10: server ? server.top10.items : pub.slice().sort(sorter('pop')).slice(0, 10),
+      rising: server ? server.rising.items : origs.slice().sort(sorter('view')),
+      rankingFailed,
+      forkFeedFailed: !!server?.forkFeed.failed,
+      freshFailed: !!server?.fresh.failed,
+      weeklyFailed: !!server?.weekly.failed,
+      /** 서버가 실시간 인기를 계산한 시각(화면의 "HH:mm 기준"). 목업이거나 실시간 인기·급상승이 하나라도 실패하면 실패 안내 위에 남기지 않도록 null */
+      rankingComputedAt: rankingFailed ? null : server?.top10.computedAt ?? null,
+      /** 순위·업데이트·인기 줄을 서버 기간별 랭킹으로 채웠는가(목업은 메모리 데모) */
+      serverRanking: !!server,
       /** 순위 섹션이 실제 순위인가: 서버 랭킹이거나 좋아요·조회 지표가 있는 목업. 지표 없는 서버 작품의 단순 목록이면 false입니다. */
-      ranked: !!ranking || !pub.some((w) => w.statisticsSupported === false),
-      fresh: pub.slice().sort(sorter('new')).slice(0, 5),
+      ranked: !!server || !pub.some((w) => w.statisticsSupported === false),
+      fresh: server ? server.fresh.items : pub.slice().sort(sorter('new')).slice(0, 5),
       picks: pub.slice(0, 6),
-      discover: pub,
-      weekly: origs.slice(0, 4),
+      /** 오늘의 발견: 랭킹·최신과 겹치지 않게 오래된 작품부터. 서버 작품은 갱신 시각이 없어 공개 목록(생성 최신순)을 뒤집습니다. */
+      discover: (pub.some((w) => w.statisticsSupported === false) ? pub.slice() : pub.slice().sort(sorter('new'))).reverse(),
+      weekly: server ? server.weekly.items : origs.slice(0, 4),
     }
   }
 
@@ -91,19 +136,43 @@ export class ReadingUseCase {
     return { works, worlds, progress, w: works.find((x) => x.id === id || x.slug === id) }
   }
 
-  /** 목업 work(): 볼 수 없는 작품이면 null (unavailableWork) */
-  async getWork(id: string, role: Role) {
+  /**
+   * 좋아요 수와 내 좋아요 여부. 서버 작품(canonical)은 목록의 공개 수를 쓰되, 내 여부는 로그인 회원만 서버에 묻습니다.
+   * 익명·공개가 아니라는 답(null: 소유자가 여는 비공개·운영 제한 작품)·만료된 세션은 안 누른 상태로 열고 그 밖의 조회 실패는 던집니다.
+   * 데모 작품은 메모리 진행 기록이며 시드 수에 내 좋아요 1을 더합니다.
+   */
+  private async likeStateOf(work: Pick<Work, 'id' | 'likes' | 'canonical'>, role: Role, memoryLiked: boolean): Promise<WorkLikeState> {
+    const repo = this.workLikeRepository
+    if (!repo || !work.canonical) return { likes: work.likes + (memoryLiked ? 1 : 0), liked: memoryLiked }
+    const unliked = { likes: work.likes, liked: false }
+    if (!role) return unliked
+    const read = await repo.read(work.id).catch((error: unknown) => { if (error instanceof SessionExpired) return null; throw error })
+    return read ?? unliked
+  }
+
+  /**
+   * 목업 work(): 볼 수 없는 작품이면 null (unavailableWork). 공개 설정(wiki)은 [upto]회차(1~마지막 회차로 맞춤) 기준이고,
+   * 없으면 최신 회차 기준이다. 맞춘 기준 회차는 upto로 돌려준다.
+   */
+  async getWork(id: string, role: Role, upto?: number) {
     const { works, worlds, progress, w: loaded } = await this.load(id)
     if (!canView(loaded, role)) return null
-    const w = await this.workRepository.readWorld(loaded,epsOf(loaded).length)
+    const last = epsOf(loaded).length
+    const n = upto && upto >= 1 ? Math.min(Math.floor(upto), last) : last
+    const [w, records] = await Promise.all([this.workRepository.readWorld(loaded, n), this.memberRecords(role)])
+    const record = records.find((r) => r.workId === w.id)
     const forks = forksOf(works, w.id)
+    const like = await this.likeStateOf(w, role, !!progress.liked[w.id])
     return {
       work: w,
+      upto: n,
       parent: works.find((x) => x.id === w.parent),
       visible: epsOf(w).map((e, i) => [e, i] as const).filter(([e]) => visibleEpisode(w, e, role)),
-      last: progress.last[w.id] as number | undefined,
-      read: progress.read[w.id] ?? [],
-      liked: !!progress.liked[w.id],
+      last: record?.lastEpisode,
+      read: record?.readEpisodes ?? [],
+      liked: like.liked,
+      /** 화면에 보일 좋아요 수(서버 작품은 서버 값, 데모 작품은 시드 수 + 내 좋아요) */
+      likes: like.likes,
       forks,
       forkList: forkList(w, worlds),
       topForks: forks.slice().sort(sorter('pop')),
@@ -111,24 +180,25 @@ export class ReadingUseCase {
   }
 
   /**
-   * 목업 reader(): 회차를 열면서 이어 읽기(last)와 읽음(read)을 기록합니다.
-   * 볼 수 없는 작품은 null, 숨긴 회차는 'hidden'(상세로 보냄)입니다.
+   * 목업 reader(): 회차를 열면서 이어 읽기와 읽음을 서버 독서 기록에 남깁니다. 볼 수 없는 작품은 null,
+   * 숨긴 회차는 'hidden'(상세로 보냄)입니다. 기록은 기다리지 않고 회차를 먼저 돌려주며, 저장 결과는 recording으로 받습니다
+   * (실패하면 reject하므로 호출자가 알려야 합니다. 기록하지 않는 경우는 바로 끝납니다).
    */
   async openEpisode(id: string, at: number, role: Role) {
-    const { works, worlds, progress, w: loaded } = await this.load(id)
+    const { works, worlds, w: loaded } = await this.load(id)
     if (!canView(loaded, role)) return null
     const eps = epsOf(loaded)
-    const n = Math.max(1, Math.min(+at || 1, eps.length))
+    const n = loaded.canonical ? at : Math.max(1, Math.min(+at || 1, eps.length))
+    if (!eps[n-1] || !visibleEpisode(loaded,eps[n-1],role)) return 'hidden' as const
     const w = await this.workRepository.readWorld(loaded,n)
     id = w.id
     const ep = eps[n - 1]
     if (!ep || !visibleEpisode(w, ep, role)) return 'hidden' as const
     const shown = eps.map((e, i) => [e, i + 1] as const).filter(([e]) => visibleEpisode(w, e, role)).map(([, i]) => i)
-    const { [id]: prev = 0, ...others } = progress.last
-    progress.last = { [id]: Math.max(n, prev), ...others }
-    const read = (progress.read[id] ??= [])
-    if (!read.includes(n)) read.push(n)
-    await this.readingRepository.saveProgress(progress)
+    // 로그인 회원이 공개 작품(상속 회차 포함)의 회차를 열면 기록한다. 이어 읽기 위치는 최댓값이 아니라 방금 연 회차다.
+    // 비회원·작가가 자기 비공개 작품을 미리 읽을 때는 서버가 404로 거절하므로 보내지 않는다.
+    const recording = role && isPub(w) ? this.readingRecordRepository.record(w.id, n) : Promise.resolve()
+    recording.catch(() => {}) // 호출자가 recording을 받지 않아도 처리되지 않은 reject 경고가 나지 않게 한다.
     // 로그인 회원이 서버 작품의 자체 회차를 열면 그 회차의 조회를 기록한다(상속 회차는 원작 몫). 소유자가 여는 비공개 작품은
     // 서버가 404로 거절하므로 공개 작품만 보낸다. 실패는 읽기를 막지 않는다.
     if (role && w.canonical && isPub(w) && n > (w.snap?.eps.length ?? 0)) this.workSearchRepository?.recordView(w.id, n).catch(() => {})
@@ -141,25 +211,49 @@ export class ReadingUseCase {
       next: shown.find((i) => i > n) ?? null,
       forks: w.parent ? [] : forksOf(works, id).filter((f) => f.forkAt === n),
       canFork: forkOK(w, n, worlds),
+      recording,
     }
   }
 
-  async toggleLike(id: string) {
+  /**
+   * 좋아요를 토글해 새 상태(true: 눌림)를 돌려줍니다. 화면이 보여 준 상태(`shown`)가 서버 작품이면 그 반대를 Content에 보내
+   * 서버가 확정한 상태를 돌려주고 실패는 던집니다(성공으로 숨기지 않음). 그 밖의 데모 작품은 메모리 진행 기록을 뒤집습니다.
+   */
+  async toggleLike(id: string, shown?: { canonical?: boolean; liked: boolean }) {
+    const repo = this.workLikeRepository
+    if (repo && shown?.canonical) return (await (shown.liked ? repo.unlike(id) : repo.like(id))).liked
     const progress = await this.readingRepository.getProgress()
     progress.liked[id] = !progress.liked[id]
     await this.readingRepository.saveProgress(progress)
     return progress.liked[id]
   }
 
-  /** 목업 searchPage()·rank(): t는 랭킹 탭(all·orig·if). 서버 저장소가 있으면 검색은 서버가, 원작·Fork 탭은 결과에서 거릅니다. */
-  async findWorks({ t = 'all', q = '', f = 'all', sort }: { t?: string; q?: string; f?: SearchField; sort: SearchSort }) {
-    const kind = (w: Work) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent)
-    if (this.workSearchRepository) return (await this.workSearchRepository.search({ q: q.trim(), f, sort })).filter(kind)
+  /**
+   * 목업 searchPage(): 서버 저장소가 있으면 검색은 서버가 하고 page(0부터) 한 장(20개)만 받습니다. hasMore(더 받을 수 있음)는
+   * 서버 개수가 한 장을 가득 채웠는지로 봅니다(페이지를 무시하고 전부 주는 서버의 21개 이상은 마지막으로 봅니다).
+   * 메모리 데모는 전부 돌려주므로 더 보기가 없습니다. 랭킹 화면은 페이지 없이 rankWorks를 씁니다.
+   */
+  async findWorks({ q = '', f = 'all', sort, page = 0 }: { q?: string; f?: SearchField; sort: SearchSort; page?: number }, signal?: AbortSignal) {
+    if (this.workSearchRepository) {
+      const found = await this.workSearchRepository.search({ q: q.trim(), f, sort, page, size: SEARCH_PAGE_SIZE }, signal)
+      return { list: found, hasMore: found.length === SEARCH_PAGE_SIZE }
+    }
     const works = await this.workRepository.listWorks()
-    return works.filter(isPub)
-      .filter(kind)
-      .filter((w) => matchW(w, q, f, works))
-      .sort(sorter(sort === 'latest' ? 'new' : sort))
+    return {
+      list: works.filter(isPub).filter((w) => matchW(w, q, f, works)).sort(sorter(sort === 'latest' ? 'new' : sort)),
+      hasMore: false,
+    }
+  }
+
+  /**
+   * /rank: t는 범위 탭(all·orig·if)이다. 서버 저장소가 있으면 서버 기간별 랭킹(기능표 45, 최대 50개)을 묻고(최신·방금 업데이트는 기간을 쓰지 않아 보내지 않음),
+   * 목업이면 메모리 정렬(조회·급상승=조회 수, 인기=좋아요, 최신·방금 업데이트=갱신 순)이며 기간·계산 시각이 없다.
+   */
+  async rankWorks({ t = 'all', kind, period }: { t?: string; kind: RankingKind; period: RankingPeriod }): Promise<{ items: Work[]; computedAt: Date | null }> {
+    const repo = this.workSearchRepository
+    if (repo) return repo.rankings({ kind, ...(rankingUsesPeriod(kind) ? { period } : {}), type: RANKING_TYPES.find(([tab]) => tab === t)?.[2] ?? 'all', limit: 50 })
+    const sort = { view: 'view', rising: 'view', popular: 'pop', latest: 'new', updated: 'new' }[kind]
+    return { items: (await this.workRepository.listWorks()).filter(isPub).filter(inTab(t)).sort(sorter(sort)), computedAt: null }
   }
 
   /** 목업 tagPage(t): 태그가 없으면 첫 태그를 고릅니다. */

@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HttpWorkRepository } from './HttpWorkRepository'
 import { HttpEpisodeRepository, type ReadingWorkRecord } from './HttpEpisodeRepository'
+import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
 import { epsOf, isMine } from '../../domain/entities/work'
 
 const record = (extra: Partial<ReadingWorkRecord> = {}): ReadingWorkRecord => ({
   id: 'work-uuid', slug: 'old-slug', title: '원고', summary: '소개', visibility: 'public', authorName: '나', ownerId: 'other-member',
-  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: ['서약'], views: 0,
+  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: ['서약'], views: 0, likes: 4,
   allowFork: true, allowForkPublication: true, forkableEpisodes: [2], source: null, episodes: [
     { number: 1, version: 1, versionId: 'v1', title: '하나', body: '첫 문단\n\n둘째 문단', inherited: false },
     { number: 2, version: 1, versionId: 'v2', title: '둘', body: '셋째 문단', inherited: false },
@@ -27,6 +28,8 @@ describe('canonical WorkRepository', () => {
     expect(work.slug).toBe('old-slug')
     expect(work.eps[0].p).toEqual(['첫 문단', '둘째 문단'])
     expect(isMine(work)).toBe(false)
+    // 좋아요 수는 서버 값이지만 댓글 수·갱신 시각은 서버에 없으니 지표 전체를 "지원"으로 표시하지 않는다.
+    expect(work.likes).toBe(4)
     expect(work.statisticsSupported).toBe(false)
     expect(work.forkEps).toEqual([2])
     expect(work.wiki?.docs).toEqual([])
@@ -71,6 +74,14 @@ describe('canonical WorkRepository', () => {
     world.workId='another-work'
     await expect(repository.readWorld(work,2)).rejects.toThrow('작품')
   })
+  it('keeps the source title and deleted flag from the transport so a deleted original is shown as deleted', async () => {
+    const forked = record({ source: { workId: 'parent-uuid', title: '부모', episode: 1, version: 1, direction: '분기', deleted: true },
+      episodes: record().episodes.map((e, i) => ({ ...e, inherited: i === 0, body: i === 0 ? '' : e.body })) })
+    const repository = new HttpWorkRepository(new HttpEpisodeRepository(vi.fn(async () => Response.json([forked]))), () => false)
+    const [work] = await repository.listWorks()
+    expect(work.parentTitle).toBe('부모')
+    expect(work.parentDeleted).toBe(true)
+  })
   it('rejects malformed canonical transport instead of silently dropping required ownership metadata', async () => {
     const fetcher=vi.fn(async () => Response.json([record({ownerId:''})]))
     const repository=new HttpWorkRepository(new HttpEpisodeRepository(fetcher),()=>false)
@@ -81,4 +92,45 @@ describe('canonical WorkRepository', () => {
     expect(await repository.createFork('work-uuid', 2, '분기 제목', '분기 방향')).toEqual({ id: 'created-server-uuid' })
     expect(api.fork).toHaveBeenCalledWith('work-uuid', 2, '분기 제목', '분기 방향')
   })
+})
+
+
+it('공개 중단된 중간 회차의 자리를 보존하고 뒤 회차 번호를 바꾸지 않는다', async () => {
+  const {repository}=setup([record({episodes:[{number:3,version:1,versionId:'v3',title:'3화',body:'공개 본문',inherited:false}]})])
+  const [work]=await repository.listWorks()
+  expect(epsOf(work)).toHaveLength(3)
+  expect(epsOf(work)[0]).toMatchObject({hidden:true,p:[]})
+  expect(epsOf(work)[1]).toMatchObject({hidden:true,p:[]})
+  expect(epsOf(work)[2].t).toBe('3화')
+})
+
+
+it('공개 중단된 회차는 공개 세계관 조회를 요청하지 않는다',async()=>{
+  const {repository,api}=setup([record({episodes:[{number:2,version:1,versionId:'v2',title:'2화',body:'본문',inherited:false}]})])
+  const [work]=await repository.listWorks()
+  await repository.readWorld(work,1)
+  expect(api.readingWorld).not.toHaveBeenCalled()
+})
+
+
+it('preserves published author notes through HTTP and inherited Fork reading', async () => {
+  const row = record({ source: {workId:'parent',title:'원작',episode:1,version:1,direction:'',deleted:true},
+    episodes: [{...record().episodes[0], inherited:true, authorNote:'원작 후기'}] })
+  const api = new HttpEpisodeRepository(vi.fn(async () => Response.json([row])))
+  const repository = new HttpWorkRepository(api, () => false)
+  const [work] = await repository.listWorks()
+  expect(work.parentDeleted).toBe(true)
+  expect(epsOf(work)[0].authorNote).toBe('원작 후기')
+})
+
+it('uses the server allowlist and reports the actual preview basis when the selected episode is no longer allowed', async () => {
+  const { api, repository } = setup([record({
+    forkableEpisodes: [3],
+    episodes: [{ number: 3, version: 1, versionId: 'v3', title: '3화', body: '본문', inherited: false }],
+  })])
+  api.readingWorld.mockResolvedValue({ workId: 'work-uuid', episode: 3, documents: [] })
+  const form = await new ForkUseCase(repository).getForm('work-uuid', 1)
+  expect(form?.forkList).toEqual([3])
+  expect(form?.basisEpisode).toBe(3)
+  expect(api.readingWorld).toHaveBeenCalledWith('work-uuid', 3)
 })

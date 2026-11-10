@@ -55,7 +55,7 @@ export function ReportsPage() {
                 ))}
               </ul>
             )
-            : <p className='mt-3'>신고 내역이 없어요. 공개 작품 상세의 신고 버튼으로 접수할 수 있어요.</p>)}
+            : <p className='mt-3'>신고 내역이 없어요. 검색 결과 카드나 작품 상세의 ‘소설 신고’ 버튼으로 다른 작가의 공개 작품을 신고할 수 있어요.</p>)}
         </section>
         {vm.sel && (
           <section className='panel' style={{ marginTop: 14 }} aria-label='신고 상세'>

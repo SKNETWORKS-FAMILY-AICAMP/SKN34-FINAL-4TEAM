@@ -1,6 +1,6 @@
 # STORYFORK 집필 AI의 출발점
 
-2026-11-08 기준 로컬 `develop`의 `79855bf`를 조사했다. Graphify의 1,762개 노드에서 Fork·회차·제안을 찾은 뒤 아래 마이그레이션과 서비스 본문으로 대조했다. 데이터베이스 관련 사실은 **소스가 정의하는 물리 구조**다. 운영 DB의 적용 버전, 기존 데이터의 완전성, 서비스 배포 여부는 조사 범위 밖이다.
+2026-11-08 기준 로컬 `develop`의 `79855bf`를 조사했다. Graphify의 1,762개 노드에서 Fork·회차·제안을 찾은 뒤 아래 마이그레이션과 서비스 본문으로 대조했다. 이후 develop에 반영된 변경(Operations 구현 진행, 작품 소프트 삭제 DEC-42 등)은 이 스냅샷에 없다. 데이터베이스 관련 사실은 **소스가 정의하는 물리 구조**다. 운영 DB의 적용 버전, 기존 데이터의 완전성, 서비스 배포 여부는 조사 범위 밖이다.
 
 ## 지금 이어쓰기를 요청하면
 
@@ -14,7 +14,7 @@
 | 영역 | 소스에서 확인한 동작 | 설계 연결점 |
 |---|---|---|
 | Web | React 19, TypeScript, Vite, pnpm, Redux Toolkit·Awilix, MVVM, Vitest. nginx 공개 진입점. `/content` 및 UUID Studio와 메모리 데모의 데이터 경로가 다르다. | 기존 인증 fetch와 취소 처리 재사용. 선택 구간·revision을 새 AI 요청에 전달. [패키지](../../frontend/package.json) · [프록시](../../frontend/nginx.conf) |
-| Kotlin 서비스 | JVM 21, Spring Boot 4, MVC, JPA, JDBC, Flyway, Gradle. 기능별 controller/service/repository. Core 인증·회원, Content 업무 인가·저장, Operations 골격. | Content가 공개 작업 API와 소유권 검사 담당. DB 공유 여부와 무관하게 서비스 간 SQL 쓰기 금지. [빌드](../../backend/content-service/build.gradle) · [서비스 경계](../design/service-boundaries.md) |
+| Kotlin 서비스 | JVM 21, Spring Boot 4, MVC, JPA, JDBC, Flyway, Gradle. 기능별 controller/service/repository. Core 인증·회원, Content 업무 인가·저장, Operations 공지·이벤트·문의·회원·신고·작품 관리 API와 Core/Content 클라이언트. | Content가 공개 작업 API와 소유권 검사 담당. DB 공유 여부와 무관하게 서비스 간 SQL 쓰기 금지. [빌드](../../backend/content-service/build.gradle) · [서비스 경계](../design/service-boundaries.md) |
 | AI | Python 3.11 이상 3.15 미만, FastAPI·Pydantic·uvicorn, uv.lock, pytest. openai-agents 의존성이 있지만 이어쓰기 경로는 OpenAI SDK 직접 호출. | 기존 Python 앱에 StateGraph를 추가하는 **제안**. 기존 API를 유지하며 신규 작업만 새 경로로 연결. [의존성](../../backend/ai-service/pyproject.toml) · [앱](../../backend/ai-service/app/main.py) |
 | 진행 알림 | Core 회원 알림 SSE와 웹 fetch 스트림의 재연결·세션 교체 처리 존재. 현재 이어쓰기 HTTP는 동기 응답이고 AI 작업 전용 SSE는 신규. | 알림함과 별도 run 이벤트 계약. 알림 클라이언트의 인증·중단 방식을 참고. [웹 구현](../../frontend/src/data/api/notificationStream.ts) |
 | 실행·검증 | 루트 .env 기준 서비스별 주입. Compose·네이티브 실행, GitHub Actions가 변경 경로별 단위·통합·HTTP 시스템 검사 선택. | 모델 키는 AI에만 전달. 실제 메일·모델 호출 없이 CI 대역 검증. [개발 안내](../development.md) · [CI 선택기](../../infrastructure/ci/ci.py) |

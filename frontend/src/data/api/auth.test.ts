@@ -1,6 +1,7 @@
 import '../../test/testLocks'
 import { afterEach, expect, it, vi } from 'vitest'
 import { login, refresh, logout, getAccessToken, authVersion, protectedRequest } from './auth'
+import { AccountRestricted } from '../../domain/repositories/AuthRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 
 afterEach(() => { vi.unstubAllGlobals() })
@@ -12,6 +13,24 @@ it('uses CSRF for login and retains the token only in memory', async () => {
   expect((await login('a@b.co', 'password')).operator).toBe(true)
   expect(getAccessToken()).toBe('secret')
   expect(fetchMock.mock.calls[1][1]).toMatchObject({ credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': 'csrf' } })
+})
+
+it('turns a login 403 carrying the restriction code into AccountRestricted', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
+    ? Response.json({ csrfToken: 'c' })
+    : Response.json({ type: 'about:blank', title: 'Forbidden', status: 403, detail: 'Account is restricted.', code: 'ACCOUNT_RESTRICTED' }, { status: 403 })))
+  await expect(login('a@b.co', 'password')).rejects.toBeInstanceOf(AccountRestricted)
+})
+
+it.each([
+  ['an empty body', () => new Response(null, { status: 403 })],
+  ['an error without a code', () => Response.json({ status: 403, error: 'Forbidden' }, { status: 403 })],
+  ['another code', () => Response.json({ code: 'SOMETHING_ELSE' }, { status: 403 })],
+])('keeps a login 403 with %s a generic failure', async (_name, body) => {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : body()))
+  const failure = login('a@b.co', 'password')
+  await expect(failure).rejects.toThrow('Authentication request failed')
+  await expect(failure).rejects.not.toBeInstanceOf(AccountRestricted)
 })
 
 it('shares concurrent refresh and clears the token on failure', async () => {
