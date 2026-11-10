@@ -109,7 +109,7 @@ class SettingAttachmentHttpTest {
     @Test fun `content JPA transactions stay separate from attachment transactions`() {
         val authManager = assertInstanceOf(org.springframework.orm.jpa.JpaTransactionManager::class.java, authTransactions.transactionManager)
         assertNotSame(attachmentTransactions.transactionManager, authManager)
-        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity","ai.storyfork.content.comment.entity","ai.storyfork.content.like.entity","ai.storyfork.content.interest.entity","ai.storyfork.content.reading.entity","ai.storyfork.content.editsuggestion.entity"), requireNotNull(authManager.entityManagerFactory)
+        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity","ai.storyfork.content.comment.entity","ai.storyfork.content.feedbackreport.entity","ai.storyfork.content.like.entity","ai.storyfork.content.interest.entity","ai.storyfork.content.reading.entity","ai.storyfork.content.editsuggestion.entity"), requireNotNull(authManager.entityManagerFactory)
             .metamodel.entities.map { it.javaType.packageName }.toSet())
         val id = UUID.randomUUID().toString()
         authTransactions.executeWithoutResult { status ->

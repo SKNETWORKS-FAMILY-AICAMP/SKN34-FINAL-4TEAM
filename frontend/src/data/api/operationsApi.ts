@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
+import type { AdminActivity } from '../../domain/entities/adminActivity'
 import type { AdminAccount, AdminInput, MemberItem, MemberQuery } from '../../domain/entities/member'
 import { OperationsError } from '../../domain/entities/operations'
 import type { OperationsWork } from '../../domain/entities/operationsWork'
 import type { Report, ReportInput, ReportStatus, ReviewDecision } from '../../domain/entities/report'
 import type { SupportInquiry, SupportInquiryInput, SupportInquiryStatus } from '../../domain/entities/supportInquiry'
+import type { AdminActivityRepository } from '../../domain/repositories/AdminActivityRepository'
 import type { MemberRepository } from '../../domain/repositories/MemberRepository'
 import type { OperationsWorkRepository } from '../../domain/repositories/OperationsWorkRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
@@ -21,10 +23,21 @@ const report = z.object({
 })
 const member = z.object({ id: z.string(), email: z.string(), nickname: z.string(), role: z.enum(['MEMBER', 'ADMIN']), restricted: z.boolean(), createdAt: instant })
 const admin = member.extend({ permissions: z.array(z.string()) })
+const forkIntegrity = z.object({
+  basisEpisode: z.number().int().positive(),
+  forkHash: z.string().regex(/^[0-9a-f]{64}$/),
+  sourceHash: z.string().regex(/^[0-9a-f]{64}$/),
+  matches: z.boolean(),
+  characterStateStatus: z.literal('unavailable'),
+})
 const operationsWork = z.object({
   workId: z.string(), ownerId: z.string(), title: z.string(), authorName: z.string(),
   originKind: z.enum(['original', 'fork']), creationType: z.enum(['original', 'external_derivative']),
   rightsConfirmed: z.boolean(), visibility: z.enum(['public', 'private']), restricted: z.boolean(),
+})
+const adminActivity = z.object({
+  id: z.string(), actorId: z.string(), actorNickname: z.string().nullable(), action: z.string(), targetType: z.string(),
+  targetId: z.string(), detail: z.string().nullable(), createdAt: instant,
 })
 const supportReply = z.object({ id: z.string(), body: z.string(), createdAt: instant, updatedAt: instant })
 const supportInquiry = z.object({
@@ -96,7 +109,16 @@ export class HttpOperationsWorkRepository implements OperationsWorkRepository {
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
 
   list(): Promise<OperationsWork[]> { return read(this.fetcher, '/works', items(operationsWork)) }
+  forkIntegrity(workId: string) { return read(this.fetcher, `/works/${id(workId)}/fork-integrity`, forkIntegrity) }
   async setRestriction(workId: string, restricted: boolean) { await send(this.fetcher, `/works/${id(workId)}/restriction`, restricted ? 'PUT' : 'DELETE') }
+}
+
+/** 관리자 활동 기록(72): 운영 서비스가 남긴 관리자 변경 조치 최신 100개. 수행자 닉네임은 서버가 채우며 없으면 null입니다. */
+export class HttpAdminActivityRepository implements AdminActivityRepository {
+  private readonly fetcher?: typeof fetch
+  constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
+
+  list(): Promise<AdminActivity[]> { return read(this.fetcher, '/admin/activities', items(adminActivity)) }
 }
 
 /** 고객지원 문의(67): 변경 응답의 SupportInquiry는 쓰지 않고, 화면이 목록·상세를 다시 조회합니다. */

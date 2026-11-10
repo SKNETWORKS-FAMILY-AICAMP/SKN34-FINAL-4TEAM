@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate, useParams } from 'react-router'
 
@@ -11,6 +11,7 @@ import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { useReaderViewModel } from '../viewmodel/useReaderViewModel'
 import { Amb } from './Amb'
 import { EpisodeComments } from './EpisodeComments'
+import { EpisodeFeedbackReports } from './EpisodeFeedbackReports'
 import { UnavailableWork } from './WorkPage'
 import { EditSuggestionSheet } from './EditSuggestionSheet'
 import { CommentSheet, FeedbackSheet, LookSheet } from './Sheets'
@@ -86,6 +87,8 @@ export function ReaderPage() {
   const { id = '', n = '1' } = useParams()
   const vm = useReaderViewModel(id, +n || 1)
   const fb = useFeedbackViewModel()
+  // 실제 작품에서 제보를 보낸 뒤 회차 제보 목록을 다시 읽게 올리는 값(독서 기록을 다시 쓰지 않도록 화면 데이터 전체를 갱신하지 않는다).
+  const [reportsRefresh, setReportsRefresh] = useState(0)
   const r = vm.reader
   const refs = useReaderScroll(!!r, vm.setEnd)
   useDocumentTitle(r ? `${r.work.title} ${r.n}화` : '회차 뷰어')
@@ -168,6 +171,7 @@ export function ReaderPage() {
             </div>
           )}
           {w.canonical && <EpisodeComments key={`${w.id}/${r.n}`} workId={w.id} n={r.n} quoted={vm.sheet?.kind === 'comment' ? vm.sentences[vm.sheet.k] : undefined} onCloseSheet={closeSheet} />}
+          {w.canonical && <EpisodeFeedbackReports key={`${w.id}/${r.n}/reports`} workId={w.id} n={r.n} refresh={reportsRefresh} />}
           {!w.canonical && <section className="tcard cms">
             <h3>댓글 {r.comments.length}</h3>
             <form className="cmf" id="cmf" onSubmit={(ev) => {
@@ -207,16 +211,16 @@ export function ReaderPage() {
       {selected && vm.selected?.pop && (
         <SentencePop at={vm.selected} onDismiss={dismissPop}>
           <button type="button" onClick={() => vm.openSheet({ kind: 'comment', k: vm.selected?.k ?? 0 })}>💬 댓글 달기</button>
-          {/* 정본 작품은 댓글과 수정 제안만 서버에 연결돼 있어 피드백·문장 공유(데모) 동작은 열지 않습니다. */}
+          {/* 정본 작품은 댓글·피드백(제보)·수정 제안만 서버에 연결돼 있어 문장 공유(데모) 동작은 열지 않습니다. */}
+          <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>{w.canonical && !vm.loggedIn ? '✉ 로그인하고 피드백 보내기' : '✉ 피드백 보내기'}</button>
           {w.canonical && <button type="button" onClick={() => vm.openSheet({ kind: 'suggest', k: vm.selected?.k ?? 0 })}>✎ 수정 제안</button>}
-          {!w.canonical && <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>✉ 피드백 보내기</button>}
           {!w.canonical && <button type="button" onClick={() => { dismissPop(true); vm.shareSentence() }}>⧉ 문장 공유</button>}
         </SentencePop>
       )}
       {vm.sheet?.kind === 'look' && <LookSheet onClose={closeSheet} />}
       {!w.canonical && vm.sheet?.kind === 'comment' && <CommentSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet}
         onAdded={() => setTimeout(() => document.querySelector('.cm:last-of-type')?.scrollIntoView?.({ block: 'center' }), 60)} />}
-      {vm.sheet?.kind === 'feedback' && <FeedbackSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet} />}
+      {vm.sheet?.kind === 'feedback' && <FeedbackSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} canonical={w.canonical} onSent={() => setReportsRefresh((v) => v + 1)} onClose={closeSheet} />}
       {w.canonical && vm.sheet?.kind === 'suggest' && <EditSuggestionSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet} />}
     </div>
   )

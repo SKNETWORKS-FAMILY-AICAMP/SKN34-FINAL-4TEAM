@@ -21,8 +21,29 @@ it('mockup 컨테이너는 데모 집필실의 TXT 초안만 만들고 가져오
   await expect(container.resolve('mediaUseCase').publicEpisodeImageAlts(work.id, 1)).rejects.toThrow('데모에서는 지원하지 않아요')
 })
 
+it('mockup 컨테이너의 제보 저장소는 서버 대신 빈 목록·미지원 오류 대역이고 데모 작품 피드백은 기존 메모리 경로다', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  const container = createAppContainer()
+  const reports = container.resolve('feedbackReportUseCase')
+  expect(await reports.listMine()).toEqual([])
+  expect(await reports.listInbox()).toEqual([])
+  await expect(reports.register('w', 1, { kind: 'typo', body: '본문', visibility: 'private' })).rejects.toThrow('데모에서는 지원하지 않아요')
+  const feedback = container.resolve('feedbackUseCase')
+  const [demo] = await container.resolve('workRepository').listWorks()
+  expect(await feedback.sendFeedback({ workId: demo.id, n: 1, sentence: { t: '문장', pi: 0 }, type: '질문', text: '질문이에요', verified: false, nick: '독자' })).toMatchObject({ status: '응답 완료' })
+})
+
 it('실제 모드 컨테이너는 서버 저장소를 쓴다(데모 대역을 쓰지 않는다)', () => {
   const container = createAppContainer()
+  expect(container.resolve('feedbackReportRepository').constructor.name).toBe('HttpFeedbackReportRepository')
   expect(container.resolve('manuscriptRepository').constructor.name).toBe('HttpManuscriptRepository')
   for (const method of ['rename', 'listEpisodeImages', 'updateEpisodeImageAlt', 'publicEpisodeImageAlts']) expect(Object.hasOwn(container.resolve('mediaRepository'), method)).toBe(false)
+})
+
+it('활동 기록 저장소는 실제 모드에서 운영 API를, mockup에서 데모 조치 메모리를 쓴다', async () => {
+  expect(createAppContainer().resolve('adminActivityRepository').constructor.name).toBe('HttpAdminActivityRepository')
+  vi.stubEnv('MODE', 'mockup')
+  const container = createAppContainer()
+  expect(container.resolve('adminActivityRepository').constructor.name).toBe('InMemoryAdminActivityRepository')
+  expect(await container.resolve('adminActivityUseCase').list()).toEqual([])
 })

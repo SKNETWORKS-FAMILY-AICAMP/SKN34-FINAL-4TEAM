@@ -19,6 +19,7 @@ export class InMemoryOperationsWorkRepository implements OperationsWorkRepositor
   constructor(db: MockDb) { this.db = db }
 
   async list() { return this.db.works.map(toOperationsWork) }
+  async forkIntegrity(): Promise<never> { throw new OperationsError('데모에서는 포크 정합성 점검을 지원하지 않아요.') }
   async setRestriction(id: string, restricted: boolean) {
     const work = this.db.works.find((w) => w.id === id)
     if (!work) throw new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.')

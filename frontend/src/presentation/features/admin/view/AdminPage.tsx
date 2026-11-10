@@ -2,6 +2,7 @@ import { type CSSProperties, type FormEvent, type ReactNode, useEffect, useRef }
 import { Link, useSearchParams } from 'react-router'
 
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
+import { activityActionLabel, activityActor, activityTarget } from '../../../../domain/entities/adminActivity'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
@@ -14,7 +15,7 @@ import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
-import { LIVE_TABS, useAdminViewModel } from '../viewmodel/useAdminViewModel'
+import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
 import { AdminActionStatus, OperationsNotices } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
@@ -50,7 +51,7 @@ const TITLES: Record<AdminTab, [string, string]> = {
   events: ['이벤트 관리', '이벤트 내용과 기간을 관리합니다.'],
   notices: ['공지 게시', '공지를 작성하고 수정·삭제합니다.'],
   credits: ['크레딧 관리', '크레딧 이용 현황과 정책 확정 상태를 확인합니다.'],
-  audit: ['관리자 활동 로그', '이 화면에서 수행한 데모 조치를 최신순으로 기록합니다.'],
+  audit: ['관리자 활동 로그', '관리자가 수행한 변경 조치를 최신순으로 보여 줍니다.'],
   profile: ['관리자 프로필', '로그인한 관리자 계정 정보를 확인합니다.'],
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
@@ -280,6 +281,7 @@ function Body(p: BodyProps) {
   if (tab === 'users') return <Users {...p} />
   if (tab === 'profile') return <Profile vm={vm} />
   if (tab === 'works') return <Works {...p} />
+  if (tab === 'audit') return <Audit vm={vm} />
   if (!d) return null
   const titleSort = (
     a: string,
@@ -519,27 +521,6 @@ function Body(p: BodyProps) {
         </p>
       </div>
     )
-  } else if (tab === 'audit') {
-    T = (
-      <div className='panel'>
-        <ul className='audit-list'>
-          {d.admin.audit.length
-            ? d.admin.audit.map((x, i) => (
-              <li key={i}>
-                <time>{x.at}</time>
-                <div>
-                  <b>{x.action}</b>
-                  <div className='small muted'>{x.actor} · {x.detail}</div>
-                </div>
-              </li>
-            ))
-            : <li className='muted'>아직 기록된 조치가 없어요.</li>}
-        </ul>
-        <p className='admin-note'>
-          기록은 현재 브라우저 메모리에만 있으며 새로고침하면 사라집니다.
-        </p>
-      </div>
-    )
   }
   return T
 }
@@ -672,9 +653,40 @@ function LiveState({ vm, label, state }: { vm: VM; label: string; state?: Pick<V
   )
 }
 
+/** 72 관리자 활동 기록: 운영 서비스가 남긴 관리자 변경 조치 최신 100개. 수행자 닉네임은 서버가 채우며 없으면 ID를 보여 줍니다. */
+function Audit({ vm }: { vm: VM }) {
+  const rows = vm.live.data?.activities ?? []
+  return (
+    <div className='panel admin-operations'>
+      <LiveState vm={vm} label='활동 기록' />
+      {vm.live.data && (
+        <ul className='audit-list'>
+          {rows.length
+            ? rows.map((x) => (
+              <li key={x.id}>
+                <time dateTime={x.createdAt}>{kstDateTime(x.createdAt)}</time>
+                <div>
+                  <b>{activityActionLabel(x.action)}</b>
+                  <div className='small muted'>수행자 {activityActor(x)} · 대상 {activityTarget(x)}</div>
+                  {x.detail && <div className='small'>{x.detail}</div>}
+                </div>
+              </li>
+            ))
+            : <li className='muted'>아직 기록된 조치가 없어요.</li>}
+        </ul>
+      )}
+      <p className='admin-note'>
+        최신 100건까지 보여 줘요. 회원·관리자 계정·신고·작품·공지·이벤트·문의 답변의 변경 조치가 성공하면 운영 서버에 남고,
+        조회나 실패한 요청은 기록하지 않아요.
+      </p>
+    </div>
+  )
+}
+
 /** 74 운영 작품 조회·조치: Content의 전체 작품(공개·비공개·운영 제한)과 운영 제한·해제. 분류·검색·정렬은 받은 목록에서 이 화면이 계산합니다. */
 function Works(p: BodyProps) {
   const { vm, f } = p
+  const integrity = useForkIntegrity()
   const rows = (vm.live.data?.works ?? [])
     .filter((w) => (f.category === 'all' || w.originKind === f.category) && has(f.query, w.title, w.authorName, rightsLabel(w)))
     .sort((a, b) => (f.sort === 'titleDesc' ? b.title.localeCompare(a.title, 'ko') : a.title.localeCompare(b.title, 'ko')))
@@ -722,6 +734,7 @@ function Works(p: BodyProps) {
                     >
                       {w.restricted ? '제한 해제' : '운영 제한'}
                     </button>
+                    {w.originKind === 'fork' && <button type='button' className='btn sm' onClick={() => integrity.select({ id: w.workId, title: w.title })}>포크 정합성 점검</button>}
                   </td>
                 </tr>
               ))
@@ -733,9 +746,22 @@ function Works(p: BodyProps) {
           </tbody>
         </Table>
       )}
+      {integrity.target && <section className='panel' aria-label='포크 정합성 점검 결과'>
+        <h3>{integrity.target.title} 정합성 점검</h3>
+        <button type='button' className='btn sm' onClick={() => integrity.select(null)}>점검 결과 닫기</button>
+        {integrity.report.isLoading && <p role='status'>고정 기준 기록을 확인하고 있어요…</p>}
+        {integrity.report.isError && <p role='alert'>점검 결과를 불러오지 못했어요. <button type='button' className='btn sm' onClick={integrity.report.retry}>다시 시도</button></p>}
+        {integrity.report.data && <dl>
+          <dt>기준 회차</dt><dd>{integrity.report.data.basisEpisode}화</dd>
+          <dt>원고 비교</dt><dd>{integrity.report.data.matches ? '일치' : '불일치'}</dd>
+          <dt>포크 스냅샷 해시</dt><dd><code style={{overflowWrap:'anywhere'}}>{integrity.report.data.forkHash}</code></dd>
+          <dt>원작 고정 기록 해시</dt><dd><code style={{overflowWrap:'anywhere'}}>{integrity.report.data.sourceHash}</code></dd>
+          <dt>인물 상태</dt><dd>비교 불가 · 기준 회차의 인물 상태 기록이 없어요.</dd>
+        </dl>}
+      </section>}
       <p className='admin-note'>
         운영 제한한 작품은 공개 작품 목록·상세·회차 열람에서 보이지 않아요. 제한을 해제하면 작가가 정한 공개 상태로 돌아가요.
-        이 조치는 신고 사건이나 활동 로그에 기록하지 않아요.
+        이 조치는 신고 사건에는 남기지 않고 활동 로그에만 기록해요.
       </p>
     </div>
   )

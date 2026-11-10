@@ -77,7 +77,7 @@ export function EditSuggestionInbox() {
       {vm.isError && (
         <div className="panel" role="alert">
           <p>수정 제안을 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>
-          <button type="button" className="btn sm" onClick={vm.retry}>다시 불러오기</button>
+          <button type="button" className="btn sm" onClick={vm.retry}>수정 제안 다시 불러오기</button>
         </div>
       )}
       {!vm.items && !vm.isError && <p className="muted">수정 제안을 불러오고 있어요…</p>}

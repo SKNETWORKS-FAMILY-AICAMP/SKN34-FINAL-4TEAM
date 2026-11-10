@@ -84,6 +84,8 @@ export function useReaderViewModel(id: string, n: number,
       setSheet(s)
     },
     requireMember,
+    /** 로그인한 회원인가. 실제 작품 문장 팝업이 비로그인에게 ‘로그인하고 피드백 보내기’를 보이는 데 쓴다. */
+    loggedIn: !!role,
     closeSheet: () => setSheet(null),
     share: () => toast('링크 공유는 데모예요 (실제 복사 없음)'),
     shareSentence: () => toast('문장 공유는 데모예요 (실제 복사 없음)'),

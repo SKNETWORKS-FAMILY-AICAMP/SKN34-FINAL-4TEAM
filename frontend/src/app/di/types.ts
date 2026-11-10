@@ -52,6 +52,8 @@ export type AppCradle = {
   eventUseCase: import('../../domain/usecases/EventUseCase').EventUseCase
   operationsWorkRepository: import('../../domain/repositories/OperationsWorkRepository').OperationsWorkRepository
   operationsWorkUseCase: import('../../domain/usecases/OperationsWorkUseCase').OperationsWorkUseCase
+  adminActivityRepository: import('../../domain/repositories/AdminActivityRepository').AdminActivityRepository
+  adminActivityUseCase: import('../../domain/usecases/AdminActivityUseCase').AdminActivityUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
@@ -65,6 +67,8 @@ export type AppCradle = {
   episodeCommentRepository: import('../../domain/repositories/EpisodeCommentRepository').EpisodeCommentRepository
   editSuggestionUseCase: import('../../domain/usecases/EditSuggestionUseCase').EditSuggestionUseCase
   editSuggestionRepository: import('../../domain/repositories/EditSuggestionRepository').EditSuggestionRepository
+  feedbackReportUseCase: import('../../domain/usecases/FeedbackReportUseCase').FeedbackReportUseCase
+  feedbackReportRepository: import('../../domain/repositories/FeedbackReportRepository').FeedbackReportRepository
   openNotificationStream: OpenNotificationStream
   fetchCoreApiHealth: FetchCoreApiHealth
   fetchAiServiceHealth: FetchCoreApiHealth

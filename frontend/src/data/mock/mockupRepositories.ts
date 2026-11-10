@@ -3,6 +3,7 @@ import { manuscriptText } from '../../domain/entities/media'
 import { newSetting, type SettingItem, type StudioSetting } from '../../domain/entities/studioWorld'
 import type { AuthRepository, AuthUser } from '../../domain/repositories/AuthRepository'
 import type { EpisodeRepository } from '../../domain/repositories/EpisodeRepository'
+import type { FeedbackReportRepository } from '../../domain/repositories/FeedbackReportRepository'
 import type { ManuscriptRepository } from '../../domain/repositories/ManuscriptRepository'
 import type { MediaRepository } from '../../domain/repositories/MediaRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
@@ -61,6 +62,15 @@ export function createMockupManuscriptRepository(writing: Pick<EpisodeRepository
 /** 설정 첨부 이름 변경과 회차 이미지 목록·대체 텍스트·공개 설명 조회도 같습니다. 나머지 첨부 동작은 기존 HTTP 저장소 그대로입니다. */
 export const mockupUnsupportedMedia: Pick<MediaRepository, 'rename' | 'listEpisodeImages' | 'updateEpisodeImageAlt' | 'publicEpisodeImageAlts'> = {
   rename: demoUnsupported, listEpisodeImages: demoUnsupported, updateEpisodeImageAlt: demoUnsupported, publicEpisodeImageAlts: demoUnsupported,
+}
+
+/**
+ * 정본(서버) 작품이 없는 발표용 빌드·테스트의 제보 저장소: 목록은 비어 있고 쓰기는 데모 미지원 오류로 답합니다(성공을 흉내 내지 않음).
+ * 데모 작품의 피드백은 기존 메모리 경로(FeedbackRepository)가 그대로 맡습니다.
+ */
+export const mockupFeedbackReportRepository: FeedbackReportRepository = {
+  create: demoUnsupported, listEpisode: async () => [], listMine: async () => [], listInbox: async () => [],
+  setVisibility: demoUnsupported, correct: demoUnsupported, withdraw: demoUnsupported, check: demoUnsupported, answer: demoUnsupported, setStatus: demoUnsupported,
 }
 
 const now = () => new Date().toISOString()
