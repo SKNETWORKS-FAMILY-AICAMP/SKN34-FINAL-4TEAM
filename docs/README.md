@@ -15,7 +15,7 @@
 | [WBS](deliverables/SKN34-final-4Team_WBS.xlsx) | 일정·작업 분해 |
 | [화면 설계서](<deliverables/SKN34-final-4Team_화면설계서.pdf>) | 화면 구성·흐름 |
 | [시스템 구상도](<deliverables/SKN34-final-4Team_시스템 구상도.pdf>) · [AI 시스템 아키텍처](<deliverables/SKN34-final-4Team_AI 시스템 아키텍처.pdf>) | 제출용 시스템·AI 구성도 |
-| [산출물 안내](deliverables/README.md) | 산출물 목록, 중간발표 버전별 설명(최신 v36)과 발표 보조 자료 |
+| [산출물 안내](deliverables/README.md) | 산출물 목록, 중간발표 최종본(v36)과 발표 보조 자료 |
 
 ## 유스케이스·화면
 
