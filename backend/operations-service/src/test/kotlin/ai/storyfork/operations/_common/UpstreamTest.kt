@@ -56,10 +56,10 @@ class UpstreamTest {
 
     @Test
     fun `statuses that are not preserved stay 502 and never carry the text`() {
-        val body = """{"detail":"$message"}""".toByteArray(StandardCharsets.UTF_8)
+        val json = """{"detail":"$message"}"""
         for (error in listOf(
-            clientError(HttpStatus.FORBIDDEN, String(body, StandardCharsets.UTF_8)),
-            HttpServerErrorException.create(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders(), body, null),
+            clientError(HttpStatus.FORBIDDEN, json),
+            HttpServerErrorException.create(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders(), json.toByteArray(StandardCharsets.UTF_8), null),
         )) {
             val rejected = failure(true, error)
 

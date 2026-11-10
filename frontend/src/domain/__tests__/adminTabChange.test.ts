@@ -4,10 +4,9 @@ import { adminViewSlice } from '../../presentation/features/admin/state/adminVie
 import { useAdminViewModel } from '../../presentation/features/admin/viewmodel/useAdminViewModel'
 import type { AdminTab } from '../entities/admin'
 
-// adminMutationCompletion.test.ts처럼 렌더러 없이 Hook 본문만 실행합니다. 다만 탭이 바뀔 때만 도는 효과를 보려면 상태가 렌더 사이에 이어지고
-// useEffect가 deps 변화를 알아야 하므로, 슬롯 방식으로 useState·useRef를 대신하고 deps를 비교하는 useEffect를 둡니다.
-// 효과는 렌더 안에서 바로 실행되고, setState로 바뀐 값은 다음 render()가 읽습니다. 실제 React 렌더 회귀는 useAdminViewModel.test.tsx(CI 전용)가 맡습니다.
-type EffectSlot = { deps: readonly unknown[] | undefined; cleanup: (() => void) | undefined }
+// adminMutationCompletion.test.ts처럼 렌더러 없이 Hook 본문만 실행합니다. 탭이 바뀐 뒤의 값을 보려면 상태가 렌더 사이에 이어져야 하므로
+// useActionRunner.test.ts처럼 슬롯 방식으로 useState·useRef를 대신하고, render()를 다시 부르면 setState로 바뀐 값을 읽습니다.
+// 실제 React 렌더 회귀는 useAdminViewModel.test.tsx(CI 전용)가 맡습니다.
 const hooks = vi.hoisted(() => {
   const slots: unknown[] = []
   let cursor = 0
@@ -20,15 +19,7 @@ const hooks = vi.hoisted(() => {
       const i = slot(() => initial)
       return [slots[i] as T, (next: T | ((prev: T) => T)) => { slots[i] = typeof next === 'function' ? (next as (prev: T) => T)(slots[i] as T) : next }] as const
     },
-    useEffect: (setup: () => void | (() => void), deps?: readonly unknown[]) => {
-      const effect = slots[slot((): EffectSlot => ({ deps: undefined, cleanup: undefined }))] as EffectSlot
-      const previous = effect.deps
-      if (!deps || !previous || deps.some((dep, k) => !Object.is(dep, previous[k]))) {
-        effect.cleanup?.()
-        effect.deps = deps
-        effect.cleanup = setup() ?? undefined
-      }
-    },
+    useEffect: () => {},
   }
 })
 const doubles = vi.hoisted(() => ({
