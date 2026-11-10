@@ -5,7 +5,6 @@ import ai.storyfork.operations._common.service.dto.OperationsErrorResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
-import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -18,7 +17,7 @@ class MemberSecurityConfig {
     @Bean
     @Order(1)
     fun memberSecurityFilterChain(http: HttpSecurity, core: CoreClient, mapper: JsonMapper): SecurityFilterChain {
-        val paths = listOf("reports", "members", "admins").flatMap { listOf("/api/v1/operations/$it", "/api/v1/operations/$it/**") }
+        val paths = listOf("reports", "members", "admins", "support", "admin/notices", "admin/events", "admin/activities", "works", "comments").flatMap { listOf("/api/v1/operations/$it", "/api/v1/operations/$it/**") }
         // Bearer header only (no cookie/session), so CSRF protection is not applicable.
         http.securityMatcher(*paths.toTypedArray())
             .csrf { it.disable() }.cors { it.disable() }
@@ -27,10 +26,8 @@ class MemberSecurityConfig {
             .authorizeHttpRequests { it.anyRequest().authenticated() }
             .exceptionHandling {
                 it.authenticationEntryPoint { _, response, _ ->
-                    response.status = 401
                     response.setHeader("WWW-Authenticate", "Bearer")
-                    response.contentType = MediaType.APPLICATION_JSON_VALUE
-                    mapper.writeValue(response.writer, OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
+                    response.writeError(mapper, 401, OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
                 }
             }
             .addFilterBefore(MemberBearerFilter(core, mapper), AnonymousAuthenticationFilter::class.java)

@@ -1,5 +1,6 @@
 package ai.storyfork.operations.notice
 
+import ai.storyfork.operations._common.blankTexts
 import ai.storyfork.operations.notice.entity.NoticeEntity
 import ai.storyfork.operations.notice.repository.NoticeRepository
 import ai.storyfork.operations.notice.service.NoticeService
@@ -25,7 +26,6 @@ import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 
@@ -93,12 +93,12 @@ class NoticeServiceTest {
     }
 
     @Test
-    fun `list bounds an unpaged request and returns explicit page metadata`() {
+    fun `list returns explicit page metadata`() {
         val entity = notice()
         val bounded = PageRequest.of(0, 20, sort)
         `when`(repository.findAll(bounded)).thenReturn(PageImpl(listOf(entity), bounded, 21))
 
-        val result = service.list(Pageable.unpaged())
+        val result = service.list(PageRequest.of(0, 20))
 
         assertEquals(listOf(entity.id), result.items.map { it.id })
         assertEquals(0, result.page)
@@ -109,8 +109,8 @@ class NoticeServiceTest {
     }
 
     @Test
-    fun `list caps size at 100 and uses a stable timestamp and UUID sort`() {
-        val requested = PageRequest.of(2, 5_000, Sort.by("title"))
+    fun `list ignores the caller sort and uses a stable timestamp and UUID sort`() {
+        val requested = PageRequest.of(2, 100, Sort.by("title"))
         val bounded = PageRequest.of(2, 100, sort)
         `when`(repository.findAll(bounded)).thenReturn(PageImpl(emptyList(), bounded, 0))
 
@@ -209,16 +209,12 @@ class NoticeServiceTest {
     )
 
     companion object {
+        // 길이는 NoticeRequest의 @Size가 거절한다(RequestValidationTest). 서비스는 공백(@NotBlank가 놓치는 NBSP류 포함)과 U+0000을 거절한다.
         @JvmStatic
-        fun invalidRequests(): List<NoticeRequest> = listOf(
-            NoticeRequest("", "본문"),
-            NoticeRequest(" \t\n", "본문"),
-            NoticeRequest("가".repeat(201), "본문"),
-            NoticeRequest("제목", ""),
-            NoticeRequest("제목", " \t\n"),
-            NoticeRequest("제목", "나".repeat(20_001)),
-            NoticeRequest("제\u0000목", "본문"),
-            NoticeRequest("제목", "본\u0000문"),
-        )
+        fun invalidRequests(): List<NoticeRequest> =
+            blankTexts.flatMap { listOf(NoticeRequest(it, "본문"), NoticeRequest("제목", it)) } + listOf(
+                NoticeRequest("제\u0000목", "본문"),
+                NoticeRequest("제목", "본\u0000문"),
+            )
     }
 }

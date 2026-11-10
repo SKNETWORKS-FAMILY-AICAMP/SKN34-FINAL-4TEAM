@@ -7,6 +7,10 @@ export function cardLibraryRows(settings:StudioSetting[],type:CardType|'all',que
   return kind!=='relation'&&kind!=='review'&&kind!=='note'&&(type==='all'||kind===type)&&[s.item.title,s.item.text,s.userCategory,...s.tags,...(s.aliases??[])].join(' ').toLocaleLowerCase().includes(search)
  })
 }
+export function selectCardForFilter(settings:StudioSetting[],selected:string,type:CardType|'all',query:string):string {
+ const rows=cardLibraryRows(settings,type,query)
+ return rows.some(row=>row.item.id===selected)?selected:rows[0]?.item.id??''
+}
 export type WritingIssue={step:'info'|'cards';id?:string;message:string}
 export function worldWritingIssues(world:StudioWorld):WritingIssue[]{
  const issues:WritingIssue[]=[]

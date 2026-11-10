@@ -46,7 +46,6 @@ function renderGuarded(path: string, store = createAppStore()) {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/lib" element={<RequireRole><Where /></RequireRole>} />
-          <Route path="/read/:id/:n" element={<RequireRole><Where /></RequireRole>} />
           <Route path="/admin" element={<RequireRole admin><Where /></RequireRole>} />
           <Route path="/" element={<Where />} />
         </Routes>
@@ -106,10 +105,19 @@ describe('로그인·라우트 보호 (L01, 목업 render() 보호 목록)', () 
     expect(store.getState().session).toMatchObject({ role: 'user', next: null, loginMsg: '' })
   })
 
-  it('회차 뷰어는 읽기 안내를, 관리자 화면은 관리자 로그인을 요구한다', async () => {
-    renderGuarded('/read/guunmong/1')
-    await screen.findByText('소설을 읽으려면 로그인해 주세요.')
-    cleanup()
+  it('회차 뷰어는 비회원에게도 열려 로그인 안내 없이 공개 회차를 보여 준다', async () => {
+    // UC-01: 공개 회차 열람과 작품 탐색은 비회원도 할 수 있다. 서버(Content)도 공개 작품 GET을 익명으로 허용한다.
+    for (const path of ['/read/guunmong/1', '/read/guunmong']) {
+      const { store } = renderApp(path)
+      await screen.findByRole('heading', { name: '연화봉의 젊은 승려' })
+      expect(screen.queryByText('소설을 읽으려면 로그인해 주세요.')).toBeNull()
+      expect(screen.queryByRole('heading', { name: '로그인', level: 1 })).toBeNull()
+      expect(store.getState().session).toMatchObject({ role: null, next: null, loginMsg: '' })
+      cleanup()
+    }
+  })
+
+  it('관리자 화면은 관리자 로그인을 요구한다', async () => {
     const store = renderGuarded('/admin', createAppStore({ role: 'user' }))
     await screen.findByText('관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.')
     expect(screen.queryByRole('button', { name: '관리자 데모' })).toBeNull()

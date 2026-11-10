@@ -2,7 +2,16 @@ import {expect,it} from 'vitest'
 import {newSetting} from '../../../../domain/entities/studioWorld'
 import {putRelation} from '../../../../domain/entities/studioRelations'
 import {mapConnectionLabel,type MapNode} from './useWorldMapViewModel'
-import {buildCharacterMap} from './characterMap'
+import {buildCharacterMap,buildSettingRelationshipMap} from './characterMap'
+it('keeps locations and real directed relationships in the service card board',()=>{
+ const person=newSetting('people'),place=newSetting('places')
+ person.item.title='가람';place.item.title='항구'
+ const rows=putRelation([person,place],{subjectId:person.item.id,targetId:place.item.id,predicate:'custom_relation_directed',polarity:'asserted',text:'지키는 장소'})
+ const before=structuredClone(rows),graph=buildSettingRelationshipMap(rows)
+ expect(graph.nodes.map(n=>n.id)).toEqual([person.item.id,place.item.id])
+ expect(graph.links[0]).toMatchObject({id:rows[2].item.id,source:person.item.id,target:place.item.id,symmetric:false})
+ expect(rows).toEqual(before)
+})
 it('2D character projection keeps person IDs and real relationship edges separate from locations',()=>{
  const a=newSetting('people'),b=newSetting('people'),place=newSetting('places')
  a.item.title='가람';b.item.title='나래';place.item.title='항구'

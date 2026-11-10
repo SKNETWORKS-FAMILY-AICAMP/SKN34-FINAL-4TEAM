@@ -73,7 +73,7 @@ class WorldStudioServiceTest {
     @Test fun `stale input and foreign cards fail before any graph mutation`() {
         owned()
         val stale=assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(1,"x","",key="stale")) }
-        assertEquals("WORLD_WRITE_REJECTED",stale.code);assertEquals(409,stale.statusCode.value())
+        assertEquals("WORLD_WRITE_REJECTED",stale.code);assertEquals(WorldStudioFailure.Reason.REJECTED,stale.reason)
         assertTrue(state.completed);verify(states,never()).flush()
         val card=CardPayload(UUID.randomUUID(),"외부 인물","원문","character","basic")
         `when`(cards.findById(card.id)).thenReturn(Optional.of(SettingCard(card.id,UUID.randomUUID())))
