@@ -126,9 +126,7 @@ class ContentBoundaryTest {
             }
         }
         // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf), V24 world checkpoint (world leaf), V25 publication schedule (publication leaf).
-        assertEquals((1..23).toList(), versions.sorted().take(23))
-        assertTrue(versions.size >= 24)
-        assertEquals(versions.size, versions.toSet().size, "Duplicate Content migration version")
+        assertEquals((1..25).toList(), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->
