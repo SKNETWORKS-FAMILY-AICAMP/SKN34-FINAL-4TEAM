@@ -106,6 +106,16 @@ class PublicationScheduleServiceTest {
         assertNull(third.completedAt)
     }
 
+    @Test fun `a schedule canceled after it was picked up is not published`() {
+        val row = pending("s1", "e2")
+        queue(row)
+        row.cancel(0, Instant.now()) // Fork 공개 중단이 같은 작품 잠금 안에서 취소한 예약을 실행 루프가 이미 읽어 둔 경우
+        `when`(auth.verifyScheduledMember(owner)).thenReturn(UUID.fromString(owner))
+        service.publishDue()
+        assertEquals("canceled", row.status)
+        verifyNoInteractions(publication)
+    }
+
     @Test fun `restricted member is recorded as a failed schedule`() {
         val row = pending("s1", "e2")
         queue(row)

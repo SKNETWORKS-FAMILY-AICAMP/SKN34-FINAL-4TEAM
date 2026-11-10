@@ -47,6 +47,7 @@ class WorkPolicyServiceTest {
     @Mock lateinit var viewService: WorkViewService
     @Mock lateinit var nicknames: ai.storyfork.content.auth.service.CoreNicknameService
     @Mock lateinit var likeService: WorkLikeService
+    @Mock lateinit var schedules: PublicationScheduleRepository
     @InjectMocks lateinit var service: WorkService
 
     private val work=WorkAccessResult("w","owner","제목","소개",4,"world","public",true,true,null)
@@ -72,7 +73,30 @@ class WorkPolicyServiceTest {
         assertEquals("private",event.visibility)
         assertEquals(3,event.revisionNo)
         assertEquals(5,row.revision)
+        verify(schedules).findAllByWorkIdAndStatus("w","pending") // 반복 호출은 비공개 상태에서 바로 끝난다
         verifyNoInteractions(episodes,drafts,publication)
+    }
+
+    private val forkSource=ai.storyfork.content.fork.service.dto.SourceResponse("original","원작",1,1,"분기")
+    private fun pendingSchedule(id: String,episode: String)=
+        ai.storyfork.content.publication.entity.PublicationScheduleEntity(id=id,workId="w",episodeId=episode,ownerId="owner",versionId="v-$episode",scheduledAt=java.time.Instant.now().plusSeconds(3600))
+
+    @Test fun `stopping publication cancels the pending scheduled publications of the Fork`() {
+        `when`(access.own("w","owner")).thenReturn(work.copy(source=forkSource))
+        `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("w")).thenReturn(ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity(workId="w",revisionNo=2,visibility="public"))
+        `when`(works.findById("w")).thenReturn(Optional.of(WorkEntity(id="w",ownerId="owner",revision=4)))
+        val third=pendingSchedule("s3","e3");val fourth=pendingSchedule("s4","e4")
+        `when`(schedules.findAllByWorkIdAndStatus("w","pending")).thenReturn(listOf(third,fourth))
+        service.stopForkPublication("w","owner")
+        assertEquals(listOf("canceled","canceled"),listOf(third.status,fourth.status))
+        assertNotNull(third.completedAt)
+    }
+
+    @Test fun `stopping a Fork that is not public keeps its pending scheduled publications`() {
+        `when`(access.own("w","owner")).thenReturn(work.copy(source=forkSource))
+        `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("w")).thenReturn(ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity(workId="w",revisionNo=0,visibility="private"))
+        service.stopForkPublication("w","owner")
+        verifyNoInteractions(schedules,works)
     }
 
     @Test fun `stopping Fork publication rejects an original`() {
