@@ -490,7 +490,7 @@ it('활동 로그 탭은 조회 권한이 없으면(403) 실패 화면 대신 �
   expect(screen.queryByText(/활동 기록을 불러오지 못했어요/)).toBeNull()
   expect(document.querySelector('.audit-list')).toBeNull()
   // 탭 안내문에도 필요한 권한이 적혀 있다.
-  expect(document.querySelector('.admin-note')?.textContent).toContain('‘관리자 계정 관리’ 권한이 있는 관리자만 볼 수 있어요')
+  expect(screen.getByText(/‘관리자 계정 관리’ 권한이 있는 관리자만 볼 수 있어요/).className).toBe('admin-note')
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
