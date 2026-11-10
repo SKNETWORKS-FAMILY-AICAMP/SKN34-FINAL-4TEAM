@@ -22,7 +22,8 @@ class ContentClient(private val http: RestClient) {
         http.get().uri("/internal/v1/works").retrieve().body<OperationsWorkList>()
     }
 
-    fun forkIntegrity(workId: UUID): ForkIntegrity = upstream {
+    // Content's own 404/409 text ("포크 작품을 찾을 수 없어요.", "원작의 고정 기준 기록을 확인할 수 없어요.") is what the admin needs to read, so it is kept.
+    fun forkIntegrity(workId: UUID): ForkIntegrity = upstream(keepMessage = true) {
         http.get().uri("/internal/v1/works/{id}/fork-integrity", workId).retrieve().body<ForkIntegrity>()
     }
 

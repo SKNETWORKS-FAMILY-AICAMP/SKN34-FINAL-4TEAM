@@ -3,6 +3,7 @@ package ai.storyfork.operations._common
 import ai.storyfork.operations._common.client.ContentClient
 import ai.storyfork.operations._common.client.CoreAdminRequest
 import ai.storyfork.operations._common.client.CoreClient
+import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations._common.client.operationsRestClient
 import ai.storyfork.operations.security.OperationsMember
 import ai.storyfork.operations.work.service.dto.OperationsWork
@@ -143,6 +144,52 @@ class OperationsClientsIntegrationTest {
         val (failing, failingServer) = content()
         failingServer.expect(requestTo("http://content.test/internal/v1/works")).andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE))
         assertEquals(502, status { failing.works() })
+    }
+
+    @Test
+    fun `fork integrity sends only the service token and parses the report`() {
+        val (client, server) = content()
+        val hash = "a".repeat(64)
+        server.expect(requestTo("http://content.test/internal/v1/works/$id/fork-integrity")).andExpect(method(HttpMethod.GET))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess("""{"basisEpisode":2,"forkHash":"$hash","sourceHash":"$hash","matches":true,"characterStateStatus":"unavailable"}""", MediaType.APPLICATION_JSON))
+
+        val report = client.forkIntegrity(id)
+        assertEquals(2, report.basisEpisode)
+        assertTrue(report.matches)
+        server.verify()
+    }
+
+    @Test
+    fun `fork integrity keeps Content's own failure text for 400 404 and 409 while other Content calls keep only the status`() {
+        val text = "원작의 고정 기준 기록을 확인할 수 없어요."
+        for (upstream in listOf(HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND, HttpStatus.CONFLICT)) {
+            val (client, server) = content()
+            for (path in listOf("$id/fork-integrity", "$id")) {
+                server.expect(requestTo("http://content.test/internal/v1/works/$path"))
+                    .andRespond(withStatus(upstream).contentType(MediaType.APPLICATION_JSON).body("""{"detail":"$text"}"""))
+            }
+
+            val rejected = assertThrows(UpstreamRejection::class.java) { client.forkIntegrity(id) }
+            assertEquals(upstream.value(), rejected.statusCode.value(), upstream.toString())
+            assertEquals(text, rejected.userMessage, upstream.toString())
+            assertFalse(assertThrows(ResponseStatusException::class.java) { client.work(id) } is UpstreamRejection, upstream.toString())
+            server.verify()
+        }
+    }
+
+    @Test
+    fun `fork integrity maps Content failures other than 400 404 and 409 to 502 without the text`() {
+        for (upstream in listOf(HttpStatus.FORBIDDEN, HttpStatus.SERVICE_UNAVAILABLE)) {
+            val (client, server) = content()
+            server.expect(requestTo("http://content.test/internal/v1/works/$id/fork-integrity"))
+                .andRespond(withStatus(upstream).contentType(MediaType.APPLICATION_JSON).body("""{"detail":"private text"}"""))
+
+            val failure = assertThrows(ResponseStatusException::class.java) { client.forkIntegrity(id) }
+            assertEquals(502, failure.statusCode.value(), upstream.toString())
+            assertFalse(failure is UpstreamRejection, upstream.toString())
+        }
     }
 
     @Test
