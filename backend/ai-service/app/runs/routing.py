@@ -18,9 +18,9 @@ OPERATIONS: dict[str, tuple[Capability, ...]] = {
     "review": ("context", "mechanical", "review"),
     "edit": ("context", "editing"),
     "simulate": ("context", "simulation"),
-    "next_draft": ("context", "development", "writing"),
+    "next_draft": ("context", "development", "writing", "mechanical"),
     "next_insights": ("context", "development"),
-    "expand_conti": ("context", "writing"),
+    "expand_conti": ("context", "development", "writing", "mechanical"),
     "world_plot_change": ("context", "world_plot"),
     "recommend_template": ("template",),
 }

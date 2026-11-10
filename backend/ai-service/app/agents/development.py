@@ -69,6 +69,7 @@ class DevelopmentInput(Contract):
     plot_refs: tuple[Id, ...]
     character_refs: tuple[Id, ...]
     simulations: tuple[SemanticSimulation, ...] = ()
+    current_relationships: tuple[Evidence, ...] = ()
 
 
 class BeatPlan(Contract):
@@ -83,7 +84,8 @@ class BeatPlan(Contract):
     gaps: tuple[Gap, ...] = ()
 
 
-async def development(request: DevelopmentRequest, *, content, coordinator, model=None, simulation_reports=(), call_context=None):
+async def development(request: DevelopmentRequest, *, content, coordinator, model=None, simulation_reports=(), call_context=None,
+                      packet=None, current_relationships=()):
     """출처 재검증·개수 검사를 통과한 창작 계획만 반환한다. Writing을 호출하지 않는다."""
     request = DevelopmentRequest.model_validate(request.model_dump())
     def fail(status, code="unverified"):
@@ -95,7 +97,7 @@ async def development(request: DevelopmentRequest, *, content, coordinator, mode
     try:
         if datetime.now(timezone.utc) >= query.deadline:
             return fail("timeout", "timeout")
-        packet = validate_packet(await coordinator.retrieve(query), query, content)
+        packet = validate_packet(packet if packet is not None else await coordinator.retrieve(query), query, content)
         if packet.result.status == "denied": return fail("denied")
         if packet.result.status in ("unsupported", "unavailable"): return fail("blocked", "unsupported")
         if not packet.can_conclude:
@@ -113,7 +115,8 @@ async def development(request: DevelopmentRequest, *, content, coordinator, mode
         if model is None: return fail("blocked", "unsupported")
         payload = DevelopmentInput(mode=request.mode, count=request.count, hook_refs=request.hook_refs,
             conti_refs=request.conti_refs, plot_refs=request.plot_refs, character_refs=request.character_refs,
-            simulations=simulations, context=tuple(ContextItem(evidence_ref=e.id, source_revision=e.source_revision,
+            simulations=simulations, current_relationships=current_relationships,
+            context=tuple(ContextItem(evidence_ref=e.id, source_revision=e.source_revision,
                 source_hash=e.source_hash, source_span=e.source_span, content=e.content,
                 retrieval_type=e.retrieval_type, canonical_status=e.canonical_status,
                 as_of_episode=e.as_of_episode, evidence_refs=e.evidence_refs,

@@ -1,5 +1,12 @@
 # 작업 계획과 LangGraph 실행
 
+2026-11-10 TASK 19: `next_draft`·`expand_conti`의 고정 capability는 Context→Development→Writing→Mechanical이다.
+`next_draft_tasks`는 요청 DTO의 명시적 필요·opt-in에만 Simulation을 별도 예산으로 추가하며,
+콘티 전용은 Development에서 종료한다. run별 `NextDraftHandler`는 검증된 BeatPlan/시뮬레이션/현재 관계를
+Writing에 넘기고 연속성 검사 후에만 성공 후보를 공개한다. Main context 소유권은 유지하고
+명시적 plan_factory/전문 handler 주입을 사용한다. 실제 공개 Run의 자동 조립은 미연결이다.
+[입력·검증·한계](task19-handoff.md).
+
 **권장 구조는 하나의 Python StateGraph가 검증된 작업 DAG를 실행하는 방식이다.** 예를 들어 “3화의 카이를 검수하고 문제가 있으면 고쳐 줘”는 검수 결과가 있어야 수정 여부가 정해진다. Router는 의도와 가능한 작업을 분류하고, Python이 선행 조건과 비용을 검사하며, 근거 있는 지적이 있을 때만 편집 작업에 원문 구간을 넘긴다. 새 서버는 필요하지 않다.
 
 모든 흐름도의 파란 사각형은 모델 호출 0회, 노란 육각형은 조건부 호출, 빨간 둥근 노드는 실행 시 모델 호출, 회색 마름모는 결정적 분기다. 점선은 조회 도구·선택적 의존·이벤트를 뜻한다.

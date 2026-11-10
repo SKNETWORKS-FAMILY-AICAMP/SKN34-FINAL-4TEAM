@@ -99,6 +99,20 @@ flowchart LR
 
 ### 10. Story Development와 다음 회차
 
+2026-11-10 TASK 19: 전체 1~N화의 expected/verified와 순번 구멍을 먼저 확인하고, 모델에는 직전 회차와
+명시된 복선·콘티·플롯·인물·시뮬레이션 근거 및 그 출처 의존만 투영한다. Development의 검증된 BeatPlan을
+Writing의 typed `beats`로 전달하며 참조는 검증된 WritingSource ID로 변환한다. 현재 관계는 별도 조회한
+현재 CAS 자료로 Development/Writing의 작가 문맥에만 제공하고 단계 전후에 재조회한다. knownBy가 없는
+현재 관계를 Character의 지식으로 주입하거나 과거 관계로 복원하지 않는다.
+
+연속성 규칙은 모델 0회로 장면 goal/action/dialogue/cause 문구와 명시된 복선·인물 근거 및 말투 예문의
+원문 문구가 생성문에 실제 포함됐는지 검사한다. 같은 `required_phrases`를 Writing 입력에도 명시한다.
+누락·의역은 보수적으로 차단하며 `semantic_quality_verified=false`다. 원문 문구의 존재가 사실의 의미적
+정확성·자유문 지식 누설 없음·문학적 말투 품질을 증명하지 않는다. 인물의 명시 지식 투영은 기존
+Writing knownBy 검사를 유지하고, 계획 근거가 지정 화자의 허용 지식 밖이면 Writing 전에 중단한다.
+완전한 의미 평가는 별도 corpus/모델 평가가 필요하다. 저장 요청도 검사 후 Mock 문서 생성 제안까지만 반환하며
+승인/실제 저장은 연결하지 않는다. [수용 증거](task19-handoff.md).
+
 2026-11-10 TASK 16은 네 전개 모드의 Mock 모델 입력·Insights/BeatPlan·개수/출처 검증을 구현했다. 전체 coverage와 직전 회차, 명시 선택한 복선·콘티·플롯·인물 근거를 확인한다. 선택 Simulation은 별도 예산 Task로 실행하고 기존 검수기의 보고 재생 검증을 재사용한다. 반환 전체는 가상 계획이며 Writing·저장은 호출하지 않는다. [실제 DTO·검증·제약](task16-handoff.md).
 
 ```mermaid

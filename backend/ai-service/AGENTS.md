@@ -5,6 +5,14 @@
 
 ## 구조
 
+- TASK 19의 `agents/next_draft.py`는 `next_draft_tasks`와 run별 `NextDraftHandler`로
+  전체 Coverage→선택 Simulation→Development→Writing→모델 0회 연속성 검사를 연결한다.
+  `draft_requested=false`는 BeatPlan에서 종료하고, `result`는 연속성 검사 뒤에만 성공 후보를 공개한다.
+  Main이 context를 소유할 때는 첫 전문 Task에서 동일 준비를 검증하며, 명시적 plan_factory/handler 주입을 사용한다.
+  현재 관계는 작가 문맥의 현재 CAS 자료이며 인물의 지식이나 과거 snapshot으로 승격하지 않는다.
+  연속성은 필수 문구의 보수적 일치 검사이고 자유 의역·의미 품질 검증은 아니다.
+  실제 모델·공개 Run 자동 조립·Content 저장은 연결하지 않는다([수용·한계](../../docs/writing-ai-architecture/task19-handoff.md)).
+
 - TASK 18의 `agents/writing.py`는 생성문·콘티 확장과 선택 문단 편집 후보만 반환한다.
   `writing_tasks`와 run별 `WritingHandler`를 주입하며 writing/editing은 동일 DTO handler·모델 대역 최대 1회를 사용한다.
   Content 예약/승인/저장 transport와 실제 모델은 연결하지 않는다([DTO·지식 투영·검증](../../docs/writing-ai-architecture/task18-handoff.md)).

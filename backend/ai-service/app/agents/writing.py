@@ -8,9 +8,11 @@ from typing import Annotated, Literal
 from pydantic import Field, StrictBool
 
 from app.retrieval.content_client import CanonicalAdapter, ContentReadError
-from app.retrieval.contracts import Contract, Gap, Id, PositiveInt, Query
+from app.retrieval.contracts import Contract, Evidence, Gap, Id, PositiveInt, Query
 from app.retrieval.mock_content import MockContentReadPort
 from .story_context import ExactSource
+from .development import Beat
+from .semantic_review import SemanticSimulation
 
 
 class CreateTarget(Contract):
@@ -54,6 +56,11 @@ class WritingInput(Contract):
     conti: WritingSource | None = Field(repr=False)
     style_examples: tuple[WritingSource, ...] = Field(repr=False)
     context: tuple[WritingSource, ...] = Field(repr=False)
+    beats: tuple[Beat, ...] = ()
+    simulations: tuple[SemanticSimulation, ...] = ()
+    current_relationships: tuple[Evidence, ...] = ()
+    # 복합 DAG의 보수적 연속성 검사와 같은 문구를 출력 조건으로 명시한다.
+    required_phrases: tuple[Id, ...] = Field(default=(), description="생성문에 그대로 포함해야 하는 장면·출처 문구")
 
 
 class WritingReply(Contract):
@@ -109,7 +116,8 @@ class WritingResult(Contract):
     is_mock: Literal[True] = True
 
 
-async def writing(request: WritingRequest, *, content, model=None, call_context=None) -> WritingResult:
+async def writing(request: WritingRequest, *, content, model=None, call_context=None,
+                  beats=(), simulations=(), current_relationships=(), required_phrases=()) -> WritingResult:
     """정확 조회→화자별 투영→모델 대역 1회→Content 재검증. 결과는 메모리 제안에만 둔다."""
     request = WritingRequest.model_validate(request.model_dump())
     def fail(status, code="unverified", clarification=None):
@@ -188,8 +196,12 @@ async def writing(request: WritingRequest, *, content, model=None, call_context=
         examples = tuple(read(exact, ("manuscript", "draft"), same_work=True) for exact in request.style_examples)
         context = tuple(source for exact in request.context_refs
             if (source := read(exact, ("manuscript", "draft", "setting", "plot", "conti"), optional=True)) is not None)
+        allowed_phrases = {s.text for s in sources.values()} | {p for b in beats for p in (b.goal,b.action,b.dialogue,b.cause)}
+        if any(not set(beat.refs) <= sources.keys() for beat in beats) or not set(required_phrases) <= allowed_phrases:
+            return fail("blocked")
         payload = WritingInput(mode=request.mode, prompt=request.prompt, edit_types=request.edit_types,
-            speaker_id=speaker, selected=selected, conti=conti, style_examples=examples, context=context)
+            speaker_id=speaker, selected=selected, conti=conti, style_examples=examples, context=context,
+            beats=beats, simulations=simulations, current_relationships=current_relationships, required_phrases=required_phrases)
         if model is None:
             return fail("blocked", "unsupported")
         from app.runs.orchestrator import Budget
