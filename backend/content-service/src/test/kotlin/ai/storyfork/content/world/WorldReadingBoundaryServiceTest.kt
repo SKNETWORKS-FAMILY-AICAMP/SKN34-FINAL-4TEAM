@@ -109,6 +109,19 @@ class WorldReadingBoundaryServiceTest {
         verifyNoInteractions(readingDetails)
     }
 
+    @Test fun `readers of a following Fork whose source was deleted see no source settings`() {
+        val forkWork=work.copy(id="f",source=SourceResponse("w","작품",1,1,"분기",deleted=true))
+        `when`(access.published("f")).thenReturn(forkWork)
+        `when`(access.get("w")).thenReturn(work.copy(deleted=true))
+        `when`(forks.findById("f")).thenReturn(Optional.of(ForkEntity(workId="f",sourceWorkId="w",sourceCheckpointId="cp")))
+        `when`(references.findById("f")).thenReturn(Optional.of(ForkWorldReferenceEntity(forkWorkId="f",sourceWorldId="w",referenceStatus="following")))
+        history()
+        `when`(currentEpisodes.findByWorkIdAndSequence("f",1)).thenReturn(ai.storyfork.content.episode.entity.EpisodeCurrentEntity(id="e",workId="f",sequence=1,publishedVersionId="v"))
+
+        assertEquals(emptyList<Any>(),service.publicRead("f",1).documents)
+        verifyNoInteractions(readingDetails)
+    }
+
     @Test fun `following Fork cannot detach rich source through a new simple draft`() {
         val forkWork=work.copy(id="f",source=SourceResponse("w","작품",1,1,"분기"))
         `when`(access.own("f","owner")).thenReturn(forkWork)

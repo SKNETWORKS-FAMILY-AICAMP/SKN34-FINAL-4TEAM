@@ -16,4 +16,6 @@ open class ContentImage(
     @Column(name = "media_type", nullable = false, length = 20) open var mediaType: String = "",
     @Column(name = "byte_size", nullable = false) open var byteSize: Long = 0,
     @Column(name = "created_at", nullable = false) open var createdAt: Instant = Instant.now(),
+    /** 이미지마다 하나인 대체 텍스트(0~300자). 수정하면 저장 버전·발행본 화면에도 바로 반영된다. */
+    @Column(name = "alt_text", nullable = false, length = 300) open var altText: String = "",
 )

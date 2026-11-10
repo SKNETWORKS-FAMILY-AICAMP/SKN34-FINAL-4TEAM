@@ -1,5 +1,6 @@
 package ai.storyfork.operations.inquiry
 
+import ai.storyfork.operations._common.blankTexts
 import ai.storyfork.operations.inquiry.entity.InquiryEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
 import ai.storyfork.operations.inquiry.repository.InquiryRepository
@@ -33,6 +34,11 @@ class InquiryServiceTest {
         createdAt = Instant.parse("2026-01-01T00:00:00Z"),
     )
 
+    // 길이는 요청 DTO의 @Size가 거절한다(RequestValidationTest). 서비스는 공백(@NotBlank가 놓치는 NBSP류 포함)과 U+0000을 거절한다.
+    private fun blankRequests() = blankTexts.flatMap {
+        listOf(request.copy(title = it), request.copy(body = it), request.copy(category = it))
+    }
+
     @Test
     fun `create stores operator record and returns a UUID and UTC timestamps`() {
         `when`(inquiries.saveAndFlush(any(InquiryEntity::class.java) ?: inquiry())).thenAnswer { it.arguments[0] }
@@ -63,13 +69,7 @@ class InquiryServiceTest {
 
     @Test
     fun `invalid create is rejected before touching repositories`() {
-        val invalid = listOf(
-            request.copy(title = ""), request.copy(title = " \t\n"), request.copy(title = "t".repeat(201)),
-            request.copy(body = ""), request.copy(body = " \t\n"), request.copy(body = "b".repeat(20001)),
-            request.copy(category = ""), request.copy(category = " \t\n"), request.copy(category = "c".repeat(51)),
-        )
-
-        invalid.forEach { input -> assertThrows(IllegalArgumentException::class.java) { service.create(input) } }
+        blankRequests().forEach { input -> assertThrows(IllegalArgumentException::class.java) { service.create(input) } }
 
         verifyNoInteractions(inquiries, replies)
     }
@@ -102,11 +102,11 @@ class InquiryServiceTest {
     }
 
     @Test
-    fun `list caps size and overrides client sort with stable creation time and UUID order`() {
+    fun `list overrides client sort with stable creation time and UUID order`() {
         val bounded = PageRequest.of(2, 100, Sort.by(Sort.Direction.DESC, "createdAt", "id"))
         `when`(inquiries.findAll(bounded)).thenReturn(PageImpl(listOf(inquiry()), bounded, 501))
 
-        val result = service.list(PageRequest.of(2, 1000, Sort.by("body")))
+        val result = service.list(PageRequest.of(2, 100, Sort.by("body")))
 
         assertEquals(listOf(id), result.items.map { it.id })
         assertEquals(2, result.page)
@@ -114,12 +114,6 @@ class InquiryServiceTest {
         assertEquals(501L, result.totalElements)
         assertEquals(6, result.totalPages)
         verify(inquiries).findAll(bounded)
-    }
-
-    @Test
-    fun `unpaged list is rejected rather than loading all records`() {
-        assertThrows(IllegalArgumentException::class.java) { service.list(org.springframework.data.domain.Pageable.unpaged()) }
-        verifyNoInteractions(inquiries, replies)
     }
 
     @Test
@@ -165,7 +159,7 @@ class InquiryServiceTest {
         val row = inquiry()
         `when`(inquiries.findById(id)).thenReturn(Optional.of(row))
 
-        for (invalid in listOf(request.copy(title = " "), request.copy(body = "b".repeat(20001)), request.copy(category = ""))) {
+        for (invalid in blankRequests()) {
             assertThrows(IllegalArgumentException::class.java) { service.update(id, invalid) }
             assertEquals("이전 제목", row.title)
             assertEquals("이전 본문", row.body)

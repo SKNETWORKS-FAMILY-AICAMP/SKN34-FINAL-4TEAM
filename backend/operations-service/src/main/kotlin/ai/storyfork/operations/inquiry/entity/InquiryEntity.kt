@@ -21,6 +21,9 @@ class InquiryEntity(
     var body: String,
     @field:Column(nullable = false, length = 50)
     var category: String,
+    /** Set only for member-filed support inquiries; NULL for legacy service-token records, which member APIs never expose. */
+    @field:Column(name = "member_id", updatable = false)
+    val memberId: UUID? = null,
     @field:Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now().truncatedTo(ChronoUnit.MICROS),
     @field:Column(name = "updated_at", nullable = false)

@@ -6,12 +6,13 @@ import java.util.UUID
 // Test-only response shapes retain the original business assertions through ContentTestDriver.
 // No legacy aggregate, importer, persistence implementation or duplicated business logic lives here.
 fun contentId(): String = UUID.randomUUID().toString()
-data class Draft(val title: String = "새 회차", val body: String = "", val revision: Int = 0)
-data class WritingEpisode(val number: Int, val draft: Draft, val versions: List<Version>, val publishedVersionId: String?, val inherited: Boolean, val updatedAt: String?, val checkpointStatus: String = "content_only")
-data class Episode(val number: Int, val version: Int, val versionId: String, val title: String, val body: String, val inherited: Boolean = false)
+data class Draft(val title: String = "새 회차", val body: String = "", val revision: Int = 0, val authorNote: String = "")
+data class Checkpoint(val versionId: String, val publishedAt: String, val active: Boolean)
+data class WritingEpisode(val number: Int, val draft: Draft, val versions: List<Version>, val publishedVersionId: String?, val inherited: Boolean, val updatedAt: String?, val checkpointStatus: String = "content_only", val checkpoints: List<Checkpoint> = emptyList())
+data class Episode(val number: Int, val version: Int, val versionId: String, val title: String, val body: String, val inherited: Boolean = false, val authorNote: String = "")
 data class Source(val workId: String, val title: String, val episode: Int, val version: Int, val direction: String,
     val confirmedPolicyRevision: Int? = null, val conditionsConfirmedAt: String? = null)
-data class Version(val id: String = contentId(), val title: String, val body: String, val revision: Int, val episode: Int, val savedAt: String = Instant.now().toString())
+data class Version(val id: String = contentId(), val title: String, val body: String, val revision: Int, val episode: Int, val savedAt: String = Instant.now().toString(), val authorNote: String = "")
 data class Setting(
     val id: String = "", val versionId: String = "", val name: String = "", val content: String = "",
     val category: String = "규칙", val tags: List<String> = emptyList(), val visibility: String = "private",

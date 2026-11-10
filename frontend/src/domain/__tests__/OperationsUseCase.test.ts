@@ -14,7 +14,7 @@ const uuid = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i
 describe('독립 운영 메모리 데모 CRUD', () => {
   it('처음에는 빈 운영 기록을 돌려주며 기존 회원 데모 저장소에 의존하지 않는다', async () => {
     const { uc } = setup()
-    expect(await uc.load()).toEqual({ notices: [], events: [], inquiries: [] })
+    expect(await uc.load()).toEqual({ notices: [], events: [] })
   })
 
   it('공지 UUID 등록·상세·수정·삭제는 본문 공백과 줄바꿈을 보존한다', async () => {
@@ -57,74 +57,18 @@ describe('독립 운영 메모리 데모 CRUD', () => {
     await expect(uc.event(row.id)).rejects.toThrow('이벤트를 찾을 수 없어요')
   })
 
-  it.each([
-    { startsAt: '잘못된 날짜', endsAt: null },
-    { startsAt: '2026-11-06T00:00:00Z', endsAt: '2026-11-05T00:00:00Z' },
-    { startsAt: '2026-11-05T09:00', endsAt: null },
-    { startsAt: '2026-02-30T00:00:00Z', endsAt: null },
-    { startsAt: null, endsAt: '2026-11-05T24:00:00Z' },
-  ])('유효하지 않은 UTC 또는 역전 기간을 거절한다: %j', async (period) => {
+  // UTC 형식은 UseCase가 아니라 한국시간 입력 변환(toUtcFromKoreanInput)과 ViewModel 경계가 검사한다.
+  it('종료가 시작보다 빠른 역전 기간을 거절한다', async () => {
     const { uc } = setup()
-    await expect(uc.saveEvent(null, { ...text, ...period })).rejects.toThrow()
+    await expect(uc.saveEvent(null, { ...text, startsAt: '2026-11-06T00:00:00Z', endsAt: '2026-11-05T00:00:00Z' })).rejects.toThrow('종료는 시작과 같거나 늦어야 해요')
     expect((await uc.load()).events).toEqual([])
-  })
-
-  it('운영 문의 category/title/body CRUD와 여러 답변은 단일 회원 문의 모델과 분리된다', async () => {
-    const { uc } = setup()
-    const q = await uc.saveInquiry(null, { ...text, category: ' 계정 ' })
-    expect(q.id).toMatch(uuid)
-    expect(await uc.inquiry(q.id)).toMatchObject({ category: '계정', title: '점검 안내', body: text.body })
-    await uc.saveInquiry(q.id, { category: '이용 문의', title: '수정 문의', body: '질문\n내용' })
-    const r1 = await uc.saveReply(q.id, null, ' 첫 답변\n내용 ')
-    const r2 = await uc.saveReply(q.id, null, '후속 답변')
-    expect(r1.id).toMatch(uuid)
-    expect(await uc.reply(q.id, r1.id)).toMatchObject({ inquiryId: q.id, body: ' 첫 답변\n내용 ' })
-    await uc.saveReply(q.id, r1.id, '답변 수정')
-    const loaded = (await uc.load()).inquiries[0]
-    expect(loaded).toMatchObject({ category: '이용 문의', title: '수정 문의' })
-    expect(loaded.replies.map((r) => r.id).sort()).toEqual([r1.id, r2.id].sort())
-    await expect(uc.deleteInquiry(q.id)).rejects.toThrow('답변을 모두 삭제한 뒤')
-    await uc.deleteReply(q.id, r1.id)
-    await uc.deleteReply(q.id, r2.id)
-    await uc.deleteInquiry(q.id)
-    expect((await uc.load()).inquiries).toEqual([])
-  })
-
-  it.each(['', ' ', '가'.repeat(51)])('문의 분류의 필수·50자 한도를 지킨다: %s', async (category) => {
-    const { uc } = setup()
-    await expect(uc.saveInquiry(null, { ...text, category })).rejects.toThrow('분류')
-    expect((await uc.load()).inquiries).toEqual([])
-  })
-
-  it('문의 및 답변의 최대 길이 경계와 수정 실패 시 기존 기록을 보존한다', async () => {
-    const { uc } = setup()
-    const q = await uc.saveInquiry(null, { category: '가'.repeat(50), title: '나'.repeat(200), body: '다'.repeat(20000) })
-    const reply = await uc.saveReply(q.id, null, '라'.repeat(20000))
-    await expect(uc.saveInquiry(q.id, { ...text, category: '분류', body: '가'.repeat(20001) })).rejects.toThrow()
-    await expect(uc.saveReply(q.id, reply.id, '나'.repeat(20001))).rejects.toThrow()
-    await expect(uc.saveReply(q.id, reply.id, '\n ')).rejects.toThrow()
-    expect((await uc.inquiry(q.id)).body).toHaveLength(20000)
-    expect((await uc.reply(q.id, reply.id)).body).toHaveLength(20000)
-  })
-
-  it('다른 부모 문의의 답변을 조회·수정·삭제할 수 없고 없는 부모에 답변을 만들지 않는다', async () => {
-    const { uc } = setup()
-    const a = await uc.saveInquiry(null, { ...text, category: '이용' })
-    const b = await uc.saveInquiry(null, { ...text, category: '계정' })
-    const reply = await uc.saveReply(a.id, null, '유지할 답변')
-    await expect(uc.reply(b.id, reply.id)).rejects.toThrow('답변을 찾을 수 없어요')
-    await expect(uc.saveReply(b.id, reply.id, '변경')).rejects.toThrow('답변을 찾을 수 없어요')
-    await expect(uc.deleteReply(b.id, reply.id)).rejects.toThrow('답변을 찾을 수 없어요')
-    await expect(uc.saveReply('없는 부모', null, '내용')).rejects.toThrow('문의를 찾을 수 없어요')
-    expect((await uc.reply(a.id, reply.id)).body).toBe('유지할 답변')
   })
 
   it('사라진 기록을 수정할 때 새 레코드로 되살리지 않는다', async () => {
     const { uc } = setup()
     await expect(uc.saveNotice('없는 공지', text)).rejects.toThrow()
     await expect(uc.saveEvent('없는 이벤트', { ...text, startsAt: null, endsAt: null })).rejects.toThrow()
-    await expect(uc.saveInquiry('없는 문의', { ...text, category: '이용' })).rejects.toThrow()
-    expect(await uc.load()).toEqual({ notices: [], events: [], inquiries: [] })
+    expect(await uc.load()).toEqual({ notices: [], events: [] })
   })
 
   it('조회 복사본을 수정해도 운영 정본은 변하지 않는다', async () => {

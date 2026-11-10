@@ -1,7 +1,12 @@
 package ai.storyfork.content.regression
 
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.attachment.domain.AttachmentFailure
+import ai.storyfork.content.attachment.repository.ImageEpisodeRepository
+import ai.storyfork.content.attachment.service.AttachmentService
+import ai.storyfork.content.attachment.service.dto.AttachmentUploadPayload
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
@@ -35,9 +40,12 @@ import tools.jackson.databind.json.JsonMapper
     "DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
     "DATABASE_USER=content_test","DATABASE_PASSWORD=",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
+    "OPERATIONS_SERVICE_TOKEN=fork-integrity-test-token-fixture-000",
 ])
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 class AuthContentIntegrationTest {
+    // 작가명·작성자명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다.
+    @MockitoBean lateinit var nicknames: CoreNicknameService
     @LocalServerPort var port=0
     @MockitoBean lateinit var core:CoreAuthClient
     @Autowired @Qualifier("contentDataSource") lateinit var source:DataSource
@@ -46,6 +54,8 @@ class AuthContentIntegrationTest {
     @Autowired lateinit var versions:EpisodeVersionService
     @Autowired lateinit var publication:PublicationService
     @Autowired lateinit var worlds:WorldService
+    @Autowired lateinit var imageEpisodes:ImageEpisodeRepository
+    @Autowired lateinit var attachments:AttachmentService
     private val jdbc get()=JdbcTemplate(source)
     private val client=HttpClient.newHttpClient()
     private fun request(path:String)=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).header("Accept","application/json")
@@ -53,6 +63,81 @@ class AuthContentIntegrationTest {
     private fun mutation(path:String,body:String)=request(path).header("Cookie",CsrfFixture.cookie)
         .header("X-CSRF-TOKEN",CsrfFixture.token()).header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(body))
     private fun actor():UUID=UUID.randomUUID().also { id -> `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id)) }
+
+    @Test fun `owner deletes a written episode through HTTP and recreates its number without reusing its ID`() {
+        val owner=actor()
+        val work=works.create(owner.toString(),CreateWorkRequest("회차 삭제 HTTP 검증"))
+        val list="/api/v1/works/${work.id}/episodes"
+        val path="$list/1"
+        fun authenticated(path:String,user:UUID=owner)=request(path).header("Authorization","Bearer $user")
+        fun csrf(builder:HttpRequest.Builder)=builder.header("Cookie",CsrfFixture.cookie).header("X-CSRF-TOKEN",CsrfFixture.token())
+        fun episodeId()=jdbc.queryForObject("SELECT id FROM episode_current WHERE work_id=? AND sequence=1",String::class.java,work.id)
+        val oldId=episodeId()
+        val saved=send(csrf(authenticated("$path/draft")).header("Content-Type","application/json")
+            .PUT(HttpRequest.BodyPublishers.ofString("""{"title":"원래 회차","body":"보존할 원고","revision":0}""")))
+        assertEquals(200,saved.statusCode(),saved.body())
+        val revision=json.readTree(saved.body()).path("draft").path("revision").asInt()
+        fun delete(number:Int,user:UUID=owner)=send(csrf(authenticated("$path?revision=$number",user)).DELETE())
+        assertEquals(404,delete(revision,actor()).statusCode())
+        assertEquals(409,delete(revision-1).statusCode())
+        assertEquals(oldId,episodeId())
+        val staleUpload=assertThrows(AttachmentFailure::class.java) {
+            attachments.createEpisodeImage(work.id,1,owner.toString()) {
+                val removed=delete(revision)
+                assertEquals(204,removed.statusCode(),removed.body())
+                assertEquals(404,send(authenticated(path)).statusCode())
+                assertTrue(json.readTree(send(authenticated(list)).body()).isEmpty)
+                assertNull(imageEpisodes.findByWorkIdAndSequence(work.id,1))
+                assertEquals(true,jdbc.queryForObject("SELECT deleted_at IS NOT NULL FROM episode WHERE id=?",Boolean::class.java,oldId))
+                assertEquals("보존할 원고",jdbc.queryForObject("SELECT content FROM episode_draft WHERE episode_id=?",String::class.java,oldId))
+
+                val created=send(mutation(list,"""{"title":"새 회차"}""").header("Authorization","Bearer $owner"))
+                assertEquals(201,created.statusCode(),created.body())
+                val replacement=json.readTree(created.body())
+                assertEquals(1,replacement.path("number").asInt())
+                assertTrue(replacement.path("draft").path("revision").asInt()>revision)
+                val replacementId=episodeId()
+                assertNotEquals(oldId,replacementId)
+                assertEquals(replacementId,imageEpisodes.findByWorkIdAndSequence(work.id,1)?.id)
+                AttachmentUploadPayload("map.png","image/png","IMAGE",byteArrayOf(1))
+            }
+        }
+        assertEquals("IMAGE_NOT_FOUND",staleUpload.code)
+        assertEquals(409,delete(revision).statusCode())
+        assertEquals(200,send(authenticated(path)).statusCode())
+    }
+
+    @Test fun `Fork integrity keeps comparing the pinned original after a replacement publication`() {
+        val owner=actor().toString()
+        val reader=actor()
+        val work=works.create(owner,CreateWorkRequest("원작 점검"))
+        val saved=versions.saveCurrent(work.id,owner,DraftRequest("1화","기준 원고",work.revision,"기준 작가의 말"))
+        publication.publishCurrent(work.id,owner,PublishRequest(saved.draft.revision,true,true,true,saved.version.id))
+        val created=send(mutation("/api/v1/works/${work.id}/forks","""{"episode":1,"title":"포크"}""").header("Authorization","Bearer $reader"))
+        assertEquals(201,created.statusCode(),created.body())
+        val id=json.readTree(created.body()).path("id").asString()
+        val path="/internal/v1/works/$id/fork-integrity"
+        assertEquals(403,send(request(path).header("Authorization","Bearer $reader")).statusCode())
+        fun report(): tools.jackson.databind.JsonNode {
+            val response=send(request(path).header("X-Operations-Service-Token","fork-integrity-test-token-fixture-000"))
+            assertEquals(200,response.statusCode(),response.body())
+            assertFalse(response.body().contains("기준 원고"))
+            return json.readTree(response.body())
+        }
+        val before=report()
+        assertTrue(before.path("matches").asBoolean())
+        assertEquals(1,before.path("basisEpisode").asInt())
+        assertEquals(before.path("sourceHash").asString(),before.path("forkHash").asString())
+        assertEquals("unavailable",before.path("characterStateStatus").asString())
+        val current=send(request("/api/v1/works/${work.id}/episodes/1").header("Authorization","Bearer $owner"))
+        assertEquals(200,current.statusCode(),current.body())
+        val revision=json.readTree(current.body()).path("draft").path("revision").asInt()
+        val replacement=versions.save(work.id,owner,1,DraftRequest("개정 1화","바뀐 원고",revision))
+        val version=replacement.versions.single {it.body=="바뀐 원고"}
+        publication.publishEpisode(work.id,owner,1,PublishRequest(replacement.draft.revision,true,versionId=version.id))
+        assertEquals(version.id,publication.publishedEpisodes(work.id).items.single().versionId)
+        assertEquals(before,report())
+    }
 
     @Test fun `Core verified UUID owns private content and another member receives 404`() {
         val user=actor()
@@ -94,6 +179,33 @@ class AuthContentIntegrationTest {
         for(episode in listOf(0,-1,2)) assertEquals(404,send(request("$path?episode=$episode").header("X-User-Id",owner)).statusCode())
         assertEquals(404,send(request("/api/v1/public/works/${UUID.randomUUID()}/world?episode=1")).statusCode())
         assertEquals(401,send(request("/api/v1/works/${work.id}/world").header("X-User-Id",owner)).statusCode())
+    }
+
+    @Test fun `author name is the owner Core nickname on public and owner reads and author search matches it`() {
+        val owner=actor()
+        val work=works.create(owner.toString(),CreateWorkRequest("작가명 조회 검증"))
+        val saved=versions.saveCurrent(work.id,owner.toString(),DraftRequest("1화","published body",work.revision))
+        publication.publishCurrent(work.id,owner.toString(),PublishRequest(saved.draft.revision,true,versionId=saved.version.id))
+        // Core 대역: 이 소유자만 알고 나머지는 Core에 없는(탈퇴한) 회원이다.
+        val nickname="작가-${owner.toString().take(8)}"
+        `when`(nicknames.nicknames(org.mockito.ArgumentMatchers.anyCollection<String>())).thenAnswer {call ->
+            (call.arguments[0] as Collection<*>).map {it as String}.filter {it==owner.toString()}.associateWith {nickname}
+        }
+        fun author(response:HttpResponse<String>):String {
+            assertEquals(200,response.statusCode(),response.body())
+            return json.readTree(response.body()).path("authorName").asString()
+        }
+        assertEquals(nickname,author(send(request("/api/v1/public/works/${work.id}"))))
+        assertEquals(nickname,author(send(request("/api/v1/works/${work.id}").header("Authorization","Bearer $owner"))))
+        for(path in listOf("/api/v1/public/works","/api/v1/works")) {
+            val response=send(request(path+if(path.startsWith("/api/v1/public")) "?f=author&q="+java.net.URLEncoder.encode(nickname,Charsets.UTF_8) else "").header("Authorization","Bearer $owner"))
+            assertEquals(200,response.statusCode(),response.body())
+            val mine=json.readTree(response.body()).toList().filter {it.path("id").asString()==work.id}
+            assertEquals(listOf(nickname),mine.map {it.path("authorName").asString()},path)
+        }
+        // Core에 없는 소유자는 임의 이름이 아니라 탈퇴한 회원으로 보인다.
+        val unknown=works.create("legacy-owner",CreateWorkRequest("Core에 없는 소유자"))
+        assertEquals("탈퇴한 회원",works.read(unknown.id,"legacy-owner").authorName)
     }
 
     @Test fun `only public GET is anonymous and private writes require csrf and allowed origin`() {

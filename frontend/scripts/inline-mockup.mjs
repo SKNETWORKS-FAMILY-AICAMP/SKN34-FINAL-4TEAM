@@ -10,5 +10,7 @@ html = html.replace(/<link rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/g, (_, href
 html = html.replace(/<script type="module"[^>]*src="([^"]+)"[^>]*><\/script>/g, (_, src) => `<script type="module">${read(src).replaceAll('</script', '<\\/script')}</script>`)
 if (/(?:src|href)="\.\/assets\//.test(html)) throw new Error('인라인하지 못한 자산이 남았습니다.')
 
+// Windows 입력 HTML과 번들 텍스트의 줄바꿈을 배포 파일에서 통일합니다.
+html = html.replace(/\r\n?/g, '\n')
 writeFileSync(new URL('../mockup/index.html', import.meta.url), html)
 console.log(`mockup/index.html ${(html.length / 1024).toFixed(0)}KB`)

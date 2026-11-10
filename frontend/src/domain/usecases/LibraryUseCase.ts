@@ -1,7 +1,9 @@
-import { AVATAR_COLORS, epsOf, forkLabel, forksOf, isMine, isPub, nid, original, type Work } from '../entities/work'
+import { AVATAR_COLORS, epsOf, forkLabel, forksOf, isMine, isPub, nid, original, type StoryEvent, type Work } from '../entities/work'
 import { publicWorldRules, worldVersion, type World, type WorldVersion } from '../entities/world'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import { AGGREGATE_WRITE_UNSUPPORTED, FEEDBACK_UNAVAILABLE, type ReadingRepository, type WorkRepository } from '../repositories/WorkRepository'
+import type { ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
+import { AGGREGATE_WRITE_UNSUPPORTED, FEEDBACK_UNAVAILABLE, type WorkRepository } from '../repositories/WorkRepository'
+import type { WorkInterestRepository } from '../repositories/WorkInterestRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
 
 export const NOVEL_GENRES = ['판타지','현대판타지','무협','선협','퓨전','로맨스','로맨스판타지','BL','GL','현대','시대물','역사','대체역사','SF','게임','스포츠','드라마','미스터리','추리','스릴러','공포','오컬트','액션','전쟁·밀리터리','라이트노벨','학원','일상','고전','일반소설','기타']
@@ -30,6 +32,12 @@ export type WorldForm = { name: string; description: string; rules: string }
 export type WorldPermission = 'allowUse' | 'allowFork' | 'allowAI' | 'allowPaid'
 type Result = { error: string } | { id: string }
 
+/** 가져오기 사건 한 줄 'N화 내용'을 [회차, 내용]으로 읽습니다. 형식이 아니면 null */
+export const parseImportEvent = (e: string) => {
+  const m = /^(\d+)화\s*(.+)$/.exec(e.trim())
+  return m && ([+m[1], m[2]] as const)
+}
+
 const lines = (s: string) => [...new Set(s.split('\n').map((x) => x.trim()).filter(Boolean))]
 const mineOnly = (worlds: World[], id: string) => worlds.find((w) => w.id === id && !w.owner)
 
@@ -37,27 +45,34 @@ const mineOnly = (worlds: World[], id: string) => worlds.find((w) => w.id === id
 export class LibraryUseCase {
   private readonly workRepository: WorkRepository
   private readonly worldRepository: WorldRepository
-  private readonly readingRepository: ReadingRepository
   private readonly feedbackRepository: FeedbackRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, readingRepository: ReadingRepository, feedbackRepository: FeedbackRepository) {
+  private readonly interestRepository: WorkInterestRepository
+  private readonly readingRecordRepository: ReadingRecordRepository
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, feedbackRepository: FeedbackRepository, interestRepository: WorkInterestRepository, readingRecordRepository: ReadingRecordRepository) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
-    this.readingRepository = readingRepository
     this.feedbackRepository = feedbackRepository
+    this.interestRepository = interestRepository
+    this.readingRecordRepository = readingRecordRepository
   }
 
-  /** U11 읽는 중: 이어 읽기와 관심 소설 */
+  /** U11 읽는 중: 서버 독서 기록의 이어 읽기와 관심 소설(관심 등록한 작품만, 최근 등록순. 좋아요 표시와는 별개). 둘 중 하나라도 읽지 못하면 빈 목록으로 숨기지 않고 던집니다. */
   async getRead() {
-    const [works, progress] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress()])
+    const [works, records, interestIds] = await Promise.all([this.workRepository.listWorks(), this.readingRecordRepository.list(), this.interestRepository.list()])
     const byId = (id: string) => works.find((w) => w.id === id)
     return {
-      recent: Object.keys(progress.last).map(byId).filter((w): w is Work => !!w && epsOf(w).length > 0)
-        .map((work) => ({ work, n: Math.min(progress.last[work.id], epsOf(work).length), tot: epsOf(work).length })),
-      liked: Object.keys(progress.liked).filter((k) => progress.liked[k]).map(byId).filter((w): w is Work => !!w),
+      recent: records.flatMap((r) => {
+        const work = byId(r.workId), tot = work ? epsOf(work).length : 0
+        return work && tot > 0 ? [{ work, n: Math.min(r.lastEpisode, tot), tot }] : []
+      }),
+      liked: interestIds.map(byId).filter((w): w is Work => !!w),
     }
   }
 
-  /** U11 내 댓글·신고 */
+  /** U11 읽는 중: 한 작품의 이어 읽기 기록(위치·읽은 회차)을 서버에서 지웁니다. 지우지 못하면 던집니다. */
+  removeReading(workId: string) { return this.readingRecordRepository.remove(workId) }
+
+  /** U11 내 댓글·제보 */
   async getReports() {
     const [works, reports] = await Promise.all([this.workRepository.listWorks(), this.feedbackRepository.listReports()])
     return reports.map((r) => ({ ...r, title: works.find((w) => w.id === r.w)?.title ?? '' }))
@@ -123,7 +138,7 @@ export class LibraryUseCase {
     const selected = picks.map((p) => {
       const source = worlds.find((w) => w.id === p.worldId && (!w.owner || (w.public && w.allowUse && w.allowFork)))
       return source && { source, rule: source.rules[p.ruleIndex] }
-    }).filter((x): x is { source: World; rule: string } => !!x?.rule)
+    }).filter((x): x is { source: World; rule: string } => !!x?.rule && (!x.source.owner || publicWorldRules(x.source).includes(x.rule)))
     if (!name.trim() || !selected.length) return { error: '이름과 항목을 선택해 주세요' }
     return this.addWorld({
       id: nid('world'), name: name.trim(), description: '', rules: [...new Set(selected.map((x) => x.rule))], public: false,
@@ -138,14 +153,14 @@ export class LibraryUseCase {
   }
 
   /** 목업 saveWorld(): 연결 작품에서 규칙을 빼야 하면 confirmed가 필요합니다. */
-  private async saveWorld(world: World, next: Partial<WorldVersion> & Pick<World, 'rules'>, confirmed: boolean) {
+  private async saveWorld(world: World, next: Partial<WorldVersion> & Pick<World, 'rules'>, confirmed: boolean): Promise<{ needsConfirm: true } | { ok: true }> {
     const works = await this.workRepository.listWorks()
     const worlds = await this.worldRepository.list()
     const linked = works.filter((w) => (w.worldIds ?? []).includes(world.id))
     if(linked.some(w=>w.canonical)) throw new Error(AGGREGATE_WRITE_UNSUPPORTED)
     const removed = world.rules.filter((r) => !next.rules.includes(r))
     const added = next.rules.filter((r) => !world.rules.includes(r))
-    if (linked.length && removed.length && !confirmed) return false
+    if (linked.length && removed.length && !confirmed) return { needsConfirm: true }
     Object.assign(world, next)
     worldVersion(world)
     await this.worldRepository.save(world)
@@ -171,21 +186,22 @@ export class LibraryUseCase {
       }
       await this.workRepository.saveWork(work)
     }
-    return true
+    return { ok: true }
   }
 
   async editWorld(id: string, f: WorldForm, confirmed: boolean): Promise<{ error: string } | { needsConfirm: true } | { ok: true }> {
-    const world = (await this.worldRepository.list()).find((w) => w.id === id)
+    const world = mineOnly(await this.worldRepository.list(), id)
+    if (!world) return { error: '내 세계관만 수정할 수 있어요' }
     const name = f.name.trim()
-    if (!world || !name) return { error: '세계관 이름을 적어 주세요' }
-    const ok = await this.saveWorld(world, { name, description: f.description.trim(), rules: lines(f.rules), public: world.public }, confirmed)
-    return ok ? { ok: true } : { needsConfirm: true }
+    if (!name) return { error: '세계관 이름을 적어 주세요' }
+    return this.saveWorld(world, { name, description: f.description.trim(), rules: lines(f.rules), public: world.public }, confirmed)
   }
 
-  async restoreWorld(id: string, version: number, confirmed = true) {
-    const world = (await this.worldRepository.list()).find((w) => w.id === id)
+  async restoreWorld(id: string, version: number, confirmed = true): Promise<{ error: string } | { needsConfirm: true } | { ok: true }> {
+    const world = mineOnly(await this.worldRepository.list(), id)
     const v = world?.history?.[version]
-    return !!world && !!v && this.saveWorld(world, structuredClone(v), confirmed)
+    if (!world || !v) return { error: '복원할 수 있는 세계관 버전이 없어요' }
+    return this.saveWorld(world, structuredClone(v), confirmed)
   }
 
   private async updateMine(id: string, change: (w: World) => void) {
@@ -205,6 +221,7 @@ export class LibraryUseCase {
 
   /** dryRun이면 삭제할 수 있는지만 확인합니다 (목업은 확인 창 전에 연결 작품을 검사). */
   async deleteWorld(id: string, dryRun = false): Promise<{ error: string } | { ok: true }> {
+    if (!mineOnly(await this.worldRepository.list(), id)) return { error: '내 세계관만 삭제할 수 있어요' }
     if ((await this.workRepository.listWorks()).some((w) => (w.worldIds ?? []).includes(id))) return { error: '연결된 작품이 있어 삭제할 수 없어요' }
     if (!dryRun) await this.worldRepository.remove(id)
     return { ok: true }
@@ -246,16 +263,24 @@ export class LibraryUseCase {
     if (works.some((w) => w.id === 'chunhyang')) return { error: '이미 저장했어요' }
     const world = mineOnly(await this.worldRepository.list(), worldId)
     if (!world) return { error: '연결할 내 세계관을 선택해 주세요' }
+    // 고친 정리 결과 검증: 빈 항목은 버리고 사건은 'N화 내용' 형식만 받습니다.
+    const people = cast.map((c) => c.trim()).filter(Boolean)
+    const storyEvents: StoryEvent[] = []
+    for (const e of events.filter((x) => x.trim())) {
+      const p = parseImportEvent(e)
+      if (!p) return { error: "사건은 'N화 내용' 형식으로 적어 주세요" }
+      storyEvents.push([p[0], 'm', p[1], []])
+    }
     const localRules = facts.filter((x) => x.startsWith('규칙')).map((x) => x.slice(4))
     const rules = [...new Set(world.rules.concat(localRules))]
     const w = original({
       id: 'chunhyang', worldIds: [world.id], localRules, eventFrom: {}, ruleFrom: Object.fromEntries(rules.map((r) => [r, Infinity])),
-      castFrom: Object.fromEntries(cast.map((c) => [c.split(' · ')[0], Infinity])), title: '춘향전 (가져온 소설)', theme: 'hanji',
+      castFrom: Object.fromEntries(people.map((c) => [c.split(' · ')[0], Infinity])), title: '춘향전 (가져온 소설)', theme: 'hanji',
       genre: '고전 로맨스', author: '나', owner: 'me', kind, rights: kind === '다른 사람 소설' ? '미확인' : '확인됨', private: true,
       by: '가져온 소설 · ' + kind, tags: [], hash: ['#광한루', '#고전리메이크'], likes: 0, views: 0, cmts: 0, upd: 0,
       hero: ['단옷날 광한루,', '그네 타던 소녀'], heroBg: '#5B4A3A', hook: '단옷날, 그네 위의 춘향', summary: '남원 광한루에서 만난 춘향과 몽룡의 소설.', forkFrom: 2,
-      cast: cast.map((c, n) => ({ n: c.split(' · ')[0], c: AVATAR_COLORS[n % AVATAR_COLORS.length], d: c.split(' · ')[1] || '', st: '—' })),
-      rules, events: events.map((e) => [+e[0], 'm', e.slice(3), []]),
+      cast: people.map((c, n) => ({ n: c.split(' · ')[0], c: AVATAR_COLORS[n % AVATAR_COLORS.length], d: c.split(' · ')[1] || '', st: '—' })),
+      rules, events: storyEvents,
       eps: [{ t: '광한루', p: ['단옷날, 남원 광한루 앞 버드나무에 그네가 걸렸다.', '이몽룡은 그네 위의 소녀에게서 눈을 떼지 못했다.'] }],
     })
     if (w.rights === '미확인') w.forksAllowed = false

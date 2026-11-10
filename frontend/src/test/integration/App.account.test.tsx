@@ -126,9 +126,19 @@ describe('계정 (U30~U35E)', () => {
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '포크 질문' } })
     fireEvent.change(screen.getByLabelText('내용'), { target: { value: '어떻게 하나요?' } })
     fireEvent.click(screen.getByRole('button', { name: '문의 보내기' }))
-    await toastIs('문의를 보냈어요 (데모 · 실제 전송 없음)')
+    await toastIs('문의를 보냈어요')
     const q = await screen.findByText('[이용 문의] 포크 질문')
     within(q.closest('.rp') as HTMLElement).getByText('답변 대기')
+  })
+
+  it('로그인 전 문의하기는 폼 대신 로그인 안내를 보이고 로그인 화면으로 보낸다', async () => {
+    renderAt('/me/inquiry', null)
+    await screen.findByRole('heading', { name: '로그인한 뒤 문의할 수 있어요' })
+    expect(screen.queryByRole('button', { name: '문의 보내기' })).toBeNull()
+    expect(screen.queryByLabelText('제목')).toBeNull()
+    fireEvent.click(screen.getByRole('link', { name: '로그인하고 문의하기' }))
+    expect(await screen.findByRole('heading', { name: '로그인' })).toBeTruthy()
+    expect(where()).toBe('/login')
   })
 
   it('로그인 전에는 보호 메뉴가 로그인으로 가고, 가입 화면은 미정 약관을 안내한다', async () => {
@@ -145,22 +155,95 @@ describe('계정 (U30~U35E)', () => {
   })
 
   it('공지와 이벤트를 상세까지 연다', async () => {
+    await appContainer.resolve('noticeUseCase').save(null, { title: '포크 이용 안내', body: '작가가 허용한 회차에서만\n포크할 수 있어요.' })
     renderAt('/me/notice', null)
     fireEvent.click(await screen.findByRole('link', { name: /포크 이용 안내/ }))
     await screen.findByRole('heading', { name: '포크 이용 안내' })
+    expect(screen.getByText(/포크할 수 있어요/).textContent).toBe('작가가 허용한 회차에서만\n포크할 수 있어요.')
     cleanup()
-    const { store } = renderAt('/me/event', null)
-    await waitFor(() => expect(store.getState().ui.screen.base).toBe('U35E'))
-    screen.getByText('보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.')
+    // 운영 이벤트 공개 API의 대역(메모리 저장소)에 이벤트를 등록해 두고 비로그인으로 목록→상세를 연다.
+    const events = appContainer.resolve('eventRepository')
+    const saved = await events.create({ title: '가을 맞이 이벤트', body: '첫 줄\n둘째 줄', startsAt: '2026-11-01T00:00:00.000Z', endsAt: null })
+    try {
+      const { store } = renderAt('/me/event', null)
+      await waitFor(() => expect(store.getState().ui.screen.base).toBe('U35E'))
+      await screen.findByText('보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.')
+      fireEvent.click(await screen.findByRole('link', { name: /가을 맞이 이벤트/ }))
+      await screen.findByRole('heading', { name: '가을 맞이 이벤트' })
+      expect(where()).toBe(`/me/event?id=${saved.id}`)
+      screen.getByText('진행 중')
+      expect(screen.getByText(/첫 줄/).textContent).toBe('첫 줄\n둘째 줄')
+      expect(screen.queryByRole('link', { name: /서비스 둘러보기/ })).toBeNull()
+    } finally { await events.remove(saved.id) }
   })
 
-  it('관심 소설은 처음 누른 순서대로 보인다 (목업 Object.keys(S.liked))', async () => {
+  it('이벤트가 없으면 빈 안내를, 불러오기에 실패하면 실패를 알리고 다시 불러오기로 복구한다', async () => {
+    const events = appContainer.resolve('eventUseCase')
+    renderAt('/me/event', null)
+    await screen.findByText('등록된 이벤트가 없어요.')
+    cleanup()
+    const list = vi.spyOn(events, 'listPublic').mockRejectedValueOnce(new Error('boom'))
+    renderAt('/me/event', null)
+    await screen.findByRole('alert')
+    expect(screen.queryByText('등록된 이벤트가 없어요.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByText('등록된 이벤트가 없어요.')
+    expect(list).toHaveBeenCalledTimes(2)
+    list.mockRestore()
+  })
+
+  it('없는 이벤트 UUID와 옛 데모 링크(?id=0)는 찾을 수 없다고 안내한다', async () => {
+    renderAt('/me/event?id=0', null)
+    await screen.findByText('이벤트를 찾을 수 없어요.')
+    cleanup()
+    renderAt('/me/event?id=0b6f3e5a-2c9d-4c0e-9a55-1f6f6d1f7a01', null)
+    await screen.findByText('이벤트를 찾을 수 없어요.')
+    expect(screen.getByRole('link', { name: '목록으로' }).getAttribute('href')).toBe('/me/event')
+  })
+
+  it('공지 목록은 로그인 전에도 최신순으로 보이고 없는 공지는 찾을 수 없다고 알린다', async () => {
+    const notices = appContainer.resolve('noticeUseCase')
+    const older = await notices.save(null, { title: '먼저 올린 공지', body: '본문' })
+    await new Promise((done) => setTimeout(done, 2))
+    await notices.save(null, { title: '나중에 올린 공지', body: '본문' })
+    renderAt('/me/notice', null)
+    await screen.findByRole('link', { name: /나중에 올린 공지/ })
+    const titles = [...document.querySelectorAll('.ntc b')].map((x) => x.textContent)
+    expect(titles.indexOf('나중에 올린 공지')).toBeLessThan(titles.indexOf('먼저 올린 공지'))
+    expect(screen.getByRole('link', { name: /먼저 올린 공지/ }).getAttribute('href')).toBe(`/me/notice?id=${older.id}`)
+    cleanup()
+    renderAt('/me/notice?id=missing', null)
+    await screen.findByText('공지사항을 찾을 수 없어요.')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('공지 조회 실패는 빈 목록·없음으로 숨기지 않고 오류와 다시 불러오기를 보인다', async () => {
+    const notices = appContainer.resolve('noticeUseCase')
+    await notices.save(null, { title: '복구 뒤 보일 공지', body: '본문' })
+    const list = vi.spyOn(notices, 'listPublic').mockRejectedValueOnce(new Error('서버 오류'))
+    renderAt('/me/notice', null)
+    expect((await screen.findByRole('alert')).textContent).toBe('공지사항을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+    expect(screen.queryByText('등록된 공지사항이 없어요.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByRole('link', { name: /복구 뒤 보일 공지/ })
+    expect(list).toHaveBeenCalledTimes(2)
+    cleanup()
+    vi.spyOn(notices, 'getPublic').mockRejectedValueOnce(new Error('서버 오류'))
+    renderAt('/me/notice?id=any', null)
+    await screen.findByRole('alert')
+    expect(screen.queryByText('공지사항을 찾을 수 없어요.')).toBeNull()
+  })
+
+  it('관심 소설은 서재와 같은 관심 목록을 최근 등록순으로 보이고, 좋아요는 섞지 않는다', async () => {
+    const interest = appContainer.resolve('workInterestUseCase')
     const reading = appContainer.resolve('readingUseCase')
-    await reading.toggleLike('postman'); await reading.toggleLike('guunmong')
+    await interest.setInterested('postman', true); await interest.setInterested('guunmong', true)
+    await reading.toggleLike('hong')
     renderAt('/me/liked')
     await screen.findByText('2편')
-    expect([...document.querySelectorAll('.grid6 .hk')].map((x) => x.textContent)).toEqual(['회색 도시의 우편배달부', '구운몽'].map((t) => expect.stringContaining(t.split(' ')[0])))
-    await reading.toggleLike('postman'); await reading.toggleLike('guunmong')
+    expect([...document.querySelectorAll('.grid6 .hk')].map((x) => x.textContent)).toEqual(['구운몽', '회색 도시의 우편배달부'].map((t) => expect.stringContaining(t.split(' ')[0])))
+    await interest.setInterested('postman', false); await interest.setInterested('guunmong', false)
+    await reading.toggleLike('hong')
   })
 
   it('불러오기 전에는 없음·0 상태를 먼저 그리지 않는다', () => {

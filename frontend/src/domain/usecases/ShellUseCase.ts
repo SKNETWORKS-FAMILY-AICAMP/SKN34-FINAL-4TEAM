@@ -13,7 +13,7 @@ export class ShellUseCase {
   /** 알림 수 조회가 실패해도(비로그인·일시 오류) 메뉴 전체가 깨지지 않게 0으로 둡니다. */
   async getBadges() {
     const [unread, inbox] = await Promise.all([this.notificationRepository.unreadCount().catch(() => 0), this.feedbackRepository.listInbox()])
-    return { unread, pending: inbox.filter((i) => ['작가 검토 대기', '수정 진행 중', '발행 대기'].includes(i.status)).length }
+    return { unread, pending: inbox.filter((i) => ['작가 검토 대기', '수정 진행 중', '발행 대기', '반영 실패'].includes(i.status)).length }
   }
 
   listNotifications(cursor?: string | null, signal?: AbortSignal) { return this.notificationRepository.list(cursor, signal) }

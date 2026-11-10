@@ -35,7 +35,7 @@ class EpisodeController(private val service: ai.storyfork.content.episode.servic
     @DeleteMapping("/works/{id}/episodes/{number}/draft") @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteDraft(@PathVariable id:String,@PathVariable number:Int,@RequestParam revision:Int,principal:Principal) = service.deleteDraft(id,principal.name,number,revision)
 
-    /** 소유자의 참조 없는 마지막 회차를 제거한다. 상속은 403, 참조·충돌은 409다. */
+    /** 소유자의 참조 없는 마지막 회차를 소프트 삭제한다. 상속은 403, 참조·충돌은 409다. */
     @DeleteMapping("/works/{id}/episodes/{number}") @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteEpisode(@PathVariable id:String,@PathVariable number:Int,@RequestParam revision:Int,principal:Principal) = service.deleteEpisode(id,principal.name,number,revision)
 

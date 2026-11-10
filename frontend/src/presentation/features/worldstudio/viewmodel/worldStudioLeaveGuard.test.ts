@@ -25,3 +25,15 @@ it('does not permit another navigation when creation fails before permission is 
  expect(guard.confirmBeforeAction()).toBe(true)
  expect(guard.shouldBlock()).toBe(true)
 })
+
+it('guards an unapplied relationship independently from the world edit state',()=>{
+ const confirm=vi.fn(()=>false),guard=createWorldStudioLeaveGuard(confirm)
+ guard.setRelationDirty(true)
+ expect(guard.shouldBlock()).toBe(true)
+ expect(guard.confirmBeforeAction()).toBe(false)
+ guard.setDirty(true);guard.setRelationDirty(false)
+ expect(guard.shouldBlock()).toBe(true)
+ guard.setDirty(false);expect(guard.shouldBlock()).toBe(false)
+ guard.setRelationDirty(true);guard.setDirty(false)
+ expect(guard.shouldBlock()).toBe(true)
+})

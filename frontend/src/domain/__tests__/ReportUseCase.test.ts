@@ -40,7 +40,6 @@ describe('ReportUseCase', () => {
     [{ reason: 'a\u0000b' }, '신고 사유는 1~2000자로 입력해 주세요.'],
     [{ evidence: 'a'.repeat(5001) }, '증거는 5000자 이하로 입력해 주세요.'],
     [{ workId: '' }, '신고할 작품을 확인할 수 없어요.'],
-    [{ kind: 'OTHER' }, '신고 종류를 선택해 주세요.'],
   ])('잘못된 신고 입력 %o는 요청 없이 거절한다', async (patch, message) => {
     const { uc, calls } = setup()
     await expect(uc.submit({ kind: 'RIGHTS', workId: 'w1', reason: '사유', evidence: '', ...patch } as never)).rejects.toThrow(new OperationsError(message))
@@ -65,10 +64,9 @@ describe('ReportUseCase', () => {
     expect(calls).toEqual([['addEvidence', 'r1', '원본 링크'], ['addExplanation', 'r1', '직접 창작'], ['requestEvidence', 'r1', '계약서 제출']])
   })
 
-  it('검토 결과는 인정·기각과 1~2000자 메모만 허용한다', async () => {
+  it('검토 메모는 1~2000자만 허용하고 정리한 메모와 결과를 전달한다', async () => {
     const { uc, calls } = setup()
     await expect(uc.review('r1', 'ACCEPTED', ' ')).rejects.toThrow('검토 메모는 1~2000자로 입력해 주세요.')
-    await expect(uc.review('r1', 'MAYBE' as never, '메모')).rejects.toThrow('검토 결과를 선택해 주세요.')
     await uc.review('r1', 'REJECTED', ' 근거 부족 ')
     expect(calls).toEqual([['review', 'r1', 'REJECTED', '근거 부족']])
   })

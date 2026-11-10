@@ -9,6 +9,8 @@ import {SessionExpired} from '../../../../domain/repositories/ProfileRepository'
 import {useWorldStudioViewModel} from './useWorldStudioViewModel'
 import {WorldStudioUseCase} from '../../../../domain/usecases/WorldStudioUseCase'
 import {InMemoryWorldStudioRepository} from '../../../../data/world-studio/InMemoryWorldStudioRepository'
+import {newSetting} from '../../../../domain/entities/studioWorld'
+import {putRelation} from '../../../../domain/entities/studioRelations'
 afterEach(cleanup)
 it.each([false,true])('waits for session restoration before loading world list and detail (denied=%s)',async denied=>{
  const repository:WorldStudioRepository=new InMemoryWorldStudioRepository(),useCase=new WorldStudioUseCase(repository)
@@ -55,4 +57,27 @@ it('opens a world, adds and edits a card without touching server state',async()=
  await act(()=>result.current.save())
  expect((await useCase.read(world.id)).settings[0]).toMatchObject({aliases:['금빛 열쇠'],tags:['보물'],item:{title:'열쇠',entityType:'object'}})
  expect(result.current.dirty).toBe(false)
+})
+
+it('keeps the person undo and prior edits after a rejected server save',async()=>{
+ const repository=new InMemoryWorldStudioRepository(),useCase=new WorldStudioUseCase(repository)
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('people')
+ a.item.title='가람';b.item.title='나래'
+ world.settings=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',text:'친구',polarity:'asserted'})
+ await useCase.save(world)
+ const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path="/worldstudio/:worldId" element={children}/></Routes></MemoryRouter>
+ const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
+ await waitFor(()=>expect(result.current.editing?.id).toBe(world.id))
+ act(()=>result.current.patch({description:'이전에 쓴 설명'}))
+ act(()=>{result.current.deletePerson(a.item.id)})
+ expect(result.current.canUndoPersonDeletion).toBe(true)
+ vi.spyOn(repository,'saveStudio').mockRejectedValueOnce(new Error('저장 실패'))
+ await act(()=>result.current.save())
+ expect(result.current.saveState).toBe('failed')
+ expect(result.current.saved?.settings).toEqual(world.settings)
+ expect(result.current.canUndoPersonDeletion).toBe(true)
+ act(()=>{result.current.undoPersonDeletion()})
+ expect(result.current.editing?.settings.map(s=>s.item.id)).toEqual(world.settings.map(s=>s.item.id))
+ expect(result.current.editing?.description).toBe('이전에 쓴 설명')
+ expect(result.current.dirty).toBe(true)
 })

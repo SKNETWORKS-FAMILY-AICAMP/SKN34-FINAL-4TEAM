@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   createPairRelationDraft,
+  hasRelationDraftChanges,
+  hasIncompleteRelationDraft,
   newRelationDraftRow,
   type RelationDirection,
   relationDirection,
@@ -18,6 +20,7 @@ import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 type PairEditor = {
   editing: { settings: StudioSetting[] } | null
   applyRelations: (changes: RelationInput[], removed: string[]) => boolean
+  setRelationDirty: (value: boolean) => void
 }
 
 /** 열린 패널의 입력은 재조회로 덮어쓰지 않고, 최초 baseline을 기존 Domain 검증으로 전달합니다. */
@@ -31,6 +34,12 @@ export function useRelationPairViewModel(
     rows: createPairRelationDraft(studio.editing!.settings, source, target),
     removed: [] as string[],
   }))
+  const initialRows = useRef(draft.rows)
+  const originalRows = useRef(draft.rows)
+  const changed = hasRelationDraftChanges(initialRows.current, draft.rows, draft.removed)
+  const { setRelationDirty } = studio
+  useEffect(() => { setRelationDirty(changed) }, [changed, setRelationDirty])
+  useEffect(() => () => setRelationDirty(false), [setRelationDirty])
   const [error, setError] = useState('')
   const change = (key: string, patch: Partial<RelationInput>) => {
     setDraft((current) => ({
@@ -43,6 +52,7 @@ export function useRelationPairViewModel(
   }
   return {
     ...draft,
+    dirty: changed,
     error,
     change,
     direction: (row: RelationDraftRow) => relationDirection(row.value, source),
@@ -52,13 +62,17 @@ export function useRelationPairViewModel(
       change(row.key, relationDirectionPatch(row.value, direction, source, target)),
     reverse: (row: RelationDraftRow) =>
       change(row.key, { subjectId: row.value.targetId, targetId: row.value.subjectId }),
-    add: (group: RelationGroup, from: string, to: string) =>
-      setDraft((current) => ({
-        ...current,
-        rows: [...current.rows, newRelationDraftRow(group, from, to)],
-      })),
+    add: (group: RelationGroup, from: string, to: string) => {
+      const row = newRelationDraftRow(group, from, to)
+      originalRows.current = [...originalRows.current, row]
+      setDraft((current) => ({ ...current, rows: [...current.rows, row] }))
+    },
     remove: (row: RelationDraftRow) => setDraft((current) => removeRelationDraftRow(current, row)),
     apply: () => {
+      if (hasIncompleteRelationDraft(originalRows.current, draft.rows)) {
+        setError('입력 중인 관계의 설명을 적거나 해당 행을 삭제해 주세요.')
+        return
+      }
       const changes = relationDraftChanges(draft.rows)
       if (!changes.length && !draft.removed.length) {
         setError('실제 관계나 감정을 하나 이상 선택해 주세요.')

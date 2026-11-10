@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {cleanup,render,screen} from '@testing-library/react'
+import {cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
 import {afterEach,expect,it,vi} from 'vitest'
 import type {MediaTarget} from '../../../domain/entities/media'
 import {MediaPanel} from './MediaPanel'
@@ -9,7 +9,7 @@ vi.mock('./useMediaViewModel',()=>({useMediaViewModel:vi.fn(),useStoredImage:vi.
 afterEach(()=>{cleanup();vi.clearAllMocks()})
 
 function renderPanel(state:Partial<ReturnType<typeof useMediaViewModel>>={},target:MediaTarget={kind:'cover',workId:'work-id'}) {
- vi.mocked(useMediaViewModel).mockReturnValue({items:[],busy:false,mutating:false,error:'',notice:'',revision:0,reload:vi.fn(),upload:vi.fn(),remove:vi.fn(),download:vi.fn(),cancel:vi.fn(),...state})
+ vi.mocked(useMediaViewModel).mockReturnValue({items:[],busy:false,mutating:false,error:'',notice:'',revision:0,reload:vi.fn(),upload:vi.fn(),remove:vi.fn(),download:vi.fn(),rename:vi.fn().mockResolvedValue(true),cancel:vi.fn(),...state})
  vi.mocked(useStoredImage).mockReturnValue({url:'blob:stored-cover',error:''})
  return render(<MediaPanel target={target}/> )
 }
@@ -39,4 +39,47 @@ it('keeps an uploaded cover instead of replacing it with the default',()=>{
 it('does not use a work-cover placeholder for manuscript images',()=>{
  renderPanel({}, {kind:'episode',workId:'work-id',number:1})
  expect(screen.queryByRole('img',{name:'기본 작품 표지'})).toBeNull()
+})
+
+const settingTarget:MediaTarget={kind:'setting',workId:'work-id',settingId:'setting-id'}
+const memo={id:'memo-id',filename:'세계관 메모.pdf',mediaType:'application/pdf',kind:'FILE' as const,byteSize:2048,createdAt:'2026-11-05T00:00:00Z',url:'/unused'}
+
+it('renames a setting attachment with the extension fixed and closes the form after the server accepts it',async()=>{
+ const rename=vi.fn().mockResolvedValue(true)
+ renderPanel({items:[memo],rename},settingTarget)
+ expect(screen.queryByLabelText('새 파일 이름 · 세계관 메모.pdf')).toBeNull()
+ fireEvent.click(screen.getByRole('button',{name:'이름 변경 · 세계관 메모.pdf'}))
+ const input=screen.getByLabelText<HTMLInputElement>('새 파일 이름 · 세계관 메모.pdf')
+ expect(input.value).toBe('세계관 메모')
+ expect(screen.getByText('.pdf')).toBeTruthy()
+ expect(screen.getByText('확장자(.pdf)는 바꿀 수 없어요.')).toBeTruthy()
+ fireEvent.change(input,{target:{value:'새 메모'}})
+ fireEvent.click(screen.getByRole('button',{name:'이름 저장'}))
+ await waitFor(()=>expect(rename).toHaveBeenCalledWith(memo,'새 메모.pdf'))
+ await waitFor(()=>expect(screen.queryByLabelText('새 파일 이름 · 세계관 메모.pdf')).toBeNull())
+ expect(screen.getByRole('button',{name:'이름 변경 · 세계관 메모.pdf'})).toBeTruthy()
+})
+
+it('keeps the form and the typed name open when the rename fails, and cancel closes it without a request',async()=>{
+ const rename=vi.fn().mockResolvedValue(false)
+ renderPanel({items:[memo],rename,error:'파일 입력을 확인해 주세요.'},settingTarget)
+ fireEvent.click(screen.getByRole('button',{name:'이름 변경 · 세계관 메모.pdf'}))
+ fireEvent.change(screen.getByLabelText('새 파일 이름 · 세계관 메모.pdf'),{target:{value:'잘못된 이름..'}})
+ fireEvent.click(screen.getByRole('button',{name:'이름 저장'}))
+ await waitFor(()=>expect(rename).toHaveBeenCalledWith(memo,'잘못된 이름...pdf'))
+ expect(screen.getByRole('alert').textContent).toBe('파일 입력을 확인해 주세요.')
+ expect(screen.getByLabelText<HTMLInputElement>('새 파일 이름 · 세계관 메모.pdf').value).toBe('잘못된 이름..')
+ fireEvent.click(screen.getByRole('button',{name:'취소'}))
+ expect(screen.queryByLabelText('새 파일 이름 · 세계관 메모.pdf')).toBeNull()
+ expect(rename).toHaveBeenCalledTimes(1)
+})
+
+it.each<MediaTarget>([{kind:'cover',workId:'work-id'},{kind:'episode',workId:'work-id',number:1}])('has no rename for %o',target=>{
+ renderPanel({items:[memo]},target)
+ expect(screen.queryByRole('button',{name:/이름 변경/})).toBeNull()
+})
+
+it('locks the rename form with the rest of the panel while a request is running',()=>{
+ renderPanel({items:[memo],busy:true},settingTarget)
+ expect(screen.getByRole('button',{name:'이름 변경 · 세계관 메모.pdf'}).closest('fieldset')?.disabled).toBe(true)
 })

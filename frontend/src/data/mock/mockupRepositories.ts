@@ -1,7 +1,11 @@
 import type { Draft, SavedSetting, Work, World, WritingEpisode } from '../../domain/entities/content'
+import { manuscriptText } from '../../domain/entities/media'
 import { newSetting, type SettingItem, type StudioSetting } from '../../domain/entities/studioWorld'
 import type { AuthRepository, AuthUser } from '../../domain/repositories/AuthRepository'
 import type { EpisodeRepository } from '../../domain/repositories/EpisodeRepository'
+import type { FeedbackReportRepository } from '../../domain/repositories/FeedbackReportRepository'
+import type { ManuscriptRepository } from '../../domain/repositories/ManuscriptRepository'
+import type { MediaRepository } from '../../domain/repositories/MediaRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
 import { InMemoryWorldStudioRepository } from '../world-studio/InMemoryWorldStudioRepository'
 
@@ -33,6 +37,42 @@ export const mockupNotificationRepository: NotificationRepository = {
   savePrefs: async (prefs) => prefs,
 }
 
+const demoUnsupported = () => Promise.reject(new Error('데모에서는 지원하지 않아요.'))
+
+/**
+ * 원고 가져오기와 EPUB·발행본 내보내기는 성공을 흉내 내지 않고 데모 미지원 오류로 답합니다.
+ * 데모 집필실의 TXT 초안 내보내기만 메모리 원고로 실제 파일을 만듭니다(이미지 표식 제외).
+ */
+export function createMockupManuscriptRepository(writing: Pick<EpisodeRepository, 'list' | 'writingList'>): ManuscriptRepository {
+  return {
+    preview: demoUnsupported,
+    confirm: demoUnsupported,
+    exportManuscript: async (workId, query, signal) => {
+      if (query.format !== 'txt' || query.source !== 'draft') return demoUnsupported()
+      const whole = query.episode === undefined
+      const own = (await writing.writingList(workId, signal)).filter((e) => !e.inherited && (whole || e.number === query.episode))
+      if (!own.length) throw new Error('내보낼 수 있는 회차가 없어요.')
+      const title = whole ? (await writing.list(signal)).find((w) => w.id === workId)?.title ?? '원고' : own[0].draft.title
+      const chapters = own.map((e) => `${e.draft.title}\n\n${manuscriptText(e.draft.body)}`).join('\n\n\n')
+      return { blob: new Blob(['\uFEFF', whole ? `${title}\n\n\n${chapters}` : chapters], { type: 'text/plain;charset=utf-8' }), filename: `${title.replace(/[\\/:*?"<>|]/g, '_')}.txt` }
+    },
+  }
+}
+
+/** 설정 첨부 이름 변경과 회차 이미지 목록·대체 텍스트·공개 설명 조회도 같습니다. 나머지 첨부 동작은 기존 HTTP 저장소 그대로입니다. */
+export const mockupUnsupportedMedia: Pick<MediaRepository, 'rename' | 'listEpisodeImages' | 'updateEpisodeImageAlt' | 'publicEpisodeImageAlts'> = {
+  rename: demoUnsupported, listEpisodeImages: demoUnsupported, updateEpisodeImageAlt: demoUnsupported, publicEpisodeImageAlts: demoUnsupported,
+}
+
+/**
+ * 정본(서버) 작품이 없는 발표용 빌드·테스트의 제보 저장소: 목록은 비어 있고 쓰기는 데모 미지원 오류로 답합니다(성공을 흉내 내지 않음).
+ * 데모 작품의 피드백은 기존 메모리 경로(FeedbackRepository)가 그대로 맡습니다.
+ */
+export const mockupFeedbackReportRepository: FeedbackReportRepository = {
+  create: demoUnsupported, listEpisode: async () => [], listMine: async () => [], listInbox: async () => [],
+  setVisibility: demoUnsupported, correct: demoUnsupported, withdraw: demoUnsupported, check: demoUnsupported, answer: demoUnsupported, setStatus: demoUnsupported,
+}
+
 const now = () => new Date().toISOString()
 const HONG_BODY = '조선국 세종 시절에 한 재상이 있으니, 성은 홍이요 명은 문이라.\n\n하루는 시비 춘섬이 아들을 낳으니 일홈을 길동이라 하였다. 길동이 점점 자라 팔 세가 되매 총명이 과인하여 하나를 들으면 백을 통하였다.\n\n그러나 길동은 아버지를 아버지라 부르지 못하고, 형을 형이라 부르지 못하니 밤마다 달을 보며 탄식하였다.'
 
@@ -53,11 +93,11 @@ const confirmedWorld = (id: string): World => {
 export function createMockupWritingRepository() {
   const work: Work = {
     id: '00000000-0000-4000-8000-00000000a001', title: '홍길동전 다시 쓰기', summary: '아버지를 아버지라 부르지 못한 소년의 이야기를 작가가 이어 씁니다.',
-    visibility: 'private', allowFork: true, allowForkPublication: true, source: null, episodes: [], draft: { title: '', body: '', revision: 0 },
+    visibility: 'private', allowFork: true, allowForkPublication: true, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0,
     creationType: 'ORIGINAL', genres: ['고전 영웅'], hashtags: ['#활빈당'], hasWritingEpisode: true,
   }
   const episodes: WritingEpisode[] = [
-    { number: 1, draft: { title: '아버지라 부르지 못한 밤', body: HONG_BODY, revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true },
+    { number: 1, draft: { title: '아버지라 부르지 못한 밤', body: HONG_BODY, revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true, checkpoints: [] },
   ]
   const find = (number: number) => {
     const episode = episodes.find((e) => e.number === number)
@@ -77,7 +117,7 @@ export function createMockupWritingRepository() {
     publicList: async () => [],
     writingList: async (_id: string) => structuredClone(episodes),
     createEpisode: async (_id: string, title: string) => {
-      const episode: WritingEpisode = { number: episodes.length + 1, draft: { title, body: '', revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true }
+      const episode: WritingEpisode = { number: episodes.length + 1, draft: { title, body: '', revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true, checkpoints: [] }
       episodes.push(episode)
       return structuredClone(episode)
     },
