@@ -7,6 +7,7 @@ import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useInboxViewModel } from '../viewmodel/useInboxViewModel'
+import { EditSuggestionInbox } from './EditSuggestionInbox'
 
 /** 목업 inbox(): U20 독자 피드백함. 상태 이름은 목업 그대로입니다. */
 export function InboxPage() {
@@ -27,6 +28,8 @@ export function InboxPage() {
   // 발행(publishRevision)은 첫 번째 일치만 바꾸므로, 미리보기도 그 위치에서 앞·뒤를 나눠 그립니다.
   const from = it?.from ?? '', at = cur.indexOf(from)
   const [head, tail] = at < 0 ? [cur, ''] : [cur.slice(0, at), cur.slice(at + from.length)]
+  // 서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다. 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
+  const mockup = import.meta.env.MODE === 'mockup'
   return (
     <>
       <Gnb on="lib" />
@@ -59,6 +62,7 @@ export function InboxPage() {
             </div>
           ) : <div className="panel muted">제보가 없어요.</div>}
         </div>
+        {!mockup && <EditSuggestionInbox />}
       </main>
       <Footer />
     </>

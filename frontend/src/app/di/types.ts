@@ -63,6 +63,8 @@ export type AppCradle = {
   episodeRepository: EpisodeRepository
   episodeCommentUseCase: import('../../domain/usecases/EpisodeCommentUseCase').EpisodeCommentUseCase
   episodeCommentRepository: import('../../domain/repositories/EpisodeCommentRepository').EpisodeCommentRepository
+  editSuggestionUseCase: import('../../domain/usecases/EditSuggestionUseCase').EditSuggestionUseCase
+  editSuggestionRepository: import('../../domain/repositories/EditSuggestionRepository').EditSuggestionRepository
   openNotificationStream: OpenNotificationStream
   fetchCoreApiHealth: FetchCoreApiHealth
   fetchAiServiceHealth: FetchCoreApiHealth

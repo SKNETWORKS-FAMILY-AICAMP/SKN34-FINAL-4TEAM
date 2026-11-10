@@ -6,6 +6,7 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { PublishSettingsSheet } from '../../../shared/PublishSettingsSheet'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useLibraryViewModel } from '../viewmodel/useLibraryViewModel'
+import { MyEditSuggestions } from './MyEditSuggestions'
 import { ServerWritingList } from './ServerWritingList'
 
 const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['qa', '내 댓글·신고']] as const
@@ -30,6 +31,7 @@ export function LibraryPage() {
               <div className="rp" key={r.id}><div className="top"><b>{r.title} {r.n ? `${r.n}화` : '소설 전체'} · {r.type}</b><span className={`chip ${/완료|반영/.test(r.status) ? 'ok' : 'wait'}`}>{r.status}</span></div><div className="small" style={{ marginTop: 4 }}>{r.text}</div><div className="a">🤖 {r.reply}</div></div>
             ))}</div>
             <p className="muted small" style={{ marginTop: 10 }}>작가가 처리하면 상태가 바뀌어요.</p>
+            {!mockup && <MyEditSuggestions />}
           </>
         )}
         {d.read && (

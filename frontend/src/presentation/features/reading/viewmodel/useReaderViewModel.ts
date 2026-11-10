@@ -17,12 +17,13 @@ const LOOK_VARS = {
   night: { '--tbg': '#0E0E10', '--tfg': '#D9D9DE', '--tsub': '#8C8E97', '--tline': '#25252B', '--tcard': '#18181C', '--tacc': '#9D87FF', '--tbtn': '#9D87FF', '--tbtnfg': '#140E2B', colorScheme: 'dark' },
 } as const
 
-type ReaderSheet = { kind: 'comment' | 'feedback'; k: number } | { kind: 'look' } | null
+type ReaderSheet = { kind: 'comment' | 'feedback' | 'suggest'; k: number } | { kind: 'look' } | null
 
 /** 비회원이 회원 전용 동작을 누를 때 로그인 화면에 보여 줄 안내 */
 const MEMBER_ONLY = {
   comment: '댓글은 로그인한 회원만 남길 수 있어요.',
   feedback: '피드백은 로그인한 회원만 보낼 수 있어요.',
+  suggest: '수정 제안은 로그인한 회원만 보낼 수 있어요.',
   like: '댓글 좋아요는 로그인한 회원만 누를 수 있어요.',
 }
 
@@ -78,7 +79,7 @@ export function useReaderViewModel(id: string, n: number,
     sheet,
     /** 시트를 열면 목업처럼 문장 팝업을 닫고 선택 표시는 남깁니다. */
     openSheet: (s: ReaderSheet) => {
-      if ((s?.kind === 'comment' || s?.kind === 'feedback') && !requireMember(s.kind)) return
+      if (s && s.kind !== 'look' && !requireMember(s.kind)) return
       setSelected((x) => x && { ...x, pop: false })
       setSheet(s)
     },
