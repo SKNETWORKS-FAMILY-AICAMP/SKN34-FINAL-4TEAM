@@ -92,3 +92,32 @@ describe('canonical WorkRepository', () => {
     expect(api.fork).toHaveBeenCalledWith('work-uuid', 2, '분기 제목', '분기 방향')
   })
 })
+
+
+it('공개 중단된 중간 회차의 자리를 보존하고 뒤 회차 번호를 바꾸지 않는다', async () => {
+  const {repository}=setup([record({episodes:[{number:3,version:1,versionId:'v3',title:'3화',body:'공개 본문',inherited:false}]})])
+  const [work]=await repository.listWorks()
+  expect(epsOf(work)).toHaveLength(3)
+  expect(epsOf(work)[0]).toMatchObject({hidden:true,p:[]})
+  expect(epsOf(work)[1]).toMatchObject({hidden:true,p:[]})
+  expect(epsOf(work)[2].t).toBe('3화')
+})
+
+
+it('공개 중단된 회차는 공개 세계관 조회를 요청하지 않는다',async()=>{
+  const {repository,api}=setup([record({episodes:[{number:2,version:1,versionId:'v2',title:'2화',body:'본문',inherited:false}]})])
+  const [work]=await repository.listWorks()
+  await repository.readWorld(work,1)
+  expect(api.readingWorld).not.toHaveBeenCalled()
+})
+
+
+it('preserves published author notes through HTTP and inherited Fork reading', async () => {
+  const row = record({ source: {workId:'parent',title:'원작',episode:1,version:1,direction:'',deleted:true},
+    episodes: [{...record().episodes[0], inherited:true, authorNote:'원작 후기'}] })
+  const api = new HttpEpisodeRepository(vi.fn(async () => Response.json([row])))
+  const repository = new HttpWorkRepository(api, () => false)
+  const [work] = await repository.listWorks()
+  expect(work.parentDeleted).toBe(true)
+  expect(epsOf(work)[0].authorNote).toBe('원작 후기')
+})

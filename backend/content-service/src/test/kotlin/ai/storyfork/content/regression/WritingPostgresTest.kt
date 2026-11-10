@@ -52,7 +52,7 @@ class WritingPostgresTest {
 
     @Test fun `a checkpoint is a published version so saving makes none and reverting reactivates an earlier one without erasing history`() {
         val w=service.create("writer",CreateWorkRequest("체크포인트 검증"))
-        fun applied()=jdbc.queryForObject("SELECT count(*) FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id JOIN episode e ON e.id=v.episode_id WHERE e.work_id=? AND p.action='publish' AND p.outcome='applied'",Int::class.java,w.id)
+        fun applied()=jdbc.queryForObject("SELECT count(*) FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id JOIN episode e ON e.id=v.episode_id WHERE e.work_id=? AND p.action IN ('publish','replace','republish') AND p.outcome='applied'",Int::class.java,w.id)
         val first=service.writeEpisode(w.id,"writer",1,DraftRequest("1화","첫 원고",0),true)
         assertTrue(first.checkpoints.isEmpty())
         assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM checkpoint WHERE work_id=?",Int::class.java,w.id))
@@ -93,5 +93,25 @@ class WritingPostgresTest {
         assertTrue(inherited.inherited)
         assertEquals(403,assertThrows(ContentFailure::class.java) { service.writeEpisode(fork.id,"reader",1,DraftRequest("침범","원작 수정",inherited.draft.revision),true) }.status)
         assertEquals(saved.versions.single().id,inherited.publishedVersionId)
+    }
+    @Test fun `author note survives reload publication restore and fork while blank publication removes it`() {
+        val w=service.create("writer",CreateWorkRequest("작가의 말 검증"))
+        val saved=service.writeEpisode(w.id,"writer",1,DraftRequest("제목","본문",0,"첫 후기"),true)
+        assertEquals("첫 후기",service.writing(w.id,"writer",1).draft.authorNote)
+        val v1=saved.versions.single().id
+        val live=service.publishEpisode(w.id,"writer",1,PublishRequest(saved.draft.revision,true,versionId=v1))
+        service.policy(w.id,"writer",PolicyRequest(service.read(w.id,"writer").draft!!.revision,true,true))
+        val fork=service.fork(w.id,"reader",ForkRequest(1,"분기"))
+        assertEquals("첫 후기",service.writing(fork.id,"reader",1).draft.authorNote)
+        val edited=service.writeEpisode(w.id,"writer",1,DraftRequest("제목","본문",live.draft.revision,"수정 후기"),false)
+        assertEquals("첫 후기",service.publicRead(w.id).episodes.single().authorNote)
+        val blank=service.writeEpisode(w.id,"writer",1,DraftRequest("제목","본문",edited.draft.revision,""),true)
+        val emptyLive=service.publishEpisode(w.id,"writer",1,PublishRequest(blank.draft.revision,true,versionId=blank.versions.last().id))
+        assertEquals("",service.publicRead(w.id).episodes.single().authorNote)
+        assertEquals("첫 후기",service.writing(fork.id,"reader",1).draft.authorNote)
+        val restored=service.restoreEpisode(w.id,"writer",1,RevertRequest(emptyLive.draft.revision,v1))
+        assertEquals("첫 후기",restored.draft.authorNote)
+        assertEquals("",service.publicRead(w.id).episodes.single().authorNote)
+        assertEquals(403,assertThrows(ContentFailure::class.java) {service.writeEpisode(fork.id,"reader",1,DraftRequest("제목","본문",0,"변조"),true)}.status)
     }
 }

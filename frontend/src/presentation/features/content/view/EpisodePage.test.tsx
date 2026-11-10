@@ -28,7 +28,7 @@ it('requires selecting a saved version before opening publication preview', asyn
   fireEvent.click(await screen.findByRole('button',{name:/선택 필요/}))
   fireEvent.click(screen.getByLabelText('이 원고를 공개할 권리가 있음을 확인합니다.'))
   expect((screen.getByRole('button',{name:'회차 공개하기'}) as HTMLButtonElement).disabled).toBe(true)
-  expect(screen.getByText('저장·AI 이력에서 공개할 저장 버전을 먼저 선택해 주세요.')).toBeTruthy()
+  expect(screen.getByText('저장·AI·발행 이력에서 공개할 저장 버전을 먼저 선택해 주세요.')).toBeTruthy()
 })
 
 it('requires a fresh rights confirmation for the next episode after publication', async()=>{
@@ -37,7 +37,7 @@ it('requires a fresh rights confirmation for the next episode after publication'
   const calls = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify([w]))).mockResolvedValueOnce(new Response(JSON.stringify({versions:[{id:'v1',episode:1,title:'첫 화',body:'저장된 원고',revision:1,savedAt:'2026-11-02T00:00:00Z'}],proposals:[]}))).mockResolvedValueOnce(new Response(JSON.stringify(published)))
   render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))}/> )
   fireEvent.click(await screen.findByRole('button',{name:/테스트/}))
-  fireEvent.click(screen.getByRole('button',{name:'저장·AI 이력'}))
+  fireEvent.click(screen.getByRole('button',{name:'저장·AI·발행 이력'}))
   fireEvent.click(await screen.findByRole('button',{name:'이 버전을 공개 대상으로 선택'}))
   const rights=screen.getByLabelText('이 원고를 공개할 권리가 있음을 확인합니다.')
   fireEvent.click(rights)
@@ -109,7 +109,7 @@ it('shows independent fork publication consent and history navigation',async()=>
  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(vi.fn().mockResolvedValue(new Response(JSON.stringify([w])))))}/> )
  fireEvent.click(await screen.findByRole('button',{name:/권한 분리/}))
  expect(screen.getByLabelText('분기 작품의 최초 공개를 허용합니다.')).toBeTruthy()
- expect(screen.getByRole('button',{name:'저장·AI 이력'})).toBeTruthy()
+ expect(screen.getByRole('button',{name:'저장·AI·발행 이력'})).toBeTruthy()
 })
 
 it('opens restored text in the editor as a new saved version',async()=>{
@@ -118,7 +118,7 @@ it('opens restored text in the editor as a new saved version',async()=>{
  const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify([w]))).mockResolvedValueOnce(new Response(JSON.stringify({versions:[v],proposals:[]}))).mockResolvedValueOnce(new Response(JSON.stringify({...v,revision:3})))
  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))}/> )
  fireEvent.click(await screen.findByRole('button',{name:/복원 확인/}))
- fireEvent.click(screen.getByRole('button',{name:'저장·AI 이력'}))
+ fireEvent.click(screen.getByRole('button',{name:'저장·AI·발행 이력'}))
  fireEvent.click(await screen.findByRole('button',{name:'이 원고를 새 버전으로 복원'}))
  await screen.findByText('과거 원고를 새 버전으로 저장했어요. 공개본은 변경되지 않았어요.')
  expect((screen.getByLabelText('원고 본문') as HTMLTextAreaElement).value).toBe('과거 원고')

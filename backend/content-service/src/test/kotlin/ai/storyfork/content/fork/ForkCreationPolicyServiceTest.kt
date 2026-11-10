@@ -79,6 +79,42 @@ class ForkCreationPolicyServiceTest {
         noWrites()
         verify(forks,never()).saveAndFlush(org.mockito.ArgumentMatchers.any(ForkEntity::class.java))
     }
+    @Test fun `fork after a suspended gap pins only public prefix and starts after basis number`() {
+        original()
+        val publicRows=listOf(1,3,4).map {PublishedEpisodeResponse(it,1,"v$it","${it}화","원문",false)}
+        `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(publicRows))
+        `when`(access.forkable("original",listOf(1,3,4))).thenReturn(listOf(1,3,4))
+        `when`(world.historyForContext("original")).thenReturn(ai.storyfork.content.world.service.dto.SettingListResponse(emptyList()))
+        `when`(workWorlds.saveAndFlush(org.mockito.ArgumentMatchers.any())).thenAnswer {it.arguments[0]}
+        `when`(episodes.saveAndFlush(org.mockito.ArgumentMatchers.any())).thenAnswer {it.arguments[0]}
+        `when`(workService.read(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString())).thenReturn(
+            ai.storyfork.content.work.service.dto.WorkResponse("fork","포크","","private",false,false,null,emptyList(),null))
+        service.create("original","reader",ForkRequest(3,"포크"))
+        val created=mockingDetails(episodes).invocations.filter {it.method.name=="saveAndFlush"}.map {it.getArgument<ai.storyfork.content.episode.entity.EpisodeEntity>(0).sequence}
+        assertEquals(listOf(1,3,4),created)
+        val capture=mockingDetails(checkpoints).invocations.single {it.method.name=="capture"}.getArgument<ai.storyfork.content.episode_version.service.dto.CheckpointRequest>(0)
+        assertEquals(listOf(1,3),capture.episodes.map {it.number})
+    }
+
+    @Test fun `suspended middle basis cannot create a fork`() {
+        original()
+        `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1,1,"v1","1화","원문",false),PublishedEpisodeResponse(3,1,"v3","3화","원문",false))))
+        assertEquals(422,assertThrows(ContentFailure::class.java) {service.create("original","reader",ForkRequest(2,"포크"))}.status)
+        noWrites()
+    }
+
+    @Test fun `fork copies the original published author note into its pinned version`() {
+        `when`(access.get("original")).thenReturn(WorkAccessResult("original","author","제목","",0,"world","public",true,true,null))
+        `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1,1,"v1","제목","본문",false,"원작 후기"))))
+        `when`(access.forkable("original",listOf(1))).thenReturn(listOf(1))
+        `when`(world.historyForContext("original")).thenReturn(ai.storyfork.content.world.service.dto.SettingListResponse(emptyList()))
+        `when`(workWorlds.saveAndFlush(org.mockito.ArgumentMatchers.any(ai.storyfork.content.work.entity.WorkWorldHistoryEntity::class.java) ?: ai.storyfork.content.work.entity.WorkWorldHistoryEntity())).thenAnswer {it.arguments[0]}
+        `when`(episodes.saveAndFlush(org.mockito.ArgumentMatchers.any(ai.storyfork.content.episode.entity.EpisodeEntity::class.java) ?: ai.storyfork.content.episode.entity.EpisodeEntity())).thenAnswer {it.arguments[0]}
+        service.create("original","reader",ForkRequest(1,"분기"))
+        val version=mockingDetails(versions).invocations.single {it.method.name=="saveAndFlush"}.getArgument<ai.storyfork.content.episode_version.entity.EpisodeVersionEntity>(0)
+        assertEquals("원작 후기",version.authorNote)
+        assertFalse(version.isSaved)
+    }
 
     @Test fun `a soft deleted earlier Fork still blocks forking the same original again`() {
         // fork 테이블의 UNIQUE(owner_id,source_work_id)가 소프트 삭제 행에도 남으므로 저장 단계 500 대신 409로 막는다.

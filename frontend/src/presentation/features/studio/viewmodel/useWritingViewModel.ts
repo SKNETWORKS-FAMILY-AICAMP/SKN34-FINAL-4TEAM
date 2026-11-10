@@ -1,11 +1,11 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { Draft, WritingEpisode } from '../../../../domain/entities/content'
+import type { Draft, WritingEpisode, PublicationEvent } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
 import {imageMarker} from '../../../../domain/entities/media'
 
-type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'>
+type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'|'setPublicationVisibility'|'history'>
 export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
@@ -15,9 +15,16 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [ready,setReady]=useState(false)
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
+  const [publicationHistory,setPublicationHistory]=useState<PublicationEvent[]|null>(null)
+  const [historyLoading,setHistoryLoading]=useState(false)
+  const [historyError,setHistoryError]=useState('')
+  // 발행 이력은 읽기 전용이라 저장 요청(run)과 분리한다. 실패해도 원고 저장·자동저장을 막지 않는다.
+  const historyRequest=useRef<AbortController|null>(null)
+  // 발행 상태가 바뀌면 진행 중인 이전 조회 응답이 새 상태를 덮지 않게 함께 취소한다.
+  const resetHistory=()=>{historyRequest.current?.abort();setPublicationHistory(null)}
   const current=useRef(draft)
   const pending=useRef<AbortController|null>(null)
-  const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body)
+  const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body||(draft.authorNote??'')!==(active.draft.authorNote??''))
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const install=(e:WritingEpisode)=>{setActive(e);put(e.draft);setNotice('');setError('')}
   useEffect(()=>{
@@ -26,7 +33,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       if(controller.signal.aborted)return
       setEpisodes(rows);if(rows[0])install(rows[0]);setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
-    return ()=>{controller.abort();pending.current?.abort()}
+    return ()=>{controller.abort();pending.current?.abort();historyRequest.current?.abort()}
   },[id,api])
   useEffect(()=>{
     const leave=(e:BeforeUnloadEvent)=>{if(dirty||busy)e.preventDefault()}
@@ -49,11 +56,11 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     if(signal.aborted)return
     merge(result)
     // A response acknowledges the sent draft, never typing that happened while it was in flight.
-    put(current.current.title===sent.title && current.current.body===sent.body ? result.draft : {...current.current,revision:result.draft.revision})
+    put(current.current.title===sent.title && current.current.body===sent.body && current.current.authorNote===sent.authorNote ? result.draft : {...current.current,revision:result.draft.revision})
     setNotice(version?'새 원고 버전을 저장했어요. 발행본은 그대로예요.':'작업 초안을 저장했어요.')
   },version)
   // 발행과 체크포인트 되돌리기는 같은 회차 발행 요청이다. 완료 안내만 다르고, 성공 표시는 실제 응답을 받은 뒤에만 한다.
-  const publishVersion=(versionId:string,rights:boolean,done:string)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){merge(e);put({...current.current,revision:e.draft.revision});setNotice(done)}})
+  const publishVersion=(versionId:string,rights:boolean,done:string)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){resetHistory();merge(e);put({...current.current,revision:e.draft.revision});setNotice(done)}})
   const autoSave=useEffectEvent(()=>{void save(false)})
   useEffect(()=>{
     if(!dirty||busy||error||active?.inherited)return
@@ -78,8 +85,32 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       setNotice(whole?'회차를 삭제했어요.':'작업 초안을 삭제했어요. 새로 입력하면 새 초안으로 저장돼요.')
     })
   }
-  return {episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
-    edit:(patch:Partial<Pick<Draft,'title'|'body'>>)=>{put({...current.current,...patch});setNotice('')},
+  const changeVisibility=(visible:boolean,rights:boolean)=>{
+    if(!active||active.inherited||dirty||pending.current)return Promise.resolve(false)
+    if(!visible&&!window.confirm('이 회차의 공개를 중단할까요? 저장 버전과 기존 Fork는 보존돼요.'))return Promise.resolve(false)
+    return run(async signal=>{
+      const result=await api.setPublicationVisibility(id,active.number,current.current.revision,visible,rights,signal)
+      if(signal.aborted)return
+      resetHistory();merge(result);put({...current.current,revision:result.draft.revision})
+      setNotice(visible?'중단했던 발행본을 다시 공개했어요.':'회차 공개를 중단했어요.')
+    })
+  }
+  return {publicationHistory,changeVisibility,
+    historyLoading,historyError,
+    loadPublicationHistory:async()=>{
+      historyRequest.current?.abort()
+      const controller=new AbortController();historyRequest.current=controller
+      setPublicationHistory(null);setHistoryError('');setHistoryLoading(true)
+      try {
+        const result=await api.history(id,controller.signal)
+        if(controller.signal.aborted)return
+        if(!result.publicationHistory)throw new Error('발행 이력 응답을 확인할 수 없어요.')
+        setPublicationHistory(result.publicationHistory)
+      } catch(e) {if(!controller.signal.aborted)setHistoryError(e instanceof Error?e.message:'발행 이력을 불러오지 못했어요.')}
+      finally {if(historyRequest.current===controller){historyRequest.current=null;setHistoryLoading(false)}}
+    },
+    episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,
+    edit:(patch:Partial<Pick<Draft,'title'|'body'|'authorNote'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
     deleteDraft:()=>remove(false),
     deleteEpisode:()=>remove(true),

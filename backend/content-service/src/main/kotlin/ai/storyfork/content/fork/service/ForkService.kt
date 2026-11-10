@@ -55,16 +55,16 @@ class ForkService(
         checkContent(forks.findAllByOwnerIdAndSourceWorkId(owner,id).isEmpty(),409,"이미 만든 분기 작품이 있어요.")
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000 && data.direction.length<=2000,message="분기 작품 입력을 확인해 주세요.")
         members.ensure(owner)
-        val forkId=contentId();val prefix=published.take(data.episode)
+        val forkId=contentId();val prefix=published.filter {it.number<=data.episode}
         val basisSettings=selectSettings(world.historyForContext(id).items.map {it.toDomain()},data.episode,true).map {it.toPayload()}
         works.saveAndFlush(WorkEntity(id=forkId,ownerId=owner,title=data.title.trim(),description=data.summary,originKind="fork",revision=0))
         val history=workWorlds.saveAndFlush(WorkWorldHistoryEntity(id=contentKey("work-world",forkId,"0"),workId=forkId,worldId=original.worldId,revisionNo=0))
         visibility.saveAndFlush(WorkPublicationHistoryEntity(id=contentKey("work-publication",forkId,"0"),workId=forkId,revisionNo=0,visibility="private"))
         prefix.forEach {e ->
             val row=episodes.saveAndFlush(EpisodeEntity(id=episodeId(forkId,e.number),workId=forkId,sequence=e.number))
-            versions.saveAndFlush(EpisodeVersionEntity(id=episodeVersionId(forkId,e.number,e.versionId),episodeId=row.id,contentVersionId=e.versionId,revisionNo=e.version,title=e.title,content=e.body,createdAt=Instant.EPOCH,isSaved=false,workWorldHistoryId=history.id))
+            versions.saveAndFlush(EpisodeVersionEntity(id=episodeVersionId(forkId,e.number,e.versionId),episodeId=row.id,contentVersionId=e.versionId,revisionNo=e.version,title=e.title,content=e.body,authorNote=e.authorNote,createdAt=Instant.EPOCH,isSaved=false,workWorldHistoryId=history.id))
         }
-        val next=prefix.size+1
+        val next=data.episode+1
         val row=episodes.saveAndFlush(EpisodeEntity(id=episodeId(forkId,next),workId=forkId,sequence=next))
         drafts.saveAndFlush(EpisodeDraftEntity(episodeId=row.id,title="새 회차",content="",editRevision=0))
         val cp=contentKey("checkpoint",forkId)

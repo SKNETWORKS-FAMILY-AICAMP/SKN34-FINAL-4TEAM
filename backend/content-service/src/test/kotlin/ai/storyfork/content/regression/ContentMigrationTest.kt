@@ -41,8 +41,8 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(21,flyway.migrate().migrationsExecuted)
-        assertEquals((1..21).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(23,flyway.migrate().migrationsExecuted)
+        assertEquals((1..23).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for(table in listOf("work","work_view","work_like","reading_record","reading_episode","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge","episode_comment","episode_comment_like","work_interest","content_event_outbox")) {
@@ -86,7 +86,7 @@ class ContentMigrationTest {
             assertEquals(work.path("ownerSubjectId").asText(), jdbc.queryForObject("SELECT owner_id FROM work WHERE id=?", String::class.java, work.path("workId").asText()))
             for (episode in work.path("episodes")) {
                 val body=jdbc.queryForObject("SELECT content FROM episode_version WHERE id=?", String::class.java, episode.path("versionRowId").asText())!!
-                assertEquals(episode.path("bodySha256").asText(), HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(body.toByteArray(Charsets.UTF_8))))
+                assertEquals(episode.path("bodySha256").asText(), HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(body.replace("\r\n", "\n").toByteArray(Charsets.UTF_8))))
             }
             for (inherited in work.path("sourceEpisodeVersionIds")) {
                 assertEquals(inherited.path("contentVersionId").asText(), jdbc.queryForObject("SELECT content_version_id FROM episode_version WHERE id=?", String::class.java, inherited.path("localVersionRowId").asText()))
@@ -115,8 +115,8 @@ class ContentMigrationTest {
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
         jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
-        // 남은 V16(샘플)·V17(댓글)·V18(좋아요)·V19(관심 작품)·V20(독서 기록)·V21(작품 소프트 삭제)이 적용된다.
-        assertEquals(6,flyway.migrate().migrationsExecuted)
+        // 남은 V16(샘플)부터 V21(작품 소프트 삭제)·V22(회차 공개 상태)·V23(작가의 말)까지 적용된다.
+        assertEquals(8,flyway.migrate().migrationsExecuted)
         assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
@@ -216,6 +216,6 @@ class ContentMigrationTest {
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(21,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(23,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

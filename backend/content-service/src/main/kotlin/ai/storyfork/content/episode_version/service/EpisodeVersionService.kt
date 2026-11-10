@@ -32,7 +32,7 @@ class EpisodeVersionService(
         val numbers=episodes.findAllByWorkIdOrderBySequence(id).associateBy {it.id}
         return VersionListResponse(versions.findAllByEpisodeIdInOrderByCreatedAtAscIdAsc(numbers.keys).filter {it.isSaved}
             .sortedWith(compareBy<EpisodeVersionEntity> {it.createdAt}.thenBy {it.revisionNo})
-            .map {VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,numbers.getValue(it.episodeId).sequence,it.createdAt.toString())})
+            .map {VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,numbers.getValue(it.episodeId).sequence,it.createdAt.toString(),it.authorNote)})
     }
     fun save(id: String,owner: String,number: Int,data: DraftRequest): EpisodeResponse {
         access.own(id,owner)
@@ -46,16 +46,16 @@ class EpisodeVersionService(
         checkContent(!e.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(e.draft.revision==data.revision,409,"다른 편집이 저장됐어요. 최신 원고를 불러와 주세요.")
         val v=e.versions.find {it.id==data.versionId} ?: throw ContentFailure(404,"이 회차의 저장 버전을 찾을 수 없어요.")
-        val changed=episodeService.update(id,owner,number,DraftRequest(v.title,v.body,data.revision))
+        val changed=episodeService.update(id,owner,number,DraftRequest(v.title,v.body,data.revision,v.authorNote))
         saveVersion(id,owner,number,changed.draft,episodeVersionId(id,number,v.id))
         return episodeService.read(id,owner,number)
     }
     /** 기존 작품 단위 작성 API: revision은 작품 기준이며 회차 API와 혼동하지 않는다. */
     fun saveCurrent(id: String,owner: String,data: DraftRequest): SavedEpisodeVersionResult {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
-        val number=publication.publishedEpisodes(id).items.size+1
+        val number=publication.nextEpisodeNumber(id)
         val e=episodeService.read(id,owner,number)
-        episodeService.update(id,owner,number,DraftRequest(data.title,data.body,e.draft.revision))
+        episodeService.update(id,owner,number,DraftRequest(data.title,data.body,e.draft.revision,data.authorNote))
         val row=episodes.findByWorkIdAndSequence(id,number)!!
         drafts.findById(row.id).orElseThrow().editRevision=data.revision+1
         val changed=episodeService.read(id,owner,number).draft
@@ -66,9 +66,9 @@ class EpisodeVersionService(
         val e=episodes.findByWorkIdAndSequence(id,number) ?: throw ContentFailure(404,"회차를 찾을 수 없어요.")
         val snapshot=world.snapshot(id,owner,number)
         val contentVersion=contentId()
-        val v=EpisodeVersionEntity(id=episodeVersionId(id,number,contentVersion),episodeId=e.id,contentVersionId=contentVersion,revisionNo=draft.revision,title=draft.title,content=draft.body,isSaved=true,workWorldHistoryId=snapshot.workWorldHistoryId,restoredFromId=restoredFrom)
+        val v=EpisodeVersionEntity(id=episodeVersionId(id,number,contentVersion),episodeId=e.id,contentVersionId=contentVersion,revisionNo=draft.revision,title=draft.title,content=draft.body,authorNote=draft.authorNote,isSaved=true,workWorldHistoryId=snapshot.workWorldHistoryId,restoredFromId=restoredFrom)
         versions.saveAndFlush(v)
-        return VersionResponse(v.contentVersionId,v.title,v.content,v.revisionNo,number,v.createdAt.toString())
+        return VersionResponse(v.contentVersionId,v.title,v.content,v.revisionNo,number,v.createdAt.toString(),v.authorNote)
     }
     /** 권한·기준 검증을 마친 서비스가 사용하는 부분 체크포인트 저장 계약. */
     fun capture(request: CheckpointRequest) {

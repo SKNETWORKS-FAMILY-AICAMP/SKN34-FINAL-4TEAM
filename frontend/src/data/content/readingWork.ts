@@ -9,8 +9,15 @@ import type { ReadingWorkRecord, ReadingWorldRecord } from './HttpEpisodeReposit
  */
 export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
   const episodes = [...row.episodes].sort((a, b) => a.number - b.number)
-  const mapEpisode = (e: typeof episodes[number]) => ({ t: e.title, p: e.body.split('\n\n'), versionId: e.versionId })
-  const inherited = episodes.filter(e => e.inherited).map(mapEpisode)
+  const mapEpisode = (e: typeof episodes[number]) => ({ t: e.title, p: e.body.split('\n\n'), versionId: e.versionId, authorNote: e.authorNote ?? '' })
+  // Reader routes use array index + 1. Keep empty, hidden slots for withheld episode numbers.
+  const byNumber=new Map(episodes.map(e=>[e.number,e]))
+  const boundary=row.source?.episode??0
+  const numbered=Array.from({length:Math.max(boundary,episodes.at(-1)?.number??0)},(_,i)=>{
+    const e=byNumber.get(i+1)
+    return e?mapEpisode(e):{t:'공개되지 않은 회차',p:[],hidden:true}
+  })
+  const inherited = numbered.slice(0,boundary)
   return {
     id: row.id, slug: row.slug ?? undefined, canonical: true, title: row.title, summary: row.summary, theme: row.theme,
     author: row.authorName, owner: row.ownerId, mine, genre: (row.genres ?? []).join(' · '),
@@ -20,7 +27,7 @@ export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
     hook: row.hook, hanja: row.hanja ?? undefined, hero: row.hero ?? undefined, heroBg: row.heroBg ?? undefined,
     private: row.visibility !== 'public', forksAllowed: row.allowFork, forkAll: false, forkEps: row.forkableEpisodes,
     forkFrom: row.forkableEpisodes[0] ?? 0, parent: row.source?.workId, parentTitle: row.source?.title, parentDeleted: row.source?.deleted, forkAt: row.source?.episode, dir: row.source?.direction,
-    eps: episodes.filter(e => !e.inherited).map(mapEpisode), cast: [], rules: [], events: [],
+    eps: numbered.slice(boundary), cast: [], rules: [], events: [],
     wiki: { docs: [], cats: structuredClone(WCATS) },
     ...(row.source ? { snap: { eps: inherited, rules: [], cast: [], events: [], takenAt: 0, srcHash: '' } } : {}),
   }

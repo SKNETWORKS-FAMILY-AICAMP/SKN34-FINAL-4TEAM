@@ -1,5 +1,6 @@
 import { useRef,useState } from 'react'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
+import { publicationActionLabel } from '../../../../domain/entities/content'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 import './writing.css'
 import { Go } from '../../../shared/Go'
@@ -25,12 +26,13 @@ export function WritingStudio({id}:{id:string}) {
   const [selection,setSelection]=useState({episode:0,id:''})
   const [rights,setRights]=useState(false)
   const [versionsOpen,setVersionsOpen]=useState(false)
-  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'>('versions')
+  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'|'publication'>('versions')
   const active=vm.active
   const historyLabel={
     versions:'원고 저장본 · 공개',
     compare:active?`${active.number}화 원고 버전 비교`:'원고 버전 비교',
     settings:'설정 버전 이력',
+    publication:'발행 이력',
   }[historyView]
   const comparison=useVersionComparisonViewModel(active?.versions??[],versionsOpen&&active?`${id}:${active.number}`:'')
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
@@ -52,7 +54,7 @@ export function WritingStudio({id}:{id:string}) {
       <nav className="seps" aria-label="회차 목록">
         <h2 className="lab">회차</h2>
         {vm.episodes.map(e=><button className={`writing-episode ${active?.number===e.number?'on':''}`} key={e.number} aria-pressed={active?.number===e.number} disabled={vm.busy} onClick={()=>{if(!vm.select(e))return;setSelection({episode:0,id:''});setRights(false)}}>
-          <strong>{e.number}화 · {e.draft.title}</strong><small>{e.inherited?'원작 기준 · 읽기 전용':e.publishedVersionId?'발행본 있음 · 초안 별도':'비공개 초안'}</small>
+          <strong>{e.number}화 · {e.draft.title}</strong><small>{e.inherited?'원작 기준 · 읽기 전용':e.publishedVersionId?'발행본 있음 · 초안 별도':e.publicationStatus==='suspended'?'공개 중단':'비공개 초안'}</small>
         </button>)}
         <form className="writing-create" onSubmit={async e=>{e.preventDefault();if(await vm.create(title)){setTitle('');setRights(false);setSelection({episode:0,id:''})}}}>
           <label className="field">새 회차 제목<input className="inp" value={title} maxLength={120} required disabled={vm.busy} onChange={e=>setTitle(e.target.value)}/></label>
@@ -65,6 +67,8 @@ export function WritingStudio({id}:{id:string}) {
           <label className="field">회차 제목<input className="et" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({title:e.target.value})}/></label>
           <label className="field">원고 본문<textarea ref={bodyInput} className="eb writing-body" value={vm.draft.body} maxLength={40000} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({body:e.target.value})}/></label>
           <p className="small muted">{vm.draft.body.length.toLocaleString('ko-KR')} / 40,000자</p>
+          <label className="field">작가의 말<textarea className="ta" value={vm.draft.authorNote ?? ''} maxLength={2000} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({authorNote:e.target.value})}/></label>
+          <p className="small muted">선택 입력 · 최대 2,000자. 저장 버전을 발행하면 본문 뒤에 공개됩니다.</p>
           {!active.inherited&&<label className="media-file">본문 이미지 추가<input type="file" accept=".png,.jpg,.jpeg" disabled={vm.busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void vm.addImage(file,bodyInput.current?.selectionStart??vm.draft.body.length,bodyInput.current?.selectionEnd??vm.draft.body.length)}}/></label>}
           <p className="small muted">PNG·JPEG · 파일당 10 MiB 이하 · 회차당 업로드 최대 10개. 커서 위치에 이미지 참조를 넣어요. 참조를 지우면 현재 원고에서만 빠지고 저장 버전은 유지돼요.</p>
           <ManuscriptExportPanel workId={id} episode={active.number} inherited={active.inherited} disabled={vm.busy||vm.dirty}/>
@@ -75,6 +79,12 @@ export function WritingStudio({id}:{id:string}) {
             <button className="btn sm" disabled={vm.busy} onClick={()=>void vm.checkOrder()}>순서 변경 가능 범위 확인</button>
             <button className="btn sm" disabled={vm.busy||active.inherited||active.hasDraft===false} onClick={()=>void vm.deleteDraft()}>초안 삭제</button>
             <button className="btn sm" disabled={vm.busy||active.inherited} onClick={()=>void vm.deleteEpisode()}>회차 삭제</button>
+            {!active.inherited&&active.publishedVersionId&&<button className="btn sm" disabled={vm.busy||vm.dirty} onClick={async()=>{if(await vm.changeVisibility(false,false))setRights(false)}}>회차 공개 중단</button>}
+            {!active.inherited&&active.publicationStatus==='suspended'&&<>
+              <label><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/> 중단했던 발행본을 다시 공개할 권리를 확인합니다.</label>
+              <button className="btn sm" disabled={vm.busy||vm.dirty||!rights} onClick={async()=>{if(await vm.changeVisibility(true,rights))setRights(false)}}>회차 재공개</button>
+            </>}
+            <button className="btn sm" disabled={vm.historyLoading} onClick={()=>{setHistoryView('publication');setVersionsOpen(true);void vm.loadPublicationHistory()}}>발행 이력</button>
             {active.hasDraft===false&&<p role="status">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 원고 버전 · 비교 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           </section>
         </>:<p>회차가 없어요. 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
@@ -86,8 +96,18 @@ export function WritingStudio({id}:{id:string}) {
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='versions'} onClick={()=>setHistoryView('versions')}>원고 저장본 · 공개</button>
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='compare'} onClick={()=>setHistoryView('compare')}>원고 버전 비교</button>
               <button type="button" className="btn sm" aria-pressed={historyView==='settings'} onClick={()=>setHistoryView('settings')}>설정 버전 이력</button>
+              <button type="button" className="btn sm" disabled={vm.historyLoading} aria-pressed={historyView==='publication'} onClick={()=>{setHistoryView('publication');void vm.loadPublicationHistory()}}>발행 이력</button>
             </nav>
-            {historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
+            {historyView==='publication'?<>
+              <h2>발행 이력</h2>
+              {vm.historyError&&<p role="alert">{vm.historyError}</p>}
+              {vm.historyLoading?<p role="status">발행 이력을 불러오고 있어요…</p>:vm.publicationHistory&&<>
+                {!vm.publicationHistory.length&&<p>아직 발행 이력이 없어요.</p>}
+                <ol>{vm.publicationHistory.map((event,i)=><li key={i}>
+                  {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
+                </li>)}</ol>
+              </>}
+            </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
               <h2>{historyLabel}</h2>
               <VersionComparison workId={id} number={active.number} versions={active.versions} model={comparison}/>
             </>:<>
@@ -100,6 +120,7 @@ export function WritingStudio({id}:{id:string}) {
                 <option value="">버전 선택</option>{active.versions.map((v,i)=><option value={v.id} key={v.id}>버전 {i+1} · {v.title} · {new Date(v.savedAt).toLocaleString('ko-KR')}{active.publishedVersionId===v.id?' · 현재 발행본':''}</option>)}
               </select></label>
               {selected&&<><h3>{selected.title}</h3><div className="writing-preview"><ManuscriptBody workId={id} number={active.number} body={selected.body||'(빈 원고)'}/></div>
+                {selected.authorNote&&<section className="author-note"><h3>작가의 말</h3><p>{selected.authorNote}</p></section>}
                 <button className="btn" disabled={vm.busy||active.inherited} onClick={()=>void vm.restore(selected.id)}>선택 버전을 새 버전으로 복원</button>
                 <label className="writing-rights"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/> 이 저장 원고를 공개할 권리가 있음을 확인합니다.</label>
                 <button className="btn pri" disabled={vm.busy||vm.dirty||!rights||active.inherited||!selected.body.trim()} onClick={async()=>{if(await vm.publish(selected.id,rights))setRights(false)}}>선택한 저장 버전 공개</button>

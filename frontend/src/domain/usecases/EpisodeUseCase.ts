@@ -14,6 +14,7 @@ export class EpisodeUseCase {
   }
   writeEpisode(id:string,number:number,draft:Draft,version:boolean,signal?:AbortSignal) {
     if(!draft.title.trim() || draft.title.length>120 || draft.body.length>40000) return Promise.reject(new Error('제목은 120자, 원고는 40,000자 이내로 작성해 주세요.'))
+    if((draft.authorNote?.length ?? 0)>2000) return Promise.reject(new Error('작가의 말은 2,000자 이내로 작성해 주세요.'))
     return this.repository.writeEpisode(id,number,draft,version,signal)
   }
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.repository.restoreEpisode(id,number,revision,versionId,signal)}
@@ -43,7 +44,11 @@ export class EpisodeUseCase {
     if (!rights) return Promise.reject(new Error('공개 권리를 확인해 주세요.'))
     return this.repository.publish(id,draft.revision,rights,allowFork,allowForkPublication,versionId)
   }
-  history(id: string) { return this.repository.history(id) }
+  history(id: string,signal?:AbortSignal) { return this.repository.history(id,signal) }
+  setPublicationVisibility(id:string,number:number,revision:number,visible:boolean,rightsConfirmed:boolean,signal?:AbortSignal) {
+    if(visible&&!rightsConfirmed) return Promise.reject(new Error('공개 권리를 확인해 주세요.'))
+    return this.repository.setPublicationVisibility(id,number,revision,visible,rightsConfirmed,signal)
+  }
   policy(id: string, revision: number, allowFork: boolean, allowForkPublication: boolean) { return this.repository.policy(id,revision,allowFork,allowForkPublication) }
   fork(id: string, episode: number, title: string, direction: string) { return this.repository.fork(id,episode,title,direction) }
   propose(id: string, draft: Draft, prompt: string, consent: boolean, signal?: AbortSignal, episode?:number, character='') {

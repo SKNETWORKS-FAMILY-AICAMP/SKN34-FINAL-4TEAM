@@ -23,4 +23,5 @@ data class WorkResponse(
     val liked: Boolean = false,
     /** 작품 회차의 마지막 발행 시각. 기간별 랭킹의 방금 업데이트(updated)에서만 채우고 그 밖의 응답은 null이다. */
     val updatedAt: Instant? = null,
+    val writingEpisodeNumber: Int? = null,
 )
