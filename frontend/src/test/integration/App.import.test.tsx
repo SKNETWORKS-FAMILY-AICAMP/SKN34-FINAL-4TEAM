@@ -21,6 +21,7 @@ describe('/import 실제·데모 분기', () => {
     expect(screen.getByLabelText('원고 파일 (.txt, .epub)')).toBeTruthy()
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('내 소설 가져오기')
     expect(screen.queryByRole('button', { name: /예시 소설 선택/ })).toBeNull()
+    expect(screen.getByRole('link', { name: '세계관 만들기' }).getAttribute('href')).toBe('/worldstudio')
   })
 
   it('--mode mockup은 기존 데모 가져오기 화면을 그대로 열고 파일 업로드 칸은 없다', async () => {
@@ -28,5 +29,6 @@ describe('/import 실제·데모 분기', () => {
     renderAt('/import')
     expect(await screen.findByRole('button', { name: /예시 소설 선택/ })).toBeTruthy()
     expect(screen.queryByLabelText('원고 파일 (.txt, .epub)')).toBeNull()
+    expect(screen.getByRole('link', { name: '새 소설 만들기에서 세계관 만들기' }).getAttribute('href')).toBe('/new')
   })
 })
