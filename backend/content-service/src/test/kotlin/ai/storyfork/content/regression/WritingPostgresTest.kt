@@ -52,7 +52,7 @@ class WritingPostgresTest {
 
     @Test fun `a checkpoint is a published version so saving makes none and reverting reactivates an earlier one without erasing history`() {
         val w=service.create("writer",CreateWorkRequest("체크포인트 검증"))
-        fun applied()=jdbc.queryForObject("SELECT count(*) FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id JOIN episode e ON e.id=v.episode_id WHERE e.work_id=? AND p.action='publish' AND p.outcome='applied'",Int::class.java,w.id)
+        fun applied()=jdbc.queryForObject("SELECT count(*) FROM publication_event p JOIN episode_version v ON v.id=p.episode_version_id JOIN episode e ON e.id=v.episode_id WHERE e.work_id=? AND p.action IN ('publish','replace','republish') AND p.outcome='applied'",Int::class.java,w.id)
         val first=service.writeEpisode(w.id,"writer",1,DraftRequest("1화","첫 원고",0),true)
         assertTrue(first.checkpoints.isEmpty())
         assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM checkpoint WHERE work_id=?",Int::class.java,w.id))

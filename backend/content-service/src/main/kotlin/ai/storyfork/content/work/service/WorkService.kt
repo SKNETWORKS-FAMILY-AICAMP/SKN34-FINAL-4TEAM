@@ -178,8 +178,9 @@ class WorkService(
     private fun view(w: WorkAccessResult,public: Boolean,authorName: String): WorkResponse {
         val all=publication.publishedEpisodes(w.id).items
         val published=if(public) w.readerEpisodes(all) else all
+        val next=if(public) null else publication.nextEpisodeNumber(w.id)
         val draft=if(public) null else {
-            val e=episodes.findByWorkIdAndSequence(w.id,published.size+1)
+            val e=episodes.findByWorkIdAndSequence(w.id,next!!)
             val d=e?.let {drafts.findById(it.id).orElse(null)}
             DraftResponse(d?.title ?: "새 회차",d?.content ?: "",w.revision)
         }
@@ -188,7 +189,7 @@ class WorkService(
         val tags=hashtagRows.findAllByWorkIdOrderByPosition(w.id).map {it.tag}
         val type=CreationType.entries.first {it.code==row.creationType}.name
         return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,
-            hasWritingEpisode=!public && episodes.countWritingAt(w.id,published.size+1)>0,creationType=type,genres=genres,hashtags=tags,
+            hasWritingEpisode=!public && episodes.countWritingAt(w.id,next!!)>0,writingEpisodeNumber=next,creationType=type,genres=genres,hashtags=tags,
             slug=row.slug,authorName=authorName,ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
             hero=row.heroLine1?.let {listOf(it,row.heroLine2.orEmpty())},heroBg=row.heroBackground,
             forkableEpisodes=if(w.source==null) access.forkable(w.id,published.map {it.number}) else emptyList())

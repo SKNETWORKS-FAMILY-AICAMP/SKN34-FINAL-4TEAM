@@ -160,7 +160,8 @@ export class ReadingUseCase {
     const { works, worlds, w: loaded } = await this.load(id)
     if (!canView(loaded, role)) return null
     const eps = epsOf(loaded)
-    const n = Math.max(1, Math.min(+at || 1, eps.length))
+    const n = loaded.canonical ? at : Math.max(1, Math.min(+at || 1, eps.length))
+    if (!eps[n-1] || !visibleEpisode(loaded,eps[n-1],role)) return 'hidden' as const
     const w = await this.workRepository.readWorld(loaded,n)
     id = w.id
     const ep = eps[n - 1]

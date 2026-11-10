@@ -1,5 +1,5 @@
 import type { Draft } from '../../domain/entities/draft'
-import type { Work } from '../../domain/entities/work'
+import { epsOf, type Work } from '../../domain/entities/work'
 import { AGGREGATE_WRITE_UNSUPPORTED, type WorkRepository } from '../../domain/repositories/WorkRepository'
 import { getAccessToken, authVersion, assertAuthVersion } from '../api/auth'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
@@ -23,7 +23,7 @@ export class HttpWorkRepository implements WorkRepository {
   }
   async listWorlds() { return [] }
   async readWorld(work: Work, episode: number) {
-    if (work.private || episode < 1) return work
+    if (work.private || episode < 1 || epsOf(work)[episode-1]?.hidden) return work
     const world = await this.api.readingWorld(work.id, episode)
     if (world.episode !== episode) throw new Error('세계관 응답의 기준 회차를 확인할 수 없어요.')
     return withReadingWorld(work, world)
