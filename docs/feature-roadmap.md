@@ -341,15 +341,15 @@
 <tr><td>제보 답변 작성</td><td>❌</td></tr>
 <tr><td>제보 답변 조회</td><td>❌</td></tr>
 <tr><td>제보 처리 상태 변경</td><td>❌</td></tr>
-<tr><td rowspan="9">24 수정 제안·승인 관리</td><td>수정 제안 등록</td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/60">#60</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/32">#32</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td></tr>
-<tr><td>수정 제안 상세 조회</td><td>❌</td></tr>
-<tr><td>수정 제안 목록 조회</td><td>❌</td></tr>
-<tr><td>제안 편집안 저장</td><td>❌</td></tr>
-<tr><td>수정 제안 승인</td><td>❌</td></tr>
-<tr><td>수정 제안 거절</td><td>❌</td></tr>
-<tr><td>수정 제안 보류</td><td>❌</td></tr>
-<tr><td>승인된 수정안 원고 반영</td><td>❌</td></tr>
-<tr><td>자동 표기 교정 적용 범위 검사</td><td>❌</td></tr>
+<tr><td rowspan="9">24 수정 제안·승인 관리</td><td>수정 제안 등록</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/60">#60</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/32">#32</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td></tr>
+<tr><td>수정 제안 상세 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td></tr>
+<tr><td>수정 제안 목록 조회 <small>(내 제안·작가 피드백함)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td></tr>
+<tr><td>제안 편집안 저장</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td></tr>
+<tr><td>수정 제안 승인 <small>(기준 발행본이 바뀌면 상태를 바꾸지 않고 다시 검토)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td></tr>
+<tr><td>수정 제안 거절</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td></tr>
+<tr><td>수정 제안 보류</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a></td></tr>
+<tr><td>승인된 수정안 원고 반영</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a> <small>(새 초안 버전까지이며 발행은 하지 않음·문장이 초안에 없거나 여러 곳이면 반영 실패로 기록하고 작가가 직접 수정)</small></td></tr>
+<tr><td>자동 표기 교정 적용 범위 검사</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/276">PR #276</a> <small>(표시 전용 판정이며 자동 적용은 기능 30)</small></td></tr>
 <tr><td rowspan="6">작품 설정 관리</td><td rowspan="6">30 운영 설정 관리</td><td>작품 운영 설정 조회</td><td>❌</td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>집필 방식 변경</td><td>❌</td></tr>
 <tr><td>설정 추출 모드 변경</td><td>❌</td></tr>
