@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HttpWorkRepository } from './HttpWorkRepository'
 import { HttpEpisodeRepository, type ReadingWorkRecord } from './HttpEpisodeRepository'
+import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
 import { epsOf, isMine } from '../../domain/entities/work'
 
 const record = (extra: Partial<ReadingWorkRecord> = {}): ReadingWorkRecord => ({
@@ -120,4 +121,16 @@ it('preserves published author notes through HTTP and inherited Fork reading', a
   const [work] = await repository.listWorks()
   expect(work.parentDeleted).toBe(true)
   expect(epsOf(work)[0].authorNote).toBe('원작 후기')
+})
+
+it('uses the server allowlist and reports the actual preview basis when the selected episode is no longer allowed', async () => {
+  const { api, repository } = setup([record({
+    forkableEpisodes: [3],
+    episodes: [{ number: 3, version: 1, versionId: 'v3', title: '3화', body: '본문', inherited: false }],
+  })])
+  api.readingWorld.mockResolvedValue({ workId: 'work-uuid', episode: 3, documents: [] })
+  const form = await new ForkUseCase(repository).getForm('work-uuid', 1)
+  expect(form?.forkList).toEqual([3])
+  expect(form?.basisEpisode).toBe(3)
+  expect(api.readingWorld).toHaveBeenCalledWith('work-uuid', 3)
 })

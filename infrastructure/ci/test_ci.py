@@ -521,12 +521,18 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|admin/notices|public/notices|admin/events|public/events)', text)
+        self.assertIn('(?:reports|members|admins|support|works|admin/notices|public/notices|admin/events|public/events|admin/activities)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
             text = (ci.ROOT / path).read_text()
             for location in ['location = /api/v1/operations/works {', 'location ^~ /api/v1/operations/works/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+
+    def test_operations_admin_activities_public_route_goes_to_operations(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/admin/activities {', 'location ^~ /api/v1/operations/admin/activities/ {']:
                 self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):

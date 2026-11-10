@@ -1,5 +1,6 @@
 package ai.storyfork.operations.inquiry.service
 
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.inquiry.entity.InquiryEntity
 import ai.storyfork.operations.inquiry.entity.InquiryReplyEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
@@ -21,13 +22,17 @@ private const val FEEDBACK = "feedback"
 /** ponytail: newest 100 only; add paging when an admin list outgrows it. */
 private val NEWEST = PageRequest.ofSize(100)
 
-/** Member-filed support inquiries only (`member_id IS NOT NULL`); legacy service-token records stay invisible here. */
+/**
+ * Member-filed support inquiries only (`member_id IS NOT NULL`); legacy service-token records stay invisible here.
+ * Admin reply changes record their activity in the same transaction, right after the change is flushed.
+ */
 @Service
 @Transactional
 class SupportInquiryService(
     private val inquiries: InquiryRepository,
     private val replies: InquiryReplyRepository,
     private val permissions: AdminPermissionRepository,
+    private val activities: AdminActivityService,
 ) {
     fun create(member: OperationsMember, request: SupportInquiryRequest): SupportInquiryResponse {
         validateInquiryFields(request.title, request.category, request.body)
@@ -63,7 +68,9 @@ class SupportInquiryService(
         permissions.requirePermission(member, FEEDBACK)
         validateInquiryBody(request.body)
         val row = inquiry(id)
-        replies.saveAndFlush(InquiryReplyEntity(inquiryId = id, body = request.body))
+        val stored = InquiryReplyEntity(inquiryId = id, body = request.body)
+        replies.saveAndFlush(stored)
+        activities.record(member, "INQUIRY_REPLY_CREATE", "INQUIRY", id, stored.id.toString())
         return withReplies(row)
     }
 
@@ -75,6 +82,7 @@ class SupportInquiryService(
         stored.body = request.body
         stored.updatedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
         replies.saveAndFlush(stored)
+        activities.record(member, "INQUIRY_REPLY_UPDATE", "INQUIRY", id, replyId.toString())
         return withReplies(row)
     }
 
@@ -83,6 +91,7 @@ class SupportInquiryService(
         val row = inquiry(id)
         replies.delete(reply(id, replyId))
         replies.flush()
+        activities.record(member, "INQUIRY_REPLY_DELETE", "INQUIRY", id, replyId.toString())
         return withReplies(row)
     }
 

@@ -46,13 +46,18 @@ function ForkForm({id}:{id:string}) {
             ))}
           </div>
           <div className="carry" id="carry"><span>가져가는 것</span><span>공개된 세계관 규칙 <b id="rulecount">{vm.ruleCount ?? '…'}</b>개</span><span>공개된 인물 <b id="castcount">{vm.castCount ?? '…'}</b>명 (<b id="atl">{vm.at}</b>화 시점 상태)</span><span><b id="atl2">{vm.at}</b>화까지의 사건</span></div>
+          {w.canonical && (vm.reading ? <p role="status">선택한 회차의 공개 설정을 불러오고 있어요…</p> : <section aria-label={`${vm.at}화 공개 자료 미리보기`}>
+            <p className="small muted">선택 회차까지 공개된 자료예요. 관계의 과거 상태는 제공하지 않아요.</p>
+            {vm.preview?.length ? <ul>{vm.preview.map(doc => <li key={doc.id}>{doc.cat === 'char' ? '인물' : doc.cat === 'event' ? '사건' : '설정'} · {doc.t}</li>)}</ul>
+              : <p>이 회차에서 가져올 공개 자료가 없어요.</p>}
+          </section>)}
         </section>
         {d.historyConsentNeeded && <label className="field"><span><input type="checkbox" id="forkHistoryConsent" checked={vm.historyConsent} onChange={(e) => vm.setHistoryConsent(e.target.checked)} /> 회차별 설정 이력이 없어 현재 공개 설정이 포함되며 이후 회차 내용이 섞일 수 있음을 확인했어요.</span></label>}
         <section className="tcard fstep"><h3><i>2</i>무엇이 달라지나요?</h3><input className="tinp" id="fdir" value={vm.dir} onChange={(e) => vm.setDir(e.target.value)} placeholder="한 줄로 적어 주세요" maxLength={60} aria-label="무엇이 달라지나요?" /></section>
         <section className="tcard fstep"><h3><i>3</i>제목</h3><input className="tinp" id="ftit" value={vm.title} onChange={(e) => vm.setTitle(e.target.value)} maxLength={40} aria-label="제목" /></section>
         <p className="bm">포크 생성과 직접 쓰기는 무료예요. AI 도움의 과금 기준은 아직 정해지지 않았어요. 원작 링크가 함께 표시되고, 현금 수익 배분은 없어요.</p>
         {vm.error && <p role="alert">{vm.error}</p>}
-        <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" disabled={vm.submitting} onClick={vm.start}>{vm.submitting?'포크 생성 중…':'포크 소설 시작하기 →'}</button>
+        <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" disabled={vm.submitting || vm.reading} onClick={vm.start}>{vm.submitting?'포크 생성 중…':'포크 소설 시작하기 →'}</button>
       </main>
     </div>
   )
