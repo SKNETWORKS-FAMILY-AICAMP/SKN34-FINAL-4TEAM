@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 
 import { avatarOf, epsOf, type Work } from '../../../../domain/entities/work'
 import { Art, Cov, CoverOf, Tags } from '../../../shared/art'
-import { ago, kfmt } from '../../../shared/format'
+import { ago, asOf, kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
@@ -13,6 +13,8 @@ const Chev = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" width="22" heigh
 const LEFT = 'M15 5l-7 7 7 7'
 const RIGHT = 'M9 5l7 7-7 7'
 const shortTitle = (w: Work) => w.title.split(': ').pop()
+/** 방금 업데이트 줄의 오른쪽 문구. 서버 작품은 서버가 준 업데이트 시각이 있을 때(server)만 상대 시각을 보이고, 없으면 회차만 알립니다. */
+const freshLabel = (w: Work, server: boolean) => w.canonical ? `${server ? `${ago(w.upd)} · ` : ''}${epsOf(w).length}화` : ago(w.upd)
 
 /** 포커스·수동 조작 후에는 재생을 명시해야 하며, 동작 줄이기에서는 타이머를 만들지 않습니다. */
 export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: number; stepHero: (d: number) => void; setHero: (i: number) => void }) {
@@ -95,15 +97,16 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
 }
 
 /** 순위 목록 상태: 서버 실패는 빈 목록으로 숨기지 않고, 집계 결과가 없으면 빈 상태 문구를 보입니다. */
-function RankState({ failed, list, empty, children }: { failed: boolean; list: Work[]; empty: string; children: ReactNode }) {
-  if (failed) return <p className="muted small">순위를 불러오지 못했어요.</p>
+function RankState({ failed, failure = '순위를 불러오지 못했어요.', list, empty, children }: { failed: boolean; failure?: string; list: Work[]; empty: string; children: ReactNode }) {
+  if (failed) return <p className="muted small">{failure}</p>
   return list.length ? children : <p className="muted small">{empty}</p>
 }
 
-function Top10({ list, works, failed, ranked }: { list: Work[]; works: Work[]; failed: boolean; ranked: boolean }) {
+function Top10({ list, works, failed, ranked, computedAt }: { list: Work[]; works: Work[]; failed: boolean; ranked: boolean; computedAt: Date | null }) {
   return (
     <aside className="t10" aria-label={ranked ? '실시간 인기 TOP10' : '공개 소설 목록'}>
       <div className="t10h"><h2>{ranked ? '실시간 인기' : '공개 소설'}</h2>{ranked ? <span className="live" title="최근 24시간 조회 수 순">24시간 조회</span> : <span className="live">둘러보기</span>}<Go to="/rank" className="more">더보기 ›</Go></div>
+      {computedAt && <p className="t10f">{asOf(computedAt)}</p>}
       <RankState failed={failed} list={list} empty={ranked ? '최근 24시간 동안 조회된 소설이 아직 없어요.' : '아직 공개된 소설이 없어요.'}>
         <ol>
           {list.map((w, i) => (
@@ -187,16 +190,17 @@ export function HomePage() {
                     </Go>
                   ))}
                 </div>
+                {h.forkFeedFailed && <p className="muted small">포크 소설을 불러오지 못했어요.</p>}
               </section>
-              <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} failed={h.rankingFailed} ranked={h.ranked} /></div>
+              <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} failed={h.rankingFailed} ranked={h.ranked} computedAt={h.rankingComputedAt} /></div>
               <section className="sec">
                 <div className="tri">
                   <div><h2>{h.ranked ? '24시간 인기 급상승' : '이야기의 시작, 원작 소설'}</h2><RankState failed={h.rankingFailed} list={h.rising} empty={h.ranked ? '최근 24시간 동안 조회가 늘어난 소설이 아직 없어요.' : '아직 공개된 원작이 없어요.'}>{h.rising.map((w, i) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${h.ranked && i < 3 ? 'top' : ''}`}>{h.ranked ? ['1st', '2nd', '3rd'][i] || i + 1 + 'th' : i + 1}</span><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b>{(h.ranked || w.statisticsSupported !== false) && <em>👁 {kfmt(w.views)}</em>}</Go>
                   ))}</RankState></div>
-                  <div><h2>함께 읽을 소설</h2>{h.fresh.map((w) => (
-                    <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{w.canonical?`${epsOf(w).length}화`:ago(w.upd)}</em></Go>
-                  ))}</div>
+                  <div><h2>{h.serverRanking ? '방금 업데이트' : '함께 읽을 소설'}</h2><RankState failed={h.freshFailed} failure="업데이트 소식을 불러오지 못했어요." list={h.fresh} empty="아직 업데이트된 소설이 없어요.">{h.fresh.map((w) => (
+                    <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{freshLabel(w, h.serverRanking)}</em></Go>
+                  ))}</RankState></div>
                   <div><h2>소설 모아 보기</h2><div className="picks">{h.picks.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="pick prox"><Cov w={w} /><b>{shortTitle(w)}</b></Go>
                   ))}</div></div>
@@ -211,17 +215,19 @@ export function HomePage() {
                 </div>
               </section>
               <section className="sec">
-                <div className="sec-h"><h2>원작부터 읽어 보세요</h2></div>
-                <div className="wk">{h.weekly.map((w) => (
-                  <Go key={w.id} to={`/work/${w.id}`} className="wc prox">
-                    <div>
-                      <div className="tgs"><Tags w={w} /><span className="tag dk">공개 소설</span></div>
-                      <h3>{w.title}</h3><p>{w.summary}</p>
-                      <div className="ft"><i style={{ background: avatarOf(w.author) }} />{w.author}{w.statisticsSupported!==false && <span>👁 {kfmt(w.views)} · ♥ {kfmt(w.likes)}</span>}</div>
-                    </div>
-                    <Cov w={w} k="w" />
-                  </Go>
-                ))}</div>
+                <div className="sec-h"><h2>{h.serverRanking ? '이번 주 인기 무료 소설' : '원작부터 읽어 보세요'}</h2></div>
+                <RankState failed={h.weeklyFailed} failure="이번 주 인기 소설을 불러오지 못했어요." list={h.weekly} empty={h.serverRanking ? '이번 주에 좋아요를 받은 소설이 아직 없어요.' : '아직 공개된 원작이 없어요.'}>
+                  <div className="wk">{h.weekly.map((w) => (
+                    <Go key={w.id} to={`/work/${w.id}`} className="wc prox">
+                      <div>
+                        <div className="tgs"><Tags w={w} /><span className="tag dk">공개 소설</span></div>
+                        <h3>{w.title}</h3><p>{w.summary}</p>
+                        <div className="ft"><i style={{ background: avatarOf(w.author) }} />{w.author}{w.statisticsSupported!==false && <span>👁 {kfmt(w.views)} · ♥ {kfmt(w.likes)}</span>}</div>
+                      </div>
+                      <Cov w={w} k="w" />
+                    </Go>
+                  ))}</div>
+                </RankState>
               </section>
             </>
           )}

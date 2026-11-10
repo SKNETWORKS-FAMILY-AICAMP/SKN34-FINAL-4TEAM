@@ -2,6 +2,15 @@
 .writing-history-sheet .writing-history > .btn:first-child { justify-self: end; }
 .writing-history-sheet.writing-history-wide { width: min(1000px, 100%); }
 .writing-history-sheet h2 { font-size: 22px; line-height: 1.5; }
+.writing-checkpoints { display: grid; gap: 12px; min-width: 0; }
+.writing-checkpoints ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.writing-checkpoints li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+.writing-checkpoints li.on { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
+.writing-checkpoints li > :is(.writing-preview, [role="status"]) { flex-basis: 100%; }
+.writing-checkpoints .btn.writing-checkpoint-toggle { height: auto; min-height: 44px; padding-block: 8px; white-space: normal; }
+.writing-checkpoints .writing-checkpoint-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.writing-checkpoints .writing-rights { margin: 0; }
+.setting-history-panel > .setting-checkpoints-open { justify-self: start; }
 .version-panel-nav { display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
 .version-panel-nav [aria-pressed="true"] { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
 .version-comparison, .version-diff, .setting-history-panel { display: grid; gap: 16px; min-width: 0; }

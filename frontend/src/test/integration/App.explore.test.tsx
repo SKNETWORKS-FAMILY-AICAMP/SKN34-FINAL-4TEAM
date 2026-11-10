@@ -2,8 +2,9 @@
 import '../fixtureApp'
 
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { appContainer } from '../../app/appContainer'
 import { renderApp } from '../renderApp'
 
 afterEach(cleanup)
@@ -53,12 +54,15 @@ describe('검색 결과 (U36)', () => {
     await waitFor(() => expect(titles()).toEqual(['회색 도시의 우편배달부', '회색 도시: 송신탑 아래', '회색 도시: 답장']))
   })
 
-  it('검색 범위·정렬은 서버가 지원하는 값만 고르게 한다 (인기 순 없음)', async () => {
+  it('검색 범위·정렬은 서버가 지원하는 값만 고르게 한다 (인기 순은 좋아요 순 like)', async () => {
     renderApp('/search')
     const scope = await screen.findByRole('group', { name: '검색 범위' })
     const sort = screen.getByRole('group', { name: '정렬' })
     expect([...scope.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['전체', '제목', '작가', '태그', '장르'])
-    expect([...sort.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['최신 순', '조회 순'])
+    expect([...sort.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['최신 순', '인기 순', '조회 순'])
+    fireEvent.click(within(sort).getByRole('link', { name: '인기 순' }))
+    await waitFor(() => expect(screen.getByRole('link', { name: '인기 순' }).className).toBe('on'))
+    await waitFor(() => expect(titles()[0]).toBe('구운몽'))
   })
 
   it('검색 카드에서 소설 신고 시트를 연다 (랭킹 카드에는 없다)', async () => {
@@ -71,6 +75,32 @@ describe('검색 결과 (U36)', () => {
     await waitFor(() => expect(titles().length).toBeGreaterThan(0))
     expect(screen.queryByRole('button', { name: /소설 신고/ })).toBeNull()
   })
+
+  it('내 소설 카드에는 신고 버튼이 없고 남의 소설 카드에는 있다 (#196)', async () => {
+    renderApp('/search?q=별빛')
+    await screen.findByRole('button', { name: '별빛 서약의 탑: 재의 왕관 소설 신고' })
+    expect(titles()).toContain('별빛 서약의 탑')
+    expect(screen.queryByRole('button', { name: '별빛 서약의 탑 소설 신고' })).toBeNull()
+  })
+
+  it('서버(정본) 작품도 남의 공개 작품이면 신고 버튼이 보이고 운영 신고 폼으로 접수한다 (#196)', async () => {
+    const works = appContainer.resolve('mockDb').works
+    const submit = vi.spyOn(appContainer.resolve('reportUseCase'), 'submit').mockResolvedValue(undefined)
+    for (const work of works) work.canonical = true
+    try {
+      renderApp('/search?q=홍길동')
+      fireEvent.click(await screen.findByRole('button', { name: '홍길동전 소설 신고' }))
+      const dialog = screen.getByRole('dialog', { name: '소설 신고' })
+      fireEvent.change(within(dialog).getByLabelText('신고 사유'), { target: { value: '권리 확인 부탁' } })
+      fireEvent.click(within(dialog).getByRole('button', { name: '신고 접수' }))
+      await within(dialog).findByText(/신고를 접수했어요/)
+      expect(submit).toHaveBeenCalledWith({ kind: 'RIGHTS', workId: 'hong', reason: '권리 확인 부탁', evidence: '' })
+    } finally {
+      cleanup()
+      submit.mockRestore()
+      for (const work of works) delete work.canonical
+    }
+  })
 })
 
 describe('랭킹 (U25)·포크 소설 (U26)', () => {
@@ -79,16 +109,21 @@ describe('랭킹 (U25)·포크 소설 (U26)', () => {
     fireEvent.click(within(screen.getByRole('navigation', { name: '주요 메뉴' })).getByRole('link', { name: /랭킹/ }))
     await screen.findByRole('heading', { name: '랭킹' })
     await waitFor(() => expect(sid()).toBe('U25 랭킹'))
-    screen.getByText('조회 순 · 최근 24시간 조회 기준')
+    screen.getByText('조회 순 · 최근 24시간 · 14:07 기준')
     await waitFor(() => expect(titles()).toHaveLength(11))
     expect(document.querySelector('.crown')).toBeTruthy()
     fireEvent.click(screen.getByRole('link', { name: '원작 소설' }))
     await waitFor(() => expect(titles()).toEqual(['구운몽', '회색 도시의 우편배달부', '홍길동전', '별빛 서약의 탑']))
     fireEvent.click(screen.getByRole('link', { name: '포크 소설' }))
     await waitFor(() => expect(titles()).toHaveLength(7))
-    fireEvent.change(screen.getByLabelText('검색어'), { target: { value: '없는소설' } })
-    fireEvent.click(screen.getByRole('button', { name: '검색' }))
-    await screen.findByText('조건에 맞는 소설이 없어요.')
+    // 검색 입력은 /search가 맡으므로 랭킹에서는 기준·기간 링크로 순위를 바꾼다.
+    expect(screen.queryByLabelText('검색어')).toBeNull()
+    fireEvent.click(screen.getByRole('link', { name: '인기 순' }))
+    await screen.findByText('인기 순 · 최근 24시간 · 14:07 기준')
+    await waitFor(() => expect(titles()[0]).toBe('구운몽: 구름 위의 길'))
+    fireEvent.click(screen.getByRole('link', { name: '최신 순' }))
+    await screen.findByText('최신 순 · 14:07 기준')
+    expect(screen.queryByRole('group', { name: '집계 기간' })).toBeNull()
   })
 
   it('/ifs에 원작이 없으면 랭킹 포크 탭으로 보낸다', async () => {

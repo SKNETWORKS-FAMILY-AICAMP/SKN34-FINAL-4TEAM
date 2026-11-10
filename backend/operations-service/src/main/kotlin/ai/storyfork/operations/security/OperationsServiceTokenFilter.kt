@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.security.MessageDigest
 import java.util.Collections
-import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
@@ -22,9 +21,7 @@ class OperationsServiceTokenFilter(token: String, private val mapper: JsonMapper
         // Compare fixed-length digests so unequal token lengths do not short-circuit the comparison.
         if (expected == null || supplied == null || !MessageDigest.isEqual(expected, digest(supplied))) {
             SecurityContextHolder.clearContext()
-            response.status = 401
-            response.contentType = MediaType.APPLICATION_JSON_VALUE
-            mapper.writeValue(response.writer, OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
+            response.writeError(mapper, 401, OperationsErrorResponse("UNAUTHORIZED", "Authentication required."))
             return
         }
         val context = SecurityContextHolder.createEmptyContext()

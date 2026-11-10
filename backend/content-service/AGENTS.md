@@ -8,6 +8,7 @@
   그 밖의 레이어·DTO·이름 규칙은 [Core 지침](../core-api/AGENTS.md)을 이 앱의 패키지에 맞춰 적용한다.
 - 인증은 `CoreAuthClient`(Spring HTTP Service proxy)로 Core `POST /internal/v1/auth/verify`를 호출한다.
   사용자 Bearer와 `X-Content-Service-Token`을 함께 보내고 검증된 회원 UUID만 Principal로 쓴다. JWT 서명 키·Core Entity를 가져오지 않는다.
+- 작성자·작가 표시명은 저장하지 않는다. 응답마다 `CoreNicknameService`(같은 `CoreAuthClient`, 서비스 토큰만)로 회원 ID 묶음을 한 번 조회해 채우며, Core에 없으면 `탈퇴한 회원`, 호출 실패는 503/504/502로 응답하고 대체 이름을 쓰지 않는다. Content↔Core 테이블 JOIN은 없다.
 - 기존 API·CSRF·UUID·revision·잠금·불변 이력을 유지한다.
 - TASK 10 Run은 공개 접수·상태·thread와 내부 grant 재확인을 제공한다. `AI_RUN_GRANT_SECRET`은 Content에만 둔다. 실제 전문 Agent·모델·적용·자동 재전송은 연결하지 않는다([계약](../../docs/writing-ai-architecture/task10-api-contract.md)).
 - TASK 17은 `ChangeProposalService`의 Content 내부 준비와 공개 판 조회·결정·영수증 계약이다. PG 원고만 지원하며 Mock 승인·타 저장소 원자 적용은 거부한다. 실제 AI 결과 자동 연결은 없다([계약](../../docs/writing-ai-architecture/task17-handoff.md)).
@@ -16,9 +17,12 @@
   알려진 판 충돌도 실패 키를 보존한다. 실제 준비 transport·새 run 자동 생성·설정/플롯 writer는 추가하지 않는다.
   [계약·사용자 결정](../../docs/writing-ai-architecture/task22-contract.md) · [검증](../../docs/writing-ai-architecture/task22-handoff.md).
 - Flyway: 콘텐츠 스키마는 `ContentPersistenceConfig.MIGRATION_LOCATIONS`의 `db/migration/{work,episode,world,episode_version,publication,fork,proposal,plan,sample}`와
-  단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V18) 새 SQL은 최댓값 다음 번호를 쓴다.
+  단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V33, V24는 결번) 새 SQL은 최댓값 다음 번호를 쓰고 결번은 채우지 않는다(`outOfOrder` 미사용).
   `sample/V16`은 CSV에서 생성한 개발 샘플 행이며 직접 편집하지 않는다. 샘플 변경은 다음 번호의 새 마이그레이션으로 한다.
   `db/migration/content`·root 직하 SQL을 다시 만들지 않는다. Auth·첨부·WorldStudio SQL 이력은 보존하고 자동 repair/reset하지 않는다.
 - WorldStudio는 `contentDataSource`를 재사용하고 시작 시 전용 schema(`world_studio_schema_history`)를 migrate한 뒤 전용 EntityManager/TransactionManager로 validate한다. 별도 DB·분산 transaction을 추가하지 않는다.
+- 장르 템플릿 세계관은 SQL 마이그레이션이 아니라 `GenreTemplateSeeder`가 서버 시작 시 `WorldStudioService`(create → edit → save)로
+  Core `auth/V8` 운영 관리자(`GenreTemplateSeeder.TEMPLATE_OWNER`, 임시 할당) 소유 WorldStudio 세계관으로 적재한다. 리소스는 `genre-templates.json`이며
+  소유자 한계(공개 비밀번호·소유자 불일치·타 사용자 미노출)를 포함한 [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)를 따른다.
 - 로컬은 이 디렉터리에서 `./gradlew unitTest --tests 'ai.storyfork.content.<대상 클래스>' --no-daemon`으로 순수 단위만 실행한다.
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.

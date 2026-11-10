@@ -1,6 +1,7 @@
 package ai.storyfork.operations.report.service
 
 import ai.storyfork.operations._common.client.ContentClient
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.member.repository.has
 import ai.storyfork.operations.member.repository.requirePermission
@@ -18,25 +19,35 @@ import java.util.UUID
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionOperations
 import org.springframework.web.server.ResponseStatusException
 
 private const val RIGHTS = "rights"
 
-/** Content calls run before any local write, so an upstream failure records neither state nor history. */
+/**
+ * Content is called before any local write, so a failure records neither state nor history. `create`, `restrict` and
+ * `unrestrict` carry no `@Transactional`: even NOT_SUPPORTED keeps an EntityManager, and its connection, bound until return.
+ * The admin activity is saved in the same transaction as the report and history, after Content succeeded.
+ */
 @Service
-@Transactional
 class ReportService(
     private val reports: ReportRepository,
     private val histories: ReportHistoryRepository,
     private val permissions: AdminPermissionRepository,
     private val content: ContentClient,
+    private val tx: TransactionOperations,
+    private val activities: AdminActivityService,
 ) {
     fun create(member: OperationsMember, request: ReportRequest): ReportResponse {
         text(request.reason, 2000)
         require(request.evidence.length <= 5000 && '\u0000' !in request.evidence) { "Invalid evidence." }
         val work = content.work(request.workId)
+        // `report.work_owner_id` is a UUID but Content `owner_id` is a varchar: an owner that cannot be a member is refused before any write.
+        val owner = try { UUID.fromString(work.ownerId) } catch (_: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "작품 소유자를 확인할 수 없어 신고할 수 없어요.")
+        }
         return reports.saveAndFlush(ReportEntity(
-            kind = request.kind, workId = work.workId, workTitle = work.title, workOwnerId = work.ownerId,
+            kind = request.kind, workId = work.workId, workTitle = work.title, workOwnerId = owner,
             reporterId = member.memberId, reason = request.reason, evidence = request.evidence,
         )).response()
     }
@@ -64,18 +75,21 @@ class ReportService(
         )
     }
 
+    @Transactional
     fun addEvidence(member: OperationsMember, id: UUID, request: ReportBodyRequest): ReportResponse {
         val row = report(id)
         if (row.reporterId != member.memberId) forbidden()
         return record(row, ReportHistoryType.EVIDENCE, member, text(request.body, 5000))
     }
 
+    @Transactional
     fun addExplanation(member: OperationsMember, id: UUID, request: ReportBodyRequest): ReportResponse {
         val row = report(id)
         if (row.workOwnerId != member.memberId) forbidden()
         return record(row, ReportHistoryType.EXPLANATION, member, text(request.body, 5000))
     }
 
+    @Transactional
     fun review(member: OperationsMember, id: UUID, request: ReportReviewRequest): ReportResponse {
         permissions.requirePermission(member, RIGHTS)
         require(request.decision != ReportStatus.RECEIVED) { "Decision must be ACCEPTED or REJECTED." }
@@ -83,16 +97,19 @@ class ReportService(
         val row = report(id)
         row.status = request.decision
         return record(row, ReportHistoryType.REVIEW, member, note)
+            .also { activities.record(member, "REPORT_REVIEW", "REPORT", id, request.decision.name) }
     }
 
     fun restrict(member: OperationsMember, id: UUID): ReportResponse = restriction(member, id, true)
 
     fun unrestrict(member: OperationsMember, id: UUID): ReportResponse = restriction(member, id, false)
 
+    @Transactional
     fun requestEvidence(member: OperationsMember, id: UUID, request: ReportBodyRequest): ReportResponse {
         permissions.requirePermission(member, RIGHTS)
         val body = text(request.body, 5000)
         return record(report(id), ReportHistoryType.EVIDENCE_REQUEST, member, body)
+            .also { activities.record(member, "REPORT_REQUEST_EVIDENCE", "REPORT", id, null) }
     }
 
     private fun restriction(member: OperationsMember, id: UUID, restricted: Boolean): ReportResponse {
@@ -100,7 +117,11 @@ class ReportService(
         val row = report(id)
         if (restricted) content.restrict(row.workId) else content.unrestrict(row.workId)
         row.contentRestricted = restricted
-        return record(row, if (restricted) ReportHistoryType.RESTRICT else ReportHistoryType.UNRESTRICT, member, null)
+        // The row was read before the Content call, so `@Version` still turns a concurrent edit into a 409 here.
+        return tx.execute {
+            record(row, if (restricted) ReportHistoryType.RESTRICT else ReportHistoryType.UNRESTRICT, member, null)
+                .also { activities.record(member, if (restricted) "REPORT_RESTRICT" else "REPORT_UNRESTRICT", "REPORT", id, null) }
+        }
     }
 
     private fun record(row: ReportEntity, type: ReportHistoryType, member: OperationsMember, body: String?): ReportResponse {

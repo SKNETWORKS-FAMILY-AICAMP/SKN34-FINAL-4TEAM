@@ -3,7 +3,7 @@ import {appContainer} from '../../../app/appContainer'
 import type {Attachment,MediaTarget} from '../../../domain/entities/media'
 import type {MediaUseCase} from '../../../domain/usecases/MediaUseCase'
 
-type MediaApi=Pick<MediaUseCase,'list'|'upload'|'remove'|'download'>
+type MediaApi=Pick<MediaUseCase,'list'|'upload'|'remove'|'download'|'rename'>
 export function useMediaViewModel(target:MediaTarget,api:MediaApi=appContainer.resolve('mediaUseCase')) {
  const [items,setItems]=useState<Attachment[]>([])
  const [busy,setBusy]=useState(true)
@@ -31,6 +31,7 @@ export function useMediaViewModel(target:MediaTarget,api:MediaApi=appContainer.r
  return {items,busy,mutating,error,notice,revision,
   reload:()=>run(async signal=>{const rows=await api.list(target,signal);if(!signal.aborted){setItems(rows);setRevision(v=>v+1);setNotice('서버의 첨부 목록을 확인했어요.')}}),
   upload:(file:File,replaceId?:string)=>run(async signal=>{const item=await api.upload(target,file,replaceId,signal);if(!signal.aborted){setItems(rows=>target.kind==='cover'?[item]:[...rows.filter(x=>x.id!==item.id),item]);setRevision(v=>v+1);setNotice('파일을 서버에 저장했어요.')}}),
+  rename:(item:Attachment,filename:string)=>run(async signal=>{const renamed=await api.rename(target,item.id,filename,signal);if(!signal.aborted){setItems(rows=>rows.map(x=>x.id===renamed.id?renamed:x));setNotice('파일 이름을 바꿨어요.')}}),
   remove:(id:string)=>run(async signal=>{await api.remove(target,id,signal);if(!signal.aborted){setItems(rows=>rows.filter(x=>x.id!==id));setNotice('첨부를 삭제했어요.')}}),
   download:(item:Attachment)=>run(async signal=>{const blob=await api.download(target,item.id,false,signal);if(signal.aborted)return;const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=item.filename;link.click();downloads.current.set(url,setTimeout(()=>{URL.revokeObjectURL(url);downloads.current.delete(url)},1000));setNotice('파일 다운로드를 요청했어요.')}),
   cancel:()=>{pending.current?.abort();pending.current=null;setBusy(false);setMutating(false);setError('전송을 취소했어요. 서버에서 이미 처리했을 수 있으므로 첨부 새로고침으로 확인해 주세요.')},

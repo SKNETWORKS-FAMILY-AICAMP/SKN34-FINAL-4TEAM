@@ -8,6 +8,11 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useForkViewModel } from '../viewmodel/useForkViewModel'
 
+/** 미리보기에 보이는 공개 자료의 최대 개수. 나머지는 '외 N개'로 알린다. */
+const PREVIEW_MAX = 8
+/** 포크를 허용하지 않은 회차 버튼이 가리키는 이유 문구의 id */
+const DENIED_NOTE = 'fork-denied-note'
+
 /** 목업 fork(id): U09 포크 (3단계 폼) */
 export function ForkPage() {
   const { id = '' } = useParams()
@@ -42,17 +47,29 @@ function ForkForm({id}:{id:string}) {
           <h3><i>1</i>어디서부터 바꿀까요?</h3>
           <div className="epc" id="epc">
             {vm.episodes.map(({ e, n, ok }) => (
-              <button type="button" key={n} data-at={n} className={n === vm.at ? 'on' : ''} aria-pressed={n === vm.at} disabled={!ok} title={ok ? undefined : '작가가 포크를 허용하지 않은 회차'} onClick={() => vm.pick(n)}>{n}화 끝에서<small>{e.t}</small></button>
+              <button type="button" key={n} data-at={n} className={n === vm.at ? 'on' : ''} aria-pressed={n === vm.at} disabled={!ok} aria-describedby={ok ? undefined : DENIED_NOTE} onClick={() => vm.pick(n)}>{n}화 끝에서<small>{e.t}</small></button>
             ))}
           </div>
+          {vm.episodes.some(({ ok }) => !ok) && <p id={DENIED_NOTE} className="small muted">작가가 포크를 허용하지 않은 회차는 고를 수 없어요.</p>}
           <div className="carry" id="carry"><span>가져가는 것</span><span>공개된 세계관 규칙 <b id="rulecount">{vm.ruleCount ?? '…'}</b>개</span><span>공개된 인물 <b id="castcount">{vm.castCount ?? '…'}</b>명 (<b id="atl">{vm.at}</b>화 시점 상태)</span><span><b id="atl2">{vm.at}</b>화까지의 사건</span></div>
+          {/* 항상 마운트해 둔 안내 영역이다. 회차를 바꿔 설정을 다 읽으면 문구가 바뀌어 스크린 리더가 전환 완료를 알린다(처음 열 때는 읽지 않는다). */}
+          <p className="sr-only" aria-live="polite">{vm.reading ? '선택한 회차의 공개 설정을 불러오고 있어요…' : `${vm.at}화 끝에서 포크해요. 공개된 세계관 규칙 ${vm.ruleCount}개, 인물 ${vm.castCount}명을 가져가요.`}</p>
+          {w.canonical && (vm.reading ? <p className="small muted">선택한 회차의 공개 설정을 불러오고 있어요…</p> : <section aria-label={`${vm.at}화 공개 자료 미리보기`}>
+            <p className="small muted">선택 회차까지 공개된 자료예요. 관계의 과거 상태는 제공하지 않아요.</p>
+            {vm.preview?.length
+              ? <ul className="carry">
+                {vm.preview.slice(0, PREVIEW_MAX).map((doc) => <li key={doc.id}>{w.wiki?.cats.find((cat) => cat.id === doc.cat)?.n} · {doc.t}</li>)}
+                {vm.preview.length > PREVIEW_MAX && <li>외 {vm.preview.length - PREVIEW_MAX}개</li>}
+              </ul>
+              : <p>이 회차에서 가져올 공개 자료가 없어요.</p>}
+          </section>)}
         </section>
         {d.historyConsentNeeded && <label className="field"><span><input type="checkbox" id="forkHistoryConsent" checked={vm.historyConsent} onChange={(e) => vm.setHistoryConsent(e.target.checked)} /> 회차별 설정 이력이 없어 현재 공개 설정이 포함되며 이후 회차 내용이 섞일 수 있음을 확인했어요.</span></label>}
         <section className="tcard fstep"><h3><i>2</i>무엇이 달라지나요?</h3><input className="tinp" id="fdir" value={vm.dir} onChange={(e) => vm.setDir(e.target.value)} placeholder="한 줄로 적어 주세요" maxLength={60} aria-label="무엇이 달라지나요?" /></section>
         <section className="tcard fstep"><h3><i>3</i>제목</h3><input className="tinp" id="ftit" value={vm.title} onChange={(e) => vm.setTitle(e.target.value)} maxLength={40} aria-label="제목" /></section>
         <p className="bm">포크 생성과 직접 쓰기는 무료예요. AI 도움의 과금 기준은 아직 정해지지 않았어요. 원작 링크가 함께 표시되고, 현금 수익 배분은 없어요.</p>
         {vm.error && <p role="alert">{vm.error}</p>}
-        <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" disabled={vm.submitting} onClick={vm.start}>{vm.submitting?'포크 생성 중…':'포크 소설 시작하기 →'}</button>
+        <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" disabled={vm.submitting || vm.reading} onClick={vm.start}>{vm.submitting?'포크 생성 중…':'포크 소설 시작하기 →'}</button>
       </main>
     </div>
   )

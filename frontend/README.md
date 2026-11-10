@@ -8,7 +8,7 @@ React·TypeScript·Vite·Tailwind CSS 기반의 개발 화면입니다.
 
 [4개 백엔드 서비스 구조](../docs/design/service-boundaries.md)에 따라 Core는 회원·인증·크레딧·회원 알림, 별도 Kotlin/Spring Boot 콘텐츠 앱은 창작·독서·콘텐츠 정본과 인가, 별도 Kotlin/Spring Boot 운영 앱은 문의·공지·신고 사건·운영 결정·감사·작업 감시를 담당합니다. Python AI 앱은 허용 문맥에서 생성·검토를 실행하며 정본·권한·발행·정산을 확정하지 않습니다. LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합니다. 자체 UI와 운영 화면 API 통합 중 방식은 미정입니다.
 
-nginx/Vite는 기존 `/api/v1/works`·`/api/v1/public/works`와 하위 경로를 Content:8081, `/api/v1/operations/{reports,members,admins}`와 하위 경로를 Operations:8082, 나머지 `/api`를 Core:8080으로 분기합니다. 관리자 사용자·관리자 계정·신고 탭, `/content` 공개 작품의 신고, `/reports`(내 신고)는 운영 API를 호출하며 그 밖의 관리자 탭은 메모리 데모입니다. 브라우저는 상대 URL·기존 Bearer/쿠키/CSRF를 유지하며 내부 인증 endpoint·AI·DB·모델을 직접 호출하지 않습니다. 소스 연결과 hosted CI·실제 DB 전환·배포는 구분하며 운영·알림 데모를 서버 완료로 간주하지 않습니다.
+nginx/Vite는 기존 `/api/v1/works`·`/api/v1/public/works`와 하위 경로를 Content:8081, `/api/v1/operations/{reports,members,admins,support,works,comments,admin/notices,public/notices,admin/events,public/events,admin/activities}`와 하위 경로를 Operations:8082(서비스 토큰용 `/api/v1/operations/{notices,events,inquiries}`는 열지 않음), 나머지 `/api`를 Core:8080으로 분기합니다. 관리자 사용자·관리자 계정·작품·댓글·신고·공지·이벤트·활동 로그 탭, 제보·문의 탭의 회원 고객지원 문의(작가 검토 제보는 메모리 데모), `/me/inquiry`(문의하기·내 문의), 회원 공지사항(`/me/notice`, 로그인 불필요)과 회원 `/me/event`(비로그인 열람 가능), 공개 작품 신고(`/content` 공개 보기와 서버 작품의 검색 카드·작품 상세 ‘소설 신고’), `/reports`(내 신고)는 운영 API를 호출하며 그 밖의 관리자 탭은 메모리 데모입니다. 운영 API 탭의 조치는 메모리 데모 조회(댓글·캐릭터챗 등)의 로딩·실패와 무관하게 실행됩니다. 관리자 작품 탭은 운영 작품 API로 공개·비공개·운영 제한 작품 전체를 읽어 '운영 제한'·'제한 해제'를 요청하며(`--mode mockup`은 데모 작품 메모리), 분류·검색·정렬은 받은 목록에서 화면이 계산합니다([계약](../docs/design/operations-work-contract.md)). 관리자 활동 로그 탭은 운영 활동 기록 API로 관리자 변경 조치 최신 100건을 최신순으로 읽어 시각·수행자(닉네임, 없으면 ID)·조치·대상·내역을 보이며 서버가 정렬·권한(`admins`)을 맡고 `--mode mockup`은 데모 조치 메모리를 보입니다([계약](../docs/design/operations-admin-activity-contract.md)). 신고 버튼은 남의 공개 작품에서만 보이고(본인·비공개 작품은 숨김이며 접수 권한은 서버가 검사), `--mode mockup`의 메모리 작품 신고는 메모리에만 기록됩니다. 브라우저는 상대 URL·기존 Bearer/쿠키/CSRF를 유지하며 내부 인증 endpoint·AI·DB·모델을 직접 호출하지 않습니다. 소스 연결과 hosted CI·실제 DB 전환·배포는 구분하며 운영·알림 데모를 서버 완료로 간주하지 않습니다.
 
 ## 실행
 
@@ -53,7 +53,7 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 | `/me/signup` | 가입 요청 → 이메일 확인 대기 (자동 로그인 없음) | `POST /api/v1/auth/signup` |
 | `/auth/resend-verification`, 로그인·가입·인증 실패 화면의 안내 | 이메일 1항목으로 확인 메일 재발송 (계정 존재 여부를 구분하지 않는 안내) | `POST /api/v1/auth/resend-verification` |
 | `/auth/verify-email#token=…` | 메일 링크의 이메일 확인 → 로그인 | `POST /api/v1/auth/verify-email` |
-| `/login` | 이메일·비밀번호 로그인, Core가 반환한 사용자·권한 반영 | `POST /api/v1/auth/login` |
+| `/login` | 이메일·비밀번호 로그인, Core가 반환한 사용자·권한 반영. 403 + `code: "ACCOUNT_RESTRICTED"`는 이용 제한 안내(로그인 문의 링크 가리킴), 코드 없는 403은 일반 오류 | `POST /api/v1/auth/login` |
 | 앱 시작 | HttpOnly refresh 쿠키를 통한 세션 복원 | `POST /api/v1/auth/refresh` |
 | 상단 계정 메뉴 | 현재 기기 로그아웃 | `POST /api/v1/auth/logout` |
 | `/me/profile` | 서버 프로필 조회·오류 재시도, 닉네임 저장 | `GET /api/v1/me`, `PATCH /api/v1/me` |
@@ -75,18 +75,42 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
 실제 약관 동의·계정탈퇴·소셜 로그인·운영 메일 서비스·비용 정책은 이 연결 범위에 포함하지 않습니다. 계정탈퇴 UI는 기존 데모이며 실제 계정을 삭제하지 않습니다.
 
+## 공개 열람 (기능 20)
+
+- `/read/:id`·`/read/:id/:n`은 비회원도 로그인 없이 공개 회차를 읽습니다(UC-01). 세션 복원이 끝난 뒤 열어 로그인 회원이 새로 고칠 때 두 번 불러오지 않습니다. 포크 등 회원 전용 동작은 해당 화면(`RequireRole`)의 로그인 안내를 그대로 쓰고, 메모리 데모 작품 회차 화면의 댓글·댓글 좋아요·피드백도 비회원이 누르면 같은 로그인 화면으로 보내며 메모리에 저장하지 않습니다(`useReaderViewModel.requireMember`). 비회원의 열람은 서버 조회 기록을 보내지 않습니다.
+- 서버(정본) 작품의 작품 상세는 `설정 위키` 링크로 `/work/:id/wiki` 페이지(U45)를 열어 `readWorld`가 채운 공개 설정을 읽기 전용으로 보여 주고, 회차 화면 상단 `설정` 링크도 같은 페이지를 `?upto=n`으로 엽니다(돌아가기는 그 회차로). 서버가 기준 회차(작품 상세는 최신 공개 회차, 회차 화면은 그 회차)까지 공개한 설정만 주므로 화면은 거르지 않고 분류별로 묶어 표시하고, 없으면 "공개된 설정이 없어요"를 보입니다. 메모리 데모 작품에는 링크가 없고 위키 주소는 작품 상세로 돌려보냅니다.
+
 ## 서버 이미지·파일 (#92)
 
 `MediaPanel / useMediaViewModel → MediaUseCase → MediaRepository → HttpMediaRepository`를 Awilix에서 조립합니다. 실제 작품·설정 UUID만 허용하고 데모 ID·실패 시 메모리 성공 fallback을 보내지 않습니다.
 
 - `/content`: 작품 생성 시 PNG/JPEG 표지 선택, 생성된 작품의 표지 조회·교체·삭제·새로고침. 작품만 생성되고 표지 업로드가 실패하면 생성된 작품을 유지하며 표지만 재시도합니다.
-- `/content` 설정집: 서버에 설정 초안을 먼저 저장한 뒤 이미지·TXT/MD/CSV/PDF 목록/업로드/다운로드/교체/삭제. following 설정은 로컬 독립 전 첨부하지 않습니다. 공개 설정도 첨부 자체는 소유자 전용입니다.
+- `/content` 설정집: 서버에 설정 초안을 먼저 저장한 뒤 이미지·TXT/MD/CSV/PDF 목록/업로드/다운로드/교체/이름 변경/삭제. 이름 변경은 확장자를 고정하고 서버의 거부 사유를 그대로 보이며 실패하면 입력을 남깁니다. following 설정은 로컬 독립 전 첨부하지 않습니다. 공개 설정도 첨부 자체는 소유자 전용입니다.
 - `/studio/{UUID}`: 실제 회차 본문의 커서/선택 영역에 불변 이미지 `[[image:<UUID>]]` 참조 삽입, 초안·버전 저장/재진입/복원/발행 및 읽기 미리보기. 업로드 후 초안이나 버전을 저장해야 참조가 보존됩니다. 과거 버전을 위해 원본을 지우지 않으므로 회차당 업로드 총 10개는 marker 삭제로 반환되지 않습니다.
 - 같은 출처의 Bearer/CSRF multipart 요청을 사용하며 JSON Content-Type을 강제하지 않습니다. 비공개 이미지 bytes를 인증 fetch 후 Blob URL로 표시하고 교체·이탈 때 revoke합니다. 토큰·스토리지 URL·base64를 서버 원고에 저장하지 않습니다.
 - 중복 요청을 막고 취소·이탈 뒤 늦은 결과를 적용하지 않습니다. 취소/네트워크 응답 유실은 서버 rollback을 의미하지 않으므로 목록 새로고침으로 실제 상태를 확인합니다. 실패하면 기존 파일/원고를 유지합니다.
-- PNG/JPEG 표지·본문 및 설정 파일은 파일당 10 MiB 이하입니다. 서버가 바이트·픽셀·권한·한도를 최종 검증합니다. TXT 내보내기는 이미지·참조 marker를 제외한 텍스트 전용이며 EPUB은 제공하지 않습니다.
+- PNG/JPEG 표지·본문 및 설정 파일은 파일당 10 MiB 이하입니다. 서버가 바이트·픽셀·권한·한도를 최종 검증합니다. 집필실 원고 내보내기는 아래 절처럼 서버가 만든 TXT(이미지 제외)·EPUB(이미지 포함)입니다.
 
-`/new`, 이름 기반 `/studio/starlight` 등 개요·Wiki 이미지 선택은 브라우저 메모리 데모입니다. 인접 안내·toast에서 서버 미저장을 알리고 `/content`로 연결합니다. 무관한 데모 데이터 전체의 서버 이관은 포함하지 않습니다. 표지 논리 삭제·미참조 원본 보존과 API/권한/운영 한계는 [Core 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 참고하세요.
+실서버에서는 내 서재의 **새 소설 쓰기**, 세계관 작업실의 **새 소설 등록으로**, 기존 주소 `/new`·`/worlds`가 모두 `/content`의 작품 만들기로 연결됩니다. 작품을 만들면 전용 설정집과 첫 회차 초안이 함께 생성됩니다. 기존 세계관 연결·조합, 연재 요일, 연령 제한, 생성 시 인물 입력은 데모 폼에서만 제공됩니다. `--mode mockup`에서는 `/worlds`가 `/new`로 이동하고 기존 새 소설 폼이 브라우저 메모리에서 동작합니다.
+
+이름 기반 `/studio/starlight` 등의 개요·Wiki 이미지 선택은 브라우저 메모리 데모입니다. 인접 안내·toast에서 서버 미저장을 알리고 `/content`로 연결합니다. 표지 논리 삭제·미참조 원본 보존과 API/권한/운영 한계는 [Core 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 참고하세요.
+
+## 원고 가져오기·내보내기 (기능 17·18)
+
+[계약](../docs/design/manuscript-import-export-contract.md)대로 `ManuscriptRepository`·`ManuscriptUseCase`·`HttpManuscriptRepository`를 Awilix에서 조립합니다.
+
+- `/import`(실제 모드): 내 작품 선택(`?work=<UUID>`로 사전 선택) → 권리 확인 3가지 → `.txt`·`.epub` 파일 → 서버 미리보기(회차별 제목 수정·제외·다음 회차와 합치기·경고) → 확정 → 회차별 성공·일부 성공·실패 결과. 작품이 없으면 `/content`에서 만들고, **세계관 만들기**는 `/worldstudio`를 엽니다(만든 세계관은 작품과 연결되지 않음). 가져오기 입력이 있으면 두 링크로 이동하기 전에 입력을 버릴지 확인합니다. 확정 회차 번호는 조정 목록의 순서이고 제외한 회차도 번호를 차지합니다. 실패 항목은 확정 응답에만 있어 화면을 떠나면 다시 볼 수 없습니다. `--mode mockup`은 기존 데모 가져오기 화면(`ImportPage`)을 그대로 씁니다.
+- `/studio/{UUID}` 내보내기: 형식(TXT·EPUB)·범위(현재 회차·작품 전체)·원본(초안·발행본)을 골라 서버 GET을 Blob으로 받고 `Content-Disposition`의 `filename*`로 저장합니다. 서버에 저장된 원고를 내보내므로 입력 중·저장 중에는 잠급니다.
+- `--mode mockup`의 가져오기·EPUB/발행본 내보내기·첨부 이름 변경은 성공을 흉내 내지 않고 "데모에서는 지원하지 않아요" 오류를 냅니다. 데모 집필실의 TXT 초안 내보내기만 메모리 원고로 실제 파일을 만듭니다(`createMockupManuscriptRepository`).
+- nginx(`frontend/nginx.conf`, `infrastructure/nginx.dev.conf`)의 `/api/v1/works/`는 요청 본문을 51MB까지 받습니다.
+
+## 회차 이미지 설명·본문에서 빼기 (기능 16-C)
+
+[계약 5절](../docs/design/manuscript-import-export-contract.md)대로 `MediaRepository`에 회차 이미지 목록·대체 텍스트 PATCH·공개 대체 텍스트 조회를 두고 응답은 Zod로 검증합니다(소유자 목록의 `url`은 기존 다운로드 경로와 같아야 합니다).
+
+- `/studio/{UUID}`의 `EpisodeImagePanel`: 현재 회차에 올린 이미지(파일명·크기·본문 사용 여부), 이미지별 설명(최대 300자) 저장, '본문에서 빼기'. 빼기는 현재 초안에서 `[[image:ID]]` 표식(과 앞뒤 빈 줄)만 지우고 기존 초안 저장(`PUT .../draft`, revision 검사)으로 저장한 뒤 집필실의 `reload`로 최신 초안을 다시 읽습니다. 저장하지 않은 입력이 있거나 저장 중이면 막고 먼저 저장하도록 안내하며, 저장이 실패(revision 충돌 등)하면 서버 사유와 다시 불러오기 안내를 보이고 입력한 설명은 그대로 둡니다. 이미지 파일은 저장 버전·발행본이 참조할 수 있어 지우지 않습니다.
+- 독자 화면: 공개 보기(`ManuscriptBody publicView`, `/content`의 공개 원고 탭)는 이미지 표식이 있을 때만 `GET /api/v1/public/works/{id}/episodes/{n}/images`를 익명으로 불러 `img alt`에 쓰고, 없거나 불러오지 못하면 기존 `본문 이미지 N` 문구를 씁니다. 문장 단위 `/read` 화면은 이미지를 그리지 않습니다.
+- `--mode mockup`에서는 목록·설명 저장·공개 설명 조회가 "데모에서는 지원하지 않아요" 오류입니다(성공을 흉내 내지 않음).
 
 ## 검증
 

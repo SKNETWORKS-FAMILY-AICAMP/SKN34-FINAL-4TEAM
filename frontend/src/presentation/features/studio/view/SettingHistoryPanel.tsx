@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { SettingVersionHistory } from '../../../shared/version-history/SettingVersionHistory'
 import { useSettingHistoryViewModel } from '../viewmodel/useSettingHistoryViewModel'
+import { WorldCheckpointPanel } from './WorldCheckpointPanel'
 
 export function SettingHistoryPanel({ workId }: { workId: string }) {
   const vm = useSettingHistoryViewModel(workId)
+  const [checkpointsOpen, setCheckpointsOpen] = useState(false)
   return <section className="setting-history-panel" aria-label="설정 버전 이력" aria-busy={vm.busy}>
     <h2>설정 버전 이력</h2>
     <p className="small muted">확정한 설정을 확인하고, 이전 내용을 새 버전으로 복원할 수 있어요.</p>
@@ -16,5 +19,7 @@ export function SettingHistoryPanel({ workId }: { workId: string }) {
         disabledReason={vm.world.drafts.length || vm.world.draft ? '작성 중인 설정 초안을 먼저 확정해 주세요.' : ''}
         onRestore={(id, versionId) => { void vm.restore(id, versionId) }} />
     </>}
+    <button type="button" className="btn sm setting-checkpoints-open" aria-expanded={checkpointsOpen} onClick={() => setCheckpointsOpen(open => !open)}>세계관 체크포인트 관리</button>
+    {checkpointsOpen && <WorldCheckpointPanel key={workId} workId={workId} />}
   </section>
 }

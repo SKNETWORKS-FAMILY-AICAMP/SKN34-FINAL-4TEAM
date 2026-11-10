@@ -11,15 +11,22 @@
 - **업무별 권한**: 운영 서비스 `operations.admin_permission(member_id, permission)`에 저장한다. 권한 키는 프런트
   `ADMIN_PERMISSIONS`와 같은 `works, users, comments, characterChats, feedback, rights, events, notices, llm, jobs, credits, admins`다.
   샘플 관리자는 모든 권한을 시드한다. 회원·관리자·신고 운영 API는 `operator=true`이면서 해당 권한(`users`·`admins`·`rights`)이 있어야 한다.
-- **인증**: 브라우저는 `/api/v1/operations/{reports,members,admins}`에 기존 회원 Bearer를 보낸다. 운영 서비스는 Content와 같이
+- **인증**: 브라우저는 `/api/v1/operations/{reports,members,admins}`에 기존 회원 Bearer를 보낸다(고객지원 문의 `support`는 [별도 계약](operations-support-inquiry-contract.md), 공지 관리 `admin/notices`·공개 `public/notices`는 [운영 공지 계약](operations-notice-contract.md), 이벤트 관리 `admin/events`·공개 `public/events`는 [운영 이벤트 계약](operations-event-contract.md), 작품 관리 `works`는 [운영 작품 조회 계약](operations-work-contract.md), 관리자 활동 기록 `admin/activities`는 [활동 기록 계약](operations-admin-activity-contract.md)). 운영 서비스는 Content와 같이
   Core `POST /internal/v1/auth/verify`로 확인한다. 기존 공지·이벤트·문의 서비스 토큰 API와 nginx 비노출은 유지한다.
 - **서비스 간 자격**: 운영 → Core·Content 호출은 기존 `OPERATIONS_SERVICE_TOKEN` 값을 `X-Operations-Service-Token` 헤더로 보낸다.
   Core·Content는 같은 환경변수(32자 이상)와 상수 시간 비교로 확인한다. 새 비밀 값을 추가하지 않는다.
 - **회원 이용 제한**: Core `auth_member.restricted`. 제한 회원은 로그인과 내부 인증 확인(verify)이 거절된다.
+  로그인은 올바른 비밀번호일 때만 403 `application/problem+json` 본문에 `code: "ACCOUNT_RESTRICTED"`를 담아 사유를 알리고
+  (틀린 비밀번호는 401이라 제한 여부가 드러나지 않는다), 화면은 이 코드가 있을 때만 이용 제한 안내를 표시한다. 코드 없는 403은 일반 오류다.
   ponytail: 이미 발급된 access token의 Core 공개 API 사용은 만료까지 남는다. 즉시 차단이 필요하면 세션 폐기를 추가한다.
 - **콘텐츠 제한**: Content 작품 `restricted`. 제한 작품은 공개 작품 목록·공개 상세·공개 회차 열람에서 제외(404)된다.
   ponytail: 제한 원인이 여러 개여도 단일 플래그이며 Fork 전파·"작가 확인 신고 즉시 비공개"는 후속이다.
 - **실패**: 운영 → Core/Content 호출 실패는 성공으로 숨기지 않고 502 `UPSTREAM_FAILED`를 반환하며 이력도 남기지 않는다.
+  원인은 응답이 아니라 서버 로그에만 남긴다(500은 원인 예외를 `ERROR`로, 502는 예외 메시지·스택 없이 예외 클래스명·하위 HTTP 상태·요청 경로(쿼리 제외)만 `WARN`으로).
+  하위 응답 본문과 회원 검색어 같은 쿼리가 로그에 남지 않게 하기 위함이다. 없는 경로·메서드 불일치도 같은 `{ code, message }`로 응답한다.
+- **트랜잭션**: Content 호출은 DB 트랜잭션 밖에서 실행하고, 성공한 뒤 신고 갱신·이력·[관리자 활동 기록](operations-admin-activity-contract.md)을 한 트랜잭션으로 저장한다.
+  ponytail: 제한·해제의 Content 호출이 성공한 뒤 저장이 실패(409 등)하면 Content만 바뀐 상태로 남는다(분산 트랜잭션 없음).
+  같은 요청을 다시 보내면 Content PUT/DELETE가 멱등이라 맞춰진다.
 
 ## Core 내부 API (운영 전용)
 
@@ -44,6 +51,8 @@
 | `GET /internal/v1/works/{workId}` | `{ workId, ownerId, title, restricted }`, 없으면 404 |
 | `PUT /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=true`) |
 | `DELETE /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=false`) |
+
+`ownerId`는 Content `work.owner_id`(varchar) 문자열이라 UUID가 아닐 수 있고, 운영은 신고 접수에서만 UUID로 변환하며 비 UUID 소유자 작품 신고는 저장 없이 409다(제한·해제는 `ownerId`를 쓰지 않아 영향 없음).
 
 ## 운영 공개 API (브라우저, 회원 Bearer)
 
@@ -83,5 +92,5 @@ ponytail: Core 생성 성공 후 권한 저장이 실패하면 권한 없는 관
 ## 실행 연결
 
 - `operations-service`를 compose에 추가하고 `--server.address=0.0.0.0`으로 컨테이너 네트워크에서만 노출한다.
-- nginx·Vite는 `/api/v1/operations/reports`·`/members`·`/admins`와 하위 경로만 `operations-service:8082`로 보낸다.
+- nginx·Vite는 `/api/v1/operations/reports`·`/members`·`/admins`(고객지원 문의 `/support`도 같은 방식)와 하위 경로만 `operations-service:8082`로 보낸다.
 - 운영 서비스 설정: `OPERATIONS_CORE_BASE_URL`(기본 `http://127.0.0.1:8080`), `OPERATIONS_CONTENT_BASE_URL`(기본 `http://127.0.0.1:8081`).

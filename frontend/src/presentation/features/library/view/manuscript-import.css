@@ -1,0 +1,30 @@
+.manuscript-import { padding-block-end: 40px; }
+.manuscript-import .panel { margin-block-end: 18px; min-width: 0; overflow-wrap: anywhere; }
+.manuscript-import fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.manuscript-import .rowend { margin-block-start: 14px; }
+.manuscript-import .rowend .btn, .manuscript-import .mi-actions .btn { min-height: 44px; }
+.manuscript-import h2 { font-size: 18px; font-weight: 800; margin-block-end: 8px; }
+.manuscript-import h2.mi-step { font-size: 15px; margin-block: 18px 6px; }
+.mi-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; margin-block: 8px; min-height: 28px; }
+.mi-check input { flex: none; width: 18px; height: 18px; margin-block-start: 2px; }
+.mi-list { list-style: none; margin: 14px 0; padding: 0; display: grid; gap: 12px; }
+.mi-episode { border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; background: var(--surface); min-width: 0; }
+.mi-episode.is-excluded { opacity: .65; }
+.mi-episode-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; }
+.mi-episode-head .field { flex: 1 1 260px; min-width: 0; }
+.mi-episode-head .chip { white-space: normal; height: auto; min-height: 24px; padding-block: 3px; }
+.mi-episode > .small { margin-block-start: 8px; }
+.mi-excerpt { margin-block-start: 6px; color: var(--sub); font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; }
+.mi-warn { list-style: none; margin: 8px 0 0; padding: 0; color: var(--acc-ink); font-size: 13px; font-weight: 700; }
+.mi-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-block-start: 10px; }
+.mi-actions .mi-check { margin-block: 0; }
+.mi-result { border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-block: 12px; }
+.mi-result h3 { font-size: 15px; font-weight: 800; }
+.mi-result ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.mi-result li { display: flex; flex-direction: column; gap: 2px; }
+.mi-failed { border-color: var(--danger); }
+.mi-failed h3, .mi-failed li span { color: var(--danger); }
+.mi-partial { border-color: var(--acc-ink); }
+.mi-partial h3 { color: var(--acc-ink); }
+.mi-result-panel > [role="status"] { margin-block: 8px; }
+@media (max-width: 600px) { .manuscript-import .mi-setup .btn, .manuscript-import .rowend .btn { width: 100%; } }

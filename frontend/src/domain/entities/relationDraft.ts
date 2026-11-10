@@ -116,3 +116,26 @@ export function removeRelationDraftRow(
     removed: row.value.id ? [...draft.removed, row.value.id] : draft.removed,
   }
 }
+
+/** 비교 기준은 패널을 연 순간이며 미적용 입력을 원문 그대로 보존합니다. */
+// 입력했다가 모두 지운 빈 설명('')은 처음의 빈 값(undefined)과 같은 상태로 비교한다.
+const comparable = (value: RelationInput) => JSON.stringify({ ...value, text: value.text || undefined })
+
+export function hasRelationDraftChanges(
+  initial: RelationDraftRow[],
+  rows: RelationDraftRow[],
+  removed: string[],
+): boolean {
+  const normalized = (list: RelationDraftRow[]) =>
+    JSON.stringify(list.map((row) => ({ ...row, value: { ...row.value, text: row.value.text || undefined } })))
+  return removed.length > 0 || normalized(initial) !== normalized(rows)
+}
+
+/** 일부만 작성한 새 행을 적용 과정에서 조용히 버리지 않습니다. */
+export function hasIncompleteRelationDraft(initial: RelationDraftRow[], rows: RelationDraftRow[]): boolean {
+  return rows.some((row) => {
+    if (row.value.id || row.value.text?.trim()) return false
+    const original = initial.find((candidate) => candidate.key === row.key)
+    return !original || comparable(original.value) !== comparable(row.value)
+  })
+}

@@ -4,6 +4,7 @@ import ai.storyfork.core.auth.config.AuthSecurityConfig
 import ai.storyfork.core.auth.helper.AuthTokenHelper
 import ai.storyfork.core.auth.repository.MemberRepository
 import ai.storyfork.core.auth.repository.SignupChallengeRepository
+import ai.storyfork.core.credit.service.CreditService
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -20,7 +21,7 @@ class SignupServiceTest {
             assertThrows(IllegalArgumentException::class.java) {
                 SignupService(mock(MemberRepository::class.java), mock(SignupChallengeRepository::class.java),
                     AuthSecurityConfig().passwordEncoder(), AuthTokenHelper(), mock(TransactionTemplate::class.java),
-                    mock(JavaMailSender::class.java), origin, "dev@example.invalid")
+                    mock(JavaMailSender::class.java), mock(CreditService::class.java), origin, "dev@example.invalid")
             }
         }
     }
