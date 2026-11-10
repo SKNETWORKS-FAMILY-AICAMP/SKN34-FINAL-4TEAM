@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
 import { resultReloadDelay, toKstDateTimeInput, type PublicationSchedule } from '../../../../domain/entities/publicationSchedule'
 
+type Operation = (signal: AbortSignal) => Promise<void>
+
 const emptyForm = { versionId: '', time: '', rights: false }
 
 export function usePublicationScheduleViewModel(workId: string, episode: number) {
@@ -12,16 +14,19 @@ export function usePublicationScheduleViewModel(workId: string, episode: number)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const request = useRef<AbortController | null>(null)
+  const rereadAfter = useRef<Operation | null>(null)
   const pending = rows?.find(row => row.status === 'pending')
   const dueAt = pending?.scheduledAt
 
-  const run = useCallback(async (operation: (signal: AbortSignal) => Promise<void>) => {
+  const run = useCallback(async (operation: Operation, keepMessages = false) => {
     if (request.current) return
     const controller = new AbortController()
     request.current = controller
     setBusy(true)
-    setError('')
-    setNotice('')
+    if (!keepMessages) {
+      setError('')
+      setNotice('')
+    }
     try {
       await operation(controller.signal)
     } catch (failure) {
@@ -30,6 +35,10 @@ export function usePublicationScheduleViewModel(workId: string, episode: number)
       if (request.current === controller) {
         request.current = null
         setBusy(false)
+        // 재조회 타이머가 이 요청 중에 울렸다면 방금 끝난 요청의 알림·오류를 남긴 채 한 번 다시 읽는다.
+        const next = rereadAfter.current
+        rereadAfter.current = null
+        if (next) void run(next, true)
       }
     }
   }, [])
@@ -47,6 +56,7 @@ export function usePublicationScheduleViewModel(workId: string, episode: number)
     return () => {
       request.current?.abort()
       request.current = null
+      rereadAfter.current = null
     }
   }, [read, run])
 
@@ -54,7 +64,10 @@ export function usePublicationScheduleViewModel(workId: string, episode: number)
   useEffect(() => {
     const delay = dueAt === undefined ? null : resultReloadDelay(dueAt)
     if (delay === null) return
-    const timer = setTimeout(() => void run(read), delay)
+    const timer = setTimeout(() => {
+      if (request.current) rereadAfter.current = read // 다른 요청이 진행 중이면 끝난 뒤 한 번 읽는다.
+      else void run(read)
+    }, delay)
     return () => clearTimeout(timer)
   }, [dueAt, read, run])
 

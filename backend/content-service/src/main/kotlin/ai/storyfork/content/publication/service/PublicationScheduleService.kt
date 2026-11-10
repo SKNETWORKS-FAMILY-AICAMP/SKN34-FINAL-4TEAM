@@ -16,8 +16,11 @@ import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.TransientDataAccessException
+import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import org.springframework.transaction.CannotCreateTransactionException
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 
@@ -70,11 +73,8 @@ class PublicationScheduleService(
 
     @Scheduled(fixedDelay = 5000)
     fun publishDue() {
-        val due = schedules.findTop25ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAscIdAsc("pending", Instant.now())
-        // 같은 시각의 연속 회차가 앞 회차부터 공개되도록 회차 번호 순서로 실행한다.
-        // ponytail: 같은 시각 예약이 25건을 넘으면 조회된 25건 안에서만 순서를 보장한다. 필요하면 쿼리에서 회차 번호로 정렬한다.
-        val sequence = episodes.findAllById(due.map { it.episodeId }).associate { it.id to it.sequence }
-        due.sortedWith(compareBy({ it.scheduledAt }, { sequence[it.episodeId] })).forEach { candidate ->
+        // 같은 시각의 연속 회차가 앞 회차부터 공개되도록 쿼리가 (예약 시각, 회차 번호) 순으로 25건을 고른다.
+        schedules.findDue("pending", Instant.now(), PageRequest.of(0, 25)).forEach { candidate ->
             try {
                 try {
                     // Core가 회원 존재·제한 여부와 UUID 일치(불일치는 401)를 확인한다.
@@ -86,9 +86,9 @@ class PublicationScheduleService(
                         row.complete(Instant.now())
                     }
                 } catch (failure: Exception) {
-                    if (failure is CoreAuthException && failure.status in 503..504) {
-                        // 일시적인 Core 장애는 실패로 확정하지 않고 대기 상태로 두어 다음 주기에 다시 시도한다.
-                        log.warn("Scheduled publication {} deferred: Core auth unavailable ({})", candidate.id, failure.code)
+                    if (failure.isTransient()) {
+                        // 일시적인 Core·DB 장애는 실패로 확정하지 않고 대기 상태로 두어 다음 주기에 다시 시도한다.
+                        log.warn("Scheduled publication {} deferred: {}", candidate.id, (failure as? CoreAuthException)?.code ?: failure.javaClass.simpleName)
                         return@forEach
                     }
                     val reason = when (failure) {
@@ -131,6 +131,9 @@ class PublicationScheduleService(
         checkContent(!episode.inherited, 403, "원작 기준 회차는 예약 발행할 수 없어요.")
         checkContent(episode.versions.any { it.id == request.versionId && it.body.isNotBlank() }, 409, "본문이 있는 저장 버전을 선택해 주세요.")
     }
+
+    private fun Exception.isTransient() = this is TransientDataAccessException || this is CannotCreateTransactionException ||
+        (this is CoreAuthException && status in 503..504)
 
     private fun PublicationScheduleEntity.response() =
         PublicationScheduleResponse(id, versionId, scheduledAt.toString(), status, revision, completedAt?.toString(), failureReason)

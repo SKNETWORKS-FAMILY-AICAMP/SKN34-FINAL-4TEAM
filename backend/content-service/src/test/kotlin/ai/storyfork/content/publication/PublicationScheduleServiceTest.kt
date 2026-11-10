@@ -24,8 +24,13 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
+import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.transaction.CannotCreateTransactionException
 import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionStatus
 import org.springframework.transaction.support.SimpleTransactionStatus
 import org.springframework.transaction.support.TransactionTemplate
 
@@ -40,15 +45,18 @@ class PublicationScheduleServiceTest {
     private val auth = mock(CoreAuthVerificationService::class.java)
     private val service = PublicationScheduleService(
         access, episodes, writing, schedules, publication, auth,
-        // 모의 매니저가 status를 돌려줘야 executeWithoutResult 안에서 NPE가 나지 않는다.
-        TransactionTemplate(mock(PlatformTransactionManager::class.java) { SimpleTransactionStatus() }),
+        // getTransaction만 status를 돌려준다(null이면 executeWithoutResult 람다에서 NPE). void인 commit·rollback에도 돌려주면
+        // Mockito가 WrongTypeOfReturnValue를 던져 commit이 깨지고, 롤백 경로에서는 원래 예외를 덮어쓴다.
+        TransactionTemplate(mock(PlatformTransactionManager::class.java) { call ->
+            if (call.method.returnType == TransactionStatus::class.java) SimpleTransactionStatus() else null
+        }),
     )
 
     private fun pending(id: String, episode: String) =
         PublicationScheduleEntity(id = id, workId = "work", episodeId = episode, ownerId = owner, versionId = "v-$episode", scheduledAt = due)
 
     private fun queue(vararg rows: PublicationScheduleEntity) {
-        `when`(schedules.findTop25ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAscIdAsc(eq("pending") ?: "pending", any(Instant::class.java) ?: due))
+        `when`(schedules.findDue(eq("pending") ?: "pending", any(Instant::class.java) ?: due, any(Pageable::class.java) ?: PageRequest.of(0, 25)))
             .thenReturn(rows.toList())
         rows.forEach { `when`(schedules.findById(it.id)).thenReturn(Optional.of(it)) }
     }
@@ -65,6 +73,21 @@ class PublicationScheduleServiceTest {
         verifyNoInteractions(publication)
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["lock", "connection"])
+    fun `temporary database error keeps the schedule pending for the next poll`(kind: String) {
+        val row = pending("s1", "e2")
+        queue(row)
+        `when`(episodes.findById("e2")).thenReturn(Optional.of(EpisodeEntity(id = "e2", workId = "work", sequence = 2)))
+        `when`(auth.verifyScheduledMember(owner)).thenReturn(UUID.fromString(owner))
+        val error = if (kind == "lock") CannotAcquireLockException("lock timeout") else CannotCreateTransactionException("no connection")
+        doThrow(error).`when`(publication).publishScheduled("work", owner, 2, "v-e2")
+        service.publishDue()
+        assertEquals("pending", row.status)
+        assertNull(row.failureReason)
+        assertNull(row.completedAt)
+    }
+
     @Test fun `restricted member is recorded as a failed schedule`() {
         val row = pending("s1", "e2")
         queue(row)
@@ -74,15 +97,15 @@ class PublicationScheduleServiceTest {
         assertEquals("발행 권한을 확인할 수 없는 회원이에요.", row.failureReason)
     }
 
-    @Test fun `schedules due at the same time publish in episode order`() {
+    @Test fun `schedules run in the order the repository returns them`() {
         val third = pending("a", "e3")
         val second = pending("b", "e2")
-        queue(third, second)
-        val rows = listOf(EpisodeEntity(id = "e3", workId = "work", sequence = 3), EpisodeEntity(id = "e2", workId = "work", sequence = 2))
-        `when`(episodes.findAllById(listOf("e3", "e2"))).thenReturn(rows)
+        queue(second, third) // 쿼리가 (예약 시각, 회차 번호, id) 순으로 정렬해 25건까지 돌려준 순서. id만 보면 3화가 앞선다.
+        val rows = listOf(EpisodeEntity(id = "e2", workId = "work", sequence = 2), EpisodeEntity(id = "e3", workId = "work", sequence = 3))
         rows.forEach { `when`(episodes.findById(it.id)).thenReturn(Optional.of(it)) }
         `when`(auth.verifyScheduledMember(owner)).thenReturn(UUID.fromString(owner))
         service.publishDue()
+        verify(schedules).findDue(eq("pending") ?: "pending", any(Instant::class.java) ?: due, eq(PageRequest.of(0, 25)) ?: PageRequest.of(0, 25))
         val order = inOrder(publication)
         order.verify(publication).publishScheduled("work", owner, 2, "v-e2")
         order.verify(publication).publishScheduled("work", owner, 3, "v-e3")
