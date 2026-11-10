@@ -1,6 +1,7 @@
 package ai.storyfork.operations.comment
 
 import ai.storyfork.operations._common.client.ContentClient
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.comment.service.CommentService
 import ai.storyfork.operations.comment.service.dto.OperationsComment
 import ai.storyfork.operations.comment.service.dto.OperationsCommentList
@@ -18,7 +19,8 @@ import org.springframework.web.server.ResponseStatusException
 class CommentServiceTest {
     private val content = mock(ContentClient::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
-    private val service = CommentService(content, permissions)
+    private val activities = mock(AdminActivityService::class.java)
+    private val service = CommentService(content, permissions, activities)
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutComments = OperationsMember(UUID.randomUUID(), true)
     private val staleGrant = OperationsMember(UUID.randomUUID(), false)
@@ -53,6 +55,34 @@ class CommentServiceTest {
     }
 
     @Test
+    fun `hide and unhide record the activity with the work title only after Content succeeded`() {
+        grantComments(admin)
+        `when`(content.hideComment(commentId)).thenReturn(comment.copy(hidden = true))
+        `when`(content.unhideComment(commentId)).thenReturn(comment)
+
+        service.hide(admin, commentId)
+        service.unhide(admin, commentId)
+
+        val order = inOrder(content, activities)
+        order.verify(content).hideComment(commentId)
+        // detail is the work title, never the comment body.
+        order.verify(activities).record(admin, "COMMENT_HIDE", "COMMENT", commentId, "작품")
+        order.verify(content).unhideComment(commentId)
+        order.verify(activities).record(admin, "COMMENT_UNHIDE", "COMMENT", commentId, "작품")
+        verifyNoMoreInteractions(activities)
+    }
+
+    @Test
+    fun `listing records nothing`() {
+        grantComments(admin)
+        `when`(content.listComments()).thenReturn(OperationsCommentList(listOf(comment)))
+
+        service.list(admin)
+
+        verifyNoInteractions(activities)
+    }
+
+    @Test
     fun `an operator without comments permission or a stale grant without operator is denied before Content`() {
         grantComments(staleGrant)
         for (member in listOf(operatorWithoutComments, staleGrant)) {
@@ -60,7 +90,7 @@ class CommentServiceTest {
             assertEquals(HttpStatus.FORBIDDEN, status { service.hide(member, commentId) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.unhide(member, commentId) })
         }
-        verifyNoInteractions(content)
+        verifyNoInteractions(content, activities)
     }
 
     @Test
@@ -73,5 +103,6 @@ class CommentServiceTest {
         assertEquals(HttpStatus.BAD_GATEWAY, status { service.list(admin) })
         assertEquals(HttpStatus.NOT_FOUND, status { service.hide(admin, commentId) })
         assertEquals(HttpStatus.NOT_FOUND, status { service.unhide(admin, commentId) })
+        verifyNoInteractions(activities)
     }
 }

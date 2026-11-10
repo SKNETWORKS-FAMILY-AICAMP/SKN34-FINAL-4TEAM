@@ -744,7 +744,11 @@ function Comments(p: BodyProps) {
                       type='button'
                       className='btn sm'
                       disabled={blocked(vm, `comment:${c.commentId}`)}
-                      onClick={() => void vm.live.setCommentHidden(c.commentId, !c.hidden)}
+                      onClick={() => {
+                        if (c.hidden || window.confirm(`「${c.workTitle}」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.`)) {
+                          void vm.live.setCommentHidden(c.commentId, !c.hidden)
+                        }
+                      }}
                     >
                       {c.hidden ? '게시 복구' : '숨김'}
                     </button>
@@ -761,7 +765,7 @@ function Comments(p: BodyProps) {
       )}
       <p className='admin-note'>
         숨긴 댓글은 독자에게 원문 대신 ‘운영 정책으로 숨겨진 댓글입니다.’로 보이고 수정·좋아요가 막혀요. 삭제가 아니라서 게시 복구하면
-        되돌아오고, 작성자는 자기 댓글을 삭제할 수 있어요. 이 조치는 신고 사건이나 활동 로그에 기록하지 않아요.
+        되돌아오고, 작성자는 자기 댓글을 삭제할 수 있어요. 숨김·게시 복구는 활동 로그에 기록되고, 신고 사건은 만들지 않아요.
       </p>
     </div>
   )

@@ -66,6 +66,8 @@ describe('관리자 (A01~A18)', () => {
 
   it('댓글 관리에서 숨긴 댓글은 회차 뷰어 목록·개수에서 빠지고 게시 복구하면 돌아온다 (목업 reader() cms)', async () => {
     const text = '돌다리 장면 묘사 최고… 성진 흔들릴 만하네'
+    // 숨김은 확인을 거친다(게시 복구는 확인 없음).
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const readerCount = async () => { cleanup(); renderAt('/read/guunmong/1', 'user'); return (await screen.findByRole('heading', { name: /^댓글 \d+$/ })).textContent }
     const before = await readerCount()
     expect(screen.queryByText(text)).not.toBeNull()
@@ -80,6 +82,8 @@ describe('관리자 (A01~A18)', () => {
     await toggle('댓글을 게시 상태로 되돌렸어요.')
     expect(await readerCount()).toBe(before)
     expect(screen.queryByText(text)).not.toBeNull()
+    expect(confirm).toHaveBeenCalledTimes(1)
+    confirm.mockRestore()
   })
 
   it('문의에 답변하면 회원 문의 목록에 운영팀 답변이 보인다', async () => {

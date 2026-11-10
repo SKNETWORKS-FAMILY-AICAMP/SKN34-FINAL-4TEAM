@@ -243,9 +243,16 @@ it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 �
   expect(within(hidden).getByText('숨김', { selector: '.chip' }).className).toContain('wait')
   expect(within(open).getByText('게시', { selector: '.chip' }).className).toContain('ok')
 
-  // 숨김은 서버에 보낸 뒤 목록을 다시 읽어 상태를 바꾼다.
+  // 숨김은 확인을 거치고, 취소하면 요청하지 않는다.
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.click(within(open).getByRole('button', { name: '숨김' }))
+  expect(confirm).toHaveBeenCalledWith('「달빛 도서관」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.')
+  expect(requests()).toEqual(['GET /api/v1/operations/comments'])
+  // 승인하면 서버에 보낸 뒤 목록을 다시 읽어 상태를 바꾼다.
+  confirm.mockReturnValue(true)
   fireEvent.click(within(open).getByRole('button', { name: '숨김' }))
   await within(open).findByRole('button', { name: '게시 복구' })
+  confirm.mockClear()
   expect(requests()).toEqual(['GET /api/v1/operations/comments', 'PUT /api/v1/operations/comments/c-open/hidden', 'GET /api/v1/operations/comments'])
   expect(cells(open)[4]).toBe('숨김')
   expect(within(hidden).getByRole('button', { name: '게시 복구' })).toBeTruthy()
@@ -255,6 +262,8 @@ it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 �
   await within(open).findByRole('button', { name: '숨김' })
   expect(requests().slice(3)).toEqual(['DELETE /api/v1/operations/comments/c-open/hidden', 'GET /api/v1/operations/comments'])
   expect(cells(open)[4]).toBe('게시')
+  // 게시 복구는 확인 없이 바로 보낸다.
+  expect(confirm).not.toHaveBeenCalled()
 
   // 서버(Content) 실패는 성공으로 바꾸지 않고 오류를 보이며 목록도 다시 읽지 않는다.
   failAction = true
