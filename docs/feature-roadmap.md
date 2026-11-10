@@ -258,8 +258,8 @@
 <tr><td>원본 변경 거절</td><td>❌</td></tr>
 <tr><td>거절한 변경 재검토</td><td>❌</td></tr>
 <tr><td rowspan="1">53 공개 Fork 탐색</td><td>선택 원작의 공개 Fork 작품 목록 조회</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
-<tr><td rowspan="2">54 Fork 생성 준비</td><td>원작의 Fork 허용 회차 목록 조회 <small>(all/from/selected 서버 allowlist·boolean 변경 시 범위 보존; 선택 단위 확인)</small></td><td>❌</td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
-<tr><td>선택 기준 회차에서 가져올 공개 세계관·인물·사건 미리보기 <small>(회차 한정 API 연결·미래 정보 제외; 관계 과거 snapshot/전체 복원 미지원)</small></td><td>❌</td></tr>
+<tr><td rowspan="2">54 Fork 생성 준비</td><td>원작의 Fork 허용 회차 목록 조회 <small>(all/from/selected 서버 allowlist·boolean 변경 시 범위 보존; 선택 단위 확인)</small></td><td>✅</td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
+<tr><td>선택 기준 회차에서 가져올 공개 세계관·인물·사건 미리보기 <small>(회차 한정 API 연결·미래 정보 제외; 관계 과거 snapshot/전체 복원 미지원)</small></td><td>✅</td></tr>
 <tr><td rowspan="1">83 Fork 정합성 운영 점검</td><td>Fork 스냅샷 해시·원작 해시·인물 상태 차이 점검 결과 조회</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
 <tr><td rowspan="18">이미지 관리</td><td rowspan="6">16-A 설정 이미지 CRUD</td><td>설정 이미지 업로드</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a></td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/87">#87</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a></td></tr>
 <tr><td>설정 이미지 상세 정보 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a></td></tr>
