@@ -52,8 +52,8 @@ class PublicationScheduleServiceTest {
         }),
     )
 
-    private fun pending(id: String, episode: String) =
-        PublicationScheduleEntity(id = id, workId = "work", episodeId = episode, ownerId = owner, versionId = "v-$episode", scheduledAt = due)
+    private fun pending(id: String, episode: String, work: String = "work") =
+        PublicationScheduleEntity(id = id, workId = work, episodeId = episode, ownerId = owner, versionId = "v-$episode", scheduledAt = due)
 
     private fun queue(vararg rows: PublicationScheduleEntity) {
         `when`(schedules.findDue(eq("pending") ?: "pending", any(Instant::class.java) ?: due, any(Pageable::class.java) ?: PageRequest.of(0, 25)))
@@ -86,6 +86,24 @@ class PublicationScheduleServiceTest {
         assertEquals("pending", row.status)
         assertNull(row.failureReason)
         assertNull(row.completedAt)
+    }
+
+    @Test fun `later episodes of a work whose earlier episode was deferred wait for the next poll`() {
+        val second = pending("s2", "e2")
+        val other = pending("s9", "o1", work = "other")
+        val third = pending("s3", "e3")
+        queue(second, other, third) // 같은 배치: 2화(보류) → 다른 작품 1화 → 같은 작품 3화
+        listOf(
+            EpisodeEntity(id = "e2", workId = "work", sequence = 2),
+            EpisodeEntity(id = "o1", workId = "other", sequence = 1),
+            EpisodeEntity(id = "e3", workId = "work", sequence = 3),
+        ).forEach { `when`(episodes.findById(it.id)).thenReturn(Optional.of(it)) }
+        doThrow(CannotAcquireLockException("lock timeout")).`when`(publication).publishScheduled("work", owner, 2, "v-e2")
+        service.publishDue()
+        verify(publication, never()).publishScheduled("work", owner, 3, "v-e3")
+        verify(publication).publishScheduled("other", owner, 1, "v-o1")
+        assertEquals(listOf("pending", "published", "pending"), listOf(second.status, other.status, third.status))
+        assertNull(third.completedAt)
     }
 
     @Test fun `restricted member is recorded as a failed schedule`() {
