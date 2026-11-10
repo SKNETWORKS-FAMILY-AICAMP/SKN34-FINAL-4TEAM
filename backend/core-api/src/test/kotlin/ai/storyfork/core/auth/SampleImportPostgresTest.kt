@@ -43,11 +43,11 @@ class SampleImportPostgresTest {
     @Test fun `V9 adds ordinary disabled sample accounts without changing the existing writer`() = isolated { jdbc, flyway ->
         flyway("8").migrate()
         val before = jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer)
-        assertEquals(1, flyway(null).migrate().migrationsExecuted)
+        assertEquals(1, flyway("9").migrate().migrationsExecuted)
         assertEquals(9, samples(jdbc))
         assertTrue(before == jdbc.queryForMap("SELECT * FROM auth_member WHERE id=?", writer), "Existing writer must remain unchanged")
-        assertEquals(0, flyway(null).migrate().migrationsExecuted)
-        flyway(null).validate()
+        assertEquals(0, flyway("9").migrate().migrationsExecuted)
+        flyway("9").validate()
     }
 
     @Test fun `secondary email collision fails V9 atomically instead of overwriting`() = isolated { jdbc, flyway ->
