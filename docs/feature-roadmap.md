@@ -67,16 +67,16 @@
 <tr><td>묶음 알림 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
 <tr><td>전체 알림 일괄 읽음 처리</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/129">PR #129</a></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/144">#144</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/129">PR #129</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/147">PR #147</a></td></tr>
 <tr><td>SSE 변경 신호의 느린 연결 격리·전송 중복 병합</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/129">PR #129</a> <small>(막힌 연결의 논리적 제거까지이며 물리적 소켓 종료 보장은 아님·컨테이너 쓰기 타임아웃은 후속)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/89">#89</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/129">PR #129</a></td></tr>
-<tr><td rowspan="12">크레딧 관리</td><td rowspan="12">32 지급·사용·정산 관리</td><td>크레딧 잔액 조회</td><td>❌</td><td rowspan="12"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
-<tr><td>크레딧 지급</td><td>❌</td></tr>
-<tr><td>크레딧 지급 내역 조회</td><td>❌</td></tr>
+<tr><td rowspan="12">크레딧 관리</td><td rowspan="12">32 지급·사용·정산 관리</td><td>크레딧 잔액 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> <small>(백엔드 API <code>GET /api/v1/me/credits</code> · 화면 미연결)</small></td><td rowspan="12"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a></td></tr>
+<tr><td>크레딧 지급</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> <small>(가입 체험은 <code>CREDIT_SIGNUP_TRIAL_AMOUNT</code>로 켜며 기본 0이라 지급하지 않음 · 보상·이벤트 지급은 서비스 메서드만 있고 호출하는 기능 없음 · 화면 미연결)</small></td></tr>
+<tr><td>크레딧 지급 내역 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> <small>(백엔드 API <code>GET /api/v1/me/credits/history</code> · 화면 미연결)</small></td></tr>
 <tr><td>AI 예상 비용 안내</td><td>❌</td></tr>
 <tr><td>AI 비용 동의 기록</td><td>❌</td></tr>
 <tr><td>AI 사용량 기록</td><td>❌</td></tr>
-<tr><td>크레딧 사용 정산</td><td>❌</td></tr>
-<tr><td>크레딧 사용 내역 조회</td><td>❌</td></tr>
-<tr><td>크레딧 소멸 처리</td><td>❌</td></tr>
-<tr><td>크레딧 소멸 내역 조회</td><td>❌</td></tr>
+<tr><td>크레딧 사용 정산</td><td>❌ <small>(차감 <code>spend</code> 서비스 메서드만 있고 호출하는 AI 기능·정산 단위 없음)</small></td></tr>
+<tr><td>크레딧 사용 내역 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> <small>(같은 내역 API · 차감을 호출하는 기능이 없어 사용 내역은 아직 생기지 않음 · 화면 미연결)</small></td></tr>
+<tr><td>크레딧 소멸 처리</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> <small>(매일 00:00 KST 스케줄러 · 화면 없음)</small></td></tr>
+<tr><td>크레딧 소멸 내역 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> <small>(같은 내역 API · 화면 미연결)</small></td></tr>
 <tr><td>실패 작업 정산 복구</td><td>❌</td></tr>
 <tr><td>AI 요청 속도 제한</td><td>❌</td></tr>
 <tr><td rowspan="10">결제 관리</td><td rowspan="10">33 구독·결제 관리</td><td>구독 상품 조회</td><td>❌</td><td rowspan="10">—</td></tr>
