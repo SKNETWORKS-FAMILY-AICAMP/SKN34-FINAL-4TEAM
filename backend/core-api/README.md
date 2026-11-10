@@ -28,7 +28,7 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `POST /api/v1/auth/signup` | `email`, `password`, `nickname`; 가입 후보 저장·메일 발송, 202 |
 | `POST /api/v1/auth/resend-verification` | `email`; 가입 인증 메일 재발송 요청, 202 |
 | `POST /api/v1/auth/verify-email` | `token`, 가입 시 정한 `password`; 회원 생성, 204 |
-| `POST /api/v1/auth/login` | `email`, `password`; `accessToken`·`user` JSON 및 `refresh_token` 쿠키, 200 |
+| `POST /api/v1/auth/login` | `email`, `password`; `accessToken`·`user` JSON 및 `refresh_token` 쿠키, 200. 자격 증명 불일치 401. 이용 제한 회원은 올바른 비밀번호일 때만 403 `application/problem+json` 본문에 `code: "ACCOUNT_RESTRICTED"`를 담는다(그 밖의 403·오류는 상태만) |
 | `POST /api/v1/auth/refresh` | `refresh_token` 쿠키, 선택적 `X-Auth-User` 회원 UUID; 회전된 쿠키와 `accessToken`·`user` JSON, 200 |
 | `POST /api/v1/auth/logout` | `refresh_token` 쿠키, 선택적 `X-Auth-User` 회원 UUID; 세션 폐기·쿠키 삭제, 204 |
 | `GET /api/v1/auth/sessions` | Bearer 인증(현재 세션 판별에는 선택적 `refresh_token` 쿠키); `{"sessions":[{"id","deviceLabel","createdAt","current"}]}`, 200 |
@@ -48,22 +48,25 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `GET /api/v1/me/notifications/stream` | Bearer 인증; SSE(`text/event-stream`). `ready`(연결·재연결 직후)와 `changed`(새 알림 저장 후)만 보내며 내용은 없음. 받으면 목록·미읽음 수를 다시 조회. 연결은 10분 뒤 끝나고 20초마다 `:ping`을 보냄 |
 | `GET /api/v1/me/notification-preferences` | Bearer 인증; 분류별 `{"items":[{"kind","enabled","mutable"}]}`, 200 |
 | `PUT /api/v1/me/notification-preferences` | Bearer 인증과 `items`; 읽기(`reading`)·창작(`creation`)만 변경, 그 외 분류 끄기·알 수 없는 분류·중복은 400 |
+| `GET /api/v1/me/credits` | Bearer 인증; 사용 가능한 크레딧 합계와 지급분별 남은 양·소멸 예정(소멸이 빠른 순) `{"total","items":[{"kind","remaining","expiresAt"}]}`, 200 |
+| `GET /api/v1/me/credits/history` | Bearer 인증; 본인의 지급·사용·소멸 내역 최신순 `{"items":[{"type":"grant"\|"spend"\|"expire","kind","amount","occurredAt"}]}`, 200 |
 | `POST /api/v1/me/withdrawal` | Bearer 인증과 현재 `password`, 선택 `reason`(300자 이하); 30일 유예 탈퇴 요청·모든 refresh 세션 폐기, 202. 비밀번호 불일치 403, 이미 진행 중 409 |
 | `GET /api/v1/me/withdrawal` | Bearer 인증; 진행 중이면 `{"status":"PENDING","requestedAt","dueAt"}`, 없으면 `{"status":"NONE"}`, 200 |
 | `DELETE /api/v1/me/withdrawal` | Bearer 인증; 유예 중인 탈퇴 요청 취소(복구), 204. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409 |
 
 ### 내부 API (Content·운영 서비스 전용, nginx 비노출)
 
-[운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 모두 회원 Bearer가 필요합니다.
+[운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 닉네임 조회를 뺀 모두 회원 Bearer가 필요합니다.
 
 | 메서드·경로 | 서비스 자격 | 동작 |
 |---|---|---|
 | `POST /internal/v1/auth/verify` | `X-Content-Service-Token` 또는 `X-Operations-Service-Token` | `{memberId, operator}`. 없는 회원·이용 제한 회원 401 |
+| `POST /internal/v1/members/nicknames` | 〃 (사용자 Bearer 불필요) | `{ids: [uuid…]}`(최대 200개, 중복 무시) → `{nicknames: {<uuid>: 닉네임}}`. Content가 작성자·작가 표시명을 응답 때마다 조회한다. 없는 회원은 빠지고 이용 제한 회원은 포함하며, 잘못된 UUID·200개 초과는 400 |
 | `GET /internal/v1/members?role=ALL\|MEMBER\|ADMIN&q=&sort=newest\|oldest` | `X-Operations-Service-Token`만 | `{items: MemberItem[]}` 최대 200개, `q`는 닉네임·이메일 대소문자 무시 부분 일치 |
 | `PUT`·`DELETE /internal/v1/members/{id}/restriction` | 〃 | 이용 제한·해제 후 `MemberItem`. 자기 자신 400, 없는 회원 404 |
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |
 
-`MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다.
+`MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403, `code: "ACCOUNT_RESTRICTED"`)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다. 고전 원작 샘플의 소유 계정(`b1b09f26…`) 닉네임은 운영자처럼 보이지 않게 V10이 `운영팀`일 때만 `고전 아카이브`로 바꿉니다.
 
 탈퇴 요청은 계정 상태와 30일 유예 기한만 기록하며 유예 중에도 로그인해 복구할 수 있습니다. 작품·세계관 숨김·삭제·익명화, 유예 만료 후 최종 처리, 남은 크레딧·결제 내역 처리는 콘텐츠 서비스 계약과 정책이 정해진 뒤 연결하므로 아직 없습니다.
 
@@ -131,6 +134,7 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `AUTH_PUBLIC_ORIGIN`, `AUTH_MAIL_FROM` | 필수 |
 | `AUTH_JWT_SECRET` | 필수, 32바이트 이상의 무작위 키를 Base64 인코딩 |
 | `AUTH_COOKIE_SECURE` | `true`; 로컬 HTTP 검증에서만 `false` |
+| `CREDIT_SIGNUP_TRIAL_AMOUNT` | `0`(가입 체험 크레딧을 지급하지 않음, 팀 결정 전); 양수면 가입을 완료한 회원에게 한 번 지급하고 30일 뒤 소멸. Compose는 이 값을 Core에만 전달 |
 
 Core는 AI Health만 호출합니다. 생성 전용 HTTP 클라이언트는 Content에 있습니다. AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 `./gradlew bootRun`은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달은 Compose를 사용합니다.
@@ -241,6 +245,8 @@ CI Content 통합 job이 임시 MinIO(`127.0.0.1:19087`)와 전용 `attachment_t
 자격증명·운영자 절차는 [WorldStudio 배포 문서](../../docs/deployment/worldstudio-v1-rollout.md)를 참고하세요.
 
 ## 작품 표지·원고 이미지 (#92)
+
+> 회차 이미지 목록·대체 텍스트(`content_image.alt_text`, contentimage V2)·공개 대체 텍스트 조회는 [원고 가져오기·내보내기 계약](../../docs/design/manuscript-import-export-contract.md) 5절을 따릅니다.
 
 기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `attachment/controller → AttachmentService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. Auth·설정 첨부·이미지·독립 Studio SQL 바이트/history는 보존합니다. Content 업무 초기 스키마만 사용자 승인 fresh 이력으로 재작성했습니다.
 

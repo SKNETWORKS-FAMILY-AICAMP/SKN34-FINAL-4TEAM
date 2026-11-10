@@ -52,8 +52,8 @@ SSE는 15초 heartbeat, 55초마다 정상 종료/재접속, servlet timeout 60�
 
 ## 원자 기록과 취소 경합
 
-V19는 Content Run에 cursor/결과 참조/취소 전달 확인을 추가하고 진행 테이블을 만든다.
-V1~V18과 Saver schema는 변경하지 않는다. 기존 작품 행 잠금 아래 Run 결과·terminal event가 같은 PG transaction으로
+V34(초기 미병합 V19)는 Content Run에 cursor/결과 참조/취소 전달 확인을 추가하고 진행 테이블을 만든다.
+기존 develop SQL과 Saver schema는 변경하지 않는다([번호 동기화](stack-develop-sync.md)). 기존 작품 행 잠금 아래 Run 결과·terminal event가 같은 PG transaction으로
 커밋된다. proposal 준비/결정도 기존 transaction 안에서 Run과 `PROPOSAL_PENDING`/`APPLIED` 등을 함께 기록한다.
 둘째 원고 저장 실패 시 원고·영수증·결과 참조·terminal event가 모두 rollback된다.
 

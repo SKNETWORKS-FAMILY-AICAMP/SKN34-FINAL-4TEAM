@@ -21,8 +21,8 @@ export function VersionComparison({ workId, number, versions, model }: { workId:
         <h3>변경 내용</h3>
         <p className="small muted">줄 단위 비교예요. 추가·삭제 표시는 기준 버전에서 비교 버전으로 바뀐 내용이에요.</p>
         {comparison.body.grouped && <p role="status">변경된 줄이 많아 변경 구간을 묶어서 표시해요.</p>}
-        {(['title', 'body'] as const).map(field => <div key={field}>
-          <h4>{field === 'title' ? '제목' : '본문'}</h4>
+        {(['title', 'body', 'authorNote'] as const).map(field => <div key={field}>
+          <h4>{field === 'title' ? '제목' : field === 'body' ? '본문' : '작가의 말'}</h4>
           {!comparison[field].parts.length ? <p className="muted">(빈 내용)</p> : comparison[field].parts.map((part, i) => <div key={i} className={`version-change version-change-${part.kind}`}>
             <span className="version-change-label">{labels[part.kind]}</span><div className="version-prose">{part.text}</div>
           </div>)}
@@ -33,6 +33,7 @@ export function VersionComparison({ workId, number, versions, model }: { workId:
           {[before, after].map((v, i) => v && <section key={v.id} aria-label={i ? '비교 저장본' : '기준 저장본'}>
             <h3>{i ? '비교 저장본' : '기준 저장본'} · {v.title}</h3>
             <ManuscriptBody workId={workId} number={number} body={v.body || '(빈 원고)'} />
+            {v.authorNote && <section><h4>작가의 말</h4><p className="version-prose">{v.authorNote}</p></section>}
           </section>)}
         </div>
       </details>

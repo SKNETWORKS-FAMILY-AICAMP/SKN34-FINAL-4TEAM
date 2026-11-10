@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
+import { hiddenSourceEpisode } from '../../../../domain/entities/work'
 
 import { Art, CoverOf } from '../../../shared/art'
 import { kfmt } from '../../../shared/format'
@@ -32,8 +33,10 @@ export function WorkPage() {
   useDocumentTitle(d?.work.title ?? '소설 상세')
   if (d === undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   if (d === null) return <UnavailableWork />
-  const { work: w, parent: p, visible, last, read, liked, forks, forkList } = d
-  const start = last && visible.some(([, i]) => i + 1 === last) ? last : (visible[0]?.[1] ?? 0) + 1
+  const { work: w, parent: p, visible, last, read, liked, likes, forks, forkList } = d
+  const first = visible.find(([e, i]) => !hiddenSourceEpisode(w, i + 1, e.p)) ?? visible[0]
+  const start = last && visible.some(([e, i]) => i + 1 === last && !hiddenSourceEpisode(w, last, e.p)) ? last : (first?.[1] ?? 0) + 1
+  const sourceTitle = p?.title ?? w.parentTitle
   return (
     <>
     <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
@@ -46,15 +49,19 @@ export function WorkPage() {
           <div>
             <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}
             <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
-            <p className="sum">{w.summary || '원작 「' + p?.title + '」의 ' + w.forkAt + '화 이후, 다른 길로 간 포크 소설.'}</p>
+            <p className="sum">{w.summary || '원작 「' + sourceTitle + '」의 ' + w.forkAt + '화 이후, 다른 길로 간 포크 소설.'}</p>
             <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>
-            <div className="stats">{w.statisticsSupported!==false && <><span>♥ <b id="lkc">{kfmt(w.likes + (liked ? 1 : 0))}</b></span><span>👁 <b>{kfmt(w.views)}</b></span><span>💬 <b>{w.cmts || 0}</b></span></>}<span>포크 소설 <b>{forks.length}</b></span></div>
+            <div className="stats">{(w.canonical || w.statisticsSupported!==false) && <span>♥ <b id="lkc">{kfmt(likes)}</b></span>}{w.statisticsSupported!==false && <><span>👁 <b>{kfmt(w.views)}</b></span><span>💬 <b>{w.cmts || 0}</b></span></>}<span>포크 소설 <b>{forks.length}</b></span></div>
             <div className="acts">
               {visible.length > 0 && <Go to={`/read/${id}/${start}`} className="tbtn pri">읽기 시작</Go>}
               {!!last && <Go to={`/read/${id}/1`} className="tbtn">처음부터</Go>}
-              <LikeButton liked={liked} onClick={vm.toggleLike} />
+              {w.canonical && <Go to={`/work/${id}/wiki`} className="tbtn">설정 위키</Go>}
+              <LikeButton liked={liked} label={w.canonical ? '좋아요' : '관심 소설'} pending={vm.likePending} onClick={vm.toggleLike} />
               <button type="button" className="ib" aria-label="공유" onClick={vm.share}>↗</button>
-              {!w.canonical && <button type="button" className="btn sm" aria-label={`${w.title} 소설 신고`} onClick={() => vm.setReporting(true)}>🚩 소설 신고</button>}
+              {vm.canInterest && (vm.isMember
+                ? <button type="button" className="tbtn" disabled={vm.interestBusy} onClick={vm.toggleInterest}>{vm.interested ? '관심 해제' : '관심 등록'}</button>
+                : <Go to="/login" className="tbtn" onClick={vm.requireLogin}>관심 등록</Go>)}
+              {vm.canReport && <button type="button" className="btn sm" aria-label={`${w.title} 소설 신고`} onClick={() => vm.setReporting(true)}>🚩 소설 신고</button>}
             </div>
           </div>
         </section>
@@ -71,11 +78,12 @@ export function WorkPage() {
             <div id="eplist">
               {vm.episodes.length ? vm.episodes.map(({ e, n, match }) => {
                 const inh = w.parent && n <= (w.forkAt ?? 0)
+                const hidden = hiddenSourceEpisode(w, n, e.p)
                 const fc = forks.filter((f) => f.forkAt === n).length
                 return (
                   <Go key={n} to={`/read/${id}/${n}`} className={`ep ${read.includes(n) ? 'read' : ''}`} style={match ? undefined : { display: 'none' }}>
                     <span className="no">{n}</span>
-                    <div><b>{e.t}</b><div className="d">{inh ? '원작 스냅샷 회차' : read.includes(n) ? '읽음' : last === n ? '읽는 중' : '무료'} <i className="sep" /> {e.p.join('').replace(/\s/g, '').length.toLocaleString()}자{fc > 0 && <> <i className="sep" /> 포크 소설 {fc}</>}</div></div>
+                    <div><b>{e.t}</b><div className="d">{hidden ? '원작 삭제로 볼 수 없는 회차' : <>{inh ? '원작 스냅샷 회차' : read.includes(n) ? '읽음' : last === n ? '읽는 중' : '무료'} <i className="sep" /> {e.p.join('').replace(/\s/g, '').length.toLocaleString()}자</>}{fc > 0 && <> <i className="sep" /> 포크 소설 {fc}</>}</div></div>
                     {fc ? <span className="chip ok">포크됨</span> : <span />}
                   </Go>
                 )
@@ -86,6 +94,8 @@ export function WorkPage() {
           <aside className="tcard forkbox">
             {p ? (
               <><h3>원작 보기</h3><p>이 소설은 「{p.title}」 {w.forkAt}화를 기준으로 분기했어요.{w.canonical ? ' 설정의 원본 추적·독립 상태는 집필실에서 확인해 주세요. 관계의 과거 시점 복원은 지원하지 않아요.' : ' 이후 바뀐 설정은 이 소설에만 저장돼요.'}</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
+            ) : w.parentDeleted ? (
+              <><h3>삭제된 원작</h3><p>이 소설은 「{w.parentTitle}」 {w.forkAt}화를 기준으로 분기했어요. 원작이 삭제돼 원작으로 이동할 수 없고, 분기 전 회차 본문은 독자에게 보이지 않아요.</p></>
             ) : forkList.length ? (
               <><h3>이 소설, 다르게 쓰고 싶다면</h3><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}` }} className="tbtn pri">✎ 포크하기</Go></>
             ) : (
@@ -110,11 +120,11 @@ export function WorkPage() {
   )
 }
 
-/** 목업 data-act="like": 누를 때마다 하트가 튀는 pop1 효과 */
-function LikeButton({ liked, onClick }: { liked: boolean; onClick: () => void }) {
+/** 목업 data-act="like": 누를 때마다 하트가 튀는 pop1 효과. 서버 요청이 진행 중이면(pending) 다시 누를 수 없다. */
+function LikeButton({ liked, label, pending, onClick }: { liked: boolean; label: string; pending: boolean; onClick: () => void }) {
   const [pop, setPop] = useState(false)
   return (
-    <button type="button" className={`ib ${liked ? 'on' : ''}${pop ? ' pop1' : ''}`} aria-label="관심 소설" aria-pressed={liked}
+    <button type="button" className={`ib ${liked ? 'on' : ''}${pop ? ' pop1' : ''}`} aria-label={label} aria-pressed={liked} disabled={pending}
       onClick={() => { setPop(true); onClick() }} onAnimationEnd={() => setPop(false)}><Heart /></button>
   )
 }

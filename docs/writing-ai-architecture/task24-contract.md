@@ -12,7 +12,7 @@ baseRevision은 작품 revision, selection.revision은 저장된 원고 editRevi
 Content는 현재 판·범위·서로게이트 경계·hash를 검증한다. 선택 원문 자체는 selection에 넣지 않는다.
 미저장/상속 원고는 요청을 비활성화한다. 모호한 접수 실패 재시도는 원래 body와 같은 키를 유지한다.
 
-V20은 Content ai_run에 nullable input_json만 추가한다. 원래 prompt/selection을 내부 dispatch에서 복원하기 위한
+V35(초기 미병합 V20)는 Content ai_run에 nullable input_json만 추가한다. 원래 prompt/selection을 내부 dispatch에서 복원하기 위한
 Content 업무 입력이며 SSE·checkpoint·로그에 복제하지 않는다. 이전 행과 선택 없는 요청은 호환한다.
 AI RunRequest/MainRequest는 prompt/selection을 명시적으로 결합한다. selection=None일 때 기존 checkpoint digest를 보존한다.
 

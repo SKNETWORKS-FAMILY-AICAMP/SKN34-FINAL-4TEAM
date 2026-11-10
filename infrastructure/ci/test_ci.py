@@ -334,7 +334,8 @@ class ComposeSplitTest(unittest.TestCase):
         # Same variable names as local/dev; the server's own .env supplies values and blanks fail config.
         for variable in ('DATABASE_URL', 'DATABASE_USER', 'DATABASE_PASSWORD',
                          'CORE_SMTP_HOST', 'CORE_SMTP_PORT', 'AUTH_PUBLIC_ORIGIN', 'AUTH_MAIL_FROM',
-                         'AUTH_JWT_SECRET', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN', 'WEB_PORT'):
+                         'AUTH_JWT_SECRET', 'CONTENT_CORE_AUTH_TOKEN', 'INTERNAL_TOKEN', 'OPERATIONS_SERVICE_TOKEN',
+                         'WEB_PORT'):
             self.assertIn('${' + variable + ':?', source)
         self.assertIn('AUTH_COOKIE_SECURE: "true"', source)
         self.assertIn('127.0.0.1:${WEB_PORT:?', source)
@@ -519,6 +520,35 @@ class ConfigurationTest(unittest.TestCase):
                 self.assertIn(location + '\n        proxy_pass http://content-service:8081;', text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
         self.assertIn('world-studios', text)
+
+    def test_operations_support_public_routes_expose_only_the_support_prefix(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/support {', 'location ^~ /api/v1/operations/support/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+            # 서비스 토큰 CRUD(inquiries·notices·events)는 공개 진입점에 열지 않는다.
+            for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
+                self.assertNotIn(private, text)
+        text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities)', text)
+
+    def test_operations_works_public_routes_go_to_operations(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/works {', 'location ^~ /api/v1/operations/works/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+
+    def test_operations_comments_public_routes_go_to_operations(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/comments {', 'location ^~ /api/v1/operations/comments/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+
+    def test_operations_admin_activities_public_route_goes_to_operations(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/admin/activities {', 'location ^~ /api/v1/operations/admin/activities/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

@@ -99,6 +99,14 @@ class ContentAuthorizationTest {
             .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("f 값을 확인해 주세요."))
         mvc.perform(get("/api/v1/public/works/ranking").param("kind","daily")).andExpect(status().`is`(422))
     }
+    @Test fun `page and size are bound as raw text so a non numeric value is a 422 and not a 400`() {
+        `when`(works.publicList(null,null,"like","1","20")).thenReturn(WorkListResponse(emptyList()))
+        `when`(works.publicList(null,null,null,"abc",null)).thenThrow(ai.storyfork.content._common.exception.ContentFailure(422,"page 값을 확인해 주세요."))
+        mvc.perform(get("/api/v1/public/works").param("sort","like").param("page","1").param("size","20")).andExpect(status().isOk())
+        verify(works).publicList(null,null,"like","1","20")
+        mvc.perform(get("/api/v1/public/works").param("page","abc")).andExpect(status().`is`(422))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.detail").value("page 값을 확인해 주세요."))
+    }
     @Test fun `episode view recording requires verified identity and csrf and answers 204`() {
         val path="/api/v1/works/work-id/episodes/1/views"
         mvc.perform(mutation(path)).andExpect(status().isUnauthorized())

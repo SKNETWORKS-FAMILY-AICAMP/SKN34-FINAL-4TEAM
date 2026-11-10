@@ -10,4 +10,7 @@ interface InquiryReplyRepository : JpaRepository<InquiryReplyEntity, UUID> {
     fun findAllByInquiryId(inquiryId: UUID, pageable: Pageable): Page<InquiryReplyEntity>
     fun findByIdAndInquiryId(id: UUID, inquiryId: UUID): InquiryReplyEntity?
     fun existsByInquiryId(inquiryId: UUID): Boolean
+
+    /** One query for every reply of a list page, oldest first, instead of one query per inquiry. */
+    fun findAllByInquiryIdInOrderByCreatedAtAscIdAsc(inquiryIds: Collection<UUID>): List<InquiryReplyEntity>
 }

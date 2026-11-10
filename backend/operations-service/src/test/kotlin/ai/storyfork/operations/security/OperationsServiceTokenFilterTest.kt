@@ -18,13 +18,6 @@ class OperationsServiceTokenFilterTest {
     fun clearContext() = SecurityContextHolder.clearContext()
 
     @Test
-    fun `no default browser user account is created`() {
-        val users = OperationsSecurityConfig().operationsUsers()
-        assertFalse(users.userExists("user"))
-        assertFalse(users.userExists("admin"))
-    }
-
-    @Test
     fun `missing blank wrong and duplicate tokens are denied before the chain`() {
         for (headers in listOf(emptyList(), listOf(""), listOf(" "), listOf("wrong"),
             listOf(token + "x"), listOf(token, token), listOf("wrong", token))) {

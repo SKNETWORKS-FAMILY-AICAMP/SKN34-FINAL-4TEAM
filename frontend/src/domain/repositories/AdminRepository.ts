@@ -1,7 +1,7 @@
 import type { AdminComment, AdminState } from '../entities/admin'
 import type { Work } from '../entities/work'
 
-/** 목업 S.admin·NOTICE·EVENTS 저장소 계약 */
+/** 목업 S.admin·EVENTS 저장소 계약 */
 export interface AdminRepository {
   get(): Promise<AdminState>
   save(state: AdminState): Promise<void>

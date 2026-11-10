@@ -1,11 +1,11 @@
-import { isMine } from '../entities/work'
+import { epsOf, isMine } from '../entities/work'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import { FEEDBACK_UNAVAILABLE, type WorkRepository } from '../repositories/WorkRepository'
 
 export type InboxAct = 'approve' | 'reject' | 'resolve' | 'publishRevision'
 
 /** 목업 inbox() cls(): 진행 중(wait)·거절(빈 값)·완료(ok) 표시 */
-export const inboxCls = (s: string) => ['필터 대기', '접수됨', '분석 중', '작가 검토 대기', '수정 진행 중', '발행 대기', '보류', '처리 실패', '발행 실패'].includes(s) ? 'wait' : s === '거절됨' || s === '철회됨' ? '' : 'ok'
+export const inboxCls = (s: string) => ['필터 대기', '접수됨', '분석 중', '작가 검토 대기', '수정 진행 중', '발행 대기', '보류', '처리 실패', '발행 실패', '반영 실패'].includes(s) ? 'wait' : s === '거절됨' || s === '철회됨' ? '' : 'ok'
 
 /** 목업 inbox()·act==='approve'|'reject'|'resolve'|'publishRevision': U20 독자 피드백함. 원문은 작가가 승인·발행해야만 바뀝니다. */
 export class InboxUseCase {
@@ -22,11 +22,11 @@ export class InboxUseCase {
     const w = it && works.find((x) => x.id === it.w)
     return {
       items: inbox.map((x) => ({ ...x, title: works.find((w2) => w2.id === x.w)?.title ?? '' })),
-      it, current: it?.from && w ? w.eps[it.n - 1]?.p[it.pi] ?? '' : '',
+      it, current: it?.from && w ? epsOf(w)[it.n - 1]?.p[it.pi] ?? '' : '',
     }
   }
 
-  /** 처리 결과 안내 문구를 돌려줍니다. 내 작품이 아니면 null */
+  /** 처리 결과 안내 문구를 돌려줍니다. 내 작품이 아니거나 승인되지 않은 수정안을 발행하려 하면 null */
   async act(id: string, act: InboxAct, answer = ''): Promise<string | null> {
     const [works, inbox, reports] = await Promise.all([this.workRepository.listWorks(), this.feedbackRepository.listInbox(), this.feedbackRepository.listReports()])
     const it = inbox.find((i) => i.id === id)
@@ -40,7 +40,7 @@ export class InboxUseCase {
       return msg
     }
     if (act === 'approve') {
-      const current = w.eps[it.n - 1]?.p[it.pi]
+      const current = epsOf(w)[it.n - 1]?.p[it.pi]
       if (!current || (it.baseText !== undefined && current !== it.baseText)) { it.status = '반영 실패'; return save('원문이 변경되어 수정안을 다시 검토해 주세요') }
       it.baseText = current
       it.status = '승인됨'
@@ -48,8 +48,10 @@ export class InboxUseCase {
       return save('수정안을 승인했어요. 발행은 별도로 확인해 주세요')
     }
     if (act === 'publishRevision') {
-      const ep = w.eps[it.n - 1], text = ep?.p[it.pi]
-      if (it.status !== '승인됨' || w.hidden || !text || text !== it.baseText || !it.from || !text.includes(it.from)) { it.status = '반영 실패'; return save('원고나 공개 상태가 바뀌어 발행하지 않았어요') }
+      if (it.status !== '승인됨') return null // 이미 발행했거나 거절한 항목의 상태를 덮어쓰지 않는다
+      // 발행은 직접 쓴 회차(w.eps)만: 포크의 원작 스냅샷 회차(n <= snap.eps.length)는 음수 인덱스라 발행 대상에서 빠진다.
+      const ep = w.eps[it.n - 1 - (epsOf(w).length - w.eps.length)], text = ep?.p[it.pi]
+      if (w.hidden || !text || text !== it.baseText || !it.from || !text.includes(it.from)) { it.status = '반영 실패'; return save('원고나 공개 상태가 바뀌어 발행하지 않았어요') }
       ep.p[it.pi] = text.replace(it.from, it.to ?? '')
       await this.workRepository.saveWork(w)
       it.status = '발행 완료'

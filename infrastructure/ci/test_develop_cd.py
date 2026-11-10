@@ -51,6 +51,16 @@ class DevelopDeploymentTest(unittest.TestCase):
         self.assertLess(commands.index("postgres mailpit"), commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"))
         self.assertNotIn("run --rm", commands)
 
+    def test_superseded_images_are_pruned_only_after_the_new_stack_is_healthy(self):
+        code, commands, error = self.deploy()
+        self.assertEqual(0, code, error)
+        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"),
+            commands.index("image prune --force\n"))
+
+    def test_failed_revision_check_keeps_previous_images(self):
+        _, commands, _ = self.deploy(overrides={"TARGET_SHA": "%040d" % 2})
+        self.assertNotIn("image prune", commands)
+
     def test_inherited_profile_cannot_change_the_deployed_stack(self):
         code, commands, error = self.deploy(overrides={"COMPOSE_PROFILES": "anything"})
         self.assertEqual(0, code, error)

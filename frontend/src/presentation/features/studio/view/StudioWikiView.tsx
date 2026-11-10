@@ -519,7 +519,7 @@ export function WikiView({ vm }: { vm: VM }) {
     }
   }
   return (
-    <div className='wiki' ref={root} onClickCapture={lock}>
+    <div className='wiki' key={locked ? 'locked' : 'open'} ref={root} onClickCapture={lock}>
       <aside className='wside'>
         <form
           className='wq'

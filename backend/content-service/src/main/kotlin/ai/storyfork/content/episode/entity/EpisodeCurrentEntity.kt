@@ -17,4 +17,6 @@ class EpisodeCurrentEntity(
     var publishedVersionId: String? = null,
     @field:Column(name = "inherited")
     var inherited: Boolean = false,
+    @field:Column(name = "publication_status")
+    var publicationStatus: String = if(publishedVersionId==null) "draft" else "published",
 )

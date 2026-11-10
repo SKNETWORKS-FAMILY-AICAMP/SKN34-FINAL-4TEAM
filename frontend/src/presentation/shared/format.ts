@@ -14,6 +14,13 @@ export function qs(base: string, o: Record<string, string | undefined>) {
   return base + (p ? '?' + p : '')
 }
 
+const kstClock = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+/** 서버가 순위를 계산한 시각을 한국시간 "HH:mm 기준"으로 표시합니다(자정 직후는 00:05). */
+export const asOf = (at: Date) => `${kstClock.format(at)} 기준`
+
 const kst = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'short', timeStyle: 'short' })
 /** 서버 UTC 시각을 한국시간으로 표시합니다. */
 export const kstDateTime = (iso: string) => kst.format(new Date(iso))
+/** 서버 UTC 기간을 한국시간 문구로 바꿉니다. 비어 있는 쪽은 미정입니다. */
+export const kstPeriod = ({ startsAt, endsAt }: { startsAt: string | null; endsAt: string | null }) =>
+  `${startsAt ? kstDateTime(startsAt) : '시작 미정'} ~ ${endsAt ? kstDateTime(endsAt) : '종료 미정'} · 한국시간`

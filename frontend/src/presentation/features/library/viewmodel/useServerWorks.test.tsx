@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
+import type { Work } from '../../../../domain/entities/content'
 import { useServerWorks } from './useServerWorks'
 
 afterEach(cleanup)
@@ -14,6 +15,20 @@ it('권한 오류를 숨기지 않고 사용자가 재조회할 때만 목록을
   await act(async () => {})
   expect(api.list).toHaveBeenCalledTimes(2)
   expect(result.current.error).toBe('')
+  expect(result.current.loading).toBe(false)
+})
+
+it('다시 불러오는 동안 기존 작품 목록을 지우지 않고 도착하면 바꾼다', async () => {
+  const [first, second] = [{ id: 'a', title: '처음' } as Work, { id: 'a', title: '바뀐 뒤' } as Work]
+  let finish!: (rows: Work[]) => void
+  const api = { list: vi.fn().mockResolvedValueOnce([first]).mockReturnValueOnce(new Promise<Work[]>(resolve => { finish = resolve })) }
+  const { result } = renderHook(() => useServerWorks(api))
+  await act(async () => {})
+  act(() => result.current.reload())
+  expect(result.current.loading).toBe(true)
+  expect(result.current.works).toEqual([first])
+  await act(async () => finish([second]))
+  expect(result.current.works).toEqual([second])
   expect(result.current.loading).toBe(false)
 })
 
