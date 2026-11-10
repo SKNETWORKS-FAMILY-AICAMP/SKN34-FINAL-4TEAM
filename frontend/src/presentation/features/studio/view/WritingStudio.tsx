@@ -9,12 +9,14 @@ import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import {ManuscriptBody} from '../../../shared/media/MediaPanel'
 import { ManuscriptExportPanel } from './ManuscriptExportPanel'
 import { EpisodeImagePanel } from './EpisodeImagePanel'
+import { EpisodeWorldBasisControl } from './EpisodeWorldBasisPanel'
 import { Sheet } from '../../../shared/Sheet'
 import { BackChev } from '../../../shared/icons'
 import { writingStatus } from '../../../../domain/entities/writingStatus'
 import { VersionComparison } from './VersionComparison'
 import { SettingHistoryPanel } from './SettingHistoryPanel'
 import { CheckpointPanel } from './CheckpointPanel'
+import { PublicationSchedulePanel } from './PublicationSchedulePanel'
 import './version-panels.css'
 
 export function WritingStudio({id}:{id:string}) {
@@ -26,13 +28,14 @@ export function WritingStudio({id}:{id:string}) {
   const [selection,setSelection]=useState({episode:0,id:''})
   const [rights,setRights]=useState(false)
   const [versionsOpen,setVersionsOpen]=useState(false)
-  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'|'publication'>('versions')
+  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'|'publication'|'schedule'>('versions')
   const active=vm.active
   const historyLabel={
     versions:'원고 저장본 · 공개',
     compare:active?`${active.number}화 원고 버전 비교`:'원고 버전 비교',
     settings:'설정 버전 이력',
     publication:'발행 이력',
+    schedule:'예약 발행',
   }[historyView]
   const comparison=useVersionComparisonViewModel(active?.versions??[],versionsOpen&&active?`${id}:${active.number}`:'')
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
@@ -75,6 +78,7 @@ export function WritingStudio({id}:{id:string}) {
           {!active.inherited&&<EpisodeImagePanel workId={id} episode={active.number} draft={vm.draft} unsaved={vm.dirty||vm.busy} onDraftSaved={vm.reload}/>}
           {vm.busy&&<button className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
           <details><summary>현재 원고 이미지 미리보기</summary><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></details>
+          {!active.inherited&&import.meta.env.MODE!=='mockup'&&<EpisodeWorldBasisControl key={active.number} workId={id} number={active.number}/>}
           <section aria-label="회차 관리">
             <button className="btn sm" disabled={vm.busy} onClick={()=>void vm.checkOrder()}>순서 변경 가능 범위 확인</button>
             <button className="btn sm" disabled={vm.busy||active.inherited||active.hasDraft===false} onClick={()=>void vm.deleteDraft()}>초안 삭제</button>
@@ -97,6 +101,7 @@ export function WritingStudio({id}:{id:string}) {
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='compare'} onClick={()=>setHistoryView('compare')}>원고 버전 비교</button>
               <button type="button" className="btn sm" aria-pressed={historyView==='settings'} onClick={()=>setHistoryView('settings')}>설정 버전 이력</button>
               <button type="button" className="btn sm" disabled={vm.historyLoading} aria-pressed={historyView==='publication'} onClick={()=>{setHistoryView('publication');void vm.loadPublicationHistory()}}>발행 이력</button>
+              {active&&!active.inherited&&<button type="button" className="btn sm" aria-pressed={historyView==='schedule'} onClick={()=>setHistoryView('schedule')}>예약 발행</button>}
             </nav>
             {historyView==='publication'?<>
               <h2>발행 이력</h2>
@@ -107,14 +112,15 @@ export function WritingStudio({id}:{id:string}) {
                   {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
                 </li>)}</ol>
               </>}
-            </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
+            </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='schedule'?(active.inherited?<p>원작 기준 회차는 예약 발행할 수 없어요.</p>:
+              <PublicationSchedulePanel key={`${id}:${active.number}`} workId={id} episode={active}/>):historyView==='compare'?<>
               <h2>{historyLabel}</h2>
               <VersionComparison workId={id} number={active.number} versions={active.versions} model={comparison}/>
             </>:<>
             {vm.error&&<p role="alert">{vm.error}</p>}
             {vm.notice&&<p role="status">{vm.notice}</p>}
             <h2>{historyLabel}</h2>
-            <CheckpointPanel key={`${id}:${active.number}`} checkpoints={active.checkpoints} disabled={vm.busy||vm.dirty||active.inherited} onRevert={vm.revertCheckpoint}/>
+            <CheckpointPanel key={`${id}:${active.number}`} workId={id} episode={active} disabled={vm.busy||vm.dirty||active.inherited} onRevert={vm.revertCheckpoint}/>
             {!active.versions.length?<p>아직 저장한 버전이 없어요. 상단의 버전 저장을 눌러 원고를 남겨 주세요.</p>:<>
               <label className="field">검토할 저장 버전<select className="inp" value={selected?.id??''} onChange={e=>{setSelection({episode:active.number,id:e.target.value});setRights(false)}}>
                 <option value="">버전 선택</option>{active.versions.map((v,i)=><option value={v.id} key={v.id}>버전 {i+1} · {v.title} · {new Date(v.savedAt).toLocaleString('ko-KR')}{active.publishedVersionId===v.id?' · 현재 발행본':''}</option>)}
