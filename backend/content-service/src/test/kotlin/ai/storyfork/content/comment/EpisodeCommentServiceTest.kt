@@ -77,9 +77,9 @@ class EpisodeCommentServiceTest {
         `when`(current.findByWorkIdAndSequence(work, number)).thenReturn(EpisodeCurrentEntity("episode-$number", work, number, version))
     }
     private fun comment(id: String, author: String = "author", at: Instant = t0, body: String = "본문", spoiler: Boolean = false, quote: String? = null,
-        version: String = "version-1", number: Int = 1, work: String = "work") =
+        version: String = "version-1", number: Int = 1, work: String = "work", hidden: Boolean = false) =
         EpisodeCommentEntity(id = id, workId = work, episodeNumber = number, publishedVersionId = version, authorId = author,
-            body = body, quote = quote, spoiler = spoiler, createdAt = at, updatedAt = at).also { rows.add(it) }
+            body = body, quote = quote, spoiler = spoiler, createdAt = at, updatedAt = at, hidden = hidden).also { rows.add(it) }
     private fun like(comment: String, member: String) { likeRows.add(EpisodeCommentLikeEntity(comment, member)) }
     private fun failure(block: () -> Unit) = assertThrows(ContentFailure::class.java, block)
 
@@ -96,11 +96,12 @@ class EpisodeCommentServiceTest {
     @Test fun `JSON field names follow the contract and a sparse request body falls back to defaults`() {
         val mapper = tools.jackson.databind.json.JsonMapper.builder().findAndAddModules().build()
 
-        val response = CommentResponse("c1", "work", 3, "version-3", "닉네임", "본문", null, false, 2, true, false, false, t0, t0)
+        val response = CommentResponse("c1", "work", 3, "version-3", "닉네임", "본문", null, false, 2, true, false, false, true, t0, t0)
         val item = mapper.readTree(mapper.writeValueAsString(CommentListResponse(listOf(response)))).path("items")[0]
 
-        assertEquals(listOf("authorName", "body", "createdAt", "edited", "episodeNumber", "id", "liked", "likeCount", "mine", "publishedVersionId", "quote", "spoiler", "updatedAt", "workId").sorted(),
+        assertEquals(listOf("authorName", "body", "createdAt", "edited", "episodeNumber", "hidden", "id", "liked", "likeCount", "mine", "publishedVersionId", "quote", "spoiler", "updatedAt", "workId").sorted(),
             item.propertyNames().toList().sorted())
+        assertTrue(item.path("hidden").asBoolean())
         assertTrue(item.path("quote").isNull)
         assertEquals("2020-01-01T00:00:00Z", item.path("createdAt").asString())
         assertEquals(CreateCommentRequest("본문"), mapper.readValue("""{"body":"본문"}""", CreateCommentRequest::class.java))
@@ -365,6 +366,41 @@ class EpisodeCommentServiceTest {
         `when`(failing.saveAndFlush(anyLike())).thenThrow(DataIntegrityViolationException("foreign key"))
 
         assertThrows(DataIntegrityViolationException::class.java) { EpisodeCommentService(access, current, comments, failing, nicknames).like("work", 1, "c1", "fan") }
+    }
+
+    @Test fun `a hidden comment is a placeholder in list and detail while author likes and flags stay and the stored row is untouched`() {
+        published()
+        val row = comment("c1", author = "reader", body = "원문", quote = "인용", spoiler = true, hidden = true)
+        comment("c2", author = "other", at = t0.plusSeconds(1), body = "보이는 글", quote = "보이는 인용")
+        like("c1", "fan"); like("c1", "reader")
+
+        val items = service.list("work", 1, null, "reader").items.associateBy { it.id }
+
+        for (shown in listOf(items.getValue("c1"), service.read("work", 1, "c1", "reader"))) {
+            assertEquals(listOf<Any?>(true, "", null), listOf(shown.hidden, shown.body, shown.quote))
+            assertEquals(listOf<Any?>("reader-닉", true, 2, true, true), listOf(shown.authorName, shown.spoiler, shown.likeCount, shown.liked, shown.mine))
+        }
+        assertEquals(listOf<Any?>(false, "보이는 글", "보이는 인용"), items.getValue("c2").let { listOf(it.hidden, it.body, it.quote) })
+        // 자리표시는 응답에서만 만든다. 저장된 원문을 비우면 복구해도 되살릴 수 없다.
+        assertEquals(listOf<Any?>("원문", "인용"), listOf(row.body, row.quote))
+    }
+
+    @Test fun `a hidden comment refuses edit like and cancel with 409 COMMENT_HIDDEN and changes nothing while its author can still delete it`() {
+        published()
+        val row = comment("c1", body = "원문", hidden = true)
+        like("c1", "reader")
+        val calls = listOf<Pair<String, () -> Any?>>(
+            "update" to { service.update("work", 1, "c1", "author", UpdateCommentRequest("고침", true)) },
+            "like" to { service.like("work", 1, "c1", "fan") },
+            "unlike" to { service.unlike("work", 1, "c1", "reader") },
+        )
+
+        for ((name, call) in calls) failure { call() }.let { assertEquals(listOf<Any?>(409, "COMMENT_HIDDEN"), listOf(it.status, it.code), name) }
+
+        assertEquals(listOf<Any?>("원문", false, t0), listOf(row.body, row.spoiler, row.updatedAt))
+        assertEquals(listOf("reader"), likeRows.map { it.memberId })
+        service.delete("work", 1, "c1", "author")
+        assertNotNull(row.deletedAt)
     }
 
     @Test fun `private or missing works are 404 for every operation before any comment access`() {

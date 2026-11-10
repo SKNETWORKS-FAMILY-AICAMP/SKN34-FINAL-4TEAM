@@ -6,11 +6,13 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { PublishSettingsSheet } from '../../../shared/PublishSettingsSheet'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useLibraryViewModel } from '../viewmodel/useLibraryViewModel'
+import { MyEditSuggestions } from './MyEditSuggestions'
+import { MyFeedbackReports } from './MyFeedbackReports'
 import { ServerWritingList } from './ServerWritingList'
 
-const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['qa', '내 댓글·신고']] as const
+const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['qa', '내 댓글·제보']] as const
 
-/** 목업 lib(): U11 내 서재 (읽는 중·내가 쓰는 소설·내 댓글·신고) */
+/** 목업 lib(): U11 내 서재 (읽는 중·내가 쓰는 소설·내 댓글·제보) */
 export function LibraryPage() {
   const vm = useLibraryViewModel()
   const d = vm.data
@@ -26,10 +28,12 @@ export function LibraryPage() {
         <nav className="libtabs">{TABS.map(([k, l]) => <Go key={k} to={`/lib?tab=${k}`} className={d.tab === k ? 'on' : ''} aria-current={d.tab === k ? 'page' : undefined}>{l}{k === 'write' && d.pending > 0 && <span className="nb">{d.pending}</span>}</Go>)}</nav>
         {d.reports && (
           <>
-            <div className="list" id="myreports">{d.reports.map((r) => (
+            <MyFeedbackReports />
+            {d.reports.length > 0 && <section className="sec" aria-label="데모 작품 피드백"><div className="sec-h"><h2>데모 작품 피드백 · 서버에 저장되지 않아요</h2></div><div className="list" id="myreports">{d.reports.map((r) => (
               <div className="rp" key={r.id}><div className="top"><b>{r.title} {r.n ? `${r.n}화` : '소설 전체'} · {r.type}</b><span className={`chip ${/완료|반영/.test(r.status) ? 'ok' : 'wait'}`}>{r.status}</span></div><div className="small" style={{ marginTop: 4 }}>{r.text}</div><div className="a">🤖 {r.reply}</div></div>
-            ))}</div>
+            ))}</div></section>}
             <p className="muted small" style={{ marginTop: 10 }}>작가가 처리하면 상태가 바뀌어요.</p>
+            {!mockup && <MyEditSuggestions />}
           </>
         )}
         {d.read && (
@@ -66,9 +70,9 @@ export function LibraryPage() {
               </div></div>
             ))}
             </section>}
-            <div className="sec"><div className="sec-h"><h2>새로 시작하기</h2></div><p className="note2">새 소설 등록·가져오기 양식의 일괄 저장은 아직 지원하지 않아요. 서버 작품 등록은 기존 작품·설정집·분기 도구를 사용해 주세요. 허용된 회차의 포크 생성은 서버에 저장돼요.</p><div className="newbox">
-              <Go to="/new" className="newc" id="newWork"><b>＋ 새 소설 쓰기</b><span>세계관·인물을 정하고 1화부터 직접 써요 (오리지널)</span></Go>
-              <Go to="/writing-policy?method=import" className="newc"><b>＋ 내 소설 가져오기</b><span>예시 원고로 세계관·인물·사건 정리 흐름을 살펴봐요 (가상 추출)</span></Go>
+            <div className="sec"><div className="sec-h"><h2>새로 시작하기</h2></div>{mockup && <p className="note2">새 소설 등록·가져오기 양식의 일괄 저장은 아직 지원하지 않아요. 서버 작품 등록은 기존 작품·설정집·분기 도구를 사용해 주세요. 허용된 회차의 포크 생성은 서버에 저장돼요.</p>}<div className="newbox">
+              <Go to={mockup ? '/new' : '/content'} className="newc" id="newWork"><b>＋ 새 소설 쓰기</b><span>{mockup ? '세계관·인물을 정하고 1화부터 직접 써요 (오리지널)' : '비공개 작품을 만들고 1화부터 써요'}</span></Go>
+              <Go to="/writing-policy?method=import" className="newc"><b>＋ 내 소설 가져오기</b><span>{mockup ? '예시 원고로 세계관·인물·사건 정리 흐름을 살펴봐요 (가상 추출)' : 'TXT·EPUB 원고를 내 작품의 회차로 등록해요'}</span></Go>
               <Go to="/writing-policy?method=fork" className="newc"><b>✎ 다른 소설 포크</b><span>원작을 고르고 마음에 드는 회차에서 시작해요</span></Go>
             </div></div>
             <Go to="/content" className="btn sm">기존 작품·설정집·분기 도구</Go>

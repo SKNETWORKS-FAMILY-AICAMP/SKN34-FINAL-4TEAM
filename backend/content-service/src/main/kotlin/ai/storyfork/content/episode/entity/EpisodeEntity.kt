@@ -3,6 +3,7 @@ package ai.storyfork.content.episode.entity
 import java.time.Instant
 import org.hibernate.annotations.SQLRestriction
 import jakarta.persistence.*
+import java.util.UUID
 
 @Entity
 @Table(name = "episode")
@@ -18,4 +19,10 @@ class EpisodeEntity(
     var deletedAt: Instant? = null,
     @field:Column(name = "draft_revision_floor")
     var draftRevisionFloor: Int = -1,
+    @field:Column(name = "basis_world_id")
+    var basisWorldId: UUID? = null,
+    @field:Column(name = "basis_world_revision_id")
+    var basisWorldRevisionId: UUID? = null,
+    @field:Column(name = "basis_revision")
+    var basisRevision: Int = 0,
 )

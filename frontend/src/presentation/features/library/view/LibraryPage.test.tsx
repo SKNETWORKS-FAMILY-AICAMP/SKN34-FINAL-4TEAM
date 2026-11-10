@@ -25,10 +25,10 @@ it('서재 탭은 현재 탭을 aria-current로 알리고 탭을 옮기면 따�
   await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
   expect(tab('읽는 중').getAttribute('aria-current')).toBe('page')
   expect(tab('내가 쓰는 소설').hasAttribute('aria-current')).toBe(false)
-  expect(tab('내 댓글·신고').hasAttribute('aria-current')).toBe(false)
-  fireEvent.click(tab('내 댓글·신고'))
+  expect(tab('내 댓글·제보').hasAttribute('aria-current')).toBe(false)
+  fireEvent.click(tab('내 댓글·제보'))
   await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
-  expect(tab('내 댓글·신고').getAttribute('aria-current')).toBe('page')
+  expect(tab('내 댓글·제보').getAttribute('aria-current')).toBe('page')
   expect(tab('읽는 중').hasAttribute('aria-current')).toBe(false)
 })
 

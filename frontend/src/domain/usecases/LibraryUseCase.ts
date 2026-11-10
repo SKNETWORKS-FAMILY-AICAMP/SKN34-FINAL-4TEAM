@@ -72,7 +72,7 @@ export class LibraryUseCase {
   /** U11 읽는 중: 한 작품의 이어 읽기 기록(위치·읽은 회차)을 서버에서 지웁니다. 지우지 못하면 던집니다. */
   removeReading(workId: string) { return this.readingRecordRepository.remove(workId) }
 
-  /** U11 내 댓글·신고 */
+  /** U11 내 댓글·제보 */
   async getReports() {
     const [works, reports] = await Promise.all([this.workRepository.listWorks(), this.feedbackRepository.listReports()])
     return reports.map((r) => ({ ...r, title: works.find((w) => w.id === r.w)?.title ?? '' }))

@@ -9,6 +9,8 @@ const comment: z.ZodType<EpisodeComment> = z.object({
   id: z.string(), workId: z.string(), episodeNumber: z.number().int().positive(), publishedVersionId: z.string(),
   authorName: z.string(), body: z.string(), quote: z.string().nullable(), spoiler: z.boolean(),
   likeCount: z.number().int().nonnegative(), liked: z.boolean(), mine: z.boolean(), edited: z.boolean(),
+  // 운영 숨김(75) 이전 응답에는 hidden이 없다.
+  hidden: z.boolean().default(false),
   createdAt: z.string().datetime({ offset: true }), updatedAt: z.string().datetime({ offset: true }),
 })
 const comments = z.object({ items: z.array(comment) })

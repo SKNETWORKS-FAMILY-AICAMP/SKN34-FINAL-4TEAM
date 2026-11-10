@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { OperationsError } from '../../domain/entities/operations'
 import { login } from './auth'
-import { HttpMemberRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from './operationsApi'
+import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from './operationsApi'
 
 const reply = { id: 'p1', body: '답변\n내용', createdAt: '2026-11-08T01:00:00Z', updatedAt: '2026-11-08T02:00:00Z' }
 const inquiry = {
@@ -18,6 +18,14 @@ const member = { id: 'm1', email: 'm1@example.test', nickname: '연화', role: '
 const work = {
   workId: 'w1', ownerId: 'owner-1', title: '별빛 서약의 탑', authorName: '연화봉러', originKind: 'fork', creationType: 'external_derivative',
   rightsConfirmed: false, visibility: 'private', restricted: true,
+}
+const comment = {
+  commentId: 'c1', workId: 'w1', workTitle: '별빛 서약의 탑', episodeNumber: 2, authorId: 'user-1', authorName: '연화',
+  body: '첫 감상', likeCount: 3, hidden: false, createdAt: '2026-11-09T01:00:00Z',
+}
+const activity = {
+  id: 'a1', actorId: 'admin-1', actorNickname: '운영자', action: 'WORK_RESTRICT', targetType: 'WORK', targetId: 'w1',
+  detail: '별빛 서약의 탑', createdAt: '2026-11-10T01:00:00Z',
 }
 type Call = [string, { method?: string; body?: string; headers: Record<string, string> }]
 const callsOf = (f: { mock: { calls: unknown[] } }) => f.mock.calls as Call[]
@@ -170,6 +178,79 @@ describe('HttpOperationsWorkRepository (74 운영 작품 조회)', () => {
   })
 })
 
+describe('HttpOperationsCommentRepository (75 운영 댓글 조회·조치)', () => {
+  it('댓글 목록은 Bearer로 끝 슬래시 없는 경로를 GET하고 숨김 댓글 원문까지 응답을 검증한다', async () => {
+    const hidden = { ...comment, commentId: 'c2', hidden: true, body: '숨긴 댓글의 원문' }
+    const fetcher = ok({ items: [comment, hidden] })
+    expect(await new HttpOperationsCommentRepository(fetcher).list()).toEqual([comment, hidden])
+    expect(callsOf(fetcher)).toHaveLength(1)
+    const [[url, init]] = callsOf(fetcher)
+    expect(url).toBe('/api/v1/operations/comments')
+    expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer o-bearer' } })
+  })
+
+  it('ID는 UUID가 아닌 문자열도 받고, 계약에 없는 값이나 빠진 필드는 거부한다', async () => {
+    const odd = { ...comment, commentId: 'not-a-uuid', workId: 'legacy-work', authorId: 'legacy-7' }
+    expect(await new HttpOperationsCommentRepository(ok({ items: [odd] })).list()).toEqual([odd])
+    const failed = '서버 응답 형식을 확인할 수 없어요.'
+    for (const patch of [{ hidden: 'yes' }, { hidden: undefined }, { likeCount: '3' }, { likeCount: -1 }, { episodeNumber: 0 }, { createdAt: '어제' }, { authorName: undefined }, { commentId: 1 }, { authorId: 7 }]) {
+      await expect(new HttpOperationsCommentRepository(ok({ items: [{ ...comment, ...patch }] })).list()).rejects.toThrow(failed)
+    }
+    await expect(new HttpOperationsCommentRepository(ok([comment])).list()).rejects.toThrow(failed)
+  })
+
+  it('숨김은 PUT, 게시 복구는 DELETE를 쓰고 댓글 id를 인코딩한다', async () => {
+    const fetcher = ok({ ...comment, commentId: 'c 1', hidden: true })
+    const repo = new HttpOperationsCommentRepository(fetcher)
+    await repo.hide('c 1')
+    await repo.unhide('c 1')
+    expect(callsOf(fetcher).map(([url, init]) => [url, init.method, init.body])).toEqual([
+      ['/api/v1/operations/comments/c%201/hidden', 'PUT', undefined], ['/api/v1/operations/comments/c%201/hidden', 'DELETE', undefined],
+    ])
+  })
+
+  it.each([
+    [403, '이 작업을 할 권한이 없어요.'],
+    [404, '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'],
+    [502, '연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.'],
+    [500, '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'],
+  ])('%s 응답은 성공으로 숨기지 않고 안내 오류로 바꾼다', async (status, message) => {
+    const repo = new HttpOperationsCommentRepository(vi.fn(async () => Response.json({ code: 'X', message: 'internal' }, { status })))
+    await expect(repo.list()).rejects.toThrow(new OperationsError(message))
+    await expect(repo.hide('c1')).rejects.toThrow(new OperationsError(message))
+    await expect(repo.unhide('c1')).rejects.toThrow(new OperationsError(message))
+  })
+})
+
+describe('HttpAdminActivityRepository (72 관리자 활동 기록)', () => {
+  it('활동 기록은 Bearer로 끝 슬래시 없는 경로를 GET하고 닉네임·내역이 null인 행도 받는다', async () => {
+    const rows = [activity, { ...activity, id: 'a2', actorNickname: null, action: 'NOTICE_DELETE', targetType: 'NOTICE', targetId: 'n1', detail: null }]
+    const fetcher = ok({ items: rows })
+    expect(await new HttpAdminActivityRepository(fetcher).list()).toEqual(rows)
+    expect(callsOf(fetcher)).toHaveLength(1)
+    const [[url, init]] = callsOf(fetcher)
+    expect(url).toBe('/api/v1/operations/admin/activities')
+    expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer o-bearer' } })
+  })
+
+  it('계약에 없는 형태나 빠진 필드는 거부한다', async () => {
+    const failed = '서버 응답 형식을 확인할 수 없어요.'
+    for (const patch of [{ createdAt: '어제' }, { actorNickname: undefined }, { detail: undefined }, { actorId: 1 }, { targetId: null }, { action: undefined }]) {
+      await expect(new HttpAdminActivityRepository(ok({ items: [{ ...activity, ...patch }] })).list()).rejects.toThrow(failed)
+    }
+    await expect(new HttpAdminActivityRepository(ok([activity])).list()).rejects.toThrow(failed)
+  })
+
+  it.each([
+    [403, '이 작업을 할 권한이 없어요.'],
+    [502, '연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.'],
+    [500, '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'],
+  ])('%s 응답은 빈 목록으로 숨기지 않고 안내 오류로 바꾼다', async (status, message) => {
+    const repo = new HttpAdminActivityRepository(vi.fn(async () => Response.json({ code: 'X', message: 'internal' }, { status })))
+    await expect(repo.list()).rejects.toThrow(new OperationsError(message))
+  })
+})
+
 describe('HttpSupportInquiryRepository', () => {
   it('내 문의와 운영 목록은 Bearer로 조회하고 선택 상태만 query로 보낸다', async () => {
     const fetcher = ok({ items: [inquiry] })
@@ -222,4 +303,11 @@ describe('HttpSupportInquiryRepository', () => {
     await expect(repo.listAll('ANSWERED')).rejects.toThrow(new OperationsError(message))
     await expect(repo.get('q1')).rejects.toThrow(new OperationsError(message))
   })
+})
+
+it('loads a Fork integrity report from the protected work endpoint', async () => {
+  const report = { basisEpisode: 2, forkHash: 'a'.repeat(64), sourceHash: 'b'.repeat(64), matches: false, characterStateStatus: 'unavailable' }
+  const fetcher = ok(report)
+  expect(await new HttpOperationsWorkRepository(fetcher).forkIntegrity('w 1')).toEqual(report)
+  expect(callsOf(fetcher)[0]).toMatchObject(['/api/v1/operations/works/w%201/fork-integrity', { method: 'GET', headers: { Authorization: 'Bearer o-bearer' } }])
 })

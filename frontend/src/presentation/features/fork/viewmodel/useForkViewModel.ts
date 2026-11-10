@@ -30,13 +30,14 @@ export function useForkViewModel(id: string, queryAt: number, forkUseCase: ForkU
 
   const w = data?.work
   const shownTitle = title ?? (w ? `${w.title}: ` : '')
-  const at = picked ?? (data?.forkList.includes(queryAt) ? queryAt : data?.forkList[0] ?? 0)
   // 서버 작품은 고른 회차의 설정을 읽는 동안 이전 회차의 개수를 새 회차 값처럼 보이지 않습니다.
   const reading = isRefreshing && !!w?.canonical
+  const at = isRefreshing ? picked ?? data?.basisEpisode ?? 0 : data?.basisEpisode ?? 0
+  const preview = w?.canonical && !reading ? w.wiki?.docs : undefined
   return {
     form: data, isError, retry, submitting, error,
     episodes: w ? w.eps.map((e, i) => ({ e, n: i + 1, ok: data.forkList.includes(i + 1) })).filter(({ e }) => visibleEpisode(w, e, role)) : [],
-    at,
+    at, preview, reading,
     pick: setPicked,
     ruleCount: w && !reading ? w.rules.filter((r) => !(w.ruleFrom && w.ruleFrom[r] > at)).length : null,
     castCount: w && !reading ? publicCast(w, at).length : null,
@@ -45,7 +46,7 @@ export function useForkViewModel(id: string, queryAt: number, forkUseCase: ForkU
     setTitle,
     historyConsent, setHistoryConsent,
     start: async () => {
-      if (busy.current) return
+      if (busy.current || reading) return
       busy.current = true; setSubmitting(true); setError('')
       const request = generation.current
       try {

@@ -325,9 +325,9 @@ describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
       cleanup()
       renderApp('/read/guunmong/2', user())
       await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
-      // 댓글은 서버에 연결돼 있지만(기능 22) 피드백·문장 공유는 데모뿐이라 정본 문장에는 댓글 달기만 연다.
+      // 댓글(기능 22)·피드백 제보(기능 23)·수정 제안(기능 24)은 서버에 연결돼 있지만 문장 공유는 데모뿐이라 정본 문장에는 댓글 달기·피드백 보내기·수정 제안만 연다.
       fireEvent.click(document.querySelector<HTMLElement>('#text [data-s]')!)
-      expect(within(screen.getByRole('dialog', { name: '문장 작업' })).getAllByRole('button').map((b) => b.textContent)).toEqual(['💬 댓글 달기'])
+      expect(within(screen.getByRole('dialog', { name: '문장 작업' })).getAllByRole('button').map((b) => b.textContent)).toEqual(['💬 댓글 달기', '✉ 피드백 보내기', '✎ 수정 제안'])
       cleanup()
       // 서버 순위가 없는 목록(지표 없는 정본 작품)은 순위·메달로 보이지 않는다(서버 랭킹이 있는 홈은 App.home이 다룬다).
       const { workRepository, readingRepository, readingRecordRepository } = appContainer.cradle
@@ -429,7 +429,7 @@ describe('공개 설정 읽기 패널 (기능 20)', () => {
 
 const serverComment = (extra: Partial<EpisodeComment> = {}): EpisodeComment => ({
   id: 'c1', workId: 'guunmong', episodeNumber: 2, publishedVersionId: 'v2', authorName: '독자A', body: '첫 감상', quote: null, spoiler: false,
-  likeCount: 0, liked: false, mine: false, edited: false, createdAt: '2026-11-09T01:00:00Z', updatedAt: '2026-11-09T01:00:00Z', ...extra,
+  likeCount: 0, liked: false, mine: false, edited: false, hidden: false, createdAt: '2026-11-09T01:00:00Z', updatedAt: '2026-11-09T01:00:00Z', ...extra,
 })
 /** 서버 대신 메모리로 답하는 회차 댓글 저장소: 정렬·작성·수정·삭제·좋아요를 서버처럼 처리하고 호출은 vi.fn에 남긴다. */
 function memoryComments(seed: EpisodeComment[]) {
@@ -492,6 +492,26 @@ describe('정본 회차 댓글 (기능 22)', () => {
     await waitFor(() => expect(screen.getAllByText(/^독자/).map((el) => el.textContent?.slice(0, 3))).toEqual(['독자B', '독자A']))
     expect(screen.getByRole('button', { name: '좋아요순' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByRole('button', { name: '최신순' }).getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('운영 숨김 댓글은 원문 대신 자리표시를 보이고 수정·좋아요 버튼 없이 작성자 삭제만 남긴다', async () => {
+    const repo = open([
+      serverComment({ id: 'a', authorName: '독자A', body: '보이는 감상', likeCount: 4 }),
+      serverComment({ id: 'h1', authorName: '독자H', body: '새어 나오면 안 되는 원문', spoiler: true, likeCount: 7, hidden: true }),
+      serverComment({ id: 'h2', authorName: '나', body: '내 숨겨진 원문', mine: true, hidden: true }),
+    ])
+    await screen.findByText('보이는 감상')
+    screen.getByRole('heading', { name: '댓글 3' })
+    expect(screen.getAllByText('운영 정책으로 숨겨진 댓글입니다.')).toHaveLength(2)
+    expect(screen.queryByText('새어 나오면 안 되는 원문')).toBeNull()
+    expect(screen.queryByText('내 숨겨진 원문')).toBeNull()
+    expect(screen.queryByText('스포일러 댓글 보기')).toBeNull()
+    expect(screen.getAllByRole('button', { name: /^좋아요 \d+개$/ }).map((b) => b.getAttribute('aria-label'))).toEqual(['좋아요 4개'])
+    expect(screen.queryByRole('button', { name: '수정' })).toBeNull()
+    expect(screen.getAllByRole('button', { name: '삭제' })).toHaveLength(1)
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    fireEvent.click(screen.getByRole('button', { name: '삭제' }))
+    await waitFor(() => expect(repo.remove).toHaveBeenCalledWith('guunmong', 2, 'h2'))
   })
 
   it('작성은 앞뒤 공백을 지운 본문과 스포일러 여부를 서버에 보내고 성공하면 입력을 비운다', async () => {
@@ -683,8 +703,8 @@ describe('정본 회차 댓글 (기능 22)', () => {
   })
 
   describe('익명', () => {
-    const openAnonymous = async (quoted?: Sentence) => {
-      const repo = memoryComments([serverComment({ likeCount: 3 })])
+    const openAnonymous = async (quoted?: Sentence, seed = [serverComment({ likeCount: 3 })]) => {
+      const repo = memoryComments(seed)
       appContainer.register({ episodeCommentUseCase: asValue(new EpisodeCommentUseCase(repo)) })
       const store = createAppStore()
       const Where = () => <p hidden data-testid="where">{useLocation().pathname}</p>
@@ -702,6 +722,13 @@ describe('정본 회차 댓글 (기능 22)', () => {
       expect(screen.getByTestId('where').textContent).toBe('/login')
       expect(store.getState().session).toMatchObject({ next: '/read/guunmong/2?x=1', loginRole: 'user' })
       expect(store.getState().session.loginMsg).toContain('로그인')
+    })
+
+    it('운영 숨김 댓글에는 로그인 안내 좋아요 링크도 두지 않는다', async () => {
+      await openAnonymous(undefined, [serverComment({ id: 'a', likeCount: 3 }), serverComment({ id: 'h', authorName: '독자H', likeCount: 9, hidden: true })])
+      screen.getByRole('link', { name: /좋아요 3개/ })
+      expect(screen.queryByRole('link', { name: /좋아요 9개/ })).toBeNull()
+      screen.getByText('운영 정책으로 숨겨진 댓글입니다.')
     })
 
     it('좋아요를 누르면 서버를 부르지 않고 로그인 안내로 이어진다', async () => {

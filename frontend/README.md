@@ -8,7 +8,7 @@ React·TypeScript·Vite·Tailwind CSS 기반의 개발 화면입니다.
 
 [4개 백엔드 서비스 구조](../docs/design/service-boundaries.md)에 따라 Core는 회원·인증·크레딧·회원 알림, 별도 Kotlin/Spring Boot 콘텐츠 앱은 창작·독서·콘텐츠 정본과 인가, 별도 Kotlin/Spring Boot 운영 앱은 문의·공지·신고 사건·운영 결정·감사·작업 감시를 담당합니다. Python AI 앱은 허용 문맥에서 생성·검토를 실행하며 정본·권한·발행·정산을 확정하지 않습니다. LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합니다. 자체 UI와 운영 화면 API 통합 중 방식은 미정입니다.
 
-nginx/Vite는 기존 `/api/v1/works`·`/api/v1/public/works`와 하위 경로를 Content:8081, `/api/v1/operations/{reports,members,admins,support,works,admin/notices,public/notices,admin/events,public/events}`와 하위 경로를 Operations:8082(서비스 토큰용 `/api/v1/operations/{notices,events,inquiries}`는 열지 않음), 나머지 `/api`를 Core:8080으로 분기합니다. 관리자 사용자·관리자 계정·작품·신고·공지·이벤트 탭, 제보·문의 탭의 회원 고객지원 문의(작가 검토 제보는 메모리 데모), `/me/inquiry`(문의하기·내 문의), 회원 공지사항(`/me/notice`, 로그인 불필요)과 회원 `/me/event`(비로그인 열람 가능), 공개 작품 신고(`/content` 공개 보기와 서버 작품의 검색 카드·작품 상세 ‘소설 신고’), `/reports`(내 신고)는 운영 API를 호출하며 그 밖의 관리자 탭은 메모리 데모입니다. 운영 API 탭의 조치는 메모리 데모 조회(댓글·캐릭터챗 등)의 로딩·실패와 무관하게 실행됩니다. 관리자 작품 탭은 운영 작품 API로 공개·비공개·운영 제한 작품 전체를 읽어 '운영 제한'·'제한 해제'를 요청하며(`--mode mockup`은 데모 작품 메모리), 분류·검색·정렬은 받은 목록에서 화면이 계산합니다([계약](../docs/design/operations-work-contract.md)). 신고 버튼은 남의 공개 작품에서만 보이고(본인·비공개 작품은 숨김이며 접수 권한은 서버가 검사), `--mode mockup`의 메모리 작품 신고는 메모리에만 기록됩니다. 브라우저는 상대 URL·기존 Bearer/쿠키/CSRF를 유지하며 내부 인증 endpoint·AI·DB·모델을 직접 호출하지 않습니다. 소스 연결과 hosted CI·실제 DB 전환·배포는 구분하며 운영·알림 데모를 서버 완료로 간주하지 않습니다.
+nginx/Vite는 기존 `/api/v1/works`·`/api/v1/public/works`와 하위 경로를 Content:8081, `/api/v1/operations/{reports,members,admins,support,works,comments,admin/notices,public/notices,admin/events,public/events,admin/activities}`와 하위 경로를 Operations:8082(서비스 토큰용 `/api/v1/operations/{notices,events,inquiries}`는 열지 않음), 나머지 `/api`를 Core:8080으로 분기합니다. 관리자 사용자·관리자 계정·작품·댓글·신고·공지·이벤트·활동 로그 탭, 제보·문의 탭의 회원 고객지원 문의(작가 검토 제보는 메모리 데모), `/me/inquiry`(문의하기·내 문의), 회원 공지사항(`/me/notice`, 로그인 불필요)과 회원 `/me/event`(비로그인 열람 가능), 공개 작품 신고(`/content` 공개 보기와 서버 작품의 검색 카드·작품 상세 ‘소설 신고’), `/reports`(내 신고)는 운영 API를 호출하며 그 밖의 관리자 탭은 메모리 데모입니다. 운영 API 탭의 조치는 메모리 데모 조회(댓글·캐릭터챗 등)의 로딩·실패와 무관하게 실행됩니다. 관리자 작품 탭은 운영 작품 API로 공개·비공개·운영 제한 작품 전체를 읽어 '운영 제한'·'제한 해제'를 요청하며(`--mode mockup`은 데모 작품 메모리), 분류·검색·정렬은 받은 목록에서 화면이 계산합니다([계약](../docs/design/operations-work-contract.md)). 관리자 활동 로그 탭은 운영 활동 기록 API로 관리자 변경 조치 최신 100건을 최신순으로 읽어 시각·수행자(닉네임, 없으면 ID)·조치·대상·내역을 보이며 서버가 정렬·권한(`admins`)을 맡고 `--mode mockup`은 데모 조치 메모리를 보입니다([계약](../docs/design/operations-admin-activity-contract.md)). 신고 버튼은 남의 공개 작품에서만 보이고(본인·비공개 작품은 숨김이며 접수 권한은 서버가 검사), `--mode mockup`의 메모리 작품 신고는 메모리에만 기록됩니다. 브라우저는 상대 URL·기존 Bearer/쿠키/CSRF를 유지하며 내부 인증 endpoint·AI·DB·모델을 직접 호출하지 않습니다. 소스 연결과 hosted CI·실제 DB 전환·배포는 구분하며 운영·알림 데모를 서버 완료로 간주하지 않습니다.
 
 ## 실행
 
@@ -91,13 +91,15 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 - 중복 요청을 막고 취소·이탈 뒤 늦은 결과를 적용하지 않습니다. 취소/네트워크 응답 유실은 서버 rollback을 의미하지 않으므로 목록 새로고침으로 실제 상태를 확인합니다. 실패하면 기존 파일/원고를 유지합니다.
 - PNG/JPEG 표지·본문 및 설정 파일은 파일당 10 MiB 이하입니다. 서버가 바이트·픽셀·권한·한도를 최종 검증합니다. 집필실 원고 내보내기는 아래 절처럼 서버가 만든 TXT(이미지 제외)·EPUB(이미지 포함)입니다.
 
-`/new`, 이름 기반 `/studio/starlight` 등 개요·Wiki 이미지 선택은 브라우저 메모리 데모입니다. 인접 안내·toast에서 서버 미저장을 알리고 `/content`로 연결합니다. 무관한 데모 데이터 전체의 서버 이관은 포함하지 않습니다. 표지 논리 삭제·미참조 원본 보존과 API/권한/운영 한계는 [Core 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 참고하세요.
+실서버에서는 내 서재의 **새 소설 쓰기**, 세계관 작업실의 **새 소설 등록으로**, 기존 주소 `/new`·`/worlds`가 모두 `/content`의 작품 만들기로 연결됩니다. 작품을 만들면 전용 설정집과 첫 회차 초안이 함께 생성됩니다. 기존 세계관 연결·조합, 연재 요일, 연령 제한, 생성 시 인물 입력은 데모 폼에서만 제공됩니다. `--mode mockup`에서는 `/worlds`가 `/new`로 이동하고 기존 새 소설 폼이 브라우저 메모리에서 동작합니다.
+
+이름 기반 `/studio/starlight` 등의 개요·Wiki 이미지 선택은 브라우저 메모리 데모입니다. 인접 안내·toast에서 서버 미저장을 알리고 `/content`로 연결합니다. 표지 논리 삭제·미참조 원본 보존과 API/권한/운영 한계는 [Core 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 참고하세요.
 
 ## 원고 가져오기·내보내기 (기능 17·18)
 
 [계약](../docs/design/manuscript-import-export-contract.md)대로 `ManuscriptRepository`·`ManuscriptUseCase`·`HttpManuscriptRepository`를 Awilix에서 조립합니다.
 
-- `/import`(실제 모드): 내 작품 선택(`?work=<UUID>`로 사전 선택) → 권리 확인 3가지 → `.txt`·`.epub` 파일 → 서버 미리보기(회차별 제목 수정·제외·다음 회차와 합치기·경고) → 확정 → 회차별 성공·일부 성공·실패 결과. 확정 회차 번호는 조정 목록의 순서이고 제외한 회차도 번호를 차지합니다. 실패 항목은 확정 응답에만 있어 화면을 떠나면 다시 볼 수 없습니다. `--mode mockup`은 기존 데모 가져오기 화면(`ImportPage`)을 그대로 씁니다.
+- `/import`(실제 모드): 내 작품 선택(`?work=<UUID>`로 사전 선택) → 권리 확인 3가지 → `.txt`·`.epub` 파일 → 서버 미리보기(회차별 제목 수정·제외·다음 회차와 합치기·경고) → 확정 → 회차별 성공·일부 성공·실패 결과. 작품이 없으면 `/content`에서 만들고, **세계관 만들기**는 `/worldstudio`를 엽니다(만든 세계관은 작품과 연결되지 않음). 가져오기 입력이 있으면 두 링크로 이동하기 전에 입력을 버릴지 확인합니다. 확정 회차 번호는 조정 목록의 순서이고 제외한 회차도 번호를 차지합니다. 실패 항목은 확정 응답에만 있어 화면을 떠나면 다시 볼 수 없습니다. `--mode mockup`은 기존 데모 가져오기 화면(`ImportPage`)을 그대로 씁니다.
 - `/studio/{UUID}` 내보내기: 형식(TXT·EPUB)·범위(현재 회차·작품 전체)·원본(초안·발행본)을 골라 서버 GET을 Blob으로 받고 `Content-Disposition`의 `filename*`로 저장합니다. 서버에 저장된 원고를 내보내므로 입력 중·저장 중에는 잠급니다.
 - `--mode mockup`의 가져오기·EPUB/발행본 내보내기·첨부 이름 변경은 성공을 흉내 내지 않고 "데모에서는 지원하지 않아요" 오류를 냅니다. 데모 집필실의 TXT 초안 내보내기만 메모리 원고로 실제 파일을 만듭니다(`createMockupManuscriptRepository`).
 - nginx(`frontend/nginx.conf`, `infrastructure/nginx.dev.conf`)의 `/api/v1/works/`는 요청 본문을 51MB까지 받습니다.

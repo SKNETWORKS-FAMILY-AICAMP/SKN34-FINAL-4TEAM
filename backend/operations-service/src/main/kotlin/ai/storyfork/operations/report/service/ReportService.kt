@@ -1,6 +1,7 @@
 package ai.storyfork.operations.report.service
 
 import ai.storyfork.operations._common.client.ContentClient
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.member.repository.has
 import ai.storyfork.operations.member.repository.requirePermission
@@ -26,6 +27,7 @@ private const val RIGHTS = "rights"
 /**
  * Content is called before any local write, so a failure records neither state nor history. `create`, `restrict` and
  * `unrestrict` carry no `@Transactional`: even NOT_SUPPORTED keeps an EntityManager, and its connection, bound until return.
+ * The admin activity is saved in the same transaction as the report and history, after Content succeeded.
  */
 @Service
 class ReportService(
@@ -34,6 +36,7 @@ class ReportService(
     private val permissions: AdminPermissionRepository,
     private val content: ContentClient,
     private val tx: TransactionOperations,
+    private val activities: AdminActivityService,
 ) {
     fun create(member: OperationsMember, request: ReportRequest): ReportResponse {
         text(request.reason, 2000)
@@ -94,6 +97,7 @@ class ReportService(
         val row = report(id)
         row.status = request.decision
         return record(row, ReportHistoryType.REVIEW, member, note)
+            .also { activities.record(member, "REPORT_REVIEW", "REPORT", id, request.decision.name) }
     }
 
     fun restrict(member: OperationsMember, id: UUID): ReportResponse = restriction(member, id, true)
@@ -105,6 +109,7 @@ class ReportService(
         permissions.requirePermission(member, RIGHTS)
         val body = text(request.body, 5000)
         return record(report(id), ReportHistoryType.EVIDENCE_REQUEST, member, body)
+            .also { activities.record(member, "REPORT_REQUEST_EVIDENCE", "REPORT", id, null) }
     }
 
     private fun restriction(member: OperationsMember, id: UUID, restricted: Boolean): ReportResponse {
@@ -113,7 +118,10 @@ class ReportService(
         if (restricted) content.restrict(row.workId) else content.unrestrict(row.workId)
         row.contentRestricted = restricted
         // The row was read before the Content call, so `@Version` still turns a concurrent edit into a 409 here.
-        return tx.execute { record(row, if (restricted) ReportHistoryType.RESTRICT else ReportHistoryType.UNRESTRICT, member, null) }
+        return tx.execute {
+            record(row, if (restricted) ReportHistoryType.RESTRICT else ReportHistoryType.UNRESTRICT, member, null)
+                .also { activities.record(member, if (restricted) "REPORT_RESTRICT" else "REPORT_UNRESTRICT", "REPORT", id, null) }
+        }
     }
 
     private fun record(row: ReportEntity, type: ReportHistoryType, member: OperationsMember, body: String?): ReportResponse {
