@@ -812,3 +812,7 @@
 
 - 진행 중·미병합: 분석 snapshot, 후보, 검토 이력, 반영 ID 예약의 PostgreSQL/JPA 저장 구조. [범위와 후속 조건](design/initial-world-analysis-storage.md).
 - #219 계약 의존. AI 실행·공개 API·실제 초안 반영·검토 UI는 미구현이며 전체 기능 완료로 체크하지 않는다. #223 디자인과 분리.
+
+### 초기 세계관 AI 추출 5-B — 진행 중·미병합
+
+내부 추출 API·Responses 호출·7종 후보/근거 검증을 구현한다. [범위와 검증 한계](design/initial-world-ai-extraction.md). 제공사 대역 검증이며 실제 모델 품질·Content 연결·저장·승인은 미완료이므로 상위 추출 기능의 완료 표시는 유지한다. #219·#225·#235에 의존하며 #122 회차 추출과 분리한다.
