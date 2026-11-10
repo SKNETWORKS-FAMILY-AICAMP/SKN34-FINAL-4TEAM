@@ -50,6 +50,12 @@ export function WritingStudio({id}:{id:string}) {
     </header>
     {vm.error&&<div className="writing-message" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}</div>}
     {vm.notice&&<p className="writing-message" role="status">{vm.notice}</p>}
+    {vm.orderLookup?.status==='loading'&&<p className="writing-message" role="status">순서 변경 후보를 확인하고 있어요…</p>}
+    {vm.orderLookup?.status==='failed'&&<p className="writing-message" role="alert">{vm.orderLookup.message}</p>}
+    {vm.orderLookup?.status==='ready'&&<div className="writing-message" role="status">
+      <p>검토 후보 위치 {vm.orderLookup.scope.candidateNumbers.join(', ')||'없음'}</p>
+      <ul>{vm.orderLookup.scope.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul>
+    </div>}
     <main id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<div className="sgrid">
       <nav className="seps" aria-label="회차 목록">
         <h2 className="lab">회차</h2>

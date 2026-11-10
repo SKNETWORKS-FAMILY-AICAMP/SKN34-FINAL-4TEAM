@@ -41,8 +41,11 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(23,flyway.migrate().migrationsExecuted)
-        assertEquals((1..23).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        val expected = flyway.info().pending().map { it.version.toString() }
+        assertEquals((1..23).map(Int::toString), expected.take(23))
+        assertTrue(expected.size >= 24)
+        assertEquals(expected.size,flyway.migrate().migrationsExecuted)
+        assertEquals(expected,flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
         for(table in listOf("work","work_view","work_like","reading_record","reading_episode","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge","episode_comment","episode_comment_like","work_interest","content_event_outbox")) {
@@ -115,8 +118,9 @@ class ContentMigrationTest {
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
         jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
-        // 남은 V16(샘플)부터 V21(작품 소프트 삭제)·V22(회차 공개 상태)·V23(작가의 말)까지 적용된다.
-        assertEquals(8,flyway.migrate().migrationsExecuted)
+        val remaining = flyway.info().pending().size
+        assertTrue(remaining >= 9)
+        assertEquals(remaining,flyway.migrate().migrationsExecuted)
         assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
@@ -176,6 +180,22 @@ class ContentMigrationTest {
         assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM pg_indexes WHERE schemaname=current_schema() AND indexname='episode_comment_episode'",Int::class.java))
     }
 
+    @Test fun `a deleted episode stays in history and its number can be reused with a new ID`() = isolated { flyway,jdbc ->
+        flyway.migrate()
+        jdbc.update("INSERT INTO member(id) VALUES ('episode-owner')")
+        jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('episode-work','episode-owner','작품','','original',0)")
+        jdbc.update("INSERT INTO episode(id,work_id,sequence) VALUES ('old-episode','episode-work',1)")
+        jdbc.update("INSERT INTO episode_draft(episode_id,title,content,edit_revision) VALUES ('old-episode','초안','보존할 원고',0)")
+        jdbc.update("UPDATE episode SET deleted_at=now() WHERE id='old-episode'")
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM episode_current WHERE work_id='episode-work'",Int::class.java))
+        jdbc.update("INSERT INTO episode(id,work_id,sequence) VALUES ('new-episode','episode-work',1)")
+        assertEquals("new-episode",jdbc.queryForObject("SELECT id FROM episode_current WHERE work_id='episode-work' AND sequence=1",String::class.java))
+        assertEquals("보존할 원고",jdbc.queryForObject("SELECT content FROM episode_draft WHERE episode_id='old-episode'",String::class.java))
+        assertThrows(DataIntegrityViolationException::class.java) {
+            jdbc.update("INSERT INTO episode(id,work_id,sequence) VALUES ('duplicate','episode-work',1)")
+        }
+    }
+
     @Test fun `work like keeps one row per member and work and rejects a missing work`() = isolated { flyway,jdbc ->
         flyway.migrate()
         jdbc.update("INSERT INTO member(id) VALUES ('owner')")
@@ -213,9 +233,9 @@ class ContentMigrationTest {
     }
 
     @Test fun `changed history fails validation instead of silently repairing`() = isolated { flyway,jdbc ->
-        flyway.migrate()
+        val applied = flyway.migrate().migrationsExecuted
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(23,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(applied,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }

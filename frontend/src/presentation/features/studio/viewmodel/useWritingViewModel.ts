@@ -1,11 +1,12 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { Draft, WritingEpisode, PublicationEvent } from '../../../../domain/entities/content'
+import type { Draft, EpisodeOrderScope, WritingEpisode, PublicationEvent } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
 import {imageMarker} from '../../../../domain/entities/media'
 
 type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'|'setPublicationVisibility'|'history'>
+type OrderLookup = { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: EpisodeOrderScope }
 export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
@@ -15,6 +16,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [ready,setReady]=useState(false)
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
+  const [orderLookup,setOrderLookup]=useState<OrderLookup|null>(null)
+  const orderRequest=useRef<AbortController|null>(null)
   const [publicationHistory,setPublicationHistory]=useState<PublicationEvent[]|null>(null)
   const [historyLoading,setHistoryLoading]=useState(false)
   const [historyError,setHistoryError]=useState('')
@@ -26,14 +29,15 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const pending=useRef<AbortController|null>(null)
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body||(draft.authorNote??'')!==(active.draft.authorNote??''))
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
-  const install=(e:WritingEpisode)=>{setActive(e);put(e.draft);setNotice('');setError('')}
+  const resetOrder=()=>{orderRequest.current?.abort();orderRequest.current=null;setOrderLookup(null)}
+  const install=(e:WritingEpisode)=>{resetOrder();setActive(e);put(e.draft);setNotice('');setError('')}
   useEffect(()=>{
     const controller=new AbortController()
     api.writingList(id,controller.signal).then(rows=>{
       if(controller.signal.aborted)return
       setEpisodes(rows);if(rows[0])install(rows[0]);setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
-    return ()=>{controller.abort();pending.current?.abort();historyRequest.current?.abort()}
+    return ()=>{controller.abort();pending.current?.abort();historyRequest.current?.abort();orderRequest.current?.abort();orderRequest.current=null}
   },[id,api])
   useEffect(()=>{
     const leave=(e:BeforeUnloadEvent)=>{if(dirty||busy)e.preventDefault()}
@@ -54,6 +58,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     const sent=current.current
     const result=await api.writeEpisode(id,active.number,sent,version,signal)
     if(signal.aborted)return
+    if(version)resetOrder()
     merge(result)
     // A response acknowledges the sent draft, never typing that happened while it was in flight.
     put(current.current.title===sent.title && current.current.body===sent.body && current.current.authorNote===sent.authorNote ? result.draft : {...current.current,revision:result.draft.revision})
@@ -70,19 +75,20 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const mayLeave=()=>!pending.current&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
   const remove=(whole:boolean)=>{
     if(!active||pending.current||active.inherited)return Promise.resolve(false)
-    if(!window.confirm(whole?'회차를 DB에서 삭제할까요? 참조 없는 마지막 회차만 삭제하며 복구할 수 없어요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return Promise.resolve(false)
+    if(!window.confirm(whole?'회차를 삭제할까요? 참조 없는 마지막 회차만 삭제할 수 있으며 삭제한 회차는 집필실에서 숨겨져요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return Promise.resolve(false)
     return run(async signal=>{
       const removeAction=whole?api.deleteEpisode.bind(api):api.deleteDraft.bind(api)
       await removeAction(id,active.number,active.draft.revision,signal)
       if(signal.aborted)return
+      resetOrder()
+      setNotice(whole?'회차를 삭제했어요.':'작업 초안을 삭제했어요. 새로 입력하면 새 초안으로 저장돼요.')
       // The deletion is committed: never retain a dirty buffer that could auto-save it back.
       setActive(null);put({title:'',body:'',revision:0});setEpisodes([])
       const rows=await api.writingList(id,signal)
       if(signal.aborted)return
       setEpisodes(rows)
       const next=rows.find(e=>e.number===active.number)??rows[0]
-      if(next)install(next)
-      setNotice(whole?'회차를 삭제했어요.':'작업 초안을 삭제했어요. 새로 입력하면 새 초안으로 저장돼요.')
+      if(next){setActive(next);put(next.draft)}
     })
   }
   const changeVisibility=(visible:boolean,rights:boolean)=>{
@@ -96,6 +102,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     })
   }
   return {publicationHistory,changeVisibility,
+    orderLookup,
     historyLoading,historyError,
     loadPublicationHistory:async()=>{
       historyRequest.current?.abort()
@@ -114,11 +121,20 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     save:()=>save(true),
     deleteDraft:()=>remove(false),
     deleteEpisode:()=>remove(true),
-    checkOrder:()=>run(async signal=>{
-      if(!active)return
-      const scope=await api.orderScope(id,active.number,signal)
-      if(!signal.aborted)setNotice(`검토 후보 위치: ${scope.candidateNumbers.join(', ')||'없음'}. ${scope.reasons.join(' ')}`)
-    }),
+    checkOrder:async()=>{
+      if(!active||orderRequest.current)return
+      const controller=new AbortController()
+      orderRequest.current=controller
+      setOrderLookup({status:'loading'})
+      try {
+        const scope=await api.orderScope(id,active.number,controller.signal)
+        if(!controller.signal.aborted)setOrderLookup({status:'ready',scope})
+      } catch(failure) {
+        if(!controller.signal.aborted)setOrderLookup({status:'failed',message:failure instanceof Error?failure.message:'순서 변경 후보를 불러오지 못했어요.'})
+      } finally {
+        if(orderRequest.current===controller)orderRequest.current=null
+      }
+    },
     select:(e:WritingEpisode)=>{if(!mayLeave())return false;install(e);return true},
     addImage:(file:File,start:number,end:number)=>run(async signal=>{
       if(!active||active.inherited)throw new Error('편집 가능한 내 회차를 선택해 주세요.')
@@ -131,7 +147,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       setNotice('이미지를 서버에 업로드했어요. 본문 참조는 초안·버전 저장 후 유지돼요. 참조를 지워도 과거 저장본의 이미지는 보존돼요.')
     }),
     cancel:()=>{pending.current?.abort();pending.current=null;setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
-    create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
+    create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){resetOrder();merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
     reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})},
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},
     publish:(versionId:string,rights:boolean)=>publishVersion(versionId,rights,'선택한 저장 버전을 공개했어요.'),

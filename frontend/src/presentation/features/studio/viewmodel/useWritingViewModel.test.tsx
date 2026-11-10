@@ -100,8 +100,22 @@ it('clears deleted input even when refreshing the list fails',async()=>{
     expect(api.deleteDraft).toHaveBeenCalledWith('w',1,4,expect.any(AbortSignal))
     expect(result.current.active).toBeNull()
     expect(result.current.draft.body).toBe('')
+    expect(result.current.notice).toContain('작업 초안을 삭제했어요.')
+    expect(result.current.error).toBe('목록 조회 실패')
     expect(api.writeEpisode).not.toHaveBeenCalled()
   } finally {confirm.mockRestore()}
+})
+
+it('keeps an order lookup failure separate from draft saving',async()=>{
+  const episode={number:1,draft:{title:'1화',body:'기존',revision:4},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
+  const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue([episode]),createEpisode:vi.fn(),writeEpisode:vi.fn().mockResolvedValue(episode),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn().mockRejectedValue(new Error('후보 조회 실패')),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  await act(async()=>{await result.current.checkOrder()})
+  expect(result.current.orderLookup).toEqual({status:'failed',message:'후보 조회 실패'})
+  expect(result.current.error).toBe('')
+  await act(async()=>{await result.current.save()})
+  expect(api.writeEpisode).toHaveBeenCalledWith('w',1,episode.draft,true,expect.any(AbortSignal))
 })
 
 it('reports whether leaving the studio would lose work: clean may leave, dirty asks first, in-flight requests block',async()=>{

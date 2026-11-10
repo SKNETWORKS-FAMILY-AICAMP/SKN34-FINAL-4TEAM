@@ -166,7 +166,11 @@ class WorkService(
         if(data.episodeScope=="selected") checkContent(data.episodes.isNotEmpty() && data.episodes.distinct().size==data.episodes.size && data.episodes.all {it in published},message="공개된 허용 회차를 선택해 주세요.")
         val revision=(last?.revisionNo ?: -1)+1
         val policyId=contentKey("policy",id,revision.toString())
-        val start=if(scope=="from") { if(data.episodeScope==null) last?.startEpisodeId else episodeId(id,data.fromEpisode!!) } else null
+        val start=if(scope=="from") {
+            if(data.episodeScope==null) last?.startEpisodeId
+            else episodes.findByWorkIdAndSequence(id,data.fromEpisode!!)?.id
+                ?: throw ContentFailure(409,"선택한 시작 회차를 다시 확인해 주세요.")
+        } else null
         val selected=if(scope!="selected") emptyList() else if(data.episodeScope==null) {
             last?.let {selectedPolicyEpisodes.findAllByPolicyHistoryId(it.id).map {row->row.episodeId}}.orEmpty()
         } else episodes.findAllByWorkIdOrderBySequence(id).filter {it.sequence in data.episodes}.map {it.id}
