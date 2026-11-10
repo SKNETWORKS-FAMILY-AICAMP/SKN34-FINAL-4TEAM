@@ -78,4 +78,14 @@ class EpisodeCheckpointListTest {
         assertEquals(listOf(EpisodeCheckpointResponse("v1",at(1),false),EpisodeCheckpointResponse("v2",at(2),true)),checkpoints("v2",versions,history+log("p4","v2",4,action="republish")))
     }
 
+    @Test fun `owner reads separate draft and saved author notes`() {
+        val v=saved("v1").onEach {it.authorNote="발행 후기"}
+        checkpoints("v1",v,listOf(log("p1","v1",1)))
+        `when`(drafts.findAllById(listOf("e"))).thenReturn(listOf(EpisodeDraftEntity("e","제목","초안",3,authorNote="미발행 후기")))
+        val response=service.read("w","owner",1)
+        assertEquals("미발행 후기",response.draft.authorNote)
+        assertEquals("발행 후기",response.versions.single().authorNote)
+        `when`(drafts.findAllById(listOf("e"))).thenReturn(emptyList())
+        assertEquals("발행 후기",service.read("w","owner",1).draft.authorNote)
+    }
 }

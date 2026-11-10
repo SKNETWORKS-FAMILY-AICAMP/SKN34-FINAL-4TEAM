@@ -10,7 +10,7 @@ const model = vi.hoisted(() => ({
   active: { number: 1, draft: { title: '첫 회차', body: '원고', revision: 1 }, versions: [{ id: 'v1', title: '저장본', body: '저장 원고', savedAt: '2026-11-04T00:00:00Z' }], inherited: false, hasDraft: true, checkpoints: [] as { versionId: string; publishedAt: string; active: boolean }[] },
   episodes: [], draft: { title: '첫 회차', body: '원고', revision: 1 },
   busy: false, error: '', notice: '', ready: true, dirty: false, editingLocked: false,
-  save: vi.fn(), reload: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
+  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
 }))
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
@@ -298,4 +298,16 @@ it('탭 제목에 집필실을 쓴다', () => {
   expect(document.title).toBe('집필실 · STORYFORK')
   cleanup()
   expect(document.title).toBe('STORYFORK')
+})
+
+
+it('작가의 말 입력을 기존 편집 흐름에 연결하고 상속 회차에서는 읽기 전용이다', () => {
+  const view=renderStudio()
+  const note=screen.getByRole('textbox',{name:'작가의 말'})
+  expect(note).toHaveProperty('maxLength',2000)
+  fireEvent.change(note,{target:{value:'독자에게 보내는 후기'}})
+  expect(model.edit).toHaveBeenCalledWith({authorNote:'독자에게 보내는 후기'})
+  model.active={...originalActive,inherited:true}
+  view.rerender(<WritingStudio id="work-id"/>)
+  expect(screen.getByRole('textbox',{name:'작가의 말'})).toHaveProperty('readOnly',true)
 })

@@ -527,7 +527,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                       </button>
                       {vm.storyContext && <ContextPreview value={vm.storyContext} />}
                       <label>
-                        작가의 말<textarea
+                        AI 집필 요청<textarea
                           value={prompt}
                           onChange={(e) => {
                             setPrompt(e.target.value)

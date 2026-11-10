@@ -386,4 +386,11 @@ class ManuscriptImportServiceTest {
         assertEquals(listOf("이 장을 읽지 못했어요.", "앞 회차가 없어 등록할 수 없어요."), response.results.drop(1).map { it.reason })
         assertEquals(listOf(Triple(1, "가", "정상")), saved)
     }
+    @Test fun `import preserves note-only unsaved edits before replacing the manuscript`() {
+        existing(1,DraftResponse("제목","본문",5,"후기만 수정"),listOf(version(1,"제목","본문")))
+        confirm(novel(1),item(1,1))
+        val requests=org.mockito.Mockito.mockingDetails(versions).invocations.filter {it.method.name=="save"}.map {it.getArgument<DraftRequest>(3)}
+        assertEquals(2,requests.size)
+        assertEquals(listOf("후기만 수정","후기만 수정"),requests.map {it.authorNote})
+    }
 }

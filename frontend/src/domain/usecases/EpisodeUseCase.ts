@@ -14,6 +14,7 @@ export class EpisodeUseCase {
   }
   writeEpisode(id:string,number:number,draft:Draft,version:boolean,signal?:AbortSignal) {
     if(!draft.title.trim() || draft.title.length>120 || draft.body.length>40000) return Promise.reject(new Error('제목은 120자, 원고는 40,000자 이내로 작성해 주세요.'))
+    if((draft.authorNote?.length ?? 0)>2000) return Promise.reject(new Error('작가의 말은 2,000자 이내로 작성해 주세요.'))
     return this.repository.writeEpisode(id,number,draft,version,signal)
   }
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.repository.restoreEpisode(id,number,revision,versionId,signal)}

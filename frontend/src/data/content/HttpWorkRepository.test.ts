@@ -110,3 +110,14 @@ it('공개 중단된 회차는 공개 세계관 조회를 요청하지 않는다
   await repository.readWorld(work,1)
   expect(api.readingWorld).not.toHaveBeenCalled()
 })
+
+
+it('preserves published author notes through HTTP and inherited Fork reading', async () => {
+  const row = record({ source: {workId:'parent',title:'원작',episode:1,version:1,direction:'',deleted:true},
+    episodes: [{...record().episodes[0], inherited:true, authorNote:'원작 후기'}] })
+  const api = new HttpEpisodeRepository(vi.fn(async () => Response.json([row])))
+  const repository = new HttpWorkRepository(api, () => false)
+  const [work] = await repository.listWorks()
+  expect(work.parentDeleted).toBe(true)
+  expect(epsOf(work)[0].authorNote).toBe('원작 후기')
+})

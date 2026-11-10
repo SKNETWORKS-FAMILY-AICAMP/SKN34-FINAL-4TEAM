@@ -120,7 +120,7 @@ class ProposalService(
         ProposalTextPolicy.validate(p.text)
         val body=(draft.content+"\n\n"+p.text).trim()
         checkContent(body.length<=40000,message="회차 원고는 40,000자까지 저장할 수 있어요.")
-        val saved=savedVersions.saveCurrent(id,owner,DraftRequest(draft.title,body,expected))
+        val saved=savedVersions.saveCurrent(id,owner,DraftRequest(draft.title,body,expected,draft.authorNote))
         val decision=contentKey("proposal-decision",pid);val application=contentKey("proposal-application",pid)
         val at=Instant.parse(saved.version.savedAt)
         decisions.saveAndFlush(ProposalDecisionEntity(id=decision,proposalId=pid,sequence=1,actorId=owner,decision="accept",approvedContent=p.text,decidedAt=at))

@@ -62,7 +62,7 @@ class ForkService(
         visibility.saveAndFlush(WorkPublicationHistoryEntity(id=contentKey("work-publication",forkId,"0"),workId=forkId,revisionNo=0,visibility="private"))
         prefix.forEach {e ->
             val row=episodes.saveAndFlush(EpisodeEntity(id=episodeId(forkId,e.number),workId=forkId,sequence=e.number))
-            versions.saveAndFlush(EpisodeVersionEntity(id=episodeVersionId(forkId,e.number,e.versionId),episodeId=row.id,contentVersionId=e.versionId,revisionNo=e.version,title=e.title,content=e.body,createdAt=Instant.EPOCH,isSaved=false,workWorldHistoryId=history.id))
+            versions.saveAndFlush(EpisodeVersionEntity(id=episodeVersionId(forkId,e.number,e.versionId),episodeId=row.id,contentVersionId=e.versionId,revisionNo=e.version,title=e.title,content=e.body,authorNote=e.authorNote,createdAt=Instant.EPOCH,isSaved=false,workWorldHistoryId=history.id))
         }
         val next=data.episode+1
         val row=episodes.saveAndFlush(EpisodeEntity(id=episodeId(forkId,next),workId=forkId,sequence=next))

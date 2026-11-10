@@ -227,8 +227,8 @@
 <tr><td>체크포인트 상세 조회</td><td>❌</td></tr>
 <tr><td>회차 발행 시 체크포인트(발행본) 생성 <small>(DEC-43)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/227">PR #227</a></td></tr>
 <tr><td>발행 회차를 이전 체크포인트로 되돌리기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/227">PR #227</a></td></tr>
-<tr><td rowspan="2">62 회차 부가 내용 편집</td><td>회차 작가의 말 작성</td><td>❌</td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a></td></tr>
-<tr><td>회차 작가의 말 수정</td><td>❌</td></tr>
+<tr><td rowspan="2">62 회차 부가 내용 편집</td><td>회차 작가의 말 작성</td><td>✅ <small>(로컬 단위·통합 검증 완료 · 브라우저 전체 검증 대기)</small></td><td rowspan="2"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a></td></tr>
+<tr><td>회차 작가의 말 수정</td><td>✅ <small>(로컬 단위·통합 검증 완료 · 브라우저 전체 검증 대기)</small></td></tr>
 <tr><td rowspan="3">87 기준 세계관 연결 관리 <small>(Draft 검토 후보)</small></td><td>회차의 기준 세계관 버전 선택</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
 <tr><td>회차의 기준 세계관 버전 조회</td><td>❌</td></tr>
 <tr><td>회차의 기준 세계관 버전 변경</td><td>❌</td></tr>

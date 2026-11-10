@@ -103,6 +103,18 @@ class ForkCreationPolicyServiceTest {
         noWrites()
     }
 
+    @Test fun `fork copies the original published author note into its pinned version`() {
+        `when`(access.get("original")).thenReturn(WorkAccessResult("original","author","제목","",0,"world","public",true,true,null))
+        `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1,1,"v1","제목","본문",false,"원작 후기"))))
+        `when`(access.forkable("original",listOf(1))).thenReturn(listOf(1))
+        `when`(world.historyForContext("original")).thenReturn(ai.storyfork.content.world.service.dto.SettingListResponse(emptyList()))
+        `when`(workWorlds.saveAndFlush(org.mockito.ArgumentMatchers.any(ai.storyfork.content.work.entity.WorkWorldHistoryEntity::class.java) ?: ai.storyfork.content.work.entity.WorkWorldHistoryEntity())).thenAnswer {it.arguments[0]}
+        `when`(episodes.saveAndFlush(org.mockito.ArgumentMatchers.any(ai.storyfork.content.episode.entity.EpisodeEntity::class.java) ?: ai.storyfork.content.episode.entity.EpisodeEntity())).thenAnswer {it.arguments[0]}
+        service.create("original","reader",ForkRequest(1,"분기"))
+        val version=mockingDetails(versions).invocations.single {it.method.name=="saveAndFlush"}.getArgument<ai.storyfork.content.episode_version.entity.EpisodeVersionEntity>(0)
+        assertEquals("원작 후기",version.authorNote)
+        assertFalse(version.isSaved)
+    }
 
     @Test fun `a soft deleted earlier Fork still blocks forking the same original again`() {
         // fork 테이블의 UNIQUE(owner_id,source_work_id)가 소프트 삭제 행에도 남으므로 저장 단계 500 대신 409로 막는다.

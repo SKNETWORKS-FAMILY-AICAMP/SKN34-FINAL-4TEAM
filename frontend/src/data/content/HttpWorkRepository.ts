@@ -37,7 +37,7 @@ export class HttpWorkRepository implements WorkRepository {
     const rows = await this.api.writingList(id)
     const row = selected ? rows.find(e => e.number === +selected) : [...rows].reverse().find(e => !e.inherited && e.hasDraft !== false)
     if (!row || row.hasDraft === false) return undefined
-    return { no: row.number, title: row.draft.title, paras: row.draft.body ? row.draft.body.split('\n\n') : [], authorNote: '',
+    return { no: row.number, title: row.draft.title, paras: row.draft.body ? row.draft.body.split('\n\n') : [], authorNote: row.draft.authorNote ?? '',
       links: [], sim: null, proposal: null, check: null, saved: true }
   }
   async listDrafts(): Promise<Record<string, Draft>> {

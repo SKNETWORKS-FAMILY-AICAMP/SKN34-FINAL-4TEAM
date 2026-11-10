@@ -55,10 +55,11 @@ class EpisodeService(
         checkContent(!before.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.acceptsRevision(data.revision,before.draft.revision),409,"다른 편집이 저장됐어요. 입력을 보관하고 최신 원고를 다시 불러와 주세요.")
         validate(data.title,data.body)
+        checkContent(data.authorNote.length<=2000,message="작가의 말은 2,000자 이내로 작성해 주세요.")
         requireImageReferences(id,number,data.body)
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
         val d=drafts.findById(e.id).orElse(null) ?: EpisodeDraftEntity(episodeId=e.id)
-        d.title=data.title.trim(); d.content=data.body; d.editRevision=data.revision+1; d.updatedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
+        d.title=data.title.trim(); d.content=data.body; d.authorNote=data.authorNote.trim(); d.editRevision=data.revision+1; d.updatedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
         drafts.save(d)
         works.findById(id).orElseThrow().revision++
         return readCurrent(id,number)
@@ -153,8 +154,8 @@ class EpisodeService(
             val draft=draftById[row.id];val p=published[row.publishedVersionId]
             val floor=entities[row.id]?.draftRevisionFloor ?: -1
             if(draft==null && p==null && saved[row.id].isNullOrEmpty() && floor<0) null else EpisodeResponse(row.sequence,
-                DraftResponse(draft?.title ?: p?.title ?: saved[row.id]?.lastOrNull()?.title ?: "새 회차",draft?.content ?: if(floor<0) p?.content.orEmpty() else "",draft?.editRevision ?: maxOf(0,floor)),
-                saved[row.id].orEmpty().map { VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,row.sequence,it.createdAt.toString()) },
+                DraftResponse(draft?.title ?: p?.title ?: saved[row.id]?.lastOrNull()?.title ?: "새 회차",draft?.content ?: if(floor<0) p?.content.orEmpty() else "",draft?.editRevision ?: maxOf(0,floor),draft?.authorNote ?: if(floor<0) p?.authorNote.orEmpty() else ""),
+                saved[row.id].orEmpty().map { VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,row.sequence,it.createdAt.toString(),it.authorNote) },
                 p?.contentVersionId,row.inherited,draft?.updatedAt?.toString(),hasDraft=draft!=null,publicationStatus=row.publicationStatus,
                 checkpoints=checkpointLog[row.id].orEmpty().map { EpisodeCheckpointResponse(versionById.getValue(it.episodeVersionId).contentVersionId,it.occurredAt.toString(),it.episodeVersionId==row.publishedVersionId) })
         }

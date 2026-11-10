@@ -12,8 +12,8 @@ export function useVersionComparisonViewModel(versions: Version[], scope: string
   const setBeforeId = (beforeId: string) => setSelection(current => ({ ...current, beforeId }))
   const setAfterId = (afterId: string) => setSelection(current => ({ ...current, afterId }))
   const comparison = useMemo(() => before && after && before.id !== after.id ? {
-    title: compareText(before.title, after.title), body: compareText(before.body, after.body),
+    title: compareText(before.title, after.title), body: compareText(before.body, after.body), authorNote: compareText(before.authorNote ?? '', after.authorNote ?? ''),
   } : null, [before, after])
-  const changed = comparison && [...comparison.title.parts, ...comparison.body.parts].some(p => p.kind !== 'same')
+  const changed = comparison && [...comparison.title.parts, ...comparison.body.parts, ...comparison.authorNote.parts].some(p => p.kind !== 'same')
   return { before, after, comparison, changed, setBeforeId, setAfterId }
 }
