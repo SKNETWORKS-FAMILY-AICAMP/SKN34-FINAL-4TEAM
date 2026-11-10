@@ -11,7 +11,7 @@
 - **업무별 권한**: 운영 서비스 `operations.admin_permission(member_id, permission)`에 저장한다. 권한 키는 프런트
   `ADMIN_PERMISSIONS`와 같은 `works, users, comments, characterChats, feedback, rights, events, notices, llm, jobs, credits, admins`다.
   샘플 관리자는 모든 권한을 시드한다. 회원·관리자·신고 운영 API는 `operator=true`이면서 해당 권한(`users`·`admins`·`rights`)이 있어야 한다.
-- **인증**: 브라우저는 `/api/v1/operations/{reports,members,admins}`에 기존 회원 Bearer를 보낸다(고객지원 문의 `support`는 [별도 계약](operations-support-inquiry-contract.md), 공지 관리 `admin/notices`·공개 `public/notices`는 [운영 공지 계약](operations-notice-contract.md), 이벤트 관리 `admin/events`·공개 `public/events`는 [운영 이벤트 계약](operations-event-contract.md), 작품 관리 `works`는 [운영 작품 조회 계약](operations-work-contract.md)). 운영 서비스는 Content와 같이
+- **인증**: 브라우저는 `/api/v1/operations/{reports,members,admins}`에 기존 회원 Bearer를 보낸다(고객지원 문의 `support`는 [별도 계약](operations-support-inquiry-contract.md), 공지 관리 `admin/notices`·공개 `public/notices`는 [운영 공지 계약](operations-notice-contract.md), 이벤트 관리 `admin/events`·공개 `public/events`는 [운영 이벤트 계약](operations-event-contract.md), 작품 관리 `works`는 [운영 작품 조회 계약](operations-work-contract.md), 관리자 활동 기록 `admin/activities`는 [활동 기록 계약](operations-admin-activity-contract.md)). 운영 서비스는 Content와 같이
   Core `POST /internal/v1/auth/verify`로 확인한다. 기존 공지·이벤트·문의 서비스 토큰 API와 nginx 비노출은 유지한다.
 - **서비스 간 자격**: 운영 → Core·Content 호출은 기존 `OPERATIONS_SERVICE_TOKEN` 값을 `X-Operations-Service-Token` 헤더로 보낸다.
   Core·Content는 같은 환경변수(32자 이상)와 상수 시간 비교로 확인한다. 새 비밀 값을 추가하지 않는다.
@@ -24,7 +24,7 @@
 - **실패**: 운영 → Core/Content 호출 실패는 성공으로 숨기지 않고 502 `UPSTREAM_FAILED`를 반환하며 이력도 남기지 않는다.
   원인은 응답이 아니라 서버 로그에만 남긴다(500은 원인 예외를 `ERROR`로, 502는 예외 메시지·스택 없이 예외 클래스명·하위 HTTP 상태·요청 경로(쿼리 제외)만 `WARN`으로).
   하위 응답 본문과 회원 검색어 같은 쿼리가 로그에 남지 않게 하기 위함이다. 없는 경로·메서드 불일치도 같은 `{ code, message }`로 응답한다.
-- **트랜잭션**: Content 호출은 DB 트랜잭션 밖에서 실행하고, 성공한 뒤 신고 갱신과 이력만 한 트랜잭션으로 저장한다.
+- **트랜잭션**: Content 호출은 DB 트랜잭션 밖에서 실행하고, 성공한 뒤 신고 갱신·이력·[관리자 활동 기록](operations-admin-activity-contract.md)을 한 트랜잭션으로 저장한다.
   ponytail: 제한·해제의 Content 호출이 성공한 뒤 저장이 실패(409 등)하면 Content만 바뀐 상태로 남는다(분산 트랜잭션 없음).
   같은 요청을 다시 보내면 Content PUT/DELETE가 멱등이라 맞춰진다.
 
