@@ -15,6 +15,7 @@ import { writingStatus } from '../../../../domain/entities/writingStatus'
 import { VersionComparison } from './VersionComparison'
 import { SettingHistoryPanel } from './SettingHistoryPanel'
 import { CheckpointPanel } from './CheckpointPanel'
+import { PublicationSchedulePanel } from './PublicationSchedulePanel'
 import './version-panels.css'
 
 export function WritingStudio({id}:{id:string}) {
@@ -26,13 +27,14 @@ export function WritingStudio({id}:{id:string}) {
   const [selection,setSelection]=useState({episode:0,id:''})
   const [rights,setRights]=useState(false)
   const [versionsOpen,setVersionsOpen]=useState(false)
-  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'|'publication'>('versions')
+  const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'|'publication'|'schedule'>('versions')
   const active=vm.active
   const historyLabel={
     versions:'원고 저장본 · 공개',
     compare:active?`${active.number}화 원고 버전 비교`:'원고 버전 비교',
     settings:'설정 버전 이력',
     publication:'발행 이력',
+    schedule:'예약 발행',
   }[historyView]
   const comparison=useVersionComparisonViewModel(active?.versions??[],versionsOpen&&active?`${id}:${active.number}`:'')
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
@@ -97,6 +99,7 @@ export function WritingStudio({id}:{id:string}) {
               <button type="button" className="btn sm" disabled={!active} aria-pressed={historyView==='compare'} onClick={()=>setHistoryView('compare')}>원고 버전 비교</button>
               <button type="button" className="btn sm" aria-pressed={historyView==='settings'} onClick={()=>setHistoryView('settings')}>설정 버전 이력</button>
               <button type="button" className="btn sm" disabled={vm.historyLoading} aria-pressed={historyView==='publication'} onClick={()=>{setHistoryView('publication');void vm.loadPublicationHistory()}}>발행 이력</button>
+              {active&&!active.inherited&&<button type="button" className="btn sm" aria-pressed={historyView==='schedule'} onClick={()=>setHistoryView('schedule')}>예약 발행</button>}
             </nav>
             {historyView==='publication'?<>
               <h2>발행 이력</h2>
@@ -107,7 +110,8 @@ export function WritingStudio({id}:{id:string}) {
                   {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
                 </li>)}</ol>
               </>}
-            </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='compare'?<>
+            </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='schedule'?(active.inherited?<p>원작 기준 회차는 예약 발행할 수 없어요.</p>:
+              <PublicationSchedulePanel key={`${id}:${active.number}`} workId={id} episode={active}/>):historyView==='compare'?<>
               <h2>{historyLabel}</h2>
               <VersionComparison workId={id} number={active.number} versions={active.versions} model={comparison}/>
             </>:<>

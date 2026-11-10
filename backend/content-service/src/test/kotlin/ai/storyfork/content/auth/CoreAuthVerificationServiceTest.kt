@@ -17,6 +17,7 @@ class CoreAuthVerificationServiceTest {
     private fun client(call: (String) -> VerifiedMemberResponse) = object : CoreAuthClient {
         override fun verify(authorization: String) = call(authorization)
         override fun nicknames(request: NicknamesPayload): NicknamesResponse = throw UnsupportedOperationException("verify only")
+        override fun verifyScheduledMember(request: ai.storyfork.content.auth.client.ScheduledMemberPayload) = error("scheduled verification is unused")
     }
 
     @Test fun `forwards only the bearer and returns the verified UUID without caching`() {

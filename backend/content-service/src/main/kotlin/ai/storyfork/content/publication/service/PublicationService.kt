@@ -65,16 +65,24 @@ class PublicationService(
             })
     }
     fun publishEpisode(id: String, owner: String, number: Int, data: PublishRequest): EpisodeResponse {
+        publishVersion(id,owner,number,data.versionId,data.rightsConfirmed,data.revision,"manual")
+        return episodeService.read(id,owner,number)
+    }
+
+    fun publishScheduled(id: String, owner: String, number: Int, versionId: String) {
+        publishVersion(id,owner,number,versionId,true,null,"scheduled")
+    }
+
+    private fun publishVersion(id: String, owner: String, number: Int, versionId: String?, rightsConfirmed: Boolean, revision: Int?, trigger: String) {
         val w=access.own(id,owner)
         val e=episodeService.read(id,owner,number)
         checkContent(!e.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
-        checkContent(e.draft.revision==data.revision,409,"다른 편집이 저장됐어요. 최신 원고를 불러와 주세요.")
-        val v=e.versions.find {it.id==data.versionId} ?: throw ContentFailure(409,"이 회차의 저장 버전을 먼저 선택해 주세요.")
-        checkContent(data.rightsConfirmed && v.body.isNotBlank(),message="공개 권리와 저장된 원고를 확인해 주세요.")
+        checkContent(revision==null || e.draft.revision==revision,409,"다른 편집이 저장됐어요. 최신 원고를 불러와 주세요.")
+        val v=e.versions.find {it.id==versionId} ?: throw ContentFailure(409,"이 회차의 저장 버전을 먼저 선택해 주세요.")
+        checkContent(rightsConfirmed && v.body.isNotBlank(),message="공개 권리와 저장된 원고를 확인해 주세요.")
         checkContent(number<=nextEpisodeNumber(id),409,"앞 회차부터 순서대로 공개해 주세요.")
         checkForkPublication(w)
-        apply(id,owner,number,v.id,if(e.publishedVersionId!=null) "replace" else if(e.publicationStatus=="suspended") "republish" else "publish")
-        return episodeService.read(id,owner,number)
+        apply(id,owner,number,v.id,if(e.publishedVersionId!=null) "replace" else if(e.publicationStatus=="suspended") "republish" else "publish",trigger)
     }
     fun publishCurrent(id: String, owner: String, data: PublishRequest) {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
@@ -121,12 +129,12 @@ class PublicationService(
         // 원작이 삭제돼도 원작자의 최초 공개 허용 설정은 그대로 따른다(문서에 삭제 예외 없음).
         if(w.source!=null && w.visibility!="public") checkContent(access.get(w.source.workId).allowForkPublication,403,"원작이 분기 작품의 최초 공개를 허용하지 않아요.")
     }
-    private fun apply(id: String, owner: String, number: Int, version: String, action: String = "publish") {
+    private fun apply(id: String, owner: String, number: Int, version: String, action: String = "publish", trigger: String = "manual") {
         val row=episodes.findByWorkIdAndSequence(id,number) ?: throw ContentFailure(404,"회차를 찾을 수 없어요.")
         val v=versions.findByEpisodeIdAndContentVersionId(row.id,version) ?: throw ContentFailure(409,"저장 버전을 확인해 주세요.")
         if(action!="unpublish") episodeService.requireImageReferences(id,number,v.content)
         if(action=="publish") interests.episodePublished(id,owner,number)
-        events.saveAndFlush(PublicationEventEntity(id=contentId(),episodeVersionId=v.id,actorId=owner,action=action,outcome="applied",triggerKind="manual"))
+        events.saveAndFlush(PublicationEventEntity(id=contentId(),episodeVersionId=v.id,actorId=owner,action=action,outcome="applied",triggerKind=trigger))
         if(action!="unpublish") {
             val currentVisibility=visibility.findFirstByWorkIdOrderByRevisionNoDesc(id)
             if(currentVisibility?.visibility!="public") visibility.save(WorkPublicationHistoryEntity(id=contentId(),workId=id,revisionNo=(currentVisibility?.revisionNo ?: -1)+1,visibility="public"))
