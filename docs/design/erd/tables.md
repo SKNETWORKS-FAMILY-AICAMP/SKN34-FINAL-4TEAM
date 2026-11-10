@@ -411,6 +411,7 @@
 - **참조:** `member_id` → [`MEMBER`](tables.md#member).`id`; `work_id` → [`WORK`](tables.md#work).`id`; `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id`.
 - **제약·한계:** 회차 버전은 해당 작품 소속. 본인만 조회·탈퇴 시 숨김(소프트 삭제). 위치 인코딩 미정.
 - **연결 예시:** `member_id=member-1; work_id=work-1; episode_version_id=episode_version-1`처럼 한 관계·사건을 기록합니다(가상 예시; 상태 enum 미확정).
+- **구현(기능 21-C):** 위 논리 후보 대신 `reading_record`(회원·작품당 마지막으로 연 회차 번호)와 `reading_episode`(연 회차 번호)로 구현하며 회차 버전·세부 위치는 저장하지 않습니다. 탈퇴 시 삭제는 범위 밖입니다. 정본은 [독서 관리 계약](../reading-management-contract.md)입니다.
 
 <a id="episode-view-day"></a>
 ### `EPISODE_VIEW_DAY`

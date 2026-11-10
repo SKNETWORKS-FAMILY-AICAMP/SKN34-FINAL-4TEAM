@@ -8,4 +8,5 @@ import jakarta.persistence.*
 open class ImageWork(
     @Id @Column(length = 36) open var id: String = "",
     @Column(name = "owner_id", length = 200) open var ownerId: String = "",
+    @Column(name = "deleted_at") open var deletedAt: java.time.Instant? = null,
 )

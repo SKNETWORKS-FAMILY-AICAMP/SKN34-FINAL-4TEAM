@@ -5,12 +5,12 @@ import { Navigate, useParams } from 'react-router'
 import { avatarOf, epsOf, type Theme } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
-import { FEEDBACK_UNAVAILABLE } from '../../../../domain/repositories/WorkRepository'
 import { BackChev } from '../../../shared/icons'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { useReaderViewModel } from '../viewmodel/useReaderViewModel'
 import { Amb } from './Amb'
+import { EpisodeComments } from './EpisodeComments'
 import { UnavailableWork } from './WorkPage'
 import { CommentSheet, FeedbackSheet, LookSheet } from './Sheets'
 
@@ -119,7 +119,7 @@ export function ReaderPage() {
   const closeSheet = () => {
     const s = vm.sheet
     vm.closeSheet()
-    if (s && s.kind !== 'look') focusSentence(s.k)
+    if (s?.kind === 'comment' || s?.kind === 'feedback') focusSentence(s.k)
   }
   let k = 0
   return (
@@ -130,6 +130,7 @@ export function ReaderPage() {
           <Go to={`/work/${id}`} className="back rback" aria-label="소설 목록으로"><BackChev /><span>목록</span></Go>
           <div className="t"><b>{w.title}</b><small>{r.n}화 · {e.t}{w.parent && r.n <= (w.forkAt ?? 0) ? ' · 원작 스냅샷' : ''}</small></div>
           <button type="button" className="rib" aria-label="공유" onClick={vm.share}>↗</button>
+          {w.canonical && <Go to={`/work/${id}/wiki?upto=${r.n}`} className="rib" aria-label="설정 위키 보기" title="이 회차까지 공개된 설정 위키">설정</Go>}
           <button type="button" className="rib" aria-label="보기 설정" onClick={() => vm.openSheet({ kind: 'look' })}>Aa</button>
         </div>
         <div className="prog"><i id="prog" ref={refs.prog} /></div>
@@ -137,13 +138,12 @@ export function ReaderPage() {
       <main className="page" id="main" tabIndex={-1}>
         <h1 className="sr-only">{w.title} {r.n}화</h1>
         <div className="chap"><small>{chapLabel(w.theme, r.n)}</small><h2>{e.t}</h2><div className="orn">{ORN[w.theme]}</div>{!w.canonical && <div className="reading"><i />지금 {30 + ((r.n * 37) % 90)}명이 함께 읽는 중 <span className="demo">데모</span></div>}</div>
-        <div className="hint">{w.canonical?'공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 읽기 기록과 관심 표시는 이 창에서만 유지돼요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
-        {!w.canonical && <span id="sentence-help" className="sr-only">댓글·피드백 열기</span>}
+        <div className="hint">{w.canonical?'☝ 문장을 누르면 댓글을 남길 수 있어요. 공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장돼요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
+        <span id="sentence-help" className="sr-only">{w.canonical?'댓글 달기 열기':'댓글·피드백 열기'}</span>
         <div className="text" id="text">
           {r.paragraphs.map((ss, pi) => (
             <p key={pi}>{ss.map((s, j) => {
               const i = k++
-              if (w.canonical) return <span key={j}>{j > 0 && ' '}{s.t}</span>
               return <span key={j}>{j > 0 && ' '}<span className={`s${vm.selected?.k === i ? ' sel' : ''}`} data-s={i} role="button" tabIndex={i === vm.tabStop ? 0 : -1} aria-describedby="sentence-help"
                 onFocus={() => vm.setTabStop(i)} onClick={(ev) => pick(ev.currentTarget, i)} onKeyDown={(ev) => sentenceKey(ev, i)} onKeyUp={(ev) => { if (ev.key === ' ') pick(ev.currentTarget, i) }}>{s.t}</span></span>
             })}</p>
@@ -165,17 +165,18 @@ export function ReaderPage() {
               </div>
             </div>
           )}
-          <section className="tcard cms">
-            <h3>{w.canonical?'댓글·피드백':`댓글 ${r.comments.length}`}</h3>
-            {w.canonical && <p className="muted">{FEEDBACK_UNAVAILABLE}</p>}
-            {!w.canonical && <form className="cmf" id="cmf" onSubmit={(ev) => {
+          {w.canonical && <EpisodeComments key={`${w.id}/${r.n}`} workId={w.id} n={r.n} quoted={vm.sheet?.kind === 'comment' ? vm.sentences[vm.sheet.k] : undefined} onCloseSheet={closeSheet} />}
+          {!w.canonical && <section className="tcard cms">
+            <h3>댓글 {r.comments.length}</h3>
+            <form className="cmf" id="cmf" onSubmit={(ev) => {
               ev.preventDefault()
+              if (!vm.requireMember('comment')) return
               const input = ev.currentTarget.elements.namedItem('cmt')
               if (input instanceof HTMLInputElement) void fb.addComment(id, r.n, input.value, null).then((ok) => { if (ok) input.value = '' })
             }}>
               <input id="cmt" name="cmt" aria-label="댓글 입력" placeholder="감상이나 궁금한 점을 남겨 주세요" maxLength={200} />
               <button className="tbtn pri" style={{ height: 44 }}>등록</button>
-            </form>}
+            </form>
             {r.comments.map((c, i) => {
               const ck = rk + 'c' + i
               const on = !!r.liked[ck]
@@ -191,7 +192,7 @@ export function ReaderPage() {
                 </div>
               )
             })}
-          </section>
+          </section>}
         </div>
       </main>
       <nav className="rnav" id="rbot" ref={refs.bottom}>
@@ -201,15 +202,16 @@ export function ReaderPage() {
           <Go to={`/read/${id}/${r.next ?? r.n}`} disabled={!r.next}>다음 화 ›</Go>
         </div>
       </nav>
-      {!w.canonical && selected && vm.selected?.pop && (
+      {selected && vm.selected?.pop && (
         <SentencePop at={vm.selected} onDismiss={dismissPop}>
           <button type="button" onClick={() => vm.openSheet({ kind: 'comment', k: vm.selected?.k ?? 0 })}>💬 댓글 달기</button>
-          <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>✉ 피드백 보내기</button>
-          <button type="button" onClick={() => { dismissPop(true); vm.shareSentence() }}>⧉ 문장 공유</button>
+          {/* 정본 작품은 댓글만 서버에 연결돼 있어 피드백·문장 공유(데모) 동작은 열지 않습니다. */}
+          {!w.canonical && <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>✉ 피드백 보내기</button>}
+          {!w.canonical && <button type="button" onClick={() => { dismissPop(true); vm.shareSentence() }}>⧉ 문장 공유</button>}
         </SentencePop>
       )}
       {vm.sheet?.kind === 'look' && <LookSheet onClose={closeSheet} />}
-      {vm.sheet?.kind === 'comment' && <CommentSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet}
+      {!w.canonical && vm.sheet?.kind === 'comment' && <CommentSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet}
         onAdded={() => setTimeout(() => document.querySelector('.cm:last-of-type')?.scrollIntoView?.({ block: 'center' }), 60)} />}
       {vm.sheet?.kind === 'feedback' && <FeedbackSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet} />}
     </div>
