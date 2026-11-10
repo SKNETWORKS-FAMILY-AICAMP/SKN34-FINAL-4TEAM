@@ -180,9 +180,11 @@ class AttachmentService(
         createEpisodeImage(work, number, owner, altText) { payload }
 
     internal fun createEpisodeImage(work: String, number: Int, owner: String, altText: String = "", loadPayload: () -> AttachmentUploadPayload): AttachmentResponse {
+        // 회차 ID는 접근 확인(read)보다 먼저 잡는다. 그 뒤 삭제·같은 번호 재생성이 일어나면 잠금 안 재확인에서 ID가 달라져 거절된다.
+        val episodeId = imageEpisodes.findByWorkIdAndSequence(work, number)?.id
         val episode = episodeService.read(work, owner, number)
         if (episode.inherited) throw AttachmentFailure(403, "IMAGE_INHERITED", "원작 기준 회차에는 이미지를 추가할 수 없어요.")
-        val episodeId = imageEpisodes.findByWorkIdAndSequence(work, number)?.id ?: missingImage()
+        if (episodeId == null) missingImage()
         val payload = loadPayload()
         return imageTransaction {
             ownedWork(work, owner)

@@ -106,6 +106,16 @@ class AttachmentServiceTest {
         verifyNoInteractions(storage)
     }
 
+    @Test fun `upload rejects an episode replaced while its access is being checked`() {
+        // 접근 확인(read) 중에 같은 번호의 새 회차로 바뀌어도, 그 전에 잡아 둔 회차 ID와 달라져 파일을 올리기 전에 거절한다.
+        `when`(episodeService.read("work", "owner", 1)).thenAnswer {
+            `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(ImageEpisode(id = "replacement"))
+            WritingEpisode(1, Draft(), emptyList(), null, false, null)
+        }
+        assertEquals("IMAGE_NOT_FOUND", assertThrows(AttachmentFailure::class.java) { service.createEpisodeImage("work", 1, "owner", request()) }.code)
+        verifyNoInteractions(storage)
+    }
+
     @Test fun `one attachment service stores setting files work covers and episode images through shared storage`() {
         val file = "설정 문서".toByteArray()
         val setting = service.createSettingAttachment("work", "setting", "owner", request("note.txt", "text/plain", file))
