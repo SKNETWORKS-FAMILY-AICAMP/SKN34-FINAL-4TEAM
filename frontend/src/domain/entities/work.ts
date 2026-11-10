@@ -74,6 +74,10 @@ export type Work = {
   localRules?: string[]
   wiki?: Wiki
   parent?: string
+  /** 원작 제목. 원작이 삭제·비공개라 공개 목록에 없어도 Fork 응답의 source.title로 보여 준다. */
+  parentTitle?: string
+  /** 원작이 소프트 삭제됐는지(DEC-42). 독자에게는 분기 전 회차 본문이 비어 온다. */
+  parentDeleted?: boolean
   forkAt?: number
   snap?: Snapshot
   removedWorldDocs?: Record<string, WikiDoc[]>
@@ -128,6 +132,9 @@ export function forkLabel(w: Work, worlds: World[]) {
 }
 
 export const isPub = (w: Work) => !w.hidden && !w.private && (w.parent ? w.eps.length > 0 : true)
+/** 원작이 삭제된 Fork에서 독자에게 본문이 숨겨져 온 분기 전 회차인지(DEC-42). 소유자는 본문을 받으므로 해당하지 않는다. */
+export const hiddenSourceEpisode = (w: Pick<Work, 'parent' | 'forkAt' | 'parentDeleted'>, n: number, paragraphs: string[]) =>
+  !!w.parent && !!w.parentDeleted && n <= (w.forkAt ?? 0) && !paragraphs.join('').trim()
 export const epsOf = (w: Work) => (w.parent && w.snap ? w.snap.eps.concat(w.eps) : w.eps)
 /** 설정(규칙·인물·사건) 출처: 포크는 자기 스냅샷만 본다 */
 export const baseOf = (w: Work): Pick<Snapshot, 'rules' | 'cast' | 'events'> => (w.parent && w.snap ? w.snap : w)

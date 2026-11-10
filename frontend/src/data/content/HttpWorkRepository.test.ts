@@ -73,6 +73,14 @@ describe('canonical WorkRepository', () => {
     world.workId='another-work'
     await expect(repository.readWorld(work,2)).rejects.toThrow('작품')
   })
+  it('keeps the source title and deleted flag from the transport so a deleted original is shown as deleted', async () => {
+    const forked = record({ source: { workId: 'parent-uuid', title: '부모', episode: 1, version: 1, direction: '분기', deleted: true },
+      episodes: record().episodes.map((e, i) => ({ ...e, inherited: i === 0, body: i === 0 ? '' : e.body })) })
+    const repository = new HttpWorkRepository(new HttpEpisodeRepository(vi.fn(async () => Response.json([forked]))), () => false)
+    const [work] = await repository.listWorks()
+    expect(work.parentTitle).toBe('부모')
+    expect(work.parentDeleted).toBe(true)
+  })
   it('rejects malformed canonical transport instead of silently dropping required ownership metadata', async () => {
     const fetcher=vi.fn(async () => Response.json([record({ownerId:''})]))
     const repository=new HttpWorkRepository(new HttpEpisodeRepository(fetcher),()=>false)

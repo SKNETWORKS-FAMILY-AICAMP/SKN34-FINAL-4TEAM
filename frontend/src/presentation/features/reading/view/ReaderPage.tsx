@@ -2,7 +2,7 @@ import { useEffect, useRef, type CSSProperties, type KeyboardEvent as ReactKeybo
 import { createPortal } from 'react-dom'
 import { Navigate, useParams } from 'react-router'
 
-import { avatarOf, epsOf, type Theme } from '../../../../domain/entities/work'
+import { avatarOf, epsOf, hiddenSourceEpisode, type Theme } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev } from '../../../shared/icons'
@@ -141,6 +141,7 @@ export function ReaderPage() {
         <div className="hint">{w.canonical?'☝ 문장을 누르면 댓글을 남길 수 있어요. 공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장돼요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
         <span id="sentence-help" className="sr-only">{w.canonical?'댓글 달기 열기':'댓글·피드백 열기'}</span>
         <div className="text" id="text">
+          {hiddenSourceEpisode(w, r.n, e.p) && <p className="muted">원작이 삭제돼 분기 전 회차 본문은 볼 수 없어요. {(w.forkAt ?? 0) + 1}화부터 이 포크 소설이 이어져요.</p>}
           {r.paragraphs.map((ss, pi) => (
             <p key={pi}>{ss.map((s, j) => {
               const i = k++

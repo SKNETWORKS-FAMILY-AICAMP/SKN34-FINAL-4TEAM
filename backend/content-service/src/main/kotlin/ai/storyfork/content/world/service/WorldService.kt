@@ -55,6 +55,8 @@ class WorldService(
     fun publicRead(id: String, episode: Int): ReadingWorldResponse {
         val l=load(access.published(id))
         checkContent(episode>0 && currentEpisodes.findByWorkIdAndSequence(id,episode)?.publishedVersionId!=null,404,"공개된 회차를 찾을 수 없어요.")
+        // 원작이 삭제되면 원작 세계관을 그대로 따라가는 Fork의 독자에게 원작 설정을 보이지 않는다(고정본은 소유자 참고용, UC 원작 삭제).
+        if(l.state.mode=="following" && l.work.source?.deleted==true) return ReadingWorldResponse(id,episode,emptyList())
         val selected=selectSettings(effective(l),episode,true)
         val world=if(l.state.mode=="following") l.sourceWorld!! else ownedWorld(l)
         val details=readingDetails.findAllById(selected.map {settingVersionId(world,it.id,it.versionId)}).associateBy {it.settingVersionId}
