@@ -25,13 +25,13 @@ object CreditAllocator {
         val usable = grants
             .filter { it.remaining.signum() > 0 && it.expiresAt.isAfter(now) }
             .sortedWith(compareBy<GrantBalance>({ it.expiresAt }, { it.grantedAt }, { it.id }))
-        val available = usable.fold(BigDecimal.ZERO) { sum, g -> sum + g.remaining }
+        val available = usable.sumOf { it.remaining }
         if (available < amount) throw InsufficientCreditException(amount, available)
         var left = amount
         val result = mutableListOf<Allocation>()
         for (g in usable) {
             if (left.signum() == 0) break
-            val take = if (g.remaining <= left) g.remaining else left
+            val take = minOf(g.remaining, left)
             result += Allocation(g.id, take)
             left -= take
         }
