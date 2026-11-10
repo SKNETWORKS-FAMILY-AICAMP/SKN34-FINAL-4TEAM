@@ -24,6 +24,8 @@ services:
       CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
       CORE_RABBITMQ_USER: ${CORE_RABBITMQ_USER:-storyfork}
       CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
+      # 가입 체험 크레딧 지급량. 팀 결정 전이라 기본 0(지급하지 않음)이며 값을 주면 켜진다.
+      CREDIT_SIGNUP_TRIAL_AMOUNT: ${CREDIT_SIGNUP_TRIAL_AMOUNT:-0}
     expose:
       - "8080"
     # Bash is in the existing JRE image; no new probe dependency or authenticated route.

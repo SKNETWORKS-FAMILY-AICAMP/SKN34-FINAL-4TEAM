@@ -99,6 +99,8 @@ export function ReaderPage() {
   const eps = epsOf(w)
   const rk = w.id + r.n
   const selected = vm.selected && vm.sentences[vm.selected.k]
+  // 정본 작품에서 비로그인이면 문장 팝업의 회원 전용 동작(댓글·피드백·수정 제안) 이름 앞에 붙는 말입니다(누르면 시트 대신 로그인 화면으로 갑니다).
+  const login = w.canonical && !vm.loggedIn ? '로그인하고 ' : ''
   const focusSentence = (i: number) => document.querySelector<HTMLElement>(`[data-s="${i}"]`)?.focus()
   /** 마우스·터치(클릭)와 키보드(Enter·Space)가 함께 쓰는 문장 선택: 팝업 위치를 문장 아래로 잡습니다. */
   const pick = (el: HTMLElement, i: number) => {
@@ -210,10 +212,10 @@ export function ReaderPage() {
       </nav>
       {selected && vm.selected?.pop && (
         <SentencePop at={vm.selected} onDismiss={dismissPop}>
-          <button type="button" onClick={() => vm.openSheet({ kind: 'comment', k: vm.selected?.k ?? 0 })}>💬 댓글 달기</button>
+          <button type="button" onClick={() => vm.openSheet({ kind: 'comment', k: vm.selected?.k ?? 0 })}>{`💬 ${login}댓글 달기`}</button>
           {/* 정본 작품은 댓글·피드백(제보)·수정 제안만 서버에 연결돼 있어 문장 공유(데모) 동작은 열지 않습니다. */}
-          <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>{w.canonical && !vm.loggedIn ? '✉ 로그인하고 피드백 보내기' : '✉ 피드백 보내기'}</button>
-          {w.canonical && <button type="button" onClick={() => vm.openSheet({ kind: 'suggest', k: vm.selected?.k ?? 0 })}>✎ 수정 제안</button>}
+          <button type="button" onClick={() => vm.openSheet({ kind: 'feedback', k: vm.selected?.k ?? 0 })}>{`✉ ${login}피드백 보내기`}</button>
+          {w.canonical && <button type="button" onClick={() => vm.openSheet({ kind: 'suggest', k: vm.selected?.k ?? 0 })}>{`✎ ${login}수정 제안`}</button>}
           {!w.canonical && <button type="button" onClick={() => { dismissPop(true); vm.shareSentence() }}>⧉ 문장 공유</button>}
         </SentencePop>
       )}

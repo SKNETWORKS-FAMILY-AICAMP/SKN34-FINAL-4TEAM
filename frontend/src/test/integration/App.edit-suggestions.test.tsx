@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '../fixtureApp'
 
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { asValue } from 'awilix/browser'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -94,28 +94,49 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     expect(toastText()).toContain('작가가 승인해야 원고에 반영되고')
   })
 
-  it('서버가 거절하면 안내만 하고 시트와 입력을 그대로 둔다', async () => {
+  it('서버가 거절하면 시트 안에서만 알리고 시트와 입력을 그대로 둔다', async () => {
     const { repo, dialog, text } = await openSheet((r) => r.create.mockRejectedValueOnce(new Error('원문에서 고칠 문장을 찾을 수 없어요.')))
     fireEvent.change(within(dialog).getByLabelText('고친 문장'), { target: { value: `${text} (고침)` } })
     fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
-    await waitFor(() => expect(toastText()).toBe('원문에서 고칠 문장을 찾을 수 없어요.'))
+    expect((await within(dialog).findByRole('alert')).textContent).toBe('원문에서 고칠 문장을 찾을 수 없어요.')
     expect(repo.create).toHaveBeenCalledTimes(1)
-    expect(within(dialog).getByRole('alert').textContent).toBe('원문에서 고칠 문장을 찾을 수 없어요.')
+    // 시트 안 안내가 있으니 같은 말을 토스트로 또 띄우지 않는다.
+    expect(toastText()).not.toContain('원문에서 고칠 문장을 찾을 수 없어요.')
     expect(within(screen.getByRole('dialog', { name: '문장 수정 제안' })).getByLabelText<HTMLTextAreaElement>('고친 문장').value).toBe(`${text} (고침)`)
     expect(within(dialog).getByRole('button', { name: '수정 제안 보내기' }).hasAttribute('disabled')).toBe(false)
   })
 
-  it('고친 문장이 원문과 같거나 비어 있으면 보내기 버튼을 잠그고 고치면 연다', async () => {
+  it('전송 중에 시트를 닫은 뒤 실패하면 알릴 시트가 없으니 토스트로 알린다', async () => {
+    let fail!: (error: Error) => void
+    const { repo, dialog, text } = await openSheet((r) => r.create.mockImplementationOnce(() => new Promise<EditSuggestion>((_resolve, reject) => { fail = reject })))
+    fireEvent.change(within(dialog).getByLabelText('고친 문장'), { target: { value: `${text} (고침)` } })
+    fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
+    await waitFor(() => expect(repo.create).toHaveBeenCalledTimes(1))
+    fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+    expect(screen.queryByRole('dialog', { name: '문장 수정 제안' })).toBeNull()
+    await act(async () => { fail(new Error('서버가 잠시 응답하지 않아요.')) })
+    await waitFor(() => expect(toastText()).toBe('서버가 잠시 응답하지 않아요.'))
+  })
+
+  it('고친 문장이 원문과 같거나 비어 있으면 보내기 버튼을 잠그고 이유를 알리며, 고치면 연다', async () => {
     const { repo, dialog, text } = await openSheet()
     const send = () => within(dialog).getByRole<HTMLButtonElement>('button', { name: '수정 제안 보내기' })
+    const hint = () => within(dialog).queryByText('원래 문장과 달라야 보낼 수 있어요.')
     const box = within(dialog).getByLabelText('고친 문장')
     expect(send().disabled).toBe(true)
+    // 잠긴 이유는 버튼의 설명(aria-describedby)으로 이어진다.
+    expect(hint()).not.toBeNull()
+    expect(document.getElementById(send().getAttribute('aria-describedby')!)).toBe(hint())
     fireEvent.change(box, { target: { value: ` ${text} ` } })
     expect(send().disabled).toBe(true)
+    expect(hint()).not.toBeNull()
     fireEvent.change(box, { target: { value: '   ' } })
     expect(send().disabled).toBe(true)
+    expect(hint()).not.toBeNull()
     fireEvent.change(box, { target: { value: `${text} (고침)` } })
     expect(send().disabled).toBe(false)
+    expect(hint()).toBeNull()
+    expect(send().getAttribute('aria-describedby')).toBeNull()
     expect(repo.create).not.toHaveBeenCalled()
   })
 
@@ -148,6 +169,9 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
 
   it('변경 전·후 비교, 범위 검사와 사유, 제안자·사유를 보여 준다', async () => {
     await open([suggestion({ reason: '맞춤법', scope: 'review', scopeReasons: ['단어가 다른 말로 바뀌어요.'] })])
+    // 부제는 서버 작품 여부가 아니라 누가 보낸 제안인지를 알린다.
+    screen.getByText('독자가 보낸 문장 수정 제안')
+    expect(screen.queryByText('내 서버 작품의 문장 수정 제안')).toBeNull()
     const c = await card()
     expect(c.querySelector('del')!.textContent).toBe('않 된다고')
     expect(c.querySelector('ins')!.textContent).toBe('안 된다고')
@@ -240,10 +264,10 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
   })
 
   it('기준 발행본이 바뀌어 승인이 409로 거절되면 서버 안내를 보이고 목록을 다시 읽는다', async () => {
-    const repo = await open([suggestion()], (r) => r.approve.mockRejectedValueOnce(new Error('기준 발행본이 바뀌어 다시 검토해야 해요.')))
+    const repo = await open([suggestion()], (r) => r.approve.mockRejectedValueOnce(new Error('원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.')))
     fireEvent.click(within(await card()).getByRole('button', { name: '승인하고 초안에 반영' }))
     const alert = await within(await card()).findByRole('alert')
-    expect(alert.textContent).toBe('기준 발행본이 바뀌어 다시 검토해야 해요.')
+    expect(alert.textContent).toBe('원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.')
     await waitFor(() => expect(repo.inbox.mock.calls.length).toBeGreaterThanOrEqual(2))
     const c = await card()
     within(c).getByText('검토 대기')
@@ -260,16 +284,41 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     expect(within(c).queryByRole('link', { name: '집필실 열기' })).toBeNull()
   })
 
-  it('거절은 선택 사유와 함께 종결하고 사유를 보인다', async () => {
+  it('거절을 눌러야 사유 입력과 확인 버튼이 나타나고, 선택 사유와 함께 종결하며 사유를 보인다', async () => {
     const repo = await open([suggestion()])
     const c = await card()
+    // 평소에는 사유 칸도 확인 버튼도 없다.
+    expect(within(c).queryByLabelText('거절 사유 (선택)')).toBeNull()
+    expect(within(c).queryByRole('button', { name: '거절 확인' })).toBeNull()
+    const toggle = within(c).getByRole('button', { name: '거절' })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    const reason = within(c).getByLabelText<HTMLInputElement>('거절 사유 (선택)')
+    expect(document.activeElement).toBe(reason)
+    expect(repo.reject).not.toHaveBeenCalled()
+    // 거절을 다시 누르면 접힌다.
+    fireEvent.click(toggle)
+    expect(within(c).queryByLabelText('거절 사유 (선택)')).toBeNull()
+    fireEvent.click(toggle)
     fireEvent.change(within(c).getByLabelText('거절 사유 (선택)'), { target: { value: ' 톤이 달라요 ' } })
-    fireEvent.click(within(c).getByRole('button', { name: '거절' }))
+    fireEvent.click(within(c).getByRole('button', { name: '거절 확인' }))
     await waitFor(() => expect(repo.reject).toHaveBeenCalledWith('w1', 's1', '톤이 달라요'))
     const after = await card()
     await within(after).findByText('거절 사유: 톤이 달라요')
     within(after).getByText('거절됨')
     expect(within(after).queryByRole('button', { name: '승인하고 초안에 반영' })).toBeNull()
+  })
+
+  it('거절이 실패하면 사유 입력을 닫지 않고 그대로 둔다', async () => {
+    await open([suggestion()], (r) => r.reject.mockRejectedValueOnce(new Error('이미 처리했거나 지금은 할 수 없는 상태예요. 목록을 새로 불러와 주세요.')))
+    const c = await card()
+    fireEvent.click(within(c).getByRole('button', { name: '거절' }))
+    fireEvent.change(within(c).getByLabelText('거절 사유 (선택)'), { target: { value: '톤이 달라요' } })
+    fireEvent.click(within(c).getByRole('button', { name: '거절 확인' }))
+    const alert = await within(await card()).findByRole('alert')
+    expect(alert.textContent).toBe('이미 처리했거나 지금은 할 수 없는 상태예요. 목록을 새로 불러와 주세요.')
+    expect(within(await card()).getByLabelText<HTMLInputElement>('거절 사유 (선택)').value).toBe('톤이 달라요')
   })
 
   it('보류하면 보류 상태로 바뀌어 다시 보류할 수는 없지만 거절·승인은 할 수 있다', async () => {

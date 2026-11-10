@@ -430,6 +430,32 @@ class FeedbackReportServiceTest {
         }
     }
 
+    @Test fun `an answer or a status change records the author check once even without a prior check`() {
+        work()
+        val answeredRow = report("r1", status = "unchecked"); val changedRow = report("r2", status = "unchecked")
+        val earlier = report("r3", status = "checked").also { it.authorCheckedAt = t0.plusSeconds(5) }
+
+        val answered = service.answer("work", "r1", "author", ResponseRequest("답변"))
+        val changed = service.setStatus("work", "r2", "author", StatusRequest("resolved"))
+        service.answer("work", "r3", "author", ResponseRequest("뒤늦은 답변"))
+        service.setStatus("work", "r3", "author", StatusRequest("closed"))
+
+        // 확인 없이 처리해도 작가는 제보를 본 것이라 '확인했어요'가 남지 않는다. 처음 기록한 시각은 바뀌지 않는다.
+        assertEquals(listOf(true, true), listOf(answered.authorChecked, changed.authorChecked))
+        assertEquals(listOf(answeredRow.updatedAt, changedRow.updatedAt), listOf(answeredRow.authorCheckedAt, changedRow.authorCheckedAt))
+        assertEquals(t0.plusSeconds(5), earlier.authorCheckedAt)
+    }
+
+    @Test fun `the reporter's own changes never record an author check`() {
+        work(); val row = report("r1", reporter = "reporter")
+
+        service.setVisibility("work", "r1", "reporter", VisibilityRequest("public"))
+        service.correct("work", "r1", "reporter", CorrectionRequest("정정"))
+        service.withdraw("work", "r1", "reporter")
+
+        assertNull(row.authorCheckedAt)
+    }
+
     @Test fun `an answer is stored with its public flag and moves unchecked or checked to answered`() {
         work()
         val fresh = report("r1", status = "unchecked"); val seen = report("r2", status = "checked"); val done = report("r3", status = "resolved")

@@ -52,7 +52,7 @@ class CreditService(
             val remaining = g.amount - (used[g.id] ?: BigDecimal.ZERO)
             if (remaining.signum() > 0) CreditBalanceItem(g.kind, remaining, g.expiresAt) else null
         }
-        return CreditBalanceResponse(items.fold(BigDecimal.ZERO) { sum, item -> sum + item.remaining }, items)
+        return CreditBalanceResponse(items.sumOf { it.remaining }, items)
     }
 
     /** 지급·사용·소멸 내역을 최신순으로 반환한다. */
@@ -74,11 +74,12 @@ class CreditService(
         require(operationKey.isNotBlank() && operationKey.length <= 100 && !operationKey.startsWith("expire:")) { "operationKey가 올바르지 않습니다." }
         // 같은 회원의 동시 호출이 같은 작업을 두 번 차감하지 않도록, 먼저 지급분을 잠근 뒤 같은 작업의 기록을 확인한다.
         val active = grants.lockActive(memberId, now)
-        val previous = ledger.findByOperationKey(operationKey).filter { it.kind == "spend" }
+        // 소멸 기록은 "expire:" 키만 쓰고 차감은 그 접두사를 거절하므로, 이 키로 남은 기록은 모두 차감이다.
+        val previous = ledger.findByOperationKey(operationKey)
         if (previous.isNotEmpty()) {
             // 같은 키가 다른 회원의 차감이면 그 결과를 돌려주지 않는다.
             require(grants.findAllById(previous.map { it.grantId }).all { it.memberId == memberId }) { "이미 다른 작업에 쓰인 operationKey입니다." }
-            require(previous.fold(BigDecimal.ZERO) { sum, e -> sum + e.amount }.compareTo(amount) == 0) { "같은 operationKey로 다른 금액을 차감할 수 없습니다." }
+            require(previous.sumOf { it.amount }.compareTo(amount) == 0) { "같은 operationKey로 다른 금액을 차감할 수 없습니다." }
             return previous.map { Allocation(it.grantId, it.amount) }
         }
         val used = usedByGrant(active.map { it.id })

@@ -245,7 +245,7 @@ class EditSuggestionIntegrationTest {
         val approval=act(id,sid,owner,"approval")
 
         assertEquals(409,approval.statusCode(),approval.body())
-        assertEquals("기준 발행본이 바뀌어 다시 검토해야 해요.",node(approval).path("detail").asString())
+        assertEquals("원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.",node(approval).path("detail").asString())
         assertEquals(listOf<Any?>("pending",null,null,null),row(sid))
         assertEquals(versions,versionCount(id))
         // 새 발행본에 대한 새 제안은 그 발행본을 기준으로 고정된다.

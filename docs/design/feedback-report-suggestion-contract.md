@@ -73,8 +73,8 @@ CREATE INDEX feedback_report_response_report ON feedback_report_response (report
 - 정정: 제보자만, 철회 전에만(철회 후 409). 원문은 바꾸지 않고 `correct` 정정 기록을 추가한다(본문 1~500자).
 - 철회: 제보자만, 한 번만(이미 철회면 409). `withdraw` 기록 + `withdrawn_at`. 상태와 원문은 그대로 두고 작가에게 "철회됨"을 표시한다.
 - 작가 확인: 작품 소유자만. `author_checked_at`이 없으면 기록하고 `unchecked`면 `checked`로 바꾼다(멱등).
-- 답변: 작품 소유자만. 본문 1~2000자, `isPublic`(기본 false). 답변하면 `unchecked`/`checked`는 `answered`가 된다(이미 `resolved`/`closed`면 그대로).
-- 처리 상태 변경: 작품 소유자만, `checked`·`answered`·`resolved`·`closed` 중 아무 값으로나 바꿀 수 있다(`unchecked`로 되돌리기는 422).
+- 답변: 작품 소유자만. 본문 1~2000자, `isPublic`(기본 false). 답변하면 `unchecked`/`checked`는 `answered`가 된다(이미 `resolved`/`closed`면 그대로). 확인한 적이 없으면 `author_checked_at`도 함께 기록한다(처음 기록한 시각은 바꾸지 않는다).
+- 처리 상태 변경: 작품 소유자만, `checked`·`answered`·`resolved`·`closed` 중 아무 값으로나 바꿀 수 있다(`unchecked`로 되돌리기는 422). 이때도 확인한 적이 없으면 `author_checked_at`을 함께 기록한다. 처리한 제보에 `확인했어요`가 남지 않게 한다.
 - 공개 답변: 비공개 제보의 공개 답변은 공개 목록에 **제보 원문 없이** 답변만 노출한다(UC-14 공개 범위).
 - 본문 1~500자(`isNotBlank`), 인용 0~500자. 자기 작품 제보도 허용한다.
 
@@ -117,6 +117,8 @@ CREATE INDEX feedback_report_response_report ON feedback_report_response (report
 - 실제 작품 회차 열람의 문장 선택 팝업에 `피드백`을 다시 보이고, 기존 데모 피드백 시트(유형 선택·본문·공개 범위)를 위 등록 API에 연결한다. 결과 안내는 실제 응답 상태만 표시한다(AI 응답 문구 없음).
 - 회차의 공개 제보 목록(회차 하단 또는 시트 안 기존 자리)과 내 제보 목록(정정·철회·공개 범위 변경)을 실제 API에 연결한다.
 - 작가 피드백함(`InboxPage`)의 제보 항목을 inbox API로 채우고 확인·답변(공개 여부)·상태 변경을 연결한다. 정정·철회 표시를 함께 보인다.
+  - 처리 상태는 고르는 것만으로 저장하지 않고 `상태 변경`을 눌러야 저장한다(WCAG 3.2.2). `확인했어요`는 확인 전 제보에만 보이고, 그동안은 같은 뜻의 `확인함`을 상태 선택지에서 뺀다.
+  - 섹션 제목은 다른 섹션과 같은 `.sec/.sec-h` 형식이다. 로그인이 필요한 문장 팝업의 댓글·피드백·수정 제안은 비로그인에게 모두 `로그인하고 …`로 보인다(정본 작품).
 - 데모 작품은 기존 메모리 경로를 유지한다. 프런트는 `FeedbackReportRepository` interface + `HttpFeedbackReportRepository`를 새 파일로 만든다.
 
 ## 2. 기능 24 수정 제안·승인 관리
@@ -159,7 +161,7 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 - 열람: 제안자·작품 소유자만(그 외 404). 작품이 삭제됐으면 누구에게나 404이고 내 제안·피드백함 목록에서도 뺀다. 공개 목록은 없다.
 - 편집안 저장: 소유자만, `pending`/`held`에서만. `editedText`(1~500자, `beforeText`와 같으면 422 — `afterText`와 같은 규칙)를 저장하고 원래 `afterText`는 보존한다(UC-16 4단계). 승인 내용 = `editedText ?: afterText`.
 - 승인: 소유자만, `pending`/`held`에서만(또는 `approved`+`failed`의 재시도).
-  1. 회차의 현재 발행 버전이 제안의 `publishedVersionId`와 다르면 409 `기준 발행본이 바뀌어 다시 검토해야 해요.` — 상태를 바꾸지 않는다(CE-07).
+  1. 회차의 현재 발행 버전이 제안의 `publishedVersionId`와 다르면 409 `원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.` — 상태를 바꾸지 않는다(CE-07).
   2. 현재 초안 본문에서 `beforeText`가 정확히 한 번 나오면 승인 내용으로 바꿔 기존 `EpisodeVersionService.save`(현재 초안 revision 사용)로 새 초안 버전을 만든다 → `approved`+`applied`+`appliedVersionId`.
   3. 초안에 없거나 여러 번 나오거나, Fork가 상속한 원작 회차라 초안을 고칠 수 없거나, 저장이 실패하면 → `approved`+`failed`+`applyFailure`(사유 문장). 반영 완료로 표시하지 않는다(UC-16 E2).
 - 거절: 소유자만, `pending`/`held`에서만. 선택 사유 0~500자 → `rejected`(종결).
@@ -194,6 +196,8 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 
 - 실제 작품 회차 열람의 문장 선택 팝업에 `수정 제안`을 추가해, 선택 문장을 `beforeText`로 채우고 고친 문장·사유를 입력해 등록한다.
 - 작가 피드백함(`InboxPage`)에 수정 제안 항목(변경 전·후 비교, 범위 검사 표시, 편집안 저장, 승인·거절·보류, 반영 결과·실패 사유)을 inbox API로 연결한다. 승인 후 안내는 "초안에 반영됨 — 발행은 집필실에서"처럼 발행과 구분한다.
+  - 거절 사유 입력은 `거절`을 눌렀을 때만 나타나고 `거절 확인`으로 보낸다(실패하면 입력을 그대로 둔다). 기준 발행본이 바뀐 409는 위 문구와 함께 집필실로 가는 링크를 보인다.
+  - 등록 시트는 고친 문장이 원래 문장과 같거나 비면 보내기를 잠그고 그 이유를 `aria-describedby`로 잇는다. 등록 실패는 시트가 열려 있으면 시트 안에만, 전송 중 시트를 닫았으면 토스트로 알린다.
 - 내 제안 목록은 기존 내 제보 화면의 같은 목록 자리에 함께 보인다(상태만 읽기).
 - 프런트는 `EditSuggestionRepository` interface + `HttpEditSuggestionRepository`를 새 파일로 만든다. 데모 작품의 기존 데모 수정 제안(메모리) 경로는 유지한다.
 

@@ -134,22 +134,25 @@ class FeedbackReportService(
         return render(listOf(row),mapOf(id to work),member).single()
     }
 
-    /** 작품 소유자만 답변한다. 답변하면 확인 전·확인함은 답변함이 되고 공개 답변만 제3자에게 보인다. */
+    /** 작품 소유자만 답변한다. 답변하면 확인 전·확인함은 답변함이 되고 공개 답변만 제3자에게 보인다. 확인한 적이 없으면 확인 시각도 함께 기록한다. */
     fun answer(id: String, reportId: String, member: String, data: ResponseRequest): ReportResponse {
         val text=responseBody(data.body)
         val (row,work)=lock(id,reportId,member,reporter=false)
         responses.save(FeedbackReportResponseEntity(contentId(),row.id,member,text,data.isPublic))
         row.status=statusAfterResponse(row.status)
-        touch(row)
+        touchByAuthor(row)
         return render(listOf(row),mapOf(id to work),member).single()
     }
 
-    /** 작품 소유자만 처리 상태를 바꾼다. 확인함·답변함·처리 완료·종료 중 아무 값으로나 바꿀 수 있고 확인 전으로는 되돌릴 수 없다(422). */
+    /**
+     * 작품 소유자만 처리 상태를 바꾼다. 확인함·답변함·처리 완료·종료 중 아무 값으로나 바꿀 수 있고 확인 전으로는 되돌릴 수 없다(422).
+     * 확인한 적이 없으면 확인 시각도 함께 기록한다.
+     */
     fun setStatus(id: String, reportId: String, member: String, data: StatusRequest): ReportResponse {
         val status=settableStatus(data.status)
         val (row,work)=lock(id,reportId,member,reporter=false)
         row.status=status
-        touch(row)
+        touchByAuthor(row)
         return render(listOf(row),mapOf(id to work),member).single()
     }
 
@@ -179,6 +182,12 @@ class FeedbackReportService(
     private fun now(): Instant = Instant.now().truncatedTo(ChronoUnit.MICROS)
 
     private fun touch(row: FeedbackReportEntity) { row.updatedAt=now() }
+
+    /** 작가의 답변·상태 변경은 제보를 본 것이라 확인 시각이 없으면 이번 수정 시각으로 기록한다(처음 기록은 바꾸지 않는다). */
+    private fun touchByAuthor(row: FeedbackReportEntity) {
+        touch(row)
+        row.authorCheckedAt=row.authorCheckedAt ?: row.updatedAt
+    }
 
     private class Shown(val row: FeedbackReportEntity, val work: WorkInfo, val mine: Boolean, val owner: Boolean, val view: ReportView, val replies: List<FeedbackReportResponseEntity>)
 

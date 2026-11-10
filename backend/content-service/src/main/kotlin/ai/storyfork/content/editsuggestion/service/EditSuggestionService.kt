@@ -35,7 +35,7 @@ private const val INVALID_EDITED = "편집한 문장은 1~500자로 입력해 �
 private const val INVALID_REASON = "사유는 500자 이내로 입력해 주세요."
 private const val SAME_TEXT = "고친 문장이 원래 문장과 같아요."
 private const val NOT_IN_PUBLISHED = "원문에서 고칠 문장을 찾을 수 없어요."
-private const val BASE_CHANGED = "기준 발행본이 바뀌어 다시 검토해야 해요."
+private const val BASE_CHANGED = "원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요."
 private const val NOT_FOUND = "수정 제안을 찾을 수 없어요."
 private const val WORK_NOT_FOUND = "작품을 찾을 수 없어요."
 private const val OWNER_ONLY = "작품 소유자만 처리할 수 있어요."
@@ -77,7 +77,7 @@ class EditSuggestionService(
         checkContent(versions.findById(version).orElse(null)?.content?.contains(before)==true,message=NOT_IN_PUBLISHED)
         val row=EditSuggestionEntity(id=contentId(),workId=id,episodeNumber=number,publishedVersionId=version,proposerId=member,beforeText=before,afterText=after,reason=reason)
         suggestions.save(row)
-        return respond(listOf(row),member).single()
+        return one(row,member)
     }
 
     /** 제안 하나다. 제안자와 작품 소유자만 볼 수 있고 그 외나 다른 작품의 제안이거나 작품이 삭제됐으면 404다. */
@@ -85,7 +85,7 @@ class EditSuggestionService(
         val work=liveWork(id)
         val row=find(id,suggestionId)
         checkContent(row.proposerId==viewer || work.ownerId==viewer,404,NOT_FOUND)
-        return respond(listOf(row),viewer).single()
+        return one(row,viewer)
     }
 
     /** 내가 올린 제안을 최신순으로 최대 200개 돌려준다. 삭제된 작품의 제안은 피드백함처럼 빼므로 200개보다 적을 수 있다. */
@@ -111,7 +111,7 @@ class EditSuggestionService(
         checkContent(text!=row.beforeText,message=SAME_TEXT)
         row.editedText=text
         row.updatedAt=now()
-        return respond(listOf(row),owner).single()
+        return one(row,owner)
     }
 
     /** 소유자가 `pending`을 `held`로 보류한다. 반복하거나 이미 판단한 제안이면 409다. */
@@ -120,7 +120,7 @@ class EditSuggestionService(
         checkContent(EditSuggestionRules.canHold(row.status),409,STATE_CONFLICT)
         row.status=EditSuggestionRules.HELD
         row.updatedAt=now()
-        return respond(listOf(row),owner).single()
+        return one(row,owner)
     }
 
     /** 소유자가 `pending`/`held` 제안을 선택 사유와 함께 거절한다(종결). 그 밖의 상태는 409이고 잘못된 사유는 상태를 바꾸지 않는 422다. */
@@ -133,7 +133,7 @@ class EditSuggestionService(
         row.decisionReason=reason
         row.decidedAt=at
         row.updatedAt=at
-        return respond(listOf(row),owner).single()
+        return one(row,owner)
     }
 
     /**
@@ -176,7 +176,7 @@ class EditSuggestionService(
                 settle(row,EditSuggestionRules.APPLIED,null,episodeVersionId(id,row.episodeNumber,saved.versions.first {it.id !in known}.id))
             }
         }
-        return respond(listOf(row),owner).single()
+        return one(row,owner)
     }
 
     /** 되돌려진 반영 시도의 실패를 새 트랜잭션에서 기록한다. 그 사이 다른 요청이 제안을 이미 판단했다면 덮어쓰지 않고 409다. */
@@ -184,7 +184,7 @@ class EditSuggestionService(
         val row=owned(id,suggestionId,owner)
         checkContent(EditSuggestionRules.canApprove(row.status,row.applyResult),409,STATE_CONFLICT)
         settle(row,EditSuggestionRules.FAILED,reason,null)
-        return respond(listOf(row),owner).single()
+        return one(row,owner)
     }
 
     /** 승인 결과를 기록한다. 승인한 시각은 처음 승인한 때를 유지해 재시도가 바꾸지 않는다. */
@@ -240,6 +240,9 @@ class EditSuggestionService(
     }
 
     private fun worksOf(rows: List<EditSuggestionEntity>) = works.findAllById(rows.map {it.workId}.toSet()).associateBy {it.id}
+
+    /** 제안 한 건의 응답이다. */
+    private fun one(row: EditSuggestionEntity, viewer: String): SuggestionResponse = respond(listOf(row),viewer).single()
 
     private fun respond(rows: List<EditSuggestionEntity>, viewer: String, byWork: Map<String, WorkEntity> = worksOf(rows)): List<SuggestionResponse> {
         if(rows.isEmpty()) return emptyList()
