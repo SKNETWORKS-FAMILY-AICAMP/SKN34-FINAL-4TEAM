@@ -65,6 +65,20 @@ class EpisodeDeletionTest {
         assertEquals(409,assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}.status)
         verify(drafts,never()).delete(draft);verify(episodes,never()).delete(episode)
     }
+    @Test fun `delete conflict names every real condition instead of an unexplained reference`() {
+        setup(); `when`(episodes.referenceCount("e")).thenReturn(1)
+        val message=assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}.message
+        listOf("마지막 회차","저장 버전","발행본","이미지").forEach { assertTrue(message.contains(it),"$it: $message") }
+    }
+    @Test fun `an episode that is not the last written one cannot be deleted`() {
+        setup()
+        val next=EpisodeEntity("next","w",2)
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(row,EpisodeCurrentEntity("next","w",2)))
+        `when`(episodes.findAllById(listOf("e","next"))).thenReturn(listOf(episode,next))
+        `when`(drafts.findAllById(listOf("e","next"))).thenReturn(listOf(draft,EpisodeDraftEntity("next","second","",0)))
+        assertEquals(409,assertThrows(ContentFailure::class.java) {service.deleteEpisode("w","owner",1,4)}.status)
+        assertNull(episode.deletedAt)
+    }
     @Test fun `unreferenced last episode is marked deleted and keeps its draft`() {
         setup(); service.deleteEpisode("w","owner",1,4)
         verify(drafts,never()).delete(draft);verify(episodes,never()).delete(episode)
@@ -88,6 +102,7 @@ class EpisodeDeletionTest {
     }
     @Test fun `new episode reuses the hidden number with a fresh ID and edit revision`() {
         setup()
+        episode.basisWorldId=java.util.UUID.randomUUID();episode.basisWorldRevisionId=java.util.UUID.randomUUID();episode.basisRevision=3
         service.deleteEpisode("w","owner",1,4)
         `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(null)
         `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(emptyList())
@@ -101,6 +116,9 @@ class EpisodeDeletionTest {
         assertEquals(1,created.number)
         assertNotEquals(episode.id,replacement.id)
         assertEquals(6,created.draft.revision)
+        // 기준 세계관은 삭제된 행에 남을 뿐 같은 번호의 새 회차로 넘어가지 않는다(UC-10).
+        assertNotNull(episode.basisWorldId)
+        assertNull(replacement.basisWorldId);assertNull(replacement.basisWorldRevisionId);assertEquals(0,replacement.basisRevision)
     }
     @Test fun `disabled image metadata must not be assumed empty`() {
         setup()

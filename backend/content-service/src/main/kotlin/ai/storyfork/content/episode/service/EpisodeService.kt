@@ -91,7 +91,7 @@ class EpisodeService(
         checkContent(before.draft.revision==revision,409,"회차가 변경됐어요. 다시 불러와 주세요.")
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
         val following=list(id,owner).items.any {it.number>number}
-        checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.canDelete(before.inherited,!imagesAbsent(id,number) || episodes.referenceCount(e.id)>0,following),409,"참조 없는 마지막 회차만 삭제할 수 있어요. 이미지 참조가 있거나 확인할 수 없으면 삭제가 제한돼요.")
+        checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.canDelete(before.inherited,!imagesAbsent(id,number) || episodes.referenceCount(e.id)>0,following),409,"마지막 회차만 삭제할 수 있어요. 저장 버전·발행본·이미지가 있거나 설정 공개 범위·AI·Fork가 참조하는 회차는 삭제할 수 없어요.")
         val work=works.findById(id).orElseThrow()
         val currentRevision=maxOf(work.revision,revision)
         checkContent(currentRevision<Int.MAX_VALUE,409,"편집 번호 한도에 도달했어요.")
