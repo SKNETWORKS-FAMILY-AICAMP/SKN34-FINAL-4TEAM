@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { FEEDBACK_TYPES, REPORT_TYPES, type FeedbackType, type Sentence } from '../../../../domain/entities/feedback'
+import { REPORT_BODY_MAX, REPORT_VISIBILITY_LABEL, type FeedbackReportVisibility } from '../../../../domain/entities/feedbackReport'
 import type { Work } from '../../../../domain/entities/work'
 import type { Look } from '../../../shared/ui/uiSlice'
 import { ReportWorkForm } from '../../../shared/reports/ReportWorkForm'
@@ -14,7 +15,7 @@ const Head = ({ title, onClose }: { title: string; onClose: () => void }) => (
 
 const Done = ({ status, message, onClose }: { status: string; message: string; onClose: () => void }) => (
   <>
-    <div className="reply"><span className={`chip ${['접수됨', '작가 검토 대기', '분석 중', '필터 대기'].includes(status) ? 'wait' : 'ok'}`}>{status}</span> {message}</div>
+    <div className="reply"><span className={`chip ${['접수됨', '작가 확인 전', '작가 검토 대기', '분석 중', '필터 대기'].includes(status) ? 'wait' : 'ok'}`}>{status}</span> {message}</div>
     <div className="rowend"><button type="button" className="btn pri" onClick={onClose}>확인</button></div>
   </>
 )
@@ -80,12 +81,16 @@ export function CommentSheet({ workId, n, sentence, onClose, onAdded, submit, ma
   )
 }
 
-/** 목업 feedbackSheet(id,n,k): 피드백은 운영 신고와 별도로 접수합니다. */
-export function FeedbackSheet({ workId, n, sentence, onClose }: { workId: string; n: number; sentence: Sentence; onClose: () => void }) {
+/**
+ * 목업 feedbackSheet(id,n,k): 피드백은 운영 신고와 별도로 접수합니다.
+ * canonical(실제 작품)이면 유형·내용·공개 범위를 서버 제보 API(기능 23)로 등록하고, AI 시뮬레이션·자동 응답 문구 없이 실제 응답 상태만 안내합니다. onSent는 등록 성공 뒤 호출됩니다.
+ */
+export function FeedbackSheet({ workId, n, sentence, onClose, canonical = false, onSent }: { workId: string; n: number; sentence: Sentence; onClose: () => void; canonical?: boolean; onSent?: () => void }) {
   const vm = useFeedbackViewModel()
   const [type, setType] = useState<FeedbackType>(FEEDBACK_TYPES[0])
   const [text, setText] = useState('')
   const [storyCheck, setStoryCheck] = useState(false)
+  const [visibility, setVisibility] = useState<FeedbackReportVisibility>('private')
   const [done, setDone] = useState<{ status: string; message: string } | null>(null)
   const [busy, setBusy] = useState(false)
   return (
@@ -95,8 +100,16 @@ export function FeedbackSheet({ workId, n, sentence, onClose }: { workId: string
       <label className="field">피드백 유형
         <select className="inp" id="ftype" aria-label="피드백 유형" disabled={!!done} value={type} onChange={(e) => setType(FEEDBACK_TYPES.find((t) => t === e.target.value) ?? FEEDBACK_TYPES[0])}>{FEEDBACK_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
       </label>
-      <label className="field">내용<textarea className="ta" id="ft" aria-label="내용" data-autofocus maxLength={1000} readOnly={!!done} value={text} onChange={(e) => setText(e.target.value)} /></label>
-      {type === '스토리 오류' && !done ? (
+      <label className="field">내용<textarea className="ta" id="ft" aria-label="내용" data-autofocus maxLength={canonical ? REPORT_BODY_MAX : 1000} readOnly={!!done} value={text} onChange={(e) => setText(e.target.value)} /></label>
+      {canonical && (
+        <label className="field">공개 범위
+          <select className="inp" id="fvis" aria-label="공개 범위" disabled={!!done} value={visibility} onChange={(e) => setVisibility(e.target.value === 'public' ? 'public' : 'private')}>
+            <option value="private">{REPORT_VISIBILITY_LABEL.private} · 작가와 나만 봐요</option>
+            <option value="public">{REPORT_VISIBILITY_LABEL.public} · 다른 독자도 회차 하단에서 봐요</option>
+          </select>
+        </label>
+      )}
+      {canonical ? <p className="note">제보는 작가에게 전달되고, 작가가 확인하거나 답변하면 상태가 바뀌어요. 내 서재의 ‘내 댓글·신고’에서 정정·철회·공개 범위 변경을 할 수 있어요. 자동 분석이나 자동 답변은 없어요.</p> : type === '스토리 오류' && !done ? (
         <>
           <label className="ck"><input type="checkbox" checked={storyCheck} onChange={(e) => setStoryCheck(e.target.checked)} /> 스토리 오류 검증 시뮬레이션에 동의</label>
           <p className="note">기본 피드백은 무료예요. 선택 검증의 비용과 한도는 미정이며, 이 데모는 실제 AI 호출이나 차감이 없어요. 오류가 검증·반영되면 보상 크레딧을 줄 수 있지만 실제 보상은 연결되지 않았어요. 정식 서비스의 유해 콘텐츠 1차 필터는 연결되지 않았어요.</p>
@@ -105,7 +118,7 @@ export function FeedbackSheet({ workId, n, sentence, onClose }: { workId: string
       {done ? <Done status={done.status} message={done.message} onClose={onClose} /> : (
         <div className="rowend">
           <button type="button" className="btn" onClick={onClose}>취소</button>
-          <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.sendFeedback({ workId, n, sentence, type, text, storyCheck }).then((r) => r && setDone(r)).finally(() => setBusy(false)) }}>피드백 보내기</button>
+          <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.sendFeedback({ workId, n, sentence, type, text, storyCheck, visibility }).then((r) => { if (r) { setDone(r); onSent?.() } }).finally(() => setBusy(false)) }}>피드백 보내기</button>
         </div>
       )}
     </Sheet>

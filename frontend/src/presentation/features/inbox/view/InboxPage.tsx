@@ -7,6 +7,7 @@ import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useInboxViewModel } from '../viewmodel/useInboxViewModel'
+import { FeedbackReportInbox } from './FeedbackReportInbox'
 
 /** 목업 inbox(): U20 독자 피드백함. 상태 이름은 목업 그대로입니다. */
 export function InboxPage() {
@@ -21,7 +22,7 @@ export function InboxPage() {
   // 처리한 버튼이 사라지거나 잠겨 초점을 잃어도 결과 안내에서 이어 가게 합니다.
   useEffect(() => { if (vm.notice) status.current?.focus() }, [vm.notice])
   const top = <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 style={{ fontSize: 21, fontWeight: 800 }}>독자 피드백함 <span className="muted small" style={{ fontWeight: 600 }}>댓글·단순 오류·스토리 오류·질문·제안</span></h1></div>
-  if (!vm.data) return <><Gnb on="lib" /><main id="main" tabIndex={-1} className="wrap">{top}<p className="muted" role="status">독자 피드백을 불러오고 있어요.</p></main><Footer /></>
+  if (!vm.data) return <><Gnb on="lib" /><main id="main" tabIndex={-1} className="wrap">{top}<p className="muted" role="status">독자 피드백을 불러오고 있어요.</p><FeedbackReportInbox /></main><Footer /></>
   const { items, it, current: cur } = vm.data
   const act = (kind: InboxAct, text?: string) => it && vm.act(it.id, kind, text)
   // 발행(publishRevision)은 첫 번째 일치만 바꾸므로, 미리보기도 그 위치에서 앞·뒤를 나눠 그립니다.
@@ -32,6 +33,7 @@ export function InboxPage() {
       <Gnb on="lib" />
       <main id="main" tabIndex={-1} className="wrap">
         {top}
+        <FeedbackReportInbox />
         <div className="inbox">
           <div>{items.map((x) => (
             <Go key={x.id} to={`/inbox?i=${x.id}`} className={`ibx ${it && x.id === it.id ? 'on' : ''}`} aria-current={it && x.id === it.id ? 'true' : undefined}><div className="top"><b>{x.title} {x.n}화 · {x.type}</b><span className={`chip ${inboxCls(x.status)}`}>{x.status}</span></div><p>{x.text}</p><span className="small muted">{x.who}</span></Go>
@@ -57,7 +59,7 @@ export function InboxPage() {
               </>}
               <p className="note" style={{ marginTop: 16 }}>원문은 작가가 승인해야만 바뀌어요. 처리 결과는 독자의 내 서재에 바로 표시돼요.</p>
             </div>
-          ) : <div className="panel muted">제보가 없어요.</div>}
+          ) : <div className="panel muted">데모 작품의 피드백이 없어요.</div>}
         </div>
       </main>
       <Footer />

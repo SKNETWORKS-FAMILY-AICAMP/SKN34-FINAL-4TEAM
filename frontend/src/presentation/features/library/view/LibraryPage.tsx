@@ -6,6 +6,7 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { PublishSettingsSheet } from '../../../shared/PublishSettingsSheet'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useLibraryViewModel } from '../viewmodel/useLibraryViewModel'
+import { MyFeedbackReports } from './MyFeedbackReports'
 import { ServerWritingList } from './ServerWritingList'
 
 const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['qa', '내 댓글·신고']] as const
@@ -26,9 +27,10 @@ export function LibraryPage() {
         <nav className="libtabs">{TABS.map(([k, l]) => <Go key={k} to={`/lib?tab=${k}`} className={d.tab === k ? 'on' : ''} aria-current={d.tab === k ? 'page' : undefined}>{l}{k === 'write' && d.pending > 0 && <span className="nb">{d.pending}</span>}</Go>)}</nav>
         {d.reports && (
           <>
-            <div className="list" id="myreports">{d.reports.map((r) => (
+            <MyFeedbackReports />
+            {d.reports.length > 0 && <section className="sec" aria-label="데모 작품 피드백"><div className="sec-h"><h2>데모 작품 피드백 · 서버에 저장되지 않아요</h2></div><div className="list" id="myreports">{d.reports.map((r) => (
               <div className="rp" key={r.id}><div className="top"><b>{r.title} {r.n ? `${r.n}화` : '소설 전체'} · {r.type}</b><span className={`chip ${/완료|반영/.test(r.status) ? 'ok' : 'wait'}`}>{r.status}</span></div><div className="small" style={{ marginTop: 4 }}>{r.text}</div><div className="a">🤖 {r.reply}</div></div>
-            ))}</div>
+            ))}</div></section>}
             <p className="muted small" style={{ marginTop: 10 }}>작가가 처리하면 상태가 바뀌어요.</p>
           </>
         )}

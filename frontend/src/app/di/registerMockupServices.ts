@@ -7,7 +7,7 @@ import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInte
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
 import { InMemoryOperationsWorkRepository } from '../../data/mock/InMemoryOperationsWorkRepository'
 import { seedNotices } from '../../data/mock/seed'
-import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupNotificationRepository, mockupUnsupportedMedia } from '../../data/mock/mockupRepositories'
+import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupFeedbackReportRepository, mockupNotificationRepository, mockupUnsupportedMedia } from '../../data/mock/mockupRepositories'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
@@ -49,6 +49,8 @@ export function registerMockupServices(container: AppContainer) {
     mediaUseCase: asValue(new MediaUseCase(mediaRepository)),
     manuscriptRepository: asValue(manuscriptRepository),
     manuscriptUseCase: asValue(new ManuscriptUseCase(manuscriptRepository)),
+    // 서버 제보 API 대신 빈 목록·미지원 오류 대역입니다(데모 작품은 정본이 아니라 기존 메모리 피드백을 씁니다).
+    feedbackReportRepository: asValue(mockupFeedbackReportRepository),
     authRepository: asValue(mockupAuthRepository),
     authUseCase: asValue(new AuthUseCase(mockupAuthRepository)),
     notificationRepository: asValue(mockupNotificationRepository),
