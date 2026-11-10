@@ -78,7 +78,7 @@ Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼�
 
 회원 탈퇴 요청은 `auth/controller → WithdrawalService → JpaRepository`가 `auth_withdrawal`(Flyway V7, `db/migration/auth`)에 요청·30일 유예·복구 상태만 기록하고 refresh 세션을 폐기합니다. 콘텐츠 소프트 삭제(DEC-42)·익명화와 유예 만료 후 최종 처리는 콘텐츠 서비스와의 계약이 확정된 뒤 후속으로 연결합니다.
 
-알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V5~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ outbox·소비자와 모바일 푸시는 후속 범위입니다.
+알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V5~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ 사건 소비자(`NoticeEventListener`)와 Core Outbox·발행기(`notification_outbox` V11, `NoticeOutboxRelay`)는 구현돼 있으나 Core가 직접 만드는 사건은 아직 연결하지 않았고(계약은 [알림 사건 계약](notification-event-contract.md)), 모바일 푸시는 후속 범위입니다.
 
 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS와 여러 콘텐츠 기능에서 공유하는 실패·식별자 계약이 있습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
