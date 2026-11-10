@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
@@ -40,5 +40,23 @@ export function useLibraryViewModel(libraryUseCase: LibraryUseCase = appContaine
     }
   }
   const publishing = data?.write?.mine.find((m) => m.work.id === publishId)?.work
-  return { data: data?.tab === tab ? { ...data, appeal, publishing, openPublish: setPublishId, closePublish: () => setPublishId(null), savePublish } : undefined, isError, retry }
+  /** 서재 읽는 중 목록의 이어 읽기 기록 삭제. 진행 중에는 다른 삭제를 받지 않고, 실패는 안내하며 목록을 그대로 둡니다. */
+  const [removing, setRemoving] = useState<string | null>(null)
+  const removeBusy = useRef(false)
+  const removeReading = async (workId: string) => {
+    if (removeBusy.current) return
+    removeBusy.current = true
+    setRemoving(workId)
+    try {
+      await libraryUseCase.removeReading(workId)
+      dispatch(sessionActions.dataChanged())
+      toast('이어 읽기 기록을 지웠어요')
+    } catch (error) {
+      toast(error instanceof Error ? error.message : '이어 읽기 기록을 지우지 못했어요.')
+    } finally {
+      removeBusy.current = false
+      setRemoving(null)
+    }
+  }
+  return { data: data?.tab === tab ? { ...data, appeal, publishing, openPublish: setPublishId, closePublish: () => setPublishId(null), savePublish, removeReading, removing } : undefined, isError, retry }
 }

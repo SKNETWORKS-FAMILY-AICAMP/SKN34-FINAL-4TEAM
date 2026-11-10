@@ -42,12 +42,12 @@ export function Gnb({ on = '' }: { on?: string }) {
   )
 }
 
-/** 목업 foot() */
+/** 목업 foot(). 오프라인 데모 안내는 서버 없는 시연(`--mode mockup`)에서만 붙인다. */
 export function Footer() {
   return (
     <footer className="foot">
       <div className="wrap">
-        <b>STORYFORK</b><span>SKN34 최종 프로젝트 4팀 · 인터랙티브 MVP (오프라인 · AI 응답은 미리 정한 데모)</span>
+        <b>STORYFORK</b><span>SKN34 최종 프로젝트 4팀{import.meta.env.MODE === 'mockup' && ' · 인터랙티브 MVP (오프라인 · AI 응답은 미리 정한 데모)'}</span>
       </div>
     </footer>
   )

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { Provider } from 'react-redux'
@@ -16,7 +16,7 @@ afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
 })
-it('selects source and target, applies free prose and preserves the relation ID on edit', async () => {
+it('connects character and location cards, applies free prose and preserves the relation ID on edit', async () => {
   const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
   const world = await useCase.create('세계', ''), a = newSetting('people'), b = newSetting('places')
   a.item.title = '가람'
@@ -41,13 +41,9 @@ it('selects source and target, applies free prose and preserves the relation ID 
       </Routes>
     </MemoryRouter>,
   )
-  fireEvent.change(await screen.findByRole('combobox', { name: 'source · 관계 주체' }), {
-    target: { value: a.item.id },
-  })
-  fireEvent.change(screen.getByRole('combobox', { name: 'target · 관계 대상' }), {
-    target: { value: b.item.id },
-  })
-  fireEvent.click(screen.getByRole('button', { name: '관계 작성' }))
+  fireEvent.click(await screen.findByRole('button', { name: '가람 관계 연결' }))
+  expect(screen.getByRole('group', { name: '항구 장소 카드' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '항구 상대 선택' }))
   fireEvent.change(screen.getByRole('combobox', { name: '실제 관계 1' }), {
     target: { value: '지키는 장소' },
   })
@@ -275,3 +271,88 @@ it.each(['text', 'title', 'name'] as const)(
     expect((await useCase.read(world.id)).settings).toEqual(latest.settings)
   },
 )
+
+it('preserves the unapplied relationship text when changing the target is cancelled',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('people'),c=newSetting('people')
+ a.item.title='가람';b.item.title='나래';c.item.title='다온';world.settings=[a,b,c];await useCase.save(world)
+ let current:ReturnType<typeof useWorldStudioViewModel>|undefined
+ function Harness(){const vm=useWorldStudioViewModel(useCase);current=vm;return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ vi.spyOn(window,'confirm').mockReturnValue(false)
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.change(await screen.findByRole('combobox',{name:'source · 관계 주체'}),{target:{value:a.item.id}})
+ fireEvent.change(screen.getByRole('combobox',{name:'target · 관계 대상'}),{target:{value:b.item.id}})
+ fireEvent.click(screen.getByRole('button',{name:'관계 작성'}))
+ fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'작성 중인 관계'}})
+ await waitFor(()=>expect(current!.relationDirty).toBe(true))
+ fireEvent.change(screen.getByRole('combobox',{name:'target · 관계 대상'}),{target:{value:c.item.id}})
+ expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'target · 관계 대상'}).value).toBe(b.item.id)
+ expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('작성 중인 관계')
+ expect(window.confirm).toHaveBeenCalledOnce()
+})
+
+it('closes stale deletion confirmation safely after the person changes type',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),person=newSetting('people');person.item.title='가람';world.settings=[person];await useCase.save(world)
+ let current:ReturnType<typeof useWorldStudioViewModel>|undefined
+ function Harness(){const vm=useWorldStudioViewModel(useCase);current=vm;return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.change(await screen.findByRole('combobox',{name:'source · 관계 주체'}),{target:{value:person.item.id}})
+ fireEvent.click(screen.getByRole('button',{name:'선택한 인물 삭제'}))
+ expect(screen.getByRole('region',{name:'인물 삭제 확인'})).toBeTruthy()
+ act(()=>current!.changeCardType(person.item.id,'location'))
+ expect(screen.queryByRole('region',{name:'인물 삭제 확인'})).toBeNull()
+ expect(current!.editing!.settings[0].item.id).toBe(person.item.id)
+})
+
+it('does not discard a new relation with a custom name but no description on apply',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('people')
+ a.item.title='가람';b.item.title='나래'
+ world.settings=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'friend_of',polarity:'asserted'});await useCase.save(world)
+ function Harness(){const vm=useWorldStudioViewModel(useCase);return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.click(await screen.findByRole('button',{name:'가람 · 친구 · 나래'}))
+ const group=screen.getByRole('heading',{name:'나래 → 가람 감정'}).closest('section')!
+ fireEvent.click(within(group).getByText('항목 이름 직접 쓰기'))
+ fireEvent.change(within(group).getByRole('textbox',{name:'나래 → 가람 감정 1 이름'}),{target:{value:'남겨 둔 이름'}})
+ fireEvent.click(screen.getByRole('button',{name:'편집본에 적용'}))
+ expect(screen.getByRole('alert').textContent).toContain('설명')
+ expect(within(group).getByRole<HTMLInputElement>('textbox',{name:'나래 → 가람 감정 1 이름'}).value).toBe('남겨 둔 이름')
+})
+
+it('keeps the open pair draft when the same two people are chosen in the opposite direction',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('people')
+ a.item.title='가람';b.item.title='나래'
+ world.settings=putRelation([a,b],{subjectId:b.item.id,targetId:a.item.id,predicate:'trusts',polarity:'asserted'});await useCase.save(world)
+ function Harness(){const vm=useWorldStudioViewModel(useCase);return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ vi.spyOn(window,'confirm').mockReturnValue(true)
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.change(await screen.findByRole('combobox',{name:'source · 관계 주체'}),{target:{value:a.item.id}})
+ fireEvent.change(screen.getByRole('combobox',{name:'target · 관계 대상'}),{target:{value:b.item.id}})
+ fireEvent.click(screen.getByRole('button',{name:'관계 작성'}))
+ fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'작성 중인 관계'}})
+ fireEvent.click(within(screen.getByRole('navigation',{name:'저장할 관계 목록'})).getByRole('button'))
+ expect(window.confirm).not.toHaveBeenCalled()
+ expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('작성 중인 관계')
+})
+
+it('focuses connection cancel, cancels choosing with Escape and clears it when the source person is deleted',async()=>{
+ const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+ const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('places')
+ a.item.title='가람';b.item.title='항구';world.settings=[a,b];await useCase.save(world)
+ function Harness(){const vm=useWorldStudioViewModel(useCase);return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
+ fireEvent.click(await screen.findByRole('button',{name:'가람 관계 연결'}))
+ expect(document.activeElement).toBe(screen.getByRole('button',{name:'연결 취소'}))
+ expect(screen.getByRole('status').textContent).toContain('가람의 연결 상대')
+ fireEvent.keyDown(screen.getByRole('button',{name:'연결 취소'}),{key:'Escape'})
+ expect(screen.queryByRole('button',{name:'연결 취소'})).toBeNull()
+ expect(document.activeElement).toBe(screen.getByRole('button',{name:'가람 관계 연결'}))
+ fireEvent.click(screen.getByRole('button',{name:'가람 관계 연결'}))
+ fireEvent.click(screen.getByRole('button',{name:'선택한 인물 삭제'}))
+ fireEvent.click(screen.getByRole('button',{name:'인물과 연결 삭제'}))
+ expect(screen.queryByRole('button',{name:'연결 취소'})).toBeNull()
+ expect(screen.getByRole('button',{name:'항구 관계 연결'})).toBeTruthy()
+})

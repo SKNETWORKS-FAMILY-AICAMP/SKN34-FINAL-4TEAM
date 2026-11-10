@@ -1,8 +1,9 @@
 package ai.storyfork.operations.notice.service
 
+import ai.storyfork.operations._common.service.dto.PageResponse
+import ai.storyfork.operations._common.service.dto.toResponse
 import ai.storyfork.operations.notice.entity.NoticeEntity
 import ai.storyfork.operations.notice.repository.NoticeRepository
-import ai.storyfork.operations.notice.service.dto.NoticeListResponse
 import ai.storyfork.operations.notice.service.dto.NoticeRequest
 import ai.storyfork.operations.notice.service.dto.NoticeResponse
 import java.time.Instant
@@ -25,15 +26,12 @@ class NoticeService(private val repository: NoticeRepository) {
         return response(repository.saveAndFlush(NoticeEntity(title = request.title, body = request.body)))
     }
 
-    /** 호출자의 정렬 대신 생성 시각·UUID 내림차순으로 최대 100개를 조회한다. */
-    fun list(pageable: Pageable): NoticeListResponse {
+    /** 호출자의 정렬 대신 생성 시각·UUID 내림차순으로 조회한다. 기본·최대 크기는 `spring.data.web.pageable.*` 설정이 정한다. */
+    fun list(pageable: Pageable): PageResponse<NoticeResponse> {
         val bounded = PageRequest.of(
-            if (pageable.isPaged) pageable.pageNumber else 0,
-            if (pageable.isPaged) pageable.pageSize.coerceAtMost(100) else 20,
-            Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")),
+            pageable.pageNumber, pageable.pageSize, Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")),
         )
-        val page = repository.findAll(bounded)
-        return NoticeListResponse(page.content.map(::response), page.number, page.size, page.totalElements, page.totalPages)
+        return repository.findAll(bounded).toResponse(::response)
     }
 
     /** 저장된 공지 DTO를 반환하며 없으면 공통 404 처리기에 위임한다. */
@@ -56,9 +54,10 @@ class NoticeService(private val repository: NoticeRepository) {
 
     private fun find(id: UUID): NoticeEntity = repository.findById(id).orElseThrow()
 
+    /** 길이는 요청 DTO의 `@Size`가 검증한다. 공백은 `@NotBlank`(String.isBlank)가 통과시키는 U+00A0·U+2007·U+202F까지 `isNotBlank`로 거절하고, PostgreSQL text가 저장하지 못하는 U+0000도 거절한다. */
     private fun validate(request: NoticeRequest) {
-        require(request.title.isNotBlank() && request.title.length <= 200 && '\u0000' !in request.title)
-        require(request.body.isNotBlank() && request.body.length <= 20_000 && '\u0000' !in request.body)
+        require(request.title.isNotBlank() && '\u0000' !in request.title)
+        require(request.body.isNotBlank() && '\u0000' !in request.body)
     }
 
     private fun response(entity: NoticeEntity) = NoticeResponse(

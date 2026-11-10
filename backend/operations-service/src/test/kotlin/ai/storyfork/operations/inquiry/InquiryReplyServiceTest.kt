@@ -1,5 +1,6 @@
 package ai.storyfork.operations.inquiry
 
+import ai.storyfork.operations._common.blankTexts
 import ai.storyfork.operations.inquiry.entity.InquiryReplyEntity
 import ai.storyfork.operations.inquiry.repository.InquiryReplyRepository
 import ai.storyfork.operations.inquiry.repository.InquiryRepository
@@ -58,7 +59,7 @@ class InquiryReplyServiceTest {
     fun `invalid reply creation fails before parent lookup or persistence`() {
         `when`(inquiries.existsById(inquiryId)).thenReturn(true)
         `when`(replies.saveAndFlush(any(InquiryReplyEntity::class.java) ?: reply())).thenAnswer { it.arguments[0] }
-        for (body in listOf("", " \t\n", "b".repeat(20001), "답\u0000변")) {
+        for (body in blankTexts + "답\u0000변") {
             assertThrows(IllegalArgumentException::class.java) { service.createReply(inquiryId, InquiryReplyRequest(body)) }
         }
         verifyNoInteractions(inquiries, replies)
@@ -76,7 +77,7 @@ class InquiryReplyServiceTest {
         `when`(inquiries.existsById(inquiryId)).thenReturn(true)
         `when`(replies.findAllByInquiryId(inquiryId, bounded)).thenReturn(PageImpl(listOf(reply()), bounded, 150))
 
-        val result = service.listReplies(inquiryId, PageRequest.of(0, 1000, Sort.by("body")))
+        val result = service.listReplies(inquiryId, PageRequest.of(0, 100, Sort.by("body")))
 
         assertEquals(listOf(replyId), result.items.map { it.id })
         assertEquals(inquiryId, result.items.single().inquiryId)
@@ -90,14 +91,6 @@ class InquiryReplyServiceTest {
     @Test
     fun `missing parent reply list is not misreported as an empty successful list`() {
         assertThrows(NoSuchElementException::class.java) { service.listReplies(inquiryId, PageRequest.of(0, 20)) }
-        verifyNoInteractions(replies)
-    }
-
-    @Test
-    fun `unpaged reply list is rejected`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            service.listReplies(inquiryId, org.springframework.data.domain.Pageable.unpaged())
-        }
         verifyNoInteractions(replies)
     }
 
@@ -154,7 +147,7 @@ class InquiryReplyServiceTest {
         `when`(replies.findByIdAndInquiryId(replyId, inquiryId)).thenReturn(row)
         `when`(replies.saveAndFlush(row)).thenReturn(row)
 
-        for (body in listOf("", " \t\n", "b".repeat(20001), "답\u0000변")) {
+        for (body in blankTexts + "답\u0000변") {
             assertThrows(IllegalArgumentException::class.java) { service.updateReply(inquiryId, replyId, InquiryReplyRequest(body)) }
             assertEquals("이전 답변", row.body)
             assertEquals(row.createdAt, row.updatedAt)

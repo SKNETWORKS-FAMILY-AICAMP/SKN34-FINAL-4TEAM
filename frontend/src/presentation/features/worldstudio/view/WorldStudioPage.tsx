@@ -22,6 +22,7 @@ const steps=[['info','기본 정보'],['cards','설정 카드'],['relations','�
 const exploreTabs=[['map','전체 세계관 지도'],['wiki','설정집'],['relations','인물 관계도'],['timeline','초기 역사 시간선']] as const
 const labelOf=(setting:StudioSetting)=>cardTypes.find(t=>t.id===cardTypeOf(setting.item))?.label??kinds[setting.item.kind]
 
+/** 세계관을 편집하고, 새 소설 등록은 실행 모드의 작품 생성 화면에서 시작한다. */
 export function WorldStudioPage(){
  useScreenId('W01')
  useDocumentTitle('세계관')
@@ -30,13 +31,13 @@ export function WorldStudioPage(){
  const current=steps.findIndex(([id])=>id===vm.flow.step)
  const chooseTool=(tool:'explore'|'analysis')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
  return <><Gnb on="worldstudio"/><main id="main" tabIndex={-1} className="wrap world-studio world-writing">
-  <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">로그인한 내 세계관을 서버에 저장합니다. 관계는 현재 상태만 보관하며 관계 이력·과거 세계관 전체 복원은 지원하지 않습니다.</p></div></header>
+  <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">{vm.storage.intro}</p></div></header>
   {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}
   {vm.message&&<p role="status" className="world-message">{vm.message}</p>}
   <WorldLibrary vm={vm}/>
   {vm.editing&&<section className="world-content" hidden={vm.flow.screen!=='editor'} aria-busy={vm.busy}>
-   <div className="world-toolbar"><button type="button" className="btn sm" onClick={vm.showList}>내 세계관</button><h2>{vm.saved?.name}</h2><span role="status" className="world-save-state">{vm.saveState==='saving'?'저장 중':vm.saveState==='failed'?'저장 실패 · 입력은 유지됩니다':vm.dirty?'작성 중 · 미저장':'저장됨'}</span>
-    <details className="world-tools" ref={tools}><summary>도구</summary><div><button type="button" onClick={()=>chooseTool('explore')}>세계관 탐색</button><button type="button" onClick={()=>chooseTool('analysis')}>AI 후보 검토</button><button type="button" onClick={()=>{vm.goStep('cards');vm.addCard('note');vm.setCardDetail(true);if(tools.current)tools.current.open=false}}>집필 메모 추가</button><Go to="/new">새 소설 등록으로</Go></div></details>
+   <div className="world-toolbar"><button type="button" className="btn sm" onClick={vm.showList}>내 세계관</button><h2>{vm.saved?.name}</h2><span role="status" className="world-save-state">{vm.saveState==='saving'?'저장 중':vm.saveState==='failed'?'저장 실패 · 입력은 유지됩니다':vm.dirty?'작성 중 · 미저장':'저장됨'}</span>{vm.relationDirty&&<span role="status" className="small muted">관계 입력 미적용</span>}
+    <details className="world-tools" ref={tools}><summary>도구</summary><div><button type="button" onClick={()=>chooseTool('explore')}>세계관 탐색</button><button type="button" onClick={()=>chooseTool('analysis')}>AI 후보 검토</button><button type="button" onClick={()=>{vm.goStep('cards');vm.addCard('note');vm.setCardDetail(true);if(tools.current)tools.current.open=false}}>집필 메모 추가</button><Go to={import.meta.env.MODE === 'mockup' ? '/new' : '/content'}>새 소설 등록으로</Go></div></details>
    </div>
    {vm.tool!=='write'&&<button className="btn sm world-return" type="button" onClick={()=>vm.setTool('write')}>작성으로 돌아가기</button>}
    <div hidden={vm.tool!=='write'}>
@@ -48,7 +49,7 @@ export function WorldStudioPage(){
      <p className="small muted">이름만 정해도 시작할 수 있어요. 자세한 설정은 나중에 추가하세요.</p>
     </fieldset>
     <div hidden={vm.flow.step!=='cards'}><CardWriting vm={vm}/></div>
-    {vm.relationWorld===vm.editing.id&&<div hidden={vm.flow.step!=='relations'}><p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p><button className="btn sm" type="button" onClick={vm.returnToCard}>설정 카드로 돌아가기</button><WorldRelationshipEditor key={vm.editing.id} studio={vm}/></div>}
+    {vm.relationWorld===vm.editing.id&&<div hidden={vm.flow.step!=='relations'}><p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p><button className="btn sm" type="button" onClick={vm.returnToCard}>설정 카드로 돌아가기</button><WorldRelationshipEditor key={`${vm.editing.id}:${vm.relationKey}`} studio={vm}/></div>}
     <div hidden={vm.flow.step!=='review'}><WritingReview vm={vm}/></div>
     <nav className="world-step-actions" aria-label="단계 이동"><button className="btn" type="button" disabled={current===0} onClick={()=>vm.goStep(steps[current-1][0])}>이전 단계</button>{current<3&&<button className="btn pri" type="button" onClick={()=>vm.goStep(steps[current+1][0])}>{vm.flow.step==='relations'?'검토·저장으로':'다음 단계'}</button>}{vm.flow.step==='cards'&&<button className="btn" type="button" onClick={()=>vm.goStep('review')}>관계 없이 검토·저장</button>}</nav>
    </div>
@@ -60,7 +61,7 @@ export function WorldStudioPage(){
 function WorldLibrary({vm}:{vm:VM}){
  const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const form=new FormData(e.currentTarget);vm.create(String(form.get('name')??''),String(form.get('description')??''))}
  return <section className="world-library" hidden={vm.flow.screen!=='list'} aria-busy={vm.busy}><div className="world-toolbar"><h2>내 세계관</h2>{vm.editing&&<button className="btn" type="button" onClick={vm.resume}>이어서 작성</button>}</div>
-  <p className="small muted">내 계정의 서버 저장 목록입니다. 저장 실패 시 입력을 보존하고 같은 입력으로 다시 저장하세요. 미완료 요청은 새로고침만으로 복구되지 않습니다.</p>
+  <p className="small muted">{vm.storage.library}</p>
   <nav aria-label="내 세계관">{vm.worlds.map(w=><button key={w.id} type="button" disabled={vm.busy} onClick={()=>vm.editing?.id===w.id?vm.resume():vm.open(w.id)}><strong>{w.name}</strong><small>{w.description||'세계관 설명 없음'}{w.relationshipStatus==='incomplete'?' · 저장 미완료':w.relationshipStatus==='migration_required'?' · 기존 데이터 전환 필요':''}</small></button>)}</nav>
   {!vm.busy&&!vm.worlds.length&&!vm.error&&<p className="muted">아직 저장한 세계관이 없어요. 이름부터 정해 시작해 보세요.</p>}
   <form onSubmit={create}><h3>새 세계관 만들기</h3><label className="field">세계관 이름<input name="name" className="inp" required maxLength={100}/></label><label className="field">설명 (선택)<textarea name="description" className="ta" rows={3} maxLength={20000}/></label><button className="btn pri" disabled={vm.busy}>세계관 만들기</button></form>
@@ -72,14 +73,16 @@ function SettingIcon({setting}:{setting:StudioSetting}){
 }
 function CardWriting({vm}:{vm:VM}){
  const world=vm.editing!,field=useRef<HTMLInputElement>(null)
- const setting=world.settings.find(s=>s.item.id===vm.selected)??vm.cardRows[0]??world.settings[0]
+ const setting=world.settings.find(s=>s.item.id===vm.selected)??vm.cardRows[0]
  const legacy=world.settings.filter(s=>['relation','review','note'].includes(cardTypeOf(s.item)))
+ const editingOutside=setting&&cardTypes.some(type=>type.id===cardTypeOf(setting.item))&&!vm.cardRows.some(row=>row.item.id===setting.item.id)
  const select=(id:string)=>{vm.editCard(id);requestAnimationFrame(()=>field.current?.focus())}
  const add=()=>{vm.setCardFilter('all');vm.setCardQuery('');vm.addCard(vm.newCardType);vm.setCardDetail(true);requestAnimationFrame(()=>field.current?.focus())}
  return <fieldset className="world-fields" disabled={vm.busy}><legend className="sr-only">설정 카드 작성</legend>
   <div className="world-card-intro"><p className="muted">인물이나 장소 등 세계의 설정을 자유롭게 작성해 보세요.</p><div className="world-add"><label className="sr-only" htmlFor="new-setting-type">추가할 설정 유형</label><select id="new-setting-type" className="inp" value={vm.newCardType} onChange={e=>vm.setNewCardType(e.target.value as CardType)}>{cardTypes.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select><button type="button" className="btn pri" aria-label="설정 추가" onClick={add}><span aria-hidden="true">+</span> 설정 추가</button></div></div>
   <div className={'world-card-workspace'+(vm.cardDetail?' showing-detail':'')}>
-   <aside className="world-card-library" aria-label="설정 목록"><div className="world-card-filters"><label className="sr-only" htmlFor="setting-search">설정 검색</label><input id="setting-search" type="search" className="inp" placeholder="설정 찾기" value={vm.cardQuery} onChange={e=>vm.setCardQuery(e.target.value)}/><label className="sr-only" htmlFor="setting-filter">설정 유형 필터</label><select id="setting-filter" className="inp" value={vm.cardFilter} onChange={e=>vm.setCardFilter(e.target.value as CardType|'all')}><option value="all">모든 유형</option>{cardTypes.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select></div>
+   <aside className="world-card-library" aria-label="설정 목록"><div className="world-card-filters"><label className="sr-only" htmlFor="setting-search">설정 검색</label><input id="setting-search" type="search" className="inp" placeholder="설정 찾기" value={vm.cardQuery} onChange={e=>vm.filterCards(vm.cardFilter,e.target.value)}/><label className="sr-only" htmlFor="setting-filter">설정 유형 필터</label><select id="setting-filter" className="inp" value={vm.cardFilter} onChange={e=>vm.filterCards(e.target.value as CardType|'all',vm.cardQuery)}><option value="all">모든 유형</option>{cardTypes.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select></div>
+    {editingOutside&&<div><p className="small muted">현재 편집 중 · 필터 조건 밖</p><button type="button" aria-label={`${setting.item.title||'이름 없는 설정'} ${labelOf(setting)}`} aria-current="true" onClick={()=>select(setting.item.id)}><SettingIcon setting={setting}/><span><strong>{setting.item.title||'이름 없는 설정'}</strong><small>{labelOf(setting)}</small></span></button></div>}
     <nav aria-label="설정 카드 목록">{vm.cardRows.map(s=><button type="button" key={s.item.id} aria-label={`${s.item.title||'이름 없는 설정'} ${labelOf(s)}`} aria-current={setting?.item.id===s.item.id?'true':undefined} onClick={()=>select(s.item.id)}><SettingIcon setting={s}/><span><strong>{s.item.title||'이름 없는 설정'}</strong><small>{labelOf(s)}</small><p>{s.item.text||'설명을 추가해 보세요.'}</p></span></button>)}</nav>
     {!vm.cardRows.length&&<p className="small muted">{world.settings.length?'조건에 맞는 설정이 없어요.':'설정을 추가해 시작해 보세요.'}</p>}
     {!!legacy.length&&<details className="world-legacy-list"><summary>기존 설정·관계 {legacy.length}개</summary><nav aria-label="기존 설정과 관계">{legacy.map(s=><button type="button" key={s.item.id} onClick={()=>select(s.item.id)}>{s.item.title||'이름 없는 설정'}<small>{labelOf(s)}</small></button>)}</nav></details>}
@@ -106,7 +109,7 @@ function WritingReview({vm}:{vm:VM}){
  return <section className="world-review" aria-label="세계관 검토"><article className="world-review-intro"><div className="world-toolbar"><h4>{world.name||'이름 없는 세계관'}</h4><button className="btn sm" type="button" onClick={()=>vm.goStep('info')}>기본 정보 수정</button></div><p className="world-prose">{world.description||'설명은 나중에 추가해도 괜찮아요.'}</p></article>
   {vm.writingIssues.length>0&&<div className="world-error" role="alert"><h4>저장 전에 확인해 주세요</h4><ul>{vm.writingIssues.map((issue,i)=><li key={i}><button type="button" onClick={()=>issue.id?vm.editCard(issue.id):vm.goStep('info')}>{issue.message}</button></li>)}</ul></div>}
   <h4>설정 카드 {cards.length}개</h4>{cards.length?cards.map(s=><article className="world-review-item" key={s.item.id}><div><span className="small muted">{labelOf(s)}</span><h5>{s.item.title||'이름 없는 설정'}</h5><p className="world-prose">{s.item.text||'설명 없음'}</p></div><button className="btn sm" type="button" aria-label={`${s.item.title||'이름 없는 설정'} 수정`} onClick={()=>vm.editCard(s.item.id)}>수정</button></article>):<p className="muted">아직 등록한 설정이 없어요. 기본 정보만 저장해도 괜찮아요.</p>}
-  <h4>관계 {relations.length}개</h4>{relations.length?relations.map(s=><article key={s.item.id} className="world-review-item"><div><h5>{name(s.item.subjectId)} → {name(s.item.targetId)}</h5><p className="world-prose">{relationLabel(s.item)}</p></div><button className="btn sm" type="button" onClick={()=>vm.openRelations(s.item.subjectId??'')}>관계 수정</button></article>):<p className="muted">관계는 선택 사항이에요. 나중에 연결할 수 있습니다.</p>}
+  <h4>관계 {relations.length}개</h4>{relations.length?relations.map(s=><article key={s.item.id} className="world-review-item"><div><h5>{name(s.item.subjectId)} → {name(s.item.targetId)}</h5><p className="world-prose">{relationLabel(s.item)}</p></div><button className="btn sm" type="button" onClick={()=>vm.editRelation(s.item.id)}>관계 수정</button></article>):<p className="muted">관계는 선택 사항이에요. 나중에 연결할 수 있습니다.</p>}
   <div className="world-save-actions"><p className="small muted">저장은 발행·공개와 다릅니다.</p><button className="btn pri" type="button" disabled={vm.busy||!vm.dirty||vm.writingIssues.length>0} onClick={vm.save}>세계관 저장</button></div>
  </section>
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
-import { canView, forkLabel, forkList, makeFork } from '../entities/work'
+import { canReport, canView, forkLabel, forkList, makeFork } from '../entities/work'
 
 const works = seedWorks(0)
 const worlds = seedWorlds()
@@ -30,6 +30,22 @@ describe('작품 규칙 (목업 1절)', () => {
     expect(canView(mine, null)).toBe(false)
     expect(canView(mine, 'user')).toBe(true)
     expect(canView({ ...byId('postman'), private: true }, 'user')).toBe(false)
+  })
+
+  it('신고는 남의 공개 작품에만 열린다 — 비공개·숨김·본인 작품은 불가 (#196)', () => {
+    const others = byId('postman')
+    expect(canReport(others, 'member-1')).toBe(true)
+    expect(canReport({ ...others, private: true }, 'member-1')).toBe(false)
+    expect(canReport({ ...others, hidden: true }, 'member-1')).toBe(false)
+    expect(canReport(byId('starlight'), 'member-1')).toBe(false)
+  })
+
+  it('서버 작품은 canonical이어도 소유자 회원 ID·mine 표시로 본인 작품을 가른다 — 검색 카드는 mine을 모른다 (#196)', () => {
+    const server = { ...byId('postman'), canonical: true, owner: 'owner-uuid', mine: false }
+    expect(canReport(server, 'reader-uuid')).toBe(true)
+    expect(canReport(server, null)).toBe(true)
+    expect(canReport(server, 'owner-uuid')).toBe(false)
+    expect(canReport({ ...server, mine: true }, 'reader-uuid')).toBe(false)
   })
 
   it('포크 스냅샷은 분기 회차까지 공개된 규칙·인물·사건만 복사하고 원작과 분리된다', () => {

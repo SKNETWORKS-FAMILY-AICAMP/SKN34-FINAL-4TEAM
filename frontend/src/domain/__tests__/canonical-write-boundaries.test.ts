@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createFixtureDb } from '../../data/mock/fixtureDb'
-import { InMemoryAdminRepository, InMemoryChatRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryInquiryRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryAdminRepository, InMemoryChatRepository, InMemoryCreditRepository, InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { StudioUseCase } from '../usecases/StudioUseCase'
 import { FeedbackUseCase } from '../usecases/FeedbackUseCase'
 import { InboxUseCase } from '../usecases/InboxUseCase'
@@ -37,21 +38,20 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
     expect(db.reports).toEqual([])
     expect(db.reviewQueue).toEqual([])
   })
-  it('blocks inbox and admin actions before any demo status or audit changes',async()=>{
+  it('blocks inbox actions before any demo status or audit changes',async()=>{
     const {db,w,works,feedback,admin,credits}=setup()
     db.inbox.push({id:'i',rid:'r',w:w.id,n:1,pi:0,type:'질문',who:'독자',text:'질문',baseText:'',status:'작가 검토 대기',ai:{cls:'질문',why:'',ev:''}})
     db.reviewQueue.push({id:'q',w:w.id,n:null,type:'신고',text:'내용',quote:'',status:'접수',who:'독자'})
     const before=structuredClone(db)
     expect(await new InboxUseCase(works,feedback).act('i','reject')).toContain('아직 연결되지')
-    const uc=new AdminUseCase(admin,works,feedback,new InMemoryInquiryRepository(db),credits,new InMemoryChatRepository(db))
-    expect((await uc.toggleWork(w.id))?.ok).toBe(false)
+    const uc=new AdminUseCase(admin,works,feedback,credits,new InMemoryChatRepository(db))
     expect(db).toEqual(before)
     expect((await uc.load()).isolation.some(x=>x.title===w.title)).toBe(false)
   })
   it('keeps canonical works out of the separate demo writing and appeal controls',async()=>{
     const {db,w,works,feedback,worlds}=setup()
     db.reviewQueue.push({id:'q',w:w.id,n:null,type:'신고',text:'내용',quote:'',status:'비공개 조치',who:'독자'})
-    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback)
+    const uc=new LibraryUseCase(works,worlds,feedback,new InMemoryWorkInterestRepository(),new InMemoryReadingRecordRepository(db))
     const result=await uc.getWrite()
     expect(result.mine.some(row=>row.work.canonical)).toBe(false)
     expect(result.appeals).toEqual([])
@@ -60,7 +60,7 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
     const {db,w,works,feedback,worlds}=setup()
     db.reviewQueue.push({id:'q',w:w.id,n:null,type:'신고',text:'내용',quote:'',status:'비공개 조치',who:'독자'})
     const before=structuredClone(db)
-    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback)
+    const uc=new LibraryUseCase(works,worlds,feedback,new InMemoryWorkInterestRepository(),new InMemoryReadingRecordRepository(db))
     expect(await uc.appeal('q','권리 확인')).toContain('아직 연결되지')
     expect(db).toEqual(before)
   })
@@ -69,7 +69,7 @@ describe('canonical works never enter legacy aggregate mutations',()=>{
     db.worlds.push({id:'mine',name:'세계',description:'',rules:['규칙'],public:false,history:[]})
     w.worldIds=['mine']
     const before=structuredClone(db)
-    const uc=new LibraryUseCase(works,worlds,new InMemoryReadingRepository(db),feedback)
+    const uc=new LibraryUseCase(works,worlds,feedback,new InMemoryWorkInterestRepository(),new InMemoryReadingRecordRepository(db))
     await expect(uc.editWorld('mine',{name:'변경',description:'',rules:'새 규칙'},true)).rejects.toThrow('정본 집필실')
     expect(db).toEqual(before)
   })

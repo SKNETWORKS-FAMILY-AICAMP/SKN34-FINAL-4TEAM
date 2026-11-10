@@ -104,7 +104,7 @@
 - **역할·범위:** 탈퇴 처리에서 작품·세계관·Fork 독립 전환별 성공·실패를 구분합니다. **MVP 이후**.
 - **그림의 필드:** `id`(PK), `withdrawal_id`, `work_id`, `world_id`, `fork_work_id`, `operation`, `outcome`, `failure_reason`, `processed_at`.
 - **참조:** `withdrawal_id` → [`ACCOUNT_WITHDRAWAL`](tables.md#account-withdrawal).`id`; `work_id` → [`WORK`](tables.md#work).`id` (선택); `world_id` → [`WORLD`](tables.md#world).`id` (선택); `fork_work_id` → [`FORK`](tables.md#fork).`work_id` (선택).
-- **제약·한계:** 대상 정확히 하나. 독립 전환 성공을 확인하기 전 원본 삭제 금지. 실제 삭제 후 참조는 안전한 비식별 처리기록으로 보존하는 방식 미정.
+- **제약·한계:** 대상 정확히 하나. 원본은 소프트 삭제되어 참조가 유지됨(DEC-42).
 - **연결 예시:** `id=1; withdrawal_id=account_withdrawal-1; work_id=work-1; world_id=world-1`처럼 한 관계·사건을 기록합니다(가상 예시; 상태 enum 미확정).
 
 ## 세계관·설정·인물
@@ -409,8 +409,9 @@
 - **역할·범위:** 회원별 작품 이어 읽기 위치입니다. **MVP**.
 - **그림의 필드:** `member_id`(PK), `work_id`(PK), `episode_version_id`, `position`, `updated_at`.
 - **참조:** `member_id` → [`MEMBER`](tables.md#member).`id`; `work_id` → [`WORK`](tables.md#work).`id`; `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id`.
-- **제약·한계:** 회차 버전은 해당 작품 소속. 본인만 조회·탈퇴 시 삭제. 위치 인코딩 미정.
+- **제약·한계:** 회차 버전은 해당 작품 소속. 본인만 조회·탈퇴 시 숨김(소프트 삭제). 위치 인코딩 미정.
 - **연결 예시:** `member_id=member-1; work_id=work-1; episode_version_id=episode_version-1`처럼 한 관계·사건을 기록합니다(가상 예시; 상태 enum 미확정).
+- **구현(기능 21-C):** 위 논리 후보 대신 `reading_record`(회원·작품당 마지막으로 연 회차 번호)와 `reading_episode`(연 회차 번호)로 구현하며 회차 버전·세부 위치는 저장하지 않습니다. 탈퇴 시 삭제는 범위 밖입니다. 정본은 [독서 관리 계약](../reading-management-contract.md)입니다.
 
 <a id="episode-view-day"></a>
 ### `EPISODE_VIEW_DAY`
@@ -527,10 +528,10 @@
 
 - **목표 정본 소유:** 콘텐츠.
 
-- **역할·범위:** 지정 저장 버전과 예약 시각을 실제 발행 결과와 분리합니다. **전체·범위확인**.
+- **역할·범위:** 지정 저장 버전과 예약 시각을 실제 발행 결과와 분리합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `episode_version_id`, `scheduled_at`, `status`, `created_at`.
 - **참조:** `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id`.
-- **제약·한계:** 실행 시 권한·조건 재확인. 변경·취소·실패 상세 미정. 실행 결과는 SCHEDULED_TASK_ITEM 연결.
+- **현재 구현:** `episode_id`와 `version_id`로 같은 회차의 저장 버전을 고정합니다. 회차당 대기 예약은 한 건입니다. 상태는 `pending / published / failed / canceled`이고 예약 수정 번호로 변경·취소 충돌을 막습니다. 실행 시 권한과 공개 조건을 재확인하고 `completed_at`과 실패 이유를 저장합니다.
 - **연결 예시:** `id=1; episode_version_id=episode_version-1; status=종류/상태의 예시값`처럼 한 관계·사건을 기록합니다(가상 예시; 상태 enum 미확정).
 
 <a id="story-plan"></a>

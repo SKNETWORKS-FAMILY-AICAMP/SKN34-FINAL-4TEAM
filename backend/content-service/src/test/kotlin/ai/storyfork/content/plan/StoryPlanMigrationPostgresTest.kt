@@ -29,7 +29,8 @@ class StoryPlanMigrationPostgresTest {
             fun migrations() = Flyway.configure().dataSource(source).schemas(schema).defaultSchema(schema)
                 .locations(*ContentPersistenceConfig.MIGRATION_LOCATIONS).table("content_schema_history")
             val initial=migrations().let { if(version>0) it.target(version.toString()) else it }.load()
-            assertEquals(if(version>0) version else 17,initial.migrate().migrationsExecuted)
+            // 31은 마이그레이션 개수다(V24가 결번이라 최댓값은 32). target 10·11은 결번보다 낮아 개수가 곧 버전이다.
+            assertEquals(if(version>0) version else 32,initial.migrate().migrationsExecuted)
             val checksums=jdbc.queryForList("SELECT version,checksum FROM content_schema_history ORDER BY installed_rank")
             jdbc.update("INSERT INTO member(id) VALUES ('owner')")
             jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','삭제 작품','','original',0),('other','owner','보존 작품','','original',0)")
@@ -45,7 +46,7 @@ class StoryPlanMigrationPostgresTest {
             if(version==10) assertThrows(DataIntegrityViolationException::class.java) { jdbc.update("DELETE FROM work WHERE id='w'") }
 
             val upgraded=migrations().load()
-            assertEquals(if(version>0) 17-version else 0,upgraded.migrate().migrationsExecuted)
+            assertEquals(if(version>0) 32-version else 0,upgraded.migrate().migrationsExecuted)
             assertEquals(checksums,jdbc.queryForList("SELECT version,checksum FROM content_schema_history ORDER BY installed_rank").take(checksums.size))
             assertEquals(5,jdbc.queryForObject("SELECT count(*) FROM story_plan",Int::class.java))
             for(table in listOf("story_plan_character","story_plan_place")) {
