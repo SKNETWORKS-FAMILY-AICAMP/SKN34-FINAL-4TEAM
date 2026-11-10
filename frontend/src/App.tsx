@@ -89,9 +89,11 @@ function StartPage() {
 /** 세션 복원이 끝나기 전에는 로그인 상태에 따라 달라지는 화면(콘텐츠·집필실·회차 열람)을 열지 않는다. */
 const checkingSession = <p role="status">로그인 상태를 확인하고 있어요.</p>
 
+/** 로그인 상태를 복원한 뒤 모드에 맞는 작품 생성·원고 가져오기 경로를 연다. */
 function App() {
   const { pathname } = useLocation()
   const { restoring, restoreError } = useSessionRestore()
+  const mockup = import.meta.env.MODE === 'mockup'
   return (
     <RestoreContext.Provider value={restoring}>
       {restoreError === 'lock' && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}
@@ -123,10 +125,10 @@ function App() {
             <Route path="/forked/:id" element={<RequireRole><ForkedPage /></RequireRole>} />
             <Route path="/lib" element={<RequireRole><LibraryPage /></RequireRole>} />
             <Route path="/write" element={<RequireRole><Navigate replace to="/lib?tab=write" /></RequireRole>} />
-            <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
-            <Route path="/worlds" element={<Navigate replace to="/new" />} />
+            <Route path="/new" element={<RequireRole>{mockup ? <NewWorkPage /> : <Navigate replace to="/content" />}</RequireRole>} />
+            <Route path="/worlds" element={<RequireRole><Navigate replace to={mockup ? '/new' : '/content'} /></RequireRole>} />
             <Route path="/worldstudio/:worldId?" element={<RequireRole><WorldStudioPage /></RequireRole>} />
-            <Route path="/import" element={<RequireRole>{import.meta.env.MODE === 'mockup' ? <ImportPage /> : <ManuscriptImportPage />}</RequireRole>} />
+            <Route path="/import" element={<RequireRole>{mockup ? <ImportPage /> : <ManuscriptImportPage />}</RequireRole>} />
             <Route path="/studio/:id" element={restoring ? checkingSession : <StudioPage />} />
             <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
             <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />

@@ -285,7 +285,7 @@ class EpisodeCommentPostgresTest {
         assertFalse(node(response).path("hidden").asBoolean())
         assertEquals(204,call("PUT","${write(id)}/$cid/like",fan).statusCode())
 
-        // 운영 숨김은 V24의 hidden 칼럼만 켠다. 원문은 지우지 않는다.
+        // 운영 숨김은 V30의 hidden 칼럼만 켠다. 원문은 지우지 않는다.
         assertEquals(1,jdbc.update("UPDATE episode_comment SET hidden=true WHERE id=?",cid))
 
         val placeholders=listOf(node(detail(id,cid,fan)),node(list(id,null,fan)).path("items").toList().single {it.path("id").asString()==cid})

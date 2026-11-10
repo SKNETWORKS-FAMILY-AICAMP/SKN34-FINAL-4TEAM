@@ -528,10 +528,10 @@
 
 - **목표 정본 소유:** 콘텐츠.
 
-- **역할·범위:** 지정 저장 버전과 예약 시각을 실제 발행 결과와 분리합니다. **전체·범위확인**.
+- **역할·범위:** 지정 저장 버전과 예약 시각을 실제 발행 결과와 분리합니다. **MVP**.
 - **그림의 필드:** `id`(PK), `episode_version_id`, `scheduled_at`, `status`, `created_at`.
 - **참조:** `episode_version_id` → [`EPISODE_VERSION`](tables.md#episode-version).`id`.
-- **제약·한계:** 실행 시 권한·조건 재확인. 변경·취소·실패 상세 미정. 실행 결과는 SCHEDULED_TASK_ITEM 연결.
+- **현재 구현:** `episode_id`와 `version_id`로 같은 회차의 저장 버전을 고정합니다. 회차당 대기 예약은 한 건입니다. 상태는 `pending / published / failed / canceled`이고 예약 수정 번호로 변경·취소 충돌을 막습니다. 실행 시 권한과 공개 조건을 재확인하고 `completed_at`과 실패 이유를 저장합니다.
 - **연결 예시:** `id=1; episode_version_id=episode_version-1; status=종류/상태의 예시값`처럼 한 관계·사건을 기록합니다(가상 예시; 상태 enum 미확정).
 
 <a id="story-plan"></a>

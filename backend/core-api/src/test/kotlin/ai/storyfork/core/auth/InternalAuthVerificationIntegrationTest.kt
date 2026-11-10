@@ -103,6 +103,14 @@ class InternalAuthVerificationIntegrationTest {
             .andExpect(status().isUnauthorized())
     }
 
+    @Test fun `scheduled verification checks current member status with service credentials only`() {
+        fun request(id: UUID) = post("/internal/v1/auth/verify-scheduled-member").contentType("application/json")
+            .content("""{"memberId":"$id"}""")
+        mvc.perform(request(member)).andExpect(status().isForbidden())
+        mvc.perform(request(member).header("X-Content-Service-Token",credential)).andExpect(status().isOk())
+        mvc.perform(request(restricted).header("X-Content-Service-Token",credential)).andExpect(status().isUnauthorized())
+    }
+
     @Test fun `member admin APIs need the operations token and an operator bearer`() {
         `when`(members.search(listOf(true,false),"%%",org.springframework.data.domain.PageRequest.of(0,200,
             org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Order.desc("createdAt"),

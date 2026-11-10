@@ -16,7 +16,7 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 })
 vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=>null}))
 vi.mock('../../presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=>null}))
-afterEach(()=>{cleanup();vi.restoreAllMocks()})
+afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs()})
 function Destination(){const location=useLocation();return <div>도착 {location.pathname} {JSON.stringify(location.state)}</div>}
 function Links(){const navigate=useNavigate();return <><Link to="/link" state={{via:'link'}}>링크 이동</Link><button onClick={()=>navigate('/replace',{replace:true,state:{via:'replace'}})}>교체 이동</button><WorldStudioPage/></>}
 async function show(entries=['/before','/worldstudio/qa','/after'],edit=true,twoPeople=false){
@@ -33,6 +33,13 @@ async function show(entries=['/before','/worldstudio/qa','/after'],edit=true,two
  if(edit){fireEvent.click(screen.getByRole('button',{name:'설정 카드'}));fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'보존할 편집 내용'}})}
  return router
 }
+it.each([['test','/content'],['mockup','/new']])('opens the work creation route in %s mode',async(mode,path)=>{
+ vi.stubEnv('MODE',mode)
+ const router=await show(undefined,false)
+ fireEvent.click(screen.getByText('도구',{selector:'summary'}))
+ fireEvent.click(screen.getByRole('link',{name:'새 소설 등록으로'}))
+ await waitFor(()=>expect(router.state.location.pathname).toBe(path))
+})
 it('blocks Link and programmatic replace, preserving input on cancel and state on approval',async()=>{
  await show();const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
  fireEvent.click(screen.getByText('링크 이동'))

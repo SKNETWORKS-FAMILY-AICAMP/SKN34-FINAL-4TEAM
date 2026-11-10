@@ -19,7 +19,7 @@ Content가, 관리자 업무 권한은 운영 서비스가 소유한다. 구조�
 
 ## 저장
 
-`backend/content-service/src/main/resources/db/migration/work/V24__episode_comment_hidden.sql`
+`backend/content-service/src/main/resources/db/migration/work/V30__episode_comment_hidden.sql`
 
 ```sql
 ALTER TABLE episode_comment ADD COLUMN hidden boolean NOT NULL DEFAULT false;
@@ -75,6 +75,6 @@ OperationsCommentList = { items: OperationsComment[] }
 - 페이지네이션이 없다. 댓글이 많아지면 서버 필터·페이지(`workId`·`q`·`sort`·`page`)로 옮긴다.
 - 운영 댓글 목록도 Core 닉네임 조회에 의존한다(캐시 없음, Core 장애 시 Content 503/504/502).
 - 숨김·복구는 활동 기록(72)이 생기면 그때 기록한다. 작성자 알림·유해 필터(F-FBK-13) 자동 숨김은 범위 밖이다.
-- Flyway V24는 열린 PR #257(V24)·#256(V25)·#259(V26)과 번호가 겹친다. 나중에 병합되는 쪽이 재번호·마이그레이션 개수 기대값을 갱신한다.
+- Flyway는 V30이다(코디네이터 번호 예약: V24 결번, V28·V29는 다른 PR 예약). 앞 번호 PR이 먼저 병합되면 develop 반영 때 개수 기대값만 갱신한다.
 - 관리자 대시보드 등 다른 탭이 쓰는 데모 `AdminUseCase` 댓글 데이터는 그대로 둔다. 댓글 탭의 데모 `toggleComment`는 화면 호출만 끊고,
   다른 사용처가 없으면 그 메서드와 테스트를 지운다.

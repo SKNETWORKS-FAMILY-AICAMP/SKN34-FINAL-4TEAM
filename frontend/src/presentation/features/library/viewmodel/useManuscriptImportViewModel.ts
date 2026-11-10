@@ -33,6 +33,7 @@ export function useManuscriptImportViewModel(
 
   // 직접 고르기 전에는 ?work= 로 넘어온 내 작품만 미리 고른다.
   const workId = chosen ?? works.find((work) => work.id === params.get('work'))?.id ?? ''
+  const hasImportInput = Boolean(chosen || file || rights.some(Boolean))
   const allRights = rights.every(Boolean)
   const included = plan?.episodes.filter((episode) => !episode.excluded).length ?? 0
   const canPreview = !!workId && allRights && !!file && !busy
@@ -63,6 +64,7 @@ export function useManuscriptImportViewModel(
   return {
     works, worksLoading, worksError, reloadWorks,
     workId,
+    confirmLeave: () => !hasImportInput || window.confirm('이동하면 지금까지 입력한 원고 정보와 회차 조정 내용이 사라져요. 이동할까요?'),
     selectWork: (id: string) => { if (pending.current) return; setChosen(id); forget() },
     rights, allRights,
     setRight: (index: number, checked: boolean) => setRights((current) => current.map((value, i) => i === index ? checked : value)),
