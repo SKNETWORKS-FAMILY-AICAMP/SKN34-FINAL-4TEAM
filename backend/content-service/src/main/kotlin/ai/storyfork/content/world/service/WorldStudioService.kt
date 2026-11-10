@@ -86,6 +86,20 @@ class WorldStudioService(
         return loaded.copy(relationships=stored.relationships)
     }
 
+    /** 소유한 저장 초안을 읽어 입력 원문과 현재 관계 기준을 고정한다. */
+    internal fun prepareInitialWorldInput(worldId:UUID,subject:UUID,analysisId:UUID):InitialWorldInput =
+        InitialWorldInput.fromDraft(draft(worldId,subject),analysisId)
+
+    /** 외부 호출 없이 잠금 안에서 검증하며, 콜백은 인자로 받은 새 스냅샷만 사용해야 한다. */
+    internal fun <T:Any> withInitialWorldInput(subject:UUID,input:InitialWorldInput,action:(InitialWorldInput)->T):T=tx {
+        val world=owned(input.worldId,subject)
+        val current=state(input.worldId);ready(current)
+        val latest=readDraft(world,current)
+        try { input.validateAgainst(latest) }
+        catch(_:IllegalArgumentException) { throw WorldConflict() }
+        action(InitialWorldInput.fromDraft(latest,input.analysisId))
+    }
+
     /** 기본은 upsert. replace=true는 전체 현재 상태를 교체하며 생략 관계는 제거한다. 같은 요청은 같은 key/입력으로 재시도한다. */
     fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest):WorldDraftResponse {
         validateName(request.name,request.description);validateKey(request.key)

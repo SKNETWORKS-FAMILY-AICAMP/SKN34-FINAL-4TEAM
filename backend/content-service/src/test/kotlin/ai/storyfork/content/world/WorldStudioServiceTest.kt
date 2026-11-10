@@ -215,4 +215,73 @@ class WorldStudioServiceTest {
         verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
     }
     private fun anyUUID():UUID=any(UUID::class.java) ?: UUID(0,0)
+
+    @Test fun `initial input uses owner and remains unchanged while validated under the world lock`() {
+        owned()
+        draft.description="홍😀\r\n길동"
+        val original=service.prepareInitialWorldInput(world,actor,UUID.randomUUID())
+        val result=service.withInitialWorldInput(actor,original) {
+            verify(worlds,atLeast(3)).lockOwned(world,actor)
+            verify(manager,atLeastOnce()).getTransaction(any())
+            // The two draft reads have committed, while the validation/use transaction has not.
+            verify(manager,times(2)).commit(any())
+            assertEquals("홍😀\r\n길동",draft.description)
+            "used"
+        }
+        assertEquals("used",result)
+        assertEquals("홍😀\r\n길동",draft.description)
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        verify(cardDrafts,never()).save(any())
+        verify(states,never()).flush()
+    }
+
+    @Test fun `initial input rejects unauthorized stale and incomplete state before callback`() {
+        owned()
+        val original=service.prepareInitialWorldInput(world,actor,UUID.randomUUID())
+        var calls=0
+        assertThrows(WorldNotFound::class.java) { service.withInitialWorldInput(UUID.randomUUID(),original) { calls++; "bad" } }
+        draft.draftRevision++
+        assertThrows(WorldConflict::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }
+        draft.draftRevision--
+        state.graphVersion++
+        assertThrows(WorldConflict::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }
+        state.graphVersion--
+        draft.description="수정된 원문"
+        assertThrows(WorldConflict::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }
+        draft.description=""
+        state.completed=false
+        assertEquals("RELATIONSHIP_WRITE_INCOMPLETE",assertThrows(WorldStudioFailure::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }.code)
+        assertEquals(0,calls)
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+    }
+
+    @Test fun `initial input rejects current revision change even when draft and graph versions are unchanged`() {
+        owned()
+        val current=StudioWorld(world,actor)
+        `when`(worlds.lockOwned(world,actor)).thenReturn(current)
+        val original=service.prepareInitialWorldInput(world,actor,UUID.randomUUID())
+        current.currentRevisionId=UUID.randomUUID()
+        assertThrows(WorldConflict::class.java) { service.withInitialWorldInput(actor,original) { fail<String>("must not use a stale input") } }
+    }
+
+    @Test fun `callback receives a fresh snapshot instead of caller mutable lists`() {
+        owned()
+        draft.description="원문😀"
+        val card=SettingCardDraft(UUID.randomUUID(),world,CardFields(title="인물",cardType="character",aliases=listOf("별명")))
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(card))
+        val original=service.prepareInitialWorldInput(world,actor,UUID.randomUUID())
+        val callerSources=original.sources.toMutableList()
+        val callerAliases=original.entities.single().aliases.toMutableList()
+        val callerEntities=original.entities.map { it.copy(aliases=callerAliases) }.toMutableList()
+        val supplied=original.copy(sources=callerSources,entities=callerEntities)
+        service.withInitialWorldInput(actor,supplied) { safe ->
+            callerSources.clear()
+            callerAliases.clear()
+            callerEntities.clear()
+            assertEquals(original.sources,safe.sources)
+            assertNotSame(callerSources,safe.sources)
+            assertEquals(listOf("별명"),safe.entities.single().aliases)
+            "used"
+        }
+    }
 }
