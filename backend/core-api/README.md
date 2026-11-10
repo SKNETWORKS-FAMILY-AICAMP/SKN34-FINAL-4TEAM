@@ -48,6 +48,8 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `GET /api/v1/me/notifications/stream` | Bearer 인증; SSE(`text/event-stream`). `ready`(연결·재연결 직후)와 `changed`(새 알림 저장 후)만 보내며 내용은 없음. 받으면 목록·미읽음 수를 다시 조회. 연결은 10분 뒤 끝나고 20초마다 `:ping`을 보냄 |
 | `GET /api/v1/me/notification-preferences` | Bearer 인증; 분류별 `{"items":[{"kind","enabled","mutable"}]}`, 200 |
 | `PUT /api/v1/me/notification-preferences` | Bearer 인증과 `items`; 읽기(`reading`)·창작(`creation`)만 변경, 그 외 분류 끄기·알 수 없는 분류·중복은 400 |
+| `GET /api/v1/me/credits` | Bearer 인증; 사용 가능한 크레딧 합계와 지급분별 남은 양·소멸 예정(소멸이 빠른 순) `{"total","items":[{"kind","remaining","expiresAt"}]}`, 200 |
+| `GET /api/v1/me/credits/history` | Bearer 인증; 본인의 지급·사용·소멸 내역 최신순 `{"items":[{"type":"grant"\|"spend"\|"expire","kind","amount","occurredAt"}]}`, 200 |
 | `POST /api/v1/me/withdrawal` | Bearer 인증과 현재 `password`, 선택 `reason`(300자 이하); 30일 유예 탈퇴 요청·모든 refresh 세션 폐기, 202. 비밀번호 불일치 403, 이미 진행 중 409 |
 | `GET /api/v1/me/withdrawal` | Bearer 인증; 진행 중이면 `{"status":"PENDING","requestedAt","dueAt"}`, 없으면 `{"status":"NONE"}`, 200 |
 | `DELETE /api/v1/me/withdrawal` | Bearer 인증; 유예 중인 탈퇴 요청 취소(복구), 204. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409 |
@@ -132,6 +134,7 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `AUTH_PUBLIC_ORIGIN`, `AUTH_MAIL_FROM` | 필수 |
 | `AUTH_JWT_SECRET` | 필수, 32바이트 이상의 무작위 키를 Base64 인코딩 |
 | `AUTH_COOKIE_SECURE` | `true`; 로컬 HTTP 검증에서만 `false` |
+| `CREDIT_SIGNUP_TRIAL_AMOUNT` | `0`(가입 체험 크레딧을 지급하지 않음, 팀 결정 전); 양수면 가입을 완료한 회원에게 한 번 지급하고 30일 뒤 소멸. Compose는 이 값을 Core에만 전달 |
 
 Core는 AI Health만 호출합니다. 생성 전용 HTTP 클라이언트는 Content에 있습니다. AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 `./gradlew bootRun`은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달은 Compose를 사용합니다.
