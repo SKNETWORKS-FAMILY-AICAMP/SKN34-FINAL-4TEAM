@@ -52,14 +52,22 @@ class WorkService(
         access.lockScopes(rows.map {it.id})
         return WorkListResponse(rows.map {view(access.own(it.id,owner),false,name)})
     }
-    /** 공개 작품 목록이다. q·f·sort를 모두 생략하면 기존처럼 작품 생성 최신순이며, 잘못된 f·sort는 422다. */
-    fun publicList(q: String?,f: String?,sort: String?): WorkListResponse {
-        val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort")
+    /**
+     * 공개 작품 목록이다. q·f·sort·page·size를 모두 생략하면 기존처럼 작품 생성 최신순 전체이며, 잘못된 f·sort·page·size는 422다.
+     * 찾은 작품의 좋아요를 먼저 한 번에 세어 채운 뒤(like 정렬이 쓴다) 정렬하고, page·size가 오면 정렬을 마친 결과에서 그 구간만 돌려준다.
+     */
+    fun publicList(q: String?,f: String?,sort: String?,page: String? = null,size: String? = null): WorkListResponse {
+        val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort");val window=workPage(page,size)
         val counts=viewService.counts()
-        val found=publicWorks(counts).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)}
-        if(order==WorkSort.LATEST) return WorkListResponse(withLikes(found))
+        val found=withLikes(publicWorks(counts).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)})
+        val newestFirst=found.map {it.id}
+        val ordered=when(order) {
+            WorkSort.LATEST->newestFirst
+            WorkSort.LIKE->orderByLikes(newestFirst,found.associate {it.id to it.likes})
+            WorkSort.VIEW->orderByViews(newestFirst,counts)
+        }
         val byId=found.associateBy {it.id}
-        return WorkListResponse(withLikes(orderByViews(found.map {it.id},counts).map {byId.getValue(it)}))
+        return WorkListResponse(pageOf(ordered,window).map {byId.getValue(it)})
     }
     /**
      * 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 잘못된 kind는 422다.
