@@ -31,8 +31,8 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_CONTENT_DEV_PROXY_TARGET || 'http://localhost:8081',
           changeOrigin: true,
         },
-        // 운영 공개 API는 신고·회원·관리자·작품(works)·고객지원(support)과 공지·이벤트 admin/public 경로만 Operations로 보낸다(서비스 토큰용 공지·이벤트·문의 경로는 비노출).
-        '^/api/v1/operations/(?:reports|members|admins|support|works|admin/notices|public/notices|admin/events|public/events)(?:/|\\?|$)': {
+        // 운영 공개 API는 신고·회원·관리자·작품(works)·고객지원(support)·관리자 활동(admin/activities)과 공지·이벤트 admin/public 경로만 Operations로 보낸다(서비스 토큰용 공지·이벤트·문의 경로는 비노출).
+        '^/api/v1/operations/(?:reports|members|admins|support|works|admin/notices|public/notices|admin/events|public/events|admin/activities)(?:/|\\?|$)': {
           target: env.VITE_OPERATIONS_DEV_PROXY_TARGET || 'http://localhost:8082',
           changeOrigin: true,
         },

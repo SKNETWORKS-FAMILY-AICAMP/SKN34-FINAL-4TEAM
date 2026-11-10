@@ -9,9 +9,12 @@ import '../../../../test/testLocks'
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { login } from '../../../../data/api/auth'
-import { HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
+import { HttpAdminActivityRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
+import type { AdminActivity } from '../../../../domain/entities/adminActivity'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
+import { AdminActivityUseCase } from '../../../../domain/usecases/AdminActivityUseCase'
 import { OperationsWorkUseCase } from '../../../../domain/usecases/OperationsWorkUseCase'
+import { kstDateTime } from '../../../shared/format'
 import { AdminPage } from './AdminPage'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.title = 'STORYFORK' })
@@ -122,6 +125,8 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   const fork = screen.getByText('달빛 도서관 외전', { selector: 'b' }).closest('tr') as HTMLElement
   expect(screen.getByText('운영 API 연결')).toBeTruthy()
   expect(screen.queryByText('목업 작품 데이터')).toBeNull()
+  // 운영 제한·해제는 신고 사건이 아니라 활동 로그(72)에 남는다.
+  expect(screen.getByText(/신고 사건에는 남기지 않고 활동 로그에만 기록해요/)).toBeTruthy()
   expect(requests()).toEqual(['GET /api/v1/operations/works'])
   expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: 'Bearer w-bearer' } })
   expect(cells(open)).toEqual(['달빛 도서관', '연화', '원작', '원작 · 권리 확인됨', '공개', '운영 제한'])
@@ -194,4 +199,81 @@ it('작품 탭은 받은 전체 목록에서 원작·포크 분류, 작품명·�
   await waitFor(() => expect(titles()).not.toContain('구운몽'))
   expect(titles().length).toBeGreaterThan(0)
   expect(titles().length).toBeLessThan(all.length)
+})
+
+/** 관리자 활동 기록 API(72)를 흉내 내는 fetch 대역으로 실제 Http 저장소·UseCase·ViewModel·화면을 잇는다. */
+const activity = (patch: Partial<AdminActivity> = {}): AdminActivity => ({
+  id: 'a1', actorId: 'admin-1', actorNickname: '운영자', action: 'WORK_RESTRICT', targetType: 'WORK', targetId: 'w-open',
+  detail: '달빛 도서관', createdAt: '2026-11-10T01:00:00Z', ...patch,
+})
+const activityRows = () => [...document.querySelectorAll<HTMLElement>('.audit-list li')]
+const activities = () => appContainer.resolve('adminActivityUseCase')
+
+it('활동 로그 탭은 운영 활동 기록 API를 읽어 시각·수행자·조치·대상·내역을 서버의 최신순 그대로 보여 주고 닉네임이 없으면 ID를 보여 준다', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'a-csrf' })
+    : Response.json({ accessToken: 'a-bearer', user: { id: 'admin', email: 'admin@example.invalid', nickname: '관리자', operator: true } })))
+  await login('admin@example.invalid', 'test-password')
+  const rows = [
+    activity(),
+    activity({ id: 'a2', actorId: 'gone-admin', actorNickname: null, action: 'NOTICE_DELETE', targetType: 'NOTICE', targetId: 'n-1', detail: null, createdAt: '2026-11-09T01:00:00Z' }),
+    activity({ id: 'a3', action: 'FUTURE_ACTION', targetType: 'FUTURE', targetId: 'f-1', createdAt: '2026-11-08T01:00:00Z' }),
+  ]
+  const fetcher = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => Response.json({ items: rows }))
+  const http = new AdminActivityUseCase(new HttpAdminActivityRepository(fetcher))
+  vi.spyOn(activities(), 'list').mockImplementation(() => http.list())
+
+  renderAdmin('audit')
+  await waitFor(() => expect(activityRows()).toHaveLength(3))
+  expect(screen.getByText('운영 API 연결')).toBeTruthy()
+  expect(document.body.textContent).not.toContain('브라우저 메모리에만')
+  expect(document.body.textContent).not.toContain('데모 조치')
+  expect(fetcher.mock.calls.map(([url, init]) => `${init?.method} ${String(url)}`)).toEqual(['GET /api/v1/operations/admin/activities'])
+  expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: 'Bearer a-bearer' } })
+  const [first, second, third] = activityRows()
+  expect(activityRows().map((li) => li.querySelector('time')?.getAttribute('datetime'))).toEqual(rows.map((row) => row.createdAt))
+  expect(first.querySelector('time')?.textContent).toBe(kstDateTime('2026-11-10T01:00:00Z'))
+  within(first).getByText('작품 운영 제한', { selector: 'b' })
+  within(first).getByText('수행자 운영자 · 대상 작품 w-open')
+  within(first).getByText('달빛 도서관')
+  // 닉네임이 없으면(관리자 해제·탈퇴) ID를 보이고, 내역이 없으면 내역 줄을 그리지 않는다.
+  within(second).getByText('공지 삭제', { selector: 'b' })
+  within(second).getByText('수행자 gone-admin · 대상 공지 n-1')
+  expect(second.querySelectorAll('.small')).toHaveLength(1)
+  // 모르는 조치·대상 종류는 코드 그대로 보인다.
+  within(third).getByText('FUTURE_ACTION', { selector: 'b' })
+  within(third).getByText('수행자 운영자 · 대상 FUTURE f-1')
+})
+
+it('활동 로그 탭은 불러오는 동안 빈 상태를 보이지 않고, 기록이 없으면 빈 상태를 보인다', async () => {
+  let finish!: (rows: AdminActivity[]) => void
+  vi.spyOn(activities(), 'list').mockImplementationOnce(() => new Promise<AdminActivity[]>((done) => { finish = done }))
+  renderAdmin('audit')
+  await screen.findByText('활동 기록을 불러오고 있어요.')
+  expect(screen.queryByText('아직 기록된 조치가 없어요.')).toBeNull()
+  await act(async () => { finish([]) })
+  await screen.findByText('아직 기록된 조치가 없어요.')
+  expect(screen.queryByText('활동 기록을 불러오고 있어요.')).toBeNull()
+})
+
+it('활동 로그 탭은 조회 실패를 빈 목록으로 숨기지 않고 다시 불러오기로 복구한다', async () => {
+  const list = vi.spyOn(activities(), 'list').mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce([activity()])
+  renderAdmin('audit')
+  expect((await screen.findByRole('alert')).textContent).toContain('활동 기록을 불러오지 못했어요')
+  expect(screen.queryByText('아직 기록된 조치가 없어요.')).toBeNull()
+  expect(activityRows()).toHaveLength(0)
+  fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+  await screen.findByText('작품 운영 제한', { selector: 'b' })
+  screen.getByText('달빛 도서관')
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(list).toHaveBeenCalledTimes(2)
+})
+
+// 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
+it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 로그에 남는다', async () => {
+  await appContainer.resolve('adminUseCase').runJob('notification-cleanup')
+  renderAdmin('audit')
+  await waitFor(() => expect(activityRows()).toHaveLength(1))
+  within(activityRows()[0]).getByText('정기 작업 재시도 시연', { selector: 'b' })
+  within(activityRows()[0]).getByText('수행자 관리자 · 대상 데모')
+  within(activityRows()[0]).getByText('알림 90일 보관기간 정리')
 })

@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector, type RootState } from '../../../../app/
 import type { AdminTab } from '../../../../domain/entities/admin'
 import { eventStatus, type EventPeriod } from '../../../../domain/entities/event'
 import { toUtcFromKoreanInput, type NoticeInput } from '../../../../domain/entities/operations'
+import type { AdminActivityUseCase } from '../../../../domain/usecases/AdminActivityUseCase'
 import type { AdminResult, AdminUseCase } from '../../../../domain/usecases/AdminUseCase'
 import type { EventUseCase } from '../../../../domain/usecases/EventUseCase'
 import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
@@ -29,7 +30,7 @@ import { adminViewActions, type AdminChatForm, type AdminFilter, type EventDraft
 const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', profile: 'A15' }
 export type AdminActionState = ActionState
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'rights', 'feedback', 'profile', 'notices', 'events']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit']
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
 
 /** 작품 탭을 떠나면 선택과 조회 결과도 함께 닫힌다. */
@@ -39,7 +40,7 @@ export function useForkIntegrity(api: OperationsWorkUseCase = appContainer.resol
   return { target, select, report }
 }
 
-/** 기존 제보 데모와 실제 운영 API(회원·신고·작품·고객지원 문의·공지·이벤트)를 함께 보여 주되 정본과 조치를 섞지 않습니다. */
+/** 기존 제보 데모와 실제 운영 API(회원·신고·작품·고객지원 문의·공지·이벤트·활동 기록)를 함께 보여 주되 정본과 조치를 섞지 않습니다. */
 export function useAdminViewModel(
   tab: AdminTab,
   adminUseCase: AdminUseCase = appContainer.resolve('adminUseCase'),
@@ -50,6 +51,7 @@ export function useAdminViewModel(
   supportInquiryUseCase: SupportInquiryUseCase = appContainer.resolve('supportInquiryUseCase'),
   eventUseCase: EventUseCase = appContainer.resolve('eventUseCase'),
   operationsWorkUseCase: OperationsWorkUseCase = appContainer.resolve('operationsWorkUseCase'),
+  adminActivityUseCase: AdminActivityUseCase = appContainer.resolve('adminActivityUseCase'),
 ) {
   const dispatch = useAppDispatch()
   const store = useStore<RootState>()
@@ -78,7 +80,9 @@ export function useAdminViewModel(
     reports: tab === 'rights' ? await reportUseCase.listAll(status) : tab === 'data' ? await reportUseCase.listAll('RECEIVED') : [],
     notices: tab === 'notices' ? await noticeUseCase.list() : [],
     events: tab === 'events' ? await eventUseCase.listAdmin() : [],
-  }), [tab, role, q, sort, status, memberUseCase, reportUseCase, noticeUseCase, eventUseCase, operationsWorkUseCase])
+    // 활동 로그 탭은 진입할 때마다 서버의 최신 100개를 읽습니다(필터·페이지 없음).
+    activities: tab === 'audit' ? await adminActivityUseCase.list() : [],
+  }), [tab, role, q, sort, status, memberUseCase, reportUseCase, noticeUseCase, eventUseCase, operationsWorkUseCase, adminActivityUseCase])
   const reportId = tab === 'rights' ? sel : null
   const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
   // 고객지원 문의(67): 제보·문의 탭은 상태 필터 목록과 선택한 문의 상세를, 개요는 답변 대기 수만 서버에서 읽습니다.

@@ -4,6 +4,9 @@ import ai.storyfork.operations._common.client.ContentWork
 import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.PageResponse
+import ai.storyfork.operations.activity.controller.AdminActivityController
+import ai.storyfork.operations.activity.service.AdminActivityService
+import ai.storyfork.operations.activity.service.dto.AdminActivityListResponse
 import ai.storyfork.operations.event.controller.AdminEventController
 import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.AdminEventService
@@ -36,7 +39,7 @@ import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.json.JsonMapper
 
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
-@WebMvcTest(controllers = [ReportController::class, AdminEventController::class, PublicEventController::class, WorkController::class], properties = [
+@WebMvcTest(controllers = [ReportController::class, AdminEventController::class, AdminActivityController::class, PublicEventController::class, WorkController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -53,6 +56,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var adminEvents: AdminEventService
     @MockitoBean lateinit var events: EventService
     @MockitoBean lateinit var works: WorkService
+    @MockitoBean lateinit var adminActivities: AdminActivityService
     private val serviceToken = "ci-operations-test-only-0123456789abcdef"
     private val bearer = "Bearer member-access"
 
@@ -128,6 +132,27 @@ class MemberSecurityIntegrationTest {
         mvc.perform(get("/api/v1/operations/admin/events").header("Authorization", bearer)).andExpect(status().isOk())
 
         verify(adminEvents).list(member)
+    }
+
+    @Test
+    fun `admin activities require a Core verified Bearer and ignore the service token`() {
+        val response = mvc.perform(get("/api/v1/operations/admin/activities").header("X-Operations-Service-Token", serviceToken))
+            .andExpect(status().isUnauthorized()).andReturn().response
+        assertEquals("UNAUTHORIZED", code(response.contentAsString))
+        assertNull(response.getHeader("Set-Cookie"))
+        verifyNoInteractions(core, adminActivities)
+    }
+
+    @Test
+    fun `verified member reaches the admin activities controller as principal with the forwarded bearer`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(adminActivities.list(member, bearer)).thenReturn(AdminActivityListResponse(emptyList()))
+
+        mvc.perform(get("/api/v1/operations/admin/activities").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items").isArray())
+
+        verify(adminActivities).list(member, bearer)
     }
 
     @Test
