@@ -7,35 +7,8 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-/** 수정 제안 상태 전이(계약 2절 규칙)와 승인 반영의 초안 문자열 1회 치환 규칙을 DB 없이 검증한다. */
+/** 승인 반영의 초안 문자열 1회 치환 규칙을 DB 없이 검증한다. 상태 전이(편집안 저장·승인·거절·보류)는 EditSuggestionServiceTest가 같은 전이로 검증한다. */
 class EditSuggestionRulesTest {
-    private val states = listOf(
-        Triple("pending", null, "검토 대기"),
-        Triple("held", null, "보류"),
-        Triple("rejected", null, "거절"),
-        Triple("approved", "applied", "승인·반영됨"),
-        Triple("approved", "failed", "승인·반영 실패"),
-        Triple("approved", null, "승인(결과 없음)"),
-    )
-
-    private fun allowed(rule: (String, String?) -> Boolean) = states.filter { (status, result, _) -> rule(status, result) }.map { it.third }
-
-    @Test fun `the edited text is saved only while pending or held`() {
-        assertEquals(listOf("검토 대기", "보류"), allowed { status, _ -> EditSuggestionRules.canEdit(status) })
-    }
-
-    @Test fun `approval is allowed from pending held and a failed apply retry only`() {
-        assertEquals(listOf("검토 대기", "보류", "승인·반영 실패"), allowed(EditSuggestionRules::canApprove))
-    }
-
-    @Test fun `rejection is allowed from pending or held only and never after approval`() {
-        assertEquals(listOf("검토 대기", "보류"), allowed { status, _ -> EditSuggestionRules.canReject(status) })
-    }
-
-    @Test fun `hold is allowed from pending only so repeating it is a conflict`() {
-        assertEquals(listOf("검토 대기"), allowed { status, _ -> EditSuggestionRules.canHold(status) })
-    }
-
     @Test fun `a sentence found exactly once is replaced in place and nothing else changes`() {
         val body = "그는 문을 열었다.\n않 된다고 말했다.\n\n끝."
 

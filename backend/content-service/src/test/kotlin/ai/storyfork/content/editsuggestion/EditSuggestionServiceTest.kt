@@ -87,7 +87,7 @@ class EditSuggestionServiceTest {
 
     private fun accessOf(id: String): WorkAccessResult {
         val work = workRows[id] ?: throw ContentFailure(404, "작품을 찾을 수 없어요.")
-        return WorkAccessResult(work.id, work.ownerId, work.title, "", 0, "world", if (id in hidden) "private" else "public", false, false, null, false, id in deleted)
+        return WorkAccessResult(work.id, work.ownerId, work.title, "", 0, "world", if (id in hidden) "private" else "public", false, false, null, false, id in deleted || work.deletedAt != null)
     }
 
     init {
@@ -379,6 +379,18 @@ class EditSuggestionServiceTest {
         assertEquals(listOf<Any?>("안 된다고요", "안 된다고"), listOf(saved.editedText, saved.afterText))
     }
 
+    @Test fun `an edited text identical to the sentence being replaced is 422 like the proposed text and keeps the stored one`() {
+        val saved = row(edited = "기존 편집")
+
+        for (text in listOf("않 된다고", "  않 된다고  ")) {
+            val error = failure { service.editedText("work", "s1", "owner", EditedTextRequest(text)) }
+            assertEquals(422, error.status, text)
+            assertEquals("고친 문장이 원래 문장과 같아요.", error.message, text)
+        }
+
+        assertEquals("기존 편집", saved.editedText)
+    }
+
     @Test fun `an edited text can be saved again and while held`() {
         val held = row(status = "held", edited = "처음 편집")
 
@@ -424,6 +436,29 @@ class EditSuggestionServiceTest {
 
         assertEquals(listOf<Any?>("pending", null, null), listOf(saved.status, saved.editedText, saved.decisionReason))
         assertTrue(saveRequests.isEmpty())
+    }
+
+    @Test fun `a deleted work hides its suggestions from detail owner actions and my list for everyone including the proposer`() {
+        row()
+        workRows.getValue("work").deletedAt = t0
+
+        for (who in listOf("reader", "owner", "stranger")) assertEquals(404, failure { service.read("work", "s1", who) }.status, "read $who")
+        // 제안자의 쓰기도 403이 아니라 404다(작품이 없는 것으로 통일).
+        for (who in listOf("reader", "owner")) {
+            assertEquals(404, failure { service.hold("work", "s1", who) }.status, "hold $who")
+            assertEquals(404, failure { service.approve("work", "s1", who) }.status, "approve $who")
+        }
+        assertEquals(emptyList<String>(), service.mine("reader").items.map { it.id })
+        assertEquals(emptyList<String>(), service.inbox("owner").items.map { it.id })
+        assertTrue(asked.isEmpty())
+    }
+
+    @Test fun `my list keeps suggestions on live works and drops only the ones on deleted works`() {
+        workRows["gone"] = WorkEntity(id = "gone", ownerId = "owner", title = "삭제된 작품", deletedAt = t0)
+        row("kept", at = t0)
+        row("dropped", work = "gone", at = t0.plusSeconds(1))
+
+        assertEquals(listOf("kept"), service.mine("reader").items.map { it.id })
     }
 
     @Test fun `owner only actions are 404 for a missing suggestion a missing work and a deleted work`() {

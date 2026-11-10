@@ -96,25 +96,10 @@ describe('수정 제안 쓰기 (회원, CSRF)', () => {
   })
 })
 
-describe('수정 제안 오류와 응답 검증', () => {
-  it('서버 detail을 그대로 전달한다(기준 발행본 변경 409 등)', async () => {
-    const fetcher = vi.fn().mockResolvedValue(Response.json({ detail: '기준 발행본이 바뀌어 다시 검토해야 해요.' }, { status: 409 }))
-    await expect(new HttpEditSuggestionRepository(fetcher).approve('w1', 's1')).rejects.toThrow('기준 발행본이 바뀌어 다시 검토해야 해요.')
-  })
-
-  it('detail 없는 오류는 읽을 수 있는 기본 문구로 알린다', async () => {
-    const fetcher = vi.fn().mockResolvedValue(new Response('<html>bad gateway</html>', { status: 502 }))
-    await expect(new HttpEditSuggestionRepository(fetcher).inbox()).rejects.toThrow('요청을 처리하지 못했어요.')
-  })
-
-  it.each([
-    ['필수 필드 누락', row({ scopeReasons: undefined })],
-    ['모르는 상태', row({ status: 'done' })],
-    ['모르는 반영 결과', row({ applyResult: 'maybe' })],
-    ['잘못된 시각', row({ createdAt: '어제' })],
-    ['문자열 회차', row({ episodeNumber: '3' })],
-  ])('Zod가 %s 응답을 거절한다', async (_name, bad) => {
-    const repo = new HttpEditSuggestionRepository(vi.fn().mockImplementation(async () => Response.json({ items: [row(), bad] })))
+describe('수정 제안 응답 검증', () => {
+  // 서버 detail 전달·기본 오류 문구는 공용 request 동작이라 HttpEpisodeCommentRepository 테스트가 이미 검증한다.
+  it('Zod가 모르는 상태 값이 든 응답을 거절한다', async () => {
+    const repo = new HttpEditSuggestionRepository(vi.fn().mockImplementation(async () => Response.json({ items: [row(), row({ status: 'done' })] })))
     await expect(repo.inbox()).rejects.toThrow('서버 응답 형식')
   })
 

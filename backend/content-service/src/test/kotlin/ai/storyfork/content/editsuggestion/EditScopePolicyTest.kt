@@ -20,8 +20,18 @@ class EditScopePolicyTest {
         assertEquals("auto", scope("그렇게… 말했다", "그렇게 말했다"))
     }
 
-    @Test fun `digits are compared as written so a comma inside a number is only punctuation`() {
-        assertEquals("auto", scope("1,000명이 왔다", "1000명이 왔다"))
+    @Test fun `a number written differently is a changed number even when only a separator moved`() {
+        for ((before, after) in listOf("1.5" to "15", "1,000명이 왔다" to "1000명이 왔다", "3.5시간" to "3,5시간", "10 20" to "1020", "1000" to "1,000")) {
+            val result = check(before, after)
+            assertEquals("review", result.scope, "$before -> $after")
+            assertEquals(listOf("숫자가 바뀌어요."), result.reasons, "$before -> $after")
+        }
+    }
+
+    @Test fun `the same numbers around spacing and sentence punctuation stay auto`() {
+        assertEquals("auto", scope("1,000명이 왔다", "1,000 명이 왔다"))
+        assertEquals("auto", scope("나는 3살.", "나는 3살!"))
+        assertEquals("auto", scope("2026.11.10에 갔다", "2026.11.10 에 갔다"))
     }
 
     @Test fun `a changed number is review even when it is a one character edit`() {

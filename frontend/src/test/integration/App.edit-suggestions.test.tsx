@@ -86,7 +86,7 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     expect(box.value).toBe(text)
     expect(document.activeElement).toBe(box)
     fireEvent.change(box, { target: { value: ` ${text} (고침) ` } })
-    fireEvent.change(within(dialog).getByLabelText('수정 사유'), { target: { value: ' 맞춤법 ' } })
+    fireEvent.change(within(dialog).getByLabelText('사유 (선택)'), { target: { value: ' 맞춤법 ' } })
     fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
     await waitFor(() => expect(repo.create).toHaveBeenCalledWith('guunmong', 2, { beforeText: text, afterText: `${text} (고침)`, reason: '맞춤법' }))
     await waitFor(() => expect(screen.queryByRole('dialog', { name: '문장 수정 제안' })).toBeNull())
@@ -100,16 +100,23 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
     await waitFor(() => expect(toastText()).toBe('원문에서 고칠 문장을 찾을 수 없어요.'))
     expect(repo.create).toHaveBeenCalledTimes(1)
+    expect(within(dialog).getByRole('alert').textContent).toBe('원문에서 고칠 문장을 찾을 수 없어요.')
     expect(within(screen.getByRole('dialog', { name: '문장 수정 제안' })).getByLabelText<HTMLTextAreaElement>('고친 문장').value).toBe(`${text} (고침)`)
     expect(within(dialog).getByRole('button', { name: '수정 제안 보내기' }).hasAttribute('disabled')).toBe(false)
   })
 
-  it('고치지 않고 보내면 서버를 부르지 않고 안내한다', async () => {
-    const { repo, dialog } = await openSheet()
-    fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
-    await waitFor(() => expect(toastText()).toBe('고친 문장이 원래 문장과 같아요.'))
+  it('고친 문장이 원문과 같거나 비어 있으면 보내기 버튼을 잠그고 고치면 연다', async () => {
+    const { repo, dialog, text } = await openSheet()
+    const send = () => within(dialog).getByRole<HTMLButtonElement>('button', { name: '수정 제안 보내기' })
+    const box = within(dialog).getByLabelText('고친 문장')
+    expect(send().disabled).toBe(true)
+    fireEvent.change(box, { target: { value: ` ${text} ` } })
+    expect(send().disabled).toBe(true)
+    fireEvent.change(box, { target: { value: '   ' } })
+    expect(send().disabled).toBe(true)
+    fireEvent.change(box, { target: { value: `${text} (고침)` } })
+    expect(send().disabled).toBe(false)
     expect(repo.create).not.toHaveBeenCalled()
-    screen.getByRole('dialog', { name: '문장 수정 제안' })
   })
 
   it('취소하면 서버를 부르지 않고 닫는다', async () => {
@@ -145,10 +152,50 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     expect(c.querySelector('del')!.textContent).toBe('않 된다고')
     expect(c.querySelector('ins')!.textContent).toBe('안 된다고')
     within(c).getByText('검토 대기')
-    within(c).getByText('작가 검토 필요')
+    within(c).getByText('내용 변경 포함')
     within(c).getByText(/단어가 다른 말로 바뀌어요\./)
     within(c).getByText(/독자A · 사유: 맞춤법/)
     within(c).getByText(/검사는 표시만 해요/)
+  })
+
+  it('범위 검사 칩은 표기 교정 수준과 내용 변경 포함으로 보이고 카드와 카드 목록에 간격을 둔다', async () => {
+    await open([
+      suggestion({ id: 'a', workTitle: '가 작품', scope: 'auto' }),
+      suggestion({ id: 'b', workTitle: '나 작품', scope: 'review', scopeReasons: ['단어가 다른 말로 바뀌어요.'] }),
+    ])
+    const a = await card('가 작품 3화 수정 제안')
+    const b = await card('나 작품 3화 수정 제안')
+    within(a).getByText('표기 교정 수준')
+    within(b).getByText('내용 변경 포함')
+    expect(within(a).queryByText('내용 변경 포함')).toBeNull()
+    for (const c of [a, b]) {
+      expect([c.style.display, c.style.gap]).toEqual(['grid', '12px'])
+      within(c).getByText(/검사는 표시만 해요/)
+    }
+    expect(a.parentElement).toBe(b.parentElement)
+    expect([a.parentElement!.style.display, a.parentElement!.style.gap]).toEqual(['grid', '12px'])
+  })
+
+  it('저장하지 않은 편집안이 있으면 승인을 잠그고 먼저 저장하라고 안내하며 저장하면 다시 연다', async () => {
+    const repo = await open([suggestion()])
+    const c = await card()
+    const approve = () => within(c).getByRole<HTMLButtonElement>('button', { name: '승인하고 초안에 반영' })
+    expect(approve().disabled).toBe(false)
+    expect(within(c).queryByText(/편집안을 먼저 저장해 주세요/)).toBeNull()
+    // 앞뒤 공백만 다른 입력은 저장될 내용이 같아 잠그지 않는다.
+    fireEvent.change(within(c).getByLabelText('편집안'), { target: { value: ' 안 된다고 ' } })
+    expect(approve().disabled).toBe(false)
+    fireEvent.change(within(c).getByLabelText('편집안'), { target: { value: '안 된다고요' } })
+    expect(approve().disabled).toBe(true)
+    within(c).getByText(/편집안을 먼저 저장해 주세요/)
+    expect(approve().getAttribute('aria-describedby')).not.toBeNull()
+    fireEvent.click(approve())
+    expect(repo.approve).not.toHaveBeenCalled()
+    fireEvent.click(within(c).getByRole('button', { name: '편집안 저장' }))
+    await waitFor(() => expect(approve().disabled).toBe(false))
+    expect(within(c).queryByText(/편집안을 먼저 저장해 주세요/)).toBeNull()
+    fireEvent.click(approve())
+    await waitFor(() => expect(repo.approve).toHaveBeenCalledWith('w1', 's1'))
   })
 
   it('편집안을 저장하면 원래 제안은 보존한 채 비교가 편집안으로 바뀐다', async () => {
@@ -160,7 +207,9 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     await waitFor(() => expect(repo.saveEditedText).toHaveBeenCalledWith('w1', 's1', '안 된다고요'))
     await waitFor(() => expect(screen.getByRole('article', { name: '별빛 서약 3화 수정 제안' }).querySelector('ins')!.textContent).toBe('안 된다고요'))
     within(await card()).getByText('제안자가 처음 올린 수정: 안 된다고')
-    expect(toastText()).toContain('편집안을 저장했어요')
+    expect(within(await card()).getByRole('status').textContent).toContain('편집안을 저장했어요')
+    // 카드 안 안내가 있으니 같은 말을 토스트로 또 띄우지 않는다.
+    expect(toastText()).not.toContain('편집안을 저장했어요')
   })
 
   it('승인하면 초안에 반영됨을 알리고 발행은 집필실에서 하도록 안내한다', async () => {
@@ -173,6 +222,7 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     expect(within(c).getByRole('status').textContent).toBe('승인했고 초안에 반영했어요 — 발행은 집필실에서 해 주세요.')
     expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1')
     expect(within(c).queryByRole('button', { name: '승인하고 초안에 반영' })).toBeNull()
+    expect(toastText()).not.toContain('초안에 반영했어요')
     expect(repo.inbox.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
 
@@ -180,7 +230,7 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     const repo = await open([suggestion({ status: 'approved', applyResult: 'failed', applyFailure: '초안에서 고칠 문장을 찾을 수 없어요. 집필실에서 직접 고쳐 주세요.' })])
     const c = await card()
     within(c).getByText('승인됨 · 반영 실패')
-    within(c).getByText(/반영 실패: 초안에서 고칠 문장을 찾을 수 없어요/)
+    expect(within(c).getByText(/반영 실패: 초안에서 고칠 문장을 찾을 수 없어요/).classList.contains('note')).toBe(true)
     expect(within(c).queryByText(/초안에 반영됨 — 발행은 집필실에서/)).toBeNull()
     expect(within(c).getByRole('link', { name: '집필실에서 직접 고치기' }).getAttribute('href')).toBe('/studio/w1')
     expect(within(c).queryByRole('button', { name: '거절' })).toBeNull()
@@ -198,12 +248,22 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     const c = await card()
     within(c).getByText('검토 대기')
     expect(within(c).getByRole('button', { name: '승인하고 초안에 반영' }).hasAttribute('disabled')).toBe(false)
+    // 다음 행동: 바뀐 발행본은 집필실에서 확인한다.
+    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1')
+  })
+
+  it('기준 변경이 아닌 처리 실패에는 집필실 링크를 붙이지 않는다', async () => {
+    await open([suggestion()], (r) => r.approve.mockRejectedValueOnce(new Error('서버가 잠시 응답하지 않아요.')))
+    fireEvent.click(within(await card()).getByRole('button', { name: '승인하고 초안에 반영' }))
+    const c = await card()
+    await within(c).findByRole('alert')
+    expect(within(c).queryByRole('link', { name: '집필실 열기' })).toBeNull()
   })
 
   it('거절은 선택 사유와 함께 종결하고 사유를 보인다', async () => {
     const repo = await open([suggestion()])
     const c = await card()
-    fireEvent.change(within(c).getByLabelText('거절 사유'), { target: { value: ' 톤이 달라요 ' } })
+    fireEvent.change(within(c).getByLabelText('거절 사유 (선택)'), { target: { value: ' 톤이 달라요 ' } })
     fireEvent.click(within(c).getByRole('button', { name: '거절' }))
     await waitFor(() => expect(repo.reject).toHaveBeenCalledWith('w1', 's1', '톤이 달라요'))
     const after = await card()
@@ -236,7 +296,7 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
 
   it('제안이 없으면 없다고 알린다', async () => {
     await open([])
-    screen.getByText('받은 수정 제안이 없어요.')
+    await screen.findByText('받은 수정 제안이 없어요.')
   })
 
   it('서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않고 데모 피드백함만 보인다', async () => {
@@ -259,7 +319,7 @@ describe('내 서재의 내 수정 제안 (기능 24)', () => {
 
   it('내 제안을 상태 읽기 전용으로 보여 주고 승인·반영 결과를 발행과 구분해 알린다', async () => {
     await open([
-      suggestion({ id: 'a', mine: true, owner: false, status: 'approved', applyResult: 'applied' }),
+      suggestion({ id: 'a', mine: true, owner: false, status: 'approved', applyResult: 'applied', editedText: '안 된다고요' }),
       suggestion({ id: 'b', mine: true, owner: false, status: 'rejected', decisionReason: '톤이 달라요', reason: '맞춤법' }),
       suggestion({ id: 'c', mine: true, owner: false, status: 'approved', applyResult: 'failed', applyFailure: '내부 사유' }),
       suggestion({ id: 'd', mine: true, owner: false, status: 'held' }),
@@ -269,6 +329,8 @@ describe('내 서재의 내 수정 제안 (기능 24)', () => {
     expect(rows).toHaveLength(4)
     within(rows[0] as HTMLElement).getByText('승인됨 · 초안에 반영됨')
     within(rows[0] as HTMLElement).getByText('작가가 승인해 초안에 반영했어요. 독자에게는 작가가 발행해야 보여요.')
+    within(rows[0] as HTMLElement).getByText('작가가 고친 문장: 안 된다고요')
+    expect(within(rows[1] as HTMLElement).queryByText(/작가가 고친 문장/)).toBeNull()
     within(rows[1] as HTMLElement).getByText('거절됨')
     within(rows[1] as HTMLElement).getByText('작가가 거절했어요 · 톤이 달라요')
     within(rows[1] as HTMLElement).getByText('사유: 맞춤법')

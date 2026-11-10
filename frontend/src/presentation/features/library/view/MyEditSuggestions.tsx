@@ -23,6 +23,7 @@ export function MyEditSuggestions() {
           <div className="rp" key={s.id}>
             <div className="top"><b>{s.workTitle} {s.episodeNumber}화 · 수정 제안</b><SuggestionStatusChip s={s} /></div>
             <SuggestionDiff before={s.beforeText} after={s.afterText} />
+            {s.editedText && <div className="small">작가가 고친 문장: {s.editedText}</div>}
             {s.reason && <div className="small muted">사유: {s.reason}</div>}
             {s.status === 'rejected' && <div className="a">작가가 거절했어요{s.decisionReason ? ` · ${s.decisionReason}` : ''}</div>}
             {s.status === 'approved' && s.applyResult === 'applied' && <div className="a">작가가 승인해 초안에 반영했어요. 독자에게는 작가가 발행해야 보여요.</div>}

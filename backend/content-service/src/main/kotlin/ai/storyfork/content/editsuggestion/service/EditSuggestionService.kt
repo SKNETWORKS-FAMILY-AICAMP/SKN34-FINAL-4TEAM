@@ -17,6 +17,7 @@ import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
+import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import java.time.Instant
@@ -36,6 +37,7 @@ private const val SAME_TEXT = "고친 문장이 원래 문장과 같아요."
 private const val NOT_IN_PUBLISHED = "원문에서 고칠 문장을 찾을 수 없어요."
 private const val BASE_CHANGED = "기준 발행본이 바뀌어 다시 검토해야 해요."
 private const val NOT_FOUND = "수정 제안을 찾을 수 없어요."
+private const val WORK_NOT_FOUND = "작품을 찾을 수 없어요."
 private const val OWNER_ONLY = "작품 소유자만 처리할 수 있어요."
 private const val STATE_CONFLICT = "이미 처리했거나 지금은 할 수 없는 상태예요. 목록을 새로 불러와 주세요."
 private const val SAVE_FAILED = "초안을 저장하지 못했어요. 잠시 후 다시 시도해 주세요."
@@ -78,16 +80,20 @@ class EditSuggestionService(
         return respond(listOf(row),member).single()
     }
 
-    /** 제안 하나다. 제안자와 작품 소유자만 볼 수 있고 그 외나 다른 작품의 제안이면 404다. */
+    /** 제안 하나다. 제안자와 작품 소유자만 볼 수 있고 그 외나 다른 작품의 제안이거나 작품이 삭제됐으면 404다. */
     fun read(id: String, suggestionId: String, viewer: String): SuggestionResponse {
-        val work=access.get(id)
+        val work=liveWork(id)
         val row=find(id,suggestionId)
         checkContent(row.proposerId==viewer || work.ownerId==viewer,404,NOT_FOUND)
         return respond(listOf(row),viewer).single()
     }
 
-    /** 내가 올린 제안을 최신순으로 최대 200개 돌려준다. */
-    fun mine(member: String) = SuggestionListResponse(respond(suggestions.findTop200ByProposerIdOrderByCreatedAtDesc(member),member))
+    /** 내가 올린 제안을 최신순으로 최대 200개 돌려준다. 삭제된 작품의 제안은 피드백함처럼 빼므로 200개보다 적을 수 있다. */
+    fun mine(member: String): SuggestionListResponse {
+        val rows=suggestions.findTop200ByProposerIdOrderByCreatedAtDesc(member)
+        val byWork=worksOf(rows)
+        return SuggestionListResponse(respond(rows.filter {byWork.getValue(it.workId).deletedAt==null},member,byWork))
+    }
 
     /** 내가 소유한(삭제하지 않은) 작품들의 제안을 최신순으로 최대 200개 돌려준다. */
     fun inbox(owner: String): SuggestionListResponse {
@@ -101,6 +107,8 @@ class EditSuggestionService(
         val text=clean(data.editedText,INVALID_EDITED)
         val row=owned(id,suggestionId,owner)
         checkContent(EditSuggestionRules.canEdit(row.status),409,STATE_CONFLICT)
+        // 변경 전과 비교하려면 제안을 읽어야 해서 접근 판정 뒤에 한다. 등록의 같은 문장 검사와 같은 규칙·문구다.
+        checkContent(text!=row.beforeText,message=SAME_TEXT)
         row.editedText=text
         row.updatedAt=now()
         return respond(listOf(row),owner).single()
@@ -196,15 +204,18 @@ class EditSuggestionService(
         return current.findByWorkIdAndSequence(id,number)?.publishedVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
     }
 
+    /** 삭제하지 않은 작품이다. 없거나 삭제됐으면 404이며 삭제된 작품의 제안은 모든 경로에서 없는 것으로 본다. */
+    private fun liveWork(id: String) = access.get(id).also {checkContent(!it.deleted,404,WORK_NOT_FOUND)}
+
     private fun find(id: String, suggestionId: String) =
         suggestions.findByIdAndWorkId(suggestionId,id) ?: throw ContentFailure(404,NOT_FOUND)
 
     /**
      * 소유자만 처리할 수 있다. 소유자면 작품 행을 잠가 같은 작품의 쓰기를 직렬화한 뒤 제안을 읽는다.
-     * 제안자인데 소유자가 아니면 403이고, 볼 수 없는 사람이나 없는 작품·제안·삭제된 작품이면 404다.
+     * 제안자인데 소유자가 아니면 403이고, 볼 수 없는 사람이나 없는 작품·제안·삭제된 작품이면 404다(삭제된 작품은 제안자도 404).
      */
     private fun owned(id: String, suggestionId: String, member: String): EditSuggestionEntity {
-        if(access.get(id).ownerId!=member) {
+        if(liveWork(id).ownerId!=member) {
             throw if(suggestions.findByIdAndWorkId(suggestionId,id)?.proposerId==member) ContentFailure(403,OWNER_ONLY) else ContentFailure(404,NOT_FOUND)
         }
         access.own(id,member)
@@ -223,9 +234,10 @@ class EditSuggestionService(
         checkContent(it.length<=MAX_LENGTH && '\u0000' !in it,message=message)
     }
 
-    private fun respond(rows: List<EditSuggestionEntity>, viewer: String): List<SuggestionResponse> {
+    private fun worksOf(rows: List<EditSuggestionEntity>) = works.findAllById(rows.map {it.workId}.toSet()).associateBy {it.id}
+
+    private fun respond(rows: List<EditSuggestionEntity>, viewer: String, byWork: Map<String, WorkEntity> = worksOf(rows)): List<SuggestionResponse> {
         if(rows.isEmpty()) return emptyList()
-        val byWork=works.findAllById(rows.map {it.workId}.toSet()).associateBy {it.id}
         // 제안자 표시명은 Core 닉네임이다. 제안자 ID를 모아 한 번만 조회하고 Core에 없는 회원은 탈퇴한 회원으로 보인다.
         val names=nicknames.nicknames(rows.map {it.proposerId})
         return rows.map {row ->

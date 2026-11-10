@@ -251,34 +251,24 @@ class EditSuggestionIntegrationTest {
         assertEquals(publishedVersion(id),node(detail(id,next,owner)).path("publishedVersionId").asString())
     }
 
-    @Test fun `only the owner decides and hold reject and edit follow the state rules`() {
+    @Test fun `owner only actions answer 401 and csrf 403 and 403 for the proposer and 404 for a stranger and a decided suggestion answers 409`() {
         val owner=member("작가")
         val id=work(owner.toString())
         val reader=member()
         val stranger=member()
         val sid=created(post(id,reader))
 
-        for(action in listOf("approval","rejection","hold")) {
-            assertEquals(403,act(id,sid,reader,action).statusCode(),"proposer $action")
-            assertEquals(404,act(id,sid,stranger,action).statusCode(),"stranger $action")
-            assertEquals(401,act(id,sid,null,action).statusCode(),"anonymous $action")
-            assertEquals(403,call("POST","${one(id,sid)}/$action",owner,csrf=false).statusCode(),"csrf $action")
-        }
-        assertEquals(403,call("PUT","${one(id,sid)}/edited-text",reader,"""{"editedText":"편집"}""").statusCode())
-        assertEquals(404,call("PUT","${one(id,sid)}/edited-text",stranger,"""{"editedText":"편집"}""").statusCode())
+        assertEquals(401,act(id,sid,null,"hold").statusCode())
+        assertEquals(403,call("POST","${one(id,sid)}/hold",owner,csrf=false).statusCode())
+        assertEquals(403,act(id,sid,reader,"hold").statusCode())
+        assertEquals(404,act(id,sid,stranger,"hold").statusCode())
         assertEquals(listOf<Any?>("pending",null,null,null),row(sid))
 
         assertEquals("held",ok(act(id,sid,owner,"hold")).path("status").asString())
         assertEquals(409,act(id,sid,owner,"hold").statusCode())
-        assertEquals("안 된다고요",ok(call("PUT","${one(id,sid)}/edited-text",owner,"""{"editedText":"안 된다고요"}""")).path("editedText").asString())
-        val rejected=ok(act(id,sid,owner,"rejection","""{"reason":"  톤이 달라요  "}"""))
-        assertEquals(listOf("rejected","톤이 달라요"),listOf(rejected.path("status").asString(),rejected.path("decisionReason").asString()))
-        for(action in listOf("approval","rejection","hold")) assertEquals(409,act(id,sid,owner,action).statusCode(),"after reject $action")
-        assertEquals(409,call("PUT","${one(id,sid)}/edited-text",owner,"""{"editedText":"늦은 편집"}""").statusCode())
-        assertEquals(1,count("SELECT count(*) FROM edit_suggestion WHERE id=? AND status='rejected' AND decided_at IS NOT NULL",sid))
-        // 거절 사유는 선택이라 본문 없이도 거절된다.
-        val quiet=created(post(id,reader))
-        assertEquals("rejected",ok(act(id,quiet,owner,"rejection")).path("status").asString())
+        // 거절 사유는 선택이라 본문 없이도 거절된다(상태 전이 전체는 서비스 단위 테스트가 검증한다).
+        assertEquals("rejected",ok(act(id,sid,owner,"rejection")).path("status").asString())
+        assertEquals(409,act(id,sid,owner,"approval").statusCode())
     }
 
     @Test fun `invalid input and sentences outside the published text are rejected before anything is stored`() {

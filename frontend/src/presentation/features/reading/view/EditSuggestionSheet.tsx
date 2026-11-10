@@ -13,16 +13,19 @@ export function EditSuggestionSheet({ workId, n, sentence, onClose }: { workId: 
   const vm = useEditSuggestionViewModel(workId, n)
   const [after, setAfter] = useState(sentence.t)
   const [reason, setReason] = useState('')
+  // 비었거나 원문과 같으면 보낼 수 없다(UseCase·서버도 같은 규칙으로 거절한다).
+  const unchanged = !after.trim() || after.trim() === sentence.t.trim()
   return (
     <Sheet sid="U06" label="문장 수정 제안" onClose={onClose}>
       <div className="sh-h"><h3>✎ 수정 제안 · {n}화</h3><button type="button" className="x" aria-label="닫기" onClick={onClose}>✕</button></div>
       <div className="quote">{sentence.t}</div>
-      <label className="field">고친 문장<textarea className="ta" aria-label="고친 문장" data-autofocus maxLength={SUGGESTION_MAX} value={after} onChange={(e) => setAfter(e.target.value)} /></label>
-      <label className="field">사유 (선택)<textarea className="ta" aria-label="수정 사유" maxLength={SUGGESTION_MAX} placeholder="왜 고치면 좋은지 적어 주세요" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
+      <label className="field">고친 문장<textarea className="ta" data-autofocus maxLength={SUGGESTION_MAX} value={after} onChange={(e) => setAfter(e.target.value)} /></label>
+      <label className="field">사유 (선택)<textarea className="ta" maxLength={SUGGESTION_MAX} placeholder="왜 고치면 좋은지 적어 주세요" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
       <div className="note">작가가 승인해야 원고에 반영돼요. 승인해도 발행은 작가가 따로 하며, 자동 반영은 없어요.</div>
+      {vm.error && <p role="alert">{vm.error}</p>}
       <div className="rowend">
         <button type="button" className="btn" onClick={onClose}>취소</button>
-        <button type="button" className="btn pri" disabled={vm.busy} onClick={() => { void vm.propose(sentence.t, after, reason).then((ok) => { if (ok) onClose() }) }}>수정 제안 보내기</button>
+        <button type="button" className="btn pri" disabled={vm.busy || unchanged} onClick={() => { void vm.propose(sentence.t, after, reason).then((ok) => { if (ok) onClose() }) }}>수정 제안 보내기</button>
       </div>
     </Sheet>
   )

@@ -154,8 +154,8 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 ### 규칙
 
 - 등록: 로그인 회원(자기 작품 포함). `beforeText`(1~500자)는 고정한 발행 버전 본문에 **그대로 한 번 이상** 있어야 한다(없으면 422 `원문에서 고칠 문장을 찾을 수 없어요.`). `afterText` 1~500자, `beforeText`와 같으면 422. `reason` 0~500자.
-- 열람: 제안자·작품 소유자만(그 외 404). 공개 목록은 없다.
-- 편집안 저장: 소유자만, `pending`/`held`에서만. `editedText`(1~500자)를 저장하고 원래 `afterText`는 보존한다(UC-16 4단계). 승인 내용 = `editedText ?: afterText`.
+- 열람: 제안자·작품 소유자만(그 외 404). 작품이 삭제됐으면 누구에게나 404이고 내 제안·피드백함 목록에서도 뺀다. 공개 목록은 없다.
+- 편집안 저장: 소유자만, `pending`/`held`에서만. `editedText`(1~500자, `beforeText`와 같으면 422 — `afterText`와 같은 규칙)를 저장하고 원래 `afterText`는 보존한다(UC-16 4단계). 승인 내용 = `editedText ?: afterText`.
 - 승인: 소유자만, `pending`/`held`에서만(또는 `approved`+`failed`의 재시도).
   1. 회차의 현재 발행 버전이 제안의 `publishedVersionId`와 다르면 409 `기준 발행본이 바뀌어 다시 검토해야 해요.` — 상태를 바꾸지 않는다(CE-07).
   2. 현재 초안 본문에서 `beforeText`가 정확히 한 번 나오면 승인 내용으로 바꿔 기존 `EpisodeVersionService.save`(현재 초안 revision 사용)로 새 초안 버전을 만든다 → `approved`+`applied`+`appliedVersionId`.
@@ -163,7 +163,7 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 - 거절: 소유자만, `pending`/`held`에서만. 선택 사유 0~500자 → `rejected`(종결).
 - 보류: 소유자만, `pending`에서만 → `held`. 같은 상태 전이를 반복하거나 종결 상태에서 바꾸면 409.
 - 범위 검사(순수 함수 `EditScopePolicy`, 저장하지 않고 응답마다 계산): 승인 내용 기준으로
-  공백·문장부호만 다르면 `auto`; 숫자가 바뀌면 `review`; 공백으로 나눈 단어 수가 같고 바뀐 단어마다 글자 편집 거리 1 이하(한 글자 오탈자)면 `auto`; 그 밖(단어 교체·추가·삭제)은 `review`. 판정 사유 문장 목록(`scopeReasons`)을 함께 준다.
+  숫자 열(`1.5`·`1,000`처럼 소수점·천 단위 구분자까지 한 덩어리)이 바뀌면 `review`; 공백·문장부호만 다르면 `auto`; 공백으로 나눈 단어 수가 같고 바뀐 단어마다 글자 편집 거리 1 이하(한 글자 오탈자)면 `auto`; 그 밖(단어 교체·추가·삭제)은 `review`. 판정 사유 문장 목록(`scopeReasons`)을 함께 준다.
 
 ### 응답
 
