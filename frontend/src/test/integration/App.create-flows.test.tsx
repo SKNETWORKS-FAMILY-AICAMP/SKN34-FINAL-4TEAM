@@ -11,13 +11,15 @@ import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 
+vi.mock('../../presentation/features/studio/view/StudioPage', () => ({ StudioPage: () => <h1>집필실</h1> }))
+
 beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
 let nav: NavigateFunction
 const Where = () => { const l = useLocation(); nav = useNavigate(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
-const renderAt = (path: string, store = createAppStore({ role: 'user' })) => { render(<Provider store={store}><MemoryRouter initialEntries={[path]}><App /><Where /></MemoryRouter></Provider>); return store }
+const renderAt = (path: string, store = createAppStore({ role: 'user' })) => { render(<Provider store={store}><MemoryRouter initialEntries={[path]} useTransitions={false}><App /><Where /></MemoryRouter></Provider>); return store }
 const acceptPolicy = async () => {
   fireEvent.click(await screen.findByLabelText(/운영 정책을 확인했고/))
   fireEvent.click(screen.getByRole('button', { name: '정책 확인 후 작품 설정하기' }))
@@ -26,7 +28,9 @@ const acceptPolicy = async () => {
 const day = (d: string) => screen.getByLabelText<HTMLInputElement>(d)
 const checked = () => ['월요일', '화요일', '비정기'].filter((d) => day(d).checked)
 
-describe('새 소설 만들기 (U28)', () => {
+describe('목업 새 소설 만들기 (U28)', () => {
+  beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
+
   it('비정기와 요일 선택은 서로 배타적이다', async () => {
     renderAt('/new')
     await acceptPolicy()
@@ -65,8 +69,8 @@ describe('새 소설 만들기 (U28)', () => {
     renderAt('/new')
     await acceptPolicy()
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '남는 제목' } })
-    act(() => { nav('/lib') })
-    await screen.findByRole('heading', { name: '내 서재' })
+    act(() => { nav('/status') })
+    await screen.findByRole('heading', { name: '서비스 연결 상태' })
     act(() => { nav('/new') })
     await acceptPolicy()
     expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe('남는 제목')
@@ -77,8 +81,8 @@ describe('새 소설 만들기 (U28)', () => {
     }
     fireEvent.change(screen.getByLabelText('인물 1 이름'), { target: { value: '등대지기' } })
     fireEvent.click(screen.getByRole('button', { name: '소설 만들고 1화 쓰기 →' }))
-    await waitFor(() => expect(where()).toMatch(/^\/studio\//))
-    await screen.findByLabelText('원고 본문')
+    await screen.findByRole('heading', { name: '집필실' })
+    expect(where()).toMatch(/^\/studio\//)
     act(() => { nav('/new') })
     await acceptPolicy()
     expect(screen.getByLabelText<HTMLInputElement>('제목').value).toBe('남는 제목')
