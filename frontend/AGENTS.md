@@ -3,7 +3,7 @@
 `frontend/**`에 적용한다. [루트 공통 지침](../AGENTS.md)을 함께 따른다.
 nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`와 하위 경로를 Content, `/api/v1/operations/{reports,members,admins,support,works,admin/notices,public/notices,admin/events,public/events}`와 하위 경로를 Operations, 나머지 `/api`를 Core로 라우팅한다(서비스 토큰용 `/api/v1/operations/{notices,events,inquiries}`는 열지 않는다).
 `/content`·UUID `/studio/{id}`와 작품 목록·상세·회차 열람·공개 wiki·Fork 생성은 Content API(`HttpWorkRepository`)를 쓰고,
-실제 작품(canonical) 회차 열람의 댓글은 `HttpEpisodeCommentRepository`([계약](../docs/design/episode-comment-contract.md))를, 메모리 데모 작품의 댓글은 메모리 저장소를 쓴다.
+실제 작품(canonical) 회차 열람의 댓글은 `HttpEpisodeCommentRepository`([계약](../docs/design/episode-comment-contract.md))를, 메모리 데모 작품의 댓글은 메모리 저장소를 쓴다. 실제 작품의 문장 수정 제안·작가 피드백함 수정 제안 승인·내 제안은 `HttpEditSuggestionRepository`를 쓴다([계약](../docs/design/feedback-report-suggestion-contract.md)).
 좋아요·관심 작품·독서 기록은 Content API(`HttpWorkLikeRepository`·`HttpWorkInterestRepository`·`HttpReadingRecordRepository`, [계약](../docs/design/reading-management-contract.md))를 쓰고, 나머지 데모는 별도 메모리 저장소다. 관리자 이벤트 탭과 회원 `/me/event`는 운영 이벤트 API(`HttpEventRepository`)를 쓴다([계약](../docs/design/operations-event-contract.md)). 관리자 작품 탭은 운영 작품 API(`HttpOperationsWorkRepository`)를 쓴다([계약](../docs/design/operations-work-contract.md)). 화면 존재와 서버 기능 완료를 구분한다.
 홈 실시간 인기·급상승·최신 포크·방금 업데이트·이번 주 인기와 `/rank`는 Content 기간별 랭킹 API(`/public/works/rankings`)를, 홈 장르 칩과 `/search`는 공개 검색 API(`/public/works`, 인기 순·페이지)를 쓴다(`--mode mockup`은 시드 메모리 작품·검색).
 계약은 [작품 검색·랭킹](../docs/design/work-search-ranking-contract.md)이다.
