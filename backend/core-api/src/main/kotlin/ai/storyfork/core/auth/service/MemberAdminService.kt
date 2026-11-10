@@ -67,10 +67,10 @@ class MemberAdminService(
         requireOperator(subject)
         if (request.password.toByteArray(Charsets.UTF_8).size > 72) throw AuthException(AuthException.Reason.INVALID)
         val email = request.email.trim().lowercase(Locale.ROOT)
-        if (members.existsByEmail(email)) throw AuthException(AuthException.Reason.CONFLICT)
         val member = AuthMember(UUID.randomUUID(), email, requireNotNull(passwords.encode(request.password)),
             request.nickname.trim(), operator = true)
         try {
+            // 중복 이메일은 DB 유니크 제약으로만 거른다. 위반이 이 try 안에서 터지도록 save가 아닌 saveAndFlush를 쓴다.
             return item(members.saveAndFlush(member))
         } catch (_: DataIntegrityViolationException) {
             throw AuthException(AuthException.Reason.CONFLICT)

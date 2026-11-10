@@ -3,23 +3,31 @@ import { WCATS } from '../../domain/entities/wiki'
 import type { ReadingWorkRecord, ReadingWorldRecord } from './HttpEpisodeRepository'
 
 /**
- * Content 작품 응답을 화면의 Work로 바꾼다. 목록·검색·랭킹 카드가 같이 쓴다. 서버에 없는 좋아요·갱신 시각은 statisticsSupported:false로
- * 화면이 표시하지 않게 하고, views는 최근 24시간 조회 수(서버 값)다. 원작/Fork는 source 유무로 가른다.
+ * Content 작품 응답을 화면의 Work로 바꾼다. 목록·검색·랭킹 카드가 같이 쓴다. likes(공개 좋아요 수)·views(최근 24시간 조회 수)는 공개 응답의
+ * 서버 값이고 소유자 응답에서는 0이다. 서버에 없는 댓글 수·갱신 시각은 statisticsSupported:false로 화면이 표시하지 않게 한다.
+ * 원작/Fork는 source 유무로 가른다.
  */
 export function mapReadingWork(row: ReadingWorkRecord, mine = false): Work {
   const episodes = [...row.episodes].sort((a, b) => a.number - b.number)
-  const mapEpisode = (e: typeof episodes[number]) => ({ t: e.title, p: e.body.split('\n\n'), versionId: e.versionId })
-  const inherited = episodes.filter(e => e.inherited).map(mapEpisode)
+  const mapEpisode = (e: typeof episodes[number]) => ({ t: e.title, p: e.body.split('\n\n'), versionId: e.versionId, authorNote: e.authorNote ?? '' })
+  // Reader routes use array index + 1. Keep empty, hidden slots for withheld episode numbers.
+  const byNumber=new Map(episodes.map(e=>[e.number,e]))
+  const boundary=row.source?.episode??0
+  const numbered=Array.from({length:Math.max(boundary,episodes.at(-1)?.number??0)},(_,i)=>{
+    const e=byNumber.get(i+1)
+    return e?mapEpisode(e):{t:'공개되지 않은 회차',p:[],hidden:true}
+  })
+  const inherited = numbered.slice(0,boundary)
   return {
     id: row.id, slug: row.slug ?? undefined, canonical: true, title: row.title, summary: row.summary, theme: row.theme,
     author: row.authorName, owner: row.ownerId, mine, genre: (row.genres ?? []).join(' · '),
     kind: row.source ? '포크' : '원작', rights: '권리 진술 별도 확인', by: row.authorName,
     tags: row.source ? ['if'] : [], hash: (row.hashtags ?? []).map(t => '#' + t),
-    statisticsSupported: false, likes: 0, views: row.views, cmts: 0, upd: 0,
+    statisticsSupported: false, likes: row.likes, views: row.views, cmts: 0, upd: 0,
     hook: row.hook, hanja: row.hanja ?? undefined, hero: row.hero ?? undefined, heroBg: row.heroBg ?? undefined,
     private: row.visibility !== 'public', forksAllowed: row.allowFork, forkAll: false, forkEps: row.forkableEpisodes,
-    forkFrom: row.forkableEpisodes[0] ?? 0, parent: row.source?.workId, forkAt: row.source?.episode, dir: row.source?.direction,
-    eps: episodes.filter(e => !e.inherited).map(mapEpisode), cast: [], rules: [], events: [],
+    forkFrom: row.forkableEpisodes[0] ?? 0, parent: row.source?.workId, parentTitle: row.source?.title, parentDeleted: row.source?.deleted, forkAt: row.source?.episode, dir: row.source?.direction,
+    eps: numbered.slice(boundary), cast: [], rules: [], events: [],
     wiki: { docs: [], cats: structuredClone(WCATS) },
     ...(row.source ? { snap: { eps: inherited, rules: [], cast: [], events: [], takenAt: 0, srcHash: '' } } : {}),
   }

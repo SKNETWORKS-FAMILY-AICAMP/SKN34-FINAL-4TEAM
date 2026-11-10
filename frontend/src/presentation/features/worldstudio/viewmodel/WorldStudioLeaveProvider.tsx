@@ -3,7 +3,7 @@ import {useBlocker} from 'react-router'
 import {createWorldStudioLeaveGuard,WorldStudioLeaveContext} from './worldStudioLeaveGuard'
 
 export function WorldStudioLeaveProvider({children}:{children:ReactNode}) {
- const [guard]=useState(()=>createWorldStudioLeaveGuard(()=>window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?')))
+ const [guard]=useState(()=>createWorldStudioLeaveGuard(scope=>window.confirm(scope==='both'?'저장하지 않은 변경과 적용하지 않은 관계 입력이 있습니다. 버리고 이동할까요?':scope==='relation'?'적용하지 않은 관계 입력이 있습니다. 버릴까요?':'저장하지 않은 변경이 있습니다. 이동할까요?')))
  const blocker=useBlocker(guard.shouldBlock)
  useEffect(()=>{
   if(blocker.state!=='blocked')return

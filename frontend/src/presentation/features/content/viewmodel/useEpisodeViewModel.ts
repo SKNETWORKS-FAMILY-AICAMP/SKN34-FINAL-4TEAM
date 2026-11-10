@@ -7,6 +7,7 @@ import type {
   StoryContext,
   Version,
   Work,
+  WorkRegistration,
 } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
@@ -147,12 +148,12 @@ export function useEpisodeViewModel(
       if (w) void reading.recordViews(w)
       return true
     },
-    create: (title: string, summary: string, cover?: File) =>
+    create: (title: string, summary: string, cover?: File, registration?: WorkRegistration) =>
       run(async () => {
         if (cover) validateMediaFile(cover, true)
         const controller = new AbortController()
         request.current = controller
-        const work = await useCase.create(title, summary, controller.signal)
+        const work = await useCase.create(title, summary, controller.signal, registration)
         if (controller.signal.aborted) return
         install(work)
         if (cover) {

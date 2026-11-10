@@ -35,6 +35,8 @@ class AttachmentService(
     private fun missingSettingAttachment(): Nothing = throw AttachmentFailure(404, "ATTACHMENT_NOT_FOUND", "설정 또는 첨부를 찾을 수 없어요.")
     private fun ownedSetting(workId: String, settingId: String, owner: String): String {
         if (owner.isBlank() || owner.length > 200) throw AttachmentFailure(401, "ATTACHMENT_UNAUTHENTICATED", "인증이 필요해요.")
+        // 소프트 삭제한 작품의 설정 첨부는 새 행위에서 제외한다(DEC-42).
+        works.lockOwned(workId, owner)?.takeIf { it.deletedAt == null } ?: missingSettingAttachment()
         return settings.lockOwnedLocal(workId, settingId, owner)?.id ?: missingSettingAttachment()
     }
     private fun find(id: String, documentId: String) = attachments.findByIdAndSettingDocumentId(id, documentId) ?: missingSettingAttachment()
@@ -52,6 +54,9 @@ class AttachmentService(
         throw AttachmentFailure(503, "ATTACHMENT_DATABASE_FAILURE", "첨부 정보를 저장하거나 조회하지 못했어요.")
     }
 
+    /** 파일을 읽기 전에 소유 설정인지 확인한다. 잠금은 이 조회 트랜잭션 동안만 잡고 파일 처리 전에 풀린다. 저장 전 재확인은 각 업로드 메서드가 유지한다. */
+    fun requireSettingUploadAccess(work: String, setting: String, owner: String) { settingTransaction { ownedSetting(work, setting, owner) } }
+
     // ponytail: same-setting reads/writes serialize through S3 I/O; split read locking only if measured contention warrants it.
     fun listSettingAttachments(work: String, setting: String, owner: String) = settingTransaction {
         val document = ownedSetting(work, setting, owner)
@@ -65,9 +70,8 @@ class AttachmentService(
         val bytes = readObject(attachment).bytes
         AttachmentDownloadResult(response(attachment, work, setting), bytes)
     }
-    fun createSettingAttachment(work: String, setting: String, owner: String, request: AttachmentUploadRequest) = settingTransaction {
+    fun createSettingAttachment(work: String, setting: String, owner: String, payload: AttachmentUploadPayload) = settingTransaction {
         val document = ownedSetting(work, setting, owner)
-        val payload = AttachmentUploadHelper.validate(request)
         limit(document, payload.kind)
         val key = "setting-attachments/${UUID.randomUUID()}"
         storage.upload(key, AttachmentObjectPayload(payload.bytes, payload.mediaType))
@@ -75,14 +79,23 @@ class AttachmentService(
             mediaType=payload.mediaType, kind=payload.kind, byteSize=payload.bytes.size.toLong()))
         response(attachment, work, setting)
     }
-    fun replaceSettingAttachment(work: String, setting: String, id: String, owner: String, request: AttachmentUploadRequest): AttachmentResponse {
+    /** 파일명만 DB에서 바꾼다. 확장자가 형식을 정하므로 대소문자만 무시하고 그대로 두며, 저장소 객체·미디어 형식·크기는 건드리지 않는다. */
+    fun renameSettingAttachment(work: String, setting: String, id: String, owner: String, request: AttachmentRenameRequest) = settingTransaction {
+        val attachment = find(id, ownedSetting(work, setting, owner))
+        val name = request.filename
+        fun extension(value: String) = value.substringAfterLast('.', "").lowercase()
+        if (name == null || !AttachmentUploadHelper.validFilename(name) || extension(name) != extension(attachment.filename))
+            throw AttachmentFailure(422, "ATTACHMENT_INVALID", "파일명을 확인해 주세요. 확장자는 바꿀 수 없어요.")
+        attachment.filename = name
+        response(attachments.saveAndFlush(attachment), work, setting)
+    }
+    fun replaceSettingAttachment(work: String, setting: String, id: String, owner: String, payload: AttachmentUploadPayload): AttachmentResponse {
         var previousKey: String? = null
         var backup: AttachmentObjectPayload? = null
         try {
             return settingTransaction {
                 val document = ownedSetting(work, setting, owner)
                 val attachment = find(id, document)
-                val payload = AttachmentUploadHelper.validate(request)
                 limit(document, payload.kind, attachment.kind)
                 val oldKey = attachment.objectKey
                 val oldObject = readObject(attachment)
@@ -130,25 +143,28 @@ class AttachmentService(
     catch (_: TransactionException) { throw AttachmentFailure(503, "IMAGE_DATABASE_FAILURE", "이미지 정보를 저장하거나 조회하지 못했어요.") }
     private fun ownedWork(work: String, owner: String) {
         if (owner.isBlank()) throw AttachmentFailure(401, "IMAGE_UNAUTHENTICATED", "인증이 필요해요.")
-        works.lockOwned(work, owner) ?: missingImage()
+        works.lockOwned(work, owner)?.takeIf { it.deletedAt == null } ?: missingImage()
     }
+    /** 파일을 읽기 전에 소유 작품인지 확인한다. 잠금은 이 조회 트랜잭션 동안만 잡고 파일 처리 전에 풀린다. 저장 전 재확인은 각 업로드 메서드가 유지한다. */
+    fun requireWorkUploadAccess(work: String, owner: String) { imageTransaction { ownedWork(work, owner); true } }
     private fun cover(work: String) = images.findByWorkIdAndEpisodeNo(work, 0).singleOrNull() ?: missingImage()
     private fun response(image: ContentImage, work: String = image.workId) = AttachmentResponse(image.id, image.filename, image.mediaType, "IMAGE", image.byteSize, image.createdAt,
         if (image.episodeNo == 0) "/api/v1/works/$work/cover/content" else "/api/v1/works/$work/episodes/${image.episodeNo}/images/${image.id}/content")
     private fun imageBytes(image: ContentImage): ByteArray = storage.read(image.objectKey).bytes.also {
         if (it.size.toLong() != image.byteSize) throw AttachmentFailure(503, "IMAGE_STORAGE_FAILURE", "이미지 저장 상태를 확인해 주세요.")
     }
-    private fun imagePayload(request: AttachmentUploadRequest) = AttachmentUploadHelper.validate(request).also {
+    private fun imagePayload(payload: AttachmentUploadPayload) = payload.also {
         if (it.kind != "IMAGE") throw AttachmentFailure(422, "IMAGE_INVALID", "표지와 본문에는 PNG 또는 JPEG 이미지만 사용할 수 있어요.")
     }
     fun readCover(work: String, owner: String) = imageTransaction { ownedWork(work, owner); response(cover(work)) }
     fun downloadCover(work: String, owner: String?, public: Boolean): AttachmentDownloadResult {
-        if (public) content.publicRead(work)
+        // 공개 작품이 아니면 404다. 작가명(Core 조회)이 필요 없으므로 publicRead 대신 이름 없는 확인을 쓴다.
+        if (public) content.publicEpisodes(work)
         return imageTransaction { if (!public) ownedWork(work, owner ?: ""); val image = cover(work); AttachmentDownloadResult(response(image), imageBytes(image)) }
     }
-    fun putCover(work: String, owner: String, request: AttachmentUploadRequest) = imageTransaction {
+    fun putCover(work: String, owner: String, payload: AttachmentUploadPayload) = imageTransaction {
         ownedWork(work, owner)
-        val data = imagePayload(request)
+        val data = imagePayload(payload)
         val previous = images.findByWorkIdAndEpisodeNo(work, 0).singleOrNull()
         val key = "work-covers/${UUID.randomUUID()}"
         storage.upload(key, AttachmentObjectPayload(data.bytes, data.mediaType))
@@ -159,26 +175,83 @@ class AttachmentService(
         response(image)
     }
     fun deleteCover(work: String, owner: String) { imageTransaction { ownedWork(work, owner); images.delete(cover(work)); images.flush(); true } }
-    fun createEpisodeImage(work: String, number: Int, owner: String, request: AttachmentUploadRequest): AttachmentResponse {
+    /** EPUB 가져오기는 검증한 이미지와 대체 텍스트를 전달한다. */
+    fun createEpisodeImage(work: String, number: Int, owner: String, payload: AttachmentUploadPayload, altText: String = ""): AttachmentResponse =
+        createEpisodeImage(work, number, owner, altText) { payload }
+
+    internal fun createEpisodeImage(work: String, number: Int, owner: String, altText: String = "", loadPayload: () -> AttachmentUploadPayload): AttachmentResponse {
+        // 회차 ID는 접근 확인(read)보다 먼저 잡는다. 그 뒤 삭제·같은 번호 재생성이 일어나면 잠금 안 재확인에서 ID가 달라져 거절된다.
+        val episodeId = imageEpisodes.findByWorkIdAndSequence(work, number)?.id
         val episode = episodeService.read(work, owner, number)
         if (episode.inherited) throw AttachmentFailure(403, "IMAGE_INHERITED", "원작 기준 회차에는 이미지를 추가할 수 없어요.")
+        if (episodeId == null) missingImage()
+        val payload = loadPayload()
         return imageTransaction {
             ownedWork(work, owner)
-            // The attachment work lock and Core deletion lock target the same database row.
-            // Recheck after locking: deletion may have committed since the initial Core read.
-            if (!imageEpisodes.existsByWorkIdAndSequence(work, number)) missingImage()
-            val data = imagePayload(request)
+            // 번호를 재사용한 새 회차에 이전 회차의 이미지가 저장되지 않도록 ID를 비교한다.
+            if (imageEpisodes.findByWorkIdAndSequence(work, number)?.id != episodeId) missingImage()
+            val data = imagePayload(payload)
+            val alt = AttachmentUploadHelper.validAltText(altText) ?: invalidAltText()
             if (images.countByWorkIdAndEpisodeNo(work, number) >= 10) throw AttachmentFailure(409, "IMAGE_LIMIT", "회차 이미지는 최대 10개까지 추가할 수 있어요.")
             val key = "episode-images/${UUID.randomUUID()}"
             storage.upload(key, AttachmentObjectPayload(data.bytes, data.mediaType))
-            response(images.saveAndFlush(ContentImage(workId = work, episodeNo = number, objectKey = key, filename = data.filename, mediaType = data.mediaType, byteSize = data.bytes.size.toLong())))
+            response(images.saveAndFlush(ContentImage(workId = work, episodeNo = number, objectKey = key, filename = data.filename, mediaType = data.mediaType, byteSize = data.bytes.size.toLong(), altText = alt)))
         }
+    }
+
+    private fun invalidAltText(): Nothing = throw AttachmentFailure(422, "IMAGE_INVALID", "대체 텍스트는 300자 이하의 한 줄로 입력해 주세요.")
+    private fun episodeImage(image: ContentImage, work: String, number: Int, body: String) = EpisodeImageResponse(image.id, image.filename, image.mediaType, image.byteSize, image.altText,
+        image.createdAt, "/api/v1/works/$work/episodes/$number/images/${image.id}/content", "[[image:${image.id}]]" in body)
+
+    /** 소유자의 이 작품·회차 이미지 목록(생성 순)이다. 상속 회차는 빈 목록이고 referenced는 현재 초안 본문에 표식이 있는지다. */
+    fun listEpisodeImages(work: String, number: Int, owner: String): EpisodeImageListResponse {
+        val episode = episodeService.read(work, owner, number)
+        if (episode.inherited) return EpisodeImageListResponse(emptyList())
+        return EpisodeImageListResponse(imageTransaction {
+            images.findAllByWorkIdAndEpisodeNoOrderByCreatedAtAscIdAsc(work, number).map { episodeImage(it, work, number, episode.draft.body) }
+        })
+    }
+
+    /** 이 작품·회차 이미지의 대체 텍스트만 바꾼다. 앞뒤 공백을 떼고 0~300자·제어 문자 없음만 허용하며, 다른 작품·회차의 이미지는 404다. */
+    fun updateEpisodeImageAltText(work: String, number: Int, id: String, owner: String, request: EpisodeImageAltTextRequest): EpisodeImageResponse {
+        val episode = episodeService.read(work, owner, number)
+        return imageTransaction {
+            ownedWork(work, owner)
+            val image = images.findById(id).orElse(null)?.takeIf { it.workId == work && it.episodeNo == number } ?: missingImage()
+            image.altText = AttachmentUploadHelper.validAltText(request.altText) ?: invalidAltText()
+            episodeImage(images.saveAndFlush(image), work, number, episode.draft.body)
+        }
+    }
+
+    /** 공개 작품의 발행본 본문이 참조하고 공개 이미지 규칙이 허용하는 이미지의 대체 텍스트만 본문 순서대로 반환한다. 작가명(Core 조회)이 필요 없어 publicRead 대신 이름 없는 확인을 쓴다. */
+    fun publicEpisodeImageAltTexts(work: String, number: Int): PublicEpisodeImageListResponse {
+        val body = content.publicEpisodes(work).firstOrNull { it.number == number }?.body ?: return PublicEpisodeImageListResponse(emptyList())
+        val ids = Regex("\\[\\[image:([^\\]]+)\\]\\]").findAll(body).map { it.groupValues[1] }.distinct().toList()
+        if (ids.isEmpty()) return PublicEpisodeImageListResponse(emptyList())
+        val found = imageTransaction { images.findAllById(ids).associateBy { it.id } }
+        return PublicEpisodeImageListResponse(ids.mapNotNull { found[it] }.filter { episodeService.permitsImageReference(work, number, it) }.map { PublicEpisodeImageResponse(it.id, it.altText) })
+    }
+    /**
+     * 원고 가져오기에서 올렸지만 본문 저장에 실패한 이미지를 지운다. 초안이나 저장 버전 본문이 참조하는 이미지는 지우지 않아
+     * 저장 버전의 불변성을 지킨다. 저장소 객체 삭제 실패는 그대로 던지며 호출자가 로그만 남긴다.
+     */
+    fun discardUnreferencedEpisodeImage(work: String, number: Int, id: String, owner: String) {
+        val episode = episodeService.read(work, owner, number)
+        val marker = "[[image:$id]]"
+        if (marker in episode.draft.body || episode.versions.any { marker in it.body }) return
+        val key = imageTransaction {
+            ownedWork(work, owner)
+            val image = images.findById(id).orElse(null)?.takeIf { it.workId == work && it.episodeNo == number } ?: return@imageTransaction ""
+            images.delete(image); images.flush()
+            image.objectKey
+        }
+        if (key.isNotEmpty()) storage.delete(key)
     }
     fun downloadEpisodeImage(work: String, number: Int, id: String, owner: String?, public: Boolean): AttachmentDownloadResult {
         val marker = "[[image:$id]]"
         // Public access is granted by the exact existing published body, never by a guessed image ID or a draft.
         val referenced = if (public) {
-            content.publicRead(work).episodes.any { it.number == number && marker in it.body }
+            content.publicEpisodes(work).any { it.number == number && marker in it.body }
         } else {
             val episode = episodeService.read(work, owner ?: "", number)
             episode.inherited && marker in episode.draft.body

@@ -16,6 +16,18 @@ class ApplicationPropertiesTest {
     }
 
     @Test
+    fun `no default browser user account is created because the user details auto-configuration is excluded`() {
+        val properties = Properties()
+        checkNotNull(javaClass.getResourceAsStream("/application.properties")).use(properties::load)
+
+        val excluded = properties.getProperty("spring.autoconfigure.exclude")
+
+        assertEquals("org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration", excluded)
+        // Boot silently ignores an excluded name that is not on the classpath, so a typo would still log a default password.
+        Class.forName(excluded, false, javaClass.classLoader)
+    }
+
+    @Test
     fun `persistence owns only the operations schema and dedicated migration history`() {
         val properties = Properties()
         checkNotNull(javaClass.getResourceAsStream("/application.properties")).use(properties::load)

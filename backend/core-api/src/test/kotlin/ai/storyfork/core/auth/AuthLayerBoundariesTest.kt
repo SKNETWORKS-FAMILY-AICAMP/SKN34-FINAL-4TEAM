@@ -1,6 +1,7 @@
 package ai.storyfork.core.auth
 
 import ai.storyfork.core.auth.controller.MemberAdminController
+import ai.storyfork.core.auth.controller.MemberNicknameController
 import ai.storyfork.core.auth.controller.ProfileController
 import ai.storyfork.core.auth.controller.SessionController
 import ai.storyfork.core.auth.controller.SignupController
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class AuthLayerBoundariesTest {
     private val controllers = listOf(SignupController::class.java, SessionController::class.java, ProfileController::class.java,
-        MemberAdminController::class.java)
+        MemberAdminController::class.java, MemberNicknameController::class.java)
 
     @Test
     fun `controllers bind explicit values instead of servlet objects or map responses`() {
@@ -46,7 +47,7 @@ class AuthLayerBoundariesTest {
     fun `public and internal contracts are explicit top level service DTOs`() {
         for (name in listOf("SignupRequest", "EmailRequest", "TokenRequest", "VerificationRequest", "LoginRequest",
             "NicknameRequest", "ResetRequest", "CsrfResponse", "MemberResponse", "LoginResponse", "LoginResult", "SessionResponse", "SessionsResponse",
-            "VerifiedMemberResponse", "MemberItem", "MemberListResponse", "AdminCreateRequest")) {
+            "VerifiedMemberResponse", "MemberItem", "MemberListResponse", "AdminCreateRequest", "NicknamesRequest", "NicknamesResponse")) {
             val dto = Class.forName("ai.storyfork.core.auth.service.dto.$name")
             assertNull(dto.enclosingClass, name)
             assertTrue(dto.declaredFields.none { it.type.name.startsWith("ai.storyfork.core.auth.entity.") }, name)

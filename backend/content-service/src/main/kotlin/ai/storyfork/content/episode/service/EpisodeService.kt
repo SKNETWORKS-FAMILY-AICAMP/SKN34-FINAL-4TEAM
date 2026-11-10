@@ -27,6 +27,7 @@ class EpisodeService(
     @Qualifier("contentEntityManager") private val em: EntityManager,
     private val forks: ai.storyfork.content.fork.repository.ForkRepository,
     private val checkpointEpisodes: CheckpointEpisodeRepository,
+    private val publicationEvents: ai.storyfork.content.publication.repository.PublicationEventRepository,
 ) {
 
     fun list(id: String, owner: String): EpisodeListResponse {
@@ -54,17 +55,19 @@ class EpisodeService(
         checkContent(!before.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.acceptsRevision(data.revision,before.draft.revision),409,"다른 편집이 저장됐어요. 입력을 보관하고 최신 원고를 다시 불러와 주세요.")
         validate(data.title,data.body)
+        checkContent(data.authorNote.length<=2000,message="작가의 말은 2,000자 이내로 작성해 주세요.")
         requireImageReferences(id,number,data.body)
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
         val d=drafts.findById(e.id).orElse(null) ?: EpisodeDraftEntity(episodeId=e.id)
-        d.title=data.title.trim(); d.content=data.body; d.editRevision=data.revision+1; d.updatedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
+        d.title=data.title.trim(); d.content=data.body; d.authorNote=data.authorNote.trim(); d.editRevision=data.revision+1; d.updatedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
         drafts.save(d)
         works.findById(id).orElseThrow().revision++
         return readCurrent(id,number)
     }
     /** 번호 변경은 실행하지 않고 현재 참조 기준의 후보 구간만 반환한다. */
     fun orderScope(id: String, owner: String, number: Int): EpisodeOrderScopeResponse {
-        read(id,owner,number)
+        val source=read(id,owner,number)
+        if(source.inherited) return EpisodeOrderScopeResponse(number,emptyList(),listOf("원작 기준 회차의 순서는 변경할 수 없어요."))
         val rows=episodes.findAllByWorkIdOrderBySequence(id)
         val protected=rows.filter { !imagesAbsent(id,it.sequence) || episodes.referenceCount(it.id)>0 }.map {it.sequence}.toSet()
         val candidates=ai.storyfork.content.episode.domain.EpisodeMutationPolicy.candidates(number,list(id,owner).items.map {it.number},protected)
@@ -88,16 +91,14 @@ class EpisodeService(
         checkContent(before.draft.revision==revision,409,"회차가 변경됐어요. 다시 불러와 주세요.")
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
         val following=list(id,owner).items.any {it.number>number}
-        checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.canDelete(before.inherited,!imagesAbsent(id,number) || episodes.referenceCount(e.id)>0,following),409,"참조 없는 마지막 회차만 삭제할 수 있어요. 이미지 참조가 있거나 확인할 수 없으면 삭제가 제한돼요.")
-        drafts.findById(e.id).ifPresent { drafts.delete(it) }
-        drafts.flush()
-        episodes.delete(e)
-        try { episodes.flush() } catch (_: org.springframework.dao.DataIntegrityViolationException) {
-            throw ContentFailure(409,"회차를 참조하는 기록이 있어 삭제하지 못했어요.")
-        }
+        checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.canDelete(before.inherited,!imagesAbsent(id,number) || episodes.referenceCount(e.id)>0,following),409,"마지막 회차만 삭제할 수 있어요. 저장 버전·발행본·이미지가 있거나 설정 공개 범위·AI·Fork가 참조하는 회차는 삭제할 수 없어요.")
         val work=works.findById(id).orElseThrow()
-        work.revision=maxOf(work.revision,revision)+1
+        val currentRevision=maxOf(work.revision,revision)
+        checkContent(currentRevision<Int.MAX_VALUE,409,"편집 번호 한도에 도달했어요.")
+        e.deletedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
+        work.revision=currentRevision+1
         work.deletedEpisodeRevision=work.revision
+        em.flush()
     }
     /** 원고 저장·복원·발행에서 동일한 이미지 참조 권한을 확인한다. 첨부 비활성 시 참조는 거부한다. */
     fun requireImageReferences(work: String, number: Int, body: String) {
@@ -127,10 +128,10 @@ class EpisodeService(
     private fun imagesAbsent(work: String, number: Int): Boolean {
         val repository=imageRepositories.getIfAvailable() ?: return false
         return try { repository.countByWorkIdAndEpisodeNo(work,number)==0L }
-        catch (_: org.springframework.dao.DataAccessException) { throw ContentFailure(503,"이미지 참조를 확인하지 못했어요. 삭제하지 않았으니 나중에 다시 시도해 주세요.") }
+        catch (_: org.springframework.dao.DataAccessException) { throw ContentFailure(503,"이미지 참조를 확인하지 못했어요. 나중에 다시 시도해 주세요.") }
     }
     private fun ensure(work: String, number: Int): EpisodeEntity = episodes.findByWorkIdAndSequence(work,number)
-        ?: episodes.saveAndFlush(EpisodeEntity(id=episodeId(work,number),workId=work,sequence=number))
+        ?: episodes.saveAndFlush(EpisodeEntity(id=contentId(),workId=work,sequence=number))
     private fun validate(title: String, body: String) = checkContent(title.isNotBlank() && title.length<=120 && body.length<=40000,message="제목은 120자, 원고는 40,000자 이내로 작성해 주세요.")
     private fun readCurrent(id: String, number: Int): EpisodeResponse {
         em.flush()
@@ -144,13 +145,18 @@ class EpisodeService(
         val saved=versions.findAllByEpisodeIdInOrderByCreatedAtAscIdAsc(rows.map {it.id}).filter {it.isSaved}.groupBy {it.episodeId}
         val entities=episodes.findAllById(rows.map {it.id}).associateBy {it.id}
         val published=versions.findAllById(rows.mapNotNull {it.publishedVersionId}).associateBy {it.id}
+        // DEC-43: 체크포인트는 저장 버전의 발행(publish/replace/republish·applied) 기록이다. 되돌리기는 같은 버전을 다시 발행하므로 버전당 최초 발행 한 건만 센다.
+        val savedList=saved.values.flatten();val versionById=savedList.associateBy {it.id}
+        val checkpointLog=publicationEvents.findAllByEpisodeVersionIdInOrderByOccurredAtAscIdAsc(savedList.map {it.id})
+            .filter {it.action in setOf("publish","replace","republish") && it.outcome=="applied"}.distinctBy {it.episodeVersionId}.groupBy {versionById.getValue(it.episodeVersionId).episodeId}
         return rows.mapNotNull { row ->
             val draft=draftById[row.id];val p=published[row.publishedVersionId]
             val floor=entities[row.id]?.draftRevisionFloor ?: -1
             if(draft==null && p==null && saved[row.id].isNullOrEmpty() && floor<0) null else EpisodeResponse(row.sequence,
-                DraftResponse(draft?.title ?: p?.title ?: saved[row.id]?.lastOrNull()?.title ?: "새 회차",draft?.content ?: if(floor<0) p?.content.orEmpty() else "",draft?.editRevision ?: maxOf(0,floor)),
-                saved[row.id].orEmpty().map { VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,row.sequence,it.createdAt.toString()) },
-                p?.contentVersionId,row.inherited,draft?.updatedAt?.toString(),hasDraft=draft!=null)
+                DraftResponse(draft?.title ?: p?.title ?: saved[row.id]?.lastOrNull()?.title ?: "새 회차",draft?.content ?: if(floor<0) p?.content.orEmpty() else "",draft?.editRevision ?: maxOf(0,floor),draft?.authorNote ?: if(floor<0) p?.authorNote.orEmpty() else ""),
+                saved[row.id].orEmpty().map { VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,row.sequence,it.createdAt.toString(),it.authorNote) },
+                p?.contentVersionId,row.inherited,draft?.updatedAt?.toString(),hasDraft=draft!=null,publicationStatus=row.publicationStatus,
+                checkpoints=checkpointLog[row.id].orEmpty().map { EpisodeCheckpointResponse(versionById.getValue(it.episodeVersionId).contentVersionId,it.occurredAt.toString(),it.episodeVersionId==row.publishedVersionId) })
         }
     }
     private fun missing(): Nothing = throw ContentFailure(404,"회차를 찾을 수 없어요.")

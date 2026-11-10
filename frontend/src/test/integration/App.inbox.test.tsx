@@ -211,17 +211,20 @@ describe('독자 피드백함 (U20)', () => {
   })
 
   it('수정 제안은 승인한 뒤 따로 발행해야 원고가 바뀐다', async () => {
-    const works = await appContainer.resolve('workRepository').listWorks()
-    const text = works.find((w) => w.id === 'starlight')!.eps[0].p[0]
-    const from = text.slice(0, 4)
-    await feedback().addInbox(item('b', { type: '단순 오류', status: '수정 제안', from, to: '바뀐말', baseText: text }))
-    renderAt('/inbox?i=b')
+    const works = appContainer.resolve('workRepository')
+    const star = (await works.listWorks()).find((w) => w.id === 'starlight')!
+    const text = '그건 않 된다고 했다.'
+    star.eps[0].p[0] = text
+    await works.saveWork(star)
+    // 상태를 직접 넣지 않고 독자의 오타 제보를 실제 접수 흐름으로 보내 피드백함에 들어온 그대로 연다.
+    await appContainer.resolve('feedbackUseCase').sendFeedback({ workId: 'starlight', n: 1, type: '단순 오류', text: '오타예요', sentence: { t: text, pi: 0 }, verified: false, nick: '독자' })
+    renderAt(`/inbox?i=${(await feedback().listInbox())[0].id}`)
     fireEvent.click(await screen.findByRole('button', { name: '수정안 승인' }))
     await toastIs('수정안을 승인했어요. 발행은 별도로 확인해 주세요')
     fireEvent.click(await screen.findByRole('button', { name: '수정안 발행' }))
     await toastIs('수정안을 발행했어요 (데모)')
-    const after = (await appContainer.resolve('workRepository').listWorks()).find((w) => w.id === 'starlight')!.eps[0].p[0]
-    expect(after).toBe(text.replace(from, '바뀐말'))
+    const after = (await works.listWorks()).find((w) => w.id === 'starlight')!.eps[0].p[0]
+    expect(after).toBe(text.replace('않 된다', '안 된다'))
   })
 })
 
@@ -258,5 +261,18 @@ describe('캐릭터 챗 (U27)', () => {
     fireEvent.click(screen.getByRole('button', { name: '보내기' }))
     await toastIs('물어볼 내용을 입력해 주세요')
     screen.getByRole('link', { name: /2화에서 포크하기/ })
+  })
+
+  it('답을 기다리는 동안 다시 보낸 질문은 받아들이지 않고 입력한 글도 지우지 않는다', async () => {
+    // 첫 질문의 답을 만드는 요청이 끝나지 않게 두고, 그동안 다시 보내 본다.
+    vi.spyOn(appContainer.resolve('chatUseCase'), 'answer').mockImplementationOnce(() => new Promise(() => {}))
+    renderAt('/chat/guunmong/%EC%84%B1%EC%A7%84')
+    const input = await screen.findByLabelText<HTMLInputElement>('성진에게 질문')
+    fireEvent.change(input, { target: { value: '첫 질문' } })
+    fireEvent.click(screen.getByRole('button', { name: '보내기' }))
+    fireEvent.change(input, { target: { value: '둘째 질문' } })
+    fireEvent.click(screen.getByRole('button', { name: '보내기' }))
+    await act(async () => {})
+    expect(input.value).toBe('둘째 질문')
   })
 })

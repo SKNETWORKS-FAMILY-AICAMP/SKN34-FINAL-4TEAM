@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { cardLibraryRows, worldWritingIssues } from '../entities/worldStudioWriting'
+import { cardLibraryRows, selectCardForFilter, worldWritingIssues } from '../entities/worldStudioWriting'
 import { newSetting, type StudioWorld } from '../entities/studioWorld'
 const world = (settings: StudioWorld['settings'] = []): StudioWorld => ({
   id: 'qa',
@@ -56,4 +56,16 @@ it('does not require optional descriptions or relationships and points missing n
     id: fact.item.id,
     message: '이 설정의 설명을 입력해 주세요.',
   })
+})
+
+it('selects an item that remains visible under either search or type filtering', () => {
+  const person = newSetting('people'), place = newSetting('places')
+  person.item.title = '가람'
+  place.item.title = '항구'
+  const settings = [person, place], before = structuredClone(settings)
+  expect(selectCardForFilter(settings, person.item.id, 'all', '가람')).toBe(person.item.id)
+  expect(selectCardForFilter(settings, person.item.id, 'all', '항구')).toBe(place.item.id)
+  expect(selectCardForFilter(settings, person.item.id, 'location', '')).toBe(place.item.id)
+  expect(selectCardForFilter(settings, person.item.id, 'all', '없는 설정')).toBe('')
+  expect(settings).toEqual(before)
 })

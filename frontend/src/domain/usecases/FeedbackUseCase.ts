@@ -1,8 +1,10 @@
 import { TYPO, type Comment, type FeedbackType, type Sentence } from '../entities/feedback'
 import { epsOf, isMine, type Work } from '../entities/work'
 import type { AdminRepository } from '../repositories/AdminRepository'
+import { REPORT_KIND_OF, REPORT_STATUS_LABEL, type FeedbackReportVisibility } from '../entities/feedbackReport'
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
 import { FEEDBACK_UNAVAILABLE, type WorkRepository } from '../repositories/WorkRepository'
+import type { FeedbackReportUseCase } from './FeedbackReportUseCase'
 
 let uid = 1
 const nid = (p: string) => p + uid++
@@ -20,10 +22,13 @@ export class FeedbackUseCase {
   private readonly workRepository: WorkRepository
   private readonly feedbackRepository: FeedbackRepository
   private readonly adminRepository: AdminRepository
-  constructor(workRepository: WorkRepository, feedbackRepository: FeedbackRepository, adminRepository: AdminRepository) {
+  private readonly reports?: FeedbackReportUseCase
+  /** reports는 정본 작품의 제보 API(기능 23)다. 없으면 정본 작품의 피드백은 기존처럼 거절한다. */
+  constructor(workRepository: WorkRepository, feedbackRepository: FeedbackRepository, adminRepository: AdminRepository, reports?: FeedbackReportUseCase) {
     this.workRepository = workRepository
     this.feedbackRepository = feedbackRepository
     this.adminRepository = adminRepository
+    this.reports = reports
   }
 
   private async work(id: string) {
@@ -55,10 +60,23 @@ export class FeedbackUseCase {
     return this.feedbackRepository.toggleCommentLike(key)
   }
 
-  async sendFeedback(o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; verified: boolean; nick: string }) {
+  /** 정본 작품은 서버 제보 API로 등록하고 실제 응답 상태만 안내한다(AI 응답 문구 없음). */
+  private async sendReport(reports: FeedbackReportUseCase, o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; visibility?: FeedbackReportVisibility }) {
+    const visibility = o.visibility ?? 'private'
+    const r = await reports.register(o.workId, o.n, { kind: REPORT_KIND_OF[o.type], body: o.text, quote: o.sentence.t, visibility })
+    return {
+      status: REPORT_STATUS_LABEL[r.status],
+      message: `제보를 등록했어요. 작가가 확인하면 상태가 바뀌어요. ${visibility === 'public' ? '공개 제보라 회차 하단에서 다른 독자도 볼 수 있어요.' : '비공개라 작가와 나만 볼 수 있어요.'}`,
+    }
+  }
+
+  /** canonical은 시트가 이미 아는 값(실제 작품이면 true)이라 작품 목록을 다시 읽어 알아내지 않는다. 제보 API가 없으면 정본 작품은 아래 work()에서 기존처럼 거절된다. */
+  async sendFeedback(o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; verified: boolean; nick: string; canonical?: boolean; visibility?: FeedbackReportVisibility }) {
+    if (o.canonical && this.reports) return this.sendReport(this.reports, o)
     const w = await this.work(o.workId)
     const proposal = o.type === '단순 오류' ? typoReply(w, o.n, o.sentence, o.text) : null
-    const par = w.eps[o.n - 1]?.p
+    // 포크의 n화는 원작 스냅샷을 포함한 번호(epsOf)라 직접 쓴 회차 목록(w.eps)에서는 스냅샷 수만큼 당긴다. 스냅샷 회차는 음수가 되어 자동 수정에서 빠진다.
+    const par = w.eps[o.n - 1 - (epsOf(w).length - w.eps.length)]?.p
     // 목업 typoAuto: 작품 설정의 자동 승인이 켜져 있으면 본문을 바로 고치고 피드백함에 넣지 않습니다.
     const autoApplied = !!(proposal?.key && w.settings?.typoAuto && !w.hidden && par?.[o.sentence.pi]?.includes(proposal.key))
     if (autoApplied && par && proposal?.key) {
@@ -75,7 +93,7 @@ export class FeedbackUseCase {
     await this.feedbackRepository.addReport({ id: rid, w: o.workId, n: o.n, type: o.type, text: o.text, status, reply: message })
     if (isMine(w) && o.type !== '질문' && !autoApplied) {
       await this.feedbackRepository.addInbox({
-        id: nid('i'), rid, w: o.workId, n: o.n, pi: o.sentence.pi, type: o.type, who: o.nick, text: o.text, baseText: w.eps[o.n - 1]?.p[o.sentence.pi] ?? '',
+        id: nid('i'), rid, w: o.workId, n: o.n, pi: o.sentence.pi, type: o.type, who: o.nick, text: o.text, baseText: epsOf(w)[o.n - 1]?.p[o.sentence.pi] ?? '',
         status: '작가 검토 대기', ai: { cls: o.type, why: '사용자가 고른 유형을 그대로 전달합니다. 자동 분류하지 않았어요.', ev: o.sentence.t },
         from: proposal?.key, to: proposal?.key && TYPO[proposal.key],
       })

@@ -65,10 +65,12 @@ export function useNewWorkViewModel(libraryUseCase: LibraryUseCase = appContaine
     },
     restore: async (id: string, version: number) => {
       if (!window.confirm('선택한 버전을 복원하고 새 이력으로 남길까요?')) return
-      if (!await libraryUseCase.restoreWorld(id, version, false)) {
+      let r = await libraryUseCase.restoreWorld(id, version, false)
+      if ('needsConfirm' in r) {
         if (!window.confirm('제거한 규칙을 연결된 작품에도 반영할까요? 이전 세계관 이력에서 복원할 수 있어요.')) return
-        await libraryUseCase.restoreWorld(id, version, true)
+        r = await libraryUseCase.restoreWorld(id, version, true)
       }
+      if ('error' in r) return toast(r.error)
       changed('선택한 버전을 복원했어요 (데모)')
     },
     togglePublic: async (id: string, isPublic: boolean) => {

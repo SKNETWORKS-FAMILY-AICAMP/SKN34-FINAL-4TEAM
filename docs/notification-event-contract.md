@@ -43,6 +43,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 | type | 알림 분류 | target.type | 비고 |
 | --- | --- | --- | --- |
 | `content.world.changed` | 읽기(끌 수 있음) | `work` | 후보. 수신자 결정 규칙은 Content 쪽 확인 필요 |
+| `content.episode.published` | 읽기(끌 수 있음) | `work` | 관심 작품에 새 회차(처음 발행한 회차 번호)가 올라왔을 때. 수신자는 그 작품을 관심 작품으로 담은 회원(작가 본인 제외), `target.id`는 작품 id. 회차 번호·제목은 싣지 않는다 |
 
 새 종류는 `NoticeEventType`에 추가하고 이 표도 같이 고친다.
 
@@ -56,4 +57,10 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 
 ## 발행 쪽 약속
 
-- 사건은 업무 변경과 같은 트랜잭션에서 Outbox 테이블에 기록하고 별도 발행기가 브로커로 보낸다(변경은 됐는데 사건이 사라지는 일을 막는다). 재전송이 일어나므로 `eventId`는 Outbox 행에서 고정한다.
+- 사건은 업무 변경과 같은 트랜잭션에서 **발행하는 서비스 자신의** Outbox 테이블에 기록하고 별도 발행기가 브로커로 보낸다(변경은 됐는데 사건이 사라지는 일을 막는다). 재전송이 일어나므로 `eventId`는 Outbox 행에서 고정한다.
+- Core가 만드는 사건은 Core의 `notification_outbox`(V11)를 쓴다. 사건을 만드는 코드는 업무 트랜잭션 안에서 `NoticeOutboxService.enqueue(type, recipientId, targetId)`만 호출한다(열린 트랜잭션이 없으면 예외).
+  `NoticeOutboxRelay`가 2초마다 `sent_at`이 빈 행을 오래된 순으로(최대 50개) 발행하고 브로커 확인(publisher confirm)을 받은 행만 `sent_at`을 채운다.
+  발행이 실패하면 Content와 같이 그 주기를 멈추고 다음 주기에 같은 `eventId`로 다시 보낸다. 실패는 브로커 장애이지 사건 하나의 문제가 아니므로 시도 횟수 한도를 두지 않는다(장애가 길어도 사건을 버리지 않는다).
+  같은 사건이 두 번 나가도 위 `eventId` 규칙으로 알림은 한 건만 생긴다. 1차는 Core 한 대 기준이다.
+  현재 `NoticeEventType`에는 Content 사건만 있어 Core가 `enqueue`할 사건 종류는 아직 없다. 첫 Core 사건의 `type` 이름은 그 사건을 연결할 때 정한다.
+- Content는 `content_event_outbox`(`id`=`eventId`)에 쓰고, 단일 인스턴스의 스케줄 발행기가 5초마다 `published_at`이 빈 행을 오래된 순으로 `storyfork.events`(routing key=`type`)에 보낸다. 보낸 행만 `published_at`을 채우고, 실패하면 그 주기를 멈춰 다음 주기에 같은 `eventId`로 다시 보낸다. Content는 교환기·큐를 선언하지 않는다. 교환기·큐·바인딩은 Core가 처음 연결할 때 선언하므로, Core가 한 번도 연결하지 않은 브로커로 보낸 사건은 어디에도 보관되지 않는다(발행기는 보낸 것으로 기록한다).

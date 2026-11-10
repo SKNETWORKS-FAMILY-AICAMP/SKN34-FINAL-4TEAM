@@ -1,8 +1,10 @@
 import { useState } from 'react'
 
 import { FEEDBACK_TYPES, REPORT_TYPES, type FeedbackType, type Sentence } from '../../../../domain/entities/feedback'
+import { REPORT_BODY_MAX, REPORT_VISIBILITY_LABEL, type FeedbackReportVisibility } from '../../../../domain/entities/feedbackReport'
 import type { Work } from '../../../../domain/entities/work'
 import type { Look } from '../../../shared/ui/uiSlice'
+import { ReportWorkForm } from '../../../shared/reports/ReportWorkForm'
 import { Sheet } from '../../../shared/Sheet'
 import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { useLook } from '../viewmodel/useLook'
@@ -13,17 +15,32 @@ const Head = ({ title, onClose }: { title: string; onClose: () => void }) => (
 
 const Done = ({ status, message, onClose }: { status: string; message: string; onClose: () => void }) => (
   <>
-    <div className="reply"><span className={`chip ${['접수됨', '작가 검토 대기', '분석 중', '필터 대기'].includes(status) ? 'wait' : 'ok'}`}>{status}</span> {message}</div>
+    <div className="reply"><span className={`chip ${['접수됨', '작가 확인 전', '작가 검토 대기', '분석 중', '필터 대기'].includes(status) ? 'wait' : 'ok'}`}>{status}</span> {message}</div>
     <div className="rowend"><button type="button" className="btn pri" onClick={onClose}>확인</button></div>
   </>
 )
 
-/** 목업 reportSheet(id): 소설 전체 신고 */
+/** 보낼 내용이 있을 때만 제출 버튼을 잠급니다. 빈 내용은 ViewModel이 안내만 하고 거절하므로(제출이 시작되지 않음) 바로 다시 누를 수 있어야 합니다. */
+const willSubmit = (text: string) => text.trim() !== ''
+
+/** 소설 전체 신고 시트. 서버(Content API) 작품은 운영 신고 API(34)로 접수하고, 데모 작품은 메모리 데모로 접수합니다. */
 export function ReportSheet({ work, onClose }: { work: Work; onClose: () => void }) {
+  if (!work.canonical) return <DemoReportSheet work={work} onClose={onClose} />
+  return (
+    <Sheet sid="U06" label="소설 신고" onClose={onClose}>
+      <Head title={`🚩 소설 신고 · ${work.title}`} onClose={onClose} />
+      <ReportWorkForm key={work.id} workId={work.id} workTitle={work.title} alwaysOpen />
+    </Sheet>
+  )
+}
+
+/** 목업 reportSheet(id): 소설 전체 신고 */
+function DemoReportSheet({ work, onClose }: { work: Work; onClose: () => void }) {
   const vm = useFeedbackViewModel()
   const [type, setType] = useState(REPORT_TYPES[0][0])
   const [text, setText] = useState('')
   const [done, setDone] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   return (
     <Sheet sid="U06" label="소설 신고" onClose={onClose}>
       <Head title={`🚩 소설 신고 · ${work.title}`} onClose={onClose} />
@@ -36,40 +53,46 @@ export function ReportSheet({ work, onClose }: { work: Work; onClose: () => void
       {done ? <Done status="접수됨" message={done} onClose={onClose} /> : (
         <>
           <p className="note">권리 침해·유해 콘텐츠 신고는 운영팀이 검토해요. 피드백과 별도로 처리돼요.</p>
-          <div className="rowend"><button type="button" className="btn" onClick={onClose}>취소</button><button type="button" className="btn pri" onClick={() => void vm.reportWork(work.id, type, text).then((m) => m && setDone(m))}>신고하기</button></div>
+          <div className="rowend"><button type="button" className="btn" onClick={onClose}>취소</button><button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.reportWork(work.id, type, text).then((m) => m && setDone(m)).finally(() => setBusy(false)) }}>신고하기</button></div>
         </>
       )}
     </Sheet>
   )
 }
 
-/** 목업 commentSheet(id,n,k): 문장에 댓글 달기 */
-export function CommentSheet({ workId, n, sentence, onClose, onAdded }: { workId: string; n: number; sentence: Sentence; onClose: () => void; onAdded: () => void }) {
+/** 목업 commentSheet(id,n,k): 문장에 댓글 달기. 서버 작품은 submit으로 서버에 보내고 글자 수 한도도 서버 계약(maxLength)을 따릅니다. */
+export function CommentSheet({ workId, n, sentence, onClose, onAdded, submit, maxLength = 200 }: { workId: string; n: number; sentence: Sentence; onClose: () => void; onAdded?: () => void; submit?: (text: string, sentence: Sentence, spoiler: boolean) => Promise<boolean>; maxLength?: number }) {
   const vm = useFeedbackViewModel()
   const [text, setText] = useState('')
   const [spoiler, setSpoiler] = useState(false)
+  const [busy, setBusy] = useState(false)
   return (
     <Sheet sid="U06" label="문장에 댓글 달기" onClose={onClose}>
       <Head title={`${n}화 문장에 댓글 달기`} onClose={onClose} />
       <div className="quote">{sentence.t}</div>
-      <label className="field">댓글<textarea className="ta" id="ct" aria-label="댓글" data-autofocus maxLength={200} placeholder="감상, 의견, 궁금한 점을 자유롭게 남겨 주세요" value={text} onChange={(e) => setText(e.target.value)} /></label>
+      <label className="field">댓글<textarea className="ta" id="ct" aria-label="댓글" data-autofocus maxLength={maxLength} placeholder="감상, 의견, 궁금한 점을 자유롭게 남겨 주세요" value={text} onChange={(e) => setText(e.target.value)} /></label>
       <label className="ck"><input type="checkbox" checked={spoiler} onChange={(e) => setSpoiler(e.target.checked)} /> 스포일러 표시</label>
       <div className="note">댓글만 등록되며 자동 답변은 제공하지 않아요.</div>
       <div className="rowend">
         <button type="button" className="btn" onClick={onClose}>취소</button>
-        <button type="button" className="btn pri" onClick={() => void vm.addComment(workId, n, text, sentence, spoiler).then((ok) => { if (ok) { onClose(); onAdded() } })}>등록</button>
+        <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void (submit ? submit(text, sentence, spoiler) : vm.addComment(workId, n, text, sentence, spoiler)).then((ok) => { if (ok) { onClose(); onAdded?.() } }).finally(() => setBusy(false)) }}>등록</button>
       </div>
     </Sheet>
   )
 }
 
-/** 목업 feedbackSheet(id,n,k): 피드백은 운영 신고와 별도로 접수합니다. */
-export function FeedbackSheet({ workId, n, sentence, onClose }: { workId: string; n: number; sentence: Sentence; onClose: () => void }) {
+/**
+ * 목업 feedbackSheet(id,n,k): 피드백은 운영 신고와 별도로 접수합니다.
+ * canonical(실제 작품)이면 유형·내용·공개 범위를 서버 제보 API(기능 23)로 등록하고, AI 시뮬레이션·자동 응답 문구 없이 실제 응답 상태만 안내합니다. onSent는 등록 성공 뒤 호출됩니다.
+ */
+export function FeedbackSheet({ workId, n, sentence, onClose, canonical = false, onSent }: { workId: string; n: number; sentence: Sentence; onClose: () => void; canonical?: boolean; onSent?: () => void }) {
   const vm = useFeedbackViewModel()
   const [type, setType] = useState<FeedbackType>(FEEDBACK_TYPES[0])
   const [text, setText] = useState('')
   const [storyCheck, setStoryCheck] = useState(false)
+  const [visibility, setVisibility] = useState<FeedbackReportVisibility>('private')
   const [done, setDone] = useState<{ status: string; message: string } | null>(null)
+  const [busy, setBusy] = useState(false)
   return (
     <Sheet sid="U06" label="피드백 보내기" onClose={onClose}>
       <Head title={`✉ 피드백 보내기 · ${n}화`} onClose={onClose} />
@@ -77,8 +100,16 @@ export function FeedbackSheet({ workId, n, sentence, onClose }: { workId: string
       <label className="field">피드백 유형
         <select className="inp" id="ftype" aria-label="피드백 유형" disabled={!!done} value={type} onChange={(e) => setType(FEEDBACK_TYPES.find((t) => t === e.target.value) ?? FEEDBACK_TYPES[0])}>{FEEDBACK_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
       </label>
-      <label className="field">내용<textarea className="ta" id="ft" aria-label="내용" data-autofocus maxLength={1000} readOnly={!!done} value={text} onChange={(e) => setText(e.target.value)} /></label>
-      {type === '스토리 오류' && !done ? (
+      <label className="field">내용<textarea className="ta" id="ft" aria-label="내용" data-autofocus maxLength={canonical ? REPORT_BODY_MAX : 1000} readOnly={!!done} value={text} onChange={(e) => setText(e.target.value)} /></label>
+      {canonical && (
+        <label className="field">공개 범위
+          <select className="inp" id="fvis" aria-label="공개 범위" disabled={!!done} value={visibility} onChange={(e) => setVisibility(e.target.value === 'public' ? 'public' : 'private')}>
+            <option value="private">{REPORT_VISIBILITY_LABEL.private} · 작가와 나만 봐요</option>
+            <option value="public">{REPORT_VISIBILITY_LABEL.public} · 다른 독자도 회차 하단에서 봐요</option>
+          </select>
+        </label>
+      )}
+      {canonical ? <p className="note">제보는 작가에게 전달되고, 작가가 확인하거나 답변하면 상태가 바뀌어요. 내 서재의 ‘내 댓글·제보’에서 정정·철회·공개 범위 변경을 할 수 있어요. 자동 분석이나 자동 답변은 없어요.</p> : type === '스토리 오류' && !done ? (
         <>
           <label className="ck"><input type="checkbox" checked={storyCheck} onChange={(e) => setStoryCheck(e.target.checked)} /> 스토리 오류 검증 시뮬레이션에 동의</label>
           <p className="note">기본 피드백은 무료예요. 선택 검증의 비용과 한도는 미정이며, 이 데모는 실제 AI 호출이나 차감이 없어요. 오류가 검증·반영되면 보상 크레딧을 줄 수 있지만 실제 보상은 연결되지 않았어요. 정식 서비스의 유해 콘텐츠 1차 필터는 연결되지 않았어요.</p>
@@ -87,7 +118,7 @@ export function FeedbackSheet({ workId, n, sentence, onClose }: { workId: string
       {done ? <Done status={done.status} message={done.message} onClose={onClose} /> : (
         <div className="rowend">
           <button type="button" className="btn" onClick={onClose}>취소</button>
-          <button type="button" className="btn pri" onClick={() => void vm.sendFeedback({ workId, n, sentence, type, text, storyCheck }).then((r) => r && setDone(r))}>피드백 보내기</button>
+          <button type="button" className="btn pri" disabled={busy} onClick={() => { setBusy(willSubmit(text)); void vm.sendFeedback({ workId, n, sentence, type, text, storyCheck, canonical, visibility }).then((r) => { if (r) { setDone(r); onSent?.() } }).finally(() => setBusy(false)) }}>피드백 보내기</button>
         </div>
       )}
     </Sheet>
