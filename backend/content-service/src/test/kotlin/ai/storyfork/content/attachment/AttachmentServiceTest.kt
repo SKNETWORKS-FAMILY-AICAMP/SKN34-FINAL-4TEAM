@@ -69,6 +69,12 @@ class AttachmentServiceTest {
         `when`(imageEpisodes.existsByWorkIdAndSequence("work",1)).thenReturn(true)
     }
 
+    @Test fun `setting attachments of a soft deleted work are not found`() {
+        `when`(works.lockOwned("work", "owner")).thenReturn(ImageWork(id = "work", ownerId = "owner", deletedAt = java.time.Instant.now()))
+        assertEquals("ATTACHMENT_NOT_FOUND", assertThrows(AttachmentFailure::class.java) { service.requireSettingUploadAccess("work", "setting", "owner") }.code)
+        verify(settings, never()).lockOwnedLocal("work", "setting", "owner")
+    }
+
     @Test fun `upload access is checked with the existing ownership rules before any file is read`() {
         service.requireSettingUploadAccess("work", "setting", "owner")
         service.requireWorkUploadAccess("work", "owner")
@@ -108,7 +114,8 @@ class AttachmentServiceTest {
         assertArrayEquals(png, payloads.allValues[1].bytes)
         assertArrayEquals(png, payloads.allValues[2].bytes)
         verify(settings).lockOwnedLocal("work", "setting", "owner")
-        verify(works, times(2)).lockOwned("work", "owner")
+        // 설정 첨부도 삭제 여부를 보려고 작품 행을 잠근다(설정·표지·회차 이미지 각 1회).
+        verify(works, times(3)).lockOwned("work", "owner")
         verify(episodeService).read("work", "owner", 1)
         verify(storage, never()).delete(anyString())
     }

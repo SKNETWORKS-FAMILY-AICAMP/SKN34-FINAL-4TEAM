@@ -35,6 +35,8 @@ class AttachmentService(
     private fun missingSettingAttachment(): Nothing = throw AttachmentFailure(404, "ATTACHMENT_NOT_FOUND", "설정 또는 첨부를 찾을 수 없어요.")
     private fun ownedSetting(workId: String, settingId: String, owner: String): String {
         if (owner.isBlank() || owner.length > 200) throw AttachmentFailure(401, "ATTACHMENT_UNAUTHENTICATED", "인증이 필요해요.")
+        // 소프트 삭제한 작품의 설정 첨부는 새 행위에서 제외한다(DEC-42).
+        works.lockOwned(workId, owner)?.takeIf { it.deletedAt == null } ?: missingSettingAttachment()
         return settings.lockOwnedLocal(workId, settingId, owner)?.id ?: missingSettingAttachment()
     }
     private fun find(id: String, documentId: String) = attachments.findByIdAndSettingDocumentId(id, documentId) ?: missingSettingAttachment()
