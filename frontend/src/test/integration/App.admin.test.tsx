@@ -69,15 +69,15 @@ describe('관리자 (A01~A18)', () => {
     const readerCount = async () => { cleanup(); renderAt('/read/guunmong/1', 'user'); return (await screen.findByRole('heading', { name: /^댓글 \d+$/ })).textContent }
     const before = await readerCount()
     expect(screen.queryByText(text)).not.toBeNull()
-    const toggle = async () => {
+    const toggle = async (done: string) => {
       cleanup(); renderAt('/admin?tab=comments')
       fireEvent.click(within((await screen.findByText(text)).closest('tr') as HTMLElement).getByRole('button'))
-      await toastIs('댓글 상태를 변경했어요 (데모)')
+      await toastIs(done)
     }
-    await toggle()
+    await toggle('댓글을 숨겼어요.')
     expect(await readerCount()).toBe('댓글 ' + (Number(before!.split(' ')[1]) - 1))
     expect(screen.queryByText(text)).toBeNull()
-    await toggle()
+    await toggle('댓글을 게시 상태로 되돌렸어요.')
     expect(await readerCount()).toBe(before)
     expect(screen.queryByText(text)).not.toBeNull()
   })

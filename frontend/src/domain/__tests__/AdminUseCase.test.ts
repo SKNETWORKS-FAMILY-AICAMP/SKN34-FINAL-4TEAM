@@ -33,13 +33,4 @@ describe('관리자 신고 처리 (목업 data-qact)', () => {
     expect(await uc.runJob('series')).toBeNull()
     expect((await uc.runJob('notification-cleanup'))?.msg).toMatch('수동 재시도')
   })
-
-  it('없는 댓글은 숨기지 않고 로그도 남기지 않는다 (목업 data-comment-action)', async () => {
-    const { uc, admin } = fakes()
-    expect(await uc.toggleComment('nope', '구운몽 · 누군가')).toBeNull()
-    expect(admin().hiddenComments).toEqual([])
-    expect(admin().audit).toEqual([])
-    expect(await uc.toggleComment('hanji-0', '구운몽 · 연화봉러')).toEqual({ ok: true, msg: '댓글 상태를 변경했어요 (데모)' })
-    expect(admin().hiddenComments).toEqual(['hanji-0'])
-  })
 })

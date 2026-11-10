@@ -5,6 +5,7 @@ import { InMemoryNoticeRepository } from '../../data/mock/InMemoryNoticeReposito
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
+import { InMemoryOperationsCommentRepository } from '../../data/mock/InMemoryOperationsCommentRepository'
 import { InMemoryOperationsWorkRepository } from '../../data/mock/InMemoryOperationsWorkRepository'
 import { seedNotices } from '../../data/mock/seed'
 import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupNotificationRepository, mockupUnsupportedMedia } from '../../data/mock/mockupRepositories'
@@ -40,6 +41,8 @@ export function registerMockupServices(container: AppContainer) {
     eventUseCase: asValue(new EventUseCase(eventRepository)),
     // 운영 작품 API 대신 데모 작품 DB를 운영 작품 형태로 보여 주고, 운영 제한은 데모 작품의 공개 제외로 반영합니다.
     operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(mockDb)),
+    // 운영 댓글 API 대신 데모 관리자 댓글을 운영 댓글 형태로 보여 주고, 숨김은 데모 회차 뷰어가 읽는 숨김 목록에 반영합니다.
+    operationsCommentRepository: asValue(new InMemoryOperationsCommentRepository(mockDb)),
     // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지하고, 독서 기록도 mockDb.progress 메모리입니다.
     readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)),
     episodeRepository: asValue(episodeRepository),

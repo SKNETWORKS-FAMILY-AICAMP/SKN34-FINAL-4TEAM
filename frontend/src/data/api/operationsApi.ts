@@ -2,10 +2,12 @@ import { z } from 'zod'
 
 import type { AdminAccount, AdminInput, MemberItem, MemberQuery } from '../../domain/entities/member'
 import { OperationsError } from '../../domain/entities/operations'
+import type { OperationsComment } from '../../domain/entities/operationsComment'
 import type { OperationsWork } from '../../domain/entities/operationsWork'
 import type { Report, ReportInput, ReportStatus, ReviewDecision } from '../../domain/entities/report'
 import type { SupportInquiry, SupportInquiryInput, SupportInquiryStatus } from '../../domain/entities/supportInquiry'
 import type { MemberRepository } from '../../domain/repositories/MemberRepository'
+import type { OperationsCommentRepository } from '../../domain/repositories/OperationsCommentRepository'
 import type { OperationsWorkRepository } from '../../domain/repositories/OperationsWorkRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import type { ReportRepository } from '../../domain/repositories/ReportRepository'
@@ -25,6 +27,12 @@ const operationsWork = z.object({
   workId: z.string(), ownerId: z.string(), title: z.string(), authorName: z.string(),
   originKind: z.enum(['original', 'fork']), creationType: z.enum(['original', 'external_derivative']),
   rightsConfirmed: z.boolean(), visibility: z.enum(['public', 'private']), restricted: z.boolean(),
+})
+// 운영 DTO는 commentId·workId·authorId를 모두 문자열로 받습니다(비 UUID 한 행이 목록 전체를 깨뜨리지 않게).
+const operationsComment = z.object({
+  commentId: z.string(), workId: z.string(), workTitle: z.string(), episodeNumber: z.number().int().positive(),
+  authorId: z.string(), authorName: z.string(), body: z.string(), likeCount: z.number().int().nonnegative(),
+  hidden: z.boolean(), createdAt: instant,
 })
 const supportReply = z.object({ id: z.string(), body: z.string(), createdAt: instant, updatedAt: instant })
 const supportInquiry = z.object({
@@ -97,6 +105,16 @@ export class HttpOperationsWorkRepository implements OperationsWorkRepository {
 
   list(): Promise<OperationsWork[]> { return read(this.fetcher, '/works', items(operationsWork)) }
   async setRestriction(workId: string, restricted: boolean) { await send(this.fetcher, `/works/${id(workId)}/restriction`, restricted ? 'PUT' : 'DELETE') }
+}
+
+/** 운영 댓글(75): 목록은 Content의 삭제되지 않은 전체 댓글(숨김 포함)이고, 숨김·복구 응답(OperationsComment)은 쓰지 않고 화면이 목록을 다시 조회합니다. */
+export class HttpOperationsCommentRepository implements OperationsCommentRepository {
+  private readonly fetcher?: typeof fetch
+  constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
+
+  list(): Promise<OperationsComment[]> { return read(this.fetcher, '/comments', items(operationsComment)) }
+  async hide(commentId: string) { await send(this.fetcher, `/comments/${id(commentId)}/hidden`, 'PUT') }
+  async unhide(commentId: string) { await send(this.fetcher, `/comments/${id(commentId)}/hidden`, 'DELETE') }
 }
 
 /** 고객지원 문의(67): 변경 응답의 SupportInquiry는 쓰지 않고, 화면이 목록·상세를 다시 조회합니다. */

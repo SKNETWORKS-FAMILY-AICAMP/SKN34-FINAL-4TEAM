@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router'
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
+import { commentWorkOptions, filterOperationsComments } from '../../../../domain/entities/operationsComment'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
 import { SUPPORT_STATUSES, supportStatusLabel, type SupportReply } from '../../../../domain/entities/supportInquiry'
 import { ofKind } from '../../../../domain/entities/work'
@@ -41,7 +42,7 @@ const TITLES: Record<AdminTab, [string, string]> = {
     '캐릭터챗 관리',
     '공개 작품의 원작·포크와 캐릭터를 선택해 챗을 추가하거나 운영 상태를 바꿉니다.',
   ],
-  comments: ['댓글 관리', '댓글 목록을 확인하고 데모 상태에서 숨김 처리할 수 있어요.'],
+  comments: ['댓글 관리', '독자 댓글을 조회하고 숨김·게시 복구를 요청합니다.'],
   feedback: [
     '제보·문의',
     '회원이 보낸 고객지원 문의를 확인하고 답변합니다. 작가 검토 제보는 시연용 데이터예요.',
@@ -206,7 +207,7 @@ export function AdminPage() {
 
 type BodyProps = {
   tab: AdminTab
-  /** 데모 조회 결과. 운영 API 탭(users·admins·works·rights·profile)은 이 값 없이도 그립니다. */
+  /** 데모 조회 결과. 운영 API 탭(users·admins·works·comments·rights·profile)은 이 값 없이도 그립니다. */
   d: Data | undefined
   vm: VM
   f: Filter
@@ -280,6 +281,7 @@ function Body(p: BodyProps) {
   if (tab === 'users') return <Users {...p} />
   if (tab === 'profile') return <Profile vm={vm} />
   if (tab === 'works') return <Works {...p} />
+  if (tab === 'comments') return <Comments {...p} />
   if (!d) return null
   const titleSort = (
     a: string,
@@ -356,72 +358,6 @@ function Body(p: BodyProps) {
           </Table>
         </div>
       </>
-    )
-  } else if (tab === 'comments') {
-    const works = [...new Map(d.comments.map((c) => [c.workId, c.work])).entries()].sort((a, b) =>
-      a[1].localeCompare(b[1], 'ko')
-    )
-    const list = d.comments.filter((c) =>
-      (f.category === 'all' || c.workId === f.category) && has(f.query, c.text, c.work, c.author)
-    ).sort((a, b) => (f.sort === 'likes' ? b.likes - a.likes : a.likes - b.likes))
-    T = (
-      <div className='panel'>
-        <span className='demo'>시드·현재 브라우저 댓글 · 서버 저장 없음</span>
-        <Controls
-          {...p}
-          categories={[
-            ['all', '전체 작품'],
-            ...works.map(([id, name]): [string, string] => [
-              id,
-              works.filter((x) => x[1] === name).length > 1 ? name + ' · ' + id : name,
-            ]),
-          ]}
-          sorts={[['likes', '공감 많은순'], ['likesAsc', '공감 적은순']]}
-        />
-        <Table label='댓글 관리 표' style={{ marginTop: 10 }}>
-          <thead>
-            <tr>
-              <th scope='col'>댓글</th>
-              <th scope='col'>작품</th>
-              <th scope='col'>작성자</th>
-              <th scope='col'>공감</th>
-              <th scope='col'>상태</th>
-              <th scope='col' className='act'>조치</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.length
-              ? list.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.text}</td>
-                  <td>{c.work}</td>
-                  <td>{c.author}</td>
-                  <td>{c.likes}</td>
-                  <td>
-                    <span className={`chip ${c.status === '게시' ? 'ok' : 'wait'}`}>
-                      {c.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type='button'
-                      className='btn sm'
-                      disabled={blocked(vm, `comment:${c.id}`)}
-                      onClick={() => vm.toggleComment(c.id, c.work + ' · ' + c.author)}
-                    >
-                      {c.status === '게시' ? '숨김' : '게시 복구'}
-                    </button>
-                  </td>
-                </tr>
-              ))
-              : (
-                <tr>
-                  <td colSpan={6} className='muted'>검색 결과가 없어요.</td>
-                </tr>
-              )}
-          </tbody>
-        </Table>
-      </div>
     )
   } else if (tab === 'feedback') T = <Feedback {...p} />
   else if (tab === 'jobs') {
@@ -736,6 +672,70 @@ function Works(p: BodyProps) {
       <p className='admin-note'>
         운영 제한한 작품은 공개 작품 목록·상세·회차 열람에서 보이지 않아요. 제한을 해제하면 작가가 정한 공개 상태로 돌아가요.
         이 조치는 신고 사건이나 활동 로그에 기록하지 않아요.
+      </p>
+    </div>
+  )
+}
+
+/** 75 운영 댓글 조회·조치: Content의 삭제되지 않은 전체 댓글(공개·숨김)과 운영 숨김·게시 복구. 작품 분류·검색·정렬은 받은 목록에서 이 화면이 계산합니다. */
+function Comments(p: BodyProps) {
+  const { vm, f } = p
+  const all = vm.live.data?.comments ?? []
+  const rows = filterOperationsComments(all, { workId: f.category, query: f.query, sort: f.sort })
+  return (
+    <div className='panel'>
+      <Controls
+        {...p}
+        categories={[['all', '전체 작품'], ...commentWorkOptions(all)]}
+        sorts={[['likes', '공감 많은순'], ['likesAsc', '공감 적은순']]}
+      />
+      <LiveState vm={vm} label='댓글 목록' />
+      {vm.live.data && (
+        <Table label='댓글 관리 표' style={{ marginTop: 10 }}>
+          <thead>
+            <tr>
+              <th scope='col'>댓글</th>
+              <th scope='col'>작품</th>
+              <th scope='col'>작성자</th>
+              <th scope='col'>공감</th>
+              <th scope='col'>상태</th>
+              <th scope='col' className='act'>조치</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length
+              ? rows.map((c) => (
+                <tr key={c.commentId}>
+                  <td>{c.body}</td>
+                  <td>{c.workTitle}</td>
+                  <td>{c.authorName}</td>
+                  <td>{c.likeCount}</td>
+                  <td>
+                    <span className={`chip ${c.hidden ? 'wait' : 'ok'}`}>{c.hidden ? '숨김' : '게시'}</span>
+                  </td>
+                  <td>
+                    <button
+                      type='button'
+                      className='btn sm'
+                      disabled={blocked(vm, `comment:${c.commentId}`)}
+                      onClick={() => void vm.live.setCommentHidden(c.commentId, !c.hidden)}
+                    >
+                      {c.hidden ? '게시 복구' : '숨김'}
+                    </button>
+                  </td>
+                </tr>
+              ))
+              : (
+                <tr>
+                  <td colSpan={6} className='muted'>검색 결과가 없어요.</td>
+                </tr>
+              )}
+          </tbody>
+        </Table>
+      )}
+      <p className='admin-note'>
+        숨긴 댓글은 독자에게 원문 대신 ‘운영 정책으로 숨겨진 댓글입니다.’로 보이고 수정·좋아요가 막혀요. 삭제가 아니라서 게시 복구하면
+        되돌아오고, 작성자는 자기 댓글을 삭제할 수 있어요. 이 조치는 신고 사건이나 활동 로그에 기록하지 않아요.
       </p>
     </div>
   )

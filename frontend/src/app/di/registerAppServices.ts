@@ -5,8 +5,9 @@ import { ReportUseCase } from '../../domain/usecases/ReportUseCase'
 import { SupportInquiryUseCase } from '../../domain/usecases/SupportInquiryUseCase'
 import { EventUseCase } from '../../domain/usecases/EventUseCase'
 import { OperationsWorkUseCase } from '../../domain/usecases/OperationsWorkUseCase'
+import { OperationsCommentUseCase } from '../../domain/usecases/OperationsCommentUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
-import { HttpMemberRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
+import { HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
@@ -75,6 +76,8 @@ export function registerAppServices(container: AppContainer) {
     eventUseCase: asFunction(({ eventRepository }) => new EventUseCase(eventRepository)).singleton(),
     operationsWorkRepository: asFunction(() => new HttpOperationsWorkRepository()).singleton(),
     operationsWorkUseCase: asFunction(({ operationsWorkRepository }) => new OperationsWorkUseCase(operationsWorkRepository)).singleton(),
+    operationsCommentRepository: asFunction(() => new HttpOperationsCommentRepository()).singleton(),
+    operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),

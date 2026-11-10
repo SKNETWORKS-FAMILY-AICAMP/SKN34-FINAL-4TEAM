@@ -10,7 +10,8 @@ import type { RootState } from '../../app/store'
 // 실제 Hook mount/unmount 통합 회귀는 useAdminViewModel.test.tsx에서 CI 전용으로 유지합니다.
 const doubles = vi.hoisted(() => ({
   cleanups: [] as (() => void)[], dispatch: vi.fn(), getState: vi.fn(),
-  admin: { chatChoices: vi.fn(), toggleComment: vi.fn() },
+  // 남은 데모 조치(캐릭터챗·정기 작업·경고)의 대표로 toggleChat을 쓴다. 댓글 탭은 운영 댓글 API(OperationsCommentUseCase)로 옮겼다.
+  admin: { chatChoices: vi.fn(), toggleChat: vi.fn() },
   toast: vi.fn(),
   // VM이 직접 호출하는 메모리 운영 메서드는 없다(공지·이벤트·문의가 모두 실제 API). operationsUseCase 자리 표시자일 뿐이다.
   operations: {},
@@ -19,6 +20,8 @@ const doubles = vi.hoisted(() => ({
   event: { save: vi.fn(), remove: vi.fn() },
   // 작품 탭은 운영 작품 API의 OperationsWorkUseCase를 호출한다(데모 toggleWork 아님).
   work: { setRestriction: vi.fn() },
+  // 댓글 탭은 운영 댓글 API의 OperationsCommentUseCase를 호출한다(데모 toggleComment 아님).
+  comment: { hide: vi.fn(), unhide: vi.fn() },
   support: { listAll: vi.fn(), get: vi.fn(), addReply: vi.fn(), updateReply: vi.fn(), deleteReply: vi.fn() },
   member: { setRestriction: vi.fn(), createAdmin: vi.fn() },
   report: { review: vi.fn(), setContentRestriction: vi.fn(), requestEvidence: vi.fn() },
@@ -31,7 +34,7 @@ vi.mock('react', () => ({
   useEffect: (setup: () => (() => void)) => { doubles.cleanups.push(setup()) },
 }))
 vi.mock('react-redux', () => ({ useStore: () => ({ getState: doubles.getState }) }))
-vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report, noticeUseCase: doubles.notices, eventUseCase: doubles.event, operationsWorkUseCase: doubles.work, supportInquiryUseCase: doubles.support } as Record<string, unknown>)[name] ?? doubles.operations } }))
+vi.mock('../../app/appContainer', () => ({ appContainer: { resolve: (name: string) => ({ adminUseCase: doubles.admin, memberUseCase: doubles.member, reportUseCase: doubles.report, noticeUseCase: doubles.notices, eventUseCase: doubles.event, operationsWorkUseCase: doubles.work, operationsCommentUseCase: doubles.comment, supportInquiryUseCase: doubles.support } as Record<string, unknown>)[name] ?? doubles.operations } }))
 vi.mock('../../app/store', () => ({ useAppDispatch: () => doubles.dispatch, useAppSelector: (select: (state: RootState) => unknown) => select(doubles.getState()) }))
 vi.mock('../../presentation/shared/session/useLogout', () => ({ useLogout: () => vi.fn() }))
 vi.mock('../../presentation/shared/screenIds', () => ({ useScreenId: vi.fn() }))
@@ -200,6 +203,8 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     { tab: 'notices', name: '공지 삭제', submit: (vm) => vm.deleteNotice('notice-1'), backend: () => doubles.notices.delete },
     { tab: 'events', name: '이벤트 삭제', submit: (vm) => vm.deleteEvent('event-1'), backend: () => doubles.event.remove },
     { tab: 'works', name: '작품 운영 제한', submit: (vm) => vm.live.setWorkRestriction('work-1', true), backend: () => doubles.work.setRestriction },
+    { tab: 'comments', name: '댓글 숨김', submit: (vm) => vm.live.setCommentHidden('comment-1', true), backend: () => doubles.comment.hide },
+    { tab: 'comments', name: '댓글 게시 복구', submit: (vm) => vm.live.setCommentHidden('comment-1', false), backend: () => doubles.comment.unhide },
   ]
 
   describe.each(demoStates)('데모 조회가 %s일 때', (_name, state) => {
@@ -215,20 +220,51 @@ describe('데모 조회 상태와 실제 운영 API 탭 조치 (#197)', () => {
     })
 
     it('데모 탭의 조치는 기존처럼 막혀 실행되지 않는다', async () => {
-      const vm = useAdminViewModel('comments')
+      const vm = useAdminViewModel('characterChats')
       expect(vm.mutationsBlocked).toBe(true)
-      expect(await vm.toggleComment('c1', '구운몽 · 연화봉러')).toBe(false)
-      expect(doubles.admin.toggleComment).not.toHaveBeenCalled()
+      expect(await vm.toggleChat('c1')).toBe(false)
+      expect(doubles.admin.toggleChat).not.toHaveBeenCalled()
       expect(dataVersion).toBe(0)
     })
   })
 
   it('데모 조회가 끝나 있으면 데모 탭 조치는 실행된다', async () => {
-    doubles.admin.toggleComment.mockResolvedValueOnce({ ok: true, msg: '댓글 상태를 변경했어요' })
-    const vm = useAdminViewModel('comments')
+    doubles.admin.toggleChat.mockResolvedValueOnce({ ok: true, msg: '캐릭터챗 상태를 변경했어요' })
+    const vm = useAdminViewModel('characterChats')
     expect(vm.mutationsBlocked).toBe(false)
-    expect(await vm.toggleComment('c1', '구운몽 · 연화봉러')).toBe(true)
+    expect(await vm.toggleChat('c1')).toBe(true)
     expect(dataVersion).toBe(1)
+  })
+})
+
+describe('댓글 탭 숨김·게시 복구 조치 (75)', () => {
+  it('숨김·복구는 서버 호출이 끝난 뒤 true를 돌려주고 댓글 id를 그대로 넘기며 목록을 다시 읽게 한다', async () => {
+    const vm = useAdminViewModel('comments')
+    expect(await vm.live.setCommentHidden('c1', true)).toBe(true)
+    expect(await vm.live.setCommentHidden('c1', false)).toBe(true)
+    expect(doubles.comment.hide.mock.calls).toEqual([['c1']])
+    expect(doubles.comment.unhide.mock.calls).toEqual([['c1']])
+    expect(doubles.toast.mock.calls).toEqual([['댓글을 숨겼어요.'], ['댓글을 게시 상태로 되돌렸어요.']])
+    expect(dataVersion).toBe(2)
+  })
+
+  it('서버가 거절하면 성공으로 바꾸지 않고 안내 문구만 알리며 목록을 다시 읽지 않는다', async () => {
+    doubles.comment.hide.mockRejectedValueOnce(new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'))
+    const vm = useAdminViewModel('comments')
+    expect(await vm.live.setCommentHidden('c1', true)).toBe(false)
+    expect(doubles.toast).toHaveBeenCalledWith('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.')
+    expect(dataVersion).toBe(0)
+  })
+
+  it('같은 댓글의 요청이 진행 중이면 숨김·복구 중복 요청을 보내지 않는다', async () => {
+    let finish!: () => void
+    doubles.comment.hide.mockReturnValueOnce(new Promise<void>((done) => { finish = done }))
+    const vm = useAdminViewModel('comments')
+    const first = vm.live.setCommentHidden('c1', true)
+    expect(await vm.live.setCommentHidden('c1', false)).toBe(false)
+    expect(doubles.comment.unhide).not.toHaveBeenCalled()
+    finish()
+    expect(await first).toBe(true)
   })
 })
 
@@ -265,22 +301,22 @@ describe('조치 결과의 알림과 재조회', () => {
   const FALLBACK = '완료 여부를 확인하지 못했어요. 입력은 유지했어요. 목록을 새로고침해 처리 여부를 확인한 뒤 다시 시도해 주세요.'
 
   it('성공하면 결과 문구를 알리고 목록을 다시 읽는다', async () => {
-    doubles.admin.toggleComment.mockResolvedValueOnce({ ok: true, msg: '댓글 상태를 변경했어요' })
-    expect(await useAdminViewModel('comments').toggleComment('c1', '구운몽 · 연화봉러')).toBe(true)
-    expect(doubles.toast).toHaveBeenCalledWith('댓글 상태를 변경했어요')
+    doubles.admin.toggleChat.mockResolvedValueOnce({ ok: true, msg: '캐릭터챗 상태를 변경했어요' })
+    expect(await useAdminViewModel('characterChats').toggleChat('c1')).toBe(true)
+    expect(doubles.toast).toHaveBeenCalledWith('캐릭터챗 상태를 변경했어요')
     expect(dataVersion).toBe(1)
   })
 
   it('거절 결과는 그 문구를 알리되 목록을 다시 읽지 않고 false를 돌려준다', async () => {
-    doubles.admin.toggleComment.mockResolvedValueOnce({ ok: false, msg: '조치할 수 없는 댓글이에요' })
-    expect(await useAdminViewModel('comments').toggleComment('c1', '구운몽 · 연화봉러')).toBe(false)
-    expect(doubles.toast).toHaveBeenCalledWith('조치할 수 없는 댓글이에요')
+    doubles.admin.toggleChat.mockResolvedValueOnce({ ok: false, msg: '조치할 수 없는 캐릭터챗이에요' })
+    expect(await useAdminViewModel('characterChats').toggleChat('c1')).toBe(false)
+    expect(doubles.toast).toHaveBeenCalledWith('조치할 수 없는 캐릭터챗이에요')
     expect(dataVersion).toBe(0)
   })
 
   it('대상을 찾지 못하면(null) 알림 없이 false를 돌려주고 목록을 다시 읽지 않는다', async () => {
-    doubles.admin.toggleComment.mockResolvedValueOnce(null)
-    expect(await useAdminViewModel('comments').toggleComment('c1', '구운몽 · 연화봉러')).toBe(false)
+    doubles.admin.toggleChat.mockResolvedValueOnce(null)
+    expect(await useAdminViewModel('characterChats').toggleChat('c1')).toBe(false)
     expect(doubles.toast).not.toHaveBeenCalled()
     expect(dataVersion).toBe(0)
   })
@@ -289,8 +325,8 @@ describe('조치 결과의 알림과 재조회', () => {
     ['OperationsError는 그 문구를', new OperationsError('운영 서버가 거절했어요'), '운영 서버가 거절했어요'],
     ['그 밖의 예외는 내부 내용 없이 안내 문구를', new Error('내부 스택 정보'), FALLBACK],
   ])('예외가 나면 %s 알리고 false를 돌려준다', async (_name, error, message) => {
-    doubles.admin.toggleComment.mockRejectedValueOnce(error)
-    expect(await useAdminViewModel('comments').toggleComment('c1', '구운몽 · 연화봉러')).toBe(false)
+    doubles.admin.toggleChat.mockRejectedValueOnce(error)
+    expect(await useAdminViewModel('characterChats').toggleChat('c1')).toBe(false)
     expect(doubles.toast).toHaveBeenCalledWith(message)
     expect(dataVersion).toBe(0)
   })
@@ -299,8 +335,8 @@ describe('조치 결과의 알림과 재조회', () => {
   function useToggleLeftMidway() {
     let finish!: (result: unknown) => void
     let fail!: (error: Error) => void
-    doubles.admin.toggleComment.mockReturnValueOnce(new Promise((done, no) => { finish = done; fail = no }))
-    const pending = useAdminViewModel('comments').toggleComment('c1', '구운몽 · 연화봉러')
+    doubles.admin.toggleChat.mockReturnValueOnce(new Promise((done, no) => { finish = done; fail = no }))
+    const pending = useAdminViewModel('characterChats').toggleChat('c1')
     doubles.cleanups.splice(0).forEach((cleanup) => cleanup())
     return { pending, finish, fail }
   }

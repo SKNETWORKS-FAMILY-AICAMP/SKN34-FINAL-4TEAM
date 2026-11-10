@@ -52,6 +52,8 @@ export type AppCradle = {
   eventUseCase: import('../../domain/usecases/EventUseCase').EventUseCase
   operationsWorkRepository: import('../../domain/repositories/OperationsWorkRepository').OperationsWorkRepository
   operationsWorkUseCase: import('../../domain/usecases/OperationsWorkUseCase').OperationsWorkUseCase
+  operationsCommentRepository: import('../../domain/repositories/OperationsCommentRepository').OperationsCommentRepository
+  operationsCommentUseCase: import('../../domain/usecases/OperationsCommentUseCase').OperationsCommentUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase

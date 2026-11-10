@@ -26,3 +26,16 @@ it('실제 모드 컨테이너는 서버 저장소를 쓴다(데모 대역을 �
   expect(container.resolve('manuscriptRepository').constructor.name).toBe('HttpManuscriptRepository')
   for (const method of ['rename', 'listEpisodeImages', 'updateEpisodeImageAlt', 'publicEpisodeImageAlts']) expect(Object.hasOwn(container.resolve('mediaRepository'), method)).toBe(false)
 })
+
+it('mockup 컨테이너의 운영 댓글은 서버 대신 데모 댓글을 운영 댓글 형태로 보여 주고 숨김을 메모리에 반영한다', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  const comments = createAppContainer().resolve('operationsCommentUseCase')
+  const seed = (await comments.list()).find((c) => c.commentId === 'hanji-0')
+  expect(seed).toMatchObject({ workTitle: '구운몽', authorName: '연화봉러', hidden: false })
+  await comments.hide('hanji-0')
+  expect((await comments.list()).find((c) => c.commentId === 'hanji-0')?.hidden).toBe(true)
+})
+
+it('실제 모드 컨테이너의 운영 댓글은 운영 API 저장소를 쓴다', () => {
+  expect(createAppContainer().resolve('operationsCommentRepository').constructor.name).toBe('HttpOperationsCommentRepository')
+})
