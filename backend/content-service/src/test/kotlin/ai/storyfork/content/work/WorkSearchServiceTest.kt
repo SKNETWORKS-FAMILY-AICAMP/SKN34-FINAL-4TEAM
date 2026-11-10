@@ -5,6 +5,7 @@ import ai.storyfork.content.auth.client.exception.CoreAuthException
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
+import ai.storyfork.content.fork.service.dto.SourceResponse
 import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.proposal.service.ProposalService
 import ai.storyfork.content.publication.repository.*
@@ -17,6 +18,7 @@ import ai.storyfork.content.work.repository.*
 import ai.storyfork.content.work.service.*
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.world.repository.*
+import java.time.Duration
 import java.time.Instant
 import java.util.Optional
 import org.junit.jupiter.api.Assertions.*
@@ -79,7 +81,7 @@ class WorkSearchServiceTest {
      * [age]가 클수록 늦게 만든 작품이다. 소유자는 [owner]이고 [author]는 그 소유자의 Core 닉네임이다(null이면 등록하지 않는다).
      * 작품 행의 author_name에는 일부러 다른 값을 넣어 두어, 이 값을 읽으면 테스트가 실패하게 한다.
      */
-    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false, author: String? = "작성자", owner: String = "owner-$id") {
+    private fun work(id: String, title: String, age: Long, tags: List<String> = emptyList(), genre: String? = null, visible: String = "public", restricted: Boolean = false, author: String? = "작성자", owner: String = "owner-$id", fork: Boolean = false) {
         if (author != null) names[owner] = author
         rows += WorkEntity(id = id, ownerId = owner, title = title, description = "", originKind = "original", createdAt = start.plusSeconds(age), restricted = restricted, authorName = "DB-작가명")
         `when`(works.findAll()).thenReturn(rows)
@@ -87,7 +89,8 @@ class WorkSearchServiceTest {
             val ids = call.getArgument<Iterable<String>>(0).toSet()
             rows.filter { it.id in ids }
         }
-        val result = WorkAccessResult(id, owner, title, "", 0, "world", visible, false, false, null, restricted)
+        val source = if (fork) SourceResponse("original", "원작", 1, 1, "") else null
+        val result = WorkAccessResult(id, owner, title, "", 0, "world", visible, false, false, source, restricted)
         `when`(access.get(id)).thenReturn(result)
         `when`(access.published(id)).thenReturn(result)
         `when`(access.own(id, owner)).thenReturn(result)
@@ -346,8 +349,183 @@ class WorkSearchServiceTest {
             "list" to { service.publicList(null, null, null) },
             "author search" to { service.publicList("a", "author", null) },
             "ranking" to { service.ranking("top") },
+            "rankings" to { service.rankings("view", null, null, null) },
             "detail" to { service.publicRead("a") },
         )
         for ((name, call) in calls) assertSame(failure, assertThrows(CoreAuthException::class.java) { call() }, name)
+    }
+
+    // ---- 기능 45: 기간별 랭킹·인기 추이(rankings). 순수 규칙은 WorkRankingTest가 맡고 여기서는 Service 조립을 본다. ----
+
+    /** [window] 기간의 조회 수다(최근, 그 앞 같은 길이). 하루 기본값은 위 [views]와 같은 대역이다. */
+    private fun periodViews(window: Duration, vararg counts: Triple<String, Long, Long>) {
+        `when`(viewService.counts(window)).thenReturn(counts.associate { (id, recent, prior) -> id to WorkViews(recent, prior) })
+    }
+    // 기간 안 새 좋아요 수다. 호출 때 받은 기간 시작은 sinceSeen에 남는다.
+    private val sinceSeen = mutableListOf<Instant>()
+    private fun newLikes(vararg counts: Pair<String, Long>) {
+        `when`(likeService.countsSince(ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH)).thenAnswer { call ->
+            sinceSeen += call.getArgument<Instant>(0)
+            counts.toMap()
+        }
+    }
+    private fun lastPublished(vararg rows: Pair<String, Instant>) {
+        `when`(publication.lastPublished()).thenReturn(rows.toMap())
+    }
+    private fun rankedIds(kind: String, period: String? = null, type: String? = null, limit: String? = null) =
+        service.rankings(kind, period, type, limit).items.map { it.id }
+
+    @Test fun `rankings view ranks the requested period and fills its views and the options it used`() {
+        work("a", "첫째", 1)
+        work("b", "둘째", 2)
+        work("c", "셋째", 3)
+        periodViews(Duration.ofDays(7), Triple("a", 5, 0), Triple("b", 9, 1), Triple("c", 0, 4))
+        val before = Instant.now()
+
+        val week = service.rankings("view", "week", null, null)
+
+        assertEquals(listOf("b", "a"), week.items.map { it.id })
+        assertEquals(listOf(9L, 5L), week.items.map { it.views })
+        assertEquals(Triple("view", "week", "all"), Triple(week.kind, week.period, week.type))
+        assertFalse(week.computedAt.isBefore(before))
+        assertFalse(week.computedAt.isAfter(Instant.now()))
+        assertTrue(week.items.all { it.updatedAt == null })
+        verify(viewService).counts(Duration.ofDays(7))
+    }
+
+    @Test fun `rankings default to the last 24 hours, every work type and ten items`() {
+        for (i in 1..12) work("w$i", "작품 $i", i.toLong())
+        views(*(1..12).map { Triple("w$it", it.toLong(), 0L) }.toTypedArray())
+
+        val day = service.rankings("view", null, null, null)
+
+        assertEquals((12 downTo 3).map { "w$it" }, day.items.map { it.id })
+        assertEquals(Triple("view", "day", "all"), Triple(day.kind, day.period, day.type))
+        verify(viewService).counts(Duration.ofHours(24))
+    }
+
+    @Test fun `rankings rising compares the period with the same length before it`() {
+        work("a", "첫째", 1)
+        work("b", "둘째", 2)
+        work("c", "셋째", 3)
+        periodViews(Duration.ofDays(30), Triple("a", 3, 0), Triple("b", 2, 5), Triple("c", 4, 4))
+
+        assertEquals(listOf("a"), rankedIds("rising", "month"))
+        verify(viewService).counts(Duration.ofDays(30))
+    }
+
+    @Test fun `rankings popular counts the likes pressed within the period and shows the total public likes`() {
+        work("a", "첫째", 1)
+        work("b", "둘째", 2)
+        work("c", "셋째", 3)
+        work("quiet", "좋아요 없음", 4)
+        newLikes("a" to 2, "b" to 2, "c" to 1)
+        likes("a" to 40, "b" to 30, "c" to 20, "quiet" to 99)
+        periodViews(Duration.ofDays(7), Triple("a", 1, 0), Triple("b", 5, 0), Triple("quiet", 50, 0))
+        val before = Instant.now()
+
+        val popular = service.rankings("popular", "week", null, null).items
+
+        assertEquals(listOf("b", "a", "c"), popular.map { it.id })
+        assertEquals(listOf(30L, 40L, 20L), popular.map { it.likes })
+        assertEquals(listOf(5L, 1L, 0L), popular.map { it.views })
+        val since = sinceSeen.single()
+        assertTrue(since in before.minus(Duration.ofDays(7))..Instant.now().minus(Duration.ofDays(7)), "$since")
+        verify(likeService).counts(listOf("b", "a", "c"))
+    }
+
+    @Test fun `rankings latest lists the newest public works and checks visibility only as far as the limit needs`() {
+        for (i in 1..12) work("w$i", "작품 $i", i.toLong())
+        work("draft", "비공개", 13, visible = "private")
+        views()
+
+        assertEquals(listOf("w12", "w11", "w10"), rankedIds("latest", limit = "3"))
+        assertEquals((12 downTo 3).map { "w$it" }, rankedIds("latest"))
+        verify(access, never()).get("w1")
+        assertEquals(listOf(0L, 0L, 0L), service.rankings("latest", null, null, "3").items.map { it.views })
+    }
+
+    @Test fun `rankings updated orders by the last publication time and fills updatedAt only for that kind`() {
+        work("a", "첫째", 1)
+        work("b", "둘째", 2)
+        work("never", "발행 기록 없음", 3)
+        lastPublished("a" to start.plusSeconds(60), "b" to start.plusSeconds(120))
+        views(Triple("a", 1, 0))
+
+        val updated = service.rankings("updated", null, null, null).items
+
+        assertEquals(listOf("b", "a"), updated.map { it.id })
+        assertEquals(listOf<Instant?>(start.plusSeconds(120), start.plusSeconds(60)), updated.map { it.updatedAt })
+        verify(publication, times(1)).lastPublished()
+        // 다른 종류는 마지막 발행 시각을 읽지도 채우지도 않는다.
+        assertEquals(listOf<Instant?>(null), service.rankings("view", null, null, null).items.map { it.updatedAt })
+        verify(publication, times(1)).lastPublished()
+    }
+
+    @Test fun `rankings type ranks inside the requested type before taking the limit`() {
+        work("o1", "원작 하나", 1)
+        work("f1", "포크 하나", 2, fork = true)
+        work("o2", "원작 둘", 3)
+        work("f2", "포크 둘", 4, fork = true)
+        views(Triple("o1", 10, 0), Triple("o2", 9, 0), Triple("f1", 2, 0), Triple("f2", 1, 0))
+
+        assertEquals(listOf("o1", "o2", "f1", "f2"), rankedIds("view"))
+        assertEquals(listOf("o1", "o2"), rankedIds("view", type = "original"))
+        assertEquals(listOf("f1", "f2"), rankedIds("view", type = "fork"))
+        // 전체 1위가 원작이어도 Fork 1개를 요청하면 Fork 1위다(상위 N개를 자른 뒤 거르지 않는다).
+        assertEquals(listOf("f1"), rankedIds("view", type = "fork", limit = "1"))
+        assertEquals("fork", service.rankings("view", null, "fork", null).type)
+        assertEquals(listOf("f2", "f1"), rankedIds("latest", type = "fork"))
+    }
+
+    @Test fun `rankings leave out private and restricted works before taking the limit`() {
+        work("top", "제한 작품", 1, restricted = true)
+        work("mid", "공개 작품", 2)
+        work("low", "공개 작품 둘", 3)
+        work("draft", "비공개", 4, visible = "private")
+        periodViews(Duration.ofHours(24), Triple("top", 99, 0), Triple("mid", 5, 0), Triple("low", 3, 0), Triple("draft", 50, 0))
+        lastPublished("top" to start, "mid" to start, "draft" to start)
+
+        assertEquals(listOf("mid"), rankedIds("view", limit = "1"))
+        assertEquals(listOf("mid", "low"), rankedIds("view"))
+        assertEquals(listOf("mid", "low"), rankedIds("rising"))
+        assertEquals(listOf("low", "mid"), rankedIds("latest"))
+        assertEquals(listOf("mid"), rankedIds("updated"))
+    }
+
+    @Test fun `rankings take at most the limit and answer an empty catalog without asking Core`() {
+        for (i in 1..4) work("w$i", "작품 $i", i.toLong())
+        views(*(1..4).map { Triple("w$it", it.toLong(), 0L) }.toTypedArray())
+
+        assertEquals(listOf("w4", "w3"), rankedIds("view", limit = "2"))
+        assertEquals(4, rankedIds("view", limit = "50").size)
+
+        rows.clear()
+        `when`(works.findAll()).thenReturn(emptyList())
+        asked.clear()
+        assertEquals(emptyList<String>(), rankedIds("latest"))
+        assertTrue(asked.flatten().isEmpty())
+    }
+
+    @Test fun `rankings reject unknown options and a bad limit with 422 before any lookup`() {
+        val calls = listOf<() -> Any>(
+            { service.rankings("top", null, null, null) }, { service.rankings("daily", null, null, null) },
+            { service.rankings("view", "year", null, null) }, { service.rankings("view", null, "forks", null) },
+            { service.rankings("view", null, null, "0") }, { service.rankings("view", null, null, "51") }, { service.rankings("view", null, null, "x") },
+        )
+        for (call in calls) assertEquals(422, failure { call() }.status)
+
+        verifyNoInteractions(works, access, viewService, nicknames, likeService, publication)
+    }
+
+    @Test fun `rankings ask Core once for the owners of the shown works only`() {
+        for (i in 1..4) work("w$i", "작품 $i", i.toLong(), author = "작가 $i")
+        views(*(1..4).map { Triple("w$it", it.toLong(), 0L) }.toTypedArray())
+
+        val shown = service.rankings("view", null, null, "2").items
+
+        assertEquals(listOf("작가 4", "작가 3"), shown.map { it.authorName })
+        assertEquals(1, asked.size)
+        assertEquals(setOf("owner-w4", "owner-w3"), asked.single().toSet())
     }
 }

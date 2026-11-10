@@ -15,6 +15,7 @@ import ai.storyfork.content.work.repository.*
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import jakarta.persistence.EntityManager
+import java.time.Instant
 import java.util.Optional
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -87,5 +88,13 @@ class PublicationPolicyServiceTest {
             val links=mockingDetails(selectedPolicyEpisodes).invocations.single {it.method.name=="saveAll"}.getArgument<Iterable<ForkPolicyEpisodeEntity>>(0)
             assertEquals(listOf(Triple(saved.id,"e2","w")),links.map {Triple(it.policyHistoryId,it.episodeId,it.workId)})
         }
+    }
+
+    @Test
+    fun `last published maps the latest applied publication time of each work`() {
+        val at=Instant.parse("2026-11-10T01:00:00Z")
+        `when`(events.lastPublishedByWork()).thenReturn(listOf(arrayOf<Any>("w1",at),arrayOf<Any>("w2",at.plusSeconds(60))))
+
+        assertEquals(mapOf("w1" to at,"w2" to at.plusSeconds(60)),service.lastPublished())
     }
 }

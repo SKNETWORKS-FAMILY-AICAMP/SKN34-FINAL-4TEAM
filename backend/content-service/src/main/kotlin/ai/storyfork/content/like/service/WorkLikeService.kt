@@ -5,6 +5,7 @@ import ai.storyfork.content.like.entity.WorkLikeEntity
 import ai.storyfork.content.like.repository.WorkLikeRepository
 import ai.storyfork.content.like.service.dto.WorkLikeResponse
 import ai.storyfork.content.work.service.WorkAccessService
+import java.time.Instant
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -52,11 +53,16 @@ class WorkLikeService(
      * ponytail: 공개 목록 전체를 IN으로 보내므로 JDBC 바인딩 한도(32767)까지만 된다. 작품이 그만큼 늘면 목록 페이지네이션과 함께 나눈다.
      */
     fun counts(ids: Collection<String>): Map<String, Long> =
-        if(ids.isEmpty()) emptyMap() else likes.countByWork(ids).associate { row -> row[0] as String to (row[1] as Number).toLong() }
+        if(ids.isEmpty()) emptyMap() else likes.countByWork(ids).toCounts()
+
+    /** [since] 이후 누른 좋아요 수를 작품별로 센다(기간별 인기). 그 기간에 좋아요가 없는 작품은 맵에 담지 않는다. */
+    fun countsSince(since: Instant): Map<String, Long> = likes.countByWorkSince(since).toCounts()
 
     /** 이 회원이 작품에 좋아요를 눌렀는지 본다. */
     fun liked(id: String, member: String): Boolean = likes.existsById(WorkLikeEntity.Key(id,member))
 
     private fun requireMember(member: String) = checkContent(member.isNotBlank() && member.length<=200,401,"서버 인증이 필요합니다.")
+
+    private fun List<Array<Any>>.toCounts(): Map<String, Long> = associate { row -> row[0] as String to (row[1] as Number).toLong() }
 
 }
