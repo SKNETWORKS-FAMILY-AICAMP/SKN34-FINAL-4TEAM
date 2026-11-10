@@ -14,10 +14,10 @@ beforeEach(async () => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
-/** Content 공개 WorkResponse(+최근 24시간 조회 수 views) 한 건 */
+/** Content 공개 WorkResponse(+최근 24시간 조회 수 views, 공개 좋아요 수 likes) 한 건 */
 const dto = (over: object = {}) => ({
   id: 'w1', title: '별빛 서약의 탑', summary: '소개', visibility: 'public', allowFork: true, allowForkPublication: false,
-  creationType: 'ORIGINAL', genres: ['판타지', 'SF'], hashtags: ['서약'], source: null, views: 7,
+  creationType: 'ORIGINAL', genres: ['판타지', 'SF'], hashtags: ['서약'], source: null, views: 7, likes: 3,
   slug: 'starlight', authorName: '윤서하', ownerId: 'owner-uuid', revision: 0, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, forkableEpisodes: [],
   episodes: [
     { number: 1, version: 1, versionId: 'v1', title: '첫 화', body: '본문', inherited: false },
@@ -37,7 +37,8 @@ describe('공개 작품 검색 (GET /api/v1/public/works)', () => {
     expect(init.credentials).toBe('same-origin')
     expect(new Headers(init.headers).has('Authorization')).toBe(false)
     expect(new Headers(init.headers).has('X-CSRF-TOKEN')).toBe(false)
-    expect(w).toMatchObject({ id: 'w1', title: '별빛 서약의 탑', genre: '판타지 · SF', summary: '소개', kind: '원작', views: 7, likes: 0, cmts: 0, upd: 0, statisticsSupported: false, tags: [], author: '윤서하', hash: ['#서약'], canonical: true })
+    // 좋아요 수는 서버 값이고, 서버에 없는 댓글 수·갱신 시각은 자리표시 값이라 statisticsSupported:false로 화면이 감춘다.
+    expect(w).toMatchObject({ id: 'w1', title: '별빛 서약의 탑', genre: '판타지 · SF', summary: '소개', kind: '원작', views: 7, likes: 3, cmts: 0, upd: 0, statisticsSupported: false, tags: [], author: '윤서하', hash: ['#서약'], canonical: true })
     expect(w.parent).toBeUndefined()
     expect(w.forkAt).toBeUndefined()
     expect(w.eps.map((e) => e.t)).toEqual(['첫 화', '둘째 화'])
@@ -72,6 +73,11 @@ describe('공개 작품 검색 (GET /api/v1/public/works)', () => {
 
   it('조회 수가 빠진 응답은 빈 목록으로 숨기지 않고 오류로 알린다', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json([{ ...dto(), views: undefined }]))
+    await expect(new HttpEpisodeRepository(fetcher).search({ q: '', f: 'all', sort: 'latest' })).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+
+  it('좋아요 수가 빠진 응답은 0으로 지어내지 않고 오류로 알린다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json([{ ...dto(), likes: undefined }]))
     await expect(new HttpEpisodeRepository(fetcher).search({ q: '', f: 'all', sort: 'latest' })).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
   })
 
@@ -129,7 +135,8 @@ describe('검색 카드 → /work/:id 상세', () => {
     const fetcher = vi.fn(async (path: RequestInfo | URL) => Response.json(String(path).includes('/world?') ? { workId: 'w1', episode: 2, documents: [] } : [dto()]))
     const api = new HttpEpisodeRepository(fetcher)
     const reading = { getProgress: async () => ({ last: {}, read: {}, seen: {}, liked: {} }), markSeen: async () => {}, saveProgress: async () => {} }
-    const useCase = new ReadingUseCase(new HttpWorkRepository(api, () => false), reading, api)
+    const records = { list: async () => [], record: async () => {}, remove: async () => {} }
+    const useCase = new ReadingUseCase(new HttpWorkRepository(api, () => false), reading, records, api)
     const [card] = await useCase.findWorks({ sort: 'latest' })
     const detail = await useCase.getWork(card.id, null)
     expect(detail?.work).toMatchObject({ id: card.id, title: '별빛 서약의 탑', author: '윤서하' })

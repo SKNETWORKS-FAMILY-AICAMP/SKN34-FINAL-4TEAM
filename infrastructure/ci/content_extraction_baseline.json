@@ -211,6 +211,18 @@
       [
         "GetMapping",
         "\"/api/v1/public/works/{work}/episodes/{number}/images/{id}/content\""
+      ],
+      [
+        "GetMapping",
+        "\"/api/v1/works/{work}/episodes/{number}/images\""
+      ],
+      [
+        "PatchMapping",
+        "\"/api/v1/works/{work}/episodes/{number}/images/{id}\""
+      ],
+      [
+        "GetMapping",
+        "\"/api/v1/public/works/{work}/episodes/{number}/images\""
       ]
     ],
     "attachment/controller/SettingAttachmentController.kt": [
@@ -233,6 +245,10 @@
       [
         "PutMapping",
         "\"/{attachmentId}\", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]"
+      ],
+      [
+        "PatchMapping",
+        "\"/{attachmentId}\""
       ],
       [
         "DeleteMapping",

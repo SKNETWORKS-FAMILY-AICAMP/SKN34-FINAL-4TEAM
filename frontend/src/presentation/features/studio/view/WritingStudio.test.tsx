@@ -7,10 +7,10 @@ import { createAppStore } from '../../../../app/store'
 import { WritingStudio } from './WritingStudio'
 
 const model = vi.hoisted(() => ({
-  active: { number: 1, draft: { title: '첫 회차', body: '원고', revision: 1 }, versions: [{ id: 'v1', title: '저장본', body: '저장 원고', savedAt: '2026-11-04T00:00:00Z' }], inherited: false, hasDraft: true },
+  active: { number: 1, draft: { title: '첫 회차', body: '원고', revision: 1 }, versions: [{ id: 'v1', title: '저장본', body: '저장 원고', savedAt: '2026-11-04T00:00:00Z' }], inherited: false, hasDraft: true, checkpoints: [] as { versionId: string; publishedAt: string; active: boolean }[] },
   episodes: [], draft: { title: '첫 회차', body: '원고', revision: 1 },
   busy: false, error: '', notice: '', ready: true, dirty: false, editingLocked: false,
-  save: vi.fn(), reload: vi.fn(), publish: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
+  save: vi.fn(), reload: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
 }))
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
@@ -58,6 +58,63 @@ it('팀 서재로 돌아가며 공개 시트에서 버전 선택과 권리 확�
   expect(publish.disabled).toBe(false)
   await act(async () => { fireEvent.click(publish) })
   expect(model.publish).toHaveBeenCalledWith('v1', true)
+})
+
+const checkpointRows = [
+  { versionId: 'v1', publishedAt: '2026-11-01T00:00:00Z', active: false },
+  { versionId: 'v2', publishedAt: '2026-11-02T00:00:00Z', active: true },
+]
+const openVersions = () => fireEvent.click(screen.getByRole('button', { name: '원고 버전 · 비교 · 공개' }))
+const revertRights = '이 체크포인트를 다시 공개할 권리가 있음을 확인합니다.'
+
+it('발행 체크포인트를 시각순으로 보여 주고 현재 공개가 아닌 항목만 권리 확인 후 되돌린다', async () => {
+  model.active = { ...originalActive, checkpoints: checkpointRows }
+  renderStudio()
+  openVersions()
+  const items = within(screen.getByRole('region', { name: '발행 체크포인트' })).getAllByRole('listitem')
+  expect(items).toHaveLength(2)
+  expect(items[0].textContent).toContain('체크포인트 1')
+  expect(items[0].textContent).toContain(new Date(checkpointRows[0].publishedAt).toLocaleString('ko-KR'))
+  expect(items[0].textContent).not.toContain('현재 공개')
+  expect(items[1].textContent).toContain('체크포인트 2')
+  expect(items[1].textContent).toContain('현재 공개')
+  expect(within(items[1]).queryByRole('button')).toBeNull()
+  const revert = within(items[0]).getByRole('button', { name: '이 체크포인트로 되돌리기' }) as HTMLButtonElement
+  expect(revert.disabled).toBe(true)
+  fireEvent.click(screen.getByLabelText(revertRights))
+  expect(revert.disabled).toBe(false)
+  await act(async () => { fireEvent.click(revert) })
+  expect(model.revertCheckpoint).toHaveBeenCalledWith('v1', true)
+  expect(model.publish).not.toHaveBeenCalled()
+  expect(revert.disabled).toBe(true)
+})
+
+it('저장하지 않은 입력이 있으면 권리를 확인해도 되돌리기를 막는다', () => {
+  model.active = { ...originalActive, checkpoints: checkpointRows }
+  model.dirty = true
+  try {
+    renderStudio()
+    openVersions()
+    fireEvent.click(screen.getByLabelText(revertRights))
+    expect((screen.getByRole('button', { name: '이 체크포인트로 되돌리기' }) as HTMLButtonElement).disabled).toBe(true)
+  } finally {
+    model.dirty = false
+  }
+})
+
+it('현재 공개 체크포인트뿐이면 되돌리기 버튼과 권리 확인을 보이지 않는다', () => {
+  model.active = { ...originalActive, checkpoints: [checkpointRows[1]] }
+  renderStudio()
+  openVersions()
+  expect(within(screen.getByRole('region', { name: '발행 체크포인트' })).getAllByRole('listitem')).toHaveLength(1)
+  expect(screen.queryByRole('button', { name: '이 체크포인트로 되돌리기' })).toBeNull()
+  expect(screen.queryByLabelText(revertRights)).toBeNull()
+})
+
+it('발행한 적 없는 회차에는 체크포인트 영역을 보이지 않는다', () => {
+  renderStudio()
+  openVersions()
+  expect(screen.queryByRole('region', { name: '발행 체크포인트' })).toBeNull()
 })
 
 it('집필실에서 같은 작품의 설정 이력을 열고 단일 시트 안에서 원고 비교로 이동한다', () => {

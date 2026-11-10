@@ -177,3 +177,30 @@ describe('work update and delete', () => {
     expect(repo.updateWork).not.toHaveBeenCalled()
   })
 })
+
+describe('episode checkpoints (DEC-43)', () => {
+  const version = { id: 'v1', title: '1화', body: '원고', revision: 1, episode: 1, savedAt: '2026-11-01T00:00:00Z' }
+  const episode = { number: 1, draft: { title: '1화', body: '원고', revision: 4 }, versions: [version], publishedVersionId: 'v2', inherited: false, updatedAt: null, checkpointStatus: 'content_only' }
+  const checkpoints = [{ versionId: 'v1', publishedAt: '2026-11-01T00:01:00Z', active: false }, { versionId: 'v2', publishedAt: '2026-11-02T00:00:00Z', active: true }]
+  it('reads each writing episode with its published checkpoints', async () => {
+    const rows = await new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([{ ...episode, checkpoints }]))).writingList('w')
+    expect(rows[0].checkpoints).toEqual(checkpoints)
+  })
+  it('rejects a response that omits checkpoints instead of assuming there are none', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json([episode]))
+    await expect(new HttpEpisodeRepository(fetcher).writingList('w')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+  it('rejects a malformed checkpoint instead of showing it', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json([{ ...episode, checkpoints: [{ versionId: 'v1', active: true }] }]))
+    await expect(new HttpEpisodeRepository(fetcher).writingList('w')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+  it('reverts by publishing the earlier checkpoint through the existing publish endpoint', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ ...episode, publishedVersionId: 'v1', checkpoints: checkpoints.map(c => ({ ...c, active: c.versionId === 'v1' })) }))
+    const reverted = await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).publishEpisode('w', 1, 4, 'v1', true)
+    const [url, init] = fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/w/episodes/1/publish')
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual({ revision: 4, versionId: 'v1', rightsConfirmed: true })
+    expect(reverted.checkpoints.map(c => [c.versionId, c.active])).toEqual([['v1', true], ['v2', false]])
+  })
+})

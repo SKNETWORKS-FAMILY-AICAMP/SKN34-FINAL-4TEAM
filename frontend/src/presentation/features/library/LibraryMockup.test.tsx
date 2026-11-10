@@ -8,7 +8,8 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../app/store'
 import { createFixtureDb } from '../../../data/mock/fixtureDb'
-import { InMemoryFeedbackRepository, InMemoryReadingRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../../data/mock/InMemoryRepositories'
+import { InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../../data/mock/InMemoryRepositories'
+import { InMemoryWorkInterestRepository } from '../../../data/mock/InMemoryWorkInterestRepository'
 import { LibraryUseCase } from '../../../domain/usecases/LibraryUseCase'
 import { useNewWorkViewModel } from './viewmodel/useNewWorkViewModel'
 
@@ -17,7 +18,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks() })
 // #33
 it('세계관 복원은 없는 버전이면 오류를 알리고 실제로 복원됐을 때만 성공 토스트를 띄운다', async () => {
   const db = createFixtureDb(), store = createAppStore({ role: 'user' })
-  const uc = new LibraryUseCase(new InMemoryWorkRepository(db), new InMemoryWorldRepository(db), new InMemoryReadingRepository(db), new InMemoryFeedbackRepository(db))
+  const uc = new LibraryUseCase(new InMemoryWorkRepository(db), new InMemoryWorldRepository(db), new InMemoryFeedbackRepository(db), new InMemoryWorkInterestRepository(), new InMemoryReadingRecordRepository(db))
   const made = await uc.createWorld({ name: '내 세계', description: '', rules: '규칙' })
   if (!('id' in made)) throw new Error(made.error)
   vi.spyOn(window, 'confirm').mockReturnValue(true)

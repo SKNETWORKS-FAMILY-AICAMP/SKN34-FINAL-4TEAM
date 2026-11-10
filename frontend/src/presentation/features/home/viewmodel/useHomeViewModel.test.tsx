@@ -7,14 +7,14 @@ import { describe, expect, it } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
 import { createFixtureDb } from '../../../../data/mock/fixtureDb'
-import { InMemoryReadingRepository, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
+import { InMemoryReadingRecordRepository, InMemoryReadingRepository, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
 import { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { useHomeViewModel } from './useHomeViewModel'
 
 function setup() {
   const db = createFixtureDb()
   const store = createAppStore()
-  const useCase = new ReadingUseCase(new InMemoryWorkRepository(db), new InMemoryReadingRepository(db))
+  const useCase = new ReadingUseCase(new InMemoryWorkRepository(db), new InMemoryReadingRepository(db), new InMemoryReadingRecordRepository(db))
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
   return { db, store, ...renderHook(() => useHomeViewModel(useCase), { wrapper }) }
 }

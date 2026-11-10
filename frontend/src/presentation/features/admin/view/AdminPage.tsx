@@ -3,16 +3,19 @@ import { Link, useSearchParams } from 'react-router'
 
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
+import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
+import type { OperationsWork } from '../../../../domain/entities/operationsWork'
 import { SUPPORT_STATUSES, supportStatusLabel, type SupportReply } from '../../../../domain/entities/supportInquiry'
 import { ofKind } from '../../../../domain/entities/work'
-import { kstDateTime } from '../../../shared/format'
+import { kstDateTime, kstPeriod } from '../../../shared/format'
+import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { Go } from '../../../shared/Go'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel } from '../viewmodel/useAdminViewModel'
-import { AdminActionStatus, OperationsEvents, OperationsNotices } from './OperationsPanels'
+import { AdminActionStatus, OperationsNotices } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 type VM = ReturnType<typeof useAdminViewModel>
@@ -33,7 +36,7 @@ const TITLES: Record<AdminTab, [string, string]> = {
   llm: ['LLM Ops', 'LLM 운영 지표는 시연용 예시이며 실시간 연결은 없습니다.'],
   admins: ['관리자 계정과 권한', '업무별 접근 권한을 나누어 관리자 계정을 추가합니다.'],
   users: ['사용자 관리', '회원 목록을 조회하고 이용 제한·해제를 요청합니다.'],
-  works: ['작품 관리', '등록 작품의 공개 상태와 이용 권리 정보를 살펴봅니다.'],
+  works: ['작품 관리', '작품의 공개 상태와 이용 권리를 조회하고 운영 제한·해제를 요청합니다.'],
   characterChats: [
     '캐릭터챗 관리',
     '공개 작품의 원작·포크와 캐릭터를 선택해 챗을 추가하거나 운영 상태를 바꿉니다.',
@@ -51,6 +54,9 @@ const TITLES: Record<AdminTab, [string, string]> = {
   profile: ['관리자 프로필', '로그인한 관리자 계정 정보를 확인합니다.'],
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
+/** 작품 탭의 권리 표시값. 검색도 화면에 보이는 이 문구로 합니다. */
+const rightsLabel = (w: OperationsWork) =>
+  `${w.creationType === 'external_derivative' ? '외부 2차 창작' : '원작'} · ${w.rightsConfirmed ? '권리 확인됨' : '권리 미확인'}`
 const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
@@ -200,7 +206,7 @@ export function AdminPage() {
 
 type BodyProps = {
   tab: AdminTab
-  /** 데모 조회 결과. 운영 API 탭(users·admins·rights·profile)은 이 값 없이도 그립니다. */
+  /** 데모 조회 결과. 운영 API 탭(users·admins·works·rights·profile)은 이 값 없이도 그립니다. */
   d: Data | undefined
   vm: VM
   f: Filter
@@ -273,6 +279,7 @@ function Body(p: BodyProps) {
   if (tab === 'admins') return <Admins vm={vm} />
   if (tab === 'users') return <Users {...p} />
   if (tab === 'profile') return <Profile vm={vm} />
+  if (tab === 'works') return <Works {...p} />
   if (!d) return null
   const titleSort = (
     a: string,
@@ -281,78 +288,7 @@ function Body(p: BodyProps) {
   let T: ReactNode
   if (tab === 'data') T = <Overview d={d} vm={vm} />
   else if (tab === 'llm') T = <Llm d={d} vm={vm} />
-  else if (tab === 'works') {
-    const list = d.works.filter((w) =>
-      ofKind(f.category, w) && has(f.query, w.title, w.author, w.kind, w.rights)
-    ).sort((a, b) => titleSort(a.title, b.title))
-    T = (
-      <div className='panel'>
-        <span className='demo'>목업 작품 데이터</span>
-        <Controls
-          {...p}
-          categories={KINDS}
-          sorts={[['title', '제목순'], ['titleDesc', '제목 역순']]}
-        />
-        <Table label='작품 관리 표' style={{ marginTop: 10 }}>
-          <thead>
-            <tr>
-              <th scope='col'>작품</th>
-              <th scope='col'>작성자</th>
-              <th scope='col'>종류</th>
-              <th scope='col'>권리</th>
-              <th scope='col'>공개 상태</th>
-              <th scope='col' className='act'>조치</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.length
-              ? list.map((w) => (
-                <tr key={w.id}>
-                  <td>
-                    <b>{w.title}</b>
-                  </td>
-                  <td>{w.author}</td>
-                  <td>{w.kind}</td>
-                  <td>{w.rights}</td>
-                  <td>
-                    <span className={`chip ${w.hidden ? 'wait' : 'ok'}`}>
-                      {w.hidden ? '운영 제한' : w.private ? '비공개' : '공개'}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type='button'
-                      className='btn sm'
-                      disabled={!vm.canToggleWork(w) || blocked(vm, `work:${w.id}`)}
-                      aria-describedby={vm.canToggleWork(w) ? undefined : `work-block-${w.id}`}
-                      onClick={() => vm.toggleWork(w.id)}
-                    >
-                      {w.hidden ? '제한 해제' : '운영상 비공개'}
-                    </button>
-                    {!vm.canToggleWork(w) && (
-                      <>
-                        <br />
-                        <span id={`work-block-${w.id}`} className='small muted'>
-                          정본 작품은 이 데모 화면에서 바꿀 수 없어요.
-                        </span>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))
-              : (
-                <tr>
-                  <td colSpan={6} className='muted'>검색 결과가 없어요.</td>
-                </tr>
-              )}
-          </tbody>
-        </Table>
-        <p className='admin-note'>
-          공개 제한은 이 화면의 데모 작품에만 반영돼요.
-        </p>
-      </div>
-    )
-  } else if (tab === 'characterChats') {
+  else if (tab === 'characterChats') {
     const list = d.chats.filter((c) =>
       ofKind(f.category, c.w) && has(f.query, c.w.title, c.character)
     ).sort((a, b) =>
@@ -542,8 +478,9 @@ function Body(p: BodyProps) {
         </p>
       </div>
     )
-  } else if (tab === 'events') T = <OperationsEvents vm={vm} />
-  else if (tab === 'notices') {
+  } else if (tab === 'events') {
+    T = <Events vm={vm} />
+  } else if (tab === 'notices') {
     T = (
       <>
         <LiveState vm={vm} label='공지 목록' />
@@ -732,6 +669,75 @@ function LiveState({ vm, label, state }: { vm: VM; label: string; state?: Pick<V
         </div>
       )}
     </>
+  )
+}
+
+/** 74 운영 작품 조회·조치: Content의 전체 작품(공개·비공개·운영 제한)과 운영 제한·해제. 분류·검색·정렬은 받은 목록에서 이 화면이 계산합니다. */
+function Works(p: BodyProps) {
+  const { vm, f } = p
+  const rows = (vm.live.data?.works ?? [])
+    .filter((w) => (f.category === 'all' || w.originKind === f.category) && has(f.query, w.title, w.authorName, rightsLabel(w)))
+    .sort((a, b) => (f.sort === 'titleDesc' ? b.title.localeCompare(a.title, 'ko') : a.title.localeCompare(b.title, 'ko')))
+  return (
+    <div className='panel'>
+      <Controls {...p} categories={KINDS} sorts={[['title', '제목순'], ['titleDesc', '제목 역순']]} />
+      <LiveState vm={vm} label='작품 목록' />
+      {vm.live.data && (
+        <Table label='작품 관리 표' style={{ marginTop: 10 }}>
+          <thead>
+            <tr>
+              <th scope='col'>작품</th>
+              <th scope='col'>작성자</th>
+              <th scope='col'>종류</th>
+              <th scope='col'>권리</th>
+              <th scope='col'>공개 상태</th>
+              <th scope='col' className='act'>조치</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length
+              ? rows.map((w) => (
+                <tr key={w.workId}>
+                  <td>
+                    <b>{w.title}</b>
+                  </td>
+                  <td>{w.authorName}</td>
+                  <td>{w.originKind === 'fork' ? '포크' : '원작'}</td>
+                  <td>{rightsLabel(w)}</td>
+                  <td>
+                    <span className={`chip ${w.restricted ? 'wait' : 'ok'}`}>
+                      {w.restricted ? '운영 제한' : w.visibility === 'public' ? '공개' : '비공개'}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type='button'
+                      className='btn sm'
+                      disabled={blocked(vm, `work:${w.workId}`)}
+                      onClick={() => {
+                        if (w.restricted || window.confirm(`「${w.title}」을 제한할까요? 해제 전까지 독자에게 보이지 않아요.`)) {
+                          void vm.live.setWorkRestriction(w.workId, !w.restricted)
+                        }
+                      }}
+                    >
+                      {w.restricted ? '제한 해제' : '운영 제한'}
+                    </button>
+                  </td>
+                </tr>
+              ))
+              : (
+                <tr>
+                  <td colSpan={6} className='muted'>검색 결과가 없어요.</td>
+                </tr>
+              )}
+          </tbody>
+        </Table>
+      )}
+      <p className='admin-note'>
+        운영 제한한 작품은 공개 작품 목록·상세·회차 열람에서 보이지 않아요. 제한을 해제하면 작가가 정한 공개 상태로 돌아가요.
+        이 조치는 신고 사건이나 활동 로그에 기록하지 않아요.
+      </p>
+    </div>
   )
 }
 
@@ -1182,6 +1188,157 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
         반영됩니다.
       </p>
     </form>
+  )
+}
+
+/** 69 이벤트 안내·운영: 운영 API의 이벤트 목록·상세·등록·전체 수정·삭제. 진행 상태는 기간으로 계산해 보여 줍니다. */
+function Events({ vm }: { vm: VM }) {
+  const selection = vm.recordSelection.events
+  const rows = vm.live.data?.events ?? []
+  const row = rows.find((item) => item.id === selection)
+  const root = useAdminDetailFocus(selection, !!row, rows.length)
+  const key = selection ?? 'new'
+  const form = vm.eventDrafts[key] ?? {
+    title: row?.title ?? '',
+    body: row?.body ?? '',
+    startsAt: toKoreanDateTimeInput(row?.startsAt ?? null),
+    endsAt: toKoreanDateTimeInput(row?.endsAt ?? null),
+  }
+  const state = vm.actions[`event:${key}`]
+  const busy = vm.mutationsBlocked || !!state?.pending
+  const loading = vm.live.isLoading || vm.live.isRefreshing
+  return (
+    <section className='panel admin-operations' aria-label='운영 이벤트' ref={root}>
+      {!selection
+        ? (
+          <>
+            <div className='table-head'>
+              <h2 tabIndex={-1}>운영 이벤트 목록</h2>
+              <button type='button' className='btn pri' data-record-id='new' onClick={() => vm.selectRecord('events', 'new')}>
+                이벤트 작성
+              </button>
+            </div>
+            <LiveState vm={vm} label='이벤트 목록' />
+            {vm.live.data && (rows.length
+              ? (
+                <ul className='admin-record-list'>
+                  {rows.map((item) => (
+                    <li key={item.id}>
+                      <button
+                        type='button'
+                        className='admin-record-link'
+                        data-record-id={item.id}
+                        onClick={() => vm.selectRecord('events', item.id)}
+                      >
+                        <b>{item.title}</b>
+                        <span className='small muted'>
+                          <EventStatusChip status={vm.eventStatusNow(item)} /> {kstPeriod(item)}
+                          {vm.eventDrafts[item.id] ? ' · 수정 초안 있음' : ''}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )
+              : <p className='admin-empty'>등록된 운영 이벤트가 없어요. 이벤트를 작성해 보세요.</p>)}
+          </>
+        )
+        : (
+          <>
+            <button type='button' className='btn sm' onClick={() => vm.selectRecord('events', null)}>이벤트 목록으로</button>
+            <h2 tabIndex={-1}>{selection === 'new' ? '새 운영 이벤트' : row?.title ?? '이벤트 확인'}</h2>
+            <LiveState vm={vm} label='이벤트 목록' />
+            {selection !== 'new' && !row
+              ? (!loading && !vm.live.isError && (
+                <p role='alert'>이벤트를 표시할 수 없어요. 목록 새로고침 후 다시 선택해 주세요.</p>
+              ))
+              : (
+                <>
+                  {row && (
+                    <>
+                      <p className='small muted'><EventStatusChip status={vm.eventStatusNow(row)} /> {kstPeriod(row)}</p>
+                      <p className='small muted'>UTC: {row.startsAt ?? '시작 미정'} / {row.endsAt ?? '종료 미정'}</p>
+                      <p className='small muted'>등록 {kstDateTime(row.createdAt)} · 수정 {kstDateTime(row.updatedAt)}</p>
+                      <p className='admin-prose'>{row.body}</p>
+                      <h3>이벤트 수정</h3>
+                    </>
+                  )}
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      void vm.saveEvent(row?.id ?? null, form)
+                    }}
+                  >
+                    <fieldset disabled={busy} className='form-grid'>
+                      <label className='field wide'>
+                        이벤트 제목<input
+                          className='inp'
+                          required
+                          maxLength={200}
+                          value={form.title}
+                          onChange={(e) => vm.setEventDraft(key, { ...form, title: e.target.value })}
+                        />
+                      </label>
+                      <label className='field wide'>
+                        이벤트 내용<textarea
+                          className='ta'
+                          required
+                          maxLength={20000}
+                          rows={8}
+                          value={form.body}
+                          onChange={(e) => vm.setEventDraft(key, { ...form, body: e.target.value })}
+                        />
+                      </label>
+                      <label className='field'>
+                        시작 (한국시간)<input
+                          className='inp'
+                          type='datetime-local'
+                          step={60}
+                          value={form.startsAt}
+                          aria-describedby='event-time-help'
+                          onChange={(e) => vm.setEventDraft(key, { ...form, startsAt: e.target.value })}
+                        />
+                      </label>
+                      <label className='field'>
+                        종료 (한국시간)<input
+                          className='inp'
+                          type='datetime-local'
+                          step={60}
+                          value={form.endsAt}
+                          aria-describedby='event-time-help'
+                          onChange={(e) => vm.setEventDraft(key, { ...form, endsAt: e.target.value })}
+                        />
+                      </label>
+                      <p id='event-time-help' className='small muted wide'>
+                        두 기간은 선택 사항이에요. 한국시간(UTC+09:00)으로 입력하면 UTC로 저장해요. 비우면 해당 기간은 미정이며, 종료는
+                        시작보다 빠를 수 없어요.
+                      </p>
+                      <div className='rowend wide'>
+                        <button type='submit' className='btn pri'>{state?.pending ? '저장 중…' : '이벤트 저장'}</button>
+                        {row && (
+                          <button
+                            type='button'
+                            className='btn'
+                            onClick={() => {
+                              if (window.confirm('이 이벤트를 삭제할까요? 공개 목록에서도 바로 사라지고 복구할 수 없어요.')) void vm.deleteEvent(row.id)
+                            }}
+                          >
+                            이벤트 삭제
+                          </button>
+                        )}
+                      </div>
+                    </fieldset>
+                    <AdminActionStatus state={state} />
+                  </form>
+                </>
+              )}
+          </>
+        )}
+      <p className='admin-note'>
+        진행 상태(상시·예정·진행 중·종료)는 시작·종료 시각으로 정해져요. 이벤트를 끝내려면 종료 시각을 수정해 주세요. 등록하면 바로
+        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요.
+      </p>
+    </section>
   )
 }
 

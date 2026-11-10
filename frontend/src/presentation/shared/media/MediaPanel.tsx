@@ -1,7 +1,8 @@
-import {useEffect} from 'react'
-import type {MediaTarget} from '../../../domain/entities/media'
+import {useEffect,useState} from 'react'
+import type {Attachment,MediaTarget} from '../../../domain/entities/media'
 import {imageReferencePattern} from '../../../domain/entities/media'
 import {useMediaViewModel,useStoredImage} from './useMediaViewModel'
+import {usePublicImageAlts} from './usePublicImageAlts'
 import './media.css'
 
 export function StoredImage({target,id,alt,publicView=false,revision=0}:{target:MediaTarget;id:string;alt:string;publicView?:boolean;revision?:number}) {
@@ -10,18 +11,32 @@ export function StoredImage({target,id,alt,publicView=false,revision=0}:{target:
 }
 
 export function ManuscriptBody({workId,number,body,publicView=false}:{workId:string;number:number;body:string;publicView?:boolean}) {
+ const alts=usePublicImageAlts(workId,number,publicView&&body.includes('[[image:'))
  const parts=[];let offset=0;let imageNumber=0
  for(const match of body.matchAll(imageReferencePattern)){
   parts.push(<span key={`text-${offset}`}>{body.slice(offset,match.index)}</span>)
-  parts.push(<StoredImage key={`${match.index}-${match[1]}`} target={{kind:'episode',workId,number}} id={match[1]} alt={`본문 이미지 ${++imageNumber}`} publicView={publicView}/>)
+  const fallback=`본문 이미지 ${++imageNumber}`
+  parts.push(<StoredImage key={`${match.index}-${match[1]}`} target={{kind:'episode',workId,number}} id={match[1]} alt={alts[match[1]]||fallback} publicView={publicView}/>)
   offset=match.index+match[0].length
  }
  parts.push(<span key={`text-${offset}`}>{body.slice(offset)}</span>)
  return <div className="manuscript-body">{parts}</div>
 }
 
+/** 설정 첨부 이름 변경: 확장자는 서버가 형식을 정하므로 고정해서 보이고, 실패하면 입력을 그대로 둔다. */
+function RenameForm({item,onRename,onCancel}:{item:Attachment;onRename:(filename:string)=>Promise<boolean>;onCancel:()=>void}) {
+ const dot=item.filename.lastIndexOf('.'),ext=dot>0?item.filename.slice(dot):''
+ const [name,setName]=useState(dot>0?item.filename.slice(0,dot):item.filename)
+ return <form className="media-rename" onSubmit={async e=>{e.preventDefault();if(await onRename(name+ext))onCancel()}}>
+  <span className="media-rename-row"><input className="inp" aria-label={`새 파일 이름 · ${item.filename}`} value={name} maxLength={120-ext.length} onChange={e=>setName(e.target.value)}/><span>{ext}</span></span>
+  <p className="small muted">확장자({ext})는 바꿀 수 없어요.</p>
+  <button type="submit" className="btn sm">이름 저장</button> <button type="button" className="btn sm" onClick={onCancel}>취소</button>
+ </form>
+}
+
 export function MediaPanel({target,onBusy,disabled=false}:{target:MediaTarget;onBusy?:(value:boolean)=>void;disabled?:boolean}) {
  const vm=useMediaViewModel(target)
+ const [renaming,setRenaming]=useState('')
  const cover=target.kind==='cover'
  useEffect(()=>{onBusy?.(vm.mutating);return ()=>onBusy?.(false)},[vm.mutating,onBusy])
  return <section className={`media-panel ${cover?'media-cover':''}`} aria-label={cover?'작품 표지':'설정 첨부'}>
@@ -39,7 +54,9 @@ export function MediaPanel({target,onBusy,disabled=false}:{target:MediaTarget;on
     <p><strong>{item.filename}</strong> · {(item.byteSize/1024).toLocaleString('ko-KR',{maximumFractionDigits:1})} KiB</p>
     <div className="media-actions"><button type="button" className="btn sm" onClick={()=>void vm.download(item)}>다운로드 · {item.filename}</button>
      {!cover&&<label className="media-file">파일 교체 · {item.filename}<input type="file" aria-label={`파일 교체 · ${item.filename}`} accept=".png,.jpg,.jpeg,.txt,.md,.csv,.pdf" onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void vm.upload(file,item.id)}}/></label>}
+     {target.kind==='setting'&&renaming!==item.id&&<button type="button" className="btn sm" onClick={()=>setRenaming(item.id)}>이름 변경 · {item.filename}</button>}
      <button type="button" className="btn sm" onClick={()=>{if(window.confirm(`${item.filename} 첨부를 삭제할까요?`))void vm.remove(item.id)}}>삭제 · {item.filename}</button></div>
+    {target.kind==='setting'&&renaming===item.id&&<RenameForm item={item} onRename={filename=>vm.rename(item,filename)} onCancel={()=>setRenaming('')}/>}
    </li>)}</ul>
   </fieldset>
   {vm.busy&&<button className="btn sm" type="button" onClick={vm.cancel}>파일 요청 취소</button>}

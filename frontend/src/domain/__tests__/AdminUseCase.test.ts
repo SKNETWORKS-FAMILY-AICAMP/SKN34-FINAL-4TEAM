@@ -4,8 +4,7 @@ import { seedAdmin, seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { DemoCredits } from '../entities/credit'
 import type { ReaderReport, ReviewItem } from '../entities/feedback'
 import type { Work } from '../entities/work'
-import { AGGREGATE_WRITE_UNSUPPORTED } from '../repositories/WorkRepository'
-import { AdminUseCase, canToggleWork } from '../usecases/AdminUseCase'
+import { AdminUseCase } from '../usecases/AdminUseCase'
 
 function fakes() {
   let works = seedWorks(0), admin = seedAdmin(), chats = null as null | { id: string; workId: string; character: string; enabled: boolean }[]
@@ -25,7 +24,7 @@ function fakes() {
     { get: async () => db.credits, save: async (c) => { db.credits = c } },
     chatRepository,
   )
-  return { uc, db, works: () => works, admin: () => admin }
+  return { uc, db, admin: () => admin }
 }
 
 describe('관리자 신고 처리 (목업 data-qact)', () => {
@@ -42,27 +41,5 @@ describe('관리자 신고 처리 (목업 data-qact)', () => {
     expect(admin().audit).toEqual([])
     expect(await uc.toggleComment('hanji-0', '구운몽 · 연화봉러')).toEqual({ ok: true, msg: '댓글 상태를 변경했어요 (데모)' })
     expect(admin().hiddenComments).toEqual(['hanji-0'])
-  })
-})
-
-describe('작품 탭 조치 대상 (#197)', () => {
-  it('정본 작품은 조치 대상이 아니고 toggleWork도 같은 기준으로 거절해 상태와 로그를 바꾸지 않는다', async () => {
-    const { uc, works, admin } = fakes()
-    const work = works().find((w) => w.id === 'guunmong')!
-    work.canonical = true
-    expect(canToggleWork(work)).toBe(false)
-    expect(await uc.toggleWork(work.id)).toEqual({ ok: false, msg: AGGREGATE_WRITE_UNSUPPORTED })
-    expect(works().find((w) => w.id === work.id)?.hidden).toBeFalsy()
-    expect(admin().audit).toEqual([])
-  })
-
-  it('메모리 데모 작품은 조치 대상이고 toggleWork가 공개 상태를 바꿔 로그를 남긴다', async () => {
-    const { uc, works, admin } = fakes()
-    const work = works().find((w) => w.id === 'guunmong')!
-    expect(canToggleWork(work)).toBe(true)
-    expect(canToggleWork({ canonical: false })).toBe(true)
-    expect(await uc.toggleWork(work.id)).toEqual({ ok: true, msg: '작품 공개 상태를 변경했어요 (데모)' })
-    expect(works().find((w) => w.id === work.id)?.hidden).toBe(true)
-    expect(admin().audit[0]).toMatchObject({ action: '작품 공개 상태 변경', detail: `${work.title} · 운영상 비공개` })
   })
 })

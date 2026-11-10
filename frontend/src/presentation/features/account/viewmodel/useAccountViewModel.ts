@@ -4,8 +4,10 @@ import { SessionExpired } from '../../../../domain/repositories/ProfileRepositor
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import { checkProfile } from '../../../../domain/entities/account'
+import { eventStatus, type EventPeriod } from '../../../../domain/entities/event'
 import { OperationsError } from '../../../../domain/entities/operations'
 import type { AccountUseCase } from '../../../../domain/usecases/AccountUseCase'
+import type { EventUseCase } from '../../../../domain/usecases/EventUseCase'
 import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
 import type { SupportInquiryUseCase } from '../../../../domain/usecases/SupportInquiryUseCase'
 import { toast } from '../../../shared/events'
@@ -14,12 +16,13 @@ import { RestoreContext } from '../../../shared/session/restoreContext'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
-/** 목업 mePage(sub)·saveProfile·#suf·withdrawSheet와 실제 고객지원 문의(#iqf)·운영 공지: U30~U35E 계정 */
+/** 목업 mePage(sub)·saveProfile·#suf·withdrawSheet와 실제 고객지원 문의(#iqf)·운영 공지·이벤트: U30~U35E 계정 */
 export function useAccountViewModel(
   sub: string,
   accountUseCase: AccountUseCase = appContainer.resolve('accountUseCase'),
   supportInquiryUseCase: SupportInquiryUseCase = appContainer.resolve('supportInquiryUseCase'),
   noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'),
+  eventUseCase: EventUseCase = appContainer.resolve('eventUseCase'),
 ) {
   const { role, user } = useAppSelector((s) => s.session)
   const restoring = useContext(RestoreContext)
@@ -57,19 +60,24 @@ export function useAccountViewModel(
   // 공지는 인증 없는 운영 공지 API: ?id가 없으면 목록, 있으면 그 공지 하나(없으면 null)를 읽습니다. id는 조회 범위라 바뀌면 이전 결과를 감춥니다.
   const [params] = useSearchParams()
   const noticeId = sub === 'notice' ? params.get('id') : null
+  // 이벤트는 운영 공개 API로 읽는다: ?id=가 없으면 목록, 있으면 그 UUID의 상세. 비로그인도 열람한다.
+  const eventKey = sub === 'event' ? params.get('id') : null
   const { data, isError, retry } = useAsyncData(async () => ({
     sub,
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
     storage: sub === 'storage' ? await accountUseCase.storage() : null,
-    events: sub === 'event' ? await accountUseCase.events() : [],
     notices: sub === 'notice' && noticeId === null ? await noticeUseCase.listPublic() : [],
     notice: sub === 'notice' && noticeId ? await noticeUseCase.getPublic(noticeId) : null,
-  }), [accountUseCase, noticeUseCase, sub, noticeId])
+    events: sub === 'event' && eventKey === null ? await eventUseCase.listPublic() : [],
+    event: sub === 'event' && eventKey !== null ? await eventUseCase.getPublic(eventKey) : null,
+  }), [accountUseCase, noticeUseCase, eventUseCase, sub, noticeId, eventKey])
   // 내 문의: 로그인한 회원의 문의하기 화면에서만 실제 목록을 읽습니다. 로딩·실패·빈 목록은 화면이 구분합니다.
   const mine = useAsyncData(async () => sub === 'inquiry' && role ? supportInquiryUseCase.listMine() : [], [supportInquiryUseCase, sub])
   return {
     role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, mine, restoring, data: data?.sub === sub ? data : undefined,
     loadFailed: isError, retryLoad: retry,
+    /** 이벤트 기간으로 계산한, 지금 시각 기준 진행 상태(브라우저 시계). */
+    eventStatusNow: (event: EventPeriod) => eventStatus(event, new Date()),
     /** 로그인 후 문의하기로 돌아오도록 안내를 남깁니다. 이동은 로그인 링크가 맡습니다. */
     requireLogin: () => { dispatch(sessionActions.requireLogin({ next: '/me/inquiry', msg: '문의는 로그인한 회원만 보낼 수 있어요.', role: 'user' })) },
     retryProfile: () => setProfileAttempt((attempt) => attempt + 1),

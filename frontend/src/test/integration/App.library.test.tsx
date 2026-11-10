@@ -29,7 +29,7 @@ describe('내 서재 (U11·U12)', () => {
     renderAt('/lib')
     await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
     await waitFor(() => expect(sid()).toBe('U11 내 서재'))
-    screen.getByText('소설 화면에서 ♡를 누르면 여기에 모여요.')
+    screen.getByText("소설 화면에서 '관심 등록'을 누르면 여기에 모여요.")
     fireEvent.click(screen.getByRole('link', { name: '내 댓글·신고' }))
     await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
     fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
@@ -101,6 +101,10 @@ describe('새 소설 만들기 (U28)', () => {
 })
 
 describe('가져오기 (U24)', () => {
+  // 실제 모드의 /import는 원고 파일 가져오기라서, 데모 화면 시나리오는 --mode mockup으로 연다.
+  beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
+  afterEach(() => { vi.unstubAllEnvs() })
+
   it('정책 동의 → 예시 원고 정리 → 저장하면 내가 쓰는 소설로 간다', async () => {
     renderAt('/writing-policy?method=import')
     fireEvent.click(await screen.findByLabelText('이 집필 방식의 정책과 안내를 확인했습니다.'))
