@@ -111,6 +111,8 @@ flowchart TD
 
 ### 11. Simulation 실행과 행동 검증
 
+2026-11-10 TASK 14는 아래 흐름을 합성 Content·Character port로 구현했다. `schedule → project → act → validate → reduce` LangGraph를 시나리오별로 실행하며 기본 Analyzer는 모델을 호출하지 않는다. 초기 위치·자원·규칙은 신뢰된 합성 호출자가 공급한 가상 조건이다. 사실·프로필·목표·감정·말투는 선택 근거 ref로만 받고, Content 행의 knownBy에서 배우별 입력을 만든다. 발화는 `disclosed_fact_ids` 순서의 허용 근거 원문 조합만 지원하며 자유 의역·새 주장은 unsupported로 폐기한다. 이는 실 모델 누출 평가 완료를 뜻하지 않는다. [실제 DTO·수용 증거·한계](task14-handoff.md).
+
 ```mermaid
 flowchart TD
     I[예산 및 대상 확인] --> C[허용 snapshot과 상황 구성]

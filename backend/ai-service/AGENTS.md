@@ -5,6 +5,10 @@
 
 ## 구조
 
+- TASK 14의 `agents/simulation.py`는 인물별 Content knownBy와 선택된 근거를 투영하는 메모리 전용 LangGraph다.
+  기본 두 인물·3개 행동은 순차 실행하고, 비교는 독립 상태·공유 호출 한도를 사용한다. run별 `SimulationHandler`를 명시 주입한다.
+  실제 Character 모델·Content 구조화 상태·공개 Run 자동 조립은 미연결이다. [계약·검증·원문 발화 제한](../../docs/writing-ai-architecture/task14-handoff.md).
+
 - TASK 13의 `agents/template_recommendation.py`는 공개 설정에서 읽은 장르·언어·태그와 합성 카탈로그만 사용한다.
   단순 추천은 모델 0회, 명시적인 맞춤 설명만 주입한 모델 대역을 사용한다. 실제 구매·권리 확정·설정 반영은 없다.
   실행기에는 run별 `TemplateRecommendationHandler`를 주입한다. [계약·검증](../../docs/writing-ai-architecture/task13-handoff.md).

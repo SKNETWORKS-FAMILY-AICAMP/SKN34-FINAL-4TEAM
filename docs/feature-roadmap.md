@@ -40,6 +40,7 @@
 - 2026-11-09 TASK 11: #56·#57의 Story Context/Q&A DTO·고정 Registry·TaskRunner 명시 주입을 합성 자료로 구현했다. 나이/속성·정확 인용은 Content 대역 검증 후 모델·검색 0회, 해석은 검증된 Wiki 경로·원고 span과 FakeLLM 1회이며 부족·stale·timeout·partial과 범위 위반을 구분한다. 신규 27개를 포함한 선택 단위 171개 통과. 실제 Content 원문/모델·공개 Run 자동 조립·HTTP/그래프 통합·hosted CI·병합은 대기여서 제품 행 ❌를 유지한다. [TASK 11 입력·출력·검증·한계](writing-ai-architecture/task11-handoff.md).
 - 2026-11-09 TASK 12: #59의 Mechanical DTO·Registry·TaskRunner 명시 주입을 합성 자료로 구현했다. 선택된 수치·명칭과 정본 기준, 중복 어절·명시 표기 쌍을 검사하며 revision·UTF-16 span·hash를 보존한다. 검사 F는 수치·명칭만 반환하고 모델·Simulation·원고 쓰기는 0회다. 과거/미확인 기준·문체·방언·미등록 명칭을 확정 오류로 바꾸지 않으며 신규 40개를 포함한 선택 단위 211개가 uv offline/locked 환경에서 통과했다. 실제 원문/기준 공급·공개 Run 자동 조립·의미 검수·hosted CI·병합은 대기여서 28 관련 행 ❌를 유지한다. [TASK 12 입력·출력·검증·한계](writing-ai-architecture/task12-handoff.md).
 - 2026-11-10 TASK 13: #56·#125의 템플릿 추천 DTO·Registry·TaskRunner 명시 주입을 합성 자료로 구현했다. 공개 설정 장르·언어·태그와 카탈로그 권리·판본·만료를 확인하고 기존 적용 중복·명시 충돌을 표시한다. 검사 E의 단순 추천 모델 0회·선택 맞춤 설명 1회·설정 무변경과 경계 검증을 신규 33개 포함 선택 단위 244개로 확인했다. 실제 카탈로그·구매/라이선스 확정·설정 적용·공개 Run 자동 조립·hosted CI·병합은 대기여서 관련 제품 행 ❌를 유지한다. [TASK 13 입력·출력·검증·한계](writing-ai-architecture/task13-handoff.md).
+- 2026-11-10 TASK 14: #58·#59의 Simulation DTO·인물별 투영·순차 LangGraph·무효 1회 재생성·6/12/14 시도 한도·실제 들은 주장 습득·임시 reducer·가상 보고와 run별 adapter를 합성 자료에서 구현했다. 실제 모델·Content 구조화 상태·공개 Run 자동 조립·화면·hosted CI는 미연결/미검증이어서 26 실행·결과 관리 제품 행 ❌를 유지한다. [TASK 14 계약·단위 결과·한계](writing-ai-architecture/task14-handoff.md).
 - 작성 기준: 2026-11-04 로컬 코드·요구사항·설계, 샘플 CSV 전환·공개/편집 경계는 2026-11-06 추가 확인. HTML 표를 지원하는 Markdown 뷰어에서 병합 셀이 표시된다.
 
 

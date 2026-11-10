@@ -137,6 +137,8 @@ Slot Resolver는 인증된 UI 대상 → 같은 scope의 이전 대상 → 회�
 | development / writing | Coverage·콘티·가상 결과 → BeatPlan 또는 Text/Patch | 초안 모드만 writing, 생성 후 연속성 점검 |
 | world_plot / template | 정본 대상·영향 범위 또는 라이선스 필터 → ChangeSet 또는 Recommendations | 수정 요청만 승인으로 이동. 추천은 조회로 종료 |
 
+2026-11-10 TASK 14: `simulation`에 인물 투영·순차 LangGraph·행동 검증·임시 reducer·결정적 Analyzer를 연결했다. `SimulationHandler`는 run별 명시 주입하며 호출마다 TaskRunner의 예약·사용량·취소 경계를 사용한다. 보고 본문은 메모리에만 두고 `SimulationReport.v1` 결과 참조만 Main에 반환한다. 실제 모델·공개 Run 자동 조립·의미 Review 연결은 미연결이다. [계약·검증·한계](task14-handoff.md).
+
 Registry는 Python 고정 매핑 `operation → handler, reads, input_schema, output_schema, allowed_successors, model_cap`. 모델이 임의 함수·URL·쿼리·파일 경로를 선택할 수 없다. `run_if`는 `always / has_confirmed_findings / simulation_required / draft_requested` 같은 enum이다. 코드 실행식은 허용하지 않는다.
 
 ```yaml

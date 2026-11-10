@@ -37,6 +37,8 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 
 ## OpenAI와 향후 경계
 
+TASK 14는 `agents/simulation.py`를 고정 `simulation` Registry에 등록했습니다. 기본 두 인물·3턴을 LangGraph에서 순차 실행하며 인물별 Content knownBy·선택 근거만 전달합니다. 비교 상태는 독립이고 시도 한도는 기본 6·비교 12·절대 14회와 남은 Run 예산 중 작은 값입니다. 무효 행동 1회 재생성, 실제 들은 주장만 기억에 추가, 가상 상태 reducer·부분 종료·인과 분석을 제공합니다. 발화는 허용된 원문 조합만 지원합니다. run별 `SimulationHandler`가 기존 호출 예약을 사용하며, 실제 모델·Content 상태 공급·공개 Run 자동 조립·정본 저장은 미연결입니다. [TASK 14 DTO·단위 결과·한계](../../docs/writing-ai-architecture/task14-handoff.md).
+
 TASK 13은 `agents/template_recommendation.py`를 고정 `template` Registry에 등록했습니다. 검색 입력은 Content 대역에서 확인한 공개 설정의 언어·장르·태그만 사용하고 비공개 원고·자유문 검색 요청을 넘기지 않습니다. 권리·만료·판본을 재검증하며 적용된 ID·버전과 카탈로그의 명시 충돌 태그를 표시합니다. 단순 추천은 모델 0회이고 `customize=true`일 때만 선택적으로 설명 대역을 호출합니다. 실제 구매·권리 확정·설정 적용·Vector DB·공개 Run 자동 연결은 없습니다. [TASK 13 DTO·검증·인수](../../docs/writing-ai-architecture/task13-handoff.md).
 
 TASK 12는 `agents/review.py`의 Mechanical 검사를 고정 Registry에 등록했습니다. Content 대역에서 검증한 원문과 설정 기준을 비교하며, `checkTypes`는 `names / numbers / repetition / spelling`만 허용합니다. 수치는 같은 기준 회차의 선택된 값만 확정 비교하고, 미등록 이름·중복 강조·맞춤법 후보는 의심으로 남깁니다. 맞춤법은 요청에서 제공한 표기 쌍의 단어 경계만 검사합니다. 모델·Simulation·원문 쓰기는 없으며 `MechanicalReviewHandler`를 run별로 명시 주입합니다. [TASK 12 DTO·호출 예·검증과 한계](../../docs/writing-ai-architecture/task12-handoff.md).
