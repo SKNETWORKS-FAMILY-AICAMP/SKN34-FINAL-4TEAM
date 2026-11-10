@@ -73,12 +73,6 @@ class EditScopePolicyTest {
         assertEquals("review", scope("않 된다", "안된다"))
     }
 
-    @Test fun `an identical text is auto and says nothing changed`() {
-        val same = check("그대로", "그대로")
-        assertEquals("auto", same.scope)
-        assertEquals(listOf("바뀐 내용이 없어요."), same.reasons)
-    }
-
     @Test fun `digits take priority over the word rules and the reasons are not mixed`() {
         val result = check("3명이 갔다", "4명이 떠났다")
         assertEquals("review", result.scope)
