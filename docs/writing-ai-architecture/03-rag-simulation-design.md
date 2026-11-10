@@ -194,6 +194,15 @@ Reducer는 검증한 action을 `(scenario_id,turn)`에서 한 번만 반영한�
 
 ### 12. World & Plot Management
 
+2026-11-10 TASK 20: `agents/world_plot.py`에서 허용 설정/플롯의 정확 판본과 명시한 대상들을 읽고,
+검증된 Wiki evidence_refs의 역방향 도달 여부로 영향 연결을 확인한다. `confirmed`는 이 구조적 연결의
+확인이며 모델이 제안한 변경의 의미적 정답 확정이 아니다. 미연결 추측과 유지 대상을 분리하고,
+충돌을 보고한 대상에는 교체문 Patch를 만들지 않는다. 대상마다 이유·근거·원문·base_version을 보존한다.
+현재 관계는 요청 시 기존 Content 인가 Mock 조회로 읽고 모델 완료 뒤 CAS를 재확인한다.
+현재 Content 지원은 PG draft뿐이므로 설정/플롯을 포함한 묶음은 분석 후보로만 반환한다.
+`can_apply=false`, `change_set=null`, `application_blocker=unsupported_atomic_scope`이며 실제 쓰기는 없다.
+[TASK 20 검증과 미지원 경계](task20-handoff.md).
+
 ```mermaid
 flowchart LR
     I[변경 목표와 현행 판본] --> C[설정과 플롯 조회]

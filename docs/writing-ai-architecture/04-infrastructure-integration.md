@@ -167,6 +167,18 @@ TASK 18의 Python `WritingChangeSet`/`DocumentCreateProposal`은 Mock AI 후보�
 
 ### 16. 멀티턴 복원
 
+TASK 20 검색 무효화 이벤트 설계(미연결): Content가 지원 대상의 적용 영수증과 결과 판본을 같은 PG 트랜잭션에
+기록하고, 커밋이 확인된 뒤 `ContentChangeCommitted.v1`을 전달한다. 최소 payload는
+`event_id=application_id`, `work_id`, `proposal_id/version`, `receipt_ref`,
+`targets[{document_id,kind,before_revision,after_revision}]`이며 본문·토큰·인물 비밀을 넣지 않는다.
+rollback·승인 대기·Mock 후보 생성에는 이벤트를 발행하지 않는다. 실제 outbox/전송 구현은 이 단계 범위 밖이다.
+
+소비자는 이벤트 대상 원문의 역참조 Wiki/요약·원고 Vector·문맥 캐시를 우선 조회 불가로 표시하고,
+현재 Content manifest의 판본·권한과 재대조한 새 세대가 준비된 뒤에만 공개한다. event_id로 중복을 제거하되
+역순 이벤트는 최신 manifest를 기준으로 판정하며 과거 세대를 되살리지 않는다. 누락/처리 실패는 해당 범위를
+unverified/partial로 유지하고 운영자가 재처리한다. 이는 캐시 무효화 계약 설계이며 실제 DB 인덱스·이벤트 버스·
+consumer·정본 쓰기를 구현하거나 기존 Neo4j 현재 관계를 무효화 대상으로 덮어쓴 것이 아니다.
+
 ```mermaid
 flowchart LR
     U[인증 요청과 threadId] --> A[소유 및 현재 scope 검사]

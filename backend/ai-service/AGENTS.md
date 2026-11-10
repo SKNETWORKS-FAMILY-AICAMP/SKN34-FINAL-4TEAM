@@ -5,6 +5,11 @@
 
 ## 구조
 
+- TASK 20의 `agents/world_plot.py`는 검증한 Wiki 역참조의 영향 대상·모델 추측·유지 대상을 분리한다.
+  `world_plot_tasks`/run별 `WorldPlotHandler`를 명시 주입한다. 설정·플롯 writer는 TASK 17에서 미지원이므로
+  결과는 Mock 분석/후보이며 `can_apply=false`, `unsupported_atomic_scope`다. 원고와 Neo4j/Studio를 묶지 않는다.
+  [수용 범위·무효화 이벤트 설계·제한](../../docs/writing-ai-architecture/task20-handoff.md)을 따른다.
+
 - TASK 19의 `agents/next_draft.py`는 `next_draft_tasks`와 run별 `NextDraftHandler`로
   전체 Coverage→선택 Simulation→Development→Writing→모델 0회 연속성 검사를 연결한다.
   `draft_requested=false`는 BeatPlan에서 종료하고, `result`는 연속성 검사 뒤에만 성공 후보를 공개한다.

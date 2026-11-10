@@ -44,6 +44,7 @@
 - 2026-11-10 TASK 15: #59·#58의 의미 검수 DTO·Registry·run별 adapter와 선택적 Simulation→Review·조건부 editing 등록을 합성 자료로 구현했다. 의미·가상 반응을 확정하지 않고 원문 위치·근거·반대 근거·비확정 이유·전체 coverage·기준 시점을 검증한다. 실제 의미 모델·Content 상태 전송·공개 Run 조립·Writing·UI·hosted CI는 미연결/미검증이므로 28 검토 제품 행 ❌를 유지한다. [TASK 15 계약·단위 결과·한계](writing-ai-architecture/task15-handoff.md).
 - 2026-11-10 TASK 16: #61·#58의 전개 인사이트·BeatPlan·선택 Simulation·요청 개수/출처 검증을 Mock 내부 구성요소로 구현했다. 신규 15개 포함 선택 단위 236개 통과. 실제 모델·공개 Run·Writing·UI·hosted CI는 미연결/미검증으로 관련 제품 행 ❌를 유지한다. [TASK 16 인수](writing-ai-architecture/task16-handoff.md).
 - 2026-11-10 TASK 19: #61·#62의 다음 화/콘티 복합 DAG를 Mock 내부 구성요소로 연결했다. B의 10/10 판본·현재 관계·Simulation 3회→Development 1회→Writing 1회, 콘티 전용 종료와 연속성 필수 문구 누락 차단을 확인했다. 실제 모델·자유 생성문의 의미 품질·공개 Run 자동 조립·UI·hosted CI는 미수용이므로 관련 제품 행 ❌를 유지한다. [TASK 19 인수](writing-ai-architecture/task19-handoff.md).
+- 2026-11-10 TASK 20: #61·#60의 World/Plot 영향 분석·다중 문서 Mock 후보와 #48·#50 경계 확인을 구현했다. 설정/플롯의 실제 writer·원자 준비/적용은 미지원이므로 적용용 ChangeSet을 거부하고 관련 제품 행 ❌를 유지한다. [TASK 20 수용·남은 작업](writing-ai-architecture/task20-handoff.md).
 - 작성 기준: 2026-11-04 로컬 코드·요구사항·설계, 샘플 CSV 전환·공개/편집 경계는 2026-11-06 추가 확인. HTML 표를 지원하는 Markdown 뷰어에서 병합 셀이 표시된다.
 
 

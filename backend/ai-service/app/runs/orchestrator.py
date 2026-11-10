@@ -15,6 +15,7 @@ from app.agents.development import development
 from app.agents.template_recommendation import template_recommendation
 from app.agents.simulation import simulation
 from app.agents.writing import writing
+from app.agents.world_plot import world_plot
 from .routing import Capability
 
 
@@ -123,7 +124,7 @@ REGISTRY = MappingProxyType({
                               "GeneratedText.v1", ("mechanical", "review"), 1),
     "editing": CapabilitySpec(writing, ("context", "canonical"),
                               ("ContextPacket.v1", "Findings.v1", "ChangeSet.v1"), "ChangeSet.v1", (), 1),
-    "world_plot": CapabilitySpec(_unavailable_handler, ("context", "canonical"),
+    "world_plot": CapabilitySpec(world_plot, ("context", "canonical"),
                                  ("ContextPacket.v1", "SimulationReport.v1"), "ChangeSet.v1", ("writing", "editing"), 1),
     "template": CapabilitySpec(template_recommendation, ("catalogue",),
                                ("ContextPacket.v1",), "Recommendations.v1", (), 1),
