@@ -80,8 +80,13 @@ class AuthContentIntegrationTest {
         assertEquals(1,before.path("basisEpisode").asInt())
         assertEquals(before.path("sourceHash").asString(),before.path("forkHash").asString())
         assertEquals("unavailable",before.path("characterStateStatus").asString())
-        val replacement=versions.save(work.id,owner,1,DraftRequest("개정 1화","바뀐 원고",saved.draft.revision))
-        publication.publishEpisode(work.id,owner,1,PublishRequest(replacement.draft.revision,true,versionId=replacement.versions.last().id))
+        val current=send(request("/api/v1/works/${work.id}/episodes/1").header("Authorization","Bearer $owner"))
+        assertEquals(200,current.statusCode(),current.body())
+        val revision=json.readTree(current.body()).path("draft").path("revision").asInt()
+        val replacement=versions.save(work.id,owner,1,DraftRequest("개정 1화","바뀐 원고",revision))
+        val version=replacement.versions.single {it.body=="바뀐 원고"}
+        publication.publishEpisode(work.id,owner,1,PublishRequest(replacement.draft.revision,true,versionId=version.id))
+        assertEquals(version.id,publication.publishedEpisodes(work.id).items.single().versionId)
         assertEquals(before,report())
     }
 
