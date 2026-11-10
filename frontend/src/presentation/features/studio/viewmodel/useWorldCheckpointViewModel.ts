@@ -38,7 +38,8 @@ export function useWorldCheckpointViewModel(workId: string) {
   }, [reload])
   return {
     rows, detail, busy, error, notice, reload,
-    read: (id: string) => run(async signal => {
+    // 열려 있는 체크포인트를 다시 누르면 상세를 닫고, 다른 항목이면 상세를 읽어 온다.
+    toggle: (id: string) => detail?.id === id ? setDetail(null) : run(async signal => {
       const result = await api.worldCheckpoint(workId, id, signal)
       if (!signal.aborted) setDetail(result)
     }),

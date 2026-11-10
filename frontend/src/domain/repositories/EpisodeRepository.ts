@@ -1,4 +1,4 @@
-import type {WorkRegistration,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext} from '../entities/content'
+import type {WorkRegistration,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
 
 export interface EpisodeRepository {
   orderScope(id:string,number:number,signal?:AbortSignal):Promise<import('../entities/content').EpisodeOrderScope>
@@ -23,9 +23,9 @@ export interface EpisodeRepository {
   propose(id: string, revision: number, prompt: string, consent: boolean, signal?: AbortSignal, episode?:number, character?:string): Promise<Proposal>
   accept(id: string, pid: string, revision: number): Promise<Draft>
   world(id:string,signal?:AbortSignal):Promise<World>
-  createWorldCheckpoint(id: string, signal?: AbortSignal): Promise<import('../entities/content').WorldCheckpoint>
-  worldCheckpoints(id: string, signal?: AbortSignal): Promise<import('../entities/content').WorldCheckpointSummary[]>
-  worldCheckpoint(id: string, checkpointId: string, signal?: AbortSignal): Promise<import('../entities/content').WorldCheckpoint>
+  createWorldCheckpoint(id: string, signal?: AbortSignal): Promise<WorldCheckpoint>
+  worldCheckpoints(id: string, signal?: AbortSignal): Promise<WorldCheckpointSummary[]>
+  worldCheckpoint(id: string, checkpointId: string, signal?: AbortSignal): Promise<WorldCheckpoint>
   saveSetting(id:string,sid:string,revision:number,setting:SettingInput,sourceToken:string):Promise<World>
   commitSetting(id:string,sid:string,revision:number):Promise<World>
   revertSetting(id:string,sid:string,revision:number,versionId:string,signal?:AbortSignal):Promise<World>

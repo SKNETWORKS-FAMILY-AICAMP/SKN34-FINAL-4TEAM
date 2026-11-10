@@ -14,7 +14,7 @@ export function CheckpointPanel({workId,episode,disabled,onRevert}:{workId:strin
     <ol>{checkpoints.map((c,i)=>{
       const version = versions.find(v => v.id === c.versionId)
       return <li key={c.versionId} className={c.active?'on':undefined}>
-        <button type="button" className="btn sm" aria-expanded={selected===c.versionId} onClick={()=>setSelected(selected===c.versionId?null:c.versionId)}>
+        <button type="button" className="btn sm writing-checkpoint-toggle" aria-expanded={selected===c.versionId} onClick={()=>setSelected(selected===c.versionId?null:c.versionId)}>
           체크포인트 {i+1} · {new Date(c.publishedAt).toLocaleString('ko-KR')}{c.active&&' · 현재 공개'}
         </button>
         {selected===c.versionId && (version ? <div className="writing-preview">

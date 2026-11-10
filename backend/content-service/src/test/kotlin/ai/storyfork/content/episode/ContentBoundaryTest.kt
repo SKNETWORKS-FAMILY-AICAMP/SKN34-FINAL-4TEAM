@@ -125,7 +125,7 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf).
+        // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf), V24 world checkpoint (world leaf).
         assertEquals((1..23).toList(), versions.sorted().take(23))
         assertTrue(versions.size >= 24)
         assertEquals(versions.size, versions.toSet().size, "Duplicate Content migration version")

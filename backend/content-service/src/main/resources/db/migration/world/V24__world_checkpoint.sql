@@ -1,5 +1,5 @@
 CREATE TABLE world_checkpoint (
-    id text PRIMARY KEY,
+    id varchar(36) PRIMARY KEY,
     work_id varchar(36) NOT NULL REFERENCES work(id),
     created_at timestamptz NOT NULL,
     snapshot text NOT NULL

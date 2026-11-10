@@ -19,7 +19,7 @@ export function SettingHistoryPanel({ workId }: { workId: string }) {
         disabledReason={vm.world.drafts.length || vm.world.draft ? '작성 중인 설정 초안을 먼저 확정해 주세요.' : ''}
         onRestore={(id, versionId) => { void vm.restore(id, versionId) }} />
     </>}
-    <button type="button" className="btn sm" aria-expanded={checkpointsOpen} onClick={() => setCheckpointsOpen(open => !open)}>세계관 체크포인트 관리</button>
+    <button type="button" className="btn sm setting-checkpoints-open" aria-expanded={checkpointsOpen} onClick={() => setCheckpointsOpen(open => !open)}>세계관 체크포인트 관리</button>
     {checkpointsOpen && <WorldCheckpointPanel key={workId} workId={workId} />}
   </section>
 }
