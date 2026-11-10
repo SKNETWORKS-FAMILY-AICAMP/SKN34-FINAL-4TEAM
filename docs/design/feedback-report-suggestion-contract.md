@@ -73,8 +73,8 @@ CREATE INDEX feedback_report_response_report ON feedback_report_response (report
 - 정정: 제보자만, 철회 전에만(철회 후 409). 원문은 바꾸지 않고 `correct` 정정 기록을 추가한다(본문 1~500자).
 - 철회: 제보자만, 한 번만(이미 철회면 409). `withdraw` 기록 + `withdrawn_at`. 상태와 원문은 그대로 두고 작가에게 "철회됨"을 표시한다.
 - 작가 확인: 작품 소유자만. `author_checked_at`이 없으면 기록하고 `unchecked`면 `checked`로 바꾼다(멱등).
-- 답변: 작품 소유자만. 본문 1~2000자, `isPublic`(기본 false). 답변하면 `unchecked`/`checked`는 `answered`가 된다(이미 `resolved`/`closed`면 그대로).
-- 처리 상태 변경: 작품 소유자만, `checked`·`answered`·`resolved`·`closed` 중 아무 값으로나 바꿀 수 있다(`unchecked`로 되돌리기는 422).
+- 답변: 작품 소유자만. 본문 1~2000자, `isPublic`(기본 false). 답변하면 `unchecked`/`checked`는 `answered`가 된다(이미 `resolved`/`closed`면 그대로). 확인한 적이 없으면 `author_checked_at`도 함께 기록한다(처음 기록한 시각은 바꾸지 않는다).
+- 처리 상태 변경: 작품 소유자만, `checked`·`answered`·`resolved`·`closed` 중 아무 값으로나 바꿀 수 있다(`unchecked`로 되돌리기는 422). 이때도 확인한 적이 없으면 `author_checked_at`을 함께 기록한다. 처리한 제보에 `확인했어요`가 남지 않게 한다.
 - 공개 답변: 비공개 제보의 공개 답변은 공개 목록에 **제보 원문 없이** 답변만 노출한다(UC-14 공개 범위).
 - 본문 1~500자(`isNotBlank`), 인용 0~500자. 자기 작품 제보도 허용한다.
 
