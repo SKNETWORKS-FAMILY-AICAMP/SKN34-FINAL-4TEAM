@@ -204,6 +204,7 @@ def test_content_initial_world_analysis_failure_is_persistent_without_reexecutio
     world = str(uuid.UUID(draft["worldId"]))
     path = f"/api/v1/world-studios/{world}/analyses"
     request = {"key": "ci-initial-analysis", "expectedDraftRevision": draft["draftRevision"]}
+    refresh_csrf(client)
     result = client.post(path, json=request)
     assert result.status_code == 503
     analysis = result.json()
@@ -214,7 +215,9 @@ def test_content_initial_world_analysis_failure_is_persistent_without_reexecutio
     assert client.get(location).json() == analysis
     assert client.get(location + "/candidates").json() == []
     assert client.get(path).json() == [analysis]
+    refresh_csrf(client)
     assert client.post(path, json=request).json() == analysis
+    refresh_csrf(client)
     assert client.post(path, json={**request, "expectedDraftRevision": draft["draftRevision"] + 1}).status_code == 409
     assert client.get(f"/api/v1/world-studios/{world}").json() == draft
     assert scalar(f"SELECT count(*) FROM worldstudio.initial_analysis WHERE world_id='{world}'") == "1"
