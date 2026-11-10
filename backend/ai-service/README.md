@@ -37,6 +37,8 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 
 ## OpenAI와 향후 경계
 
+TASK 11은 `agents/story_context.py`의 정확 조회·근거 기반 해석을 고정 `qa` Registry에 등록했습니다. 정확 조회는 Content 대역의 선택된 설정 값/인용 span·hash·revision을 검증하며 모델·검색 0회입니다. 해석은 Wiki 인과 ref·원고 구간·coverage를 확인한 후 명시 주입한 모델 대역만 사용합니다. `StoryContextHandler`를 run별로 TaskRunner에 주입하면 예산·usage·취소를 재사용하며 본문은 checkpoint 밖에 둡니다. 실제 Content 원문 transport·실 provider·공개 API의 자동 조립은 추가하지 않았습니다. [TASK 11 입력·출력·사용 계약과 검증](../../docs/writing-ai-architecture/task11-handoff.md).
+
 TASK 08은 `app/runs/state.py`·`graph.py`의 실제 LangGraph StateGraph로 Scope 확인→규칙 Router→고정 계획 검증→TaskRunner→검색/테스트 Agent→출력 검증→조회/합성 제안 종료를 연결합니다. `langgraph==1.2.12`와 전이 의존성을 추가했습니다. MainState와 InMemorySaver에는 참조·실행 상태만 저장하고 원고·요청문·grant는 넣지 않습니다. 실제 승인·쓰기·모델 호출·Saver 재개는 연결하지 않았으며 [TASK 08 계약과 잠금 환경 검증](../../docs/writing-ai-architecture/task08-handoff.md)을 참고하세요.
 
 TASK 09는 `POST /internal/v1/ai/runs`, `GET /internal/v1/ai/runs/{runId}`, `POST /internal/v1/ai/runs/{runId}/cancel`을 등록했습니다. 합성 실행은 `create_app(run_service=RunService(FixtureContent(...)))`로 명시 주입하며 자동 fixture는 없습니다. TASK 10부터는 Content origin이 설정되면 실제 위임 재검증을 사용하고, 양쪽 모두 미설정이면 인증 후 503입니다. 서비스 토큰과 작업별 scope 위임을 함께 확인하고 같은 run 중복 접수는 409입니다. 상태·취소에는 `X-Internal-Token`, `X-Grant-Ref`, `X-Thread-Ref`가 필요합니다. [TASK 09 당시 계약·검증](../../docs/writing-ai-architecture/task09-handoff.md)과 [TASK 10 실제 위임 계약](../../docs/writing-ai-architecture/task10-api-contract.md)을 참고하세요.

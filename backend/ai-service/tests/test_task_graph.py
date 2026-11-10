@@ -71,13 +71,14 @@ def test_patterns_have_exact_stable_topological_order(scope, manifest, pattern):
     assert validate(scope, manifest, tuple(reversed(pattern))) == tuple(t.task_id for t in pattern)
 
 
-def test_registry_is_fixed_and_handlers_are_explicit_stubs():
+def test_registry_is_fixed_and_unimplemented_handlers_are_explicit_stubs():
     assert set(o.REGISTRY) == set(SCHEMAS)
     with pytest.raises(TypeError):
         o.REGISTRY["exec"] = o.REGISTRY["context"]
-    for spec in o.REGISTRY.values():
-        with pytest.raises(NotImplementedError):
-            spec.handler()
+    for operation, spec in o.REGISTRY.items():
+        if operation != "qa":
+            with pytest.raises(NotImplementedError):
+                spec.handler()
         assert spec.reads and spec.input_schema and spec.output_schema
 
 

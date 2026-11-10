@@ -29,6 +29,8 @@ Wiki의 논리 키는 `(대상 work/Fork, source_revision, local_id)`다. Episod
 
 ### 7. Story Context & Q&A
 
+2026-11-09 TASK 11은 아래 흐름을 합성 Content·FakeLLM에서 구현했다. 정확 조회는 선택된 설정 값/인용의 판본·UTF-16 span·SHA-256을 요구한다. 해석은 별도 질문과 검색 조건을 받아 주장별 ref를 검증하며, 불완전 근거에는 확인된 원문만 반환한다. 현재 관계의 과거 snapshot·운영 색인·실제 provider는 연결하지 않았다. [실제 DTO·상태·검증과 한계](task11-handoff.md).
+
 ```mermaid
 flowchart LR
     Q[질문 및 기준 회차] --> K{정확한 속성 또는 인용}:::gate

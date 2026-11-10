@@ -121,6 +121,8 @@ Slot Resolver는 인증된 UI 대상 → 같은 scope의 이전 대상 → 회�
 
 ## Registry와 작업 상태 계약
 
+2026-11-09 TASK 11: `qa`의 DTO handler를 `agents/story_context.py`에 구현해 Registry에 등록했다. TaskRunner 호출 계약에는 run별 `StoryContextHandler`를 명시 주입한다. 정확 조회는 Content 대역에서 0회 모델로 확인하고 해석은 검증된 문맥과 모델 대역 1회만 사용한다. 다른 capability stub과 실제 원문/모델의 미연결 경계는 유지한다. [입출력·연결·검증](task11-handoff.md).
+
 2026-11-09 TASK 06: `runs/orchestrator.py`에 불변 Registry·참조 타입 Task DTO·위상 검증·보수적 예산 예약 검사를 구현했다. 모든 handler는 미연결 stub이며 LangGraph·Agent·저장 실행은 없다. 겹치는 Patch는 사용자 선택 오류로 거부한다. [상세 계약과 검증](task06-handoff.md).
 
 | capability | 허용 입력 → 출력 | 허용 후속 조건 |

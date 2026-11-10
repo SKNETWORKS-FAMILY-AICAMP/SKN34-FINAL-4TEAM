@@ -37,6 +37,7 @@
 - 2026-11-09 TASK 08: #55·#57의 MainState·실제 LangGraph StateGraph·참조 전용 InMemorySaver·검색/TaskRunner·citation 출력 검증을 조립했다. lock 환경에서 요청된 메모리 그래프 통합 21개·관련 단위 152개 통과(HTTP 통합 1개 제외). 실제 모델·승인/저장·운영 Saver/재개·HTTP/화면·병합·Required CI는 대기여서 관련 ❌는 유지한다. [TASK 08 인수 기록](writing-ai-architecture/task08-handoff.md).
 - 2026-11-09 TASK 09: #54의 내부 Run 접수·조회·취소와 FixtureContent 작업별 위임·단일 프로세스 중복 dispatch 차단을 연결했다. 선택 단위 166개·명시 요청 HTTP/메모리 그래프 통합 40개·오프라인 lock 검사 통과. 실제 Content/MCP·공개 API·화면·영속 재개·모델·승인/저장·병합·Required CI는 대기이므로 관련 ❌는 유지한다. #157은 완료된 Core/Content 별도 범위, #163은 실제 전송 미결 이슈다. [TASK 09 인수 기록](writing-ai-architecture/task09-handoff.md).
 - 2026-11-09 TASK 10: #54·#57의 Content 공개 Run·상태·thread 참조 API, 영속 멱등/dispatch 의도와 실제 5분 HMAC 위임·Content↔AI HTTP 재검증을 구현했다. Content 단위 26개·HTTP 26개, AI 단위 172개·HTTP/그래프 41개 통과. 실제 전문 Agent/실 검색·모델·원고 적용·SSE·자동 재개는 미연결이며 V17 PostgreSQL/동시 접수·hosted CI·병합·배포는 미검증이어서 제품 행 ❌를 유지한다. [TASK 10 계약](writing-ai-architecture/task10-api-contract.md) · [인수 및 검증 기록](writing-ai-architecture/task10-handoff.md).
+- 2026-11-09 TASK 11: #56·#57의 Story Context/Q&A DTO·고정 Registry·TaskRunner 명시 주입을 합성 자료로 구현했다. 나이/속성·정확 인용은 Content 대역 검증 후 모델·검색 0회, 해석은 검증된 Wiki 경로·원고 span과 FakeLLM 1회이며 부족·stale·timeout·partial과 범위 위반을 구분한다. 신규 27개를 포함한 선택 단위 171개 통과. 실제 Content 원문/모델·공개 Run 자동 조립·HTTP/그래프 통합·hosted CI·병합은 대기여서 제품 행 ❌를 유지한다. [TASK 11 입력·출력·검증·한계](writing-ai-architecture/task11-handoff.md).
 - 작성 기준: 2026-11-04 로컬 코드·요구사항·설계, 샘플 CSV 전환·공개/편집 경계는 2026-11-06 추가 확인. HTML 표를 지원하는 Markdown 뷰어에서 병합 셀이 표시된다.
 
 

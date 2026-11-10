@@ -5,6 +5,10 @@
 
 ## 구조
 
+- TASK 11의 `agents/story_context.py`는 명시 주입한 합성 Content·검색·모델 대역만 지원한다.
+  정확 조회 DTO handler는 Registry에 등록하고, TaskRunner에는 run별 `StoryContextHandler`를 주입한다.
+  실제 Run/API의 원문 읽기·모델 조립은 미연결이다. [계약·검증](../../docs/writing-ai-architecture/task11-handoff.md).
+
 - FastAPI Router는 입력 검증, 업무 함수 호출, 응답 변환만 한다. 모듈·엔드포인트에 한국어 docstring을 단다.
 - 요청·응답은 Pydantic DTO(`Request`·`Payload`·`Response`·`Result`)로 정의한다. 임의 `dict`·외부 SDK 응답을 계약으로 노출하지 않는다.
 - 구체 클래스와 직접 함수 호출을 기본으로 한다. production 구현체가 둘 이상이거나 사용자가 요청하지 않으면

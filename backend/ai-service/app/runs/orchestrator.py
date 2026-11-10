@@ -8,6 +8,7 @@ from pydantic import Field, StrictBool, ValidationError
 
 from app.retrieval.content_client import Manifest, Scope, SourceVersion
 from app.retrieval.contracts import Contract, PositiveInt, Span
+from app.agents.story_context import story_context
 from .routing import Capability
 
 
@@ -99,7 +100,7 @@ REGISTRY = MappingProxyType({
     "context": CapabilitySpec(_unavailable_handler, ("canonical", "wiki", "manuscript", "relationship"),
                               ("ContextPacket.v1",), "ContextPacket.v1",
                               ("qa", "mechanical", "review", "simulation", "development", "writing", "editing", "world_plot", "template"), 0),
-    "qa": CapabilitySpec(_unavailable_handler, ("context",), ("ContextPacket.v1",), "Answer.v1", (), 1),
+    "qa": CapabilitySpec(story_context, ("context", "canonical"), ("ContextPacket.v1",), "Answer.v1", (), 1),
     "mechanical": CapabilitySpec(_unavailable_handler, ("canonical",),
                                  ("ContextPacket.v1", "GeneratedText.v1"), "Findings.v1",
                                  ("review", "simulation", "editing", "writing"), 0),

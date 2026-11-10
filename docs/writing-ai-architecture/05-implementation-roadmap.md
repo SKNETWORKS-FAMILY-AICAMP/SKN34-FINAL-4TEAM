@@ -14,6 +14,8 @@ MVP 기능은 위 1~4의 모든 Agent를 합성 자료로 조합할 수 있는 �
 
 ## 프로젝트 루트 기준 파일 배치안
 
+TASK 11은 `agents/story_context.py`의 정확 조회·근거별 Q&A와 고정 `qa` Registry·TaskRunner adapter를 합성 자료로 구현했다. 기존 graph 입력 검증을 `retrieval/validation.py`로 옮겨 재사용하며 함수 AST는 보존했다. 실제 공개 Run의 원문/모델 연결과 후속 Agent는 미구현이다. [입출력·TDD·검증·인수](task11-handoff.md).
+
 TASK 10은 Content의 `proposal` 기능 안에 공개 Run/thread·멱등 영속 기록·HMAC 위임 검증·AI 전송을 추가했다. AI는 실제 Content 위임을 재확인하지만 전문 Agent/실 검색이 미연결이어서 실패 상태를 반환한다. 공개 SSE·승인·적용·자동 재개는 미구현이다. [계약](task10-api-contract.md) · [검증과 인수](task10-handoff.md).
 
 2026-11-09 TASK 09에서 `runs/{router,schemas,service}.py`와 앱 등록을 추가했다. FixtureContent의 작업별 위임 확인 후 메모리 MainGraph로 실행하며 상태·취소·중복 차단을 제공한다. 선택 단위 166개·HTTP/그래프 통합 40개 통과. 새 production 의존성·실제 Content·공개 URL·원고 저장·SSE 연결은 없으며 [TASK 09 인수 기록](task09-handoff.md)을 따른다.
