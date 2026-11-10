@@ -59,7 +59,7 @@ def test_required_hook_missing_is_blocked(content, wiki, manuscripts):
     assert result.status == "blocked"
     model.develop.assert_not_called()
 
-@pytest.mark.parametrize("simulate", [False, True])
+@pytest.mark.parametrize("simulate", [False, True, "missing_consent", "zero_budget"])
 def test_runner_optional_simulation_usage_refs_and_zero_writing(content, wiki, manuscripts, simulate):
     from test_task_graph import task
     from test_semantic_review import simulation_request, actor_model
@@ -67,23 +67,34 @@ def test_runner_optional_simulation_usage_refs_and_zero_writing(content, wiki, m
     from app.agents.simulation import SimulationHandler
     from app.retrieval.content_client import CanonicalAdapter
     from app.runs.runner import TaskRunner, TaskOutput
+    blocked = simulate in ("missing_consent", "zero_budget")
+    sim_request = simulation_request(content) if simulate is True or simulate == "zero_budget" else None
+    if simulate == "zero_budget":
+        sim_request = sim_request.model_copy(update={"remaining_model_calls": 0})
     req = DevelopmentRequest(query=query(content), mode="next_insights", count=3, hook_refs=("e3",),
-        reaction_required=simulate, simulation_input=simulation_request(content) if simulate else None)
+        reaction_required=bool(simulate), simulation_input=sim_request)
     port = coordinator(content, wiki, manuscripts)
     packet = asyncio.run(port.retrieve(req.query.model_copy(update={"operation": "full_context"})))
     actor = actor_model()
-    sim = SimulationHandler(req.simulation_input, content=content, packet=packet, model=actor) if simulate else None
+    sim = SimulationHandler(req.simulation_input, content=content, packet=packet, model=actor) if simulate is True else None
     model = AsyncMock(develop=AsyncMock(return_value=reply()))
     handler = DevelopmentHandler(req, content=content, coordinator=port, model=model, simulation_handler=sim)
     root = task(content.scope, "context", "context")
     async def context_handler(slice, ctx):
         return TaskOutput(output_schema="ContextPacket.v1", output_ref="context:fixture", is_mock=True)
     handlers = {"context": context_handler, "development": handler}
-    if simulate: handlers["simulation"] = sim
+    if simulate is True: handlers["simulation"] = sim
     runner = TaskRunner("run1", (root, *development_tasks(req, context_task=root)), scope=content.scope,
         manifest=CanonicalAdapter(content).manifest(content.scope), allowed_operations=("context", "simulation", "development"),
         handlers=handlers)
     result = asyncio.run(runner.run())
+    if blocked:
+        assert handler.plan is not None and handler.plan.status == "blocked"
+        assert result.status == "partial" and result.accounted.model_calls == 0
+        assert all(t.error_code is None for t in result.results)
+        model.develop.assert_not_called()
+        actor.act.assert_not_called()
+        return
     assert result.status == "succeeded" and handler.plan.status == "ok"
     assert result.accounted.model_calls == (3 if simulate else 1)
     assert all(t.operation not in ("editing", "writing") for t in runner.tasks)

@@ -64,6 +64,22 @@ def number_review(content):
         numbers=(NumberCheck(span=(start, start+1), expected=exact(content, "cost", "attribute").exact, basis_episode=3),))
 
 
+@pytest.mark.parametrize("blank_standard", [False, True])
+def test_whitespace_target_or_mechanical_standard_is_partial(content, data, blank_standard):
+    mechanical = number_review(content) if blank_standard else None
+    document = "cost" if blank_standard else "m3"
+    content.rows = tuple(replace(row, text=" " * len(row.text))
+        if row.version.document_id == document else row for row in content.rows)
+    if blank_standard:
+        mechanical = mechanical.model_copy(update={"numbers": (mechanical.numbers[0].model_copy(
+            update={"expected": exact(content, "cost", "attribute").exact}),)})
+    llm = model()
+    result = run(content, data, llm, mechanical_request=mechanical)
+    assert result.status == "partial" and not result.complete
+    assert any(g.code == "unverified" for g in result.gaps)
+    llm.review.assert_not_called()
+
+
 def test_registry_and_scenario_a_knowledge_conflict_is_explained_by_sources(content, data):
     assert REGISTRY["review"].handler is semantic_review
     llm = model(suspect(content))

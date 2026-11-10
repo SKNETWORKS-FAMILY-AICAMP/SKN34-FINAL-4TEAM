@@ -34,6 +34,21 @@ def source(content, document):
                        source_hash=sha256(row.text.encode()).hexdigest())
 
 
+@pytest.mark.parametrize("document", ["m5", "name", "age"])
+def test_whitespace_target_or_standard_is_partial_not_denied(review_content, document):
+    review_content.rows = tuple(replace(row, text=" " * len(row.text))
+        if row.version.document_id == document else row for row in review_content.rows)
+    if document == "m5":
+        req = ReviewRequest(query=query(review_content), target=source(review_content, "m5"),
+                            check_types=("repetition",))
+    else:
+        req = request(review_content)
+    result = run(review_content, req)
+    assert result.status == "partial" and not result.complete
+    assert any(g.code == "unverified" for g in result.gaps)
+    assert not any(f.confirmed_or_suspected == "confirmed" for f in result.findings)
+
+
 def span(content, text):
     original = content.rows[0].text
     start = original.index(text)

@@ -1,5 +1,8 @@
 # TASK 15 — Semantic Review 인수 보고
 
+2026-11-10 후속 보완: 공백 원문·기계 검사의 공백 설정 기준은 권한 거부 대신 `partial/unverified`로 반환한다.
+Mechanical 3개·Semantic 2개 경계 회귀를 Red→Green으로 확인했고, 선행 보완 선택 단위는 433 passed, 21 deselected다.
+
 2026-11-10. **Mock 내부 구현·선택 단위 수용 완료.** 실 모델·제품 흐름·외부 리뷰 완료를 뜻하지 않는다.
 
 ## 시작 상태·범위

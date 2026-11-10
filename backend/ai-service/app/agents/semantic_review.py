@@ -163,6 +163,8 @@ async def semantic_review(request: SemanticReviewRequest, *, content, coordinato
         target_result = await story_context(StoryContextRequest(query=query, kind="quote", exact=request.target), content=content)
         if target_result.status == "timeout":
             raise TimeoutError()
+        if target_result.status == "insufficient_evidence":
+            return Findings(status="partial", gaps=(Gap(code="unverified"),), is_mock=True)
         if target_result.status != "ok":
             raise ContentReadError("denied")
         target = target_result.sources[0]

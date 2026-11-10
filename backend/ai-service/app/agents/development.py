@@ -189,7 +189,8 @@ class DevelopmentHandler:
         if slice.operation != "development" or slice.output_schema != "BeatPlan.v1" or self.request.query.scope != ctx.runner.scope:
             raise PlanError("development_scope_mismatch")
         reports = ()
-        if self.request.reaction_required:
+        if (self.request.reaction_required and self.request.simulation_input
+                and self.request.simulation_input.remaining_model_calls):
             if (not isinstance(self.simulation_handler, SimulationHandler)
                     or self.simulation_handler.request != self.request.simulation_input
                     or not any(i.output_schema == "SimulationReport.v1" and i.is_mock for i in slice.inputs)):

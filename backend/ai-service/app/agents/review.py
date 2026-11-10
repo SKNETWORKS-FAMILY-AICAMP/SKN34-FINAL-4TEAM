@@ -17,6 +17,10 @@ CheckType = Literal["names", "numbers", "repetition", "spelling"]
 SemanticCheckType = Literal["knowledge", "causality", "emotion", "world_rule", "foreshadowing", "dialogue_timing", "character_behavior"]
 
 
+class _InsufficientEvidence(Exception):
+    pass
+
+
 class NameCheck(Contract):
     span: Span
     canonical: ExactSource | None = None
@@ -114,6 +118,8 @@ async def mechanical_review(request: ReviewRequest, *, content: MockContentReadP
             kind="attribute" if setting else "quote", exact=exact), content=content)
         if response.status == "timeout":
             raise TimeoutError()
+        if response.status == "insufficient_evidence":
+            raise _InsufficientEvidence()
         if response.status != "ok":
             raise ContentReadError("unsupported" if response.status == "unsupported" else "denied")
         evidence = response.sources[0]
@@ -200,6 +206,8 @@ async def mechanical_review(request: ReviewRequest, *, content: MockContentReadP
         return Findings(status="partial" if gaps else "ok", findings=tuple(findings.values()),
             checked_types=request.check_types, sources=tuple(sources.values()),
             gaps=tuple(dict.fromkeys(gaps)), is_mock=True, complete=not gaps)
+    except _InsufficientEvidence:
+        return Findings(status="partial", gaps=(Gap(code="unverified"),), is_mock=True)
     except (TimeoutError, OSError):
         return Findings(status="timeout", gaps=(Gap(code="timeout"),), is_mock=True)
     except ContentReadError as error:
