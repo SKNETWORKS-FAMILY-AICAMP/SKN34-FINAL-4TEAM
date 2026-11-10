@@ -29,6 +29,7 @@ class WorkEntity(
     @field:Column(name = "restricted")
     var restricted: Boolean = false,
     @field:Column(name = "slug") var slug: String? = null,
+    // 읽지 않는 칼럼이다. 작가명은 소유자의 Core 닉네임이며, 샘플 SQL·생성 경로 호환을 위해서만 남긴다.
     @field:Column(name = "author_name") var authorName: String = "작성자",
     @field:Column(name = "theme") var theme: String = "star",
     @field:Column(name = "hook") var hook: String = "",

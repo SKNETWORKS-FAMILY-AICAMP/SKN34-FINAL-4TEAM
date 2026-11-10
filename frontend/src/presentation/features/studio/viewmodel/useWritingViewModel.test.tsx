@@ -70,7 +70,7 @@ it('late autosave response preserves newer typing and manual save creates a vers
 })
 
 it('returns false when episode navigation is cancelled and keeps the dirty draft',async()=>{
-  const first={number:1,draft:{title:'1화',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only'}
+  const first={number:1,draft:{title:'1화',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
   const second={...first,number:2,draft:{...first.draft,title:'2화'}}
   const api={writingList:vi.fn().mockResolvedValue([first,second]),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
   const {result}=renderHook(()=>useWritingViewModel('w',api))
@@ -128,4 +128,34 @@ it('reports whether leaving the studio would lose work: clean may leave, dirty a
   } finally {
     confirm.mockRestore()
   }
+})
+
+const checkpointRows=[{versionId:'v1',publishedAt:'2026-11-01T00:00:00Z',active:false},{versionId:'v2',publishedAt:'2026-11-02T00:00:00Z',active:true}]
+const checkpointEpisode={number:1,draft:{title:'1화',body:'기존',revision:3},versions:[],publishedVersionId:'v2',inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:checkpointRows}
+const idleApi={createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+
+it('reverts to an earlier checkpoint by republishing that version and reports only the server result',async()=>{
+  const reverted={...checkpointEpisode,draft:{...checkpointEpisode.draft,revision:4},publishedVersionId:'v1',checkpoints:checkpointRows.map(c=>({...c,active:c.versionId==='v1'}))}
+  const api={...idleApi,writingList:vi.fn().mockResolvedValue([checkpointEpisode]),publishEpisode:vi.fn().mockResolvedValue(reverted)}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  let done=false
+  await act(async()=>{done=await result.current.revertCheckpoint('v1',true)})
+  expect(done).toBe(true)
+  expect(api.publishEpisode).toHaveBeenCalledWith('w',1,3,'v1',true,expect.any(AbortSignal))
+  expect(result.current.active?.checkpoints.map(c=>[c.versionId,c.active])).toEqual([['v1',true],['v2',false]])
+  expect(result.current.notice).toContain('되돌렸어요')
+  expect(result.current.error).toBe('')
+})
+
+it('does not announce a revert the server rejected and keeps the current checkpoint active',async()=>{
+  const api={...idleApi,writingList:vi.fn().mockResolvedValue([checkpointEpisode]),publishEpisode:vi.fn().mockRejectedValue(new Error('공개 권리와 저장된 원고를 확인해 주세요.'))}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  let done=true
+  await act(async()=>{done=await result.current.revertCheckpoint('v1',true)})
+  expect(done).toBe(false)
+  expect(result.current.error).toBe('공개 권리와 저장된 원고를 확인해 주세요.')
+  expect(result.current.notice).toBe('')
+  expect(result.current.active?.checkpoints.find(c=>c.active)?.versionId).toBe('v2')
 })

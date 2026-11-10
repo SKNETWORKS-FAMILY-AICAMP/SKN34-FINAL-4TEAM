@@ -1,5 +1,6 @@
 package ai.storyfork.operations.security
 
+import ai.storyfork.operations._common.client.ContentWork
 import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.PageResponse
@@ -11,6 +12,9 @@ import ai.storyfork.operations.event.service.dto.EventResponse
 import ai.storyfork.operations.report.controller.ReportController
 import ai.storyfork.operations.report.service.ReportService
 import ai.storyfork.operations.report.service.dto.ReportListResponse
+import ai.storyfork.operations.work.controller.WorkController
+import ai.storyfork.operations.work.service.WorkService
+import ai.storyfork.operations.work.service.dto.OperationsWorkList
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -26,12 +30,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.json.JsonMapper
 
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
-@WebMvcTest(controllers = [ReportController::class, AdminEventController::class, PublicEventController::class], properties = [
+@WebMvcTest(controllers = [ReportController::class, AdminEventController::class, PublicEventController::class, WorkController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -47,6 +52,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var reports: ReportService
     @MockitoBean lateinit var adminEvents: AdminEventService
     @MockitoBean lateinit var events: EventService
+    @MockitoBean lateinit var works: WorkService
     private val serviceToken = "ci-operations-test-only-0123456789abcdef"
     private val bearer = "Bearer member-access"
 
@@ -122,6 +128,39 @@ class MemberSecurityIntegrationTest {
         mvc.perform(get("/api/v1/operations/admin/events").header("Authorization", bearer)).andExpect(status().isOk())
 
         verify(adminEvents).list(member)
+    }
+
+    @Test
+    fun `works routes require a Core verified Bearer and ignore the service token`() {
+        val id = UUID.randomUUID()
+        for (builder in listOf(
+            get("/api/v1/operations/works"), put("/api/v1/operations/works/$id/restriction"),
+            delete("/api/v1/operations/works/$id/restriction"),
+        )) {
+            val response = mvc.perform(builder.header("X-Operations-Service-Token", serviceToken))
+                .andExpect(status().isUnauthorized()).andReturn().response
+            assertEquals("UNAUTHORIZED", code(response.contentAsString))
+            assertNull(response.getHeader("Set-Cookie"))
+        }
+        verifyNoInteractions(core, works)
+    }
+
+    @Test
+    fun `verified member reaches the works controller as principal and gets the service DTOs`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val id = UUID.randomUUID()
+        val work = ContentWork(id, UUID.randomUUID().toString(), "작품", true)
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(works.list(member)).thenReturn(OperationsWorkList(emptyList()))
+        `when`(works.restrict(member, id)).thenReturn(work)
+        `when`(works.unrestrict(member, id)).thenReturn(work.copy(restricted = false))
+
+        mvc.perform(get("/api/v1/operations/works").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items").isArray())
+        mvc.perform(put("/api/v1/operations/works/$id/restriction").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.restricted").value(true))
+        mvc.perform(delete("/api/v1/operations/works/$id/restriction").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.restricted").value(false))
     }
 
     @Test

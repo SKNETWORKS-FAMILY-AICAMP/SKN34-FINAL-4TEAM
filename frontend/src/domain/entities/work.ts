@@ -41,7 +41,10 @@ export type Work = {
   cmts: number
   /** 마지막 업데이트 후 지난 분 */
   upd: number
-  /** false면 서버가 좋아요·갱신 시각을 주지 않는 작품이라 likes·upd는 자리표시 값이다. 화면은 이 둘을 표시하지 않는다. 생략하면 표시한다. */
+  /**
+   * false면 서버가 댓글 수·갱신 시각을 주지 않는 작품이라 cmts·upd는 자리표시 값이다. 화면은 이 둘을 표시하지 않고 카드·목록의 좋아요도
+   * 이 표시 묶음에 두어 감춘다(소유자 응답의 likes는 0). 소설 상세만 서버 작품의 좋아요 수를 서버에서 읽어 직접 보여 준다. 생략하면 모두 표시한다.
+   */
   statisticsSupported?: boolean
   hero?: [string, string]
   heroBg?: string

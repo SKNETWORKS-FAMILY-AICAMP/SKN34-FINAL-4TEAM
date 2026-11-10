@@ -6,11 +6,14 @@ import { Go } from '../../../shared/Go'
 import { useScreenId } from '../../../shared/screenIds'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import {ManuscriptBody} from '../../../shared/media/MediaPanel'
+import { ManuscriptExportPanel } from './ManuscriptExportPanel'
+import { EpisodeImagePanel } from './EpisodeImagePanel'
 import { Sheet } from '../../../shared/Sheet'
 import { BackChev } from '../../../shared/icons'
 import { writingStatus } from '../../../../domain/entities/writingStatus'
 import { VersionComparison } from './VersionComparison'
 import { SettingHistoryPanel } from './SettingHistoryPanel'
+import { CheckpointPanel } from './CheckpointPanel'
 import './version-panels.css'
 
 export function WritingStudio({id}:{id:string}) {
@@ -64,7 +67,8 @@ export function WritingStudio({id}:{id:string}) {
           <p className="small muted">{vm.draft.body.length.toLocaleString('ko-KR')} / 40,000자</p>
           {!active.inherited&&<label className="media-file">본문 이미지 추가<input type="file" accept=".png,.jpg,.jpeg" disabled={vm.busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void vm.addImage(file,bodyInput.current?.selectionStart??vm.draft.body.length,bodyInput.current?.selectionEnd??vm.draft.body.length)}}/></label>}
           <p className="small muted">PNG·JPEG · 파일당 10 MiB 이하 · 회차당 업로드 최대 10개. 커서 위치에 이미지 참조를 넣어요. 참조를 지우면 현재 원고에서만 빠지고 저장 버전은 유지돼요.</p>
-          <button className="btn sm" disabled={vm.busy} onClick={vm.downloadText}>TXT 내보내기 · 텍스트 전용</button>
+          <ManuscriptExportPanel workId={id} episode={active.number} inherited={active.inherited} disabled={vm.busy||vm.dirty}/>
+          {!active.inherited&&<EpisodeImagePanel workId={id} episode={active.number} draft={vm.draft} unsaved={vm.dirty||vm.busy} onDraftSaved={vm.reload}/>}
           {vm.busy&&<button className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
           <details><summary>현재 원고 이미지 미리보기</summary><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></details>
           <section aria-label="회차 관리">
@@ -90,6 +94,7 @@ export function WritingStudio({id}:{id:string}) {
             {vm.error&&<p role="alert">{vm.error}</p>}
             {vm.notice&&<p role="status">{vm.notice}</p>}
             <h2>{historyLabel}</h2>
+            <CheckpointPanel key={`${id}:${active.number}`} checkpoints={active.checkpoints} disabled={vm.busy||vm.dirty||active.inherited} onRevert={vm.revertCheckpoint}/>
             {!active.versions.length?<p>아직 저장한 버전이 없어요. 상단의 버전 저장을 눌러 원고를 남겨 주세요.</p>:<>
               <label className="field">검토할 저장 버전<select className="inp" value={selected?.id??''} onChange={e=>{setSelection({episode:active.number,id:e.target.value});setRights(false)}}>
                 <option value="">버전 선택</option>{active.versions.map((v,i)=><option value={v.id} key={v.id}>버전 {i+1} · {v.title} · {new Date(v.savedAt).toLocaleString('ko-KR')}{active.publishedVersionId===v.id?' · 현재 발행본':''}</option>)}

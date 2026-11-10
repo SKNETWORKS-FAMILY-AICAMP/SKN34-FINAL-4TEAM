@@ -6,7 +6,7 @@
 
 ## 운영 서비스의 현재 범위
 
-[Operations API 인계](../backend/operations-service/README.md)는 `/api/v1/operations/{notices,events,inquiries}` 및 문의 하위 답변의 UUID CRUD를 정의한다. 각 리소스의 `Controller → Service → JpaRepository`와 명시적 DTO를 사용하고 `X-Operations-Service-Token`으로 모든 운영 접근을 보호한다. 설정이 없거나 공백뿐이면 거절하며 서비스 자격을 사람의 관리자·회원 신원/소유권으로 해석하지 않는다. 이 서비스 토큰 CRUD는 브라우저에 노출하지 않는다. 브라우저용 `/api/v1/operations/{reports,members,admins,support,admin/notices,admin/events}`는 회원 Bearer를 Core `POST /internal/v1/auth/verify`로 확인하고 관리자 업무 권한은 `admin_permission`으로 판단하며([신고·회원·관리자 계약](design/operations-member-report-contract.md), [고객지원 문의 계약](design/operations-support-inquiry-contract.md)), `/api/v1/operations/public/{notices,events}`는 인증 없는 공지·이벤트 조회(GET)다([운영 공지 계약](design/operations-notice-contract.md), [운영 이벤트 계약](design/operations-event-contract.md)). nginx/Vite는 이 경로만 운영 서비스로 보내고 서비스 토큰 경로는 열지 않는다.
+[Operations API 인계](../backend/operations-service/README.md)는 `/api/v1/operations/{notices,events,inquiries}` 및 문의 하위 답변의 UUID CRUD를 정의한다. 각 리소스의 `Controller → Service → JpaRepository`와 명시적 DTO를 사용하고 `X-Operations-Service-Token`으로 모든 운영 접근을 보호한다. 설정이 없거나 공백뿐이면 거절하며 서비스 자격을 사람의 관리자·회원 신원/소유권으로 해석하지 않는다. 이 서비스 토큰 CRUD는 브라우저에 노출하지 않는다. 브라우저용 `/api/v1/operations/{reports,members,admins,support,works,admin/notices,admin/events}`는 회원 Bearer를 Core `POST /internal/v1/auth/verify`로 확인하고 관리자 업무 권한은 `admin_permission`으로 판단하며([신고·회원·관리자 계약](design/operations-member-report-contract.md), [고객지원 문의 계약](design/operations-support-inquiry-contract.md), [운영 작품 조회 계약](design/operations-work-contract.md)), `/api/v1/operations/public/{notices,events}`는 인증 없는 공지·이벤트 조회(GET)다([운영 공지 계약](design/operations-notice-contract.md), [운영 이벤트 계약](design/operations-event-contract.md)). nginx/Vite는 이 경로만 운영 서비스로 보내고 서비스 토큰 경로는 열지 않는다.
 
 기존 PostgreSQL에서 `operations` schema와 `operations.operations_flyway_schema_history`를 독립 소유한다. V1 공지·V2 이벤트·V3 문의/답변·V4 관리자 권한·V5 신고·V6 문의 작성 회원을 운영 location에서 적용하고 다른 서비스 이력을 재실행하지 않는다. JPA `validate`/UTC/`@Version`, 기본 20·최대 100개 고정 정렬 목록과 안전한 400/404/409를 사용한다. 고객지원 문의 처리 상태는 답변 유무로 계산한다. 공개 게시·이벤트 진행 상태·문의 답변 알림은 제외한다.
 
@@ -114,11 +114,11 @@ MinIO는 local·개발 배포 compose에 항상 포함된 소스 빌드 runtime�
 
 ### 작품 표지·본문 이미지 (#92)
 
-`attachment/controller → AttachmentService → JPA repository / 기존 S3 client`가 표지·회차 이미지 정본을 관리합니다. 별도 production 의존성·실행 계층을 추가하지 않고 attachment의 bounded Hikari pool·EntityManager를 재사용합니다. `content_image`(회차 0 = 단일 표지, 양수 = 불변 회차 이미지)와 별도 `content_image_schema_history`만 추가하며 기존 Auth·Content·설정 첨부 migration은 보존합니다.
+`attachment/controller → AttachmentService → JPA repository / 기존 S3 client`가 표지·회차 이미지 정본을 관리합니다. 별도 production 의존성·실행 계층을 추가하지 않고 attachment의 bounded Hikari pool·EntityManager를 재사용합니다. `content_image`(회차 0 = 단일 표지, 양수 = 불변 회차 이미지, V2 `alt_text` = 이미지별 대체 텍스트)와 별도 `content_image_schema_history`만 추가하며 기존 Auth·Content·설정 첨부 migration은 보존합니다.
 
 원고의 `[[image:<UUID>]]` 참조가 삽입 위치와 불변 bytes를 연결합니다. Core는 동일 작품·회차의 참조만 저장하고 공개 download는 기존 공개 회차 본문에 실제 포함된 marker로 제한합니다. inherited 원고는 기존 고정 본문의 참조만 허용하며 새로운 Fork 공유 정책은 추가하지 않습니다. 표지 변경/삭제의 미참조 object는 모호한 DB commit 때 기존 bytes 손실을 피하도록 비공개 버킷에 남을 수 있고 자동 정리 worker는 없습니다. 상세 [표지·원고 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 따릅니다.
 
-Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaRepository`가 실제 UUID 대상으로 인증 multipart/bytes를 전송합니다. View에서 Repository를 호출하지 않으며 이미지 Blob URL은 교체·이탈 때 해제합니다. `/content`의 생성 표지·기존 표지·설정 첨부 및 `/studio/{UUID}`의 커서 이미지·저장 버전 미리보기·텍스트 전용 TXT에 연결하고 기존 이름 기반 데모에는 서버 미저장 안내를 둡니다. 실패한 표지/첨부 요청은 기존 데이터와 생성된 작품을 보존하며 성공 fallback을 두지 않습니다.
+Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaRepository`가 실제 UUID 대상으로 인증 multipart/bytes를 전송합니다. View에서 Repository를 호출하지 않으며 이미지 Blob URL은 교체·이탈 때 해제합니다. `/content`의 생성 표지·기존 표지·설정 첨부 및 `/studio/{UUID}`의 커서 이미지·저장 버전 미리보기·회차 이미지 목록/대체 텍스트/본문에서 빼기·서버 TXT·EPUB 내보내기([원고 가져오기·내보내기 계약](design/manuscript-import-export-contract.md))에 연결하고 기존 이름 기반 데모에는 서버 미저장 안내를 둡니다. 실패한 표지/첨부 요청은 기존 데이터와 생성된 작품을 보존하며 성공 fallback을 두지 않습니다.
 
 ## AI Service
 

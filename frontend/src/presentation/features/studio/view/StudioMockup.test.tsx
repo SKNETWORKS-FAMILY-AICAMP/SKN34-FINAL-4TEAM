@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { createFixtureDb } from '../../../../data/mock/fixtureDb'
-import { InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
+import { InMemoryReadingRecordRepository, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
 import { StudioPage } from './StudioPage'
 
 // This file uses its own container; production and other tests keep their repositories.
@@ -20,7 +20,8 @@ vi.mock('../../../../app/appContainer', async () => {
 beforeEach(() => {
   const db = appContainer.resolve('mockDb')
   Object.assign(db, createFixtureDb())
-  appContainer.register({ workRepository: asValue(new InMemoryWorkRepository(db)) })
+  // 집필실 라우트의 ReadingUseCase.getWork는 회원에게 독서 기록을 읽으므로 메모리 대역도 함께 끼운다.
+  appContainer.register({ workRepository: asValue(new InMemoryWorkRepository(db)), readingRecordRepository: asValue(new InMemoryReadingRecordRepository(db)) })
 })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 

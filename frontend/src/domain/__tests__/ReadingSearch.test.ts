@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { Episode as ContentEpisode } from '../entities/content'
 import type { Work } from '../entities/work'
+import type { ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import type { WorkSearchRepository } from '../repositories/WorkSearchRepository'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
@@ -14,8 +15,9 @@ function setup(search?: Partial<WorkSearchRepository>, works = seedWorks(0)) {
   const state: ReadingProgress = { last: {}, read: {}, seen: {}, liked: {} }
   const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (work) => work, createFork: async () => ({ id: 'forked' }), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async () => {} }
+  const readingRecordRepository: ReadingRecordRepository = { list: async () => [], record: async () => {}, remove: async () => {} }
   const repo: WorkSearchRepository | undefined = search && { search: vi.fn(async () => []), ranking: vi.fn(async () => []), recordView: vi.fn(async () => {}), ...search }
-  return { useCase: new ReadingUseCase(workRepository, readingRepository, repo) }
+  return { useCase: new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, repo) }
 }
 
 describe('ReadingUseCase.getHome 서버 랭킹', () => {

@@ -39,8 +39,12 @@ class ReportService(
         text(request.reason, 2000)
         require(request.evidence.length <= 5000 && '\u0000' !in request.evidence) { "Invalid evidence." }
         val work = content.work(request.workId)
+        // `report.work_owner_id` is a UUID but Content `owner_id` is a varchar: an owner that cannot be a member is refused before any write.
+        val owner = try { UUID.fromString(work.ownerId) } catch (_: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "작품 소유자를 확인할 수 없어 신고할 수 없어요.")
+        }
         return reports.saveAndFlush(ReportEntity(
-            kind = request.kind, workId = work.workId, workTitle = work.title, workOwnerId = work.ownerId,
+            kind = request.kind, workId = work.workId, workTitle = work.title, workOwnerId = owner,
             reporterId = member.memberId, reason = request.reason, evidence = request.evidence,
         )).response()
     }
