@@ -1,14 +1,13 @@
 import { useMemo } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { MapControls, useMapCanvas } from './useMapCanvas'
-import { mapEndpoint, type MapNode, type MapLink, type useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
+import { mapEndpoint, presentationMapColors as palette, type MapNode, type MapLink, type useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import { presentationMapLayout } from '../viewmodel/presentationMapLayout'
 
 export default function WorldMapCanvas({vm}:{vm:ReturnType<typeof useWorldMapViewModel>}) {
  const canvas=useMapCanvas(),{host,graph,width,reduced,paused,setSettled}=canvas
- const palette={인물:'#67caff',장소:'#6ce3cb',조직:'#ffca83',규칙:'#c0abff',사건:'#f0a0cf',관계:'#b9a0ed',설정:'#a5b8d8'}
  const data=useMemo(()=>({nodes:presentationMapLayout(vm.graph.nodes),links:vm.graph.links.map(l=>({...l,source:mapEndpoint(l.source),target:mapEndpoint(l.target)}))}),[vm.graph])
- const linked=(l:MapLink)=>!!vm.selected&&vm.neighbors.has(mapEndpoint(l.source))&&vm.neighbors.has(mapEndpoint(l.target))
+ const linked=(l:MapLink)=>!!vm.selected&&(mapEndpoint(l.source)===vm.selected.id||mapEndpoint(l.target)===vm.selected.id)
  const replay=()=>{
   vm.select(null);graph.current?.zoom(.2,0);graph.current?.zoomToFit(reduced?0:900,65)
  }
@@ -25,7 +24,8 @@ export default function WorldMapCanvas({vm}:{vm:ReturnType<typeof useWorldMapVie
     ctx.font=`${node.kind==='인물'?'600 ':''}${node.kind==='인물'?15/scale:11/scale}px "Malgun Gothic",sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#edf2ff';ctx.fillText(node.name.length>16?node.name.slice(0,15)+'…':node.name,x,y+radius+7/scale);ctx.globalAlpha=1;ctx.filter='none'
    }}
    nodePointerAreaPaint={(n,color,ctx)=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(n.x??0,n.y??0,11,0,2*Math.PI);ctx.fill()}}
-   linkColor={l=>linked(l)?'#a9c6ffb0':vm.selected?'#7796ba12':'#7796ba45'} linkWidth={l=>linked(l)?1.6:.6} linkCurvature={.12}
+   linkColor={l=>linked(l)?'#a9c6ffb0':vm.selected?'#7796ba12':'#7796ba45'} linkWidth={l=>linked(l)?1.6:.6} linkCurvature={l=>l.curve??.12}
+   linkDirectionalArrowLength={l=>l.symmetric===false?5:0} linkDirectionalArrowRelPos={0.8}
    linkDirectionalParticles={l=>linked(l)&&!paused&&!reduced?2:0} linkDirectionalParticleWidth={2}
    onNodeClick={n=>vm.select(n.id)} onBackgroundClick={()=>vm.select(null)} onNodeDragEnd={n=>{n.fx=n.x;n.fy=n.y}}
    onEngineStop={()=>{setSettled(true);graph.current?.zoomToFit(reduced?0:600,65)}}/>
