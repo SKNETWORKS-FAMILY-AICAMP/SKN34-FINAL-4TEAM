@@ -12,6 +12,53 @@ beforeEach(async () => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+describe('회차 예약 발행', () => {
+  const path = '/api/v1/works/w/episodes/2/publication-schedules'
+  const scheduledAt = '2099-11-10T01:30:00.000Z'
+  const schedule = { id: 's1', versionId: 'v1', scheduledAt, status: 'pending', revision: 0, completedAt: null, failureReason: null }
+
+  it('예약과 실행 결과를 조회하고 취소 신호를 전달한다', async () => {
+    const failed = { ...schedule, id: 'old', status: 'failed', completedAt: scheduledAt, failureReason: '공개 제한 중이에요.' }
+    const fetcher = vi.fn().mockResolvedValue(Response.json([schedule, failed]))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    const controller = new AbortController()
+    expect(await api.publicationSchedules('w', 2, controller.signal)).toEqual([schedule, failed])
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe(path)
+    controller.abort()
+    expect(request.signal.aborted).toBe(true)
+  })
+
+  it.each(['POST', 'PUT'])('%s로 한국 시각과 고정 저장 버전을 전송한다', async method => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(schedule))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await api.savePublicationSchedule('w', 2, 'v1', '2099-11-10T10:30', true, method === 'PUT' ? schedule : undefined)
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe(method === 'PUT' ? path + '/s1' : path)
+    expect(request.method).toBe(method)
+    expect(JSON.parse(request.body)).toEqual({ versionId: 'v1', scheduledAt, rightsConfirmed: true, ...(method === 'PUT' ? { revision: 0 } : {}) })
+  })
+
+  it('권리 확인과 유효한 미래 시각이 필요하다', async () => {
+    const fetcher = vi.fn()
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2099-11-10T10:30', false)).rejects.toThrow('공개 권리')
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2000-11-10T10:30', true)).rejects.toThrow('미래')
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2099-02-30T10:30', true)).rejects.toThrow('시각')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('예약 수정 번호로 취소하고 서버가 거절하면 오류를 반환한다', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(Response.json({ detail: '이미 실행한 예약이에요.' }, { status: 409 }))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.cancelPublicationSchedule('w', 2, schedule)).resolves.toBeUndefined()
+    expect(fetcher.mock.calls[0]).toEqual([path + '/s1?revision=0', expect.objectContaining({ method: 'DELETE' })])
+    await expect(api.cancelPublicationSchedule('w', 2, schedule)).rejects.toThrow('이미 실행한 예약이에요.')
+  })
+})
+
 describe('설정 이력 연결', () => {
   const world = { id: 'w', name: '세계관', revision: 3, mode: 'own', basis: null, draft: null, drafts: [], settings: [], history: [], sourceToken: 't', changes: [] }
   it.each(['read', 'restore'])('이력 %s 요청에 호출자의 취소 신호를 전달한다', async action => {
@@ -40,7 +87,7 @@ describe('content authentication bridge', () => {
   it.each(['POST', 'PUT'])('adds csrf and bearer to %s without losing the injected fetcher', async method => {
     const value = { title: '제목', body: '본문', revision: 1 }
     const fetcher = vi.fn().mockResolvedValue(method === 'PUT' ? Response.json(value) : Response.json({
-      id: 'w', title: '제목', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: value,
+      id: 'w', title: '제목', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: value, revision: 0,
     }))
     const repo = new HttpEpisodeRepository(fetcher)
     if (method === 'PUT') await repo.save('w', value)
@@ -106,7 +153,7 @@ describe('episode API boundary', () => {
 })
 
 it('public browsing never exposes an editable owner draft', async()=>{
- const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify([{id:'p',title:'공개',summary:'',visibility:'public',allowFork:true,allowForkPublication:true,source:null,episodes:[],draft:null}])))
+ const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify([{id:'p',title:'공개',summary:'',visibility:'public',allowFork:true,allowForkPublication:true,source:null,episodes:[],draft:null,revision:0}])))
  const rows=await new HttpEpisodeRepository(fetcher).publicList()
  expect(rows[0].readOnly).toBe(true)
  expect(rows[0].draft.body).toBe('')
@@ -115,6 +162,14 @@ it('public browsing never exposes an editable owner draft', async()=>{
 
 
 describe('episode removal contract', () => {
+  it('sends a whole episode deletion with bearer, CSRF and the observed revision', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, {status:204}))
+    await expect(new HttpEpisodeRepository(fetcher).deleteEpisode('w',2,7)).resolves.toBeUndefined()
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w/episodes/2?revision=7', expect.objectContaining({
+      method:'DELETE',
+      headers:expect.objectContaining({Authorization:'Bearer content-bearer','X-CSRF-TOKEN':'content-csrf'}),
+    }))
+  })
   it('sends the observed revision and handles an empty deletion response', async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response(null, {status:204}))
     await new HttpEpisodeRepository(fetcher).deleteDraft('w',2,7)
@@ -135,13 +190,13 @@ it('does not treat an unexpected successful deletion response as confirmed remov
 
 
 it('preserves the missing writing episode state from Core',async()=>{
- const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
+ const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false,revision:0}
  const repo=new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value])))
  expect((await repo.list())[0].hasWritingEpisode).toBe(false)
 })
 
 describe('work update and delete', () => {
-  const work = { id: 'w', title: '새 제목', summary: '소개', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 } }
+  const work = { id: 'w', title: '새 제목', summary: '소개', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0 }
   it('puts title, summary and revision to the work and parses the response', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json(work))
     const saved = await new HttpEpisodeRepository(fetcher).updateWork('w', '새 제목', '소개', 3)
@@ -176,4 +231,78 @@ describe('work update and delete', () => {
     expect(repo.create).not.toHaveBeenCalled()
     expect(repo.updateWork).not.toHaveBeenCalled()
   })
+})
+
+describe('episode checkpoints (DEC-43)', () => {
+  const version = { id: 'v1', title: '1화', body: '원고', revision: 1, episode: 1, savedAt: '2026-11-01T00:00:00Z' }
+  const episode = { number: 1, draft: { title: '1화', body: '원고', revision: 4 }, versions: [version], publishedVersionId: 'v2', inherited: false, updatedAt: null, checkpointStatus: 'content_only' }
+  const checkpoints = [{ versionId: 'v1', publishedAt: '2026-11-01T00:01:00Z', active: false }, { versionId: 'v2', publishedAt: '2026-11-02T00:00:00Z', active: true }]
+  it('reads each writing episode with its published checkpoints', async () => {
+    const rows = await new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([{ ...episode, checkpoints }]))).writingList('w')
+    expect(rows[0].checkpoints).toEqual(checkpoints)
+  })
+  it('rejects a response that omits checkpoints instead of assuming there are none', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json([episode]))
+    await expect(new HttpEpisodeRepository(fetcher).writingList('w')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+  it('rejects a malformed checkpoint instead of showing it', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json([{ ...episode, checkpoints: [{ versionId: 'v1', active: true }] }]))
+    await expect(new HttpEpisodeRepository(fetcher).writingList('w')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+  it('reverts by publishing the earlier checkpoint through the existing publish endpoint', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ ...episode, publishedVersionId: 'v1', checkpoints: checkpoints.map(c => ({ ...c, active: c.versionId === 'v1' })) }))
+    const reverted = await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).publishEpisode('w', 1, 4, 'v1', true)
+    const [url, init] = fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/w/episodes/1/publish')
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual({ revision: 4, versionId: 'v1', rightsConfirmed: true })
+    expect(reverted.checkpoints.map(c => [c.versionId, c.active])).toEqual([['v1', true], ['v2', false]])
+  })
+})
+
+describe('회차 공개 상태와 발행 이력', () => {
+  const episode = {number:2,draft:{title:'2화',body:'초안',revision:5},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[],publicationStatus:'suspended'}
+  it.each([false,true])('공개 상태 %s 변경에 revision과 권리 확인을 보내고 상태를 반환한다', async visible => {
+    const fetcher=vi.fn().mockResolvedValue(Response.json(episode))
+    const api=new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    const controller=new AbortController()
+    const result=await api.setPublicationVisibility('w',2,4,visible,visible,controller.signal)
+    expect(result.publicationStatus).toBe('suspended')
+    const [url,init]=fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/w/episodes/2/visibility')
+    expect(init.method).toBe('PUT')
+    expect(JSON.parse(init.body)).toEqual({revision:4,visible,rightsConfirmed:visible})
+    controller.abort();expect(init.signal.aborted).toBe(true)
+  })
+  it('권리 확인 없는 재공개는 전송하지 않는다', async () => {
+    const fetcher=vi.fn()
+    const api=new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.setPublicationVisibility('w',2,4,true,false)).rejects.toThrow('권리')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+  it('발행 사건 목록을 보존하고 조회 취소 신호를 연결한다', async () => {
+    const publicationHistory=['publish','replace','unpublish','republish'].map(action=>({episode:2,versionId:'v',publishedAt:'2026-11-09T00:00:00Z',action}))
+    const fetcher=vi.fn().mockResolvedValue(Response.json({versions:[],proposals:[],publicationHistory}))
+    const controller=new AbortController()
+    const result=await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).history('w',controller.signal)
+    expect(result.publicationHistory).toEqual(publicationHistory)
+    controller.abort();expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
+  })
+})
+
+
+it('공개 중단 후 서버가 지정한 다음 작성 회차 번호를 유지한다',async()=>{
+  const fetcher=vi.fn().mockResolvedValue(Response.json([{id:'w',title:'작품',summary:'',visibility:'public',allowFork:false,source:null,episodes:[],draft:{title:'3화',body:'',revision:3},writingEpisodeNumber:3,revision:0}]))
+  expect((await new HttpEpisodeRepository(fetcher).list())[0].writingEpisodeNumber).toBe(3)
+})
+
+it('stops Fork publication through its dedicated authenticated command', async () => {
+  const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+  await new HttpEpisodeRepository(fetcher).stopForkPublication('fork-id')
+  expect(fetcher).toHaveBeenCalledWith('/api/v1/works/fork-id/fork-publication', expect.objectContaining({ method: 'DELETE' }))
+})
+
+it('서버가 항상 보내는 작품 revision이 없는 응답은 거절한다', async () => {
+  const value = { id: 'w', title: '작품', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 4 } }
+  await expect(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value]))).list()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
 })

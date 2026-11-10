@@ -6,6 +6,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
+import { WCATS, type Doc } from '../../../../domain/entities/wiki'
 import { renderApp } from '../../../../test/renderApp'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); document.title = 'STORYFORK' })
@@ -30,13 +31,22 @@ it('회차 선택 버튼은 눌림 상태를 알린다', async () => {
   epc.getByRole('button', { name: /3화 끝에서/, pressed: true })
 })
 
-/** 서버 작품처럼 회차마다 설정을 다시 읽는 Fork 폼을 흉내 낸다. `at` 회차의 응답만 호출자가 정한 때까지 붙잡거나 실패시킨다. */
-function serverFork(on: (at: number) => Promise<void> | void) {
+const doc = (id: string, cat: string, t: string): Doc => ({ id, cat, t, body: '', alias: [], tags: [], props: {}, at: {} })
+
+/**
+ * 서버 작품처럼 회차마다 설정을 다시 읽는 Fork 폼을 흉내 낸다. `at` 회차의 응답만 호출자가 정한 때까지 붙잡거나 실패시킨다.
+ * 서버 작품의 설정 분류(cats)는 기존 WCATS 이름이고, `docs`·`allowed`로 공개 자료와 포크를 허용한 회차를 바꿀 수 있다.
+ */
+function serverFork(on: (at: number) => Promise<void> | void, options: { docs?: Doc[]; allowed?: number[] } = {}) {
   const forks = appContainer.resolve('forkUseCase')
   const getForm = forks.getForm.bind(forks)
   vi.spyOn(forks, 'getForm').mockImplementation(async (id, at) => {
     const form = await getForm(id, at)
-    if (form) form.work.canonical = true
+    if (form) {
+      form.work.canonical = true
+      form.work.wiki = { cats: structuredClone(WCATS), docs: options.docs ?? [doc('event', 'event', `${form.basisEpisode}화 사건`)] }
+      if (options.allowed) form.forkList = options.allowed
+    }
     await on(at ?? 0)
     return form
   })
@@ -51,12 +61,69 @@ it('서버 작품은 선택한 회차의 설정을 읽는 동안 이전 회차�
   await screen.findByRole('heading', { name: '「구운몽」 포크' })
   const counts = () => [document.getElementById('rulecount')!.textContent, document.getElementById('castcount')!.textContent]
   expect(counts().every((n) => /^\d+$/.test(n!))).toBe(true)
+  expect(screen.getByText('사건 · 2화 사건')).toBeTruthy()
   fireEvent.click(epcButton(/3화 끝에서/))
   expect(epcButton(/3화 끝에서/).getAttribute('aria-pressed')).toBe('true')
   expect(counts()).toEqual(['…', '…'])
+  expect(screen.queryByText('사건 · 2화 사건')).toBeNull()
   await act(async () => release())
+  await screen.findByText('사건 · 3화 사건')
   await waitFor(() => expect(document.getElementById('rulecount')!.textContent).toBe('2'))
   expect(counts().every((n) => /^\d+$/.test(n!))).toBe(true)
+})
+
+it('공개 자료 미리보기는 기존 설정 분류 이름을 칩으로 보이고 많으면 8개까지만 보이며 나머지는 외 N개로 알린다', async () => {
+  const docs = [doc('c', 'char', '성진'), doc('p', 'place', '연화봉'), doc('w', 'world', '구슬의 규칙'), ...Array.from({ length: 8 }, (_, i) => doc(`e${i}`, 'event', `사건 ${i + 1}`))]
+  serverFork(() => {}, { docs })
+  renderApp('/fork/guunmong', user())
+  await screen.findByRole('heading', { name: '「구운몽」 포크' })
+  const preview = within(await screen.findByRole('region', { name: /공개 자료 미리보기/ }))
+  const items = preview.getAllByRole('listitem')
+  // 분류 이름은 설정 위키와 같은 표기다(인물이 아니라 캐릭터, 장소·세계관 설정을 '설정'으로 뭉치지 않는다).
+  expect(items.slice(0, 3).map((li) => li.textContent)).toEqual(['캐릭터 · 성진', '장소 · 연화봉', '세계관 설정 · 구슬의 규칙'])
+  expect(items).toHaveLength(9)
+  expect(items.at(-1)!.textContent).toBe('외 3개')
+  // 가져가는 것 칩과 같은 칩 목록이다.
+  expect(items[0].parentElement!.className).toBe('carry')
+})
+
+it('공개 자료가 8개 이하이면 외 N개 칩 없이 모두 보인다', async () => {
+  serverFork(() => {}, { docs: Array.from({ length: 8 }, (_, i) => doc(`e${i}`, 'event', `사건 ${i + 1}`)) })
+  renderApp('/fork/guunmong', user())
+  await screen.findByRole('heading', { name: '「구운몽」 포크' })
+  const items = within(await screen.findByRole('region', { name: /공개 자료 미리보기/ })).getAllByRole('listitem')
+  expect(items).toHaveLength(8)
+  expect(items.some((li) => li.textContent?.startsWith('외 '))).toBe(false)
+})
+
+it('회차를 바꿔 설정을 다 읽으면 항상 마운트된 안내 영역이 전환 완료를 알린다', async () => {
+  let release!: () => void
+  const held = new Promise<void>((resolve) => { release = resolve })
+  serverFork((at) => at === 3 ? held : undefined)
+  renderApp('/fork/guunmong', user())
+  await screen.findByRole('heading', { name: '「구운몽」 포크' })
+  const live = document.querySelector<HTMLElement>('.fork [aria-live="polite"]')!
+  expect(live.textContent).toContain('2화 끝에서 포크해요')
+  fireEvent.click(epcButton(/3화 끝에서/))
+  expect(live.textContent).toBe('선택한 회차의 공개 설정을 불러오고 있어요…')
+  await act(async () => release())
+  await waitFor(() => expect(live.textContent).toContain('3화 끝에서 포크해요'))
+  // 같은 노드가 처음부터 계속 마운트돼 있어야 스크린 리더가 문구 변경을 알린다.
+  expect(live.isConnected).toBe(true)
+  expect(document.querySelector('.fork [aria-live="polite"]')).toBe(live)
+})
+
+it('포크를 허용하지 않은 회차는 이유를 화면에 보이고 그 회차 버튼이 문구를 설명으로 가리킨다', async () => {
+  serverFork(() => {}, { allowed: [2, 3] })
+  renderApp('/fork/guunmong', user())
+  await screen.findByRole('heading', { name: '「구운몽」 포크' })
+  const note = await screen.findByText('작가가 포크를 허용하지 않은 회차는 고를 수 없어요.')
+  const denied = epcButton(/1화 끝에서/)
+  expect(denied.hasAttribute('disabled')).toBe(true)
+  // title은 비활성 버튼에서 키보드·터치로 읽을 수 없어 쓰지 않는다.
+  expect(denied.hasAttribute('title')).toBe(false)
+  expect(denied.getAttribute('aria-describedby')).toBe(note.id)
+  expect(epcButton(/2화 끝에서/).hasAttribute('aria-describedby')).toBe(false)
 })
 
 it('선택한 회차의 설정을 읽지 못하면 이전 값을 두지 않고 오류와 다시 불러오기를 보여 준다', async () => {

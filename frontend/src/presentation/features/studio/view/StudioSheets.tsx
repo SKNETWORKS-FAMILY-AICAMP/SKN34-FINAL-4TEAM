@@ -42,7 +42,7 @@ export function SimSheet({ vm, onClose }: { vm: VM; onClose: () => void }) {
               onClick={() => setPicked(picked.includes(c.n) ? picked.filter((x) => x !== c.n) : [...picked, c.n])}>{c.n} · {c.st}</button>
           ))}</div></div>
           <label className="field">꼭 지킬 것 (선택)<input className="inp" id="simc" value={keep} onChange={(e) => setKeep(e.target.value)} /></label>
-          <button type="button" className="btn pri" id="run" disabled={turns.length > 0} onClick={run}>{done ? '✓ 완료' : running ? '진행 중…' : '▶ 실행하기'}</button><span className="note2" style={{ color: 'var(--sub)' }}>예상 크레딧: 예시 30 (미확정 · 차감 없음)</span>
+          <button type="button" className="btn pri" id="run" disabled={turns.length > 0} onClick={run}>{done ? '✓ 완료' : running ? '진행 중…' : '▶ 실행하기'}</button><span className="note2" style={{ color: 'var(--sub)' }}>예상 크레딧: 예시 30 (데모 잔액 차감 · 실제 결제 없음)</span>
         </div>
         <div><b style={{ fontSize: 14 }}>인물들의 대화</b>
           {k ? turns.slice(0, k).map((t, i) => <div className="turn" key={i}><span className="av pt" style={{ background: col(t[0]) }}>{hasPortrait(t[0]) ? <Portrait name={t[0]} size={36} /> : t[0].slice(0, 1)}</span><div><b>{t[0]}<small>{i + 1}턴</small></b><br /><p>{t[1]}</p></div></div>)

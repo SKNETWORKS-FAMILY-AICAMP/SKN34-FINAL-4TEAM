@@ -81,7 +81,7 @@ function ChatRoom({ wid, cn }: { wid: string; cn?: string }) {
               ? <div className="me" key={i}><p>{m[1]}</p></div>
               : <div className="they" key={i}><i className="pt"><Portrait name={cur.n} size={36} /></i><div><p>{m[1]}</p>{m[2] && <span className="ev">{m[2]}</span>}</div></div>)}</div>
             <div className="chq">{questions.map((x, i) => <button type="button" key={i} onClick={() => vm.ask({ q: i })}>{x[0] > base ? '🔒 ' : ''}{x[1]}</button>)}</div>
-            <form className="chf" id="chf" onSubmit={(e) => { e.preventDefault(); vm.ask({ text }); if (text.trim()) setText('') }}>
+            <form className="chf" id="chf" onSubmit={async (e) => { e.preventDefault(); if (await vm.ask({ text })) setText('') }}>
               <input className="inp" id="chi" aria-label={`${cur.n}에게 질문`} placeholder={`${cur.n}에게 물어보세요`} maxLength={120} autoComplete="off" value={text} onChange={(e) => setText(e.target.value)} /><button className="btn pri">보내기</button>
             </form>
             {forkAt && <div className="chfork"><span>대화하다 떠오른 전개가 있나요?</span><Go to={`/fork/${wid}?at=${forkAt}`} className="btn sm">✎ {forkAt}화에서 포크하기</Go></div>}

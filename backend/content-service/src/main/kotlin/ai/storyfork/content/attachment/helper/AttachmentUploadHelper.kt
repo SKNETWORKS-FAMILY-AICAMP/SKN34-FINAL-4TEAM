@@ -2,21 +2,31 @@ package ai.storyfork.content.attachment.helper
 
 import ai.storyfork.content.attachment.domain.AttachmentFailure
 import ai.storyfork.content.attachment.service.dto.AttachmentUploadPayload
-import ai.storyfork.content.attachment.service.dto.AttachmentUploadRequest
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import javax.imageio.ImageIO
 import javax.imageio.stream.MemoryCacheImageInputStream
+import org.springframework.web.multipart.MultipartFile
 
 object AttachmentUploadHelper {
     const val MAX_BYTES = 10 * 1024 * 1024
     private fun invalid(): Nothing = throw AttachmentFailure(422, "ATTACHMENT_INVALID", "파일명·형식·이미지 내용을 확인해 주세요.")
 
-    fun validate(request: AttachmentUploadRequest): AttachmentUploadPayload {
-        val file = request.file ?: invalid()
+    const val MAX_ALT_TEXT = 300
+
+    /** 앞뒤 공백을 뗀 대체 텍스트를 돌려준다. 300자를 넘거나 제어 문자(U+0000 포함)가 있으면 null이다. */
+    fun validAltText(value: String?): String? = value?.trim()?.takeIf { it.length <= MAX_ALT_TEXT && it.none(Char::isISOControl) }
+
+    /** 업로드와 파일명 수정이 공유하는 파일명 규칙이다. */
+    fun validFilename(name: String): Boolean =
+        name.matches(Regex("[\\p{L}\\p{N} _().-]{1,120}")) && !name.startsWith('.') && ".." !in name && name.trim() == name
+
+    /** 업로드 파일의 이름·크기·형식·내용을 검사해 서비스에 넘길 AttachmentUploadPayload로 바꾼다. 컨트롤러에서 DB 잠금 전에 호출한다. */
+    fun validate(source: MultipartFile?): AttachmentUploadPayload {
+        val file = source ?: invalid()
         val name = file.originalFilename ?: invalid()
-        if (!name.matches(Regex("[\\p{L}\\p{N} _().-]{1,120}")) || name.startsWith('.') || ".." in name || name.trim() != name) invalid()
+        if (!validFilename(name)) invalid()
         if (file.size > MAX_BYTES) throw AttachmentFailure(413, "ATTACHMENT_TOO_LARGE", "파일은 10 MiB 이하만 업로드할 수 있어요.")
         val bytes = try { file.inputStream.use { it.readNBytes(MAX_BYTES + 1) } } catch (_: Exception) { invalid() }
         if (bytes.size > MAX_BYTES) throw AttachmentFailure(413, "ATTACHMENT_TOO_LARGE", "파일은 10 MiB 이하만 업로드할 수 있어요.")
@@ -44,7 +54,8 @@ object AttachmentUploadHelper {
         return AttachmentUploadPayload(name, type, if (type.startsWith("image/")) "IMAGE" else "FILE", bytes)
     }
 
-    private fun validateImage(bytes: ByteArray, type: String) {
+    /** PNG·JPEG 바이트를 실제로 디코딩해 검사한다. 원고 가져오기의 이미지도 같은 규칙을 쓴다. */
+    fun validateImage(bytes: ByteArray, type: String) {
         if (type == "image/png" && !bytes.takeLast(12).toByteArray().contentEquals(byteArrayOf(0,0,0,0,73,69,78,68,-82,66,96,-126))) invalid()
         if (type == "image/jpeg" && (bytes.size < 4 || bytes[0].toInt() != -1 || bytes[1].toInt() != -40 || bytes[bytes.size-2].toInt() != -1 || bytes.last().toInt() != -39)) invalid()
         try {

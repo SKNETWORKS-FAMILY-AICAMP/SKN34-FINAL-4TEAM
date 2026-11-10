@@ -1,8 +1,8 @@
 package ai.storyfork.operations.event
 
+import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.event.controller.EventController
 import ai.storyfork.operations.event.service.EventService
-import ai.storyfork.operations.event.service.dto.EventListResponse
 import ai.storyfork.operations.event.service.dto.EventRequest
 import ai.storyfork.operations.event.service.dto.EventResponse
 import java.net.URI
@@ -16,6 +16,7 @@ import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
 
 /** Spring context나 HTTP 서버 없이 리소스별 응답 계약을 확인한다. */
 @ExtendWith(MockitoExtension::class)
@@ -40,7 +41,7 @@ class EventControllerTest {
     @Test
     fun `list returns the explicit paged DTO`() {
         val pageable = PageRequest.of(0, 20)
-        val saved = EventListResponse(listOf(event), 0, 20, 1, 1)
+        val saved = PageResponse(listOf(event), 0, 20, 1, 1)
         `when`(service.list(pageable)).thenReturn(saved)
         assertEquals(saved, controller.list(pageable))
     }
@@ -62,9 +63,11 @@ class EventControllerTest {
 
     @Test
     fun `delete delegates once and returns 204 without a body`() {
-        val response = controller.delete(id)
-        assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
-        assertNull(response.body)
+        controller.delete(id)
+        // Like the other controllers: a void handler with @ResponseStatus answers 204 with no body.
+        val handler = EventController::class.java.getMethod("delete", UUID::class.java)
+        assertEquals(HttpStatus.NO_CONTENT, handler.getAnnotation(ResponseStatus::class.java).value)
+        assertEquals(Void.TYPE, handler.returnType)
         verify(service).delete(id)
         verifyNoMoreInteractions(service)
     }

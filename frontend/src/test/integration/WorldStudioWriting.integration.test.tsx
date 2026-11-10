@@ -16,8 +16,9 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
  const actual=await original<typeof import('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
  return {useWorldStudioViewModel:()=>actual.useWorldStudioViewModel(useCase)}
 })
-vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 그래프 대역</div>}))
+vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 카드 대역</div>}))
 vi.mock('../../presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=> <div>세계관 지도 대역</div>}))
+vi.mock('../../presentation/features/worldstudio/view/PresentationWorldMapCanvas',()=>({default:()=> <div>전체 지도 대역</div>}))
 beforeEach(()=>{
  const a=newSetting('people');a.item.title='가람';a.item.text='기존 원문';a.tags=['주인공']
  world={id:'qa-writing',name:'작성 검증',description:'세계의 배경',version:1,settings:[a],analysis:null}
@@ -115,12 +116,14 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  expect(world.version).toBe(before.version+1)
 })
 
-it('exposes exploration shortcuts and renders the character view through the 2D map component',async()=>{
+it('exposes exploration shortcuts and switches from character cards to the existing 2D graph',async()=>{
  await show()
  fireEvent.click(screen.getByText('도구'))
  fireEvent.click(screen.getByRole('button',{name:'세계관 탐색'}))
  fireEvent.click(screen.getByRole('button',{name:'인물 관계도'}))
  expect(screen.getByRole('heading',{name:'인물 관계도 · 2D'})).toBeTruthy()
+ expect(await screen.findByText('인물 카드 대역')).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'그래프형'}))
  expect(await screen.findByText('세계관 지도 대역')).toBeTruthy()
  expect(screen.queryByRole('heading',{name:'저장된 현재 관계도'})).toBeNull()
  fireEvent.click(screen.getByRole('button',{name:'설정집'}))
@@ -131,4 +134,32 @@ it('exposes exploration shortcuts and renders the character view through the 2D 
  expect(screen.getByRole('heading',{name:'저장된 시간선'})).toBeTruthy()
  fireEvent.click(screen.getByRole('button',{name:'작성으로 돌아가기'}))
  expect(screen.getByRole('navigation',{name:'세계관 작성 단계'})).toBeTruthy()
+})
+
+
+it('marks exactly one writing step active when switching between cards and relationships',async()=>{
+ await show()
+ const nav=screen.getByRole('navigation',{name:'세계관 작성 단계'})
+ for(const label of ['설정 카드','관계 연결 (선택)','설정 카드']){
+  fireEvent.click(within(nav).getByRole('button',{name:label}))
+  expect(within(nav).getAllByRole('button').filter(button=>button.getAttribute('aria-current')==='step')).toEqual([within(nav).getByRole('button',{name:label})])
+ }
+})
+
+it('rejects a duplicate relationship edited in the general form without losing its id and draft',async()=>{
+ const b=newSetting('people');b.item.title='나래'
+ world.settings=putRelation([...world.settings,b],{subjectId:world.settings[0].item.id,targetId:b.item.id,predicate:'custom_relation',title:'동료 관계',text:'동료',polarity:'asserted'})
+ world.settings=putRelation(world.settings,{subjectId:world.settings[0].item.id,targetId:b.item.id,predicate:'custom_relation',title:'경쟁자 관계',text:'경쟁자',polarity:'asserted'})
+ const ids=world.settings.map(s=>s.item.id)
+ await show();fireEvent.click(screen.getByRole('button',{name:'설정 카드'}))
+ fireEvent.click(screen.getByText('기존 설정·관계 2개'))
+ fireEvent.click(within(screen.getByRole('navigation',{name:'기존 설정과 관계'})).getByRole('button',{name:/경쟁자/}))
+ fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'동료'}})
+ fireEvent.click(screen.getByRole('button',{name:'관계 없이 검토·저장'}))
+ fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
+ expect((await screen.findByRole('alert')).textContent).toContain('이미')
+ expect(repository.saveStudio).not.toHaveBeenCalled()
+ expect(world.settings.map(s=>s.item.id)).toEqual(ids)
+ fireEvent.click(screen.getByRole('button',{name:'설정 카드'}))
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('동료')
 })

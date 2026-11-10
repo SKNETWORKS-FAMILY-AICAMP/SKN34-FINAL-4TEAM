@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { createFixtureDb } from '../../../../data/mock/fixtureDb'
-import { InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
+import { InMemoryReadingRecordRepository, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
 import { asValue } from 'awilix/browser'
 import { StudioPage } from './StudioPage'
 
@@ -19,7 +19,8 @@ vi.mock('../../../../app/appContainer', async () => {
 beforeEach(() => {
   const db = appContainer.resolve('mockDb')
   Object.assign(db, createFixtureDb())
-  appContainer.register({ workRepository: asValue(new InMemoryWorkRepository(db)) })
+  // 집필실 라우트의 ReadingUseCase.getWork는 회원에게 독서 기록을 읽으므로 메모리 대역도 함께 끼운다.
+  appContainer.register({ workRepository: asValue(new InMemoryWorkRepository(db)), readingRecordRepository: asValue(new InMemoryReadingRecordRepository(db)) })
   Range.prototype.getBoundingClientRect = () => new DOMRect() // jsdom에는 없음
 })
 afterEach(() => { cleanup(); document.title = 'STORYFORK' })
@@ -85,6 +86,19 @@ describe('@ 멘션 목록은 combobox로 조작한다', () => {
     expect(screen.queryByRole('listbox')).toBeNull()
     expect(body.getAttribute('aria-expanded')).toBe('false')
     expect(body.hasAttribute('aria-activedescendant')).toBe(false)
+  })
+
+  it('조합 중 Enter와 Safari의 조합 확정 Enter(isComposing=false, keyCode=229)는 멘션을 고르지 않는다', async () => {
+    renderStudio('/studio/starlight')
+    const { body } = await openMentions()
+    fireEvent.keyDown(body, { key: 'ArrowDown' })
+    for (const init of [{ isComposing: true }, { isComposing: false, keyCode: 229 }]) {
+      expect(fireEvent.keyDown(body, { key: 'Enter', ...init })).toBe(true)
+      expect(body.querySelector('.mention')).toBeNull()
+      expect(screen.getByRole('listbox')).toBeTruthy()
+    }
+    expect(fireEvent.keyDown(body, { key: 'Enter' })).toBe(false)
+    expect(body.querySelector('.mention')?.textContent).toBe('@리안')
   })
 
   it('활성 항목이 없으면 Enter는 목록을 건드리지 않고 줄바꿈에 맡긴다', async () => {

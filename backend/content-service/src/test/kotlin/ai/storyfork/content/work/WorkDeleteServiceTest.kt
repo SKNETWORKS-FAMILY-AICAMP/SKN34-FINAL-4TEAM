@@ -1,13 +1,15 @@
 package ai.storyfork.content.work
 
 import ai.storyfork.content._common.exception.ContentFailure
-import ai.storyfork.content.episode.entity.EpisodeEntity
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.fork.service.dto.SourceResponse
+import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.proposal.service.ProposalService
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.PublicationService
+import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
+import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
 import ai.storyfork.content.work.repository.*
 import ai.storyfork.content.work.service.*
 import ai.storyfork.content.work.service.dto.WorkAccessResult
@@ -19,7 +21,8 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.dao.DataIntegrityViolationException
+import java.util.Optional
+import ai.storyfork.content.work.entity.WorkEntity
 
 @ExtendWith(MockitoExtension::class)
 class WorkDeleteServiceTest {
@@ -40,93 +43,70 @@ class WorkDeleteServiceTest {
     @Mock lateinit var publication: PublicationService
     @Mock lateinit var versions: EpisodeVersionService
     @Mock lateinit var proposals: ProposalService
-    @Mock lateinit var settings: SettingDocumentRepository
     @Mock lateinit var viewService: WorkViewService
+    @Mock lateinit var nicknames: ai.storyfork.content.auth.service.CoreNicknameService
+    @Mock lateinit var likeService: WorkLikeService
+    @Mock lateinit var schedules: PublicationScheduleRepository
     @InjectMocks lateinit var service: WorkService
 
     private val work=WorkAccessResult("work","author","작품","소개",0,"world","private",false,false,null)
-    private val episode=EpisodeEntity(id="episode",workId=work.id,sequence=1)
-    private fun own(source: SourceResponse? = null) {
-        `when`(access.own(work.id,"author")).thenReturn(work.copy(source=source))
-    }
-    private fun noDeletionInteractions() = verifyNoInteractions(
-        works,worlds,workWorlds,visibility,policies,workGenres,hashtagRows,rightsRows,episodes,drafts,
-        members,genreRows,publication,versions,proposals,viewService,
-    )
+    private val row=WorkEntity(id=work.id,ownerId="author",title="작품")
+    private val deletedSource=SourceResponse("source","원작",1,1,"분기",deleted=true)
 
-    @Test fun `unauthorized deletion returns 404 without looking up settings`() {
+    @Test fun `unauthorized deletion returns 404 without touching any row`() {
         `when`(access.own(work.id,"intruder")).thenThrow(ContentFailure(404,"작품을 찾을 수 없어요."))
 
         val failure=assertThrows(ContentFailure::class.java) { service.delete(work.id,"intruder") }
 
         assertEquals(404,failure.status)
-        assertEquals("작품을 찾을 수 없어요.",failure.message)
-        verifyNoInteractions(settings)
-        noDeletionInteractions()
+        verifyNoInteractions(works)
     }
 
-    @Test fun `world settings return a clear 409 before any deletions`() {
-        own()
-        `when`(settings.existsByWorldId(work.worldId)).thenReturn(true)
-
-        val failure=assertThrows(ContentFailure::class.java) { service.delete(work.id,"author") }
-
-        assertEquals(409,failure.status)
-        assertTrue(failure.message.contains("설정"))
-        val ordered=inOrder(access,settings)
-        ordered.verify(access).own(work.id,"author")
-        ordered.verify(settings).existsByWorldId(work.worldId)
-        verifyNoMoreInteractions(settings)
-        noDeletionInteractions()
-    }
-
-    @Test fun `an empty world keeps the existing successful deletion path`() {
-        own()
-        `when`(settings.existsByWorldId(work.worldId)).thenReturn(false)
-        val rows=listOf(episode)
-        `when`(episodes.findAllByWorkIdOrderBySequence(work.id)).thenReturn(rows)
+    @Test fun `deleting records only the deletion time and removes no rows`() {
+        `when`(access.own(work.id,"author")).thenReturn(work)
+        `when`(works.findById(work.id)).thenReturn(Optional.of(row))
 
         service.delete(work.id,"author")
 
-        val ordered=inOrder(access,settings,episodes,drafts,workGenres,hashtagRows,rightsRows,workWorlds,visibility,policies,works,worlds)
-        ordered.verify(access).own(work.id,"author")
-        ordered.verify(settings).existsByWorldId(work.worldId)
-        ordered.verify(episodes).findAllByWorkIdOrderBySequence(work.id)
-        ordered.verify(drafts).deleteAllById(listOf(episode.id))
-        ordered.verify(episodes).deleteAll(rows)
-        ordered.verify(workGenres).deleteAllByWorkId(work.id)
-        ordered.verify(hashtagRows).deleteAllByWorkId(work.id)
-        ordered.verify(rightsRows).deleteAllByWorkId(work.id)
-        ordered.verify(workWorlds).deleteAllByWorkId(work.id)
-        ordered.verify(visibility).deleteAllByWorkId(work.id)
-        ordered.verify(policies).deleteAllByWorkId(work.id)
-        ordered.verify(works).deleteById(work.id)
-        ordered.verify(worlds).deleteById(work.worldId)
-        ordered.verify(works).flush()
-        verifyNoMoreInteractions(settings)
+        assertNotNull(row.deletedAt)
+        verify(works).saveAndFlush(row)
     }
 
-    @Test fun `Fork deletion remains blocked before settings lookup or mutation`() {
-        own(SourceResponse("source","원작",1,1,"분기"))
+    @Test fun `a Fork and a work with settings can be deleted too`() {
+        `when`(access.own(work.id,"author")).thenReturn(work.copy(source=SourceResponse("source","원작",1,1,"분기")))
+        `when`(works.findById(work.id)).thenReturn(Optional.of(row))
 
-        val failure=assertThrows(ContentFailure::class.java) { service.delete(work.id,"author") }
+        service.delete(work.id,"author")
 
-        assertEquals(409,failure.status)
-        assertEquals("분기 작품은 아직 삭제할 수 없어요.",failure.message)
-        verifyNoInteractions(settings)
-        noDeletionInteractions()
+        assertNotNull(row.deletedAt)
     }
 
-    @Test fun `saved version FK failure remains a sanitized 409`() {
-        own()
-        val rows=listOf(episode)
-        `when`(episodes.findAllByWorkIdOrderBySequence(work.id)).thenReturn(rows)
-        doThrow(DataIntegrityViolationException("episode_version foreign key")).`when`(episodes).deleteAll(rows)
+    @Test fun `readers of a Fork whose source was deleted do not see the inherited episode bodies`() {
+        `when`(access.published(work.id)).thenReturn(work.copy(visibility="public",source=deletedSource))
+        `when`(publication.publishedEpisodes(work.id)).thenReturn(PublishedEpisodeListResponse(listOf(
+            PublishedEpisodeResponse(1,1,"v1","분기 전","원작 본문",true),
+            PublishedEpisodeResponse(2,1,"v2","내 회차","내 본문",false))))
 
-        val failure=assertThrows(ContentFailure::class.java) { service.delete(work.id,"author") }
+        val episodes=service.publicEpisodes(work.id)
 
-        assertEquals(409,failure.status)
-        assertEquals("발행·저장 이력이 있거나 분기된 작품은 삭제할 수 없어요.",failure.message)
-        verifyNoInteractions(works,worlds,workGenres,hashtagRows,rightsRows,workWorlds,visibility,policies)
+        assertEquals(listOf(1,2),episodes.map {it.number})
+        assertEquals("",episodes[0].body)
+        assertEquals("분기 전",episodes[0].title)
+        assertEquals("내 본문",episodes[1].body)
+    }
+
+    @Test fun `readers of a Fork whose source still exists keep the inherited episodes`() {
+        `when`(access.published(work.id)).thenReturn(work.copy(visibility="public",source=SourceResponse("source","원작",1,1,"분기")))
+        `when`(publication.publishedEpisodes(work.id)).thenReturn(PublishedEpisodeListResponse(listOf(
+            PublishedEpisodeResponse(1,1,"v1","분기 전","원작 본문",true))))
+
+        assertEquals("원작 본문",service.publicEpisodes(work.id).single().body)
+    }
+
+    @Test fun `the owner list leaves out deleted works`() {
+        val gone=WorkEntity(id="gone",ownerId="author",title="삭제").also {it.deletedAt=java.time.Instant.now()}
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("author")).thenReturn(listOf(gone))
+
+        assertTrue(service.list("author").items.isEmpty())
     }
 }

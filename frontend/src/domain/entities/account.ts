@@ -1,6 +1,3 @@
-/** 목업 S.inq: 사용자 문의 (운영팀 답변은 관리자 화면에서) */
-export type Inquiry = { id: string; t: string; s: string; b: string; d: string; st: string; reply?: string }
-
 export const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 /** 목업 saveProfile: 문제가 있으면 안내 문구, 없으면 null */

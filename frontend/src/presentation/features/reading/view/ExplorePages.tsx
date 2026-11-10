@@ -1,9 +1,9 @@
 import { Fragment } from 'react'
 import { Navigate, useParams } from 'react-router'
 
-import { epsOf, SEARCH_FIELDS, SEARCH_SORTS, sortsOf, type Work } from '../../../../domain/entities/work'
+import { epsOf, RANKING_KINDS, RANKING_PERIODS, RANKING_TYPES, rankingUsesPeriod, SEARCH_FIELDS, SEARCH_SORTS, sortsOf, type Work } from '../../../../domain/entities/work'
 import { CoverOf, Cov } from '../../../shared/art'
-import { ago, kfmt, qs } from '../../../shared/format'
+import { ago, asOf, kfmt, qs } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Crown } from '../../../shared/icons'
@@ -39,8 +39,23 @@ const LoadError = ({ retry }: { retry: () => void }) => (
   <div className="rp muted"><p role="alert">소설을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={retry}>다시 불러오기</button></div>
 )
 
-/** 목업 wcard(w, i, ranked) */
-function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolean; onReport?: (w: Work) => void }) {
+/** 서버 페이지를 이어 붙이는 버튼(마지막 페이지면 없음). 실패해도 이미 보인 목록은 두고 이 버튼 곁에서 다시 시도하게 합니다. */
+function LoadMore({ hasMore, loading, failed, load }: { hasMore: boolean; loading: boolean; failed: boolean; load: () => void }) {
+  if (!hasMore) return null
+  return (
+    <div style={{ display: 'grid', justifyItems: 'center', gap: 8, marginTop: 24 }}>
+      {failed && <p role="alert" className="muted small">소설을 더 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
+      <button type="button" className="btn" disabled={loading} onClick={load}>{loading ? '불러오는 중…' : failed ? '다시 시도' : '더 보기'}</button>
+    </div>
+  )
+}
+
+/**
+ * 목업 wcard(w, i, ranked). 서버 작품은 다른 통계를 감추지만, updated는 마지막 업데이트 시각이 순위 기준인 카드라 그 시각을,
+ * popular는 좋아요 수가 순위 기준인 카드라 서버 값인 좋아요 수를 보입니다.
+ */
+function WCard({ w, i, ranked, updated, popular, onReport }: { w: Work; i: number; ranked?: boolean; updated?: boolean; popular?: boolean; onReport?: (w: Work) => void }) {
+  const stats = w.statisticsSupported !== false
   return (
     <div className="rg-item">
       <Go className={`rg prox ${ranked && i < 3 ? 'top3 t' + (i + 1) : ''}`} to={`/work/${w.id}`}>
@@ -53,10 +68,10 @@ function WCard({ w, i, ranked, onReport }: { w: Work; i: number; ranked?: boolea
         <div className="ri">
           <small className="g">{w.genre}</small><b>{w.title}</b>
           <small>{w.author}{w.parent && ` · 원작 ${w.forkAt}화에서 포크`}</small>
-          <span className="m">총 {epsOf(w).length}화 <i></i> 조회 {kfmt(w.views || 0)}{w.statisticsSupported !== false && <> <i></i> ♥ {kfmt(w.likes || 0)} <i></i> {ago(w.upd || 0)}</>}</span>
+          <span className="m">총 {epsOf(w).length}화 <i></i> 조회 {kfmt(w.views || 0)}{(stats || popular) && <> <i></i> ♥ {kfmt(w.likes || 0)}</>}{(stats || updated) && <> <i></i> {ago(w.upd || 0)}</>}</span>
         </div>
       </Go>
-      {!ranked && !w.canonical && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport?.(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}
+      {!ranked && onReport && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}
     </div>
   )
 }
@@ -70,12 +85,14 @@ export function SearchPage() {
     <>
       <Gnb />
       <main className="wrap" id="main" tabIndex={-1}>
-        <div className="sec-h"><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h1>{vm.list && !vm.isError && <span className="muted small">{L.length}편</span>}</div>
+        {/* 총 개수는 서버가 주지 않으니 더 받을 수 있는 동안은 불러온 개수까지만 알립니다. */}
+        <div className="sec-h"><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h1>{vm.list && !vm.isError && <span className="muted small">{L.length}편{vm.more.hasMore && ' 이상'}</span>}</div>
         <ListTools base="/search" st={vm.st} onSubmit={vm.submit} />
         {!vm.list && !vm.isError && <ContentLoadState failed={false} retry={vm.retry}/>}
         <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.setReporting} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
+          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.canReport(w) ? vm.setReporting : undefined} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
         </div>
+        <LoadMore {...vm.more} />
       </main>
       <Footer />
       {vm.reporting && <ReportSheet work={vm.reporting} onClose={() => vm.setReporting(null)} />}
@@ -83,21 +100,36 @@ export function SearchPage() {
   )
 }
 
-/** 목업 rank(): U25 */
+/** 목업 rank(): U25. 범위 탭·기준·기간은 주소 쿼리이고 머리말에 서버 계산 시각을 보입니다. 검색은 /search가 맡습니다. */
 export function RankPage() {
   const vm = useRankViewModel()
   useDocumentTitle('랭킹')
   const L = vm.list ?? []
+  // 기간을 쓰지 않는 기준(최신·방금 업데이트)으로 가는 링크는 주소에서 기간을 뺍니다.
+  const to = (change: Partial<typeof vm.st>) => {
+    const next = { ...vm.st, ...change }
+    return qs('/rank', { ...next, period: rankingUsesPeriod(next.kind) ? next.period : undefined })
+  }
+  const basis = [
+    RANKING_KINDS.find(([k]) => k === vm.st.kind)?.[1],
+    vm.showPeriod ? RANKING_PERIODS.find(([k]) => k === vm.st.period)?.[2] : null,
+    vm.computedAt && asOf(vm.computedAt),
+  ].filter(Boolean).join(' · ')
   return (
     <>
       <Gnb on="rank" />
       <main className="wrap" id="main" tabIndex={-1}>
-        <div className="sec-h" style={{ marginBottom: 0 }}><h1>랭킹</h1><span className="muted small">{`${SEARCH_SORTS.find((x) => x[0] === vm.st.sort)?.[1]}${vm.st.sort === 'view' ? ' · 최근 24시간 조회 기준' : ''}`}</span></div>
-        <nav className="libtabs">{([['all', '전체'], ['orig', '원작 소설'], ['if', '포크 소설']] as const).map(([k, l]) => <Go key={k} to={qs('/rank', { ...vm.st, t: k })} {...selected(vm.st.t === k)}>{l}</Go>)}</nav>
-        <ListTools base="/rank" st={vm.st} onSubmit={vm.submit} />
+        <div className="sec-h" style={{ marginBottom: 0 }}><h1>랭킹</h1><span className="muted small">{basis}</span><Go to="/search" className="more"><span aria-hidden="true">🔍</span> 소설 검색 ›</Go></div>
+        <nav className="libtabs" aria-label="랭킹 범위">{RANKING_TYPES.map(([k, l]) => <Go key={k} to={to({ t: k })} {...selected(vm.st.t === k)}>{l}</Go>)}</nav>
+        <div className="ltools">
+          <div className="lrow">
+            <div className="sortt" role="group" aria-label="랭킹 기준">{RANKING_KINDS.map(([k, l]) => <Go key={k} {...selected(vm.st.kind === k)} to={to({ kind: k })}>{l}</Go>)}</div>
+            {vm.showPeriod && <div className="sortt" role="group" aria-label="집계 기간">{RANKING_PERIODS.map(([k, l]) => <Go key={k} {...selected(vm.st.period === k)} to={to({ period: k })}>{l}</Go>)}</div>}
+          </div>
+        </div>
         {!vm.list && !vm.isError && <ContentLoadState failed={false} retry={vm.retry}/>}
         <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
+          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} ranked updated={vm.st.kind === 'updated'} popular={vm.st.kind === 'popular'} />) : <div className="rp muted">조건에 맞는 소설이 없어요.</div>)}
         </div>
       </main>
       <Footer />
