@@ -1,6 +1,7 @@
 import type { SearchField, SearchSort, Work } from '../entities/work'
 
-export type WorkSearchQuery = { q: string; f: SearchField; sort: SearchSort }
+/** page(0부터)·size는 서버 페이지 구간이다. 둘 다 생략하면 서버가 전체를 돌려준다. */
+export type WorkSearchQuery = { q: string; f: SearchField; sort: SearchSort; page?: number; size?: number }
 export type WorkRankingKind = 'top' | 'rising'
 
 /**

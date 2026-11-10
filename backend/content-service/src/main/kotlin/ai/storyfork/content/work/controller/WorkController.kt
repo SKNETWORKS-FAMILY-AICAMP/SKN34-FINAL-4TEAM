@@ -42,9 +42,13 @@ class WorkController(
     @PutMapping("/works/{id}/policy")
     fun policy(@PathVariable id: String,principal: Principal,@Valid @RequestBody data: PolicyRequest): WorkResponse = service.policy(id,principal.name,data)
 
-    /** 공개 작품 목록을 초안 없이 반환한다. 익명 조회를 허용한다. q(제목·작가명·해시태그·장르 부분 일치)·f(all|title|author|tag|genre)·sort(latest|view)는 선택이며 잘못된 f·sort는 422다. */
+    /**
+     * 공개 작품 목록을 초안 없이 반환한다. 익명 조회를 허용한다. q(제목·작가명·해시태그·장르 부분 일치)·f(all|title|author|tag|genre)·sort(latest|like|view)·
+     * page(0부터)·size(1~100, 기본 20)는 선택이며 page·size를 모두 생략하면 전체를 반환하고 하나라도 오면 정렬 후 그 구간만 반환한다.
+     * 잘못된 f·sort와 음수 page·범위 밖 size·숫자 아닌 값은 422다(page·size는 문자열로 받아 Spring 타입 변환 400이 되지 않게 한다).
+     */
     @GetMapping("/public/works")
-    fun publicList(@RequestParam(required=false) q: String?,@RequestParam(required=false) f: String?,@RequestParam(required=false) sort: String?): WorkListResponse = service.publicList(q,f,sort)
+    fun publicList(@RequestParam(required=false) q: String?,@RequestParam(required=false) f: String?,@RequestParam(required=false) sort: String?,@RequestParam(required=false) page: String?,@RequestParam(required=false) size: String?): WorkListResponse = service.publicList(q,f,sort,page,size)
 
     /** 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 익명 가능, kind 누락은 400·잘못된 값은 422다. */
     @GetMapping("/public/works/ranking")
