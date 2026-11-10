@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppSelector } from '../../../../app/store'
-import { canReport, SEARCH_FIELDS, SEARCH_SORTS, type SearchField, type SearchSort, type Work } from '../../../../domain/entities/work'
+import { canReport, RANKING_KINDS, RANKING_PERIODS, RANKING_TYPES, rankingUsesPeriod, SEARCH_FIELDS, SEARCH_SORTS, type SearchField, type SearchSort, type Work } from '../../../../domain/entities/work'
 import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { qs } from '../../../shared/format'
 import { useScreenId } from '../../../shared/screenIds'
@@ -21,8 +21,7 @@ function useListQuery(base: string, defaultSort: SearchSort) {
   const Q = (k: string) => params.get(k) ?? ''
   const f = SEARCH_FIELDS.find(([k]) => k === Q('f'))?.[0] ?? 'all'
   const sort = SEARCH_SORTS.find(([k]) => k === Q('sort'))?.[0] ?? defaultSort
-  const st = { t: Q('t') || 'all', q: Q('q'), f, sort }
-  return { st, submit: (q: string, keep: Record<string, string> = {}) => navigate(qs(base, { ...keep, q: q.trim(), f: Q('f'), sort: Q('sort') })) }
+  return { st: { q: Q('q'), f, sort }, submit: (q: string) => navigate(qs(base, { q: q.trim(), f: Q('f'), sort: Q('sort') })) }
 }
 
 type WorkPage = Awaited<ReturnType<ReadingUseCase['findWorks']>>
@@ -30,12 +29,12 @@ type WorkPage = Awaited<ReturnType<ReadingUseCase['findWorks']>>
 type Extra = { base: WorkPage; items: Work[]; page: number; hasMore: boolean; state: 'idle' | 'loading' | 'failed' }
 
 /**
- * 검색·랭킹 목록: 첫 서버 페이지 뒤에 '더 보기'로 다음 페이지를 이어 붙입니다. 검색어·범위·정렬·탭·세션이 바뀌어 첫 페이지를
+ * 검색 목록: 첫 서버 페이지 뒤에 '더 보기'로 다음 페이지를 이어 붙입니다. 검색어·범위·정렬·세션이 바뀌어 첫 페이지를
  * 다시 받으면 이어 붙인 것을 버리고 처음부터 보이며, 그때(또는 화면을 떠날 때) 진행 중인 더 보기는 취소하고 늦은 응답은 무시합니다.
- * 더 보기가 실패해도 이미 보인 목록은 두고, 같은 페이지를 다시 시도하게 합니다.
+ * 더 보기가 실패해도 이미 보인 목록은 두고, 같은 페이지를 다시 시도하게 합니다. 랭킹(/rank)은 페이지 없이 상위 50개라 쓰지 않습니다.
  */
-function usePagedWorks(readingUseCase: ReadingUseCase, query: { t?: string; q: string; f: SearchField; sort: SearchSort }) {
-  const first = useAsyncData(() => readingUseCase.findWorks(query), [readingUseCase, query.t, query.q, query.f, query.sort])
+function usePagedWorks(readingUseCase: ReadingUseCase, query: { q: string; f: SearchField; sort: SearchSort }) {
+  const first = useAsyncData(() => readingUseCase.findWorks(query), [readingUseCase, query.q, query.f, query.sort])
   const base = first.data
   const [stored, setExtra] = useState<Extra>()
   const extra = base && stored?.base === base ? stored : undefined
@@ -71,19 +70,30 @@ export function useSearchViewModel(readingUseCase = resolve()) {
   const memberId = useAppSelector((s) => s.session.memberId)
   useScreenId('U36')
   return {
-    st: { q: st.q, f: st.f, sort: st.sort }, list, isError, retry, more, submit: (q: string) => submit(q, { t: '' }),
+    st, list, isError, retry, more, submit,
     /** 남의 공개 작품 카드에서만 신고 버튼을 보입니다. */
     canReport: (w: Work) => canReport(w, memberId),
     reporting, setReporting,
   }
 }
 
-/** 목업 rank(): U25 */
+/**
+ * 목업 rank(): U25. 범위(t)·기준(kind)·기간(period)은 주소 쿼리이고 모르는 값은 기본값(전체·조회 순·일간)으로 읽습니다.
+ * computedAt은 서버 계산 시각이며 목업(메모리 정렬)은 null입니다. 기간은 최신·방금 업데이트와 목업에서 쓰지 않으므로
+ * showPeriod가 false이고 화면은 기간 선택·문구를 숨깁니다.
+ */
 export function useRankViewModel(readingUseCase = resolve()) {
-  const { st, submit } = useListQuery('/rank', 'view')
-  const { list, isError, retry, more } = usePagedWorks(readingUseCase, st)
+  const [params] = useSearchParams()
+  const st = {
+    t: RANKING_TYPES.find(([k]) => k === params.get('t'))?.[0] ?? 'all',
+    kind: RANKING_KINDS.find(([k]) => k === params.get('kind'))?.[0] ?? 'view',
+    period: RANKING_PERIODS.find(([k]) => k === params.get('period'))?.[0] ?? 'day',
+  }
+  const { data, isError, retry } = useAsyncData(() => readingUseCase.rankWorks(st), [readingUseCase, st.t, st.kind, st.period])
   useScreenId('U25')
-  return { st, list, isError, retry, more, submit: (q: string) => submit(q, { t: st.t }) }
+  // ponytail: 불러오는 동안은 서버로 보고 기간을 보여 서버 모드의 기간 선택이 깜빡이지 않는다(목업은 응답이 오면 숨기므로 그 사이 한 프레임 보일 수 있다).
+  const showPeriod = rankingUsesPeriod(st.kind) && (!data || data.computedAt !== null)
+  return { st, list: data?.items, computedAt: data?.computedAt ?? null, showPeriod, isError, retry }
 }
 
 /** 목업 tagPage(t): U29 */

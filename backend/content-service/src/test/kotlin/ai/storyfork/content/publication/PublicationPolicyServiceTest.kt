@@ -15,6 +15,7 @@ import ai.storyfork.content.work.repository.*
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import jakarta.persistence.EntityManager
+import java.time.Instant
 import java.util.Optional
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -104,6 +105,15 @@ class PublicationPolicyServiceTest {
             assertEquals(listOf(Triple(saved.id,"e2","w")),links.map {Triple(it.policyHistoryId,it.episodeId,it.workId)})
         }
     }
+
+    @Test
+    fun `last published maps the latest applied publication time of each work`() {
+        val at=Instant.parse("2026-11-10T01:00:00Z")
+        `when`(events.lastPublishedByWork()).thenReturn(listOf(arrayOf<Any>("w1",at),arrayOf<Any>("w2",at.plusSeconds(60))))
+
+        assertEquals(mapOf("w1" to at,"w2" to at.plusSeconds(60)),service.lastPublished())
+    }
+
     @Test fun `public reading uses author note from the pinned version`() {
         `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(EpisodeCurrentEntity("e", "w", 1, "v1")))
         `when`(versions.findAllById(listOf("v1"))).thenReturn(listOf(EpisodeVersionEntity(id="v1", episodeId="e", content="본문", authorNote="발행 후기")))

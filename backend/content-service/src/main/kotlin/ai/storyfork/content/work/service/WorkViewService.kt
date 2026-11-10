@@ -44,10 +44,10 @@ class WorkViewService(
         }
     }
 
-    /** 작품별 최근 24시간과 그 전 24시간의 조회 수다. 두 구간 모두 조회가 없는 작품은 담지 않는다. */
-    fun counts(): Map<String, WorkViews> {
-        val split=Instant.now().minus(VIEW_WINDOW)
-        return views.countByWork(split.minus(VIEW_WINDOW),split).associate { row ->
+    /** 작품별 최근 [window](기본 24시간)와 그 앞 같은 길이 구간의 조회 수다. 두 구간 모두 조회가 없는 작품은 담지 않는다. */
+    fun counts(window: Duration = VIEW_WINDOW): Map<String, WorkViews> {
+        val split=Instant.now().minus(window)
+        return views.countByWork(split.minus(window),split).associate { row ->
             row[0] as String to WorkViews((row[1] as Number).toLong(),(row[2] as Number).toLong())
         }
     }

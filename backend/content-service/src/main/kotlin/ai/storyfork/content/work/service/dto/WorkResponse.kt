@@ -3,6 +3,7 @@ package ai.storyfork.content.work.service.dto
 import ai.storyfork.content.fork.service.dto.SourceResponse
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
 import ai.storyfork.content.episode.service.dto.DraftResponse
+import java.time.Instant
 
 data class WorkResponse(
     val id: String, val title: String, val summary: String, val visibility: String,
@@ -20,5 +21,7 @@ data class WorkResponse(
     val likes: Long = 0,
     /** 요청한 회원이 좋아요를 눌렀는지. 공개 상세에서만 채우고 익명이거나 그 밖의 응답이면 false다. */
     val liked: Boolean = false,
+    /** 작품 회차의 마지막 발행 시각. 기간별 랭킹의 방금 업데이트(updated)에서만 채우고 그 밖의 응답은 null이다. */
+    val updatedAt: Instant? = null,
     val writingEpisodeNumber: Int? = null,
 )
