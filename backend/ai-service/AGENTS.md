@@ -5,6 +5,10 @@
 
 ## 구조
 
+- TASK 13의 `agents/template_recommendation.py`는 공개 설정에서 읽은 장르·언어·태그와 합성 카탈로그만 사용한다.
+  단순 추천은 모델 0회, 명시적인 맞춤 설명만 주입한 모델 대역을 사용한다. 실제 구매·권리 확정·설정 반영은 없다.
+  실행기에는 run별 `TemplateRecommendationHandler`를 주입한다. [계약·검증](../../docs/writing-ai-architecture/task13-handoff.md).
+
 - TASK 12의 `agents/review.py`는 선택된 원문·설정 기준을 읽는 기계 검사만 제공한다.
   `checkTypes`로 명칭·수치·중복·제한 맞춤법을 선택하며 모델·Simulation·원문 쓰기를 호출하지 않는다.
   실행기에는 run별 `MechanicalReviewHandler`를 주입한다. [입력·검증·한계](../../docs/writing-ai-architecture/task12-handoff.md).

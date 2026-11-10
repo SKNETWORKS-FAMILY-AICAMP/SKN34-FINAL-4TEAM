@@ -121,6 +121,8 @@ Slot Resolver는 인증된 UI 대상 → 같은 scope의 이전 대상 → 회�
 
 ## Registry와 작업 상태 계약
 
+2026-11-10 TASK 13: 고정 `template` capability에 `agents/template_recommendation.py`의 DTO handler와 run별 adapter를 연결했다. 기본 계획의 모델 0회는 유지하며 명시 맞춤 설명에는 별도 1회 예산이 필요하다. 공개 Content 입력과 카탈로그 권리·판본을 Python에서 재확인한다. [실제 계약·단위 검증·미연결 범위](task13-handoff.md).
+
 2026-11-09 TASK 12: `mechanical`에 `agents/review.py`의 DTO handler와 run별 TaskRunner adapter를 구현했다. model_cap=0을 유지하고 검사 종류별 규칙만 실행한다. 확정 불일치가 있을 때만 `has_confirmed_findings=true`이며 `simulation_required`는 false다. [Finding·입력 기준·검증](task12-handoff.md). 의미 Review·실제 provider·원고 쓰기는 연결하지 않았다.
 
 2026-11-09 TASK 11: `qa`의 DTO handler를 `agents/story_context.py`에 구현해 Registry에 등록했다. TaskRunner 호출 계약에는 run별 `StoryContextHandler`를 명시 주입한다. 정확 조회는 Content 대역에서 0회 모델로 확인하고 해석은 검증된 문맥과 모델 대역 1회만 사용한다. 다른 capability stub과 실제 원문/모델의 미연결 경계는 유지한다. [입출력·연결·검증](task11-handoff.md).

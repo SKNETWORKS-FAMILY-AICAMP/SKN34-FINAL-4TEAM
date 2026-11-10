@@ -14,6 +14,8 @@ MVP 기능은 위 1~4의 모든 Agent를 합성 자료로 조합할 수 있는 �
 
 ## 프로젝트 루트 기준 파일 배치안
 
+TASK 13은 `agents/template_recommendation.py`의 Recommendations·Registry·TaskRunner 명시 주입을 구현했다. 기존 합성 TemplateVectorRetriever에 keyword-only 태그 필터와 선택적 목적·예상 변경·충돌 태그 metadata를 추가했으며 기본 검색 호출은 보존했다. 검사 E의 단순 추천은 모델 0회다. 실제 Vector DB·구매·적용·공개 API 조립은 범위 밖이다. [입력·검증·인수](task13-handoff.md).
+
 TASK 12는 `agents/review.py`에 선택된 수치·명칭 기준 비교, 인접 중복 어절, 명시 표기 쌍의 제한 맞춤법 검사와 `Findings.v1` adapter를 구현했다. 검사 F는 수치·명칭만 수행하고 모델·Simulation은 0회다. 자동 추출·의미 검수·원고 수정·실제 API 조립은 추가하지 않았다. [DTO·검증·인수](task12-handoff.md).
 
 TASK 11은 `agents/story_context.py`의 정확 조회·근거별 Q&A와 고정 `qa` Registry·TaskRunner adapter를 합성 자료로 구현했다. 기존 graph 입력 검증을 `retrieval/validation.py`로 옮겨 재사용하며 함수 AST는 보존했다. 실제 공개 Run의 원문/모델 연결과 후속 Agent는 미구현이다. [입출력·TDD·검증·인수](task11-handoff.md).

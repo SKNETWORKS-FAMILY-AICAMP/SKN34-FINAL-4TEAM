@@ -24,6 +24,9 @@ class Template(Contract):
     tags: tuple[Id, ...] = ()
     rank: PositiveInt = 1
     expires_at: AwareDatetime | None = None
+    purpose: Id | None = None
+    expected_change: Id | None = None
+    conflicts_with: tuple[Id, ...] = ()
 
 
 @dataclass
@@ -34,7 +37,7 @@ class TemplateVectorRetriever:
     failure: Literal["timeout"] | None = None
     retrieval_type: Literal["template"] = field(default="template", init=False)
 
-    async def search(self, query: Query) -> RetrievalResult:
+    async def search(self, query: Query, *, tags: tuple[str, ...] = ()) -> RetrievalResult:
         """서버가 허용한 공개 라이선스·언어·장르의 카탈로그만 반환한다."""
         try:
             manifest = begin(query, self.content, self.failure)
@@ -45,7 +48,8 @@ class TemplateVectorRetriever:
                 if (not item.public or not item.license_active or item.license_ref not in self.allowed_licenses
                         or (item.expires_at is not None and datetime.now(timezone.utc) >= item.expires_at)
                         or (query.language is not None and item.language != query.language)
-                        or (query.genre is not None and item.genre != query.genre)):
+                        or (query.genre is not None and item.genre != query.genre)
+                        or (tags and not set(tags).intersection(item.tags))):
                     continue
                 evidence.append(Evidence(
                     id=item.id, retrieval_type="template", source_backend="mock_template", is_mock=True,

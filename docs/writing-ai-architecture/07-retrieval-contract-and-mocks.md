@@ -166,6 +166,10 @@ python -B -m pytest -p no:cacheprovider -o addopts= -q -m 'not integration' test
 
 제안 커밋: `feat: 검색 문맥 조립과 전체 회차 근거 검증 구현`(#56·#125). 기존 미커밋분과 함께 작업 트리에 남기며 새 로컬 커밋·push·PR·배포는 하지 않았다. TASK 05는 새 요청 시 착수 가능하고 자동 시작하지 않는다. 실제 연결/캐시는 Content 위임·인덱스 세대·삭제 전파 계약 확정 후 별도 단계에서 진행하는 것을 추천하며, 그전에는 현재 합성 대역과 매 요청 재검증을 유지한다.
 
+### TASK 13 — 합성 카탈로그 추천 연결
+
+2026-11-10 `Template`에 선택적 `purpose`, `expected_change`, `conflicts_with` metadata를 추가했다. `TemplateVectorRetriever.search(query, *, tags=())`는 명시 태그가 있으면 교집합 후보만 기존 rank/ID 순위·top-k 처리 **전에** 통과시킨다. 기존 `search(query)` 호출은 그대로 동작하며 임베딩·실 Vector DB는 연결하지 않았다. 추천 Agent는 Content의 공개 설정에서 언어·장르·태그를 확인한 뒤 새로운 Query를 만들고, 원래 자유문·원고·문서/인물 필터를 검색 입력으로 재사용하지 않는다. 공개 설정 요약은 선택적 맞춤 설명에만 사용한다. 권리·판본·만료는 검색 전후와 설명 반환 직전에 검증한다. [추천 DTO·TDD·단위 결과](task13-handoff.md).
+
 ### 네 Adapter의 책임
 
 | Adapter / 입력 제약 | 자료 모양과 반환 | 누락·갱신·확인 정책 |

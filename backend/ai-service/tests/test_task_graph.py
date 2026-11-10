@@ -76,7 +76,7 @@ def test_registry_is_fixed_and_unimplemented_handlers_are_explicit_stubs():
     with pytest.raises(TypeError):
         o.REGISTRY["exec"] = o.REGISTRY["context"]
     for operation, spec in o.REGISTRY.items():
-        if operation not in ("qa", "mechanical"):
+        if operation not in ("qa", "mechanical", "template"):
             with pytest.raises(NotImplementedError):
                 spec.handler()
         assert spec.reads and spec.input_schema and spec.output_schema

@@ -10,6 +10,7 @@ from app.retrieval.content_client import Manifest, Scope, SourceVersion
 from app.retrieval.contracts import Contract, PositiveInt, Span
 from app.agents.story_context import story_context
 from app.agents.review import mechanical_review
+from app.agents.template_recommendation import template_recommendation
 from .routing import Capability
 
 
@@ -120,7 +121,7 @@ REGISTRY = MappingProxyType({
                               ("ContextPacket.v1", "Findings.v1", "ChangeSet.v1"), "ChangeSet.v1", (), 1),
     "world_plot": CapabilitySpec(_unavailable_handler, ("context", "canonical"),
                                  ("ContextPacket.v1", "SimulationReport.v1"), "ChangeSet.v1", ("writing", "editing"), 1),
-    "template": CapabilitySpec(_unavailable_handler, ("catalogue",),
+    "template": CapabilitySpec(template_recommendation, ("catalogue",),
                                ("ContextPacket.v1",), "Recommendations.v1", (), 1),
 })
 

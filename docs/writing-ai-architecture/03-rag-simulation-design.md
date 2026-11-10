@@ -185,6 +185,8 @@ flowchart LR
 
 ### 13. Template Recommendation
 
+2026-11-10 TASK 13은 이 흐름을 합성 카탈로그에서 구현했다. Content가 허용한 공개 설정의 장르·언어·태그를 읽고, 단순 추천은 고정 카탈로그 설명으로 반환한다. 기존 적용 ID·버전은 중복으로, 카탈로그 `conflicts_with`와 기존 설정 태그의 교집합은 명시 충돌 조건으로 표시한다. 자유문에서 충돌·적용 변경을 추측하지 않는다. `customize=true`인 경우에만 공개 요약과 권리 확인된 후보를 모델 대역에 전달하고, 응답 직전에 철회·만료·갱신·Content 권한을 재확인한다. [DTO·호출·검증과 한계](task13-handoff.md).
+
 ```mermaid
 flowchart LR
     I[장르와 부족한 설정] --> T[권리 필터 및 카탈로그 검색]

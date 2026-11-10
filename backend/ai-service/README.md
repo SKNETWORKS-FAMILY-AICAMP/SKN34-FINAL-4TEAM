@@ -37,6 +37,8 @@ CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'`
 
 ## OpenAI와 향후 경계
 
+TASK 13은 `agents/template_recommendation.py`를 고정 `template` Registry에 등록했습니다. 검색 입력은 Content 대역에서 확인한 공개 설정의 언어·장르·태그만 사용하고 비공개 원고·자유문 검색 요청을 넘기지 않습니다. 권리·만료·판본을 재검증하며 적용된 ID·버전과 카탈로그의 명시 충돌 태그를 표시합니다. 단순 추천은 모델 0회이고 `customize=true`일 때만 선택적으로 설명 대역을 호출합니다. 실제 구매·권리 확정·설정 적용·Vector DB·공개 Run 자동 연결은 없습니다. [TASK 13 DTO·검증·인수](../../docs/writing-ai-architecture/task13-handoff.md).
+
 TASK 12는 `agents/review.py`의 Mechanical 검사를 고정 Registry에 등록했습니다. Content 대역에서 검증한 원문과 설정 기준을 비교하며, `checkTypes`는 `names / numbers / repetition / spelling`만 허용합니다. 수치는 같은 기준 회차의 선택된 값만 확정 비교하고, 미등록 이름·중복 강조·맞춤법 후보는 의심으로 남깁니다. 맞춤법은 요청에서 제공한 표기 쌍의 단어 경계만 검사합니다. 모델·Simulation·원문 쓰기는 없으며 `MechanicalReviewHandler`를 run별로 명시 주입합니다. [TASK 12 DTO·호출 예·검증과 한계](../../docs/writing-ai-architecture/task12-handoff.md).
 
 TASK 11은 `agents/story_context.py`의 정확 조회·근거 기반 해석을 고정 `qa` Registry에 등록했습니다. 정확 조회는 Content 대역의 선택된 설정 값/인용 span·hash·revision을 검증하며 모델·검색 0회입니다. 해석은 Wiki 인과 ref·원고 구간·coverage를 확인한 후 명시 주입한 모델 대역만 사용합니다. `StoryContextHandler`를 run별로 TaskRunner에 주입하면 예산·usage·취소를 재사용하며 본문은 checkpoint 밖에 둡니다. 실제 Content 원문 transport·실 provider·공개 API의 자동 조립은 추가하지 않았습니다. [TASK 11 입력·출력·사용 계약과 검증](../../docs/writing-ai-architecture/task11-handoff.md).
