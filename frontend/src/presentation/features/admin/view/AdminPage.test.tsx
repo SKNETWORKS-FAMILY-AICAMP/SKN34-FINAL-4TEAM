@@ -161,7 +161,7 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   expect(screen.getByText('비교 불가 · 기준 회차의 인물 상태 기록이 없어요.')).toBeTruthy()
   expect(requests().at(-1)).toBe('GET /api/v1/operations/works/w-fork/fork-integrity')
   fireEvent.click(screen.getByRole('link', { name: '캐릭터챗' }))
-  fireEvent.click(screen.getByRole('link', { name: '작품', exact: true }))
+  fireEvent.click(screen.getByRole('link', { name: /^작품$/ }))
   await screen.findByText('달빛 도서관 외전', { selector: 'b' })
   expect(screen.queryByRole('region', { name: '포크 정합성 점검 결과' })).toBeNull()
   expect(requests().filter(request => request.endsWith('/fork-integrity'))).toHaveLength(1)
