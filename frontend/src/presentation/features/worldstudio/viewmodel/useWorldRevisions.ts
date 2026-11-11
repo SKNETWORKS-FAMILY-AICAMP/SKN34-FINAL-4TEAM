@@ -33,7 +33,7 @@ export function useWorldRevisions(world:string,active:boolean,saved:StudioWorld|
    const verified=await useCase.revision(world,created.revisionId,signal)
    if(signal.aborted)return
    const latest=await reload()
-   if(latest.version<expected+1||!latest.currentRevisionId)throw new Error('확정 후 최신 초안 상태를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.')
+   if(latest.version<expected+1||latest.currentRevisionId!==created.revisionId)throw new Error('확정 후 최신 초안 상태를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.')
    const data=await useCase.revisions(world,signal)
    if(signal.aborted)return
    if(!data.some(r=>r.revisionId===verified.revisionId))throw new Error('확정 버전 목록을 확인하지 못했어요.')
