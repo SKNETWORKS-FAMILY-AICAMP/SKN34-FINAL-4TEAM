@@ -234,6 +234,10 @@ class WorldStudioService(
         readRevision(worldId,revision.id)
     }
     fun revision(worldId:UUID,subject:UUID,revisionId:UUID):WorldRevisionResponse=tx { owned(worldId,subject);readRevision(worldId,revisionId) }
+    /** 검증된 Principal의 회원 UUID만 전달한다. 새 HTTP/AI 진입점은 제공하지 않는다. */
+    fun confirmedContext(worldId:UUID,subject:UUID,revisionId:UUID):WorldConfirmedContextResult =
+        throw NotImplementedError("confirmed context")
+
     fun revisionSummaries(worldId:UUID,subject:UUID):List<WorldRevisionSummaryResponse> = tx {
         owned(worldId,subject)
         revisions.findAllByWorldIdAndSealedTrueOrderByRevisionNoDesc(worldId).map {
