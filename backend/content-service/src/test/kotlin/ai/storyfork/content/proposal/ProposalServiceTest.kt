@@ -16,7 +16,6 @@ import ai.storyfork.content.proposal.repository.*
 import ai.storyfork.content.proposal.service.ProposalService
 import ai.storyfork.content.proposal.service.dto.*
 import ai.storyfork.content.publication.service.PublicationService
-import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import org.junit.jupiter.api.Assertions.*
@@ -48,7 +47,7 @@ class ProposalServiceTest {
         val pending=ProposalResponse("p","제안","fixture",0,"pending","계속","원문",selected,null,null,"2026-11-10T00:00:00Z",1,null)
         val result=SavedEpisodeVersionResult(DraftResponse("제목","원문\n\n제안",1),VersionResponse("v","제목","원문\n\n제안",1,1,"2026-11-10T00:00:00Z"))
         `when`(access.own("w","owner")).thenReturn(WorkAccessResult("w","owner","작품","",0,"world","private",false,false,null))
-        `when`(publication.publishedEpisodes("w")).thenReturn(PublishedEpisodeListResponse(emptyList()))
+        `when`(publication.nextEpisodeNumber("w")).thenReturn(1)
         `when`(context.read("w","owner",ContextRequest(1,"계속",""))).thenReturn(selected)
         `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(EpisodeEntity(episodeId("w",1),"w",1))
         `when`(drafts.findById(episodeId("w",1))).thenReturn(Optional.of(EpisodeDraftEntity(episodeId("w",1),"제목","원문",0)))

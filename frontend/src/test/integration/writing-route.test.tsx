@@ -10,10 +10,12 @@ beforeEach(async () => {
   await refresh().catch(() => {})
 })
 afterEach(()=>{cleanup();vi.unstubAllGlobals()})
-it('uses server authorization on persisted studio routes without a demo session',async()=>{
-  vi.stubGlobal('fetch',vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : Response.json({detail:'서버 인증이 필요합니다.'},{status:401})))
+it('requires restored authentication before opening a persisted studio route',async()=>{
+  const fetcher=vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : Response.json({detail:'서버 인증이 필요합니다.'},{status:401}))
+  vi.stubGlobal('fetch',fetcher)
   renderApp('/studio/00000000-0000-0000-0000-000000000001')
-  expect(await screen.findByRole('alert')).toHaveProperty('textContent',expect.stringContaining('서버 인증이 필요합니다.'))
+  expect(await screen.findByRole('heading',{name:'로그인'})).toBeTruthy()
+  expect(fetcher.mock.calls.some(([path])=>path.startsWith('/api/v1/works'))).toBe(false)
   expect(screen.queryByRole('button',{name:'데모 계정으로 바로 시작'})).toBeNull()
 })
 

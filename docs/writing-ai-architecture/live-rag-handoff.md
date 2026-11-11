@@ -50,3 +50,7 @@ TASK 01~24 당시의 결과와 이 브랜치에서 실행 가능한 경로를 �
 Content `gradlew.bat unitTest --tests ai.storyfork.content.proposal.AiRunServiceTest --tests ai.storyfork.content.proposal.ChangeProposalServiceTest --offline` (저장소 JDK 21 사용).
 
 상세 미구현 사유와 구현 순서·완료 기준은 [TASK 01~24 전체 판정](implementation-status.md)에 있다.
+
+### PR CI에서 발견한 기존 테스트 계약 불일치
+
+첫 실연동 커밋 `bd75d621`의 CI에서 AI 단위·통합은 통과했다. Content의 기존 `ProposalServiceTest`는 `publishedEpisodes` 대신 실제 호출되는 `nextEpisodeNumber`를 대역 설정해야 했다. 로컬 단위 실패를 재현한 뒤 수정해 1개 통과했다(위 38개와 별도). 웹 `writing-route`는 UUID 집필실의 기존 `RequireRole` 로그인 전환과 달리 서버 오류 alert를 기대했다. 현재 인증 계약에 맞춰 로그인 화면과 미인증 콘텐츠 요청 차단을 검증하도록 수정했으며 통합 재실행은 CI에 맡긴다. 제품 인증·승인 로직은 변경하지 않았다.
