@@ -26,6 +26,7 @@ import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import { EpisodeCommentUseCase } from '../../domain/usecases/EpisodeCommentUseCase'
 import { EditSuggestionUseCase } from '../../domain/usecases/EditSuggestionUseCase'
 import { FeedbackReportUseCase } from '../../domain/usecases/FeedbackReportUseCase'
+import { HttpCreditLedgerRepository } from '../../data/api/HttpCreditLedgerRepository'
 import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
 import { HttpEpisodeCommentRepository } from '../../data/content/HttpEpisodeCommentRepository'
 import { HttpEditSuggestionRepository } from '../../data/content/HttpEditSuggestionRepository'
@@ -56,6 +57,7 @@ import { SignupUseCase } from '../../domain/usecases/SignupUseCase'
 import { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import { AccountUseCase } from '../../domain/usecases/AccountUseCase'
 import { ChatUseCase } from '../../domain/usecases/ChatUseCase'
+import { CreditLedgerUseCase } from '../../domain/usecases/CreditLedgerUseCase'
 import { CreditUseCase } from '../../domain/usecases/CreditUseCase'
 import { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
 import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
@@ -129,6 +131,8 @@ export function registerAppServices(container: AppContainer) {
     inboxUseCase: asFunction(({ workRepository, feedbackRepository }) => new InboxUseCase(workRepository, feedbackRepository)).singleton(),
     libraryUseCase: asFunction(({ workRepository, worldRepository, feedbackRepository, workInterestRepository, readingRecordRepository }) => new LibraryUseCase(workRepository, worldRepository, feedbackRepository, workInterestRepository, readingRecordRepository)).singleton(),
     creditUseCase: asFunction(({ creditRepository }) => new CreditUseCase(creditRepository)).singleton(),
+    creditLedgerRepository: asFunction(() => new HttpCreditLedgerRepository()).singleton(),
+    creditLedgerUseCase: asFunction(({ creditLedgerRepository }) => new CreditLedgerUseCase(creditLedgerRepository)).singleton(),
     readingUseCase: asFunction(({ workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository }) => new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository, adminRepository, feedbackReportUseCase }) => new FeedbackUseCase(workRepository, feedbackRepository, adminRepository, feedbackReportUseCase)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),

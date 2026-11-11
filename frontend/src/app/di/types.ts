@@ -13,6 +13,7 @@ import type { SignupRepository } from '../../domain/repositories/SignupRepositor
 import type { SignupUseCase } from '../../domain/usecases/SignupUseCase'
 import type { AdminRepository } from '../../domain/repositories/AdminRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
+import type { CreditLedgerRepository } from '../../domain/repositories/CreditLedgerRepository'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
@@ -25,6 +26,7 @@ import type { WorldRepository } from '../../domain/repositories/WorldRepository'
 import type { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import type { AccountUseCase } from '../../domain/usecases/AccountUseCase'
 import type { ChatUseCase } from '../../domain/usecases/ChatUseCase'
+import type { CreditLedgerUseCase } from '../../domain/usecases/CreditLedgerUseCase'
 import type { CreditUseCase } from '../../domain/usecases/CreditUseCase'
 import type { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
 import type { ForkUseCase } from '../../domain/usecases/ForkUseCase'
@@ -93,6 +95,7 @@ export type AppCradle = {
   feedbackRepository: FeedbackRepository
   worldRepository: WorldRepository
   creditRepository: CreditRepository
+  creditLedgerRepository: CreditLedgerRepository
   chatRepository: ChatRepository
   adminRepository: AdminRepository
   adminUseCase: AdminUseCase
@@ -101,6 +104,7 @@ export type AppCradle = {
   inboxUseCase: InboxUseCase
   libraryUseCase: LibraryUseCase
   creditUseCase: CreditUseCase
+  creditLedgerUseCase: CreditLedgerUseCase
   readingUseCase: ReadingUseCase
   feedbackUseCase: FeedbackUseCase
   forkUseCase: ForkUseCase
