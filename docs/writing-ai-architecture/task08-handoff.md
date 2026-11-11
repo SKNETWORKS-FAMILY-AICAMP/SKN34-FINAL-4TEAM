@@ -1,5 +1,7 @@
 # TASK 08 — MainState·Main LangGraph StateGraph 인수 기록
 
+> **2026-11-11 현행:** [TASK별 실제 구현·미구현 근거와 개발 방법](implementation-status.md)을 우선한다. 아래 내용은 당시 인수 기록이다.
+
 2026-11-09. **실제 LangGraph StateGraph의 메모리 조립을 완료했다.** 1~3화 합성 질의를 검색→테스트 Agent→검증된 citation의 결정적 응답으로 연결했다. 실제 모델·승인·정본 쓰기·새 DB·frontend·공개 API는 연결하지 않는다.
 
 ## 기준과 범위

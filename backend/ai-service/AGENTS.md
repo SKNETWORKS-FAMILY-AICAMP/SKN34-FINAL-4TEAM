@@ -1,5 +1,7 @@
 # AI Service 구현 지침
 
+> **현행 집필 Run:** [실연동·기동·제한](../../docs/writing-ai-architecture/live-rag-handoff.md). 아래의 TASK별 미연결 설명은 당시 경계다.
+
 `backend/ai-service/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
 현재 내부 Health·이어쓰기 제안과 Run API가 있다. Run은 명시적인 FixtureContent 또는 `CONTENT_AI_RUN_BASE_URL`의 Content 재검증을 사용한다. 실제 위임은 연결됐지만 전문 Agent·원고 읽기·모델 실행은 미연결이므로 실제 run은 `dependency_unavailable`로 종료한다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
 

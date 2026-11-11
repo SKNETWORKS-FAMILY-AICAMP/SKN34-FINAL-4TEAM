@@ -21,7 +21,8 @@ data class AiRunRemoteResponse(val runId: String,val threadRef: String,val statu
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 data class AiRunText(val status: String,val text: String,
-    @param:JsonProperty("is_mock") val isMock: Boolean,val citations: List<AiRunCitation> = emptyList())
+    @param:JsonProperty("is_mock") val isMock: Boolean,val citations: List<AiRunCitation> = emptyList(),
+    @param:JsonProperty("context_digest") val contextDigest: String? = null)
 @JsonIgnoreProperties(ignoreUnknown=true)
 data class AiRunCitation(val quote: String,val episode: Int,
     @param:JsonProperty("source_revision") val source: AiRunSourceRef,
@@ -35,3 +36,11 @@ data class AiRunGap(val code: String)
 @JsonIgnoreProperties(ignoreUnknown=true)
 data class AiRunRemoteError(val code: String)
 data class AiRunGrantResponse(val runId: String,val threadRef: String,val scopeRef: String,val expiresAt: java.time.Instant,val cancelled: Boolean = false)
+
+/** realtime 관계는 작가용 현재 상태이며 봉인된 판의 과거 관계가 아니다. */
+data class AiRunRelation(val source: String,val target: String,val label: String,val body: String)
+data class AiRunGraph(val worldId: java.util.UUID,val basisRevision: Int,val graphVersion: Long,
+    val relations: List<AiRunRelation>)
+data class AiRunRetrieval(val scopeRef: String,val digest: String,
+    val context: ai.storyfork.content.context.service.dto.StoryContextResponse,val currentGraph: AiRunGraph?,
+    val episodeDocuments: Map<Int,String>)

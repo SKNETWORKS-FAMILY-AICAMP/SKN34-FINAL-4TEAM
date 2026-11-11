@@ -1,5 +1,7 @@
 # TASK 13 — Template Recommendation 인수 계약
 
+> **2026-11-11 현행:** 실제 연결 여부와 남은 선행 조건은 최신 표를 따른다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 2026-11-10 현재 코드 기준으로 누락 링크를 보완했다. 최초 구현은 `43aa1db`이며 과거 인수 원문의 복원이 아니다.
 직접 연결은 [#56](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56), 검색 계약 참고는 #125다. 이슈 상태는 변경하지 않는다.
 

@@ -1,5 +1,7 @@
 # 콘텐츠 서비스 구현 지침
 
+> **현행 집필 Run:** [실연동·기동·제한](../../docs/writing-ai-architecture/live-rag-handoff.md). 아래의 TASK별 미연결 설명은 당시 경계다.
+
 `backend/content-service/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)과 [콘텐츠 이관·서비스 연동 계약](../../docs/design/content-service-migration-contract.md)을 함께 따른다.
 
 - 작품·에피소드·원고·버전·세계관·WorldStudio·Fork·발행·콘텐츠 첨부와 콘텐츠 인가를 담당한다. 다른 서비스의 Entity·Repository·DB를 직접 쓰지 않는다.

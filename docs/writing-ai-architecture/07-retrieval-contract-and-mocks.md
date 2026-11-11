@@ -1,20 +1,20 @@
 # 검색 계약과 Fixture
 
-네 어댑터는 **동일한 Scope·Evidence 규약**을 사용한다. Content는 다섯 번째 검색 엔진으로 집계하지 않는다. 허용된 자료 목록과 정확한 원문·버전·현재 관계를 확인하는 기준이다. 개발자는 아래 합성 자료와 대역만으로 라우팅, 누락 처리, 인용 검증, 승인 전 차단을 재현할 수 있다.
+> **2026-11-11 현행:** 생성·분류는 GPT-6 Luna, 현재 관계는 Content→Neo4j, 원문은 Elasticsearch E5, RAG 추적은 Langfuse다. 위키는 목업이며 템플릿은 RAG 밖이다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
+작품 자료용 세 검색 경로는 **동일한 Scope·Evidence 규약**을 사용한다. Content는 다섯 번째 검색 엔진으로 집계하지 않는다. 허용된 자료 목록과 정확한 원문·버전·현재 관계를 확인하는 기준이다. 개발자는 아래 합성 자료와 대역만으로 라우팅, 누락 처리, 인용 검증, 승인 전 차단을 재현할 수 있다.
 
 ### 5. 필요한 검색 경로와 정본 확인
 
 ```mermaid
 flowchart LR
     A[요청과 Content 발급 Scope] --> C[Retrieval Coordinator]
-    C -.-> R[현재 관계 Graph]
-    C -.-> W[회차 Wiki Graph]
-    C -.-> M[원고 Vector]
-    C -.-> T[템플릿 Vector]
+    C -.-> R[Content 경유 현재 Neo4j]
+    C -.-> W[회차 Wiki Mock]
+    C -.-> M[Elasticsearch E5 원고 검색]
     R -.-> V[Evidence Normalizer]
     W -.-> V
     M -.-> V
-    T -.-> V
     C -.-> S[Content manifest 및 정확 조회]
     S --> V
     V --> X[권한 및 revision 대조]
@@ -47,8 +47,8 @@ Coverage = {manifest_ref, requested_range, expected_count, verified_count,
 
 | Evidence 필드 | 자료형·의미 |
 |---|---|
-| `id, retrieval_type, source_backend, is_mock, retrieved_at` | 안정적 출처 키, relationship/wiki/manuscript/template 또는 정확 조회 canonical, 제공사/fixture 이름, bool, UTC timestamp |
-| `work_id?, fork_id?, episode_id?, scene_id?, document_id?, entity_ids[]` | 정본과 결합할 식별자. 카탈로그 템플릿은 작품 식별자 null, `template_id`와 catalog_revision·license_ref 필수 |
+| `id, retrieval_type, source_backend, is_mock, retrieved_at` | 안정적 출처 키, relationship/wiki/manuscript 또는 정확 조회 canonical, 제공사/fixture 이름, bool, UTC timestamp |
+| `work_id?, fork_id?, episode_id?, scene_id?, document_id?, entity_ids[]` | 정본과 결합할 식별자. |
 | `source_revision, source_span?, as_of_episode?, evidence_refs[]` | source_kind와 불투명 버전 쌍. 범위는 원본 문자열 **UTF-16 code unit [start,end)**, 개행·정규화 원본 그대로. quote hash는 해당 원문 UTF-8 바이트 SHA-256. Python은 명시 변환, 대리쌍 경계 분할 거부 |
 | `content, fact_or_relation?, canonical_status, known_by?, visible_from?, visible_to?` | 최소 발췌와 주장. `verified_source / inferred / disputed / hypothetical`. 원문에 적힌 대사와 등장인물 주장의 진실성을 분리. `known_by` 미정은 인물에게 숨김 |
 | `retrieval_score?, score_kind?, confidence_basis?, source_hash?` | cosine·순위·그래프 거리 같은 점수 의미를 함께 기록. 사실 확률로 변환하지 않는다. 추론·충돌에는 근거와 반대 근거를 함께 보존 |
@@ -103,7 +103,7 @@ python -B -m pytest -p no:cacheprovider -o addopts= -q -m 'not integration' test
 | [relationships.py](../../backend/ai-service/app/retrieval/relationships.py) | `RelationshipGraphRetriever`와 명시 주입한 합성 `MockRelationshipGraph`. 같은 Content Scope·작품·world에 바인딩한 작가 개인의 현재 보기만 지원. 허용 카드 양 끝·방향·라벨·현재 CAS token을 보존하고 history/snapshot/회차 제한 조회는 unsupported |
 | [episode_wiki.py](../../backend/ai-service/app/retrieval/episode_wiki.py) | `EpisodeWikiRetriever`. 회차·장면·사건·지식 습득·복선의 합성 Evidence와 판본·인과 참조를 보존. 누락/stale/비허용 출처를 참조한 파생 경로도 제거하고 partial로 구분 |
 | [manuscript.py](../../backend/ai-service/app/retrieval/manuscript.py) | `ManuscriptVectorRetriever`. 미리 분할한 합성 문단 chunk를 작품/Fork·문서·종류(manuscript/draft/conti)·회차·revision으로 필터링한 뒤 Content의 UTF-16 구간·UTF-8 SHA-256 확인. 다른 회차로 span을 확장하지 않음 |
-| [templates.py](../../backend/ai-service/app/retrieval/templates.py) | `TemplateVectorRetriever`. 서버가 명시한 허용 라이선스와 공개·활성/만료·언어·장르를 검사하는 별도 카탈로그. Evidence의 work/fork/document ID는 null. 반환 직전 철회·권리 변경도 폐기 |
+| [template_catalog.py](../../backend/ai-service/app/agents/template_catalog.py) | `TemplateVectorRetriever`. 서버가 명시한 허용 라이선스와 공개·활성/만료·언어·장르를 검사하는 별도 카탈로그. Evidence의 work/fork/document ID는 null. 반환 직전 철회·권리 변경도 폐기 |
 | [_mock.py](../../backend/ai-service/app/retrieval/_mock.py), [contracts.py](../../backend/ai-service/app/retrieval/contracts.py), [fixture](../../backend/ai-service/tests/fixtures/story.json), [단위 테스트](../../backend/ai-service/tests/test_mock_retrievers.py) | Mock 전용 공통 인가·정확 인용·고정 순위/상한, Query의 선택적 source_kinds/language/genre, 명시적 합성 Studio 연결·언어/권리 메타데이터, 부정/회귀 계약 |
 
 모든 결과·Evidence는 `is_mock=true`다. 이 표시는 실제 원고 적용 금지이며 `apply` 등 쓰기 작업은 unsupported다. 실행 router·실제 Content 적용 경로에 등록하지 않았다. 기존 CanonicalAdapter의 현재/과거 관계 읽기는 여전히 unsupported다. 합성 관계 binding은 #109의 실제 작품↔Studio 계약이나 #163의 실제 전송·서비스 인증·위임 수명을 확정하지 않는다.
@@ -142,7 +142,7 @@ production 의존성·lockfile·설정·정본 DB·Neo4j·인덱스·실제 prov
 | [test_retrieval_coordinator.py](../../backend/ai-service/tests/test_retrieval_coordinator.py) | 전체/부분 coverage·보안 격리·점수·인용·병렬 실행·캐시 키·projection·철회 단위 검사 |
 | 이 문서·[기능표](../feature-roadmap.md) | 내부 호출 계약·검증 결과·한계를 기록. 서비스 흐름 완료 체크는 승격하지 않음 |
 
-내부 `Query.operation`은 quote→원고, current→현재 관계, templates→카탈로그, review/full_context→Wiki+원고와 별도 전체 Wiki 조회, context→Wiki+원고다. search에서는 required_fields의 템플릿 필드→카탈로그, 장면/지식/사건 참조→Wiki, span/hash→원고 순으로 경로를 좁힌다. 알 수 없는 operation은 unsupported다. 이는 내부 읽기 계약이며 자연어 Router·Agent/DAG는 구현하지 않았다. 선택된 독립 검색은 `asyncio.gather`로 병렬 실행하고 각 호출은 남은 deadline으로 제한한다. 재시도·Mock 자동 대체·무한 재검색은 없다.
+내부 `Query.operation`은 quote→원고, current→현재 관계, review/full_context→Wiki+원고와 별도 전체 Wiki 조회, context→Wiki+원고다. search에서는 required_fields의 미지원 필드는 거절하고, 장면/지식/사건 참조→Wiki, span/hash→원고 순으로 경로를 좁힌다. 알 수 없는 operation은 unsupported다. 이는 내부 읽기 계약이며 자연어 Router·Agent/DAG는 구현하지 않았다. 선택된 독립 검색은 `asyncio.gather`로 병렬 실행하고 각 호출은 남은 deadline으로 제한한다. 재시도·Mock 자동 대체·무한 재검색은 없다.
 
 현재 Coordinator는 기존 합성 Content 대역 전용이다. source revision·문서/작품/Fork·허용 시점·인물 knownBy·UTF-16 span·UTF-8 hash와 실제 반환 본문을 Content에서 재확인한다. 한 Adapter에 범위 밖/위조 항목이 섞이면 성공분도 노출하지 않고 packet 전체를 denied로 폐기한다. 현재 관계/Catalog는 반환 직전 해당 공급자를 한 번 더 읽어 현재 CAS/라이선스와 일치하는지 확인한다. 현재 관계의 과거 복원은 계속 미지원이다. grants/Scope 원문은 ContextPacket에 포함하지 않고 scope digest만 기록한다.
 
@@ -177,9 +177,9 @@ python -B -m pytest -p no:cacheprovider -o addopts= -q -m 'not integration' test
 | `RelationshipGraphRetriever` / Content가 결합을 확인한 world·현재 graph_version, 양 끝의 공개 허용 카드 | 현재 World→Relation→Source/Target. 유향·무향, 동맹·적대·가족·소속은 원본 payload의 방향과 라벨을 보존. 사용자 확정 관계와 Wiki 추론을 구별. 소속·조직·장소 등은 허용된 카드가 있을 때만 | current-only. 현재 version과 완료 상태 재확인. 과거 유효 구간·변경 이력 조회에는 unsupported. 회차 제한 요청에서 현재 관계가 당시에도 같았다고 추측하지 않는다. 행 단위 공개·지식 증명이 없으면 원작자 개인의 현재 보기 외 사용 차단. [관계 계약](../design/worldstudio-independent-schema.md) |
 | `EpisodeWikiRetriever` / manifest와 회차 범위·시점·관점 | Episode/Scene/Event/Claim/Knowledge/Rule/PlotPoint와 인용 경로. 필수 사건 및 회차별 색인 revision 반환 | 전체 범위 확인과 질문 연관 top-k는 별도 질의. 오래된 revision·삭제 출처 및 파생 경로는 무효화. 본문으로 확인되지 않은 추론은 inferred |
 | `ManuscriptVectorRetriever` / work·fork·문서 종류·버전 prefilter | 회차/장면 안의 문단 단위 chunk, 긴 문단은 문장 경계로 분할, 겹침은 직전 한 문장까지. `chunk_id,document_id,revision,span,embedding_model,index_generation,score` 반환. 콘티는 source_kind로 분리 | 다른 회차·문서·권한 경계 넘는 overlap 금지. 겹친 span 병합, 같은 revision에서 재정렬. 정확 대사·전체 원문은 Content로 읽는다. 새 색인 준비 전 구버전 차단. BM25·reranker는 평가 후 선택 |
-| `TemplateVectorRetriever` / 독립 카탈로그, 이용자 권리·라이선스·언어·장르 필터 | 템플릿 ID/버전, 이름, 태그, 목적, 이미 사용하는 설정과의 중복·충돌 근거. 요청에는 비공개 원고 대신 허용 태그와 요약을 사용 | 철회·만료된 항목 차단. 카탈로그 데이터는 작품 memory에 자동 합치지 않는다. 적용 요청이 오면 별도 변경안 생성 |
+| `TemplateCatalog` / **RAG 외부**, 독립 카탈로그의 이용자 권리·라이선스·언어·장르 필터 | 템플릿 ID/버전, 이름, 태그, 목적, 이미 사용하는 설정과의 중복·충돌 근거. 요청에는 비공개 원고 대신 허용 태그와 요약을 사용 | 철회·만료된 항목 차단. 카탈로그 데이터는 작품 memory에 자동 합치지 않는다. 적용 요청이 오면 별도 변경안 생성 |
 
-Normalizer는 같은 `(source_kind,id,revision,span)`을 중복 제거한다. 정확 인용은 검증된 원문을 우선하고, 의도별로 Wiki의 사건 경로·관계 방향·원고 유사 구간·템플릿 적합도를 각기 해석한다. 서로 다른 점수의 산술 평균은 사용하지 않는다. 상충 주장은 출처별로 반환하고 적은 점수 차만으로 정본을 결정하지 않는다. 캐시 키에 subject/grant epoch·purpose·관점·character·작품/Fork·회차 범위·manifest·query·index_generation을 포함한다. 권한 변경·삭제에는 즉시 접근을 닫고 캐시에서 내보낼 때도 재검증한다.
+Normalizer는 같은 `(source_kind,id,revision,span)`을 중복 제거한다. 정확 인용은 검증된 원문을 우선하고, 의도별로 Wiki의 사건 경로·관계 방향·원고 유사 구간를 각기 해석한다. 서로 다른 점수의 산술 평균은 사용하지 않는다. 상충 주장은 출처별로 반환하고 적은 점수 차만으로 정본을 결정하지 않는다. 캐시 키에 subject/grant epoch·purpose·관점·character·작품/Fork·회차 범위·manifest·query·index_generation을 포함한다. 권한 변경·삭제에는 즉시 접근을 닫고 캐시에서 내보낼 때도 재검증한다.
 
 ## Fixture와 교체 절차
 

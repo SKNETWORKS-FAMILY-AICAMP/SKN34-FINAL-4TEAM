@@ -6,10 +6,10 @@ from typing import Literal
 
 from pydantic import Field, StrictBool, ValidationError, model_validator
 
-from app.retrieval.content_client import CanonicalAdapter, ContentReadError, SourceVersion
-from app.retrieval.contracts import Contract, Evidence, Gap, Id, PositiveInt, Query, RetrievalResult
+from app.retrieval.content_client import CanonicalAdapter, ContentReadError
+from app.retrieval.contracts import Contract, Evidence, Gap, Id, PositiveInt, Query
 from app.retrieval.mock_content import MockContentReadPort
-from app.retrieval.templates import TemplateVectorRetriever
+from app.agents.template_catalog import TemplateCatalog, CatalogEntry, CatalogResult
 from .story_context import ExactSource, StoryContextRequest, story_context
 
 
@@ -64,7 +64,7 @@ class Recommendations(Contract):
     status: Literal["ok", "empty", "partial", "denied", "timeout", "unsupported"]
     reason: Id
     items: tuple[RecommendationItem, ...] = ()
-    sources: tuple[Evidence, ...] = Field(default=(), repr=False)
+    sources: tuple[Evidence | CatalogEntry, ...] = Field(default=(), repr=False)
     gaps: tuple[Gap, ...] = ()
     is_mock: StrictBool
 
@@ -97,7 +97,7 @@ async def template_recommendation(request: TemplateRecommendationRequest, *, con
                                   model=None, call_context=None) -> Recommendations:
     """권리·판본은 Python에서 재검증하고 맞춤 설명 요청에만 모델 대역을 호출한다."""
     request = TemplateRecommendationRequest.model_validate(request.model_dump())
-    if not isinstance(content, MockContentReadPort) or not isinstance(retriever, TemplateVectorRetriever):
+    if not isinstance(content, MockContentReadPort) or not isinstance(retriever, TemplateCatalog):
         return Recommendations(status="unsupported", reason="실제 Content·카탈로그 연결은 지원하지 않습니다.", is_mock=False)
     if retriever.content is not content:
         return Recommendations(status="denied", reason="검색의 승인 범위를 확인할 수 없습니다.", is_mock=True)
@@ -146,7 +146,7 @@ async def template_recommendation(request: TemplateRecommendationRequest, *, con
         catalog = {item.id: item for item in snapshot}
         if len(catalog) != len(snapshot):
             raise ContentReadError("denied")
-        result = RetrievalResult.model_validate((await retriever.search(query, tags=tags)).model_dump())
+        result = CatalogResult.model_validate((await retriever.search(query, tags=tags)).model_dump())
         if result.status == "unavailable":
             raise TimeoutError()
         if result.status in ("denied", "unsupported"):
@@ -166,8 +166,6 @@ async def template_recommendation(request: TemplateRecommendationRequest, *, con
                     or tags and not set(tags).intersection(item.tags)
                     or not evidence.is_mock or evidence.retrieval_type != "template"
                     or evidence.catalog_revision != item.revision or evidence.license_ref != item.license_ref
-                    or evidence.source_revision != SourceVersion("catalog", "template", item.id, item.revision)
-                    or evidence.canonical_status != "verified_source"
                     or evidence.content != item.name + " " + " ".join(item.tags)):
                 raise ContentReadError("denied")
             seen.add(item.id)

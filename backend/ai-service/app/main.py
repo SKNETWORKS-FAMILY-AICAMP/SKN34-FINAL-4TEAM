@@ -1,4 +1,5 @@
 """기존 제안 API와 작업별 위임을 검증하는 내부 Run 경계를 조립한다."""
+import asyncio
 from contextlib import asynccontextmanager
 import os
 
@@ -13,6 +14,7 @@ from app.runs.router import router as runs_router
 from app.runs.service import RunService
 from app.runs.remote_content import RemoteContent
 from app.runs.checkpoints import configured_saver
+from app.retrieval.ingestion import sync_public
 
 
 def create_app(*, run_service: RunService | None = None) -> FastAPI:
@@ -26,9 +28,15 @@ def create_app(*, run_service: RunService | None = None) -> FastAPI:
             application.state.checkpointer = saver
             if run_service is not None:
                 run_service.checkpointer = saver
+            indexer = None
+            if os.environ.get("ELASTICSEARCH_URL") and run_service and isinstance(run_service.content, RemoteContent):
+                indexer = asyncio.create_task(sync_public(run_service.content.base_url))
             try:
                 yield
             finally:
+                if indexer:
+                    indexer.cancel()
+                    await asyncio.gather(indexer, return_exceptions=True)
                 if run_service is not None:
                     await run_service.close()
                     run_service.checkpointer = None

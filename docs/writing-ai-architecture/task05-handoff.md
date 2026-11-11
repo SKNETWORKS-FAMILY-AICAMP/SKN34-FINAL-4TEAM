@@ -1,5 +1,7 @@
 # TASK 05 — Intent Router·Slot Resolver 인수 기록
 
+> **2026-11-11 현행:** 실제 연결 여부와 남은 선행 조건은 최신 표를 따른다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 2026-11-09. TASK 05의 내부 분류·대상 식별 모듈을 구현했다. 실제 모델 품질·HTTP 실행 연결·Content 후보 transport는 검증/구현하지 않았다. TASK 06 이후는 진행하지 않는다.
 
 ## 기준과 권한

@@ -44,8 +44,11 @@ class AiRunServiceTest {
     private val receipts=mock(ChangeProposalReceiptRepository::class.java)
     private val progress=AiRunProgressService(events,jacksonMapperBuilder().build())
     private val em=mock(jakarta.persistence.EntityManager::class.java)
+    private val studio=mock(ai.storyfork.content.world.service.WorldStudioService::class.java)
+    private val changes=mock(ai.storyfork.content.proposal.service.ChangeProposalService::class.java)
     private val service=AiRunService(access,context,runs,threads,jobs,client,
         TransactionTemplate(manager),jacksonMapperBuilder().build(),signer,episodes,progress,proposals,receipts,em,
+        studio,changes,
         mock(ai.storyfork.content.episode.repository.EpisodeDraftRepository::class.java))
     private val rows=mutableMapOf<String,AiRunEntity>()
     private val conversations=mutableMapOf<String,AiThreadEntity>()
@@ -180,6 +183,44 @@ class AiRunServiceTest {
         doThrow(ContentFailure(404,"없음")).`when`(access).own("w","owner")
         assertEquals(404,assertThrows(ContentFailure::class.java) {service.result("w","owner",first.runId)}.status)
         verify(client,times(1)).status(anyDispatch())
+    }
+
+    @Test fun `server builds edit operation from the approved selection only`() {
+        val ref=AiRunSourceRef("w","draft",ai.storyfork.content._common.helper.episodeId("w",1),"7")
+        val body="가😀나다"
+        val selection=RunSelection(1,3,ai.storyfork.content.proposal.domain.ChangeSetPolicy.hash("😀"),7)
+        val request=dispatchFixture().copy(operation="edit",targetRefs=listOf(ref),selection=selection)
+        val change=ai.storyfork.content.proposal.domain.generatedChange(request,9,"제목",body,7,"새 문장",emptyList())
+        assertEquals(ChangeSpan(1,3),change.operations.single().span)
+        assertEquals(7,change.operations.single().target.baseVersion)
+        assertEquals(9,change.baseVersion)
+        assertFalse(change.isMock)
+        assertThrows(ContentFailure::class.java) {
+            ai.storyfork.content.proposal.domain.generatedChange(request,9,"제목","변경한 원고",8,"새 문장",emptyList())
+        }
+    }
+
+    @Test fun `changing the bound Studio world after dispatch denies retrieval before graph access`() {
+        val capture=org.mockito.ArgumentCaptor.forClass(AiRunDispatchRequest::class.java)
+        val id=service.create("w","owner","key",input()).runId
+        verify(client).dispatch(capture.capture() ?: dispatchFixture())
+        rows.getValue(id).status="running"
+        val changed=EpisodeEntity("episode","w",1,basisWorldId=java.util.UUID.randomUUID(),basisRevision=1)
+        `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(changed)
+        assertEquals(409,assertThrows(ContentFailure::class.java){service.retrieval(id,capture.value)}.status)
+        verifyNoInteractions(studio)
+    }
+
+    @Test fun `retrieval requires an active matching grant and uses only server selected context`() {
+        val capture=org.mockito.ArgumentCaptor.forClass(AiRunDispatchRequest::class.java)
+        val id=service.create("w","owner","key",input()).runId
+        verify(client).dispatch(capture.capture() ?: dispatchFixture())
+        val payload=capture.value
+        rows.getValue(id).status="running"
+        assertEquals("비밀 원고",service.retrieval(id,payload).context.draft)
+        assertThrows(ContentFailure::class.java) {service.retrieval(id,payload.copy(basisEpisode=2))}
+        rows.getValue(id).status="cancelled"
+        assertThrows(ContentFailure::class.java) {service.retrieval(id,payload)}
     }
 
     @Test fun `valid grant verifies but substituted work budget and target fail before context lookup`() {

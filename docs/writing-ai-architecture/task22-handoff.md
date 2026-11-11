@@ -1,5 +1,7 @@
 # TASK 22 — HITL interrupt/resume·승인·재수정·거절
 
+> **2026-11-11 현행:** [TASK별 실제 구현·미구현 근거와 개발 방법](implementation-status.md)을 우선한다. 아래 내용은 당시 인수 기록이다.
+
 2026-11-10. **Content 결정 API와 참조 전용 HITL 조립을 구현하고 단위·HTTP·격리 PostgreSQL로 검증했다.**
 실제 AI 생성→Content 준비 전송/결과 resolver는 미연결이므로 제품 전체 완료를 뜻하지 않는다.
 사용자 결정은 **재수정은 기존 revision_requested 영수증 반환까지**다. 새 run 자동 생성은 제외했다.

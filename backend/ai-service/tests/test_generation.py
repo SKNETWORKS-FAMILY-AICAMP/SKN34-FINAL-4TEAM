@@ -22,7 +22,7 @@ def test_provider_uses_server_key_and_returns_proposal(monkeypatch):
     assert result['providerResponseId'] == 'resp-test'
     assert result['usage'] == {'inputTokens':100,'outputTokens':20}
     assert calls[0]['store'] is False
-    assert calls[0]['model'] == 'test-model'
+    assert calls[0]['model'] == 'gpt-6-luna'
 
 
 def test_missing_key_is_explicit_failure(monkeypatch):

@@ -81,6 +81,7 @@ class GraphResponse(Contract):
     text: str = Field(repr=False)
     citations: tuple[Citation, ...] = ()
     is_mock: StrictBool = True
+    context_digest: str | None = None
     proposal_id: Ref | None = None
     proposal_version: int | None = None
     proposal_hash: str | None = None

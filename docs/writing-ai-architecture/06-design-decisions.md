@@ -1,5 +1,7 @@
 # 결정 기록과 구현 전 확인 사항
 
+> **2026-11-11 현행:** 생성·분류는 GPT-6 Luna, 현재 관계는 Content→Neo4j, 원문은 Elasticsearch E5, RAG 추적은 Langfuse다. 위키는 목업이며 템플릿은 RAG 밖이다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 이 기록은 집필 AI의 **추천 설계**다. 제품에서 이미 확정된 경계는 Core 인증, Content의 작품 인가·정본 반영, Neo4j의 현재 관계 단일 정본, 승인 전 원고 보존이다. 2026-11-09 사용자 요청으로 모델 제공사는 OpenAI API, TASK 05 분류는 Decisions(`gpt-6-luna`)로 결정했다. 아래 JEV 비교는 이전 검토 기록이다. LangGraph·검색 인프라·운영 예산은 별도 결정이 필요하다. [프로젝트 결정](../design/decisions.md) · [현재 관계 계약](../design/worldstudio-independent-schema.md)
 
 TASK 05는 기존 SDK의 `OpenAI.post('/decisions', ...)`로 공식 HTTP 계약을 구현했다. 키는 서버 `OPENAI_API_KEY`만 사용하고 공식 OpenAI base URL·15초 timeout·재시도 0회로 제한한다. 사용자 요청에 따라 실제 공급자 어댑터 구현까지 허용하되 유료 호출·실사용자 원고 전송은 검증하지 않았다. 모델의 확신 점수 임계값을 임의 정책으로 정하지 않고 `clarify` 선택지와 결정적 enum·허용 작업 검사를 사용한다. 한국어 정확도·지연·계정 접근 검증은 대기다. [TASK 05 인수 기록](task05-handoff.md).
@@ -61,3 +63,10 @@ TASK 09 당시 내부 HTTP 경계는 FixtureContent에 명시 주입한 작업�
 | 콘텐츠 담당, 검색 구축 전 | 소설/템플릿 이용권·공개 범위, 임베딩·제품/인덱스 선택, 동기화·삭제 지연 목표 | 시점 확인 불가능한 근거를 정본으로 제공하지 않음 |
 
 [현행 소스 분석](01-current-system-analysis.md) · [실행 계획](02-ai-architecture.md) · [기능 설계](03-rag-simulation-design.md) · [인프라 계약](04-infrastructure-integration.md) · [구현 및 평가](05-implementation-roadmap.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
+
+
+## 2026-11-11 사용자 요청 반영
+
+GPT-6 Luna 고정, Langfuse RAG 메타데이터 추적, Content 경유 현재 Neo4j, Elasticsearch E5 자동 적재·검색을 채택했다.
+템플릿을 작품 RAG에서 제외하고 위키는 명시적으로 목업 유지한다. 기존 1회 동의를 지키는 제한된 실제 Run을 연결했으며 전체 전문 DAG의 실연동을 완료했다고 주장하지 않는다.
+실행에 필요한 환경·라이선스·미구현 근거는 [현행 인수보고](live-rag-handoff.md)와 [TASK별 상세](implementation-status.md)에 둔다.

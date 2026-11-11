@@ -1,5 +1,7 @@
 # TASK 06 — 고정 Registry·Task DTO·DAG Validator 인수 기록
 
+> **2026-11-11 현행:** [TASK별 실제 구현·미구현 근거와 개발 방법](implementation-status.md)을 우선한다. 아래 내용은 당시 인수 기록이다.
+
 2026-11-09. **실행 전 계획 검증 모듈을 구현했다.** Agent 실행·LangGraph·외부 planner·모델 호출·정본 쓰기는 연결하지 않았다.
 
 ## 기준과 범위

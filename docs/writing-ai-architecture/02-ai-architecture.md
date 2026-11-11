@@ -1,5 +1,27 @@
 # 작업 계획과 LangGraph 실행
 
+> **2026-11-11 현행:** 생성·분류는 GPT-6 Luna, 현재 관계는 Content→Neo4j, 원문은 Elasticsearch E5, RAG 추적은 Langfuse다. 위키는 목업이며 템플릿은 RAG 밖이다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
+## 현재 연결된 실행 경로
+
+```mermaid
+flowchart LR
+    UI[집필실] --> C[Content Run 및 인가]
+    C --> A[실제 단일 Run]
+    A --> R[Content 허용 원문 조회]
+    R --> N[WorldStudio 현재 Neo4j]
+    A --> E[Elasticsearch E5 원문 검색]
+    A --> L[OpenAI GPT-6 Luna]
+    A -. 메타데이터 .-> F[Langfuse OTLP]
+    L --> C
+    C --> P[불변 제안과 사용자 승인]
+    P --> D[Content 원고 저장]
+```
+
+질문·부분 검수·선택 편집·차회 초안의 실제 경로다. 생성은 최대 1회이고, Context 원문·선택 세계관·현재 관계를 호출 전후 검증한다.
+아래 MainGraph와 전문 Agent DAG는 합성 자료에서 구현된 목표 구조다. 실제 Run 전체가 그 DAG를 통과한다고 해석하지 않는다.
+위키·복합 실행·복구의 미완료 근거와 후속 구현 방법은 [TASK별 보고서](implementation-status.md)를 따른다.
+
 2026-11-10 TASK 22: 선택적으로 주입한 Content 준비/조회/영수증과 Main의 proposal→읽기 전용 interrupt를 연결했다.
 준비 commit/중단 등록 경쟁·정확한 Command resume·결정 중복·현재 권한·Mock 적용 금지와 준비 후 취소 경계를 검증했다.
 재수정은 사용자 결정으로 revision_requested 영수증까지만 처리한다. 실제 AI 후보 준비 전송/결과 resolver와

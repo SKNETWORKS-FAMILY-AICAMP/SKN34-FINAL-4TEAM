@@ -15,7 +15,7 @@ from app.retrieval.mock_content import MockContentReadPort, MockRow
 from app.retrieval.relationships import MockRelationshipGraph, Relationship, RelationshipGraphRetriever
 from app.retrieval.episode_wiki import EpisodeWikiRetriever
 from app.retrieval.manuscript import ManuscriptVectorRetriever
-from app.retrieval.templates import Template, TemplateVectorRetriever
+from app.agents.template_catalog import Template, TemplateCatalog
 
 
 def run(port, query):
@@ -92,11 +92,10 @@ def templates(story):
 
 def ports(content, manuscripts, wiki, graph, templates):
     return (RelationshipGraphRetriever(content, graph), EpisodeWikiRetriever(content, wiki),
-            ManuscriptVectorRetriever(content, manuscripts),
-            TemplateVectorRetriever(content, templates, frozenset({"demo_allowed"})))
+            ManuscriptVectorRetriever(content, manuscripts))
 
 
-def test_four_real_mock_ports_share_return_contract(content, manuscripts, wiki, graph, templates):
+def test_three_real_mock_ports_share_return_contract(content, manuscripts, wiki, graph, templates):
     for port in ports(content, manuscripts, wiki, graph, templates):
         first, second = run(port, query(content)), run(port, query(content))
         assert isinstance(first, RetrievalResult) and first.status == "ok" and first.evidence
@@ -237,19 +236,19 @@ def test_cache_contamination_and_revocation_never_reuse_old_payload(content, por
 
 
 def test_templates_filter_license_language_genre_and_catalog_scope(content, templates):
-    port = TemplateVectorRetriever(content, templates, frozenset({"demo_allowed"}))
+    port = TemplateCatalog(content, templates, frozenset({"demo_allowed"}))
     result = run(port, query(content, language="ko", genre="fantasy"))
     assert [e.template_id for e in result.evidence] == ["magic1"]
     item = result.evidence[0]
-    assert item.work_id is None and item.fork_id is None and item.document_id is None
+    assert not {"work_id", "fork_id", "document_id"}.intersection(item.model_dump())
     assert item.license_ref == "demo_allowed" and item.catalog_revision == "t2"
     assert not run(port, query(content, language="en")).evidence
     assert not run(port, query(content, genre="horror")).evidence
-    assert not run(TemplateVectorRetriever(content, templates, frozenset()), query(content)).evidence
+    assert not run(TemplateCatalog(content, templates, frozenset()), query(content)).evidence
 
 
 def test_template_revocation_after_success_has_no_cache_leak(content, templates, caplog):
-    port = TemplateVectorRetriever(content, templates, frozenset({"demo_allowed"}))
+    port = TemplateCatalog(content, templates, frozenset({"demo_allowed"}))
     assert run(port, query(content)).evidence
     port.templates = (templates[0].model_copy(update={"license_active": False}),)
     result = run(port, query(content))
@@ -285,7 +284,7 @@ def test_manuscript_prefilters_document_kind_and_episode_before_read(content, ma
 
 
 def test_templates_recheck_revocation_during_return(content, templates):
-    port = TemplateVectorRetriever(content, templates, frozenset({"demo_allowed"}))
+    port = TemplateCatalog(content, templates, frozenset({"demo_allowed"}))
     original = content.manifest
     calls = 0
 
@@ -332,7 +331,7 @@ def test_wiki_scene_and_foreshadow_keep_revision_and_reference(content, wiki):
 
 def test_expired_template_and_cross_subject_never_reuse_catalog_results(content, templates):
     expired = templates[0].model_copy(update={"expires_at": datetime.now(timezone.utc) - timedelta(seconds=1)})
-    port = TemplateVectorRetriever(content, (expired,), frozenset({"demo_allowed"}))
+    port = TemplateCatalog(content, (expired,), frozenset({"demo_allowed"}))
     assert not run(port, query(content)).evidence
     port.templates = templates
     assert run(port, query(content)).evidence
@@ -356,7 +355,7 @@ def test_relationship_cas_change_at_return_discards_all_evidence(content, graph)
     assert result.status == "denied" and not result.evidence
 
 
-def test_four_ports_make_no_network_calls(content, manuscripts, wiki, graph, templates, monkeypatch):
+def test_three_ports_make_no_network_calls(content, manuscripts, wiki, graph, templates, monkeypatch):
     network = Mock(side_effect=AssertionError("외부 provider 호출 금지"))
     monkeypatch.setattr("socket.socket", network)
     monkeypatch.setattr("socket.create_connection", network)

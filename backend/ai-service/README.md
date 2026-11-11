@@ -1,5 +1,7 @@
 # STORYFORK AI Service
 
+> **현행 집필 Run:** [실연동·기동·제한](../../docs/writing-ai-architecture/live-rag-handoff.md). 아래의 TASK별 미연결 설명은 당시 경계다.
+
 FastAPI 기반 내부 서비스입니다. Health와 내부 인증이 필요한 `POST /internal/v1/proposals` 생성 API를 제공합니다. 실행·검증 상태는 [콘텐츠 통합 안내](../../docs/content-integration.md)를 참고하세요.
 현재 Core Service의 `core-api` 모듈이 Health와 콘텐츠 생성 API를 호출합니다. Compose에서 AI Service의 호스트 포트는 공개하지 않습니다.
 
@@ -63,10 +65,10 @@ TASK 09는 `POST /internal/v1/ai/runs`, `GET /internal/v1/ai/runs/{runId}`, `POS
 
 [최신 MVP 설계](../../docs/design/design.md)의 최종 모델·제공사·에이전트 프레임워크는 미정입니다. **현재 생성 구현은 `openai` SDK의 Responses API를 사용**하며, 이는 전체 역할·다중 에이전트 구성을 확정한 것이 아닙니다. 과거 LangChain·LangGraph 제안은 확정 기술이 아닙니다. `openai-agents` 의존성은 남아 있지만 현재 실행 코드에서 Agent를 구성하지 않습니다.
 Health는 키 없이 시작하고 OpenAI 클라이언트를 만들거나 호출하지 않습니다.
-루트 `.env`의 `OPENAI_API_KEY`와 `OPENAI_MODEL`은 생성 요청 시 AI 런타임에서만 읽습니다.
+루트 `.env`의 `OPENAI_API_KEY`은 생성 요청 시 AI 런타임에서만 읽습니다.
 Core와 동일한 `INTERNAL_TOKEN`이 필요합니다. Responses API의 실제 모델·응답 ID·사용량을 반환하고 정본은 변경하지 않습니다. Health 성공은 모델 접근 성공을 뜻하지 않습니다.
-직접 실행은 루트 `.env`를 자동으로 읽지 않습니다. AI에 필요한 `OPENAI_API_KEY`, `OPENAI_MODEL`, `INTERNAL_TOKEN`만 해당 터미널에 설정합니다. 자동 설정 전달은 공통 `docker-compose.yaml`과 prod/dev 조합을 사용합니다([인프라 안내](../../infrastructure/README.md)).
-prod는 소스 빌드 이미지, dev는 CI가 게시한 `:develop` 이미지를 사용하며 둘 다 키·모델은 AI에만, 내부 토큰은 Core·AI에만 전달합니다. 공통/prod의 모델 기본값은 비어 있고 dev의 기존 `gpt-5.6-luna` 기본값은 유지합니다. 실제 모델 접근 검증을 뜻하지 않습니다.
+직접 실행은 루트 `.env`를 자동으로 읽지 않습니다. AI에 필요한 `OPENAI_API_KEY`, `INTERNAL_TOKEN`만 해당 터미널에 설정합니다. 자동 설정 전달은 공통 `docker-compose.yaml`과 prod/dev 조합을 사용합니다([인프라 안내](../../infrastructure/README.md)).
+prod는 소스 빌드 이미지, dev는 CI가 게시한 `:develop` 이미지를 사용하며 둘 다 키·모델은 AI에만, 내부 토큰은 Core·AI에만 전달합니다. 모델은 모든 환경에서 `gpt-6-luna`로 고정합니다. 실제 모델 접근 검증을 뜻하지 않습니다.
 
 콘텐츠 정본·콘텐츠 인가·채택·발행은 목표 콘텐츠 서비스, 회원·인증·크레딧·회원 알림은 Core, 운영 판단은 운영 서비스가 소유하며 AI가 직접 확정하지 않습니다. 현재 허용 문맥 구성·생성 작업 기록·제안 채택은 `core-api`의 콘텐츠 코드가 담당합니다. 향후에도 문서·원고와 그래프 관계는 같은 기준 버전·허용 범위를 따라야 하며 조회 경로는 후속 설계합니다. 장애를 정상 결과로 숨기는 fallback이나 Agent별 서버는 추가하지 않습니다.
 

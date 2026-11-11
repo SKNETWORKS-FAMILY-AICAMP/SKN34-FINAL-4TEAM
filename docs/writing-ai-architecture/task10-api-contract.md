@@ -1,5 +1,7 @@
 # TASK 10 — 공개 Run 및 실제 위임 HTTP 계약
 
+> **2026-11-11 현행:** 실제 위임의 /retrieval·문맥 digest 및 Content의 변경 후보 준비가 추가됐다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 2026-11-09. 사용자 요청으로 TASK 10 범위를 **실제 grant·AI 전송 계약 확정 및 연결**까지 확장했다. Core 인증·Content 인가·JPA·기존 `/proposals` 및 `/accept`를 유지한다. 실제 전문 Agent·실 검색·유료 모델·승인·저장·SSE·자동 재개는 이 계약에 포함하지 않는다.
 
 ## 공개 경계

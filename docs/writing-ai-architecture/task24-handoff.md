@@ -1,5 +1,7 @@
 # TASK 24 인수보고
 
+> **2026-11-11 현행:** 실제 연결 여부와 남은 선행 조건은 최신 표를 따른다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 ## 1. 작업 기준
 
 2026-11-10. 시작 checkout `feat/54-run-progress-cancel`, 기준 `1190ca7`(TASK 23), 최초 dirty 없음.

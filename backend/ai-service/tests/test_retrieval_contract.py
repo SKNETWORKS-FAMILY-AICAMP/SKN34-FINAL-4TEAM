@@ -16,7 +16,6 @@ from app.retrieval.content_client import ContentReadError, Scope, SourceVersion
 from app.retrieval.contracts import (
     CanonicalAdapter, Conflict, Coverage, EpisodeCoverage, Evidence, Gap, Query,
     RetrievalResult, RelationshipGraphPort, EpisodeWikiPort, ManuscriptVectorPort,
-    TemplateVectorPort,
 )
 from app.retrieval.mock_content import MockContentReadPort, MockRow
 
@@ -51,9 +50,9 @@ def evidence(content_port, retrieval_type="manuscript", **changes):
 
 @pytest.mark.parametrize("port_type,kind", [
     (RelationshipGraphPort, "relationship"), (EpisodeWikiPort, "wiki"),
-    (ManuscriptVectorPort, "manuscript"), (TemplateVectorPort, "template"),
+    (ManuscriptVectorPort, "manuscript"),
 ])
-def test_four_ports_share_query_and_result(port_type, kind, content):
+def test_three_ports_share_query_and_result(port_type, kind, content):
     # TASK 02에서는 반환 계약만 검사한다. 검색 구현은 TASK 03의 범위다.
     class Stub:
         retrieval_type = kind
@@ -126,11 +125,8 @@ def test_catalog_template_requires_revision_and_license(content, story):
                   template_id=template["id"], catalog_revision=template["revision"],
                   license_ref=template["license_ref"],
                   source_revision=SourceVersion("catalog", "template", template["id"], template["revision"]))
-    item = evidence(content, "template", **values)
-    assert item.work_id is None and item.license_ref == "demo_allowed"
-    for key in ("template_id", "catalog_revision", "license_ref"):
-        with pytest.raises(ValidationError):
-            evidence(content, "template", **(values | {key: None}))
+    with pytest.raises(ValidationError):
+        evidence(content, "template", **values)
 
 
 def test_empty_success_failure_and_partial_are_distinct(content, story):

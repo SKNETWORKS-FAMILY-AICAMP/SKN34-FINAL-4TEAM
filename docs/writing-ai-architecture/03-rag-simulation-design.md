@@ -1,5 +1,7 @@
 # 회차 문맥, 시뮬레이션, 집필 기능
 
+> **2026-11-11 현행:** 생성·분류는 GPT-6 Luna, 현재 관계는 Content→Neo4j, 원문은 Elasticsearch E5, RAG 추적은 Langfuse다. 위키는 목업이며 템플릿은 RAG 밖이다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 “10화까지 읽은 독자가 아는 사실”과 “10화 시점의 카이가 아는 사실”은 서로 다른 입력이다. 모든 기능은 Content가 승인한 작품·Fork·판본에서 시작한다. 요청 범위와 인물 관점을 각각 좁힌 뒤 필요한 자료만 모델에 전달한다. [검색 계약 및 합성 예제](07-retrieval-contract-and-mocks.md)
 
 ### 6. Story Context와 Wiki의 연결

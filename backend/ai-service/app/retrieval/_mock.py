@@ -23,7 +23,7 @@ def failed(error: ContentReadError) -> RetrievalResult:
 
 
 def matches(query: Query, item: Evidence) -> bool:
-    return (not query.document_ids or (item.document_id or item.template_id) in query.document_ids) and (
+    return (not query.document_ids or item.document_id in query.document_ids) and (
         not query.entity_ids or bool(set(query.entity_ids).intersection(item.entity_ids))) and (
         query.episode_range is None or (item.as_of_episode is not None
                                        and query.episode_range[0] <= item.as_of_episode <= query.episode_range[1])) and (

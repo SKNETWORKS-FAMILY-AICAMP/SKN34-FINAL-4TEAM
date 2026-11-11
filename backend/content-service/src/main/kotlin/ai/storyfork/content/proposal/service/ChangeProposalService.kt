@@ -192,7 +192,8 @@ class ChangeProposalService(
             run.status !in listOf("failed","denied","cancelled") && thread!=null && thread.workId==work &&
             thread.requesterId==actor && thread.forkId==fork,409,"작업의 허용 범위가 변경됐어요.")
         val selected=context.read(work,actor,ContextRequest(run.basisEpisode,"",run.characterName))
-        checkContent(hash(base.toString()+":"+mapper.writeValueAsString(selected))==run.scopeHash,409,"작업의 허용 문맥이 변경됐어요.")
+        val episode=if(run.characterName.isEmpty()) episodeRows.findByWorkIdAndSequence(work,run.basisEpisode) else null
+        checkContent(ai.storyfork.content.proposal.domain.ChangeSetPolicy.scopeHash(base,mapper.writeValueAsString(selected),episode)==run.scopeHash,409,"작업의 허용 문맥이 변경됐어요.")
         return selected
     }
 

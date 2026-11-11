@@ -27,9 +27,6 @@ class ContextItem(Contract):
     known_by: tuple[str, ...] | None = None
     evidence_refs: tuple[str, ...] = ()
     entity_ids: tuple[str, ...] = ()
-    template_id: str | None = None
-    catalog_revision: str | None = None
-    license_ref: str | None = None
     as_of_episode: int | None = None
 
 
@@ -50,15 +47,15 @@ class ContextPacket(Contract):
 
 def select_paths(query: Query) -> tuple[str, ...]:
     paths = {"quote": ("manuscript",), "current": ("relationship",),
-             "templates": ("template",), "review": ("wiki", "manuscript"),
+             "review": ("wiki", "manuscript"),
              "full_context": ("wiki", "manuscript"), "context": ("wiki", "manuscript")}
     if query.operation in paths:
         return paths[query.operation]
     if query.operation != "search":
         raise ContentReadError("unsupported")
     fields = set(query.required_fields)
-    if fields & {"template_id", "catalog_revision", "license_ref"}:
-        return ("template",)
+    if fields - Evidence.model_fields.keys():
+        raise ContentReadError("unsupported")
     if fields & {"scene_id", "known_by", "evidence_refs", "fact_or_relation"}:
         return ("wiki",)
     if fields & {"source_span", "source_hash"}:
@@ -103,8 +100,8 @@ class RetrievalCoordinator:
         for item in result.evidence:
             if item.retrieval_type != kind or not item.is_mock:
                 raise ContentReadError("denied")
-            if kind in ("relationship", "template"):
-                # 해당 공급자의 현재 CAS/카탈로그 권리는 retrieve 반환 직전에 다시 확인한다.
+            if kind == "relationship":
+                # 해당 공급자의 현재 CAS는 retrieve 반환 직전에 다시 확인한다.
                 continue
             row = rows.get(item.source_revision)
             if row is None:
@@ -181,7 +178,7 @@ class RetrievalCoordinator:
             conflicts = []
             for kind, result in zip(paths, results):
                 verified = self._verify(query, kind, result)
-                if kind in ("relationship", "template") and verified:
+                if kind == "relationship" and verified:
                     latest = await self._call(kind, query.model_copy(update={"operation": "search"}))
                     if latest.status not in ("ok", "partial") or any(
                             not any(old.model_dump(exclude={"retrieved_at"}) == new.model_dump(exclude={"retrieved_at"})

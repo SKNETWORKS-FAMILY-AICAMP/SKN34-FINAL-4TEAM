@@ -31,7 +31,6 @@ env:
   CORE_RABBITMQ_PASSWORD: ci-test-only-broker
   OPERATIONS_SERVICE_TOKEN: ci-test-only-operations-token
   OPENAI_API_KEY: ""
-  OPENAI_MODEL: ""
 
 jobs:
   changes:

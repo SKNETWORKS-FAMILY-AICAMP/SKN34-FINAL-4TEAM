@@ -16,7 +16,7 @@ from app.main import create_app
 pytestmark = pytest.mark.integration
 
 
-def test_real_content_http_authorization_revocation_and_explicit_missing_executor(content, monkeypatch):
+def test_real_content_http_authorization_revocation_and_refused_retrieval(content, monkeypatch):
     request, _, _ = binding(content)
     body = request.model_dump(mode="json", by_alias=True)
     token = "fixture-service-token-at-least-32-characters"
@@ -52,12 +52,12 @@ def test_real_content_http_authorization_revocation_and_explicit_missing_executo
             while True:
                 result = client.get(f"{path}/{request.run_id}", headers=headers)
                 assert result.status_code == 200
-                if result.json()["status"] == "failed":
+                if result.json()["status"] == "denied":
                     break
                 assert time.monotonic() < deadline
                 time.sleep(.01)
             assert result.json()["isMock"] is False
-            assert result.json()["error"]["code"] == "dependency_unavailable"
+            assert result.json()["error"]["code"] == "refused"
             assert result.json()["result"] is None and not result.json()["tasks"]
             state["active"] = False
             assert client.get(f"{path}/{request.run_id}", headers=headers).status_code == 403

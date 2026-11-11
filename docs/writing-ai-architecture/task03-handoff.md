@@ -1,5 +1,7 @@
 # TASK 03 — 인수 기록 재구성
 
+> **2026-11-11 현행:** 실제 연결 여부와 남은 선행 조건은 최신 표를 따른다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 2026-11-10: 별도 인수 파일의 Git 이력은 발견하지 못했습니다. 기존 [검색 계약·구현 기록](07-retrieval-contract-and-mocks.md)의 해당 절을 그대로 보존해 재구성했습니다. 아래 검증·미연결·커밋 상태는 기록 당시의 내용이며 현재 재실행 결과가 아닙니다.
 
 ### TASK 03 구현 상태 — 네 합성 검색기
@@ -11,7 +13,7 @@
 | [relationships.py](../../backend/ai-service/app/retrieval/relationships.py) | `RelationshipGraphRetriever`와 명시 주입한 합성 `MockRelationshipGraph`. 같은 Content Scope·작품·world에 바인딩한 작가 개인의 현재 보기만 지원. 허용 카드 양 끝·방향·라벨·현재 CAS token을 보존하고 history/snapshot/회차 제한 조회는 unsupported |
 | [episode_wiki.py](../../backend/ai-service/app/retrieval/episode_wiki.py) | `EpisodeWikiRetriever`. 회차·장면·사건·지식 습득·복선의 합성 Evidence와 판본·인과 참조를 보존. 누락/stale/비허용 출처를 참조한 파생 경로도 제거하고 partial로 구분 |
 | [manuscript.py](../../backend/ai-service/app/retrieval/manuscript.py) | `ManuscriptVectorRetriever`. 미리 분할한 합성 문단 chunk를 작품/Fork·문서·종류(manuscript/draft/conti)·회차·revision으로 필터링한 뒤 Content의 UTF-16 구간·UTF-8 SHA-256 확인. 다른 회차로 span을 확장하지 않음 |
-| [templates.py](../../backend/ai-service/app/retrieval/templates.py) | `TemplateVectorRetriever`. 서버가 명시한 허용 라이선스와 공개·활성/만료·언어·장르를 검사하는 별도 카탈로그. Evidence의 work/fork/document ID는 null. 반환 직전 철회·권리 변경도 폐기 |
+| [templates.py](../../backend/ai-service/app/agents/template_catalog.py) | `TemplateVectorRetriever`. 서버가 명시한 허용 라이선스와 공개·활성/만료·언어·장르를 검사하는 별도 카탈로그. Evidence의 work/fork/document ID는 null. 반환 직전 철회·권리 변경도 폐기 |
 | [_mock.py](../../backend/ai-service/app/retrieval/_mock.py), [contracts.py](../../backend/ai-service/app/retrieval/contracts.py), [fixture](../../backend/ai-service/tests/fixtures/story.json), [단위 테스트](../../backend/ai-service/tests/test_mock_retrievers.py) | Mock 전용 공통 인가·정확 인용·고정 순위/상한, Query의 선택적 source_kinds/language/genre, 명시적 합성 Studio 연결·언어/권리 메타데이터, 부정/회귀 계약 |
 
 모든 결과·Evidence는 `is_mock=true`다. 이 표시는 실제 원고 적용 금지이며 `apply` 등 쓰기 작업은 unsupported다. 실행 router·실제 Content 적용 경로에 등록하지 않았다. 기존 CanonicalAdapter의 현재/과거 관계 읽기는 여전히 unsupported다. 합성 관계 binding은 #109의 실제 작품↔Studio 계약이나 #163의 실제 전송·서비스 인증·위임 수명을 확정하지 않는다.

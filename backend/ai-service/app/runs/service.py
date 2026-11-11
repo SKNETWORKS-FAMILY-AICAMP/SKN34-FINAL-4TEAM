@@ -5,6 +5,7 @@ from hashlib import sha256
 
 from app.retrieval.content_client import CanonicalAdapter, ContentReadError
 from app.retrieval.mock_content import MockContentReadPort
+from .live import run_live
 from .graph import MainGraph, checkpoint_config
 from .orchestrator import PlanLimits
 from .runner import ExecutionLimits
@@ -126,8 +127,19 @@ class RunService:
         if record.cancel.is_set():
             return
         if isinstance(grant, RemoteGrant):
-            # 실제 전문 Agent/검색 실행은 미연결이다. 합성 자료로 성공 대체하거나 모델을 호출하지 않는다.
-            self._status(record, "failed", error=RunFailure(code="dependency_unavailable"))
+            self._status(record, "running")
+            try:
+                result = await asyncio.wait_for(run_live(grant, self.content), grant.request.budget.timeout_ms / 1000)
+                self._status(record, result.status, result=result, outcome=RunOutcome(
+                    response_ref="response:" + grant.request.run_id, proposal_id=result.proposal_id, is_mock=False))
+            except TimeoutError:
+                self._status(record, "failed", error=RunFailure(code="timeout"))
+            except RunError as exc:
+                denied = exc.status == 403
+                self._status(record, "denied" if denied else "failed",
+                             error=RunFailure(code="refused" if denied else "dependency_unavailable"))
+            except Exception:
+                self._status(record, "failed", error=RunFailure(code="dependency_unavailable"))
             return
         self._status(record, "running")
         budget = grant.request.budget

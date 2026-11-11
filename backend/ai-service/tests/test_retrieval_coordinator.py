@@ -11,7 +11,7 @@ from app.retrieval.manuscript import ManuscriptVectorRetriever
 from app.retrieval.contracts import RetrievalResult
 from app.retrieval.coordinator import RetrievalCoordinator
 from app.retrieval.relationships import RelationshipGraphRetriever
-from app.retrieval.templates import TemplateVectorRetriever
+from app.agents.template_catalog import TemplateCatalog
 
 
 def coordinator(content, wiki, manuscripts):
@@ -178,12 +178,12 @@ def test_forged_citation_is_denied(content, change):
 
 def test_special_sources_and_license_projection(content, graph, templates):
     port = RetrievalCoordinator(content, {"relationship": RelationshipGraphRetriever(content, graph),
-        "template": TemplateVectorRetriever(content, templates, frozenset({"demo_allowed"}))}, "v1")
+        "template": TemplateCatalog(content, templates, frozenset({"demo_allowed"}))}, "v1")
     current = run(port, query(content, operation="current"))
     assert current.result.status == "ok" and current.result.evidence
     catalog = run(port, query(content, operation="search", required_fields=("license_ref", "template_id")))
-    assert catalog.context[0].license_ref == "demo_allowed"
-    assert catalog.context[0].content is None
+    assert catalog.result.status == "unsupported" and not catalog.context
+    assert run(port, query(content, operation="templates")).result.status == "unsupported"
 
 
 def test_conflicting_duplicate_cannot_hide_disputed_status(content):

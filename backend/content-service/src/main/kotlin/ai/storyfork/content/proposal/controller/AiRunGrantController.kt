@@ -11,4 +11,8 @@ class AiRunGrantController(private val service: AiRunService) {
     /** 서명·만료·작품·Fork·thread·판본·target·예산을 대조하고 승인된 Scope의 참조만 반환한다. */
     @PostMapping("/{runId}/verify")
     fun verify(@PathVariable runId: String,@RequestBody data: AiRunDispatchRequest): AiRunGrantResponse = service.verifyGrant(runId,data)
+
+    /** 현재 위임으로 인가된 원고·설정과 작가용 Neo4j 관계를 조회한다. */
+    @PostMapping("/{runId}/retrieval")
+    fun retrieval(@PathVariable runId: String,@RequestBody data: AiRunDispatchRequest): AiRunRetrieval = service.retrieval(runId,data)
 }

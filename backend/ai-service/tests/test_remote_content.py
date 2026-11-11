@@ -84,3 +84,31 @@ def test_content_committed_cancellation_prevents_start_and_converges_existing_re
         assert not fresh.records
         await service.close()
     asyncio.run(scenario())
+
+def test_live_question_revalidates_after_generation_and_discards_revoked_answer(content, monkeypatch):
+    from app.runs import live
+    request, remote, _ = authority(content)
+    request=request.model_copy(update={"prompt":"누가 등장해요?"})
+    source = {"scopeRef":"scope-hash","digest":"a"*64,"context":{"title":"제목","basisEpisode":3,
+        "character":"","summary":"","episodes":[],"settings":[],"draft":"허용된 원고"},"currentGraph":None}
+    reply=Mock(return_value={"text":"질문 답변"})
+    monkeypatch.setattr(live,"generate",reply)
+    async def once(changed):
+        remote.retrieval=Mock(side_effect=[source, source, (source | {"digest":"b"*64}) if changed else source])
+        service=RunService(remote)
+        service.start(request)
+        await service.records[request.run_id].task
+        response=service.status(request.run_id,request.grant_ref,request.thread_ref)
+        if changed:
+            assert response.status=="denied" and response.result is None
+        else:
+            assert response.result.text=="질문 답변" and not response.result.is_mock
+        await service.close()
+    asyncio.run(once(False))
+    asyncio.run(once(True))
+    assert reply.call_count==2
+
+def test_malformed_retrieval_response_is_rejected_at_http_boundary(content):
+    request,remote,_=authority(content)
+    with pytest.raises(RunError,match="content_unavailable"):
+        remote.retrieval(request)

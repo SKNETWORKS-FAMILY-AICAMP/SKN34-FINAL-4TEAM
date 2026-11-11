@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.json.JsonMapper
+import ai.storyfork.content.proposal.domain.ChangeSetPolicy.scopeHash
 import java.security.MessageDigest
 import java.time.Instant
 import ai.storyfork.content.episode.repository.EpisodeRepository
@@ -37,6 +38,8 @@ class AiRunService(
     private val proposals: ChangeProposalVersionRepository,
     private val receipts: ChangeProposalReceiptRepository,
     @Qualifier("contentEntityManager") private val em: jakarta.persistence.EntityManager,
+    private val studio: ai.storyfork.content.world.service.WorldStudioService,
+    private val changes: ChangeProposalService,
     private val drafts: ai.storyfork.content.episode.repository.EpisodeDraftRepository,
 ) {
     private val active=setOf("pending","running","awaiting_approval")
@@ -93,6 +96,7 @@ class AiRunService(
 
     fun read(workId: String,subject: String,runId: String): AiRunResponse {
         val run=transaction.execute { authorizedRun(workId,subject,runId) }
+        if(run.status=="awaiting_approval" && progress.result(run)?.proposalId!=null) return response(run)
         return if(run.dispatchStatus=="accepted" && run.status in active) transfer(run,workId,subject,true) else response(run)
     }
 
@@ -162,6 +166,17 @@ class AiRunService(
         val failure=try {
             val request=dispatchRequest(run)
             remote=if(poll) client.status(request) else client.dispatch(request)
+            if(remote.status=="succeeded" && run.operation in setOf("edit","next_draft","expand_conti")) {
+                val answer=remote.result
+                checkContent(remote.isMock==false && answer!=null && !answer.isMock && answer.status=="succeeded",502,"실제 생성 결과를 확인할 수 없어요.")
+                val source=retrieval(run.id,workId,run.scopeHash,subject,request)
+                checkContent(source.digest==answer!!.contextDigest,409,"생성에 사용한 자료가 변경됐어요.")
+                val draft=drafts.findById(episodeId(workId,run.basisEpisode)).orElse(null)
+                val candidate=ai.storyfork.content.proposal.domain.generatedChange(request,run.baseRevision,
+                    draft?.title ?: "",source.context.draft,draft?.editRevision ?: -1,answer.text,answer.citations)
+                changes.prepare(workId,subject,"live:"+run.id,candidate)
+                return transaction.execute {response(authorizedRun(workId,subject,run.id))}
+            }
             when(remote.status) {
                 "denied" -> AiRunFailure.AI_RUN_REFUSED
                 "failed" -> when(remote.error?.code) {
@@ -200,6 +215,42 @@ class AiRunService(
         AiRunGrantResponse(run.id,run.threadId,run.scopeHash,run.grantExpiresAt,run.status=="cancelled")
     }
 
+    /** 위임·현재 판을 확인한 뒤 Content가 선택한 자료만 전송한다. */
+    fun retrieval(runId: String,data: AiRunDispatchRequest): AiRunRetrieval {
+        val verified=verifyGrant(runId,data)
+        return retrieval(runId,data.workId,verified.scopeRef,null,data)
+    }
+
+    private fun retrieval(runId: String,workId: String,scopeRef: String,owner: String?,dispatch: AiRunDispatchRequest?): AiRunRetrieval {
+        data class Binding(val subject: String,val world: java.util.UUID?,val basis: Int)
+        fun binding(): Pair<Binding,ai.storyfork.content.context.service.dto.StoryContextResponse> = transaction.execute {
+            val row=runs.findById(runId).orElseThrow()
+            val run=authorizedRun(workId,owner ?: row.requesterId,runId)
+            if(dispatch!=null) {
+                grants.requireValid(run,dispatch.grantRef)
+                checkContent(dispatch==dispatchRequest(run) && run.status in setOf("pending","running"),403,"종료된 작업은 자료를 읽을 수 없어요.")
+            }
+            val selected=context.read(workId,run.requesterId,ContextRequest(run.basisEpisode,"",run.characterName))
+            val episode=if(run.characterName.isEmpty()) episodes.findByWorkIdAndSequence(workId,run.basisEpisode) else null
+            checkContent(scopeRef==run.scopeHash && scopeHash(run.baseRevision,mapper.writeValueAsString(selected),episode)==scopeRef,409,"작업 문맥이 변경됐어요.")
+            Binding(run.requesterId,episode?.basisWorldId,episode?.basisRevision ?: 0) to selected
+        }
+        val (bound,context)=binding()
+        val graph=bound.world?.let { world ->
+            val draft=studio.draft(world,java.util.UUID.fromString(bound.subject))
+            val cards=draft.cards.filter {it.lifecycle=="active"}.associate {it.id to it.title}
+            val relations=draft.relationships.filter {it.lifecycle=="active"}.mapNotNull {
+                val source=cards[it.sourceCardId] ?: return@mapNotNull null
+                val target=cards[it.targetCardId] ?: return@mapNotNull null
+                AiRunRelation(source,target,it.label,it.body)
+            }
+            checkContent(binding().first==bound,409,"기준 세계관이 변경됐어요.")
+            AiRunGraph(world,bound.basis,draft.relationshipVersion,relations)
+        }
+        val digest=hash(scopeRef+":"+mapper.writeValueAsString(graph))
+        return AiRunRetrieval(scopeRef,digest,context,graph,context.episodes.associate {it.number to episodeId(workId,it.number)})
+    }
+
     private fun dispatchRequest(run: AiRunEntity): AiRunDispatchRequest {
         val thread=threads.findById(run.threadId).orElseThrow()
         val targets=mapper.readValue(run.targetRefsJson,Array<AiRunSourceRef>::class.java).toList()
@@ -212,6 +263,9 @@ class AiRunService(
     fun result(workId: String,subject: String,runId: String): AiRunResultResponse {
         val run=transaction.execute {authorizedRun(workId,subject,runId)}
         val remote=client.status(dispatchRequest(run))
+        remote.result?.contextDigest?.let { expected ->
+            checkContent(retrieval(runId,workId,run.scopeHash,subject,null).digest==expected,409,"검색한 원고 또는 현재 관계가 변경됐어요.")
+        }
         return transaction.execute {
             val current=authorizedRun(workId,subject,runId)
             val work=access.own(workId,subject)
@@ -255,12 +309,14 @@ class AiRunService(
         val selected=context.read(workId,subject,ContextRequest(target.basisEpisode,"",target.character))
         val targets=selected.episodes.map {AiRunSourceRef(workId,"manuscript",episodeId(workId,it.number),it.versionId)}.toMutableList()
         targets+=selected.settings.map {AiRunSourceRef(workId,"setting",it.id,it.versionId)}
+        val episode=if(target.character.isEmpty()) episodes.findByWorkIdAndSequence(workId,target.basisEpisode) else null
         if(target.character.isEmpty() && selected.episodes.none {it.number==target.basisEpisode}) {
-            val episode=episodes.findByWorkIdAndSequence(workId,target.basisEpisode) ?: throw ContentFailure(422,"기준 원고를 찾을 수 없어요.")
-            targets+=AiRunSourceRef(workId,"draft",episode.id,target.baseRevision.toString())
+            if(episode==null) throw ContentFailure(422,"기준 원고를 찾을 수 없어요.")
+            val editRevision=drafts.findById(episode.id).orElse(null)?.editRevision ?: target.baseRevision
+            targets+=AiRunSourceRef(workId,"draft",episode.id,editRevision.toString())
         }
         checkContent(targets.size in 1..100 && targets.all {it.documentId.isNotBlank() && it.revision.isNotBlank()},message="허용된 원고·설정 범위를 좁혀 주세요.")
-        return Snapshot(hash(target.baseRevision.toString()+":"+mapper.writeValueAsString(selected)),targets)
+        return Snapshot(scopeHash(target.baseRevision,mapper.writeValueAsString(selected),episode),targets)
     }
 
     private fun validate(data: AiRunRequest) {

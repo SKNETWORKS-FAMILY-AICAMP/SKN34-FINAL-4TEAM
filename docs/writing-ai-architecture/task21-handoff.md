@@ -1,5 +1,7 @@
 # TASK 21 — AsyncPostgresSaver·Thread 상태 복원
 
+> **2026-11-11 현행:** [TASK별 실제 구현·미구현 근거와 개발 방법](implementation-status.md)을 우선한다. 아래 내용은 당시 인수 기록이다.
+
 2026-11-10. **분리 Saver와 참조 전용 Main/TaskRunner 재개를 구현하고 격리 PostgreSQL에서 검증했다.**
 사용자가 TASK 20 실제 적용 미완료를 유지한 채 TASK 21의 독립 진행을 명시 승인했다.
 TASK 20의 can_apply=false·unsupported_atomic_scope는 변경하지 않았다. TASK 22 이후는 착수하지 않는다.

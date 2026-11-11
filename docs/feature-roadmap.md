@@ -832,3 +832,5 @@
 
 - 2026-11-10 TASK 24: #54·#57 후속으로 집필실 Run·진행·취소·근거·diff·결정 소비와 최소 선택/결과 계약을 로컬 구현했다.
   실제 전문 실행·후보 자동 준비·Required CI/병합은 미완료여서 관련 전체 기능 행은 ❌를 유지한다. [인수보고](writing-ai-architecture/task24-handoff.md).
+
+- 2026-11-11: 집필 질문·부분 검수·초안/편집 승인 후보의 실 Run, 현재 관계, ES 원고 자동 색인·검색과 Langfuse를 연결했다. 위키·전체 검수·시뮬레이션 및 실환경 수용은 미완료다. [구현 판정과 검증](writing-ai-architecture/live-rag-handoff.md).

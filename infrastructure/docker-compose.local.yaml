@@ -3,6 +3,17 @@
 name: storyfork-local
 
 services:
+  elasticsearch:
+    profiles: ["rag"]
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.0
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.license.self_generated.type: ${ELASTIC_LICENSE_TYPE:-basic}
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    volumes:
+      - manuscript-index:/usr/share/elasticsearch/data
+
   postgres:
     image: postgres:17-alpine
     environment:
@@ -163,6 +174,7 @@ services:
       - "127.0.0.1:${WEB_PORT:-5173}:80"
 
 volumes:
+  manuscript-index:
   core-postgres:
   worldstudio-neo4j:
   core-rabbitmq:

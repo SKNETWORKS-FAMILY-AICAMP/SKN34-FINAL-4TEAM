@@ -1,5 +1,7 @@
 # 구현 순서와 수용 기준
 
+> **2026-11-11 현행:** 생성·분류는 GPT-6 Luna, 현재 관계는 Content→Neo4j, 원문은 Elasticsearch E5, RAG 추적은 Langfuse다. 위키는 목업이며 템플릿은 RAG 밖이다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 2026-11-10 TASK 23: 고정 custom 진행 DTO·Content 영속 seq와 terminal 결과 참조·별도 SSE·재접속/410·취소 CAS를 연결했다.
 이벤트 자동 삭제는 사용자 결정으로 제외했다. 실제 전문 실행·본문 resolver·UI 소비자와 운영 복구는 미연결이다.
 [TASK 23 계약](task23-contract.md) · [실행한 검증과 한계](task23-handoff.md). TASK 24는 새 요청 전 시작하지 않는다.

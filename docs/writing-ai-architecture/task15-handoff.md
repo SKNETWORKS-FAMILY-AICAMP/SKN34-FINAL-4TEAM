@@ -1,5 +1,7 @@
 # TASK 15 — Semantic Review 인수 보고
 
+> **2026-11-11 현행:** [TASK별 실제 구현·미구현 근거와 개발 방법](implementation-status.md)을 우선한다. 아래 내용은 당시 인수 기록이다.
+
 2026-11-10 후속 보완: 공백 원문·기계 검사의 공백 설정 기준은 권한 거부 대신 `partial/unverified`로 반환한다.
 Mechanical 3개·Semantic 2개 경계 회귀를 Red→Green으로 확인했고, 선행 보완 선택 단위는 433 passed, 21 deselected다.
 

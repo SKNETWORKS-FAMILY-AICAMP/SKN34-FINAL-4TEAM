@@ -16,7 +16,7 @@ from app.agents.template_recommendation import (
 )
 from app.retrieval.content_client import CanonicalAdapter, SourceVersion
 from app.retrieval.mock_content import MockRow
-from app.retrieval.templates import TemplateVectorRetriever
+from app.agents.template_catalog import TemplateCatalog
 from app.runs.orchestrator import REGISTRY
 
 
@@ -41,7 +41,7 @@ def port(content, templates):
     templates = tuple(t.model_copy(update={"purpose": "대가와 제약이 있는 마법 규칙 보완",
         "expected_change": "마법 사용 대가 설정 추가", "conflicts_with": ("무대가",)}) if t.id == "magic1" else t
         for t in templates)
-    return TemplateVectorRetriever(content, templates, frozenset({"demo_allowed"}))
+    return TemplateCatalog(content, templates, frozenset({"demo_allowed"}))
 
 
 def request(content, context, **changes):
@@ -99,7 +99,7 @@ def test_ineligible_catalog_items_never_appear(content, templates, catalog_conte
     retriever.templates = (item.model_copy(update=changes), *retriever.templates[1:])
     result = run(content, templates, catalog_context, retriever=retriever)
     assert result.status == "empty" and result.reason and not result.items
-    assert not any(e.template_id for e in result.sources)
+    assert not any(e.retrieval_type=="template" for e in result.sources)
 
 
 def test_duplicates_and_declared_conflicts_reference_content_evidence(content, templates, catalog_context):
@@ -169,7 +169,7 @@ def test_unapproved_context_never_reaches_search_or_model(content, templates, ca
 
 def test_empty_catalog_is_distinct_from_search_timeout(content, catalog_context):
     empty = run(content, (), catalog_context)
-    failed = run(content, (), catalog_context, retriever=TemplateVectorRetriever(content, (), frozenset(), failure="timeout"))
+    failed = run(content, (), catalog_context, retriever=TemplateCatalog(content, (), frozenset(), failure="timeout"))
     assert empty.status == "empty" and empty.reason
     assert failed.status == "timeout" and not failed.items
 

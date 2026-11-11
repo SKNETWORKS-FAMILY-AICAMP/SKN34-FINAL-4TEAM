@@ -1,5 +1,7 @@
 # TASK 12 — Mechanical Review 인수 계약
 
+> **2026-11-11 현행:** [TASK별 실제 구현·미구현 근거와 개발 방법](implementation-status.md)을 우선한다. 아래 내용은 당시 인수 기록이다.
+
 2026-11-10 현재 코드 기준으로 누락 링크를 보완했다. 최초 구현은 `83f8065`이며 과거 인수 원문의 복원이 아니다.
 연결 이슈는 [#59](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/59)이며 자동 종료하지 않는다.
 

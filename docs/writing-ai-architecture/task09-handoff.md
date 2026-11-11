@@ -1,5 +1,7 @@
 # TASK 09 — 내부 Run HTTP·FixtureContent 위임 인수 기록
 
+> **2026-11-11 현행:** [TASK별 실제 구현·미구현 근거와 개발 방법](implementation-status.md)을 우선한다. 아래 내용은 당시 인수 기록이다.
+
 2026-11-09. **TASK 09의 합성 내부 HTTP 경계를 완료했다.** 접수·조회·취소와 작업별 위임 검증을 기존 MainGraph에 연결했다. 실제 Content grant/MCP·실제 모델·원고 저장·공개 API·화면 연결을 완료했다는 의미는 아니다.
 
 ## 기준·범위·근거

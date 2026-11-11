@@ -1,5 +1,7 @@
 # TASK 16 — 전개 인사이트·BeatPlan 인수
 
+> **2026-11-11 현행:** [TASK별 실제 구현·미구현 근거와 개발 방법](implementation-status.md)을 우선한다. 아래 내용은 당시 인수 기록이다.
+
 2026-11-10 후속 보완: 반응 재현이 필요해도 Simulation opt-in이 없거나 호출 예산이 0이면 adapter는 예외 대신
 `blocked` BeatPlan 참조를 반환한다. 실행기는 partial이며 모델 0회·task_failed 없음이다. 신규 2개 실행기 경계를
 Red→Green으로 확인했고, 선행 보완 선택 단위는 433 passed, 21 deselected다.

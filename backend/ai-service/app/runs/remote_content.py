@@ -10,6 +10,7 @@ from urllib.request import Request, HTTPRedirectHandler, ProxyHandler, build_ope
 from pydantic import AwareDatetime, Field, ValidationError, StrictBool
 
 from app.retrieval.contracts import Contract
+from app.retrieval.live_contract import RetrievalSnapshot
 from .schemas import RunError, RunRequest
 from .state import Ref
 
@@ -44,23 +45,36 @@ class RemoteContent:
         self.opener = build_opener(ProxyHandler({}), NoRedirect())
         self._requests: dict[str, RunRequest] = {}
 
-    def authorize(self, request: RunRequest) -> RemoteGrant:
+    def _post(self, request, path, limit):
         if not self.token.strip():
             raise RunError(503, "content_unavailable")
-        call = Request(f"{self.base_url}/internal/v1/ai/runs/{request.run_id}/verify",
+        call = Request(f"{self.base_url}/internal/v1/ai/runs/{request.run_id}/{path}",
             data=request.model_dump_json(by_alias=True).encode(), method="POST",
             headers={"Content-Type": "application/json", "X-Internal-Token": self.token})
         try:
             with self.opener.open(call, timeout=3) as response:
-                raw = response.read(16385)
-            if len(raw) > 16384:
+                raw = response.read(limit + 1)
+            if len(raw) > limit:
                 raise ValueError("oversized_verification")
-            verified = GrantVerification.model_validate(json.loads(raw))
+            return json.loads(raw)
         except HTTPError as error:
             if error.code in (401, 403, 404, 409):
                 raise RunError(403, "invalid_scope") from None
             raise RunError(503, "content_unavailable") from None
         except (URLError, OSError, TimeoutError, ValueError, ValidationError):
+            raise RunError(503, "content_unavailable") from None
+
+    def retrieval(self, request):
+        try:
+            return RetrievalSnapshot.model_validate(
+                self._post(request, "retrieval", 1_000_000)).model_dump(mode="json")
+        except ValidationError:
+            raise RunError(503, "content_unavailable") from None
+
+    def authorize(self, request: RunRequest) -> RemoteGrant:
+        try:
+            verified = GrantVerification.model_validate(self._post(request, "verify", 16384))
+        except ValidationError:
             raise RunError(503, "content_unavailable") from None
         if (verified.run_id != request.run_id or verified.thread_ref != request.thread_ref
                 or verified.expires_at <= datetime.now(timezone.utc)):

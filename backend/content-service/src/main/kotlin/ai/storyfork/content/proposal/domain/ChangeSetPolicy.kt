@@ -7,6 +7,12 @@ import java.util.HexFormat
 
 object ChangeSetPolicy {
     fun hash(value: String): String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8)))
+    /** 세계관을 선택하지 않은 기존 Run은 같은 digest를 유지한다. */
+    fun scopeHash(base: Int,contextJson: String,episode: ai.storyfork.content.episode.entity.EpisodeEntity?): String {
+        val binding=episode?.basisWorldId?.let {":$it:${episode.basisRevision}:${episode.basisWorldRevisionId}"} ?: ""
+        return hash("$base:$contextJson$binding")
+    }
+
     // 제목의 UTF-16 길이로 경계를 고정하여 제목·본문 결합의 모호함을 없앤다.
     fun documentHash(title: String, body: String) = hash("${title.length}:$title$body")
 

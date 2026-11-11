@@ -1,5 +1,7 @@
 # TASK 24 — 집필실 Run 소비 계약
 
+> **2026-11-11 현행:** 실제 위임의 /retrieval·문맥 digest 및 Content의 변경 후보 준비가 추가됐다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 2026-11-10. 사용자가 TASK 24에 필요한 최소 Content·AI 계약 보완을 승인했다.
 기존 TASK 22 결정·TASK 23 진행 계약과 이어쓰기 API는 유지한다.
 

@@ -1,5 +1,7 @@
 # TASK 11 — Story Context / Q&A 인수 계약
 
+> **2026-11-11 현행:** 실제 연결 여부와 남은 선행 조건은 최신 표를 따른다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 2026-11-10 현재 코드 기준으로 누락 링크를 보완했다. 최초 구현은 `bc1026e`이며 과거 인수 원문을 복원한 문서가 아니다.
 연결 이슈는 [#56](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56)·[#57](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/57)이다. 이번 작업에서 이슈 상태를 변경하지 않았다.
 

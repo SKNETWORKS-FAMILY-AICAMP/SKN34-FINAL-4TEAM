@@ -56,7 +56,7 @@ docker compose down
 | 변수 | 기본값 | 소비 경계 |
 |---|---|---|
 | `OPENAI_API_KEY` | 빈 값 | AI runtime만 |
-| `OPENAI_MODEL` | local·prod 빈 값 / dev `gpt-5.6-luna` | AI runtime만, 팀 모델 선정·접근 검증 아님 |
+| `ELASTICSEARCH_URL` / `LANGFUSE_BASE_URL` | 선택 | [집필 검색·추적 설정](../docs/writing-ai-architecture/live-rag-handoff.md) · 모델은 GPT-6 Luna 고정 |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |

@@ -1,5 +1,7 @@
 # Content API, 진행 스트림, 승인 및 재개
 
+> **2026-11-11 현행:** 생성·분류는 GPT-6 Luna, 현재 관계는 Content→Neo4j, 원문은 Elasticsearch E5, RAG 추적은 Langfuse다. 위키는 목업이며 템플릿은 RAG 밖이다. [실연동 인수보고](live-rag-handoff.md) 참조. 아래 TASK별 결과는 당시 기록이다.
+
 2026-11-10 TASK 23: Content의 별도 Run SSE·cursor replay·410·polling 결과 참조·취소 CAS를 구현했다.
 custom stream의 고정 이벤트만 받고 결과/terminal event와 기존 승인 결정을 같은 transaction에 기록한다.
 사용자 결정으로 자동 이벤트 삭제와 외부 코드 리뷰 전송은 하지 않는다.

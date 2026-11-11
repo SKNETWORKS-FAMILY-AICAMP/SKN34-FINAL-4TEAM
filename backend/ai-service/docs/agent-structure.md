@@ -1,5 +1,7 @@
 # AI Agent 구현 경계
 
+> 현행은 [실제 실행·전문 Agent별 구현 경계](../../../docs/writing-ai-architecture/implementation-status.md)를 따른다. 아래는 이전 단계의 설명이다.
+
 ## 현재
 
 현재 실행 코드는 Health와 이어쓰기 제안 생성입니다. `openai-agents` 기반 Agent·다중 에이전트 오케스트레이션은 없지만 **모델 호출까지 미구현인 것은 아닙니다.**

@@ -1,4 +1,4 @@
-"""네 검색 공급자가 공유하는 내부 DTO·Port. 인가는 Content에서 재확인한다."""
+"""세 검색 공급자가 공유하는 내부 DTO·Port. 인가는 Content에서 재확인한다."""
 
 from typing import Annotated, Literal, Protocol, Self
 
@@ -28,7 +28,7 @@ def _range(value: tuple[int, int]) -> tuple[int, int]:
 Span = Annotated[tuple[Annotated[int, Field(strict=True)], Annotated[int, Field(strict=True)]],
                  AfterValidator(_span)]
 EpisodeRange = Annotated[tuple[PositiveInt, PositiveInt], AfterValidator(_range)]
-RetrievalType = Literal["relationship", "wiki", "manuscript", "template", "canonical"]
+RetrievalType = Literal["relationship", "wiki", "manuscript", "canonical"]
 GapCode = Literal["missing", "stale", "unsupported", "timeout", "unverified"]
 
 
@@ -88,9 +88,6 @@ class Evidence(Contract):
     score_kind: Id | None = None
     confidence_basis: str | None = None
     source_hash: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")] | None = None
-    template_id: Id | None = None
-    catalog_revision: Id | None = None
-    license_ref: Id | None = None
 
     @model_validator(mode="after")
     def consistent_metadata(self) -> Self:
@@ -98,11 +95,6 @@ class Evidence(Contract):
             raise ValueError("score and score_kind must be supplied together")
         if self.visible_from is not None and self.visible_to is not None and self.visible_to < self.visible_from:
             raise ValueError("visibility range is reversed")
-        if self.retrieval_type == "template":
-            if self.work_id is not None or self.fork_id is not None:
-                raise ValueError("catalog templates have no work or fork")
-            if not all((self.template_id, self.catalog_revision, self.license_ref)):
-                raise ValueError("template id, catalog revision and license are required")
         return self
 
 
@@ -191,7 +183,3 @@ class EpisodeWikiPort(RetrievalPort, Protocol):
 
 class ManuscriptVectorPort(RetrievalPort, Protocol):
     retrieval_type: Literal["manuscript"]
-
-
-class TemplateVectorPort(RetrievalPort, Protocol):
-    retrieval_type: Literal["template"]
