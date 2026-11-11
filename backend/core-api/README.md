@@ -41,6 +41,9 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `PATCH /api/v1/me` | Bearer 인증과 `nickname`; 변경한 회원 정보, 200 |
 | `POST /api/v1/me/email-change` | Bearer 인증과 새 `email`; 변경 확인 메일 요청, 202 |
 | `GET /api/v1/me/notifications` | Bearer 인증, 선택 `cursor`·`limit`(1~50, 기본 20); 본인 알림 최신순 `{"items":[…],"nextCursor"}`, 200 |
+| `GET /api/v1/me/notifications/{id}` | Bearer 인증; 알림 하나(읽음 처리는 하지 않음), 타인·삭제된 알림·UUID가 아닌 id는 404 |
+| `GET /api/v1/me/notifications/groups` | Bearer 인증, 선택 `limit`(1~50, 기본 20); 같은 종류·대상(`kind`·`targetType`·`targetId`) 알림 묶음 `{"items":[{"kind","targetType","targetId","count","unreadCount","latestAt","latestSummary"}]}`을 최근 도착순으로, 200. 대상이 없는 알림은 묶지 않으며 페이지 넘김은 아직 없음. 묶음 표시 기준 시간은 UC-27에서 미정이라 시간 제한 없이 묶음 |
+| `GET /api/v1/me/notifications/groups/items` | Bearer 인증과 `kind`·`targetType`·`targetId`, 선택 `limit`(1~50, 기본 20); 그 묶음의 개별 알림 최신순 `{"items":[…],"nextCursor":null}`, 200. 누락·잘못된 limit은 400 |
 | `GET /api/v1/me/notifications/unread-count` | Bearer 인증; 삭제하지 않은 미읽음 수 `{"count":N}`, 200 |
 | `PATCH /api/v1/me/notifications/{id}/read` | Bearer 인증; 읽음 처리(반복 호출도 204), 타인·삭제된 알림 404 |
 | `POST /api/v1/me/notifications/read-all` | Bearer 인증과 `upTo`; 그 시각 이전 도착분만 읽음, 204 |

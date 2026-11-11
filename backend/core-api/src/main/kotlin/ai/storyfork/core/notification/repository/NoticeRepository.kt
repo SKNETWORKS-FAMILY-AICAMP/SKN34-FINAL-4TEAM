@@ -24,6 +24,22 @@ interface NoticeRepository : JpaRepository<NoticeEntity, UUID> {
     /** 삭제된 알림까지 포함해 해당 사건으로 이미 알림을 만들었는지 확인한다. */
     fun existsBySourceEventId(sourceEventId: UUID): Boolean
 
+    /** 같은 종류·대상으로 묶은 삭제되지 않은 알림의 건수·미읽음 수·최근 도착 시각을 최근 순으로 반환한다. 대상이 없는 알림은 묶지 않는다. */
+    @Query("select n.kind as kind, n.targetType as targetType, n.targetId as targetId, count(n) as total, " +
+        "count(case when n.readAt is null then 1 end) as unread, max(n.createdAt) as latestAt " +
+        "from NoticeEntity n where n.recipientId = :recipientId and n.deletedAt is null and n.targetType is not null and n.targetId is not null " +
+        "group by n.kind, n.targetType, n.targetId order by max(n.createdAt) desc, n.kind, n.targetType, n.targetId")
+    fun groupSummaries(recipientId: UUID, pageable: Pageable): List<NoticeGroupRow>
+
+    /** 묶음의 가장 최근 삭제되지 않은 알림 하나. 묶음 요약 문구로 쓴다. */
+    fun findFirstByRecipientIdAndKindAndTargetTypeAndTargetIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(
+        recipientId: UUID, kind: String, targetType: String, targetId: String,
+    ): NoticeEntity?
+
+    /** 한 묶음에 속한 삭제되지 않은 알림을 최신순으로 반환한다. */
+    @Query("select n from NoticeEntity n where n.recipientId = :recipientId and n.deletedAt is null and n.kind = :kind and n.targetType = :targetType and n.targetId = :targetId order by n.createdAt desc, n.id desc")
+    fun groupItems(recipientId: UUID, kind: String, targetType: String, targetId: String, pageable: Pageable): List<NoticeEntity>
+
     /** 읽지 않은 본인 알림 하나만 읽음 처리한다. 필요한 컬럼만 조건부로 갱신해 동시 삭제 표시를 덮어쓰지 않는다. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update NoticeEntity n set n.readAt = :now where n.id = :id and n.recipientId = :recipientId and n.readAt is null and n.deletedAt is null")
