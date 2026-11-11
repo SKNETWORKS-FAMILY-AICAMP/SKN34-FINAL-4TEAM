@@ -69,6 +69,9 @@ export type AppCradle = {
   episodeRepository: EpisodeRepository
   episodeCommentUseCase: import('../../domain/usecases/EpisodeCommentUseCase').EpisodeCommentUseCase
   episodeCommentRepository: import('../../domain/repositories/EpisodeCommentRepository').EpisodeCommentRepository
+  workNoticeUseCase: import('../../domain/usecases/WorkNoticeUseCase').WorkNoticeUseCase
+  workNoticeRepository: import('../../domain/repositories/WorkNoticeRepository').WorkNoticeRepository
+  demoWorkNoticeUseCase: import('../../domain/usecases/WorkNoticeUseCase').WorkNoticeUseCase
   editSuggestionUseCase: import('../../domain/usecases/EditSuggestionUseCase').EditSuggestionUseCase
   editSuggestionRepository: import('../../domain/repositories/EditSuggestionRepository').EditSuggestionRepository
   feedbackReportUseCase: import('../../domain/usecases/FeedbackReportUseCase').FeedbackReportUseCase

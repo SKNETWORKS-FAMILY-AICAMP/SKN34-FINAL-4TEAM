@@ -1,6 +1,6 @@
 import type { Work as ContentWork } from '../entities/content'
 import { splitSentences } from '../entities/feedback'
-import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sameAuthorWorks, similarWorks, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
@@ -131,6 +131,14 @@ export class ReadingUseCase {
     await repo.recordView(work.id, first.number).catch(() => {})
   }
 
+  /**
+   * 소설 상세 회차 목록의 누적 조회 수(공개 상세 응답에서만 옴). 공개 서버 작품이 아니거나 검색 저장소가 없는 목업이면 요청 없이 undefined이고,
+   * 읽지 못하면 0회로 숨기지 않고 던지므로 화면이 수를 감춘다.
+   */
+  async episodeViews(work: Work, signal?: AbortSignal) {
+    return work.canonical && isPub(work) ? this.workSearchRepository?.episodeViews(work.id, signal) : undefined
+  }
+
   private async load(id: string) {
     const [works, worlds, progress] = await Promise.all([this.workRepository.listWorks(), this.workRepository.listWorlds(), this.readingRepository.getProgress()])
     return { works, worlds, progress, w: works.find((x) => x.id === id || x.slug === id) }
@@ -242,6 +250,24 @@ export class ReadingUseCase {
     return {
       list: works.filter(isPub).filter((w) => matchW(w, q, f, works)).sort(sorter(sort === 'latest' ? 'new' : sort)),
       hasMore: false,
+    }
+  }
+
+  /**
+   * 소설 상세 추천(새 서버 경로 없이 공개 검색 findWorks를 인기 순으로 두 번 부른다): 같은 작가의 다른 작품(f=author)과 첫 장르의 비슷한 작품(f=genre,
+   * 해시태그가 겹치는 순)을 병렬로 읽는다. 한쪽만 실패할 수 있어 실패는 빈 목록으로 숨기지 않고 섹션마다 failed로 알리며, 이 메서드는 던지지 않는다.
+   * ponytail: 검색 첫 장(20개) 안에서만 거른다. 같은 작가·장르 작품이 20개를 넘으면 뒤의 작품은 못 찾는다. 필요하면 서버에 추천 API를 둔다.
+   */
+  async recommendWorks(work: Work, signal?: AbortSignal) {
+    const genre = work.genre.split(' · ')[0]
+    const [byAuthor, byGenre] = await Promise.allSettled([
+      this.findWorks({ q: work.author, f: 'author', sort: 'like' }, signal),
+      genre ? this.findWorks({ q: genre, f: 'genre', sort: 'like' }, signal) : { list: [] as Work[] },
+    ])
+    const sameAuthor = byAuthor.status === 'fulfilled' ? sameAuthorWorks(work, byAuthor.value.list) : []
+    return {
+      sameAuthor: { items: sameAuthor, failed: byAuthor.status === 'rejected' },
+      similar: { items: byGenre.status === 'fulfilled' ? similarWorks(work, byGenre.value.list, sameAuthor) : [], failed: byGenre.status === 'rejected' },
     }
   }
 
