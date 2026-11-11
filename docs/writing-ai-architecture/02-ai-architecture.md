@@ -29,7 +29,17 @@ flowchart LR
 5. 실제 OpenAI 응답을 답변·Finding·BeatPlan·Text/Patch·ImpactReport 중 하나로 반환한다.
 6. 수정 요청이면 Content가 변경 후보를 보관하고 작가 승인 뒤 권한과 판본을 다시 검사해 적용한다.
 
-단일 기능은 명시적 operation으로 시작한다. 자연어 자동 라우팅과 복합 DAG는 둘 이상의 실제 기능이 검증되고 조합 요구가 생긴 뒤에 추가한다. LangGraph는 **Character Simulation의 반복 상태 갱신**과 실제 중단·재개가 필요한 복합 실행에 사용한다. 단순 조회를 억지로 그래프에 넣지 않는다.
+단일 기능은 명시적 operation으로 시작한다. 복합 DAG 실행은 둘 이상의 실제 기능이 검증되고 조합 요구가 생긴 뒤에 추가한다.
+
+### Intent Router와 입력 가드레일 (#55)
+
+`ai-service`의 `app/intent/routing.py`의 `route`가 실행 전 분류만 한다(2026-11-11 사용자 요청으로 선행 구현). 실행·검색·정본 수정·HTTP 연결은 아직 없다.
+
+- UI에서 고른 operation이 있으면 모델을 부르지 않고 그 기능 하나로 확정한다. 등록되지 않은 값은 거절한다.
+- 자유 입력은 OpenAI 구조화 출력으로 `route`(7개 기능의 순서 있는 steps, 최대 4개), `clarify`(확인 질문), `blocked`(`permission_bypass|tool_execution|secret_exposure`) 중 하나를 받는다. 조건부 단계 `if_issues_found`는 Review·웹 조사·World & Plot 뒤에만 온다. 예: "검수하고 문제가 있으면 고쳐줘" → Review → 조건부 Writing & Editing.
+- 요청과 검색·원고 자료(`materials`)는 JSON 데이터로만 보내며 자료 안 지시는 분류에 반영하지 않는다.
+- 권한·작품/Fork/회차 범위는 Router가 다시 검사하지 않는다. Content가 `QaScopeService` 등으로 먼저 확정한 범위를 그대로 쓰며, Router 결과에는 범위·대상·도구 필드가 없어(추가 필드 출력은 실패) 입력 문장이 그 범위를 넓힐 수 없다.
+- 등록 밖 기능·순서 규칙 위반·형식 오류·모델 오류·미완료 응답·키 미설정은 `ProviderFailure`이며 정상 분류로 표시하지 않는다. LangGraph는 **Character Simulation의 반복 상태 갱신**과 실제 중단·재개가 필요한 복합 실행에 사용한다. 단순 조회를 억지로 그래프에 넣지 않는다.
 
 ## 7개 기능의 경계
 

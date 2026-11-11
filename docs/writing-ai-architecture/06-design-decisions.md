@@ -8,7 +8,7 @@
 | 관계 정본 | Content가 확인한 Neo4j **현재 관계 하나** | 과거 관계 이력/복원은 #132 계약에서 제외. 회차 시점의 관계를 현재 그래프로 추측하지 않는다. |
 | 원고 정본과 검색 | PostgreSQL 원고·버전이 정본, Elasticsearch 벡터 인덱스는 파생 검색 | 색인 결과는 권한·revision·원문 span을 다시 확인해야 한다. 색인 지연은 누락으로 표시한다. |
 | 전체 RAG | 관계 Graph, 회차 Wiki Graph, 원고 Vector, 템플릿 Vector의 네 경로를 목표로 유지 | Wiki·템플릿은 실제 필요와 기반이 생길 때 구현. 공통 출처/coverage만 미리 문서화한다. |
-| 실행 형태 | 단순 기능은 기존 FastAPI 호출, 반복 인물 시뮬레이션은 LangGraph Subgraph | 자연어 Router·범용 DAG·Saver를 선행 조건으로 만들지 않는다. |
+| 실행 형태 | 단순 기능은 기존 FastAPI 호출, 반복 인물 시뮬레이션은 LangGraph Subgraph | 범용 DAG·Saver를 선행 조건으로 만들지 않는다. 자연어 Intent Router는 분류만 하는 함수로 선행 구현했다(#55, 2026-11-11 사용자 요청). |
 | 검수 | Mechanical과 Semantic 분리, 인물 행동 재현 때만 Simulation | 맞춤법과 서사 판단의 근거·오류 유형이 다르다. |
 | 집필과 기획 | Development는 BeatPlan, Writing은 새 Text 또는 기존 Patch | 계획을 원고 정본처럼 저장하지 않는다. |
 | 제안 적용 | AI는 변경 후보, Content가 승인·현재 판본·적용 영수증 판단 | 모델 출력이 곧 저장/발행은 아니다. 저장소 간 원자성을 가정하지 않는다. |
