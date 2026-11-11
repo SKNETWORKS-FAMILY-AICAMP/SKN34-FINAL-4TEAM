@@ -113,3 +113,33 @@ it.each(['directed','symmetric'] as const)('reads 6-B partial metadata and prese
  expect(saved.settings[2].item.kind).toBe('fact')
  expect(saved.settings.slice(0,2)).toEqual([a,b])
 })
+
+const revisionId=crypto.randomUUID()
+const confirmed=()=>({worldId:id,revisionId,revisionNo:1,name:'확정 이름',description:'확정 원문',parentRevisionId:null,restoredFromRevisionId:null,cards:wire().cards.map(card=>({versionId:crypto.randomUUID(),versionNo:1,restoredFromVersionId:null,card})),relationships:null,relationshipStatus:'not_recorded'})
+it('reads immutable revision cards separately and refuses current relations in history',async()=>{
+ const snapshot=confirmed(),fetcher=vi.fn().mockResolvedValueOnce(Response.json([{worldId:id,revisionId,revisionNo:1,name:'확정 이름',createdAt:'2026-11-11T00:00:00Z'}])).mockResolvedValueOnce(Response.json(snapshot)).mockResolvedValueOnce(Response.json({...snapshot,relationships:wire().relationships}))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ expect(await repo.revisions(id)).toHaveLength(1)
+ expect((await repo.revision(id,revisionId)).description).toBe('확정 원문')
+ await expect(repo.revision(id,revisionId)).rejects.toThrow()
+})
+it('retains the exact confirmation key across response loss and repository recreation until acknowledged',async()=>{
+ const values=new Map<string,string>();vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)})
+ const fetcher=vi.fn().mockRejectedValueOnce(new Error('response lost')).mockResolvedValueOnce(Response.json(confirmed()))
+ let repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.confirm(id,2)).rejects.toThrow()
+ repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.confirm(id,3)).rejects.toThrow('같은 입력')
+ expect((await repo.confirm(id,2)).revisionId).toBe(revisionId)
+ expect(fetcher.mock.calls[0][1].body).toBe(fetcher.mock.calls[1][1].body)
+ expect(repo.pendingConfirmation(id)).toEqual({expectedDraftRevision:2,key:expect.any(String)})
+ repo.acknowledgeConfirmation(id);expect(repo.pendingConfirmation(id)).toBeNull()
+})
+
+it('releases only a definitely rejected stale confirmation, allowing a deliberate new request on refreshed draft',async()=>{
+ const values=new Map<string,string>();vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)})
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json({code:'WORLD_CONFLICT',detail:'초안이 변경되었습니다.'},{status:409})).mockResolvedValueOnce(Response.json(confirmed()))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.confirm(id,2)).rejects.toThrow('변경');expect(repo.pendingConfirmation(id)).toBeNull()
+ await repo.confirm(id,3);expect(JSON.parse(fetcher.mock.calls[1][1].body).key).not.toBe(JSON.parse(fetcher.mock.calls[0][1].body).key)
+})

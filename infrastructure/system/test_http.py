@@ -305,6 +305,36 @@ def test_content_initial_world_review_survives_relogin_and_keeps_original(signed
     assert after["cards"][0]["semanticMetadata"]["preprocessing"]["provenance"] == "author_revision"
     assert after["cards"][0]["semanticMetadata"]["preprocessing"]["evidence"] == []
     assert client.get(path).json()["output"] == output
+    # Explicit confirmation is separate from applying a candidate and from publication.
+    revisions_url = f"/api/v1/world-studios/{world}/revisions"
+    confirm_request = {"key": "confirm-reviewed", "expectedDraftRevision": after["draftRevision"]}
+    refresh_csrf(client)
+    confirmed = client.post(revisions_url, json=confirm_request)
+    assert confirmed.status_code == 200
+    frozen = confirmed.json()
+    assert frozen["relationships"] is None and frozen["relationshipStatus"] == "not_recorded"
+    refresh_csrf(client)
+    assert client.post(revisions_url, json=confirm_request).json() == frozen
+    current = client.get(f"/api/v1/world-studios/{world}").json()
+    assert current["draftRevision"] == after["draftRevision"] + 1 and current["currentRevisionId"] == frozen["revisionId"]
+    assert len(client.get(revisions_url).json()) == 1
+    assert client.get(path).json()["freshness"] == "stale"
+    changed_card = {**current["cards"][0], "body": "확정 이후 수정한 초안"}
+    refresh_csrf(client)
+    changed = client.put(f"/api/v1/world-studios/{world}/draft", json={"expectedDraftRevision": current["draftRevision"], "key": "edit-after-confirmation", "replace": False, "name": current["name"], "description": current["description"], "cards": [changed_card], "relationships": []})
+    assert changed.status_code == 200
+    refresh_csrf(client)
+    second = client.post(revisions_url, json={"key": "confirm-second", "expectedDraftRevision": changed.json()["draftRevision"]})
+    assert second.status_code == 200 and second.json()["revisionNo"] == frozen["revisionNo"] + 1
+    refresh_csrf(client)
+    assert client.post(revisions_url, json={**confirm_request, "key": "stale-confirmation"}).status_code == 409
+    refresh_csrf(client)
+    relogin = client.post("/api/v1/auth/login", json={"email": signed_in["email"], "password": "ci-only-signup-password"})
+    assert relogin.status_code == 200
+    client.headers["Authorization"] = "Bearer " + relogin.json()["accessToken"]
+    assert len(client.get(revisions_url).json()) == 2
+    assert client.get(revisions_url + "/" + frozen["revisionId"]).json() == frozen
+    assert frozen["cards"][0]["card"]["body"] == "작가 수정"
     scalar(f"UPDATE worldstudio.world_draft SET draft_revision=draft_revision+1 WHERE world_id='{world}'")
     refresh_csrf(client)
     stale = client.post(endpoint, json={**approve, "key": "stale", "expectedDecisionSequence": 3})

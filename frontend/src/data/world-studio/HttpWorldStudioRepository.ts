@@ -4,8 +4,8 @@ import { newSetting, type StudioSetting, type StudioWorld } from '../../domain/e
 import { cardTypeOf } from '../../domain/entities/studioCards'
 import { relationDefinitions } from '../../domain/entities/studioRelations'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
-import { authVersion, protectedRequest } from '../api/auth'
-import { csrf } from '../api/csrf'
+import { authVersion, authenticatedUserId, protectedRequest } from '../api/auth'
+import { csrf, withLock } from '../api/csrf'
 
 const uuid = z.uuid(), revision = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
 const area = z.enum(['basic', 'space', 'history', 'society', 'culture', 'special', 'conflict'])
@@ -98,6 +98,9 @@ const card = z.object({
   visibility: z.literal('private'),
   lifecycle: z.enum(['active', 'removed']),
 })
+const confirmationRequest=z.object({expectedDraftRevision:revision,key:uuid})
+const revisionSummary=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),createdAt:z.string()})
+const revisionSnapshot=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),description:z.string(),parentRevisionId:uuid.nullable(),restoredFromRevisionId:uuid.nullable(),relationshipStatus:z.literal('not_recorded'),relationships:z.null(),cards:z.array(z.object({versionId:uuid,versionNo:revision.positive(),restoredFromVersionId:uuid.nullable(),card:card.extend({semanticMetadata:z.record(z.string(),z.unknown()),visibility:z.enum(['private','public'])})}))})
 const relation = z.object({
   id: uuid,
   sourceCardId: uuid.nullable(),
@@ -193,6 +196,7 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   if (new Set(settings.map((s) => s.item.id)).size !== settings.length) throw invalid()
   return {
     id,
+    currentRevisionId:value.currentRevisionId,
     name: value.name,
     description: value.description,
     version: value.draftRevision,
@@ -251,7 +255,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
     if (!response.ok) {
       const failure = z.object({ detail: z.string(), code: z.string().optional() }).safeParse(value)
       const rejected = failure.success &&
-        (response.status === 422 && failure.data.code === 'WORLD_INPUT_INVALID' ||
+        (response.status===409&&path.endsWith('/revisions') || response.status === 422 && failure.data.code === 'WORLD_INPUT_INVALID' ||
           response.status === 409 && failure.data.code === 'WORLD_WRITE_REJECTED')
       throw new Error(
         failure.success
@@ -263,6 +267,22 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
     const parsed = schema.safeParse(value)
     if (!parsed.success) throw invalid()
     return parsed.data
+  }
+  private confirmationKey(id:string){uuid.parse(id);const owner=authenticatedUserId();if(!owner)throw new Error('로그인이 필요합니다.');return `storyfork:confirmation:${owner}:${id}`}
+  pendingConfirmation(id:string){const raw=localStorage.getItem(this.confirmationKey(id));return raw?confirmationRequest.parse(JSON.parse(raw)):null}
+  acknowledgeConfirmation(id:string){localStorage.removeItem(this.confirmationKey(id))}
+  async revisions(id:string,signal?:AbortSignal){uuid.parse(id);const rows=await this.request('/'+id+'/revisions',z.array(revisionSummary),'GET',undefined,signal);if(rows.some(r=>r.worldId!==id))throw invalid();return rows}
+  async revision(id:string,revisionId:string,signal?:AbortSignal){uuid.parse(id);uuid.parse(revisionId);const row=await this.request('/'+id+'/revisions/'+revisionId,revisionSnapshot,'GET',undefined,signal);if(row.worldId!==id||row.revisionId!==revisionId)throw invalid();return row}
+  async confirm(id:string,expected:number,signal?:AbortSignal){
+    const storageKey=this.confirmationKey(id)
+    return withLock(storageKey,async()=>{
+      const previous=this.pendingConfirmation(id)
+      if(previous&&previous.expectedDraftRevision!==expected)throw new Error('확정 결과가 미확인입니다. 같은 입력으로 다시 확인하세요.')
+      const body=previous??confirmationRequest.parse({expectedDraftRevision:expected,key:crypto.randomUUID()})
+      localStorage.setItem(storageKey,JSON.stringify(body))
+      try{const saved=await this.request('/'+id+'/revisions',revisionSnapshot,'POST',JSON.stringify(body),signal);if(saved.worldId!==id)throw invalid();return saved}
+      catch(error){if(error instanceof Error&&error.cause==='WORLD_WRITE_REJECTED')localStorage.removeItem(storageKey);throw error}
+    },true)
   }
   async listStudio(signal?: AbortSignal): Promise<StudioWorld[]> {
     this.checkSession()

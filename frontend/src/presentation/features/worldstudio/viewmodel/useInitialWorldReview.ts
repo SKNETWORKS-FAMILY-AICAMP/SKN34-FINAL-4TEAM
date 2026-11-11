@@ -3,7 +3,7 @@ import {useAppSelector} from '../../../../app/store'
 import {appContainer} from '../../../../app/appContainer'
 import type {InitialWorldUseCase} from '../../../../domain/usecases/InitialWorldUseCase'
 import {currentCandidate,type Analysis,type Candidate,type Receipt,type ReviewAction,type MutationResult} from '../../../../domain/entities/initialWorld'
-export function useInitialWorldReview(world:string,active:boolean,dirty:boolean,revision:number|undefined,reload:(receipt:Receipt)=>Promise<void>,lock:(value:boolean)=>void,useCase:InitialWorldUseCase|null=appContainer.resolve('initialWorldUseCase')){
+export function useInitialWorldReview(world:string,active:boolean,dirty:boolean,revision:number|undefined,reload:(receipt:Receipt)=>Promise<unknown>,lock:(value:boolean)=>void,useCase:InitialWorldUseCase|null=appContainer.resolve('initialWorldUseCase')){
  const member=useAppSelector(s=>s.session.memberId),[analyses,setAnalyses]=useState<Analysis[]>([]),[selected,setSelected]=useState(''),[checked,setChecked]=useState<string[]>([])
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[pending,setPending]=useState(false),[receipt,setReceipt]=useState<Receipt|null>(null)
  const controller=useRef<AbortController|null>(null),scope=useRef(0)
