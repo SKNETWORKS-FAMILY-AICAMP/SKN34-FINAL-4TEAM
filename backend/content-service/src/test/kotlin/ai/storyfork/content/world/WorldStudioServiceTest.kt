@@ -319,7 +319,7 @@ class WorldStudioServiceTest {
         verifyNoInteractions(revisions,revisionCards,cardVersions,graph)
         owned();val id=UUID.randomUUID()
         assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,actor,id)}
-        `when`(revisions.findByIdAndWorldId(id,world)).thenReturn(WorldRevision(id=id,worldId=world,revisionNo=1,name="未確定",description="",sealed=false))
+        `when`(revisions.findByIdAndWorldId(id,world)).thenReturn(WorldRevision(id=id,worldId=world,revisionNo=1,name="미확정",description="",sealed=false))
         assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,actor,id)}
         verifyNoInteractions(revisionCards,cardVersions,graph)
     }
