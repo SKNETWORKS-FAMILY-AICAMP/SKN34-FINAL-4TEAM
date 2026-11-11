@@ -19,8 +19,7 @@ import tools.jackson.databind.json.JsonMapper
  * worldId·key가 고정이라 시작할 때마다 다시 시도해도 안전하고, 한 장르가 실패(Neo4j 장애 등)해도 로그만 남기고 서버와 다음 장르는 계속 간다.
  * 리소스 JSON을 읽지 못해도 로그만 남기고 서버는 계속 뜬다(그 시작에서는 적재 없음).
  *
- * ponytail: 이미 저장된 세계관은 내용 비교 없이 건너뛴다. 같은 key로 입력이 바뀌면 hash conflict이고, 저장 뒤에는 draft revision이 올라 새 key만으로는
- * edit가 거절된다(key는 세계관별 범위). 템플릿 내용을 바꾸려면 새 worldId와 새 카드 ID(카드 ID는 세계관 사이에서도 유일)의 새 항목을 추가한다.
+ * v1 입력은 재시도 hash 보존을 위해 동결한다. 최초 저장 뒤 v2 보완은 초기 샘플과 같은 데이터에만 적용한다.
  */
 @Component
 class GenreTemplateSeeder(private val service: WorldStudioService, private val mapper: JsonMapper) {
@@ -29,16 +28,24 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
     @EventListener(ApplicationReadyEvent::class)
     fun seed() {
         // 리소스를 못 읽어도 ApplicationReadyEvent 예외로 서버 기동이 실패하지 않게 로그만 남기고 돌아온다.
-        val templates = try { load() }
+        val templates = try { loadLegacy() }
             catch (e: Exception) { log.error("장르 템플릿 리소스 읽기 실패: {}: {}", e.javaClass.simpleName, e.message); return }
+        val updated = try { load().associateBy { it.worldId } }
+            catch (e: Exception) { log.error("템플릿 보완 리소스 읽기 실패", e); emptyMap() }
         for (template in templates) {
             try { seedGenre(template) }
             catch (e: Exception) { log.error("장르 템플릿 적재 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
+            val target = updated[template.worldId] ?: continue
+            try { GenreTemplateRepair(service).repair(template, target) }
+            catch (e: Exception) { log.error("장르 템플릿 보완 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
         }
     }
 
     internal fun load(): List<GenreTemplate> =
         ClassPathResource("genre-templates.json").inputStream.use { mapper.readValue(it, Array<GenreTemplate>::class.java).toList() }
+
+    internal fun loadLegacy(): List<GenreTemplate> =
+        ClassPathResource("genre-templates-v1.json").inputStream.use { mapper.readValue(it, Array<GenreTemplate>::class.java).toList() }
 
     private fun seedGenre(template: GenreTemplate) {
         val key = "genre-template-${template.genre}"

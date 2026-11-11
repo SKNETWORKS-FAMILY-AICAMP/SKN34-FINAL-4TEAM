@@ -3,6 +3,7 @@ import '../../test/testLocks'
 import {login} from '../api/auth'
 import {HttpWorldStudioRepository} from './HttpWorldStudioRepository'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
+import {readFileSync} from 'node:fs'
 
 const id=crypto.randomUUID()
 const a={...newSetting(),item:{...newSetting().item,id:crypto.randomUUID(),kind:'entity' as const,entityType:'character',title:'가',text:'원문\n보존'}}
@@ -14,6 +15,37 @@ beforeEach(async()=>{
  await login('writer@example.invalid','test-password')
 })
 afterEach(()=>vi.unstubAllGlobals())
+it('reads legacy canonical cards without studio metadata and keeps their text',async()=>{
+ const response=wire();response.cards[0].semanticMetadata={} as typeof response.cards[0]['semanticMetadata']
+ const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(response)))
+ const loaded=await repo.read(id)
+ expect(loaded.settings[0].item.text).toBe(a.item.text)
+ expect(loaded.settings[0].item.entityType).toBe('character')
+ expect(loaded.settings[0].item.decision).toBe('approved')
+})
+it('orders template cards by their preserved template order rather than UUID',async()=>{
+ const response=wire();response.relationships=[]
+ const cards=response.cards.map((c,i)=>({...c,semanticMetadata:{studio:{...c.semanticMetadata.studio,templateOrder:1-i}}}))
+ const fetcher=vi.fn().mockImplementation(async(_path:string,init:RequestInit)=>Response.json({...response,cards,draftRevision:init.method==='GET'?2:3}))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ const loaded=await repo.read(id)
+ expect(loaded.settings.map(s=>s.item.id)).toEqual([b.item.id,a.item.id])
+ await repo.saveStudio(loaded)
+ const body=JSON.parse(fetcher.mock.calls[1][1].body)
+ expect(body.cards.map((c:{semanticMetadata:{studio:{templateOrder:number}}})=>c.semanticMetadata.studio.templateOrder)).toEqual([0,1])
+})
+it('reads all real template resource cards through the HTTP contract',async()=>{
+ const templates: {worldId:string;name:string;description:string;cards:{id:string;title:string;body:string;cardType:string}[]}[]=JSON.parse(readFileSync(new URL('../../../../backend/content-service/src/main/resources/genre-templates.json',import.meta.url),'utf8'))
+ for(const t of templates){
+  const response={...wire(),worldId:t.worldId,name:t.name,description:t.description,relationships:[],cards:t.cards.map(c=>({...c,areaCode:'basic',classification:'',aliases:[],tags:[],semanticMetadata:{},visibility:'private',lifecycle:'active'}))}
+  const result=await new HttpWorldStudioRepository(vi.fn().mockImplementation(async()=>Response.json(response))).read(t.worldId)
+  expect(result.settings.map(s=>s.item.text)).toEqual(t.cards.map(c=>c.body))
+ }
+})
+it('rejects malformed studio metadata instead of silently replacing it',async()=>{
+ const response=wire();response.cards[0].semanticMetadata={studio:{}} as typeof response.cards[0]['semanticMetadata']
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(response))).read(id)).rejects.toThrow()
+})
 it('loads only an authenticated coherent current graph with lossless relation metadata',async()=>{
  const fetcher=vi.fn().mockResolvedValue(Response.json(wire()))
  const controller=new AbortController()

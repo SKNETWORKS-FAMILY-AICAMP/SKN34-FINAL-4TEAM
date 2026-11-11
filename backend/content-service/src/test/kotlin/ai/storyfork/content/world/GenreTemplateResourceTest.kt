@@ -1,6 +1,8 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.world.service.GenreTemplateSeeder
+import ai.storyfork.content.world.service.GenreTemplateRepair
+import ai.storyfork.content.world.service.dto.EditWorldDraftRequest
 import ai.storyfork.content.world.service.WorldStudioService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -14,10 +16,11 @@ class GenreTemplateResourceTest {
         JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()).load()
     private val cards = templates.flatMap { it.cards }
 
-    @Test fun `eleven genres with 248 cards in the documented order`() {
+    @Test fun `twenty five templates with 830 cards in the documented order`() {
         assertEquals(listOf("wuxia", "romance_fantasy", "modern_fantasy", "science_fiction", "alternate_history", "game_fantasy",
-            "fusion_fantasy", "territory_management", "apocalypse", "sports_fantasy", "entertainment"), templates.map { it.genre })
-        assertEquals(248, cards.size)
+            "fusion_fantasy", "territory_management", "apocalypse", "sports_fantasy", "entertainment",
+            "sumerian_mythology", "cthulhu_mythos", "norse_mythology", "greco_roman_mythology", "germanic_folklore", "chinese_folklore", "japanese_mythology", "korean_mythology_fables", "egyptian_mythology", "indian_mythology", "celtic_mythology", "slavic_mythology", "maya_mythology", "aztec_mythology"), templates.map { it.genre })
+        assertEquals(830, cards.size)
     }
 
     @Test fun `world and card ids are globally unique`() {
@@ -36,5 +39,25 @@ class GenreTemplateResourceTest {
 
     @Test fun `full text archive cards are not seeded`() {
         assertTrue(cards.none { it.title.contains("전체 원문") })
+    }
+
+    @Test fun `repair payloads fit the service and preserve canonical frontend fields`() {
+        val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        templates.forEach { template ->
+            val payload = GenreTemplateRepair.payloads(template)
+            val request = EditWorldDraftRequest(2, template.name, template.description, payload, key = "genre-template-${template.genre}-repair-v2")
+            assertTrue(mapper.writeValueAsBytes(request).size <= 2_000_000)
+            payload.forEachIndexed { index, card ->
+                val row = card.semanticMetadata["studio"] as Map<*, *>
+                val item = row["item"] as Map<*, *>
+                assertEquals(index, row["templateOrder"])
+                assertEquals(card.id.toString(), item["id"])
+                assertEquals(card.title, item["title"])
+                assertEquals(card.body, item["text"])
+                assertEquals(card.areaCode, item["category"])
+                assertEquals(if (card.cardType == "event") "history" else "basic", card.areaCode)
+                assertEquals("approved", item["decision"])
+            }
+        }
     }
 }

@@ -133,7 +133,7 @@ V19는 기존 V1~V18을 보존하고 `work_interest`(작품·회원이 기본키
 
 샘플 데이터는 [테이블별 UTF-8 CSV 정본에서 생성한 Flyway `db/migration/sample/V16`](../../infrastructure/sample-data/README.md)으로 서버 시작 시 적용됩니다. V15(샘플 이관 시점의 V10을 develop의 V10~V14 뒤로 옮긴 번호)는 샘플 행 없는 스키마 SQL로 유지하고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개 바이트는 보존합니다. CSV 속성은 원문 근거가 있는 공개 시점만 부여하며 불확실한 값은 비공개입니다. rich 대상 편집/following Fork의 rich detach는 409로 보호하되 원작의 새 단순 설정 초안·확정은 기존 rich 상세를 바꾸지 않고 허용합니다. 실제 적용·hosted CI·브라우저 수용은 별도 확인 대기입니다.
 
-장르 예시 템플릿은 SQL이 아니라, 서버 시작 시 `GenreTemplateSeeder`가 `genre-templates.json`을 읽어 `WorldStudioService`로 Core 운영 관리자(`auth/V8`의 `admin@example.test`, `GenreTemplateSeeder.TEMPLATE_OWNER`) 소유의 WorldStudio 세계관 11개(카드 248장)를 임시 할당으로 적재합니다. 공개된 샘플 관리자 비밀번호로 누구나 수정·삭제할 수 있고 다른 사용자에게는 보이지 않습니다. 장르별 실패(Neo4j 장애 등)는 오류 로그만 남기고 서버는 계속 뜨며 다음 시작 때 다시 시도합니다. [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)·[템플릿 안내](../../infrastructure/sample-data/genre-templates/README.md)를 따릅니다.
+장르 예시 템플릿은 SQL이 아니라, 서버 시작 시 `GenreTemplateSeeder`가 `genre-templates.json`을 읽어 `WorldStudioService`로 Core 운영 관리자(`auth/V8`의 `admin@example.test`, `GenreTemplateSeeder.TEMPLATE_OWNER`) 소유의 WorldStudio 세계관 25개(카드 830장)를 임시 할당으로 적재합니다. 공개된 샘플 관리자 비밀번호로 누구나 수정·삭제할 수 있고 다른 사용자에게는 보이지 않습니다. 장르별 실패(Neo4j 장애 등)는 오류 로그만 남기고 서버는 계속 뜨며 다음 시작 때 다시 시도합니다. [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)·[템플릿 안내](../../infrastructure/sample-data/genre-templates/README.md)를 따릅니다.
 
 Auth SQL은 Core의 `db/migration/auth`/`flyway_schema_history`에 원본 그대로 남습니다. 설정 첨부·이미지는 독립 leaf/history 및 바이트를 유지합니다. WorldStudio V1도 바이트/`worldstudio.world_studio_schema_history`를 유지하고 [명시 migration](src/main/resources/db/migration/worldstudio/README.md) 뒤에만 활성화합니다. 같은 `contentDataSource`를 사용하지만 studio-only EntityManager/TransactionManager이며 서버 시작은 `validate`만 합니다. 별도 WorldStudio DB/pool·Auth 스캔은 없습니다.
 
@@ -151,3 +151,5 @@ Content Dockerfile·Compose·GHCR 게시 대상·nginx/Vite·CI 소비 선택을
 `unitTest`는 `build.gradle`에 분류한 Spring/실제·대역 HTTP/DB/Flyway를 제외하고 `integrationTest`는 그 경계만 실행합니다. 빈 발견/불일치는 실패합니다. hosted CI에는 격리 PostgreSQL fresh 초기화·validate·재실행 0건·변조 이력 거부, 실제 proxy 인증/timeout, Core 내부 보안, 실제 로그인 → Content 소유권·저장·Core 장애 503 시스템 회귀를 둡니다. CI를 구성한 것과 실행 성공은 구분합니다.
 
 로컬 전체 suite·build/bootJar·Spring/DB/HTTP·컨테이너·시스템·브라우저는 실행하지 않습니다. S3 실물 lifecycle은 별도 격리 fixture가 필요하며 현재 CI의 조건부 skip을 통과로 표현하지 않습니다. 최신 Required CI·PR 병합 전 기능표는 ❌를 유지합니다.
+
+장르 템플릿 v2 보완은 기존 ID·이력을 보존하며 초기 v1 샘플과 일치하는 세계관만 갱신합니다. 사용자 편집은 건너뜁니다. `genre-templates-v1.json` 및 배포된 v2 입력은 재시도 호환성을 위해 동결합니다. [보완 절차](../../infrastructure/sample-data/genre-templates/README.md#v2-보완과-기존-데이터-반영)를 참고하세요.

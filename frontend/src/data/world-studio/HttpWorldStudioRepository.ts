@@ -11,6 +11,7 @@ const uuid = z.uuid(), revision = z.number().int().nonnegative().max(Number.MAX_
 const area = z.enum(['basic', 'space', 'history', 'society', 'culture', 'special', 'conflict'])
 const evidence = z.array(z.object({ sourceId: z.string(), quote: z.string() }))
 const studio = z.object({
+  templateOrder: z.number().int().nonnegative().optional(),
   userCategory: z.string(),
   tags: z.array(z.string()),
   aliases: z.array(z.string()).optional(),
@@ -66,7 +67,7 @@ const card = z.object({
   classification: z.string(),
   aliases: z.array(z.string()),
   tags: z.array(z.string()),
-  semanticMetadata: metadata,
+  semanticMetadata: z.union([metadata, z.strictObject({})]),
   visibility: z.literal('private'),
   lifecycle: z.enum(['active', 'removed']),
 })
@@ -134,7 +135,15 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
     ids = new Set(active.map((c) => c.id))
   const settings: StudioSetting[] = active.map((c) => {
-    const row = c.semanticMetadata.studio
+    // 기존 Seeder는 정본 필드만 저장했다. 빈 메타데이터만 복원하며 손상된 studio는 검증에서 거절한다.
+    const row: StudioSetting = 'studio' in c.semanticMetadata ? c.semanticMetadata.studio : {
+      userCategory:c.classification, tags:c.tags, aliases:c.aliases,
+      item:{id:c.id,title:c.title,text:c.body,category:c.areaCode,
+        kind:c.cardType==='rule'?'rule':c.cardType==='event'?'event':'entity',
+        entityType:['rule','event'].includes(c.cardType)?null:c.cardType,
+        topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],
+        condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_input',authorText:c.body,decision:'approved'},
+    }
     if (
       row.item.kind === 'relation' || row.item.id !== c.id || row.item.title !== c.title ||
       row.item.text !== c.body || row.item.category !== c.areaCode ||
@@ -143,7 +152,7 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
       JSON.stringify(row.aliases ?? []) !== JSON.stringify(c.aliases)
     ) throw invalid()
     return row
-  })
+  }).sort((a,b)=>(a.templateOrder??Number.MAX_SAFE_INTEGER)-(b.templateOrder??Number.MAX_SAFE_INTEGER))
   for (const r of value.relationships) {
     const row = r.semanticMetadata.studio, expected = relationship(row)
     if (

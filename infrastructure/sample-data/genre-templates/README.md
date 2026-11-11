@@ -22,13 +22,34 @@
 - [스포츠 판타지](./sports_fantasy/README.md): 《방출된 유망주가 미래의 축구를 안다》
 - [연예계물](./entertainment/README.md): 《추락한 천재 배우가 회귀했다》
 
+## 신화·설화 예시 추가분
+
+기존 11종과 독립된 14종입니다. 각 문화권의 모티프를 활용한 창작 예시이며, 서로 다른 세계관을 자동으로 합쳐 적용하지 않습니다. 이집트는 기존 채팅 개요 원문, 나머지는 후속 설정집 원문을 사용합니다.
+
+- [수메르 신화](./sumerian_mythology/README.md): 《일곱 문 아래, 지워진 이름》 (52장)
+- [크툴루 신화](./cthulhu_mythos/README.md): 《조수 없는 항구의 기록관》 (69장)
+- [북유럽 신화](./norse_mythology/README.md): 《세계수의 마지막 배달부》 (65장)
+- [그리스·로마 신화](./greco_roman_mythology/README.md): 《신탁에서 누락된 열세 번째 영웅》 (60장)
+- [게르만 설화](./germanic_folklore/README.md): 《검은 숲의 계약 수선공》 (64장)
+- [중국 설화](./chinese_folklore/README.md): 《천상 호적에 없는 사람》 (65장)
+- [일본 신화](./japanese_mythology/README.md): 《경계의 신사는 이름을 받지 않는다》 (63장)
+- [한국 신화 및 우화](./korean_mythology_fables/README.md): 《저승행 반송 우편》 (64장)
+- [이집트 신화](./egyptian_mythology/README.md): 《심장보다 무거운 이름》 (10장)
+- [인도 신화](./indian_mythology/README.md): 《세 번째 새벽에 끝나는 맹세》 (14장)
+- [켈트 신화](./celtic_mythology/README.md): 《여름을 빌린 왕의 마지막 손님》 (14장)
+- [슬라브 신화](./slavic_mythology/README.md): 《닭다리 집의 마지막 제자》 (14장)
+- [마야 신화](./maya_mythology/README.md): 《해가 뜨기 전의 공놀이》 (14장)
+- [아즈텍 신화](./aztec_mythology/README.md): 《태양이 쉬는 날》 (14장)
+
+신화 추가분의 `basic_template.content_markdown`은 기본 템플릿 전체를 담습니다. `setting_bible.sections`의 `template_part`는 `기본 템플릿`, `확장 설정`, `도입 예시` 중 하나이며, 기본형 본문과 항목별 데이터를 중복 사용하지 않습니다. 원문의 안내와 모든 본문은 보존합니다. 카드 제목에도 영역을 표시하지만 WorldStudio의 카드 area는 사건이 `history`, 나머지가 `basic`입니다.
+
 ## 적재 방식
 
-Content 서버가 시작될 때 `GenreTemplateSeeder`가 [`genre-templates.json`](../../../backend/content-service/src/main/resources/genre-templates.json)을 읽어 **기존 운영 관리자 계정이 소유한 WorldStudio 세계관 11개(카드 248장)** 를 만듭니다. 기존 `WorldStudioService`의 create → edit → save를 그대로 호출하며, 세계관 ID와 key(`genre-template-<장르>`)가 고정이라 시작할 때마다 다시 시도해도 안전합니다. 한 장르가 실패(Neo4j 장애 등)해도 장르별 오류 로그만 남기고 서버는 계속 뜨며, 다음 시작 때 다시 시도합니다. `genre-templates.json`을 읽지 못해도 오류 로그만 남기고 기동합니다. 이미 저장된 세계관은 건너뜁니다.
+Content 서버가 시작될 때 `GenreTemplateSeeder`가 [`genre-templates.json`](../../../backend/content-service/src/main/resources/genre-templates.json)을 읽어 **기존 운영 관리자 계정이 소유한 WorldStudio 세계관 25개(카드 830장)** 를 만듭니다. 기존 `WorldStudioService`의 create → edit → save를 그대로 호출하며, 세계관 ID와 key(`genre-template-<장르>`)가 고정이라 시작할 때마다 다시 시도해도 안전합니다. 한 장르가 실패(Neo4j 장애 등)해도 장르별 오류 로그만 남기고 서버는 계속 뜨며, 다음 시작 때 다시 시도합니다. `genre-templates.json`을 읽지 못해도 오류 로그만 남기고 기동합니다. 최초 적재는 동결된 `genre-templates-v1.json`으로 재시도 입력을 보존하고, 이어서 `genre-templates.json`의 보완본을 적용합니다. 아래 v2 갱신 조건을 따릅니다.
 
 - 소유 계정(임시 할당): Core `auth/V8__member_admin_operations.sql`의 운영 관리자 `admin@example.test`(`operator=true`), 회원 UUID `5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01`. 새 계정은 만들지 않으며, 운영자로 로그인하면 세계관 목록에서 보입니다.
-- 카드: 장르마다 22~23장. 본문은 `source/original.md`의 해당 항목 그대로이며 인물→`character`, 장소→`location`, 규칙→`rule`, 그 외→`other`, 영역은 `basic`입니다. “전체 원문” 보관본 11개는 카드로 넣지 않습니다.
-- 작품·회차·체크포인트·Fork는 만들지 않습니다. 세계관 이름·설명은 이전 샘플 데이터의 문구를 그대로 썼습니다.
+- 카드: 기존 11종 248장과 신화·설화 14종 582장입니다. 본문은 원문 항목을 보존하며, 긴 항목은 3,000자 이내의 연속 카드로 나눕니다. 신화 추가분은 인물→`character`, 장소→`location`, 조직→`organization`, 능력→`ability`, 사물→`object`, 규칙→`rule`, 사건→`event`, 그 외 및 도입 원고→`other`로 분리합니다. 영역은 사건 카드가 `history`, 나머지가 `basic`이며 “전체 원문” 보관본은 별도 카드로 중복 적재하지 않습니다.
+- 작품·회차·체크포인트·Fork는 만들지 않습니다. 기존 11종의 세계관·카드 데이터는 유지하고 추가분에 새 고정 ID를 부여했습니다.
 
 ## 현재 한계
 
@@ -41,6 +62,18 @@ Content 서버가 시작될 때 `GenreTemplateSeeder`가 [`genre-templates.json`
 
 ## 내용을 바꿀 때
 
-저장된 세계관은 내용 비교 없이 건너뛰므로 `genre-templates.json`을 고쳐도 이미 적재된 세계관은 바뀌지 않습니다. 같은 key로 입력이 바뀌면 hash 충돌이고, 새 key만 써도 저장 뒤의 draft revision이 달라 거절됩니다(key는 세계관별 범위). 내용을 바꾸려면 **새 세계관 ID와 새 카드 ID**(카드 ID는 세계관 사이에서도 유일)를 가진 항목을 추가하세요. 기존 세계관은 그대로 남습니다.
+### v2 보완과 기존 데이터 반영
+
+Content 서버를 재시작하면 `GenreTemplateRepair`가 기존 세계관·카드 ID를 유지하며 프런트 메타데이터, 원문 순서, 분류, 표시 안내를 보완합니다. 별도 SQL·Python 적재나 DB 초기화는 필요 없습니다. 새 세계관도 v1 최초 저장 뒤 v2 저장을 수행하며 기존 불변 저장 버전은 남습니다.
+
+- v1 기준 리소스는 재시도 hash와 비교 기준이므로 수정하지 않습니다. `source/original.md` 및 `content_markdown`도 그대로 보존합니다.
+- 자동 보완 대상은 이름·설명·카드 전체가 v1과 같고 관계가 없는 최초 저장 상태(draft revision 2)뿐입니다. 사용자 수정·추가·삭제·관계가 있으면 건너뛰고 경고 로그를 남깁니다. 소유자 불일치도 강제 변경하지 않습니다.
+- 보완 key는 `genre-template-<장르>-repair-v2`, expected draft revision은 2로 고정합니다. 편집 후 저장 전에 중단되면 같은 요청을 재시도하고 revision 3을 저장합니다. 미완료 그래프 작업도 같은 key/hash일 때만 이어갑니다. 다른 동시 편집은 충돌로 거절합니다.
+- 보완 저장 완료 상태(revision 4)는 재시작해도 다시 저장하지 않습니다. 이 동작은 v2 전용 보완이며 향후 임의의 JSON 변경을 자동 동기화하는 기능이 아닙니다. 배포한 v2 입력도 고정하고 후속 보완은 별도 버전으로 설계합니다.
+- 이미 사용자가 바꾼 카드의 빈 메타데이터는 프런트가 검증된 정본 필드로 읽고 다음 사용자 저장 때 기록합니다. 본문·분류를 자동 덮어쓰지는 않습니다. 손상된 studio 메타데이터는 오류로 유지합니다.
+- `studio.templateOrder`는 원문 읽기 순서입니다. 프런트가 UUID 반환 순서와 무관하게 정렬하고 다음 저장에도 보존합니다.
+- 5종 묶음의 대화형 문구·번호는 서비스 표시 카드에서만 제거합니다. 구조화 원문의 `display_introduction_markdown`이 표시용이고 `introduction_markdown`은 보관용입니다.
+
+운영 확인은 관리자 세계관 상세의 카드 표시, 보완 오류·건너뜀 로그, 재시작 후 저장 버전 증가 여부를 확인하세요. 사용자 수정으로 제외된 세계관은 자동 재설정하지 말고 변경 내용을 검토해 수동 반영해야 합니다.
 
 설계: [WorldStudio 독립 스키마 — 플랫폼 장르 템플릿 세계관](../../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)
