@@ -17,6 +17,7 @@ export function areaPatch(item:SettingItem,category:SettingItem['category']):Par
 }
 export function cardTypePatch(item:SettingItem,type:CardType,settings:StudioSetting[]):Partial<SettingItem> {
  if(cardTypeOf(item)===type)return {}
+ if(item.semanticType)throw new Error('분석으로 추가한 설정의 의미 유형을 보존하기 위해 카드 유형 변경은 지원하지 않아요.')
  if(['claim','constraint','undetermined','relation','note'].includes(item.kind)||item.subjectId||item.targetId||item.relatedIds.length||item.condition||item.timeText||item.afterId||item.topics.length||item.evidence.length)throw new Error('기존 의미·근거를 보존해야 하는 항목이에요. 유형 변경은 통합 후 지원합니다.')
  if(settings.some(s=>s.item.id!==item.id&&[s.item.subjectId,s.item.targetId,s.item.afterId,...s.item.relatedIds].includes(item.id)))throw new Error('다른 설정과 연결된 카드예요. 연결을 보존하기 위해 유형을 변경할 수 없어요.')
  const entity=['character','location','organization','ability','object','other'].includes(type)

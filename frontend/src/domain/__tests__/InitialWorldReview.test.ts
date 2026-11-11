@@ -1,3 +1,5 @@
+import {cardTypePatch} from '../entities/studioCards'
+import {newSetting} from '../entities/studioWorld'
 import {it,expect,vi} from 'vitest'
 import {InitialWorldUseCase} from '../usecases/InitialWorldUseCase'
 import {currentCandidate,type Analysis,type Candidate} from '../entities/initialWorld'
@@ -18,4 +20,9 @@ it('uses the latest approval sequence and rejects stale results',()=>{
  const {useCase,mutate}=setup(),analysis={...a,decisions:[{candidateId:id,candidateRef:c.localRef,sequence:3,state:'approved' as const,content:c}]}
  expect(currentCandidate(analysis,c).sequence).toBe(3);useCase.apply('world',analysis,[id]);expect(mutate.mock.calls[0][2]).toEqual({expectedDraftRevision:2,candidates:[{candidateId:id,decisionSequence:3}]})
  expect(()=>useCase.apply('world',{...analysis,freshness:'stale'},[id])).toThrow('재분석')
+})
+
+it('does not let an applied semantic card silently change its meaning through the ordinary card type editor',()=>{
+ const row=newSetting();row.item={...row.item,kind:'fact',semanticType:'plan'}
+ expect(()=>cardTypePatch(row.item,'character',[row])).toThrow('의미')
 })
