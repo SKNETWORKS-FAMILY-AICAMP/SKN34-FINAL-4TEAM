@@ -44,6 +44,8 @@ class WithdrawalCompletionService(
         member.email = "withdrawn-${member.id}@$ANONYMOUS_EMAIL_DOMAIN"
         member.nickname = ANONYMOUS_NICKNAME
         member.passwordHash = requireNotNull(passwords.encode(UUID.randomUUID().toString()))
+        // 이미 발급된 액세스 토큰(최대 30분)이 남아 있어도 로그인·세션 갱신·내부 인증 확인에서 바로 막히도록 이용 제한을 함께 켠다.
+        member.restricted = true
         challenges.deleteAllByMemberId(member.id)
         sessions.revokeAll(member.id)
         withdrawal.status = AuthWithdrawal.COMPLETED

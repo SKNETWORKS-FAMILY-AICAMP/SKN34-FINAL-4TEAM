@@ -1,6 +1,5 @@
 package ai.storyfork.core.auth
 
-import ai.storyfork.core.auth.scheduler.WithdrawalCompletionJob
 import ai.storyfork.core.auth.service.WithdrawalCompletionService
 import java.sql.Timestamp
 import java.time.Instant
@@ -27,7 +26,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 class WithdrawalCompletionIntegrationTest {
     @Autowired lateinit var mvc: MockMvc
     @Autowired lateinit var jdbc: JdbcTemplate
-    @Autowired lateinit var job: WithdrawalCompletionJob
     @Autowired lateinit var completion: WithdrawalCompletionService
 
     private class Member(val id: UUID, val email: String)
@@ -70,6 +68,7 @@ class WithdrawalCompletionIntegrationTest {
         assertEquals("탈퇴한 회원", row["nickname"])
         assertFalse(BCryptPasswordEncoder().matches("test-password", row["password_hash"] as String))
         assertEquals("COMPLETED", status(w))
+        assertEquals(true, jdbc.queryForObject("select restricted from auth_member where id = ?", Boolean::class.java, m.id))
         assertNotNull(jdbc.queryForObject("select completed_at from auth_withdrawal where id = ?", Timestamp::class.java, w))
         assertEquals("bye", jdbc.queryForObject("select reason from auth_withdrawal where id = ?", String::class.java, w))
         assertEquals(0, jdbc.queryForObject("select count(*) from auth_session where member_id = ? and revoked = false", Int::class.java, m.id))
@@ -79,11 +78,14 @@ class WithdrawalCompletionIntegrationTest {
     }
 
     @Test
-    fun `only requests past their due time are completed by the job`() {
+    fun `only requests past their due time are completed`() {
+        // 공유 테스트 DB의 다른 테스트 행을 건드리지 않도록 작업 전체(runOnce) 대신 이 테스트의 요청만 직접 처리한다.
         val due = member(); val waiting = member(); val restored = member()
         val dueId = withdrawal(due, -1); val waitingId = withdrawal(waiting, 5); val restoredId = withdrawal(restored, -1, "RESTORED")
 
-        assertTrue(job.runOnce(Instant.now()) >= 1)
+        assertTrue(completion.complete(dueId, Instant.now()))
+        assertFalse(completion.complete(waitingId, Instant.now()))
+        assertFalse(completion.complete(restoredId, Instant.now()))
 
         assertEquals("COMPLETED", status(dueId))
         assertEquals("PENDING", status(waitingId))

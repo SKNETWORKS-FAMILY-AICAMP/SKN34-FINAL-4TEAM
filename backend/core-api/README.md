@@ -68,7 +68,7 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 
 `MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403, `code: "ACCOUNT_RESTRICTED"`)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다. 고전 원작 샘플의 소유 계정(`b1b09f26…`) 닉네임은 운영자처럼 보이지 않게 V10이 `운영팀`일 때만 `고전 아카이브`로 바꿉니다.
 
-탈퇴 요청은 계정 상태와 30일 유예 기한만 기록하며 유예 중에도 로그인해 복구할 수 있습니다. 유예 만료 후 Core 안의 최종 처리(계정을 "탈퇴한 회원"으로 익명화하고 이메일·비밀번호를 쓸 수 없게 바꾸며 세션·확인 요청을 지움, 요청은 `COMPLETED`)는 `app.withdrawal.completion.enabled=true`일 때만 `app.withdrawal.completion.poll-interval`(기본 `PT1H`, 한 번에 `batch-size` 50건)마다 실행하며 기본은 꺼져 있습니다. 탈퇴 사유는 그대로 둡니다. 작품·세계관 숨김·삭제·익명화, 남은 크레딧·결제 내역 처리, 같은 이메일 재가입 정책은 콘텐츠 서비스 계약과 정책이 정해진 뒤 연결하므로 아직 없습니다.
+탈퇴 요청은 계정 상태와 30일 유예 기한만 기록하며 유예 중에도 로그인해 복구할 수 있습니다. 유예 만료 후 Core 안의 최종 처리(계정을 "탈퇴한 회원"으로 익명화하고 이메일·비밀번호를 쓸 수 없게 바꾸며 세션·확인 요청을 지움, 요청은 `COMPLETED`)는 `app.withdrawal.completion.enabled=true`일 때만 `app.withdrawal.completion.poll-interval`(기본 `PT1H`, 한 번에 `batch-size` 50건)마다 실행하며 기본은 꺼져 있습니다. 탈퇴 사유는 그대로 두고, 이미 발급된 액세스 토큰이 남아 있어도 바로 막히도록 계정을 이용 제한 상태로 바꿉니다. 완료된 요청은 되돌릴 수 없고 Content의 작품은 정리하지 않으므로 Content 연동 전에는 켜지 않습니다. 작품·세계관 숨김·삭제·익명화, 남은 크레딧·결제 내역 처리, 같은 이메일 재가입 정책은 콘텐츠 서비스 계약과 정책이 정해진 뒤 연결하므로 아직 없습니다.
 
 알림 분류는 `reading`·`creation`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·모바일 푸시는 아직 없습니다. SSE 연결 목록은 Core 인스턴스 메모리에 있으므로 단일 Core 인스턴스를 전제로 하며, 여러 인스턴스로 늘리면 인스턴스 간 신호 전달을 추가해야 합니다. 전송은 연결별 가상 스레드에서 직렬화하고 대기 신호는 종류별로 병합합니다. 전송이 5초를 넘으면 논리적으로 등록 해제하고 종료 처리를 호출자와 분리합니다. 이 기한은 막힌 Servlet 소켓의 물리적 종료를 보장하지 않으며, 실제 자원 회수에는 컨테이너의 쓰기 타임아웃이 필요합니다.
 

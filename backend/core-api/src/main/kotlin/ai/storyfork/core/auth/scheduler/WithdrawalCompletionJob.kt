@@ -9,7 +9,9 @@ import org.springframework.stereotype.Component
 
 /**
  * 유예 기한이 지난 탈퇴 요청을 주기적으로 완료 처리한다. 기본은 꺼져 있고(`app.withdrawal.completion.enabled=false`),
- * 콘텐츠 처리와 크레딧 정책이 정해져 팀이 켤 때까지 아무 일도 하지 않는다. 회원 식별 정보는 로그에 남기지 않는다.
+ * 콘텐츠 처리와 크레딧 정책이 정해져 팀이 켤 때까지 아무 일도 하지 않는다. 완료된 요청은 되돌릴 수 없고 이 작업은 Content의 작품을
+ * 정리하지 않으므로, Content 연동이 생기기 전에는 켜지 않는다. 회원 식별 정보는 로그에 남기지 않는다.
+ * shortcut: 계속 실패하는 요청이 batchSize개 이상 쌓이면 뒤의 요청이 밀린다. 기본이 꺼져 있어 지금은 감수하고, 켜기 전에 건너뛰기를 추가한다.
  */
 @Component
 class WithdrawalCompletionJob(
