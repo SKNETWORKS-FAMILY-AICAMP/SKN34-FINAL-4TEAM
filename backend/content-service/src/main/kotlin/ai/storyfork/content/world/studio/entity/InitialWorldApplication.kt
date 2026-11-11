@@ -6,7 +6,7 @@ import java.util.UUID
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 
-/** 추가 payload와 요청 식별자는 준비 시 고정. 실제 초안 반영과 완료 receipt의 원자적 연결은 후속 PR이다. */
+/** 추가 payload와 요청 식별자는 준비 시 고정. 완료는 WorldStudioService의 초안 최종 트랜잭션에 포함한다. */
 @Entity
 @Table(name="initial_application", schema="worldstudio")
 class InitialWorldApplication(

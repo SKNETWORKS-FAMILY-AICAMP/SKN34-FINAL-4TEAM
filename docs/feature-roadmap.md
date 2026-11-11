@@ -824,3 +824,7 @@
 ### 초기 세계관 후보 검토 6-A — PR #270
 
 Draft·미병합: approve/edit/hold/reject 결정 누적, 작가 수정본·AI 근거 분리, 멱등성·순번 충돌·stale 검증 및 이력 재조회. [검토 계약과 6-B 경계](design/initial-world-candidate-review.md). 승인 후보 초안 반영·UI는 아직 미구현이며 상위 기능 완료로 표시하지 않는다.
+
+### 초기 세계관 승인 후보 초안 반영 6-B — PR #284
+
+Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추가, 기존 Neo4j 현재 상태 CAS와 카드/revision/receipt 원자 완료, 동일 key 장애 복구. [반영 계약·검증·한계](design/initial-world-approved-application.md). UI·확정 버전·과거 관계 복원은 별도이며 상위 기능 전체 완료로 표시하지 않는다.

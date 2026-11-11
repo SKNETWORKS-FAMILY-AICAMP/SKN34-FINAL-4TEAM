@@ -16,7 +16,7 @@ class InitialWorldAdditionTest {
     @Test fun `seven approved kinds append existing references without generating entity copies`() {
         val decisions=output.candidates.map { InitialWorldDecisionRecord(UUID.randomUUID(),it.localRef,1,"approved",it) }
         val ids=decisions.associate { it.candidateId to UUID.randomUUID() }
-        val draft=WorldDraftResponse(input.worldId,input.basis.draftRevision,null,null,"원본","설명",emptyList(),emptyList(),input.basis.relationshipVersion)
+        val draft=WorldDraftResponse(input.worldId,input.basis.draftRevision,null,null,"원본","설명",input.entities.map { CardPayload(it.cardId,it.name,"원문",it.entityType,"basic") },emptyList(),input.basis.relationshipVersion)
         val request=InitialWorldAdditionMapper.build(input.analysisId,UUID.randomUUID(),draft,decisions,ids)
         assertFalse(request.replace);assertEquals(6,request.cards.size);assertEquals(1,request.relationships.size)
         assertTrue(request.cards.none { it.cardType in setOf("character","location","organization") })
@@ -36,7 +36,7 @@ class InitialWorldAdditionTest {
         val ai=output.candidates.first()
         val revised=ai.copy(text="작가가 새로 작성",provenance="author_revision",evidence=emptyList())
         val decision=InitialWorldDecisionRecord(UUID.randomUUID(),ai.localRef,3,"approved",revised)
-        val draft=WorldDraftResponse(input.worldId,1,null,null,"원본","",emptyList(),emptyList())
+        val draft=WorldDraftResponse(input.worldId,1,null,null,"원본","",input.entities.map { CardPayload(it.cardId,it.name,"원문",it.entityType,"basic") },emptyList())
         val result=InitialWorldAdditionMapper.build(input.analysisId,UUID.randomUUID(),draft,listOf(decision),mapOf(decision.candidateId to UUID.randomUUID()))
         val metadata=result.cards.single().semanticMetadata["preprocessing"] as Map<*,*>
         assertEquals("author_revision",metadata["provenance"]);assertEquals(emptyList<Any>(),metadata["evidence"])
@@ -46,5 +46,11 @@ class InitialWorldAdditionTest {
         assertThrows(IllegalArgumentException::class.java) {
             InitialWorldAdditionMapper.build(input.analysisId,UUID.randomUUID(),draft.copy(relationships=added.relationships),listOf(row),mapOf(row.candidateId to UUID.randomUUID()))
         }
+    }
+    @Test fun `application DTOs preserve the shared contract fixture`() {
+        val request=mapper.treeToValue(fixture["applicationRequest"],InitialWorldApplicationRequest::class.java)
+        val response=mapper.treeToValue(fixture["applicationResponse"],InitialWorldApplicationResponse::class.java)
+        assertEquals(fixture["applicationRequest"],mapper.readTree(mapper.writeValueAsString(request)))
+        assertEquals(fixture["applicationResponse"],mapper.readTree(mapper.writeValueAsString(response)))
     }
 }

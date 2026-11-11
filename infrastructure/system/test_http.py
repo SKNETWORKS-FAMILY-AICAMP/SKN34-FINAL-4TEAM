@@ -284,6 +284,27 @@ def test_content_initial_world_review_survives_relogin_and_keeps_original(signed
     assert detail["decisions"][-1] == approved_edit.json()
     assert client.get(f"/api/v1/world-studios/{world}").json() == draft
     assert scalar(f"SELECT count(*) FROM worldstudio.initial_decision WHERE candidate_id='{candidate}'") == "3"
+    # Separate application request persists approved author content; approval alone did not change draft.
+    application_request = {"key": "apply-reviewed", "expectedDraftRevision": draft["draftRevision"],
+                           "candidates": [{"candidateId": candidate, "decisionSequence": 3}]}
+    refresh_csrf(client)
+    applied = client.post(path + "/applications", json=application_request)
+    assert applied.status_code == 200
+    receipt = applied.json()
+    assert receipt["status"] == "applied" and receipt["resultDraftRevision"] == draft["draftRevision"] + 1
+    assert len(receipt["createdCardIds"]) == 1 and receipt["createdRelationshipIds"] == []
+    assert client.get(applied.headers["Location"]).json() == receipt
+    refresh_csrf(client)
+    assert client.post(path + "/applications", json=application_request).json() == receipt
+    refresh_csrf(client)
+    assert client.post(path + "/applications", json={**application_request, "expectedDraftRevision": draft["draftRevision"] + 1}).status_code == 409
+    after = client.get(f"/api/v1/world-studios/{world}").json()
+    assert after["description"] == draft["description"] and after["currentRevisionId"] == draft["currentRevisionId"]
+    assert after["cards"][0]["id"] == receipt["createdCardIds"][0]
+    assert after["cards"][0]["body"] == "작가 수정"
+    assert after["cards"][0]["semanticMetadata"]["preprocessing"]["provenance"] == "author_revision"
+    assert after["cards"][0]["semanticMetadata"]["preprocessing"]["evidence"] == []
+    assert client.get(path).json()["output"] == output
     scalar(f"UPDATE worldstudio.world_draft SET draft_revision=draft_revision+1 WHERE world_id='{world}'")
     refresh_csrf(client)
     stale = client.post(endpoint, json={**approve, "key": "stale", "expectedDecisionSequence": 3})

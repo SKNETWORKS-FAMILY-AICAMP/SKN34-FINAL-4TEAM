@@ -27,7 +27,7 @@ class InitialWorldAnalysisService(
     private val drafts:WorldDraftRepository,private val states:WorldRelationshipStateRepository,
     private val analyses:InitialWorldAnalysisRepository,private val candidates:InitialWorldCandidateRepository,
     private val ai:InitialWorldExtractionClient,private val mapper:JsonMapper,
-    private val decisions:InitialWorldDecisionRepository,
+    private val decisions:InitialWorldDecisionRepository,private val applicationItems:InitialWorldApplicationItemRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,
     @Qualifier("initialWorldAnalysisClock") private val clock:Clock,
 ) {
@@ -151,6 +151,7 @@ class InitialWorldAnalysisService(
             if(previous.requestHash!=hash) throw WorldConflict()
             return@tx decision(previous)
         }
+        if(applicationItems.hasPendingApplication(candidateId)) throw WorldConflict()
         if(analysis.executionStatus!="completed") throw InitialWorldReviewConflict("ANALYSIS_NOT_COMPLETED")
         if(read(analysis,world).body.freshness!="current") throw InitialWorldReviewConflict("ANALYSIS_STALE")
         val latest=decisions.findFirstByCandidateIdOrderBySequenceDesc(candidateId)
