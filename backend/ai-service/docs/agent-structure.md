@@ -6,7 +6,7 @@
 
 - `app/main.py → health/router.py → HealthResponse`: 내부 상태를 반환합니다. Health에서 OpenAI 키를 요구하거나 모델 클라이언트를 생성하지 않습니다.
 - `app/main.py → generation/router.py → generate → OpenAI.responses.create`: `POST /internal/v1/proposals`에서 `X-Internal-Token`을 검증하고 전달받은 문맥·요청으로 이어쓰기 제안을 생성합니다. 키·모델은 생성 요청 시 읽고 클라이언트는 요청 후 닫습니다. 미설정·제공사 실패는 503이며 모델·응답 ID·사용량을 결과에 포함합니다.
-- `app/intent/routing.py → route`: 작가 요청을 등록된 7개 기능의 실행 순서·확인 질문·차단 중 하나로 분류합니다(#55). UI가 고른 operation은 모델 없이 우선하며, 범위·권한은 Content가 확정한 값만 씁니다. 아직 HTTP 엔드포인트·호출자는 없습니다. [Router 계약](../../../docs/writing-ai-architecture/02-ai-architecture.md#intent-router와-입력-가드레일-55)
+- `app/intent/routing.py → route`: 작가 요청을 OpenAI Decisions(`gpt-6-luna`)로 가드레일에 거른 뒤 등록된 7개 기능의 실행 순서·확인 질문·거절(고정 안내 문구) 중 하나로 분류합니다(#55). UI가 고른 operation은 가드레일만 거쳐 우선하며, 범위·권한은 Content가 확정한 값만 씁니다. 아직 HTTP 엔드포인트·호출자는 없습니다. [Router 계약](../../../docs/writing-ai-architecture/02-ai-architecture.md#intent-router와-입력-가드레일-55)
 - 현재 호출자는 분리 전 `core-api`의 `content/client/GenerationClient.kt`입니다. 콘텐츠 코드가 문맥·권한·기준 버전과 제안 채택·저장을 관리하고 AI는 DB 정본을 직접 변경하지 않습니다. Health 성공은 실제 모델 접근 검증이 아닙니다.
 
 [최신 설계](../../../docs/design/design.md)의 최종 모델·제공사·에이전트 프레임워크는 미정입니다. 현재 `openai` SDK 구현과 남아 있는 `openai-agents` 의존성을 전체 기술 선정 완료로 해석하지 않습니다.

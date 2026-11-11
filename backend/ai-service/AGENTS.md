@@ -1,7 +1,7 @@
 # AI Service 구현 지침
 
 `backend/ai-service/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
-현재 내부 Health와 이어쓰기 제안 API가 있다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
+현재 내부 Health와 이어쓰기 제안 API, HTTP 연결 전의 Intent Router(`app/intent/routing.py`, OpenAI Decisions `gpt-6-luna`)가 있다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
 
 ## 구조
 
@@ -9,7 +9,7 @@
 - 요청·응답은 Pydantic DTO(`Request`·`Payload`·`Response`·`Result`)로 정의한다. 임의 `dict`·외부 SDK 응답을 계약으로 노출하지 않는다.
 - 구체 클래스와 직접 함수 호출을 기본으로 한다. production 구현체가 둘 이상이거나 사용자가 요청하지 않으면
   `Protocol`·ABC·provider·registry·factory 추상화를 만들지 않는다. 테스트 편의를 위해 production 추상화를 추가하지 않는다.
-- 모델·제공사·에이전트 프레임워크는 미정이다(DEC-28). 의존성·lockfile을 미리 바꾸지 않는다.
+- 모델·제공사·에이전트 프레임워크는 미정이다(DEC-28). 단, Intent Router는 사용자 결정으로 OpenAI Decisions(`gpt-6-luna`)를 쓴다. 의존성·lockfile을 미리 바꾸지 않는다.
 - 장애는 명시적 오류로 반환하고 fallback으로 숨기지 않는다. 역할·인물마다 서버나 클래스를 만들지 않는다.
 
 ## 생성 경계
