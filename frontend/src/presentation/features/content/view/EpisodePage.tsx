@@ -5,6 +5,7 @@ import './episode.css'
 import { CreateWork } from './CreateWork'
 import { WorkManagement } from './WorkManagement'
 import { Go } from '../../../shared/Go'
+import { MyCommentsReports } from '../../library/view/MyCommentsReports'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
@@ -18,16 +19,18 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const wanted = params.get('work')
+  const reports = params.get('view') === 'reports'
   const vm = useEpisodeViewModel(wanted, useCase)
   const w = vm.active
   const loading = !!wanted && !vm.ready
-  useDocumentTitle(!wanted ? '새 작품 만들기' : w ? `작품 관리 · ${w.title}` : '작품 관리')
+  useDocumentTitle(reports ? '내 댓글·제보' : !wanted ? '새 작품 만들기' : w ? `작품 관리 · ${w.title}` : '작품 관리')
   return (
     <>
       <Gnb on='lib' />
       <div className='episode-app'>
         <main className='ep-main' id='main' tabIndex={-1}>
           <Go to='/lib?tab=write' className='ep-back'><BackChev />내가 쓰는 소설</Go>
+          {!reports && <Go to='/content?view=reports' className='btn sm'>내 댓글·제보</Go>}
           {vm.error && (
             <div className='ep-alert' role='alert'>
               {vm.error}
@@ -39,7 +42,9 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
           <div className='ep-notice' role='status' aria-live='polite'>
             {loading ? '작품을 불러오고 있어요…' : vm.busy ? '요청을 처리하고 있어요…' : vm.notice}
           </div>
-          {!wanted
+          {reports
+            ? <MyCommentsReports />
+            : !wanted
             ? (
               <CreateWork
                 busy={vm.busy}
