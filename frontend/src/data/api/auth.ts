@@ -14,6 +14,7 @@ let userId: string | null = null
 let inFlight: Promise<AuthUser> | null = null
 let generation = 0
 let loggingOut = false
+export const authenticatedUserId = () => accessToken ? userId : null
 export const authVersion = () => generation
 export function assertAuthVersion(version: number) {
   if (version !== generation || loggingOut) throw new Error('Request cancelled')

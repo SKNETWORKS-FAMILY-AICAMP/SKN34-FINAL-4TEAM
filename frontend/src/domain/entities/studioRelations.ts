@@ -2,6 +2,7 @@ import {cardTypes,cardTypeOf} from './studioCards'
 import { authorEdit, newSetting, type SettingItem, type StudioSetting } from './studioWorld'
 
 export const relationDefinitions:Record<string,{label:string;group:'fact'|'emotion'|'other';symmetric?:boolean}>={
+ preserved_emotion_symmetric:{label:'대칭 감정 · 읽기 전용',group:'emotion',symmetric:true},
  custom_relation:{label:'직접 쓴 관계',group:'fact',symmetric:true},custom_relation_directed:{label:'직접 쓴 방향 관계',group:'fact'},custom_emotion:{label:'직접 쓴 감정',group:'emotion'},
  friend_of:{label:'친구',group:'fact',symmetric:true}, sibling_of:{label:'남매·형제자매',group:'fact',symmetric:true},
  child_of:{label:'자녀 → 부모',group:'fact'}, parent_of:{label:'부모 → 자녀',group:'fact'}, spouse_of:{label:'배우자',group:'fact',symmetric:true},
@@ -9,7 +10,7 @@ export const relationDefinitions:Record<string,{label:string;group:'fact'|'emoti
  member_of:{label:'소속',group:'other'}, leads:{label:'이끎',group:'other'}, can_use:{label:'사용 가능',group:'other'}, located_in:{label:'위치',group:'other'},
 }
 export type RelationInput=Pick<SettingItem,'subjectId'|'targetId'|'predicate'|'polarity'> & Partial<Pick<SettingItem,'id'|'title'|'text'>>
-export const isFreeRelation=(predicate:string|null|undefined)=>['custom_relation','custom_relation_directed','custom_emotion'].includes(predicate??'')
+export const isFreeRelation=(predicate:string|null|undefined)=>['custom_relation','custom_relation_directed','custom_emotion','preserved_emotion_symmetric'].includes(predicate??'')
 export function relationLabel(item:Pick<SettingItem,'predicate'|'polarity'>&Partial<Pick<SettingItem,'text'>>) {
  return ((isFreeRelation(item.predicate)?item.text:undefined)??relationDefinitions[item.predicate??'']?.label??item.predicate??'관계')+(item.polarity==='denied'?' 아님':'')
 }

@@ -46,3 +46,7 @@ prod는 소스 빌드 이미지, dev는 CI가 게시한 `:develop` 이미지를 
 
 LLMOps는 운영 영역이고 Langfuse는 MVP 이후 도입 시 별도 제품으로 배포합니다. 자체 UI와 운영 화면 API 통합은 미정이며 Spring Boot로 전체 기능을 재구현하지 않습니다. AI 런타임의 계측·버전 적용과 평가 실행 위치·연동 계약도 후속 설계이며 현재 Langfuse 연동은 없습니다.
 구현 기준은 [AGENTS.md](AGENTS.md), [Agent 구현 경계](docs/agent-structure.md)를 따릅니다.
+
+## 초기 세계관 추출 (5-B)
+
+`POST /internal/v1/initial-world/extractions`는 기존 내부 토큰·OpenAI 설정으로 #219 Input을 받아 검증된 후보 Output만 반환합니다. 실제 모델 호출 경로는 구현했지만 유료 호출·추출 품질은 미검증입니다. 저장·승인·Content 실행 연결은 제외하며 [호출/실패 계약과 검증 한계](../../docs/design/initial-world-ai-extraction.md)를 따릅니다. 기존 이어쓰기 API는 유지합니다.

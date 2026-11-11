@@ -34,7 +34,7 @@ class WorldStudioServiceTest {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,graph,manager,mapper)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,mock(InitialWorldApplicationRepository::class.java),graph,manager,mapper)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)
@@ -215,4 +215,112 @@ class WorldStudioServiceTest {
         verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
     }
     private fun anyUUID():UUID=any(UUID::class.java) ?: UUID(0,0)
+
+    @Test fun `initial input uses owner and remains unchanged while validated under the world lock`() {
+        owned()
+        draft.description="홍😀\r\n길동"
+        val original=service.prepareInitialWorldInput(world,actor,UUID.randomUUID())
+        val result=service.withInitialWorldInput(actor,original) {
+            verify(worlds,atLeast(3)).lockOwned(world,actor)
+            verify(manager,atLeastOnce()).getTransaction(any())
+            // The two draft reads have committed, while the validation/use transaction has not.
+            verify(manager,times(2)).commit(any())
+            assertEquals("홍😀\r\n길동",draft.description)
+            "used"
+        }
+        assertEquals("used",result)
+        assertEquals("홍😀\r\n길동",draft.description)
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        verify(cardDrafts,never()).save(any())
+        verify(states,never()).flush()
+    }
+
+    @Test fun `initial input rejects unauthorized stale and incomplete state before callback`() {
+        owned()
+        val original=service.prepareInitialWorldInput(world,actor,UUID.randomUUID())
+        var calls=0
+        assertThrows(WorldNotFound::class.java) { service.withInitialWorldInput(UUID.randomUUID(),original) { calls++; "bad" } }
+        draft.draftRevision++
+        assertThrows(WorldConflict::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }
+        draft.draftRevision--
+        state.graphVersion++
+        assertThrows(WorldConflict::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }
+        state.graphVersion--
+        draft.description="수정된 원문"
+        assertThrows(WorldConflict::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }
+        draft.description=""
+        state.completed=false
+        assertEquals("RELATIONSHIP_WRITE_INCOMPLETE",assertThrows(WorldStudioFailure::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }.code)
+        assertEquals(0,calls)
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+    }
+
+    @Test fun `initial input rejects current revision change even when draft and graph versions are unchanged`() {
+        owned()
+        val current=StudioWorld(world,actor)
+        `when`(worlds.lockOwned(world,actor)).thenReturn(current)
+        val original=service.prepareInitialWorldInput(world,actor,UUID.randomUUID())
+        current.currentRevisionId=UUID.randomUUID()
+        assertThrows(WorldConflict::class.java) { service.withInitialWorldInput(actor,original) { fail<String>("must not use a stale input") } }
+    }
+
+    @Test fun `callback receives a fresh snapshot instead of caller mutable lists`() {
+        owned()
+        draft.description="원문😀"
+        val card=SettingCardDraft(UUID.randomUUID(),world,CardFields(title="인물",cardType="character",aliases=listOf("별명")))
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(card))
+        val original=service.prepareInitialWorldInput(world,actor,UUID.randomUUID())
+        val callerSources=original.sources.toMutableList()
+        val callerAliases=original.entities.single().aliases.toMutableList()
+        val callerEntities=original.entities.map { it.copy(aliases=callerAliases) }.toMutableList()
+        val supplied=original.copy(sources=callerSources,entities=callerEntities)
+        service.withInitialWorldInput(actor,supplied) { safe ->
+            callerSources.clear()
+            callerAliases.clear()
+            callerEntities.clear()
+            assertEquals(original.sources,safe.sources)
+            assertNotSame(callerSources,safe.sources)
+            assertEquals(listOf("별명"),safe.entities.single().aliases)
+            "used"
+        }
+    }
+
+    @Test fun `confirmed context preserves frozen sources and applied semantics without reading drafts candidates or graph`() {
+        owned()
+        val person=UUID.randomUUID();val place=UUID.randomUUID();val id=UUID.randomUUID()
+        val metadata=mapOf("preprocessing" to mapOf("semanticType" to "goal","provenance" to "author_revision",
+            "analysisId" to UUID.randomUUID().toString(),"candidateId" to UUID.randomUUID().toString(),"decisionSequence" to 3,"evidence" to emptyList<Any>()),
+            "studio" to mapOf("item" to mapOf("subjectId" to person.toString(),"relatedIds" to listOf(place.toString()))))
+        val versions=listOf(
+            SettingCardVersion(cardId=person,worldId=world,versionNo=1,fields=CardFields(title="홍길동",body="원문😀",cardType="character")),
+            SettingCardVersion(cardId=place,worldId=world,versionNo=1,fields=CardFields(title="율도국",body="장소",cardType="location")),
+            SettingCardVersion(cardId=UUID.randomUUID(),worldId=world,versionNo=2,fields=CardFields(title="목표",body="나라를 세우려 한다",semanticMetadata=metadata)),
+            SettingCardVersion(cardId=UUID.randomUUID(),worldId=world,versionNo=1,fields=CardFields(title="삭제",body="제외",lifecycle="removed")))
+        val revision=WorldRevision(id=id,worldId=world,revisionNo=1,name="확정",description="확정 설명",sealed=true)
+        `when`(revisions.findByIdAndWorldId(id,world)).thenReturn(revision)
+        `when`(revisionCards.findAllByIdRevisionId(id)).thenReturn(versions.map {WorldRevisionCard(RevisionCardKey(id,it.cardId),world,it.id)})
+        `when`(cardVersions.findAllById(versions.map {it.id})).thenReturn(versions)
+        val before=service.confirmedContext(world,actor,id)
+        draft.description="나중에 쓴 초안";draft.draftRevision++
+        state.graphVersion++;state.completed=false
+        assertEquals(before,service.confirmedContext(world,actor,id))
+        assertEquals(world,before.worldId);assertEquals(id,before.revisionId);assertEquals(actor,before.authorizedSubject)
+        assertEquals("owner_confirmed_settings",before.scope);assertEquals("확정 설명",before.description)
+        assertEquals(3,before.cards.size);assertEquals(1,before.excludedRemovedCardCount)
+        assertEquals(metadata,before.cards.single {it.card.title=="목표"}.card.semanticMetadata)
+        assertEquals(versions.take(3).map {it.id}.toSet(),before.cards.map {it.versionId}.toSet())
+        assertEquals(setOf(person,place),before.cards.filter {it.card.cardType in setOf("character","location")}.map {it.card.id}.toSet())
+        assertEquals("not_recorded",before.relationshipStatus);assertFalse(before.currentRelationshipsIncluded);assertFalse(before.completeWorldContext)
+        verifyNoInteractions(drafts,cardDrafts,cards,states,graph,requests)
+    }
+
+    @Test fun `confirmed context denies other owners and missing foreign or unsealed revisions`() {
+        assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,UUID.randomUUID(),UUID.randomUUID())}
+        verifyNoInteractions(revisions,revisionCards,cardVersions,graph)
+        owned();val id=UUID.randomUUID()
+        assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,actor,id)}
+        `when`(revisions.findByIdAndWorldId(id,world)).thenReturn(WorldRevision(id=id,worldId=world,revisionNo=1,name="미확정",description="",sealed=false))
+        assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,actor,id)}
+        verifyNoInteractions(revisionCards,cardVersions,graph)
+    }
 }

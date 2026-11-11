@@ -1,3 +1,5 @@
+import {InitialWorldUseCase} from '../../domain/usecases/InitialWorldUseCase'
+import {HttpInitialWorldRepository} from '../../data/world-studio/HttpInitialWorldRepository'
 import { OperationsUseCase } from '../../domain/usecases/OperationsUseCase'
 import { MemberUseCase } from '../../domain/usecases/MemberUseCase'
 import { NoticeUseCase } from '../../domain/usecases/NoticeUseCase'
@@ -90,6 +92,7 @@ export function registerAppServices(container: AppContainer) {
     operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
     adminActivityRepository: asFunction(() => new HttpAdminActivityRepository()).singleton(),
     adminActivityUseCase: asFunction(({ adminActivityRepository }) => new AdminActivityUseCase(adminActivityRepository)).singleton(),
+    initialWorldUseCase: asFunction(() => new InitialWorldUseCase(new HttpInitialWorldRepository())).singleton(),
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),

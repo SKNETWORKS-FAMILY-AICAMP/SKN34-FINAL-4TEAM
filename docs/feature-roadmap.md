@@ -25,6 +25,7 @@
 - WorldStudio는 같은 contentDataSource와 전용 EntityManager/TransactionManager를 사용한다. #132의 Content HTTP·프론트 HTTP DI·Neo4j 현재 관계 CRUD/관계도 연결은 소스 구현이며 기존 관계 SQL/데이터는 보존한다. pending·불일치·미전환은 성공/빈 관계로 숨기지 않는다. 관계 이력/시점 복원·전체 세계관 restore는 미지원이며 카드 revision은 관계를 not_recorded로 반환한다. [현재 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따른다.
 - 작품 삭제 PR #106은 병합됐고(develop `f46be23`, `Required CI` #160 성공 확인) 소유자·이력 없는 원작 범위만 ✅로 둔다. 이후 DEC-42에 따라 작품 삭제는 소프트 삭제(`work.deleted_at`)로 바뀌어 설정·저장 버전·Fork가 있어도 삭제되고 행은 지우지 않는다. 삭제된 작품은 목록·검색·랭킹·읽기·Fork 생성에서 제외하며, 원작 삭제 시 Fork 참조 유지는 #108(PR #221, CI 통과 확인)에서 추적한다. 삭제된 원작도 원작자의 Fork 최초 공개 허용 설정을 그대로 따르고, 소프트 삭제한 Fork가 있어도 같은 원작을 다시 Fork할 수 없다(`fork` UNIQUE 유지, 409). 작품 화면은 Fork 원작 정보의 `deleted`로 "삭제된 원작" 안내·원작 제목·분기 전 회차 숨김 안내를 보여 주고 읽기 시작을 Fork 회차부터 연다. 삭제된 작품의 설정 첨부·운영 목록/조회/제한은 404·제외하고, 원작을 따라가는 Fork의 공개 설정 위키는 원작이 삭제되면 비운다(#108 후속). 삭제된 작품의 좋아요 취소·관심 해제·댓글 삭제가 404인 것은 비공개 작품과 같은 기존 계약이다.
 - CI 인증·Health 통합 회귀는 Core의 503 오류를 대역으로 고정하고, Content의 정상 응답에는 기본 3초·시간 초과 검증에는 별도 150ms를 적용하도록 테스트만 보완했다. 503/504/502·자격 분리·redirect 금지·재시도/캐시 금지 계약과 기존 완료 표시는 유지하며, 최신 Required CI 재검증은 대기다.
+- WorldStudio 확정 복구(PR #288, Draft): 동일 요청의 원래 확정본과 후속 버전을 검증한 뒤 작가의 명시적 확인으로 재시도 기록을 정리한다. 팀 리뷰 대기이며 실제 배포 다중 탭 검증은 별도다.
 - WorldStudio 발표 디자인 통합(PR #223): 발표용 전체 지도·카드형 관계도·관계 편집 카드 보드를 서비스 모드에 연결하고 기존 입력 보호·방향/곡률을 유지한다. 서버 HTTP 저장 재검증 전이며 차이는 [점검 문서](worldstudio-presentation-ui-audit.md)를 본다.
 - PR #142 충돌 정렬에서 Neo4j opt-in 컨테이너·volume은 local Compose로 옮기고 prod의 외부 서비스·이미지 전용 구성을 유지했다. WorldStudio packaged migration 시스템 기대값은 기존 V1+V2의 최초 적용 2건·테이블 13개와 재실행 적용 0건으로 정정했으며 Auth/Content 이력 보존 검사는 유지한다. 최신 Required CI 재검증은 대기이며 완료 체크는 변경하지 않는다.
 - 2026-11-06 샘플 정본 이관: 사용자 요청으로 sample SQL 파일을 제거하고 Core/Content 테이블별 UTF-8 CSV 31개와 stdlib/psql COPY 승인형 loader로 전환했다. Content V15(샘플 이관 당시 V10, develop의 V10~V14 뒤로 번호만 이동)는 샘플 없는 스키마 SQL이며 기존 migration 19개 바이트·11작품/17자체/32회차/120wiki/9링크를 보존한다. 속성별 실제 원문 공개 map으로 카엘 관계는 2화부터, 근거 미확인 속성은 비공개로 처리한다. rich 대상/실제 detach·복사만 409로 보호하고 원작의 새 단순 설정 초안·확정은 허용한다. 기존 공개 API·Fork·Frontend 변경은 유지하고 관심/진행은 창 메모리, aggregate/rich 편집·관계 과거 복원·인물 quick-search 선조회는 미지원/미확장이다. [CSV 이관 안내](../infrastructure/sample-data/README.md)를 따른다.
@@ -813,3 +814,32 @@
 - 설정 카드 유형과 주제 영역의 분리·변경은 PR #86의 제안 범위다. 유형 목록·영역 목록·레거시 변환 정책을 이번 추가로 최종 확정하지 않는다.
 - 기존 04 세계관 생성은 작품·회차 없이 작성 가능한 독립 세계관 계약도 검토한다. 같은 생성 기능을 별도 행으로 중복 추가하지 않는다.
 - PR #86 확인 head: `618b0f9f60e9ec3361838962dba6166677fe9db5` (문서 설계 제안). PR #91 확인 head: `7429af0d051c35ff6f7441eac063030945987617` (미병합 구현 Draft). 확인 기준은 2026-11-04이며 병합·운영 검증 완료로 해석하지 않는다.
+
+### 초기 세계관 AI 전처리 저장 구조 — PR #225
+
+- 진행 중·미병합: 분석 snapshot, 후보, 검토 이력, 반영 ID 예약의 PostgreSQL/JPA 저장 구조. [범위와 후속 조건](design/initial-world-analysis-storage.md).
+- #219 계약 의존. AI 실행·공개 API·실제 초안 반영·검토 UI는 미구현이며 전체 기능 완료로 체크하지 않는다. #223 디자인과 분리.
+
+### 초기 세계관 AI 추출 5-B — 진행 중·미병합
+
+내부 추출 API·Responses 호출·7종 후보/근거 검증을 구현한다. [범위와 검증 한계](design/initial-world-ai-extraction.md). 제공사 대역 검증이며 실제 모델 품질·Content 연결·저장·승인은 미완료이므로 상위 추출 기능의 완료 표시는 유지한다. #219·#225·#235에 의존하며 #122 회차 추출과 분리한다.
+
+### 초기 세계관 분석 실행·저장 5-C — PR #266
+
+진행 중·Draft·미병합: 소유자 분석 요청, 입력 snapshot/상태 저장, 트랜잭션 밖 AI 호출, Output 재검증, 후보 원자 저장 및 조회. [실행 계약·의존성·실패 복구](design/initial-world-analysis-execution.md). 실제 모델 품질·승인/반영은 미검증·미구현이며 상위 기능 완료로 표시하지 않는다.
+
+### 초기 세계관 후보 검토 6-A — PR #270
+
+Draft·미병합: approve/edit/hold/reject 결정 누적, 작가 수정본·AI 근거 분리, 멱등성·순번 충돌·stale 검증 및 이력 재조회. [검토 계약과 6-B 경계](design/initial-world-candidate-review.md). 승인 후보 초안 반영·UI는 아직 미구현이며 상위 기능 완료로 표시하지 않는다.
+
+### 초기 세계관 승인 후보 초안 반영 6-B — PR #284
+
+Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추가, 기존 Neo4j 현재 상태 CAS와 카드/revision/receipt 원자 완료, 동일 key 장애 복구. [반영 계약·검증·한계](design/initial-world-approved-application.md). UI·확정 버전·과거 관계 복원은 별도이며 상위 기능 전체 완료로 표시하지 않는다.
+
+- 초기 세계관 7-A: AI 추가 카드·관계 DTO/metadata 왕복 어댑터 구현(Draft, 미병합). 후보 검토 UI는 후속.
+
+- 초기 세계관 7-B: 실제 Content 분석·후보 검토·초안 반영 UI 구현(Draft, 미병합). 유료 모델 품질/실제 배포 수용은 미검증.
+
+- WorldStudio 8단계: 명시적 확정 버전 생성·목록·읽기 전용 상세 UI(Draft, 미병합). 과거 관계/복원/발행은 제외.
+
+- WorldStudio 9-A: 소유자용 확정 설정 내부 Context 구성·출처/의미 메타데이터 보존. Draft PR 검증 중이며 공개 API·전체 집필 Context·회차/Fork/MCP·과거 관계는 미연결. [계약](design/worldstudio-confirmed-context.md).
