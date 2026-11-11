@@ -5,7 +5,7 @@ import type { World } from '../../domain/entities/world'
 import { ADMIN_PERMISSIONS, type AdminState } from '../../domain/entities/admin'
 
 const ORIGINALS: Work[] = [
-  original({id:'guunmong',title:'구운몽',hanja:'九雲夢',theme:'hanji',genre:'고전 판타지',author:'김만중',owner:'운영팀',kind:'저작권 만료',rights:'확인됨',by:'원작 김만중 · 저작권 만료 작품 · 운영팀 등록',tags:['free'],hash:['#환생','#꿈','#고전리메이크'],
+  original({id:'guunmong',serial:'완결',schedule:['월','수','금'],rating:'일반',title:'구운몽',hanja:'九雲夢',theme:'hanji',genre:'고전 판타지',author:'김만중',owner:'운영팀',kind:'저작권 만료',rights:'확인됨',by:'원작 김만중 · 저작권 만료 작품 · 운영팀 등록',tags:['free'],hash:['#환생','#꿈','#고전리메이크'],
  likes:12400,views:184000,cmts:212,upd:720,hero:['연화봉의 젊은 승려,','꿈속에서 한 생을 살다'],heroBg:'#E6D6B8',lite:true,
  hook:'꿈에서 깨면, 이 모든 게 사라질까?',summary:'연화봉의 젊은 승려 성진은 돌다리 위에서 여덟 선녀를 만난 뒤 마음이 흔들린다. 스승의 벌로 인간 세상에 양소유로 다시 태어나는데…',
  forkFrom:2,cast:[{n:'성진',c:'#B48A5A',d:'연화봉의 젊은 승려',st:'흔들림'},{n:'육관대사',c:'#7C8A9E',d:'성진의 스승, 연화봉의 고승',st:'엄격'},{n:'팔선녀',c:'#C98F8A',d:'위부인을 모시는 여덟 선녀',st:'호기심'},{n:'양소유',c:'#7E9A78',d:'성진이 환생한 인물',st:'—'}],
@@ -27,7 +27,7 @@ const ORIGINALS: Work[] = [
  {t:'봉인 아래의 속삭임',p:['아침 종이 울리자 탑의 문이 열렸다. 카엘은 서한을 읽고도 표정을 바꾸지 않았지만, 리안이 서고를 열람하는 것만은 허락했다.','지하서고 가장 깊은 곳에서 리안은 희미한 속삭임을 들었다. 바닥의 봉인 문양이 그 소리에 맞춰 미세하게 떨렸다.','“스승님…” 리안은 낮게 되뇌였다. 대답은 없었지만 속삭임은 분명 그의 이름을 부르고 있었다.','그때 등 뒤에서 발소리가 났다. “그곳은 허가 없이 들어올 수 없는 곳이오.” 카엘이었다.','“봉인이 흔들리고 있소. 그대도 알고 있었던 것 아니오?” 카엘이 물었다.']},
  {t:'재의 사절',p:['정오가 지나자 재의 왕국의 사절단이 탑 앞에 도착했다. 선두에 선 여인은 붉은 망토를 두른 세라핀이었다.','카엘은 한 걸음도 물러서지 않았다. “사절은 정문 밖에서 기다리시오. 탑 안에서는 어떤 마법도 허락되지 않소.”','세라핀은 웃으며 리안에게 다가왔다. “네가 오르벤의 제자지? 나도 도와줄 수 있는데.”','리안이 대답하기도 전에 카엘이 둘 사이에 섰다. “그 아이를 이용하려는 거라면 그건 않 된다고 했소.”','세라핀의 시선이 탑 꼭대기의 별빛 수정으로 향했다. 수정은 아직 깜빡이고 있었다.']}
  ]}),
-  original({id:'postman',forkAll:true,title:'회색 도시의 우편배달부',theme:'neon',genre:'SF',author:'윤서하',owner:'윤서하',kind:'자체 창작',rights:'확인됨',by:'글 윤서하 · 직접 창작한 소설',tags:['new'],hash:['#디스토피아','#편지','#7구역'],
+  original({id:'postman',forkAll:true,serial:'연재 중',schedule:['화','금'],rating:'일반',title:'회색 도시의 우편배달부',theme:'neon',genre:'SF',author:'윤서하',owner:'윤서하',kind:'자체 창작',rights:'확인됨',by:'글 윤서하 · 직접 창작한 소설',tags:['new'],hash:['#디스토피아','#편지','#7구역'],
  likes:9800,views:132000,cmts:170,upd:2880,hero:['통신이 끊긴 도시,','종이 편지만이 유일한 연결'],heroBg:'#0F3A40',
  hook:'주소가 지워진 편지에 적힌 단 한 단어, 집',summary:'모든 통신이 끊긴 도시에서 종이 편지만이 유일한 연결이다. 열일곱 살 배달부 도윤은 오늘도 비 오는 고가도로를 달린다.',
  forkFrom:1,cast:[{n:'도윤',c:'#5FA89A',d:'열일곱 살 배달부',st:'의문'},{n:'하람',c:'#B58AA6',d:'7구역의 소녀',st:'경계'}],rules:['도시 안에서는 전자 통신이 작동하지 않는다'],events:[[1,'m','수취인 불명의 편지',['도윤']],[2,'m','7구역의 소녀',['도윤','하람']]],
@@ -35,7 +35,7 @@ const ORIGINALS: Work[] = [
  {t:'수취인 불명',p:['비가 그친 새벽, 도윤은 고가도로 위에서 자전거를 멈췄다. 가방 맨 아래에 주소가 지워진 편지 한 통이 있었다.','“이건 어디로 가야 하지.” 도윤이 중얼거렸다.','머리 위로 꺼진 송신탑들이 줄지어 서 있었다. 도시가 마지막으로 신호를 보낸 지 삼 년이 지났다.','편지 봉투에는 낯익은 필체로 한 단어만 적혀 있었다. 집.']},
  {t:'7구역의 소녀',p:['7구역 배급소 앞에서 하람은 도윤을 기다리고 있었다.','“그 편지, 우리 엄마 글씨야.” 하람이 말했다.','도윤은 가방끈을 꽉 쥐었다. 지도에 없는 주소가 처음으로 형체를 갖기 시작했다.']}
  ]}),
-  original({id:'hong',title:'홍길동전',hanja:'洪吉童傳',theme:'hanji',genre:'고전 영웅',author:'허균(전함)',owner:'운영팀',kind:'저작권 만료',rights:'확인됨',by:'원작 허균(전함) · 저작권 만료 작품 · 운영팀 등록',tags:['free'],hash:['#활빈당','#영웅','#고전리메이크'],
+  original({id:'hong',serial:'휴재',title:'홍길동전',hanja:'洪吉童傳',theme:'hanji',genre:'고전 영웅',author:'허균(전함)',owner:'운영팀',kind:'저작권 만료',rights:'확인됨',by:'원작 허균(전함) · 저작권 만료 작품 · 운영팀 등록',tags:['free'],hash:['#활빈당','#영웅','#고전리메이크'],
  likes:6100,views:88000,cmts:75,upd:4320,hero:['아버지를 아버지라','부르지 못한 소년'],heroBg:'#5B4A3A',
  hook:'아버지를 아버지라 부르지 못한 소년, 활빈당을 세우다',summary:'서자로 태어나 아버지를 아버지라 부르지 못한 길동. 집을 떠난 그는 도적 무리를 모아 활빈당을 세운다.',
  forkFrom:0,cast:[{n:'길동',c:'#A88158',d:'홍 판서의 서자',st:'설움'},{n:'홍 판서',c:'#7A6A55',d:'길동의 아버지',st:'근심'}],rules:['길동은 아버지를 아버지라 부를 수 없다'],events:[[1,'m','호부호형을 하지 못하다',['길동','홍 판서']]],
@@ -55,6 +55,8 @@ const FORKS: [string, number, Partial<Work> & { id: string; title: string; autho
 
 export function seedWorks(now = Date.now()): Work[] {
   const works = structuredClone(ORIGINALS)
+  // 데모 회차 누적 조회 수: 작품 조회 수에서 회차가 갈수록 줄어드는 예시 값.
+  for (const w of works) w.eps.forEach((e, i) => { e.views ??= Math.round(w.views / (i + 2)) })
   for (const [pid, at, o] of FORKS) works.push(makeFork(works.find((w) => w.id === pid)!, at, structuredClone(o), now))
   return works
 }

@@ -131,6 +131,15 @@ describe('storyfork.css theme tokens', () => {
     expect(themed.length).toBeGreaterThanOrEqual(4)
     for (const r of themed) expect(contrast(declOf(r, '--tsub'), declOf(r, '--tbg')), r.selector).toBeGreaterThanOrEqual(4.5)
   })
+
+  it('shows the work hero genre label with --pri-ink in dark so it stays 4.5:1 over the lightest part of the background art', () => {
+    const label = sheet.find((r) => !r.media && r.selector === '.whero .g')
+    // 라이트는 기존 강조색(--tacc) 그대로, 다크만 --pri-ink — 토큰과 같은 --l/--d 스위치라 고른 테마와 OS 테마를 함께 따른다.
+    expect(declOf(label, 'color')).toBe('var(--l,var(--tacc)) var(--d,var(--pri-ink))')
+    // .band 아트가 밝아지는 쪽의 실측 배경(약 #444)에서 --pri는 3.4:1이라 모자라고 --pri-ink는 4.5:1 이상이다.
+    expect(contrast(pair('pri')[1], '#444444')).toBeLessThan(4.5)
+    expect(contrast(pair('pri-ink')[1], '#444444')).toBeGreaterThanOrEqual(4.5)
+  })
 })
 
 describe('storyfork.css accessibility contracts', () => {

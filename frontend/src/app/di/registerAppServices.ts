@@ -29,6 +29,9 @@ import { FeedbackReportUseCase } from '../../domain/usecases/FeedbackReportUseCa
 import { HttpCreditLedgerRepository } from '../../data/api/HttpCreditLedgerRepository'
 import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
 import { HttpEpisodeCommentRepository } from '../../data/content/HttpEpisodeCommentRepository'
+import { HttpWorkNoticeRepository } from '../../data/content/HttpWorkNoticeRepository'
+import { InMemoryWorkNoticeRepository } from '../../data/mock/InMemoryWorkNoticeRepository'
+import { WorkNoticeUseCase } from '../../domain/usecases/WorkNoticeUseCase'
 import { HttpEditSuggestionRepository } from '../../data/content/HttpEditSuggestionRepository'
 import { HttpFeedbackReportRepository } from '../../data/content/HttpFeedbackReportRepository'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
@@ -105,6 +108,10 @@ export function registerAppServices(container: AppContainer) {
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     episodeCommentRepository: asFunction(() => new HttpEpisodeCommentRepository()).singleton(),
     episodeCommentUseCase: asFunction(({ episodeCommentRepository }) => new EpisodeCommentUseCase(episodeCommentRepository)).singleton(),
+    workNoticeRepository: asFunction(() => new HttpWorkNoticeRepository()).singleton(),
+    workNoticeUseCase: asFunction(({ workNoticeRepository }) => new WorkNoticeUseCase(workNoticeRepository)).singleton(),
+    // 메모리 데모 작품(`--mode mockup`·테스트)의 소식. 실제 작품은 위 HTTP 저장소를 쓰고, 이 저장소는 서버에 저장하지 않는다.
+    demoWorkNoticeUseCase: asFunction(() => new WorkNoticeUseCase(new InMemoryWorkNoticeRepository())).singleton(),
     editSuggestionRepository: asFunction(() => new HttpEditSuggestionRepository()).singleton(),
     editSuggestionUseCase: asFunction(({ editSuggestionRepository }) => new EditSuggestionUseCase(editSuggestionRepository)).singleton(),
     feedbackReportRepository: asFunction(() => new HttpFeedbackReportRepository()).singleton(),

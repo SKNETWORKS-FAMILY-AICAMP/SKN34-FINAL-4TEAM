@@ -52,6 +52,42 @@ describe('회차 댓글 읽기 (공개 API, Bearer 선택)', () => {
   })
 })
 
+describe('작품 전체 댓글 읽기 (공개 API, Bearer 선택)', () => {
+  it('로그인 상태면 Bearer를 보내고 작품 id와 정렬을 경로·쿼리로 보낸다(회차 번호는 응답에 있다)', async () => {
+    await signIn()
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ items: [row({ id: 'a', episodeNumber: 2, liked: true }), row({ id: 'b', episodeNumber: 5, likeCount: 9 })] }))
+    const found = await new HttpEpisodeCommentRepository(fetcher).listByWork('w 1', 'likes')
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/public/works/w%201/comments?sort=likes', expect.objectContaining({ method: 'GET', credentials: 'same-origin' }))
+    expect(headers(fetcher).get('Authorization')).toBe('Bearer comment-bearer')
+    expect(headers(fetcher).has('X-CSRF-TOKEN')).toBe(false)
+    expect(found.map((c) => [c.id, c.episodeNumber, c.likeCount, c.hidden])).toEqual([['a', 2, 2, false], ['b', 5, 9, false]])
+  })
+
+  it('익명이면 Authorization 없이 읽고 빈 목록은 빈 배열이다', async () => {
+    await signOut()
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ items: [] }))
+    expect(await new HttpEpisodeCommentRepository(fetcher).listByWork('w1', 'latest')).toEqual([])
+    expect(fetcher.mock.calls[0][0]).toBe('/api/v1/public/works/w1/comments?sort=latest')
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(headers(fetcher).has('Authorization')).toBe(false)
+    expect(headers(fetcher).has('X-CSRF-TOKEN')).toBe(false)
+  })
+
+  it('응답 형식이 계약과 다르면 빈 목록으로 숨기지 않고 던진다', async () => {
+    await signOut()
+    const bad = [{ items: [row({ likeCount: -1 })] }, { items: [row({ episodeNumber: 0 })] }, { items: [{ id: 'x' }] }, [row()]]
+    for (const body of bad) {
+      await expect(new HttpEpisodeCommentRepository(vi.fn().mockResolvedValue(Response.json(body))).listByWork('w1', 'latest')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+    }
+  })
+
+  it('서버가 거절하면 서버 안내 문구로 던진다(공개 작품이 아니면 404)', async () => {
+    await signOut()
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ detail: '공개 작품을 찾을 수 없어요.' }, { status: 404 }))
+    await expect(new HttpEpisodeCommentRepository(fetcher).listByWork('w1', 'latest')).rejects.toThrow('공개 작품을 찾을 수 없어요.')
+  })
+})
+
 describe('회차 댓글 쓰기 (회원, CSRF)', () => {
   beforeEach(signIn)
   const sent = (fetcher: ReturnType<typeof vi.fn>) => ({ url: fetcher.mock.calls[0][0], init: fetcher.mock.calls[0][1], body: fetcher.mock.calls[0][1].body && JSON.parse(fetcher.mock.calls[0][1].body) })
