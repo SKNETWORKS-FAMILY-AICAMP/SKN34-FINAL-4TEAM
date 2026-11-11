@@ -266,5 +266,12 @@
       "reviewFocus": "지정 확정본만; 초안/미승인 후보/과거 관계 미혼입",
       "deploymentQA": "소유자 권한·이전 버전 불변; 팀원 Context 소비는 별도"
     }
-  ]
+  ],
+  "additionalDevelop": {
+    "head": "63e5618d6022d362bc206bb99607a0b3a85158d1",
+    "integration": "2968932e72b641b56577f4baaeac59d77adf1662",
+    "patchId": "83f7d850308d40324be1e38a510c9e47d2d3cec4",
+    "priorSuccessHead": "3c90dd0f5c3f8773adca771b15b5b41215a8c95d",
+    "priorSuccessRun": 42978541917
+  }
 }
