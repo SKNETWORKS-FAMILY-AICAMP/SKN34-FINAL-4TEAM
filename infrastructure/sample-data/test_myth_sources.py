@@ -69,6 +69,8 @@ class MythSourceTest(unittest.TestCase):
 
     def test_priority_traditions_have_distinct_supported_subjects(self):
         worlds = {w['genre']: w for w in read_json(RESOURCES / 'genre-templates.json')}
+        crossing = next(c for c in worlds['korean_mythology_fables']['cards'] if c['title'] == '주몽의 강 건너기')
+        self.assertEqual('event', crossing['cardType'])
         expected = {
             'greco_roman_mythology': ['티탄 신족', '헤라클레스', '페르세우스', '오디세우스', '명계', '트로이', '아이네아스'],
             'norse_mythology': ['바니르', '거인', '아홉 세계', '이그드라실', '라그나로크', '묠니르', '궁니르'],

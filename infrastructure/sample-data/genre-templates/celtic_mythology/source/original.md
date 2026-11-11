@@ -4,7 +4,7 @@
 
 ## 러스모어
 
-골풀처럼 작은 꽃을 모자에 달아 별명을 얻은 바구니 제작자이다. 몸에 혹이 있지만 사람들과 어울리며, 요정들의 노래를 듣고 자연스럽게 한 구절을 더한다.
+디기탈리스 꽃을 모자에 달아 별명을 얻은 바구니 제작자이다. 몸에 혹이 있지만 사람들과 어울리며, 요정들의 노래를 듣고 자연스럽게 한 구절을 더한다.
 
 근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 이야기 전반
 

@@ -2505,7 +2505,7 @@
         "id": "fbf4248a-db2b-5283-b073-a5624b73805c",
         "title": "주몽의 강 건너기",
         "body": "추격을 피하던 주몽이 강에서 자신의 신성한 계보를 말하고 도움을 받는다. 물고기와 자라의 다리라는 기적이 도주를 가능하게 한다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 高句麗",
-        "cardType": "location"
+        "cardType": "event"
       },
       {
         "id": "11ce3685-8cc5-5374-b65f-d995f2e7cb2e",
@@ -2726,7 +2726,7 @@
       {
         "id": "8272dd2a-c578-522d-844d-40f737e399f9",
         "title": "러스모어",
-        "body": "골풀처럼 작은 꽃을 모자에 달아 별명을 얻은 바구니 제작자이다. 몸에 혹이 있지만 사람들과 어울리며, 요정들의 노래를 듣고 자연스럽게 한 구절을 더한다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 이야기 전반",
+        "body": "디기탈리스 꽃을 모자에 달아 별명을 얻은 바구니 제작자이다. 몸에 혹이 있지만 사람들과 어울리며, 요정들의 노래를 듣고 자연스럽게 한 구절을 더한다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 이야기 전반",
         "cardType": "character"
       },
       {

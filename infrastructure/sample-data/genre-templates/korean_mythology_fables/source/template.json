@@ -115,8 +115,8 @@
       {
         "id": "fbf4248a-db2b-5283-b073-a5624b73805c",
         "title": "주몽의 강 건너기",
-        "card_type": "location",
-        "area_code": "basic",
+        "card_type": "event",
+        "area_code": "history",
         "template_part": "전승 요약",
         "content_markdown": "추격을 피하던 주몽이 강에서 자신의 신성한 계보를 말하고 도움을 받는다. 물고기와 자라의 다리라는 기적이 도주를 가능하게 한다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 高句麗",
         "source_refs": [
