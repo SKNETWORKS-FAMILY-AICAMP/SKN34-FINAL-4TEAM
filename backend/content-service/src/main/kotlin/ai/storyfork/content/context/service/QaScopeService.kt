@@ -9,6 +9,7 @@ import ai.storyfork.content.context.service.dto.QaWorldRef
 import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.service.WorldStudioService
@@ -40,15 +41,17 @@ class QaScopeService(
         checkContent(chosen.versionId == request.episodeVersionId, 409, "기준 회차 판본이 변경됐어요. 최신 회차를 다시 불러와 주세요.")
         return QaScope(work.id, work.source?.workId, basis, chosen.versionId,
             readable.filter { it.number <= basis }.map { QaEpisodeRef(it.number, it.versionId) },
-            if (relationship) linkedWorld(workId, owner, basis) else null)
+            if (relationship) linkedWorld(work, owner, basis, chosen.inherited) else null)
     }
 
-    private fun linkedWorld(workId: String, owner: String?, basis: Int): QaWorldRef {
+    private fun linkedWorld(work: WorkAccessResult, owner: String?, basis: Int, inherited: Boolean): QaWorldRef {
         // shortcut: 독자용 세계관 관계 공개 범위가 정해지지 않아 작가만 허용한다. 회차별 관계 공개 정책이 확정되면 확장.
         checkContent(owner != null, 403, "세계관 관계 질문은 아직 작가만 사용할 수 있어요.")
-        val worldId = episodes.findByWorkIdAndSequence(workId, basis)?.basisWorldId
+        // 상속 회차는 Fork 정책으로 허용된 원작 회차이므로, 원작 작가가 그 회차에 연결한 세계관을 원작 작가 소유로 확인해 읽는다.
+        val (episodeWork, worldOwner) = if (inherited) checkNotNull(work.source).workId.let { it to access.get(it).ownerId } else work.id to owner
+        val worldId = episodes.findByWorkIdAndSequence(episodeWork, basis)?.basisWorldId
             ?: throw ContentFailure(422, "기준 회차에 연결된 세계관이 없어 관계를 확인할 수 없어요.", "WORLD_LINK_REQUIRED")
-        val draft = try { worlds.draft(worldId, UUID.fromString(owner)) }
+        val draft = try { worlds.draft(worldId, UUID.fromString(worldOwner)) }
             catch (_: WorldNotFound) { throw ContentFailure(404, "연결된 세계관을 찾을 수 없어요.") }
             catch (error: WorldStudioFailure) { throw failure(error) }
         return QaWorldRef(worldId, draft.relationshipVersion)

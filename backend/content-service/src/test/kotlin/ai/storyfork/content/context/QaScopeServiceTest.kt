@@ -4,6 +4,7 @@ import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaEpisodeRef
 import ai.storyfork.content.context.service.dto.QaScopeRequest
+import ai.storyfork.content.context.service.dto.QaWorldRef
 import ai.storyfork.content.episode.entity.EpisodeEntity
 import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.fork.service.dto.SourceResponse
@@ -104,6 +105,27 @@ class QaScopeServiceTest {
         val scope = service.resolve("work", owner.toString(), request(target = "relationship"))
         assertEquals(world, scope.world?.worldId)
         assertEquals(7L, scope.world?.relationshipVersion)
+    }
+
+    @Test fun `an inherited fork episode uses the world the original author linked to that episode`() {
+        val author = UUID.randomUUID()
+        `when`(access.own("fork", owner.toString())).thenReturn(work("fork", SourceResponse("original", "원작", 1, 1, "")))
+        `when`(access.get("original")).thenReturn(WorkAccessResult("original", author.toString(), "원작", "", 0, "world", "public", true, false, null))
+        published("fork", PublishedEpisodeResponse(1, 1, "o1", "분기 전", "원작", true), PublishedEpisodeResponse(2, 1, "f2", "내 회차", "내 글"))
+        `when`(episodes.findByWorkIdAndSequence("original", 1)).thenReturn(EpisodeEntity(id = "s1", workId = "original", sequence = 1, basisWorldId = world))
+        `when`(worlds.draft(world, author)).thenReturn(WorldDraftResponse(world, 1, null, null, "원작 세계", "", emptyList(), emptyList(), relationshipVersion = 3))
+        val scope = service.resolve("fork", owner.toString(), request(episode = 1, version = "o1", target = "relationship"))
+        assertEquals(QaWorldRef(world, 3), scope.world)
+        verify(episodes, never()).findByWorkIdAndSequence("fork", 1)
+    }
+
+    @Test fun `a fork's own episode never borrows the original's world`() {
+        `when`(access.own("fork", owner.toString())).thenReturn(work("fork", SourceResponse("original", "원작", 1, 1, "")))
+        published("fork", PublishedEpisodeResponse(1, 1, "o1", "분기 전", "원작", true), PublishedEpisodeResponse(2, 1, "f2", "내 회차", "내 글"))
+        `when`(episodes.findByWorkIdAndSequence("fork", 2)).thenReturn(EpisodeEntity(id = "f2", workId = "fork", sequence = 2))
+        assertEquals("WORLD_LINK_REQUIRED", failure { service.resolve("fork", owner.toString(), request(version = "f2", target = "relationship")) }.code)
+        verify(episodes, never()).findByWorkIdAndSequence("original", 2)
+        verifyNoInteractions(worlds)
     }
 
     @Test fun `an episode without a linked world is unsupported for relationships`() {
