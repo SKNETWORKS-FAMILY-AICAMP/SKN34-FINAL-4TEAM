@@ -8,6 +8,34 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL", matches=".+")
 class InitialWorldStoragePostgresTest {
+    @Test void sequentialV1ThroughV5PreservesExistingWorldCardAndAnalysis() throws Exception {
+        try(var db=new WorldStudioPostgresFixture("independent")) {
+            String world=id(), card=id(), analysis=id();
+            for(int version=1;version<=5;version++) {
+                var flyway=org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration())
+                    .target(Integer.toString(version)).load();
+                assertEquals(1,flyway.migrate().migrationsExecuted);
+                flyway.validate();
+                assertEquals(0,flyway.migrate().migrationsExecuted);
+                try(var c=db.connect()) {
+                    if(version==1) {
+                        sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+world+"','"+id()+"')");
+                        sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+world+"','홍길동전','원문😀 보존')");
+                        sql(c,"INSERT INTO worldstudio.setting_card(id,world_id) VALUES ('"+card+"','"+world+"')");
+                        sql(c,"INSERT INTO worldstudio.setting_card_draft(card_id,world_id,title,body,card_type,semantic_metadata) VALUES ('"+card+"','"+world+"','홍길동','인물 원문','character','{\"source\":\"원래 메타데이터\"}')");
+                    }
+                    if(version==3) sql(c,"INSERT INTO worldstudio.initial_analysis(id,world_id,request_key,request_hash,draft_revision,relationship_version,input_snapshot,execution_token,deadline) VALUES ('"+analysis+"','"+world+"','preserved-key',repeat('a',64),0,0,'{\"text\":\"분석 원문😀\"}','"+id()+"',now()+interval '1 hour')");
+                    assertEquals(List.of("원문😀 보존"),rows(c,"SELECT description FROM worldstudio.world_draft WHERE world_id='"+world+"'"));
+                    assertEquals(List.of("인물 원문|원래 메타데이터"),rows(c,"SELECT body||'|'||(semantic_metadata->>'source') FROM worldstudio.setting_card_draft WHERE card_id='"+card+"'"));
+                    if(version>=2) assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM worldstudio.relationship_state")); // No automatic graph backfill.
+                    if(version>=3) assertEquals(List.of("preserved-key|분석 원문😀"),rows(c,"SELECT request_key||'|'||(input_snapshot->>'text') FROM worldstudio.initial_analysis WHERE id='"+analysis+"'"));
+                }
+            }
+            assertEquals(0,db.studio().migrate().migrationsExecuted);
+            db.studio().validate();
+        }
+    }
+
     @Test void upgradePreservesSnapshotsAndEnforcesReviewAndReservationOwnership() throws Exception {
         try(var db=new WorldStudioPostgresFixture("independent")) {
             org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration()).target("2").load().migrate();
