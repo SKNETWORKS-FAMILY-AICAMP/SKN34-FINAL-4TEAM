@@ -2,8 +2,12 @@ package ai.storyfork.core.notification.controller
 
 import ai.storyfork.core.notification.service.NoticeService
 import ai.storyfork.core.notification.service.NoticeStream
+import ai.storyfork.core.notification.service.dto.NoticeGroupItemsRequest
+import ai.storyfork.core.notification.service.dto.NoticeGroupListRequest
+import ai.storyfork.core.notification.service.dto.NoticeGroupListResponse
 import ai.storyfork.core.notification.service.dto.NoticeListRequest
 import ai.storyfork.core.notification.service.dto.NoticeListResponse
+import ai.storyfork.core.notification.service.dto.NoticeResponse
 import ai.storyfork.core.notification.service.dto.ReadAllRequest
 import ai.storyfork.core.notification.service.dto.UnreadCountResponse
 import jakarta.validation.Valid
@@ -26,6 +30,18 @@ class NoticeController(private val notices: NoticeService, private val stream: N
     /** 본인 알림을 최신순으로 반환한다. 잘못된 cursor·limit은 400이다. */
     @GetMapping("/api/v1/me/notifications")
     fun list(@AuthenticationPrincipal jwt: Jwt, @Valid @ModelAttribute request: NoticeListRequest): NoticeListResponse = notices.list(member(jwt), request)
+
+    /** 같은 종류·대상의 알림을 묶어 최근 도착순으로 반환한다. 대상 없는 알림은 묶지 않는다. 잘못된 limit은 400이다. */
+    @GetMapping("/api/v1/me/notifications/groups")
+    fun groups(@AuthenticationPrincipal jwt: Jwt, @Valid @ModelAttribute request: NoticeGroupListRequest): NoticeGroupListResponse = notices.groups(member(jwt), request)
+
+    /** 한 묶음(종류·대상)에 속한 개별 알림을 최신순으로 반환한다. 종류·대상이 없거나 limit이 잘못되면 400이다. */
+    @GetMapping("/api/v1/me/notifications/groups/items")
+    fun groupItems(@AuthenticationPrincipal jwt: Jwt, @Valid @ModelAttribute request: NoticeGroupItemsRequest): NoticeListResponse = notices.groupItems(member(jwt), request)
+
+    /** 알림 하나를 반환한다. 읽음 처리는 하지 않으며 타인·삭제된 알림이나 UUID가 아닌 id는 404다. */
+    @GetMapping("/api/v1/me/notifications/{id}")
+    fun detail(@AuthenticationPrincipal jwt: Jwt, @PathVariable id: String): NoticeResponse = notices.get(member(jwt), noticeId(id))
 
     /**
      * 본인 알림 변경 신호 스트림(SSE). 이벤트는 `ready`(연결·재연결 직후)와 `changed`(새 알림 저장 후)이며 내용은 담지 않는다.
