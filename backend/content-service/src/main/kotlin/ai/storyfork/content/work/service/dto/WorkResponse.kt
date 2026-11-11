@@ -24,4 +24,6 @@ data class WorkResponse(
     /** 작품 회차의 마지막 발행 시각. 기간별 랭킹의 방금 업데이트(updated)에서만 채우고 그 밖의 응답은 null이다. */
     val updatedAt: Instant? = null,
     val writingEpisodeNumber: Int? = null,
+    /** 회차 번호별 누적 회원 조회 수. 공개 상세에서만 채우고(기록 없는 회차는 빠짐) 그 밖의 응답은 null이다. */
+    val episodeViews: Map<Int, Long>? = null,
 )

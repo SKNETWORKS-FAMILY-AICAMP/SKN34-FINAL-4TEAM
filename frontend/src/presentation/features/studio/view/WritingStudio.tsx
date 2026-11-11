@@ -38,10 +38,11 @@ function Group({title,className,children}:{title:string;className?:string;childr
   return <section className={className?`writing-group ${className}`:'writing-group'} aria-labelledby={titleId}><h3 id={titleId} className="writing-group-title">{title}</h3>{children}</section>
 }
 
-export function WritingStudio({id}:{id:string}) {
+/** episode는 주소의 ?ep=n이다. 들어올 때 그 회차를 열고, 목록에 없으면 첫 회차를 연다. */
+export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useScreenId('U13')
   useDocumentTitle('집필실')
-  const vm=useWritingViewModel(id)
+  const vm=useWritingViewModel(id,undefined,undefined,episode)
   const editor=useRef<ManuscriptEditorHandle>(null)
   const attach=useRef<HTMLInputElement>(null)
   const main=useRef<HTMLElement>(null)

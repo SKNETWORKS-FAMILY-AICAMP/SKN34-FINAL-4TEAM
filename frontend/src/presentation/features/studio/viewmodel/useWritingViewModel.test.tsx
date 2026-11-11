@@ -351,3 +351,24 @@ it('autosaves note-only edits and preserves notes typed while saving', async () 
   expect(result.current.draft.authorNote).toBe('추가 입력')
   expect(result.current.dirty).toBe(true)
 })
+
+it('opens the episode named by the entry number once and falls back to the first episode when it is missing', async () => {
+  const first={number:1,draft:{title:'1화',body:'첫 원고',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
+  const second={...first,number:2,draft:{title:'2화',body:'둘째 원고',revision:3}}
+  const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue([first,second]),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  const named=renderHook(()=>useWritingViewModel('w',api,undefined,2))
+  await act(async()=>{})
+  expect(named.result.current.active?.number).toBe(2)
+  expect(named.result.current.draft).toEqual(second.draft)
+  expect(named.result.current.episodes.map(e=>e.number)).toEqual([1,2])
+  // 다시 불러오면 열려 있던 회차를 유지하고, 옛 ?ep 번호로 되돌리지 않는다.
+  await act(async()=>{await named.result.current.select(first)})
+  await act(async()=>{await named.result.current.reload()})
+  expect(named.result.current.active?.number).toBe(1)
+  const missing=renderHook(()=>useWritingViewModel('w',api,undefined,9))
+  await act(async()=>{})
+  expect(missing.result.current.active?.number).toBe(1)
+  const plain=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  expect(plain.result.current.active?.number).toBe(1)
+})

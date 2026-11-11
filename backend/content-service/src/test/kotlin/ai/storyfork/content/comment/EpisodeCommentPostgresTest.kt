@@ -9,6 +9,8 @@ import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.fixture.DraftRequest
 import ai.storyfork.content.fixture.PublishRequest
+import ai.storyfork.content.publication.service.PublicationService
+import ai.storyfork.content.publication.service.dto.PublicationVisibilityRequest
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.dto.CreateWorkRequest
 import java.net.URI
@@ -53,6 +55,7 @@ class EpisodeCommentPostgresTest {
     @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
+    @Autowired lateinit var publication: PublicationService
     @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource
     @Autowired lateinit var json: JsonMapper
     private val jdbc get()=JdbcTemplate(source)
@@ -84,6 +87,7 @@ class EpisodeCommentPostgresTest {
     private fun post(id: String,member: UUID?,body: String,number: Int = 1)=call("POST",write(id,number),member,body)
     private fun detail(id: String,comment: String,member: UUID? = null)=call("GET","${read(id)}/$comment",member)
     private fun list(id: String,sort: String? = null,member: UUID? = null)=call("GET",read(id)+(sort?.let {"?sort=$it"} ?: ""),member)
+    private fun workList(id: String,sort: String? = null,member: UUID? = null)=call("GET","/api/v1/public/works/$id/comments"+(sort?.let {"?sort=$it"} ?: ""),member)
     private fun node(response: HttpResponse<String>): JsonNode=json.readTree(response.body())
     private fun ids(response: HttpResponse<String>)=node(response).path("items").toList().map {it.path("id").asString()}
     private fun created(response: HttpResponse<String>): String {
@@ -100,6 +104,11 @@ class EpisodeCommentPostgresTest {
             driver.publish(id,owner,PublishRequest(draft.revision,true,true,true,driver.history(id,owner).versions.last().id))
         }
         return id
+    }
+    /** 1화를 발행하면 만들어져 있는 [number]화 초안을 저장 버전으로 확정해 발행한다. */
+    private fun publishEpisode(id: String,owner: String,number: Int) {
+        val saved=driver.writeEpisode(id,owner,number,DraftRequest("${number}화","본문 $number",driver.writing(id,owner,number).draft.revision),true)
+        driver.publishEpisode(id,owner,number,PublishRequest(saved.draft.revision,true,versionId=saved.versions.last().id))
     }
 
     @Test fun `comment lifecycle stores a fixed version and no name and soft deletes`() {
@@ -311,5 +320,44 @@ class EpisodeCommentPostgresTest {
         assertEquals(1,jdbc.update("UPDATE episode_comment SET hidden=true WHERE id=?",cid))
         assertEquals(204,call("DELETE","${write(id)}/$cid",author).statusCode())
         assertEquals(404,detail(id,cid).statusCode())
+    }
+
+    @Test fun `the work wide list merges the comments of the published episodes in the same shape as the episode lists`() {
+        val id=work()
+        publishEpisode(id,"author",2)
+        val author=member("닉네임")
+        val fan=member("팬")
+        val first=created(post(id,author,"""{"body":"1화 댓글","quote":"가려질 인용","spoiler":true}"""))
+        val second=created(post(id,author,"""{"body":"2화 댓글"}""",2))
+        val third=created(post(id,fan,"""{"body":"1화 또 다른 댓글"}"""))
+        val removed=created(post(id,fan,"""{"body":"지울 댓글"}""",2))
+        assertEquals(204,call("DELETE","${write(id,2)}/$removed",fan).statusCode())
+        assertEquals(204,call("PUT","${write(id,2)}/$second/like",fan).statusCode())
+        assertEquals(1,jdbc.update("UPDATE episode_comment SET hidden=true WHERE id=?",first))
+
+        // 익명도 200이고 두 회차의 삭제되지 않은 댓글이 최신순(기본)·좋아요순으로 합쳐진다.
+        val anonymous=workList(id)
+        assertEquals(200,anonymous.statusCode(),anonymous.body())
+        assertEquals(listOf(third,second,first),ids(anonymous))
+        assertEquals(listOf(1,2,1),node(anonymous).path("items").toList().map {it.path("episodeNumber").asInt()})
+        assertEquals(listOf(second,third,first),ids(workList(id,"likes")))
+        assertEquals(422,workList(id,"popular").statusCode())
+
+        // 숨김 자리표시·닉네임·liked·mine은 각 회차 목록과 같다.
+        for(viewer in listOf(fan,null)) {
+            val separate=listOf(1,2).flatMap {node(call("GET",read(id,it),viewer)).path("items").toList()}
+            assertEquals(separate.sortedByDescending {Instant.parse(it.path("createdAt").asString())},node(workList(id,member=viewer)).path("items").toList())
+        }
+        val placeholder=node(anonymous).path("items").toList().single {it.path("id").asString()==first}
+        assertEquals(listOf<Any?>(true,"",true,true,"닉네임"),
+            listOf(placeholder.path("hidden").asBoolean(),placeholder.path("body").asString(),placeholder.path("quote").isNull,placeholder.path("spoiler").asBoolean(),placeholder.path("authorName").asString()))
+
+        // 공개가 중단된 회차의 댓글은 빠지고 다시 공개하면 돌아온다. 비공개·없는 작품은 404다.
+        publication.visibility(id,"author",2,PublicationVisibilityRequest(driver.writing(id,"author",2).draft.revision,false))
+        assertEquals(404,call("GET",read(id,2)).statusCode())
+        assertEquals(listOf(third,first),ids(workList(id)))
+        publication.visibility(id,"author",2,PublicationVisibilityRequest(driver.writing(id,"author",2).draft.revision,true,true))
+        assertEquals(listOf(third,second,first),ids(workList(id)))
+        for(target in listOf(work(publish=false),UUID.randomUUID().toString())) assertEquals(404,workList(target).statusCode(),target)
     }
 }

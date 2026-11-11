@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {act, cleanup, render, screen, fireEvent, waitFor} from '@testing-library/react'
+import {cleanup, render, screen, fireEvent, within} from '@testing-library/react'
 import {afterEach, beforeEach, expect, it, vi} from 'vitest'
 import '../../../../test/testLocks'
 import {WorldPanel} from './WorldPanel'
@@ -15,79 +15,41 @@ beforeEach(async () => {
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-it('keeps typing and focus while autosaving and saves newer text with the returned revision',async()=>{
- const state={id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,drafts:[],settings:[],history:[],changes:[],sourceToken:'t'}
- const value={id:'s',name:'규칙',content:'첫 입력',category:'규칙',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
- let finish:(response:Response)=>void=()=>{}
- const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(state)))
-   .mockImplementationOnce(()=>new Promise<Response>(resolve=>{finish=resolve}))
-   .mockResolvedValueOnce(new Response(JSON.stringify({...state,revision:2,draft:{...value,content:'최신 입력'},drafts:[{...value,content:'최신 입력'}]})))
- render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} onDirty={()=>{}} />)
- await screen.findByText('설정집')
- fireEvent.change(screen.getByLabelText('설정 이름'),{target:{value:'규칙'}})
- const input=screen.getByLabelText('설정 내용') as HTMLTextAreaElement
- input.focus()
- fireEvent.change(input,{target:{value:'첫 입력'}})
- await waitFor(()=>expect(fetcher).toHaveBeenCalledTimes(2))
- expect(input.closest('fieldset')?.disabled).toBe(false)
- expect(document.activeElement).toBe(input)
- fireEvent.change(input,{target:{value:'최신 입력'}})
- await act(async()=>finish(new Response(JSON.stringify({...state,revision:1,draft:value,drafts:[value]}))))
- expect(input.value).toBe('최신 입력')
- await waitFor(()=>expect(fetcher).toHaveBeenCalledTimes(3))
- expect(fetcher.mock.calls[2][0]).toBe('/api/v1/works/w/settings/s/draft')
- expect(JSON.parse(fetcher.mock.calls[2][1].body)).toMatchObject({revision:1,setting:{content:'최신 입력'}})
+const world=(over:object={})=>({id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,drafts:[],settings:[],history:[],changes:[],sourceToken:'t',...over})
+const setting={id:'s',versionId:'v',name:'지도',content:'설정',category:'장소',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
+const show=(fetcher:typeof fetch)=>render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} />)
+
+it('shows only the settings book summary with the studio button disabled and marked as coming soon',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(world({name:'구운몽 설정집',mode:'following',basis:{episode:2,version:1,settings:[setting,setting]},settings:[setting],history:[setting]})))
+ show(fetcher)
+ const card=await screen.findByRole('region',{name:'세계관 설정집'})
+ expect(within(card).getByRole('heading',{name:'구운몽 설정집'})).toBeTruthy()
+ expect(within(card).getByText('원작 추종 중 · 첫 설정 수정 시 전체 공개 설정이 독립해요.')).toBeTruthy()
+ expect(within(card).getByText('최초 분기 기준: 2화 · 원고 버전 1 · 설정 2개')).toBeTruthy()
+ expect((within(card).getByRole('button',{name:'세계관 스튜디오에서 관리'}) as HTMLButtonElement).disabled).toBe(true)
+ expect(within(card).getByText('연결 예정')).toBeTruthy()
+ // 설정 항목 목록·작성 폼·새로고침은 세계관 스튜디오로 옮길 예정이라 이 탭에 없다.
+ for(const name of ['새 설정 항목','설정집 새로고침','설정 초안 저장','설정 확정 저장'])expect(screen.queryByRole('button',{name})).toBeNull()
+ for(const label of ['설정 이름','설정 내용'])expect(screen.queryByLabelText(label)).toBeNull()
+ expect(screen.queryByText(/설정 항목/)).toBeNull()
+ expect(fetcher).toHaveBeenCalledTimes(1)
 })
 
-it('refreshes the selected editor after applying an upstream change',async()=>{
- const value={id:'s',versionId:'v',name:'규칙',content:'분기 내용',category:'규칙',tags:[],visibility:'public',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
- const next={...value,versionId:'v2',content:'선택한 원작 정정'}
- const change={id:'c',settingId:'s',before:value,after:next,decision:'pending'}
- const state={id:'w',name:'설정집',revision:0,mode:'independent',basis:null,draft:null,drafts:[],settings:[value],history:[value],changes:[change],sourceToken:'t'}
- const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(state))).mockResolvedValueOnce(new Response(JSON.stringify({...state,revision:1,settings:[next],history:[value,next],changes:[{...change,decision:'apply'}]})))
- render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} onDirty={()=>{}} />)
- fireEvent.click(await screen.findByRole('button',{name:/규칙.*공개/}))
- fireEvent.click(screen.getByRole('button',{name:'이 원본 변경 반영'}))
- await screen.findByText('원본 변경을 새 설정 버전으로 반영했어요.')
- expect((screen.getByLabelText('설정 내용') as HTMLTextAreaElement).value).toBe('선택한 원작 정정')
+it.each([
+ ['independent','독립 세계관 · 원작 변경은 선택해서 반영해요.'],
+ ['own','내 작품의 세계관 · 확정 설정만 문맥에 사용해요.'],
+] as const)('describes a %s settings book and shows no first-fork basis when it has none',async(mode,text)=>{
+ show(vi.fn().mockResolvedValueOnce(Response.json(world({mode}))))
+ await screen.findByText(text)
+ expect(screen.queryByText(/최초 분기 기준/)).toBeNull()
 })
 
-it('autosaves a private draft then explicitly commits a setting version',async()=>{
- const state={id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,settings:[],history:[],changes:[],sourceToken:'t'}
- const value={id:'s',name:'비마법 규칙',content:'마법은 없다.',category:'규칙',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
- const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(state)))
-   .mockResolvedValueOnce(new Response(JSON.stringify({...state,revision:1,draft:value,drafts:[value]})))
-   .mockResolvedValueOnce(new Response(JSON.stringify({...state,revision:2,settings:[{...value,versionId:'v'}],history:[{...value,versionId:'v'}]})))
- render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} onDirty={()=>{}} />)
- await screen.findByText('설정집')
- fireEvent.change(screen.getByLabelText('설정 이름'),{target:{value:value.name}})
- fireEvent.change(screen.getByLabelText('설정 내용'),{target:{value:value.content}})
- await screen.findByText('설정 초안 자동저장됨')
- expect(JSON.parse(fetcher.mock.calls[1][1].body).setting.visibility).toBe('private')
- fireEvent.click(screen.getByRole('button',{name:'설정 확정 저장'}))
- await screen.findByText('새 설정 버전으로 확정했어요. 공개 범위는 지정한 회차에만 적용돼요.')
- expect(fetcher.mock.calls[2][0]).toBe('/api/v1/works/w/settings/s/commit')
- await waitFor(()=>expect(screen.getAllByText('비마법 규칙').length).toBeGreaterThan(0))
-})
-
-it('exposes persistent file controls only after a real setting is selected',async()=>{
- const value={id:'s',versionId:'v',name:'지도',content:'설정',category:'장소',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
- const state={id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,drafts:[],settings:[value],history:[value],changes:[],sourceToken:'t'}
- const fetcher=vi.fn().mockResolvedValue(Response.json(state))
- render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} onDirty={()=>{}} />)
- await screen.findByText('설정집')
- expect(screen.queryByLabelText('설정 첨부 파일')).toBeNull()
- fireEvent.click(screen.getByRole('button',{name:/지도.*장소/}))
- expect(await screen.findByLabelText('설정 첨부 파일')).toHaveProperty('type','file')
-})
-
-it('shows API failure without claiming a saved draft',async()=>{
- const state={id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,settings:[],history:[],changes:[],sourceToken:'t'}
- const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(state))).mockResolvedValue(new Response(JSON.stringify({detail:'설정집 충돌'}),{status:409}))
- render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} onDirty={()=>{}} />)
- await screen.findByText('설정집')
- fireEvent.change(screen.getByLabelText('설정 이름'),{target:{value:'규칙'}})
- fireEvent.change(screen.getByLabelText('설정 내용'),{target:{value:'본문'}})
- await screen.findByRole('alert')
- expect(screen.queryByText('설정 초안 자동저장됨')).toBeNull()
+it('shows a load failure as an alert and reads the settings book again only from the retry button',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json({detail:'설정집을 불러오지 못했어요.'},{status:500})).mockResolvedValueOnce(Response.json(world()))
+ show(fetcher)
+ expect((await screen.findByRole('alert')).textContent).toBe('설정집을 불러오지 못했어요.')
+ fireEvent.click(screen.getByRole('button',{name:'설정집 다시 불러오기'}))
+ await screen.findByRole('region',{name:'세계관 설정집'})
+ expect(screen.queryByRole('alert')).toBeNull()
+ expect(fetcher).toHaveBeenCalledTimes(2)
 })

@@ -52,9 +52,10 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
 /**
  * 작가 피드백함의 실제 작품 독자 제보(기능 23). 내가 소유한 작품들의 제보를 최신순으로 보이고 확인·답변(공개 여부)·처리 상태 변경을 서버로 보냅니다.
  * 독자가 철회·정정한 제보는 원문을 지우지 않고 표시만 남겨 함께 보입니다. 데모 작품의 피드백은 같은 화면의 기존 메모리 목록이 그대로 보입니다.
+ * workId를 주면 그 작품의 제보만 보입니다(작품 관리 화면의 '받은 피드백' 탭). 주지 않으면 내 모든 작품입니다.
  */
-export function FeedbackReportInbox() {
-  const vm = useFeedbackReportInboxViewModel()
+export function FeedbackReportInbox({ workId }: { workId?: string }) {
+  const vm = useFeedbackReportInboxViewModel(workId)
   const { reports } = vm
   return (
     // .panel 대신 .list 카드를 쓴다(데모 피드백 패널과 구분되고, 데모 패널의 aria-busy를 첫 .panel로 읽는 기존 테스트도 그대로 맞는다).
@@ -69,7 +70,7 @@ export function FeedbackReportInbox() {
         </div>
       )}
       {!reports && !vm.isError && <p className="muted">독자 제보를 불러오고 있어요…</p>}
-      {reports?.length === 0 && <p className="muted">접수된 독자 제보가 없어요.</p>}
+      {reports?.length === 0 && <p className="muted">{workId ? '이 작품에 접수된 독자 제보가 없어요.' : '접수된 독자 제보가 없어요.'}</p>}
       {!!reports?.length && <div className="list">{reports.map((r) => <InboxReportRow key={r.id} r={r} vm={vm} />)}</div>}
     </section>
   )

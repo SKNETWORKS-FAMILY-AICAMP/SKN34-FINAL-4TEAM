@@ -10,7 +10,7 @@ const comment = (extra: Partial<EpisodeComment> = {}): EpisodeComment => ({
 })
 const setup = () => {
   const repo = {
-    list: vi.fn(async () => [comment()]), create: vi.fn(async () => comment()), update: vi.fn(async () => comment()),
+    list: vi.fn(async () => [comment()]), listByWork: vi.fn(async () => [comment()]), create: vi.fn(async () => comment()), update: vi.fn(async () => comment()),
     remove: vi.fn(async () => {}), like: vi.fn(async () => {}), unlike: vi.fn(async () => {}),
   } satisfies EpisodeCommentRepository
   return { repo, useCase: new EpisodeCommentUseCase(repo) }
@@ -22,6 +22,13 @@ describe('회차 댓글 UseCase', () => {
     const { repo, useCase } = setup()
     expect(await useCase.list('w1', 3, 'likes')).toEqual([comment()])
     expect(repo.list).toHaveBeenCalledWith('w1', 3, 'likes')
+  })
+
+  it('작품 전체 목록은 작품·정렬을 저장소에 그대로 넘긴다', async () => {
+    const { repo, useCase } = setup()
+    expect(await useCase.listByWork('w1', 'likes')).toEqual([comment()])
+    expect(repo.listByWork).toHaveBeenCalledWith('w1', 'likes')
+    expect(repo.list).not.toHaveBeenCalled()
   })
 
   it('작성은 앞뒤 공백을 지운 본문과 스포일러 여부를 보내고 인용이 없으면 quote를 생략한다', async () => {

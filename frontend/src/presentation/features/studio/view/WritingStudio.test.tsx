@@ -21,8 +21,9 @@ const model = vi.hoisted(() => ({
   cancel: vi.fn(), loadPublicationHistory: vi.fn(), historyLoading: false, historyError: '', publicationHistory: null as null | unknown[],
   changeVisibility: vi.fn().mockResolvedValue(true),
 }))
-// 실제 ViewModel의 삭제는 그 렌더의 활성 회차를 지운다: 함수가 렌더 시점의 active를 붙잡도록 흉내 낸다.
-vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => { const { active } = model; return { ...model, deleteEpisode: () => model.deleteEpisode(active) } } }))
+// 호출 인자(주소의 ?ep=n)를 확인하려고 훅 호출을 기록한다. 실제 ViewModel의 삭제는 그 렌더의 활성 회차를 지우므로 함수가 렌더 시점의 active를 붙잡도록 흉내 낸다.
+const useModel = vi.hoisted(() => vi.fn())
+vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: (...args: unknown[]) => { useModel(...args); const { active } = model; return { ...model, deleteEpisode: () => model.deleteEpisode(active) } } }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
@@ -40,9 +41,9 @@ const comparisonVersions = [
 afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null })
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
-const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}) => {
+const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number) => {
   const store = createAppStore({}, ui)
-  const view = render(<WritingStudio id="work-id" />, {
+  const view = render(<WritingStudio id="work-id" episode={episode} />, {
     wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={['/studio/work-id']}>{children}<Where /></MemoryRouter></Provider>,
   })
   return { ...view, store }
@@ -63,6 +64,14 @@ it('connects the whole episode deletion button and disables it for inherited epi
   model.active = { ...originalActive, inherited: true }
   rerender(<WritingStudio id="work-id" />)
   expect(screen.getByRole('button', { name: '회차 삭제' })).toHaveProperty('disabled', true)
+})
+
+it('passes the ?ep=n episode number to the writing view model so the studio opens that episode, and nothing when there is none', () => {
+  renderStudio({}, 2)
+  expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, 2)
+  cleanup()
+  renderStudio()
+  expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, undefined)
 })
 
 const manage = () => screen.getByRole('region', { name: '회차 관리' })

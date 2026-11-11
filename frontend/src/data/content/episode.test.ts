@@ -231,6 +231,33 @@ describe('work update and delete', () => {
     expect(repo.create).not.toHaveBeenCalled()
     expect(repo.updateWork).not.toHaveBeenCalled()
   })
+  it('adds genres and hashtags to the update body only when supplied, so leaving them out keeps the stored values', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ ...work, genres: ['SF'], hashtags: ['회귀'] }))
+    const saved = await new HttpEpisodeRepository(fetcher).updateWork('w', '새 제목', '소개', 3, undefined, { genres: ['SF'], hashtags: ['회귀'] })
+    expect(saved.genres).toEqual(['SF'])
+    expect(saved.hashtags).toEqual(['회귀'])
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w', expect.objectContaining({ method: 'PUT', body: JSON.stringify({ title: '새 제목', summary: '소개', revision: 3, genres: ['SF'], hashtags: ['회귀'] }) }))
+    // 한쪽만 주면 그쪽만 보낸다. 빈 배열은 '비우기'라 생략과 달리 그대로 보낸다.
+    const only = vi.fn().mockResolvedValue(Response.json(work))
+    await new HttpEpisodeRepository(only).updateWork('w', '새 제목', '소개', 3, undefined, { hashtags: [] })
+    expect(only).toHaveBeenCalledWith('/api/v1/works/w', expect.objectContaining({ body: JSON.stringify({ title: '새 제목', summary: '소개', revision: 3, hashtags: [] }) }))
+    const none = vi.fn().mockResolvedValue(Response.json(work))
+    await new HttpEpisodeRepository(none).updateWork('w', '새 제목', '소개', 3, undefined, {})
+    expect(none).toHaveBeenCalledWith('/api/v1/works/w', expect.objectContaining({ body: JSON.stringify({ title: '새 제목', summary: '소개', revision: 3 }) }))
+  })
+  it('validates the genres and hashtags of an update like registration and passes valid ones to the repository untouched', async () => {
+    const repo = { updateWork: vi.fn().mockResolvedValue(work) }
+    const useCase = new EpisodeUseCase(repo as never)
+    await expect(useCase.updateWork('w', '제목', '', 0, undefined, { genres: [] })).rejects.toThrow('장르는 1~2개')
+    await expect(useCase.updateWork('w', '제목', '', 0, undefined, { genres: ['a', 'b', 'c'] })).rejects.toThrow('장르는 1~2개')
+    await expect(useCase.updateWork('w', '제목', '', 0, undefined, { hashtags: Array(11).fill('x') })).rejects.toThrow('해시태그는 10개')
+    expect(repo.updateWork).not.toHaveBeenCalled()
+    await useCase.updateWork('w', ' 제목 ', ' 소개 ', 2, undefined, { genres: ['판타지', 'SF'], hashtags: [] })
+    expect(repo.updateWork).toHaveBeenLastCalledWith('w', '제목', '소개', 2, undefined, { genres: ['판타지', 'SF'], hashtags: [] })
+    // 장르·해시태그를 주지 않는 기존 호출은 검증 없이 그대로 통과한다.
+    await useCase.updateWork('w', '제목', '', 2)
+    expect(repo.updateWork).toHaveBeenLastCalledWith('w', '제목', '', 2, undefined, undefined)
+  })
 })
 
 describe('episode checkpoints (DEC-43)', () => {

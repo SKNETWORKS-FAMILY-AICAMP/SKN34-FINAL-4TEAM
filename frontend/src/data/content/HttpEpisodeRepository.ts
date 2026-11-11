@@ -1,7 +1,7 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
 import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
-import {settingCategories, type Draft, type SettingInput, type WorkRegistration} from '../../domain/entities/content'
+import {settingCategories, type Draft, type SettingInput, type WorkRegistration, type WorkTaxonomy} from '../../domain/entities/content'
 import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
@@ -133,13 +133,19 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     const minutesSince = (updatedAt: string) => Math.max(0, Math.floor((at.getTime() - Date.parse(updatedAt)) / 60000))
     return { computedAt: at, items: items.map((w) => ({ ...mapReadingWork(w), ...(w.updatedAt ? { upd: minutesSince(w.updatedAt) } : {}) })) }
   }
+  /** 회차별 누적 조회 수(episodeViews)는 공개 상세(GET /public/works/{id})에만 오므로 목록 대신 이 읽기로 받는다. 익명 요청이며 기록 없는 회차는 키가 없다. */
+  async episodeViews(id: string, signal?: AbortSignal) {
+    const { episodeViews } = await this.request(`/public/works/${encodeURIComponent(id)}`, z.object({ episodeViews: z.record(z.string(), z.number().int().nonnegative()).nullish() }), 'GET', undefined, signal)
+    return episodeViews ?? {}
+  }
   async recordView(id: string, number: number, signal?: AbortSignal) {
     if (!getAccessToken()) return // 익명 열람은 회원 식별이 없어 기록하지 않는다.
     await this.request(`/works/${encodeURIComponent(id)}/episodes/${number}/views`, z.undefined(), 'POST', undefined, signal)
   }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) { return this.request('/works',work,'POST',registration?{title,summary,...registration}:{title,summary},signal) }
-  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal) { return this.request(`/works/${id}`,work,'PUT',{title,summary,revision},signal) }
+  /** 장르·해시태그는 주었을 때만 본문에 싣는다(생략하면 서버가 유지하고, 빈 배열은 비운다). */
+  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy) { return this.request(`/works/${id}`,work,'PUT',{title,summary,revision,...taxonomy},signal) }
   stopForkPublication(id: string, signal?: AbortSignal) { return this.request(`/works/${id}/fork-publication`,z.undefined(),'DELETE',undefined,signal) }
   deleteWork(id: string, signal?: AbortSignal) { return this.request(`/works/${id}`,z.undefined(),'DELETE',undefined,signal) }
   save(id: string, value: Draft) { return this.request(`/works/${id}/draft`,draft,'PUT',value) }

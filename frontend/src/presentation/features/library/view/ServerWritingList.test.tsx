@@ -1,80 +1,121 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router'
 import { ServerWritingList } from './ServerWritingList'
 
-const api = vi.hoisted(() => ({ list: vi.fn(), updateWork: vi.fn(), stopForkPublication: vi.fn(), deleteWork: vi.fn() }))
+const api = vi.hoisted(() => ({ list: vi.fn() }))
+// 카드마다 서버 표지를 요청하는 공용 훅이다. 기본은 아직 불러오는 중({ url: '', error: '' })이고, mockReset이 이 구현으로 되돌린다.
+const cover = vi.hoisted(() => vi.fn<(target: { workId: string }) => { url: string; error: string }>(() => ({ url: '', error: '' })))
 vi.mock('../../../../app/appContainer', () => ({ appContainer: { resolve: () => api } }))
-afterEach(() => { cleanup(); vi.restoreAllMocks(); Object.values(api).forEach(mock => mock.mockReset()) })
+vi.mock('../../../shared/media/useMediaViewModel', () => ({ useStoredImage: cover }))
+afterEach(() => { cleanup(); vi.restoreAllMocks(); Object.values(api).forEach(mock => mock.mockReset()); cover.mockReset() })
 
 const original = { id: 'original', title: '원작', visibility: 'public', revision: 1, source: null }
 const fork = { id: 'fork', title: '내 포크', summary: '소개', visibility: 'public', revision: 4,
   source: { workId: 'original', title: '원작', episode: 2, version: 7, direction: '다른 결말' } }
-const show = async (...works: object[]) => {
+const originals = (count: number) => Array.from({ length: count }, (_, index) => ({ ...original, id: `o${index + 1}`, title: `원작 ${index + 1}` }))
+
+/** 목록을 불러와 첫 카드(heading)가 보일 때까지 기다린다. */
+const show = async (works: object[], heading = '내 포크') => {
   api.list.mockResolvedValueOnce(works)
-  render(<MemoryRouter><ServerWritingList /></MemoryRouter>)
-  await screen.findByRole('heading', { name: '내 포크' })
-  screen.getByText('포크 상세 및 관리').closest('details')!.open = true
+  const view = render(<MemoryRouter><ServerWritingList /></MemoryRouter>)
+  await screen.findByRole('heading', { name: heading })
+  return view
 }
+const tab = (name: string) => screen.getByRole('tab', { name })
+const titles = () => screen.getAllByRole('heading', { level: 3 }).map(heading => heading.textContent)
+const pager = () => within(screen.getByRole('navigation', { name: '페이지' }))
 
-it('shows the pinned basis and stops a Fork without deleting its library entry', async () => {
-  api.list.mockResolvedValueOnce([original, fork]).mockResolvedValueOnce([original, { ...fork, visibility: 'private' }])
-  api.stopForkPublication.mockResolvedValueOnce(undefined)
-  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+it('filters the cards by tab with the counts, and moves between tabs with the arrow keys', async () => {
+  await show([original, fork])
+  expect(screen.getByRole('tablist')).toBeTruthy()
+  expect(tab('전체 2').getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('tabpanel', { name: '전체 2' })).toBeTruthy()
+  expect(titles()).toEqual(['원작', '내 포크'])
+  fireEvent.click(tab('포크 작품 1'))
+  expect(tab('포크 작품 1').getAttribute('aria-selected')).toBe('true')
+  expect(titles()).toEqual(['내 포크'])
+  fireEvent.click(tab('전체 2'))
+
+  fireEvent.keyDown(tab('전체 2'), { key: 'ArrowRight' })
+  expect(tab('원작 1').getAttribute('aria-selected')).toBe('true')
+  expect(document.activeElement).toBe(tab('원작 1'))
+  expect(titles()).toEqual(['원작'])
+  fireEvent.keyDown(tab('원작 1'), { key: 'ArrowRight' })
+  expect(document.activeElement).toBe(tab('포크 작품 1'))
+  fireEvent.keyDown(tab('포크 작품 1'), { key: 'ArrowRight' }) // 끝에서 처음으로
+  expect(document.activeElement).toBe(tab('전체 2'))
+  fireEvent.keyDown(tab('전체 2'), { key: 'ArrowLeft' }) // 처음에서 끝으로
+  expect(document.activeElement).toBe(tab('포크 작품 1'))
+  fireEvent.keyDown(tab('포크 작품 1'), { key: 'Home' })
+  expect(document.activeElement).toBe(tab('전체 2'))
+  fireEvent.keyDown(tab('전체 2'), { key: 'End' })
+  expect(document.activeElement).toBe(tab('포크 작품 1'))
+  expect(titles()).toEqual(['내 포크'])
+  expect(tab('원작 1').getAttribute('tabindex')).toBe('-1') // 선택한 탭만 Tab 키로 닿는다
+})
+
+it.each([
+  ['포크 작품 0', [original], '아직 만든 포크가 없어요.'],
+  ['원작 0', [fork], '아직 만든 원작이 없어요.'],
+] as const)('says so in an empty tab: %s', async (name, works, message) => {
+  await show([...works], works[0].title)
+  fireEvent.click(tab(name))
+  expect(screen.getByText(message)).toBeTruthy()
+  expect(screen.queryByRole('heading', { level: 3 })).toBeNull()
+})
+
+it('shows ten works per page, marks the current page, and returns to page 1 when the tab changes', async () => {
+  await show([...originals(12), fork], '원작 1')
+  expect(titles()).toEqual(originals(10).map(work => work.title))
+  expect(pager().getByRole('button', { name: '1' }).getAttribute('aria-current')).toBe('page')
+  expect(pager().getByRole('button', { name: '이전' }).hasAttribute('disabled')).toBe(true)
+  fireEvent.click(pager().getByRole('button', { name: '2' }))
+  expect(titles()).toEqual(['원작 11', '원작 12', '내 포크'])
+  expect(pager().getByRole('button', { name: '2' }).getAttribute('aria-current')).toBe('page')
+  expect(pager().getByRole('button', { name: '다음' }).hasAttribute('disabled')).toBe(true)
+  fireEvent.click(tab('원작 12'))
+  expect(titles()).toEqual(originals(10).map(work => work.title))
+  expect(pager().getByRole('button', { name: '1' }).getAttribute('aria-current')).toBe('page')
+  fireEvent.click(tab('포크 작품 1'))
+  expect(screen.queryByRole('navigation', { name: '페이지' })).toBeNull()
+})
+
+it('offers a retry next to the load error instead of a refresh button', async () => {
+  api.list.mockRejectedValueOnce(new Error('접근 권한이 없어요')).mockResolvedValueOnce([original])
   render(<MemoryRouter><ServerWritingList /></MemoryRouter>)
-  await screen.findByRole('heading', { name: '내 포크' })
-  const filter = screen.getByRole('button', { name: '내 포크만 보기' })
-  fireEvent.click(filter)
-  expect(filter.getAttribute('aria-pressed')).toBe('true')
-  expect(screen.queryByRole('heading', { name: '원작' })).toBeNull()
-  screen.getByText('포크 상세 및 관리').closest('details')!.open = true
-  expect(screen.getByText('「원작」 2화 · 버전 7에서 분기')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '포크 공개 중단' }))
-  expect(confirm).toHaveBeenCalledWith('포크 작품의 공개를 중단할까요? 발행된 회차와 원고는 보존돼요. 대기 중인 예약 발행은 취소되고, 원작이 공개를 허용하지 않으면 다시 공개할 수 없어요.')
-  expect(await screen.findByText('포크 공개를 중단했어요.')).toBeTruthy()
-  await waitFor(() => expect(api.list).toHaveBeenCalledTimes(2))
-  expect(await screen.findByRole('heading', { name: '내 포크' })).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '포크 공개 중단' })).toBeNull()
-  expect(api.stopForkPublication).toHaveBeenCalledWith('fork', expect.any(AbortSignal))
+  expect((await screen.findByRole('alert')).textContent).toBe('접근 권한이 없어요')
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  await screen.findByRole('heading', { name: '원작' })
+  expect(api.list).toHaveBeenCalledTimes(2)
+  expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull()
 })
 
-it('links back to a live original and only explains a deleted one', async () => {
-  await show(fork)
-  expect(screen.getByRole('link', { name: '원작으로 가기' }).getAttribute('href')).toBe('/work/original')
-  cleanup()
-  await show({ ...fork, source: { ...fork.source, deleted: true } })
-  expect(screen.getByText('「원작」 2화 · 버전 7에서 분기')).toBeTruthy()
-  expect(screen.getByText('삭제된 원작이라 이동할 수 없어요.')).toBeTruthy()
-  expect(screen.queryByRole('link', { name: '원작으로 가기' })).toBeNull()
+it('is titled 집필 중인 작품 and has no refresh button, Fork toggle, or Fork management (that lives on the work management page)', async () => {
+  const { container } = await show([original, fork])
+  expect(screen.getByRole('heading', { level: 2, name: '집필 중인 작품' })).toBeTruthy()
+  expect(container.querySelector('details')).toBeNull()
+  expect(screen.queryByRole('button', { name: /새로고침|내 포크만 보기|포크 삭제|포크 공개 중단|기본 정보 저장/ })).toBeNull()
 })
 
-it('keeps the cards while reloading after a save and then shows the saved values in the form', async () => {
-  let finishReload!: (works: object[]) => void
-  api.updateWork.mockResolvedValueOnce({})
-  await show(original, fork)
-  api.list.mockReturnValueOnce(new Promise(resolve => { finishReload = resolve }))
-  fireEvent.change(screen.getByLabelText('포크 제목'), { target: { value: '  새 제목  ' } })
-  fireEvent.click(screen.getByRole('button', { name: '기본 정보 저장' }))
-  expect(await screen.findByText('포크 기본 정보를 저장했어요.')).toBeTruthy()
-  expect(api.updateWork).toHaveBeenCalledWith('fork', '  새 제목  ', '소개', 4, expect.any(AbortSignal))
-  await waitFor(() => expect(api.list).toHaveBeenCalledTimes(2))
-  expect(screen.getByRole('heading', { name: '내 포크' })).toBeTruthy()
-  expect(screen.getByRole('heading', { name: '원작' })).toBeTruthy()
-  finishReload([original, { ...fork, title: '새 제목', revision: 5 }])
-  expect(await screen.findByRole('heading', { name: '새 제목' })).toBeTruthy()
-  expect((screen.getByLabelText('포크 제목') as HTMLInputElement).value).toBe('새 제목')
+it('opens the work management page and the writing studio from separate links on every card', async () => {
+  await show([original, fork])
+  expect(screen.getByRole('link', { name: '내 포크 수정하기' }).getAttribute('href')).toBe('/content?work=fork')
+  expect(screen.getByRole('link', { name: '내 포크 회차 작성하기' }).getAttribute('href')).toBe('/studio/fork')
+  expect(screen.getByRole('link', { name: '원작 수정하기' }).getAttribute('href')).toBe('/content?work=original')
+  expect(screen.getByRole('link', { name: '원작 회차 작성하기' }).getAttribute('href')).toBe('/studio/original')
 })
 
-it('asks about the irreversible consequences before deleting and keeps focus on the result', async () => {
-  api.deleteWork.mockResolvedValueOnce(undefined)
-  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
-  await show(original, fork)
-  api.list.mockResolvedValueOnce([original])
-  fireEvent.click(screen.getByRole('button', { name: '포크 삭제' }))
-  expect(confirm).toHaveBeenCalledWith('「내 포크」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.')
-  const result = await screen.findByText('포크를 삭제했어요.')
-  await waitFor(() => expect(document.activeElement).toBe(result))
-  await waitFor(() => expect(screen.queryByRole('heading', { name: '내 포크' })).toBeNull())
-  expect(document.activeElement).toBe(result)
+it('shows the stored cover when there is one and the default cover otherwise, with a one-line status', async () => {
+  // 원작은 표지가 없어(404) 요청이 실패로 끝나고, 포크는 저장된 표지가 있다.
+  cover.mockImplementation(({ workId }) => workId === 'fork' ? { url: 'blob:cover', error: '' } : { url: '', error: '파일이 없거나 조회 권한이 없어요.' })
+  const { container } = await show([original, fork])
+  expect(Array.from(container.querySelectorAll('img.cimg'), image => image.getAttribute('src'))).toEqual(['/default-work-cover.svg', 'blob:cover'])
+  expect(screen.getByText('공개 중 · Fork · 「원작」 2화에서')).toBeTruthy()
+})
+
+it('leaves the thumbnail empty until the cover request settles, so a work with a cover never flashes the default', async () => {
+  const { container } = await show([original], '원작')
+  expect(container.querySelector('img.cimg')).toBeNull()
 })

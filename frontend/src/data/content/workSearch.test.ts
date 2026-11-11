@@ -172,6 +172,30 @@ describe('조회 기록 (POST /api/v1/works/{id}/episodes/{number}/views)', () =
   })
 })
 
+describe('공개 작품 상세의 회차별 누적 조회 수 (GET /api/v1/public/works/{id})', () => {
+  it('익명 GET으로 상세를 읽고 episodeViews만 돌려준다(기록 없는 회차는 키가 없다)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(dto({ id: 'w 1', episodeViews: { 1: 4, 3: 12 } })))
+    await expect(new HttpEpisodeRepository(fetcher).episodeViews('w 1')).resolves.toEqual({ 1: 4, 3: 12 })
+    const [url, init] = fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/public/works/w%201')
+    expect(init.method).toBe('GET')
+    expect(new Headers(init.headers).has('Authorization')).toBe(false)
+    expect(new Headers(init.headers).has('X-CSRF-TOKEN')).toBe(false)
+  })
+
+  it('episodeViews가 null이거나 없으면 빈 맵이다', async () => {
+    await expect(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json(dto({ episodeViews: null })))).episodeViews('w1')).resolves.toEqual({})
+    await expect(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json(dto()))).episodeViews('w1')).resolves.toEqual({})
+  })
+
+  it('잘못된 값과 서버 오류는 빈 맵으로 숨기지 않고 던진다', async () => {
+    const bad = vi.fn().mockResolvedValue(Response.json(dto({ episodeViews: { 1: -1 } })))
+    await expect(new HttpEpisodeRepository(bad).episodeViews('w1')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+    const gone = vi.fn().mockResolvedValue(Response.json({ detail: '공개 작품을 찾을 수 없어요.' }, { status: 404 }))
+    await expect(new HttpEpisodeRepository(gone).episodeViews('w1')).rejects.toThrow('공개 작품을 찾을 수 없어요.')
+  })
+})
+
 describe('검색 카드 → /work/:id 상세', () => {
   it('카드의 id로 같은 서버 작품의 상세를 연다(공개 목록에서 찾고 마지막 회차 기준 세계관을 읽는다)', async () => {
     const fetcher = vi.fn(async (path: RequestInfo | URL) => Response.json(String(path).includes('/world?') ? { workId: 'w1', episode: 2, documents: [] } : [dto()]))

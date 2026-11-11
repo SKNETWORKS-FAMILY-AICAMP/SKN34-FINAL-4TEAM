@@ -101,7 +101,7 @@ CREATE INDEX feedback_report_response_report ON feedback_report_response (report
 | `GET /api/v1/public/works/{id}/episodes/{number}/feedback-reports` | 익명 허용(Bearer 선택) | 공개 제보 + 비공개 제보 중 공개 답변이 있는 것(원문 숨김) + Bearer가 있으면 내 비공개 제보·(소유자면) 모든 제보. `{ items }` 최신순 |
 | `GET /api/v1/public/works/{id}/episodes/{number}/feedback-reports/{reportId}` | 익명 허용 | 상세. 볼 권한이 없으면 404 |
 | `GET /api/v1/works/feedback-reports/mine` | 회원 | 내 제보 전체 `{ items }` 최신순 |
-| `GET /api/v1/works/feedback-reports/inbox` | 회원 | 내가 소유한 모든 작품의 제보 `{ items }` 최신순 |
+| `GET /api/v1/works/feedback-reports/inbox` | 회원 | 내가 소유한 모든 작품의 제보 `{ items }` 최신순. 선택 쿼리 `workId`가 있으면 그 작품만(200개 상한도 그 작품 안에서)이고, 내 작품이 아니거나 삭제됐거나 없거나 형식이 틀린 값이면 존재 여부를 드러내지 않도록 빈 `{ items: [] }` 200. 빈 값(`workId=`)은 생략과 같다 |
 | `PUT /api/v1/works/{id}/feedback-reports/{reportId}/visibility` | 제보자 | `{ visibility }` → 200 |
 | `POST /api/v1/works/{id}/feedback-reports/{reportId}/corrections` | 제보자 | `{ body }` → 200 |
 | `POST /api/v1/works/{id}/feedback-reports/{reportId}/withdrawal` | 제보자 | 본문 없음 → 200 |
@@ -186,7 +186,7 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 | `POST /api/v1/works/{id}/episodes/{number}/edit-suggestions` | 회원 | `{ beforeText, afterText, reason? }` → 201 + `SuggestionResponse` |
 | `GET /api/v1/works/{id}/edit-suggestions/{suggestionId}` | 제안자·소유자 | 상세 |
 | `GET /api/v1/works/edit-suggestions/mine` | 회원 | 내 제안 `{ items }` 최신순 |
-| `GET /api/v1/works/edit-suggestions/inbox` | 회원 | 내 작품들의 제안 `{ items }` 최신순 |
+| `GET /api/v1/works/edit-suggestions/inbox` | 회원 | 내 작품들의 제안 `{ items }` 최신순. 선택 쿼리 `workId`가 있으면 그 작품만(200개 상한도 그 작품 안에서)이고, 내 작품이 아니거나 삭제됐거나 없거나 형식이 틀린 값이면 빈 `{ items: [] }` 200(제보 inbox와 같다) |
 | `PUT /api/v1/works/{id}/edit-suggestions/{suggestionId}/edited-text` | 소유자 | `{ editedText }` → 200 |
 | `POST /api/v1/works/{id}/edit-suggestions/{suggestionId}/approval` | 소유자 | 200(반영 결과 포함) / 409 기준 변경 |
 | `POST /api/v1/works/{id}/edit-suggestions/{suggestionId}/rejection` | 소유자 | `{ reason? }` → 200 |
