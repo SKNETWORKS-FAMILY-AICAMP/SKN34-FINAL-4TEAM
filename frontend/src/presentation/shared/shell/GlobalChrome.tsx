@@ -108,6 +108,8 @@ export function GlobalChrome() {
   const { showSid, screen } = useAppSelector((s) => s.ui)
   const { pathname } = useLocation()
   const showTools = pathname !== '/login' && pathname !== '/me' && !pathname.startsWith('/me/') && !pathname.startsWith('/auth/')
+  // 집필실(U13)은 화면 ID·테마 전환을 상단 더보기 메뉴에 두므로 오른쪽 아래에 떠 있는 버튼을 뺀다(화면 ID 표시줄은 그대로).
+  const writing = screen.base === 'U13' && pathname.startsWith('/studio/')
   const dispatch = useAppDispatch()
   return (
     <>
@@ -115,11 +117,11 @@ export function GlobalChrome() {
       <Toast />
       <TopButton />
       {showTools && <>{import.meta.env.DEV && <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>}
-      <div className="screen-controls">
+      {!writing && <div className="screen-controls">
         {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(uiActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
         {/* 관리자 화면은 상단바에 테마 버튼이 있어 떠 있는 버튼이 표를 가리지 않게 뺍니다. */}
         {pathname !== '/admin' && <ThemeButton className="btn sm" />}
-      </div></>}
+      </div>}</>}
     </>
   )
 }

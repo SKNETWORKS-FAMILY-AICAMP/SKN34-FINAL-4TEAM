@@ -35,6 +35,8 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 - Redux `session`은 인증·로그인 안내와 기존 조회 무효화 신호를, `ui`는 테마·화면 ID·읽기 설정·홈 표시 상태를 소유합니다. UI 상태는 로그인·로그아웃 때 유지하며 브라우저 저장소에 영속화하지 않습니다. `dataVersion`은 여전히 데모 전역 재조회 신호이며 기능별 캐시로 바꾸지 않았습니다.
 - 관계 패널의 draft 상태·적용 handler는 `useRelationPairViewModel`, 순수 초기화·방향 변환은 Domain의 `relationDraft`가 담당합니다. 최초 baseline을 유지하고 기존 `applyRelationChanges`로 검증하며, 저장 전 편집과 실제 저장을 구분합니다.
 - 집필실·서재가 함께 쓰는 `PublishSettingsSheet`는 `presentation/shared`에, Wiki 편집 화면은 `StudioWikiView`에 둡니다. 데모 피드백함과 실제 알림함의 ViewModel은 별도 파일입니다.
+- 서버 집필실(`/studio/{UUID}`)은 왼쪽 회차 목록·버전 그래프 / 가운데 원고 / 오른쪽 AI 채팅의 3단입니다. 그래프 행의 순서·라벨·배지는 Domain의 `versionGraph`가 계산하고, 채팅은 이후 캐릭터 챗도 쓰는 표시용 `presentation/shared/chat/ChatPanel`입니다. ChatPanel은 API를 부르지 않으며 메시지·전송·첨부는 호출하는 화면이 넘기고, 집필실의 AI 전송·첨부는 아직 연결하지 않아 "준비 중"으로 잠겨 있습니다.
+- 서버 집필실 본문은 Tiptap(`@tiptap/react`·`@tiptap/core`·`@tiptap/pm`과 `document`·`paragraph`·`text`·`@tiptap/extensions`의 undo/redo 등 최소 확장) 기반 `ManuscriptEditor`입니다. 서식 없이 문단·이미지 블록만 두고 저장 형식(일반 텍스트 + `[[image:<id>]]` 표식)과의 왕복 변환은 Domain의 `manuscriptDoc`, 글자 수·공개 분량(5,000자, 서버가 검사하지 않는 화면 규칙) 판정은 `manuscriptLength`가 맡습니다.
 - 순수 함수라도 Presentation 소유의 테스트는 해당 feature 옆에 둡니다. 현재 CI는 경로 기준으로 분류하므로 이 테스트는 Domain/Data 단위 명령이 아니라 기존 통합 선택에서 발견됩니다.
 
 ## 실제 호출 흐름

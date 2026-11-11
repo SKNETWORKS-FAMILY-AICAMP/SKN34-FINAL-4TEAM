@@ -28,7 +28,6 @@
 .version-comparison .inp { min-height: 44px; }
 .version-comparison ::selection { background: var(--pri-soft); color: var(--pri-ink); }
 @media (max-width: 600px) {
-  .writing-studio .sbar .writing-setting-history { grid-row: 4; grid-column: 1 / -1; }
   .writing-history-sheet { padding: 20px 16px; }
   .version-original-columns { grid-template-columns: minmax(0, 1fr); }
   .version-panel-nav .btn { height: auto; min-height: 44px; white-space: normal; padding-block: 8px; }

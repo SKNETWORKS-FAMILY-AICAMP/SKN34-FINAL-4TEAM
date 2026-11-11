@@ -129,6 +129,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       finally {if(historyRequest.current===controller){historyRequest.current=null;setHistoryLoading(false)}}
     },
     episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,deleteBlocker:deleteBlocker(active,episodes),
+    // 회차 목록의 항목별 메뉴가 선택하지 않은 회차의 삭제 가능 여부도 같은 규칙으로 알린다.
+    deleteBlockerOf:(e:WritingEpisode)=>deleteBlocker(e,episodes),
     edit:(patch:Partial<Pick<Draft,'title'|'body'|'authorNote'>>)=>{put({...current.current,...patch});setNotice('')},
     save:()=>save(true),
     deleteDraft:()=>remove(false),

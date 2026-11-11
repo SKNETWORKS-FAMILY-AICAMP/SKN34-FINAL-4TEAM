@@ -9,8 +9,8 @@ import { scrollToSpy } from '../../../test/scrollToSpy'
 import { GlobalChrome } from './GlobalChrome'
 import { ThemeButton } from './ThemeButton'
 
-function renderChrome(path = '/', theme?: 'light' | 'dark') {
-  const store = createAppStore({}, { theme: theme ?? null })
+function renderChrome(path = '/', theme?: 'light' | 'dark', ui: Parameters<typeof createAppStore>[1] = {}) {
+  const store = createAppStore({}, { theme: theme ?? null, ...ui })
   const view = render(<Provider store={store}><MemoryRouter initialEntries={[path]}><GlobalChrome /></MemoryRouter></Provider>)
   return { store, ...view }
 }
@@ -144,4 +144,26 @@ it('수동 테마는 OS보다 우선하며 자동 테마 구독은 unmount에서
   expect(screen.getByRole('button', { name: '라이트 모드로' })).toBeTruthy()
   view.unmount()
   expect(remove).toHaveBeenCalledWith('change', add.mock.calls[0][1])
+})
+
+const STUDIO = '/studio/6f0c6c4e-8f4a-4d0b-9d52-1c3b5a7e9f10'
+
+it('집필실(U13)에서는 오른쪽 아래 화면 ID·테마 버튼을 숨기고 화면 ID 표시줄은 그대로 둔다', () => {
+  vi.stubEnv('DEV', true)
+  renderChrome(STUDIO, 'light', { screen: { base: 'U13', sheet: null } })
+  expect(document.querySelector('.screen-controls')).toBeNull()
+  expect(screen.queryByRole('button', { name: /화면 ID/ })).toBeNull()
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+  expect(document.getElementById('sid')!.hidden).toBe(false)
+})
+
+it.each([
+  ['집필실 화면 ID가 남아 있어도 스튜디오가 아닌 경로', '/lib?tab=write', 'U13'],
+  ['스튜디오 경로의 다른 화면(플롯)', `${STUDIO}?view=narrative`, 'U40'],
+  ['데모 집필실', '/studio/starlight', 'U17'],
+])('%s에서는 떠 있는 버튼을 그대로 둔다', (_name, path, base) => {
+  vi.stubEnv('DEV', true)
+  renderChrome(path, 'light', { screen: { base, sheet: null } })
+  expect(screen.getByRole('button', { name: '화면 ID 끄기' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
 })

@@ -138,6 +138,18 @@ it('deleteBlocker follows the selected episode and is empty before one is loaded
   expect(result.current.deleteBlocker).toBe('')
 })
 
+it('deleteBlockerOf explains any listed episode with the same rules, whichever episode is selected',async()=>{
+  const api=deletionApi([row(1,{publishedVersionId:'v1'}),row(2),row(3,{inherited:true})])
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  const [first,second,third]=result.current.episodes
+  expect(result.current.active?.number).toBe(1)
+  expect(result.current.deleteBlockerOf(first)).toBe('발행본이 있는 회차는 삭제할 수 없어요. 마지막 회차(3화)만 삭제할 수 있어요.')
+  expect(result.current.deleteBlockerOf(second)).toBe('마지막 회차(3화)만 삭제할 수 있어요.')
+  expect(result.current.deleteBlockerOf(third)).toBe('원작 기준 회차는 삭제할 수 없어요.')
+  expect(result.current.deleteBlockerOf(first)).toBe(result.current.deleteBlocker)
+})
+
 it('confirms an episode deletion as irreversible and says the number can be reused',async()=>{
   const api=deletionApi([row(1)])
   const {result}=renderHook(()=>useWritingViewModel('w',api))
