@@ -1,0 +1,127 @@
+{
+  "preservedIntegration": "f05cec6ce834781d263c2612d588c9224dfe7636",
+  "previousDevelop": "b0398b691dd95c79ae04705aea386cf7bd8e2245",
+  "latestDevelop": "09f7d4349e8242db609ef18494a5c744e4b080ae",
+  "mergedCommit": "733e9bfece9b673c86bdd48cc1560f67952e7c69",
+  "creditDeltaPatchId": "20ddb34d1aca39c24aa6bca26da877e4180c557b",
+  "worldStudioScopePatchId": "ab680f8640e8a3bd96efa66589ff0b68f508aab8",
+  "migrations": {
+    "V1__independent_worldstudio.sql": "3f0689a58a02a3d7031526dee50619dbe7bdfd5029da03af10020a11d14e0a2a",
+    "V2__neo4j_current_relationship_state.sql": "a1c7a9560978a667b6e6601f25ccd1ec4597779420b9873c06f324eadb69c5f2",
+    "V3__initial_world_analysis_storage.sql": "cf78ff9413265306627398d16492e2ee393cb17b82f93776b9bcbeb0a815e60d",
+    "V4__initial_analysis_failure_reason.sql": "0f689ae525c693ab904a187d70c29c50e0c9530d2ed3946267e7ce2cf07d3ec7",
+    "V5__initial_decision_request_identity.sql": "86cd3e1f87868603bcc2fdedbac00f94e920c776a59b05a0ecd13f10d9a4968f"
+  },
+  "prs": [
+    {
+      "number": 219,
+      "headRefOid": "6c5ed7d86081fa642c57b440f580bfbf3d143057",
+      "baseRefName": "develop",
+      "baseRefOid": "d3ec76808bdec4a3ad97ebfce0d90ad3f44e68fc",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 225,
+      "headRefOid": "3bf930157b462b91a5593e9831b9053e9676d400",
+      "baseRefName": "develop",
+      "baseRefOid": "8390ffad6643eec2d251dd58567d29696fb83bad",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 235,
+      "headRefOid": "0f5d4efd9dad31e777f37ff103c20913e744f7d2",
+      "baseRefName": "develop",
+      "baseRefOid": "afd9007d7b85ede5f024728a6e3d39a05c6775eb",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 262,
+      "headRefOid": "90568cfda520be91a9c5da7fad936fbadf9281eb",
+      "baseRefName": "develop",
+      "baseRefOid": "0767bb57c65eec2223523bbd6b0082ff54ee6da4",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 266,
+      "headRefOid": "3c3772924bf18c50e27e5020a723c223ac5332ee",
+      "baseRefName": "feat/initial-world-5c-dependencies",
+      "baseRefOid": "8d1663c0458cc16098a6e18bf9dcf532e66ce176",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 270,
+      "headRefOid": "0192047b1b91e6f70e2cb5c397d00ba6da67cd0b",
+      "baseRefName": "feat/initial-world-analysis-execution",
+      "baseRefOid": "3c3772924bf18c50e27e5020a723c223ac5332ee",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 284,
+      "headRefOid": "cf3289346a74fae5c97b3ebba5a9dc51e87f9b01",
+      "baseRefName": "feat/initial-world-candidate-decisions",
+      "baseRefOid": "0192047b1b91e6f70e2cb5c397d00ba6da67cd0b",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 285,
+      "headRefOid": "23c60ed8e4291a94c4be5329b0774f0d5294e26e",
+      "baseRefName": "feat/initial-world-approved-application",
+      "baseRefOid": "cf3289346a74fae5c97b3ebba5a9dc51e87f9b01",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 286,
+      "headRefOid": "354555b5e166f98768afb017640c56ed4f1e9060",
+      "baseRefName": "fix/initial-world-metadata-roundtrip",
+      "baseRefOid": "23c60ed8e4291a94c4be5329b0774f0d5294e26e",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 288,
+      "headRefOid": "6abb5ab1f96ab7d3d41b86a408761af03f0d1010",
+      "baseRefName": "feat/initial-world-review-ui",
+      "baseRefOid": "354555b5e166f98768afb017640c56ed4f1e9060",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    },
+    {
+      "number": 289,
+      "headRefOid": "58265ebf659e04492536b344b5c9e4a934d6029f",
+      "baseRefName": "feat/worldstudio-revision-ui",
+      "baseRefOid": "6abb5ab1f96ab7d3d41b86a408761af03f0d1010",
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "isDraft": true,
+      "reviewDecision": ""
+    }
+  ]
+}
