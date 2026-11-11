@@ -57,6 +57,8 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `GET /api/v1/me/withdrawal` | Bearer 인증; 진행 중이면 `{"status":"PENDING","requestedAt","dueAt"}`, 없으면 `{"status":"NONE"}`, 200 |
 | `DELETE /api/v1/me/withdrawal` | Bearer 인증; 유예 중인 탈퇴 요청 취소(복구), 204. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409 |
 
+AI 요청 속도 제한(F-CRD-05)은 `AiRateLimitService`(내부 서비스, HTTP 엔드포인트 없음)가 토큰 버킷으로 맡습니다. `tryAcquire(memberId, tokens)`가 회원별 분당 요청 수·토큰 수와 플랫폼 전체 분당 요청 수·토큰 수를 함께 확인해 모두 통과하면 한도를 가져가고, 하나라도 모자라면 아무것도 가져가지 않은 채 다시 시도할 시점(`retryAfter`)을 돌려줍니다. 한도 값은 `app.ai-rate-limit.user-requests-per-minute`(기본 20)·`user-tokens-per-minute`(60000)·`platform-requests-per-minute`(300)·`platform-tokens-per-minute`(600000)로 바꿀 수 있으며, 기본값은 임시입니다. 플랜별 한도는 플랜이 정해지지 않아 모든 회원에게 같은 값을 씁니다. 버킷 상태는 Core 인스턴스 메모리에만 있어서 재시작하면 초기화되고, 인스턴스를 여러 개로 늘리면 인스턴스마다 따로 적용되므로 단일 Core 인스턴스를 전제로 합니다. 아직 호출하는 쪽이 없고 AI 요청 토큰 수 산정 방식은 정해지지 않았습니다.
+
 ### 내부 API (Content·운영 서비스 전용, nginx 비노출)
 
 [운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 닉네임 조회를 뺀 모두 회원 Bearer가 필요합니다.
