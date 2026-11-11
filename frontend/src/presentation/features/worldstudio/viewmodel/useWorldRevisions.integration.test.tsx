@@ -34,13 +34,17 @@ it('retains confirmation uncertainty without a success message when the draft re
  expect(result.current.pending).toBe(true);expect(result.current.message).toBe('');expect(repo.acknowledgeConfirmation).not.toHaveBeenCalled()
 })
 
-it('does not acknowledge success if another tab confirmed a later revision before the draft reload',async()=>{
+it('recognizes an existing original confirmation superseded by another tab without clearing its request',async()=>{
  const later=crypto.randomUUID()
  const {result,repo}=setup(false,vi.fn(async()=>({...world,version:4,currentRevisionId:later})))
- await waitFor(()=>expect(result.current.busy).toBe(false));await act(()=>result.current.confirm())
- expect(result.current.pending).toBe(true);expect(result.current.message).toBe('')
- expect(result.current.error).toContain('확정');expect(repo.acknowledgeConfirmation).not.toHaveBeenCalled()
- await act(()=>result.current.confirm(true))
- expect(repo.confirm).toHaveBeenLastCalledWith(world.id,2,expect.any(AbortSignal))
+ await waitFor(()=>expect(result.current.busy).toBe(false))
+ vi.mocked(repo.revisions!).mockResolvedValue([
+  {worldId:world.id,revisionId:frozen.revisionId,revisionNo:1,name:'확정',createdAt:'2026-11-11T00:00:00Z'},
+  {worldId:world.id,revisionId:later,revisionNo:2,name:'다음 확정',createdAt:'2026-11-11T01:00:00Z'},
+ ])
+ await act(()=>result.current.confirm())
+ expect(result.current.pending).toBe(true)
+ expect(result.current).toMatchObject({superseded:{revisionNo:1,currentRevisionNo:2}})
+ expect(result.current.error).toBe('')
  expect(repo.acknowledgeConfirmation).not.toHaveBeenCalled()
 })
