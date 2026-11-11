@@ -2,10 +2,11 @@
 import '../../../../test/fixtureApp'
 import '../../../../test/testLocks'
 
-import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
+import { sessionActions } from '../../../shared/session/sessionSlice'
 import { renderApp } from '../../../../test/renderApp'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
@@ -41,6 +42,23 @@ describe('결제 내역 (U33)', () => {
     expect(screen.getByText('+30')).toBeTruthy()
     expect(screen.getByText('-5')).toBeTruthy()
     expect(screen.getByText('-7')).toBeTruthy()
+  })
+
+  it('같은 시각에 소멸하는 두 종류 크레딧은 합계로 보여 준다', async () => {
+    const expiresAt = '2026-11-30T15:00:00Z'
+    setup(() => Response.json({ total: 45, items: [{ kind: 'signup-trial', remaining: 30, expiresAt }, { kind: 'reward', remaining: 10, expiresAt }, { kind: 'event', remaining: 5, expiresAt: '2026-12-31T15:00:00Z' }] }))
+    expect(await heldCredits()).toBe('45')
+    expect(screen.getByText('가입 체험 크레딧·보상 크레딧 40')).toBeTruthy()
+  })
+
+  it('다시 읽기에 실패하면 기존 내역이 있어도 실패를 알린다', async () => {
+    let fail = false
+    const { store } = setup(() => fail ? new Response(null, { status: 500 }) : Response.json(balance))
+    expect(await heldCredits()).toBe('40')
+    fail = true
+    act(() => { store.dispatch(sessionActions.dataChanged()) })
+    expect((await screen.findByRole('alert')).textContent).toContain('크레딧을 불러오지 못했어요')
+    expect(screen.getByText('보유 크레딧')).toBeTruthy()
   })
 
   it('지급받은 크레딧이 없으면 0과 빈 내역을 그대로 알린다', async () => {
