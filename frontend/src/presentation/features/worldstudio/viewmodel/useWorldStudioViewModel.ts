@@ -60,6 +60,7 @@ export function useWorldStudioViewModel(
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(restoring)
+  const [reviewBusy,setReviewBusy]=useState(false)
   useEffect(() => {
     leaveGuard?.setDirty(dirty)
     return () => leaveGuard?.setDirty(false)
@@ -151,7 +152,7 @@ export function useWorldStudioViewModel(
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty, relationDirty])
   const perform = async (action: (signal: AbortSignal) => Promise<void>) => {
-    if (mutation.current) return
+    if (mutation.current || reviewBusy) return
     const controller = new AbortController()
     mutation.current = controller
     const current = generation.current
@@ -190,6 +191,9 @@ export function useWorldStudioViewModel(
     }
   }
   return {
+    reviewWorldId:worldId,
+    setReviewBusy,
+    reload:async()=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했습니다.');install(w);setRelationKey(v=>v+1)},
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoPersonDeletion: !!personUndo,
     flow,
@@ -243,7 +247,7 @@ export function useWorldStudioViewModel(
     setSelected,
     error,
     message,
-    busy,
+    busy:busy||reviewBusy,
     create: (name: string, description: string) =>
       perform(async (signal) => {
         if (
