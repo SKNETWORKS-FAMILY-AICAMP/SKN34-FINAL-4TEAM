@@ -1,44 +1,26 @@
-# 결정 기록과 구현 전 확인 사항
+# 결정과 미정 사항
 
-이 기록은 집필 AI의 **추천 설계**다. 제품에서 이미 확정된 경계는 Core 인증, Content의 작품 인가·정본 반영, Neo4j의 현재 관계 단일 정본, 승인 전 원고 보존이다. LangGraph와 모델 제공사, 검색 인프라 도입 및 운영 예산은 추천안에 대한 별도 결정이 필요하다. [프로젝트 결정](../design/decisions.md) · [현재 관계 계약](../design/worldstudio-independent-schema.md)
+이 문서의 “채택”은 이번 집필 AI 개발 순서의 결정이다. 제품 전체 정책을 새로 확정하지 않는다. 기존 [설계 결정](../design/decisions.md)과 [서비스 경계](../design/service-boundaries.md)가 우선한다.
 
-## 실행과 모델
-
-| 문제·현재 근거 | 선택지 A / 비용과 영향 | 선택지 B / 비용과 영향 | 추천·결정 시점·미결 영향 |
-|---|---|---|---|
-| 1. JEV vs Decisions. Python 이어쓰기는 이미 OpenAI Responses를 사용 | JEV 통합 분류는 선택지·확률을 한 번에 반환. 새 제공사와 원고 전송 정책·인증 검토 필요 | OpenAI Decisions는 기존 제공사 경계 안에서 정형 평가. 계정·모델 지원과 한국어 정확도 검증 필요. Responses는 복합 schema 생성 가능하나 생성량 변동 | MVP 전 RuleBasedRouter를 기준선으로 동일 라벨 세트의 비용·p95·복합 의도 누락을 비교. 모호하면 질문. 미선정이어도 명시 UI 경로 구현 가능. [공식 JEV](https://docs.typesafe.ai/api/system-one) · [공식 Decisions](https://developers.openai.com/api/reference/resources/decisions/methods/create) |
-| 2. DAG와 Supervisor. 기존 이어쓰기는 단일 호출 | 등록 규칙만 사용하면 재현 가능, 낯선 복합 요청 누락 | 동적 Supervisor는 분기 폭이 크지만 재계획·비용·회복 어려움 | MVP는 고정 DAG와 등록 후속 조건, 제한 planner는 비교 평가 후. 미합의 시 알 수 없는 조합에 명확화 |
-| 3. Retrieval Tool vs Subgraph. ContextService는 제한된 발췌를 동기 조립 | 공통 async 함수 한 곳에서 pre/post filter 적용. 저장 비용 낮음 | 검색 자체가 긴 반복/중단을 가지면 서브그래프로 독립 재개 가능. 상태·복구 비용 증가 | MVP는 공통 도구. 실제 재검색 전략에 중간 checkpoint가 필요할 때만 분리 |
-| 9. Simulation 예산. 다중 인물 루프 구현 전 | 두 인물·세 개별 행동, 기본 최대 6회 시도. 비용·반응 폭 제한 | 라운드당 전원 행동은 긴 상호작용에 적합, 인원×라운드만큼 호출 증가 | 기능 전 개별 행동 기준 채택, 비교 최대 12회 시도·절대 한도 14. 실측 후 조정. 미결이면 긴 장면은 부분 종료 |
-| 10. Agent 공유 상태. 인물별 knownBy와 공개 제약 존재 | 상태 전체 전달은 단순하나 비밀 유출 및 checkpoint 팽창 | immutable evidence 참조와 역할별 projection은 변환·재검증 비용, 노출 범위 작음 | 기능 전 B. 공유 자료는 scope 내에서만 재사용. actor끼리 미공개 메모리는 전달 금지 |
-
-## 검색과 버전
-
-| 문제·현재 근거 | 선택지 A / 비용과 영향 | 선택지 B / 비용과 영향 | 추천·결정 시점·미결 영향 |
-|---|---|---|---|
-| 4. 관계 Graph와 Wiki 물리 분리. 관계 내용은 현재 Neo4j에만 보존 | 한 인스턴스 안 별도 DB·권한은 운영비 절감, 삭제·권한 오구성 영향 공유 | 별도 물리 배치는 격리·복구 독립, 인프라 비용 상승 | 논리 모델·권한·writer는 처음부터 분리. Wiki 구축 전 부하·운영 요구로 물리 배치 결정. AI가 관계 graph에 Wiki 기록 금지 |
-| 5. Graph/Vector 제품 선정. 현재 관계용 드라이버 존재 | 기존 Neo4j 관계를 Content로 읽고 나머지 backend를 fixture로 정의, 제품 확정 지연 가능 | Wiki 및 두 Vector를 일찍 선정하면 운영 검증 빠르나 검색 품질 측정 전 종속 | 현재 관계의 제품은 이미 확정. 신규 Wiki·Vector 제품은 실제 권한 필터·삭제·한국어 회수율 벤치마크 후. 템플릿과 원고의 인덱스/권한은 분리 |
-| 6. Wiki 생성·동기화. 버전·공개/삭제 상태가 Content에 있음 | 읽을 때마다 추출하면 초기 구축 작음, 호출·지연 및 재현성 문제 | 확정 판본의 변경 이벤트로 증분 추출하고 검토 provenance 유지. 중복·순서·재색인 설계 필요 | 실제 색인 전 B 검증. 이벤트 키는 대상+revision, 삭제 우선 차단, 처리 역전 시 최신 manifest 대조. 그전에는 fixture로 시점 계약 검증 |
-| 7. 전체 coverage. 기존 Context는 최근 3화까지 발췌 | top-k만으로 답하면 빠르나 빠진 회차 식별 불가 | 예상 manifest 전체 상태 검증 뒤 필요한 원문만 모델에 전달. 메타 조회 비용 | MVP B. verified/expected와 critical gap 별도. 공백이 있으면 전체 검수 확정 보류 |
-| 8. Fork·revision snapshot. checkpoint_episode/setting과 following/independent 존재 | 매번 원작 최신을 읽으면 빠르나 Fork 독립·미래 지식 위반 | Content가 허용한 버전 manifest와 출처 checkpoint, 변경 동의로 고정. 읽기 시 검증 필요 | 기능 전 B. 전체 역사 관계 snapshot 예외를 보존. 과거 주장은 당시 서술 근거로만 답변. 매핑·권한 불명은 unavailable |
-
-## 서비스와 저장
-
-| 문제·현재 근거 | 선택지 A / 비용과 영향 | 선택지 B / 비용과 영향 | 추천·결정 시점·미결 영향 |
-|---|---|---|---|
-| 11. Python 분리. 내부 FastAPI 앱과 GenerationClient 존재 | 기존 Python 앱 확장 시 LangGraph 생태계·테스트 재사용, 네트워크 장애 표면 추가 | Kotlin에 통합 시 트랜잭션 인접, Python SDK 통합·서비스 결합 비용 큼 | MVP A. 에이전트별 배포 없음. 도입할 LangGraph/Saver 의존성은 구현 전 공유 |
-| 12. Core 재사용. CoreAuthClient와 Content ProposalService가 현재 코드 | Core에 콘텐츠 승인 이중 구현 시 writer·migration 경계 충돌 | Core 인증과 Content의 정본 검증·저장 경유. 기존 API 재사용, 작업별 위임 필요 | DEC-41에 따라 B. 내부 읽기 transport만 #163에서 결정. 미결일 때 grant 없는 실제 읽기 차단 |
-| 13. Saver schema. 기존 SQL에는 saver 운영 테이블 없음 | 같은 PG의 별도 schema·계정·전용 pool이면 인프라 절약, 부하·백업 공유 | 별도 DB면 보존·복구 독립, 장애 대응·운영비 증가 | 운영 전 보존량·삭제 SLA로 결정. 개발 후보는 별도 schema. 고정 배포본 setup과 업무 Flyway 분리. schema/권한 확인 전 운영 재개 불가 |
-| 14. 다중 문서 원자성. 현재 accept는 원고 한 건에 결과 이력 | 같은 Content PG transaction은 명확한 전부 성공·실패. cross-store 제한 | saga는 여러 저장소 처리 가능하나 중간 상태·보상·추가 승인 계약 필요 | 기능 전 A. graph와 PG 일괄 원자 적용 거부. 서로 독립 가능한 제안만 사용자에게 분리 제시 |
-| 15. Mock 검증 한계. Wiki·원고/템플릿 벡터 실 검색 계약 없음 | fixture는 충돌·누락·격리와 재시도 재현, 실제 랭킹·성능 불명 | 실 adapter와 승인된 소규모 corpus는 질적 평가 가능, 구축·운영 필요 | 설계/MVP 계약은 A, 운영 전 B로 shadow 평가. 실 장애에 Mock 전환하거나 Mock 판본을 실제 원고에 적용하지 않음 |
-
-## 구현 승인이 필요한 경계
-
-| 결정 주체·시점 | 확인할 내용 | 확인 전 동작 |
+| 항목 | 채택한 방식 | 이유·한계 |
 |---|---|---|
-| Content·AI 담당, 기능 착수 전 | work↔독립 Studio world 연결, 회차·행 단위 공개/knownBy, 서비스 위임 만료/철회, 정확한 인물 ID | 관계를 결합하지 않고 미지원 표시. 검증된 Content 설정·원문만 사용 |
-| 제품·작가 도구 담당, 변경 기능 전 | 다중 문서 적용 대상/부분 선택, 충돌 화면, 승인 세션 만료·취소 경쟁 | 전체 diff를 확인한 단일 PG 변경 집합만 승인 |
-| 운영·데이터 담당, 실제 저장 전 | Saver 전용 계정·보관·삭제·복구, schema 관리, 모델 제공사 보존 설정·사용 권리·호출 비용 한도 | 민감 production 원고·실제 DB·유료 호출 없이 합성 평가 |
-| 콘텐츠 담당, 검색 구축 전 | 소설/템플릿 이용권·공개 범위, 임베딩·제품/인덱스 선택, 동기화·삭제 지연 목표 | 시점 확인 불가능한 근거를 정본으로 제공하지 않음 |
+| 개발 순서 | 정책이나 실제 DB 기반이 있는 기능부터 수직으로 구현하고 기능마다 실 OpenAI 모델로 확인 | Mock 전체 RAG를 먼저 완성해도 실제 검색·생성 품질을 증명하지 못한다. |
+| 관계 정본 | Content가 확인한 Neo4j **현재 관계 하나** | 과거 관계 이력/복원은 #132 계약에서 제외. 회차 시점의 관계를 현재 그래프로 추측하지 않는다. |
+| 원고 정본과 검색 | PostgreSQL 원고·버전이 정본, Elasticsearch 벡터 인덱스는 파생 검색 | 색인 결과는 권한·revision·원문 span을 다시 확인해야 한다. 색인 지연은 누락으로 표시한다. |
+| 전체 RAG | 관계 Graph, 회차 Wiki Graph, 원고 Vector, 템플릿 Vector의 네 경로를 목표로 유지 | Wiki·템플릿은 실제 필요와 기반이 생길 때 구현. 공통 출처/coverage만 미리 문서화한다. |
+| 실행 형태 | 단순 기능은 기존 FastAPI 호출, 반복 인물 시뮬레이션은 LangGraph Subgraph | 자연어 Router·범용 DAG·Saver를 선행 조건으로 만들지 않는다. |
+| 검수 | Mechanical과 Semantic 분리, 인물 행동 재현 때만 Simulation | 맞춤법과 서사 판단의 근거·오류 유형이 다르다. |
+| 집필과 기획 | Development는 BeatPlan, Writing은 새 Text 또는 기존 Patch | 계획을 원고 정본처럼 저장하지 않는다. |
+| 제안 적용 | AI는 변경 후보, Content가 승인·현재 판본·적용 영수증 판단 | 모델 출력이 곧 저장/발행은 아니다. 저장소 간 원자성을 가정하지 않는다. |
+| 외부 근거 | 웹 검색은 현실 사실의 출처, 작품 내용은 Content 정본 | 웹 텍스트는 명령이 아니며 모델 입력과 정본을 오염시키지 않는다. |
 
-[현행 소스 분석](01-current-system-analysis.md) · [실행 계획](02-ai-architecture.md) · [기능 설계](03-rag-simulation-design.md) · [인프라 계약](04-infrastructure-integration.md) · [구현 및 평가](05-implementation-roadmap.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
+## 구현 전에 확인할 정책
+
+- 작품과 독립 WorldStudio world의 연결이 없거나 불명확하면 관계를 원고 문맥에 합치지 않는다. 연결 계약은 Content 소유 기능과 조율한다.
+- 인물 ID, knownBy, 회차별 공개 범위가 없는 경우 시뮬레이션·Semantic 결과에서 해당 지식을 “확정”으로 쓰지 않는다.
+- Elasticsearch의 임베딩 모델·인덱스 매핑·재색인/삭제 전파와 검색 품질 목표는 개발용 corpus로 평가해 결정한다. 이 문서는 특정 제품 설정을 임의 확정하지 않는다.
+- 웹 검색 제공사, 허용 도메인, 외부 전송 동의, 인용 범위는 웹 조사 기능 착수 전에 결정한다.
+- 다중 문서·Neo4j+PostgreSQL 변경의 부분 채택/원자성 정책이 정해지지 않으면 한 번에 적용하지 않는다.
+- 실제 모델 테스트는 개발용 자료·키·호출 상한을 사용하고 결과를 기록한다. 모델명이나 품질 수치를 근거 없이 고정하지 않는다.
+
+미정 항목은 해당 단계에서 질문하거나 명시적 미지원으로 남긴다. 실패를 성공 또는 임의 대체 결과로 숨기지 않는다.
