@@ -115,7 +115,7 @@ def test_health(web):
 def test_health_worldstudio_startup_migration():
     """Content 시작 시 WorldStudio 전용 schema가 자기 이력으로 적용되고 Auth/Content 이력과 공존하는지 확인한다."""
     assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "18"
-    assert scalar("SELECT string_agg(version, ',' ORDER BY installed_rank) FROM worldstudio.world_studio_schema_history WHERE success AND type='SQL'") == "1,2,3"
+    assert scalar("SELECT string_agg(version, ',' ORDER BY installed_rank) FROM worldstudio.world_studio_schema_history WHERE success AND type='SQL'") == "1,2,3,4"
     for table in ("flyway_schema_history", "content_schema_history"):
         assert scalar(f"SELECT count(*) FROM public.{table} WHERE NOT success") == "0"
         assert int(scalar(f"SELECT count(*) FROM public.{table} WHERE success")) > 0
@@ -192,3 +192,34 @@ def test_ai_failure(draft_work):
     # Content/Core 자체 장애를 AI 제공사 503 통과로 오인하지 않는다. 기본 uvicorn access log에는 본문·토큰이 없다.
     logs = compose("logs", "--no-color", "ai-service")
     assert bool(re.search(r'"POST /internal/v1/proposals HTTP/\S+" 503\b', logs)), "AI did not receive the proposal request"
+
+
+def test_content_initial_world_analysis_failure_is_persistent_without_reexecution(signed_in):
+    """실제 인증→Content→키 없는 AI→PostgreSQL→재조회. 유료 모델은 호출하지 않는다."""
+    client = signed_in["client"]
+    refresh_csrf(client)
+    created = client.post("/api/v1/world-studios", json={"name": "5-C CI", "description": "보존할 원문"})
+    assert created.status_code == 200
+    draft = created.json()
+    world = str(uuid.UUID(draft["worldId"]))
+    path = f"/api/v1/world-studios/{world}/analyses"
+    request = {"key": "ci-initial-analysis", "expectedDraftRevision": draft["draftRevision"]}
+    refresh_csrf(client)
+    result = client.post(path, json=request)
+    assert result.status_code == 503
+    analysis = result.json()
+    assert analysis["executionStatus"] == "unknown"
+    assert analysis["output"] is None and analysis["candidateIds"] == {}
+    assert result.headers["X-Analysis-Failure-Code"] == "AI_RESPONSE_UNCONFIRMED"
+    location = result.headers["Location"]
+    assert client.get(location).json() == analysis
+    assert client.get(location + "/candidates").json() == []
+    assert client.get(path).json() == [analysis]
+    refresh_csrf(client)
+    assert client.post(path, json=request).json() == analysis
+    refresh_csrf(client)
+    assert client.post(path, json={**request, "expectedDraftRevision": draft["draftRevision"] + 1}).status_code == 409
+    assert client.get(f"/api/v1/world-studios/{world}").json() == draft
+    assert scalar(f"SELECT count(*) FROM worldstudio.initial_analysis WHERE world_id='{world}'") == "1"
+    assert scalar(f"SELECT count(*) FROM worldstudio.initial_candidate WHERE world_id='{world}'") == "0"
+    assert client.get(path + "/" + str(uuid.uuid4())).status_code == 404

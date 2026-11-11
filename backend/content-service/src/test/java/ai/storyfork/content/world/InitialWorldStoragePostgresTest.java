@@ -16,7 +16,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(1,db.studio().migrate().migrationsExecuted);
+            assertEquals(2,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
