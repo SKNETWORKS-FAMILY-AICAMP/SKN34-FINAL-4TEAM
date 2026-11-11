@@ -44,9 +44,19 @@ class EpisodeCommentService(
     fun list(id: String, number: Int, sort: String?, viewer: String?): CommentListResponse {
         val order=queryOption(sort,CommentSort.LATEST,"sort")
         publishedVersion(id,number)
-        val items=respond(comments.findTop200ByWorkIdAndEpisodeNumberAndDeletedAtIsNullOrderByCreatedAtDesc(id,number),viewer)
-        // ponytail: 좋아요순은 최근 200개 안에서 메모리 정렬이다. 댓글이 많아지면 페이지네이션·DB 정렬로 바꾼다.
-        return CommentListResponse(if(order==CommentSort.LIKES) items.sortedWith(compareByDescending<CommentResponse> {it.likeCount}.thenByDescending {it.createdAt}) else items)
+        return listed(comments.findTop200ByWorkIdAndEpisodeNumberAndDeletedAtIsNullOrderByCreatedAtDesc(id,number),viewer,order)
+    }
+
+    /**
+     * 작품 전체 댓글 목록이다. 공개 작품의 **현재 발행된 회차**(공개 중단·삭제된 회차 제외) 댓글을 합쳐 최대 200개 돌려주며,
+     * 정렬·숨김 자리표시·작성자 닉네임·viewer 기준 값은 [list]와 같다. 비공개·제한·삭제 작품은 404, 잘못된 sort는 접근 판정보다 먼저 422다.
+     */
+    fun listByWork(id: String, sort: String?, viewer: String?): CommentListResponse {
+        val order=queryOption(sort,CommentSort.LATEST,"sort")
+        access.published(id)
+        val numbers=current.findAllByWorkIdOrderBySequence(id).filter {it.publishedVersionId!=null}.map {it.sequence}
+        // 발행 회차가 없으면 빈 IN 목록으로 쿼리하지 않는다.
+        return listed(if(numbers.isEmpty()) emptyList() else comments.findTop200ByWorkIdAndEpisodeNumberInAndDeletedAtIsNullOrderByCreatedAtDesc(id,numbers),viewer,order)
     }
 
     /** 댓글 상세다. 다른 작품·회차의 댓글이거나 삭제됐으면 404다. */
@@ -131,6 +141,12 @@ class EpisodeCommentService(
     /** 앞뒤 공백을 자르고 비면 인용 없음(null)이다. */
     private fun cleanQuote(text: String?): String? = text?.trim()?.takeIf {it.isNotEmpty()}?.also {
         checkContent(it.length<=MAX_LENGTH && '\u0000' !in it,message=INVALID_INPUT)
+    }
+
+    private fun listed(rows: List<EpisodeCommentEntity>, viewer: String?, order: CommentSort): CommentListResponse {
+        val items=respond(rows,viewer)
+        // ponytail: 좋아요순은 최근 200개 안에서 메모리 정렬이다. 댓글이 많아지면 페이지네이션·DB 정렬로 바꾼다.
+        return CommentListResponse(if(order==CommentSort.LIKES) items.sortedWith(compareByDescending<CommentResponse> {it.likeCount}.thenByDescending {it.createdAt}) else items)
     }
 
     private fun respond(rows: List<EpisodeCommentEntity>, viewer: String?): List<CommentResponse> {

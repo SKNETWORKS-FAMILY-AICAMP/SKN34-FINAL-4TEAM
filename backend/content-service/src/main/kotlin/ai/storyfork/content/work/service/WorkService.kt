@@ -107,7 +107,7 @@ class WorkService(
     fun read(id: String,owner: String): WorkResponse = views(listOf(access.own(id,owner))).single()
     /** 공개 상세다. [member]가 있으면(Bearer가 온 요청) 그 회원의 좋아요 여부(liked)를 채우고 익명은 false다. */
     fun publicRead(id: String,member: String? = null): WorkResponse =
-        views(listOf(access.published(id)),true).single().copy(likes=likeService.counts(listOf(id))[id] ?: 0,liked=member!=null && likeService.liked(id,member))
+        views(listOf(access.published(id)),true).single().copy(likes=likeService.counts(listOf(id))[id] ?: 0,liked=member!=null && likeService.liked(id,member),episodeViews=viewService.episodeCounts(id))
     /** 공개 작품의 발행 회차(본문 포함)다. 작가명이 필요 없는 내부 호출(표지·이미지 공개 열람)이 Core 조회 없이 공개 여부와 본문을 확인한다. 비공개·제한 작품은 404다. */
     fun publicEpisodes(id: String): List<PublishedEpisodeResponse> {
         val w=access.published(id)
