@@ -15,6 +15,7 @@ const studio = z.object({
   tags: z.array(z.string()),
   aliases: z.array(z.string()).optional(),
   item: z.object({
+    semanticType:z.enum(['fact','relation','rule','event','conjecture','goal','plan']).optional(),
     id: uuid,
     kind: z.enum([
       'entity',
@@ -72,7 +73,7 @@ function setting(m:z.infer<typeof metadata>, fields:Partial<StudioSetting['item'
   const base=newSetting()
   return {...base,...labels,serverMetadata:m,item:{...base.item,...m.studio.item,
     kind:p.semanticType==='relation'?'relation':p.semanticType==='rule'?'rule':p.semanticType==='event'?'event':p.semanticType==='conjecture'?'claim':'fact',
-    condition:p.condition,timeText:p.timeText,polarity:p.polarity,evidence:p.evidence,
+    semanticType:p.semanticType,condition:p.condition,timeText:p.timeText,polarity:p.polarity,evidence:p.evidence,
     origin:p.provenance==='ai_extraction'?'extraction':'author_addition',authorText:null,...fields}}
 }
 const card = z.object({

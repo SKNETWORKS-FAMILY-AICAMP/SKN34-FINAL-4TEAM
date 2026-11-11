@@ -5,7 +5,7 @@ export type CardType=typeof cardTypes[number]['id']
 export type CardFilter=CardType|'all'|'note'|'relation'|'review'
 export const settingAreas=[{id:'basic',label:'기본 설정'},{id:'space',label:'시공간'},{id:'history',label:'역사'},{id:'society',label:'사회'},{id:'culture',label:'문화·기술'},{id:'special',label:'특수 규칙'},{id:'conflict',label:'주요 갈등'}] as const
 export function cardTypeOf(item:SettingItem):Exclude<CardFilter,'all'> {
- if(item.kind==='fact'||item.kind==='claim')return 'other'
+ if(item.semanticType&&['fact','conjecture','goal','plan'].includes(item.semanticType))return 'other'
  if(item.kind==='entity')return cardTypes.find(t=>!['rule','event'].includes(t.id)&&t.id===item.entityType)?.id??'review'
  if(item.kind==='rule'||item.kind==='event'||item.kind==='note'||item.kind==='relation')return item.kind
  return 'review'

@@ -1,5 +1,6 @@
 import { sectionFields, type StudioSection } from './studioSections'
 export type SettingItem = {
+ semanticType?:'fact'|'relation'|'rule'|'event'|'conjecture'|'goal'|'plan'
  id: string; kind: 'entity'|'fact'|'rule'|'constraint'|'claim'|'relation'|'undetermined'|'event'|'note'; title: string; text: string
  category: 'basic'|'space'|'history'|'society'|'culture'|'special'|'conflict'; topics: string[]
  entityType: string|null; subjectId: string|null; targetId: string|null; predicate: string|null
