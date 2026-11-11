@@ -19,7 +19,7 @@ export function useInitialWorldReview(world:string,active:boolean,dirty:boolean,
   if(!useCase||controller.current)return
   const c=new AbortController(),generation=scope.current;controller.current=c;setBusy(true);lock(true);setError('');setMessage('')
   try{await action(c.signal)}catch(e){if(scope.current===generation)setError(e instanceof Error?e.message:'결과를 확인하지 못했어요.')}
-  finally{if(scope.current===generation){setPending(!!useCase.pending(world));setBusy(false);lock(false);controller.current=null}}
+  finally{if(scope.current===generation){try{setPending(!!useCase.pending(world))}catch{setPending(true)}finally{setBusy(false);lock(false);controller.current=null}}}
  }
  const refresh=async(signal:AbortSignal)=>{const rows=await useCase!.list(world,signal);if(!signal.aborted)setAnalyses(rows)}
  const result=async(r:MutationResult,signal:AbortSignal)=>{
@@ -35,7 +35,7 @@ export function useInitialWorldReview(world:string,active:boolean,dirty:boolean,
     if(signal.aborted)return;await reload(verified);if(signal.aborted)return
     setReceipt(verified);useCase!.acknowledge(world)
     setChecked([]);setMessage('승인한 내용이 세계관 초안에 반영되었습니다. 확정 버전 생성은 별도입니다.')
-   }else setMessage('반영 결과가 아직 미확인입니다. 같은 요청으로 확인해 주세요. 예약 취소는 지원하지 않습니다.')
+   }else setMessage(r.status==='failed'?'초안 반영 실패로 보고되었습니다. 최신 상태를 확인해 주세요.':'반영 결과가 아직 미확인입니다. 같은 요청으로 확인해 주세요. 예약 취소는 지원하지 않습니다.')
   }else if('analysisId'in r){setSelected(r.analysisId);setMessage(r.executionStatus==='completed'?'분석이 완료되었습니다. 후보를 검토해 주세요.':r.executionStatus==='running'?'분석 중입니다. 결과 확인으로 진행 상태를 확인하세요.':r.executionStatus==='unknown'?'분석 결과가 미확인입니다. 새 분석을 시작하지 말고 같은 요청으로 확인하세요.':'분석에 실패했습니다. 원본 초안은 변경되지 않았습니다.')}
   else setMessage(r.state==='pending'?'수정본이 저장되었습니다. 내용을 확인한 뒤 별도로 승인해 주세요.':'검토 결정을 저장했습니다. 초안에는 아직 반영하지 않았습니다.')
   await refresh(signal)

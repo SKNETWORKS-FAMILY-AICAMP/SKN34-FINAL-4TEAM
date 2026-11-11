@@ -40,3 +40,11 @@ it('blocks a second click while recovery is awaiting its response',async()=>{
  await act(async()=>{finish({...receipt,status:'unknown',resultDraftRevision:null});await request})
  expect(result.current.pending).toBe(true);expect(result.current.message).toContain('미확인')
 })
+
+it('unlocks the screen while retaining uncertainty when login expires during recovery',async()=>{
+ const {result,repo}=setup();await waitFor(()=>expect(result.current.pending).toBe(true))
+ vi.mocked(repo.resume).mockRejectedValue(new Error('로그인이 필요합니다.'))
+ vi.spyOn(repo,'pending').mockImplementation(()=>{throw new Error('로그인이 필요합니다.')})
+ await act(()=>result.current.recover())
+ expect(result.current.busy).toBe(false);expect(result.current.pending).toBe(true);expect(result.current.error).toBe('로그인이 필요합니다.')
+})

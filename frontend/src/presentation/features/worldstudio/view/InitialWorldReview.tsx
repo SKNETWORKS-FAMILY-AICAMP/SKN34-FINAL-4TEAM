@@ -36,7 +36,7 @@ export function InitialWorldReview({studio}:{studio:VM}){
    </article>})}
    <div className="initial-apply"><p>승인한 후보를 한 번에 선택하세요. 반영 후 원본이 변경되므로 남은 후보는 재분석이 필요합니다.</p><button className="btn pri" disabled={blocked||!vm.checked.length||studio.dirty||studio.relationDirty} onClick={vm.apply}>선택한 {vm.checked.length}개를 세계관 초안에 반영</button></div>
   </>}
-  {vm.receipt&&<p role="status">{vm.receipt.status==='applied'?`서버 반영 완료 기록: 설정 ${vm.receipt.createdCardIds.length}개 · 관계 ${vm.receipt.createdRelationshipIds.length}개`:'서버 반영 완료 미확인 · 같은 요청으로 확인해 주세요.'}</p>}
+  {vm.receipt&&<p role="status">{vm.receipt.status==='applied'?`서버 반영 완료 기록: 설정 ${vm.receipt.createdCardIds.length}개 · 관계 ${vm.receipt.createdRelationshipIds.length}개`:vm.receipt.status==='failed'?'서버 반영 실패 · 최신 상태를 확인해 주세요.':'서버 반영 완료 미확인 · 같은 요청으로 확인해 주세요.'}</p>}
  </section>
 }
 function CandidateEdit({candidate,save}:{candidate:Candidate;save:(c:Candidate)=>Promise<void>}){
