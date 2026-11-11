@@ -35,7 +35,7 @@ export class HttpFeedbackReportRepository implements FeedbackReportRepository {
     return (await this.api.request(`/public${episode(id, n)}`, reports, 'GET', undefined, undefined, !getAccessToken())).items
   }
   async listMine() { return (await this.api.request('/works/feedback-reports/mine', reports)).items }
-  async listInbox() { return (await this.api.request('/works/feedback-reports/inbox', reports)).items }
+  async listInbox(workId?: string) { return (await this.api.request(`/works/feedback-reports/inbox${workId === undefined ? '' : `?${new URLSearchParams({ workId })}`}`, reports)).items }
 
   setVisibility(id: string, reportId: string, visibility: FeedbackReportVisibility) { return this.api.request(one(id, reportId, 'visibility'), report, 'PUT', { visibility }) }
   correct(id: string, reportId: string, body: string) { return this.api.request(one(id, reportId, 'corrections'), report, 'POST', { body }) }

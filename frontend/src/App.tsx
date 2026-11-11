@@ -140,7 +140,7 @@ function App() {
           </Routes>
         </Suspense>
       </RouteErrorBoundary>
-      {pathname !== '/status' && pathname !== '/content' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
+      {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
     </RestoreContext.Provider>
   )
 }

@@ -56,6 +56,23 @@ describe('회차 제보 읽기 (공개 API, Bearer 선택)', () => {
     expect(headers(fetcher, 1).get('Authorization')).toBe('Bearer report-bearer')
   })
 
+  it('작가 피드백함은 작품을 정하면 workId 쿼리로 그 작품 항목만 서버에 묻고, 정하지 않으면 쿼리 없이 읽는다', async () => {
+    await signIn()
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => Response.json({ items: [row({ owner: true, mine: false })] }))
+    const repo = new HttpFeedbackReportRepository(fetcher)
+    const workId = '11111111-1111-4111-8111-111111111111'
+    expect(await repo.listInbox(workId)).toHaveLength(1)
+    await repo.listInbox()
+    // 쿼리 값은 인코딩돼 다른 쿼리를 끼워 넣을 수 없다.
+    await repo.listInbox('w&x=1')
+    expect(fetcher.mock.calls.map((c) => c[0])).toEqual([
+      `/api/v1/works/feedback-reports/inbox?workId=${workId}`,
+      '/api/v1/works/feedback-reports/inbox',
+      '/api/v1/works/feedback-reports/inbox?workId=w%26x%3D1',
+    ])
+    expect(headers(fetcher, 0).get('Authorization')).toBe('Bearer report-bearer')
+  })
+
   it('잘못된 유형·상태나 형식이 다른 응답은 검증 오류로 거절한다', async () => {
     await signOut()
     for (const bad of [{ items: [row({ kind: 'comment' })] }, { items: [row({ status: 'done' })] }, { items: [row({ createdAt: 'yesterday' })] }, { items: [{ id: 'r1' }] }, { rows: [] }]) {

@@ -16,7 +16,7 @@ export function Gnb({ on = '' }: { on?: string }) {
       <div className="wrap in">
         <Go to="/" className="logo" aria-label="STORYFORK 홈으로" title="홈으로"><b>SF</b>STORYFORK</Go>
         <nav className="nav" aria-label="주요 메뉴">
-          {([['rank', '랭킹', '랭킹'], ['chat', '캐릭터 챗', '챗'], ['lib', '내 서재', '서재'], ['worldstudio', '세계관', '세계관']] as const).map(([k, l, sh]) => (
+          {([['worldstudio', '세계관', '세계관'], ['rank', '랭킹', '랭킹'], ['chat', '캐릭터 챗', '챗'], ['lib', '내 서재', '서재']] as const).map(([k, l, sh]) => (
             <Go key={k} to={'/' + k} className={on === k ? 'on' : ''} aria-current={on === k ? 'page' : undefined}
               aria-label={k === 'lib' && pending ? `내 서재, 처리할 독자 제보 ${pending}건` : undefined}>
               <span className="lf">{l}</span><span className="ls">{sh}</span>

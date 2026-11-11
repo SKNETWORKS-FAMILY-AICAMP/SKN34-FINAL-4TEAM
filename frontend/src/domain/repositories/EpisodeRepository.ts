@@ -1,5 +1,5 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
-import type {WorkRegistration,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
+import type {WorkRegistration,WorkTaxonomy,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
 
 export interface EpisodeRepository {
@@ -17,7 +17,7 @@ export interface EpisodeRepository {
   publicList(signal?: AbortSignal): Promise<Work[]>
   list(signal?: AbortSignal): Promise<Work[]>
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>
-  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal): Promise<Work>
+  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy): Promise<Work>
   stopForkPublication(id: string, signal?: AbortSignal): Promise<void>
   deleteWork(id: string, signal?: AbortSignal): Promise<void>
   save(id: string, draft: Draft): Promise<Draft>

@@ -142,6 +142,17 @@ class ContentAuthorizationTest {
         mvc.perform(workUpdate("""{"title":"새 제목","summary":"새 소개","revision":7}""").header("X-User-Id","forged")).andExpect(status().isOk())
         verify(works).update("work-id",verifiedUser.toString(),body)
     }
+    @Test fun `work update binds optional genres and hashtags and an empty array stays a value`() {
+        val chosen=UpdateWorkRequest("새 제목","새 소개",7,listOf("판타지","SF"),listOf("회귀"))
+        val cleared=UpdateWorkRequest("새 제목","새 소개",7,listOf("판타지"),emptyList())
+        for(body in listOf(chosen,cleared)) {
+            `when`(works.update("work-id",verifiedUser.toString(),body)).thenReturn(WorkResponse("work-id",body.title,body.summary,"private",false,false,null,emptyList(),null))
+        }
+        mvc.perform(workUpdate("""{"title":"새 제목","summary":"새 소개","revision":7,"genres":["판타지","SF"],"hashtags":["회귀"]}""")).andExpect(status().isOk())
+        mvc.perform(workUpdate("""{"title":"새 제목","summary":"새 소개","revision":7,"genres":["판타지"],"hashtags":[]}""")).andExpect(status().isOk())
+        verify(works).update("work-id",verifiedUser.toString(),chosen)
+        verify(works).update("work-id",verifiedUser.toString(),cleared)
+    }
     @Test fun `work update rejects invalid fields before calling service`() {
         for(body in listOf(
             """{"title":"   ","revision":0}""",

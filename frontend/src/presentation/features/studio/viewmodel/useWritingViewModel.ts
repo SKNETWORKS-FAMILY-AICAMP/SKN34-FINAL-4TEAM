@@ -4,6 +4,7 @@ import type { Draft, EpisodeOrderScope, WritingEpisode, PublicationEvent } from 
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
 import {imageMarker} from '../../../../domain/entities/media'
+import {pickEpisode} from './pickEpisode'
 
 type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'|'setPublicationVisibility'|'history'>
 type OrderLookup = { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: EpisodeOrderScope }
@@ -15,7 +16,8 @@ function deleteBlocker(active:WritingEpisode|null,episodes:WritingEpisode[]) {
   const last=Math.max(...episodes.map(e=>e.number))
   return [kept&&`${kept}이 있는 회차는 삭제할 수 없어요.`,active.number<last&&`마지막 회차(${last}화)만 삭제할 수 있어요.`].filter(Boolean).join(' ')
 }
-export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase')) {
+/** initialEpisode(주소의 ?ep=n)는 처음 목록을 읽을 때 열 회차다. 목록에 없으면 첫 회차를 연다. */
+export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase'), initialEpisode?:number) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
   const [draft,setDraft]=useState<Draft>({title:'',body:'',revision:0})
@@ -33,6 +35,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const historyRequest=useRef<AbortController|null>(null)
   // 발행 상태가 바뀌면 진행 중인 이전 조회 응답이 새 상태를 덮지 않게 함께 취소한다.
   const resetHistory=()=>{historyRequest.current?.abort();setPublicationHistory(null)}
+  // ?ep=n은 처음 읽은 목록에만 쓴다. 쓰고 나면 비워 다른 작품·다시 읽기가 옛 번호를 따르지 않게 한다.
+  const entry=useRef(initialEpisode)
   const current=useRef(draft)
   const pending=useRef<AbortController|null>(null)
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body||(draft.authorNote??'')!==(active.draft.authorNote??''))
@@ -43,7 +47,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     const controller=new AbortController()
     api.writingList(id,controller.signal).then(rows=>{
       if(controller.signal.aborted)return
-      setEpisodes(rows);if(rows[0])install(rows[0]);setReady(true)
+      const first=pickEpisode(rows,entry.current);entry.current=undefined
+      setEpisodes(rows);if(first)install(first);setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
     return ()=>{controller.abort();pending.current?.abort();historyRequest.current?.abort();orderRequest.current?.abort();orderRequest.current=null}
   },[id,api])

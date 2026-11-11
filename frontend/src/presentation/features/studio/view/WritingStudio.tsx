@@ -19,10 +19,11 @@ import { CheckpointPanel } from './CheckpointPanel'
 import { PublicationSchedulePanel } from './PublicationSchedulePanel'
 import './version-panels.css'
 
-export function WritingStudio({id}:{id:string}) {
+/** episode는 주소의 ?ep=n이다. 들어올 때 그 회차를 열고, 목록에 없으면 첫 회차를 연다. */
+export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useScreenId('U13')
   useDocumentTitle('집필실')
-  const vm=useWritingViewModel(id)
+  const vm=useWritingViewModel(id,undefined,undefined,episode)
   const bodyInput=useRef<HTMLTextAreaElement>(null)
   const main=useRef<HTMLElement>(null)
   // 삭제한 회차·초안의 버튼은 사라지거나 잠기므로 확정된 뒤에만 초점을 main으로 옮긴다.

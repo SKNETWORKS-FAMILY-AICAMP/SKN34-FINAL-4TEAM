@@ -1,6 +1,13 @@
 import type {EpisodeRepository} from '../repositories/EpisodeRepository'
-import type { Draft, SettingInput, WorkRegistration } from '../entities/content'
+import type { Draft, SettingInput, WorkRegistration, WorkTaxonomy } from '../entities/content'
 import { toKstDateTimeInput, type PublicationScheduleRevision } from '../entities/publicationSchedule'
+
+/** 작품 등록과 정보 수정이 같은 장르(1~2개)·해시태그(10개까지) 규칙을 쓴다. 주지 않은 쪽은 검사하지 않는다. */
+function taxonomyError({ genres, hashtags }: WorkTaxonomy) {
+  if (genres && (genres.length < 1 || genres.length > 2)) return '장르는 1~2개를 선택해 주세요.'
+  if (hashtags && hashtags.length > 10) return '해시태그는 10개까지 입력할 수 있어요.'
+  return null
+}
 
 export class EpisodeUseCase {
   private readonly repository: EpisodeRepository
@@ -43,15 +50,17 @@ export class EpisodeUseCase {
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) {
     if (!title.trim()) return Promise.reject(new Error('작품 제목을 입력해 주세요.'))
     if (registration) {
-      if (registration.genres.length<1 || registration.genres.length>2) return Promise.reject(new Error('장르는 1~2개를 선택해 주세요.'))
-      if (registration.hashtags.length>10) return Promise.reject(new Error('해시태그는 10개까지 입력할 수 있어요.'))
+      const invalid = taxonomyError(registration)
+      if (invalid) return Promise.reject(new Error(invalid))
       if (!registration.rightsConfirmed) return Promise.reject(new Error('작품 권리 확인이 필요해요.'))
     }
     return this.repository.create(title.trim(),summary.trim(),signal,registration)
   }
-  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal) {
+  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy) {
     if (!title.trim() || title.length>120 || summary.length>2000) return Promise.reject(new Error('작품 제목은 120자, 소개는 2,000자 이내로 입력해 주세요.'))
-    return this.repository.updateWork(id,title.trim(),summary.trim(),revision,signal)
+    const invalid = taxonomy && taxonomyError(taxonomy)
+    if (invalid) return Promise.reject(new Error(invalid))
+    return this.repository.updateWork(id,title.trim(),summary.trim(),revision,signal,taxonomy)
   }
   stopForkPublication(id: string, signal?: AbortSignal) { return this.repository.stopForkPublication(id,signal) }
   deleteWork(id: string, signal?: AbortSignal) { return this.repository.deleteWork(id,signal) }

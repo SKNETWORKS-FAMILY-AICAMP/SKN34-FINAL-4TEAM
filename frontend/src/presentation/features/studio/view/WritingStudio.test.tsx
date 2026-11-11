@@ -14,7 +14,9 @@ const model = vi.hoisted(() => ({
   checkOrder: vi.fn(), deleteDraft: vi.fn(),
   edit: vi.fn(), save: vi.fn(), reload: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
 }))
-vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
+// 호출 인자(주소의 ?ep=n)를 확인하려고 훅 호출을 기록한다.
+const useModel = vi.hoisted(() => vi.fn())
+vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: (...args: unknown[]) => { useModel(...args); return model } }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p> }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
@@ -27,9 +29,9 @@ const comparisonVersions = [
 afterEach(() => { cleanup(); vi.clearAllMocks(); model.active = originalActive; model.deleteBlocker = ''; model.orderLookup = null })
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
-const renderStudio = () => {
+const renderStudio = (episode?: number) => {
   const store = createAppStore()
-  return render(<WritingStudio id="work-id" />, {
+  return render(<WritingStudio id="work-id" episode={episode} />, {
     wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={['/studio/work-id']}>{children}<Where /></MemoryRouter></Provider>,
   })
 }
@@ -41,6 +43,14 @@ it('connects the whole episode deletion button and disables it for inherited epi
   model.active = { ...originalActive, inherited: true }
   rerender(<WritingStudio id="work-id" />)
   expect(screen.getByRole('button', { name: '회차 삭제' })).toHaveProperty('disabled', true)
+})
+
+it('passes the ?ep=n episode number to the writing view model so the studio opens that episode, and nothing when there is none', () => {
+  renderStudio(2)
+  expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, 2)
+  cleanup()
+  renderStudio()
+  expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, undefined)
 })
 
 const manage = () => screen.getByRole('region', { name: '회차 관리' })

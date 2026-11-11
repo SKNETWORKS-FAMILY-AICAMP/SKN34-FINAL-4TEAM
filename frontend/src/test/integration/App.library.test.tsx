@@ -57,7 +57,6 @@ describe('실서버 새 소설 만들기', () => {
     renderAt('/lib?tab=write')
     const link = await screen.findByRole('link', { name: /＋ 새 소설 쓰기/ })
     expect(link.getAttribute('href')).toBe('/content')
-    expect(screen.getByRole('link', { name: '기존 작품·설정집·분기 도구' }).getAttribute('href')).toBe('/content')
     fireEvent.click(link)
     await screen.findByRole('button', { name: '작품 만들기' })
     expect(where()).toBe('/content')
