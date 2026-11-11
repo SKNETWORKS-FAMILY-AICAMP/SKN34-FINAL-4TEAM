@@ -33,3 +33,14 @@ it('retains confirmation uncertainty without a success message when the draft re
  const {result,repo}=setup(false,vi.fn(async()=>{throw new Error('재조회 실패')}));await waitFor(()=>expect(result.current.busy).toBe(false));await act(()=>result.current.confirm())
  expect(result.current.pending).toBe(true);expect(result.current.message).toBe('');expect(repo.acknowledgeConfirmation).not.toHaveBeenCalled()
 })
+
+it('does not acknowledge success if another tab confirmed a later revision before the draft reload',async()=>{
+ const later=crypto.randomUUID()
+ const {result,repo}=setup(false,vi.fn(async()=>({...world,version:4,currentRevisionId:later})))
+ await waitFor(()=>expect(result.current.busy).toBe(false));await act(()=>result.current.confirm())
+ expect(result.current.pending).toBe(true);expect(result.current.message).toBe('')
+ expect(result.current.error).toContain('확정');expect(repo.acknowledgeConfirmation).not.toHaveBeenCalled()
+ await act(()=>result.current.confirm(true))
+ expect(repo.confirm).toHaveBeenLastCalledWith(world.id,2,expect.any(AbortSignal))
+ expect(repo.acknowledgeConfirmation).not.toHaveBeenCalled()
+})
