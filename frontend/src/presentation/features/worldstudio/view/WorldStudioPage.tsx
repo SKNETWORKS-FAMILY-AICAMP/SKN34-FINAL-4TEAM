@@ -125,5 +125,3 @@ function Confirmed({vm,tab}:{vm:VM;tab:string}) {
   <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relationLabel(i)} → ${byId(i.targetId)}`:i.title}</h4><p className="world-prose">{i.text}</p>
  </article>)}</section>
 }
-
-
