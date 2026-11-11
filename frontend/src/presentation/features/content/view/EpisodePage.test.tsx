@@ -262,7 +262,9 @@ it('keeps the creation form out of sight while the work list is being read for ?
 
 it('shows the work like a detail page with a hero and exactly one edit button per editable area', async () => {
   stubCover()
-  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  // 표지 조회는 서버 작품(UUID)에만 요청하므로 이 작품만 UUID를 쓴다.
+  const uuid = '00000000-0000-4000-8000-000000000001'
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, id: uuid }]) }), '옛 제목', `/content?work=${uuid}`)
   expect(screen.getByText('판타지 · SF')).toBeTruthy()
   expect(screen.getByText('원작')).toBeTruthy()
   expect(screen.getByText('비공개 작품')).toBeTruthy()
