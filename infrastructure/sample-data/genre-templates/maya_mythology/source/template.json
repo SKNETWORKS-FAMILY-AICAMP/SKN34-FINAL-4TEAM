@@ -1,174 +1,218 @@
 {
-  "id": "maya_mythology",
-  "genre": "maya_mythology",
-  "title": "마야 신화 — 포폴 부의 첫 창조",
-  "content_kind": "myth_reference",
-  "scope": "키체 마야 포폴 부 제1부 제1장의 창조 전승을 중심으로 정리한다. 다른 마야 지역의 모든 신명을 통합하지 않는다.",
-  "sources": [
-    {
-      "id": "p",
-      "title": "Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier",
-      "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html"
-    }
-  ],
-  "editorial_policy": "한국어 자체 요약. 현대 번역문·게임 설정·창작 주인공은 수록하지 않는다. 문헌 속 주장을 역사적 사실 또는 모든 전승의 공통 설정으로 단정하지 않는다.",
+  "id": "maya_mythology_default",
+  "genre_id": "maya_mythology",
+  "genre_name": "마야 전승: 키체의 포폴 부",
+  "order": 24,
+  "title": "마야 전승: 키체의 포폴 부",
+  "content_markdown": "# 키체의 《포폴 부》: 기억할 인간과 되돌아오는 형제\n\n<a id=\"scope\"></a>\n## 키체의 이야기로 읽는 범위\n\n이 글은 과테말라 고지대 키체의 《포폴 부》에서 세계와 인간의 형성, 후나푸와 슈발란케의 행적을 따라간다. 유카탄을 비롯한 모든 마야 지역과 시대의 이야기를 하나로 대표하지 않는다. 본문에 여러 이름과 호칭이 함께 나타나므로 이를 현대적인 열두 신 명단이나 고정된 직무표로 정리하지 않는다. 깃털 뱀 구쿠마츠도 나와어 전승의 케찰코아틀과 이름의 뜻이 닮았다는 이유만으로 같은 생애를 가진 인물로 합치지 않는다.\n\n사건의 흐름은 원문을 직접 연구한 크리스텐슨의 번역·주석을 확인하고, 스펜스의 1908년 옛 재화와 대조했다. 스펜스의 책은 완역이 아니며 문헌 해석과 오래된 비교신화론적 추측을 포함하므로 그의 기원론을 이야기의 사실로 채택하지 않는다. 아래 문장은 한국어로 새로 쓴 재서술이며 현대 번역문을 전재하지 않았다. 원문의 배열은 사건을 소개한 뒤 앞선 세대의 일로 돌아가기도 한다. 따라서 이 글도 모든 장면이 엄밀한 직선 연대기인 것처럼 빈 시간을 만들어 채우지 않는다.\n\n<a id=\"creation-council\"></a>\n## 1. 말할 상대를 찾는 창조자들\n\n아직 인간의 목소리가 없고 물과 어둠이 있는 때, 창조자들은 서로 의논한다. 하늘의 심장과 깃털 뱀 구쿠마츠 등이 함께 세계와 인간이 어떻게 나타날지 생각하고 말한다. 하늘의 심장에는 우라칸을 비롯하여 번개와 연결된 이름들이 제시된다. 땅이 드러나고 산과 골짜기가 생기며 물이 갈라진다. 창조는 고립된 한 왕이 부하에게 명령하는 장면으로만 나타나지 않고, 의논과 말이 형태를 얻는 과정으로 시작된다.\n\n동물들이 생겨 숲과 산에 자리를 얻지만 창조자들이 원하는 말을 하지 못한다. 짐승과 새는 각자의 소리를 낼 뿐 자신들을 만든 존재를 이름으로 부르고 기억하지 못한다. 그러므로 사람을 만들려는 시도가 이어진다. 이 과정에서 필요한 것은 움직이는 몸만이 아니다. 자신이 어디서 왔는지 알고 만든 존재에게 응답할 수 있어야 한다. 인간 창조가 곧바로 성공하지 않는 이유도 이러한 관계의 요구에서 드러난다.\n\n출전: 《포폴 부》 창조의 의논·땅·동물의 형성 대목. [크리스텐슨 판본, 본문 56–63쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 재화 The First Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).\n\n<a id=\"failed-people\"></a>\n## 2. 무너지는 흙과 기억하지 않는 나무\n\n먼저 흙으로 만든 몸은 형태를 유지하지 못한다. 그것은 물에 풀리고 안정되게 움직이거나 이해하지 못하므로 창조자들이 다시 생각해야 한다. 뒤에 만들어진 나무 사람들은 말하고 번성하지만 마음과 기억이 부족하다. 자신들을 만든 존재를 돌이켜 생각하지 않으며 함께 사는 것들을 함부로 대한다. 몸을 세우고 수를 늘리는 능력이 곧 창조의 완성은 아니다.\n\n나무 사람들에게 파괴가 닥칠 때 비와 홍수만이 적이 되는 것은 아니다. 그들이 쓰던 맷돌과 그릇, 기르던 동물들이 자신들이 당했던 학대를 말하며 되갚는다. 나무 사람들은 지붕으로 오르지만 집은 무너지고 나무나 동굴도 피난처가 되어 주지 않는다. 의지하던 생활의 사물들이 반대편에 서는 것이다. 일부가 원숭이의 모습으로 남았다는 설명은 실패한 형성의 흔적을 현재의 동물과 연결한다. 이 사건 뒤에도 창조자들이 찾던 인간은 아직 마련되지 않았다.\n\n출전: 《포폴 부》 흙의 형성·나무 인형·파괴 대목. [크리스텐슨 판본, 본문 63–74쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 The First Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).\n\n<a id=\"false-splendor\"></a>\n## 3. 자신을 해처럼 내세운 부쿱 카키시\n\n세계가 자리를 잡아 가는 동안 부쿱 카키시는 빛나는 눈과 치아를 내세워 자신이 해와 달처럼 위대하다고 자랑한다. 그의 아들 지팍나는 산을 움직이고 카브라칸은 산을 흔드는 힘을 뽐낸다. 후나푸와 슈발란케는 이 과장된 권위를 무너뜨리려 한다. 두 형제는 부쿱 카키시가 나무에서 먹이를 먹을 때 바람총으로 쏘지만 싸움이 단번에 끝나지는 않는다. 후나푸는 팔을 빼앗기고 상대도 턱에 상처를 입는다.\n\n형제는 노인들의 도움을 얻어 치료를 해 주러 온 것처럼 부쿱 카키시에게 다가간다. 아픈 치아를 빼고 대신 옥수수를 넣으며 빛나던 눈도 제거하자 그의 위세가 사라진다. 후나푸의 팔도 되찾는다. 겉으로 드러나는 광채와 세계를 실제로 밝힐 자격은 같지 않다는 것이 사건의 결과로 드러난다. 이 승리는 형제가 한 번 쏘아 상대를 압도해서가 아니라 상대가 자랑하는 것과 고통받는 부분을 이용한 계책으로 이루어진다.\n\n아들들의 힘도 같은 방식으로 시험된다. 지팍나는 자신을 죽이려던 사백 청년의 계책에서 살아나 그들을 죽이지만, 형제들이 마련한 먹이의 유인에 걸려 산 아래 갇힌다. 카브라칸은 더 큰 산을 무너뜨릴 수 있다는 말에 이끌려가다가 흙을 묻힌 새를 먹고 힘을 잃는다. 형제는 그를 묶어 묻는다. 이러한 장면을 거친 뒤 문헌은 형제들이 어디서 왔는지 설명하기 위해 앞선 세대의 이야기로 돌아간다.\n\n출전: 《포폴 부》 부쿱 카키시·지팍나·카브라칸 대목. [스펜스 The Myth of Vukub-Cakix](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 대조본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).\n\n<a id=\"fathers-descent\"></a>\n## 4. 공놀이 소리를 듣고 보낸 초대\n\n후나푸와 슈발란케보다 앞서 훈 후나푸와 부쿱 후나푸가 공놀이를 한다. 그 소리를 들은 시발바의 군주 훈 카메와 부쿱 카메는 그들을 불러들인다. 전령의 초대는 대등한 경기를 위한 호의가 아니라 방문객을 모욕하고 죽일 계책이다. 두 사람은 시발바로 내려가 군주처럼 세워 놓은 목상을 진짜 지배자로 착각하고, 앉으라는 자리가 뜨겁다는 것도 뒤늦게 안다. 도착부터 상대가 만든 규칙을 알지 못한다는 약점이 드러난다.\n\n어둠의 집에서 받은 시험을 통과하지 못한 두 사람은 죽임을 당한다. 훈 후나푸의 머리는 나무에 걸리고 나무에 열매가 열리면서 머리와 열매가 구별하기 어려워진다. 시발바의 군주들은 그 나무에 접근하지 말라고 한다. 공놀이장은 이처럼 두 세계 사이의 갈등을 시작한 장소이고, 시발바는 죽음의 군주들과 시험의 집이 있는 영역이다. 이를 인간의 선악을 판결하여 보내는 기독교적 지옥의 구조로 그대로 바꾸지 않는다.\n\n출전: 《포폴 부》 훈 후나푸·부쿱 후나푸의 시발바 방문. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).\n\n<a id=\"blood-woman\"></a>\n## 5. 죽은 머리에서 이어지는 생명\n\n시발바의 군주 쿠추마키크의 딸 슈키크는 금지된 나무를 보러 간다. 훈 후나푸의 머리가 내민 손에 침을 뱉자 그녀는 임신한다. 아버지는 딸의 설명을 믿지 않고 전령들에게 죽여 심장을 가져오라고 한다. 슈키크는 전령들을 설득하고, 이들은 진짜 심장 대신 나무의 진액으로 만든 것을 가져간다. 죽음을 명령하던 권력이 받아 든 증거는 이미 그 권력에서 벗어나는 탈출의 도구로 바뀌어 있다.\n\n지상으로 나온 슈키크는 훈 후나푸의 어머니 슈무카네를 찾아간다. 처음에는 받아들여지지 않지만 옥수수를 가져오는 시험을 거쳐 관계를 인정받는다. 이후 태어난 두 아들이 후나푸와 슈발란케다. 이들의 출생은 죽은 아버지의 이야기가 완전히 끊어지지 않았음을 보여 준다. 형제는 집안에서 자라며 사냥과 바람총을 익히고, 자신들을 괴롭히던 이복형제들과도 갈등한다. 그들이 처음부터 모든 사정을 알고 복수하러 내려가는 것은 아니다.\n\n쥐를 붙잡은 형제는 집에 감춰진 아버지 세대의 공놀이 도구와 그들의 운명을 듣는다. 도구를 찾아 공놀이를 시작하자 시발바의 군주들이 다시 그 소리를 듣는다. 아버지에게 왔던 것과 같은 초대가 아들들에게 온다. 형제는 집에 줄기를 심어 자신들의 생사를 알리는 표지로 남기고 떠난다. 남겨진 어머니와 할머니의 기다림까지 포함하여 이번 방문은 앞선 실패의 반복이자 그것을 바꿀 기회가 된다.\n\n출전: 《포폴 부》 슈키크의 탈출·형제의 성장·공놀이의 재개. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 대조본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).\n\n<a id=\"twins-trials\"></a>\n## 6. 같은 길을 다른 지식으로 내려가다\n\n후나푸와 슈발란케는 먼저 작은 생물을 보내 시발바의 군주들을 쏘게 한다. 반응하지 않는 목상과 아파서 서로 이름을 부르는 실제 군주들을 구별할 수 있게 된다. 도착한 형제는 목상에게 인사하지 않고 뜨거운 자리에도 앉지 않는다. 아버지들이 몰랐던 정보를 얻었기 때문에 같은 장소가 같은 패배를 낳지 않는다. 어둠의 집에서도 횃불과 담배를 다 써 버리지 않고 밝아 보이게 만드는 계책으로 시험을 넘긴다.\n\n시발바의 군주들은 칼날과 추위, 짐승과 불이 있는 시험을 거듭하고 꽃을 가져오라고 요구한다. 형제는 개미 등 다른 존재의 도움으로 그 요구를 해결한다. 그러나 박쥐의 집에서는 후나푸가 머리를 잃는다. 슈발란케가 계책을 마련하여 형제를 회복시키면서 공놀이의 대결이 계속된다. 둘이 함께 움직인다는 것은 언제나 아무 손상도 입지 않는다는 뜻이 아니다. 한 사람이 당한 위험을 다른 사람이 수습하는 관계가 시련 속에서 드러난다.\n\n출전: 《포폴 부》 시발바의 시험들. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html); 박쥐의 집과 회복의 상세는 [크리스텐슨 판본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).\n\n<a id=\"twins-return\"></a>\n## 7. 죽음을 통과하여 군주들의 힘을 줄이다\n\n형제는 자신의 뼈가 어떻게 처리되어야 할지 미리 알려 준 뒤 불 속으로 들어가 죽는다. 뼈는 갈려 강에 뿌려지고 형제는 다른 모습으로 돌아온다. 그들은 떠돌이 공연자처럼 나타나 집을 태웠다가 되살리고, 죽인 것을 다시 살리는 놀라운 연기를 보인다. 시발바의 군주들은 그 광경을 보고 자기들에게도 죽음과 회복을 보여 달라고 청한다. 형제는 군주들을 죽이지만 다시 살리지 않는다. 상대가 지배하던 죽음을 상대 자신의 요구에 따라 되돌려 준다.\n\n정체를 밝힌 후나푸와 슈발란케는 시발바가 예전처럼 무제한의 권세를 갖지 못하게 한다. 두 형제는 아버지 세대의 유해와 기억을 돌보고, 뒤에 해와 달이 되는 상승의 장면이 이어진다. 이 대목에서 아버지와 아들 이름의 유사성을 이유로 역할을 바꾸지 않는다. 스펜스의 옛 재화에는 상승 주체를 다르게 읽게 하는 서술이 있으므로 크리스텐슨 본문의 형제 관계와 결말을 기준으로 삼는다. 집에 남겨 둔 줄기의 시듦과 회복은 기다리는 할머니에게 그들의 죽음과 귀환을 전한다.\n\n출전: 《포폴 부》 형제의 죽음·귀환·시발바의 패배·해와 달의 상승. [크리스텐슨 판본, 본문 166–177쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 The Second Book 대조](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).\n\n<a id=\"maize-people\"></a>\n## 8. 먹을 것으로 몸을 얻은 인간\n\n서사는 다시 인간을 어떻게 만들 것인가로 돌아온다. 노란 옥수수와 흰 옥수수가 마련되고 그것으로 첫 인간들의 몸이 만들어진다. 흙처럼 흩어지지 않고 나무 사람처럼 기억 없이 돌아다니지도 않는 이들은 자신들을 만든 존재에게 감사한다. 먹을 곡식은 이미 완성된 인간에게 나중에 주어진 물건에 그치지 않는다. 살아가는 몸의 재료 자체가 된다. 창조의 처음부터 찾던 응답하는 존재가 이때 모습을 얻는다.\n\n그러나 첫 인간들은 너무 멀리 보고 너무 많은 것을 안다. 창조자들은 그들의 시야를 흐리게 하여 눈앞의 것만 볼 수 있도록 제한한다. 그 뒤 배우자와 후손, 이동과 정착의 이야기가 이어진다. 인간의 탄생은 신들과 모든 면에서 같아지는 승리가 아니라 감사하고 살아가면서도 시야의 한계를 지닌 존재가 되는 사건이다. 이 글은 그 뒤의 키체 집단과 계보의 역사를 모두 다루지는 않는다. 창조의 의논, 앞선 시도의 실패, 죽음을 이겨 낸 형제, 옥수수 인간이 이루는 흐름을 본문의 범위로 삼는다.\n\n출전: 《포폴 부》 옥수수 인간과 시야의 제한. [스펜스 The Third Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 판본, 본문 178–185쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).\n",
   "setting_bible": {
+    "title": "마야 전승: 키체의 포폴 부",
+    "introduction_markdown": "과테말라 고지대 키체 전승 『포폴 부』의 창세·영웅 이야기 중심이다. 모든 마야 지역·시대의 신화로 일반화하지 않는다. 인명 표기는 번역본마다 달라 원전의 관계와 사건으로 식별한다.",
     "sections": [
       {
-        "id": "4d0b184c-2dfc-5220-8370-084edac9b4ba",
-        "title": "창조와 형성을 맡은 존재들",
-        "card_type": "character",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "창조자·형성자 등의 여러 호칭으로 서술된다. 번역본의 호칭을 각각 별개의 신으로 기계적으로 늘리지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 첫머리",
-        "source_refs": [
-          {
-            "source_id": "p",
-            "locator": "제1부 제1장 첫머리"
-          }
-        ]
-      },
-      {
-        "id": "345d2b9f-1c96-5ccf-8086-8852f2ad458c",
-        "title": "테페우와 구쿠마츠",
-        "card_type": "character",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "물과 어둠 속에서 말과 생각을 나누는 존재들로 나타난다. 대화와 합의가 창조에 앞선다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 창조 이전의 대화",
-        "source_refs": [
-          {
-            "source_id": "p",
-            "locator": "제1부 제1장, 창조 이전의 대화"
-          }
-        ]
-      },
-      {
-        "id": "c1c435a9-e530-5645-a266-8635dff0b2bf",
+        "id": "maya_mythology_heart-sky",
+        "order": 1,
         "title": "하늘의 심장",
+        "content_markdown": "구쿠마츠 등과 함께 세계와 인간의 형성을 의논하는 존재다. 우라칸을 비롯한 번개 관련 이름들이 제시되며 의논과 말로 창조가 진행된다.\n\n출전: 《포폴 부》 창조의 의논·땅·동물의 형성 대목. [크리스텐슨 판본, 본문 56–63쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 재화 The First Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "template_part": "전승 자료",
         "card_type": "character",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "창조의 계획에 참여하는 신적 이름이다. 본문이 설명하는 여러 이름과 측면을 후대 게임의 세 속성 체계로 바꾸지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 하늘의 심장 설명",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "p",
-            "locator": "제1부 제1장, 하늘의 심장 설명"
+            "section": "creation-council",
+            "evidence": "아직 인간의 목소리가 없고 물과 어둠이 있는 때, 창조자들은 서로 의논한다. 하늘의 심장과 깃털 뱀 구쿠마츠 등이 함께 세계와 인간이 어떻게 나타날지 생각하고 말한다. 하늘의 심장에는 우라칸을 비롯하여 번개와 연결된 이름들이 제시된다. 땅이 드러나고 산과 골짜기가 생기며 물이 갈라진다. 창조는 고립된 한 왕이 부하에게 명령하는 장면으로만 나타나지 않고, 의논과 말이 형태를 얻는 과정으로 시작된다."
           }
         ]
       },
       {
-        "id": "7856740f-c439-5c60-8d23-f3b628d6604b",
-        "title": "창조의 협의",
+        "id": "maya_mythology_feathered-serpent",
+        "order": 2,
+        "title": "깃털 뱀 구쿠마츠",
+        "content_markdown": "창조의 처음에 하늘의 심장 등과 의논하는 깃털 뱀이다. 땅·산·골짜기와 물의 형성이 이 의논 뒤에 이어진다.\n\n출전: 《포폴 부》 창조의 의논·땅·동물의 형성 대목. [크리스텐슨 판본, 본문 56–63쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 재화 The First Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "section": "creation-council",
+            "evidence": "아직 인간의 목소리가 없고 물과 어둠이 있는 때, 창조자들은 서로 의논한다. 하늘의 심장과 깃털 뱀 구쿠마츠 등이 함께 세계와 인간이 어떻게 나타날지 생각하고 말한다. 하늘의 심장에는 우라칸을 비롯하여 번개와 연결된 이름들이 제시된다. 땅이 드러나고 산과 골짜기가 생기며 물이 갈라진다. 창조는 고립된 한 왕이 부하에게 명령하는 장면으로만 나타나지 않고, 의논과 말이 형태를 얻는 과정으로 시작된다."
+          }
+        ]
+      },
+      {
+        "id": "maya_mythology_mud-wood",
+        "order": 3,
+        "title": "흙과 나무 인간의 실패",
+        "content_markdown": "흙으로 만든 몸은 형태를 유지하지 못하고 나무 사람들은 창조자를 기억하지 않는다. 나무 사람들은 홍수와 자신들이 학대한 사물·동물들의 반격으로 파괴된다.\n\n출전: 《포폴 부》 흙의 형성·나무 인형·파괴 대목. [크리스텐슨 판본, 본문 63–74쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 The First Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "section": "failed-people",
+            "evidence": "먼저 흙으로 만든 몸은 형태를 유지하지 못한다. 그것은 물에 풀리고 안정되게 움직이거나 이해하지 못하므로 창조자들이 다시 생각해야 한다. 뒤에 만들어진 나무 사람들은 말하고 번성하지만 마음과 기억이 부족하다. 자신들을 만든 존재를 돌이켜 생각하지 않으며 함께 사는 것들을 함부로 대한다. 몸을 세우고 수를 늘리는 능력이 곧 창조의 완성은 아니다."
+          },
+          {
+            "section": "failed-people",
+            "evidence": "나무 사람들에게 파괴가 닥칠 때 비와 홍수만이 적이 되는 것은 아니다. 그들이 쓰던 맷돌과 그릇, 기르던 동물들이 자신들이 당했던 학대를 말하며 되갚는다. 나무 사람들은 지붕으로 오르지만 집은 무너지고 나무나 동굴도 피난처가 되어 주지 않는다. 의지하던 생활의 사물들이 반대편에 서는 것이다. 일부가 원숭이의 모습으로 남았다는 설명은 실패한 형성의 흔적을 현재의 동물과 연결한다. 이 사건 뒤에도 창조자들이 찾던 인간은 아직 마련되지 않았다."
+          }
+        ]
+      },
+      {
+        "id": "maya_mythology_maize",
+        "order": 4,
+        "title": "옥수수로 만든 인간",
+        "content_markdown": "노란 옥수수와 흰 옥수수로 첫 인간들의 몸이 만들어진다. 그들은 창조자에게 감사하지만 지나치게 넓던 시야는 제한된다.\n\n출전: 《포폴 부》 옥수수 인간과 시야의 제한. [스펜스 The Third Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 판본, 본문 178–185쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "section": "maize-people",
+            "evidence": "서사는 다시 인간을 어떻게 만들 것인가로 돌아온다. 노란 옥수수와 흰 옥수수가 마련되고 그것으로 첫 인간들의 몸이 만들어진다. 흙처럼 흩어지지 않고 나무 사람처럼 기억 없이 돌아다니지도 않는 이들은 자신들을 만든 존재에게 감사한다. 먹을 곡식은 이미 완성된 인간에게 나중에 주어진 물건에 그치지 않는다. 살아가는 몸의 재료 자체가 된다. 창조의 처음부터 찾던 응답하는 존재가 이때 모습을 얻는다."
+          },
+          {
+            "section": "maize-people",
+            "evidence": "그러나 첫 인간들은 너무 멀리 보고 너무 많은 것을 안다. 창조자들은 그들의 시야를 흐리게 하여 눈앞의 것만 볼 수 있도록 제한한다. 그 뒤 배우자와 후손, 이동과 정착의 이야기가 이어진다. 인간의 탄생은 신들과 모든 면에서 같아지는 승리가 아니라 감사하고 살아가면서도 시야의 한계를 지닌 존재가 되는 사건이다. 이 글은 그 뒤의 키체 집단과 계보의 역사를 모두 다루지는 않는다. 창조의 의논, 앞선 시도의 실패, 죽음을 이겨 낸 형제, 옥수수 인간이 이루는 흐름을 본문의 범위로 삼는다."
+          }
+        ]
+      },
+      {
+        "id": "maya_mythology_xibalba",
+        "order": 5,
+        "title": "시발바",
+        "content_markdown": "훈 카메와 부쿱 카메가 방문객을 부르고 시험을 부과하는 영역이다. 목상·뜨거운 자리·어둠의 집이 훈 후나푸 형제의 실패와 죽음에 연결된다.\n\n출전: 《포폴 부》 훈 후나푸·부쿱 후나푸의 시발바 방문. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "section": "fathers-descent",
+            "evidence": "후나푸와 슈발란케보다 앞서 훈 후나푸와 부쿱 후나푸가 공놀이를 한다. 그 소리를 들은 시발바의 군주 훈 카메와 부쿱 카메는 그들을 불러들인다. 전령의 초대는 대등한 경기를 위한 호의가 아니라 방문객을 모욕하고 죽일 계책이다. 두 사람은 시발바로 내려가 군주처럼 세워 놓은 목상을 진짜 지배자로 착각하고, 앉으라는 자리가 뜨겁다는 것도 뒤늦게 안다. 도착부터 상대가 만든 규칙을 알지 못한다는 약점이 드러난다."
+          },
+          {
+            "section": "fathers-descent",
+            "evidence": "어둠의 집에서 받은 시험을 통과하지 못한 두 사람은 죽임을 당한다. 훈 후나푸의 머리는 나무에 걸리고 나무에 열매가 열리면서 머리와 열매가 구별하기 어려워진다. 시발바의 군주들은 그 나무에 접근하지 말라고 한다. 공놀이장은 이처럼 두 세계 사이의 갈등을 시작한 장소이고, 시발바는 죽음의 군주들과 시험의 집이 있는 영역이다. 이를 인간의 선악을 판결하여 보내는 기독교적 지옥의 구조로 그대로 바꾸지 않는다."
+          }
+        ]
+      },
+      {
+        "id": "maya_mythology_death-lords",
+        "order": 6,
+        "title": "시발바의 군주들",
+        "content_markdown": "훈 카메와 부쿱 카메는 공놀이 소리를 듣고 훈 후나푸 형제를 불러들인다. 초대 뒤에는 손님을 모욕하고 죽이려는 계책이 있다.\n\n출전: 《포폴 부》 훈 후나푸·부쿱 후나푸의 시발바 방문. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "template_part": "전승 자료",
         "card_type": "organization",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "여러 신적 호칭을 가진 존재들이 함께 의논하여 땅과 생명의 출현을 결정한다. 한 신의 독백으로 줄이면 협의 구조가 사라진다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 말과 생각의 결합",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "p",
-            "locator": "제1부 제1장, 말과 생각의 결합"
+            "section": "fathers-descent",
+            "evidence": "후나푸와 슈발란케보다 앞서 훈 후나푸와 부쿱 후나푸가 공놀이를 한다. 그 소리를 들은 시발바의 군주 훈 카메와 부쿱 카메는 그들을 불러들인다. 전령의 초대는 대등한 경기를 위한 호의가 아니라 방문객을 모욕하고 죽일 계책이다. 두 사람은 시발바로 내려가 군주처럼 세워 놓은 목상을 진짜 지배자로 착각하고, 앉으라는 자리가 뜨겁다는 것도 뒤늦게 안다. 도착부터 상대가 만든 규칙을 알지 못한다는 약점이 드러난다."
           }
         ]
       },
       {
-        "id": "9cee8e03-db6b-54be-ac9f-cfa5331c6b8d",
-        "title": "아직 땅이 드러나지 않은 물과 하늘",
+        "id": "maya_mythology_hunahpu",
+        "order": 7,
+        "title": "후나푸",
+        "content_markdown": "슈발란케와 정보를 먼저 얻어 시발바의 속임수를 피하는 형제다. 박쥐의 집에서 머리를 잃지만 슈발란케의 계책으로 회복되어 대결을 이어간다.\n\n출전: 《포폴 부》 시발바의 시험들. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html); 박쥐의 집과 회복의 상세는 [크리스텐슨 판본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "section": "twins-trials",
+            "evidence": "후나푸와 슈발란케는 먼저 작은 생물을 보내 시발바의 군주들을 쏘게 한다. 반응하지 않는 목상과 아파서 서로 이름을 부르는 실제 군주들을 구별할 수 있게 된다. 도착한 형제는 목상에게 인사하지 않고 뜨거운 자리에도 앉지 않는다. 아버지들이 몰랐던 정보를 얻었기 때문에 같은 장소가 같은 패배를 낳지 않는다. 어둠의 집에서도 횃불과 담배를 다 써 버리지 않고 밝아 보이게 만드는 계책으로 시험을 넘긴다."
+          },
+          {
+            "section": "twins-trials",
+            "evidence": "시발바의 군주들은 칼날과 추위, 짐승과 불이 있는 시험을 거듭하고 꽃을 가져오라고 요구한다. 형제는 개미 등 다른 존재의 도움으로 그 요구를 해결한다. 그러나 박쥐의 집에서는 후나푸가 머리를 잃는다. 슈발란케가 계책을 마련하여 형제를 회복시키면서 공놀이의 대결이 계속된다. 둘이 함께 움직인다는 것은 언제나 아무 손상도 입지 않는다는 뜻이 아니다. 한 사람이 당한 위험을 다른 사람이 수습하는 관계가 시련 속에서 드러난다."
+          }
+        ]
+      },
+      {
+        "id": "maya_mythology_xbalanque",
+        "order": 8,
+        "title": "슈발란케",
+        "content_markdown": "후나푸와 함께 시발바의 시험을 넘는 형제다. 후나푸가 박쥐의 집에서 머리를 잃자 계책을 마련하여 그를 회복시킨다.\n\n출전: 《포폴 부》 시발바의 시험들. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html); 박쥐의 집과 회복의 상세는 [크리스텐슨 판본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "section": "twins-trials",
+            "evidence": "후나푸와 슈발란케는 먼저 작은 생물을 보내 시발바의 군주들을 쏘게 한다. 반응하지 않는 목상과 아파서 서로 이름을 부르는 실제 군주들을 구별할 수 있게 된다. 도착한 형제는 목상에게 인사하지 않고 뜨거운 자리에도 앉지 않는다. 아버지들이 몰랐던 정보를 얻었기 때문에 같은 장소가 같은 패배를 낳지 않는다. 어둠의 집에서도 횃불과 담배를 다 써 버리지 않고 밝아 보이게 만드는 계책으로 시험을 넘긴다."
+          },
+          {
+            "section": "twins-trials",
+            "evidence": "시발바의 군주들은 칼날과 추위, 짐승과 불이 있는 시험을 거듭하고 꽃을 가져오라고 요구한다. 형제는 개미 등 다른 존재의 도움으로 그 요구를 해결한다. 그러나 박쥐의 집에서는 후나푸가 머리를 잃는다. 슈발란케가 계책을 마련하여 형제를 회복시키면서 공놀이의 대결이 계속된다. 둘이 함께 움직인다는 것은 언제나 아무 손상도 입지 않는다는 뜻이 아니다. 한 사람이 당한 위험을 다른 사람이 수습하는 관계가 시련 속에서 드러난다."
+          }
+        ]
+      },
+      {
+        "id": "maya_mythology_blood-woman",
+        "order": 9,
+        "title": "슈키크",
+        "content_markdown": "시발바 군주 쿠추마키크의 딸이자 후나푸·슈발란케의 어머니다. 훈 후나푸의 머리와 만난 뒤 임신하고 처형 명령을 피해 지상으로 나와 슈무카네에게 간다.\n\n출전: 《포폴 부》 슈키크의 탈출·형제의 성장·공놀이의 재개. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 대조본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "section": "blood-woman",
+            "evidence": "시발바의 군주 쿠추마키크의 딸 슈키크는 금지된 나무를 보러 간다. 훈 후나푸의 머리가 내민 손에 침을 뱉자 그녀는 임신한다. 아버지는 딸의 설명을 믿지 않고 전령들에게 죽여 심장을 가져오라고 한다. 슈키크는 전령들을 설득하고, 이들은 진짜 심장 대신 나무의 진액으로 만든 것을 가져간다. 죽음을 명령하던 권력이 받아 든 증거는 이미 그 권력에서 벗어나는 탈출의 도구로 바뀌어 있다."
+          },
+          {
+            "section": "blood-woman",
+            "evidence": "지상으로 나온 슈키크는 훈 후나푸의 어머니 슈무카네를 찾아간다. 처음에는 받아들여지지 않지만 옥수수를 가져오는 시험을 거쳐 관계를 인정받는다. 이후 태어난 두 아들이 후나푸와 슈발란케다. 이들의 출생은 죽은 아버지의 이야기가 완전히 끊어지지 않았음을 보여 준다. 형제는 집안에서 자라며 사냥과 바람총을 익히고, 자신들을 괴롭히던 이복형제들과도 갈등한다. 그들이 처음부터 모든 사정을 알고 복수하러 내려가는 것은 아니다."
+          }
+        ]
+      },
+      {
+        "id": "maya_mythology_ballcourt",
+        "order": 10,
+        "title": "공놀이장",
+        "content_markdown": "훈 후나푸와 부쿱 후나푸의 공놀이 소리가 시발바 군주들의 초대를 촉발하는 장소다. 그 초대는 시험과 죽음으로 이어진다.\n\n출전: 《포폴 부》 훈 후나푸·부쿱 후나푸의 시발바 방문. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "template_part": "전승 자료",
         "card_type": "location",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "처음에는 고요한 물과 하늘이 있고 인간·동물·숲·산 등이 아직 나타나지 않은 상태가 묘사된다. 현대 우주론과 동일한 설명이 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 첫 장면",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "p",
-            "locator": "제1부 제1장 첫 장면"
+            "section": "fathers-descent",
+            "evidence": "후나푸와 슈발란케보다 앞서 훈 후나푸와 부쿱 후나푸가 공놀이를 한다. 그 소리를 들은 시발바의 군주 훈 카메와 부쿱 카메는 그들을 불러들인다. 전령의 초대는 대등한 경기를 위한 호의가 아니라 방문객을 모욕하고 죽일 계책이다. 두 사람은 시발바로 내려가 군주처럼 세워 놓은 목상을 진짜 지배자로 착각하고, 앉으라는 자리가 뜨겁다는 것도 뒤늦게 안다. 도착부터 상대가 만든 규칙을 알지 못한다는 약점이 드러난다."
+          },
+          {
+            "section": "fathers-descent",
+            "evidence": "어둠의 집에서 받은 시험을 통과하지 못한 두 사람은 죽임을 당한다. 훈 후나푸의 머리는 나무에 걸리고 나무에 열매가 열리면서 머리와 열매가 구별하기 어려워진다. 시발바의 군주들은 그 나무에 접근하지 말라고 한다. 공놀이장은 이처럼 두 세계 사이의 갈등을 시작한 장소이고, 시발바는 죽음의 군주들과 시험의 집이 있는 영역이다. 이를 인간의 선악을 판결하여 보내는 기독교적 지옥의 구조로 그대로 바꾸지 않는다."
           }
         ]
       },
       {
-        "id": "b6a3b8e6-7d80-54e6-b9ad-efbe0de32709",
-        "title": "물에서 드러난 땅과 산",
-        "card_type": "location",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "말과 계획 뒤에 땅이 나타나고 산과 골짜기가 구별된다. 식물이 자라는 공간으로 변화한다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 땅의 출현",
-        "source_refs": [
+        "id": "maya_mythology_seven-macaw",
+        "order": 11,
+        "title": "부쿱 카키시",
+        "content_markdown": "빛나는 눈과 치아를 내세워 해와 달처럼 위대하다고 자랑하는 존재다. 지팍나와 카브라칸의 아버지이며, 형제와 노인들의 치료 계책으로 광채와 위세를 잃는다.\n\n출전: 《포폴 부》 부쿱 카키시·지팍나·카브라칸 대목. [스펜스 The Myth of Vukub-Cakix](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 대조본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
           {
-            "source_id": "p",
-            "locator": "제1부 제1장, 땅의 출현"
+            "section": "false-splendor",
+            "evidence": "세계가 자리를 잡아 가는 동안 부쿱 카키시는 빛나는 눈과 치아를 내세워 자신이 해와 달처럼 위대하다고 자랑한다. 그의 아들 지팍나는 산을 움직이고 카브라칸은 산을 흔드는 힘을 뽐낸다. 후나푸와 슈발란케는 이 과장된 권위를 무너뜨리려 한다. 두 형제는 부쿱 카키시가 나무에서 먹이를 먹을 때 바람총으로 쏘지만 싸움이 단번에 끝나지는 않는다. 후나푸는 팔을 빼앗기고 상대도 턱에 상처를 입는다."
+          },
+          {
+            "section": "false-splendor",
+            "evidence": "형제는 노인들의 도움을 얻어 치료를 해 주러 온 것처럼 부쿱 카키시에게 다가간다. 아픈 치아를 빼고 대신 옥수수를 넣으며 빛나던 눈도 제거하자 그의 위세가 사라진다. 후나푸의 팔도 되찾는다. 겉으로 드러나는 광채와 세계를 실제로 밝힐 자격은 같지 않다는 것이 사건의 결과로 드러난다. 이 승리는 형제가 한 번 쏘아 상대를 압도해서가 아니라 상대가 자랑하는 것과 고통받는 부분을 이용한 계책으로 이루어진다."
           }
         ]
       },
       {
-        "id": "5084e094-68ae-5aa3-b9c7-f84269535c2d",
-        "title": "말과 생각에 의한 창조",
-        "card_type": "ability",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "신적 존재들의 발화와 합의가 세계의 출현에 연결된다. 일반 인간의 언어에도 똑같은 창조 능력이 있다는 설정은 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 창조 명령",
-        "source_refs": [
-          {
-            "source_id": "p",
-            "locator": "제1부 제1장, 창조 명령"
-          }
-        ]
-      },
-      {
-        "id": "565a869f-4e87-5880-b863-5cca1b791d9b",
-        "title": "창조의 목적에 관한 논의",
-        "card_type": "rule",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "존재들이 자신들을 부르고 기억할 자를 논의한다. 뒤 장의 인간 창조 결과를 이 첫 장에 이미 완성된 것으로 넣지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 계획 대목",
-        "source_refs": [
-          {
-            "source_id": "p",
-            "locator": "제1부 제1장, 계획 대목"
-          }
-        ]
-      },
-      {
-        "id": "e7a96206-13aa-589c-b2ee-dd0c4a8d8bda",
-        "title": "고요에서 대화로의 전환",
+        "id": "maya_mythology_twins-return",
+        "order": 12,
+        "title": "쌍둥이의 죽음과 귀환",
+        "content_markdown": "후나푸와 슈발란케는 불 속에서 죽은 뒤 다른 모습으로 돌아와 죽음과 회복의 연기를 보인다. 같은 일을 원하는 시발바 군주들을 죽이고 되살리지 않아 그 권세를 줄인다.\n\n출전: 《포폴 부》 형제의 죽음·귀환·시발바의 패배·해와 달의 상승. [크리스텐슨 판본, 본문 166–177쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 The Second Book 대조](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "template_part": "전승 자료",
         "card_type": "event",
-        "area_code": "history",
-        "template_part": "전승 요약",
-        "content_markdown": "정지된 첫 상태에 창조자들의 대화가 개입하면서 세계 형성의 방향이 정해진다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 전반",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "p",
-            "locator": "제1부 제1장 전반"
-          }
-        ]
-      },
-      {
-        "id": "45ef7f8e-05a7-52e8-85d9-50c77b366f85",
-        "title": "땅과 식물의 출현",
-        "card_type": "event",
-        "area_code": "history",
-        "template_part": "전승 요약",
-        "content_markdown": "땅이 드러나고 산·계곡과 숲이 생겨난다. 이 장의 마무리를 영웅 쌍둥이의 명계 모험이나 옥수수 인간의 탄생과 혼동하지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 후반",
-        "source_refs": [
+            "section": "twins-return",
+            "evidence": "형제는 자신의 뼈가 어떻게 처리되어야 할지 미리 알려 준 뒤 불 속으로 들어가 죽는다. 뼈는 갈려 강에 뿌려지고 형제는 다른 모습으로 돌아온다. 그들은 떠돌이 공연자처럼 나타나 집을 태웠다가 되살리고, 죽인 것을 다시 살리는 놀라운 연기를 보인다. 시발바의 군주들은 그 광경을 보고 자기들에게도 죽음과 회복을 보여 달라고 청한다. 형제는 군주들을 죽이지만 다시 살리지 않는다. 상대가 지배하던 죽음을 상대 자신의 요구에 따라 되돌려 준다."
+          },
           {
-            "source_id": "p",
-            "locator": "제1부 제1장 후반"
-          }
-        ]
-      },
-      {
-        "id": "4efaa807-52cf-5d74-be0f-f6b17178f71d",
-        "title": "문헌·번역·범위의 차이",
-        "card_type": "other",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "포폴 부는 키체 전승의 기록이다. 1861년 프랑스어판의 오래된 어휘와 신명 표기는 해석 차이를 가질 수 있다. 이 자료는 해당 창조 대목의 자체 요약이며 원전 전체 번역이 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 및 판본 표제",
-        "source_refs": [
-          {
-            "source_id": "p",
-            "locator": "제1부 제1장 및 판본 표제"
+            "section": "twins-return",
+            "evidence": "정체를 밝힌 후나푸와 슈발란케는 시발바가 예전처럼 무제한의 권세를 갖지 못하게 한다. 두 형제는 아버지 세대의 유해와 기억을 돌보고, 뒤에 해와 달이 되는 상승의 장면이 이어진다. 이 대목에서 아버지와 아들 이름의 유사성을 이유로 역할을 바꾸지 않는다. 스펜스의 옛 재화에는 상승 주체를 다르게 읽게 하는 서술이 있으므로 크리스텐슨 본문의 형제 관계와 결말을 기준으로 삼는다. 집에 남겨 둔 줄기의 시듦과 회복은 기다리는 할머니에게 그들의 죽음과 귀환을 전한다."
           }
         ]
       }
     ]
-  },
-  "content_markdown": "# 마야 신화 — 포폴 부의 첫 창조\n\n키체 마야 포폴 부 제1부 제1장의 창조 전승을 중심으로 정리한다. 다른 마야 지역의 모든 신명을 통합하지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.\n\n## 창조와 형성을 맡은 존재들\n\n창조자·형성자 등의 여러 호칭으로 서술된다. 번역본의 호칭을 각각 별개의 신으로 기계적으로 늘리지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 첫머리\n\n## 테페우와 구쿠마츠\n\n물과 어둠 속에서 말과 생각을 나누는 존재들로 나타난다. 대화와 합의가 창조에 앞선다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 창조 이전의 대화\n\n## 하늘의 심장\n\n창조의 계획에 참여하는 신적 이름이다. 본문이 설명하는 여러 이름과 측면을 후대 게임의 세 속성 체계로 바꾸지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 하늘의 심장 설명\n\n## 창조의 협의\n\n여러 신적 호칭을 가진 존재들이 함께 의논하여 땅과 생명의 출현을 결정한다. 한 신의 독백으로 줄이면 협의 구조가 사라진다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 말과 생각의 결합\n\n## 아직 땅이 드러나지 않은 물과 하늘\n\n처음에는 고요한 물과 하늘이 있고 인간·동물·숲·산 등이 아직 나타나지 않은 상태가 묘사된다. 현대 우주론과 동일한 설명이 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 첫 장면\n\n## 물에서 드러난 땅과 산\n\n말과 계획 뒤에 땅이 나타나고 산과 골짜기가 구별된다. 식물이 자라는 공간으로 변화한다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 땅의 출현\n\n## 말과 생각에 의한 창조\n\n신적 존재들의 발화와 합의가 세계의 출현에 연결된다. 일반 인간의 언어에도 똑같은 창조 능력이 있다는 설정은 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 창조 명령\n\n## 창조의 목적에 관한 논의\n\n존재들이 자신들을 부르고 기억할 자를 논의한다. 뒤 장의 인간 창조 결과를 이 첫 장에 이미 완성된 것으로 넣지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 계획 대목\n\n## 고요에서 대화로의 전환\n\n정지된 첫 상태에 창조자들의 대화가 개입하면서 세계 형성의 방향이 정해진다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 전반\n\n## 땅과 식물의 출현\n\n땅이 드러나고 산·계곡과 숲이 생겨난다. 이 장의 마무리를 영웅 쌍둥이의 명계 모험이나 옥수수 인간의 탄생과 혼동하지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 후반\n\n## 문헌·번역·범위의 차이\n\n포폴 부는 키체 전승의 기록이다. 1861년 프랑스어판의 오래된 어휘와 신명 표기는 해석 차이를 가질 수 있다. 이 자료는 해당 창조 대목의 자체 요약이며 원전 전체 번역이 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 및 판본 표제\n"
+  }
 }

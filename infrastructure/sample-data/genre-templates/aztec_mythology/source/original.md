@@ -1,87 +1,75 @@
-# 아즈텍 신화 — 테오티우아칸의 해와 달
+# 메시카 전승: 탄생의 전투에서 다시 피우는 불까지
 
-사아군 기록 제7권 제2장의 해·달 탄생 전승 중심. 식민기 기록의 관점과 다른 태양 전승을 구분한다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.
+<a id="scope"></a>
+## 문헌의 사건과 남아 있는 형상을 함께 읽기
 
-## 나나우아친
+이 글은 메시카의 위칠로포치틀리 탄생담과 태양의 시작에 관한 이야기를 따라간 뒤, 죽음과 시간의 갱신이 공동체의 의례에서 어떻게 이어지는지 읽는다. 중심 문헌인 《피렌체 코덱스》는 정복 이전에 완성된 단일 경전이 아니라 사아군과 나와인 협력자들이 정복 이후에 엮은 자료다. 스페인어와 나와어 기록, 그림, 현대 박물관의 해설은 같은 종류의 증거가 아니다. 서로 다른 신화의 시간을 연결하는 아래의 순서는 편집이며 모든 사건이 원래 하나의 연대기로 전해졌다는 뜻이 아니다.
 
-새로운 빛이 되기 위한 불의 시험에 참여하는 가난하고 병든 존재로 묘사된다. 주저하던 다른 후보보다 먼저 불에 몸을 던져 태양이 된다.
+위칠로포치틀리의 탄생을 읽는 동안에는 코아틀리쿠에와 그 자녀들의 관계를 유지한다. 태양의 생성 이야기에서는 그 이야기의 행위자들을 따른다. 같은 빛과 전투의 주제가 보인다는 이유로 등장인물을 모두 바꿔 부르거나 한 가족의 다른 이름으로 합치지 않는다. 또한 석상과 가면을 남은 소설의 삽화처럼 다루지 않는다. 형상이 어떤 신을 나타내는지 논쟁이 있는 경우에는 논쟁을 남기고, 한국어 재서술을 위해 새로운 장면이나 주인공을 만들어 넣지 않았다.
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 불의 시험
+<a id="coatlicue-conception"></a>
+## 1. 코아테펙에서 생긴 임신
 
-## 테쿠시스테카틀
+코아틀리쿠에는 코아테펙에서 깃털 뭉치를 받아 품는다. 뒤에 그것을 찾으려 하니 사라졌고, 그 뒤 그녀가 임신한다. ‘뱀 치마’라는 이름을 가진 이 어머니에게는 이미 딸 코욜샤우키와 남쪽의 많은 아들들이 있다. 자녀들은 새로운 임신을 수치로 여기고 어머니를 죽이려 한다. 가족의 질서를 지킨다고 여기는 행동이 바로 그 가족의 어머니를 향한 공격으로 바뀐다. 위칠로포치틀리가 세상에 나오는 조건은 평온한 왕실의 계승이 아니라 출생 자체를 막으려는 위협이다.
 
-풍요로운 공물을 바치지만 불 앞에서 여러 번 주저한다. 뒤따라 불에 들어가 두 번째 빛이 되며 달의 형성과 연결된다.
+코욜샤우키는 형제들을 이끌고 어머니가 있는 곳으로 향한다. 어머니의 임신을 둘러싼 분노가 집단의 무장 행동으로 커지는 것이다. 코아테펙은 이 사건이 벌어지는 뱀의 산이며, 이후 메시카가 수호신의 승리를 기억할 때 되풀이하여 가리키는 무대가 된다. 그렇지만 이 신화적 산의 지리와 실제 유적의 장소를 설명 없이 같은 좌표로 고정하지 않는다. 이 절에서 중요한 것은 산 위의 어머니에게 공격자들이 접근하면서 탄생과 전투가 같은 순간을 향해 움직인다는 점이다.
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 두 후보의 대조
+출전: 《피렌체 코덱스》 3권 1장, 1r–3v. [게티 디지털 판본](https://florentinecodex.getty.edu/book/3/folio/1r), [사비에르 노게스의 해당 문헌 해설](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli).
 
-## 에에카틀
+<a id="birth-battle"></a>
+## 2. 태어나자마자 싸우는 수호신
 
-새로운 해가 움직이지 않을 때의 논의와 바람에 연결된다. 빛의 탄생과 운행 개시는 서로 다른 단계이다.
+위칠로포치틀리는 무장한 성인의 모습으로 태어나 어머니를 공격하려던 자들과 맞선다. 이 전투에서 쓰이는 것이 불의 뱀 시우코아틀이다. 그는 코욜샤우키를 죽이고 산 아래로 떨어뜨린다. 그녀의 몸은 떨어지며 나뉜다. 남쪽 형제들 가운데 일부는 죽고 일부는 달아난다. 전투가 끝나자 어머니를 없애려던 시도는 실패하고, 태어날 자격을 부정당하던 존재가 승리자의 자리를 차지한다. 위칠로포치틀리가 메시카의 수호신이라는 사실과 이 과격한 출생 장면은 함께 전해진다.
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 천체의 운행
+승리한 신은 적들의 장식과 복장을 취한다. 노게스의 해설은 이것을 권세를 늘리는 행위로 읽는다. 이때 사건의 진술과 그 의미에 대한 현대 연구자의 해석은 구별해야 한다. 코욜샤우키의 분절된 몸을 나타내는 유물과 템플로 마요르의 구조를 탄생담과 함께 읽으면 메시카의 의례 공간이 이 승리를 기억하는 방식도 보인다. 다만 코욜샤우키를 달, 형제들을 별, 위칠로포치틀리를 해로 풀이하는 해석을 등장인물 자신의 대사처럼 삽입하지 않는다.
 
-## 쇼로틀
+불의 뱀은 전투의 힘을 드러내는 표지이며 제조법과 위력 수치를 가진 현대식 무기가 아니다. 《피렌체 코덱스》의 장면에서는 시우코아틀에 불을 붙이는 행위도 서술된다. 무장한 탄생과 산 아래로 떨어지는 몸이라는 사건을 먼저 읽은 뒤 무기의 역할을 정리해야 한다. 무기 이름 하나로 모든 메시카 전쟁담의 승패를 설명하는 일반 법칙을 만들 수는 없다.
 
-죽음을 피하려고 여러 모습으로 숨지만 끝내 붙잡힌다. 이 문헌의 도주 이야기를 모든 변신 능력의 기원으로 일반화하지 않는다.
+출전: 《피렌체 코덱스》 3권 1장. [3r 판본](https://florentinecodex.getty.edu/book/3/folio/3r), [탄생담 해설](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli), [신격과 시우코아틀 해설](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas).
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 쇼로틀의 도주
+<a id="sun-kindling"></a>
+## 3. 불 앞에서 달라지는 두 신의 자리
 
-## 테오티우아칸에 모인 신들
+이제 산 위의 가족 전투를 떠나 《피렌체 코덱스》 7권이 전하는 태양의 시작으로 옮겨 간다. 아직 낮이 생기기 전 신들은 테오티우아칸에 모여 누가 세상을 비출 것인지 의논한다. 테쿠시스테카틀은 값비싼 봉헌물을 마련하고 나나우아친은 보잘것없는 재료와 자기 몸에서 나온 것을 바친다. 서로 다른 준비를 한 두 존재는 같은 불 앞에서 자신을 내놓아야 한다. 가진 것의 차이가 마지막 행동까지 결정하지는 않는다.
 
-어둠 속에서 누가 세계를 비출지 의논하고 후보를 정한다. 새로운 태양을 만드는 데 공동의 결정과 희생이 연결된다.
+불길을 향해 나아갈 때 테쿠시스테카틀은 두려워 물러서지만 나나우아친은 몸을 던진다. 그 뒤 테쿠시스테카틀도 불로 들어간다. 먼저 들어간 자가 해로 빛나고 뒤따른 자가 달로 나타난다는 흐름은 봉헌물의 값보다 행위의 순서에 무게를 둔다. 달의 얼굴에 토끼를 던져 그 흔적이 남았다는 이야기도 이 문헌에 실려 있다. 밤하늘의 무늬는 그저 천체의 표면이 아니라 신들 사이에서 일어난 일의 기억으로 설명된다.
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장 전반
+이 장면의 태양 탄생을 코아틀리쿠에의 임신에 뒤이어 일어난 두 번째 출산이라고 연결하지 않는다. 위칠로포치틀리의 승리와 나나우아친의 투신을 함께 읽을 수는 있지만, 각각 다른 문헌 대목에서 자신의 원인과 결과를 가진다. 앞의 이야기에서 공격받는 어머니를 지켜 낸 무력이 중심이었다면 여기서는 불길 앞의 주저함과 결단이 새로운 빛의 위계를 만든다.
 
-## 테오티우아칸
+출전: 《피렌체 코덱스》 7권의 태양·달 기원. [미국 의회도서관 7권 서지와 내용 해설](https://www.loc.gov/item/2021667852/), [게티 7권 2v, 달의 토끼](https://florentinecodex.getty.edu/book/7/folio/2v).
 
-신들이 모여 빛의 탄생을 준비하는 장소이다. 고고학적 도시의 역사와 문헌 속 신화적 사건을 같은 층위의 사실로 취급하지 않는다.
+<a id="earlier-suns"></a>
+## 4. 지금의 세계 앞에 놓인 시간
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장
+현재의 빛이 생겨나는 이야기를 읽고 나면, 현재 이전에 무엇이 있었는가라는 질문이 남는다. 태양석의 네 칸에는 재규어, 바람, 비, 물과 연결되는 이전 시대의 표지가 놓여 있다. 그 표지들은 현재가 단 하나의 영원한 시작에서 곧바로 이어진 세계가 아니라 앞선 세계들과 단절을 거쳐 놓여 있다는 기억을 압축한다. 여기서는 네 표지를 확인하는 유물 해석과 각 시대의 파괴를 자세히 말하는 다른 문헌들의 서사를 구분한다.
 
-## 공물과 고행 도구
+태양석 중심 얼굴의 신격은 학계에서 일치하지 않으며, 날짜 부호와 왕권의 관계에도 여러 해석이 있다. 그릭스비의 논문은 현재 시대의 창조와 모테쿠소마 2세의 즉위 기억을 연결하는 독법을 제안한다. 이것은 논문 저자의 해석이지 모든 연구자가 동의한 단일 판독이 아니다. 그러므로 그 얼굴을 위칠로포치틀리나 다른 한 신으로 확정하여 앞선 탄생담의 결말에 붙이지 않는다. 이 유물은 이야기를 읽을 중요한 증거이지만 하나의 줄거리로 모든 의미를 다 쓸 수는 없다.
 
-두 후보의 공물은 부와 빈곤을 대조한다. 귀한 재료의 양만으로 시험의 결과가 정해지지 않는다는 사건 구조를 보여 준다.
+출전: Thomas L. Grigsby, 「A Correlation of Gregorian and Tonalpohualli Dates on the Aztec Calendar Stone」, 《Estudios de Cultura Náhuatl》 66, 2023. [논문](https://www.scielo.org.mx/scielo.php?lng=es&nrm=iso&pid=S0071-16752023000100047&script=sci_arttext_plus&tlng=en).
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 시험 준비
+<a id="mirror-and-images"></a>
+## 5. 신의 힘을 알아보는 표지와 해석의 한계
 
-## 달에 던져진 토끼
+태양과 시대의 이야기 속에서 살아가는 인간에게 신의 권세는 복장과 얼굴의 표지로도 드러났다. 테스카틀리포카의 이름은 ‘연기 나는 거울’로 알려져 있으며 흑요석 거울과 연결된다. 거울은 의례와 예언에 쓰였고, 부를 주거나 거두는 신의 힘은 인간의 처지가 안정되어 있지 않음을 보여 준다. 하지만 이 물건을 들면 누구나 원하는 미래를 본다는 주문 체계가 여기서 주어지는 것은 아니다. 이야기 속 신의 역할, 실제 물건의 용도, 현대 독자가 상상하는 능력을 섞지 않는다.
 
-두 빛이 같은 밝기로 나타난 뒤 한쪽에 토끼가 던져져 밝기가 줄고 표식이 남는다고 설명한다. 중국의 달 토끼 전승과 동일한 사건으로 합치지 않는다.
+영국박물관의 모자이크 두개골은 검은 줄무늬를 근거로 테스카틀리포카를 나타낸다고 해석된다. 이것은 특정 유물의 귀속에 관한 설명이다. 다른 뱀 모양 모자이크 가면은 케찰코아틀 또는 틀랄록으로 소개된다. 깃털 뱀과 비의 신은 다른 신격이지만 뱀이라는 표지가 겹쳐 나타나므로, 가면에 붙는 복수의 이름을 두 신이 원래 한 인물이었다는 증거로 사용할 수 없다. 이 자료의 가면 카드는 불확실성을 없애기 위한 정답표가 아니라 무엇을 확정하지 않는지 기억하기 위한 것이다.
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 달의 표식
+출전: [영국박물관의 테스카틀리포카 가면 해설](https://artsandculture.google.com/asset/mosaic-mask-of-tezcatlipoca/0gHRmF7lJ3MC6w), [같은 박물관의 케찰코아틀 또는 틀랄록 가면 해설](https://smarthistory.org/serpent-mask-of-quetzalcoatl-or-tlaloc/), [메시카 신격 개관](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas).
 
-## 쇼로틀의 변형
+<a id="dead-journey"></a>
+## 6. 죽은 이가 가는 길을 준비하는 사람들
 
-옥수수·용설란·물속 존재와 연결되는 모습으로 바꾸어 숨는 장면이 있다. 식물과 동물의 실제 기원에 관한 과학적 설명은 아니다.
+빛이 돌아오는 세계에서도 사람의 생은 끝난다. 믹틀란테쿠틀리와 믹틀란시우아틀이 다스리는 믹틀란은 여러 층을 지닌 저승으로 설명된다. 영국박물관의 상 해설은 자연사한 사람이 가장 아래의 아홉째 층에 이르기까지 여러 장애를 통과한다고 전한다. 이 죽은 이의 여정은 누구나 즉시 같은 곳에 도착한다는 단순한 도식이 아니다. 죽음의 사정에 따라 행선지가 달라진다는 구별을 보존해야 한다.
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 변신의 연속
+살아남은 사람들은 그 길에 도움이 되도록 고인이 쓰던 물건과 도구를 함께 처리한다. 박물관 해설이 설명하는 화장과 부장품은 죽은 이를 떠나보내는 행위를 여정의 준비로 만든다. 여기서 죽음의 신상은 앞의 전투에서 패한 코욜샤우키가 변신한 모습으로 소개되지 않는다. 가족의 탄생담과 사자의 길은 같은 문화 안에서 읽을 수 있지만 자료가 말하지 않은 혈통이나 변신을 매개로 연결하지 않는다. 남아 있는 사람에게 필요한 것은 세계의 시작을 기억하는 일뿐 아니라 각자의 죽음을 다룰 절차이기도 하다.
 
-## 빛의 운행과 신들의 희생
+출전: [영국박물관, 믹틀란테쿠틀리 사암상과 장례·저승의 해설](https://artsandculture.google.com/asset/sandstone-seated-figure-of-mictlantecuhtli/8gEWZDIMx5CdRw?hl=en).
 
-빛이 생겼다는 사실만으로 세계의 질서가 완성되지 않는다. 신들의 죽음과 바람이 천체의 이동에 연결된다.
+<a id="new-fire"></a>
+## 7. 끝날 수 있는 시간을 다시 시작하다
 
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장 후반
+개인의 죽음과 달리 공동체 전체에는 시간의 주기가 돌아온다. 태양력과 의례력의 시작이 다시 맞물리는 52년을 메시카는 ‘해를 묶는’ 주기로 헤아렸다. 주기가 끝나는 일은 단순히 오래된 숫자를 새 숫자로 바꾸는 일이 아니었다. INAH의 해설에 따르면 해가 다시 떠오르지 않아 세계와 생명이 끝날 수 있다는 두려움이 이 전환에 함께 있었다. 앞선 시대들이 있었다는 기억은 현재의 시간이 자동으로 영원히 계속된다는 보증을 주지 않는다.
 
-## 두 존재의 투신과 천체 탄생
+새 불을 피우는 의례는 이 위기를 지나 다시 시작하는 시간과 연결된다. 공동체는 신화의 처음을 과거에만 남겨 놓지 않고 주기적인 제의를 통해 갱신을 다루었다. 그렇다고 의례의 매 주기를 위칠로포치틀리가 실제로 다시 태어난 날짜라고 쓰지는 않는다. 신화가 말하는 탄생, 달력이 세는 주기, 사람들이 행한 제의는 서로 관련되지만 서로 대신할 수 없다. 이 글의 흐름은 어머니의 생존을 건 탄생의 싸움에서 시작하여 빛과 죽음, 다시 이어질 시간을 기다리는 공동체로 닿는다.
 
-나나우아친이 먼저, 테쿠시스테카틀이 뒤에 불로 들어가 해와 달의 기원으로 이어진다. 독수리와 재규어가 불에 닿는 일화도 함께 전해진다.
-
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 불과 첫 출현
-
-## 움직이지 않는 태양의 출발
-
-신들은 떠오른 빛이 움직이지 않는 문제를 해결하려 한다. 희생과 바람 뒤 운행이 시작되며 해와 달의 진행이 구별된다.
-
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 운행의 시작
-
-## 월식에 대한 두려움과 풍습
-
-문헌은 월식과 임신 등에 관한 당시의 믿음을 기록한다. 이를 현대 의학의 사실이나 독자에게 권하는 행동으로 제시하지 않는다.
-
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장 끝부분
-
-## 다섯 태양 전승과의 구분
-
-이 기록의 해·달 탄생 이야기를 다른 문헌의 다섯 시대 목록과 그대로 합치지 않는다. 나와틀 전승을 스페인어로 기록한 식민기 문헌이라는 전달 경로를 밝힌다.
-
-근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장
+출전: [INAH, Burial of the years, xiuhmolpilli and the New Fire ceremony](https://lugares.inah.gob.mx/en/node/5370).

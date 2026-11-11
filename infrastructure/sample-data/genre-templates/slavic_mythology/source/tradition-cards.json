@@ -1,0 +1,174 @@
+{
+  "genre": "slavic_mythology",
+  "name": "슬라브 신화와 동슬라브 민담",
+  "scope": "중세 루스 기록과 19세기 채록 민담을 분리한다. 슬라브 전역의 통일된 신계·창세 신화는 복원하지 않는다. 페룬과 벨레스의 체계적인 전쟁 서사는 후대 학술 재구성과 현존 기록을 구별해야 한다.",
+  "sources": [
+    {
+      "title": "Slavic Religion, Encyclopedia of Religion",
+      "url": "https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion"
+    },
+    {
+      "title": "아파나시예프 선집 『Russian Folk-Tales』, Magnus 번역",
+      "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html"
+    }
+  ],
+  "cards": [
+    {
+      "key": "perun",
+      "title": "페룬",
+      "cardType": "character",
+      "body": "루스의 맹세 기록에서 약속의 권위를 보증하는 신이다. 천둥과 관련되며 무장한 전사들의 맹세와 연결된다.\n\n출전: 《Encyclopedia of Religion》의 「Slavic Religion」, 루스의 맹세·기독교화 기록에 관한 개관. 이 절은 중세 원문 전문의 번역이 아니라 기록 범위를 제한한 재서술이다. [문헌 개관](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion).",
+      "narrative_refs": [
+        {
+          "section": "rus-oaths",
+          "evidence": "루스의 조약 기록에서 페룬과 볼로스의 이름은 약속을 보증하는 힘으로 나타난다. 페룬은 천둥과 관련된 신으로 이해되며 무장한 전사들의 맹세와 연결된다. 볼로스는 가축의 신으로 불린다. 이 자료에서 먼저 읽을 수 있는 것은 두 신이 어느 왕의 아들인가가 아니라, 사람들이 누구를 불러 자기 약속에 무게를 실었는가이다. 신의 이름을 건다는 행위는 약속을 깨는 일에 인간 사이의 분쟁보다 더 큰 위험을 부여했다."
+        }
+      ]
+    },
+    {
+      "key": "veles",
+      "title": "벨레스·볼로스",
+      "cardType": "character",
+      "body": "루스의 조약 맹세에 등장하고 가축의 신으로 불린다. 이 대목은 가족 계보보다 사람들이 신의 이름으로 약속을 보증한 사실을 전한다.\n\n출전: 《Encyclopedia of Religion》의 「Slavic Religion」, 루스의 맹세·기독교화 기록에 관한 개관. 이 절은 중세 원문 전문의 번역이 아니라 기록 범위를 제한한 재서술이다. [문헌 개관](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion).",
+      "narrative_refs": [
+        {
+          "section": "rus-oaths",
+          "evidence": "루스의 조약 기록에서 페룬과 볼로스의 이름은 약속을 보증하는 힘으로 나타난다. 페룬은 천둥과 관련된 신으로 이해되며 무장한 전사들의 맹세와 연결된다. 볼로스는 가축의 신으로 불린다. 이 자료에서 먼저 읽을 수 있는 것은 두 신이 어느 왕의 아들인가가 아니라, 사람들이 누구를 불러 자기 약속에 무게를 실었는가이다. 신의 이름을 건다는 행위는 약속을 깨는 일에 인간 사이의 분쟁보다 더 큰 위험을 부여했다."
+        }
+      ]
+    },
+    {
+      "key": "oath",
+      "title": "신들의 이름을 건 맹세",
+      "cardType": "rule",
+      "body": "루스의 조약 기록에서 페룬과 볼로스를 불러 약속에 무게를 싣는다. 이를 모든 슬라브 지역의 동일한 의례라고 확장하지 않는다.\n\n출전: 《Encyclopedia of Religion》의 「Slavic Religion」, 루스의 맹세·기독교화 기록에 관한 개관. 이 절은 중세 원문 전문의 번역이 아니라 기록 범위를 제한한 재서술이다. [문헌 개관](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion).",
+      "narrative_refs": [
+        {
+          "section": "rus-oaths",
+          "evidence": "루스의 조약 기록에서 페룬과 볼로스의 이름은 약속을 보증하는 힘으로 나타난다. 페룬은 천둥과 관련된 신으로 이해되며 무장한 전사들의 맹세와 연결된다. 볼로스는 가축의 신으로 불린다. 이 자료에서 먼저 읽을 수 있는 것은 두 신이 어느 왕의 아들인가가 아니라, 사람들이 누구를 불러 자기 약속에 무게를 실었는가이다. 신의 이름을 건다는 행위는 약속을 깨는 일에 인간 사이의 분쟁보다 더 큰 위험을 부여했다."
+        }
+      ]
+    },
+    {
+      "key": "sources",
+      "title": "기록과 후대 재구성",
+      "cardType": "rule",
+      "body": "중세 기록의 기독교적 관점과 자료의 한계를 함께 읽는다. 페룬과 벨레스의 상세한 전쟁 서사는 현존 기록의 직접 진술과 비교 연구의 재구성을 구분한다.\n\n출전: 《Encyclopedia of Religion》의 「Slavic Religion」, 루스의 맹세·기독교화 기록에 관한 개관. 이 절은 중세 원문 전문의 번역이 아니라 기록 범위를 제한한 재서술이다. [문헌 개관](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion).",
+      "narrative_refs": [
+        {
+          "section": "rus-oaths",
+          "evidence": "기독교화에 관한 기록으로 넘어가면 신상은 세워지고 뒤에는 끌어내려진 대상으로 나타난다. 이를 전하는 저자들은 옛 신앙을 있는 그대로 보존하려는 신관이 아니라 기독교적 관점에서 과거를 기록한 사람들이었다. 그러므로 의례와 이름의 단서를 얻으면서도 그 기록의 목적을 함께 살펴야 한다. 페룬이 벨레스와 세계를 걸고 싸운 상세한 전쟁담을 이 몇 장면의 다음 장처럼 채워 넣을 수는 없다. 그와 같은 체계적 서사는 비교 연구의 재구성과 현존 문헌의 직접 진술을 구별해야 한다."
+        }
+      ]
+    },
+    {
+      "key": "baba-yaga",
+      "title": "바바 야가",
+      "cardType": "character",
+      "body": "바실리사에게 일을 해내면 불을 주고 실패하면 잡아먹겠다고 하는 노파다. 절구·공이·빗자루를 사용하며 숲의 집에 산다.\n\n출전: 아파나시예프 선집 「Vasilísa the Fair」 전반. [매그너스 번역본](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+      "narrative_refs": [
+        {
+          "section": "vasilisa-departure",
+          "evidence": "숲에서 바실리사는 흰 기마자와 붉은 기마자를 지나고 마침내 바바 야가의 집에 닿는다. 집 둘레에는 뼈와 해골로 된 울타리가 있고, 검은 기마자가 사라지자 밤이 된다. 어둠 속에서는 해골의 눈이 빛난다. 바바 야가는 절구를 타고 공이로 나아가며 빗자루로 흔적을 쓸어 지우고 나타난다. 불을 달라는 요청을 듣고 그녀는 일을 해내면 주겠지만 못하면 잡아먹겠다고 한다. 오두막은 단순한 장식이 아니라 집에서 내몰린 소녀가 생존을 조건으로 노동을 요구받는 장소가 된다."
+        }
+      ]
+    },
+    {
+      "key": "hut",
+      "title": "바바 야가의 오두막",
+      "cardType": "location",
+      "body": "「아름다운 바실리사」에서 뼈와 해골의 울타리에 둘러싸인 숲의 집이다. 바실리사는 이곳에서 불을 얻기 위해 생존이 걸린 노동을 맡는다.\n\n출전: 아파나시예프 선집 「Vasilísa the Fair」 전반. [매그너스 번역본](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+      "narrative_refs": [
+        {
+          "section": "vasilisa-departure",
+          "evidence": "숲에서 바실리사는 흰 기마자와 붉은 기마자를 지나고 마침내 바바 야가의 집에 닿는다. 집 둘레에는 뼈와 해골로 된 울타리가 있고, 검은 기마자가 사라지자 밤이 된다. 어둠 속에서는 해골의 눈이 빛난다. 바바 야가는 절구를 타고 공이로 나아가며 빗자루로 흔적을 쓸어 지우고 나타난다. 불을 달라는 요청을 듣고 그녀는 일을 해내면 주겠지만 못하면 잡아먹겠다고 한다. 오두막은 단순한 장식이 아니라 집에서 내몰린 소녀가 생존을 조건으로 노동을 요구받는 장소가 된다."
+        }
+      ]
+    },
+    {
+      "key": "koshchei",
+      "title": "불사의 코셰이",
+      "cardType": "character",
+      "body": "「마리야 모레브나」에서 사슬에 묶여 있다가 이반이 준 물로 힘을 되찾는 존재다. 탈출 후 마리야를 납치하고 반복해서 그녀를 구하려는 이반을 죽인다.\n\n출전: 「Márya Moryévna」, 금지된 방·납치·탈출과 회복. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+      "narrative_refs": [
+        {
+          "section": "marya-captive",
+          "evidence": "다른 이야기 「마리야 모레브나」의 이반 왕자는 전장에서 쓰러진 군대를 본 뒤 승리한 여전사 마리야 모레브나를 만난다. 두 사람은 결혼하지만 마리야가 전쟁을 하러 떠나면서 열지 말라고 한 방을 이반이 연다. 안에는 사슬에 묶인 코셰이가 물을 달라고 한다. 이반이 물을 주자 코셰이는 힘을 되찾아 사슬을 끊고 마리야를 빼앗아 간다. 금지된 방의 문을 연 호기심은 포로에게 자유를 주지만, 그 자유는 이반의 아내를 납치하는 힘으로 되돌아온다."
+        },
+        {
+          "section": "marya-captive",
+          "evidence": "이반은 마리야를 찾아가 데리고 도망치려 하나 코셰이의 말이 그들을 따라잡는다. 코셰이는 물을 준 일을 생각해 처음에는 살려 보내지만 반복된 탈출 시도 끝에 이반을 죽여 조각내고 바다로 보낸다. 이반의 누이들과 혼인한 새 형상의 매형들이 이 소식을 알고 그의 몸을 찾아 생명과 죽음의 물로 되살린다. 이반에게 필요한 것은 같은 탈출을 다시 반복하는 용기만이 아니라 코셰이의 말을 앞설 수단이다. 마리야는 코셰이에게 그 말을 어디서 얻었는지 물어 정보를 얻는다."
+        }
+      ]
+    },
+    {
+      "key": "external-death",
+      "title": "몸 밖에 숨겨진 죽음",
+      "cardType": "rule",
+      "body": "매그너스의 서문·주석은 일부 코셰이 유형에서 몸 밖의 알에 생명이 감춰진다고 설명한다. 「마리야 모레브나」의 결말에 이 사건을 덧붙이지 않는다.\n\n출전: 「Márya Moryévna」 후반 및 선집 Introduction·Notes의 Koshchéy 항목. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+      "narrative_refs": [
+        {
+          "section": "marya-horse",
+          "evidence": "몸 밖에 죽음을 숨기는 다른 코셰이 유형은 매그너스의 서문과 주석에 설명되어 있다. 거기서는 멀리 감춘 알에 생명이 들어 있고 영웅이 그것을 확보하여 파괴하는 구조가 언급된다. 이는 「마리야 모레브나」에서 생략된 중간 장면이 아니다. 이 글은 두 유형을 구별하기 위해 이 차이를 밝히며, 모든 코셰이에게 같은 알과 같은 은신처를 적용하지 않는다. 편자의 오래된 민족 기원 추측도 이야기 속 사건으로 옮기지 않는다."
+        }
+      ]
+    },
+    {
+      "key": "firebird",
+      "title": "불새",
+      "cardType": "character",
+      "body": "왕의 황금 사과를 가져가던 빛나는 새다. 이반이 깃털 하나를 얻자 왕은 새 전체를 원하고 탐색이 시작된다.\n\n출전: 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」, 정원의 도둑과 새장·굴레의 경고. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+      "narrative_refs": [
+        {
+          "section": "firebird-search",
+          "evidence": "「불새, 말, 바실리사 공주에 관한 이야기」가 아니라 이 선집의 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」에서 왕의 정원에 있는 황금 사과가 사라진다. 막내 이반은 밤을 지키다가 빛나는 새를 붙잡으려 하지만 깃털 하나만 얻는다. 왕은 그 증거를 보고 새 전체를 원하고 아들들이 찾아 나선다. 이반이 택한 길에서 회색 늑대가 말을 죽이지만, 걸어가며 지친 그를 보고 등에 태워 목적지로 데려간다. 늑대는 첫 재난의 원인이면서 뒤에는 그 손실을 메우는 조력자가 된다."
+        }
+      ]
+    },
+    {
+      "key": "feather",
+      "title": "불새의 깃털",
+      "cardType": "object",
+      "body": "이반이 정원을 지키다 불새에게서 얻는 깃털이다. 새의 존재를 확인한 왕이 아들들을 보내는 계기가 된다.\n\n출전: 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」, 정원의 도둑과 새장·굴레의 경고. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+      "narrative_refs": [
+        {
+          "section": "firebird-search",
+          "evidence": "「불새, 말, 바실리사 공주에 관한 이야기」가 아니라 이 선집의 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」에서 왕의 정원에 있는 황금 사과가 사라진다. 막내 이반은 밤을 지키다가 빛나는 새를 붙잡으려 하지만 깃털 하나만 얻는다. 왕은 그 증거를 보고 새 전체를 원하고 아들들이 찾아 나선다. 이반이 택한 길에서 회색 늑대가 말을 죽이지만, 걸어가며 지친 그를 보고 등에 태워 목적지로 데려간다. 늑대는 첫 재난의 원인이면서 뒤에는 그 손실을 메우는 조력자가 된다."
+        }
+      ]
+    },
+    {
+      "key": "grey-wolf",
+      "title": "회색 늑대",
+      "cardType": "character",
+      "body": "엘레나와 말의 모습으로 변해 이반의 교환 과제를 돕는 조력자다. 형들에게 살해된 이반도 생명과 죽음의 물로 되살려 귀환시킨다.\n\n출전: 같은 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」, 변신·형제의 배신·부활과 귀환. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+      "narrative_refs": [
+        {
+          "section": "wolf-return",
+          "evidence": "늑대는 엘레나를 데려오고 이반과 엘레나는 서로 사랑하게 된다. 공주를 다른 왕에게 넘기기 싫어하는 이반을 위해 늑대가 엘레나의 모습으로 변해 교환을 성사시킨 뒤 빠져나온다. 다음에는 말로 변해 새를 얻도록 돕는다. 이반은 실제 공주와 말, 새를 모두 데리고 돌아가지만 끝난 줄 알았던 위험은 자기 형제들에게서 온다. 빈손으로 돌아오던 형들은 잠든 이반을 죽이고 성과를 빼앗아 엘레나에게도 침묵을 강요한다."
+        },
+        {
+          "section": "wolf-return",
+          "evidence": "회색 늑대는 이반의 시신을 발견하고 까마귀에게 생명과 죽음의 물을 구해 오게 한다. 죽음의 물로 몸이 이어지고 생명의 물로 이반이 살아난다. 늑대가 그를 왕국으로 데려가자 엘레나는 진실을 밝힌다. 형들은 벌을 받고 이반과 엘레나는 함께 산다. 이 이야기의 조력자는 이동과 변신뿐 아니라 죽음 뒤의 귀환까지 돕지만, 그 능력이 바바 야가나 중세 루스 신들의 명령에서 나온다고 설명되지는 않는다. 각각의 이야기에서 성립한 관계를 지키는 것이 이 자료의 끝이다."
+        }
+      ]
+    },
+    {
+      "key": "quest",
+      "title": "불새를 찾아가는 이반",
+      "cardType": "event",
+      "body": "황금 사과를 훔친 새를 찾던 이반은 새장과 굴레를 건드리지 말라는 늑대의 경고를 어긴다. 그 때문에 말과 엘레나를 데려오라는 새 과제가 이어진다.\n\n출전: 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」, 정원의 도둑과 새장·굴레의 경고. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+      "narrative_refs": [
+        {
+          "section": "firebird-search",
+          "evidence": "「불새, 말, 바실리사 공주에 관한 이야기」가 아니라 이 선집의 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」에서 왕의 정원에 있는 황금 사과가 사라진다. 막내 이반은 밤을 지키다가 빛나는 새를 붙잡으려 하지만 깃털 하나만 얻는다. 왕은 그 증거를 보고 새 전체를 원하고 아들들이 찾아 나선다. 이반이 택한 길에서 회색 늑대가 말을 죽이지만, 걸어가며 지친 그를 보고 등에 태워 목적지로 데려간다. 늑대는 첫 재난의 원인이면서 뒤에는 그 손실을 메우는 조력자가 된다."
+        },
+        {
+          "section": "firebird-search",
+          "evidence": "늑대는 새만 가져오고 금빛 새장은 건드리지 말라고 한다. 이반이 새장도 탐내자 소리가 나고 그는 붙잡힌다. 새를 얻으려면 황금 갈기의 말을 가져오라는 과제가 생긴다. 이번에도 늑대는 말만 끌고 나오고 굴레는 남기라고 하지만 이반이 굴레를 건드려 다시 붙잡힌다. 이제 엘레나 공주를 데려와야 한다. 불새의 빛나는 깃털은 탐색의 출발점이지만, 길을 길게 만드는 것은 이반이 매번 덧붙여 가지려는 물건과 조언을 어기는 선택이다."
+        }
+      ]
+    }
+  ],
+  "narrative": "original.md"
+}

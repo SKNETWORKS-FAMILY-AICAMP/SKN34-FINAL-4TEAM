@@ -1578,1456 +1578,1662 @@
   {
     "genre": "sumerian_mythology",
     "worldId": "41adfa23-2e60-5b04-885a-994cf2478a18",
-    "name": "수메르 신화 — 홍수와 지우수드라",
-    "description": "수메르 홍수 설화의 현존 부분을 중심으로 한 자료. 아카드어 아트라하시스·길가메시와 합치지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "수메르 신화",
+    "description": "수메르어 문학 전승의 개별 작품을 요약한다. 아카드어 이슈타르·길가메시 전승과 자동으로 합치지 않으며, 결락과 이본이 있는 문헌을 단일 경전처럼 취급하지 않는다.",
     "cards": [
       {
-        "id": "d8288df4-753e-5167-821e-1d980765bd12",
-        "title": "지우수드라",
-        "body": "경건한 왕으로 묘사되며 홍수에 관한 경고를 듣고 살아남는다. 마지막에는 신들에게 경배하고 특별한 생명을 받는다. 이 판본의 Ziugiddu 표기와 지우수드라는 같은 인물을 가리키는 독법 차이이다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제III–VI열",
+        "id": "7b53ea02-5d5b-5cae-ae07-58aa975cb922",
+        "title": "이난나",
+        "body": "지상의 자리와 장신구·권능을 갖추고 저승으로 향하는 여신이다. 출발 전에 시종 닌슈부르에게 구원 요청을 맡기지만 일곱 문에서 자신의 장식을 하나씩 잃는다.\n\n출전: [ETCSL 1.4.1 이난나의 저승 하강](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.4.1).",
         "cardType": "character"
       },
       {
-        "id": "aa851288-9600-58d5-9285-29c5e6e389d5",
+        "id": "7cd6aedb-b227-52c6-bf5d-901a1f2034f7",
+        "title": "에레슈키갈",
+        "body": "이난나의 자매이며 저승을 지배하는 존재다. 방문자의 지상 권위가 통하지 않는 영역을 맡는다. 여기의 자매 관계에 다른 언어의 명계 혼인담을 덧붙이지 않는다.\n\n출전: [ETCSL 1.4.1 이난나의 저승 하강](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.4.1).",
+        "cardType": "character"
+      },
+      {
+        "id": "edad0f04-f2b0-526a-9eea-526980be9965",
+        "title": "닌슈부르",
+        "body": "이난나가 남긴 부탁을 지키는 시종이다. 엔릴과 난나에게서 도움을 얻지 못한 뒤 엔키에게 구원을 청해 주인이 되살아날 길을 마련한다.\n\n출전: [ETCSL 1.4.1 이난나의 저승 하강](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.4.1).",
+        "cardType": "character"
+      },
+      {
+        "id": "37631e62-5535-58ff-b105-035e13c7603d",
         "title": "엔키",
-        "body": "홍수 경고와 연결되는 지혜의 신이다. 경고 전달의 훼손된 대목을 완전한 대화로 보충하지 않는다. 아카드 전승의 에아와 대응하지만 이 자료에서 두 언어의 본문을 합성하지 않는다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제III–IV열",
+        "body": "「엔키와 닌후르사가」에서 물이 부족한 딜문에 담수가 솟아오를 것을 약속하는 신이다. 우투가 하늘에 오르자 물이 나와 도시와 밭이 풍요로워진다.\n\n출전: [ETCSL 1.1.1 엔키와 닌후르사가](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.1.1).",
         "cardType": "character"
       },
       {
-        "id": "b7dc198e-dea1-5372-918b-39e3558eef4f",
-        "title": "안과 엔릴",
-        "body": "생존자에게 특별한 지위를 부여하는 신들로 마지막 부분에 등장한다. 신들의 결정과 인간의 운명 사이 권력 차이가 드러난다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제VI열",
+        "id": "bffe980d-2224-5572-bbf8-e94a3a592f7f",
+        "title": "닌후르사가",
+        "body": "병든 엔키의 아픈 곳을 물으며 신들을 낳아 회복에 관여한다. 같은 이야기에서 벌을 내리는 자와 치유하는 자를 함께 맡으며 이를 모든 창조담의 동일 계보로 확대하지 않는다.\n\n출전: [ETCSL 1.1.1 엔키와 닌후르사가](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.1.1).",
         "cardType": "character"
       },
       {
-        "id": "d299619d-cb17-5afc-bcea-706c437de274",
-        "title": "태양신 우투",
-        "body": "폭풍 뒤 빛을 비추며 생존자가 배를 열고 경배하는 대목에 연결된다. 초기 영어 번역의 샤마시는 아카드어 신명 대응을 사용한 것이다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제V열",
-        "cardType": "character"
-      },
-      {
-        "id": "9195c6ea-a221-5f0e-bedb-6ed751f77d7f",
-        "title": "도시와 신적 수호 질서",
-        "body": "왕권과 도시의 배치가 홍수 이전 세계의 질서로 제시된다. 에리두·바드티비라·라라크·시파르·슈루팍의 열거는 현대 국가 체계를 뜻하지 않는다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제I–II열",
-        "cardType": "organization"
-      },
-      {
-        "id": "a8e1c679-8da1-5015-8f5a-af73282422aa",
-        "title": "슈루팍",
-        "body": "홍수 이전에 열거되는 도시 중 하나이다. 수메르 도시 전승의 장소이며 후대 홍수 문헌의 왕 계보를 자동으로 이 본문에 덧붙이지 않는다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제II열",
-        "cardType": "location"
-      },
-      {
-        "id": "2a8939fc-6e0f-5626-973e-02a4bb5f71a0",
+        "id": "184b60f0-0298-5fcb-8905-586635476489",
         "title": "딜문",
-        "body": "살아남은 왕이 머물도록 정해지는 먼 장소이다. 초기 번역의 지형 해석과 현대 연구의 해석은 같지 않을 수 있어 실제 좌표로 확정하지 않는다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제VI열",
+        "body": "이 작품에서 물을 얻어 풍요로워지는 땅이다. 순수한 땅이라는 묘사를 모든 수메르인의 사후 낙원이나 현실 교역지의 완전한 지리 묘사로 확대하지 않는다.\n\n출전: [ETCSL 1.1.1 엔키와 닌후르사가](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.1.1).",
         "cardType": "location"
       },
       {
-        "id": "13cb7468-4a29-5184-89fb-72e2509eb785",
-        "title": "홍수를 견딘 배",
-        "body": "폭풍 속에서 생명을 보전하는 수단이다. 현존 수메르 본문에 없는 설계도·치수·승선 명단을 다른 홍수 이야기에서 가져오지 않는다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제IV–V열",
-        "cardType": "object"
+        "id": "0ebd9055-fc43-5a68-b66d-e01ffb3392ec",
+        "title": "저승과 일곱 문",
+        "body": "네티가 입장을 맡고 이난나가 일곱 문을 통과하는 저승이다. 문마다 장식을 잃는 이동은 지상의 위엄이 그곳에서 그대로 통하지 않음을 드러낸다.\n\n출전: [ETCSL 1.4.1 이난나의 저승 하강](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.4.1).",
+        "cardType": "location"
       },
       {
-        "id": "b739bbae-d463-53ca-aa71-b2eed33ae719",
-        "title": "신들 앞의 경배와 제물",
-        "body": "생존자는 태양빛을 맞은 뒤 엎드려 경배하고 소와 양을 제물로 바친다. 문헌 속 제의 행위이며 현대의 실천 지침이 아니다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제V열",
+        "id": "0808b8fd-60fd-5a00-9f54-2ffa7c4cf10d",
+        "title": "저승의 통과 규칙",
+        "body": "이난나의 부활만으로는 귀환이 끝나지 않는다. 저승은 대체자를 요구하며 추종자들을 보내고, 이난나는 자신을 구한 닌슈부르를 내주지 않는다.\n\n출전: [ETCSL 1.4.1 이난나의 저승 하강](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.4.1).",
         "cardType": "rule"
       },
       {
-        "id": "bdfd6fa9-6aff-5984-8f46-8c143c35884f",
-        "title": "신들이 부여한 생명",
-        "body": "지우수드라의 특별한 생명은 신들의 승인으로 주어진다. 인간 모두가 획득할 수 있는 수련 능력으로 재구성하지 않는다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제VI열",
-        "cardType": "ability"
-      },
-      {
-        "id": "c40654ef-1f93-5096-b6a8-18479112fea8",
-        "title": "홍수와 폭풍의 기간",
-        "body": "거센 폭풍과 홍수가 세상을 뒤덮고 배가 흔들린다. 현존 본문은 일곱 날과 일곱 밤을 말한다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제V열",
+        "id": "00b4fc38-14dc-5ca7-ba04-76b10fb7c78c",
+        "title": "이난나의 하강과 귀환",
+        "body": "저승에서 죽은 이난나는 닌슈부르의 요청과 엔키가 보낸 존재들의 도움으로 되살아난다. 귀환에는 대체자가 필요하여 두무지가 넘겨지고 게슈틴안나와의 시간 분담이 이어진다. 연결 과정의 결락은 남긴다.\n\n출전: [ETCSL 1.4.1 이난나의 저승 하강](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.4.1).",
         "cardType": "event"
       },
       {
-        "id": "d3a36b0c-e5a2-56a6-bf2d-e5bd2ab6e054",
-        "title": "홍수 뒤의 정착",
-        "body": "재난 뒤 지우수드라는 신들에게 경배하고 먼 딜문에 거처를 얻는다. 도시 전체의 재건 과정을 새 사건으로 창작하지 않는다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 제VI열",
-        "cardType": "event"
+        "id": "cf477c29-5bba-559f-bbb6-a1550da6b786",
+        "title": "메: 신적 질서와 기술",
+        "body": "엔키가 술자리에서 이난나에게 주는 신적 권능과 제도다. 왕권·직분·기술뿐 아니라 갈등과 기만도 포함하므로 선한 마법 물건만의 목록이 아니다.\n\n출전: [ETCSL 1.3.1 이난나와 엔키](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.3.1).",
+        "cardType": "rule"
       },
       {
-        "id": "0ad5d20b-f96c-588b-9f58-7b8e1b48540c",
-        "title": "결락과 홍수 전승의 구분",
-        "body": "점토판의 큰 결락 때문에 경고·건조·승선 과정의 일부는 알 수 없다. 지우수드라·아트라하시스·우트나피쉬팀·노아 이야기는 비교할 수 있지만 하나의 원전으로 취급하지 않는다.\n\n근거: [수메르 홍수 이야기, Poebel 1914 현존 열 I–VI](https://www.jasoncolavito.com/eridu-genesis.html) — 본문 결락 및 제III–VI열",
-        "cardType": "other"
+        "id": "2be180f9-8664-5c9d-9776-51987c557f09",
+        "title": "하늘의 배",
+        "body": "메가 에리두에서 우루크로 이동하는 사건의 운반 수단이다. 이미 준 것을 회수하려는 엔키와 약속을 지키라 맞서는 이난나의 갈등이 이 배에 집중된다.\n\n출전: [ETCSL 1.3.1 이난나와 엔키](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.3.1).",
+        "cardType": "object"
+      },
+      {
+        "id": "9b23490f-de10-50ac-a9d8-2dcf96619c5d",
+        "title": "메의 우루크 이전",
+        "body": "이난나가 메를 배에 싣고 떠난 뒤 엔키가 되찾으려 한다. 이난나는 약속의 번복에 맞서 닌슈부르의 도움으로 배를 지키고 메를 우루크에 가져간다.\n\n출전: [ETCSL 1.3.1 이난나와 엔키](https://etcsl.orinst.ox.ac.uk/cgi-bin/etcsl.cgi?text=t.1.3.1).",
+        "cardType": "event"
       }
     ]
   },
   {
     "genre": "cthulhu_mythos",
     "worldId": "79fceb31-e918-5605-bfd3-a5123daf799f",
-    "name": "크툴루 신화 — 러브크래프트 원작 설정",
-    "description": "러브크래프트 단독 원작의 문학 설정. 후대 작가·Chaosium TRPG의 수치·분류 체계는 제외한다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "크툴루 신화 · 러브크래프트 원작",
+    "description": "러브크래프트 단독 원작의 내용을 새 문장으로 요약한 자료. 후대 작가·Chaosium TRPG 고유 설정과 현대 번역문 전재를 제외한다. 원작의 허구·화자의 추론·서로 다른 작품의 명칭을 구분한다.",
     "cards": [
       {
-        "id": "1c98a5f8-794a-5ab0-9d1a-fb09271ba4bf",
-        "title": "크툴루",
-        "body": "르뤼에에 잠든 거대한 존재이다. 꿈·조각상·숭배자들의 진술을 통해 단편적으로 알려지며, 요한센의 기록에서는 일시적으로 모습을 드러낸다. 인간의 종교적 설명을 객관적인 우주 분류로 단정하지 않는다.\n\n근거: [The Call of Cthulhu (1928)](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx) — 제II–III부",
-        "cardType": "character"
-      },
-      {
-        "id": "14c86f49-e06b-5757-b1da-801dfb7e497f",
-        "title": "요그 소토스",
-        "body": "던위치의 문헌과 주문에서 시간·공간의 경계 및 문과 연결되는 존재이다. 웨이틀리 가문의 비정상적 출생과 소환 계획의 중심이다. 게임의 능력치·원소 속성은 없다.\n\n근거: [The Dunwich Horror (1929)](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx) — 제V–X절",
-        "cardType": "character"
-      },
-      {
-        "id": "0eb29bfc-7c52-5f3c-ac0f-351391230b75",
-        "title": "니알라토텝",
-        "body": "동명의 산문에서는 이집트에서 온 기이한 시연자로 묘사되어 군중을 불안과 환상으로 이끈다. 꿈의 탐색에서는 신들의 의도를 전하는 역할로 나타난다. 두 작품의 묘사를 단일 전투 능력 목록으로 환원하지 않는다.\n\n근거: [Nyarlathotep (1920)](https://www.hplovecraft.com/writings/texts/fiction/n.aspx) — 전체; [The Dream-Quest of Unknown Kadath](https://www.hplovecraft.com/writings/texts/fiction/dq.aspx) — 카다스와 마지막 대면",
-        "cardType": "character"
-      },
-      {
-        "id": "e0b1aaf6-81e6-54da-8a06-57007e309a2b",
-        "title": "아자토스",
-        "body": "꿈의 탐색에서 질서 밖의 중심과 소음·피리 소리로 연결되는 존재이다. 우주가 그의 꿈이라는 후대 통속 해석을 원작의 확정 설정으로 넣지 않는다.\n\n근거: [The Dream-Quest of Unknown Kadath](https://www.hplovecraft.com/writings/texts/fiction/dq.aspx) — 아자토스 언급 대목",
-        "cardType": "character"
-      },
-      {
-        "id": "9f3dc330-60e7-599f-ab1a-cac98dd2908a",
-        "title": "윌버 웨이틀리",
-        "body": "던위치에서 비정상적으로 성장하는 인물로 금서에 접근하려 한다. 미스캐토닉 대학 도서관 침입 중 죽으며, 숨겨진 쌍둥이와 가문의 계획이 뒤이어 드러난다.\n\n근거: [The Dunwich Horror (1929)](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx) — 제I–VI절",
-        "cardType": "character"
-      },
-      {
-        "id": "2f4bd6b2-5ada-57e8-afb2-22ba5f49bfdb",
-        "title": "크툴루 숭배 집단",
-        "body": "경찰 보고와 증언을 통해 드러나는 여러 지역의 비밀 숭배자들이다. 그들의 예언은 작품 안에서도 증언의 층위를 거친다. 실제 문화권에 관한 작품의 편견을 사실 설명으로 재생산하지 않는다.\n\n근거: [The Call of Cthulhu (1928)](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx) — 제II부",
-        "cardType": "organization"
-      },
-      {
-        "id": "5afd7cb7-4574-5ef4-b713-d310db06b5aa",
-        "title": "다곤 밀교단",
-        "body": "인스머스의 비밀 의례와 바다 존재들과의 거래에 연결되는 조직이다. 도시 경제·혈연·종교의 변화를 묶는 서사 장치이며 실재 종교의 설명이 아니다.\n\n근거: [The Shadow over Innsmouth (1936)](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx) — 제III–IV부",
-        "cardType": "organization"
-      },
-      {
-        "id": "3b3d9124-156e-580c-ad7e-1ceaca278e9b",
-        "title": "딥 원",
-        "body": "인스머스와 바다 아래 도시의 존재들이다. 인간과의 혈연 및 점진적 신체 변화가 이야기의 공포와 마지막 반전에 연결된다.\n\n근거: [The Shadow over Innsmouth (1936)](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx) — 제III–V부",
-        "cardType": "character"
-      },
-      {
-        "id": "08ec3d97-cb86-5275-8829-2bea2b8b2c80",
-        "title": "아컴과 미스캐토닉 대학",
-        "body": "던위치 사건에서 문헌 조사와 금서 보관의 거점이다. 아미티지 일행은 소장본을 검토해 대응책을 마련한다. 모든 작품의 연구기관을 하나의 전지적 조직으로 만들지 않는다.\n\n근거: [The Dunwich Horror (1929)](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx) — 제IV–X절",
-        "cardType": "location"
-      },
-      {
-        "id": "819b12cb-8162-5d15-8181-55c7eae4c605",
-        "title": "인스머스",
-        "body": "쇠락한 해안 도시로, 화자의 방문과 추적·탈출이 일어나는 곳이다. 바닷속 존재들과 주민의 비밀 관계가 점차 밝혀진다.\n\n근거: [The Shadow over Innsmouth (1936)](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx) — 제I–V부",
-        "cardType": "location"
-      },
-      {
-        "id": "761e9a42-d023-59a3-8dae-a86db9b68825",
-        "title": "르뤼에",
-        "body": "요한센 일행이 마주한 바다의 도시이며, 익숙한 공간 감각을 어긋나게 하는 건축이 묘사된다. 그 기록은 화자가 입수한 문서라는 서술 틀을 갖는다.\n\n근거: [The Call of Cthulhu (1928)](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx) — 제III부",
-        "cardType": "location"
-      },
-      {
-        "id": "f43f7c4e-4f54-5b0d-91f4-4798ddb42316",
-        "title": "던위치",
-        "body": "웨이틀리 가문의 비밀과 보이지 않는 재앙이 벌어지는 시골 지역이다. 주변 언덕과 제의 장소가 사건의 공간적 배경을 이룬다.\n\n근거: [The Dunwich Horror (1929)](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx) — 제I–X절",
-        "cardType": "location"
-      },
-      {
-        "id": "f6a07e9c-6a69-5a7f-b4f9-1795528cfc5e",
-        "title": "네크로노미콘",
-        "body": "여러 작품에 등장하는 가공의 금서이다. 던위치에서는 판본·누락된 대목·번역과 대조가 중요하며 소유만으로 지식을 완전히 얻는 물건이 아니다.\n\n근거: [The Dunwich Horror (1929)](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx) — 제IV–VIII절",
-        "cardType": "object"
-      },
-      {
-        "id": "b01f67cf-b7e3-5d41-9280-7cfc4c31d853",
-        "title": "크툴루 조각상과 점토 부조",
-        "body": "경찰이 확보한 조각상과 예술가의 부조가 서로 떨어진 증거를 연결한다. 표상과 꿈의 유사성이 조사의 출발점이 된다.\n\n근거: [The Call of Cthulhu (1928)](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx) — 제I–II부",
-        "cardType": "object"
-      },
-      {
-        "id": "fb58fcb5-0757-523d-be63-8a31124129e0",
-        "title": "꿈을 통한 영향",
-        "body": "예술가들의 꿈과 불안이 르뤼에의 사건과 시간상 연결된다. 작품의 관찰·증언 범위를 넘어서 모든 정신을 마음대로 지배하는 능력으로 확장하지 않는다.\n\n근거: [The Call of Cthulhu (1928)](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx) — 제I·III부",
-        "cardType": "ability"
-      },
-      {
-        "id": "2c695462-964d-5906-987a-001d134bb80a",
-        "title": "별의 조건과 귀환에 관한 믿음",
-        "body": "숭배자들은 별의 상태와 존재들의 귀환을 연결한다. 이것은 등장인물의 설명이며 독자가 재현할 수 있는 실제 의례나 게임 소환 규칙이 아니다.\n\n근거: [The Call of Cthulhu (1928)](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx) — 제II부",
+        "id": "5e62bd09-dd18-56b8-a1b2-7c3517a9b06c",
+        "title": "원작 범위와 명칭",
+        "body": "러브크래프트 단독 소설들의 작품별 사건을 다룬다. 반복되는 이름을 공통 연대표나 단일 종족으로 합치지 않으며 후대 작가·TRPG의 위계와 수치 체계를 제외한다. 화자의 추론과 작중 문헌의 주장도 객관적 우주 법칙과 구별한다.\n\n출전: 러브크래프트 [《크툴루의 부름》](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx), [《던위치의 공포》](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), [《인스머스의 그림자》](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx), [《광기의 산맥》](https://www.hplovecraft.com/writings/texts/fiction/mm.aspx), [《미지의 카다스를 향한 몽환의 추적》](https://www.hplovecraft.com/writings/texts/fiction/dq.aspx).",
         "cardType": "rule"
       },
       {
-        "id": "967cc327-74ea-5ebc-ac63-da0791f4b9ee",
-        "title": "요한센 일행의 르뤼에 조우",
-        "body": "선원들이 기이한 도시와 문을 발견한 뒤 크툴루와 맞닥뜨린다. 탈출 기록은 화자에게 전달되지만 사건을 입증할 모든 증거가 공개되는 결말은 아니다.\n\n근거: [The Call of Cthulhu (1928)](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx) — 제III부",
+        "id": "4a6a8da8-c9fe-57af-bd23-86403afb34e8",
+        "title": "크툴루",
+        "body": "문어 같은 머리와 날개, 비늘 있는 몸이 유물의 형상에 나타나는 존재다. 카스트로의 증언은 르뤼에에 잠든 오래된 존재로 설명한다. 숭배자의 말을 서술자의 검증이 끝난 우주 역사로 확정하지 않는다.\n\n출전: 《크툴루의 부름》 I ‘The Horror in Clay’, II ‘The Tale of Inspector Legrasse’. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx).",
+        "cardType": "character"
+      },
+      {
+        "id": "1d583e40-27d4-5519-9968-44c5fd4765b2",
+        "title": "요그 소토스",
+        "body": "《던위치의 공포》에서 웨이틀리 형제의 출생과 계획에 연결되는 이름이다. 작중 금서는 문과 열쇠, 시간과 공간의 경계에 관련된 존재로 설명한다. 후대의 신적 서열이나 직책을 덧붙이지 않는다.\n\n출전: 《던위치의 공포》 VII–X, 일기 해독과 센티널 언덕의 대결. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx).",
+        "cardType": "character"
+      },
+      {
+        "id": "e3b70805-15d8-5500-80e0-ff668e16c9f3",
+        "title": "니알라토텝",
+        "body": "카다스에 도착한 카터에게 사람을 상대하는 모습과 말로 나타나는 안내자다. 도시의 기억을 설명하지만 마련한 길에는 파멸로 이끄는 속임수가 있다. 안내와 기만이 함께 작동하는 인물이다.\n\n출전: 《미지의 카다스를 향한 몽환의 추적》 카터의 출발, 카다스의 성, 니알라토텝과의 대면 및 마지막 귀환. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dq.aspx).",
+        "cardType": "character"
+      },
+      {
+        "id": "ab52c250-b7ab-5ab8-9b8d-67c8592a532a",
+        "title": "아자토스",
+        "body": "카터를 속여 이끌려는 길의 끝에서 우주적 혼돈과 위협에 연결되는 이름이다. 모든 우주가 그 꿈이며 깨어나면 사라진다는 후대의 공식을 원작 설정으로 추가하지 않는다.\n\n출전: 《미지의 카다스를 향한 몽환의 추적》 카터의 출발, 카다스의 성, 니알라토텝과의 대면 및 마지막 귀환. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dq.aspx).",
+        "cardType": "character"
+      },
+      {
+        "id": "8e56267e-178f-533e-9c07-39ee85d494e1",
+        "title": "심해의 존재들",
+        "body": "인스머스의 인간들과 관계를 맺고 후손을 낳는 바다의 존재들이다. 후손들이 변화해 바다 아래로 향하는 삶이 마을의 가족사와 연결된다. 이를 화자의 편견을 그대로 받아쓴 민족 분류로 제시하지 않는다.\n\n출전: 《인스머스의 그림자》 I–IV, 항구 방문·재독의 증언·호텔 탈출. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx).",
+        "cardType": "character"
+      },
+      {
+        "id": "f582d82b-24df-5869-aad4-b274693f08c8",
+        "title": "별 모양 머리의 옛 존재들",
+        "body": "남극에서 발견된 별 모양 머리의 생물들로, 산맥 너머 도시를 세운 문명과 연결된다. 처음에는 화석 표본으로 여겨지지만 뒤에는 낯선 환경에서 행동한 존재로 재해석된다. 비슷한 호칭만으로 다른 작품의 존재들과 동일시하지 않는다.\n\n출전: 《광기의 산맥》 I–V, 레이크의 발견·캠프 참사·산맥 너머 도시. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/mm.aspx).",
+        "cardType": "character"
+      },
+      {
+        "id": "fccb43cb-9925-597b-a589-b55c6556c1c5",
+        "title": "쇼거스",
+        "body": "옛 존재들이 노동을 위해 만든 변형 가능한 유기체로, 벽화 해석에는 명령과 반란의 역사가 나타난다. 지하에서는 지금도 움직이고 소리를 흉내 내며 탐험자들을 위협한다. 고대 기록과 현재의 추격이 이어지는 존재다.\n\n출전: 《광기의 산맥》 VI–XII, 도시 부조의 해석·지하 추적·탈출. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/mm.aspx).",
+        "cardType": "character"
+      },
+      {
+        "id": "2ab1c1a1-880d-5119-85e8-94ca0d1dff2f",
+        "title": "윌버 웨이틀리",
+        "body": "라비니아 웨이틀리의 아들로 비정상적으로 빠르게 자란다. 필요한 금서 판본을 구하려다 대출을 거절당하고 도서관 침입 중 죽는다. 그의 죽음과 일기는 집 안에 숨은 더 큰 위협을 조사하는 계기가 된다.\n\n출전: 《던위치의 공포》 I–VI, 윌버의 성장과 미스캐토닉 도서관 사건. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx).",
+        "cardType": "character"
+      },
+      {
+        "id": "d249b899-7090-5e48-9d1c-eca64e1c009a",
+        "title": "아컴",
+        "body": "윌버가 금서 판본을 찾아가는 미스캐토닉 대학교가 있는 도시다. 이 사건에서는 자료와 연구가 모이는 자리로 기능하며, 지명만으로 모든 작품을 통제하는 조직을 가정하지 않는다.\n\n출전: 《던위치의 공포》 I–VI, 윌버의 성장과 미스캐토닉 도서관 사건. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx).",
+        "cardType": "location"
+      },
+      {
+        "id": "deb62469-da9a-5582-ac7f-2ecb2c566d8c",
+        "title": "인스머스",
+        "body": "여행자가 건축과 역사를 보려 방문했다가 은폐된 거래와 가족관계를 알게 되는 항구다. 노인의 증언과 교단의 흔적, 호텔 탈출이 겹치며 구경할 장소에서 벗어나야 하는 장소로 바뀐다.\n\n출전: 《인스머스의 그림자》 I–IV, 항구 방문·재독의 증언·호텔 탈출. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx).",
+        "cardType": "location"
+      },
+      {
+        "id": "7058caeb-adf7-5a05-b917-3f8295f0acb3",
+        "title": "르뤼에",
+        "body": "요한센의 기록에서 바다 위로 드러난 거대한 석조 도시와 연결되는 장소다. 공간 감각을 어긋나게 하고 잠든 존재가 나오는 문을 품는다. 이후 다시 잠기므로 상시 방문 가능한 탐험 거점으로 만들지 않는다.\n\n출전: 《크툴루의 부름》 III ‘The Madness from the Sea’. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx).",
+        "cardType": "location"
+      },
+      {
+        "id": "4ec2e27b-9aa2-5ea4-9352-919cd26fc1c2",
+        "title": "카다스",
+        "body": "꿈의 도시를 찾는 카터가 신들에게 묻기 위해 향하는 목적지다. 마침내 성에 도착해도 신들은 없고 니알라토텝과의 대면이 기다린다. 목적지의 도달이 곧 질문의 안전한 해결은 아니다.\n\n출전: 《미지의 카다스를 향한 몽환의 추적》 카터의 출발, 카다스의 성, 니알라토텝과의 대면 및 마지막 귀환. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dq.aspx).",
+        "cardType": "location"
+      },
+      {
+        "id": "73694ebc-3e85-56a7-af93-374c14980ec7",
+        "title": "미스캐토닉 대학교",
+        "body": "아컴에서 《네크로노미콘》을 소장한 대학교다. 사서 아미티지는 윌버의 대출을 거절하고 침입 사건 뒤 자료를 해독한다. 기관의 존재를 작품 전체를 지휘하는 비밀 조직으로 확대하지 않는다.\n\n출전: 《던위치의 공포》 I–VI, 윌버의 성장과 미스캐토닉 도서관 사건. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx).",
+        "cardType": "organization"
+      },
+      {
+        "id": "c57f33fb-e973-5eff-9e0f-24f5a7219413",
+        "title": "다곤 비밀 교단",
+        "body": "심해의 존재들과 항구의 거래 및 의례가 제도로 자리 잡은 교단이다. 오베드 마시에 관한 노인의 증언과 마을의 은폐된 가족관계 속에서 이해해야 하며, 이름만으로 원작 밖 신들의 위계를 끌어오지 않는다.\n\n출전: 《인스머스의 그림자》 I–IV, 항구 방문·재독의 증언·호텔 탈출. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx).",
+        "cardType": "organization"
+      },
+      {
+        "id": "dcfa06f3-7fa4-5461-a962-3ddc67dbe958",
+        "title": "네크로노미콘",
+        "body": "윌버가 구절을 대조하고 사용하려 찾는 허구의 금서다. 미스캐토닉 도서관에서 대출이 거절되고, 침입 사건 뒤에는 일기와 함께 위협을 해독할 자료가 된다. 즉시 모든 지식을 주는 만능 도구가 아니다.\n\n출전: 《던위치의 공포》 I–VI, 윌버의 성장과 미스캐토닉 도서관 사건. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx).",
+        "cardType": "object"
+      },
+      {
+        "id": "e1ce241d-f490-5ee3-a6c0-4636ab6e8e49",
+        "title": "크툴루 조각상",
+        "body": "르그라스의 수사에서 얻은 작은 조각상은 윌콕스의 점토 부조와 별개다. 닮은 형상이 서로 다른 출처에서 발견되었다는 사실이 서스턴의 조사를 진전시킨다. 두 유물을 하나로 합치지 않는다.\n\n출전: 《크툴루의 부름》 I ‘The Horror in Clay’, II ‘The Tale of Inspector Legrasse’. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx).",
+        "cardType": "object"
+      },
+      {
+        "id": "61f6d92f-89a8-5c3e-98c0-3ca9d3459832",
+        "title": "꿈을 통한 접촉",
+        "body": "윌콕스 등의 꿈과 동요가 교수의 기록에 모이고, 서스턴은 이를 다른 사건과 연결해 접촉을 추론한다. 인물이 원할 때 안정적으로 사용할 수 있는 통신 능력이나 주문으로 정리하지 않는다.\n\n출전: 《크툴루의 부름》 I ‘The Horror in Clay’, II ‘The Tale of Inspector Legrasse’. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx).",
+        "cardType": "ability"
+      },
+      {
+        "id": "8efe75e2-e73b-52ef-9223-0f9b1d44a2ec",
+        "title": "르뤼에의 부상과 요한센의 탈출",
+        "body": "바다 위에 드러난 도시에서 문이 열리고 선원들이 존재를 마주한다. 요한센은 배로 돌진해 탈출할 틈을 얻지만 몸이 다시 모이므로 확실한 처치가 아니다. 도시의 재침강 뒤에도 서스턴의 두려움은 남는다.\n\n출전: 《크툴루의 부름》 III ‘The Madness from the Sea’. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx).",
         "cardType": "event"
       },
       {
-        "id": "3b3bbadc-d24c-5a10-8a6f-5365b154a2b2",
-        "title": "던위치의 재앙과 저지",
-        "body": "윌버 사후 풀려난 보이지 않는 존재가 주변을 파괴한다. 아미티지·라이스·모건은 문헌을 해독하고 현장에서 대응한다.\n\n근거: [The Dunwich Horror (1929)](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx) — 제VI–X절",
+        "id": "9f2573c3-de00-52e9-8b3a-83fea22d7b0d",
+        "title": "던위치 사건",
+        "body": "웨이틀리 집 붕괴 뒤 보이지 않는 존재가 마을을 해친다. 아미티지와 동료들은 해독한 자료를 바탕으로 언덕에서 이를 드러내고 격퇴한다. 대응 성공은 이 사건의 결말이며 보편적 퇴치 규칙은 아니다.\n\n출전: 《던위치의 공포》 VII–X, 일기 해독과 센티널 언덕의 대결. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx).",
         "cardType": "event"
       },
       {
-        "id": "3961bbb5-f1a3-5271-a60f-d8cc9ad13970",
-        "title": "인스머스 탈출과 혈연의 발견",
-        "body": "화자는 추적에서 탈출한 뒤 자신의 가계가 도시의 비밀과 연결됨을 알게 된다. 마지막 태도 변화는 화자의 경험이며 모든 인물의 운명은 아니다.\n\n근거: [The Shadow over Innsmouth (1936)](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx) — 제IV–V부",
+        "id": "8184e6e2-3417-5614-b5fe-23ad60e0e163",
+        "title": "인스머스 조사와 화자의 변화",
+        "body": "탈출한 화자의 정보는 비밀 조사와 단속으로 이어지지만 작전 전체나 완전한 위협 제거는 확인되지 않는다. 이후 화자는 자기 혈통을 알고 변화하며 바다로 돌아갈 계획을 세운다. 외부의 공포가 자신의 미래로 바뀐다.\n\n출전: 《인스머스의 그림자》 I 및 V, 정부 조사와 화자의 계보 발견·결말. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/soi.aspx).",
         "cardType": "event"
       },
       {
-        "id": "6966fddc-5fff-59c2-aec6-789ee4432ef9",
-        "title": "외신·구신 분류의 한계",
-        "body": "원작의 Great Old Ones·Other Gods 같은 표현은 작품마다 문맥이 다르다. 선한 구신 대 악한 외신의 통일된 전쟁 구도, 사원소 분류, SAN 수치는 후대 설정이므로 제외한다.\n\n근거: [The Call of Cthulhu (1928)](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx) — 제II부; [The Dream-Quest of Unknown Kadath](https://www.hplovecraft.com/writings/texts/fiction/dq.aspx) — Other Gods 언급 대목",
-        "cardType": "other"
+        "id": "9ff57732-5c32-527e-9e3d-2ba0aefe736e",
+        "title": "남극 도시 탐사",
+        "body": "다이어와 댄포스는 도시의 부조를 읽고 캠프에서 사라진 존재들을 추적한다. 벽화의 역사 해석은 쇼거스와의 현재적 조우로 바뀌며 두 사람은 탈출한다. 마지막의 미확인 광경까지 정체를 채워 넣지 않는다.\n\n출전: 《광기의 산맥》 VI–XII, 도시 부조의 해석·지하 추적·탈출. [원작 본문](https://www.hplovecraft.com/writings/texts/fiction/mm.aspx).",
+        "cardType": "event"
       }
     ]
   },
   {
     "genre": "norse_mythology",
     "worldId": "cb459e34-c38c-56f4-af2d-7bfdb3321b88",
-    "name": "북유럽 신화 — 에다의 신과 세계",
-    "description": "시 에다와 산문 에다의 신화적 전승. 중세 기록의 차이를 보존하고 현대의 단일 세계 지도를 강제하지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "북유럽 신화",
+    "description": "시 에다와 중세 아이슬란드의 스노리 산문 에다에 남은 전승을 중심으로 정리합니다. 기독교 시대 편찬과 번역의 해석을 고대 북유럽 전체의 단일 교리로 취급하지 않습니다.",
     "cards": [
       {
-        "id": "a6ca7839-e18f-50dc-b404-9f79bb2716c5",
+        "id": "2bdaaed5-6d10-5fd0-9f70-c40b557ccbde",
+        "title": "이미르와 세계의 형성",
+        "body": "냉기와 열이 만난 틈에서 이미르가 생기고, 보르의 아들들은 그를 죽여 몸으로 땅·바다·하늘을 만든다. 미드가르드는 인간을 위한 울타리 안의 자리다. 인간 창조에 참여한 신의 이름은 스노리와 《무녀의 예언》에서 다르게 전해진다.\n\n출전: 《길피의 속임수》 창세·이미르·아스크와 엠블라 문답; 《무녀의 예언》 창세와 인간 창조 대목. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
+        "cardType": "event"
+      },
+      {
+        "id": "fa45186b-c2f8-5243-87d0-18f7ec4a1049",
+        "title": "아스 신족",
+        "body": "오딘·토르가 속한 신족이다. 바니르와의 전쟁은 뒤의 화해와 인질 교환으로 이어지며, 뇨르드가 아스 신들의 질서 안에 들어온다. 두 신족을 영원히 대립하는 선악 진영으로 나누지 않는다.\n\n출전: 《무녀의 예언》 21–24절, 《바프스루드니르의 말》 38–39절, 《그림니르의 말》 폴크방 대목, 《스키르니르의 말》; 《길피의 속임수》 뇨르드·프레이르·프레이야 문답. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
+        "cardType": "organization"
+      },
+      {
+        "id": "c726b50c-4514-5ab1-8abb-8a8a40f4dfff",
+        "title": "바니르 신족",
+        "body": "뇨르드가 나온 신족으로, 아스와의 화해 뒤 인질로 보내진 그의 사연이 전한다. 그의 자녀 프레이르와 프레이야는 결합된 신들의 세계에서 결실과 사랑, 전사자의 몫 등에 관계한다.\n\n출전: 《무녀의 예언》 21–24절, 《바프스루드니르의 말》 38–39절, 《그림니르의 말》 폴크방 대목, 《스키르니르의 말》; 《길피의 속임수》 뇨르드·프레이르·프레이야 문답. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
+        "cardType": "organization"
+      },
+      {
+        "id": "dd70f3d2-4a78-5c4f-8d94-91bd0cceb676",
+        "title": "요툰과 신들의 관계",
+        "body": "이미르에게서 서리 거인의 계통이 이어지고, 그의 죽음 뒤에도 베르겔미르 부부가 살아남는다. 오딘 형제의 계보에도 베스틀라가 있으므로 요툰과 신들을 혈연이 전혀 없는 집단으로 구분하지 않는다.\n\n출전: 《길피의 속임수》 창세·이미르·아스크와 엠블라 문답; 《무녀의 예언》 창세와 인간 창조 대목. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
+        "cardType": "organization"
+      },
+      {
+        "id": "46b7211c-7373-5179-98f1-b56b679f42fe",
         "title": "오딘",
-        "body": "지혜·전쟁·죽은 전사와 연결되는 신이며 토르와 발드르의 아버지로 설명된다. 미미르의 샘에서 눈을 담보로 지혜를 구한다. 모든 전사의 유일한 사후 주인으로 단순화하지 않는다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제9·15·20장",
+        "body": "지식을 찾아 거래하고 여행하는 신이다. 미미르의 샘에 눈을 담보로 남기며, 룬을 얻는 시에서는 자신을 자신에게 바치는 고통을 겪는다. 발할라의 전사자들을 모아 마지막 전투에 대비하지만 그것이 불사의 보증은 아니다.\n\n출전: 《길피의 속임수》 미미르의 샘·발할라 문답; 《높으신 분의 말씀》 접대·절제와 룬 획득 대목, 《그림니르의 말》 발할라·폴크방. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "character"
       },
       {
-        "id": "90ccd59d-772c-5fe9-ae09-ba9802aa6c66",
+        "id": "7c0ef684-ee1b-50c4-bb8a-0fe69fc0e7c9",
         "title": "토르",
-        "body": "묠니르를 사용하는 강력한 신으로 거인들과 싸운다. 요르문간드와의 적대는 낚시 일화와 종말의 전투에 이어진다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제21·48·51장",
+        "body": "영역을 위협하는 힘과 맞서는 신으로, 히미르와의 항해에서 요르문간드를 낚아 올린다. 스노리의 서술에서는 뱀이 다시 바다로 돌아가므로 이 만남이 최후의 결판은 아니다. 힘의 과시와 재앙의 완전한 제거는 구분된다.\n\n출전: 《길피의 속임수》 토르와 히미르의 낚시; 《히미르의 노래》. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "character"
       },
       {
-        "id": "892b0cbc-930c-532c-9c0f-8b512b5a4e4a",
-        "title": "로키",
-        "body": "신들과 함께 행동하면서도 갈등을 일으키는 존재이다. 펜리르·요르문간드·헬의 부모이며, 그의 위치를 단순히 선악 진영 하나로 고정하지 않는다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제33–34·50–51장",
-        "cardType": "character"
-      },
-      {
-        "id": "e36f4906-bcf5-5cf9-a39f-2c2021a90bc2",
+        "id": "f189c52b-18bf-5602-9315-d38550f115b4",
         "title": "프레이야",
-        "body": "바니르에 속하며 사랑과 아름다움, 전사자의 몫과 연결된다. 폴크방을 다스리며 전장에서 죽은 이들 중 절반을 택한다고 설명된다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제24장",
+        "body": "뇨르드의 딸이자 프레이르와 함께 바니르 계통에 연결되는 여신이다. 사랑뿐 아니라 전사자의 몫에도 관계하며, 《그림니르의 말》은 폴크방에서 죽은 이들의 절반을 고른다고 한다.\n\n출전: 《무녀의 예언》 21–24절, 《바프스루드니르의 말》 38–39절, 《그림니르의 말》 폴크방 대목, 《스키르니르의 말》; 《길피의 속임수》 뇨르드·프레이르·프레이야 문답. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "character"
       },
       {
-        "id": "38c6ebca-3862-5c85-87ef-8960bd4bd46b",
-        "title": "프레이르와 뇨르드",
-        "body": "프레이르는 풍요와 결실, 뇨르드는 바람·바다와 연결된다. 뇨르드가 신족 사이 인질 교환으로 아스 신족 곁에 온다는 설명이 있다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제23–24장",
+        "id": "15c67869-3973-5a97-840c-701e543ad1de",
+        "title": "프레이르",
+        "body": "뇨르드의 아들로 비·햇빛·결실과 관계한다. 게르드를 원해 스키르니르를 보내고 검을 내준 이야기가 후일의 운명에 연결된다. 사자의 위협과 저주가 포함된 구애를 평온한 합의만으로 요약하지 않는다.\n\n출전: 《무녀의 예언》 21–24절, 《바프스루드니르의 말》 38–39절, 《그림니르의 말》 폴크방 대목, 《스키르니르의 말》; 《길피의 속임수》 뇨르드·프레이르·프레이야 문답. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "character"
       },
       {
-        "id": "85bded65-e2d7-5a52-98ea-3d27d3e8593a",
-        "title": "발드르와 헬",
-        "body": "발드르는 불길한 꿈 뒤 죽음에 이르는 신이다. 헬은 죽은 자를 다스리는 존재로, 발드르의 귀환을 위해 모두가 울어야 한다는 조건을 제시한다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제22·34·49장",
+        "id": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+        "title": "로키",
+        "body": "신들과 동행하며 손실을 일으키고 꾀로 수습하는 인물이다. 시프의 머리카락 훼손은 신물 제작으로 이어지고, 묠니르 회수에는 변장과 말재주로 협력한다. 이둔을 유인해 위기를 만들었다가 그녀를 되찾는 역할도 한다.\n\n출전: 《산문 에다》 《시어법》 신물 제작, 《브라기의 이야기》 이둔과 티아지; 《트륌의 노래》. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "character"
       },
       {
-        "id": "5ea75a68-7b0b-5411-9b42-b3d41ba265b4",
-        "title": "펜리르와 요르문간드",
-        "body": "펜리르는 신들이 결박한 늑대이며 요르문간드는 바다에서 세계를 둘러싼 뱀이다. 종말에 각각 오딘·토르와 맞서는 관계가 제시된다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제34·51장",
+        "id": "bb110476-77a1-522e-af17-8ebacc8beec1",
+        "title": "티르",
+        "body": "펜리르의 결박에서 손을 담보로 내놓는 신이다. 신들이 늑대를 풀어 주지 않자 손을 잃는다. 그의 손실은 결박이 성공했어도 보증과 약속의 대가가 남는다는 사실을 보여 준다.\n\n출전: 《길피의 속임수》 로키의 자녀와 펜리르 결박 문답. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm).",
         "cardType": "character"
       },
       {
-        "id": "71057fcd-ca0e-55e9-8073-285f6d21fab5",
-        "title": "아스 신족과 바니르",
-        "body": "서로 구별되는 신족이며 싸움과 화해·인질 교환의 전승이 있다. 두 집단을 인간의 고정된 민족이나 절대 선악으로 치환하지 않는다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제23장; [Poetic Edda, Bellows 1923](https://www.gutenberg.org/cache/epub/73533/pg73533-images.html) — 볼루스파 21–24연",
-        "cardType": "organization"
+        "id": "acae503e-9190-59f8-8017-841777faadd2",
+        "title": "발드르",
+        "body": "프리그가 여러 존재에게 해치지 않겠다는 맹세를 받아 보호하려 한 아들이다. 맹세에서 빠진 겨우살이와 로키의 계책으로 죽으며, 모든 것이 울어야 한다는 귀환 조건도 퇴크의 거부 때문에 이루어지지 않는다.\n\n출전: 《길피의 속임수》 발드르의 꿈·죽음·헤르모드의 여행·로키 결박; 《로키의 말다툼》 산문 후기. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
+        "cardType": "character"
       },
       {
-        "id": "57f9868e-1b3a-54d0-9e8d-e7584dc78c62",
-        "title": "거인들",
-        "body": "신들과 적대하기도 하고 혼인·혈연으로 연결되기도 하는 다양한 존재이다. 위미르의 후예와 개별 거인을 하나의 일사불란한 조직으로 만들지 않는다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제5–9장",
-        "cardType": "organization"
+        "id": "b4be78a3-6dac-5f1f-87c4-3ea44a2552a1",
+        "title": "펜리르",
+        "body": "로키와 앙그르보다의 자식인 늑대다. 신들 곁에서 자라 보통 사슬을 끊지만 글레이프니르에 묶인다. 속임수를 의심해 티르의 손을 담보로 요구했고, 풀려나지 못하자 그 손을 물어 끊었다.\n\n출전: 《길피의 속임수》 로키의 자녀와 펜리르 결박 문답. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm).",
+        "cardType": "character"
       },
       {
-        "id": "58eda713-3a39-53d5-afb6-99e2dbef3f15",
-        "title": "긴눙가가프와 최초의 세계",
-        "body": "불과 냉기가 만나는 틈에서 위미르와 아우둠라의 이야기가 시작된다. 신들은 위미르의 몸으로 세계를 만든다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제4–9장",
-        "cardType": "location"
+        "id": "e2087010-f83a-58f7-a855-22616b4daa40",
+        "title": "요르문간드",
+        "body": "로키와 앙그르보다의 자식인 뱀이다. 오딘이 바다에 던진 뒤 자라서 땅을 둘러싸고 자기 꼬리를 문다. 예언된 위험을 세계 바깥으로 옮긴 조치가 그 존재 자체를 없애지는 못한다.\n\n출전: 《길피의 속임수》 로키의 자녀와 펜리르 결박 문답. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm).",
+        "cardType": "character"
       },
       {
-        "id": "ec4fac22-248d-5f1f-a215-d267d3a08a76",
+        "id": "7b4e8035-0c14-571f-9785-a20d3eb37dc2",
+        "title": "헬",
+        "body": "로키와 앙그르보다의 자녀로, 스노리의 서술에서는 아래의 영역에 보내져 병과 노령으로 죽는 이들을 받아들인다. 이 죽은 자 분류를 모든 시가 공유하는 단일 체계로 일반화하지 않는다.\n\n출전: 《길피의 속임수》 로키의 자녀와 펜리르 결박 문답. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm).",
+        "cardType": "character"
+      },
+      {
+        "id": "e1827878-ca84-5d64-8d4f-bcb1327e1b6d",
+        "title": "노른",
+        "body": "우르드·베르단디·스쿨드라는 이름으로 등장하며 인간의 삶과 운명을 정한다. 스노리는 샘물로 이그드라실을 돌보는 모습도 전한다. 운명과 나무의 유지가 연결되지만 기계적인 예언 장치로 설명하지 않는다.\n\n출전: 《길피의 속임수》 이그드라실·노른·비프로스트 문답; 《그림니르의 말》 세계수 대목. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
+        "cardType": "character"
+      },
+      {
+        "id": "6158f0ed-353c-57f3-8764-30e1b3be36da",
         "title": "이그드라실",
-        "body": "여러 존재와 샘을 잇는 거대한 물푸레나무이다. 뿌리와 샘의 배치는 문헌에 따라 설명 방식이 달라 하나의 현대적 도표를 원전 자체로 제시하지 않는다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제15–16장; [Poetic Edda, Bellows 1923](https://www.gutenberg.org/cache/epub/73533/pg73533-images.html) — 그림니르의 노래 31–35연",
+        "body": "여러 영역에 뿌리를 뻗고 신들의 재판 자리 및 샘과 연결되는 물푸레나무다. 노른의 돌봄을 받는 동시에 해치는 존재들도 있어 세계의 유지와 손상을 함께 드러낸다. 문헌의 지리를 정밀 좌표로 고정하지 않는다.\n\n출전: 《길피의 속임수》 이그드라실·노른·비프로스트 문답; 《그림니르의 말》 세계수 대목. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "location"
       },
       {
-        "id": "643c28d2-de62-5409-93f6-5ddada03d892",
-        "title": "아홉 세계라는 표현",
-        "body": "볼루스파는 아홉 세계를 기억한다고 말하지만 모든 세계의 이름을 정렬한 표를 제시하지 않는다. 아스가르드·미드가르드·요툰헤임·바나헤임·알프헤임·니플헤임·무스펠·헬·스바르트알파헤임 등의 언급을 무조건 하나의 확정 목록으로 합치지 않는다.\n\n근거: [Poetic Edda, Bellows 1923](https://www.gutenberg.org/cache/epub/73533/pg73533-images.html) — 볼루스파 2연; [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제4·9·17·34장",
+        "id": "1abaf4d1-60df-5248-99cb-dcd119a738eb",
+        "title": "아홉 세계와 목록의 한계",
+        "body": "아홉 세계라는 표현이 있어도 모든 문헌에 같은 아홉 지명과 경계의 목록이 있는 것은 아니다. 사건 속 거처와 경로를 설명하되 후대의 고정 목록으로 빈 곳을 채우지 않는 것이 이 자료의 범위다.\n\n출전: [《시 에다》·《산문 에다》 Thorpe·Blackwell 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm), [《산문 에다》 Anderson 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm). 현대 번역문을 전재하지 않은 자체 한국어 요약이다.",
         "cardType": "location"
       },
       {
-        "id": "3724706d-84c5-5991-bb98-22ee3ebd38fc",
-        "title": "아스가르드와 미드가르드",
-        "body": "신들의 거처와 인간을 위한 방어된 영역으로 설명된다. 비프로스트는 신들의 다리이며 종말에는 파괴된다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제9·13·51장",
+        "id": "06ea8dab-6aee-562b-aedf-93928425f166",
+        "title": "아스가르드와 비프로스트",
+        "body": "아스가르드는 신들의 거처이며 비프로스트는 신들이 오가고 헤임달이 지키는 다리다. 현재의 왕래를 가능하게 하는 연결이 마지막 전투 때에는 무너진다는 점에서 지리와 사건이 연결된다.\n\n출전: 《길피의 속임수》 이그드라실·노른·비프로스트 문답; 《그림니르의 말》 세계수 대목. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "location"
       },
       {
-        "id": "85e40630-e288-5f10-ba86-a243944097df",
-        "title": "요툰헤임·니플헤임·무스펠",
-        "body": "거인들의 지역, 차갑고 안개 낀 근원, 뜨거운 남쪽 영역이 구별된다. 원전의 방향·공간 설명을 현대 행성 좌표로 해석하지 않는다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제4–9장",
+        "id": "77b2272a-4c49-5e88-8d57-b94629a65352",
+        "title": "미드가르드",
+        "body": "이미르의 눈썹으로 둘러 인간이 살도록 마련한 안쪽 공간이다. 아스크와 엠블라가 생명과 감각을 얻어 살아갈 자리가 되며, 세계 전체가 무조건 안전하다는 뜻이 아니라 경계를 갖춘 거처다.\n\n출전: 《길피의 속임수》 창세·이미르·아스크와 엠블라 문답; 《무녀의 예언》 창세와 인간 창조 대목. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "location"
       },
       {
-        "id": "6eea05d3-1757-578d-aa72-03ffa72ce745",
-        "title": "발할라와 죽은 자의 여러 길",
-        "body": "오딘의 전당에는 전사들이 모여 종말에 대비한다. 폴크방과 헬도 별도로 언급되므로 모든 죽은 이가 발할라로 간다고 쓰지 않는다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제24·38–41·51장",
+        "id": "2789e4fc-2db9-54a3-827c-8e4449e7ce17",
+        "title": "발할라와 폴크방",
+        "body": "발할라의 에인헤랴르는 싸우고 잔치를 벌이며 마지막 전투를 기다리는 선택된 전사자들이다. 프레이야의 폴크방에도 전사자의 몫이 있으므로 발할라를 모든 죽은 인간의 유일한 목적지로 만들지 않는다.\n\n출전: 《길피의 속임수》 미미르의 샘·발할라 문답; 《높으신 분의 말씀》 접대·절제와 룬 획득 대목, 《그림니르의 말》 발할라·폴크방. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "location"
       },
       {
-        "id": "e059ca3a-6053-5c24-9e10-413b2928824e",
+        "id": "c27f19df-4db0-5744-a50b-d9fbe67a8f55",
         "title": "묠니르",
-        "body": "토르의 망치이다. 드워프가 만든 보물 이야기와 트림에게 도난당한 이야기가 각각 전해진다. 되돌아오는 성질과 짧은 자루의 기원이 설명된다.\n\n근거: [Snorri, Skáldskaparmál, Brodeur 1916](https://sacred-texts.com/neu/pre/pre05.htm) — 시프의 머리카락과 보물 제작; [Poetic Edda, Bellows 1923](https://www.gutenberg.org/cache/epub/73533/pg73533-images.html) — 트림의 노래",
+        "body": "장인들의 제작 경쟁에서 나온 토르의 망치로 짧은 손잡이와 강력한 타격, 되돌아오는 성질이 설명된다. 트륌에게 빼앗겼을 때 토르는 신부로 변장해 회수한다. 제작과 상실·회복의 사건을 가진 신물이다.\n\n출전: 《산문 에다》 《시어법》 신물 제작, 《브라기의 이야기》 이둔과 티아지; 《트륌의 노래》. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "object"
       },
       {
-        "id": "888ea3f9-5f31-5163-858c-0987bcdd3a91",
+        "id": "ac7f765f-acd5-5715-8971-b191ce0409a3",
         "title": "궁니르",
-        "body": "오딘에게 주어진 창으로 이발디의 아들들이 만든 보물 중 하나이다. 토르의 망치와 제작 경위를 혼동하지 않는다.\n\n근거: [Snorri, Skáldskaparmál, Brodeur 1916](https://sacred-texts.com/neu/pre/pre05.htm) — 이발디의 아들들과 보물 제작",
+        "body": "시프의 머리카락 훼손을 수습하는 신물 제작 이야기에서 이발디의 아들들이 만든 오딘의 창이다. 신들의 물건이 배상과 장인들의 경쟁 속에서 생기는 맥락에 속한다.\n\n출전: 《산문 에다》 《시어법》 신물 제작, 《브라기의 이야기》 이둔과 티아지; 《트륌의 노래》. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "object"
       },
       {
-        "id": "e1ead264-c2f7-5326-8fca-766c076afa15",
+        "id": "bf80b9d9-deaf-578f-a4ef-06d36ad3bbc3",
         "title": "글레이프니르",
-        "body": "펜리르를 묶는 가늘지만 강한 결박이다. 티르는 결박 시험의 보증으로 손을 늑대의 입에 넣었다가 잃는다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제34장",
+        "body": "보통 사슬을 끊는 펜리르를 묶기 위해 장인들이 만든 부드러운 끈이다. 고양이 발소리 등 기이한 재료로 만들어져 겉모습과 달리 끊어지지 않으며, 그 효력은 티르의 손을 잃게 하는 결박 사건에서 드러난다.\n\n출전: 《길피의 속임수》 로키의 자녀와 펜리르 결박 문답. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm).",
         "cardType": "object"
       },
       {
-        "id": "3622335b-0c1b-51e1-b988-4ed2a97c5791",
-        "title": "맹세·담보와 대가",
-        "body": "미미르의 샘에 대한 오딘의 눈, 펜리르 결박의 티르의 손처럼 보상과 보증이 사건에 실질적 대가를 남긴다. 모든 신에게 적용되는 하나의 마법 계약 공식은 아니다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제15·34장",
-        "cardType": "rule"
+        "id": "f3d77086-5dc6-5a2c-867a-be3f5a3f75c2",
+        "title": "이둔의 사과",
+        "body": "이둔이 사과와 함께 납치되자 신들이 늙기 시작한다. 로키가 그녀를 되찾아오는 일은 신들의 젊음을 회복하는 문제와 연결된다. 사과는 아무 조건 없이 영원히 젊은 신이라는 관념을 흔드는 신물이다.\n\n출전: 《산문 에다》 《시어법》 신물 제작, 《브라기의 이야기》 이둔과 티아지; 《트륌의 노래》. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
+        "cardType": "object"
       },
       {
-        "id": "171ed484-43c4-5ed3-b930-f9c1f41cc5ab",
-        "title": "토르의 힘을 돕는 장비",
-        "body": "힘의 허리띠와 쇠장갑은 토르의 장비로 설명된다. 전승의 장비 목록이며 성장 단계나 레벨 체계는 아니다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제21장",
+        "id": "f7009d62-dc1b-5196-b8c6-e604135d5ff5",
+        "title": "오딘의 룬 획득",
+        "body": "오딘의 목소리는 창에 상처 입고 아홉 밤 나무에 매달린 뒤 룬을 얻었다고 말한다. 고통을 거쳐 얻는 앎의 장면이며, 누구나 반복할 수 있는 의식 절차나 통일된 마법 능력표로 바꾸지 않는다.\n\n출전: 《길피의 속임수》 미미르의 샘·발할라 문답; 《높으신 분의 말씀》 접대·절제와 룬 획득 대목, 《그림니르의 말》 발할라·폴크방. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "ability"
       },
       {
-        "id": "19566a65-6d20-5fd1-a95c-8199ffef6915",
-        "title": "트림의 묠니르 도난",
-        "body": "트림은 망치를 돌려주는 조건으로 프레이야를 요구한다. 토르는 변장해 거인의 잔치에 들어가 망치를 되찾는다.\n\n근거: [Poetic Edda, Bellows 1923](https://www.gutenberg.org/cache/epub/73533/pg73533-images.html) — 트림의 노래 전체",
+        "id": "8934d87d-bb5c-55c7-ae85-42bf37965ab4",
+        "title": "펜리르의 결박",
+        "body": "사슬을 끊는 펜리르에게 신들은 글레이프니르를 시험하게 하고 티르가 손을 담보로 낸다. 신들이 풀어 주지 않자 늑대는 손을 끊는다. 당장의 재앙을 묶는 데 성공하지만 약속 위반과 신의 손실이 남는다.\n\n출전: 《길피의 속임수》 로키의 자녀와 펜리르 결박 문답. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm).",
         "cardType": "event"
       },
       {
-        "id": "8bcb79cb-d5a7-57f4-9191-6e768d584cbf",
-        "title": "발드르의 죽음과 돌아오지 못한 귀환",
-        "body": "발드르를 해치지 않겠다는 맹세에서 빠진 겨우살이가 죽음의 계기가 된다. 헬의 조건은 모두의 애도를 요구하지만 한 존재의 거부로 귀환이 막힌다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제49장",
+        "id": "2ce879bc-69eb-5fe6-a846-be127a0f3d84",
+        "title": "발드르의 죽음과 귀환 조건",
+        "body": "발드르를 해치지 않겠다는 맹세에서 겨우살이가 빠진 것을 로키가 이용하고 회드르가 그를 죽인다. 헬은 만물의 눈물을 귀환 조건으로 내걸지만 퇴크가 거부하여 귀환이 좌절된다. 보호와 구출 모두 예외 하나에서 무너진다.\n\n출전: 《길피의 속임수》 발드르의 꿈·죽음·헤르모드의 여행·로키 결박; 《로키의 말다툼》 산문 후기. [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm), [시 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
         "cardType": "event"
       },
       {
-        "id": "3bf3aab3-520f-5127-a33c-c00b56406656",
+        "id": "18568856-17df-55ab-a49b-b1729e303ea2",
         "title": "라그나로크",
-        "body": "구속이 풀린 존재들과 신들이 마지막 전투를 치르며 오딘·토르 등 주요 신이 죽는다. 세계의 화재와 바다 속 침잠 뒤 새 땅과 생존자의 이야기가 이어진다.\n\n근거: [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제51–53장; [Poetic Edda, Bellows 1923](https://www.gutenberg.org/cache/epub/73533/pg73533-images.html) — 볼루스파 후반",
+        "body": "겨울과 사회적 유대의 붕괴 뒤 결박이 풀리고 적들이 몰려온다. 오딘·토르·프레이르 등이 싸우다 죽고 수르트의 불과 바다가 세계를 덮는다. 시의 압축된 예언과 스노리의 자세한 대결 배열을 구별한다.\n\n출전: 《무녀의 예언》 종말 대목; 《길피의 속임수》 라그나로크 문답. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm), [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm).",
         "cardType": "event"
       },
       {
-        "id": "c3a00f72-0230-586a-9ad0-d5c69a75e4e6",
-        "title": "이설과 기록 층위",
-        "body": "시 에다의 여러 노래와 스노리의 설명은 같은 시기·형식의 단일 교전이 아니다. 아홉 세계의 표준 목록이나 로키의 가족 관계를 현대 영상물에서 가져와 빈칸을 채우지 않는다.\n\n근거: [Poetic Edda, Bellows 1923](https://www.gutenberg.org/cache/epub/73533/pg73533-images.html) — 볼루스파·그림니르의 노래; [Snorri, Gylfaginning, Brodeur 1916](https://sacred-texts.com/neu/pre/pre04.htm) — 제15·34장",
-        "cardType": "other"
+        "id": "c3bfd25d-9c67-5d75-9892-56337d0b64c3",
+        "title": "종말 뒤의 재생",
+        "body": "바다에서 푸른 땅이 다시 나타나고 살아남은 신들이 옛일을 기억한다. 발드르와 회드르가 돌아오며 리프와 리프트라시르가 인간의 계통을 잇는다. 새로운 시작을 모든 위협이 영원히 없어진 결말로 과장하지 않는다.\n\n출전: 《무녀의 예언》 마지막 대목, 《바프스루드니르의 말》 생존자·새 태양 대목, 《길피의 속임수》 종말 뒤 세계 문답. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm), [산문 판본](https://www.gutenberg.org/files/18947/18947-h/18947-h.htm).",
+        "cardType": "event"
+      },
+      {
+        "id": "2038fe4a-9cdf-5312-8f05-9996fe7b9ef5",
+        "title": "접대·절제·맹세",
+        "body": "《높으신 분의 말씀》은 손님에게 필요한 불과 음식, 술과 말의 절제, 친구 사이의 보답을 말한다. 이런 충고는 상황별 판단의 말이며 모든 신화 인물이 반드시 지키는 일률적인 법률이 아니다.\n\n출전: 《길피의 속임수》 미미르의 샘·발할라 문답; 《높으신 분의 말씀》 접대·절제와 룬 획득 대목, 《그림니르의 말》 발할라·폴크방. [시·산문 판본](https://www.gutenberg.org/files/14726/14726-h/14726-h.htm).",
+        "cardType": "rule"
       }
     ]
   },
   {
     "genre": "greco_roman_mythology",
     "worldId": "7c081689-8b1f-53b7-856f-78b779bbe289",
-    "name": "그리스·로마 신화 — 신족·영웅·전쟁",
-    "description": "그리스 문헌의 신과 영웅을 중심으로 로마의 아이네아스 전승을 구분해 정리한다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "그리스·로마 신화",
+    "description": "헤시오도스·호메로스 계열 문헌과 아폴로도로스, 베르길리우스의 전승을 구분해 정리합니다. 그리스 신과 로마 신의 대응은 동일한 종교·단일 족보라는 뜻이 아닙니다.",
     "cards": [
       {
-        "id": "d3763c48-4b39-5290-9224-851d91d2dc33",
+        "id": "c0277f8e-7e3a-523d-bb9f-c2613f87eff7",
+        "title": "카오스와 신들의 계보",
+        "body": "카오스에서 가이아·타르타로스·에로스로 이어지는 발생의 계보다. 가이아에게서 하늘 우라노스·산·바다가 나오며, 존재들이 태어나 서로 관계를 맺는 방식으로 세계가 넓어진다. 완성된 설계도를 한 번에 펼친 이야기보다는 존재와 관계가 생겨나는 과정으로 읽는다.\n\n출전: 헤시오도스 《신통기》 116–153, 154–210행. 아프로디테의 다른 계보: 《일리아스》 5.370–417. [《신통기》 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《일리아스》 5권](https://classics.mit.edu/Homer/iliad.5.v.html).",
+        "cardType": "event"
+      },
+      {
+        "id": "df30c67a-8a4e-54f3-90a5-da242f749f7d",
         "title": "티탄 신족",
-        "body": "우라노스와 가이아에게서 나온 신들의 세대로 크로노스·레아·오케아노스 등이 속한다. 모든 티탄이 같은 편으로 싸운다고 단순화하지 않는다.\n\n근거: [Hesiod, Theogony](https://www.theoi.com/Text/HesiodTheogony.html) — 132–153·617–735행",
+        "body": "가이아와 우라노스 사이에서 태어난 크로노스·레아·오케아노스·테티스 등의 세대다. 크로노스는 우라노스를 몰아내고 제우스에게 다시 패한다. 테미스·므네모시네처럼 새 신권의 계보에 이어지는 존재도 있어 모두를 영원한 적으로 묶지 않는다.\n\n출전: 헤시오도스 《신통기》 116–153, 154–210행. 아프로디테의 다른 계보: 《일리아스》 5.370–417. [《신통기》 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《일리아스》 5권](https://classics.mit.edu/Homer/iliad.5.v.html).\n\n출전: 《신통기》 453–506, 617–735, 820–885, 901–906행. [판본](https://www.gutenberg.org/files/348/348-h/348-h.htm).",
         "cardType": "organization"
       },
       {
-        "id": "6cf12677-dc35-5bcc-a6c8-1e62265821fd",
+        "id": "000e4cce-150a-5ba4-b008-dd4b98103414",
         "title": "올림포스의 신들",
-        "body": "제우스 중심의 신적 질서이다. 여러 문헌의 신들이 공유하는 거처와 관계를 가리키며 열두 신의 명단은 모든 시대·지역에서 완전히 같지 않다.\n\n근거: [Apollodorus, Library I, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L1.html) — 1.1–1.3",
+        "body": "올림포스에 모여 회의하고 잔치하는 제우스 중심의 신들이다. 헤라는 제우스와 다투고 헤파이스토스는 중재하며, 인간의 전쟁에서는 서로 다른 편을 든다. 같은 거처를 공유하는 것이 동일한 의지나 모든 문헌에서 같은 열두 신 명단을 뜻하지 않는다.\n\n출전: 《일리아스》 15.184–199, 1.188–222, 1.493–611; 《신통기》 886–900, 918–926행; 《호메로스 찬가》 9번 1–9행(아르테미스), 12번 1–5행(헤라). 아테나의 귀환 지원: 《오디세이아》 13.287–440. [《일리아스》 15권](https://classics.mit.edu/Homer/iliad.15.xv.html), [1권](https://classics.mit.edu/Homer/iliad.1.i.html), [《신통기》와 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html).",
         "cardType": "organization"
       },
       {
-        "id": "6769a15b-0cdc-5547-9152-b5fa43cc785c",
-        "title": "제우스와 헤라",
-        "body": "제우스는 크로노스에게서 형제들을 구하고 신들의 권력을 얻는다. 헤라는 그의 배우자이며 헤라클레스 서사에서는 영웅을 괴롭히는 중요한 행위자이다.\n\n근거: [Apollodorus, Library I, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L1.html) — 1.1–1.3; [Apollodorus, Library II, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L2.html) — 2.4–2.5",
+        "id": "02588f08-11cf-5d4a-967d-ccea586c78aa",
+        "title": "제우스",
+        "body": "크로노스와 레아의 아들로, 숨겨져 자란 뒤 형제들을 되찾고 신들의 왕이 된다. 키클롭스가 준 번개와 백수거인의 도움이 티탄 전쟁의 승리를 이끈다. 하늘을 몫으로 받으며 다른 신들의 권능과 이해관계까지 없애지는 못한다.\n\n출전: 《신통기》 453–506, 617–735, 820–885, 901–906행. [판본](https://www.gutenberg.org/files/348/348-h/348-h.htm).\n\n출전: 《일리아스》 15.184–199, 1.188–222, 1.493–611; 《신통기》 886–900, 918–926행; 《호메로스 찬가》 9번 1–9행(아르테미스), 12번 1–5행(헤라). 아테나의 귀환 지원: 《오디세이아》 13.287–440. [《일리아스》 15권](https://classics.mit.edu/Homer/iliad.15.xv.html), [1권](https://classics.mit.edu/Homer/iliad.1.i.html), [《신통기》와 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html).",
         "cardType": "character"
       },
       {
-        "id": "ac1782ac-06bd-5a4a-804a-dac0963e63e2",
-        "title": "포세이돈과 하데스",
-        "body": "제우스의 형제로 각각 바다와 죽은 자의 영역에 연결된다. 하데스는 장소명으로도 쓰이므로 신과 장소를 구분해 읽는다.\n\n근거: [Apollodorus, Library I, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L1.html) — 1.2",
+        "id": "781e318c-631b-5b1f-9736-45fa36b3a91c",
+        "title": "헤라",
+        "body": "제우스의 배우자이며 올림포스의 왕비다. 남편의 약속을 추궁하고 트로이 전쟁에서는 아카이아 편을 돕는다. 결혼의 지위와 위엄을 가지되 제우스의 뜻을 그대로 전달하는 존재로 축소하지 않는다.\n\n출전: 《일리아스》 15.184–199, 1.188–222, 1.493–611; 《신통기》 886–900, 918–926행; 《호메로스 찬가》 9번 1–9행(아르테미스), 12번 1–5행(헤라). 아테나의 귀환 지원: 《오디세이아》 13.287–440. [《일리아스》 15권](https://classics.mit.edu/Homer/iliad.15.xv.html), [1권](https://classics.mit.edu/Homer/iliad.1.i.html), [《신통기》와 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html).",
         "cardType": "character"
       },
       {
-        "id": "5fd41959-70ac-5e21-b0ed-c1f80c4d3647",
+        "id": "8ebff3ad-7f82-5c3a-b2a8-6ca6aa18ae0f",
+        "title": "포세이돈",
+        "body": "크로노스의 아들로 제우스·하데스와 영역을 나누어 바다를 맡는다. 땅과 올림포스는 형제들의 공동 영역으로 말한다. 아들 폴리페모스가 눈을 잃자 오디세우스의 귀환을 가로막아 신족 내부 질서와 인간을 향한 적대가 함께 나타난다.\n\n출전: 《일리아스》 15.184–199, 1.188–222, 1.493–611; 《신통기》 886–900, 918–926행; 《호메로스 찬가》 9번 1–9행(아르테미스), 12번 1–5행(헤라). 아테나의 귀환 지원: 《오디세이아》 13.287–440. [《일리아스》 15권](https://classics.mit.edu/Homer/iliad.15.xv.html), [1권](https://classics.mit.edu/Homer/iliad.1.i.html), [《신통기》와 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html).\n\n출전: 《오디세이아》 5.1–227; 6.110–315; 8.492–520; 9.19–36, 259–278, 345–536; 11권; 12권; 13권; 23.173–230; 24.1–14, 482–548. [5권](https://classics.mit.edu/Homer/odyssey.5.v.html), [6권](https://classics.mit.edu/Homer/odyssey.6.vi.html), [8권](https://classics.mit.edu/Homer/odyssey.8.viii.html), [9권](https://classics.mit.edu/Homer/odyssey.9.ix.html), [11권](https://classics.mit.edu/Homer/odyssey.11.xi.html), [12권](https://classics.mit.edu/Homer/odyssey.12.xii.html), [13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html), [23권](https://classics.mit.edu/Homer/odyssey.23.xxiii.html), [24권](https://classics.mit.edu/Homer/odyssey.24.xxiv.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "7007e6e5-2626-5da4-8696-acf701c1ece5",
         "title": "아테나",
-        "body": "제우스의 머리에서 태어나는 지혜와 전투의 신이다. 오디세우스와 텔레마코스를 돕는 역할은 오디세이아의 주요 축이다.\n\n근거: [Apollodorus, Library I, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L1.html) — 1.3; [Homer, Odyssey, Butler 1900](https://www.gutenberg.org/ebooks/1727) — 제1·13권",
+        "body": "메티스를 삼킨 제우스의 머리에서 태어나는 무장한 여신이다. 아킬레우스의 충동을 제지하고 오디세우스의 귀환에 변장과 계획으로 힘을 보탠다. 무력뿐 아니라 판단과 책략으로 영웅을 돕는 역할을 갖는다.\n\n출전: 《일리아스》 15.184–199, 1.188–222, 1.493–611; 《신통기》 886–900, 918–926행; 《호메로스 찬가》 9번 1–9행(아르테미스), 12번 1–5행(헤라). 아테나의 귀환 지원: 《오디세이아》 13.287–440. [《일리아스》 15권](https://classics.mit.edu/Homer/iliad.15.xv.html), [1권](https://classics.mit.edu/Homer/iliad.1.i.html), [《신통기》와 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html).",
         "cardType": "character"
       },
       {
-        "id": "337a8528-294c-5671-8895-23723dd14b52",
-        "title": "아폴론과 아르테미스",
-        "body": "레토와 제우스의 자녀이다. 아폴론의 역병과 사제의 호소가 일리아스 첫 갈등에 연결된다. 두 신의 역할을 단순한 태양·달 신 한 쌍으로만 제한하지 않는다.\n\n근거: [Apollodorus, Library I, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L1.html) — 1.4; [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제1권",
+        "id": "b34333d5-4a54-5527-acae-43584c4ed63c",
+        "title": "아폴론",
+        "body": "제우스와 레토의 아들로 활·음악·예언과 연결된다. 사제 크리세스의 청원을 거절한 아가멤논 때문에 아카이아 군에 역병을 보낸다. 델포이의 성소를 마련하고 이를 돌볼 사람들을 데려오는 신탁의 신이기도 하다.\n\n출전: 《일리아스》 15.184–199, 1.188–222, 1.493–611; 《신통기》 886–900, 918–926행; 《호메로스 찬가》 9번 1–9행(아르테미스), 12번 1–5행(헤라). 아테나의 귀환 지원: 《오디세이아》 13.287–440. [《일리아스》 15권](https://classics.mit.edu/Homer/iliad.15.xv.html), [1권](https://classics.mit.edu/Homer/iliad.1.i.html), [《신통기》와 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html).\n\n출전: 《신통기》 521–616행; 《일과 날》 42–105행; 《호메로스 찬가》 4번 1–61, 68–183, 322–396, 418–578행; 3번 1–178, 214–544행. 혼의 인도는 《오디세이아》 24.1–14. [《신통기》·《일과 날》·찬가 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 24권](https://classics.mit.edu/Homer/odyssey.24.xxiv.html).\n\n출전: 《퀴프리아》 단편 1, 프로클로스 《크레스토마테이아》의 줄거리 요약; 《일리아스》 1.1–348, 6.390–502, 16.130–144, 16.777–867, 22.247–404, 24.334–804. [《퀴프리아》 요약 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《일리아스》 1권](https://classics.mit.edu/Homer/iliad.1.i.html), [6권](https://classics.mit.edu/Homer/iliad.6.vi.html), [16권](https://classics.mit.edu/Homer/iliad.16.xvi.html), [22권](https://classics.mit.edu/Homer/iliad.22.xxii.html), [24권](https://classics.mit.edu/Homer/iliad.24.xxiv.html).",
         "cardType": "character"
       },
       {
-        "id": "a15e5799-882c-55a3-a88f-3a2811c57c59",
-        "title": "아프로디테",
-        "body": "사랑과 욕망에 관련된 신이다. 헤시오도스는 바다 거품의 탄생을, 일리아스는 디오네를 어머니로 말한다. 두 계보를 하나로 합치지 않는다.\n\n근거: [Hesiod, Theogony](https://www.theoi.com/Text/HesiodTheogony.html) — 188–206행; [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제5권",
+        "id": "7d2cf4f5-ba42-5df8-8430-fe8927561999",
+        "title": "아르테미스",
+        "body": "제우스와 레토의 딸로 활과 야생동물을 지키는 역할이 표지다. 헤라클레스가 케리네이아의 암사슴을 산 채로 데려와야 하는 것은 그 동물이 아르테미스에게 바쳐졌기 때문이다. 영웅의 과업도 신성한 동물을 마음대로 죽일 권한이 되지는 않는다.\n\n출전: 《일리아스》 15.184–199, 1.188–222, 1.493–611; 《신통기》 886–900, 918–926행; 《호메로스 찬가》 9번 1–9행(아르테미스), 12번 1–5행(헤라). 아테나의 귀환 지원: 《오디세이아》 13.287–440. [《일리아스》 15권](https://classics.mit.edu/Homer/iliad.15.xv.html), [1권](https://classics.mit.edu/Homer/iliad.1.i.html), [《신통기》와 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html).\n\n출전: 《도서관》 2.4.8–12; 2.5.1–12; 2.7.6–7. 자녀 살해와 봉사의 순서는 이 편찬서의 배열이며 모든 비극 작품의 배열을 대신하지 않는다. [Frazer 판본](https://myths.uvic.ca/APOL1-L2.html).",
         "cardType": "character"
       },
       {
-        "id": "eca620ca-7532-5612-971f-9e4591c333e9",
-        "title": "데메테르와 페르세포네",
-        "body": "어머니와 딸의 이별·재회가 토지의 결실 및 신들의 협상과 연결된다. 페르세포네의 명계 체류는 석류를 먹은 사건과 얽힌다.\n\n근거: [Homeric Hymns, Evelyn-White 1914](https://www.gutenberg.org/files/348/348-h/348-h.htm) — 데메테르 찬가",
+        "id": "fe101b51-bcba-530f-8e83-4f3aa66c67a0",
+        "title": "아프로디테와 출생 이설",
+        "body": "사랑과 매혹의 여신. 헤시오도스의 신통기에서는 우라노스의 잘린 신체가 바다에 떠다니며 생긴 거품에서 태어난다. 일리아스에서는 제우스와 디오네의 딸이다. 서로 다른 계보를 두 번의 출생이나 하나의 확정 족보로 합치지 않는다.\n\n출전: 헤시오도스 《신통기》 116–153, 154–210행. 아프로디테의 다른 계보: 《일리아스》 5.370–417. [《신통기》 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《일리아스》 5권](https://classics.mit.edu/Homer/iliad.5.v.html).",
         "cardType": "character"
       },
       {
-        "id": "d1a62025-9e3b-5177-8e97-a10601b4860c",
-        "title": "헤르메스·헤파이스토스·아레스",
-        "body": "헤르메스는 사자와 경계의 역할, 헤파이스토스는 제작, 아레스는 전투의 격렬함과 연결된다. 같은 전쟁에 관여해도 역할과 행동은 다르다.\n\n근거: [Apollodorus, Library I, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L1.html) — 1.3; [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제5·18권",
+        "id": "896598b9-effd-54bf-8b3a-46ac600ddad9",
+        "title": "헤르메스",
+        "body": "마이아에게서 태어나 리라를 만들고 아폴론의 소를 훔친 뒤 교환과 화해로 신들 사이의 자리를 얻는다. 지팡이·전령·거래·이동이 주요 표지와 역할이다. 죽은 자의 혼도 인도하지만 명계의 왕 하데스와 같은 존재는 아니다.\n\n출전: 《신통기》 521–616행; 《일과 날》 42–105행; 《호메로스 찬가》 4번 1–61, 68–183, 322–396, 418–578행; 3번 1–178, 214–544행. 혼의 인도는 《오디세이아》 24.1–14. [《신통기》·《일과 날》·찬가 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 24권](https://classics.mit.edu/Homer/odyssey.24.xxiv.html).",
         "cardType": "character"
       },
       {
-        "id": "04f00e8d-f82e-55f4-83e6-27b86eaa03af",
-        "title": "디오니소스와 헤스티아",
-        "body": "디오니소스는 세멜레의 아들로 포도주와 열광의 전승을 갖는다. 헤스티아는 화덕과 제의 질서에 연결된다. 올림포스 명단의 차이를 곧 신의 폐위 사건으로 만들지 않는다.\n\n근거: [Apollodorus, Library I, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L1.html) — 1.3; [Homeric Hymns, Evelyn-White 1914](https://www.gutenberg.org/files/348/348-h/348-h.htm) — 헤스티아 찬가",
+        "id": "797c6dab-c370-5262-8ee2-f0444cc2fc86",
+        "title": "데메테르",
+        "body": "페르세포네의 어머니이며 곡물의 결실을 멈추거나 회복시키는 여신이다. 횃불을 들고 딸을 찾다가 엘레우시스에서 신전을 요구한다. 딸의 귀환 조건이 정해진 뒤 땅에 결실을 돌려주고 사람들에게 의례를 가르친다.\n\n출전: 《호메로스 찬가》 2번 1–89, 90–304, 305–374, 375–433, 441–489행. 삼분의 일 규정은 특히 398–403, 445–447행. [《데메테르 찬가》 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm).",
         "cardType": "character"
       },
       {
-        "id": "8b6f8ef8-b4cd-5d46-924c-40a12e840db0",
+        "id": "d27330cf-181f-5163-981e-3b61c6b8488e",
+        "title": "하데스와 페르세포네",
+        "body": "하데스는 죽은 자들의 영역을 다스리고 페르세포네는 그곳과 어머니 데메테르 곁을 오간다. 납치 뒤 석류씨를 먹게 된 일이 완전한 귀환을 막는 조건이다. 이 찬가의 강제와 당사자의 진술을 처음부터 합의한 혼인으로 바꾸지 않으며 신·죽음의 의인화·장소를 구별한다.\n\n출전: 《호메로스 찬가》 2번 1–89, 90–304, 305–374, 375–433, 441–489행. 삼분의 일 규정은 특히 398–403, 445–447행. [《데메테르 찬가》 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm).\n\n출전: 《신통기》 713–819행, 특히 775–806행; 《오디세이아》 11.23–50, 152–224, 465–491; 4.561–569. [《신통기》](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 11권](https://classics.mit.edu/Homer/odyssey.11.xi.html), [4권](https://classics.mit.edu/Homer/odyssey.4.iv.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "0d1afedf-fde3-5f4b-90fb-49238bd6d8f2",
         "title": "헤라클레스",
-        "body": "제우스와 알크메네의 아들이다. 에우리스테우스가 부과한 과업을 수행하며 괴물·왕·먼 지역을 만난다. 광기·가족의 죽음·과업의 배열은 문헌별로 구분해야 한다.\n\n근거: [Apollodorus, Library II, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L2.html) — 2.4–2.7",
+        "body": "제우스와 알크메네의 아들로 사자 가죽과 곤봉이 표지인 영웅이다. 도서관에서는 자녀 살해 뒤 정화와 신탁을 구해 에우리스테우스를 섬긴다. 과업 이후에도 비극을 겪고 신들 사이로 올라가지만, 이 결말은 모든 영웅에게 적용되는 보편적 보상 규칙이 아니다.\n\n출전: 《도서관》 2.4.8–12; 2.5.1–12; 2.7.6–7. 자녀 살해와 봉사의 순서는 이 편찬서의 배열이며 모든 비극 작품의 배열을 대신하지 않는다. [Frazer 판본](https://myths.uvic.ca/APOL1-L2.html).",
         "cardType": "character"
       },
       {
-        "id": "0bf0d712-1ea2-52fa-a0a7-da9d9461094a",
+        "id": "aff84dcc-115e-5b79-93ea-affdc258e9c8",
         "title": "페르세우스",
-        "body": "제우스와 다나에의 아들로 메두사의 머리를 얻고 안드로메다를 구한다. 아크리시오스의 운명은 외손자를 피하려는 시도와 역설적으로 연결된다.\n\n근거: [Apollodorus, Library II, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L2.html) — 2.4",
+        "body": "제우스와 다나에의 아들로 폴뤼덱테스의 요구 때문에 메두사의 머리를 구하러 간다. 아테나·헤르메스의 도움과 님프들의 신물을 얻어 방패에 비친 모습으로 메두사를 벤다. 안드로메다와 어머니를 구하지만 외조부 아크리시오스의 죽음에 관한 신탁은 피하지 못한다.\n\n출전: 아폴로도로스 전칭 《도서관》 2.4.1–5. 이 절은 《도서관》의 원정 서술을 따르며 메두사의 기원에 관한 후대 변신담을 끼워 넣지 않는다. [Frazer 판본](https://myths.uvic.ca/APOL1-L2.html).",
         "cardType": "character"
       },
       {
-        "id": "c3d797f9-9edd-5dd5-bfd2-64efe0ff401f",
+        "id": "70141c0d-10b9-5e61-b749-0278fb698b26",
         "title": "오디세우스",
-        "body": "트로이 전쟁 뒤 이타카로 돌아가는 영웅이다. 꾀와 언어가 생존에 기여하지만 오만한 자기 노출은 포세이돈의 분노와 귀환 지연에 연결된다.\n\n근거: [Homer, Odyssey, Butler 1900](https://www.gutenberg.org/ebooks/1727) — 제9·13·22–24권",
+        "body": "이타케의 왕이며 라에르테스의 아들, 페넬로페의 남편, 텔레마코스의 아버지다. 가짜 이름으로 폴리페모스를 속이지만 실명을 밝힌 자랑이 포세이돈의 적의를 부른다. 귀환 뒤에는 집안의 관계와 침상의 비밀을 통해 자신의 자리를 되찾는다.\n\n출전: 《오디세이아》 5.1–227; 6.110–315; 8.492–520; 9.19–36, 259–278, 345–536; 11권; 12권; 13권; 23.173–230; 24.1–14, 482–548. [5권](https://classics.mit.edu/Homer/odyssey.5.v.html), [6권](https://classics.mit.edu/Homer/odyssey.6.vi.html), [8권](https://classics.mit.edu/Homer/odyssey.8.viii.html), [9권](https://classics.mit.edu/Homer/odyssey.9.ix.html), [11권](https://classics.mit.edu/Homer/odyssey.11.xi.html), [12권](https://classics.mit.edu/Homer/odyssey.12.xii.html), [13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html), [23권](https://classics.mit.edu/Homer/odyssey.23.xxiii.html), [24권](https://classics.mit.edu/Homer/odyssey.24.xxiv.html).",
         "cardType": "character"
       },
       {
-        "id": "e20bf10e-f173-554f-a7e7-14a0700f7714",
-        "title": "아킬레우스·헥토르·프리아모스",
-        "body": "아킬레우스는 그리스군의 전사, 헥토르는 트로이의 방어자, 프리아모스는 그의 아버지이자 왕이다. 분노와 죽음, 시신의 반환이 일리아스의 결말을 이룬다.\n\n근거: [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제1·22·24권",
-        "cardType": "character"
-      },
-      {
-        "id": "633e4e12-744e-535a-832d-929273767302",
-        "title": "아이네아스",
-        "body": "트로이에서 떠나 이탈리아로 향하는 영웅이다. 베누스의 아들로 제시되며, 로마 자체를 직접 건국하는 인물이라고 쓰지 않는다.\n\n근거: [Virgil, Aeneid, Dryden 1697](https://www.gutenberg.org/ebooks/228) — 제1–3·6·12권",
-        "cardType": "character"
-      },
-      {
-        "id": "a63fea77-ddb0-508d-9138-e26164cd7df3",
+        "id": "86f02229-098d-5ef7-81c5-7959de7f3bb6",
         "title": "올림포스",
-        "body": "신들의 회의와 거처로 나타나는 공간이다. 신들은 그곳에만 갇혀 있지 않고 전장과 인간 사회에 개입한다.\n\n근거: [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제1·4권",
+        "body": "신들이 집을 두고 모여 회의하며 잔치하는 거처다. 포세이돈의 영역 분배 설명에서는 땅과 함께 공동의 것으로 남는다. 신들의 논쟁과 중재가 일어나는 곳이므로 갈등 없는 천국으로 그리지 않는다.\n\n출전: 《일리아스》 15.184–199, 1.188–222, 1.493–611; 《신통기》 886–900, 918–926행; 《호메로스 찬가》 9번 1–9행(아르테미스), 12번 1–5행(헤라). 아테나의 귀환 지원: 《오디세이아》 13.287–440. [《일리아스》 15권](https://classics.mit.edu/Homer/iliad.15.xv.html), [1권](https://classics.mit.edu/Homer/iliad.1.i.html), [《신통기》와 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html).",
         "cardType": "location"
       },
       {
-        "id": "2cc1898b-1229-5e2b-97b1-69efa23387cc",
-        "title": "명계와 타르타로스",
-        "body": "죽은 자의 영역과 신적 형벌·구속의 깊은 공간을 구분한다. 오디세우스의 망자 접촉과 아이네아스의 명계 여행은 서로 다른 작품의 장면이다.\n\n근거: [Hesiod, Theogony](https://www.theoi.com/Text/HesiodTheogony.html) — 713–819행; [Homer, Odyssey, Butler 1900](https://www.gutenberg.org/ebooks/1727) — 제11권; [Virgil, Aeneid, Dryden 1697](https://www.gutenberg.org/ebooks/228) — 제6권",
+        "id": "92e0c727-960f-54e1-8d91-8b3b8d1ca9c6",
+        "title": "명계·타르타로스·엘리시움",
+        "body": "헤시오도스의 타르타로스는 티탄 감금의 깊은 공간이며, 하데스·페르세포네의 죽은 자 영역과 이름을 구별한다. 오디세이아의 엘리시온은 메넬라오스에게 예고된 예외적 거처다. 아이네이스의 형벌 구역과 복된 거처는 로마의 별도 서술로 남겨 하나의 고정 지도로 합치지 않는다.\n\n출전: 《신통기》 713–819행, 특히 775–806행; 《오디세이아》 11.23–50, 152–224, 465–491; 4.561–569. [《신통기》](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 11권](https://classics.mit.edu/Homer/odyssey.11.xi.html), [4권](https://classics.mit.edu/Homer/odyssey.4.iv.html).\n\n출전: 베르길리우스 《아이네이스》 2.13–267, 2.707–804; 6.124–155, 6.183–211, 6.406–416, 6.540–627, 6.637–678, 6.756–892. 그리스 계보의 비교: 《호메로스 찬가》 5번 191–201행. [《아이네이스》 2권](https://classics.mit.edu/Virgil/aeneid.2.ii.html), [6권](https://classics.mit.edu/Virgil/aeneid.6.vi.html), [아프로디테 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm).",
         "cardType": "location"
       },
       {
-        "id": "0320f5a4-ebf7-53a2-a017-6607213a6674",
-        "title": "트로이와 이타카",
-        "body": "트로이는 장기 전쟁의 도시이며 이타카는 오디세우스의 귀환 목적지이다. 전쟁에서의 승리와 고향에서 질서를 회복하는 일은 별개의 갈등이다.\n\n근거: [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제2·22권; [Homer, Odyssey, Butler 1900](https://www.gutenberg.org/ebooks/1727) — 제13·22권",
+        "id": "ab28aaf0-e7e2-5765-83b3-cd74da83a651",
+        "title": "델포이",
+        "body": "아폴론이 신탁을 전할 성소를 세우고 암컷 용을 죽인 뒤 크레테 선원들에게 돌보게 한 장소다. 영웅에게 주는 답은 미래의 정보뿐 아니라 길과 의무를 부과한다. 성소의 이야기와 모든 시대의 실제 제의 절차를 동일시하지 않는다.\n\n출전: 《신통기》 521–616행; 《일과 날》 42–105행; 《호메로스 찬가》 4번 1–61, 68–183, 322–396, 418–578행; 3번 1–178, 214–544행. 혼의 인도는 《오디세이아》 24.1–14. [《신통기》·《일과 날》·찬가 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 24권](https://classics.mit.edu/Homer/odyssey.24.xxiv.html).",
         "cardType": "location"
       },
       {
-        "id": "cc1ac30a-110c-5868-8639-93e7e2b48e22",
+        "id": "62e8a710-d214-58db-891d-69ccc0bb92ce",
+        "title": "트로이",
+        "body": "프리아모스가 다스리고 헥토르가 수호하는 도시다. 여러 영웅의 원정이 도시 앞에 모이며 가족과 공동체를 지키는 전투의 무대가 된다. 일리아스는 헥토르의 장례에서 끝나므로 목마와 도시 함락까지 그 작품의 본문으로 취급하지 않는다.\n\n출전: 《퀴프리아》 단편 1, 프로클로스 《크레스토마테이아》의 줄거리 요약; 《일리아스》 1.1–348, 6.390–502, 16.130–144, 16.777–867, 22.247–404, 24.334–804. [《퀴프리아》 요약 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《일리아스》 1권](https://classics.mit.edu/Homer/iliad.1.i.html), [6권](https://classics.mit.edu/Homer/iliad.6.vi.html), [16권](https://classics.mit.edu/Homer/iliad.16.xvi.html), [22권](https://classics.mit.edu/Homer/iliad.22.xxii.html), [24권](https://classics.mit.edu/Homer/iliad.24.xxiv.html).",
+        "cardType": "location"
+      },
+      {
+        "id": "f29b6d58-6dea-59a6-ad9b-53690e7e2856",
         "title": "제우스의 번개",
-        "body": "키클롭스가 제우스에게 제공하는 무기이며 신들의 세력 재편과 연결된다. 인간이 일반적으로 제작하는 장비가 아니다.\n\n근거: [Hesiod, Theogony](https://www.theoi.com/Text/HesiodTheogony.html) — 139–146·501–506행",
+        "body": "제우스가 풀어 준 키클롭스가 감사의 표시로 건넨 천둥과 번개다. 티탄 전쟁에서 백수거인의 돌 공격과 함께 승리를 이끄는 무기이며, 새 신권의 힘이 동맹과 해방의 관계에서 생겼음을 드러낸다.\n\n출전: 《신통기》 453–506, 617–735, 820–885, 901–906행. [판본](https://www.gutenberg.org/files/348/348-h/348-h.htm).",
         "cardType": "object"
       },
       {
-        "id": "e8840277-4633-5b2c-aeb1-95e0bca64c6f",
+        "id": "e68f1d7d-2977-59cf-b80c-5767229f1eb1",
         "title": "메두사의 머리",
-        "body": "페르세우스의 과업으로 획득되며 보는 이를 돌로 만드는 위험을 갖는다. 이후 아테나에게 전달되는 경위가 전해진다.\n\n근거: [Apollodorus, Library II, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L2.html) — 2.4",
+        "body": "페르세우스가 벤 메두사의 머리는 잘린 뒤에도 보는 이를 돌로 만드는 힘이 남는다. 자루에 넣어 운반하고 폴뤼덱테스의 무리를 돌로 만든 뒤 아테나에게 바친다. 여기서는 도서관의 원정 내용을 따르며 후대의 메두사 기원담을 합치지 않는다.\n\n출전: 아폴로도로스 전칭 《도서관》 2.4.1–5. 이 절은 《도서관》의 원정 서술을 따르며 메두사의 기원에 관한 후대 변신담을 끼워 넣지 않는다. [Frazer 판본](https://myths.uvic.ca/APOL1-L2.html).",
         "cardType": "object"
       },
       {
-        "id": "440309c5-55c9-5d83-8192-e7d5040fd743",
-        "title": "아킬레우스의 방패",
-        "body": "헤파이스토스가 만드는 방패에는 도시·노동·재판·춤 등 삶의 장면이 묘사된다. 단순한 방어 수치보다 전쟁 밖 세계를 담는 서사적 물건이다.\n\n근거: [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제18권",
+        "id": "913efccb-4482-56ed-82e1-47f67f773928",
+        "title": "황금 가지",
+        "body": "아이네이스에서 시뷜라가 아이네아스의 명계 하강 전에 요구한 프로세르피나에게 바칠 표지다. 어머니의 새인 비둘기가 발견을 돕고 카론 앞에서 통과의 징표가 된다. 모든 그리스 영웅이 명계에 들어갈 때 필요한 보편적 물건으로 확대하지 않는다.\n\n출전: 베르길리우스 《아이네이스》 2.13–267, 2.707–804; 6.124–155, 6.183–211, 6.406–416, 6.540–627, 6.637–678, 6.756–892. 그리스 계보의 비교: 《호메로스 찬가》 5번 191–201행. [《아이네이스》 2권](https://classics.mit.edu/Virgil/aeneid.2.ii.html), [6권](https://classics.mit.edu/Virgil/aeneid.6.vi.html), [아프로디테 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm).",
         "cardType": "object"
       },
       {
-        "id": "bb52477b-b4a9-5595-830b-fb6e3cab523e",
-        "title": "신과 인간의 약속·환대",
-        "body": "낯선 이를 대하는 태도와 간청은 귀환 서사에서 중요하다. 모든 신화에 예외 없이 작동하는 자동 형벌 시스템으로 일반화하지 않는다.\n\n근거: [Homer, Odyssey, Butler 1900](https://www.gutenberg.org/ebooks/1727) — 제6–9·14권",
+        "id": "5e5b9455-00b5-526a-b4c6-863466adaee2",
+        "title": "티타노마키아",
+        "body": "올림포스의 신들과 오트뤼스의 티탄들이 십 년 동안 싸운 뒤 제우스가 백수거인의 도움으로 승리한다. 패한 티탄들은 깊은 곳에 갇힌다. 우라노스의 피에서 나온 기가스와의 전쟁인 기간토마키아와 다른 사건이며, 이후에도 신권 정착의 갈등은 남는다.\n\n출전: 《신통기》 453–506, 617–735, 820–885, 901–906행. [판본](https://www.gutenberg.org/files/348/348-h/348-h.htm).",
+        "cardType": "event"
+      },
+      {
+        "id": "16a54b9e-01f9-50a6-916a-7223bafbee24",
+        "title": "헤라클레스의 열두 과업",
+        "body": "헤라클레스가 에우리스테우스에게 봉사하며 사자·히드라·암사슴에서 사과와 케르베로스까지 각기 다른 과제를 수행한다. 도서관에서는 도움받은 히드라 일과 대가를 약속한 외양간 일이 인정되지 않아 열둘이 된다. 생포·정화·협력·허락이 필요한 과업을 모두 살해 전투로 바꾸지 않는다.\n\n출전: 《도서관》 2.4.8–12; 2.5.1–12; 2.7.6–7. 자녀 살해와 봉사의 순서는 이 편찬서의 배열이며 모든 비극 작품의 배열을 대신하지 않는다. [Frazer 판본](https://myths.uvic.ca/APOL1-L2.html).",
+        "cardType": "event"
+      },
+      {
+        "id": "d3d422b3-2f4f-5b5b-b71f-d6b0de4d665c",
+        "title": "트로이 전쟁과 귀환 전승",
+        "body": "퀴프리아의 요약은 파리스의 선택·헬레네의 이동·원정을 잇고, 일리아스는 전쟁 중 아킬레우스의 분노와 철수에서 시작한다. 파트로클로스와 헥토르의 죽음 뒤 프리아모스의 청원으로 시신이 돌아온다. 함락과 귀환은 다른 서사에서 이어지므로 서로 다른 작품의 범위를 남긴다.\n\n출전: 《퀴프리아》 단편 1, 프로클로스 《크레스토마테이아》의 줄거리 요약; 《일리아스》 1.1–348, 6.390–502, 16.130–144, 16.777–867, 22.247–404, 24.334–804. [《퀴프리아》 요약 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《일리아스》 1권](https://classics.mit.edu/Homer/iliad.1.i.html), [6권](https://classics.mit.edu/Homer/iliad.6.vi.html), [16권](https://classics.mit.edu/Homer/iliad.16.xvi.html), [22권](https://classics.mit.edu/Homer/iliad.22.xxii.html), [24권](https://classics.mit.edu/Homer/iliad.24.xxiv.html).",
+        "cardType": "event"
+      },
+      {
+        "id": "4a7516e5-5493-5000-875b-212545198dff",
+        "title": "페르세포네의 납치와 귀환",
+        "body": "페르세포네의 납치에 항의하는 데메테르가 곡물의 결실을 멈추자 제우스가 중재한다. 석류씨 때문에 귀환에 조건이 생기며, 데메테르 찬가에서는 한 해의 삼분의 일을 지하에서, 삼분의 이를 어머니와 신들 곁에서 지낸다. 이를 반년씩으로 바꾸지 않는다.\n\n출전: 《호메로스 찬가》 2번 1–89, 90–304, 305–374, 375–433, 441–489행. 삼분의 일 규정은 특히 398–403, 445–447행. [《데메테르 찬가》 수록 판본](https://www.gutenberg.org/files/348/348-h/348-h.htm).",
+        "cardType": "event"
+      },
+      {
+        "id": "50e5f3d7-0fea-5da5-a111-f427d4c4e34c",
+        "title": "손님 접대와 제우스",
+        "body": "오디세우스는 낯선 이와 청원자를 보호하는 제우스의 권위를 들어 접대를 요구한다. 폴리페모스는 이를 거부하고 손님들을 잡아먹는다. 접대 의무는 행동을 판단하는 기준이지만 위반 즉시 자동 형벌이 발동하는 마법 규칙은 아니다.\n\n출전: 《오디세이아》 5.1–227; 6.110–315; 8.492–520; 9.19–36, 259–278, 345–536; 11권; 12권; 13권; 23.173–230; 24.1–14, 482–548. [5권](https://classics.mit.edu/Homer/odyssey.5.v.html), [6권](https://classics.mit.edu/Homer/odyssey.6.vi.html), [8권](https://classics.mit.edu/Homer/odyssey.8.viii.html), [9권](https://classics.mit.edu/Homer/odyssey.9.ix.html), [11권](https://classics.mit.edu/Homer/odyssey.11.xi.html), [12권](https://classics.mit.edu/Homer/odyssey.12.xii.html), [13권](https://classics.mit.edu/Homer/odyssey.13.xiii.html), [23권](https://classics.mit.edu/Homer/odyssey.23.xxiii.html), [24권](https://classics.mit.edu/Homer/odyssey.24.xxiv.html).",
         "cardType": "rule"
       },
       {
-        "id": "81101039-c551-5c2f-a3ae-4b4d0f93fe15",
-        "title": "신의 변장과 개입",
-        "body": "아테나를 비롯한 신들은 다른 모습으로 나타나 조언하거나 전투에 개입한다. 작품 속 개별 행위이며 인간 영웅에게 보편적으로 주어진 능력이 아니다.\n\n근거: [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제5권; [Homer, Odyssey, Butler 1900](https://www.gutenberg.org/ebooks/1727) — 제1·13권",
-        "cardType": "ability"
+        "id": "cc7fd769-3f21-59dd-8754-1a59f9b85e24",
+        "title": "스틱스의 맹세",
+        "body": "신통기에서 신들은 이리스가 가져온 스틱스의 물로 엄숙히 맹세한다. 거짓 맹세를 한 신은 일 년간 무기력하게 누워 지내고 이어 아홉 해 동안 회의와 잔치에서 제외된다. 이 기간을 인간의 모든 일상적 약속에 자동 적용하지 않는다.\n\n출전: 《신통기》 713–819행, 특히 775–806행; 《오디세이아》 11.23–50, 152–224, 465–491; 4.561–569. [《신통기》](https://www.gutenberg.org/files/348/348-h/348-h.htm), [《오디세이아》 11권](https://classics.mit.edu/Homer/odyssey.11.xi.html), [4권](https://classics.mit.edu/Homer/odyssey.4.iv.html).",
+        "cardType": "rule"
       },
       {
-        "id": "a866627a-d333-509e-a6d5-4142b01b08dd",
-        "title": "티탄 전쟁과 권력 재편",
-        "body": "제우스 편의 신들과 티탄 사이 전쟁 뒤 패배자들이 구속된다. 이를 기독교적 선악 전쟁으로 옮겨 적지 않는다.\n\n근거: [Hesiod, Theogony](https://www.theoi.com/Text/HesiodTheogony.html) — 617–735행",
-        "cardType": "event"
-      },
-      {
-        "id": "b814eba5-065d-576a-baf9-e52e1688deb3",
-        "title": "페르세포네의 이별과 재회",
-        "body": "딸을 잃은 데메테르가 결실을 막고 신들이 타협한다. 딸의 일정 기간 귀환으로 인간의 생존과 신적 질서가 회복된다.\n\n근거: [Homeric Hymns, Evelyn-White 1914](https://www.gutenberg.org/files/348/348-h/348-h.htm) — 데메테르 찬가",
-        "cardType": "event"
-      },
-      {
-        "id": "c765da42-fadf-5a0c-ab2d-cfde12ab1470",
-        "title": "헤라클레스의 과업",
-        "body": "사자·히드라·멧돼지 등과 관련된 과업과 먼 지역에서의 획득·구출이 이어진다. 영웅의 폭력과 대가를 삭제한 성장 퀘스트 목록으로만 쓰지 않는다.\n\n근거: [Apollodorus, Library II, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L2.html) — 2.5",
-        "cardType": "event"
-      },
-      {
-        "id": "97b1be41-49c0-50fd-a314-ffb663f0acc2",
-        "title": "트로이 전쟁과 일리아스의 범위",
-        "body": "일리아스는 전쟁 전체가 아니라 아킬레우스의 분노에서 헥토르 장례까지를 다룬다. 목마와 트로이 함락은 이 작품의 결말에 없으며 다른 전승에서 확인한다.\n\n근거: [Homer, Iliad, Butler 1898](https://www.gutenberg.org/ebooks/2199) — 제1·24권; [Virgil, Aeneid, Dryden 1697](https://www.gutenberg.org/ebooks/228) — 제2권",
-        "cardType": "event"
-      },
-      {
-        "id": "e294ba77-ade4-5ada-8da8-2165e5f95039",
-        "title": "오디세우스의 귀환",
-        "body": "방랑과 고향의 구혼자 문제를 오가며 부부·부자의 재회와 왕권 회복을 그린다. 마지막에는 복수의 연쇄를 멈추는 화해가 제시된다.\n\n근거: [Homer, Odyssey, Butler 1900](https://www.gutenberg.org/ebooks/1727) — 제1–24권",
-        "cardType": "event"
-      },
-      {
-        "id": "47ab78be-08c2-5a9c-8c9a-c481d079e29a",
-        "title": "트로이 함락 뒤의 이탈리아 정착",
-        "body": "아이네아스 일행은 망명과 항해, 이탈리아의 전쟁을 겪는다. 로마의 미래에 관한 예언과 당대 영웅의 사건을 같은 시점으로 취급하지 않는다.\n\n근거: [Virgil, Aeneid, Dryden 1697](https://www.gutenberg.org/ebooks/228) — 제2–3·6·7–12권",
-        "cardType": "event"
-      },
-      {
-        "id": "ea8aa1b2-fb5b-5152-b71a-e09e3617d738",
-        "title": "그리스와 로마의 대응 이름",
-        "body": "제우스/유피테르, 헤라/유노, 아프로디테/베누스 등의 대응은 독해에 유용하지만 두 전승의 의례·정치적 의미까지 동일하게 만들지 않는다. 아이네이스는 로마 문학의 별도 서술로 표시한다.\n\n근거: [Apollodorus, Library I, Frazer 1921](https://hcmc.uvic.ca/project/myths/APOL1-L1.html) — 1.1–1.3; [Virgil, Aeneid, Dryden 1697](https://www.gutenberg.org/ebooks/228) — 제1권",
-        "cardType": "other"
+        "id": "6a6fad9b-c15a-5ade-973b-c182f357f21d",
+        "title": "로마 전승과 아이네아스",
+        "body": "아이네아스는 안키세스와 베누스의 아들이며 트로이를 떠나 미래의 터전을 향한다. 명계에서 만난 아버지가 로마의 후손들을 보여 준다. 로물루스나 로마 시의 직접 건설자와 동일인이 아니며, 아이네이스의 로마적 후속 서사를 그리스 초기 문헌의 숨은 결말로 합치지 않는다.\n\n출전: 베르길리우스 《아이네이스》 2.13–267, 2.707–804; 6.124–155, 6.183–211, 6.406–416, 6.540–627, 6.637–678, 6.756–892. 그리스 계보의 비교: 《호메로스 찬가》 5번 191–201행. [《아이네이스》 2권](https://classics.mit.edu/Virgil/aeneid.2.ii.html), [6권](https://classics.mit.edu/Virgil/aeneid.6.vi.html), [아프로디테 찬가](https://www.gutenberg.org/files/348/348-h/348-h.htm).",
+        "cardType": "character"
       }
     ]
   },
   {
     "genre": "germanic_folklore",
     "worldId": "278f30fb-e7cf-54b0-b007-38266319945f",
-    "name": "게르만 설화 — 홀레 할머니",
-    "description": "그림 형제 수집 독일 설화 24번을 중심으로 한 자료. 북유럽 신화와 게르만 전승 전체를 동일시하지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "게르만 설화: 그림 형제 수록 동화",
+    "description": "그림 형제가 편집한 독일어권 민담의 선택본이다. 고대 게르만 종교 전체나 북유럽 신화의 동일 세계관이 아니다. 각 이야기는 독립적이며 판본별 결말·문구 차이를 보존한다.",
     "cards": [
       {
-        "id": "9e56ecfd-cb30-5beb-801f-aae07cd9512d",
-        "title": "홀레 할머니",
-        "body": "큰 이빨을 가진 노파로 나타나지만 소녀를 받아들여 집안일을 맡긴다. 성실한 노동과 약속 이행에 보상하는 존재이다. 이 설화만으로 특정 고대 여신과 동일하다고 확정하지 않는다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 24번 홀레 할머니",
+        "id": "fca3e7d6-196a-5751-b97e-ad6c6755adfd",
+        "title": "홀레 부인",
+        "body": "홀레 부인은 소녀에게 집안일과 침구 털기를 맡기고 충분한 음식을 준다. 침구의 깃털이 날리면 땅 위에 눈이 내린다.\n\n출전: 「Mother Holle」, 노동·귀향·두 번째 방문. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
         "cardType": "character"
       },
       {
-        "id": "916f8b7c-73e4-5736-9821-c2fc2abd693f",
-        "title": "성실한 소녀",
-        "body": "집에서 부당한 노동을 떠맡고, 잃어버린 북을 찾으려 우물로 들어간다. 길에서 빵과 사과나무의 부탁에 응하고 홀레의 집에서도 일을 수행한다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 전반",
-        "cardType": "character"
-      },
-      {
-        "id": "20d4974b-1ed8-5603-8bb7-95b3a73dd883",
-        "title": "게으른 소녀",
-        "body": "앞선 보상을 얻기 위해 같은 길을 따라가지만 도움 요청을 거절하고 일을 소홀히 한다. 이 설화는 자매의 선택과 대조되는 결말을 통해 교훈을 만든다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 후반",
-        "cardType": "character"
-      },
-      {
-        "id": "ee582474-941c-53ad-a0b2-77c0d475323a",
-        "title": "우물과 초원",
-        "body": "일상에서 다른 영역으로 넘어가는 경계이다. 우물로 떨어진 뒤 초원에서 깨어나는 장면을 실제 지리 경로로 설명하지 않는다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 전반의 이동",
+        "id": "cbb3ab9d-1aec-5806-9cd1-c273653257c5",
+        "title": "홀레 이야기의 우물",
+        "body": "의붓딸이 떨어뜨린 물레 도구를 찾으려 뛰어든 우물이다. 소녀는 그 뒤 꽃이 있는 들판에서 깨어난다.\n\n출전: 그림 형제 수록본 「Mother Holle」. [1922년 선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
         "cardType": "location"
       },
       {
-        "id": "0e30e4e9-041c-59c6-a157-8075470d31e9",
-        "title": "홀레의 집과 문",
-        "body": "노동을 하는 공간과 귀환의 경계가 구분된다. 마지막 문을 지날 때 소녀의 행동에 따른 보상이 나타난다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 홀레의 집과 귀환",
-        "cardType": "location"
-      },
-      {
-        "id": "a5832302-3b4d-55dc-84e4-28e78d3b12d7",
-        "title": "피 묻은 북",
-        "body": "실을 잣다가 생긴 상처와 과도한 노동을 드러내며, 우물로 떨어져 모험의 계기가 된다. 일반적인 마법 무기로 설정하지 않는다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 시작",
+        "id": "ab1d6439-cc90-50b7-9938-afbf018f03ee",
+        "title": "홀레의 침구",
+        "body": "홀레가 소녀에게 잘 털라고 맡기는 침구다. 깃털을 날리는 행위가 지상의 눈과 연결된다.\n\n출전: 「Mother Holle」, 노동·귀향·두 번째 방문. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
         "cardType": "object"
       },
       {
-        "id": "fcad57df-efbd-59d3-879b-3d016a5b7d22",
-        "title": "이불과 눈",
-        "body": "홀레가 이불을 털 때 깃털이 날리고 인간 세상에는 눈이 온다고 설명된다. 설화 속 날씨의 유래이지 자연과학 설명이 아니다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 홀레의 노동 지시",
-        "cardType": "object"
+        "id": "6a20b831-b42f-5c01-802b-c9220515bde6",
+        "title": "금과 역청의 보상",
+        "body": "성실히 일한 의붓딸은 귀향할 때 금과 잃었던 도구를 받는다. 일을 게을리한 친딸에게는 떨어지지 않는 역청이 쏟아진다.\n\n출전: 「Mother Holle」, 노동·귀향·두 번째 방문. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
+        "cardType": "event"
       },
       {
-        "id": "b7980161-ff92-5ef0-8fbd-fd36127bbb46",
-        "title": "길에서의 도움 요청",
-        "body": "빵을 꺼내고 사과를 털어 달라는 부탁에 어떻게 반응하는지가 두 소녀의 성격을 드러낸다. 의례 주문이 아니라 이야기의 반복 구조이다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 두 번의 여행",
+        "id": "9a5e4bd3-6281-5d24-80fb-136422fc7369",
+        "title": "룸펠슈틸츠헨",
+        "body": "방앗간집 딸을 위해 짚을 금으로 자아 주는 작은 사내다. 처음에는 목걸이와 반지, 마지막에는 왕비가 된 뒤의 첫아이를 대가로 요구한다.\n\n출전: 「Rumpelstiltskin」, 세 번의 방과 첫아이의 약속. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "99ea4f8d-250e-520d-ae85-ee5b2c7f9675",
+        "title": "이름 맞히기 약속",
+        "body": "룸펠슈틸츠헨은 사흘 안에 자기 이름을 맞히면 아이를 데려가지 않겠다고 한다. 왕비는 심부름꾼이 들은 이름으로 이 조건을 충족한다.\n\n출전: 「Rumpelstiltskin」, 이름 탐색과 결말. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
         "cardType": "rule"
       },
       {
-        "id": "ac3c07de-71ae-5663-b153-831c87627a3e",
-        "title": "성실한 소녀의 귀환",
-        "body": "소녀는 고향을 그리워하고 허락을 받아 돌아간다. 문에서 금을 뒤집어쓰는 보상을 받으며 잃어버린 북도 돌려받는다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 첫 귀환",
+        "id": "9e2297ea-2736-530d-9550-2fb6d2aca81d",
+        "title": "짚을 금으로 잣기",
+        "body": "작은 사내가 물레를 사용하여 짚을 금으로 바꾼다. 성공할수록 왕이 더 많은 짚을 요구하여 딸의 곤경이 커진다.\n\n출전: 「Rumpelstiltskin」, 세 번의 방과 첫아이의 약속. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
+        "cardType": "ability"
+      },
+      {
+        "id": "78984186-3cf0-5beb-9a6e-8579707fd629",
+        "title": "개구리 왕자",
+        "body": "공주가 벽에 던진 뒤 왕자의 모습으로 돌아오는 개구리다. 이 판본에서 그는 마녀에게 변신당했었다고 설명한다.\n\n출전: 「The Frog Prince」, 변신 해제와 하인리히의 귀환 마차. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "50148b8e-b377-57f0-ad2c-8ab32838fd41",
+        "title": "공주의 황금 공",
+        "body": "공주가 샘에 빠뜨린 놀이 도구다. 개구리는 공을 찾아주는 대신 동반자가 되어 달라고 요구한다.\n\n출전: 「The Frog Prince」, 황금 공과 궁전의 식사. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
+        "cardType": "object"
+      },
+      {
+        "id": "327eda3c-3b63-5259-adbc-95c681b342fd",
+        "title": "개구리와의 약속",
+        "body": "공주는 공을 돌려받기 위해 개구리와 먹고 자는 동반자가 되겠다고 한다. 궁전에 찾아온 개구리를 보고 약속을 밝히자 왕은 이행하라고 요구한다.\n\n출전: 「The Frog Prince」, 황금 공과 궁전의 식사. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
+        "cardType": "rule"
+      },
+      {
+        "id": "a18ac052-727d-57b3-a20e-43992ad00291",
+        "title": "개구리의 변신 해제",
+        "body": "이 수록본에서는 공주가 개구리를 벽에 던진 뒤 왕자로 돌아온다. 입맞춤으로 저주가 풀리는 결말이 아니다.\n\n출전: 「The Frog Prince」, 변신 해제와 하인리히의 귀환 마차. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
         "cardType": "event"
       },
       {
-        "id": "453f9dc4-aa0d-5af2-808a-7893d18eacf5",
-        "title": "모방한 소녀의 결말",
-        "body": "게으른 소녀는 같은 보상을 기대하지만 문에서 역청을 뒤집어쓴다. 이는 수집본의 형벌적 결말이며 서비스가 외모나 노동을 평가하는 규칙이 아니다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 두 번째 귀환",
-        "cardType": "event"
-      },
-      {
-        "id": "4f228b66-9399-575e-91b7-7d994c58fec2",
-        "title": "전승 범위와 해석",
-        "body": "이 자료는 수집 설화 한 편의 요소이다. 홀레를 죽음·출산·겨울을 모두 통제하는 통일된 신으로 확장하려면 별도 문헌을 제시해야 한다.\n\n근거: [Grimm, Mother Holle, Hunt 1884, No.24](https://www.gutenberg.org/files/5314/5314-h/5314-h.htm) — 24번 전체",
-        "cardType": "other"
+        "id": "7de6e558-0314-58b0-b1a3-cbf159ca4150",
+        "title": "충신 하인리히",
+        "body": "왕자의 시종으로, 주인이 개구리가 된 슬픔을 견디려 가슴에 쇠띠 세 개를 둘렀다. 귀환 마차에서는 기쁨으로 쇠띠가 끊어진다.\n\n출전: 「The Frog Prince」, 변신 해제와 하인리히의 귀환 마차. [선집](https://www.gutenberg.org/cache/epub/11027/pg11027-images.html).",
+        "cardType": "character"
       }
     ]
   },
   {
     "genre": "chinese_folklore",
     "worldId": "d691ae17-7f67-5377-8868-3f5202ecd65f",
-    "name": "중국 설화 — 산해경과 서유기",
-    "description": "산해경의 정위 전승과 명대 소설 서유기를 서로 다른 문헌 묶음으로 구분한다. 서유기는 이 세계관 안의 별도 출처·제목으로 표시한다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "중국 고대 신화·설화",
+    "description": "『산해경』과 『회남자』 계열의 신화 및 후대 문헌이 인용하는 전승을 구분한다. 『서유기』와 『봉신연의』의 소설적 신계는 고대 신화에 소급해 합치지 않는다.",
     "cards": [
       {
-        "id": "c0fe4d5f-627d-562e-93a7-c2f7d2c223eb",
-        "title": "산해경 · 정위와 여와(女娃)",
-        "body": "염제의 딸 여와가 동해에 빠져 돌아오지 못한 뒤 정위라는 새가 되었다고 한다. 하늘을 보수하는 여와(女媧)와 이름의 글자부터 다른 인물이다.\n\n근거: [山海經 北山經](https://zh.wikisource.org/wiki/山海經/北山經) — 發鳩之山 항목",
+        "id": "555b0550-d28e-58b0-8265-8dc8ff3f5b39",
+        "title": "여와",
+        "body": "《회남자》 남명훈에서 재난에 빠진 세계와 사람들을 구하는 존재다. 하늘을 메우고 지지대를 세우며 물과 해로운 존재를 다스린다. 이 대목은 인류 창조나 복희와의 혼인을 확정하는 근거가 아니다.\n\n출전: 《회남자》 권6 남명훈, ‘옛날 네 끝이 무너졌다’로 시작하는 여와 대목. [원문](https://zh.wikisource.org/wiki/淮南子/覽冥訓).",
         "cardType": "character"
       },
       {
-        "id": "40a815d9-2583-5bfb-83fd-0230660297fb",
-        "title": "산해경 · 발구산과 동해",
-        "body": "발구산에는 정위가 살며 새는 서산의 나무와 돌을 가져다 동해를 메우려 한다. 항목 끝에는 장수의 흐름도 설명된다.\n\n근거: [山海經 北山經](https://zh.wikisource.org/wiki/山海經/北山經) — 發鳩之山 항목",
-        "cardType": "location"
-      },
-      {
-        "id": "d7e9b4b0-5255-5730-879e-d6c07ed14cb1",
-        "title": "산해경 · 정위의 바다 메우기",
-        "body": "익사한 인물이 새가 된 뒤 바다를 메우려는 행동을 계속한다. 바다가 실제로 완전히 메워졌다는 결말은 이 항목에 없다.\n\n근거: [山海經 北山經](https://zh.wikisource.org/wiki/山海經/北山經) — 發鳩之山 항목",
+        "id": "03c50b30-cb4b-50a4-a8b9-68a94d08d267",
+        "title": "여와의 보천",
+        "body": "하늘과 땅이 제 기능을 잃고 불·물·맹수가 사람을 위협하자 여와가 오색돌과 거북의 다리, 갈대 재 등을 사용해 질서를 회복한다. 그 결과 하늘과 땅의 지지가 회복되고 사람들이 다시 살 수 있게 된다.\n\n출전: 《회남자》 권6 남명훈, ‘옛날 네 끝이 무너졌다’로 시작하는 여와 대목. [원문](https://zh.wikisource.org/wiki/淮南子/覽冥訓).",
         "cardType": "event"
       },
       {
-        "id": "9ed32f39-d4ba-5765-af94-209e605d1a4b",
-        "title": "서유기 · 손오공",
-        "body": "돌에서 태어나 원숭이들의 왕이 되고 수련과 천계 반역을 거친다. 취경에서는 삼장을 호위하지만 살생과 판단을 두고 스승과 충돌한다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제1–7·14·27회",
-        "cardType": "character"
-      },
-      {
-        "id": "4f154bde-e01e-5445-84eb-dad718bb581e",
-        "title": "서유기 · 삼장법사",
-        "body": "당에서 서천으로 불경을 구하러 가는 승려이다. 역사적 현장과 관련된 문학적 인물이지만 소설의 사건을 역사 전기로 취급하지 않는다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제12–14회",
-        "cardType": "character"
-      },
-      {
-        "id": "c30ac3b3-a993-5869-8d42-3e6ff219084f",
-        "title": "서유기 · 저팔계",
-        "body": "천계에서 쫓겨난 뒤 취경 일행에 합류하는 존재이다. 식욕·욕망·불평이 드러나지만 싸움과 여행의 실무에 참여하며 단순한 방해물만은 아니다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제18–19회",
-        "cardType": "character"
-      },
-      {
-        "id": "2af6ade2-87af-5dec-99c7-f336db7eeedb",
-        "title": "서유기 · 사오정",
-        "body": "유사하에서 일행과 만나 취경에 합류한다. 과거의 죄와 벌, 호위와 수행이라는 역할을 가진다. 한국 대중문화의 말귀를 못 알아듣는 설정은 원전 설정으로 넣지 않는다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제22회",
-        "cardType": "character"
-      },
-      {
-        "id": "5f6f5c43-12b6-5960-b62a-979236715cb0",
-        "title": "서유기 · 백룡마",
-        "body": "용왕의 아들로 등장하여 삼장의 말을 삼킨 뒤 관음의 개입으로 탈것 역할을 맡는다. 단순한 보통 말이 아니다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제15회",
-        "cardType": "character"
-      },
-      {
-        "id": "082c4797-997d-515a-822f-9e439e841681",
-        "title": "서유기 · 천계와 취경 일행",
-        "body": "옥황상제의 천계와 삼장 일행은 다른 권위·목표를 갖는다. 불교·도교 인물의 공존은 소설의 구성이지 모든 중국 종교의 통일된 조직도는 아니다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제4–7·12–22회",
-        "cardType": "organization"
-      },
-      {
-        "id": "8edbef05-7cef-5584-aa5b-996b5087e940",
-        "title": "서유기 · 화과산과 수렴동",
-        "body": "손오공의 출생 및 원숭이 왕국의 거점이다. 폭포 뒤 동굴 발견과 왕위 획득이 연결된다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제1회",
-        "cardType": "location"
-      },
-      {
-        "id": "62179911-1e85-50a6-aefb-bbfa592c5b94",
-        "title": "서유기 · 동해 용궁",
-        "body": "손오공이 무기를 찾으러 방문하는 바닷속 궁전이다. 용왕의 보물과 천계에 대한 항의가 이어진다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제3회",
-        "cardType": "location"
-      },
-      {
-        "id": "8ce3ff17-5ab1-535e-bb87-a1451620eb38",
-        "title": "서유기 · 서천과 영산",
-        "body": "취경 여정의 목적지이며 경전 수령과 최종 인정이 일어나는 곳이다. 오늘날 지도의 한 지점과 소설의 초월 공간을 무조건 같게 하지 않는다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제98–100회",
-        "cardType": "location"
-      },
-      {
-        "id": "b2468f99-8d48-5fd3-8661-2a41fa09304e",
-        "title": "서유기 · 여의금고봉",
-        "body": "용궁에서 얻은 크기를 바꾸는 쇠막대이다. 손오공은 작게 줄여 보관하고 전투에서 사용한다. 후대 게임의 등급·스킬 효과는 붙이지 않는다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제3회",
+        "id": "44fb5006-3ba2-5b39-adb1-bc6c3f19c150",
+        "title": "오색돌",
+        "body": "여와가 달구어 하늘을 메우는 데 사용한 오색돌이다. 보천의 재료로 나타나며 돌별 속성이나 독립된 전투 능력은 제시되지 않는다. 거북의 다리로 지지대를 세우는 행위와 함께 재난 수습에 쓰인다.\n\n출전: 《회남자》 권6 남명훈, ‘옛날 네 끝이 무너졌다’로 시작하는 여와 대목. [원문](https://zh.wikisource.org/wiki/淮南子/覽冥訓).",
         "cardType": "object"
       },
       {
-        "id": "c172931f-63d0-593c-88b9-50049e9afb86",
-        "title": "서유기 · 긴고아와 긴고주",
-        "body": "머리에 씌운 고리와 이를 조이는 주문은 삼장과 손오공의 통제 관계에 연결된다. 범용적인 모든 요괴 봉인 장치가 아니다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제14회",
-        "cardType": "object"
+        "id": "2081c1ee-302c-5299-8750-1b8674dadca4",
+        "title": "공공",
+        "body": "《회남자》 천문훈에서 전욱과 제위를 다투다 분노하여 부주산을 들이받는 존재다. 갈등의 결과가 천체와 물길의 방향에 남는다. 이 대목의 역할을 물을 조종하는 기술 목록으로 축소하지 않는다.\n\n출전: 《회남자》 권3 천문훈의 첫머리, 공공과 전욱의 다툼 및 천체·물길의 방향 설명. [원문](https://zh.wikisource.org/wiki/淮南子/天文訓).",
+        "cardType": "character"
       },
       {
-        "id": "bec85a1f-0220-5c64-88f1-dc57edb5a8e4",
-        "title": "서유기 · 파초선",
-        "body": "화염산의 불길을 넘기 위해 필요한 법보이다. 철선공주·우마왕과의 갈등, 변신과 속임수가 획득 과정에 얽힌다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제59–61회",
-        "cardType": "object"
+        "id": "7e2fd9d5-5f94-5362-922d-82e1922d3f7f",
+        "title": "부주산",
+        "body": "공공이 충돌한 뒤 하늘의 기둥과 땅의 줄이 끊어지는 신화적 산이다. 서북으로 기운 하늘과 동남으로 모이는 물의 설명에 연결된다. 현대의 특정 산이나 지질 재해 장소로 확정하지 않는다.\n\n출전: 《회남자》 권3 천문훈의 첫머리, 공공과 전욱의 다툼 및 천체·물길의 방향 설명. [원문](https://zh.wikisource.org/wiki/淮南子/天文訓).",
+        "cardType": "location"
       },
       {
-        "id": "172669b5-351b-517f-aaf7-40c12f601f6c",
-        "title": "서유기 · 변신과 근두운",
-        "body": "손오공이 수련으로 얻은 변신술과 이동술이다. 능력이 강해도 모든 요괴와 법보를 혼자 해결하지는 못하며 도움을 구하는 사건이 반복된다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제2회 및 취경 일화",
+        "id": "96ae9c1f-32a0-52d1-894b-ae29016a8541",
+        "title": "공공의 부주산 충돌",
+        "body": "전욱과 제위를 다투던 공공의 분노가 부주산 충돌로 이어지고 세계의 지지 구조가 손상되는 사건이다. 《회남자》 천문훈은 천체와 물의 방향을 그 결과로 설명한다. 이를 남명훈의 여와 보천 직전 사건으로 자동 연결하지 않는다.\n\n출전: 《회남자》 권3 천문훈의 첫머리, 공공과 전욱의 다툼 및 천체·물길의 방향 설명. [원문](https://zh.wikisource.org/wiki/淮南子/天文訓).",
+        "cardType": "event"
+      },
+      {
+        "id": "e8df8f16-e332-552f-acd8-a5a53b915df3",
+        "title": "서왕모",
+        "body": "《산해경》 서산경의 옥산에 있는 존재다. 사람과 비슷하면서 표범 꼬리·호랑이 이빨·풀어 헤친 머리와 승 장식이 표지이며, 재앙과 형벌에 관련된 일을 맡는다. 후대의 우아한 여왕상으로 변화하는 과정을 이 본문이 서술한 것은 아니다.\n\n출전: 《산해경》 서산경, 서차삼경의 곤륜 언덕·옥산 대목. [원문](https://zh.wikisource.org/wiki/山海經/西山經).",
+        "cardType": "character"
+      },
+      {
+        "id": "a318020c-1d74-55b4-b6c2-25207e1d8f9c",
+        "title": "곤륜의 언덕",
+        "body": "《산해경》 서산경에서 천제의 아래 도읍으로 불리며 육오가 맡는 언덕이다. 신적 거처와 관리자가 함께 있는 곳으로, 같은 이름의 현대 산맥만으로 위치와 범위를 확정할 수 없다.\n\n출전: 《산해경》 서산경, 서차삼경의 곤륜 언덕·옥산 대목. [원문](https://zh.wikisource.org/wiki/山海經/西山經).",
+        "cardType": "location"
+      },
+      {
+        "id": "f27699e4-23af-5c52-99f3-8d0a45355968",
+        "title": "서왕모와 세 청조",
+        "body": "《산해경》 해내북경에서 서왕모의 남쪽에 있는 세 마리의 청조다. 서왕모를 위해 먹을 것을 구하는 관계가 명시된다. 이 대목만으로 편지 배달·전투·궁정 경비 역할까지 부여하지 않는다.\n\n출전: 《산해경》 해내북경의 서왕모·세 청조 대목. 연결 판본에서는 이 문장을 주석 1에 인용하고 해내서경으로 옮겨 읽자는 교감 의견을 별도로 표시한다. 그 교감 의견을 고대 이야기의 사건으로 합치지 않는다. [원문과 교감 주석 1](https://zh.wikisource.org/wiki/山海經/海內北經).",
+        "cardType": "character"
+      },
+      {
+        "id": "2db65358-aa15-5944-9229-4cca4a5f339c",
+        "title": "정위",
+        "body": "염제의 어린 딸 여와(女娃)가 동해에서 익사한 뒤 된 새다. 발구산에 살며 까마귀 같은 몸, 무늬 있는 머리, 흰 부리와 붉은 발이 표지다. 보천의 여와(女媧)와는 별개의 존재다.\n\n출전: 《산해경》 북산경, 북차삼경의 발구산 대목. [원문](https://zh.wikisource.org/wiki/山海經/北山經).",
+        "cardType": "character"
+      },
+      {
+        "id": "09ef3c58-c892-53d7-b44d-b41bb0f53f2a",
+        "title": "정위가 바다를 메우다",
+        "body": "정위가 서쪽 산의 나뭇가지와 돌을 물어 와 자신이 빠져 죽은 동해를 메우려 하는 반복 행위다. 바다가 사라지거나 정위가 인간으로 돌아오는 완결된 성공담으로 끝나지 않는다.\n\n출전: 《산해경》 북산경, 북차삼경의 발구산 대목. [원문](https://zh.wikisource.org/wiki/山海經/北山經).",
+        "cardType": "event"
+      },
+      {
+        "id": "50bc371c-8ac3-5373-bb15-e50a1172d502",
+        "title": "예의 활쏘기",
+        "body": "《예문유취》가 인용한 《회남자》 이야기에서 요의 명을 받아 태양을 향해 쏘는 활솜씨다. 열 태양이 일으킨 재난을 줄이는 행위이며 아홉을 맞히는 결과로 이어진다. 다른 시대 후예의 생애를 자동으로 합치지 않는다.\n\n출전: 《예문유취》 권1 천부 상, ‘일(日)’ 항목의 《회남자》 인용. [사고전서본 원문](https://zh.wikisource.org/wiki/藝文類聚_(四庫全書本)/卷001).",
         "cardType": "ability"
       },
       {
-        "id": "e3d92599-2eeb-5387-92a2-28bc1ac0af2d",
-        "title": "서유기 · 백골정과 홍해아",
-        "body": "백골정은 변장으로 삼장을 노리고, 홍해아는 불의 힘으로 일행을 위협한다. 서로 다른 사건의 요괴이며 결말과 귀속도 다르다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제27·40–42회",
-        "cardType": "character"
-      },
-      {
-        "id": "62d63b34-c409-53f7-b050-a293cb3e02ff",
-        "title": "서유기 · 살생과 분별의 갈등",
-        "body": "손오공이 위협을 알아보는 것과 삼장이 폭력을 금하는 태도가 충돌한다. 누가 항상 옳다는 단일 규칙보다 사건별 판단의 차이를 보여준다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제27회",
-        "cardType": "rule"
-      },
-      {
-        "id": "4260739e-d0c1-5d62-b806-ef2b04c5fb4e",
-        "title": "서유기 · 대요천궁과 오행산",
-        "body": "천계의 직위와 대우에 불만을 가진 손오공이 질서를 흔든다. 여래에게 제압되어 오행산 아래에 갇힌 뒤 취경의 조건으로 풀려난다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제4–7·14회",
+        "id": "f4379147-2e3c-576c-b02b-819db824247c",
+        "title": "열 태양과 사일",
+        "body": "열 태양이 함께 떠올라 초목이 타고 마르자 요가 예에게 사격을 명하는 사건이다. 예가 아홉을 맞혀 태양 속 까마귀가 떨어진다는 《예문유취》의 《회남자》 인용을 따른다. 인용에 없는 태양의 가족 관계나 대화는 덧붙이지 않는다.\n\n출전: 《예문유취》 권1 천부 상, ‘일(日)’ 항목의 《회남자》 인용. [사고전서본 원문](https://zh.wikisource.org/wiki/藝文類聚_(四庫全書本)/卷001).",
         "cardType": "event"
       },
       {
-        "id": "3b14c054-892b-5a4a-be5c-853258529e67",
-        "title": "서유기 · 삼타백골정",
-        "body": "거듭된 변장을 간파한 손오공의 공격이 삼장에게는 살생으로 보인다. 불신으로 인한 결별은 이후 동행 관계의 위기를 만든다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제27회",
-        "cardType": "event"
+        "id": "b58de4d2-7bf9-560b-b661-53a5fb6e90ea",
+        "title": "삼황의 서로 다른 목록",
+        "body": "상고의 통치자를 셋으로 묶는 명칭이지만 구성은 고정되지 않는다. 《겸명서》는 복희·여와·신농, 수인·복희·신농 등 여러 견해를 검토한다. 같은 시대의 회의체나 하나의 확정된 신족 조직이 아니다.\n\n출전: 《겸명서》 권1의 삼황 이설. [원문](https://ctext.org/wiki.pl?chapter=192032&if=en). 목록의 전승 차이를 확인하는 자료이며 고대의 단일 정본 명단으로 사용하지 않는다.",
+        "cardType": "organization"
       },
       {
-        "id": "25ae6355-2cde-5c7a-8926-fee90c0b022b",
-        "title": "서유기 · 팔십일난과 경전의 귀환",
-        "body": "취경의 고난은 마지막에 수가 점검되고 한 차례 더 시련을 겪는다. 경전을 얻는 것만으로 즉시 끝나지 않으며 귀환과 공덕의 인정이 뒤따른다.\n\n근거: [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 제99–100회",
+        "id": "9b070fbb-9a48-595f-b1e9-1bff5f1311ec",
+        "title": "과보의 해 추격",
+        "body": "《산해경》 해외북경에서 과보가 해를 뒤쫓다 갈증을 겪고 황하·위수의 물로도 부족해 큰 못으로 향하는 사건이다. 도착 전에 죽고 버린 지팡이는 숲이 된다. 다른 편과 주석의 결말을 같은 사건의 세부로 합치지 않는다.\n\n출전: 《산해경》 해외북경의 과보 대목. [원문](https://zh.wikisource.org/wiki/山海經/海外北經).",
         "cardType": "event"
-      },
-      {
-        "id": "c8fd1d53-6abf-5d20-8630-0fd5d4439940",
-        "title": "중국 전승을 합치지 않는 기준",
-        "body": "정위의 단문 신화와 백회본 서유기는 시대·형식·세계 구성이 다르다. 이 세계관에 함께 보관하되 카드 제목과 출처로 구분하고 인물 계보·우주 법칙을 교차 확정하지 않는다.\n\n근거: [山海經 北山經](https://zh.wikisource.org/wiki/山海經/北山經) — 發鳩之山 항목; [西遊記 백회본](https://zh.wikisource.org/wiki/西遊記) — 백회본 전체의 편제",
-        "cardType": "other"
       }
     ]
   },
   {
     "genre": "japanese_mythology",
     "worldId": "3a1d491a-59d7-5a43-92f8-dfdcd342dd79",
-    "name": "일본 신화 — 고사기의 신과 경계",
-    "description": "고사기 상권의 창세·황천·천상·이즈모 전승 중심. 일본서기의 이설과 후대 요괴 도감은 합성하지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "일본 신화: 고사기와 신대 전승",
+    "description": "『고사기』의 신대 서사를 중심으로 정리하고 『일본서기』 계열의 이설을 구분한다. 요괴 전체나 현대 창작의 능력 체계까지 대표하지 않는다.",
     "cards": [
       {
-        "id": "597ad28f-7b36-506a-99ba-a9b2286e9986",
-        "title": "이자나기와 이자나미",
-        "body": "섬과 신들을 낳는 신적 쌍이다. 불의 신 탄생 뒤 이자나미가 죽고 두 존재의 관계는 황천 방문과 이별로 이어진다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제III–IX절",
+        "id": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+        "title": "이자나기",
+        "body": "이자나미와 함께 아직 굳지 않은 땅을 이루라는 명을 받은 신이다. 아메노누보코로 바닷물을 저어 오노고로섬을 만들고 그곳에 내려선다. 짝을 잃은 뒤 요미에 찾아가지만 되찾지 못하고 경계를 막아 결별한다.\n\n출전: 《고사기》 I–VIII절. [전체 절 목차](https://sacred-texts.com/book/the-kojiki-2/page-index), [III절 오노고로섬](https://sacred-texts.com/book/the-kojiki-2/section-iii-the-island-of-onogoro).\n\n출전: 《고사기》 [IX절 요미](https://sacred-texts.com/book/the-kojiki-2/section-ix-the-land-of-hades).",
         "cardType": "character"
       },
       {
-        "id": "e3ddc62a-5459-5bcb-8758-44e2e930e472",
+        "id": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+        "title": "이자나미",
+        "body": "이자나기와 섬과 신들을 낳지만 불의 신 가구쓰치를 낳다가 죽는다. 요미에서 자신을 보지 말라는 조건을 내걸고, 이자나기가 이를 어겨 달아난 뒤 추격과 결별이 이어진다.\n\n출전: 《고사기》 I–VIII절. [전체 절 목차](https://sacred-texts.com/book/the-kojiki-2/page-index), [III절 오노고로섬](https://sacred-texts.com/book/the-kojiki-2/section-iii-the-island-of-onogoro).\n\n출전: 《고사기》 [IX절 요미](https://sacred-texts.com/book/the-kojiki-2/section-ix-the-land-of-hades).",
+        "cardType": "character"
+      },
+      {
+        "id": "7b8c3876-79b8-5300-9212-f3e1cb61ed23",
+        "title": "오노고로섬",
+        "body": "하늘의 보석 창 끝에서 떨어진 소금물이 굳어 생긴 섬이다. 이자나기와 이자나미가 내려가 기둥과 거처를 세우고 결합하는 장소로서, 이후 여러 섬의 탄생을 앞선다.\n\n출전: 《고사기》 I–VIII절. [전체 절 목차](https://sacred-texts.com/book/the-kojiki-2/page-index), [III절 오노고로섬](https://sacred-texts.com/book/the-kojiki-2/section-iii-the-island-of-onogoro).",
+        "cardType": "location"
+      },
+      {
+        "id": "989bbfc9-0948-5cf0-adc3-14113429679f",
+        "title": "아메노누보코",
+        "body": "이자나기와 이자나미가 하늘의 떠 있는 다리에서 바닷물을 젓는 데 쓰는 보석 창이다. 끝에서 떨어진 소금물이 오노고로섬이 되는 생성의 도구이며 수치화된 전투 능력은 부여하지 않는다.\n\n출전: 《고사기》 I–VIII절. [전체 절 목차](https://sacred-texts.com/book/the-kojiki-2/page-index), [III절 오노고로섬](https://sacred-texts.com/book/the-kojiki-2/section-iii-the-island-of-onogoro).",
+        "cardType": "object"
+      },
+      {
+        "id": "101206d6-eda5-5db7-9063-93a659103ed0",
+        "title": "요미",
+        "body": "죽은 이자나미가 머물며 이자나기가 찾아갔다가 돌아오는 죽음의 영역이다. 비탈의 길을 막은 큰 돌이 산 자와 죽은 자의 경계를 이룬다. 후대 불교 지옥의 형벌 체계를 이 장면에 대입하지 않는다.\n\n출전: 《고사기》 [IX절 요미](https://sacred-texts.com/book/the-kojiki-2/section-ix-the-land-of-hades).",
+        "cardType": "location"
+      },
+      {
+        "id": "9c8b3842-31f5-5377-a3ee-dcdc83c3d17b",
+        "title": "요미 방문과 결별",
+        "body": "이자나기가 보지 말라는 금기를 어겨 이자나미의 몸을 보고 달아나면서 추격이 시작된다. 큰 돌로 길을 막은 뒤 이자나미는 하루 천 명의 죽음을, 이자나기는 천오백 명의 출생을 말하여 두 영역의 분리가 이루어진다.\n\n출전: 《고사기》 [IX절 요미](https://sacred-texts.com/book/the-kojiki-2/section-ix-the-land-of-hades).",
+        "cardType": "event"
+      },
+      {
+        "id": "5f567829-9f95-570e-8428-85ad7eb9a3c4",
+        "title": "요미 귀환 뒤의 미소기",
+        "body": "요미에서 돌아온 이자나기가 옷과 장식을 벗고 몸을 씻어 부정을 없애는 행위다. 버린 물건과 정화 과정에서 신들이 태어나므로 이 서사에서는 정화와 생성이 연결된다. 현대 모든 신사의 통일된 절차라는 뜻은 아니다.\n\n출전: 《고사기》 [X절 정화](https://sacred-texts.com/book/the-kojiki-2/section-x-the-purification-of-the-august-person), [XI절 임명](https://sacred-texts.com/book/the-kojiki-2/section-xi-investiture-of-the-three-deities-the-illustrious-august-children). 대비: 《일본서기》 [권1 신대 상](https://zh.wikisource.org/wiki/日本書紀/卷第一), 섬과 산천초목 출생 뒤 일신·월신 출생 본문.",
+        "cardType": "rule"
+      },
+      {
+        "id": "cbf67bea-ba4b-5985-bb56-bdf08d0ba97d",
+        "title": "세 귀한 신의 탄생",
+        "body": "《고사기》에서 이자나기가 정화할 때 왼눈에서 아마테라스, 오른눈에서 쓰쿠요미, 코에서 스사노오가 태어나는 사건이다. 두 부모가 일신·월신 등을 낳는 《일본서기》 본문과는 다른 출생 계통이다.\n\n출전: 《고사기》 [X절 정화](https://sacred-texts.com/book/the-kojiki-2/section-x-the-purification-of-the-august-person), [XI절 임명](https://sacred-texts.com/book/the-kojiki-2/section-xi-investiture-of-the-three-deities-the-illustrious-august-children). 대비: 《일본서기》 [권1 신대 상](https://zh.wikisource.org/wiki/日本書紀/卷第一), 섬과 산천초목 출생 뒤 일신·월신 출생 본문.",
+        "cardType": "event"
+      },
+      {
+        "id": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
         "title": "아마테라스",
-        "body": "이자나기의 정화 과정에서 태어나는 태양의 신으로 하늘의 통치를 맡는다. 스사노오의 난폭한 행동 뒤 바위굴에 숨는다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제X–XVI절",
+        "body": "이자나기의 정화에서 태어나 다카마노하라를 맡는 태양의 신이다. 스사노오의 난동 뒤 바위집에 숨자 세상이 어두워지며, 신들의 준비와 거울을 이용한 유도로 다시 나온다. 니니기에게는 거울을 자신처럼 모시라고 명한다.\n\n출전: 《고사기》 [X절 정화](https://sacred-texts.com/book/the-kojiki-2/section-x-the-purification-of-the-august-person), [XI절 임명](https://sacred-texts.com/book/the-kojiki-2/section-xi-investiture-of-the-three-deities-the-illustrious-august-children). 대비: 《일본서기》 [권1 신대 상](https://zh.wikisource.org/wiki/日本書紀/卷第一), 섬과 산천초목 출생 뒤 일신·월신 출생 본문.\n\n출전: 《고사기》 XII–XVII절. [XVI절 바위집](https://sacred-texts.com/book/the-kojiki-2/section-xvi-the-door-of-the-heavenly-rock-dwelling), 앞뒤 절은 [목차](https://sacred-texts.com/book/the-kojiki-2/page-index).\n\n출전: 《고사기》 XXXIII–XXXIV절. [XXXIII절 천손강림](https://sacred-texts.com/book/the-kojiki-2/section-xxxiii-the-august-descent-from-heaven-of-his-augustness-the-august-grandchild), [전체 목차](https://sacred-texts.com/book/the-kojiki-2/page-index).",
         "cardType": "character"
       },
       {
-        "id": "f2d86dea-84de-57d8-9c5c-247adf82092c",
-        "title": "쓰쿠요미와 스사노오",
-        "body": "정화 때 아마테라스와 함께 태어나는 신들이다. 스사노오의 울음과 추방, 하늘에서의 행동이 이어지며 뒤에는 이즈모에서 뱀을 죽인다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제X–XVIII절",
+        "id": "4e155829-7855-5a8b-9a28-60bacbda55cd",
+        "title": "쓰쿠요미",
+        "body": "《고사기》에서 이자나기가 오른눈을 씻을 때 태어나 밤의 영역을 맡는 신이다. 이 자료의 중심 서사에서는 아마테라스와 스사노오만큼 긴 후속 행적이 이어지지 않는다. 별도 출생을 전하는 《일본서기》 본문과 구별한다.\n\n출전: 《고사기》 [X절 정화](https://sacred-texts.com/book/the-kojiki-2/section-x-the-purification-of-the-august-person), [XI절 임명](https://sacred-texts.com/book/the-kojiki-2/section-xi-investiture-of-the-three-deities-the-illustrious-august-children). 대비: 《일본서기》 [권1 신대 상](https://zh.wikisource.org/wiki/日本書紀/卷第一), 섬과 산천초목 출생 뒤 일신·월신 출생 본문.",
         "cardType": "character"
       },
       {
-        "id": "b4518999-0cbd-57bb-9d10-2b4cba009127",
-        "title": "오쿠니누시",
-        "body": "이나바의 토끼를 돕는 존재로 등장하며 형제들의 경쟁과 시련을 겪는다. 이름과 호칭이 여럿이므로 번역된 이름을 각각 다른 신으로 만들지 않는다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제XX–XXIII절",
+        "id": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+        "title": "스사노오",
+        "body": "이자나기에게 바다를 맡도록 명받지만 울기만 하여 쫓겨나고, 하늘에서는 아마테라스와 갈등을 겪는다. 이즈모에서는 오로치를 물리쳐 구시나다히메와 결연하고 뱀의 꼬리에서 얻은 검을 아마테라스에게 바친다.\n\n출전: 《고사기》 [X절 정화](https://sacred-texts.com/book/the-kojiki-2/section-x-the-purification-of-the-august-person), [XI절 임명](https://sacred-texts.com/book/the-kojiki-2/section-xi-investiture-of-the-three-deities-the-illustrious-august-children). 대비: 《일본서기》 [권1 신대 상](https://zh.wikisource.org/wiki/日本書紀/卷第一), 섬과 산천초목 출생 뒤 일신·월신 출생 본문.\n\n출전: 《고사기》 XII–XVII절. [XVI절 바위집](https://sacred-texts.com/book/the-kojiki-2/section-xvi-the-door-of-the-heavenly-rock-dwelling), 앞뒤 절은 [목차](https://sacred-texts.com/book/the-kojiki-2/page-index).\n\n출전: 《고사기》 XVIII–XX절. [XVIII절 오로치](https://sacred-texts.com/book/the-kojiki-2/section-xviii-the-eight-forked-serpent), [전체 목차](https://sacred-texts.com/book/the-kojiki-2/page-index).",
         "cardType": "character"
       },
       {
-        "id": "dc4946ab-484e-5cb8-9d10-b096e4a2f339",
-        "title": "이나바의 토끼",
-        "body": "바다를 건너기 위해 와니를 속였다가 가죽을 벗겨진다. 오쿠니누시의 조언으로 회복하고 혼인 결과를 예고한다. 와니의 동물 해석에는 번역 차이가 있다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제XXI절",
-        "cardType": "character"
-      },
-      {
-        "id": "8d2fcc0d-1dbe-5648-a640-b0e40262eccb",
-        "title": "다카마가하라",
-        "body": "천상 신들의 영역이다. 아마테라스와 스사노오의 맹세 및 바위굴 사건의 공간이며 인간 국가와 동일한 행정 구역으로 보지 않는다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제I·XIII–XVI절",
+        "id": "bd438b53-f182-5ae3-ab51-b0312de4a13d",
+        "title": "다카마노하라",
+        "body": "아마테라스가 다스리도록 맡은 하늘의 영역이다. 지상과 구별되며 신들의 회합과 뒤의 천손강림을 잇는 출발점이다. 생성의 첫머리에도 신들이 나타나는 자리로 등장한다.\n\n출전: 《고사기》 I–VIII절. [전체 절 목차](https://sacred-texts.com/book/the-kojiki-2/page-index), [III절 오노고로섬](https://sacred-texts.com/book/the-kojiki-2/section-iii-the-island-of-onogoro).\n\n출전: 《고사기》 [X절 정화](https://sacred-texts.com/book/the-kojiki-2/section-x-the-purification-of-the-august-person), [XI절 임명](https://sacred-texts.com/book/the-kojiki-2/section-xi-investiture-of-the-three-deities-the-illustrious-august-children). 대비: 《일본서기》 [권1 신대 상](https://zh.wikisource.org/wiki/日本書紀/卷第一), 섬과 산천초목 출생 뒤 일신·월신 출생 본문.",
         "cardType": "location"
       },
       {
-        "id": "6dbc847d-2038-5d19-825f-2e01bbd176f5",
-        "title": "황천과 경계의 비탈",
-        "body": "죽은 이자나미가 있는 영역과 이자나기가 도망쳐 경계를 막는 장소이다. 생자와 사자의 단절이 이야기 속에서 공간화된다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제IX절",
-        "cardType": "location"
-      },
-      {
-        "id": "fd3982c2-77ee-5516-8463-f04adaa75c2c",
-        "title": "이즈모",
-        "body": "스사노오의 야마타노오로치 퇴치와 오쿠니누시 계열 이야기에 연결되는 지역이다. 천상 전승과 구별되는 이야기의 거점이다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제XVIII–XXIII절",
-        "cardType": "location"
-      },
-      {
-        "id": "4976276e-542e-53e9-aaee-7a076b19d7ce",
-        "title": "아마노누보코",
-        "body": "섬을 만드는 첫 과정에서 신들에게 주어지는 창이다. 바다를 휘저은 뒤 떨어진 방울이 섬이 되는 장면에 쓰인다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제III절",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "body": "니니기에게 전달되는 야사카니노마가타마·야타노카가미·구사나기노쓰루기다. 거울과 구슬은 바위집에서 빛을 되찾는 사건, 검은 오로치 퇴치에 연결된다. 과거의 사건을 천손의 지배와 제사에 잇는 물건이며 같은 출처의 보물 셋이 아니다.\n\n출전: 《고사기》 XXXIII–XXXIV절. [XXXIII절 천손강림](https://sacred-texts.com/book/the-kojiki-2/section-xxxiii-the-august-descent-from-heaven-of-his-augustness-the-august-grandchild), [전체 목차](https://sacred-texts.com/book/the-kojiki-2/page-index).",
         "cardType": "object"
       },
       {
-        "id": "d89fa095-e0b4-5147-91a4-e6751f67b24c",
-        "title": "거울과 곡옥",
-        "body": "아마테라스를 바위굴 밖으로 나오게 하는 의례적 준비에 쓰이는 신물이다. 원전의 사건 맥락과 후대 보물 체계를 구분한다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제XVI절",
-        "cardType": "object"
-      },
-      {
-        "id": "ecc48c93-1e4c-51b1-b52b-4cb5cf2b2c2e",
-        "title": "쿠사나기의 검",
-        "body": "스사노오가 뱀의 꼬리를 자르다가 발견해 아마테라스에게 바치는 검이다. 처음부터 스사노오가 만든 무기로 설명하지 않는다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제XVIII절",
-        "cardType": "object"
-      },
-      {
-        "id": "0425d050-632e-5019-b1e8-ad7a02c7c3ca",
-        "title": "황천에서 보지 말라는 금기",
-        "body": "이자나미는 기다리는 동안 자신을 보지 말라고 요구하지만 이자나기가 이를 어긴다. 추격과 단절이 뒤따른다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제IX절",
-        "cardType": "rule"
-      },
-      {
-        "id": "92b35567-aeb5-51a6-8c1f-469cd9904471",
-        "title": "죽음 뒤의 정화",
-        "body": "황천을 떠난 이자나기가 몸을 씻으면서 여러 신이 태어난다. 문헌 속 신화적 정화이며 실제 질병 치료의 규칙이 아니다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제X절",
-        "cardType": "rule"
-      },
-      {
-        "id": "67e1f508-03ae-55ca-adaf-c3d75c437a9f",
-        "title": "신들의 생성과 변형",
-        "body": "신의 몸·행동·물건에서 다른 신이나 존재가 생겨난다. 생성의 방식은 사건마다 다르므로 모든 존재가 쓰는 하나의 마법 공식으로 묶지 않는다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제VI–X절",
-        "cardType": "ability"
-      },
-      {
-        "id": "b440417f-d6a6-5ef5-a356-750e16577423",
-        "title": "천상 바위굴 사건",
-        "body": "아마테라스가 숨자 어둠이 생기고 신들은 모여 계획을 세운다. 춤·웃음·거울을 통한 유도로 그녀를 밖으로 나오게 한다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제XV–XVI절",
+        "id": "68b7860e-2c82-5551-89b3-89212945bfd2",
+        "title": "니니기의 천손강림",
+        "body": "나라 양도 뒤 아마테라스의 손자 니니기가 사루타히코의 안내와 여러 신의 동행으로 히무카의 다카치호에 내려오는 사건이다. 앞선 신들의 관계와 명령이 새 세대로 이어지며 신보도 함께 전달된다.\n\n출전: 《고사기》 XXXIII–XXXIV절. [XXXIII절 천손강림](https://sacred-texts.com/book/the-kojiki-2/section-xxxiii-the-august-descent-from-heaven-of-his-augustness-the-august-grandchild), [전체 목차](https://sacred-texts.com/book/the-kojiki-2/page-index).",
         "cardType": "event"
       },
       {
-        "id": "6b9598b1-c00b-55f8-ab9a-ec65d98c137e",
-        "title": "야마타노오로치 퇴치",
-        "body": "스사노오는 쿠시나다히메를 구하기 위해 술을 준비하여 뱀을 취하게 한 뒤 죽인다. 검을 발견하고 혼인이 이어진다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 제XVIII–XIX절",
-        "cardType": "event"
-      },
-      {
-        "id": "fc368cc3-f92f-5a86-8c49-cedefbaf054d",
-        "title": "고사기와 다른 기록의 구분",
-        "body": "이 자료의 계보와 사건 순서는 고사기에 한정한다. 일본서기의 여러 일서와 후대 민간 요괴를 추가할 때에는 별도 출처와 이설 표시가 필요하다.\n\n근거: [Kojiki, Chamberlain 1882](https://hermeticcloud.com/library/chamberlain-kojiki/) — 상권의 편제",
-        "cardType": "other"
+        "id": "8476001e-05d4-5511-8563-9a7da26138a2",
+        "title": "아마쓰카미와 구니쓰카미",
+        "body": "하늘 쪽 신들과 땅의 신들을 구별하는 명칭이다. 오쿠니누시의 나라 양도에서는 하늘의 요구와 지상 자식들의 동의·저항, 거처의 조건이 나타난다. 모든 신을 선악의 두 종족으로 나누는 분류가 아니다.\n\n출전: 《고사기》 XXX–XXXII절. [XXXII절 나라 양도](https://sacred-texts.com/book/the-kojiki-2/section-xxxii-abdication-of-the-deity-master-of-the-great-land), [전체 목차](https://sacred-texts.com/book/the-kojiki-2/page-index).",
+        "cardType": "organization"
       }
     ]
   },
   {
     "genre": "korean_mythology_fables",
     "worldId": "8cbc622b-8b29-514e-889f-1bbd542cff41",
-    "name": "한국 신화 및 우화 — 삼국유사의 건국 전승",
-    "description": "삼국유사 기이편의 단군·주몽 건국 전승을 중심으로 정리한다. 한국 구전 신화 전체나 우화 전집을 수록한 것은 아니다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "한국 신화·무속 전승",
+    "description": "『삼국유사』의 단군 전승, 고구려 건국 전승, 바리공주와 제주 본풀이를 구분하여 정리한다. 우화 일반이나 현대 재창작은 이번 자료의 범위가 아니다.",
     "cards": [
       {
-        "id": "774edd3f-cd22-502a-8117-6c8198e521ec",
-        "title": "환인과 환웅",
-        "body": "환인의 아들 환웅이 인간 세상에 뜻을 두고 내려온다고 서술한다. 하늘과 땅의 관계 및 통치의 정당성을 설명하는 건국 전승의 인물들이다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
+        "id": "3cf41362-8718-54bc-b9f2-bd35c34da745",
+        "title": "환웅",
+        "body": "환인의 아들로 천부인을 받아 태백산 신단수 아래에 신시를 연다. 풍백·우사·운사와 함께 곡식·생명·질병·형벌 등 인간의 일을 맡는 존재로 서술된다.\n\n출전: [한국민족문화대백과사전: 단군, 생애 및 활동사항의 『삼국유사』 고조선조](https://encykorea.aks.ac.kr/Article/E0013538).",
         "cardType": "character"
       },
       {
-        "id": "57797b8f-7adc-517a-8645-fd312fc11fdc",
+        "id": "b5d54961-7e0e-5048-80b1-89b2a7a7ce2b",
         "title": "웅녀",
-        "body": "곰이 금기를 지켜 여자의 몸을 얻은 뒤 환웅과 결합해 단군을 낳는다고 한다. 모든 곰 숭배 전승을 이 이야기의 직접 변형이라고 확정하지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
+        "body": "환웅이 제시한 음식과 햇빛의 금기를 견뎌 여자가 된 곰이다. 다시 아이를 갖게 해 달라고 빌고 환웅과 결합하여 단군을 낳는다. 변화와 출산은 구별되는 두 과정이다.\n\n출전: [한국민족문화대백과사전: 단군, 생애 및 활동사항의 『삼국유사』 고조선조](https://encykorea.aks.ac.kr/Article/E0013538).",
         "cardType": "character"
       },
       {
-        "id": "ca248ab7-abf9-5065-84a2-17b97cf07476",
-        "title": "단군왕검",
-        "body": "조선을 세우고 다스리며 마지막에는 아사달로 들어가 산신이 되었다고 전한다. 긴 수명과 연대는 문헌 속 신화적 서술로 표시한다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
-        "cardType": "character"
-      },
-      {
-        "id": "5cc140c1-f5d8-573f-87af-8e9a6c61e436",
-        "title": "주몽과 유화",
-        "body": "유화는 해모수와 연결되는 출생 이야기를 지니고, 주몽은 알에서 태어나 비범한 활솜씨를 보인다. 단군의 계보와 합쳐 하나의 왕통으로 만들지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 高句麗",
-        "cardType": "character"
-      },
-      {
-        "id": "41e58871-4e83-5673-933b-b0310ad7b02a",
-        "title": "환웅의 수행 집단",
-        "body": "삼천의 무리와 풍백·우사·운사를 거느리고 내려와 인간사를 다스린다고 한다. 개별 관직의 현대 행정 권한까지 창작하지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
-        "cardType": "organization"
-      },
-      {
-        "id": "57e0f742-1611-5d2a-a8ef-cc76f0a4f43d",
-        "title": "태백산 신단수와 신시",
-        "body": "환웅의 하강 및 통치가 시작되는 장소이다. 태백산의 지리적 비정은 별도 논의이며 이 카드에서 현대의 한 산으로 확정하지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
-        "cardType": "location"
-      },
-      {
-        "id": "7065a559-5d77-5e81-87a8-428063d8b87e",
-        "title": "아사달",
-        "body": "단군의 거처와 마지막 은거에 연결되는 지명이다. 문헌 안의 다른 지명 설명과 현대 지리 해석을 구분한다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
-        "cardType": "location"
-      },
-      {
-        "id": "fbf4248a-db2b-5283-b073-a5624b73805c",
-        "title": "주몽의 강 건너기",
-        "body": "추격을 피하던 주몽이 강에서 자신의 신성한 계보를 말하고 도움을 받는다. 물고기와 자라의 다리라는 기적이 도주를 가능하게 한다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 高句麗",
+        "id": "c09b01e0-186b-574e-bdde-c164e5f861ec",
+        "title": "단군과 조선 건국",
+        "body": "환웅의 하강과 웅녀의 출산은 단군이 조선을 세우는 결말로 이어진다. 도읍과 통치, 산신이 되는 이야기는 『삼국유사』 계열의 신화적 시간이며 확정된 고고학 연대표가 아니다.\n\n출전: [한국민족문화대백과사전: 단군, 생애 및 활동사항의 『삼국유사』 고조선조](https://encykorea.aks.ac.kr/Article/E0013538).",
         "cardType": "event"
       },
       {
-        "id": "11ce3685-8cc5-5374-b65f-d995f2e7cb2e",
-        "title": "천부인 세 개",
-        "body": "환인이 환웅에게 주는 신적 표지이다. 해당 항목은 세 물건의 구체적 모양을 열거하지 않으므로 검·거울·방울로 확정하지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
+        "id": "afe37449-84fc-57ec-90bf-c974f5891475",
+        "title": "천부인",
+        "body": "환인이 인간 세상으로 내려가는 환웅에게 준 세 개의 하늘의 표지다. 하강과 통치 권위를 뒷받침하지만 『삼국유사』가 물건 이름을 거울·검·방울로 열거한 것은 아니다.\n\n출전: [한국민족문화대백과사전: 단군, 생애 및 활동사항의 『삼국유사』 고조선조](https://encykorea.aks.ac.kr/Article/E0013538).",
         "cardType": "object"
       },
       {
-        "id": "82da8999-043e-5d41-81df-73ebbbaecefe",
-        "title": "쑥과 마늘",
-        "body": "곰과 호랑이가 사람이 되기를 빌자 주어지는 음식이다. 실제 생물학적 변신법이나 민간 치료법으로 안내하지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
-        "cardType": "object"
+        "id": "c1a57539-2561-5b28-90e3-090ac516e8ec",
+        "title": "주몽",
+        "body": "유화가 낳은 알에서 태어나 활솜씨로 이름을 얻는 고구려 건국담의 인물이다. 버려진 알을 짐승과 새들이 보호한다. 해모수와 유화의 관계 및 잉태의 세부는 문헌별로 구별한다.\n\n출전: [한국민족문화대백과사전: 동명왕 신화](https://encykorea.aks.ac.kr/Article/E0016436).",
+        "cardType": "character"
       },
       {
-        "id": "1135f830-3ba8-59dc-821a-4cc78c3177c4",
-        "title": "빛을 피하는 금기",
-        "body": "곰과 호랑이는 정해진 기간 햇빛을 보지 말라는 조건을 받는다. 곰은 이를 지켜 사람이 되고 호랑이는 이루지 못한다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
+        "id": "44971d7d-3e91-507a-b33e-44849414e731",
+        "title": "유화",
+        "body": "하백의 딸이며 주몽을 낳은 어머니다. 부여의 금와에게 몸을 의탁하고, 버려져도 훼손되지 않은 알을 돌려받는다. 주몽의 계보에서 강의 신에 닿는 관계를 이룬다.\n\n출전: [한국민족문화대백과사전: 동명왕 신화](https://encykorea.aks.ac.kr/Article/E0016436).",
+        "cardType": "character"
+      },
+      {
+        "id": "350a61af-149a-53f4-aabc-6227969b3f84",
+        "title": "주몽의 강 건너기",
+        "body": "부여에서 도망친 주몽이 강과 추격자 사이에 갇히자 신성한 혈통을 말하며 도움을 청한다. 물고기와 자라가 다리가 되어 일행을 건네준다. 강 이름과 경로의 문헌 차이는 남긴다.\n\n출전: [한국민족문화대백과사전: 동명왕 신화](https://encykorea.aks.ac.kr/Article/E0016436).",
+        "cardType": "event"
+      },
+      {
+        "id": "52d4e67d-ce4c-5ab8-9d98-19b8a0e403a5",
+        "title": "바리공주",
+        "body": "아들을 바라던 부모에게서 일곱 번째 딸로 태어나 버려지는 무가의 인물이다. 부모가 병들자 언니들 대신 약수를 구하러 떠나 그들을 살린다. 배제된 딸이 구원자가 되는 관계가 중심이다.\n\n출전: [한국민족문화대백과사전: 바리공주](https://encykorea.aks.ac.kr/Article/E0020479).",
+        "cardType": "character"
+      },
+      {
+        "id": "2e158e76-5f88-5aa3-aa25-af66717728ce",
+        "title": "바리공주의 약수 구하기",
+        "body": "언니들의 거절 뒤 바리가 약수를 찾아 떠나 지킴이에게 대가를 치르고 돌아와 부모를 살리는 사건이다. 버림받은 출생과 부모의 회복이 대조를 이룬다.\n\n출전: [한국민족문화대백과사전: 바리공주](https://encykorea.aks.ac.kr/Article/E0020479).",
+        "cardType": "event"
+      },
+      {
+        "id": "047292d0-811e-55cc-8cd8-a2ad5ba36abe",
+        "title": "바리공주와 망자천도굿",
+        "body": "바리공주 무가는 망자천도굿에서 신령의 내력을 푼다. 서울 진오기굿 말미거리, 호남 씻김굿 오구풀이, 동해안 발원굿은 각각의 연행 맥락을 가지며 하나의 전국 공통 절차가 아니다.\n\n출전: [한국민족문화대백과사전: 바리공주](https://encykorea.aks.ac.kr/Article/E0020479).",
         "cardType": "rule"
       },
       {
-        "id": "11867721-358a-5e9e-a8db-9d5272697ed9",
-        "title": "주몽의 활솜씨",
-        "body": "뛰어난 활쏘기는 주몽의 비범함을 나타내며 이름의 설명과 연결된다. 현대 스포츠 기록이나 정량적 능력 수치로 환산하지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 高句麗",
-        "cardType": "ability"
+        "id": "a7b6f95a-101e-58d0-871a-3305a90ee049",
+        "title": "자청비",
+        "body": "「세경본풀이」에서 남장하고 문도령과 공부한 인간 여성이다. 사랑을 확인하고 헤어진 뒤 정수남에게 위협받아 그를 죽이며, 이후 그 생명을 되돌려야 하는 과제에 놓인다.\n\n출전: [한국민족문화대백과사전: 세경본풀이](https://encykorea.aks.ac.kr/Article/E0029745).",
+        "cardType": "character"
       },
       {
-        "id": "9c4e6267-549e-55e5-99ee-da66c5123c32",
-        "title": "환웅의 하강과 조선 건국",
-        "body": "하늘에서 내려온 환웅의 인간사 관장, 웅녀와의 결합, 단군의 건국이 이어진다. 각 단계의 주체를 단군 한 사람의 행적으로 합치지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 古朝鮮 王儉朝鮮",
+        "id": "3a7b12e8-1955-5eff-bb97-5b2fe6d7e907",
+        "title": "세경신의 좌정",
+        "body": "환생꽃으로 정수남을 살리고 천상의 시험과 혼인을 거친 자청비가 오곡·메밀 씨앗을 지상에 가져와 세경신으로 좌정한다. 정수남의 목축 관련 자리도 이 관계의 결말에 연결된다.\n\n출전: [한국민족문화대백과사전: 세경본풀이](https://encykorea.aks.ac.kr/Article/E0029745).",
         "cardType": "event"
       },
       {
-        "id": "e2cfcc56-965d-577e-be35-2bd95216a4f4",
-        "title": "주몽의 탈출과 고구려 건국",
-        "body": "비범한 출생과 능력 때문에 갈등을 겪은 주몽은 동료들과 떠나 새 나라를 세운다. 편찬 문헌의 전승이며 현대 역사학의 검증 결과와 구분한다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 高句麗",
-        "cardType": "event"
+        "id": "83ded14f-a998-52b6-b927-98ff880cac2a",
+        "title": "서천 꽃밭",
+        "body": "「이공본풀이」에서 사라도령이 꽃을 관리하고 가족이 재회하여 자리 잡는 공간이다. 환생꽃의 회복과 악심꽃의 파멸을 함께 품으므로 생명만 자라는 무해한 낙원이 아니다.\n\n출전: [한국민족문화대백과사전: 이공본풀이](https://encykorea.aks.ac.kr/Article/E0043638).",
+        "cardType": "location"
       },
       {
-        "id": "9c3dca12-c62f-519f-ba58-711233698d7e",
-        "title": "바리데기·제주 신화와 우화의 범위",
-        "body": "바리데기·제주 본풀이에는 지역·연행·채록별 차이가 있다. 이번 삼국유사 자료에 없는 세부를 합성하지 않았으며, 향후 별도 채록본의 출처를 붙여 확장해야 한다. 이 카테고리 이름이 한국 우화 전체 수록을 뜻하지 않는다.\n\n근거: [三國遺事 卷第一 紀異](https://zh.wikisource.org/wiki/三國遺事/卷第一) — 이번에 사용한 기이편의 범위",
-        "cardType": "other"
+        "id": "b9f2e7ab-46ec-5227-87f0-5d537c497164",
+        "title": "할락궁이",
+        "body": "꽃감관 사라도령과 원강아미의 아들이다. 아버지가 떠난 뒤 장자의 집에서 태어나 어머니와 고역을 겪는다. 부모의 헤어짐과 어머니의 고통이 그의 꽃밭 여정의 출발점이다.\n\n출전: [한국민족문화대백과사전: 이공본풀이](https://encykorea.aks.ac.kr/Article/E0043638).",
+        "cardType": "character"
+      },
+      {
+        "id": "31bdb447-531a-5504-a0c5-72bccea8364f",
+        "title": "환생꽃과 악심꽃",
+        "body": "할락궁이가 아버지에게 받아 사용하는 두 종류의 신화적 꽃이다. 악심꽃은 웃음과 싸움을 일으켜 장자 일족을 파멸시키고, 환생꽃은 죽은 어머니를 되살린다.\n\n출전: [한국민족문화대백과사전: 이공본풀이](https://encykorea.aks.ac.kr/Article/E0043638).",
+        "cardType": "object"
       }
     ]
   },
   {
     "genre": "egyptian_mythology",
     "worldId": "c1817611-1c16-5eb0-b39f-9cffecd0cbfd",
-    "name": "이집트 신화 — 라의 이름과 이시스",
-    "description": "라와 이시스의 이름 획득 이야기 및 그 문헌에 연결된 주문을 중심으로 정리한다. 이집트 전체의 창세론을 하나로 합치지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "이집트 신화와 사후 세계",
+    "description": "고대 이집트의 신격·태양 순환·오시리스 전승·장례 관념을 요약한다. 시대와 도시마다 달라지는 신들의 계보와 역할을 단일 정본으로 고정하지 않는다.",
     "cards": [
       {
-        "id": "c3c4d936-7c9f-5a3f-a4bc-aa1ec7238d7c",
-        "title": "라",
-        "body": "늙어가는 태양신으로 묘사되며 자신의 비밀 이름을 간직한다. 뱀에 물린 뒤 다른 신들의 도움을 구하지만 원인을 알지 못해 고통받는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 전반",
+        "id": "66883521-f166-5bbd-a388-6f083c0e6575",
+        "title": "라·레",
+        "body": "라·레는 낮의 하늘과 밤의 보이지 않는 영역을 지나 아침에 되돌아오는 태양신이다. 배와 태양 원반은 그 이동을 드러내는 표지다.\n\n출전: [메트로폴리탄미술관: 고대 이집트 미술 교육 자료](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).",
         "cardType": "character"
       },
       {
-        "id": "83ce7878-db0d-5cf8-b863-e986cbabbc60",
+        "id": "14b6bf92-2d75-554d-9851-877f9130c040",
+        "title": "오시리스",
+        "body": "수의를 두른 모습으로 죽은 몸의 보존과 새로운 생명의 기대를 드러낸다. 장례 관계에서 아누비스의 시신 돌봄, 이시스·네프티스의 애도와 구별되는 회복의 중심에 놓인다.\n\n출전: [메트로폴리탄미술관: Divine Egypt](https://www.metmuseum.org/exhibitions/divine-egypt/inside-the-exhibition).",
+        "cardType": "character"
+      },
+      {
+        "id": "276f3548-68ae-5daa-ac71-c944db14c476",
         "title": "이시스",
-        "body": "지식과 주문에 능한 존재로 라의 이름을 알고자 한다. 라의 침과 흙으로 뱀을 만들고, 치유의 조건으로 비밀 이름을 요구한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀 제작과 이름 협상",
+        "body": "오시리스의 배우자이자 호루스의 어머니다. 어린 호루스에게 젖을 먹이는 도상은 생명을 주고 보호하는 역할을 나타내지만, 모든 모자상이 이시스인 것은 아니다.\n\n출전: [메트로폴리탄미술관: Isis and Horus](https://www.metmuseum.org/art/collection/search/570685).",
         "cardType": "character"
       },
       {
-        "id": "c1559f0b-e588-5d9e-be37-8ca75acbf266",
+        "id": "abb0e8e7-12be-54b4-80ad-60a941eaff51",
         "title": "호루스",
-        "body": "이시스의 아들로서 획득한 지식의 전달과 연결된다. 이 문헌만으로 호루스 전승의 모든 형태와 계보를 통일하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 이름의 전달 조건",
+        "body": "매의 형상과 살아 있는 왕권에 연결된다. 오시리스·이시스의 아들인 전승은 계승을 설명하지만 여러 지역의 호루스 형상을 모두 그 가족 이야기로 환원하지 않는다.\n\n출전: [메트로폴리탄미술관: Isis and Horus](https://www.metmuseum.org/art/collection/search/570685).\n\n추가 출전: [메트로폴리탄미술관 교육 자료, 29·103·129쪽: 왕권과 호루스](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).",
         "cardType": "character"
       },
       {
-        "id": "4eea3563-907f-550f-b0d7-f70f3288120e",
-        "title": "라를 둘러싼 신들",
-        "body": "라의 고통을 듣고 모이지만 낯선 독을 해결하지 못한다. 그들의 무능은 이시스가 가진 지식과 협상력을 부각한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 신들의 집합",
-        "cardType": "organization"
+        "id": "47dbd939-bfc0-5624-b543-2fe409e1d77d",
+        "title": "마아트",
+        "body": "진실과 질서를 나타내는 여신이다. 심장 계량에서는 깃털이 그 기준을 드러내며 죽은 자가 살아온 행위와 심판을 연결한다.\n\n출전: [호주박물관: 고대 이집트의 명계와 사후 세계](https://australian.museum/learn/cultures/international-collection/ancient-egyptian/the-underworld-and-the-afterlife-in-ancient-egypt/).",
+        "cardType": "character"
       },
       {
-        "id": "a889f177-7597-5941-9833-9973ad5f57b5",
-        "title": "라가 지나가는 길",
-        "body": "이시스가 뱀을 놓는 장소이며 태양신의 일상적 이동이 위협받는 공간이다. 본문에 없는 지도 좌표를 부여하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀의 배치",
+        "id": "996c1802-33fa-5a05-aa3e-193b1b319b46",
+        "title": "아누비스",
+        "body": "개과 동물 형상으로 시신 보존과 매장에 관여하고 심판의 저울을 살핀다. 오시리스를 대체하는 유일한 명계 왕이 아니라 망자의 이동과 판단을 돕는 역할이다.\n\n출전: [미시간대학교 켈시박물관: 심판의 아누비스](https://exhibitions.kelsey.lsa.umich.edu/jackal-gods-ancient-egypt/halls_truth.php).",
+        "cardType": "character"
+      },
+      {
+        "id": "17f2264e-d8d2-5698-b45c-1253dc0ee87d",
+        "title": "두아트",
+        "body": "죽은 자가 문지기와 낯선 존재들을 거치며 통과와 인정을 얻는 명계다. 여기서는 『사자의 서』 계열의 여정을 읽으며 실제 사후 절차나 모든 문헌의 공통 지도라고 하지 않는다.\n\n출전: [호주박물관: 고대 이집트의 명계와 사후 세계](https://australian.museum/learn/cultures/international-collection/ancient-egyptian/the-underworld-and-the-afterlife-in-ancient-egypt/).",
         "cardType": "location"
       },
       {
-        "id": "f7159ef4-39a0-5988-861c-e11cd06891ca",
-        "title": "침과 흙으로 만든 뱀",
-        "body": "라에게서 나온 물질을 사용해 만들어진 공격 수단이다. 신 자신에게 기원을 둔 독이라는 역설이 이름의 비밀과 연결된다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀 제작",
+        "id": "59abc379-c8a4-5385-ab27-33171e9e0321",
+        "title": "심장 계량",
+        "body": "죽은 자의 심장을 마아트의 깃털과 비교하여 삶의 행위를 판단하는 장면이다. 통과는 오시리스에게 받아들여짐, 실패는 존재 상실의 위협에 연결된다.\n\n출전: [호주박물관: 고대 이집트의 명계와 사후 세계](https://australian.museum/learn/cultures/international-collection/ancient-egyptian/the-underworld-and-the-afterlife-in-ancient-egypt/).",
+        "cardType": "event"
+      },
+      {
+        "id": "214533f8-b6bf-531d-a44d-865ee646d90c",
+        "title": "마아트의 깃털",
+        "body": "심장 계량에서 진실과 질서를 시각화하는 기준이다. 저울을 확인하는 아누비스와 판단받는 심장 사이의 관계 속에서 읽으며 수치화된 마법 능력으로 바꾸지 않는다.\n\n출전: [미시간대학교 켈시박물관: 심판의 아누비스](https://exhibitions.kelsey.lsa.umich.edu/jackal-gods-ancient-egypt/halls_truth.php).",
         "cardType": "object"
       },
       {
-        "id": "11771076-30c5-51ed-8d04-5859c254471f",
-        "title": "비밀 이름",
-        "body": "단순한 호칭 이상의 힘을 가진 지식으로 취급된다. 라가 공개적으로 열거하는 이름과 이시스가 요구하는 감춰진 이름을 구별한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 라와 이시스의 대화",
-        "cardType": "object"
+        "id": "f3c017bc-7987-5e42-ab22-aac9d54abc14",
+        "title": "태양의 밤 여정과 재생",
+        "body": "해가 밤의 보이지 않는 영역을 거쳐 아침에 돌아오는 반복이다. 일몰을 영구한 끝이 아니라 질서와 생명의 재생을 향한 통과로 설명한다.\n\n출전: [메트로폴리탄미술관: 고대 이집트 미술 교육 자료](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).",
+        "cardType": "event"
       },
       {
-        "id": "f03a028e-c2f9-55b9-92f0-3e27de80dd5d",
-        "title": "이시스의 주문",
-        "body": "독을 제어하는 말과 지식이 치유 과정에 쓰인다. 현대의 해독법이나 실제 의료 조언이 아니다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 독을 물리치는 주문",
-        "cardType": "ability"
+        "id": "dc5bf45d-1495-561a-9c4c-d78930ef8d06",
+        "title": "헬리오폴리스의 엔네아드",
+        "body": "헬리오폴리스에서 우주의 형성과 연결되는 아홉 신의 집합이다. 멤피스에서 프타의 말로 창조를 설명하는 전승과 병존하며 둘을 하나의 사건 순서로 합치지 않는다.\n\n출전: [메트로폴리탄미술관: Divine Egypt](https://www.metmuseum.org/exhibitions/divine-egypt/inside-the-exhibition).",
+        "cardType": "organization"
       },
       {
-        "id": "76dd6389-66af-50b2-be95-d7a2cbef6c41",
-        "title": "이름 공개의 조건",
-        "body": "치유와 비밀 공개가 맞교환되는 구조이다. 모든 이집트 신화에 똑같이 적용되는 강제 계약 시스템으로 일반화하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 이름 이전 장면",
+        "id": "1fe279a9-d809-5714-8656-5571e72ccd1d",
+        "title": "오시리스의 회복",
+        "body": "세트에게 훼손된 오시리스를 이시스와 네프티스가 돌보고 아누비스가 장례 의례를 돕는 사건이다. 회복은 예전 생활로의 단순 복귀가 아니라 명계 통치와 호루스의 계승으로 이어진다.\n\n출전: [메트로폴리탄미술관: Divine Egypt](https://www.metmuseum.org/exhibitions/divine-egypt/inside-the-exhibition).",
+        "cardType": "event"
+      },
+      {
+        "id": "e1c21692-2f18-5608-912d-c14d4559c3e7",
+        "title": "라의 비밀 이름",
+        "body": "이시스와 라의 이야기에서 이름을 아는 일은 힘과 연결된다. 치료의 조건으로 전달된 비밀 이름은 호루스에게만 알리도록 제한된다.\n\n출전: [UCL Digital Egypt: 이시스와 라의 이름](https://www.ucl.ac.uk/museums-static/digitalegypt/literature/isisandra.html).",
         "cardType": "rule"
       },
       {
-        "id": "40d24f9f-c889-5cfa-bed0-36f88c004993",
-        "title": "라의 피독과 협상",
-        "body": "라가 뱀에 물리고 고통을 겪자 이시스가 이름을 요구한다. 처음의 호칭 열거로 해결되지 않으며 감춰진 지식의 이전으로 진행된다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 중반",
+        "id": "fb893d22-2a49-5c43-8517-a4268dacbcf6",
+        "title": "이시스가 라의 이름을 얻다",
+        "body": "이시스가 만든 뱀에 라가 물린 뒤 그녀는 치료의 조건으로 비밀 이름을 요구한다. 라가 이름을 전하자 독을 물러가게 하며, 그 지식은 호루스에게만 알리도록 제한된다.\n\n출전: [UCL Digital Egypt: 이시스와 라의 이름](https://www.ucl.ac.uk/museums-static/digitalegypt/literature/isisandra.html).",
         "cardType": "event"
       },
       {
-        "id": "9edab2de-c42c-53af-9dfa-43b91abe7c1d",
-        "title": "독의 제거와 주문의 전용",
-        "body": "이시스의 말로 독이 물러나고 문헌은 그 신화적 사건을 인간의 의례에 연결하는 낭송 지시로 이어진다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 후반과 끝의 낭송 지시",
-        "cardType": "event"
-      },
-      {
-        "id": "0909c951-1c24-558f-9057-eb4d1dd0965a",
-        "title": "지역 전승과 이설",
-        "body": "이집트 신화에는 다양한 지역 신학과 시대별 문헌이 있다. 이 자료는 라·이시스 이야기 한 편의 설정으로, 오시리스 계보나 모든 창조신의 관계를 대신 설명하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 선정 문헌 전체",
-        "cardType": "other"
+        "id": "3dffbe2e-cf42-5dd4-a32d-d445897ff0bc",
+        "title": "왕권과 사후의 오시리스",
+        "body": "살아 있는 왕을 호루스, 죽은 왕을 오시리스와 연결하는 관념이다. 아버지의 죽음 뒤 아들의 계승을 보여 주지만 모든 시대와 계층의 장례를 하나로 고정하지 않는다.\n\n출전: [메트로폴리탄미술관: Isis and Horus](https://www.metmuseum.org/art/collection/search/570685).\n\n추가 출전: [메트로폴리탄미술관 교육 자료, 29·103·129쪽: 왕권과 호루스](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).",
+        "cardType": "rule"
       }
     ]
   },
   {
     "genre": "indian_mythology",
     "worldId": "54591714-aae0-5694-8da9-2b73a64cc53f",
-    "name": "인도 신화 — 마누의 홍수와 이다",
-    "description": "샤타파타 브라흐마나 1.8.1의 홍수 및 제의 전승. 후대 푸라나의 마츠야 이야기와 차이를 남긴다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "인도 신화: 베다·서사시·푸라나",
+    "description": "『리그베다』, 『라마야나』, 『마하바라타』의 『바가바드기타』, 『비슈누 푸라나』의 선택 대목을 구분해 정리한다. 인도의 모든 종교와 지역 전승을 하나의 교리로 묶지 않는다.",
     "cards": [
       {
-        "id": "66adf1ba-9088-5ecc-8383-1ded3f21aa40",
-        "title": "마누",
-        "body": "손을 씻던 중 작은 물고기를 만나 보호한다. 홍수 경고를 받아 살아남고 제의를 통해 후손을 얻는다. 이 문헌의 인물을 모든 마누 계보와 한 사람으로 합치지 않는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 1–10절",
+        "id": "2ed5224b-5bdf-514d-ab9e-03e2abf3d512",
+        "title": "인드라",
+        "body": "『리그베다』 1.32에서 소마를 마시고 바즈라로 브리트라와 싸우는 신이다. 승리는 막힌 물이 바다로 흐르게 되는 결과와 연결된다.\n\n출전: [『리그베다』 1.32: 인드라와 브리트라](https://sacred-texts.com/hin/rigveda/rv01032.htm).",
         "cardType": "character"
       },
       {
-        "id": "51e3c2d0-15ef-57fa-a5e6-50f513317eb3",
-        "title": "작은 물고기",
-        "body": "큰 물고기에게 잡아먹힐 위험에서 구해 달라고 요청하며, 보호의 대가로 마누에게 홍수를 경고한다. 이 대목은 비슈누라는 이름을 직접 붙이지 않는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 1–6절",
+        "id": "cb790940-0365-5d49-8240-e15aeed77f28",
+        "title": "브리트라",
+        "body": "『리그베다』 1.32에서 인드라에게 쓰러지는 뱀이다. 어머니 단우가 아들을 덮고 물이 그 몸 위로 흐른다. 이 대목만으로 모든 아수라의 계급과 계보를 만들지 않는다.\n\n출전: [『리그베다』 1.32: 인드라와 브리트라](https://sacred-texts.com/hin/rigveda/rv01032.htm).",
         "cardType": "character"
       },
       {
-        "id": "c694347f-455d-55a2-99db-e98bd8848027",
-        "title": "이다",
-        "body": "마누의 제의 뒤 나타나는 여성으로 자신을 그의 딸이라고 설명한다. 마누와 제의·후손·음식의 관계를 매개한다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 7–10절",
+        "id": "041e5507-62e1-5ee5-b2a1-7cce68c71614",
+        "title": "바즈라",
+        "body": "트바슈트리가 마련하여 인드라가 브리트라와 싸울 때 사용하는 벼락 무기다. 『리그베다』 1.32의 물 해방 사건에 놓인 도구다.\n\n출전: [『리그베다』 1.32: 인드라와 브리트라](https://sacred-texts.com/hin/rigveda/rv01032.htm).",
+        "cardType": "object"
+      },
+      {
+        "id": "909828f7-d54b-5194-8de2-a3180cefed1c",
+        "title": "브리트라 격파와 물의 해방",
+        "body": "인드라가 브리트라를 쓰러뜨리고 산을 가르자 갇힌 물이 바다로 흘러가는 사건이다. 전투의 승리와 막힌 흐름의 해방이 결합한다.\n\n출전: [『리그베다』 1.32: 인드라와 브리트라](https://sacred-texts.com/hin/rigveda/rv01032.htm).",
+        "cardType": "event"
+      },
+      {
+        "id": "877f3eff-a9c6-5d5d-a9e9-3eb7f9632434",
+        "title": "푸루샤의 희생",
+        "body": "『리그베다』 10.90에서 신들이 우주적 존재 푸루샤를 제물로 삼는다. 그 제사에서 동물·찬가·제의의 형식이 생기며, 제사는 세계 형성의 사건으로 제시된다.\n\n출전: [『리그베다』 10.90: 푸루샤 찬가](https://sacred-texts.com/hin/rigveda/rv10090.htm).",
+        "cardType": "event"
+      },
+      {
+        "id": "50fd3eaf-001b-5560-a158-a8951a59a831",
+        "title": "창조에 대한 유보",
+        "body": "『리그베다』 10.129는 가장 높은 곳의 존재도 세계의 기원을 아는지 모르는지 물음을 남긴다. 다른 창조 찬가와 병존하는 유보를 하나의 확정된 창조 순서로 바꾸지 않는다.\n\n출전: [『리그베다』 10.129: 창조 찬가](https://sacred-texts.com/hin/rigveda/rv10129.htm).",
+        "cardType": "rule"
+      },
+      {
+        "id": "dcbf81ad-2557-5ce1-8a95-8d1aa9839585",
+        "title": "비슈누",
+        "body": "『비슈누 푸라나』 1.9에서 신들에게 아수라와 협력하여 바다를 휘젓도록 조언한다. 거북의 모습으로 만다라산을 받쳐 작업을 돕는다.\n\n출전: [『비슈누 푸라나』 제1권 9장](https://sacred-texts.com/hin/vp/vp044.htm).",
         "cardType": "character"
       },
       {
-        "id": "d42e5b35-0ee8-5ca4-8e51-19405068362f",
-        "title": "미트라와 바루나",
-        "body": "제의에서 나온 이다를 만나지만 이다는 자신이 마누에게 속함을 설명한다. 이 일화의 역할과 두 신의 전체 종교적 성격을 구별한다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 8–9절",
+        "id": "a3c01e8f-201a-5431-906b-5cd722271383",
+        "title": "락슈미·슈리",
+        "body": "바다 휘젓기에서 연꽃과 함께 드러나 비슈누와 결합하는 슈리다. 회복되는 길상과 번영을 나타내며, 같은 장의 브리구의 딸이라는 계보와 구별하여 읽는다.\n\n출전: [『비슈누 푸라나』 제1권 9장](https://sacred-texts.com/hin/vp/vp044.htm).",
         "cardType": "character"
       },
       {
-        "id": "e4c34218-4deb-56f7-b081-17df74557c7b",
-        "title": "북쪽 산과 배를 묶는 곳",
-        "body": "물고기가 배를 이끌어 가는 피난처이다. 물이 줄어들 때 천천히 내려오라는 지시가 뒤따른다. 다른 홍수 문헌의 산 이름을 이 본문에 넣지 않는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 5–6절",
+        "id": "c3d99fc6-c5ce-5827-a31b-c67a0f101736",
+        "title": "우유의 바다",
+        "body": "신들과 아수라가 암리타를 얻기 위해 휘젓는 신화적 공간이다. 만다라산을 막대, 바수키를 줄로 삼고 거북 모습의 비슈누가 산을 받친다.\n\n출전: [『비슈누 푸라나』 제1권 9장](https://sacred-texts.com/hin/vp/vp044.htm).",
         "cardType": "location"
       },
       {
-        "id": "8564408b-865b-5380-886d-3ea861b8f823",
-        "title": "배와 밧줄",
-        "body": "예고된 홍수를 견디기 위한 준비물이다. 밧줄로 배를 물고기의 뿔에 연결하여 인도받는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 4–6절",
-        "cardType": "object"
-      },
-      {
-        "id": "87227fb3-0c7c-5df8-9c58-0f3cf05face0",
-        "title": "제의의 음식과 공물",
-        "body": "마누가 물에 바치는 재료와 후반의 이다 몫은 제의를 설명하는 핵심 요소이다. 단순한 전투 소모품이나 보물로 분류하지 않는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 7절 및 11–44절",
-        "cardType": "object"
-      },
-      {
-        "id": "38b705c1-0b20-5902-8cd4-0b5064a6ff0c",
-        "title": "작은 존재의 보호와 호혜",
-        "body": "작은 물고기를 더 큰 물고기에게서 지킨 행위가 생존의 도움으로 돌아온다. 현대 생태학의 법칙이 아니라 이야기의 호혜 구조이다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 1–4절",
-        "cardType": "rule"
-      },
-      {
-        "id": "6b8191a5-c2a8-548e-81fc-d09313cc7785",
-        "title": "이다 제의의 분배",
-        "body": "후반부는 음식의 몫·손의 위치·참여자의 행위를 설명한다. 서사와 제의 해설이 이어지는 문헌 구조를 유지하고 보편적 의례로 단정하지 않는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 11–44절",
-        "cardType": "rule"
-      },
-      {
-        "id": "6869bc9d-34e9-568f-a06f-26394e5dd4db",
-        "title": "물고기의 성장과 인도",
-        "body": "물고기는 보호 용기에 맞지 않을 만큼 자라 더 큰 물로 옮겨지고 홍수 때 배를 인도한다. 초자연적 성장의 묘사를 임의의 단계별 능력표로 만들지 않는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 2–6절",
-        "cardType": "ability"
-      },
-      {
-        "id": "b698f1e9-6953-51e4-9e33-eea64a8d4fd3",
-        "title": "홍수의 경고와 생존",
-        "body": "예고에 따라 준비한 마누가 배를 타고 홍수를 견딘다. 본문은 그가 홀로 남았다고 서술한다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 4–6절",
+        "id": "391f9cb2-38f9-5a3a-ad46-7f713e1cd58a",
+        "title": "바다 휘젓기",
+        "body": "힘과 번영을 잃은 신들이 비슈누의 조언에 따라 아수라와 협력하여 우유의 바다를 휘젓는다. 암리타가 나타나자 협력은 경쟁으로 바뀌고 비슈누의 개입으로 신들이 음료와 힘을 얻는다.\n\n출전: [『비슈누 푸라나』 제1권 9장](https://sacred-texts.com/hin/vp/vp044.htm).",
         "cardType": "event"
       },
       {
-        "id": "374811fe-de77-5781-b659-ba527f89fa60",
-        "title": "제의 뒤 이다의 출현",
-        "body": "생존 뒤 마누가 공물을 바치고 여성의 출현과 후손의 획득이 이어진다. 이를 홍수 전의 사건으로 배치하지 않는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 7–10절",
-        "cardType": "event"
+        "id": "deb30e15-58a0-5099-ab81-c81c43a95cd3",
+        "title": "암리타",
+        "body": "단반타리가 바다에서 들고 나오며 신들과 아수라의 경쟁을 일으키는 불사의 음료다. 비슈누의 개입으로 신들이 이를 얻어 힘을 되찾는다.\n\n출전: [『비슈누 푸라나』 제1권 9장](https://sacred-texts.com/hin/vp/vp044.htm).",
+        "cardType": "object"
       },
       {
-        "id": "09f820df-2888-59ce-95fe-0fec8d0868b5",
-        "title": "마츠야 전승과의 차이",
-        "body": "후대 문헌에서 물고기를 비슈누의 화신으로 설명하는 경우가 있으나 이 선정 본문에는 그 동일시를 직접 적지 않는다. 후대 인명·동승자·악마와의 싸움을 보충하지 않는다.\n\n근거: [Śatapatha Brāhmaṇa 1.8.1, Eggeling 1882](https://sacred-texts.com/hin/sbr/sbe12/sbe1234.htm) — 1.8.1 전체",
-        "cardType": "other"
+        "id": "5e86efa9-e844-5325-89c2-87d9e52c5e43",
+        "title": "시타",
+        "body": "라마의 아내로 라바나에게 붙잡혀 랑카의 아쇼카 정원에 머문다. 그의 요구를 거절하며, 라마의 사자 하누만에게 발견된다. 여기서는 두트 축약 번역 제8부의 선택 장면을 따른다.\n\n출전: [『라마야나』 축약 번역 제8부: 시타의 발견](https://sacred-texts.com/hin/dutt/rama08.htm).",
+        "cardType": "character"
+      },
+      {
+        "id": "e9c02117-3988-5fd2-b7c1-c9f1082f2de8",
+        "title": "하누만",
+        "body": "라마의 표지를 시타에게 전하고 시타의 표지와 말을 돌려받는 사자다. 그의 역할은 발견 사실을 확인할 수 있는 소식으로 바꾸어 두 사람 사이의 신뢰를 잇는 데 있다.\n\n출전: [『라마야나』 축약 번역 제8부: 시타의 발견](https://sacred-texts.com/hin/dutt/rama08.htm).",
+        "cardType": "character"
+      },
+      {
+        "id": "a9cc1df8-cce4-512e-ae35-c7c425a27a07",
+        "title": "쿠루크셰트라",
+        "body": "『바가바드기타』에서 아르주나와 크리슈나의 전차가 양군 사이에 멈추는 전장이다. 아르주나는 상대편에서 친족과 스승을 알아보고 전투의 의미를 의심한다.\n\n출전: [『바가바드기타』 제1장](https://sacred-texts.com/hin/gita/bg01.htm).",
+        "cardType": "location"
+      },
+      {
+        "id": "bd637e7c-ba3d-5713-a8f4-f4b90ebbd9ba",
+        "title": "아르주나와 크리슈나의 문답",
+        "body": "『바가바드기타』 제2장에서 판단에 막힌 아르주나가 가르침을 청하고 크리슈나가 몸과 자아, 의무와 행위의 결과를 구별하여 설명하는 문답이다.\n\n출전: [『마하바라타』 제6권 26절: 바가바드기타 제2장](https://sacred-texts.com/hin/m06/m06026.htm).",
+        "cardType": "event"
       }
     ]
   },
   {
     "genre": "celtic_mythology",
     "worldId": "9a085473-158b-5a61-ae38-df7843dc3dcb",
-    "name": "켈트 신화 — 노크그래프턴의 요정 설화",
-    "description": "아일랜드 수집 설화 노크그래프턴의 전설 중심. 켈트 전체의 신족·우주관을 대표하는 통일 체계가 아니다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "켈트 전승: 아일랜드와 웨일스",
+    "description": "아일랜드 『마그 투레드 전투』와 웨일스 『마비노기』를 구분해 요약한다. 서로 다른 언어·문헌의 인물들을 하나의 신족 계보로 합치지 않는다.",
     "cards": [
       {
-        "id": "8272dd2a-c578-522d-844d-40f737e399f9",
-        "title": "러스모어",
-        "body": "디기탈리스 꽃을 모자에 달아 별명을 얻은 바구니 제작자이다. 몸에 혹이 있지만 사람들과 어울리며, 요정들의 노래를 듣고 자연스럽게 한 구절을 더한다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 이야기 전반",
-        "cardType": "character"
-      },
-      {
-        "id": "081a76d5-6941-558e-8a9a-2846273494f0",
-        "title": "잭 매든",
-        "body": "러스모어가 얻은 보상을 듣고 같은 장소를 찾아간다. 노래의 흐름을 헤아리지 않고 끼어들어 반대의 결과를 맞는다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 이야기 후반",
-        "cardType": "character"
-      },
-      {
-        "id": "c3724c4f-9933-551d-b3c1-f6b42a273c1d",
-        "title": "언덕의 요정 무리",
-        "body": "함께 노래하고 춤추는 존재들이다. 노래의 변화를 반기거나 거부하며 방문자에게 영향을 준다. 투아하 데 다난과 자동으로 동일시하지 않는다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 언덕 안의 노래와 춤",
+        "id": "889894fa-3804-5b15-998b-15b38417c7bf",
+        "title": "투아하 데 다난",
+        "body": "아일랜드에 들어와 피르 볼그와 싸워 이기는 집단이다. 승리 뒤 누아다의 손 상실로 왕위 문제가 생겨 브레스를 왕으로 세운다.\n\n출전: 《마그 투레드 제2차 전투》 §§1–39. [스토크스 판본](https://celt.ucc.ie/published/T300011.html), [그레이 대조본](https://celt.ucc.ie/published/T300010.html).",
         "cardType": "organization"
       },
       {
-        "id": "f8bd610d-130d-51c6-a079-5810a6f9ddfd",
-        "title": "노크그래프턴",
-        "body": "러스모어가 밤에 쉬다가 요정들의 소리를 듣는 언덕이다. 인간의 일상과 요정들의 잔치가 만나는 경계로 기능한다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 첫 방문",
-        "cardType": "location"
+        "id": "ba557f61-5688-58a3-8683-29294dc13b8f",
+        "title": "포모르",
+        "body": "브레스의 아버지 엘라하가 속한 집단으로 투아하 데 다난과 혈연으로 연결된다. 엘라하는 브레스의 부당한 통치를 비판하므로 한 가지 도덕 성격으로 묶을 수 없다.\n\n출전: 《마그 투레드 제2차 전투》 §§1–39. [스토크스 판본](https://celt.ucc.ie/published/T300011.html), [그레이 대조본](https://celt.ucc.ie/published/T300010.html).",
+        "cardType": "organization"
       },
       {
-        "id": "657ed6ec-8e75-5604-97a8-d2efe6ed8439",
-        "title": "새 옷",
-        "body": "러스모어가 잔치 뒤 얻는 변화 중 하나이다. 그의 몸에서 혹이 사라지는 사건과 함께 주변 사람들의 놀라움을 일으킨다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 첫 방문의 결말",
+        "id": "62d664fe-1c9c-5b5c-8ee9-011a68abf48d",
+        "title": "루",
+        "body": "여러 기술을 함께 지녔다는 이유로 누아다의 궁정에 들어온다. 키안과 에트네의 아들이자 발로르의 외손자로, 전투에서 돌팔매로 발로르의 눈을 공격한다.\n\n출전: 같은 작품 §§53–83, 119–135. [스토크스 판본](https://celt.ucc.ie/published/T300011.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "dfadbe2f-e339-51ab-802c-3055c3f5c241",
+        "title": "누아다",
+        "body": "투아하 데 다난의 왕으로 피르 볼그와 싸우다 손을 잃는다. 디안 케흐트와 크레드네의 은손을 얻고, 뒤에 미아흐가 손을 회복시킨다.\n\n출전: 《마그 투레드 제2차 전투》 §§1–39. [스토크스 판본](https://celt.ucc.ie/published/T300011.html), [그레이 대조본](https://celt.ucc.ie/published/T300010.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "66ca3812-40fc-5136-b474-02f2239248ef",
+        "title": "다그다",
+        "body": "빼앗긴 하프를 찾으러 루와 오그마와 함께 포모르에게 간다. 하프를 불러 되찾고 울음·웃음·잠을 일으키는 음악을 연주한다.\n\n출전: 같은 작품 §§149–165. [스토크스 판본](https://celt.ucc.ie/published/T300011.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "0a988afa-a0da-58d4-a819-30e26bc1bc00",
+        "title": "다그다의 솥",
+        "body": "투아하 데 다난의 네 보물 중 하나다. 찾아온 무리가 배부르지 못한 채 떠나지 않는 솥으로 소개된다.\n\n출전: 《마그 투레드 제2차 전투》 §§1–39. [스토크스 판본](https://celt.ucc.ie/published/T300011.html), [그레이 대조본](https://celt.ucc.ie/published/T300010.html).",
         "cardType": "object"
       },
       {
-        "id": "8feca05b-8ae0-5b75-8adf-268b2afda800",
-        "title": "노래의 순서와 조화",
-        "body": "월요일·화요일의 반복에 수요일을 덧붙이는 행위가 환영받는다. 두 번째 방문자의 성급한 삽입은 같은 방식의 보상을 만들지 못한다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 두 번의 노래",
+        "id": "38481a78-527d-59b8-bd92-d12ff7ad0a95",
+        "title": "마그 투레드 전투",
+        "body": "누아다가 죽고 루가 돌팔매로 발로르의 눈을 꿰뚫는 전투다. 발로르와 루는 외조부와 외손자 관계다.\n\n출전: 같은 작품 §§53–83, 119–135. [스토크스 판본](https://celt.ucc.ie/published/T300011.html).",
+        "cardType": "event"
+      },
+      {
+        "id": "159a010c-c0c7-5f8c-b3ac-a079ba3a2117",
+        "title": "안눈",
+        "body": "웨일스 첫째 가지에서 아라운이 다스리는 다른 세계다. 푸일은 모습을 바꾸어 한 해 동안 그곳을 다스린다.\n\n출전: 《마비노기》 첫째 가지 「Pwyll Prince of Dyved」 전반. [게스트 판본](https://www.gutenberg.org/files/5160/5160-h/5160-h.htm).",
+        "cardType": "location"
+      },
+      {
+        "id": "9cac2d5f-a485-5fbb-87c1-f70d3fe21327",
+        "title": "아라운",
+        "body": "흰 몸과 붉은 귀의 사냥개를 가진 안눈의 왕이다. 푸일과 서로의 통치를 맡아 주고, 약속과 절제가 확인된 뒤 우정을 맺는다.\n\n출전: 《마비노기》 첫째 가지 「Pwyll Prince of Dyved」 전반. [게스트 판본](https://www.gutenberg.org/files/5160/5160-h/5160-h.htm).",
+        "cardType": "character"
+      },
+      {
+        "id": "9fe94fcc-e67d-5612-854e-316490400d01",
+        "title": "푸일",
+        "body": "더베드의 군주로 사냥터의 잘못을 갚으려 아라운과 한 해 동안 자리를 바꾼다. 하브간을 한 번만 치고 아라운의 왕비와 관계를 맺지 않는다.\n\n출전: 《마비노기》 첫째 가지 「Pwyll Prince of Dyved」 전반. [게스트 판본](https://www.gutenberg.org/files/5160/5160-h/5160-h.htm).",
+        "cardType": "character"
+      },
+      {
+        "id": "85855ad7-46c7-502d-9850-175c22565dd5",
+        "title": "리아논",
+        "body": "푸일과의 혼인을 선택하고 그와울 때문에 생긴 위기에서 계책을 마련한다. 따라잡히지 않는 말의 등장과 스스로 밝히는 혼인 의사가 중요하다.\n\n출전: 같은 첫째 가지, 리아논과 그와울의 혼인 이야기. [게스트 판본](https://www.gutenberg.org/files/5160/5160-h/5160-h.htm).",
+        "cardType": "character"
+      },
+      {
+        "id": "3ac7ad66-2de4-50db-be7c-2a9896ebccdd",
+        "title": "하브간과의 한 번의 타격",
+        "body": "아라운은 푸일에게 하브간을 두 번 치지 말라고 당부한다. 푸일은 결투에서 한 번 쓰러뜨린 뒤 다시 쳐 달라는 요구를 거절한다.\n\n출전: 《마비노기》 첫째 가지 「Pwyll Prince of Dyved」 전반. [게스트 판본](https://www.gutenberg.org/files/5160/5160-h/5160-h.htm).",
         "cardType": "rule"
-      },
-      {
-        "id": "3a032255-adc4-5637-bca7-8dd3a53b1dc9",
-        "title": "요정의 몸에 대한 변화",
-        "body": "요정들은 혹을 없애거나 다른 사람에게 더하는 초자연적 행위를 한다. 장애와 인격의 실제 관계를 설명하는 자료가 아니라 옛 설화의 보상·형벌 표현이다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 두 방문의 결과",
-        "cardType": "ability"
-      },
-      {
-        "id": "13bec237-1f39-5624-b83f-aeb856a479aa",
-        "title": "러스모어의 잔치 초대",
-        "body": "노래에 보탠 구절이 마음에 든 요정들이 러스모어를 안으로 데려가 춤추며 그의 혹을 없앤다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 이야기 전반",
-        "cardType": "event"
-      },
-      {
-        "id": "2b4a08f8-2c85-58a7-9496-4c8d5dc9027d",
-        "title": "잭 매든의 실패한 모방",
-        "body": "보상만 기대한 방문은 노래를 망치는 행동으로 이어지고, 요정들은 그에게 이전의 혹까지 더한다. 수집본은 그의 죽음까지 전한다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 이야기 후반",
-        "cardType": "event"
-      },
-      {
-        "id": "d428c512-2af6-5c82-b3ba-0a555be6b347",
-        "title": "켈트 전승의 범위",
-        "body": "아일랜드·웨일스·스코틀랜드의 전승을 하나의 신계로 합치지 않는다. 이 설화에는 쿠 훌린·마비노기온 등의 계보가 없으므로 별도 원전 없이 덧붙이지 않는다.\n\n근거: [Joseph Jacobs, More Celtic Fairy Tales (1894), The Legend of Knockgrafton](https://www.gutenberg.org/cache/epub/34453/pg34453-images.html) — 선정 설화 전체",
-        "cardType": "other"
       }
     ]
   },
   {
     "genre": "slavic_mythology",
     "worldId": "78cc7495-2652-50f4-941b-cbf0e4203811",
-    "name": "슬라브 신화 — 바바 야가 설화",
-    "description": "Ralston이 수록한 러시아 바바 야가 설화 한 편 중심. 슬라브 전체의 신앙을 단일 민족신화로 확정하지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "슬라브 신화와 동슬라브 민담",
+    "description": "중세 루스 기록과 19세기 채록 민담을 분리한다. 슬라브 전역의 통일된 신계·창세 신화는 복원하지 않는다. 페룬과 벨레스의 체계적인 전쟁 서사는 후대 학술 재구성과 현존 기록을 구별해야 한다.",
     "cards": [
       {
-        "id": "4054b7b4-6e63-5c1e-90c2-e2304f39a728",
-        "title": "소녀",
-        "body": "계모의 심부름으로 바바 야가의 집에 보내진다. 먼저 친이모의 조언을 듣고 만나는 존재들에게 친절을 베풀어 탈출의 도움을 얻는다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 설화 전반",
+        "id": "9e9aa1f8-0420-586a-8c80-1aae564f3a70",
+        "title": "페룬",
+        "body": "루스의 맹세 기록에서 약속의 권위를 보증하는 신이다. 천둥과 관련되며 무장한 전사들의 맹세와 연결된다.\n\n출전: 《Encyclopedia of Religion》의 「Slavic Religion」, 루스의 맹세·기독교화 기록에 관한 개관. 이 절은 중세 원문 전문의 번역이 아니라 기록 범위를 제한한 재서술이다. [문헌 개관](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion).",
         "cardType": "character"
       },
       {
-        "id": "fa79ed65-214b-5ab4-8eae-70ab77dd399f",
-        "title": "계모와 친이모",
-        "body": "계모는 소녀를 해치려 하고 친이모는 위험을 피할 방법을 알려 준다. 계모의 자매인 바바 야가와 친이모를 혼동하지 않는다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 심부름과 조언",
+        "id": "cb9d0cf5-39fb-55b3-a741-eaeb6fbb6ad6",
+        "title": "벨레스·볼로스",
+        "body": "루스의 조약 맹세에 등장하고 가축의 신으로 불린다. 이 대목은 가족 계보보다 사람들이 신의 이름으로 약속을 보증한 사실을 전한다.\n\n출전: 《Encyclopedia of Religion》의 「Slavic Religion」, 루스의 맹세·기독교화 기록에 관한 개관. 이 절은 중세 원문 전문의 번역이 아니라 기록 범위를 제한한 재서술이다. [문헌 개관](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion).",
         "cardType": "character"
       },
       {
-        "id": "b9fc9ec2-92a5-5d26-8337-fdb733eba023",
-        "title": "바바 야가",
-        "body": "소녀를 잡아먹으려는 존재로 등장하고 도주자를 추격한다. 다른 설화에서 조력자로 나오는 모습까지 이 판본에 동시에 부여하지 않는다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 집에서의 위협과 추격",
-        "cardType": "character"
-      },
-      {
-        "id": "3c9089c3-b41d-520a-a032-270137d7ad78",
-        "title": "고양이와 하녀",
-        "body": "소녀의 친절을 받고 도주를 돕거나 시간을 벌어 준다. 바바 야가에게 종속된 주변 존재들의 불만이 탈출을 가능하게 한다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 탈출 준비",
-        "cardType": "character"
-      },
-      {
-        "id": "28c66d9c-94c6-576e-9b65-bf9afba5af8e",
-        "title": "바바 야가의 집",
-        "body": "먹힐 위험이 있는 공간이면서 여러 조력자를 만나는 장소이다. 다른 유명 판본의 모든 건축 요소를 이 본문에 덧붙이지 않는다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 집에 도착한 뒤",
-        "cardType": "location"
-      },
-      {
-        "id": "fbe5f490-758b-571c-a772-7da9b80252ce",
-        "title": "빗과 수건",
-        "body": "추격을 피하기 위해 뒤로 던지는 물건이다. 수건은 강을, 빗은 숲을 만들어 도주자와 추격자 사이를 가로막는다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 추격 장면",
-        "cardType": "object"
-      },
-      {
-        "id": "dfaefa9f-329b-5bee-b936-6c956f2139a0",
-        "title": "절구·공이·빗자루",
-        "body": "바바 야가의 이동과 흔적 처리에 연결되는 물건들이다. 흔한 집안 도구가 기이한 이동 수단이 되는 설화적 변형이다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 추격의 시작",
-        "cardType": "object"
-      },
-      {
-        "id": "58270766-5d7c-50ec-b728-4a9e00cc4c15",
-        "title": "돌려받는 친절",
-        "body": "음식·기름·천 등을 건네는 작은 행동이 동물·문·나무·사람의 도움으로 돌아온다. 임의의 점수 보상 체계로 바꾸지 않는다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 집에서의 만남과 탈출",
+        "id": "b37bb056-a5e2-5600-864f-327e73f4fd42",
+        "title": "신들의 이름을 건 맹세",
+        "body": "루스의 조약 기록에서 페룬과 볼로스를 불러 약속에 무게를 싣는다. 이를 모든 슬라브 지역의 동일한 의례라고 확장하지 않는다.\n\n출전: 《Encyclopedia of Religion》의 「Slavic Religion」, 루스의 맹세·기독교화 기록에 관한 개관. 이 절은 중세 원문 전문의 번역이 아니라 기록 범위를 제한한 재서술이다. [문헌 개관](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion).",
         "cardType": "rule"
       },
       {
-        "id": "b8b60b51-1c89-526a-9a41-b8f1667c2231",
-        "title": "물건이 장애물로 바뀌는 변화",
-        "body": "빗과 수건은 추격 중 새로운 공간적 장애를 만든다. 누구나 같은 물건으로 같은 기적을 만든다는 일반 규칙은 아니다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 추격 장면",
-        "cardType": "ability"
+        "id": "91a002b4-a41b-5fc8-94f3-3a158e54a7f8",
+        "title": "기록과 후대 재구성",
+        "body": "중세 기록의 기독교적 관점과 자료의 한계를 함께 읽는다. 페룬과 벨레스의 상세한 전쟁 서사는 현존 기록의 직접 진술과 비교 연구의 재구성을 구분한다.\n\n출전: 《Encyclopedia of Religion》의 「Slavic Religion」, 루스의 맹세·기독교화 기록에 관한 개관. 이 절은 중세 원문 전문의 번역이 아니라 기록 범위를 제한한 재서술이다. [문헌 개관](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion).",
+        "cardType": "rule"
       },
       {
-        "id": "789b71dc-70ec-53e8-bf70-e5dfcbc87fe3",
-        "title": "심부름에 숨겨진 위협",
-        "body": "소녀를 보내는 일상적 요청이 사실은 죽음의 위험으로 이어진다. 친이모의 충고가 심부름의 의미를 바꾼다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 도입부",
+        "id": "69d21e84-bad7-5358-88b5-9f1832cc6c18",
+        "title": "바바 야가",
+        "body": "바실리사에게 일을 해내면 불을 주고 실패하면 잡아먹겠다고 하는 노파다. 절구·공이·빗자루를 사용하며 숲의 집에 산다.\n\n출전: 아파나시예프 선집 「Vasilísa the Fair」 전반. [매그너스 번역본](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "14f81ea4-ff30-5deb-bc96-4db6a54488f6",
+        "title": "바바 야가의 오두막",
+        "body": "「아름다운 바실리사」에서 뼈와 해골의 울타리에 둘러싸인 숲의 집이다. 바실리사는 이곳에서 불을 얻기 위해 생존이 걸린 노동을 맡는다.\n\n출전: 아파나시예프 선집 「Vasilísa the Fair」 전반. [매그너스 번역본](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+        "cardType": "location"
+      },
+      {
+        "id": "5b83a81e-33f1-5026-b99d-d60a9efc5e43",
+        "title": "불사의 코셰이",
+        "body": "「마리야 모레브나」에서 사슬에 묶여 있다가 이반이 준 물로 힘을 되찾는 존재다. 탈출 후 마리야를 납치하고 반복해서 그녀를 구하려는 이반을 죽인다.\n\n출전: 「Márya Moryévna」, 금지된 방·납치·탈출과 회복. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "8a9d19c7-dc72-5941-b754-e9ffecb6540d",
+        "title": "몸 밖에 숨겨진 죽음",
+        "body": "매그너스의 서문·주석은 일부 코셰이 유형에서 몸 밖의 알에 생명이 감춰진다고 설명한다. 「마리야 모레브나」의 결말에 이 사건을 덧붙이지 않는다.\n\n출전: 「Márya Moryévna」 후반 및 선집 Introduction·Notes의 Koshchéy 항목. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+        "cardType": "rule"
+      },
+      {
+        "id": "80efaa45-5b7a-54e3-9a76-0352756a139a",
+        "title": "불새",
+        "body": "왕의 황금 사과를 가져가던 빛나는 새다. 이반이 깃털 하나를 얻자 왕은 새 전체를 원하고 탐색이 시작된다.\n\n출전: 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」, 정원의 도둑과 새장·굴레의 경고. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "701cb93f-3d98-59ca-af9b-9fcb535b17ad",
+        "title": "불새의 깃털",
+        "body": "이반이 정원을 지키다 불새에게서 얻는 깃털이다. 새의 존재를 확인한 왕이 아들들을 보내는 계기가 된다.\n\n출전: 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」, 정원의 도둑과 새장·굴레의 경고. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+        "cardType": "object"
+      },
+      {
+        "id": "3aba2ca7-998b-5117-9ee0-ebf2774ed0a9",
+        "title": "회색 늑대",
+        "body": "엘레나와 말의 모습으로 변해 이반의 교환 과제를 돕는 조력자다. 형들에게 살해된 이반도 생명과 죽음의 물로 되살려 귀환시킨다.\n\n출전: 같은 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」, 변신·형제의 배신·부활과 귀환. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "abaa2273-7a20-539e-b0e6-0c8d272d612a",
+        "title": "불새를 찾아가는 이반",
+        "body": "황금 사과를 훔친 새를 찾던 이반은 새장과 굴레를 건드리지 말라는 늑대의 경고를 어긴다. 그 때문에 말과 엘레나를 데려오라는 새 과제가 이어진다.\n\n출전: 「Tsarévich Iván, the Bird of Light, and the Grey Wolf」, 정원의 도둑과 새장·굴레의 경고. [선집](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html).",
         "cardType": "event"
-      },
-      {
-        "id": "a17346eb-1d03-5e60-a963-1d9d42aa5e5c",
-        "title": "탈출과 집의 질서 변화",
-        "body": "조력자들의 도움으로 소녀가 돌아오고 아버지는 계모의 행동을 알게 된다. 수집본의 폭력적 처벌 결말을 현대 가족 문제 해결책으로 제시하지 않는다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 결말",
-        "cardType": "event"
-      },
-      {
-        "id": "1ca89916-20f9-57ed-a834-107c7060fa2a",
-        "title": "바바 야가의 이설",
-        "body": "이 자료는 하나의 적대적 바바 야가를 다룬다. 다른 이야기의 시험자·증여자 역할이나 자매 수는 판본을 따로 표시해야 하며 이 한 편에서 일반화하지 않는다.\n\n근거: [W. R. S. Ralston, Russian Folk-Tales (1873), The Baba Yaga, pp.148–151](https://www.gutenberg.org/cache/epub/22373/pg22373-images.html) — 선정 설화와 뒤따르는 비교 해설의 구분",
-        "cardType": "other"
       }
     ]
   },
   {
     "genre": "maya_mythology",
     "worldId": "c5bc8992-b7cb-5ddf-9033-74d707ceda41",
-    "name": "마야 신화 — 포폴 부의 첫 창조",
-    "description": "키체 마야 포폴 부 제1부 제1장의 창조 전승을 중심으로 정리한다. 다른 마야 지역의 모든 신명을 통합하지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "마야 전승: 키체의 포폴 부",
+    "description": "과테말라 고지대 키체 전승 『포폴 부』의 창세·영웅 이야기 중심이다. 모든 마야 지역·시대의 신화로 일반화하지 않는다. 인명 표기는 번역본마다 달라 원전의 관계와 사건으로 식별한다.",
     "cards": [
       {
-        "id": "4d0b184c-2dfc-5220-8370-084edac9b4ba",
-        "title": "창조와 형성을 맡은 존재들",
-        "body": "창조자·형성자 등의 여러 호칭으로 서술된다. 번역본의 호칭을 각각 별개의 신으로 기계적으로 늘리지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 첫머리",
-        "cardType": "character"
-      },
-      {
-        "id": "345d2b9f-1c96-5ccf-8086-8852f2ad458c",
-        "title": "테페우와 구쿠마츠",
-        "body": "물과 어둠 속에서 말과 생각을 나누는 존재들로 나타난다. 대화와 합의가 창조에 앞선다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 창조 이전의 대화",
-        "cardType": "character"
-      },
-      {
-        "id": "c1c435a9-e530-5645-a266-8635dff0b2bf",
+        "id": "5c4844a8-1f47-5e11-b66e-ab921e47beef",
         "title": "하늘의 심장",
-        "body": "창조의 계획에 참여하는 신적 이름이다. 본문이 설명하는 여러 이름과 측면을 후대 게임의 세 속성 체계로 바꾸지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 하늘의 심장 설명",
+        "body": "구쿠마츠 등과 함께 세계와 인간의 형성을 의논하는 존재다. 우라칸을 비롯한 번개 관련 이름들이 제시되며 의논과 말로 창조가 진행된다.\n\n출전: 《포폴 부》 창조의 의논·땅·동물의 형성 대목. [크리스텐슨 판본, 본문 56–63쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 재화 The First Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
         "cardType": "character"
       },
       {
-        "id": "7856740f-c439-5c60-8d23-f3b628d6604b",
-        "title": "창조의 협의",
-        "body": "여러 신적 호칭을 가진 존재들이 함께 의논하여 땅과 생명의 출현을 결정한다. 한 신의 독백으로 줄이면 협의 구조가 사라진다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 말과 생각의 결합",
+        "id": "b216d0e3-cf7c-55eb-990c-94873d08a628",
+        "title": "깃털 뱀 구쿠마츠",
+        "body": "창조의 처음에 하늘의 심장 등과 의논하는 깃털 뱀이다. 땅·산·골짜기와 물의 형성이 이 의논 뒤에 이어진다.\n\n출전: 《포폴 부》 창조의 의논·땅·동물의 형성 대목. [크리스텐슨 판본, 본문 56–63쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 재화 The First Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "cardType": "character"
+      },
+      {
+        "id": "31c05ad0-a0ef-5e9e-836b-5e9d339350eb",
+        "title": "흙과 나무 인간의 실패",
+        "body": "흙으로 만든 몸은 형태를 유지하지 못하고 나무 사람들은 창조자를 기억하지 않는다. 나무 사람들은 홍수와 자신들이 학대한 사물·동물들의 반격으로 파괴된다.\n\n출전: 《포폴 부》 흙의 형성·나무 인형·파괴 대목. [크리스텐슨 판본, 본문 63–74쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 The First Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "cardType": "event"
+      },
+      {
+        "id": "997bd6a1-dfca-583d-b826-276ec48793e3",
+        "title": "옥수수로 만든 인간",
+        "body": "노란 옥수수와 흰 옥수수로 첫 인간들의 몸이 만들어진다. 그들은 창조자에게 감사하지만 지나치게 넓던 시야는 제한된다.\n\n출전: 《포폴 부》 옥수수 인간과 시야의 제한. [스펜스 The Third Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 판본, 본문 178–185쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "cardType": "event"
+      },
+      {
+        "id": "f07f5953-6c0f-51d7-9b52-54e4b473791a",
+        "title": "시발바",
+        "body": "훈 카메와 부쿱 카메가 방문객을 부르고 시험을 부과하는 영역이다. 목상·뜨거운 자리·어둠의 집이 훈 후나푸 형제의 실패와 죽음에 연결된다.\n\n출전: 《포폴 부》 훈 후나푸·부쿱 후나푸의 시발바 방문. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
+        "cardType": "location"
+      },
+      {
+        "id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff",
+        "title": "시발바의 군주들",
+        "body": "훈 카메와 부쿱 카메는 공놀이 소리를 듣고 훈 후나푸 형제를 불러들인다. 초대 뒤에는 손님을 모욕하고 죽이려는 계책이 있다.\n\n출전: 《포폴 부》 훈 후나푸·부쿱 후나푸의 시발바 방문. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
         "cardType": "organization"
       },
       {
-        "id": "9cee8e03-db6b-54be-ac9f-cfa5331c6b8d",
-        "title": "아직 땅이 드러나지 않은 물과 하늘",
-        "body": "처음에는 고요한 물과 하늘이 있고 인간·동물·숲·산 등이 아직 나타나지 않은 상태가 묘사된다. 현대 우주론과 동일한 설명이 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 첫 장면",
+        "id": "c7906a92-0b60-58e9-8614-ee85f479c34a",
+        "title": "후나푸",
+        "body": "슈발란케와 정보를 먼저 얻어 시발바의 속임수를 피하는 형제다. 박쥐의 집에서 머리를 잃지만 슈발란케의 계책으로 회복되어 대결을 이어간다.\n\n출전: 《포폴 부》 시발바의 시험들. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html); 박쥐의 집과 회복의 상세는 [크리스텐슨 판본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "cardType": "character"
+      },
+      {
+        "id": "3cb473fc-91c0-5c70-8a26-06b7b174b9b0",
+        "title": "슈발란케",
+        "body": "후나푸와 함께 시발바의 시험을 넘는 형제다. 후나푸가 박쥐의 집에서 머리를 잃자 계책을 마련하여 그를 회복시킨다.\n\n출전: 《포폴 부》 시발바의 시험들. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html); 박쥐의 집과 회복의 상세는 [크리스텐슨 판본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "cardType": "character"
+      },
+      {
+        "id": "86b31e5e-6713-5e3a-bca7-9d4c1480ad0f",
+        "title": "슈키크",
+        "body": "시발바 군주 쿠추마키크의 딸이자 후나푸·슈발란케의 어머니다. 훈 후나푸의 머리와 만난 뒤 임신하고 처형 명령을 피해 지상으로 나와 슈무카네에게 간다.\n\n출전: 《포폴 부》 슈키크의 탈출·형제의 성장·공놀이의 재개. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 대조본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "cardType": "character"
+      },
+      {
+        "id": "74d9e1aa-ba80-5a7e-992c-eee922510a9c",
+        "title": "공놀이장",
+        "body": "훈 후나푸와 부쿱 후나푸의 공놀이 소리가 시발바 군주들의 초대를 촉발하는 장소다. 그 초대는 시험과 죽음으로 이어진다.\n\n출전: 《포폴 부》 훈 후나푸·부쿱 후나푸의 시발바 방문. [스펜스 The Second Book](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
         "cardType": "location"
       },
       {
-        "id": "b6a3b8e6-7d80-54e6-b9ad-efbe0de32709",
-        "title": "물에서 드러난 땅과 산",
-        "body": "말과 계획 뒤에 땅이 나타나고 산과 골짜기가 구별된다. 식물이 자라는 공간으로 변화한다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 땅의 출현",
-        "cardType": "location"
+        "id": "dcae5fac-9ac3-575d-ad52-98c9406f1f4e",
+        "title": "부쿱 카키시",
+        "body": "빛나는 눈과 치아를 내세워 해와 달처럼 위대하다고 자랑하는 존재다. 지팍나와 카브라칸의 아버지이며, 형제와 노인들의 치료 계책으로 광채와 위세를 잃는다.\n\n출전: 《포폴 부》 부쿱 카키시·지팍나·카브라칸 대목. [스펜스 The Myth of Vukub-Cakix](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html), [크리스텐슨 대조본](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf).",
+        "cardType": "character"
       },
       {
-        "id": "5084e094-68ae-5aa3-b9c7-f84269535c2d",
-        "title": "말과 생각에 의한 창조",
-        "body": "신적 존재들의 발화와 합의가 세계의 출현에 연결된다. 일반 인간의 언어에도 똑같은 창조 능력이 있다는 설정은 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 창조 명령",
-        "cardType": "ability"
-      },
-      {
-        "id": "565a869f-4e87-5880-b863-5cca1b791d9b",
-        "title": "창조의 목적에 관한 논의",
-        "body": "존재들이 자신들을 부르고 기억할 자를 논의한다. 뒤 장의 인간 창조 결과를 이 첫 장에 이미 완성된 것으로 넣지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장, 계획 대목",
-        "cardType": "rule"
-      },
-      {
-        "id": "e7a96206-13aa-589c-b2ee-dd0c4a8d8bda",
-        "title": "고요에서 대화로의 전환",
-        "body": "정지된 첫 상태에 창조자들의 대화가 개입하면서 세계 형성의 방향이 정해진다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 전반",
+        "id": "3cd8212f-1b61-5728-93e4-7c732616096f",
+        "title": "쌍둥이의 죽음과 귀환",
+        "body": "후나푸와 슈발란케는 불 속에서 죽은 뒤 다른 모습으로 돌아와 죽음과 회복의 연기를 보인다. 같은 일을 원하는 시발바 군주들을 죽이고 되살리지 않아 그 권세를 줄인다.\n\n출전: 《포폴 부》 형제의 죽음·귀환·시발바의 패배·해와 달의 상승. [크리스텐슨 판본, 본문 166–177쪽](https://www.mesoweb.org/publications/Christenson/PopolVuh.pdf), [스펜스 The Second Book 대조](https://www.gutenberg.org/cache/epub/56550/pg56550-images.html).",
         "cardType": "event"
-      },
-      {
-        "id": "45ef7f8e-05a7-52e8-85d9-50c77b366f85",
-        "title": "땅과 식물의 출현",
-        "body": "땅이 드러나고 산·계곡과 숲이 생겨난다. 이 장의 마무리를 영웅 쌍둥이의 명계 모험이나 옥수수 인간의 탄생과 혼동하지 않는다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 후반",
-        "cardType": "event"
-      },
-      {
-        "id": "4efaa807-52cf-5d74-be0f-f6b17178f71d",
-        "title": "문헌·번역·범위의 차이",
-        "body": "포폴 부는 키체 전승의 기록이다. 1861년 프랑스어판의 오래된 어휘와 신명 표기는 해석 차이를 가질 수 있다. 이 자료는 해당 창조 대목의 자체 요약이며 원전 전체 번역이 아니다.\n\n근거: [Popol Vuh, Brasseur de Bourbourg 1861, Première partie chapitre premier](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) — 제1부 제1장 및 판본 표제",
-        "cardType": "other"
       }
     ]
   },
   {
     "genre": "aztec_mythology",
     "worldId": "b91abcca-af8b-5460-bf33-4bf5bf668e04",
-    "name": "아즈텍 신화 — 테오티우아칸의 해와 달",
-    "description": "사아군 기록 제7권 제2장의 해·달 탄생 전승 중심. 식민기 기록의 관점과 다른 태양 전승을 구분한다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.",
+    "name": "아즈텍·메시카 전승",
+    "description": "메시카의 신화와 의례를 문헌·유물 해설별로 요약한다. 정복 이후 기록의 성격과 신격·시대별 이설을 구분하며, 현대 창작의 단일 설정 체계로 만들지 않는다.",
     "cards": [
       {
-        "id": "22a9721c-8476-5f23-9a56-c5cffc00b509",
-        "title": "나나우아친",
-        "body": "새로운 빛이 되기 위한 불의 시험에 참여하는 가난하고 병든 존재로 묘사된다. 주저하던 다른 후보보다 먼저 불에 몸을 던져 태양이 된다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 불의 시험",
+        "id": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+        "title": "위칠로포치틀리",
+        "body": "무장한 성인의 모습으로 태어나 어머니를 공격하려던 코욜샤우키와 남쪽 형제들을 물리친다. 메시카의 수호신으로 전해지며 전투에서 시우코아틀을 사용한다.\n\n출전: 《피렌체 코덱스》 3권 1장. [3r 판본](https://florentinecodex.getty.edu/book/3/folio/3r), [탄생담 해설](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli), [신격과 시우코아틀 해설](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas).",
         "cardType": "character"
       },
       {
-        "id": "8a8aacdd-362e-50bb-9d5e-8e8f27e0c957",
-        "title": "테쿠시스테카틀",
-        "body": "풍요로운 공물을 바치지만 불 앞에서 여러 번 주저한다. 뒤따라 불에 들어가 두 번째 빛이 되며 달의 형성과 연결된다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 두 후보의 대조",
+        "id": "3cdac14d-5ca9-57e2-859f-72aa9594e1b1",
+        "title": "코아틀리쿠에",
+        "body": "코아테펙에서 깃털 뭉치를 품은 뒤 임신하는 어머니다. 코욜샤우키와 남쪽 아들들은 임신을 수치로 여겨 그녀를 죽이려 한다.\n\n출전: 《피렌체 코덱스》 3권 1장, 1r–3v. [게티 디지털 판본](https://florentinecodex.getty.edu/book/3/folio/1r), [사비에르 노게스의 해당 문헌 해설](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli).",
         "cardType": "character"
       },
       {
-        "id": "cea28335-a054-5dfc-af18-5ea286fe0003",
-        "title": "에에카틀",
-        "body": "새로운 해가 움직이지 않을 때의 논의와 바람에 연결된다. 빛의 탄생과 운행 개시는 서로 다른 단계이다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 천체의 운행",
+        "id": "010d16d2-cb97-5057-b063-d2a8bc79aa10",
+        "title": "코욜샤우키",
+        "body": "코아틀리쿠에의 딸로 어머니의 임신에 반대하여 형제들을 이끌고 공격한다. 그 행동이 위칠로포치틀리의 탄생 전투를 촉발한다.\n\n출전: 《피렌체 코덱스》 3권 1장, 1r–3v. [게티 디지털 판본](https://florentinecodex.getty.edu/book/3/folio/1r), [사비에르 노게스의 해당 문헌 해설](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli).",
         "cardType": "character"
       },
       {
-        "id": "64020cb5-2996-5b19-9611-cba82bc65c05",
-        "title": "쇼로틀",
-        "body": "죽음을 피하려고 여러 모습으로 숨지만 끝내 붙잡힌다. 이 문헌의 도주 이야기를 모든 변신 능력의 기원으로 일반화하지 않는다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 쇼로틀의 도주",
-        "cardType": "character"
-      },
-      {
-        "id": "65f8a655-6533-532a-842d-e7fdf1b3b0e0",
-        "title": "테오티우아칸에 모인 신들",
-        "body": "어둠 속에서 누가 세계를 비출지 의논하고 후보를 정한다. 새로운 태양을 만드는 데 공동의 결정과 희생이 연결된다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장 전반",
-        "cardType": "organization"
-      },
-      {
-        "id": "08c23501-67e2-5481-8844-ad1be471b315",
-        "title": "테오티우아칸",
-        "body": "신들이 모여 빛의 탄생을 준비하는 장소이다. 고고학적 도시의 역사와 문헌 속 신화적 사건을 같은 층위의 사실로 취급하지 않는다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장",
+        "id": "5494a6ce-b35e-5a82-b6d9-4f61a01212f9",
+        "title": "코아테펙",
+        "body": "코아틀리쿠에에게 공격자들이 다가오는 뱀의 산이다. 위칠로포치틀리의 탄생과 승리를 기억하는 신화적 무대다.\n\n출전: 《피렌체 코덱스》 3권 1장, 1r–3v. [게티 디지털 판본](https://florentinecodex.getty.edu/book/3/folio/1r), [사비에르 노게스의 해당 문헌 해설](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli).",
         "cardType": "location"
       },
       {
-        "id": "eb6e8484-9c76-52ce-9007-a786dfab7455",
-        "title": "공물과 고행 도구",
-        "body": "두 후보의 공물은 부와 빈곤을 대조한다. 귀한 재료의 양만으로 시험의 결과가 정해지지 않는다는 사건 구조를 보여 준다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 시험 준비",
+        "id": "18c55529-c2b9-5ae6-aac7-74e42cf6f859",
+        "title": "위칠로포치틀리의 탄생 전투",
+        "body": "위칠로포치틀리는 무장하여 태어나 코욜샤우키를 죽이고 산 아래로 떨어뜨린다. 남쪽 형제들은 죽거나 달아나고 어머니를 죽이려던 공격은 실패한다.\n\n출전: 《피렌체 코덱스》 3권 1장. [3r 판본](https://florentinecodex.getty.edu/book/3/folio/3r), [탄생담 해설](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli), [신격과 시우코아틀 해설](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas).",
+        "cardType": "event"
+      },
+      {
+        "id": "46064a47-5893-55a3-b7cc-1d2280aa5a12",
+        "title": "시우코아틀",
+        "body": "위칠로포치틀리의 탄생 전투에서 쓰이는 불의 뱀이다. 문헌에는 불을 붙이는 행위가 나오며 제작법이나 수치화된 위력은 이 자료에서 설정하지 않는다.\n\n출전: 《피렌체 코덱스》 3권 1장. [3r 판본](https://florentinecodex.getty.edu/book/3/folio/3r), [탄생담 해설](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli), [신격과 시우코아틀 해설](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas).",
         "cardType": "object"
       },
       {
-        "id": "759e23c6-4b4c-5d4e-9c2c-de5216b6731c",
-        "title": "달에 던져진 토끼",
-        "body": "두 빛이 같은 밝기로 나타난 뒤 한쪽에 토끼가 던져져 밝기가 줄고 표식이 남는다고 설명한다. 중국의 달 토끼 전승과 동일한 사건으로 합치지 않는다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 달의 표식",
+        "id": "7272b510-9dd4-51d0-abcf-3bbec30a9195",
+        "title": "테스카틀리포카",
+        "body": "‘연기 나는 거울’이라는 이름으로 알려져 흑요석 거울과 연결되는 신이다. 부를 주거나 거두는 힘을 지닌 것으로 설명된다.\n\n출전: [영국박물관의 테스카틀리포카 가면 해설](https://artsandculture.google.com/asset/mosaic-mask-of-tezcatlipoca/0gHRmF7lJ3MC6w), [같은 박물관의 케찰코아틀 또는 틀랄록 가면 해설](https://smarthistory.org/serpent-mask-of-quetzalcoatl-or-tlaloc/), [메시카 신격 개관](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas).",
+        "cardType": "character"
+      },
+      {
+        "id": "f25c88e2-06d5-59ae-a934-2335db2a3bf1",
+        "title": "흑요석 거울",
+        "body": "테스카틀리포카와 연결되는 표지다. 의례와 예언에 사용되었지만 누구에게나 같은 미래 예지 능력을 주는 물건으로 설정하지 않는다.\n\n출전: [영국박물관의 테스카틀리포카 가면 해설](https://artsandculture.google.com/asset/mosaic-mask-of-tezcatlipoca/0gHRmF7lJ3MC6w), [같은 박물관의 케찰코아틀 또는 틀랄록 가면 해설](https://smarthistory.org/serpent-mask-of-quetzalcoatl-or-tlaloc/), [메시카 신격 개관](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas).",
         "cardType": "object"
       },
       {
-        "id": "9338fbb9-fbae-5490-848e-3b0e845f2da6",
-        "title": "쇼로틀의 변형",
-        "body": "옥수수·용설란·물속 존재와 연결되는 모습으로 바꾸어 숨는 장면이 있다. 식물과 동물의 실제 기원에 관한 과학적 설명은 아니다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 변신의 연속",
+        "id": "b29340ab-72d0-56e6-bcda-a980744a772e",
+        "title": "케찰코아틀·틀랄록의 도상 구분",
+        "body": "특정 뱀 모자이크 가면은 케찰코아틀 또는 틀랄록으로 소개된다. 이 귀속의 불확실성은 깃털 뱀과 비의 신을 동일 인물로 합칠 근거가 아니다.\n\n출전: [영국박물관의 테스카틀리포카 가면 해설](https://artsandculture.google.com/asset/mosaic-mask-of-tezcatlipoca/0gHRmF7lJ3MC6w), [같은 박물관의 케찰코아틀 또는 틀랄록 가면 해설](https://smarthistory.org/serpent-mask-of-quetzalcoatl-or-tlaloc/), [메시카 신격 개관](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas).",
+        "cardType": "rule"
+      },
+      {
+        "id": "7d0c6999-1ff4-5aab-8656-9b931bc7a2d4",
+        "title": "믹틀란",
+        "body": "믹틀란테쿠틀리와 믹틀란시우아틀의 저승이다. 박물관 해설에서는 자연사한 사람이 장애를 지나 아홉째 층으로 가며, 장례 물건은 여정을 돕는 준비로 설명된다.\n\n출전: [영국박물관, 믹틀란테쿠틀리 사암상과 장례·저승의 해설](https://artsandculture.google.com/asset/sandstone-seated-figure-of-mictlantecuhtli/8gEWZDIMx5CdRw?hl=en).",
+        "cardType": "location"
+      },
+      {
+        "id": "71fefdff-9e33-5911-be7c-71eae8bf83c1",
+        "title": "이전의 태양들과 현재 시대",
+        "body": "태양석의 네 칸은 재규어·바람·비·물과 연결되는 이전 시대를 가리킨다. 중심 얼굴의 신격과 날짜·왕권의 관계는 해석이 일치하지 않는다.\n\n출전: Thomas L. Grigsby, 「A Correlation of Gregorian and Tonalpohualli Dates on the Aztec Calendar Stone」, 《Estudios de Cultura Náhuatl》 66, 2023. [논문](https://www.scielo.org.mx/scielo.php?lng=es&nrm=iso&pid=S0071-16752023000100047&script=sci_arttext_plus&tlng=en).",
+        "cardType": "event"
+      },
+      {
+        "id": "b0951be0-6330-5f3d-b59a-a950f202cdab",
+        "title": "52년 주기 새 불 의례",
+        "body": "태양력과 의례력의 시작이 다시 맞물리는 52년 주기에 새 불로 시간의 갱신을 다루는 제의다. 신화의 출생 사건 자체와 역사적 의례를 구분한다.\n\n출전: [INAH, Burial of the years, xiuhmolpilli and the New Fire ceremony](https://lugares.inah.gob.mx/en/node/5370).",
+        "cardType": "rule"
+      }
+    ]
+  },
+  {
+    "genre": "journey_to_the_west",
+    "worldId": "3866acbf-f549-5d55-95e2-0e4246a5e8d7",
+    "name": "서유기 · 백회본",
+    "description": "100회본 서유기의 인물·천계·용궁·서천·요괴·법보·팔십일난을 원문 회차별로 요약한 자료. 현대 번역문을 옮기지 않고 새 문장으로 정리하며 역사적 현장과 소설을 구분한다. 판본·각색의 차이를 하나의 설정으로 합치지 않는다.",
+    "cards": [
+      {
+        "id": "6795d9c0-c3af-5604-a225-22d1627eef52",
+        "title": "판본과 자료 범위",
+        "body": "100회본 《서유기》의 탄생·반란·취경·귀환을 잇는 소설 자료다. 삼장과 여행 세계는 역사적 현장의 기록과 구별하며, 완역이나 중국 종교 전체의 공통 체계로 제시하지 않는다.\n\n출전: 《서유기》 [제1회](https://zh.wikisource.org/wiki/西遊記/第001回), [제100회](https://zh.wikisource.org/wiki/西遊記/第100回). 회차는 연결한 공개 100회본을 따른다. 진광예 일화가 제9회나 부록으로 놓이는 판본 차이는 사건을 새로 더한 것으로 취급하지 않는다.",
+        "cardType": "rule"
+      },
+      {
+        "id": "a7f47abb-51f6-560a-9783-1f907ab355d7",
+        "title": "손오공",
+        "body": "화과산의 돌에서 태어나 수렴동을 발견하고 왕이 된 원숭이다. 죽음을 피하려 수보리조사를 찾아 손오공이라는 이름과 도술을 얻는다. 양계산에서 풀려난 뒤 삼장의 제자가 되어 그를 보호하지만 살생을 둘러싸고 스승과 충돌한다.\n\n출전: 《서유기》 제1–2회. [제1회](https://zh.wikisource.org/wiki/西遊記/第001回), [제2회](https://zh.wikisource.org/wiki/西遊記/第002回).\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.",
+        "cardType": "character"
+      },
+      {
+        "id": "31116028-94a3-5950-9a03-2b4266c4326e",
+        "title": "삼장법사 · 당삼장",
+        "body": "동토에서 수륙대회를 맡은 현장으로, 관음의 권유와 황제의 후원을 받아 서천의 대승 경전을 구하러 간다. 당삼장·삼장법사로 불리며 신앙과 사명이 여정의 중심이지만 위험을 막을 초인적 무력을 지닌 인물은 아니다.\n\n출전: 《서유기》 제8–13회. [제8회](https://zh.wikisource.org/wiki/西遊記/第008回), [제12회](https://zh.wikisource.org/wiki/西遊記/第012回), [제13회](https://zh.wikisource.org/wiki/西遊記/第013回).",
+        "cardType": "character"
+      },
+      {
+        "id": "f5f2e1f2-5072-5613-bcf7-a1a872d6aac2",
+        "title": "저팔계 · 저오능",
+        "body": "관음에게 저오능이라는 이름을 받았다가 삼장에게 팔계라는 이름을 얻는 제자다. 고로장에서 상대가 취경자의 제자임을 알고 합류한다. 구치정파를 쓰며, 입문 뒤에도 식욕과 혼인에 대한 미련이 남아 있다.\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.",
+        "cardType": "character"
+      },
+      {
+        "id": "92c68017-70ed-50db-9207-1f465317d466",
+        "title": "사오정 · 사승",
+        "body": "사화상·사승으로도 불리며 천계의 권렴대장이었다가 벌을 받아 유사하에 머물던 존재다. 관음의 제자 목차가 일행의 신분을 확인시키자 싸움을 멈추고 삼장을 따른다. 다른 제자들과 출생·성격은 다르지만 같은 취경 여정을 수행한다.\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.",
+        "cardType": "character"
+      },
+      {
+        "id": "88903552-6bad-5bd9-9749-1e744de800ab",
+        "title": "백룡마",
+        "body": "관음이 백마로 바꾸어 삼장을 태우게 한 용왕의 아들이다. 응수간에서 삼장의 말을 삼킨 일이 일행에 들어오는 계기가 된다. 이동을 맡는 동시에 관음과의 약속을 수행하는 동료다.\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.",
+        "cardType": "character"
+      },
+      {
+        "id": "c341ec72-486e-5855-b0c4-3ac935fcc660",
+        "title": "관음보살",
+        "body": "여래의 경전 전파 뜻에 따라 동쪽으로 취경자를 찾으러 가는 보살이다. 길에서 만난 처벌받은 존재들에게 취경자를 기다리게 하여 미래의 동료를 준비한다. 이 약속은 죄를 즉시 지우기보다 여정을 함께 수행해 공을 이루게 한다.\n\n출전: 《서유기》 제8–13회. [제8회](https://zh.wikisource.org/wiki/西遊記/第008回), [제12회](https://zh.wikisource.org/wiki/西遊記/第012回), [제13회](https://zh.wikisource.org/wiki/西遊記/第013回).",
+        "cardType": "character"
+      },
+      {
+        "id": "4b1843e9-588f-57f2-91e8-43c2839a3527",
+        "title": "여래불",
+        "body": "천계가 손오공의 반란을 끝내지 못하자 나서서 그를 손바닥 밖으로 벗어나지 못하게 하고 오행산에 봉인한다. 뒤에는 남섬부주에 경전을 전할 뜻을 세워 관음과 취경자의 여정을 시작하게 한다.\n\n출전: 《서유기》 제4–7회. [제4회](https://zh.wikisource.org/wiki/西遊記/第004回), [제7회](https://zh.wikisource.org/wiki/西遊記/第007回).\n\n출전: 《서유기》 제8–13회. [제8회](https://zh.wikisource.org/wiki/西遊記/第008回), [제12회](https://zh.wikisource.org/wiki/西遊記/第012回), [제13회](https://zh.wikisource.org/wiki/西遊記/第013回).",
+        "cardType": "character"
+      },
+      {
+        "id": "cf58f105-c47f-5a12-a1cc-65ed7977b96b",
+        "title": "천계 조정",
+        "body": "옥황상제가 다스리며 관직·군대를 통해 손오공을 통제하려 하는 천상의 조정이다. 필마온 임명과 제천대성 인정, 토벌을 번갈아 시도하지만 반란을 끝내지 못해 여래의 개입으로 이어진다.\n\n출전: 《서유기》 제4–7회. [제4회](https://zh.wikisource.org/wiki/西遊記/第004回), [제7회](https://zh.wikisource.org/wiki/西遊記/第007回).",
+        "cardType": "organization"
+      },
+      {
+        "id": "007f3ae3-d0f2-52be-82e8-dfe4e0c9578f",
+        "title": "취경 일행",
+        "body": "삼장과 손오공·저팔계·사오정, 백룡마가 이루는 취경 공동체다. 같은 출신이 아니라 보호·이동·노동을 나누고 갈등 뒤 다시 받아들이는 관계로 묶인다. 사오정의 합류로 함께 서쪽으로 가는 구성이 갖춰진다.\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.",
+        "cardType": "organization"
+      },
+      {
+        "id": "24b19f01-2d1f-5ee7-92e3-37748f6bf9ac",
+        "title": "사대부주와 세계 구조",
+        "body": "제1회가 펼치는 동승신주·서우하주·남섬부주·북구로주의 세계다. 산과 바다, 인간의 나라, 용궁·명부·천계·부처의 영역은 왕래하면서도 각각 경계와 권위를 갖는다. 이 소설의 공간 구조를 모든 불교·도교 전승의 단일 지도로 일반화하지 않는다.\n\n출전: 《서유기》 [제1회](https://zh.wikisource.org/wiki/西遊記/第001回), [제100회](https://zh.wikisource.org/wiki/西遊記/第100回). 회차는 연결한 공개 100회본을 따른다. 진광예 일화가 제9회나 부록으로 놓이는 판본 차이는 사건을 새로 더한 것으로 취급하지 않는다.",
+        "cardType": "location"
+      },
+      {
+        "id": "2450bc54-6513-5cb5-8ffd-62f1f957d6e7",
+        "title": "화과산 · 수렴동",
+        "body": "동승신주 오래국에 있는 손오공의 고향이다. 돌원숭이가 폭포 뒤 수렴동을 발견하고 원숭이 무리의 왕이 되며, 무리가 함께 살 거처를 얻는다. 손오공이 거듭 돌아오는 곳이지만 취경의 최종 목적지는 아니다.\n\n출전: 《서유기》 제1–2회. [제1회](https://zh.wikisource.org/wiki/西遊記/第001回), [제2회](https://zh.wikisource.org/wiki/西遊記/第002回).",
+        "cardType": "location"
+      },
+      {
+        "id": "bd3ec569-41a0-598b-b337-4ec1bbf53e49",
+        "title": "동해 용궁",
+        "body": "손오공이 무기를 구하러 내려간 동해 용왕과 권속의 영역이다. 여의금고봉을 얻고 갑옷까지 요구한 일이 용왕의 천계 호소로 이어진다. 단순한 보물 창고가 아니라 별도의 주인과 권위가 있는 장소다.\n\n출전: 《서유기》 [제3회](https://zh.wikisource.org/wiki/西遊記/第003回).",
+        "cardType": "location"
+      },
+      {
+        "id": "836c9ee9-54bb-5013-b00d-fcc74e577a97",
+        "title": "오행산 · 양계산",
+        "body": "여래가 손오공을 눌러 가둔 산으로 부적이 탈출을 막는다. 후일 당나라 국경에서 양계산으로도 불리며, 삼장이 부적을 떼는 일로 손오공의 취경 수행이 시작된다.\n\n출전: 《서유기》 제4–7회. [제4회](https://zh.wikisource.org/wiki/西遊記/第004回), [제7회](https://zh.wikisource.org/wiki/西遊記/第007回).\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.",
+        "cardType": "location"
+      },
+      {
+        "id": "fc5760f4-fc1d-56ef-9c4d-446a5b79153b",
+        "title": "서천 영산 · 뇌음사",
+        "body": "취경의 목적지인 서천 영산과 그곳의 뇌음사다. 일행은 이곳에 이르러 경전을 받지만 글자 없는 경전 문제를 거쳐 다시 글자 있는 경전을 수령한다. 도착만으로 동토에 전달할 사명까지 끝나는 것은 아니다.\n\n출전: 《서유기》 [제98회](https://zh.wikisource.org/wiki/西遊記/第098回), [제99회](https://zh.wikisource.org/wiki/西遊記/第099回).\n\n출전: 《서유기》 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回).",
+        "cardType": "location"
+      },
+      {
+        "id": "1c04d2e7-ab09-5d8c-b20f-073cae051feb",
+        "title": "여의금고봉",
+        "body": "손오공이 동해 용궁에서 얻은 신철 무기다. 물의 깊이를 정하는 데 쓰였으며 주인의 뜻에 따라 길고 짧게 변한다. 손오공은 바늘 크기로 줄여 귀에 넣을 수 있다.\n\n출전: 《서유기》 [제3회](https://zh.wikisource.org/wiki/西遊記/第003回).",
+        "cardType": "object"
+      },
+      {
+        "id": "46eb8ce8-322e-5b59-9b42-a0abe55a7ecc",
+        "title": "긴고와 긴고주",
+        "body": "관음이 마련하여 손오공이 머리에 쓰게 된 긴고와, 삼장이 외워 고통을 일으키는 긴고주의 결합이다. 스승과 제자의 살생 갈등 속에서 행동을 제약하며, 단순한 전투력 증강 장비가 아니다.\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.",
+        "cardType": "object"
+      },
+      {
+        "id": "6f3c2bed-b867-5de1-82f7-915161247c09",
+        "title": "구치정파",
+        "body": "저팔계가 취경 길에 들고 합류하는 아홉 이빨의 쇠스랑이다. 고로장 사건 뒤 제자가 된 저팔계의 병기로 나타나며 이 원고에는 별도의 게임식 등급이나 수치가 없다.\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.",
+        "cardType": "object"
+      },
+      {
+        "id": "40a88916-e237-5890-8e0c-eb7c39866fc9",
+        "title": "파초선",
+        "body": "철선공주가 소유하며 화염산의 불을 끄는 데 필요한 부채다. 손오공을 바람으로 멀리 날릴 수도 있다. 가짜 부채와 변장 때문에 획득이 지연되고, 진짜 부채로 불을 끈 뒤에는 주인에게 돌려준다.\n\n출전: 《서유기》 제50–61회. [제58회](https://zh.wikisource.org/wiki/西遊記/第058回), [제59회](https://zh.wikisource.org/wiki/西遊記/第059回), [제61회](https://zh.wikisource.org/wiki/西遊記/第061回).",
+        "cardType": "object"
+      },
+      {
+        "id": "acce2b1f-a947-52be-a93d-dd2375e6b3f7",
+        "title": "칠십이변화와 근두운",
+        "body": "손오공이 수보리조사에게 배운 칠십이변화와 먼 거리를 넘는 근두운이다. 장생의 법을 배운 뒤 익히지만 변신을 자랑한 일이 스승에게 쫓겨나는 계기가 된다. 힘의 습득과 올바른 사용은 같은 문제가 아니다.\n\n출전: 《서유기》 제1–2회. [제1회](https://zh.wikisource.org/wiki/西遊記/第001回), [제2회](https://zh.wikisource.org/wiki/西遊記/第002回).",
         "cardType": "ability"
       },
       {
-        "id": "d406ecab-58d7-55cf-bb47-29d7470ccbc6",
-        "title": "빛의 운행과 신들의 희생",
-        "body": "빛이 생겼다는 사실만으로 세계의 질서가 완성되지 않는다. 신들의 죽음과 바람이 천체의 이동에 연결된다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장 후반",
-        "cardType": "rule"
+        "id": "953c3c67-6ef2-533c-86b4-decc7c10bbf2",
+        "title": "백골정",
+        "body": "백호령에서 삼장의 몸을 노리는 요괴다. 젊은 여자·노파·노인으로 차례로 변장하고 몸을 버려 빠져나가며 손오공과 삼장 사이의 오해를 키운다. 정체를 알아본 제자의 공격이 스승에게는 살인으로 보인다.\n\n출전: 《서유기》 제27–31회. [제27회](https://zh.wikisource.org/wiki/西遊記/第027回), [제31회](https://zh.wikisource.org/wiki/西遊記/第031回).",
+        "cardType": "character"
       },
       {
-        "id": "dfb2a552-6a64-529c-85e9-ac21d8805c2b",
-        "title": "두 존재의 투신과 천체 탄생",
-        "body": "나나우아친이 먼저, 테쿠시스테카틀이 뒤에 불로 들어가 해와 달의 기원으로 이어진다. 독수리와 재규어가 불에 닿는 일화도 함께 전해진다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 불과 첫 출현",
+        "id": "366f3b0e-406f-5b40-994f-6f04adb8c6da",
+        "title": "홍해아",
+        "body": "우마왕과 철선공주의 아들로 삼장을 붙잡는 존재다. 삼매진화로 손오공을 곤경에 빠뜨리지만 관음에게 제압되어 선재동자가 된다. 이 결말은 철선공주가 손오공을 원망하는 배경으로 이어진다.\n\n출전: 《서유기》 제32–49회. [제37회](https://zh.wikisource.org/wiki/西遊記/第037回), [제42회](https://zh.wikisource.org/wiki/西遊記/第042回), [제46회](https://zh.wikisource.org/wiki/西遊記/第046回), [제49회](https://zh.wikisource.org/wiki/西遊記/第049回).",
+        "cardType": "character"
+      },
+      {
+        "id": "7680884c-6683-5472-8f56-4674c38718ad",
+        "title": "철선공주",
+        "body": "우마왕의 아내이자 홍해아의 어머니로, 화염산 통과에 필요한 파초선의 주인이다. 아들 일로 손오공을 원망하여 대여를 거절한다. 우마왕이 굴복한 뒤 진짜 부채를 내주고, 불을 끈 일행에게서 돌려받는다.\n\n출전: 《서유기》 제50–61회. [제58회](https://zh.wikisource.org/wiki/西遊記/第058回), [제59회](https://zh.wikisource.org/wiki/西遊記/第059回), [제61회](https://zh.wikisource.org/wiki/西遊記/第061回).",
+        "cardType": "character"
+      },
+      {
+        "id": "b2a06c18-d179-53bc-be72-bc15ece530fd",
+        "title": "대뇨천궁과 오행산의 봉인",
+        "body": "필마온의 낮은 지위에 대한 반발에서 시작하여 복숭아·술·금단 탈취와 천병의 토벌로 커진 충돌이다. 팔괘로에서도 살아난 손오공을 천계가 누르지 못하자 여래가 손바닥 시험 뒤 오행산에 봉인한다.\n\n출전: 《서유기》 제4–7회. [제4회](https://zh.wikisource.org/wiki/西遊記/第004回), [제7회](https://zh.wikisource.org/wiki/西遊記/第007回).",
         "cardType": "event"
       },
       {
-        "id": "805678c7-059d-5192-9df0-468823f9aaf7",
-        "title": "움직이지 않는 태양의 출발",
-        "body": "신들은 떠오른 빛이 움직이지 않는 문제를 해결하려 한다. 희생과 바람 뒤 운행이 시작되며 해와 달의 진행이 구별된다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장, 운행의 시작",
+        "id": "ad067722-17e0-5e16-96e8-7ed276364a66",
+        "title": "백골정 세 번 격퇴와 결별",
+        "body": "백골정이 세 차례 사람으로 변장하고 손오공이 공격하면서 삼장은 제자가 살인을 반복한다고 판단한다. 백골의 정체가 드러나도 갈등은 풀리지 않아 손오공이 쫓겨난다. 이후 황포괴 사건에서 저팔계가 그를 다시 데려와 구출이 이루어진다.\n\n출전: 《서유기》 제27–31회. [제27회](https://zh.wikisource.org/wiki/西遊記/第027回), [제31회](https://zh.wikisource.org/wiki/西遊記/第031回).",
         "cardType": "event"
       },
       {
-        "id": "3575ccba-eb2c-5530-91c0-95eb3ee81252",
-        "title": "월식에 대한 두려움과 풍습",
-        "body": "문헌은 월식과 임신 등에 관한 당시의 믿음을 기록한다. 이를 현대 의학의 사실이나 독자에게 권하는 행동으로 제시하지 않는다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장 끝부분",
-        "cardType": "rule"
+        "id": "539ce04d-e938-5333-9a96-81ee52570bbf",
+        "title": "팔십일난의 완성",
+        "body": "관음이 재난 장부의 여든 난을 확인한 뒤 귀환 중 한 난을 더하여 팔십일난을 채우는 사건이다. 부탁을 잊은 삼장에게 늙은 자라가 분노하여 일행을 강물에 빠뜨리고 경전이 젖는다. 회차마다 하나씩 배정된 전투 수를 뜻하지 않는다.\n\n출전: 《서유기》 [제98회](https://zh.wikisource.org/wiki/西遊記/第098回), [제99회](https://zh.wikisource.org/wiki/西遊記/第099回).",
+        "cardType": "event"
       },
       {
-        "id": "1a0a50d9-7d12-585a-8133-4c59c76c964e",
-        "title": "다섯 태양 전승과의 구분",
-        "body": "이 기록의 해·달 탄생 이야기를 다른 문헌의 다섯 시대 목록과 그대로 합치지 않는다. 나와틀 전승을 스페인어로 기록한 식민기 문헌이라는 전달 경로를 밝힌다.\n\n근거: [Sahagún, Historia general de las cosas de Nueva España, Libro VII capítulo 2](https://www.biblioteca-antologica.org/es/wp-content/uploads/2018/05/SAHAG%C3%9AN-Historia-General-de-la-Nueva-Espa%C3%B1a-II.pdf) — 제7권 제2장",
-        "cardType": "other"
+        "id": "e30b67cd-50b9-5b83-93bd-a5a2518d66db",
+        "title": "경전 수령과 귀환",
+        "body": "일행은 영산에서 글자 없는 경전을 받은 뒤 돌아가 발우를 내놓고 글자 있는 경전을 수령한다. 귀환길의 통천하 재난을 거쳐 장안에 전달하고 다시 영산으로 가 각자의 수행 결과에 따른 자리를 받는다.\n\n출전: 《서유기》 [제98회](https://zh.wikisource.org/wiki/西遊記/第098回), [제99회](https://zh.wikisource.org/wiki/西遊記/第099回).\n\n출전: 《서유기》 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回).",
+        "cardType": "event"
+      },
+      {
+        "id": "d1690516-85bb-571b-872b-e82fdb91526d",
+        "title": "살생과 수행의 갈등",
+        "body": "삼장은 살생을 꾸짖고 손오공은 보호를 위해 폭력을 행사하여 스승과 제자의 판단이 반복해 충돌한다. 긴고는 이를 제약하는 수단이며, 백골정 사건에서는 요괴를 알아보는 제자의 시선과 스승의 판단 차이가 추방으로 이어진다.\n\n출전: 《서유기》 제14–22회. [제14회](https://zh.wikisource.org/wiki/西遊記/第014回), [제15회](https://zh.wikisource.org/wiki/西遊記/第015回), [제19회](https://zh.wikisource.org/wiki/西遊記/第019回), [제22회](https://zh.wikisource.org/wiki/西遊記/第022回). 사승 호칭은 [제100회](https://zh.wikisource.org/wiki/西遊記/第100回)에도 나온다.\n\n출전: 《서유기》 제27–31회. [제27회](https://zh.wikisource.org/wiki/西遊記/第027回), [제31회](https://zh.wikisource.org/wiki/西遊記/第031回).",
+        "cardType": "rule"
       }
     ]
   }

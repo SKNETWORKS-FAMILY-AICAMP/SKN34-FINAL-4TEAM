@@ -1,188 +1,228 @@
 {
-  "id": "egyptian_mythology",
-  "genre": "egyptian_mythology",
-  "title": "이집트 신화 — 라의 이름과 이시스",
-  "content_kind": "myth_reference",
-  "scope": "라와 이시스의 이름 획득 이야기 및 그 문헌에 연결된 주문을 중심으로 정리한다. 이집트 전체의 창세론을 하나로 합치지 않는다.",
-  "sources": [
-    {
-      "id": "r",
-      "title": "The Legend of Ra and Isis, Budge 1912",
-      "url": "https://www.attalus.org/egypt/re_and_isis.html"
-    }
-  ],
-  "editorial_policy": "한국어 자체 요약. 현대 번역문·게임 설정·창작 주인공은 수록하지 않는다. 문헌 속 주장을 역사적 사실 또는 모든 전승의 공통 설정으로 단정하지 않는다.",
+  "id": "egyptian_mythology_default",
+  "genre_id": "egyptian_mythology",
+  "genre_name": "이집트 신화와 사후 세계",
+  "order": 20,
+  "title": "이집트 신화와 사후 세계",
+  "content_markdown": "# 이집트 신화와 사후 세계\n\n<a id=\"scope\"></a>\n## 읽는 범위\n\n고대 이집트의 신격·태양 순환·오시리스 전승·장례 관념을 요약한다. 시대와 도시마다 달라지는 신들의 계보와 역할을 단일 정본으로 고정하지 않는다.\n\n이집트의 신들은 삼천 년에 걸친 문헌과 성소, 무덤과 조각에 서로 다른 모습으로 남았다. 이 글은 여러 도시가 세계의 시작을 설명하는 방식에서 출발하여 태양의 순환, 오시리스 가족의 회복, 죽은 자의 심판, 이시스의 지혜를 차례로 읽는다. 이는 고대에 존재한 단일 경전의 목차가 아니라 선택한 전승을 잇는 편집 순서다. 신들의 관계가 겹치더라도 모든 시대의 계보를 하나로 고정하지 않는다.\n\n<a id=\"local-beginnings\"></a>\n## 도시마다 다르게 말하는 세계의 시작\n\n헬리오폴리스에서는 아홉 신의 집합인 엔네아드가 우주의 형성과 연결된다. 반면 멤피스의 창조 설명에서는 프타가 말을 통해 세계와 다른 신들을 생겨나게 한다. 이 둘을 이어 프타가 엔네아드 뒤에 다시 세계를 창조했다고 쓰면 서로 다른 설명을 한 사건의 전후로 오해하게 된다. 지역의 성소는 자신이 받드는 신을 중심으로 세계의 시작을 말했고, 서로 다른 설명은 나란히 받아들여지기도 했다.\n\n그러므로 창조담에서 중요한 것은 유일하게 옳은 신의 명단을 고르는 일이 아니다. 어떤 도시에서 어떤 신의 행위로 세계가 성립하는지를 구별하는 일이다. 신들은 다른 신의 속성과 결합할 수도 있었고, 같은 이름의 신이 다른 역할로 나타나기도 했다. 이 글에서 엔네아드는 헬리오폴리스의 우주 형성에 관련된 집합으로 한정한다. 다른 성소의 신들을 모두 그 집합의 부하로 배치하지 않는다.\n\n출전: [메트로폴리탄미술관: Divine Egypt](https://www.metmuseum.org/exhibitions/divine-egypt/inside-the-exhibition).\n\n<a id=\"sun-return\"></a>\n## 해가 사라진 뒤에도 계속되는 여정\n\n라 또는 레의 태양은 낮에 하늘을 지나고 밤에는 보이지 않는 영역을 통과하여 다시 아침에 나타난다. 배와 태양 원반은 이 이동과 연결되는 표지다. 해가 지는 일이 세계의 영구한 끝이 아니라 재생을 향한 통과가 되는 것이다. 낮의 생명은 밤을 지워서 유지되지 않는다. 밤의 여정을 거쳐 태양이 되돌아온다는 반복이 질서의 지속을 설명한다.\n\n태양과 다른 신의 결합도 이집트 신학의 한 방식이다. 아문라라는 이름은 아문의 역할과 태양신의 역할을 함께 드러내며, 한 신이 다른 신으로 영원히 교체되어 사라졌다는 뜻으로만 읽지 않는다. 태양의 밤길과 인간이 죽어서 가는 길은 서로 관계되지만 모든 장례 문헌에 동일한 지도와 등장인물이 있는 것은 아니다. 재생을 반복하는 태양을 종말 뒤 단 한 번 되살아나는 인물의 이야기로 바꾸지 않는다.\n\n출전: [메트로폴리탄미술관: 고대 이집트 미술 교육 자료](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).\n\n<a id=\"osiris-family\"></a>\n## 찢어진 몸을 돌보는 이들과 남겨진 아들\n\n오시리스 전승에서 세트의 폭력은 가족과 통치의 연속을 끊는다. 오시리스는 죽임을 당하고 몸이 훼손되지만 이시스와 네프티스가 그를 돌보고 모으며, 아누비스가 장례 의례를 돕는다. 회복은 죽음을 없었던 일로 만들고 예전 생활을 그대로 돌려놓는 결말이 아니다. 오시리스는 죽은 자의 영역을 다스리고, 호루스와 이어지는 가족 관계가 살아 있는 세계의 왕권을 잇는다.\n\n수의를 두른 오시리스의 모습은 죽은 몸이 보존되고 새 생명에 닿을 수 있다는 기대를 나타낸다. 장례에서 시신을 돌보는 아누비스, 애도하는 이시스와 네프티스, 회복되는 오시리스는 서로 다른 일을 맡는다. 그 관계를 따라가면 신화의 사건이 장례 행위와 연결되는 까닭이 보인다. 단, 여러 시대의 묘사와 후대의 긴 재서술을 모두 가장 이른 문헌에 이미 완성된 일대기로 돌려놓지는 않는다.\n\n출전: [메트로폴리탄미술관: Divine Egypt](https://www.metmuseum.org/exhibitions/divine-egypt/inside-the-exhibition).\n\n<a id=\"mother-child\"></a>\n## 보호받는 아이와 살아 있는 왕\n\n이시스는 오시리스의 배우자이며 호루스의 어머니다. 어린 호루스에게 젖을 먹이는 모습은 아이를 살리고 지키는 힘을 눈에 보이게 한다. 후기의 작은 조각들에서 이 모습이 널리 표현되는 것은 신들의 계보만 기억하려는 행위가 아니다. 생명을 주고 보호하는 여신에게 가까이 다가가려는 신앙도 그 형상에 담긴다. 다만 다른 여신도 아이에게 젖을 먹이는 모습으로 나타나므로 모자상이라는 이유만으로 모두 이시스라 단정하지 않는다.\n\n호루스는 매의 형상과 왕권에 연결되며 살아 있는 파라오는 그와 자신을 연결한다. 이시스와 오시리스의 아들인 호루스를 중심으로 읽을 때, 아버지의 죽음과 아들의 왕권은 단절 뒤의 계승을 보여 준다. 그러나 여러 지역의 호루스 형상을 모두 같은 가족 이야기의 한 장면으로 환원할 수는 없다. 왕을 살아서는 호루스, 죽은 뒤에는 오시리스와 잇는 관념도 역사적 신앙의 표현이며 모든 시대와 계층의 장례가 같았다는 선언이 아니다.\n\n출전: [메트로폴리탄미술관: Isis and Horus](https://www.metmuseum.org/art/collection/search/570685).\n\n추가 출전: [메트로폴리탄미술관 교육 자료, 29·103·129쪽: 왕권과 호루스](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).\n\n<a id=\"duat-judgment\"></a>\n## 명계의 길과 심장이 증언하는 자리\n\n장례 문헌에서 죽은 이는 곧바로 편안한 삶에 도착하지 않는다. 두아트라는 명계의 여정에는 문지기와 낯선 존재들이 있고, 통과와 인정이 필요하다. 호주박물관이 설명하는 『사자의 서』 계열의 심판에서는 죽은 자가 신들 앞에서 자신의 행위를 말하고 오시리스에게 이르는 과정이 나타난다. 이 설명은 선택한 장례 전승의 여정이지, 실제 사망 이후 일어나는 절차를 확정하는 지식은 아니다.\n\n심장 계량에서 마음과 살아온 행위는 판단의 대상이 된다. 마아트는 진실과 질서를 나타내는 여신이고 깃털은 그 기준을 드러낸다. 저울의 반대편에는 죽은 자의 심장이 놓인다. 심판을 통과한 이는 오시리스에게 받아들여지지만, 실패는 존재를 잃는 위협과 연결된다. 살아 있는 동안의 삶과 죽은 뒤의 운명이 연결되므로 이 장면은 희귀한 물건 하나를 얻으면 승리하는 시험으로 축소되지 않는다.\n\n내세에 대한 바람은 끝없이 쉬는 일만으로 표현되지도 않는다. 갈대밭의 삶에는 강과 배, 농사와 노동이 이어지며 장례용 작은 인물상은 망자 대신 일하는 역할과 연결된다. 따라서 명계의 길, 심판, 이후의 생활은 서로 다른 문제를 다룬다. 한 장면의 도상을 근거로 모든 무덤과 장례 문헌이 같은 순서로 구성되었다고 가정하지 않는다.\n\n출전: [호주박물관: 고대 이집트의 명계와 사후 세계](https://australian.museum/learn/cultures/international-collection/ancient-egyptian/the-underworld-and-the-afterlife-in-ancient-egypt/).\n\n<a id=\"anubis-scales\"></a>\n## 저울을 살피는 아누비스\n\n시신 보존과 매장을 돕는 개과 동물 형상의 아누비스는 심판에도 관여한다. 켈시박물관이 해설한 장면에서 그는 저울을 살피고 심장과 깃털의 비교가 바르게 이루어지는지 확인한다. 여기서 아누비스는 오시리스를 대신하는 명계의 유일한 왕이 아니라, 망자의 이동과 판단에 필요한 한 역할을 맡는다. 심장에 기억과 정체성이 연결되기에 무엇을 재는가와 누가 그것을 살피는가가 함께 중요하다.\n\n마아트의 깃털은 그 장면에서 진실과 질서의 기준을 시각화한다. 깃털의 무게를 게임의 수치처럼 정하고 신의 능력으로 취급하면 도상이 가리키는 판단의 관계를 놓친다. 아누비스가 확인하는 저울, 판단받는 심장, 판단의 기준인 깃털은 각각의 자리에 있을 때 심판 장면을 이룬다. 이 자료는 해당 해설과 도상을 근거로 역할을 구별하며 모든 판본의 세부가 같다고 하지 않는다.\n\n출전: [미시간대학교 켈시박물관: 심판의 아누비스](https://exhibitions.kelsey.lsa.umich.edu/jackal-gods-ancient-egypt/halls_truth.php).\n\n<a id=\"name-poison\"></a>\n## 이시스가 라의 이름을 요구하다\n\n이시스의 지혜를 보여 주는 별도의 이야기는 라의 비밀 이름을 둘러싼다. 라메세스 시대의 여러 자료에 남은 독을 물리치는 주문에서, 나이 든 라의 침을 이시스가 흙과 섞어 뱀을 만든다. 뱀을 라가 지나갈 길에 놓자 태양신은 물리고 고통에 빠진다. 많은 이름과 창조의 힘을 지닌 신도 자신을 해치는 낯선 독 앞에서는 도움을 필요로 한다.\n\n이시스는 치료를 위해 라의 참된 이름을 요구한다. 라가 자신의 여러 업적과 알려진 이름을 말해도 그녀가 구하는 비밀은 아직 드러나지 않는다. 마침내 라는 이름을 전하고, 이시스는 독을 물러가게 한다. 이름을 아는 것이 힘과 연결되는 이 사건에서, 라는 그녀가 그 이름을 호루스에게만 알리도록 조건을 둔다. 얻은 지식은 아무에게나 공개되는 정보가 아니라 제한된 관계 속에서 전달된다.\n\n이 글의 이름 이야기는 앞의 오시리스 회복 뒤에 반드시 일어났다는 연대기적 후속편이 아니다. 신들의 서사를 치유 주문의 힘으로 사용하는 별도의 문헌 맥락이다. 이름을 안다는 일을 모든 이집트 이야기에서 어떤 신도 지배할 수 있는 만능 법칙으로 확대하지 않는다. 또한 독을 물리치는 주문은 역사적 자료로 읽으며 실제 중독 치료법으로 사용하지 않는다.\n\n출전: [UCL Digital Egypt: 이시스와 라의 이름](https://www.ucl.ac.uk/museums-static/digitalegypt/literature/isisandra.html).\n\n이 글은 출전의 내용을 한국어로 새로 서술한 선택적 해설이다. 고대 원문이나 현대 번역 전문이 아니며, 위 순서는 전승 사이의 영향 관계나 공통 연대기를 확정하지 않는다. 문헌과 유물의 해설을 함께 참고하되 특정 시대의 도상을 다른 시대의 보편 법칙으로 바꾸지 않았다.\n",
   "setting_bible": {
+    "title": "이집트 신화와 사후 세계",
+    "introduction_markdown": "고대 이집트의 신격·태양 순환·오시리스 전승·장례 관념을 요약한다. 시대와 도시마다 달라지는 신들의 계보와 역할을 단일 정본으로 고정하지 않는다.\n\n이집트의 신들은 삼천 년에 걸친 문헌과 성소, 무덤과 조각에 서로 다른 모습으로 남았다. 이 글은 여러 도시가 세계의 시작을 설명하는 방식에서 출발하여 태양의 순환, 오시리스 가족의 회복, 죽은 자의 심판, 이시스의 지혜를 차례로 읽는다. 이는 고대에 존재한 단일 경전의 목차가 아니라 선택한 전승을 잇는 편집 순서다. 신들의 관계가 겹치더라도 모든 시대의 계보를 하나로 고정하지 않는다.",
     "sections": [
       {
-        "id": "c3c4d936-7c9f-5a3f-a4bc-aa1ec7238d7c",
-        "title": "라",
+        "id": "egyptian_mythology_ra",
+        "order": 1,
+        "title": "라·레",
+        "content_markdown": "라·레는 낮의 하늘과 밤의 보이지 않는 영역을 지나 아침에 되돌아오는 태양신이다. 배와 태양 원반은 그 이동을 드러내는 표지다.\n\n출전: [메트로폴리탄미술관: 고대 이집트 미술 교육 자료](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).",
+        "template_part": "전승 자료",
         "card_type": "character",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "늙어가는 태양신으로 묘사되며 자신의 비밀 이름을 간직한다. 뱀에 물린 뒤 다른 신들의 도움을 구하지만 원인을 알지 못해 고통받는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 전반",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "본문 전반"
+            "section": "sun-return",
+            "evidence": "라 또는 레의 태양은 낮에 하늘을 지나고 밤에는 보이지 않는 영역을 통과하여 다시 아침에 나타난다. 배와 태양 원반은 이 이동과 연결되는 표지다. 해가 지는 일이 세계의 영구한 끝이 아니라 재생을 향한 통과가 되는 것이다. 낮의 생명은 밤을 지워서 유지되지 않는다. 밤의 여정을 거쳐 태양이 되돌아온다는 반복이 질서의 지속을 설명한다."
           }
         ]
       },
       {
-        "id": "83ce7878-db0d-5cf8-b863-e986cbabbc60",
+        "id": "egyptian_mythology_osiris",
+        "order": 2,
+        "title": "오시리스",
+        "content_markdown": "수의를 두른 모습으로 죽은 몸의 보존과 새로운 생명의 기대를 드러낸다. 장례 관계에서 아누비스의 시신 돌봄, 이시스·네프티스의 애도와 구별되는 회복의 중심에 놓인다.\n\n출전: [메트로폴리탄미술관: Divine Egypt](https://www.metmuseum.org/exhibitions/divine-egypt/inside-the-exhibition).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "section": "osiris-family",
+            "evidence": "수의를 두른 오시리스의 모습은 죽은 몸이 보존되고 새 생명에 닿을 수 있다는 기대를 나타낸다. 장례에서 시신을 돌보는 아누비스, 애도하는 이시스와 네프티스, 회복되는 오시리스는 서로 다른 일을 맡는다. 그 관계를 따라가면 신화의 사건이 장례 행위와 연결되는 까닭이 보인다. 단, 여러 시대의 묘사와 후대의 긴 재서술을 모두 가장 이른 문헌에 이미 완성된 일대기로 돌려놓지는 않는다."
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_isis",
+        "order": 3,
         "title": "이시스",
+        "content_markdown": "오시리스의 배우자이자 호루스의 어머니다. 어린 호루스에게 젖을 먹이는 도상은 생명을 주고 보호하는 역할을 나타내지만, 모든 모자상이 이시스인 것은 아니다.\n\n출전: [메트로폴리탄미술관: Isis and Horus](https://www.metmuseum.org/art/collection/search/570685).",
+        "template_part": "전승 자료",
         "card_type": "character",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "지식과 주문에 능한 존재로 라의 이름을 알고자 한다. 라의 침과 흙으로 뱀을 만들고, 치유의 조건으로 비밀 이름을 요구한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀 제작과 이름 협상",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "뱀 제작과 이름 협상"
+            "section": "mother-child",
+            "evidence": "이시스는 오시리스의 배우자이며 호루스의 어머니다. 어린 호루스에게 젖을 먹이는 모습은 아이를 살리고 지키는 힘을 눈에 보이게 한다. 후기의 작은 조각들에서 이 모습이 널리 표현되는 것은 신들의 계보만 기억하려는 행위가 아니다. 생명을 주고 보호하는 여신에게 가까이 다가가려는 신앙도 그 형상에 담긴다. 다만 다른 여신도 아이에게 젖을 먹이는 모습으로 나타나므로 모자상이라는 이유만으로 모두 이시스라 단정하지 않는다."
           }
         ]
       },
       {
-        "id": "c1559f0b-e588-5d9e-be37-8ca75acbf266",
+        "id": "egyptian_mythology_horus",
+        "order": 4,
         "title": "호루스",
+        "content_markdown": "매의 형상과 살아 있는 왕권에 연결된다. 오시리스·이시스의 아들인 전승은 계승을 설명하지만 여러 지역의 호루스 형상을 모두 그 가족 이야기로 환원하지 않는다.\n\n출전: [메트로폴리탄미술관: Isis and Horus](https://www.metmuseum.org/art/collection/search/570685).\n\n추가 출전: [메트로폴리탄미술관 교육 자료, 29·103·129쪽: 왕권과 호루스](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).",
+        "template_part": "전승 자료",
         "card_type": "character",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "이시스의 아들로서 획득한 지식의 전달과 연결된다. 이 문헌만으로 호루스 전승의 모든 형태와 계보를 통일하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 이름의 전달 조건",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "이름의 전달 조건"
+            "section": "mother-child",
+            "evidence": "호루스는 매의 형상과 왕권에 연결되며 살아 있는 파라오는 그와 자신을 연결한다. 이시스와 오시리스의 아들인 호루스를 중심으로 읽을 때, 아버지의 죽음과 아들의 왕권은 단절 뒤의 계승을 보여 준다. 그러나 여러 지역의 호루스 형상을 모두 같은 가족 이야기의 한 장면으로 환원할 수는 없다. 왕을 살아서는 호루스, 죽은 뒤에는 오시리스와 잇는 관념도 역사적 신앙의 표현이며 모든 시대와 계층의 장례가 같았다는 선언이 아니다."
           }
         ]
       },
       {
-        "id": "4eea3563-907f-550f-b0d7-f70f3288120e",
-        "title": "라를 둘러싼 신들",
-        "card_type": "organization",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "라의 고통을 듣고 모이지만 낯선 독을 해결하지 못한다. 그들의 무능은 이시스가 가진 지식과 협상력을 부각한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 신들의 집합",
-        "source_refs": [
+        "id": "egyptian_mythology_maat",
+        "order": 5,
+        "title": "마아트",
+        "content_markdown": "진실과 질서를 나타내는 여신이다. 심장 계량에서는 깃털이 그 기준을 드러내며 죽은 자가 살아온 행위와 심판을 연결한다.\n\n출전: [호주박물관: 고대 이집트의 명계와 사후 세계](https://australian.museum/learn/cultures/international-collection/ancient-egyptian/the-underworld-and-the-afterlife-in-ancient-egypt/).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "신들의 집합"
+            "section": "duat-judgment",
+            "evidence": "심장 계량에서 마음과 살아온 행위는 판단의 대상이 된다. 마아트는 진실과 질서를 나타내는 여신이고 깃털은 그 기준을 드러낸다. 저울의 반대편에는 죽은 자의 심장이 놓인다. 심판을 통과한 이는 오시리스에게 받아들여지지만, 실패는 존재를 잃는 위협과 연결된다. 살아 있는 동안의 삶과 죽은 뒤의 운명이 연결되므로 이 장면은 희귀한 물건 하나를 얻으면 승리하는 시험으로 축소되지 않는다."
           }
         ]
       },
       {
-        "id": "a889f177-7597-5941-9833-9973ad5f57b5",
-        "title": "라가 지나가는 길",
+        "id": "egyptian_mythology_anubis",
+        "order": 6,
+        "title": "아누비스",
+        "content_markdown": "개과 동물 형상으로 시신 보존과 매장에 관여하고 심판의 저울을 살핀다. 오시리스를 대체하는 유일한 명계 왕이 아니라 망자의 이동과 판단을 돕는 역할이다.\n\n출전: [미시간대학교 켈시박물관: 심판의 아누비스](https://exhibitions.kelsey.lsa.umich.edu/jackal-gods-ancient-egypt/halls_truth.php).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "section": "anubis-scales",
+            "evidence": "시신 보존과 매장을 돕는 개과 동물 형상의 아누비스는 심판에도 관여한다. 켈시박물관이 해설한 장면에서 그는 저울을 살피고 심장과 깃털의 비교가 바르게 이루어지는지 확인한다. 여기서 아누비스는 오시리스를 대신하는 명계의 유일한 왕이 아니라, 망자의 이동과 판단에 필요한 한 역할을 맡는다. 심장에 기억과 정체성이 연결되기에 무엇을 재는가와 누가 그것을 살피는가가 함께 중요하다."
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_duat",
+        "order": 7,
+        "title": "두아트",
+        "content_markdown": "죽은 자가 문지기와 낯선 존재들을 거치며 통과와 인정을 얻는 명계다. 여기서는 『사자의 서』 계열의 여정을 읽으며 실제 사후 절차나 모든 문헌의 공통 지도라고 하지 않는다.\n\n출전: [호주박물관: 고대 이집트의 명계와 사후 세계](https://australian.museum/learn/cultures/international-collection/ancient-egyptian/the-underworld-and-the-afterlife-in-ancient-egypt/).",
+        "template_part": "전승 자료",
         "card_type": "location",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "이시스가 뱀을 놓는 장소이며 태양신의 일상적 이동이 위협받는 공간이다. 본문에 없는 지도 좌표를 부여하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀의 배치",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "뱀의 배치"
+            "section": "duat-judgment",
+            "evidence": "장례 문헌에서 죽은 이는 곧바로 편안한 삶에 도착하지 않는다. 두아트라는 명계의 여정에는 문지기와 낯선 존재들이 있고, 통과와 인정이 필요하다. 호주박물관이 설명하는 『사자의 서』 계열의 심판에서는 죽은 자가 신들 앞에서 자신의 행위를 말하고 오시리스에게 이르는 과정이 나타난다. 이 설명은 선택한 장례 전승의 여정이지, 실제 사망 이후 일어나는 절차를 확정하는 지식은 아니다."
           }
         ]
       },
       {
-        "id": "f7159ef4-39a0-5988-861c-e11cd06891ca",
-        "title": "침과 흙으로 만든 뱀",
+        "id": "egyptian_mythology_judgment",
+        "order": 8,
+        "title": "심장 계량",
+        "content_markdown": "죽은 자의 심장을 마아트의 깃털과 비교하여 삶의 행위를 판단하는 장면이다. 통과는 오시리스에게 받아들여짐, 실패는 존재 상실의 위협에 연결된다.\n\n출전: [호주박물관: 고대 이집트의 명계와 사후 세계](https://australian.museum/learn/cultures/international-collection/ancient-egyptian/the-underworld-and-the-afterlife-in-ancient-egypt/).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "section": "duat-judgment",
+            "evidence": "심장 계량에서 마음과 살아온 행위는 판단의 대상이 된다. 마아트는 진실과 질서를 나타내는 여신이고 깃털은 그 기준을 드러낸다. 저울의 반대편에는 죽은 자의 심장이 놓인다. 심판을 통과한 이는 오시리스에게 받아들여지지만, 실패는 존재를 잃는 위협과 연결된다. 살아 있는 동안의 삶과 죽은 뒤의 운명이 연결되므로 이 장면은 희귀한 물건 하나를 얻으면 승리하는 시험으로 축소되지 않는다."
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_feather",
+        "order": 9,
+        "title": "마아트의 깃털",
+        "content_markdown": "심장 계량에서 진실과 질서를 시각화하는 기준이다. 저울을 확인하는 아누비스와 판단받는 심장 사이의 관계 속에서 읽으며 수치화된 마법 능력으로 바꾸지 않는다.\n\n출전: [미시간대학교 켈시박물관: 심판의 아누비스](https://exhibitions.kelsey.lsa.umich.edu/jackal-gods-ancient-egypt/halls_truth.php).",
+        "template_part": "전승 자료",
         "card_type": "object",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "라에게서 나온 물질을 사용해 만들어진 공격 수단이다. 신 자신에게 기원을 둔 독이라는 역설이 이름의 비밀과 연결된다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀 제작",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "뱀 제작"
+            "section": "anubis-scales",
+            "evidence": "마아트의 깃털은 그 장면에서 진실과 질서의 기준을 시각화한다. 깃털의 무게를 게임의 수치처럼 정하고 신의 능력으로 취급하면 도상이 가리키는 판단의 관계를 놓친다. 아누비스가 확인하는 저울, 판단받는 심장, 판단의 기준인 깃털은 각각의 자리에 있을 때 심판 장면을 이룬다. 이 자료는 해당 해설과 도상을 근거로 역할을 구별하며 모든 판본의 세부가 같다고 하지 않는다."
           }
         ]
       },
       {
-        "id": "11771076-30c5-51ed-8d04-5859c254471f",
-        "title": "비밀 이름",
-        "card_type": "object",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "단순한 호칭 이상의 힘을 가진 지식으로 취급된다. 라가 공개적으로 열거하는 이름과 이시스가 요구하는 감춰진 이름을 구별한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 라와 이시스의 대화",
-        "source_refs": [
+        "id": "egyptian_mythology_solar_cycle",
+        "order": 10,
+        "title": "태양의 밤 여정과 재생",
+        "content_markdown": "해가 밤의 보이지 않는 영역을 거쳐 아침에 돌아오는 반복이다. 일몰을 영구한 끝이 아니라 질서와 생명의 재생을 향한 통과로 설명한다.\n\n출전: [메트로폴리탄미술관: 고대 이집트 미술 교육 자료](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "라와 이시스의 대화"
+            "section": "sun-return",
+            "evidence": "라 또는 레의 태양은 낮에 하늘을 지나고 밤에는 보이지 않는 영역을 통과하여 다시 아침에 나타난다. 배와 태양 원반은 이 이동과 연결되는 표지다. 해가 지는 일이 세계의 영구한 끝이 아니라 재생을 향한 통과가 되는 것이다. 낮의 생명은 밤을 지워서 유지되지 않는다. 밤의 여정을 거쳐 태양이 되돌아온다는 반복이 질서의 지속을 설명한다."
           }
         ]
       },
       {
-        "id": "f03a028e-c2f9-55b9-92f0-3e27de80dd5d",
-        "title": "이시스의 주문",
-        "card_type": "ability",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "독을 제어하는 말과 지식이 치유 과정에 쓰인다. 현대의 해독법이나 실제 의료 조언이 아니다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 독을 물리치는 주문",
-        "source_refs": [
+        "id": "egyptian_mythology_ennead",
+        "order": 11,
+        "title": "헬리오폴리스의 엔네아드",
+        "content_markdown": "헬리오폴리스에서 우주의 형성과 연결되는 아홉 신의 집합이다. 멤피스에서 프타의 말로 창조를 설명하는 전승과 병존하며 둘을 하나의 사건 순서로 합치지 않는다.\n\n출전: [메트로폴리탄미술관: Divine Egypt](https://www.metmuseum.org/exhibitions/divine-egypt/inside-the-exhibition).",
+        "template_part": "전승 자료",
+        "card_type": "organization",
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "독을 물리치는 주문"
+            "section": "local-beginnings",
+            "evidence": "헬리오폴리스에서는 아홉 신의 집합인 엔네아드가 우주의 형성과 연결된다. 반면 멤피스의 창조 설명에서는 프타가 말을 통해 세계와 다른 신들을 생겨나게 한다. 이 둘을 이어 프타가 엔네아드 뒤에 다시 세계를 창조했다고 쓰면 서로 다른 설명을 한 사건의 전후로 오해하게 된다. 지역의 성소는 자신이 받드는 신을 중심으로 세계의 시작을 말했고, 서로 다른 설명은 나란히 받아들여지기도 했다."
           }
         ]
       },
       {
-        "id": "76dd6389-66af-50b2-be95-d7a2cbef6c41",
-        "title": "이름 공개의 조건",
+        "id": "egyptian_mythology_osiris_restored",
+        "order": 12,
+        "title": "오시리스의 회복",
+        "content_markdown": "세트에게 훼손된 오시리스를 이시스와 네프티스가 돌보고 아누비스가 장례 의례를 돕는 사건이다. 회복은 예전 생활로의 단순 복귀가 아니라 명계 통치와 호루스의 계승으로 이어진다.\n\n출전: [메트로폴리탄미술관: Divine Egypt](https://www.metmuseum.org/exhibitions/divine-egypt/inside-the-exhibition).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "section": "osiris-family",
+            "evidence": "오시리스 전승에서 세트의 폭력은 가족과 통치의 연속을 끊는다. 오시리스는 죽임을 당하고 몸이 훼손되지만 이시스와 네프티스가 그를 돌보고 모으며, 아누비스가 장례 의례를 돕는다. 회복은 죽음을 없었던 일로 만들고 예전 생활을 그대로 돌려놓는 결말이 아니다. 오시리스는 죽은 자의 영역을 다스리고, 호루스와 이어지는 가족 관계가 살아 있는 세계의 왕권을 잇는다."
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_secret_name",
+        "order": 13,
+        "title": "라의 비밀 이름",
+        "content_markdown": "이시스와 라의 이야기에서 이름을 아는 일은 힘과 연결된다. 치료의 조건으로 전달된 비밀 이름은 호루스에게만 알리도록 제한된다.\n\n출전: [UCL Digital Egypt: 이시스와 라의 이름](https://www.ucl.ac.uk/museums-static/digitalegypt/literature/isisandra.html).",
+        "template_part": "전승 자료",
         "card_type": "rule",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "치유와 비밀 공개가 맞교환되는 구조이다. 모든 이집트 신화에 똑같이 적용되는 강제 계약 시스템으로 일반화하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 이름 이전 장면",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "이름 이전 장면"
+            "section": "name-poison",
+            "evidence": "이시스는 치료를 위해 라의 참된 이름을 요구한다. 라가 자신의 여러 업적과 알려진 이름을 말해도 그녀가 구하는 비밀은 아직 드러나지 않는다. 마침내 라는 이름을 전하고, 이시스는 독을 물러가게 한다. 이름을 아는 것이 힘과 연결되는 이 사건에서, 라는 그녀가 그 이름을 호루스에게만 알리도록 조건을 둔다. 얻은 지식은 아무에게나 공개되는 정보가 아니라 제한된 관계 속에서 전달된다."
           }
         ]
       },
       {
-        "id": "40d24f9f-c889-5cfa-bed0-36f88c004993",
-        "title": "라의 피독과 협상",
+        "id": "egyptian_mythology_isis_ra",
+        "order": 14,
+        "title": "이시스가 라의 이름을 얻다",
+        "content_markdown": "이시스가 만든 뱀에 라가 물린 뒤 그녀는 치료의 조건으로 비밀 이름을 요구한다. 라가 이름을 전하자 독을 물러가게 하며, 그 지식은 호루스에게만 알리도록 제한된다.\n\n출전: [UCL Digital Egypt: 이시스와 라의 이름](https://www.ucl.ac.uk/museums-static/digitalegypt/literature/isisandra.html).",
+        "template_part": "전승 자료",
         "card_type": "event",
-        "area_code": "history",
-        "template_part": "전승 요약",
-        "content_markdown": "라가 뱀에 물리고 고통을 겪자 이시스가 이름을 요구한다. 처음의 호칭 열거로 해결되지 않으며 감춰진 지식의 이전으로 진행된다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 중반",
-        "source_refs": [
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "본문 중반"
+            "section": "name-poison",
+            "evidence": "이시스의 지혜를 보여 주는 별도의 이야기는 라의 비밀 이름을 둘러싼다. 라메세스 시대의 여러 자료에 남은 독을 물리치는 주문에서, 나이 든 라의 침을 이시스가 흙과 섞어 뱀을 만든다. 뱀을 라가 지나갈 길에 놓자 태양신은 물리고 고통에 빠진다. 많은 이름과 창조의 힘을 지닌 신도 자신을 해치는 낯선 독 앞에서는 도움을 필요로 한다."
+          },
+          {
+            "section": "name-poison",
+            "evidence": "이시스는 치료를 위해 라의 참된 이름을 요구한다. 라가 자신의 여러 업적과 알려진 이름을 말해도 그녀가 구하는 비밀은 아직 드러나지 않는다. 마침내 라는 이름을 전하고, 이시스는 독을 물러가게 한다. 이름을 아는 것이 힘과 연결되는 이 사건에서, 라는 그녀가 그 이름을 호루스에게만 알리도록 조건을 둔다. 얻은 지식은 아무에게나 공개되는 정보가 아니라 제한된 관계 속에서 전달된다."
           }
         ]
       },
       {
-        "id": "9edab2de-c42c-53af-9dfa-43b91abe7c1d",
-        "title": "독의 제거와 주문의 전용",
-        "card_type": "event",
-        "area_code": "history",
-        "template_part": "전승 요약",
-        "content_markdown": "이시스의 말로 독이 물러나고 문헌은 그 신화적 사건을 인간의 의례에 연결하는 낭송 지시로 이어진다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 후반과 끝의 낭송 지시",
-        "source_refs": [
+        "id": "egyptian_mythology_royal_afterlife",
+        "order": 15,
+        "title": "왕권과 사후의 오시리스",
+        "content_markdown": "살아 있는 왕을 호루스, 죽은 왕을 오시리스와 연결하는 관념이다. 아버지의 죽음 뒤 아들의 계승을 보여 주지만 모든 시대와 계층의 장례를 하나로 고정하지 않는다.\n\n출전: [메트로폴리탄미술관: Isis and Horus](https://www.metmuseum.org/art/collection/search/570685).\n\n추가 출전: [메트로폴리탄미술관 교육 자료, 29·103·129쪽: 왕권과 호루스](https://resources.metmuseum.org/resources/metpublications/pdf/The_Art_of_Ancient_Egypt_A_Resource_for_Educators.pdf).",
+        "template_part": "전승 자료",
+        "card_type": "rule",
+        "narrative_refs": [
           {
-            "source_id": "r",
-            "locator": "본문 후반과 끝의 낭송 지시"
-          }
-        ]
-      },
-      {
-        "id": "0909c951-1c24-558f-9057-eb4d1dd0965a",
-        "title": "지역 전승과 이설",
-        "card_type": "other",
-        "area_code": "basic",
-        "template_part": "전승 요약",
-        "content_markdown": "이집트 신화에는 다양한 지역 신학과 시대별 문헌이 있다. 이 자료는 라·이시스 이야기 한 편의 설정으로, 오시리스 계보나 모든 창조신의 관계를 대신 설명하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 선정 문헌 전체",
-        "source_refs": [
-          {
-            "source_id": "r",
-            "locator": "선정 문헌 전체"
+            "section": "mother-child",
+            "evidence": "호루스는 매의 형상과 왕권에 연결되며 살아 있는 파라오는 그와 자신을 연결한다. 이시스와 오시리스의 아들인 호루스를 중심으로 읽을 때, 아버지의 죽음과 아들의 왕권은 단절 뒤의 계승을 보여 준다. 그러나 여러 지역의 호루스 형상을 모두 같은 가족 이야기의 한 장면으로 환원할 수는 없다. 왕을 살아서는 호루스, 죽은 뒤에는 오시리스와 잇는 관념도 역사적 신앙의 표현이며 모든 시대와 계층의 장례가 같았다는 선언이 아니다."
           }
         ]
       }
     ]
-  },
-  "content_markdown": "# 이집트 신화 — 라의 이름과 이시스\n\n라와 이시스의 이름 획득 이야기 및 그 문헌에 연결된 주문을 중심으로 정리한다. 이집트 전체의 창세론을 하나로 합치지 않는다. 원전 내용의 한국어 요약이며 전체 번역·창작 소설 설정집이 아니다. 전승별 차이와 불확실성을 구분한다.\n\n## 라\n\n늙어가는 태양신으로 묘사되며 자신의 비밀 이름을 간직한다. 뱀에 물린 뒤 다른 신들의 도움을 구하지만 원인을 알지 못해 고통받는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 전반\n\n## 이시스\n\n지식과 주문에 능한 존재로 라의 이름을 알고자 한다. 라의 침과 흙으로 뱀을 만들고, 치유의 조건으로 비밀 이름을 요구한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀 제작과 이름 협상\n\n## 호루스\n\n이시스의 아들로서 획득한 지식의 전달과 연결된다. 이 문헌만으로 호루스 전승의 모든 형태와 계보를 통일하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 이름의 전달 조건\n\n## 라를 둘러싼 신들\n\n라의 고통을 듣고 모이지만 낯선 독을 해결하지 못한다. 그들의 무능은 이시스가 가진 지식과 협상력을 부각한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 신들의 집합\n\n## 라가 지나가는 길\n\n이시스가 뱀을 놓는 장소이며 태양신의 일상적 이동이 위협받는 공간이다. 본문에 없는 지도 좌표를 부여하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀의 배치\n\n## 침과 흙으로 만든 뱀\n\n라에게서 나온 물질을 사용해 만들어진 공격 수단이다. 신 자신에게 기원을 둔 독이라는 역설이 이름의 비밀과 연결된다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 뱀 제작\n\n## 비밀 이름\n\n단순한 호칭 이상의 힘을 가진 지식으로 취급된다. 라가 공개적으로 열거하는 이름과 이시스가 요구하는 감춰진 이름을 구별한다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 라와 이시스의 대화\n\n## 이시스의 주문\n\n독을 제어하는 말과 지식이 치유 과정에 쓰인다. 현대의 해독법이나 실제 의료 조언이 아니다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 독을 물리치는 주문\n\n## 이름 공개의 조건\n\n치유와 비밀 공개가 맞교환되는 구조이다. 모든 이집트 신화에 똑같이 적용되는 강제 계약 시스템으로 일반화하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 이름 이전 장면\n\n## 라의 피독과 협상\n\n라가 뱀에 물리고 고통을 겪자 이시스가 이름을 요구한다. 처음의 호칭 열거로 해결되지 않으며 감춰진 지식의 이전으로 진행된다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 중반\n\n## 독의 제거와 주문의 전용\n\n이시스의 말로 독이 물러나고 문헌은 그 신화적 사건을 인간의 의례에 연결하는 낭송 지시로 이어진다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 본문 후반과 끝의 낭송 지시\n\n## 지역 전승과 이설\n\n이집트 신화에는 다양한 지역 신학과 시대별 문헌이 있다. 이 자료는 라·이시스 이야기 한 편의 설정으로, 오시리스 계보나 모든 창조신의 관계를 대신 설명하지 않는다.\n\n근거: [The Legend of Ra and Isis, Budge 1912](https://www.attalus.org/egypt/re_and_isis.html) — 선정 문헌 전체\n"
+  }
 }
