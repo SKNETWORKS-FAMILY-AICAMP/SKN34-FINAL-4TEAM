@@ -3,7 +3,7 @@ import {useAppSelector} from '../../../../app/store'
 import {appContainer} from '../../../../app/appContainer'
 import type {InitialWorldUseCase} from '../../../../domain/usecases/InitialWorldUseCase'
 import {currentCandidate,type Analysis,type Candidate,type Receipt,type ReviewAction,type MutationResult} from '../../../../domain/entities/initialWorld'
-export function useInitialWorldReview(world:string,active:boolean,dirty:boolean,revision:number|undefined,reload:()=>Promise<void>,lock:(value:boolean)=>void,useCase:InitialWorldUseCase|null=appContainer.resolve('initialWorldUseCase')){
+export function useInitialWorldReview(world:string,active:boolean,dirty:boolean,revision:number|undefined,reload:(receipt:Receipt)=>Promise<void>,lock:(value:boolean)=>void,useCase:InitialWorldUseCase|null=appContainer.resolve('initialWorldUseCase')){
  const member=useAppSelector(s=>s.session.memberId),[analyses,setAnalyses]=useState<Analysis[]>([]),[selected,setSelected]=useState(''),[checked,setChecked]=useState<string[]>([])
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[pending,setPending]=useState(false),[receipt,setReceipt]=useState<Receipt|null>(null)
  const controller=useRef<AbortController|null>(null),scope=useRef(0)
@@ -32,7 +32,7 @@ export function useInitialWorldReview(world:string,active:boolean,dirty:boolean,
     const verified=await useCase!.receipt(world,analysisId,r.applicationId,signal)
     if(verified.status!=='applied')throw new Error('반영 완료를 아직 확인하지 못했어요.')
     // Unlock the original editor only for its server reload; no local candidate insertion.
-    if(signal.aborted)return;await reload();if(signal.aborted)return
+    if(signal.aborted)return;await reload(verified);if(signal.aborted)return
     setReceipt(verified);useCase!.acknowledge(world)
     setChecked([]);setMessage('승인한 내용이 세계관 초안에 반영되었습니다. 확정 버전 생성은 별도입니다.')
    }else setMessage('반영 결과가 아직 미확인입니다. 같은 요청으로 확인해 주세요. 예약 취소는 지원하지 않습니다.')

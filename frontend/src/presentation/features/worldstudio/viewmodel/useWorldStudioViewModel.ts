@@ -193,7 +193,7 @@ export function useWorldStudioViewModel(
   return {
     reviewWorldId:worldId,
     setReviewBusy,
-    reload:async()=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했습니다.');install(w);setRelationKey(v=>v+1)},
+    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했습니다.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setRelationKey(v=>v+1)},
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoPersonDeletion: !!personUndo,
     flow,

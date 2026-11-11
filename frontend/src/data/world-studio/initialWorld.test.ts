@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs'
+import {analysisSchema,candidateSchema,decisionSchema,receiptSchema} from './initialWorldSchemas'
 import {beforeEach,afterEach,it,expect,vi} from 'vitest'
 import '../../test/testLocks'
 import {login} from '../api/auth'
@@ -28,4 +30,17 @@ it('isolates pending requests by authenticated member',async()=>{
  await expect(repo.mutate(world,'',{expectedDraftRevision:2})).rejects.toThrow()
  vi.stubGlobal('fetch',vi.fn(async(path:string)=>path.endsWith('/csrf')?Response.json({csrfToken:'csrf'}):Response.json({accessToken:'other',user:{id:'other',email:'other@example.test',nickname:'other',operator:false}})))
  await login('other@example.test','test');expect(repo.pending(world)).toBeNull()
+})
+
+it('accepts the shared #219 seven-kind fixture and decision/application contracts',()=>{
+ const fixture=JSON.parse(readFileSync(new URL('../../../../docs/design/initial-world-preprocessing/honggildong.json',import.meta.url),'utf8')).valid
+ expect(fixture.output.candidates.map((c:unknown)=>candidateSchema.parse(c))).toHaveLength(7)
+ expect(analysisSchema.parse(fixture.analysisResponse).analysisId).toBe(fixture.analysisResponse.analysisId)
+ fixture.decisions.forEach((d:unknown)=>decisionSchema.parse(d));receiptSchema.parse(fixture.applicationResponse)
+})
+it.each(['running','failed','unknown'] as const)('preserves explicit analysis state %s rather than reporting completion',async state=>{
+ const data={analysisId:analysis,basis:{draftRevision:2,relationshipVersion:1,currentRevisionId:null,inputHash:'hash'},executionStatus:state,freshness:'current',output:null,candidateIds:{},decisions:[]}
+ const repo=new HttpInitialWorldRepository(vi.fn().mockResolvedValue(Response.json(data,{status:state==='running'?202:state==='failed'?502:503})),storage)
+ expect(await repo.mutate(world,'',{expectedDraftRevision:2})).toMatchObject({executionStatus:state})
+ expect(!!repo.pending(world)).toBe(state!=='failed')
 })

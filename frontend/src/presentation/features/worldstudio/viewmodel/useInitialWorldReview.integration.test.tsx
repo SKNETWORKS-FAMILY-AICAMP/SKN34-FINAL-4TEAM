@@ -29,3 +29,14 @@ it('retains the request and does not show success if the draft reload fails',asy
  const {result,repo}=setup(vi.fn(async()=>{throw new Error('조회 실패')}));await waitFor(()=>expect(result.current.pending).toBe(true))
  await act(()=>result.current.recover());expect(result.current.error).toBe('조회 실패');expect(result.current.message).toBe('');expect(result.current.receipt).toBeNull();expect(repo.acknowledge).not.toHaveBeenCalled()
 })
+
+it('blocks a second click while recovery is awaiting its response',async()=>{
+ const {result,repo}=setup();await waitFor(()=>expect(result.current.pending).toBe(true))
+ let finish!:(value:Receipt)=>void
+ vi.mocked(repo.resume).mockImplementation(()=>new Promise(resolve=>{finish=resolve}))
+ let request!:Promise<void>
+ act(()=>{request=result.current.recover();void result.current.recover()})
+ expect(repo.resume).toHaveBeenCalledTimes(1)
+ await act(async()=>{finish({...receipt,status:'unknown',resultDraftRevision:null});await request})
+ expect(result.current.pending).toBe(true);expect(result.current.message).toContain('미확인')
+})
