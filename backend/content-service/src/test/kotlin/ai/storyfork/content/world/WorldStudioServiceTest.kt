@@ -34,7 +34,7 @@ class WorldStudioServiceTest {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,graph,manager,mapper)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,mock(InitialWorldApplicationRepository::class.java),graph,manager,mapper)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)

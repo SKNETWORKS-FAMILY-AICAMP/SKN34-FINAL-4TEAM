@@ -4,4 +4,7 @@ import ai.storyfork.content.world.studio.entity.InitialWorldApplication
 import java.util.UUID
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface InitialWorldApplicationRepository : JpaRepository<InitialWorldApplication, UUID>
+interface InitialWorldApplicationRepository : JpaRepository<InitialWorldApplication, UUID> {
+    fun findByWorldIdAndRequestKey(worldId:UUID,requestKey:String):InitialWorldApplication?
+    fun findFirstByWorldIdAndStatusIn(worldId:UUID,status:List<String>):InitialWorldApplication?
+}

@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 /** 비공개 입력·SQL·Cypher·드라이버 오류를 응답이나 로그에 노출하지 않는다. */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(assignableTypes=[WorldStudioController::class,InitialWorldAnalysisController::class])
+@RestControllerAdvice(assignableTypes=[WorldStudioController::class,InitialWorldAnalysisController::class,InitialWorldApplicationController::class])
 class WorldStudioExceptionHandler {
+    @ExceptionHandler(ai.storyfork.content.world.service.InitialWorldReviewConflict::class)
+    fun reviewConflict(error:ai.storyfork.content.world.service.InitialWorldReviewConflict)=ResponseEntity.status(409).body(WorldStudioErrorResponse(error.code,
+        if(error.code=="ANALYSIS_STALE") "원본이 변경되었습니다. 재분석 후 검토하세요." else "완료된 분석 후보만 처리할 수 있습니다."))
     @ExceptionHandler(WorldStudioFailure::class)
     fun failure(error:WorldStudioFailure)=ResponseEntity.status(status(error.reason)).body(WorldStudioErrorResponse(error.code,error.detail))
     private fun status(reason:Reason)=when(reason) {
