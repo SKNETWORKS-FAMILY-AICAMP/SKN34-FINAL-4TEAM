@@ -7,7 +7,7 @@ import java.util.UUID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
-/** [AiRateLimitService.tryAcquire]의 결과. 제한에 걸리면 크레딧과 한도를 쓰지 않고 다시 시도할 시점만 알려 준다. */
+/** [AiRateLimitService.tryAcquire]의 결과. 제한에 걸리면 한도를 쓰지 않고 다시 시도할 시점만 알려 주므로, 호출하는 쪽은 이 결과를 확인한 뒤에 크레딧을 예약·차감해야 한다. */
 sealed interface AiRateLimitDecision {
     data object Allowed : AiRateLimitDecision
 
@@ -42,7 +42,8 @@ class AiRateLimitService(
 
     /**
      * 요청 한 건과 [tokens]만큼의 토큰을 쓰려는 [memberId]의 요청을 받을지 정한다. 받으면 한도를 가져가고,
-     * 아니면 아무것도 가져가지 않는다. [tokens]가 분당 한도보다 크면 기다려도 통과할 수 없으므로 거절한다.
+     * 아니면 아무것도 가져가지 않는다. [tokens]가 분당 한도보다 크면 기다려도 통과할 수 없어 [IllegalArgumentException]을 던지므로,
+     * 호출하는 쪽은 요청 토큰 수를 한도 이하로 제한해 부르고 이 예외를 사용자에게 보이는 오류로 바꿔야 한다.
      */
     fun tryAcquire(memberId: UUID, tokens: Int, now: Instant = Instant.now()): AiRateLimitDecision {
         require(tokens > 0) { "요청 토큰 수는 0보다 커야 합니다." }
