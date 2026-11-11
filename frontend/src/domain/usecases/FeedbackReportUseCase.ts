@@ -25,7 +25,8 @@ export class FeedbackReportUseCase {
 
   listEpisode(workId: string, n: number) { return this.repository.listEpisode(workId, n) }
   listMine() { return this.repository.listMine() }
-  listInbox() { return this.repository.listInbox() }
+  /** workId를 주면 그 작품의 제보만 서버에서 받는다(작품 관리 화면). 주지 않으면 내 모든 작품이다. */
+  listInbox(workId?: string) { return this.repository.listInbox(workId) }
 
   setVisibility(r: FeedbackReport, visibility: FeedbackReportVisibility) { return this.repository.setVisibility(r.workId, r.id, visibility) }
 

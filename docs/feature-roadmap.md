@@ -645,7 +645,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="114">Frontend</td><td rowspan="54">웹 화면</td><td rowspan="8">92 정본 읽기 전환</td><td>런타임 샘플 주입을 제거하고 명시적 테스트 fixture로 격리</td><td>❌</td><td rowspan="8">—</td></tr>
+<tr><td rowspan="115">Frontend</td><td rowspan="55">웹 화면</td><td rowspan="8">92 정본 읽기 전환</td><td>런타임 샘플 주입을 제거하고 명시적 테스트 fixture로 격리</td><td>❌</td><td rowspan="8">—</td></tr>
 <tr><td>서버 slug 메타데이터로 기존 경로의 UUID 집필실 연결</td><td>❌</td></tr>
 <tr><td>조회 실패 시 샘플 fallback 없이 오류·재시도 제공</td><td>❌</td></tr>
 <tr><td>인증·작품·회차 범위 변경 후 오래된 비동기 결과 차단</td><td>❌</td></tr>
@@ -653,7 +653,7 @@
 <tr><td>미지원 aggregate 저장을 오류로 반환하고 입력 보존</td><td>❌</td></tr>
 <tr><td>canonical 피드백 변경의 메모리 저장·접수 성공 거절</td><td>❌</td></tr>
 <tr><td>canonical 운영 조치의 데모 상태 변경·승인 성공 거절</td><td>❌</td></tr>
-<tr><td rowspan="14">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td><td rowspan="14"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td rowspan="15">41 업무 화면 연결</td><td>목록 화면 API 연결 <small>(팀 서재에 서버 작품 조회·집필 진입 연결 및 제목·버튼 여백 정리, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td><td rowspan="15"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/92">#92</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/29">#29</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/23">#23</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/25">#25</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
 <tr><td>상세 화면 API 연결</td><td>❌</td></tr>
 <tr><td>등록 화면 API 연결</td><td>❌</td></tr>
 <tr><td>수정 화면 API 연결 <small>(회차 집필에 팀 레이아웃 재사용·제목/본문 입력은 UI 서체 적용, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td></tr>
@@ -667,6 +667,7 @@
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
 <tr><td>공통 시트의 summary 키보드 탐색 <small>(초기 포커스·Tab/Shift+Tab 순환, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/139">PR #139</a></td></tr>
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td></tr>
+<tr><td>집필실 3단 레이아웃 <small>(왼쪽 회차 목록·새 회차 아이콘·항목별 ⋮ 메뉴·크기 조절 분할선·버전 그래프, 가운데 제목 첫 줄과 서식 없는 Tiptap 본문 편집기·이미지 첨부·공개 분량 5,000자 규칙(화면 규칙), 오른쪽 공용 채팅, 기본/고급 전환 틀. 채팅의 AI 전송·첨부와 설정 수집은 준비 중 잠금이며 실제 연결은 아직 없음, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td rowspan="22">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="22"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a></td></tr>
 <tr><td>홈 단색 배경 보조 텍스트의 라이트·다크 대비 확보</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>홈 Hero 자동 넘김을 이름 있는 정지·재생 제어로 조작</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>

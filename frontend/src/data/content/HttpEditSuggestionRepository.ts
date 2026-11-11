@@ -26,7 +26,7 @@ export class HttpEditSuggestionRepository implements EditSuggestionRepository {
     return this.api.request(`/works/${encodeURIComponent(workId)}/episodes/${episode}/edit-suggestions`, suggestion, 'POST', input)
   }
   async mine() { return (await this.api.request('/works/edit-suggestions/mine', suggestions)).items }
-  async inbox() { return (await this.api.request('/works/edit-suggestions/inbox', suggestions)).items }
+  async inbox(workId?: string) { return (await this.api.request(`/works/edit-suggestions/inbox${workId === undefined ? '' : `?${new URLSearchParams({ workId })}`}`, suggestions)).items }
   saveEditedText(workId: string, id: string, editedText: string) { return this.api.request(`${one(workId, id)}/edited-text`, suggestion, 'PUT', { editedText }) }
   approve(workId: string, id: string) { return this.api.request(`${one(workId, id)}/approval`, suggestion, 'POST') }
   reject(workId: string, id: string, reason?: string) { return this.api.request(`${one(workId, id)}/rejection`, suggestion, 'POST', reason ? { reason } : {}) }

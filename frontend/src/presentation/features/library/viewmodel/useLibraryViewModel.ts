@@ -14,12 +14,11 @@ import { useAsyncData } from '../../../shared/useAsyncData'
 export function useLibraryViewModel(libraryUseCase: LibraryUseCase = appContainer.resolve('libraryUseCase'), studioUseCase: StudioUseCase = appContainer.resolve('studioUseCase')) {
   const [q] = useSearchParams()
   const dispatch = useAppDispatch()
-  const tab = q.get('tab') === 'write' ? 'write' : q.get('tab') === 'qa' ? 'qa' : 'read'
+  const tab = q.get('tab') === 'write' ? 'write' : q.get('tab') === 'worlds' ? 'worlds' : 'read' // 없어진 탭 주소(?tab=qa 등)도 읽는 중으로 연다.
   const { data, isError, retry } = useAsyncData(async () => ({
     tab,
     pending: await libraryUseCase.pending(),
     read: tab === 'read' ? await libraryUseCase.getRead() : null,
-    reports: tab === 'qa' ? await libraryUseCase.getReports() : null,
     write: tab === 'write' ? await libraryUseCase.getWrite() : null,
   }), [libraryUseCase, tab])
   useScreenId(data ? (data.tab === 'write' ? 'U12' : 'U11') : null)

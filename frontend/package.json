@@ -19,6 +19,13 @@
   "dependencies": {
     "@hookform/resolvers": "^5.8.0",
     "@reduxjs/toolkit": "^2.12.0",
+    "@tiptap/core": "^3.33.0",
+    "@tiptap/extension-document": "^3.33.0",
+    "@tiptap/extension-paragraph": "^3.33.0",
+    "@tiptap/extension-text": "^3.33.0",
+    "@tiptap/extensions": "^3.33.0",
+    "@tiptap/pm": "^3.33.0",
+    "@tiptap/react": "^3.33.0",
     "awilix": "^13.0.5",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

@@ -138,6 +138,18 @@ it('deleteBlocker follows the selected episode and is empty before one is loaded
   expect(result.current.deleteBlocker).toBe('')
 })
 
+it('deleteBlockerOf explains any listed episode with the same rules, whichever episode is selected',async()=>{
+  const api=deletionApi([row(1,{publishedVersionId:'v1'}),row(2),row(3,{inherited:true})])
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  const [first,second,third]=result.current.episodes
+  expect(result.current.active?.number).toBe(1)
+  expect(result.current.deleteBlockerOf(first)).toBe('발행본이 있는 회차는 삭제할 수 없어요. 마지막 회차(3화)만 삭제할 수 있어요.')
+  expect(result.current.deleteBlockerOf(second)).toBe('마지막 회차(3화)만 삭제할 수 있어요.')
+  expect(result.current.deleteBlockerOf(third)).toBe('원작 기준 회차는 삭제할 수 없어요.')
+  expect(result.current.deleteBlockerOf(first)).toBe(result.current.deleteBlocker)
+})
+
 it('confirms an episode deletion as irreversible and says the number can be reused',async()=>{
   const api=deletionApi([row(1)])
   const {result}=renderHook(()=>useWritingViewModel('w',api))
@@ -338,4 +350,25 @@ it('autosaves note-only edits and preserves notes typed while saving', async () 
   await act(async()=>resolveSave({...episode,draft:{...episode.draft,authorNote:'첫 후기',revision:1}}))
   expect(result.current.draft.authorNote).toBe('추가 입력')
   expect(result.current.dirty).toBe(true)
+})
+
+it('opens the episode named by the entry number once and falls back to the first episode when it is missing', async () => {
+  const first={number:1,draft:{title:'1화',body:'첫 원고',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
+  const second={...first,number:2,draft:{title:'2화',body:'둘째 원고',revision:3}}
+  const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue([first,second]),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  const named=renderHook(()=>useWritingViewModel('w',api,undefined,2))
+  await act(async()=>{})
+  expect(named.result.current.active?.number).toBe(2)
+  expect(named.result.current.draft).toEqual(second.draft)
+  expect(named.result.current.episodes.map(e=>e.number)).toEqual([1,2])
+  // 다시 불러오면 열려 있던 회차를 유지하고, 옛 ?ep 번호로 되돌리지 않는다.
+  await act(async()=>{await named.result.current.select(first)})
+  await act(async()=>{await named.result.current.reload()})
+  expect(named.result.current.active?.number).toBe(1)
+  const missing=renderHook(()=>useWritingViewModel('w',api,undefined,9))
+  await act(async()=>{})
+  expect(missing.result.current.active?.number).toBe(1)
+  const plain=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  expect(plain.result.current.active?.number).toBe(1)
 })
