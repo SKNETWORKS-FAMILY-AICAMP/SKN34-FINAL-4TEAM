@@ -24,6 +24,16 @@ Evidence에는 source kind, source ID, work/Fork, episode/document ID, source re
 
 Coverage는 요청한 범위의 expected와 verified 판본, 누락·stale·삭제·미지원 구간을 표시한다. top-k가 관련 문단을 찾았다는 이유만으로 작품 전체를 검수했다고 쓰지 않는다. 권한 밖 회차는 존재 자체를 드러내지 않는다. 인물용 packet은 해당 시점에 배운 정보만 포함한다.
 
+## Q&A 범위 확정 (1단계 구현)
+
+`content-service`의 `QaScopeService.resolve`가 Q&A와 이후 원고 Vector 검색의 공통 선필터를 확정한다. 공개 HTTP 경로·답변 생성은 아직 연결하지 않았다.
+
+- 입력: 경로의 작품/Fork ID, Core가 검증한 Principal(없으면 공개 독자), 기준 회차 번호, 기준 회차 발행 판본 ID(`versionId`), 질문 대상 `manuscript|relationship`, 관계 시점 `current`.
+- 권한: 작가는 `WorkAccessService.own`, 독자는 `published`로 판단한다. 판본·세계관 ID는 요청에서 받지 않고 정본에서 다시 읽는다.
+- 범위: 해당 작품/Fork의 발행 회차 중 기준 회차 이하와 각 현재 발행 판본. Fork의 상속 회차는 Fork가 보는 판본이며, 원작이 삭제된 Fork의 독자 범위에서는 상속 회차를 뺀다. 미발행·없는 회차는 422, 판본 불일치(오래된 판본·다른 Fork 판본)는 409다.
+- 관계: 기준 회차의 `basisWorldId`(기능 87)를 작품↔세계관 연결로 보고, 작가 소유 world의 현재 Neo4j graph token을 `WorldStudioService.draft`로 확인한다. 연결 없음은 422 `WORLD_LINK_REQUIRED`, 미소유는 404, `current` 외 시점은 409 `RELATIONSHIP_HISTORY_UNSUPPORTED`, 저장소 오류는 WorldStudio의 code·상태(409/503)를 그대로 쓴다. 독자의 관계 질문은 공개 범위 미정으로 403이다.
+- 미정: 작가 집필 중 미발행 초안을 범위에 넣는 방식, 독자에게 공개할 관계 범위, 상속 회차의 원작자 세계관 사용, 회차에 연결된 world가 봉인 버전인데 관계는 현재 상태를 읽는 차이의 표시 방식.
+
 ## 공급자별 계약
 
 | 공급자 | 우선순위와 입력 | 검증·한계 |
