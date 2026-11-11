@@ -234,6 +234,14 @@ class WorldStudioService(
         readRevision(worldId,revision.id)
     }
     fun revision(worldId:UUID,subject:UUID,revisionId:UUID):WorldRevisionResponse=tx { owned(worldId,subject);readRevision(worldId,revisionId) }
+    /** 검증된 Principal의 회원 UUID만 전달한다. 새 HTTP/AI 진입점은 제공하지 않는다. */
+    fun confirmedContext(worldId:UUID,subject:UUID,revisionId:UUID):WorldConfirmedContextResult {
+        val saved=revision(worldId,subject,revisionId)
+        val active=saved.cards.filter { it.card.lifecycle=="active" }
+        return WorldConfirmedContextResult(saved.worldId,saved.revisionId,saved.revisionNo,subject,
+            saved.name,saved.description,active,saved.cards.size-active.size)
+    }
+
     fun revisionSummaries(worldId: UUID, subject: UUID): List<WorldRevisionSummaryResponse> = tx {
         owned(worldId, subject)
         revisions.findAllByWorldIdAndSealedTrueOrderByRevisionNoDesc(worldId).map { it.summary() }

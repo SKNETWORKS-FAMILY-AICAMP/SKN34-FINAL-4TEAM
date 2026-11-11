@@ -284,4 +284,43 @@ class WorldStudioServiceTest {
             "used"
         }
     }
+
+    @Test fun `confirmed context preserves frozen sources and applied semantics without reading drafts candidates or graph`() {
+        owned()
+        val person=UUID.randomUUID();val place=UUID.randomUUID();val id=UUID.randomUUID()
+        val metadata=mapOf("preprocessing" to mapOf("semanticType" to "goal","provenance" to "author_revision",
+            "analysisId" to UUID.randomUUID().toString(),"candidateId" to UUID.randomUUID().toString(),"decisionSequence" to 3,"evidence" to emptyList<Any>()),
+            "studio" to mapOf("item" to mapOf("subjectId" to person.toString(),"relatedIds" to listOf(place.toString()))))
+        val versions=listOf(
+            SettingCardVersion(cardId=person,worldId=world,versionNo=1,fields=CardFields(title="홍길동",body="원문😀",cardType="character")),
+            SettingCardVersion(cardId=place,worldId=world,versionNo=1,fields=CardFields(title="율도국",body="장소",cardType="location")),
+            SettingCardVersion(cardId=UUID.randomUUID(),worldId=world,versionNo=2,fields=CardFields(title="목표",body="나라를 세우려 한다",semanticMetadata=metadata)),
+            SettingCardVersion(cardId=UUID.randomUUID(),worldId=world,versionNo=1,fields=CardFields(title="삭제",body="제외",lifecycle="removed")))
+        val revision=WorldRevision(id=id,worldId=world,revisionNo=1,name="확정",description="확정 설명",sealed=true)
+        `when`(revisions.findByIdAndWorldId(id,world)).thenReturn(revision)
+        `when`(revisionCards.findAllByIdRevisionId(id)).thenReturn(versions.map {WorldRevisionCard(RevisionCardKey(id,it.cardId),world,it.id)})
+        `when`(cardVersions.findAllById(versions.map {it.id})).thenReturn(versions)
+        val before=service.confirmedContext(world,actor,id)
+        draft.description="나중에 쓴 초안";draft.draftRevision++
+        state.graphVersion++;state.completed=false
+        assertEquals(before,service.confirmedContext(world,actor,id))
+        assertEquals(world,before.worldId);assertEquals(id,before.revisionId);assertEquals(actor,before.authorizedSubject)
+        assertEquals("owner_confirmed_settings",before.scope);assertEquals("확정 설명",before.description)
+        assertEquals(3,before.cards.size);assertEquals(1,before.excludedRemovedCardCount)
+        assertEquals(metadata,before.cards.single {it.card.title=="목표"}.card.semanticMetadata)
+        assertEquals(versions.take(3).map {it.id}.toSet(),before.cards.map {it.versionId}.toSet())
+        assertEquals(setOf(person,place),before.cards.filter {it.card.cardType in setOf("character","location")}.map {it.card.id}.toSet())
+        assertEquals("not_recorded",before.relationshipStatus);assertFalse(before.currentRelationshipsIncluded);assertFalse(before.completeWorldContext)
+        verifyNoInteractions(drafts,cardDrafts,cards,states,graph,requests)
+    }
+
+    @Test fun `confirmed context denies other owners and missing foreign or unsealed revisions`() {
+        assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,UUID.randomUUID(),UUID.randomUUID())}
+        verifyNoInteractions(revisions,revisionCards,cardVersions,graph)
+        owned();val id=UUID.randomUUID()
+        assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,actor,id)}
+        `when`(revisions.findByIdAndWorldId(id,world)).thenReturn(WorldRevision(id=id,worldId=world,revisionNo=1,name="미확정",description="",sealed=false))
+        assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,actor,id)}
+        verifyNoInteractions(revisionCards,cardVersions,graph)
+    }
 }

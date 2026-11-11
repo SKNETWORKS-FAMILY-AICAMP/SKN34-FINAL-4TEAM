@@ -366,11 +366,13 @@ class InitialWorldAnalysisPostgresTest {
             val reviews=ctx.getBean(InitialWorldAnalysisService::class.java);val app=ctx.getBean(InitialWorldApplicationService::class.java)
             val studio=ctx.getBean(WorldStudioService::class.java)
             val confirmed=studio.revision(world.worldId,actor,world.currentRevisionId!!)
+            val originalContext=studio.confirmedContext(world.worldId,actor,confirmed.revisionId)
             val candidate=analysis.candidateIds.getValue("fact")
             val edit=analysis.output!!.candidates.first { it.localRef=="fact" }.copy(text="작가가 수정한 사실",provenance="author_revision",evidence=emptyList())
             reviews.decide(world.worldId,actor,analysis.analysisId,candidate,InitialWorldDecisionRequest("edit-fact",1,"edit",edit,""))
             assertThrows(WorldConflict::class.java) { app.apply(world.worldId,actor,analysis.analysisId,applicationRequest(world,analysis)) }
             val pending=reviews.get(world.worldId,actor,analysis.analysisId).body
+            assertEquals(originalContext,studio.confirmedContext(world.worldId,actor,confirmed.revisionId))
             assertThrows(WorldConflict::class.java) { app.apply(world.worldId,actor,analysis.analysisId,applicationRequest(world,pending)) }
             reviews.decide(world.worldId,actor,analysis.analysisId,candidate,InitialWorldDecisionRequest("approve-fact-edit",2,"approve",null,""))
             val request=applicationRequest(world,reviews.get(world.worldId,actor,analysis.analysisId).body)
@@ -396,6 +398,17 @@ class InitialWorldAnalysisPostgresTest {
             assertThrows(InitialWorldReviewConflict::class.java) { app.apply(world.worldId,actor,analysis.analysisId,request.copy(key="duplicate-candidates")) }
             studio.edit(world.worldId,actor,EditWorldDraftRequest(after.draftRevision,"나중 편집",after.description,key="later-general-edit"))
             assertEquals(result,app.apply(world.worldId,actor,analysis.analysisId,request)) // Lost success reply remains success after later edits.
+            assertEquals(originalContext,studio.confirmedContext(world.worldId,actor,confirmed.revisionId))
+            val latest=studio.draft(world.worldId,actor)
+            val second=studio.save(world.worldId,actor,SaveWorldRequest(latest.draftRevision,"confirm-applied-context"))
+            val appliedContext=studio.confirmedContext(world.worldId,actor,second.revisionId)
+            assertEquals(after.cards,appliedContext.cards.map {it.card})
+            assertEquals(6,appliedContext.cards.count {it.card.id in result.createdCardIds})
+            assertEquals(originalContext,studio.confirmedContext(world.worldId,actor,confirmed.revisionId))
+            assertFalse(appliedContext.currentRelationshipsIncluded);assertFalse(appliedContext.completeWorldContext)
+            assertEquals("not_recorded",appliedContext.relationshipStatus)
+            assertThrows(WorldNotFound::class.java) {studio.confirmedContext(world.worldId,UUID.randomUUID(),second.revisionId)}
+
         } } }
     }
 
