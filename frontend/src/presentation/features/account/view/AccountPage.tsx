@@ -4,7 +4,6 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { supportStatusLabel } from '../../../../domain/entities/supportInquiry'
 import { Cov } from '../../../shared/art'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
-import { openPolicy } from '../../../shared/events'
 import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { RequireRole } from '../../../shared/session/RequireRole'
@@ -14,6 +13,7 @@ import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useAccountViewModel } from '../viewmodel/useAccountViewModel'
 import { Devices } from './Devices'
+import { PayView } from './PayView'
 
 type VM = ReturnType<typeof useAccountViewModel>
 const PRIVATE = ['profile', 'liked', 'pay', 'storage']
@@ -60,9 +60,7 @@ function Account({ sub }: { sub: string }) {
   else if (sub === 'storage') T = vm.data?.storage && <><h2>저장 공간</h2><div className="tcard mecard" data-storage-summary><b>현재 데모 데이터 약 {vm.data.storage.bytes.toLocaleString()}바이트</b>
     <p className="small muted">저장 공간 관리는 MVP에서 제외됐어요. 이 화면에는 브라우저 메모리 기준 예시만 표시하며 새로고침하면 사라져요.</p><h3>작성 중인 초안</h3>
     {vm.data.storage.drafts.length ? vm.data.storage.drafts.map(({ key, title, d }) => <div className="rp" key={key}><b>{title} · {d.editingEpisode ? `${d.editingEpisode}화 수정 초안` : `${d.no}화`}</b></div>) : <p className="muted">작성 중인 초안이 없어요.</p>}</div></>
-  else if (sub === 'pay') T = <><h2>결제 내역</h2><div className="kpi" style={{ gridTemplateColumns: 'repeat(2,minmax(0,1fr))' }}><div><small>보유 크레딧</small><b>—</b><span className="small muted">크레딧 정책 미확정 (P2)</span></div><div><small>이번 달 사용</small><b>0</b><span className="small muted">데모에서는 차감되지 않아요</span></div></div>
-    <div className="tcard mecard" style={{ marginTop: 14 }}><div className="eptool" style={{ border: 0, padding: 0 }}><div className="sortt"><button type="button" className="on">전체</button><button type="button" disabled title="결제 기능 미정">충전</button><button type="button" disabled title="결제 기능 미정">사용</button></div></div>
-      <p className="muted" style={{ padding: '28px 0', textAlign: 'center' }}>결제 내역이 없어요.</p><div className="policy">유료 열람·크레딧 충전은 기획서 V장에서 ‘추후 확정’이라 이 목업에서는 결제가 일어나지 않아요. <button type="button" className="btn sm" onClick={openPolicy}>정책 안내</button></div></div></>
+  else if (sub === 'pay') T = <PayView vm={vm} />
   else if (sub === 'inquiry') T = <InquiryView vm={vm} />
   return (
     <>
