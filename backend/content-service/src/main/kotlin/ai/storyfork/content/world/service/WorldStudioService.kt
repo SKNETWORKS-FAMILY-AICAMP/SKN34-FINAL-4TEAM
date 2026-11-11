@@ -234,6 +234,12 @@ class WorldStudioService(
         readRevision(worldId,revision.id)
     }
     fun revision(worldId:UUID,subject:UUID,revisionId:UUID):WorldRevisionResponse=tx { owned(worldId,subject);readRevision(worldId,revisionId) }
+    fun revisionSummaries(worldId:UUID,subject:UUID):List<WorldRevisionSummaryResponse> = tx {
+        owned(worldId,subject)
+        revisions.findAllByWorldIdAndSealedTrueOrderByRevisionNoDesc(worldId).map {
+            WorldRevisionSummaryResponse(it.worldId,it.id,it.revisionNo,it.name,it.createdAt.toString())
+        }
+    }
     fun restore(worldId:UUID,subject:UUID,request:RestoreWorldRequest):WorldRevisionResponse {
         tx { owned(worldId,subject) }
         throw WorldStudioFailure.history()

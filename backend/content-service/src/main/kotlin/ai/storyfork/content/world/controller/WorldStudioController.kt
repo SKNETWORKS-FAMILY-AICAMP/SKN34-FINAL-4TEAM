@@ -30,6 +30,9 @@ class WorldStudioController(private val service:WorldStudioService) {
     @PostMapping("/{id}/revisions")
     fun save(@PathVariable id:UUID,principal:Principal,@RequestBody request:SaveWorldRequest)=service.save(id,UUID.fromString(principal.name),request)
 
+    @GetMapping("/{id}/revisions")
+    fun revisions(@PathVariable id:UUID,principal:Principal)=service.revisionSummaries(id,UUID.fromString(principal.name))
+
     /** 기존 카드/설정 불변 버전만 조회한다. 현재 관계를 과거 관계로 섞지 않는다. */
     @GetMapping("/{id}/revisions/{revisionId}")
     fun revision(@PathVariable id:UUID,@PathVariable revisionId:UUID,principal:Principal)=service.revision(id,UUID.fromString(principal.name),revisionId)

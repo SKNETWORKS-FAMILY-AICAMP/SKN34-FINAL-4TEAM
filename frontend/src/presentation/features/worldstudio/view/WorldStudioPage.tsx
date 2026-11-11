@@ -1,3 +1,4 @@
+import {WorldRevisions} from './WorldRevisions'
 import {InitialWorldReview} from './InitialWorldReview'
 import {studioLabelCleanup} from '../../../../domain/entities/studioWorld'
 import {useEffect,useRef,type FormEvent} from 'react'
@@ -29,7 +30,7 @@ export function WorldStudioPage(){
  const vm=useWorldStudioViewModel(),heading=useRef<HTMLHeadingElement>(null),tools=useRef<HTMLDetailsElement>(null)
  useEffect(()=>{if(vm.flow.screen==='editor')heading.current?.focus({preventScroll:true})},[vm.flow.step,vm.flow.screen])
  const current=steps.findIndex(([id])=>id===vm.flow.step)
- const chooseTool=(tool:'explore'|'analysis')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
+ const chooseTool=(tool:'explore'|'analysis'|'versions')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
  return <><Gnb on="worldstudio"/><main id="main" tabIndex={-1} className="wrap world-studio world-writing">
   <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">{vm.storage.intro}</p></div></header>
   {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}
@@ -38,7 +39,7 @@ export function WorldStudioPage(){
   {!vm.editing&&vm.reviewWorldId&&<InitialWorldReview key={vm.reviewWorldId} studio={vm}/>}
   {vm.editing&&<section className="world-content" hidden={vm.flow.screen!=='editor'} aria-busy={vm.busy}>
    <div className="world-toolbar"><button type="button" className="btn sm" onClick={vm.showList}>내 세계관</button><h2>{vm.saved?.name}</h2><span role="status" className="world-save-state">{vm.saveState==='saving'?'저장 중':vm.saveState==='failed'?'저장 실패 · 입력은 유지됩니다':vm.dirty?'작성 중 · 미저장':'저장됨'}</span>{vm.relationDirty&&<span role="status" className="small muted">관계 입력 미적용</span>}
-    <details className="world-tools" ref={tools}><summary>도구</summary><div><button type="button" onClick={()=>chooseTool('explore')}>세계관 탐색</button><button type="button" onClick={()=>chooseTool('analysis')}>AI 후보 검토</button><button type="button" onClick={()=>{vm.goStep('cards');vm.addCard('note');vm.setCardDetail(true);if(tools.current)tools.current.open=false}}>집필 메모 추가</button><Go to="/new">새 소설 등록으로</Go></div></details>
+    <details className="world-tools" ref={tools}><summary>도구</summary><div><button type="button" onClick={()=>chooseTool('explore')}>세계관 탐색</button><button type="button" onClick={()=>chooseTool('analysis')}>AI 후보 검토</button><button type="button" onClick={()=>chooseTool('versions')}>확정 버전</button><button type="button" onClick={()=>{vm.goStep('cards');vm.addCard('note');vm.setCardDetail(true);if(tools.current)tools.current.open=false}}>집필 메모 추가</button><Go to="/new">새 소설 등록으로</Go></div></details>
    </div>
    {vm.tool!=='write'&&<button className="btn sm world-return" type="button" onClick={()=>vm.setTool('write')}>작성으로 돌아가기</button>}
    <div hidden={vm.tool!=='write'}>
@@ -55,6 +56,7 @@ export function WorldStudioPage(){
     <nav className="world-step-actions" aria-label="단계 이동"><button className="btn" type="button" disabled={current===0} onClick={()=>vm.goStep(steps[current-1][0])}>이전 단계</button>{current<3&&<button className="btn pri" type="button" onClick={()=>vm.goStep(steps[current+1][0])}>{vm.flow.step==='relations'?'검토·저장으로':'다음 단계'}</button>}{vm.flow.step==='cards'&&<button className="btn" type="button" onClick={()=>vm.goStep('review')}>관계 없이 검토·저장</button>}</nav>
    </div>
    {vm.tool==='explore'&&<><nav className="libtabs" aria-label="세계관 탐색 보기">{exploreTabs.map(([id,label])=><button type="button" key={id} className={vm.explore===id?'on':''} aria-pressed={vm.explore===id} onClick={()=>vm.setExplore(id)}>{label}</button>)}</nav>{(vm.explore==='map'||vm.explore==='relations')&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}:${vm.explore}`} world={vm.saved} charactersOnly={vm.explore==='relations'}/>:<Confirmed vm={vm} tab={vm.explore}/>}</>}
+   <div hidden={vm.tool!=='versions'}><WorldRevisions key={vm.editing.id} studio={vm}/></div>
    <div hidden={vm.tool!=='analysis'}><InitialWorldReview key={vm.editing.id} studio={vm}/></div>
   </section>}
  </main><footer className="foot"><div className="wrap"><b>STORYFORK</b><Go to="/lib">내 서재</Go></div></footer></>

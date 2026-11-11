@@ -832,3 +832,5 @@ Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추�
 - 초기 세계관 7-A: AI 추가 카드·관계 DTO/metadata 왕복 어댑터 구현(Draft, 미병합). 후보 검토 UI는 후속.
 
 - 초기 세계관 7-B: 실제 Content 분석·후보 검토·초안 반영 UI 구현(Draft, 미병합). 유료 모델 품질/실제 배포 수용은 미검증.
+
+- WorldStudio 8단계: 명시적 확정 버전 생성·목록·읽기 전용 상세 UI(Draft, 미병합). 과거 관계/복원/발행은 제외.
