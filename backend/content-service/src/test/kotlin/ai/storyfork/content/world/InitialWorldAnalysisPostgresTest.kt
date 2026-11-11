@@ -488,10 +488,17 @@ class InitialWorldAnalysisPostgresTest {
                 try {
                     val calls=(1..2).map { pool.submit<InitialWorldApplicationResponse> { app.apply(world.worldId,actor,analysis.analysisId,request) } }
                     val results=calls.map { it.get(20,TimeUnit.SECONDS) }
-                    assertEquals(results[0],results[1]);assertEquals("applied",results[0].status)
-                    assertEquals(first.applicationId,results[0].applicationId)
-                    assertEquals(first.createdCardIds,results[0].createdCardIds)
-                    assertEquals(first.createdRelationshipIds,results[0].createdRelationshipIds)
+                    // One caller can observe uncertainty before its peer commits. Both must converge without new IDs.
+                    assertTrue(results.any { it.status=="applied" })
+                    results.forEach { result ->
+                        assertTrue(result.status in listOf("applied","unknown"))
+                        assertEquals(first.applicationId,result.applicationId)
+                        assertEquals(first.createdCardIds,result.createdCardIds)
+                        assertEquals(first.createdRelationshipIds,result.createdRelationshipIds)
+                    }
+                    val receipt=app.get(world.worldId,actor,analysis.analysisId,first.applicationId)
+                    assertEquals("applied",receipt.status)
+                    assertEquals(receipt,app.apply(world.worldId,actor,analysis.analysisId,request))
                 } finally { pool.shutdownNow() }
                 assertEquals(world.relationshipVersion+1,realGraph.read(world.worldId).version)
                 assertEquals(world.draftRevision+1,ctx.getBean(WorldStudioService::class.java).draft(world.worldId,actor).draftRevision)

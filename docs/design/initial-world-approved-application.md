@@ -35,7 +35,7 @@ Neo4j repository는 기존 전체 현재 상태 CAS 구현을 재사용한다. �
 
 최종 PG transaction에서 **새 카드 초안만 추가 + draftRevision 증가 + relationship_state 완료/graphVersion + application applied/resultDraftRevision**을 함께 확정한다. 기존 카드 행의 원문/metadata/updatedAt은 application 경로에서 갱신하지 않는다. edit 반환 뒤 별도 transaction으로 applied를 기록하지 않는다. 확정 버전/currentRevisionId도 바꾸지 않는다.
 
-동시 같은 key는 동일 예약을 재사용하고 Neo4j key/hash/CAS 및 world 잠금으로 같은 결과에 수렴한다. 다른 application은 세계관당 미완료 application UNIQUE와 world 잠금으로 차단한다. 일반 편집이 먼저 준비했다면 application은 관계 미완료 상태를 통과하지 못한다. application 준비가 먼저라면 일반 편집의 준비 단계가 차단된다.
+동시 같은 key는 동일 예약을 재사용하고 Neo4j key/hash/CAS 및 world 잠금으로 같은 결과에 수렴한다. 한 요청이 다른 요청의 commit 전에 unknown을 받을 수 있으므로 응답 시점별 status가 항상 같다고 보장하지 않는다. 이후 GET 또는 동일 POST는 영속 applied receipt를 반환한다. 다른 application은 세계관당 미완료 application UNIQUE와 world 잠금으로 차단한다. 일반 편집이 먼저 준비했다면 application은 관계 미완료 상태를 통과하지 못한다. application 준비가 먼저라면 일반 편집의 준비 단계가 차단된다.
 
 ## 장애 복구
 
