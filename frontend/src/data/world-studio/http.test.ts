@@ -143,3 +143,20 @@ it('releases only a definitely rejected stale confirmation, allowing a deliberat
  await expect(repo.confirm(id,2)).rejects.toThrow('변경');expect(repo.pendingConfirmation(id)).toBeNull()
  await repo.confirm(id,3);expect(JSON.parse(fetcher.mock.calls[1][1].body).key).not.toBe(JSON.parse(fetcher.mock.calls[0][1].body).key)
 })
+
+it('acknowledges only the current owner/world and creates a fresh key only on a later explicit confirmation',async()=>{
+ const otherWorld=`storyfork:confirmation:writer:${crypto.randomUUID()}`
+ const otherOwner=`storyfork:confirmation:other:${id}`
+ const values=new Map([[otherWorld,'other-world-request'],[otherOwner,'other-owner-request']])
+ vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)})
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(confirmed()))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await repo.confirm(id,2)
+ const original=repo.pendingConfirmation(id)
+ repo.acknowledgeConfirmation(id)
+ expect(values.get(otherWorld)).toBe('other-world-request');expect(values.get(otherOwner)).toBe('other-owner-request')
+ expect(fetcher).toHaveBeenCalledTimes(1);expect(repo.pendingConfirmation(id)).toBeNull()
+ await repo.confirm(id,4)
+ expect(repo.pendingConfirmation(id)?.expectedDraftRevision).toBe(4)
+ expect(repo.pendingConfirmation(id)?.key).not.toBe(original?.key)
+})
