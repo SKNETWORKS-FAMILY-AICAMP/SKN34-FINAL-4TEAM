@@ -2,9 +2,9 @@
 
 ## 기준과 보존 증거
 
-기존 test/initial-world-integration / f05cec6ce834781d263c2612d588c9224dfe7636과 원래 증거를 보존했다. 별도 test/initial-world-integration-refresh에서 develop 09f7d4349e8242db609ef18494a5c744e4b080ae를 결합했다. 정확한 원본 HEAD/base, patch-id, SQL 해시는 [manifest](manifest.json)에 있다. 원래 증거 파일은 Git blob 바이트 동일성을 검사했다(Windows working tree 줄바꿈과 구분).
+기존 test/initial-world-integration / f05cec6ce834781d263c2612d588c9224dfe7636과 원래 증거를 보존했다. 별도 test/initial-world-integration-refresh에서 요청 시점 develop 09f7d4349e8242db609ef18494a5c744e4b080ae를 결합한 뒤, 검증 도중 추가된 27d4b01f180006e6279be83fd36f05d112f5e026의 집필 AI 설계 문서/지침 8개 파일도 보존해 반영했다. 후자는 런타임 코드 변경이 없다. 정확한 원본 HEAD/base, patch-id, SQL 해시는 [manifest](manifest.json)에 있다. 원래 증거 파일은 Git blob 바이트 동일성을 검사했다(Windows working tree 줄바꿈과 구분).
 
-최신 develop은 #283의 크레딧 원장 UI 관련 18개 파일이다. 텍스트 충돌 없이 결합됐다. integration에 들어온 develop delta patch-id가 원래 develop delta와 같고, 최신 develop 대비 WorldStudio 소유 변경 patch-id도 기존 10-A와 동일하다. 이 문서 추가만 별도 커밋이며 production 회귀 수정은 없다.
+09f7d434 변경은 #283의 크레딧 원장 UI 관련 18개 파일이고 27d4b01f는 팀원의 문서/지침 변경이다. 텍스트 충돌 없이 결합됐다. integration에 들어온 develop delta patch-id가 원래 develop delta와 같고, 최신 develop 대비 WorldStudio 소유 변경 patch-id도 기존 10-A와 동일하다. 이 문서 추가만 별도 커밋이며 production 회귀 수정은 없다.
 
 DI 실서비스·목업·types에 크레딧 원장과 initialWorld 등록을 모두 유지했다. 기능표의 크레딧 행과 전처리 항목도 보존했다. 크레딧 Core 조회/목업 계약은 유지하며 AI 비용 차감과 임의 연결하지 않는다. #286 후보 UI와 #288 확정 UI는 변경하지 않았다. V1~V5 SQL 해시는 기존 manifest와 일치한다. 새 API/마이그레이션/DB 정책은 없다.
 
@@ -50,3 +50,5 @@ DI 실서비스·목업·types에 크레딧 원장과 initialWorld 등록을 모
 ## 경계와 배포 수용
 
 9-A는 소유자용 확정 카드 Context 조각이다. 전체 Builder·작품/회차 연결·인물별 지식·MCP·관계 이력/Fork를 변경하지 않는다. 실제 DB 이력/체크섬, 인증·CSRF·proxy, 모바일·재로그인·timeout/재시작, 실제 모델 품질은 별도 배포 수용 항목이다. develop 직접 push, 기존 PR/Draft 변경, PR/자동 병합, 개발/운영 DB 배포는 수행하지 않는다.
+
+추가 문서 반영 후에도 검증 보고 문서 자체를 제외한 WorldStudio 소유 diff patch-id는 원래 10-A와 동일하다. AI 지침은 기능별 실제 모델 수용을 별도 허용하지만, 이번 사용자 요청은 유료 호출 금지이므로 대역 검증만 수행한다.

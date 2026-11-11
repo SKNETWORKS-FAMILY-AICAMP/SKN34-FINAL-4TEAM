@@ -22,4 +22,4 @@
 
 - 로컬: `backend/ai-service`에서 `uv run --locked --extra dev python -m pytest -m 'not integration' <대상 파일> -k '<대상>'`로 단위만 실행한다.
   제공사는 monkeypatch 대역을 쓰고 FastAPI TestClient는 통합(`integration` marker)으로 분류해 CI에서 실행한다.
-- 유료 OpenAI 호출은 하지 않는다. 상세는 [AI README](README.md)와 [Agent 구조](docs/agent-structure.md)를 본다.
+- 기본 단위 테스트와 CI는 모델 대역을 사용한다. 집필 AI 기능별 수용은 사용자가 요청한 개발 방식에 따라 개발용 데이터·키·호출 상한을 정하고 실제 OpenAI API로 별도 검증한다. 키·원고를 로그나 저장소에 남기지 않는다. 상세는 [집필 AI 로드맵](../../docs/writing-ai-architecture/05-implementation-roadmap.md)을 본다.

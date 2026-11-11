@@ -1,7 +1,7 @@
 {
   "preservedIntegration": "f05cec6ce834781d263c2612d588c9224dfe7636",
   "previousDevelop": "b0398b691dd95c79ae04705aea386cf7bd8e2245",
-  "latestDevelop": "09f7d4349e8242db609ef18494a5c744e4b080ae",
+  "latestDevelop": "27d4b01f180006e6279be83fd36f05d112f5e026",
   "mergedCommit": "733e9bfece9b673c86bdd48cc1560f67952e7c69",
   "creditDeltaPatchId": "20ddb34d1aca39c24aa6bca26da877e4180c557b",
   "worldStudioScopePatchId": "ab680f8640e8a3bd96efa66589ff0b68f508aab8",
@@ -123,5 +123,8 @@
       "isDraft": true,
       "reviewDecision": ""
     }
-  ]
+  ],
+  "requestedDevelop": "09f7d4349e8242db609ef18494a5c744e4b080ae",
+  "documentationRefreshFrom": "a8c33e782734632ae5ba01546f75b66cfe8b2548",
+  "latestDevelopDeltaPatchId": "5a9a67b4b50b83a97caf4e21abbcb4cee19317c1"
 }
