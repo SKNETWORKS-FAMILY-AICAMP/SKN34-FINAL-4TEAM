@@ -607,7 +607,9 @@ it('작품 전체 댓글이 없으면 빈 상태를 보이고 데모 작품은 �
     renderApp('/work/guunmong', createAppStore({ role: 'user' }))
     await screen.findByRole('heading', { name: '전체 댓글 0', level: 2 })
     screen.getByText(/아직 댓글이 없어요/)
-    expect(within(commentsSection()).getByRole('link', { name: '1화' }).getAttribute('href')).toBe('/read/guunmong/1')
+    // 빈 상태 링크는 히어로 '읽기 시작'과 같은 회차다(픽스처에 읽던 기록이 있어 1화가 아닐 수 있다).
+    const startHref = screen.getByRole('link', { name: '읽기 시작' }).getAttribute('href')
+    expect(within(commentsSection()).getByRole('link', { name: /^\d+화$/ }).getAttribute('href')).toBe(startHref)
     expect(screen.queryByRole('group', { name: '댓글 정렬' })).toBeNull()
   } finally { server.restore() }
   try {
