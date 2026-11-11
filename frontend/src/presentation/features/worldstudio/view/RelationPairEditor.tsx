@@ -33,6 +33,7 @@ export function RelationPairEditor(
       <section className='relationship-group' key={label}>
         <h4>{label}</h4>
         {visible.map((r, i) => {
+          if(r.value.predicate==='preserved_emotion_symmetric')return <div className='relationship-row' key={r.key}><p>두 설정 사이의 대칭 감정 · 읽기 전용</p><p>{r.value.title}</p><p className='world-prose'>{r.value.text}</p><p className='small muted'>현재 편집기는 방향별 감정만 수정할 수 있어요. 이 관계는 일반 저장 시 원형 그대로 보존됩니다.</p></div>
           const field = label + ' ' + (i + 1)
           const direction = vm.direction(r)
           const write = (text: string) => vm.write(r, text)

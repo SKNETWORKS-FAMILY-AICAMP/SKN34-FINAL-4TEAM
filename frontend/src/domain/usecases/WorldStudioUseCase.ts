@@ -3,6 +3,12 @@ import type {WorldStudioRepository} from '../repositories/WorldStudioRepository'
 export class WorldStudioUseCase {
  private readonly repository:WorldStudioRepository
  constructor(repository:WorldStudioRepository){this.repository=repository}
+ get supportsRevisions(){return !!this.repository.confirm}
+ revisions(id:string,signal?:AbortSignal){if(!this.repository.revisions)throw new Error('데모에서는 확정 버전을 지원하지 않습니다.');return this.repository.revisions(id,signal)}
+ revision(id:string,revision:string,signal?:AbortSignal){if(!this.repository.revision)throw new Error('데모에서는 확정 버전을 지원하지 않습니다.');return this.repository.revision(id,revision,signal)}
+ confirm(id:string,expected:number,signal?:AbortSignal){if(!this.repository.confirm)throw new Error('데모에서는 확정 버전을 지원하지 않습니다.');return this.repository.confirm(id,expected,signal)}
+ pendingConfirmation(id:string){return this.repository.pendingConfirmation?.(id)??null}
+ acknowledgeConfirmation(id:string){this.repository.acknowledgeConfirmation?.(id)}
  list(signal?:AbortSignal){return this.repository.listStudio(signal)}
  read(id:string,signal?:AbortSignal){return this.repository.read(id,signal)}
  async create(name:string,description:string,signal?:AbortSignal){
