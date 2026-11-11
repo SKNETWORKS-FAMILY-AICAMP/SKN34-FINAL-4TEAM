@@ -104,6 +104,12 @@ it('40,000자를 넘는 입력은 막고 안내하며 지우는 입력은 늘 �
   expect(screen.getByRole('status').textContent).toBe('')
 })
 
+it('붙여넣은 HTML의 이미지 블록은 서버 이미지 id(UUID)일 때만 받는다', async () => {
+  render(<Harness initial="" />)
+  act(() => { editor().commands.setContent(`<div data-episode-image="../x"></div><div data-episode-image="${IMAGE}"></div>`) })
+  expect(await screen.findAllByRole('img', { name: '본문 이미지' })).toHaveLength(1)
+})
+
 it('이미지 표식은 46자로 세어 40,000자 한도 안에 남지 않는 이미지 블록 입력도 막는다', () => {
   const onBody = vi.fn()
   render(<Harness initial={'가'.repeat(39990)} onBody={onBody} />)

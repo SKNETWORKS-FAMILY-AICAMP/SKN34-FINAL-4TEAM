@@ -41,7 +41,8 @@ const EpisodeImage = Node.create<ImageOptions>({
   atom: true,
   addOptions: () => ({ workId: '', number: 0 }),
   addAttributes: () => ({ imageId: { default: '', parseHTML: el => el.getAttribute('data-episode-image'), renderHTML: attrs => ({ 'data-episode-image': attrs.imageId }) } }),
-  parseHTML: () => [{ tag: 'div[data-episode-image]' }],
+  // 붙여넣은 외부 HTML의 아무 값이나 이미지 조회 주소로 쓰지 않도록, 서버 이미지 id(UUID)만 이미지 블록으로 받는다.
+  parseHTML: () => [{ tag: 'div[data-episode-image]', getAttrs: el => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(el.getAttribute('data-episode-image') ?? '') ? null : false }],
   renderHTML: ({ HTMLAttributes }) => ['div', HTMLAttributes],
   addNodeView: () => ReactNodeViewRenderer(ImageView),
 })

@@ -109,7 +109,8 @@ export function GlobalChrome() {
   const { pathname } = useLocation()
   const showTools = pathname !== '/login' && pathname !== '/me' && !pathname.startsWith('/me/') && !pathname.startsWith('/auth/')
   // 집필실(U13)은 화면 ID·테마 전환을 상단 더보기 메뉴에 두므로 오른쪽 아래에 떠 있는 버튼을 뺀다(화면 ID 표시줄은 그대로).
-  const writing = screen.base === 'U13' && pathname.startsWith('/studio/')
+  // 데모 집필실의 '내 소설만 쓸 수 있어요' 화면도 U13이지만 더보기 메뉴가 없으므로 서버(UUID) 집필실에서만 숨긴다.
+  const writing = screen.base === 'U13' && /^\/studio\/[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(pathname)
   const dispatch = useAppDispatch()
   return (
     <>

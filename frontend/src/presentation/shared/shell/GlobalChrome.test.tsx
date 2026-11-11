@@ -161,6 +161,7 @@ it.each([
   ['집필실 화면 ID가 남아 있어도 스튜디오가 아닌 경로', '/lib?tab=write', 'U13'],
   ['스튜디오 경로의 다른 화면(플롯)', `${STUDIO}?view=narrative`, 'U40'],
   ['데모 집필실', '/studio/starlight', 'U17'],
+  ['더보기 메뉴가 없는 데모 집필실의 U13 안내 화면', '/studio/starlight', 'U13'],
 ])('%s에서는 떠 있는 버튼을 그대로 둔다', (_name, path, base) => {
   vi.stubEnv('DEV', true)
   renderChrome(path, 'light', { screen: { base, sheet: null } })
