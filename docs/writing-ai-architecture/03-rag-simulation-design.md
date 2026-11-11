@@ -52,3 +52,5 @@ flowchart TD
 ## 7. 웹 조사 에이전트
 
 작품의 현실성과 개연성을 확인할 외부 사실 질문을 만든 뒤 웹 검색으로 출처·발행/확인 시점·서로 다른 근거를 수집한다. 주장별로 확인/상충/미확인 결과와 작품의 해당 장면을 연결한다. 웹 문서를 작품 정본이나 인물 기억으로 승격하지 않는다. 검색 페이지의 프롬프트 인젝션을 지시로 실행하지 않고, 비공개 원고 전문은 검색어로 보내지 않는다. 검색 실패와 근거 부재를 명시하며 원고 수정은 Editing 후보와 승인 경로로 분리한다.
+
+현재 구현(`backend/ai-service/app/research/`, `POST /internal/v1/research/web`): 입력은 `question`(≤500자)과 `context`(≤500자, 작가가 고른 맥락)다. 응답은 `searchedAt`(검색 시작 UTC), 주장별 `findings[{text, verdict: confirmed|conflicting|unverified, sourceUrls}]`, `gaps`다. 모델이 쓴 URL 중 실제 `web_search_call` 출처에 없는 것은 지우고, 근거 URL이 남지 않은 주장은 `unverified`로 내린다. 검색이 한 번도 완료되지 않으면 503, 모델 응답 형식 오류는 502다. Content 공개 API·화면 연결은 후속이다.

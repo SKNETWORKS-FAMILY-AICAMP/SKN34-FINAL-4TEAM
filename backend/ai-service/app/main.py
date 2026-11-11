@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.health.router import router as health_router
 from app.generation.router import router as generation_router
 from app.manuscript.router import router as manuscript_router
+from app.research.router import router as research_router
 
 
 def create_app() -> FastAPI:
@@ -15,4 +16,5 @@ def create_app() -> FastAPI:
     application.include_router(health_router)
     application.include_router(generation_router)
     application.include_router(manuscript_router)
+    application.include_router(research_router)
     return application
