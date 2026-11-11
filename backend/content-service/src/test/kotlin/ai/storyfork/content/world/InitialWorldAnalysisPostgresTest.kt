@@ -469,7 +469,7 @@ class InitialWorldAnalysisPostgresTest {
                     if(inject && phase=="after") throw WorldStudioFailure.unavailable()
                     if(inject && phase=="commit") loseAck.set(true)
                     result
-                }.`when`(graph).replace(org.mockito.ArgumentMatchers.eq(world.worldId),org.mockito.ArgumentMatchers.anyLong(),
+                }.`when`(graph).replace(org.mockito.ArgumentMatchers.eq(world.worldId) ?: world.worldId,org.mockito.ArgumentMatchers.anyLong(),
                     org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyList())
                 val delegate=ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java)
                 val manager=object:PlatformTransactionManager {
