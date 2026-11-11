@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
-import type { StudioSetting, StudioWorld } from '../../domain/entities/studioWorld'
+import { newSetting, type StudioSetting, type StudioWorld } from '../../domain/entities/studioWorld'
 import { cardTypeOf } from '../../domain/entities/studioCards'
 import { relationDefinitions } from '../../domain/entities/studioRelations'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
@@ -47,7 +47,34 @@ const studio = z.object({
     decision: z.enum(['pending', 'approved', 'rejected', 'held']),
   }),
 })
-const metadata = z.object({ studio })
+const preprocessing = z.object({
+  semanticType: z.enum(['fact','relation','rule','event','conjecture','goal','plan']),
+  provenance: z.enum(['ai_extraction','author_revision']), analysisId: uuid, candidateId: uuid,
+  decisionSequence: revision.positive(), basisDraftRevision: revision,
+  evidence: z.array(z.object({sourceId:z.string(),start:revision,end:revision,quote:z.string(),quoteHash:z.string().regex(/^[a-f0-9]{64}$/)})),
+  condition:z.string(),timeText:z.string(),polarity:z.enum(['asserted','denied']),
+}).passthrough()
+const partialStudio = z.object({ item: z.object({id:uuid,kind:z.literal('note'),subjectId:uuid.nullable(),relatedIds:z.array(uuid)}).strict() }).strict()
+const metadata = z.union([
+  z.object({studio,preprocessing:preprocessing.optional()}).passthrough(),
+  z.object({studio:partialStudio,preprocessing}).passthrough(),
+])
+function metadataOf(row:StudioSetting) {
+  const {serverMetadata,...view}=row
+  return {...serverMetadata,studio:view}
+}
+// A 6-B addition is a wire card/relation, not a complete legacy StudioSetting.
+function setting(m:z.infer<typeof metadata>, fields:Partial<StudioSetting['item']>, labels:Pick<StudioSetting,'userCategory'|'tags'|'aliases'>):StudioSetting {
+  const full=studio.safeParse(m.studio)
+  if(full.success)return Object.keys(m).some(key=>key!=='studio') ? {...full.data,serverMetadata:m} : full.data
+  const p=m.preprocessing
+  if(!p)throw invalid()
+  const base=newSetting()
+  return {...base,...labels,serverMetadata:m,item:{...base.item,...m.studio.item,
+    kind:p.semanticType==='relation'?'relation':p.semanticType==='rule'?'rule':p.semanticType==='event'?'event':p.semanticType==='conjecture'?'claim':'fact',
+    condition:p.condition,timeText:p.timeText,polarity:p.polarity,evidence:p.evidence,
+    origin:p.provenance==='ai_extraction'?'extraction':'author_addition',authorText:null,...fields}}
+}
 const card = z.object({
   id: uuid,
   title: z.string(),
@@ -125,7 +152,7 @@ function relationship(row: StudioSetting) {
     polarity: row.item.polarity,
     body: row.item.text,
     label: row.item.title,
-    semanticMetadata: { studio: row },
+    semanticMetadata: metadataOf(row),
     lifecycle: 'active',
   }
 }
@@ -134,7 +161,9 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
     ids = new Set(active.map((c) => c.id))
   const settings: StudioSetting[] = active.map((c) => {
-    const row = c.semanticMetadata.studio
+    const row = setting(c.semanticMetadata,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
+      {userCategory:c.classification,aliases:c.aliases,tags:c.tags})
+    if(c.semanticMetadata.studio.item.id!==c.id)throw invalid()
     if (
       row.item.kind === 'relation' || row.item.id !== c.id || row.item.title !== c.title ||
       row.item.text !== c.body || row.item.category !== c.areaCode ||
@@ -145,7 +174,12 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
     return row
   })
   for (const r of value.relationships) {
-    const row = r.semanticMetadata.studio, expected = relationship(row)
+    if(r.category==='emotional'&&r.direction!=='directed')throw new Error('현재 편집기는 방향 없는 감정 관계를 저장할 수 없어요. 원본은 서버에 보존됩니다.')
+    const row = setting(r.semanticMetadata,{id:r.id,kind:'relation',title:r.label,text:r.body,
+      subjectId:r.sourceCardId,targetId:r.targetCardId,polarity:r.polarity??'asserted',
+      predicate:r.category==='emotional'?'custom_emotion':r.direction==='symmetric'?'custom_relation':'custom_relation_directed'},
+      {userCategory:'',tags:[],aliases:[]}), expected = relationship(row)
+    if(r.semanticMetadata.studio.item.id!==r.id)throw invalid()
     if (
       row.item.kind !== 'relation' || row.item.id !== r.id || r.body !== expected.body ||
       r.label !== expected.label || r.sourceCardId !== expected.sourceCardId ||
@@ -302,7 +336,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
           classification: row.userCategory,
           aliases: row.aliases ?? [],
           tags: row.tags,
-          semanticMetadata: { studio: row },
+          semanticMetadata: metadataOf(row),
           visibility: 'private',
           lifecycle: 'active',
         })),

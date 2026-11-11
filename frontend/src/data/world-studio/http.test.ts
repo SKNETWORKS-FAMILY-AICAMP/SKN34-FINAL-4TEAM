@@ -95,3 +95,21 @@ it.each([401,403,409,503])('preserves explicit server errors (%s), never falls b
  const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({detail:'미완료: 같은 입력을 보존하세요.'},{status})))
  await expect(repo.read(id)).rejects.toThrow()
 })
+
+it('reads 6-B partial metadata and preserves all semantic information on full replacement',async()=>{
+ const generated=crypto.randomUUID(),analysisId=crypto.randomUUID(),candidateId=crypto.randomUUID()
+ const preprocessing={semanticType:'goal',provenance:'ai_extraction',analysisId,candidateId,decisionSequence:2,basisDraftRevision:1,evidence:[{sourceId:'description',start:0,end:2,quote:'원문',quoteHash:'a'.repeat(64)}],condition:'조건',timeText:'미래',polarity:'asserted'}
+ const server={...wire(),cards:[...wire().cards,{id:generated,title:'홍길동의 목표',body:'새 나라를 세우려 한다',cardType:'other',areaCode:'basic',classification:'',aliases:[],tags:[],semanticMetadata:{preprocessing,studio:{item:{id:generated,kind:'note',subjectId:a.item.id,relatedIds:[b.item.id]}}},visibility:'private',lifecycle:'active'}],relationships:[{...wire().relationships[0],semanticMetadata:{preprocessing:{...preprocessing,semanticType:'relation'},studio:{item:{id:relation.item.id,kind:'note',subjectId:null,relatedIds:[]}}}}]}
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(server)).mockImplementationOnce(async(_url:string,init:RequestInit)=>{
+  const body=JSON.parse(String(init.body));return Response.json({...server,...body,draftRevision:3})
+ })
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ expect(loaded.settings[2].item).toMatchObject({kind:'fact',subjectId:a.item.id,relatedIds:[b.item.id]})
+ expect(loaded.settings[3].item).toMatchObject({kind:'relation',predicate:'custom_emotion',subjectId:a.item.id,targetId:b.item.id,polarity:'denied'})
+ const saved=await repo.saveStudio(loaded),body=JSON.parse(fetcher.mock.calls[1][1].body)
+ expect(body.cards[2].semanticMetadata.preprocessing).toEqual(preprocessing)
+ expect(body.relationships[0]).toMatchObject({category:'emotional',direction:'directed',polarity:'denied',body:'원문 관계'})
+ expect(body.relationships[0].semanticMetadata.preprocessing).toEqual({...preprocessing,semanticType:'relation'})
+ expect(saved.settings[2].item.kind).toBe('fact')
+ expect(saved.settings.slice(0,2)).toEqual([a,b])
+})
