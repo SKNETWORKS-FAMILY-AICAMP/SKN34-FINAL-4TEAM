@@ -115,6 +115,16 @@ class CreditReservationIntegrationTest {
     }
 
     @Test
+    fun `a reserved key cannot be used for a direct charge and amounts keep four decimals at most`() {
+        val m = funded("10")
+        reservations.reserve(m, BigDecimal("3"), "job-l", now)
+        assertThrows(IllegalArgumentException::class.java) { credits.spend(m, BigDecimal("3"), "job-l", now) }
+        assertThrows(IllegalArgumentException::class.java) { reservations.reserve(m, BigDecimal("1.00005"), "job-m", now) }
+        assertThrows(IllegalArgumentException::class.java) { reservations.settle(m, "job-l", BigDecimal("1.00005"), now) }
+        same("7", total(m))
+    }
+
+    @Test
     fun `a reservation takes the earliest expiring grant first`() {
         val m = member()
         credits.grantSignupTrial(m, now) // 가입 체험 설정이 0이면 지급되지 않으므로 아래 지급이 유일한 지급이다.

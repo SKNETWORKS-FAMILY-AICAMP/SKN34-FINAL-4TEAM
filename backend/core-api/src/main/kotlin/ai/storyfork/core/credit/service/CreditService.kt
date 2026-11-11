@@ -10,6 +10,7 @@ import ai.storyfork.core.credit.entity.CreditLedgerEntryEntity
 import ai.storyfork.core.credit.repository.CreditGrantRepository
 import ai.storyfork.core.credit.repository.CreditLedgerEntryRepository
 import ai.storyfork.core.credit.repository.CreditReservationLineRepository
+import ai.storyfork.core.credit.repository.CreditReservationRepository
 import ai.storyfork.core.credit.service.dto.CreditBalanceItem
 import ai.storyfork.core.credit.service.dto.CreditBalanceResponse
 import ai.storyfork.core.credit.service.dto.CreditHistoryItem
@@ -27,6 +28,7 @@ class CreditService(
     private val grants: CreditGrantRepository,
     private val ledger: CreditLedgerEntryRepository,
     private val lines: CreditReservationLineRepository,
+    private val reservations: CreditReservationRepository,
     /** 가입 체험 지급량. 팀 결정 전이라 기본 0(지급하지 않음)이며 CREDIT_SIGNUP_TRIAL_AMOUNT로 정한다. */
     @param:Value("\${app.credit.signup-trial-amount:0}") private val signupTrialAmount: BigDecimal,
 ) {
@@ -76,6 +78,8 @@ class CreditService(
         requireOperationKey(operationKey)
         // 같은 회원의 동시 호출이 같은 작업을 두 번 차감하지 않도록, 먼저 지급분을 잠근 뒤 같은 작업의 기록을 확인한다.
         val active = grants.lockActive(memberId, now)
+        // 예약이 쓰는 키로 차감하면 정산 때 같은 키가 겹쳐 두 번 차감되거나 재시도가 어긋난다.
+        require(reservations.findByOperationKey(operationKey) == null) { "이미 예약에 쓰인 operationKey입니다." }
         // 소멸 기록은 "expire:" 키만 쓰고 차감은 그 접두사를 거절하므로, 이 키로 남은 기록은 모두 차감이다.
         val previous = ledger.findByOperationKey(operationKey)
         if (previous.isNotEmpty()) {
@@ -84,11 +88,7 @@ class CreditService(
             require(previous.sumOf { it.amount }.compareTo(amount) == 0) { "같은 operationKey로 다른 금액을 차감할 수 없습니다." }
             return previous.map { Allocation(it.grantId, it.amount) }
         }
-        val used = usedByGrant(active.map { it.id })
-        val balances = active.map { g ->
-            GrantBalance(g.id, g.amount - (used[g.id] ?: BigDecimal.ZERO), g.grantedAt, g.expiresAt)
-        }
-        val allocations = CreditAllocator.allocate(balances, amount, now)
+        val allocations = CreditAllocator.allocate(availableBalances(active), amount, now)
         ledger.saveAll(allocations.map { CreditLedgerEntryEntity(UUID.randomUUID(), it.grantId, "spend", it.amount, operationKey, now) })
         return allocations
     }

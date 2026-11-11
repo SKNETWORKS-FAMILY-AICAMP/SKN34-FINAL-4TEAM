@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional
  * 남은 예약은 푼다. 실패·시간 초과는 해제(차감 없음), 긴 작업이 중간에 멈추면 사용분만 정산한다(F-CRD-03).
  * 예약 중인 양은 직접 차감과 소멸에서 빠지므로 다른 작업이 쓸 수 없다. 같은 [operationKey]로 다시 호출해도 결과가 같다.
  * 호출하는 AI 기능의 계약(작업 식별자·비용 환산)은 아직 없어서 이 서비스는 내부 Kotlin API만 제공한다.
+ *
+ * shortcut: 예약을 닫는 것은 호출한 쪽의 몫이다. 작업이 비정상 종료돼 settle·release가 오지 않으면 예약이 RESERVED로 남아
+ * 그 크레딧은 잔액에서 빠진 채 소멸도 되지 않는다. 첫 호출자를 붙이기 전에 오래된 RESERVED 예약을 해제하는 정리 작업이 필요하다.
  */
 @Service
 class CreditReservationService(
@@ -38,6 +41,7 @@ class CreditReservationService(
     fun reserve(memberId: UUID, amount: BigDecimal, operationKey: String, now: Instant = Instant.now()): CreditReservationResponse {
         CreditService.requireOperationKey(operationKey)
         require(amount.signum() > 0) { "예약 크레딧은 0보다 커야 합니다." }
+        require(amount.scale() <= AMOUNT_SCALE) { "크레딧은 소수 ${AMOUNT_SCALE}자리까지만 쓸 수 있습니다." }
         // 같은 회원의 동시 예약·차감이 같은 잔액을 두 번 쓰지 않도록 지급분을 먼저 잠근다.
         val active = grants.lockActive(memberId, now)
         reservations.findByOperationKey(operationKey)?.let { existing ->
@@ -59,6 +63,7 @@ class CreditReservationService(
     @Transactional
     fun settle(memberId: UUID, operationKey: String, actual: BigDecimal, now: Instant = Instant.now()): CreditReservationResponse {
         require(actual.signum() >= 0) { "정산 금액은 0 이상이어야 합니다." }
+        require(actual.scale() <= AMOUNT_SCALE) { "크레딧은 소수 ${AMOUNT_SCALE}자리까지만 쓸 수 있습니다." }
         val reservation = owned(memberId, operationKey)
         when (reservation.status) {
             CreditReservationEntity.SETTLED -> {
@@ -77,6 +82,7 @@ class CreditReservationService(
             ledger.save(CreditLedgerEntryEntity(UUID.randomUUID(), grant.id, "spend", take, operationKey, now))
             left -= take
         }
+        check(left.signum() == 0) { "예약해 둔 지급분이 정산 금액보다 적습니다." }
         lines.deleteByReservationId(reservation.id)
         reservation.status = CreditReservationEntity.SETTLED
         reservation.settledAmount = actual
@@ -107,4 +113,9 @@ class CreditReservationService(
         reservations.lockByOperationKey(operationKey)?.takeIf { it.memberId == memberId } ?: throw NoSuchElementException("예약을 찾을 수 없습니다.")
 
     private fun toResponse(r: CreditReservationEntity) = CreditReservationResponse(r.id, r.operationKey, r.status, r.amount, r.settledAmount)
+
+    private companion object {
+        /** DB 컬럼(numeric(19,4))이 저장하는 소수 자리. 더 길면 반올림돼 같은 입력의 재시도가 다른 금액으로 거절된다. */
+        const val AMOUNT_SCALE = 4
+    }
 }
