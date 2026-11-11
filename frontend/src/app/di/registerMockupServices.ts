@@ -1,6 +1,7 @@
 import { asValue } from 'awilix/browser'
 
 import { createFixtureDb } from '../../data/mock/fixtureDb'
+import { InMemoryCreditLedgerRepository } from '../../data/mock/InMemoryCreditLedgerRepository'
 import { InMemoryNoticeRepository } from '../../data/mock/InMemoryNoticeRepository'
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
@@ -13,6 +14,7 @@ import { createMockupManuscriptRepository, createMockupWorldStudioRepository, cr
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
+import { CreditLedgerUseCase } from '../../domain/usecases/CreditLedgerUseCase'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import { AuthUseCase } from '../../domain/usecases/AuthUseCase'
 import { EventUseCase } from '../../domain/usecases/EventUseCase'
@@ -36,6 +38,7 @@ export function registerMockupServices(container: AppContainer) {
   const eventRepository = new InMemoryEventRepository()
   const mediaRepository = Object.assign(new HttpMediaRepository(), mockupUnsupportedMedia)
   const manuscriptRepository = createMockupManuscriptRepository(episodeRepository)
+  const creditLedgerRepository = new InMemoryCreditLedgerRepository(mockDb)
   container.register({
     // 운영 이벤트 API 대신 메모리에만 등록·공개합니다.
     eventRepository: asValue(eventRepository),
@@ -57,6 +60,9 @@ export function registerMockupServices(container: AppContainer) {
     manuscriptUseCase: asValue(new ManuscriptUseCase(manuscriptRepository)),
     // 서버 제보 API 대신 빈 목록·미지원 오류 대역입니다(데모 작품은 정본이 아니라 기존 메모리 피드백을 씁니다).
     feedbackReportRepository: asValue(mockupFeedbackReportRepository),
+    // 크레딧 원장 API 대신 스튜디오 데모가 쓰는 데모 크레딧 잔액만 보여 줍니다.
+    creditLedgerRepository: asValue(creditLedgerRepository),
+    creditLedgerUseCase: asValue(new CreditLedgerUseCase(creditLedgerRepository)),
     authRepository: asValue(mockupAuthRepository),
     authUseCase: asValue(new AuthUseCase(mockupAuthRepository)),
     notificationRepository: asValue(mockupNotificationRepository),

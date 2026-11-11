@@ -1,90 +1,37 @@
-# 구현 순서와 수용 기준
+# Claude 구현 순서와 완료 기준
 
-첫 PR의 목표는 **합성 작품 한 편에서 권한이 있는 1~3화의 질문에만 근거를 반환하는 것**이다. 원고·템플릿 Vector DB나 새 Wiki 저장소가 없어도 진행할 수 있다. 다음은 설계 이후의 개발 순서이며 각 행은 독립 배포·권한 부여를 의미하지 않는다.
+이 문서는 Claude에게 넘길 실행 지침이다. 새 작업은 최신 develop에서 **한 번에 한 수직 기능**만 구현한다. 닫힌 스택 PR과 [보존 브랜치](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/tree/chore/writing-ai-archive)는 참고하되 그대로 완료로 표시하지 않는다. [현행 경계](01-current-system-analysis.md)와 루트·서비스 AGENTS.md, [설계](../design/design.md), [결정](../design/decisions.md), [서비스 경계](../design/service-boundaries.md), [유스케이스](../usecase.md)를 먼저 읽는다.
 
-| 순서 / 난이도 | 선행 조건과 개발 단위 | 다음 단계로 넘어갈 증거 |
-|---|---|---|
-| 1 · 중 | Content 인증·작품/Fork manifest·시점·인물 지식 계약 합의 → Scope/Evidence DTO와 fixture → 네 RetrievalPort 계약 | 동일 본문이라도 다른 Fork·미래 회차·비공개 인용이 0건. 누락과 장애를 구분 |
-| 2 · 중 | 규칙 Router → 고정 Registry와 DAG → Q&A·기계 검수·템플릿 검색. 인증된 run/상태/SSE의 최소 수직 흐름 | 정확 조회 모델 0회, 조회 실패가 빈 성공으로 바뀌지 않고 단절 후 같은 run 표시 |
-| 3 · 높음 | 인물별 투영 → Simulation reducer → 의미 검수 → Development의 insight/plan. 권리 확인 평가 세트 마련 | 인물 비밀 최소 대조쌍, 무효 행동·취소·한도, 근거 있는 지적/추론 구별 |
-| 4 · 높음 | 고정 제안·승인 영수증 및 재개 → Writing/말투 → 다음 화·콘티 확장 → World/Plot 다중 문서 | 서버 재시작·중복 승인·동시 수정·다중 대상 하나 실패 모두에서 원고 일관성 확인 |
-| 5 · 운영 전 | 한국어 분류기 비교·보관 정책 확정, 실제 검색 adapter 하나씩 및 인덱스 동기화 | Mock 공통 계약 외 실제 recall·ACL prefilter·재색인/삭제·부하·복구 평가. 제품/예산 결정 후 운영 전환 |
+## 모든 단계의 작업 루프
 
-MVP 기능은 위 1~4의 모든 Agent를 합성 자료로 조합할 수 있는 범위다. 실제 사용자 대상 출시는 필요한 데이터 공급자가 준비된 기능별로 판단한다. “DB 없이 개발 가능”은 전 작품을 검색할 수 있다는 보장이 아니다.
+1. 대상 사용자 요청 하나와 그 입력·출력·정본 소유자를 고른다.
+2. 관련 호출자·기존 코드·DB 판본·권한 경계를 확인한다.
+3. 실패하는 변경 범위 단위 테스트를 먼저 만들고 최소 구현으로 통과시킨다.
+4. 개발용 데이터와 실제 OpenAI API로 정상·근거 부족·실패를 확인한다.
+5. 실제 결과, 비용/모델, 남은 한계를 기록하고 기능표의 해당 행을 실제 상태로 갱신한다.
 
-## 프로젝트 루트 기준 파일 배치안
+문서·설정만 바꾼 경우는 단위 테스트 대상이 아니다. 로컬에서는 변경 범위 단위만 실행한다. 통합·시스템·브라우저·전체 빌드는 사용자가 별도 요청하지 않으면 CI에 맡긴다. **실제 OpenAI 호출은 이번 개발 방식의 기능별 수용 단계**이며 CI에 자동으로 넣지 않는다. AI 서비스 지침도 개발용 데이터·키·호출 상한을 둔 실모델 수용을 허용하도록 개정했다.
 
-표의 `{a,b}`는 같은 위치에 둘 구체적인 파일 이름의 열거다. 신규 경로는 제안이며 이 설계에서 생성하지 않는다. 작은 capability는 같은 파일 안 함수로 시작한다.
+## 우선순위
 
-| 경로 | 책임 | 신규/기존 확장 | 주요 의존 컴포넌트 |
+| 단계 | 먼저 확인할 정책/데이터 | 구현할 최소 기능 | 실모델 수용 증거 |
 |---|---|---|---|
-| `backend/ai-service/app/main.py` | 내부 run router 등록·풀 수명 관리 | 기존 확장 | FastAPI, saver |
-| `backend/ai-service/app/generation/router.py` | 기존 단일 이어쓰기와 OpenAI 실패 처리 유지 | 기존 재사용 | Content GenerationClient |
-| `backend/ai-service/app/runs/{router,schemas}.py` | 내부 API, 입출력·이벤트 DTO | 신규 | Content 위임, Pydantic |
-| `backend/ai-service/app/runs/{graph,state}.py` | Main Graph·상태·결과 병합 | 신규 | StateGraph, task 참조 |
-| `backend/ai-service/app/runs/{routing,orchestrator}.py` | 규칙/분류 교체점, registry 상수·검증·Send·예산 | 신규 | 허용 capability와 task DTO |
-| `backend/ai-service/app/runs/{checkpoints,progress,approval}.py` | saver 연결, 고정 이벤트, interrupt/resume | 신규 | serve lifecycle, Content receipt |
-| `backend/ai-service/app/retrieval/{contracts,coordinator}.py` | 범위·Evidence·Coverage, 선택 검색·정규화·context 조립 | 신규 | 서버 승인 manifest |
-| `backend/ai-service/app/retrieval/{relationships,episode_wiki,manuscript,templates}.py` | 네 공급자의 타입·읽기 구현, 실제 adapter는 연결 시 추가 | 신규 | 각각 Content 관계, Wiki, 원고 Vector, 템플릿 Vector |
-| `backend/ai-service/app/retrieval/content_client.py` | 정본 manifest·버전·span 읽기 | 신규 | Content 내부 read API 또는 MCP |
-| `backend/ai-service/app/agents/{story_context,review,writing,development,world_plot,simulation,template_recommendation}.py` | 기능별 handler와 필요한 subgraph. 기계 검수는 review 안에 둔다 | 신규 | Registry, ContextPacket |
-| `backend/ai-service/app/agents/prompts.py` | 모델별 역할 지시·자료와 지시 분리 | 신규 | scoped 입력 DTO |
-| `backend/ai-service/app/runs/model_client.py` | Responses·선정된 분류기 호출, timeout·usage | 신규 | 기존 OpenAI 사용 방식, JEV는 선정 시만 |
-| `backend/ai-service/pyproject.toml`, `backend/ai-service/uv.lock`, `.env.example` | 채택 후 runtime 의존성과 비밀 없는 설정 계약 | 기존 확장 후보 | LangGraph, AsyncPostgresSaver, DB pool |
-| `backend/content-service/src/main/kotlin/ai/storyfork/content/context/service/ContextService.kt` | 허용 판본 manifest와 원문 확인 | 기존 확장 | WorkAccessService, publication, world |
-| `backend/content-service/src/main/kotlin/ai/storyfork/content/proposal/service/ProposalService.kt` | 기존 이어쓰기 보존, 적용 검증·이력 재사용 | 기존 확장 | episode version, proposal repositories |
-| `backend/content-service/src/main/kotlin/ai/storyfork/content/proposal/controller/AiRunController.kt` | 새 공개 run·대화·결정·SSE 라우트 | 신규 | Content 인증, run 서비스 |
-| `backend/content-service/src/main/resources/db/migration/proposal/` | job 상태 제약·thread/run, 불변 제안 판·영수증·진행 커서. 다음 미사용 버전 선정 | 기존 경로 확장 후보 | Content Flyway, 기존 V7 보존 |
-| `frontend/src/data/api/aiRuns.ts` | 인증된 요청, fetch SSE, cursor·취소 | 신규 | 기존 auth 및 notificationStream 패턴 |
-| `backend/ai-service/tests/{test_retrieval_contract,test_task_graph,test_simulation,test_approval_resume}.py` | 선택 단위/TDD, 동일한 mock/real 계약 | 신규 | FakeContent·provider spy |
-| `backend/ai-service/tests/{test_run_api,test_checkpoint_integration}.py` | HTTP/Saver 통합, CI 전용 | 신규 | 임시 DB, 모델 대역 |
-| `backend/ai-service/tests/fixtures/{retrievers.py,story.json}`, `backend/ai-service/tests/evaluation/scenarios.jsonl` | 네 Mock adapter·seed와 정답/비노출 항목 | 신규 | 합성/사용권 확인 자료 |
-| `infrastructure/system/` | 웹 공개 경유 요청·재개·승인 HTTP 검증 | 기존 경로 확장 후보 | 격리된 CI 서비스 |
+| 1. Scope와 현재 관계 Q&A | Content 인가, WorldStudio 현재 Neo4j 관계, 작품↔world 연결 여부 | 권한이 검증된 현재 관계 질문과 출처 답변. 연결이 없으면 명시적 미지원 | 실제 관계를 묻고 현재 graph token/근거가 맞는지, 타 작품·과거 관계가 새지 않는지 확인 |
+| 2. 원고 검색 기반 | PostgreSQL 원고·회차·Fork 판본, Elasticsearch 색인 | 원고 변경의 색인·삭제/판본 갱신, 범위 제한 벡터 검색, 정본 원문 재확인 | 실제 원고에서 관련 문단을 찾고 stale/다른 Fork 결과를 차단 |
+| 3. Story Context 확대 | 단계 1~2의 실제 공급자와 설정/플롯 읽기 | 작품 Q&A에 필요한 공급자만 조합 | 정확 질문과 해석 질문의 근거·모름 표시 |
+| 4. Review | 원고·설정 기준, 맞춤법 규칙, 검색 출처 | Mechanical과 Semantic 분리. 행동 재현 조건만 Simulation 연결 | 검증 가능한 오류/설정 충돌/의도적 표현의 구분 |
+| 5. Character Simulation | 인물별 지식·시점 정책, 현재 관계 | 독립 LangGraph Subgraph의 행동→임시 상태 갱신 반복 | 여러 턴에서 비밀·미래 지식 누출 없이 상태가 바뀜 |
+| 6. Writing & Editing | 새 문서와 기존 구간의 판본·승인 계약 | 새 원고 Text와 선택 구간 Patch를 별도 입출력으로 구현 | 생성 품질, 선택 밖 문장 보존, 승인 전 무변경 |
+| 7. Story Development | 기존 플롯/콘티, 확정 사건과 예정 사건 | 아이디어·BeatPlan; 원고 요청 때만 Writing 연결 | 11화 사건 제안과 11화 실제 문장 생성의 구분 |
+| 8. World & Plot | 영향 범위·권한·적용 정책 | 관련 회차/설정 분석 후 변경 후보 | 영향 누락·충돌·승인 전 무변경 확인 |
+| 9. 웹 조사 | 외부 전송 동의, 검색 제공 경로와 출처 기준 | 현실/개연성 주장별 웹 근거 검토 | 검색 시점·URL·상충 근거와 미확인 표시 |
 
-Kotlin 안에서 직접 Orchestration하면 네트워크 한 홉이 줄지만 기존 Python SDK·LangGraph와 이중 런타임 통합이 필요하다. 현재 Python 서비스에 넣으면 직렬화·분산 실패를 계약으로 다뤄야 하지만 권한과 정본 쓰기를 Content 안에 유지하고 기존 테스트·배포 단위를 재사용한다. 따라서 Python 확장을 추천한다.
+단계 4와 5의 구현 순서는 Review의 실제 필요에 맞게 조정할 수 있다. 단, Simulation을 Mechanical의 필수 의존성으로 만들지 않는다. 단계 6의 승인 기반은 해당 기능을 구현하기 전에 갖춘다. 세계관 관계를 과거 회차의 사실로 단정하지 않는다.
 
-## GitHub 작업 연결
+## 전체 RAG의 후속 확장
 
-2026-11-08 저장소 GitHub 검색에서 열린 이슈 61건을 확인했고, 2026-11-10 기준 열린 이슈는 23건이다. 아래는 구현 의존성에 해당하는 이슈이며 #28·#32·#145·#146·#157은 11-10 기준 닫혔다(참고용으로 유지). 열려 있다는 사실과 코드 반영·운영 검증은 따로 판단한다.
+현재 관계 Graph와 원고 Vector를 먼저 실연동한다. 이후 회차 Wiki(Graph의 사건·지식·복선·인과 및 coverage)와 템플릿 Vector(독립 카탈로그)를 실제 사용 사례가 생길 때 각각 추가한다. 네 공급자는 공통 Scope/Evidence/Gap 규약으로 합쳐지지만, 모든 기능이 네 곳을 다 조회할 필요는 없다. 전체 회차 검수에서 coverage를 증명할 수 없으면 완전 검수라고 표시하지 않는다. [계약 상세](07-retrieval-contract-and-mocks.md)
 
-| 주제 | 확인한 이슈 | 의존성 또는 중복 처리 |
-|---|---|---|
-| 총괄·인가·API | [#53](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/53) · [#54](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54) · [#157](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/157) · [#163](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/163) | #53 아래 #54 scope가 선행. #163 읽기 도구와 같은 데이터를 별도 무인가 API로 열지 않는다. #157은 HTTP/업무 계층 책임 |
-| 도메인·DB·버전 | [#48](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48) · [#49](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49) · [#50](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50) · [#109](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/109) · [#123](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/123) · [#124](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/124) · [#132](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132) | 작품-세계관 실제 연결, 허용 원고·Fork 기준 확인. #123/#124의 관계 과거 복원 요구는 최신 #132 예외를 적용 |
-| Graph·문맥·평가 | [#55](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/55) · [#56](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56) · [#57](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/57) · [#125](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/125) | #55 router, #56 retrieval, #57 멀티턴, #125 데이터·평가. Wiki/벡터 후보 색인은 #56의 계약 이후 |
-| 전문 기능·승인 | [#58](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/58) · [#59](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/59) · [#60](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/60) · [#61](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/61) · [#62](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/62) · [#122](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/122) | #58 simulation → #59 조건 검수, #60 적용 → #61 콘티/다중 문서·#62 말투. #122의 설정 추출은 검수 후보로 연결 |
-| 스트림·화면 | [#145](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/145) · [#146](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/146) · [#28](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/28) · [#32](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/32) | 회원 알림 SSE 이슈는 역순 응답 회귀 참고. AI SSE 개발은 별개. 화면 선택 초기화·반영 실패 표시 재사용 |
+## 이슈 연결
 
-신규 이슈 **제안만** 한다. “AI run 진행 커서와 재연결”은 #54/#57 하위, “템플릿 카탈로그 권리·추천 평가”는 #56/#125 하위, “Wiki revision별 coverage 및 삭제 전파”는 #56/#124 하위가 적절하다. 별도 등록 전에 기존 이슈의 수용 기준에 포함할 수 있는지 확인한다.
-
-## A~G 기능 수용 시나리오
-
-아래 수치는 **계획된 테스트의 예상 모델 호출 수**다. 규칙/UI로 작업이 분류되고, 정상 provider와 단일 시나리오·세 턴·재시도 없음이 전제다. 자유문 분류 대역을 쓰는 variant는 별도로 +1. Retrieval 호출은 모델 호출과 별도 집계한다. R=현재 관계, W=회차 Wiki, M=원고 Vector, T=템플릿 Vector, C=Content 정확 조회다.
-
-| 요청 | 실행 순서·Backend와 조건 | 모델 기대값 | 근거·결과 및 승인 판정 |
-|---|---|---|---|
-| A. 3화 카이의 행동을 검수하고 문제 시 수정 | C/W/M → Review. 시점 허용 R만 사용. 행동 재현 필요 시 Simulation → Review 판단 → confirmed이고 수정 요청이면 Writing | Review 1 + 선택 Simulation 3 + 조건부 편집 1. 문제 없으면 편집 0 | 지식 습득 장면·원문 span이 있는 Findings. 의심만 있으면 대안 설명. Patch만 승인 대상 |
-| B. 1~10화·현재 관계로 두 인물 시뮬레이션 후 11화 초안 | C/W/M/R → 범위 확인 → Simulation → Development → Writing → 연속성 규칙 | 3+1+1=5. 필수 근거 부재 시 생성 전 차단 | 10판 manifest, 분리된 지식, 현재 관계의 관측 버전, BeatPlan과 가상 표시 초안. 저장 시 승인 |
-| C. 마법 체계 변경 및 플롯 영향 | C/W, 관련 때 R → World/Plot 영향 분석 → 변경 문서 준비, 실제 문장 편집 필요 시 Writing | 1 또는 2 | 설정 버전·사건 경로·대상별 baseVersion. 같은 Content 트랜잭션 범위의 ChangeSet만 일괄 승인 |
-| D. 한 문단의 문체와 인물 말투 수정 | C/M와 인물별 W → Writing 한 번 → span 검증 | 1 | 허용 예문, 같은 문단 before/after, 외부 문단 동일. Patch 승인 |
-| E. 빠진 세계관 설정의 템플릿 추천 | C의 허용 태그 → T → Recommendation 고정 랭킹, 맞춤 설명 시만 모델 | 0 또는 1 | 카탈로그 ID·버전·권리·추천 이유·충돌 가능성. 조회로 종료 |
-| F. 5화 수치·고유명사만 검사 | C 원문·사전 → Mechanical. 의미 검수 및 Simulation 생략 | 0 | 원문 위치, 기준 숫자·표준명, 확정/의심. 읽기 요청은 승인 없음 |
-| G. 직전 사건과 인물 반응에서 다음 화 아이디어 3개 | C/W 및 허용된 R, 필요한 M → 선택 Simulation → Development(insight) | 1, 반응 시뮬레이션 포함 시 4 | 직전 사건과 가상 예측을 구분한 3개 대안·위험. 승인 없음 |
-
-기초 회귀에는 인물 나이(정확 조회 0회), 회차 직접 인용(문자열·판본·UTF-16 일치), 맞춤법/중복어(오경고 분리), 콘티→원고 확장(계획과 확정 사건 구분), 어조만 수정(나머지 문장 동일)을 둔다. A의 문제 있음/없음, B의 중요한 누락, F의 무관한 비평 0건은 같은 요청으로 입력만 바꾸는 대조쌍이다.
-
-## 실패·품질 시험과 관측
-
-| 계층 | 입력 또는 장애 주입 | 검증할 결과 |
-|---|---|---|
-| Scope·보안 | 비소유 작품·다른 Fork, 검색문서 내 악의적 지시, 독자만 아는 정보, 지식 습득 직전/직후 | 권한 밖 payload가 **모델 입력에도** 0건, 임의 도구·쓰기 0회, 경계 내 원문만 인용 |
-| 검색·실행 | 회차 누락/삭제·stale revision·timeout, 잘못된 router enum/cycle, 동시 예산 소진, 무효 행동 반복 | 빈 성공과 구분, 필수 단계 중단, 호출 상한과 stop_reason 확인, 독립 성공분만 partial |
-| HITL | 같은 승인 병렬 전송, 승인 전 동시 편집, Content 커밋 직후 서버 재시작, 두 번째 문서 저장 실패 | 동일 영수증/1회 적용, 409 무변경, 복원 대조, 같은 트랜잭션 전체 롤백 |
-| 통신·복원 | SSE 단절·순서 역전·만료 cursor, 취소 후 같은 키 재전송, 다른 회원/작품으로 thread 재개 | UI 중복·역행 0, 새 호출 없음, 새 작업은 새 키, stale 요약·근거 재검증 |
-| 평가 | 사용권 있는 원고를 작품·Fork 계열로 묶어 train/eval 분리. 정답 사건·필수 근거·금지 사실·허용 대안 라벨 | gold context 주입 실험과 검색→생성 전체 실험 분리, 창작 대안은 작가 평가 및 실패 예시 기록 |
-
-`run_id/task_id/attempt/agent/provider/model` 기준으로 호출·토큰·실패·시간만 계측한다. `ai_model_call`과 연계해 실제 usage와 미보고를 구분한다. 비용은 요청 시점 단가판과 입력/출력 토큰으로 산정하고 미확인 금액은 null이다. 요청당 호출 수·토큰 비용, agent 선택 precision/recall, Router 정답률, 복합 완료율(필수 단계 전부 성공/대상 요청)을 산출한다.
-
-검색별 latency, 필수 evidence recall과 인용 판본·span 일치율, 회차 verified/expected, 판단별 근거 충실도, 잘못된 정본 사용률을 측정한다. Simulation 처리시간과 지식 누설률(금지 사실 포함 턴/검토 턴), 첫 progress 지연, 요청 전체 p50/p95(승인 대기 별도), 적용 실패율·충돌률의 분모는 각각 완료된 실행 또는 시도된 적용으로 고정한다. 원문·대화·키를 메트릭 라벨에 담지 않는다. 목표 지연·품질 수치는 측정 후 결정한다.
-
-로컬 구현은 순수 단위 회귀를 먼저 실패시킨 후 통과시킨다. FastAPI HTTP·Spring context·PostgreSQL·SSE 및 시스템 검증은 CI에서 대역과 격리된 DB로 수행한다. 모델 실측·실제 검색 품질·브라우저 검증은 별도의 승인·환경이 필요한 단계다. 이번 문서에서는 수용 기준을 설계했다.
+#53이 전체 목표다. #54는 요청·권한 계약, #55는 실제 복합 작업이 생긴 뒤의 라우팅, #57은 멀티턴 복원, #60은 승인·반영 기반이다. 기능 이슈는 #56 Q&A, #59 Review, #58 Simulation, #62 Writing/Editing, #61 Story Development, #291 World & Plot, #292 웹 조사다. 이슈의 체크박스는 실제 DB·모델 수용이 확인된 뒤에만 완료로 바꾼다.
