@@ -40,7 +40,8 @@ export class HttpInitialWorldRepository implements InitialWorldRepository {
     const result=await this.request<MutationResult>(world,path,schema,signal,pending.body)
     if('candidateId'in result&&(result.candidateId!==path.split('/')[3]||result.sequence!==Number(pending.body.expectedDecisionSequence)+1))throw new Error('검토 응답이 요청과 일치하지 않아요. 같은 요청으로 확인하세요.')
     if('applicationId'in result&&result.baseDraftRevision!==pending.body.expectedDraftRevision)throw new Error('반영 기준을 확인하지 못했어요. 같은 요청으로 확인하세요.')
-    if('applicationId'in result?result.status==='failed':'analysisId'in result?['completed','failed'].includes(result.executionStatus):true)this.storage.removeItem(storageKey)
+    // Only a running analysis can still change under this key; the server never re-runs failed/unknown, so keeping them would lock out a new analysis.
+    if('applicationId'in result?result.status==='failed':'analysisId'in result?result.executionStatus!=='running':true)this.storage.removeItem(storageKey)
     return result
    }catch(error){if(error instanceof Error&&error.cause==='rejected')this.storage.removeItem(storageKey);throw error}
   },true)

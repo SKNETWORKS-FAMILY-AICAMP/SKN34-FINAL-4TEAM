@@ -38,9 +38,14 @@ it('accepts the shared #219 seven-kind fixture and decision/application contract
  expect(analysisSchema.parse(fixture.analysisResponse).analysisId).toBe(fixture.analysisResponse.analysisId)
  fixture.decisions.forEach((d:unknown)=>decisionSchema.parse(d));receiptSchema.parse(fixture.applicationResponse)
 })
-it.each(['running','failed','unknown'] as const)('preserves explicit analysis state %s rather than reporting completion',async state=>{
+it.each(['running','failed','unknown'] as const)('preserves explicit analysis state %s rather than reporting completion, and keeps the request only while running',async state=>{
  const data={analysisId:analysis,basis:{draftRevision:2,relationshipVersion:1,currentRevisionId:null,inputHash:'hash'},executionStatus:state,freshness:'current',output:null,candidateIds:{},decisions:[]}
  const repo=new HttpInitialWorldRepository(vi.fn().mockResolvedValue(Response.json(data,{status:state==='running'?202:state==='failed'?502:503})),storage)
  expect(await repo.mutate(world,'',{expectedDraftRevision:2})).toMatchObject({executionStatus:state})
- expect(!!repo.pending(world)).toBe(state!=='failed')
+ expect(!!repo.pending(world)).toBe(state==='running')
+})
+it('keeps the analysis request when the 503 carries no analysis state (storage unconfirmed)',async()=>{
+ const repo=new HttpInitialWorldRepository(vi.fn().mockResolvedValue(Response.json({code:'ANALYSIS_STORAGE_UNCONFIRMED',detail:'저장 결과를 확인하지 못했습니다. 동일 키로 조회하고 새 키로 자동 실행하지 마세요.'},{status:503})),storage)
+ await expect(repo.mutate(world,'',{expectedDraftRevision:2})).rejects.toThrow('저장 결과를 확인하지 못했습니다')
+ expect(repo.pending(world)).not.toBeNull()
 })
