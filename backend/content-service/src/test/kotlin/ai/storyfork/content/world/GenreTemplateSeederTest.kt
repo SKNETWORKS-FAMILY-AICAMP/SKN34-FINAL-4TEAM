@@ -2,6 +2,7 @@ package ai.storyfork.content.world
 
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.service.GenreTemplate
+import ai.storyfork.content.world.service.GenreTemplateRepair
 import ai.storyfork.content.world.service.GenreTemplateSeeder
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.*
@@ -20,13 +21,14 @@ import tools.jackson.module.kotlin.KotlinModule
 class GenreTemplateSeederTest {
     private val service = mock(WorldStudioService::class.java)
     private val seeder = GenreTemplateSeeder(service, JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())
-    private val templates = seeder.loadLegacy()
+    private val legacy = seeder.loadLegacy()
+    private val templates = legacy + seeder.load().filter { current -> legacy.none { it.worldId == current.worldId } }
     /** Core auth V8 운영 관리자(admin@example.test, operator=true)의 회원 ID. 템플릿 소유자로 임시 할당한 값을 리터럴로 고정한다. */
     private val owner = UUID.fromString("5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01")
 
     private fun create(t: GenreTemplate) = CreateWorldRequest(t.name, t.description, t.worldId)
     private fun edit(t: GenreTemplate) = EditWorldDraftRequest(0, t.name, t.description,
-        t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic") }, key = "genre-template-${t.genre}")
+        (if (t in legacy) t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic") } else GenreTemplateRepair.payloads(t)), key = "genre-template-${t.genre}")
     private fun save(t: GenreTemplate, revision: Long) = SaveWorldRequest(revision, "genre-template-${t.genre}")
     private fun draft(t: GenreTemplate, revision: Long = 0, saved: UUID? = null) =
         WorldDraftResponse(t.worldId, revision, saved, null, t.name, t.description, emptyList(), emptyList())
@@ -42,6 +44,7 @@ class GenreTemplateSeederTest {
     }
 
     @Test fun `every genre is created edited and saved once by the template owner in that order`() {
+        assertEquals(11, legacy.size)
         assertEquals(25, templates.size)
         templates.forEach(::fresh)
         seeder.seed()
@@ -50,7 +53,7 @@ class GenreTemplateSeederTest {
             order.verify(service).create(owner, create(t))
             order.verify(service).edit(t.worldId, owner, edit(t))
             order.verify(service).save(t.worldId, owner, save(t, 1))
-            order.verify(service).draft(t.worldId, owner)
+            if (t in legacy) order.verify(service).draft(t.worldId, owner)
         }
         verifyNoMoreInteractions(service)
     }
@@ -89,7 +92,7 @@ class GenreTemplateSeederTest {
         val broken = spy(seeder)
         doThrow(IllegalStateException("보완 JSON 오류")).`when`(broken).load()
         assertDoesNotThrow { broken.seed() }
-        templates.forEach { verify(service).save(it.worldId, owner, save(it, 1)) }
+        legacy.forEach { verify(service).save(it.worldId, owner, save(it, 1)) }
     }
 
     @Test fun `restart after edit but before save re-sends the same edit and saves the draft it returns`() {

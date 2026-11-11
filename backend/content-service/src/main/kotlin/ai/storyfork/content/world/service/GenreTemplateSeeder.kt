@@ -19,7 +19,7 @@ import tools.jackson.databind.json.JsonMapper
  * worldId·key가 고정이라 시작할 때마다 다시 시도해도 안전하고, 한 장르가 실패(Neo4j 장애 등)해도 로그만 남기고 서버와 다음 장르는 계속 간다.
  * 리소스 JSON을 읽지 못해도 로그만 남기고 서버는 계속 뜬다(그 시작에서는 적재 없음).
  *
- * v1 입력은 재시도 hash 보존을 위해 동결한다. 최초 저장 뒤 v2 보완은 초기 샘플과 같은 데이터에만 적용한다.
+ * v1 입력은 재시도 hash 보존을 위해 동결한다. 기존 11종의 v2 보완은 초기 샘플에만 적용하고, 미배포 신화 14종은 최신 카드로 바로 적재한다.
  */
 @Component
 class GenreTemplateSeeder(private val service: WorldStudioService, private val mapper: JsonMapper) {
@@ -32,12 +32,17 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
             catch (e: Exception) { log.error("장르 템플릿 리소스 읽기 실패: {}: {}", e.javaClass.simpleName, e.message); return }
         val updated = try { load().associateBy { it.worldId } }
             catch (e: Exception) { log.error("템플릿 보완 리소스 읽기 실패", e); emptyMap() }
+        val legacyIds = templates.map { it.worldId }.toSet()
         for (template in templates) {
             try { seedGenre(template) }
             catch (e: Exception) { log.error("장르 템플릿 적재 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
             val target = updated[template.worldId] ?: continue
             try { GenreTemplateRepair(service).repair(template, target) }
             catch (e: Exception) { log.error("장르 템플릿 보완 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
+        }
+        for (template in updated.values.filter { it.worldId !in legacyIds }) {
+            try { seedGenre(template, legacy = false) }
+            catch (e: Exception) { log.error("신화 템플릿 적재 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
         }
     }
 
@@ -47,14 +52,15 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
     internal fun loadLegacy(): List<GenreTemplate> =
         ClassPathResource("genre-templates-v1.json").inputStream.use { mapper.readValue(it, Array<GenreTemplate>::class.java).toList() }
 
-    private fun seedGenre(template: GenreTemplate) {
+    private fun seedGenre(template: GenreTemplate, legacy: Boolean = true) {
         val key = "genre-template-${template.genre}"
         // create: 같은 id·같은 입력이면 기존 세계관을 돌려준다. 앞선 edit가 미완료로 남은 세계관은 INCOMPLETE라 아래 edit 재시도로 이어 간다.
         val world = try { service.create(TEMPLATE_OWNER, CreateWorldRequest(template.name, template.description, template.worldId)) }
             catch (e: WorldStudioFailure) { if (e.reason == WorldStudioFailure.Reason.INCOMPLETE) null else throw e }
         // save가 draft revision을 올려 같은 edit의 중복 판정이 깨지므로, 저장까지 끝난 세계관은 다시 edit하지 않는다.
         if (world?.currentRevisionId != null) return
-        val cards = template.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic") }
+        val cards = if (legacy) template.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic") }
+            else GenreTemplateRepair.payloads(template)
         val edited = service.edit(template.worldId, TEMPLATE_OWNER, EditWorldDraftRequest(0, template.name, template.description, cards, key = key))
         service.save(template.worldId, TEMPLATE_OWNER, SaveWorldRequest(edited.draftRevision, key))
     }

@@ -25,14 +25,14 @@ it('reads legacy canonical cards without studio metadata and keeps their text',a
 })
 it('orders template cards by their preserved template order rather than UUID',async()=>{
  const response=wire();response.relationships=[]
- const cards=response.cards.map((c,i)=>({...c,semanticMetadata:{studio:{...c.semanticMetadata.studio,templateOrder:1-i}}}))
+ const cards=response.cards.map((c,i)=>({...c,semanticMetadata:{studio:{...c.semanticMetadata.studio,templateOrder:10-i*8}}}))
  const fetcher=vi.fn().mockImplementation(async(_path:string,init:RequestInit)=>Response.json({...response,cards,draftRevision:init.method==='GET'?2:3}))
  const repo=new HttpWorldStudioRepository(fetcher)
  const loaded=await repo.read(id)
  expect(loaded.settings.map(s=>s.item.id)).toEqual([b.item.id,a.item.id])
  await repo.saveStudio(loaded)
  const body=JSON.parse(fetcher.mock.calls[1][1].body)
- expect(body.cards.map((c:{semanticMetadata:{studio:{templateOrder:number}}})=>c.semanticMetadata.studio.templateOrder)).toEqual([0,1])
+ expect(body.cards.map((c:{semanticMetadata:{studio:{templateOrder:number}}})=>c.semanticMetadata.studio.templateOrder)).toEqual([2,10])
 })
 it('reads all real template resource cards through the HTTP contract',async()=>{
  const templates: {worldId:string;name:string;description:string;cards:{id:string;title:string;body:string;cardType:string}[]}[]=JSON.parse(readFileSync(new URL('../../../../backend/content-service/src/main/resources/genre-templates.json',import.meta.url),'utf8'))

@@ -1,79 +1,86 @@
-# 장르별 예시 템플릿
+# 장르 예시와 신화 전승 샘플
 
-## 목적
+기존 장르 11종은 자유롭게 수정하는 창작 출발점입니다. 신화·설화 14종은 **실제 전승의 내용을 한국어로 요약한 설정 자료**입니다. 창작 작품명·새 주인공·결말 선택지·도입 원고·전체 번역문은 신화 자료에 넣지 않습니다.
 
-처음부터 이야기를 만들기 막막할 때 참고하는 **자유롭게 수정·삭제하는 예시용 디폴트 템플릿**입니다. 장르에서 익숙한 클리셰와 주인공·배경·세계관·도입 장면을 통해 “대략 이런 재료로 이렇게 시작할 수 있다”를 보여 줄 뿐, 완성된 작품이나 반드시 지켜야 할 장르 규칙이 아닙니다. 이름·관계·능력·배경·갈등을 자유롭게 바꾸고 필요 없는 항목은 삭제하세요.
+총 25개 세계관, 472장 카드입니다. 기존 장르는 248장, 신화는 224장입니다. 신화마다 아래 출처 범위를 명시하며 신화권 전체를 빠짐없이 다룬 백과사전이라고 주장하지 않습니다. 서유기는 중국 설화 세계관에 별도 제목·출처 묶음으로 수록합니다.
 
-서비스에 표시할 안내 문구와 자료 구분은 [TEMPLATE_GUIDE.md](./TEMPLATE_GUIDE.md)에 있습니다. 이 문서는 문구 제안이며 실제 화면 연결은 별도입니다.
+| ID | 세계관 | 카드 수 |
+|---|---|---:|
+| wuxia | 회귀한 망나니 소공자 설정집 | 22 |
+| romance_fantasy | 악녀는 북부 대공과 계약한다 설정집 | 23 |
+| modern_fantasy | 나만 보이는 EX급 성장창 설정집 | 23 |
+| science_fiction | 폐함의 함장이 된 정비공 설정집 | 23 |
+| alternate_history | 눈 떠 보니 몰락 예정 왕자 설정집 | 23 |
+| game_fantasy | 서비스 종료한 게임의 유일한 공략자 설정집 | 23 |
+| fusion_fantasy | 무림에서 돌아온 마법 아카데미의 낙제생 설정집 | 23 |
+| territory_management | 망나니 영주는 황무지에 도시를 세운다 설정집 | 22 |
+| apocalypse | 멸망 30일 전, 마지막 생존자가 돌아왔다 설정집 | 22 |
+| sports_fantasy | 방출된 유망주가 미래의 축구를 안다 설정집 | 22 |
+| entertainment | 추락한 천재 배우가 회귀했다 설정집 | 22 |
+| sumerian_mythology | 수메르 신화 — 홍수와 지우수드라 | 13 |
+| cthulhu_mythos | 크툴루 신화 — 러브크래프트 원작 설정 | 20 |
+| norse_mythology | 북유럽 신화 — 에다의 신과 세계 | 24 |
+| greco_roman_mythology | 그리스·로마 신화 — 신족·영웅·전쟁 | 30 |
+| germanic_folklore | 게르만 설화 — 홀레 할머니 | 11 |
+| chinese_folklore | 중국 설화 — 산해경과 서유기 | 22 |
+| japanese_mythology | 일본 신화 — 고사기의 신과 경계 | 17 |
+| korean_mythology_fables | 한국 신화 및 우화 — 삼국유사의 건국 전승 | 15 |
+| egyptian_mythology | 이집트 신화 — 라의 이름과 이시스 | 12 |
+| indian_mythology | 인도 신화 — 마누의 홍수와 이다 | 13 |
+| celtic_mythology | 켈트 신화 — 노크그래프턴의 요정 설화 | 10 |
+| slavic_mythology | 슬라브 신화 — 바바 야가 설화 | 12 |
+| maya_mythology | 마야 신화 — 포폴 부의 첫 창조 | 11 |
+| aztec_mythology | 아즈텍 신화 — 테오티우아칸의 해와 달 | 14 |
 
-## 원문 위치
+## 파일과 유형
 
-장르마다 하위 디렉터리에 `README.md`와 `source/`가 있습니다. `source/original.md`는 수정하지 않은 전체 원문(보관본), `source/template.json`은 구조화 데이터입니다. 원문의 Markdown 줄바꿈용 끝 공백과 빈 줄을 보존하므로 [.gitattributes](../../../.gitattributes)가 `original.md`에만 줄바꿈·끝 공백 검사 예외를 둡니다.
+각 폴더의 `source/template.json`은 편집할 정본, `source/original.md`는 같은 자료의 읽기용 문서입니다. `original.md`라는 파일명은 기존 경로를 유지한 것이며 신화 원전 전문을 뜻하지 않습니다. 서비스는 `backend/content-service/src/main/resources/genre-templates.json`의 세계관별 카드를 읽습니다. 한 장르의 카드를 다른 장르에 합쳐 적재하지 않습니다.
 
-- [무협](./wuxia/README.md): 《회귀한 망나니 소공자》
-- [로맨스 판타지](./romance_fantasy/README.md): 《악녀는 북부 대공과 계약한다》
-- [현대 판타지](./modern_fantasy/README.md): 《나만 보이는 EX급 성장창》
-- [SF](./science_fiction/README.md): 《폐함의 함장이 된 정비공》
-- [대체역사](./alternate_history/README.md): 《눈 떠 보니 몰락 예정 왕자》
-- [게임 판타지](./game_fantasy/README.md): 《서비스 종료한 게임의 유일한 공략자》
-- [퓨전 판타지](./fusion_fantasy/README.md): 《무림에서 돌아온 마법 아카데미의 낙제생》
-- [영지물](./territory_management/README.md): 《망나니 영주는 황무지에 도시를 세운다》
-- [아포칼립스](./apocalypse/README.md): 《멸망 30일 전, 마지막 생존자가 돌아왔다》
-- [스포츠 판타지](./sports_fantasy/README.md): 《방출된 유망주가 미래의 축구를 안다》
-- [연예계물](./entertainment/README.md): 《추락한 천재 배우가 회귀했다》
+신화 정본에는 문헌 목록(`sources`), 수록 범위(`scope`), 카드별 출처와 대목(`source_refs`)이 있습니다. 실제 카드 본문에도 출처 링크·대목이 들어가 서비스에서 읽고 수정할 때 근거가 사라지지 않습니다. 현대 번역문을 복사하지 않고 한국어로 자체 요약했습니다. 학술 감수를 마친 확정판은 아닙니다.
 
-## 신화·설화 예시 추가분
+| 내용 | 카드 유형 | 영역 |
+|---|---|---|
+| 신·영웅·존재 | character | basic |
+| 장소·세계 구조의 공간 | location | basic |
+| 신족·집단 | organization | basic |
+| 권능 | ability | basic |
+| 신물 | object | basic |
+| 금기·의례 | rule | basic |
+| 신화 사건 | event | history |
+| 문헌 범위·이설·분류 안내 | other | basic |
 
-기존 11종과 독립된 14종입니다. 각 문화권의 모티프를 활용한 창작 예시이며, 서로 다른 세계관을 자동으로 합쳐 적용하지 않습니다. 이집트는 기존 채팅 개요 원문, 나머지는 후속 설정집 원문을 사용합니다.
+각 문헌에 없는 유형을 채우려고 신물·단체를 만들지 않습니다. 신화적 관계는 카드 본문에 설명하며 Neo4j 관계선을 자동 생성하지 않습니다. 출처 링크도 관계 edge가 아닙니다.
 
-- [수메르 신화](./sumerian_mythology/README.md): 《일곱 문 아래, 지워진 이름》 (52장)
-- [크툴루 신화](./cthulhu_mythos/README.md): 《조수 없는 항구의 기록관》 (69장)
-- [북유럽 신화](./norse_mythology/README.md): 《세계수의 마지막 배달부》 (65장)
-- [그리스·로마 신화](./greco_roman_mythology/README.md): 《신탁에서 누락된 열세 번째 영웅》 (60장)
-- [게르만 설화](./germanic_folklore/README.md): 《검은 숲의 계약 수선공》 (64장)
-- [중국 설화](./chinese_folklore/README.md): 《천상 호적에 없는 사람》 (65장)
-- [일본 신화](./japanese_mythology/README.md): 《경계의 신사는 이름을 받지 않는다》 (63장)
-- [한국 신화 및 우화](./korean_mythology_fables/README.md): 《저승행 반송 우편》 (64장)
-- [이집트 신화](./egyptian_mythology/README.md): 《심장보다 무거운 이름》 (10장)
-- [인도 신화](./indian_mythology/README.md): 《세 번째 새벽에 끝나는 맹세》 (14장)
-- [켈트 신화](./celtic_mythology/README.md): 《여름을 빌린 왕의 마지막 손님》 (14장)
-- [슬라브 신화](./slavic_mythology/README.md): 《닭다리 집의 마지막 제자》 (14장)
-- [마야 신화](./maya_mythology/README.md): 《해가 뜨기 전의 공놀이》 (14장)
-- [아즈텍 신화](./aztec_mythology/README.md): 《태양이 쉬는 날》 (14장)
+## 현재 서비스에서 쓰는 흐름
 
-신화 추가분의 `basic_template.content_markdown`은 기본 템플릿 전체를 담습니다. `setting_bible.sections`의 `template_part`는 `기본 템플릿`, `확장 설정`, `도입 예시` 중 하나이며, 기본형 본문과 항목별 데이터를 중복 사용하지 않습니다. 원문의 안내와 모든 본문은 보존합니다. 카드 제목에도 영역을 표시하지만 WorldStudio의 카드 area는 사건이 `history`, 나머지가 `basic`입니다.
+1. Content 서버가 시작되면 기존 WorldStudio create → edit → save로 운영자 소유 세계관을 적재합니다.
+2. Core auth/V8의 운영자 계정으로 로그인하면 자신의 세계관 목록에서 장르 또는 신화 이름을 찾아 열 수 있습니다. 별도의 장르 선택 마법사나 템플릿 상점이 생긴 것은 아닙니다.
+3. 카드가 `templateOrder` 순서로 표시됩니다. 사용자는 제목·내용·유형을 수정하고 기존 초안 편집·확정 저장 기능을 사용합니다. 사건 카드는 history 영역입니다.
+4. 저장한 내용은 해당 운영자 세계관의 변경입니다. 일반 사용자에게 복제본을 자동 제공하지 않습니다.
 
-## 적재 방식
+일반 회원이 장르를 선택하고 미리 본 뒤 자기 세계관으로 복사하는 목록/API/UI, 복제 시 새 ID 부여와 소유권 처리, 작품·회차 연결은 추가 구현이 필요합니다. 이 샘플만으로 체크포인트·에피소드·Fork 기록을 가짜로 만들지 않습니다. 세계관 저장 버전과 작품 회차 체크포인트는 다른 기록입니다.
 
-Content 서버가 시작될 때 `GenreTemplateSeeder`가 [`genre-templates.json`](../../../backend/content-service/src/main/resources/genre-templates.json)을 읽어 **기존 운영 관리자 계정이 소유한 WorldStudio 세계관 25개(카드 830장)** 를 만듭니다. 기존 `WorldStudioService`의 create → edit → save를 그대로 호출하며, 세계관 ID와 key(`genre-template-<장르>`)가 고정이라 시작할 때마다 다시 시도해도 안전합니다. 한 장르가 실패(Neo4j 장애 등)해도 장르별 오류 로그만 남기고 서버는 계속 뜨며, 다음 시작 때 다시 시도합니다. `genre-templates.json`을 읽지 못해도 오류 로그만 남기고 기동합니다. 최초 적재는 동결된 `genre-templates-v1.json`으로 재시도 입력을 보존하고, 이어서 `genre-templates.json`의 보완본을 적용합니다. 아래 v2 갱신 조건을 따릅니다.
+## v2 보완과 기존 데이터 반영
 
-- 소유 계정(임시 할당): Core `auth/V8__member_admin_operations.sql`의 운영 관리자 `admin@example.test`(`operator=true`), 회원 UUID `5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01`. 새 계정은 만들지 않으며, 운영자로 로그인하면 세계관 목록에서 보입니다.
-- 카드: 기존 11종 248장과 신화·설화 14종 582장입니다. 본문은 원문 항목을 보존하며, 긴 항목은 3,000자 이내의 연속 카드로 나눕니다. 신화 추가분은 인물→`character`, 장소→`location`, 조직→`organization`, 능력→`ability`, 사물→`object`, 규칙→`rule`, 사건→`event`, 그 외 및 도입 원고→`other`로 분리합니다. 영역은 사건 카드가 `history`, 나머지가 `basic`이며 “전체 원문” 보관본은 별도 카드로 중복 적재하지 않습니다.
-- 작품·회차·체크포인트·Fork는 만들지 않습니다. 기존 11종의 세계관·카드 데이터는 유지하고 추가분에 새 고정 ID를 부여했습니다.
+- 기존 장르 11종만 `genre-templates-v1.json`에 동결합니다. 최초 create/edit의 입력과 idempotency hash를 보존합니다. 현재 11종 데이터와 원문은 변경하지 않았으며 `genre-preservation.json`과 테스트로 확인합니다.
+- 기존 11종의 최초 저장 후 초기 내용과 같은 revision 2만 `GenreTemplateRepair`가 v2 카드·메타데이터로 보완합니다. 고정 key와 expected revision을 사용하며 중단된 동일 요청은 재시도합니다. 사용자 편집·관계·완료된 보완은 덮어쓰지 않습니다.
+- 신화 14종은 PR #287에서 미배포 신규 자료로 확인되어 **v1 동결본에 넣지 않고 최종 요약 카드로 직접 적재**합니다. 처음부터 유형·event/history·순서 메타데이터를 포함합니다. 별도 v2 동결본이나 v3 교체 과정은 없습니다.
+- 저장을 마친 신규 신화는 재시작 시 다시 편집하지 않습니다. 나중에 배포된 본문을 바꾸어야 한다면 별도의 명시적 보완 변경이 필요합니다. JSON 수정만으로 사용자 데이터를 자동 동기화하지 않습니다.
+- 닫힌 PR의 창작 신화를 개인 검증용 DB에 이미 넣은 경우, 같은 worldId와 다른 생성 입력은 충돌로 거절될 수 있습니다. 이번 작업은 그 DB를 자동 삭제·덮어쓰기하지 않습니다. 운영·공유 DB를 초기화하지 말고 별도로 승인한 데이터 이관이 필요합니다.
+- Flyway SQL과 적용 이력은 건드리지 않습니다. 이 WorldStudio 템플릿은 기존 서비스 시더가 적재하며 CSV/Flyway 개발 샘플과 별개입니다.
 
-## 현재 한계
+## 소유자와 공개 범위
 
-- 소유자는 임시로 할당한 운영 관리자 계정입니다. V8 샘플 관리자 비밀번호가 마이그레이션 주석에 공개되어 있어, 그 계정으로 로그인하면 누구나 템플릿을 수정·삭제할 수 있습니다. 실제 운영 계정·공개 템플릿 조회가 생기면 소유자를 바꿉니다.
-- V8은 `ON CONFLICT (email) DO NOTHING`이라 기존 DB에 `admin@example.test`가 다른 id로 있으면 템플릿 소유자가 실제 로그인 계정과 다를 수 있습니다.
-- 세계관 목록은 소유자 전용이라 다른 사용자에게는 여전히 보이지 않습니다.
-- 사용자가 템플릿을 가져오는 기능, 공개/비공개 설정, Fork 연계는 후속 작업입니다.
-- 소유자를 바꿔도 이미 적재된 세계관은 새 소유자로 옮겨지지 않습니다. 고정 worldId의 create가 소유자 불일치로 거절되어 장르별 오류 로그만 남으므로, 소유자 변경 때는 기존 세계관(PostgreSQL·Neo4j)을 승인 하에 정리해야 합니다.
-- PostgreSQL만 초기화하고 Neo4j 데이터가 남으면 고정 worldId의 create가 graph mismatch(`RELATIONSHIP_VERSION_MISMATCH`)로 실패해 해당 장르가 재시작마다 오류 로그만 남기고 적재되지 않습니다. 둘을 함께 초기화해야 합니다. CI처럼 여러 PostgreSQL이 Neo4j 하나를 공유하면 컨텍스트마다 오류 로그가 나오지만 테스트는 깨지지 않습니다.
+임시 소유자는 `GenreTemplateSeeder.TEMPLATE_OWNER`이며 Core의 `admin@example.test` 샘플 운영자 UUID입니다. 공개된 샘플 계정으로 편집 가능한 시연용 구성이며, 같은 이메일에 다른 UUID가 있으면 로그인 사용자의 소유 세계관으로 보이지 않을 수 있습니다. 타 사용자에게는 노출되지 않습니다. 공개 템플릿과 개인 복제 흐름을 구현하기 전 이를 서비스 공용 카탈로그로 설명하지 않습니다.
 
-## 내용을 바꿀 때
+## PR #287 코멘트 반영
 
-### v2 보완과 기존 데이터 반영
+- 창작 설정집을 전승 요약 카드로 교체하고 카드마다 원전·대목·범위를 표시했습니다. 전체 번역문은 최종 산출물에서 제외했습니다.
+- 그리스·로마, 북유럽, 러브크래프트 원작, 서유기의 우선 항목을 수록했습니다. 나머지 후보 신화권을 무단으로 새 세계관으로 추가하지 않았습니다.
+- 이집트의 수정 안내를 도입 예시로 분류한 문제와 location으로 잘못 분류한 결말 선택지 두 장은 해당 창작 카드 자체를 제거하여 해결했습니다. 새로운 사건은 event/history로 분류합니다.
+- v1 카드 입력 제한 검사를 추가하고 프런트 순서 테스트는 비연속 값 2·10이 저장 때도 유지되는지 검사합니다.
+- 신화 14종의 v1 동결을 제거하고 직접 적재·재시도·기존 편집 보존을 검사합니다.
 
-Content 서버를 재시작하면 `GenreTemplateRepair`가 기존 세계관·카드 ID를 유지하며 프런트 메타데이터, 원문 순서, 분류, 표시 안내를 보완합니다. 별도 SQL·Python 적재나 DB 초기화는 필요 없습니다. 새 세계관도 v1 최초 저장 뒤 v2 저장을 수행하며 기존 불변 저장 버전은 남습니다.
+## 검증
 
-- v1 기준 리소스는 재시도 hash와 비교 기준이므로 수정하지 않습니다. `source/original.md` 및 `content_markdown`도 그대로 보존합니다.
-- 자동 보완 대상은 이름·설명·카드 전체가 v1과 같고 관계가 없는 최초 저장 상태(draft revision 2)뿐입니다. 사용자 수정·추가·삭제·관계가 있으면 건너뛰고 경고 로그를 남깁니다. 소유자 불일치도 강제 변경하지 않습니다.
-- 보완 key는 `genre-template-<장르>-repair-v2`, expected draft revision은 2로 고정합니다. 편집 후 저장 전에 중단되면 같은 요청을 재시도하고 revision 3을 저장합니다. 미완료 그래프 작업도 같은 key/hash일 때만 이어갑니다. 다른 동시 편집은 충돌로 거절합니다.
-- 보완 저장 완료 상태(revision 4)는 재시작해도 다시 저장하지 않습니다. 이 동작은 v2 전용 보완이며 향후 임의의 JSON 변경을 자동 동기화하는 기능이 아닙니다. 배포한 v2 입력도 고정하고 후속 보완은 별도 버전으로 설계합니다.
-- 이미 사용자가 바꾼 카드의 빈 메타데이터는 프런트가 검증된 정본 필드로 읽고 다음 사용자 저장 때 기록합니다. 본문·분류를 자동 덮어쓰지는 않습니다. 손상된 studio 메타데이터는 오류로 유지합니다.
-- `studio.templateOrder`는 원문 읽기 순서입니다. 프런트가 UUID 반환 순서와 무관하게 정렬하고 다음 저장에도 보존합니다.
-- 5종 묶음의 대화형 문구·번호는 서비스 표시 카드에서만 제거합니다. 구조화 원문의 `display_introduction_markdown`이 표시용이고 `introduction_markdown`은 보관용입니다.
-
-운영 확인은 관리자 세계관 상세의 카드 표시, 보완 오류·건너뜀 로그, 재시작 후 저장 버전 증가 여부를 확인하세요. 사용자 수정으로 제외된 세계관은 자동 재설정하지 말고 변경 내용을 검토해 수동 반영해야 합니다.
-
-설계: [WorldStudio 독립 스키마 — 플랫폼 장르 템플릿 세계관](../../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)
+`test_myth_sources.py`는 기존 11종 보존, 출처 참조, JSON/Markdown/적재본 일치, 25개 세계관·472장 카드, 유형과 영역, 우선 대상의 포함 여부를 검사합니다. `GenreTemplateResourceTest`는 v1과 현재 리소스의 서비스 입력 제한을 검사합니다. 실제 PostgreSQL·Neo4j와 재시작 검증은 CI 통합 테스트가 수행합니다. 정적 검사는 신화 해석의 학술적 정확성을 증명하지 않으며 출처와 이설에 대한 사람의 검토가 필요합니다.
