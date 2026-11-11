@@ -43,7 +43,7 @@ type MemorySuggestions = ReturnType<typeof memorySuggestions>
 
 /** 정본 작품 열람 화면의 댓글은 이 파일의 관심사가 아니라 빈 목록을 주는 대역으로 둔다. */
 const noComments = () => ({
-  list: vi.fn(async () => []), create: vi.fn(async () => { throw new Error('unused') }), update: vi.fn(async () => { throw new Error('unused') }),
+  list: vi.fn(async () => []), listByWork: vi.fn(async () => []), create: vi.fn(async () => { throw new Error('unused') }), update: vi.fn(async () => { throw new Error('unused') }),
   remove: vi.fn(async () => {}), like: vi.fn(async () => {}), unlike: vi.fn(async () => {}),
 }) satisfies EpisodeCommentRepository
 

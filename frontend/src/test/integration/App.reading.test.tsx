@@ -19,7 +19,7 @@ import { EpisodeComments } from '../../presentation/features/reading/view/Episod
 import { sessionActions } from '../../presentation/shared/session/sessionSlice'
 import { renderApp } from '../renderApp'
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); Reflect.deleteProperty(navigator, 'clipboard') })
 
 const user = () => createAppStore({ role: 'user' })
 const sid = () => document.getElementById('sid')!.textContent
@@ -70,8 +70,11 @@ describe('소설 상세 (U04)', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: '관심 소설' }).getAttribute('aria-pressed')).toBe('true'))
     expect(screen.getByRole('status').textContent).toBe('이 창에서만 좋아요를 눌렀어요 · 계정에 저장되지 않아요')
     expect(document.getElementById('lkc')!.textContent).toBe('1.2만')
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
     fireEvent.click(screen.getByRole('button', { name: '공유' }))
-    expect(screen.getByRole('status').textContent).toBe('링크 공유는 데모예요 (실제 복사 없음)')
+    expect(writeText).toHaveBeenCalledWith(window.location.href)
+    await waitFor(() => expect(screen.getByRole('status').textContent).toBe('링크를 복사했어요'))
     screen.getByText('이 원작의 포크 소설')
   })
 
@@ -321,7 +324,8 @@ describe('정본 열람의 미지원 기능 표시 (CI integration)', () => {
       expect(document.querySelector('.ifs .md')).toBeNull()
       // 좋아요 수는 서버 값이라 보이지만, 서버에 없는 조회·댓글 지표는 자리표시로 그리지 않는다.
       expect(document.getElementById('lkc')).not.toBeNull()
-      expect(document.querySelector('.stats')!.textContent).not.toMatch(/👁|💬/)
+      expect(document.querySelector('.stats')!.textContent).not.toMatch(/조회|댓글/)
+      expect(document.querySelectorAll('.stats svg')).toHaveLength(2) // 좋아요·포크 아이콘만(조회·댓글 아이콘 없음)
       cleanup()
       renderApp('/read/guunmong/2', user())
       await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
@@ -436,6 +440,7 @@ function memoryComments(seed: EpisodeComment[]) {
   const rows = [...seed]
   const find = (id: string) => rows.find((r) => r.id === id)!
   return {
+    listByWork: vi.fn(async (_id: string, sort: CommentSort) => (sort === 'likes' ? [...rows].sort((a, b) => b.likeCount - a.likeCount) : [...rows]).map((r) => ({ ...r }))),
     list: vi.fn(async (_id: string, _n: number, sort: CommentSort) => (sort === 'likes' ? [...rows].sort((a, b) => b.likeCount - a.likeCount) : [...rows]).map((r) => ({ ...r }))),
     create: vi.fn(async (workId: string, n: number, input: { body: string; quote?: string; spoiler?: boolean }) => {
       const made = serverComment({ id: `new${rows.length}`, workId, episodeNumber: n, authorName: '나', mine: true, body: input.body, quote: input.quote ?? null, spoiler: input.spoiler ?? false })

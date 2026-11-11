@@ -133,6 +133,11 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     const minutesSince = (updatedAt: string) => Math.max(0, Math.floor((at.getTime() - Date.parse(updatedAt)) / 60000))
     return { computedAt: at, items: items.map((w) => ({ ...mapReadingWork(w), ...(w.updatedAt ? { upd: minutesSince(w.updatedAt) } : {}) })) }
   }
+  /** 회차별 누적 조회 수(episodeViews)는 공개 상세(GET /public/works/{id})에만 오므로 목록 대신 이 읽기로 받는다. 익명 요청이며 기록 없는 회차는 키가 없다. */
+  async episodeViews(id: string, signal?: AbortSignal) {
+    const { episodeViews } = await this.request(`/public/works/${encodeURIComponent(id)}`, z.object({ episodeViews: z.record(z.string(), z.number().int().nonnegative()).nullish() }), 'GET', undefined, signal)
+    return episodeViews ?? {}
+  }
   async recordView(id: string, number: number, signal?: AbortSignal) {
     if (!getAccessToken()) return // 익명 열람은 회원 식별이 없어 기록하지 않는다.
     await this.request(`/works/${encodeURIComponent(id)}/episodes/${number}/views`, z.undefined(), 'POST', undefined, signal)

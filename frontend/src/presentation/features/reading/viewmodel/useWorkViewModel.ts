@@ -29,6 +29,8 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
   const workId = data?.work.id
   const interest = useAsyncData(() => (role && workId ? interestUseCase.isInterested(workId) : Promise.resolve(false)), [interestUseCase, workId])
   const [interestPending, setInterestPending] = useState(false)
+  // 회차별 누적 조회 수는 공개 상세 응답에만 있어 따로 읽습니다. 읽지 못하면 0회로 채우지 않고 수를 감춥니다.
+  const views = useAsyncData((signal) => (data ? readingUseCase.episodeViews(data.work, signal) : Promise.resolve(undefined)), [readingUseCase, workId])
   /** 좋아요 요청이 진행 중인 동안 다시 누르지 못하게 합니다. */
   const [liking, setLiking] = useState(false)
   // 목업 render(): 다른 작품으로 옮기면 회차 검색어(#epq)를 비우고, 열린 신고 시트도 닫습니다(이전 작품용 신고가 새 작품에 접수되지 않게).
@@ -38,7 +40,9 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
 
   const v = query.trim().toLowerCase()
   const ordered = data ? (epSort === 'new' ? data.visible.slice().reverse() : data.visible) : []
-  const episodes = ordered.map(([e, i]) => ({ e, n: i + 1, match: !v || (i + 1 + '화 ' + e.t + ' ' + e.p.join(' ')).toLowerCase().includes(v) }))
+  // 서버 작품의 조회 수는 자체 회차에만 기록된다(Fork의 상속 회차는 원작 몫이라 수를 보이지 않음). 데모 작품은 시드의 e.views를 그대로 씁니다.
+  const inherited = data?.work.snap?.eps.length ?? 0
+  const episodes = ordered.map(([e, i]) => ({ e, n: i + 1, views: views.data && i + 1 > inherited ? (views.data[i + 1] ?? 0) : e.views, match: !v || (i + 1 + '화 ' + e.t + ' ' + e.p.join(' ')).toLowerCase().includes(v) }))
 
   return {
     /** undefined: 불러오는 중, null: 없거나 볼 수 없는 작품 */
@@ -94,7 +98,11 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
         else toast(error instanceof Error && error.message ? error.message : '좋아요를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
       } finally { setLiking(false) }
     },
-    share: () => toast('링크 공유는 데모예요 (실제 복사 없음)'),
+    /** 현재 소설 상세 주소를 클립보드에 복사합니다. 클립보드가 없거나(비보안 출처) 거부되면 주소를 보여 줍니다. */
+    share: async () => {
+      const url = window.location.href
+      try { await navigator.clipboard.writeText(url); toast('링크를 복사했어요') } catch { toast(`링크를 복사하지 못했어요 · ${url}`) }
+    },
     /** 남의 공개 작품에서만 신고 버튼을 보입니다. */
     canReport: !!data && canReport(data.work, memberId),
     reporting,
