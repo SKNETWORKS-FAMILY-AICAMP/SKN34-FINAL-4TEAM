@@ -829,3 +829,5 @@ Draft·미병합: approve/edit/hold/reject 결정 누적, 작가 수정본·AI �
 ### 초기 세계관 승인 후보 초안 반영 6-B — PR #284
 
 Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추가, 기존 Neo4j 현재 상태 CAS와 카드/revision/receipt 원자 완료, 동일 key 장애 복구. [반영 계약·검증·한계](design/initial-world-approved-application.md). UI·확정 버전·과거 관계 복원은 별도이며 상위 기능 전체 완료로 표시하지 않는다.
+
+- 초기 세계관 7-A: AI 추가 카드·관계 DTO/metadata 왕복 어댑터 구현(Draft, 미병합). 후보 검토 UI는 후속.
