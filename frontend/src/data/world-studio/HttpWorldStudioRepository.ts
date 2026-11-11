@@ -175,10 +175,9 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
     return row
   })
   for (const r of value.relationships) {
-    if(r.category==='emotional'&&r.direction!=='directed')throw new Error('현재 편집기는 방향 없는 감정 관계를 저장할 수 없어요. 원본은 서버에 보존됩니다.')
     const row = setting(r.semanticMetadata,{id:r.id,kind:'relation',title:r.label,text:r.body,
       subjectId:r.sourceCardId,targetId:r.targetCardId,polarity:r.polarity??'asserted',
-      predicate:r.category==='emotional'?'custom_emotion':r.direction==='symmetric'?'custom_relation':'custom_relation_directed'},
+      predicate:r.category==='emotional'?(r.direction==='symmetric'?'preserved_emotion_symmetric':'custom_emotion'):r.direction==='symmetric'?'custom_relation':'custom_relation_directed'},
       {userCategory:'',tags:[],aliases:[]}), expected = relationship(row)
     if(r.semanticMetadata.studio.item.id!==r.id)throw invalid()
     if (

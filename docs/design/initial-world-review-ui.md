@@ -8,7 +8,7 @@ HttpWorldStudioRepository는 기존 완전한 studio DTO와 6-B의 엄격히 검
 
 serverMetadata는 서버에서 받은 의미 정보와 근거의 보존용이다. replace:true 저장 시 화면의 studio만 갱신하고 preprocessing 및 추가 metadata는 보존한다. authorEdit의 화면 원문 수정은 기존처럼 근거를 비우며 preprocessing은 최초 적용의 출처 이력이다. 현재 원문의 새 근거로 표시하지 않는다.
 
-관계 category/direction/polarity/endpoints는 서버 필드에서 복원한다. 기존 관계는 기존 predicate를 유지한다. 현재 편집기가 지원하지 않는 방향 없는 감정은 성공한 편집 대상으로 표시하지 않고 명시적으로 읽기 오류를 내며 원본을 서버에 남긴다.
+관계 category/direction/polarity/endpoints는 서버 필드에서 복원한다. 기존 관계는 기존 predicate를 유지한다. 7-A 단독에서는 방향 없는 감정을 명시적으로 차단한다. 7-B 수용 점검에서 백엔드가 대칭 감정도 지원함을 대조하여, 해당 관계는 대칭·감정 predicate로 조회/재저장을 지원하고 기존 방향별 감정 편집 패널에서는 읽기 전용으로 표시하도록 보완했다. 방향을 임의로 바꾸거나 구조 관계로 변환하지 않는다.
 
 ## 검증
 
@@ -35,3 +35,5 @@ serverMetadata는 서버에서 받은 의미 정보와 근거의 보존용이다
 - 모바일 요청 390×844에서 Aside가 보고한 실제 CSS viewport는 488px, documentWidth 469px, 검토 영역 437px였다. 가로 넘침 없음, 주요 버튼 높이 44px. 모바일 CSS 배치 확인이며 정확한 390px 실기기 검증은 아니다.
 - Aside screenshot은 full-page/viewport 모두 CDP timeout이 발생하여 이미지 육안 검증을 완료하지 못했다. 픽셀 수준 검토 및 실기기/배포 서버/실제 재로그인 수용 검증은 후속으로 남긴다.
 - Impeccable detector 대상 JSX/CSS 지적 없음. Ponytail review: 기존 Web Locks·CSRF·인증·DI·저장 어댑터 재사용, 신규 라이브러리·백엔드 구조 추가 없음.
+
+- 일반 세계관 이름 수정→replace:true 재저장 뒤 기존 인물과 적용 카드 2개, goal/author_revision/analysisId/candidateId/decisionSequence/evidence=[] 유지도 로컬 HTTP 대역의 실제 요청 데이터로 확인했다.
