@@ -54,6 +54,8 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `GET /api/v1/me/withdrawal` | Bearer 인증; 진행 중이면 `{"status":"PENDING","requestedAt","dueAt"}`, 없으면 `{"status":"NONE"}`, 200 |
 | `DELETE /api/v1/me/withdrawal` | Bearer 인증; 유예 중인 탈퇴 요청 취소(복구), 204. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409 |
 
+AI 작업용 크레딧 예약·정산은 `CreditReservationService`(내부 서비스, HTTP 엔드포인트 없음)가 맡습니다. `reserve`가 상한만큼 지급분을 소멸이 빠른 순으로 잡아 두고, `settle`이 실제 사용량(상한 이하)만 차감하고 나머지를 돌려주며, `release`는 차감 없이 전부 돌려줍니다. 같은 `operationKey`로 다시 호출해도 한 번만 반영됩니다. 예약된 양은 잔액 합계와 지급분별 남은 양에서 빠지고, 예약이 끝나기 전에는 소멸 처리되지 않습니다. 아직 호출하는 쪽이 없고 작업 식별자 계약(#54)은 정해지지 않았습니다. 마이그레이션은 `V13__credit_reservation.sql`입니다.
+
 ### 내부 API (Content·운영 서비스 전용, nginx 비노출)
 
 [운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 닉네임 조회를 뺀 모두 회원 Bearer가 필요합니다.
