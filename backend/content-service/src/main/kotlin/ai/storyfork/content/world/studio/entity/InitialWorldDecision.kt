@@ -20,6 +20,9 @@ class InitialWorldDecision(
     @Column(nullable=false) val action: String,
     @Column(name="actor_id", nullable=false) val actorId: UUID,
     @JdbcTypeCode(SqlTypes.JSON) @Column(columnDefinition="jsonb", nullable=false) val content: Map<String,Any?>,
+    @Column(name="request_key") val requestKey:String? = null,
+    @Column(name="request_hash") val requestHash:String? = null,
+    @Column val comment:String? = null,
     @Column(name="created_at", nullable=false) val createdAt: Instant = Instant.now(),
 ) {
     @Column(nullable=false)

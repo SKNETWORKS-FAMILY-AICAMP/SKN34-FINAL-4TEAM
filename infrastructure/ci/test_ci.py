@@ -467,7 +467,7 @@ class SystemContractTest(unittest.TestCase):
                             self.assertGreater(index, 0)
                             self.assertEqual(f'refresh_csrf({call.func.value.id})', ast.unparse(function.body[index - 1]))
                         mutations += 1
-        self.assertEqual(12, mutations)  # Anonymous missing-CSRF rejection stays intentionally unrefreshed.
+        self.assertEqual(20, mutations)  # Anonymous missing-CSRF rejection stays intentionally unrefreshed.
 
 
 class ConfigurationTest(unittest.TestCase):

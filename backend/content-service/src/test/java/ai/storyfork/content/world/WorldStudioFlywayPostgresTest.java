@@ -15,7 +15,7 @@ class WorldStudioFlywayPostgresTest {
                 assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='public'"));
             }
             var flyway=db.studio();
-            assertEquals(4,flyway.migrate().migrationsExecuted);
+            assertEquals(5,flyway.migrate().migrationsExecuted);
             flyway.validate();
             assertEquals(0,flyway.migrate().migrationsExecuted);
             String w=id(), owner=id(), rev=id(), card=id(), other=id(), v1=id(), v2=id(), v3=id();

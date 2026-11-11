@@ -821,3 +821,7 @@
 ### 초기 세계관 분석 실행·저장 5-C — PR #266
 
 진행 중·Draft·미병합: 소유자 분석 요청, 입력 snapshot/상태 저장, 트랜잭션 밖 AI 호출, Output 재검증, 후보 원자 저장 및 조회. [실행 계약·의존성·실패 복구](design/initial-world-analysis-execution.md). 실제 모델 품질·승인/반영은 미검증·미구현이며 상위 기능 완료로 표시하지 않는다.
+
+### 초기 세계관 후보 검토 6-A — PR #270
+
+Draft·미병합: approve/edit/hold/reject 결정 누적, 작가 수정본·AI 근거 분리, 멱등성·순번 충돌·stale 검증 및 이력 재조회. [검토 계약과 6-B 경계](design/initial-world-candidate-review.md). 승인 후보 초안 반영·UI는 아직 미구현이며 상위 기능 완료로 표시하지 않는다.

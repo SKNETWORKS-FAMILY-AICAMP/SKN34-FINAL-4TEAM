@@ -16,6 +16,8 @@ import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import tools.jackson.databind.json.JsonMapper
 
+class InitialWorldReviewConflict(val code:String):RuntimeException(code)
+
 data class InitialWorldAnalysisRead(val body:InitialWorldAnalysisResponse,val failureCode:String?)
 class AnalysisStorageUnconfirmed(val worldId:UUID,val analysisId:UUID):RuntimeException("ANALYSIS_STORAGE_UNCONFIRMED")
 
@@ -25,6 +27,7 @@ class InitialWorldAnalysisService(
     private val drafts:WorldDraftRepository,private val states:WorldRelationshipStateRepository,
     private val analyses:InitialWorldAnalysisRepository,private val candidates:InitialWorldCandidateRepository,
     private val ai:InitialWorldExtractionClient,private val mapper:JsonMapper,
+    private val decisions:InitialWorldDecisionRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,
     @Qualifier("initialWorldAnalysisClock") private val clock:Clock,
 ) {
@@ -59,7 +62,8 @@ class InitialWorldAnalysisService(
         val ids=if(row.executionStatus=="completed") candidates.findAllByWorldIdAndAnalysisIdOrderByLocalRef(world.id,row.id)
             .associate { it.localRef to it.id } else emptyMap()
         return InitialWorldAnalysisRead(InitialWorldAnalysisResponse(row.id,input.basis,row.executionStatus,
-            if(current) "current" else "stale",output,ids),row.failureCode)
+            if(current) "current" else "stale",output,ids,
+            decisions.findAllByWorldIdAndAnalysisIdOrderByCandidateIdAscSequenceAsc(world.id,row.id).map(::decision)),row.failureCode)
     }
 
     /** 같은 키는 저장된 입력을 사용한다. 현재 원문을 다시 읽어 요청 의미를 바꾸지 않는다. */
@@ -130,6 +134,33 @@ class InitialWorldAnalysisService(
         }
     } catch(_:org.springframework.dao.DataAccessException) { throw AnalysisStorageUnconfirmed(world,id) }
       catch(_:org.springframework.transaction.TransactionException) { throw AnalysisStorageUnconfirmed(world,id) }
+
+    private fun decision(row:InitialWorldDecision)=InitialWorldDecisionRecord(row.candidateId,
+        row.content["localRef"] as String,row.sequence,row.state,mapper.convertValue(row.content,InitialWorldCandidateOutput::class.java))
+
+    /** 같은 후보의 검토를 world 잠금 안에서 순서대로 누적한다. 승인만으로 정본을 변경하지 않는다. */
+    fun decide(worldId:UUID,actor:UUID,analysisId:UUID,candidateId:UUID,request:InitialWorldDecisionRequest):InitialWorldDecisionRecord=tx {
+        val world=owned(worldId,actor)
+        val analysis=row(worldId,analysisId)
+        val candidate=candidates.findById(candidateId).orElseThrow { WorldNotFound() }
+        if(candidate.worldId!=worldId || candidate.analysisId!=analysisId) throw WorldNotFound()
+        val hash=MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsBytes(request))
+            .joinToString("") { "%02x".format(it.toInt() and 255) }
+        val previous=decisions.findByCandidateIdAndRequestKey(candidateId,request.key)
+        if(previous!=null) {
+            if(previous.requestHash!=hash) throw WorldConflict()
+            return@tx decision(previous)
+        }
+        if(analysis.executionStatus!="completed") throw InitialWorldReviewConflict("ANALYSIS_NOT_COMPLETED")
+        if(read(analysis,world).body.freshness!="current") throw InitialWorldReviewConflict("ANALYSIS_STALE")
+        val latest=decisions.findFirstByCandidateIdOrderBySequenceDesc(candidateId)
+        if(request.expectedDecisionSequence!=(latest?.sequence ?: 0)) throw WorldConflict()
+        val current=mapper.convertValue(latest?.content ?: candidate.content,InitialWorldCandidateOutput::class.java)
+        val content=InitialWorldDecisionValidation.review(snapshot(analysis),current,request)
+        decision(decisions.saveAndFlush(InitialWorldDecision(worldId=worldId,analysisId=analysisId,candidateId=candidateId,
+            sequence=Math.incrementExact(request.expectedDecisionSequence),action=request.action,actorId=actor,
+            content=json(content),requestKey=request.key,requestHash=hash,comment=request.comment)))
+    }
 
     fun get(world:UUID,actor:UUID,id:UUID):InitialWorldAnalysisRead=tx { val owner=owned(world,actor);read(row(world,id),owner) }
     fun list(world:UUID,actor:UUID):List<InitialWorldAnalysisResponse> = tx {

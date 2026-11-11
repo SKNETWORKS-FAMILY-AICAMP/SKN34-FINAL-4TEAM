@@ -16,7 +16,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(2,db.studio().migrate().migrationsExecuted);
+            assertEquals(3,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
@@ -64,6 +64,27 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"UPDATE worldstudio.initial_application_item SET active=false");
                 c.commit();
                 assertEquals(List.of(generated),rows(c,"SELECT generated_id FROM worldstudio.initial_application_item"));
+            }
+        }
+    }
+    @Test void upgradeV4PreservesOldDecisionWithoutInventingRequestMetadata() throws Exception {
+        try(var db=new WorldStudioPostgresFixture("independent")) {
+            org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration()).target("4").load().migrate();
+            String w=id(), a=id(), candidate=id(), decision=id();
+            try(var c=db.connect()) {
+                sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"')");
+                sql(c,"INSERT INTO worldstudio.initial_analysis(id,world_id,request_key,request_hash,draft_revision,relationship_version,input_snapshot,execution_token,deadline) VALUES ('"+a+"','"+w+"','old',repeat('a',64),0,0,'{}','"+id()+"',now()+interval '90 seconds')");
+                String content="{\"type\":\"fact\",\"provenance\":\"ai_extraction\",\"evidence\":[{\"sourceId\":\"old\"}]}";
+                sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+w+"','"+a+"','old','"+content+"')");
+                sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+w+"','"+a+"','"+candidate+"',1,'approve','approved','"+id()+"','"+content+"')");
+            }
+            assertEquals(1,db.studio().migrate().migrationsExecuted);
+            db.studio().validate();
+            try(var c=db.connect()) {
+                assertEquals(List.of(decision),rows(c,"SELECT id FROM worldstudio.initial_decision WHERE request_key IS NULL AND request_hash IS NULL AND comment IS NULL AND sequence=1 AND state='approved'"));
+                c.setAutoCommit(false);
+                rejects(c,"23514","UPDATE worldstudio.initial_decision SET comment='invented'");
+                rejects(c,"23514","DELETE FROM worldstudio.initial_decision");
             }
         }
     }

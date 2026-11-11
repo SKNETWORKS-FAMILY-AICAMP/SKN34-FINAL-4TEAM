@@ -223,7 +223,7 @@ class InitialWorldAnalysisPostgresTest {
                 val wrapped=InitialWorldAnalysisService(ctx.getBean(WorldStudioService::class.java),ctx.getBean(StudioWorldRepository::class.java),
                     ctx.getBean(WorldDraftRepository::class.java),ctx.getBean(WorldRelationshipStateRepository::class.java),
                     ctx.getBean(InitialWorldAnalysisRepository::class.java),ctx.getBean(InitialWorldCandidateRepository::class.java),
-                    stub.client(),mapper,manager,clock)
+                    stub.client(),mapper,ctx.getBean(InitialWorldDecisionRepository::class.java),manager,clock)
                 stub.action={ i -> loseAck.set(true);200 to output(i) }
                 val request=InitialWorldAnalysisRequest("lost-ack",saved.draftRevision)
                 val completed=wrapped.analyze(saved.worldId,actor,request)
@@ -235,4 +235,102 @@ class InitialWorldAnalysisPostgresTest {
         } }
     }
 
+    @Test fun `review history is append only idempotent owner bound and persistent`() {
+        WorldStudioPostgresFixture("independent").use { db -> Stub().use { stub ->
+            lateinit var world:WorldDraftResponse
+            lateinit var analysis:InitialWorldAnalysisResponse
+            lateinit var approved:InitialWorldDecisionRecord
+            context(db,stub).use { ctx ->
+                world=seed(ctx);val service=ctx.getBean(InitialWorldAnalysisService::class.java)
+                analysis=service.analyze(world.worldId,actor,InitialWorldAnalysisRequest("review-run",world.draftRevision)).body
+                val id=analysis.candidateIds.values.single();val original=analysis.output!!.candidates.single()
+                fun decide(key:String,sequence:Long,action:String,edit:InitialWorldCandidateOutput?=null)=
+                    service.decide(world.worldId,actor,analysis.analysisId,id,InitialWorldDecisionRequest(key,sequence,action,edit,"작가 의견"))
+                approved=decide("approve",0,"approve");assertEquals("approved",approved.state)
+                val edited=original.copy(text="작가 수정 원문",provenance="author_revision",evidence=emptyList())
+                assertEquals("pending",decide("edit",1,"edit",edited).state)
+                assertEquals(edited,decide("approve-edit",2,"approve").content)
+                assertEquals("held",decide("hold",3,"hold").state)
+                assertEquals("rejected",decide("reject",4,"reject").state)
+                assertEquals(approved,decide("approve",0,"approve")) // Replay before checking latest sequence.
+                assertThrows(WorldConflict::class.java) { decide("approve",0,"hold") }
+                assertThrows(WorldConflict::class.java) { decide("old-approve",1,"approve") }
+                assertThrows(WorldNotFound::class.java) { service.decide(world.worldId,UUID.randomUUID(),analysis.analysisId,id,InitialWorldDecisionRequest("no",5,"approve",null,"")) }
+                val other=service.analyze(world.worldId,actor,InitialWorldAnalysisRequest("other-run",world.draftRevision)).body
+                assertThrows(WorldNotFound::class.java) { service.decide(world.worldId,actor,other.analysisId,id,InitialWorldDecisionRequest("no",5,"approve",null,"")) }
+                assertThrows(WorldNotFound::class.java) { service.decide(world.worldId,actor,analysis.analysisId,UUID.randomUUID(),InitialWorldDecisionRequest("no",5,"approve",null,"")) }
+                val read=service.get(world.worldId,actor,analysis.analysisId).body
+                assertEquals(listOf(1L,2L,3L,4L,5L),read.decisions.map { it.sequence })
+                assertEquals(listOf("approved","pending","approved","held","rejected"),read.decisions.map { it.state })
+                assertEquals(original,read.output!!.candidates.single())
+                assertEquals(edited,read.decisions.last().content)
+                assertEquals(world,ctx.getBean(WorldStudioService::class.java).draft(world.worldId,actor))
+                db.connect().use { c -> assertEquals(listOf("작가 의견"),WorldStudioPostgresFixture.rows(c,"SELECT DISTINCT comment FROM worldstudio.initial_decision")) }
+            }
+            context(db,stub).use { ctx ->
+                val service=ctx.getBean(InitialWorldAnalysisService::class.java);val id=analysis.candidateIds.values.single()
+                assertEquals(5,service.get(world.worldId,actor,analysis.analysisId).body.decisions.size)
+                sql(db,"UPDATE worldstudio.world_draft SET draft_revision=draft_revision+1 WHERE world_id='${world.worldId}'")
+                assertEquals(approved,service.decide(world.worldId,actor,analysis.analysisId,id,InitialWorldDecisionRequest("approve",0,"approve",null,"작가 의견")))
+                assertEquals("ANALYSIS_STALE",assertThrows(InitialWorldReviewConflict::class.java) {
+                    service.decide(world.worldId,actor,analysis.analysisId,id,InitialWorldDecisionRequest("stale",5,"approve",null,""))
+                }.code)
+            }
+        } }
+    }
+
+    @Test fun `concurrent reviews serialize and failed inserts leave no partial history`() {
+        WorldStudioPostgresFixture("independent").use { db -> Stub().use { stub -> context(db,stub).use { ctx ->
+            val world=seed(ctx);val service=ctx.getBean(InitialWorldAnalysisService::class.java)
+            val analysis=service.analyze(world.worldId,actor,InitialWorldAnalysisRequest("reviews",world.draftRevision)).body
+            val id=analysis.candidateIds.values.single()
+            val pool=Executors.newFixedThreadPool(2);val start=CountDownLatch(1)
+            fun call(key:String)=service.decide(world.worldId,actor,analysis.analysisId,id,InitialWorldDecisionRequest(key,0,"approve",null,""))
+            try {
+                val futures=(1..2).map { n -> pool.submit<Any> { start.await();try { call("parallel-$n") } catch(e:WorldConflict) { e } } }
+                start.countDown();val results=futures.map { it.get(10,TimeUnit.SECONDS) }
+                assertEquals(1,results.count { it is InitialWorldDecisionRecord });assertEquals(1,results.count { it is WorldConflict })
+            } finally { pool.shutdownNow() }
+            assertEquals(1,service.get(world.worldId,actor,analysis.analysisId).body.decisions.size)
+            sql(db,"CREATE FUNCTION worldstudio.reject_review() RETURNS trigger LANGUAGE plpgsql AS 'BEGIN RAISE EXCEPTION ''injected review failure''; END'; CREATE TRIGGER reject_review BEFORE INSERT ON worldstudio.initial_decision FOR EACH ROW EXECUTE FUNCTION worldstudio.reject_review()")
+            val retry=InitialWorldDecisionRequest("retry",1,"hold",null,"")
+            assertThrows(org.springframework.dao.DataAccessException::class.java) { service.decide(world.worldId,actor,analysis.analysisId,id,retry) }
+            assertEquals(1,service.get(world.worldId,actor,analysis.analysisId).body.decisions.size)
+            sql(db,"DROP TRIGGER reject_review ON worldstudio.initial_decision")
+            val saved=service.decide(world.worldId,actor,analysis.analysisId,id,retry)
+            assertEquals(saved,service.decide(world.worldId,actor,analysis.analysisId,id,retry))
+            assertEquals(2,service.get(world.worldId,actor,analysis.analysisId).body.decisions.size)
+            val same=InitialWorldDecisionRequest("same-concurrent",2,"approve",null,"")
+            val duplicates=Executors.newFixedThreadPool(2)
+            try {
+                val calls=(1..2).map { duplicates.submit<InitialWorldDecisionRecord> { service.decide(world.worldId,actor,analysis.analysisId,id,same) } }
+                assertEquals(calls[0].get(10,TimeUnit.SECONDS),calls[1].get(10,TimeUnit.SECONDS))
+            } finally { duplicates.shutdownNow() }
+            val delegate=ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java)
+            val loseAck=java.util.concurrent.atomic.AtomicBoolean(true)
+            val manager=object:PlatformTransactionManager {
+                override fun getTransaction(definition:org.springframework.transaction.TransactionDefinition?)=delegate.getTransaction(definition)
+                override fun rollback(status:org.springframework.transaction.TransactionStatus)=delegate.rollback(status)
+                override fun commit(status:org.springframework.transaction.TransactionStatus) {
+                    delegate.commit(status)
+                    if(loseAck.getAndSet(false)) throw org.springframework.transaction.TransactionSystemException("lost review commit reply")
+                }
+            }
+            val wrapped=InitialWorldAnalysisService(ctx.getBean(WorldStudioService::class.java),ctx.getBean(StudioWorldRepository::class.java),
+                ctx.getBean(WorldDraftRepository::class.java),ctx.getBean(WorldRelationshipStateRepository::class.java),
+                ctx.getBean(InitialWorldAnalysisRepository::class.java),ctx.getBean(InitialWorldCandidateRepository::class.java),
+                stub.client(),mapper,ctx.getBean(InitialWorldDecisionRepository::class.java),manager,Clock.systemUTC())
+            val lost=InitialWorldDecisionRequest("lost-review-reply",3,"hold",null,"")
+            assertThrows(org.springframework.transaction.TransactionException::class.java) { wrapped.decide(world.worldId,actor,analysis.analysisId,id,lost) }
+            assertEquals(4L,service.decide(world.worldId,actor,analysis.analysisId,id,lost).sequence)
+            assertEquals(4,service.get(world.worldId,actor,analysis.analysisId).body.decisions.size)
+            val pendingId=UUID.randomUUID();val pendingCandidate=UUID.randomUUID()
+            sql(db,"INSERT INTO worldstudio.initial_analysis(id,world_id,request_key,request_hash,draft_revision,relationship_version,input_snapshot,execution_token,deadline) SELECT '$pendingId',world_id,'pending-review',request_hash,draft_revision,relationship_version,input_snapshot,'${UUID.randomUUID()}',now()+interval '90 seconds' FROM worldstudio.initial_analysis WHERE id='${analysis.analysisId}'")
+            sql(db,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) SELECT '$pendingCandidate',world_id,'$pendingId',local_ref,content FROM worldstudio.initial_candidate WHERE id='$id'")
+            assertEquals("ANALYSIS_NOT_COMPLETED",assertThrows(InitialWorldReviewConflict::class.java) {
+                service.decide(world.worldId,actor,pendingId,pendingCandidate,InitialWorldDecisionRequest("pending",0,"approve",null,""))
+            }.code)
+            assertEquals(world,ctx.getBean(WorldStudioService::class.java).draft(world.worldId,actor))
+        } } }
+    }
 }
