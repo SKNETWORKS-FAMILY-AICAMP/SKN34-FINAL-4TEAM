@@ -120,6 +120,8 @@ class NoticeGroupIntegrationTest {
         mvc.perform(get("/api/v1/me/notifications/groups/items").param("kind", "creation").header("Authorization", auth)).andExpect(status().isBadRequest())
         mvc.perform(get("/api/v1/me/notifications/groups/items").param("kind", "creation").param("targetType", "work").param("targetId", "w1").param("limit", "0").header("Authorization", auth))
             .andExpect(status().isBadRequest())
+        mvc.perform(get("/api/v1/me/notifications/groups/items").param("kind", "unknown").param("targetType", "work").param("targetId", "w1").header("Authorization", auth))
+            .andExpect(status().isBadRequest())
         mvc.perform(get("/api/v1/me/notifications/groups/items").param("kind", "creation").param("targetType", "work").param("targetId", "w1")).andExpect(status().isUnauthorized())
         mvc.perform(get("/api/v1/me/notifications/groups/items").param("kind", "creation").param("targetType", "work").param("targetId", "none").header("Authorization", auth))
             .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(0))

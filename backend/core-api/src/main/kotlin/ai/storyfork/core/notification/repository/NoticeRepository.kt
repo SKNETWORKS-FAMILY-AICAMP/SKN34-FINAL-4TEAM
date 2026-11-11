@@ -31,11 +31,6 @@ interface NoticeRepository : JpaRepository<NoticeEntity, UUID> {
         "group by n.kind, n.targetType, n.targetId order by max(n.createdAt) desc, n.kind, n.targetType, n.targetId")
     fun groupSummaries(recipientId: UUID, pageable: Pageable): List<NoticeGroupRow>
 
-    /** 묶음의 가장 최근 삭제되지 않은 알림 하나. 묶음 요약 문구로 쓴다. */
-    fun findFirstByRecipientIdAndKindAndTargetTypeAndTargetIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(
-        recipientId: UUID, kind: String, targetType: String, targetId: String,
-    ): NoticeEntity?
-
     /** 한 묶음에 속한 삭제되지 않은 알림을 최신순으로 반환한다. */
     @Query("select n from NoticeEntity n where n.recipientId = :recipientId and n.deletedAt is null and n.kind = :kind and n.targetType = :targetType and n.targetId = :targetId order by n.createdAt desc, n.id desc")
     fun groupItems(recipientId: UUID, kind: String, targetType: String, targetId: String, pageable: Pageable): List<NoticeEntity>

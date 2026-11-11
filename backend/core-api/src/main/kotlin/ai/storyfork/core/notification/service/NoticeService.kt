@@ -60,16 +60,22 @@ class NoticeService(
     @Transactional(readOnly = true)
     fun groups(memberId: UUID, request: NoticeGroupListRequest): NoticeGroupListResponse =
         NoticeGroupListResponse(notices.groupSummaries(memberId, PageRequest.of(0, request.limit)).mapNotNull { row ->
-            notices.findFirstByRecipientIdAndKindAndTargetTypeAndTargetIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(memberId, row.kind, row.targetType, row.targetId)
+            notices.groupItems(memberId, row.kind, row.targetType, row.targetId, PageRequest.of(0, 1)).firstOrNull()
                 ?.let { NoticeGroupResponse(row.kind, row.targetType, row.targetId, row.total, row.unread, row.latestAt, it.summary) }
         })
 
-    /** 한 묶음에 속한 개별 알림을 최신순으로 limit개 반환한다. 1차는 페이지 넘김이 없어 nextCursor는 항상 null이다. */
+    /**
+     * 한 묶음에 속한 개별 알림을 최신순으로 최대 limit개 반환한다. 알 수 없는 종류는 400이다.
+     * 1차는 페이지 넘김이 없어 묶음이 limit보다 크면 오래된 알림은 이 API로 볼 수 없고, nextCursor는 항상 null이다.
+     */
     @Transactional(readOnly = true)
-    fun groupItems(memberId: UUID, request: NoticeGroupItemsRequest): NoticeListResponse = NoticeListResponse(
-        notices.groupItems(memberId, requireNotNull(request.kind), requireNotNull(request.targetType), requireNotNull(request.targetId), PageRequest.of(0, request.limit)).map(::toResponse),
-        null,
-    )
+    fun groupItems(memberId: UUID, request: NoticeGroupItemsRequest): NoticeListResponse {
+        val kind = NoticeKind.fromCode(requireNotNull(request.kind))?.code ?: throw NoticeException(NoticeException.Reason.INVALID)
+        return NoticeListResponse(
+            notices.groupItems(memberId, kind, requireNotNull(request.targetType), requireNotNull(request.targetId), PageRequest.of(0, request.limit)).map(::toResponse),
+            null,
+        )
+    }
 
     /** 삭제하지 않은 본인의 미읽음 알림 수를 반환한다. */
     @Transactional(readOnly = true)
