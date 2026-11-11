@@ -2,7 +2,7 @@
 
 `backend/ai-service/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
 현재 내부 Health와 이어쓰기 제안 API가 있다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
-현재 호출 흐름과 Spring 서비스 비교는 [AI Service 구현 경계](docs/agent-structure.md)를 본다.
+현재 호출 흐름과 기능별 코드 구조는 [AI Service 구현 경계](docs/agent-structure.md)를 본다.
 
 ## 구조
 
