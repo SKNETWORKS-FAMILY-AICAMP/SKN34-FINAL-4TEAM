@@ -13,13 +13,14 @@ afterEach(()=>{cleanup();vi.unstubAllGlobals()})
 beforeEach(()=>{vi.stubGlobal('navigator',{locks:{request:vi.fn(async(_name,_options,action)=>action({}))}})})
 const world:StudioWorld={id:crypto.randomUUID(),name:'초안',description:'작성 중',version:2,currentRevisionId:null,settings:[],analysis:null}
 const frozen:WorldRevision={worldId:world.id,revisionId:crypto.randomUUID(),revisionNo:1,name:'확정',description:'불변 원문',parentRevisionId:null,restoredFromRevisionId:null,cards:[],relationships:null,relationshipStatus:'not_recorded'}
-function setup(dirty=false,reload=vi.fn(async()=>({...world,version:3,currentRevisionId:frozen.revisionId}))){
+function setup(dirty=false,reload=vi.fn<()=>Promise<StudioWorld>>(async()=>({...world,version:3,currentRevisionId:frozen.revisionId}))){
  let pending:{expectedDraftRevision:number;key:string}|null=null
  let rows:WorldRevisionSummary[]=[]
  const repo:WorldStudioRepository={listStudio:vi.fn(),read:vi.fn(),create:vi.fn(),saveStudio:vi.fn(),revisions:vi.fn(async()=>rows),revision:vi.fn(async()=>frozen),confirm:vi.fn(async()=>{pending={key:'same',expectedDraftRevision:2};rows=[{worldId:world.id,revisionId:frozen.revisionId,revisionNo:1,name:'확정',createdAt:'2026-11-11T00:00:00Z'}];return frozen}),pendingConfirmation:()=>pending,acknowledgeConfirmation:vi.fn(()=>{pending=null})}
  const uc=new WorldStudioUseCase(repo),lock=vi.fn(),store=createAppStore({role:'user',memberId:'owner'})
  const wrapper=({children}:{children:ReactNode})=><Provider store={store}>{children}</Provider>
- const mount=()=>renderHook(({isDirty=dirty,id=world.id,active=true,saved=world}={})=>useWorldRevisions(id,active,saved,isDirty,reload,lock,uc,null),{wrapper})
+ type Props={isDirty?:boolean;id?:string;active?:boolean;saved?:StudioWorld}
+ const mount=()=>renderHook<ReturnType<typeof useWorldRevisions>,Props>(({isDirty=dirty,id=world.id,active=true,saved=world})=>useWorldRevisions(id,active,saved,isDirty,reload,lock,uc,null),{wrapper,initialProps:{}})
  return {...mount(),repo,reload,mount,store}
 
 }
