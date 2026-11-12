@@ -40,7 +40,7 @@ Router는 사용자 의도에 맞춰 필요한 작업의 **수·순서·조건**
 
 실행 전 Python 로직이 계획을 검증한다. 등록된 기능과 허용된 조건만 사용하고, 작업별 입력이 선행 결과와 호환되는지, 의존 순서·대상·Content가 확정한 Scope와 기준 판본이 맞는지 확인한다. 다른 작품/Fork나 권한 범위를 넓히지 않으며, Writing의 Retrieval·Simulation 직접 호출 금지와 시뮬레이션의 명시적 사용자 요청 조건도 확인한다. 시뮬레이션 요청 여부가 불분명하면 확인하고 실행을 보류한다. 조건을 만족하지 않거나 필수 근거가 부족한 후속 작업은 실행하지 않으며, 실패·부분 결과는 성공으로 꾸미지 않는다.
 
-Router의 분류나 계획은 인가·승인 또는 정본 적용이 아니다. 실행 시 선택된 Agent만 호출하고 Content가 권한과 정본 쓰기를 소유한다. 작업 결과를 보고 계획에 없던 Agent를 추가하는 재계획, 병렬화·반복 실행, 호출 수·시간·비용 한도의 구체 값은 아직 결정하지 않는다. 실제 중단·재개 또는 복잡한 의존 관계가 필요해지면 검증된 계획의 실행에 Main StateGraph와 DAG를 도입한다. 별도 LLM 메인 Agent·범용 Registry·Saver를 선행 조건으로 두지 않는다.
+Router의 분류나 계획은 인가·승인 또는 정본 적용이 아니다. 실행 시 선택된 Agent만 호출하고 Content가 권한과 정본 쓰기를 소유한다. 작업 결과를 보고 계획에 없던 Agent를 추가하는 재계획, 병렬화·반복 실행, 호출 수·시간·비용 한도의 구체 값은 아직 결정하지 않는다. 검증된 계획의 실행은 사용자 요청(2026-11-12)으로 LangGraph Main StateGraph에 올렸다([현재 구현](#현재-구현-langgraph-오케스트레이션)). 별도 LLM 메인 Agent·범용 Registry는 두지 않는다.
 
 MVP는 순차 최대 세 단계·기능당 한 번이다. [확정한 연결](06-design-decisions.md#복합-실행)과 입력이 독립인 순차 작업을 지원한다. [84개 실행 사례](09-execution-scenarios.md)에 MVP 경로와 후속 검토 대상을 표시한다.
 
@@ -55,6 +55,15 @@ Python 실행기는 Router의 `feature`·`when`을 사용자 의도 분류로 �
 3. **입력 연결:** 아래 작업 간 계약에 따라 실제 선행 작업의 결과 종류·상태·근거·대상·판본을 확인하고 필요한 입력만 전달한다. 선행 결과가 불완전하거나 타입·작품/Fork·회차·판본·범위가 맞지 않으면 의존 작업을 실행하지 않는다. 같은 허용 scope라도 서로 다른 회차가 필요한 작업은 Content가 각각 확인한 대상·판본과 연결 관계를 사용하며 무조건 동일 판본으로 간주하지 않는다.
 4. **실행과 조건:** 사용자가 지정한 순서와 검증된 의존 순서를 지킨다. 요청이 요구한 입력은 모두 확인한다. 실행 실패·시간 초과가 발생하면 독립 작업을 포함한 새 단계를 시작하지 않는다. 완료·부분 결과는 각 상태로 남기고 남은 단계의 중단 이유를 표시한다. 조건이 거짓인 건너뜀은 실패와 구분한다.
 5. **결과 전달:** 단계별 결과·출처·판본과 상태를 계획 순서로 표시한다. 사용자 확인이 필요하면 필요한 내용과 새 요청 절차를 안내한다. Content가 실제 보관한 후보와 승인·적용 영수증을 표시한다. [기록 보관·요청 키·단계별 시간 제한](04-infrastructure-integration.md#복합-실행-기록과-중복-요청)을 적용한다.
+
+#### 현재 구현: LangGraph 오케스트레이션
+
+`app/orchestration/`(2026-11-12 사용자 요청)이 위 계약 중 **구현된 Agent만** 연결한다. 대상은 Story Context / Q&A(`manuscript.service.answer`), Writing & Editing(`writing.agent.draft|patch`), Web Research(`research.service.research`)다.
+
+- `POST /internal/v1/orchestrations` `{request, operation?, materials?, inputs}` → `plan` 노드가 Intent Router를 호출하고 계획을 검증한 뒤 기능 노드를 계획 순서로 한 번씩 실행하고 `finish`로 끝낸다. `inputs`는 Content가 권한·판본을 확인해 기능별로 채운 각 내부 API의 요청 DTO다(`story_context`, `writing_editing.draft|patch`, `web_research`).
+- Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Review·Development·World & Plot·Simulation)이나 조건부 단계가 하나라도 있으면 `unsupported`, 단계 입력이 하나라도 빠지면 `needs_input`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 조건부 단계는 Review의 Finding 연결이 필요해 아직 실행하지 않는다.
+- 구현된 세 Agent 사이에는 등록된 결과 전달 연결이 없으므로 각 단계는 자기 입력으로만 실행한다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`와 고정 메시지로 남기고 새 단계를 시작하지 않으며, 완료한 결과는 보존한다. 결과는 Agent 원본 결과를 계획 순서로 묶을 뿐 종합 모델을 호출하지 않는다.
+- Router 실패는 503이다. 그래프 상태는 체크포인트 저장을 위해 JSON 값만 담는다. Q&A의 인용 id가 전달한 발췌 밖이면 Python도 502로 거절한다.
 
 #### 작업 간 입력·출력
 
