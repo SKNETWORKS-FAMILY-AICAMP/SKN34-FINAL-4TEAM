@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { WITHDRAWAL_REASON_MAX } from '../../../../domain/entities/withdrawal'
 import { kstDateTime } from '../../../shared/format'
@@ -11,6 +11,8 @@ export function Withdrawal() {
   const [open, setOpen] = useState(false)
   const close = () => { setOpen(false); vm.clearError() }
   const state = vm.state
+  // 다시 읽은 상태가 유예 중이면(다른 곳에서 이미 요청) 요청 시트를 닫아, 나중에 복구했을 때 다시 열리지 않게 합니다.
+  useEffect(() => { if (state?.status === 'PENDING') setOpen(false) }, [state])
   return (
     <div className="tcard mecard danger" aria-busy={vm.pending || (!state && !vm.loadError)}>
       <b>회원탈퇴</b>
@@ -20,7 +22,7 @@ export function Withdrawal() {
       </> : !state ? <p role="status" className="small muted">탈퇴 상태를 확인하고 있어요.</p>
         : state.status === 'PENDING' ? <>
           <p className="small" style={{ margin: '6px 0 12px' }}>탈퇴를 요청한 상태예요({kstDateTime(state.requestedAt)} 요청). {kstDateTime(state.dueAt)}까지 탈퇴 요청을 취소하면 계정을 그대로 쓸 수 있어요.</p>
-          {vm.error && !open && <p role="alert" className="small">{vm.error}</p>}
+          {vm.error && <p role="alert" className="small">{vm.error}</p>}
           <button type="button" className="btn" disabled={vm.pending} onClick={() => { void vm.restore() }}>{vm.pending ? '취소하는 중…' : '탈퇴 요청 취소'}</button>
         </> : <>
           <p className="small muted" style={{ margin: '6px 0 12px' }}>탈퇴를 요청하면 30일 유예 기간이 시작되고, 그동안 다시 로그인해 취소할 수 있어요.</p>

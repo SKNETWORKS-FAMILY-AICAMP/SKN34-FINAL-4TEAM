@@ -37,10 +37,9 @@ export class HttpWithdrawalRepository implements WithdrawalRepository {
     if (response.status === 403) throw new WithdrawalWrongPassword()
     if (response.status === 409) throw new WithdrawalConflict()
     if (response.status !== 202) throw new Error('탈퇴를 요청하지 못했어요.')
-    const state = stateSchema.parse(await response.json())
-    // 서버가 이 회원의 모든 로그인 세션을 끊었으므로 이 브라우저의 접근 토큰도 지웁니다.
+    // 서버가 이 회원의 모든 로그인 세션을 끊었으므로, 응답 본문을 읽기 전에 이 브라우저의 접근 토큰부터 지웁니다.
     forgetSession()
-    return state
+    return stateSchema.parse(await response.json())
   }
 
   async restore(): Promise<void> {

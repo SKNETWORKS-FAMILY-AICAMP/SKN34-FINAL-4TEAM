@@ -6,6 +6,7 @@ import { useAppDispatch } from '../../../../app/store'
 import type { WithdrawalState } from '../../../../domain/entities/withdrawal'
 import { SessionExpired } from '../../../../domain/repositories/ProfileRepository'
 import { WithdrawalConflict, WithdrawalWrongPassword } from '../../../../domain/repositories/WithdrawalRepository'
+import { WithdrawalInputError } from '../../../../domain/usecases/WithdrawalUseCase'
 import { toast } from '../../../shared/events'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 
@@ -42,8 +43,14 @@ export function useWithdrawalViewModel() {
     } catch (reason) {
       if (reason instanceof SessionExpired) dispatch(sessionActions.logout())
       else if (reason instanceof WithdrawalWrongPassword) setError('비밀번호가 맞지 않아요.')
-      else if (reason instanceof WithdrawalConflict) setError(state?.status === 'PENDING' ? '유예 기간이 지나 복구할 수 없어요.' : '이미 진행 중인 탈퇴 요청이 있어요. 새로고침해 주세요.')
-      else setError(reason instanceof Error && reason.message ? reason.message : '요청을 처리하지 못했어요. 다시 시도해 주세요.')
+      else if (reason instanceof WithdrawalConflict && state?.status === 'PENDING') setError('유예 기간이 지나 복구할 수 없어요.')
+      else if (reason instanceof WithdrawalConflict) {
+        // 다른 탭 등에서 이미 요청했으면 최신 상태(유예 중)를 다시 읽어 보여 줍니다.
+        setError('이미 진행 중인 탈퇴 요청이 있어요.')
+        setAttempt((value) => value + 1)
+      }
+      else if (reason instanceof WithdrawalInputError) setError(reason.message)
+      else setError('요청을 처리하지 못했어요. 다시 시도해 주세요.')
       return false
     } finally { busy.current = false; setPending(false) }
   }
@@ -57,7 +64,7 @@ export function useWithdrawalViewModel() {
       await withdrawal.request(password, reason)
       dispatch(sessionActions.logout())
       navigate('/')
-      toast('탈퇴를 요청했어요. 30일 안에 다시 로그인하면 복구할 수 있어요.')
+      toast('탈퇴를 요청했어요. 30일 안에 다시 로그인해 탈퇴 요청을 취소하면 복구할 수 있어요.')
     }),
     restore: () => run(async () => {
       await withdrawal.restore()

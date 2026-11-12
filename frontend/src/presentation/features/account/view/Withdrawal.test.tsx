@@ -32,11 +32,13 @@ function setup(withdrawal: (call: Call) => Response | Promise<Response>) {
   return { calls, ...renderApp('/me/profile', store) }
 }
 const toastIs = (t: string | RegExp) => waitFor(() => expect(document.getElementById('toast')!.textContent).toMatch(t))
+/** 프로필 화면은 지연 로딩이라 파일의 첫 테스트에서 오래 걸릴 수 있어, 화면이 처음 뜨기를 기다릴 때만 넉넉히 기다린다. */
+const card = (name: string) => screen.findByRole('button', { name }, { timeout: 5000 })
 
 describe('회원탈퇴 (U30, UC-22 A3)', () => {
   it('비밀번호와 사유로 탈퇴를 요청하면 로그아웃하고 30일 유예를 안내한다', async () => {
     const { calls, store } = setup((call) => call.method === 'POST' ? Response.json(pending, { status: 202 }) : Response.json({ status: 'NONE' }))
-    fireEvent.click(await screen.findByRole('button', { name: '회원탈퇴' }))
+    fireEvent.click(await card('회원탈퇴'))
     const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
     within(sheet).getByText(/30일 유예 기간/)
     expect((within(sheet).getByRole('button', { name: '탈퇴하기' }) as HTMLButtonElement).disabled).toBe(true)
@@ -50,7 +52,7 @@ describe('회원탈퇴 (U30, UC-22 A3)', () => {
 
   it('비밀번호가 틀리면 시트를 열어 둔 채 안내하고 로그인 상태를 유지한다', async () => {
     const { store } = setup((call) => call.method === 'POST' ? new Response(null, { status: 403 }) : Response.json({ status: 'NONE' }))
-    fireEvent.click(await screen.findByRole('button', { name: '회원탈퇴' }))
+    fireEvent.click(await card('회원탈퇴'))
     const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
     fireEvent.change(within(sheet).getByLabelText('비밀번호'), { target: { value: 'wrong' } })
     fireEvent.click(within(sheet).getByRole('button', { name: '탈퇴하기' }))
@@ -58,9 +60,23 @@ describe('회원탈퇴 (U30, UC-22 A3)', () => {
     expect(store.getState().session.role).toBe('user')
   })
 
+  it('다른 곳에서 이미 요청했으면(409) 안내하고 유예 중 상태로 다시 읽는다', async () => {
+    let requested = false
+    setup((call) => {
+      if (call.method === 'POST') { requested = true; return new Response(null, { status: 409 }) }
+      return Response.json(requested ? pending : { status: 'NONE' })
+    })
+    fireEvent.click(await card('회원탈퇴'))
+    const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
+    fireEvent.change(within(sheet).getByLabelText('비밀번호'), { target: { value: 'pw' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: '탈퇴하기' }))
+    expect(await card('탈퇴 요청 취소')).toBeTruthy()
+    expect(screen.getByRole('alert').textContent).toBe('이미 진행 중인 탈퇴 요청이 있어요.')
+  })
+
   it('사유가 비어 있으면 사유 없이 보낸다', async () => {
     const { calls } = setup((call) => call.method === 'POST' ? Response.json(pending, { status: 202 }) : Response.json({ status: 'NONE' }))
-    fireEvent.click(await screen.findByRole('button', { name: '회원탈퇴' }))
+    fireEvent.click(await card('회원탈퇴'))
     const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
     fireEvent.change(within(sheet).getByLabelText('비밀번호'), { target: { value: 'pw' } })
     fireEvent.change(within(sheet).getByLabelText('탈퇴 사유 (선택)'), { target: { value: '   ' } })
@@ -71,24 +87,24 @@ describe('회원탈퇴 (U30, UC-22 A3)', () => {
 
   it('유예 중이면 기한을 보이고 탈퇴 요청을 취소할 수 있다', async () => {
     const { calls } = setup((call) => call.method === 'DELETE' ? new Response(null, { status: 204 }) : Response.json(pending))
-    fireEvent.click(await screen.findByRole('button', { name: '탈퇴 요청 취소' }))
+    fireEvent.click(await card('탈퇴 요청 취소'))
     await toastIs('탈퇴 요청을 취소했어요')
     expect(calls.some((c) => c.method === 'DELETE')).toBe(true)
-    expect(await screen.findByRole('button', { name: '회원탈퇴' })).toBeTruthy()
+    expect(await card('회원탈퇴')).toBeTruthy()
   })
 
   it('유예 기한이 지나 복구할 수 없으면 안내한다', async () => {
     setup((call) => call.method === 'DELETE' ? new Response(null, { status: 409 }) : Response.json(pending))
-    fireEvent.click(await screen.findByRole('button', { name: '탈퇴 요청 취소' }))
+    fireEvent.click(await card('탈퇴 요청 취소'))
     expect((await screen.findByRole('alert')).textContent).toBe('유예 기간이 지나 복구할 수 없어요.')
   })
 
   it('상태를 읽지 못하면 실패를 알리고 다시 시도할 수 있다', async () => {
     let fail = true
     setup(() => fail ? new Response(null, { status: 500 }) : Response.json({ status: 'NONE' }))
-    expect((await screen.findByText('탈퇴 상태를 불러오지 못했어요. 다시 시도해 주세요.')).getAttribute('role')).toBe('alert')
+    expect((await screen.findByText('탈퇴 상태를 불러오지 못했어요. 다시 시도해 주세요.', {}, { timeout: 5000 })).getAttribute('role')).toBe('alert')
     fail = false
     fireEvent.click(screen.getByRole('button', { name: '탈퇴 상태 다시 시도' }))
-    expect(await screen.findByRole('button', { name: '회원탈퇴' })).toBeTruthy()
+    expect(await card('회원탈퇴')).toBeTruthy()
   })
 })
