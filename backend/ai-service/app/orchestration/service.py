@@ -136,16 +136,18 @@ def gate(state: State) -> State:
     resume 때 이 노드만 다시 실행되므로 Router는 다시 호출하지 않는다. interrupt는 호출 순서대로 이전 resume
     값을 돌려받아 여러 번 기다려도 같은 결과가 된다.
     """
-    inputs = dict(state['inputs'])
+    inputs, scope = dict(state['inputs']), state.get('retrievalScope')
     while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs
-                      and not (s['feature'] == 'story_context' and state.get('retrievalScope'))]:
+                      and not (s['feature'] == 'story_context' and scope)]:
         if not state.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
             return {'status': 'needs_input', 'message': NEEDS_INPUT_MESSAGE, 'missingInputs': missing}
         answer = interrupt({'steps': state['steps'], 'missingInputs': missing})
         if not answer['approved']:
             return {'status': 'cancelled', 'message': CANCELLED_MESSAGE}
         inputs.update(answer['inputs'])
-    return {'inputs': inputs}
+        # Content가 resume마다 새로 서명한 조회 토큰을 쓴다. 저장된 토큰은 만료·Content 재시작으로 무효일 수 있다.
+        scope = answer.get('scope') or scope
+    return {'inputs': inputs, 'retrievalScope': scope}
 
 
 def _node(feature: str):

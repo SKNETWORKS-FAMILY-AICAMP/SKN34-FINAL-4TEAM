@@ -313,3 +313,14 @@ def test_scope_does_not_satisfy_other_features(monkeypatch):
 def test_stream_unexpected_failure_still_ends_with_error_event(monkeypatch):
     fake_agents(monkeypatch, plan('story_context'), fail={'route': RuntimeError('원고 본문이 담긴 메시지')})
     assert stream(inputs={'story_context': QA}) == [('error', {'message': '작업을 완료할 수 없습니다.'})]
+
+
+def test_resume_uses_the_fresh_scope_token_from_content(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
+    run(conversation=conversation, scope={'scopeToken': 'old.token'})
+    resumed = run(None, conversation=conversation, resume={
+        'approved': True, 'inputs': {'web_research': WEB}, 'scope': {'scopeToken': 'fresh.token'}})
+    assert resumed.status == 'completed'
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['fresh.token']

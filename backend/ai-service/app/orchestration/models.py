@@ -44,6 +44,7 @@ class Resume(BaseModel):
     model_config = ConfigDict(extra='forbid')
     approved: bool
     inputs: StepInputs = StepInputs()
+    scope: RetrievalScope | None = None  # Content가 resume 때 새로 서명한 Q&A 조회 토큰
 
 
 class OrchestrationRequest(BaseModel):
