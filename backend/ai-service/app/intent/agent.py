@@ -10,7 +10,7 @@ from app.intent.models import Decision
 from app.intent.prompt import INSTRUCTIONS, MODEL
 
 
-def decide(request: str, materials: list[str], questions: list[dict]) -> dict[str, str]:
+def decide(request: str, materials: list[str], questions: list[dict], history: list[str] = ()) -> dict[str, str]:
     key = os.environ.get('OPENAI_API_KEY')
     if not key:
         raise IntentFailure()
@@ -20,7 +20,7 @@ def decide(request: str, materials: list[str], questions: list[dict]) -> dict[st
         response = client.post('/decisions', cast_to=object, body={
             'model': MODEL, 'questions': questions,
             'input': [{'role': 'developer', 'content': INSTRUCTIONS},
-                      {'role': 'user', 'content': [{'type': 'input_json', 'data': {'request': request, 'materials': materials}}]}]})
+                      {'role': 'user', 'content': [{'type': 'input_json', 'data': {'request': request, 'materials': materials, 'history': list(history)}}]}]})
         given = Decision.model_validate(response).answers
         answers = {a.name: a.choice for a in given if a.type == 'choice'}
         # 질문마다 정확히 한 답이 있고 그 값이 보낸 선택지 안에 있어야 한다. 가드레일이 걸린 요청은

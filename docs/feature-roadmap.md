@@ -459,7 +459,7 @@
 <tr><td>허용 문맥 미리보기</td><td>❌</td></tr>
 <tr><td>이어쓰기 요청</td><td>❌</td></tr>
 <tr><td>부분 수정 요청</td><td>❌ <small>(Content·AI API와 승인 반영 구현 · 화면 미연결 · 통합 테스트 CI 대기)</small></td></tr>
-<tr><td>AI 대화 요청</td><td>❌ <small>(AI 내부 LangGraph 오케스트레이션·SSE 구현 · Content·화면 미연결)</small></td></tr>
+<tr><td>AI 대화 요청</td><td>❌ <small>(AI 내부 LangGraph 오케스트레이션·SSE·멀티턴 구현 · Content·화면 미연결)</small></td></tr>
 <tr><td>대화 목록 조회</td><td>❌</td></tr>
 <tr><td>대화 상세 조회</td><td>❌</td></tr>
 <tr><td>대화 기록 삭제</td><td>❌</td></tr>

@@ -45,3 +45,15 @@ def test_answer_without_model_settings_is_503(monkeypatch):
     with pytest.raises(ManuscriptFailure) as error:
         agent.answer(DATA)
     assert error.value.status == 503
+
+
+def test_previous_turns_are_sent_only_to_resolve_references(monkeypatch):
+    from app.manuscript.models import QaTurn
+    data = DATA.model_copy(update={'history': [QaTurn(question='카이의 목표는?', answer='왕이 되는 것')]})
+
+    def parse(**kwargs):
+        assert '카이의 목표는?' in kwargs['input'] and 'history' in kwargs['instructions']
+        return SimpleNamespace(status='completed', output_parsed=AnswerResponse(claims=[], gaps=['근거 없음']))
+
+    provider(monkeypatch, parse)
+    assert agent.answer(data).gaps == ['근거 없음']

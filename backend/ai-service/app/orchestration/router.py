@@ -21,6 +21,8 @@ def orchestrate(data: OrchestrationRequest, x_internal_token: str = Header(defau
         return service.run(data)
     except IntentFailure:
         raise HTTPException(503, service.ROUTER_FAILED_MESSAGE) from None
+    except service.ConversationMismatch:
+        raise HTTPException(409, service.CONVERSATION_MISMATCH_MESSAGE) from None
 
 
 def internal_token(x_internal_token: str = Header(default='')) -> None:
