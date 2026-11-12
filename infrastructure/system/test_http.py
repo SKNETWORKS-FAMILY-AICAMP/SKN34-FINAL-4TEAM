@@ -117,7 +117,7 @@ def test_health(web):
 def test_health_worldstudio_startup_migration():
     """Content 시작 시 WorldStudio 전용 schema가 자기 이력으로 적용되고 Auth/Content 이력과 공존하는지 확인한다."""
     assert scalar("SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename <> 'world_studio_schema_history'") == "18"
-    assert scalar("SELECT string_agg(version, ',' ORDER BY installed_rank) FROM worldstudio.world_studio_schema_history WHERE success AND type='SQL'") == "1,2,3,4,5"
+    assert scalar("SELECT string_agg(version, ',' ORDER BY installed_rank) FROM worldstudio.world_studio_schema_history WHERE success AND type='SQL'") == "1,2,3,4,5,6,7"
     for table in ("flyway_schema_history", "content_schema_history"):
         assert scalar(f"SELECT count(*) FROM public.{table} WHERE NOT success") == "0"
         assert int(scalar(f"SELECT count(*) FROM public.{table} WHERE success")) > 0
