@@ -18,6 +18,8 @@ internal class ManuscriptQaClient(private val http: RestClient, private val toke
                 ?: throw ContentFailure(502, "Q&A 모델 응답을 확인할 수 없어요.")
         } catch (error: RestClientResponseException) {
             if (error.statusCode.value() == 502) throw ContentFailure(502, "Q&A 모델 응답을 확인할 수 없어요.")
+            // 인증·입력 계약 거절은 재시도로 풀리지 않으므로 일시 장애(503)와 구분한다.
+            if (error.statusCode.is4xxClientError) throw ContentFailure(502, "Q&A 요청을 AI 서비스가 거절했어요.")
             throw ContentFailure(503, "Q&A 모델에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.")
         } catch (_: RestClientException) {
             throw ContentFailure(503, "Q&A 모델에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.")
