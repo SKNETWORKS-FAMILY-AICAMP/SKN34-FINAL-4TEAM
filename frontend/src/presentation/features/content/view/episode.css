@@ -75,3 +75,9 @@
 .ep-file-chosen span{min-width:0;overflow-wrap:anywhere;color:var(--sub);font-size:13px}
 .ep-cover-pick{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px}
 .ep-cover-ai{display:inline-grid;gap:2px;justify-items:start}
+
+/* 새 작품 만들기 정리: 상단 링크 한 줄, 폼 안 체크 항목은 grid 간격만 쓰고, 모바일 제목 입력은 placeholder가 잘리지 않게 줄인다. */
+.ep-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.ep-top .ep-back{margin-bottom:0}
+.episode-app .ep-create-fields .ep-check{margin:0}
+@media(max-width:650px){.episode-app .ep-create .ep-create-title input:not([type=checkbox]){font-size:20px}}

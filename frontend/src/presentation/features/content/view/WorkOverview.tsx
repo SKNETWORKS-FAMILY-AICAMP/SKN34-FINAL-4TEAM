@@ -251,7 +251,7 @@ type CoverProps = {
 }
 
 /** 고른 이미지의 미리보기 주소. 파일이 바뀌거나 사라지면(편집을 닫으면) 이전 주소를 해제한다. */
-function usePreviewUrl(file: File | undefined) {
+export function usePreviewUrl(file: File | undefined) {
   const [url, setUrl] = useState('')
   useEffect(() => {
     if (!file) {

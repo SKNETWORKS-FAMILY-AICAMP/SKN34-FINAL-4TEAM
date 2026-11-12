@@ -21,6 +21,8 @@ export function useEpisodeViewModel(
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [ready, setReady] = useState(false)
+  /** 내 작품 목록을 실제로 읽었는지. 읽기에 실패하면(인증 만료 등) 새 작품을 보내지 못하게 한다. */
+  const [listed, setListed] = useState(false)
   const [coverRevision, setCoverRevision] = useState(0)
   const alive = useRef(true)
   const inFlight = useRef(false)
@@ -33,6 +35,7 @@ export function useEpisodeViewModel(
   const refresh = async () => {
     const list = await useCase.list()
     setWorks(list)
+    setListed(true)
     const w = list.find((x) => x.id === active?.id)
     if (w) install(w)
   }
@@ -42,6 +45,7 @@ export function useEpisodeViewModel(
     useCase.list(controller.signal).then((list) => {
       if (!controller.signal.aborted) {
         setWorks(list)
+        setListed(true)
         setReady(true)
       }
     }).catch((e: unknown) => {
@@ -87,6 +91,7 @@ export function useEpisodeViewModel(
     error,
     notice,
     ready,
+    listed,
     coverRevision,
     /** 새 작품의 id를 돌려준다. 표지 저장만 실패해도 작품은 만들어졌으므로 id를 돌려주고(오류는 알림으로 남김), 화면을 떠났거나 생성 자체가 실패하면 null이다. */
     create: async (title: string, summary: string, cover?: File, registration?: WorkRegistration) => {

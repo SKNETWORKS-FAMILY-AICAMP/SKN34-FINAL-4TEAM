@@ -102,11 +102,12 @@ it('does not reuse the previous cover when creating another work', async () => {
     return Response.json({ id: '33333333-3333-4333-8333-333333333333', filename: 'first.png', mediaType: 'image/png', kind: 'IMAGE', byteSize: 3, createdAt: '2026-11-03T00:00:00Z', url: `${path}/content` })
   })
   vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'content-csrf' }) : init?.method === 'PUT' ? uploads(path, init) : new Response(null, { status: 404 })))
+  stubPreviewUrl()
   const router = createMemoryRouter([{ path: '/content', element: <EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))} /> }], { initialEntries: ['/content'] })
   renderIn(<RouterProvider router={router} useTransitions={false} />)
   await screen.findByText('새 작품 만들기')
   fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: first.title } })
-  fireEvent.change(screen.getByLabelText('작품 표지 (선택)'), { target: { files: [new File(['png'], 'first.png', { type: 'image/png' })] } })
+  fireEvent.change(screen.getByLabelText('표지 이미지 선택'), { target: { files: [new File(['png'], 'first.png', { type: 'image/png' })] } })
   fillRegistration()
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
   await screen.findByText('비공개 작품과 표지를 저장했어요.')
@@ -140,10 +141,37 @@ it('puts the same disabled AI 생성 button with a visible 준비 중 note besid
   expect(ai.disabled).toBe(true)
   expect(ai.classList.contains('sm')).toBe(true)
   expect(document.getElementById(ai.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중')
-  expect(ai.closest('.ep-hero-cover')).toBe(screen.getByLabelText('작품 표지 (선택)').closest('.ep-hero-cover'))
+  // 작품 관리의 표지 편집과 같이 '표지 이미지 선택' 보조 버튼과 한 줄(.ep-cover-pick)에 놓인다.
+  const picker = screen.getByLabelText('표지 이미지 선택')
+  expect(picker.closest('label')?.classList.contains('btn')).toBe(true)
+  expect(ai.closest('.ep-cover-pick')).toBe(picker.closest('.ep-cover-pick'))
   // 눌러도 폼이 전송되거나 파일 선택이 바뀌지 않는다.
   fireEvent.click(ai)
   expect(screen.getByText('PNG·JPEG · 10 MiB 이하. 작품 생성 후 실제 작품 ID로 표지를 저장해요.')).toBeTruthy()
+})
+
+it('previews the chosen cover image in the cover slot of the creation screen', async () => {
+  stubCover()
+  stubPreviewUrl()
+  openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]) }))
+  await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
+  fireEvent.change(screen.getByLabelText('표지 이미지 선택'), { target: { files: [new File(['png'], 'cover.png', { type: 'image/png' })] } })
+  expect(document.querySelector('.ep-cover img')?.getAttribute('src')).toBe('blob:preview')
+  expect(screen.getByText('선택한 파일: cover.png')).toBeTruthy()
+})
+
+it('hides the 내 댓글·제보 link on the creation screen', async () => {
+  stubCover()
+  openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]) }))
+  await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
+  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull()
+})
+
+it('keeps 작품 만들기 disabled when my works could not be loaded', async () => {
+  const calls = vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: '서버 인증이 필요합니다.' }), { status: 401 }))
+  render(<EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))} />)
+  await screen.findByText('서버 인증이 필요합니다. 로그인한 뒤 다시 시도해 주세요.')
+  expect((screen.getByRole('button', { name: '작품 만들기' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
 it('clears the second genre when the first genre becomes the same one, so the hidden value does not come back later', async () => {

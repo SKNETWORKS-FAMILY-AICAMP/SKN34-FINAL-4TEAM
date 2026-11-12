@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { parseHashtags, type WorkCreationType, type WorkRegistration } from '../../../../domain/entities/content'
 import { AiCoverButton } from './AiCoverButton'
 import { TaxonomyFields } from './TaxonomyFields'
+import { usePreviewUrl } from './WorkOverview'
 
 type Props = {
   /** 요청 중에는 입력과 전송을 잠근다. */
@@ -19,6 +20,7 @@ export function CreateWork({ busy, ready, onCreate }: Props) {
   const [title, setTitle] = useState('')
   const [summary, setSummary] = useState('')
   const [cover, setCover] = useState<File>()
+  const preview = usePreviewUrl(cover)
   const [creationType, setCreationType] = useState<WorkCreationType>('ORIGINAL')
   const [genre1, setGenre1] = useState('')
   const [genre2, setGenre2] = useState('')
@@ -39,17 +41,20 @@ export function CreateWork({ busy, ready, onCreate }: Props) {
         <div className='whero ep-hero'>
           <div className='ep-hero-cover'>
             <div className='cover ep-cover'>
-              <img className='stored-image' src='/default-work-cover.svg' alt='' />
+              <img className='stored-image' src={preview || '/default-work-cover.svg'} alt='' />
             </div>
-            <label>
-              작품 표지 (선택)<input
-                type='file'
-                accept='.png,.jpg,.jpeg'
-                disabled={busy}
-                onChange={(e) => setCover(e.target.files?.[0])}
-              />
-            </label>
-            <AiCoverButton />
+            {/* 작품 관리의 표지 편집과 같이 기본 파일 입력은 시각적으로만 숨기고 라벨을 보조 버튼으로 그린다. */}
+            <div className='ep-cover-pick'>
+              <label className='btn sm ep-file-pick'>
+                표지 이미지 선택<input
+                  type='file'
+                  accept='.png,.jpg,.jpeg'
+                  disabled={busy}
+                  onChange={(e) => setCover(e.target.files?.[0])}
+                />
+              </label>
+              <AiCoverButton />
+            </div>
             <p className='small muted'>
               {cover
                 ? `선택한 파일: ${cover.name}`

@@ -29,8 +29,11 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
       <Gnb on='lib' />
       <div className='episode-app'>
         <main className='ep-main' id='main' tabIndex={-1}>
-          <Go to='/lib?tab=write' className='ep-back'><BackChev />내가 쓰는 소설</Go>
-          {!reports && <Go to='/content?view=reports' className='btn sm'>내 댓글·제보</Go>}
+          <div className='ep-top'>
+            <Go to='/lib?tab=write' className='ep-back'><BackChev />내가 쓰는 소설</Go>
+            {/* 새 작품 만들기에서는 작성 흐름에만 집중하도록 감춘다. */}
+            {wanted && !reports && <Go to='/content?view=reports' className='btn sm'>내 댓글·제보</Go>}
+          </div>
           {vm.error && (
             <div className='ep-alert' role='alert'>
               {vm.error}
@@ -48,7 +51,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
             ? (
               <CreateWork
                 busy={vm.busy}
-                ready={vm.ready}
+                ready={vm.listed}
                 onCreate={async (title, summary, cover, registration) => {
                   const id = await vm.create(title, summary, cover, registration)
                   // 만든 작품의 관리 화면으로 바꿔 보여 준다(뒤로 가기로 빈 생성 화면에 돌아오지 않게 replace).
