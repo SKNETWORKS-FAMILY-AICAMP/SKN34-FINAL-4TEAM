@@ -16,7 +16,7 @@
 - 그래프는 반복 상태 갱신·조건 분기·중단 및 재개가 실제로 필요한 기능에서 [집필 AI 설계](../../docs/writing-ai-architecture/02-ai-architecture.md)에 따라 검토한다. 단순 호출과 조회는 직접 실행한다.
 - 구체 클래스와 직접 함수 호출을 기본으로 한다. production 구현체가 둘 이상이거나 사용자가 요청하지 않으면
   `Protocol`·ABC·provider·registry·factory·bootstrap 추상화를 만들지 않는다. 테스트 편의를 위해 production 추상화를 추가하지 않는다.
-- 모델·제공사·에이전트 프레임워크는 미정이다(DEC-28). 단, Intent Router는 사용자 결정으로 OpenAI Decisions(`gpt-6-luna`)를 쓴다. 의존성·lockfile을 미리 바꾸지 않는다.
+- 집필 AI의 여섯 업무 Agent와 시뮬레이션 인물 행동·장면 요약의 목표 모델은 사용자 결정으로 OpenAI `gpt-6-luna`다. Intent Router도 OpenAI Decisions(`gpt-6-luna`)를 쓴다. 기존 구현의 모델 설정과 실제 검증 기록은 구분한다. 그 밖의 모델·프레임워크와 상세 도입은 미정이며 의존성·lockfile을 미리 바꾸지 않는다.
 - 장애는 명시적 오류로 반환하고 fallback·자동 재시도로 숨기지 않는다. 입력·원고·모델 응답을 오류 메시지나 로그에 넣지 않는다. 역할·인물마다 서버나 클래스를 만들지 않는다.
 
 ## 생성 경계
