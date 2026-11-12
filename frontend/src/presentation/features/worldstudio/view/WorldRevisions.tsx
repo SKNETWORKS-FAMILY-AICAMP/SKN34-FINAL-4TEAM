@@ -8,9 +8,10 @@ export function WorldRevisions({studio,revisions:vm}:{studio:ReturnType<typeof u
   <h3>확정 버전</h3><p>초안 저장과 별개로, 현재 저장된 카드·설정의 내용을 변경되지 않는 버전으로 남깁니다. AI 후보 승인·반영이나 작품 공개·회차 발행과는 다른 작업입니다.</p>
   <p>현재 초안의 기준: {current?`확정 버전 ${current.revisionNo}`:studio.saved?.currentRevisionId?'기존 확정 버전':'아직 확정한 버전 없음'}</p>
   {(studio.dirty||studio.relationDirty)&&<p role="status">미저장 입력이 있습니다. 작성 화면에서 초안을 먼저 저장해 주세요.</p>}
+  {!studio.dirty&&!studio.relationDirty&&studio.sealIssues.length>0&&<div role="status"><p>확정 버전으로 남기려면 저장된 카드마다 설명이 있어야 해요.</p><ul>{studio.sealIssues.map((issue,i)=><li key={i}>{issue.message}</li>)}</ul></div>}
   {vm.aiPending&&<p role="status">미확인 AI 요청이 있습니다. AI 후보 검토에서 결과를 먼저 확인해 주세요.</p>}
   {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}{vm.message&&<p role="status">{vm.message}</p>}
-  <div className="initial-actions"><button className="btn pri" disabled={vm.busy||vm.pending||vm.aiPending||studio.dirty||studio.relationDirty||!studio.saved} onClick={()=>vm.confirm()}>저장된 초안을 확정 버전으로 남기기</button><button className="btn" disabled={vm.busy||studio.dirty||studio.relationDirty} onClick={vm.refresh}>최신 저장 상태 확인</button></div>
+  <div className="initial-actions"><button className="btn pri" disabled={vm.busy||vm.pending||vm.aiPending||studio.dirty||studio.relationDirty||!studio.saved||studio.sealIssues.length>0} onClick={()=>vm.confirm()}>저장된 초안을 확정 버전으로 남기기</button><button className="btn" disabled={vm.busy||studio.dirty||studio.relationDirty} onClick={vm.refresh}>최신 저장 상태 확인</button></div>
   {vm.superseded&&<div role="status"><p>확정 버전 {vm.superseded.revisionNo} 저장 완료, 이후 새 버전이 생성됨</p><p>확인 당시 최신 기준은 확정 버전 {vm.superseded.currentRevisionNo}입니다. 아래 버튼은 저장 결과만 확인하며 새 확정 버전을 만들지 않습니다.</p><button className="btn" disabled={vm.busy||studio.dirty||studio.relationDirty||vm.aiPending} onClick={vm.acknowledgeSuperseded}>결과 확인 후 계속 작성</button></div>}
   {vm.pending&&!vm.superseded&&<div role="status"><p>확정 결과가 미확인입니다. 새 버전을 만들지 않고 동일 요청으로 확인합니다.</p><button className="btn" disabled={vm.busy||studio.dirty||studio.relationDirty||vm.aiPending} onClick={()=>vm.confirm(true)}>같은 확정 요청으로 확인</button></div>}
   <h4>확정 버전 목록</h4>{!vm.rows.length&&!vm.busy&&<p>아직 확정 버전이 없습니다.</p>}

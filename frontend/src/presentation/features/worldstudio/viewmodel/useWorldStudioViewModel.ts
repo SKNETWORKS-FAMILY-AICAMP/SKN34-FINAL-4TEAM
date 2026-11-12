@@ -1,4 +1,4 @@
-import { cardLibraryRows, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
+import { cardLibraryRows, worldSealIssues, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from './useWorldCoverImage'
@@ -309,6 +309,7 @@ export function useWorldStudioViewModel(
     },
     cardRows: cardLibraryRows(editing?.settings ?? [], cardFilter, cardQuery),
     writingIssues,
+    sealIssues: saved ? worldSealIssues(saved) : [],
     worlds,
     saved,
     editing,

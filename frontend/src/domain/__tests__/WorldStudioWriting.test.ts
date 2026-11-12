@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { cardLibraryRows, selectCardForFilter, worldWritingIssues } from '../entities/worldStudioWriting'
+import { cardLibraryRows, selectCardForFilter, worldSealIssues, worldWritingIssues } from '../entities/worldStudioWriting'
 import { newSetting, type StudioWorld } from '../entities/studioWorld'
 const world = (settings: StudioWorld['settings'] = []): StudioWorld => ({
   id: 'qa',
@@ -68,4 +68,13 @@ it('selects an item that remains visible under either search or type filtering',
   expect(selectCardForFilter(settings, person.item.id, 'location', '')).toBe(place.item.id)
   expect(selectCardForFilter(settings, person.item.id, 'all', '없는 설정')).toBe('')
   expect(settings).toEqual(before)
+})
+
+it('blocks a confirmed version while a saved card still has no description, because the server requires name and description to seal', () => {
+  const person = newSetting('people')
+  person.item.title = '가람'
+  expect(worldWritingIssues(world([person]))).toEqual([]) // 초안 저장은 이름만으로 된다
+  expect(worldSealIssues(world([person]))).toEqual([{ step: 'cards', id: person.item.id, message: '‘가람’의 설명을 입력해야 확정 버전으로 남길 수 있어요.' }])
+  person.item.text = '떠돌이 검객'
+  expect(worldSealIssues(world([person]))).toEqual([])
 })

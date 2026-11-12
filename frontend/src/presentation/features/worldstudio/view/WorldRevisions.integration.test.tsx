@@ -11,7 +11,7 @@ it('explains the superseding version and connects explicit acknowledgement witho
  const revisions:ReturnType<typeof useWorldRevisions>={rows:[],detail:null,busy:false,error:'',message:'',pending:true,aiPending:false,supported:true,
   superseded:{key:'private-key',expectedDraftRevision:2,revisionId:'private-id',revisionNo:1,currentRevisionNo:2},
   open:vi.fn(),refresh:vi.fn(),confirm,acknowledgeSuperseded}
- const studio={reviewWorldId:'world',saved:{currentRevisionId:'current'},dirty:false,relationDirty:false,reload:vi.fn(),setReviewBusy:vi.fn()} as unknown as ReturnType<typeof useWorldStudioViewModel>
+ const studio={reviewWorldId:'world',saved:{currentRevisionId:'current'},dirty:false,relationDirty:false,sealIssues:[],reload:vi.fn(),setReviewBusy:vi.fn()} as unknown as ReturnType<typeof useWorldStudioViewModel>
  const view=render(<WorldRevisions studio={studio} revisions={revisions}/> )
  expect(screen.getByText(/확정 버전 1 저장 완료, 이후 새 버전/)).toBeTruthy()
  expect(screen.getByText(/최신 기준은 확정 버전 2/)).toBeTruthy()

@@ -21,3 +21,8 @@ export function worldWritingIssues(world:StudioWorld):WritingIssue[]{
  }
  return issues
 }
+/** 확정 버전은 서버가 모든 카드의 이름과 설명을 요구한다(초안 저장은 인물 설명을 비워도 된다). 저장된 세계관 기준으로 막을 이유를 알려 준다. */
+export function worldSealIssues(world:StudioWorld):WritingIssue[]{
+ return [...worldWritingIssues(world),...world.settings.filter(({item})=>item.kind==='entity'&&item.title.trim()&&!item.text.trim())
+  .map(({item})=>({step:'cards' as const,id:item.id,message:`‘${item.title.trim()}’의 설명을 입력해야 확정 버전으로 남길 수 있어요.`}))]
+}

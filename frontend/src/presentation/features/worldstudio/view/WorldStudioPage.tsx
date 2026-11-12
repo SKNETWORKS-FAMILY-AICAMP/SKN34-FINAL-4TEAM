@@ -258,7 +258,7 @@ function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: St
  */
 function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; open: () => void }) {
   const reason = useId()
-  const why = !supported ? '목업에서는 확정 버전을 지원하지 않아요.' : vm.dirty || vm.relationDirty ? '저장하지 않은 변경이 있어요. 먼저 세계관을 저장하세요.' : ''
+  const why = !supported ? '목업에서는 확정 버전을 지원하지 않아요.' : vm.dirty || vm.relationDirty ? '저장하지 않은 변경이 있어요. 먼저 세계관을 저장하세요.' : vm.sealIssues[0]?.message ?? ''
   return (
     <>
       <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
