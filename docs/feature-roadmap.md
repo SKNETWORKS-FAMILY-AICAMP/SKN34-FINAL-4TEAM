@@ -117,6 +117,9 @@
 <tr><td>세계관 공개·비공개 설정 <small>(세계관 단위·기본 비공개, 확정 버전이 없으면 목록 제외, <a href="design/decisions.md">DEC-45</a>)</small></td><td>❌ <small>(부분: 서버 API·소유자 관리 화면 연결 소스 구현, hosted CI 통합 미확인, 이용·Fork 허용 없음, <a href="design/public-world-contract.md">계약</a>)</small></td></tr>
 <tr><td>공개 세계관 목록·상세 읽기 전용 조회 <small>(비로그인 포함, 현재 확정 버전의 카드·Neo4j 현재 관계)</small></td><td>❌ <small>(부분: 서버 API·둘러보기 화면(<code>/worlds</code>) 연결 소스 구현, hosted CI 통합 미확인, 파생·조합·작품 연결 없음, <a href="design/public-world-contract.md">계약</a>)</small></td></tr>
 <tr><td>세계관 표지 이미지 업로드·교체·삭제와 공개 표지 읽기 <small>(소유자가 올린 PNG·JPEG·WebP 5MB 이하만, 공개 노출은 확정 버전 기준, AI 표지 생성은 준비 중)</small></td><td>❌ <small>(부분: 서버 API·nginx 업로드 본문 크기(<code>client_max_body_size 6m</code>) 소스 구현, hosted CI 통합 미확인, <a href="design/public-world-contract.md">계약</a>)</small></td></tr>
+<tr><td>설정 카드 단위 공개·비공개 <small>(기본 비공개, 공개 세계관에서도 공개 카드만·양 끝 공개 관계만, <a href="design/decisions.md">DEC-46</a>)</small></td><td>❌</td></tr>
+<tr><td>다른 세계관의 설정 가져오기 <small>(공개 카드를 카드 단위·개수 제한 없이 내 세계관으로 복사, 출처 기록, 원본 변경 미반영, 허용 방식 미정, DEC-46)</small></td><td>❌</td></tr>
+<tr><td>세계관-소설 1:1 연결과 카드별 독자 공개 회차 <small>(세계관 카드에 'N화부터' 기록, 연결 소설 회차 기준, DEC-46)</small></td><td>❌</td></tr>
 <tr><td>설정 항목 공개 범위 설정</td><td>❌</td></tr>
 <tr><td>설정 항목 비공개 설정</td><td>❌</td></tr>
 <tr><td>설정 공개 회차 변경</td><td>❌</td></tr>
