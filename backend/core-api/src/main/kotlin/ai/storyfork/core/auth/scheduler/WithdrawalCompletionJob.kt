@@ -44,7 +44,13 @@ class WithdrawalCompletionJob(
         var done = 0
         for (id in completion.dueIds(now, batchSize, skipUntil.keys.toList())) {
             try {
-                if (completion.complete(id, now)) done += 1 else skipUntil[id] = now.plus(retryDelay)
+                if (completion.complete(id, now)) {
+                    done += 1
+                } else {
+                    // 복구됐거나 회원 행이 없는 등의 이유로 완료하지 못했다. 같은 요청이 계속 대기로 남으면 이 로그가 반복해서 보인다.
+                    skipUntil[id] = now.plus(retryDelay)
+                    log.warn("withdrawal completion skipped: id={}", id)
+                }
             } catch (e: RuntimeException) {
                 skipUntil[id] = now.plus(retryDelay)
                 log.warn("withdrawal completion failed: id={} error={}", id, e.javaClass.simpleName)

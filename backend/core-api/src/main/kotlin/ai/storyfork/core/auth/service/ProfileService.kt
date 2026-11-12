@@ -40,8 +40,11 @@ class ProfileService(
     private val logger = LoggerFactory.getLogger(ProfileService::class.java)
     private fun address(email: String) = email.trim().lowercase(Locale.ROOT)
     private fun user(member: AuthMember) = MemberResponse(member.id.toString(), member.email, member.nickname, member.operator)
-    // 이용 제한(탈퇴 완료 포함) 회원은 이미 발급된 토큰이 남아 있어도 프로필을 바꿀 수 없다. 세션 갱신(SessionService)과 같은 기준이다.
-    private fun lock(id: UUID) = members.lockById(id)?.takeUnless { it.restricted } ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED)
+    private fun lock(id: UUID) = members.lockById(id) ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED)
+
+    // 로그인한 회원이 하는 변경용. 이용 제한(탈퇴 완료 포함) 회원은 이미 발급된 토큰이 남아 있어도 바꿀 수 없다(세션 갱신과 같은 기준).
+    // 이메일 링크로 여는 비밀번호 재설정·이메일 변경 확인은 로그인 상태가 아니므로 이 확인을 쓰지 않고 예전 동작을 그대로 둔다.
+    private fun lockActive(id: UUID) = lock(id).takeUnless { it.restricted } ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED)
 
     @Transactional(readOnly = true)
     fun profile(id: UUID): MemberResponse = user(members.findById(id).orElse(null) ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED))
@@ -49,7 +52,7 @@ class ProfileService(
     @Transactional
     fun nickname(id: UUID, request: NicknameRequest): MemberResponse {
         if (request.nickname.isBlank()) throw AuthException(AuthException.Reason.INVALID)
-        val member = lock(id)
+        val member = lockActive(id)
         member.nickname = request.nickname.trim()
         return user(member)
     }
@@ -78,7 +81,7 @@ class ProfileService(
 
     @Transactional
     fun requestEmailChange(id: UUID, request: EmailRequest) {
-        lock(id)
+        lockActive(id)
         val target = address(request.email)
         if (members.existsByEmail(target)) throw AuthException(AuthException.Reason.CONFLICT)
         val token = secrets.newToken()

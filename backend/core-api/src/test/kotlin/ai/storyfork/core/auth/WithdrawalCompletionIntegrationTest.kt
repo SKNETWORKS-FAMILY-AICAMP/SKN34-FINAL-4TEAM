@@ -60,7 +60,7 @@ class WithdrawalCompletionIntegrationTest {
         val m = member(); session(m); session(m); challenge(m)
         val w = withdrawal(m, -1)
 
-        assertEquals(1, completion.dueIds(Instant.now(), 100).count { it == w })
+        assertEquals(1, completion.dueIds(Instant.now(), 100, emptyList()).count { it == w })
         assertTrue(completion.complete(w, Instant.now()))
 
         val row = jdbc.queryForMap("select email, nickname, password_hash from auth_member where id = ?", m.id)
@@ -108,7 +108,7 @@ class WithdrawalCompletionIntegrationTest {
     @Test
     fun `excluded requests are left out of the due list so they cannot block the ones behind them`() {
         val a = withdrawal(member(), -3); val b = withdrawal(member(), -2)
-        val all = completion.dueIds(Instant.now(), 1000)
+        val all = completion.dueIds(Instant.now(), 1000, emptyList())
         assertTrue(all.containsAll(listOf(a, b)))
         val rest = completion.dueIds(Instant.now(), 1000, listOf(a))
         assertFalse(rest.contains(a))
