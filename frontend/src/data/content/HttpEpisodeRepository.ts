@@ -1,7 +1,7 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
 import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
-import {settingCategories, type Draft, type SettingInput, type WorkRegistration} from '../../domain/entities/content'
+import {settingCategories, type Draft, type SettingInput, type WorkRegistration, type WorkTaxonomy} from '../../domain/entities/content'
 import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
@@ -144,7 +144,8 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) { return this.request('/works',work,'POST',registration?{title,summary,...registration}:{title,summary},signal) }
-  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal) { return this.request(`/works/${id}`,work,'PUT',{title,summary,revision},signal) }
+  /** 장르·해시태그는 주었을 때만 본문에 싣는다(생략하면 서버가 유지하고, 빈 배열은 비운다). */
+  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy) { return this.request(`/works/${id}`,work,'PUT',{title,summary,revision,...taxonomy},signal) }
   stopForkPublication(id: string, signal?: AbortSignal) { return this.request(`/works/${id}/fork-publication`,z.undefined(),'DELETE',undefined,signal) }
   deleteWork(id: string, signal?: AbortSignal) { return this.request(`/works/${id}`,z.undefined(),'DELETE',undefined,signal) }
   save(id: string, value: Draft) { return this.request(`/works/${id}/draft`,draft,'PUT',value) }

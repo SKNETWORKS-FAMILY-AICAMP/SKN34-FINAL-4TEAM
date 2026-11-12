@@ -188,6 +188,17 @@ export class ReadingUseCase {
   }
 
   /**
+   * 이 작품에서 갈라진 공개 포크 수를 분기 기준 회차별로 셉니다(0편인 회차는 키가 없음). 소설 상세의 회차별 포크 수와 같은 목록(forksOf)을 쓰며,
+   * 작품 목록을 읽지 못하면 0편으로 채우지 않고 던집니다(작품 관리 화면은 그때 수를 감춥니다).
+   * ponytail: 공개 작품 전체 목록을 읽어 센다(소설 상세도 같은 목록). 작품이 많아지면 작품별 포크 수를 주는 API로 바꾼다.
+   */
+  async forkCountsByEpisode(id: string) {
+    const counts: Record<number, number> = {}
+    for (const { forkAt } of forksOf(await this.workRepository.listWorks(), id)) if (forkAt) counts[forkAt] = (counts[forkAt] ?? 0) + 1
+    return counts
+  }
+
+  /**
    * 목업 reader(): 회차를 열면서 이어 읽기와 읽음을 서버 독서 기록에 남깁니다. 볼 수 없는 작품은 null,
    * 숨긴 회차는 'hidden'(상세로 보냄)입니다. 기록은 기다리지 않고 회차를 먼저 돌려주며, 저장 결과는 recording으로 받습니다
    * (실패하면 reject하므로 호출자가 알려야 합니다. 기록하지 않는 경우는 바로 끝납니다).

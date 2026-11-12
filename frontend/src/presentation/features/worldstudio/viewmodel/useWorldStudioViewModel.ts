@@ -31,7 +31,7 @@ export function useWorldStudioViewModel(
   const navigate = useNavigate()
   const leaveGuard = useContext(WorldStudioLeaveContext)
   const [flow, dispatchFlow] = useReducer(worldStudioFlow, initialWorldStudioFlow)
-  const [tool, setTool] = useState<'write' | 'explore' | 'analysis'>('write')
+  const [tool, setTool] = useState<'write' | 'explore' | 'analysis' | 'versions'>('write')
   const [explore, setExplore] = useState('map')
   const [cardFilter, setCardFilter] = useState<CardType | 'all'>('all')
   const [cardQuery, setCardQuery] = useState('')
@@ -60,6 +60,7 @@ export function useWorldStudioViewModel(
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(restoring)
+  const [reviewBusy,setReviewBusy]=useState(false)
   useEffect(() => {
     leaveGuard?.setDirty(dirty)
     return () => leaveGuard?.setDirty(false)
@@ -151,7 +152,7 @@ export function useWorldStudioViewModel(
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty, relationDirty])
   const perform = async (action: (signal: AbortSignal) => Promise<void>) => {
-    if (mutation.current) return
+    if (mutation.current || reviewBusy) return
     const controller = new AbortController()
     mutation.current = controller
     const current = generation.current
@@ -190,6 +191,9 @@ export function useWorldStudioViewModel(
     }
   }
   return {
+    reviewWorldId:worldId,
+    setReviewBusy,
+    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했습니다.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setRelationKey(v=>v+1);return w},
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoPersonDeletion: !!personUndo,
     flow,
@@ -243,7 +247,7 @@ export function useWorldStudioViewModel(
     setSelected,
     error,
     message,
-    busy,
+    busy:busy||reviewBusy,
     create: (name: string, description: string) =>
       perform(async (signal) => {
         if (

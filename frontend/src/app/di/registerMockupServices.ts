@@ -67,6 +67,7 @@ export function registerMockupServices(container: AppContainer) {
     authUseCase: asValue(new AuthUseCase(mockupAuthRepository)),
     notificationRepository: asValue(mockupNotificationRepository),
     shellUseCase: asValue(new ShellUseCase(mockupNotificationRepository, feedbackRepository)),
+    initialWorldUseCase: asValue(null),
     worldStudioUseCase: asValue(new WorldStudioUseCase(createMockupWorldStudioRepository())),
     storyPlanUseCase: asValue(new StoryPlanUseCase(new InMemoryStoryPlanRepository(workRepository))),
     openNotificationStream: asValue(() => () => {}),

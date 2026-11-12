@@ -205,7 +205,7 @@ describe('독자 피드백함 (U20)', () => {
     await toastIs('처리했어요 (데모)')
     await waitFor(() => expect(screen.queryByRole('link', { name: /처리할 독자 제보/ })).toBeNull())
     cleanup()
-    renderAt('/lib?tab=qa')
+    renderAt('/content?view=reports')
     const rep = await screen.findByText('🤖 작가 답변: 의도한 복선이에요')
     within(rep.closest('.rp') as HTMLElement).getByText('처리 완료')
   })

@@ -60,6 +60,7 @@ export type AppCradle = {
   adminActivityUseCase: import('../../domain/usecases/AdminActivityUseCase').AdminActivityUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
+  initialWorldUseCase: import('../../domain/usecases/InitialWorldUseCase').InitialWorldUseCase | null
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
   mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository

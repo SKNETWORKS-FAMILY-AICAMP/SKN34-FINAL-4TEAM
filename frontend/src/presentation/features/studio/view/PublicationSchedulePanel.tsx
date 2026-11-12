@@ -1,4 +1,6 @@
+import { useId } from 'react'
 import type { WritingEpisode } from '../../../../domain/entities/content'
+import { publishBlocker } from '../../../../domain/entities/manuscriptLength'
 import { toKstDateTimeInput } from '../../../../domain/entities/publicationSchedule'
 import { usePublicationScheduleViewModel } from '../viewmodel/usePublicationScheduleViewModel'
 
@@ -8,6 +10,10 @@ const formatTime = (instant: string) => new Date(instant).toLocaleString('ko-KR'
 export function PublicationSchedulePanel({ workId, episode }: { workId: string; episode: WritingEpisode }) {
   const vm = usePublicationScheduleViewModel(workId, episode.number)
   const versions = episode.versions.filter(version => version.body.trim())
+  const reasonId = useId()
+  // 예약 발행도 공개 경로라 고른 저장 버전 본문이 5,000자 이상이어야 한다(UC-10). 예약 취소는 분량과 무관하다.
+  const chosen = versions.find(version => version.id === vm.form.versionId)
+  const tooShort = chosen ? publishBlocker(chosen.body) : ''
   return <section aria-label={`${episode.number}화 예약 발행`}>
     <h2>{episode.number}화 예약 발행</h2>
     <p className="small muted">예약 시각은 한국 표준시(KST)입니다. 예약 결과와 실제 발행 결과를 각각 확인할 수 있어요.</p>
@@ -38,9 +44,10 @@ export function PublicationSchedulePanel({ workId, episode }: { workId: string; 
           <input type="checkbox" checked={vm.form.rights} disabled={vm.busy} onChange={event => vm.edit({ rights: event.target.checked })} />
           이 저장 원고를 공개할 권리가 있음을 확인합니다.
         </label>
-        <button type="submit" className="btn pri" disabled={vm.busy || !vm.form.rights || !vm.form.versionId || !vm.form.time}>
+        <button type="submit" className="btn pri" disabled={vm.busy || !vm.form.rights || !vm.form.versionId || !vm.form.time || !!tooShort} aria-describedby={tooShort ? reasonId : undefined}>
           {vm.pending ? '예약 변경' : '발행 예약'}
         </button>
+        {tooShort && <small id={reasonId} className="muted writing-publish-reason">{tooShort}</small>}
       </form>}
       {vm.pending && <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.cancel()}>예약 취소</button>}
     </>}

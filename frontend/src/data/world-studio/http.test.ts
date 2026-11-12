@@ -95,3 +95,68 @@ it.each([401,403,409,503])('preserves explicit server errors (%s), never falls b
  const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({detail:'미완료: 같은 입력을 보존하세요.'},{status})))
  await expect(repo.read(id)).rejects.toThrow()
 })
+
+it.each(['directed','symmetric'] as const)('reads 6-B partial metadata and preserves %s relations on full replacement',async direction=>{
+ const generated=crypto.randomUUID(),analysisId=crypto.randomUUID(),candidateId=crypto.randomUUID()
+ const preprocessing={semanticType:'goal',provenance:'ai_extraction',analysisId,candidateId,decisionSequence:2,basisDraftRevision:1,evidence:[{sourceId:'description',start:0,end:2,quote:'원문',quoteHash:'a'.repeat(64)}],condition:'조건',timeText:'미래',polarity:'asserted'}
+ const server={...wire(),cards:[...wire().cards,{id:generated,title:'홍길동의 목표',body:'새 나라를 세우려 한다',cardType:'other',areaCode:'basic',classification:'',aliases:[],tags:[],semanticMetadata:{preprocessing,studio:{item:{id:generated,kind:'note',subjectId:a.item.id,relatedIds:[b.item.id]}}},visibility:'private',lifecycle:'active'}],relationships:[{...wire().relationships[0],direction,semanticMetadata:{preprocessing:{...preprocessing,semanticType:'relation'},studio:{item:{id:relation.item.id,kind:'note',subjectId:null,relatedIds:[]}}}}]}
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(server)).mockImplementationOnce(async(_url:string,init:RequestInit)=>{
+  const body=JSON.parse(String(init.body));return Response.json({...server,...body,draftRevision:3})
+ })
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ expect(loaded.settings[2].item).toMatchObject({kind:'fact',subjectId:a.item.id,relatedIds:[b.item.id]})
+ expect(loaded.settings[3].item).toMatchObject({kind:'relation',predicate:direction==='directed'?'custom_emotion':'preserved_emotion_symmetric',subjectId:a.item.id,targetId:b.item.id,polarity:'denied'})
+ const saved=await repo.saveStudio(loaded),body=JSON.parse(fetcher.mock.calls[1][1].body)
+ expect(body.cards[2].semanticMetadata.preprocessing).toEqual(preprocessing)
+ expect(body.relationships[0]).toMatchObject({category:'emotional',direction,polarity:'denied',body:'원문 관계'})
+ expect(body.relationships[0].semanticMetadata.preprocessing).toEqual({...preprocessing,semanticType:'relation'})
+ expect(saved.settings[2].item.kind).toBe('fact')
+ expect(saved.settings.slice(0,2)).toEqual([a,b])
+})
+
+const revisionId=crypto.randomUUID()
+const confirmed=()=>({worldId:id,revisionId,revisionNo:1,name:'확정 이름',description:'확정 원문',parentRevisionId:null,restoredFromRevisionId:null,cards:wire().cards.map(card=>({versionId:crypto.randomUUID(),versionNo:1,restoredFromVersionId:null,card})),relationships:null,relationshipStatus:'not_recorded'})
+it('reads immutable revision cards separately and refuses current relations in history',async()=>{
+ const snapshot=confirmed(),fetcher=vi.fn().mockResolvedValueOnce(Response.json([{worldId:id,revisionId,revisionNo:1,name:'확정 이름',createdAt:'2026-11-11T00:00:00Z'}])).mockResolvedValueOnce(Response.json(snapshot)).mockResolvedValueOnce(Response.json({...snapshot,relationships:wire().relationships}))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ expect(await repo.revisions(id)).toHaveLength(1)
+ expect((await repo.revision(id,revisionId)).description).toBe('확정 원문')
+ await expect(repo.revision(id,revisionId)).rejects.toThrow()
+})
+it('retains the exact confirmation key across response loss and repository recreation until acknowledged',async()=>{
+ const values=new Map<string,string>();vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)})
+ const fetcher=vi.fn().mockRejectedValueOnce(new Error('response lost')).mockResolvedValueOnce(Response.json(confirmed()))
+ let repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.confirm(id,2)).rejects.toThrow()
+ repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.confirm(id,3)).rejects.toThrow('같은 입력')
+ expect((await repo.confirm(id,2)).revisionId).toBe(revisionId)
+ expect(fetcher.mock.calls[0][1].body).toBe(fetcher.mock.calls[1][1].body)
+ expect(repo.pendingConfirmation(id)).toEqual({expectedDraftRevision:2,key:expect.any(String)})
+ repo.acknowledgeConfirmation(id);expect(repo.pendingConfirmation(id)).toBeNull()
+})
+
+it('releases only a definitely rejected stale confirmation, allowing a deliberate new request on refreshed draft',async()=>{
+ const values=new Map<string,string>();vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)})
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json({code:'WORLD_CONFLICT',detail:'초안이 변경되었습니다.'},{status:409})).mockResolvedValueOnce(Response.json(confirmed()))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.confirm(id,2)).rejects.toThrow('변경');expect(repo.pendingConfirmation(id)).toBeNull()
+ await repo.confirm(id,3);expect(JSON.parse(fetcher.mock.calls[1][1].body).key).not.toBe(JSON.parse(fetcher.mock.calls[0][1].body).key)
+})
+
+it('acknowledges only the current owner/world and creates a fresh key only on a later explicit confirmation',async()=>{
+ const otherWorld=`storyfork:confirmation:writer:${crypto.randomUUID()}`
+ const otherOwner=`storyfork:confirmation:other:${id}`
+ const values=new Map([[otherWorld,'other-world-request'],[otherOwner,'other-owner-request']])
+ vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)})
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(confirmed()))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await repo.confirm(id,2)
+ const original=repo.pendingConfirmation(id)
+ repo.acknowledgeConfirmation(id)
+ expect(values.get(otherWorld)).toBe('other-world-request');expect(values.get(otherOwner)).toBe('other-owner-request')
+ expect(fetcher).toHaveBeenCalledTimes(1);expect(repo.pendingConfirmation(id)).toBeNull()
+ await repo.confirm(id,4)
+ expect(repo.pendingConfirmation(id)?.expectedDraftRevision).toBe(4)
+ expect(repo.pendingConfirmation(id)?.key).not.toBe(original?.key)
+})

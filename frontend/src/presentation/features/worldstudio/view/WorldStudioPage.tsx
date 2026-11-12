@@ -1,3 +1,5 @@
+import {WorldRevisions} from './WorldRevisions'
+import {InitialWorldReview} from './InitialWorldReview'
 import {studioLabelCleanup} from '../../../../domain/entities/studioWorld'
 import {useEffect,useRef,type FormEvent} from 'react'
 import {cardTypes,cardTypeOf,settingAreas,type CardType} from '../../../../domain/entities/studioCards'
@@ -12,7 +14,7 @@ import {WorldMap} from './WorldMap'
 import {WorldRelationshipEditor} from './WorldRelationshipEditor'
 import {WorldWiki} from './WorldWiki'
 import {WorldTimeline} from './WorldTimeline'
-import {WorldCandidates} from './WorldCandidates'
+
 import {presentationPortrait} from '../../../../app/presentationPortraits'
 import './world-studio.css'
 
@@ -29,15 +31,16 @@ export function WorldStudioPage(){
  const vm=useWorldStudioViewModel(),heading=useRef<HTMLHeadingElement>(null),tools=useRef<HTMLDetailsElement>(null)
  useEffect(()=>{if(vm.flow.screen==='editor')heading.current?.focus({preventScroll:true})},[vm.flow.step,vm.flow.screen])
  const current=steps.findIndex(([id])=>id===vm.flow.step)
- const chooseTool=(tool:'explore'|'analysis')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
+ const chooseTool=(tool:'explore'|'analysis'|'versions')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
  return <><Gnb on="worldstudio"/><main id="main" tabIndex={-1} className="wrap world-studio world-writing">
   <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">{vm.storage.intro}</p></div></header>
   {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}
   {vm.message&&<p role="status" className="world-message">{vm.message}</p>}
   <WorldLibrary vm={vm}/>
+  {!vm.editing&&vm.reviewWorldId&&<InitialWorldReview key={vm.reviewWorldId} studio={vm}/>}
   {vm.editing&&<section className="world-content" hidden={vm.flow.screen!=='editor'} aria-busy={vm.busy}>
    <div className="world-toolbar"><button type="button" className="btn sm" onClick={vm.showList}>내 세계관</button><h2>{vm.saved?.name}</h2><span role="status" className="world-save-state">{vm.saveState==='saving'?'저장 중':vm.saveState==='failed'?'저장 실패 · 입력은 유지됩니다':vm.dirty?'작성 중 · 미저장':'저장됨'}</span>{vm.relationDirty&&<span role="status" className="small muted">관계 입력 미적용</span>}
-    <details className="world-tools" ref={tools}><summary>도구</summary><div><button type="button" onClick={()=>chooseTool('explore')}>세계관 탐색</button><button type="button" onClick={()=>chooseTool('analysis')}>AI 후보 검토</button><button type="button" onClick={()=>{vm.goStep('cards');vm.addCard('note');vm.setCardDetail(true);if(tools.current)tools.current.open=false}}>집필 메모 추가</button><Go to={import.meta.env.MODE === 'mockup' ? '/new' : '/content'}>새 소설 등록으로</Go></div></details>
+    <details className="world-tools" ref={tools}><summary>도구</summary><div><button type="button" onClick={()=>chooseTool('explore')}>세계관 탐색</button><button type="button" onClick={()=>chooseTool('analysis')}>AI 후보 검토</button><button type="button" onClick={()=>chooseTool('versions')}>확정 버전</button><button type="button" onClick={()=>{vm.goStep('cards');vm.addCard('note');vm.setCardDetail(true);if(tools.current)tools.current.open=false}}>집필 메모 추가</button><Go to={import.meta.env.MODE === 'mockup' ? '/new' : '/content'}>새 소설 등록으로</Go></div></details>
    </div>
    {vm.tool!=='write'&&<button className="btn sm world-return" type="button" onClick={()=>vm.setTool('write')}>작성으로 돌아가기</button>}
    <div hidden={vm.tool!=='write'}>
@@ -54,7 +57,8 @@ export function WorldStudioPage(){
     <nav className="world-step-actions" aria-label="단계 이동"><button className="btn" type="button" disabled={current===0} onClick={()=>vm.goStep(steps[current-1][0])}>이전 단계</button>{current<3&&<button className="btn pri" type="button" onClick={()=>vm.goStep(steps[current+1][0])}>{vm.flow.step==='relations'?'검토·저장으로':'다음 단계'}</button>}{vm.flow.step==='cards'&&<button className="btn" type="button" onClick={()=>vm.goStep('review')}>관계 없이 검토·저장</button>}</nav>
    </div>
    {vm.tool==='explore'&&<><nav className="libtabs" aria-label="세계관 탐색 보기">{exploreTabs.map(([id,label])=><button type="button" key={id} className={vm.explore===id?'on':''} aria-pressed={vm.explore===id} onClick={()=>vm.setExplore(id)}>{label}</button>)}</nav>{(vm.explore==='map'||vm.explore==='relations')&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}:${vm.explore}`} world={vm.saved} charactersOnly={vm.explore==='relations'}/>:<Confirmed vm={vm} tab={vm.explore}/>}</>}
-   <div hidden={vm.tool!=='analysis'}><Analysis key={vm.editing.id} vm={vm}/></div>
+   <div hidden={vm.tool!=='versions'}><WorldRevisions key={vm.editing.id} studio={vm}/></div>
+   <div hidden={vm.tool!=='analysis'}><InitialWorldReview key={vm.editing.id} studio={vm}/></div>
   </section>}
  </main><footer className="foot"><div className="wrap"><b>STORYFORK</b><Go to="/lib">내 서재</Go></div></footer></>
 }
@@ -123,8 +127,4 @@ function Confirmed({vm,tab}:{vm:VM;tab:string}) {
  return <section className="world-confirmed"><h3>{tab==='relations'?'저장된 현재 관계도':'저장된 설정집'}</h3><p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>{!rows.length?<p className="world-empty">아직 확정한 {tab==='relations'?'관계':'설정'}가 없습니다.</p>:rows.map(i=><article key={i.id}>
   <h4>{tab==='relations'?`${byId(i.subjectId)} → ${relationLabel(i)} → ${byId(i.targetId)}`:i.title}</h4><p className="world-prose">{i.text}</p>
  </article>)}</section>
-}
-
-function Analysis({vm}:{vm:VM}) {
- return <section className="world-analysis"><h3>AI 후보 검토</h3><p>현재 데모는 AI 모델/API와 연결되지 않았습니다. 후보를 생성하거나 서버에 반영하지 않습니다.</p><button type="button" className="btn" disabled>AI 분석 요청 · 미연결</button><button type="button" className="btn" onClick={()=>vm.setTool('write')}>작성으로 돌아가기</button><WorldCandidates analysis={vm.saved?.analysis??null}/></section>
 }

@@ -25,13 +25,11 @@ const acceptPolicy = async () => {
 }
 
 describe('내 서재 (U11·U12)', () => {
-  it('읽는 중·내가 쓰는 소설·내 댓글·제보 탭을 오간다', async () => {
+  it('읽는 중·내가 쓰는 소설 탭을 오간다(내 댓글·제보는 작품 관리 /content?view=reports)', async () => {
     renderAt('/lib')
     await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
     await waitFor(() => expect(sid()).toBe('U11 내 서재'))
     screen.getByText("소설 화면에서 '관심 등록'을 누르면 여기에 모여요.")
-    fireEvent.click(screen.getByRole('link', { name: '내 댓글·제보' }))
-    await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
     fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
     await screen.findByRole('heading', { name: '별빛 서약의 탑' })
     await waitFor(() => {
@@ -57,7 +55,6 @@ describe('실서버 새 소설 만들기', () => {
     renderAt('/lib?tab=write')
     const link = await screen.findByRole('link', { name: /＋ 새 소설 쓰기/ })
     expect(link.getAttribute('href')).toBe('/content')
-    expect(screen.getByRole('link', { name: '기존 작품·설정집·분기 도구' }).getAttribute('href')).toBe('/content')
     fireEvent.click(link)
     await screen.findByRole('button', { name: '작품 만들기' })
     expect(where()).toBe('/content')

@@ -1,33 +1,165 @@
+/* 집필실: 상단 바 · 3단 본체(왼쪽 회차 레일 / 가운데 원고 편집기 / 오른쪽 AI 채팅) · 회차 설정 시트.
+   전역 storyfork.css는 @layer(base)라 이 파일의 규칙이 선택자와 무관하게 이긴다. 전역 규칙을 덮은 곳은 900px·600px 이하도 여기서 다시 정한다. */
 .studio .sbar h1 { font-size: inherit; margin: 0; }
-.writing-studio .sbar .st { margin-left: auto; }
+.writing-message { margin: 16px 24px; }
+.writing-studio :is(.writing-rail, .writing-episodes, .writing-graph, .writing-editor) { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--tfg) 28%, transparent) transparent; }
+
+/* ── 상단 바: 왼쪽(돌아가기·제목·저장 상태) / 오른쪽(모드·버전 저장·버전 · 공개·더보기) ── */
+.writing-studio .sbar { flex-wrap: wrap; justify-content: space-between; height: auto; min-height: 64px; padding: 8px 20px; gap: 8px 16px; }
+.writing-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
+.writing-bar-end { justify-content: flex-end; }
+.writing-studio .sbar .t { font-size: 15px; }
+.writing-studio .sbar .tbtn { height: 40px; padding: 0 16px; font-size: 14px; }
+.writing-studio .sbar .tbtn:hover:not(:disabled) { background: var(--muted-bg); }
+.writing-studio .sbar .tbtn.pri:hover:not(:disabled) { background: var(--pri-d); }
+.writing-studio .sbar .writing-mode { margin-left: 0; }
+.writing-more .pop-menu-btn { width: 40px; height: 40px; border: 1px solid var(--tline); border-radius: 50%; color: var(--tfg); }
+.writing-more .pop-menu-btn:hover, .writing-more .pop-menu-btn[aria-expanded="true"] { background: var(--muted-bg); }
+.writing-more .pop-menu-list { top: calc(100% + 8px); right: 0; }
+
+/* ── 왼쪽 레일: 회차 목록(1줄 제목 + 1줄 상태, 항목마다 ⋮ 메뉴) → 크기 조절선 → 버전 그래프 ── */
+.writing-studio .studio-workspace .writing-grid { grid-template-columns: 280px minmax(0, 1fr); }
 .writing-studio .seps { min-width: 0; }
-.writing-episode { overflow-wrap: anywhere; }
-.writing-create { margin-top: 24px; }
-.writing-editor { min-width: 0; width: 100%; max-width: 900px; margin-inline: auto; }
-.writing-editor > .field { margin-top: 24px; }
-.writing-studio .tbtn, .writing-studio .btn, .writing-history .btn { min-height: 44px; }
-.writing-studio .et, .writing-body { caret-color: var(--tacc); }
-.writing-studio .et::selection, .writing-body::selection { background: var(--pri-soft); color: var(--pri-ink); }
-.writing-editor .et { font-family: var(--ui); font-size: 22px; font-weight: 600; line-height: 1.5; }
-.writing-editor .writing-body { font-family: var(--ui); font-size: 16px; font-weight: 400; line-height: 1.8; }
-.writing-body { display: block; width: 100%; min-height: 48vh; resize: vertical; border: 0; background: transparent; color: var(--tfg); }
-.writing-studio .et:focus-visible, .writing-body:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; }
-.writing-editor section[aria-label="회차 관리"] { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-.writing-editor section[aria-label="회차 관리"] small { align-self: center; }
-.writing-order { flex: 1 1 100%; }
+.writing-rail { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 16px 0 24px; border-right: 1px solid var(--tline); }
+.writing-rail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-inline: 24px 12px; }
+.writing-rail h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--tsub); }
+.writing-studio .writing-episodes { border: 0; padding: 0 12px; }
+.writing-rail-split { min-width: 0; }
+.writing-episode-row { position: relative; min-width: 0; }
+.writing-episode { display: block; width: 100%; min-width: 0; padding-right: 44px; }
+.writing-episode strong { display: block; overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.writing-episode.on strong { font-weight: 700; color: var(--pri-ink); }
+.writing-episode:hover:not(:disabled, .on) { background: var(--muted-bg); }
+.writing-episode:disabled, .graph-item:disabled { cursor: not-allowed; opacity: .55; }
+/* 항목 오른쪽의 세로 점 세 개: 호버·선택·초점일 때 보이고, 숨겨도 Tab 순서에 남아 키보드로 늘 닿는다(터치 기기는 늘 보인다). 열린 메뉴가 아래 항목의 버튼에 가리지 않게 올린다. */
+.writing-episode-row .writing-episode-more { position: absolute; z-index: 1; top: 50%; right: 6px; margin-top: -16px; }
+.writing-episode-row .writing-episode-more:focus-within { z-index: 3; }
+.writing-episode-more .pop-menu-btn { width: 32px; height: 32px; border-radius: 50%; color: var(--tsub); opacity: 0; }
+.writing-episode-row:hover .pop-menu-btn, .writing-episode-row:focus-within .pop-menu-btn, .writing-episode.on + .writing-episode-more .pop-menu-btn, .writing-episode-more .pop-menu-btn[aria-expanded="true"] { opacity: 1; }
+.writing-episode-more .pop-menu-btn:hover { background: var(--muted-bg); color: var(--tfg); }
+.writing-episode-more .pop-menu-list { top: calc(100% + 4px); right: 0; }
+@media (hover: none) { .writing-episode-more .pop-menu-btn { opacity: 1; } }
+/* 목록과 그래프 사이 가로 분할선: 데스크톱 레일에서만 쓴다(좁은 화면은 위아래로 쌓인다). 누르는 영역은 눈에 보이는 선보다 넓게 잡는다. */
+.writing-split { display: none; position: relative; flex: none; height: 9px; cursor: row-resize; touch-action: none; }
+.writing-split::before { content: ''; position: absolute; inset: 4px 12px auto; height: 1px; background: var(--tline); }
+.writing-split::after { content: ''; position: absolute; inset: -8px 0; }
+.writing-split:hover::before, .writing-split:active::before, .writing-split:focus-visible::before { inset-block-start: 3px; height: 3px; border-radius: 2px; background: var(--tacc); }
+.writing-split:focus-visible { outline: 2px solid var(--tacc); border-radius: 4px; }
+.writing-graph { display: grid; gap: 8px; min-width: 0; margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--tline); }
+.writing-graph h2 { padding-inline: 24px; }
+
+/* ── 가운데 원고: 65~75ch 폭의 한 열에 제목 · 본문 · 한 줄 하단 바만 둔다 ── */
+/* 한국어는 단어 단위로 줄바꿈한다(PRODUCT.md): 원고와 설정 시트 글이 음절 중간에서 끊기지 않게 */
+.writing-editor { min-width: 0; width: 100%; padding: 20px 16px 24px; font-size: 16px; scroll-padding-block-end: 72px; word-break: keep-all; }
+.writing-draftless { margin-bottom: 12px; }
+/* 제목은 입력 칸, 본문은 서식 없는 편집기(.ProseMirror: 문단·이미지만). 줄바꿈 = 문단 하나이고 빈 줄도 한 줄 높이를 갖는다. */
+.writing-title, .writing-body .ProseMirror { caret-color: var(--tacc); }
+.writing-title::selection, .writing-body ::selection { background: var(--pri-soft); color: var(--pri-ink); }
+/* 자리표시 글자는 투명도를 빼고 보조 글자색 그대로 둬 라이트·다크 모두 4.5:1 이상을 지킨다. */
+.writing-title::placeholder { color: var(--tsub); opacity: 1; }
+.writing-editor .et { padding: 4px 0; margin-bottom: 8px; font-family: var(--ui); font-size: 28px; font-weight: 700; line-height: 1.4; }
+/* flex-shrink 0: 편집기는 글 높이만큼 자라고 스크롤은 원고 열이 맡는다(min-height가 있으면 줄어들어 글이 하단 바 위로 넘칠 수 있다). */
+.writing-body { position: relative; display: flex; flex: 1 0 auto; flex-direction: column; min-height: 56vh; }
+.writing-body .ProseMirror { flex: 1 1 auto; padding: 8px 0 24px; color: var(--tfg); font-family: var(--ui); font-size: 16px; font-weight: 400; line-height: 1.8; overflow-wrap: anywhere; outline: 0; }
+.writing-body .ProseMirror p { margin: 0; }
+.writing-body .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: var(--tsub); pointer-events: none; }
+.writing-title:focus-visible, .writing-body .ProseMirror:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; border-radius: 4px; }
+/* 본문 안 이미지 블록: 기존 StoredImage가 그리고, 선택하면 윤곽선으로 보인다. */
+.manuscript-image { margin-block: 8px; }
+.manuscript-image .stored-image { margin-block: 0; }
+.writing-body .ProseMirror-selectednode { outline: 2px solid var(--tacc); outline-offset: 2px; border-radius: 8px; }
+.manuscript-dropcursor { background: var(--tacc); border-radius: 2px; }
+/* 40,000자를 넘는 입력을 막았을 때만 글이 있다. */
+.writing-limit { color: var(--danger); font-weight: 600; }
+/* 공개 분량(5,000자) 미달로 공개 버튼을 잠근 사유 */
+.writing-publish-reason { display: block; margin-top: 6px; }
+/* 고급 모드 자리표시: 본문 뒤, 하단 바 위의 작은 한 줄 */
+.writing-advanced { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 8px; }
+.writing-advanced b { padding: 2px 8px; border-radius: 999px; background: var(--muted-bg); color: var(--tsub); font-size: 12px; }
+.writing-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: auto; padding: 12px 0; border-top: 1px solid var(--tline); background: var(--tbg); }
+.writing-foot > p { flex: 1 1 280px; min-width: 0; font-variant-numeric: tabular-nums; }
+.writing-foot-actions { display: flex; flex: none; gap: 8px; margin-left: auto; }
+
+/* ── 오른쪽 AI 채팅(.studio-chat은 전역 스타일, 안쪽은 shared/chat) ──
+   편집기와 구분되는 옅은 브랜드 틴트 면이고, 입력 카드는 한 단계 밝은 면 + 그림자로 떠 보인다(라이트=흰색, 다크=--ink 8%를 섞은 면). 글자 대비는 본문 13:1 이상, 보조·placeholder 5.2:1 이상.
+   머리글 / 메시지 영역(스크롤) / 입력 카드의 세로 flex라 입력 카드는 패널 바닥에 붙는다. */
+.writing-studio .writing-chat { display: flex; flex-direction: column; min-height: 0; overflow: hidden; --chat-bg: color-mix(in srgb, var(--pri-soft) 70%, var(--tbg)); --chat-card: var(--l, var(--surface)) var(--d, color-mix(in srgb, var(--ink) 8%, var(--surface))); background: var(--chat-bg); }
+.writing-chat .studio-chat-head { flex: none; padding: 12px 12px 12px 16px; }
+.writing-chat .studio-chat-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; }
+.chat-brand { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--pri); color: var(--on-pri); }
+.writing-icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--tsub); }
+.writing-icon-btn:hover:not(:disabled) { background: var(--muted-bg); color: var(--tfg); }
+.writing-icon-btn:disabled { cursor: not-allowed; opacity: .45; }
+
+/* ── 회차 설정 시트: 시트는 body에 그려져 .calm 밖이므로 전역 토큰(--line·--ink)을 쓴다. 묶음 사이는 넉넉히, 묶음 안은 촘촘히 ── */
+.writing-settings-sheet { width: min(640px, 100%); }
+.writing-settings { display: grid; gap: 24px; min-width: 0; word-break: keep-all; }
+.writing-settings-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.writing-settings-head h2 { font-size: 22px; line-height: 1.5; }
+.writing-group { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.writing-group + .writing-group { padding-top: 24px; border-top: 1px solid var(--line); }
+.writing-group-title { font-size: 15px; font-weight: 800; color: var(--ink); }
+/* 패널은 자기 제목을 갖고 있어 묶음 구분선·간격을 묶음이 맡는다 */
+.writing-settings :is(.manuscript-export, .episode-images) { margin: 0; padding-block-start: 0; border-block-start: 0; }
+.writing-settings .media-file { margin: 0; }
+.writing-settings .btn { min-height: 44px; }
+.writing-settings summary { min-height: 44px; padding-block: 10px; cursor: pointer; }
+/* 이미지 첨부의 기본 '파일 선택' 버튼도 앱의 알약 버튼 모양으로 */
+.writing-settings input[type="file"]::file-selector-button { height: 36px; margin-right: 12px; padding: 0 14px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.writing-settings input[type="file"]::file-selector-button:hover { background: var(--muted-bg); }
+.writing-settings .episode-images { margin-top: 12px; }
+.writing-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.writing-actions label { display: flex; flex: 1 1 100%; align-items: flex-start; gap: 8px; }
+.writing-order-status { flex: 1 1 100%; min-width: 0; }
+.writing-order-status ul { margin: 4px 0 0; padding-left: 20px; }
+.writing-danger .writing-group-title { color: var(--danger); }
+/* 전역 .btn.danger는 진한 빨강 배경 + 흰 글씨라 글자색만 덮으면 읽을 수 없다. 위험 영역에서는 배경까지 정해 윤곽선 버튼으로 쓴다. */
+.writing-danger .btn.danger { border-color: color-mix(in srgb, var(--danger) 45%, var(--line2)); background: var(--surface); color: var(--danger); }
+.writing-danger .btn.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
 .writing-preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 350px; overflow: auto; font: inherit; line-height: 1.8; padding: 16px 0; }
 .writing-rights { display: flex; gap: 10px; align-items: flex-start; margin: 24px 0 16px; }
-.writing-message { margin: 16px 24px; }
-.writing-studio button:disabled { cursor: not-allowed; opacity: .55; }
+.writing-history .btn { min-height: 44px; }
+
+/* 데스크톱: 머리줄이 줄바꿈돼도 어긋나지 않게 세 열이 각자 스크롤하는 앱형 구조. 원고 열은 본문이 높이를 채우고 하단 바는 아래에 붙는다. */
+@media (min-width: 901px) {
+  .writing-studio { height: 100vh; }
+  .writing-studio .studio-workspace .writing-grid { grid-template-rows: minmax(0, 1fr); }
+  /* 레일은 두 영역(회차 목록·버전 그래프)이 분할선으로 높이를 나눠 각자 스크롤한다. */
+  .writing-rail { overflow: hidden; }
+  .writing-rail-split { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+  .writing-studio .writing-episodes { flex: 0 1 auto; min-height: 0; overflow: auto; }
+  .writing-split { display: block; }
+  /* 회차 목록은 스크롤 상자라 absolute 팝업이 잘린다(마지막 항목인 회차 삭제가 가려진다). fixed로 띄우되 위치는 버튼 옆 정적 위치에서 오프셋만 준다(버튼 바로 아래, 오른쪽 끝 맞춤).
+     ponytail: fixed라 목록을 스크롤해도 버튼을 따라가지 않으므로 PopMenu가 fixed 메뉴는 스크롤 때 닫는다. 따라오게 하려면 PopMenu가 버튼 좌표로 위치를 계산해야 한다. */
+  .writing-episode-more .pop-menu-list { position: fixed; top: auto; right: auto; margin: 36px 0 0 -168px; }
+  .writing-graph { flex: 1 1 0; align-content: start; min-height: 0; margin-top: 0; padding-top: 12px; border-top: 0; overflow: auto; }
+  .writing-editor { padding: 24px max(32px, calc((100% - 72ch) / 2)) 0; }
+  .writing-body { min-height: 240px; }
+  .writing-foot { position: sticky; bottom: 0; padding-bottom: 16px; }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+  .writing-studio .studio-workspace .writing-grid { grid-template-columns: 240px minmax(0, 1fr); }
+  .writing-studio .writing-chat { width: 300px; }
+}
 @media (max-width: 900px) {
+  .writing-studio .sbar { padding: 8px 16px; }
   .writing-studio .seps { align-items: flex-start; }
-  .writing-studio .seps .writing-episode { min-height: 44px; max-width: 240px; white-space: normal; }
-  .writing-create { min-width: 200px; margin: 0; }
+  .writing-studio .seps .writing-episode { min-height: 44px; max-width: 240px; }
+  /* 가로 스크롤 띠는 항목 메뉴를 잘라 먹으므로 줄바꿈으로 쌓는다. */
+  .writing-studio .writing-episodes { flex-wrap: wrap; overflow: visible; }
+  .writing-studio .studio-workspace .writing-grid { grid-template-columns: 1fr; }
+  .writing-rail { border-right: 0; border-bottom: 1px solid var(--tline); }
+  .writing-editor { padding: 20px 16px 24px; }
+  .writing-chat .chat-log { max-height: 50vh; }
 }
 @media (max-width: 600px) {
-  .writing-studio .sbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .writing-studio .sbar .back { grid-column: span 2; }
-  .writing-studio .sbar .t { grid-row: 2; grid-column: span 2; }
-  .writing-studio .sbar .st { grid-row: 2; grid-column: 3; }
-  .writing-studio .sbar .tbtn { grid-row: 3; padding-inline: 8px; font-size: 13px; white-space: normal; word-break: keep-all; }
+  /* 모바일: 왼쪽 묶음은 한 줄(넘치면 줄바꿈), 오른쪽 컨트롤은 다음 줄에 넓게 */
+  .writing-bar-end { justify-content: flex-start; width: 100%; }
+  .writing-studio .sbar .tbtn { flex: 1 1 auto; height: 44px; padding-inline: 12px; }
+  .writing-studio .sbar .writing-mode button { height: 38px; }
+  .writing-more .pop-menu-btn, .writing-icon-btn { width: 44px; height: 44px; }
+  .writing-episode { padding-right: 52px; }
+  .writing-episode-row .writing-episode-more { margin-top: -20px; }
+  .writing-episode-more .pop-menu-btn { width: 40px; height: 40px; }
+  .writing-settings-sheet { padding: 20px 16px; }
 }

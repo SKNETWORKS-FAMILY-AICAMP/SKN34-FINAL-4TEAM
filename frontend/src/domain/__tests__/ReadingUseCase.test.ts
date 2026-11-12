@@ -5,6 +5,7 @@ import type { ReadingRecord, ReadingRecordRepository } from '../repositories/Rea
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
+import type { Work } from '../entities/work'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
 
 /** 서버 독서 기록 대역: 계약대로 위치를 그 회차로 옮기고 읽은 회차에 더하며 작품을 맨 앞으로 올립니다. */
@@ -318,5 +319,37 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(items.find((x) => x.k === '인물' && x.label === '양소유')).toMatchObject({ go: '/work/guunmong' })
     expect(items.find((x) => x.k === '회차' && x.label === '구운몽 2화 돌다리 위의 팔선녀')).toMatchObject({ go: '/read/guunmong/2' })
     expect(items.filter((x) => x.k === '소설').some((x) => x.go === '/work/gate')).toBe(true)
+  })
+})
+
+describe('ReadingUseCase 회차별 포크 수 (작품 관리 화면)', () => {
+  const base = seedWorks(0)[0]
+  const fork = (id: string, forkAt: number | undefined, over: Partial<Work> = {}): Work => ({ ...base, id, parent: 'src', forkAt, private: false, hidden: false, eps: [{ t: '1화', p: ['본문'] }], ...over })
+  const original = { ...base, id: 'src', parent: undefined, forkAt: undefined }
+  /** 작품 목록만 쓰는 대역. Error를 주면 목록 조회가 실패한다. */
+  function withWorks(works: Work[] | Error) {
+    const workRepository: WorkRepository = { listWorks: async () => { if (works instanceof Error) throw works; return works }, listWorlds: async () => [], readWorld: async (w) => w, createFork: async () => { throw new Error('not used') }, saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
+    const readingRepository: ReadingRepository = { getProgress: async () => ({ last: {}, read: {}, seen: {}, liked: {} }), markSeen: async () => {}, saveProgress: async () => {} }
+    return new ReadingUseCase(workRepository, readingRepository, recordFake([]).repository)
+  }
+
+  it('이 작품에서 갈라진 공개 포크를 분기 기준 회차별로 센다 (0편인 회차는 키가 없다)', async () => {
+    const counts = await withWorks([original, fork('a', 1), fork('b', 1), fork('c', 3)]).forkCountsByEpisode('src')
+    expect(counts).toEqual({ 1: 2, 3: 1 })
+    expect(counts[2]).toBeUndefined()
+  })
+
+  it('비공개·숨김·공개 회차가 없는 포크와 다른 작품의 포크는 세지 않는다 (소설 상세와 같은 목록이다)', async () => {
+    const works = [original, fork('a', 1, { private: true }), fork('b', 1, { hidden: true }), fork('c', 1, { eps: [] }), fork('d', 1, { parent: 'other' }), fork('e', 2)]
+    expect(await withWorks(works).forkCountsByEpisode('src')).toEqual({ 2: 1 })
+  })
+
+  it('포크가 없거나 분기 기준 회차를 모르는 포크뿐이면 빈 객체다', async () => {
+    expect(await withWorks([original]).forkCountsByEpisode('src')).toEqual({})
+    expect(await withWorks([original, fork('a', undefined)]).forkCountsByEpisode('src')).toEqual({})
+  })
+
+  it('작품 목록을 읽지 못하면 0편으로 채우지 않고 오류를 그대로 알린다', async () => {
+    await expect(withWorks(new Error('목록을 읽지 못했어요.')).forkCountsByEpisode('src')).rejects.toThrow('목록을 읽지 못했어요.')
   })
 })
