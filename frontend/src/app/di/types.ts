@@ -62,6 +62,8 @@ export type AppCradle = {
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   initialWorldUseCase: import('../../domain/usecases/InitialWorldUseCase').InitialWorldUseCase | null
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
+  publicWorldRepository: import('../../domain/repositories/PublicWorldRepository').PublicWorldRepository
+  publicWorldUseCase: import('../../domain/usecases/PublicWorldUseCase').PublicWorldUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
   mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository
   manuscriptUseCase: import('../../domain/usecases/ManuscriptUseCase').ManuscriptUseCase

@@ -13,6 +13,7 @@ import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { Go } from '../../../shared/Go'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
+import { Footer } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
@@ -108,6 +109,7 @@ export function AdminPage() {
   }, [tab])
   const content = useRef<HTMLElement>(null)
   return (
+    <>
     <div className='adm'>
       <a
         className='skip-link'
@@ -203,6 +205,8 @@ export function AdminPage() {
         </div>
       </main>
     </div>
+    <Footer />
+    </>
   )
 }
 

@@ -2,8 +2,8 @@ import { useState } from 'react'
 import type { LibraryUseCase } from '../../../../domain/usecases/LibraryUseCase'
 import { CoverOf } from '../../../shared/art'
 import { Go } from '../../../shared/Go'
-import { paginate } from '../viewmodel/paginate'
-import { Pager } from './Pager'
+import { paginate } from '../../../shared/paginate'
+import { Pager } from '../../../shared/Pager'
 
 type Recent = Awaited<ReturnType<LibraryUseCase['getRead']>>['recent']
 

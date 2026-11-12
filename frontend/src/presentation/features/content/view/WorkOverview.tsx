@@ -1,10 +1,10 @@
 import { type RefObject, useEffect, useRef, useState } from 'react'
 import { parseHashtags, workKindLabel, type Work, type WorkTaxonomy } from '../../../../domain/entities/content'
 import type { MediaTarget } from '../../../../domain/entities/media'
+import { AiCoverButton } from '../../../shared/AiCoverButton'
 import { Go } from '../../../shared/Go'
 import { StoredImage } from '../../../shared/media/MediaPanel'
 import { useMediaViewModel } from '../../../shared/media/useMediaViewModel'
-import { AiCoverButton } from './AiCoverButton'
 import { TaxonomyFields } from './TaxonomyFields'
 
 type Section = 'info' | 'cover' | 'policy'

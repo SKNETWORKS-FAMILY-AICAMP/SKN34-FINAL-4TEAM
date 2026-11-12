@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
-import './episode.css'
+import '../../../shared/episode.css'
 import { CreateWork } from './CreateWork'
 import { WorkManagement } from './WorkManagement'
 import { Go } from '../../../shared/Go'

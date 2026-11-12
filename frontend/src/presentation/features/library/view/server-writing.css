@@ -1,6 +1,5 @@
 /* 서재의 가로 카드 목록(집필 중인 작품·내가 만드는 세계관)이 함께 쓴다. */
 .server-writing { margin-bottom: 32px; }
-.server-writing .sec-h .btn { margin-left: auto; }
 .server-writing .libtabs { margin: 12px 0 16px; }
 .server-writing-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
 .server-writing-content { min-width: 0; overflow-wrap: anywhere; }

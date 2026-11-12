@@ -1,21 +1,12 @@
-import { useId, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { useId, type CSSProperties } from 'react'
 
 import { LINE, WCATS, type Doc, type WikiCat } from '../../../../domain/entities/wiki'
 import type { Work } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
+import { Jump } from '../../../shared/Jump'
 import './publicWiki.css'
 
 const docAnchor = (d: Doc) => 'doc-' + d.id
-/** 문서 안 이동 링크. 목업 모드는 해시 라우터라 `#앵커`가 경로를 바꾸므로 기본 이동을 막고 직접 스크롤한다. */
-function Jump({ to, children, className, describedBy }: { to: string; children: ReactNode; className?: string; describedBy?: string }) {
-  const go = (e: MouseEvent) => {
-    e.preventDefault()
-    const el = document.getElementById(to)
-    el?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
-    el?.focus({ preventScroll: true })
-  }
-  return <a href={`#${to}`} className={className} aria-describedby={describedBy} onClick={go}>{children}</a>
-}
 
 /** 나무위키 정보 상자: 분류 색 띠 아래 이름, 이어서 별칭·첫 등장·공개된 속성을 표로 보인다. */
 function InfoBox({ doc, cat }: { doc: Doc; cat: WikiCat }) {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { parseHashtags, type WorkCreationType, type WorkRegistration } from '../../../../domain/entities/content'
-import { AiCoverButton } from './AiCoverButton'
+import { AiCoverButton } from '../../../shared/AiCoverButton'
 import { TaxonomyFields } from './TaxonomyFields'
 import { usePreviewUrl } from './WorkOverview'
 

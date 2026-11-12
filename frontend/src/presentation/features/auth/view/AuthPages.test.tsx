@@ -213,3 +213,17 @@ describe('본문 랜드마크와 문서 제목', () => {
     expect(document.title).toBe('STORYFORK')
   })
 })
+
+describe('공용 푸터', () => {
+  it.each([
+    '/login', '/me/signup', '/auth/resend-verification', '/auth/forgot-password', '/auth/reset-password', '/auth/verify-email', '/auth/verify-email-change',
+  ])('인증 경로 %s는 다른 화면과 같은 공용 푸터를 본문 레이아웃 뒤 형제로 둔다', (path) => {
+    vi.stubGlobal('fetch', respond(401))
+    renderApp(path)
+    const footer = screen.getByRole('contentinfo')
+    expect(footer.className).toBe('foot')
+    expect(footer.textContent).toContain('SKN34 최종 프로젝트 4팀')
+    // 푸터가 .lg와 같은 부모(#root) 직속이어야 `#root:has(>.foot)` 규칙이 먹어 맨 아래에 붙는다.
+    expect(screen.getByRole('main').closest('.lg')?.nextElementSibling).toBe(footer)
+  })
+})

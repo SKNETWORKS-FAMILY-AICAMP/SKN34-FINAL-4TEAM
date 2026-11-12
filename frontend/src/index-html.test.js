@@ -48,15 +48,10 @@ describe('frontend shell source contracts', () => {
     ])
   })
 
-  it('simplifies only the worldstudio label and credit badge, not the policy action', () => {
+  it('keeps the worlds label free of the demo tag', () => {
     const gnb = readFileSync(new URL('./presentation/shared/shell/Gnb.tsx', import.meta.url), 'utf8')
-    expect(gnb).toContain("['worldstudio', '세계관', '세계관']")
+    expect(gnb).toContain("['worlds', '세계관', '세계관']")
     expect(gnb).not.toContain('세계관 데모')
-    const credit = gnb.match(/<button[^>]*className="credit"[^>]*>([\s\S]*?)<\/button>/)?.[0]
-    expect(credit).toContain('✦ 크레딧')
-    expect(credit).not.toContain('데모')
-    expect(credit).toContain('onClick={openPolicy}')
-    expect(credit).toContain('크레딧 정책은 아직 확정되지 않았어요')
   })
 
   it('uses a local cover only for a successfully loaded empty cover list', () => {

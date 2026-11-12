@@ -7,7 +7,7 @@ import type {WorldStudioRepository} from '../repositories/WorldStudioRepository'
 import type {StudioWorld} from '../entities/studioWorld'
 function fakeRepository():WorldStudioRepository {
  let world:StudioWorld
- return {listStudio:async()=>[world],read:async()=>world,create:async(name,description)=>(world={id:'fake',name,description,version:1,settings:[],analysis:null}),saveStudio:async next=>(world=next)}
+ return {listStudio:async()=>[world],read:async()=>world,create:async(name,description)=>(world={id:'fake',name,description,version:1,settings:[],analysis:null}),saveStudio:async next=>(world=next),setPublication:async(worldId,publication)=>({worldId,...publication,publishedAt:null,listed:false})}
 }
 it('preserves all eight types, seven areas and author metadata in demo saves',async()=>{
  const useCase=new WorldStudioUseCase(fakeRepository())
@@ -64,4 +64,12 @@ it('only requests label cleanup when trimming or removing empty labels changes t
  expect(studioLabelCleanup(['금빛 열쇠','보물'])).toBeUndefined()
  expect(studioLabelCleanup([' 금빛 열쇠 ','','보물'])).toEqual(['금빛 열쇠','보물'])
  expect(studioLabelCleanup([' ',''])).toEqual([])
+})
+
+it('passes the publication change and its cancellation through the use case',async()=>{
+ const repository=fakeRepository(),useCase=new WorldStudioUseCase(repository),controller=new AbortController()
+ const set=vi.spyOn(repository,'setPublication')
+ const result=await useCase.setPublication('fake',{visibility:'public',genre:'sf'},controller.signal)
+ expect(set).toHaveBeenCalledWith('fake',{visibility:'public',genre:'sf'},controller.signal)
+ expect(result).toMatchObject({worldId:'fake',visibility:'public',genre:'sf'})
 })

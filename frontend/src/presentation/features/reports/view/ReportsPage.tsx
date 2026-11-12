@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
 import { kstDateTime } from '../../../shared/format'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
-import { Gnb } from '../../../shared/shell/Gnb'
+import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useReportsViewModel } from '../viewmodel/useReportsViewModel'
 
@@ -108,6 +108,7 @@ export function ReportsPage() {
           </section>
         )}
       </main>
+      <Footer />
     </>
   )
 }

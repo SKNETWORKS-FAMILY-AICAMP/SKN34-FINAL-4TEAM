@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
-import { newSetting, type StudioSetting, type StudioWorld } from '../../domain/entities/studioWorld'
+import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
+import { newSetting, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput } from '../../domain/entities/studioWorld'
 import { cardTypeOf } from '../../domain/entities/studioCards'
 import { relationDefinitions } from '../../domain/entities/studioRelations'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
@@ -8,6 +9,11 @@ import { authVersion, authenticatedUserId, protectedRequest } from '../api/auth'
 import { csrf, withLock } from '../api/csrf'
 
 const uuid = z.uuid(), revision = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
+// 세계관 단위 공개 설정. 서버가 이 필드를 주기 전 응답은 비공개·장르 미지정으로 읽는다.
+const visibility = z.enum(['private', 'public']), genre = z.enum(PUBLIC_WORLD_GENRES).nullable()
+const publicationResult = z.object({ worldId: uuid, visibility, genre, publishedAt: z.string().nullable(), listed: z.boolean() })
+// 세계관 표지. 서버가 `hasCover`를 주기 전 응답은 표지 없음으로 읽는다.
+const coverResult = z.object({ worldId: uuid, hasCover: z.literal(true) })
 const area = z.enum(['basic', 'space', 'history', 'society', 'culture', 'special', 'conflict'])
 const evidence = z.array(z.object({ sourceId: z.string(), quote: z.string() }))
 const studio = z.object({
@@ -124,6 +130,9 @@ const draft = z.object({
   relationships: z.array(relation),
   relationshipVersion: revision,
   relationshipStatus: z.literal('current'),
+  visibility: visibility.default('private'),
+  genre: genre.default(null),
+  hasCover: z.boolean().default(false),
 })
 const summaries = z.array(
   z.object({
@@ -132,6 +141,9 @@ const summaries = z.array(
     description: z.string(),
     draftRevision: revision,
     relationshipStatus: z.enum(['current', 'incomplete', 'migration_required']),
+    visibility: visibility.default('private'),
+    genre: genre.default(null),
+    hasCover: z.boolean().default(false),
   }),
 )
 const invalid = () =>
@@ -200,6 +212,9 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
     name: value.name,
     description: value.description,
     version: value.draftRevision,
+    visibility: value.visibility,
+    genre: value.genre,
+    hasCover: value.hasCover,
     settings,
     analysis: null,
   }
@@ -221,22 +236,16 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       this.pendingCreate = undefined
     }
   }
-  private async request<T>(
-    path: string,
-    schema: z.ZodType<T>,
-    method = 'GET',
-    body?: string,
-    signal?: AbortSignal,
-  ): Promise<T> {
+  /** 인증·CSRF·시간 제한을 붙여 보내고 응답은 그대로 돌려준다. multipart(FormData)는 Content-Type을 브라우저가 경계와 함께 붙이도록 두지 않는다. */
+  private async send(path: string, method: string, body: string | FormData | undefined, signal: AbortSignal | undefined): Promise<Response> {
     const version = authVersion(),
       requestSignal = signal
         ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
         : AbortSignal.timeout(20000)
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    const headers: Record<string, string> = body instanceof FormData ? {} : { 'Content-Type': 'application/json' }
     if (method !== 'GET') headers['X-CSRF-TOKEN'] = await csrf(requestSignal)
-    let response: Response
     try {
-      response = await protectedRequest(
+      return await protectedRequest(
         '/api/v1/world-studios' + path,
         { method, body, headers, credentials: 'same-origin', signal: requestSignal },
         version,
@@ -251,6 +260,15 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       }
       throw error
     }
+  }
+  private async request<T>(
+    path: string,
+    schema: z.ZodType<T>,
+    method = 'GET',
+    body?: string | FormData,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    const response = await this.send(path, method, body, signal)
     const value: unknown = await response.json().catch(() => undefined)
     if (!response.ok) {
       const failure = z.object({ detail: z.string(), code: z.string().optional() }).safeParse(value)
@@ -292,6 +310,9 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       name: r.name,
       description: r.description,
       version: r.draftRevision,
+      visibility: r.visibility,
+      genre: r.genre,
+      hasCover: r.hasCover,
       settings: [],
       analysis: null,
       relationshipStatus: r.relationshipStatus,
@@ -301,6 +322,38 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
     this.checkSession()
     uuid.parse(id)
     return world(await this.request('/' + id, draft, 'GET', undefined, signal), id)
+  }
+  /** 공개 범위·장르는 초안 저장과 별개로 바로 적용된다. 공개로 설정해도 확정 버전이 없으면 `listed`가 false다. */
+  async setPublication(id: string, publication: WorldPublicationInput, signal?: AbortSignal): Promise<WorldPublication> {
+    this.checkSession()
+    uuid.parse(id)
+    const body = JSON.stringify({ visibility: publication.visibility, genre: publication.genre })
+    const result = await this.request('/' + id + '/publication', publicationResult, 'PUT', body, signal)
+    if (result.worldId !== id) throw invalid()
+    return result
+  }
+  /** 세계관 표지(소유자): 업로드·교체는 multipart `file` PUT, 삭제는 DELETE(204), 읽기는 이미지 바이트 GET이다. 형식·크기 오류(422)와 없는 세계관(404)은 서버의 detail을 그대로 알린다. */
+  async setCover(id: string, file: File, signal?: AbortSignal): Promise<void> {
+    this.checkSession()
+    uuid.parse(id)
+    const form = new FormData()
+    form.append('file', file)
+    const result = await this.request('/' + id + '/cover', coverResult, 'PUT', form, signal)
+    if (result.worldId !== id) throw invalid()
+  }
+  async removeCover(id: string, signal?: AbortSignal): Promise<void> {
+    this.checkSession()
+    uuid.parse(id)
+    await this.request('/' + id + '/cover', z.undefined(), 'DELETE', undefined, signal)
+  }
+  async readCover(id: string, signal?: AbortSignal): Promise<Blob> {
+    this.checkSession()
+    uuid.parse(id)
+    const response = await this.send('/' + id + '/cover', 'GET', undefined, signal)
+    if (!response.ok) throw new Error(response.status === 404 ? '표지를 찾을 수 없어요.' : '표지를 불러오지 못했어요.')
+    const blob = await response.blob()
+    if (!blob.size) throw new Error('표지 이미지 응답을 확인할 수 없어요.')
+    return blob
   }
   async create(name: string, description: string, signal?: AbortSignal): Promise<StudioWorld> {
     this.checkSession()

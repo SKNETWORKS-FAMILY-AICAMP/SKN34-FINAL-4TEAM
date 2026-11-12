@@ -61,6 +61,15 @@ it('본문 영역은 건너뛰기 링크가 닿는 하나의 main이다', async 
   expect(main.getAttribute('tabindex')).toBe('-1')
 })
 
+it('관리자 화면도 공용 푸터를 .adm 밖 최상위 형제로 둔다', async () => {
+  const { container } = renderAdmin('data')
+  await screen.findByRole('main')
+  const footer = screen.getByRole('contentinfo')
+  expect(within(footer).getByText('SKN34 최종 프로젝트 4팀')).toBeTruthy()
+  expect(footer.parentElement).toBe(container)
+  expect(footer.previousElementSibling).toBe(container.querySelector('.adm'))
+})
+
 it('상단바 글자·버튼 색은 하드코딩하지 않고 고정 어두운 면용 토큰을 쓴다', async () => {
   renderAdmin('data')
   await screen.findByRole('main')

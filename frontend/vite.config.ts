@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       watch: usePolling ? { usePolling: true, interval: 300 } : undefined,
       proxy: {
-        '^/api/v1/(?:(?:public/)?works|world-studios)(?:/|\\?|$)': {
+        '^/api/v1/(?:(?:public/)?works|(?:public/)?world-studios)(?:/|\\?|$)': {
           target: env.VITE_CONTENT_DEV_PROXY_TARGET || 'http://localhost:8081',
           changeOrigin: true,
         },

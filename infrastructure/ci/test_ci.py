@@ -512,6 +512,19 @@ class ConfigurationTest(unittest.TestCase):
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
         self.assertIn('world-studios', text)
 
+    def test_public_world_studio_routes_go_to_content(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/public/world-studios {', 'location ^~ /api/v1/public/world-studios/ {']:
+                self.assertIn(location + '\n        proxy_pass http://content-service:8081;', text)
+        vite = (ci.ROOT / 'frontend/vite.config.ts').read_text()
+        pattern = re.search(r"'([^']*world-studios[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        for path in ['/api/v1/world-studios', '/api/v1/world-studios/id', '/api/v1/public/world-studios',
+                     '/api/v1/public/world-studios?genre=sf&page=0&size=24', '/api/v1/public/world-studios/id']:
+            self.assertRegex(path, pattern)
+        for path in ['/api/v1/world-studios-extra', '/api/v1/public/world-studios-extra', '/api/v1/public/auth', '/api/v1/auth/csrf']:
+            self.assertNotRegex(path, pattern)
+
     def test_operations_support_public_routes_expose_only_the_support_prefix(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
             text = (ci.ROOT / path).read_text()

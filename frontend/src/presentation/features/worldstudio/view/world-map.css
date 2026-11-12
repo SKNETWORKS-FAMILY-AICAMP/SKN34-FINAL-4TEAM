@@ -14,22 +14,29 @@
 .world-map button:hover{filter:brightness(.96)}.world-map-empty{padding:30px 20px;color:var(--sub)}
 @media(max-width:1250px){.world-map-layout{grid-template-columns:180px minmax(0,1fr)}.world-map-detail{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
 @media(max-width:760px){.world-map-layout{display:flex;flex-direction:column}.world-map-search{border-right:0;border-bottom:1px solid var(--line)}.world-map-search nav{max-height:150px}.world-map-controls .btn{font-size:12px;padding-inline:10px}.world-map-canvas{touch-action:none}}
-/* Relationship editing uses one inspector; the whole-world reader keeps its existing layout. */
-.relationship-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px;border:1px solid var(--line);border-radius:12px 12px 0 0;background:var(--surface)}
-.relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:60px;padding:14px 18px;border-inline:1px solid var(--line);background:var(--surface)}
-.relationship-hint .btn{margin-left:auto}
+/*
+ * 관계 연결 단계: 왼쪽은 공개 인물관계도와 같은 어두운 면(라이트·다크 모두 고정 색, 홈 지도와 같은 그라데이션)에 인물·설정 카드 그래프·범례를 올리고, 오른쪽은 관계 추가·목록 카드다.
+ * 카드·간선 색은 --rc-*·--edge* 토큰으로 읽고 기본값은 밝은 화면 색이라, 같은 CharacterCards를 쓰는 읽기 전용 인물 관계도(탐색 도구)는 그대로다.
+ */
+.relationship-stage{--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:#FFFFFF;--edge-halo:#080e1b;--rc-bg:rgba(255,255,255,.07);--rc-line:rgba(255,255,255,.18);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:rgba(179,162,255,.2);--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,#182742 0%,#0b1324 56%,#080e1b 100%);box-shadow:var(--sh)}
+.relationship-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 6px}.relationship-toolbar h4{margin:0 auto 0 0;font-size:14px;font-weight:800;letter-spacing:.02em}
+.relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 16px 10px;color:var(--fixed-sub);font-size:12.5px;line-height:1.6}.relationship-hint .btn{margin-left:auto}
+.relationship-stage .btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:var(--fixed-ink)}.relationship-stage .btn:hover{background:rgba(255,255,255,.16)}.relationship-stage .btn.pri{background:var(--fixed-pri);border-color:var(--fixed-pri);color:var(--on-fixed-pri)}.relationship-stage .btn.pri:hover{background:#C7BAFF}
+.episode-app .relationship-stage :focus-visible{outline-color:var(--fixed-pri)}
+.relationship-stage .relationship-cards-scroll{background:none;scrollbar-color:rgba(255,255,255,.3) transparent}
+.relationship-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:10px 16px 12px;border-top:1px solid rgba(255,255,255,.08);list-style:none;color:var(--fixed-sub);font-size:11.5px}.relationship-legend li{display:inline-flex;align-items:center;gap:6px}.relationship-key.edge{color:var(--edge)}.relationship-key.emotion{color:var(--edge-emotion)}
 
 .relationship-group{padding-block:20px;border-top:1px solid var(--line)}
 .relationship-group h4{font-size:16px;margin:0 0 12px;overflow-wrap:anywhere}.relationship-row{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
 .relationship-row details{margin-block:14px}.relationship-row summary{cursor:pointer;color:var(--sub);font-size:13px}
 .relationship-remove{color:var(--danger,#b42318);margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
-@media(max-width:600px){.relationship-toolbar{padding:12px;gap:8px}.relationship-hint{padding:12px;font-size:13px}.relationship-apply{bottom:-18px}}
+@media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-legend{padding-inline:12px}.relationship-apply{bottom:-18px}}
 .relationship-cards-scroll{height:clamp(380px,55vh,590px);overflow:auto;overscroll-behavior:contain;background:var(--surface);scrollbar-color:var(--pri) var(--surface)}
 .relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
-.relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
-.relationship-character-card{position:absolute;left:0;top:0;border:1px solid var(--line2);border-radius:12px;padding:12px;background:var(--surface);color:var(--ink);box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
-.relationship-character-card.selected{border:2px solid var(--pri);padding:11px;background:var(--pri-soft)}.relationship-character-card.target{border:2px dashed var(--pri);padding:11px}.relationship-character-card.dim{opacity:.3}
-.relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--sub);margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:11px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
+.relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--edge-halo,var(--surface));stroke-width:4px;stroke-linejoin:round}
+.relationship-character-card{position:absolute;left:0;top:0;border:1px solid var(--rc-line,var(--line2));border-radius:12px;padding:12px;background:var(--rc-bg,var(--surface));color:var(--rc-ink,var(--ink));box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
+.relationship-character-card.selected{border:2px solid var(--rc-accent,var(--pri));padding:11px;background:var(--rc-sel,var(--pri-soft))}.relationship-character-card.target{border:2px dashed var(--rc-accent,var(--pri));padding:11px}.relationship-character-card.dim{opacity:.3}
+.relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:11px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
 @media(max-width:600px){.relationship-cards-scroll{height:440px}.relationship-character-card{border-radius:10px}}
 
 .presentation-world-map .world-map-layout{grid-template-columns:180px minmax(0,1fr)}
@@ -41,9 +48,12 @@
 .world-map-expanded .world-map-detail{grid-column:auto;border-top:0;border-left:1px solid var(--line)}
 @media(max-width:900px){.world-map-expanded{padding:12px}.world-map-expanded .world-map-layout{grid-template-columns:150px minmax(0,1fr)}.world-map-expanded .world-map-detail{grid-column:1/-1}}
 
-.relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;border:1px solid var(--line);border-radius:0 0 12px 12px;overflow:hidden}
-.relationship-service-form{padding:20px;border-left:1px solid var(--line);background:var(--surface);min-width:0;max-height:760px;overflow:auto}
-.relationship-service-form>nav{display:flex;gap:8px;flex-wrap:wrap;margin-block:16px}
-@media(max-width:1050px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{border-left:0;border-top:1px solid var(--line);max-height:none}}
+.relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
+.relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface);box-shadow:var(--sh)}
+.relationship-service-form>*+*{margin-top:24px;padding-top:24px;border-top:1px solid var(--line2)}.relationship-service-form h4{margin:0;font-size:15px}
+.relationship-add,.relationship-list{display:grid;gap:12px;align-content:start}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
+.relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:13px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
+.relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .relationship-remove{margin-top:0}
+@media(max-width:1050px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
 @media(max-width:600px){.relationship-service-form{padding:12px}}
 .world-map-controls .btn[aria-pressed=true]{background:var(--pri-soft);color:var(--pri-ink);border-color:var(--pri)}

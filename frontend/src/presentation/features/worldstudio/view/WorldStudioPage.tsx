@@ -1,120 +1,267 @@
-import {WorldRevisions} from './WorldRevisions'
-import {InitialWorldReview} from './InitialWorldReview'
-import {studioLabelCleanup} from '../../../../domain/entities/studioWorld'
-import {useEffect,useRef,type FormEvent} from 'react'
-import {cardTypes,cardTypeOf,settingAreas,type CardType} from '../../../../domain/entities/studioCards'
-import type {StudioSetting,SettingItem} from '../../../../domain/entities/studioWorld'
-import {relationDefinitions,relationLabel} from '../../../../domain/entities/studioRelations'
-import {Go} from '../../../shared/Go'
-import {useScreenId} from '../../../shared/screenIds'
-import {useDocumentTitle} from '../../../shared/useDocumentTitle'
-import {Gnb} from '../../../shared/shell/Gnb'
-import {useWorldStudioViewModel} from '../viewmodel/useWorldStudioViewModel'
-import {WorldMap} from './WorldMap'
-import {WorldRelationshipEditor} from './WorldRelationshipEditor'
-import {WorldWiki} from './WorldWiki'
-import {WorldTimeline} from './WorldTimeline'
+import '../../../shared/episode.css'
+import { useEffect, useId, useRef, useState } from 'react'
 
-import {presentationPortrait} from '../../../../app/presentationPortraits'
+import { relationLabel } from '../../../../domain/entities/studioRelations'
+import type { StudioWorld } from '../../../../domain/entities/studioWorld'
+import type { Theme } from '../../../../domain/entities/work'
+import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
+import { Art } from '../../../shared/art'
+import { rng } from '../../../shared/format'
+import { Go } from '../../../shared/Go'
+import { BackChev } from '../../../shared/icons'
+import { useScreenId } from '../../../shared/screenIds'
+import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { useDocumentTitle } from '../../../shared/useDocumentTitle'
+import { genreLabel } from '../../../shared/worldGenres'
+import { labelOf } from '../viewmodel/settingBoard'
+import { UNLISTED_HINT } from '../viewmodel/worldPublication'
+import { MANAGE_TABS, type StudioStep } from '../viewmodel/worldStudioFlow'
+import { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
+import { InitialWorldReview } from './InitialWorldReview'
+import { WorldInfoPanel } from './WorldInfoPanel'
+import { WorldCardBoard } from './WorldCardBoard'
+import { WorldChat } from './WorldChat'
+import { WorldCreate } from './WorldCreate'
+import { WorldMap } from './WorldMap'
+import { PublishFields } from './WorldPublishFields'
+import { WorldRelationshipEditor } from './WorldRelationshipEditor'
+import { WorldRevisions } from './WorldRevisions'
+import { WorldTimeline } from './WorldTimeline'
+import { WorldWiki } from './WorldWiki'
 import './world-studio.css'
 
-type VM=ReturnType<typeof useWorldStudioViewModel>
-const kinds:Record<SettingItem['kind'],string>={entity:'대상',fact:'설정',rule:'규칙',constraint:'제약',claim:'인물의 주장',relation:'관계',undetermined:'미정',event:'과거 사건',note:'메모'}
-const steps=[['info','기본 정보'],['cards','설정 카드'],['relations','관계 연결 (선택)'],['review','검토·저장']] as const
-const exploreTabs=[['map','전체 세계관 지도'],['wiki','설정집'],['relations','인물 관계도'],['timeline','초기 역사 시간선']] as const
-const labelOf=(setting:StudioSetting)=>cardTypes.find(t=>t.id===cardTypeOf(setting.item))?.label??kinds[setting.item.kind]
+type VM = ReturnType<typeof useWorldStudioViewModel>
+const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
+const exploreTabs = [['map', '전체 세계관 지도'], ['wiki', '설정집'], ['relations', '인물 관계도'], ['timeline', '초기 역사 시간선']] as const
+const themes: Theme[] = ['hanji', 'star', 'neon']
 
-/** 세계관을 편집하고, 새 소설 등록은 실행 모드의 작품 생성 화면에서 시작한다. */
-export function WorldStudioPage(){
- useScreenId('W01')
- useDocumentTitle('세계관')
- const vm=useWorldStudioViewModel(),heading=useRef<HTMLHeadingElement>(null),tools=useRef<HTMLDetailsElement>(null)
- useEffect(()=>{if(vm.flow.screen==='editor')heading.current?.focus({preventScroll:true})},[vm.flow.step,vm.flow.screen])
- const current=steps.findIndex(([id])=>id===vm.flow.step)
- const chooseTool=(tool:'explore'|'analysis'|'versions')=>{vm.setTool(tool);if(tools.current)tools.current.open=false}
- return <><Gnb on="worldstudio"/><main id="main" tabIndex={-1} className="wrap world-studio world-writing">
-  <header className="world-heading"><div><h1>{vm.editing?'세계관 작성':'세계관 작업실'}</h1><p className="muted">{vm.storage.intro}</p></div></header>
-  {vm.error&&<p role="alert" className="world-error">{vm.error}</p>}
-  {vm.message&&<p role="status" className="world-message">{vm.message}</p>}
-  <WorldLibrary vm={vm}/>
-  {!vm.editing&&vm.reviewWorldId&&<InitialWorldReview key={vm.reviewWorldId} studio={vm}/>}
-  {vm.editing&&<section className="world-content" hidden={vm.flow.screen!=='editor'} aria-busy={vm.busy}>
-   <div className="world-toolbar"><button type="button" className="btn sm" onClick={vm.showList}>내 세계관</button><h2>{vm.saved?.name}</h2><span role="status" className="world-save-state">{vm.saveState==='saving'?'저장 중':vm.saveState==='failed'?'저장 실패 · 입력은 유지됩니다':vm.dirty?'작성 중 · 미저장':'저장됨'}</span>{vm.relationDirty&&<span role="status" className="small muted">관계 입력 미적용</span>}
-    <details className="world-tools" ref={tools}><summary>도구</summary><div><button type="button" onClick={()=>chooseTool('explore')}>세계관 탐색</button><button type="button" onClick={()=>chooseTool('analysis')}>AI 후보 검토</button><button type="button" onClick={()=>chooseTool('versions')}>확정 버전</button><button type="button" onClick={()=>{vm.goStep('cards');vm.addCard('note');vm.setCardDetail(true);if(tools.current)tools.current.open=false}}>집필 메모 추가</button><Go to={import.meta.env.MODE === 'mockup' ? '/new' : '/content'}>새 소설 등록으로</Go></div></details>
-   </div>
-   {vm.tool!=='write'&&<button className="btn sm world-return" type="button" onClick={()=>vm.setTool('write')}>작성으로 돌아가기</button>}
-   <div hidden={vm.tool!=='write'}>
-    <nav className="world-step-nav" aria-label="세계관 작성 단계"><ol>{steps.map(([id,label],i)=><li key={id}><button type="button" aria-current={vm.flow.step===id?'step':undefined} onClick={()=>vm.goStep(id)}><span aria-hidden="true">{i+1}</span>{label}</button></li>)}</ol></nav>
-    <h3 className="world-step-title" ref={heading} tabIndex={-1}>{steps[current][1]}</h3>
-    <fieldset className="world-fields world-basic" disabled={vm.busy} hidden={vm.flow.step!=='info'}><legend className="sr-only">세계관 기본 정보</legend>
-     <label className="field">세계관 이름<input className="inp" required value={vm.editing.name} maxLength={100} onChange={e=>vm.patch({name:e.target.value})}/></label>
-     <label className="field">세계관 설명<textarea className="ta world-natural-input" rows={6} value={vm.editing.description} maxLength={20000} placeholder="어떤 시대와 배경에서 시작하나요? 정해 둔 세계의 모습을 자유롭게 적어 주세요." onChange={e=>vm.patch({description:e.target.value})}/></label>
-     <p className="small muted">이름만 정해도 시작할 수 있어요. 자세한 설정은 나중에 추가하세요.</p>
+/**
+ * 세계관 관리·작성 화면. `/content` 작품 관리와 같은 틀이다: 공용 상단바 아래 서재로 돌아가는 링크, 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개).
+ * 만든 직후(`?new=1`)는 작성 모드(탭 줄 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사), 그 밖의 모든 진입은 관리 모드
+ * (설정집·인물 관계도·세계관 탐색·AI 후보 검토·확정 버전 탭, 탭 줄 오른쪽의 상시 저장 영역, 헤더의 정보 편집 패널). 주소 `/worldstudio`(세계관 없음)에서만 새 세계관 만들기 화면을 그린다.
+ * 새 소설 등록은 실행 모드의 작품 생성 화면에서 시작한다.
+ */
+export function WorldStudioPage() {
+  useScreenId('W01')
+  useDocumentTitle('세계관')
+  const vm = useWorldStudioViewModel()
+  // 집필실과 같이 넓은 화면은 채팅을 연 채로, 좁은 화면(900px 이하)은 닫은 채로 시작한다(열면 오른쪽 서랍).
+  const [chatOpen, setChatOpen] = useState(() => !window.matchMedia?.('(max-width: 900px)').matches)
+  const loading = !!vm.reviewWorldId && !vm.editing && !vm.error
+  return (
+    <>
+      <Gnb on="lib" />
+      <div className={'episode-app' + (vm.editing && chatOpen ? ' with-chat' : '')}>
+        <main id="main" tabIndex={-1} className="ep-main world-studio world-writing">
+          <div className="ep-top">
+            <Go to="/lib?tab=worlds" className="ep-back"><BackChev />내가 만드는 세계관</Go>
+          </div>
+          {vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
+          {vm.message && <p role="status" className="ep-notice">{vm.message}</p>}
+          {loading && <p role="status" className="ep-notice">세계관을 불러오고 있어요…</p>}
+          {!vm.reviewWorldId && <WorldCreate vm={vm} />}
+          {!vm.editing && vm.reviewWorldId && <InitialWorldReview key={vm.reviewWorldId} studio={vm} />}
+          {vm.editing && <WorldEditor vm={vm} world={vm.editing} />}
+        </main>
+        {vm.editing && <WorldChat open={chatOpen} onOpenChange={setChatOpen} />}
+      </div>
+      <Footer />
+    </>
+  )
+}
+
+/**
+ * 공개 세계관 상세 헤더와 같은 모양: 표지(올린 표지가 있으면 그 이미지, 없으면 생성 표지 아트), 이름, 칩(설정 수·저장 버전·공개 범위·장르·저장 상태), 소개. 이름·소개·수는 저장한 세계관 기준이다.
+ * 관리 모드에서는 제목 옆 '편집'이 세계관 정보 편집 패널(이름·설명·공개 범위·장르·표지)을 그 자리에 연다. 저장하지 않은 수정이 있으면 편집이 잠기고 저장 상태는 탭 줄의 저장 영역이 보인다.
+ * 헤더에는 공개 범위·장르 칩만 있고, 공개 목록에 나올 때(공개 + 확정 버전)만 공개 화면 링크가, 공개인데 확정 버전이 없을 때는 그 안내가 보인다.
+ * 작성 모드(만든 직후의 마법사)의 이름·설명·공개 설정은 기본 정보 단계에 있고 저장 상태는 헤더 칩이 보이며 '관리 화면으로'로 나갈 수 있다.
+ */
+function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: StudioWorld; infoOpen: boolean; setInfoOpen: (open: boolean) => void }) {
+  const saved = vm.saved ?? world
+  const manage = vm.mode === 'manage'
+  const { visibility, genre } = vm.publication
+  const theme = themes[Math.floor(rng(saved.id)() * themes.length)]
+  const state = vm.saveState === 'saving' ? { tone: 'wait', text: '저장 중' }
+    : vm.saveState === 'failed' ? { tone: 'wait', text: '저장 실패 · 입력은 유지됩니다' }
+    : vm.dirty ? { tone: 'wait', text: '작성 중 · 미저장' }
+    : { tone: 'ok', text: '저장됨' }
+  const title = useRef<HTMLHeadingElement>(null)
+  const editButton = useRef<HTMLButtonElement>(null)
+  const lockId = useId()
+  const closed = useRef(false)
+  const wasManage = useRef(manage)
+  // 처음 저장해 관리 모드로 바뀌면 헤더 제목으로 초점을 옮긴다(바뀐 화면의 맨 위에서 이어 읽게).
+  useEffect(() => {
+    if (manage && !wasManage.current) title.current?.focus()
+    wasManage.current = manage
+  }, [manage])
+  // 저장·취소로 편집 창이 사라지면 편집 버튼으로 초점을 돌려 키보드 위치를 잃지 않게 한다.
+  useEffect(() => {
+    if (infoOpen || !closed.current) return
+    closed.current = false
+    editButton.current?.focus()
+  }, [infoOpen])
+  const closeInfo = () => {
+    closed.current = true
+    setInfoOpen(false)
+  }
+  return (
+    <section className="whero ep-hero world-manage-hero">
+      <div className="ep-hero-cover">
+        <div className="cov">{vm.cover.url ? <img src={vm.cover.url} alt="세계관 표지" /> : <Art theme={theme} w={300} h={400} seed={saved.id} />}<div className="tg"><span className="tag dk">{visibility === 'public' ? '공개' : '비공개'}</span></div></div>
+      </div>
+      <div className="ep-hero-main">
+        <div className="ep-title-row">
+          <h1 ref={title} tabIndex={-1} className={infoOpen ? 'sr-only' : undefined}>{saved.name || '이름 없는 세계관'}</h1>
+          {manage && !infoOpen && <button ref={editButton} type="button" className="btn sm" aria-label="세계관 정보 편집" aria-describedby={vm.infoLocked ? lockId : undefined} disabled={vm.busy || vm.infoLocked} onClick={() => setInfoOpen(true)}>편집</button>}
+        </div>
+        {manage && !infoOpen && vm.infoLocked && <p id={lockId} className="small muted">작성 중인 변경을 먼저 저장하세요.</p>}
+        <div className="ep-chips">
+          <span className="chip">설정 {cardLibraryRows(saved.settings, 'all', '').length}개</span>
+          <span className="chip">저장 버전 {saved.version}</span>
+          <span className={'chip' + (visibility === 'public' ? ' ok' : '')}>{visibility === 'public' ? '공개' : '비공개'}</span>
+          {genre && <span className="chip">{genreLabel(genre)}</span>}
+          {!manage && <span role="status" className={'chip ' + state.tone}>{state.text}</span>}
+          {vm.relationDirty && <span role="status" className="chip wait">관계 입력 미적용</span>}
+        </div>
+        {infoOpen
+          ? <WorldInfoPanel vm={vm} world={saved} onClose={closeInfo} />
+          : saved.description
+          ? <p className="sum">{saved.description}</p>
+          : <p className="sum ep-muted">{manage ? '편집을 눌러 세계관 소개를 적어 보세요.' : '기본 정보에서 세계관 소개를 적어 보세요.'}</p>}
+        <p className="small muted">{vm.storage.intro}</p>
+        {vm.listing === 'unlisted' && <p role="status" className="small muted">{UNLISTED_HINT}</p>}
+        <div className="acts">
+          <button type="button" className="btn sm" onClick={() => { vm.goStep('cards'); vm.addCard('note'); vm.setCardDetail(true) }}>집필 메모 추가</button>
+          <Go to={import.meta.env.MODE === 'mockup' ? '/new' : '/content'} className="btn sm">새 소설 등록으로</Go>
+          {vm.publicHref && <Go to={vm.publicHref} className="btn sm">공개 화면 보기</Go>}
+          {!manage && <button type="button" className="btn sm" onClick={vm.leaveWizard}>관리 화면으로</button>}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/**
+ * 작성 모드 기본 정보 단계의 세계관 단위 공개 범위·장르. 초안 저장과 별개로 바꾸는 즉시 적용된다(공개로 바꿀 때만 한 번 확인). 전송 중에는 잠그고, 실패하면 이전 값 그대로 오류 문구를 보인다.
+ * 설정 카드 단위 공개와는 다르다. 관리 모드는 헤더의 정보 편집 패널에서 저장과 함께 적용한다.
+ */
+function WorldPublish({ vm }: { vm: VM }) {
+  return (
+    <fieldset className="world-publish world-compact" disabled={vm.busy}>
+      <legend className="sr-only">공개 설정</legend>
+      <PublishFields value={vm.publishing ?? vm.publication} onChange={vm.setPublication} />
+      <p className="small muted">저장과 별개로 바로 적용돼요. 읽는 사람은 공개한 세계관의 설정 카드와 인물 관계를 읽기만 할 수 있어요.</p>
     </fieldset>
-    <div hidden={vm.flow.step!=='cards'}><CardWriting vm={vm}/></div>
-    {vm.relationWorld===vm.editing.id&&<div hidden={vm.flow.step!=='relations'}><p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p><button className="btn sm" type="button" onClick={vm.returnToCard}>설정 카드로 돌아가기</button><WorldRelationshipEditor key={`${vm.editing.id}:${vm.relationKey}`} studio={vm}/></div>}
-    <div hidden={vm.flow.step!=='review'}><WritingReview vm={vm}/></div>
-    <nav className="world-step-actions" aria-label="단계 이동"><button className="btn" type="button" disabled={current===0} onClick={()=>vm.goStep(steps[current-1][0])}>이전 단계</button>{current<3&&<button className="btn pri" type="button" onClick={()=>vm.goStep(steps[current+1][0])}>{vm.flow.step==='relations'?'검토·저장으로':'다음 단계'}</button>}{vm.flow.step==='cards'&&<button className="btn" type="button" onClick={()=>vm.goStep('review')}>관계 없이 검토·저장</button>}</nav>
-   </div>
-   {vm.tool==='explore'&&<><nav className="libtabs" aria-label="세계관 탐색 보기">{exploreTabs.map(([id,label])=><button type="button" key={id} className={vm.explore===id?'on':''} aria-pressed={vm.explore===id} onClick={()=>vm.setExplore(id)}>{label}</button>)}</nav>{(vm.explore==='map'||vm.explore==='relations')&&vm.saved?<WorldMap key={`${vm.saved.id}:${vm.saved.version}:${vm.explore}`} world={vm.saved} charactersOnly={vm.explore==='relations'}/>:<Confirmed vm={vm} tab={vm.explore}/>}</>}
-   <div hidden={vm.tool!=='versions'}><WorldRevisions key={vm.editing.id} studio={vm}/></div>
-   <div hidden={vm.tool!=='analysis'}><InitialWorldReview key={vm.editing.id} studio={vm}/></div>
-  </section>}
- </main><footer className="foot"><div className="wrap"><b>STORYFORK</b><Go to="/lib">내 서재</Go></div></footer></>
+  )
 }
-function WorldLibrary({vm}:{vm:VM}){
- const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const form=new FormData(e.currentTarget);vm.create(String(form.get('name')??''),String(form.get('description')??''))}
- return <section className="world-library" hidden={vm.flow.screen!=='list'} aria-busy={vm.busy}><div className="world-toolbar"><h2>내 세계관</h2>{vm.editing&&<button className="btn" type="button" onClick={vm.resume}>이어서 작성</button>}</div>
-  <p className="small muted">{vm.storage.library}</p>
-  <nav aria-label="내 세계관">{vm.worlds.map(w=><button key={w.id} type="button" disabled={vm.busy} onClick={()=>vm.editing?.id===w.id?vm.resume():vm.open(w.id)}><strong>{w.name}</strong><small>{w.description||'세계관 설명 없음'}{w.relationshipStatus==='incomplete'?' · 저장 미완료':w.relationshipStatus==='migration_required'?' · 기존 데이터 전환 필요':''}</small></button>)}</nav>
-  {!vm.busy&&!vm.worlds.length&&!vm.error&&<p className="muted">아직 저장한 세계관이 없어요. 이름부터 정해 시작해 보세요.</p>}
-  <form onSubmit={create}><h3>새 세계관 만들기</h3><label className="field">세계관 이름<input name="name" className="inp" required maxLength={100}/></label><label className="field">설명 (선택)<textarea name="description" className="ta" rows={3} maxLength={20000}/></label><button className="btn pri" disabled={vm.busy}>세계관 만들기</button></form>
- </section>
+
+/**
+ * 작성 모드(세계관을 처음 만든 직후, 주소 `?new=1`)는 탭 줄 없이 기본 정보부터 4단계 마법사다. 그 밖의 모든 진입은 관리 모드로, `/content` 작품 관리처럼
+ * 탭(설정집·인물 관계도·세계관 탐색·AI 후보 검토·확정 버전, 주소 `?tab=`)으로 기능을 나누고 탭 줄 오른쪽에 상시 저장 영역을 둔다(이름·설명·공개·표지는 헤더 편집 패널).
+ */
+function WorldEditor({ vm, world }: { vm: VM; world: StudioWorld }) {
+  const heading = useRef<HTMLHeadingElement>(null)
+  const [infoOpen, setInfoOpen] = useState(false)
+  const manage = vm.mode === 'manage'
+  // 작성 모드는 마법사 단계이고, 관리 모드는 탭이 곧 화면이라 설정집이면 설정 카드, 인물 관계도이면 관계 화면이다.
+  const step: StudioStep = manage ? (vm.tab === 'people' ? 'relations' : 'cards') : vm.flow.step
+  const current = steps.findIndex(([id]) => id === step)
+  useEffect(() => { if (vm.flow.screen === 'editor') heading.current?.focus({ preventScroll: true }) }, [step, vm.flow.screen])
+  return (
+    <section className="world-content" hidden={vm.flow.screen !== 'editor'} aria-busy={vm.busy}>
+      <WorldHeader vm={vm} world={world} infoOpen={infoOpen} setInfoOpen={setInfoOpen} />
+      {manage && (
+        <div className="world-tabs-row">
+          <nav className="ep-tabs" aria-label="세계관 메뉴">
+            {MANAGE_TABS.map(([id, label]) => <button key={id} type="button" aria-current={vm.tab === id ? 'page' : undefined} onClick={() => vm.setTab(id)}>{label}</button>)}
+          </nav>
+          <WorldSaveBar vm={vm} />
+        </div>
+      )}
+      <div hidden={vm.tool !== 'write'}>
+        {!manage && (
+          <nav className="world-step-nav" aria-label="세계관 작성 단계">
+            <ol>
+              {steps.map(([id, label], i) => (
+                <li key={id} data-state={i < current ? 'done' : i === current ? 'now' : 'next'}>
+                  <button type="button" aria-current={step === id ? 'step' : undefined} onClick={() => vm.goStep(id)}><span aria-hidden="true">{i + 1}</span>{label}</button>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
+        <section className="tcard ep-card">
+          {!manage && <h3 className="world-step-title" ref={heading} tabIndex={-1}>{steps[current][1]}</h3>}
+          {!manage && (
+            <fieldset className="world-fields world-basic" disabled={vm.busy} hidden={step !== 'info'}>
+              <legend className="sr-only">세계관 기본 정보</legend>
+              <label className="field">세계관 이름<input className="inp" required value={world.name} maxLength={100} onChange={(e) => vm.patch({ name: e.target.value })} /></label>
+              <label className="field">세계관 설명<textarea className="ta world-natural-input" rows={6} value={world.description} maxLength={20000} placeholder="어떤 시대와 배경에서 시작하나요? 정해 둔 세계의 모습을 자유롭게 적어 주세요." onChange={(e) => vm.patch({ description: e.target.value })} /></label>
+              <p className="small muted">이름만 정해도 시작할 수 있어요. 자세한 설정은 나중에 추가하세요.</p>
+              <WorldPublish vm={vm} />
+            </fieldset>
+          )}
+          <div hidden={step !== 'cards'}><WorldCardBoard vm={vm} /></div>
+          {vm.relationWorld === world.id && (
+            <div hidden={step !== 'relations'}>
+              {!manage && <p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p>}
+              <button className="btn sm" type="button" onClick={vm.returnToCard}>{manage ? '설정집으로 돌아가기' : '설정 카드로 돌아가기'}</button>
+              <WorldRelationshipEditor key={`${world.id}:${vm.relationKey}`} studio={vm} />
+            </div>
+          )}
+          {!manage && <div hidden={step !== 'review'}><WritingReview vm={vm} /></div>}
+          {!manage && (
+            <nav className="world-step-actions" aria-label="단계 이동">
+              <button className="btn" type="button" disabled={current === 0} onClick={() => vm.goStep(steps[current - 1][0])}>이전 단계</button>
+              {current < steps.length - 1 && <button className="btn pri" type="button" onClick={() => vm.goStep(steps[current + 1][0])}>{step === 'relations' ? '검토·저장으로' : '다음 단계'}</button>}
+              {step === 'cards' && <button className="btn" type="button" onClick={() => vm.goStep('review')}>관계 없이 검토·저장</button>}
+            </nav>
+          )}
+        </section>
+      </div>
+      {vm.tool === 'explore' && (
+        <>
+          <nav className="libtabs" aria-label="세계관 탐색 보기">{exploreTabs.map(([id, label]) => <button type="button" key={id} className={vm.explore === id ? 'on' : ''} aria-pressed={vm.explore === id} onClick={() => vm.setExplore(id)}>{label}</button>)}</nav>
+          {(vm.explore === 'map' || vm.explore === 'relations') && vm.saved ? <WorldMap key={`${vm.saved.id}:${vm.saved.version}:${vm.explore}`} world={vm.saved} charactersOnly={vm.explore === 'relations'} /> : <Confirmed vm={vm} tab={vm.explore} />}
+        </>
+      )}
+      <div hidden={vm.tool !== 'versions'}><WorldRevisions key={world.id} studio={vm} /></div>
+      <div hidden={vm.tool !== 'analysis'}><InitialWorldReview key={world.id} studio={vm} /></div>
+    </section>
+  )
 }
-function SettingIcon({setting}:{setting:StudioSetting}){
- const person=cardTypeOf(setting.item)==='character'
- return <svg aria-hidden="true" className="world-setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{person?<><circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></>:<><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8M8 16h5"/></>}</svg>
+
+/**
+ * 관리 모드의 상시 저장 영역(탭 줄 오른쪽). 바뀐 것이 있으면 '저장하지 않은 변경 있음'과 세계관 저장 버튼, 없으면 '저장됨'이다(한 번도 저장한 적 없는 세계관은 첫 저장을 할 수 있다).
+ * 저장 전에 확인할 문제가 있으면 첫 사유와 건수를 버튼 옆에 보이고 저장을 막는다. 저장 로직·검증·충돌 처리는 작성 모드와 같은 `vm.save`다. 탭을 옮겨도 입력은 그대로다.
+ */
+function WorldSaveBar({ vm }: { vm: VM }) {
+  const reason = useId()
+  const first = vm.writingIssues[0]
+  const text = vm.saveState === 'saving' ? '저장 중…'
+    : vm.saveState === 'failed' ? '저장 실패 · 입력은 유지됩니다'
+    : vm.dirty ? '저장하지 않은 변경 있음'
+    : vm.saved?.version === 0 ? '아직 저장하지 않았어요'
+    : '저장됨'
+  return (
+    <div className="world-save-bar" role="group" aria-label="저장 상태">
+      <span role="status" className={'world-save-state ' + (text === '저장됨' ? 'ok' : 'wait')}>{text}</span>
+      {first && <span id={reason} className="small">{first.message}{vm.writingIssues.length > 1 && ` 외 ${vm.writingIssues.length - 1}건`}</span>}
+      <button type="button" className="btn pri sm" disabled={!vm.canSave} aria-describedby={first ? reason : undefined} onClick={vm.save}>세계관 저장</button>
+    </div>
+  )
 }
-function CardWriting({vm}:{vm:VM}){
- const world=vm.editing!,field=useRef<HTMLInputElement>(null)
- const setting=world.settings.find(s=>s.item.id===vm.selected)??vm.cardRows[0]
- const legacy=world.settings.filter(s=>['relation','review','note'].includes(cardTypeOf(s.item)))
- const editingOutside=setting&&cardTypes.some(type=>type.id===cardTypeOf(setting.item))&&!vm.cardRows.some(row=>row.item.id===setting.item.id)
- const select=(id:string)=>{vm.editCard(id);requestAnimationFrame(()=>field.current?.focus())}
- const add=()=>{vm.setCardFilter('all');vm.setCardQuery('');vm.addCard(vm.newCardType);vm.setCardDetail(true);requestAnimationFrame(()=>field.current?.focus())}
- return <fieldset className="world-fields" disabled={vm.busy}><legend className="sr-only">설정 카드 작성</legend>
-  <div className="world-card-intro"><p className="muted">인물이나 장소 등 세계의 설정을 자유롭게 작성해 보세요.</p><div className="world-add"><label className="sr-only" htmlFor="new-setting-type">추가할 설정 유형</label><select id="new-setting-type" className="inp" value={vm.newCardType} onChange={e=>vm.setNewCardType(e.target.value as CardType)}>{cardTypes.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select><button type="button" className="btn pri" aria-label="설정 추가" onClick={add}><span aria-hidden="true">+</span> 설정 추가</button></div></div>
-  <div className={'world-card-workspace'+(vm.cardDetail?' showing-detail':'')}>
-   <aside className="world-card-library" aria-label="설정 목록"><div className="world-card-filters"><label className="sr-only" htmlFor="setting-search">설정 검색</label><input id="setting-search" type="search" className="inp" placeholder="설정 찾기" value={vm.cardQuery} onChange={e=>vm.filterCards(vm.cardFilter,e.target.value)}/><label className="sr-only" htmlFor="setting-filter">설정 유형 필터</label><select id="setting-filter" className="inp" value={vm.cardFilter} onChange={e=>vm.filterCards(e.target.value as CardType|'all',vm.cardQuery)}><option value="all">모든 유형</option>{cardTypes.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select></div>
-    {editingOutside&&<div><p className="small muted">현재 편집 중 · 필터 조건 밖</p><button type="button" aria-label={`${setting.item.title||'이름 없는 설정'} ${labelOf(setting)}`} aria-current="true" onClick={()=>select(setting.item.id)}><SettingIcon setting={setting}/><span><strong>{setting.item.title||'이름 없는 설정'}</strong><small>{labelOf(setting)}</small></span></button></div>}
-    <nav aria-label="설정 카드 목록">{vm.cardRows.map(s=><button type="button" key={s.item.id} aria-label={`${s.item.title||'이름 없는 설정'} ${labelOf(s)}`} aria-current={setting?.item.id===s.item.id?'true':undefined} onClick={()=>select(s.item.id)}><SettingIcon setting={s}/><span><strong>{s.item.title||'이름 없는 설정'}</strong><small>{labelOf(s)}</small><p>{s.item.text||'설명을 추가해 보세요.'}</p></span></button>)}</nav>
-    {!vm.cardRows.length&&<p className="small muted">{world.settings.length?'조건에 맞는 설정이 없어요.':'설정을 추가해 시작해 보세요.'}</p>}
-    {!!legacy.length&&<details className="world-legacy-list"><summary>기존 설정·관계 {legacy.length}개</summary><nav aria-label="기존 설정과 관계">{legacy.map(s=><button type="button" key={s.item.id} onClick={()=>select(s.item.id)}>{s.item.title||'이름 없는 설정'}<small>{labelOf(s)}</small></button>)}</nav></details>}
-   </aside>
-   {setting?<section className="world-writing-editor" aria-label="선택한 설정 편집"><button className="btn sm world-mobile-list" type="button" onClick={()=>vm.setCardDetail(false)}>설정 목록으로</button><div className="world-editor-heading">{cardTypeOf(setting.item)==='character'&&presentationPortrait(setting.item.title)?<img src={presentationPortrait(setting.item.title)} alt={`${setting.item.title} 인물 이미지`} width={72} height={72} style={{objectFit:'cover',borderRadius:12}}/>:<SettingIcon setting={setting}/>}<span>{labelOf(setting)}</span></div>
-    <label className="field">설정 이름<input ref={field} className="inp world-name" required value={setting.item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={e=>vm.update(setting.item.id,{title:e.target.value})}/></label>
-    <label className="field">설명<textarea className="ta world-natural-input" rows={5} value={setting.item.text} maxLength={3000} placeholder="어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요." onChange={e=>vm.update(setting.item.id,{text:e.target.value})}/></label>
-    {cardTypeOf(setting.item)==='character'&&<button className="btn sm world-relation-link" type="button" onClick={()=>vm.openRelations(setting.item.id)}>관계 연결로 이동</button>}
-    <details className="world-additional" key={setting.item.id}><summary>상세 설정 · 선택</summary><div className="world-form-row"><label className="field">카드 유형<select className="inp" value={cardTypeOf(setting.item)} onChange={e=>vm.changeCardType(setting.item.id,e.target.value as CardType)}>{cardTypes.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}{['relation','review','note'].includes(cardTypeOf(setting.item))&&<option value={cardTypeOf(setting.item)}>{kinds[setting.item.kind]} · 기존 의미 유지</option>}</select></label><label className="field">설정 영역<select className="inp" value={setting.item.category} onChange={e=>vm.changeArea(setting.item.id,e.target.value as SettingItem['category'])}>{settingAreas.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select></label></div>
-     <label className="field">태그 (쉼표로 구분)<input className="inp" value={setting.tags.join(',')} onChange={e=>vm.update(setting.item.id,{}, {tags:e.target.value.split(',')})} onBlur={()=>{const tags=studioLabelCleanup(setting.tags);if(tags)vm.update(setting.item.id,{}, {tags})}}/></label>
-     <label className="field">별칭<input className="inp" value={setting.aliases?.join(',')??''} onChange={e=>vm.update(setting.item.id,{}, {aliases:e.target.value.split(',')})} onBlur={()=>{const aliases=studioLabelCleanup(setting.aliases);if(aliases)vm.update(setting.item.id,{}, {aliases})}}/></label><p id="world-alias-help" className="small muted">별칭은 쉼표로 구분하며 저장 시 다른 카드 정보와 함께 서버에 보존합니다.</p>
-     <label className="field">내 분류<input className="inp" value={setting.userCategory} maxLength={50} onChange={e=>vm.update(setting.item.id,{}, {userCategory:e.target.value})}/></label>
-     {setting.item.kind==='event'&&<label className="field">사건 시점<input className="inp" value={setting.item.timeText} onChange={e=>vm.update(setting.item.id,{timeText:e.target.value})}/></label>}
-     {setting.item.kind==='relation'&&<><label className="field">기존 관계 유형<select className="inp" value={setting.item.predicate??'trusts'} onChange={e=>vm.update(setting.item.id,{predicate:e.target.value})}>{Object.entries(relationDefinitions).map(([id,r])=><option key={id} value={id}>{r.label}</option>)}</select></label>{(['subjectId','targetId'] as const).map((key,i)=><label className="field" key={key}>{i?'관계 대상':'관계 주체'}<select className="inp" value={setting.item[key]??''} onChange={e=>vm.update(setting.item.id,{[key]:e.target.value||null})}><option value="">선택하세요</option>{world.settings.filter(s=>s.item.kind==='entity').map(s=><option key={s.item.id} value={s.item.id}>{s.item.title}</option>)}</select></label>)}</>}
-     <label className="world-consent"><input type="checkbox" role="switch" checked disabled aria-describedby="world-privacy-help"/>스포일러 숨기기</label><p id="world-privacy-help" className="small muted">카드는 소유자만 볼 수 있는 비공개 상태로 저장합니다. 발행·공개 및 이미지 첨부는 이 화면에서 지원하지 않습니다.</p>
-    </details>
-   </section>:<div className="world-empty"><h4>어떤 설정부터 시작할까요?</h4><p className="muted">인물이나 장소를 추가하고 이름부터 적어 보세요.</p></div>}
-  </div>
- </fieldset>
-}
+
 function WritingReview({vm}:{vm:VM}){
  const world=vm.editing!,cards=world.settings.filter(s=>s.item.kind!=='relation'),relations=world.settings.filter(s=>s.item.kind==='relation')
  const name=(id:string|null)=>world.settings.find(s=>s.item.id===id)?.item.title||'이름 없는 설정'
- return <section className="world-review" aria-label="세계관 검토"><article className="world-review-intro"><div className="world-toolbar"><h4>{world.name||'이름 없는 세계관'}</h4><button className="btn sm" type="button" onClick={()=>vm.goStep('info')}>기본 정보 수정</button></div><p className="world-prose">{world.description||'설명은 나중에 추가해도 괜찮아요.'}</p></article>
-  {vm.writingIssues.length>0&&<div className="world-error" role="alert"><h4>저장 전에 확인해 주세요</h4><ul>{vm.writingIssues.map((issue,i)=><li key={i}><button type="button" onClick={()=>issue.id?vm.editCard(issue.id):vm.goStep('info')}>{issue.message}</button></li>)}</ul></div>}
+ const editInfo=()=>vm.goStep('info')
+ return <section className="world-review" aria-label="세계관 검토"><article className="world-review-intro"><div className="world-toolbar"><h4>{world.name||'이름 없는 세계관'}</h4><button className="btn sm" type="button" onClick={editInfo}>기본 정보 수정</button></div><p className="world-prose">{world.description||'설명은 나중에 추가해도 괜찮아요.'}</p></article>
+  {vm.writingIssues.length>0&&<div className="world-error" role="alert"><h4>저장 전에 확인해 주세요</h4><ul>{vm.writingIssues.map((issue,i)=><li key={i}><button type="button" onClick={()=>issue.id?vm.editCard(issue.id):editInfo()}>{issue.message}</button></li>)}</ul></div>}
   <h4>설정 카드 {cards.length}개</h4>{cards.length?cards.map(s=><article className="world-review-item" key={s.item.id}><div><span className="small muted">{labelOf(s)}</span><h5>{s.item.title||'이름 없는 설정'}</h5><p className="world-prose">{s.item.text||'설명 없음'}</p></div><button className="btn sm" type="button" aria-label={`${s.item.title||'이름 없는 설정'} 수정`} onClick={()=>vm.editCard(s.item.id)}>수정</button></article>):<p className="muted">아직 등록한 설정이 없어요. 기본 정보만 저장해도 괜찮아요.</p>}
   <h4>관계 {relations.length}개</h4>{relations.length?relations.map(s=><article key={s.item.id} className="world-review-item"><div><h5>{name(s.item.subjectId)} → {name(s.item.targetId)}</h5><p className="world-prose">{relationLabel(s.item)}</p></div><button className="btn sm" type="button" onClick={()=>vm.editRelation(s.item.id)}>관계 수정</button></article>):<p className="muted">관계는 선택 사항이에요. 나중에 연결할 수 있습니다.</p>}
-  <div className="world-save-actions"><p className="small muted">저장은 발행·공개와 다릅니다.</p><button className="btn pri" type="button" disabled={vm.busy||!vm.dirty||vm.writingIssues.length>0} onClick={vm.save}>세계관 저장</button></div>
+  <div className="world-save-actions"><p className="small muted">저장은 발행·공개와 다릅니다.</p><button className="btn pri" type="button" disabled={!vm.canSave} onClick={vm.save}>세계관 저장</button></div>
  </section>
 }
 

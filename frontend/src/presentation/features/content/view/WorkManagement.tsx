@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { publicationActionLabel, type Work } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { Go } from '../../../shared/Go'
 import { Branch } from '../../../shared/icons'
 import { ManuscriptBody } from '../../../shared/media/MediaPanel'
+import { paginate } from '../../../shared/paginate'
+import { Pager } from '../../../shared/Pager'
 import { EditSuggestionInbox } from '../../inbox/view/EditSuggestionInbox'
 import { FeedbackReportInbox } from '../../inbox/view/FeedbackReportInbox'
 import { inheritedRangeLabel } from '../viewmodel/inheritedRange'
@@ -32,6 +34,10 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
   const [forkTitle, setForkTitle] = useState('')
   const [direction, setDirection] = useState('')
   const [at, setAt] = useState(1)
+  // 회차 목록은 10개씩 나눠 보인다. page는 목록이 줄어도 paginate가 범위 안으로 보정한다.
+  const [page, setPage] = useState(1)
+  const episodeList = useRef<HTMLOListElement>(null)
+  const view = paginate(w.episodes, page)
   const locked = vm.busy || mediaBusy
   // 서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다(InboxPage와 같다). 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
@@ -142,9 +148,9 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           {w.episodes.length
             ? (
               // 소설 상세(/work/:id)의 회차 행(.ep)을 그대로 쓰고, 오른쪽에 자체 회차는 집필실로 가는 '수정하기', 상속 회차는 읽기 전용 칩을 둔다. 본문은 펼치지 않는다.
-              // ponytail: 10개 넘는 목록의 페이지 나누기는 후속.
-              <ol className='tcard eps ep-list'>
-                {w.episodes.map((e) => {
+              // 10개씩 나눠 보인다. 쪽을 옮기면 이 머리로 스크롤하므로 위의 sticky 상단바(.gnb)가 가리지 않게 scroll-margin을 둔다.
+              <ol ref={episodeList} className='tcard eps ep-list' style={{ scrollMarginTop: 80 }}>
+                {view.items.map((e) => {
                   const forks = forkCounts?.[e.number] ?? 0
                   return (
                     <li key={e.number} className='ep'>
@@ -173,6 +179,8 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
                 아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.
               </div>
             )}
+          {/* 쪽을 옮기면 목록 머리로 스크롤만 한다. 초점은 누른 쪽 버튼에 남아 이어서 옮길 수 있다(scrollIntoView가 없는 jsdom에서는 건너뛴다). */}
+          <Pager page={view.page} pages={view.pages} onPage={(next) => { setPage(next); episodeList.current?.scrollIntoView?.({ block: 'start' }) }} />
           <div className='ep-list-foot'>
             <Go to={`/studio/${w.id}`} className='btn pri'>새 회차 집필하기</Go>
           </div>

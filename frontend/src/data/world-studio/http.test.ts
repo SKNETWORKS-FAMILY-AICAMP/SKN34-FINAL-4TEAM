@@ -160,3 +160,125 @@ it('acknowledges only the current owner/world and creates a fresh key only on a 
  expect(repo.pendingConfirmation(id)?.expectedDraftRevision).toBe(4)
  expect(repo.pendingConfirmation(id)?.key).not.toBe(original?.key)
 })
+
+// ── 세계관 단위 공개 설정(공개 범위·장르) ──────────────────────────────────────
+const published=(over={})=>({worldId:id,visibility:'public',genre:'fantasy',publishedAt:'2026-11-12T01:02:03Z',listed:true,...over})
+it('puts the publication change with CSRF and maps the 200 result',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json(published()))
+ const controller=new AbortController()
+ const result=await new HttpWorldStudioRepository(fetcher).setPublication(id,{visibility:'public',genre:'fantasy'},controller.signal)
+ const [url,init]=fetcher.mock.calls[0]
+ expect(url).toBe(`/api/v1/world-studios/${id}/publication`)
+ expect(init.method).toBe('PUT')
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
+ expect(JSON.parse(init.body)).toEqual({visibility:'public',genre:'fantasy'})
+ expect(result).toEqual(published())
+ controller.abort();expect(init.signal.aborted).toBe(true)
+})
+it('sends an unset genre as null and maps a private or unlisted result',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(published({genre:null,listed:false}))).mockResolvedValueOnce(Response.json(published({visibility:'private',genre:null,publishedAt:null,listed:false})))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ expect(await repo.setPublication(id,{visibility:'public',genre:null})).toMatchObject({visibility:'public',genre:null,listed:false})
+ expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({visibility:'public',genre:null})
+ expect(await repo.setPublication(id,{visibility:'private',genre:null})).toEqual(published({visibility:'private',genre:null,publishedAt:null,listed:false}))
+})
+it.each([
+ [404,'WORLD_NOT_FOUND','세계관을 찾을 수 없습니다.'],[422,'WORLD_INPUT_INVALID','세계관 장르를 확인하세요.'],
+])('reports the server detail when the publication change is rejected (%s)',async(status,code,detail)=>{
+ const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({code,detail},{status})))
+ await expect(repo.setPublication(id,{visibility:'public',genre:'sf'})).rejects.toThrow(detail)
+})
+it('does not report success for a malformed publication result or another world',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(published({visibility:'hidden'}))).mockResolvedValueOnce(Response.json(published({genre:'horror'}))).mockResolvedValueOnce(Response.json(published({worldId:crypto.randomUUID()})))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ for(let i=0;i<3;i++)await expect(repo.setPublication(id,{visibility:'public',genre:null})).rejects.toThrow('응답')
+})
+it('reads the world visibility and genre, and treats a response without them as private with no genre',async()=>{
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire()))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ expect(await repo.read(id)).toMatchObject({visibility:'private',genre:null})
+ fetcher.mockImplementation(async()=>Response.json({...wire(),visibility:'public',genre:'sf'}))
+ expect(await repo.read(id)).toMatchObject({visibility:'public',genre:'sf'})
+ fetcher.mockImplementation(async()=>Response.json({...wire(),visibility:'public',genre:'horror'}))
+ await expect(repo.read(id)).rejects.toThrow('응답')
+})
+it('maps the publication of each summary in the list and defaults an older summary to private',async()=>{
+ const other=crypto.randomUUID()
+ const row=(worldId:string,extra={})=>({worldId,name:'세계관',description:'',draftRevision:1,relationshipStatus:'current',...extra})
+ const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json([row(id,{visibility:'public',genre:'romance'}),row(other)])))
+ expect((await repo.listStudio()).map(w=>[w.id,w.visibility,w.genre])).toEqual([[id,'public','romance'],[other,'private',null]])
+})
+it('never sends the world publication with a draft save and keeps the one the server returns',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json({...wire(3),visibility:'public',genre:'mystery'}))
+ const world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null,visibility:'private',genre:null}
+ const saved=await new HttpWorldStudioRepository(fetcher).saveStudio(world)
+ const body=JSON.parse(fetcher.mock.calls[0][1].body)
+ expect(body).not.toHaveProperty('visibility');expect(body).not.toHaveProperty('genre')
+ expect(saved).toMatchObject({visibility:'public',genre:'mystery'})
+})
+
+// ── 세계관 표지(소유자 업로드·교체·삭제·읽기, 계약: PUT·DELETE·GET /api/v1/world-studios/{id}/cover) ───
+const png=()=>new File(['png-bytes'],'cover.png',{type:'image/png'})
+it('reads hasCover of the world and of each summary, defaulting an older response to no cover',async()=>{
+ const other=crypto.randomUUID()
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire()))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ expect((await repo.read(id)).hasCover).toBe(false)
+ fetcher.mockImplementation(async()=>Response.json({...wire(),hasCover:true}))
+ expect((await repo.read(id)).hasCover).toBe(true)
+ const row=(worldId:string,extra={})=>({worldId,name:'세계관',description:'',draftRevision:1,relationshipStatus:'current',...extra})
+ fetcher.mockImplementation(async()=>Response.json([row(id,{hasCover:true}),row(other)]))
+ expect((await repo.listStudio()).map(w=>[w.id,w.hasCover])).toEqual([[id,true],[other,false]])
+ fetcher.mockImplementation(async()=>Response.json({...wire(),hasCover:'yes'}))
+ await expect(repo.read(id)).rejects.toThrow('응답')
+})
+it('uploads or replaces the cover as multipart file with Bearer and CSRF but no JSON content type',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json({worldId:id,hasCover:true}))
+ const controller=new AbortController()
+ await new HttpWorldStudioRepository(fetcher).setCover(id,png(),controller.signal)
+ const [url,init]=fetcher.mock.calls[0]
+ expect(url).toBe(`/api/v1/world-studios/${id}/cover`)
+ expect(init.method).toBe('PUT')
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
+ expect(init.headers).not.toHaveProperty('Content-Type') // multipart 경계는 브라우저가 붙인다
+ expect(init.body).toBeInstanceOf(FormData)
+ expect((init.body as FormData).get('file')).toMatchObject({name:'cover.png',type:'image/png'})
+ controller.abort();expect(init.signal.aborted).toBe(true)
+})
+it('does not report an upload success for a malformed result or another world, and reports the server detail on rejection',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json({worldId:id,hasCover:false})).mockResolvedValueOnce(Response.json({worldId:crypto.randomUUID(),hasCover:true}))
+  .mockResolvedValueOnce(Response.json({detail:'PNG·JPEG·WebP 이미지만 올릴 수 있어요.'},{status:422})).mockResolvedValueOnce(Response.json({detail:'세계관을 찾을 수 없습니다.'},{status:404}))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ for(let i=0;i<2;i++)await expect(repo.setCover(id,png())).rejects.toThrow('응답')
+ await expect(repo.setCover(id,png())).rejects.toThrow('PNG·JPEG·WebP 이미지만 올릴 수 있어요.')
+ await expect(repo.setCover(id,png())).rejects.toThrow('세계관을 찾을 수 없습니다.')
+})
+it('deletes the cover with CSRF and accepts the 204 without a body',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(new Response(null,{status:204}))
+ await expect(new HttpWorldStudioRepository(fetcher).removeCover(id)).resolves.toBeUndefined()
+ const [url,init]=fetcher.mock.calls[0]
+ expect([url,init.method]).toEqual([`/api/v1/world-studios/${id}/cover`,'DELETE'])
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
+ const failing=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({detail:'세계관을 찾을 수 없습니다.'},{status:404})))
+ await expect(failing.removeCover(id)).rejects.toThrow('세계관을 찾을 수 없습니다.')
+})
+it('reads the owner cover bytes with Bearer, and reports a missing or empty cover instead of an empty image',async()=>{
+ const bytes=new Blob(['png-bytes'],{type:'image/png'})
+ const fetcher=vi.fn().mockResolvedValueOnce(new Response(bytes,{status:200,headers:{'Content-Type':'image/png'}})).mockResolvedValueOnce(new Response(null,{status:404})).mockResolvedValueOnce(new Response(new Blob([]),{status:200}))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ const blob=await repo.readCover(id)
+ expect([blob.size,blob.type]).toEqual([9,'image/png'])
+ const [url,init]=fetcher.mock.calls[0]
+ expect([url,init.method]).toEqual([`/api/v1/world-studios/${id}/cover`,'GET'])
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer'}))
+ await expect(repo.readCover(id)).rejects.toThrow('표지를 찾을 수 없어요.')
+ await expect(repo.readCover(id)).rejects.toThrow('확인할 수 없어요')
+})
+it('rejects a cover request for an id that is not a UUID before sending anything',async()=>{
+ const fetcher=vi.fn()
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.setCover('not-a-uuid',png())).rejects.toThrow()
+ await expect(repo.removeCover('not-a-uuid')).rejects.toThrow()
+ await expect(repo.readCover('not-a-uuid')).rejects.toThrow()
+ expect(fetcher).not.toHaveBeenCalled()
+})

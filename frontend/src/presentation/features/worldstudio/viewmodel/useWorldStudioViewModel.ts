@@ -1,5 +1,7 @@
 import { cardLibraryRows, selectCardForFilter, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
-import { initialWorldStudioFlow, type StudioStep, worldStudioFlow } from './worldStudioFlow'
+import { initialWorldStudioFlow, type ManageTab, NEW_WORLD_QUERY, parseManageTab, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
+import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
+import { useWorldCoverImage } from './useWorldCoverImage'
 import { worldStudioStorage } from './worldStudioStorage'
 import {
   applyRelationChanges,
@@ -13,13 +15,14 @@ import { areaPatch, type CardType, cardTypePatch } from '../../../../domain/enti
 import { useContext, useEffect, useReducer, useRef, useState } from 'react'
 import { RestoreContext } from '../../../shared/session/restoreContext'
 import { WorldStudioLeaveContext } from './worldStudioLeaveGuard'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import {
   newSetting,
   type SettingItem,
   type StudioSetting,
   type StudioWorld,
+  type WorldPublicationInput,
 } from '../../../../domain/entities/studioWorld'
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 
@@ -31,7 +34,19 @@ export function useWorldStudioViewModel(
   const navigate = useNavigate()
   const leaveGuard = useContext(WorldStudioLeaveContext)
   const [flow, dispatchFlow] = useReducer(worldStudioFlow, initialWorldStudioFlow)
-  const [tool, setTool] = useState<'write' | 'explore' | 'analysis' | 'versions'>('write')
+  const [params, setParams] = useSearchParams()
+  const mode = studioMode(params)
+  const tab = parseManageTab(params.get('tab'))
+  // 탭·마법사 표시는 주소의 쿼리라 새로고침해도 유지되고, 바꿀 때는 기록을 쌓지 않는다(같은 화면 이동이라 이탈 확인도 하지 않는다).
+  const editParams = (change: (next: URLSearchParams) => void) => setParams((current) => {
+    const next = new URLSearchParams(current)
+    change(next)
+    return next
+  }, { replace: true })
+  const setTab = (next: ManageTab) => { if (next !== tab) editParams((query) => query.set('tab', next)) }
+  const leaveWizard = () => editParams((query) => query.delete(NEW_WORLD_QUERY))
+  // 설정집·인물 관계도 탭은 설정 카드·관계 화면(작성)이고 나머지는 각자 도구다. 작성 모드는 탭이 없어 늘 작성이다.
+  const tool = mode === 'manage' && tab !== 'book' && tab !== 'people' ? tab : 'write'
   const [explore, setExplore] = useState('map')
   const [cardFilter, setCardFilter] = useState<CardType | 'all'>('all')
   const [cardQuery, setCardQuery] = useState('')
@@ -61,6 +76,9 @@ export function useWorldStudioViewModel(
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(restoring)
   const [reviewBusy,setReviewBusy]=useState(false)
+  const [publishing, setPublishing] = useState<WorldPublicationInput | null>(null) // 전송 중인 공개 설정. 컨트롤만 이 값을 앞서 보이고 칩·링크는 서버 값을 따른다
+  const [coverRevision, setCoverRevision] = useState(0) // 표지를 올리거나 지울 때마다 올라가 이미지를 다시 읽게 한다
+  const [coverAction, setCoverAction] = useState<'upload' | 'remove' | null>(null)
   useEffect(() => {
     leaveGuard?.setDirty(dirty)
     return () => leaveGuard?.setDirty(false)
@@ -72,7 +90,6 @@ export function useWorldStudioViewModel(
   const editingId = editing?.id
   useEffect(() => {
     dispatchFlow({ type: 'world', id: editingId })
-    setTool('write')
     setCardFilter('all')
     setCardQuery('')
     setCardDetail(false)
@@ -80,10 +97,15 @@ export function useWorldStudioViewModel(
     setRelationRequest(null)
     returnCard.current = ''
   }, [editingId])
+  // 주소만으로 인물 관계도 탭을 열어도(새로고침·공유) 관계 편집기가 마운트되게 한다. 한 번 열린 편집기는 탭을 옮겨도 남아 적용하지 않은 입력을 지키지 않는다.
+  useEffect(() => {
+    if (mode === 'manage' && tab === 'people' && editingId) setRelationWorld(editingId)
+  }, [mode, tab, editingId])
+  /** 작성 모드는 단계를 옮기고, 관리 모드는 그 단계에 해당하는 탭(설정 카드 → 설정집, 관계 연결 → 인물 관계도)으로 옮긴다. */
   const goStep = (step: StudioStep) => {
     dispatchFlow({ type: 'step', step })
-    setTool('write')
     if (step === 'relations' && editing) setRelationWorld(editing.id)
+    if (mode === 'manage') setTab(step === 'relations' ? 'people' : 'book')
   }
   const editCard = (id: string) => {
     const row = editing?.settings.find((item) => item.item.id === id)
@@ -190,6 +212,32 @@ export function useWorldStudioViewModel(
       setError(e instanceof Error ? e.message : '관계를 변경하지 못했습니다.')
     }
   }
+  const writingIssues = editing ? worldWritingIssues(editing) : []
+  // 이름·설명 인라인 저장은 초안 전체를 저장하므로, 저장하지 않은 수정이나 저장 전 확인 항목이 있으면 그 변경이 검사 없이 함께 저장된다 → 먼저 저장하게 막는다.
+  const infoLocked = dirty || writingIssues.length > 0
+  // 저장할 수 있는지: 바뀐 것이 있거나 한 번도 저장한 적 없는 세계관(첫 저장)이고, 저장 전 확인 항목이 없다.
+  const canSave = !busy && !reviewBusy && (dirty || saved?.version === 0) && writingIssues.length === 0
+  const publication: WorldPublicationInput = { visibility: saved?.visibility ?? 'private', genre: saved?.genre ?? null }
+  const demo = import.meta.env.MODE === 'mockup'
+  const listing = listingOf(saved, demo)
+  const cover = useWorldCoverImage(useCase, saved?.id, !!saved?.hasCover && useCase.supportsCover, coverRevision)
+  // 초안 저장: 이름·설명 인라인 편집과 '세계관 저장'이 같은 흐름을 쓴다.
+  const persist = async (target: StudioWorld, signal: AbortSignal) => {
+    const current = generation.current
+    setSaveState('saving')
+    try {
+      if (saved && saved.id === target.id) {
+        assertNoNewRelationDuplicates(target.settings, saved.settings)
+      }
+      apply(await useCase.save(target, signal), current)
+      if (current === generation.current) {
+        setMessage(worldStudioStorage(import.meta.env.MODE).saved)
+      }
+    } catch (e) {
+      if (current === generation.current) setSaveState('failed')
+      throw e
+    }
+  }
   return {
     reviewWorldId:worldId,
     setReviewBusy,
@@ -198,7 +246,12 @@ export function useWorldStudioViewModel(
     canUndoPersonDeletion: !!personUndo,
     flow,
     tool,
-    setTool,
+    /** 관리 모드의 탭(주소 `?tab=`). 작성 모드는 탭이 없다. */
+    tab,
+    setTab,
+    /** 작성 모드(마법사)를 나가 관리 모드로 간다(주소의 `new` 쿼리를 지운다). 입력은 그대로 남는다. */
+    leaveWizard,
+    canSave,
     explore,
     setExplore,
     cardFilter,
@@ -216,7 +269,6 @@ export function useWorldStudioViewModel(
     goStep,
     editCard,
     saveState,
-    showList: () => dispatchFlow({ type: 'list' }),
     resume: () => dispatchFlow({ type: 'resume' }),
     openRelations: (id: string) => {
       returnCard.current = id
@@ -233,7 +285,7 @@ export function useWorldStudioViewModel(
       goStep('cards')
     },
     cardRows: cardLibraryRows(editing?.settings ?? [], cardFilter, cardQuery),
-    writingIssues: editing ? worldWritingIssues(editing) : [],
+    writingIssues,
     worlds,
     saved,
     editing,
@@ -259,7 +311,7 @@ export function useWorldStudioViewModel(
         const w = await useCase.create(name, description, signal)
         if (generation.current === current) {
           leaveGuard?.allowNextNavigation()
-          navigate('/worldstudio/' + w.id)
+          navigate(`/worldstudio/${w.id}?${NEW_WORLD_QUERY}=1`) // 만든 직후에만 마법사로 연다
         }
       }),
     open: (id: string) => {
@@ -354,20 +406,81 @@ export function useWorldStudioViewModel(
       return perform(async (signal) => {
         if (!editing) return
         const current = generation.current
-        setSaveState('saving')
+        await persist(editing, signal)
+        if (mode === 'write' && current === generation.current) leaveWizard() // 마법사의 첫 저장이 성공하면 관리 모드로
+      })
+    },
+    /** 정보 편집 패널을 잠글지: 저장하지 않은 수정이나 저장 전 확인 항목이 있으면 true다(헤더 '편집' 비활성·패널 저장 잠금). */
+    infoLocked,
+    /** 정보 편집 패널의 이름·설명. 기존 초안 저장으로 보내고 저장됐을 때만 true다(실패는 오류 문구로 알리고 false). 잠겨 있으면 보내지 않는다. */
+    saveInfo: async (name: string, description: string) => {
+      if (!editing || infoLocked) return false
+      let done = false
+      await perform(async (signal) => {
+        await persist({ ...editing, name, description }, signal)
+        done = true
+      })
+      return done
+    },
+    /** 작성 모드는 한 번도 저장하지 않은 세계관, 관리 모드는 저장한 적 있는 세계관이다. */
+    mode,
+    /** 서버에 저장된 공개 범위·장르(값이 없으면 비공개·미지정) */
+    publication,
+    publishing,
+    /** 올린 표지 이미지(소유자 인증 읽기 → 객체 주소). 표지가 없거나 읽는 중·실패면 `url`이 비어 자동 생성 표지를 쓴다. */
+    cover,
+    /** 표지 저장소가 있는지. 서버 저장소가 없는 데모(메모리)는 표지 올리기를 지원하지 않는다. */
+    supportsCover: useCase.supportsCover,
+    /** 표지를 올리거나 지우는 중인 동작(없으면 null). */
+    coverAction,
+    /** 표지를 올리거나(교체 포함) 지운다(`null`). 초안 저장과 별개로 바로 적용되고 됐을 때만 true다. 실패하면 이전 표지 그대로 오류 문구를 보인다. */
+    setCover: async (file: File | null) => {
+      if (!saved || busy || reviewBusy || mutation.current) return false
+      let done = false
+      await perform(async (signal) => {
+        const current = generation.current
+        setCoverAction(file ? 'upload' : 'remove')
         try {
-          if (saved && saved.id === editing.id) {
-            assertNoNewRelationDuplicates(editing.settings, saved.settings)
-          }
-          apply(await useCase.save(editing, signal), current)
+          if (file) await useCase.setCover(saved.id, file, signal)
+          else await useCase.removeCover(saved.id, signal)
           if (current === generation.current) {
-            setMessage(worldStudioStorage(import.meta.env.MODE).saved)
+            setSaved((w) => (w && w.id === saved.id ? { ...w, hasCover: !!file } : w))
+            setCoverRevision((revision) => revision + 1)
+            setMessage(file ? '표지를 올렸어요.' : '표지를 지웠어요. 자동으로 만든 표지를 써요.')
+            done = true
           }
-        } catch (e) {
-          if (current === generation.current) setSaveState('failed')
-          throw e
+        } finally {
+          setCoverAction(null)
         }
       })
+      return done
+    },
+    /** 공개 목록에 나오는지: 공개이고 확정 버전이 있으면 'listed', 공개인데 확정 버전이 없으면 'unlisted'(안내가 필요), 그 밖은 null이다. */
+    listing,
+    /** 공개 세계관 화면 주소. 공개 목록에 나오는(공개 + 확정 버전) 세계관만 있다. 비공개·확정 버전 없음·데모(메모리)는 링크를 누르면 404이거나 목록에 없다. */
+    publicHref: listing === 'listed' && saved ? '/worlds/' + saved.id : null,
+    /** 공개 범위·장르를 바로 적용한다(초안 저장과 별개). 같은 값이면 보내지 않고, 비공개에서 공개로 바꿀 때만 한 번 확인한다. 적용됐을 때만 true이고, 실패하면 이전 값 그대로 오류 문구를 보인다. */
+    setPublication: async (change: Partial<WorldPublicationInput>) => {
+      if (!saved || busy || reviewBusy || mutation.current) return false
+      const next = { ...publication, ...change }
+      if (next.visibility === publication.visibility && next.genre === publication.genre) return false
+      if (needsPublicConfirm(publication.visibility, next.visibility) && !window.confirm(PUBLIC_CONFIRM)) return false
+      let done = false
+      await perform(async (signal) => {
+        const current = generation.current
+        setPublishing(next)
+        try {
+          const result = await useCase.setPublication(saved.id, next, signal)
+          if (current === generation.current) {
+            setSaved((w) => (w && w.id === result.worldId ? { ...w, visibility: result.visibility, genre: result.genre } : w))
+            setMessage(publicationNotice(result, demo))
+            done = true
+          }
+        } finally {
+          setPublishing(null)
+        }
+      })
+      return done
     },
   }
 }

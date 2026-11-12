@@ -3,13 +3,33 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router'
 
 import { useAppSelector } from '../../../app/store'
+import type { CreditLedgerUseCase } from '../../../domain/usecases/CreditLedgerUseCase'
 import { useLogout } from '../session/useLogout'
+import { useCreditBalance } from './useCreditBalance'
+
+/**
+ * 프로필 아래 '보유 크레딧' 줄(누르면 결제 내역). 잔액 조회 상태는 이 줄이 따로 갖는다. 잔액이 늦게 도착해 AccountMenu가 다시 그려지면
+ * 안쪽에서 만든 Item이 새로 마운트돼, 열어 둔 메뉴의 포커스를 잃기 때문이다.
+ */
+function CreditRow({ creditLedger, onSelect }: { creditLedger?: Pick<CreditLedgerUseCase, 'balance'>; onSelect: () => void }) {
+  const credit = useCreditBalance(creditLedger)
+  return (
+    <button type="button" role="menuitem" className="acct-credit" onClick={onSelect}>
+      {credit.status === 'failed'
+        ? <span>크레딧을 불러오지 못했어요</span>
+        : <><span>보유 크레딧</span>{' '}<b>{credit.status === 'ready' ? credit.total.toLocaleString('ko-KR') : '…'}</b></>}
+    </button>
+  )
+}
 
 /**
  * 목업 acctMenu(): 아바타 아래에 뜨는 계정 메뉴. 바깥을 누르거나 Esc를 누르면 닫히고,
  * ↑↓·Home·End로 항목을 옮기며 Tab으로 벗어나면 닫힙니다.
+ * 로그인하면 프로필 아래에 보유 크레딧(메뉴가 열릴 때 조회)을, 운영자 계정에는 운영자 대시보드 바로가기를 더합니다.
+ * 운영자 항목은 메뉴 표시일 뿐이고 /admin의 접근 검사는 기존 RequireRole·서버가 맡습니다.
+ * creditLedger는 테스트가 넣는 UseCase 대역입니다.
  */
-export function AccountMenu({ anchor, onClose }: { anchor: HTMLElement; onClose: () => void }) {
+export function AccountMenu({ anchor, onClose, creditLedger }: { anchor: HTMLElement; onClose: () => void; creditLedger?: Pick<CreditLedgerUseCase, 'balance'> }) {
   const { role, user } = useAppSelector((s) => s.session)
   const logout = useLogout()
   const navigate = useNavigate()
@@ -59,15 +79,17 @@ export function AccountMenu({ anchor, onClose }: { anchor: HTMLElement; onClose:
       {role ? (
         <>
           <Item to="/me/profile" className="who">
-            <span className="meav">{user.nick.slice(0, 1)}</span><span><b>{user.nick}</b><small>{user.email}</small></span><em>프로필 ›</em>
+            <span className="meav">{user.nick.slice(0, 1)}</span><span className="who-text"><b title={user.nick}>{user.nick}</b><small title={user.email}>{user.email}</small></span><em>프로필 ›</em>
           </Item>
+          <CreditRow creditLedger={creditLedger} onSelect={go('/me/pay')} /><hr />
+          {role === 'admin' && <Item to="/admin">운영자 대시보드</Item>}
           <Item to="/lib">내 서재</Item><Item to="/me/liked">관심 소설</Item><Item to="/me/pay">결제 내역</Item><hr />
           <Item to="/me/inquiry">문의하기</Item><Item to="/reports">내 신고</Item><Item to="/me/notice">공지사항</Item><Item to="/me/event">이벤트</Item><hr />
           <button type="button" role="menuitem" onClick={() => { void logout().then((ok) => { if (ok) onClose() }) }}>로그아웃</button>
         </>
       ) : (
         <>
-          <div className="who"><span className="meav g">?</span><span><b>로그인해 주세요</b><small>읽기·쓰기를 한 계정으로</small></span></div>
+          <div className="who"><span className="meav g">?</span><span className="who-text"><b>로그인해 주세요</b><small>읽기·쓰기를 한 계정으로</small></span></div>
           <Item to="/login" id="menuLogin" className="pri">로그인</Item><Item to="/me/signup">회원가입</Item><hr />
           <Item to="/me/notice">공지사항</Item><Item to="/me/event">이벤트</Item><Item to="/me/inquiry">문의하기</Item>
         </>

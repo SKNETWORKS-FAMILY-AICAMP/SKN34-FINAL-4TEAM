@@ -1,0 +1,110 @@
+/* 공개 세계관 둘러보기(/worlds, /worlds/:id, /worlds/:id/cards/:cardId). 홈의 칩·히어로 2단(.herow)·TOP10(.t10)·선반·격자 클래스를 그대로 쓰므로 여기에는 홈에 없는 것만 둔다. */
+.worlds-demo { margin-top: 10px; }
+/* 홈 칩 줄은 가로 스크롤 상자라 첫 칩의 포커스 링(밖으로 4px)이 잘린다. 안쪽 여백을 늘리고 바깥 여백으로 되돌려 칩 자리는 홈과 같다. */
+.worlds .chips { padding: 4px; margin: -2px -4px 0; }
+/* 카드 보조 줄은 한 줄로 두어 카드 높이를 맞춘다. min-width: 0이 없으면 긴 글자가 168px 카드를 밀어 늘린다. */
+.worlds .bk { min-width: 0; }
+.worlds .bk small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.worlds .sec-h { flex-wrap: wrap; row-gap: 4px; }
+
+/*
+ * 세계관 지도 카드: 홈 상단 히어로 자리(.herow 왼쪽, 폭 744px 안팎·높이 약 510px)에 놓고 오른쪽에는 '실시간 인기'(.t10)가 선다.
+ * 라이트·다크 테마와 상관없이 늘 어두운 캔버스이고 모서리는 홈 히어로와 같은 16px이다. 캔버스 높이는 CSS가 정하고 WorldAtlasCanvas가 그 값을 읽는다.
+ * 스택: 캔버스(제목·상태는 겹침) → 컨트롤 → 통계 줄·범례. 컨트롤(.world-map-controls)은 WorldStudio 지도와 같은 MapControls라
+ * 그 CSS 파일 없이 이 화면에서 배치와 어두운 면 색만 정한다. .herow가 두 칸 높이를 맞추므로 카드는 남는 높이를 아래쪽 어두운 면으로 채운다.
+ */
+.worlds-atlas { display: flex; flex-direction: column; }
+.atlas-stage { position: relative; flex: 1; overflow: hidden; border-radius: 16px; color: var(--fixed-ink); background: radial-gradient(ellipse at 50% 46%, #182742 0%, #0b1324 56%, #080e1b 100%); box-shadow: var(--sh); }
+.atlas-stage :focus-visible { outline-color: var(--fixed-pri); }
+.atlas-title { position: absolute; left: 16px; top: 14px; z-index: 1; margin: 0; font-size: 14px; font-weight: 800; letter-spacing: .02em; text-shadow: 0 1px 6px rgba(8, 14, 27, .9); pointer-events: none; }
+.atlas-view { position: relative; }
+.atlas-canvas { height: 380px; }
+.atlas-canvas canvas { display: block; }
+/* 상태·힌트는 캔버스 아래 왼쪽에 겹쳐 레이아웃을 흔들지 않는다(role="img"의 자식이 아닌 형제). */
+.atlas-note { position: absolute; left: 14px; bottom: 8px; margin: 0; color: var(--fixed-sub); font-size: 11.5px; pointer-events: none; }
+/* 불러오는 동안 자리표시자는 불러온 뒤의 캔버스 + 컨트롤 줄 높이(데스크톱 380 + 53, 모바일 340 + 두 줄 113)만큼 비워 두어 아래 내용이 밀려 내려오지 않게 한다. */
+.atlas-loading { display: grid; place-items: center; min-height: 432px; margin: 0; padding: 24px; color: var(--fixed-sub); text-align: center; }
+.atlas-fail { margin: 0; padding: 48px 24px; color: var(--fixed-sub); text-align: center; }
+.atlas-foot { padding: 8px 14px; border-top: 1px solid rgba(255, 255, 255, .1); }
+.atlas-foot .world-map-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.atlas-foot .btn { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .2); color: var(--fixed-ink); }
+.atlas-foot .btn:hover { background: rgba(255, 255, 255, .16); }
+.atlas-foot .btn.pri { background: var(--fixed-pri); border-color: var(--fixed-pri); color: var(--on-fixed-pri); }
+.atlas-foot .btn.pri:hover { background: #C7BAFF; }
+.atlas-info { display: grid; gap: 5px; padding: 10px 14px 12px; border-top: 1px solid rgba(255, 255, 255, .06); color: var(--fixed-sub); font-size: 11.5px; }
+.atlas-stats { margin: 0; }
+/* 범례는 장르 색·카드 유형 색·연결 선 세 묶음이 묶음째 줄바꿈한다. */
+.atlas-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
+.atlas-legend ul { display: flex; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.atlas-legend li { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.atlas-legend i { display: block; width: 9px; height: 9px; border-radius: 50%; }
+.atlas-legend i.dot { width: 5px; height: 5px; }
+
+/* 홈의 #home 안에만 걸린 .t10 규칙(숫자 폭·더보기 터치 크기)을 같은 값으로 맞춘다. */
+.worlds .t10 .n { font-variant-numeric: tabular-nums; }
+.worlds .t10h .more { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+
+/* 상세 헤더는 제목·한 줄 소개·작가만 둔다. 표지는 설정집의 정보 상자 안에 있다. */
+.worlds-head { margin-top: 18px; }
+.worlds-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.03em; line-height: 1.3; margin: 0 0 6px; overflow-wrap: anywhere; }
+.worlds-hook { margin-bottom: 6px; color: var(--ink2); font-size: 16px; }
+/* 출처('○○에서 파생'·'○○ + △△ 조합')와 이 세계관에서 파생·조합된 세계관 */
+.worlds-lineage { display: grid; gap: 4px; margin-top: 12px; }
+.worlds-lineage p { font-weight: 700; }
+.worlds-lineage p.muted { font-weight: 500; }
+.worlds-lineage a { color: var(--pri-ink); text-decoration: underline; text-underline-offset: 3px; }
+.worlds-note { margin-bottom: 16px; }
+/* 목록·상세·카드 페이지의 불러오는 중·실패(다시 시도)·공개된 세계관이 없을 때 안내 */
+.worlds-state { display: grid; justify-items: start; gap: 12px; margin: 28px 0; }
+.worlds-state p { margin: 0; }
+
+/* 상세의 그래프 카드(설정 그래프·인물관계도): 지도 카드(.atlas-*)와 같은 어두운 캔버스·컨트롤이고 캔버스만 더 높다. 불러오는 동안 자리는 캔버스 + 컨트롤 줄 높이(460 + 53)만큼 비운다. */
+.worlds-graph .atlas-canvas { height: 460px; }
+.worlds-graph .atlas-loading { min-height: 513px; }
+.worlds-people-notice { margin: 0 0 10px; }
+
+/* 설정집 탭(게시판)의 개요 카드와 설정 카드 페이지: 나무위키 형식 스타일은 reading의 publicWiki.css(nw-*)를 그대로 쓰고 공개 세계관에 맞는 것만 조정한다. */
+.worlds .nw { max-width: none; }
+.nw-info .nw-cover { padding: 12px; }
+.nw-cover .cov { width: min(180px, 100%); margin: 0 auto; }
+.nw-doc .worlds-lineage { margin-top: 0; }
+
+/*
+ * 설정집 탭(게시판): 위에 한 줄 요약, 왼쪽 분류 메뉴·오른쪽 게시판 표, 아래 세계관 개요 카드(.worlds-overview).
+ * 분류 메뉴·검색·정렬·표 스타일은 세계관 작업실의 설정 카드 단계와 함께 쓰는 presentation/shared/worldBoard.css에 있다.
+ */
+.worlds-book-line { margin: 0 0 14px; }
+.worlds-overview { margin-top: 40px; }
+
+/* 설정 카드 페이지: 빵부스러기, 설정집 순서의 이전·다음 설정, 세계관으로 돌아가기 */
+.worlds-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin: 14px 0 12px; padding: 0; list-style: none; font-size: 13.5px; }
+.worlds-crumbs li + li::before { content: '›' / ''; margin-right: 8px; color: var(--faint); }
+.worlds-crumbs a { color: var(--sub); text-decoration: none; }
+.worlds-crumbs a:hover { color: var(--pri-ink); text-decoration: underline; text-underline-offset: 3px; }
+.worlds-crumbs a[aria-current='page'] { color: var(--ink); font-weight: 700; }
+.worlds-cardnav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+.worlds-cardnav a { display: grid; align-content: center; gap: 2px; min-height: 44px; padding: 14px 18px; border: 1px solid var(--tline); border-radius: 14px; background: var(--tcard); color: var(--tfg); text-decoration: none; overflow-wrap: anywhere; }
+.worlds-cardnav a:hover { border-color: var(--tacc); }
+.worlds-cardnav small { color: var(--tsub); }
+.worlds-cardnav .next { grid-column: 2; text-align: right; }
+.worlds-back { margin-top: 16px; }
+/* 홈의 #home 안에만 걸린 모바일 규칙(칩 터치 크기·구역 간격·구역 제목 아래 보조 줄·순위 3위까지)을 같은 값으로 맞춘다.
+   두 칸을 세로로 쌓는 규칙(.herow·.t10)은 홈 전역 규칙을 그대로 쓴다. */
+@media (max-width: 600px) {
+  .worlds .chips button { min-width: 44px; height: 44px; }
+  .worlds-crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
+  .worlds-cardnav { grid-template-columns: 1fr; }
+  .worlds-cardnav .next { grid-column: auto; }
+  .worlds .sec { margin-top: 36px; }
+  .worlds .sec-h > .small { order: 1; width: 100%; }
+  .worlds .t10 li:nth-child(n+4) { display: none; }
+  .worlds .t10 li :is(button, a) { min-height: 44px; }
+  .atlas-canvas, .worlds-graph .atlas-canvas { height: 340px; }
+  .atlas-loading, .worlds-graph .atlas-loading { min-height: 453px; }
+  .atlas-foot, .atlas-info { padding-inline: 12px; }
+  .atlas-hint { display: none; }
+  .atlas-legend { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .atlas-legend::-webkit-scrollbar { display: none; }
+  .atlas-legend ul { flex: none; }
+  .nw-cover .cov { width: min(140px, 100%); }
+}
