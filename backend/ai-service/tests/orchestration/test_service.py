@@ -1,6 +1,9 @@
+import asyncio
+
 import pytest
 
 from app.intent.errors import IntentFailure
+from app.manuscript.errors import ManuscriptFailure
 from app.orchestration import service
 from app.orchestration.models import OrchestrationRequest
 from app.research.errors import ResearchFailure
@@ -85,3 +88,41 @@ def test_router_failure_propagates(monkeypatch):
     fake_agents(monkeypatch, plan('story_context'), fail={'route': IntentFailure()})
     with pytest.raises(IntentFailure):
         run(inputs={'story_context': QA})
+
+
+def stream(request='요청', **body):
+    async def collect():
+        return [(e.event, e.data) async for e in service.stream(OrchestrationRequest(request=request, **body))]
+    return asyncio.run(collect())
+
+
+def test_stream_reports_plan_each_step_start_and_result_then_done(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    events = stream(inputs={'story_context': QA, 'web_research': WEB})
+    assert [(name, data.get('feature')) for name, data in events] == [
+        ('plan', None), ('started', 'story_context'), ('step', 'story_context'),
+        ('started', 'web_research'), ('step', 'web_research'), ('done', None)]
+    assert [s['feature'] for s in events[0][1]['steps']] == ['story_context', 'web_research']
+    assert events[2][1]['status'] == 'completed' and events[2][1]['result']['claims'][0]['sourceIds'] == ['a']
+    assert events[-1][1]['status'] == 'completed' and len(events[-1][1]['steps']) == 2
+
+
+def test_stream_stops_starting_steps_after_failure(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context', 'web_research'),
+                fail={'story_context': ManuscriptFailure(502, 'Q&A 모델 응답을 확인할 수 없습니다.')})
+    events = stream(inputs={'story_context': QA, 'web_research': WEB})
+    assert [name for name, _ in events] == ['plan', 'started', 'step', 'done']
+    assert events[2][1]['error'] == 'Q&A 모델 응답을 확인할 수 없습니다.'
+    assert events[-1][1]['status'] == 'failed'
+
+
+def test_stream_without_execution_ends_with_done_status(monkeypatch):
+    fake_agents(monkeypatch, plan(status='clarify', message='어떤 작업을 원하시나요?'))
+    events = stream()
+    assert [name for name, _ in events] == ['plan', 'done']
+    assert events[-1][1]['status'] == 'clarify'
+
+
+def test_stream_router_failure_is_an_error_event(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'), fail={'route': IntentFailure()})
+    assert stream() == [('error', {'message': '요청 분류에 실패했습니다.'})]
