@@ -5,7 +5,7 @@ import pytest
 from openai import OpenAIError, APITimeoutError
 from fastapi.testclient import TestClient
 from app.main import create_app
-from test_initial_world import data, proposed, provider
+from .test_service import data, proposed, provider
 
 pytestmark = pytest.mark.integration
 URL = '/internal/v1/initial-world/extractions'

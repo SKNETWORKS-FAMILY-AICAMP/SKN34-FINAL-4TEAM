@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[3] / 'docs/design/initial-world-preprocessing'
+ROOT = Path(__file__).resolve().parents[4] / 'docs/design/initial-world-preprocessing'
 
 
 def test_contract_artifacts_exist():
@@ -14,19 +14,19 @@ def test_contract_artifacts_exist():
 
 
 def test_schema_matches_executable_contract():
-    from initial_world_contract import Contract
+    from .contract import Contract
     assert json.loads((ROOT / 'contract.schema.json').read_text(encoding='utf-8')) == Contract.model_json_schema()
 
 
 def test_honggildong_valid():
-    from initial_world_contract import Contract
+    from .contract import Contract
     fixture = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))
     Contract.model_validate(fixture['valid'])
 
 
 @pytest.mark.parametrize('case', json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['invalid'], ids=lambda c: c['name'])
 def test_honggildong_invalid(case):
-    from initial_world_contract import Contract
+    from .contract import Contract
     value = copy.deepcopy(json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid'])
     for change in case['changes']:
         target = value
@@ -38,7 +38,7 @@ def test_honggildong_invalid(case):
 
 
 def test_utf16_boundaries_and_no_normalization():
-    from initial_world_contract import quote_utf16
+    from .contract import quote_utf16
     assert quote_utf16('홍😀\r\n길동', 1, 3) == '😀'
     assert quote_utf16('홍😀\r\n길동', 3, 5) == '\r\n'
     for start, end in [(1, 2), (2, 3), (-1, 1), (0, 99), (2, 2)]:
@@ -48,7 +48,7 @@ def test_utf16_boundaries_and_no_normalization():
 
 @pytest.mark.parametrize('status', ['running', 'failed', 'unknown'])
 def test_noncompleted_analysis_has_no_candidates(status):
-    from initial_world_contract import AnalysisResponse
+    from .contract import AnalysisResponse
     value = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']['analysisResponse']
     value['executionStatus'] = status
     with pytest.raises(ValueError, match='OUTPUT_STATE'):
@@ -61,7 +61,7 @@ def test_noncompleted_analysis_has_no_candidates(status):
 
 @pytest.mark.parametrize('provenance', ['author_revision', 'author_addition'])
 def test_author_content_keeps_original_evidence_separate(provenance):
-    from initial_world_contract import Contract, DecisionRequest
+    from .contract import Contract, DecisionRequest
     value = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']
     edited = value['decisions'][0]['content']
     edited.update(provenance=provenance, evidence=[], text='작가가 새로 정한 설정')
@@ -78,7 +78,7 @@ def test_author_content_keeps_original_evidence_separate(provenance):
 
 
 def test_edit_requires_separate_approval():
-    from initial_world_contract import DecisionRequest
+    from .contract import DecisionRequest
     value = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']
     request = value['decisionRequest']
     request['editedCandidate'] = value['decisions'][0]['content']
@@ -90,7 +90,7 @@ def test_edit_requires_separate_approval():
 
 
 def test_application_cannot_substitute_candidate_identity():
-    from initial_world_contract import Contract
+    from .contract import Contract
     value = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']
     forged_id = '00000000-0000-4000-8000-000000000999'
     # 검토와 반영 요청을 함께 바꿔도 분석이 발급한 후보 UUID와 일치해야 한다.
@@ -116,13 +116,13 @@ def history_fixture():
 
 
 def test_same_candidate_can_have_multiple_review_records():
-    from initial_world_contract import Contract
+    from .contract import Contract
     Contract.model_validate(history_fixture())
 
 
 @pytest.mark.parametrize('failure', ['duplicate', 'old_approval', 'latest_held', 'response_binding'])
 def test_review_history_rejects_invalid_selection(failure):
-    from initial_world_contract import Contract
+    from .contract import Contract
     value = history_fixture()
     if failure == 'duplicate':
         value['decisions'].append(copy.deepcopy(value['decisions'][0]))
@@ -139,7 +139,7 @@ def test_review_history_rejects_invalid_selection(failure):
 
 
 def test_rule_card_is_a_valid_source_without_being_an_entity():
-    from initial_world_contract import Input
+    from .contract import Input
     data = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']['input']
     data['sources'][0]['ownerId'] = '00000000-0000-4000-8000-000000000999'
     data['sources'][0]['sourceId'] = f"card:{data['sources'][0]['ownerId']}:body"
@@ -151,7 +151,7 @@ def test_rule_card_is_a_valid_source_without_being_an_entity():
     ('field', 'title'), ('sourceId', 'world:00000000-0000-4000-8000-000000000002:body'),
 ])
 def test_source_identity_rejected_even_with_recomputed_input_hash(field, value):
-    from initial_world_contract import Contract, Input, input_hash
+    from .contract import Contract, Input, input_hash
     data = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']
     data['input']['sources'][0][field] = value
     with pytest.raises(ValueError, match='SOURCE_IDENTITY'):
@@ -162,7 +162,7 @@ def test_source_identity_rejected_even_with_recomputed_input_hash(field, value):
 
 
 def test_world_description_source_cannot_claim_another_world():
-    from initial_world_contract import Input
+    from .contract import Input
     data = json.loads((ROOT / 'honggildong.json').read_text(encoding='utf-8'))['valid']['input']
     source = data['sources'][0]
     source['field'] = 'description'
