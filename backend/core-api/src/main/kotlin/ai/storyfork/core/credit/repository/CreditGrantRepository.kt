@@ -36,7 +36,7 @@ interface CreditGrantRepository : JpaRepository<CreditGrantEntity, UUID> {
     @Query("select g from CreditGrantEntity g where g.expiresAt <= :now and g.amount > coalesce((select sum(u.amount) from CreditLedgerEntryEntity u where u.grantId = g.id), 0) and not exists (select 1 from CreditLedgerEntryEntity e where e.grantId = g.id and e.kind = 'expire') and not exists (select 1 from CreditReservationLineEntity r where r.grantId = g.id)")
     fun expiredWithoutRecord(now: Instant): List<CreditGrantEntity>
 
-    /** (now, until]에 소멸하고 아직 남은 양(사용·소멸 기록 제외)이 있는 지급분의 회원과 소멸 시각. 소멸 예정 알림이 쓴다. */
-    @Query("select distinct g.memberId as memberId, g.expiresAt as expiresAt from CreditGrantEntity g where g.expiresAt > :now and g.expiresAt <= :until and g.amount > coalesce((select sum(u.amount) from CreditLedgerEntryEntity u where u.grantId = g.id), 0)")
+    /** (now, until]에 소멸하고 아직 쓸 수 있는 양(사용·소멸 기록과 예약 중인 양 제외)이 있는 지급분의 회원과 소멸 시각. 소멸 예정 알림이 쓴다. */
+    @Query("select distinct g.memberId as memberId, g.expiresAt as expiresAt from CreditGrantEntity g where g.expiresAt > :now and g.expiresAt <= :until and g.amount > coalesce((select sum(u.amount) from CreditLedgerEntryEntity u where u.grantId = g.id), 0) + coalesce((select sum(r.amount) from CreditReservationLineEntity r where r.grantId = g.id), 0)")
     fun findExpiring(now: Instant, until: Instant): List<ExpiringGrant>
 }

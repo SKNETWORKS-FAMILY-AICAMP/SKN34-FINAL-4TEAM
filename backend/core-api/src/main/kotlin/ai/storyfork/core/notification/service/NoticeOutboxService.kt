@@ -24,11 +24,9 @@ class NoticeOutboxService(private val outbox: NoticeOutboxRepository) {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     fun enqueue(type: NoticeEventType, recipientId: UUID, targetId: String): UUID {
-        val row = outbox.save(NoticeOutboxEntity(
-            id = UUID.randomUUID(), eventType = type.code, recipientId = recipientId,
-            targetType = type.targetType, targetId = targetId, occurredAt = Instant.now().truncatedTo(ChronoUnit.MICROS),
-        ))
-        return row.id
+        val id = UUID.randomUUID()
+        enqueueOnce(type, recipientId, targetId, id)
+        return id
     }
 
     /**

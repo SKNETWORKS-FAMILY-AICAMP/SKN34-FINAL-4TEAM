@@ -28,9 +28,10 @@ class CreditExpiryNoticeIntegrationTest {
     @Autowired lateinit var events: NoticeEventService
     @Autowired lateinit var jdbc: JdbcTemplate
 
-    // 이 시각에 받은 이벤트 크레딧은 12월 1일 00:00 KST(2026-11-30T15:00Z)에 소멸한다.
-    private val granted = Instant.parse("2026-11-20T01:00:00Z")
-    private val dueSoon = Instant.parse("2026-11-28T00:00:00Z")
+    // 실제 회원의 크레딧과 겹치지 않도록 지난 연도를 쓴다(이 작업은 DB의 모든 지급분을 본다).
+    // 이 시각에 받은 이벤트 크레딧은 2001년 12월 1일 00:00 KST(2001-11-30T15:00Z)에 소멸한다.
+    private val granted = Instant.parse("2001-11-20T01:00:00Z")
+    private val dueSoon = Instant.parse("2001-11-28T00:00:00Z")
     private val members = mutableListOf<UUID>()
 
     private fun member(): UUID {
@@ -52,15 +53,15 @@ class CreditExpiryNoticeIntegrationTest {
         credits.grant(m, CreditKind.EVENT, BigDecimal("10"), granted)
         credits.grant(m, CreditKind.REWARD, BigDecimal("5"), granted)
 
-        notices.notifyExpiring(Instant.parse("2026-11-20T02:00:00Z"))
+        notices.notifyExpiring(Instant.parse("2001-11-20T02:00:00Z"))
         assertEquals(0, rows(m).size, "소멸까지 3일보다 많이 남았으면 기록하지 않는다")
 
         notices.notifyExpiring(dueSoon)
         notices.notifyExpiring(dueSoon.plusSeconds(3600))
         val recorded = rows(m)
         assertEquals(1, recorded.size)
-        assertEquals("2026-12-01", recorded[0]["target_id"])
-        assertEquals(CreditExpiryNoticeService.eventId(m, LocalDate.parse("2026-12-01")), recorded[0]["id"])
+        assertEquals("2001-12-01", recorded[0]["target_id"])
+        assertEquals(CreditExpiryNoticeService.eventId(m, LocalDate.parse("2001-12-01")), recorded[0]["id"])
     }
 
     @Test
@@ -78,7 +79,7 @@ class CreditExpiryNoticeIntegrationTest {
         credits.grant(m, CreditKind.EVENT, BigDecimal("10"), granted)
         notices.notifyExpiring(dueSoon)
         val id = rows(m).single()["id"].toString()
-        val message = NoticeEventMessage(1, id, "core.credit.expiring", dueSoon.toString(), m.toString(), NoticeEventTarget("credit-expiry", "2026-12-01"))
+        val message = NoticeEventMessage(1, id, "core.credit.expiring", dueSoon.toString(), m.toString(), NoticeEventTarget("credit-expiry", "2001-12-01"))
         assertEquals(NoticeEventResult.CREATED, events.handle(message))
         assertEquals("credit", jdbc.queryForObject("select kind from notification where recipient_id = ?", String::class.java, m))
     }

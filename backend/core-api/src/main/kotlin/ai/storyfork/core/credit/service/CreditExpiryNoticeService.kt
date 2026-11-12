@@ -1,12 +1,12 @@
 package ai.storyfork.core.credit.service
 
+import ai.storyfork.core.credit.domain.CreditExpiry
 import ai.storyfork.core.credit.repository.CreditGrantRepository
 import ai.storyfork.core.notification.domain.NoticeEventType
 import ai.storyfork.core.notification.service.NoticeOutboxService
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -31,7 +31,7 @@ class CreditExpiryNoticeService(
     @Transactional
     fun notifyExpiring(now: Instant = Instant.now()): Int {
         var recorded = 0
-        val targets = grants.findExpiring(now, now.plus(leadTime)).map { it.memberId to it.expiresAt.atZone(KST).toLocalDate() }.distinct()
+        val targets = grants.findExpiring(now, now.plus(leadTime)).map { it.memberId to it.expiresAt.atZone(CreditExpiry.KST).toLocalDate() }.distinct()
         for ((memberId, date) in targets) {
             if (notices.enqueueOnce(NoticeEventType.CREDIT_EXPIRING, memberId, date.toString(), eventId(memberId, date))) recorded += 1
         }
@@ -39,8 +39,6 @@ class CreditExpiryNoticeService(
     }
 
     companion object {
-        private val KST: ZoneId = ZoneId.of("Asia/Seoul")
-
         /** 같은 회원·소멸 날짜면 늘 같은 사건 id. */
         fun eventId(memberId: UUID, date: LocalDate): UUID = UUID.nameUUIDFromBytes("core.credit.expiring:$memberId:$date".toByteArray())
     }
