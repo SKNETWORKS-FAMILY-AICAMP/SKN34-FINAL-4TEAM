@@ -9,9 +9,11 @@ import ai.storyfork.core.credit.repository.CreditLedgerEntryRepository
 import ai.storyfork.core.credit.repository.CreditReservationLineRepository
 import ai.storyfork.core.credit.repository.CreditReservationRepository
 import ai.storyfork.core.credit.service.dto.CreditReservationResponse
+import ai.storyfork.core.credit.service.dto.StaleReservation
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional
  * 예약 중인 양은 직접 차감과 소멸에서 빠지므로 다른 작업이 쓸 수 없다. 같은 [operationKey]로 다시 호출해도 결과가 같다.
  * 호출하는 AI 기능의 계약(작업 식별자·비용 환산)은 아직 없어서 이 서비스는 내부 Kotlin API만 제공한다.
  *
- * shortcut: 예약을 닫는 것은 호출한 쪽의 몫이다. 작업이 비정상 종료돼 settle·release가 오지 않으면 예약이 RESERVED로 남아
- * 그 크레딧은 잔액에서 빠진 채 소멸도 되지 않는다. 첫 호출자를 붙이기 전에 오래된 RESERVED 예약을 해제하는 정리 작업이 필요하다.
+ * 예약을 닫는 것은 호출한 쪽의 몫이다. 작업이 비정상 종료돼 settle·release가 오지 않은 예약은 [CreditReservationCleanupJob]이
+ * 시간 기준이 지나면 차감 없이 해제한다. 그 작업은 AI 작업의 최대 실행 시간이 정해질 때까지 꺼져 있다.
  */
 @Service
 class CreditReservationService(
@@ -107,6 +109,11 @@ class CreditReservationService(
         reservation.resolvedAt = now
         return toResponse(reservation)
     }
+
+    /** [before] 이전에 잡아 두고 아직 닫히지 않은 예약을 오래된 순으로 [limit]개 반환한다. 정리 작업([CreditReservationCleanupJob])이 쓴다. */
+    @Transactional(readOnly = true)
+    fun stale(before: Instant, limit: Int): List<StaleReservation> =
+        reservations.findStale(before, PageRequest.of(0, limit)).map { StaleReservation(it.id, it.memberId, it.operationKey) }
 
     /** 본인의 예약만 잠가서 읽는다. 없거나 다른 회원의 예약이면 같은 오류다. */
     private fun owned(memberId: UUID, operationKey: String): CreditReservationEntity =
