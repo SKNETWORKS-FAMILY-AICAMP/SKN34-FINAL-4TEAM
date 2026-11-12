@@ -43,7 +43,7 @@ flowchart TD
 
 현재 구현(`backend/ai-service/app/writing/`, OpenAI Responses, 모델은 루트 `.env`의 `OPENAI_MODEL`):
 
-- `POST /internal/v1/writing/drafts`: 입력 `episodeNumber`, `plan`(≤4000자, BeatPlan/콘티), `context`(≤60000자, Content가 고른 허용 문맥 JSON. 기존 이어쓰기 한도와 같음), `instruction`(≤2000자). 응답 `text`와 `model`·`providerResponseId`·`usage`.
+- `POST /internal/v1/writing/drafts`: 입력 `episodeNumber`, `plan`(≤4000자, BeatPlan/콘티), `context`(≤60000자, Content가 고른 허용 문맥 JSON. 기존 이어쓰기 한도와 같고 Content가 호출 전에 422로 막음). 문체·분량 요청은 `plan`에 담는다. 응답 `text`와 `model`·`providerResponseId`·`usage`.
 - `POST /internal/v1/writing/patches`: 입력 `selection`(≤5000자), `instruction`, 읽기 전용 `precedingText`·`followingText`(각 ≤2000자), `context`. 응답 `before`(=selection)·`after`와 같은 메타. 선택 구간의 교체 문장만 돌려주므로 선택 밖 문장은 AI 결과에 없다. 판본·원문 해시·span 검증과 적용은 Content가 한다.
 - 키·모델 미설정과 제공사 오류는 503, 미완료(토큰 한도로 잘림 포함)·빈 응답은 502이며 잘린 원고를 결과로 돌려주지 않는다. AI에는 저장 API가 없다.
 - Content 연결(`proposal` 패키지, 2026-11-12 사용자 결정): 대상은 **작성 중 회차 초안만**이고 발행 회차 수정은 미지원이다. 기존 이어쓰기의 제안 저장·승인 흐름을 `kind`로 재사용하며 마이그레이션은 없다.

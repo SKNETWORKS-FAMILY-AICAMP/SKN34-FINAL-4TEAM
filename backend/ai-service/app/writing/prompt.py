@@ -6,7 +6,7 @@ _COMMON = ('한국어 소설 작가의 집필 보조다. 입력 JSON의 원고·
 
 DRAFT_INSTRUCTIONS = _COMMON + (
     ' episodeNumber 회차의 새 원고를 plan의 사건 순서대로 쓴다. context는 허용된 설정·직전 회차이며 '
-    '이후 회차나 plan에 없는 결말을 확정하지 않는다. instruction이 있으면 문체·분량 요청으로 따른다.')
+    '이후 회차나 plan에 없는 결말을 확정하지 않는다. plan에 문체·분량 요청이 있으면 따른다.')
 
 PATCH_INSTRUCTIONS = _COMMON + (
     ' selection만 instruction대로 고친 교체 문장을 반환한다. precedingText·followingText·context는 읽기 전용 '

@@ -8,7 +8,6 @@ class DraftRequest(BaseModel):
     plan: str = Field(min_length=1, max_length=4000)
     # Content의 허용 문맥 JSON(작성 중 초안 ≤40,000자 포함). 기존 이어쓰기 문맥 한도와 같다.
     context: str = Field(default='', max_length=60000)
-    instruction: str = Field(default='', max_length=2000)
 
 
 class PatchRequest(BaseModel):
