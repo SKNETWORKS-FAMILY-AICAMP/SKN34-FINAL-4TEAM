@@ -33,6 +33,8 @@ class NoticeEventTypeTest {
         assertEquals(NoticeEventType.WITHDRAWAL_REQUESTED, withdrawal)
         assertEquals(NoticeKind.RIGHTS_SECURITY, withdrawal?.kind)
         assertEquals("withdrawal", withdrawal?.targetType)
+        // 로그인만으로는 복구되지 않으므로(프로필에서 취소해야 함) 안내도 취소 동작을 말한다.
+        assertEquals("탈퇴가 요청됐어요. 유예 기간 안에 프로필에서 탈퇴 요청을 취소하면 복구할 수 있어요", withdrawal?.summary)
         assertTrue(listOfNotNull(expiring, withdrawal).none { it.kind.mutable })
     }
 

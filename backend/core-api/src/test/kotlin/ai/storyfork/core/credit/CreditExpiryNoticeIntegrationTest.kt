@@ -41,10 +41,10 @@ class CreditExpiryNoticeIntegrationTest {
     }
     private fun rows(m: UUID) = jdbc.queryForList("select id, target_id from notification_outbox where recipient_id = ? and event_type = 'core.credit.expiring'", m)
 
-    // 다른 테스트의 회원 몫까지 기록되므로 끝나면 테스트 회원의 대기 사건을 보낸 것으로 표시한다.
+    // 다른 Outbox 테스트가 건너뛰지 않도록 이 테스트 회원의 대기 사건만 보낸 것으로 표시한다.
     @AfterEach
     fun markTestEventsSent() {
-        jdbc.update("update notification_outbox set sent_at = now() where sent_at is null and recipient_id in (select id from auth_member where email like '%.invalid')")
+        members.forEach { jdbc.update("update notification_outbox set sent_at = now() where sent_at is null and recipient_id = ?", it) }
     }
 
     @Test
