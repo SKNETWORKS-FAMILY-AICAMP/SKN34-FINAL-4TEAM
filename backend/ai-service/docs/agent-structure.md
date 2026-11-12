@@ -75,13 +75,15 @@ tests/
 │   ├── test_agent.py     # 프롬프트·SDK 호출 인자, 미설정·제공사 실패·불완전 응답 오류
 │   ├── test_service.py   # 근거·식별자 대조, 후처리, 로컬 계산
 │   ├── test_router.py    # 내부 인증 403, 기능 오류의 상태 코드 변환
-│   └── test_http.py      # FastAPI TestClient 경계(integration marker)
+│   ├── test_http.py      # FastAPI TestClient 경계(integration marker)
+│   └── stubs.py          # 같은 기능 테스트가 상대 import로 공유하는 모델 대역
 ├── fixtures/<기능>/      # 계약 스키마·고정 입력
 ├── serve_stub.py         # 시스템 검증용 대역 서버
 └── test_health.py
 ```
 
 - 계층 파일은 해당 계층 파일이 있을 때만 만듭니다. 같은 파일명이 기능마다 반복되므로 각 기능 디렉터리에 `__init__.py`를 둡니다.
+- 여러 계층 테스트가 같은 모델 대역을 쓰면 `stubs.py`에 두고 `from .stubs import ...`로 가져옵니다. 다른 기능의 테스트 모듈을 import하지 않습니다.
 - 단위 테스트는 router·service·agent 함수를 직접 호출하고 OpenAI·로컬 모델은 monkeypatch 대역으로 바꿉니다. 실제 네트워크·키를 사용하지 않습니다.
 - FastAPI TestClient·HTTP 경계는 `test_http.py`에 `pytestmark = pytest.mark.integration`으로 두고 CI에서 실행합니다.
 - 고정 모델 응답과 벡터는 동작·계약 검증용입니다. 실제 생성 품질·검색 정확도 측정 결과로 보고하지 않습니다.
