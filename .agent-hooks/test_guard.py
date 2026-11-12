@@ -123,6 +123,13 @@ class GuardTest(unittest.TestCase):
         self.assertEqual("", self.stop(stop_hook_active=True)[1])  # 루프 1회 제한
         self.assertEqual("", self.stop()[1])  # 같은 변경은 다시 막지 않음
 
+    def test_stop_reminds_issue_pr_workflow(self):
+        (self.repo / "app.py").write_text("x = 2\n")
+        reason = json.loads(self.stop()[1])["reason"]
+        self.assertIn("Closes #", reason)  # 이슈 → PR 연결
+        self.assertIn("병합은 사용자 확인", reason)
+        self.assertIn("후속 작업", reason)
+
     def test_stop_without_tdd_warning_when_tests_changed(self):
         (self.repo / "app.py").write_text("x = 2\n")
         (self.repo / "test_app.py").write_text("")

@@ -26,11 +26,13 @@ STORYFORK는 다중 AI 에이전트 기반 독자 참여형 스토리 창작·�
    (type: feat, fix, docs, refactor, test, style, perf, build, ci, chore, revert). 작업 브랜치에서 PR을 만들고
    `main`·`develop` 직접 푸시와 PR 병합은 사용자 확인 없이 하지 않는다. 커밋·PR 본문은 한국어로 쓰고,
    PR 본문은 변경 → 동작 → 결정 → 한계 → 남은 일 → 검증 → 한 줄 요약 순서로 실제 검증 결과를 적는다.
+   흐름은 이슈 → 작업 브랜치 → PR(본문에 `Closes #<이슈>`) → 사용자 확인 후 병합이다. '남은 일' 중 독립적으로 실행할 수 있는
+   항목은 기존 이슈 중복을 확인한 뒤 후속 이슈로 만든다(보류·이슈화 금지로 정한 항목은 제외).
 5. **최소 안전**: 실제 `.env`·키를 커밋하거나 `VITE_*`·프론트 번들에 넣지 않는다(설정은 루트 `.env` 하나, 공유는 `.env.example`).
    공유 DB 데이터를 승인 없이 삭제하지 않는다.
 
 [`.agent-hooks/guard.py`](.agent-hooks/guard.py)가 Claude Code·Codex·Hermes에서 Git workflow·`.env` 커밋을 검사하고,
-작업 종료 시 코드 변경마다 한 번 TDD·아키텍처·단위 테스트 점검을 요청한다.
+작업 종료 시 코드 변경마다 한 번 TDD·아키텍처·단위 테스트·이슈/PR 점검을 요청한다.
 
 ## 아키텍처
 
