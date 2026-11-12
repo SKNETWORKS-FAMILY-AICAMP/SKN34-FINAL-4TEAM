@@ -2,7 +2,7 @@ import pytest
 
 from app.manuscript import service
 from app.manuscript.errors import ManuscriptFailure
-from app.manuscript.models import EmbeddingRequest
+from app.manuscript.models import AnswerRequest, Claim, EmbeddingRequest, Excerpt
 
 
 def test_embedding_preserves_prefix_and_vector_order(monkeypatch):
@@ -36,3 +36,22 @@ def test_embedding_model_unavailable_is_an_explicit_error(monkeypatch):
     with pytest.raises(ManuscriptFailure) as error:
         service.embed(EmbeddingRequest(texts=['질문'], kind='query'))
     assert error.value.status == 503
+
+
+def answer_with(monkeypatch, claims):
+    from app.manuscript.models import AnswerResponse
+    monkeypatch.setattr(service.agent, 'answer', lambda data: AnswerResponse(claims=claims, gaps=[]))
+    return AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')])
+
+
+def test_answer_keeps_claims_cited_from_given_excerpts(monkeypatch):
+    data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=['a'])])
+    assert service.answer(data).claims[0].sourceIds == ['a']
+
+
+@pytest.mark.parametrize('ids', [[], ['other']])
+def test_answer_with_unknown_or_missing_citation_is_502(monkeypatch, ids):
+    data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=ids)])
+    with pytest.raises(ManuscriptFailure) as error:
+        service.answer(data)
+    assert error.value.status == 502
