@@ -123,8 +123,15 @@ class GuardTest(unittest.TestCase):
         self.assertEqual("", self.stop(stop_hook_active=True)[1])  # 루프 1회 제한
         self.assertEqual("", self.stop()[1])  # 같은 변경은 다시 막지 않음
 
-    def test_stop_reminds_issue_pr_workflow(self):
+    def test_stop_reminds_issue_pr_workflow_only_with_gh(self):
         (self.repo / "app.py").write_text("x = 2\n")
+        self.assertNotIn("Closes #", json.loads(self.stop()[1])["reason"])  # gh 없음
+        bin_dir = self.repo / "bin"
+        bin_dir.mkdir()
+        (bin_dir / "gh").write_text("#!/bin/sh\nexit 0\n")
+        (bin_dir / "gh").chmod(0o755)
+        self.env["PATH"] = f"{bin_dir}:{self.env['PATH']}"
+        (self.repo / "app.py").write_text("x = 3\n")
         reason = json.loads(self.stop()[1])["reason"]
         self.assertIn("Closes #", reason)  # 이슈 → PR 연결
         self.assertIn("병합은 사용자 확인", reason)

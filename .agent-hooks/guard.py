@@ -194,10 +194,11 @@ def check_stop(root, retry, session):
                  + (" 달라진 부분은 docs를 보완한다." if not any(p.startswith("docs/") for p in paths) else " docs 보완을 확인한다."))
     rec = ["ponytail-review"] + (["code-review(CodeRabbit)"] if shutil.which("coderabbit") else [])
     steps.append(f"권장: {', '.join(rec)}로 이번 변경분만 리뷰하고 유효한 지적만 반영한다.")
-    steps.append("이슈 → PR: 작업 브랜치에 커밋했는데 PR이 없으면 이슈를 확인·생성하고 본문에 `Closes #<이슈>`를 넣어 develop 대상 PR을 만든다."
-                 " 병합은 사용자 확인 후에만 한다.")
-    steps.append("후속 작업: PR '남은 일' 중 독립적으로 실행할 수 있는 항목만 기존 이슈 중복을 확인한 뒤 이슈로 만들고 PR에 링크한다"
-                 "(보류·이슈화 금지로 정한 항목은 제외).")
+    if shutil.which("gh"):  # gh가 있을 때만 이슈·PR 흐름을 요청한다
+        steps.append("이슈 → PR: 작업 브랜치에 커밋했는데 PR이 없으면 이슈를 확인·생성하고 본문에 `Closes #<이슈>`를 넣어 develop 대상 PR을 만든다."
+                     " 병합은 사용자 확인 후에만 한다.")
+        steps.append("후속 작업: PR '남은 일' 중 독립적으로 실행할 수 있는 항목만 기존 이슈 중복을 확인한 뒤 이슈로 만들고 PR에 링크한다"
+                     "(보류·이슈화 금지로 정한 항목은 제외).")
     return "작업 종료 전 1회 점검:\n" + "\n".join(f"{i}. {s}" for i, s in enumerate(steps, 1))
 
 

@@ -156,7 +156,7 @@ CI 이후 단일 CD의 게시 → 배포 흐름은 [인프라 안내](../infrast
 | 세션 시작 | ponytail 권장과 graphify 사용 안내(graphify·`graphify-out/graph.json`이 있을 때만) 주입 |
 | 셸 실행 전 | 브랜치·커밋 형식 위반, 실제 `.env`의 `git add`는 차단. `main`·`develop` 직접 푸시와 `gh pr merge`는 사용자 확인(Codex는 확인 기능이 없어 차단) |
 | 첫 검색 | graphify가 준비돼 있으면 세션의 첫 grep·검색을 한 번 막고 `graphify query`를 먼저 쓰게 함 |
-| 작업 종료 | 세션 시작 커밋 이후의 코드 변경(작업 중 커밋 포함)마다 한 번 TDD·단위 테스트·아키텍처/docs 점검, 권장 리뷰, 이슈 → PR(`Closes #`)·후속 이슈 생성을 요청하고 `graphify update .`를 백그라운드로 실행 |
+| 작업 종료 | 세션 시작 커밋 이후의 코드 변경(작업 중 커밋 포함)마다 한 번 TDD·단위 테스트·아키텍처/docs 점검, 권장 리뷰, 이슈 → PR(`Closes #`)·후속 이슈 생성(`gh`가 있을 때만)을 요청하고 `graphify update .`를 백그라운드로 실행 |
 
 - **Claude Code**: [`.claude/settings.json`](../.claude/settings.json)이 자동 적용됩니다. 스킬은 `.claude/skills`(→ `.agents/skills`)입니다.
 - **Codex**: [`.codex/hooks.json`](../.codex/hooks.json)은 프로젝트를 신뢰하고 `/hooks`에서 훅을 승인해야 실행됩니다. 스킬은 `.agents/skills`를 읽습니다.
