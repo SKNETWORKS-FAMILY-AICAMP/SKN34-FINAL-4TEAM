@@ -17,6 +17,7 @@ import { VersionComparison } from './VersionComparison'
 import { SettingHistoryPanel } from './SettingHistoryPanel'
 import { CheckpointPanel } from './CheckpointPanel'
 import { PublicationSchedulePanel } from './PublicationSchedulePanel'
+import { StoryQaPanel } from '../../../shared/storyContext/StoryQaPanel'
 import './version-panels.css'
 
 export function WritingStudio({id}:{id:string}) {
@@ -84,6 +85,8 @@ export function WritingStudio({id}:{id:string}) {
           {vm.busy&&<button className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
           <details><summary>현재 원고 이미지 미리보기</summary><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></details>
           {!active.inherited&&import.meta.env.MODE!=='mockup'&&<EpisodeWorldBasisControl key={active.number} workId={id} number={active.number}/>}
+          {active.publishedVersionId&&import.meta.env.MODE!=='mockup'&&<StoryQaPanel
+            key={`${id}/${active.number}/${active.publishedVersionId}`} workId={id} episode={active.number} versionId={active.publishedVersionId} owner/>}
           <section aria-label="회차 관리">
             <div className="writing-order">
               <button className="btn sm" disabled={vm.busy||looking} aria-busy={looking} onClick={()=>void vm.checkOrder()}>순서 변경 가능 범위 확인</button>

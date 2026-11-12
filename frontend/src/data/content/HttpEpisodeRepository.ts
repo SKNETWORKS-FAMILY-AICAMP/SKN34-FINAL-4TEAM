@@ -1,7 +1,7 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
 import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
-import {settingCategories, type Draft, type SettingInput, type WorkRegistration} from '../../domain/entities/content'
+import {settingCategories, type Draft, type SettingInput, type StoryQaInput, type WorkRegistration} from '../../domain/entities/content'
 import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
@@ -58,12 +58,34 @@ const publicationSchedule = z.object({
   failureReason: z.string().nullable(),
 })
 const schedulesPath = (id: string, number: number) => `/works/${encodeURIComponent(id)}/episodes/${number}/publication-schedules`
+const qaEpisode = z.object({ number: z.number().int().positive(), versionId: z.string() })
+const qaSource = z.object({
+  id: z.string(), workId: z.string(), sourceWorkId: z.string().nullable(), episode: z.number().int().positive(), quote: z.string(),
+})
+const manuscriptQaAnswer = z.object({
+  status: z.enum(['answered', 'partial', 'insufficient']),
+  claims: z.array(z.object({ text: z.string(), kind: z.enum(['confirmed', 'inferred']), sourceIds: z.array(z.string()) })),
+  sources: z.array(z.discriminatedUnion('kind', [
+    qaSource.extend({ kind: z.literal('manuscript'), episodeId: z.string(), versionId: z.string(),
+      startUtf16: z.number().int().nonnegative(), endUtf16: z.number().int().positive() }),
+    qaSource.extend({ kind: z.literal('setting'), settingId: z.string(), versionId: z.string(), title: z.string() }),
+    qaSource.extend({ kind: z.literal('relationship'), worldId: z.uuid(), graphVersion: z.number().int().nonnegative(),
+      relationshipId: z.uuid(), title: z.string() }),
+  ])),
+  gaps: z.array(z.object({ code: z.string(), detail: z.string() })),
+  coverage: z.object({
+    expected: z.array(qaEpisode), withVerifiedExcerpt: z.array(qaEpisode), withoutVerifiedExcerpt: z.array(qaEpisode),
+  }),
+})
 export type ReadingWorkRecord = z.infer<typeof readingWork>
 export type ReadingWorldRecord = z.infer<typeof readingWorld>
 
 export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepository {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
+  askStoryContext(id: string, input: StoryQaInput, owner: boolean, signal?: AbortSignal) {
+    return this.request(`${owner ? '' : '/public'}/works/${encodeURIComponent(id)}/context/qa`, manuscriptQaAnswer, 'POST', input, signal)
+  }
   /** anonymous면 Bearer 없이 보낸다. 기본은 공개 목록·세계관 같은 /public/works 읽기이고, 회차 댓글은 로그인 상태면 Bearer로 읽어 mine·liked를 받는다. */
   async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal, anonymous = path.startsWith('/public/works') && method === 'GET'): Promise<T> {
     const fetcher = this.fetcher ?? fetch

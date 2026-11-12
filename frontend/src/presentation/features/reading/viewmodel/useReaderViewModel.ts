@@ -21,6 +21,7 @@ type ReaderSheet = { kind: 'comment' | 'feedback' | 'suggest'; k: number } | { k
 
 /** 비회원이 회원 전용 동작을 누를 때 로그인 화면에 보여 줄 안내 */
 const MEMBER_ONLY = {
+  question: '원고 Q&A는 로그인한 회원만 사용할 수 있어요.',
   comment: '댓글은 로그인한 회원만 남길 수 있어요.',
   feedback: '피드백은 로그인한 회원만 보낼 수 있어요.',
   suggest: '수정 제안은 로그인한 회원만 보낼 수 있어요.',

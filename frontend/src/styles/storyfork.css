@@ -503,3 +503,15 @@ input,textarea{caret-color:var(--pri)}
  label:has(>input[type="checkbox"]){min-height:44px}
  input[type="checkbox"]{width:24px;height:24px;flex:none;accent-color:var(--pri)}
 }
+
+.manuscript-qa{white-space:normal;border-color:var(--tline);color:var(--tfg)}
+.manuscript-qa summary{cursor:pointer;font-weight:700}
+.manuscript-qa form{display:grid;gap:12px;margin:12px 0}
+.manuscript-qa label:not(.ck){display:grid;gap:6px}
+.manuscript-qa textarea{width:100%;resize:vertical;background:var(--tcard);color:var(--tfg);border:1px solid var(--tline);border-radius:8px;padding:10px}
+.manuscript-qa button{justify-self:start}.manuscript-qa button:disabled{opacity:.55;cursor:not-allowed}
+.manuscript-qa h3{margin-top:16px}.manuscript-qa p{color:var(--tfg)}
+.manuscript-qa ol,.manuscript-qa ul{padding-inline-start:1.5em}
+.manuscript-qa li{margin-block:6px;overflow-wrap:anywhere}
+.manuscript-qa a{color:var(--tacc);text-decoration:underline;padding-inline:3px}
+.manuscript-qa blockquote{margin:4px 0 0;white-space:pre-wrap}

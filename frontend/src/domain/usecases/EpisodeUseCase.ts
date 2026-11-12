@@ -5,6 +5,9 @@ import { toKstDateTimeInput, type PublicationScheduleRevision } from '../entitie
 export class EpisodeUseCase {
   private readonly repository: EpisodeRepository
   constructor(repository: EpisodeRepository) { this.repository = repository }
+  askStoryContext(id: string, input: import('../entities/content').StoryQaInput, owner: boolean, signal?: AbortSignal) {
+    return this.repository.askStoryContext(id, input, owner, signal)
+  }
   orderScope(id:string,number:number,signal?:AbortSignal) {return this.repository.orderScope(id,number,signal)}
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteDraft(id,number,revision,signal)}
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteEpisode(id,number,revision,signal)}

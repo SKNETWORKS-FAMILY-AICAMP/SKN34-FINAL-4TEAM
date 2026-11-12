@@ -16,6 +16,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+manuscript = [
+    "numpy>=2.2,<3",
+    "onnxruntime>=1.29,<2",
+    "tokenizers>=0.22,<1",
+]
 dev = [
     "httpx2>=2.0.0,<3.0.0",
     "pytest>=8.4.0,<10.0.0",
