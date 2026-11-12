@@ -122,7 +122,7 @@ Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaR
 `app/main.py`가 기능별 Health·generation Router를 조립합니다. Core는 AI Health를 확인하고, Content는 권한과 기준 버전을 확인한 뒤 내부 생성 API를 호출합니다. AI는 제안과 모델 사용량을 반환하고 Content는 제안 저장·채택·원고 반영을 담당합니다.
 시작 시 모델 클라이언트를 만들지 않습니다. 생성 요청에서만 AI 런타임의 키·모델·내부 토큰 설정을 사용합니다.
 단일 모델 호출은 `Router → 실행 함수 → 모델 SDK`로 구성합니다. 검색·검증을 조율하거나 실행 상태를 여러 단계에서 갱신해야 할 때 기능 안에서 필요한 실행 서비스·그래프를 추가합니다.
-상세는 [AI Service 구현 경계와 GovBiz 비교](../backend/ai-service/docs/agent-structure.md)를 따릅니다.
+상세는 [AI Service 구현 경계](../backend/ai-service/docs/agent-structure.md)를 따릅니다.
 
 ## 실행·보안 경계
 

@@ -9,6 +9,8 @@ import ai.storyfork.core.credit.entity.CreditGrantEntity
 import ai.storyfork.core.credit.entity.CreditLedgerEntryEntity
 import ai.storyfork.core.credit.repository.CreditGrantRepository
 import ai.storyfork.core.credit.repository.CreditLedgerEntryRepository
+import ai.storyfork.core.credit.repository.CreditReservationLineRepository
+import ai.storyfork.core.credit.repository.CreditReservationRepository
 import ai.storyfork.core.credit.service.dto.CreditBalanceItem
 import ai.storyfork.core.credit.service.dto.CreditBalanceResponse
 import ai.storyfork.core.credit.service.dto.CreditHistoryItem
@@ -20,11 +22,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/** 크레딧 지급·잔액 조회·차감·소멸 기록. 잔액은 지급분에서 장부의 사용·소멸 합계를 뺀 값이다. */
+/** 크레딧 지급·잔액 조회·차감·소멸 기록. 잔액은 지급분에서 장부의 사용·소멸 합계와 예약 중인 양을 뺀 값이다. */
 @Service
 class CreditService(
     private val grants: CreditGrantRepository,
     private val ledger: CreditLedgerEntryRepository,
+    private val lines: CreditReservationLineRepository,
+    private val reservations: CreditReservationRepository,
     /** 가입 체험 지급량. 팀 결정 전이라 기본 0(지급하지 않음)이며 CREDIT_SIGNUP_TRIAL_AMOUNT로 정한다. */
     @param:Value("\${app.credit.signup-trial-amount:0}") private val signupTrialAmount: BigDecimal,
 ) {
@@ -71,9 +75,11 @@ class CreditService(
      */
     @Transactional
     fun spend(memberId: UUID, amount: BigDecimal, operationKey: String, now: Instant = Instant.now()): List<Allocation> {
-        require(operationKey.isNotBlank() && operationKey.length <= 100 && !operationKey.startsWith("expire:")) { "operationKey가 올바르지 않습니다." }
+        requireOperationKey(operationKey)
         // 같은 회원의 동시 호출이 같은 작업을 두 번 차감하지 않도록, 먼저 지급분을 잠근 뒤 같은 작업의 기록을 확인한다.
         val active = grants.lockActive(memberId, now)
+        // 예약이 쓰는 키로 차감하면 정산 때 같은 키가 겹쳐 두 번 차감되거나 재시도가 어긋난다.
+        require(reservations.findByOperationKey(operationKey) == null) { "이미 예약에 쓰인 operationKey입니다." }
         // 소멸 기록은 "expire:" 키만 쓰고 차감은 그 접두사를 거절하므로, 이 키로 남은 기록은 모두 차감이다.
         val previous = ledger.findByOperationKey(operationKey)
         if (previous.isNotEmpty()) {
@@ -82,11 +88,7 @@ class CreditService(
             require(previous.sumOf { it.amount }.compareTo(amount) == 0) { "같은 operationKey로 다른 금액을 차감할 수 없습니다." }
             return previous.map { Allocation(it.grantId, it.amount) }
         }
-        val used = usedByGrant(active.map { it.id })
-        val balances = active.map { g ->
-            GrantBalance(g.id, g.amount - (used[g.id] ?: BigDecimal.ZERO), g.grantedAt, g.expiresAt)
-        }
-        val allocations = CreditAllocator.allocate(balances, amount, now)
+        val allocations = CreditAllocator.allocate(availableBalances(active), amount, now)
         ledger.saveAll(allocations.map { CreditLedgerEntryEntity(UUID.randomUUID(), it.grantId, "spend", it.amount, operationKey, now) })
         return allocations
     }
@@ -107,6 +109,23 @@ class CreditService(
         return recorded
     }
 
-    private fun usedByGrant(ids: List<UUID>): Map<UUID, BigDecimal> =
-        if (ids.isEmpty()) emptyMap() else ledger.usedByGrant(ids).associate { it[0] as UUID to it[1] as BigDecimal }
+    /** 지급분마다 사용 가능한 남은 양(지급량 − 사용·소멸 − 예약 중). 예약 서비스가 예약 가능 여부를 계산할 때 쓴다. */
+    fun availableBalances(active: List<CreditGrantEntity>): List<GrantBalance> {
+        val used = usedByGrant(active.map { it.id })
+        return active.map { g -> GrantBalance(g.id, g.amount - (used[g.id] ?: BigDecimal.ZERO), g.grantedAt, g.expiresAt) }
+    }
+
+    /** 지급분별로 이미 빠져나간 양(사용·소멸)에 예약 중인 양을 더한 값. 다른 작업이 쓸 수 없는 몫이다. */
+    private fun usedByGrant(ids: List<UUID>): Map<UUID, BigDecimal> {
+        if (ids.isEmpty()) return emptyMap()
+        val used = ledger.usedByGrant(ids).associate { it[0] as UUID to it[1] as BigDecimal }
+        val held = lines.heldByGrant(ids).associate { it[0] as UUID to it[1] as BigDecimal }
+        return (used.keys + held.keys).associateWith { (used[it] ?: BigDecimal.ZERO) + (held[it] ?: BigDecimal.ZERO) }
+    }
+
+    companion object {
+        /** 작업 키는 비어 있거나 100자를 넘거나 소멸 기록 전용 접두사(`expire:`)로 시작할 수 없다. */
+        fun requireOperationKey(operationKey: String) =
+            require(operationKey.isNotBlank() && operationKey.length <= 100 && !operationKey.startsWith("expire:")) { "operationKey가 올바르지 않습니다." }
+    }
 }

@@ -8,9 +8,11 @@ from types import SimpleNamespace
 import pytest
 from openai import OpenAIError, APITimeoutError
 from app.initial_world.models import Input, Output
-from app.initial_world import service
+from app.initial_world import agent, service
+from app.initial_world.errors import ExtractionFailure
+from app.initial_world.models import ProposedOutput
 
-ROOT = Path(__file__).parent / 'fixtures/initial_world'
+ROOT = Path(__file__).parents[1] / 'fixtures/initial_world'
 
 
 @pytest.fixture
@@ -40,7 +42,7 @@ def provider(monkeypatch, output, status='completed', error=None):
             return SimpleNamespace(status=status, output_text=output)
         def close(self):
             calls.append('closed')
-    monkeypatch.setattr(service, 'OpenAI', Client)
+    monkeypatch.setattr(agent, 'OpenAI', Client)
     return calls
 
 
@@ -81,7 +83,7 @@ def test_invalid_model_output_is_not_partial_success(monkeypatch, data, kind):
         c = next(x for x in out['candidates'] if x['type'] == 'conjecture')
         c['type'] = 'fact'
     provider(monkeypatch, json.dumps(out, ensure_ascii=False))
-    with pytest.raises(service.ExtractionFailure):
+    with pytest.raises(ExtractionFailure):
         service.extract(Input.model_validate(data['input']))
 
 
@@ -105,7 +107,7 @@ def test_utf16_emoji_crlf_and_ambiguous_quote(monkeypatch, data):
     assert (ev.start, ev.end, ev.quoteHash) == (1, 5, sha256('😀\r\n'.encode()).hexdigest())
     data['input']['sources'][0]['text'] *= 2
     refresh(data['input'])
-    with pytest.raises(service.ExtractionFailure):
+    with pytest.raises(ExtractionFailure):
         service.extract(Input.model_validate(data['input']))
 
 
@@ -117,7 +119,7 @@ def test_colliding_name_or_alias_cannot_choose_an_identity(monkeypatch, data, al
     refresh(data['input'])
     out = proposed(data); out['candidates'] = [out['candidates'][1]]
     provider(monkeypatch, json.dumps(out, ensure_ascii=False))
-    with pytest.raises(service.ExtractionFailure):
+    with pytest.raises(ExtractionFailure):
         service.extract(Input.model_validate(data['input']))
     provider(monkeypatch, json.dumps({'schemaVersion': 'initial-world.v1', 'candidates': [], 'diagnostics': ['동명이인/별칭 참조를 해결할 수 없음']}))
     assert service.extract(Input.model_validate(data['input'])).diagnostics
@@ -126,14 +128,14 @@ def test_colliding_name_or_alias_cannot_choose_an_identity(monkeypatch, data, al
 @pytest.mark.parametrize('body,status', [('{', 'completed'), ('', 'completed'), ('{}', 'completed'), ('{}', 'incomplete')])
 def test_bad_json_or_truncated_response_fails(monkeypatch, data, body, status):
     provider(monkeypatch, body, status)
-    with pytest.raises(service.ExtractionFailure): service.extract(Input.model_validate(data['input']))
+    with pytest.raises(ExtractionFailure): service.extract(Input.model_validate(data['input']))
 
 
 @pytest.mark.parametrize('timeout', [False, True])
 def test_provider_errors_are_explicit_and_close_client(monkeypatch, data, timeout):
     error = APITimeoutError(request=SimpleNamespace()) if timeout else OpenAIError('private error')
     calls = provider(monkeypatch, '', error=error)
-    with pytest.raises(service.ExtractionFailure) as failure: service.extract(Input.model_validate(data['input']))
+    with pytest.raises(ExtractionFailure) as failure: service.extract(Input.model_validate(data['input']))
     assert failure.value.status == (504 if timeout else 503)
     assert 'private' not in str(failure.value)
     assert calls[-1] == 'closed'
@@ -143,7 +145,7 @@ def test_provider_errors_are_explicit_and_close_client(monkeypatch, data, timeou
 def test_missing_config_never_calls_provider(monkeypatch, data, key):
     calls = provider(monkeypatch, '')
     monkeypatch.delenv(key)
-    with pytest.raises(service.ExtractionFailure) as failure: service.extract(Input.model_validate(data['input']))
+    with pytest.raises(ExtractionFailure) as failure: service.extract(Input.model_validate(data['input']))
     assert failure.value.status == 503 and calls == []
 
 
@@ -179,7 +181,7 @@ def test_wire_models_match_pinned_219_schema():
 
 
 def test_provider_schema_has_no_optional_or_unrestricted_properties():
-    schema = service.ProposedOutput.model_json_schema()
+    schema = ProposedOutput.model_json_schema()
     for node in [schema, *schema['$defs'].values()]:
         if node.get('type') == 'object':
             assert node['additionalProperties'] is False

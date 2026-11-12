@@ -27,7 +27,13 @@ class WithdrawalCompletionService(
 ) {
     /** 기한이 지난 처리 대기 요청 id를 오래된 순으로 limit개 반환한다. */
     @Transactional(readOnly = true)
-    fun dueIds(now: Instant, limit: Int): List<UUID> = withdrawals.findDueIds(now, PageRequest.of(0, limit))
+    /**
+     * 기한이 지난 처리 대기 요청 id를 오래된 순으로 limit개 반환하되 [excluded]에 든 요청은 뺀다.
+     * 계속 실패하는 요청 때문에 뒤의 요청이 밀리지 않게 하려고 쓴다.
+     */
+    fun dueIds(now: Instant, limit: Int, excluded: Collection<UUID>): List<UUID> =
+        // 빈 목록은 IN 조건으로 쓸 수 없어서 어떤 요청 id와도 겹치지 않는 값을 하나 넣는다.
+        withdrawals.findDueIds(now, excluded.ifEmpty { listOf(NO_ID) }, PageRequest.of(0, limit))
 
     /**
      * 요청 하나를 완료 처리하고 처리했으면 true를 반환한다. 요청·복구와 같은 순서(회원 잠금 → 요청 확인)로 잠가
@@ -56,5 +62,6 @@ class WithdrawalCompletionService(
     companion object {
         const val ANONYMOUS_NICKNAME = "탈퇴한 회원"
         const val ANONYMOUS_EMAIL_DOMAIN = "withdrawn.invalid"
+        private val NO_ID = UUID(0L, 0L)
     }
 }

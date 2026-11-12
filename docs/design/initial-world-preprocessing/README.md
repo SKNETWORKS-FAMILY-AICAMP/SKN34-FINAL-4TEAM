@@ -22,7 +22,7 @@ Content가 소유권·원문·revision·검토·반영을 관리하고 AI는 전
 
 - [contract.schema.json](contract.schema.json): Pydantic이 생성한 JSON Schema 2020-12 호환 구조. `$defs/Input`, `Output`, `AnalysisRequest`, `AnalysisResponse`, `DecisionRequest`, `DecisionRecord`, `ApplicationRequest`, `ApplicationResponse`를 각 경계에서 사용한다.
 - 최상위 `Contract`는 한 신규 반영 시도 전후의 검증 자료를 모은 **테스트 전용 봉투**이며 HTTP 요청 DTO가 아니다. 완료 receipt 재조회 경로를 흉내 내는 모델이 아니다. `currentDraftRevision`, `appliedCandidateIds` 등을 클라이언트가 권위 있는 값으로 보내지 않는다.
-- [실행 계약](../../../backend/ai-service/tests/initial_world_contract.py)은 테스트 전용이다. 서비스 코드에서 import하지 않는다. 모델의 `extra=forbid`로 미정 필드를 거부한다.
+- [실행 계약](../../../backend/ai-service/tests/initial_world/contract.py)은 테스트 전용이다. 서비스 코드에서 import하지 않는다. 모델의 `extra=forbid`로 미정 필드를 거부한다.
 - JSON Schema는 형태/타입/길이/enum을 검증한다. ID 존재, 인용 일치, 해시, 상태 전이, 유형별 필수 조건 등은 실행 계약과 아래 규칙을 함께 적용한다. Schema만 통과했다고 반영 가능하지 않다.
 - [홍길동전 fixture](honggildong.json)는 원전 인용이 아닌 직접 작성한 합성 자료다. 정상 7유형, 오류 변형 목록을 포함한다. 모델 정확도나 배포 검증이 아니다.
 - UUID 문자열, 기존 프런트와 같은 `0..Number.MAX_SAFE_INTEGER` revision, 기존 카드 본문 3,000자·제목 200자·별칭 100개 제한을 따른다. 저장 전에 JVM의 UTF-16 길이 제한도 별도로 검사한다(JSON Schema 길이는 Unicode 문자 수).
@@ -178,13 +178,13 @@ world→analysis→candidate 소속을 외래 키/검증으로 보호하고 검�
 로컬/CI 순수 단위 명령(backend/ai-service):
 
 ```sh
-uv run --locked --extra dev python -m pytest -m 'not integration' tests/test_initial_world_contract.py
+uv run --locked --extra dev python -m pytest -m 'not integration' tests/initial_world/test_contract.py
 ```
 
 Schema 재생성(저장소 루트, 기존 AI 환경의 Python 사용):
 
 ```sh
-python -c "import sys,json; from pathlib import Path; sys.path.insert(0,'backend/ai-service/tests'); from initial_world_contract import Contract; Path('docs/design/initial-world-preprocessing/contract.schema.json').write_text(json.dumps(Contract.model_json_schema(),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')"
+python -c "import sys,json; from pathlib import Path; sys.path.insert(0,'backend/ai-service/tests/initial_world'); from contract import Contract; Path('docs/design/initial-world-preprocessing/contract.schema.json').write_text(json.dumps(Contract.model_json_schema(),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')"
 ```
 
 JSON Schema와 실행 계약의 일치, 7유형 정상 예, 22개 오류 변형, UTF-16/CRLF/surrogate,
