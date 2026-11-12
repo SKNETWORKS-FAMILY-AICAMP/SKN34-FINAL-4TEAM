@@ -33,7 +33,7 @@ flowchart LR
 
 ### Intent Router와 입력 가드레일 (#55)
 
-`ai-service`의 `app/intent/routing.py`의 `route`가 실행 전 가드레일과 분류만 한다(2026-11-11 사용자 요청으로 선행 구현). 실행·검색·정본 수정·HTTP 연결은 아직 없다.
+`ai-service`의 `app/intent/service.py`의 `route`가 실행 전 가드레일과 분류만 한다(2026-11-11 사용자 요청으로 선행 구현). 실행·검색·정본 수정·HTTP 연결은 아직 없다.
 
 - 모델은 OpenAI Decisions(`POST /v1/decisions`, 지원 모델 `gpt-6-luna`)의 choice 질문만 쓴다(2026-11-11 사용자 결정). 모델은 보낸 선택지 중 하나만 고르고, 작가에게 보이는 거절·확인 문구는 서버 고정 문구다. 설치된 SDK에 decisions 리소스가 없어 `OpenAI.post`로 호출하고 응답을 다시 검증한다.
 - 가드레일(`guard` 질문): `greeting`(인사·감사), `out_of_scope`(창작과 무관. 작품 고증용 현실 사실 확인은 제외), `inappropriate_edit`(승인 없는 저장·발행·삭제, 다른 작가·권한 밖 작품 수정), `prompt_injection`(지시·권한 검사 무시, 권한 밖 자료 열람, 도구·명령 실행, 시스템 지시 공개), `sensitive_data`(회원 개인정보, 키·토큰·비밀번호·내부 설정)는 `rejected`와 고정 안내 문구를 반환하고 아무 기능도 실행하지 않는다. 모델이 guard 질문 자체를 거부(refusal)하면 `unsafe`로 거절한다. 가드레일이 걸린 요청에서 나머지 질문의 refusal은 허용한다.
