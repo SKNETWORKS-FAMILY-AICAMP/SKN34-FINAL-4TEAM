@@ -6,7 +6,7 @@ import ai.storyfork.content.world.service.dto.PublicWorldResponse
 import java.util.UUID
 import org.springframework.web.bind.annotation.*
 
-/** 공개 세계관을 비로그인으로도 읽기 전용으로 제공한다. 세계관 이용·복사·Fork는 제공하지 않는다(DEC-35). */
+/** 공개 세계관을 비로그인으로도 읽기 전용으로 제공한다. 카드는 소유자가 공개로 바꾼 것만 보인다(DEC-46). 세계관 참조 이용·Fork는 제공하지 않는다(DEC-35). */
 @RestController
 @RequestMapping("/api/v1/public/world-studios")
 class PublicWorldController(private val service: PublicWorldService) {
@@ -18,7 +18,7 @@ class PublicWorldController(private val service: PublicWorldService) {
     fun list(@RequestParam(required = false) genre: String?, @RequestParam(required = false) page: String?, @RequestParam(required = false) size: String?): PublicWorldPageResponse =
         service.list(genre, page, size)
 
-    /** 마지막 저장 버전의 카드와 현재 관계를 반환한다. 비공개·저장 버전 없음·없는 세계관은 404이고 관계 저장소가 불확실하면 `relationshipStatus=unavailable`로 카드만 준다. */
+    /** 마지막 저장 버전의 공개 카드와 그 카드끼리의 현재 관계를 반환한다. 비공개·저장 버전 없음·없는 세계관은 404이고 관계 저장소가 불확실하면 `relationshipStatus=unavailable`로 카드만 준다. */
     @GetMapping("/{id}")
     fun read(@PathVariable id: UUID): PublicWorldResponse = service.detail(id)
 

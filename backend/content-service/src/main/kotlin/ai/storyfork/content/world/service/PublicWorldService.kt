@@ -8,7 +8,9 @@ import ai.storyfork.content.world.domain.WORLD_GENRES
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.coverStorage
 import ai.storyfork.content.world.domain.isListed
+import ai.storyfork.content.world.domain.isPublicCard
 import ai.storyfork.content.world.domain.publicWorldPage
+import ai.storyfork.content.world.domain.readerCardEpisode
 import ai.storyfork.content.world.domain.visibleRelationships
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.service.dto.*
@@ -22,8 +24,9 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 
 /**
- * 공개 세계관의 비로그인 읽기 전용 조회다. 마지막 저장 버전의 활성 카드와 Neo4j 현재 관계만 보여 주며
- * 비공개·초안뿐인·없는 세계관은 모두 404로 숨긴다. PostgreSQL은 읽기 전용 짧은 트랜잭션이고 Neo4j·Core·객체 저장소(표지) 호출은 그 밖이다.
+ * 공개 세계관의 비로그인 읽기 전용 조회다. 마지막 저장 버전의 공개 카드(삭제되지 않았고 소유자가 공개로 바꾼 카드, DEC-46)와
+ * 그 카드끼리의 Neo4j 현재 관계만 보여 주며 비공개·초안뿐인·없는 세계관은 모두 404로 숨긴다. 공개 카드가 하나도 없는 공개 세계관은 카드 없이 그대로 나온다.
+ * PostgreSQL은 읽기 전용 짧은 트랜잭션이고 Neo4j·Core·객체 저장소(표지) 호출은 그 밖이다.
  */
 @Service
 class PublicWorldService(
@@ -38,6 +41,8 @@ class PublicWorldService(
     private fun notFound() = ContentFailure(404, "세계관을 찾을 수 없습니다.")
 
     private class Snapshot(val world: StudioWorld, val revision: WorldRevision, val cards: List<SettingCardVersion>, val state: WorldRelationshipState?)
+    /** 독자에게 보이는 카드와 그 독자 공개 회차의 쌍이다. */
+    private class ReaderSnapshot(val cards: List<Pair<SettingCardVersion, Int>>, val state: WorldRelationshipState?)
     private class Listing(val page: Page<StudioWorld>, val revisions: Map<UUID, WorldRevision>, val cardIds: Map<UUID, List<UUID>>, val states: Map<UUID, WorldRelationshipState>)
 
     /** 공개이고 확정된 현재 버전이 있는 세계관만(상세와 같은 기준) 최근 공개순으로 돌려준다. genre가 없거나 비어 있으면 전체다. 값 오류는 422다. */
@@ -50,7 +55,7 @@ class PublicWorldService(
             else {
                 val revisionIds = worldPage.content.mapNotNull { it.currentRevisionId }
                 Listing(worldPage, revisions.findAllById(revisionIds).filter { it.sealed }.associateBy { it.id },
-                    revisionCards.activeCardIds(revisionIds).groupBy({ it[0] as UUID }, { it[1] as UUID }),
+                    revisionCards.publicCardIds(revisionIds).groupBy({ it[0] as UUID }, { it[1] as UUID }),
                     states.findAllById(worldPage.content.map { it.id }).associateBy { it.worldId })
             }
         }
@@ -68,7 +73,7 @@ class PublicWorldService(
         return PublicWorldPageResponse(items, request.pageNumber, request.pageSize, found.page.totalElements)
     }
 
-    /** 공개 세계관의 마지막 저장 버전 카드와 현재 관계를 돌려준다. 공개가 아니거나 저장 버전이 없거나 없으면 404다. */
+    /** 공개 세계관의 마지막 저장 버전에 있는 공개 카드와 그 카드끼리의 현재 관계를 돌려준다. 공개가 아니거나 저장 버전이 없거나 없으면 404다. */
     fun detail(id: UUID): PublicWorldResponse {
         val seen = tx { snapshot(id) }
         val author = authors(listOf(seen.world.ownerSubject)).getValue(seen.world.ownerSubject)
@@ -89,6 +94,28 @@ class PublicWorldService(
         return WorldCoverImage(coverStorage { storage.read(key).bytes }, type)
     }
 
+    /**
+     * 연결된 소설 [workId]의 독자에게 [upto]화 기준으로 보이는 카드와 그 카드끼리의 현재 관계다(DEC-46). 세계관·카드의 공개 범위와 무관하게
+     * 확정된 현재 버전의 카드 중 독자 공개 회차가 [upto] 이하인 것만 고른다. 세계관이 없거나 확정 버전이 없거나 보일 카드가 없으면 빈 목록이고 Neo4j를 읽지 않는다.
+     * 작품의 공개 여부와 기준 회차(발행된 회차 안)는 호출자([ai.storyfork.content.work.service.WorkWorldService])가 먼저 정한다.
+     */
+    fun readerCards(workId: String, worldId: UUID, upto: Int): ReaderWorldCardsResponse {
+        val seen = tx {
+            val revision = worlds.findById(worldId).orElse(null)?.currentRevisionId?.let { revisions.findByIdAndWorldId(it, worldId) }?.takeIf { it.sealed }
+            if (revision == null) ReaderSnapshot(emptyList(), null)
+            else ReaderSnapshot(cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId })
+                .mapNotNull { card -> readerCardEpisode(card.fields.lifecycle, card.fields.semanticMetadata, upto)?.let { card to it } }
+                .sortedBy { it.first.cardId.toString() }, states.findById(worldId).orElse(null))
+        }
+        if (seen.cards.isEmpty()) return ReaderWorldCardsResponse(workId, worldId, upto)
+        val relations = currentRelationships(worldId, seen.state, seen.cards.map { it.first.cardId }.toSet())
+        return ReaderWorldCardsResponse(workId, worldId, upto,
+            seen.cards.map { (card, from) -> ReaderWorldCardResponse(card.cardId, card.fields.title, card.fields.body, card.fields.cardType, card.fields.aliases.toList(), card.fields.tags.toList(), from) },
+            // 양 끝이 독자에게 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
+            relations.orEmpty().map { PublicWorldRelationshipResponse(it.id, it.sourceCardId!!, it.targetCardId!!, it.label) },
+            if (relations == null) "unavailable" else "current")
+    }
+
     /** 상세와 표지가 같이 쓰는 공개 기준이다: 공개이고 확정(sealed)된 현재 버전이 있는 세계관. 아니면 404다. 읽기 트랜잭션 안에서 부른다. */
     private fun listedWorld(id: UUID): Pair<StudioWorld, WorldRevision> {
         val world = worlds.findById(id).orElse(null)?.takeIf { isListed(it.visibility, it.currentRevisionId) } ?: throw notFound()
@@ -99,11 +126,11 @@ class PublicWorldService(
     private fun snapshot(id: UUID): Snapshot {
         val (world, revision) = listedWorld(id)
         val versionIds = revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId }
-        val cards = cardVersions.findAllById(versionIds).filter { it.fields.lifecycle == "active" }.sortedBy { it.cardId.toString() }
+        val cards = cardVersions.findAllById(versionIds).filter { isPublicCard(it.fields.lifecycle, it.fields.visibility) }.sortedBy { it.cardId.toString() }
         return Snapshot(world, revision, cards, states.findById(id).orElse(null))
     }
 
-    /** Neo4j 현재 관계 중 양 끝이 공개 카드인 것이다. 미전환·미완료·토큰 불일치·조회 실패는 null이며 호출자가 unavailable로 알린다. */
+    /** Neo4j 현재 관계 중 양 끝이 [cardIds](보이는 카드)에 있는 것이다. 미전환·미완료·토큰 불일치·조회 실패는 null이며 호출자가 unavailable로 알린다. */
     private fun currentRelationships(worldId: UUID, state: WorldRelationshipState?, cardIds: Set<UUID>): List<RelationshipPayload>? {
         if (state == null || !state.completed) return null
         return try {

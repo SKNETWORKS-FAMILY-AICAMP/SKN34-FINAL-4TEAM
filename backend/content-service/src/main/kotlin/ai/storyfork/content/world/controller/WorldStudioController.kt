@@ -1,5 +1,6 @@
 package ai.storyfork.content.world.controller
 
+import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.domain.worldCoverFile
 import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.world.service.WorldStudioService
@@ -13,26 +14,31 @@ import org.springframework.web.multipart.MultipartFile
 
 /**
  * 인증된 소유자의 독립 세계관과 현재 관계를 제공한다. 공개 세계관의 비로그인 읽기 API는 [PublicWorldController]가 맡고,
- * 관계 이력 API는 제공하지 않는다.
+ * 관계 이력 API는 제공하지 않는다. 목록과 초안 응답에는 이 세계관에 연결된 소설(`linkedWorkId`, 1:1, DEC-46)을 붙인다.
+ * 연결의 정본은 작품 쪽(`work.world_studio_id`)이라 세계관 조회·저장을 마친 뒤 따로 읽는다.
  */
 @RestController
 @RequestMapping("/api/v1/world-studios")
-class WorldStudioController(private val service:WorldStudioService,private val covers:WorldCoverService) {
+class WorldStudioController(private val service:WorldStudioService,private val covers:WorldCoverService,private val links:WorkWorldService) {
     /** 소유 세계관 요약을 반환하며 미전환·미완료 상태도 표시한다. */
     @GetMapping
-    fun list(principal:Principal)=service.list(UUID.fromString(principal.name))
+    fun list(principal:Principal):List<WorldStudioSummaryResponse> {
+        val rows=service.list(UUID.fromString(principal.name));val linked=links.linkedWorkIds(rows.map { it.worldId })
+        return rows.map { it.copy(linkedWorkId=linked[it.worldId]) }
+    }
+    private fun linked(draft:WorldDraftResponse)=draft.copy(linkedWorkId=links.linkedWorkIds(listOf(draft.worldId))[draft.worldId])
 
     /** caller UUID로 생성/동일 입력 재시도를 처리한다. 권한 오류는 404, 입력 오류는 422다. */
     @PostMapping
-    fun create(principal:Principal,@RequestBody request:CreateWorldRequest)=service.create(UUID.fromString(principal.name),request)
+    fun create(principal:Principal,@RequestBody request:CreateWorldRequest)=linked(service.create(UUID.fromString(principal.name),request))
 
     /** 소유자의 카드 초안과 일치하는 현재 Neo4j 관계만 반환한다. 미전환/불일치는 409, 미완료는 503이다. */
     @GetMapping("/{id}")
-    fun read(@PathVariable id:UUID,principal:Principal)=service.draft(id,UUID.fromString(principal.name))
+    fun read(@PathVariable id:UUID,principal:Principal)=linked(service.draft(id,UUID.fromString(principal.name)))
 
     /** 예상 revision과 요청 키로 현재 상태를 저장한다. 확정 비적용 409는 재조회·수정하며 결과 미확인 충돌은 동일 입력으로 재시도한다. */
     @PutMapping("/{id}/draft")
-    fun edit(@PathVariable id:UUID,principal:Principal,@RequestBody request:EditWorldDraftRequest)=service.edit(id,UUID.fromString(principal.name),request)
+    fun edit(@PathVariable id:UUID,principal:Principal,@RequestBody request:EditWorldDraftRequest)=linked(service.edit(id,UUID.fromString(principal.name),request))
 
     /** 카드/설정 버전을 확정한다. 관계 과거 상태는 저장하지 않으며 응답에서도 not_recorded로 구분한다. */
     @PostMapping("/{id}/revisions")

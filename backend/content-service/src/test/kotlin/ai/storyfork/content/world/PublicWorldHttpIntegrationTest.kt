@@ -60,10 +60,13 @@ class PublicWorldHttpIntegrationTest {
 
                 val create=CreateWorldRequest("공개할 세계관","첫 설명")
                 assertEquals(200,send(studios,method="POST",body=create).statusCode())
-                val a=CardPayload(UUID.randomUUID(),"첫 인물","공개 원문","character","basic",aliases=listOf("별칭"),tags=listOf("태그"))
+                val a=CardPayload(UUID.randomUUID(),"첫 인물","공개 원문","character","basic",aliases=listOf("별칭"),tags=listOf("태그"),visibility="public")
                 val b=a.copy(id=UUID.randomUUID(),title="둘째 인물")
+                // 카드의 기본은 비공개다(DEC-46). 공개 세계관에서도 이 카드와 이 카드에 닿는 관계는 보이지 않고 수에도 세지 않는다.
+                val secret=CardPayload(UUID.randomUUID(),"비공개 인물","비공개 원문","character","basic")
                 val relation=RelationshipPayload(UUID.randomUUID(),a.id,b.id,"emotional","관계 설명 원문",label="동료",direction="directed")
-                assertEquals(200,send("$studios/${create.id}/draft",method="PUT",body=EditWorldDraftRequest(0,create.name,"첫 설명",listOf(a,b),listOf(relation),"public-edit",true)).statusCode())
+                val secretRelation=RelationshipPayload(UUID.randomUUID(),a.id,secret.id,"structural","비공개 관계 설명",label="비공개 관계")
+                assertEquals(200,send("$studios/${create.id}/draft",method="PUT",body=EditWorldDraftRequest(0,create.name,"첫 설명",listOf(a,b,secret),listOf(relation,secretRelation),"public-edit",true)).statusCode())
 
                 // 기본은 비공개이고, 공개로 설정해도 저장 버전이 없으면(초안뿐이면) 목록·상세에 나오지 않는다.
                 assertEquals(404,anonymous("$publics/${create.id}").statusCode())
@@ -100,6 +103,8 @@ class PublicWorldHttpIntegrationTest {
                 assertEquals(relation.id.toString(),edge.path("id").asString());assertEquals(a.id.toString(),edge.path("sourceCardId").asString())
                 assertEquals(b.id.toString(),edge.path("targetCardId").asString());assertEquals("동료",edge.path("label").asString())
                 assertFalse(detail.body().contains("관계 설명 원문"))
+                // 비공개 카드는 id·제목·본문 어느 것도, 그 카드에 닿는 관계도 나오지 않는다.
+                for(leak in listOf(secret.id.toString(),"비공개 인물","비공개 원문","비공개 관계")) assertFalse(detail.body().contains(leak),leak)
 
                 // 목록: 카드·관계 수, 작가 닉네임, 장르 필터, 잘못된 쿼리는 422다.
                 val all=json(anonymous(publics));assertEquals(1,all.path("total").asInt());assertEquals(0,all.path("page").asInt());assertEquals(24,all.path("size").asInt())
@@ -123,7 +128,11 @@ class PublicWorldHttpIntegrationTest {
                 // 소유자의 목록·상세에도 공개 설정이 보인다.
                 val mine=json(send(studios)).values().first { it.path("worldId").asString()==create.id.toString() }
                 assertEquals("public",mine.path("visibility").asString());assertEquals("fantasy",mine.path("genre").asString())
-                assertEquals("public",json(send("$studios/${create.id}")).path("visibility").asString())
+                val owned=json(send("$studios/${create.id}"))
+                assertEquals("public",owned.path("visibility").asString())
+                // 소유자에게는 비공개 카드도 그대로 보이고 카드마다 저장한 공개 범위가 돌아온다.
+                val cardVisibility=owned.path("cards").values().associate { it.path("id").asString() to it.path("visibility").asString() }
+                assertEquals("public",cardVisibility[a.id.toString()]);assertEquals("private",cardVisibility[secret.id.toString()])
 
                 // 관계 저장소가 현재 상태를 보증하지 못하면 카드는 그대로 두고 unavailable로 알린다(500이 아니다).
                 db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"UPDATE worldstudio.relationship_state SET completed=false WHERE world_id='${create.id}'") }

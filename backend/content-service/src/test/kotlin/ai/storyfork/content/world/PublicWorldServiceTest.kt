@@ -41,24 +41,28 @@ class PublicWorldServiceTest {
     private val published = Instant.parse("2026-11-11T01:02:03Z")
 
     /**
-     * 공개 세계관 하나와 그 저장소 대역이다. 마지막 저장 버전의 카드는 활성 둘과 삭제 하나이고,
-     * 현재 관계는 활성 카드끼리 하나와 삭제 카드·저장 버전에 없는 카드를 가리키는 둘이다.
+     * 공개 세계관 하나와 그 저장소 대역이다. 마지막 저장 버전의 카드는 공개 둘([cards]로 바꿀 수 있다)·삭제 하나·비공개 하나이고,
+     * 현재 관계는 공개 카드끼리 하나와 삭제 카드·저장 버전에 없는 카드·비공개 카드를 가리키는 셋이다.
+     * 독자 공개 회차는 첫 인물 1화, 비공개 인물 2화, 지운 인물 1화이고 둘째 인물은 회차가 없어 공개 카드여도 독자에게 숨는다.
      */
     private inner class Seed(
         val owner: UUID = UUID.randomUUID(), visibility: String = "public", genre: String? = "fantasy",
-        saved: Boolean = true, name: String = "저장된 세계", cover: Boolean = false,
+        saved: Boolean = true, name: String = "저장된 세계", cover: Boolean = false, cards: String = "public",
     ) {
         val id: UUID = UUID.randomUUID()
         val coverBytes = byteArrayOf(1, 2, 3)
         val revisionId: UUID = UUID.randomUUID()
-        val first = card("첫 인물")
-        val second = card("둘째 인물")
-        val removed = card("지운 인물", "removed")
-        val versions = listOf(first, second, removed)
+        val first = card("첫 인물", visibility = cards, reveal = 1)
+        val second = card("둘째 인물", visibility = cards)
+        val removed = card("지운 인물", "removed", reveal = 1)
+        /** 소유자가 공개로 바꾸지 않은 카드다. 공개 세계관에서도 보이지 않지만(DEC-46) 독자 공개 회차가 있어 연결 소설의 독자에게는 2화부터 보인다. */
+        val hidden = card("비공개 인물", visibility = "private", reveal = 2)
+        val versions = listOf(first, second, removed, hidden)
         val relations = listOf(
             RelationshipPayload(UUID.randomUUID(), first.cardId, second.cardId, "structural", label = "동료"),
             RelationshipPayload(UUID.randomUUID(), first.cardId, removed.cardId, "structural", label = "삭제된 쪽"),
             RelationshipPayload(UUID.randomUUID(), first.cardId, UUID.randomUUID(), "emotional", label = "초안에만 있는 쪽"),
+            RelationshipPayload(UUID.randomUUID(), first.cardId, hidden.cardId, "structural", label = "비공개 쪽"),
         )
         val world = StudioWorld(id, owner, if (saved) revisionId else null, visibility = visibility, genre = genre, publishedAt = published,
             coverObjectKey = if (cover) "world-covers/$id" else null, coverContentType = if (cover) "image/png" else null)
@@ -75,20 +79,21 @@ class PublicWorldServiceTest {
             if (cover) `when`(storage.read("world-covers/$id")).thenReturn(AttachmentObjectResult(coverBytes))
         }
 
-        private fun card(title: String, lifecycle: String = "active") = SettingCardVersion(
+        private fun card(title: String, lifecycle: String = "active", visibility: String = "public", reveal: Any? = null) = SettingCardVersion(
             cardId = UUID.randomUUID(), worldId = id, versionNo = 1,
-            fields = CardFields(title = title, body = "$title 본문", cardType = "character", aliases = listOf("별칭"), tags = listOf("태그"), lifecycle = lifecycle),
+            fields = CardFields(title = title, body = "$title 본문", cardType = "character", aliases = listOf("별칭"), tags = listOf("태그"),
+                semanticMetadata = mapOf("studio" to mapOf("item" to title)) + (reveal?.let { mapOf("revealFromEpisode" to it) } ?: emptyMap()), visibility = visibility, lifecycle = lifecycle),
         )
 
-        /** 목록 쿼리가 돌려줄 행(활성 카드 ID 쌍)이다. */
-        val activeCardRows get() = listOf(first, second).map { arrayOf<Any>(revisionId, it.cardId) }
+        /** 목록 쿼리가 돌려줄 행(공개된 활성 카드 ID 쌍)이다. */
+        val publicCardRows get() = versions.filter { it.fields.lifecycle == "active" && it.fields.visibility == "public" }.map { arrayOf<Any>(revisionId, it.cardId) }
     }
 
     private fun stubPage(seeds: List<Seed>, page: PageRequest, total: Long, genre: String? = null) {
         val result = PageImpl(seeds.map { it.world }, page, total)
         if (genre == null) `when`(worlds.listed(page)).thenReturn(result) else `when`(worlds.listedByGenre(genre, page)).thenReturn(result)
         `when`(revisions.findAllById(seeds.map { it.revisionId })).thenReturn(seeds.map { it.revision })
-        `when`(revisionCards.activeCardIds(seeds.map { it.revisionId })).thenReturn(seeds.flatMap { it.activeCardRows })
+        `when`(revisionCards.publicCardIds(seeds.map { it.revisionId })).thenReturn(seeds.flatMap { it.publicCardRows })
         `when`(states.findAllById(seeds.map { it.id })).thenReturn(seeds.map { it.state })
     }
 
@@ -107,6 +112,60 @@ class PublicWorldServiceTest {
         assertEquals(PublicWorldCardResponse(s.first.cardId, "첫 인물", "첫 인물 본문", "character", listOf("별칭"), listOf("태그")), result.cards.single { it.id == s.first.cardId })
         assertEquals(listOf(PublicWorldRelationshipResponse(s.relations[0].id, s.first.cardId, s.second.cardId, "동료")), result.relationships)
         assertEquals("current", result.relationshipStatus)
+    }
+
+    @Test fun `a public world whose cards are all private is still listed and readable, with no card and no relation`() {
+        val s = Seed(cards = "private")
+        stubPage(listOf(s), PageRequest.of(0, 24), 1)
+        val item = service.list(null, null, null).items.single()
+        assertEquals(s.id, item.id)
+        assertEquals(0, item.cardCount)
+        assertEquals(0, item.relationshipCount)
+        val detail = service.detail(s.id)
+        assertTrue(detail.cards.isEmpty())
+        assertTrue(detail.relationships.isEmpty())
+        assertEquals("current", detail.relationshipStatus)
+    }
+
+    private fun readerCard(card: SettingCardVersion, from: Int) =
+        ReaderWorldCardResponse(card.cardId, card.fields.title, card.fields.body, "character", listOf("별칭"), listOf("태그"), from)
+
+    @Test fun `reader cards are the active cards revealed up to the episode whatever the world and card visibility, with only the relations between them`() {
+        // 세계관도 비공개다: 독자 공개는 세계관 공개·카드 공개와 별개로 카드의 독자 공개 회차만 본다.
+        val s = Seed(visibility = "private")
+        assertEquals(ReaderWorldCardsResponse("work", s.id, 2,
+            listOf(readerCard(s.first, 1), readerCard(s.hidden, 2)).sortedBy { it.id.toString() },
+            listOf(PublicWorldRelationshipResponse(s.relations[3].id, s.first.cardId, s.hidden.cardId, "비공개 쪽")), "current"),
+            service.readerCards("work", s.id, 2))
+        // 1화 기준이면 2화부터 공개되는 카드와 그 카드에 닿는 관계가 아직 없다.
+        val early = service.readerCards("work", s.id, 1)
+        assertEquals(listOf(s.first.cardId), early.cards.map { it.id })
+        assertTrue(early.relationships.isEmpty())
+        assertEquals("current", early.relationshipStatus)
+        verifyNoInteractions(nicknames)
+    }
+
+    @Test fun `reader cards are empty without reading Neo4j when the world has no sealed revision, is unknown or reveals nothing yet`() {
+        val draftOnly = Seed(saved = false)
+        val unsealed = Seed().also { it.revision.sealed = false }
+        val nothingYet = Seed()
+        listOf(draftOnly.id to 5, unsealed.id to 5, UUID.randomUUID() to 5, nothingYet.id to 0).forEach { (world, upto) ->
+            assertEquals(ReaderWorldCardsResponse("work", world, upto), service.readerCards("work", world, upto))
+        }
+        verifyNoInteractions(graph)
+    }
+
+    @Test fun `reader cards stay and the relations say unavailable when the relation store cannot vouch for the current state`() {
+        val pending = Seed()
+        pending.state.completed = false
+        val failing = Seed()
+        `when`(graph.read(failing.id)).thenThrow(WorldStudioFailure.unavailable())
+        listOf(pending, failing).forEach { s ->
+            val result = service.readerCards("work", s.id, 2)
+            assertEquals(listOf(s.first.cardId, s.hidden.cardId).sortedBy { it.toString() }, result.cards.map { it.id })
+            assertTrue(result.relationships.isEmpty())
+            assertEquals("unavailable", result.relationshipStatus)
+        }
     }
 
     @Test fun `detail is 404 for private, never-saved and unknown worlds without touching Core or Neo4j`() {

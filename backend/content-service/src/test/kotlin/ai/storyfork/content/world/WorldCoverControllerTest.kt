@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*
 class WorldCoverControllerTest {
     private val covers = mock(WorldCoverService::class.java)
     private val publicWorlds = mock(PublicWorldService::class.java)
-    private val studios = WorldStudioController(mock(WorldStudioService::class.java), covers)
+    private val studios = WorldStudioController(mock(WorldStudioService::class.java), covers, mock(ai.storyfork.content.work.service.WorkWorldService::class.java))
     private val publics = PublicWorldController(publicWorlds)
     private val id = UUID.randomUUID()
     private val owner = UUID.randomUUID()
