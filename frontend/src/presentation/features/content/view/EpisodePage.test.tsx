@@ -254,7 +254,7 @@ it('has one text back link to the library at the top of the main area, not a pil
   expect(back[0].getAttribute('href')).toBe('/lib?tab=write')
   expect(back[0].classList.contains('ep-back')).toBe(true)
   expect(back[0].classList.contains('back')).toBe(false)
-  expect(screen.getByRole('main').firstElementChild).toBe(back[0])
+  expect(screen.getByRole('main').firstElementChild?.firstElementChild).toBe(back[0]) // 상단 줄(.ep-top)의 첫 요소
 })
 
 it('opens the work named by ?work= from the start and shows its management hero with the saved fork policy', async () => {

@@ -6,6 +6,8 @@ import ai.storyfork.content.attachment.client.dto.AttachmentObjectPayload
 import ai.storyfork.content.attachment.client.dto.AttachmentObjectResult
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.auth.client.dto.NicknamesPayload
+import ai.storyfork.content.auth.client.dto.NicknamesResponse
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.world.service.dto.*
 import java.awt.image.BufferedImage
@@ -65,6 +67,8 @@ class WorldCoverHttpIntegrationTest {
                 val core=ctx.getBean(CoreAuthClient::class.java);val objects=ctx.getBean(Doubles::class.java).objects
                 val owner=UUID.randomUUID();val other=UUID.randomUUID()
                 for(id in listOf(owner,other)) `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id))
+                // 공개 목록·상세는 작가 표시명을 Core에서 읽는다.
+                `when`(core.nicknames(NicknamesPayload(listOf(owner.toString())))).thenReturn(NicknamesResponse(mapOf(owner.toString() to "표지 작가")))
                 val host="http://127.0.0.1:${ctx.environment.getProperty("local.server.port")}"
                 val studios="/api/v1/world-studios";val publics="/api/v1/public/world-studios"
                 fun call(path:String,actor:UUID?=owner,method:String="GET",body:ByteArray?=null,type:String="application/json",csrf:Boolean=true):HttpResponse<ByteArray> {
