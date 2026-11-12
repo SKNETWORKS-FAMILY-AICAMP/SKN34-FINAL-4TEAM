@@ -458,7 +458,7 @@
 <tr><td>발행 원고·설정·현재 관계 Q&A와 출처·근거 부족 표시</td><td>❌ <a href="writing-ai-architecture/07-retrieval-contract-and-mocks.md#설정관계-로컬-실모델-검증">구현 · 로컬 실모델 검증</a></td></tr>
 <tr><td>허용 문맥 미리보기</td><td>❌</td></tr>
 <tr><td>이어쓰기 요청</td><td>❌</td></tr>
-<tr><td>부분 수정 요청</td><td>❌</td></tr>
+<tr><td>부분 수정 요청</td><td>❌ <small>(Content·AI API와 승인 반영 구현 · 화면 미연결 · 통합 테스트 CI 대기)</small></td></tr>
 <tr><td>AI 대화 요청</td><td>❌</td></tr>
 <tr><td>대화 목록 조회</td><td>❌</td></tr>
 <tr><td>대화 상세 조회</td><td>❌</td></tr>

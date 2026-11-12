@@ -41,6 +41,17 @@ flowchart TD
 
 두 경로 모두 LLM을 쓰지만 입력·출력·저장 검증이 다르다. 문체/말투 변경도 기존 원고 수정이다. 결과 표시와 실제 원고 저장을 분리하고, Content가 최신 판본·선택 범위·승인 영수증을 확인한 뒤에만 반영한다.
 
+현재 구현(`backend/ai-service/app/writing/`, OpenAI Responses, 모델은 루트 `.env`의 `OPENAI_MODEL`):
+
+- `POST /internal/v1/writing/drafts`: 입력 `episodeNumber`, `plan`(≤4000자, BeatPlan/콘티), `context`(≤60000자, Content가 고른 허용 문맥 JSON. 기존 이어쓰기 한도와 같음), `instruction`(≤2000자). 응답 `text`와 `model`·`providerResponseId`·`usage`.
+- `POST /internal/v1/writing/patches`: 입력 `selection`(≤5000자), `instruction`, 읽기 전용 `precedingText`·`followingText`(각 ≤2000자), `context`. 응답 `before`(=selection)·`after`와 같은 메타. 선택 구간의 교체 문장만 돌려주므로 선택 밖 문장은 AI 결과에 없다. 판본·원문 해시·span 검증과 적용은 Content가 한다.
+- 키·모델 미설정과 제공사 오류는 503, 미완료(토큰 한도로 잘림 포함)·빈 응답은 502이며 잘린 원고를 결과로 돌려주지 않는다. AI에는 저장 API가 없다.
+- Content 연결(`proposal` 패키지, 2026-11-12 사용자 결정): 대상은 **작성 중 회차 초안만**이고 발행 회차 수정은 미지원이다. 기존 이어쓰기의 제안 저장·승인 흐름을 `kind`로 재사용하며 마이그레이션은 없다.
+  - `POST /api/v1/works/{id}/writing/drafts` `{revision, plan, consent, episode?, character?}` → `kind=draft` 후보. 승인하면 기존 이어쓰기처럼 초안 끝에 덧붙인다.
+  - `POST /api/v1/works/{id}/writing/patches` `{revision, start, end, instruction, consent, episode?, character?}` → 초안 본문 UTF-16 구간 `[start,end)`(공백 아님·≤5000자·서로게이트 분할 금지, 위반 시 422)의 `kind=patch` 후보. `position="start:end"`를 입력 스냅샷에 남기고 응답의 `baseBody`·`position`으로 before를 보여준다. 문맥 JSON에서는 초안 전문을 빼고 앞뒤 2000자만 보낸다.
+  - 승인은 기존 `POST /api/v1/works/{id}/proposals/{pid}/accept`이다. 작품 revision이 바뀌었거나, patch인데 현재 초안이 후보 생성 때와 다르면 409로 덮어쓰지 않는다. patch는 그 구간만 교체하고 `proposal_episode_change.position`에 위치를 남긴다. 거절·목록 화면과 프론트엔드 연결은 후속이다.
+- 실모델 수용(2026-11-11, `gpt-6-luna`, 개발용 합성 자료, 실호출 3회): 11화 새 원고는 계획 3단계를 순서대로 따른 약 1,500자(32.0초, 출력 1,030토큰)였으나 "열 살 전의 서윤"처럼 설정(29세, 10년 전)과 어긋난 나이 표현이 1건 있었다. 부분 수정은 2.9초에 선택 문장 하나만 바꿨고 앞뒤 문장은 결과에 없었다. 선택 구간 안의 "앞뒤 문장까지 다시 써라" 지시는 따르지 않았으나, 맞춤법만 요청했는데 그 괄호 문구를 지웠다(1.7초). 키 미설정은 호출 없이 503이었다. 장문 생성의 설정 일치는 Review 연계 전 작가 검토에 의존한다.
+
 ## 5. Story Development Agent
 
 앞으로의 전개를 계획한다. 인사이트, 콘티, 다음 화 사건·장면 순서를 BeatPlan으로 반환한다. “11화에 어떤 사건을 넣을까?”는 Development 결과로 끝난다. “그 계획으로 11화 원고를 써줘”는 Development 결과를 Writing에 전달한다. 예정 사건과 이미 확정된 사건을 혼동하지 않는다. 인물의 반응이 계획 판단에 필수일 때만 Simulation을 추가한다.
