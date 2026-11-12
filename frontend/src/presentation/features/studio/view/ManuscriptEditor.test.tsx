@@ -158,6 +158,23 @@ it.each(ROUND_TRIP)('열기만 해서는 onChange를 부르지 않고 불러온 
   expect(onBody).toHaveBeenLastCalledWith(`${body}!`)
 })
 
+it('Toast 내부 표기와 같은 글자($$widget0 …$$)가 든 원고는 고치면 그 글자를 잃으므로 편집을 받지 않고 이유를 알린다', () => {
+  const onBody = vi.fn()
+  const onImage = vi.fn(async () => true)
+  const body = '앞 줄\n$$widget0 글$$'
+  render(draw(<Harness initial={body} onBody={onBody} onImage={onImage} />))
+  expect(status().textContent).toBe('이 원고에는 편집기가 그대로 둘 수 없는 표기($$widget…$$)가 있어 여기서는 고칠 수 없어요.')
+  end()
+  type('!')
+  act(() => { toast().deleteSelection([1, 1], [1, 2]) })
+  fireEvent.click(tool('굵게'))
+  // 편집 영역의 글은 그대로이고 저장으로 이어지는 onChange도, 이미지 올리기도 일어나지 않는다.
+  expect(toast().getMarkdown()).toBe('앞 줄\n글')
+  expect(onBody).not.toHaveBeenCalled()
+  fireEvent.paste(surface(), { clipboardData: { getData: () => '', files: [png()] } })
+  expect(onImage).not.toHaveBeenCalled()
+})
+
 it('40,000자 본문도 그대로 돌아온다', () => {
   const lines = ('가'.repeat(99) + '\n').repeat(400)
   const withImage = ('가'.repeat(99) + '\n').repeat(399) + '가'.repeat(53) + '\n' + imageMarker(SECOND)

@@ -23,6 +23,7 @@ export type ManuscriptEditorHandle = {
 
 const LIMIT = `${BODY_MAX.toLocaleString('ko-KR')}자를 넘는 입력은 넣을 수 없어요.`
 const IMAGE_ROW = '이미지가 있는 줄에는 이 동작을 쓸 수 없어요.'
+const RESERVED = '이 원고에는 편집기가 그대로 둘 수 없는 표기($$widget…$$)가 있어 여기서는 고칠 수 없어요.'
 /**
  * 이미지 표식 한 줄. 계약(원고 기본 서식)대로 줄 전체가 `[[image:<UUID>]]`일 때만 이미지다.
  * 공용 규칙(`imageMarker(id) === 줄`)과 같게 image는 소문자만, UUID는 대소문자를 가리지 않는다.
@@ -126,7 +127,9 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
   // Toast 툴바 안에서 이미지 버튼을 그릴 자리
   const [tool] = useState(() => { const el = document.createElement('span'); el.className = 'manuscript-tool'; return el })
   const [slots, setSlots] = useState<HTMLElement[]>([])
-  const [notice, setNotice] = useState('')
+  // Toast는 자기 위젯 표기와 같은 글자(`$$widget0 글$$`)를 벗겨 읽는다. 그런 글이 든 원고를 고치면 그 글자가 저장에서 사라지므로(자동 저장으로 이어진다)
+  // 편집을 받지 않고 이유를 알린다. 편집기에서는 이런 글자를 넣을 수 없어(아래 leaked) 다른 길로 들어온 원고에서만 생긴다.
+  const [notice, setNotice] = useState(() => (WRAP.test(value) ? RESERVED : ''))
   const [preview, setPreview] = useState(false)
   const { dark } = useTheme()
   const hint = useId()
@@ -137,8 +140,9 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
     const el = host.current!
     let view!: View
     let pmState!: PMState
+    const reserved = WRAP.test(mount.value)
     const upload = async (picked: File, at: Span, focus: boolean) => {
-      if (!live.current.editable) return false
+      if (!live.current.editable || reserved) return false
       const before = bodyUpTo(view.state.doc, at.from)
       cursor.current = { line: before.split('\n').length - 1 + 4, focus }
       const ok = await live.current.onImage(picked, before.length, bodyUpTo(view.state.doc, at.to).length)
@@ -251,6 +255,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
         const before = view.state.doc
         // 잠긴 동안에는 툴바·붙여넣기를 포함한 모든 입력을 받지 않는다(inert를 모르는 환경에서도).
         if (!live.current.editable) return refuse('')
+        if (reserved) return refuse(RESERVED)
         if (leaked(tr.doc) > leaked(before)) return refuse(IMAGE_ROW)
         // 저장 문자열이 40,000자를 넘기는 입력은 막는다. 줄이는 입력은 늘 허용한다.
         const size = bodyLength(bodyUpTo(tr.doc))
