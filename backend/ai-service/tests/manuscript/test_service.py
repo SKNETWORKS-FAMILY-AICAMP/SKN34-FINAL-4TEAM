@@ -55,3 +55,28 @@ def test_answer_with_unknown_or_missing_citation_is_502(monkeypatch, ids):
     with pytest.raises(ManuscriptFailure) as error:
         service.answer(data)
     assert error.value.status == 502
+
+
+def attrs(span):
+    return dict(span.attributes)
+
+
+def test_answer_trace_has_retrieval_refs_and_evidence_check_without_text(monkeypatch, spans):
+    data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=['a'])])
+    service.answer(data)
+    retrieval, check, qa = spans()
+    assert (retrieval.name, check.name, qa.name) == ('retrieval', 'evidence_check', 'story_context.qa')
+    assert retrieval.parent.span_id == qa.context.span_id == check.parent.span_id
+    assert '"kind": "manuscript"' in attrs(retrieval)['langfuse.observation.metadata.excerpts']
+    assert attrs(check)['langfuse.observation.metadata.citedIds'] == '["a"]'
+    assert not any(text in str(attrs(s)) for s in (retrieval, check, qa) for text in ('원문', '누구?', '홍길동'))
+
+
+def test_invalid_citation_is_traced_as_error_and_still_fails(monkeypatch, spans):
+    data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=['other'])])
+    with pytest.raises(ManuscriptFailure):
+        service.answer(data)
+    _, check, qa = spans()
+    assert attrs(check)['langfuse.observation.level'] == 'ERROR'
+    assert attrs(check)['langfuse.observation.metadata.invalidIds'] == '["other"]'
+    assert attrs(qa)['langfuse.observation.level'] == 'ERROR'

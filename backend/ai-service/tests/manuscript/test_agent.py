@@ -57,3 +57,19 @@ def test_previous_turns_are_sent_only_to_resolve_references(monkeypatch):
 
     provider(monkeypatch, parse)
     assert agent.answer(data).gaps == ['근거 없음']
+
+
+def test_generation_trace_has_model_usage_and_failure(monkeypatch, spans):
+    expected = AnswerResponse(claims=[], gaps=['근거 없음'])
+    provider(monkeypatch, lambda **_: SimpleNamespace(status='completed', output_parsed=expected, model='resolved-model',
+                                                      usage=SimpleNamespace(input_tokens=10, output_tokens=4)))
+    agent.answer(DATA)
+    provider(monkeypatch, lambda **_: SimpleNamespace(status='incomplete', output_parsed=None, model='m', usage=None))
+    with pytest.raises(ManuscriptFailure):
+        agent.answer(DATA)
+    ok, failed = spans()
+    assert ok.attributes['langfuse.observation.type'] == 'generation'
+    assert ok.attributes['langfuse.observation.model.name'] == 'resolved-model'
+    assert ok.attributes['langfuse.observation.usage_details'] == '{"input": 10, "output": 4}'
+    assert failed.attributes['langfuse.observation.level'] == 'ERROR'
+    assert '원문 한 줄' not in str(dict(ok.attributes))

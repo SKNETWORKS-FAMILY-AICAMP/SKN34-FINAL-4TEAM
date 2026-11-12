@@ -9,6 +9,10 @@ services:
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
       # 집필 AI 대화·HITL 체크포인트(LangGraph AsyncPostgresSaver). 비우면 대화 요청은 503이다.
       AI_CHECKPOINT_DATABASE_URL: ${AI_CHECKPOINT_DATABASE_URL:-}
+      # 집필 AI Langfuse 추적(메타데이터만). 키가 비면 추적하지 않는다.
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-}
     expose:
       - "8000"
 

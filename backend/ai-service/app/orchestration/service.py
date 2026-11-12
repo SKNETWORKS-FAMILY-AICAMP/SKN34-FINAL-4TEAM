@@ -25,6 +25,7 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
+from app import tracing
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.manuscript import service as manuscript
@@ -85,13 +86,17 @@ class State(TypedDict, total=False):
     missingInputs: list[str]
     unsupported: list[str]
     scope: str | None
+    runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
+    traceParent: str | None
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa}를 하나씩 덧붙인다.
 
 
 def plan(state: State) -> State:
     """Router 계획을 검증한다. 실행할 수 있으면 status=running과 대기 단계를 남긴다."""
     history = [t['request'] for t in state.get('turns', [])][-HISTORY_TURNS:]
-    routed = intent.route(state['request'], state.get('operation'), state['materials'], history)
+    with tracing.observe('plan', trace_context=_trace(state)) as span:
+        routed = intent.route(state['request'], state.get('operation'), state['materials'], history)
+        span.update(metadata={'status': routed.status, 'steps': [[s.feature, s.when] for s in routed.steps]})
     if routed.status != 'route':
         return {'status': routed.status, 'message': routed.message, 'steps': []}
     steps = [{'feature': s.feature, 'when': s.when, 'status': 'not_started'} for s in routed.steps]
@@ -124,7 +129,8 @@ def _node(feature: str):
         steps = [dict(s) for s in state['steps']]
         step = next(s for s in steps if s['status'] == 'not_started')
         try:
-            step.update(status='completed', result=CALLS[feature](state['inputs'][feature], state).model_dump(mode='json'))
+            with tracing.observe(f'step.{feature}', as_type='agent', trace_context=_trace(state)):
+                step.update(status='completed', result=CALLS[feature](state['inputs'][feature], state).model_dump(mode='json'))
         except FAILURES as error:
             step.update(status='failed', error=str(error))
         return {'steps': steps}
@@ -144,6 +150,10 @@ def finish(state: State) -> State:
         answer = ' '.join(c['text'] for c in qa['claims']) or ' '.join(qa['gaps'])
         qa = {'question': state['inputs']['story_context']['question'], 'answer': answer[:2000]}
     return {**done, 'turns': [{'request': state['request'], 'qa': qa}]}
+
+
+def _trace(state: State) -> dict | None:
+    return tracing.context(state.get('runId'), state.get('traceParent'))
 
 
 def _next(state: State) -> str:
@@ -192,8 +202,10 @@ async def lifespan(_app):
 
 
 def _initial(data: OrchestrationRequest) -> State:
-    """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다."""
-    return {'request': data.request, 'operation': data.operation, 'materials': data.materials,
+    """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다. 턴마다 새 trace를 연다."""
+    run_id, parent = tracing.start_run('writing_ai.orchestration', as_type='chain', metadata={
+        'operation': data.operation, 'conversation': data.conversation is not None})
+    return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
             'steps': [], 'missingInputs': [], 'unsupported': [],
             'scope': data.conversation.scope if data.conversation else None}
@@ -202,7 +214,8 @@ def _initial(data: OrchestrationRequest) -> State:
 async def _target(data: OrchestrationRequest):
     """실행할 그래프·설정·입력과 스트림용 현재 상태. 대화는 같은 scope일 때만, resume은 멈춘 실행이 있을 때만 쓴다."""
     if not data.conversation:
-        return GRAPH, None, _initial(data), _initial(data)
+        state = _initial(data)
+        return GRAPH, None, state, dict(state)
     if CHAT is None:
         raise ConversationUnavailable()
     config = {'configurable': {'thread_id': data.conversation.threadId}}
@@ -210,7 +223,8 @@ async def _target(data: OrchestrationRequest):
     if snapshot.values.get('scope', data.conversation.scope) != data.conversation.scope:
         raise ConversationMismatch()
     if data.resume is None:
-        return CHAT, config, _initial(data), _initial(data)
+        state = _initial(data)
+        return CHAT, config, state, dict(state)
     if not snapshot.interrupts:
         raise NothingToResume()
     return CHAT, config, Command(resume=data.resume.model_dump(mode='json', exclude_none=True)), dict(snapshot.values)
