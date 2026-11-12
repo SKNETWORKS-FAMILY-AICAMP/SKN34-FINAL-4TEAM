@@ -1,22 +1,29 @@
 """집필 AI 오케스트레이션: Intent Router 계획을 Python이 검증하고 구현된 업무 Agent를 LangGraph로 순차 실행한다.
 
-계획 노드가 Router를 호출해 단계를 받고, 미구현 기능·조건부 단계·빠진 입력이 하나라도 있으면 아무 Agent도
-실행하지 않는다(축소 실행 금지). 통과하면 기능 노드가 계획 순서대로 하나씩 실행되고, 실패한 뒤에는 새 단계를
-시작하지 않는다. 결과는 각 Agent의 원본 결과를 계획 순서로 묶을 뿐 종합 모델을 호출하지 않는다.
+plan 노드가 Router를 호출해 단계를 받고, 미구현 기능·조건부 단계가 하나라도 있으면 아무 Agent도 실행하지 않는다
+(축소 실행 금지). gate 노드는 단계 입력을 확인하고, 통과하면 기능 노드가 계획 순서대로 하나씩 실행된다.
+실패한 뒤에는 새 단계를 시작하지 않는다. 결과는 각 Agent의 원본 결과를 계획 순서로 묶을 뿐 종합 모델을 호출하지 않는다.
 상태는 체크포인트에 그대로 저장할 수 있도록 JSON 값만 담는다.
 
 멀티턴(#57): Content가 발급한 threadId의 대화는 체크포인터에 turns로 쌓이고, 다음 턴의 Router에는 이전 요청을,
 Q&A에는 이전 질문·답을 지칭 해석용 자료로만 넘긴다. 대화는 첫 턴의 Content 확인 scope(사용자·작품)에 묶여
 다른 scope로는 이어갈 수 없다. 웹 조사 외부 검색에는 대화 기록을 보내지 않는다.
+
+HITL: 대화 안에서 단계 입력이 빠지면 gate가 interrupt로 멈추고 계획과 빠진 입력을 돌려준다. 같은 threadId의
+resume(승인+입력 또는 취소)으로 Router를 다시 부르지 않고 저장된 계획을 이어 실행한다. 체크포인트는
+AsyncPostgresSaver가 PostgreSQL에 보관한다.
 """
 
 import operator
+import os
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Annotated, TypedDict
 
 from fastapi.sse import ServerSentEvent
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
@@ -46,13 +53,25 @@ FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure)
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
                        '작품 질문, 집필·수정, 고증 조사는 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
+WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
+CANCELLED_MESSAGE = '요청을 취소해 아무 작업도 실행하지 않았어요.'
 FAILED_MESSAGE = '작업 중 실패가 있어 남은 작업을 실행하지 않았어요.'
 ROUTER_FAILED_MESSAGE = '요청 분류에 실패했습니다.'
 CONVERSATION_MISMATCH_MESSAGE = '다른 사용자나 작품의 대화는 이어갈 수 없습니다.'
+NOTHING_TO_RESUME_MESSAGE = '이어갈 대기 중인 작업이 없습니다.'
+CONVERSATION_UNAVAILABLE_MESSAGE = '대화 저장소 설정이 필요합니다.'
 
 
 class ConversationMismatch(Exception):
     """threadId의 대화가 다른 scope(사용자·작품)에 묶여 있다."""
+
+
+class NothingToResume(Exception):
+    """resume을 받았지만 그 대화에 interrupt로 멈춘 실행이 없다."""
+
+
+class ConversationUnavailable(Exception):
+    """대화 체크포인트 저장소(AI_CHECKPOINT_DATABASE_URL)가 설정되지 않았다."""
 
 
 class State(TypedDict, total=False):
@@ -80,10 +99,24 @@ def plan(state: State) -> State:
     unsupported = [s.feature for s in routed.steps if s.feature not in CALLS or s.when != 'always']
     if unsupported:
         return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'steps': steps, 'unsupported': unsupported}
-    missing = [s.feature for s in routed.steps if s.feature not in state['inputs']]
-    if missing:
-        return {'status': 'needs_input', 'message': NEEDS_INPUT_MESSAGE, 'steps': steps, 'missingInputs': missing}
     return {'status': 'running', 'steps': steps}
+
+
+def gate(state: State) -> State:
+    """모든 단계 입력이 있어야 실행한다. 대화에서는 interrupt로 멈춰 입력이나 취소를 기다린다.
+
+    resume 때 이 노드만 다시 실행되므로 Router는 다시 호출하지 않는다. interrupt는 호출 순서대로 이전 resume
+    값을 돌려받아 여러 번 기다려도 같은 결과가 된다.
+    """
+    inputs = dict(state['inputs'])
+    while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs]:
+        if not state.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
+            return {'status': 'needs_input', 'message': NEEDS_INPUT_MESSAGE, 'missingInputs': missing}
+        answer = interrupt({'steps': state['steps'], 'missingInputs': missing})
+        if not answer['approved']:
+            return {'status': 'cancelled', 'message': CANCELLED_MESSAGE}
+        inputs.update(answer['inputs'])
+    return {'inputs': inputs}
 
 
 def _node(feature: str):
@@ -115,9 +148,7 @@ def finish(state: State) -> State:
 
 def _next(state: State) -> str:
     """대기 중인 첫 단계의 기능 노드로 간다. 실패가 있으면 새 단계를 시작하지 않는다."""
-    if state['status'] != 'running':
-        return 'finish'
-    if any(s['status'] == 'failed' for s in state['steps']):
+    if state['status'] != 'running' or any(s['status'] == 'failed' for s in state['steps']):
         return 'finish'
     return next((s['feature'] for s in state['steps'] if s['status'] == 'not_started'), 'finish')
 
@@ -125,19 +156,39 @@ def _next(state: State) -> str:
 def build() -> StateGraph:
     graph = StateGraph(State)
     graph.add_node('plan', plan)
+    graph.add_node('gate', gate)
     for feature in CALLS:
         graph.add_node(feature, _node(feature))
     graph.add_node('finish', finish)
     graph.add_edge(START, 'plan')
-    for name in ('plan', *CALLS):
+    graph.add_conditional_edges('plan', lambda state: 'gate' if state['status'] == 'running' else 'finish',
+                                ['gate', 'finish'])
+    for name in ('gate', *CALLS):
         graph.add_conditional_edges(name, _next, [*CALLS, 'finish'])
     graph.add_edge('finish', END)
     return graph
 
 
 GRAPH = build().compile()
-# shortcut: 대화를 프로세스 메모리에만 둔다. 재시작·다중 인스턴스에서 유지하려면 영속 체크포인터로 바꾼다.
-CHAT = build().compile(checkpointer=InMemorySaver())
+CHAT = None  # lifespan이 AsyncPostgresSaver로 컴파일한다. 설정이 없으면 대화 요청은 503이다.
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    """AI_CHECKPOINT_DATABASE_URL(postgresql://…)이 있으면 체크포인트 테이블을 준비하고 대화 그래프를 연다."""
+    global CHAT
+    url = os.environ.get('AI_CHECKPOINT_DATABASE_URL')
+    if not url:
+        yield
+        return
+    # shortcut: 연결 하나를 모든 요청이 잠금으로 나눠 쓴다. 동시 대화가 많아지면 AsyncConnectionPool로 바꾼다.
+    async with AsyncPostgresSaver.from_conn_string(url) as saver:
+        await saver.setup()
+        CHAT = build().compile(checkpointer=saver)
+        try:
+            yield
+        finally:
+            CHAT = None
 
 
 def _initial(data: OrchestrationRequest) -> State:
@@ -148,49 +199,61 @@ def _initial(data: OrchestrationRequest) -> State:
             'scope': data.conversation.scope if data.conversation else None}
 
 
-def _graph(data: OrchestrationRequest):
-    """대화가 없으면 기록 없는 그래프, 있으면 같은 scope인지 확인한 뒤 threadId의 체크포인트를 쓴다."""
+async def _target(data: OrchestrationRequest):
+    """실행할 그래프·설정·입력과 스트림용 현재 상태. 대화는 같은 scope일 때만, resume은 멈춘 실행이 있을 때만 쓴다."""
     if not data.conversation:
-        return GRAPH, None
+        return GRAPH, None, _initial(data), _initial(data)
+    if CHAT is None:
+        raise ConversationUnavailable()
     config = {'configurable': {'thread_id': data.conversation.threadId}}
-    if CHAT.get_state(config).values.get('scope', data.conversation.scope) != data.conversation.scope:
+    snapshot = await CHAT.aget_state(config)
+    if snapshot.values.get('scope', data.conversation.scope) != data.conversation.scope:
         raise ConversationMismatch()
-    return CHAT, config
+    if data.resume is None:
+        return CHAT, config, _initial(data), _initial(data)
+    if not snapshot.interrupts:
+        raise NothingToResume()
+    return CHAT, config, Command(resume=data.resume.model_dump(mode='json', exclude_none=True)), dict(snapshot.values)
 
 
-def _response(state: State) -> OrchestrationResponse:
+def _response(state: dict) -> OrchestrationResponse:
+    if state.get('__interrupt__'):
+        waiting = state['__interrupt__'][0].value
+        state = {**state, 'status': 'waiting', 'message': WAITING_MESSAGE, 'missingInputs': waiting['missingInputs']}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
 
-def run(data: OrchestrationRequest) -> OrchestrationResponse:
-    """한 요청을 계획·검증·실행한다. Router 실패(IntentFailure)·대화 scope 불일치는 그대로 올린다."""
-    graph, config = _graph(data)
-    return _response(graph.invoke(_initial(data), config))
+async def run(data: OrchestrationRequest) -> OrchestrationResponse:
+    """한 턴을 계획·검증·실행하거나 멈춘 실행을 이어간다. Router 실패·대화 오류는 그대로 올린다."""
+    graph, config, payload, _ = await _target(data)
+    return _response(await graph.ainvoke(payload, config))
 
 
 async def stream(data: OrchestrationRequest) -> AsyncIterator[ServerSentEvent]:
     """같은 그래프를 노드 단위로 흘려 plan → (started → step)* → done 이벤트를 보낸다.
 
-    started는 다음 노드가 실제로 실행할 단계라서 화면의 진행 표시가 그래프 상태와 같다.
-    응답 헤더를 보낸 뒤라 Router 실패는 HTTP 상태 대신 error 이벤트 하나로 알리고 끝낸다.
+    started는 다음 노드가 실제로 실행할 단계라서 화면의 진행 표시가 그래프 상태와 같다. interrupt로 멈추면
+    waiting(계획·빠진 입력)과 done(status=waiting)으로 끝난다. 응답 헤더를 보낸 뒤라 Router 실패·대화 오류는
+    HTTP 상태 대신 error 이벤트 하나로 알린다.
     """
-    state = _initial(data)
+    errors = {IntentFailure: ROUTER_FAILED_MESSAGE, ConversationMismatch: CONVERSATION_MISMATCH_MESSAGE,
+              NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE}
     try:
-        graph, config = _graph(data)
-        async for update in graph.astream(state, config, stream_mode='updates'):
+        graph, config, payload, state = await _target(data)
+        async for update in graph.astream(payload, config, stream_mode='updates'):
             for node, change in update.items():
+                if node == '__interrupt__':
+                    state['__interrupt__'] = change
+                    yield ServerSentEvent(event='waiting', data=change[0].value)
+                    continue
                 state.update(change)
                 if node == 'plan':
                     yield ServerSentEvent(event='plan', data={'steps': state['steps']})
                 elif node in CALLS:
                     yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == node))
-                upcoming = _next(state) if node != 'finish' else END
-                if upcoming in CALLS:
+                if node in ('gate', *CALLS) and (upcoming := _next(state)) in CALLS:
                     yield ServerSentEvent(event='started', data={'feature': upcoming})
-    except IntentFailure:
-        yield ServerSentEvent(event='error', data={'message': ROUTER_FAILED_MESSAGE})
-        return
-    except ConversationMismatch:
-        yield ServerSentEvent(event='error', data={'message': CONVERSATION_MISMATCH_MESSAGE})
+    except tuple(errors) as error:
+        yield ServerSentEvent(event='error', data={'message': errors[type(error)]})
         return
     yield ServerSentEvent(event='done', data=_response(state).model_dump(mode='json'))

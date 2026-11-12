@@ -7,6 +7,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      # 집필 AI 대화·HITL 체크포인트(LangGraph AsyncPostgresSaver). 비우면 대화 요청은 503이다.
+      AI_CHECKPOINT_DATABASE_URL: ${AI_CHECKPOINT_DATABASE_URL:-}
     expose:
       - "8000"
 

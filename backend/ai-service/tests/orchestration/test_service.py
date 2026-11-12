@@ -13,7 +13,7 @@ from .stubs import DRAFT, PATCH, QA, WEB, fake_agents, plan
 
 
 def run(request='요청', **body):
-    return service.run(OrchestrationRequest(request=request, **body))
+    return asyncio.run(service.run(OrchestrationRequest(request=request, **body)))
 
 
 def names(calls):
@@ -147,8 +147,8 @@ def test_follow_up_turn_gets_previous_requests_and_qa_history(monkeypatch):
 def test_each_turn_starts_without_previous_turn_results(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))
-    assert chat(thread).status == 'needs_input'
-    second = chat(thread, inputs={'story_context': QA})
+    assert chat(thread).status == 'waiting'
+    second = chat(thread, inputs={'story_context': QA})  # 대기 중이어도 새 요청은 새 턴으로 시작한다.
     assert (second.status, second.missingInputs, second.message) == ('completed', [], None)
 
 
@@ -166,3 +166,73 @@ def test_requests_without_conversation_share_no_history(monkeypatch):
     run('첫 질문', inputs={'story_context': QA})
     run('둘째 질문', inputs={'story_context': QA})
     assert [c[1][3] for c in calls if c[0] == 'route'] == [[], []]
+
+
+def resume(thread, approved=True, inputs=None, scope='user:1/work:1'):
+    return chat(thread, scope=scope, request=None, resume={'approved': approved, 'inputs': inputs or {}})
+
+
+def test_missing_input_in_conversation_waits_with_plan_and_runs_nothing(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    result = chat(str(uuid4()), inputs={'story_context': QA})
+    assert (result.status, result.missingInputs) == ('waiting', ['web_research'])
+    assert [s.feature for s in result.steps] == ['story_context', 'web_research']
+    assert names(calls) == ['route']
+
+
+def test_resume_with_inputs_runs_saved_plan_without_routing_again(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    chat(thread, inputs={'story_context': QA})
+    result = resume(thread, inputs={'web_research': WEB})
+    assert result.status == 'completed' and [s.status for s in result.steps] == ['completed', 'completed']
+    assert names(calls) == ['route', 'story_context', 'web_research']
+
+
+def test_resume_still_missing_waits_again(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    chat(thread)
+    again = resume(thread, inputs={'story_context': QA})
+    assert (again.status, again.missingInputs) == ('waiting', ['web_research'])
+    assert resume(thread, inputs={'web_research': WEB}).status == 'completed'
+
+
+def test_rejected_resume_cancels_without_running(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('web_research'))
+    chat(thread)
+    assert resume(thread, approved=False).status == 'cancelled'
+    assert names(calls) == ['route']
+    with pytest.raises(service.NothingToResume):
+        resume(thread)
+
+
+def test_resume_needs_a_waiting_run_of_the_same_scope(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('web_research'))
+    with pytest.raises(service.NothingToResume):
+        resume(thread)
+    chat(thread)
+    with pytest.raises(service.ConversationMismatch):
+        resume(thread, scope='user:2/work:1', inputs={'web_research': WEB})
+
+
+def test_conversation_without_configured_store_is_unavailable(monkeypatch):
+    monkeypatch.setattr(service, 'CHAT', None)
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    with pytest.raises(service.ConversationUnavailable):
+        chat(str(uuid4()), inputs={'story_context': QA})
+    assert calls == []
+
+
+def test_stream_reports_waiting_then_resume_streams_steps(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('web_research'))
+    conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
+    first = stream(conversation=conversation)
+    assert [name for name, _ in first] == ['plan', 'waiting', 'done']
+    assert first[1][1]['missingInputs'] == ['web_research'] and first[-1][1]['status'] == 'waiting'
+    second = stream(request=None, conversation=conversation, resume={'approved': True, 'inputs': {'web_research': WEB}})
+    assert [name for name, _ in second] == ['started', 'step', 'done']
+    assert second[-1][1]['status'] == 'completed'

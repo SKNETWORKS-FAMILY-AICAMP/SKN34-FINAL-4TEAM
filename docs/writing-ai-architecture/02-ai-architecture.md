@@ -44,7 +44,7 @@ Router의 분류나 계획은 인가·승인 또는 정본 적용이 아니다. 
 
 MVP는 순차 최대 세 단계·기능당 한 번이다. [확정한 연결](06-design-decisions.md#복합-실행)과 입력이 독립인 순차 작업을 지원한다. [84개 실행 사례](09-execution-scenarios.md)에 MVP 경로와 후속 검토 대상을 표시한다.
 
-변경 후보의 보관·승인·현재 권한과 판본 확인·적용은 Content가 소유한다. MVP는 승인·적용 후 새 요청에서 적용 영수증과 새 판본을 확인한다. 같은 실행의 재개는 후속 검토한다. Writing 적용 범위는 작성 중 회차 초안이다.
+변경 후보의 보관·승인·현재 권한과 판본 확인·적용은 Content가 소유한다. MVP는 승인·적용 후 새 요청에서 적용 영수증과 새 판본을 확인한다. 단계 입력 대기의 같은 실행 재개는 사용자 요청(2026-11-12)으로 HITL로 구현했다([현재 구현](#현재-구현-langgraph-오케스트레이션)). 승인·적용 뒤 같은 실행의 재개는 후속 검토한다. Writing 적용 범위는 작성 중 회차 초안이다.
 
 ### Python 실행 계약 (목표, 미구현)
 
@@ -61,10 +61,12 @@ Python 실행기는 Router의 `feature`·`when`을 사용자 의도 분류로 �
 `app/orchestration/`(2026-11-12 사용자 요청)이 위 계약 중 **구현된 Agent만** 연결한다. 대상은 Story Context / Q&A(`manuscript.service.answer`), Writing & Editing(`writing.agent.draft|patch`), Web Research(`research.service.research`)다.
 
 - `POST /internal/v1/orchestrations` `{request, operation?, materials?, inputs}` → `plan` 노드가 Intent Router를 호출하고 계획을 검증한 뒤 기능 노드를 계획 순서로 한 번씩 실행하고 `finish`로 끝낸다. `inputs`는 Content가 권한·판본을 확인해 기능별로 채운 각 내부 API의 요청 DTO다(`story_context`, `writing_editing.draft|patch`, `web_research`).
-- Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Review·Development·World & Plot·Simulation)이나 조건부 단계가 하나라도 있으면 `unsupported`, 단계 입력이 하나라도 빠지면 `needs_input`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 조건부 단계는 Review의 Finding 연결이 필요해 아직 실행하지 않는다.
+- Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Review·Development·World & Plot·Simulation)이나 조건부 단계가 하나라도 있으면 `unsupported`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 단계 입력이 빠지면 대화 없는 요청은 `needs_input`으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 단계는 Review의 Finding 연결이 필요해 아직 실행하지 않는다.
 - 구현된 세 Agent 사이에는 등록된 결과 전달 연결이 없으므로 각 단계는 자기 입력으로만 실행한다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`와 고정 메시지로 남기고 새 단계를 시작하지 않으며, 완료한 결과는 보존한다. 결과는 Agent 원본 결과를 계획 순서로 묶을 뿐 종합 모델을 호출하지 않는다.
 - `POST /internal/v1/orchestrations/stream`은 같은 그래프를 노드 단위로 흘리는 SSE다. 이벤트는 `plan`(계획 단계) → 단계마다 `started`(다음 노드가 실제로 실행할 기능)·`step`(그 단계의 결과·실패) → `done`(위 응답과 같은 최종 결과)이다. 응답 헤더를 보낸 뒤라 Router 실패는 `error` 이벤트 하나로 알리고 끝낸다. 내부 인증은 스트림 전에 검사한다. Agent의 모델 호출은 스트리밍하지 않아 단계 결과는 완성본 단위로 온다.
-- 멀티턴(#57): 요청에 `conversation {threadId, scope}`가 있으면 체크포인터의 그 대화에 턴을 쌓는다. `threadId`는 Content가 발급하고 `scope`는 Content가 확인한 사용자·작품(예: `user:1/work:2`)이다. 첫 턴의 scope와 다르면 409(SSE는 `error`)이며 실행하지 않는다. 다음 턴의 Router에는 최근 5턴의 요청을, Q&A에는 최근 5턴의 질문·답을 `history`로 넘긴다. 둘 다 "그 목표" 같은 지칭 해석용 자료이고 근거가 아니다(Q&A 인용은 여전히 발췌만). Writing과 웹 조사에는 대화 기록을 보내지 않는다(웹 조사는 외부 전송 최소화). 턴마다 단계·메시지·누락 목록은 새로 시작한다. 현재 체크포인터는 프로세스 메모리라 재시작하면 대화가 사라진다. Q&A 검색어 재작성은 Content 몫이며 아직 없다.
+- 멀티턴(#57): 요청에 `conversation {threadId, scope}`가 있으면 체크포인터의 그 대화에 턴을 쌓는다. `threadId`는 Content가 발급하고 `scope`는 Content가 확인한 사용자·작품(예: `user:1/work:2`)이다. 첫 턴의 scope와 다르면 409(SSE는 `error`)이며 실행하지 않는다. 다음 턴의 Router에는 최근 5턴의 요청을, Q&A에는 최근 5턴의 질문·답을 `history`로 넘긴다. 둘 다 "그 목표" 같은 지칭 해석용 자료이고 근거가 아니다(Q&A 인용은 여전히 발췌만). Writing과 웹 조사에는 대화 기록을 보내지 않는다(웹 조사는 외부 전송 최소화). 턴마다 단계·메시지·누락 목록은 새로 시작한다. Q&A 검색어 재작성은 Content 몫이며 아직 없다.
+- HITL(사용자 요청 2026-11-12): 대화 안에서 단계 입력이 빠지면 `gate` 노드가 LangGraph `interrupt`로 멈추고 `waiting`(계획 단계·`missingInputs`, SSE는 `waiting` 이벤트 뒤 `done`)을 돌려준다. Content가 작가에게 계획을 보여 주고 선택 구간·콘티·검색 발췌·외부 전송 동의 같은 입력을 준비해 같은 `conversation`으로 `resume {approved, inputs}`를 보내면 Router를 다시 부르지 않고 저장된 계획을 이어 실행한다. 입력이 여전히 모자라면 다시 `waiting`, `approved=false`면 `cancelled`이며 아무 Agent도 실행하지 않는다. 멈춘 실행이 없는데 resume하면 409다. 대기 중에 새 `request`를 보내면 새 턴으로 시작하고 멈춘 실행은 이어가지 않는다.
+- 체크포인트는 `AI_CHECKPOINT_DATABASE_URL`(postgresql://…)의 LangGraph `AsyncPostgresSaver`가 보관한다. 시작 때 `setup()`이 LangGraph 테이블(`checkpoints`·`checkpoint_blobs`·`checkpoint_writes`·`checkpoint_migrations`)을 만든다. 실행 상태일 뿐 작품 정본이 아니며 Content의 Fork `checkpoint` 테이블과 다르다. 설정이 없으면 대화 요청은 503(SSE는 `error`)이고 대화 없는 요청은 그대로 실행한다. 대화 체크포인트의 조회·삭제 API와 보관 기간 정리는 아직 없다.
 - Router 실패는 503이다. 그래프 상태는 체크포인트 저장을 위해 JSON 값만 담는다. Q&A의 인용 id가 전달한 발췌 밖이면 Python도 502로 거절한다.
 
 #### 작업 간 입력·출력
