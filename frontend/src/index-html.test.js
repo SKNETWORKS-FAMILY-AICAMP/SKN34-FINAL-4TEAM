@@ -5,20 +5,6 @@ import { JSDOM } from 'jsdom'
 const demo = readFileSync(new URL('../mockup/legacy-index.html', import.meta.url), 'utf8')
 const includes = (text) => expect(demo.includes(text), `missing documented demo content: ${text}`).toBe(true)
 
-// 데모는 주소가 바뀌면 로딩 표시 뒤 160ms에 화면을 그린다. 고정 시간 대신 그 그리기가 끝날 때까지 기다린다.
-// 데모의 hashchange 처리기 다음에 등록되므로 170ms 타이머는 항상 데모의 그리기 타이머 뒤에 끝난다.
-function trackRenders(window) {
-  let pending = 0
-  window.addEventListener('hashchange', () => { pending++; window.setTimeout(() => { pending-- }, 170) })
-  return async () => {
-    await new Promise(resolve => window.setTimeout(resolve, 20))
-    for (const end = Date.now() + 5000; pending > 0;) {
-      if (Date.now() > end) throw new Error('demo render did not finish')
-      await new Promise(resolve => window.setTimeout(resolve, 10))
-    }
-  }
-}
-
 const css = readFileSync(new URL('./styles/storyfork.css', import.meta.url), 'utf8')
 // 중첩 @media를 펼쳐 [{ media, selector, body }]로 만든다. @keyframes 등 다른 at-rule은 건너뛴다.
 function parseRules(source, media = '') {
@@ -359,12 +345,11 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'admin'
     window.location.hash = '#/admin?tab=data'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 200))
     window.document.querySelector('[data-admin-tab="characterChats"]').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 200))
 
     expect(window.location.hash).toBe('#/admin?tab=characterChats')
     expect(window.document.querySelector('.workspace h1')?.textContent).toBe('캐릭터챗 관리')
@@ -374,11 +359,11 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     const character = window.document.querySelector('#adminChatCharacter').value
     window.document.querySelector('#adminCharacterChatForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
     window.location.hash = '#/chat'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 250))
     const chatCard = [...window.document.querySelectorAll('.rgrid [data-go]')].find(card => card.dataset.go === `#/chat/${workId}/${encodeURIComponent(character)}`)
     expect(chatCard).toBeTruthy()
     chatCard.click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 250))
     expect(window.document.querySelector('#chf')).toBeTruthy()
     window.close()
   })
@@ -461,7 +446,6 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     const work = window.__SF.W.guunmong
     work.owner = 'me'
     work.author = '나'
@@ -472,7 +456,7 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     work.worldIds = undefined
     window.__SF.S.role = 'user'
     window.location.hash = '#/lib?tab=write'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.document.querySelector('[data-act="publish"][data-id="guunmong"]').click()
 
     for (let episode = 1; episode <= work.eps.length; episode++) window.document.querySelector(`#fkeps [data-fe="${episode}"]`).click()
@@ -482,7 +466,7 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(work.forkEps).toEqual(work.eps.map((_, i) => i + 1))
     expect(window.document.querySelector('.mywork .tags').textContent).toContain(`${work.eps.map((_, i) => i + 1).join('·')}화 포크 허용`)
     window.location.hash = '#/work/guunmong'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     expect(window.document.querySelector('.calm').textContent).toContain('전체 회차')
     window.close()
   })
@@ -512,33 +496,32 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'user'
     window.location.hash = '#/work/guunmong'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.document.querySelector('[data-act="forkPolicy"]').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     expect(window.location.hash).toContain('#/writing-policy?method=fork')
     expect(window.document.querySelector('#writingPolicyForm')).toBeTruthy()
 
     window.document.querySelector('[data-go="#/write"]').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.location.hash = '#/writing-policy?method=fork'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.document.querySelector('#writingPolicyRule').checked = true
     window.document.querySelector('#writingPolicyRights').checked = true
     window.document.querySelector('#writingPolicyForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     expect(window.location.hash).toBe('#/rank?t=orig')
 
     window.location.hash = '#/work/guunmong'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.document.querySelector('[data-act="forkPolicy"]').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.document.querySelector('#writingPolicyRule').checked = true
     window.document.querySelector('#writingPolicyRights').checked = true
     window.document.querySelector('#writingPolicyForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     expect(window.location.hash).toBe('#/fork/guunmong')
     expect(window.document.querySelector('#startFork')).toBeTruthy()
     window.close()
@@ -554,7 +537,6 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'user'
     const acceptPolicy = async () => {
       window.document.querySelector('#workPolicyAck').checked = true
@@ -564,9 +546,9 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     }
     for (let visit = 0; visit < 2; visit++) {
       window.location.hash = '#/lib?tab=write'
-      await settle()
+      await new Promise(resolve => window.setTimeout(resolve, 220))
       window.document.querySelector('[data-go="#/new"]').click()
-      await settle()
+      await new Promise(resolve => window.setTimeout(resolve, 220))
       expect(window.document.querySelector('#workPolicyForm')).toBeTruthy()
       await acceptPolicy()
     }
@@ -583,10 +565,9 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'user'
     window.location.hash = '#/new'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.document.querySelector('#workPolicyAck').checked = true
     window.document.querySelector('#workPolicyForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
     await new Promise(resolve => window.setTimeout(resolve, 80))
@@ -602,7 +583,7 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(window.document.querySelector('#nwt').value).toBe('작성 중인 작품')
     expect([...window.document.querySelectorAll('[name="world"]')].some(input => input.checked && input.parentElement.textContent.includes('새 세계'))).toBe(true)
     window.location.hash = '#/worlds'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     expect(window.location.hash).toBe('#/new')
     window.close()
   })
@@ -627,22 +608,21 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'user'
     window.location.hash = '#/studio/starlight'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
 
     const original = window.__SF.W.starlight.eps[0].p.slice()
     const episode = [...window.document.querySelectorAll('.seps button')].find(button => button.textContent.trim().startsWith('1화 '))
     expect(episode).toBeTruthy()
     episode.click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
 
     expect(window.location.hash).toBe('#/studio/starlight?ep=1')
     expect(window.document.querySelector('#et').value).toBe(window.__SF.W.starlight.eps[0].t)
     expect(window.document.querySelector('#eb').textContent).toContain(original[0])
     window.document.querySelector('[data-act="autoToggle"]').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     expect(window.document.querySelector('#autoGen').disabled).toBe(true)
     window.document.querySelector('#eb').innerHTML = '<p>수정 초안</p>'
     window.document.querySelector('#eb').dispatchEvent(new window.Event('input', { bubbles: true }))
@@ -651,7 +631,7 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     window.document.querySelector('[data-act="pubep"]').click()
     await new Promise(resolve => window.setTimeout(resolve, 0))
     window.document.querySelector('#doPub').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     expect(window.__SF.W.starlight.eps[0].p).toEqual(['수정 초안'])
     window.close()
   })
@@ -669,10 +649,9 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'user'
     window.location.hash = '#/studio/starlight'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
 
     const original = window.__SF.W.starlight.eps[0].p.slice()
     const request = '장면의 긴장감을 높여 이어 써 주세요.'
@@ -680,13 +659,13 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
     expect(prompt).toBeTruthy()
     prompt.value = request
     window.document.querySelector('#btnProp').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
 
     expect(window.document.querySelector('.ai-context').textContent).toContain('현재 회차')
     expect(window.document.querySelector('#aiprev').textContent).toContain(request)
     expect(window.document.querySelector('#eb').textContent).toBe('')
     window.document.querySelector('#acceptAI').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     expect(window.document.querySelector('#eb').textContent).not.toBe('')
     expect(window.__SF.W.starlight.eps[0].p).toEqual(original)
     window.close()
@@ -703,16 +682,15 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'user'
     window.location.hash = '#/studio/starlight'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.location.hash = '#/studio/starlight?ep=1'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.document.querySelector('#eb').innerHTML = '<p>수정 초안</p>'
     window.document.querySelector('#eb').dispatchEvent(new window.Event('input', { bubbles: true }))
     window.location.hash = '#/me/storage'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
 
     expect(window.document.querySelector('.mec').textContent).toContain('1화 수정 초안')
     window.close()
@@ -728,13 +706,12 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'user'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     window.document.querySelector('[data-act="acct"]').click()
     await new Promise(resolve => window.setTimeout(resolve, 0))
     window.document.querySelector('.acctm [data-act="logout"]').click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
 
     expect(window.__SF.S.role).toBeNull()
     expect(window.location.hash).toBe('#/home')
@@ -755,14 +732,13 @@ describe('STORYFORK HTML demo follows documented product flows', () => {
       },
     })
     const { window } = dom
-    const settle = trackRenders(window)
     window.__SF.S.role = 'admin'
     window.location.hash = '#/admin'
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
     const sidebar = window.document.querySelector('.admin-nav')
     expect(sidebar.lastElementChild.dataset.act).toBe('logout')
     sidebar.lastElementChild.click()
-    await settle()
+    await new Promise(resolve => window.setTimeout(resolve, 220))
 
     expect(window.__SF.S.role).toBeNull()
     expect(window.location.hash).toBe('#/home')
