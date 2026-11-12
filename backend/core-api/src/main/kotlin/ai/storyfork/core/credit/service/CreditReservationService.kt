@@ -9,9 +9,11 @@ import ai.storyfork.core.credit.repository.CreditLedgerEntryRepository
 import ai.storyfork.core.credit.repository.CreditReservationLineRepository
 import ai.storyfork.core.credit.repository.CreditReservationRepository
 import ai.storyfork.core.credit.service.dto.CreditReservationResponse
+import ai.storyfork.core.credit.service.dto.StaleReservation
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -109,6 +111,11 @@ class CreditReservationService(
     }
 
     /** 본인의 예약만 잠가서 읽는다. 없거나 다른 회원의 예약이면 같은 오류다. */
+    /** [before] 이전에 잡아 두고 아직 닫히지 않은 예약을 오래된 순으로 [limit]개 반환한다. 정리 작업([CreditReservationCleanupJob])이 쓴다. */
+    @Transactional(readOnly = true)
+    fun stale(before: Instant, limit: Int): List<StaleReservation> =
+        reservations.findStale(before, PageRequest.of(0, limit)).map { StaleReservation(it.id, it.memberId, it.operationKey) }
+
     private fun owned(memberId: UUID, operationKey: String): CreditReservationEntity =
         reservations.lockByOperationKey(operationKey)?.takeIf { it.memberId == memberId } ?: throw NoSuchElementException("예약을 찾을 수 없습니다.")
 
