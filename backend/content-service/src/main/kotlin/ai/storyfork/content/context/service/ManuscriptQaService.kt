@@ -22,6 +22,7 @@ internal class ManuscriptQaService(
     private val versions: EpisodeVersionRepository,
     private val answers: ManuscriptQaClient,
     private val worlds: WorldService,
+    private val grants: QaScopeGrants,
 ) {
     fun ask(workId: String, owner: String?, request: ManuscriptQaRequest): ManuscriptQaResponse {
         checkContent(request.consent, message="OpenAI 전송과 API 비용에 동의해 주세요.")
@@ -32,11 +33,12 @@ internal class ManuscriptQaService(
     }
 
     /**
-     * AI 오케스트레이션의 Retrieval 도구(`/internal/v1/ai/.../qa/retrieval`)가 쓰는 검색·재대조 결과.
-     * 범위·권한은 요청 값으로 Content가 다시 확정하며, 모델은 호출하지 않는다. 단계별 시간·건수를 함께 돌려준다.
+     * AI 오케스트레이션의 Retrieval 도구(`/internal/v1/ai/qa/retrieval`)가 쓰는 검색·재대조 결과.
+     * 조회 키는 Content가 서명해 발급한 scopeToken에서만 읽고, 범위·권한은 그 값으로 다시 확정한다. 모델은 호출하지 않는다.
      */
-    fun retrieveForAi(workId: String, request: QaRetrievalRequest): QaRetrievalResponse {
-        val found = retrieve(workId, request.owner, request.question.trim(), request.target, request.episode, request.episodeVersionId)
+    fun retrieveForAi(request: QaRetrievalRequest): QaRetrievalResponse {
+        val grant = grants.read(request.scopeToken) ?: throw ContentFailure(403, "조회 범위를 확인할 수 없어요.")
+        val found = retrieve(grant.workId, grant.owner, request.question.trim(), grant.target, grant.episode, grant.episodeVersionId)
         return QaRetrievalResponse(if (found.sources.isEmpty()) "insufficient" else "found", found.sources,
             found.sources.map { QaExcerpt(it.id, it.episode, it.quote, it.kind, it.title()) }, found.gaps, found.coverage, found.steps)
     }

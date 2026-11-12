@@ -5,7 +5,7 @@ from app.retrieval import service
 from app.retrieval.errors import RetrievalFailure
 from app.retrieval.models import RetrievalScope
 
-SCOPE = RetrievalScope(workId='fork', owner='member-1', episode=2, episodeVersionId='r2')
+SCOPE = RetrievalScope(scopeToken='signed.token')
 BODY = {
     'status': 'found',
     'excerpts': [{'id': 'chunk', 'episode': 2, 'quote': '용이 나타났다.', 'kind': 'manuscript', 'title': ''}],
@@ -37,10 +37,9 @@ def content(monkeypatch, status=200, body=BODY, error=None):
 def test_calls_content_with_scope_and_returns_verified_evidence(monkeypatch):
     seen = content(monkeypatch)
     result = service.retrieve(SCOPE, '용은 언제 왔나?')
-    assert seen['url'] == 'http://content.test/internal/v1/ai/works/fork/qa/retrieval'
+    assert seen['url'] == 'http://content.test/internal/v1/ai/qa/retrieval'
     assert seen['headers'] == {'X-Internal-Token': 't' * 32}
-    assert seen['json'] == {'owner': 'member-1', 'episode': 2, 'episodeVersionId': 'r2',
-                            'question': '용은 언제 왔나?', 'target': 'manuscript'}
+    assert seen['json'] == {'scopeToken': 'signed.token', 'question': '용은 언제 왔나?'}
     assert result.status == 'found' and result.excerpts[0].id == 'chunk'
     assert [s.provider for s in result.steps] == ['embedding', 'elasticsearch', 'postgres_verify']
 
@@ -75,3 +74,10 @@ def test_missing_content_settings_is_503(monkeypatch):
     with pytest.raises(RetrievalFailure) as error:
         service.retrieve(SCOPE, '질문')
     assert error.value.status == 503
+
+
+def test_scope_only_accepts_the_content_signed_token():
+    import pytest as _pytest
+    from pydantic import ValidationError
+    with _pytest.raises(ValidationError):
+        RetrievalScope.model_validate({'scopeToken': 'x', 'owner': 'someone-else'})

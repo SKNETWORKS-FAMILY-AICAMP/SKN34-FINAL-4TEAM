@@ -1,12 +1,11 @@
 """공통 Retrieval 도구: Content 내부 검색 API로 허용 근거를 받아 온다(정본 변경 없음).
 
-AI는 PostgreSQL·Neo4j·Elasticsearch에 직접 접속하지 않는다. Content가 요청 값으로 범위·권한을 다시 확정하고
+AI는 PostgreSQL·Neo4j·Elasticsearch에 직접 접속하지 않는다. Content가 자신이 서명한 scopeToken으로만 범위·권한을 다시 확정하고
 원고 벡터 검색 → 원문 재대조 또는 설정·현재 관계 조회를 실행해 근거와 단계별 측정값을 돌려준다.
 Writing & Editing은 이 도구를 호출하지 않는다. 추적에는 근거 참조와 단계 측정값만 남긴다.
 """
 
 import os
-from urllib.parse import quote
 
 import httpx
 from pydantic import ValidationError
@@ -23,10 +22,10 @@ def retrieve(scope: RetrievalScope, question: str) -> RetrievalResult:
     base, token = os.environ.get('CONTENT_SERVICE_BASE_URL'), os.environ.get('INTERNAL_TOKEN')
     if not base or not token:
         raise RetrievalFailure(503, 'Content 검색 설정이 필요합니다.')
-    with tracing.observe('retrieval', as_type='retriever', metadata={'provider': 'content', 'target': scope.target}) as span:
+    with tracing.observe('retrieval', as_type='retriever', metadata={'provider': 'content'}) as span:
         try:
-            response = httpx.post(f'{base.rstrip("/")}/internal/v1/ai/works/{quote(scope.workId, safe="")}/qa/retrieval',
-                                  json={**scope.model_dump(exclude={'workId'}), 'question': question[:500]},
+            response = httpx.post(f'{base.rstrip("/")}/internal/v1/ai/qa/retrieval',
+                                  json={'scopeToken': scope.scopeToken, 'question': question[:500]},
                                   headers={'X-Internal-Token': token}, timeout=20)
         except httpx.HTTPError:
             raise RetrievalFailure(503, 'Content 검색을 호출할 수 없습니다.') from None

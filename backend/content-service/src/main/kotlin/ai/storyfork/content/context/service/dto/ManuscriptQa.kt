@@ -52,13 +52,10 @@ data class QaCoverage(
     val withVerifiedExcerpt: List<QaEpisodeRef>,
     val withoutVerifiedExcerpt: List<QaEpisodeRef>,
 )
-/** AI Retrieval 도구 요청. owner는 Content가 오케스트레이션에 넘긴 회원 UUID이며 범위는 Content가 다시 확정한다. */
+/** AI Retrieval 도구 요청. scopeToken은 Content가 `QaScopeGrants`로 서명해 오케스트레이션에 넘긴 조회 키다. */
 data class QaRetrievalRequest(
-    @field:Size(max=100) val owner: String? = null,
-    @field:Min(1) val episode: Int,
-    @field:NotBlank @field:Size(max=100) val episodeVersionId: String,
+    @field:NotBlank @field:Size(max=1000) val scopeToken: String,
     @field:NotBlank @field:Size(max=500) val question: String,
-    val target: String = "manuscript",
 )
 /** 검색 단계 하나의 공급자(embedding·elasticsearch·postgres_verify·postgres_settings·neo4j), 소요 시간, 결과 수. */
 data class QaRetrievalStep(val provider: String, val ms: Long, val hits: Int)

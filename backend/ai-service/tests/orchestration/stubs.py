@@ -11,7 +11,7 @@ QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'q
 DRAFT = {'draft': {'episodeNumber': 11, 'plan': '선장이 항구에 도착한다.'}}
 PATCH = {'patch': {'selection': '그는 웃었다.', 'instruction': '더 차갑게'}}
 WEB = {'question': '조선 후기 한양에서 동래까지 며칠?'}
-SCOPE = {'workId': 'fork', 'owner': 'member-1', 'episode': 4, 'episodeVersionId': 'r4'}
+SCOPE = {'scopeToken': 'signed.token'}
 COVERAGE = {'expected': [{'number': 4, 'versionId': 'r4'}], 'withVerifiedExcerpt': [{'number': 4, 'versionId': 'r4'}],
             'withoutVerifiedExcerpt': []}
 FOUND = RetrievalResult(status='found', excerpts=QA['excerpts'], gaps=[{'code': 'UNVERIFIED_HIT', 'detail': '제외한 결과가 있어요.'}],

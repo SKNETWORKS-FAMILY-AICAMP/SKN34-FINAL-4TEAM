@@ -1,4 +1,4 @@
-"""Retrieval 도구와 Content 내부 검색 API(`/internal/v1/ai/works/{id}/qa/retrieval`) 계약."""
+"""Retrieval 도구와 Content 내부 검색 API(`/internal/v1/ai/qa/retrieval`) 계약."""
 
 from typing import Literal
 
@@ -8,13 +8,9 @@ from app.manuscript.models import Excerpt
 
 
 class RetrievalScope(BaseModel):
-    """Content가 오케스트레이션 요청에 넣는 조회 키. 값은 범위가 아니며 Content가 권한·범위를 다시 확정한다."""
+    """Content가 서명해 오케스트레이션 요청에 넣는 조회 키 토큰. AI는 읽거나 바꾸지 않고 그대로 되돌려 준다."""
     model_config = ConfigDict(extra='forbid')
-    workId: str = Field(min_length=1, max_length=100)
-    owner: str | None = Field(default=None, max_length=100)
-    episode: int = Field(ge=1)
-    episodeVersionId: str = Field(min_length=1, max_length=100)
-    target: Literal['manuscript', 'setting', 'relationship'] = 'manuscript'
+    scopeToken: str = Field(min_length=1, max_length=1000)
 
 
 class Gap(BaseModel):
