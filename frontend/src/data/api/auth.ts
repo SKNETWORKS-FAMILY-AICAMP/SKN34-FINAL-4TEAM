@@ -143,6 +143,8 @@ async function sessionMutation(path: string, method: string, clear: boolean, sig
 export function revokeSession(id: string, current: boolean, signal?: AbortSignal) {
   return sessionMutation(`/api/v1/auth/sessions/${encodeURIComponent(id)}`, 'DELETE', current, signal)
 }
+/** 서버가 이미 모든 세션을 끊은 뒤(예: 탈퇴 요청) 이 브라우저의 접근 토큰만 지웁니다. 진행 중인 인증 요청은 무효가 됩니다. */
+export function forgetSession() { ++generation; accessToken = null }
 export function logoutAll(signal?: AbortSignal) {
   return sessionMutation('/api/v1/auth/logout-all', 'POST', true, signal)
 }

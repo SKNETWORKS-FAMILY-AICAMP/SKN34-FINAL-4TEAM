@@ -20,6 +20,7 @@ function setup(path: string, patch?: () => Promise<Response>) {
     if (url.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
     if (url.endsWith('/refresh')) return Response.json({ accessToken: 'token', user: me })
     if (url.endsWith('/sessions')) return Response.json({ sessions: [] })
+    if (url.endsWith('/withdrawal')) return Response.json({ status: 'NONE' })
     if (url.endsWith('/email-change')) return new Response(null, { status: 202 })
     if (url.endsWith('/me') && init?.method === 'PATCH' && patch) return patch()
     return Response.json(me)

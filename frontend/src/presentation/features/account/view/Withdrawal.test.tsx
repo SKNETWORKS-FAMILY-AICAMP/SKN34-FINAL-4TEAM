@@ -1,0 +1,94 @@
+// @vitest-environment jsdom
+import '../../../../test/fixtureApp'
+import '../../../../test/testLocks'
+
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { createAppStore } from '../../../../app/store'
+import { renderApp } from '../../../../test/renderApp'
+
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
+
+const me = { id: '1', nickname: '읽는사람', email: 'reader@storyfork.demo', operator: false }
+const pending = { status: 'PENDING', requestedAt: '2026-11-12T01:00:00Z', dueAt: '2026-12-12T01:00:00Z' }
+type Call = { url: string; method: string; body: unknown }
+
+/** 로그인한 사용자로 프로필을 연다. `withdrawal`이 탈퇴 API 응답을 정한다. */
+function setup(withdrawal: (call: Call) => Response | Promise<Response>) {
+  const calls: Call[] = []
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+    if (url.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
+    if (url.endsWith('/refresh')) return Response.json({ accessToken: 'token', user: me })
+    if (url.endsWith('/api/v1/me/withdrawal')) {
+      const call = { url, method: init?.method ?? 'GET', body: init?.body ? JSON.parse(String(init.body)) : undefined }
+      calls.push(call)
+      return withdrawal(call)
+    }
+    if (url.includes('/auth/sessions')) return Response.json({ sessions: [] })
+    return Response.json(me)
+  }))
+  const store = createAppStore({ role: 'user' })
+  return { calls, ...renderApp('/me/profile', store) }
+}
+const toastIs = (t: string | RegExp) => waitFor(() => expect(document.getElementById('toast')!.textContent).toMatch(t))
+
+describe('회원탈퇴 (U30, UC-22 A3)', () => {
+  it('비밀번호와 사유로 탈퇴를 요청하면 로그아웃하고 30일 유예를 안내한다', async () => {
+    const { calls, store } = setup((call) => call.method === 'POST' ? Response.json(pending, { status: 202 }) : Response.json({ status: 'NONE' }))
+    fireEvent.click(await screen.findByRole('button', { name: '회원탈퇴' }))
+    const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
+    within(sheet).getByText(/30일 유예 기간/)
+    expect((within(sheet).getByRole('button', { name: '탈퇴하기' }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.change(within(sheet).getByLabelText('비밀번호'), { target: { value: 'test-password' } })
+    fireEvent.change(within(sheet).getByLabelText('탈퇴 사유 (선택)'), { target: { value: '  더 이상 쓰지 않아요  ' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: '탈퇴하기' }))
+    await toastIs('탈퇴를 요청했어요')
+    expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ password: 'test-password', reason: '더 이상 쓰지 않아요' })
+    expect(store.getState().session.role).toBeNull()
+  })
+
+  it('비밀번호가 틀리면 시트를 열어 둔 채 안내하고 로그인 상태를 유지한다', async () => {
+    const { store } = setup((call) => call.method === 'POST' ? new Response(null, { status: 403 }) : Response.json({ status: 'NONE' }))
+    fireEvent.click(await screen.findByRole('button', { name: '회원탈퇴' }))
+    const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
+    fireEvent.change(within(sheet).getByLabelText('비밀번호'), { target: { value: 'wrong' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: '탈퇴하기' }))
+    expect((await within(sheet).findByRole('alert')).textContent).toBe('비밀번호가 맞지 않아요.')
+    expect(store.getState().session.role).toBe('user')
+  })
+
+  it('사유가 비어 있으면 사유 없이 보낸다', async () => {
+    const { calls } = setup((call) => call.method === 'POST' ? Response.json(pending, { status: 202 }) : Response.json({ status: 'NONE' }))
+    fireEvent.click(await screen.findByRole('button', { name: '회원탈퇴' }))
+    const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
+    fireEvent.change(within(sheet).getByLabelText('비밀번호'), { target: { value: 'pw' } })
+    fireEvent.change(within(sheet).getByLabelText('탈퇴 사유 (선택)'), { target: { value: '   ' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: '탈퇴하기' }))
+    await toastIs('탈퇴를 요청했어요')
+    expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ password: 'pw' })
+  })
+
+  it('유예 중이면 기한을 보이고 탈퇴 요청을 취소할 수 있다', async () => {
+    const { calls } = setup((call) => call.method === 'DELETE' ? new Response(null, { status: 204 }) : Response.json(pending))
+    fireEvent.click(await screen.findByRole('button', { name: '탈퇴 요청 취소' }))
+    await toastIs('탈퇴 요청을 취소했어요')
+    expect(calls.some((c) => c.method === 'DELETE')).toBe(true)
+    expect(await screen.findByRole('button', { name: '회원탈퇴' })).toBeTruthy()
+  })
+
+  it('유예 기한이 지나 복구할 수 없으면 안내한다', async () => {
+    setup((call) => call.method === 'DELETE' ? new Response(null, { status: 409 }) : Response.json(pending))
+    fireEvent.click(await screen.findByRole('button', { name: '탈퇴 요청 취소' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('유예 기간이 지나 복구할 수 없어요.')
+  })
+
+  it('상태를 읽지 못하면 실패를 알리고 다시 시도할 수 있다', async () => {
+    let fail = true
+    setup(() => fail ? new Response(null, { status: 500 }) : Response.json({ status: 'NONE' }))
+    expect((await screen.findByText('탈퇴 상태를 불러오지 못했어요. 다시 시도해 주세요.')).getAttribute('role')).toBe('alert')
+    fail = false
+    fireEvent.click(screen.getByRole('button', { name: '탈퇴 상태 다시 시도' }))
+    expect(await screen.findByRole('button', { name: '회원탈퇴' })).toBeTruthy()
+  })
+})
