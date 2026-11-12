@@ -13,7 +13,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.request
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.web.client.RestClient
 
-class ManuscriptQaClientTest {
+class ManuscriptQaClientIntegrationTest {
     @ParameterizedTest
     @CsvSource("403,502", "422,502", "502,502", "503,503")
     fun `AI 거절은 일시 장애와 구분한다`(upstream: Int, expected: Int) {
