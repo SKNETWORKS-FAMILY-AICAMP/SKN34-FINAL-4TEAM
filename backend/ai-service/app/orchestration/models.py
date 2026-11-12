@@ -5,8 +5,9 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
-from app.manuscript.models import AnswerRequest, AnswerResponse
+from app.manuscript.models import AnswerRequest, AnswerResponse, Excerpt
 from app.research.models import ResearchRequest, ResearchResponse
+from app.retrieval.models import Coverage, RetrievalScope
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
 
 
@@ -49,6 +50,7 @@ class OrchestrationRequest(BaseModel):
     """새 턴은 request, 멈춘 실행을 이어갈 때는 같은 conversation의 resume 하나만 보낸다."""
     model_config = ConfigDict(extra='forbid')
     conversation: Conversation | None = None
+    scope: RetrievalScope | None = None  # 있으면 Q&A가 inputs 없이 Retrieval 도구로 근거를 받는다.
     request: str | None = Field(default=None, min_length=1, max_length=2000)
     resume: Resume | None = None
     operation: Feature | None = None
@@ -64,11 +66,17 @@ class OrchestrationRequest(BaseModel):
         return self
 
 
+class QaStepResult(AnswerResponse):
+    """Q&A 단계 결과. sources는 답변이 인용한 근거, gaps에는 검색 단계의 누락도 담긴다. coverage는 Retrieval을 쓴 경우만."""
+    sources: list[Excerpt] = []
+    coverage: Coverage | None = None
+
+
 class StepResult(BaseModel):
     feature: Feature
     when: Literal['always', 'if_issues_found']
     status: Literal['completed', 'failed', 'not_started']
-    result: AnswerResponse | DraftResponse | PatchResponse | ResearchResponse | None = None
+    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | None = None
     error: str | None = None
 
 

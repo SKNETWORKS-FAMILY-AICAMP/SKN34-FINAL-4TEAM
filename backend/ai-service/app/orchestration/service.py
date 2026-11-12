@@ -31,26 +31,47 @@ from app.intent.errors import IntentFailure
 from app.manuscript import service as manuscript
 from app.manuscript.errors import ManuscriptFailure
 from app.manuscript.models import AnswerRequest
-from app.orchestration.models import OrchestrationRequest, OrchestrationResponse
+from app.orchestration.models import OrchestrationRequest, OrchestrationResponse, QaStepResult
 from app.research import service as research
 from app.research.errors import ResearchFailure
 from app.research.models import ResearchRequest
+from app.retrieval import service as retrieval
+from app.retrieval.errors import RetrievalFailure
+from app.retrieval.models import RetrievalScope
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
 from app.writing.models import DraftRequest, PatchRequest
 
+
+
+def _story_context(data: dict | None, state: dict) -> QaStepResult:
+    """Q&A. 발췌가 없으면 공통 Retrieval 도구로 Content가 확인한 근거를 받아 온다. 근거가 없으면 모델을 부르지 않는다."""
+    gaps, coverage = [], None
+    if data is None:
+        # shortcut: 검색어는 이번 요청 문장 그대로다. 지칭만 있는 후속 질문의 검색이 약하면 이전 질문을 붙이는 재작성을 검토한다.
+        found = retrieval.retrieve(RetrievalScope.model_validate(state['retrievalScope']), state['request'])
+        gaps, coverage = [g.detail for g in found.gaps], found.coverage
+        if not found.excerpts:
+            return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
+        data = {'question': state['request'][:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
+    history = [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]
+    answer = manuscript.answer(AnswerRequest.model_validate({**data, 'history': history}))
+    cited = {i for claim in answer.claims for i in claim.sourceIds}
+    return QaStepResult(claims=answer.claims, gaps=gaps + answer.gaps, coverage=coverage,
+                        sources=[e for e in data['excerpts'] if e['id'] in cited])
+
+
 # 구현된 업무 Agent. 입력은 StepInputs의 같은 이름 필드(JSON)다.
-# Q&A만 대화 기록을 받는다. 웹 조사는 외부 전송이라 작가가 고른 질문·맥락 외에는 보내지 않는다.
+# Q&A만 대화 기록·Retrieval을 쓴다. 웹 조사는 외부 전송이라 작가가 고른 질문·맥락 외에는 보내지 않는다.
 CALLS = {
-    'story_context': lambda data, state: manuscript.answer(AnswerRequest.model_validate(
-        {**data, 'history': [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]})),
+    'story_context': _story_context,
     'writing_editing': lambda data, state: (writing.draft(DraftRequest.model_validate(data['draft'])) if 'draft' in data
                                             else writing.patch(PatchRequest.model_validate(data['patch']))),
     'web_research': lambda data, state: research.research(ResearchRequest.model_validate(data)),
 }
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
-FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure)
+FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure, RetrievalFailure)
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
                        '작품 질문, 집필·수정, 고증 조사는 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
@@ -86,6 +107,7 @@ class State(TypedDict, total=False):
     missingInputs: list[str]
     unsupported: list[str]
     scope: str | None
+    retrievalScope: dict | None  # Content가 확인한 Q&A 조회 키. 있으면 Q&A가 Retrieval로 근거를 받는다.
     runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
     traceParent: str | None
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa}를 하나씩 덧붙인다.
@@ -114,7 +136,8 @@ def gate(state: State) -> State:
     값을 돌려받아 여러 번 기다려도 같은 결과가 된다.
     """
     inputs = dict(state['inputs'])
-    while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs]:
+    while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs
+                      and not (s['feature'] == 'story_context' and state.get('retrievalScope'))]:
         if not state.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
             return {'status': 'needs_input', 'message': NEEDS_INPUT_MESSAGE, 'missingInputs': missing}
         answer = interrupt({'steps': state['steps'], 'missingInputs': missing})
@@ -130,7 +153,7 @@ def _node(feature: str):
         step = next(s for s in steps if s['status'] == 'not_started')
         try:
             with tracing.observe(f'step.{feature}', as_type='agent', trace_context=_trace(state)):
-                step.update(status='completed', result=CALLS[feature](state['inputs'][feature], state).model_dump(mode='json'))
+                step.update(status='completed', result=CALLS[feature](state['inputs'].get(feature), state).model_dump(mode='json'))
         except FAILURES as error:
             step.update(status='failed', error=str(error))
         return {'steps': steps}
@@ -148,7 +171,8 @@ def finish(state: State) -> State:
               None)
     if qa:
         answer = ' '.join(c['text'] for c in qa['claims']) or ' '.join(qa['gaps'])
-        qa = {'question': state['inputs']['story_context']['question'], 'answer': answer[:2000]}
+        question = state['inputs'].get('story_context', {}).get('question') or state['request'][:500]
+        qa = {'question': question, 'answer': answer[:2000]}
     return {**done, 'turns': [{'request': state['request'], 'qa': qa}]}
 
 
@@ -208,7 +232,8 @@ def _initial(data: OrchestrationRequest) -> State:
     return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
             'steps': [], 'missingInputs': [], 'unsupported': [],
-            'scope': data.conversation.scope if data.conversation else None}
+            'scope': data.conversation.scope if data.conversation else None,
+            'retrievalScope': data.scope.model_dump() if data.scope else None}
 
 
 async def _target(data: OrchestrationRequest):

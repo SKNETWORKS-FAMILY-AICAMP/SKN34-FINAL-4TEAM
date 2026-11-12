@@ -9,7 +9,10 @@ from app.orchestration import service
 from app.orchestration.models import OrchestrationRequest
 from app.research.errors import ResearchFailure
 
-from .stubs import DRAFT, PATCH, QA, WEB, fake_agents, plan
+from app.retrieval.errors import RetrievalFailure
+from app.retrieval.models import RetrievalResult
+
+from .stubs import COVERAGE, DRAFT, PATCH, QA, SCOPE, WEB, fake_agents, plan
 
 
 def run(request='요청', **body):
@@ -263,3 +266,45 @@ def test_resumed_steps_join_the_trace_of_the_waiting_turn(monkeypatch, spans):
     done = resume(thread, inputs={'web_research': WEB})
     step = next(s for s in spans() if s.name == 'step.web_research')
     assert done.runId == waiting.runId == format(step.context.trace_id, '032x')
+
+
+def test_scope_lets_qa_retrieve_its_own_evidence_through_content(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    result = run('길드 규칙은?', scope=SCOPE)
+    assert result.status == 'completed' and names(calls) == ['route', 'retrieval', 'story_context']
+    scope, question = calls[1][1]
+    assert (scope.workId, scope.episode, question) == ('fork', 4, '길드 규칙은?')
+    asked = calls[2][1][0]
+    assert asked.question == '길드 규칙은?' and [e.id for e in asked.excerpts] == ['a']
+    qa = result.steps[0].result
+    assert [s.id for s in qa.sources] == ['a'] and qa.coverage.expected[0].versionId == 'r4'
+    assert qa.gaps == ['제외한 결과가 있어요.']
+
+
+def test_insufficient_evidence_answers_with_gaps_without_model(monkeypatch):
+    empty = RetrievalResult(status='insufficient', excerpts=[], coverage=COVERAGE, steps=[],
+                            gaps=[{'code': 'NO_EVIDENCE', 'detail': '근거를 확인하지 못했어요.'}])
+    calls = fake_agents(monkeypatch, plan('story_context'), retrieved=empty)
+    result = run('길드 규칙은?', scope=SCOPE)
+    assert names(calls) == ['route', 'retrieval']
+    qa = result.steps[0].result
+    assert (result.status, qa.claims, qa.gaps) == ('completed', [], ['근거를 확인하지 못했어요.'])
+
+
+def test_retrieval_failure_fails_the_qa_step(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'),
+                        fail={'retrieval': RetrievalFailure(409, '공개 원고 범위가 변경됐어요.')})
+    result = run(scope=SCOPE, inputs={'web_research': WEB})
+    assert [(s.status, s.error) for s in result.steps] == [('failed', '공개 원고 범위가 변경됐어요.'), ('not_started', None)]
+    assert names(calls) == ['route', 'retrieval']
+
+
+def test_given_excerpts_win_over_scope_and_skip_retrieval(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    run(scope=SCOPE, inputs={'story_context': QA})
+    assert names(calls) == ['route', 'story_context']
+
+
+def test_scope_does_not_satisfy_other_features(monkeypatch):
+    fake_agents(monkeypatch, plan('web_research'))
+    assert run(scope=SCOPE).missingInputs == ['web_research']
