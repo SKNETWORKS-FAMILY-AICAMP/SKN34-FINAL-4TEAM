@@ -73,4 +73,3 @@ def embed(data: EmbeddingRequest) -> EmbeddingResponse:
     except Exception:
         raise ManuscriptFailure(503, '로컬 원고 임베딩을 실행할 수 없습니다.') from None
     return EmbeddingResponse(model=MODEL, revision=REVISION, vectors=vectors)
-
