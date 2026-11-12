@@ -26,6 +26,7 @@ export function noticeTarget(n: Pick<AppNotification, 'targetType' | 'targetId'>
   if (n.targetType === 'work' && n.targetId) return `/work/${encodeURIComponent(n.targetId)}`
   // Core 사건(docs/notification-event-contract.md): 대상 id(소멸 날짜·탈퇴 요청 id)는 화면 주소에 쓰지 않고 본인 계정 화면으로 보냅니다.
   if (n.targetType === 'credit-expiry') return '/me/pay'
-  if (n.targetType === 'withdrawal') return '/me/profile'
+  // 탈퇴 취소 카드는 프로필 맨 아래라, 알림에서 왔다는 표시(focus)를 붙여 그 카드로 스크롤·포커스합니다(화면 안 이동에 #anchor를 쓰지 않음).
+  if (n.targetType === 'withdrawal') return '/me/profile?focus=withdrawal'
   return null
 }

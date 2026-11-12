@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { WITHDRAWAL_REASON_MAX } from '../../../../domain/entities/withdrawal'
 import { kstDateTime } from '../../../shared/format'
@@ -13,9 +13,20 @@ export function Withdrawal() {
   const state = vm.state
   // 다시 읽은 상태가 유예 중이면(다른 곳에서 이미 요청) 요청 시트를 닫아, 나중에 복구했을 때 다시 열리지 않게 합니다.
   useEffect(() => { if (state?.status === 'PENDING') setOpen(false) }, [state])
+  const card = useRef<HTMLDivElement>(null)
+  const title = useRef<HTMLElement>(null)
+  const restore = useRef<HTMLButtonElement>(null)
+  const { focusRequested, focusHandled } = vm
+  // 탈퇴 요청 알림에서 왔으면 상태를 그린 뒤 카드를 화면 가운데로 옮기고, 취소 버튼(못 누르면 카드 제목)에 포커스합니다.
+  useEffect(() => {
+    if (!focusRequested || (!state && !vm.loadError)) return
+    card.current?.scrollIntoView?.({ block: 'center' })
+    ;(restore.current && !restore.current.disabled ? restore.current : title.current)?.focus()
+    focusHandled()
+  }, [focusRequested, focusHandled, state, vm.loadError])
   return (
-    <div className="tcard mecard danger" aria-busy={vm.pending || (!state && !vm.loadError)}>
-      <b>회원탈퇴</b>
+    <div ref={card} className="tcard mecard danger" aria-busy={vm.pending || (!state && !vm.loadError)}>
+      <b ref={title} tabIndex={-1}>회원탈퇴</b>
       {vm.loadError ? <>
         <p role="alert" className="small">탈퇴 상태를 불러오지 못했어요. 다시 시도해 주세요.</p>
         <button type="button" className="btn" onClick={vm.retry}>탈퇴 상태 다시 시도</button>
@@ -23,7 +34,7 @@ export function Withdrawal() {
         : state.status === 'PENDING' ? <>
           <p className="small" style={{ margin: '6px 0 12px' }}>탈퇴를 요청한 상태예요({kstDateTime(state.requestedAt)} 요청). {kstDateTime(state.dueAt)}까지 탈퇴 요청을 취소하면 계정을 그대로 쓸 수 있어요.</p>
           {vm.error && <p role="alert" className="small">{vm.error}</p>}
-          <button type="button" className="btn" disabled={vm.pending || vm.expired} onClick={() => { void vm.restore() }}>{vm.pending ? '취소하는 중…' : '탈퇴 요청 취소'}</button>
+          <button ref={restore} type="button" className="btn" disabled={vm.pending || vm.expired} onClick={() => { void vm.restore() }}>{vm.pending ? '취소하는 중…' : '탈퇴 요청 취소'}</button>
         </> : <>
           <p className="small muted" style={{ margin: '6px 0 12px' }}>탈퇴를 요청하면 30일 유예 기간이 시작되고, 그동안 다시 로그인해 취소할 수 있어요.</p>
           <button type="button" className="btn" id="withdrawBtn" onClick={() => setOpen(true)}>회원탈퇴</button>

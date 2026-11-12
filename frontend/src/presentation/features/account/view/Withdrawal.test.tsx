@@ -124,6 +124,17 @@ describe('회원탈퇴 (U30, UC-22 A3)', () => {
     expect(store.getState().session.role).toBe('user')
   })
 
+  it('프로필에 직접 들어오면 탈퇴 카드로 스크롤하거나 포커스를 옮기지 않는다', async () => {
+    const scroll = vi.fn()
+    Element.prototype.scrollIntoView = scroll
+    try {
+      setup(() => Response.json(pending))
+      const cancel = await card('탈퇴 요청 취소')
+      expect(document.activeElement).not.toBe(cancel)
+      expect(scroll).not.toHaveBeenCalled()
+    } finally { delete (Element.prototype as Partial<Element>).scrollIntoView }
+  })
+
   it('상태를 읽지 못하면 실패를 알리고 다시 시도할 수 있다', async () => {
     let fail = true
     setup(() => fail ? new Response(null, { status: 500 }) : Response.json({ status: 'NONE' }))
