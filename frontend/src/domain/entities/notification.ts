@@ -24,5 +24,8 @@ export const noticeLabel = (kind: NoticeKind) => LABELS[kind]
  */
 export function noticeTarget(n: Pick<AppNotification, 'targetType' | 'targetId'>): string | null {
   if (n.targetType === 'work' && n.targetId) return `/work/${encodeURIComponent(n.targetId)}`
+  // Core 사건(docs/notification-event-contract.md): 대상 id(소멸 날짜·탈퇴 요청 id)는 화면 주소에 쓰지 않고 본인 계정 화면으로 보냅니다.
+  if (n.targetType === 'credit-expiry') return '/me/pay'
+  if (n.targetType === 'withdrawal') return '/me/profile'
   return null
 }

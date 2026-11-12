@@ -72,3 +72,11 @@ it('공개 세계관은 실제 모드에서 Content 공개 API 저장소를, moc
   expect([page.demo, page.items.length, page.total]).toEqual([true, DEMO_WORLDS.length, DEMO_WORLDS.length])
   expect((await useCase.get(DEMO_WORLDS[0].id))?.demo).toBe(true)
 })
+
+it('mockup 컨테이너의 탈퇴는 요청 없음 상태만 보이고 탈퇴·복구는 실제 계정을 바꾸지 않도록 미지원 오류로 답한다', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  const withdrawal = createAppContainer().resolve('withdrawalUseCase')
+  expect(await withdrawal.status()).toEqual({ status: 'NONE' })
+  await expect(withdrawal.request('pw', '')).rejects.toThrow('데모에서는 지원하지 않아요')
+  await expect(withdrawal.restore()).rejects.toThrow('데모에서는 지원하지 않아요')
+})
