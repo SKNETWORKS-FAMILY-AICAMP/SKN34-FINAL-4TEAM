@@ -11,8 +11,11 @@ import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { CARD_COLORS } from '../../../shared/worldBoard'
+import { useAppSelector } from '../../../../app/store'
+import { useWorldImport } from '../viewmodel/useWorldImport'
 import { useWorldCardViewModel } from '../viewmodel/useWorldsViewModel'
 import { bookPath, cardPath, type CardPage, type CardRef } from '../worldDetail'
+import { ImportOutcomeNotice, WorldAddMenu } from './WorldImportMenu'
 import { DemoNotice, InfoRow, LoadFailed, WorldLink, WorldLoading } from './WorldParts'
 import '../../reading/view/publicWiki.css'
 import './worlds.css'
@@ -71,9 +74,28 @@ function sectionsOf(page: CardPage, worldId: string): Section[] {
 }
 
 /**
+ * '이 설정 가져오기'(로그인한 회원): 내 세계관을 고르면 이 카드 하나를 그 세계관 초안에 바로 더하고(관계 제외) 진행·결과를 버튼 아래에 알린다. 화면은 옮기지 않는다.
+ */
+function CardImport({ world, cardId }: { world: PublicWorld; cardId: string }) {
+  const member = useAppSelector((s) => !!s.session.role)
+  const direct = useWorldImport(world)
+  if (!member) return null
+  return (
+    <div className="worlds-import-row">
+      <WorldAddMenu
+        sourceWorldId={world.id} label="이 설정 가져오기" note="이 설정을 고른 세계관의 초안에 바로 추가해요. 관계는 함께 오지 않아요." saving={direct.saving}
+        onAdd={(target) => { void direct.add(target, [cardId]) }}
+      />
+      <ImportOutcomeNotice outcome={direct.outcome} onRetry={() => { void direct.retry() }} />
+    </div>
+  )
+}
+
+/**
  * 설정 카드 한 장의 공개 페이지(`/worlds/:id/cards/:cardId`). 작품 설정 위키(`PublicWikiArticle`)와 같은 `nw-*` 나무위키 형식 문서 한 편이다:
  * 빵부스러기 → 분류 상자 → 문서 제목 → 오른쪽 정보 상자 → 번호 목차 → 번호 매긴 접이식 문단. 아래에 설정집 순서의 이전·다음 카드와 세계관으로 돌아가기가 있다.
  * 내용 구성(어떤 문단이 있고 어떤 순서인지)은 `cardPage`가 정하고 이 화면은 그대로 그린다. 로그인 없이 볼 수 있고 읽기 전용이다.
+ * 로그인한 회원에게는 빵부스러기 아래에 '이 설정 가져오기'(`CardImport`)가 보이고 고른 내 세계관 초안에 이 카드를 바로 더한다.
  */
 export function WorldCardPage() {
   const { id, cardId } = useParams()
@@ -108,6 +130,7 @@ export function WorldCardPage() {
                 <li><Go to={cardPath(world.id, page.card.cardId)} aria-current="page">{page.card.title}</Go></li>
               </ol>
             </nav>
+            <CardImport key={page.card.cardId} world={world} cardId={page.card.cardId} />
             <div className="calm">
               <article className="tcard nw" aria-labelledby={heading}>
                 <p className="nw-cat"><b>분류</b><Go to={`/worlds/${world.id}`}>{world.name}</Go><Go to={bookPath(world.id, page.card.kind)}>{page.card.kind}</Go></p>

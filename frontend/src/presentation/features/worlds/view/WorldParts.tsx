@@ -1,11 +1,11 @@
-import { Fragment, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-import type { PublicWorldLineage, PublicWorldRef, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
+import type { PublicWorldRef, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
 import { Art } from '../../../shared/art'
 import { Go } from '../../../shared/Go'
 import { genreLabel, worldLook } from '../../../shared/worldGenres'
 
-/** 공개 세계관 목록·상세·설정 카드 페이지가 함께 쓰는 작은 표시 조각: 데모 안내, 표지, 세계관 링크, 계보 줄, 정보 상자 행. */
+/** 공개 세계관 목록·상세·설정 카드 페이지가 함께 쓰는 작은 표시 조각: 데모 안내, 불러오는 중·실패, 표지, 세계관 링크, 정보 상자 행. 계보 줄은 개요 탭(`WorldOverview`)에 있다. */
 
 /** 메모리 데모(`--mode mockup`) 응답일 때만 그린다. 실제 모드에는 없다. */
 export const DemoNotice = () => <p className="muted small worlds-demo">데모 · 공개 세계관과 세계관 지도는 서버 연결 전이에요</p>
@@ -41,22 +41,3 @@ export function WorldCover({ w, k, badge }: { w: Pick<PublicWorldSummary, 'id' |
 }
 
 export const WorldLink = ({ w }: { w: Pick<PublicWorldRef, 'id' | 'name'> }) => <Go to={`/worlds/${w.id}`}>{w.name}</Go>
-
-/** 세계관 링크를 ' + '로 이은 줄(조합 원본) */
-export const WorldLinks = ({ worlds }: { worlds: readonly Pick<PublicWorldRef, 'id' | 'name'>[] }) => worlds.map((w, i) => <Fragment key={w.id}>{i > 0 && ' + '}<WorldLink w={w} /></Fragment>)
-
-/** 출처 한 줄('○○에서 파생' 또는 '○○ + △△ 조합')과 이 세계관에서 파생·조합된 세계관. 계보가 없는 응답(실제 모드)이거나 처음부터 만든 세계관이고 쓰인 적도 없으면 아무것도 그리지 않는다. */
-export function LineageLines({ lineage }: { lineage?: PublicWorldLineage }) {
-  if (!lineage) return null
-  const { derivedFrom, combinedFrom, children } = lineage
-  if (!derivedFrom && !combinedFrom.length && !children.length) return null
-  return (
-    <div className="worlds-lineage">
-      {derivedFrom && <p><WorldLink w={derivedFrom} />에서 파생</p>}
-      {combinedFrom.length > 0 && <p><WorldLinks worlds={combinedFrom} /> 조합</p>}
-      {children.length > 0 && (
-        <p className="muted small">이 세계관에서 파생·조합된 세계관 {children.length}개 · {children.map((w, i) => <Fragment key={w.id}>{i > 0 && ', '}<WorldLink w={w} /></Fragment>)}</p>
-      )}
-    </div>
-  )
-}

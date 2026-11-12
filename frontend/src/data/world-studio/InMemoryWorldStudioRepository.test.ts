@@ -32,3 +32,15 @@ it('creates at draft version 0 like the server, so a world counts as saved only 
  expect(world.version).toBe(0)
  expect((await repo.saveStudio(world)).version).toBe(1)
 })
+it('keeps character documents across a demo save like the server: only on a character card and only when some document exists',async()=>{
+ const repo=new InMemoryWorldStudioRepository(),world=await repo.create('세계','')
+ const docs={soul:'말수가 적다',memory:'',episodes:{3:'스승을 잃었다'}}
+ const person=newSetting('people'),blank=newSetting('people'),place=newSetting('places')
+ person.item.title='가람';blank.item.title='나래';place.item.title='항구'
+ world.settings=[{...person,characterDocs:docs},{...blank,characterDocs:{soul:'',memory:'',episodes:{}}},{...place,characterDocs:docs}]
+ const saved=await repo.saveStudio(world)
+ expect(saved.settings.map(s=>s.characterDocs)).toEqual([docs,undefined,undefined])
+ expect(Object.keys(saved.settings[1])).not.toContain('characterDocs')
+ expect((await repo.read(world.id)).settings.map(s=>s.characterDocs)).toEqual([docs,undefined,undefined])
+ expect(world.settings[2].characterDocs).toEqual(docs) // 받은 편집본은 바꾸지 않는다
+})

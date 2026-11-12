@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import type { ReactElement } from 'react'
 import { act, cleanup, render as renderIn, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { Provider } from 'react-redux'
 import { MemoryRouter, RouterProvider, createMemoryRouter, useLocation } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import '../../../../test/testLocks'
@@ -9,6 +10,7 @@ import { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { HttpEpisodeRepository } from '../../../../data/content/HttpEpisodeRepository'
 import { login } from '../../../../data/api/auth'
 import { appContainer } from '../../../../app/appContainer'
+import { createAppStore } from '../../../../app/store'
 
 /** 상단바·푸터는 공용 Gnb·Footer라 이 화면 테스트에서는 호출만 기록하는 대역으로 바꾼다(실제 Gnb는 Redux 스토어가 필요하다). */
 const shell = vi.hoisted(() => ({ gnb: vi.fn(), footer: vi.fn() }))
@@ -17,8 +19,8 @@ vi.mock('../../../shared/shell/Gnb', () => ({
   Footer: () => { shell.footer(); return null },
 }))
 
-/** EpisodePage는 주소의 ?work= 로 화면이 정해지므로 라우터 안에서 그린다. */
-const render = (ui: ReactElement, entry = '/content') => renderIn(<MemoryRouter initialEntries={[entry]}>{ui}</MemoryRouter>)
+/** EpisodePage는 주소의 ?work= 로 화면이 정해지므로 라우터 안에서 그린다. 세계관 탭의 세계관 연결 카드가 공용 조회 훅(useAsyncData)으로 store를 읽어 Provider로 감싼다. */
+const render = (ui: ReactElement, entry = '/content') => renderIn(<Provider store={createAppStore()}><MemoryRouter initialEntries={[entry]}>{ui}</MemoryRouter></Provider>)
 /** 이동을 확인하려고 현재 주소를 화면에 적어 둔다. */
 const Where = () => { const here = useLocation(); return <p>위치 {here.pathname}{here.search}</p> }
 
@@ -649,18 +651,62 @@ it('keeps the public lead for a public work and says nothing about inherited epi
   expect(screen.queryByText('원작 회차')).toBeNull()
 })
 
-it('shows only the settings book summary in the world tab with the studio button disabled', async () => {
+const settingsBook = { id: 'w', name: '설정집', revision: 0, mode: 'following', basis: { episode: 2, version: 7, settings: [] }, draft: null, drafts: [], settings: [], history: [], changes: [], sourceToken: 't' }
+const WORLD_ID = '0b0f6f0e-3a51-4d6b-9a39-1f4f2b6d0a01'
+/** 세계관 연결 카드가 읽는 내 세계관 목록(WorldStudio)을 대역으로 바꾼다. */
+const myWorlds = (worlds: { id: string; name: string; linkedWorkId?: string | null }[]) =>
+  vi.spyOn(appContainer.resolve('worldStudioUseCase'), 'list').mockResolvedValue(worlds.map((w) => ({ description: '', version: 1, settings: [], analysis: null, ...w })))
+
+it('shows the world link panel above the settings book summary in the world tab', async () => {
   stubCover()
-  const world = { id: 'w', name: '설정집', revision: 0, mode: 'following', basis: { episode: 2, version: 7, settings: [] }, draft: null, drafts: [], settings: [], history: [], changes: [], sourceToken: 't' }
-  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]), 'GET /api/v1/works/w/world': () => Response.json(world) }))
+  myWorlds([{ id: WORLD_ID, name: '별빛 세계' }])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, worldStudioId: WORLD_ID }]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook) }))
   fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
   const card = await screen.findByRole('region', { name: '세계관 설정집' })
   expect(within(card).getByText('최초 분기 기준: 2화 · 원고 버전 7 · 설정 0개')).toBeTruthy()
-  expect((within(card).getByRole('button', { name: '세계관 스튜디오에서 관리' }) as HTMLButtonElement).disabled).toBe(true)
-  expect(within(card).getByText('연결 예정')).toBeTruthy()
-  // 설정 항목 편집은 세계관 스튜디오로 옮길 예정이라 이 탭에는 없다.
+  const link = screen.getByRole('region', { name: '세계관 연결' })
+  expect(link.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect((await within(link).findByRole('link', { name: '별빛 세계' })).getAttribute('href')).toBe(`/worldstudio/${WORLD_ID}`)
+  // 설정 항목 편집은 이 탭에 없고, '연결 예정' 자리표시도 실제 연결 카드로 바뀌었다.
   expect(screen.queryByLabelText('설정 이름')).toBeNull()
   expect(screen.queryByRole('button', { name: '새 설정 항목' })).toBeNull()
+  expect(screen.queryByText('연결 예정')).toBeNull()
+})
+
+it('links and unlinks my world from the world tab and shows the server reason when the world is already linked', async () => {
+  stubCover()
+  myWorlds([{ id: WORLD_ID, name: '별빛 세계' }])
+  const answers = [
+    () => Response.json({ workId: 'w', worldId: WORLD_ID }),
+    () => Response.json({ workId: 'w', worldId: null }),
+    () => Response.json({ detail: '이미 다른 소설에 연결된 세계관이에요.', code: 'WORLD_ALREADY_LINKED' }, { status: 409 }),
+  ]
+  const fetcher = contentApi({
+    'GET /api/v1/works': () => Response.json([owned]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook),
+    'PUT /api/v1/works/w/world-studio': () => answers.shift()!(),
+  })
+  const sent = () => fetcher.mock.calls.filter(([, init]) => init?.method === 'PUT').map(([, init]) => JSON.parse(String(init?.body)))
+  await openWork(fetcher)
+  fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
+  const panel = () => within(screen.getByRole('region', { name: '세계관 연결' }))
+  fireEvent.click(await panel().findByRole('button', { name: '세계관 연결' }))
+  await panel().findByRole('link', { name: '별빛 세계' })
+  // 결과는 연결한 카드 안에서 알린다(화면 맨 위 알림 줄은 스크롤해 내려온 이 자리에서 보이지 않는다).
+  expect(panel().getByRole('status').textContent).toBe('세계관을 연결했어요.')
+  expect(document.querySelector('.ep-notice')?.textContent).toBe('')
+  // 해제는 확인을 받고 보낸다.
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(panel().getByRole('button', { name: '연결 해제' }))
+  await panel().findByRole('button', { name: '세계관 연결' })
+  expect(confirm).toHaveBeenCalledTimes(1)
+  expect(panel().getByRole('status').textContent).toBe('세계관 연결을 해제했어요.')
+  // 그 사이 다른 소설에 연결된 세계관이면 서버 사유를 그대로 알리고 연결하지 않는다.
+  fireEvent.click(panel().getByRole('button', { name: '세계관 연결' }))
+  expect((await screen.findByText(/이미 다른 소설에 연결된 세계관이에요\./)).closest('[role=alert]')).not.toBeNull()
+  expect(panel().getByRole('alert').textContent).toContain('이미 다른 소설에 연결된 세계관이에요.')
+  expect(document.querySelector('.ep-main > .ep-alert')).toBeNull()
+  expect(panel().queryByRole('link', { name: '별빛 세계' })).toBeNull()
+  expect(sent()).toEqual([{ worldId: WORLD_ID }, { worldId: null }, { worldId: WORLD_ID }])
 })
 
 it('lists saved versions, AI requests and publications read-only while restore and publish-target actions stay in the studio', async () => {
@@ -802,4 +848,81 @@ it('opens the management page of a newly created fork', async () => {
   expect(screen.getByText('분기 작품')).toBeTruthy()
   const post = fetcher.mock.calls.find(([, init]) => init?.method === 'POST')
   expect(JSON.parse(String(post?.[1]?.body))).toEqual({ episode: 1, title: '새 포크', direction: '다른 선택' })
+})
+
+// ── 결과 안내는 동작한 자리에서 ─────────────────────────────────────
+
+it('shows why creating a work failed inside the form next to 작품 만들기, not at the top of the page', async () => {
+  stubCover()
+  openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]), 'POST /api/v1/works': () => Response.json({ detail: '같은 제목의 작품이 이미 있어요.' }, { status: 409 }) }))
+  await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
+  fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: '중복 제목' } })
+  fillRegistration()
+  fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
+  const alert = await screen.findByRole('alert')
+  expect(alert.textContent).toContain('같은 제목의 작품이 이미 있어요.')
+  expect(screen.getByRole('button', { name: '작품 만들기' }).closest('form')!.contains(alert)).toBe(true)
+  expect(screen.getAllByRole('alert')).toHaveLength(1)
+  // 입력은 그대로 남아 고쳐서 다시 보낼 수 있다.
+  expect((screen.getByLabelText('작품 제목') as HTMLInputElement).value).toBe('중복 제목')
+})
+
+it('shows why creating a fork failed inside the fork form next to its button, not at the top of the page', async () => {
+  stubCover()
+  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)] }
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([original]), 'POST /api/v1/works/w/forks': () => Response.json({ detail: '이미 이 원작에서 만든 분기가 있어요.' }, { status: 409 }) }))
+  fireEvent.click(screen.getByRole('button', { name: '이야기 분기' }))
+  fireEvent.change(screen.getByLabelText('분기 작품 제목'), { target: { value: '새 포크' } })
+  fireEvent.click(screen.getByRole('button', { name: '이 회차에서 분기 만들기' }))
+  // 표지 칸은 이 대역 작품 id에 늘 자기 오류를 보이므로, 분기 사유는 폼 안에서 찾는다.
+  const form = screen.getByRole('button', { name: '이 회차에서 분기 만들기' }).closest('form')!
+  const alert = await within(form).findByRole('alert')
+  expect(alert.textContent).toContain('이미 이 원작에서 만든 분기가 있어요.')
+  expect(screen.getAllByText(/이미 이 원작에서 만든 분기가 있어요\./)).toHaveLength(1)
+  expect(document.querySelector('.ep-main > .ep-alert')).toBeNull()
+  expect((screen.getByLabelText('분기 작품 제목') as HTMLInputElement).value).toBe('새 포크')
+})
+
+it('brings the top alert into view when a request without its own place fails, so the reason is not left above the screen', async () => {
+  stubCover()
+  const scrolled: { el: Element; arg: unknown }[] = []
+  Element.prototype.scrollIntoView = function (this: Element, arg?: boolean | ScrollIntoViewOptions) { scrolled.push({ el: this, arg }) }
+  try {
+    await openWork(contentApi({
+      'GET /api/v1/works': () => Response.json([owned]),
+      'PUT /api/v1/works/w': () => Response.json({ detail: '원고가 변경됐어요. 최신 데이터를 불러와 주세요.' }, { status: 409 }),
+    }))
+    expect(scrolled).toEqual([])
+    fireEvent.click(screen.getByRole('button', { name: '작품 정보 편집' }))
+    fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: '새 제목' } })
+    fireEvent.click(screen.getByRole('button', { name: '저장' }))
+    const alert = (await screen.findByText(/원고가 변경됐어요\./)).closest('[role=alert]')
+    expect(alert?.parentElement).toBe(screen.getByRole('main'))
+    await waitFor(() => expect(scrolled).toHaveLength(1))
+    expect(scrolled[0].el).toBe(alert)
+    expect(scrolled[0].arg).toEqual({ block: 'nearest' })
+  } finally { Reflect.deleteProperty(Element.prototype, 'scrollIntoView') }
+})
+
+it('keeps saved manuscript bodies out of the history tab until each version is opened', async () => {
+  stubCover()
+  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 1, savedAt: '2026-11-02T00:00:00Z' }
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([owned]),
+    'GET /api/v1/works/w/history': () => Response.json({ versions: [version, { ...version, id: 'v2', revision: 2, body: '둘째 저장본' }], proposals: [], publicationHistory: [] }),
+  }))
+  fireEvent.click(screen.getByRole('button', { name: '저장·AI·발행 이력' }))
+  const title = await screen.findByRole('heading', { name: '1화 · 저장 버전 1 · 첫 화' })
+  // 저장본이 많아도 본문(과 그 안의 이미지)은 펼친 것만 그린다.
+  expect(screen.queryByText('저장된 원고')).toBeNull()
+  expect(screen.queryByText('둘째 저장본')).toBeNull()
+  const toggle = within(title.closest('article')!).getByRole('button', { name: '원고 보기' })
+  expect(toggle.getAttribute('aria-expanded')).toBe('false')
+  expect(document.getElementById(toggle.getAttribute('aria-describedby') ?? '')).toBe(title)
+  fireEvent.click(toggle)
+  expect(screen.getByText('저장된 원고')).toBeTruthy()
+  expect(screen.queryByText('둘째 저장본')).toBeNull()
+  expect(within(title.closest('article')!).getByRole('button', { name: '원고 접기' }).getAttribute('aria-expanded')).toBe('true')
+  fireEvent.click(within(title.closest('article')!).getByRole('button', { name: '원고 접기' }))
+  expect(screen.queryByText('저장된 원고')).toBeNull()
 })

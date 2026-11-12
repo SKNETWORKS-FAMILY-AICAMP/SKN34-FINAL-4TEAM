@@ -9,5 +9,10 @@
   .server-writing .li { grid-template-columns: 56px minmax(0, 1fr); }
   .server-writing .li > .acts { grid-column: 1 / -1; }
   .server-writing .li > .acts .btn { flex: 1; }
+}
+/* 문장 안 링크: 전역의 문단 속 링크 규칙(클래스 없는 링크)과 같은 밑줄·링크색으로 본문 글자와 구분한다. */
+.server-link { color: var(--pri-ink); text-decoration: underline; text-underline-offset: 3px; }
+/* 좁은 화면·터치 기기에서 문장 안 링크의 누를 자리를 44px로 */
+@media (max-width: 600px), (pointer: coarse) {
   .server-link { display: inline-flex; align-items: center; min-height: 44px; }
 }

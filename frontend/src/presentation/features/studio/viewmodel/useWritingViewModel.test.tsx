@@ -61,7 +61,9 @@ it('late autosave response preserves newer typing and manual save creates a vers
   act(()=>result.current.edit({body:'첫 입력'}))
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
   expect(result.current.editingLocked).toBe(false)
-  expect(result.current.busy).toBe(true)
+  // 자동 저장은 서버에 가 있어도(writeEpisode 호출됨) 화면을 진행 중으로 잠그지 않는다.
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  expect(result.current.busy).toBe(false)
   act(()=>result.current.edit({body:'최신 입력'}))
   await act(async()=>resolveSave({...episode,draft:{title:'1화',body:'첫 입력',revision:1}}))
   expect(result.current.draft.body).toBe('최신 입력')
@@ -371,4 +373,115 @@ it('opens the episode named by the entry number once and falls back to the first
   const plain=renderHook(()=>useWritingViewModel('w',api))
   await act(async()=>{})
   expect(plain.result.current.active?.number).toBe(1)
+})
+
+// ── 자동 저장은 조용히: 화면을 잠그거나 알림을 바꾸지 않고, 그사이 누른 요청은 버리지 않는다 ──
+const quietEpisode={number:1,draft:{title:'1화',body:'기존',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
+/** 첫 저장(자동 저장)은 테스트가 풀어 줄 때까지 서버에 머문다. 그다음 저장은 보낸 초안을 revision 2로 돌려준다. */
+function quietApi(episodes=[quietEpisode]) {
+  let resolveSave:(value:typeof quietEpisode)=>void=()=>{}
+  const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue(episodes),createEpisode:vi.fn(),
+    writeEpisode:vi.fn().mockImplementationOnce(()=>new Promise<typeof quietEpisode>(resolve=>{resolveSave=resolve})).mockImplementation(async(_id:string,_n:number,draft:typeof quietEpisode.draft)=>({...quietEpisode,draft:{...draft,revision:2}})),
+    restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  return {api,finishAutosave:(body:string)=>resolveSave({...quietEpisode,draft:{...quietEpisode.draft,body,revision:1}})}
+}
+
+it('자동 저장은 화면을 잠그지 않고 알림도 바꾸지 않는다',async()=>{
+  vi.useFakeTimers()
+  const {api,finishAutosave}=quietApi()
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  expect(result.current.busy).toBe(false)
+  expect(result.current.editingLocked).toBe(false)
+  await act(async()=>finishAutosave('입력'))
+  expect(result.current.dirty).toBe(false)
+  expect(result.current.draft.revision).toBe(1)
+  expect(result.current.busy).toBe(false)
+  expect(result.current.notice).toBe('')
+  expect(result.current.error).toBe('')
+})
+
+it('자동 저장 중에 누른 버전 저장은 버려지지 않고 자동 저장이 끝난 뒤 새 revision으로 실행된다',async()=>{
+  vi.useFakeTimers()
+  const {api,finishAutosave}=quietApi()
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  let saved:Promise<boolean>=Promise.resolve(false)
+  act(()=>{saved=result.current.save()})
+  // 누른 요청은 바로 진행 중으로 보이지만, 서버에는 아직 자동 저장만 가 있다.
+  expect(result.current.busy).toBe(true)
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  await act(async()=>{finishAutosave('입력');expect(await saved).toBe(true)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(2)
+  expect(api.writeEpisode).toHaveBeenLastCalledWith('w',1,{title:'1화',body:'입력',revision:1},true,expect.any(AbortSignal))
+  expect(result.current.busy).toBe(false)
+  expect(result.current.notice).toBe('새 원고 버전을 저장했어요. 발행본은 그대로예요.')
+})
+
+it('자동 저장을 기다리던 요청을 취소하면 그 요청은 서버로 가지 않는다',async()=>{
+  vi.useFakeTimers()
+  const {api,finishAutosave}=quietApi()
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  let saved:Promise<boolean>=Promise.resolve(true)
+  act(()=>{saved=result.current.save()})
+  act(()=>result.current.cancel())
+  await act(async()=>{finishAutosave('입력');expect(await saved).toBe(false)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  expect(result.current.busy).toBe(false)
+  expect(result.current.error).toContain('요청을 취소했어요.')
+})
+
+it('자동 저장이 서버에 가 있는 동안 회차를 바꾸려 하면 바꾸지 않고, 끝날 때까지 진행 중으로 보여 준다',async()=>{
+  vi.useFakeTimers()
+  const second={...quietEpisode,number:2,draft:{...quietEpisode.draft,title:'2화'}}
+  const {api,finishAutosave}=quietApi([quietEpisode,second])
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(true)
+  try {
+    const {result}=renderHook(()=>useWritingViewModel('w',api))
+    await act(async()=>{})
+    act(()=>result.current.edit({body:'입력'}))
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+    expect(result.current.busy).toBe(false)
+    act(()=>expect(result.current.select(second)).toBe(false))
+    expect(confirm).not.toHaveBeenCalled()
+    expect(result.current.active?.number).toBe(1)
+    expect(result.current.busy).toBe(true)
+    await act(async()=>finishAutosave('입력'))
+    expect(result.current.busy).toBe(false)
+    expect(result.current.dirty).toBe(false)
+    // 저장이 끝난 뒤에는 묻지 않고 바꾼다.
+    act(()=>expect(result.current.select(second)).toBe(true))
+    expect(result.current.active?.number).toBe(2)
+    expect(confirm).not.toHaveBeenCalled()
+    expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  } finally {confirm.mockRestore()}
+})
+
+it('자동 저장이 끝났을 때 그사이 입력이 남아 있으면 2초 뒤 다시 자동 저장한다',async()=>{
+  vi.useFakeTimers()
+  const {api,finishAutosave}=quietApi()
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'첫 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  act(()=>result.current.edit({body:'둘째 입력'}))
+  // 첫 자동 저장이 아직 서버에 가 있는 동안에는 다시 보내지 않는다.
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  await act(async()=>finishAutosave('첫 입력'))
+  expect(result.current.dirty).toBe(true)
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1999)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(2)
+  expect(api.writeEpisode).toHaveBeenLastCalledWith('w',1,{title:'1화',body:'둘째 입력',revision:1},false,expect.any(AbortSignal))
+  expect(result.current.dirty).toBe(false)
 })

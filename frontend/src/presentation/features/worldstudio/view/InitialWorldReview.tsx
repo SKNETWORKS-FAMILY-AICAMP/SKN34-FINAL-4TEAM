@@ -40,7 +40,7 @@ export function ReviewBody({ studio, vm }: { studio: VM; vm: Review }) {
   const applied = (id: string) => !!studio.saved?.settings.some((s) => { const p = s.serverMetadata?.preprocessing; return p && typeof p === 'object' && 'candidateId' in p && p.candidateId === id })
   const approved = groups.approved.filter((item) => !applied(item.current.id)).map((item) => item.current.id)
   const shown = groups[filter]
-  if (vm.demo) return <section className="world-analysis"><h3>AI 후보 검토</h3><p>목업 모드는 실제 AI 분석·검토 저장·초안 반영을 지원하지 않습니다.</p><button className="btn" disabled>AI 분석 요청 · 실제 서버 모드에서 사용</button><WorldCandidates analysis={studio.saved?.analysis ?? null} /></section>
+  if (vm.demo) return <section className="world-analysis"><h3>AI 후보 검토</h3><p>목업 모드는 실제 AI 분석·검토 저장·초안 반영을 지원하지 않아요.</p><button className="btn" disabled>AI 분석 요청 · 실제 서버 모드에서 사용</button><WorldCandidates analysis={studio.saved?.analysis ?? null} /></section>
 
   /**
    * 결정을 저장한다. 끝났을 때 초점이 그대로이거나 body로 빠졌으면 다음 후보(없으면 앞 후보)로 옮긴다(대기 중 사용자가 옮긴 초점은 뺏지 않는다).
@@ -70,7 +70,7 @@ export function ReviewBody({ studio, vm }: { studio: VM; vm: Review }) {
         </div>
         <h4 tabIndex={-1} ref={(el) => { heads.current[id] = el }}>{content.title}</h4>
         <p className="initial-source-label">{content.provenance === 'author_revision' ? '작가가 수정한 내용' : 'AI가 제안한 내용'}</p>
-        {content.polarity === 'denied' && <p className="initial-source-label">부정: 아래 내용이 사실이 아니라는 제안입니다</p>}
+        {content.polarity === 'denied' && <p className="initial-source-label">부정: 아래 내용이 사실이 아니라는 제안이에요</p>}
         <p className="initial-copy initial-clamp">{content.text}</p>
         {content.condition.trim() && <p className="small">적용 조건: {content.condition}</p>}
         {content.timeText.trim() && <p className="small">이야기 속 시점: {content.timeText}</p>}
@@ -81,7 +81,7 @@ export function ReviewBody({ studio, vm }: { studio: VM; vm: Review }) {
           <p className="initial-source-label">원래 AI 제안</p>
           <p className="initial-copy">{original.text}</p>
           {original.evidence.map((e, i) => <blockquote key={i}><span className="small">{e.sourceId.endsWith(':description') ? '세계관 설명' : e.sourceId.endsWith(':title') ? '설정 이름' : '설정 내용'}에서 인용</span><p className="initial-copy">{e.quote}</p></blockquote>)}
-          {content.provenance === 'author_revision' && <><p className="initial-source-label">작가 수정본 전체</p><p className="initial-copy">{content.text}</p><p className="small">위 근거는 원래 AI 제안의 근거이며, 작가 수정본의 근거가 아닙니다.</p></>}
+          {content.provenance === 'author_revision' && <><p className="initial-source-label">작가 수정본 전체</p><p className="initial-copy">{content.text}</p><p className="small">위 근거는 원래 AI 제안의 근거이며, 작가 수정본의 근거가 아니에요.</p></>}
         </details>
         <details>
           <summary>검토 이력</summary>
@@ -104,7 +104,7 @@ export function ReviewBody({ studio, vm }: { studio: VM; vm: Review }) {
       {unsaved && <p role="status">작성 중인 입력이 있어요. 먼저 저장해 주세요.</p>}
       {vm.error && <p role="alert" className="world-error">{vm.error}</p>}
       {vm.message && <p role="status">{vm.message}</p>}
-      {vm.pending && <div className="initial-recovery"><p>결과를 확인하지 못한 요청이 있습니다. 새 요청을 만들지 않고 기존 요청을 그대로 확인합니다. 새로고침·재로그인 후에도 이 브라우저에서 이어서 확인할 수 있습니다.</p><button className="btn" disabled={vm.busy} onClick={vm.recover}>같은 요청으로 확인·복구</button></div>}
+      {vm.pending && <div className="initial-recovery"><p>결과를 확인하지 못한 요청이 있어요. 새 요청을 만들지 않고 기존 요청을 그대로 확인해요. 새로고침·재로그인 후에도 이 브라우저에서 이어서 확인할 수 있어요.</p><button className="btn" disabled={vm.busy} onClick={vm.recover}>같은 요청으로 확인·복구</button></div>}
       {!analysis && !vm.busy && (
         <div className="initial-empty">
           <p>아직 분석한 후보가 없어요. 저장한 세계관을 AI가 읽고 설정 후보를 제안해요.</p>
@@ -124,7 +124,7 @@ export function ReviewBody({ studio, vm }: { studio: VM; vm: Review }) {
             </div>
           </div>
           {vm.analyses.length > 1 && <label className="field">분석 기록<select className="inp" value={analysis.analysisId} disabled={vm.busy || vm.pending} onChange={(e) => vm.select(e.target.value)}>{vm.analyses.map((a, i) => <option key={a.analysisId} value={a.analysisId}>분석 {vm.analyses.length - i} · {execution[a.executionStatus]}{a.freshness === 'stale' ? ' · 원본 변경됨' : ''}</option>)}</select></label>}
-          <p role="status">{execution[analysis.executionStatus]}{analysis.freshness === 'stale' ? ' · 원본이 변경되어 새 검토·반영은 할 수 없습니다. 저장 후 재분석해 주세요.' : ''}</p>
+          <p role="status">{execution[analysis.executionStatus]}{analysis.freshness === 'stale' ? ' · 원본이 변경되어 새 검토·반영은 할 수 없어요. 저장 후 재분석해 주세요.' : ''}</p>
           {analysis.output?.diagnostics.map((d, i) => <p key={i} className="small">분석 안내: {d}</p>)}
           {!!approved.length && (
             <div className="initial-apply-bar">
@@ -162,7 +162,7 @@ function CandidateEdit({ id, candidate, disabled, save }: { id: string; candidat
         <label className="field">후보 내용<textarea className="ta" required maxLength={3000} value={text} onChange={(e) => setText(e.target.value)} /></label>
         <label className="field">적용 조건<input className="inp" value={condition} onChange={(e) => setCondition(e.target.value)} /></label>
         <label className="field">이야기 속 시점<input className="inp" value={timeText} onChange={(e) => setTimeText(e.target.value)} /></label>
-        <p className="small">수정 저장 후 검토 대기가 됩니다. 별도로 다시 승인해야 반영할 수 있어요.</p>
+        <p className="small">수정 저장 후 검토 대기가 돼요. 별도로 다시 승인해야 반영할 수 있어요.</p>
         <button className="btn" type="submit">수정본 저장 · 재승인 필요</button>
       </fieldset>
     </form>

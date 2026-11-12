@@ -19,16 +19,17 @@ const world=(over:object={})=>({id:'w',name:'설정집',revision:0,mode:'own',ba
 const setting={id:'s',versionId:'v',name:'지도',content:'설정',category:'장소',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
 const show=(fetcher:typeof fetch)=>render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} />)
 
-it('shows only the settings book summary with the studio button disabled and marked as coming soon',async()=>{
+it('shows only the settings book summary and no coming-soon studio button now that world linking has its own panel',async()=>{
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json(world({name:'구운몽 설정집',mode:'following',basis:{episode:2,version:1,settings:[setting,setting]},settings:[setting],history:[setting]})))
  show(fetcher)
  const card=await screen.findByRole('region',{name:'세계관 설정집'})
  expect(within(card).getByRole('heading',{name:'구운몽 설정집'})).toBeTruthy()
  expect(within(card).getByText('원작 추종 중 · 첫 설정 수정 시 전체 공개 설정이 독립해요.')).toBeTruthy()
  expect(within(card).getByText('최초 분기 기준: 2화 · 원고 버전 1 · 설정 2개')).toBeTruthy()
- expect((within(card).getByRole('button',{name:'세계관 스튜디오에서 관리'}) as HTMLButtonElement).disabled).toBe(true)
- expect(within(card).getByText('연결 예정')).toBeTruthy()
- // 설정 항목 목록·작성 폼·새로고침은 세계관 스튜디오로 옮길 예정이라 이 탭에 없다.
+ // 내 세계관과의 연결은 같은 탭의 '세계관 연결' 카드(LinkedWorldPanel)가 맡으므로 '연결 예정' 자리표시는 없다.
+ expect(within(card).queryByRole('button')).toBeNull()
+ expect(screen.queryByText('연결 예정')).toBeNull()
+ // 설정 항목 목록·작성 폼·새로고침은 이 탭에 없다.
  for(const name of ['새 설정 항목','설정집 새로고침','설정 초안 저장','설정 확정 저장'])expect(screen.queryByRole('button',{name})).toBeNull()
  for(const label of ['설정 이름','설정 내용'])expect(screen.queryByLabelText(label)).toBeNull()
  expect(screen.queryByText(/설정 항목/)).toBeNull()

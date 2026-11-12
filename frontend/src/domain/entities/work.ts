@@ -149,7 +149,7 @@ export const canView = (w: Work | undefined, role: Role): w is Work => !!w && (i
 export const canReport = (w: Work, memberId: string | null) => isPub(w) && !isMine(w) && (memberId === null || w.owner !== memberId)
 export const visibleEpisode = (w: Work, e: Episode, role: Role) => !e.hidden || (!w.canonical && role === 'user' && isMine(w))
 export const originals = (works: Work[]) => works.filter((w) => !w.parent && !w.private)
-/** 목업 분류 필터(관리자·캐릭터 챗 목록): 전체·원작·포크 */
+/** 목업 분류 필터(관리자·캐릭터챗 목록): 전체·원작·포크 */
 export const ofKind = (kind: string, w: { parent?: string }) => kind === 'all' || (kind === 'fork' ? !!w.parent : !w.parent)
 export const forksOf = (works: Work[], id: string) => works.filter((w) => w.parent === id && isPub(w))
 
@@ -221,7 +221,7 @@ export function similarWorks(current: Work, found: Work[], exclude: Work[] = [])
   return found.filter((w) => !skip.has(w.id) && !related(w)).sort((a, b) => overlap(b) - overlap(a)).slice(0, RECOMMEND_MAX)
 }
 
-/** 목업 SORTS: /ifs 포크 모음·캐릭터 챗 목록 정렬. 검색은 서버 계약인 SEARCH_SORTS, 랭킹은 RANKING_KINDS를 씁니다. */
+/** 목업 SORTS: /ifs 포크 모음·캐릭터챗 목록 정렬. 검색은 서버 계약인 SEARCH_SORTS, 랭킹은 RANKING_KINDS를 씁니다. */
 export const SORTS = [['new', '최신 순'], ['pop', '인기 순'], ['view', '조회 순']] as const
 const SERVER_SORTS = [['title', '제목 순'], ['author', '작가 순']] as const
 /** 서버 작품(statisticsSupported:false)은 좋아요·갱신 시각이 없어 만들 수 없는 지표 대신 제목·작가 순만 고르게 합니다. */

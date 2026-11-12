@@ -1,4 +1,4 @@
-import type { FormEvent } from 'react'
+import { type FormEvent, useEffect, useRef } from 'react'
 
 import { reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
 import { kstDateTime } from '../../../shared/format'
@@ -14,6 +14,15 @@ export function ReportsPage() {
   const { list, detail, report: r } = vm
   const rows = list.data ?? []
   const evidenceRequests = (r?.history ?? []).filter((h) => h.type === 'EVIDENCE_REQUEST')
+  const heading = useRef<HTMLHeadingElement>(null)
+  // 상세가 목록 아래에 열리므로 고른 신고의 상세 제목으로 초점을 옮기고 화면 안으로 끌어온다(관리자 신고 탭과 같은 방식).
+  // r 객체는 다시 읽을 때마다 바뀌므로 신고 ID가 바뀔 때만 옮긴다. jsdom에는 scrollIntoView가 없어 있으면 부른다.
+  const shown = r?.id
+  useEffect(() => {
+    if (!shown) return
+    heading.current?.focus({ preventScroll: true })
+    heading.current?.scrollIntoView?.({ block: 'center' })
+  }, [shown])
   const submitBody = (save: (id: string, body: string) => Promise<boolean>) => async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
@@ -68,7 +77,7 @@ export function ReportsPage() {
             {!r && !detail.isError && <p role='status'>신고 상세를 불러오고 있어요.</p>}
             {r && (
               <>
-                <h2 style={{ fontSize: 18 }}>{r.workTitle}</h2>
+                <h2 ref={heading} tabIndex={-1} style={{ fontSize: 18 }}>{r.workTitle}</h2>
                 <p className='small muted'>
                   {[vm.isReporter && '내가 신고함', vm.isOwner && '내 작품 대상', reportKindLabel(r.kind), reportStatusLabel(r.status), `작품 ${r.contentRestricted ? '제한 중' : '공개 유지'}`].filter(Boolean).join(' · ')}
                 </p>
@@ -85,7 +94,7 @@ export function ReportsPage() {
                 <h3 className='mt-4 font-bold'>처리 이력</h3>
                 <ReportHistoryList history={r.history ?? []} />
                 {vm.isReporter && (
-                  <form className='mt-4 grid gap-2' onSubmit={submitBody(vm.addEvidence)}>
+                  <form className='mt-4 grid gap-2' noValidate onSubmit={submitBody(vm.addEvidence)}>
                     <label className='field'>
                       증거 보완<textarea className='ta' name='body' required rows={3} disabled={vm.action.pending} />
                     </label>
@@ -93,7 +102,7 @@ export function ReportsPage() {
                   </form>
                 )}
                 {vm.isOwner && (
-                  <form className='mt-4 grid gap-2' onSubmit={submitBody(vm.addExplanation)}>
+                  <form className='mt-4 grid gap-2' noValidate onSubmit={submitBody(vm.addExplanation)}>
                     <label className='field'>
                       소명<textarea className='ta' name='body' required rows={3} disabled={vm.action.pending} />
                     </label>

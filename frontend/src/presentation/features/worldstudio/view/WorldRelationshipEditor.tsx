@@ -23,6 +23,8 @@ const LineKey = ({ tone, dashed, arrow }: { tone: 'edge' | 'emotion'; dashed?: b
  * 관계 연결 단계. 왼쪽은 공개 인물관계도와 같은 어두운 면 위의 인물·설정 카드 그래프(범례·관계 라벨)이고, 카드를 차례로 두 번 누르면 오른쪽 '관계 추가' 폼의
  * 주체·대상이 채워지며 관계 작성이 열린다(`pickRelationNode`). 오른쪽에는 관계 추가 폼, 열린 관계 작성 패널, 관계 목록 표(편집·삭제)가 있다.
  * 관계는 기존 초안·적용 흐름 그대로 '편집본에 적용'으로 반영하고 세계관 저장으로 서버에 저장한다.
+ * 누른 버튼이 사라지는 동작 뒤에는 초점을 이어 준다(`focusTo`): 관계 작성 패널을 닫으면 '관계 작성' 버튼(잠겨 있으면 관계 주체 선택), 목록의 관계를 지우면 관계 목록,
+ * 인물을 지우면 '인물 삭제 되돌리기', 되돌리면 관계 주체 선택이다.
  */
 export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const map = useWorldMapViewModel(studio.editing!.settings, buildSettingRelationshipMap)
@@ -46,6 +48,15 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const [focusRequest, setFocusRequest] = useState<{ id: string; seq: number } | null>(null)
   const handledRequest = useRef(0)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [focusTo, setFocusTo] = useState<'' | 'write' | 'list' | 'undo' | 'source'>('')
+  const writeButton = useRef<HTMLButtonElement>(null), sourceSelect = useRef<HTMLSelectElement>(null), undoButton = useRef<HTMLButtonElement>(null), list = useRef<HTMLElement>(null)
+  // 화면이 바뀐 뒤(버튼이 사라지고 새 버튼이 생긴 뒤)에 옮겨야 하므로 렌더 뒤에 처리한다.
+  useEffect(() => {
+    if (!focusTo) return
+    const target = focusTo === 'list' ? list.current : focusTo === 'undo' ? undoButton.current : focusTo === 'write' && !writeButton.current?.disabled ? writeButton.current : sourceSelect.current
+    target?.focus()
+    setFocusTo('')
+  }, [focusTo])
   const validDeletion = !!deleteConfirm && people.some((s) =>
     s.item.id === deleteConfirm && s.item.kind === 'entity' && s.item.entityType === 'character'
   )
@@ -81,14 +92,14 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const removeRelation = (id: string, label: string) => {
     if (open && !studio.confirmRelationDiscard()) return
     if (!window.confirm(`${label} 관계를 삭제할까요? 세계관을 저장해야 반영돼요.`)) return
-    if (studio.applyRelations([], [id])) { setOpen(false); setChoosing(false) }
+    if (studio.applyRelations([], [id])) { setOpen(false); setChoosing(false); setFocusTo('list') }
   }
   const relations = studio.editing!.settings.filter((s) => s.item.kind === 'relation')
   const name = (id: string | null) =>
     people.find((s) => s.item.id === id)?.item.title || '선택 안 함'
   return (
     <section ref={section} className='world-map relationship-editor' aria-label='관계 편집' onKeyDown={(e) => { if (choosing && e.key === 'Escape') stopChoosing() }}>
-      <p className='small muted'>구조적 관계와 방향별 감정을 따로 작성합니다.</p>
+      <p className='small muted'>구조적 관계와 방향별 감정을 따로 작성해요.</p>
       <fieldset className='world-fields' disabled={studio.busy}>
         <legend className='sr-only'>관계 대상 선택</legend>
         <div className='relationship-service-layout'>
@@ -113,6 +124,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               <div className='world-form-row'>
                 <label className='field'>
                   관계 주체<select
+                    ref={sourceSelect}
                     className='inp'
                     value={source}
                     onChange={(e) => selectPair(e.target.value, target, false)}
@@ -142,6 +154,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               </div>
               <div className='relationship-actions'>
                 <button
+                  ref={writeButton}
                   className='btn pri'
                   type='button'
                   disabled={!source || !target || source === target}
@@ -161,12 +174,13 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 </button>
                 {studio.deletedCard?.person && (
                   <button
+                    ref={undoButton}
                     className='btn'
                     type='button'
                     onClick={() => {
                       if (open && !studio.confirmRelationDiscard()) return
                       const id = studio.undoCardDeletion()
-                      if (id) { setSource(id); setOpen(false); setChoosing(false) }
+                      if (id) { setSource(id); setOpen(false); setChoosing(false); setFocusTo('source') }
                     }}
                   >
                     인물 삭제 되돌리기
@@ -174,7 +188,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 )}
               </div>
               {people.length < 2 && (
-                <p>설정 카드에서 설정 두 개을 먼저 추가하세요. 관계 없이도 저장할 수 있습니다.</p>
+                <p>설정 카드에서 설정 두 개를 먼저 추가하세요. 관계 없이도 저장할 수 있어요.</p>
               )}
               {deletion && (
                 <CardDeletionConfirm
@@ -187,6 +201,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                       setTarget('')
                       setOpen(false)
                       setChoosing(false)
+                      setFocusTo('undo')
                     }
                   }}
                   onCancel={() => setDeleteConfirm(null)}
@@ -201,14 +216,14 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                   source={source}
                   target={target}
                   focusRequest={focusRequest}
-                  onClose={() => setOpen(false)}
+                  onClose={() => { setOpen(false); setFocusTo('write') }}
                 />
               </div>
             )}
-            <section className='relationship-list' aria-label='관계 목록'>
+            <section ref={list} tabIndex={-1} className='relationship-list' aria-label='관계 목록'>
               <h4>관계 목록 <span className='small muted'>{relations.length}개</span></h4>
               {!relations.length
-                ? <p>아직 연결한 관계가 없습니다.</p>
+                ? <p>아직 연결한 관계가 없어요.</p>
                 : (
                   <table className='relationship-table world-compact'>
                     <caption className='sr-only'>저장할 관계 목록</caption>

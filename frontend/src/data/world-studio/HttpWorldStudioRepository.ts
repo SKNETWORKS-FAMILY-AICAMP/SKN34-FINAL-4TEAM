@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
 import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
+import { isEpisodeKey, storedCharacterDocs } from '../../domain/entities/characterDocs'
 import { newSetting, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput } from '../../domain/entities/studioWorld'
 import { cardTypeOf } from '../../domain/entities/studioCards'
 import { relationDefinitions } from '../../domain/entities/studioRelations'
@@ -14,6 +15,8 @@ const visibility = z.enum(['private', 'public']), genre = z.enum(PUBLIC_WORLD_GE
 const publicationResult = z.object({ worldId: uuid, visibility, genre, publishedAt: z.string().nullable(), listed: z.boolean() })
 // 세계관 표지. 서버가 `hasCover`를 주기 전 응답은 표지 없음으로 읽는다.
 const coverResult = z.object({ worldId: uuid, hasCover: z.literal(true) })
+// 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결). 서버가 이 필드를 주기 전 응답은 미연결로 읽는다.
+const linkedWorkId = z.string().nullable().default(null)
 const area = z.enum(['basic', 'space', 'history', 'society', 'culture', 'special', 'conflict'])
 const evidence = z.array(z.object({ sourceId: z.string(), quote: z.string() }))
 const studio = z.object({
@@ -66,9 +69,16 @@ const metadata = z.union([
   z.object({studio,preprocessing:preprocessing.optional()}).passthrough(),
   z.object({studio:partialStudio,preprocessing}).passthrough(),
 ])
+// 카드 semanticMetadata의 최상위 키(DEC-46): 독자 공개 시작 회차와 가져온 출처. 모양이 어긋난 값은 읽지 않는다.
+const revealFromEpisode = z.number().int().min(1)
+const importedFrom = z.object({ worldId: z.string(), worldName: z.string(), authorNickname: z.string(), revisionNo: z.number().int(), cardId: z.string() })
+// 인물 문서(SOUL.md·MEMORY.md·회차별 기억)도 인물 카드 semanticMetadata의 최상위 키 `characterDocs`다. IDENTITY.md는 카드 본문(body)이라 여기 없다.
+const characterDocs = z.object({ soul: z.string(), memory: z.string(), episodes: z.record(z.string().refine(isEpisodeKey), z.string()) })
+// 카드 공개·독자 공개 회차·가져온 출처·인물 문서는 행 필드가 정본이라 `studio` 안에 넣지 않는다. 회차·출처·문서는 최상위 키로 쓰고 값이 없으면(문서는 전부 비었거나 인물이 아니면) 키도 넣지 않는다.
 function metadataOf(row:StudioSetting) {
-  const {serverMetadata,...view}=row
-  return {...serverMetadata,studio:view}
+  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,...view}=row
+  const docs=storedCharacterDocs(row)
+  return {...serverMetadata,studio:view,...(reveal!==undefined&&{revealFromEpisode:reveal}),...(source&&{importedFrom:source}),...(docs&&{characterDocs:docs})}
 }
 // A 6-B addition is a wire card/relation, not a complete legacy StudioSetting.
 function setting(m:z.infer<typeof metadata>, fields:Partial<StudioSetting['item']>, labels:Pick<StudioSetting,'userCategory'|'tags'|'aliases'>):StudioSetting {
@@ -101,7 +111,7 @@ const card = z.object({
   aliases: z.array(z.string()),
   tags: z.array(z.string()),
   semanticMetadata: metadata,
-  visibility: z.literal('private'),
+  visibility,
   lifecycle: z.enum(['active', 'removed']),
 })
 const confirmationRequest=z.object({expectedDraftRevision:revision,key:uuid})
@@ -133,6 +143,7 @@ const draft = z.object({
   visibility: visibility.default('private'),
   genre: genre.default(null),
   hasCover: z.boolean().default(false),
+  linkedWorkId,
 })
 const summaries = z.array(
   z.object({
@@ -144,6 +155,7 @@ const summaries = z.array(
     visibility: visibility.default('private'),
     genre: genre.default(null),
     hasCover: z.boolean().default(false),
+    linkedWorkId,
   }),
 )
 const invalid = () =>
@@ -177,7 +189,9 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
     ids = new Set(active.map((c) => c.id))
   const settings: StudioSetting[] = active.map((c) => {
-    const row = setting(c.semanticMetadata,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
+    // 독자 공개 회차·가져온 출처·인물 문서는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
+    const {revealFromEpisode:reveal,importedFrom:source,characterDocs:written,...known}=c.semanticMetadata
+    const row = setting(known,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
       {userCategory:c.classification,aliases:c.aliases,tags:c.tags})
     if(c.semanticMetadata.studio.item.id!==c.id)throw invalid()
     if (
@@ -187,7 +201,9 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
       JSON.stringify(row.tags) !== JSON.stringify(c.tags) ||
       JSON.stringify(row.aliases ?? []) !== JSON.stringify(c.aliases)
     ) throw invalid()
-    return row
+    const episode = revealFromEpisode.safeParse(reveal), from = importedFrom.safeParse(source), docs = characterDocs.safeParse(written)
+    return {...row,...(c.visibility==='public'&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
+      ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data})}
   })
   for (const r of value.relationships) {
     const row = setting(r.semanticMetadata,{id:r.id,kind:'relation',title:r.label,text:r.body,
@@ -215,6 +231,7 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
     visibility: value.visibility,
     genre: value.genre,
     hasCover: value.hasCover,
+    linkedWorkId: value.linkedWorkId,
     settings,
     analysis: null,
   }
@@ -313,6 +330,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       visibility: r.visibility,
       genre: r.genre,
       hasCover: r.hasCover,
+      linkedWorkId: r.linkedWorkId,
       settings: [],
       analysis: null,
       relationshipStatus: r.relationshipStatus,
@@ -410,7 +428,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
           aliases: row.aliases ?? [],
           tags: row.tags,
           semanticMetadata: metadataOf(row),
-          visibility: 'private',
+          visibility: row.visibility ?? 'private',
           lifecycle: 'active',
         })),
         relationships: value.settings.filter((s) => s.item.kind === 'relation').map(relationship),

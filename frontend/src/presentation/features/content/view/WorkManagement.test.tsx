@@ -84,3 +84,9 @@ it('쪽을 나눠도 이야기 분기의 기준 회차 선택에는 모든 회�
   fireEvent.click(screen.getByRole('button', { name: '이야기 분기' }))
   expect(within(screen.getByRole('combobox', { name: /기준 회차/ })).getAllByRole('option')).toHaveLength(25)
 })
+
+it('요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 탭은 잠그지 않아, 누른 탭에서 키보드 초점이 사라지지 않는다', () => {
+  render(<MemoryRouter><WorkManagement vm={{ ...vm, busy: true } as never} work={work(3)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  const tabs = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button') as HTMLButtonElement[]
+  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['회차 · 3', false], ['세계관·설정집', true], ['이야기 분기', true], ['받은 피드백', true], ['저장·AI·발행 이력', true]])
+})

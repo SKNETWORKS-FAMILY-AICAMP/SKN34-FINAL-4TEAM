@@ -295,7 +295,7 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
           ? <StoredImage target={target} id={current.id} alt='작품 표지' revision={media.revision} />
           : !media.busy && !media.error && <img className='stored-image' src='/default-work-cover.svg' alt='기본 작품 표지' />}
       </div>
-      {media.error && <p role='alert' className='small'>{media.error}</p>}
+      {media.error && <p role='alert' className='ep-alert small'>{media.error}</p>}
       <p role='status' className='small muted'>{media.busy ? '파일을 처리하고 있어요…' : media.notice}</p>
       {editing
         ? (

@@ -29,6 +29,8 @@
 .nw-doc p, .nw-doc li { line-height: 1.75; max-width: 68ch; overflow-wrap: anywhere; white-space: pre-wrap; }
 .nw-doc p { margin: 0 0 10px; }
 .nw-doc ul { margin: 0 0 10px; padding-left: 20px; }
+/* 마크다운 본문(.card-md)은 마지막 문단의 아래 여백이 없어, 뒤에 소제목·연결 줄이 이어질 때만 문단 간격을 되돌린다(본문 하나뿐인 공개 카드 페이지는 그대로). */
+.nw-doc > .card-md:not(:last-child) { margin-bottom: 10px; }
 .nw-doc small, .nw-empty { color: var(--tsub); }
 .nw-rel { font-size: 14px; }
 .nw-rel b { margin-right: 6px; color: var(--tsub); }
@@ -41,5 +43,8 @@
   .nw { padding: 18px 16px 28px; }
   .nw-info { float: none; width: 100%; margin: 0 0 14px; }
   .nw-toc { display: block; }
+}
+/* 목차 줄의 누를 자리는 좁은 화면뿐 아니라 터치 기기(태블릿·가로 폰)에서도 44px */
+@media (max-width: 720px), (pointer: coarse) {
   .nw-toc li a { display: flex; align-items: center; min-height: 44px; padding: 0; }
 }

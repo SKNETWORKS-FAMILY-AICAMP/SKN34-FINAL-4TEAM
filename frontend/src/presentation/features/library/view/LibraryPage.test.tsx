@@ -32,6 +32,14 @@ it('서재 탭은 현재 탭을 aria-current로 알리고 탭을 옮기면 따�
   expect(tab('읽는 중').hasAttribute('aria-current')).toBe(false)
 })
 
+it('서재 탭 줄은 이름이 있는 내비게이션이라 상단 주요 메뉴와 구분된다', async () => {
+  renderLibrary()
+  await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
+  const tabs = screen.getByRole('navigation', { name: '서재 메뉴' })
+  expect(tabs.classList.contains('libtabs')).toBe(true)
+  expect(Array.from(tabs.querySelectorAll('a'), (link) => link.textContent)).toEqual(['읽는 중', '내가 쓰는 소설', '내가 만드는 세계관'])
+})
+
 it('서재 탭은 읽는 중 · 내가 쓰는 소설 · 내가 만드는 세계관 순서이고 ?tab=worlds는 세계관 탭을 현재 탭으로 알린다', async () => {
   renderLibrary('/lib?tab=worlds')
   await waitFor(() => expect(tab('내가 만드는 세계관').getAttribute('aria-current')).toBe('page'))

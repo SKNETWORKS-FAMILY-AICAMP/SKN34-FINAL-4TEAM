@@ -150,3 +150,14 @@ it('AI 채팅은 머리글에 브랜드 마크와 AI 채팅 제목을 두고 메
   // 입력 카드가 채팅 패널의 마지막 요소라 세로 flex에서 바닥에 붙는다.
   expect(chat.querySelector('.chat-panel')!.lastElementChild).toBe(composer)
 })
+
+it('창이 1200px 이하면 준비 중인 AI 채팅을 접은 채로 시작하고, 처음부터 초점을 옮기지 않는다', () => {
+  vi.stubGlobal('matchMedia', (query: string) => ({ matches: query === '(max-width: 1200px)', addEventListener() {}, removeEventListener() {} }))
+  try {
+    renderStudio()
+    expect(screen.queryByRole('complementary', { name: 'AI 채팅' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'AI 채팅 열기' })).toBeTruthy()
+    expect(document.activeElement).toBe(document.body)
+    expect(screen.getByLabelText('원고 본문')).toBeTruthy()
+  } finally { vi.unstubAllGlobals() }
+})

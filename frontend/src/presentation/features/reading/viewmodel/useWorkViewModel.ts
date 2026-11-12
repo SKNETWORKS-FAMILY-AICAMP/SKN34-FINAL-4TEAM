@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
@@ -38,11 +38,15 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
   if (shown !== id) { setShown(id); setQuery(''); setReporting(false) }
   useScreenId(data ? 'U04' : null)
 
+  // 회차 본문을 이어 붙여 만드는 값(공백을 뺀 글자 수·검색 대상 글)은 작품을 읽었을 때 한 번만 만든다. 렌더나 검색 입력마다 전 회차 본문을 다시 훑지 않는다.
+  const indexed = useMemo(() => (data?.visible ?? []).map(([e, i]) => ({
+    e, n: i + 1, chars: e.p.join('').replace(/\s/g, '').length, text: (i + 1 + '화 ' + e.t + ' ' + e.p.join(' ')).toLowerCase(),
+  })), [data])
   const v = query.trim().toLowerCase()
-  const ordered = data ? (epSort === 'new' ? data.visible.slice().reverse() : data.visible) : []
+  const ordered = epSort === 'new' ? indexed.slice().reverse() : indexed
   // 서버 작품의 조회 수는 자체 회차에만 기록된다(Fork의 상속 회차는 원작 몫이라 수를 보이지 않음). 데모 작품은 시드의 e.views를 그대로 씁니다.
   const inherited = data?.work.snap?.eps.length ?? 0
-  const episodes = ordered.map(([e, i]) => ({ e, n: i + 1, views: views.data && i + 1 > inherited ? (views.data[i + 1] ?? 0) : e.views, match: !v || (i + 1 + '화 ' + e.t + ' ' + e.p.join(' ')).toLowerCase().includes(v) }))
+  const episodes = ordered.map(({ e, n, chars, text }) => ({ e, n, chars, views: views.data && n > inherited ? (views.data[n] ?? 0) : e.views, match: !v || text.includes(v) }))
 
   return {
     /** undefined: 불러오는 중, null: 없거나 볼 수 없는 작품 */

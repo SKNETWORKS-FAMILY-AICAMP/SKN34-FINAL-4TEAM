@@ -47,6 +47,8 @@ describe('프로필 폼 (U30)', () => {
     expect(screen.getByRole('button', { name: '저장' }).getAttribute('type')).toBe('submit')
     expect(nick.required).toBe(true)
     expect(email.required).toBe(true)
+    // 필수는 속성뿐 아니라 가입 폼과 같은 문구로도 보인다.
+    within(form!).getByText('모든 항목은 필수예요.')
     fireEvent.change(nick, { target: { value: '새닉네임' } })
     fireEvent.submit(form!)
     await waitFor(() => expect(patches()).toHaveLength(1))
@@ -114,6 +116,7 @@ describe('문의하기 폼 (U34)', () => {
     await screen.findByRole('heading', { name: '문의하기' })
     expect(field('제목').required).toBe(true)
     expect(field('내용').required).toBe(true)
+    within(document.getElementById('iqf')!).getByText('모든 항목은 필수예요.')
     fireEvent.click(screen.getByRole('button', { name: '문의 보내기' }))
     const alert = await screen.findByRole('alert')
     expect(alert.textContent).toBe('제목과 내용을 입력해 주세요')
@@ -220,6 +223,47 @@ describe('내 문의 목록 (U34)', () => {
     within(waiting).getByText('답변 대기')
     expect(waiting.querySelector('.inquiry-reply')).toBeNull()
     screen.getByRole('heading', { name: '내 문의 2' })
+  })
+})
+
+describe('관심 소설·저장 공간 조회 상태 (U32)', () => {
+  const account = () => appContainer.resolve('accountUseCase')
+
+  it('관심 소설을 불러오는 동안에는 빈 화면 대신 불러오는 중임을 알린다', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    vi.spyOn(account(), 'liked').mockImplementation(async () => { await gate; return [] })
+    setup('/me/liked')
+    const loading = await screen.findByText('관심 소설을 불러오고 있어요.')
+    expect(loading.getAttribute('role')).toBe('status')
+    screen.getByRole('heading', { name: '관심 소설', level: 2 })
+    expect(screen.queryByText('0편')).toBeNull()
+    await act(async () => { release() })
+    await screen.findByText('소설 상세에서 ♡를 누르면 여기에 모여요.')
+    expect(screen.queryByText('관심 소설을 불러오고 있어요.')).toBeNull()
+  })
+
+  /** 조회 실패 안내와 제목을 확인한 뒤, `restore`로 조회를 되살리고 다시 불러와 `loaded`가 보이는지 본다. */
+  async function failsThenRecovers(path: string, title: string, restore: () => void, loaded: string | RegExp) {
+    setup(path)
+    const alert = await screen.findByText(`${title}을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.`)
+    expect(alert.getAttribute('role')).toBe('alert')
+    screen.getByRole('heading', { name: title, level: 2 })
+    restore()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByText(loaded)
+    expect(screen.queryByText(/불러오지 못했어요/)).toBeNull()
+  }
+
+  // 세션 복원이 같은 범위를 한 번 더 읽으므로 계속 실패시키고, 다시 불러오기 직전에 원래 조회로 되돌린다.
+  it('관심 소설 조회에 실패하면 빈 화면으로 숨기지 않고 알린 뒤 다시 불러올 수 있다', async () => {
+    const liked = vi.spyOn(account(), 'liked').mockRejectedValue(new Error('down'))
+    await failsThenRecovers('/me/liked', '관심 소설', () => liked.mockRestore(), '소설 상세에서 ♡를 누르면 여기에 모여요.')
+  })
+
+  it('저장 공간 조회에 실패하면 빈 화면으로 숨기지 않고 알린 뒤 다시 불러올 수 있다', async () => {
+    const storage = vi.spyOn(account(), 'storage').mockRejectedValue(new Error('down'))
+    await failsThenRecovers('/me/storage', '저장 공간', () => storage.mockRestore(), /저장 공간 관리는 MVP에서 제외됐어요/)
   })
 })
 

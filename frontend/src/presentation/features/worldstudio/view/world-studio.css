@@ -14,20 +14,26 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .episode-app .world-publish .field{display:flex;margin:0}.world-publish .seg{width:200px;max-width:100%}.episode-app .world-publish select{min-width:150px}.world-publish>p{flex:1 1 100%;margin:0}
 /* 이름·설명 인라인 편집은 소개 자리에 열린다(/content 작품 정보 편집과 같은 ep-edit 틀). 편집 중에는 제목을 화면 밖으로만 숨긴다. */
 .episode-app .world-manage-hero .world-info-edit{margin:16px 0 8px}
+/* 표지 묶음의 이름은 같은 폼의 다른 입력 이름(.episode-app label)과 같은 글자이고 버튼 줄과 간격을 둔다. */
+.world-cover-edit{display:grid;gap:8px;min-width:0}.world-cover-label{font-size:13px;font-weight:650}
 
 /* 관리 모드 탭 줄: 탭(.ep-tabs) 오른쪽에 상시 저장 영역. 밑줄은 줄 전체가 긋고 탭은 그 위에 놓인다. */
 .world-tabs-row{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:4px 20px;border-bottom:1px solid var(--line2);margin-bottom:30px}.world-tabs-row .ep-tabs{margin-bottom:0;border-bottom:0}
 .world-save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 12px;margin-left:auto;padding-bottom:8px}.world-save-state{font-size:13px;font-weight:650;white-space:nowrap}.world-save-state.ok{color:var(--tsub)}.world-save-state.wait{color:var(--pri-ink)}
-.world-save-bar>.small{max-width:30ch;color:var(--danger,#b42318);line-height:1.4}
+/* 저장을 막는 사유: 어느 설정의 문제인지 이름이 붙은 글자 버튼(누르면 그 설정의 편집 화면)과 남은 건수. 버튼은 본문 링크처럼 밑줄로 구분하고 누르는 높이는 44px다. */
+.world-save-issue{max-width:34ch;color:var(--danger);line-height:1.4;overflow-wrap:anywhere}
+.world-save-issue button{display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
 /* AI 채팅: 집필실과 같은 오른쪽 레일(.studio-chat은 전역 스타일, 안쪽은 shared/chat). 본문(main) | 채팅 2열(채팅 350px 고정)이고 채팅은 상단바(65px) 아래에 붙어(sticky) 화면 높이를 쓴다:
-   머리 / 메시지(스크롤) / 입력(바닥). 배경은 페이지와 같고 왼쪽 선으로만 구분하며, 입력 카드·추천 칩·말풍선(--chat-card)만 한 단계 밝은 면으로 도드라진다. 헤더·탭 줄은 본문 열 안이다. 좁은 화면(집필실과 같은 900px)에서는 기본 닫힘이고 열면 오른쪽 서랍이다. */
+   머리 / 메시지(스크롤) / 입력(바닥). 배경은 페이지와 같고 왼쪽 선으로만 구분하며, 입력 카드·추천 칩·말풍선(--chat-card)만 한 단계 밝은 면으로 도드라진다. 헤더·탭 줄은 본문 열 안이다. 전송이 잠긴(준비 중) 동안은 1200px 이하에서 닫힌 채로 시작하고(WorldStudioPage), 좁은 화면(집필실과 같은 900px 이하)에서 열면 화면을 덮는 오른쪽 서랍이다. */
 .episode-app.with-chat{display:grid;grid-template-columns:minmax(0,1fr) 350px;align-items:start}
 .world-chat{display:flex;flex-direction:column;position:sticky;top:65px;width:auto;height:calc(100dvh - 65px);min-height:0;overflow:hidden;border-left:1px solid var(--tline);--chat-card:var(--l,var(--surface)) var(--d,color-mix(in srgb,var(--ink) 8%,var(--surface)));background:var(--tbg)}
 .world-chat .studio-chat-head{flex:none;padding:12px 12px 12px 16px}.world-chat .studio-chat-head h2{display:flex;align-items:center;gap:8px;margin:0;font-size:15px}
 .world-chat .chat-brand{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:var(--pri);color:var(--on-pri)}
 @media(min-width:901px) and (max-width:1200px){.episode-app.with-chat{grid-template-columns:minmax(0,1fr) 300px}}
 @media(max-width:900px){.episode-app.with-chat{display:block}.world-chat{position:fixed;top:0;right:0;bottom:0;z-index:50;width:min(350px,100vw);height:auto;box-shadow:-8px 0 32px #0003}}
+/* 좁은 화면의 서랍은 뒤 화면을 막는 대화 상자(공용 Sheet)로 body에 그려져 .episode-app 밖이다. 본문 옆에 있을 때와 같은 면·글자가 되도록 이 화면의 토큰 연결(shared/episode.css의 .episode-app)을 그대로 준다. */
+.world-chat[role=dialog]{--tbg:var(--read-bg);--tfg:var(--ink);--tsub:var(--sub);--tacc:var(--pri);--tline:var(--line);--tcard:var(--surface);color:var(--ink);font-family:var(--ui)}
 
 /* 작성 4단계: 번호 스텝(지나온 단계는 ✓, 지금 단계는 채움) → 단계 카드(본문 + 이전·다음 버튼) */
 .world-step-nav{margin:0 0 20px;min-width:0}.world-step-nav ol{display:flex;align-items:center;list-style:none;margin:0;padding:0 0 4px;overflow-x:auto}.world-step-nav li{display:flex;align-items:center;flex:0 0 auto}
@@ -46,15 +52,30 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .episode-app .worlds-sort{display:inline-flex}.episode-app .world-consent{display:flex}
 
 /* 설정집 화면의 게시판: 공개 설정집과 같은 게시판(shared/worldBoard.css)이 전체 폭을 쓴다. 카드 편집은 이 화면을 대신하는 편집 화면(아래 '편집 화면')이다. */
-.world-card-library{min-width:0}
+/* 게시판은 뷰포트가 아니라 자기 폭으로 좁은 배치를 고른다(컨테이너): 오른쪽 AI 채팅 레일이 열리면 뷰포트가 넓어도 본문이 300~350px 줄기 때문이다. 좁은 배치의 공용 규칙은 shared/worldBoard.css의 @container worlds-board다. */
+.world-card-library{min-width:0;container:worlds-board / inline-size}
+/* 좁은 배치로도 담지 못하는 내용(끊기지 않는 긴 글자·큰 글자 확대)은 카드 밖으로 넘치지 않고 표 안에서 가로로 민다. */
+.world-board-scroll{overflow-x:auto}
 .world-card-library .worlds-board-table .col-no{width:48px}.world-card-library .worlds-board-table .col-kind{width:92px}.world-card-library .worlds-board-table .col-num{width:56px}
+/* 카드 단위 공개(DEC-46): 맨 앞 선택 칸, `공개` 칸, 그 위의 한 번에 바꾸기 줄(안내 + 선택 공개·선택 비공개·전체 공개). 가져온 카드는 제목 아래에 출처를 한 줄 더 보인다. */
+/* 선택 칸은 칸 여백을 없애고 라벨이 44×44px를 채운다(다른 칸의 위아래 여백 덕에 줄 높이는 그대로다). */
+.world-card-library .worlds-board-table .col-pick{width:44px;padding:0}.episode-app .world-pick{display:grid;place-items:center;min-height:44px;cursor:pointer}.world-pick input{width:16px;height:16px;accent-color:var(--pri)}
+.world-card-library .worlds-board-table .col-vis{width:68px;color:var(--tsub);white-space:nowrap}.world-card-library .worlds-board-table .col-vis[data-public=true]{color:var(--pri-ink);font-weight:700}
+.world-imported-from{display:block;margin-top:2px;color:var(--tsub);font-size:12px;font-weight:500}
+/* 빈 인물 문서가 있는 인물 줄의 `정리 필요`: 관계 수·가져옴(강조색)과 구분되게 주의색 글자다. 편집 화면의 문서 버튼에 붙는 표시(.world-doc-flag)와 같은 색이다. 공용 .worlds-badge의 색을 불러오는 순서와 상관없이 이기도록 두 클래스로 쓴다. */
+.worlds-badge.world-todo{color:var(--acc-ink)}
+.world-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}.world-bulk p{flex:1 1 260px;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--pri-ink);font-weight:700;font-variant-numeric:tabular-nums}
+/* 좁은 본문(게시판 폭 760px 이하): 공용 게시판이 번호·요약을 숨길 때 분류·연결 칸도 숨겨 선택·제목·공개만 남기고 제목이 남은 폭을 쓴다.
+   숨긴 분류와 요약은 제목 아래 한 줄(.world-row-sub: 유형 점·이름 + 요약 한 줄)로 보이고, 연결 수는 제목 옆 [n]이 대신한다(인물은 그중 관계로 이어진 수). 넓은 본문에서는 그 줄을 숨긴다. */
+.world-row-sub{display:none}
+@container worlds-board (max-width:760px){.world-card-library .worlds-board-table :is(.col-kind,.col-num){display:none}.world-card-library .worlds-board-table th.col-title{width:auto}.world-row-sub{display:flex;align-items:center;gap:6px;min-width:0;margin-top:4px;color:var(--tsub);font-size:12.5px;font-weight:500}.world-row-sub>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 
 .world-legacy-list{margin-top:20px}.world-legacy-list>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-legacy-list nav{display:grid;gap:6px;margin-top:8px}.world-legacy-list nav button{display:flex;justify-content:space-between;gap:10px;width:100%;padding:12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-legacy-list small{color:var(--sub);font-size:12px}
 .world-relation-link{margin-bottom:8px}
 .world-card-links{margin-block:20px;padding-top:16px;border-top:1px solid var(--tline)}.world-card-links h4{margin:0 0 10px;font-size:14px}.world-card-links ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
 .world-card-link{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-card-link:hover{border-color:var(--pri)}.world-card-link small{flex:none;color:var(--sub)}
 .world-additional{margin-block:16px 24px;padding-top:16px;border-top:1px solid var(--line)}.world-additional>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-additional[open]>summary{margin-bottom:12px}.world-additional p{line-height:1.7;margin-block:8px 16px}.world-consent{display:flex;gap:10px;align-items:flex-start;margin-block:16px}
-.world-error{border:1px solid var(--line);border-radius:8px;padding:16px;margin-block:16px;white-space:pre-wrap}.world-error{color:var(--danger,#b42318)}.world-prose{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;max-width:75ch}.world-empty{padding-block:24px}
+.world-error{border:1px solid var(--line);border-radius:8px;padding:16px;margin-block:16px;white-space:pre-wrap}.world-error{color:var(--danger)}.world-prose{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;max-width:75ch}.world-empty{padding-block:24px}
 .world-review{max-width:920px}.world-review h4{font-size:18px;margin-block:28px 14px}.world-review h5{font-size:17px;margin:4px 0 8px}.world-review-item{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding-block:18px;border-bottom:1px solid var(--line)}.world-review-item>div{min-width:0}.world-review-item .btn{flex-shrink:0}.world-review-intro{padding-bottom:20px;border-bottom:1px solid var(--line)}.world-review-intro .world-toolbar{margin:0}.world-review-intro h4{margin:0}.world-save-actions{margin-top:32px;display:flex;gap:16px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 
 /* 새 세계관 만들기(/worldstudio): 새 작품 만들기와 같은 ep-create 틀. 내 세계관 목록은 만들기 아래에 작게 둔다. */
@@ -74,7 +95,11 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 설정집 화면은 편집 화면이 열려 있는 동안 지우지 않고 숨긴다(.episode-app.with-chat의 display가 hidden을 이기지 않게). 보기 전환 줄 오른쪽: AI 후보 검토 버튼 + 저장 영역. */
 .episode-app[hidden]{display:none}
 .world-tabs-end{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 16px;margin-left:auto;padding-bottom:8px}.world-tabs-end .world-save-bar{margin-left:0;padding-bottom:0}
-.world-delete-notice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 16px;padding:10px 14px;border:1px solid var(--tline);border-radius:12px;background:var(--pri-soft);color:var(--pri-ink);font-size:13.5px}.world-delete-notice span{flex:1 1 220px}
+.world-delete-notice,.world-notice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 16px;padding:10px 14px;border:1px solid var(--tline);border-radius:12px;background:var(--pri-soft);color:var(--pri-ink);font-size:13.5px}.world-delete-notice span,.world-notice span{flex:1 1 220px}
+/* 공개 세계관인데 공개로 둔 설정이 없을 때의 경고(헤더·정보 편집 패널·작성 모드 공개 설정): 삭제 알림 줄과 같은 모양에 `전체 공개`가 붙는다. 공개 설정 줄(.world-publish) 안에서는 그 줄의 간격을 따른다. */
+.world-notice{margin:12px 0 0}
+/* 헤더의 연결 상태 한 줄(정보만: 연결된 소설의 제목 또는 없음). 이동·연결은 행동 줄의 소설 버튼 한 자리가 맡는다. */
+.world-linked{margin:12px 0 0}
 /* '+ 새 설정'(유형을 고르는 PopMenu): 게시판 도구줄에서는 채운 알약 글자 버튼, 편집 화면 레일 머리에서는 집필실 '새 회차'와 같은 아이콘 버튼. */
 .world-new-menu .pop-menu-btn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border:1px solid var(--pri);border-radius:999px;background:var(--pri);color:var(--on-pri);font-size:13.5px;font-weight:700;white-space:nowrap}
 .world-new-menu .pop-menu-btn:hover{background:var(--pri-d)}.world-new-menu .pop-menu-list{top:calc(100% + 6px);right:0;left:auto}
@@ -82,9 +107,14 @@ html:has(.world-writing){scrollbar-gutter:stable}
 
 /* 편집 화면: 집필실(studio/view/writing.css)의 3단·레일·버전 그래프·AI 채팅 규칙을 그대로 쓰고, 세계관에만 있는 조각만 더한다. 토큰은 .calm.rd가 준다. */
 .world-card-studio .world-save-bar{margin-left:0;padding-bottom:0}
+/* 편집 화면의 오류는 설정집 화면과 같은 오류 상자(공용 .ep-alert)로 보여 일반 안내와 구분한다. 상단 바 바로 아래에 두고 여러 줄 사유는 줄을 지킨다. */
+.world-card-studio>.ep-alert{margin:12px 24px 0;white-space:pre-wrap}
+/* 편집 화면의 AI 채팅은 설정집 화면의 채팅(.world-chat)과 같은 면이다: 집필실의 브랜드 틴트 대신 주변과 같은 --tbg. 틴트를 정하는 변수(--chat-bg)를 덮어 writing.css의 background가 그 값을 쓰게 한다(집필실 /studio의 채팅은 그대로).
+   머리글·왼쪽 선·입력 카드와 추천 칩의 면(--chat-card)은 두 화면의 규칙이 이미 같다. */
+.writing-studio.world-card-studio .writing-chat{--chat-bg:var(--tbg)}
 .world-rail-tools{display:grid;gap:8px;padding-inline:24px 12px}.world-rail-tools input{width:100%;box-sizing:border-box;padding:8px 12px;font-size:13.5px}
 .world-rail-kinds{display:flex;flex-wrap:wrap;gap:6px}.world-rail-kinds button{min-height:32px;padding:0 10px;border:1px solid var(--tline);border-radius:999px;background:none;color:var(--tsub);font-size:12.5px;font-weight:700}
-.world-rail-kinds button:hover{background:var(--muted-bg);color:var(--tfg)}.world-rail-kinds button[aria-pressed=true]{border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
+.world-rail-kinds button:hover{background:var(--muted-bg);color:var(--tfg)}.world-rail-kinds button:is([aria-pressed=true],[aria-current=true]){border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
 .world-rail-empty{padding:8px 12px}
 .world-graph-actions{padding-inline:24px}.world-graph-note{margin:0;padding-inline:24px;line-height:1.6}
 .world-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:12px}.world-card-meta img{border-radius:12px;object-fit:cover}
@@ -93,14 +123,40 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-card-editor{margin-bottom:8px}.world-card-editor[inert]{opacity:.6}
 .world-card-editor-loading{display:grid;place-items:center;min-height:365px;border:1px solid var(--tline);border-radius:4px;color:var(--tsub);font-size:13.5px}
 .world-card-help{margin:0 0 16px}
+/* 인물 문서(인물 카드): 설명 편집기 자리에 머리(제목 + .md 파일 불러오기) → 문서 목록 → 회차 기억 추가 → 고른 문서의 안내 한 줄과 편집기 → 회차 기억 삭제.
+   문서 버튼은 레일의 분류 칩(.world-rail-kinds)과 같은 모양이고 고른 문서는 aria-current다. 버튼 안의 표시(.world-doc-flag)는 빈 문서의 `정리 필요`(주의색)와 `3,000자 초과`(오류색)다.
+   문단 규칙은 바로 아래 자식에만 건다(안에 든 마크다운 편집기의 미리보기 문단까지 건드리지 않게). */
+.world-docs{display:grid;gap:10px;min-width:0;margin-bottom:8px}.world-docs>p,.world-doc-notice>p{margin:0;line-height:1.6}.world-docs>.world-card-editor{margin-bottom:0}
+.world-docs-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}.world-docs-head h4{margin:0;font-size:14px}
+.world-doc-list{display:grid;gap:8px}.world-doc-list .world-rail-kinds{align-items:center}.world-doc-dir{color:var(--tsub);font-size:12.5px;font-weight:700}
+.world-doc-flag{color:var(--acc-ink);font-size:12px}.world-doc-flag[data-flag=over]{color:var(--danger)}
+.world-doc-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--tsub);font-size:13px;font-weight:650}
+.world-doc-guide strong{color:var(--tfg)}
+.world-doc-tools{display:flex;justify-content:flex-end}
+/* 파일 불러오기의 결과: 삭제 알림 줄(.world-notice)과 같은 면에 문장마다 한 줄이다. */
+.world-doc-notice{display:grid;gap:4px;margin:0}
+/* 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있을 때의 알림(저장하면 문서가 사라진다): 입력 아래 오류 글과 같은 오류색 글자다. */
+.world-doc-orphaned{margin:0 0 12px;color:var(--danger);font-weight:650;line-height:1.6}
+/* 파일 선택(.ep-file-pick 관례): 기본 파일 입력을 숨기지 않고 라벨 버튼 위에 투명하게 덮어 클릭과 키보드 초점을 받게 하고, 초점 링은 라벨이 그린다. 그 규칙(shared/episode.css)은 .episode-app 안에만 있어 편집 화면에 같은 규칙을 둔다. */
+.world-card-studio .ep-file-pick{position:relative;cursor:pointer}
+.world-card-studio .ep-file-pick input[type=file]{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer}
+.world-card-studio .ep-file-pick:has(input:focus-visible){outline:2px solid var(--tacc);outline-offset:3px}.world-card-studio .ep-file-pick:has(input:disabled){opacity:.55;cursor:not-allowed}
+/* 가져온 카드의 출처(유형 옆)와 설명 아래 공개 범위(이 설정 공개 · 독자 공개 N화부터). 아래 '연관 설정·관계'와 같은 구획 모양이다. */
+.world-card-source{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0}
+.world-card-reach{display:grid;gap:6px;min-width:0;margin-block:20px;padding-top:16px;border-top:1px solid var(--tline)}.world-card-reach h4{margin:0 0 4px;font-size:14px}.world-card-reach p{margin:0;line-height:1.6}
+.world-card-reach .world-consent{align-items:center;min-height:44px;margin-block:0;font-weight:650}.world-card-reach input[type=checkbox]{width:18px;height:18px;accent-color:var(--pri)}
+.world-reveal{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}:is(.world-reveal,.world-doc-add) .inp{width:88px;min-height:44px;padding:8px 10px;font-variant-numeric:tabular-nums}:is(.world-reveal,.world-doc-add) .inp:disabled{opacity:.55;cursor:not-allowed}.world-reveal .inp[aria-invalid=true]{border-color:var(--danger)}
+/* 입력 바로 아래의 오류 글(테두리 색만으로 알리지 않는다) */
+.world-card-reach .world-field-error{color:var(--danger);font-weight:650}
 .world-over{color:var(--danger)}
-/* 전역 .btn은 윤곽선이 옅어 삭제를 구분하지 못한다: 위험 버튼은 위험색 윤곽선(집필실 위험 영역과 같은 모양). */
-.world-danger{border-color:color-mix(in srgb,var(--danger) 45%,var(--line2));background:var(--surface);color:var(--danger)}.world-danger:hover:not(:disabled){background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
+/* 전역 .btn은 윤곽선이 옅어 삭제를 구분하지 못한다: 위험 버튼은 위험색 윤곽선(집필실 위험 영역과 같은 모양). 편집 화면의 삭제(.world-danger)와 삭제 확인·관계 삭제(.relationship-remove)가 같은 모양이다. */
+:is(.world-danger,.relationship-remove){border-color:color-mix(in srgb,var(--danger) 45%,var(--line2));background:var(--surface);color:var(--danger)}:is(.world-danger,.relationship-remove):hover:not(:disabled){background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
 .world-delete-confirm{margin-block:16px;padding:16px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface))}.world-delete-confirm h4{margin:0 0 8px;font-size:15px}.world-delete-confirm p{margin:0 0 8px}.world-delete-confirm ul{margin:8px 0;padding-left:20px}.world-delete-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.world-delete-confirm .relationship-remove{margin-top:0}
-@media(max-width:600px){.world-rail-kinds button{min-height:44px}.world-rail-new .pop-menu-btn{width:44px;height:44px}}
+/* 터치 기기(폭과 무관)와 좁은 화면에서는 레일의 분류 칩·새 설정 버튼을 44px로 키운다. */
+@media(max-width:600px),(pointer:coarse){.world-rail-kinds button{min-height:44px}.world-rail-new .pop-menu-btn{width:44px;height:44px}.world-new-menu .pop-menu-btn{height:44px}}
 
 /* 시트(확정 버전·AI 후보 검토): 시트는 body에 그려져 .calm·.episode-app 밖이므로 전역 토큰(--line·--ink)을 쓴다. */
-.world-sheet{width:min(720px,100%)}.world-sheet-head{display:flex;justify-content:flex-end}.world-sheet .initial-review,.world-sheet .world-revisions{max-width:none;margin-block:0}
+.world-sheet{width:min(720px,100%)}.world-sheet-head{display:flex;align-items:center;justify-content:flex-end;gap:12px}.world-sheet-head h3{margin:0 auto 0 0}.world-sheet .initial-review,.world-sheet .world-revisions{max-width:none;margin-block:0}
 /* AI 후보 검토: 상태 필터 칩 + 다시 요청 / 승인한 후보 반영 고정 바 / 후보 카드 목록 */
 .initial-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin-block:16px 12px}
 .initial-filters,.initial-top-actions{display:flex;flex-wrap:wrap;gap:8px}
@@ -113,3 +169,14 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .initial-clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
 .initial-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}.initial-hold{border-color:transparent;background:none;color:var(--sub)}.initial-edit{margin-top:4px;padding-top:12px;border-top:1px solid var(--line)}
 .initial-empty{display:grid;justify-items:start;gap:10px;padding-block:20px}.initial-empty p,.initial-done{margin:0}.initial-done{padding:20px 4px}
+/* 고르는 목록(가져올 세계관 · 연결할 소설): 한 줄에 이름과 보조 정보. 가져올 설정 목록은 체크박스 줄이고, 길면 시트 안에서 스크롤한다. */
+.world-sheet-step{display:grid;gap:12px;min-width:0}.world-sheet-step>.btn{justify-self:start;display:inline-flex;align-items:center;gap:4px}.world-sheet-step h4{margin:0;font-size:17px;overflow-wrap:anywhere}.world-sheet-step p{margin:0}
+.world-pick-list,.world-import-cards{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.world-pick-list button{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--line2);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;overflow-wrap:anywhere;cursor:pointer}
+.world-pick-list button:hover:not(:disabled){border-color:var(--pri)}.world-pick-list button:disabled{opacity:.55;cursor:not-allowed}.world-pick-list small{color:var(--sub);font-size:12.5px}
+.world-import-check{display:flex;align-items:flex-start;gap:10px;min-height:44px;padding:10px 12px;border-radius:10px;font-weight:650;cursor:pointer}.world-import-check:hover{background:var(--muted-bg)}.world-import-check:has(input:disabled){cursor:not-allowed;opacity:.55}
+.world-import-check input{flex:none;width:18px;height:18px;margin:2px 0 0;accent-color:var(--pri)}.world-import-check small{color:var(--sub);font-size:12.5px;font-weight:500}
+.world-import-cards{max-height:44vh;overflow-y:auto;border:1px solid var(--line2);border-radius:12px;padding:4px}@media(max-width:600px){.world-import-cards{max-height:none;overflow:visible}}.world-import-cards span{min-width:0;overflow-wrap:anywhere}.world-import-cards small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin-top:2px;line-height:1.5}
+.world-sheet-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 16px}.world-sheet-actions p{flex:1 1 220px}
+/* 소설 연결 시트 아래의 '새 소설 만들기' 줄: 링크는 본문 링크처럼 밑줄로 구분한다. */
+.world-sheet-more a{color:var(--pri-ink);font-weight:700;text-decoration:underline;text-underline-offset:3px}

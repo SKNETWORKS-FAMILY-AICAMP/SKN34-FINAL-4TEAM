@@ -14,8 +14,8 @@ it('explains the superseding version and connects explicit acknowledgement witho
  const studio={reviewWorldId:'world',saved:{currentRevisionId:'current'},dirty:false,relationDirty:false,sealIssues:[],reload:vi.fn(),setReviewBusy:vi.fn()} as unknown as ReturnType<typeof useWorldStudioViewModel>
  const view=render(<WorldRevisions studio={studio} revisions={revisions}/> )
  expect(screen.getByText(/확정 버전 1 저장 완료, 이후 새 버전/)).toBeTruthy()
- expect(screen.getByText(/최신 기준은 확정 버전 2/)).toBeTruthy()
- expect(screen.queryByText(/확정 결과가 미확인입니다/)).toBeNull()
+ expect(screen.getByText(/최신 기준: 확정 버전 2/)).toBeTruthy()
+ expect(screen.queryByText(/확정 결과가 미확인이에요/)).toBeNull()
  expect(view.container.textContent).not.toContain('private-key')
  expect(view.container.textContent).not.toContain('private-id')
  fireEvent.click(screen.getByRole('button',{name:'결과 확인 후 계속 작성'}))

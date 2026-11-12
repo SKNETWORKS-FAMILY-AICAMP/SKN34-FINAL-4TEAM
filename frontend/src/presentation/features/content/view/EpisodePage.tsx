@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
@@ -23,6 +24,11 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   const vm = useEpisodeViewModel(wanted, useCase)
   const w = vm.active
   const loading = !!wanted && !vm.ready
+  // 작품 만들기·분기 만들기·세계관 연결의 결과는 그 폼·카드가 직접 보인다(vm.origin). 그 밖의 요청은 여기 맨 위에 알리고,
+  // 스크롤해 내려가 있어 알림이 화면 밖에 생겼으면 보이는 데까지만 옮긴다(상단바에 가리지 않게 scroll-margin을 둔다).
+  const problem = vm.origin === '' ? vm.error : ''
+  const alert = useRef<HTMLDivElement>(null)
+  useEffect(() => { if (problem) alert.current?.scrollIntoView?.({ block: 'nearest' }) }, [problem])
   useDocumentTitle(reports ? '내 댓글·제보' : !wanted ? '새 작품 만들기' : w ? `작품 관리 · ${w.title}` : '작품 관리')
   return (
     <>
@@ -34,16 +40,16 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
             {/* 새 작품 만들기에서는 작성 흐름에만 집중하도록 감춘다. */}
             {wanted && !reports && <Go to='/content?view=reports' className='btn sm'>내 댓글·제보</Go>}
           </div>
-          {vm.error && (
-            <div className='ep-alert' role='alert'>
-              {vm.error}
+          {problem && (
+            <div ref={alert} className='ep-alert' role='alert' style={{ scrollMarginTop: 80 }}>
+              {problem}
               <button className='btn sm' disabled={vm.busy} onClick={vm.reload}>
                 최신 데이터 불러오기
               </button>
             </div>
           )}
           <div className='ep-notice' role='status' aria-live='polite'>
-            {loading ? '작품을 불러오고 있어요…' : vm.busy ? '요청을 처리하고 있어요…' : vm.notice}
+            {loading ? '작품을 불러오고 있어요…' : vm.busy ? '요청을 처리하고 있어요…' : vm.origin === 'link' ? '' : vm.notice}
           </div>
           {reports
             ? <MyCommentsReports />
@@ -52,6 +58,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
               <CreateWork
                 busy={vm.busy}
                 ready={vm.listed}
+                error={vm.origin === 'create' ? vm.error : ''}
                 onCreate={async (title, summary, cover, registration) => {
                   const id = await vm.create(title, summary, cover, registration)
                   // 만든 작품의 관리 화면으로 바꿔 보여 준다(뒤로 가기로 빈 생성 화면에 돌아오지 않게 replace).

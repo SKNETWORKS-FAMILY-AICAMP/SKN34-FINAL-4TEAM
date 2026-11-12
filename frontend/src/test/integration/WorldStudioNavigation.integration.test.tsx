@@ -3,6 +3,7 @@ import {act,cleanup,fireEvent,render,screen,waitFor,within} from '@testing-libra
 import {afterEach,expect,it,vi} from 'vitest'
 import {Link,Route,RouterProvider,Routes,createMemoryRouter,useLocation,useNavigate} from 'react-router'
 import {Provider} from 'react-redux'
+import {appContainer} from '../../app/appContainer'
 import {createAppStore} from '../../app/store'
 import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
 import {WorldStudioLeaveProvider} from '../../presentation/features/worldstudio/viewmodel/WorldStudioLeaveProvider'
@@ -33,21 +34,27 @@ async function show(entries=['/before','/worldstudio/qa','/after'],edit=true,two
  const opened=edit?entries.map(path=>path==='/worldstudio/qa'?`/worldstudio/qa?card=${row.item.id}`:path):entries
  const router=createMemoryRouter([{path:'*',element:<WorldStudioLeaveProvider><Routes><Route path="/worldstudio/:worldId?" element={<Links/>}/><Route path="*" element={<Destination/>}/></Routes></WorldStudioLeaveProvider>}],{initialEntries:opened,initialIndex:1})
  render(<Provider store={createAppStore({role:'user'})}><RouterProvider router={router} useTransitions={false}/></Provider>)
- if(edit)fireEvent.change(await screen.findByRole('textbox',{name:'설명'}),{target:{value:'보존할 편집 내용'}})
+ if(edit)fireEvent.change(await screen.findByRole('textbox',{name:'IDENTITY.md'}),{target:{value:'보존할 편집 내용'}})
  else await screen.findByRole('heading',{name:'검증 세계',level:1})
  return router
 }
 it.each([['test','/content'],['mockup','/new']])('opens the work creation route in %s mode',async(mode,path)=>{
  vi.stubEnv('MODE',mode)
+ // 헤더의 소설 버튼은 한 자리다. 데모는 소설 작성하기가 바로 새 소설 폼으로 가고, 실제 모드의 연결되지 않은 세계관은 소설 연결하기 시트의 새 소설 만들기가 작품 만들기로 간다(시트가 읽는 내 소설 목록은 빈 목록으로 답한다).
+ vi.spyOn(appContainer.resolve('episodeUseCase'),'list').mockResolvedValue([])
  const router=await show(undefined,false)
- fireEvent.click(screen.getByRole('link',{name:'소설 작성하기'}))
+ if(mode==='mockup')fireEvent.click(screen.getByRole('link',{name:'소설 작성하기'}))
+ else{
+  fireEvent.click(screen.getByRole('button',{name:'소설 연결하기'}))
+  fireEvent.click(within(await screen.findByRole('dialog',{name:'소설 연결하기'})).getByRole('link',{name:'새 소설 만들기'}))
+ }
  await waitFor(()=>expect(router.state.location.pathname).toBe(path))
 })
 it('blocks Link and programmatic replace, preserving input on cancel and state on approval',async()=>{
  await show();const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
  fireEvent.click(screen.getByText('링크 이동'))
  await waitFor(()=>expect(confirm).toHaveBeenCalledTimes(1))
- expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 편집 내용')
  confirm.mockReturnValueOnce(true);fireEvent.click(screen.getByText('교체 이동'))
  expect((await screen.findByText(/도착 \/replace/)).textContent).toContain('"via":"replace"')
  expect(confirm).toHaveBeenCalledTimes(2)
@@ -57,7 +64,7 @@ it.each([-1,1])('blocks history movement %s until approved',async(delta)=>{
  await act(async()=>{await router.navigate(delta)})
  await waitFor(()=>expect(confirm).toHaveBeenCalled())
  expect(router.state.location.pathname).toBe('/worldstudio/qa')
- expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 편집 내용')
  confirm.mockReturnValue(true);await act(async()=>{await router.navigate(delta)})
  await waitFor(()=>expect(router.state.location.pathname).toBe(delta===-1?'/before':'/after'))
 })
@@ -72,7 +79,7 @@ it('protects navigation through the actual Gnb Go button',async()=>{
  fireEvent.click(screen.getAllByRole('link',{name:/내 서재/})[0])
  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
  fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
- expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 편집 내용')
 })
 it('confirms once before opening another world and creation',async()=>{
  // 관리 화면에는 목록·만들기 화면이 없으므로 다른 세계관 열기와 새 세계관 만들기는 주소 이동이고, 저장하지 않은 입력은 이동 가드가 한 번씩 확인한다.
@@ -95,7 +102,7 @@ it('does not discard edits when competing navigations are cancelled',async()=>{
  await act(async()=>{void router.navigate('/one');void router.navigate('/two')})
  await waitFor(()=>expect(confirm).toHaveBeenCalled())
  expect(router.state.location.pathname).toBe('/worldstudio/qa')
- expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 편집 내용')
 })
 
 it('opens another world with one confirmation after cancelling once',async()=>{
@@ -153,7 +160,7 @@ it.each([false,true])('shows the world library after Gnb navigation (dirty: %s)'
   await act(async()=>{await router.navigate('/worldstudio')})
   await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
   expect(router.state.location.pathname).toBe('/worldstudio/qa')
-  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
+  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 편집 내용')
   confirm.mockReturnValue(true)
  }
  await act(async()=>{await router.navigate('/worldstudio')})

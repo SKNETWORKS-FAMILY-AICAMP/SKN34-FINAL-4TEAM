@@ -1,6 +1,7 @@
 import { Component, lazy, Suspense, useId, useRef, type KeyboardEvent, type ReactNode, type Ref } from 'react'
 import { useParams } from 'react-router'
 
+import { useAppSelector } from '../../../../app/store'
 import type { PublicWorld, PublicWorldLineage, PublicWorldRef, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
 import { Go } from '../../../shared/Go'
 import { useScreenId } from '../../../shared/screenIds'
@@ -12,6 +13,7 @@ import { useWorldDetailViewModel, useWorldsViewModel } from '../viewmodel/useWor
 import { GENRE_COLORS, LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '../worldAtlas'
 import { DETAIL_TABS, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
+import { WorldOverview } from './WorldOverview'
 import { DemoNotice, LoadFailed, WorldCover, WorldLoading } from './WorldParts'
 import './worlds.css'
 
@@ -118,10 +120,10 @@ function LiveRank({ ranked, basis, onMore }: { ranked: readonly PublicWorldSumma
   )
 }
 
-/** 홈 '오늘, 스토리포크의 발견'과 같은 가로 선반. 화살표는 좁은 화면에서 CSS가 숨기고 손가락 스크롤을 쓴다. */
+/** 홈 '오늘, 스토리포크의 발견'과 같은 가로 선반. 화살표는 좁은 화면에서 CSS가 숨기고 손가락 스크롤을 쓴다. 동작 줄이기 설정이면 화살표가 부드럽게 넘기지 않고 바로 옮긴다. */
 function WorldRail({ title, worlds, k }: { title: string; worlds: readonly PublicWorldSummary[]; k: string }) {
   const row = useRef<HTMLDivElement>(null)
-  const scroll = (d: number) => row.current?.scrollBy({ left: d * row.current.clientWidth * 0.8, behavior: 'smooth' })
+  const scroll = (d: number) => row.current?.scrollBy({ left: d * row.current.clientWidth * 0.8, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   return (
     <section className="sec">
       <div className="sec-h"><h2>{title}</h2></div>
@@ -159,11 +161,13 @@ function WorldGrid({ title, list, sectionRef }: { title: string; list: Listing; 
 /**
  * 공개 세계관 추천 대시보드(`/worlds`). 홈과 같은 칩 줄 아래에 홈 상단과 같은 2단(왼쪽 세계관 지도 · 오른쪽 '실시간 인기' 순위)을 두고,
  * Content 공개 세계관 API(`--mode mockup`은 메모리 데모)의 목록을 보인다. 로그인 없이 볼 수 있고, 불러오는 중·실패(다시 시도)·공개된 세계관이 없을 때를 따로 그린다.
+ * 서버 목록에는 파생·조합이 없고 설정 가져오기(DEC-46)가 그 자리를 대신하므로, 목록이 보일 때 가져오기를 어디서 하는지 한 줄로 알린다(가져오기 버튼은 로그인해야 보인다).
  */
 export function WorldsPage() {
   useScreenId('W02')
   useDocumentTitle('세계관')
   const vm = useWorldsViewModel()
+  const member = useAppSelector((s) => !!s.session.role)
   const all = useRef<HTMLElement>(null)
   const showAll = () => {
     all.current?.scrollIntoView()
@@ -187,6 +191,7 @@ export function WorldsPage() {
             </div>
           ) : (
             <>
+              {!vm.demo && <p className="muted small worlds-demo">{member ? '설정 가져오기는 각 세계관 상세에서 할 수 있어요' : '로그인하면 각 세계관 상세에서 공개 설정을 내 세계관으로 가져올 수 있어요'}</p>}
               <div className="herow">
                 <WorldAtlasSection atlas={vm.atlas} lit={vm.lit} total={vm.total} onOpen={vm.openAtlasNode} />
                 {vm.rankBasis && <LiveRank ranked={vm.liveRank} basis={vm.rankBasis} onMore={showAll} />}
@@ -266,11 +271,12 @@ function Shelf({ title, empty, children }: { title: string; empty?: string; chil
 }
 
 /**
- * 이 세계관을 쓴 작품(데모). 서버에 작품-세계관 연결이 없어(`works`가 없는 실제 모드) 준비 중 안내만 보이고, 데모는 실제 작품이 아니라 링크하지 않고(가짜 이동 금지) 표지에 '데모 작품'을 단다.
+ * 이 세계관을 쓴 작품(데모). 소설-세계관 연결은 있지만(DEC-46) 공개 세계관 API가 연결된 소설을 주지 않아(`works`가 없는 실제 모드) '연결된 소설 표시 준비 중' 안내만 보이고,
+ * 데모는 실제 작품이 아니라 링크하지 않고(가짜 이동 금지) 표지에 '데모 작품'을 단다.
  */
 function WorldWorks({ world }: { world: PublicWorld }) {
   return (
-    <Shelf title="이 세계관을 쓴 작품" empty={world.works ? '아직 이 세계관으로 쓴 작품이 없어요' : '작품 연결 기능 준비 중'}>
+    <Shelf title="이 세계관을 쓴 작품" empty={world.works ? '아직 이 세계관으로 쓴 작품이 없어요' : '연결된 소설 표시 준비 중'}>
       {(world.works ?? []).map((work, i) => (
         <div key={work.title} className="bk">
           <WorldCover w={{ id: `${world.id}-work${i}`, genre: work.genre }} k="w" badge="데모 작품" />
@@ -283,22 +289,24 @@ function WorldWorks({ world }: { world: PublicWorld }) {
 }
 
 /**
- * 연결된 세계관: 원본(이 세계관의 출처)과 파생·조합된 세계관을 한 선반에 표지 알약('원본'·'파생'·'조합')과 함께 보인다.
- * 계보가 있는 데모는 이어진 세계관이 없으면 섹션을 그리지 않고, 계보가 없는 실제 모드는 준비 중 안내를 보인다(파생·조합은 아직 서버에 없다).
+ * 연결된 세계관(데모): 원본(이 세계관의 출처)과 파생·조합된 세계관을 한 선반에 표지 알약('원본'·'파생'·'조합')과 함께 보인다.
+ * 이어진 세계관이 없거나 계보가 없는 실제 모드에서는 섹션을 그리지 않는다. 서버에는 파생·조합이 없고 설정 가져오기가 대신한다(DEC-46).
  */
 function ConnectedWorlds({ lineage }: { lineage?: PublicWorldLineage }) {
   const sources = lineage ? [...(lineage.derivedFrom ? [lineage.derivedFrom] : []), ...lineage.combinedFrom].map((w) => ({ w, label: '원본' })) : []
   const derived = lineage ? lineage.children.map(({ kind, ...w }) => ({ w, label: kind === 'derive' ? '파생' : '조합' })) : []
   const items = [...sources, ...derived]
-  if (lineage && !items.length) return null
-  return <Shelf title="연결된 세계관" empty="파생·조합 기능 준비 중">{items.map(({ w, label }) => <WorldCard key={`${label}-${w.id}`} w={w} k="r" badge={label} />)}</Shelf>
+  if (!items.length) return null
+  return <Shelf title="연결된 세계관">{items.map(({ w, label }) => <WorldCard key={`${label}-${w.id}`} w={w} k="r" badge={label} />)}</Shelf>
 }
 
 /**
- * 공개 세계관 상세(`/worlds/:id`). 제목·(데모는 한 줄 소개)·작가 아래에 세 탭(설정 그래프 · 인물관계도 · 설정집)을 두고 읽기만 한다(편집·복사 없음).
+ * 공개 세계관 상세(`/worlds/:id`). 제목·(데모는 한 줄 소개)·작가 아래에 네 탭(설정 그래프 · 인물관계도 · 설정집 · 개요)을 두고 읽기만 한다(이 세계관을 바꾸지 않는다).
+ * 개요 탭(`WorldOverview`)이 세계관 설명과 정보 상자(표지·장르·작가·설정 카드 수·데모의 파생·조합 출처)를 보인다.
+ * 설정 가져오기(DEC-46)는 헤더에 두지 않는다: 로그인한 회원은 설정집 게시판에서 고른 설정을, 설정 카드 페이지에서 그 카드를 내 세계관 초안에 바로 더한다(`WorldAddMenu`).
  * 설정집은 카테고리별 설정 카드 게시판이고, 그래프의 카드·인물 노드를 누르면 그 설정 카드의 페이지(`/worlds/:id/cards/:cardId`)로 이동한다.
- * 관계를 불러오지 못했으면(`relationshipStatus: unavailable`) 인물관계도 탭이 빈 그래프와 구분해 알린다. 어느 탭이든 탭 영역 아래에 '이 세계관을 쓴 작품'과 '연결된 세계관' 선반이 있다
- * (서버에 없는 실제 모드는 준비 중 안내). 불러오는 중·실패(다시 시도)·비공개·없는 세계관(찾을 수 없음)을 따로 그린다.
+ * 관계를 불러오지 못했으면(`relationshipStatus: unavailable`) 인물관계도 탭이 빈 그래프와 구분해 알린다. 어느 탭이든 탭 영역 아래에 '이 세계관을 쓴 작품' 선반(공개 API가 연결된 소설을 주지 않는 실제 모드는 표시 준비 중 안내)과
+ * 데모의 '연결된 세계관' 선반이 있다. 불러오는 중·실패(다시 시도)·비공개·없는 세계관(찾을 수 없음)을 따로 그린다.
  */
 export function WorldDetailPage() {
   const { id } = useParams()
@@ -323,6 +331,7 @@ export function WorldDetailPage() {
             <DetailTabBar tab={tab} onTab={setTab} />
             <div role="tabpanel" id="world-panel" aria-labelledby={`world-tab-${tab}`} key={world.id}>
               {tab === 'book' ? <WorldBook world={world} />
+                : tab === 'overview' ? <WorldOverview world={world} />
                 : tab === 'people' ? (
                   <>
                     {world.demo && <p className="muted small worlds-people-notice">데모 · 공개 범위 확정 전</p>}

@@ -12,9 +12,21 @@ describe('episode.css 접근성 계약', () => {
     expect(css).not.toMatch(/font-size:\s*0(?![\d.])/)
   })
 
-  it('오류 안내는 light-dark로 다크 모드 색을 따로 갖는다 (직접 선택과 OS 설정 모두 color-scheme을 따른다)', () => {
+  it('오류 안내 색은 --danger 토큰에서 만들어 고른 테마와 OS 테마를 함께 따른다 (light-dark()와 색 리터럴을 쓰지 않는다)', () => {
     const alert = css.match(/\.ep-alert\{([^}]*)\}/)?.[1] ?? ''
-    for (const prop of ['background', 'color', 'border']) expect(alert, prop).toMatch(new RegExp(`${prop}:[^;]*light-dark\\(`))
+    for (const prop of ['background', 'color', 'border']) expect(alert, prop).toMatch(new RegExp(`${prop}:[^;]*var\\(--danger\\)`))
+    // light-dark()는 storyfork.css 머리말이 쓰지 않기로 한 함수다(옛 브라우저에서 선언이 통째로 버려져 알림 상자의 면·테두리가 사라진다).
+    expect(css).not.toMatch(/light-dark\(/)
+    expect(alert).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
+  })
+
+  it('입력 칸 경계는 3:1 이상인 --line3를 쓰고, 터치 기기에서는 입력 글자를 16px로 올려 iOS 확대를 막는다', () => {
+    const fields = css.match(/\.episode-app input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.episode-app textarea,\.episode-app select\{([^}]*)\}/)?.[1] ?? ''
+    expect(fields).toMatch(/border:1px solid var\(--line3\)/)
+    const coarse = css.match(/@media\(pointer:coarse\)\{([^@]*)\}\s*$/m)?.[1] ?? ''
+    expect(coarse).toMatch(/\.episode-app input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.episode-app textarea,\.episode-app select,[^{]*\{font-size:16px\}/)
+    // 큰 제목 입력(28px)은 그대로 둔다.
+    expect(coarse).not.toMatch(/ep-create-title/)
   })
 
   it('전용 상단 헤더 규칙(.ep-header·.ep-brand·.ep-top-*·.ep-dot)과 전용 푸터(.ep-footer)를 남기지 않는다 — 상단과 하단은 공용 Gnb·Footer다', () => {

@@ -111,6 +111,31 @@ it('잔액이 늦게 도착해도 메뉴 항목을 다시 만들지 않아 열�
   expect(document.activeElement).toBe(items[3])
 })
 
+it('상단바가 다시 그려져 onClose가 새 함수로 바뀌어도 메뉴 항목을 다시 만들지 않고 옮겨 둔 포커스를 지키며, 닫을 때는 최신 onClose를 부른다', () => {
+  // 홈은 히어로 자동 넘김으로 4.5초마다 다시 그려지고, 상단바는 그때마다 새 onClose를 넘긴다.
+  const anchor = document.createElement('button')
+  anchor.getBoundingClientRect = () => ({ bottom: 60, right: 500 }) as DOMRect
+  document.body.append(anchor)
+  const store = createAppStore({ role: 'user' })
+  const ui = (onClose: () => void) => <Provider store={store}><MemoryRouter><AccountMenu anchor={anchor} onClose={onClose} creditLedger={creditsOf()} /></MemoryRouter></Provider>
+  const view = render(ui(() => {}))
+  const items = screen.getAllByRole('menuitem')
+  expect(document.activeElement).toBe(items[0])
+  items[3].focus()
+  const latest = vi.fn()
+  view.rerender(ui(latest))
+  screen.getAllByRole('menuitem').forEach((item, index) => expect(item).toBe(items[index]))
+  expect(document.activeElement).toBe(items[3])
+  fireEvent.keyDown(document, { key: 'Escape' })
+  expect(latest).toHaveBeenCalledOnce()
+  expect(document.activeElement).toBe(anchor)
+})
+
+it.each([['user', '내 계정 메뉴'], [null, '로그인·회원가입 메뉴']] as const)('역할이 %s인 메뉴는 연 버튼과 같은 이름(%s)을 갖는다', (role, name) => {
+  open(role)
+  expect(screen.getByRole('menu', { name })).toBeTruthy()
+})
+
 it('운영자에게만 운영자 대시보드 항목을 내 서재 위에 보이고, 누르면 /admin으로 간다', () => {
   const { items, onClose } = open('admin')
   const names = items.map((item) => item.textContent)

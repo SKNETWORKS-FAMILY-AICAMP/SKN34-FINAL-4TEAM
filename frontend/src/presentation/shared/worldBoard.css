@@ -31,7 +31,9 @@
 .worlds-board-table .col-num { width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
 .worlds-board-table th.col-title { width: 34%; }
 .worlds-board-table .col-title { overflow-wrap: anywhere; word-break: keep-all; }
-.worlds-board-table .col-title :is(a, button) { padding: 0; border: 0; background: none; color: var(--tfg); font-family: inherit; font-size: inherit; font-weight: 800; text-align: left; text-decoration: none; cursor: pointer; }
+.worlds-board-table .col-title :is(a, button) { position: relative; padding: 0; border: 0; background: none; color: var(--tfg); font-family: inherit; font-size: inherit; font-weight: 800; text-align: left; text-decoration: none; cursor: pointer; }
+/* 제목 글자는 한 줄에 21px쯤이라 누르기에 작다. 칸의 위아래 여백(13px)과 옆 여백 안쪽으로 누르는 영역만 넓혀(한 줄 제목 약 45px 높이) 줄 높이·초점 고리는 그대로 둔다. */
+.worlds-board-table .col-title :is(a, button)::after { content: ''; position: absolute; inset: -12px -10px; }
 .worlds-board-table .col-title :is(a, button):hover { color: var(--pri-ink); text-decoration: underline; text-underline-offset: 3px; }
 .worlds-board-table .col-sum { overflow: hidden; color: var(--tsub); text-overflow: ellipsis; white-space: nowrap; }
 .worlds-board-table .chip { height: auto; padding: 0; background: none; font-weight: 600; }
@@ -39,6 +41,20 @@
 
 /* 좁은 화면: 분류 메뉴는 가로 스크롤 칩이 되고(홈 칩과 같은 크기·모양) 게시판은 번호·요약 열을 숨겨 제목·분류·연결만 남긴다. nw 정보 상자가 쌓이는 폭(720px)과 같다. */
 @media (max-width: 720px) {
+  .worlds-board { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .worlds-cats ul { display: flex; gap: 8px; margin: -4px; padding: 4px; overflow-x: auto; scrollbar-width: none; }
+  .worlds-cats ul::-webkit-scrollbar { display: none; }
+  .worlds-cats :is(a, button) { flex: none; width: auto; gap: 6px; min-height: 44px; padding: 0 16px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); }
+  .worlds-cats :is(a, button)[aria-current] { border-color: var(--pri); }
+  .worlds-board-table :is(.col-no, .col-sum) { display: none; }
+  .worlds-board-table .col-kind { width: 92px; }
+  .worlds-board-table .col-num { width: 52px; }
+}
+/*
+ * 같은 좁은 배치를 '게시판을 감싼 쪽의 폭'으로도 켠다. 세계관 작업실은 오른쪽 AI 채팅 레일(300~350px)이 본문을 줄여, 뷰포트가 넓어도 게시판이 좁을 수 있다.
+ * 감싸는 쪽이 `container: worlds-board / inline-size`를 정했을 때만 걸리고(공개 설정집은 정하지 않아 위의 뷰포트 규칙만 쓴다), 안의 규칙은 위 블록과 글자까지 같아야 한다(worldBoard.css.test.ts가 지킨다).
+ */
+@container worlds-board (max-width: 760px) {
   .worlds-board { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .worlds-cats ul { display: flex; gap: 8px; margin: -4px; padding: 4px; overflow-x: auto; scrollbar-width: none; }
   .worlds-cats ul::-webkit-scrollbar { display: none; }

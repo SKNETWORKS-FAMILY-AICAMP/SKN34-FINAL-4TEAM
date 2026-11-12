@@ -1,33 +1,34 @@
-
-
-.world-map i{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
-
-.world-map button:hover{filter:brightness(.96)}
-
 /*
  * 관계 연결 단계: 왼쪽은 공개 인물관계도와 같은 어두운 면(라이트·다크 모두 고정 색, 홈 지도와 같은 그라데이션)에 인물·설정 카드 그래프·범례를 올리고, 오른쪽은 관계 추가·목록 카드다.
  * 카드·간선 색은 --rc-*·--edge* 토큰으로 읽고 기본값은 밝은 화면 색이라, 같은 CharacterCards를 쓰는 읽기 전용 인물 관계도(탐색 도구)는 그대로다.
+ * 무대에만 있는 고정 색(그라데이션 3색·간선 2색)은 아래 변수 한 곳에서 정하고, 그 위의 흰색·보라 틴트는 전역의 고정 면 토큰(--fixed-ink·--fixed-pri)을 섞어 만든다.
+ * 그래프 | 관계 폼 2열은 뷰포트가 아니라 편집기 자신의 폭(컨테이너)으로 정한다: 오른쪽 AI 채팅 레일이 열리면 뷰포트가 넓어도 본문이 좁아 그래프가 230px까지 눌렸다.
  */
-.relationship-stage{--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:#FFFFFF;--edge-halo:#080e1b;--rc-bg:rgba(255,255,255,.07);--rc-line:rgba(255,255,255,.18);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:rgba(179,162,255,.2);--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,#182742 0%,#0b1324 56%,#080e1b 100%);box-shadow:var(--sh)}
+.relationship-editor{container:relationship-editor / inline-size}
+.relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,transparent);--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,transparent);--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%);box-shadow:var(--sh)}
+/* 고른 카드는 보라 틴트 면이라 보조 글자(--fixed-sub)의 대비가 무대 가운데에서 4.22:1까지 내려간다. 고른 카드만 밝게 섞어 5.64:1 이상으로 올린다. */
+.relationship-stage .relationship-character-card.selected{--rc-sub:color-mix(in srgb,var(--fixed-sub) 70%,var(--fixed-ink))}
 .relationship-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 6px}.relationship-toolbar h4{margin:0 auto 0 0;font-size:14px;font-weight:800;letter-spacing:.02em}
 .relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 16px 10px;color:var(--fixed-sub);font-size:12.5px;line-height:1.6}.relationship-hint .btn{margin-left:auto}
-.relationship-stage .btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:var(--fixed-ink)}.relationship-stage .btn:hover{background:rgba(255,255,255,.16)}.relationship-stage .btn.pri{background:var(--fixed-pri);border-color:var(--fixed-pri);color:var(--on-fixed-pri)}.relationship-stage .btn.pri:hover{background:#C7BAFF}
+.relationship-stage .btn{background:var(--stage-tint);border-color:color-mix(in srgb,var(--fixed-ink) 20%,transparent);color:var(--fixed-ink)}.relationship-stage .btn:hover{background:color-mix(in srgb,var(--fixed-ink) 16%,transparent)}.relationship-stage .btn.pri{background:var(--fixed-pri);border-color:var(--fixed-pri);color:var(--on-fixed-pri)}.relationship-stage .btn.pri:hover{background:color-mix(in srgb,var(--fixed-pri) 75%,var(--fixed-ink))}
 .episode-app .relationship-stage :focus-visible{outline-color:var(--fixed-pri)}
-.relationship-stage .relationship-cards-scroll{background:none;scrollbar-color:rgba(255,255,255,.3) transparent}
-.relationship-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:10px 16px 12px;border-top:1px solid rgba(255,255,255,.08);list-style:none;color:var(--fixed-sub);font-size:11.5px}.relationship-legend li{display:inline-flex;align-items:center;gap:6px}.relationship-key.edge{color:var(--edge)}.relationship-key.emotion{color:var(--edge-emotion)}
+.relationship-stage .relationship-cards-scroll{background:none;scrollbar-color:color-mix(in srgb,var(--fixed-ink) 30%,transparent) transparent}
+.relationship-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:10px 16px 12px;border-top:1px solid var(--stage-tint);list-style:none;color:var(--fixed-sub);font-size:11.5px}.relationship-legend li{display:inline-flex;align-items:center;gap:6px}.relationship-key.edge{color:var(--edge)}.relationship-key.emotion{color:var(--edge-emotion)}
 
 .relationship-group{padding-block:20px;border-top:1px solid var(--line)}
 .relationship-group h4{font-size:16px;margin:0 0 12px;overflow-wrap:anywhere}.relationship-row{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
 .relationship-row details{margin-block:14px}.relationship-row summary{cursor:pointer;color:var(--sub);font-size:13px}
-.relationship-remove{color:var(--danger,#b42318);margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
+.relationship-remove{margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
 @media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-legend{padding-inline:12px}.relationship-apply{bottom:-18px}}
 .relationship-cards-scroll{height:clamp(380px,55vh,590px);overflow:auto;overscroll-behavior:contain;background:var(--surface);scrollbar-color:var(--pri) var(--surface)}
 .relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--edge-halo,var(--surface));stroke-width:4px;stroke-linejoin:round}
 .relationship-character-card{position:absolute;left:0;top:0;border:1px solid var(--rc-line,var(--line2));border-radius:12px;padding:12px;background:var(--rc-bg,var(--surface));color:var(--rc-ink,var(--ink));box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
 .relationship-character-card.selected{border:2px solid var(--rc-accent,var(--pri));padding:11px;background:var(--rc-sel,var(--pri-soft))}.relationship-character-card.target{border:2px dashed var(--rc-accent,var(--pri));padding:11px}.relationship-character-card.dim{opacity:.3}
-.relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:11px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
+.relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:12px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
 @media(max-width:600px){.relationship-cards-scroll{height:440px}.relationship-character-card{border-radius:10px}}
+/* 터치 기기: 카드 위에서 세로로 미는 손짓은 카드 끌기가 아니라 스크롤이 받고(가로로 끌면 카드가 움직인다), 그래프 끝에 닿으면 페이지 스크롤로 이어진다. 안 그러면 화면을 거의 채운 그래프가 스크롤을 삼킨다. */
+@media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-cards-scroll{overscroll-behavior:auto}}
 
 .relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
 .relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface);box-shadow:var(--sh)}
@@ -35,5 +36,5 @@
 .relationship-add,.relationship-list{display:grid;gap:12px;align-content:start}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
 .relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:13px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
 .relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .relationship-remove{margin-top:0}
-@media(max-width:1050px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
+@container relationship-editor (max-width:950px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
 @media(max-width:600px){.relationship-service-form{padding:12px}}

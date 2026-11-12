@@ -243,12 +243,14 @@ describe('권리 신고 소명 (data-appeal-form)', () => {
   })
 })
 
-describe('캐릭터 챗 (U27)', () => {
+describe('캐릭터챗 (U27)', () => {
   it('목록에서 인물을 골라 읽은 회차까지만 대답한다', async () => {
     renderAt('/chat')
     await screen.findByRole('heading', { name: '캐릭터챗' })
+    // 제목은 목록보다 먼저 그려지므로(불러오는 동안에도 틀을 보인다) 목록이 도착한 뒤에 조작한다.
+    const kinds = await screen.findByRole('navigation', { name: '작품 유형' })
     expect(sid()).toContain('U27')
-    fireEvent.click(within(screen.getByRole('navigation', { name: '작품 유형' })).getByRole('link', { name: '포크' }))
+    fireEvent.click(within(kinds).getByRole('link', { name: '포크' }))
     await waitFor(() => expect(where()).toContain('kind=fork'))
     fireEvent.click(within(screen.getByRole('navigation', { name: '작품 유형' })).getByRole('link', { name: '전체' }))
     fireEvent.click(await screen.findByRole('link', { name: /^성진 .*구운몽/ }))

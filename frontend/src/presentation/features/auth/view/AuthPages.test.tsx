@@ -97,6 +97,31 @@ describe('로그인 실패와 요청 중 (L01)', () => {
     expect(field('이메일').readOnly).toBe(false)
   })
 
+  it('빈 값으로 로그인하면 브라우저 말풍선 대신 다른 인증 폼처럼 화면의 오류로 알리고 요청을 보내지 않는다', async () => {
+    const fetch = respond(401)
+    vi.stubGlobal('fetch', fetch)
+    renderApp('/login')
+    fireEvent.click(screen.getByRole('button', { name: '로그인' }))
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe('이메일과 비밀번호를 확인해 주세요.')
+    await focused(alert)
+    for (const label of ['이메일', '비밀번호']) {
+      expect(field(label).required).toBe(true)
+      expect(field(label).getAttribute('aria-invalid')).toBe('true')
+    }
+    // 입력 오류로 요청을 보내지 않았으면 쓰던 비밀번호를 지우지 않는다(브라우저 검증이 막아 주던 때와 같다).
+    enter('이메일', 'nope')
+    enter('비밀번호', 'secret-password')
+    fireEvent.click(screen.getByRole('button', { name: '로그인' }))
+    expect(field('비밀번호').value).toBe('secret-password')
+    expect(fetch.mock.calls.filter(([path]) => path.endsWith('/login'))).toHaveLength(0)
+    // 요청을 보낸 뒤에는 이전처럼 바로 지운다.
+    enter('이메일', 'reader@example.com')
+    fireEvent.click(screen.getByRole('button', { name: '로그인' }))
+    expect(field('비밀번호').value).toBe('')
+    await waitFor(() => expect(fetch.mock.calls.filter(([path]) => path.endsWith('/login'))).toHaveLength(1))
+  })
+
   it('로그인이 필요하다는 안내(loginMsg)를 상태 영역으로 알린다', () => {
     vi.stubGlobal('fetch', respond(401))
     renderApp('/login', createAppStore({ loginMsg: '내 서재는 로그인 후 볼 수 있어요.' }))

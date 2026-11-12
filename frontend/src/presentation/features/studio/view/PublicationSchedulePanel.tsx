@@ -19,7 +19,7 @@ export function PublicationSchedulePanel({ workId, episode }: { workId: string; 
     <p className="small muted">예약 시각은 한국 표준시(KST)입니다. 예약 결과와 실제 발행 결과를 각각 확인할 수 있어요.</p>
     <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.reload()}>예약 결과 새로고침</button>
     {vm.busy && <p role="status">{vm.rows === null ? '예약 내역을 불러오고 있어요…' : '예약 발행 요청을 처리하고 있어요…'}</p>}
-    {vm.error && <p role="alert">{vm.error}</p>}
+    {vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
     {vm.notice && <p role="status">{vm.notice}</p>}
     {vm.rows && <>
       {vm.rows.length === 0 ? <p>이 회차의 발행 예약 내역이 없어요.</p> : <ul>

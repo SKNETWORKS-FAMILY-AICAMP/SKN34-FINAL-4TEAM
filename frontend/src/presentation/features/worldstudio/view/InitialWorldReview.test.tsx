@@ -175,7 +175,7 @@ it('원본이 바뀌었거나 분석이 끝나지 않았거나 요청 중이면 
   const recover = vi.fn(async () => undefined)
   const view = render(<ReviewBody studio={studio()} vm={review(analysisOf([a], [], { freshness: 'stale' }))} />)
   expect(card('후보 a').getByRole<HTMLButtonElement>('button', { name: '승인' }).disabled).toBe(true)
-  expect(screen.getByText(/원본이 변경되어 새 검토·반영은 할 수 없습니다/)).toBeTruthy()
+  expect(screen.getByText(/원본이 변경되어 새 검토·반영은 할 수 없어요/)).toBeTruthy()
   view.rerender(<ReviewBody studio={studio()} vm={review(analysisOf([a], [], { executionStatus: 'running' }))} />)
   expect(card('후보 a').getByRole<HTMLButtonElement>('button', { name: '거절' }).disabled).toBe(true)
   view.rerender(<ReviewBody studio={studio()} vm={review(analysisOf([a]), { error: '조회 실패', pending: true, recover })} />)
@@ -187,7 +187,7 @@ it('원본이 바뀌었거나 분석이 끝나지 않았거나 요청 중이면 
 
 it('목업에서는 실제 분석을 요청할 수 없다고 알리고 저장한 후보를 읽기 전용 카드로만 보인다', () => {
   render(<ReviewBody studio={studio()} vm={review(undefined, { demo: true })} />)
-  expect(screen.getByText(/목업 모드는 실제 AI 분석·검토 저장·초안 반영을 지원하지 않습니다/)).toBeTruthy()
+  expect(screen.getByText(/목업 모드는 실제 AI 분석·검토 저장·초안 반영을 지원하지 않아요/)).toBeTruthy()
   expect(screen.getByRole<HTMLButtonElement>('button', { name: /AI 분석 요청/ }).disabled).toBe(true)
-  expect(screen.getByText('저장된 AI 후보가 없습니다.')).toBeTruthy()
+  expect(screen.getByText('저장된 AI 후보가 없어요.')).toBeTruthy()
 })

@@ -21,11 +21,11 @@ it('건너뛰기 링크가 헤더보다 먼저 포커스를 받고 본문으로 
   expect(window.location.hash).toBe('')
 })
 
-it('주요 메뉴는 세계관 · 랭킹 · 캐릭터 챗 · 내 서재 순서이고 모바일 짧은 라벨도 같은 순서다', () => {
+it('주요 메뉴는 세계관 · 랭킹 · 캐릭터챗 · 내 서재 순서이고 모바일 짧은 라벨도 같은 순서다', () => {
   render(<Provider store={createAppStore()}><MemoryRouter><Gnb /></MemoryRouter></Provider>)
   const nav = screen.getByRole('navigation', { name: '주요 메뉴' })
   expect(within(nav).getAllByRole('link').map(link => link.getAttribute('href'))).toEqual(['/worlds', '/rank', '/chat', '/lib'])
-  expect(Array.from(nav.querySelectorAll('.lf'), label => label.textContent)).toEqual(['세계관', '랭킹', '캐릭터 챗', '내 서재'])
+  expect(Array.from(nav.querySelectorAll('.lf'), label => label.textContent)).toEqual(['세계관', '랭킹', '캐릭터챗', '내 서재'])
   expect(Array.from(nav.querySelectorAll('.ls'), label => label.textContent)).toEqual(['세계관', '랭킹', '챗', '서재'])
 })
 

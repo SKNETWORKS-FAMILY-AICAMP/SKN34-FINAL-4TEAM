@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 import type { StudioWorld } from '../../../../domain/entities/studioWorld'
 import type { Theme } from '../../../../domain/entities/work'
-import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
+import { cardLibraryRows, writingIssueLabel } from '../../../../domain/entities/worldStudioWriting'
 import { Art } from '../../../shared/art'
 import { rng } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
@@ -26,7 +26,8 @@ import { WorldCardBoard } from './WorldCardBoard'
 import { WorldCardStudio } from './WorldCardStudio'
 import { WorldChat } from './WorldChat'
 import { WorldCreate } from './WorldCreate'
-import { PublishFields } from './WorldPublishFields'
+import { WorldLinkedLine, WorldNovelButton } from './WorldLinkedWork'
+import { PublicCardsNotice, PublishFields } from './WorldPublishFields'
 import { WorldRelationshipEditor } from './WorldRelationshipEditor'
 import { WorldRevisions } from './WorldRevisions'
 import { WorldSaveBar } from './WorldSaveBar'
@@ -34,6 +35,8 @@ import { WorldTimeline } from './WorldTimeline'
 import './world-studio.css'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
+/** `집필 메모 추가`: 새 메모를 초안에 더하고 그 편집 화면을 연다. 관리 모드는 보기 전환 줄의 `AI 후보 검토` 옆에, 그 줄이 없는 작성 모드(마법사)는 헤더 행동 줄에 둔다. */
+const NoteButton = ({ vm }: { vm: VM }) => <button type="button" className="btn sm" onClick={() => { const id = vm.addCard('note'); if (id) vm.editCard(id) }}>집필 메모 추가</button>
 const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
 const themes: Theme[] = ['hanji', 'star', 'neon']
 
@@ -49,8 +52,9 @@ export function WorldStudioPage() {
   useScreenId('W01')
   useDocumentTitle('세계관')
   const vm = useWorldStudioViewModel()
-  // 집필실과 같이 넓은 화면은 채팅을 연 채로, 좁은 화면(900px 이하)은 닫은 채로 시작한다(열면 오른쪽 서랍). 설정집 화면과 편집 화면이 같은 상태를 쓴다.
-  const [chatOpen, setChatOpen] = useState(() => !window.matchMedia?.('(max-width: 900px)').matches)
+  // 넓은 화면은 채팅을 연 채로, 1200px 이하는 닫은 채로 시작한다. 전송이 아직 잠긴(준비 중) 채팅이 300~350px를 차지하면 중간 폭에서 게시판·편집기가 너무 좁아지기 때문이다.
+  // 닫혀 있어도 `AI 채팅 열기`로 열 수 있고(900px 이하에서는 화면을 덮는 서랍), 설정집 화면과 편집 화면이 같은 상태를 쓴다.
+  const [chatOpen, setChatOpen] = useState(() => !window.matchMedia?.('(max-width: 1200px)').matches)
   const loading = !!vm.reviewWorldId && !vm.editing && !vm.error
   const editingCard = !!vm.editing && !!vm.selected
   // 확정 버전 목록·남기기는 설정집 화면의 `확정 버전 남기기`와 편집 화면의 버전 그래프가 같은 훅·같은 시트를 쓴다(공개 목록에 나오려면 확정 버전이 필요하다).
@@ -73,7 +77,8 @@ export function WorldStudioPage() {
           {!vm.editing && vm.reviewWorldId && <InitialWorldReview key={vm.reviewWorldId} studio={vm} />}
           {vm.editing && <WorldEditor vm={vm} world={vm.editing} revisions={revisions} openVersions={() => setVersionsOpen(true)} />}
         </main>
-        {vm.editing && <WorldChat open={chatOpen} onOpenChange={setChatOpen} />}
+        {/* 편집 화면이 열려 있는 동안은 그 화면이 채팅을 그린다. 숨은 설정집 화면의 채팅은 좁은 화면에서 body에 그려지는 서랍이라 여기서 빼지 않으면 편집 화면 위에 겹쳐 뜬다. */}
+        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} />}
       </div>
       {editingCard && <WorldCardStudio vm={vm} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} />}
       {vm.editing && versionsOpen && (
@@ -91,6 +96,8 @@ export function WorldStudioPage() {
  * 공개 세계관 상세 헤더와 같은 모양: 표지(올린 표지가 있으면 그 이미지, 없으면 생성 표지 아트), 이름, 칩(설정 수·저장 버전·공개 범위·장르·저장 상태), 소개. 이름·소개·수는 저장한 세계관 기준이다.
  * 관리 모드에서는 제목 옆 '편집'이 세계관 정보 편집 패널(이름·설명·공개 범위·장르·표지)을 그 자리에 연다. 저장하지 않은 수정이 있으면 편집이 잠기고 저장 상태는 보기 전환 줄의 저장 영역이 보인다.
  * 헤더에는 공개 범위·장르 칩만 있고, 공개 목록에 나올 때(공개 + 확정 버전)만 공개 화면 링크가, 공개인데 확정 버전이 없을 때는 그 안내가 보인다.
+ * 공개 세계관인데 공개로 둔 설정이 없으면 그 경고와 `전체 공개`를, 그 아래에는 연결된 소설을 알리는 상태 줄(정보만)을 보인다.
+ * 행동 줄의 소설 버튼은 한 자리다: 연결된 소설이 있으면 그 작품 관리로 가는 `소설 작성하기`, 없으면 `소설 연결하기`(데모는 새 소설 폼으로 가는 `소설 작성하기`). `집필 메모 추가`는 관리 모드에서 보기 전환 줄로 옮겼다.
  * 작성 모드(만든 직후의 마법사)의 이름·설명·공개 설정은 기본 정보 단계에 있고 저장 상태는 헤더 칩이 보이며 '관리 화면으로'로 나갈 수 있다.
  */
 function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: StudioWorld; infoOpen: boolean; setInfoOpen: (open: boolean) => void }) {
@@ -99,7 +106,7 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
   const { visibility, genre } = vm.publication
   const theme = themes[Math.floor(rng(saved.id)() * themes.length)]
   const state = vm.saveState === 'saving' ? { tone: 'wait', text: '저장 중' }
-    : vm.saveState === 'failed' ? { tone: 'wait', text: '저장 실패 · 입력은 유지됩니다' }
+    : vm.saveState === 'failed' ? { tone: 'wait', text: '저장 실패 · 입력은 유지돼요' }
     : vm.dirty ? { tone: 'wait', text: '작성 중 · 미저장' }
     : { tone: 'ok', text: '저장됨' }
   const title = useRef<HTMLHeadingElement>(null)
@@ -148,9 +155,11 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
           : <p className="sum ep-muted">{manage ? '편집을 눌러 세계관 소개를 적어 보세요.' : '기본 정보에서 세계관 소개를 적어 보세요.'}</p>}
         <p className="small muted">{vm.storage.intro}</p>
         {vm.listing === 'unlisted' && <p role="status" className="small muted">{UNLISTED_HINT}</p>}
+        {manage && !infoOpen && <PublicCardsNotice vm={vm} visibility={visibility} />}
+        <WorldLinkedLine vm={vm} />
         <div className="acts">
-          <button type="button" className="btn sm" onClick={() => { const id = vm.addCard('note'); if (id) vm.editCard(id) }}>집필 메모 추가</button>
-          <Go to={import.meta.env.MODE === 'mockup' ? '/new' : '/content'} className="btn sm">소설 작성하기</Go>
+          {!manage && <NoteButton vm={vm} />}
+          <WorldNovelButton vm={vm} />
           {vm.publicHref && <Go to={vm.publicHref} className="btn sm">공개 화면 보기</Go>}
           {!manage && <button type="button" className="btn sm" onClick={vm.leaveWizard}>관리 화면으로</button>}
         </div>
@@ -168,14 +177,15 @@ function WorldPublish({ vm }: { vm: VM }) {
     <fieldset className="world-publish world-compact" disabled={vm.busy}>
       <legend className="sr-only">공개 설정</legend>
       <PublishFields value={vm.publishing ?? vm.publication} onChange={vm.setPublication} />
-      <p className="small muted">저장과 별개로 바로 적용돼요. 읽는 사람은 공개한 세계관의 설정 카드와 인물 관계를 읽기만 할 수 있어요.</p>
+      <p className="small muted">저장과 별개로 바로 적용돼요. 공개한 세계관에는 공개로 둔 설정 카드와 그 사이의 인물 관계만 확정 버전 기준으로 보여요.</p>
+      <PublicCardsNotice vm={vm} visibility={(vm.publishing ?? vm.publication).visibility} />
     </fieldset>
   )
 }
 
 /**
  * 작성 모드(세계관을 처음 만든 직후, 주소 `?new=1`)는 보기 줄 없이 기본 정보부터 4단계 마법사다. 그 밖의 모든 진입은 관리 모드로, `/content` 작품 관리처럼
- * 헤더 아래 보기 전환 줄(설정집·인물 관계도·시간선, 주소 `?view=`)로 화면을 바꾸고 줄 오른쪽에 `AI 후보 검토 (대기 N)`(시트)와 상시 저장 영역을 둔다(이름·설명·공개·표지는 헤더 편집 패널).
+ * 헤더 아래 보기 전환 줄(설정집·인물 관계도·시간선, 주소 `?view=`)로 화면을 바꾸고 줄 오른쪽에 `AI 후보 검토 (대기 N)`(시트)·`집필 메모 추가`·`확정 버전 남기기`와 상시 저장 영역을 둔다(이름·설명·공개·표지는 헤더 편집 패널).
  * 확정 버전은 편집 화면의 버전 그래프에서 남기고 본다. 시간선은 저장한 설정의 사건만 보인다.
  */
 function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: StudioWorld; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void }) {
@@ -197,6 +207,7 @@ function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: St
           </nav>
           <div className="world-tabs-end">
             <WorldAiReview studio={vm} />
+            <NoteButton vm={vm} />
             <VersionsButton vm={vm} supported={revisions.supported} open={openVersions} />
             {!vm.selected && <WorldSaveBar vm={vm} />}
           </div>
@@ -228,7 +239,7 @@ function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: St
         {timeline && (
           <section className="world-confirmed" aria-label="시간선">
             <h3>저장된 시간선</h3>
-            <p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않습니다.</p>
+            <p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않아요.</p>
             <WorldTimeline items={vm.saved?.settings.map((s) => s.item) ?? []} />
           </section>
         )}
@@ -272,9 +283,9 @@ function WritingReview({vm}:{vm:VM}){
  const name=(id:string|null)=>world.settings.find(s=>s.item.id===id)?.item.title||'이름 없는 설정'
  const editInfo=()=>vm.goStep('info')
  return <section className="world-review" aria-label="세계관 검토"><article className="world-review-intro"><div className="world-toolbar"><h4>{world.name||'이름 없는 세계관'}</h4><button className="btn sm" type="button" onClick={editInfo}>기본 정보 수정</button></div><p className="world-prose">{world.description||'설명은 나중에 추가해도 괜찮아요.'}</p></article>
-  {vm.writingIssues.length>0&&<div className="world-error" role="alert"><h4>저장 전에 확인해 주세요</h4><ul>{vm.writingIssues.map((issue,i)=><li key={i}><button type="button" onClick={()=>issue.id?vm.editCard(issue.id):editInfo()}>{issue.message}</button></li>)}</ul></div>}
+  {vm.writingIssues.length>0&&<div className="world-error" role="alert"><h4>저장 전에 확인해 주세요</h4><ul>{vm.writingIssues.map((issue,i)=><li key={i}><button type="button" onClick={()=>vm.openIssue(issue)}>{writingIssueLabel(world,issue)}</button></li>)}</ul></div>}
   <h4>설정 카드 {cards.length}개</h4>{cards.length?cards.map(s=><article className="world-review-item" key={s.item.id}><div><span className="small muted">{labelOf(s)}</span><h5>{s.item.title||'이름 없는 설정'}</h5><p className="world-prose">{s.item.text||'설명 없음'}</p></div><button className="btn sm" type="button" aria-label={`${s.item.title||'이름 없는 설정'} 수정`} onClick={()=>vm.editCard(s.item.id)}>수정</button></article>):<p className="muted">아직 등록한 설정이 없어요. 기본 정보만 저장해도 괜찮아요.</p>}
-  <h4>관계 {relations.length}개</h4>{relations.length?relations.map(s=><article key={s.item.id} className="world-review-item"><div><h5>{name(s.item.subjectId)} → {name(s.item.targetId)}</h5><p className="world-prose">{relationLabel(s.item)}</p></div><button className="btn sm" type="button" onClick={()=>vm.editRelation(s.item.id)}>관계 수정</button></article>):<p className="muted">관계는 선택 사항이에요. 나중에 연결할 수 있습니다.</p>}
-  <div className="world-save-actions"><p className="small muted">저장은 발행·공개와 다릅니다.</p><button className="btn pri" type="button" disabled={!vm.canSave} onClick={vm.save}>세계관 저장</button></div>
+  <h4>관계 {relations.length}개</h4>{relations.length?relations.map(s=><article key={s.item.id} className="world-review-item"><div><h5>{name(s.item.subjectId)} → {name(s.item.targetId)}</h5><p className="world-prose">{relationLabel(s.item)}</p></div><button className="btn sm" type="button" onClick={()=>vm.editRelation(s.item.id)}>관계 수정</button></article>):<p className="muted">관계는 선택 사항이에요. 나중에 연결할 수 있어요.</p>}
+  <div className="world-save-actions"><p className="small muted">저장은 발행·공개와 달라요.</p><button className="btn pri" type="button" disabled={!vm.canSave} onClick={vm.save}>세계관 저장</button></div>
  </section>
 }

@@ -15,13 +15,16 @@ import { GENRE_COLORS } from './worldAtlas'
  * 쓴 쪽이 카드 페이지의 '연관'·반대쪽이 '가리키는 설정'이다. 여러 관계를 한 선에 묶어 보이는 것은 같은 두 카드의 관계가 실제로 여럿 쌓일 때 더한다.
  */
 
-export const DETAIL_TABS = [['graph', '설정 그래프'], ['people', '인물관계도'], ['book', '설정집']] as const
+export const DETAIL_TABS = [['graph', '설정 그래프'], ['people', '인물관계도'], ['book', '설정집'], ['overview', '개요']] as const
 export type DetailTab = (typeof DETAIL_TABS)[number][0]
 /** `?tab=` 값. 없거나 모르는 값이면 첫 탭(설정 그래프)이다. */
 export const parseDetailTab = (value: string | null): DetailTab => DETAIL_TABS.find(([key]) => key === value)?.[0] ?? 'graph'
 
 /** 설정 카드 페이지 주소. `cardId`는 서버 카드 id다. */
 export const cardPath = (worldId: string, cardId: string | number) => `/worlds/${worldId}/cards/${cardId}`
+/** 설정집 게시판의 '보이는 설정 모두 선택': 켜면 보이는 줄을 앞서 고른 것에 더하고, 끄면 보이는 줄만 선택에서 뺀다(필터에 가려진 선택은 남는다). */
+export const selectVisible = (selected: ReadonlySet<string>, visible: readonly string[], on: boolean): Set<string> =>
+  new Set(on ? [...selected, ...visible] : [...selected].filter((id) => !visible.includes(id)))
 /** 설정집 탭 주소. `kind`를 주면 그 유형 칩이 골라진 채로 열린다(`?type=`). */
 export const bookPath = (worldId: string, kind?: CardKind) => `/worlds/${worldId}?${new URLSearchParams({ tab: 'book', ...(kind ? { type: kind } : {}) })}`
 

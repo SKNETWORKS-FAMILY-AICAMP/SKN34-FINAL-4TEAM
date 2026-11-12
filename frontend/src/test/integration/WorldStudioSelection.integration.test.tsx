@@ -37,17 +37,17 @@ async function show(wizard=false){
 }
 it.each(['검색','유형'] as const)('%s 필터가 카드를 제외해도 편집본을 보존한다',async mode=>{
  await show();fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
- fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'보존할 내용'}})
+ fireEvent.change(screen.getByRole('textbox',{name:'IDENTITY.md'}),{target:{value:'보존할 내용'}})
  const rail=()=>within(screen.getByRole('navigation',{name:'설정 카드 목록'}))
  // 편집 화면의 레일 필터가 편집 중인 카드를 목록에서 빼도 편집 화면과 편집본은 그대로다
  if(mode==='검색')fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:'항구'}})
  else fireEvent.click(within(screen.getByRole('group',{name:'설정 분류'})).getByRole('button',{name:/^장소/}))
  expect(rail().queryByRole('button',{name:'가람 인물'})).toBeNull()
- expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 내용')
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 내용')
  fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:''}})
  fireEvent.click(within(screen.getByRole('group',{name:'설정 분류'})).getByRole('button',{name:'전체'}))
  fireEvent.click(rail().getByRole('button',{name:'가람 인물'}))
- expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 내용')
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 내용')
 })
 it('shows an empty result without an unrelated editor',async()=>{
  await show();fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:'없는 설정'}})
@@ -108,15 +108,15 @@ it('opens another relationship in the same pair without discarding an unapplied 
 
 it('preserves the original filtered-out edit after a server save failure',async()=>{
  await show();fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
- fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'저장 실패 후 남길 내용'}})
+ fireEvent.change(screen.getByRole('textbox',{name:'IDENTITY.md'}),{target:{value:'저장 실패 후 남길 내용'}})
  fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:'항구'}})
  saveStudio.mockRejectedValueOnce(new Error('저장 실패'))
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
  expect((await screen.findByRole('alert')).textContent).toContain('저장 실패')
  fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:''}})
- expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('저장 실패 후 남길 내용')
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('저장 실패 후 남길 내용')
  fireEvent.click(screen.getByRole('button',{name:'설정집'}))
  fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
- expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('저장 실패 후 남길 내용')
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('저장 실패 후 남길 내용')
  expect(world.settings[0].item.text).toBe('')
 })

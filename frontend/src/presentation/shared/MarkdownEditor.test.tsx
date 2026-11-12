@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import type { Editor } from '@toast-ui/editor'
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
@@ -69,6 +69,62 @@ it('글을 쓰는 편집 영역이 이름 붙은 여러 줄 입력으로 읽힌�
   expect(input.getAttribute('contenteditable')).toBe('true')
   expect(input.getAttribute('aria-multiline')).toBe('true')
   expect(input.classList.contains('ProseMirror')).toBe(true)
+})
+
+/** 키를 누른다. 편집기가 그 키를 가로채(기본 동작을 막으)면 false다. */
+const press = (el: Element, key: string, init: KeyboardEventInit = {}) => fireEvent.keyDown(el, { key, ...init })
+const input = () => within(group()).getByRole('textbox', { name: '설정 본문 입력' })
+const tabs = () => within(group()).getAllByRole('tab')
+
+it('Tab은 들여쓰기로 남고 Esc를 누른 바로 다음 Tab·Shift+Tab만 편집기가 가로채지 않아 초점이 밖으로 나갈 수 있다', () => {
+  render(draw({ initialValue: '첫 줄' }))
+  expect(press(input(), 'Tab')).toBe(false) // 평소의 Tab은 편집기가 들여쓰기로 쓴다
+  const indented = made.editors[0].getMarkdown()
+  expect(indented).not.toBe('첫 줄')
+  press(input(), 'Escape')
+  expect(press(input(), 'Tab')).toBe(true) // 넘겨준 Tab은 브라우저가 다음 조작 요소로 초점을 옮긴다
+  expect(made.editors[0].getMarkdown()).toBe(indented) // 글은 그대로다
+  expect(press(input(), 'Tab')).toBe(false) // 한 번 쓰면 다시 들여쓰기다
+  press(input(), 'Escape')
+  press(input(), 'Shift') // Shift+Tab은 Shift를 먼저 누른다: 함께 누르는 키는 순서를 끊지 않는다
+  expect(press(input(), 'Tab', { shiftKey: true })).toBe(true) // 뒤로 나가는 Shift+Tab도 같다
+})
+
+it('Esc 뒤에 다른 키를 누르거나 한글 조합 중의 Esc였다면 Tab은 그대로 들여쓰기다', () => {
+  render(draw({ initialValue: '첫 줄' }))
+  press(input(), 'Escape')
+  press(input(), 'ArrowLeft')
+  expect(press(input(), 'Tab')).toBe(false)
+  press(input(), 'Escape', { isComposing: true })
+  expect(press(input(), 'Tab')).toBe(false)
+})
+
+it('편집기를 키보드로 벗어나는 방법을 글로 보이고 입력 영역의 설명으로 잇는다', () => {
+  render(draw())
+  const hint = screen.getByText('Tab은 들여쓰기예요. 편집기 밖으로 나가려면 Esc를 누른 다음 Tab을 누르세요.')
+  expect(input().getAttribute('aria-describedby')).toBe(hint.id)
+  expect(hint.id).not.toBe('')
+  expect(group().contains(hint)).toBe(false) // 편집기 덩어리 밖이라 Toast가 지우지 않는다
+})
+
+it('쓰기·미리보기 탭은 탭 목록으로 읽히고 화살표·Enter·Space로 바꾸며 바꾼 탭에 초점이 남는다', () => {
+  render(draw())
+  const state = () => tabs().map((tab) => [tab.textContent?.trim(), tab.getAttribute('aria-selected')])
+  expect(within(group()).getByRole('tablist')).toBeTruthy()
+  expect(state()).toEqual([['편집하기', 'true'], ['미리보기', 'false']])
+  expect(press(tabs()[0], 'ArrowRight')).toBe(false)
+  expect(state()).toEqual([['편집하기', 'false'], ['미리보기', 'true']])
+  expect(document.activeElement).toBe(tabs()[1])
+  press(tabs()[1], 'ArrowLeft')
+  expect(state()).toEqual([['편집하기', 'true'], ['미리보기', 'false']])
+  expect(document.activeElement).toBe(tabs()[0])
+  tabs()[1].focus()
+  press(tabs()[1], 'Enter')
+  expect(state()).toEqual([['편집하기', 'false'], ['미리보기', 'true']])
+  tabs()[0].focus()
+  press(tabs()[0], ' ')
+  expect(state()).toEqual([['편집하기', 'true'], ['미리보기', 'false']])
+  expect(tabs().map((tab) => tab.getAttribute('role'))).toEqual(['tab', 'tab']) // Toast가 탭을 다시 그려도 역할이 남는다
 })
 
 it('처음 글은 그대로 들어가고 그것만으로는 change를 내지 않는다', () => {

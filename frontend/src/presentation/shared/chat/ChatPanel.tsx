@@ -9,7 +9,7 @@ const kinds = ['image', 'audio'] as const
 const kindLabel = { image: '이미지', audio: '음성' } as const
 
 /**
- * 집필실 AI 채팅과 이후 캐릭터 챗이 함께 쓰는 표시용 채팅이다. 메시지·전송·첨부는 모두 호출하는 화면이 맡고
+ * 집필실 AI 채팅과 이후 캐릭터챗이 함께 쓰는 표시용 채팅이다. 메시지·전송·첨부는 모두 호출하는 화면이 맡고
  * 이 컴포넌트는 API를 부르거나 메시지를 저장하지 않는다.
  * - onSend: true를 돌려줘야 입력창을 비운다(실패하면 false로 돌려주고 사유는 화면이 보여 준다). 던지면 입력을 남기고 일반 실패 안내를 보인다. 없으면 입력과 전송을 잠근다.
  * - onAttach: 없으면 + 버튼 안의 이미지·음성 첨부를 '준비 중'으로 잠근다(가짜 업로드를 만들지 않는다).
@@ -83,7 +83,8 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
           }} />
         <div className="chat-tools">
           <PopMenu className="chat-attach" label="첨부" icon={<PlusIcon />}>
-            {kinds.map(kind => <button key={kind} type="button" role="menuitem" disabled={attachOff} aria-describedby={onAttach ? undefined : attachId} onClick={() => files.current[kind]?.click()}>{kindLabel[kind]} 첨부</button>)}
+            {/* 잠긴 항목은 초점을 받지 못한다: 여기 건 사유를 PopMenu가 메뉴 설명으로 이어 메뉴에 들어설 때 읽히게 한다. */}
+            {kinds.map(kind => <button key={kind} type="button" role="menuitem" disabled={attachOff} aria-describedby={!onAttach ? attachId : disabledReason ? reasonId : undefined} onClick={() => files.current[kind]?.click()}>{kindLabel[kind]} 첨부</button>)}
             {!onAttach && <p id={attachId} className="chat-note">이미지·음성 첨부는 준비 중이에요.</p>}
           </PopMenu>
           <button type="button" className="chat-icon-btn chat-mic" disabled aria-label="음성 입력 (준비 중)" title="음성 입력은 준비 중이에요"><MicIcon /></button>

@@ -45,8 +45,8 @@ const Pages = () => (
     <Route path="/worlds/:id/cards/:cardId" element={<WorldCardPage />} />
   </Routes>
 )
-const mount = (path: string, extra?: ReactNode) => render(
-  <Provider store={createAppStore()}>
+const mount = (path: string, extra?: ReactNode, store = createAppStore()) => render(
+  <Provider store={store}>
     <MemoryRouter initialEntries={[path]}><Pages />{extra}</MemoryRouter>
   </Provider>,
 )
@@ -60,7 +60,7 @@ const demo = (id: string) => DEMO_WORLDS.find((w) => w.id === id)!
 const name = (id: string) => demo(id).name
 // 메모리 데모의 세계관 요약 26개(파생·조합과 카드 점이 모두 있다)
 const DEMO = (await new InMemoryPublicWorldRepository().list({ page: 0, size: 100 })).items
-/** 상세 헤더의 계보 줄들(출처 한 줄, 파생·조합된 세계관 한 줄) */
+/** 개요 탭의 계보 줄들(출처 한 줄, 파생·조합된 세계관 한 줄) */
 const lines = () => Array.from(document.querySelectorAll('.worlds-lineage p'), (p) => p.textContent)
 
 it('/worlds는 칩 줄 아래에 홈 상단과 같은 2단(왼쪽 세계관 지도 · 오른쪽 실시간 인기)을 두고 선반은 10개까지, 모아 보기는 전체를 보인다', async () => {
@@ -140,28 +140,9 @@ it('지도의 카드 노드를 누르면 그 카드의 페이지로 간다', asy
   expect(screen.getByRole('link', { name: '← 세계관으로 돌아가기' }).getAttribute('href')).toBe('/worlds/moonhalo-isles?tab=book')
 })
 
-it('파생 세계관 상세는 원본 링크 한 줄과 한 줄 소개를 보인다', async () => {
-  await renderAt('/worlds/tide-compass?tab=book') // 계보 줄은 설정집의 파생·조합 문단에 있다
-  expect(lines()).toEqual([`${name('moonhalo-isles')}에서 파생`, `이 세계관에서 파생·조합된 세계관 1개 · ${name('drowned-lighthouse')}`])
-  expect(within(document.querySelector('.worlds-lineage') as HTMLElement).getByRole('link', { name: name('moonhalo-isles') }).getAttribute('href')).toBe('/worlds/moonhalo-isles')
-  expect(screen.getByText(demo('tide-compass')!.hook)).toBeTruthy()
-})
-
-it('조합 세계관 상세는 원본들을 + 로 이은 한 줄을 보인다', async () => {
-  await renderAt('/worlds/regret-bazaar?tab=book')
-  expect(lines()).toEqual([`${['dawn-store', 'night-market', 'midnight-theatre'].map(name).join(' + ')} 조합`])
-})
-
-it('원본이 쓰인 세계관 상세는 파생·조합된 세계관 수와 링크를 보인다', async () => {
-  await renderAt('/worlds/moonhalo-isles?tab=book')
-  expect(lines()).toEqual([`이 세계관에서 파생·조합된 세계관 2개 · ${name('tide-compass')}, ${name('star-tide-station')}`])
-  expect(within(document.querySelector('.worlds-lineage') as HTMLElement).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/worlds/tide-compass', '/worlds/star-tide-station'])
-})
-
 it('없는 세계관 주소는 찾을 수 없다고 알린다', async () => {
   await renderAt('/worlds/없는-세계관')
   expect(screen.getByRole('heading', { level: 1, name: '찾을 수 없는 세계관' })).toBeTruthy()
-  expect(lines()).toEqual([])
 })
 
 // ── 상세 탭(설정 그래프 · 인물관계도 · 설정집) ──
@@ -174,13 +155,13 @@ const trackedAt = async (path: string) => {
   await waitFor(() => expect(screen.queryByText(LOADING)).toBeNull())
 }
 
-it('상세는 설정 그래프·인물관계도·설정집을 tablist로 두고 기본은 설정 그래프이며 예전 관계도 비공개 문구는 없다', async () => {
+it('상세는 설정 그래프·인물관계도·설정집·개요를 tablist로 두고 기본은 설정 그래프이며 예전 관계도 비공개 문구는 없다', async () => {
   await renderAt('/worlds/moonhalo-isles')
   const tablist = screen.getByRole('tablist', { name: '세계관 상세 탭' })
-  expect(within(tablist).getAllByRole('tab').map((t) => t.textContent)).toEqual(['설정 그래프', '인물관계도', '설정집'])
+  expect(within(tablist).getAllByRole('tab').map((t) => t.textContent)).toEqual(['설정 그래프', '인물관계도', '설정집', '개요'])
   expect(selectedTab()).toEqual(['설정 그래프'])
   // 선택한 탭만 Tab 순서에 들어가고 패널은 선택한 탭이 이름을 붙인다
-  expect(tabs().map((t) => t.tabIndex)).toEqual([0, -1, -1])
+  expect(tabs().map((t) => t.tabIndex)).toEqual([0, -1, -1, -1])
   const panel = screen.getByRole('tabpanel')
   expect(panel.getAttribute('aria-labelledby')).toBe(tabs()[0].id)
   expect(tabs().every((t) => t.getAttribute('aria-controls') === panel.id)).toBe(true)
@@ -191,7 +172,7 @@ it('상세는 설정 그래프·인물관계도·설정집을 tablist로 두고 
 })
 
 it('?tab 값으로 탭을 열고 모르는 값은 설정 그래프로 연다', async () => {
-  for (const [query, expected] of [['people', '인물관계도'], ['book', '설정집'], ['graph', '설정 그래프'], ['nope', '설정 그래프']]) {
+  for (const [query, expected] of [['people', '인물관계도'], ['book', '설정집'], ['overview', '개요'], ['graph', '설정 그래프'], ['nope', '설정 그래프']]) {
     await renderAt(`/worlds/moonhalo-isles?tab=${query}`)
     expect(selectedTab(), query).toEqual([expected])
     cleanup()
@@ -217,10 +198,11 @@ it('좌우 화살표·Home·End로 탭을 옮기고 끝에서는 돌아서 이�
   tabs()[0].focus()
   await press('ArrowRight', '인물관계도')
   await press('ArrowRight', '설정집')
+  await press('ArrowRight', '개요')
   await press('ArrowRight', '설정 그래프')
-  await press('ArrowLeft', '설정집')
+  await press('ArrowLeft', '개요')
   await press('Home', '설정 그래프')
-  await press('End', '설정집')
+  await press('End', '개요')
 })
 
 it('설정 그래프는 카드·연결 수와 범례를 보이고 카드 노드와 세계관 중심 노드를 그래프에 넘긴다', async () => {
@@ -276,18 +258,49 @@ it('인물관계도의 인물 노드를 눌러도 그 인물의 카드 페이지
   expect((await screen.findByRole('heading', { level: 1, name: '견습 항해사 미라' })).textContent).toBe('견습 항해사 미라')
 })
 
-it('상세 위쪽은 제목·한 줄 소개·작가만 두고 표지와 설명은 설정집의 정보 상자·개요가 맡는다', async () => {
-  await renderAt('/worlds/moonhalo-isles')
+it('상세 위쪽은 제목·한 줄 소개·작가만 두고 표지와 설명은 개요 탭이 맡는다(설정 그래프·설정집 탭에는 없다)', async () => {
   const world = demo('moonhalo-isles')!
-  const head = document.querySelector<HTMLElement>('.worlds-head')!
-  expect(head.textContent).toBe(`${world.name}${world.hook}작가 ${world.author} · 읽기 전용`)
-  expect(head.querySelector('.cov')).toBeNull()
-  expect(screen.getByRole('tabpanel').querySelector('.cov')).toBeNull() // 하단 작품·연결된 세계관 선반의 표지는 탭 영역 밖이다
-  expect(screen.queryByText(world.description)).toBeNull()
+  for (const path of ['/worlds/moonhalo-isles', '/worlds/moonhalo-isles?tab=book']) {
+    await renderAt(path)
+    const head = document.querySelector<HTMLElement>('.worlds-head')!
+    expect(head.textContent, path).toBe(`${world.name}${world.hook}작가 ${world.author} · 읽기 전용`)
+    expect(head.querySelector('.cov'), path).toBeNull()
+    expect(screen.getByRole('tabpanel').querySelector('.cov'), path).toBeNull() // 하단 작품·연결된 세계관 선반의 표지는 탭 영역 밖이다
+    expect(screen.queryByText(world.description), path).toBeNull()
+    cleanup()
+  }
+  await renderAt('/worlds/moonhalo-isles?tab=overview')
+  expect(document.querySelector('.worlds-head .cov')).toBeNull()
+  expect(screen.getByRole('tabpanel').querySelector('.nw-info .cov')).not.toBeNull()
+  within(screen.getByRole('tabpanel')).getByText(world.description)
+})
+
+// ── 개요 탭: 정보 상자(표지·장르·작가·설정 카드·출처)와 세계관 설명·계보 줄 ──
+it('개요 탭은 정보 상자 하나와 세계관 설명, 이 세계관에서 파생·조합된 세계관 줄을 보이고 게시판은 없다', async () => {
+  await renderAt('/worlds/moonhalo-isles?tab=overview')
+  expect(selectedTab()).toEqual(['개요'])
+  const tables = within(screen.getByRole('tabpanel')).getAllByRole('table')
+  expect(tables.map((t) => t.querySelector('caption')?.textContent)).toEqual(['달무리 군도']) // 설정 카드 게시판은 설정집 탭에만 있다
+  const info = within(tables[0])
+  expect(info.getAllByRole('rowheader').map((e) => e.textContent)).toEqual(['장르', '작가', '설정 카드', '파생·조합된 세계관'])
+  expect(info.getAllByRole('cell').slice(1).map((e) => e.textContent)).toEqual(['판타지', '달무리', '7개', '2개'])
+  expect(lines()).toEqual([`이 세계관에서 파생·조합된 세계관 2개 · ${name('tide-compass')}, ${name('star-tide-station')}`])
+  expect(within(document.querySelector('.worlds-lineage') as HTMLElement).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/worlds/tide-compass', '/worlds/star-tide-station'])
+})
+
+it('개요의 정보 상자와 계보 줄은 출처에 따라 파생 원본·조합 원본 링크를 보인다', async () => {
+  await renderAt('/worlds/tide-compass?tab=overview')
+  const origin = within(screen.getByRole('table', { name: '조수의 나침반' }))
+  expect(origin.getAllByRole('rowheader').map((e) => e.textContent)).toContain('파생 원본')
+  expect(origin.getByRole('link', { name: name('moonhalo-isles') }).getAttribute('href')).toBe('/worlds/moonhalo-isles')
+  expect(lines()).toEqual([`${name('moonhalo-isles')}에서 파생`, `이 세계관에서 파생·조합된 세계관 1개 · ${name('drowned-lighthouse')}`])
   cleanup()
-  await renderAt('/worlds/moonhalo-isles?tab=book')
-  expect(document.querySelector('.nw-info .cov')).not.toBeNull()
-  screen.getByText(world.description)
+  await renderAt('/worlds/regret-bazaar?tab=overview')
+  const sources = ['dawn-store', 'night-market', 'midnight-theatre']
+  const row = within(within(screen.getByRole('table', { name: '후회 장터' })).getByRole('rowheader', { name: '조합 원본' }).closest('tr')!)
+  expect(row.getByRole('cell').textContent).toBe(sources.map(name).join(' + '))
+  expect(row.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(sources.map((id) => `/worlds/${id}`))
+  expect(lines()).toEqual([`${sources.map(name).join(' + ')} 조합`])
 })
 
 // ── 설정집 탭: 게시판(왼쪽 분류 메뉴 + 오른쪽 표) ──
@@ -297,7 +310,7 @@ const boardRows = () => board().getAllByRole('row').slice(1) // 머리 행 제�
 const rowTitles = () => boardRows().map((r) => within(r).getByRole('link').textContent)
 const menu = () => within(panel().getByRole('navigation', { name: '설정 분류' }))
 
-it('설정집은 한 줄 요약 아래 왼쪽 분류 메뉴와 오른쪽 게시판 표를 두고 세계관 개요(정보 상자·표지·계보)는 표 아래에 한 번만 둔다', async () => {
+it('설정집은 한 줄 요약 아래 왼쪽 분류 메뉴와 오른쪽 게시판 표만 두고 표 아래에 세계관 개요 카드를 두지 않는다', async () => {
   await renderAt('/worlds/moonhalo-isles?tab=book')
   panel().getByText('판타지 · 작가 달무리 · 설정 카드 7개 · 파생·조합된 세계관 2개')
   // 분류 메뉴: 전체와 카드가 있는 유형, 선택은 aria-current
@@ -309,12 +322,10 @@ it('설정집은 한 줄 요약 아래 왼쪽 분류 메뉴와 오른쪽 게시�
   const heads = board().getAllByRole('columnheader')
   expect([heads.map((h) => h.textContent), heads.every((h) => h.getAttribute('scope') === 'col')]).toEqual([['번호', '분류', '제목', '요약', '연결'], true])
   expect(rowTitles()).toEqual(['조석신 하엘', '늙은 항해사 오르', '견습 항해사 미라', '새벽항', '금기 · 해도를 베끼지 않는다', '일곱 번째 섬의 실종', '우주관 · 물때의 달'])
-  // 정보 상자·표지는 표 아래 개요에 한 번만 있다(옛 분류 상자·번호 목차·문단 문서는 없다)
-  const info = screen.getByRole('table', { name: '달무리 군도' })
-  expect(document.querySelectorAll('.nw-info')).toHaveLength(1)
-  expect(screen.getByRole('table', { name: '설정 카드 목록' }).compareDocumentPosition(info) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  expect(within(info).getAllByRole('rowheader').map((e) => e.textContent)).toEqual(['장르', '작가', '설정 카드', '파생·조합된 세계관'])
-  expect(within(info).getAllByRole('cell').slice(1).map((e) => e.textContent)).toEqual(['판타지', '달무리', '7개', '2개'])
+  // 탭 영역의 표는 게시판 하나뿐이다(개요 카드·정보 상자·옛 분류 상자·번호 목차·문단 문서는 없다)
+  expect(panel().getAllByRole('table')).toHaveLength(1)
+  expect(panel().queryByRole('heading', { name: '개요' })).toBeNull()
+  expect(document.querySelector('.nw, .nw-info')).toBeNull()
   expect(screen.queryByRole('navigation', { name: '목차' })).toBeNull()
   expect(document.querySelector('.nw-cat')).toBeNull()
 })
@@ -384,19 +395,6 @@ it('검색어(제목·본문)와 정렬로 게시판을 바꾸면 결과 수와 
   fireEvent.change(search, { target: { value: '없는 글자' } })
   expect(boardRows().map((r) => r.textContent)).toEqual(['조건에 맞는 설정이 없어요.'])
   panel().getByText('설정 0개')
-})
-
-it('정보 상자는 출처에 따라 파생 원본·조합 원본 링크를 보인다', async () => {
-  await renderAt('/worlds/tide-compass?tab=book')
-  const origin = within(screen.getByRole('table', { name: '조수의 나침반' }))
-  expect(origin.getAllByRole('rowheader').map((e) => e.textContent)).toContain('파생 원본')
-  expect(origin.getByRole('link', { name: name('moonhalo-isles') }).getAttribute('href')).toBe('/worlds/moonhalo-isles')
-  cleanup()
-  await renderAt('/worlds/regret-bazaar?tab=book')
-  const combined = within(screen.getByRole('table', { name: '후회 장터' }))
-  const row = within(combined.getByRole('rowheader', { name: '조합 원본' }).closest('tr')!)
-  expect(row.getByRole('cell').textContent).toBe(['dawn-store', 'night-market', 'midnight-theatre'].map(name).join(' + '))
-  expect(row.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['dawn-store', 'night-market', 'midnight-theatre'].map((id) => `/worlds/${id}`))
 })
 
 // ── 상세 하단: 이 세계관을 쓴 작품 · 연결된 세계관(어느 탭이든 탭 영역 아래에 보인다) ──
@@ -469,15 +467,26 @@ it('hasCover인 서버 세계관은 목록 카드가 공개 cover 주소의 이�
   expect(b.querySelector('.cov img')).toBeNull()
 })
 
-it('hasCover인 서버 세계관의 상세는 정보 상자 표지가 공개 cover 이미지이고 없으면 자동 생성 표지다', async () => {
+it('서버 세계관의 개요는 계보 없이 장르·작가·설정 카드만 보이고 표지는 공개 cover 이미지이거나 자동 생성 표지다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ hasCover: true }))
-  await renderAt('/worlds/sw?tab=book')
-  expect(coverSrc()).toEqual(['/api/v1/public/world-studios/sw/cover'])
+  await renderAt('/worlds/sw?tab=overview')
+  const info = within(screen.getByRole('table', { name: '서버 세계' }))
+  expect(info.getAllByRole('rowheader').map((e) => e.textContent)).toEqual(['장르', '작가', '설정 카드'])
+  expect(info.getAllByRole('cell').slice(1).map((e) => e.textContent)).toEqual(['SF', '서버 작가', '3개'])
+  within(screen.getByRole('tabpanel')).getByText('서버 설명')
+  expect(lines()).toEqual([])
+  expect(coverSrc(screen.getByRole('tabpanel'))).toEqual(['/api/v1/public/world-studios/sw/cover'])
   cleanup()
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
-  await renderAt('/worlds/sw?tab=book')
-  expect(coverSrc()).toEqual([])
+  await renderAt('/worlds/sw?tab=overview')
+  expect(coverSrc(screen.getByRole('tabpanel'))).toEqual([])
   expect(document.querySelector('.nw-cover .cov svg')).not.toBeNull()
+})
+
+it('설명을 쓰지 않은 세계관의 개요는 빈 문단 대신 설명이 없다고 알린다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ description: '  ' }))
+  await renderAt('/worlds/sw?tab=overview')
+  within(screen.getByRole('tabpanel')).getByText('아직 세계관 설명이 없어요.')
 })
 
 it('목록을 읽는 동안 불러오는 중 안내만 보이고(칩은 늘 보인다) 끝나면 지도·순위·선반을 보인다', async () => {
@@ -577,24 +586,24 @@ it('전체 수가 불러온 수보다 크면 최근 공개 순 앞쪽만 보인�
   within(screen.getByRole('heading', { name: '세계관 모아 보기' }).closest('section')!).getByText('최근 공개 2개 · 전체 40개')
 })
 
-it('서버 세계관 상세는 데모 안내·한 줄 소개 없이 보이고 계보·작품 선반은 준비 중 안내를 보인다', async () => {
+it('서버 세계관 상세는 데모 안내·한 줄 소개 없이 보이고 작품 선반은 준비 중 안내를 보이며 파생·조합 선반은 없다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
   await renderAt('/worlds/sw')
   expect(screen.queryByText(/데모/)).toBeNull()
   expect(document.querySelector('.worlds-head')?.textContent).toBe('서버 세계작가 서버 작가 · 읽기 전용')
   expect(screen.getByRole('tab', { name: '설정 그래프' }).getAttribute('aria-selected')).toBe('true')
-  within(sectionOf('이 세계관을 쓴 작품')).getByText('작품 연결 기능 준비 중')
-  within(sectionOf('연결된 세계관')).getByText('파생·조합 기능 준비 중')
+  // 소설-세계관 연결은 생겼지만(DEC-46) 공개 세계관 API가 연결된 소설을 주지 않아 표시만 준비 중이다.
+  within(sectionOf('이 세계관을 쓴 작품')).getByText('연결된 소설 표시 준비 중')
+  // 파생·조합은 서버에 없고(설정 가져오기가 대신한다, DEC-46) 준비 중이라고도 하지 않는다.
+  expect(screen.queryByRole('heading', { level: 2, name: '연결된 세계관' })).toBeNull()
+  expect(screen.queryByText(/파생·조합/)).toBeNull()
   expect(screen.queryByText('아직 이 세계관으로 쓴 작품이 없어요')).toBeNull()
 })
 
-it('서버 세계관의 설정집 개요는 계보 줄 없이 장르·작가·설정 카드만 보이고 카드 링크는 카드 id를 쓴다', async () => {
+it('서버 세계관의 설정집 한 줄 요약은 파생·조합 없이 장르·작가·설정 카드 수만 보이고 카드 링크는 카드 id를 쓴다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
   await renderAt('/worlds/sw?tab=book')
-  const info = within(screen.getByRole('table', { name: '서버 세계' }))
-  expect(info.getAllByRole('rowheader').map((e) => e.textContent)).toEqual(['장르', '작가', '설정 카드'])
-  expect(info.getAllByRole('cell').slice(1).map((e) => e.textContent)).toEqual(['SF', '서버 작가', '3개'])
-  expect(document.querySelector('.worlds-lineage')).toBeNull()
+  expect(document.querySelector('.worlds-book-line')?.textContent).toBe('SF · 작가 서버 작가 · 설정 카드 3개')
   expect(within(screen.getByRole('table', { name: '설정 카드 목록' })).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([cardPath('sw', 'c-1'), cardPath('sw', 'c-2'), cardPath('sw', 'c-3')])
 })
 
@@ -655,4 +664,216 @@ it('다른 세계관으로 옮기면 이전 요청을 취소하고 늦게 온 �
   await screen.findByRole('heading', { level: 1, name: '둘째 세계' })
   await act(async () => pending.get('a')?.done(serverWorld({ id: 'a', name: '첫째 세계' })))
   expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('둘째 세계')
+})
+
+// ── 설정 가져오기(DEC-46): 공개 세계관의 공개 설정을 내 세계관으로 복사하는 진입점 ──
+const member = () => createAppStore({ role: 'user' })
+const mine = (id: string, name: string) => ({ id, name, description: '', version: 1, settings: [], analysis: null })
+const myWorlds = () => vi.spyOn(appContainer.resolve('worldStudioUseCase'), 'list')
+const Address = () => { const { pathname, search } = useLocation(); return <output aria-label="주소">{pathname + search}</output> }
+/** 로그인한 회원으로 열어 이름이 `name`인 가져오기 버튼의 메뉴를 연다. */
+const openMenu = async (path: string, name: string) => {
+  mount(path, <Address />, member())
+  await waitFor(() => expect(screen.queryByText(LOADING)).toBeNull())
+  fireEvent.click(screen.getByRole('button', { name }))
+  return within(screen.getByRole('menu', { name }))
+}
+const studio = () => appContainer.resolve('worldStudioUseCase')
+/** 바로 추가가 쓰는 내 세계관 읽기·저장 대역: 읽기는 빈 초안, 저장은 버전을 올린 결과를 돌려준다. */
+const myDraft = () => ({
+  read: vi.spyOn(studio(), 'read').mockImplementation(async (id) => mine(id, '내 세계 하나')),
+  save: vi.spyOn(studio(), 'save').mockImplementation(async (world) => ({ ...world, version: world.version + 1 })),
+})
+const address = () => screen.getByRole('status', { name: '주소' }).textContent
+/** 요소가 aria-describedby로 가리키는 안내 문구 */
+const described = (el: Element) => document.getElementById(el.getAttribute('aria-describedby') ?? '')?.textContent
+
+it('서버 목록은 설정 가져오기를 각 세계관 상세에서 할 수 있다고 안내하고 비로그인에게는 로그인이 필요하다고 알린다', async () => {
+  vi.spyOn(useCase(), 'list').mockResolvedValue(serverPage([server('a')]))
+  await renderAt('/worlds')
+  screen.getByText('로그인하면 각 세계관 상세에서 공개 설정을 내 세계관으로 가져올 수 있어요')
+  cleanup()
+  mount('/worlds', undefined, member())
+  await screen.findByText('설정 가져오기는 각 세계관 상세에서 할 수 있어요')
+  expect(screen.queryByText(/로그인하면/)).toBeNull()
+})
+
+it('메모리 데모 목록과 공개된 세계관이 없는 목록에는 설정 가져오기 안내가 없다', async () => {
+  await renderAt('/worlds')
+  await screen.findByText('지도 캔버스')
+  expect(screen.queryByText(/설정 가져오기|가져올 수 있어요/)).toBeNull()
+  cleanup()
+  vi.spyOn(useCase(), 'list').mockResolvedValue(serverPage([]))
+  await renderAt('/worlds')
+  expect(screen.queryByText(/설정 가져오기|가져올 수 있어요/)).toBeNull()
+})
+
+it('비로그인에게는 세계관 상세와 설정 카드 페이지에 가져오기 버튼이 없고 내 세계관 목록도 읽지 않는다', async () => {
+  const list = myWorlds().mockResolvedValue([mine('m-1', '내 세계')])
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  await renderAt('/worlds/sw')
+  expect(screen.queryByRole('button', { name: /가져오기/ })).toBeNull()
+  cleanup()
+  await renderAt('/worlds/sw?tab=book')
+  screen.getByRole('table', { name: '설정 카드 목록' })
+  expect(screen.queryByRole('checkbox')).toBeNull()
+  expect(screen.queryByRole('button', { name: /가져오기/ })).toBeNull()
+  cleanup()
+  await renderAt('/worlds/sw/cards/c-1')
+  screen.getByRole('heading', { level: 1, name: '하린' })
+  expect(screen.queryByRole('button', { name: /가져오기/ })).toBeNull()
+  expect(list).not.toHaveBeenCalled()
+})
+
+it('로그인한 회원에게도 상세 헤더에는 가져오기 버튼이 없고 가져오기는 설정집 게시판과 설정 카드 페이지의 바로 추가뿐이다', async () => {
+  const list = myWorlds().mockResolvedValue([mine('m-1', '내 세계 하나')])
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  mount('/worlds/sw', undefined, member())
+  await waitFor(() => expect(screen.queryByText(LOADING)).toBeNull())
+  expect(screen.queryByRole('button', { name: /가져오기/ })).toBeNull() // 설정 그래프 탭과 헤더에는 없다
+  fireEvent.click(screen.getByRole('tab', { name: '설정집' }))
+  expect((await screen.findAllByRole('button', { name: /가져오기/ })).map((b) => b.textContent)).toEqual(['선택한 설정 가져오기'])
+  expect(list).not.toHaveBeenCalled() // 내 세계관은 메뉴를 열 때 읽는다
+})
+
+it('설정 카드 페이지의 `이 설정 가져오기`는 고른 내 세계관 초안에 그 카드를 바로 추가하고 화면을 옮기지 않는다', async () => {
+  myWorlds().mockResolvedValue([mine('m-1', '내 세계 하나'), mine('sw', '서버 세계')])
+  const { read, save } = myDraft()
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  const menu = await openMenu('/worlds/sw/cards/c-3', '이 설정 가져오기')
+  menu.getByText('내 세계관을 불러오고 있어요.')
+  const items = await menu.findAllByRole('menuitem')
+  expect(items.map((item) => item.textContent)).toEqual(['내 세계 하나']) // 원본 세계관 자신은 대상이 아니다
+  menu.getByText('이 설정을 고른 세계관의 초안에 바로 추가해요. 관계는 함께 오지 않아요.')
+  expect(described(items[0])).toBe('이 설정을 고른 세계관의 초안에 바로 추가해요. 관계는 함께 오지 않아요.') // 항목에 초점이 가면 무엇을 하는지 읽힌다
+  fireEvent.click(items[0])
+  const done = await screen.findByText(/「내 세계 하나」 초안에 설정 1개를 추가했어요\./)
+  expect(done.textContent).toContain('비공개') // 초안에 비공개로 들어간다는 안내
+  expect(within(done).getByRole('link', { name: '「내 세계 하나」 관리 화면 열기' }).getAttribute('href')).toBe('/worldstudio/m-1')
+  expect(read).toHaveBeenCalledWith('m-1')
+  expect(save.mock.calls[0][0].settings.map((s) => [s.item.title, s.visibility, s.importedFrom?.cardId, s.importedFrom?.worldName])).toEqual([['온실', undefined, 'c-3', '서버 세계']])
+  // 화면은 그대로이고 메뉴는 닫히며 초점은 누른 버튼에 남는다.
+  expect(address()).toBe('/worlds/sw/cards/c-3')
+  expect(screen.queryByRole('menu')).toBeNull()
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '이 설정 가져오기' }))
+})
+
+it('바로 추가가 실패하면 서버 사유 그대로 알리고 성공으로 보이지 않으며 다시 시도하면 추가한다', async () => {
+  myWorlds().mockResolvedValue([mine('m-1', '내 세계 하나')])
+  const { read, save } = myDraft()
+  read.mockRejectedValue(new Error('세계관을 찾을 수 없습니다.'))
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  const menu = await openMenu('/worlds/sw/cards/c-1', '이 설정 가져오기')
+  fireEvent.click(await menu.findByRole('menuitem', { name: '내 세계 하나' }))
+  const alert = await screen.findByRole('alert')
+  expect(alert.textContent).toContain('「내 세계 하나」에 추가하지 못했어요. 세계관을 찾을 수 없습니다.')
+  expect(screen.queryByText(/추가했어요/)).toBeNull()
+  expect(save).not.toHaveBeenCalled()
+  read.mockImplementation(async (id) => mine(id, '내 세계 하나'))
+  fireEvent.click(within(alert).getByRole('button', { name: '다시 시도' }))
+  await screen.findByText(/「내 세계 하나」 초안에 설정 1개를 추가했어요\./)
+  expect(screen.queryByRole('alert')).toBeNull()
+  // 다시 시도 버튼이 사라져도 초점은 결과 안내에 남는다.
+  expect(document.activeElement?.className).toBe('worlds-import-result')
+})
+
+it('추가하는 동안에는 추가하는 중이라고 알리고 대상을 다시 고를 수 없다', async () => {
+  myWorlds().mockResolvedValue([mine('m-1', '내 세계 하나')])
+  const { save } = myDraft()
+  let finish!: () => void
+  save.mockImplementation((world) => new Promise((done) => { finish = () => done({ ...world, version: world.version + 1 }) }))
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  const menu = await openMenu('/worlds/sw/cards/c-1', '이 설정 가져오기')
+  fireEvent.click(await menu.findByRole('menuitem', { name: '내 세계 하나' }))
+  await screen.findByText('「내 세계 하나」 초안에 설정 1개를 추가하고 있어요…')
+  fireEvent.click(screen.getByRole('button', { name: '이 설정 가져오기' }))
+  const again = await within(screen.getByRole('menu')).findByRole('menuitem', { name: '내 세계 하나' })
+  expect((again as HTMLButtonElement).disabled).toBe(true)
+  await act(async () => finish())
+  await screen.findByText(/초안에 설정 1개를 추가했어요\./)
+  expect(save).toHaveBeenCalledTimes(1)
+})
+
+it('설정집 게시판에서 고른 설정들을 내 세계관 초안에 바로 추가하고 끝나면 선택을 비운다', async () => {
+  const list = myWorlds().mockResolvedValue([mine('m-1', '내 세계 하나')])
+  const { save } = myDraft()
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  mount('/worlds/sw?tab=book', <Address />, member())
+  await waitFor(() => expect(screen.queryByText(LOADING)).toBeNull())
+  const board = within(screen.getByRole('table', { name: '설정 카드 목록' }))
+  const pick = (name: string) => board.getByRole('checkbox', { name }) as HTMLInputElement
+  // 아무것도 고르지 않았으면 내 세계관을 읽지 않고 먼저 고르라고 알린다.
+  fireEvent.click(screen.getByRole('button', { name: '선택한 설정 가져오기' }))
+  within(screen.getByRole('menu')).getByText('가져올 설정을 먼저 선택해 주세요.')
+  expect(described(screen.getByRole('menu'))).toBe('가져올 설정을 먼저 선택해 주세요.') // 고를 항목이 없어도 메뉴에 들어서면 사유가 읽힌다
+  expect(list).not.toHaveBeenCalled()
+  fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
+  fireEvent.click(pick('온실 선택'))
+  fireEvent.click(pick('하린 선택'))
+  fireEvent.click(screen.getByRole('button', { name: '선택한 설정 가져오기 (2)' }))
+  const menu = within(screen.getByRole('menu'))
+  await menu.findByText('선택한 설정 2개를 고른 세계관의 초안에 바로 추가해요. 관계는 함께 오지 않아요.')
+  fireEvent.click(await menu.findByRole('menuitem', { name: '내 세계 하나' }))
+  await screen.findByText(/「내 세계 하나」 초안에 설정 2개를 추가했어요\./)
+  // 고른 순서와 상관없이 원본의 카드 순서로, 고른 것만 들어간다.
+  expect(save.mock.calls[0][0].settings.map((s) => [s.item.title, s.importedFrom?.cardId])).toEqual([['하린', 'c-1'], ['온실', 'c-3']])
+  expect(board.getAllByRole('checkbox').some((box) => (box as HTMLInputElement).checked)).toBe(false)
+  screen.getByRole('button', { name: '선택한 설정 가져오기' })
+  expect(address()).toBe('/worlds/sw?tab=book')
+})
+
+it('보이는 설정 모두 선택은 지금 보이는 줄만 고르고 풀며 분류를 바꿔도 앞서 고른 설정은 남는다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  mount('/worlds/sw?tab=book', undefined, member())
+  await waitFor(() => expect(screen.queryByText(LOADING)).toBeNull())
+  const board = () => within(screen.getByRole('table', { name: '설정 카드 목록' }))
+  const all = () => board().getByRole('checkbox', { name: '보이는 설정 모두 선택' }) as HTMLInputElement
+  fireEvent.click(board().getByRole('checkbox', { name: '온실 선택' }))
+  fireEvent.click(within(screen.getByRole('navigation', { name: '설정 분류' })).getByRole('link', { name: /^인물/ }))
+  await waitFor(() => expect(board().queryByRole('checkbox', { name: '온실 선택' })).toBeNull())
+  expect(all().checked).toBe(false)
+  fireEvent.click(all())
+  expect(all().checked).toBe(true)
+  screen.getByRole('button', { name: '선택한 설정 가져오기 (3)' }) // 가려진 온실 + 보이는 인물 둘
+  fireEvent.click(all())
+  screen.getByRole('button', { name: '선택한 설정 가져오기 (1)' })
+})
+
+it('가져갈 내 세계관이 없으면(원본뿐이어도) 세계관 만들기로 안내한다', async () => {
+  myWorlds().mockResolvedValue([mine('sw', '서버 세계')])
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  const menu = await openMenu('/worlds/sw/cards/c-1', '이 설정 가져오기')
+  await menu.findByText('설정을 가져갈 내 세계관이 아직 없어요.')
+  expect(menu.getAllByRole('menuitem').map((a) => [a.textContent, a.getAttribute('href')])).toEqual([['세계관 만들기', '/worldstudio']])
+})
+
+it('내 세계관 목록을 읽지 못하면 빈 목록으로 숨기지 않고 알리며 메뉴를 닫지 않고 다시 읽는다', async () => {
+  const list = myWorlds().mockRejectedValue(new Error('offline'))
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  const menu = await openMenu('/worlds/sw/cards/c-1', '이 설정 가져오기')
+  expect((await menu.findByRole('alert')).textContent).toBe('내 세계관을 불러오지 못했어요.')
+  expect(menu.queryByText(/아직 없어요/)).toBeNull()
+  list.mockResolvedValue([mine('m-1', '내 세계 하나')])
+  fireEvent.click(menu.getByRole('menuitem', { name: '다시 시도' }))
+  await menu.findByRole('menuitem', { name: '내 세계 하나' })
+  expect(menu.queryByRole('alert')).toBeNull()
+})
+
+it('선반 화살표는 부드럽게 넘기되 동작 줄이기 설정이면 바로 옮긴다', async () => {
+  vi.spyOn(useCase(), 'list').mockResolvedValue(serverPage([server('a'), server('b')]))
+  // jsdom에는 scrollBy·matchMedia가 없다. 넘긴 옵션을 기록하는 대역을 두고 끝나면 지운다.
+  const scrolled: ScrollToOptions[] = []
+  Element.prototype.scrollBy = function (options?: ScrollToOptions | number) { scrolled.push(options as ScrollToOptions) } as Element['scrollBy']
+  try {
+    await renderAt('/worlds')
+    const next = await screen.findByRole('button', { name: '새로 공개된 세계관 다음 보기' })
+    fireEvent.click(next)
+    expect(scrolled[0].behavior).toBe('smooth')
+    Object.defineProperty(window, 'matchMedia', { configurable: true, value: (query: string) => ({ matches: query === '(prefers-reduced-motion: reduce)', addEventListener() {}, removeEventListener() {} }) })
+    fireEvent.click(next)
+    expect(scrolled[1].behavior).toBe('auto')
+  } finally {
+    Reflect.deleteProperty(Element.prototype, 'scrollBy')
+    Reflect.deleteProperty(window, 'matchMedia')
+  }
 })

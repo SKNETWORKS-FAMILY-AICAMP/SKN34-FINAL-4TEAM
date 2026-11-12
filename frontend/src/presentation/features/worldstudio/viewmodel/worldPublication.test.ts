@@ -10,12 +10,12 @@ it('asks only when a world that is not public yet is about to become public', ()
   expect(needsPublicConfirm('public', 'public')).toBe(false) // 장르만 바꿀 때
   expect(needsPublicConfirm('public', 'private')).toBe(false)
   expect(needsPublicConfirm('private', 'private')).toBe(false)
-  expect(PUBLIC_CONFIRM).toContain('공개하면 누구나 저장된 설정 카드와 인물 관계를 볼 수 있어요')
+  expect(PUBLIC_CONFIRM).toContain('공개하면 누구나 공개로 둔 설정 카드와 그 사이의 인물 관계를 볼 수 있고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요')
 })
 
 it('tells the owner what the change did: private, public and listed, public but not listed yet', () => {
   expect(publicationNotice(result({ visibility: 'private', publishedAt: null, listed: false }), false)).toBe('비공개로 바꿨어요. 이제 나만 볼 수 있어요.')
-  expect(publicationNotice(result(), false)).toBe('공개했어요. 누구나 저장된 설정 카드와 인물 관계를 볼 수 있어요.')
+  expect(publicationNotice(result(), false)).toBe('공개했어요. 누구나 공개로 둔 설정 카드와 그 사이의 인물 관계를 볼 수 있어요.')
   // 확정 버전이 없는 설명은 상태에서 계산하는 안내(UNLISTED_HINT)가 맡는다. 알림에 적어 두면 확정 버전을 남긴 뒤에도 낡은 채로 남는다.
   expect(publicationNotice(result({ listed: false }), false)).toBe('공개로 설정했어요.')
 })

@@ -1,43 +1,22 @@
-import type { CSSProperties } from 'react'
-
+import { useAppSelector } from '../../../../app/store'
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
 import { Go } from '../../../shared/Go'
 import { KindChip } from '../../../shared/KindChip'
 import { BOOK_SORTS } from '../../../shared/worldBoard'
 import { genreLabel } from '../../../shared/worldGenres'
+import { useWorldImport } from '../viewmodel/useWorldImport'
 import { useWorldBookViewModel } from '../viewmodel/useWorldsViewModel'
-import { GENRE_COLORS } from '../worldAtlas'
 import { bookPath, cardPath, type BookRow } from '../worldDetail'
-import { InfoRow, LineageLines, WorldCover, WorldLink, WorldLinks } from './WorldParts'
-import '../../reading/view/publicWiki.css'
-
-/** 나무위키 정보 상자(오른쪽): 장르 색 띠 아래 세계관 이름과 표지 아트, 이어서 장르·작가·설정 카드 수와 (계보가 있는 데모는) 파생·조합 출처를 표로 보인다. */
-function InfoBox({ world }: { world: PublicWorld }) {
-  const { lineage } = world
-  const genre = genreLabel(world.genre)
-  return (
-    <table className="nw-info" style={{ '--cat': GENRE_COLORS[genre] } as CSSProperties}>
-      <caption>{world.name}</caption>
-      <tbody>
-        <tr><td colSpan={2} className="nw-cover"><WorldCover w={world} k="b" /></td></tr>
-        <InfoRow k="장르">{genre}</InfoRow>
-        <InfoRow k="작가">{world.authorNickname}</InfoRow>
-        <InfoRow k="설정 카드">{world.cards.length}개</InfoRow>
-        {lineage?.derivedFrom && <InfoRow k="파생 원본"><WorldLink w={lineage.derivedFrom} /></InfoRow>}
-        {lineage && lineage.combinedFrom.length > 0 && <InfoRow k="조합 원본"><WorldLinks worlds={lineage.combinedFrom} /></InfoRow>}
-        {lineage && lineage.children.length > 0 && <InfoRow k="파생·조합된 세계관">{lineage.children.length}개</InfoRow>}
-      </tbody>
-    </table>
-  )
-}
+import { ImportOutcomeNotice, WorldAddMenu } from './WorldImportMenu'
 
 /**
  * 게시판 한 줄. 제목 링크 하나가 카드 페이지로 가는 주 링크이고(줄 전체를 링크로 만들지 않는다), 제목 옆 `[n]`은 댓글 수처럼 붙는 관계(인물)·연결 수다.
- * 화면 읽기 프로그램에는 대괄호 대신 "관계 2개"·"연결 2개"로 읽힌다.
+ * 화면 읽기 프로그램에는 대괄호 대신 "관계 2개"·"연결 2개"로 읽힌다. `pick`이 있으면(로그인한 회원) 맨 앞에 가져올 설정을 고르는 체크박스 칸이 붙는다.
  */
-function Row({ worldId, row }: { worldId: string; row: BookRow }) {
+function Row({ worldId, row, pick }: { worldId: string; row: BookRow; pick?: { checked: boolean; onChange: (on: boolean) => void } }) {
   return (
     <tr>
+      {pick && <td className="col-pick"><label className="worlds-pick"><input type="checkbox" checked={pick.checked} onChange={(e) => pick.onChange(e.target.checked)} /><span className="sr-only">{row.title} 선택</span></label></td>}
       <td className="col-no">{row.no}</td>
       <td className="col-kind"><KindChip kind={row.kind} label={row.type} /></td>
       <td className="col-title">
@@ -52,12 +31,17 @@ function Row({ worldId, row }: { worldId: string; row: BookRow }) {
 
 /**
  * 공개 세계관의 설정집(`/worlds/:id?tab=book`): 설정 카드를 카테고리별로 보는 게시판이다. 위에 한 줄 요약, 왼쪽에 분류 메뉴(전체·유형, 선택은 `aria-current`),
- * 오른쪽에 검색·정렬 도구와 게시판 표(번호 · 분류 · 제목 · 요약 · 연결)를 두고, 표 아래에 세계관 개요(정보 상자·표지·설명·계보)를 한 번만 둔다.
- * 개요는 작품 설정 위키(`PublicWikiArticle`)와 같은 `nw-*` 클래스를 쓰고 그 CSS가 읽는 읽기 화면 색 토큰은 `.calm`이 준다.
- * 어떤 카드가 어떤 순서로 보이는지(필터·정렬·번호)는 `bookRows`가 정하고 이 화면은 그대로 그린다. 읽기 전용이다.
+ * 오른쪽에 검색·정렬 도구와 게시판 표(번호 · 분류 · 제목 · 요약 · 연결)를 둔다. 게시판(`shared/worldBoard.css`)이 읽는 읽기 화면 색 토큰은 `.calm`이 준다.
+ * 세계관 개요(정보 상자·표지·설명·계보)는 이 탭에 두지 않고 개요 탭(`WorldOverview`)이 보인다. 여기에는 장르·작가·설정 카드 수·파생·조합 수의 한 줄 요약만 있다.
+ * 어떤 카드가 어떤 순서로 보이는지(필터·정렬·번호)는 `bookRows`가 정하고 이 화면은 그대로 그린다. 이 세계관을 바꾸지 않는 읽기 전용이다.
+ * 로그인한 회원에게는 줄마다 체크박스(머리 칸은 '보이는 설정 모두 선택')와 도구줄의 `선택한 설정 가져오기`가 보인다: 내 세계관을 고르면 고른 설정만 그 세계관 초안에 바로 더하고(관계 제외),
+ * 진행·결과를 도구줄 아래에 알리며 끝나면 선택을 비운다. 설정과 그 사이의 관계를 함께 가져오는 길은 내 세계관 관리 화면의 `다른 세계관에서 가져오기`다.
  */
 export function WorldBook({ world }: { world: PublicWorld }) {
   const vm = useWorldBookViewModel(world)
+  const member = useAppSelector((s) => !!s.session.role)
+  const direct = useWorldImport(world)
+  const picked = vm.picked.size
   const derived = world.lineage?.children.length ?? 0
   return (
     <div className="calm">
@@ -83,34 +67,33 @@ export function WorldBook({ world }: { world: PublicWorld }) {
                 {BOOK_SORTS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
               </select>
             </label>
+            {member && (
+              <WorldAddMenu
+                sourceWorldId={world.id} label={`선택한 설정 가져오기${picked ? ` (${picked})` : ''}`} saving={direct.saving}
+                note={`선택한 설정 ${picked}개를 고른 세계관의 초안에 바로 추가해요. 관계는 함께 오지 않아요.`} unavailable={picked ? undefined : '가져올 설정을 먼저 선택해 주세요.'}
+                onAdd={async (target) => { if (await direct.add(target, [...vm.picked])) vm.clearPicked() }}
+              />
+            )}
             <p className="muted small" role="status">설정 {vm.rows.length}개</p>
           </div>
+          {member && <ImportOutcomeNotice outcome={direct.outcome} onRetry={async () => { if (await direct.retry()) vm.clearPicked() }} />}
           <table className="worlds-board-table">
             <caption className="sr-only">설정 카드 목록</caption>
             <thead>
               <tr>
+                {member && <th scope="col" className="col-pick"><label className="worlds-pick"><input type="checkbox" disabled={!vm.rows.length} checked={vm.allVisiblePicked} onChange={(e) => vm.pickVisible(e.target.checked)} /><span className="sr-only">보이는 설정 모두 선택</span></label></th>}
                 <th scope="col" className="col-no">번호</th><th scope="col" className="col-kind">분류</th><th scope="col" className="col-title">제목</th>
                 <th scope="col" className="col-sum">요약</th><th scope="col" className="col-num">연결</th>
               </tr>
             </thead>
             <tbody>
               {vm.rows.length
-                ? vm.rows.map((row) => <Row key={row.cardId} worldId={world.id} row={row} />)
-                : <tr><td colSpan={5} className="muted">조건에 맞는 설정이 없어요.</td></tr>}
+                ? vm.rows.map((row) => <Row key={row.cardId} worldId={world.id} row={row} pick={member ? { checked: vm.picked.has(row.cardId), onChange: (on) => vm.pick(row.cardId, on) } : undefined} />)
+                : <tr><td colSpan={member ? 6 : 5} className="muted">조건에 맞는 설정이 없어요.</td></tr>}
             </tbody>
           </table>
         </div>
       </div>
-      <article className="tcard nw worlds-overview">
-        <details className="nw-sec" open>
-          <summary><h2>개요</h2></summary>
-          <div className="nw-doc">
-            <InfoBox world={world} />
-            <p>{world.description}</p>
-            <LineageLines lineage={world.lineage} />
-          </div>
-        </details>
-      </article>
     </div>
   )
 }

@@ -7,3 +7,12 @@
 
 /* Toast 기본은 13px 영문 글꼴이라 한글 본문에는 작다: 편집 영역과 미리보기 글꼴은 앱 글꼴을 따르고 크기를 키운다. */
 .markdown-editor .toastui-editor-contents { font-family: inherit; font-size: 15px; }
+
+/* 대비: Toast의 자리표시 글자(#999, 흰 면 위 2.85:1)와 고르지 않은 탭 글자(#969aa5 / #eaedf1 2.40:1, 어두운 테마 3.12:1)는 보조 글자 토큰으로 바꾼다
+   (자리표시 라이트 5.99:1·다크 7.44:1, 탭 라이트 5.10:1·다크 5.32:1). 탭 선택자는 Toast의 어두운 테마 규칙(.toastui-editor-dark …, 클래스 3개)보다 구체적이어야 한다. */
+.markdown-editor .ProseMirror .placeholder { color: var(--sub); }
+.markdown-editor .toastui-editor-md-tab-container .tab-item:not(.active) { color: var(--sub); }
+/* 초점: Toast는 편집 영역의 초점 윤곽선을 지우고(.ProseMirror:focus) 탭에는 정하지 않는다. 앱의 초점 색으로 보인다(흰 면 5.67:1, 어두운 면 6.55:1). */
+.markdown-editor .ProseMirror:focus-visible, .markdown-editor .tab-item:focus-visible { outline: 2px solid var(--pri); outline-offset: -2px; }
+/* 편집기를 키보드로 벗어나는 방법 한 줄(MarkdownEditor가 편집기 바로 아래에 그린다) */
+.markdown-editor-hint { margin: 6px 0 0; }

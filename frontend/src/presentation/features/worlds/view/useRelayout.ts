@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 
-import type { useMapCanvas } from '../../worldstudio/view/useMapCanvas'
+import type { useMapCanvas } from './useMapCanvas'
 
 type Pos = { x?: number; y?: number; vx?: number; vy?: number; fx?: number; fy?: number }
 

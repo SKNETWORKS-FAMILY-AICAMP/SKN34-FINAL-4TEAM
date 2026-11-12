@@ -1,4 +1,4 @@
-import { cardLibraryRows, worldSealIssues, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
+import { cardLibraryRows, type WritingIssue, worldSealIssues, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from './useWorldCoverImage'
@@ -17,6 +17,7 @@ import { RestoreContext } from '../../../shared/session/restoreContext'
 import { WorldStudioLeaveContext } from './worldStudioLeaveGuard'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
+import { appendImported, type ImportedSettings } from '../../../shared/importCards'
 import {
   newSetting,
   type SettingItem,
@@ -182,7 +183,7 @@ export function useWorldStudioViewModel(
       }
     }).catch((e) => {
       if (generation.current === current && !controller.signal.aborted) {
-        setError(e instanceof Error ? e.message : '세계관을 읽지 못했습니다.')
+        setError(e instanceof Error ? e.message : '세계관을 읽지 못했어요.')
       }
     }).finally(() => {
       if (generation.current === current) setBusy(false)
@@ -212,7 +213,7 @@ export function useWorldStudioViewModel(
       await action(controller.signal)
     } catch (e) {
       if (current === generation.current) {
-        setError(e instanceof Error ? e.message : '요청하지 못했습니다. 입력은 유지됩니다.')
+        setError(e instanceof Error ? e.message : '요청하지 못했어요. 입력은 유지돼요.')
       }
     } finally {
       if (mutation.current === controller) mutation.current = null
@@ -236,7 +237,7 @@ export function useWorldStudioViewModel(
       setError('')
       return settings
     } catch (e) {
-      setError(e instanceof Error ? e.message : '관계를 변경하지 못했습니다.')
+      setError(e instanceof Error ? e.message : '관계를 변경하지 못했어요.')
     }
   }
   const writingIssues = editing ? worldWritingIssues(editing) : []
@@ -268,7 +269,7 @@ export function useWorldStudioViewModel(
   return {
     reviewWorldId:worldId,
     setReviewBusy,
-    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했습니다.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setRelationKey(v=>v+1);return w},
+    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setRelationKey(v=>v+1);return w},
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoCardDeletion: !!cardUndo,
     /** 방금 지운 카드(되돌릴 수 있는 동안). 이름·인물 여부로 되돌리기 안내를 만든다. */
@@ -309,6 +310,8 @@ export function useWorldStudioViewModel(
     },
     cardRows: cardLibraryRows(editing?.settings ?? [], cardFilter, cardQuery),
     writingIssues,
+    /** 저장 전 확인 사유가 가리키는 곳을 연다: 설정의 문제면 그 설정의 편집 화면, 세계관 자체의 문제(이름)면 기본 정보 단계다. */
+    openIssue: (issue: WritingIssue) => (issue.id ? editCard(issue.id) : goStep('info')),
     sealIssues: saved ? worldSealIssues(saved) : [],
     worlds,
     saved,
@@ -329,7 +332,7 @@ export function useWorldStudioViewModel(
         if (
           leaveGuard
             ? !leaveGuard.confirmBeforeAction()
-            : (dirty || relationDirty) && !window.confirm('저장하지 않은 변경이 있습니다. 새 세계관을 만들까요?')
+            : (dirty || relationDirty) && !window.confirm('저장하지 않은 변경이 있어요. 새 세계관을 만들까요?')
         ) return
         const current = generation.current
         const w = await useCase.create(name, description, signal)
@@ -342,7 +345,7 @@ export function useWorldStudioViewModel(
       if (
         leaveGuard
           ? !leaveGuard.confirmBeforeAction()
-          : (dirty || relationDirty) && !window.confirm('저장하지 않은 변경이 있습니다. 이동할까요?')
+          : (dirty || relationDirty) && !window.confirm('저장하지 않은 변경이 있어요. 이동할까요?')
       ) return
       if (id !== worldId) {
         leaveGuard?.allowNextNavigation()
@@ -406,7 +409,7 @@ export function useWorldStudioViewModel(
         }
         setError('')
       } catch (e) {
-        setError(e instanceof Error ? e.message : '유형을 바꾸지 못했습니다.')
+        setError(e instanceof Error ? e.message : '유형을 바꾸지 못했어요.')
       }
     },
     changeArea: (id: string, category: SettingItem['category']) => {
@@ -422,11 +425,30 @@ export function useWorldStudioViewModel(
         })
         setError('')
       } catch (e) {
-        setError(e instanceof Error ? e.message : '영역을 바꾸지 못했습니다.')
+        setError(e instanceof Error ? e.message : '영역을 바꾸지 못했어요.')
       }
     },
     update: (id: string, item: Partial<SettingItem>, labels?: Partial<StudioSetting>) => {
       if (editing) patch({ settings: editStudioSetting(editing.settings, id, item, labels) })
+    },
+    /**
+     * 다른 세계관에서 가져온 카드(와 그 사이 관계)를 초안 끝에 더한다(저장해야 서버에 반영). 더했을 때만 true이고,
+     * 서버 한도(설정 카드 1,000개)를 넘기는 등 더할 수 없으면 초안을 그대로 두고 이유를 던진다(가져오기 시트가 보인다).
+     */
+    importSettings: (imported: ImportedSettings) => {
+      if (!editing || busy) return false
+      patch({ settings: appendImported(editing.settings, imported, saved?.settings) })
+      setMessage(`설정 ${imported.cards.length}개를 초안에 가져왔어요. 저장해야 반영돼요.`)
+      return true
+    },
+    /** 이 세계관에 연결된 내 소설 id(없으면 null). 세계관과 소설은 1:1이고, 연결은 초안 저장과 별개로 서버에 바로 적용된다. */
+    linkedWorkId: saved?.linkedWorkId ?? null,
+    /** 연결된 소설의 작품 관리 화면 주소(`/content`의 그 작품). 헤더 행동 줄의 `소설 작성하기`가 간다(없으면 그 자리는 `소설 연결하기`다). */
+    linkedWorkHref: saved?.linkedWorkId ? `/content?work=${encodeURIComponent(saved.linkedWorkId)}` : null,
+    /** 소설 연결이 바뀌면 화면 상태에 반영한다(저장 응답을 그대로 돌려주는 메모리 저장소에서도 다음 저장 뒤에 남도록 편집본에도 둔다). */
+    setLinkedWork: (linkedWorkId: string | null) => {
+      setSaved((w) => w && { ...w, linkedWorkId })
+      setEditing((w) => w && { ...w, linkedWorkId })
     },
     save: () => {
       return perform(async (signal) => {

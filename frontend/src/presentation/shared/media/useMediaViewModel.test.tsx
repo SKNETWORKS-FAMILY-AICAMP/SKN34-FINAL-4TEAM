@@ -79,3 +79,46 @@ it('keeps the old name and shows the server reason when the rename fails',async(
  expect(result.current.notice).toBe('')
  expect(result.current.busy).toBe(false)
 })
+
+it('downloads an image once when several places show it together and revokes the shared Blob URL only after the last one is gone',async()=>{
+ const createObjectURL=vi.fn().mockReturnValue('blob:shared-image');const revokeObjectURL=vi.fn()
+ vi.stubGlobal('URL',class extends URL {static createObjectURL=createObjectURL;static revokeObjectURL=revokeObjectURL})
+ const api={download:vi.fn().mockResolvedValue(new Blob(['png'],{type:'image/png'}))}
+ const editor=renderHook(()=>useStoredImage(target,item.id,false,0,api))
+ const preview=renderHook(()=>useStoredImage(target,item.id,false,0,api))
+ await waitFor(()=>expect(preview.result.current.url).toBe('blob:shared-image'))
+ expect(editor.result.current.url).toBe('blob:shared-image')
+ expect(api.download).toHaveBeenCalledTimes(1)
+ expect(createObjectURL).toHaveBeenCalledTimes(1)
+ editor.unmount()
+ expect(revokeObjectURL).not.toHaveBeenCalled()
+ preview.unmount()
+ expect(revokeObjectURL).toHaveBeenCalledExactlyOnceWith('blob:shared-image')
+ // 다른 revision(교체한 표지)은 같은 그림으로 치지 않고 다시 받는다.
+ const replaced=renderHook(()=>useStoredImage(target,item.id,false,1,api))
+ await waitFor(()=>expect(replaced.result.current.url).toBe('blob:shared-image'))
+ expect(api.download).toHaveBeenCalledTimes(2)
+ replaced.unmount()
+})
+it('does not keep a failed download, so showing the image again retries it',async()=>{
+ vi.stubGlobal('URL',class extends URL {static createObjectURL=()=>'blob:retried-image';static revokeObjectURL=()=>{}})
+ const api={download:vi.fn().mockRejectedValueOnce(new Error('잠시 후 다시 시도해 주세요.')).mockResolvedValue(new Blob(['png'],{type:'image/png'}))}
+ const failed=renderHook(()=>useStoredImage(target,item.id,false,0,api))
+ await waitFor(()=>expect(failed.result.current.error).toBe('잠시 후 다시 시도해 주세요.'))
+ const again=renderHook(()=>useStoredImage(target,item.id,false,0,api))
+ await waitFor(()=>expect(again.result.current.url).toBe('blob:retried-image'))
+ expect(api.download).toHaveBeenCalledTimes(2)
+ failed.unmount();again.unmount()
+})
+it('waits to download until the image is enabled, so pictures far from the screen or inside closed sections are not fetched',async()=>{
+ vi.stubGlobal('URL',class extends URL {static createObjectURL=()=>'blob:lazy-image';static revokeObjectURL=()=>{}})
+ const api={download:vi.fn().mockResolvedValue(new Blob(['png'],{type:'image/png'}))}
+ const {result,rerender,unmount}=renderHook(({enabled})=>useStoredImage(target,item.id,false,0,api,enabled),{initialProps:{enabled:false}})
+ await act(async()=>{})
+ expect(api.download).not.toHaveBeenCalled()
+ expect(result.current).toEqual({url:'',error:''})
+ rerender({enabled:true})
+ await waitFor(()=>expect(result.current.url).toBe('blob:lazy-image'))
+ expect(api.download).toHaveBeenCalledTimes(1)
+ unmount()
+})

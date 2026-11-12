@@ -56,6 +56,42 @@ describe('settingBoardEntries', () => {
     expect(boardRows(entries, { sort: 'links' }).map((r) => r.title)).toEqual(['가람', '항구', '나래']) // 연결 1·1·0은 가람·항구 순으로 설정집 순서
     expect(boardKindCounts(entries)).toEqual([{ kind: '인물', count: 2 }, { kind: '장소', count: 1 }])
   })
+  it('연결 수·제목 옆 수는 카드 한 장씩 이어진 카드를 모은 것(settingLinks)과 늘 같다: 끊긴 연결·자기 자신·카드가 아닌 항목이 섞여도', () => {
+    // 고정된 수열로 만든 뒤섞인 세계관(카드 40장 + 메모·분류 확인 + 관계 60개). 한 번의 훑기로 센 값이 카드마다 따로 센 값과 같아야 한다.
+    let seed = 7
+    const next = (n: number) => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n }
+    const types: CardType[] = ['character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other']
+    const cards = Array.from({ length: 40 }, (_, i) => card(`카드 ${i}`, types[next(types.length)]))
+    const extras = [newSetting('notes'), newSetting(), newSetting('notes')]
+    const ids = [...cards, ...extras].map((s) => s.item.id).concat('missing')
+    for (const c of cards) {
+      c.item.relatedIds = Array.from({ length: next(4) }, () => ids[next(ids.length)]).concat(next(5) ? [] : [c.item.id])
+      c.item.afterId = next(3) ? null : ids[next(ids.length)]
+    }
+    let settings: StudioSetting[] = [...cards.slice(0, 20), ...extras, ...cards.slice(20)]
+    for (let i = 0; i < 60; i += 1) {
+      const [a, b] = [cards[next(cards.length)], cards[next(cards.length)]]
+      if (a === b) continue
+      try { settings = friends(settings, a, b, ['friend_of', 'trusts', 'custom_relation'][next(3)]) } catch { /* 같은 방향·종류의 관계는 한 번만 넣을 수 있다 */ }
+    }
+    const entries = settingBoardEntries(settings)
+    expect(entries).toHaveLength(40)
+    for (const entry of entries) {
+      const links = settingLinks(settings, entry.cardId)
+      const connections = new Set(links.map((l) => l.id)).size
+      const viaRelation = new Set(links.filter((l) => l.via === 'relation').map((l) => l.id)).size
+      expect([entry.title, entry.connections, entry.badge]).toEqual([entry.title, connections, entry.kind === '인물' ? viaRelation : connections])
+    }
+    expect(entries.some((e) => e.connections > 1) && entries.some((e) => e.kind === '인물' && e.badge !== e.connections)).toBe(true) // 견줄 만한 값이 실제로 있다
+  })
+
+  it('요약은 카드 본문이 바뀌면 다시 만든다: 고친 카드를 새 객체로 넣어도, 같은 객체의 글을 바꿔도', () => {
+    const lore = card('율도국', 'location', '**섬나라**')
+    expect(settingBoardEntries([lore])[0].text).toBe('섬나라')
+    expect(settingBoardEntries([{ ...lore, item: { ...lore.item, text: '바다 건너 _이상향_' } }])[0].text).toBe('바다 건너 이상향')
+    lore.item.text = '고친 글'
+    expect(settingBoardEntries([lore])[0].text).toBe('고친 글')
+  })
 })
 
 describe('settingLinks', () => {

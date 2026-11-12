@@ -1,4 +1,5 @@
-import {worldCoverError,type StudioWorld,type WorldPublicationInput} from '../entities/studioWorld'
+import {characterDocIssues} from '../entities/characterDocs'
+import {invalidReveal,REVEAL_EPISODE_ERROR,worldCoverError,type StudioWorld,type WorldPublicationInput} from '../entities/studioWorld'
 import type {WorldStudioRepository} from '../repositories/WorldStudioRepository'
 export class WorldStudioUseCase {
  private readonly repository:WorldStudioRepository
@@ -28,8 +29,12 @@ export class WorldStudioUseCase {
  }
  async save(world:StudioWorld,signal?:AbortSignal){
   if(!world.name.trim()||world.name.length>100||world.description.length>20000)throw new Error('세계관 이름과 설명의 길이를 확인해 주세요.')
+  // 인물 문서(본문인 IDENTITY.md 포함)의 문제는 저장 전 확인과 같은 문구로 알린다. 그래서 본문 길이를 함께 보는 아래 검사보다 먼저 본다.
+  const docIssue=world.settings.flatMap(characterDocIssues)[0]
+  if(docIssue)throw new Error(docIssue)
   if(world.settings.some(s=>!s.item.title.trim()||s.item.title.length>200||s.item.text.length>3000))throw new Error('설정 이름과 설명의 길이를 확인해 주세요.')
   if(world.settings.some(s=>s.item.kind==='relation'&&(!s.item.subjectId?.trim()||!s.item.targetId?.trim())))throw new Error('관계 주체와 대상을 선택해 주세요.')
+  if(world.settings.some(invalidReveal))throw new Error(REVEAL_EPISODE_ERROR)
   return this.repository.saveStudio(world,signal)
  }
 }

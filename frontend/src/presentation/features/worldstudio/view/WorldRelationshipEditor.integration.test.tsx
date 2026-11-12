@@ -241,7 +241,7 @@ it.each(['text', 'title', 'name'] as const)(
     )
     fireEvent.click(screen.getByRole('button', { name: '세계관 저장' }))
     await screen.findByText(
-      '서버에 현재 세계관을 저장했어요. 관계는 현재 상태만 보관하며 과거 관계 복원은 지원하지 않습니다.',
+      '서버에 현재 세계관을 저장했어요. 관계는 현재 상태만 보관하며 과거 관계 복원은 지원하지 않아요.',
     )
     const latest = await useCase.read(world.id)
     expect(latest.settings[2].item).toMatchObject({

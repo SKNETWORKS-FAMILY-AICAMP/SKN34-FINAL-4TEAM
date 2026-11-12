@@ -1,8 +1,9 @@
 import { useLayoutEffect, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 
-import { MapControls, useMapCanvas } from '../../worldstudio/view/useMapCanvas'
 import { CANVAS_FONT, LINEAGE_COLORS, aspectGravity, atlasEndpoint, atlasFeatures, nodeRadius, showsLabel, type AtlasLink, type AtlasNode, type WorldAtlas } from '../worldAtlas'
+import { MapControls, useMapCanvas } from './useMapCanvas'
+import { useNodePointer } from './useNodePointer'
 import { useRelayout } from './useRelayout'
 
 // 힘의 세기. 장르 허브는 서로 멀리, 설정 카드는 자기 세계관 곁에 촘촘히 모이게 하고, 파생·조합 선은 약하게 당겨 장르 무리를 흩뜨리지 않으면서 무리 사이를 가로지르게 한다.
@@ -16,13 +17,15 @@ const isLineage = (l: AtlasLink) => l.kind === 'derive' || l.kind === 'combine'
 /**
  * 공개 세계관 지도의 캔버스. 노드 이름은 HTML 툴팁(`nodeLabel`) 대신 캔버스에 직접 그린다(툴팁은 문자열을 HTML로 넣는다).
  * 늘 그리는 이름은 장르뿐이고 세계관·카드 이름은 마우스를 올린 노드 하나만 그린다(`showsLabel`, 확대와 연동하지 않는다).
+ * 터치 기기에서는 한 손가락 끌기가 페이지 스크롤이 되도록 지도 이동·노드 끌기를 끄고, 올리기가 없으므로 첫 탭에 이름을 보이고 다음 탭에 연다(`useNodePointer`).
  * 장르 칩이 골라지면 그 장르와 이어진 노드만 밝다. 위치는 저장하지 않는다.
  * `atlas`는 ForceGraph가 좌표를 붙이고 링크 끝점을 바꾸는 가변 객체라 화면마다 새로 만든 것을 그대로 넘기고, 읽을 때는 `atlasEndpoint`를 쓴다.
  */
 export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldAtlas; lit?: ReadonlySet<string>; onOpen: (node: AtlasNode) => void }) {
   const canvas = useMapCanvas<AtlasNode, AtlasLink>()
   const { host, graph, width, reduced, paused } = canvas
-  const [hover, setHover] = useState<string>()
+  const pointer = useNodePointer(showsLabel, onOpen)
+  const hover = pointer.shown
   const [height, setHeight] = useState(380)
   const { worlds, derived, combined } = atlas.stats
   const summary = atlasFeatures(atlas).lineage ? `공개 세계관 ${worlds}개가 파생 ${derived}개, 조합 ${combined}개로 이어진 지도` : `공개 세계관 ${worlds}개를 장르별로 모은 지도`
@@ -38,6 +41,8 @@ export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldA
     g?.d3Force('gravity', aspectGravity(() => (host.current?.clientWidth ?? 0) / (host.current?.clientHeight || 1)))
   }, [graph, host])
 
+  // 터치에서 첫 탭으로 이름을 보인 노드(다음 탭에 열린다). 마우스의 올리기는 알리지 않는다.
+  const revealed = pointer.coarse ? atlas.nodes.find((n) => n.id === hover) : undefined
   const touchesHover = (l: AtlasLink) => !!hover && (atlasEndpoint(l.source) === hover || atlasEndpoint(l.target) === hover)
 
   // 가리킨 노드는 장르 칩으로 흐려져 있어도 또렷하게 보인다.
@@ -118,13 +123,16 @@ export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldA
             linkColor={linkColor} linkWidth={(l) => (isLineage(l) ? 1.6 : l.kind === 'genre' ? 0.9 : 0.5) + (touchesHover(l) ? 0.8 : 0)}
             linkCurvature={(l) => (isLineage(l) ? 0.16 : 0)} linkLineDash={(l) => (l.kind === 'combine' ? [5, 4] : null)}
             linkDirectionalArrowLength={(l) => (isLineage(l) ? 6 : 0)} linkDirectionalArrowRelPos={0.82}
-            enableZoomInteraction={(e) => e.ctrlKey || e.metaKey}
-            onNodeHover={(n) => setHover(n?.id)} onNodeClick={(n) => onOpen(n)} onNodeDragEnd={(n) => { n.fx = n.x; n.fy = n.y }}
+            enableZoomInteraction={(e) => e.ctrlKey || e.metaKey} {...pointer.graphProps}
+            onNodeDragEnd={(n) => { n.fx = n.x; n.fy = n.y }}
             onEngineStop={onEngineStop}
           />
         </div>
-        {/* role="img"의 자식은 보조기기에서 그림의 일부가 되므로 상태 안내는 캔버스 바깥 형제로, 레이아웃에 영향이 없게 겹쳐 둔다. */}
-        <p className="atlas-note"><span role="status">{canvas.status}</span><span className="atlas-hint"> · 노드에 올리면 이름 · Ctrl(⌘)+휠로 확대</span></p>
+        {/* role="img"의 자식은 보조기기에서 그림의 일부가 되므로 상태 안내는 캔버스 바깥 형제로, 레이아웃에 영향이 없게 겹쳐 둔다. 터치에서 첫 탭으로 이름을 보인 노드는 여기서도 알린다(이름이 길어 잘려도 안내는 남게 안내를 앞에 둔다). */}
+        <p className="atlas-note">
+          <span role="status">{revealed ? `한 번 더 누르면 열려요 · ${revealed.name}` : canvas.status}</span>
+          <span className="atlas-hint">{pointer.coarse ? ' · 노드를 누르면 이름, 한 번 더 누르면 열려요 · 화살표 버튼으로 지도 이동' : ' · 노드에 올리면 이름 · Ctrl(⌘)+휠로 확대'}</span>
+        </p>
       </div>
       <div className="atlas-foot">
         <MapControls<AtlasNode, AtlasLink> canvas={canvas} onReplay={replay} />

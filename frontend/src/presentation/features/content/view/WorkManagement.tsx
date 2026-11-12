@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { publicationActionLabel, type Work } from '../../../../domain/entities/content'
+import { useId, useRef, useState } from 'react'
+import { publicationActionLabel, type Version, type Work } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { Go } from '../../../shared/Go'
 import { Branch } from '../../../shared/icons'
@@ -12,6 +12,7 @@ import { inheritedRangeLabel } from '../viewmodel/inheritedRange'
 import { useEpisodeForkCounts } from '../viewmodel/useEpisodeForkCounts'
 import type { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import { ContextPreview } from './ContextPreview'
+import { LinkedWorldPanel } from './LinkedWorldPanel'
 import { WorkOverview } from './WorkOverview'
 import { WorldPanel } from './WorldPanel'
 
@@ -25,7 +26,7 @@ type Props = {
 }
 
 /**
- * 고른 내 작품의 관리 영역: 히어로·분기 정책(또는 포크 정보) + 탭(회차 목록·세계관·설정집 요약·이야기 분기·받은 피드백·이력).
+ * 고른 내 작품의 관리 영역: 히어로·분기 정책(또는 포크 정보) + 탭(회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·이력).
  * 작품이 바뀌면 호출 측이 key로 새로 만들어 탭·분기 입력이 처음 상태로 돌아간다.
  */
 export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Props) {
@@ -73,7 +74,8 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
         ] as const).map(([value, label]) => (
           <button
             key={value}
-            disabled={locked}
+            // 요청 중에는 다른 탭으로 옮기지 못하게 잠그되, 지금 탭은 두어 방금 누른 버튼에서 키보드 초점이 사라지지 않게 한다(이력 탭은 누르면 곧 요청이 시작된다).
+            disabled={locked && tab !== value}
             aria-current={tab === value ? 'page' : undefined}
             onClick={() => {
               setTab(value)
@@ -84,7 +86,12 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           </button>
         ))}
       </nav>
-      {tab === 'world' && <WorldPanel workId={w.id} useCase={useCase} />}
+      {tab === 'world' && (
+        <>
+          <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} />
+          <WorldPanel workId={w.id} useCase={useCase} />
+        </>
+      )}
       {tab === 'history' && (
         <section className='ep-reading'>
           <h2>저장·AI·발행 이력</h2>
@@ -92,7 +99,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           {vm.history && (
             <>
               <h3>발행 이력</h3>
-              {!vm.history.publicationHistory?<p role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol>{vm.history.publicationHistory.map((event,i)=><li key={i}>
+              {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol>{vm.history.publicationHistory.map((event,i)=><li key={i}>
                 {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')} · 버전 {event.versionId}
               </li>)}</ol>:<p>발행 이력이 없어요.</p>}
               <h3>원고 저장본</h3>
@@ -101,13 +108,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
                   아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.
                 </p>
               )}
-              {vm.history.versions.map((v) => (
-                <article key={v.id}>
-                  <h3>{v.episode}화 · 저장 버전 {v.revision} · {v.title}</h3>
-                  <time>{new Date(v.savedAt).toLocaleString('ko-KR')}</time>
-                  <ManuscriptBody workId={w.id} number={v.episode} body={v.body} />
-                </article>
-              ))}
+              {vm.history.versions.map((v) => <SavedVersion key={v.id} workId={w.id} version={v} />)}
               <h3>AI 요청·제안</h3>
               {vm.history.proposals.length === 0 && <p>아직 AI 제안이 없어요.</p>}
               {vm.history.proposals.map((p) => (
@@ -240,6 +241,8 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
                     disabled={locked}
                   />
                 </label>
+                {/* 분기를 만들지 못한 사유는 누른 버튼 바로 위에 알린다(화면 맨 위 알림은 이 자리에서 보이지 않는다). */}
+                {vm.origin === 'fork' && vm.error && <div className='ep-alert' role='alert'>{vm.error}</div>}
                 <button className='btn pri' disabled={locked}>
                   이 회차에서 분기 만들기
                 </button>
@@ -255,5 +258,26 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
         </div>
       )}
     </>
+  )
+}
+
+/**
+ * 이력 탭의 저장 버전 한 건. 제목과 저장 시각만 먼저 보이고 본문은 '원고 보기'로 펼칠 때 그린다.
+ * 저장본이 쌓여도 모든 본문과 그 안의 이미지를 한꺼번에 그리거나 내려받지 않는다.
+ */
+function SavedVersion({ workId, version: v }: { workId: string; version: Version }) {
+  const [open, setOpen] = useState(false)
+  const title = useId()
+  return (
+    <article>
+      <h3 id={title}>{v.episode}화 · 저장 버전 {v.revision} · {v.title}</h3>
+      <p><time>{new Date(v.savedAt).toLocaleString('ko-KR')}</time></p>
+      <p>
+        <button type='button' className='btn sm' aria-expanded={open} aria-describedby={title} onClick={() => setOpen((shown) => !shown)}>
+          {open ? '원고 접기' : '원고 보기'}
+        </button>
+      </p>
+      {open && <ManuscriptBody workId={workId} number={v.episode} body={v.body} />}
+    </article>
   )
 }

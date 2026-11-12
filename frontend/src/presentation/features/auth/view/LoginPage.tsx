@@ -13,12 +13,12 @@ export function LoginPage() {
   return <AuthLayout title="로그인" intro="이메일 확인을 마친 계정으로 로그인해 주세요.">
     {vm.loginMsg && <div className="policy" role="status">{vm.loginMsg}</div>}
     {vm.error && <p ref={alertRef} id="login-error" role="alert" tabIndex={-1}>{vm.error}</p>}
-    <form id="lgf" className="auth-form" aria-busy={vm.pending} onSubmit={(e) => {
+    <form id="lgf" className="auth-form" noValidate aria-busy={vm.pending} onSubmit={(e) => {
       e.preventDefault()
       const data = new FormData(e.currentTarget)
-      void vm.submit(String(data.get('email') ?? '').trim(), String(data.get('password') ?? ''))
       const password = e.currentTarget.elements.namedItem('password')
-      if (password instanceof HTMLInputElement) password.value = ''
+      // 요청을 보냈을 때만 비밀번호를 지운다. 입력 오류로 보내지 않았으면 고쳐서 바로 다시 보낼 수 있게 둔다.
+      if (vm.submit(String(data.get('email') ?? '').trim(), String(data.get('password') ?? '')) && password instanceof HTMLInputElement) password.value = ''
     }}>
       <label className="field">이메일<input className="inp" name="email" type="email" autoComplete="username" required maxLength={254} readOnly={vm.pending} {...invalid} /></label>
       <label className="field">비밀번호<input className="inp" name="password" type="password" autoComplete="current-password" required readOnly={vm.pending} {...invalid} /></label>

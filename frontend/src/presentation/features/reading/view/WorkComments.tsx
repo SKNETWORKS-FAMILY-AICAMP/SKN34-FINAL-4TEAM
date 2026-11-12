@@ -39,7 +39,8 @@ export function WorkComments({ workId, canonical, start }: { workId: string; can
             </div>
           )}
           {!comments && !vm.isError && <p className="muted" role="status">댓글을 불러오고 있어요…</p>}
-          {comments?.length === 0 && <p className="muted">아직 댓글이 없어요. {start ? <><Go to={`/read/${workId}/${start}`} className="lk">{start}화</Go>를 읽고</> : '회차 화면에서'} 첫 댓글을 남겨 보세요.</p>}
+          {/* 문장 안 링크는 클래스 없이 둔다: 전역의 문단 속 링크 규칙(밑줄·링크색)이 본문 글자와 구분해 준다. */}
+          {comments?.length === 0 && <p className="muted">아직 댓글이 없어요. {start ? <><Go to={`/read/${workId}/${start}`}>{start}화</Go>를 읽고</> : '회차 화면에서'} 첫 댓글을 남겨 보세요.</p>}
           {best.length > 0 && <div className="wc-best" role="group" aria-label="베스트 댓글">{best.map((c) => <WorkCommentRow key={c.id} c={c} workId={workId} best />)}</div>}
           {!!comments?.length && (
             <>

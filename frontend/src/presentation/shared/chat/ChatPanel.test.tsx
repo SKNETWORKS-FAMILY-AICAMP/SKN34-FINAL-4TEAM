@@ -185,6 +185,21 @@ describe('공용 채팅 비활성·첨부', () => {
     expect(onAttach).not.toHaveBeenCalled()
   })
 
+  it('잠긴 첨부 메뉴를 열면 초점이 메뉴로 들어가고 잠긴 사유가 메뉴 설명으로 읽힌다 (잠긴 항목은 초점을 받지 못한다)', () => {
+    const { rerender } = render(<ChatPanel messages={[]} onSend={vi.fn()} onAttach={vi.fn()} disabledReason="준비 중이에요." />)
+    fireEvent.click(plus())
+    const menu = screen.getByRole('menu', { name: '첨부' })
+    expect(document.activeElement).toBe(menu)
+    expect(document.getElementById(menu.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중이에요.')
+    fireEvent.keyDown(menu, { key: 'Escape' })
+    // 첨부만 준비 중일 때는 popover 안의 안내가 메뉴 설명이 된다.
+    rerender(<ChatPanel messages={[]} onSend={vi.fn()} />)
+    fireEvent.click(plus())
+    const soon = screen.getByRole('menu', { name: '첨부' })
+    expect(document.activeElement).toBe(soon)
+    expect(document.getElementById(soon.getAttribute('aria-describedby') ?? '')?.textContent).toBe('이미지·음성 첨부는 준비 중이에요.')
+  })
+
   it('전송 handler가 없으면 입력과 전송을 잠근다', () => {
     render(<ChatPanel messages={[]} />)
     expect(box().disabled).toBe(true)

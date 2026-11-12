@@ -4,8 +4,10 @@ import type { History, Work, WorkRegistration, WorkTaxonomy } from '../../../../
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
 
+type Origin = '' | 'create' | 'fork' | 'link'
+
 /**
- * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단·삭제)·분기 만들기·이력 조회.
+ * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단·삭제)·분기 만들기·세계관 연결·이력 조회.
  * 작품 목록과 선택은 서재(`/lib?tab=write`)가 맡고, 이 화면은 주소의 `?work=<id>`(workId)가 가리키는 내 작품 하나를 관리하거나 쿼리가 없으면 새 작품을 만든다.
  * 열린 작품(active)은 내 작품 목록에서 workId로 도출하므로 `install`이 목록을 갱신하면 함께 바뀌고, 작품 revision도 항상 서버 응답 값이다.
  * 원고 작성·AI 이어쓰기·회차 공개는 집필실(`/studio/{id}`) 몫이다.
@@ -20,6 +22,11 @@ export function useEpisodeViewModel(
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  /**
+   * 마지막 요청을 보낸 자리. 작품 만들기·분기 만들기·세계관 연결은 그 폼·카드가 결과를 직접 보이고(화면 맨 위 알림은 스크롤해 내려간 자리에서 보이지 않는다),
+   * 자리가 없는 요청('')의 결과는 화면 맨 위 알림이 보인다.
+   */
+  const [origin, setOrigin] = useState<Origin>('')
   const [ready, setReady] = useState(false)
   /** 내 작품 목록을 실제로 읽었는지. 읽기에 실패하면(인증 만료 등) 새 작품을 보내지 못하게 한다. */
   const [listed, setListed] = useState(false)
@@ -64,12 +71,13 @@ export function useEpisodeViewModel(
       request.current?.abort()
     }
   }, [useCase])
-  const run = async (fn: () => Promise<void>) => {
+  const run = async (fn: () => Promise<void>, at: Origin = '') => {
     if (inFlight.current) return false
     inFlight.current = true
     setBusy(true)
     setError('')
     setNotice('')
+    setOrigin(at)
     try {
       await fn()
       return alive.current
@@ -90,6 +98,7 @@ export function useEpisodeViewModel(
     busy,
     error,
     notice,
+    origin,
     ready,
     listed,
     coverRevision,
@@ -114,6 +123,8 @@ export function useEpisodeViewModel(
             )
           } catch (e) {
             if (controller.signal.aborted) return
+            // 작품은 만들어져 화면이 그 관리 화면으로 넘어간다. 만들기 폼이 사라지므로 사유는 맨 위 알림이 보인다.
+            setOrigin('')
             throw new Error(
               `작품은 생성됐지만 표지 저장에 실패했어요. 작품을 다시 만들지 말고 표지 편집에서 재시도해 주세요. ${
                 e instanceof Error ? e.message : ''
@@ -128,7 +139,7 @@ export function useEpisodeViewModel(
             ? '비공개 작품과 표지를 저장했어요.'
             : '비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.',
         )
-      })
+      }, 'create')
       return alive.current ? id : null
     },
     reload: () =>
@@ -153,6 +164,19 @@ export function useEpisodeViewModel(
         install(await useCase.policy(active.id, active.revision, allowFork, allowForkPublication))
         setNotice('분기 생성·공개 허용 설정을 저장했어요.')
       }),
+    /**
+     * 내 세계관(WorldStudio)과의 1:1 연결(DEC-46). worldId가 null이면 확인을 받고 해제한다. 서버가 돌려준 연결로 열린 작품을 바꾸며 작품 revision은 그대로다.
+     * 남의 것·없는 세계관(404)이나 이미 다른 소설에 연결된 세계관(409)은 서버 사유를 오류로 알린다.
+     */
+    linkWorld: (worldId: string | null) => {
+      if (!worldId && !window.confirm('세계관 연결을 해제할까요? 독자 설정 위키에서 이 세계관의 설정 카드가 사라져요. 세계관과 설정 카드는 그대로 남아요.')) return Promise.resolve(false)
+      return run(async () => {
+        if (!active) return
+        const linked = await useCase.linkWorldStudio(active.id, worldId)
+        install({ ...active, worldStudioId: linked.worldId })
+        setNotice(linked.worldId ? '세계관을 연결했어요.' : '세계관 연결을 해제했어요.')
+      }, 'link')
+    },
     /** 새 분기 작품의 id를 돌려준다(실패하거나 화면을 떠났으면 null). */
     fork: async (episode: number, title: string, direction: string) => {
       let id = null as string | null
@@ -162,7 +186,7 @@ export function useEpisodeViewModel(
         install(created)
         id = created.id
         setNotice('선택한 회차에서 비공개 분기 작품을 만들었어요.')
-      })
+      }, 'fork')
       return alive.current ? id : null
     },
     /** 분기 작품의 공개를 중단한다. 서버가 revision을 올리므로 끝나면 작품을 다시 읽는다. 발행된 회차와 원고는 남는다. */

@@ -29,9 +29,14 @@ const offsetAt = (doc: PMNode, pos: number) => doc.textBetween(0, pos, '\n', lea
 const textSlice = (schema: Schema, text: string) => new Slice(Fragment.fromJSON(schema, bodyToDoc(text).content), 1, 1)
 const imageFile = (files?: FileList | null) => Array.from(files ?? []).find(file => file.type.startsWith('image/'))
 
-function ImageView({ node, extension }: NodeViewProps) {
+function ImageView({ node, extension, editor, getPos }: NodeViewProps) {
   const { workId, number }: ImageOptions = extension.options
-  return <NodeViewWrapper className="manuscript-image"><StoredImage target={{ kind: 'episode', workId, number }} id={String(node.attrs.imageId)} alt="본문 이미지" /></NodeViewWrapper>
+  // 여러 장을 구분할 수 있게 원고 안 순서를 대체 텍스트에 붙인다(저장 버전 미리보기의 '본문 이미지 n'과 같은 번호).
+  // 앞의 이미지를 지우면 이 블록이 다시 그려질 때까지 옛 번호가 남지만 서로 겹치지는 않는다.
+  const at = getPos()
+  let order = 1
+  if (at !== undefined) editor.state.doc.forEach((block, offset) => { if (offset < at && block.type.name === 'episodeImage') order++ })
+  return <NodeViewWrapper className="manuscript-image"><StoredImage target={{ kind: 'episode', workId, number }} id={String(node.attrs.imageId)} alt={`본문 이미지 ${order}`} /></NodeViewWrapper>
 }
 
 /** 원고 안 이미지 한 장(블록). 저장 형식은 `[[image:<id>]]` 한 줄이라 id만 갖고, 화면에는 기존 StoredImage로 실제 이미지를 그린다. */

@@ -3,16 +3,17 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { worldCoverError, type StudioWorld } from '../../../../domain/entities/studioWorld'
 import { AiCoverButton } from '../../../shared/AiCoverButton'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
-import { PublishFields } from './WorldPublishFields'
+import { PublicCardsNotice, PublishFields } from './WorldPublishFields'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
 /**
  * 관리 모드 헤더의 세계관 정보 편집 패널(/content 작품 정보 편집과 같은 ep-edit 틀, 헤더의 소개 자리에 열린다). 이름·설명·공개 범위·장르·표지를 한 곳에서 고치고 저장·취소한다.
  * 저장은 바뀐 것만 이 순서로 보낸다: 이름·설명은 기존 초안 저장, 공개 범위·장르는 기존 공개 설정(`vm.setPublication`, 공개로 바꿀 때만 한 번 확인), 표지는 고른 이미지 올리기(교체 포함)다.
- * 하나라도 실패하면 닫지 않고 오류를 알리며 입력을 그대로 둬 남은 것만 다시 저장할 수 있다. 취소·Esc는 입력과 고른 표지를 모두 버린다.
+ * 하나라도 실패하면 닫지 않고 오류를 알리며 입력을 그대로 둬 남은 것만 다시 저장할 수 있다. 취소·Esc는 입력과 고른 표지를 모두 버린다(한글 조합을 끝내려고 누른 Esc는 세지 않는다).
  * 표지 삭제만은 확인한 뒤 바로 지운다. 표지 'AI로 생성'은 연결 전이라 비활성이다.
- * 저장하지 않은 수정이 있으면(`vm.infoLocked`) 그 수정이 이름·설명 저장에 딸려 가지 않도록 저장을 잠그고 먼저 저장하라고 알린다.
+ * 저장하지 않은 수정이 있으면(`vm.infoLocked`) 그 수정이 이름·설명 저장에 딸려 가지 않도록, 이름·설명을 바꾼 동안에는 저장을 잠그고 먼저 저장하라고 알린다.
+ * 공개 범위·장르·표지는 초안 저장과 별개라 잠그지 않는다: 공개로 고른 뒤 경고의 `전체 공개`(초안 변경)를 눌러도 공개 설정은 그대로 저장할 수 있다.
  */
 export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWorld; onClose: () => void }) {
   const [name, setName] = useState(world.name)
@@ -25,7 +26,8 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
   useEffect(() => { first.current?.focus() }, [])
   const infoChanged = name.trim() !== world.name || description !== world.description
   const publicationChanged = publication.visibility !== vm.publication.visibility || publication.genre !== vm.publication.genre
-  const canSave = (infoChanged || publicationChanged || !!cover) && !!name.trim() && !vm.infoLocked
+  const locked = infoChanged && vm.infoLocked
+  const canSave = (infoChanged || publicationChanged || !!cover) && !!name.trim() && !locked
   const save = async () => {
     if (!canSave) return
     if (infoChanged && !(await vm.saveInfo(name.trim(), description))) return
@@ -45,7 +47,7 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
       className="ep-edit world-info-edit"
       aria-label="세계관 정보 편집"
       onSubmit={(e) => { e.preventDefault(); void save() }}
-      onKeyDown={(e) => { if (e.key === 'Escape' && !vm.busy) onClose() }}
+      onKeyDown={(e) => { if (e.key === 'Escape' && !vm.busy && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) onClose() }}
     >
       <fieldset disabled={vm.busy}>
         <label>세계관 이름<input ref={first} value={name} onChange={(e) => setName(e.target.value)} maxLength={100} required /></label>
@@ -53,7 +55,8 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
         <fieldset className="world-publish world-compact">
           <legend className="sr-only">공개 설정</legend>
           <PublishFields value={publication} onChange={(change) => setPublication((current) => ({ ...current, ...change }))} />
-          <p className="small muted">저장을 누르면 적용돼요. 읽는 사람은 공개한 세계관의 설정 카드와 인물 관계를 읽기만 할 수 있어요.</p>
+          <p className="small muted">저장을 누르면 적용돼요. 공개한 세계관에는 공개로 둔 설정 카드와 그 사이의 인물 관계만 확정 버전 기준으로 보여요.</p>
+          <PublicCardsNotice vm={vm} visibility={publication.visibility} />
         </fieldset>
         <div className="world-cover-edit" role="group" aria-label="표지">
           <span className="world-cover-label">표지</span>
@@ -74,9 +77,9 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
           {vm.coverAction && <p role="status" className="small muted">{vm.coverAction === 'upload' ? '표지를 올리고 있어요…' : '표지를 지우고 있어요…'}</p>}
           {vm.cover.error && <p className="small muted">{vm.cover.error}</p>}
         </div>
-        {vm.infoLocked && <p id={lockId} role="status" className="small muted">작성 중인 변경을 먼저 저장하세요.</p>}
+        {locked && <p id={lockId} role="status" className="small muted">작성 중인 변경을 먼저 저장하세요.</p>}
         <div className="ep-edit-actions">
-          <button className="btn pri sm" disabled={!canSave} aria-describedby={vm.infoLocked ? lockId : undefined}>{vm.saveState === 'saving' ? '저장 중…' : '저장'}</button>
+          <button className="btn pri sm" disabled={!canSave} aria-describedby={locked ? lockId : undefined}>{vm.saveState === 'saving' ? '저장 중…' : '저장'}</button>
           <button type="button" className="btn sm" onClick={onClose}>취소</button>
         </div>
       </fieldset>

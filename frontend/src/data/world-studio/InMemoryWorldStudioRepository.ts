@@ -1,4 +1,5 @@
-import type {StudioWorld,WorldPublication,WorldPublicationInput} from '../../domain/entities/studioWorld'
+import {storedCharacterDocs} from '../../domain/entities/characterDocs'
+import type {StudioSetting,StudioWorld,WorldPublication,WorldPublicationInput} from '../../domain/entities/studioWorld'
 import type {WorldStudioRepository} from '../../domain/repositories/WorldStudioRepository'
 /** 페이지를 새로 고치면 사라지는 데모. 서버 인증·저장과 연결하지 않습니다. */
 export class InMemoryWorldStudioRepository implements WorldStudioRepository {
@@ -10,7 +11,9 @@ export class InMemoryWorldStudioRepository implements WorldStudioRepository {
  async saveStudio(world:StudioWorld){
   const previous=await this.read(world.id)
   if(previous.version!==world.version)throw new Error('다른 변경이 저장되어 있습니다. 세계관을 다시 열어 주세요.')
-  const saved=structuredClone({...world,version:world.version+1,visibility:previous.visibility,genre:previous.genre}) // 공개 설정은 초안 저장과 별개라 편집본의 값이 아니라 저장된 값을 유지한다
+  // 인물 문서는 서버 저장과 같은 규칙으로 보관한다: 인물 카드에 문서가 하나라도 있을 때만 남긴다.
+  const settings=world.settings.map((setting):StudioSetting=>{const {characterDocs:_,...row}=setting,docs=storedCharacterDocs(setting);return docs?{...row,characterDocs:docs}:row})
+  const saved=structuredClone({...world,settings,version:world.version+1,visibility:previous.visibility,genre:previous.genre}) // 공개 설정은 초안 저장과 별개라 편집본의 값이 아니라 저장된 값을 유지한다
   this.worlds.set(saved.id,saved);return structuredClone(saved)
  }
  async setPublication(id:string,{visibility,genre}:WorldPublicationInput):Promise<WorldPublication>{

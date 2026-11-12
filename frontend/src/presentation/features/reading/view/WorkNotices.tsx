@@ -2,9 +2,10 @@ import { useState } from 'react'
 
 import type { Work } from '../../../../domain/entities/work'
 import { NOTICE_BODY_MAX, NOTICE_CATEGORIES, NOTICE_TITLE_MAX, noticeInput, type NoticeCategory, type WorkNoticeInput } from '../../../../domain/entities/workNotice'
+import { paginate } from '../../../shared/paginate'
+import { Pager } from '../../../shared/Pager'
 import { useWorkNoticesViewModel } from '../viewmodel/useWorkNoticesViewModel'
 
-const PAGE = 10
 const EMPTY: WorkNoticeInput = { category: 'info', title: '', body: '', pinned: false }
 const categoryName = (c: NoticeCategory) => NOTICE_CATEGORIES.find(([k]) => k === c)?.[1] ?? c
 /** 서버 UTC 시각을 한국시간 날짜(YY.MM.DD)로 표시합니다(한국은 서머타임이 없어 +9시간 고정). */
@@ -55,8 +56,8 @@ export function WorkNotices({ work }: { work: Work }) {
   const [editing, setEditing] = useState<string | null>(null)
   const { notices } = vm
   if (!vm.open) return <p className="muted" style={{ padding: 20 }}>공개한 뒤에 소식을 보고 올릴 수 있어요.</p>
-  const pages = Math.max(1, Math.ceil((notices?.length ?? 0) / PAGE))
-  const cur = Math.min(page, pages)
+  // 서재·작품 관리와 같은 10개씩 쪽 나눔(paginate)과 쪽 이동(Pager)을 쓴다.
+  const view = paginate(notices ?? [], page)
   return (
     <div className="wnotice">
       {!work.canonical && <p className="muted small">데모 소식이에요 · 서버에 저장되지 않고 새로 고치면 처음 상태로 돌아가요.</p>}
@@ -69,7 +70,7 @@ export function WorkNotices({ work }: { work: Work }) {
       )}
       {!notices && !vm.isError && <p className="muted" role="status">소식을 불러오고 있어요…</p>}
       {notices?.length === 0 && <p className="muted" style={{ padding: 20 }}>아직 소식이 없어요.</p>}
-      {notices?.slice((cur - 1) * PAGE, cur * PAGE).map((n) => (
+      {view.items.map((n) => (
         <article key={n.id} className="wn-item" aria-labelledby={editing === n.id ? undefined : `wn-${n.id}`}>
           {editing === n.id ? (
             <NoticeForm label="소식 수정" submitLabel="저장" initial={noticeInput(n)} busy={vm.busy} onCancel={() => setEditing(null)}
@@ -93,13 +94,7 @@ export function WorkNotices({ work }: { work: Work }) {
           )}
         </article>
       ))}
-      {pages > 1 && (
-        <nav className="wn-pages" aria-label="소식 페이지">
-          {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
-            <button key={p} type="button" aria-current={p === cur ? 'page' : undefined} onClick={() => setPage(p)}>{p}</button>
-          ))}
-        </nav>
-      )}
+      <Pager page={view.page} pages={view.pages} onPage={setPage} />
     </div>
   )
 }

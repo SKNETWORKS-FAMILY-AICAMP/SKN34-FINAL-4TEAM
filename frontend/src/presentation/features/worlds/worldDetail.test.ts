@@ -8,7 +8,7 @@ import { BOOK_SORTS, CARD_COLORS } from '../../shared/worldBoard'
 import { GENRE_COLORS } from './worldAtlas'
 import {
   LABEL_ALL_MAX, bookPath, bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPairs, cardPath, detailEndpoint, kindCounts, parseBookKind, parseDetailTab,
-  showsDetailLabel, type CardRef, type DetailGraph, type DetailNode,
+  selectVisible, showsDetailLabel, type CardRef, type DetailGraph, type DetailNode,
 } from './worldDetail'
 
 /** 카드 한 장의 명세. `links`는 제목으로 이은 연관(대상 제목, 인물끼리는 라벨이 관계)이고 `world()`가 서버와 같은 관계 목록으로 바꾼다. */
@@ -142,8 +142,8 @@ describe('showsDetailLabel', () => {
 })
 
 describe('parseDetailTab', () => {
-  it('?tab 값이 세 탭 중 하나면 그 탭이고 없거나 모르는 값이면 설정 그래프다', () => {
-    expect(['graph', 'people', 'book'].map(parseDetailTab)).toEqual(['graph', 'people', 'book'])
+  it('?tab 값이 네 탭 중 하나면 그 탭이고 없거나 모르는 값이면 설정 그래프다', () => {
+    expect(['graph', 'people', 'book', 'overview'].map(parseDetailTab)).toEqual(['graph', 'people', 'book', 'overview'])
     expect([null, '', 'map', 'BOOK'].map(parseDetailTab)).toEqual(['graph', 'graph', 'graph', 'graph'])
   })
 })
@@ -374,5 +374,14 @@ describe('데모 세계관의 설정집·그래프', () => {
       expect(pairs.length - relations.length, `${w.id} 설정 연관`).toBeGreaterThanOrEqual(3)
       expect(buildCharacterGraph(w).links, w.id).toHaveLength(relations.length)
     }
+  })
+})
+
+describe('설정집 게시판의 줄 선택 (바로 가져올 설정 고르기)', () => {
+  it('보이는 줄을 모두 고르면 앞서 고른 것에 더하고, 풀면 보이는 줄만 선택에서 뺀다', () => {
+    const picked = new Set(['hidden', 'b'])
+    expect([...selectVisible(picked, ['a', 'b', 'c'], true)]).toEqual(['hidden', 'b', 'a', 'c'])
+    expect([...selectVisible(new Set(['hidden', 'a', 'b', 'c']), ['a', 'b', 'c'], false)]).toEqual(['hidden'])
+    expect([...picked]).toEqual(['hidden', 'b']) // 넘긴 선택은 바꾸지 않는다
   })
 })
