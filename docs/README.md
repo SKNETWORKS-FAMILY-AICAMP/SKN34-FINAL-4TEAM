@@ -36,7 +36,8 @@
 | [MVP 설계](design/design.md) | MVP 포함·제외 범위, 저장 방향 |
 | [서비스별 설계](design/services/core-api.md) | [Core](design/services/core-api.md) · [AI](design/services/ai-service.md) · [Frontend](design/services/web.md) · [인프라](design/services/infrastructure.md) 목표 설계 |
 | [WorldStudio 관계 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132) | Neo4j 현재 관계 정본, PG 메타데이터, 재시도·실패 경계(#132) |
-| [공개 세계관 계약(DEC-45·46)](design/public-world-contract.md) | 세계관 단위 공개·비공개, 비로그인 읽기 전용 공개 목록·상세 API(공개 설정 카드만), 소유자 표지 업로드, 세계관-소설 1:1 연결, 독자 설정 위키, 설정 가져오기의 카드 메타데이터, 한계 |
+| [공개 세계관 계약(DEC-45·46·47)](design/public-world-contract.md) | 세계관 단위 공개·비공개, 비로그인 읽기 전용 공개 목록·상세 API(공개 설정 카드만), 소유자 표지 업로드, 세계관-소설 1:1 연결, 독자 설정 위키, 설정 가져오기·인물 문서의 카드 메타데이터, 한계 |
+| [원고 기본 서식 계약(DEC-48)](design/manuscript-format-contract.md) | 집필실 Toast UI 편집기와 원고 기본 서식(굵게·기울임·소제목·인용·구분선)의 문법·검증 표, 화면·내보내기별 동작, 한계 |
 | [초기 세계관 AI 전처리 v1](design/initial-world-preprocessing/README.md) | 계약·JSON Schema·홍길동전 fixture. 실제 분석·검토·반영 기능은 후속 구현 |
 
 ## 데이터
