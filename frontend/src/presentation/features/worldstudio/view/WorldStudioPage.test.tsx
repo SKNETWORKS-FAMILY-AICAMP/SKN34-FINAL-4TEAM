@@ -501,6 +501,7 @@ it('설정집 화면에도 확정 버전 남기기가 저장 영역 옆에 있�
   dirtyCard()
   expect(button().disabled).toBe(true)
   expect(document.getElementById(button().getAttribute('aria-describedby') ?? '')?.textContent).toBe('저장하지 않은 변경이 있어요. 먼저 세계관을 저장하세요.')
+  expect(document.getElementById(button().getAttribute('aria-describedby') ?? '')?.classList.contains('sr-only')).toBe(false) // 눈에도 보이는 이유
   cleanup()
   revisions = { ...noRevisions(), supported: false }
   await showWorld()

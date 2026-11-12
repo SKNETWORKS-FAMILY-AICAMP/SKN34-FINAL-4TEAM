@@ -262,7 +262,7 @@ function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; o
   return (
     <>
       <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
-      {why && <span id={reason} className="sr-only">{why}</span>}
+      {why && <span id={reason} className="small muted">{why}</span>}
     </>
   )
 }
