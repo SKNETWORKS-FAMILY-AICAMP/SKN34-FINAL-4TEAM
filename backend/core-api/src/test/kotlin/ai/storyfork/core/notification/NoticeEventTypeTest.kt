@@ -24,6 +24,19 @@ class NoticeEventTypeTest {
     }
 
     @Test
+    fun `core events are credit and rights notices that members cannot turn off`() {
+        val expiring = NoticeEventType.fromCode("core.credit.expiring")
+        assertEquals(NoticeEventType.CREDIT_EXPIRING, expiring)
+        assertEquals(NoticeKind.CREDIT, expiring?.kind)
+        assertEquals("credit-expiry", expiring?.targetType)
+        val withdrawal = NoticeEventType.fromCode("core.member.withdrawal-requested")
+        assertEquals(NoticeEventType.WITHDRAWAL_REQUESTED, withdrawal)
+        assertEquals(NoticeKind.RIGHTS_SECURITY, withdrawal?.kind)
+        assertEquals("withdrawal", withdrawal?.targetType)
+        assertTrue(listOfNotNull(expiring, withdrawal).none { it.kind.mutable })
+    }
+
+    @Test
     fun `lookup is exact and unknown codes are null`() {
         assertEquals(NoticeEventType.WORLD_CHANGED, NoticeEventType.fromCode("content.world.changed"))
         assertNull(NoticeEventType.fromCode("CONTENT.WORLD.CHANGED"))
