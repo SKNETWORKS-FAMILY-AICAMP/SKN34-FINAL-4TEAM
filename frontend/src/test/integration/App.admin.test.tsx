@@ -49,7 +49,7 @@ describe('관리자 (A01~A18)', () => {
   it('탭 이동: 현재 탭 표시, tab=ai는 LLM Ops, 모르는 탭은 개요', async () => {
     renderAt('/admin?tab=nope')
     await screen.findByRole('heading', { name: '관리 개요' })
-    await waitFor(() => expect(sid()).toContain('A01'))
+    expect(sid()).toContain('A01')
     expect(within(document.querySelector<HTMLElement>('.priority-links')!).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['/admin?tab=feedback', '/admin?tab=rights'])
     expect(within(nav()).getByRole('link', { name: '개요' }).getAttribute('aria-current')).toBe('page')
     screen.getByText('데모 화면')
@@ -57,11 +57,11 @@ describe('관리자 (A01~A18)', () => {
     cleanup()
     renderAt('/admin?tab=ai')
     await screen.findByRole('heading', { name: 'LLM Ops' })
-    await waitFor(() => expect(sid()).toContain('A05'))
+    expect(sid()).toContain('A05')
     fireEvent.click(within(nav()).getByRole('link', { name: '사용자' }))
     await screen.findByRole('heading', { name: '사용자 관리' })
     expect(where()).toBe('/admin?tab=users')
-    await waitFor(() => expect(sid()).toContain('A07'))
+    expect(sid()).toContain('A07')
   })
 
   it('댓글 관리에서 숨긴 댓글은 회차 뷰어 목록·개수에서 빠지고 게시 복구하면 돌아온다 (목업 reader() cms)', async () => {
