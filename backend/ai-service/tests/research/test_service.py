@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 from app.research import service
 from app.research.models import Finding, ResearchRequest, ResearchResult
 
@@ -20,3 +22,13 @@ def test_research_keeps_only_urls_the_search_actually_returned(monkeypatch):
     assert result.findings[1].verdict == 'unverified'
     assert result.findings[1].sourceUrls == []
     assert result.gaps == ['말의 하루 이동 거리']
+
+
+def test_host_case_and_open_page_urls_count_as_searched(monkeypatch):
+    page = SimpleNamespace(type='web_search_call', status='completed',
+                           action=SimpleNamespace(type='open_page', url='https://Example.org/page'))
+    parsed = ResearchResult(findings=[
+        Finding(text='확인', verdict='confirmed', sourceUrls=['https://example.org/page']),
+    ], gaps=[])
+    fake_openai(monkeypatch, [page], parsed)
+    assert service.research(ResearchRequest(question='질문')).findings[0].verdict == 'confirmed'

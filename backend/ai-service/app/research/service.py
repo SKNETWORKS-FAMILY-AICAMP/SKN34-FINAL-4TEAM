@@ -27,4 +27,4 @@ def _norm(url: str) -> str:
     """OpenAI가 인용 URL에 붙이는 utm 추적값과 끝 슬래시 차이만 무시하고 비교한다."""
     parts = urlsplit(url)
     query = urlencode([(k, v) for k, v in parse_qsl(parts.query) if not k.startswith('utm_')])
-    return urlunsplit((parts.scheme, parts.netloc, parts.path.rstrip('/'), query, ''))
+    return urlunsplit((parts.scheme, parts.netloc.lower(), parts.path.rstrip('/'), query, ''))
