@@ -50,24 +50,26 @@ const SENTENCE = /[^.!?”]+[.!?…]*”?|[^.!?]+$/g
 function cutSentences(pieces: InlinePart[]) {
   const text = pieces.map((p) => p.text).join('')
   const found = [...text.matchAll(SENTENCE)].map((m) => [m.index, m.index + m[0].length])
+  // 문장은 앞에서부터 차례로 오므로 조각도 앞으로만 훑는다: head는 아직 끝나지 않은 첫 조각, base는 그 조각이 text에서 시작하는 자리다.
+  let head = 0, base = 0
   return (found.length ? found : [[0, text.length]]).flatMap(([from, to]) => {
     // 앞뒤 공백을 뗀 자리. 공백뿐이면 문장이 아니다.
     const first = to - text.slice(from, to).trimStart().length
     const last = from + text.slice(from, to).trimEnd().length
     if (first >= last) return []
+    while (head < pieces.length && base + pieces[head].text.length <= first) base += pieces[head++].text.length
     const parts: ShownSentence['parts'] = []
-    let at = 0, start = 0, end = 0
-    for (const p of pieces) {
+    let start = 0, end = 0
+    for (let i = head, at = base; i < pieces.length && at < last; at += pieces[i++].text.length) {
+      const p = pieces[i]
       const a = Math.max(first, at), b = Math.min(last, at + p.text.length)
-      if (a < b) {
-        if (!parts.length) start = a === at ? p.start : p.at + a - at
-        end = b === at + p.text.length ? p.end : p.at + b - at
-        const drawn = parts.at(-1)
-        // 이스케이프로 나뉜 조각처럼 서식이 같은 이웃은 한 조각으로 잇는다.
-        if (drawn && drawn.bold === p.bold && drawn.italic === p.italic) drawn.text += p.text.slice(a - at, b - at)
-        else parts.push({ text: p.text.slice(a - at, b - at), bold: p.bold, italic: p.italic })
-      }
-      at += p.text.length
+      if (a >= b) continue
+      if (!parts.length) start = a === at ? p.start : p.at + a - at
+      end = b === at + p.text.length ? p.end : p.at + b - at
+      const drawn = parts.at(-1)
+      // 이스케이프로 나뉜 조각처럼 서식이 같은 이웃은 한 조각으로 잇는다.
+      if (drawn && drawn.bold === p.bold && drawn.italic === p.italic) drawn.text += p.text.slice(a - at, b - at)
+      else parts.push({ text: p.text.slice(a - at, b - at), bold: p.bold, italic: p.italic })
     }
     return [{ start, end, parts }]
   })
