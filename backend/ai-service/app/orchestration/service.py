@@ -82,6 +82,7 @@ ROUTER_FAILED_MESSAGE = '요청 분류에 실패했습니다.'
 CONVERSATION_MISMATCH_MESSAGE = '다른 사용자나 작품의 대화는 이어갈 수 없습니다.'
 NOTHING_TO_RESUME_MESSAGE = '이어갈 대기 중인 작업이 없습니다.'
 CONVERSATION_UNAVAILABLE_MESSAGE = '대화 저장소 설정이 필요합니다.'
+STREAM_FAILED_MESSAGE = '작업을 완료할 수 없습니다.'
 
 
 class ConversationMismatch(Exception):
@@ -294,5 +295,8 @@ async def stream(data: OrchestrationRequest) -> AsyncIterator[ServerSentEvent]:
                     yield ServerSentEvent(event='started', data={'feature': upcoming})
     except tuple(errors) as error:
         yield ServerSentEvent(event='error', data={'message': errors[type(error)]})
+        return
+    except Exception:  # 체크포인트 DB 장애·버그도 연결만 끊기지 않게 알린다. 메시지에 입력이 섞일 수 있어 고정 문구만 보낸다.
+        yield ServerSentEvent(event='error', data={'message': STREAM_FAILED_MESSAGE})
         return
     yield ServerSentEvent(event='done', data=_response(state).model_dump(mode='json'))

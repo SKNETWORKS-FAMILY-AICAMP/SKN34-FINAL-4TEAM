@@ -273,7 +273,7 @@ def test_scope_lets_qa_retrieve_its_own_evidence_through_content(monkeypatch):
     result = run('길드 규칙은?', scope=SCOPE)
     assert result.status == 'completed' and names(calls) == ['route', 'retrieval', 'story_context']
     scope, question = calls[1][1]
-    assert (scope.workId, scope.episode, question) == ('fork', 4, '길드 규칙은?')
+    assert (scope.scopeToken, question) == ('signed.token', '길드 규칙은?')
     asked = calls[2][1][0]
     assert asked.question == '길드 규칙은?' and [e.id for e in asked.excerpts] == ['a']
     qa = result.steps[0].result
@@ -308,3 +308,8 @@ def test_given_excerpts_win_over_scope_and_skip_retrieval(monkeypatch):
 def test_scope_does_not_satisfy_other_features(monkeypatch):
     fake_agents(monkeypatch, plan('web_research'))
     assert run(scope=SCOPE).missingInputs == ['web_research']
+
+
+def test_stream_unexpected_failure_still_ends_with_error_event(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'), fail={'route': RuntimeError('원고 본문이 담긴 메시지')})
+    assert stream(inputs={'story_context': QA}) == [('error', {'message': '작업을 완료할 수 없습니다.'})]
