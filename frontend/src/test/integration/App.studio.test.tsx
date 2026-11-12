@@ -41,7 +41,7 @@ describe('집필실 (U13·U14·U16·U17·U22)', () => {
     fireEvent.input(body())
     fireEvent.click(screen.getByRole('button', { name: '수정 공개하기' }))
     const sheet = await screen.findByRole('dialog', { name: '1화 수정 공개하기' })
-    expect(sid()).toContain('U22')
+    await waitFor(() => expect(sid()).toContain('U22'))
     fireEvent.click(within(sheet).getByRole('button', { name: '수정 공개하기' }))
     await toastIs('1화 수정안을 발행했어요 (데모)')
     cleanup()
