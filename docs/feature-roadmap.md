@@ -608,7 +608,7 @@
 <tr><td>운영 댓글 공감 적은순 정렬</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/265">PR #265</a></td></tr>
 <tr><td rowspan="2">운영 현황 관리</td><td rowspan="2">85 업무·데이터 현황 조회</td><td>답변 대기 문의·접수 신고·작가 검토 대기 수 조회</td><td>❌</td><td rowspan="2">—</td></tr>
 <tr><td>수집 자료 출처·수량·형식·사용처 명세 조회</td><td>❌</td></tr>
-<tr><td rowspan="29">LLMOps</td><td rowspan="7">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>❌ <small>(집필 AI 오케스트레이션·Q&A RAG의 Langfuse SDK 계측 구현(#302) · Langfuse 서버·Content 검색 단계 미연결)</small></td><td rowspan="7"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td rowspan="29">LLMOps</td><td rowspan="7">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>❌ <small>(집필 AI 오케스트레이션·Q&A RAG의 Langfuse SDK 계측과 로컬 self-host Compose 구현(#302) · 실제 기동 미검증 · Content 검색 단계 미연결)</small></td><td rowspan="7"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 호출 기록 목록 조회</td><td>❌</td></tr>
 <tr><td>AI 호출 기록 상세 조회</td><td>❌</td></tr>
 <tr><td>요청 ID 기반 실행 단계 조회</td><td>❌</td></tr>

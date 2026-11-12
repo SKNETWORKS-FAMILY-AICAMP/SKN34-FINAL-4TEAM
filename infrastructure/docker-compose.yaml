@@ -13,6 +13,9 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-}
+    # 별도 프로젝트로 띄운 Langfuse(호스트 127.0.0.1:3000)에 host.docker.internal로 닿는다. Linux도 같은 이름을 쓰게 한다.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     expose:
       - "8000"
 
