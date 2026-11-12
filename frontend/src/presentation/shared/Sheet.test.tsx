@@ -122,4 +122,3 @@ it('시트의 빈 곳을 눌러 초점이 시트 자체에 있을 때 Shift+Tab�
   expect(fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true })).toBe(false)
   expect(document.activeElement).toBe(screen.getByRole('button', { name: '저장' }))
 })
-

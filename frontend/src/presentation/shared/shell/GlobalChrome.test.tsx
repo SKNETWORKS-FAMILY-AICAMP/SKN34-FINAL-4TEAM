@@ -279,4 +279,3 @@ it.each([[true, ''], [false, 'translateY(-6px) scale(1.0700)']])('동작 줄이�
     expect(card.style.transform).toBe(transform)
   } finally { card.remove() }
 })
-

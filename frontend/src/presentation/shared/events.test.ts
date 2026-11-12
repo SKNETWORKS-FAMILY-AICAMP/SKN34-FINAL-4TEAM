@@ -24,4 +24,3 @@ it.each([
 ])('토스트는 글자 수에 비례해 머문다: %j → %dms (짧아도 2.6초, 길어도 8초)', (text, ms) => {
   expect(toastDuration(text)).toBe(ms)
 })
-

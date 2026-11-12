@@ -130,4 +130,3 @@ it.each([
   layout(windowHeight, [...button], [...menu])
   expect(openMenu().style.transform).toBe(transform)
 })
-
