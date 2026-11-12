@@ -12,7 +12,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 const me = { id: '1', nickname: '읽는사람', email: 'reader@storyfork.demo', operator: false }
 const pending = { status: 'PENDING', requestedAt: '2026-11-12T01:00:00Z', dueAt: '2026-12-12T01:00:00Z' }
-type Call = { url: string; method: string; body: unknown }
+type Call = { url: string; method: string; body: unknown; signal?: AbortSignal | null }
 
 /** 로그인한 사용자로 프로필을 연다. `withdrawal`이 탈퇴 API 응답을 정한다. */
 function setup(withdrawal: (call: Call) => Response | Promise<Response>) {
@@ -21,7 +21,7 @@ function setup(withdrawal: (call: Call) => Response | Promise<Response>) {
     if (url.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
     if (url.endsWith('/refresh')) return Response.json({ accessToken: 'token', user: me })
     if (url.endsWith('/api/v1/me/withdrawal')) {
-      const call = { url, method: init?.method ?? 'GET', body: init?.body ? JSON.parse(String(init.body)) : undefined }
+      const call = { url, method: init?.method ?? 'GET', body: init?.body ? JSON.parse(String(init.body)) : undefined, signal: init?.signal }
       calls.push(call)
       return withdrawal(call)
     }
@@ -97,6 +97,31 @@ describe('회원탈퇴 (U30, UC-22 A3)', () => {
     setup((call) => call.method === 'DELETE' ? new Response(null, { status: 409 }) : Response.json(pending))
     fireEvent.click(await card('탈퇴 요청 취소'))
     expect((await screen.findByRole('alert')).textContent).toBe('유예 기간이 지나 복구할 수 없어요.')
+    expect((screen.getByRole('button', { name: '탈퇴 요청 취소' }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('유예 기한이 이미 지났으면 탈퇴 요청 취소를 막는다', async () => {
+    const { calls } = setup(() => Response.json({ ...pending, dueAt: '2001-01-01T00:00:00Z' }))
+    expect((await card('탈퇴 요청 취소') as HTMLButtonElement).disabled).toBe(true)
+    expect(calls.some((c) => c.method === 'DELETE')).toBe(false)
+  })
+
+  it('화면을 떠나면 진행 중인 탈퇴 요청을 취소하고 로그아웃하지 않는다', async () => {
+    let post: Call | undefined
+    const { store } = setup((call) => {
+      if (call.method !== 'POST') return Response.json({ status: 'NONE' })
+      post = call
+      return new Promise<Response>((_, reject) => call.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))))
+    })
+    fireEvent.click(await card('회원탈퇴'))
+    const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
+    fireEvent.change(within(sheet).getByLabelText('비밀번호'), { target: { value: 'pw' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: '탈퇴하기' }))
+    await waitFor(() => expect(post).toBeTruthy())
+    cleanup()
+    expect(post?.signal?.aborted).toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(store.getState().session.role).toBe('user')
   })
 
   it('상태를 읽지 못하면 실패를 알리고 다시 시도할 수 있다', async () => {

@@ -23,7 +23,7 @@ export function Withdrawal() {
         : state.status === 'PENDING' ? <>
           <p className="small" style={{ margin: '6px 0 12px' }}>탈퇴를 요청한 상태예요({kstDateTime(state.requestedAt)} 요청). {kstDateTime(state.dueAt)}까지 탈퇴 요청을 취소하면 계정을 그대로 쓸 수 있어요.</p>
           {vm.error && <p role="alert" className="small">{vm.error}</p>}
-          <button type="button" className="btn" disabled={vm.pending} onClick={() => { void vm.restore() }}>{vm.pending ? '취소하는 중…' : '탈퇴 요청 취소'}</button>
+          <button type="button" className="btn" disabled={vm.pending || vm.expired} onClick={() => { void vm.restore() }}>{vm.pending ? '취소하는 중…' : '탈퇴 요청 취소'}</button>
         </> : <>
           <p className="small muted" style={{ margin: '6px 0 12px' }}>탈퇴를 요청하면 30일 유예 기간이 시작되고, 그동안 다시 로그인해 취소할 수 있어요.</p>
           <button type="button" className="btn" id="withdrawBtn" onClick={() => setOpen(true)}>회원탈퇴</button>

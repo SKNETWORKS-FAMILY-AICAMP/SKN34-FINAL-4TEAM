@@ -15,7 +15,17 @@ describe('WithdrawalUseCase', () => {
     const useCase = new WithdrawalUseCase(r)
     await useCase.request('pw', '  더 이상 쓰지 않아요 ')
     await useCase.request('pw', '   ')
-    expect(r.request.mock.calls).toEqual([['pw', '더 이상 쓰지 않아요'], ['pw', null]])
+    expect(r.request.mock.calls).toEqual([['pw', '더 이상 쓰지 않아요', undefined], ['pw', null, undefined]])
+  })
+
+  it('요청·복구의 취소 신호를 저장소에 넘긴다', async () => {
+    const r = repo()
+    const useCase = new WithdrawalUseCase(r)
+    const signal = new AbortController().signal
+    await useCase.request('pw', '', signal)
+    await useCase.restore(signal)
+    expect(r.request).toHaveBeenCalledWith('pw', null, signal)
+    expect(r.restore).toHaveBeenCalledWith(signal)
   })
 
   it('비어 있거나 공백뿐인 비밀번호와 300자를 넘는 사유는 서버에 보내지 않는다', async () => {

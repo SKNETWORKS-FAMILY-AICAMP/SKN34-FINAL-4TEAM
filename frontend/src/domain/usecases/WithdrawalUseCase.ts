@@ -12,12 +12,12 @@ export class WithdrawalUseCase {
   status(signal?: AbortSignal): Promise<WithdrawalState> { return this.repository.status(signal) }
 
   /** 비밀번호는 필수(공백만은 안 됨)이고 사유는 앞뒤 공백을 지워 비어 있으면 보내지 않습니다. 형식이 맞지 않으면 서버에 보내지 않습니다. */
-  request(password: string, reason: string): Promise<WithdrawalState> {
+  request(password: string, reason: string, signal?: AbortSignal): Promise<WithdrawalState> {
     if (!password.trim()) return Promise.reject(new WithdrawalInputError('비밀번호를 입력해 주세요.'))
     const trimmed = reason.trim()
     if (trimmed.length > WITHDRAWAL_REASON_MAX) return Promise.reject(new WithdrawalInputError(`탈퇴 사유는 ${WITHDRAWAL_REASON_MAX}자까지 쓸 수 있어요.`))
-    return this.repository.request(password, trimmed || null)
+    return this.repository.request(password, trimmed || null, signal)
   }
 
-  restore(): Promise<void> { return this.repository.restore() }
+  restore(signal?: AbortSignal): Promise<void> { return this.repository.restore(signal) }
 }

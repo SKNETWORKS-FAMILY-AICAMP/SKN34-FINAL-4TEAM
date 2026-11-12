@@ -32,8 +32,8 @@ export class HttpWithdrawalRepository implements WithdrawalRepository {
     return stateSchema.parse(await response.json())
   }
 
-  async request(password: string, reason: string | null): Promise<WithdrawalState> {
-    const response = await this.send('POST', reason === null ? { password } : { password, reason })
+  async request(password: string, reason: string | null, signal?: AbortSignal): Promise<WithdrawalState> {
+    const response = await this.send('POST', reason === null ? { password } : { password, reason }, signal)
     if (response.status === 403) throw new WithdrawalWrongPassword()
     if (response.status === 409) throw new WithdrawalConflict()
     if (response.status !== 202) throw new Error('탈퇴를 요청하지 못했어요.')
@@ -42,8 +42,8 @@ export class HttpWithdrawalRepository implements WithdrawalRepository {
     return stateSchema.parse(await response.json())
   }
 
-  async restore(): Promise<void> {
-    const response = await this.send('DELETE')
+  async restore(signal?: AbortSignal): Promise<void> {
+    const response = await this.send('DELETE', undefined, signal)
     // 이미 복구됐거나 요청이 없으면(404) 원하는 상태와 같습니다.
     if (response.status === 204 || response.status === 404) return
     if (response.status === 409) throw new WithdrawalConflict()

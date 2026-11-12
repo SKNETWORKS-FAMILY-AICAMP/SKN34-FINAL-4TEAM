@@ -21,6 +21,10 @@ export function useWithdrawalViewModel() {
   const [attempt, setAttempt] = useState(0)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [expiredByServer, setExpiredByServer] = useState(false)
+  const mutation = useRef<AbortController | null>(null)
+  // 화면을 떠나면 진행 중인 요청·복구를 취소해, 늦은 응답이 다른 화면이나 다른 세션을 바꾸지 않게 합니다.
+  useEffect(() => () => mutation.current?.abort(), [])
 
   useEffect(() => {
     const request = new AbortController()
@@ -34,16 +38,19 @@ export function useWithdrawalViewModel() {
     return () => request.abort()
   }, [withdrawal, dispatch, attempt])
 
-  async function run(action: () => Promise<void>) {
+  async function run(action: (signal: AbortSignal) => Promise<void>) {
     if (busy.current) return false
+    const controller = new AbortController()
+    mutation.current = controller
     busy.current = true; setPending(true); setError('')
     try {
-      await action()
+      await action(controller.signal)
       return true
     } catch (reason) {
+      if (controller.signal.aborted) return false
       if (reason instanceof SessionExpired) dispatch(sessionActions.logout())
       else if (reason instanceof WithdrawalWrongPassword) setError('비밀번호가 맞지 않아요.')
-      else if (reason instanceof WithdrawalConflict && state?.status === 'PENDING') setError('유예 기간이 지나 복구할 수 없어요.')
+      else if (reason instanceof WithdrawalConflict && state?.status === 'PENDING') { setExpiredByServer(true); setError('유예 기간이 지나 복구할 수 없어요.') }
       else if (reason instanceof WithdrawalConflict) {
         // 다른 탭 등에서 이미 요청했으면 최신 상태(유예 중)를 다시 읽어 보여 줍니다.
         setError('이미 진행 중인 탈퇴 요청이 있어요.')
@@ -57,17 +64,19 @@ export function useWithdrawalViewModel() {
 
   return {
     state, loadError, pending, error,
+    /** 유예 기한이 지났으면(서버 409 또는 기한 시각 경과) 복구 요청을 보내지 않습니다. */
+    expired: expiredByServer || (state?.status === 'PENDING' && Date.parse(state.dueAt) <= Date.now()),
     retry: () => setAttempt((value) => value + 1),
     clearError: () => setError(''),
     /** 요청이 받아지면 서버가 모든 세션을 끊으므로 로그아웃 상태로 홈에 돌아갑니다. */
-    request: (password: string, reason: string) => run(async () => {
-      await withdrawal.request(password, reason)
+    request: (password: string, reason: string) => run(async (signal) => {
+      await withdrawal.request(password, reason, signal)
       dispatch(sessionActions.logout())
       navigate('/')
       toast('탈퇴를 요청했어요. 30일 안에 다시 로그인해 탈퇴 요청을 취소하면 복구할 수 있어요.')
     }),
-    restore: () => run(async () => {
-      await withdrawal.restore()
+    restore: () => run(async (signal) => {
+      await withdrawal.restore(signal)
       setState({ status: 'NONE' })
       toast('탈퇴 요청을 취소했어요. 계정을 그대로 쓸 수 있어요.')
     }),

@@ -49,6 +49,15 @@ describe('HttpWithdrawalRepository', () => {
     expect(getAccessToken()).toBe('n-bearer')
   })
 
+  it('화면을 떠나 취소된 요청·복구는 서버에 보내지 않는다', async () => {
+    const fetcher = vi.fn(async () => Response.json(pending, { status: 202 }))
+    const repo = new HttpWithdrawalRepository(fetcher)
+    await expect(repo.request('pw', null, AbortSignal.abort())).rejects.toThrow()
+    await expect(repo.restore(AbortSignal.abort())).rejects.toThrow()
+    expect(fetcher).not.toHaveBeenCalled()
+    expect(getAccessToken()).toBe('n-bearer')
+  })
+
   it('복구는 DELETE이고 이미 요청이 없으면(404) 성공으로, 기한이 지났으면(409) 충돌로 본다', async () => {
     const fetcher = vi.fn(async () => new Response(null, { status: 204 }))
     await new HttpWithdrawalRepository(fetcher).restore()

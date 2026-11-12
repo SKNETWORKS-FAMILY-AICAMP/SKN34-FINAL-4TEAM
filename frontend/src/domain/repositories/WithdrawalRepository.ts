@@ -9,6 +9,6 @@ export class WithdrawalConflict extends Error {}
 export interface WithdrawalRepository {
   status(signal?: AbortSignal): Promise<WithdrawalState>
   /** 요청이 받아지면 서버가 모든 로그인 세션을 끊으므로, 구현은 이 브라우저의 로그인 상태도 함께 지웁니다. */
-  request(password: string, reason: string | null): Promise<WithdrawalState>
-  restore(): Promise<void>
+  request(password: string, reason: string | null, signal?: AbortSignal): Promise<WithdrawalState>
+  restore(signal?: AbortSignal): Promise<void>
 }
