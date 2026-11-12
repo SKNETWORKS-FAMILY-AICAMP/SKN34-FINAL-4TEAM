@@ -12,6 +12,8 @@ import { InMemoryWorldStudioRepository } from '../../../../data/world-studio/InM
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { newSetting } from '../../../../domain/entities/studioWorld'
 const { useWorldStudioViewModel } = studioViewModel
+// 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
+vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
 /** 관리 모드 설정집 화면의 보기 전환 줄(설정집·인물 관계도·시간선)에서 버튼을 찾는다. */
 const manageTab = (name: string) => within(screen.getByRole('navigation', { name: '세계관 메뉴' })).getByRole('button', { name })
 afterEach(() => {

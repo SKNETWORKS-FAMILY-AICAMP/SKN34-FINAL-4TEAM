@@ -66,6 +66,7 @@
 /* 설정집 탭(게시판)의 개요 카드와 설정 카드 페이지: 나무위키 형식 스타일은 reading의 publicWiki.css(nw-*)를 그대로 쓰고 공개 세계관에 맞는 것만 조정한다. */
 .worlds .nw { max-width: none; }
 .nw-info .nw-cover { padding: 12px; }
+.nw-info .worlds-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .nw-cover .cov { width: min(180px, 100%); margin: 0 auto; }
 .nw-doc .worlds-lineage { margin-top: 0; }
 

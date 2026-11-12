@@ -2,6 +2,7 @@ import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 import type { SettingItem, StudioSetting } from '../../../../domain/entities/studioWorld'
 import { CARD_KIND, type BoardEntry } from '../../../shared/worldBoard'
+import { plainCardText } from '../../../shared/cardSections'
 
 /*
  * 설정 카드 단계의 게시판: 편집 중인 설정(`StudioSetting[]`)을 공개 설정집과 같은 게시판 원자료(`BoardEntry`)로 바꾼다.
@@ -57,6 +58,6 @@ export function settingBoardEntries(settings: StudioSetting[]): BoardEntry[] {
     const connections = new Set(links.map((l) => l.id)).size
     const kind = CARD_KIND[type.id]
     const badge = kind === '인물' ? new Set(links.filter((l) => l.via === 'relation').map((l) => l.id)).size : connections
-    return [{ cardId: s.item.id, title: s.item.title || '이름 없는 설정', text: s.item.text, type: type.label, kind, connections, badge }]
+    return [{ cardId: s.item.id, title: s.item.title || '이름 없는 설정', text: plainCardText(s.item.text), type: type.label, kind, connections, badge }]
   })
 }

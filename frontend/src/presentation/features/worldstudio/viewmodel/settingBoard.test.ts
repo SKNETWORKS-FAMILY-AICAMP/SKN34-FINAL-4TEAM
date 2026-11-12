@@ -25,6 +25,11 @@ describe('settingBoardEntries', () => {
     ])
   })
 
+  it('요약 열은 공개 설정집처럼 마크다운 기호를 벗긴 한 줄 글로 싣는다', () => {
+    const lore = card('율도국', 'location', '## 개요\n**섬나라**이고 - 이상향')
+    expect(settingBoardEntries([lore])[0].text).not.toMatch(/[#*]/)
+  })
+
   it('연결 수는 이어진 카드 수라 같은 두 카드를 관계·감정으로 여러 번 이어도 하나이고, 인물의 제목 옆 수는 관계로 이어진 상대 수다', () => {
     const [garam, narae, harbor] = [card('가람', 'character'), card('나래', 'character'), card('항구', 'location')]
     let settings = friends([garam, narae, harbor], garam, narae)

@@ -189,3 +189,54 @@ it('세계관 조회가 실패하면 찾을 수 없음으로 바꾸지 않고 �
   await screen.findByRole('heading', { level: 1, name: '하린' })
   expect(screen.queryByRole('alert')).toBeNull()
 })
+
+// ── 카드 본문 마크다운: ## 제목 문단·정보 상자의 별칭·태그·원시 HTML ──
+const marked = (text: string, extra: Partial<PublicWorld['cards'][number]> = {}) => serverWorld({
+  cards: [
+    { id: 'c-uuid-1', title: '하린', text, cardType: 'character', aliases: [], tags: [], ...extra },
+    { id: 'c-uuid-2', title: '온실', text: '식물 구역', cardType: 'location', aliases: [], tags: [] },
+  ],
+})
+
+it('본문의 ## 제목마다 번호 문단이 되어 목차에 나오고 그 뒤에 연관 설정 문단이 이어진다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사다.\n\n## 성격\n- **차분함**\n- 끈질김\n\n## 과거\n#### 어린 시절\n온실에서 자랐다.'))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  const toc = within(screen.getByRole('navigation', { name: '목차' })).getAllByRole('link').map((a) => a.textContent)
+  expect(toc).toEqual(['1. 개요', '2. 성격', '3. 과거', '4. 연관 설정'])
+  expect(heads()).toEqual(toc)
+  const [overview, trait, past, links] = sections()
+  within(overview as HTMLElement).getByText('교신사다.')
+  expect(items(trait)).toEqual(['차분함', '끈질김'])
+  expect(trait.querySelector('li strong')?.textContent).toBe('차분함') // 마크다운으로 그려진다
+  expect(past.querySelector('h5')?.textContent).toBe('어린 시절') // 본문 제목은 문단 제목(h2)보다 낮은 단계다
+  expect(items(links)).toEqual(['장소 온실 · 거점']) // 유형 칩 + 대상 카드 · 연관 라벨
+  expect(document.querySelectorAll('h1')).toHaveLength(1)
+})
+
+it('## 줄이 없는 본문은 개요 한 문단으로 마크다운을 그린다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('**성격**: 차분함\n\n- 항해사'))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  expect(heads()).toEqual(['1. 개요', '2. 연관 설정'])
+  expect(sections()[0].querySelector('p strong')?.textContent).toBe('성격')
+  expect(items(sections()[0])).toEqual(['항해사'])
+})
+
+it('정보 상자에 별칭은 쉼표로, 태그는 칩으로 보이고 값이 없으면 그 행이 없다', async () => {
+  const get = vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사', { aliases: ['린', '교신사'], tags: ['주인공', '우주'] }))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  const table = screen.getByRole('table', { name: '하린' })
+  expect(rows(table)).toEqual({ keys: ['유형', '별칭', '관계', '태그', '세계관'], values: ['인물', '린, 교신사', '0개', '주인공우주', '서버 세계'] })
+  expect(within(table).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['주인공', '우주'])
+  cleanup()
+  get.mockResolvedValue(marked('교신사'))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  expect(rows(screen.getByRole('table', { name: '하린' })).keys).toEqual(['유형', '관계', '세계관'])
+})
+
+it('본문의 원시 HTML은 요소로 그리지 않고 글자로 보인다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('<script>window.x = 1</script>\n\n<img src="https://example.test/x.png" onerror="window.x = 2">'))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  const article = document.querySelector('article.nw')!
+  expect(article.querySelector('script, img')).toBeNull()
+  expect(article.textContent).toContain('<script>window.x = 1</script>')
+})

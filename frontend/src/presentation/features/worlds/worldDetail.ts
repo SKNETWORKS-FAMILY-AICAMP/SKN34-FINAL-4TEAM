@@ -1,5 +1,6 @@
 import type { PublicWorld } from '../../../domain/entities/publicWorld'
 import { cardTypes, type CardType } from '../../../domain/entities/studioCards'
+import { plainCardText } from '../../shared/cardSections'
 import { CARD_COLORS, CARD_KIND, KINDS, boardKindCounts, boardRows, type BoardEntry, type BoardRow, type CardKind } from '../../shared/worldBoard'
 import { genreLabel } from '../../shared/worldGenres'
 import { GENRE_COLORS } from './worldAtlas'
@@ -100,7 +101,8 @@ const cardRef = (world: PublicWorld, i: number, label?: string): CardRef => {
 const bookOrder = (world: PublicWorld) => KINDS.flatMap((kind) => world.cards.flatMap((c, i) => (CARD_KIND[c.cardType] === kind ? [i] : [])))
 
 export type CardPage = {
-  card: CardRef & { text: string }
+  /** `text`는 마크다운 원문 그대로다(화면이 `## 제목` 문단으로 나눠 그린다). */
+  card: CardRef & { text: string; aliases: string[]; tags: string[] }
   /** 인물의 소속: 어느 쪽이 썼든 이어진 조직 카드. 인물이 아니면 빈 목록이다. */
   affiliations: CardRef[]
   /** 인물 카드가 다른 인물과 맺은 관계(`label`이 관계). 인물이 아닌 카드는 빈 목록이다. */
@@ -132,7 +134,7 @@ function pageAt(world: PublicWorld, me: number): CardPage {
   const refs = (list: typeof touching) => list.map(({ i, label }) => cardRef(world, i, label))
   const at = order.indexOf(me)
   return {
-    card: { ...cardRef(world, me), text: world.cards[me].text },
+    card: { ...cardRef(world, me), text: world.cards[me].text, aliases: world.cards[me].aliases, tags: world.cards[me].tags },
     affiliations: refs(touching.filter(({ i }) => person && world.cards[i].cardType === 'organization')),
     relations: refs(touching.filter(({ i }) => inPerson(i))),
     links: refs(touching.filter(({ i, out }) => out && !inPerson(i))),
@@ -155,14 +157,17 @@ export function cardPage(world: PublicWorld, cardId: string): CardPage | undefin
  */
 export type BookRow = BoardRow
 
-/** 공개 세계관의 카드를 설정집 순서의 게시판 원자료로 바꾼다. 연결 수·제목 옆 수는 카드 페이지(`pageAt`)의 목록 길이라 두 화면이 늘 같다. */
+/**
+ * 공개 세계관의 카드를 설정집 순서의 게시판 원자료로 바꾼다. 연결 수·제목 옆 수는 카드 페이지(`pageAt`)의 목록 길이라 두 화면이 늘 같다.
+ * 요약 열(`text`)은 한 줄로 보이므로 본문의 마크다운 기호를 벗긴 글자이고 검색도 그 글자에 맞춘다.
+ */
 function bookEntries(world: PublicWorld): BoardEntry[] {
   return bookOrder(world).map((i) => {
     const { id, title, text, cardType } = world.cards[i]
     const kind = CARD_KIND[cardType]
     const { relations, links, backlinks } = pageAt(world, i)
     const connections = relations.length + links.length + backlinks.length
-    return { cardId: id, title, text, type: typeLabel(cardType), kind, connections, badge: kind === '인물' ? relations.length : connections }
+    return { cardId: id, title, text: plainCardText(text), type: typeLabel(cardType), kind, connections, badge: kind === '인물' ? relations.length : connections }
   })
 }
 

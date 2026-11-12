@@ -9,6 +9,7 @@ import { putRelation } from '../../../../domain/entities/studioRelations'
 import { newSetting, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput, type WorldRevision, type WorldRevisionSummary } from '../../../../domain/entities/studioWorld'
 import type { WorldStudioRepository } from '../../../../domain/repositories/WorldStudioRepository'
 import { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
+import { LazyMarkdownEditor as fakeEditor } from '../../../../test/markdownEditorFake'
 import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { WorldStudioPage } from './WorldStudioPage'
 
@@ -24,6 +25,8 @@ vi.mock('../viewmodel/useWorldStudioViewModel', async (original) => {
 type Revisions = ReturnType<typeof useWorldRevisions>
 let revisions: Revisions
 vi.mock('../viewmodel/useWorldRevisions', () => ({ useWorldRevisions: () => revisions }))
+// 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
+vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
 const noRevisions = (): Revisions => ({
   rows: [], detail: null, busy: false, error: '', message: '', pending: false, aiPending: false, superseded: null, supported: true,
   open: vi.fn(async () => undefined), refresh: vi.fn(async () => undefined), confirm: vi.fn(async () => undefined), acknowledgeSuperseded: vi.fn(async () => undefined),
@@ -258,7 +261,7 @@ it('편집 패널은 분류 칩과 이 카드에 이어진 설정·관계를 읽
   await show(friends([garam, narae, place('항구')], garam, narae))
   openCard('가람 인물')
   const panel = within(screen.getByRole('region', { name: '선택한 설정 편집' }))
-  expect(panel.getByText('인물', { selector: '.chip' })).toBeTruthy()
+  expect(panel.getByRole<HTMLSelectElement>('combobox', { name: '유형' }).value).toBe('character') // 같은 유형 칩이 따로 없고 선택 상자 하나로 보인다
   const links = within(panel.getByRole('region', { name: '연관 설정' }))
   const link = links.getByRole('button', { name: '나래 친구' })
   link.focus()
@@ -1474,4 +1477,79 @@ it('표지 저장소가 없는 데모(메모리)에서는 표지 올리기를 �
   expect(coverGroup().getByText('데모에서는 표지 업로드를 지원하지 않아요.')).toBeTruthy()
   expect(coverGroup().getByLabelText<HTMLInputElement>('이미지 선택').disabled).toBe(true)
   expect(coverGroup().queryByRole('button', { name: '표지 삭제' })).toBeNull()
+})
+
+// ── 설명(본문): Toast UI Editor(MarkdownEditor, 지연 로딩) 자리. 입력은 대역 textarea로 흉내 낸다 ──
+afterEach(() => { fakeEditor.suspend = false })
+const body = () => editor().getByRole<HTMLTextAreaElement>('textbox', { name: '설명' })
+
+it('설명은 이름 붙은 마크다운 편집기 자리이고 문단을 나누는 방법을 한 줄로 안내한다', async () => {
+  await show()
+  openCard('가람 인물')
+  expect(body().dataset.label).toBe('설정 본문')
+  expect(body().value).toBe('기존 내용')
+  expect(body().placeholder).toContain('어떤 인물인가요?')
+  expect(editor().getByText('## 제목으로 문단을 나누면 공개 페이지 목차에 나와요.')).toBeTruthy()
+})
+
+it('글을 고치면 초안이 바뀌어 저장 전 수정이 있다고 알리고 글자 수를 센다', async () => {
+  await show()
+  openCard('가람 인물')
+  fireEvent.change(body(), { target: { value: '고친 **내용**' } })
+  expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
+  expect(editor().getByText(/9 \/ 3,000자 · 저장 전 수정이 있어요/)).toBeTruthy()
+})
+
+it('다른 카드를 열면 편집기가 그 카드의 글로 다시 만들어지고 고친 글은 초안에 남아 돌아오면 그대로다', async () => {
+  await show([person('가람', '첫째'), person('나래', '둘째')])
+  openCard('가람 인물')
+  fireEvent.change(body(), { target: { value: '첫째 고침' } })
+  fireEvent.click(rail().getByRole('button', { name: '나래 인물' }))
+  expect(body().value).toBe('둘째') // 이전 카드의 글이 섞이지 않는다
+  fireEvent.click(rail().getByRole('button', { name: '가람 인물' }))
+  expect(body().value).toBe('첫째 고침')
+})
+
+it('저장하는 동안에는 편집기를 잠가 그사이 입력이 초안과 어긋나지 않게 하고 끝나면 푼다', async () => {
+  let finish!: (world: StudioWorld) => void
+  const saveStudio = vi.fn((_next: StudioWorld) => new Promise<StudioWorld>((resolve) => { finish = resolve }))
+  await show(undefined, '/worldstudio/qa', { saveStudio })
+  openCard('가람 인물')
+  fireEvent.change(body(), { target: { value: '고친 내용' } })
+  const locked = () => body().closest('.world-card-editor')!.hasAttribute('inert') // 글자 입력은 fieldset 잠금이 닿지 않아 inert로 막는다
+  expect(locked()).toBe(false)
+  fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
+  await waitFor(() => expect(locked()).toBe(true))
+  await act(async () => finish(saveStudio.mock.calls[0][0]))
+  await waitFor(() => expect(locked()).toBe(false))
+  expect(body().value).toBe('고친 내용') // 편집기를 다시 만들지 않는다
+})
+
+it('3000자를 넘기면 글자 수가 경고로 바뀌고 저장을 눌러도 기존 검증이 막아 알린다', async () => {
+  await show()
+  openCard('가람 인물')
+  fireEvent.change(body(), { target: { value: '가'.repeat(3001) } })
+  const count = editor().getByText(/3,001 \/ 3,000자/)
+  expect(count.textContent).toContain('3,000자를 넘으면 저장할 수 없어요')
+  expect(count.classList.contains('world-over')).toBe(true)
+  fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
+  expect((await screen.findByRole('alert')).textContent).toContain('설정 이름과 설명의 길이를 확인해 주세요.')
+  fireEvent.change(body(), { target: { value: '가'.repeat(3000) } })
+  expect(editor().getByText(/3,000 \/ 3,000자/).classList.contains('world-over')).toBe(false)
+})
+
+it('편집기를 불러오는 동안은 같은 자리에 안내를 보이고 이름 입력은 그대로 쓸 수 있다', async () => {
+  fakeEditor.suspend = true
+  await show()
+  await act(async () => openCard('가람 인물')) // 화면 이동은 transition이라 멈춘 렌더가 안내(Suspense 대체 화면)로 커밋되도록 비동기로 기다린다
+  expect(editor().getByText('편집기를 불러오고 있어요.')).toBeTruthy()
+  expect(editor().queryByRole('textbox', { name: '설명' })).toBeNull()
+  expect(editor().getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('가람')
+})
+
+it('유형은 선택 상자 하나로만 보이고 같은 유형 칩이 따로 없다', async () => {
+  await show()
+  openCard('가람 인물')
+  expect(editor().getByRole<HTMLSelectElement>('combobox', { name: '유형' }).value).toBe('character')
+  expect(document.querySelector('.world-card-meta .chip')).toBeNull()
 })

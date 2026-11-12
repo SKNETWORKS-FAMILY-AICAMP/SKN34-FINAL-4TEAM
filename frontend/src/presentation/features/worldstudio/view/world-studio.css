@@ -89,9 +89,11 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-graph-actions{padding-inline:24px}.world-graph-note{margin:0;padding-inline:24px;line-height:1.6}
 .world-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:12px}.world-card-meta img{border-radius:12px;object-fit:cover}
 .world-card-meta .world-type{display:flex;align-items:center;gap:8px;margin:0;color:var(--tsub);font-size:13px}.world-card-meta .world-type select{width:auto;padding:6px 10px}
-/* 설명: 집필실 본문처럼 테두리 없는 큰 입력. 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. */
-.world-card-body{display:block;box-sizing:border-box;width:100%;min-height:240px;field-sizing:content;padding:8px 0 24px;border:0;background:none;color:var(--tfg);font:inherit;font-size:16px;line-height:1.8;resize:none;overflow-wrap:anywhere;caret-color:var(--tacc)}
-.world-card-body::placeholder{color:var(--tsub);opacity:1}.world-card-body::selection{background:var(--pri-soft);color:var(--pri-ink)}.world-card-body:focus-visible{outline:2px solid var(--tacc);outline-offset:4px;border-radius:4px}
+/* 설명: 마크다운 편집기(shared/MarkdownEditor, Toast UI Editor)는 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. 불러오는 동안은 편집기 최소 높이(320px)와 탭 줄만큼 자리를 비운다. 저장 중에는 잠기고(inert) 흐려진다. */
+.world-card-editor{margin-bottom:8px}.world-card-editor[inert]{opacity:.6}
+.world-card-editor-loading{display:grid;place-items:center;min-height:365px;border:1px solid var(--tline);border-radius:4px;color:var(--tsub);font-size:13.5px}
+.world-card-help{margin:0 0 16px}
+.world-over{color:var(--danger)}
 /* 전역 .btn은 윤곽선이 옅어 삭제를 구분하지 못한다: 위험 버튼은 위험색 윤곽선(집필실 위험 영역과 같은 모양). */
 .world-danger{border-color:color-mix(in srgb,var(--danger) 45%,var(--line2));background:var(--surface);color:var(--danger)}.world-danger:hover:not(:disabled){background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
 .world-delete-confirm{margin-block:16px;padding:16px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface))}.world-delete-confirm h4{margin:0 0 8px;font-size:15px}.world-delete-confirm p{margin:0 0 8px}.world-delete-confirm ul{margin:8px 0;padding-left:20px}.world-delete-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.world-delete-confirm .relationship-remove{margin-top:0}

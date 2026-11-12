@@ -14,6 +14,8 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
  const actual=await original<typeof import('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
  return {useWorldStudioViewModel:()=>actual.useWorldStudioViewModel(useCase)}
 })
+// 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
+vi.mock('../../presentation/shared/LazyMarkdownEditor',()=>import('../markdownEditorFake'))
 vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=>null}))
 afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs()})
 const manageTab=(name:string)=>within(screen.getByRole('navigation',{name:'세계관 메뉴'})).getByRole('button',{name})

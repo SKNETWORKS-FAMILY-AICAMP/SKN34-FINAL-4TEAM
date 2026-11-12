@@ -2,6 +2,8 @@ import { Fragment, useId, type CSSProperties, type ReactNode } from 'react'
 import { useParams } from 'react-router'
 
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
+import { CardMarkdown } from '../../../shared/CardMarkdown'
+import { splitCardSections } from '../../../shared/cardSections'
 import { Go } from '../../../shared/Go'
 import { Jump } from '../../../shared/Jump'
 import { KindChip } from '../../../shared/KindChip'
@@ -27,7 +29,7 @@ function CardList({ worldId, refs, withType }: { worldId: string; refs: readonly
   )
 }
 
-/** 나무위키 정보 상자(오른쪽): 유형 색 띠 아래 카드 이름, 맨 위에 유형 칩. 인물은 소속(이어진 조직)·관계 수, 그 밖은 연결 수를 보인다. 응답에 있는 값만 쓴다. */
+/** 나무위키 정보 상자(오른쪽): 유형 색 띠 아래 카드 이름, 맨 위에 유형 칩, 별칭(쉼표로)이 있으면 이어서. 인물은 소속(이어진 조직)·관계 수, 그 밖은 연결 수, 태그(칩)가 있으면 그 뒤에 보인다. 응답에 있는 값만 쓰고 비어 있으면 그 행은 없다. */
 function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
   const { card, affiliations, relations, links, backlinks } = page
   return (
@@ -35,12 +37,14 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
       <caption>{card.title}</caption>
       <tbody>
         <InfoRow k="유형"><KindChip kind={card.kind} label={card.type} /></InfoRow>
+        {card.aliases.length > 0 && <InfoRow k="별칭">{card.aliases.join(', ')}</InfoRow>}
         {card.kind === '인물' ? (
           <>
             {affiliations.length > 0 && <InfoRow k="소속">{affiliations.map((r, i) => <Fragment key={r.cardId}>{i > 0 && ', '}<CardLink worldId={world.id} r={r} /></Fragment>)}</InfoRow>}
             <InfoRow k="관계">{relations.length}개</InfoRow>
           </>
         ) : <InfoRow k="연결">{links.length + backlinks.length}개</InfoRow>}
+        {card.tags.length > 0 && <InfoRow k="태그"><ul className="worlds-tags">{card.tags.map((tag) => <li key={tag} className="chip">{tag}</li>)}</ul></InfoRow>}
         <InfoRow k="세계관"><WorldLink w={world} /></InfoRow>
       </tbody>
     </table>
@@ -49,7 +53,10 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
 
 type Section = { id: string; title: string; body: ReactNode }
 
-/** 문단: 개요 → 관계(인물) → 연관 설정 → 이 카드를 가리키는 설정 → 같은 유형의 다른 설정. 내용이 없는 문단은 빠지고 번호는 화면이 연속으로 매긴다. */
+/**
+ * 문단: 본문(마크다운)의 `## 제목`마다 한 문단(`##`가 없으면 개요 하나) → 관계(인물) → 연관 설정 → 이 카드를 가리키는 설정 → 같은 유형의 다른 설정.
+ * 내용이 없는 문단은 빠지고 번호는 화면이 연속으로 매긴다. 본문을 어떻게 나누는지는 편집 화면 미리보기와 같은 `splitCardSections`가 정한다.
+ */
 function sectionsOf(page: CardPage, worldId: string): Section[] {
   const lists = [
     ['relations', '관계', page.relations, false],
@@ -58,7 +65,7 @@ function sectionsOf(page: CardPage, worldId: string): Section[] {
     ['same', '같은 유형의 다른 설정', page.sameType, false],
   ] as const
   return [
-    { id: 'overview', title: '개요', body: <p>{page.card.text}</p> },
+    ...splitCardSections(page.card.text).map(({ title, body }, i) => ({ id: `text-${i}`, title, body: <CardMarkdown text={body} /> })),
     ...lists.filter(([, , refs]) => refs.length > 0).map(([id, title, refs, withType]) => ({ id, title, body: <CardList worldId={worldId} refs={refs} withType={withType} /> })),
   ]
 }

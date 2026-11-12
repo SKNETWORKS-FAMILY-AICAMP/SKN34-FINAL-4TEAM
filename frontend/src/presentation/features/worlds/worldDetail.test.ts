@@ -159,8 +159,13 @@ describe('cardPath·bookPath', () => {
 
 describe('cardPage', () => {
   it('카드 번호(cardId)로 카드를 찾고 없는 번호·번호가 아닌 값은 undefined다', () => {
-    expect(cardPage(sample, '3')?.card).toEqual({ cardId: '3', title: '새벽항', text: '새벽항 설명', type: '장소', kind: '장소' })
+    expect(cardPage(sample, '3')?.card).toEqual({ cardId: '3', title: '새벽항', text: '새벽항 설명', type: '장소', kind: '장소', aliases: [], tags: [] })
     for (const id of ['', '5', '-1', '1.5', '01', ' 1', '1e0', 'abc']) expect(cardPage(sample, id), id).toBeUndefined()
+  })
+
+  it('카드의 별칭·태그를 그대로 싣고 본문은 마크다운 원문 그대로 둔다', () => {
+    const tagged: PublicWorld = { ...world([]), cards: [{ id: 'c-1', title: '하린', text: '**교신사**', cardType: 'character', aliases: ['린', '교신사'], tags: ['주인공'] }] }
+    expect(cardPage(tagged, 'c-1')?.card).toEqual({ cardId: 'c-1', title: '하린', text: '**교신사**', type: '인물', kind: '인물', aliases: ['린', '교신사'], tags: ['주인공'] })
   })
 
   it('인물 카드는 다른 인물과의 관계를 relations로, 인물 밖의 연관을 links·backlinks로 나눠 한 카드가 한 목록에만 나온다', () => {
@@ -243,7 +248,7 @@ describe('서버 카드 id(위치와 다른 id)로 이은 세계관', () => {
   })
 
   it('카드 페이지는 카드 id로 찾고 위치 번호나 모르는 id는 undefined다', () => {
-    expect(cardPage(server, 'c-3')?.card).toEqual({ cardId: 'c-3', title: '미라', text: '견습생', type: '인물', kind: '인물' })
+    expect(cardPage(server, 'c-3')?.card).toEqual({ cardId: 'c-3', title: '미라', text: '견습생', type: '인물', kind: '인물', aliases: [], tags: [] })
     for (const id of ['1', '0', 'ghost', 'C-3', '']) expect(cardPage(server, id), id).toBeUndefined()
   })
 
@@ -274,6 +279,12 @@ describe('bookRows', () => {
     expect(bookRows(sample).find((r) => r.title === '하엘')).toEqual({ cardId: '2', title: '하엘', text: '하엘 설명', type: '인물', kind: '인물', no: 3, connections: 1, badge: 1 })
     // 오르는 미라(인물 관계)와 새벽항(설정 연관)에 이어져 연결 2·관계 1이다
     expect(bookRows(sample).map((r) => [r.title, r.connections, r.badge])).toEqual([['오르', 2, 1], ['미라', 2, 2], ['하엘', 1, 1], ['새벽항', 1, 1], ['금기', 0, 0]])
+  })
+
+  it('요약(text)은 마크다운 기호를 벗긴 한 줄이고 검색어도 벗긴 글자에 맞춘다', () => {
+    const marked: PublicWorld = { ...world([]), cards: [{ id: 'c-1', title: '하린', text: '**성격**: 차분함\n\n- [달](https://example.test)을 본다', cardType: 'character', aliases: [], tags: [] }] }
+    expect(bookRows(marked).map((r) => r.text)).toEqual(['성격: 차분함 달을 본다'])
+    expect(titles(marked, { query: '성격: 차분함' })).toEqual(['하린'])
   })
 
   it('유형 필터와 검색어(제목 또는 본문, 대소문자·앞뒤 공백 무시)가 함께 적용되고 순번은 보이는 목록 기준이다', () => {
