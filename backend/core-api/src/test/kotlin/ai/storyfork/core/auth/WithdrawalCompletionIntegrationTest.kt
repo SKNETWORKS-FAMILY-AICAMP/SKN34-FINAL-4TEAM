@@ -106,6 +106,16 @@ class WithdrawalCompletionIntegrationTest {
     }
 
     @Test
+    fun `excluded requests are left out of the due list so they cannot block the ones behind them`() {
+        val a = withdrawal(member(), -3); val b = withdrawal(member(), -2)
+        val all = completion.dueIds(Instant.now(), 1000)
+        assertTrue(all.containsAll(listOf(a, b)))
+        val rest = completion.dueIds(Instant.now(), 1000, listOf(a))
+        assertFalse(rest.contains(a))
+        assertTrue(rest.contains(b))
+    }
+
+    @Test
     fun `the original email can be used again after completion`() {
         val m = member(); val w = withdrawal(m, -1)
         assertTrue(completion.complete(w, Instant.now()))

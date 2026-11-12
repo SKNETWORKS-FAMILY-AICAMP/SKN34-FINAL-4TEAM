@@ -40,7 +40,8 @@ class ProfileService(
     private val logger = LoggerFactory.getLogger(ProfileService::class.java)
     private fun address(email: String) = email.trim().lowercase(Locale.ROOT)
     private fun user(member: AuthMember) = MemberResponse(member.id.toString(), member.email, member.nickname, member.operator)
-    private fun lock(id: UUID) = members.lockById(id) ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED)
+    // 이용 제한(탈퇴 완료 포함) 회원은 이미 발급된 토큰이 남아 있어도 프로필을 바꿀 수 없다. 세션 갱신(SessionService)과 같은 기준이다.
+    private fun lock(id: UUID) = members.lockById(id)?.takeUnless { it.restricted } ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED)
 
     @Transactional(readOnly = true)
     fun profile(id: UUID): MemberResponse = user(members.findById(id).orElse(null) ?: throw AuthException(AuthException.Reason.UNAUTHENTICATED))
