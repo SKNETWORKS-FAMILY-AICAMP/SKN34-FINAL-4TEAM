@@ -129,7 +129,7 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 [계약 5절](../docs/design/manuscript-import-export-contract.md)대로 `MediaRepository`에 회차 이미지 목록·대체 텍스트 PATCH·공개 대체 텍스트 조회를 두고 응답은 Zod로 검증합니다(소유자 목록의 `url`은 기존 다운로드 경로와 같아야 합니다).
 
 - `/studio/{UUID}`의 `EpisodeImagePanel`: 현재 회차에 올린 이미지(파일명·크기·본문 사용 여부), 이미지별 설명(최대 300자) 저장, '본문에서 빼기'. 빼기는 현재 초안에서 `[[image:ID]]` 표식(과 앞뒤 빈 줄)만 지우고 기존 초안 저장(`PUT .../draft`, revision 검사)으로 저장한 뒤 집필실의 `reload`로 최신 초안을 다시 읽습니다. 저장하지 않은 입력이 있거나 저장 중이면 막고 먼저 저장하도록 안내하며, 저장이 실패(revision 충돌 등)하면 서버 사유와 다시 불러오기 안내를 보이고 입력한 설명은 그대로 둡니다. 이미지 파일은 저장 버전·발행본이 참조할 수 있어 지우지 않습니다.
-- 독자 화면: 공개 보기(`ManuscriptBody publicView`, `/content`의 공개 원고 탭)는 이미지 표식이 있을 때만 `GET /api/v1/public/works/{id}/episodes/{n}/images`를 익명으로 불러 `img alt`에 쓰고, 없거나 불러오지 못하면 기존 `본문 이미지 N` 문구를 씁니다. 문장 단위 `/read` 화면은 이미지를 그리지 않습니다.
+- 독자 화면: 회차 열람(`/read`)은 발행본을 원고 기본 서식(DEC-48, [계약](../docs/design/manuscript-format-contract.md))대로 그립니다. `ReadingUseCase.openEpisode`가 `domain/entities/feedback.ts`의 `readerBody`로 그릴 블록(`blocks`: 문단·인용·소제목·구분선·이미지·빈 줄)과 고를 문장(`paragraphs`)을 함께 주고, 문장의 `t`(댓글 인용·피드백·수정 제안에 보내는 글)는 줄 안 기호를 포함한 원문 조각입니다(줄 맨 앞 `## `·`> `·`\`는 빼고, 인용은 줄마다 나눔). 문단·인용 안의 줄바꿈은 줄바꿈으로 보입니다. 본문 이미지는 공개 작품이면 공개 경로와 `GET /api/v1/public/works/{id}/episodes/{n}/images`의 대체 텍스트로(이미지가 있을 때만 익명으로 읽음), 작가가 자기 비공개 작품을 미리 읽을 때는 소유자 경로로 받으며 설명이 없거나 읽지 못하면 `본문 이미지 N`을 씁니다. 저장 버전 보기·버전 비교·체크포인트·작품 관리 '원고 보기'·집필실 미리보기는 공용 `ManuscriptBody`가 같은 문법(`domain/entities/manuscriptFormat.ts`의 `manuscriptLine`·`inlineParts`·`manuscriptBlocks`)으로 그립니다. 한 줄의 내용이 2,000자를 넘으면 그 줄의 굵게·기울임은 해석하지 않습니다(길이 상한).
 - `--mode mockup`에서는 목록·설명 저장·공개 설명 조회가 "데모에서는 지원하지 않아요" 오류입니다(성공을 흉내 내지 않음).
 
 ## 검증

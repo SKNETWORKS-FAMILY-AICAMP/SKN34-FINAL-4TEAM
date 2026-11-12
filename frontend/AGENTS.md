@@ -46,6 +46,7 @@ TypeScript(`.ts`·`.tsx`)로 작성하고 `any`·타입 단언 남용을 피한�
 - feature끼리 다른 feature의 ViewModel·Store를 참조하지 않는다. 공유가 필요하면 `presentation/shared`로 옮긴다.
 - 브라우저는 상대 `/api` 경로만 사용하고 기존 URL·Bearer·쿠키·CSRF 계약을 유지한다. AI·그래프 DB·외부 모델을 직접 호출하지 않는다.
 - 기존 Tailwind CSS·디자인 토큰을 재사용한다. 읽기 토큰(`--t*`)은 `:root`에 기본값이 있어 어디서나 쓸 수 있고, 독서 화면(`.reader`)에서는 전역 토큰(`--surface`·`--ink`·`--sub`·`--line*`·`--pri*`)이 읽기 토큰으로 재연결되므로 전역 부품을 그대로 써도 보기 설정을 따른다. `.calm`·`.reader`에서 `--t*` 색 토큰과 `--bg`를 다시 선언하지 않는다. 입력·선택 테두리는 `--line3`, 위험 채움 위 글자는 `--on-danger`를 쓴다. 전역 CSS(`storyfork.css`)는 `@layer(base)`라 기능 CSS가 늘 이기므로, 전역 터치 보정(44px·입력 16px)과 같은 속성을 기능 CSS가 다시 정하면 그 화면이 직접 보정한다.
+- 원고는 저장 문자열을 그대로 두고 **그릴 때만** 기본 서식(굵게·기울임·소제목·인용·구분선, DEC-48)을 해석한다. 문법은 `domain/entities/manuscriptFormat.ts` 한 곳이며 마크다운 라이브러리를 쓰지 않는다(표준 마크다운과 다르다: 한 줄 = 한 문단, 서식은 한 줄 안에서만, 내용 2,000자 초과 줄은 해석하지 않음). 문법을 바꾸려면 [계약](../docs/design/manuscript-format-contract.md)의 검증 표와 서버 구현(`ManuscriptFormat.kt`)을 함께 바꾼다. 본문을 그리는 화면은 공용 `ManuscriptBody`(미리보기류)나 `readerBody`(독자 화면)를 쓰고 본문 문자열을 직접 잘라 그리지 않는다. 독자 화면 문장의 `t`(인용·수정 제안에 보내는 글)는 원문 그대로의 조각이어야 한다(서버가 발행본에서 글자 그대로 찾는다).
 
 ## MVVM과 DI
 
