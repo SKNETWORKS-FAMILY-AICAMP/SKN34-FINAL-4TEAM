@@ -93,6 +93,13 @@ describe('알림함 (U42)', () => {
     expect(b.read).toHaveBeenCalledWith('a')
   })
 
+  it('크레딧 소멸 예정 알림을 누르면 결제 내역으로 간다', async () => {
+    backend([notice('a', { kind: 'credit', targetType: 'credit-expiry', targetId: '2026-12-01' })])
+    renderAt('/notifications')
+    fireEvent.click(await screen.findByRole('button', { name: /^알림 a\b/ }))
+    await waitFor(() => expect(where()).toBe('/me/pay'))
+  })
+
   it('이동할 대상을 모르는 알림은 읽음만 처리하고 이동하지 않는다', async () => {
     backend([notice('a', { kind: 'credit', targetType: null, targetId: null })])
     renderAt('/notifications')
