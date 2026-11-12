@@ -1,4 +1,4 @@
-import { useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
+import { Suspense,useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
 import { publicationActionLabel,type WritingEpisode } from '../../../../domain/entities/content'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
@@ -13,7 +13,7 @@ import { ManuscriptExportPanel } from './ManuscriptExportPanel'
 import { EpisodeImagePanel } from './EpisodeImagePanel'
 import { EpisodeWorldBasisControl } from './EpisodeWorldBasisPanel'
 import { Sheet } from '../../../shared/Sheet'
-import { BackChev,ComposeIcon,FoldIcon,ImageIcon,MoreIcon,MoreVerticalIcon,SparkIcon } from '../../../shared/icons'
+import { BackChev,ComposeIcon,FoldIcon,MoreIcon,MoreVerticalIcon,SparkIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
 import { useTheme } from '../../../shared/shell/useTheme'
 import { uiActions } from '../../../shared/ui/uiSlice'
@@ -27,7 +27,8 @@ import { PublicationSchedulePanel } from './PublicationSchedulePanel'
 import { versionGraphRows } from '../../../../domain/entities/versionGraph'
 import { ChatPanel } from '../../../shared/chat/ChatPanel'
 import { VersionGraph } from './VersionGraph'
-import { ManuscriptEditor,type ManuscriptEditorHandle } from './ManuscriptEditor'
+import { LazyManuscriptEditor } from './LazyManuscriptEditor'
+import type { ManuscriptEditorHandle } from './ManuscriptEditor'
 import { ResizeSeparator } from './ResizeSeparator'
 import './version-panels.css'
 
@@ -46,8 +47,17 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useDocumentTitle('집필실')
   const vm=useWritingViewModel(id,undefined,undefined,episode)
   const editor=useRef<ManuscriptEditorHandle>(null)
-  const attach=useRef<HTMLInputElement>(null)
   const main=useRef<HTMLElement>(null)
+  // 좁은 화면(900px 이하)은 문서가 스크롤하고 상단 바가 화면 위에 붙어 있다. 버튼이 줄바꿈되면 높이가 달라지므로,
+  // 본문 툴바가 그 바로 아래에 붙도록 실제 높이를 CSS 변수로 알린다(쓰는 곳은 writing.css의 --writing-toolbar-top).
+  const bar=useRef<HTMLElement>(null)
+  useEffect(()=>{
+    const el=bar.current
+    if(!el||typeof ResizeObserver!=='function')return
+    const watch=new ResizeObserver(()=>el.parentElement?.style.setProperty('--writing-bar-height',`${el.offsetHeight}px`))
+    watch.observe(el)
+    return ()=>watch.disconnect()
+  },[])
   const settingsButton=useRef<HTMLButtonElement>(null)
   const [settingsOpen,setSettingsOpen]=useState(false)
   // 삭제한 회차·초안의 버튼은 사라지거나 잠기므로 확정된 뒤에만 초점을 main으로 옮긴다.
@@ -121,7 +131,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const lengthReason=selected&&!active?.inherited?publishBlocker(selected.body):''
   return <div className="calm rd studio writing-studio">
     {/* 상단 바: 왼쪽은 어디서 무엇을 하는지(돌아가기·제목·저장 상태), 오른쪽은 자주 쓰는 네 가지(모드·버전 저장·버전 공개·더보기)만 둔다. */}
-    <header className="sbar">
+    <header ref={bar} className="sbar">
       <div className="writing-bar">
         <Go className="back rback" to="/lib?tab=write" onClick={leave}><BackChev />내가 쓰는 소설</Go>
         <h1 className="t">집필실</h1>
@@ -193,8 +203,14 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         {active?<>
           {active.hasDraft===false&&<p role="status" className="small muted writing-draftless">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           <input className="et writing-title" aria-label="회차 제목" placeholder="제목" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({title:e.target.value})}/>
-          {/* 서식 없는 편집기(문단·이미지만). 저장 형식은 그대로 일반 텍스트 + 이미지 표식이고, 이미지는 기존 업로드 경로(vm.addImage)로 올린다. */}
-          <ManuscriptEditor ref={editor} value={vm.draft.body} editable={!active.inherited&&!vm.editingLocked} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)}/>
+          {/* 원작 기준 회차는 편집기 없이 공용 렌더러로 읽기 전용 본문을 그린다(이름은 같고 읽기 전용임을 보조기기에 알린다).
+              내 회차는 마크다운 편집기(Toast UI Editor, 늦게 불러온다): 저장 형식은 그대로 문자열(글자 + 서식 기호 + 이미지 표식)이고 이미지는 기존 업로드 경로(vm.addImage)로 올린다.
+              사용자가 누른 요청이 끝날 때까지만 잠그고(editingLocked), 자동 저장은 잠그지 않는다. */}
+          {active.inherited
+            ?<div className="writing-body writing-readonly" role="textbox" aria-multiline="true" aria-readonly="true" aria-label="원고 본문" tabIndex={0}><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></div>
+            :<Suspense fallback={<div className="writing-body writing-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
+              <LazyManuscriptEditor ref={editor} value={vm.draft.body} editable={!vm.editingLocked} busy={vm.busy} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)}/>
+            </Suspense>}
           {mode==='advanced'&&<section className="writing-advanced" aria-label="고급 도구">
             <b>고급 도구 준비 중</b>
             <span className="small muted">문맥 선택·장면 비트·고급 플롯 도구가 들어올 자리예요. 지금은 기본 집필과 같은 기능을 써요.</span>
@@ -203,10 +219,6 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
             <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자{!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
             <div className="writing-foot-actions">
               {vm.busy&&<button type="button" className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
-              {!active.inherited&&<>
-                <input ref={attach} hidden type="file" accept=".png,.jpg,.jpeg" onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void editor.current?.addImage(file)}}/>
-                <button type="button" className="writing-icon-btn" aria-label="이미지 첨부" title="이미지 첨부" disabled={vm.busy} onClick={()=>attach.current?.click()}><ImageIcon /></button>
-              </>}
               <button ref={settingsButton} type="button" className="btn sm" aria-haspopup="dialog" onClick={()=>setSettingsOpen(true)}>회차 설정</button>
             </div>
           </footer>
@@ -231,7 +243,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               </div>
               <div className="writing-group">
                 {!active.inherited&&<>
-                  <label className="media-file"><span className="writing-group-title">본문 이미지 추가</span><input type="file" accept=".png,.jpg,.jpeg" disabled={vm.busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void editor.current?.addImage(file,false)}}/></label>
+                  {/* 편집기의 커서 자리에 올린다. 편집기를 아직 불러오는 중이면(핸들 없음) 조용히 무시하지 않고 원고 끝에 올린다. */}
+                  <label className="media-file"><span className="writing-group-title">본문 이미지 추가</span><input type="file" accept=".png,.jpg,.jpeg" disabled={vm.busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void (editor.current?editor.current.addImage(file,false):vm.addImage(file,vm.draft.body.length,vm.draft.body.length))}}/></label>
                   <p className="small muted">PNG·JPEG · 파일당 10 MiB 이하 · 회차당 업로드 최대 10개 · 커서 위치에 참조를 넣어요. 참조를 지워도 저장 버전은 유지돼요.</p>
                   <EpisodeImagePanel workId={id} episode={active.number} draft={vm.draft} unsaved={vm.dirty||vm.busy} onDraftSaved={vm.reload}/>
                 </>}

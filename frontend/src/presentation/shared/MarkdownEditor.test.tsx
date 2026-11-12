@@ -2,9 +2,10 @@
 import type { Editor } from '@toast-ui/editor'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../app/store'
+import { stubRangeGeometry } from '../../test/rangeGeometry'
 import { MarkdownEditor } from './MarkdownEditor'
 import { uiActions } from './ui/uiSlice'
 
@@ -30,6 +31,7 @@ vi.mock('@toast-ui/editor', async (importOriginal) => {
   return { ...actual, default: Spy }
 })
 
+beforeAll(stubRangeGeometry)
 beforeEach(() => { made.options.length = made.editors.length = made.destroyed.length = 0 })
 afterEach(cleanup)
 
@@ -47,11 +49,13 @@ it('서버로 나가는 통계를 끄고 위지윅 전환·이미지 도구 없�
   const options = made.options[0]
   expect(options).toMatchObject({
     initialEditType: 'markdown', hideModeSwitch: true, previewStyle: 'tab', usageStatistics: false, autofocus: false, language: 'ko-KR',
-    initialValue: '소개\n\n## 성격\n- **차분함**', placeholder: '자유롭게 적어 보세요.', linkAttributes: { target: '_blank', rel: 'noopener noreferrer' },
+    placeholder: '자유롭게 적어 보세요.', linkAttributes: { target: '_blank', rel: 'noopener noreferrer' },
     toolbarItems: [['heading', 'bold', 'italic', 'strike'], ['ul', 'ol', 'quote'], ['table', 'link']],
   })
   expect(options.el).toBe(group()) // 이름 붙은 덩어리 안에 만든다
-  for (const unwanted of ['hooks', 'customHTMLRenderer', 'customHTMLSanitizer', 'plugins']) expect(options[unwanted], unwanted).toBeUndefined() // 이미지 올리기·HTML 확장은 연결하지 않는다
+  for (const unwanted of ['hooks', 'customHTMLRenderer', 'customHTMLSanitizer']) expect(options[unwanted], unwanted).toBeUndefined() // 이미지 올리기·HTML 확장은 연결하지 않는다
+  expect(options.plugins).toHaveLength(1) // Toast 결함 보정(shared/toastFixes)에 쓰는 편집 화면을 얻는 플러그인 하나뿐이다
+  expect(made.editors[0].getMarkdown()).toBe('소개\n\n## 성격\n- **차분함**') // 글은 보정을 건 뒤에 넣는다
   expect(JSON.stringify(options.toolbarItems)).not.toContain('image')
 })
 
@@ -132,6 +136,43 @@ it('처음 글은 그대로 들어가고 그것만으로는 change를 내지 않
   render(draw({ onChange }))
   expect(made.editors[0].getMarkdown()).toBe('소개\n\n## 성격\n- **차분함**') // 줄바꿈·기호가 바뀌지 않는다
   expect(onChange).not.toHaveBeenCalled()
+})
+
+// ── Toast UI Editor의 알려진 결함 보정(shared/toastFixes, 집필실 원고 편집기와 같은 방법) ──
+it('열자마자 되돌리기를 눌러도 불러온 글은 사라지지 않고 내가 쓴 글만 되돌린다', () => {
+  const onChange = vi.fn()
+  render(draw({ initialValue: '불러온 설명', onChange }))
+  act(() => { made.editors[0].exec('undo') })
+  expect(onChange).not.toHaveBeenCalled()
+  expect(made.editors[0].getMarkdown()).toBe('불러온 설명')
+  act(() => { made.editors[0].moveCursorToEnd(false); made.editors[0].insertText('!') })
+  expect(onChange).toHaveBeenLastCalledWith('불러온 설명!')
+  act(() => { made.editors[0].exec('undo') })
+  expect(onChange).toHaveBeenLastCalledWith('불러온 설명')
+  act(() => { made.editors[0].exec('undo') })
+  expect(onChange).toHaveBeenCalledTimes(2)
+})
+
+it('Toast의 구문 강조가 실패하는 글(들여쓴 ``` 줄로 끝나는 글)도 그대로 열리고 이어서 쓸 수 있다', () => {
+  const onChange = vi.fn()
+  const poison = '앞\n  ```'
+  render(draw({ initialValue: poison, onChange }))
+  expect(made.editors[0].getMarkdown()).toBe(poison)
+  expect(onChange).not.toHaveBeenCalled()
+  act(() => { made.editors[0].moveCursorToEnd(false); made.editors[0].insertText('!') })
+  expect(onChange).toHaveBeenLastCalledWith(`${poison}!`)
+})
+
+it('줄 처음부터 다음 줄 처음까지 지운 것을 되돌려도 화면의 글과 편집기가 내는 글이 같다', () => {
+  const onChange = vi.fn()
+  const body = '가\n나\n다'
+  render(draw({ initialValue: body, onChange }))
+  act(() => { made.editors[0].deleteSelection([1, 1], [2, 1]) })
+  expect(onChange).toHaveBeenLastCalledWith('나\n다')
+  act(() => { made.editors[0].exec('undo') })
+  expect(Array.from(input().children, (line) => line.textContent)).toEqual(['가', '나', '다'])
+  expect(made.editors[0].getMarkdown()).toBe(body)
+  expect(onChange).toHaveBeenLastCalledWith(body)
 })
 
 it('글이 바뀔 때마다 마크다운 전체를 onChange로 주고 다시 그려도 늘 가장 새 onChange를 쓴다', () => {

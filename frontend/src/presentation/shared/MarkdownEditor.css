@@ -1,10 +1,7 @@
-/*
- * MarkdownEditor(Toast UI Editor)와 함께 올라오는 CSS 조정.
- * Toast의 전역 CSS는 대부분 .toastui-editor-* 로 묶여 있지만 `.ProseMirror { height: calc(100% - 36px); overflow-y: auto; … }`만은 묶이지 않아,
- * 편집기가 한 번 뜨면 집필실의 Tiptap 본문(.writing-body .ProseMirror)까지 높이·스크롤이 바뀐다. Toast 편집 영역(.toastui-editor-contents)이 아닌 것은 기본값으로 되돌린다.
- */
-.ProseMirror:not(.toastui-editor-contents) { height: auto; overflow: visible; }
-
+/* MarkdownEditor(Toast UI Editor)와 함께 올라오는 CSS 조정. */
+/* 편집 영역은 글만큼 자라고 안쪽 스크롤을 만들지 않는다. Toast의 전역 규칙(.ProseMirror { height: calc(100% - 36px); overflow-y: auto })을 이 편집기 안에서만 되돌린다
+   (전에는 집필실 Tiptap 본문을 지키던 전역 되돌림 규칙이 이 편집 영역에도 걸려 같은 값이었다). */
+.markdown-editor .toastui-editor-md-container .ProseMirror { height: auto; overflow: visible; }
 /* Toast 기본은 13px 영문 글꼴이라 한글 본문에는 작다: 편집 영역과 미리보기 글꼴은 앱 글꼴을 따르고 크기를 키운다. */
 .markdown-editor .toastui-editor-contents { font-family: inherit; font-size: 15px; }
 

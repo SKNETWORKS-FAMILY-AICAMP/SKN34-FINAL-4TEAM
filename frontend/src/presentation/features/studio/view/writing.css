@@ -1,8 +1,9 @@
 /* 집필실: 상단 바 · 3단 본체(왼쪽 회차 레일 / 가운데 원고 편집기 / 오른쪽 AI 채팅) · 회차 설정 시트.
    전역 storyfork.css는 @layer(base)라 이 파일의 규칙이 선택자와 무관하게 이긴다. 전역 규칙을 덮은 곳은 900px·600px 이하도 여기서 다시 정한다. */
 .studio .sbar h1 { font-size: inherit; margin: 0; }
-/* 레일 폭·본문 한 열의 폭·접힌 채팅 '열기' 버튼이 차지하는 폭(오른쪽 여백 24px + 버튼 약 130px + 간격). 3단 격자와 하단 바가 같은 값을 쓴다. */
-.writing-studio { --writing-rail: 280px; --writing-measure: 72ch; --chat-toggle-room: 172px; }
+/* 레일 폭·본문 한 열의 폭·접힌 채팅 '열기' 버튼이 차지하는 폭(오른쪽 여백 24px + 버튼 약 130px + 간격). 3단 격자와 하단 바가 같은 값을 쓴다.
+   --writing-toolbar-top: 본문 툴바(편집기 안, manuscript-editor.css)가 스크롤 중에 붙는 자리. 데스크톱은 원고 열이 따로 스크롤하므로 그 열의 맨 위다. */
+.writing-studio { --writing-rail: 280px; --writing-measure: 72ch; --chat-toggle-room: 172px; --writing-toolbar-top: 0px; }
 .writing-message { margin: 16px 24px; }
 /* 오류 상자(공용 .ep-alert)는 상단 바 바로 아래에 둔다. 완료 안내는 상단 바의 저장 상태 줄에 이어 적어 이 자리를 쓰지 않는다. */
 .writing-studio > .ep-alert { margin: 12px 24px 0; }
@@ -60,25 +61,25 @@
 /* ── 가운데 원고: 65~75ch 폭의 한 열에 제목 · 본문 · 한 줄 하단 바만 둔다 ── */
 /* 한국어는 단어 단위로 줄바꿈한다(PRODUCT.md): 원고와 설정 시트 글이 음절 중간에서 끊기지 않게 */
 .writing-editor { min-width: 0; width: 100%; padding: 20px 16px 24px; font-size: 16px; scroll-padding-block-end: 72px; word-break: keep-all; }
+/* 집필실의 원고 열은 본문 툴바가 위에 붙어 있다(manuscript-editor.css): 커서가 그 밑에 가리지 않게 위쪽도 비운다. 세계관 설정 편집 화면에는 툴바가 없다. */
+.writing-studio:not(.world-card-studio) .writing-editor { scroll-padding-block-start: 56px; }
 .writing-draftless { margin-bottom: 12px; }
-/* 제목은 입력 칸, 본문은 서식 없는 편집기(.ProseMirror: 문단·이미지만). 줄바꿈 = 문단 하나이고 빈 줄도 한 줄 높이를 갖는다. */
-.writing-title, .writing-body .ProseMirror { caret-color: var(--tacc); }
+/* 제목은 입력 칸. 본문 자리(.writing-body)는 마크다운 편집기(늦게 불러온다: manuscript-editor.css) · 불러오는 중 자리표시 · 원작 기준 읽기 전용 본문 · 미리보기가 함께 쓴다. */
+.writing-title { caret-color: var(--tacc); }
 .writing-title::selection, .writing-body ::selection { background: var(--pri-soft); color: var(--pri-ink); }
 /* 자리표시 글자는 투명도를 빼고 보조 글자색 그대로 둬 라이트·다크 모두 4.5:1 이상을 지킨다. */
 .writing-title::placeholder { color: var(--tsub); opacity: 1; }
 .writing-editor .et { padding: 4px 0; margin-bottom: 8px; font-family: var(--ui); font-size: 28px; font-weight: 700; line-height: 1.4; }
-/* flex-shrink 0: 편집기는 글 높이만큼 자라고 스크롤은 원고 열이 맡는다(min-height가 있으면 줄어들어 글이 하단 바 위로 넘칠 수 있다). */
+/* flex-shrink 0: 본문은 글 높이만큼 자라고 스크롤은 원고 열이 맡는다(min-height가 있으면 줄어들어 글이 하단 바 위로 넘칠 수 있다).
+   display를 정했으므로 감출 때(미리보기 동안의 편집기)는 hidden을 직접 지킨다. */
 .writing-body { position: relative; display: flex; flex: 1 0 auto; flex-direction: column; min-height: 56vh; }
-.writing-body .ProseMirror { flex: 1 1 auto; padding: 8px 0 24px; color: var(--tfg); font-family: var(--ui); font-size: 16px; font-weight: 400; line-height: 1.8; overflow-wrap: anywhere; outline: 0; }
-.writing-body .ProseMirror p { margin: 0; }
-.writing-body .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: var(--tsub); pointer-events: none; }
-.writing-title:focus-visible, .writing-body .ProseMirror:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; border-radius: 4px; }
-/* 본문 안 이미지 블록: 기존 StoredImage가 그리고, 선택하면 윤곽선으로 보인다. */
-.manuscript-image { margin-block: 8px; }
-.manuscript-image .stored-image { margin-block: 0; }
-.writing-body .ProseMirror-selectednode { outline: 2px solid var(--tacc); outline-offset: 2px; border-radius: 8px; }
-.manuscript-dropcursor { background: var(--tacc); border-radius: 2px; }
-/* 40,000자를 넘는 입력을 막았을 때만 글이 있다. */
+.writing-body[hidden] { display: none; }
+/* 원작 기준(읽기 전용) 본문과 편집기의 미리보기: 공용 ManuscriptBody가 그리고, 편집 영역과 같은 글꼴·크기로 읽힌다. */
+.writing-readonly, .manuscript-preview { padding: 16px 0 24px; color: var(--tfg); font-family: var(--ui); font-size: 16px; font-weight: 400; line-height: 1.8; overflow-wrap: anywhere; }
+.writing-title:focus-visible, .writing-readonly:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; border-radius: 4px; }
+/* 편집기를 불러오는 동안의 자리표시 */
+.writing-loading { align-items: center; justify-content: center; color: var(--tsub); font-size: 13.5px; }
+/* 편집기가 입력을 막았을 때만 글이 있다(40,000자 초과 등). */
 .writing-limit { color: var(--danger); font-weight: 600; }
 /* 공개 분량(5,000자) 미달로 공개 버튼을 잠근 사유 */
 .writing-publish-reason { display: block; margin-top: 6px; }
@@ -150,7 +151,7 @@
   .writing-studio .sbar .st { flex: 1 1 0; }
   /* 접힌 AI 채팅의 '열기' 버튼(전역 .studio-chat-toggle: 화면 오른쪽 아래 고정)은 하단 바와 같은 띠에 놓고, 하단 바가 겹치는 만큼만 오른쪽을 비운다.
      하단 바 오른쪽 끝은 화면 끝에서 max(32px, (원고 열 폭 − 본문 폭) / 2) 떨어져 있고 원고 열 폭은 100vw − 레일이므로, 비울 폭은 그 거리와 --chat-toggle-room의 차다(넓은 창에서는 0).
-     집필실의 '회차 설정'·'이미지 첨부'와, 이 CSS를 함께 쓰는 세계관 설정 편집 화면의 '삭제'가 버튼 밑에 깔리지 않는다. */
+     집필실의 '회차 설정'과, 이 CSS를 함께 쓰는 세계관 설정 편집 화면의 '삭제'가 버튼 밑에 깔리지 않는다. */
   .writing-studio .studio-chat-toggle { bottom: 12px; }
   .writing-studio .studio-workspace:has(> .studio-chat-toggle) .writing-foot { padding-right: clamp(0px, calc(var(--chat-toggle-room) - (100vw - var(--writing-rail) - var(--writing-measure)) / 2), calc(var(--chat-toggle-room) - 32px)); }
 }
@@ -159,6 +160,11 @@
   .writing-studio .writing-chat { width: 300px; }
 }
 @media (max-width: 900px) {
+  /* 좁은 화면은 문서가 스크롤하고 상단 바가 화면 위에 붙어 있다: 본문 툴바는 그 바로 아래에 붙는다(상단 바의 실제 높이는 WritingStudio가 재서 알린다).
+     툴바가 화면에 붙으려면 문서까지 사이에 스크롤 상자가 없어야 하므로 전역 규칙이 준 overflow:auto를 푼다(이 폭에서는 높이가 내용만큼이라 원래 스크롤하지 않는다).
+     가로로 넘친 것은 잘라 문서가 옆으로 밀리지 않게 한다. 같은 틀을 쓰는 세계관 설정 편집 화면은 건드리지 않는다. */
+  .writing-studio { --writing-toolbar-top: var(--writing-bar-height, 64px); }
+  .writing-studio:not(.world-card-studio) :is(.studio-workspace, .writing-grid, .writing-editor) { overflow: clip visible; }
   .writing-studio .sbar { padding: 8px 16px; }
   .writing-studio > .ep-alert { margin-inline: 16px; }
   .writing-studio .seps { align-items: flex-start; }
