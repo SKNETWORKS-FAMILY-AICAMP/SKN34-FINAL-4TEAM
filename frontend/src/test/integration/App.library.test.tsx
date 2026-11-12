@@ -79,7 +79,7 @@ describe('목업 새 소설 만들기 (U28)', () => {
       renderAt('/lib?tab=write')
       fireEvent.click(await screen.findByRole('link', { name: /＋ 새 소설 쓰기/ }))
       await screen.findByRole('heading', { name: '집필 전 정책 확인' })
-      expect(sid()).toBe('U28 새 소설 만들기')
+      await waitFor(() => expect(sid()).toBe('U28 새 소설 만들기'))
       await acceptPolicy()
       cleanup()
     }
@@ -139,7 +139,7 @@ describe('가져오기 (U24)', () => {
     fireEvent.click(screen.getByRole('button', { name: '동의하고 계속' }))
     await screen.findByRole('heading', { name: '내 소설 가져오기' })
     expect(where()).toBe('/import')
-    expect(sid()).toBe('U24 소설 가져오기')
+    await waitFor(() => expect(sid()).toBe('U24 소설 가져오기'))
     expect(screen.getByRole('button', { name: '정리 시작' }).hasAttribute('disabled')).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: /예시 소설 선택/ }))
     screen.getByText('✓ 춘향전_전문.txt · 286KB')
