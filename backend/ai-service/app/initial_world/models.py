@@ -141,3 +141,17 @@ def input_hash(value: Input) -> str:
     data['entities'].sort(key=lambda entity: entity['cardId'])
     return sha256(json.dumps(data, ensure_ascii=False, sort_keys=True,
                              separators=(',', ':')).encode('utf-8')).hexdigest()
+
+
+class Quotation(Model):
+    sourceId: Text
+    quote: Text
+
+
+class ProposedCandidate(Candidate):
+    provenance: Literal['ai_extraction']
+    evidence: list[Quotation]
+
+
+class ProposedOutput(Output):
+    candidates: list[ProposedCandidate]

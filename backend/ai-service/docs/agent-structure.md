@@ -5,8 +5,8 @@
 현재 실행 코드는 Health, 단일 OpenAI 호출을 사용하는 이어쓰기 제안 생성, 초기 세계관 후보 추출입니다.
 
 - `app/main.py → health/router.py → HealthResponse`: 내부 상태를 반환합니다. Health에서 OpenAI 키를 요구하거나 모델 클라이언트를 생성하지 않습니다.
-- `app/main.py → generation/router.py → generate → OpenAI.responses.create`: `POST /internal/v1/proposals`에서 `X-Internal-Token`을 검증하고 전달받은 문맥·요청으로 이어쓰기 제안을 생성합니다. 키·모델은 생성 요청 시 읽고 클라이언트는 요청 후 닫습니다. 미설정·제공사 실패는 503이며 모델·응답 ID·사용량을 결과에 포함합니다.
-- `app/main.py → initial_world/router.py → extract`: `POST /internal/v1/initial-world/extractions`에서 Content가 고정한 입력으로 후보만 생성하고 원문 근거·기존 ID를 검증합니다. 저장·승인은 하지 않습니다.
+- `app/main.py → generation/router.py → agent.generate → OpenAI.responses.create`: `POST /internal/v1/proposals`에서 `X-Internal-Token`을 검증하고 전달받은 문맥·요청으로 이어쓰기 제안을 생성합니다. 키·모델은 생성 요청 시 읽고 클라이언트는 요청 후 닫습니다. 미설정·제공사 실패는 503이며 모델·응답 ID·사용량을 결과에 포함합니다.
+- `app/main.py → initial_world/router.py → service.extract → agent.propose → OpenAI.responses.create`: `POST /internal/v1/initial-world/extractions`에서 Content가 고정한 입력으로 후보만 생성하고 원문 근거·기존 ID를 검증합니다. 저장·승인은 하지 않습니다.
 - 생성은 Content의 [`ProposalService`](../../content-service/src/main/kotlin/ai/storyfork/content/proposal/service/ProposalService.kt)가 [`GenerationClient`](../../content-service/src/main/kotlin/ai/storyfork/content/proposal/client/GenerationClient.kt)를 통해 요청합니다. Content는 권한·기준 버전·문맥을 확인하고 DB 트랜잭션 밖에서 생성 API를 호출합니다. 응답을 받으면 기준을 다시 확인해 제안을 저장하며, 채택과 원고 반영은 별도 요청으로 처리합니다. Core의 AI 호출은 Health 확인 경로입니다.
 
 [최신 설계](../../../docs/design/design.md)의 최종 모델·제공사·에이전트 프레임워크는 미정입니다. 현재 `openai` SDK 구현과 남아 있는 `openai-agents` 의존성을 전체 기술 선정 완료로 해석하지 않습니다.

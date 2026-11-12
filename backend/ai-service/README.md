@@ -19,7 +19,7 @@ uv run --locked uvicorn app.main:create_app --factory --reload --port 8000
 로컬 개발 검증은 변경·직접 영향 범위의 **단위 테스트만** 선택합니다. TestClient·HTTP는 통합 계층이며 로컬에서 통합/시스템·전체 suite·컨테이너를 실행하지 않습니다.
 
 ```bash
-uv run --locked --extra dev python -m pytest -m 'not integration' tests/test_generation.py -k missing_key
+uv run --locked --extra dev python -m pytest -m 'not integration' tests/generation/test_agent.py -k missing_key
 ```
 
 CI는 AI 서비스가 선택되면 lock 검사 후 pytest `-m 'not integration'` → `-m integration`으로 각각 한 번 실행합니다.

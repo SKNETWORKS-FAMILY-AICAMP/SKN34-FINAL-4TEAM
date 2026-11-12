@@ -95,7 +95,7 @@ python3 -m unittest infrastructure.ci.test_ci.SelectionTest infrastructure.ci.te
 # 각 서비스 디렉터리에서 변경한 단위 테스트를 지정하는 예
 pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
 ./gradlew unitTest --tests 'ai.storyfork.core.auth.AuthSecurityConfigTest' --no-daemon
-uv run --locked --extra dev python -m pytest -m 'not integration' tests/test_generation.py -k missing_key
+uv run --locked --extra dev python -m pytest -m 'not integration' tests/generation/test_agent.py -k missing_key
 ```
 
 자세한 선택 명령은 [Frontend 지침](../frontend/AGENTS.md#검증), [Core 지침](../backend/core-api/AGENTS.md#검증),
