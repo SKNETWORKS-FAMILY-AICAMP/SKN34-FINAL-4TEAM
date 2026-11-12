@@ -7,6 +7,7 @@ import type { FeedbackReportRepository } from '../../domain/repositories/Feedbac
 import type { ManuscriptRepository } from '../../domain/repositories/ManuscriptRepository'
 import type { MediaRepository } from '../../domain/repositories/MediaRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
+import type { WithdrawalRepository } from '../../domain/repositories/WithdrawalRepository'
 import { InMemoryWorldStudioRepository } from '../world-studio/InMemoryWorldStudioRepository'
 
 /**
@@ -38,6 +39,13 @@ export const mockupNotificationRepository: NotificationRepository = {
 }
 
 const demoUnsupported = () => Promise.reject(new Error('데모에서는 지원하지 않아요.'))
+
+/** 데모 회원은 탈퇴 요청이 없고, 탈퇴·복구는 실제 계정을 바꾸지 않도록 미지원 오류로 답합니다. */
+export const mockupWithdrawalRepository: WithdrawalRepository = {
+  status: async () => ({ status: 'NONE' }),
+  request: demoUnsupported,
+  restore: demoUnsupported,
+}
 
 /**
  * 원고 가져오기와 EPUB·발행본 내보내기는 성공을 흉내 내지 않고 데모 미지원 오류로 답합니다.

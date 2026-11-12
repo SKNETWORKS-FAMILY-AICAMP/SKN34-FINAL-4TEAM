@@ -8,12 +8,12 @@ import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { Sheet } from '../../../shared/Sheet'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useAccountViewModel } from '../viewmodel/useAccountViewModel'
 import { Devices } from './Devices'
 import { PayView } from './PayView'
+import { Withdrawal } from './Withdrawal'
 
 type VM = ReturnType<typeof useAccountViewModel>
 const PRIVATE = ['profile', 'liked', 'pay', 'storage']
@@ -110,7 +110,6 @@ function EventBoard({ vm, id }: { vm: VM; id: string | null }) {
 function Profile({ vm }: { vm: VM }) {
   const [nick, setNick] = useState(vm.user.nick)
   const [email, setEmail] = useState(vm.user.email)
-  const [withdraw, setWithdraw] = useState(false)
   const form = useRef<HTMLFormElement>(null)
   const resume = useRef<Element | null>(null)
   useEffect(() => { form.current?.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus() }, [vm.profileErrors])
@@ -139,21 +138,8 @@ function Profile({ vm }: { vm: VM }) {
         <div className="rowend"><button type="submit" className="btn pri" id="saveProfile" disabled={vm.saving}>{vm.saving ? '저장 중…' : '저장'}</button></div></form>
       <section className="tcard mecard" aria-labelledby="security-title"><h3 id="security-title">계정 보안</h3><p className="small muted">비밀번호를 바꾸려면 가입한 이메일로 재설정 링크를 요청해 주세요.</p><Link to="/auth/forgot-password" className="btn">비밀번호 재설정</Link></section>
       <Devices />
-      <div className="tcard mecard danger"><b>회원탈퇴</b><p className="small muted" style={{ margin: '6px 0 12px' }}>탈퇴 기능은 준비 중이에요. 현재는 실제 계정을 삭제할 수 없으며, 정책 기획안만 확인할 수 있어요.</p><button type="button" className="btn" id="withdrawBtn" onClick={() => setWithdraw(true)}>회원탈퇴</button></div>
-      {withdraw && <WithdrawSheet onClose={() => setWithdraw(false)} />}
+      <Withdrawal />
     </>
-  )
-}
-
-/** 정책 기획안 안내: 실제 탈퇴·데이터 변경 없음 */
-function WithdrawSheet({ onClose }: { onClose: () => void }) {
-  return (
-    <Sheet sid="U30" label="회원탈퇴" onClose={onClose}>
-      <div className="sh-h"><h3>회원탈퇴</h3><button type="button" className="x" aria-label="닫기" onClick={onClose}>✕</button></div>
-      <p>탈퇴 기능은 준비 중이며, 여기서는 실제 계정을 삭제할 수 없어요.</p>
-      <div className="policy">정책 기획안: 탈퇴 후 30일 동안 작품·세계관을 숨기고, 이 기간에 다시 로그인하면 복구하도록 계획했어요. 이후 작품·세계관·초안을 삭제하고 댓글·피드백 작성자는 익명 처리하는 내용이에요. 다른 Fork가 참조하는 버전은 보존하고 원작자는 ‘탈퇴한 회원’으로 표시하며, 직접 만든 Fork 작품은 삭제하는 내용도 포함돼요. 현재 구현된 탈퇴 절차가 아니에요.</div>
-      <div className="rowend"><button type="button" className="btn" onClick={onClose}>확인</button></div>
-    </Sheet>
   )
 }
 

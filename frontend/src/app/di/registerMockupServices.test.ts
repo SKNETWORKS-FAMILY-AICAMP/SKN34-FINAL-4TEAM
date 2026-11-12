@@ -60,3 +60,11 @@ it('활동 기록 저장소는 실제 모드에서 운영 API를, mockup에서 �
   expect(container.resolve('adminActivityRepository').constructor.name).toBe('InMemoryAdminActivityRepository')
   expect(await container.resolve('adminActivityUseCase').list()).toEqual([])
 })
+
+it('mockup 컨테이너의 탈퇴는 요청 없음 상태만 보이고 탈퇴·복구는 실제 계정을 바꾸지 않도록 미지원 오류로 답한다', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  const withdrawal = createAppContainer().resolve('withdrawalUseCase')
+  expect(await withdrawal.status()).toEqual({ status: 'NONE' })
+  await expect(withdrawal.request('pw', '')).rejects.toThrow('데모에서는 지원하지 않아요')
+  await expect(withdrawal.restore()).rejects.toThrow('데모에서는 지원하지 않아요')
+})
