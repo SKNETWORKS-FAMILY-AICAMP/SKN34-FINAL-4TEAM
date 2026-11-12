@@ -15,7 +15,6 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
  return {useWorldStudioViewModel:()=>actual.useWorldStudioViewModel(useCase)}
 })
 vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=>null}))
-vi.mock('../../presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=>null}))
 afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs()})
 const manageTab=(name:string)=>within(screen.getByRole('navigation',{name:'세계관 메뉴'})).getByRole('button',{name})
 function Destination(){const location=useLocation();return <div>도착 {location.pathname} {JSON.stringify(location.state)}</div>}
@@ -28,16 +27,18 @@ async function show(entries=['/before','/worldstudio/qa','/after'],edit=true,two
  createWorld=vi.fn(async(_name:string,_description:string)=>({...structuredClone(world),id:'created',name:'새 세계'}))
  const repository={listStudio:async()=>[world,other],read:async(id:string)=>structuredClone(id==='other'?other:world),create:createWorld,saveStudio:async(next:StudioWorld)=>next,setPublication:vi.fn()}
  useCase=new WorldStudioUseCase(repository)
- const router=createMemoryRouter([{path:'*',element:<WorldStudioLeaveProvider><Routes><Route path="/worldstudio/:worldId?" element={<Links/>}/><Route path="*" element={<Destination/>}/></Routes></WorldStudioLeaveProvider>}],{initialEntries:entries,initialIndex:1})
+ // 편집은 설정 편집 화면(주소 ?card=)을 기록을 쌓지 않고 바로 열어 두 번째 기록을 바꾼다: 행을 눌러 새 기록을 쌓으면 뒤로·앞으로 이동의 기록이 달라진다.
+ const opened=edit?entries.map(path=>path==='/worldstudio/qa'?`/worldstudio/qa?card=${row.item.id}`:path):entries
+ const router=createMemoryRouter([{path:'*',element:<WorldStudioLeaveProvider><Routes><Route path="/worldstudio/:worldId?" element={<Links/>}/><Route path="*" element={<Destination/>}/></Routes></WorldStudioLeaveProvider>}],{initialEntries:opened,initialIndex:1})
  render(<Provider store={createAppStore({role:'user'})}><RouterProvider router={router} useTransitions={false}/></Provider>)
- await screen.findByRole('heading',{name:'검증 세계',level:1})
- if(edit){fireEvent.click(screen.getByRole('button',{name:'가람 인물'}));fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'보존할 편집 내용'}})}
+ if(edit)fireEvent.change(await screen.findByRole('textbox',{name:'설명'}),{target:{value:'보존할 편집 내용'}})
+ else await screen.findByRole('heading',{name:'검증 세계',level:1})
  return router
 }
 it.each([['test','/content'],['mockup','/new']])('opens the work creation route in %s mode',async(mode,path)=>{
  vi.stubEnv('MODE',mode)
  const router=await show(undefined,false)
- fireEvent.click(screen.getByRole('link',{name:'새 소설 등록으로'}))
+ fireEvent.click(screen.getByRole('link',{name:'소설 작성하기'}))
  await waitFor(()=>expect(router.state.location.pathname).toBe(path))
 })
 it('blocks Link and programmatic replace, preserving input on cancel and state on approval',async()=>{
@@ -65,8 +66,10 @@ it('retains beforeunload protection while dirty',async()=>{
 
 it('protects navigation through the actual Gnb Go button',async()=>{
  await show();const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+ fireEvent.click(screen.getByRole('button',{name:'설정집'})) // Gnb는 설정집 화면에 있다(편집 화면은 집필실처럼 자체 상단 바를 쓴다)
  fireEvent.click(screen.getAllByRole('link',{name:/내 서재/})[0])
  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
+ fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 편집 내용')
 })
 it('confirms once before opening another world and creation',async()=>{

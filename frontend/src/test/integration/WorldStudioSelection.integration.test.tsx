@@ -36,12 +36,15 @@ async function show(wizard=false){
 it.each(['검색','유형'] as const)('%s 필터가 카드를 제외해도 편집본을 보존한다',async mode=>{
  await show();fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'보존할 내용'}})
+ const rail=()=>within(screen.getByRole('navigation',{name:'설정 카드 목록'}))
+ // 편집 화면의 레일 필터가 편집 중인 카드를 목록에서 빼도 편집 화면과 편집본은 그대로다
  if(mode==='검색')fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:'항구'}})
- else fireEvent.click(within(screen.getByRole('navigation',{name:'설정 분류'})).getByRole('button',{name:/^장소/}))
- expect(screen.queryByRole('region',{name:'선택한 설정 편집'})).toBeNull() // 필터 밖이 된 선택은 패널을 닫지만 편집본은 그대로다
+ else fireEvent.click(within(screen.getByRole('group',{name:'설정 분류'})).getByRole('button',{name:/^장소/}))
+ expect(rail().queryByRole('button',{name:'가람 인물'})).toBeNull()
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 내용')
  fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:''}})
- fireEvent.click(within(screen.getByRole('navigation',{name:'설정 분류'})).getByRole('button',{name:/^전체/}))
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ fireEvent.click(within(screen.getByRole('group',{name:'설정 분류'})).getByRole('button',{name:'전체'}))
+ fireEvent.click(rail().getByRole('button',{name:'가람 인물'}))
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('보존할 내용')
 })
 it('shows an empty result without an unrelated editor',async()=>{
@@ -55,8 +58,11 @@ it('keeps focus and identifies an edited card that no longer matches the filter'
  const name=screen.getByRole<HTMLInputElement>('textbox',{name:'설정 이름'})
  name.focus();fireEvent.change(name,{target:{value:'바뀐 이름'}})
  expect(name.value).toBe('바뀐 이름');expect(document.activeElement).toBe(name)
- expect(screen.getByText('현재 편집 중 · 필터 조건 밖')).toBeTruthy()
- expect(screen.getByRole('button',{name:'바뀐 이름 인물'}).getAttribute('aria-current')).toBe('true')
+ // 검색어에 더는 맞지 않아 레일 목록에서는 빠지지만 편집 화면은 그 카드를 그대로 열어 둔다(게시판은 설정집으로 돌아가면 빈 결과로 알린다)
+ expect(within(screen.getByRole('navigation',{name:'설정 카드 목록'})).queryByRole('button',{name:'바뀐 이름 인물'})).toBeNull()
+ expect(screen.getByRole('region',{name:'선택한 설정 편집'})).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'설정집'}))
+ expect(screen.getByText('조건에 맞는 설정이 없어요.')).toBeTruthy()
 })
 it('opens a requested pair only after preserving or discarding the current draft',async()=>{
  await show(true);fireEvent.click(screen.getByRole('button',{name:'관계 연결 (선택)'}))
@@ -106,6 +112,8 @@ it('preserves the original filtered-out edit after a server save failure',async(
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
  expect((await screen.findByRole('alert')).textContent).toContain('저장 실패')
  fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:''}})
+ expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('저장 실패 후 남길 내용')
+ fireEvent.click(screen.getByRole('button',{name:'설정집'}))
  fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('저장 실패 후 남길 내용')
  expect(world.settings[0].item.text).toBe('')

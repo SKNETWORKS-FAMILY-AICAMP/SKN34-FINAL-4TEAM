@@ -5,11 +5,11 @@ import { boardKindCounts, boardRows, parseBookSort, type BookSort, type CardKind
 import { settingBoardEntries } from './settingBoard'
 import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
 
-type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'selected' | 'setSelected' | 'cardQuery' | 'setCardQuery'>
+type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'cardQuery' | 'setCardQuery'>
 
 /**
- * 설정 카드 단계의 게시판(공개 설정집과 같은 분류 메뉴·검색·정렬·표). 분류·정렬은 이 화면 안의 선택이라 로컬 상태이고,
- * 검색어는 기존 ViewModel의 `cardQuery`(제목·본문·분류·태그·별칭)를 그대로 쓴다. 보이는 줄이 바뀌어 선택한 카드가 빠지면 선택을 비운다.
+ * 설정집 게시판과 편집 화면의 카드 목록 레일이 쓰는 목록(공개 설정집과 같은 분류 메뉴·검색·정렬). 분류·정렬은 쓰는 화면 안의 선택이라 로컬 상태이고,
+ * 검색어는 기존 ViewModel의 `cardQuery`(제목·본문·분류·태그·별칭)를 그대로 써서 게시판과 레일이 같은 검색어를 본다.
  */
 export function useCardBoard(studio: Studio) {
   const [picked, setPicked] = useState<CardKind>()
@@ -23,19 +23,12 @@ export function useCardBoard(studio: Studio) {
     const found = new Set(cardLibraryRows(settings ?? [], 'all', query).map((s) => s.item.id))
     return boardRows(entries.filter((e) => found.has(e.cardId)), { kind: only, sort })
   }
-  // 고른 카드가 보이는 줄에서 빠지면 패널을 닫는다(고르지 않은 카드를 자동으로 열지 않는다).
-  const reselect = (next: { cardId: string }[]) => {
-    if (!next.some((r) => r.cardId === studio.selected)) studio.setSelected('')
-  }
   return {
     counts, total: entries.length, kind, sort,
     rows: rowsFor(kind, studio.cardQuery),
-    /** 필터에 걸리지 않아도 편집 중인 카드를 표 맨 위에 보이려고 한 줄의 원자료를 찾는다. */
-    entry: (id: string) => entries.find((e) => e.cardId === id),
     selectSort: (value: string) => setSort(parseBookSort(value)),
-    pickKind: (next?: CardKind) => { setPicked(next); reselect(rowsFor(next, studio.cardQuery)) },
-    search: (query: string) => { studio.setCardQuery(query); reselect(rowsFor(kind, query)) },
-    /** 새 설정을 더하기 전에 전체·빈 검색으로 돌려 새 카드가 보이게 한다. */
+    pickKind: (next?: CardKind) => setPicked(next),
+    /** 새 설정을 더하기 전에 전체·빈 검색으로 돌려 새 카드가 목록에 보이게 한다. */
     reset: () => { setPicked(undefined); studio.setCardQuery('') },
   }
 }

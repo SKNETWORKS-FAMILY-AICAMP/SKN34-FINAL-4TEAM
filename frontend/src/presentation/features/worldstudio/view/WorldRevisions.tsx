@@ -1,7 +1,7 @@
-import {useWorldRevisions} from '../viewmodel/useWorldRevisions'
+import type {useWorldRevisions} from '../viewmodel/useWorldRevisions'
 import type {useWorldStudioViewModel} from '../viewmodel/useWorldStudioViewModel'
-export function WorldRevisions({studio}:{studio:ReturnType<typeof useWorldStudioViewModel>}){
- const vm=useWorldRevisions(studio.reviewWorldId,studio.tool==='versions',studio.saved,studio.dirty||studio.relationDirty,studio.reload,studio.setReviewBusy)
+/** 확정 버전 시트의 내용. 목록·상세 상태(`revisions`)는 편집 화면의 버전 그래프와 같은 훅 하나를 나눠 쓴다. */
+export function WorldRevisions({studio,revisions:vm}:{studio:ReturnType<typeof useWorldStudioViewModel>;revisions:ReturnType<typeof useWorldRevisions>}){
  if(!vm.supported)return <section><h3>확정 버전</h3><p>목업에서는 확정 버전 생성과 서버 조회를 지원하지 않습니다.</p></section>
  const current=vm.rows.find(r=>r.revisionId===studio.saved?.currentRevisionId)
  return <section className="world-revisions" aria-label="세계관 확정 버전" aria-busy={vm.busy}>

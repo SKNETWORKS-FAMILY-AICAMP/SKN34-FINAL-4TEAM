@@ -17,8 +17,6 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
  return {useWorldStudioViewModel:()=>actual.useWorldStudioViewModel(useCase)}
 })
 vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 카드 대역</div>}))
-vi.mock('../../presentation/features/worldstudio/view/WorldMapCanvas',()=>({default:()=> <div>세계관 지도 대역</div>}))
-vi.mock('../../presentation/features/worldstudio/view/PresentationWorldMapCanvas',()=>({default:()=> <div>전체 지도 대역</div>}))
 beforeEach(()=>{
  const a=newSetting('people');a.item.title='가람';a.item.text='기존 원문';a.tags=['주인공']
  world={id:'qa-writing',name:'작성 검증',description:'세계의 배경',version:1,settings:[a],analysis:null}
@@ -27,7 +25,8 @@ beforeEach(()=>{
 })
 afterEach(()=>{cleanup();vi.restoreAllMocks()})
 const manageTab=(name:string)=>within(screen.getByRole('navigation',{name:'세계관 메뉴'})).getByRole('button',{name})
-const exploreView=(name:string)=>within(screen.getByRole('navigation',{name:'세계관 탐색 보기'})).getByRole('button',{name})
+/** 설정 편집 화면의 상단 '← 설정집'으로 설정집 화면(게시판)에 돌아온다. */
+const backToBoard=()=>fireEvent.click(screen.getByRole('button',{name:'설정집'}))
 const WIZARD='/worldstudio/qa-writing?new=1'
 /** 기본은 탭이 있는 관리 화면이고, 마법사(작성 모드)는 새로 만든 직후의 주소(?new=1)로 연다. */
 async function show(path='/worldstudio/qa-writing'){
@@ -41,6 +40,7 @@ it('uses one step navigation, preserves typed input, and returns from review to 
  fireEvent.click(screen.getByRole('button',{name:'설정 카드'}));fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  fireEvent.change(screen.getByRole('textbox',{name:'설정 이름'}),{target:{value:'가람 수정'}})
  fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'보존할 미저장 원문'}})
+ backToBoard() // 마법사의 단계 이동 줄은 설정집 화면에 있다
  fireEvent.click(screen.getByRole('button',{name:'관계 없이 검토·저장'}))
  const review=screen.getByRole('region',{name:'세계관 검토'})
  expect(review.textContent).toContain('보존할 미저장 원문')
@@ -58,34 +58,40 @@ it('makes add visible and keeps management entries out of the compact type filte
  expect(screen.queryByText('상세 설정 · 선택')).toBeNull() // 행을 고르기 전에는 편집 패널이 없다
  fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  expect(screen.getByText('상세 설정 · 선택').closest('details')?.open).toBe(false)
+ backToBoard()
  fireEvent.click(menu.getByRole('button',{name:'인물 1'}))
  expect(menu.getByRole('button',{name:'인물 1'}).getAttribute('aria-current')).toBe('true')
  fireEvent.click(screen.getByRole('button',{name:'새 설정'}))
- expect(menu.getByRole('button',{name:/^전체/}).getAttribute('aria-current')).toBe('true')
+ fireEvent.click(within(screen.getByRole('menu',{name:'새 설정'})).getByRole('menuitem',{name:'인물'}))
  fireEvent.change(screen.getByRole('textbox',{name:'설정 이름'}),{target:{value:'나래'}})
+ backToBoard()
+ expect(menu.getByRole('button',{name:/^전체/}).getAttribute('aria-current')).toBe('true')
  fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  expect(screen.getByRole<HTMLInputElement>('textbox',{name:'설정 이름'}).value).toBe('가람')
 })
 it('keeps failed edits and AI candidates out of the saved confirmed view',async()=>{
  const candidate=newSetting('people').item;candidate.title='미확정 AI 후보';candidate.text='AI 후보 내용'
  world.analysis={id:'candidate-batch',status:'completed',candidates:[candidate],issues:[]}
- await show();fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ // 저장한 설정만 그리는 화면은 시간선이다: 사건 카드의 설명을 고쳐 저장이 실패해도 시간선은 저장한 원문 그대로여야 한다.
+ const event=newSetting();event.item.kind='event';event.item.category='history';event.item.title='건국';event.item.text='기존 사건 원문';event.item.timeText='1년'
+ world.settings=[...world.settings,event]
+ await show();fireEvent.click(screen.getByRole('button',{name:'건국 사건'}))
  fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'실패해도 남길 내용'}})
  vi.mocked(repository.saveStudio).mockRejectedValueOnce(new Error('저장 충돌'))
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
  expect((await screen.findByRole('alert')).textContent).toContain('저장 충돌')
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('실패해도 남길 내용')
- expect(manageTab('세계관 탐색')).toBeTruthy()
- expect(manageTab('AI 후보 검토')).toBeTruthy()
+ backToBoard()
+ expect(manageTab('시간선')).toBeTruthy()
+ expect(screen.getByRole('button',{name:/^AI 후보 검토/})).toBeTruthy()
  expect(screen.getByRole('button',{name:'집필 메모 추가'})).toBeTruthy()
- fireEvent.click(manageTab('세계관 탐색'))
- fireEvent.click(exploreView('설정집'))
- const confirmed=screen.getByRole('region',{name:'설정집 WIKI'})
- expect(confirmed.textContent).toContain('기존 원문')
+ fireEvent.click(manageTab('시간선'))
+ const confirmed=screen.getByRole('region',{name:'시간선'})
+ expect(confirmed.textContent).toContain('기존 사건 원문')
  expect(confirmed.textContent).not.toContain('실패해도 남길 내용')
  expect(confirmed.textContent).not.toContain('미확정 AI 후보')
  expect(confirmed.textContent).not.toContain('AI 후보 내용')
- expect(world.settings[0].item.text).toBe('기존 원문')
+ expect(world.settings[1].item.text).toBe('기존 사건 원문')
 })
 
 it('keeps the saved graph and invalid relationship draft until a valid target is saved',async()=>{
@@ -94,7 +100,8 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  const before=structuredClone(world),relation=world.settings[3].item
  await show()
  fireEvent.click(screen.getByText('기존 설정·관계 1개'))
- fireEvent.click(within(screen.getByRole('navigation',{name:'기존 설정과 관계'})).getByRole('button',{name:/가람 · 친구 · 나래/}))
+ const legacy=()=>within(screen.getByRole('navigation',{name:'기존 설정과 관계'})).getByRole('button',{name:/가람 · 친구/})
+ fireEvent.click(legacy())
  fireEvent.click(screen.getByText('상세 설정 · 선택'))
  fireEvent.change(screen.getByRole('combobox',{name:'관계 대상'}),{target:{value:''}})
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
@@ -102,10 +109,11 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  expect(screen.getByText('저장 실패 · 입력은 유지됩니다')).toBeTruthy()
  expect(repository.saveStudio).not.toHaveBeenCalled()
  expect(world).toEqual(before)
- fireEvent.click(manageTab('세계관 탐색'))
- fireEvent.click(exploreView('인물 관계도'))
- expect(await screen.findByText('3개 설정 · 1개 연결')).toBeTruthy()
+ backToBoard()
+ fireEvent.click(manageTab('인물 관계도'))
+ expect(within(await screen.findByRole('table',{name:'저장할 관계 목록'})).getAllByRole('row')).toHaveLength(2) // 관계 한 줄은 그대로다(저장하지 않은 잘못된 초안이 저장한 상태를 바꾸지 않는다)
  fireEvent.click(manageTab('설정집'))
+ fireEvent.click(legacy())
  expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 대상'}).value).toBe('')
  fireEvent.change(screen.getByRole('combobox',{name:'관계 대상'}),{target:{value:c.item.id}})
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
@@ -115,26 +123,19 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  expect(world.version).toBe(before.version+1)
 })
 
-it('exposes exploration shortcuts and switches from character cards to the existing 2D graph',async()=>{
+it('exposes the board views and switches between the settings book, the character relations and the timeline',async()=>{
  await show()
- fireEvent.click(manageTab('세계관 탐색'))
- fireEvent.click(exploreView('인물 관계도'))
- expect(screen.getByRole('heading',{name:'인물 관계도 · 2D'})).toBeTruthy()
+ expect(screen.getByRole('table',{name:'설정 카드 목록'})).toBeTruthy()
+ fireEvent.click(manageTab('인물 관계도'))
  expect(await screen.findByText('인물 카드 대역')).toBeTruthy()
- fireEvent.click(screen.getByRole('button',{name:'그래프형'}))
- expect(await screen.findByText('세계관 지도 대역')).toBeTruthy()
- expect(screen.queryByRole('heading',{name:'저장된 현재 관계도'})).toBeNull()
- fireEvent.click(exploreView('설정집'))
- expect(screen.getByRole('region',{name:'설정집 WIKI'})).toBeTruthy()
- fireEvent.click(exploreView('전체 세계관 지도'))
- expect(screen.getByRole('region',{name:'전체 세계관 지도'})).toBeTruthy()
- fireEvent.click(exploreView('초기 역사 시간선'))
+ expect(screen.queryByRole('table',{name:'설정 카드 목록'})).toBeNull()
+ fireEvent.click(manageTab('시간선'))
  expect(screen.getByRole('heading',{name:'저장된 시간선'})).toBeTruthy()
+ expect(screen.queryByRole('heading',{name:'저장된 현재 관계도'})).toBeNull()
  fireEvent.click(manageTab('설정집'))
  expect(screen.getByRole('table',{name:'설정 카드 목록'})).toBeTruthy()
  expect(screen.queryByRole('navigation',{name:'세계관 작성 단계'})).toBeNull() // 관리 모드에는 단계가 없다
 })
-
 
 it('marks exactly one writing step active when switching between cards and relationships',async()=>{
  await show(WIZARD)

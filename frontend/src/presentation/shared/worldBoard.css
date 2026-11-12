@@ -1,5 +1,5 @@
 /*
- * 설정 카드 게시판: 공개 세계관의 설정집 탭(/worlds/:id)과 세계관 작업실의 설정 카드 단계(/worldstudio/:id)가 함께 쓴다.
+ * 설정 카드 게시판: 공개 세계관의 설정집 탭(/worlds/:id)과 세계관 작업실의 설정집 화면(/worldstudio/:id)이 함께 쓴다.
  * 왼쪽 분류 메뉴(.worlds-cats, 링크 또는 버튼)와 오른쪽 검색·정렬 도구(.worlds-board-tools)·게시판 표(.worlds-board-table).
  * 표는 관리자 화면과 같은 전역 table·th·td 스타일(옅은 머리 배경·얇은 선)을 쓰고 열 너비·말줄임·hover만 더한다. 요약은 table-layout: fixed 안에서 한 줄로 줄인다.
  * 색은 읽기 화면 토큰(--t*)을 읽는다. 공개 상세는 .calm이, 세계관 작업실은 .episode-app이 그 토큰을 준다.

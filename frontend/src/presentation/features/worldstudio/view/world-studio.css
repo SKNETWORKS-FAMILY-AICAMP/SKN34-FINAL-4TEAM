@@ -1,7 +1,7 @@
 /* 세계관 작업실: /content 작품 관리와 같은 틀(.episode-app·.ep-*, shared/episode.css) 위에 4단계 작성 화면을 얹는다. */
 html:has(.world-writing){scrollbar-gutter:stable}
 /* .episode-app의 입력·라벨 규칙이 display를 정해 UA의 [hidden]을 이기므로, 단계·도구 전환용 hidden은 여기서 다시 강제한다. */
-.world-writing [hidden]{display:none!important}.world-content,.world-writing-editor,.world-fields{min-width:0}
+.world-writing [hidden]{display:none!important}.world-content,.world-fields{min-width:0}
 .world-studio .ep-alert{white-space:pre-wrap}
 .world-toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.world-toolbar h2{font-size:18px;margin:0;flex:1}
 
@@ -37,21 +37,20 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-step-nav [data-state=done] span{border-color:var(--pri);background:var(--pri-soft);color:var(--pri-ink);font-size:0}.world-step-nav [data-state=done] span::before{content:'✓';font-size:14px}.world-step-nav [data-state=now] span{border-color:var(--pri);background:var(--pri);color:var(--on-pri)}
 .world-step-title{font-size:20px;line-height:1.4;margin:0 0 16px}
 .world-fields{border:0;padding:0}.world-fields>legend.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.world-basic{max-width:880px}.world-fields .field{margin-bottom:18px}
-.world-natural-input{field-sizing:content;min-height:8rem;resize:vertical;line-height:1.8}.world-basic .world-natural-input{min-height:11rem}.world-writing-editor .world-name{font-size:20px;font-weight:600}.world-form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.world-natural-input{field-sizing:content;min-height:8rem;resize:vertical;line-height:1.8}.world-basic .world-natural-input{min-height:11rem}.world-form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .world-step-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:flex-end;margin-top:32px;padding-top:20px;border-top:1px solid var(--line2)}.world-step-actions .btn:first-child{margin-right:auto}
 
 /* 작은 도구줄(검색·정렬·설정 추가·관계 표)에서는 .episode-app의 큰 입력 규칙(패딩·위 여백·폭 100%)을 줄인다. 선택자가 긴 것은 그 규칙의 :not()을 이기려는 것이다.
    라벨이 display를 정하는 컴포넌트는 .episode-app label{display:block}에 밀리므로 다시 정한다. */
 .episode-app .world-compact input:not([type=checkbox]):not([type=radio]),.episode-app .world-compact select{margin-top:0;padding:9px 12px;font-size:13.5px;line-height:1.5}.episode-app .world-compact select{width:auto}
-.episode-app .worlds-sort{display:inline-flex}.episode-app .world-consent,.episode-app .initial-select{display:flex}
+.episode-app .worlds-sort{display:inline-flex}.episode-app .world-consent{display:flex}
 
-/* 설정 카드 단계: 공개 설정집과 같은 게시판(shared/worldBoard.css) | 선택한 설정 편집 패널. 좁은 화면은 표 아래, 800px 이하는 목록과 패널을 번갈아 본다. */
-.world-card-intro{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:20px}.world-card-intro p{margin:0}.world-add{display:flex;gap:8px;align-items:center}.world-add select{max-width:110px}.world-add button{white-space:nowrap}
-.world-card-workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}.world-card-workspace.with-editor{grid-template-columns:minmax(0,1fr) 340px}.world-card-library{min-width:0}
+/* 설정집 화면의 게시판: 공개 설정집과 같은 게시판(shared/worldBoard.css)이 전체 폭을 쓴다. 카드 편집은 이 화면을 대신하는 편집 화면(아래 '편집 화면')이다. */
+.world-card-library{min-width:0}
 .world-card-library .worlds-board-table .col-no{width:48px}.world-card-library .worlds-board-table .col-kind{width:92px}.world-card-library .worlds-board-table .col-num{width:56px}
-.world-card-library .worlds-board-table tbody tr.selected,.world-card-library .worlds-board-table tbody tr.selected:hover{background:var(--pri-soft)}.world-row-note{display:block;margin-top:2px;color:var(--tsub);font-size:12px;font-weight:500}
+
 .world-legacy-list{margin-top:20px}.world-legacy-list>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-legacy-list nav{display:grid;gap:6px;margin-top:8px}.world-legacy-list nav button{display:flex;justify-content:space-between;gap:10px;width:100%;padding:12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-legacy-list small{color:var(--sub);font-size:12px}
-.world-writing-editor{padding:20px;box-shadow:var(--sh)}.world-editor-heading{display:flex;align-items:center;gap:10px;margin-bottom:16px}.world-setting-icon{width:24px;height:24px;flex-shrink:0;color:var(--pri)}.world-editor-heading .world-setting-icon{width:20px;height:20px}.world-relation-link{margin-bottom:8px}.world-mobile-list{display:none}
+.world-relation-link{margin-bottom:8px}
 .world-card-links{margin-block:20px;padding-top:16px;border-top:1px solid var(--tline)}.world-card-links h4{margin:0 0 10px;font-size:14px}.world-card-links ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
 .world-card-link{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-card-link:hover{border-color:var(--pri)}.world-card-link small{flex:none;color:var(--sub)}
 .world-additional{margin-block:16px 24px;padding-top:16px;border-top:1px solid var(--line)}.world-additional>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-additional[open]>summary{margin-bottom:12px}.world-additional p{line-height:1.7;margin-block:8px 16px}.world-consent{display:flex;gap:10px;align-items:flex-start;margin-block:16px}
@@ -63,13 +62,52 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-library-list nav button{padding:16px 18px;border:1px solid var(--line2);border-radius:14px;background:var(--surface);color:inherit;text-align:left;cursor:pointer}.world-library-list nav button:hover:not(:disabled){border-color:var(--pri)}
 .world-library-list strong,.world-library-list small{display:block;overflow-wrap:anywhere}.world-library-list small{margin-top:6px;color:var(--sub);line-height:1.6}
 
-.world-content .libtabs{display:flex;gap:8px;flex-wrap:wrap;margin-block:20px}.world-content .libtabs button{background:none;border:0;border-bottom:2px solid transparent;padding:12px;color:inherit;cursor:pointer}.world-content .libtabs button.on{color:var(--pri);border-color:var(--pri)}.world-confirmed article,.world-candidate{padding-block:20px;border-bottom:1px solid var(--line)}.world-review button:not(.btn){color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer;background:none;border:0}.world-content :focus-visible,.world-library :focus-visible{outline:2px solid var(--pri);outline-offset:3px}
-/* 오른쪽 패널이 있는 넓은 화면에서만 분류 메뉴 폭을 줄인다(720px 이하의 칩 메뉴는 shared/worldBoard.css가 그대로 정한다). */
-@media(min-width:1001px){.world-card-library .worlds-board{grid-template-columns:150px minmax(0,1fr);gap:20px}}
-@media(max-width:1000px){.world-card-workspace.with-editor{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:800px){.world-card-workspace:not(.showing-detail)>.world-writing-editor{display:none}.world-card-workspace.showing-detail>.world-card-library{display:none}.world-mobile-list{display:inline-flex;margin-bottom:16px}.world-form-row{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:500px){.world-toolbar h2{flex:1 1 55%;overflow-wrap:anywhere}.world-step-nav button{padding-right:10px}.world-card-intro{align-items:stretch}.world-add{width:100%}.world-add button{flex:1}.world-step-actions .btn{flex:1 1 auto}.world-step-actions .btn:first-child{margin-right:0}.world-review-item{gap:8px}.world-review-item .btn{padding-inline:10px}}
+.world-review button:not(.btn){color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer;background:none;border:0}.world-content :focus-visible,.world-library :focus-visible{outline:2px solid var(--pri);outline-offset:3px}
 
-.initial-review{max-width:76ch;margin-block:24px}.initial-review p,.initial-review blockquote{overflow-wrap:anywhere}.initial-actions,.initial-candidate-heading{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.initial-candidate-heading{justify-content:space-between}.initial-copy{white-space:pre-wrap}.initial-review details{margin-block:16px}.initial-review summary{cursor:pointer;padding-block:10px}.initial-review fieldset{border:0;padding:0;margin-block:16px}.initial-source-label{font-weight:600}.initial-select{display:flex;align-items:center;gap:12px;min-height:44px}.initial-select input{width:20px;height:20px;accent-color:var(--pri)}.initial-recovery,.initial-apply{padding-block:20px;border-block:1px solid var(--line);margin-block:24px}.world-analysis .btn,.world-revisions .btn{height:auto;min-height:44px;white-space:normal;padding:10px 20px;text-align:center}.initial-review textarea{min-height:140px}.initial-review input,.initial-review textarea,.initial-review select{max-width:100%;box-sizing:border-box}@media(max-width:600px){.initial-actions .btn,.initial-apply .btn{width:100%}.initial-candidate-heading{align-items:flex-start;flex-direction:column}.initial-review blockquote{margin-inline:12px}}
+@media(max-width:800px){.world-form-row{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:500px){.world-toolbar h2{flex:1 1 55%;overflow-wrap:anywhere}.world-step-nav button{padding-right:10px}.world-step-actions .btn{flex:1 1 auto}.world-step-actions .btn:first-child{margin-right:0}.world-review-item{gap:8px}.world-review-item .btn{padding-inline:10px}}
+
+.initial-review{max-width:76ch;margin-block:24px}.initial-review p,.initial-review blockquote{overflow-wrap:anywhere}.initial-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.initial-copy{white-space:pre-wrap}.initial-review details{margin-block:16px}.initial-review summary{cursor:pointer;padding-block:10px}.initial-review fieldset{border:0;padding:0;margin-block:16px}.initial-source-label{font-weight:600}.initial-recovery{padding-block:20px;border-block:1px solid var(--line);margin-block:24px}.world-analysis .btn,.world-revisions .btn{height:auto;min-height:44px;white-space:normal;padding:10px 20px;text-align:center}.initial-review textarea{min-height:140px}.initial-review input,.initial-review textarea,.initial-review select{max-width:100%;box-sizing:border-box}@media(max-width:600px){.initial-actions .btn,.initial-apply-bar .btn{width:100%}.initial-review blockquote{margin-inline:12px}}
 
 .world-revisions{max-width:76ch;margin-block:24px;overflow-wrap:anywhere}.world-revisions ul{list-style:none;padding:0}.world-revisions li{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-block:12px}.world-revisions time{font-size:.875rem}@media(max-width:600px){.world-revisions li{align-items:stretch;flex-direction:column}.world-revisions .initial-actions button{width:100%}}
+
+/* 설정집 화면은 편집 화면이 열려 있는 동안 지우지 않고 숨긴다(.episode-app.with-chat의 display가 hidden을 이기지 않게). 보기 전환 줄 오른쪽: AI 후보 검토 버튼 + 저장 영역. */
+.episode-app[hidden]{display:none}
+.world-tabs-end{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 16px;margin-left:auto;padding-bottom:8px}.world-tabs-end .world-save-bar{margin-left:0;padding-bottom:0}
+.world-delete-notice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 16px;padding:10px 14px;border:1px solid var(--tline);border-radius:12px;background:var(--pri-soft);color:var(--pri-ink);font-size:13.5px}.world-delete-notice span{flex:1 1 220px}
+/* '+ 새 설정'(유형을 고르는 PopMenu): 게시판 도구줄에서는 채운 알약 글자 버튼, 편집 화면 레일 머리에서는 집필실 '새 회차'와 같은 아이콘 버튼. */
+.world-new-menu .pop-menu-btn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border:1px solid var(--pri);border-radius:999px;background:var(--pri);color:var(--on-pri);font-size:13.5px;font-weight:700;white-space:nowrap}
+.world-new-menu .pop-menu-btn:hover{background:var(--pri-d)}.world-new-menu .pop-menu-list{top:calc(100% + 6px);right:0;left:auto}
+.world-rail-new .pop-menu-btn{width:36px;height:36px;border-radius:50%;color:var(--tsub)}.world-rail-new .pop-menu-btn:hover,.world-rail-new .pop-menu-btn[aria-expanded="true"]{background:var(--muted-bg);color:var(--tfg)}.world-rail-new .pop-menu-list{top:calc(100% + 4px);right:0}
+
+/* 편집 화면: 집필실(studio/view/writing.css)의 3단·레일·버전 그래프·AI 채팅 규칙을 그대로 쓰고, 세계관에만 있는 조각만 더한다. 토큰은 .calm.rd가 준다. */
+.world-card-studio .world-save-bar{margin-left:0;padding-bottom:0}
+.world-rail-tools{display:grid;gap:8px;padding-inline:24px 12px}.world-rail-tools input{width:100%;box-sizing:border-box;padding:8px 12px;font-size:13.5px}
+.world-rail-kinds{display:flex;flex-wrap:wrap;gap:6px}.world-rail-kinds button{min-height:32px;padding:0 10px;border:1px solid var(--tline);border-radius:999px;background:none;color:var(--tsub);font-size:12.5px;font-weight:700}
+.world-rail-kinds button:hover{background:var(--muted-bg);color:var(--tfg)}.world-rail-kinds button[aria-pressed=true]{border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
+.world-rail-empty{padding:8px 12px}
+.world-graph-actions{padding-inline:24px}.world-graph-note{margin:0;padding-inline:24px;line-height:1.6}
+.world-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:12px}.world-card-meta img{border-radius:12px;object-fit:cover}
+.world-card-meta .world-type{display:flex;align-items:center;gap:8px;margin:0;color:var(--tsub);font-size:13px}.world-card-meta .world-type select{width:auto;padding:6px 10px}
+/* 설명: 집필실 본문처럼 테두리 없는 큰 입력. 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. */
+.world-card-body{display:block;box-sizing:border-box;width:100%;min-height:240px;field-sizing:content;padding:8px 0 24px;border:0;background:none;color:var(--tfg);font:inherit;font-size:16px;line-height:1.8;resize:none;overflow-wrap:anywhere;caret-color:var(--tacc)}
+.world-card-body::placeholder{color:var(--tsub);opacity:1}.world-card-body::selection{background:var(--pri-soft);color:var(--pri-ink)}.world-card-body:focus-visible{outline:2px solid var(--tacc);outline-offset:4px;border-radius:4px}
+/* 전역 .btn은 윤곽선이 옅어 삭제를 구분하지 못한다: 위험 버튼은 위험색 윤곽선(집필실 위험 영역과 같은 모양). */
+.world-danger{border-color:color-mix(in srgb,var(--danger) 45%,var(--line2));background:var(--surface);color:var(--danger)}.world-danger:hover:not(:disabled){background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
+.world-delete-confirm{margin-block:16px;padding:16px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface))}.world-delete-confirm h4{margin:0 0 8px;font-size:15px}.world-delete-confirm p{margin:0 0 8px}.world-delete-confirm ul{margin:8px 0;padding-left:20px}.world-delete-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.world-delete-confirm .relationship-remove{margin-top:0}
+@media(max-width:600px){.world-rail-kinds button{min-height:44px}.world-rail-new .pop-menu-btn{width:44px;height:44px}}
+
+/* 시트(확정 버전·AI 후보 검토): 시트는 body에 그려져 .calm·.episode-app 밖이므로 전역 토큰(--line·--ink)을 쓴다. */
+.world-sheet{width:min(720px,100%)}.world-sheet-head{display:flex;justify-content:flex-end}.world-sheet .initial-review,.world-sheet .world-revisions{max-width:none;margin-block:0}
+/* AI 후보 검토: 상태 필터 칩 + 다시 요청 / 승인한 후보 반영 고정 바 / 후보 카드 목록 */
+.initial-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin-block:16px 12px}
+.initial-filters,.initial-top-actions{display:flex;flex-wrap:wrap;gap:8px}
+.initial-filters button{min-height:44px;padding:0 16px;border:1px solid var(--line2);border-radius:999px;background:var(--surface);color:var(--sub);font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.initial-filters button:hover{background:var(--muted-bg)}.initial-filters button[aria-pressed=true]{border-color:var(--pri);background:var(--pri-soft);color:var(--pri-ink)}
+.initial-apply-bar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-block:12px;padding:12px 16px;border:1px solid var(--pri);border-radius:14px;background:var(--surface);box-shadow:var(--sh)}.initial-apply-bar p{flex:1 1 220px;margin:0}
+.initial-cards{display:grid;gap:12px}
+.initial-card{display:grid;gap:8px;padding:16px;border:1px solid var(--line2);border-radius:16px;background:var(--surface)}.initial-card p{margin:0}.initial-card details{margin-block:0}
+.initial-card h4,.initial-card h5{margin:0;font-size:16px;line-height:1.5;overflow-wrap:anywhere}.initial-card-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.initial-clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.initial-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}.initial-hold{border-color:transparent;background:none;color:var(--sub)}.initial-edit{margin-top:4px;padding-top:12px;border-top:1px solid var(--line)}
+.initial-empty{display:grid;justify-items:start;gap:10px;padding-block:20px}.initial-empty p,.initial-done{margin:0}.initial-done{padding:20px 4px}

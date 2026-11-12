@@ -23,10 +23,10 @@ describe('설정 카드 게시판(공개 설정집·세계관 설정집 탭 공�
 })
 
 describe('세계관 작업실 레이아웃 규칙', () => {
-  it('설정집은 편집 패널이 없으면 한 칸(표가 전체 폭)이고 패널이 열릴 때만 오른쪽 칸을 더하며 좁은 화면에서는 아래로 쌓는다', () => {
-    expect(rule(studio, '.world-card-workspace')).toMatch(/grid-template-columns:\s*minmax\(0,1fr\)(?![^;]*340px)/)
-    expect(rule(studio, '.world-card-workspace.with-editor')).toMatch(/grid-template-columns:\s*minmax\(0,1fr\)\s+340px/)
-    expect(studio).toMatch(/@media\(max-width:1000px\)\{[^@]*\.world-card-workspace\.with-editor\{grid-template-columns:minmax\(0,1fr\)\}/)
+  it('설정집 게시판은 오른쪽 편집 패널 없이 한 칸이라 공개 설정집과 같은 분류 메뉴 폭을 쓰고, 편집 화면이 열려 있는 동안 설정집 화면은 숨는다', () => {
+    expect(studio).not.toMatch(/world-card-workspace|with-editor|showing-detail|world-mobile-list/)
+    expect(studio).not.toMatch(/\.world-card-library \.worlds-board\{[^}]*150px/)
+    expect(rule(studio, '.episode-app[hidden]')).toMatch(/display:\s*none/)
   })
 
   it('AI 채팅은 본문 | 채팅 2열(채팅 350px 고정)이고 상단바 아래에 붙어 화면 높이를 쓰며 좁은 화면에서는 오른쪽 서랍이 된다', () => {

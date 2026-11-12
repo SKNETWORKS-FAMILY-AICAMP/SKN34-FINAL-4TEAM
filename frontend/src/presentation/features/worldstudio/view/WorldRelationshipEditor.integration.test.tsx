@@ -12,7 +12,7 @@ import { InMemoryWorldStudioRepository } from '../../../../data/world-studio/InM
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { newSetting } from '../../../../domain/entities/studioWorld'
 const { useWorldStudioViewModel } = studioViewModel
-/** 관리 모드의 탭 줄(설정집·인물 관계도·세계관 탐색·AI 후보 검토·확정 버전)에서 탭 버튼을 찾는다. */
+/** 관리 모드 설정집 화면의 보기 전환 줄(설정집·인물 관계도·시간선)에서 버튼을 찾는다. */
 const manageTab = (name: string) => within(screen.getByRole('navigation', { name: '세계관 메뉴' })).getByRole('button', { name })
 afterEach(() => {
   cleanup()
@@ -250,6 +250,7 @@ it.each(['text', 'title', 'name'] as const)(
         ? { title: '설정 탭의 최신 이름' }
         : { title: '가람 수정 · 친구 · 나래', text: '가람 수정 · 친구 · 나래' }),
     })
+    fireEvent.click(screen.getByRole('button', { name: '설정집' })) // 설정 편집 화면을 닫고 설정집 화면으로
     fireEvent.click(manageTab('인물 관계도'))
     expect(screen.getByRole('combobox', { name: '실제 관계 1' })).toBe(fact)
     expect(

@@ -1,21 +1,21 @@
-import { cardLibraryRows, selectCardForFilter, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
-import { initialWorldStudioFlow, type ManageTab, NEW_WORLD_QUERY, parseManageTab, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
+import { cardLibraryRows, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
+import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from './useWorldCoverImage'
 import { worldStudioStorage } from './worldStudioStorage'
 import {
   applyRelationChanges,
   assertNoNewRelationDuplicates,
+  cardDeletionInfo,
   editStudioSetting,
-  personDeletionInfo,
   type RelationInput,
-  removePerson,
+  removeCard,
 } from '../../../../domain/entities/studioRelations'
-import { areaPatch, type CardType, cardTypePatch } from '../../../../domain/entities/studioCards'
+import { areaPatch, type CardType, cardTypeOf, cardTypePatch } from '../../../../domain/entities/studioCards'
 import { useContext, useEffect, useReducer, useRef, useState } from 'react'
 import { RestoreContext } from '../../../shared/session/restoreContext'
 import { WorldStudioLeaveContext } from './worldStudioLeaveGuard'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import {
   newSetting,
@@ -26,32 +26,56 @@ import {
 } from '../../../../domain/entities/studioWorld'
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 
+/** 편집 화면을 게시판에서 들어와 연 기록인지(그 앞 기록이 게시판이라 '← 설정집'이 한 걸음 뒤로 가면 된다). */
+const cameFromBoard = (state: unknown) => typeof state === 'object' && state !== null && 'fromList' in state && state.fromList === true
+
 export function useWorldStudioViewModel(
   useCase: WorldStudioUseCase = appContainer.resolve('worldStudioUseCase'),
 ) {
   const { worldId = '' } = useParams()
   const restoring = useContext(RestoreContext)
   const navigate = useNavigate()
+  const location = useLocation()
   const leaveGuard = useContext(WorldStudioLeaveContext)
   const [flow, dispatchFlow] = useReducer(worldStudioFlow, initialWorldStudioFlow)
   const [params, setParams] = useSearchParams()
   const mode = studioMode(params)
-  const tab = parseManageTab(params.get('tab'))
-  // 탭·마법사 표시는 주소의 쿼리라 새로고침해도 유지되고, 바꿀 때는 기록을 쌓지 않는다(같은 화면 이동이라 이탈 확인도 하지 않는다).
-  const editParams = (change: (next: URLSearchParams) => void) => setParams((current) => {
+  const view = parseManageView(params.get('view'))
+  const cardParam = params.get('card') ?? ''
+  const legacyTab = params.get('tab')
+  // 보기·마법사 표시·편집 중인 카드는 주소의 쿼리라 새로고침해도 유지되고, 바꿀 때는 기본으로 기록을 쌓지 않는다(같은 화면 이동이라 이탈 확인도 하지 않는다).
+  // setSearchParams는 같은 틱에 두 번 부르면 뒤 호출이 앞 호출을 덮으므로, 주소를 바꾸는 동작은 한 번의 호출로 묶는다.
+  const editParams = (change: (next: URLSearchParams) => void, replace = true, state: unknown = location.state) => setParams((current) => {
     const next = new URLSearchParams(current)
     change(next)
     return next
-  }, { replace: true })
-  const setTab = (next: ManageTab) => { if (next !== tab) editParams((query) => query.set('tab', next)) }
+  }, { replace, state })
   const leaveWizard = () => editParams((query) => query.delete(NEW_WORLD_QUERY))
-  // 설정집·인물 관계도 탭은 설정 카드·관계 화면(작성)이고 나머지는 각자 도구다. 작성 모드는 탭이 없어 늘 작성이다.
-  const tool = mode === 'manage' && tab !== 'book' && tab !== 'people' ? tab : 'write'
-  const [explore, setExplore] = useState('map')
+  /** 설정집 화면의 보기를 바꾼다. 편집 화면이 열려 있으면 함께 닫는다. */
+  const setView = (next: ManageView) => {
+    if (next === view && !selected) return
+    editParams((query) => {
+      query.delete('card')
+      if (next === 'book') query.delete('view')
+      else query.set('view', next)
+    })
+  }
+  const [reviewOpen, setReviewOpen] = useState(false) // AI 후보 검토 시트
+  // 옛 주소의 ?tab=은 그 탭을 대신한 보기·시트로 옮긴다(AI 후보 검토는 시트, 확정 버전·세계관 탐색은 설정집).
+  useEffect(() => {
+    const target = legacyTabTarget(legacyTab)
+    if (!target) return
+    setParams((current) => {
+      const next = new URLSearchParams(current)
+      next.delete('tab')
+      if (target.view === 'book') next.delete('view')
+      else next.set('view', target.view)
+      return next
+    }, { replace: true })
+    if (target.review) setReviewOpen(true)
+  }, [legacyTab, setParams])
   const [cardFilter, setCardFilter] = useState<CardType | 'all'>('all')
   const [cardQuery, setCardQuery] = useState('')
-  const [newCardType, setNewCardType] = useState<CardType>('character')
-  const [cardDetail, setCardDetail] = useState(false)
   const [relationWorld, setRelationWorld] = useState('')
   const [relationRequest, setRelationRequest] = useState<{ id: string; seq: number } | null>(null)
   const [relationKey, setRelationKey] = useState(0)
@@ -60,10 +84,12 @@ export function useWorldStudioViewModel(
   const [worlds, setWorlds] = useState<StudioWorld[]>([])
   const [saved, setSaved] = useState<StudioWorld | null>(null)
   const [editing, setEditing] = useState<StudioWorld | null>(null)
-  const [personUndo, setPersonUndo] = useState<
+  const [cardUndo, setCardUndo] = useState<
     {
       worldId: string
       id: string
+      title: string
+      person: boolean
       before: StudioSetting[]
       after: StudioSetting[]
       wasDirty: boolean
@@ -71,7 +97,8 @@ export function useWorldStudioViewModel(
   >(null)
   const [dirty, setDirty] = useState(false)
   const [relationDirty, setRelationDirty] = useState(false)
-  const [selected, setSelected] = useState('')
+  // 편집 중인 카드는 주소의 card이고, 초안에 없는 카드(새로고침으로 사라진 미저장 카드·지운 카드)면 없는 것으로 본다.
+  const selected = editing?.settings.some((row) => row.item.id === cardParam) ? cardParam : ''
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(restoring)
@@ -92,40 +119,40 @@ export function useWorldStudioViewModel(
     dispatchFlow({ type: 'world', id: editingId })
     setCardFilter('all')
     setCardQuery('')
-    setCardDetail(false)
     setRelationWorld('')
     setRelationRequest(null)
     returnCard.current = ''
   }, [editingId])
-  // 주소만으로 인물 관계도 탭을 열어도(새로고침·공유) 관계 편집기가 마운트되게 한다. 한 번 열린 편집기는 탭을 옮겨도 남아 적용하지 않은 입력을 지키지 않는다.
+  // 주소만으로 인물 관계도 보기를 열어도(새로고침·공유) 관계 편집기가 마운트되게 한다. 한 번 열린 편집기는 보기를 옮겨도 남아 적용하지 않은 입력을 지킨다.
   useEffect(() => {
-    if (mode === 'manage' && tab === 'people' && editingId) setRelationWorld(editingId)
-  }, [mode, tab, editingId])
-  /** 작성 모드는 단계를 옮기고, 관리 모드는 그 단계에 해당하는 탭(설정 카드 → 설정집, 관계 연결 → 인물 관계도)으로 옮긴다. */
+    if (mode === 'manage' && view === 'people' && editingId) setRelationWorld(editingId)
+  }, [mode, view, editingId])
+  /** 작성 모드는 단계를 옮기고, 관리 모드는 그 단계에 해당하는 보기(설정 카드 → 설정집, 관계 연결 → 인물 관계도)로 옮긴다. 열려 있던 편집 화면은 닫는다. */
   const goStep = (step: StudioStep) => {
     dispatchFlow({ type: 'step', step })
     if (step === 'relations' && editing) setRelationWorld(editing.id)
-    if (mode === 'manage') setTab(step === 'relations' ? 'people' : 'book')
+    if (mode === 'manage') setView(step === 'relations' ? 'people' : 'book')
+    else if (selected) editParams((query) => query.delete('card'))
   }
+  /** 설정 카드의 편집 화면을 연다. 게시판에서 들어올 때는 기록을 쌓아 뒤로가기·'← 설정집'이 게시판으로 돌아오게 하고, 편집 화면 안에서 다른 카드로 옮길 때는 같은 기록을 바꾼다. */
   const editCard = (id: string) => {
     const row = editing?.settings.find((item) => item.item.id === id)
     if (row && cardLibraryRows([row], 'all', '').length && !cardLibraryRows([row], cardFilter, cardQuery).length) {
       setCardFilter('all')
       setCardQuery('')
     }
-    setSelected(id)
-    setCardDetail(true)
-    goStep('cards')
+    dispatchFlow({ type: 'step', step: 'cards' })
+    editParams((query) => query.set('card', id), !!selected, selected ? location.state : { fromList: true })
   }
-  const filterCards = (type: CardType | 'all', query: string) => {
-    setCardFilter(type)
-    setCardQuery(query)
-    setSelected(selectCardForFilter(editing?.settings ?? [], selected, type, query))
+  /** 편집 화면을 닫고 설정집 화면으로 돌아온다. 게시판에서 들어왔으면 한 걸음 뒤로(기록이 쌓이지 않는다), 주소로 바로 들어왔으면 주소만 바꾼다. */
+  const closeCard = () => {
+    if (selected && cameFromBoard(location.state)) navigate(-1)
+    else editParams((query) => query.delete('card'))
   }
   const generation = useRef(0)
   const mutation = useRef<AbortController | null>(null)
   const install = (w: StudioWorld) => {
-    setPersonUndo(null)
+    setCardUndo(null)
     setSaved(w)
     setEditing(structuredClone(w))
     setSaveState('idle')
@@ -136,7 +163,7 @@ export function useWorldStudioViewModel(
     if (restoring) return
     const controller = new AbortController()
     const current = ++generation.current
-    setPersonUndo(null)
+    setCardUndo(null)
     setSaved(null)
     setEditing(null)
     setDirty(false)
@@ -196,7 +223,7 @@ export function useWorldStudioViewModel(
     if (generation.current === current) install(w)
   }
   const patch = (p: Partial<StudioWorld>) => {
-    setPersonUndo(null)
+    setCardUndo(null)
     setEditing((w) => w ? { ...w, ...p } : null)
     setDirty(true)
     setMessage('')
@@ -243,36 +270,33 @@ export function useWorldStudioViewModel(
     setReviewBusy,
     reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했습니다.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setRelationKey(v=>v+1);return w},
     storage: worldStudioStorage(import.meta.env.MODE),
-    canUndoPersonDeletion: !!personUndo,
+    canUndoCardDeletion: !!cardUndo,
+    /** 방금 지운 카드(되돌릴 수 있는 동안). 이름·인물 여부로 되돌리기 안내를 만든다. */
+    deletedCard: cardUndo ? { id: cardUndo.id, title: cardUndo.title, person: cardUndo.person } : null,
     flow,
-    tool,
-    /** 관리 모드의 탭(주소 `?tab=`). 작성 모드는 탭이 없다. */
-    tab,
-    setTab,
+    /** 설정집 화면(게시판)의 보기(주소 `?view=`): 설정집·인물 관계도·시간선. 작성 모드는 보기가 없다. */
+    view,
+    setView,
+    /** AI 후보 검토 시트가 열려 있는지(옛 `?tab=analysis` 주소도 이걸 연다). */
+    reviewOpen,
+    setReviewOpen,
     /** 작성 모드(마법사)를 나가 관리 모드로 간다(주소의 `new` 쿼리를 지운다). 입력은 그대로 남는다. */
     leaveWizard,
     canSave,
-    explore,
-    setExplore,
     cardFilter,
     setCardFilter,
     cardQuery,
     setCardQuery,
-    filterCards,
-    newCardType,
-    setNewCardType,
-    cardDetail,
-    setCardDetail,
     relationWorld,
     relationKey,
     relationRequest,
     goStep,
     editCard,
+    closeCard,
     saveState,
     resume: () => dispatchFlow({ type: 'resume' }),
     openRelations: (id: string) => {
       returnCard.current = id
-      setSelected(id)
       goStep('relations')
     },
     editRelation: (id: string) => {
@@ -280,9 +304,8 @@ export function useWorldStudioViewModel(
       goStep('relations')
     },
     returnToCard: () => {
-      if (returnCard.current) setSelected(returnCard.current)
-      setCardDetail(true)
-      goStep('cards')
+      if (returnCard.current) editCard(returnCard.current)
+      else goStep('cards')
     },
     cardRows: cardLibraryRows(editing?.settings ?? [], cardFilter, cardQuery),
     writingIssues,
@@ -295,8 +318,8 @@ export function useWorldStudioViewModel(
     confirmRelationDiscard: () => leaveGuard
       ? leaveGuard.confirmRelationDiscard()
       : !relationDirty || window.confirm('적용하지 않은 관계 입력을 버릴까요?'),
+    /** 편집 화면에서 보고 있는 카드의 id(없으면 설정집 화면). 주소의 `?card=`에서 정한다. */
     selected,
-    setSelected,
     error,
     message,
     busy:busy||reviewBusy,
@@ -339,40 +362,42 @@ export function useWorldStudioViewModel(
     patch,
     applyRelations: (changes: RelationInput[], removed: string[]) =>
       !!changeRelations((settings) => applyRelationChanges(settings, changes, removed, saved?.settings ?? settings)),
-    personDeletionInfo: (id: string) => personDeletionInfo(editing?.settings ?? [], id),
-    deletePerson: (id: string) => {
+    /** 설정 카드(유형 무관) 하나를 지울 때 함께 사라질 관계와 지우지 못하게 막는 설정을 미리 본다. */
+    cardDeletionInfo: (id: string) => cardDeletionInfo(editing?.settings ?? [], id),
+    /** 설정 카드를 이어진 관계와 함께 초안에서 지운다(저장해야 서버에 반영). 지운 카드가 편집 화면에 열려 있으면 설정집으로 돌아가고, 되돌릴 수 있다. 지웠을 때만 true다. */
+    deleteCard: (id: string) => {
       if (!editing) return false
       const before = editing.settings
-      const after = changeRelations((settings) => removePerson(settings, id))
-      if (!after) return false
-      setPersonUndo({ worldId: editing.id, id, before, after, wasDirty: dirty })
+      const card = before.find((row) => row.item.id === id)
+      const after = changeRelations((settings) => removeCard(settings, id))
+      if (!after || !card) return false
+      setCardUndo({ worldId: editing.id, id, title: card.item.title, person: cardTypeOf(card.item) === 'character', before, after, wasDirty: dirty })
+      if (selected === id) closeCard()
       return true
     },
-    undoPersonDeletion: () => {
+    undoCardDeletion: () => {
       if (
-        !editing || !personUndo || busy || editing.id !== personUndo.worldId ||
-        editing.settings !== personUndo.after
+        !editing || !cardUndo || busy || editing.id !== cardUndo.worldId ||
+        editing.settings !== cardUndo.after
       ) return
-      const id = personUndo.id
-      patch({ settings: personUndo.before })
-      setDirty(personUndo.wasDirty)
-      setSelected(id)
+      const id = cardUndo.id
+      patch({ settings: cardUndo.before })
+      setDirty(cardUndo.wasDirty)
       return id
     },
+    /** 초안에 카드를 더하고 그 id를 돌려준다. 편집 화면은 부르는 쪽이 `editCard`로 연다. */
     addCard: (type: CardType | 'note') => {
       if (!editing || busy) return
       const s = newSetting()
       if (type === 'note') s.item.kind = 'note'
       else Object.assign(s.item, cardTypePatch(s.item, type, []))
       patch({ settings: [...editing.settings, s] })
-      setSelected(s.item.id)
       return s.item.id
     },
     changeCardType: (id: string, type: CardType) => {
       if (!editing || busy) return
       const row = editing.settings.find((s) => s.item.id === id)
       if (!row) return
-      setSelected(id)
       try {
         const change = cardTypePatch(row.item, type, editing.settings)
         if (Object.keys(change).length) {

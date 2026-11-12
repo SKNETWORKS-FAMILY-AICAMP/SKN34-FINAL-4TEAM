@@ -5,7 +5,7 @@ import { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import './world-map.css'
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PersonDeletionConfirm } from './PersonDeletionConfirm'
+import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { RelationPairEditor } from './RelationPairEditor'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
@@ -49,7 +49,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const validDeletion = !!deleteConfirm && people.some((s) =>
     s.item.id === deleteConfirm && s.item.kind === 'entity' && s.item.entityType === 'character'
   )
-  const deletion = deleteConfirm && validDeletion ? studio.personDeletionInfo(deleteConfirm) : null
+  const deletion = deleteConfirm && validDeletion ? studio.cardDeletionInfo(deleteConfirm) : null
   useEffect(() => { if (deleteConfirm && !validDeletion) setDeleteConfirm(null) }, [deleteConfirm, validDeletion])
   const selectPair = useCallback((nextSource: string, nextTarget: string, nextOpen: boolean) => {
     // 열린 패널과 같은 두 인물(방향 무관)을 다시 고르면 작성 중인 초안을 그대로 둔다.
@@ -159,13 +159,13 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 >
                   선택한 인물 삭제
                 </button>
-                {studio.canUndoPersonDeletion && (
+                {studio.deletedCard?.person && (
                   <button
                     className='btn'
                     type='button'
                     onClick={() => {
                       if (open && !studio.confirmRelationDiscard()) return
-                      const id = studio.undoPersonDeletion()
+                      const id = studio.undoCardDeletion()
                       if (id) { setSource(id); setOpen(false); setChoosing(false) }
                     }}
                   >
@@ -177,11 +177,11 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 <p>설정 카드에서 설정 두 개을 먼저 추가하세요. 관계 없이도 저장할 수 있습니다.</p>
               )}
               {deletion && (
-                <PersonDeletionConfirm
+                <CardDeletionConfirm
                   deletion={deletion}
                   onDelete={() => {
                     if (open && !studio.confirmRelationDiscard()) return
-                    if (studio.deletePerson(deletion.person.item.id)) {
+                    if (studio.deleteCard(deletion.card.item.id)) {
                       setDeleteConfirm(null)
                       setSource('')
                       setTarget('')

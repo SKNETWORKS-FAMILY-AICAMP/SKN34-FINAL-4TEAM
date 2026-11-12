@@ -1,13 +1,13 @@
 import type { CardType } from '../../domain/entities/studioCards'
 
 /*
- * 설정 카드 게시판(공개 세계관 `/worlds/:id`의 설정집 탭과 내 세계관 `/worldstudio`의 설정 카드 단계)이 함께 쓰는 순수 규칙:
+ * 설정 카드 게시판(공개 세계관 `/worlds/:id`의 설정집 탭과 내 세계관 `/worldstudio`의 설정집 화면·편집 화면 레일)이 함께 쓰는 순수 규칙:
  * 카드 유형 묶음·색, 정렬 기준, 필터·정렬·번호 매기기. 두 화면은 데이터(데모 세계관 / 편집 중인 설정)를 `BoardEntry`로 바꿔 넘기기만 한다.
  */
 
 /**
- * 설정 카드 점의 색. WorldStudio 전체 세계관 지도(`presentationMapColors`)의 같은 유형 색이다(feature끼리 ViewModel을 참조하지 않아 값을 옮겨 적었다).
- * 능력·사물·기타 묶음은 그 지도가 '설정'이라 부르지만 카드 유형 라벨(`cardTypes`)에는 '기타'뿐이라 범례·그래프·설정집은 '기타'로 통일했다.
+ * 설정 카드 점의 색(예전 WorldStudio 전체 세계관 지도의 유형 색에서 옮겨 왔다).
+ * 능력·사물·기타 묶음은 그 지도가 '설정'이라 불렀지만 카드 유형 라벨(`cardTypes`)에는 '기타'뿐이라 범례·그래프·설정집은 '기타'로 통일했다.
  */
 export const CARD_COLORS = { 인물: '#67caff', 장소: '#6ce3cb', 조직: '#ffca83', 규칙: '#c0abff', 사건: '#f0a0cf', 기타: '#a5b8d8' } as const
 export type CardKind = keyof typeof CARD_COLORS

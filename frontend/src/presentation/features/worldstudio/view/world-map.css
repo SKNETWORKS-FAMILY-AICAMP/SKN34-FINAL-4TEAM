@@ -1,19 +1,9 @@
-.world-map-intro{margin:20px 0}.world-map-intro p{color:var(--sub);font-size:13px;margin-top:6px}
-.world-map-layout{display:grid;grid-template-columns:200px minmax(0,1fr) 250px;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
-.world-map-search,.world-map-detail{padding:18px;min-width:0}.world-map-search{border-right:1px solid var(--line)}.world-map-detail{border-left:1px solid var(--line)}
-.world-map-search .field{margin-block:16px}.world-map-search input{width:100%}.world-map-search nav{max-height:390px;overflow:auto;margin-top:12px}
-.world-map-search nav button{display:flex;align-items:center;gap:8px;width:100%;padding:10px 6px;text-align:left;border:0;background:none;color:var(--ink);border-radius:6px;overflow-wrap:anywhere}
-.world-map-search nav button[aria-pressed=true]{background:var(--pri-soft);color:var(--pri-ink)}.world-map-search nav small{margin-left:auto;color:var(--sub)}
-.world-map i{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.world-map-filters{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}.world-map-filters button{padding:5px 8px;border:1px solid var(--line2);border-radius:6px;background:var(--surface);color:var(--ink);font-size:12px}.world-map-filters button[aria-pressed=true]{background:var(--pri-soft);color:var(--pri-ink);border-color:var(--pri)}
-.world-map-center{min-width:0;padding:16px 0}.world-map-center>p{padding-inline:16px;margin:6px 0}.world-map-canvas{height:460px;overflow:hidden}.world-map-canvas canvas{display:block}
-.world-map-controls,.world-map-legend{display:flex;flex-wrap:wrap;gap:7px;padding:12px 16px;border-top:1px solid var(--line)}.world-map-legend{gap:12px;font-size:12px;color:var(--sub)}.world-map-legend span{display:flex;align-items:center;gap:5px}
-.world-map-detail h4{margin:0 0 18px}.world-map-detail h3{margin:14px 0}.world-map-detail p{margin:12px 0;overflow-wrap:anywhere}.world-map-detail-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.world-map-detail h4:not(:first-child){margin-top:24px}
 
-.world-map-connection{display:flex;justify-content:space-between;gap:8px;width:100%;padding:10px;margin-bottom:8px;border:1px solid var(--line2);border-radius:7px;background:var(--surface);color:var(--ink);text-align:left;overflow-wrap:anywhere}.world-map-connection small{color:var(--sub)}
-.world-map button:hover{filter:brightness(.96)}.world-map-empty{padding:30px 20px;color:var(--sub)}
-@media(max-width:1250px){.world-map-layout{grid-template-columns:180px minmax(0,1fr)}.world-map-detail{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
-@media(max-width:760px){.world-map-layout{display:flex;flex-direction:column}.world-map-search{border-right:0;border-bottom:1px solid var(--line)}.world-map-search nav{max-height:150px}.world-map-controls .btn{font-size:12px;padding-inline:10px}.world-map-canvas{touch-action:none}}
+
+.world-map i{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.world-map button:hover{filter:brightness(.96)}
+
 /*
  * 관계 연결 단계: 왼쪽은 공개 인물관계도와 같은 어두운 면(라이트·다크 모두 고정 색, 홈 지도와 같은 그라데이션)에 인물·설정 카드 그래프·범례를 올리고, 오른쪽은 관계 추가·목록 카드다.
  * 카드·간선 색은 --rc-*·--edge* 토큰으로 읽고 기본값은 밝은 화면 색이라, 같은 CharacterCards를 쓰는 읽기 전용 인물 관계도(탐색 도구)는 그대로다.
@@ -39,15 +29,6 @@
 .relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:11px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
 @media(max-width:600px){.relationship-cards-scroll{height:440px}.relationship-character-card{border-radius:10px}}
 
-.presentation-world-map .world-map-layout{grid-template-columns:180px minmax(0,1fr)}
-.presentation-world-map .world-map-detail{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}
-.presentation-world-map .world-map-canvas{height:560px;background:radial-gradient(ellipse at 50% 48%,#182742 0%,#0b1324 56%,#080e1b 100%)}
-.presentation-world-map .world-map-intro .btn{margin-top:12px}
-.world-map-expanded{position:fixed;inset:0;z-index:100;background:var(--surface);overflow:auto;padding:24px}
-.world-map-expanded .world-map-layout{grid-template-columns:190px minmax(0,1fr) 280px}
-.world-map-expanded .world-map-detail{grid-column:auto;border-top:0;border-left:1px solid var(--line)}
-@media(max-width:900px){.world-map-expanded{padding:12px}.world-map-expanded .world-map-layout{grid-template-columns:150px minmax(0,1fr)}.world-map-expanded .world-map-detail{grid-column:1/-1}}
-
 .relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
 .relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface);box-shadow:var(--sh)}
 .relationship-service-form>*+*{margin-top:24px;padding-top:24px;border-top:1px solid var(--line2)}.relationship-service-form h4{margin:0;font-size:15px}
@@ -56,4 +37,4 @@
 .relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .relationship-remove{margin-top:0}
 @media(max-width:1050px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
 @media(max-width:600px){.relationship-service-form{padding:12px}}
-.world-map-controls .btn[aria-pressed=true]{background:var(--pri-soft);color:var(--pri-ink);border-color:var(--pri)}
+
