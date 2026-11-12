@@ -9,8 +9,9 @@ const FOCUSABLE = 'button:not([disabled]),input:not([disabled]):not([type="hidde
 /**
  * 시트 안에서 지금 포커스를 받을 수 있는 요소. 숨긴 것(hidden·inert 안, 브라우저가 보이지 않는다고 답한 것)은 뺀다:
  * 숨은 파일 입력이 처음이나 마지막으로 잡히면 focus()가 아무 일도 하지 않아 Tab 순환이 끊긴다.
+ * checkVisibility는 기본으로 display만 보므로 visibility: hidden도 보도록 visibilityProperty를 준다.
  */
-const focusables = (el: HTMLElement) => [...el.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((item) => !item.closest('[hidden],[inert]') && (item.checkVisibility?.() ?? true))
+const focusables = (el: HTMLElement) => [...el.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((item) => !item.closest('[hidden],[inert]') && (item.checkVisibility?.({ visibilityProperty: true }) ?? true))
 
 /**
  * 목업 #modal의 .back-dim 시트. 열리면 화면 ID를 시트 ID로 바꾸고 포커스를 가두며,

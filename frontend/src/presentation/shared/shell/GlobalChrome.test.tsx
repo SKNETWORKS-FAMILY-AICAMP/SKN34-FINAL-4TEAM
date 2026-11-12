@@ -248,6 +248,24 @@ it('떠 있는 토스트의 글자가 바뀌면 같은 노드에서 등장 애�
   expect(animation.play).toHaveBeenCalledTimes(2)
 })
 
+it('같은 문구의 알림이 다시 오면 한 번 비웠다가 다시 넣어 보조기기가 또 읽게 하고, 머무는 시간은 다시 넣은 때부터 잰다', () => {
+  vi.useFakeTimers()
+  try {
+    renderChrome()
+    act(() => { toast('저장했어요') })
+    act(() => { vi.advanceTimersByTime(1000) })
+    act(() => { toast('저장했어요') })
+    // 글자가 그대로면 라이브 영역이 다시 읽히지 않으므로 먼저 비운다.
+    expect([toastNode().hidden, toastNode().textContent]).toEqual([true, ''])
+    act(() => { vi.advanceTimersByTime(50) })
+    expect([toastNode().hidden, toastNode().textContent]).toEqual([false, '저장했어요'])
+    act(() => { vi.advanceTimersByTime(2599) })
+    expect(toastNode().hidden).toBe(false)
+    act(() => { vi.advanceTimersByTime(1) })
+    expect([toastNode().hidden, toastNode().textContent]).toEqual([true, ''])
+  } finally { vi.useRealTimers() }
+})
+
 it('토스트는 글자 수에 비례한 시간만큼 머문 뒤 비우고, 그 사이 새 알림이 오면 시간을 새로 잰다', () => {
   vi.useFakeTimers()
   try {
