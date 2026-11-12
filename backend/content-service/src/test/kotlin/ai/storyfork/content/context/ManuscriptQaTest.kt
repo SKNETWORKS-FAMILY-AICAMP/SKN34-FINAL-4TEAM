@@ -133,4 +133,23 @@ class ManuscriptQaTest {
         assertEquals(409, assertThrows(ContentFailure::class.java) { service.ask("fork", owner, query) }.status)
         verifyNoInteractions(index, embeddings, worlds)
     }
+
+    @Test
+    fun `ai retrieval returns verified excerpts and step metrics without calling the model or consent`() {
+        prepare(hit, hit.copy(id="foreign", workId="other"))
+        val result = service.retrieveForAi("fork", QaRetrievalRequest(null, 2, "r2", request.question))
+        assertEquals("found", result.status)
+        assertEquals(listOf(QaExcerpt("chunk", 2, "용이 나타났다.", "manuscript", "")), result.excerpts)
+        assertEquals(listOf("embedding" to 1, "elasticsearch" to 2, "postgres_verify" to 1), result.steps.map { it.provider to it.hits })
+        assertEquals(listOf(QaEpisodeRef(1, "r1")), result.coverage.withoutVerifiedExcerpt)
+        verifyNoInteractions(answers)
+    }
+
+    @Test
+    fun `ai retrieval keeps the reader relationship guard`() {
+        assertEquals(403, assertThrows(ContentFailure::class.java) {
+            service.retrieveForAi("fork", QaRetrievalRequest(null, 2, "r2", request.question, "relationship"))
+        }.status)
+        verifyNoInteractions(scopeService)
+    }
 }

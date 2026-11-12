@@ -12,6 +12,7 @@ import ai.storyfork.content.manuscript.service.manuscriptHash
 import ai.storyfork.content.world.service.WorldService
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
+import kotlin.time.measureTimedValue
 
 internal class ManuscriptQaService(
     private val scopes: QaScopeService,
@@ -25,30 +26,56 @@ internal class ManuscriptQaService(
     fun ask(workId: String, owner: String?, request: ManuscriptQaRequest): ManuscriptQaResponse {
         checkContent(request.consent, message="OpenAI 전송과 API 비용에 동의해 주세요.")
         val question = request.question.trim()
-        val relationship = request.target == "relationship"
+        val found = retrieve(workId, owner, question, request.target, request.episode, request.episodeVersionId)
+        if (found.sources.isEmpty()) return ManuscriptQaResponse("insufficient", emptyList(), emptyList(), found.gaps, found.coverage)
+        return answer(question, found.sources, found.gaps, found.coverage, found.recheck)
+    }
+
+    /**
+     * AI 오케스트레이션의 Retrieval 도구(`/internal/v1/ai/.../qa/retrieval`)가 쓰는 검색·재대조 결과.
+     * 범위·권한은 요청 값으로 Content가 다시 확정하며, 모델은 호출하지 않는다. 단계별 시간·건수를 함께 돌려준다.
+     */
+    fun retrieveForAi(workId: String, request: QaRetrievalRequest): QaRetrievalResponse {
+        val found = retrieve(workId, request.owner, request.question.trim(), request.target, request.episode, request.episodeVersionId)
+        return QaRetrievalResponse(if (found.sources.isEmpty()) "insufficient" else "found", found.sources,
+            found.sources.map { QaExcerpt(it.id, it.episode, it.quote, it.kind, it.title()) }, found.gaps, found.coverage, found.steps)
+    }
+
+    private class Retrieved(val sources: List<QaCitation>, val gaps: List<QaGap>, val coverage: QaCoverage,
+                            val steps: List<QaRetrievalStep>, val recheck: () -> Unit)
+
+    private fun retrieve(workId: String, owner: String?, question: String, target: String, episode: Int,
+                         episodeVersionId: String): Retrieved {
+        val relationship = target == "relationship"
         if (relationship) checkContent(owner != null, 403, "현재 관계 질문은 작가만 사용할 수 있어요.")
-        val input = QaScopeRequest(request.episode, request.episodeVersionId, if (relationship) "manuscript" else request.target)
+        val input = QaScopeRequest(episode, episodeVersionId, if (relationship) "manuscript" else target)
         val scope = scopes.resolve(workId, owner, input)
         fun requireCurrent() = checkContent(scopes.resolve(workId, owner, input) == scope, 409,
             "공개 원고 범위가 변경됐어요. 최신 회차에서 다시 질문해 주세요.")
+        val steps = mutableListOf<QaRetrievalStep>()
+        fun <T> step(provider: String, hits: (T) -> Int, block: () -> T): T {
+            val (value, took) = measureTimedValue(block)
+            steps += QaRetrievalStep(provider, took.inWholeMilliseconds, hits(value))
+            return value
+        }
 
-        if (request.target != "manuscript") {
+        if (target != "manuscript") {
             fun evidence() = if (relationship) relationships(scope, checkNotNull(owner)) else settings(scope, owner, question)
-            val sources = evidence().rankedFor(question)
+            val sources = step(if (relationship) "neo4j" else "postgres_settings", { it.size }) { evidence() }.rankedFor(question)
             val coverage = QaCoverage(emptyList(), emptyList(), emptyList())
             val missing = if (relationship) "연결된 내 세계관에서 확인할 수 있는 현재 관계가 없어요."
                 else "이 회차의 열람 범위에서 확인할 수 있는 설정이 없어요."
-            if (sources.isEmpty()) return ManuscriptQaResponse("insufficient", emptyList(), emptyList(),
-                listOf(QaGap("NO_EVIDENCE", missing)), coverage)
+            if (sources.isEmpty()) return Retrieved(emptyList(), listOf(QaGap("NO_EVIDENCE", missing)), coverage, steps) {}
             requireCurrent()
-            return answer(question, sources, emptyList(), coverage) {
+            return Retrieved(sources, emptyList(), coverage, steps) {
                 requireCurrent()
                 checkContent(evidence().rankedFor(question) == sources, 409, "설정 또는 현재 관계가 변경됐어요. 다시 질문해 주세요.")
             }
         }
 
         val hits = try {
-            index.search(scope, embeddings.query(question))
+            val vector = step("embedding", { 1 }) { embeddings.query(question) }
+            step("elasticsearch", { it.size }) { index.search(scope, vector) }
         } catch (error: RestClientResponseException) {
             if (error.statusCode.value() == 422) throw ContentFailure(422, "질문을 더 짧게 입력해 주세요.")
             throw ContentFailure(503, "원고 검색을 완료할 수 없어요.")
@@ -58,7 +85,7 @@ internal class ManuscriptQaService(
             throw ContentFailure(503, "원고 검색 결과를 확인할 수 없어요.")
         }
         requireCurrent()
-        val verified = verify(scope, hits)
+        val verified = step("postgres_verify", { it.size }) { verify(scope, hits) }
         val covered = verified.map { QaEpisodeRef(it.episode, it.versionId) }.toSet()
         val coverage = QaCoverage(scope.episodes, scope.episodes.filter { it in covered }, scope.episodes.filterNot { it in covered })
         val gaps = buildList {
@@ -66,9 +93,9 @@ internal class ManuscriptQaService(
             if (coverage.withoutVerifiedExcerpt.isNotEmpty()) add(QaGap("LIMITED_COVERAGE", "일부 회차에서는 확인된 검색 근거를 찾지 못했어요."))
             if (verified.isEmpty()) add(QaGap("NO_EVIDENCE", "질문에 답할 수 있는 원고 근거를 확인하지 못했어요."))
         }
-        if (verified.isEmpty()) return ManuscriptQaResponse("insufficient", emptyList(), emptyList(), gaps, coverage)
+        if (verified.isEmpty()) return Retrieved(emptyList(), gaps, coverage, steps) {}
 
-        return answer(question, verified, gaps, coverage) {
+        return Retrieved(verified, gaps, coverage, steps) {
             requireCurrent()
             checkContent(verify(scope, hits) == verified, 409, "공개 원고가 변경됐어요. 최신 회차에서 다시 질문해 주세요.")
         }
