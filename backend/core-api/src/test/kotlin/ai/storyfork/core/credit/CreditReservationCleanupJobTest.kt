@@ -9,6 +9,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -37,5 +38,12 @@ class CreditReservationCleanupJobTest {
 
         assertEquals(1, CreditReservationCleanupJob(reservations, true, Duration.ofHours(1), 10).runOnce(now))
         verify(reservations).release(good.memberId, good.operationKey, now)
+    }
+
+    @Test
+    fun `a zero or negative timeout and an empty batch are rejected at startup`() {
+        assertThrows(IllegalArgumentException::class.java) { CreditReservationCleanupJob(reservations, true, Duration.ZERO, 100) }
+        assertThrows(IllegalArgumentException::class.java) { CreditReservationCleanupJob(reservations, true, Duration.ofMinutes(-1), 100) }
+        assertThrows(IllegalArgumentException::class.java) { CreditReservationCleanupJob(reservations, true, Duration.ofHours(1), 0) }
     }
 }

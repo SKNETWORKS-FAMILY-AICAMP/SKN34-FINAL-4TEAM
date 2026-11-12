@@ -23,6 +23,11 @@ class CreditReservationCleanupJob(
 ) {
     private val log = LoggerFactory.getLogger(CreditReservationCleanupJob::class.java)
 
+    init {
+        // 0이나 음수면 진행 중인 작업의 예약까지 모두 풀려 정산이 거절되므로 시작할 때 막는다.
+        require(timeout > Duration.ZERO && batchSize > 0) { "예약 정리 timeout과 batch-size는 0보다 커야 합니다." }
+    }
+
     @Scheduled(fixedDelayString = "\${app.credit.reservation-cleanup.poll-interval:PT10M}")
     fun poll() {
         if (!enabled) return
