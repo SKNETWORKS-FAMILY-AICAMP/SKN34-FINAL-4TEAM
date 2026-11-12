@@ -74,12 +74,12 @@
 <tr><td>AI 예상 비용 안내</td><td>❌</td></tr>
 <tr><td>AI 비용 동의 기록</td><td>❌</td></tr>
 <tr><td>AI 사용량 기록</td><td>❌</td></tr>
-<tr><td>크레딧 사용 정산</td><td>❌ <small>(차감 <code>spend</code> 서비스 메서드만 있고 호출하는 AI 기능·정산 단위 없음)</small></td></tr>
+<tr><td>크레딧 사용 정산</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/299">PR #299</a> <small>(예약·정산·해제 내부 서비스 · 호출하는 AI 기능 없음, UC-17·ERD와 예약 여부 정리 필요)</small></td></tr>
 <tr><td>크레딧 사용 내역 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/283">PR #283</a> <small>(같은 내역 API · 차감을 호출하는 기능이 없어 사용 내역은 아직 생기지 않음)</small></td></tr>
 <tr><td>크레딧 소멸 처리</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> <small>(매일 00:00 KST 스케줄러 · 화면 없음)</small></td></tr>
 <tr><td>크레딧 소멸 내역 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/283">PR #283</a> <small>(같은 내역 API · 계정 결제 내역 화면)</small></td></tr>
 <tr><td>실패 작업 정산 복구</td><td>❌</td></tr>
-<tr><td>AI 요청 속도 제한</td><td>❌</td></tr>
+<tr><td>AI 요청 속도 제한</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/300">PR #300</a> <small>(메모리 토큰 버킷 내부 서비스 · 호출하는 AI 기능 없음, 한도 값 임시)</small></td></tr>
 <tr><td rowspan="10">결제 관리</td><td rowspan="10">33 구독·결제 관리</td><td>구독 상품 조회</td><td>❌</td><td rowspan="10">—</td></tr>
 <tr><td>구독 신청</td><td>❌</td></tr>
 <tr><td>구독 상태 조회</td><td>❌</td></tr>
