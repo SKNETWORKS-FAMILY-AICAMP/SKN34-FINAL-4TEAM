@@ -3,6 +3,9 @@ package ai.storyfork.content.world.service
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.domain.isListed
+import ai.storyfork.content.world.domain.worldGenre
+import ai.storyfork.content.world.domain.worldVisibility
 import ai.storyfork.content.world.helper.RelationshipInputHelper
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
@@ -39,7 +42,21 @@ class WorldStudioService(
         worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(subject).map { world ->
             val draft=draft(world.id);val state=states.findById(world.id).orElse(null)
             WorldStudioSummaryResponse(world.id,draft.name,draft.description,draft.draftRevision,
-                if(state==null) "migration_required" else if(!state.completed) "incomplete" else "current")
+                if(state==null) "migration_required" else if(!state.completed) "incomplete" else "current",world.visibility,world.genre,world.coverObjectKey!=null)
+        }
+    }
+
+    /**
+     * 소유자가 세계관의 공개 범위·장르를 바꾼다(DEC-45). 공개로 바뀐 순간에만 publishedAt을 새로 찍고 장르만 바꾸면 유지하며 비공개로 바꾸면 지운다.
+     * 저장 버전이 없으면 설정은 되지만 목록에 나오지 않는다(listed=false). 카드·관계·revision은 건드리지 않는다.
+     */
+    fun publication(worldId:UUID,subject:UUID,request:PublicationRequest):PublicationResponse {
+        val visibility=worldVisibility(request.visibility);val genre=worldGenre(request.genre)
+        return tx {
+            val world=owned(worldId,subject)
+            world.publishedAt=if(visibility=="public") world.publishedAt ?: Instant.now() else null
+            world.visibility=visibility;world.genre=genre
+            PublicationResponse(world.id,visibility,genre,world.publishedAt?.toString(),isListed(visibility,world.currentRevisionId))
         }
     }
 
@@ -259,7 +276,8 @@ class WorldStudioService(
     private fun readDraft(world:StudioWorld,state:WorldRelationshipState):WorldDraftResponse {
         val draft=draft(world.id)
         return WorldDraftResponse(world.id,draft.draftRevision,world.currentRevisionId,draft.baseWorldRevisionId,draft.name,draft.description,
-            cardDrafts.findAllByWorldId(world.id).map { payload(it.cardId,it.fields) }.sortedBy { it.id.toString() },emptyList(),state.graphVersion)
+            cardDrafts.findAllByWorldId(world.id).map { payload(it.cardId,it.fields) }.sortedBy { it.id.toString() },emptyList(),state.graphVersion,
+            visibility=world.visibility,genre=world.genre,hasCover=world.coverObjectKey!=null)
     }
     private fun sealedRevision(worldId: UUID, id: UUID) =
         revisions.findByIdAndWorldId(id, worldId)?.takeIf { it.sealed } ?: throw WorldNotFound()

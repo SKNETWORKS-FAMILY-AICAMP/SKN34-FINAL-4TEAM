@@ -323,4 +323,66 @@ class WorldStudioServiceTest {
         assertThrows(WorldNotFound::class.java) {service.confirmedContext(world,actor,id)}
         verifyNoInteractions(revisionCards,cardVersions,graph)
     }
+
+    // --- 세계관 단위 공개 설정(DEC-45) ---
+    private fun publish(entity:StudioWorld,visibility:String,genre:String?):PublicationResponse {
+        `when`(worlds.lockOwned(world,actor)).thenReturn(entity)
+        return service.publication(world,actor,PublicationRequest(visibility,genre))
+    }
+
+    @Test fun `owner publishes with a genre and a world without a saved revision is reported as not listed`() {
+        val entity=StudioWorld(world,actor)
+        val result=publish(entity,"public","fantasy")
+        assertNotNull(entity.publishedAt)
+        assertEquals(PublicationResponse(world,"public","fantasy",entity.publishedAt.toString(),false),result)
+        assertEquals("public",entity.visibility);assertEquals("fantasy",entity.genre)
+        verifyNoInteractions(graph,revisionCards,cardVersions)
+    }
+
+    @Test fun `publishing again keeps publishedAt, private clears it, and the genre is stored as sent`() {
+        val entity=StudioWorld(world,actor,currentRevisionId=UUID.randomUUID())
+        val first=publish(entity,"public","fantasy")
+        assertTrue(first.listed)
+        val again=publish(entity,"public","sf")
+        assertEquals(first.publishedAt,again.publishedAt);assertEquals("sf",again.genre)
+        val hidden=publish(entity,"private","sf")
+        assertNull(hidden.publishedAt);assertNull(entity.publishedAt);assertFalse(hidden.listed);assertEquals("sf",entity.genre)
+        val republished=publish(entity,"public",null)
+        assertNotNull(republished.publishedAt);assertNull(republished.genre);assertTrue(republished.listed)
+    }
+
+    @Test fun `invalid publication bodies fail as input errors before the world is even locked`() {
+        listOf(PublicationRequest(null,null),PublicationRequest("friends",null),PublicationRequest("public","romcom"),PublicationRequest("public"," sf")).forEach {
+            assertThrows(IllegalArgumentException::class.java) { service.publication(world,actor,it) }
+        }
+        verifyNoInteractions(worlds)
+    }
+
+    @Test fun `only the owner can change publication`() {
+        assertThrows(WorldNotFound::class.java) { service.publication(world,UUID.randomUUID(),PublicationRequest("public",null)) }
+    }
+
+    @Test fun `owner summaries and the world detail carry visibility and genre`() {
+        owned()
+        val entity=StudioWorld(world,actor,visibility="public",genre="sf",publishedAt=java.time.Instant.now())
+        `when`(worlds.lockOwned(world,actor)).thenReturn(entity)
+        `when`(worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
+        val summary=service.list(actor).single()
+        assertEquals("public",summary.visibility);assertEquals("sf",summary.genre)
+        val detail=service.draft(world,actor)
+        assertEquals("public",detail.visibility);assertEquals("sf",detail.genre)
+        assertEquals("private",WorldStudioSummaryResponse(world,"n","d",0,"current").visibility)
+    }
+
+    @Test fun `owner summaries and the world detail say whether a cover is stored`() {
+        owned()
+        val entity=StudioWorld(world,actor,coverObjectKey="world-covers/a",coverContentType="image/png")
+        `when`(worlds.lockOwned(world,actor)).thenReturn(entity)
+        `when`(worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
+        assertTrue(service.list(actor).single().hasCover)
+        assertTrue(service.draft(world,actor).hasCover)
+        entity.coverObjectKey=null;entity.coverContentType=null
+        assertFalse(service.list(actor).single().hasCover)
+        assertFalse(service.draft(world,actor).hasCover)
+    }
 }

@@ -39,6 +39,10 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 | `PUT /{id}/draft` | 기본 upsert, `replace=true`면 현재 전체 교체. 관계 삭제도 이 요청으로 반영 |
 | `POST /{id}/revisions` | 기존 카드·설정의 불변 revision 저장. 관계 snapshot 없음 |
 | `GET /{id}/revisions/{revisionId}` | 기존 카드 revision 조회. `relationships=null`, `relationshipStatus=not_recorded` |
+| `PUT /{id}/publication` | 세계관 단위 공개 범위(`private`/`public`)·장르 설정(V6, [DEC-45](decisions.md)). 카드·관계·revision은 바꾸지 않는다 |
+| `PUT·DELETE·GET /{id}/cover` | 세계관 표지(PNG·JPEG·WebP 5MB 이하 multipart `file`) 저장·교체·삭제·소유자 읽기(V7). 바이트는 객체 저장소, DB에는 키·형식만 두며 카드·관계·revision은 바꾸지 않는다 |
+
+공개 조회는 소유자 API가 아니라 비로그인 읽기 전용 `GET /api/v1/public/world-studios`·`/{id}`가 맡는다. 공개이고 저장 버전이 있는 세계관만 마지막 저장 버전의 카드와 Neo4j 현재 관계를 보이며(관계 이력 API는 여전히 없다) 이용·복사·Fork는 없다([계약](public-world-contract.md)). 공개 표지는 같은 기준일 때만 `GET /api/v1/public/world-studios/{id}/cover`로 읽는다. 이 경로의 nginx/Vite 라우팅도 Content:8081이다.
 
 기존 관계 편집·관계도는 서버가 확인한 현재 draft를 사용한다. UI의 저장 버튼은 현재 draft PUT이며 카드 revision POST·공개·발행을 자동 실행하지 않는다. AI 후보는 연결하지 않았다. 이탈 시 요청을 취소하고 늦은 응답 설치를 막는다. 지원하는 `semanticMetadata.studio`가 없거나 현재 UI 모델과 불일치하는 서버 응답은 임의 변환/빈 데이터로 대체하지 않고 실패한다. 기존 데이터 호환 import는 별도 승인 대상이다.
 
@@ -74,7 +78,7 @@ WorldStudio는 기능 플래그 없이 항상 켜져 있다. Content 서버 시�
 - **한계(임시 소유자):** 템플릿을 기존 운영 관리자 계정에 임시로 할당했다. ① V8 샘플 관리자 비밀번호가 마이그레이션 주석에 공개되어 있어 그 계정으로 로그인하면 누구나 템플릿을 수정·삭제할 수 있다. 실제 운영 계정·공개 템플릿 조회가 생기면 소유자를 바꾼다. ② V8은 `ON CONFLICT (email) DO NOTHING`이라 기존 DB에 `admin@example.test`가 다른 id로 있으면 템플릿 소유자가 실제 로그인 계정과 다를 수 있다. ③ 다른 사용자에게는 여전히 보이지 않는다(가져오기·공개는 후속). 소유자를 바꿔도 이미 적재된 세계관은 옮겨지지 않는다. 고정 worldId의 create가 소유자 불일치로 거절(`WorldNotFound`)되어 장르별 오류 로그만 남으므로, 소유자 변경 때는 기존 세계관(PG·Neo4j)을 승인 하에 정리해야 한다.
 - **내용 변경:** 저장된 세계관은 내용 비교 없이 건너뛴다. 같은 key로 입력이 바뀌면 hash 충돌이고 새 key만으로는 낡은 expected revision으로 거절된다. 내용을 바꾸려면 새 세계관 ID와 새 카드 ID(카드 ID는 세계관 사이에서도 유일)의 새 항목을 추가한다.
 - **기존 정책과의 관계:** 카드는 DEC-36의 기본값인 비공개로 둔다. 후속 "가져오기"는 [요구사항 F-WLD-01](../requirements.md#f-wld-01)·[유스케이스 6.2](../usecase.md)의 "장르 기본 세계관을 복사해 시작"(원본 관계 없는 새 세계관)이며, 작품 Fork와 무관한 타인 세계관의 직접 이용(DEC-35)은 MVP 제외다.
-- **후속(미구현):** 목록은 소유자 전용이라 운영 관리자 계정만 볼 수 있다. 공개/비공개 설정, 다른 사용자의 템플릿 가져오기, Fork 연계는 이번 범위 밖이다. 서버 시작 적재는 로컬 단위(서비스 대역)로만 확인했고 실제 PG·Neo4j 실행은 CI·개발 환경 확인 대기다.
+- **후속(미구현):** 목록은 소유자 전용이라 운영 관리자 계정만 볼 수 있다. 템플릿도 기본은 비공개이며, 세계관 단위 공개 설정(`PUT /{id}/publication`, DEC-45)이 생겼어도 소유자가 직접 공개해야만 공개 목록에 나온다. 다른 사용자의 템플릿 가져오기·복사, Fork 연계는 이번 범위 밖이다. 서버 시작 적재는 로컬 단위(서비스 대역)로만 확인했고 실제 PG·Neo4j 실행은 CI·개발 환경 확인 대기다.
 
 ## 기준
 
@@ -100,7 +104,7 @@ Flyway location은 `classpath:db/migration/worldstudio`로 유지하되 독립 V
 
 | 테이블 | 핵심 정보와 책임 |
 |---|---|
-| world | 안정적인 world ID, 소유자 식별자, 생성 시각, 현재 확정 revision 참조. 작품/회차 FK 없음 |
+| world | 안정적인 world ID, 소유자 식별자, 생성 시각, 현재 확정 revision 참조, 세계관 단위 공개 설정(V6 `visibility` 기본 `private`·`genre`·`published_at`, DEC-45), 소유자 표지(V7 `cover_object_key`·`cover_content_type`, 바이트는 객체 저장소). 작품/회차 FK 없음 |
 | world_draft | world당 이름·설명, draft_revision, base_world_revision_id, 수정 시각. 자동저장 대상 |
 | setting_card | card ID, world ID, 생성 시각. 제목이나 유형 변경에도 ID 유지 |
 | setting_card_draft | card별 제목·원문·card_type·area_code·별칭·태그·자유 분류·semantic metadata·lifecycle·visibility. 초안 |
@@ -131,7 +135,7 @@ card_type은 character/location/organization/ability/object/rule/event/other 8�
 - 조립 중 revision은 커밋할 수 없게 하고 확정 뒤 manifest와 버전은 수정·삭제할 수 없게 한다. 복원은 새 version/revision이다. 구체 봉인 trigger는 새 V1 SQL에서 테스트한다.
 - 활성 관계의 양 endpoint는 같은 revision의 활성 카드여야 한다. 관계 입력은 선택적이며 미등록을 관계 없음의 확정 사실로 해석하지 않는다.
 - 카드·관계 삭제는 lifecycle tombstone을 새 버전에 기록한다. 과거 version/manifest를 삭제하지 않는다.
-- 카드 초안과 불변 버전 모두 `visibility`를 가지며 기본값은 `private`다. `public` V2에서 `private` V1을 복원하면 V3에 V1의 비공개 정책도 복사한다. 명시 저장은 발행이 아니며 카드의 public만으로 독자 접근을 허용하지 않는다. 회차별 공개·지식·상태는 이후 계약으로 연결한다.
+- 카드 초안과 불변 버전 모두 `visibility`를 가지며 기본값은 `private`다. `public` V2에서 `private` V1을 복원하면 V3에 V1의 비공개 정책도 복사한다. 명시 저장은 발행이 아니며 카드의 public만으로 독자 접근을 허용하지 않는다. 회차별 공개·지식·상태는 이후 계약으로 연결한다. 세계관 단위 공개(DEC-45)는 이 카드 단위 값을 쓰지 않는다: 값은 기존대로 보존하되 공개 조회는 세계관이 공개이면 마지막 저장 버전의 활성 카드를 모두 보인다.
 
 ## 인증과 회차 연결
 
