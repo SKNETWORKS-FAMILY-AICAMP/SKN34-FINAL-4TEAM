@@ -289,6 +289,17 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(server.repository.record).not.toHaveBeenCalled()
   })
 
+  it('회차를 열면 서식을 푼 블록과 문장을 같은 순서로 준다: 문장의 글은 기호를 포함한 원문 조각이다', async () => {
+    const { works, useCase } = fakes()
+    works.find((w) => w.id === 'postman')!.eps[0].p = ['## 새벽', '**비가 그쳤다. 도윤은 멈췄다.**\n> 집.', '---']
+    const r = await useCase.openEpisode('postman', 1, null)
+    if (!r || r === 'hidden') throw new Error('episode')
+    expect(r.paragraphs).toEqual([[{ t: '새벽', pi: 0 }], [{ t: '**비가 그쳤다.', pi: 1 }, { t: '도윤은 멈췄다.**', pi: 1 }, { t: '집.', pi: 1 }], []])
+    expect(r.blocks.map((b) => b.kind)).toEqual(['heading', 'blank', 'paragraph', 'quote', 'blank', 'rule'])
+    const drawn = r.blocks.flatMap((b) => ('sentences' in b ? b.sentences : [])).map((s) => s.parts.map((p) => p.text).join(''))
+    expect(drawn).toEqual(['새벽', '비가 그쳤다.', '도윤은 멈췄다.', '집.'])
+  })
+
   it('작가가 자기 비공개 작품을 미리 읽을 때는 서버 기록을 남기지 않는다', async () => {
     const { works, server, useCase } = fakes()
     works.find((w) => w.id === 'starlight')!.private = true

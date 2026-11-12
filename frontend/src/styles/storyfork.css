@@ -198,6 +198,12 @@ main{padding:32px 0 72px}
 .chap{text-align:center;margin-bottom:46px}.chap small{display:block;letter-spacing:.3em;color:var(--tacc);font-weight:800;font-size:12px}.chap h2{font-family:var(--tfont);font-size:32px;margin-top:10px;letter-spacing:-.02em}.chap .orn{margin:14px auto 0;color:var(--tacc);font-size:12px;letter-spacing:.5em}
 .reading{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--tsub);margin-top:12px}.reading i{width:7px;height:7px;border-radius:50%;background:var(--tacc)}
 .text{font-family:var(--tfont);font-size:var(--fs,19px);line-height:2.05;word-break:keep-all}.text p{margin:0 0 1.15em}
+/* 원고 기본 서식(DEC-48). 문단·인용 안의 줄바꿈은 줄바꿈으로 보이고(pre-line: 이어진 빈칸은 전처럼 합친다) 소제목은 본문 크기에 비례해 한 단계 크게, 위 간격을 아래보다 넓게 둔다.
+   인용은 색 띠 없이 들여쓰기와 본문색 쪽으로 당긴 보조색으로만 구분한다. 인용 글자(최저 6.90:1)와 구분선(최저 4.62:1)은 보기 설정 5종·앱 라이트/다크 모두에서 4.5:1·3:1을 넘는다.
+   이미지의 세로 여백은 감싼 figure가 정한다(media.css의 .stored-image 여백은 레이어 밖이라 여기서 덮을 수 없고, 안쪽 여백은 figure의 여백과 겹쳐진다). */
+.text :is(p,blockquote){white-space:pre-line}.text h3{font-size:1.2em;font-weight:700;line-height:1.6;margin:1.9em 0 .7em}.text>h3:first-child{margin-top:0}
+.text blockquote{margin:0 0 1.15em;padding:0 1.5em;color:color-mix(in srgb,var(--tsub) 60%,var(--tfg))}.text hr{width:6em;height:0;margin:2.2em auto;border:0;border-top:1px solid var(--tsub)}
+.text figure{margin:1.6em 0}.text figure .stored-image{margin-inline:auto}.text .media-message{font:14px/1.6 var(--ui);color:var(--tsub);text-align:center}
 .s{cursor:pointer;border-radius:3px}.s:hover{background:color-mix(in srgb,var(--tacc) 14%,transparent)}.s.sel{background:color-mix(in srgb,var(--tacc) 26%,transparent);box-shadow:0 2px 0 var(--tacc)}
 .hint{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tsub);border:1px dashed var(--tline);border-radius:14px;padding:10px 14px;margin-bottom:36px}
 .pop{position:absolute;z-index:30;display:flex;gap:4px;padding:6px;border-radius:999px;background:#26232F;border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35);font-family:var(--ui);animation:popin .25s var(--ease)}
