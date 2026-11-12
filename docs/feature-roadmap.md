@@ -78,7 +78,7 @@
 <tr><td>크레딧 사용 내역 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/283">PR #283</a> <small>(같은 내역 API · 차감을 호출하는 기능이 없어 사용 내역은 아직 생기지 않음)</small></td></tr>
 <tr><td>크레딧 소멸 처리</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> <small>(매일 00:00 KST 스케줄러 · 화면 없음)</small></td></tr>
 <tr><td>크레딧 소멸 내역 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/260">PR #260</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/283">PR #283</a> <small>(같은 내역 API · 계정 결제 내역 화면)</small></td></tr>
-<tr><td>실패 작업 정산 복구</td><td>❌</td></tr>
+<tr><td>실패 작업 정산 복구</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/313">PR #313</a> <small>(오래된 예약을 차감 없이 해제하는 정리 작업 · 기본 꺼짐, AI 작업 최대 실행 시간 확정 후 켬)</small></td></tr>
 <tr><td>AI 요청 속도 제한</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/300">PR #300</a> <small>(메모리 토큰 버킷 내부 서비스 · 호출하는 AI 기능 없음, 한도 값 임시)</small></td></tr>
 <tr><td rowspan="10">결제 관리</td><td rowspan="10">33 구독·결제 관리</td><td>구독 상품 조회</td><td>❌</td><td rowspan="10">—</td></tr>
 <tr><td>구독 신청</td><td>❌</td></tr>
