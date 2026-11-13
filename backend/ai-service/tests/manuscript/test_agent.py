@@ -1,3 +1,4 @@
+import json
 from contextlib import nullcontext
 from types import SimpleNamespace
 
@@ -72,4 +73,6 @@ def test_generation_trace_has_model_usage_and_failure(monkeypatch, spans):
     assert ok.attributes['langfuse.observation.model.name'] == 'resolved-model'
     assert ok.attributes['langfuse.observation.usage_details'] == '{"input": 10, "output": 4}'
     assert failed.attributes['langfuse.observation.level'] == 'ERROR'
-    assert '원문 한 줄' not in str(dict(ok.attributes))
+    assert json.loads(ok.attributes['langfuse.observation.input'])['question'] == '무슨 관계인가요?'
+    assert json.loads(ok.attributes['langfuse.observation.output'])['gaps'] == ['근거 없음']
+    assert '원문 한 줄' not in str(dict(ok.attributes))  # 현재 관계 발췌 본문은 결정 범위 밖

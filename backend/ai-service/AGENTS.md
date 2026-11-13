@@ -17,7 +17,7 @@
 - 구체 클래스와 직접 함수 호출을 기본으로 한다. production 구현체가 둘 이상이거나 사용자가 요청하지 않으면
   `Protocol`·ABC·provider·registry·factory·bootstrap 추상화를 만들지 않는다. 테스트 편의를 위해 production 추상화를 추가하지 않는다.
 - 집필 AI의 여섯 업무 Agent와 시뮬레이션 인물 행동·장면 요약의 목표 모델은 사용자 결정으로 OpenAI `gpt-6-luna`다. Intent Router도 OpenAI Decisions(`gpt-6-luna`)를 쓴다. 기존 구현의 모델 설정과 실제 검증 기록은 구분한다. 집필 AI 복합 실행은 사용자 요청으로 LangGraph를 쓴다. 그 밖의 모델·프레임워크와 상세 도입은 미정이며 의존성·lockfile을 미리 바꾸지 않는다.
-- 추적은 `app/tracing.py`의 `observe`로 메타데이터(단계·근거 참조·모델·사용량·실패)만 남긴다. observation의 input/output에 원고·질문·답변·개인정보·키를 넣지 않는다.
+- 추적은 `app/tracing.py`의 `observe`로 메타데이터(단계·근거 참조·모델·사용량·실패)와 질문·원고·답변 본문을 남긴다(팀 결정 2026-11-13). 설정·현재 관계 발췌 본문은 `tracing.excerpts`로 참조만 남기고, 회원 계정 정보·키는 어떤 속성에도 넣지 않는다.
 - 장애는 명시적 오류로 반환하고 fallback·자동 재시도로 숨기지 않는다. 입력·원고·모델 응답을 오류 메시지나 로그에 넣지 않는다. 역할·인물마다 서버나 클래스를 만들지 않는다.
 
 ## 생성 경계

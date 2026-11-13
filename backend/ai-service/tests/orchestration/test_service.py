@@ -1,4 +1,5 @@
 import asyncio
+import json
 from uuid import uuid4
 
 import pytest
@@ -246,6 +247,8 @@ def test_run_id_is_the_trace_of_plan_and_steps(monkeypatch, spans):
     root = found['writing_ai.orchestration']
     assert result.runId == format(root.context.trace_id, '032x')
     assert all(found[n].parent.span_id == root.context.span_id for n in ('plan', 'step.story_context', 'step.web_research'))
+    assert json.loads(root.attributes['langfuse.observation.input']) == {'request': '요청'}
+    assert json.loads(found['plan'].attributes['langfuse.observation.input']) == {'request': '요청'}
 
 
 def test_failed_step_is_traced_as_error(monkeypatch, spans):
