@@ -55,3 +55,14 @@ def test_answer_with_unknown_or_missing_citation_is_502(monkeypatch, ids):
     with pytest.raises(ManuscriptFailure) as error:
         service.answer(data)
     assert error.value.status == 502
+
+
+def test_image_bakes_the_pinned_model_files_and_manuscript_extra():
+    from pathlib import Path
+
+    dockerfile = (Path(__file__).resolve().parents[2] / 'Dockerfile').read_text(encoding='utf-8')
+    assert dockerfile.count('--extra manuscript') == 2
+    for name, digest in service.FILES.items():
+        url = f'https://huggingface.co/{service.MODEL}/resolve/{service.REVISION}/onnx/{name}'
+        assert f'--checksum=sha256:{digest} {url}' in dockerfile
+    assert 'MANUSCRIPT_EMBEDDING_MODEL_DIR=' in dockerfile
