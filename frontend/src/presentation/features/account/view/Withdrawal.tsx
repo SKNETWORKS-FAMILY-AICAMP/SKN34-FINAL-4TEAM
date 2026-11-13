@@ -5,6 +5,24 @@ import { kstDateTime } from '../../../shared/format'
 import { Sheet } from '../../../shared/Sheet'
 import { useWithdrawalViewModel } from '../viewmodel/useWithdrawalViewModel'
 
+/** 알림에서 막 들어오면 위쪽 카드(로그인 기기 등)가 늦게 그려져 이 카드를 밀어내므로, 가운데로 맞춘 뒤에도 첫 조작이나 5초 전까지 위쪽이 바뀔 때마다 다시 맞춥니다. */
+function keepCentered(card: HTMLElement) {
+  // ponytail: 5초·첫 조작까지만 따라가므로 그보다 늦게 내려오는 응답은 못 맞춘다. 필요하면 그때 창을 늘린다.
+  const center = () => card.scrollIntoView?.({ block: 'center' })
+  center()
+  const watch = new MutationObserver(center)
+  watch.observe(card.parentElement ?? card, { childList: true, subtree: true })
+  const timer = setTimeout(stop, 5000)
+  const inputs = ['pointerdown', 'wheel', 'keydown'] as const
+  inputs.forEach((type) => document.addEventListener(type, stop, { passive: true }))
+  function stop() {
+    watch.disconnect()
+    clearTimeout(timer)
+    inputs.forEach((type) => document.removeEventListener(type, stop))
+  }
+  return stop
+}
+
 /** U30 회원탈퇴: Core 탈퇴 API로 30일 유예 탈퇴를 요청하고, 유예 중이면 복구할 수 있습니다(UC-22 A3). */
 export function Withdrawal() {
   const vm = useWithdrawalViewModel()
@@ -17,10 +35,12 @@ export function Withdrawal() {
   const title = useRef<HTMLElement>(null)
   const restore = useRef<HTMLButtonElement>(null)
   const { focusRequested, focusHandled } = vm
+  const keeping = useRef<(() => void) | null>(null)
+  useEffect(() => () => keeping.current?.(), [])
   // 탈퇴 요청 알림에서 왔으면 상태를 그린 뒤 카드를 화면 가운데로 옮기고, 취소 버튼(못 누르면 카드 제목)에 포커스합니다.
   useEffect(() => {
     if (!focusRequested || (!state && !vm.loadError)) return
-    card.current?.scrollIntoView?.({ block: 'center' })
+    keeping.current = card.current && keepCentered(card.current)
     ;(restore.current && !restore.current.disabled ? restore.current : title.current)?.focus()
     focusHandled()
   }, [focusRequested, focusHandled, state, vm.loadError])
