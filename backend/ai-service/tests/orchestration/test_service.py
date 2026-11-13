@@ -606,3 +606,15 @@ def test_approval_response_names_the_original_target_episode(monkeypatch):
     result = write_turn(str(uuid4()), request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
 
     assert result.approvalEpisode == TARGET['episode']
+
+def test_reediting_a_waiting_first_turn_still_replaces_old_history(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='기존 질문', inputs={'story_context': QA})
+    waiting = chat(thread, request='입력 대기', fromTurn=0)
+    assert waiting.status == 'waiting'
+
+    history = conversation('history', thread, ME)
+    assert [turn.request for turn in history.turns] == ['입력 대기']
+    chat(thread, request='다시 수정', fromTurn=0, inputs={'story_context': QA})
+    assert [turn.request for turn in conversation('history', thread, ME).turns] == ['다시 수정']

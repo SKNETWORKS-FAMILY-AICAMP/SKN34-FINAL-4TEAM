@@ -168,14 +168,17 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
         const rows=await api.writingList(id,controller.signal)
         if(controller.signal.aborted)return
         const next=rows.find(e=>e.number===number)
-        if(active?.number!==number){setEpisodes(rows);return}
+        setEpisodes(previous=>rows.map(row=>{
+          const saved=previous.find(episode=>episode.number===row.number)
+          return saved&&saved.draft.revision>row.draft.revision?saved:row
+        }))
+        if(active?.number!==number)return
         // 재조회 중 편집·저장·회차 이동이 있으면 그 화면 상태가 우선이다.
-        if(dirty||current.current!==before||pending.current||waiting.current){
-          if(dirty||current.current!==before)setNotice('AI가 이 회차 초안을 바꿨어요. 작성 중인 변경을 복사해 둔 뒤 회차를 다시 열어 주세요.')
+        if(dirty||current.current!==before){
+          setNotice('AI가 이 회차 초안을 바꿨어요. 작성 중인 변경을 복사해 둔 뒤 회차를 다시 열어 주세요.')
           return
         }
-        setEpisodes(rows)
-        if(next)install(next)
+        if(next&&!pending.current&&!waiting.current)install(next)
       }catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'AI가 반영한 초안을 다시 불러오지 못했어요.')}
       finally{if(aiReload.current===controller)aiReload.current=null}
     },

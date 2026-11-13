@@ -1,5 +1,9 @@
 from types import SimpleNamespace
 
+import pytest
+
+from app.research.errors import ResearchFailure
+
 from app.research import service
 from app.research.models import Finding, ResearchRequest, ResearchResult
 
@@ -34,11 +38,20 @@ def test_host_case_and_open_page_urls_count_as_searched(monkeypatch):
     assert service.research(ResearchRequest(question='질문')).findings[0].verdict == 'confirmed'
 
 
-def test_research_drops_malformed_and_distinct_blank_query_urls(monkeypatch):
+def test_research_drops_distinct_blank_query_urls(monkeypatch):
     page = 'https://example.org/article'
-    findings = [Finding(text='확인', verdict='confirmed', sourceUrls=[page, page + '?preview=', 'https://['])]
+    findings = [Finding(text='확인', verdict='confirmed', sourceUrls=[page, page + '?preview='])]
     monkeypatch.setattr(service.agent, 'search', lambda _: (ResearchResult(findings=findings, gaps=[]), [page, 'https://[']))
 
     result = service.research(ResearchRequest(question='질문'))
 
     assert result.findings[0].sourceUrls == [page]
+
+def test_research_reports_malformed_model_url_as_provider_error(monkeypatch):
+    result = ResearchResult(findings=[Finding(text='확인', verdict='confirmed', sourceUrls=['https://['])], gaps=[])
+    monkeypatch.setattr(service.agent, 'search', lambda _: (result, []))
+
+    with pytest.raises(ResearchFailure) as error:
+        service.research(ResearchRequest(question='질문'))
+
+    assert error.value.status == 502

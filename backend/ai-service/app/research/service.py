@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from app.research import agent
+from app.research.errors import ResearchFailure
 from app.research.models import Finding, ResearchRequest, ResearchResponse
 
 
@@ -18,7 +19,13 @@ def research(data: ResearchRequest) -> ResearchResponse:
     found = {key for url in urls if (key := _norm(url)) is not None}
     findings = []
     for finding in result.findings:
-        kept = [url for url in finding.sourceUrls if _norm(url) in found]
+        kept = []
+        for url in finding.sourceUrls:
+            key = _norm(url)
+            if key is None:
+                raise ResearchFailure(502, '웹 조사 모델의 출처 URL을 확인할 수 없습니다.')
+            if key in found:
+                kept.append(url)
         findings.append(Finding(text=finding.text, verdict=finding.verdict if kept else 'unverified', sourceUrls=kept))
     return ResearchResponse(findings=findings, gaps=result.gaps, searchedAt=searched_at)
 

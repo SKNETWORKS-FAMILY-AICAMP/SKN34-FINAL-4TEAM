@@ -381,7 +381,7 @@ async def _owned(thread_id: str, scope: str):
 
 async def _fork_point(config: dict, snapshot, index: int):
     """index번 턴 직전의 완료 checkpoint. 첫 턴이면 None이다. 멈춘 턴(마지막)도 고치거나 지울 수 있다."""
-    turns = snapshot.values.get('turns', [])
+    turns = [] if snapshot.interrupts and snapshot.values.get('replaceHistory') else snapshot.values.get('turns', [])
     if index > len(turns) - (0 if snapshot.next else 1):
         raise ConversationNotFound()
     if index == 0:
@@ -415,7 +415,8 @@ async def history(thread_id: str, scope: str) -> ChatHistory:
     """최신 상태의 턴과 각 응답. 멈춘 실행이 있으면 그 턴을 waiting 응답과 함께 마지막에 붙인다."""
     _, snapshot = await _owned(thread_id, scope)
     values = snapshot.values
-    turns = [ChatTurn(request=t['request'], reply=t.get('reply')) for t in values.get('turns', [])]
+    previous = [] if snapshot.interrupts and values.get('replaceHistory') else values.get('turns', [])
+    turns = [ChatTurn(request=t['request'], reply=t.get('reply')) for t in previous]
     if snapshot.interrupts:
         turns.append(ChatTurn(request=values['request'], reply=_response({**values, '__interrupt__': snapshot.interrupts})))
     return ChatHistory(threadId=thread_id, title=_title(values), turns=turns)

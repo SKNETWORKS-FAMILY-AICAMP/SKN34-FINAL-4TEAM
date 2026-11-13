@@ -502,4 +502,5 @@ it('keeps typing that starts while the AI draft is reloading', async () => {
     await reloading
   })
   expect(result.current.draft.body).toBe('새로 입력한 문장')
+  expect(result.current.episodes[0].draft.body).toBe('서버의 AI 초안')
 })
