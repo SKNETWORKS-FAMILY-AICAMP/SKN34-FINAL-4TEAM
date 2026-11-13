@@ -68,7 +68,7 @@ Content는 `episode_current`의 활성 발행 판본과 `work_current`의 공개
 
 `episode_id`, `source_hash`(UTF-8 판본 본문 SHA-256), `[start_utf16, end_utf16)`를 반환하면 Content가 판본 본문에서 인용을 확인한다. 인덱스에는 원고 본문을 저장하지 않는다. 현재 로컬 색인 세대는 `1`이다.
 
-대조 작업은 기본 60초 간격이다. 청크는 문단 기준이며 긴 문단은 UTF-16 256단위 이내로 자른다. 작품·회차·판본·본문 해시·범위로 문서 ID를 고정해 다음 주기에 이미 반영된 청크를 건너뛴다. 구판·삭제된 청크를 먼저 제거하고 누락분은 로컬 AI Service에서 임베딩해 배치로 적재한다. 실패한 실행은 다음 주기에 다시 대조한다. 같은 Content DB의 동시 작업은 PostgreSQL advisory lock으로 막는다. 대조 전에는 PostgreSQL이 확정한 최신 Scope와 원문 검증이 여전히 필요하다. [로컬 실행 안내](../../infrastructure/README.md#로컬-원고-검색용-elasticsearch-56)
+대조 작업은 기본 60초 간격이다. 청크는 문단 기준이며 긴 문단은 UTF-16 256단위 이내로 자른다. 작품·회차·판본·본문 해시·범위로 문서 ID를 고정해 다음 주기에 이미 반영된 청크를 건너뛴다. 구판·삭제된 청크를 먼저 제거하고 누락분은 로컬 AI Service에서 임베딩해 배치로 적재한다. 실패한 실행은 다음 주기에 다시 대조한다. 같은 Content DB의 동시 작업은 PostgreSQL advisory lock으로 막는다. 대조 전에는 PostgreSQL이 확정한 최신 Scope와 원문 검증이 여전히 필요하다. Content는 시작할 때 인덱스가 없을 때만 v1 매핑으로 만들고 기존 인덱스는 매핑만 검증한다. 불일치하면 시작하지 않는다. 개발 서버 CD는 Elasticsearch와 고정 리비전 모델을 포함한 AI 이미지를 함께 배포한다. [로컬 실행·배포 안내](../../infrastructure/README.md#로컬-원고-검색용-elasticsearch-56)
 
 `POST /storyfork-manuscript-v1/_search`에서 `knn.field`는 `embedding`, `knn.query_vector`는 같은 모델의 질문 벡터다. 아래는 원작의 허용 회차가 2개일 때 `knn.filter` 예시다. Fork 조회는 `must_not exists`를 `source_work_id`의 `term`으로 바꾼다. 회차 번호와 판본을 한 쌍으로 비교하고 허용 목록이 비어 있으면 `match_none`을 사용한다. [Elastic kNN 사전 필터](https://www.elastic.co/docs/solutions/search/vector/knn)
 

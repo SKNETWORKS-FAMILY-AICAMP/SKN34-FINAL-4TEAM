@@ -89,3 +89,14 @@ def test_invalid_citation_is_traced_as_error_and_still_fails(monkeypatch, spans)
     assert attrs(check)['langfuse.observation.level'] == 'ERROR'
     assert attrs(check)['langfuse.observation.metadata.invalidIds'] == ['other']
     assert attrs(qa)['langfuse.observation.level'] == 'ERROR'
+
+
+def test_image_bakes_the_pinned_model_files_and_manuscript_extra():
+    from pathlib import Path
+
+    dockerfile = (Path(__file__).resolve().parents[2] / 'Dockerfile').read_text(encoding='utf-8')
+    assert dockerfile.count('--extra manuscript') == 2
+    for name, digest in service.FILES.items():
+        url = f'https://huggingface.co/{service.MODEL}/resolve/{service.REVISION}/onnx/{name}'
+        assert f'--checksum=sha256:{digest} {url}' in dockerfile
+    assert 'MANUSCRIPT_EMBEDDING_MODEL_DIR=' in dockerfile
