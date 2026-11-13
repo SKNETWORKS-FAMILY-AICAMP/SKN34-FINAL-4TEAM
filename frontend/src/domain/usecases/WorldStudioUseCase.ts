@@ -19,10 +19,9 @@ export class WorldStudioUseCase {
  pendingConfirmation(id:string){return this.repository.pendingConfirmation?.(id)??null}
  acknowledgeConfirmation(id:string){this.repository.acknowledgeConfirmation?.(id)}
  list(signal?:AbortSignal){return this.repository.listStudio(signal)}
- /** `episode`를 고르지 않으면(최신 회차) 기존 호출 그대로 읽는다. */
+ /** `episode`를 고르지 않으면(최신 회차) 회차 없이 읽는다. */
  async read(id:string,signal?:AbortSignal,episode?:number){
-  if(episode===undefined)return this.repository.read(id,signal)
-  this.checkEpisode(episode)
+  if(episode!==undefined)this.checkEpisode(episode)
   return this.repository.read(id,signal,episode)
  }
  setPublication(id:string,publication:WorldPublicationInput,signal?:AbortSignal){return this.repository.setPublication(id,publication,signal)}
@@ -49,6 +48,6 @@ export class WorldStudioUseCase {
   if(world.settings.some(s=>!s.item.title.trim()||s.item.title.length>200||s.item.text.length>3000))throw new Error('설정 이름과 설명의 길이를 확인해 주세요.')
   if(world.settings.some(s=>s.item.kind==='relation'&&(!s.item.subjectId?.trim()||!s.item.targetId?.trim())))throw new Error('관계 주체와 대상을 선택해 주세요.')
   if(world.settings.some(invalidReveal))throw new Error(REVEAL_EPISODE_ERROR)
-  return episode===undefined?this.repository.saveStudio(world,signal):this.repository.saveStudio(world,signal,episode)
+  return this.repository.saveStudio(world,signal,episode)
  }
 }

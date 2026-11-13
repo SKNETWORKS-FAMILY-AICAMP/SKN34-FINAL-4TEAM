@@ -186,7 +186,7 @@ function relationship(row: StudioSetting) {
 }
 function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   if (value.worldId !== id) throw invalid()
-  // 관계 끝점은 삭제한 카드도 이 세계관의 카드다: 지난 회차 시점 관계는 그 뒤에 삭제한 설정을 끝점으로 가질 수 있다(DEC-51).
+  // 관계 끝점은 삭제한 카드도 이 세계관의 카드다: 지난 회차 시점 관계는 그 뒤에 삭제한 설정을 끝점으로 가질 수 있다(DEC-51). 그 이름은 화면이 쓰도록 남긴다.
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
     ids = new Set(value.cards.map((c) => c.id))
   const settings: StudioSetting[] = active.map((c) => {
@@ -234,6 +234,7 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
     hasCover: value.hasCover,
     linkedWorkId: value.linkedWorkId,
     settings,
+    deletedTitles: Object.fromEntries(value.cards.filter((c) => c.lifecycle !== 'active').map((c) => [c.id, c.title])),
     analysis: null,
   }
 }
@@ -421,7 +422,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
         expectedDraftRevision: value.version,
         key: crypto.randomUUID(),
         replace: true,
-        ...(episode !== undefined && { episode }),
+        episode,
         name: value.name,
         description: value.description,
         cards: value.settings.filter((s) => s.item.kind !== 'relation').map((row) => ({

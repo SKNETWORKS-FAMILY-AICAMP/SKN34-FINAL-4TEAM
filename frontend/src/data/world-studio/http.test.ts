@@ -441,6 +441,12 @@ it('reads a relation whose endpoint is a card deleted later, and sends it back u
  expect(body.cards.map((card:{id:string})=>card.id)).toEqual([a.item.id,b.item.id])
  expect(body.relationships.find((r:{id:string})=>r.id===goneRelation.item.id)).toMatchObject({sourceCardId:a.item.id,targetCardId:goneCard,label:goneRelation.item.title,body:goneRelation.item.text,lifecycle:'active'})
 })
+it('keeps the titles of the deleted cards to name them in a past episode, and has none when nothing was deleted',async()=>{
+ const gone=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(wireWithGone()))).read(id,undefined,2)
+ expect(gone.deletedTitles).toEqual({[goneCard]:'지운 설정'})
+ const plain=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(wire()))).read(id)
+ expect(plain.deletedTitles).toEqual({})
+})
 it('still rejects a relation whose endpoint is neither an active nor a deleted card of the world',async()=>{
  const value=wireWithGone()
  const fetcher=vi.fn().mockResolvedValue(Response.json({...value,relationships:value.relationships.map(r=>r.id===goneRelation.item.id?{...r,targetCardId:crypto.randomUUID()}:r)}))

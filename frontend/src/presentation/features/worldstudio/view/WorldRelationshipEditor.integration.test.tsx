@@ -385,7 +385,7 @@ async function openEpisodes({ linked = true, supported = true } = {}) {
       <Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes>
     </MemoryRouter>,
   )
-  const input = await screen.findByRole<HTMLInputElement>('textbox', { name: '관계 기준 회차' })
+  const input = await screen.findByRole<HTMLInputElement>('textbox', { name: '관계 기준 화' })
   return { repository, id: world.id, vm: () => current!, input }
 }
 const episodePicker = () => within(screen.getByRole('region', { name: '관계 기준 회차' }))
@@ -397,6 +397,8 @@ it.each([
 ] as const)('locks the relation episode picker with its reason: %s', async (reason, options) => {
   const { input } = await openEpisodes(options)
   expect(episodePicker().getByText(reason)).toBeTruthy()
+  expect(episodePicker().getByRole('status').textContent).toBe(reason) // 비활성 입력의 설명에만 두지 않고 화면에 읽히는 문구로 둔다
+  expect(episodePicker().queryByText(/이 회차의 관계로 기록/)).toBeNull() // 잠금 이유와 모순되는 '저장하면 이 회차로 기록' 도움말은 숨긴다
   expect(input.disabled).toBe(true)
   expect(episodePicker().getByRole<HTMLButtonElement>('button', { name: '이 회차 관계 보기' }).disabled).toBe(true)
   expect(episodePicker().getByRole<HTMLButtonElement>('button', { name: '최신으로' }).disabled).toBe(true)
@@ -406,6 +408,7 @@ it('validates the typed episode, reads that episode with its relations, and retu
   const { repository, id, input } = await openEpisodes()
   const read = vi.spyOn(repository, 'read'), show = () => episodePicker().getByRole<HTMLButtonElement>('button', { name: '이 회차 관계 보기' })
   expect(input.placeholder).toBe('최신')
+  expect(episodePicker().getByText(/세계관을 저장하면 이 회차의 관계로 기록/)).toBeTruthy() // 잠기지 않았으면 저장 기준 도움말이 보인다
   expect(show().disabled).toBe(true) // 지금 보는 회차(최신)와 같다
   expect(episodePicker().getByRole<HTMLButtonElement>('button', { name: '최신으로' }).disabled).toBe(true)
   expect(relationTable().getByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy() // 최신(2화)의 관계
@@ -418,11 +421,11 @@ it('validates the typed episode, reads that episode with its relations, and retu
   fireEvent.click(show())
   expect(await screen.findByText('아직 연결한 관계가 없어요.')).toBeTruthy()
   expect(read).toHaveBeenLastCalledWith(id, expect.any(AbortSignal), 1)
-  expect(screen.getByRole<HTMLInputElement>('textbox', { name: '관계 기준 회차' }).value).toBe('1') // 다시 열린 편집기도 지금 보는 회차를 보인다
+  expect(screen.getByRole<HTMLInputElement>('textbox', { name: '관계 기준 화' }).value).toBe('1') // 다시 열린 편집기도 지금 보는 회차를 보인다
   fireEvent.click(episodePicker().getByRole('button', { name: '최신으로' }))
   expect(await screen.findByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy()
-  expect(read).toHaveBeenLastCalledWith(id, expect.any(AbortSignal))
-  expect(screen.getByRole<HTMLInputElement>('textbox', { name: '관계 기준 회차' }).value).toBe('')
+  expect(read).toHaveBeenLastCalledWith(id, expect.any(AbortSignal), undefined)
+  expect(screen.getByRole<HTMLInputElement>('textbox', { name: '관계 기준 화' }).value).toBe('')
 })
 
 it('locks the relation episode picker while changes are unsaved and says why', async () => {
@@ -438,8 +441,10 @@ it('shows a relation to a deleted setting by its deleted name, read-only, and ne
   a.item.title = '가람'
   b.item.title = '나래'
   const settings = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
+  const named = crypto.randomUUID() // 서버가 삭제된 카드의 이름을 알려 준 끝점
   const gone = { ...settings[2], item: { ...settings[2].item, id: crypto.randomUUID(), predicate: 'custom_relation', text: '옛 동료', title: '옛 동료', targetId: crypto.randomUUID() } }
-  await useCase.save({ ...world, settings: [...settings, gone] })
+  const goneNamed = { ...gone, item: { ...gone.item, id: crypto.randomUUID(), text: '옛 스승', title: '옛 스승', targetId: named } }
+  await useCase.save({ ...world, settings: [...settings, gone, goneNamed], deletedTitles: { [named]: '폐허 도서관' } })
   function Harness() {
     const vm = useWorldStudioViewModel(useCase)
     return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null
@@ -454,6 +459,10 @@ it('shows a relation to a deleted setting by its deleted name, read-only, and ne
   expect(within(row).queryAllByRole('button')).toHaveLength(0)
   expect(within(row).getByText('읽기 전용')).toBeTruthy()
   expect(relationTable().getByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy() // 다른 관계는 그대로 고칠 수 있다
-  expect(screen.getByText(/삭제된 설정과 이어진 관계는 읽기 전용이에요/)).toBeTruthy()
-  expect(within(screen.getByRole('combobox', { name: '관계 대상' })).queryByText('삭제된 설정')).toBeNull()
+  const reason = screen.getByText(/삭제된 설정과 이어진 관계는 읽기 전용이에요/)
+  expect(reason).toBeTruthy()
+  const titled = screen.getByText('삭제된 설정: 폐허 도서관', { selector: 'td' }).closest('tr')! // 이름을 아는 삭제된 설정은 이름을 붙여 보인다
+  expect(Array.from(titled.querySelectorAll('td'), (cell) => cell.textContent?.trim()).slice(0, 3)).toEqual(['가람', '옛 스승', '삭제된 설정: 폐허 도서관'])
+  for (const readOnly of [row, titled]) expect(readOnly.getAttribute('aria-describedby')).toBe(reason.id) // 읽기 전용인 이유가 그 행에 이어진다
+  expect(within(screen.getByRole('combobox', { name: '관계 대상' })).queryByText(/삭제된 설정/)).toBeNull()
 })

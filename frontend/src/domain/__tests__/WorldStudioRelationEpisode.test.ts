@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { DELETED_CARD_NAME, hasDeletedEndpoint, isDeletedCard, putRelation } from '../entities/studioRelations'
+import { DELETED_CARD_NAME, isDeletedCard, putRelation } from '../entities/studioRelations'
 import { newSetting, RELATION_EPISODE_ERROR, relationEpisodeInput, type StudioWorld } from '../entities/studioWorld'
 import type { WorldStudioRepository } from '../repositories/WorldStudioRepository'
 import { WorldStudioUseCase } from '../usecases/WorldStudioUseCase'
@@ -14,7 +14,7 @@ describe('관계 기준 회차 입력', () => {
   })
 
   it('0·음수·소수·숫자가 아닌 글자는 이유를 알려 거른다', () => {
-    for (const text of ['0', '-1', '1.5', 'abc', '1e3', '3화', '١']) expect(relationEpisodeInput(text), text).toEqual({ error: RELATION_EPISODE_ERROR })
+    for (const text of ['0', '00', '-1', '1.5', 'abc', '1e3', '3화', '١']) expect(relationEpisodeInput(text), text).toEqual({ error: RELATION_EPISODE_ERROR })
     expect(RELATION_EPISODE_ERROR).toBe('관계 기준 회차는 1 이상의 정수로 입력해 주세요.')
   })
 })
@@ -30,12 +30,12 @@ describe('WorldStudioUseCase 관계 기준 회차', () => {
     expect(useCase(fake()).supportsRelationEpisodes).toBe(false)
   })
 
-  it('회차를 고르지 않으면 기존 호출 모양 그대로 최신 회차를 읽고 저장한다', async () => {
+  it('회차를 고르지 않으면 회차 없이(최신 회차) 읽고 저장한다', async () => {
     const repository = serverRepository(), cases = useCase(repository), signal = new AbortController().signal
     await cases.read('w', signal)
     await cases.save(world, signal)
-    expect(repository.read).toHaveBeenCalledWith('w', signal)
-    expect(repository.saveStudio).toHaveBeenCalledWith(world, signal)
+    expect(repository.read).toHaveBeenCalledWith('w', signal, undefined)
+    expect(repository.saveStudio).toHaveBeenCalledWith(world, signal, undefined)
   })
 
   it('고른 회차는 같은 취소 신호와 함께 조회·저장에 그대로 넘긴다', async () => {
@@ -69,19 +69,14 @@ describe('삭제된 설정을 끝점으로 하는 지난 회차 관계', () => {
   const person = (title: string) => ({ ...newSetting('people'), item: { ...newSetting('people').item, title } })
   const a = person('가람'), b = person('나래')
   const rows = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
-  const relation = rows[2].item
 
   it('끝점이 초안의 설정 카드가 아니면 삭제된 설정으로 본다', () => {
-    expect(hasDeletedEndpoint(rows, relation)).toBe(false)
-    expect(hasDeletedEndpoint(rows, { ...relation, targetId: 'deleted-card' })).toBe(true)
-    expect(hasDeletedEndpoint(rows, { ...relation, subjectId: 'deleted-card' })).toBe(true)
-    expect(isDeletedCard(rows, 'deleted-card')).toBe(true)
     expect(isDeletedCard(rows, a.item.id)).toBe(false)
+    expect(isDeletedCard(rows, 'deleted-card')).toBe(true)
   })
 
   it('끝점이 비어 있는(null) 관계는 삭제된 설정이 아니라 아직 고르지 않은 것이다', () => {
     expect(isDeletedCard(rows, null)).toBe(false)
-    expect(hasDeletedEndpoint(rows, { ...relation, targetId: null })).toBe(false)
   })
 
   it('화면에 보일 이름은 삭제된 설정이다', () => {

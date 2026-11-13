@@ -29,7 +29,7 @@ it.each([false,true])('waits for session restoration before loading world list a
  if(denied){list.mockRejectedValue(new SessionExpired('서버 로그인이 필요합니다.'));read.mockRejectedValue(new SessionExpired('서버 로그인이 필요합니다.'))}
  act(()=>finishRestore())
  await waitFor(()=>expect(result.current.busy).toBe(false))
- expect(list).toHaveBeenCalledTimes(1);expect(read).toHaveBeenCalledWith(world.id,expect.any(AbortSignal))
+ expect(list).toHaveBeenCalledTimes(1);expect(read).toHaveBeenCalledWith(world.id,expect.any(AbortSignal),undefined)
  if(denied){expect(result.current.error).toContain('서버 로그인이 필요합니다.');expect(result.current.editing).toBeNull()}
  else {expect(result.current.editing?.id).toBe(world.id);expect(result.current.error).toBe('')}
 })
@@ -123,7 +123,7 @@ it('reads the relations of the chosen episode, then returns to the latest ones w
  expect([result.current.episode,relationCount(result.current),result.current.dirty]).toEqual([1,0,false])
  expect(result.current.relationKey).toBe(key+1) // 관계 편집기를 새로 열어 옛 회차의 입력이 남지 않게 한다
  await act(async()=>{await result.current.selectEpisode(null)})
- expect(read).toHaveBeenLastCalledWith(id,expect.any(AbortSignal))
+ expect(read).toHaveBeenLastCalledWith(id,expect.any(AbortSignal),undefined)
  expect([result.current.episode,relationCount(result.current)]).toEqual([null,1])
 })
 it('does not read again for the episode it already shows',async()=>{
@@ -147,13 +147,40 @@ it('saves at the chosen episode and omits the episode for the latest one',async(
  expect(save).toHaveBeenLastCalledWith(expect.objectContaining({id}),expect.any(AbortSignal),1)
  await act(async()=>{await result.current.selectEpisode(null)})
  await act(()=>result.current.save())
- expect(save).toHaveBeenLastCalledWith(expect.objectContaining({id}),expect.any(AbortSignal))
+ expect(save).toHaveBeenLastCalledWith(expect.objectContaining({id}),expect.any(AbortSignal),undefined)
 })
 it('returns to the latest episode when the draft is reloaded after an AI or confirmation change',async()=>{
  const {result,repository,id}=await openEpisodeStudio()
  await act(async()=>{await result.current.selectEpisode(1)})
  const read=vi.spyOn(repository,'read')
  await act(async()=>{await result.current.reload()})
- expect(read).toHaveBeenLastCalledWith(id,undefined) // AI가 최신 회차에 더한 관계도 확인해야 하므로 회차 없이(최신) 읽는다
+ expect(read).toHaveBeenLastCalledWith(id,undefined,undefined) // AI가 최신 회차에 더한 관계도 확인해야 하므로 회차 없이(최신) 읽는다
  expect([result.current.episode,relationCount(result.current)]).toEqual([null,1])
+})
+it('locks the relation episode while an AI review or confirmation request runs and says why',async()=>{
+ const {result,repository}=await openEpisodeStudio()
+ const read=vi.spyOn(repository,'read')
+ act(()=>result.current.setReviewBusy(true))
+ expect(result.current.episodeLock).toBe('AI 후보 검토·확정 버전 요청이 진행 중이라 회차를 바꿀 수 없어요.')
+ await act(async()=>{await result.current.selectEpisode(1)})
+ expect(read).not.toHaveBeenCalled()
+ act(()=>result.current.setReviewBusy(false))
+ expect(result.current.episodeLock).toBe('')
+})
+it('refuses to delete a setting while an episode is chosen, keeps the draft untouched and says why, then deletes again at the latest',async()=>{
+ const {result}=await openEpisodeStudio()
+ const person=result.current.editing!.settings[0].item.id,reason='설정 삭제는 최신 회차에서 할 수 있어요.'
+ expect(result.current.deleteLock).toBe('')
+ await act(async()=>{await result.current.selectEpisode(1)})
+ expect(result.current.deleteLock).toBe(reason)
+ let deleted=true
+ act(()=>{deleted=result.current.deleteCard(person)})
+ expect(deleted).toBe(false)
+ expect(result.current.editing!.settings.some(s=>s.item.id===person)).toBe(true)
+ expect([result.current.dirty,result.current.canUndoCardDeletion,result.current.error]).toEqual([false,false,reason])
+ await act(async()=>{await result.current.selectEpisode(null)})
+ expect(result.current.deleteLock).toBe('')
+ act(()=>{deleted=result.current.deleteCard(person)})
+ expect(deleted).toBe(true)
+ expect(result.current.editing!.settings.some(s=>s.item.id===person)).toBe(false)
 })

@@ -31,22 +31,21 @@ export type StudioSetting = {serverMetadata?:Record<string,unknown>;item:Setting
 /** 독자 공개 회차가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 저장 전 확인([worldWritingIssues])과 저장 검증(WorldStudioUseCase.save)이 같은 규칙·문구를 쓴다. */
 export const REVEAL_EPISODE_ERROR='독자 공개 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidReveal=({revealFromEpisode:n}:Pick<StudioSetting,'revealFromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
-/** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번): 값이 있으면 1 이상의 정수여야 하고, 없으면(`null`) 최신 회차다. 조회·저장 검증과 입력 칸이 같은 규칙·문구를 쓴다. */
+/** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번): 값이 있으면 1 이상의 정수여야 하고, 없으면(`null`) 최신 회차다. 조회·저장 검증(`invalidRelationEpisode`)과 입력 칸(`relationEpisodeInput`)이 같은 규칙·문구를 쓴다. */
 export const RELATION_EPISODE_ERROR='관계 기준 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidRelationEpisode=(n:number)=>!(Number.isInteger(n)&&n>=1)
-/** `관계 기준 회차` 입력 글자를 값으로: 비어 있으면 최신(`null`), 1 이상의 정수 글자면 그 회차, 그 밖은 이유다. */
+/** `관계 기준 회차` 입력 글자를 값으로: 비어 있으면 최신(`null`), 1 이상의 정수 글자(앞의 0은 무시)면 그 회차, 그 밖은 이유다. */
 export function relationEpisodeInput(text:string):{episode:number|null}|{error:string}{
  const trimmed=text.trim()
  if(!trimmed)return {episode:null}
- const episode=/^\d+$/.test(trimmed)?Number(trimmed):Number.NaN
- return invalidRelationEpisode(episode)?{error:RELATION_EPISODE_ERROR}:{episode}
+ return /^0*[1-9]\d*$/.test(trimmed)?{episode:Number(trimmed)}:{error:RELATION_EPISODE_ERROR}
 }
 /** 세계관 단위 공개 설정(설정 카드 단위 공개와 다르다). 값이 없으면 비공개·장르 미지정이다(서버가 이 필드를 주기 전 응답과 메모리 데모). */
 export type WorldVisibility = 'private'|'public'
 export type WorldPublicationInput = {visibility:WorldVisibility;genre:PublicWorldGenre|null}
 /** `listed`는 지금 공개 목록·상세에 실제로 나오는지다. 공개로 설정해도 확정 버전이 없으면 false이고, `publishedAt`은 비공개이면 null이다. */
 export type WorldPublication = WorldPublicationInput & {worldId:string;publishedAt:string|null;listed:boolean}
-export type StudioWorld = {currentRevisionId?:string|null;id:string;name:string;description:string;version:number;visibility?:WorldVisibility;genre?:PublicWorldGenre|null;/** 올린 표지가 있는지(없으면 자동 생성 표지). 값이 없으면 없다. */hasCover?:boolean;/** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결). 없으면 미연결이다. */linkedWorkId?:string|null;settings:StudioSetting[];relationshipStatus?:'current'|'incomplete'|'migration_required';analysis:{id:string;status:string;candidates:SettingItem[];issues:string[]}|null}
+export type StudioWorld = {currentRevisionId?:string|null;id:string;name:string;description:string;version:number;visibility?:WorldVisibility;genre?:PublicWorldGenre|null;/** 올린 표지가 있는지(없으면 자동 생성 표지). 값이 없으면 없다. */hasCover?:boolean;/** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결). 없으면 미연결이다. */linkedWorkId?:string|null;settings:StudioSetting[];/** 지난 회차 관계의 끝점이 될 수 있는, 그 뒤에 삭제한 설정의 이름(카드 id → 이름). 서버 저장소가 채우고(삭제된 카드가 없으면 빈 객체) 메모리 데모에는 없다. */deletedTitles?:Record<string,string>;relationshipStatus?:'current'|'incomplete'|'migration_required';analysis:{id:string;status:string;candidates:SettingItem[];issues:string[]}|null}
 export const newSetting = (section:StudioSection='basic'):StudioSetting => ({userCategory:'설정',tags:[],item:{id:crypto.randomUUID(),title:'',text:'',topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_addition',authorText:'',decision:'approved',...sectionFields(section)}})
 export function authorEdit(setting:StudioSetting,patch:Partial<SettingItem>):StudioSetting {
  const item={...setting.item,...patch,origin:'author_addition' as const,decision:'approved' as const,evidence:[],orderEvidence:[]}
