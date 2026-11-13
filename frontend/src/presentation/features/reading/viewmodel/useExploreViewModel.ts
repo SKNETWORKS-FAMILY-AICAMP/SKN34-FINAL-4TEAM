@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
@@ -39,7 +39,8 @@ function usePagedWorks(readingUseCase: ReadingUseCase, query: { q: string; f: Se
   const [stored, setExtra] = useState<Extra>()
   const extra = base && stored?.base === base ? stored : undefined
   const pending = useRef<AbortController | null>(null)
-  useEffect(() => () => { pending.current?.abort(); pending.current = null }, [base])
+  // 새 목록의 '더 보기'가 동작하기 전에 이전 목록의 요청을 취소한다.
+  useLayoutEffect(() => () => { pending.current?.abort(); pending.current = null }, [base])
   const hasMore = !!base && !first.isError && (extra ?? base).hasMore
   const load = () => {
     if (!base || !hasMore || pending.current) return // 진행 중에는 다시 보내지 않는다.

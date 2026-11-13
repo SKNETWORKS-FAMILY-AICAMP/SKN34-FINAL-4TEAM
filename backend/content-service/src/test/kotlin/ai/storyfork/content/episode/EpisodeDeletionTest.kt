@@ -134,6 +134,7 @@ class EpisodeDeletionTest {
         `when`(current.findByWorkIdAndSequence("w",2)).thenReturn(EpisodeCurrentEntity("next","w",2))
         `when`(episodes.findAllById(listOf("next"))).thenReturn(listOf(next))
         `when`(drafts.findAllById(listOf("next"))).thenReturn(listOf(EpisodeDraftEntity("next","second","",0)))
+        `when`(current.lastNumber("w")).thenReturn(1)
         assertEquals(2,service.create("w","owner",ai.storyfork.content.episode.service.dto.CreateEpisodeRequest("second")).number)
     }
     @Test fun `existing image blocks deletion even without any content references`() {

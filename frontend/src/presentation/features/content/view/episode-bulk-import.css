@@ -1,0 +1,136 @@
+.sheet.episode-bulk-import {
+  --bulk-gutter: clamp(16px, 4vw, 26px);
+  width: min(640px, 100%);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.episode-bulk-header,
+.episode-bulk-body,
+.episode-bulk-footer {
+  padding-inline: var(--bulk-gutter);
+}
+
+.episode-bulk-header {
+  padding-block: 20px 12px;
+}
+
+.episode-bulk-header p {
+  margin-block-start: 4px;
+}
+
+.episode-bulk-body {
+  display: grid;
+  gap: 12px;
+  min-block-size: 0;
+  padding-block: 4px 16px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.episode-bulk-drop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px dashed var(--line3);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.episode-bulk-start,
+.episode-bulk-rights {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.episode-bulk-start .inp {
+  width: 7em;
+  min-height: 44px;
+  padding-block: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.episode-bulk-rights {
+  align-items: start;
+}
+
+.episode-bulk-rights input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--pri);
+}
+
+.episode-bulk-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-block-start: 1px solid var(--line2);
+}
+
+.episode-bulk-rows li {
+  padding-block: 10px;
+  border-block-end: 1px solid var(--line2);
+  overflow-wrap: anywhere;
+}
+
+.episode-bulk-row-heading,
+.episode-bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.episode-bulk-row-heading {
+  margin-block-end: 2px;
+}
+
+.episode-bulk-rows .episode-bulk-actions {
+  margin-block-start: 8px;
+}
+
+.episode-bulk-actions .btn {
+  min-height: 44px;
+}
+
+.episode-bulk-row-heading [data-result="created"],
+.episode-bulk-row-heading [data-result="versioned"] {
+  background: var(--pri-soft);
+  color: var(--pri-ink);
+}
+
+.episode-bulk-error,
+.episode-bulk-row-heading [data-result="failed"] {
+  color: var(--danger);
+}
+
+.episode-bulk-footer {
+  display: grid;
+  gap: 10px;
+  flex: none;
+  padding-block: 12px;
+  border-block-start: 1px solid var(--line2);
+}
+
+.episode-bulk-footer .episode-bulk-actions {
+  justify-content: end;
+}
+
+.episode-bulk-progress {
+  display: grid;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.episode-bulk-progress progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--pri);
+}

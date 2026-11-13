@@ -13,6 +13,8 @@ import ai.storyfork.content.manuscript.EpubFixture.epub
 import ai.storyfork.content.manuscript.EpubFixture.xhtml
 import ai.storyfork.content.manuscript.service.ManuscriptImportService
 import ai.storyfork.content.manuscript.service.dto.*
+import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.dto.WorkAccessResult
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -33,7 +35,9 @@ class ManuscriptImportServiceTest {
     private val versions = mock(EpisodeVersionService::class.java)
     private val attachments = mock(AttachmentService::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
-    private val service = ManuscriptImportService(episodes, versions, attachments, TransactionTemplate(manager))
+    private val access = mock(WorkAccessService::class.java)
+    private var workRevision = 10
+    private val service = ManuscriptImportService(episodes, versions, attachments, TransactionTemplate(manager), access)
 
     // 실제 서비스 대신 메모리에 회차를 두고, 서비스가 부른 일을 기록한다.
     private val store = sortedMapOf<Int, EpisodeResponse>()
@@ -60,21 +64,30 @@ class ManuscriptImportServiceTest {
 
     @BeforeEach fun wire() {
         `when`(manager.getTransaction(any())).thenReturn(SimpleTransactionStatus())
-        `when`(episodes.list(str("work"), str("owner"))).thenAnswer { EpisodeListResponse(store.values.toList()) }
+        `when`(episodes.lastNumber(str("work"), str("owner"))).thenAnswer { store.keys.maxOrNull() ?: 0 }
+        `when`(access.own(str("work"), str("owner"))).thenAnswer {
+            WorkAccessResult("work", "owner", "", "", workRevision, "world", "private", false, false, null)
+        }
         `when`(episodes.read(str("work"), str("owner"), anyInt())).thenAnswer { store[it.getArgument<Int>(2)] ?: throw ContentFailure(404, "회차를 찾을 수 없어요.") }
         `when`(episodes.create(str("work"), str("owner"), anyOf(CreateEpisodeRequest::class.java, CreateEpisodeRequest("x")))).thenAnswer {
             val number = (store.keys.maxOrNull() ?: 0) + 1 + createOffset
             created += number
             EpisodeResponse(number, DraftResponse(it.getArgument<CreateEpisodeRequest>(2).title, "", 7), emptyList(), null, false, null).also { made -> store[number] = made }
         }
-        `when`(versions.save(str("work"), str("owner"), anyInt(), anyOf(DraftRequest::class.java, DraftRequest("x", "", 0)))).thenAnswer {
+        `when`(versions.saveWithVersion(str("work"), str("owner"), anyInt(), anyOf(DraftRequest::class.java, DraftRequest("x", "", 0)))).thenAnswer {
             val number = it.getArgument<Int>(2); val data = it.getArgument<DraftRequest>(3)
             saveFailure(number)?.let { failure -> throw failure }
             val before = store[number] ?: throw ContentFailure(404, "회차를 찾을 수 없어요.")
             if (before.inherited) throw ContentFailure(403, "원작 기준 회차는 수정할 수 없어요.")
             if (data.revision != before.draft.revision) throw ContentFailure(409, "revision ${data.revision} != ${before.draft.revision}")
             saved += Triple(number, data.title, data.body)
-            before.copy(draft = DraftResponse(data.title, data.body, data.revision + 1), versions = before.versions + version(number, data.title, data.body)).also { after -> store[number] = after }
+            val savedVersion = version(number, data.title, data.body).copy(revision = data.revision + 1)
+            store[number] = before.copy(
+                draft = DraftResponse(data.title, data.body, data.revision + 1),
+                versions = before.versions + savedVersion,
+            )
+            workRevision++
+            savedVersion
         }
         `when`(attachments.createEpisodeImage(str("work"), anyInt(), str("owner"), anyOf(AttachmentUploadPayload::class.java, AttachmentUploadPayload("", "", "", ByteArray(0))), anyString())).thenAnswer {
             val payload = it.getArgument<AttachmentUploadPayload>(3)
@@ -97,6 +110,33 @@ class ManuscriptImportServiceTest {
         .also { assertEquals(422, it.status, it.message) }
     private fun epubFile(vararg chapters: String, extra: Map<String, ByteArray> = emptyMap()) = MockMultipartFile("file", "book.epub", "application/epub+zip",
         epub(chapters.mapIndexed { i, body -> "c$i.xhtml" to xhtml(body) }, nav = chapters.indices.map { "c$it.xhtml" to "${it + 1}화" }, extra = extra))
+
+    @Test fun `bulk keeps original numbers and returns only the uploaded version`() {
+        existing(1, DraftResponse("작업 중", "보존할 본문", 5), listOf(version(1, "이전", "이전 본문")))
+        val bad = MockMultipartFile("files", "broken.epub", "application/epub+zip", byteArrayOf(1))
+        val files = listOf(novel(1), bad, novel(1))
+        val request = BulkImportRequest(true, workRevision, (1..3).map { BulkImportItem(it, "업로드 $it") })
+        val response = service.importBulk("work", "owner", files, request)
+        assertEquals(listOf(1, 2, 3), response.results.map { it.number })
+        assertEquals(listOf("versioned", "failed", "failed"), response.results.map { it.status })
+        assertEquals(listOf("v-1-업로드 1", null, null), response.results.map { it.versionId })
+        assertTrue(response.results.last().reason.orEmpty().contains("앞 회차"))
+        assertEquals(listOf("보존할 본문", "1화\n본문1"), saved.map { it.third })
+        assertEquals(12, response.workRevision)
+
+        val retry = service.importBulk("work", "owner", listOf(novel(1), novel(1)),
+            BulkImportRequest(true, response.workRevision, request.items.drop(1)))
+        assertEquals(listOf("created", "created"), retry.results.map { it.status })
+        assertEquals(listOf(2, 3), created)
+    }
+
+    @Test fun `bulk can continue after a missing episode inside the existing range`() {
+        existing(2, DraftResponse("기존 회차", "저장본", 5), listOf(version(2, "기존 회차", "저장본")))
+        val request = BulkImportRequest(true, workRevision, (1..2).map { BulkImportItem(it, "업로드 $it") })
+        val response = service.importBulk("work", "owner", listOf(novel(1), novel(1)), request)
+        assertEquals(listOf("failed", "versioned"), response.results.map { it.status })
+        assertNull(response.stopReason)
+    }
 
     // ---- 미리보기 ----
 
@@ -148,7 +188,7 @@ class ManuscriptImportServiceTest {
         assertEquals(422, failure(MockMultipartFile("file", "a.txt", "text/plain", byteArrayOf(0xFF.toByte(), 0xFE.toByte()))).status)
         val drm = failure(MockMultipartFile("file", "a.epub", "application/epub+zip", epub(listOf("c.xhtml" to xhtml("<p>x</p>")), extra = mapOf("META-INF/rights.xml" to "<r/>".toByteArray()))))
         assertTrue("DRM" in drm.message, drm.message)
-        `when`(episodes.list(str("work"), str("stranger"))).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
+        `when`(episodes.lastNumber(str("work"), str("stranger"))).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
         assertEquals(404, assertThrows(ContentFailure::class.java) { service.preview("work", "stranger", MockMultipartFile("file", "a.epub", "x", "garbage".toByteArray())) }.status)
     }
 
@@ -249,7 +289,7 @@ class ManuscriptImportServiceTest {
         // 시작 → 보존 저장 → 가져온 버전 저장(실패) → 롤백 순서라서 두 저장이 모두 같은 트랜잭션 안에 있다.
         val order = inOrder(manager, versions)
         order.verify(manager).getTransaction(any())
-        order.verify(versions, times(2)).save(str("work"), str("owner"), anyInt(), anyOf(DraftRequest::class.java, DraftRequest("x", "", 0)))
+        order.verify(versions, times(2)).saveWithVersion(str("work"), str("owner"), anyInt(), anyOf(DraftRequest::class.java, DraftRequest("x", "", 0)))
         order.verify(manager).rollback(anyOf(TransactionStatus::class.java, SimpleTransactionStatus()))
     }
 
@@ -307,7 +347,7 @@ class ManuscriptImportServiceTest {
     @Test fun `file errors and ownership are reported before the request is used`() {
         val broken = MockMultipartFile("file", "a.epub", "application/epub+zip", "no zip".toByteArray())
         invalid(broken, ManuscriptImportRequest(true, listOf(item(1, 1))))
-        `when`(episodes.list(str("work"), str("stranger"))).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
+        `when`(episodes.lastNumber(str("work"), str("stranger"))).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
         assertEquals(404, assertThrows(ContentFailure::class.java) { service.confirm("work", "stranger", broken, ManuscriptImportRequest(false, emptyList())) }.status)
         verifyNoInteractions(versions, attachments)
     }
@@ -327,7 +367,7 @@ class ManuscriptImportServiceTest {
         val order = inOrder(episodes, attachments, versions)
         order.verify(episodes).create(str("work"), str("owner"), anyOf(CreateEpisodeRequest::class.java, CreateEpisodeRequest("x")))
         order.verify(attachments, times(3)).createEpisodeImage(str("work"), anyInt(), str("owner"), anyOf(AttachmentUploadPayload::class.java, AttachmentUploadPayload("", "", "", ByteArray(0))), anyString())
-        order.verify(versions).save(str("work"), str("owner"), anyInt(), anyOf(DraftRequest::class.java, DraftRequest("x", "", 0)))
+        order.verify(versions).saveWithVersion(str("work"), str("owner"), anyInt(), anyOf(DraftRequest::class.java, DraftRequest("x", "", 0)))
     }
 
     @Test fun `images that cannot be read validated or uploaded leave the episode partial with the rest of the body saved`() {
@@ -389,7 +429,7 @@ class ManuscriptImportServiceTest {
     @Test fun `import preserves note-only unsaved edits before replacing the manuscript`() {
         existing(1,DraftResponse("제목","본문",5,"후기만 수정"),listOf(version(1,"제목","본문")))
         confirm(novel(1),item(1,1))
-        val requests=org.mockito.Mockito.mockingDetails(versions).invocations.filter {it.method.name=="save"}.map {it.getArgument<DraftRequest>(3)}
+        val requests=org.mockito.Mockito.mockingDetails(versions).invocations.filter {it.method.name=="saveWithVersion"}.map {it.getArgument<DraftRequest>(3)}
         assertEquals(2,requests.size)
         assertEquals(listOf("후기만 수정","후기만 수정"),requests.map {it.authorNote})
     }

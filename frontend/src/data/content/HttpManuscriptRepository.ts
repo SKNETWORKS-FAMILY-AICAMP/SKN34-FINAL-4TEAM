@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { ManuscriptDownload, ManuscriptExportQuery, ManuscriptImportItem } from '../../domain/entities/manuscript'
+import type { BulkUploadRow, ManuscriptDownload, ManuscriptExportQuery, ManuscriptImportItem } from '../../domain/entities/manuscript'
 import type { ManuscriptRepository } from '../../domain/repositories/ManuscriptRepository'
 import { assertAuthVersion, authVersion, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
@@ -7,6 +7,17 @@ import { csrf } from '../api/csrf'
 const count = z.number().int().nonnegative()
 const previewEpisode = z.object({ title: z.string(), from: count, to: z.number().int().positive(), charCount: count, excerpt: z.string(), imageCount: count, warnings: z.array(z.string()) })
 const preview = z.object({ format: z.enum(['txt', 'epub']), unit: z.enum(['line', 'chapter']), unitCount: count, existingEpisodeCount: count, episodes: z.array(previewEpisode) })
+const bulkBasis = z.object({ lastNumber: count, workRevision: count })
+const bulkResultRow = { number: z.number().int().positive(), title: z.string() }
+const bulkResponse = z.object({
+  workRevision: count,
+  stopReason: z.string().nullish().transform((value) => value ?? null),
+  results: z.array(z.discriminatedUnion('status', [
+    z.object({ ...bulkResultRow, status: z.literal('created'), versionId: z.string().min(1), reason: z.null() }),
+    z.object({ ...bulkResultRow, status: z.literal('versioned'), versionId: z.string().min(1), reason: z.null() }),
+    z.object({ ...bulkResultRow, status: z.literal('failed'), versionId: z.null(), reason: z.string().min(1) }),
+  ])),
+})
 const summary = z.object({
   succeeded: count, failed: count,
   results: z.array(z.object({ number: z.number().int().positive(), title: z.string(), status: z.enum(['created', 'versioned', 'partial', 'failed']), reason: z.string().nullable(), missingImages: count })),
@@ -39,7 +50,9 @@ export class HttpManuscriptRepository implements ManuscriptRepository {
     const response = await protectedRequest(path, { method, body, headers, signal: requestSignal }, version, false, { fetcher, allowHttpError: true })
     if (!response.ok) {
       const error = z.object({ detail: z.string() }).safeParse(await response.json().catch(() => undefined))
-      throw new Error(error.success ? error.data.detail : FAILURE[response.status] ?? '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.')
+      throw new Error(error.success ? error.data.detail : (response.status === 413 && path.endsWith('/manuscript-imports/bulk')
+        ? '업로드 묶음이 너무 커요. 파일 합계는 50 MiB 이하여야 해요.'
+        : FAILURE[response.status]) ?? '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.')
     }
     return response
   }
@@ -61,6 +74,25 @@ export class HttpManuscriptRepository implements ManuscriptRepository {
     form.append('file', file)
     form.append('request', new Blob([JSON.stringify({ rightsConfirmed, items })], { type: 'application/json' }))
     return this.upload(summary, `${worksPath(workId)}/manuscript-imports`, form, signal)
+  }
+  async bulkBasis(workId: string, signal?: AbortSignal) {
+    const version = authVersion()
+    const response = await this.request(`${worksPath(workId)}/manuscript-imports/bulk`, 'GET', undefined, signal)
+    const value: unknown = await response.json()
+    assertAuthVersion(version)
+    return bulkBasis.parse(value)
+  }
+  importBulkBatch(workId: string, rows: readonly BulkUploadRow[], expectedWorkRevision: number, signal?: AbortSignal) {
+    const form = new FormData()
+    // The title is in JSON. Keep part headers short even for long Unicode file names.
+    for (const { file } of rows) {
+      const extension = /\.epub$/i.test(file.name) ? 'epub' : 'txt'
+      form.append('files', file, `episode.${extension}`)
+    }
+    const items = rows.map(({ number, title }) => ({ number, title }))
+    form.append('request', new Blob([JSON.stringify({ rightsConfirmed: true, expectedWorkRevision, items })],
+      { type: 'application/json' }))
+    return this.upload(bulkResponse, `${worksPath(workId)}/manuscript-imports/bulk`, form, signal)
   }
   async exportManuscript(workId: string, query: ManuscriptExportQuery, signal?: AbortSignal): Promise<ManuscriptDownload> {
     const version = authVersion()
