@@ -6,6 +6,9 @@ import type { FeedbackUseCase } from '../../../../domain/usecases/FeedbackUseCas
 import { toast } from '../../../shared/events'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 
+/** 입력 거절·실패 사유를 알릴 곳. 시트는 시트 안(`useInlineFailure`)으로 받고, 넘기지 않으면 토스트로 알린다. */
+type Fail = (message: string) => void
+
 /** 댓글·피드백·신고 시트 동작 (목업 commentSheet·feedbackSheet·reportSheet) */
 export function useFeedbackViewModel(feedbackUseCase: FeedbackUseCase = appContainer.resolve('feedbackUseCase')) {
   const nick = useAppSelector((s) => s.session.user.nick)
@@ -13,29 +16,29 @@ export function useFeedbackViewModel(feedbackUseCase: FeedbackUseCase = appConta
   const changed = () => dispatch(sessionActions.dataChanged())
   return {
     /** 빈 내용이면 false. 등록하면 목록을 다시 불러오고 안내를 띄웁니다. */
-    addComment: async (workId: string, n: number, text: string, sent: Sentence | null, spoiler = false) => {
+    addComment: async (workId: string, n: number, text: string, sent: Sentence | null, spoiler = false, fail: Fail = toast) => {
       const v = text.trim()
-      if (!v) return toast('댓글 내용을 입력해 주세요'), false
+      if (!v) return fail('댓글 내용을 입력해 주세요'), false
       try {
         const note = await feedbackUseCase.addComment(workId, n, nick, v, sent, spoiler)
         changed()
         toast(note)
         return true
-      } catch(error) { toast(error instanceof Error?error.message:'댓글을 저장하지 못했어요.'); return false }
+      } catch(error) { fail(error instanceof Error?error.message:'댓글을 저장하지 못했어요.'); return false }
     },
     /** 빈 내용이면 null, 접수하면 상태와 안내 문구. canonical·visibility는 실제 작품(제보 API)에서만 쓴다. */
-    sendFeedback: async (o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; storyCheck: boolean; canonical?: boolean; visibility?: FeedbackReportVisibility }) => {
+    sendFeedback: async (o: { workId: string; n: number; sentence: Sentence; type: FeedbackType; text: string; storyCheck: boolean; canonical?: boolean; visibility?: FeedbackReportVisibility }, fail: Fail = toast) => {
       const text = o.text.trim()
-      if (!text) return toast('내용을 입력해 주세요'), null
+      if (!text) return fail('내용을 입력해 주세요'), null
       const verified = o.type === '스토리 오류' && o.storyCheck && window.confirm('스토리 오류 검증을 시연할까요? 비용과 한도는 미정이며 실제 AI 호출이나 차감은 없습니다.')
       try { return await feedbackUseCase.sendFeedback({ workId: o.workId, n: o.n, sentence: o.sentence, type: o.type, text, verified, nick, canonical: o.canonical, visibility: o.visibility }) }
-      catch(error) { toast(error instanceof Error?error.message:'피드백을 접수하지 못했어요.'); return null }
+      catch(error) { fail(error instanceof Error?error.message:'피드백을 접수하지 못했어요.'); return null }
     },
-    reportWork: async (workId: string, type: string, text: string) => {
+    reportWork: async (workId: string, type: string, text: string, fail: Fail = toast) => {
       const v = text.trim()
-      if (!v) return toast('신고 내용을 입력해 주세요'), null
+      if (!v) return fail('신고 내용을 입력해 주세요'), null
       try { return await feedbackUseCase.reportWork({ workId, type, text: v, nick }) }
-      catch(error) { toast(error instanceof Error?error.message:'신고를 접수하지 못했어요.'); return null }
+      catch(error) { fail(error instanceof Error?error.message:'신고를 접수하지 못했어요.'); return null }
     },
   }
 }

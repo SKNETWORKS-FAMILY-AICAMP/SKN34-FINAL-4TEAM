@@ -15,7 +15,7 @@ export function ManuscriptExportPanel({ workId, episode, inherited, disabled = f
         <button type="button" className="btn sm" onClick={() => void vm.download()}>{vm.busy ? '내보내는 중이에요…' : '내보내기'}</button>
       </fieldset>
       {vm.busy && <button type="button" className="btn sm" onClick={vm.cancel}>내보내기 취소</button>}
-      {vm.error && <p role="alert">{vm.error}</p>}
+      {vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
       {vm.notice && <p role="status">{vm.notice}</p>}
       <p className="small muted">서버에 저장된 원고를 내보내요. 입력 중이거나 저장 중에는 잠시 내보낼 수 없고, 자동 저장이 끝난 뒤에 다시 누르면 돼요. TXT는 글만 담고 이미지는 빠져요. EPUB에는 본문 이미지가 들어가요. 회차 메모·설정은 포함하지 않아요.</p>
       {inherited && <p className="small muted">원작 기준 회차는 내보낼 수 없어요. 작품 전체를 내보내면 내가 쓴 회차만 담겨요.</p>}

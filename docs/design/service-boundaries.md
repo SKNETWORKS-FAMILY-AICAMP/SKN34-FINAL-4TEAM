@@ -43,7 +43,7 @@ Web / 모바일 클라이언트
            └─ AI 서비스: 필요한 운영 검사·평가
 ```
 
-그림의 정산·알림·운영 호출은 목표 흐름이다. 현재 nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`의 exact·하위 경로를 Content로 보내며 나머지 `/api`는 Core로 보낸다. Core 인증 확인·작가 닉네임 조회와 Content → AI 생성은 동기 HTTP다. 내부 인증 endpoint는 공개 proxy에 등록하지 않는다. Core를 중앙 콘텐츠 프록시로 만들거나 별도 게이트웨이를 추가하지 않는다. 브라우저는 내부 AI·DB·모델 API를 직접 호출하지 않으며 기존 공개 URL·쿠키·CSRF·응답 계약을 유지한다.
+그림의 정산·알림·운영 호출은 목표 흐름이다. 현재 nginx/Vite는 `/api/v1/works`·`/api/v1/public/works`·`/api/v1/world-studios`·`/api/v1/public/world-studios`(공개 세계관, DEC-45)의 exact·하위 경로를 Content로 보내며 나머지 `/api`는 Core로 보낸다. Core 인증 확인·작가 닉네임 조회와 Content → AI 생성은 동기 HTTP다. 내부 인증 endpoint는 공개 proxy에 등록하지 않는다. Core를 중앙 콘텐츠 프록시로 만들거나 별도 게이트웨이를 추가하지 않는다. 브라우저는 내부 AI·DB·모델 API를 직접 호출하지 않으며 기존 공개 URL·쿠키·CSRF·응답 계약을 유지한다.
 
 ## 4. DB·트랜잭션·실패 경계
 

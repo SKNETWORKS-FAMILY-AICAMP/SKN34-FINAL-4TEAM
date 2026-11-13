@@ -43,7 +43,7 @@ type MemorySuggestions = ReturnType<typeof memorySuggestions>
 
 /** 정본 작품 열람 화면의 댓글은 이 파일의 관심사가 아니라 빈 목록을 주는 대역으로 둔다. */
 const noComments = () => ({
-  list: vi.fn(async () => []), create: vi.fn(async () => { throw new Error('unused') }), update: vi.fn(async () => { throw new Error('unused') }),
+  list: vi.fn(async () => []), listByWork: vi.fn(async () => []), create: vi.fn(async () => { throw new Error('unused') }), update: vi.fn(async () => { throw new Error('unused') }),
   remove: vi.fn(async () => {}), like: vi.fn(async () => {}), unlike: vi.fn(async () => {}),
 }) satisfies EpisodeCommentRepository
 
@@ -361,7 +361,7 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
 describe('내 서재의 내 수정 제안 (기능 24)', () => {
   const open = async (seed: EditSuggestion[], tweak: (repo: MemorySuggestions) => void = () => {}) => {
     const repo = serve(seed, tweak)
-    renderApp('/lib?tab=qa', user())
+    renderApp('/content?view=reports', user())
     await screen.findByRole('heading', { name: '내 수정 제안' })
     return repo
   }
@@ -395,7 +395,7 @@ describe('내 서재의 내 수정 제안 (기능 24)', () => {
     await screen.findByText(/'수정 제안'을 보내면 여기에 모여요/)
     cleanup()
     const repo = serve([suggestion({ mine: true, owner: false })], (r) => r.mine.mockRejectedValueOnce(new Error('offline')))
-    renderApp('/lib?tab=qa', user())
+    renderApp('/content?view=reports', user())
     await screen.findByText(/수정 제안을 불러오지 못했어요/)
     expect(screen.queryByText(/'수정 제안'을 보내면 여기에 모여요/)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '수정 제안 다시 불러오기' }))
@@ -406,7 +406,7 @@ describe('내 서재의 내 수정 제안 (기능 24)', () => {
   it('서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다', async () => {
     vi.stubEnv('MODE', 'mockup')
     const repo = serve([suggestion({ mine: true, owner: false })])
-    renderApp('/lib?tab=qa', user())
+    renderApp('/content?view=reports', user())
     await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
     expect(screen.queryByRole('heading', { name: '내 수정 제안' })).toBeNull()
     expect(repo.mine).not.toHaveBeenCalled()

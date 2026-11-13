@@ -128,6 +128,32 @@ env ATTACHMENT_S3_ENDPOINT=http://127.0.0.1:9000 \
 
 API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core-api/README.md#설정-이미지일반-파일-87)을 따릅니다. 설정 검사 `infrastructure/tests/test_attachment_environment.py`는 앱/DB/컨테이너를 시작하지 않지만 전체 클래스의 Compose JSON 렌더링은 CI configuration에서 실행합니다. 로컬 자동 검사는 native 문서 계약 같은 순수 메서드와 `config --quiet`만 선택합니다.
 
+## 로컬 원고 검색용 Elasticsearch (#56)
+
+Docker Desktop을 실행한 뒤 저장소 루트에서 Elasticsearch 단일 노드를 시작합니다. 공식 9.5.6 이미지를 사용하며 메모리 상한은 1GiB입니다. 별도 Compose 프로젝트이므로 앱 스택이나 `.env` 설정이 필요하지 않습니다.
+
+```powershell
+docker compose -f infrastructure/docker-compose.elasticsearch.yaml up -d --wait
+curl.exe --fail --silent --show-error 'http://127.0.0.1:9200/_cluster/health?pretty'
+```
+
+상태가 `green` 또는 `yellow`이면 요청을 받을 수 있습니다. 로컬 개발 전용 HTTP이며 인증을 끄고 `127.0.0.1`에만 포트를 엽니다. 종료하려면 같은 Compose 파일로 `stop`을 실행합니다. 인덱스 데이터는 `manuscript-index` 볼륨에 남습니다.
+
+새 로컬 환경에서는 [v1 매핑](elasticsearch/manuscript-chunks-v1.json)으로 원고 검색용 인덱스를 한 번 생성합니다.
+
+```powershell
+curl.exe --fail-with-body -X PUT 'http://127.0.0.1:9200/storyfork-manuscript-v1' -H 'Content-Type: application/json' --data-binary '@infrastructure/elasticsearch/manuscript-chunks-v1.json'
+```
+
+PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/writing-ai-architecture/07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1)에서 384차원 모델, 작품·Fork·판본 필터, 검증 결과를 확인할 수 있습니다.
+
+### 네이티브 자동 적재
+
+1. 같은 Content DB에 전용 v1 인덱스 하나를 사용합니다. 여러 개발 DB를 쓴다면 각각 `storyfork-manuscript-v1-<이름>` 인덱스를 만들고 `MANUSCRIPT_INDEX_NAME`에 지정합니다. 대조 작업은 선택한 DB의 공개 판본에 없는 청크를 해당 인덱스에서 제거합니다.
+2. 모델 리비전 `614241f622f53c4eeff9890bdc4f31cfecc418b3`의 `onnx/`에서 `tokenizer.json`과 `model_qint8_avx512_vnni.onnx`를 같은 로컬 디렉터리에 받습니다. 이 경로를 `MANUSCRIPT_EMBEDDING_MODEL_DIR`로 지정하고 AI Service를 `uv run --locked --extra manuscript uvicorn app.main:create_app --factory --reload`로 시작합니다. [고정 리비전 모델 파일](https://huggingface.co/intfloat/multilingual-e5-small/tree/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx)
+3. Content 터미널에 `MANUSCRIPT_INDEX_ENABLED=true`와 해당 DB의 `DATABASE_*`를 설정하고 평소대로 Content를 시작합니다. 두 서비스의 `INTERNAL_TOKEN`은 같아야 하며, 네이티브 실행에서는 필요한 값을 루트 `.env`에서 각 터미널에 설정합니다. Elasticsearch 기본 주소는 `http://127.0.0.1:9200`입니다.
+4. Content 로그의 `manuscript index reconciled`와 `curl.exe --fail http://127.0.0.1:9200/storyfork-manuscript-v1/_count`로 첫 적재를 확인합니다. 이후 변경은 기본 60초 주기에서 확인할 수 있습니다.
+
 ## CI → CD (publish → deploy)
 
 [CI](../.github/workflows/ci.yml)와 [CD](../.github/workflows/publish-images.yml) 두 workflow를 사용합니다. 별도 deploy workflow는 없습니다.

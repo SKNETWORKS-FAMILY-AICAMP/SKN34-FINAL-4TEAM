@@ -77,9 +77,10 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
 /**
  * 작가 피드백함의 실제 작품 수정 제안(기능 24): 변경 전·후, 범위 검사, 편집안 저장, 승인·거절·보류와 반영 결과.
  * 승인은 새 초안 버전으로만 반영하며 발행은 집필실에서 따로 합니다. 데모 작품의 수정 제안은 위의 데모 피드백함이 계속 맡습니다.
+ * workId를 주면 그 작품의 제안만 보입니다(작품 관리 화면의 '받은 피드백' 탭). 주지 않으면 내 모든 작품입니다.
  */
-export function EditSuggestionInbox() {
-  const vm = useEditSuggestionInboxViewModel()
+export function EditSuggestionInbox({ workId }: { workId?: string }) {
+  const vm = useEditSuggestionInboxViewModel(workId)
   return (
     <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
       <div className="sec-h"><h2 id="edit-suggestions-h">독자 수정 제안</h2><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
@@ -90,7 +91,7 @@ export function EditSuggestionInbox() {
         </div>
       )}
       {!vm.items && !vm.isError && <p className="muted">수정 제안을 불러오고 있어요…</p>}
-      {vm.items?.length === 0 && <p className="muted">받은 수정 제안이 없어요.</p>}
+      {vm.items?.length === 0 && <p className="muted">{workId ? '이 작품에 받은 수정 제안이 없어요.' : '받은 수정 제안이 없어요.'}</p>}
       {vm.items && vm.items.length > 0 && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map((s) => <SuggestionCard key={s.id} s={s} vm={vm} />)}</div>}
     </section>
   )

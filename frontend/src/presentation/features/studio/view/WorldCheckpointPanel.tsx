@@ -14,10 +14,10 @@ export function WorldCheckpointPanel({ workId }: { workId: string }) {
       <button type="button" className="btn sm" disabled={vm.busy || rows === null} onClick={() => void vm.create()}>현재 저장 설정으로 체크포인트 만들기</button>
     </div>
     {vm.busy && <p role="status">세계관 체크포인트를 처리하고 있어요…</p>}
-    {vm.error && <p role="alert">{vm.error}</p>}
+    {vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
     {vm.notice && <p role="status">{vm.notice}</p>}
     {rows && (rows.length ? <ol>{rows.map((row, index) => <li key={row.id}>
-      <button type="button" className="btn sm writing-checkpoint-toggle" disabled={vm.busy} aria-pressed={detail?.id === row.id} onClick={() => void vm.toggle(row.id)}>
+      <button type="button" className="btn sm writing-checkpoint-toggle" disabled={vm.busy} aria-expanded={detail?.id === row.id} onClick={() => void vm.toggle(row.id)}>
         {title(rows.length - index, row.createdAt)}
       </button>
     </li>)}</ol> : <p>저장한 세계관 체크포인트가 없어요.</p>)}
@@ -25,7 +25,7 @@ export function WorldCheckpointPanel({ workId }: { workId: string }) {
       <h4>{title(rows.length - rows.findIndex(row => row.id === detail.id), detail.createdAt)} · 저장된 설정 {detail.settings.length}개</h4>
       {detail.settings.map(setting => <details key={setting.id}>
         <summary>{setting.name} · {setting.category} · {setting.visibility === 'public' ? '공개' : '비공개'} · {setting.fromEpisode}화{setting.toEpisode ? `~${setting.toEpisode}화` : '부터'}</summary>
-        <p className="writing-preview">{setting.content}</p>
+        <p className="writing-preview" tabIndex={0} role="group" aria-label={`${setting.name} 내용`}>{setting.content}</p>
       </details>)}
     </>}
   </section>

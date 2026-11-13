@@ -14,5 +14,5 @@ it('shows saved AI candidates with their source quotes as unconfirmed, without a
 })
 it('says no candidates exist when nothing was saved',()=>{
  render(<WorldCandidates analysis={null}/>)
- expect(screen.getByText(/저장된 AI 후보가 없습니다/)).toBeTruthy()
+ expect(screen.getByText(/저장된 AI 후보가 없어요/)).toBeTruthy()
 })

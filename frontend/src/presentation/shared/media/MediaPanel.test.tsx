@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
-import {cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
+import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
 import {afterEach,expect,it,vi} from 'vitest'
 import type {MediaTarget} from '../../../domain/entities/media'
-import {MediaPanel} from './MediaPanel'
+import {MediaPanel,StoredImage} from './MediaPanel'
 import {useMediaViewModel,useStoredImage} from './useMediaViewModel'
 
 vi.mock('./useMediaViewModel',()=>({useMediaViewModel:vi.fn(),useStoredImage:vi.fn()}))
-afterEach(()=>{cleanup();vi.clearAllMocks()})
+afterEach(()=>{cleanup();vi.clearAllMocks();vi.unstubAllGlobals()})
 
 function renderPanel(state:Partial<ReturnType<typeof useMediaViewModel>>={},target:MediaTarget={kind:'cover',workId:'work-id'}) {
  vi.mocked(useMediaViewModel).mockReturnValue({items:[],busy:false,mutating:false,error:'',notice:'',revision:0,reload:vi.fn(),upload:vi.fn(),remove:vi.fn(),download:vi.fn(),rename:vi.fn().mockResolvedValue(true),cancel:vi.fn(),...state})
@@ -82,4 +82,28 @@ it.each<MediaTarget>([{kind:'cover',workId:'work-id'},{kind:'episode',workId:'wo
 it('locks the rename form with the rest of the panel while a request is running',()=>{
  renderPanel({items:[memo],busy:true},settingTarget)
  expect(screen.getByRole('button',{name:'이름 변경 · 세계관 메모.pdf'}).closest('fieldset')?.disabled).toBe(true)
+})
+
+it('StoredImage waits until its placeholder comes near the screen before asking for the picture, then stops watching',()=>{
+ const episode:MediaTarget={kind:'episode',workId:'work-id',number:1}
+ let report:(entries:{isIntersecting:boolean}[])=>void=()=>{}
+ const observe=vi.fn();const disconnect=vi.fn()
+ vi.stubGlobal('IntersectionObserver',class {constructor(callback:typeof report){report=callback} observe=observe;disconnect=disconnect})
+ vi.mocked(useStoredImage).mockReturnValue({url:'',error:''})
+ render(<StoredImage target={episode} id="image-id" alt="본문 이미지 1"/>)
+ const placeholder=screen.getByRole('status')
+ expect(placeholder.textContent).toBe('이미지를 불러오고 있어요…')
+ expect(observe).toHaveBeenCalledExactlyOnceWith(placeholder)
+ // 닫힌 접힘 안이나 화면에서 먼 자리(교차하지 않음)에서는 내려받기를 켜지 않는다.
+ expect(vi.mocked(useStoredImage)).toHaveBeenLastCalledWith(episode,'image-id',false,0,undefined,false)
+ act(()=>report([{isIntersecting:false}]))
+ expect(vi.mocked(useStoredImage)).toHaveBeenLastCalledWith(episode,'image-id',false,0,undefined,false)
+ act(()=>report([{isIntersecting:true}]))
+ expect(vi.mocked(useStoredImage)).toHaveBeenLastCalledWith(episode,'image-id',false,0,undefined,true)
+ expect(disconnect).toHaveBeenCalled()
+})
+it('StoredImage asks for the picture right away where the browser cannot watch the screen position',()=>{
+ vi.mocked(useStoredImage).mockReturnValue({url:'',error:''})
+ render(<StoredImage target={{kind:'cover',workId:'work-id'}} id="cover-id" alt="작품 표지" revision={2}/>)
+ expect(vi.mocked(useStoredImage)).toHaveBeenLastCalledWith({kind:'cover',workId:'work-id'},'cover-id',false,2,undefined,true)
 })

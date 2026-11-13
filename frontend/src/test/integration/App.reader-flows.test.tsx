@@ -10,6 +10,7 @@ import '../scrollToSpy'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import { openPolicy } from '../../presentation/shared/events'
 
 beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
 afterEach(() => { cleanup(); vi.useRealTimers() })
@@ -37,7 +38,8 @@ describe('빠른 이동 (U03) · 집필실', () => {
 
   it('크레딧 정책 시트를 연 채 Ctrl K를 누르면 시트가 교체되고 Esc 한 번에 닫힌다', async () => {
     renderAt('/')
-    fireEvent.click(await screen.findByRole('button', { name: /✦ 크레딧/ }))
+    await screen.findByRole('navigation', { name: '주요 메뉴' })
+    act(() => { openPolicy() })
     await screen.findByRole('dialog')
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
     await waitFor(() => expect(screen.getAllByRole('dialog').map((d) => d.getAttribute('aria-label'))).toEqual(['빠른 이동']))

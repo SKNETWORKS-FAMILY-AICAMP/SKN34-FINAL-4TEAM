@@ -38,3 +38,9 @@
 .adm .admin-operations .report-actions fieldset { display: grid; gap: 10px; margin: 0; }
 .adm .admin-operations .report-actions h3 { margin: 0; }
 .adm .admin-operations h2[tabindex="-1"]:focus { outline: none; }
+/* 패널 제목: 굵은 글씨(<b>) 대신 제목 요소를 쓰되 모양과 흐름은 이전 그대로(본문 크기·굵게·줄 안 배치) 둡니다. */
+.adm .panel-title { display: inline; font-size: inherit; font-weight: 700; }
+/* 업무 메뉴가 가로 줄로 바뀌는 좁은 화면에서는 누르는 높이를 44px로 올립니다(전역 38px). */
+@media (max-width: 900px) {
+  .adm .admin-nav :is(button, a) { height: auto; min-height: 44px; }
+}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
-import { canReport, canView, forkLabel, forkList, makeFork } from '../entities/work'
+import { canReport, canView, forkLabel, forkList, makeFork, sameAuthorWorks, similarWorks, type Work } from '../entities/work'
 
 const works = seedWorks(0)
 const worlds = seedWorlds()
@@ -58,5 +58,50 @@ describe('작품 규칙 (목업 1절)', () => {
     expect(f.by).toBe('포크 · 원작 「구운몽」 3화에서 포크 · 나')
     parent.eps[0].p[0] = '바뀐 원작'
     expect(f.snap!.eps[0].p[0]).not.toBe('바뀐 원작')
+  })
+})
+
+describe('소설 상세 추천 선정 규칙', () => {
+  const wk = (id: string, over: Partial<Work> = {}): Work => ({ ...byId('guunmong'), id, title: id, author: '작가', hash: [], ...over })
+  const ids = (list: Work[]) => list.map((w) => w.id)
+
+  it('같은 작가의 다른 작품은 작가명이 정확히 같은 것만 현재 작품을 빼고 검색 순서대로 남긴다', () => {
+    const cur = wk('cur', { author: '윤서하' })
+    const found = [wk('a', { author: '윤서하' }), wk('cur', { author: '윤서하' }), wk('b', { author: '윤서하윤' }), wk('c', { author: '하윤서하' }), wk('d', { author: '윤서하' })]
+    expect(ids(sameAuthorWorks(cur, found))).toEqual(['a', 'd'])
+  })
+
+  it('탈퇴한 회원은 이름이 모두 같아 같은 작가로 보지 않는다', () => {
+    expect(sameAuthorWorks(wk('cur', { author: '탈퇴한 회원' }), [wk('a', { author: '탈퇴한 회원' })])).toEqual([])
+  })
+
+  it('비슷한 작품은 현재 작품과 같은 작가 목록을 빼고 해시태그가 많이 겹치는 순, 동점은 검색 순서 그대로다', () => {
+    const cur = wk('cur', { hash: ['#a', '#b', '#c'] })
+    const found = [wk('x', { hash: ['#z'] }), wk('y', { hash: ['#a'] }), wk('cur', { hash: ['#a', '#b', '#c'] }), wk('s', { hash: ['#a', '#b', '#c'] }), wk('w', { hash: ['#b', '#a'] }), wk('v', { hash: ['#b'] }), wk('u')]
+    expect(ids(similarWorks(cur, found, [wk('s')]))).toEqual(['w', 'y', 'v', 'x', 'u'])
+  })
+
+  it('비슷한 작품은 오른쪽 포크 박스와 겹치는 현재 작품의 포크·원작·같은 원작의 형제 포크를 빼고 무관한 작품은 남긴다', () => {
+    const cur = wk('cur', { parent: 'src', hash: ['#a'] })
+    const found = [wk('src', { hash: ['#a'] }), wk('sib', { parent: 'src', hash: ['#a'] }), wk('kid', { parent: 'cur', hash: ['#a'] }), wk('other', { hash: ['#a'] }), wk('otherFork', { parent: 'other', hash: ['#a'] })]
+    expect(ids(similarWorks(cur, found))).toEqual(['other', 'otherFork'])
+  })
+
+  it('원작은 자기 포크만 빼고, 원작끼리는 부모가 없다는 이유로 서로 형제로 보지 않는다', () => {
+    const cur = wk('cur', { hash: ['#a'] })
+    const found = [wk('kid1', { parent: 'cur' }), wk('kid2', { parent: 'cur' }), wk('plain'), wk('stranger', { parent: 'stranger-src' })]
+    expect(ids(similarWorks(cur, found))).toEqual(['plain', 'stranger'])
+  })
+
+  it('해시태그가 없는 작품끼리는 검색의 인기 순을 그대로 둔다', () => {
+    expect(ids(similarWorks(wk('cur', { hash: undefined }), [wk('p', { hash: undefined }), wk('q'), wk('r')]))).toEqual(['p', 'q', 'r'])
+  })
+
+  it('두 목록 모두 최대 6개이고 받은 배열은 바꾸지 않는다', () => {
+    const many = Array.from({ length: 9 }, (_, i) => wk(`m${i}`, { hash: i === 8 ? ['#a'] : [] }))
+    const before = ids(many)
+    expect(ids(sameAuthorWorks(wk('cur'), many))).toEqual(before.slice(0, 6))
+    expect(ids(similarWorks(wk('cur', { hash: ['#a'] }), many))).toEqual(['m8', 'm0', 'm1', 'm2', 'm3', 'm4'])
+    expect(ids(many)).toEqual(before)
   })
 })

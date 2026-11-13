@@ -26,6 +26,20 @@ describe('CreditLedgerUseCase', () => {
     expect(balanceFn).toHaveBeenCalledWith(signal)
     expect(historyFn).toHaveBeenCalledWith(signal)
   })
+
+  it('잔액만 읽고 지급·사용·소멸 내역은 읽지 않는다(계정 메뉴의 보유 크레딧 줄)', async () => {
+    const historyFn = vi.fn(async () => history)
+    expect(await new CreditLedgerUseCase(repo({ history: historyFn })).balance()).toEqual(balance)
+    expect(historyFn).not.toHaveBeenCalled()
+  })
+
+  it('잔액 조회에도 취소 신호를 전달하고 실패는 그대로 알린다', async () => {
+    const balanceFn = vi.fn(async (_signal?: AbortSignal) => balance)
+    const signal = new AbortController().signal
+    await new CreditLedgerUseCase(repo({ balance: balanceFn })).balance(signal)
+    expect(balanceFn).toHaveBeenCalledWith(signal)
+    await expect(new CreditLedgerUseCase(repo({ balance: async () => { throw new Error('boom') } })).balance()).rejects.toThrow('boom')
+  })
 })
 
 describe('크레딧 표시 이름', () => {

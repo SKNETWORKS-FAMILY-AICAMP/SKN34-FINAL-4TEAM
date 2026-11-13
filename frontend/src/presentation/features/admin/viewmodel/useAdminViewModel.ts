@@ -97,6 +97,8 @@ export function useAdminViewModel(
   // mounted는 화면을 떠난 뒤 끝난 조치가 다른 화면에 알림을 띄우거나 Redux 초안·선택을 정리하지 않게 하는 데만 씁니다.
   const mounted = useRef(true)
   const [lastSuccess, setLastSuccess] = useState('')
+  // 마지막 완료가 어느 조치(key)의 결과인지. 화면이 완료 줄에 대상 이름을 붙이고, 같은 문구를 폼 안 상태와 겹쳐 그리지 않는 데 씁니다.
+  const [lastSuccessKey, setLastSuccessKey] = useState('')
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   const notify = (message: string) => { if (mounted.current) toast(message) }
   const { actions, run: exec, reset } = useActionRunner('완료 여부를 확인하지 못했어요. 입력은 유지했어요. 목록을 새로고침해 처리 여부를 확인한 뒤 다시 시도해 주세요.', notify)
@@ -115,7 +117,7 @@ export function useAdminViewModel(
       setLastSuccess('')
       const result = await action()
       if (!result) return { ok: false, msg: '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.' }
-      if (result.ok) { dispatch(sessionActions.dataChanged()); setLastSuccess(result.msg) }
+      if (result.ok) { dispatch(sessionActions.dataChanged()); setLastSuccess(result.msg); setLastSuccessKey(key) }
       notify(result.msg)
       return result
     })
@@ -135,7 +137,7 @@ export function useAdminViewModel(
     }
   }
   return {
-    ...query, ...view, actions, lastSuccess,
+    ...query, ...view, actions, lastSuccess, lastSuccessKey,
     /** 본인 계정 조치 버튼을 막는 화면용 값. 서버도 본인 제한을 400으로 거절합니다. */
     selfId: memberId,
     me,

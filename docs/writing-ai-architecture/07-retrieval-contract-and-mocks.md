@@ -12,15 +12,27 @@ flowchart LR
   M --> N
   W -.-> N
   T -.-> N
-  N --> V[Content 권한·판본·원문 확인]
+  N --> V[Content 권한과 출처별 확인]
   V --> C[ContextPacket + Coverage/Gap]
 ~~~
 
 ## 공통 입력과 출력
 
+공통 Retrieval 도구/서브그래프는 Writing & Editing을 제외한 업무 Agent가 필요할 때 호출하며, 아래 Scope와 결과 계약을 재사용한다. Writing & Editing에는 Content가 확인한 허용 입력을 직접 전달하고, 필요 시 Review가 검수한다. 별도 정본이 아니고 모든 공급자나 모델을 매번 호출하지 않는다. 단순 조회는 직접 실행할 수 있다. [공통 도구](03-rag-simulation-design.md#공통-서브그래프-도구)
+
 Scope에는 사용자 작업 참조, 대상 work/Fork, 기준 회차·판본 manifest, audience(owner/reader/character), 인물 ID, 목적, 만료가 들어간다. UI·모델이 만든 Scope를 신뢰하지 않는다. Query에는 작업 종류, 검색 문구 또는 ID, 허용 회차/문서, 결과·토큰 상한을 넣는다. 결과는 ok/partial/unavailable/unsupported/denied 중 하나이며 evidence, gaps, coverage를 반환한다. 정상 0건은 검색 장애와 다르다.
 
-Evidence에는 source kind, source ID, work/Fork, episode/document ID, source revision, 정확한 원문 위치와 인용, canonical/inferred/hypothetical 상태, 조회 시점이 들어간다. 위치는 원문 기준 UTF-16 [start,end)이고 정확 인용은 PostgreSQL 원문으로 확인한다. 벡터 점수는 관련도일 뿐 사실일 확률이 아니다. 서로 다른 공급자의 점수를 평균해 사실을 결정하지 않는다.
+Evidence의 공통 필수 정보는 출처 종류, 그 종류 안에서 식별 가능한 출처 참조, 검증에 사용한 판본·세대·토큰 등 출처별 식별 정보, canonical/inferred/hypothetical 상태, 조회 시점이다. 작품·회차에 속하는 근거에는 해당 work/Fork와 회차·문서 식별자를 포함한다. 위치·인용을 확인하는 방식은 출처 종류에 따른다.
+
+| 출처 종류 | 출처별 확인 정보 |
+|---|---|
+| 원고 Vector | work/Fork, 회차·문서 ID, 판본, 본문 해시, 원문 기준 UTF-16 `[start,end)`, 인용. Content가 PostgreSQL 판본 원문에서 대조한다. |
+| 현재 관계 Graph | 세계관 ID, 관계 ID, 현재 graph token과 방향·라벨·양 끝 카드. Content가 world 연결·소유권·공개 범위와 현재 그래프를 확인한다. 출처의 시점을 현재로 표시한다. |
+| 회차 Wiki Graph | 출처 회차·문서의 판본, 파생 노드·경로 참조, 근거와 회차 coverage. 원고 직접 인용이 있을 때 해당 원문 위치와 인용을 대조한다. |
+| 템플릿 Vector | 카탈로그 항목 ID, catalog revision, 라이선스·공개 범위. 독립 카탈로그에는 작품/Fork와 회차 필드를 요구하지 않는다. |
+| Q&A의 설정 | 설정 ID와 판본, 사용한 공개 범위와 인용. Content가 해당 회차에 허용한 설정 본문·속성·지식을 확인한다. |
+
+Python은 출처 종류별 필수 정보와 검증 결과를 확인한다. 해당 종류에 적용되지 않는 필드는 누락으로 세지 않는다. 템플릿의 카탈로그 정보는 작품의 확정 설정과 구분한다. 벡터 점수는 검색 관련도를 뜻하며, 공급자별 점수를 평균해 사실을 결정하지 않는다.
 
 Coverage는 요청한 범위의 expected와 verified 판본, 누락·stale·삭제·미지원 구간을 표시한다. top-k가 관련 문단을 찾았다는 이유만으로 작품 전체를 검수했다고 쓰지 않는다. 권한 밖 회차는 존재 자체를 드러내지 않는다. 인물용 packet은 해당 시점에 배운 정보만 포함한다.
 
