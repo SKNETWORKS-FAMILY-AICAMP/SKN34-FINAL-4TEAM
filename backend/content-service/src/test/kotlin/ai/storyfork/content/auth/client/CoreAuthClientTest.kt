@@ -16,7 +16,7 @@ import org.springframework.web.service.annotation.PostExchange
 
 class CoreAuthClientTest {
     @Test
-    fun `draft verification declares a header-only credential and UUID-only response`() {
+    fun `draft verification declares a header-only credential and a member-id-and-operator-only response`() {
         val client = Class.forName("ai.storyfork.content.auth.client.CoreAuthClient")
         assertTrue(client.isInterface)
         assertEquals(listOf(MediaType.APPLICATION_JSON_VALUE), client.getAnnotation(HttpExchange::class.java)?.accept?.toList())
@@ -29,8 +29,9 @@ class CoreAuthClientTest {
 
         val response = verify.returnType
         assertEquals("ai.storyfork.content.auth.client.VerifiedMemberResponse", response.name)
+        // 회원 UUID와 운영자 여부만 읽는다. 이메일·닉네임 같은 회원 정본의 사본은 만들지 않는다.
         assertEquals(
-            listOf("memberId" to UUID::class.java),
+            listOf("memberId" to UUID::class.java, "operator" to java.lang.Boolean.TYPE),
             response.declaredFields.filterNot { it.isSynthetic }.map { it.name to it.type },
         )
     }

@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import type { ReadingWorkRecord, ReadingWorldRecord } from '../../../../data/content/HttpEpisodeRepository'
 import { mapReadingWork, withReadingWorld } from '../../../../data/content/readingWork'
+import type { ReaderWorldCard, ReaderWorldCards } from '../../../../domain/entities/wiki'
+import { worldCardWiki } from '../viewmodel/worldCardWiki'
 import { PublicWikiArticle } from './PublicWiki'
 
 afterEach(cleanup)
@@ -76,5 +78,47 @@ describe('독자용 설정 위키 본문 (U45)', () => {
     const panel = show([], 1)
     within(panel).getByText('공개된 설정이 없어요.')
     expect(panel.querySelector('details')).toBeNull()
+  })
+})
+
+describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)', () => {
+  const card = (id: string, extra: Partial<ReaderWorldCard>): ReaderWorldCard => ({ id, title: id, text: '', cardType: 'character', aliases: [], tags: [], revealFromEpisode: 1, ...extra })
+  const cards = [
+    card('tower', { title: '별빛 탑', cardType: 'location', text: '봉인을 지키는 **탑**.', revealFromEpisode: 2 }),
+    card('rian', { title: '리안', text: '끈질긴 견습생.\n\n## 성격\n확신이 강하다.', aliases: ['견습 서약사'], tags: ['주인공', '서약사'] }),
+    card('seal', { title: '봉인 규칙', cardType: 'rule', text: '해가 지면 문이 닫힌다.' }),
+  ]
+  const relationships: ReaderWorldCards['relationships'] = [
+    { id: 'r1', sourceCardId: 'rian', targetCardId: 'tower', label: '머무는 곳' },
+    { id: 'r2', sourceCardId: 'seal', targetCardId: 'tower', label: '' },
+  ]
+  const showLinked = () => render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ cards, relationships }) }} upto={2} /></MemoryRouter>).container
+  const docOf = (panel: HTMLElement, name: RegExp) => within(panel).getByRole('heading', { name, level: 3 }).closest('.nw-doc') as HTMLElement
+
+  it('카드 유형별로 묶어 본문 마크다운·별칭·태그·독자 공개 회차를 읽기 전용으로 보이고 본문의 `##` 문단은 문서 제목 아래 소제목이 된다', () => {
+    const panel = showLinked()
+    // 서버가 준 카드 순서와 상관없이 카드 유형 순서(인물·장소·…·규칙)로 묶는다.
+    expect([...panel.querySelectorAll('details > summary')].map((s) => s.textContent)).toEqual(['1. 인물', '2. 장소', '3. 규칙'])
+    const rian = docOf(panel, /^1\.1\. 리안$/)
+    const info = within(rian).getByRole('table', { name: '리안' })
+    expect([...info.querySelectorAll('th')].map((e) => e.textContent)).toEqual(['분류', '별칭', '태그', '공개'])
+    expect([...info.querySelectorAll('td')].map((e) => e.textContent)).toEqual(['인물', '견습 서약사', '주인공, 서약사', '1화부터'])
+    within(rian).getByText('끈질긴 견습생.')
+    within(rian).getByRole('heading', { name: '성격', level: 4 })
+    expect(rian.textContent).not.toContain('##')
+    // 마크다운 기호는 글자로 남지 않고 서식이 된다.
+    expect(docOf(panel, /별빛 탑$/).querySelector('strong')?.textContent).toBe('탑')
+    expect(panel.textContent).not.toContain('**')
+    expect(panel.querySelector('input, textarea, select, button, [contenteditable]')).toBeNull()
+  })
+
+  it('관계는 양 끝 문서 모두에서 상대 문서로 가는 연결과 라벨로 보이고 라벨이 없으면 이름만 보인다', () => {
+    const panel = showLinked()
+    const rel = (doc: HTMLElement) => doc.querySelector('.nw-rel')?.textContent
+    expect(rel(docOf(panel, /리안$/))).toBe('연결 별빛 탑 (머무는 곳)')
+    expect(rel(docOf(panel, /별빛 탑$/))).toBe('연결 리안 (머무는 곳), 봉인 규칙')
+    expect(rel(docOf(panel, /봉인 규칙$/))).toBe('연결 별빛 탑')
+    within(docOf(panel, /봉인 규칙$/)).getByRole('link', { name: '별빛 탑' })
+    expect(within(panel).queryByText(/연결을 불러오지 못했어요/)).toBeNull()
   })
 })

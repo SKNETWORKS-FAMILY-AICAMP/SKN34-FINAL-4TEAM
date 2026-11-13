@@ -5,7 +5,8 @@ export type Theme = 'hanji' | 'star' | 'neon'
 
 export type Knowledge = { text: string; knownAt: number; publicAt?: number }
 export type CastMember = { n: string; c: string; d: string; st: string; knowledge?: Knowledge[] }
-export type Episode = { t: string; p: string[]; versionId?: string; hidden?: boolean; note?: string; authorNote?: string; ai?: boolean }
+/** views: 회차 누적 회원 조회 수. 서버가 주지 않으면 없다. */
+export type Episode = { t: string; p: string[]; versionId?: string; views?: number; hidden?: boolean; note?: string; authorNote?: string; ai?: boolean }
 /** 목업 autoOf(w): AI 자율 연재 데모 상태 */
 export type AutoSerial = { on: boolean; status: string; react: boolean; requireReview: boolean; log: string[]; failures?: number }
 /** [회차, 종류(m 주요·f 복선·s 설정), 내용, 관련 인물] */
@@ -60,6 +61,8 @@ export type Work = {
   mine?: boolean
   rating?: string
   schedule?: string[]
+  /** 연재 상태. 서버에 없어 데모 작품에만 있고(표시 전용) 서버 작품은 비어 있다. */
+  serial?: '연재 중' | '완결' | '휴재'
   forkFrom?: number
   forksAllowed?: boolean
   forkAll?: boolean
@@ -146,7 +149,7 @@ export const canView = (w: Work | undefined, role: Role): w is Work => !!w && (i
 export const canReport = (w: Work, memberId: string | null) => isPub(w) && !isMine(w) && (memberId === null || w.owner !== memberId)
 export const visibleEpisode = (w: Work, e: Episode, role: Role) => !e.hidden || (!w.canonical && role === 'user' && isMine(w))
 export const originals = (works: Work[]) => works.filter((w) => !w.parent && !w.private)
-/** 목업 분류 필터(관리자·캐릭터 챗 목록): 전체·원작·포크 */
+/** 목업 분류 필터(관리자·캐릭터챗 목록): 전체·원작·포크 */
 export const ofKind = (kind: string, w: { parent?: string }) => kind === 'all' || (kind === 'fork' ? !!w.parent : !w.parent)
 export const forksOf = (works: Work[], id: string) => works.filter((w) => w.parent === id && isPub(w))
 
@@ -197,7 +200,28 @@ export const avatarOf = (s: string) => AVATAR_COLORS[[...s].reduce((a, c) => a +
 /** 목업 tagsOf(): 포크는 원작의 해시태그를 이어받습니다. */
 export const tagsOf = (w: Work, works: Work[]) => w.hash?.length ? w.hash : (w.parent && works.find((x) => x.id === w.parent)?.hash) || []
 
-/** 목업 SORTS: /ifs 포크 모음·캐릭터 챗 목록 정렬. 검색은 서버 계약인 SEARCH_SORTS, 랭킹은 RANKING_KINDS를 씁니다. */
+/** 소설 상세 추천 한 목록의 최대 개수 */
+const RECOMMEND_MAX = 6
+/** 탈퇴한 회원의 작가명 자리표시(서버가 채움). 탈퇴 회원은 모두 같은 이름이라 같은 작가라고 볼 수 없다. */
+const WITHDRAWN_AUTHOR = '탈퇴한 회원'
+
+/** 같은 작가의 다른 작품. 작가 검색(f=author)은 부분 일치라 작가명이 정확히 같은 작품만 남기고 현재 작품은 빼며, 검색의 인기 순을 유지해 최대 6개다. */
+export const sameAuthorWorks = (current: Work, found: Work[]) =>
+  current.author === WITHDRAWN_AUTHOR ? [] : found.filter((w) => w.id !== current.id && w.author === current.author).slice(0, RECOMMEND_MAX)
+
+/**
+ * 비슷한 작품. 현재 작품과 [exclude](같은 작가 목록)에 든 작품은 빼고, 오른쪽 포크 박스가 이미 보여 주는 현재 작품의 포크·원작·같은 원작의 형제 포크도 뺀다.
+ * 남은 것을 해시태그가 많이 겹치는 순(동점은 검색의 인기 순 그대로)으로 최대 6개다.
+ */
+export function similarWorks(current: Work, found: Work[], exclude: Work[] = []) {
+  const skip = new Set([current.id, ...exclude.map((w) => w.id)])
+  const tags = new Set(current.hash)
+  const overlap = (w: Work) => (w.hash ?? []).filter((h) => tags.has(h)).length
+  const related = (w: Work) => w.parent === current.id || (!!current.parent && (w.id === current.parent || w.parent === current.parent))
+  return found.filter((w) => !skip.has(w.id) && !related(w)).sort((a, b) => overlap(b) - overlap(a)).slice(0, RECOMMEND_MAX)
+}
+
+/** 목업 SORTS: /ifs 포크 모음·캐릭터챗 목록 정렬. 검색은 서버 계약인 SEARCH_SORTS, 랭킹은 RANKING_KINDS를 씁니다. */
 export const SORTS = [['new', '최신 순'], ['pop', '인기 순'], ['view', '조회 순']] as const
 const SERVER_SORTS = [['title', '제목 순'], ['author', '작가 순']] as const
 /** 서버 작품(statisticsSupported:false)은 좋아요·갱신 시각이 없어 만들 수 없는 지표 대신 제목·작가 순만 고르게 합니다. */

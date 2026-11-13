@@ -68,6 +68,14 @@ describe('결제 내역 (U33)', () => {
     expect(screen.getByText('지급·사용 내역이 없어요.')).toBeTruthy()
   })
 
+  it('정책 안내 버튼을 누르면 크레딧·이용 정책 안내 시트가 열린다', async () => {
+    setup(() => Response.json(balance))
+    await heldCredits()
+    fireEvent.click(screen.getByRole('button', { name: '정책 안내' }))
+    const policy = await screen.findByRole('dialog', { name: '크레딧·이용 정책 안내' })
+    expect(policy.textContent).toContain('실제 결제나 차감은 없습니다.')
+  })
+
   it('불러오지 못하면 숨기지 않고 알린 뒤 다시 불러올 수 있다', async () => {
     let fail = true
     setup(() => fail ? new Response(null, { status: 500 }) : Response.json(balance))

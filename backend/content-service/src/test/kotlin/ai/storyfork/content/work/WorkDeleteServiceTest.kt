@@ -72,6 +72,18 @@ class WorkDeleteServiceTest {
         verify(works).saveAndFlush(row)
     }
 
+    @Test fun `deleting releases the world studio link so that world can be linked to another work`() {
+        // world_studio_id는 UNIQUE라, 삭제된(보이지 않는) 작품이 연결을 쥐고 있으면 그 세계관을 다시 연결할 수 없다(DEC-46).
+        row.worldStudioId=java.util.UUID.randomUUID()
+        `when`(access.own(work.id,"author")).thenReturn(work)
+        `when`(works.findById(work.id)).thenReturn(Optional.of(row))
+
+        service.delete(work.id,"author")
+
+        assertNull(row.worldStudioId)
+        assertNotNull(row.deletedAt)
+    }
+
     @Test fun `a Fork and a work with settings can be deleted too`() {
         `when`(access.own(work.id,"author")).thenReturn(work.copy(source=SourceResponse("source","원작",1,1,"분기")))
         `when`(works.findById(work.id)).thenReturn(Optional.of(row))

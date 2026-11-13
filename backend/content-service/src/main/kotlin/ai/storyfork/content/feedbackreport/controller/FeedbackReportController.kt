@@ -36,9 +36,9 @@ class FeedbackReportController(private val service: FeedbackReportService) {
     @GetMapping("/works/feedback-reports/mine")
     fun mine(principal: Principal): ReportListResponse = service.mine(principal.name)
 
-    /** 내가 소유한 모든 작품의 제보다(최신순). */
+    /** 내가 소유한 모든 작품의 제보다(최신순). 선택 쿼리 `workId`가 오면 그 작품만이며, 내 작품이 아니거나 없으면 빈 목록(200)이다. */
     @GetMapping("/works/feedback-reports/inbox")
-    fun inbox(principal: Principal): ReportListResponse = service.inbox(principal.name)
+    fun inbox(principal: Principal,@RequestParam(required=false) workId: String?): ReportListResponse = service.inbox(principal.name,workId)
 
     /** 제보자만 공개 범위를 바꾼다. 타인은 403(볼 수도 없는 비공개 제보면 404)이고 잘못된 값은 422다. */
     @PutMapping("/works/{id}/feedback-reports/{reportId}/visibility")

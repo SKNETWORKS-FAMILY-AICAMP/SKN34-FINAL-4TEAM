@@ -37,3 +37,15 @@ it('guards an unapplied relationship independently from the world edit state',()
  guard.setRelationDirty(true);guard.setDirty(false)
  expect(guard.shouldBlock()).toBe(true)
 })
+
+it('does not block a move inside the same screen (tab or query change) so unsaved input stays, but still blocks leaving the page',()=>{
+ const guard=createWorldStudioLeaveGuard(()=>true)
+ guard.setDirty(true);guard.setRelationDirty(true)
+ const move=(from:string,to:string)=>({currentLocation:{pathname:from},nextLocation:{pathname:to}})
+ expect(guard.shouldBlock(move('/worldstudio/qa','/worldstudio/qa'))).toBe(false) // ?tab= 만 바뀐 이동
+ expect(guard.shouldBlock(move('/worldstudio/qa','/worldstudio/other'))).toBe(true)
+ expect(guard.shouldBlock(move('/worldstudio/qa','/lib'))).toBe(true)
+ guard.allowNextNavigation()
+ expect(guard.shouldBlock(move('/worldstudio/qa','/worldstudio/qa'))).toBe(false) // 같은 화면 이동은 승인된 이동 권한을 쓰지 않는다
+ expect(guard.shouldBlock(move('/worldstudio/qa','/worldstudio/other'))).toBe(false) // 남은 권한은 다음 화면 이탈에 쓴다
+})

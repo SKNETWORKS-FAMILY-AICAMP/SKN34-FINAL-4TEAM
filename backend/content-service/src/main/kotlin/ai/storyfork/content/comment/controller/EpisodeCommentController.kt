@@ -18,6 +18,11 @@ class EpisodeCommentController(private val service: EpisodeCommentService) {
     fun list(@PathVariable id: String,@PathVariable number: Int,@RequestParam(required=false) sort: String?,principal: Principal?): CommentListResponse =
         service.list(id,number,sort,principal?.name)
 
+    /** 작품 전체 댓글(현재 발행된 회차의 것만)을 반환한다. 익명 가능하며 Bearer가 있으면 liked·mine을 그 회원 기준으로 채운다. sort는 latest(기본)·likes, 잘못된 값은 422, 비공개 작품은 404다. */
+    @GetMapping("/public/works/{id}/comments")
+    fun listByWork(@PathVariable id: String,@RequestParam(required=false) sort: String?,principal: Principal?): CommentListResponse =
+        service.listByWork(id,sort,principal?.name)
+
     /** 댓글 상세를 반환한다. 익명 가능하며 다른 작품·회차의 댓글이거나 삭제됐으면 404다. */
     @GetMapping("/public/works/{id}/episodes/{number}/comments/{commentId}")
     fun read(@PathVariable id: String,@PathVariable number: Int,@PathVariable commentId: String,principal: Principal?): CommentResponse =

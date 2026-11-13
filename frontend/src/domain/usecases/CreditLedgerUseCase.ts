@@ -10,4 +10,7 @@ export class CreditLedgerUseCase {
     const [balance, history] = await Promise.all([this.repository.balance(signal), this.repository.history(signal)])
     return { balance, history }
   }
+
+  /** 계정 메뉴의 '보유 크레딧' 줄: 내역 없이 잔액만 읽는다. 내역과 나란히 보이는 값이 아니라서 overview처럼 함께 읽지 않는다. */
+  balance(signal?: AbortSignal) { return this.repository.balance(signal) }
 }

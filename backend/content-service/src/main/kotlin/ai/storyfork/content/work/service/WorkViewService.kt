@@ -44,6 +44,10 @@ class WorkViewService(
         }
     }
 
+    /** 회차별 누적 회원 조회 수(회원·회차별 하루 1회 기록의 전체 합)다. 비회원 조회는 기록하지 않아 세지 않는다. */
+    fun episodeCounts(id: String): Map<Int, Long> =
+        views.countByEpisode(id).associate { row -> (row[0] as Number).toInt() to (row[1] as Number).toLong() }
+
     /** 작품별 최근 [window](기본 24시간)와 그 앞 같은 길이 구간의 조회 수다. 두 구간 모두 조회가 없는 작품은 담지 않는다. */
     fun counts(window: Duration = VIEW_WINDOW): Map<String, WorkViews> {
         val split=Instant.now().minus(window)

@@ -1,3 +1,5 @@
+import {InitialWorldUseCase} from '../../domain/usecases/InitialWorldUseCase'
+import {HttpInitialWorldRepository} from '../../data/world-studio/HttpInitialWorldRepository'
 import { OperationsUseCase } from '../../domain/usecases/OperationsUseCase'
 import { MemberUseCase } from '../../domain/usecases/MemberUseCase'
 import { NoticeUseCase } from '../../domain/usecases/NoticeUseCase'
@@ -16,6 +18,8 @@ import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
 import { HttpStoryPlanRepository } from '../../data/plans/HttpStoryPlanRepository'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
 import {HttpWorldStudioRepository} from '../../data/world-studio/HttpWorldStudioRepository'
+import { PublicWorldUseCase } from '../../domain/usecases/PublicWorldUseCase'
+import { HttpPublicWorldRepository } from '../../data/world-studio/HttpPublicWorldRepository'
 import { MediaUseCase } from '../../domain/usecases/MediaUseCase'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { ManuscriptUseCase } from '../../domain/usecases/ManuscriptUseCase'
@@ -25,8 +29,12 @@ import { EpisodeCommentUseCase } from '../../domain/usecases/EpisodeCommentUseCa
 import { EditSuggestionUseCase } from '../../domain/usecases/EditSuggestionUseCase'
 import { FeedbackReportUseCase } from '../../domain/usecases/FeedbackReportUseCase'
 import { HttpCreditLedgerRepository } from '../../data/api/HttpCreditLedgerRepository'
+import { HttpWithdrawalRepository } from '../../data/api/HttpWithdrawalRepository'
 import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
 import { HttpEpisodeCommentRepository } from '../../data/content/HttpEpisodeCommentRepository'
+import { HttpWorkNoticeRepository } from '../../data/content/HttpWorkNoticeRepository'
+import { InMemoryWorkNoticeRepository } from '../../data/mock/InMemoryWorkNoticeRepository'
+import { WorkNoticeUseCase } from '../../domain/usecases/WorkNoticeUseCase'
 import { HttpEditSuggestionRepository } from '../../data/content/HttpEditSuggestionRepository'
 import { HttpFeedbackReportRepository } from '../../data/content/HttpFeedbackReportRepository'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
@@ -56,6 +64,7 @@ import { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import { AccountUseCase } from '../../domain/usecases/AccountUseCase'
 import { ChatUseCase } from '../../domain/usecases/ChatUseCase'
 import { CreditLedgerUseCase } from '../../domain/usecases/CreditLedgerUseCase'
+import { WithdrawalUseCase } from '../../domain/usecases/WithdrawalUseCase'
 import { CreditUseCase } from '../../domain/usecases/CreditUseCase'
 import { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
 import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
@@ -87,7 +96,10 @@ export function registerAppServices(container: AppContainer) {
     operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
     adminActivityRepository: asFunction(() => new HttpAdminActivityRepository()).singleton(),
     adminActivityUseCase: asFunction(({ adminActivityRepository }) => new AdminActivityUseCase(adminActivityRepository)).singleton(),
+    initialWorldUseCase: asFunction(() => new InitialWorldUseCase(new HttpInitialWorldRepository())).singleton(),
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
+    publicWorldRepository: asFunction(() => new HttpPublicWorldRepository()).singleton(),
+    publicWorldUseCase: asFunction(({ publicWorldRepository }) => new PublicWorldUseCase(publicWorldRepository)).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
     authRepository: asValue(authRepository),
@@ -102,6 +114,10 @@ export function registerAppServices(container: AppContainer) {
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     episodeCommentRepository: asFunction(() => new HttpEpisodeCommentRepository()).singleton(),
     episodeCommentUseCase: asFunction(({ episodeCommentRepository }) => new EpisodeCommentUseCase(episodeCommentRepository)).singleton(),
+    workNoticeRepository: asFunction(() => new HttpWorkNoticeRepository()).singleton(),
+    workNoticeUseCase: asFunction(({ workNoticeRepository }) => new WorkNoticeUseCase(workNoticeRepository)).singleton(),
+    // 메모리 데모 작품(`--mode mockup`·테스트)의 소식. 실제 작품은 위 HTTP 저장소를 쓰고, 이 저장소는 서버에 저장하지 않는다.
+    demoWorkNoticeUseCase: asFunction(() => new WorkNoticeUseCase(new InMemoryWorkNoticeRepository())).singleton(),
     editSuggestionRepository: asFunction(() => new HttpEditSuggestionRepository()).singleton(),
     editSuggestionUseCase: asFunction(({ editSuggestionRepository }) => new EditSuggestionUseCase(editSuggestionRepository)).singleton(),
     feedbackReportRepository: asFunction(() => new HttpFeedbackReportRepository()).singleton(),
@@ -130,6 +146,8 @@ export function registerAppServices(container: AppContainer) {
     creditUseCase: asFunction(({ creditRepository }) => new CreditUseCase(creditRepository)).singleton(),
     creditLedgerRepository: asFunction(() => new HttpCreditLedgerRepository()).singleton(),
     creditLedgerUseCase: asFunction(({ creditLedgerRepository }) => new CreditLedgerUseCase(creditLedgerRepository)).singleton(),
+    withdrawalRepository: asFunction(() => new HttpWithdrawalRepository()).singleton(),
+    withdrawalUseCase: asFunction(({ withdrawalRepository }) => new WithdrawalUseCase(withdrawalRepository)).singleton(),
     readingUseCase: asFunction(({ workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository }) => new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository, adminRepository, feedbackReportUseCase }) => new FeedbackUseCase(workRepository, feedbackRepository, adminRepository, feedbackReportUseCase)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),

@@ -1,0 +1,66 @@
+/*
+ * 설정 카드 게시판: 공개 세계관의 설정집 탭(/worlds/:id)과 세계관 작업실의 설정집 화면(/worldstudio/:id)이 함께 쓴다.
+ * 왼쪽 분류 메뉴(.worlds-cats, 링크 또는 버튼)와 오른쪽 검색·정렬 도구(.worlds-board-tools)·게시판 표(.worlds-board-table).
+ * 표는 관리자 화면과 같은 전역 table·th·td 스타일(옅은 머리 배경·얇은 선)을 쓰고 열 너비·말줄임·hover만 더한다. 요약은 table-layout: fixed 안에서 한 줄로 줄인다.
+ * 색은 읽기 화면 토큰(--t*)을 읽는다. 공개 상세는 .calm이, 세계관 작업실은 .episode-app이 그 토큰을 준다.
+ */
+/* 유형 칩의 색 점(그래프·범례와 같은 유형 색) */
+.chip .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+
+.worlds-board { display: grid; grid-template-columns: 176px minmax(0, 1fr); gap: 24px; align-items: start; }
+.worlds-cats ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.worlds-cats :is(a, button) { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: var(--tsub); font-family: inherit; font-size: inherit; font-weight: 700; text-align: left; text-decoration: none; cursor: pointer; }
+.worlds-cats :is(a, button):hover { background: var(--muted-bg); color: var(--tfg); }
+.worlds-cats :is(a, button)[aria-current] { background: var(--pri-soft); color: var(--pri-ink); }
+.worlds-cats :is(a, button) span { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.worlds-board-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin-bottom: 12px; }
+/* 검색 칸은 placeholder가 잘리지 않을 만큼의 폭을 지키고, 정렬 라벨·결과 수는 한 줄로 둔다(좁으면 도구줄이 줄바꿈된다). */
+.worlds-search { flex: 1 1 260px; min-width: min(260px, 100%); max-width: 420px; }
+.worlds-sort { display: inline-flex; flex: none; align-items: center; gap: 8px; font-size: 13px; color: var(--tsub); white-space: nowrap; }
+.worlds-sort select { width: auto; padding-block: 10px; }
+.worlds-board-tools p { margin: 0 0 0 auto; white-space: nowrap; }
+.worlds-board-table { table-layout: fixed; border: 1px solid var(--tline); }
+.worlds-board-table :is(th, td) { padding-inline: 12px; }
+.worlds-board-table th { white-space: nowrap; }
+.worlds-board-table td { padding-block: 13px; vertical-align: middle; border-bottom-color: var(--tline); }
+.worlds-board-table tbody tr:last-child td { border-bottom: 0; }
+.worlds-board-table tbody tr:hover { background: color-mix(in srgb, var(--tacc) 6%, transparent); }
+/* table-layout: fixed라 열 너비는 머리 칸이 정한다: 번호·분류·연결은 고정 폭, 제목은 넉넉한 비율, 요약이 남은 폭을 쓰며 말줄임이다. */
+.worlds-board-table .col-no { width: 56px; text-align: center; color: var(--tsub); font-variant-numeric: tabular-nums; }
+.worlds-board-table .col-kind { width: 100px; }
+.worlds-board-table .col-num { width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+.worlds-board-table th.col-title { width: 34%; }
+.worlds-board-table .col-title { overflow-wrap: anywhere; word-break: keep-all; }
+.worlds-board-table .col-title :is(a, button) { position: relative; padding: 0; border: 0; background: none; color: var(--tfg); font-family: inherit; font-size: inherit; font-weight: 800; text-align: left; text-decoration: none; cursor: pointer; }
+/* 제목 글자는 한 줄에 21px쯤이라 누르기에 작다. 칸의 위아래 여백(13px)과 옆 여백 안쪽으로 누르는 영역만 넓혀(한 줄 제목 약 45px 높이) 줄 높이·초점 고리는 그대로 둔다. */
+.worlds-board-table .col-title :is(a, button)::after { content: ''; position: absolute; inset: -12px -10px; }
+.worlds-board-table .col-title :is(a, button):hover { color: var(--pri-ink); text-decoration: underline; text-underline-offset: 3px; }
+.worlds-board-table .col-sum { overflow: hidden; color: var(--tsub); text-overflow: ellipsis; white-space: nowrap; }
+.worlds-board-table .chip { height: auto; padding: 0; background: none; font-weight: 600; }
+.worlds-badge { margin-left: 6px; color: var(--tacc); font-size: 12px; font-weight: 700; }
+
+/* 좁은 화면: 분류 메뉴는 가로 스크롤 칩이 되고(홈 칩과 같은 크기·모양) 게시판은 번호·요약 열을 숨겨 제목·분류·연결만 남긴다. nw 정보 상자가 쌓이는 폭(720px)과 같다. */
+@media (max-width: 720px) {
+  .worlds-board { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .worlds-cats ul { display: flex; gap: 8px; margin: -4px; padding: 4px; overflow-x: auto; scrollbar-width: none; }
+  .worlds-cats ul::-webkit-scrollbar { display: none; }
+  .worlds-cats :is(a, button) { flex: none; width: auto; gap: 6px; min-height: 44px; padding: 0 16px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); }
+  .worlds-cats :is(a, button)[aria-current] { border-color: var(--pri); }
+  .worlds-board-table :is(.col-no, .col-sum) { display: none; }
+  .worlds-board-table .col-kind { width: 92px; }
+  .worlds-board-table .col-num { width: 52px; }
+}
+/*
+ * 같은 좁은 배치를 '게시판을 감싼 쪽의 폭'으로도 켠다. 세계관 작업실은 오른쪽 AI 채팅 레일(300~350px)이 본문을 줄여, 뷰포트가 넓어도 게시판이 좁을 수 있다.
+ * 감싸는 쪽이 `container: worlds-board / inline-size`를 정했을 때만 걸리고(공개 설정집은 정하지 않아 위의 뷰포트 규칙만 쓴다), 안의 규칙은 위 블록과 글자까지 같아야 한다(worldBoard.css.test.ts가 지킨다).
+ */
+@container worlds-board (max-width: 760px) {
+  .worlds-board { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .worlds-cats ul { display: flex; gap: 8px; margin: -4px; padding: 4px; overflow-x: auto; scrollbar-width: none; }
+  .worlds-cats ul::-webkit-scrollbar { display: none; }
+  .worlds-cats :is(a, button) { flex: none; width: auto; gap: 6px; min-height: 44px; padding: 0 16px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); }
+  .worlds-cats :is(a, button)[aria-current] { border-color: var(--pri); }
+  .worlds-board-table :is(.col-no, .col-sum) { display: none; }
+  .worlds-board-table .col-kind { width: 92px; }
+  .worlds-board-table .col-num { width: 52px; }
+}

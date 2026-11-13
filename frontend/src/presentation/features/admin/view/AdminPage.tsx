@@ -13,6 +13,7 @@ import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { Go } from '../../../shared/Go'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
+import { Footer } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
@@ -62,6 +63,35 @@ const rightsLabel = (w: OperationsWork) =>
 const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
+/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
+const IN_FORM = /^(notice:|event:|inquiry:|report:)/
+/** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
+function actionTarget(vm: VM, key: string): string | undefined {
+  const [kind, id] = key.split(':')
+  const live = vm.live.data
+  if (kind === 'member') { const m = live?.members.find((x) => x.id === id); return m && `${m.nickname} 님` }
+  if (kind === 'work') { const w = live?.works.find((x) => x.workId === id); return w && `「${w.title}」` }
+  if (kind === 'comment') { const c = live?.comments.find((x) => x.commentId === id); return c && `${c.authorName} 님의 댓글` }
+  if (kind === 'chat') { const c = vm.data?.chats.find((x) => x.id === id); return c ? `${c.w.title} · ${c.character}` : id === 'new' ? '캐릭터챗 추가' : undefined }
+  if (kind === 'job') return vm.data?.admin.jobs.find((x) => x.id === id)?.name
+  if (kind === 'alert') return vm.data?.alerts.find((x) => x.id === id)?.task
+  return kind === 'admin' ? '관리자 계정 생성' : undefined
+}
+/**
+ * 이 키의 조치 상태가 지금 화면의 폼 안에 그려지는지. 그려지면 완료 문구가 폼 안에 보이므로 화면 위 완료 줄에 같은 문구를 또 두지 않습니다.
+ * 새로 저장해 상세로 넘어가거나 삭제해 폼이 사라진 조치는 폼 안에 남지 않으므로 화면 위 완료 줄이 맡습니다.
+ */
+function shownInForm(vm: VM, tab: AdminTab, key: string) {
+  const [kind, id, , replyId] = key.split(':')
+  // 공지·이벤트 폼은 새로 쓰는 중이거나 고른 항목이 목록에 있을 때만 그려집니다.
+  const open = (selection: string | null, rows: { id: string }[] = []) => id === selection && (id === 'new' || rows.some((row) => row.id === id))
+  if (kind === 'notice') return tab === 'notices' && open(vm.recordSelection.notices, vm.live.data?.notices)
+  if (kind === 'event') return tab === 'events' && open(vm.recordSelection.events, vm.live.data?.events)
+  // 문의 답변·신고 처리 폼은 고른 항목의 상세를 읽은 뒤에만 그려지고, 답변 수정 폼은 그 답변이 남아 있을 때만 있습니다.
+  const inquiry = vm.live.inquiry.data
+  if (kind === 'inquiry') return tab === 'feedback' && id === vm.recordSelection.inquiries && inquiry?.id === id && (!replyId || inquiry.replies.some((reply) => reply.id === replyId))
+  return kind === 'report' && tab === 'rights' && id === vm.sel && vm.live.report.data?.id === id
+}
 /** 폼 입력값을 이름으로 읽습니다 (목업 $('#id').value). */
 const val = (e: FormEvent<HTMLFormElement>, name: string) =>
   String(new FormData(e.currentTarget).get(name) ?? '')
@@ -99,15 +129,21 @@ export function AdminPage() {
   const live = LIVE_TABS.includes(tab)
   useDocumentTitle(`관리자 · ${title}`)
   const nav = useRef<HTMLElement>(null)
-  // 모바일 가로 메뉴에서 현재 탭이 화면 밖에 있으면 보이게 합니다.
+  // 모바일 가로 메뉴나 높이를 넘겨 스스로 스크롤되는 세로 메뉴에서 현재 탭이 메뉴 밖에 있으면 보이게 합니다.
   useEffect(() => {
-    // scrollIntoView는 키보드 Tab 시작점까지 옮기므로 가로 스크롤 값만 바꿉니다.
+    // scrollIntoView는 키보드 Tab 시작점까지 옮기므로 메뉴의 스크롤 값만 바꿉니다.
     const n = nav.current
     const a = n?.querySelector('[aria-current="page"]')
-    if (n && a && n.scrollWidth > n.clientWidth) n.scrollLeft += a.getBoundingClientRect().left - n.getBoundingClientRect().left - 16
+    if (!n || !a) return
+    const at = a.getBoundingClientRect()
+    const box = n.getBoundingClientRect()
+    if (n.scrollWidth > n.clientWidth) n.scrollLeft += at.left - box.left - 16
+    if (n.scrollHeight > n.clientHeight) n.scrollTop += at.top - box.top - 16
   }, [tab])
   const content = useRef<HTMLElement>(null)
+  const successTarget = IN_FORM.test(vm.lastSuccessKey) ? undefined : actionTarget(vm, vm.lastSuccessKey)
   return (
+    <>
     <div className='adm'>
       <a
         className='skip-link'
@@ -131,9 +167,10 @@ export function AdminPage() {
       <main id='main' tabIndex={-1} className='wrap'>
         <div className='shell'>
           <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
+            {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
             {GROUPS.map(([g, items]) => (
-              <section key={g} aria-label={g}>
-                <h2>{g}</h2>
+              <section key={g} role='group' aria-label={g}>
+                <h2 role='presentation'>{g}</h2>
                 {items.map(([k, l]) => (
                   <Go
                     key={k}
@@ -163,7 +200,12 @@ export function AdminPage() {
             {!live && vm.isLoading && (
               <p className='admin-data-state' role='status'>관리자 데이터를 불러오고 있어요.</p>
             )}
-            {vm.lastSuccess && <p className='admin-data-state' role='status'>{vm.lastSuccess}</p>}
+            {/* 완료 안내는 한 곳에만: 폼 안에 그려지는 조치가 아니면 이 줄이 대상 이름과 함께 맡습니다. */}
+            {vm.lastSuccess && !shownInForm(vm, tab, vm.lastSuccessKey) && (
+              <p className='admin-data-state' role='status'>
+                {successTarget && <b>{successTarget} · </b>}{vm.lastSuccess}
+              </p>
+            )}
             {!live && vm.isRefreshing && (
               <p className='admin-data-state' role='status'>
                 목록을 새로고침하고 있어요. 이전 조회 내용은 유지하며 처리 버튼은 잠시 사용할 수 없어요.
@@ -193,9 +235,10 @@ export function AdminPage() {
                 </button>
               </div>
             )}
+            {/* 행 조치의 진행·실패는 버튼에서 떨어진 여기에 보이므로 대상 이름을 붙입니다. 완료는 위의 완료 줄이 맡습니다. */}
             {Object.entries(vm.actions)
-              .filter(([key]) => !/^(notice:|event:|inquiry:|report:)/.test(key))
-              .map(([key, state]) => <AdminActionStatus key={key} state={state} />)}
+              .filter(([key]) => !IN_FORM.test(key))
+              .map(([key, state]) => <AdminActionStatus key={key} state={state} target={actionTarget(vm, key)} done={false} />)}
             {(d || live) && (
               <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} />
             )}
@@ -203,6 +246,8 @@ export function AdminPage() {
         </div>
       </main>
     </div>
+    <Footer />
+    </>
   )
 }
 
@@ -303,7 +348,7 @@ function Body(p: BodyProps) {
         <ChatForm d={d} vm={vm} />
         <div className='panel' style={{ marginTop: 14 }}>
           <div className='table-head'>
-            <b>캐릭터챗 목록</b>
+            <h2 className='panel-title'>캐릭터챗 목록</h2>
             <span className='demo'>작품·캐릭터 연결</span>
           </div>
           <Controls
@@ -343,6 +388,7 @@ function Body(p: BodyProps) {
                       <button
                         type='button'
                         className='btn sm'
+                        aria-label={`${c.w.title} ${c.character} ${c.enabled === false ? '운영 재개' : '중지'}`}
                         disabled={blocked(vm, `chat:${c.id}`)}
                         onClick={() => vm.toggleChat(c.id)}
                       >
@@ -366,7 +412,7 @@ function Body(p: BodyProps) {
     T = (
       <div className='panel'>
         <div className='table-head'>
-          <b>운영 정기 작업</b>
+          <h2 className='panel-title'>운영 정기 작업</h2>
           <span className='demo'>데모 기록 · 실제 실행 없음</span>
         </div>
         <p className='admin-note'>
@@ -399,6 +445,7 @@ function Body(p: BodyProps) {
                       <button
                         type='button'
                         className='btn sm'
+                        aria-label={`${j.name} 수동 재시도 시연`}
                         disabled={blocked(vm, `job:${j.id}`)}
                         onClick={() => vm.runJob(j.id)}
                       >
@@ -429,7 +476,7 @@ function Body(p: BodyProps) {
     T = (
       <div className='panel'>
         <div className='table-head'>
-          <b>크레딧 원장</b>
+          <h2 className='panel-title'>크레딧 원장</h2>
           <span className='chip wait'>정책 미확정</span>
         </div>
         <p>현재 실제 잔액·충전·차감 내역은 연결되어 있지 않습니다.</p>
@@ -509,7 +556,7 @@ function Overview({ d, vm }: { d: Data; vm: VM }) {
         </div>
       </div>
       <div className='panel' style={{ marginTop: 14 }}>
-        <b>전처리 6단계 · 구운몽 시연 흐름</b>
+        <h2 className='panel-title'>전처리 6단계 · 구운몽 시연 흐름</h2>
         <div className='flow' style={{ marginTop: 12 }}>
           {[
             ['수집', '원문 txt'],
@@ -530,7 +577,7 @@ function Overview({ d, vm }: { d: Data; vm: VM }) {
         </p>
       </div>
       <div className='panel' style={{ marginTop: 14 }}>
-        <b>수집 데이터 명세</b>
+        <h2 className='panel-title'>수집 데이터 명세</h2>
         <Table label='수집 데이터 명세 표' style={{ marginTop: 10 }}>
           <thead>
             <tr>
@@ -671,6 +718,7 @@ function Works(p: BodyProps) {
                       <button
                         type='button'
                         className='btn sm'
+                        aria-label={`「${w.title}」 ${w.restricted ? '제한 해제' : '운영 제한'}`}
                         disabled={blocked(vm, `work:${w.workId}`)}
                         onClick={() => {
                           if (w.restricted || window.confirm(`「${w.title}」을 제한할까요? 해제 전까지 독자에게 보이지 않아요.`)) {
@@ -871,6 +919,7 @@ function Users({ vm, f, setF }: BodyProps) {
                         <button
                           type='button'
                           className='btn sm'
+                          aria-label={`${u.nickname} ${u.restricted ? '제한 해제' : '이용 제한'}`}
                           disabled={blocked(vm, `member:${u.id}`)}
                           onClick={() => {
                             if (u.restricted || window.confirm(`${u.nickname} 님의 로그인을 막을까요? 제한 해제 전까지 로그인할 수 없어요.`)) {
@@ -916,7 +965,7 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
     <>
       <div className='panel' style={{ marginTop: 22 }}>
         <div className='table-head'>
-          <b>운영 신고</b>
+          <h2 className='panel-title'>운영 신고</h2>
           <label className='field'>
             상태<select className='inp' value={f.category} onChange={(e) => setF({ category: e.target.value })}>
               <option value='all'>전체</option>
@@ -1027,6 +1076,7 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
                 >
                   <h3>검토 결과 기록</h3>
                   <fieldset disabled={busy}>
+                    <p className='small muted'>모든 항목은 필수예요.</p>
                     <label className='field'>
                       결과<select className='inp' name='decision' defaultValue='' required>
                         <option value='' disabled>선택해 주세요</option>
@@ -1132,6 +1182,7 @@ function Llm({ d, vm }: { d: Data; vm: VM }) {
                   <button
                     type='button'
                     className='btn sm'
+                    aria-label={`${a.task} 확인 및 조치 기록`}
                     disabled={blocked(vm, `alert:${a.id}`)}
                     onClick={() => vm.resolveAlert(a.id)}
                   >
@@ -1146,7 +1197,7 @@ function Llm({ d, vm }: { d: Data; vm: VM }) {
         </p>
       </div>
       <div className='panel' style={{ marginTop: 22 }}>
-        <b>LLM Ops · 운영 지표</b> <span className='demo'>시연 데이터 · 실시간 연결 없음</span>
+        <h2 className='panel-title'>LLM Ops · 운영 지표</h2> <span className='demo'>시연 데이터 · 실시간 연결 없음</span>
         <Table label='LLM 운영 지표 표' style={{ marginTop: 10 }}>
           <thead>
             <tr>
@@ -1202,7 +1253,7 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
         }
       }}
     >
-      <b>캐릭터챗 추가</b>
+      <h2 className='panel-title'>캐릭터챗 추가</h2>
       <div className='form-grid' style={{ marginTop: 12 }}>
         <label className='field'>
           작품 유형<select
@@ -1335,6 +1386,7 @@ function Events({ vm }: { vm: VM }) {
                     }}
                   >
                     <fieldset disabled={busy} className='form-grid'>
+                      <p className='small muted wide'>제목과 내용은 필수예요.</p>
                       <label className='field wide'>
                         이벤트 제목<input
                           className='inp'
@@ -1525,7 +1577,7 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
       </section>
       {d && (
         <div className='panel' style={{ marginTop: 14 }}>
-          <b>작가 검토 제보</b>
+          <h2 className='panel-title'>작가 검토 제보</h2>
           <p className='small muted'>
             원고 반영은 작가가 검토합니다. 위 회원 문의와는 별도의 시연용 제보예요.
           </p>
@@ -1632,7 +1684,8 @@ function Admins({ vm }: { vm: VM }) {
           if (await vm.live.createAdmin({ email: val(e, 'email'), nickname: val(e, 'nickname'), password: val(e, 'password'), permissions })) form.reset()
         }}
       >
-        <b>관리자 계정 생성</b>
+        <h2 className='panel-title'>관리자 계정 생성</h2>
+        <p className='admin-note'>모든 항목은 필수예요. 권한은 한 가지 이상 골라 주세요.</p>
         <div className='form-grid' style={{ marginTop: 12 }}>
           <label className='field'>
             이메일<input className='inp' name='email' type='email' maxLength={254} autoComplete='off' required />
@@ -1641,9 +1694,10 @@ function Admins({ vm }: { vm: VM }) {
             닉네임<input className='inp' name='nickname' maxLength={80} required />
           </label>
           <label className='field'>
-            초기 비밀번호<input className='inp' name='password' type='password' minLength={8} autoComplete='new-password' required />
+            초기 비밀번호<input className='inp' name='password' type='password' minLength={8} autoComplete='new-password' aria-describedby='admin-password-help' required />
           </label>
         </div>
+        <p id='admin-password-help' className='admin-note'>초기 비밀번호는 8자 이상이에요.</p>
         <fieldset className='admin-permissions' style={{ marginTop: 12 }}>
           <legend>부여할 권한</legend>
           <div className='admin-perm-grid'>
@@ -1666,7 +1720,7 @@ function Admins({ vm }: { vm: VM }) {
       </form>
       <div className='panel' style={{ marginTop: 14 }}>
         <div className='table-head'>
-          <b>관리자 계정</b>
+          <h2 className='panel-title'>관리자 계정</h2>
         </div>
         <LiveState vm={vm} label='관리자 목록' />
         {vm.live.data && (rows.length

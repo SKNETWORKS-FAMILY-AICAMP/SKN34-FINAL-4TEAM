@@ -24,6 +24,6 @@ interface CoreAuthClient {
     fun nicknames(@RequestBody request: NicknamesPayload): NicknamesResponse
 }
 
-/** Core의 내부 확인 응답이며 공개 MemberResponse나 회원 정본 사본이 아니다. */
-data class VerifiedMemberResponse(val memberId: UUID)
+/** Core의 내부 확인 응답이며 회원 UUID와 운영자 여부(`operator`, 없으면 일반 회원)만 읽는다. 공개 MemberResponse나 회원 정본 사본이 아니다. */
+data class VerifiedMemberResponse(val memberId: UUID, val operator: Boolean = false)
 data class ScheduledMemberPayload(val memberId: String)

@@ -57,6 +57,18 @@ describe('API-backed read state (CI integration)',()=>{
     expect(result.current.data).toBe('새 데이터')
     expect(result.current.isRefreshing).toBe(false)
   })
+  it('cancels the previous request when the scope changes and the pending one when the screen unmounts',async()=>{
+    const signals:AbortSignal[]=[]
+    const {rerender,unmount}=renderHook(({scope})=>useAsyncData((signal)=>{signals.push(signal);return new Promise<string>(()=>{})},[scope]),{initialProps:{scope:'a'},wrapper})
+    await waitFor(()=>expect(signals).toHaveLength(1))
+    expect(signals[0].aborted).toBe(false)
+    rerender({scope:'b'})
+    await waitFor(()=>expect(signals).toHaveLength(2))
+    expect(signals[0].aborted).toBe(true)
+    expect(signals[1].aborted).toBe(false)
+    unmount()
+    expect(signals[1].aborted).toBe(true)
+  })
   it('re-reads in place when only refresh values change, but hides data when the scope changes',async()=>{
     let finish:(data:string)=>void=()=>{}
     const pending=new Promise<string>(done=>{finish=done})
