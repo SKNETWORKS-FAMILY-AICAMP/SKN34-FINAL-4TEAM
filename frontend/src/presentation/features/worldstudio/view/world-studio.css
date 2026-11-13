@@ -148,8 +148,10 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-reveal{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}:is(.world-reveal,.world-doc-add,.relationship-episode) .inp{width:88px;min-height:44px;padding:8px 10px;font-variant-numeric:tabular-nums}:is(.world-reveal,.world-doc-add,.relationship-episode) .inp:disabled{opacity:.55;cursor:not-allowed}.world-reveal .inp[aria-invalid=true]{border-color:var(--danger)}
 /* 입력 바로 아래의 오류 글(테두리 색만으로 알리지 않는다) */
 .world-card-reach .world-field-error{color:var(--danger);font-weight:650}
-/* 관계 기준 회차(DEC-51): 인물 관계도 위의 한 줄. 관계 편집기가 다시 열려도 이 칸은 그대로라 키보드 초점이 남는다. 입력의 크기·숫자 폭·잠긴 모양은 위 독자 공개 회차 입력과 같은 규칙이고, label이 "관계 기준 [입력] 화"를 한 줄 flex로 묶어 줄바꿈으로 떨어지지 않는다. */
-.relationship-episode{display:grid;gap:6px;margin-block:12px;padding:12px 16px;border:1px solid var(--line2);border-radius:12px;background:var(--surface)}.relationship-episode form{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.relationship-episode label{display:flex;align-items:center;gap:8px;font-weight:650}.relationship-episode p{margin:0}.relationship-episode .world-field-error{color:var(--danger);font-weight:650}
+/* 관계 기준 회차(DEC-51): 인물 관계도 위의 한 줄. 관계 편집기가 다시 열려도 이 칸은 그대로라 키보드 초점이 남는다. 입력의 최소 높이·숫자 폭·잠긴 모양은 위 독자 공개 회차 입력과 같은 규칙(:is 묶음)이다.
+   .episode-app 틀 안이라 틀의 규칙이 이긴다: 폼 grid·라벨 block은 특이도가 같아 불러오는 순서에 따라, 입력 폭 100%·패딩·위 여백은 :not() 때문에 늘 이긴다. 그래서 폼·라벨·입력을 .episode-app 아래로 다시 정하고(입력은 :not()까지 베낌) 폭·패딩은 위 묶음 값을 되풀이한다.
+   font는 정하지 않아 터치 기기의 입력 16px 보정이 남는다. */
+.relationship-episode{display:grid;gap:6px;margin-block:12px;padding:12px 16px;border:1px solid var(--line2);border-radius:12px;background:var(--surface)}.episode-app .relationship-episode form{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.episode-app .relationship-episode label{display:inline-flex;align-items:center;gap:8px}.episode-app .relationship-episode input:not([type=checkbox]):not([type=radio]){width:88px;margin-top:0;padding:8px 10px}.relationship-episode p{margin:0}.relationship-episode .world-field-error{color:var(--danger);font-weight:650}
 .world-over{color:var(--danger)}
 /* 전역 .btn은 윤곽선이 옅어 삭제를 구분하지 못한다: 위험 버튼은 위험색 윤곽선(집필실 위험 영역과 같은 모양). 편집 화면의 삭제(.world-danger)와 삭제 확인·관계 삭제(.relationship-remove)가 같은 모양이다. */
 :is(.world-danger,.relationship-remove){border-color:color-mix(in srgb,var(--danger) 45%,var(--line2));background:var(--surface);color:var(--danger)}:is(.world-danger,.relationship-remove):hover:not(:disabled){background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
