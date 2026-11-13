@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import pytest
 
@@ -44,7 +46,7 @@ def test_calls_content_with_scope_and_returns_verified_evidence(monkeypatch):
     assert [s.provider for s in result.steps] == ['embedding', 'elasticsearch', 'postgres_verify']
 
 
-def test_retrieval_trace_has_one_child_per_content_step_without_text(monkeypatch, spans):
+def test_retrieval_trace_has_one_child_per_content_step_and_manuscript_quotes(monkeypatch, spans):
     content(monkeypatch)
     service.retrieve(SCOPE, '용은 언제 왔나?')
     found = {s.name: s for s in spans()}
@@ -53,7 +55,9 @@ def test_retrieval_trace_has_one_child_per_content_step_without_text(monkeypatch
         child = found[f'retrieval.{provider}']
         assert child.parent.span_id == root.context.span_id
         assert child.attributes['langfuse.observation.metadata.ms'] == ms
-    assert not any(t in str(dict(s.attributes)) for s in found.values() for t in ('용이 나타났다', '용은 언제'))
+    # 팀 결정(2026-11-13): 질문과 원고 인용 본문은 추적한다.
+    assert json.loads(root.attributes['langfuse.observation.input']) == {'question': '용은 언제 왔나?'}
+    assert json.loads(root.attributes['langfuse.observation.output'])[0]['quote'] == '용이 나타났다.'
 
 
 @pytest.mark.parametrize('kwargs, status', [

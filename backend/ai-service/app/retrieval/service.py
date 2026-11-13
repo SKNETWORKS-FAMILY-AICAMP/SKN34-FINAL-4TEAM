@@ -2,7 +2,7 @@
 
 AI는 PostgreSQL·Neo4j·Elasticsearch에 직접 접속하지 않는다. Content가 자신이 서명한 scopeToken으로만 범위·권한을 다시 확정하고
 원고 벡터 검색 → 원문 재대조 또는 설정·현재 관계 조회를 실행해 근거와 단계별 측정값을 돌려준다.
-Writing & Editing은 이 도구를 호출하지 않는다. 추적에는 근거 참조와 단계 측정값만 남긴다.
+Writing & Editing은 이 도구를 호출하지 않는다. 추적에는 질문·원고 인용(팀 결정 2026-11-13)과 단계 측정값을 남기고 설정·관계는 참조만 남긴다.
 """
 
 import os
@@ -22,7 +22,8 @@ def retrieve(scope: RetrievalScope, question: str) -> RetrievalResult:
     base, token = os.environ.get('CONTENT_SERVICE_BASE_URL'), os.environ.get('INTERNAL_TOKEN')
     if not base or not token:
         raise RetrievalFailure(503, 'Content 검색 설정이 필요합니다.')
-    with tracing.observe('retrieval', as_type='retriever', metadata={'provider': 'content'}) as span:
+    with tracing.observe('retrieval', as_type='retriever', metadata={'provider': 'content'},
+                         input={'question': question[:500]}) as span:
         try:
             response = httpx.post(f'{base.rstrip("/")}/internal/v1/ai/qa/retrieval',
                                   json={'scopeToken': scope.scopeToken, 'question': question[:500]},
@@ -39,8 +40,8 @@ def retrieve(scope: RetrievalScope, question: str) -> RetrievalResult:
             with tracing.observe(f'retrieval.{step.provider}', as_type='retriever',
                                  metadata={'ms': step.ms, 'hits': step.hits}):
                 pass
-        span.update(metadata={'status': result.status, 'gaps': [g.code for g in result.gaps],
-                              'excerpts': [{'id': e.id, 'episode': e.episode, 'kind': e.kind} for e in result.excerpts],
+        span.update(output=tracing.excerpts(result.excerpts),
+                    metadata={'status': result.status, 'gaps': [g.code for g in result.gaps],
                               'coveredEpisodes': len(result.coverage.withVerifiedExcerpt),
                               'expectedEpisodes': len(result.coverage.expected)})
         return result
