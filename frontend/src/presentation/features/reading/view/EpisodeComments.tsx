@@ -99,7 +99,7 @@ export function EpisodeComments({ workId, n, quoted, onCloseSheet }: { workId: s
         {comments?.length === 0 && <p className="muted">아직 댓글이 없어요. 첫 댓글을 남겨 보세요.</p>}
         {comments?.map((c) => <CommentRow key={c.id} c={c} vm={vm} />)}
       </section>
-      {quoted && <CommentSheet workId={workId} n={n} sentence={quoted} maxLength={COMMENT_MAX} submit={(body, sentence, isSpoiler) => vm.create(body, sentence.t, isSpoiler)} onClose={onCloseSheet} />}
+      {quoted && <CommentSheet workId={workId} n={n} sentence={quoted} maxLength={COMMENT_MAX} submit={(body, sentence, isSpoiler, fail) => vm.create(body, sentence.t, isSpoiler, fail)} onClose={onCloseSheet} />}
     </>
   )
 }

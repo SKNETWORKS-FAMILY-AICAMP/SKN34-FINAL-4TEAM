@@ -3,7 +3,6 @@ import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 
 export const mapColors = { 인물:'#7960c7', 장소:'#328a7d', 조직:'#527daf', 규칙:'#a16c20', 사건:'#b45f86', 관계:'#93617d', 설정:'#64748b' }
-export const presentationMapColors: typeof mapColors = { 인물:'#67caff', 장소:'#6ce3cb', 조직:'#ffca83', 규칙:'#c0abff', 사건:'#f0a0cf', 관계:'#b9a0ed', 설정:'#a5b8d8' }
 export type MapKind = keyof typeof mapColors
 export type MapNode = { id:string; name:string; kind:MapKind; text:string; tags:string[]; unnamed?:boolean; x?:number; y?:number; vx?:number; vy?:number; fx?:number; fy?:number }
 export type MapLink = { id?:string; symmetric?:boolean; emotion?:boolean; curve?:number; source:string|MapNode; target:string|MapNode; label:string; fullLabel?:string; description?:string; reverseLabel?:string }

@@ -3,6 +3,9 @@ package ai.storyfork.content.world.service
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.domain.isListed
+import ai.storyfork.content.world.domain.worldGenre
+import ai.storyfork.content.world.domain.worldVisibility
 import ai.storyfork.content.world.helper.RelationshipInputHelper
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
@@ -24,7 +27,7 @@ class WorldStudioService(
     private val cards:SettingCardRepository,private val cardDrafts:SettingCardDraftRepository,
     private val cardVersions:SettingCardVersionRepository,private val revisions:WorldRevisionRepository,
     private val revisionCards:WorldRevisionCardRepository,private val requests:WorldSaveRequestRepository,
-    private val states:WorldRelationshipStateRepository,private val graph:Neo4jRelationshipRepository,
+    private val states:WorldRelationshipStateRepository,private val applications:InitialWorldApplicationRepository,private val graph:Neo4jRelationshipRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,private val mapper:JsonMapper,
 ) {
     private val transaction=TransactionTemplate(manager)
@@ -39,7 +42,21 @@ class WorldStudioService(
         worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(subject).map { world ->
             val draft=draft(world.id);val state=states.findById(world.id).orElse(null)
             WorldStudioSummaryResponse(world.id,draft.name,draft.description,draft.draftRevision,
-                if(state==null) "migration_required" else if(!state.completed) "incomplete" else "current")
+                if(state==null) "migration_required" else if(!state.completed) "incomplete" else "current",world.visibility,world.genre,world.coverObjectKey!=null)
+        }
+    }
+
+    /**
+     * 소유자가 세계관의 공개 범위·장르를 바꾼다(DEC-45). 공개로 바뀐 순간에만 publishedAt을 새로 찍고 장르만 바꾸면 유지하며 비공개로 바꾸면 지운다.
+     * 저장 버전이 없으면 설정은 되지만 목록에 나오지 않는다(listed=false). 카드·관계·revision은 건드리지 않는다.
+     */
+    fun publication(worldId:UUID,subject:UUID,request:PublicationRequest):PublicationResponse {
+        val visibility=worldVisibility(request.visibility);val genre=worldGenre(request.genre)
+        return tx {
+            val world=owned(worldId,subject)
+            world.publishedAt=if(visibility=="public") world.publishedAt ?: Instant.now() else null
+            world.visibility=visibility;world.genre=genre
+            PublicationResponse(world.id,visibility,genre,world.publishedAt?.toString(),isListed(visibility,world.currentRevisionId))
         }
     }
 
@@ -86,16 +103,47 @@ class WorldStudioService(
         return loaded.copy(relationships=stored.relationships)
     }
 
+    /** 소유한 저장 초안을 읽어 입력 원문과 현재 관계 기준을 고정한다. */
+    internal fun prepareInitialWorldInput(worldId:UUID,subject:UUID,analysisId:UUID):InitialWorldInput =
+        InitialWorldInput.fromDraft(draft(worldId,subject),analysisId)
+
+    /** 외부 호출 없이 잠금 안에서 검증하며, 콜백은 인자로 받은 새 스냅샷만 사용해야 한다. */
+    internal fun <T:Any> withInitialWorldInput(subject:UUID,input:InitialWorldInput,action:(InitialWorldInput)->T):T=tx {
+        val world=owned(input.worldId,subject)
+        val current=state(input.worldId);ready(current)
+        val latest=readDraft(world,current)
+        try { input.validateAgainst(latest) }
+        catch(_:IllegalArgumentException) { throw WorldConflict() }
+        action(InitialWorldInput.fromDraft(latest,input.analysisId))
+    }
+
     /** 기본은 upsert. replace=true는 전체 현재 상태를 교체하며 생략 관계는 제거한다. 같은 요청은 같은 key/입력으로 재시도한다. */
-    fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest):WorldDraftResponse {
+    fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest):WorldDraftResponse=edit(worldId,subject,request,null)
+
+    internal fun editAddition(worldId:UUID,subject:UUID,request:EditWorldDraftRequest,applicationId:UUID):WorldDraftResponse {
+        require(!request.replace)
+        return edit(worldId,subject,request,applicationId)
+    }
+
+    internal fun validateEditRequest(request:EditWorldDraftRequest) {
         validateName(request.name,request.description);validateKey(request.key)
         require(request.expectedDraftRevision>=0 && request.cards.size<=1000)
         require(request.cards.map { it.id }.distinct().size==request.cards.size) { "중복된 카드입니다." }
         request.cards.forEach { validate(it,false) }
         require(mapper.writeValueAsBytes(request).size<=2_000_000) { "세계관 입력 크기를 확인하세요." }
+    }
+
+    private fun guardApplication(worldId:UUID,applicationId:UUID?) {
+        val pending=applications.findFirstByWorldIdAndStatusIn(worldId,listOf("applying","unknown"))
+        if(pending!=null && pending.id!=applicationId) throw WorldStudioFailure.incomplete()
+    }
+
+    private fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest,applicationId:UUID?):WorldDraftResponse {
+        validateEditRequest(request)
         val hash=hash("edit",worldId,request)
         val loaded=tx {
-            val world=owned(worldId,subject);val state=state(worldId);val draft=draft(worldId)
+            val world=owned(worldId,subject);guardApplication(worldId,applicationId)
+            val state=state(worldId);val draft=draft(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
             if(same && state.requestHash!=hash) throw WorldConflict()
             if(state.completed && same) {
@@ -107,6 +155,7 @@ class WorldStudioService(
             request.cards.forEach { card ->
                 val existing=cards.findById(card.id).orElse(null)
                 if(existing!=null && existing.worldId!=worldId) throw WorldNotFound()
+                if(applicationId!=null && !(state.completed && same) && cardDrafts.existsById(card.id)) throw WorldConflict()
             }
             EditPlan(readDraft(world,state),state.completed && same,state.graphVersion)
         }
@@ -121,7 +170,7 @@ class WorldStudioService(
         // Even an acknowledged retry must still match the PostgreSQL card membership.
         RelationshipInputHelper.merge(emptyList(),relations,true,known)
         tx {
-            owned(worldId,subject);val state=state(worldId)
+            owned(worldId,subject);guardApplication(worldId,applicationId);val state=state(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
             expected(draft(worldId),request.expectedDraftRevision,unprepared=state.completed && !same && !alreadyApplied)
             if(state.graphVersion!=loaded.graphVersion) throw WorldConflict()
@@ -139,6 +188,8 @@ class WorldStudioService(
         catch(_:WorldNotFound) {
             // Only this callback rejection proves the graph transaction did not apply; transport/CAS failures stay pending.
             if(alreadyApplied) throw WorldStudioFailure.mismatch()
+            // Application reservations keep their identity even on proven rejection; only same request resumes.
+            if(applicationId!=null) throw WorldStudioFailure.incomplete()
             tx {
                 owned(worldId,subject);val state=state(worldId)
                 if(state.completed || state.graphVersion!=loaded.graphVersion || state.requestKey!=request.key || state.requestHash!=hash ||
@@ -149,18 +200,27 @@ class WorldStudioService(
         }
         if(stored.worldId!=worldId || stored.version!=Math.incrementExact(loaded.graphVersion) || stored.key!=request.key || stored.hash!=hash) throw WorldStudioFailure.mismatch()
         tx {
-            owned(worldId,subject);val state=state(worldId);val draft=draft(worldId)
+            owned(worldId,subject);guardApplication(worldId,applicationId);val state=state(worldId);val draft=draft(worldId)
             if(state.requestKey!=request.key || state.requestHash!=hash) throw WorldConflict()
             if(!state.completed) {
                 expected(draft,request.expectedDraftRevision)
-                mergedCards.forEach { card ->
+                (if(applicationId==null) mergedCards else request.cards).forEach { card ->
                     val existing=cardDrafts.findById(card.id).orElse(null)
                     if(existing==null) cardDrafts.save(SettingCardDraft(cardId=card.id,worldId=worldId,fields=fields(card)))
                     else { existing.fields=fields(card);existing.updatedAt=Instant.now() }
                 }
                 cardDrafts.flush();draft.name=request.name;draft.description=request.description
                 draft.draftRevision=Math.incrementExact(draft.draftRevision);draft.updatedAt=Instant.now()
-                state.graphVersion=stored.version;state.completed=true;states.flush()
+                state.graphVersion=stored.version;state.completed=true
+                if(applicationId!=null) {
+                    val application=applications.findById(applicationId).orElseThrow { WorldConflict() }
+                    if(application.worldId!=worldId || application.baseDraftRevision!=request.expectedDraftRevision ||
+                        application.relationshipVersion!=loaded.graphVersion || application.status !in listOf("applying","unknown") ||
+                        mapper.convertValue(application.additionPayload,EditWorldDraftRequest::class.java)!=request) throw WorldConflict()
+                    application.status="applied";application.resultDraftRevision=draft.draftRevision
+                    applications.flush()
+                }
+                states.flush()
             }
         }
         return draft(worldId,subject)
@@ -175,6 +235,7 @@ class WorldStudioService(
             if(previous.requestHash!=hash) throw WorldConflict()
             return@tx readRevision(worldId,previous.revisionId)
         }
+        guardApplication(worldId,null)
         val draft=draft(worldId);expected(draft,request.expectedDraftRevision)
         val cardData=cardDrafts.findAllByWorldId(worldId).map { payload(it.cardId,it.fields) }
             .filter { it.lifecycle=="active" || (it.title.isNotBlank() && it.body.isNotBlank()) }
@@ -190,6 +251,14 @@ class WorldStudioService(
         readRevision(worldId,revision.id)
     }
     fun revision(worldId:UUID,subject:UUID,revisionId:UUID):WorldRevisionResponse=tx { owned(worldId,subject);readRevision(worldId,revisionId) }
+    /** 검증된 Principal의 회원 UUID만 전달한다. 새 HTTP/AI 진입점은 제공하지 않는다. */
+    fun confirmedContext(worldId:UUID,subject:UUID,revisionId:UUID):WorldConfirmedContextResult {
+        val saved=revision(worldId,subject,revisionId)
+        val active=saved.cards.filter { it.card.lifecycle=="active" }
+        return WorldConfirmedContextResult(saved.worldId,saved.revisionId,saved.revisionNo,subject,
+            saved.name,saved.description,active,saved.cards.size-active.size)
+    }
+
     fun revisionSummaries(worldId: UUID, subject: UUID): List<WorldRevisionSummaryResponse> = tx {
         owned(worldId, subject)
         revisions.findAllByWorldIdAndSealedTrueOrderByRevisionNoDesc(worldId).map { it.summary() }
@@ -207,7 +276,8 @@ class WorldStudioService(
     private fun readDraft(world:StudioWorld,state:WorldRelationshipState):WorldDraftResponse {
         val draft=draft(world.id)
         return WorldDraftResponse(world.id,draft.draftRevision,world.currentRevisionId,draft.baseWorldRevisionId,draft.name,draft.description,
-            cardDrafts.findAllByWorldId(world.id).map { payload(it.cardId,it.fields) }.sortedBy { it.id.toString() },emptyList(),state.graphVersion)
+            cardDrafts.findAllByWorldId(world.id).map { payload(it.cardId,it.fields) }.sortedBy { it.id.toString() },emptyList(),state.graphVersion,
+            visibility=world.visibility,genre=world.genre,hasCover=world.coverObjectKey!=null)
     }
     private fun sealedRevision(worldId: UUID, id: UUID) =
         revisions.findByIdAndWorldId(id, worldId)?.takeIf { it.sealed } ?: throw WorldNotFound()

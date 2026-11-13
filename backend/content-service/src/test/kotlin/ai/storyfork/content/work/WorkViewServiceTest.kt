@@ -128,6 +128,12 @@ class WorkViewServiceTest {
         assertThrows(DataIntegrityViolationException::class.java) { service.record("work", 1, "reader") }
     }
 
+    @Test fun `episode counts are cumulative member views per episode number`() {
+        `when`(views.countByEpisode("work")).thenReturn(listOf(arrayOf<Any>(1, 4L), arrayOf<Any>(3, BigInteger.TWO)))
+
+        assertEquals(mapOf(1 to 4L, 3 to 2L), service.episodeCounts("work"))
+    }
+
     @Test fun `counts map the aggregate rows of the last two 24 hour windows`() {
         `when`(views.countByWork(ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH, ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH))
             .thenReturn(listOf(arrayOf<Any>("w1", 3L, 1L), arrayOf<Any>("w2", 2, BigInteger.ZERO)))

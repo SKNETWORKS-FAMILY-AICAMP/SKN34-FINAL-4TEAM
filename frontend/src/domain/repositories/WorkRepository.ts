@@ -1,4 +1,5 @@
 import type { Draft } from '../entities/draft'
+import type { ReaderWorldCards } from '../entities/wiki'
 import type { Work } from '../entities/work'
 import type { World } from '../entities/world'
 
@@ -10,6 +11,11 @@ export interface WorkRepository {
   listWorks(): Promise<Work[]>
   listWorlds(): Promise<World[]>
   readWorld(work: Work, episode: number): Promise<Work>
+  /**
+   * 작품에 연결된 세계관(DEC-46)의 독자 공개 카드. `upto`를 생략하면 발행된 최대 회차 기준이다.
+   * 서버 작품 저장소만 구현한다(메모리 데모 작품에는 연결된 세계관이 없다).
+   */
+  readWorldCards?(workId: string, upto?: number): Promise<ReaderWorldCards>
   createFork(id: string, episode: number, title: string, direction: string): Promise<{ id: string }>
   /** 같은 id가 있으면 바꾸고 없으면 추가합니다. */
   saveWork(work: Work): Promise<void>

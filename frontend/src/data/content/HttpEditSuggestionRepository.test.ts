@@ -36,6 +36,22 @@ describe('수정 제안 읽기 (회원, Bearer)', () => {
     expect(fetcher.mock.calls[0][0]).toBe('/api/v1/works/edit-suggestions/inbox')
     expect(first).toMatchObject({ owner: true, mine: false, scope: 'auto', scopeReasons: ['띄어쓰기·문장부호만 바뀌어요.'] })
   })
+
+  it('작품을 정하면 workId 쿼리로 그 작품 제안만 서버에 묻고, 정하지 않으면 쿼리 없이 읽는다', async () => {
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => Response.json({ items: [row({ owner: true, mine: false })] }))
+    const repo = new HttpEditSuggestionRepository(fetcher)
+    const workId = '11111111-1111-4111-8111-111111111111'
+    expect(await repo.inbox(workId)).toHaveLength(1)
+    await repo.inbox()
+    // 쿼리 값은 인코딩돼 다른 쿼리를 끼워 넣을 수 없다.
+    await repo.inbox('w&x=1')
+    expect(fetcher.mock.calls.map((c) => c[0])).toEqual([
+      `/api/v1/works/edit-suggestions/inbox?workId=${workId}`,
+      '/api/v1/works/edit-suggestions/inbox',
+      '/api/v1/works/edit-suggestions/inbox?workId=w%26x%3D1',
+    ])
+    expect(new Headers(fetcher.mock.calls[0][1]?.headers).get('Authorization')).toBe('Bearer suggest-bearer')
+  })
 })
 
 describe('수정 제안 쓰기 (회원, CSRF)', () => {

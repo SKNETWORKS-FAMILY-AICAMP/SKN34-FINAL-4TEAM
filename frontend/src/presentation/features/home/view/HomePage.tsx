@@ -7,11 +7,13 @@ import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
-import { useHomeViewModel } from '../viewmodel/useHomeViewModel'
+import { useHeroViewModel, useHomeViewModel } from '../viewmodel/useHomeViewModel'
 
 const Chev = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
 const LEFT = 'M15 5l-7 7 7 7'
 const RIGHT = 'M9 5l7 7-7 7'
+/** 위치 점은 현재 위치 주변 이만큼만 그린다. 소설 수만큼 늘리면 44px 터치 대상이 좁은 화면(360px 폭에 5개까지)에서 줄어들거나 넘친다. */
+const DOTS = 5
 const shortTitle = (w: Work) => w.title.split(': ').pop()
 /** 방금 업데이트 줄의 오른쪽 문구. 서버 작품은 서버가 준 업데이트 시각이 있을 때(server)만 상대 시각을 보이고, 없으면 회차만 알립니다. */
 const freshLabel = (w: Work, server: boolean) => w.canonical ? `${server ? `${ago(w.upd)} · ` : ''}${epsOf(w).length}화` : ago(w.upd)
@@ -58,6 +60,9 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
     return () => clearInterval(timer)
   }, [reducedMotion, paused, hovered, N, visible, stepHero])
   const shown = Math.min(Math.max(hero, 0), Math.max(0, N - visible))
+  const positions = Math.max(1, N - visible + 1)
+  // 현재 위치가 가운데 오도록 점의 범위를 잡고 양 끝에서는 붙인다. 전체 위치는 위의 'n / N'이 알린다.
+  const firstDot = Math.max(0, Math.min(shown - Math.floor(DOTS / 2), positions - DOTS))
   const move = (i: number) => { setPaused(true); setHero(i) }
   if (!N) return null
   return (
@@ -82,9 +87,10 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
       </div>
       <div className="hero-controls">
         <button type="button" className="hero-step" aria-label="이전 소설" onClick={() => move(hero - 1)}><Chev d={LEFT} /></button>
-        <div className="dots" id="dots">{works.slice(0, Math.max(1, N - visible + 1)).map((w, i) => (
-          <button type="button" key={w.id} aria-label={`${i + 1}번째 소설 보기`} aria-pressed={i === shown} onClick={() => move(i)}><i className={i === shown ? 'on' : ''} /></button>
-        ))}</div>
+        <div className="dots" id="dots">{works.slice(firstDot, Math.min(positions, firstDot + DOTS)).map((w, j) => {
+          const i = firstDot + j
+          return <button type="button" key={w.id} aria-label={`${i + 1}번째 소설 보기`} aria-pressed={i === shown} onClick={() => move(i)}><i className={i === shown ? 'on' : ''} /></button>
+        })}</div>
         <button type="button" className="hero-step" aria-label="다음 소설" onClick={() => move(hero + 1)}><Chev d={RIGHT} /></button>
       </div>
       <div className="hero-rotation">
@@ -96,18 +102,28 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
   )
 }
 
-/** 순위 목록 상태: 서버 실패는 빈 목록으로 숨기지 않고, 집계 결과가 없으면 빈 상태 문구를 보입니다. */
-function RankState({ failed, failure = '순위를 불러오지 못했어요.', list, empty, children }: { failed: boolean; failure?: string; list: Work[]; empty: string; children: ReactNode }) {
-  if (failed) return <p className="muted small">{failure}</p>
+/** 캐러셀 위치는 이 컴포넌트만 구독한다. 자동 넘김(4.5초마다)이 홈의 다른 구역까지 다시 그리지 않는다. */
+function HomeHero({ works }: { works: Work[] }) {
+  return <Hero works={works} {...useHeroViewModel()} />
+}
+
+/** 홈 한 줄의 조회 실패 안내. 그 자리에서 다시 불러오며, 다시 묻는 동안 이미 보인 구역은 그대로 둔다(추천 소설 `RecSection`과 같은 모양). */
+const LineFailed = ({ message, retry }: { message: string; retry: () => void }) => (
+  <div className="muted small"><p role="alert">{message}</p><button type="button" className="btn sm" onClick={retry}>다시 불러오기</button></div>
+)
+
+/** 순위 목록 상태: 서버 실패는 빈 목록으로 숨기지 않고 다시 불러오게 하며, 집계 결과가 없으면 빈 상태 문구를 보입니다. */
+function RankState({ failed, failure = '순위를 불러오지 못했어요.', retry, list, empty, children }: { failed: boolean; failure?: string; retry: () => void; list: Work[]; empty: string; children: ReactNode }) {
+  if (failed) return <LineFailed message={failure} retry={retry} />
   return list.length ? children : <p className="muted small">{empty}</p>
 }
 
-function Top10({ list, works, failed, ranked, computedAt }: { list: Work[]; works: Work[]; failed: boolean; ranked: boolean; computedAt: Date | null }) {
+function Top10({ list, works, failed, retry, ranked, computedAt }: { list: Work[]; works: Work[]; failed: boolean; retry: () => void; ranked: boolean; computedAt: Date | null }) {
   return (
     <aside className="t10" aria-label={ranked ? '실시간 인기 TOP10' : '공개 소설 목록'}>
       <div className="t10h"><h2>{ranked ? '실시간 인기' : '공개 소설'}</h2>{ranked ? <span className="live" title="최근 24시간 조회 수 순">24시간 조회</span> : <span className="live">둘러보기</span>}<Go to="/rank" className="more">더보기 ›</Go></div>
       {computedAt && <p className="t10f">{asOf(computedAt)}</p>}
-      <RankState failed={failed} list={list} empty={ranked ? '최근 24시간 동안 조회된 소설이 아직 없어요.' : '아직 공개된 소설이 없어요.'}>
+      <RankState failed={failed} retry={retry} list={list} empty={ranked ? '최근 24시간 동안 조회된 소설이 아직 없어요.' : '아직 공개된 소설이 없어요.'}>
         <ol>
           {list.map((w, i) => (
             <li key={w.id}>
@@ -137,7 +153,8 @@ export function HomePage() {
   const shelf = useRef<HTMLDivElement>(null)
   const loading = vm.isLoading
   const h = vm.home
-  const scrollShelf = (d: number) => shelf.current?.scrollBy({ left: d * shelf.current.clientWidth * 0.8, behavior: 'smooth' })
+  // 동작 줄이기 설정이면 바로 옮긴다. 선반 CSS가 scroll-behavior: smooth라 'auto'가 아니라 'instant'여야 한다.
+  const scrollShelf = (d: number) => shelf.current?.scrollBy({ left: d * shelf.current.clientWidth * 0.8, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
 
   return (
     <>
@@ -146,7 +163,7 @@ export function HomePage() {
         {/* main#main은 본문 랜드마크이고 #home은 기존 CSS·테스트 선택자를 유지하는 래퍼입니다. */}
         <div id="home">
           <h1 className="sr-only">STORYFORK</h1>
-          <div className="chips">
+          <div className="chips" role="group" aria-label="소설 필터">
             {vm.chips.map((c) => <button type="button" key={c} className={vm.chip === c ? 'on' : ''} aria-pressed={vm.chip === c} onClick={() => vm.selectChip(c)}>{c}</button>)}
           </div>
           {vm.guide && (
@@ -190,15 +207,15 @@ export function HomePage() {
                     </Go>
                   ))}
                 </div>
-                {h.forkFeedFailed && <p className="muted small">포크 소설을 불러오지 못했어요.</p>}
+                {h.forkFeedFailed && <LineFailed message="포크 소설을 불러오지 못했어요." retry={vm.retry} />}
               </section>
-              <div className="herow"><Hero works={h.originals} hero={vm.hero} stepHero={vm.stepHero} setHero={vm.setHero} /><Top10 list={h.top10} works={h.works} failed={h.rankingFailed} ranked={h.ranked} computedAt={h.rankingComputedAt} /></div>
+              <div className="herow"><HomeHero works={h.originals} /><Top10 list={h.top10} works={h.works} failed={h.rankingFailed} retry={vm.retry} ranked={h.ranked} computedAt={h.rankingComputedAt} /></div>
               <section className="sec">
                 <div className="tri">
-                  <div><h2>{h.ranked ? '24시간 인기 급상승' : '이야기의 시작, 원작 소설'}</h2><RankState failed={h.rankingFailed} list={h.rising} empty={h.ranked ? '최근 24시간 동안 조회가 늘어난 소설이 아직 없어요.' : '아직 공개된 원작이 없어요.'}>{h.rising.map((w, i) => (
+                  <div><h2>{h.ranked ? '24시간 인기 급상승' : '이야기의 시작, 원작 소설'}</h2><RankState failed={h.rankingFailed} retry={vm.retry} list={h.rising} empty={h.ranked ? '최근 24시간 동안 조회가 늘어난 소설이 아직 없어요.' : '아직 공개된 원작이 없어요.'}>{h.rising.map((w, i) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${h.ranked && i < 3 ? 'top' : ''}`}>{h.ranked ? ['1st', '2nd', '3rd'][i] || i + 1 + 'th' : i + 1}</span><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b>{(h.ranked || w.statisticsSupported !== false) && <em>👁 {kfmt(w.views)}</em>}</Go>
                   ))}</RankState></div>
-                  <div><h2>{h.serverRanking ? '방금 업데이트' : '함께 읽을 소설'}</h2><RankState failed={h.freshFailed} failure="업데이트 소식을 불러오지 못했어요." list={h.fresh} empty="아직 업데이트된 소설이 없어요.">{h.fresh.map((w) => (
+                  <div><h2>{h.serverRanking ? '방금 업데이트' : '함께 읽을 소설'}</h2><RankState failed={h.freshFailed} failure="업데이트 소식을 불러오지 못했어요." retry={vm.retry} list={h.fresh} empty="아직 업데이트된 소설이 없어요.">{h.fresh.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{freshLabel(w, h.serverRanking)}</em></Go>
                   ))}</RankState></div>
                   <div><h2>소설 모아 보기</h2><div className="picks">{h.picks.map((w) => (
@@ -216,7 +233,7 @@ export function HomePage() {
               </section>
               <section className="sec">
                 <div className="sec-h"><h2>{h.serverRanking ? '이번 주 인기 무료 소설' : '원작부터 읽어 보세요'}</h2></div>
-                <RankState failed={h.weeklyFailed} failure="이번 주 인기 소설을 불러오지 못했어요." list={h.weekly} empty={h.serverRanking ? '이번 주에 좋아요를 받은 소설이 아직 없어요.' : '아직 공개된 원작이 없어요.'}>
+                <RankState failed={h.weeklyFailed} failure="이번 주 인기 소설을 불러오지 못했어요." retry={vm.retry} list={h.weekly} empty={h.serverRanking ? '이번 주에 좋아요를 받은 소설이 아직 없어요.' : '아직 공개된 원작이 없어요.'}>
                   <div className="wk">{h.weekly.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="wc prox">
                       <div>

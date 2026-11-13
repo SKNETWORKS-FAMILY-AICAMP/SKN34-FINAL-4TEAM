@@ -328,4 +328,30 @@ class EditSuggestionIntegrationTest {
         assertEquals("탈퇴한 회원",node(detail(mine,first,owner)).path("proposerName").asString())
         assertEquals("탈퇴한 회원",node(detail(mine,first,reader)).path("proposerName").asString())
     }
+
+    @Test fun `the inbox work id filter lists only that work and anything that is not mine is an empty 200`() {
+        val owner=member("작가")
+        val first=work(owner.toString())
+        val second=work(owner.toString())
+        val elsewhere=work(member("다른 작가").toString())
+        val reader=member("독자")
+        val a=created(post(first,reader))
+        val b=created(post(second,reader))
+        created(post(elsewhere,reader))
+
+        val inbox="/api/v1/works/edit-suggestions/inbox"
+        assertEquals(listOf(a),ids(call("GET","$inbox?workId=$first",owner)))
+        assertEquals(listOf(b),ids(call("GET","$inbox?workId=$second",owner)))
+        assertEquals(listOf(b,a),ids(call("GET",inbox,owner)))
+        // 빈 값(`workId=`)은 생략과 같다.
+        assertEquals(listOf(b,a),ids(call("GET","$inbox?workId=",owner)))
+        // 남의 작품·없는 작품·형식이 틀린 값은 존재 여부를 드러내지 않도록 모두 같은 빈 목록(200)이다.
+        for(other in listOf(elsewhere,UUID.randomUUID().toString(),"not-a-uuid")) {
+            val response=call("GET","$inbox?workId=$other",owner)
+            assertEquals(200,response.statusCode(),response.body())
+            assertEquals(emptyList<String>(),ids(response),other)
+        }
+        assertEquals(emptyList<String>(),ids(call("GET","$inbox?workId=$first",reader)))
+        assertEquals(401,call("GET","$inbox?workId=$first").statusCode())
+    }
 }

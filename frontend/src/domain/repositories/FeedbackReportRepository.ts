@@ -7,8 +7,8 @@ export interface FeedbackReportRepository {
   listEpisode(workId: string, episode: number): Promise<FeedbackReport[]>
   /** 내가 남긴 모든 제보 */
   listMine(): Promise<FeedbackReport[]>
-  /** 내가 소유한 모든 작품의 제보 */
-  listInbox(): Promise<FeedbackReport[]>
+  /** 내가 소유한 모든 작품의 제보. workId를 주면 서버가 그 작품 것만 준다(남의 작품이면 빈 목록). */
+  listInbox(workId?: string): Promise<FeedbackReport[]>
   /** 제보자만. 철회한 뒤에도 바꿀 수 있다. */
   setVisibility(workId: string, reportId: string, visibility: FeedbackReportVisibility): Promise<FeedbackReport>
   /** 제보자만, 철회 전에만. 원문은 바뀌지 않고 정정 기록이 더해진다. */

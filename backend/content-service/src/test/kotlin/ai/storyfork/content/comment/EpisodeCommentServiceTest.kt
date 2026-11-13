@@ -37,6 +37,8 @@ class EpisodeCommentServiceTest {
     private val nicknames = mock(CoreNicknameService::class.java)
     private val service = EpisodeCommentService(access, current, comments, likes, nicknames)
     private val rows = mutableListOf<EpisodeCommentEntity>()
+    // 작품의 회차 현재 상태(episode_current)다. published()가 채우며 version이 null이면 발행되지 않은(중단된) 회차다.
+    private val episodes = mutableListOf<EpisodeCurrentEntity>()
     // Core에 없는(탈퇴한) 회원 id와, Core에 물은 id 묶음(호출마다 하나)이다.
     private val withdrawn = mutableSetOf<String>()
     private val asked = mutableListOf<List<String>>()
@@ -58,6 +60,13 @@ class EpisodeCommentServiceTest {
             .thenAnswer { call ->
                 rows.filter { it.workId == call.arguments[0] && it.episodeNumber == call.arguments[1] && it.deletedAt == null }.sortedByDescending { it.createdAt }.take(200)
             }
+        `when`(comments.findTop200ByWorkIdAndEpisodeNumberInAndDeletedAtIsNullOrderByCreatedAtDesc(ArgumentMatchers.anyString(), ArgumentMatchers.anyCollection<Int>()))
+            .thenAnswer { call ->
+                rows.filter { it.workId == call.arguments[0] && it.episodeNumber in (call.arguments[1] as Collection<*>) && it.deletedAt == null }.sortedByDescending { it.createdAt }.take(200)
+            }
+        `when`(current.findAllByWorkIdOrderBySequence(ArgumentMatchers.anyString())).thenAnswer { call ->
+            episodes.filter { it.workId == call.arguments[0] }.sortedBy { it.sequence }
+        }
         `when`(likes.findAllByCommentIdIn(ArgumentMatchers.anyCollection<String>())).thenAnswer { call ->
             likeRows.filter { it.commentId in (call.arguments[0] as Collection<*>) }
         }
@@ -74,7 +83,10 @@ class EpisodeCommentServiceTest {
     }
 
     private fun published(number: Int = 1, version: String? = "version-$number", work: String = "work") {
-        `when`(current.findByWorkIdAndSequence(work, number)).thenReturn(EpisodeCurrentEntity("episode-$number", work, number, version))
+        val episode = EpisodeCurrentEntity("episode-$number", work, number, version)
+        `when`(current.findByWorkIdAndSequence(work, number)).thenReturn(episode)
+        episodes.removeAll { it.workId == work && it.sequence == number }
+        episodes.add(episode)
     }
     private fun comment(id: String, author: String = "author", at: Instant = t0, body: String = "본문", spoiler: Boolean = false, quote: String? = null,
         version: String = "version-1", number: Int = 1, work: String = "work", hidden: Boolean = false) =
@@ -172,6 +184,7 @@ class EpisodeCommentServiceTest {
 
         val calls = listOf<Pair<String, () -> Any?>>(
             "list" to { service.list("work", 1, null, null) },
+            "listByWork" to { service.listByWork("work", null, null) },
             "read" to { service.read("work", 1, "c1", null) },
             "create" to { service.create("work", 1, "reader", CreateCommentRequest("본문")) },
             "update" to { service.update("work", 1, "c1", "author", UpdateCommentRequest("고침")) },
@@ -234,6 +247,88 @@ class EpisodeCommentServiceTest {
         published()
 
         for (sort in listOf("popular", "LATEST", "")) assertEquals(422, failure { service.list("work", 1, sort, null) }.status, sort)
+    }
+
+    @Test fun `a work list merges the comments of every published episode newest first and asks Core once`() {
+        published(1); published(2)
+        comment("c1", author = "a", at = t0, number = 1)
+        comment("c2", author = "b", at = t0.plusSeconds(10), number = 2)
+        comment("c3", author = "a", at = t0.plusSeconds(20), number = 1)
+
+        val items = service.listByWork("work", null, null).items
+
+        assertEquals(listOf("c3", "c2", "c1"), items.map { it.id })
+        assertEquals(listOf(1, 2, 1), items.map { it.episodeNumber })
+        assertEquals(listOf("a-닉", "b-닉", "a-닉"), items.map { it.authorName })
+        assertEquals(listOf(setOf("a", "b")), asked.map { it.toSet() })
+        assertEquals(items.map { it.id }, service.listByWork("work", "latest", null).items.map { it.id })
+    }
+
+    @Test fun `a work list sorts by likes across episodes and breaks ties by newest`() {
+        published(1); published(2)
+        comment("old", at = t0, number = 1)
+        comment("mid", at = t0.plusSeconds(10), number = 2)
+        comment("new", at = t0.plusSeconds(20), number = 1)
+        comment("quiet", at = t0.plusSeconds(30), number = 2)
+        like("old", "a"); like("old", "b"); like("mid", "a"); like("mid", "b"); like("new", "a")
+
+        val byLikes = service.listByWork("work", "likes", null).items
+
+        assertEquals(listOf("mid", "old", "new", "quiet"), byLikes.map { it.id })
+        assertEquals(listOf(2, 2, 1, 0), byLikes.map { it.likeCount })
+    }
+
+    @Test fun `a work list with an unknown sort is 422 before access is checked`() {
+        `when`(access.published("work")).thenThrow(ContentFailure(404, "공개 작품을 찾을 수 없어요."))
+
+        for (sort in listOf("popular", "LATEST", "")) assertEquals(422, failure { service.listByWork("work", sort, null) }.status, sort)
+
+        verifyNoInteractions(access, current, comments, likes, nicknames)
+    }
+
+    @Test fun `a work list leaves out unpublished episodes deleted comments other works and episodes without a current row`() {
+        published(1); published(2, null); published(1, work = "other")
+        comment("shown", number = 1)
+        comment("suspended", number = 2)
+        comment("orphan", number = 3)
+        comment("deleted", number = 1).deletedAt = t0.plusSeconds(1)
+        comment("elsewhere", number = 1, work = "other")
+
+        assertEquals(listOf("shown"), service.listByWork("work", null, null).items.map { it.id })
+    }
+
+    @Test fun `a work list of a work without a published episode is empty and neither reads comments nor asks Core`() {
+        published(1, null)
+        comment("c1", number = 1)
+
+        assertEquals(emptyList<CommentResponse>(), service.listByWork("work", null, null).items)
+
+        assertTrue(asked.isEmpty())
+        verify(comments, never()).findTop200ByWorkIdAndEpisodeNumberInAndDeletedAtIsNullOrderByCreatedAtDesc(ArgumentMatchers.anyString(), ArgumentMatchers.anyCollection<Int>())
+    }
+
+    @Test fun `a work list shows each comment exactly as its episode list does`() {
+        published(1); published(2)
+        comment("c1", author = "a", at = t0, number = 1, version = "version-1", quote = "인용", spoiler = true)
+        comment("c2", author = "gone", at = t0.plusSeconds(10), number = 2, version = "version-2", body = "원문", quote = "숨긴 인용", spoiler = true, hidden = true)
+        comment("c3", author = "reader", at = t0.plusSeconds(20), number = 2, version = "version-2")
+        withdrawn += "gone"
+        like("c1", "reader"); like("c2", "reader"); like("c2", "fan"); like("c3", "fan")
+
+        for (viewer in listOf("reader", null)) {
+            val all = service.listByWork("work", null, viewer).items
+            val perEpisode = (1..2).flatMap { service.list("work", it, null, viewer).items }
+
+            assertEquals(perEpisode.sortedByDescending { it.createdAt }, all, "viewer $viewer")
+        }
+    }
+
+    @Test fun `a work list of a private or missing work is 404 before any episode or comment access`() {
+        `when`(access.published("work")).thenThrow(ContentFailure(404, "공개 작품을 찾을 수 없어요."))
+
+        assertEquals(404, failure { service.listByWork("work", null, null) }.status)
+
+        verifyNoInteractions(current, comments, likes, nicknames)
     }
 
     @Test fun `liked and mine follow the viewer and are false for anonymous`() {
