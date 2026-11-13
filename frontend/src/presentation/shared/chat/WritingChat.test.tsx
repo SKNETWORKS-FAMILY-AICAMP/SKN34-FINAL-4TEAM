@@ -21,7 +21,7 @@ it('discards a message edit when switching to another conversation', async () =>
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   expect(await screen.findByText('첫 질문')).toBeTruthy()
   fireEvent.click(screen.getByRole('checkbox'))
-  fireEvent.click(screen.getByRole('button', { name: '수정', exact: true }))
+  fireEvent.click(screen.getByRole('button', { name: '수정' }))
   expect(screen.getByLabelText('고칠 메시지')).toBeTruthy()
   fireEvent.change(screen.getByLabelText('대화 고르기'), { target: { value: 'b' } })
   expect(await screen.findByText('둘째 질문')).toBeTruthy()
