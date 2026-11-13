@@ -1,7 +1,7 @@
 # AI Service 구현 지침
 
 `backend/ai-service/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
-현재 내부 Health, 이어쓰기 제안, 초기 세계관 후보 추출, 원고 임베딩·Q&A(`app/manuscript/`), 웹 조사(`app/research/`, OpenAI `web_search`), 새 원고·부분 수정(`app/writing/`) API와 HTTP 연결 전의 Intent Router(`app/intent/`, OpenAI Decisions `gpt-6-luna`)가 있다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
+현재 내부 Health, 이어쓰기 제안, 초기 세계관 후보 추출, 원고 임베딩·Q&A(`app/manuscript/`), 웹 조사(`app/research/`, OpenAI `web_search`), 새 원고·부분 수정(`app/writing/`) API, Intent Router(`app/intent/`, OpenAI Decisions `gpt-6-luna`)와 이를 묶는 LangGraph 오케스트레이션(`app/orchestration/`)이 있다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
 현재 호출 흐름과 기능별 코드 구조는 [AI Service 구현 경계](docs/agent-structure.md)를 본다.
 
 ## 구조
@@ -16,7 +16,7 @@
 - 그래프는 반복 상태 갱신·조건 분기·중단 및 재개가 실제로 필요한 기능에서 [집필 AI 설계](../../docs/writing-ai-architecture/02-ai-architecture.md)에 따라 검토한다. 단순 호출과 조회는 직접 실행한다.
 - 구체 클래스와 직접 함수 호출을 기본으로 한다. production 구현체가 둘 이상이거나 사용자가 요청하지 않으면
   `Protocol`·ABC·provider·registry·factory·bootstrap 추상화를 만들지 않는다. 테스트 편의를 위해 production 추상화를 추가하지 않는다.
-- 집필 AI의 여섯 업무 Agent와 시뮬레이션 인물 행동·장면 요약의 목표 모델은 사용자 결정으로 OpenAI `gpt-6-luna`다. Intent Router도 OpenAI Decisions(`gpt-6-luna`)를 쓴다. 기존 구현의 모델 설정과 실제 검증 기록은 구분한다. 그 밖의 모델·프레임워크와 상세 도입은 미정이며 의존성·lockfile을 미리 바꾸지 않는다.
+- 집필 AI의 여섯 업무 Agent와 시뮬레이션 인물 행동·장면 요약의 목표 모델은 사용자 결정으로 OpenAI `gpt-6-luna`다. Intent Router도 OpenAI Decisions(`gpt-6-luna`)를 쓴다. 기존 구현의 모델 설정과 실제 검증 기록은 구분한다. 집필 AI 복합 실행은 사용자 요청으로 LangGraph를 쓴다. 그 밖의 모델·프레임워크와 상세 도입은 미정이며 의존성·lockfile을 미리 바꾸지 않는다.
 - 장애는 명시적 오류로 반환하고 fallback·자동 재시도로 숨기지 않는다. 입력·원고·모델 응답을 오류 메시지나 로그에 넣지 않는다. 역할·인물마다 서버나 클래스를 만들지 않는다.
 
 ## 생성 경계

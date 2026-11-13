@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Header, HTTPException
 
 from app.internal_auth import require_internal_token
-from app.manuscript import agent, service
+from app.manuscript import service
 from app.manuscript.errors import ManuscriptFailure
 from app.manuscript.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
 
@@ -25,6 +25,6 @@ def answer(data: AnswerRequest, x_internal_token: str = Header(default='')) -> A
     """검증된 발췌에 근거한 주장과 답할 수 없는 부분을 반환한다."""
     require_internal_token(x_internal_token)
     try:
-        return agent.answer(data)
+        return service.answer(data)
     except ManuscriptFailure as error:
         raise HTTPException(error.status, str(error)) from None

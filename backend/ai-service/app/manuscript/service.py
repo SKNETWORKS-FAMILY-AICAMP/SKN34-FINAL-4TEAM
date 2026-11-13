@@ -1,12 +1,13 @@
-"""원고 검색 v1용 E5-small을 로컬에서 실행한다. 색인·검색 범위는 Content가 소유한다."""
+"""원고 검색 v1용 E5-small 로컬 실행과 Q&A 답변의 인용 대조. 색인·검색 범위는 Content가 소유한다."""
 
 import hashlib
 import os
 from functools import lru_cache
 from pathlib import Path
 
+from app.manuscript import agent
 from app.manuscript.errors import ManuscriptFailure
-from app.manuscript.models import EmbeddingRequest, EmbeddingResponse
+from app.manuscript.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
 
 MODEL = 'intfloat/multilingual-e5-small'
 REVISION = '614241f622f53c4eeff9890bdc4f31cfecc418b3'
@@ -73,3 +74,12 @@ def embed(data: EmbeddingRequest) -> EmbeddingResponse:
     except Exception:
         raise ManuscriptFailure(503, '로컬 원고 임베딩을 실행할 수 없습니다.') from None
     return EmbeddingResponse(model=MODEL, revision=REVISION, vectors=vectors)
+
+
+def answer(data: AnswerRequest) -> AnswerResponse:
+    """모든 주장이 전달한 발췌 id만 인용할 때 답변을 돌려준다. 어긋나면 보정하지 않고 502다."""
+    result = agent.answer(data)
+    ids = {excerpt.id for excerpt in data.excerpts}
+    if not all(claim.sourceIds and set(claim.sourceIds) <= ids for claim in result.claims):
+        raise ManuscriptFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
+    return result
