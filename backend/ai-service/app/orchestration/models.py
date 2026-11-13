@@ -38,13 +38,30 @@ class Conversation(BaseModel):
     scope: str = Field(min_length=1, max_length=200)
 
 
+class Resume(BaseModel):
+    """interrupt로 멈춘 실행에 대한 작가·Content의 답. 승인하면 빠진 단계 입력을 함께 보낸다."""
+    model_config = ConfigDict(extra='forbid')
+    approved: bool
+    inputs: StepInputs = StepInputs()
+
+
 class OrchestrationRequest(BaseModel):
+    """새 턴은 request, 멈춘 실행을 이어갈 때는 같은 conversation의 resume 하나만 보낸다."""
     model_config = ConfigDict(extra='forbid')
     conversation: Conversation | None = None
-    request: str = Field(min_length=1, max_length=2000)
+    request: str | None = Field(default=None, min_length=1, max_length=2000)
+    resume: Resume | None = None
     operation: Feature | None = None
     materials: list[Annotated[str, Field(max_length=2000)]] = Field(default=[], max_length=8)
     inputs: StepInputs = StepInputs()
+
+    @model_validator(mode='after')
+    def turn_or_resume(self):
+        if (self.request is None) == (self.resume is None):
+            raise ValueError('request와 resume 중 하나만 보내야 합니다.')
+        if self.resume is not None and self.conversation is None:
+            raise ValueError('resume은 conversation이 필요합니다.')
+        return self
 
 
 class StepResult(BaseModel):
@@ -56,8 +73,11 @@ class StepResult(BaseModel):
 
 
 class OrchestrationResponse(BaseModel):
-    """steps는 계획 순서다. clarify·rejected·unsupported·needs_input이면 아무 Agent도 실행하지 않았다."""
-    status: Literal['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input']
+    """steps는 계획 순서다. clarify·rejected·unsupported·needs_input·cancelled면 아무 Agent도 실행하지 않았다.
+
+    waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다.
+    """
+    status: Literal['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']
     message: str | None = None
     steps: list[StepResult] = []
     missingInputs: list[Feature] = []

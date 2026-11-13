@@ -14,15 +14,22 @@ router = APIRouter()
 
 
 @router.post('/internal/v1/orchestrations')
-def orchestrate(data: OrchestrationRequest, x_internal_token: str = Header(default='')) -> OrchestrationResponse:
-    """자유 입력 또는 UI 선택 기능을 Router로 계획하고, 검증을 통과하면 구현된 Agent를 계획 순서로 실행한다."""
+async def orchestrate(data: OrchestrationRequest, x_internal_token: str = Header(default='')) -> OrchestrationResponse:
+    """자유 입력 또는 UI 선택 기능을 Router로 계획하고, 검증을 통과하면 구현된 Agent를 계획 순서로 실행한다.
+
+    대화에서 입력이 빠지면 waiting으로 멈추고, 같은 conversation의 resume으로 이어간다.
+    """
     require_internal_token(x_internal_token)
     try:
-        return service.run(data)
+        return await service.run(data)
     except IntentFailure:
         raise HTTPException(503, service.ROUTER_FAILED_MESSAGE) from None
+    except service.ConversationUnavailable:
+        raise HTTPException(503, service.CONVERSATION_UNAVAILABLE_MESSAGE) from None
     except service.ConversationMismatch:
         raise HTTPException(409, service.CONVERSATION_MISMATCH_MESSAGE) from None
+    except service.NothingToResume:
+        raise HTTPException(409, service.NOTHING_TO_RESUME_MESSAGE) from None
 
 
 def internal_token(x_internal_token: str = Header(default='')) -> None:
@@ -33,6 +40,6 @@ def internal_token(x_internal_token: str = Header(default='')) -> None:
 @router.post('/internal/v1/orchestrations/stream', response_class=EventSourceResponse,
              dependencies=[Depends(internal_token)])
 async def orchestrate_stream(data: OrchestrationRequest) -> AsyncIterator[ServerSentEvent]:
-    """같은 실행을 SSE로 흘린다: plan, 단계마다 started·step, 마지막 done(실패 시 error)."""
+    """같은 실행을 SSE로 흘린다: plan, 단계마다 started·step, 멈추면 waiting, 마지막 done(실패 시 error)."""
     async for event in service.stream(data):
         yield event
