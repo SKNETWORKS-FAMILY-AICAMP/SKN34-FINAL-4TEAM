@@ -38,7 +38,11 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   // ?ep=n은 처음 읽은 목록에만 쓴다. 쓰고 나면 비워 다른 작품·다시 읽기가 옛 번호를 따르지 않게 한다.
   const entry=useRef(initialEpisode)
   const current=useRef(draft)
+  // 서버에 가 있는 요청은 사용자가 누른 것이든 자동 저장이든 하나뿐이다.
   const pending=useRef<AbortController|null>(null)
+  // 진행 중인 자동 저장과, 그것이 끝나기를 기다리는 사용자 요청
+  const autosave=useRef<Promise<void>|null>(null)
+  const waiting=useRef<AbortController|null>(null)
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body||(draft.authorNote??'')!==(active.draft.authorNote??''))
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const resetOrder=()=>{orderRequest.current?.abort();orderRequest.current=null;setOrderLookup(null)}
@@ -50,23 +54,26 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       const first=pickEpisode(rows,entry.current);entry.current=undefined
       setEpisodes(rows);if(first)install(first);setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
-    return ()=>{controller.abort();pending.current?.abort();historyRequest.current?.abort();orderRequest.current?.abort();orderRequest.current=null}
+    return ()=>{controller.abort();pending.current?.abort();waiting.current?.abort();historyRequest.current?.abort();orderRequest.current?.abort();orderRequest.current=null}
   },[id,api])
   useEffect(()=>{
     const leave=(e:BeforeUnloadEvent)=>{if(dirty||busy)e.preventDefault()}
     window.addEventListener('beforeunload',leave)
     return ()=>window.removeEventListener('beforeunload',leave)
   },[dirty,busy])
+  // 사용자가 누른 요청: 화면을 진행 중으로 잠근다. 자동 저장이 서버에 가 있으면 끝나기를 기다렸다가 실행한다(누른 요청을 버리지 않고, 옛 revision으로 보내 충돌하지도 않는다).
   const run=async(action:(signal:AbortSignal)=>Promise<void>,lockEditing=true)=>{
-    if(pending.current)return false
-    const controller=new AbortController();pending.current=controller;setBusy(true);setError('');setNotice('')
+    if(waiting.current||(pending.current&&!autosave.current))return false
+    const controller=new AbortController();setBusy(true);setError('');setNotice('')
     setEditingLocked(lockEditing)
+    if(autosave.current){waiting.current=controller;await autosave.current;waiting.current=null;if(controller.signal.aborted)return false}
+    pending.current=controller
     try {await action(controller.signal);return !controller.signal.aborted}
     catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'저장에 실패했어요. 입력은 화면에 남아 있어요.');return false}
     finally {if(pending.current===controller){pending.current=null;if(!controller.signal.aborted){setBusy(false);setEditingLocked(false)}}}
   }
   const merge=(e:WritingEpisode)=>{setEpisodes(rows=>[...rows.filter(x=>x.number!==e.number),e].sort((a,b)=>a.number-b.number));setActive(e)}
-  const save=(version=true)=>run(async signal=>{
+  const write=async(version:boolean,signal:AbortSignal)=>{
     if(!active||active.inherited)return
     const sent=current.current
     const result=await api.writeEpisode(id,active.number,sent,version,signal)
@@ -75,20 +82,38 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     merge(result)
     // A response acknowledges the sent draft, never typing that happened while it was in flight.
     put(current.current.title===sent.title && current.current.body===sent.body && current.current.authorNote===sent.authorNote ? result.draft : {...current.current,revision:result.draft.revision})
-    setNotice(version?'새 원고 버전을 저장했어요. 발행본은 그대로예요.':'작업 초안을 저장했어요.')
-  },version)
+    // 자동 저장의 성공은 상단의 저장 상태('저장됨')가 알린다. 알림 문단은 사용자가 누른 버전 저장만 쓴다.
+    if(version)setNotice('새 원고 버전을 저장했어요. 발행본은 그대로예요.')
+  }
+  const save=()=>run(signal=>write(true,signal))
   // 발행과 체크포인트 되돌리기는 같은 회차 발행 요청이다. 완료 안내만 다르고, 성공 표시는 실제 응답을 받은 뒤에만 한다.
   const publishVersion=(versionId:string,rights:boolean,done:string)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){resetHistory();merge(e);put({...current.current,revision:e.draft.revision});setNotice(done)}})
-  const autoSave=useEffectEvent(()=>{void save(false)})
+  // 자동 저장은 조용하다: 화면을 잠그지도 알림을 바꾸지도 않고, 실패만 오류로 알린다(오류가 있으면 다시 시도하지 않는다).
+  // 서버에 가 있는 동안 다시 예약된 자동 저장은 건너뛰고, 응답으로 active가 바뀌면 아래 효과가 남은 입력을 다시 예약한다.
+  // ponytail: 응답이 오래 걸려도 상태는 '저장되지 않은 변경'으로만 보인다. 지연 표시가 필요해지면 일정 시간 뒤 busy로 올린다.
+  const autoSave=useEffectEvent(()=>{
+    if(pending.current||waiting.current)return
+    const controller=new AbortController();pending.current=controller
+    const saving=write(false,controller.signal)
+      .catch((e:unknown)=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:'저장에 실패했어요. 입력은 화면에 남아 있어요.')})
+      .finally(()=>{if(pending.current===controller)pending.current=null;if(autosave.current===saving)autosave.current=null})
+    autosave.current=saving
+  })
   useEffect(()=>{
     if(!dirty||busy||error||active?.inherited)return
     const timer=window.setTimeout(()=>autoSave(),2000)
     return ()=>window.clearTimeout(timer)
   },[draft,active,busy,error,dirty])
-  const mayLeave=()=>!pending.current&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
+  // 요청이 서버에 가 있으면 true다. 그것이 자동 저장이면 끝날 때까지 화면을 진행 중으로 올려, 회차 전환·이동·삭제가 왜 안 되는지 보이고 취소할 수 있게 한다.
+  const inFlight=()=>{
+    if(!pending.current)return false
+    if(autosave.current)void run(async()=>{},false)
+    return true
+  }
+  const mayLeave=()=>!inFlight()&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
   // 삭제가 서버에 확정되면 true다. 뒤이은 목록 재조회가 실패해도 true라서 화면이 사라진 버튼 대신 초점을 옮길 수 있다.
   const remove=async(whole:boolean)=>{
-    if(!active||pending.current||active.inherited)return false
+    if(!active||active.inherited||inFlight())return false
     if(!window.confirm(whole?'회차를 삭제할까요? 삭제하면 되돌릴 수 없어요. 같은 번호로 새 회차를 만들 수 있어요. 저장하지 않은 입력은 사라져요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return false
     let removed=false
     await run(async signal=>{
@@ -109,7 +134,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     return removed
   }
   const changeVisibility=(visible:boolean,rights:boolean)=>{
-    if(!active||active.inherited||dirty||pending.current)return Promise.resolve(false)
+    if(!active||active.inherited||dirty||inFlight())return Promise.resolve(false)
     if(!visible&&!window.confirm('이 회차의 공개를 중단할까요? 저장 버전과 기존 Fork는 보존돼요.'))return Promise.resolve(false)
     return run(async signal=>{
       const result=await api.setPublicationVisibility(id,active.number,current.current.revision,visible,rights,signal)
@@ -137,7 +162,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     // 회차 목록의 항목별 메뉴가 선택하지 않은 회차의 삭제 가능 여부도 같은 규칙으로 알린다.
     deleteBlockerOf:(e:WritingEpisode)=>deleteBlocker(e,episodes),
     edit:(patch:Partial<Pick<Draft,'title'|'body'|'authorNote'>>)=>{put({...current.current,...patch});setNotice('')},
-    save:()=>save(true),
+    save,
     deleteDraft:()=>remove(false),
     deleteEpisode:()=>remove(true),
     checkOrder:async()=>{
@@ -166,7 +191,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       put({...current.current,body:sent.body.slice(0,from)+`\n\n${imageMarker(item.id)}\n\n`+sent.body.slice(to)})
       setNotice('이미지를 서버에 업로드했어요. 본문 참조는 초안·버전 저장 후 유지돼요. 참조를 지워도 과거 저장본의 이미지는 보존돼요.')
     }),
-    cancel:()=>{pending.current?.abort();pending.current=null;setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
+    cancel:()=>{pending.current?.abort();waiting.current?.abort();pending.current=null;setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
     create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){resetOrder();merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
     reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {resetOrder();setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})},
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},

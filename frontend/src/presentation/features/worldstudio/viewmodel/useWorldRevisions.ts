@@ -23,7 +23,7 @@ export function useWorldRevisions(world:string,active:boolean,saved:StudioWorld|
     if(!active||!member||!navigator.locks)throw new Error('로그인과 브라우저 요청 잠금 상태를 확인해 주세요.')
     // Repository POST lock is separate: this covers verification and acknowledgement across tabs too.
     await navigator.locks.request(`storyfork:confirmation-ui:${member}:${world}`,{ifAvailable:true},async held=>{
-     if(!held)throw new Error('다른 탭에서 확정 결과를 확인 중입니다. 잠시 후 다시 확인해 주세요.')
+     if(!held)throw new Error('다른 탭에서 확정 결과를 확인 중이에요. 잠시 후 다시 확인해 주세요.')
      if(!c.signal.aborted)await action(c.signal)
     })
    }else await action(c.signal)
@@ -32,11 +32,11 @@ export function useWorldRevisions(world:string,active:boolean,saved:StudioWorld|
  }
  const checkInput=()=>{
   if(dirty||!saved)throw new Error('현재 초안을 먼저 저장해 주세요.')
-  if(ai?.pending(world))throw new Error('미확인 AI 요청이 있습니다. 후보 검토 화면에서 먼저 확인해 주세요.')
+  if(ai?.pending(world))throw new Error('미확인 AI 요청이 있어요. 후보 검토 화면에서 먼저 확인해 주세요.')
  }
  const checkRequest=(key:string,expected:number)=>{
   const pending=useCase.pendingConfirmation(world)
-  if(pending?.key!==key||pending.expectedDraftRevision!==expected)throw new Error('다른 탭에서 요청 상태가 변경됐습니다. 같은 요청으로 다시 확인해 주세요.')
+  if(pending?.key!==key||pending.expectedDraftRevision!==expected)throw new Error('다른 탭에서 요청 상태가 변경됐어요. 같은 요청으로 다시 확인해 주세요.')
  }
  const verify=async(id:string,expected:number,signal:AbortSignal)=>{
   const verified=await useCase.revision(world,id,signal)
@@ -57,9 +57,9 @@ export function useWorldRevisions(world:string,active:boolean,saved:StudioWorld|
   confirm:(recover=false)=>run(async signal=>{
    checkInput();setSuperseded(null)
    const previous=useCase.pendingConfirmation(world)
-   if(previous&&!recover)throw new Error('확정 결과가 미확인입니다. 같은 요청으로 확인해 주세요.')
+   if(previous&&!recover)throw new Error('확정 결과가 미확인이에요. 같은 요청으로 확인해 주세요.')
    // Recovery must never create a new key if another tab already acknowledged the old request.
-   if(recover&&!previous)throw new Error('원래 요청 기록이 없습니다. 최신 저장 상태를 확인해 주세요.')
+   if(recover&&!previous)throw new Error('원래 요청 기록이 없어요. 최신 저장 상태를 확인해 주세요.')
    const expected=previous?.expectedDraftRevision??saved!.version
    const created=await useCase.confirm(world,expected,signal)
    signal.throwIfAborted()
@@ -72,7 +72,7 @@ export function useWorldRevisions(world:string,active:boolean,saved:StudioWorld|
    if(current.revisionId!==verified.revisionId){
     setSuperseded({...pending,revisionId:verified.revisionId,revisionNo:verified.revisionNo,currentRevisionNo:current.revisionNo})
    }else{
-    useCase.acknowledgeConfirmation(world);setMessage(`확정 버전 ${verified.revisionNo}을 저장했습니다. 작품 공개나 회차 발행은 하지 않았습니다.`)
+    useCase.acknowledgeConfirmation(world);setMessage(`확정 버전 ${verified.revisionNo}을 저장했어요. 작품 공개나 회차 발행은 하지 않았어요.`)
    }
   },true),
   acknowledgeSuperseded:()=>run(async signal=>{
@@ -83,7 +83,7 @@ export function useWorldRevisions(world:string,active:boolean,saved:StudioWorld|
    checkRequest(superseded.key,superseded.expectedDraftRevision)
    useCase.acknowledgeConfirmation(world)
    setSuperseded(null);setRows(data);setDetail(verified)
-   setMessage('확정 저장 결과를 확인했습니다. 최신 저장된 초안에서 계속 작성하거나 새 확정을 시작할 수 있습니다.')
+   setMessage('확정 저장 결과를 확인했어요. 최신 저장된 초안에서 계속 작성하거나 새 확정을 시작할 수 있어요.')
   },true),
  }
 }

@@ -101,9 +101,10 @@ it('is titled 집필 중인 작품 and has no refresh button, Fork toggle, or Fo
 
 it('opens the work management page and the writing studio from separate links on every card', async () => {
   await show([original, fork])
-  expect(screen.getByRole('link', { name: '내 포크 수정하기' }).getAttribute('href')).toBe('/content?work=fork')
+  expect(screen.getByRole('link', { name: '내 포크 관리하기' }).getAttribute('href')).toBe('/content?work=fork')
   expect(screen.getByRole('link', { name: '내 포크 회차 작성하기' }).getAttribute('href')).toBe('/studio/fork')
-  expect(screen.getByRole('link', { name: '원작 수정하기' }).getAttribute('href')).toBe('/content?work=original')
+  expect(screen.getByRole('link', { name: '원작 관리하기' }).getAttribute('href')).toBe('/content?work=original')
+  expect(screen.getByRole('link', { name: '원작 관리하기' }).className).toBe('btn sm') // 세계관 카드의 관리하기와 같은 보조 버튼
   expect(screen.getByRole('link', { name: '원작 회차 작성하기' }).getAttribute('href')).toBe('/studio/original')
 })
 

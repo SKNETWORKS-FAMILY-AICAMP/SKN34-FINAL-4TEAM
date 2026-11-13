@@ -16,7 +16,7 @@ const frozen:WorldRevision={worldId:world.id,revisionId:crypto.randomUUID(),revi
 function setup(dirty=false,reload=vi.fn<()=>Promise<StudioWorld>>(async()=>({...world,version:3,currentRevisionId:frozen.revisionId}))){
  let pending:{expectedDraftRevision:number;key:string}|null=null
  let rows:WorldRevisionSummary[]=[]
- const repo:WorldStudioRepository={listStudio:vi.fn(),read:vi.fn(),create:vi.fn(),saveStudio:vi.fn(),revisions:vi.fn(async()=>rows),revision:vi.fn(async()=>frozen),confirm:vi.fn(async()=>{pending={key:'same',expectedDraftRevision:2};rows=[{worldId:world.id,revisionId:frozen.revisionId,revisionNo:1,name:'확정',createdAt:'2026-11-11T00:00:00Z'}];return frozen}),pendingConfirmation:()=>pending,acknowledgeConfirmation:vi.fn(()=>{pending=null})}
+ const repo:WorldStudioRepository={listStudio:vi.fn(),read:vi.fn(),create:vi.fn(),saveStudio:vi.fn(),setPublication:vi.fn(),revisions:vi.fn(async()=>rows),revision:vi.fn(async()=>frozen),confirm:vi.fn(async()=>{pending={key:'same',expectedDraftRevision:2};rows=[{worldId:world.id,revisionId:frozen.revisionId,revisionNo:1,name:'확정',createdAt:'2026-11-11T00:00:00Z'}];return frozen}),pendingConfirmation:()=>pending,acknowledgeConfirmation:vi.fn(()=>{pending=null})}
  const uc=new WorldStudioUseCase(repo),lock=vi.fn(),store=createAppStore({role:'user',memberId:'owner'})
  const wrapper=({children}:{children:ReactNode})=><Provider store={store}>{children}</Provider>
  type Props={isDirty?:boolean;id?:string;active?:boolean;saved?:StudioWorld}

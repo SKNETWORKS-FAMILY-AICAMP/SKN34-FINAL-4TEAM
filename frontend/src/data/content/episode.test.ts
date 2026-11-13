@@ -333,3 +333,40 @@ it('서버가 항상 보내는 작품 revision이 없는 응답은 거절한다'
   const value = { id: 'w', title: '작품', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 4 } }
   await expect(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value]))).list()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
 })
+
+describe('작품과 세계관 연결(DEC-46)', () => {
+  const worldId = '11111111-1111-4111-8111-111111111111'
+  const owned = { id: 'w', title: '작품', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 0 }, revision: 0 }
+
+  it('소유자 목록 응답의 연결된 세계관 id를 읽고, 그 필드가 없는 응답도 받는다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json([{ ...owned, worldStudioId: worldId }, { ...owned, id: 'w2', worldStudioId: null }, { ...owned, id: 'w3' }]))
+    expect((await new HttpEpisodeRepository(fetcher).list()).map((w) => w.worldStudioId)).toEqual([worldId, null, undefined])
+  })
+
+  it('작품에 세계관을 연결하는 PUT을 CSRF와 함께 보내고 서버 결과를 돌려준다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ workId: 'w 1', worldId }))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    expect(await api.linkWorldStudio('w 1', worldId)).toEqual({ workId: 'w 1', worldId })
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/w%201/world-studio')
+    expect(request.method).toBe('PUT')
+    expect(JSON.parse(request.body)).toEqual({ worldId })
+    expect(request.headers).toEqual(expect.objectContaining({ Authorization: 'Bearer content-bearer', 'X-CSRF-TOKEN': 'content-csrf' }))
+  })
+
+  it('worldId가 null이면 연결 해제를 보낸다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ workId: 'w', worldId: null }))
+    expect(await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).linkWorldStudio('w', null)).toEqual({ workId: 'w', worldId: null })
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ worldId: null })
+  })
+
+  it('이미 다른 작품에 연결된 세계관이면 서버 안내 문구로 실패한다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ detail: '이미 다른 작품에 연결된 세계관이에요.', code: 'WORLD_ALREADY_LINKED' }, { status: 409 }))
+    await expect(new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).linkWorldStudio('w', worldId)).rejects.toThrow('이미 다른 작품에 연결된 세계관이에요.')
+  })
+
+  it('연결 응답이 계약 모양이 아니면 성공으로 받지 않는다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ workId: 'w', worldId: 'not-a-uuid' }))
+    await expect(new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).linkWorldStudio('w', worldId)).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+})

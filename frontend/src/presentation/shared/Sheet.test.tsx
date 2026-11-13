@@ -65,3 +65,60 @@ it('Escape로 닫기를 요청하고 시트가 닫히면 열었던 요소로 포
   unmount()
   expect(document.activeElement).toBe(opener)
 })
+
+it('시트 안에서 누르기 시작해 배경에서 뗀 클릭(입력 글자를 끌어 고르다 벗어난 경우)은 닫지 않고, 배경을 누른 클릭은 닫는다', () => {
+  const close = vi.fn()
+  renderSheet(<textarea aria-label="내용" />, close)
+  const dim = screen.getByRole('dialog').parentElement!
+  // 브라우저는 누른 곳과 뗀 곳이 다르면 click을 둘의 공통 조상(배경)에 보낸다.
+  fireEvent.pointerDown(screen.getByLabelText('내용'))
+  fireEvent.click(dim)
+  expect(close).not.toHaveBeenCalled()
+  fireEvent.pointerDown(dim)
+  fireEvent.click(dim)
+  expect(close).toHaveBeenCalledOnce()
+  // 포인터 없이 온 클릭(보조기기의 활성화)도 배경이면 닫는다.
+  fireEvent.click(dim)
+  expect(close).toHaveBeenCalledTimes(2)
+  // 시트 안을 누른 클릭은 닫지 않는다.
+  fireEvent.pointerDown(screen.getByRole('dialog'))
+  fireEvent.click(screen.getByRole('dialog'))
+  expect(close).toHaveBeenCalledTimes(2)
+})
+
+it('한글 조합 중 Escape(isComposing·Safari의 keyCode 229)는 조합을 취소하는 키라 시트를 닫지 않는다', () => {
+  const close = vi.fn()
+  renderSheet(<input aria-label="댓글" />, close)
+  const input = screen.getByLabelText('댓글')
+  for (const init of [{ isComposing: true }, { isComposing: false, keyCode: 229 }]) fireEvent.keyDown(input, { key: 'Escape', ...init })
+  expect(close).not.toHaveBeenCalled()
+  fireEvent.keyDown(input, { key: 'Escape' })
+  expect(close).toHaveBeenCalledOnce()
+})
+
+it('숨긴 입력(hidden 속성·type=hidden·inert 안)은 첫 포커스와 Tab 순환 대상에서 제외한다', () => {
+  renderSheet(<>
+    <input type="file" hidden aria-label="숨긴 파일 선택" />
+    <button>닫기</button>
+    <input aria-label="이름" />
+    <input type="hidden" name="token" />
+    <div inert><button>잠긴 버튼</button></div>
+    <div hidden><button>접힌 버튼</button></div>
+  </>)
+  const [closeButton, name] = [screen.getByRole('button', { name: '닫기' }), screen.getByLabelText('이름')]
+  // 맨 앞의 숨은 파일 입력이 아니라 처음 보이는 요소가 포커스를 받는다.
+  expect(document.activeElement).toBe(closeButton)
+  name.focus()
+  expect(fireEvent.keyDown(name, { key: 'Tab' })).toBe(false)
+  expect(document.activeElement).toBe(closeButton)
+  fireEvent.keyDown(closeButton, { key: 'Tab', shiftKey: true })
+  expect(document.activeElement).toBe(name)
+})
+
+it('시트의 빈 곳을 눌러 초점이 시트 자체에 있을 때 Shift+Tab은 뒤 화면으로 새지 않고 마지막 요소로 간다', () => {
+  renderSheet(<><button>닫기</button><button>저장</button></>)
+  const dialog = screen.getByRole('dialog')
+  dialog.focus()
+  expect(fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true })).toBe(false)
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '저장' }))
+})

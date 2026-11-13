@@ -11,7 +11,7 @@ export const parseHashtags = (raw: string) => [...new Set(raw.split(',').map((t)
 /** 히어로 칩에 쓰는 작품 종류다. 분기 작품은 서버가 유형을 ORIGINAL로 내려 줘도 '분기 작품'이고, 유형이 없으면 빈 문자열이다. */
 export const workKindLabel = (w: Pick<Work, 'creationType' | 'source'>) =>
   w.source ? '분기 작품' : w.creationType === 'EXTERNAL_DERIVATIVE' ? '외부 2차 창작' : w.creationType ? '원작' : ''
-export type Work = {revision:number; writingEpisodeNumber?:number|null; creationType?: WorkCreationType; genres?: string[]; hashtags?: string[]; hasWritingEpisode?: boolean; readOnly?: boolean; id: string; title: string; summary: string; visibility: 'private' | 'public'; allowFork: boolean; allowForkPublication: boolean; source: Source | null; episodes: Episode[]; draft: Draft }
+export type Work = {revision:number; writingEpisodeNumber?:number|null; creationType?: WorkCreationType; genres?: string[]; hashtags?: string[]; hasWritingEpisode?: boolean; readOnly?: boolean; id: string; title: string; summary: string; visibility: 'private' | 'public'; allowFork: boolean; allowForkPublication: boolean; source: Source | null; episodes: Episode[]; draft: Draft; /** 연결된 WorldStudio 세계관 id(DEC-46 1:1 연결). 소유자 응답에서만 오고 없으면 미연결이다. */ worldStudioId?: string | null }
 export type Proposal = { id: string; text: string; model: string; revision: number; status: 'pending' | 'accepted'; prompt?: string; baseBody?: string; createdAt?: string; context?: StoryContext }
 export const settingCategories = ['규칙','인물','장소','광물','상태','지식','관계'] as const
 export type SettingInput = {name:string;content:string;category:typeof settingCategories[number];tags:string[];visibility:'private'|'public';fromEpisode:number;toEpisode:number|null;knownBy:string[];evidence:string}

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import type { LibraryUseCase } from '../../../../domain/usecases/LibraryUseCase'
-import { autoOf, simTurns, type PublishSettings, type StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
+import { autoOf, type PublishSettings, type StudioUseCase } from '../../../../domain/usecases/StudioUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -298,12 +298,6 @@ export function useStudioViewModel(id: string, ep: number | undefined, screen: s
         actionBusy.current = false
         setAutoGenerating(false)
       }
-    },
-    simTurns: (picked: string[]) => (s ? simTurns(s.work, picked) : []),
-    runSim: () => aiDemo('인물 시뮬레이션', 30),
-    takeSim: async (situation: string, picked: string[], turns: number) => {
-      await run(() => studioUseCase.takeSim(id, key, situation, picked, turns))
-      toast('시뮬레이션 결과를 집필실로 가져왔어요')
     },
     savePublishSettings: async (st: PublishSettings) => {
       const r = await studioUseCase.savePublishSettings(id, st)

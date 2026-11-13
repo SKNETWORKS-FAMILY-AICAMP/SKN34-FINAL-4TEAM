@@ -33,7 +33,7 @@ export function RelationPairEditor(
       <section className='relationship-group' key={label}>
         <h4>{label}</h4>
         {visible.map((r, i) => {
-          if(r.value.predicate==='preserved_emotion_symmetric')return <div className='relationship-row' key={r.key}><p>두 설정 사이의 대칭 감정 · 읽기 전용</p><p>{r.value.title}</p><p className='world-prose'>{r.value.text}</p><p className='small muted'>현재 편집기는 방향별 감정만 수정할 수 있어요. 이 관계는 일반 저장 시 원형 그대로 보존됩니다.</p></div>
+          if(r.value.predicate==='preserved_emotion_symmetric')return <div className='relationship-row' key={r.key}><p>두 설정 사이의 대칭 감정 · 읽기 전용</p><p>{r.value.title}</p><p className='world-prose'>{r.value.text}</p><p className='small muted'>현재 편집기는 방향별 감정만 수정할 수 있어요. 이 관계는 일반 저장 시 원형 그대로 보존돼요.</p></div>
           const field = label + ' ' + (i + 1)
           const direction = vm.direction(r)
           const write = (text: string) => vm.write(r, text)
@@ -88,7 +88,7 @@ export function RelationPairEditor(
                     ? (
                       <p className='small'>
                         {name(r.value.subjectId)}은(는) {name(r.value.targetId)}의{' '}
-                        {r.value.predicate === 'parent_of' ? '부모' : '자녀'}입니다.
+                        {r.value.predicate === 'parent_of' ? '부모' : '자녀'}예요.
                       </p>
                     )
                     : (
@@ -162,14 +162,14 @@ export function RelationPairEditor(
       </datalist>
       <p className='small muted'>
         실제 관계는 여러 개일 수 있어요. 감정은 각 방향을 따로 정하며, 반대 방향으로 복사하지
-        않습니다.
+        않아요.
       </p>
       {group('fact', source, target, '실제 관계')}
       {group('emotion', source, target, `${name(source)} → ${name(target)} 감정`)}
       {group('emotion', target, source, `${name(target)} → ${name(source)} 감정`)}
       {!!removed.length && (
         <p role='status'>
-          관계 항목 {removed.length}개를 삭제할 예정입니다. 다른 관계와 감정은 유지됩니다.
+          관계 항목 {removed.length}개를 삭제할 예정이에요. 다른 관계와 감정은 유지돼요.
         </p>
       )}
       {error && <p role='alert' className='world-error'>{studio.error || error}</p>}
@@ -178,7 +178,7 @@ export function RelationPairEditor(
         <button type='button' className='btn' onClick={() => { if (studio.confirmRelationDiscard()) onClose() }}>취소</button>
       </div>
       <p className='small muted'>
-        적용 후 세계관 저장 버튼을 눌러야 저장됩니다. 취소하면 이 패널에서 입력한 변경만 버립니다.
+        적용 후 세계관 저장 버튼을 눌러야 저장돼요. 취소하면 이 패널에서 입력한 변경만 버려요.
       </p>
     </>
   )

@@ -4,6 +4,7 @@ import { REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, typ
 import { FeedbackReportCard } from '../../../shared/feedbackReports/FeedbackReportCard'
 import { Go } from '../../../shared/Go'
 import { useFeedbackReportInboxViewModel } from '../viewmodel/useFeedbackReportInboxViewModel'
+import './inbox.css'
 
 type Vm = ReturnType<typeof useFeedbackReportInboxViewModel>
 
@@ -20,6 +21,8 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
   const unchecked = r.status === 'unchecked'
   // 처리가 성공하면 눌렀던 버튼이 사라지거나 잠겨도 키보드 위치를 이 행 카드에 둔다(WCAG 2.4.3).
   const settle = (ok: boolean) => { if (ok) card.current?.focus(); return ok }
+  // 토스트는 곧 사라지므로 이 제보의 처리 결과(특히 서버가 거절한 이유)를 카드 안에도 남긴다.
+  const result = vm.notice?.key === r.id ? vm.notice : null
   return (
     <FeedbackReportCard report={r} showWork ref={card}>
       <div className="acts" style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
@@ -34,7 +37,7 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
         <button type="button" className="btn sm" aria-label={`상태 변경 · ${label}`} disabled={vm.busy || !next || next === r.status}
           onClick={() => { if (next) void vm.setStatus(r, next).then((ok) => { setPick(null); return settle(ok) }) }}>상태 변경</button>
       </div>
-      <details style={{ marginTop: 8 }}>
+      <details className="report-answer">
         <summary aria-label={`답변하기 · ${label}`}>답변하기</summary>
         <form onSubmit={(ev) => { ev.preventDefault(); void vm.answer(r, answer, isPublic).then((ok) => { if (settle(ok)) { setAnswer(''); setIsPublic(false) } }) }}>
           <label className="field">작가 답변
@@ -45,6 +48,7 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
           <button type="submit" className="btn sm pri" aria-label={`답변 보내기 · ${label}`} disabled={vm.busy || !answer.trim()}>답변 보내기</button>
         </form>
       </details>
+      {result && <p role={result.ok ? 'status' : 'alert'} className="small report-notice">{result.msg}</p>}
     </FeedbackReportCard>
   )
 }

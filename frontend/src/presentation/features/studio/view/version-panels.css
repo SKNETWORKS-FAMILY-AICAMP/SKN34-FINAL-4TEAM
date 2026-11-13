@@ -7,12 +7,12 @@
 .writing-checkpoints li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
 .writing-checkpoints li.on { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
 .writing-checkpoints li > :is(.writing-preview, [role="status"]) { flex-basis: 100%; }
-.writing-checkpoints .btn.writing-checkpoint-toggle { height: auto; min-height: 44px; padding-block: 8px; white-space: normal; }
 .writing-checkpoints .writing-checkpoint-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .writing-checkpoints .writing-rights { margin: 0; }
 .setting-history-panel > .setting-checkpoints-open { justify-self: start; }
 .version-panel-nav { display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
-.version-panel-nav [aria-pressed="true"] { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
+/* 지금 보는 화면은 작품 관리의 탭과 같이 aria-current로 알린다. */
+.version-panel-nav [aria-current] { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
 .version-comparison, .version-diff, .setting-history-panel { display: grid; gap: 16px; min-width: 0; }
 .version-comparison h3, .version-comparison h4 { font-size: 16px; overflow-wrap: anywhere; }
 .version-diff h4 { margin-bottom: 8px; }
@@ -30,6 +30,5 @@
 @media (max-width: 600px) {
   .writing-history-sheet { padding: 20px 16px; }
   .version-original-columns { grid-template-columns: minmax(0, 1fr); }
-  .version-panel-nav .btn { height: auto; min-height: 44px; white-space: normal; padding-block: 8px; }
   .version-change { grid-template-columns: 2em minmax(0, 1fr); gap: 8px; padding-inline: 8px; }
 }

@@ -3,6 +3,7 @@ import { asValue } from 'awilix/browser'
 import { createFixtureDb } from '../../data/mock/fixtureDb'
 import { InMemoryCreditLedgerRepository } from '../../data/mock/InMemoryCreditLedgerRepository'
 import { InMemoryNoticeRepository } from '../../data/mock/InMemoryNoticeRepository'
+import { InMemoryPublicWorldRepository } from '../../data/mock/InMemoryPublicWorldRepository'
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
@@ -73,6 +74,8 @@ export function registerMockupServices(container: AppContainer) {
     shellUseCase: asValue(new ShellUseCase(mockupNotificationRepository, feedbackRepository)),
     initialWorldUseCase: asValue(null),
     worldStudioUseCase: asValue(new WorldStudioUseCase(createMockupWorldStudioRepository())),
+    // 공개 세계관 API 대신 데모 세계관 26개를 같은 계약으로 보여 줍니다(파생·조합·작품은 이 데모에만 있습니다).
+    publicWorldRepository: asValue(new InMemoryPublicWorldRepository()),
     storyPlanUseCase: asValue(new StoryPlanUseCase(new InMemoryStoryPlanRepository(workRepository))),
     openNotificationStream: asValue(() => () => {}),
     // 공지는 관리자 탭에서 쓰면 /me/notice에 보이는 메모리 저장소. 기존 목업 공지 4건으로 시작합니다.

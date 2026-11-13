@@ -128,12 +128,13 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       const repo = connect([], (r) => r.create.mockRejectedValueOnce(new Error('공개 작품을 찾을 수 없어요.')))
       await openFeedbackSheet()
       fireEvent.click(screen.getByRole('button', { name: '피드백 보내기' }))
-      await toastIs('내용을 입력해 주세요')
+      // 입력 거절·서버 거절은 토스트가 아니라 시트 안 경고(role=alert)로 알린다.
+      expect((await within(screen.getByRole('dialog', { name: '피드백 보내기' })).findByRole('alert')).textContent).toBe('내용을 입력해 주세요')
       expect(repo.create).not.toHaveBeenCalled()
       const text = screen.getByLabelText<HTMLTextAreaElement>('내용')
       fireEvent.change(text, { target: { value: '보내려던 제보' } })
       fireEvent.click(screen.getByRole('button', { name: '피드백 보내기' }))
-      await toastIs('공개 작품을 찾을 수 없어요.')
+      await waitFor(() => expect(within(screen.getByRole('dialog', { name: '피드백 보내기' })).getByRole('alert').textContent).toBe('공개 작품을 찾을 수 없어요.'))
       expect(text.value).toBe('보내려던 제보')
       expect(screen.queryByText('작가 확인 전')).toBeNull()
       expect(screen.getByRole<HTMLButtonElement>('button', { name: '피드백 보내기' }).disabled).toBe(false)
@@ -204,9 +205,8 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
 
     it('실제 제보 목록을 상태·작가 답변·공개 범위 칩과 함께 보이고, 공개로 바꿀 때만 한 번 확인한 뒤 서버 값으로 바꾼다', async () => {
       const repo = connect(mine())
-      // 서재 탭에서 빠진 내 댓글·제보는 작품 관리(/content)의 링크로 들어간다.
-      renderApp('/content', user())
-      fireEvent.click(await screen.findByRole('link', { name: '내 댓글·제보' }))
+      // 서재 탭에서 빠진 내 댓글·제보는 작품 관리(/content?view=reports)에서 연다. 새 작품 만들기 화면에는 링크가 없다.
+      renderApp('/content?view=reports', user())
       await screen.findByRole('heading', { name: '내 제보 2' })
       expect(card('a').getByText('답변함')).toBeTruthy()
       expect(card('a').getByText(/비공개 답변이에요/)).toBeTruthy()

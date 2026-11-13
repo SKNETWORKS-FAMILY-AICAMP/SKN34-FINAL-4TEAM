@@ -107,14 +107,14 @@ export function WorkPage() {
               <label className="eps-q"><span aria-hidden="true">🔍</span><input id="epq" placeholder="회차 제목·본문 검색" aria-label="회차 검색" value={vm.query} onChange={(e) => vm.setQuery(e.target.value)} /></label>
             </div>
             <div id="eplist">
-              {vm.episodes.length ? vm.episodes.map(({ e, n, match, views }) => {
+              {vm.episodes.length ? vm.episodes.map(({ e, n, chars, match, views }) => {
                 const inh = w.parent && n <= (w.forkAt ?? 0)
                 const hidden = hiddenSourceEpisode(w, n, e.p)
                 const fc = forks.filter((f) => f.forkAt === n).length
                 return (
                   <Go key={n} to={`/read/${id}/${n}`} className={`ep ${read.includes(n) ? 'read' : ''}`} style={match ? undefined : { display: 'none' }}>
                     <span className="no">{n}</span>
-                    <div><b>{e.t}</b><div className="d">{hidden ? '원작 삭제로 볼 수 없는 회차' : <>{inh ? '원작 스냅샷 회차' : read.includes(n) ? '읽음' : last === n ? '읽는 중' : '무료'} <i className="sep" /> {e.p.join('').replace(/\s/g, '').length.toLocaleString()}자{views !== undefined && <> <i className="sep" /> <span title="조회"><Eye /><span className="sr-only">조회</span> {kfmt(views)}</span></>}</>}{fc > 0 && <> <i className="sep" /> <span title="이 회차에서 갈라진 포크"><Branch /> <span className="sr-only">이 회차에서 갈라진 포크 </span>{fc}<span className="sr-only">편</span></span></>}</div></div>
+                    <div><b>{e.t}</b><div className="d">{hidden ? '원작 삭제로 볼 수 없는 회차' : <>{inh ? '원작 스냅샷 회차' : read.includes(n) ? '읽음' : last === n ? '읽는 중' : '무료'} <i className="sep" /> {chars.toLocaleString()}자{views !== undefined && <> <i className="sep" /> <span title="조회"><Eye /><span className="sr-only">조회</span> {kfmt(views)}</span></>}</>}{fc > 0 && <> <i className="sep" /> <span title="이 회차에서 갈라진 포크"><Branch /> <span className="sr-only">이 회차에서 갈라진 포크 </span>{fc}<span className="sr-only">편</span></span></>}</div></div>
                   </Go>
                 )
               }) : <p className="muted" style={{ padding: 20 }}>아직 공개된 회차가 없어요.</p>}
@@ -124,14 +124,15 @@ export function WorkPage() {
             </div>
           </section>
           <aside className="tcard forkbox">
+            {/* 이 상자의 제목은 h1 바로 아래 구역이라 2단계로 알린다(모양은 전역 .forkbox h3 규칙을 그대로 쓴다). */}
             {p ? (
-              <><h3>원작 보기</h3><p>이 소설은 「{p.title}」 {w.forkAt}화를 기준으로 분기했어요.{w.canonical ? ' 설정의 원본 추적·독립 상태는 집필실에서 확인해 주세요. 관계의 과거 시점 복원은 지원하지 않아요.' : ' 이후 바뀐 설정은 이 소설에만 저장돼요.'}</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
+              <><h3 aria-level={2}>원작 보기</h3><p>이 소설은 「{p.title}」 {w.forkAt}화를 기준으로 분기했어요.{w.canonical ? ' 설정의 원본 추적·독립 상태는 집필실에서 확인해 주세요. 관계의 과거 시점 복원은 지원하지 않아요.' : ' 이후 바뀐 설정은 이 소설에만 저장돼요.'}</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
             ) : w.parentDeleted ? (
-              <><h3>삭제된 원작</h3><p>이 소설은 「{w.parentTitle}」 {w.forkAt}화를 기준으로 분기했어요. 원작이 삭제돼 원작으로 이동할 수 없고, 분기 전 회차 본문은 독자에게 보이지 않아요.</p></>
+              <><h3 aria-level={2}>삭제된 원작</h3><p>이 소설은 「{w.parentTitle}」 {w.forkAt}화를 기준으로 분기했어요. 원작이 삭제돼 원작으로 이동할 수 없고, 분기 전 회차 본문은 독자에게 보이지 않아요.</p></>
             ) : forkList.length ? (
-              <><h3>이 소설, 다르게 쓰고 싶다면</h3><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}` }} className="tbtn pri">✎ 포크하기</Go></>
+              <><h3 aria-level={2}>이 소설, 다르게 쓰고 싶다면</h3><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}` }} className="tbtn pri">✎ 포크하기</Go></>
             ) : (
-              <><h3>포크를 허용하지 않은 소설</h3><p>이 작품에서는 포크 생성이 지원되지 않거나 허용된 회차가 없어요. 공개된 회차를 읽을 수 있어요.</p><button type="button" className="tbtn" disabled>✎ 포크하기 불가</button></>
+              <><h3 aria-level={2}>포크를 허용하지 않은 소설</h3><p>이 작품에서는 포크 생성이 지원되지 않거나 허용된 회차가 없어요. 공개된 회차를 읽을 수 있어요.</p><button type="button" className="tbtn" disabled>✎ 포크하기 불가</button></>
             )}
             {!w.parent && (
               <div className="ifs">

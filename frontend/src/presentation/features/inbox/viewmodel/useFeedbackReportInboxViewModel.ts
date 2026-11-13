@@ -11,13 +11,15 @@ import { useAsyncData } from '../../../shared/useAsyncData'
  */
 export function useFeedbackReportInboxViewModel(workId?: string, useCase: FeedbackReportUseCase = appContainer.resolve('feedbackReportUseCase')) {
   const { data, isError, retry } = useAsyncData(() => useCase.listInbox(workId), [useCase, workId])
-  const { busy, send } = useReportSender(retry)
+  const { busy, send, notice } = useReportSender(retry)
   return {
     /** undefined: 불러오는 중이거나 첫 조회 실패(isError) */
     reports: data,
     isError, retry, busy,
-    check: (r: FeedbackReport) => send(() => useCase.check(r), '확인했어요'),
-    answer: (r: FeedbackReport, body: string, isPublic: boolean) => send(() => useCase.answer(r, body, isPublic), isPublic ? '공개 답변을 남겼어요' : '비공개 답변을 남겼어요'),
-    setStatus: (r: FeedbackReport, status: SettableReportStatus) => send(() => useCase.setStatus(r, status), `처리 상태를 바꿨어요 · ${REPORT_STATUS_LABEL[status]}`),
+    /** 마지막 처리 결과. key가 제보 id라서 화면이 그 제보 카드 안에 완료·실패를 남긴다. */
+    notice,
+    check: (r: FeedbackReport) => send(() => useCase.check(r), '확인했어요', r.id),
+    answer: (r: FeedbackReport, body: string, isPublic: boolean) => send(() => useCase.answer(r, body, isPublic), isPublic ? '공개 답변을 남겼어요' : '비공개 답변을 남겼어요', r.id),
+    setStatus: (r: FeedbackReport, status: SettableReportStatus) => send(() => useCase.setStatus(r, status), `처리 상태를 바꿨어요 · ${REPORT_STATUS_LABEL[status]}`, r.id),
   }
 }

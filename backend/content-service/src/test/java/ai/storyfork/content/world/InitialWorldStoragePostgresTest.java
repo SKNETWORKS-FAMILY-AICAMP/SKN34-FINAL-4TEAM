@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL", matches=".+")
 class InitialWorldStoragePostgresTest {
-    @Test void sequentialV1ThroughV5PreservesExistingWorldCardAndAnalysis() throws Exception {
+    @Test void sequentialV1ThroughV7PreservesExistingWorldCardAndAnalysis() throws Exception {
         try(var db=new WorldStudioPostgresFixture("independent")) {
             String world=id(), card=id(), analysis=id();
-            for(int version=1;version<=5;version++) {
+            for(int version=1;version<=7;version++) {
                 var flyway=org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration())
                     .target(Integer.toString(version)).load();
                 assertEquals(1,flyway.migrate().migrationsExecuted);
@@ -29,6 +29,27 @@ class InitialWorldStoragePostgresTest {
                     assertEquals(List.of("인물 원문|원래 메타데이터"),rows(c,"SELECT body||'|'||(semantic_metadata->>'source') FROM worldstudio.setting_card_draft WHERE card_id='"+card+"'"));
                     if(version>=2) assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM worldstudio.relationship_state")); // No automatic graph backfill.
                     if(version>=3) assertEquals(List.of("preserved-key|분석 원문😀"),rows(c,"SELECT request_key||'|'||(input_snapshot->>'text') FROM worldstudio.initial_analysis WHERE id='"+analysis+"'"));
+                    if(version>=6) {
+                        // 기존 세계관은 비공개·장르 없음·공개 시각 없음으로 남고, 코드·공개 시각 불변식은 DB가 지킨다.
+                        assertEquals(List.of("private||"),rows(c,"SELECT visibility||'|'||coalesce(genre,'')||'|'||coalesce(published_at::text,'') FROM worldstudio.world WHERE id='"+world+"'"));
+                        c.setAutoCommit(false);
+                        rejects(c,"23514","UPDATE worldstudio.world SET visibility='friends' WHERE id='"+world+"'");
+                        rejects(c,"23514","UPDATE worldstudio.world SET genre='romcom' WHERE id='"+world+"'");
+                        rejects(c,"23514","UPDATE worldstudio.world SET visibility='public' WHERE id='"+world+"'");
+                        rejects(c,"23514","UPDATE worldstudio.world SET published_at=now() WHERE id='"+world+"'");
+                        sql(c,"UPDATE worldstudio.world SET visibility='public',genre='sf',published_at=now() WHERE id='"+world+"'");
+                        c.rollback();
+                    }
+                    if(version>=7) {
+                        // 기존 세계관은 표지 없음으로 남고, 표지 키·형식은 함께 있거나 함께 없어야 하며 형식은 PNG·JPEG·WebP뿐이다.
+                        assertEquals(List.of("|"),rows(c,"SELECT coalesce(cover_object_key,'')||'|'||coalesce(cover_content_type,'') FROM worldstudio.world WHERE id='"+world+"'"));
+                        c.setAutoCommit(false);
+                        rejects(c,"23514","UPDATE worldstudio.world SET cover_object_key='world-covers/a' WHERE id='"+world+"'");
+                        rejects(c,"23514","UPDATE worldstudio.world SET cover_content_type='image/png' WHERE id='"+world+"'");
+                        rejects(c,"23514","UPDATE worldstudio.world SET cover_object_key='world-covers/a',cover_content_type='image/gif' WHERE id='"+world+"'");
+                        sql(c,"UPDATE worldstudio.world SET cover_object_key='world-covers/a',cover_content_type='image/webp' WHERE id='"+world+"'");
+                        c.rollback();
+                    }
                 }
             }
             assertEquals(0,db.studio().migrate().migrationsExecuted);
@@ -44,7 +65,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(3,db.studio().migrate().migrationsExecuted);
+            assertEquals(5,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
@@ -106,7 +127,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+w+"','"+a+"','old','"+content+"')");
                 sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+w+"','"+a+"','"+candidate+"',1,'approve','approved','"+id()+"','"+content+"')");
             }
-            assertEquals(1,db.studio().migrate().migrationsExecuted);
+            assertEquals(3,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try(var c=db.connect()) {
                 assertEquals(List.of(decision),rows(c,"SELECT id FROM worldstudio.initial_decision WHERE request_key IS NULL AND request_hash IS NULL AND comment IS NULL AND sequence=1 AND state='approved'"));

@@ -38,7 +38,7 @@ const comparisonVersions = [
   { ...originalActive.versions[0], id: 'v2', body: '변경 원고' },
   { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
 ]
-afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null })
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = '' })
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number) => {
@@ -287,7 +287,9 @@ it('관리 화면을 전환해도 같은 시트와 탐색 초점을 유지하고
     expect(screen.getByRole('dialog', { name: label })).toBe(dialog)
     expect(within(dialog).getByRole('heading', { level: 2, name: label })).toBeTruthy()
     expect(document.activeElement).toBe(target)
-    expect(target.getAttribute('aria-pressed')).toBe('true')
+    // 작품 관리 화면의 탭과 같은 표현(nav 안의 버튼 + aria-current)으로 지금 보는 화면을 알린다.
+    expect(target.getAttribute('aria-current')).toBe('page')
+    expect(target.hasAttribute('aria-pressed')).toBe(false)
   }
   const last = within(dialog).getByLabelText('검토할 저장 버전')
   last.focus()
@@ -1116,4 +1118,78 @@ it('화면 ID 토글은 개발 화면에서만 더보기 메뉴의 마지막 항
   expect(store.getState().ui.showSid).toBe(false)
   openMore()
   expect(screen.getByRole('menuitem', { name: '화면 ID 켜기' })).toBeTruthy()
+})
+
+// ── 알림: 늘 있는 자리에, 동작한 자리에서 ──
+it('완료 안내는 늘 있는 상단 저장 상태 줄에 이어 적고 본문 위에 문단을 끼워 넣지 않는다', () => {
+  model.notice = '새 원고 버전을 저장했어요. 발행본은 그대로예요.'
+  renderStudio()
+  const bar = screen.getByRole('banner')
+  expect(within(bar).getByRole('status').textContent).toBe('저장됨 · 새 원고 버전을 저장했어요. 발행본은 그대로예요.')
+  // 알림이 생기고 사라져도 아래 3단이 밀리지 않게, 상단 바와 본문 사이에는 아무것도 끼우지 않는다.
+  expect(bar.nextElementSibling).toBe(screen.getByRole('main'))
+})
+
+it('오류는 상단 바 바로 아래의 오류 상자로 알리고 원고를 보관하라는 안내를 붙인다', () => {
+  model.error = '동시 수정 충돌'
+  renderStudio()
+  const alert = screen.getByRole('alert')
+  expect(alert.textContent).toBe('동시 수정 충돌 저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.')
+  expect(alert.className).toContain('ep-alert')
+  expect(screen.getByRole('banner').nextElementSibling).toBe(alert)
+})
+
+it('회차 설정 시트에서 보낸 요청의 실패와 완료는 시트 안에서도 알린다', () => {
+  model.error = '이미지를 올리지 못했어요.'
+  const view = renderSettings()
+  const dialog = screen.getByRole('dialog', { name: '회차 설정' })
+  expect(within(dialog).getByRole('alert').textContent).toBe('이미지를 올리지 못했어요.')
+  model.error = ''
+  model.notice = '회차 공개를 중단했어요.'
+  view.rerender(<WritingStudio id="work-id" />)
+  expect(within(dialog).queryByRole('alert')).toBeNull()
+  expect(within(dialog).getByText('회차 공개를 중단했어요.').getAttribute('role')).toBe('status')
+})
+
+it('저장 버전 미리보기는 키보드로 내려 읽을 수 있는 이름 있는 영역이다', () => {
+  renderStudio()
+  fireEvent.click(within(graph()).getByRole('button', { name: /^버전 1 · 저장본/ }))
+  const preview = screen.getByRole('region', { name: '선택한 저장 버전 원고' })
+  expect(preview.tabIndex).toBe(0)
+  expect(preview.className).toContain('writing-preview')
+  expect(preview.textContent).toContain('저장 원고')
+})
+
+it('발행 체크포인트의 원고 미리보기도 키보드로 내려 읽을 수 있는 이름 있는 영역이다', () => {
+  model.active = { ...originalActive, versions: [savedVersion('v1'), savedVersion('v2')], checkpoints: checkpointRows }
+  renderStudio()
+  openVersions()
+  fireEvent.click(screen.getByRole('button', { name: /^체크포인트 1/ }))
+  const preview = screen.getByRole('region', { name: '체크포인트 1 원고' })
+  expect(preview.tabIndex).toBe(0)
+  expect(within(preview).getByRole('heading', { name: '저장본' })).toBeTruthy()
+})
+
+// ── 목록에서 활성 회차 찾기: 주소의 ?ep=n, 좁은 화면의 가로 띠 ──
+const box = (left: number, right: number, top: number, bottom: number) => ({ left, right, top, bottom, width: right - left, height: bottom - top, x: left, y: top, toJSON: () => ({}) })
+
+it.each([
+  ['가로 띠의 오른쪽 밖', box(640, 780, 0, 60), 628, 0],
+  ['세로 목록의 아래쪽 밖', box(0, 240, 900, 960), 0, 888],
+  ['이미 보이는 자리', box(40, 180, 10, 70), 0, 0],
+])('활성 회차가 %s에 있으면 목록 상자 안에서만 옮겨 그 항목을 보이게 한다', (_where, at, left, top) => {
+  model.episodes = [episodeRow(1, '첫 회차'), episodeRow(2, '둘째'), episodeRow(3, '셋째')]
+  model.active = { ...originalActive, number: 3 }
+  // jsdom은 배치를 계산하지 않으므로 목록 상자(가로 0~300, 세로 0~400)와 활성 항목의 자리를 정해 준다.
+  const layout = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    return this.matches('.writing-episodes') ? box(0, 300, 0, 400) : this.matches('.writing-episode.on') ? at : box(0, 0, 0, 0)
+  })
+  const page = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+  try {
+    renderStudio()
+    const list = screen.getByRole('navigation', { name: '회차 목록' })
+    expect([list.scrollLeft, list.scrollTop]).toEqual([left, top])
+    // 문서 스크롤은 건드리지 않는다(좁은 화면에서 원고를 읽던 자리가 튀지 않게).
+    expect(page).not.toHaveBeenCalled()
+  } finally { layout.mockRestore(); page.mockRestore() }
 })

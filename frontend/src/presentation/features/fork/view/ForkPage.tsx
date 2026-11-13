@@ -43,8 +43,9 @@ function ForkForm({id}:{id:string}) {
       <div className="wrap"><div className="topbar"><Go to={`/work/${id}`} className="back"><BackChev />{w.title}</Go><span style={{ marginLeft: 'auto' }} /></div></div>
       <main className="fork" id="main" tabIndex={-1}>
         <h1>「{w.title}」 포크</h1><p className="lead">고른 회차가 끝난 순간부터 나만의 소설이 시작돼요.</p>
+        {/* 단계 제목은 h1 바로 아래라 2단계로 알린다(모양은 전역 .fstep h3 규칙을 그대로 쓴다). */}
         <section className="tcard fstep">
-          <h3><i>1</i>어디서부터 바꿀까요?</h3>
+          <h3 aria-level={2}><i>1</i>어디서부터 바꿀까요?</h3>
           <div className="epc" id="epc">
             {vm.episodes.map(({ e, n, ok }) => (
               <button type="button" key={n} data-at={n} className={n === vm.at ? 'on' : ''} aria-pressed={n === vm.at} disabled={!ok} aria-describedby={ok ? undefined : DENIED_NOTE} onClick={() => vm.pick(n)}>{n}화 끝에서<small>{e.t}</small></button>
@@ -65,8 +66,8 @@ function ForkForm({id}:{id:string}) {
           </section>)}
         </section>
         {d.historyConsentNeeded && <label className="field"><span><input type="checkbox" id="forkHistoryConsent" checked={vm.historyConsent} onChange={(e) => vm.setHistoryConsent(e.target.checked)} /> 회차별 설정 이력이 없어 현재 공개 설정이 포함되며 이후 회차 내용이 섞일 수 있음을 확인했어요.</span></label>}
-        <section className="tcard fstep"><h3><i>2</i>무엇이 달라지나요?</h3><input className="tinp" id="fdir" value={vm.dir} onChange={(e) => vm.setDir(e.target.value)} placeholder="한 줄로 적어 주세요" maxLength={60} aria-label="무엇이 달라지나요?" /></section>
-        <section className="tcard fstep"><h3><i>3</i>제목</h3><input className="tinp" id="ftit" value={vm.title} onChange={(e) => vm.setTitle(e.target.value)} maxLength={40} aria-label="제목" /></section>
+        <section className="tcard fstep"><h3 aria-level={2}><i>2</i>무엇이 달라지나요?</h3><input className="tinp" id="fdir" value={vm.dir} onChange={(e) => vm.setDir(e.target.value)} placeholder="한 줄로 적어 주세요" maxLength={60} aria-label="무엇이 달라지나요?" /></section>
+        <section className="tcard fstep"><h3 aria-level={2}><i>3</i>제목</h3><input className="tinp" id="ftit" value={vm.title} onChange={(e) => vm.setTitle(e.target.value)} maxLength={40} aria-label="제목" /></section>
         <p className="bm">포크 생성과 직접 쓰기는 무료예요. AI 도움의 과금 기준은 아직 정해지지 않았어요. 원작 링크가 함께 표시되고, 현금 수익 배분은 없어요.</p>
         {vm.error && <p role="alert">{vm.error}</p>}
         <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" disabled={vm.submitting || vm.reading} onClick={vm.start}>{vm.submitting?'포크 생성 중…':'포크 소설 시작하기 →'}</button>

@@ -166,10 +166,12 @@ class WorkService(
     /**
      * 작품을 소프트 삭제한다(DEC-42). 행은 지우지 않고 삭제 시각만 기록하며, 이후 목록·검색·랭킹·읽기·분기 생성에서 제외된다.
      * 이 작품을 원작으로 둔 Fork는 원작 행을 그대로 참조하고 "삭제된 원작"으로 표시된다. 분기 작품과 세계관 설정이 있는 작품도 삭제할 수 있다.
+     * WorldStudio 세계관 연결은 함께 해제한다(연결 칼럼이 UNIQUE라, 보이지 않는 삭제 작품이 쥐고 있으면 그 세계관을 다시 연결할 수 없다, DEC-46).
      */
     fun delete(id: String,owner: String) {
         access.own(id,owner)
         val row=works.findById(id).orElseThrow()
+        row.worldStudioId=null
         row.deletedAt=java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)
         works.saveAndFlush(row)
     }
@@ -246,7 +248,8 @@ class WorkService(
             hasWritingEpisode=!public && episodes.countWritingAt(w.id,next!!)>0,writingEpisodeNumber=next,creationType=type,genres=genres,hashtags=tags,
             slug=row.slug,authorName=authorName,ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
             hero=row.heroLine1?.let {listOf(it,row.heroLine2.orEmpty())},heroBg=row.heroBackground,
-            forkableEpisodes=if(w.source==null) access.forkable(w.id,published.map {it.number}) else emptyList())
+            forkableEpisodes=if(w.source==null) access.forkable(w.id,published.map {it.number}) else emptyList(),
+            worldStudioId=if(public) null else row.worldStudioId)
     }
 
 }

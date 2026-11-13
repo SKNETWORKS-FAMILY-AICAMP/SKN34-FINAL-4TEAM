@@ -62,6 +62,7 @@
 - 20: 기존 Http 저장소·화면을 점검하고 빈 곳만 고친다. `/read/:id`·`/read/:id/:n`의 로그인 가드를 풀어 비회원도 공개 회차를 읽게 하고(UC-01, 세션 복원이 끝난 뒤 열기),
   포크 등 회원 전용 동작은 해당 화면의 로그인 안내를 그대로 두고, 데모 작품 회차 화면의 댓글·댓글 좋아요·피드백도 비회원이 누르면 로그인 안내로 보낸다. 서버 작품의 설정 위키 페이지(`/work/:id/wiki`, 작품 상세의 `설정 위키` 링크, 최신 공개 회차 기준, 화면 ID U45)와 회차 화면 상단 `설정` 링크(같은 페이지 `/work/:id/wiki?upto=n`, 그 회차 기준이라 이후 회차 설정을 보이지 않음)에
   `readWorld`가 채운 `Work.wiki`(서버가 기준 회차까지 공개한 설정만 준다)를 읽기 전용 패널로 보여 주고, 비어 있으면 "공개된 설정이 없어요"를 보인다. 새 API·서버 변경은 없다.
+  이후 DEC-46으로, 작품에 연결된 세계관이 있으면 U45는 `GET /api/v1/public/works/{id}/world-cards?upto=`가 주는 그 세계관의 독자 공개 카드로 채우고(연결이 없으면 위 경로 그대로) 관계를 불러오지 못했으면(`relationshipStatus: unavailable`) 따로 알린다([공개 세계관 계약](public-world-contract.md)의 독자 설정 위키 절).
 - 21-A: `toggleLike`·작품 상세 `liked`·좋아요 수를 서버로. `ReadingProgress.liked` 필드는 서재가 아직 쓰므로 21-A는 지우지 않는다.
 - 21-B: 작품 화면 관심 등록 버튼(로그인 회원만 활성, 비회원은 로그인 안내), `LibraryUseCase.getRead().liked`와 계정 `관심 소설`(`/me/liked`, U32, `AccountUseCase.liked()`)을 같은 관심 목록 기준으로 바꾼다. 21-B가 서재·계정에서 `progress.liked` 사용을 없앤다.
 - 21-C: `ReadingUseCase`의 `last`·`read`(홈 이어 읽기, 작품 읽음 표시, 회차 열기 기록)와 서재 `recent`를 서버 기록으로. 서재 읽는 중 목록에 기록 삭제 버튼. `seen`은 메모리 그대로 둔다.

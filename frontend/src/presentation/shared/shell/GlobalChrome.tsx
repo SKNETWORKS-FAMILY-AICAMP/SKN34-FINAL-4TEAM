@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router'
+import { useLocation, useNavigationType } from 'react-router'
 
 import { useAppDispatch, useAppSelector } from '../../../app/store'
+import { toastDuration } from '../events'
 import { screenLabel } from '../screenIds'
 import { uiActions } from '../ui/uiSlice'
 import { ThemeButton } from './ThemeButton'
 import { useNotificationStream } from './useNotificationStream'
 import { useApplyTheme } from './useTheme'
 
+/** 같은 경로인데도 값이 바뀌면 화면 내용이 통째로 바뀌는 쿼리: 관리자 탭, 공지·이벤트 글, 작품 관리의 작품, 검색어. 다른 화면으로 넘어간 것으로 본다. */
+const SCREEN_QUERY: Record<string, string> = { '/admin': 'tab', '/me/notice': 'id', '/me/event': 'id', '/content': 'work', '/search': 'q' }
+
 /** 목업 RB: 페이지 이동 바 */
 function RouteBar() {
   const location = useLocation()
+  const navigationType = useNavigationType()
   const [state, setState] = useState<{ on: boolean; p: number; instant: boolean }>({ on: false, p: 0, instant: true })
   useEffect(() => {
     const timers: number[] = []
@@ -30,26 +35,44 @@ function RouteBar() {
   }, [])
   useEffect(() => {
     window.dispatchEvent(new Event('sf-progress'))
-    window.scrollTo?.({ top: 0 })
   }, [location.pathname, location.search])
+  // 맨 위로 올리는 것은 다른 화면으로 넘어갈 때(경로나 SCREEN_QUERY의 값이 바뀌는 PUSH·REPLACE)뿐이다. 같은 화면의 탭·필터(그 밖의 쿼리 변경)는 보던 위치와 화면이 옮긴 초점을 지키고,
+  // 뒤로·앞으로(POP)와 처음 들어온 화면(새로 고침 포함)은 브라우저의 위치 복원에 맡긴다.
+  const query = SCREEN_QUERY[location.pathname]
+  const screen = query ? `${location.pathname}?${new URLSearchParams(location.search).get(query) ?? ''}` : location.pathname
+  const from = useRef(screen)
+  useEffect(() => {
+    if (from.current === screen) return
+    from.current = screen
+    if (navigationType !== 'POP') window.scrollTo?.({ top: 0 })
+  }, [screen, navigationType])
   return <div id="rbar" className={state.on ? 'on' : ''}><i style={{ clipPath: `inset(0 ${100 - state.p}% 0 0)`, transition: state.instant ? 'none' : undefined }} /></div>
 }
 
+/**
+ * 화면 아래 알림. role=status 노드 하나를 계속 두고 글자만 바꾼다: 알림마다 노드를 새로 끼우면(내용이 든 채 삽입되는 라이브 영역) 보조기기가 놓칠 수 있다.
+ * 비어 있을 때의 hidden은 storyfork.css(#toast[hidden])가 display:none을 풀어, 화면에는 보이지 않는 빈 라이브 영역으로 남는다.
+ * 머무는 시간은 글자 수에 비례한다(toastDuration).
+ */
 function Toast() {
   const [message, setMessage] = useState<string | null>(null)
-  const [key, setKey] = useState(0)
+  const [shown, setShown] = useState(0)
+  const node = useRef<HTMLDivElement>(null)
   useEffect(() => {
     let t = 0
     const show = (e: Event) => {
-      setMessage((e as CustomEvent<string>).detail)
-      setKey((k) => k + 1)
+      const text = String((e as CustomEvent<string>).detail)
+      setMessage(text)
+      setShown((n) => n + 1)
       clearTimeout(t)
-      t = window.setTimeout(() => setMessage(null), 2600)
+      t = window.setTimeout(() => setMessage(null), toastDuration(text))
     }
     window.addEventListener('sf-toast', show)
     return () => { window.removeEventListener('sf-toast', show); clearTimeout(t) }
   }, [])
-  return <div id="toast" key={key} role="status" hidden={message === null}>{message}</div>
+  // 노드를 다시 만들지 않으므로, 이미 떠 있는 알림의 글자가 바뀔 때는 등장 애니메이션만 다시 돌려 바뀐 것을 눈으로도 알린다.
+  useEffect(() => { node.current?.getAnimations?.().forEach((animation) => { animation.cancel(); animation.play() }) }, [shown])
+  return <div id="toast" ref={node} role="status" hidden={message === null}>{message}</div>
 }
 
 function TopButton() {
@@ -69,9 +92,12 @@ function TopButton() {
   return <button ref={button} type="button" id="top" className={on ? 'on' : ''} hidden={!on} tabIndex={on ? 0 : -1} aria-label="맨 위로" onClick={() => scrollTo({ top: 0, behavior: typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button>
 }
 
-/** 목업 applyProx(): 마우스 근처 .prox 카드를 살짝 키웁니다. 터치 기기에서는 끕니다. */
+/** 목업 applyProx(): 마우스 근처 .prox 카드를 살짝 키웁니다. 터치 기기와 동작 줄이기 설정에서는 끕니다. */
 function useProximity() {
   useEffect(() => {
+    // 동작 줄이기에서는 전환이 꺼져 있어 카드가 마우스를 따라 뚝뚝 튄다. 아예 걸지 않는다.
+    // ponytail: 화면이 떠 있는 동안 설정을 바꾸는 경우는 다음 화면 로드부터 반영된다. 필요하면 matchMedia change를 구독한다.
+    if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return
     let fine = true
     let raf = 0
     let mx = -999

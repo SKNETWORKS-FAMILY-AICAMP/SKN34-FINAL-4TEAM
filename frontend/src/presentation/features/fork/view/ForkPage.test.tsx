@@ -31,6 +31,14 @@ it('회차 선택 버튼은 눌림 상태를 알린다', async () => {
   epc.getByRole('button', { name: /3화 끝에서/, pressed: true })
 })
 
+it('포크 만들기의 단계 제목은 h1 바로 아래 단계로 알려 제목 단계를 건너뛰지 않는다', async () => {
+  renderApp('/fork/guunmong', user())
+  await screen.findByRole('heading', { name: '「구운몽」 포크', level: 1 })
+  expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['1어디서부터 바꿀까요?', '2무엇이 달라지나요?', '3제목'])
+  const levels = screen.getAllByRole('heading').map((h) => Number(h.getAttribute('aria-level') ?? h.tagName.slice(1)))
+  expect(levels.filter((level, i) => i > 0 && level > levels[i - 1] + 1)).toEqual([])
+})
+
 const doc = (id: string, cat: string, t: string): Doc => ({ id, cat, t, body: '', alias: [], tags: [], props: {}, at: {} })
 
 /**

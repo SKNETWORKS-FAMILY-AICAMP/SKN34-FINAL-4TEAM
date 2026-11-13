@@ -48,15 +48,10 @@ describe('frontend shell source contracts', () => {
     ])
   })
 
-  it('simplifies only the worldstudio label and credit badge, not the policy action', () => {
+  it('keeps the worlds label free of the demo tag', () => {
     const gnb = readFileSync(new URL('./presentation/shared/shell/Gnb.tsx', import.meta.url), 'utf8')
-    expect(gnb).toContain("['worldstudio', '세계관', '세계관']")
+    expect(gnb).toContain("['worlds', '세계관', '세계관']")
     expect(gnb).not.toContain('세계관 데모')
-    const credit = gnb.match(/<button[^>]*className="credit"[^>]*>([\s\S]*?)<\/button>/)?.[0]
-    expect(credit).toContain('✦ 크레딧')
-    expect(credit).not.toContain('데모')
-    expect(credit).toContain('onClick={openPolicy}')
-    expect(credit).toContain('크레딧 정책은 아직 확정되지 않았어요')
   })
 
   it('uses a local cover only for a successfully loaded empty cover list', () => {
@@ -129,7 +124,25 @@ describe('storyfork.css theme tokens', () => {
   it('keeps every reading-theme secondary text at 4.5:1 on its own background', () => {
     const themed = sheet.filter((r) => /^\.th-/.test(r.selector) && declOf(r, '--tsub') && declOf(r, '--tbg'))
     expect(themed.length).toBeGreaterThanOrEqual(4)
-    for (const r of themed) expect(contrast(declOf(r, '--tsub'), declOf(r, '--tbg')), r.selector).toBeGreaterThanOrEqual(4.5)
+    // 보조색은 16진 값이거나, 새 색을 들이지 않으려고 같은 규칙의 값을 섞은 `color-mix(in srgb,#A p%,#B)`다. 섞은 값은 16진으로 풀어서 잰다.
+    const hexOf = (r, prop) => {
+      const value = declOf(r, prop).replace(/var\((--[\w-]+)\)/g, (_, name) => declOf(r, name))
+      const mix = value.match(/^color-mix\(in srgb,\s*(#[0-9A-Fa-f]{6})\s+([\d.]+)%,\s*(#[0-9A-Fa-f]{6})\)$/)
+      if (!mix) return value
+      const weight = Number(mix[2]) / 100
+      return `#${[1, 3, 5].map((i) => Math.round(parseInt(mix[1].slice(i, i + 2), 16) * weight + parseInt(mix[3].slice(i, i + 2), 16) * (1 - weight)).toString(16).padStart(2, '0')).join('')}`
+    }
+    for (const r of themed) expect(contrast(hexOf(r, '--tsub'), declOf(r, '--tbg')), r.selector).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('fills the destructive button from the --danger token family with a readable label in both themes', () => {
+    const rule = sheet.find((r) => !r.media && r.selector === '.btn.danger')
+    expect([declOf(rule, 'background'), declOf(rule, 'border-color'), declOf(rule, 'color')]).toEqual(['var(--danger)', 'var(--danger)', 'var(--on-danger)'])
+    // 채움 위 글자색은 :root에서 한 번 계산해 물려준다(독서 화면이 --surface를 다시 연결해도 흔들리지 않게).
+    expect(declOf(root, '--on-danger')).toBe('var(--surface)')
+    for (const mode of [0, 1]) expect(contrast(pair('surface')[mode], pair('danger')[mode]), mode ? 'dark' : 'light').toBeGreaterThanOrEqual(4.5)
+    // 위험색은 토큰 한 계열만 쓴다: 따로 쓰던 장밋빛 리터럴을 남기지 않는다.
+    expect(css).not.toMatch(/#C2415C|#D9617D/i)
   })
 
   it('shows the work hero genre label with --pri-ink in dark so it stays 4.5:1 over the lightest part of the background art', () => {
@@ -143,7 +156,8 @@ describe('storyfork.css theme tokens', () => {
 })
 
 describe('storyfork.css accessibility contracts', () => {
-  const mobile = '(max-width:600px)'
+  // 터치 타깃 보정은 좁은 화면과 손가락이 주 입력인 기기(태블릿·가로로 든 폰)에 함께 건다.
+  const mobile = '(max-width:600px),(pointer:coarse)'
   const decls = (selector, media) => sheet.filter((r) => selectorsOf(r).includes(selector) && (media === undefined || r.media === media))
 
   it('shows the skip link only while it has keyboard focus', () => {
@@ -157,8 +171,25 @@ describe('storyfork.css accessibility contracts', () => {
     for (const selector of ['.eb', '.editor .et']) expect(decls(selector, '')[0].body, selector).not.toMatch(/outline\s*:\s*none/)
   })
 
-  it.each(['.btn.sm', '.rib', '.pop button', '.cm .lk', '.sheet .x', '.seg button', '.sortt :is(button,a)', '.chq button', '.tagbar :is(button,a)', '.eps-q input', '.logo'])('%s는 모바일에서 44px 이상이다', (selector) => {
+  it.each(['.btn.sm', '.rib', '.pop button', '.cm .lk', '.sheet .x', '.seg button', '.sortt :is(button,a)', '.chq button', '.tagbar :is(button,a)', '.eps-q input', '.logo',
+    '.nav :is(button,a)', '.search', '.chips button', '.inp.sm', '.rback', '.adm .admin-nav :is(button,a)', '.thm', 'button.avatar', ':is(.cm,.rp) details>summary'])('%s는 모바일에서 44px 이상이다', (selector) => {
     expect(decls(selector, mobile).some((r) => /(?:^|;)\s*(?:min-)?height\s*:\s*44px/.test(r.body)), selector).toBe(true)
+  })
+
+  it('applies the touch-target rules after every base rule so equal-specificity defaults cannot undo them', () => {
+    // 미디어 쿼리는 명시도를 더하지 않는다: min-height 같은 속성을 정하는 기본 규칙이 뒤에 오면 터치 보정이 진다.
+    const last = sheet.findLastIndex((r) => !r.media)
+    expect(sheet.findIndex((r) => r.media === mobile)).toBeGreaterThan(last)
+  })
+
+  it('raises small input text to 16px only where the finger is the main pointer, so iOS does not zoom on focus', () => {
+    const coarse = sheet.filter((r) => r.media === '(pointer:coarse)')
+    expect(declOf(coarse.find((r) => r.selector === 'input,textarea,select'), 'font-size')).toBe('16px')
+    // 기본 규칙이 글자 크기를 직접 정한 작은 입력은 선택자를 따로 적어야 이긴다.
+    const named = coarse.find((r) => r.selector.startsWith(':is(') && declOf(r, 'font-size') === '16px')
+    for (const selector of ['.inp.sm', '.eps-q input', '.lq input', '.wq input', '.pc select']) expect(named.selector, selector).toContain(selector)
+    // 데스크톱(마우스) 밀도는 그대로다: 미디어 밖에서 입력 전체의 글자 크기를 정하지 않는다.
+    expect(sheet.some((r) => !r.media && r.selector === 'input,textarea,select' && declOf(r, 'font-size'))).toBe(false)
   })
 
   it('makes the whole checkbox label a 44px touch target on mobile', () => {

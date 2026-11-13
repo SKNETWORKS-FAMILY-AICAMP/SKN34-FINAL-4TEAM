@@ -100,3 +100,13 @@ it('포크가 아닌 작품에서는 확인도 요청도 하지 않는다', asyn
   expect(api.stopForkPublication).not.toHaveBeenCalled()
   expect(api.deleteWork).not.toHaveBeenCalled()
 })
+
+it('분기 만들기의 실패는 분기 폼에서 보이도록 요청한 자리를 fork로 알린다', async () => {
+  const api = { list: vi.fn().mockResolvedValue([original]), fork: vi.fn().mockRejectedValue(new Error('분기를 허용하지 않은 작품이에요.')) }
+  const { result } = await openFork(api, original)
+  let id: string | null = 'unset'
+  await act(async () => { id = await result.current.fork(1, '새 분기', '') })
+  expect(id).toBeNull()
+  expect(result.current.error).toBe('분기를 허용하지 않은 작품이에요.')
+  expect(result.current.origin).toBe('fork')
+})

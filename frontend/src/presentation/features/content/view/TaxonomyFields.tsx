@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { NOVEL_GENRES } from '../../../../domain/usecases/LibraryUseCase'
 
 type Props = {
@@ -15,6 +16,8 @@ type Props = {
 
 /** 작품 등록과 작품 정보 수정이 함께 쓰는 장르(1~2개)·해시태그(쉼표, 10개까지) 입력이다. 선택지와 안내가 한 곳에 있다. */
 export function TaxonomyFields({ genre1, genre2, hashtags, onGenre1, onGenre2, onHashtags, disabled, genreRequired }: Props) {
+  // 입력 이름은 '해시태그'로 두고, 형식 안내(쉼표로 구분·10개까지)는 설명으로 이어 스크린리더도 읽게 한다.
+  const hashtagHint = useId()
   return (
     <>
       <div className='ep-field-row'>
@@ -32,8 +35,9 @@ export function TaxonomyFields({ genre1, genre2, hashtags, onGenre1, onGenre2, o
         </label>
       </div>
       <label>
-        해시태그 <span className='ep-optional'>선택 · 쉼표로 구분 · 10개까지</span><input
+        해시태그 <span id={hashtagHint} className='ep-optional'>선택 · 쉼표로 구분 · 10개까지</span><input
           aria-label='해시태그'
+          aria-describedby={hashtagHint}
           value={hashtags}
           onChange={(e) => onHashtags(e.target.value)}
           placeholder='#회귀, #성장'

@@ -101,7 +101,7 @@ function NewWorkForm({ vm }: { vm: VM }) {
           <div className="nwc" key={i}><input className="inp" data-cn={i} value={c.n} onChange={(e) => vm.setCast(i, 'n', e.target.value)} placeholder={`이름${i < 1 ? ' (필수)' : ''}`} maxLength={12} aria-label={`인물 ${i + 1} 이름`} /><input className="inp" data-cd={i} value={c.d} onChange={(e) => vm.setCast(i, 'd', e.target.value)} placeholder="한 줄 설명 (예: 등대지기 노인)" maxLength={30} aria-label={`인물 ${i + 1} 설명`} /></div>
         ))}
       </div>
-      <div className="tcard fstep"><h3><i>4</i>다른 사람의 포크</h3><div className="seg" id="nwf">
+      <div className="tcard fstep"><h3><i>4</i>다른 사람의 포크</h3><div className="seg" id="nwf" role="group" aria-label="다른 사람의 포크">
         {([['0', '허용 안 함'], ['all', '전체 회차 허용'], ['eps', '회차별로 정하기']] as const).map(([k, l]) => <button type="button" key={k} className={f.fork === k ? 'on' : ''} aria-pressed={f.fork === k} onClick={() => vm.set({ fork: k })}>{l}</button>)}
       </div><p className="note2" style={{ marginTop: 8 }}>‘회차별로 정하기’는 회차를 공개한 뒤 공개 설정에서 회차마다 켜고 끌 수 있어요. 처음에는 나만 볼 수 있는 상태로 만들어져요.</p></div>
       <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16, marginTop: 8 }} id="createWork" onClick={vm.create}>소설 만들고 1화 쓰기 →</button>

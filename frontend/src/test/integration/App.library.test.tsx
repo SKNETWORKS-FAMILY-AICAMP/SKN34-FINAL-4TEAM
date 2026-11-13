@@ -44,7 +44,7 @@ describe('내 서재 (U11·U12)', () => {
 })
 
 describe('실서버 새 소설 만들기', () => {
-  it.each(['/new', '/worlds'])('%s에서 서버 작품 만들기 화면으로 이동한다', async (path) => {
+  it.each(['/new'])('%s에서 서버 작품 만들기 화면으로 이동한다', async (path) => {
     renderAt(path)
     await screen.findByRole('button', { name: '작품 만들기' })
     expect(where()).toBe('/content')
@@ -60,7 +60,7 @@ describe('실서버 새 소설 만들기', () => {
     expect(where()).toBe('/content')
   })
 
-  it.each(['/new', '/worlds'])('비로그인 %s는 로그인 안내와 돌아갈 경로를 남긴다', async (path) => {
+  it.each(['/new'])('비로그인 %s는 로그인 안내와 돌아갈 경로를 남긴다', async (path) => {
     const store = createAppStore()
     renderAt(path, store)
     await screen.findByRole('heading', { name: '로그인', level: 1 })
@@ -71,7 +71,7 @@ describe('실서버 새 소설 만들기', () => {
 describe('목업 새 소설 만들기 (U28)', () => {
   beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
 
-  it('새 소설 쓰기를 누를 때마다 정책 확인을 다시 요구하고 /worlds는 /new로 보낸다', async () => {
+  it('새 소설 쓰기를 누를 때마다 정책 확인을 다시 요구한다', async () => {
     for (let visit = 0; visit < 2; visit++) {
       renderAt('/lib?tab=write')
       fireEvent.click(await screen.findByRole('link', { name: /＋ 새 소설 쓰기/ }))
@@ -80,8 +80,6 @@ describe('목업 새 소설 만들기 (U28)', () => {
       await acceptPolicy()
       cleanup()
     }
-    renderAt('/worlds')
-    await waitFor(() => expect(where()).toBe('/new'))
   })
 
   it('세계관을 만들어도 작성 중인 정보가 남고, 실패는 Toast로 알린 뒤 집필실로 간다', async () => {

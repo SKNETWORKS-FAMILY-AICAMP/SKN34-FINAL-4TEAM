@@ -1,13 +1,25 @@
-import {useEffect,useState} from 'react'
+import {useEffect,useRef,useState} from 'react'
 import type {Attachment,MediaTarget} from '../../../domain/entities/media'
 import {imageReferencePattern} from '../../../domain/entities/media'
 import {useMediaViewModel,useStoredImage} from './useMediaViewModel'
 import {usePublicImageAlts} from './usePublicImageAlts'
 import './media.css'
 
+/**
+ * 저장된 이미지 한 장. 자리표시가 화면 가까이 올 때까지 내려받지 않는다: 닫힌 접힘(details) 안이나 긴 원고 아래쪽의 이미지를 열기도 전에 받지 않는다.
+ * 화면 위치를 지켜볼 수 없는 환경(IntersectionObserver 없음)에서는 바로 받는다.
+ */
 export function StoredImage({target,id,alt,publicView=false,revision=0}:{target:MediaTarget;id:string;alt:string;publicView?:boolean;revision?:number}) {
- const vm=useStoredImage(target,id,publicView,revision)
- return vm.url?<img className="stored-image" src={vm.url} alt={alt}/>:<p className="media-message" role={vm.error?'alert':'status'}>{vm.error||'이미지를 불러오고 있어요…'}</p>
+ const [near,setNear]=useState(()=>typeof IntersectionObserver!=='function')
+ const placeholder=useRef<HTMLParagraphElement>(null)
+ useEffect(()=>{
+  if(near||!placeholder.current)return
+  const watch=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting))setNear(true)},{rootMargin:'300px'})
+  watch.observe(placeholder.current)
+  return ()=>watch.disconnect()
+ },[near])
+ const vm=useStoredImage(target,id,publicView,revision,undefined,near)
+ return vm.url?<img className="stored-image" src={vm.url} alt={alt}/>:<p ref={placeholder} className="media-message" role={vm.error?'alert':'status'}>{vm.error||'이미지를 불러오고 있어요…'}</p>
 }
 
 export function ManuscriptBody({workId,number,body,publicView=false}:{workId:string;number:number;body:string;publicView?:boolean}) {

@@ -2,9 +2,9 @@ import { useState, type KeyboardEvent } from 'react'
 import type { Work } from '../../../../domain/entities/content'
 import { Go } from '../../../shared/Go'
 import { useStoredImage } from '../../../shared/media/useMediaViewModel'
-import { paginate } from '../viewmodel/paginate'
+import { paginate } from '../../../shared/paginate'
+import { Pager } from '../../../shared/Pager'
 import { useServerWorks } from '../viewmodel/useServerWorks'
-import { Pager } from './Pager'
 import './server-writing.css'
 
 /** 서버에 올린 표지를 이어 읽기 카드와 같은 3:4 썸네일로 보인다. 표지가 없거나 불러오지 못하면 기본 표지를 둔다. */
@@ -53,7 +53,7 @@ export function ServerWritingList() {
               {work.summary && <p className="m server-summary">{work.summary}</p>}
             </div>
             <div className="acts">
-              <Go className="btn sm" to={`/content?work=${work.id}`} aria-label={`${work.title} 수정하기`}>수정하기</Go>
+              <Go className="btn sm" to={`/content?work=${work.id}`} aria-label={`${work.title} 관리하기`}>관리하기</Go>
               <Go className="btn sm pri" to={`/studio/${work.id}`} aria-label={`${work.title} 회차 작성하기`}>회차 작성하기</Go>
             </div>
           </article>)}</div>

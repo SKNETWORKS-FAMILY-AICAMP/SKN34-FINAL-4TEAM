@@ -64,6 +64,8 @@ export class EpisodeUseCase {
   }
   stopForkPublication(id: string, signal?: AbortSignal) { return this.repository.stopForkPublication(id,signal) }
   deleteWork(id: string, signal?: AbortSignal) { return this.repository.deleteWork(id,signal) }
+  /** 작품과 내 세계관을 1:1로 연결한다(DEC-46). worldId가 null이면 해제한다. */
+  linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal) { return this.repository.linkWorldStudio(workId, worldId, signal) }
   save(id: string, draft: Draft) { return this.repository.save(id,draft) }
   publish(id: string, draft: Draft, rights: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) {
     if (!draft.body.trim()) return Promise.reject(new Error('원고를 먼저 작성해 주세요.'))

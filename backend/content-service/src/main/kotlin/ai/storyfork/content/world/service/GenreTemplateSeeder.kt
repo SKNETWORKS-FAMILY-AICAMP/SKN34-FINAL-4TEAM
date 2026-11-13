@@ -21,6 +21,7 @@ import tools.jackson.databind.json.JsonMapper
  *
  * ponytail: 이미 저장된 세계관은 내용 비교 없이 건너뛴다. 같은 key로 입력이 바뀌면 hash conflict이고, 저장 뒤에는 draft revision이 올라 새 key만으로는
  * edit가 거절된다(key는 세계관별 범위). 템플릿 내용을 바꾸려면 새 worldId와 새 카드 ID(카드 ID는 세계관 사이에서도 유일)의 새 항목을 추가한다.
+ * 카드를 공개로 넣게 바꾸기(DEC-46) 전에 적재된 세계관도 같은 이유로 그대로 비공개 카드다(다시 넣지 않는다).
  */
 @Component
 class GenreTemplateSeeder(private val service: WorldStudioService, private val mapper: JsonMapper) {
@@ -47,7 +48,8 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
             catch (e: WorldStudioFailure) { if (e.reason == WorldStudioFailure.Reason.INCOMPLETE) null else throw e }
         // save가 draft revision을 올려 같은 edit의 중복 판정이 깨지므로, 저장까지 끝난 세계관은 다시 edit하지 않는다.
         if (world?.currentRevisionId != null) return
-        val cards = template.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic") }
+        // 카드의 기본은 비공개라(DEC-46) 템플릿 카드는 공개로 넣는다. 세계관 자체의 공개 범위는 건드리지 않는다(소유자가 따로 공개한다).
+        val cards = template.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") }
         val edited = service.edit(template.worldId, TEMPLATE_OWNER, EditWorldDraftRequest(0, template.name, template.description, cards, key = key))
         service.save(template.worldId, TEMPLATE_OWNER, SaveWorldRequest(edited.draftRevision, key))
     }

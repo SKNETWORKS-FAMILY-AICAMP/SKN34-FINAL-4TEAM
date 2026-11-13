@@ -30,12 +30,13 @@
 
 | 문서 | 확인할 내용 |
 |---|---|
-| [결정 기록](design/decisions.md) | DEC-01~41 아키텍처·정책 결정과 우선순위 |
+| [결정 기록](design/decisions.md) | DEC-01~45 아키텍처·정책 결정과 우선순위 |
 | [서비스 구조(DEC-41)](design/service-boundaries.md) | Core·콘텐츠·운영·AI 4개 서비스의 책임·데이터·실행 구조 |
 | [콘텐츠 서비스 이관 계약](design/content-service-migration-contract.md) | Core → Content 이관 범위, 인증 연동, 마이그레이션 소유 |
 | [MVP 설계](design/design.md) | MVP 포함·제외 범위, 저장 방향 |
 | [서비스별 설계](design/services/core-api.md) | [Core](design/services/core-api.md) · [AI](design/services/ai-service.md) · [Frontend](design/services/web.md) · [인프라](design/services/infrastructure.md) 목표 설계 |
 | [WorldStudio 관계 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132) | Neo4j 현재 관계 정본, PG 메타데이터, 재시도·실패 경계(#132) |
+| [공개 세계관 계약(DEC-45·46)](design/public-world-contract.md) | 세계관 단위 공개·비공개, 비로그인 읽기 전용 공개 목록·상세 API(공개 설정 카드만), 소유자 표지 업로드, 세계관-소설 1:1 연결, 독자 설정 위키, 설정 가져오기의 카드 메타데이터, 한계 |
 | [초기 세계관 AI 전처리 v1](design/initial-world-preprocessing/README.md) | 계약·JSON Schema·홍길동전 fixture. 실제 분석·검토·반영 기능은 후속 구현 |
 
 ## 데이터

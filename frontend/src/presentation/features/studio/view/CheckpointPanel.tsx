@@ -21,7 +21,8 @@ export function CheckpointPanel({workId,episode,disabled,onRevert}:{workId:strin
         <button type="button" className="btn sm writing-checkpoint-toggle" aria-expanded={selected===c.versionId} onClick={()=>setSelected(selected===c.versionId?null:c.versionId)}>
           체크포인트 {i+1} · {new Date(c.publishedAt).toLocaleString('ko-KR')}{c.active&&' · 현재 공개'}
         </button>
-        {selected===c.versionId && (version ? <div className="writing-preview">
+        {/* 높이가 정해진 스크롤 상자라 키보드로도 내려 읽을 수 있게 초점을 받는 이름 있는 영역으로 둔다. */}
+        {selected===c.versionId && (version ? <div className="writing-preview" tabIndex={0} role="region" aria-label={`체크포인트 ${i+1} 원고`}>
             <h4>{version.title}</h4>
             <ManuscriptBody workId={workId} number={number} body={version.body} />
           </div> : <p role="status">이 체크포인트의 원고를 찾을 수 없어요.</p>)}

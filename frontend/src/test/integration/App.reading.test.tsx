@@ -105,10 +105,15 @@ describe('소설 상세 (U04)', () => {
     fireEvent.click(await screen.findByRole('button', { name: '구운몽 소설 신고' }))
     const dialog = screen.getByRole('dialog', { name: '소설 신고' })
     fireEvent.click(within(dialog).getByRole('button', { name: '신고하기' }))
-    expect(screen.getByRole('status').textContent).toBe('신고 내용을 입력해 주세요')
+    // 빈 내용 안내는 사라지는 토스트가 아니라 시트 안에 남고, 다시 보내면 지워진다.
+    expect((await within(dialog).findByRole('alert')).textContent).toBe('신고 내용을 입력해 주세요')
     fireEvent.change(within(dialog).getByLabelText('신고 내용'), { target: { value: '권리 확인 부탁' } })
     fireEvent.click(within(dialog).getByRole('button', { name: '신고하기' }))
     await within(dialog).findByText(/신고를 운영팀에 접수했어요/)
+    expect(within(dialog).queryByRole('alert')).toBeNull()
+    // 접수 결과는 상태로 알리고, 사라진 제출 버튼 대신 확인 버튼이 포커스를 받는다.
+    expect(within(dialog).getByRole('status').textContent).toContain('신고를 운영팀에 접수했어요')
+    await waitFor(() => expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: '확인' })))
     expect(appContainer.resolve('mockDb').reviewQueue[0]).toMatchObject({ w: 'guunmong', n: null, type: '권리 침해' })
     fireEvent.click(within(dialog).getByRole('button', { name: '확인' }))
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -602,7 +607,9 @@ describe('정본 회차 댓글 (기능 22)', () => {
     const dialog = screen.getByRole('dialog', { name: '문장에 댓글 달기' })
     fireEvent.change(within(dialog).getByLabelText('댓글'), { target: { value: '남기고 싶은 말' } })
     fireEvent.click(within(dialog).getByRole('button', { name: '등록' }))
-    await waitFor(() => expect(toastText()).toBe('서버 인증이 필요합니다.'))
+    // 실패 사유는 열려 있는 시트 안에 남는다(토스트로 내보내지 않는다).
+    expect((await within(dialog).findByRole('alert')).textContent).toBe('서버 인증이 필요합니다.')
+    expect(toastText()).not.toBe('서버 인증이 필요합니다.')
     expect(within(screen.getByRole('dialog', { name: '문장에 댓글 달기' })).getByLabelText<HTMLTextAreaElement>('댓글').value).toBe('남기고 싶은 말')
     expect(within(dialog).getByRole('button', { name: '등록' }).hasAttribute('disabled')).toBe(false)
   })

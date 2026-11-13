@@ -5,6 +5,7 @@ import type { ReadingRecord, ReadingRecordRepository } from '../repositories/Rea
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
+import type { ReaderWorldCards } from '../entities/wiki'
 import type { Work } from '../entities/work'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
 
@@ -351,5 +352,35 @@ describe('ReadingUseCase 회차별 포크 수 (작품 관리 화면)', () => {
 
   it('작품 목록을 읽지 못하면 0편으로 채우지 않고 오류를 그대로 알린다', async () => {
     await expect(withWorks(new Error('목록을 읽지 못했어요.')).forkCountsByEpisode('src')).rejects.toThrow('목록을 읽지 못했어요.')
+  })
+})
+
+describe('ReadingUseCase 연결된 세계관의 설정 위키 (DEC-46)', () => {
+  const served = (worldId: string | null): ReaderWorldCards => ({ workId: 'guunmong', worldId, upto: 2, cards: [], relationships: [], relationshipStatus: 'current' })
+  const setup = (readWorldCards?: WorkRepository['readWorldCards']) =>
+    new ReadingUseCase({ readWorldCards } as unknown as WorkRepository, {} as ReadingRepository, recordFake([]).repository)
+  const server = { id: 'guunmong', canonical: true }
+
+  it('서버 작품에 연결된 세계관이 있으면 기준 회차를 정수로 맞춰 읽은 카드를 돌려준다', async () => {
+    const read = vi.fn(async () => served('world-1'))
+    const useCase = setup(read)
+    expect(await useCase.linkedWorldCards(server, 2.7)).toEqual(served('world-1'))
+    expect(read).toHaveBeenLastCalledWith('guunmong', 2)
+    // 기준 회차가 없거나 1보다 작으면 보내지 않아 서버가 발행된 최대 회차를 쓴다.
+    await useCase.linkedWorldCards(server)
+    expect(read).toHaveBeenLastCalledWith('guunmong', undefined)
+    await useCase.linkedWorldCards(server, 0)
+    expect(read).toHaveBeenLastCalledWith('guunmong', undefined)
+  })
+
+  it('연결된 세계관이 없는 작품은 null이라 기존 작품 설정 위키를 쓴다', async () => {
+    expect(await setup(async () => served(null)).linkedWorldCards(server, 1)).toBeNull()
+  })
+
+  it('메모리 데모 작품과 세계관 카드를 읽지 않는 저장소는 서버를 부르지 않고 null이다', async () => {
+    const read = vi.fn(async () => served('world-1'))
+    expect(await setup(read).linkedWorldCards({ id: 'guunmong' }, 1)).toBeNull()
+    expect(read).not.toHaveBeenCalled()
+    expect(await setup().linkedWorldCards(server, 1)).toBeNull()
   })
 })

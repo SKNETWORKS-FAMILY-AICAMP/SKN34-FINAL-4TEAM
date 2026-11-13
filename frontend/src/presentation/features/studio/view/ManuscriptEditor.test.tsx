@@ -9,7 +9,7 @@ import { stubRangeGeometry } from '../../../../test/rangeGeometry'
 import { ManuscriptEditor, type ManuscriptEditorHandle } from './ManuscriptEditor'
 
 const IMAGE = 'e25ffb25-8128-48c0-8d66-e1d56831cd56'
-vi.mock('../../../shared/media/MediaPanel', () => ({ StoredImage: ({ id }: { id: string }) => <span role="img" aria-label="본문 이미지" data-id={id} /> }))
+vi.mock('../../../shared/media/MediaPanel', () => ({ StoredImage: ({ id, alt }: { id: string; alt: string }) => <span role="img" aria-label="본문 이미지" data-id={id} data-alt={alt} /> }))
 
 beforeAll(stubRangeGeometry)
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
@@ -199,4 +199,11 @@ it('편집기 밖에서 본문이 바뀌면(회차 전환·다시 불러오기) 
   act(() => { editor().commands.undo() })
   expect(lines()).toEqual(['둘째 회차 글'])
   expect(onBody).not.toHaveBeenCalled()
+})
+
+it('본문 이미지마다 원고 안 순서를 대체 텍스트에 붙여 여러 장을 구분한다', async () => {
+  const SECOND = '6f0c6c4e-8f4a-4d0b-9d52-1c3b5a7e9f10'
+  render(<Harness initial={`${imageMarker(IMAGE)}\n사이 문단\n${imageMarker(SECOND)}`} />)
+  await waitFor(() => expect(screen.getAllByRole('img')).toHaveLength(2))
+  expect(screen.getAllByRole('img').map(image => [image.dataset.id, image.dataset.alt])).toEqual([[IMAGE, '본문 이미지 1'], [SECOND, '본문 이미지 2']])
 })

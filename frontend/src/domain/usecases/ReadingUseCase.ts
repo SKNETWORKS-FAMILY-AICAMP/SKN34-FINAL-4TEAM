@@ -188,6 +188,16 @@ export class ReadingUseCase {
   }
 
   /**
+   * U45 설정 위키: 서버 작품에 연결된 세계관(DEC-46)이 있으면 [upto]회차(없으면 발행된 최대 회차)까지 독자에게 공개된 그 세계관의 설정 카드를 돌려줍니다.
+   * 연결된 세계관이 없거나 메모리 데모 작품이면 null이고 화면은 기존 작품 설정 위키(getWork의 wiki)를 씁니다. 읽기 실패는 null로 바꾸지 않고 던집니다.
+   */
+  async linkedWorldCards(work: Pick<Work, 'id' | 'canonical'>, upto?: number) {
+    if (!work.canonical) return null
+    const cards = await this.workRepository.readWorldCards?.(work.id, upto && upto >= 1 ? Math.floor(upto) : undefined)
+    return cards?.worldId ? cards : null
+  }
+
+  /**
    * 이 작품에서 갈라진 공개 포크 수를 분기 기준 회차별로 셉니다(0편인 회차는 키가 없음). 소설 상세의 회차별 포크 수와 같은 목록(forksOf)을 쓰며,
    * 작품 목록을 읽지 못하면 0편으로 채우지 않고 던집니다(작품 관리 화면은 그때 수를 감춥니다).
    * ponytail: 공개 작품 전체 목록을 읽어 센다(소설 상세도 같은 목록). 작품이 많아지면 작품별 포크 수를 주는 API로 바꾼다.

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { newSetting } from '../entities/studioWorld'
-import { assertNoNewRelationDuplicates, applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions, personDeletionInfo, removePerson } from '../entities/studioRelations'
+import { assertNoNewRelationDuplicates, applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions, cardDeletionInfo, removeCard } from '../entities/studioRelations'
 
 it('keeps mutual facts separate from independent directed emotions and stable IDs',()=>{
  const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
@@ -115,10 +115,23 @@ it('previews incident links and blocks person deletion when unrelated settings r
  const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
  const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation',polarity:'asserted',text:'오랜 동료이자 경쟁자'})
  const note=newSetting();note.item.title='가람의 계약';note.item.relatedIds=[a.item.id]
- expect(personDeletionInfo(rows,a.item.id).relations).toHaveLength(1)
- expect(removePerson(rows,a.item.id)).toEqual([b])
- expect(()=>removePerson([...rows,note],a.item.id)).toThrow(/가람의 계약/)
+ expect(cardDeletionInfo(rows,a.item.id).relations).toHaveLength(1)
+ expect(removeCard(rows,a.item.id)).toEqual([b])
+ expect(()=>removeCard([...rows,note],a.item.id)).toThrow(/가람의 계약/)
  expect(rows).toHaveLength(3)
+})
+
+it('deletes a card of any type together with its relations, and refuses one that another setting still references',()=>{
+ const garam=newSetting('people'),harbor=newSetting('places'),memo=newSetting('notes');garam.item.title='가람';harbor.item.title='항구';memo.item.title='메모'
+ const rows=putRelation([garam,harbor,memo],{subjectId:garam.item.id,targetId:harbor.item.id,predicate:'custom_relation_directed',polarity:'asserted',text:'지키는 장소'})
+ const info=cardDeletionInfo(rows,harbor.item.id)
+ expect(info.card).toBe(harbor);expect(info.relations.map(r=>r.item.id)).toEqual([rows[3].item.id]);expect(info.blockers).toEqual([])
+ expect(removeCard(rows,harbor.item.id)).toEqual([garam,memo]) // 장소 카드와 거기 이어진 관계가 함께 빠진다
+ expect(removeCard(rows,memo.item.id)).toEqual([garam,harbor,rows[3]]) // 메모도 지울 수 있다
+ const ref=newSetting();ref.item.title='항구 기록';ref.item.relatedIds=[harbor.item.id]
+ expect(()=>removeCard([...rows,ref],harbor.item.id)).toThrow(/항구 기록/)
+ expect(()=>removeCard(rows,'missing')).toThrow('삭제할 설정을 찾을 수 없습니다.')
+ expect(rows).toHaveLength(4)
 })
 
 

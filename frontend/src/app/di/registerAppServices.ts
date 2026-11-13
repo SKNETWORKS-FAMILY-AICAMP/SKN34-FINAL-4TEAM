@@ -18,6 +18,8 @@ import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
 import { HttpStoryPlanRepository } from '../../data/plans/HttpStoryPlanRepository'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
 import {HttpWorldStudioRepository} from '../../data/world-studio/HttpWorldStudioRepository'
+import { PublicWorldUseCase } from '../../domain/usecases/PublicWorldUseCase'
+import { HttpPublicWorldRepository } from '../../data/world-studio/HttpPublicWorldRepository'
 import { MediaUseCase } from '../../domain/usecases/MediaUseCase'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { ManuscriptUseCase } from '../../domain/usecases/ManuscriptUseCase'
@@ -96,6 +98,8 @@ export function registerAppServices(container: AppContainer) {
     adminActivityUseCase: asFunction(({ adminActivityRepository }) => new AdminActivityUseCase(adminActivityRepository)).singleton(),
     initialWorldUseCase: asFunction(() => new InitialWorldUseCase(new HttpInitialWorldRepository())).singleton(),
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
+    publicWorldRepository: asFunction(() => new HttpPublicWorldRepository()).singleton(),
+    publicWorldUseCase: asFunction(({ publicWorldRepository }) => new PublicWorldUseCase(publicWorldRepository)).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
     authRepository: asValue(authRepository),

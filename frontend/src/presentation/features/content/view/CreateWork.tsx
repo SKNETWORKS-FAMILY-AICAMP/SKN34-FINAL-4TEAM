@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { parseHashtags, type WorkCreationType, type WorkRegistration } from '../../../../domain/entities/content'
-import { AiCoverButton } from './AiCoverButton'
+import { AiCoverButton } from '../../../shared/AiCoverButton'
 import { TaxonomyFields } from './TaxonomyFields'
+import { usePreviewUrl } from './WorkOverview'
 
 type Props = {
   /** 요청 중에는 입력과 전송을 잠근다. */
   busy: boolean
   /** 내 작품 목록을 읽기 전에는 보내지 못한다. */
   ready: boolean
+  /** 만들기가 실패한 사유. 누른 버튼 바로 위에 알린다(화면 맨 위 알림은 이 자리에서 보이지 않는다). */
+  error?: string
   onCreate: (title: string, summary: string, cover: File | undefined, registration: WorkRegistration) => void
 }
 
@@ -15,10 +18,11 @@ type Props = {
  * 새 작품 만들기. 소설 상세 페이지 히어로와 같은 모양(표지 자리 | 제목·소개·유형·장르·해시태그·권리 확인)이고
  * 입력 상태는 이 화면이 열릴 때마다 새로 시작해 이전 작품의 표지 파일이 남지 않는다.
  */
-export function CreateWork({ busy, ready, onCreate }: Props) {
+export function CreateWork({ busy, ready, error, onCreate }: Props) {
   const [title, setTitle] = useState('')
   const [summary, setSummary] = useState('')
   const [cover, setCover] = useState<File>()
+  const preview = usePreviewUrl(cover)
   const [creationType, setCreationType] = useState<WorkCreationType>('ORIGINAL')
   const [genre1, setGenre1] = useState('')
   const [genre2, setGenre2] = useState('')
@@ -39,17 +43,20 @@ export function CreateWork({ busy, ready, onCreate }: Props) {
         <div className='whero ep-hero'>
           <div className='ep-hero-cover'>
             <div className='cover ep-cover'>
-              <img className='stored-image' src='/default-work-cover.svg' alt='' />
+              <img className='stored-image' src={preview || '/default-work-cover.svg'} alt='' />
             </div>
-            <label>
-              작품 표지 (선택)<input
-                type='file'
-                accept='.png,.jpg,.jpeg'
-                disabled={busy}
-                onChange={(e) => setCover(e.target.files?.[0])}
-              />
-            </label>
-            <AiCoverButton />
+            {/* 작품 관리의 표지 편집과 같이 기본 파일 입력은 시각적으로만 숨기고 라벨을 보조 버튼으로 그린다. */}
+            <div className='ep-cover-pick'>
+              <label className='btn sm ep-file-pick'>
+                표지 이미지 선택<input
+                  type='file'
+                  accept='.png,.jpg,.jpeg'
+                  disabled={busy}
+                  onChange={(e) => setCover(e.target.files?.[0])}
+                />
+              </label>
+              <AiCoverButton />
+            </div>
             <p className='small muted'>
               {cover
                 ? `선택한 파일: ${cover.name}`
@@ -96,6 +103,7 @@ export function CreateWork({ busy, ready, onCreate }: Props) {
             <label className='ep-check'>
               <input type='checkbox' checked={registerRights} onChange={(e) => setRegisterRights(e.target.checked)} required disabled={busy} /> 이 작품을 등록할 권리가 있음을 확인합니다.
             </label>
+            {error && <div className='ep-alert' role='alert'>{error}</div>}
             <div className='ep-form-footer'>
               <span>◌ 처음에는 나만 볼 수 있어요</span>
               <button className='btn pri' disabled={busy || !ready}>작품 만들기</button>

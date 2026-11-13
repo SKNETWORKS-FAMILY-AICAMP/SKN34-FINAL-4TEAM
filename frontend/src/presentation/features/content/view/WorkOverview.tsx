@@ -1,10 +1,10 @@
 import { type RefObject, useEffect, useRef, useState } from 'react'
 import { parseHashtags, workKindLabel, type Work, type WorkTaxonomy } from '../../../../domain/entities/content'
 import type { MediaTarget } from '../../../../domain/entities/media'
+import { AiCoverButton } from '../../../shared/AiCoverButton'
 import { Go } from '../../../shared/Go'
 import { StoredImage } from '../../../shared/media/MediaPanel'
 import { useMediaViewModel } from '../../../shared/media/useMediaViewModel'
-import { AiCoverButton } from './AiCoverButton'
 import { TaxonomyFields } from './TaxonomyFields'
 
 type Section = 'info' | 'cover' | 'policy'
@@ -251,7 +251,7 @@ type CoverProps = {
 }
 
 /** 고른 이미지의 미리보기 주소. 파일이 바뀌거나 사라지면(편집을 닫으면) 이전 주소를 해제한다. */
-function usePreviewUrl(file: File | undefined) {
+export function usePreviewUrl(file: File | undefined) {
   const [url, setUrl] = useState('')
   useEffect(() => {
     if (!file) {
@@ -295,7 +295,7 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
           ? <StoredImage target={target} id={current.id} alt='작품 표지' revision={media.revision} />
           : !media.busy && !media.error && <img className='stored-image' src='/default-work-cover.svg' alt='기본 작품 표지' />}
       </div>
-      {media.error && <p role='alert' className='small'>{media.error}</p>}
+      {media.error && <p role='alert' className='ep-alert small'>{media.error}</p>}
       <p role='status' className='small muted'>{media.busy ? '파일을 처리하고 있어요…' : media.notice}</p>
       {editing
         ? (
