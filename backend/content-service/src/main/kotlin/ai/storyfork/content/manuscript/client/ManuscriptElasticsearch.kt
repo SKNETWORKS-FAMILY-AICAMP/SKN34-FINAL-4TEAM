@@ -22,6 +22,25 @@ internal class ManuscriptElasticsearch(
         require(index.matches(Regex("storyfork-manuscript-v1(?:-[a-z0-9]+)*"))) { "Expected a dedicated manuscript v1 index" }
     }
 
+    /** 인덱스가 없을 때만 v1 정의로 만들고 매핑을 검증한다. 기존 인덱스는 바꾸거나 지우지 않는다. */
+    fun ensureIndex(definition: String) {
+        val exists = http.head().uri("/$index").exchange { _, response ->
+            when (response.statusCode.value()) {
+                200 -> true
+                404 -> false
+                else -> error("Unexpected manuscript index status ${response.statusCode.value()}")
+            }
+        }
+        if (!exists) {
+            val created = json(http.put().uri("/$index").contentType(MediaType.APPLICATION_JSON).body(definition))
+            // 디스크 워터마크 등으로 샤드를 배정하지 못하면 인덱스는 생겨도 쓸 수 없다.
+            check(created.path("acknowledged").asBoolean(false) && created.path("shards_acknowledged").asBoolean(false)) {
+                "Manuscript index shards were not allocated"
+            }
+        }
+        verifyMapping()
+    }
+
     fun search(scope: QaScope, vector: List<Float>): List<ManuscriptHit> {
         if (scope.episodes.isEmpty()) return emptyList()
         verifyMapping()

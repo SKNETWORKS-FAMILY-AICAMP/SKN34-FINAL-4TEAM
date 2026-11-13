@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.io.ClassPathResource
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.transaction.support.TransactionTemplate
@@ -41,7 +42,9 @@ internal class ManuscriptIndexConfig {
         @Value("\${MANUSCRIPT_INDEX_NAME:storyfork-manuscript-v1}") indexName: String,
     ): ManuscriptElasticsearch {
         validateHttpBaseUrl(url, "MANUSCRIPT_INDEX_URL")
+        // 최초 생성·매핑 불일치 실패는 Content 시작을 막아 배포 --wait가 실패로 드러낸다.
         return ManuscriptElasticsearch(buildRestClient(builder.clone(), url, Duration.ofSeconds(2), Duration.ofSeconds(15)), mapper, indexName)
+            .also { it.ensureIndex(ClassPathResource("manuscript/manuscript-chunks-v1.json").getContentAsString(Charsets.UTF_8)) }
     }
 
     @Bean
