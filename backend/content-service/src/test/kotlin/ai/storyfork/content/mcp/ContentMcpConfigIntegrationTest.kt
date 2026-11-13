@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner
  * `spring.ai.mcp.server.enabled=false`이면 빈을 등록하지 않으므로 우리 전송 빈도 같이 빠져야 서비스가 뜬다.
  * 실제 자동 설정(JSON 매퍼·Stateless WebMvc)만 함께 올린 가벼운 컨텍스트로 두 쪽의 활성 조건이 맞는지 확인한다(서버·도구·DB 없음).
  */
-class ContentMcpConfigTest {
+class ContentMcpConfigIntegrationTest {
     private val runner = ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(McpServerJsonMapperAutoConfiguration::class.java, McpServerStatelessWebMvcAutoConfiguration::class.java))
         .withUserConfiguration(ContentMcpConfig::class.java)
