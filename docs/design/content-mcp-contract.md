@@ -114,7 +114,16 @@ AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작�
 | `world_analysis_apply` | `POST …/analyses/{analysisId}/applications` |
 | `world_analysis_application_read` | `GET …/applications/{applicationId}` |
 
+## 오류 형식
+
+- 도구 오류 텍스트는 첫 줄 `HTTP <상태>[ <코드>]`, 둘째 줄 detail이다. `ContentFailure`·`CoreAuthException`·WorldStudio 예외는 기존 HTTP API와 같은 상태·코드로 옮기고, 그 밖의 예외는 내용 없이 `HTTP 500`이다.
+- Controller의 `@Valid` 검사는 도구에서 `validated()`로 같은 422를 낸다. UUID 형식 오류는 400이다.
+- `world_analysis_create`는 실행 상태 `failed`를 502, `unknown`을 503 도구 오류로 낸다(HTTP API가 본문과 함께 같은 상태로 답하는 경우). `world_analysis_apply`의 `failed`·`unknown`은 503이다.
+- 본문 없는 성공(204)은 Spring AI 기본 완료 문구(`Done`)다. `Location`·`Retry-After` 같은 응답 헤더는 전달하지 않는다.
+
 ## 한계
+
+- JSON 타입이 틀린 인자처럼 도구 함수에 들어오기 전 실패는 Spring AI 기본 오류 문구로 나가며 HTTP 상태 줄이 없고, 호출자가 보낸 값 조각이 되돌아갈 수 있다(입력 스키마 검증이 먼저 막는 경우가 대부분).
 
 - 사용자 권한 그대로 정본을 바꾸므로 삭제·발행도 즉시 반영된다. 화면 확인 단계는 두지 않는다(시연 범위).
 - 사용자 토큰이 AI 작업 중 만료되면 도구가 인증 오류를 낸다. 갱신은 호출 측(ai-service) 몫이다.
