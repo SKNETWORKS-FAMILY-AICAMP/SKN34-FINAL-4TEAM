@@ -117,7 +117,7 @@ class State(TypedDict, total=False):
 def plan(state: State) -> State:
     """Router 계획을 검증한다. 실행할 수 있으면 status=running과 대기 단계를 남긴다."""
     history = [t['request'] for t in state.get('turns', [])][-HISTORY_TURNS:]
-    with tracing.observe('plan', trace_context=_trace(state)) as span:
+    with tracing.observe('plan', trace_context=_trace(state), input={'request': state['request']}) as span:
         routed = intent.route(state['request'], state.get('operation'), state['materials'], history)
         span.update(metadata={'status': routed.status, 'steps': [[s.feature, s.when] for s in routed.steps]})
     if routed.status != 'route':
@@ -230,8 +230,8 @@ async def lifespan(_app):
 
 def _initial(data: OrchestrationRequest) -> State:
     """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다. 턴마다 새 trace를 연다."""
-    run_id, parent = tracing.start_run('writing_ai.orchestration', as_type='chain', metadata={
-        'operation': data.operation, 'conversation': data.conversation is not None})
+    run_id, parent = tracing.start_run('writing_ai.orchestration', as_type='chain', input={'request': data.request},
+                                       metadata={'operation': data.operation, 'conversation': data.conversation is not None})
     return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
             'steps': [], 'missingInputs': [], 'unsupported': [],

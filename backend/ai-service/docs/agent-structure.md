@@ -56,7 +56,7 @@ app/<기능>/
 
 [4개 서비스 구조](../../../docs/design/service-boundaries.md)에 따라 Core는 회원·인증·크레딧·회원 알림, Content는 창작·독서 정본·콘텐츠 인가·채택·발행, 운영은 문의·공지·신고 사건·운영 판단·감사·작업 감시, AI는 허용된 모델 실행을 소유합니다. Content와 AI는 내부 HTTP의 요청·응답 DTO로 연결합니다. 실행 체크포인트와 색인을 도입할 경우 각 기능 계약에서 소유·복구 범위를 정하고 회차·세계관의 업무 체크포인트와 구분합니다.
 
-LLMOps는 운영 영역입니다. Langfuse는 MVP 이후 도입 시 별도 제품으로 배포하며 자체 UI와 운영 화면 API 통합 중 방식은 미정입니다. Spring에서 제품 전체를 재구현하지 않으며 AI 계측·버전 적용·평가 실행 위치는 연동 계약에서 정합니다. `app/tracing.py`가 집필 AI 오케스트레이션과 Q&A RAG 단계(근거 참조 → 모델 생성 → 인용 대조)를 Langfuse SDK로 메타데이터만 추적합니다(#302). 키가 없으면 꺼집니다. 서버는 `infrastructure/docker-compose.langfuse.yaml`의 로컬 self-host로 띄웁니다.
+LLMOps는 운영 영역입니다. Langfuse는 MVP 이후 도입 시 별도 제품으로 배포하며 자체 UI와 운영 화면 API 통합 중 방식은 미정입니다. Spring에서 제품 전체를 재구현하지 않으며 AI 계측·버전 적용·평가 실행 위치는 연동 계약에서 정합니다. `app/tracing.py`가 집필 AI 오케스트레이션과 Q&A RAG 단계(근거 참조 → 모델 생성 → 인용 대조)를 Langfuse SDK로 메타데이터와 질문·원고·답변 본문을 추적합니다(#302, 팀 결정 2026-11-13). 설정·현재 관계 발췌는 참조만 남깁니다. 키가 없으면 꺼집니다. 서버는 `infrastructure/docker-compose.langfuse.yaml`의 로컬 self-host로 띄웁니다.
 
 ## 새 기능·Agent를 추가하는 기준
 

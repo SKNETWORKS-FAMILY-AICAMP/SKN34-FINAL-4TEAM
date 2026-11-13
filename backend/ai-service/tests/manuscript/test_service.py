@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from app.manuscript import service
@@ -58,18 +60,25 @@ def test_answer_with_unknown_or_missing_citation_is_502(monkeypatch, ids):
 
 
 def attrs(span):
-    return dict(span.attributes)
+    """span 속성. Langfuse가 JSON 문자열로 담는 input/output/metadata는 읽을 수 있게 풀어 둔다."""
+    return {k: json.loads(v) if k.startswith('langfuse.observation.') and isinstance(v, str) and v[:1] in '[{"' else v
+            for k, v in span.attributes.items()}
 
 
-def test_answer_trace_has_retrieval_refs_and_evidence_check_without_text(monkeypatch, spans):
+def test_answer_trace_has_question_manuscript_and_answer_bodies_but_no_setting_text(monkeypatch, spans):
     data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=['a'])])
+    data.excerpts.append(Excerpt(id='s', episode=1, quote='비공개 설정 본문', kind='setting', title='설정 제목'))
     service.answer(data)
     retrieval, check, qa = spans()
     assert (retrieval.name, check.name, qa.name) == ('retrieval', 'evidence_check', 'story_context.qa')
     assert retrieval.parent.span_id == qa.context.span_id == check.parent.span_id
-    assert '"kind": "manuscript"' in attrs(retrieval)['langfuse.observation.metadata.excerpts']
-    assert attrs(check)['langfuse.observation.metadata.citedIds'] == '["a"]'
-    assert not any(text in str(attrs(s)) for s in (retrieval, check, qa) for text in ('원문', '누구?', '홍길동'))
+    assert attrs(check)['langfuse.observation.metadata.citedIds'] == ['a']
+    # 팀 결정(2026-11-13): 질문·원고·답변 본문은 추적한다. 설정·관계 본문은 결정 범위 밖이라 참조만 남긴다.
+    assert attrs(retrieval)['langfuse.observation.output'] == [
+        {'id': 'a', 'episode': 1, 'kind': 'manuscript', 'quote': '원문'}, {'id': 's', 'episode': 1, 'kind': 'setting'}]
+    assert attrs(qa)['langfuse.observation.input'] == {'question': '누구?'}
+    assert attrs(qa)['langfuse.observation.output']['claims'][0]['text'] == '홍길동'
+    assert not any(text in str(attrs(s)) for s in (retrieval, check, qa) for text in ('비공개 설정 본문', '설정 제목'))
 
 
 def test_invalid_citation_is_traced_as_error_and_still_fails(monkeypatch, spans):
@@ -78,5 +87,5 @@ def test_invalid_citation_is_traced_as_error_and_still_fails(monkeypatch, spans)
         service.answer(data)
     _, check, qa = spans()
     assert attrs(check)['langfuse.observation.level'] == 'ERROR'
-    assert attrs(check)['langfuse.observation.metadata.invalidIds'] == '["other"]'
+    assert attrs(check)['langfuse.observation.metadata.invalidIds'] == ['other']
     assert attrs(qa)['langfuse.observation.level'] == 'ERROR'

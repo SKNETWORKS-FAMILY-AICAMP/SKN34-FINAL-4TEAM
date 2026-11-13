@@ -1,6 +1,7 @@
-"""Langfuse 기반 집필 AI 추적(#302). 단계·근거 참조·판본·모델·사용량·실패 여부만 메타데이터로 보낸다.
+"""Langfuse 기반 집필 AI 추적(#302). 단계·근거 참조·판본·모델·사용량·실패 여부와 허용된 본문을 보낸다.
 
-원고·질문·답변 본문, 개인정보, 키는 어떤 속성에도 넣지 않는다(observation의 input/output을 쓰지 않는다).
+팀 결정(2026-11-13)으로 질문·원고·답변 본문은 observation의 input/output에 남긴다. 결정 범위 밖인 설정·현재 관계
+발췌 본문은 참조(id·회차·종류)만 남기고(`excerpts`), 키·회원 계정 정보는 어떤 속성에도 넣지 않는다.
 예외는 span 밖으로 넘겨 예외 이벤트(메시지·입력값)가 기록되지 않게 하고, 기능 실패의 고정 메시지만 남긴다.
 LANGFUSE_PUBLIC_KEY·LANGFUSE_SECRET_KEY가 없으면 추적을 끈다. 전송은 SDK가 백그라운드로 하므로
 Langfuse 장애가 작업 결과를 바꾸지 않는다. 서버 주소는 SDK가 LANGFUSE_BASE_URL에서 읽는다.
@@ -34,6 +35,12 @@ def observe(name: str, **fields):
             span.update(level='ERROR', status_message=str(exc) if hasattr(exc, 'status') else type(exc).__name__)
     if error is not None:
         raise error
+
+
+def excerpts(items) -> list[dict]:
+    """근거 발췌의 추적용 표현. 원고(manuscript) 인용만 본문을 담고 설정·현재 관계는 참조만 남긴다."""
+    return [{'id': e.id, 'episode': e.episode, 'kind': e.kind, **({'quote': e.quote} if e.kind == 'manuscript' else {})}
+            for e in items]
 
 
 def start_run(name: str, **fields) -> tuple[str | None, str | None]:
