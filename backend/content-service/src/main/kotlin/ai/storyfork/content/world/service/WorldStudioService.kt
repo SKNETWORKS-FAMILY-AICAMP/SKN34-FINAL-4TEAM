@@ -176,6 +176,14 @@ class WorldStudioService(
         RelationshipInputHelper.merge(emptyList(),relations,true,worldCards)
         // 이미 반영된 재시도는 relations가 current와 같아 새로 만들거나 바뀐 관계가 없다.
         RelationshipInputHelper.merge(emptyList(),relations-current.relationships.toSet(),true,known)
+        // 이번 요청이 삭제하는 카드(원래 초안에서 활성이던 카드)에 이어진 관계는 함께 빼야 한다. 지난 회차에 이미 삭제된 카드의 관계는 그대로 둘 수 있고, 재시도는 새로 쓸 것이 없어 건너뛴다.
+        val deleting=loaded.draft.cards.filter { it.lifecycle=="active" }.map { it.id }.toSet()-known
+        if(!alreadyApplied && deleting.isNotEmpty()) {
+            // 카드 삭제는 회차와 무관해서, 회차를 지정한 편집은 최신 관계도 본다(생략하면 relations가 이미 최신). 이 편집이 그 회차에서 끝내거나 바꾸는 관계는 최신에서 그 회차 내용 그대로면 함께 사라지므로 뺀다.
+            // ponytail: 그 회차에서 끝낸 관계를 뒤 회차에서 같은 내용으로 다시 이었으면 조회만으로는 구별되지 않아 통과한다(조회가 연결 회차를 돌려주면 막는다).
+            val latest:List<RelationshipPayload> = if(request.episode==null) emptyList() else graph.read(worldId,null).relationships-(current.relationships-relations)
+            require((relations+latest).none { it.sourceCardId in deleting || it.targetCardId in deleting }) { "삭제하는 설정에 이어진 관계도 함께 빼세요." }
+        }
         tx {
             owned(worldId,subject);guardApplication(worldId,applicationId);val state=state(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
