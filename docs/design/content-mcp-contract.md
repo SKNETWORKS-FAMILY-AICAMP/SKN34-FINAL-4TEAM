@@ -16,7 +16,7 @@ AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작�
 |---|---|
 | 라이브러리 | Spring AI MCP Server(`spring-ai-starter-mcp-server-webmvc`, 공식 MCP Java SDK 기반). 도구는 `@McpTool` |
 | 전송 | Stateless Streamable HTTP, 경로 `/mcp`. 공개 진입점(Nginx)에 노출하지 않는 내부 전용 |
-| 공개 도구 | 인증 없이 호출된다. 기존 `public*` Service 함수의 공개 범위 필터(공개 작품·발행 회차·공개 카드)를 그대로 쓴다 |
+| 공개 도구 | 인증 없이 호출된다. 대응 Controller가 쓰는 공개 조회 Service 함수(공개 작품·발행 회차·공개 카드 필터 포함)를 그대로 쓴다 |
 | 사용자 도구 | AI를 호출한 사용자의 `Authorization: Bearer <토큰>`을 그대로 전달받는다. 기존 `ContentAuthenticationFilter`(Core 검증)가 만든 회원 UUID·운영자 권한을 owner로 Service에 넘긴다. 토큰이 없으면 도구 오류(인증 필요)다 |
 | 신뢰 경계 | 회원 ID는 검증된 토큰에서만 얻는다. 도구 인자로 회원 ID를 받지 않으며 모델이 준 작품·세계관 ID는 Service의 소유권 검사를 거친다 |
 | CSRF | 브라우저 쿠키가 아닌 Bearer 서비스 간 호출이라 `/mcp` 체인에서만 끈다. 기존 `/api/v1/**` CSRF는 그대로다 |
