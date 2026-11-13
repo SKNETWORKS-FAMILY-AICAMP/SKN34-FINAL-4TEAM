@@ -490,7 +490,7 @@ class WorldStudioServiceTest {
 
     // --- 이번 요청이 삭제하는 카드에 이어진 관계(#341) ---
     private fun payload(id:UUID,lifecycle:String="active")=CardPayload(id,"카드","원문","character","basic",lifecycle=lifecycle)
-    /** A·B·C가 모두 활성이고 3화 시점에 B에 이어진 관계(keptToRemoved)와 살아 있는 관계(live)가 있다. 3화 뒤로 바뀐 관계는 없어 최신 관계도 같다. */
+    /** A·B·C가 모두 활성이고 B에 이어진 관계(keptToRemoved)와 살아 있는 관계(live)가 최신(3화 시점도 같다)에 있다. */
     private fun relationOnB() { owned();`when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB),cardDraft(cardC)));at(3,keptToRemoved,live);at(null,keptToRemoved,live) }
     /** 저장소가 [kept]만 남긴 결과를 돌려주게 하고, 저장소로 보낸 인자를 쌓아 돌려준다. */
     private fun graphKeeps(vararg kept:RelationshipPayload):MutableList<List<Any?>> {
@@ -499,54 +499,52 @@ class WorldStudioServiceTest {
             .`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         return sent
     }
+    private fun nothingPrepared() {
+        assertTrue(state.completed);assertEquals(2L,draft.draftRevision);assertEquals("편집본",draft.name)
+        verify(states,never()).flush();verify(cards,never()).saveAndFlush(any());verify(cardDrafts,never()).save(any())
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
 
     @Test fun `deleting a card while a relation still ends on it is an input error before anything is prepared`() {
         relationOnB()
-        // upsert는 그 회차의 관계를 그대로 두고, replace=true도 같은 관계를 다시 보내면 그대로다.
-        val upsert=EditWorldDraftRequest(2,"x","",listOf(payload(cardB,"removed")),key="keep-upsert",episode=3)
-        val replace=EditWorldDraftRequest(2,"x","",listOf(payload(cardA),payload(cardB,"removed"),payload(cardC)),listOf(keptToRemoved,live),"keep-replace",true,3)
+        // upsert는 최신 관계를 그대로 두고, replace=true도 같은 관계를 다시 보내면 그대로다.
+        val upsert=EditWorldDraftRequest(2,"x","",listOf(payload(cardB,"removed")),key="keep-upsert")
+        val replace=EditWorldDraftRequest(2,"x","",listOf(payload(cardA),payload(cardB,"removed"),payload(cardC)),listOf(keptToRemoved,live),"keep-replace",true)
         for(request in listOf(upsert,replace)) assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,request) }
-        assertTrue(state.completed);assertEquals(2L,draft.draftRevision);assertEquals("편집본",draft.name)
-        verify(states,never()).flush();verify(cards,never()).saveAndFlush(any());verify(cardDrafts,never()).save(any())
-        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        nothingPrepared()
     }
-    @Test fun `a past episode edit that deletes a card is an input error while the latest relations still end on it`() {
+    @Test fun `deleting a card while naming an episode is an input error before anything is prepared`() {
         relationOnB()
-        // 3화 시점에는 없지만 최신에는 B에 이어진 관계(5화에 생김)와, 이 편집이 3화에서 끝내도 5화에서 내용이 바뀌어 살아 있는 관계다.
-        val later=RelationshipPayload(UUID.randomUUID(),cardC,cardB,"structural","5화에 생긴 관계")
-        val request=EditWorldDraftRequest(2,"x","",listOf(payload(cardB,"removed")),listOf(keptToRemoved.copy(lifecycle="removed")),"later-relation",episode=3)
-        for(latest in listOf(arrayOf(keptToRemoved,live,later),arrayOf(keptToRemoved.copy(body="5화에 바뀐 내용"),live))) {
-            at(null,*latest)
-            assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,request) }
+        // 그 회차에서 B에 이어진 관계를 끝내거나 replace=true로 빼도 거절한다. 그 회차 시점으로는 최신 관계에 B가 남는지 알 수 없다.
+        val ended=EditWorldDraftRequest(2,"x","",listOf(payload(cardB,"removed")),listOf(keptToRemoved.copy(lifecycle="removed")),"past-delete",episode=3)
+        val omitted=EditWorldDraftRequest(2,"x","",listOf(payload(cardA),payload(cardC)),listOf(live),"past-omit",true,3)
+        for(request in listOf(ended,omitted)) assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,request) }
+        nothingPrepared()
+    }
+    @Test fun `deleting a card on the latest episode is saved once the relation that ends on it is ended or left out`() {
+        relationOnB();val sent=graphKeeps(live)
+        listOf(
+            EditWorldDraftRequest(2,"x","",listOf(payload(cardB,"removed")),listOf(keptToRemoved.copy(lifecycle="removed")),"end-relation"),
+            EditWorldDraftRequest(2,"x","",listOf(payload(cardA),payload(cardB,"removed"),payload(cardC)),listOf(live),"omit-relation",true),
+        ).forEach { request ->
+            assertEquals(3L,service.edit(world,actor,request).draftRevision);assertEquals(listOf(live),sent.last()[4])
+            draft.draftRevision=2;state.graphVersion=3 // 다음 요청이 같은 처음 상태에서 시작하게 한다.
         }
-        assertTrue(state.completed);assertEquals(2L,draft.draftRevision);assertEquals("편집본",draft.name)
-        verify(states,never()).flush();verify(cards,never()).saveAndFlush(any());verify(cardDrafts,never()).save(any())
-        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
-    }
-    @Test fun `deleting a card is saved when the relation that ends on it is marked removed`() {
-        relationOnB();val sent=graphKeeps(live)
-        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(payload(cardB,"removed")),listOf(keptToRemoved.copy(lifecycle="removed")),"end-relation",episode=3))
-        assertEquals(listOf(live),sent.single()[4]);assertEquals(3L,saved.draftRevision)
-    }
-    @Test fun `a replacing edit that deletes a card and leaves its relation out is saved`() {
-        relationOnB();val sent=graphKeeps(live)
-        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(payload(cardA),payload(cardB,"removed"),payload(cardC)),listOf(live),"omit-relation",true,3))
-        assertEquals(listOf(live),sent.single()[4]);assertEquals(3L,saved.draftRevision)
     }
     @Test fun `a relation that stays on a card deleted earlier does not block deleting another card`() {
-        owned();removedCardB();at(3,keptToRemoved,live);at(null,keptToRemoved,live);val sent=graphKeeps(keptToRemoved)
-        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(payload(cardC,"removed")),listOf(live.copy(lifecycle="removed")),"delete-another",episode=3))
+        owned();removedCardB();at(null,keptToRemoved,live);val sent=graphKeeps(keptToRemoved)
+        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(payload(cardC,"removed")),listOf(live.copy(lifecycle="removed")),"delete-another"))
         assertEquals(listOf(keptToRemoved),sent.single()[4]);assertEquals(3L,saved.draftRevision)
     }
 
     @Test fun `a retry is not rejected for relations the graph already holds`() {
         relationOnB()
-        val request=EditWorldDraftRequest(2,"x","",listOf(payload(cardB,"removed")),listOf(keptToRemoved.copy(lifecycle="removed")),"retry-delete",episode=3)
+        val request=EditWorldDraftRequest(2,"x","",listOf(payload(cardB,"removed")),listOf(keptToRemoved.copy(lifecycle="removed")),"retry-delete")
         `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
         assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
         // Neo4j는 썼지만 응답을 잃었다. 이 규칙 전의 저장이 B에 이어진 관계를 남긴 채 써졌어도, 이미 쓴 요청은 재시도로 끝낼 수 있어야 한다.
         val applied=RelationshipStateResult(world,4,state.requestKey,state.requestHash,listOf(keptToRemoved,live))
-        `when`(graph.read(world,3)).thenReturn(applied)
+        `when`(graph.read(world,null)).thenReturn(applied)
         doReturn(applied).`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         assertEquals(3L,service.edit(world,actor,request).draftRevision)
     }

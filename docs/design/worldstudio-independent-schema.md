@@ -55,6 +55,7 @@ RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
 
 - 저장 API는 지금처럼 'N화 시점의 관계 전체'를 받는다. 저장소가 N화 시점 값과 비교해 바뀐 관계만 `fromEpisode=N` 연결로 넣고(같은 관계·회차가 있으면 덮어씀), 목록에서 빠진 관계는 종료 연결을 넣는다. 회차를 생략하면 최신 회차다.
 - N화를 고쳐도 N화보다 뒤 회차에 이미 있는 연결은 바꾸지 않는다.
+- 카드 삭제(`lifecycle=removed`, `replace=true`에서 생략)는 `episode`를 생략한 최신 편집에서만 한다. 회차를 지정한 편집이 카드를 삭제하면 422 `WORLD_INPUT_INVALID`다(아래 '한계 ①').
 - PG prepare → Neo4j CAS → PG finalization 순서, 원래 요청 재시도, 오류 코드는 아래 #132 계약을 그대로 따른다.
 
 ### 구현 결과
@@ -65,7 +66,7 @@ RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
 - **미완성 관계**: 양 끝 카드 중 하나라도 비어 있는 활성 관계는 저장할 수 없다(요청 검증 422 `WORLD_INPUT_INVALID`, 저장 순서 1단계 전). `lifecycle="removed"`로 표시한 관계는 끝이 비어도 되며 그 시점 목록에서 빠져 종료 연결이 된다. 아래 #132의 '미완성 nullable endpoint 허용'을 대체한다.
 - **다른 세계관 ID 차단**: 다른 세계관의 연결이 같은 `relationId`를 쓰거나 카드가 다른 세계관 소속이면 이전처럼 그래프 콜백 안에서 거절한다(`WorldNotFound` → 확정 비적용 → `409 WORLD_WRITE_REJECTED`). 같은 key/hash 재시도의 멱등성과 token 불일치 처리는 #132와 같다.
 - **기존 데이터**: [`infrastructure/neo4j/dec51-relationship-edges.cypher`](../../infrastructure/neo4j/dec51-relationship-edges.cypher)가 `StudioRelationship`을 `fromEpisode=1`·`ended=false` 연결로 옮긴다. 공유 Neo4j 데이터라 실행 전에 승인을 받으며 아직 실행하지 않았다. 이전 전의 기존 세계관은 `count`가 연결 수와 달라 조회가 `RELATIONSHIP_VERSION_MISMATCH`이고 빈 관계로 보이지 않는다.
-- **한계**: ① 편집에서 그 회차 시점의 관계와 완전히 같게 둔 관계는 지난 회차에 이미 삭제된 카드가 끝점이어도 그대로 통과한다(끝점이 이 세계관의 카드이기만 하면 된다). 새로 만들거나 끝점·내용을 바꾼 관계는 양 끝이 활성 카드여야 하므로, 삭제한 카드를 끝점으로 하는 관계를 새로 잇거나 고칠 수는 없고 빼면 그 회차에 종료 연결이 생긴다. 다만 **이번 요청이 삭제하는 카드**(요청 전 초안에서 활성이던 카드, `replace=true`에서 생략한 카드 포함)를 끝점으로 하는 관계가 저장 결과에 남으면 422 `WORLD_INPUT_INVALID`이므로 그 관계는 `lifecycle=removed`로 보내거나 `replace=true`에서 생략해 함께 빼야 한다(#341, 이미 반영된 재시도는 검사하지 않는다). 최신 관계에 삭제 카드 끝점이 남아 AI 초기 세계관 적용의 활성 카드 사전 검사(`InitialWorldAdditionMapper.build`)가 422로 거절하던 것을 저장 쪽에서 막은 것이며 매퍼는 바꾸지 않았다. 회차를 지정한 편집은 최신 회차의 관계도 함께 읽어 같은 기준으로 검사한다: 삭제 카드를 끝점으로 하는 관계가 거기 남으면(더 뒤 회차에만 있거나 뒤 회차에서 내용이 바뀐 관계) 같은 422로 거절하고, 이 편집이 그 회차에서 끝내거나 바꾸는 관계는 최신에서 그 회차 내용 그대로면 함께 사라지므로 제외한다(회차를 생략한 편집은 이미 최신이라 더 읽지 않는다). 최신 관계에 없는 지난 회차 관계는 계속 허용한다. 다만 그 회차에서 끝낸 관계를 더 뒤 회차에서 같은 내용으로 다시 이었다면 조회가 연결의 회차를 알려 주지 않아 구별하지 못하고 통과한다. 이 세계관의 카드가 아닌 끝점은 어느 경우에도 422로 거절한다. 조회도 삭제된 카드를 이 세계관의 카드로 본다. ② `RELATED`에 인덱스가 없어 세계관 조회와 관계 ID 확인이 모든 연결을 훑는다. ③ 관계 ID는 노드가 없어 두 세계관이 같은 새 ID를 동시에 처음 쓰는 경합은 잠그지 못한다(이미 커밋된 ID는 막는다).
+- **한계**: ① 편집에서 그 회차 시점의 관계와 완전히 같게 둔 관계는 지난 회차에 이미 삭제된 카드가 끝점이어도 그대로 통과한다(끝점이 이 세계관의 카드이기만 하면 된다). 새로 만들거나 끝점·내용을 바꾼 관계는 양 끝이 활성 카드여야 하므로, 삭제한 카드를 끝점으로 하는 관계를 새로 잇거나 고칠 수는 없고 빼면 그 회차에 종료 연결이 생긴다. 다만 **카드 삭제는 `episode`를 생략한(최신) 편집에서만** 할 수 있다: 이번 요청이 삭제하는 카드(요청 전 초안에서 활성이던 카드, `replace=true`에서 생략한 카드 포함)가 있는데 `episode`를 지정하면 422 `WORLD_INPUT_INVALID`다(지난 회차 시점의 관계만으로는 최신 관계에 그 카드가 남는지 알 수 없다. 그 회차에서 끝낸 관계를 더 뒤 회차에서 같은 내용으로 다시 이었을 수 있다). 최신 편집에서도 삭제하는 카드를 끝점으로 하는 관계가 저장 결과에 남으면 같은 422이므로 그 관계는 `lifecycle=removed`로 보내거나 `replace=true`에서 생략해 함께 빼야 한다(#341). 이미 반영된 재시도는 두 검사를 모두 건너뛴다. 최신 관계에 삭제 카드 끝점이 남아 AI 초기 세계관 적용의 활성 카드 사전 검사(`InitialWorldAdditionMapper.build`)가 422로 거절하던 것을 저장 쪽에서 막은 것이며 매퍼는 바꾸지 않았다. 최신 관계에 없는 지난 회차 관계는 삭제된 카드를 끝점으로 계속 가질 수 있다. 이 세계관의 카드가 아닌 끝점은 어느 경우에도 422로 거절한다. 조회도 삭제된 카드를 이 세계관의 카드로 본다. ② `RELATED`에 인덱스가 없어 세계관 조회와 관계 ID 확인이 모든 연결을 훑는다. ③ 관계 ID는 노드가 없어 두 세계관이 같은 새 ID를 동시에 처음 쓰는 경합은 잠그지 못한다(이미 커밋된 ID는 막는다).
 
 ### 기존 데이터
 
@@ -87,7 +88,7 @@ RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
 - PostgreSQL은 world/card UUID·소유권·카드 원문·기존 카드 버전/manifest와 요청 상태만 소유한다. 추가 V2의 `relationship_state`는 graph token·생성 hash·최근 key/hash·예상 draft revision·완료 여부만 저장한다. 관계 내용·관계 snapshot·outbox를 이중 저장하지 않는다.
 - 기존 V1의 12개 테이블과 SQL 바이트는 보존하고 V2로 상태 테이블 하나만 추가한다. 새 경로는 기존 PG `relationship*`/`world_revision_relationship`에 쓰지 않는다. 과거 데이터의 실제 Neo4j 이관은 승인·실행하지 않았고 자동 backfill/import도 없다. 전환 marker가 없는 기존 world는 빈 관계 성공이 아니라 `migration_required`다.
 - Neo4j는 안정적인 world/card/relation UUID, 한 쌍의 다중 관계, 방향/대칭·극성·구조/감정·자유 본문·label·semantic metadata를 현재 값으로 보존한다. 삭제는 현재 edge/payload를 제거하며 교차 world 재사용 방지용 ID 예약만 남을 수 있다(DEC-51 이후: 현재 값이 아니라 회차별 연결로 보존하고 삭제는 종료 연결을 추가한다). `relationshipVersion`/`graphVersion`은 CAS·정합성 token이지 과거 관계를 조회할 수 있는 버전이 아니다.
-- 관계 endpoint는 같은 world의 카드여야 하고, 새로 만들거나 바뀐 관계는 활성 카드만 참조한다(그 회차 시점 관계와 같게 둔 관계는 지난 회차에 이미 삭제된 카드도 허용하되 이번 요청이 삭제하는 카드에 이어진 관계는 남길 수 없다, 위 '한계 ①'). DEC-51 이후 관계는 양 endpoint가 모두 있어야 저장하며 미완성(nullable) endpoint는 422 `WORLD_INPUT_INVALID`다(위 '구현 결과'). 요청당 카드·관계 최대 1,000개, 편집 요청 직렬화 크기 2 MB, key 1~200 UTF-8 바이트를 검사한다.
+- 관계 endpoint는 같은 world의 카드여야 하고, 새로 만들거나 바뀐 관계는 활성 카드만 참조한다(그 회차 시점 관계와 같게 둔 관계는 지난 회차에 이미 삭제된 카드도 허용하되 이번 요청이 삭제하는 카드는 최신 편집에서만 지울 수 있고 거기 이어진 관계는 남길 수 없다, 위 '한계 ①'). DEC-51 이후 관계는 양 endpoint가 모두 있어야 저장하며 미완성(nullable) endpoint는 422 `WORLD_INPUT_INVALID`다(위 '구현 결과'). 요청당 카드·관계 최대 1,000개, 편집 요청 직렬화 크기 2 MB, key 1~200 UTF-8 바이트를 검사한다.
 
 ### 두 저장소의 부분 실패
 
