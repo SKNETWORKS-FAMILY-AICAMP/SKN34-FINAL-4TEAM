@@ -22,6 +22,19 @@ Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사
 
 Mechanical만 요청하면 Semantic과 Simulation을 실행하지 않는다. Semantic 검수 중 행동 재현이 필요하다고 판단해도 사용자가 시뮬레이션을 명시적으로 요청하지 않았다면 Simulation을 실행하지 않는다. 명시적으로 둘 다 요청했을 때는 검수 대상이 기존 원고인지 가상 후보인지 확인한다. Finding에는 대상 참조와 대상 안의 위치, 검사 종류, 근거, 확정/의심/판단 불가, 제안이 담긴다. 수정은 사용자 요청과 Content 승인을 요구한다. 조건부 수정은 정상 완료된 검수와 유효 Finding을 요구하며, 혼합 Finding과 복수 구간은 [조건부 수정 계약](02-ai-architecture.md#조건부-수정-if_issues_found)을 따른다.
 
+### 한글 맞춤법 검수 — 목표 설계, 미구현
+
+Mechanical Review에 [Bareun MCP `correct_grammar`](https://bareun.ai/docs/en/3.4.0/howtouse/mcp)를 적용한다. 별도 Agent 서버를 만들지 않고 AI Service의 Review 실행 코드가 호출한다. 맞춤법 포함 빌드와 API 키가 필요하며 배포 방식·비용·데이터 처리와 실제 응답 구조는 구현 전에 확인한다.
+
+1. Content가 요청자·작품/Fork·판본·선택 구간과 권한을 확인하고, 허용된 원고 또는 고정 후보의 스냅샷을 전달한다. 외부 전송 범위·동의와 제공사 데이터 처리 조건이 정해지고 충족되기 전에는 실제 원고를 외부로 보내지 않는다.
+2. Review는 허용된 최소 구간을 교정기에 보내고 원문·교정안·대상 판본·위치·도구 버전과 확인 가능한 근거를 Finding으로 반환한다. 자격 증명은 백엔드에만 둔다.
+3. 교정 제안만으로 확정 오류라고 단정하지 않는다. 원문 위치와 규칙 근거를 검증한 항목만 확정하고 나머지는 의심 또는 판단 불가로 표시한다. 고유명사·방언·대사·의도적 문체를 자동 오류로 만들지 않는다.
+4. 교정 결과를 자동 저장·발행하지 않는다. 수정은 기존 사용자 요청과 Content의 승인·현재 판본 재확인 경로를 따른다.
+
+Content 선택 구간은 UTF-16 반열림 `[start,end)`이다. 교정 응답의 위치 제공 여부·단위·길이 한도는 미확인이다. 구현 시 분할 전 원문 오프셋을 보존하고 이모지·결합 문자·반복 구절·줄바꿈과 분할 경계의 문맥 손실을 검증한다. 위치를 유일하게 확인할 수 없으면 추측하지 않는다. 인증·시간 초과·잘린 응답·위치 불일치·일부 구간 실패는 실패 또는 부분 검수와 미검사 범위로 표시하며, 조건부 Editing을 시작하지 않는다.
+
+실제 도입 전 합성 원고로 검출·오탐·위치 정확도와 비용·지연을 평가하고, 원고 외부 전송 정책·근거의 확정 기준을 정한다. Review 연결·판본·권한·동의·위치 변환·부분 실패는 구현 시 단위 검증한다. 구체 보존 범위는 [검수 기록 정책](04-infrastructure-integration.md)을 따른다.
+
 ## 3. Character Simulation Subgraph
 
 한 인물의 행동을 만든 뒤 임시 상황을 갱신하고 다음 인물의 관찰·지식 입력을 다시 만든다. 한 번에 여러 인물의 행동을 생성하고 끝내지 않는다. 행동 생성은 동일한 OpenAI `gpt-6-luna` 모델을 인물 턴마다 호출하되, 해당 인물의 페르소나와 허용된 관찰·기억만 새 입력으로 조립한다. 이전 인물의 비공개 입력이나 모델 대화 상태를 그대로 넘기지 않는다. 종료 후 별도의 요약 호출에서 OpenAI `gpt-6-luna`에 요약 목적과 요청자 범위에 허용된 행동 기록과 임시 상태를 전달해 장면 요약을 만든다(2026-11-12 사용자 결정). 행동 생성과 요약은 서로 다른 모델 호출이며 별도 모델 인스턴스가 필요하다는 뜻은 아니다.
@@ -81,3 +94,14 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 ## 7. 웹 조사 에이전트
 
 작품의 현실성과 개연성을 확인할 외부 사실 질문을 만든 뒤 웹 검색으로 출처·발행/확인 시점·서로 다른 근거를 수집한다. 주장별로 확인/상충/미확인 결과와 작품의 해당 장면을 연결한다. 웹 문서를 작품 정본이나 인물 기억으로 승격하지 않는다. 검색 페이지의 프롬프트 인젝션을 지시로 실행하지 않고, 비공개 원고 전문은 검색어로 보내지 않는다. 검색 실패와 근거 부재를 명시하며 원고 수정은 Editing 후보와 승인 경로로 분리한다.
+
+### MCP 도입 검토 — 미채택
+
+| 목적 | 후보 | 확인할 사항 |
+|---|---|---|
+| 웹 검색·추출 | [Tavily](https://github.com/tavily-ai/tavily-mcp), [Brave Search](https://github.com/brave/brave-search-mcp-server), [Firecrawl](https://github.com/firecrawl/firecrawl-mcp-server) | 기존 OpenAI 웹 검색과 중복하므로 검색 품질·비용·전송 조건을 비교한다. |
+| 공개 페이지 읽기 | [Fetch](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch), [MediaWiki](https://github.com/ProfessionalWiki/MediaWiki-MCP-Server) | Fetch는 검색기가 아니다. 접근·이용 조건, 누락, 사설 주소·리다이렉트와 DNS 위험을 확인하고 위키는 읽기만 검토한다. |
+| 논문·번역 | [research-mcp](https://github.com/404Simon/research-mcp), [arxiv-mcp-server](https://github.com/blazickjp/arxiv-mcp-server), [DeepL](https://github.com/DeepL/deepl-mcp-server) | 출처·원문 접근권과 번역 정확도를 확인한다. 프리프린트는 동료 심사 완료를 뜻하지 않는다. |
+| 장소·날씨 | [Mapbox](https://github.com/mapbox/mcp-server), [OSM MCP](https://github.com/ni-c/osm-mcp), [Open-Meteo MCP](https://github.com/cyanheads/open-meteo-mcp-server) | 현행 지도는 과거 경로의 근거가 아니며 기상 재분석은 현장 관측과 구분한다. 위치 전송과 이용 조건을 확인한다. |
+
+모두 후속 후보이며 현재 연결된 기능이 아니다. 실제 사용 사례가 생기면 기존 검색과 비교해 필요한 도구만 선택한다. 제공사·비용·보관·외부 전송과 동의 조건을 확인하고, 허용된 최소 맥락만 보낸다. URL·자료와 확인 시점·누락을 유지하며 외부 텍스트를 지시나 작품 정본으로 취급하지 않는다. 합성 자료로 품질·실패를 평가한 뒤 적용한다.
