@@ -28,6 +28,7 @@ import { WorldChat } from './WorldChat'
 import { WorldCreate } from './WorldCreate'
 import { WorldLinkedLine, WorldNovelButton } from './WorldLinkedWork'
 import { PublicCardsNotice, PublishFields } from './WorldPublishFields'
+import { RelationEpisodePicker } from './RelationEpisodePicker'
 import { WorldRelationshipEditor } from './WorldRelationshipEditor'
 import { WorldRevisions } from './WorldRevisions'
 import { WorldSaveBar } from './WorldSaveBar'
@@ -247,6 +248,7 @@ function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: St
           <div hidden={step !== 'relations'}>
             {!manage && <p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p>}
             <button className="btn sm" type="button" onClick={vm.returnToCard}>{manage ? '설정집으로 돌아가기' : '설정 카드로 돌아가기'}</button>
+            <RelationEpisodePicker studio={vm} />
             <WorldRelationshipEditor key={`${world.id}:${vm.relationKey}`} studio={vm} />
           </div>
         )}

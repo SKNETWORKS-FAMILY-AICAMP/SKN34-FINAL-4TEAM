@@ -83,6 +83,8 @@ type Fixture = {
   demoCover?: true
   /** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결) */
   linkedWorkId?: string
+  /** 관계를 회차 시점으로 읽고 쓰는 서버 저장소(DEC-51, 없으면 회차를 모르는 데모) */
+  relationEpisodes?: true
 }
 const published = (worldId: string, change: WorldPublicationInput, listed = true): WorldPublication => ({ worldId, ...change, publishedAt: change.visibility === 'public' ? '2026-11-12T00:00:00Z' : null, listed })
 
@@ -116,6 +118,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
     saveStudio,
     setPublication,
     ...(fixture.demoCover ? {} : { setCover, removeCover, readCover }),
+    ...(fixture.relationEpisodes ? { relationEpisodes: true as const } : {}),
   })
   render(
     <Provider store={createAppStore({ role: 'user' })}>
@@ -497,7 +500,7 @@ it('버전 그래프는 작업 초안(저장하지 않은 수정 표시)과 확�
   expect(graph().queryByText('저장 안 됨')).toBeNull()
   fireEvent.change(screen.getByRole('textbox', { name: '설정 이름' }), { target: { value: '고친 이름' } })
   expect(graph().getByText('저장 안 됨')).toBeTruthy()
-  expect(graph().getByText(/관계는 현재 상태만 보관해요/)).toBeTruthy()
+  expect(graph().getByText(/관계는 회차별로 기록해요/)).toBeTruthy()
   fireEvent.click(graph().getByRole('button', { name: /확정 버전 1 · 초판/ }))
   expect(open).toHaveBeenCalledWith('r1')
   const sheet = within(screen.getByRole('dialog', { name: '확정 버전' }))
@@ -637,6 +640,41 @@ it('관계 연결 단계에서 그래프 카드를 차례로 두 번 누르면 �
   expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 대상' }).value).toBe(narae.item.id)
   expect(screen.getByRole('combobox', { name: '실제 관계 1' })).toBeTruthy()
   expect(screen.queryByText(/연결 상대를 고르세요/)).toBeNull()
+})
+
+// ── 관계 기준 회차(DEC-51): 인물 관계도 보기·작성 모드 관계 연결 단계에서 고른다 ───────────────────────
+const episodePicker = () => within(screen.getByRole('region', { name: '관계 기준 회차' }))
+it('인물 관계도 보기에서 회차를 고르면 그 회차로 다시 읽고, 회차 칸은 다시 열리지 않으며 요청이 끝나면 입력 칸으로 초점이 돌아온다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  const at = (episode?: number): StudioWorld => ({ id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: episode === 1 ? [garam, narae] : friends([garam, narae], garam, narae), analysis: null, linkedWorkId: 'w1' })
+  const read = vi.fn(async (_id: string, _signal?: AbortSignal, episode?: number) => structuredClone(at(episode)))
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa', { linkedWorkId: 'w1', relationEpisodes: true, read })
+  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  expect(screen.getByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy() // 최신 회차의 관계
+  const apply = episodePicker().getByRole('button', { name: '이 회차 관계 보기' }), field = episodePicker().getByRole('textbox', { name: '관계 기준 회차' })
+  fireEvent.change(field, { target: { value: '1' } })
+  fireEvent.click(apply)
+  expect(await screen.findByText('아직 연결한 관계가 없어요.')).toBeTruthy()
+  expect(read).toHaveBeenLastCalledWith('qa', expect.any(AbortSignal), 1)
+  expect(episodePicker().getByText('지금은 1화 시점의 관계예요.')).toBeTruthy()
+  expect(episodePicker().getByRole('button', { name: '이 회차 관계 보기' })).toBe(apply) // 관계 편집기만 다시 열리고 회차 칸은 그대로다
+  await waitFor(() => expect(document.activeElement).toBe(field)) // 요청 중 잠기며 잃은 초점을 입력 칸으로 돌려준다
+})
+it('회차 선택은 데모(메모리)·소설 미연결·저장하지 않은 변경에서 이유와 함께 잠기고, 작성 모드의 관계 연결 단계에도 있다', async () => {
+  await show(undefined, '/worldstudio/qa?view=people', { linkedWorkId: 'w1' }) // 회차를 모르는 저장소
+  expect(episodePicker().getByText('데모에서는 지원하지 않아요.')).toBeTruthy()
+  expect(episodePicker().getByRole<HTMLInputElement>('textbox', { name: '관계 기준 회차' }).disabled).toBe(true)
+  cleanup()
+  await wizard({ relationEpisodes: true })
+  fireEvent.click(within(screen.getByRole('navigation', { name: '세계관 작성 단계' })).getByRole('button', { name: '관계 연결 (선택)' }))
+  expect(episodePicker().getByText('소설을 연결하면 회차별로 기록할 수 있어요.')).toBeTruthy()
+  cleanup()
+  const [garam, narae] = [person('가람'), person('나래')]
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
+  expect(episodePicker().getByRole<HTMLInputElement>('textbox', { name: '관계 기준 회차' }).disabled).toBe(false)
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(screen.getByRole('button', { name: '가람 · 친구 · 나래 삭제' })) // 초안을 바꾸면 다시 읽을 때 잃으므로 잠근다
+  expect(episodePicker().getByText('저장하지 않은 변경이 있어 회차를 바꿀 수 없어요. 먼저 세계관을 저장하세요.')).toBeTruthy()
 })
 
 it('관계 목록 표는 주체·관계·대상과 편집·삭제를 보이고 삭제는 확인한 뒤에만 편집본에서 지운다', async () => {

@@ -1,6 +1,7 @@
 import {expect,it} from 'vitest'
 import {InMemoryWorldStudioRepository} from './InMemoryWorldStudioRepository'
 import {newSetting} from '../../domain/entities/studioWorld'
+import type {WorldStudioRepository} from '../../domain/repositories/WorldStudioRepository'
 it('isolates returned values and rejects stale versions without losing saved metadata',async()=>{
  const repo=new InMemoryWorldStudioRepository(),world=await repo.create('세계','')
  const s=newSetting('people');s.item.title='가람';s.tags=['태그'];s.aliases=['별칭'];world.settings=[s]
@@ -43,4 +44,8 @@ it('keeps character documents across a demo save like the server: only on a char
  expect(Object.keys(saved.settings[1])).not.toContain('characterDocs')
  expect((await repo.read(world.id)).settings.map(s=>s.characterDocs)).toEqual([docs,undefined,undefined])
  expect(world.settings[2].characterDocs).toEqual(docs) // 받은 편집본은 바꾸지 않는다
+})
+it('does not read or save relations per episode, so the demo locks the relation episode picker',()=>{
+ const repository:WorldStudioRepository=new InMemoryWorldStudioRepository()
+ expect(repository.relationEpisodes).toBeUndefined()
 })

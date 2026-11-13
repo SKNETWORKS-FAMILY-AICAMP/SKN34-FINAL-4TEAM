@@ -7,7 +7,7 @@ import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { RelationPairEditor } from './RelationPairEditor'
-import { relationLabel } from '../../../../domain/entities/studioRelations'
+import { DELETED_CARD_NAME, hasDeletedEndpoint, isDeletedCard, relationLabel } from '../../../../domain/entities/studioRelations'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
@@ -96,7 +96,9 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   }
   const relations = studio.editing!.settings.filter((s) => s.item.kind === 'relation')
   const name = (id: string | null) =>
-    people.find((s) => s.item.id === id)?.item.title || '선택 안 함'
+    isDeletedCard(studio.editing!.settings, id) ? DELETED_CARD_NAME : people.find((s) => s.item.id === id)?.item.title || '선택 안 함'
+  // 지난 회차 관계는 그 뒤에 삭제한 설정을 끝점으로 가질 수 있다(DEC-51). 인물관계도에는 그릴 곳이 없어 목록에서 읽기 전용으로만 보이고, 저장하면 그대로 보낸다.
+  const readOnly = (s: (typeof relations)[number]) => hasDeletedEndpoint(studio.editing!.settings, s.item)
   return (
     <section ref={section} className='world-map relationship-editor' aria-label='관계 편집' onKeyDown={(e) => { if (choosing && e.key === 'Escape') stopChoosing() }}>
       <p className='small muted'>구조적 관계와 방향별 감정을 따로 작성해요.</p>
@@ -239,8 +241,14 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                             <td>{label}</td>
                             <td>{name(s.item.targetId)}</td>
                             <td className='relationship-row-actions'>
-                              <button className='btn sm' type='button' aria-label={`${full} 편집`} onClick={() => selectPair(s.item.subjectId ?? '', s.item.targetId ?? '', true)}>편집</button>
-                              <button className='btn sm relationship-remove' type='button' aria-label={`${full} 삭제`} onClick={() => removeRelation(s.item.id, full)}>삭제</button>
+                              {readOnly(s)
+                                ? <span className='small muted'>읽기 전용</span>
+                                : (
+                                  <>
+                                    <button className='btn sm' type='button' aria-label={`${full} 편집`} onClick={() => selectPair(s.item.subjectId ?? '', s.item.targetId ?? '', true)}>편집</button>
+                                    <button className='btn sm relationship-remove' type='button' aria-label={`${full} 삭제`} onClick={() => removeRelation(s.item.id, full)}>삭제</button>
+                                  </>
+                                )}
                             </td>
                           </tr>
                         )
@@ -248,6 +256,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                     </tbody>
                   </table>
                 )}
+              {relations.some(readOnly) && <p className='small muted'>삭제된 설정과 이어진 관계는 읽기 전용이에요. 인물관계도에는 그리지 않고, 저장하면 그대로 유지돼요.</p>}
             </section>
           </div>
         </div>

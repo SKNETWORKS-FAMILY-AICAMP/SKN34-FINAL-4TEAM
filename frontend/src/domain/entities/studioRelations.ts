@@ -112,6 +112,12 @@ export function cardDeletionInfo(settings:StudioSetting[],id:string) {
  const blockers=settings.filter(s=>!removed.has(s.item.id)&&[s.item.subjectId,s.item.targetId,s.item.afterId,...s.item.relatedIds].some(ref=>ref!==null&&removed.has(ref)))
  return {card,relations,blockers}
 }
+/** 지난 회차 관계의 끝점이 그 뒤에 삭제한 설정이면 관계 목록에 이 이름으로 보인다(DEC-51). */
+export const DELETED_CARD_NAME='삭제된 설정'
+/** 끝점 id가 이 초안의 설정 카드(관계 행 제외)에 없는지. 비어 있는(null) 끝점은 삭제가 아니라 아직 고르지 않은 것이다. */
+export const isDeletedCard=(settings:StudioSetting[],id:string|null)=>id!==null&&!settings.some(s=>s.item.kind!=='relation'&&s.item.id===id)
+/** 삭제된 설정을 끝점으로 하는 관계. 새 관계는 활성 카드만 끝점으로 고르므로 지난 회차를 읽을 때만 생기고, 화면은 읽기 전용으로 둔다. */
+export const hasDeletedEndpoint=(settings:StudioSetting[],item:Pick<SettingItem,'subjectId'|'targetId'>)=>isDeletedCard(settings,item.subjectId)||isDeletedCard(settings,item.targetId)
 export function removeCard(settings:StudioSetting[],id:string) {
  const {relations,blockers}=cardDeletionInfo(settings,id)
  if(blockers.length)throw new Error(`다른 설정에서 참조하고 있어 삭제할 수 없습니다: ${blockers.map(s=>s.item.title).join(', ')}`)

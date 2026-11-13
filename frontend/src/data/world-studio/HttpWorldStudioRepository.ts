@@ -186,8 +186,9 @@ function relationship(row: StudioSetting) {
 }
 function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   if (value.worldId !== id) throw invalid()
+  // 관계 끝점은 삭제한 카드도 이 세계관의 카드다: 지난 회차 시점 관계는 그 뒤에 삭제한 설정을 끝점으로 가질 수 있다(DEC-51).
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
-    ids = new Set(active.map((c) => c.id))
+    ids = new Set(value.cards.map((c) => c.id))
   const settings: StudioSetting[] = active.map((c) => {
     // 독자 공개 회차·가져온 출처·인물 문서는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
     const {revealFromEpisode:reveal,importedFrom:source,characterDocs:written,...known}=c.semanticMetadata
@@ -237,8 +238,9 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   }
 }
 
-/** 현재 상태만 저장한다. 재시도 입력은 이 탭의 메모리에만 보존하며 PG·브라우저 영구 저장소에 복제하지 않는다. */
+/** 관계는 회차 시점으로 읽고 쓴다(DEC-51). 재시도 입력은 이 탭의 메모리에만 보존하며 PG·브라우저 영구 저장소에 복제하지 않는다. */
 export class HttpWorldStudioRepository implements WorldStudioRepository {
+  readonly relationEpisodes = true as const
   private readonly fetcher?: typeof fetch
   private session = authVersion()
   private pendingCreate?: { id: string; name: string; description: string }
@@ -336,10 +338,11 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       relationshipStatus: r.relationshipStatus,
     }))
   }
-  async read(id: string, signal?: AbortSignal): Promise<StudioWorld> {
+  async read(id: string, signal?: AbortSignal, episode?: number): Promise<StudioWorld> {
     this.checkSession()
     uuid.parse(id)
-    return world(await this.request('/' + id, draft, 'GET', undefined, signal), id)
+    const query = episode === undefined ? '' : '?episode=' + episode
+    return world(await this.request('/' + id + query, draft, 'GET', undefined, signal), id)
   }
   /** 공개 범위·장르는 초안 저장과 별개로 바로 적용된다. 공개로 설정해도 확정 버전이 없으면 `listed`가 false다. */
   async setPublication(id: string, publication: WorldPublicationInput, signal?: AbortSignal): Promise<WorldPublication> {
@@ -395,15 +398,17 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       throw error
     }
   }
-  async saveStudio(value: StudioWorld, signal?: AbortSignal): Promise<StudioWorld> {
+  async saveStudio(value: StudioWorld, signal?: AbortSignal, episode?: number): Promise<StudioWorld> {
     this.checkSession()
     uuid.parse(value.id)
+    // 회차도 같은 입력의 일부다: 미확인 저장을 다른 회차로 바꿔 덮어쓰지 않는다(undefined는 직렬화에서 빠져 회차 없는 입력은 그대로다).
     const input = JSON.stringify({
       id: value.id,
       name: value.name,
       description: value.description,
       version: value.version,
       settings: value.settings,
+      episode,
     })
     const previous = this.pending.get(value.id)
     if (previous && previous.input !== input) {
@@ -416,6 +421,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
         expectedDraftRevision: value.version,
         key: crypto.randomUUID(),
         replace: true,
+        ...(episode !== undefined && { episode }),
         name: value.name,
         description: value.description,
         cards: value.settings.filter((s) => s.item.kind !== 'relation').map((row) => ({

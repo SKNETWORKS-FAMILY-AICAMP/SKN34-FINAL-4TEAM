@@ -31,6 +31,16 @@ export type StudioSetting = {serverMetadata?:Record<string,unknown>;item:Setting
 /** 독자 공개 회차가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 저장 전 확인([worldWritingIssues])과 저장 검증(WorldStudioUseCase.save)이 같은 규칙·문구를 쓴다. */
 export const REVEAL_EPISODE_ERROR='독자 공개 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidReveal=({revealFromEpisode:n}:Pick<StudioSetting,'revealFromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
+/** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번): 값이 있으면 1 이상의 정수여야 하고, 없으면(`null`) 최신 회차다. 조회·저장 검증과 입력 칸이 같은 규칙·문구를 쓴다. */
+export const RELATION_EPISODE_ERROR='관계 기준 회차는 1 이상의 정수로 입력해 주세요.'
+export const invalidRelationEpisode=(n:number)=>!(Number.isInteger(n)&&n>=1)
+/** `관계 기준 회차` 입력 글자를 값으로: 비어 있으면 최신(`null`), 1 이상의 정수 글자면 그 회차, 그 밖은 이유다. */
+export function relationEpisodeInput(text:string):{episode:number|null}|{error:string}{
+ const trimmed=text.trim()
+ if(!trimmed)return {episode:null}
+ const episode=/^\d+$/.test(trimmed)?Number(trimmed):Number.NaN
+ return invalidRelationEpisode(episode)?{error:RELATION_EPISODE_ERROR}:{episode}
+}
 /** 세계관 단위 공개 설정(설정 카드 단위 공개와 다르다). 값이 없으면 비공개·장르 미지정이다(서버가 이 필드를 주기 전 응답과 메모리 데모). */
 export type WorldVisibility = 'private'|'public'
 export type WorldPublicationInput = {visibility:WorldVisibility;genre:PublicWorldGenre|null}

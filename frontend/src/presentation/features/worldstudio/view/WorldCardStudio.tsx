@@ -129,7 +129,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
                   <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!revisions.supported} onClick={openVersions}>확정 버전 남기기</button>
                 </div>
                 <VersionGraph rows={worldVersionRows(revisions.rows, vm.dirty, vm.saved?.currentRevisionId)} selectedId={revisions.detail?.revisionId ?? ''} disabled={revisions.busy} onPick={(id) => { void revisions.open(id); openVersions() }} />
-                <p className="small muted world-graph-note">{revisions.supported ? '관계는 현재 상태만 보관해요(버전에 포함되지 않음).' : '목업에서는 확정 버전을 지원하지 않아요. 관계는 현재 상태만 보관해요.'}</p>
+                <p className="small muted world-graph-note">{revisions.supported ? '관계는 회차별로 기록해요(확정 버전에는 포함되지 않음).' : '목업에서는 확정 버전을 지원하지 않아요. 관계는 현재 상태만 보관해요.'}</p>
               </section>
             </div>
           </div>
