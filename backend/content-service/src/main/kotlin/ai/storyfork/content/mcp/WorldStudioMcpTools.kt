@@ -5,6 +5,7 @@ import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.domain.episodeFromText
 import ai.storyfork.content.world.service.AnalysisStorageUnconfirmed
 import ai.storyfork.content.world.service.InitialWorldAnalysisService
 import ai.storyfork.content.world.service.InitialWorldApplicationService
@@ -56,20 +57,23 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_read",
-        description = "세계관의 현재 초안(카드·관계·공개 설정)을 조회한다(GET /api/v1/world-studios/{id}). 소유자만 가능하며 남의 세계관은 404, 관계 저장소 전환 필요·불일치는 409, 관계 저장 미완료는 503이다.",
+        description = "세계관의 현재 초안(카드·관계·공개 설정)을 조회한다(GET /api/v1/world-studios/{id}). 관계는 episode(선택)화 시점의 것이며 생략하면 최신 회차다. 소유자만 가능하며 남의 세계관은 404, episode 값 오류는 422, 관계 저장소 전환 필요·불일치는 409, 관계 저장 미완료는 503이다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
-    fun read(context: McpTransportContext, @McpToolParam(description = "세계관 ID(UUID)") id: String): WorldDraftResponse =
-        studioTool { linked(studio.draft(uuidArg(id), context.callerUuid())) }
+    fun read(
+        context: McpTransportContext,
+        @McpToolParam(description = "세계관 ID(UUID)") id: String,
+        @McpToolParam(description = "관계를 볼 회차 순번(연결된 소설의 회차, 1 이상의 정수). 생략하면 최신 회차", required = false) episode: String?,
+    ): WorldDraftResponse = studioTool { linked(studio.draft(uuidArg(id), context.callerUuid(), episodeFromText(episode))) }
 
     @McpTool(
         name = "world_studio_edit_draft",
-        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 소유자만 가능하며 expectedDraftRevision이 world_studio_read의 draftRevision과 다르면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다.",
+        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 관계는 episode(선택)화 시점의 전체 목록으로 저장하며 생략하면 최신 회차다. 소유자만 가능하며 expectedDraftRevision이 world_studio_read의 draftRevision과 다르면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다.",
     )
     fun editDraft(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
-        @McpToolParam(description = "초안 입력: expectedDraftRevision·name·description·key(필수, 1~200바이트, 재시도 식별용)·replace(false면 보낸 카드·관계만 추가·갱신, true면 보내지 않은 것은 제거)·cards(최대 1000개; cardType=character|location|organization|ability|object|rule|event|other, areaCode=basic|space|history|society|culture|special|conflict, visibility=private|public, lifecycle=active|removed)·relationships(category=structural|emotional, direction=directed|symmetric, polarity=asserted|denied)") request: EditWorldDraftRequest,
+        @McpToolParam(description = "초안 입력: expectedDraftRevision·name·description·key(필수, 1~200바이트, 재시도 식별용)·replace(false면 보낸 카드·관계만 추가·갱신, true면 보내지 않은 것은 제거)·cards(최대 1000개; cardType=character|location|organization|ability|object|rule|event|other, areaCode=basic|space|history|society|culture|special|conflict, visibility=private|public, lifecycle=active|removed)·relationships(sourceCardId·targetCardId 둘 다 필요; category=structural|emotional, direction=directed|symmetric, polarity=asserted|denied)·episode(선택, 연결된 소설의 회차 순번 1 이상. relationships는 그 회차 시점의 관계이며 바뀐 것만 그 회차에 기록하고 생략하면 최신 회차)") request: EditWorldDraftRequest,
     ): WorldDraftResponse = studioTool { linked(studio.edit(uuidArg(id), context.callerUuid(), request)) }
 
     @McpTool(

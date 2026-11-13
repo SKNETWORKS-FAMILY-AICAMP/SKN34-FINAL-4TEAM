@@ -53,8 +53,9 @@ STORYFORK는 다중 AI 에이전트 기반 독자 참여형 스토리 창작·�
 - 원작·Fork·초안·시뮬레이션 상태를 구분한다. Fork는 기준 회차·버전을 보존하고, 최초 수정 전에는 원본 변경을 따라가며
   독립 후에는 알림과 사용자 선택으로만 반영한다(DEC-37).
 - 설정은 항목별 공개·비공개와 회차별 공개 범위를 두며 기본은 비공개다. AI 제안과 사용자 승인·실제 반영을 구분한다(DEC-36).
-- 저장: PostgreSQL은 원문·버전·체크포인트·Fork, 관계는 Neo4j 현재 상태 하나만 정본이다(관계 이력·과거 복원 없음,
-  [#132 계약](docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)). `pg_git`은 쓰지 않는다.
+- 저장: PostgreSQL은 원문·버전·체크포인트·Fork, 관계는 Neo4j 하나만 정본이며 회차별 연결로 기록한다
+  ([DEC-51](docs/design/worldstudio-independent-schema.md#회차별-관계--dec-51), 서버·MCP 소스 구현, 회차 선택 화면과 기존 데이터 이전은 남음).
+  이전 #132는 현재 상태만 저장했다([계약](docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)). `pg_git`은 쓰지 않는다.
 - 기능을 완료하면 [기능표](docs/feature-roadmap.md)의 해당 행 체크를 실제 상태대로 갱신한다.
 
 ## 권장 스킬·도구

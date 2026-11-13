@@ -18,9 +18,13 @@ class RelationshipInputHelperTest {
         assertEquals(listOf(first,second),RelationshipInputHelper.merge(listOf(first),listOf(second),false,setOf(a,b)))
         assertTrue(RelationshipInputHelper.merge(listOf(first),emptyList(),true,setOf(a,b)).isEmpty())
     }
-    @Test fun `draft may be incomplete but cannot reference a different world or itself`() {
-        val draft=RelationshipPayload(UUID.randomUUID(),a,null,null)
-        assertEquals(listOf(draft),RelationshipInputHelper.merge(emptyList(),listOf(draft),true,setOf(a)))
+    @Test fun `a relationship needs both cards and cannot reference a different world or itself`() {
+        // DEC-51: 연결은 두 카드 사이에만 있어 끝이 비어 있는 관계는 저장할 수 없다. 삭제 표시(removed)는 현재 관계에서 빠질 뿐이라 끝이 비어도 된다.
+        val incomplete=RelationshipPayload(UUID.randomUUID(),a,null,null)
+        assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.merge(emptyList(),listOf(incomplete),true,setOf(a)) }
+        assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.merge(emptyList(),listOf(incomplete.copy(sourceCardId=null,targetCardId=b)),true,setOf(b)) }
+        assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.merge(listOf(incomplete),emptyList(),false,setOf(a)) }
+        assertTrue(RelationshipInputHelper.merge(emptyList(),listOf(incomplete.copy(lifecycle="removed")),true,setOf(a)).isEmpty())
         assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.merge(emptyList(),listOf(first),true,setOf(a)) }
         assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.merge(emptyList(),listOf(first.copy(targetCardId=a)),true,setOf(a)) }
         assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.merge(emptyList(),listOf(first,first),true,setOf(a,b)) }
