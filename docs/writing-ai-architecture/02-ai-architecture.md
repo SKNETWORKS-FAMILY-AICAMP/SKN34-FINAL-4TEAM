@@ -63,6 +63,7 @@ Python 실행기는 Router의 `feature`·`when`을 사용자 의도 분류로 �
 - `POST /internal/v1/orchestrations` `{request, operation?, materials?, inputs}` → `plan` 노드가 Intent Router를 호출하고 계획을 검증한 뒤 기능 노드를 계획 순서로 한 번씩 실행하고 `finish`로 끝낸다. `inputs`는 Content가 권한·판본을 확인해 기능별로 채운 각 내부 API의 요청 DTO다(`story_context`, `writing_editing.draft|patch`, `web_research`).
 - Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Review·Development·World & Plot·Simulation)이나 조건부 단계가 하나라도 있으면 `unsupported`, 단계 입력이 하나라도 빠지면 `needs_input`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 조건부 단계는 Review의 Finding 연결이 필요해 아직 실행하지 않는다.
 - 구현된 세 Agent 사이에는 등록된 결과 전달 연결이 없으므로 각 단계는 자기 입력으로만 실행한다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`와 고정 메시지로 남기고 새 단계를 시작하지 않으며, 완료한 결과는 보존한다. 결과는 Agent 원본 결과를 계획 순서로 묶을 뿐 종합 모델을 호출하지 않는다.
+- `POST /internal/v1/orchestrations/stream`은 같은 그래프를 노드 단위로 흘리는 SSE다. 이벤트는 `plan`(계획 단계) → 단계마다 `started`(다음 노드가 실제로 실행할 기능)·`step`(그 단계의 결과·실패) → `done`(위 응답과 같은 최종 결과)이다. 응답 헤더를 보낸 뒤라 Router 실패는 `error` 이벤트 하나로 알리고 끝낸다. 내부 인증은 스트림 전에 검사한다. Agent의 모델 호출은 스트리밍하지 않아 단계 결과는 완성본 단위로 온다.
 - Router 실패는 503이다. 그래프 상태는 체크포인트 저장을 위해 JSON 값만 담는다. Q&A의 인용 id가 전달한 발췌 밖이면 Python도 502로 거절한다.
 
 #### 작업 간 입력·출력

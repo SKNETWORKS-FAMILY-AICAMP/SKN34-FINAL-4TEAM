@@ -6,11 +6,14 @@
 상태는 체크포인트에 그대로 저장할 수 있도록 JSON 값만 담는다.
 """
 
+from collections.abc import AsyncIterator
 from typing import TypedDict
 
+from fastapi.sse import ServerSentEvent
 from langgraph.graph import END, START, StateGraph
 
 from app.intent import service as intent
+from app.intent.errors import IntentFailure
 from app.manuscript import service as manuscript
 from app.manuscript.errors import ManuscriptFailure
 from app.manuscript.models import AnswerRequest
@@ -34,6 +37,7 @@ UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 �
                        '작품 질문, 집필·수정, 고증 조사는 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
 FAILED_MESSAGE = '작업 중 실패가 있어 남은 작업을 실행하지 않았어요.'
+ROUTER_FAILED_MESSAGE = '요청 분류에 실패했습니다.'
 
 
 class State(TypedDict, total=False):
@@ -108,8 +112,39 @@ def build() -> StateGraph:
 GRAPH = build().compile()
 
 
+def _initial(data: OrchestrationRequest) -> State:
+    return {'request': data.request, 'operation': data.operation, 'materials': data.materials,
+            'inputs': data.inputs.model_dump(exclude_none=True)}
+
+
+def _response(state: State) -> OrchestrationResponse:
+    return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
+
+
 def run(data: OrchestrationRequest) -> OrchestrationResponse:
     """한 요청을 계획·검증·실행한다. Router 실패(IntentFailure)는 그대로 올린다."""
-    state = GRAPH.invoke({'request': data.request, 'operation': data.operation, 'materials': data.materials,
-                          'inputs': data.inputs.model_dump(exclude_none=True)})
-    return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
+    return _response(GRAPH.invoke(_initial(data)))
+
+
+async def stream(data: OrchestrationRequest) -> AsyncIterator[ServerSentEvent]:
+    """같은 그래프를 노드 단위로 흘려 plan → (started → step)* → done 이벤트를 보낸다.
+
+    started는 다음 노드가 실제로 실행할 단계라서 화면의 진행 표시가 그래프 상태와 같다.
+    응답 헤더를 보낸 뒤라 Router 실패는 HTTP 상태 대신 error 이벤트 하나로 알리고 끝낸다.
+    """
+    state = _initial(data)
+    try:
+        async for update in GRAPH.astream(state, stream_mode='updates'):
+            for node, change in update.items():
+                state.update(change)
+                if node == 'plan':
+                    yield ServerSentEvent(event='plan', data={'steps': state['steps']})
+                elif node in CALLS:
+                    yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == node))
+                upcoming = _next(state) if node != 'finish' else END
+                if upcoming in CALLS:
+                    yield ServerSentEvent(event='started', data={'feature': upcoming})
+    except IntentFailure:
+        yield ServerSentEvent(event='error', data={'message': ROUTER_FAILED_MESSAGE})
+        return
+    yield ServerSentEvent(event='done', data=_response(state).model_dump(mode='json'))

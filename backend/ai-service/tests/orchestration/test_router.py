@@ -13,6 +13,9 @@ def test_internal_token_is_required(monkeypatch):
     with pytest.raises(HTTPException) as error:
         router.orchestrate(OrchestrationRequest(request='요청'), 'wrong')
     assert error.value.status_code == 403
+    with pytest.raises(HTTPException) as error:
+        router.internal_token('wrong')
+    assert error.value.status_code == 403
 
 
 def test_router_failure_becomes_503(monkeypatch):
