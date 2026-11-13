@@ -78,6 +78,7 @@ class OrchestrationResponse(BaseModel):
     waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다.
     """
     status: Literal['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']
+    runId: str | None = None  # Langfuse trace id. 추적이 꺼져 있으면 없다.
     message: str | None = None
     steps: list[StepResult] = []
     missingInputs: list[Feature] = []

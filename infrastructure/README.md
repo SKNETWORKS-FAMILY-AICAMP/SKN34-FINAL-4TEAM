@@ -176,6 +176,22 @@ docker exec storyfork-develop-cd-elasticsearch-1 curl -fsS 'http://127.0.0.1:920
 docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index'
 ```
 
+## 집필 AI 추적용 Langfuse (#302)
+
+앱 스택과 분리한 별도 Compose 프로젝트(`storyfork-langfuse`)입니다. 시연·디버깅할 때만 켭니다. 공식 구성에서 웹·worker와 PostgreSQL·ClickHouse·Redis·MinIO만 남겼고, 웹 화면만 `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`에 엽니다. 나머지는 호스트 포트가 없어 앱 스택의 5432·6379·9000과 겹치지 않습니다. 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
+
+1. 루트 `.env`에 `.env.example`의 Langfuse 항목을 채웁니다. 비밀값은 각각 `openssl rand -hex 32`로 만들고, `LANGFUSE_PUBLIC_KEY=pk-lf-<임의값>`, `LANGFUSE_SECRET_KEY=sk-lf-<임의값>`처럼 접두어를 붙입니다. `LANGFUSE_BASE_URL`은 Compose의 ai-service면 `http://host.docker.internal:3000`, 네이티브 실행이면 `http://localhost:3000`입니다.
+2. 저장소 루트에서 시작합니다. 첫 실행은 이미지를 받고 마이그레이션하느라 몇 분 걸립니다.
+
+```powershell
+docker compose -f infrastructure/docker-compose.langfuse.yaml --env-file .env up -d --wait
+```
+
+3. 첫 시작 때 조직 `STORYFORK`, 프로젝트 `writing-ai`, 관리자(`LANGFUSE_INIT_USER_*`)와 `.env`의 같은 API 키가 만들어집니다. 회원가입은 막혀 있습니다. http://localhost:3000 에 관리자로 로그인합니다.
+4. 앱 스택(ai-service)을 다시 시작하면 집필 AI 요청이 **Tracing → Traces**에 나타납니다. 응답의 `runId`가 trace id입니다. 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
+
+종료는 같은 명령에 `stop`, 데이터까지 지우려면 `down -v`입니다(되돌릴 수 없음). 비밀값을 바꾸면 기존 볼륨과 맞지 않으므로 `down -v` 뒤 다시 시작합니다. 키를 비워 두면 ai-service는 추적하지 않습니다.
+
 ## CI → CD (publish → deploy)
 
 [CI](../.github/workflows/ci.yml)와 [CD](../.github/workflows/publish-images.yml) 두 workflow를 사용합니다. 별도 deploy workflow는 없습니다.

@@ -1,4 +1,5 @@
 import asyncio
+import json
 from uuid import uuid4
 
 import pytest
@@ -236,3 +237,32 @@ def test_stream_reports_waiting_then_resume_streams_steps(monkeypatch):
     second = stream(request=None, conversation=conversation, resume={'approved': True, 'inputs': {'web_research': WEB}})
     assert [name for name, _ in second] == ['started', 'step', 'done']
     assert second[-1][1]['status'] == 'completed'
+
+
+def test_run_id_is_the_trace_of_plan_and_steps(monkeypatch, spans):
+    fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    result = run(inputs={'story_context': QA, 'web_research': WEB})
+    found = {s.name: s for s in spans()}
+    assert {'writing_ai.orchestration', 'plan', 'step.story_context', 'step.web_research'} <= set(found)
+    root = found['writing_ai.orchestration']
+    assert result.runId == format(root.context.trace_id, '032x')
+    assert all(found[n].parent.span_id == root.context.span_id for n in ('plan', 'step.story_context', 'step.web_research'))
+    assert json.loads(root.attributes['langfuse.observation.input']) == {'request': '요청'}
+    assert json.loads(found['plan'].attributes['langfuse.observation.input']) == {'request': '요청'}
+
+
+def test_failed_step_is_traced_as_error(monkeypatch, spans):
+    fake_agents(monkeypatch, plan('web_research'), fail={'web_research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
+    run(inputs={'web_research': WEB})
+    step = next(s for s in spans() if s.name == 'step.web_research')
+    assert step.attributes['langfuse.observation.level'] == 'ERROR'
+    assert step.attributes['langfuse.observation.status_message'] == '웹 검색에 실패했습니다.'
+
+
+def test_resumed_steps_join_the_trace_of_the_waiting_turn(monkeypatch, spans):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('web_research'))
+    waiting = chat(thread)
+    done = resume(thread, inputs={'web_research': WEB})
+    step = next(s for s in spans() if s.name == 'step.web_research')
+    assert done.runId == waiting.runId == format(step.context.trace_id, '032x')

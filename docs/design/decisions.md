@@ -10,7 +10,7 @@
 |---|---|---|
 | DEC-16 | 과거 MVP에서는 KAG·지식 그래프를 제외하고 세계관을 RDB에 저장 | `대체`(DEC-26). KAG 미도입은 유지하되, MVP에 관계용 그래프 DB를 사용 |
 | DEC-17 | PostgreSQL + Flyway. PostgreSQL 스키마는 core-api의 Flyway 파일로 관리. MVP에서 pgvector·임베딩 제외 | `부분 유지`(DEC-26). PostgreSQL만 쓰는 구성은 대체; 그래프 DB 제품·스키마 관리 방식은 미정 |
-| DEC-18 | **Langfuse는 MVP 이후.** MVP에는 Langfuse·Redis·ClickHouse 묶음을 두지 않고, AI 사용량·상태·실패는 Core의 AI 작업 기록으로 확인 | `확정`(사용자 결정). UC-26·AI Service 지침 갱신. 이전 DEC-12·14·15는 도입 때 참고 |
+| DEC-18 | **Langfuse는 MVP 이후.** MVP에는 Langfuse·Redis·ClickHouse 묶음을 두지 않고, AI 사용량·상태·실패는 Core의 AI 작업 기록으로 확인 | `확정`(사용자 결정). UC-26·AI Service 지침 갱신. 이전 DEC-12·14·15는 도입 때 참고. **2026-11-12 사용자 요청(#302)으로 AI Service의 집필 AI RAG 추적 SDK 계측만 앞당겨 구현**(키가 없으면 꺼짐). 2026-11-13 팀 결정으로 질문·원고·답변 본문 추적을 허용(설정·현재 관계 본문은 참조만, 회원 계정 정보·비밀값 제외). 서버는 사용자 결정으로 로컬 self-host 별도 Compose(`infrastructure/docker-compose.langfuse.yaml`, 필요할 때만 켬)이며 개발 배포 서버 배치와 Content 검색 단계 계측은 미정 |
 | DEC-19 | **Core ↔ AI 내부 통신 인증은 MVP 이후.** MVP에서는 AI Service와 채택될 경우 Core 내부 조회 API를 호스트에 공개하지 않음 | `확정`(로컬 시연 전제). 포트 비공개는 인증이 아니므로 로컬 검증 범위를 넘는 배포 전에 결정; AI 조회 경로 자체는 미정(DEC-28) |
 | DEC-20 | 과거 결정: Gitea 대신 세계관 항목을 게시글, 회차별 갱신을 댓글처럼 추가만 하는 기록으로 두고 Fork 허용 내용을 DB에서 복사 | `부분 대체`(DEC-27·28·32). Gitea 제거와 항목별 문서 작성·분류는 유지; 댓글 형태의 이력은 미정이며 세계관은 최초 수정 시 전체 Fork |
 | DEC-21 | 과거 결정: AI는 도구로 Core 조회 API를 호출하고 작업 생성 때 작품·기준 회차·인물 범위를 고정 | `제안으로 변경`(DEC-28). Core 경유 조회는 후보이고 AI의 DB 직접 접근 여부·접근 제어 방식은 미정 |

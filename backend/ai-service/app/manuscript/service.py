@@ -5,6 +5,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from app import tracing
 from app.manuscript import agent
 from app.manuscript.errors import ManuscriptFailure
 from app.manuscript.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
@@ -77,9 +78,24 @@ def embed(data: EmbeddingRequest) -> EmbeddingResponse:
 
 
 def answer(data: AnswerRequest) -> AnswerResponse:
-    """모든 주장이 전달한 발췌 id만 인용할 때 답변을 돌려준다. 어긋나면 보정하지 않고 502다."""
-    result = agent.answer(data)
-    ids = {excerpt.id for excerpt in data.excerpts}
-    if not all(claim.sourceIds and set(claim.sourceIds) <= ids for claim in result.claims):
-        raise ManuscriptFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
-    return result
+    """모든 주장이 전달한 발췌 id만 인용할 때 답변을 돌려준다. 어긋나면 보정하지 않고 502다.
+
+    추적: retrieval(Content가 검색·재대조해 보낸 근거) → 모델 생성(agent) → evidence_check(인용 대조).
+    질문·답변과 원고 인용 본문을 남기고 설정·관계 발췌는 참조만 남긴다(tracing.excerpts).
+    """
+    with tracing.observe('story_context.qa', as_type='chain', input={'question': data.question},
+                         metadata={'historyTurns': len(data.history)}) as qa:
+        # Neo4j·Elasticsearch 조회와 원문 재대조는 Content가 이미 했다. 받은 근거를 그대로 남긴다.
+        with tracing.observe('retrieval', as_type='retriever', metadata={'provider': 'content'},
+                             output=tracing.excerpts(data.excerpts)):
+            pass
+        result = agent.answer(data)
+        with tracing.observe('evidence_check', as_type='evaluator') as check:
+            ids = {excerpt.id for excerpt in data.excerpts}
+            cited = {i for claim in result.claims for i in claim.sourceIds}
+            check.update(metadata={'citedIds': sorted(cited), 'invalidIds': sorted(cited - ids),
+                                   'claims': len(result.claims), 'gaps': len(result.gaps)})
+            if not all(claim.sourceIds and set(claim.sourceIds) <= ids for claim in result.claims):
+                raise ManuscriptFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
+        qa.update(output=result.model_dump())
+        return result
