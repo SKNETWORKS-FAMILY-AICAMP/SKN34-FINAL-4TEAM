@@ -5,7 +5,7 @@ import type { Episode as ContentEpisode } from '../entities/content'
 import type { Work } from '../entities/work'
 import type { ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
-import type { WorkRankingQuery, WorkSearchRepository } from '../repositories/WorkSearchRepository'
+import type { WorkRankingQuery, WorkSearchQuery, WorkSearchRepository } from '../repositories/WorkSearchRepository'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
 
 /** 서버가 돌려주는 카드용 Work(메모리 시드와 id가 겹치지 않는다) */
@@ -19,7 +19,7 @@ function setup(search?: Partial<WorkSearchRepository>, works = seedWorks(0)) {
   const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (work) => work, createFork: async () => ({ id: 'forked' }), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async () => {} }
   const readingRecordRepository: ReadingRecordRepository = { list: async () => [], record: async () => {}, remove: async () => {} }
-  const repo: WorkSearchRepository | undefined = search && { search: vi.fn(async () => []), rankings: vi.fn(async () => ranked()), recordView: vi.fn(async () => {}), ...search }
+  const repo: WorkSearchRepository | undefined = search && { search: vi.fn(async () => []), rankings: vi.fn(async () => ranked()), recordView: vi.fn(async () => {}), episodeViews: vi.fn(async () => ({})), ...search }
   return { useCase: new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, repo) }
 }
 
@@ -283,6 +283,86 @@ describe('ReadingUseCase.recordViews 공개 열람 기록', () => {
     const { useCase } = setup({ recordView })
     await expect(useCase.recordViews({ id: 'w', readOnly: true, episodes: [episode(1), episode(2)] })).resolves.toBeUndefined()
     expect(recordView).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ReadingUseCase.episodeViews 소설 상세 회차별 조회 수', () => {
+  const server = () => seedWorks(0).map((w) => ({ ...w, canonical: true }))
+
+  it('공개 서버 작품은 작품 id로 회차별 누적 조회 수를 읽고, 화면이 넘긴 취소 신호를 저장소에 이어 준다', async () => {
+    const episodeViews = vi.fn(async (_id: string, _signal?: AbortSignal) => ({ 1: 4, 3: 12 }))
+    const works = server()
+    const signal = new AbortController().signal
+    await expect(setup({ episodeViews }, works).useCase.episodeViews(works.find((w) => w.id === 'guunmong')!, signal)).resolves.toEqual({ 1: 4, 3: 12 })
+    expect(episodeViews.mock.calls).toEqual([['guunmong', signal]])
+  })
+
+  it('메모리 데모 작품·비공개 작품·검색 저장소가 없는 목업은 요청하지 않고 수를 주지 않는다', async () => {
+    const episodeViews = vi.fn(async () => ({}))
+    const works = server()
+    const guunmong = works.find((w) => w.id === 'guunmong')!
+    await expect(setup({ episodeViews }, works).useCase.episodeViews({ ...guunmong, canonical: false })).resolves.toBeUndefined()
+    await expect(setup({ episodeViews }, works).useCase.episodeViews({ ...guunmong, private: true })).resolves.toBeUndefined()
+    await expect(setup(undefined, works).useCase.episodeViews(guunmong)).resolves.toBeUndefined()
+    expect(episodeViews).not.toHaveBeenCalled()
+  })
+
+  it('읽지 못하면 빈 맵(0회)으로 숨기지 않고 던진다 — 화면이 수를 감춘다', async () => {
+    const works = server()
+    const episodeViews = vi.fn(async (): Promise<Record<number, number>> => { throw new Error('offline') })
+    await expect(setup({ episodeViews }, works).useCase.episodeViews(works[0])).rejects.toThrow('offline')
+  })
+})
+
+describe('ReadingUseCase.recommendWorks 소설 상세 추천', () => {
+  const book = (id: string, over: Partial<Work> = {}) => serverWork(id, { author: '윤서하', genre: '판타지 · SF', hash: ['#서약'], ...over })
+  const ids = (list: Work[]) => list.map((w) => w.id)
+
+  it('같은 작가는 f=author·작가명, 비슷한 작품은 첫 장르 f=genre로 인기 순(like) 검색을 병렬로 묻고 취소 신호를 넘긴다', async () => {
+    const resolvers: (() => void)[] = []
+    const search = vi.fn((_query: WorkSearchQuery, _signal?: AbortSignal) => new Promise<Work[]>((resolve) => { resolvers.push(() => resolve([])) }))
+    const signal = new AbortController().signal
+    const pending = setup({ search }).useCase.recommendWorks(book('cur'), signal)
+    expect(search).toHaveBeenCalledTimes(2)
+    expect(search).toHaveBeenCalledWith({ q: '윤서하', f: 'author', sort: 'like', page: 0, size: 20 }, signal)
+    expect(search).toHaveBeenCalledWith({ q: '판타지', f: 'genre', sort: 'like', page: 0, size: 20 }, signal)
+    resolvers.forEach((resolve) => resolve())
+    await expect(pending).resolves.toEqual({ sameAuthor: { items: [], failed: false }, similar: { items: [], failed: false } })
+  })
+
+  it('두 목록을 따로 거른다: 작가는 정확히 같은 작가·자기 제외, 비슷한 작품은 자기·같은 작가 작품 제외 후 태그 겹침 순', async () => {
+    const byAuthor = [book('a1'), book('cur'), book('part', { author: '윤서하하' })]
+    const byGenre = [book('g1', { hash: [] }), book('a1'), book('g2', { hash: ['#서약'] }), book('cur')]
+    const search = vi.fn(async (query: WorkSearchQuery) => (query.f === 'author' ? byAuthor : byGenre))
+    const got = await setup({ search }).useCase.recommendWorks(book('cur'))
+    expect(ids(got.sameAuthor.items)).toEqual(['a1'])
+    expect(ids(got.similar.items)).toEqual(['g2', 'g1'])
+    expect([got.sameAuthor.failed, got.similar.failed]).toEqual([false, false])
+  })
+
+  it('한쪽 검색이 실패해도 다른 쪽은 보이고 실패는 빈 목록으로 숨기지 않고 섹션별 failed로 알린다', async () => {
+    const authorDown = vi.fn(async (query: WorkSearchQuery) => { if (query.f === 'author') throw new Error('offline'); return [book('g1')] })
+    const a = await setup({ search: authorDown }).useCase.recommendWorks(book('cur'))
+    expect(a.sameAuthor).toEqual({ items: [], failed: true })
+    expect(ids(a.similar.items)).toEqual(['g1'])
+    const genreDown = vi.fn(async (query: WorkSearchQuery) => { if (query.f === 'genre') throw new Error('offline'); return [book('a1')] })
+    const g = await setup({ search: genreDown }).useCase.recommendWorks(book('cur'))
+    expect(ids(g.sameAuthor.items)).toEqual(['a1'])
+    expect(g.similar).toEqual({ items: [], failed: true })
+  })
+
+  it('장르가 없으면 장르 검색 없이 비슷한 작품 섹션은 비어 있다(실패 아님)', async () => {
+    const search = vi.fn(async (_query: WorkSearchQuery) => [book('a1')])
+    const got = await setup({ search }).useCase.recommendWorks(book('cur', { genre: '' }))
+    expect(search.mock.calls.map(([query]) => query.f)).toEqual(['author'])
+    expect(got.similar).toEqual({ items: [], failed: false })
+  })
+
+  it('검색 저장소가 없는 목업은 메모리 검색으로 같은 규칙을 적용한다(구운몽과 같은 장르의 작품은 자기 포크뿐이라 포크 박스와 겹치지 않게 모두 빠진다)', async () => {
+    const works = seedWorks(0)
+    const got = await setup(undefined, works).useCase.recommendWorks(works.find((w) => w.id === 'guunmong')!)
+    expect(got.sameAuthor).toEqual({ items: [], failed: false })
+    expect(got.similar).toEqual({ items: [], failed: false })
   })
 })
 

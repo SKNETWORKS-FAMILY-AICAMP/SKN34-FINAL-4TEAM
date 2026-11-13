@@ -91,7 +91,7 @@ describe('목업 새 소설 만들기 (U28)', () => {
   })
 })
 
-describe('캐릭터 챗·로그인 보호·포크 대상', () => {
+describe('캐릭터챗·로그인 보호·포크 대상', () => {
   it('/chat/없는작품은 주소를 유지한 채 목록을 보여 준다', async () => {
     renderAt('/chat/nope')
     await screen.findByRole('heading', { name: '캐릭터챗' })

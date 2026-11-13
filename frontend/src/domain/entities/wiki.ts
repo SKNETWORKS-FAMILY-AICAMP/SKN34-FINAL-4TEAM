@@ -1,3 +1,4 @@
+import type { CardType } from './studioCards'
 import { baseOf, nid, type Knowledge, type Work } from './work'
 
 /** 목업 WCATS·LINE: 사전 분류와 사건 라인 */
@@ -22,8 +23,21 @@ const SEEDW: Record<string, [string, string, string, number][]> = { guunmong: [[
   hong: [['place', '홍 판서 댁', '길동이 태어나 자란 집.', 1]] }
 const SEEDL: Record<string, [string, string, string][]> = { guunmong: [['돌다리에서 팔선녀를 만나다', '스승의 벌로 인간 세상으로', '계기'], ['복숭아꽃이 여덟 구슬이 되다', '스승의 벌로 인간 세상으로', '복선']], starlight: [['탑 앞에서 밤을 지새우다', '봉인 아래의 속삭임', '계기']] }
 
-export type Doc = { id: string; cat: string; t: string; alias: string[]; tags: string[]; props: Record<string, string>; at: Record<number, Record<string, string>>; img?: string | null; body: string; knowledge?: Knowledge[]; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string }[] }
+/** `markdown`이면 `body`가 마크다운 문자열이다(연결된 세계관의 설정 카드 본문). 없으면 일반 글이다. */
+export type Doc = { id: string; cat: string; t: string; alias: string[]; tags: string[]; props: Record<string, string>; at: Record<number, Record<string, string>>; img?: string | null; body: string; markdown?: boolean; knowledge?: Knowledge[]; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string }[] }
 export type Wiki = { docs: Doc[]; cats: WikiCat[] }
+
+/** 독자에게 공개된 세계관 설정 카드 한 장. `text`는 마크다운, `revealFromEpisode`는 독자 공개 시작 회차다. */
+export type ReaderWorldCard = { id: string; title: string; text: string; cardType: CardType; aliases: string[]; tags: string[]; revealFromEpisode: number }
+/**
+ * 작품에 연결된 세계관(DEC-46)의 독자 공개 카드. 서버가 기준 회차(`upto`, 발행된 회차 안)까지 공개한 카드와 양 끝이 그 카드인 관계만 준다.
+ * `worldId`가 null이면 연결된 세계관이 없는 작품이고, `relationshipStatus`가 unavailable이면 관계를 읽지 못해 비운 것이다(관계가 없는 current와 다르다).
+ */
+export type ReaderWorldCards = {
+  workId: string; worldId: string | null; upto: number; cards: ReaderWorldCard[]
+  relationships: { id: string; sourceCardId: string; targetCardId: string; label: string }[]
+  relationshipStatus: 'current' | 'unavailable'
+}
 
 /**
  * 목업 wikiOf(w): 처음 열 때 작품 설정(포크는 스냅샷)에서 사전을 한 번 만들어 w.wiki에 두고, 이후에는 저장본을 씁니다.

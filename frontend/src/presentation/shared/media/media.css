@@ -10,6 +10,14 @@
 .media-cover .stored-image { max-height: 240px; }
 .media-message { white-space: normal; overflow-wrap: anywhere; }
 .manuscript-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; }
+/* 원고 기본 서식(DEC-48). 문단을 p로 그려도 서식 없는 원고는 통째로 글자일 때와 같은 줄 배치여야 하므로 여백을 없애고 바깥 행간을 물려받는다.
+   쓰는 화면의 p 규칙(작품 관리의 .ep-reading p 등)보다 앞서도록 div를 붙여 specificity를 올린다. 이미지 안내 문구(p.media-message)는 원고 글이 아니라 건드리지 않는다. */
+div.manuscript-body :is(p, blockquote):not(.media-message) { margin: 0; line-height: inherit; }
+div.manuscript-body .manuscript-heading { font-size: 1.15em; font-weight: 700; }
+/* 인용은 색 띠 없이 들여쓰기와 글자색으로만 구분한다. 읽기 토큰은 :root에 기본값이 있어 어느 화면에서나 값이 있다. */
+div.manuscript-body blockquote { padding-inline: 1.5em; color: color-mix(in srgb, var(--tsub) 60%, var(--tfg)); }
+/* 구분선은 원문의 한 줄(--- 또는 ***) 자리를 차지하는 짧은 가운데 선이다. */
+div.manuscript-body hr { width: 6em; height: 0; margin: 0.9em auto; border: 0; border-top: 1px solid var(--tsub); }
 .media-rename { margin-block-start: 12px; }
 .media-rename-row { display: flex; align-items: center; gap: 6px; max-width: 420px; }
 .media-rename-row .inp { min-width: 0; }

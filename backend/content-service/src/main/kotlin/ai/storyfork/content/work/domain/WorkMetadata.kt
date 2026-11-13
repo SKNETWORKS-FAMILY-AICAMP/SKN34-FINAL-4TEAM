@@ -28,11 +28,22 @@ data class WorkMetadata(val type: CreationType, val genres: List<String>, val ha
 fun validateWorkMetadata(typeName: String?, genres: List<String>, hashtags: List<String>, rightsConfirmed: Boolean): WorkMetadata {
     val type = CreationType.entries.firstOrNull { it.name == typeName }
     checkContent(type != null, message = "작품 유형을 선택해 주세요.")
+    validateWorkGenres(genres)
+    val tags = validateWorkHashtags(hashtags)
+    checkContent(rightsConfirmed, message = "작품 등록을 위해 권리 확인이 필요해요.")
+    return WorkMetadata(type!!, genres, tags)
+}
+
+/** 장르를 검증한다. 승인 목록의 서로 다른 장르 1~2개여야 하며 어긋나면 422다. 작품 수정이 등록과 같은 규칙을 장르만 따로 쓸 때도 부른다. */
+fun validateWorkGenres(genres: List<String>) {
     checkContent(genres.size in 1..MAX_WORK_GENRES, message = "장르는 1개 이상 2개 이하로 선택해 주세요.")
     checkContent(genres.all { it in WORK_GENRES } && genres.toSet().size == genres.size, message = "승인된 장르 목록에서 서로 다른 장르를 골라 주세요.")
+}
+
+/** 해시태그를 검증하고 앞뒤 공백을 자른 목록을 돌려준다. 0~10개이며 빈 태그는 거절하고 어긋나면 422다. */
+fun validateWorkHashtags(hashtags: List<String>): List<String> {
     val tags = hashtags.map { it.trim() }
     checkContent(tags.size <= MAX_WORK_HASHTAGS, message = "해시태그는 최대 ${MAX_WORK_HASHTAGS}개까지 등록할 수 있어요.")
     checkContent(tags.none { it.isEmpty() }, message = "비어 있는 해시태그는 등록할 수 없어요.")
-    checkContent(rightsConfirmed, message = "작품 등록을 위해 권리 확인이 필요해요.")
-    return WorkMetadata(type!!, genres, tags)
+    return tags
 }

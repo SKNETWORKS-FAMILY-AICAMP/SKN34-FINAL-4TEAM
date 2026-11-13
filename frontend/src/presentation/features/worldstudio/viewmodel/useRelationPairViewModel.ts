@@ -79,7 +79,7 @@ export function useRelationPairViewModel(
         return
       }
       if (studio.applyRelations(changes, draft.removed)) onClose()
-      else setError('적용하지 못했습니다. 중복된 관계와 연결 대상, 이름·설명을 확인해 주세요.')
+      else setError('적용하지 못했어요. 중복된 관계와 연결 대상, 이름·설명을 확인해 주세요.')
     },
   }
 }

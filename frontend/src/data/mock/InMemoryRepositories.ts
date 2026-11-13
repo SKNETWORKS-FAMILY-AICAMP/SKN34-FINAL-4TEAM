@@ -92,7 +92,7 @@ export class InMemoryReadingRepository implements ReadingRepository {
   async saveProgress(progress: ReadingProgress) { this.db.progress = structuredClone(progress) }
 }
 
-/** 서버 독서 기록의 목업 대역: 같은 상태를 읽는 다른 목업(캐릭터 챗 등)을 위해 mockDb.progress의 last·read를 정본으로 씁니다. */
+/** 서버 독서 기록의 목업 대역: 같은 상태를 읽는 다른 목업(캐릭터챗 등)을 위해 mockDb.progress의 last·read를 정본으로 씁니다. */
 export class InMemoryReadingRecordRepository implements ReadingRecordRepository {
   private readonly db: MockDb
   constructor(db: MockDb) { this.db = db }

@@ -84,10 +84,11 @@ export function OverviewView({ vm }: { vm: VM }) {
         <label className='ovcov'>
           <CoverOf w={w} />
           <span>표지 바꾸기</span>
+          {/* hidden이면 키보드로 닿지 않는다. 시각적으로만 숨기고 초점 고리는 라벨에 그린다(writing.css). */}
           <input
             type='file'
             accept='image/*'
-            hidden
+            className='sr-only'
             onChange={(e) =>
               resizeImg(e.target.files?.[0], async (url) => {
                 if (await vm.saveNotes({ coverImg: url })) {

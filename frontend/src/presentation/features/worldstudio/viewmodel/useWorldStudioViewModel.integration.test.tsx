@@ -51,8 +51,9 @@ it('opens a world, adds and edits a card without touching server state',async()=
  const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path="/worldstudio/:worldId" element={children}/></Routes></MemoryRouter>
  const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
  await waitFor(()=>expect(result.current.editing?.id).toBe(world.id))
- act(()=>result.current.addCard('object'))
- const id=result.current.selected
+ let id=''
+ act(()=>{id=result.current.addCard('object')??''})
+ expect(id).not.toBe('') // 카드만 초안에 더하고 편집 화면은 부르는 쪽이 editCard로 연다
  act(()=>result.current.update(id,{title:'열쇠',text:'문을 연다'},{aliases:['금빛 열쇠'],tags:['보물']}))
  await act(()=>result.current.save())
  expect((await useCase.read(world.id)).settings[0]).toMatchObject({aliases:['금빛 열쇠'],tags:['보물'],item:{title:'열쇠',entityType:'object'}})
@@ -69,14 +70,14 @@ it('keeps the person undo and prior edits after a rejected server save',async()=
  const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
  await waitFor(()=>expect(result.current.editing?.id).toBe(world.id))
  act(()=>result.current.patch({description:'이전에 쓴 설명'}))
- act(()=>{result.current.deletePerson(a.item.id)})
- expect(result.current.canUndoPersonDeletion).toBe(true)
+ act(()=>{result.current.deleteCard(a.item.id)})
+ expect(result.current.canUndoCardDeletion).toBe(true)
  vi.spyOn(repository,'saveStudio').mockRejectedValueOnce(new Error('저장 실패'))
  await act(()=>result.current.save())
  expect(result.current.saveState).toBe('failed')
  expect(result.current.saved?.settings).toEqual(world.settings)
- expect(result.current.canUndoPersonDeletion).toBe(true)
- act(()=>{result.current.undoPersonDeletion()})
+ expect(result.current.canUndoCardDeletion).toBe(true)
+ act(()=>{result.current.undoCardDeletion()})
  expect(result.current.editing?.settings.map(s=>s.item.id)).toEqual(world.settings.map(s=>s.item.id))
  expect(result.current.editing?.description).toBe('이전에 쓴 설명')
  expect(result.current.dirty).toBe(true)

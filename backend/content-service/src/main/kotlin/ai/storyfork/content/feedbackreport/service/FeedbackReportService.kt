@@ -85,9 +85,12 @@ class FeedbackReportService(
         return ReportListResponse(render(rows,titles,member))
     }
 
-    /** 내가 소유한(삭제되지 않은) 모든 작품의 제보다(최신순, 최대 200개). */
-    fun inbox(member: String): ReportListResponse {
-        val owned=works.findAllByOwnerIdOrderByCreatedAtDesc(member).filter {it.deletedAt==null}
+    /**
+     * 내가 소유한(삭제되지 않은) 모든 작품의 제보다(최신순, 최대 200개). [workId]가 오면 그 작품의 제보만이며(200개 상한도 그 작품 안에서),
+     * 내 작품이 아니거나 삭제됐거나 없으면 존재 여부를 드러내지 않도록 빈 목록이다. 빈 값(`workId=`)은 생략과 같다.
+     */
+    fun inbox(member: String, workId: String? = null): ReportListResponse {
+        val owned=works.findAllByOwnerIdOrderByCreatedAtDesc(member).filter {it.deletedAt==null && (workId.isNullOrBlank() || it.id==workId)}
         if(owned.isEmpty()) return ReportListResponse(emptyList())
         return ReportListResponse(render(reports.findTop200ByWorkIdInOrderByCreatedAtDesc(owned.map {it.id}),owned.associate {it.id to WorkInfo(it.title,it.ownerId)},member))
     }

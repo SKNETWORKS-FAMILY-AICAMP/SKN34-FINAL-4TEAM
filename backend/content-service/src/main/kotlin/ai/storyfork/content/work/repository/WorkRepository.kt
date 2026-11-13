@@ -10,6 +10,9 @@ interface WorkRepository : JpaRepository<WorkEntity, String> {
     fun lockAll(@Param("ids") ids: Collection<String>): List<WorkEntity>
     fun findAllByOwnerIdOrderByCreatedAtDesc(ownerId: String): List<WorkEntity>
 
+    /** [worldStudioIds]의 WorldStudio 세계관에 연결된 작품이다(1:1이라 세계관마다 많아야 하나, DEC-46). 빈 목록으로 부르지 않는다. */
+    fun findAllByWorldStudioIdIn(worldStudioIds: Collection<java.util.UUID>): List<WorkEntity>
+
     /** 운영 작품 목록용 `[작품, 권리 진술 확인 여부, 최신 공개 범위(발행 이력이 없으면 null)]` 행을 제목·id순으로 쿼리 한 번에 읽는다. */
     @Query("""select w,
         case when exists(select r.id from WorkRightsDeclarationEntity r where r.workId = w.id) then true else false end,

@@ -24,4 +24,8 @@ data class WorkResponse(
     /** 작품 회차의 마지막 발행 시각. 기간별 랭킹의 방금 업데이트(updated)에서만 채우고 그 밖의 응답은 null이다. */
     val updatedAt: Instant? = null,
     val writingEpisodeNumber: Int? = null,
+    /** 회차 번호별 누적 회원 조회 수. 공개 상세에서만 채우고(기록 없는 회차는 빠짐) 그 밖의 응답은 null이다. */
+    val episodeViews: Map<Int, Long>? = null,
+    /** 이 작품에 연결한 WorldStudio 세계관(1:1, DEC-46). 소유자 응답에서만 채우고 연결이 없거나 공개 응답이면 null이다. */
+    val worldStudioId: java.util.UUID? = null,
 )

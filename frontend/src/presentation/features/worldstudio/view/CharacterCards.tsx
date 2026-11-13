@@ -2,7 +2,8 @@ import { presentationPortrait } from '../../../../app/presentationPortraits'
 import { useEffect, useId, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { mapEndpoint, type useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 
-type Actions={busy:boolean;selectedRelations:string[];targetSource:string|null;readOnly?:boolean;onSelect:(id:string)=>void;onConnect:(id:string)=>void;onRelation:(id:string)=>void}
+/** `onPick`은 카드 본문을 눌렀을 때(드래그 없이) 부르고, 없으면 `onSelect`를 부른다. 관계 편집은 본문 누르기를 관계 연결에 쓰고 '정보 편집' 버튼만 `onSelect`로 남긴다. */
+type Actions={busy:boolean;selectedRelations:string[];targetSource:string|null;readOnly?:boolean;onSelect:(id:string)=>void;onConnect:(id:string)=>void;onRelation:(id:string)=>void;onPick?:(id:string)=>void}
 type Point={x:number;y:number}
 export default function CharacterCards({vm,editing}:{vm:ReturnType<typeof useWorldMapViewModel>;editing:Actions}) {
  const host=useRef<HTMLDivElement>(null),cards=useRef(new Map<string,HTMLDivElement>())
@@ -18,7 +19,7 @@ export default function CharacterCards({vm,editing}:{vm:ReturnType<typeof useWor
  const selectedId=vm.selected?.id
  useEffect(()=>{if(selectedId)cards.current.get(selectedId)?.scrollIntoView?.({block:'nearest',inline:'nearest'})},[selectedId])
  const start=(id:string,e:PointerEvent<HTMLDivElement>)=>{
-  if(editing.busy||editing.targetSource||(e.target instanceof Element&&e.target.closest('button')))return
+  if(editing.busy||(e.target instanceof Element&&e.target.closest('button')))return
   drag.current={id,start:{x:e.clientX,y:e.clientY},position:at(id),moved:false};e.currentTarget.setPointerCapture?.(e.pointerId)
  }
  const move=(e:PointerEvent<HTMLDivElement>)=>{
@@ -26,15 +27,16 @@ export default function CharacterCards({vm,editing}:{vm:ReturnType<typeof useWor
   const dx=e.clientX-d.start.x,dy=e.clientY-d.start.y
   if(Math.hypot(dx,dy)<4&&!d.moved)return
   d.moved=true
+  if(editing.targetSource)return // 상대를 고르는 중에는 카드를 끌지 않고 누르기만 받는다
   setManual(old=>new Map(old).set(d.id,{x:Math.max(8,d.position.x+dx),y:Math.max(12,d.position.y+dy)}))
  }
- const stop=(e:PointerEvent<HTMLDivElement>)=>{const d=drag.current;drag.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId);if(d&&!d.moved)editing.onSelect(d.id)}
+ const stop=(e:PointerEvent<HTMLDivElement>)=>{const d=drag.current;drag.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId);if(d&&!d.moved)(editing.onPick??editing.onSelect)(d.id)}
  const names=new Map(vm.graph.nodes.map(n=>[n.id,n.name])),title=(id:string)=>names.get(id)??'인물'
  const subject=vm.graph.nodes.some(n=>n.kind!=='인물')?'설정':'인물'
  return <div ref={host} className="relationship-cards-scroll" role="group" aria-label={`${subject} 카드 그래프`}>
   <div className="relationship-cards-board" style={{width:boardWidth,height:boardHeight}}>
    <svg width={boardWidth} height={boardHeight} className="relationship-card-edges" role="group" aria-label={`${subject} 사이 관계선`}>
-    <defs><marker id={marker} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--pri-ink)"/></marker></defs>
+    <defs><marker id={marker} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--edge,var(--pri-ink))"/></marker></defs>
     {vm.graph.links.map((l,i)=>{
      const source=mapEndpoint(l.source),target=mapEndpoint(l.target),a=at(source),b=at(target)
      if(!a||!b)return null
@@ -42,7 +44,7 @@ export default function CharacterCards({vm,editing}:{vm:ReturnType<typeof useWor
      const factor=Math.min((cardWidth/2+10)/Math.max(1,Math.abs(dx)),(cardHeight/2+10)/Math.max(1,Math.abs(dy)))
      const sx=ax+dx*factor,sy=ay+dy*factor,tx=bx-dx*factor,ty=by-dy*factor,c=l.curve??0
      const cx=(ax+bx)/2+dy*c,cy=(ay+by)/2-dx*c,d=`M ${sx} ${sy} Q ${cx} ${cy} ${tx} ${ty}`
-     const active=!!l.id&&editing.selectedRelations.includes(l.id),color=active?'var(--pri)':l.emotion?'var(--acc-ink)':'var(--pri-ink)'
+     const active=!!l.id&&editing.selectedRelations.includes(l.id),color=active?'var(--edge-active,var(--pri))':l.emotion?'var(--edge-emotion,var(--acc-ink))':'var(--edge,var(--pri-ink))'
      const label=`${editing.readOnly?'관계선 보기':'관계선 편집'}: ${title(source)} · ${title(target)} · ${l.fullLabel??l.label}`
      return <g key={l.id??i}>
       <path d={d} fill="none" stroke={color} strokeWidth={active?3:2} strokeDasharray={l.emotion?'6 4':undefined} markerEnd={l.symmetric?undefined:`url(#${marker})`}/>
