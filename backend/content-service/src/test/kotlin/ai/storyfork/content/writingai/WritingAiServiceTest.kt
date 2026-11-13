@@ -27,29 +27,30 @@ class WritingAiServiceTest {
     @Suppress("UNCHECKED_CAST")
     private fun sent(): Map<String, Any?> {
         val body = ArgumentCaptor.forClass(Map::class.java)
-        verify(client).orchestrate(body.capture() as Map<String, Any?>? ?: emptyMap())
+        verify(client).orchestrate(body.capture() as Map<String, Any?>? ?: emptyMap(), eq("Bearer user") ?: "")
         return body.value as Map<String, Any?>
     }
 
     private fun token(scope: Any?) = (scope as Map<*, *>)["scopeToken"] as String
 
     @Test
-    fun `new turn issues a scope token bound to the signed-in author`() {
+    fun `new turn issues a scope token bound to the signed-in author and forwards the author's bearer`() {
         `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
             QaScope("work", null, 2, "r2", emptyList(), null))
-        `when`(client.orchestrate(anyMap())).thenReturn(result)
-        val response = service.run("work", "owner", ask)
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        val response = service.run("work", "owner", "Bearer user", ask)
         assertEquals(result, response.result)
         val body = sent()
         assertEquals("길드 규칙은?", body["request"])
         assertEquals(mapOf("threadId" to response.threadId, "scope" to "user:owner/work:work"), body["conversation"])
         assertEquals(QaScopeGrant("work", "owner", 2, "r2"), grants.read(token(body["scope"])))
+        assertEquals(mapOf("workId" to "work", "episode" to 2), body["target"])
     }
 
     @Test
     fun `resume sends a fresh scope token without a new request`() {
-        `when`(client.orchestrate(anyMap())).thenReturn(result)
-        service.run("work", "owner", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread"))
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", "owner", "Bearer user", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread"))
         val body = sent()
         assertFalse("request" in body)
         val resume = body["resume"] as Map<*, *>
@@ -62,7 +63,7 @@ class WritingAiServiceTest {
     fun `missing consent ambiguous input or resume without thread never reach the model`() {
         for (bad in listOf(ask.copy(consent = false), ask.copy(resume = WritingAiResume(true)),
             ask.copy(request = null), ask.copy(request = null, resume = WritingAiResume(false)))) {
-            assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", "owner", bad) }.status)
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", "owner", "Bearer user", bad) }.status)
         }
         verifyNoInteractions(client, scopes)
     }

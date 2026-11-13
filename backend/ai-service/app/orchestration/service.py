@@ -12,6 +12,10 @@ Q&A에는 이전 질문·답을 지칭 해석용 자료로만 넘긴다. 대화�
 HITL: 대화 안에서 단계 입력이 빠지면 gate가 interrupt로 멈추고 계획과 빠진 입력을 돌려준다. 같은 threadId의
 resume(승인+입력 또는 취소)으로 Router를 다시 부르지 않고 저장된 계획을 이어 실행한다. 체크포인트는
 AsyncPostgresSaver가 PostgreSQL에 보관한다.
+
+Content MCP(DEC-49): 대화 안에서 Content가 반영 대상(target)을 보내면 Writing 결과 뒤 apply 노드가 interrupt로
+작가 승인을 기다린다. 승인 resume이면 그 요청의 사용자 Bearer로 Content MCP에 초안 반영을 요청하고, 거절이면 쓰지 않는다.
+토큰은 요청마다 컨텍스트로만 넘겨 체크포인트에 남기지 않는다.
 """
 
 import operator
@@ -26,6 +30,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
 from app import tracing
+from app.content_mcp import service as content_mcp
+from app.content_mcp.errors import ContentMcpFailure
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.manuscript import service as manuscript
@@ -76,6 +82,7 @@ UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 �
                        '작품 질문, 집필·수정, 고증 조사는 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
 WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
+APPROVAL_MESSAGE = 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.'
 CANCELLED_MESSAGE = '요청을 취소해 아무 작업도 실행하지 않았어요.'
 FAILED_MESSAGE = '작업 중 실패가 있어 남은 작업을 실행하지 않았어요.'
 ROUTER_FAILED_MESSAGE = '요청 분류에 실패했습니다.'
@@ -109,6 +116,7 @@ class State(TypedDict, total=False):
     unsupported: list[str]
     scope: str | None
     retrievalScope: dict | None  # Content가 확인한 Q&A 조회 키. 있으면 Q&A가 Retrieval로 근거를 받는다.
+    target: dict | None  # Content가 확인한 Writing 반영 대상(workId·episode). 토큰은 담지 않는다.
     runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
     traceParent: str | None
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa}를 하나씩 덧붙인다.
@@ -164,6 +172,33 @@ def _node(feature: str):
     return run_step
 
 
+def apply(state: State) -> State:
+    """Writing 결과를 작가에게 보여 주고 승인하면 사용자 권한으로 Content MCP에 초안 반영을 요청한다.
+
+    resume 때 이 노드는 처음부터 다시 실행되므로 interrupt 앞에는 부수효과를 두지 않는다. 반영 실패는 결과를 보존한 채
+    단계 실패로 남겨 남은 단계를 시작하지 않는다.
+    """
+    steps = [dict(s) for s in state['steps']]
+    step = next(s for s in steps if s['feature'] == 'writing_editing')
+    answer = interrupt({'steps': state['steps'], 'awaitingApproval': 'writing_editing'})
+    step['approval'] = 'approved' if answer['approved'] else 'declined'
+    if answer['approved']:
+        target = state['target']
+        try:
+            with tracing.observe('step.writing_editing.apply', as_type='tool', trace_context=_trace(state),
+                                 metadata={'episode': target['episode']}):
+                step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], step['result'])
+        except ContentMcpFailure as error:
+            step.update(status='failed', error=str(error))
+    return {'steps': steps}
+
+
+def _awaiting_approval(state: State) -> bool:
+    """대화 안의 반영 대상이 있고, 완료된 Writing 결과에 아직 작가의 답이 없다."""
+    return bool(state.get('scope') and state.get('target')) and any(
+        s['feature'] == 'writing_editing' and s['status'] == 'completed' and 'approval' not in s for s in state['steps'])
+
+
 def finish(state: State) -> State:
     """실행 상태를 확정하고 이번 턴을 대화 기록에 남긴다. 실행하지 않은 턴도 요청은 남긴다."""
     done = {'status': state['status']}
@@ -184,9 +219,14 @@ def _trace(state: State) -> dict | None:
 
 
 def _next(state: State) -> str:
-    """대기 중인 첫 단계의 기능 노드로 간다. 실패가 있으면 새 단계를 시작하지 않는다."""
+    """승인 대기 중인 Writing 결과가 있으면 apply로, 아니면 대기 중인 첫 단계의 기능 노드로 간다.
+
+    실패가 있으면 새 단계를 시작하지 않는다.
+    """
     if state['status'] != 'running' or any(s['status'] == 'failed' for s in state['steps']):
         return 'finish'
+    if _awaiting_approval(state):
+        return 'apply'
     return next((s['feature'] for s in state['steps'] if s['status'] == 'not_started'), 'finish')
 
 
@@ -196,12 +236,13 @@ def build() -> StateGraph:
     graph.add_node('gate', gate)
     for feature in CALLS:
         graph.add_node(feature, _node(feature))
+    graph.add_node('apply', apply)
     graph.add_node('finish', finish)
     graph.add_edge(START, 'plan')
     graph.add_conditional_edges('plan', lambda state: 'gate' if state['status'] == 'running' else 'finish',
                                 ['gate', 'finish'])
-    for name in ('gate', *CALLS):
-        graph.add_conditional_edges(name, _next, [*CALLS, 'finish'])
+    for name in ('gate', *CALLS, 'apply'):
+        graph.add_conditional_edges(name, _next, [*CALLS, 'apply', 'finish'])
     graph.add_edge('finish', END)
     return graph
 
@@ -236,7 +277,8 @@ def _initial(data: OrchestrationRequest) -> State:
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
             'steps': [], 'missingInputs': [], 'unsupported': [],
             'scope': data.conversation.scope if data.conversation else None,
-            'retrievalScope': data.scope.model_dump() if data.scope else None}
+            'retrievalScope': data.scope.model_dump() if data.scope else None,
+            'target': data.target.model_dump() if data.target else None}
 
 
 async def _target(data: OrchestrationRequest):
@@ -261,17 +303,23 @@ async def _target(data: OrchestrationRequest):
 def _response(state: dict) -> OrchestrationResponse:
     if state.get('__interrupt__'):
         waiting = state['__interrupt__'][0].value
-        state = {**state, 'status': 'waiting', 'message': WAITING_MESSAGE, 'missingInputs': waiting['missingInputs']}
+        approval = waiting.get('awaitingApproval')
+        state = {**state, 'status': 'waiting', 'message': APPROVAL_MESSAGE if approval else WAITING_MESSAGE,
+                 'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
 
-async def run(data: OrchestrationRequest) -> OrchestrationResponse:
-    """한 턴을 계획·검증·실행하거나 멈춘 실행을 이어간다. Router 실패·대화 오류는 그대로 올린다."""
+async def run(data: OrchestrationRequest, authorization: str = '') -> OrchestrationResponse:
+    """한 턴을 계획·검증·실행하거나 멈춘 실행을 이어간다. Router 실패·대화 오류는 그대로 올린다.
+
+    authorization은 AI를 호출한 사용자의 Bearer이며 이 요청의 Content MCP 반영에만 쓴다.
+    """
+    content_mcp.AUTHORIZATION.set(authorization)
     graph, config, payload, _ = await _target(data)
     return _response(await graph.ainvoke(payload, config))
 
 
-async def stream(data: OrchestrationRequest) -> AsyncIterator[ServerSentEvent]:
+async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIterator[ServerSentEvent]:
     """같은 그래프를 노드 단위로 흘려 plan → (started → step)* → done 이벤트를 보낸다.
 
     started는 다음 노드가 실제로 실행할 단계라서 화면의 진행 표시가 그래프 상태와 같다. interrupt로 멈추면
@@ -280,6 +328,7 @@ async def stream(data: OrchestrationRequest) -> AsyncIterator[ServerSentEvent]:
     """
     errors = {IntentFailure: ROUTER_FAILED_MESSAGE, ConversationMismatch: CONVERSATION_MISMATCH_MESSAGE,
               NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE}
+    content_mcp.AUTHORIZATION.set(authorization)
     try:
         graph, config, payload, state = await _target(data)
         async for update in graph.astream(payload, config, stream_mode='updates'):
@@ -291,9 +340,10 @@ async def stream(data: OrchestrationRequest) -> AsyncIterator[ServerSentEvent]:
                 state.update(change)
                 if node == 'plan':
                     yield ServerSentEvent(event='plan', data={'steps': state['steps']})
-                elif node in CALLS:
-                    yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == node))
-                if node in ('gate', *CALLS) and (upcoming := _next(state)) in CALLS:
+                elif node in CALLS or node == 'apply':
+                    feature = 'writing_editing' if node == 'apply' else node
+                    yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == feature))
+                if node in ('gate', *CALLS, 'apply') and (upcoming := _next(state)) in CALLS:
                     yield ServerSentEvent(event='started', data={'feature': upcoming})
     except tuple(errors) as error:
         yield ServerSentEvent(event='error', data={'message': errors[type(error)]})

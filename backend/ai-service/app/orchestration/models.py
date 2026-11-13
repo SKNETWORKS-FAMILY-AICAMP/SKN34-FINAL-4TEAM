@@ -39,8 +39,15 @@ class Conversation(BaseModel):
     scope: str = Field(min_length=1, max_length=200)
 
 
+class WritingTarget(BaseModel):
+    """Content가 권한을 확인한 Writing 반영 대상. 작가가 승인하면 AI가 그 작가 권한으로 이 회차 초안에만 쓴다."""
+    model_config = ConfigDict(extra='forbid')
+    workId: str = Field(min_length=1, max_length=100)
+    episode: int = Field(ge=1)
+
+
 class Resume(BaseModel):
-    """interrupt로 멈춘 실행에 대한 작가·Content의 답. 승인하면 빠진 단계 입력을 함께 보낸다."""
+    """interrupt로 멈춘 실행에 대한 작가·Content의 답. 입력 대기면 빠진 단계 입력을, 반영 승인 대기면 승인 여부만 보낸다."""
     model_config = ConfigDict(extra='forbid')
     approved: bool
     inputs: StepInputs = StepInputs()
@@ -54,6 +61,7 @@ class OrchestrationRequest(BaseModel):
     scope: RetrievalScope | None = None  # 있으면 Q&A가 inputs 없이 Retrieval 도구로 근거를 받는다.
     request: str | None = Field(default=None, min_length=1, max_length=2000)
     resume: Resume | None = None
+    target: WritingTarget | None = None  # 있고 대화 안이면 Writing 결과를 승인받아 Content MCP로 초안에 반영한다.
     operation: Feature | None = None
     materials: list[Annotated[str, Field(max_length=2000)]] = Field(default=[], max_length=8)
     inputs: StepInputs = StepInputs()
@@ -73,18 +81,27 @@ class QaStepResult(AnswerResponse):
     coverage: Coverage | None = None
 
 
+class AppliedDraft(BaseModel):
+    """Content MCP가 저장한 회차 초안의 새 revision."""
+    episode: int
+    revision: int
+
+
 class StepResult(BaseModel):
     feature: Feature
     when: Literal['always', 'if_issues_found']
     status: Literal['completed', 'failed', 'not_started']
     result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | None = None
     error: str | None = None
+    approval: Literal['approved', 'declined'] | None = None  # Writing 결과 반영에 대한 작가의 답
+    applied: AppliedDraft | None = None
 
 
 class OrchestrationResponse(BaseModel):
     """steps는 계획 순서다. clarify·rejected·unsupported·needs_input·cancelled면 아무 Agent도 실행하지 않았다.
 
-    waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다.
+    waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다. 입력 대기면 missingInputs,
+    Writing 결과 반영 승인 대기면 awaitingApproval이 있다.
     """
     status: Literal['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']
     runId: str | None = None  # Langfuse trace id. 추적이 꺼져 있으면 없다.
@@ -92,3 +109,4 @@ class OrchestrationResponse(BaseModel):
     steps: list[StepResult] = []
     missingInputs: list[Feature] = []
     unsupported: list[Feature] = []
+    awaitingApproval: Feature | None = None

@@ -7,7 +7,7 @@
 AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작업을 똑같이 하도록, Content 서비스 안에 MCP(Model Context Protocol) 서버 창구를 둔다.
 창구는 `ai.storyfork.content.mcp` 패키지 하나이며 기존 기능 패키지의 Service 함수를 그대로 호출하는 어댑터다. 새 비즈니스 로직·인가 규칙·저장소는 두지 않는다.
 
-- 이번 범위: Content MCP 서버와 도구. ai-service의 MCP 클라이언트 연결은 후속 이슈다.
+- 이번 범위: Content MCP 서버와 도구. ai-service 연결은 아래 [집필 AI 연결](#집필-ai-연결)만 있다.
 - 제외: 댓글·좋아요·관심·독서 기록·조회수·피드백 신고·문장 수정 제안(독자 피드백 계열), 파일 업로드·다운로드(작품·세계관 표지, 회차 이미지, 설정 첨부, 원고 가져오기·내보내기), `Internal*` 내부 API.
 
 ## 전송·인증
@@ -120,6 +120,19 @@ AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작�
 - Controller의 `@Valid` 검사는 도구에서 `validated()`로 같은 422를 낸다. UUID 형식 오류는 400이다.
 - `world_analysis_create`는 실행 상태 `failed`를 502, `unknown`을 503 도구 오류로 낸다(HTTP API가 본문과 함께 같은 상태로 답하는 경우). `world_analysis_apply`의 `failed`·`unknown`은 503이다.
 - 본문 없는 성공(204)은 Spring AI 기본 완료 문구(`Done`)다. `Location`·`Retry-After` 같은 응답 헤더는 전달하지 않는다.
+
+## 집필 AI 연결
+
+ai-service `app/content_mcp/`가 `openai-agents`의 `MCPServerStreamableHttp`로 `{CONTENT_SERVICE_BASE_URL}/mcp`를 호출한다(2026-11-13 사용자 결정).
+
+| 항목 | 계약 |
+|---|---|
+| 호출 시점 | 집필 AI 대화에서 Writing & Editing 결과를 작가가 resume으로 승인했을 때만. 승인 전·거절·대화 밖 요청은 호출하지 않는다 |
+| 도구 | `episode_read`(최신 초안·revision) → `episode_update_draft`. 버전 저장·발행·삭제 등 그 밖의 도구는 부르지 않는다 |
+| 대상 | Content `WritingAiService`가 새 턴에 보낸 `target {workId, episode}`. 모델이 만든 ID는 쓰지 않는다 |
+| 토큰 | Content가 작가의 `Authorization`을 AI에 `X-User-Authorization`으로 넘기고, AI는 그 요청의 MCP 호출에만 쓴다. 그래프 상태·체크포인트·추적에 넣지 않는다. resume 요청마다 새 토큰을 쓴다 |
+| 반영 | Text는 기존 초안 뒤에 잇고, Patch는 선택 문장이 초안에 정확히 한 번 있을 때만 바꾼다(없거나 여러 곳이면 쓰지 않고 409) |
+| 오류 | 도구 오류의 401·403·404·409·422는 Content detail 그대로, 그 밖은 502, 연결 실패는 503으로 Writing 단계를 실패시킨다 |
 
 ## 한계
 

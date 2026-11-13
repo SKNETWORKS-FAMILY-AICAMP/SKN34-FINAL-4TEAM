@@ -516,7 +516,7 @@
 <tr><td>읽은 회차 기준으로 인물·답변 범위 제한</td><td>❌</td></tr>
 <tr><td>응답 근거 회차·근거 없음 표시</td><td>❌</td></tr>
 <tr><td>미열람 회차 질문의 답변 보류·스포일러 차단</td><td>❌</td></tr>
-<tr><td>AI 작업 창구(MCP)</td><td>Content MCP 서버</td><td>세계관·작품·회차 사용자 작업을 MCP 도구 73개로 제공(공개 조회는 인증 없음, 그 밖은 호출 사용자 권한, DEC-49)</td><td>❌ <small>(부분: content-service <code>/mcp</code> 서버·도구 소스 구현, 로컬 단위 테스트 통과. hosted CI 통합 테스트 미확인, ai-service 클라이언트 연결은 후속)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/163">#163</a></td></tr>
+<tr><td>AI 작업 창구(MCP)</td><td>Content MCP 서버</td><td>세계관·작품·회차 사용자 작업을 MCP 도구 73개로 제공(공개 조회는 인증 없음, 그 밖은 호출 사용자 권한, DEC-49)</td><td>❌ <small>(부분: content-service <code>/mcp</code> 서버·도구 소스 구현, 로컬 단위 테스트 통과. hosted CI 통합 테스트 미확인. ai-service는 집필 AI 작가 승인 뒤 초안 반영만 연결, 실제 Content <code>/mcp</code> 호출 미검증)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/163">#163</a></td></tr>
 </tbody>
 </table>
 

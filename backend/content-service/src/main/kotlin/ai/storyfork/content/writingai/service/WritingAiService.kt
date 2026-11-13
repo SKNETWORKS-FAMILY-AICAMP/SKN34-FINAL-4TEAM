@@ -14,13 +14,15 @@ import java.util.UUID
  * 집필 AI 오케스트레이션의 Content 진입점. 로그인한 작가 본인으로 Q&A 조회 범위를 서명해 발급하고,
  * 대화는 작가·작품 scope에 묶는다. 새 턴과 resume 모두 토큰을 새로 발급해 저장된 토큰 만료와 무관하게 한다.
  * 단계 입력(Writing 문맥·웹 조사 질문)은 아직 보내지 않으므로 그 단계는 AI에서 입력 대기(waiting)가 된다.
+ * 새 턴은 Writing 반영 대상(작품·회차)을, 모든 요청은 작가의 Bearer를 함께 보낸다. Writing 결과를 작가가 resume으로
+ * 승인하면 AI가 그 Bearer로 Content MCP `episode_update_draft`를 호출하고, 인가·revision 확인은 기존 Service가 한다.
  */
 internal class WritingAiService(
     private val scopes: QaScopeService,
     private val grants: QaScopeGrants,
     private val client: WritingAiClient,
 ) {
-    fun run(workId: String, owner: String, request: WritingAiRequest): WritingAiResponse {
+    fun run(workId: String, owner: String, authorization: String, request: WritingAiRequest): WritingAiResponse {
         checkContent(request.consent, message="OpenAI 전송과 API 비용에 동의해 주세요.")
         checkContent((request.request == null) != (request.resume == null), message="새 요청과 이어가기 중 하나만 보내 주세요.")
         checkContent(request.resume == null || request.threadId != null, message="이어갈 대화를 지정해 주세요.")
@@ -39,9 +41,10 @@ internal class WritingAiService(
             } else {
                 put("request", request.request)
                 put("scope", scope)
+                put("target", mapOf("workId" to workId, "episode" to request.episode))
                 request.operation?.let { put("operation", it) }
             }
         }
-        return WritingAiResponse(threadId, client.orchestrate(body))
+        return WritingAiResponse(threadId, client.orchestrate(body, authorization))
     }
 }

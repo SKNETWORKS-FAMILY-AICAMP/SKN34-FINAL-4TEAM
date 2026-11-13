@@ -36,3 +36,16 @@ def test_conversation_failures_become_http_status(monkeypatch, failure, status):
     with pytest.raises(HTTPException) as error:
         asyncio.run(router.orchestrate(OrchestrationRequest(request='요청'), 'test-token'))
     assert error.value.status_code == status
+
+
+def test_user_authorization_header_reaches_the_service(monkeypatch):
+    monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
+    seen = []
+
+    async def run(data, authorization=''):
+        seen.append(authorization)
+        return service.OrchestrationResponse(status='completed')
+
+    monkeypatch.setattr(service, 'run', run)
+    asyncio.run(router.orchestrate(OrchestrationRequest(request='요청'), 'test-token', 'Bearer user'))
+    assert seen == ['Bearer user']

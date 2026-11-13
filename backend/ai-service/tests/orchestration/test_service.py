@@ -327,3 +327,90 @@ def test_resume_uses_the_fresh_scope_token_from_content(monkeypatch):
         'approved': True, 'inputs': {'web_research': WEB}, 'scope': {'scopeToken': 'fresh.token'}})
     assert resumed.status == 'completed'
     assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['fresh.token']
+
+
+TARGET = {'workId': 'work', 'episode': 3}
+
+
+def writer(monkeypatch, fail=None):
+    """Content MCP 초안 반영 대역. 호출마다 (작품, 회차, 결과, 그때의 사용자 토큰)을 남긴다."""
+    applied = []
+
+    def apply_writing(work_id, number, result):
+        applied.append((work_id, number, result, service.content_mcp.AUTHORIZATION.get()))
+        if fail:
+            raise fail
+        return {'episode': number, 'revision': 8}
+
+    monkeypatch.setattr(service.content_mcp, 'apply_writing', apply_writing)
+    return applied
+
+
+def write_turn(thread, authorization='Bearer user', **body):
+    data = OrchestrationRequest(conversation={'threadId': thread, 'scope': 'user:1/work:1'}, **body)
+    return asyncio.run(service.run(data, authorization))
+
+
+def test_writing_result_waits_for_author_approval_before_any_write(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    result = write_turn(str(uuid4()), request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+    assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
+    assert result.steps[0].status == 'completed' and result.steps[0].result.after == '그는 차갑게 웃었다.'
+    assert applied == []
+
+
+def test_approval_writes_the_same_result_with_the_resuming_users_token(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    write_turn(thread, request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+    done = write_turn(thread, 'Bearer fresh', resume={'approved': True})
+    assert done.status == 'completed' and done.awaitingApproval is None
+    assert (done.steps[0].approval, done.steps[0].applied.revision) == ('approved', 8)
+    assert applied == [('work', 3, {'before': '그는 웃었다.', 'after': '그는 차갑게 웃었다.', 'model': 'm',
+                                    'providerResponseId': 'r', 'usage': None}, 'Bearer fresh')]
+    assert names(calls) == ['route', 'patch']  # 승인 뒤 모델을 다시 부르지 않는다.
+
+
+def test_declined_result_is_kept_but_never_written(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    write_turn(thread, request='써줘', target=TARGET, inputs={'writing_editing': DRAFT})
+    done = write_turn(thread, resume={'approved': False})
+    assert done.status == 'completed' and done.steps[0].approval == 'declined' and done.steps[0].applied is None
+    assert applied == []
+
+
+def test_failed_write_fails_the_step_and_stops_later_steps(monkeypatch):
+    from app.content_mcp.errors import ContentMcpFailure
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('writing_editing', 'web_research'))
+    writer(monkeypatch, fail=ContentMcpFailure(409, '초안이 최신이 아니에요.'))
+    write_turn(thread, request='고치고 조사해줘', target=TARGET, inputs={'writing_editing': PATCH, 'web_research': WEB})
+    done = write_turn(thread, resume={'approved': True})
+    assert done.status == 'failed' and done.steps[0].error == '초안이 최신이 아니에요.'
+    assert done.steps[0].result.after == '그는 차갑게 웃었다.' and done.steps[1].status == 'not_started'
+    assert 'web_research' not in names(calls)
+
+
+def test_writing_without_target_or_conversation_only_returns_a_proposal(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    assert write_turn(str(uuid4()), request='써줘', inputs={'writing_editing': DRAFT}).status == 'completed'
+    assert run('써줘', target=TARGET, inputs={'writing_editing': DRAFT}).status == 'completed'
+    assert applied == []
+
+
+def test_stream_reports_approval_wait_then_the_applied_step(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('writing_editing'))
+    writer(monkeypatch)
+    conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
+    first = stream(conversation=conversation, target=TARGET, inputs={'writing_editing': PATCH})
+    assert [name for name, _ in first] == ['plan', 'started', 'step', 'waiting', 'done']
+    assert first[3][1]['awaitingApproval'] == 'writing_editing' and first[-1][1]['status'] == 'waiting'
+    second = stream(request=None, conversation=conversation, resume={'approved': True})
+    assert [name for name, _ in second] == ['step', 'done']
+    assert second[0][1]['applied'] == {'episode': 3, 'revision': 8} and second[-1][1]['status'] == 'completed'
