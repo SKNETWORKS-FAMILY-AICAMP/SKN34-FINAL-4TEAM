@@ -392,3 +392,63 @@ it('treats the row as the source of truth for character documents: a deleted epi
  const cleared=(await savedBody([{...row,characterDocs:noDocs},b,relation])).cards[0].semanticMetadata
  expect(Object.keys(cleared).sort()).toEqual(['kept','studio'])
 })
+
+// ── 관계 기준 회차(DEC-51): 조회 쿼리 `?episode=`, 저장 본문 `episode`, 지난 회차 관계의 삭제된 카드 끝점 ───
+const goneCard=crypto.randomUUID()
+const goneRelation={...relation,item:{...relation.item,id:crypto.randomUUID(),title:'지운 설정과의 관계',targetId:goneCard}}
+/** 지난 회차 시점 응답: 그 뒤에 삭제한 카드(lifecycle removed)를 끝점으로 하는 관계가 함께 온다. */
+const wireWithGone=(version=2)=>{
+ const value=wire(version)
+ return {...value,
+  cards:[...value.cards,{...value.cards[0],id:goneCard,title:'지운 설정',lifecycle:'removed',semanticMetadata:{studio:{...a,item:{...a.item,id:goneCard,title:'지운 설정'}}}}],
+  relationships:[...value.relationships,{...value.relationships[0],id:goneRelation.item.id,targetCardId:goneCard,label:goneRelation.item.title,semanticMetadata:{studio:goneRelation}}]}
+}
+const episodeWorld:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
+it('declares that it reads and saves relations per episode',()=>{
+ expect(new HttpWorldStudioRepository(vi.fn()).relationEpisodes).toBe(true)
+})
+it('reads the relations of the given episode with ?episode= and keeps the plain path without one',async()=>{
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire()))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await repo.read(id);await repo.read(id,undefined,3)
+ expect(fetcher.mock.calls.map(call=>call[0])).toEqual([`/api/v1/world-studios/${id}`,`/api/v1/world-studios/${id}?episode=3`])
+})
+it('sends the chosen episode in the draft save body and omits it for the latest episode',async()=>{
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await repo.saveStudio(episodeWorld,undefined,2);await repo.saveStudio(episodeWorld)
+ const [chosen,latest]=fetcher.mock.calls.map(call=>JSON.parse(call[1].body))
+ expect(chosen).toMatchObject({episode:2,replace:true,expectedDraftRevision:2})
+ expect(latest).not.toHaveProperty('episode')
+})
+it('retries an ambiguous save with the exact episode and refuses to change the episode while it is pending',async()=>{
+ const fetcher=vi.fn().mockRejectedValueOnce(new TypeError('network')).mockResolvedValueOnce(Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.saveStudio(episodeWorld,undefined,2)).rejects.toThrow()
+ await expect(repo.saveStudio(episodeWorld,undefined,3)).rejects.toThrow('같은 입력')
+ await expect(repo.saveStudio(episodeWorld)).rejects.toThrow('같은 입력')
+ await repo.saveStudio(episodeWorld,undefined,2)
+ expect(fetcher).toHaveBeenCalledTimes(2);expect(fetcher.mock.calls[1][1].body).toBe(fetcher.mock.calls[0][1].body)
+})
+it('reads a relation whose endpoint is a card deleted later, and sends it back unchanged on save without sending the deleted card',async()=>{
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(wireWithGone()))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id,undefined,2)
+ expect(loaded.settings.map(s=>s.item.id)).toEqual([a.item.id,b.item.id,relation.item.id,goneRelation.item.id]) // 삭제된 카드는 설정으로 읽지 않는다
+ expect(loaded.settings[3].item).toMatchObject({subjectId:a.item.id,targetId:goneCard})
+ fetcher.mockImplementation(async()=>Response.json(wireWithGone(3)))
+ await repo.saveStudio(loaded,undefined,2)
+ const body=JSON.parse(fetcher.mock.calls[1][1].body)
+ expect(body.cards.map((card:{id:string})=>card.id)).toEqual([a.item.id,b.item.id])
+ expect(body.relationships.find((r:{id:string})=>r.id===goneRelation.item.id)).toMatchObject({sourceCardId:a.item.id,targetCardId:goneCard,label:goneRelation.item.title,body:goneRelation.item.text,lifecycle:'active'})
+})
+it('keeps the titles of the deleted cards to name them in a past episode, and has none when nothing was deleted',async()=>{
+ const gone=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(wireWithGone()))).read(id,undefined,2)
+ expect(gone.deletedTitles).toEqual({[goneCard]:'지운 설정'})
+ const plain=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(wire()))).read(id)
+ expect(plain.deletedTitles).toEqual({})
+})
+it('still rejects a relation whose endpoint is neither an active nor a deleted card of the world',async()=>{
+ const value=wireWithGone()
+ const fetcher=vi.fn().mockResolvedValue(Response.json({...value,relationships:value.relationships.map(r=>r.id===goneRelation.item.id?{...r,targetCardId:crypto.randomUUID()}:r)}))
+ await expect(new HttpWorldStudioRepository(fetcher).read(id,undefined,2)).rejects.toThrow('응답')
+})

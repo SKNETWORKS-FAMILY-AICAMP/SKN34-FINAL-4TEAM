@@ -80,6 +80,7 @@ export function useWorldStudioViewModel(
   const [relationWorld, setRelationWorld] = useState('')
   const [relationRequest, setRelationRequest] = useState<{ id: string; seq: number } | null>(null)
   const [relationKey, setRelationKey] = useState(0)
+  const [episode, setEpisode] = useState<number | null>(null) // 관계 기준 회차(DEC-51). null이면 최신 회차이고, 읽기·저장이 이 회차 시점의 관계를 쓴다.
   const returnCard = useRef('')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'failed'>('idle')
   const [worlds, setWorlds] = useState<StudioWorld[]>([])
@@ -168,6 +169,7 @@ export function useWorldStudioViewModel(
     setSaved(null)
     setEditing(null)
     setDirty(false)
+    setEpisode(null)
     setError('')
     setMessage('')
     setBusy(true)
@@ -245,6 +247,13 @@ export function useWorldStudioViewModel(
   const infoLocked = dirty || writingIssues.length > 0
   // 저장할 수 있는지: 바뀐 것이 있거나 한 번도 저장한 적 없는 세계관(첫 저장)이고, 저장 전 확인 항목이 없다.
   const canSave = !busy && !reviewBusy && (dirty || saved?.version === 0) && writingIssues.length === 0
+  // 관계 기준 회차를 바꿀 수 없는 이유(바꿀 수 있으면 빈 글): 회차를 모르는 데모(메모리), 소설이 없어 1화 하나뿐인 세계관, 진행 중인 AI 후보 검토·확정 버전 요청, 다시 읽으면 잃는 저장하지 않은 변경.
+  const episodeLock = !useCase.supportsRelationEpisodes ? '데모에서는 지원하지 않아요.'
+    : !saved?.linkedWorkId ? '소설을 연결하면 회차별로 기록할 수 있어요.'
+    : reviewBusy ? 'AI 후보 검토·확정 버전 요청이 진행 중이라 회차를 바꿀 수 없어요.'
+    : dirty || relationDirty ? '저장하지 않은 변경이 있어 회차를 바꿀 수 없어요. 먼저 세계관을 저장하세요.' : ''
+  // 설정 삭제는 카드 변경이라 회차 시점이 아니라 최신 저장에서만 받는다(서버도 회차를 지정한 저장의 카드 삭제를 422로 거절한다).
+  const deleteLock = episode === null ? '' : '설정 삭제는 최신 회차에서 할 수 있어요.'
   const publication: WorldPublicationInput = { visibility: saved?.visibility ?? 'private', genre: saved?.genre ?? null }
   const demo = import.meta.env.MODE === 'mockup'
   const listing = listingOf(saved, demo)
@@ -257,7 +266,7 @@ export function useWorldStudioViewModel(
       if (saved && saved.id === target.id) {
         assertNoNewRelationDuplicates(target.settings, saved.settings)
       }
-      apply(await useCase.save(target, signal), current)
+      apply(await useCase.save(target, signal, episode ?? undefined), current)
       if (current === generation.current) {
         setMessage(worldStudioStorage(import.meta.env.MODE).saved)
       }
@@ -269,7 +278,7 @@ export function useWorldStudioViewModel(
   return {
     reviewWorldId:worldId,
     setReviewBusy,
-    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setRelationKey(v=>v+1);return w},
+    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w},
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoCardDeletion: !!cardUndo,
     /** 방금 지운 카드(되돌릴 수 있는 동안). 이름·인물 여부로 되돌리기 안내를 만든다. */
@@ -356,7 +365,31 @@ export function useWorldStudioViewModel(
         const current = generation.current
         const world = await useCase.read(id, signal)
         if (generation.current === current && !signal.aborted) {
+          setEpisode(null)
           setRelationKey((key) => key + 1)
+          setRelationRequest(null)
+          setRelationDirty(false)
+          apply(world, current)
+        }
+      })
+    },
+    /** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번). null이면 최신 회차다. */
+    episode,
+    /** 회차를 바꿀 수 없는 이유(데모·소설 미연결·AI 후보 검토·확정 버전 요청 중·저장하지 않은 변경), 바꿀 수 있으면 빈 글이다. */
+    episodeLock,
+    /** 지난 회차를 연 채 저장하면 관계가 어느 회차로 기록되는지(최신 회차면 빈 글). 저장 영역과 검토·저장 단계가 보인다. */
+    episodeSaveNote: episode === null ? '' : `관계는 ${episode}화 기준으로 저장돼요.`,
+    /** 설정 삭제를 막는 이유(회차를 고른 동안), 삭제할 수 있으면 빈 글이다. 삭제 진입점들이 잠그고 이 글을 보인다. */
+    deleteLock,
+    /** 그 회차 시점의 관계로 초안을 다시 읽는다(null이면 최신). 읽지 못하면 이전 회차 그대로 오류를 보이고, 잠겨 있거나 같은 회차면 읽지 않는다. */
+    selectEpisode: (next: number | null) => {
+      if (episodeLock || next === episode || !saved) return
+      return perform(async (signal) => {
+        const current = generation.current
+        const world = await useCase.read(saved.id, signal, next ?? undefined)
+        if (generation.current === current && !signal.aborted) {
+          setEpisode(next)
+          setRelationKey((key) => key + 1) // 관계 편집기를 새로 열어 지난 회차의 선택·입력이 남지 않게 한다
           setRelationRequest(null)
           setRelationDirty(false)
           apply(world, current)
@@ -368,9 +401,13 @@ export function useWorldStudioViewModel(
       !!changeRelations((settings) => applyRelationChanges(settings, changes, removed, saved?.settings ?? settings)),
     /** 설정 카드(유형 무관) 하나를 지울 때 함께 사라질 관계와 지우지 못하게 막는 설정을 미리 본다. */
     cardDeletionInfo: (id: string) => cardDeletionInfo(editing?.settings ?? [], id),
-    /** 설정 카드를 이어진 관계와 함께 초안에서 지운다(저장해야 서버에 반영). 지운 카드가 편집 화면에 열려 있으면 설정집으로 돌아가고, 되돌릴 수 있다. 지웠을 때만 true다. */
+    /** 설정 카드를 이어진 관계와 함께 초안에서 지운다(저장해야 서버에 반영). 지운 카드가 편집 화면에 열려 있으면 설정집으로 돌아가고, 되돌릴 수 있다. 지웠을 때만 true다. 회차를 고른 동안(`deleteLock`)은 이유를 오류로 알리고 지우지 않는다. */
     deleteCard: (id: string) => {
       if (!editing) return false
+      if (deleteLock) {
+        setError(deleteLock)
+        return false
+      }
       const before = editing.settings
       const card = before.find((row) => row.item.id === id)
       const after = changeRelations((settings) => removeCard(settings, id))

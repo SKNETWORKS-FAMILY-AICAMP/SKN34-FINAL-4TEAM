@@ -44,6 +44,7 @@ const BODY_MAX = 3000
  *   둘 다 초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
  * - 오른쪽: AI 채팅(전송은 연결 전이라 '준비 중').
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
+ * 관계 기준 회차를 고른 동안(`vm.deleteLock`)은 삭제가 최신 저장에서만 되므로 하단 삭제와 레일 ⋮ 삭제를 잠그고 이유를 하단에 보인다(잠긴 메뉴 항목의 설명도 같은 글).
  */
 export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatOpenChange }: { vm: VM; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; chatOpen: boolean; onChatOpenChange: (open: boolean) => void }) {
   const world = vm.editing!
@@ -53,6 +54,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
   const [split, setSplit] = useState(50) // 레일에서 카드 목록이 차지하는 높이 비율(%). 새로 열면 처음으로 돌아온다.
   const [confirm, setConfirm] = useState('') // 삭제를 확인 중인 카드 id
   const listId = useId()
+  const deleteReason = `${listId}-delete-lock`
   const demo = import.meta.env.MODE === 'mockup'
   const nameField = useRef<HTMLInputElement>(null)
   // 편집 화면에 들어올 때와 레일에서 새 설정을 더했을 때만 이름 입력으로 초점을 옮긴다(레일에서 카드를 옮길 때는 목록의 초점을 지킨다).
@@ -85,7 +87,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
         </button>
         {/* 항목마다 그 카드를 대상으로 하는 메뉴. 카드를 먼저 연 뒤 같은 삭제 확인을 보인다. */}
         <PopMenu className="writing-episode-more" label={`${title} 더보기`} icon={<MoreVerticalIcon />}>
-          <button type="button" role="menuitem" className="danger" disabled={vm.busy} onClick={() => { if (!on) vm.editCard(id); setConfirm(id) }}>삭제</button>
+          <button type="button" role="menuitem" className="danger" disabled={vm.busy || !!vm.deleteLock} aria-describedby={vm.deleteLock ? deleteReason : undefined} onClick={() => { if (!on) vm.editCard(id); setConfirm(id) }}>삭제</button>
         </PopMenu>
       </div>
     )
@@ -129,7 +131,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
                   <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!revisions.supported} onClick={openVersions}>확정 버전 남기기</button>
                 </div>
                 <VersionGraph rows={worldVersionRows(revisions.rows, vm.dirty, vm.saved?.currentRevisionId)} selectedId={revisions.detail?.revisionId ?? ''} disabled={revisions.busy} onPick={(id) => { void revisions.open(id); openVersions() }} />
-                <p className="small muted world-graph-note">{revisions.supported ? '관계는 현재 상태만 보관해요(버전에 포함되지 않음).' : '목업에서는 확정 버전을 지원하지 않아요. 관계는 현재 상태만 보관해요.'}</p>
+                <p className="small muted world-graph-note">{revisions.supported ? '관계는 회차별로 기록해요(확정 버전에는 포함되지 않음).' : '목업에서는 확정 버전을 지원하지 않아요. 관계는 현재 상태만 보관해요.'}</p>
               </section>
             </div>
           </div>
@@ -211,8 +213,9 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             <footer className="writing-foot">
               <p className={`small ${over ? 'world-over' : 'muted'}`}>{docs.person && `${docs.name} `}{docs.text.length.toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자 · {over ? '3,000자를 넘으면 저장할 수 없어요' : vm.dirty ? '저장 전 수정이 있어요' : '저장된 상태예요'}</p>
               <p role="status" className="sr-only">{over && (docs.person ? `${docs.name}가 3,000자를 넘었어요.` : '설명이 3,000자를 넘었어요.')}</p>
+              {vm.deleteLock && <p id={deleteReason} className="small muted">{vm.deleteLock}</p>}
               <div className="writing-foot-actions">
-                <button type="button" className="btn sm world-danger" disabled={vm.busy} onClick={() => setConfirm(item.id)}>삭제</button>
+                <button type="button" className="btn sm world-danger" disabled={vm.busy || !!vm.deleteLock} aria-describedby={vm.deleteLock ? deleteReason : undefined} onClick={() => setConfirm(item.id)}>삭제</button>
               </div>
             </footer>
           </div>
