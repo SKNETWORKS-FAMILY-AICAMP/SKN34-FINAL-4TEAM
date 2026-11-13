@@ -18,19 +18,16 @@
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
-> 현재 Content의 실제 코드 추출·8081 라우팅과 Operations의 독립 CRUD·8082 서비스 자격/저장은 위 현재 소스 상태 및 각 서비스 README를 따릅니다. Operations는 Compose·공개 proxy·배포에 연결하지 않습니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
-
-STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴의 최종 처리(콘텐츠 삭제·익명화)는 미구현이므로 운영 가입용이 아닙니다.
-서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
-백엔드는 기능 중심 레이어드 구조를 유지합니다.
+STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. `/content` React 작업실과 `/studio/{UUID}`의 콘텐츠 API, PostgreSQL 콘텐츠 정본 및 AI Service `/internal/v1/proposals` 요청은 Content가 소유합니다. 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요.
+Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고, 백엔드는 [DEC-41의 서비스 책임](design/service-boundaries.md) 안에서 기능 중심으로 구성합니다.
 
 ```text
-Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
-             /api       /api/v1/health       /internal/v1/health
-                        /api/v1/health/ai-service
+Browser → React Web → /api
+  ├─ Core → AI Service GET /internal/v1/health
+  └─ Content → AI Service POST /internal/v1/proposals
 ```
 
-사용자가 명시적으로 생성할 때 AI Service에서 OpenAI Responses API를 호출합니다. 개인 브랜치의 모델 설정은 팀 전체 모델 선정 결정과 구분합니다. 새 Agent 프레임워크·그래프 DB는 도입하지 않았습니다.
+사용자가 명시적으로 생성할 때 AI Service에서 OpenAI Responses API를 호출합니다. 팀의 모델·에이전트 프레임워크 결정은 [결정 기록](design/decisions.md#미결-사항)을 따릅니다.
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
 가입 후보·회원·refresh 세션·복구/이메일 변경 challenge 저장에 PostgreSQL·Flyway, 로컬 메일 확인에 Mailpit을 사용합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경에 사용하며, 가입 인증은 24시간, 복구·이메일 변경 challenge는 1시간 유효합니다. Content는 같은 PostgreSQL에서 별도 `content_schema_history`로 콘텐츠를 저장합니다. 비공개 콘텐츠 API는 JWT Bearer 인증을 요구하고 공개 작품은 GET만 익명으로 조회합니다. Redis·큐·worker·운영 seed는 없습니다.
 
@@ -122,10 +119,10 @@ Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaR
 
 ## AI Service
 
-`app/main.py`가 Health·generation router를 조립합니다. 내부 인증된 생성 요청에서만 OpenAI를 호출하며 정본은 Core에서 반영합니다.
+`app/main.py`가 기능별 Health·generation Router를 조립합니다. Core는 AI Health를 확인하고, Content는 권한과 기준 버전을 확인한 뒤 내부 생성 API를 호출합니다. AI는 제안과 모델 사용량을 반환하고 Content는 제안 저장·채택·원고 반영을 담당합니다.
 시작 시 모델 클라이언트를 만들지 않습니다. 생성 요청에서만 AI 런타임의 키·모델·내부 토큰 설정을 사용합니다.
-향후 합의된 AI 기능은 필요한 `router → service → agent → OpenAI` 흐름으로 추가합니다.
-상세는 [Agent 구현 경계](../backend/ai-service/docs/agent-structure.md)를 따릅니다.
+단일 모델 호출은 `Router → 실행 함수 → 모델 SDK`로 구성합니다. 검색·검증을 조율하거나 실행 상태를 여러 단계에서 갱신해야 할 때 기능 안에서 필요한 실행 서비스·그래프를 추가합니다.
+상세는 [AI Service 구현 경계](../backend/ai-service/docs/agent-structure.md)를 따릅니다.
 
 ## 실행·보안 경계
 

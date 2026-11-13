@@ -13,6 +13,8 @@ function MyReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
   const label = `${r.workTitle} ${r.episodeNumber}화`
   // 처리가 성공하면 눌렀던 버튼이 사라지거나 잠겨도 키보드 위치를 이 행 카드에 둔다(WCAG 2.4.3).
   const settle = (ok: boolean) => { if (ok) card.current?.focus(); return ok }
+  // 토스트는 곧 사라지므로 이 제보의 처리 결과(특히 서버가 거절한 이유)를 카드 안에도 남긴다(피드백함의 독자 제보 카드와 같은 방식).
+  const result = vm.notice?.key === r.id ? vm.notice : null
   return (
     <FeedbackReportCard report={r} showWork ref={card}>
       <div className="acts" style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -33,6 +35,7 @@ function MyReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
           </form>
         </details>
       )}
+      {result && <p role={result.ok ? 'status' : 'alert'} className="small" style={{ marginTop: 8 }}>{result.msg}</p>}
     </FeedbackReportCard>
   )
 }

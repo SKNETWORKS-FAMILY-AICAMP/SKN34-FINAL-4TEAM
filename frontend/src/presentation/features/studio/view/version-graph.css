@@ -1,0 +1,14 @@
+/* 버전 그래프: 왼쪽 세로선 + 원형 노드 + 오른쪽 라벨. 노드 중심은 행 위에서 22px. */
+.version-graph { margin: 0; padding: 0; list-style: none; }
+.graph-row { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 6px; padding-inline: 12px; }
+.graph-row::before { content: ''; position: absolute; left: 21px; top: 0; bottom: 0; width: 2px; background: var(--tline); }
+.graph-row:first-child::before { top: 22px; }
+.graph-row:last-child::before { bottom: calc(100% - 22px); }
+.graph-node { position: relative; z-index: 1; box-sizing: border-box; width: 12px; height: 12px; margin: 16px 0 0 4px; border: 2px solid var(--tacc); border-radius: 50%; background: var(--tbg); }
+.graph-row.head .graph-node { background: var(--tacc); box-shadow: 0 0 0 4px var(--pri-soft); }
+.graph-row.unsaved .graph-node { border-style: dashed; }
+.graph-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 12px; background: none; color: var(--tfg); text-align: left; font-size: 13.5px; }
+button.graph-item:hover { background: var(--muted-bg); }
+button.graph-item[aria-current="true"] { background: var(--pri-soft); color: var(--pri-ink); }
+.graph-label { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-weight: 700; overflow-wrap: anywhere; }
+.graph-time { color: var(--tsub); font-size: 11.5px; }

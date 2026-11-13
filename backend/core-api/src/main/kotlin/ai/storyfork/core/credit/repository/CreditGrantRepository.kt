@@ -14,6 +14,11 @@ interface CreditGrantRepository : JpaRepository<CreditGrantEntity, UUID> {
     @Query("select g from CreditGrantEntity g where g.memberId = :memberId and g.expiresAt > :now order by g.expiresAt, g.grantedAt, g.id")
     fun lockActive(memberId: UUID, now: Instant): List<CreditGrantEntity>
 
+    /** 예약이 잡고 있는 지급분을 정산·해제 전에 잠가서 읽는다. 순서는 [lockActive]와 같다. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select g from CreditGrantEntity g where g.id in :ids order by g.expiresAt, g.grantedAt, g.id")
+    fun lockByIds(ids: Collection<UUID>): List<CreditGrantEntity>
+
     @Query("select g from CreditGrantEntity g where g.memberId = :memberId and g.expiresAt > :now order by g.expiresAt, g.grantedAt, g.id")
     fun findActive(memberId: UUID, now: Instant): List<CreditGrantEntity>
 
@@ -25,8 +30,13 @@ interface CreditGrantRepository : JpaRepository<CreditGrantEntity, UUID> {
     /**
      * 소멸 시각이 지났고 아직 남은 양이 있으며 소멸 기록이 없는 지급분을 잠가서 읽는다. 이미 다 쓴 지급분은 매번 다시 읽지 않는다.
      * 잠그지 않으면 자정 직전에 시작한 차감이 커밋되기 전의 남은 양으로 소멸을 기록해 지급량보다 많이 빠져나간 것으로 남을 수 있다.
+     * 예약이 잡고 있는 지급분은 정산·해제 전까지 소멸시키지 않는다(F-CRD-04).
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select g from CreditGrantEntity g where g.expiresAt <= :now and g.amount > coalesce((select sum(u.amount) from CreditLedgerEntryEntity u where u.grantId = g.id), 0) and not exists (select 1 from CreditLedgerEntryEntity e where e.grantId = g.id and e.kind = 'expire')")
+    @Query("select g from CreditGrantEntity g where g.expiresAt <= :now and g.amount > coalesce((select sum(u.amount) from CreditLedgerEntryEntity u where u.grantId = g.id), 0) and not exists (select 1 from CreditLedgerEntryEntity e where e.grantId = g.id and e.kind = 'expire') and not exists (select 1 from CreditReservationLineEntity r where r.grantId = g.id)")
     fun expiredWithoutRecord(now: Instant): List<CreditGrantEntity>
+
+    /** (now, until]에 소멸하고 아직 쓸 수 있는 양(사용·소멸 기록과 예약 중인 양 제외)이 있는 지급분의 회원과 소멸 시각. 소멸 예정 알림이 쓴다. */
+    @Query("select distinct g.memberId as memberId, g.expiresAt as expiresAt from CreditGrantEntity g where g.expiresAt > :now and g.expiresAt <= :until and g.amount > coalesce((select sum(u.amount) from CreditLedgerEntryEntity u where u.grantId = g.id), 0) + coalesce((select sum(r.amount) from CreditReservationLineEntity r where r.grantId = g.id), 0)")
+    fun findExpiring(now: Instant, until: Instant): List<ExpiringGrant>
 }

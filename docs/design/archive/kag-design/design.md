@@ -5,7 +5,7 @@
 > **문서 상태: 설계 초안 — 구현 없음**
 > 유스케이스 v7(UC-01~28)·유스케이스 명세·요구사항 정의서(REQ01~16, 기능 116개)를 시스템 구조로 옮긴 상위 수준 설계입니다. 함수 시그니처·의사코드·DTO 스키마·DB 스키마·실제 쿼리는 다루지 않습니다.
 >
-> **이번 개정(2026-10-29):** 서비스 분리를 `채택`했습니다. 세계관 정본은 knowledge-service(lakeFS·PostgreSQL·Neo4j)가, 그래프 추론은 kag-service(OpenSPG KAG 포크)가 맡는 다섯 서비스 구성입니다. kag-service를 ai-service에 합칠지는 통합 시험([V-01](#검증-과제))을 해 본 뒤 정합니다. 같은 날 참고 프로젝트 GovBiz의 DB·Langfuse 운영 방식(저장소 인스턴스 소유자별 분리, Langfuse 별도 Compose 프로젝트, 추적 규칙)을 적용했습니다(DEC-13~15). 이 문서는 시스템 전체 개요와 색인이고, 서비스별 상세는 [문서 구성](#문서-구성)의 서비스 문서에, 결정 근거는 [decisions.md](decisions.md)에 있습니다.
+> **이번 개정(2026-10-29):** 서비스 분리를 `채택`했습니다. 세계관 정본은 knowledge-service(lakeFS·PostgreSQL·Neo4j)가, 그래프 추론은 kag-service(OpenSPG KAG 포크)가 맡는 다섯 서비스 구성입니다. kag-service를 ai-service에 합칠지는 통합 시험([V-01](#검증-과제))을 해 본 뒤 정합니다. 같은 날 저장소 인스턴스 소유자별 분리, Langfuse 별도 Compose 프로젝트, 추적 규칙을 정했습니다(DEC-13~15). 이 문서는 시스템 전체 개요와 색인이고, 서비스별 상세는 [문서 구성](#문서-구성)의 서비스 문서에, 결정 근거는 [decisions.md](decisions.md)에 있습니다.
 
 ## Overview
 
@@ -63,7 +63,6 @@ STORYFORK는 다중 AI 에이전트 기반 독자 참여형 스토리 창작·�
 - [보조 다이어그램](../../../../docs/diagrams/README.md): [상태](../../../../docs/diagrams/state.md)·[활동](../../../../docs/diagrams/activity.md)·[시퀀스](../../../../docs/diagrams/sequence.md)·[도메인 클래스](../../../../docs/diagrams/class.md)
 - [UI 프로토타입 대응](../../../../docs/prototype-alignment.md), 요구사항 정의서(`docs/SKN34-final-4Team_요구사항정의서.xlsx`)
 - 외부 자료(조사 일자·한계는 [decisions.md 조사·시험 근거](decisions.md#조사시험-근거)): [KAG 논문(arXiv 2409.13731)](https://arxiv.org/abs/2409.13731), [OpenSPG KAG 저장소](https://github.com/OpenSPG/KAG), [OpenSPG 저장소](https://github.com/OpenSPG/openspg), [lakeFS 문서](https://docs.lakefs.io/), Neo4j 블로그의 LLM wiki 그래프 모델(Document → Section 포함 트리, `NEXT_SECTION`, `LINKS_TO`, 결정적·멱등 재동기화. 모델 참고만)
-- 참고 사례(조사 근거는 [decisions.md R-08](decisions.md#r-08-govbiz-참고-프로젝트의-dblangfuse-운영-방식)): [GovBiz(SKN34-4th-1Team) 저장소](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-1Team). 같은 부트캠프의 참고 프로젝트이며 DB·Langfuse 운영 방식만 적용
 
 상태 이름·업무 규칙·흐름의 세부는 위 문서가 기준입니다. 이 설계는 그 규칙을 어느 서비스가 어떻게 지키는지를 정합니다.
 
@@ -320,7 +319,7 @@ core-api만 사용자를 인증하고 권한을 판단합니다. 하위 서비�
 | 마스킹 | 입력·출력 본문 속성과 예외 속성을 지우고 사용량 속성은 남김 |
 | 금지 정보 | 범위 토큰·원고 원문·작가 비공개 설정·개인정보·비밀값은 어떤 속성에도 넣지 않음 |
 | 기록하는 값 | 작업 ID·단계·모델·프롬프트 버전·토큰·지연·비용·결과 상태 같은 메타데이터 |
-| 전송 시간 제한 | 짧게 둠. 출발값은 GovBiz와 같은 2초 |
+| 전송 시간 제한 | 짧게 둠. 출발값은 2초 |
 | 전송 실패 | 작업 결과를 바꾸지 않고, 숨기지도 않고 서비스 로그·운영 지표에 남김 |
 
 - **사용량:** kag-service 사용량은 ai-service 응답에 합산되어 Core로 갑니다. Core가 직접 부른 kag-service 작업 사용량은 Core가 따로 받습니다. Core가 둘을 정산 입력으로 씁니다.
@@ -842,11 +841,11 @@ sequenceDiagram
 | D-33 | Core → kag-service 직접 호출 | 임베딩·설정 추출 후보를 core-api가 직접 부를지(`제안`), ai-service를 거칠지 | `미정` | [kag-service](services/kag-service.md#제공-api) |
 | D-34 | 개발 네트워크 배치 | 같은 PostgreSQL 인스턴스·객체 저장소를 core-api와 knowledge-service가 함께 쓸 때의 네트워크 빈틈. 저장소 인스턴스를 소유자별로 나눠 core-postgres·core 객체 저장소는 core-data에만, knowledge 저장소는 knowledge-internal에만 두는 것으로 해소(`채택`) | 해소(DEC-13) | [인프라](services/infrastructure.md#네트워크) |
 | D-35 | lakeFS 운영 사용 | 실제 사용자 서비스로 바꿀 때 BSL 조건(수정하지 않은 원본, 조직 내부 목적) 재확인, 이전 Apache 2.0 버전 또는 상용 문의 | `미정` | [인프라](services/infrastructure.md#lakefs) |
-| D-36 | 개발 객체 저장소 | MinIO 직접 빌드 이미지의 유지(보안 패치 없음) 또는 다른 S3 호환 저장소로 교체. GovBiz가 digest 고정해 쓰는 Chainguard MinIO 이미지도 대안 후보(무료 이미지의 이용 조건·버전 고정 방식은 확인하지 않음). Langfuse blob을 직접 빌드 이미지와 통일할지도 함께 정함 | `미정` | [인프라](services/infrastructure.md#객체-저장소) |
+| D-36 | 개발 객체 저장소 | MinIO 직접 빌드 이미지의 유지(보안 패치 없음) 또는 다른 S3 호환 저장소로 교체. digest를 고정한 Chainguard MinIO 이미지도 대안 후보(무료 이미지의 이용 조건·버전 고정 방식은 확인하지 않음). Langfuse blob을 직접 빌드 이미지와 통일할지도 함께 정함 | `미정` | [인프라](services/infrastructure.md#객체-저장소) |
 | D-37 | 한국어 처리 | KAG의 언어 감지(한자 있으면 zh, 없으면 en)와 프롬프트를 한국어에 맞게 바꾸는 방식 | `미정`(V-01) | [kag-service](services/kag-service.md#한국어) |
 | D-38 | 시작 ID 규칙 집행 위치 | "이전 결과에 나온 ID만 시작 ID로" 규칙을 kag-service와 knowledge-service 중 어디서 확인할지. 범위 밖 ID는 어느 경우든 "없음" | `미정` | [knowledge-service](services/knowledge-service.md#범위-검색-api) |
 | D-39 | kag-service 실행 환경 | HTTP 서버 프레임워크(FastAPI 후보)와 Python 버전 | `미정` | [kag-service](services/kag-service.md#기술-스택) |
-| D-40 | Langfuse 운영 세부 | PostgreSQL 배치(langfuse-postgres)·blob 저장소(개발 전용 인스턴스, 배포 실습 전용 버킷은 `제안`)·ClickHouse 자원 설정(메모리 상한 설정 파일)은 별도 llmops 프로젝트로 해소(`채택`, DEC-14). 남은 것: ai-service·kag-service가 수집 엔드포인트에 닿는 프로젝트 간 연결(external 네트워크 공유 또는 호스트 경유), 운영자 조회 방식(Langfuse 화면 직접 또는 Core 운영 화면 경유)과 로그인 관리, 추적 보관 기간, llmops 묶음 백업, 운영 기준 자원값(ClickHouse 개발 출발값 3g·2GiB·128MiB는 GovBiz 값). blob 이미지 선택은 D-36 | 일부 해소(DEC-14) | [인프라](services/infrastructure.md#langfuse) |
+| D-40 | Langfuse 운영 세부 | PostgreSQL 배치(langfuse-postgres)·blob 저장소(개발 전용 인스턴스, 배포 실습 전용 버킷은 `제안`)·ClickHouse 자원 설정(메모리 상한 설정 파일)은 별도 llmops 프로젝트로 해소(`채택`, DEC-14). 남은 것: ai-service·kag-service가 수집 엔드포인트에 닿는 프로젝트 간 연결(external 네트워크 공유 또는 호스트 경유), 운영자 조회 방식(Langfuse 화면 직접 또는 Core 운영 화면 경유)과 로그인 관리, 추적 보관 기간, llmops 묶음 백업, 운영 기준 자원값(ClickHouse 개발 출발값은 3g·2GiB·128MiB). blob 이미지 선택은 D-36 | 일부 해소(DEC-14) | [인프라](services/infrastructure.md#langfuse) |
 
 ### 주요 위험
 

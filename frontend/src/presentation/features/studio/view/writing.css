@@ -1,33 +1,212 @@
+/* 집필실: 상단 바 · 3단 본체(왼쪽 회차 레일 / 가운데 원고 편집기 / 오른쪽 AI 채팅) · 회차 설정 시트.
+   전역 storyfork.css는 @layer(base)라 이 파일의 규칙이 선택자와 무관하게 이긴다. 전역 규칙을 덮은 곳은 900px·600px 이하도 여기서 다시 정한다. */
 .studio .sbar h1 { font-size: inherit; margin: 0; }
-.writing-studio .sbar .st { margin-left: auto; }
+/* 레일 폭·본문 한 열의 폭·접힌 채팅 '열기' 버튼이 차지하는 폭(오른쪽 여백 24px + 버튼 약 130px + 간격). 3단 격자와 하단 바가 같은 값을 쓴다.
+   --writing-toolbar-top: 본문 툴바(편집기 안, manuscript-editor.css)가 스크롤 중에 붙는 자리. 데스크톱은 원고 열이 따로 스크롤하므로 그 열의 맨 위다. */
+.writing-studio { --writing-rail: 280px; --writing-measure: 72ch; --chat-toggle-room: 172px; --writing-toolbar-top: 0px; }
+.writing-message { margin: 16px 24px; }
+/* 오류 상자(공용 .ep-alert)는 상단 바 바로 아래에 둔다. 완료 안내는 상단 바의 저장 상태 줄에 이어 적어 이 자리를 쓰지 않는다. */
+.writing-studio > .ep-alert { margin: 12px 24px 0; }
+.writing-studio :is(.writing-rail, .writing-episodes, .writing-graph, .writing-editor) { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--tfg) 28%, transparent) transparent; }
+
+/* ── 상단 바: 왼쪽(돌아가기·제목·저장 상태) / 오른쪽(모드·버전 저장·버전 · 공개·더보기) ── */
+.writing-studio .sbar { flex-wrap: wrap; justify-content: space-between; height: auto; min-height: 64px; padding: 8px 20px; gap: 8px 16px; }
+.writing-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
+.writing-bar-end { justify-content: flex-end; }
+.writing-studio .sbar .t { font-size: 15px; }
+/* 저장 상태 줄에는 완료 안내가 이어 붙는다. 전역 .st는 한 줄(nowrap) 고정이라, 길면 이 칸 안에서 접히게 푼다(두 줄까지는 상단 바 높이 안에 든다). */
+.writing-studio .sbar .st { display: block; min-width: 0; line-height: 1.5; white-space: normal; word-break: keep-all; }
+/* 완료 안내는 저장 상태(보조색)보다 또렷하게 본문 글자색으로 적는다. */
+.writing-notice { color: var(--tfg); }
+.writing-studio .sbar .tbtn { height: 40px; padding: 0 16px; font-size: 14px; }
+.writing-studio .sbar .tbtn:hover:not(:disabled) { background: var(--muted-bg); }
+.writing-studio .sbar .tbtn.pri:hover:not(:disabled) { background: var(--pri-d); }
+.writing-studio .sbar .writing-mode { margin-left: 0; }
+.writing-more .pop-menu-btn { width: 40px; height: 40px; border: 1px solid var(--tline); border-radius: 50%; color: var(--tfg); }
+.writing-more .pop-menu-btn:hover, .writing-more .pop-menu-btn[aria-expanded="true"] { background: var(--muted-bg); }
+.writing-more .pop-menu-list { top: calc(100% + 8px); right: 0; }
+
+/* ── 왼쪽 레일: 회차 목록(1줄 제목 + 1줄 상태, 항목마다 ⋮ 메뉴) → 크기 조절선 → 버전 그래프 ── */
+.writing-studio .studio-workspace .writing-grid { grid-template-columns: var(--writing-rail) minmax(0, 1fr); }
 .writing-studio .seps { min-width: 0; }
-.writing-episode { overflow-wrap: anywhere; }
-.writing-create { margin-top: 24px; }
-.writing-editor { min-width: 0; width: 100%; max-width: 900px; margin-inline: auto; }
-.writing-editor > .field { margin-top: 24px; }
-.writing-studio .tbtn, .writing-studio .btn, .writing-history .btn { min-height: 44px; }
-.writing-studio .et, .writing-body { caret-color: var(--tacc); }
-.writing-studio .et::selection, .writing-body::selection { background: var(--pri-soft); color: var(--pri-ink); }
-.writing-editor .et { font-family: var(--ui); font-size: 22px; font-weight: 600; line-height: 1.5; }
-.writing-editor .writing-body { font-family: var(--ui); font-size: 16px; font-weight: 400; line-height: 1.8; }
-.writing-body { display: block; width: 100%; min-height: 48vh; resize: vertical; border: 0; background: transparent; color: var(--tfg); }
-.writing-studio .et:focus-visible, .writing-body:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; }
-.writing-editor section[aria-label="회차 관리"] { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-.writing-editor section[aria-label="회차 관리"] small { align-self: center; }
-.writing-order { flex: 1 1 100%; }
+.writing-rail { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 16px 0 24px; border-right: 1px solid var(--tline); }
+.writing-rail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-inline: 24px 12px; }
+.writing-rail h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--tsub); }
+.writing-studio .writing-episodes { border: 0; padding: 0 12px; }
+.writing-rail-split { min-width: 0; }
+/* --more-size: 항목 오른쪽 ⋮ 버튼의 한 변. 항목의 오른쪽 여백·버튼 위치·메뉴 위치가 함께 따라간다(터치 기기에서는 아래에서 44px로 키운다). */
+.writing-episode-row { position: relative; min-width: 0; --more-size: 32px; }
+.writing-episode { display: block; width: 100%; min-width: 0; padding-right: calc(var(--more-size) + 12px); }
+.writing-episode strong { display: block; overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.writing-episode.on strong { font-weight: 700; color: var(--pri-ink); }
+.writing-episode:hover:not(:disabled, .on) { background: var(--muted-bg); }
+.writing-episode:disabled, .graph-item:disabled { cursor: not-allowed; opacity: .55; }
+/* 항목 오른쪽의 세로 점 세 개: 호버·선택·초점일 때 보이고, 숨겨도 Tab 순서에 남아 키보드로 늘 닿는다(터치 기기는 늘 보인다). 열린 메뉴가 아래 항목의 버튼에 가리지 않게 올린다. */
+.writing-episode-row .writing-episode-more { position: absolute; z-index: 1; top: 50%; right: 6px; margin-top: calc(var(--more-size) / -2); }
+.writing-episode-row .writing-episode-more:focus-within { z-index: 3; }
+.writing-episode-more .pop-menu-btn { width: var(--more-size); height: var(--more-size); border-radius: 50%; color: var(--tsub); opacity: 0; }
+.writing-episode-row:hover .pop-menu-btn, .writing-episode-row:focus-within .pop-menu-btn, .writing-episode.on + .writing-episode-more .pop-menu-btn, .writing-episode-more .pop-menu-btn[aria-expanded="true"] { opacity: 1; }
+.writing-episode-more .pop-menu-btn:hover { background: var(--muted-bg); color: var(--tfg); }
+.writing-episode-more .pop-menu-list { top: calc(100% + 4px); right: 0; }
+@media (hover: none) { .writing-episode-more .pop-menu-btn { opacity: 1; } }
+/* 목록과 그래프 사이 가로 분할선: 데스크톱 레일에서만 쓴다(좁은 화면은 위아래로 쌓인다). 누르는 영역은 눈에 보이는 선보다 넓게 잡는다. */
+.writing-split { display: none; position: relative; flex: none; height: 9px; cursor: row-resize; touch-action: none; }
+.writing-split::before { content: ''; position: absolute; inset: 4px 12px auto; height: 1px; background: var(--tline); }
+.writing-split::after { content: ''; position: absolute; inset: -8px 0; }
+.writing-split:hover::before, .writing-split:active::before, .writing-split:focus-visible::before { inset-block-start: 3px; height: 3px; border-radius: 2px; background: var(--tacc); }
+.writing-split:focus-visible { outline: 2px solid var(--tacc); border-radius: 4px; }
+.writing-graph { display: grid; gap: 8px; min-width: 0; margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--tline); }
+.writing-graph h2 { padding-inline: 24px; }
+
+/* ── 가운데 원고: 65~75ch 폭의 한 열에 제목 · 본문 · 한 줄 하단 바만 둔다 ── */
+/* 한국어는 단어 단위로 줄바꿈한다(PRODUCT.md): 원고와 설정 시트 글이 음절 중간에서 끊기지 않게 */
+.writing-editor { min-width: 0; width: 100%; padding: 20px 16px 24px; font-size: 16px; scroll-padding-block-end: 72px; word-break: keep-all; }
+/* 집필실의 원고 열은 본문 툴바가 위에 붙어 있다(manuscript-editor.css): 커서가 그 밑에 가리지 않게 위쪽도 비운다. 세계관 설정 편집 화면에는 툴바가 없다. */
+.writing-studio:not(.world-card-studio) .writing-editor { scroll-padding-block-start: 56px; }
+.writing-draftless { margin-bottom: 12px; }
+/* 제목은 입력 칸. 본문 자리(.writing-body)는 마크다운 편집기(늦게 불러온다: manuscript-editor.css) · 불러오는 중 자리표시 · 원작 기준 읽기 전용 본문 · 미리보기가 함께 쓴다. */
+.writing-title { caret-color: var(--tacc); }
+.writing-title::selection, .writing-body ::selection { background: var(--pri-soft); color: var(--pri-ink); }
+/* 자리표시 글자는 투명도를 빼고 보조 글자색 그대로 둬 라이트·다크 모두 4.5:1 이상을 지킨다. */
+.writing-title::placeholder { color: var(--tsub); opacity: 1; }
+.writing-editor .et { padding: 4px 0; margin-bottom: 8px; font-family: var(--ui); font-size: 28px; font-weight: 700; line-height: 1.4; }
+/* flex-shrink 0: 본문은 글 높이만큼 자라고 스크롤은 원고 열이 맡는다(min-height가 있으면 줄어들어 글이 하단 바 위로 넘칠 수 있다).
+   display를 정했으므로 감출 때(미리보기 동안의 편집기)는 hidden을 직접 지킨다. */
+.writing-body { position: relative; display: flex; flex: 1 0 auto; flex-direction: column; min-height: 56vh; }
+.writing-body[hidden] { display: none; }
+/* 원작 기준(읽기 전용) 본문과 편집기의 미리보기: 공용 ManuscriptBody가 그리고, 편집 영역과 같은 글꼴·크기로 읽힌다. */
+.writing-readonly, .manuscript-preview { padding: 16px 0 24px; color: var(--tfg); font-family: var(--ui); font-size: 16px; font-weight: 400; line-height: 1.8; overflow-wrap: anywhere; }
+.writing-title:focus-visible, .writing-readonly:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; border-radius: 4px; }
+/* 편집기를 불러오는 동안의 자리표시 */
+.writing-loading { align-items: center; justify-content: center; color: var(--tsub); font-size: 13.5px; }
+/* 편집기가 입력을 막았을 때만 글이 있다(40,000자 초과 등). */
+.writing-limit { color: var(--danger); font-weight: 600; }
+/* 공개 분량(5,000자) 미달로 공개 버튼을 잠근 사유 */
+.writing-publish-reason { display: block; margin-top: 6px; }
+/* 고급 모드 자리표시: 본문 뒤, 하단 바 위의 작은 한 줄 */
+.writing-advanced { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 8px; }
+.writing-advanced b { padding: 2px 8px; border-radius: 999px; background: var(--muted-bg); color: var(--tsub); font-size: 12px; }
+.writing-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: auto; padding: 12px 0; border-top: 1px solid var(--tline); background: var(--tbg); }
+.writing-foot > p { flex: 1 1 280px; min-width: 0; font-variant-numeric: tabular-nums; }
+.writing-foot-actions { display: flex; flex: none; gap: 8px; margin-left: auto; }
+
+/* ── 오른쪽 AI 채팅(.studio-chat은 전역 스타일, 안쪽은 shared/chat) ──
+   편집기와 구분되는 옅은 브랜드 틴트 면이고, 입력 카드는 한 단계 밝은 면 + 그림자로 떠 보인다(라이트=흰색, 다크=--ink 8%를 섞은 면). 글자 대비는 본문 13:1 이상, 보조·placeholder 5.2:1 이상.
+   머리글 / 메시지 영역(스크롤) / 입력 카드의 세로 flex라 입력 카드는 패널 바닥에 붙는다. */
+.writing-studio .writing-chat { display: flex; flex-direction: column; min-height: 0; overflow: hidden; --chat-bg: color-mix(in srgb, var(--pri-soft) 70%, var(--tbg)); --chat-card: var(--l, var(--surface)) var(--d, color-mix(in srgb, var(--ink) 8%, var(--surface))); background: var(--chat-bg); }
+.writing-chat .studio-chat-head { flex: none; padding: 12px 12px 12px 16px; }
+.writing-chat .studio-chat-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; }
+.chat-brand { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--pri); color: var(--on-pri); }
+.writing-icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--tsub); }
+.writing-icon-btn:hover:not(:disabled) { background: var(--muted-bg); color: var(--tfg); }
+.writing-icon-btn:disabled { cursor: not-allowed; opacity: .45; }
+
+/* ── 회차 설정 시트: 시트는 body에 그려져 .calm 밖이므로 전역 토큰(--line·--ink)을 쓴다. 묶음 사이는 넉넉히, 묶음 안은 촘촘히 ── */
+.writing-settings-sheet { width: min(640px, 100%); }
+.writing-settings { display: grid; gap: 24px; min-width: 0; word-break: keep-all; }
+.writing-settings-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.writing-settings-head h2 { font-size: 22px; line-height: 1.5; }
+.writing-group { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.writing-group + .writing-group { padding-top: 24px; border-top: 1px solid var(--line); }
+.writing-group-title { font-size: 15px; font-weight: 800; color: var(--ink); }
+/* 패널은 자기 제목을 갖고 있어 묶음 구분선·간격을 묶음이 맡는다 */
+.writing-settings :is(.manuscript-export, .episode-images) { margin: 0; padding-block-start: 0; border-block-start: 0; }
+.writing-settings .media-file { margin: 0; }
+/* 시트 안 버튼은 44px 이상이고, 긴 한국어 라벨이 좁은 화면에서 시트를 넘치지 않게 줄바꿈을 허용한다(전역 .btn은 한 줄·고정 높이다). */
+:is(.writing-settings, .writing-history) .btn { height: auto; min-height: 44px; padding-block: 8px; white-space: normal; }
+.writing-settings summary { min-height: 44px; padding-block: 10px; cursor: pointer; }
+/* 이미지 첨부의 기본 '파일 선택' 버튼도 앱의 알약 버튼 모양으로 */
+.writing-settings input[type="file"]::file-selector-button { height: 36px; margin-right: 12px; padding: 0 14px; border: 1px solid var(--line3); border-radius: 999px; background: var(--surface); color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.writing-settings input[type="file"]::file-selector-button:hover { background: var(--muted-bg); }
+.writing-settings .episode-images { margin-top: 12px; }
+.writing-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.writing-actions label { display: flex; flex: 1 1 100%; align-items: flex-start; gap: 8px; }
+.writing-order-status { flex: 1 1 100%; min-width: 0; }
+.writing-order-status ul { margin: 4px 0 0; padding-left: 20px; }
+.writing-danger .writing-group-title { color: var(--danger); }
+/* 전역 .btn.danger는 --danger 채움 + --on-danger 글씨라 글자색만 덮으면 읽을 수 없다. 위험 영역에서는 배경까지 정해 윤곽선 버튼으로 쓴다. */
+.writing-danger .btn.danger { border-color: color-mix(in srgb, var(--danger) 45%, var(--line2)); background: var(--surface); color: var(--danger); }
+.writing-danger .btn.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
 .writing-preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 350px; overflow: auto; font: inherit; line-height: 1.8; padding: 16px 0; }
 .writing-rights { display: flex; gap: 10px; align-items: flex-start; margin: 24px 0 16px; }
-.writing-message { margin: 16px 24px; }
-.writing-studio button:disabled { cursor: not-allowed; opacity: .55; }
+
+/* 데스크톱: 머리줄이 줄바꿈돼도 어긋나지 않게 세 열이 각자 스크롤하는 앱형 구조. 원고 열은 본문이 높이를 채우고 하단 바는 아래에 붙는다. */
+@media (min-width: 901px) {
+  .writing-studio { height: 100vh; }
+  .writing-studio .studio-workspace .writing-grid { grid-template-rows: minmax(0, 1fr); }
+  /* 레일은 두 영역(회차 목록·버전 그래프)이 분할선으로 높이를 나눠 각자 스크롤한다. */
+  .writing-rail { overflow: hidden; }
+  .writing-rail-split { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+  .writing-studio .writing-episodes { flex: 0 1 auto; min-height: 0; overflow: auto; }
+  .writing-split { display: block; }
+  /* 회차 목록은 스크롤 상자라 absolute 팝업이 잘린다(마지막 항목인 회차 삭제가 가려진다). fixed로 띄우되 위치는 버튼 옆 정적 위치에서 오프셋만 준다(버튼 바로 아래, 오른쪽 끝 맞춤).
+     ponytail: fixed라 목록을 스크롤해도 버튼을 따라가지 않으므로 PopMenu가 fixed 메뉴는 스크롤 때 닫는다. 따라오게 하려면 PopMenu가 버튼 좌표로 위치를 계산해야 한다. */
+  .writing-episode-more .pop-menu-list { position: fixed; top: auto; right: auto; margin: calc(var(--more-size) + 4px) 0 0 calc(var(--more-size) - 200px); }
+  .writing-graph { flex: 1 1 0; align-content: start; min-height: 0; margin-top: 0; padding-top: 12px; border-top: 0; overflow: auto; }
+  .writing-editor { padding: 24px max(32px, calc((100% - var(--writing-measure)) / 2)) 0; }
+  .writing-body { min-height: 240px; }
+  .writing-foot { position: sticky; bottom: 0; padding-bottom: 16px; }
+  /* 왼쪽 묶음이 남는 폭을 다 쓰고 저장 상태 줄이 그 안에서 접혀, 긴 완료 안내가 오른쪽 버튼 묶음을 다음 줄로 밀어내지 않는다. */
+  .writing-studio .sbar > .writing-bar:has(> .st) { flex: 1 1 0; flex-wrap: nowrap; }
+  .writing-studio .sbar .st { flex: 1 1 0; }
+  /* 접힌 AI 채팅의 '열기' 버튼(전역 .studio-chat-toggle: 화면 오른쪽 아래 고정)은 하단 바와 같은 띠에 놓고, 하단 바가 겹치는 만큼만 오른쪽을 비운다.
+     하단 바 오른쪽 끝은 화면 끝에서 max(32px, (원고 열 폭 − 본문 폭) / 2) 떨어져 있고 원고 열 폭은 100vw − 레일이므로, 비울 폭은 그 거리와 --chat-toggle-room의 차다(넓은 창에서는 0).
+     집필실의 '회차 설정'과, 이 CSS를 함께 쓰는 세계관 설정 편집 화면의 '삭제'가 버튼 밑에 깔리지 않는다. */
+  .writing-studio .studio-chat-toggle { bottom: 12px; }
+  .writing-studio .studio-workspace:has(> .studio-chat-toggle) .writing-foot { padding-right: clamp(0px, calc(var(--chat-toggle-room) - (100vw - var(--writing-rail) - var(--writing-measure)) / 2), calc(var(--chat-toggle-room) - 32px)); }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+  .writing-studio { --writing-rail: 240px; }
+  .writing-studio .writing-chat { width: 300px; }
+}
 @media (max-width: 900px) {
+  /* 좁은 화면은 문서가 스크롤하고 상단 바가 화면 위에 붙어 있다: 본문 툴바는 그 바로 아래에 붙는다(상단 바의 실제 높이는 WritingStudio가 재서 알린다).
+     툴바가 화면에 붙으려면 문서까지 사이에 스크롤 상자가 없어야 하므로 전역 규칙이 준 overflow:auto를 푼다(이 폭에서는 높이가 내용만큼이라 원래 스크롤하지 않는다).
+     가로로 넘친 것은 잘라 문서가 옆으로 밀리지 않게 한다. 같은 틀을 쓰는 세계관 설정 편집 화면은 건드리지 않는다. */
+  .writing-studio { --writing-toolbar-top: var(--writing-bar-height, 64px); }
+  .writing-studio:not(.world-card-studio) :is(.studio-workspace, .writing-grid, .writing-editor) { overflow: clip visible; }
+  .writing-studio .sbar { padding: 8px 16px; }
+  .writing-studio > .ep-alert { margin-inline: 16px; }
   .writing-studio .seps { align-items: flex-start; }
-  .writing-studio .seps .writing-episode { min-height: 44px; max-width: 240px; white-space: normal; }
-  .writing-create { min-width: 200px; margin: 0; }
+  /* 좁은 화면: 목록(회차·설정 카드)은 한 줄 가로 스크롤 띠, 버전 그래프는 높이를 묶는다. 항목이 아무리 많아도 편집기가 그 길이만큼 아래로 밀려나지 않는다.
+     전역 규칙이 감추던 상태 줄(small)은 한 줄 띠라 다시 보인다. 초점 고리가 띠에 잘리지 않게 위아래 여백을 둔다. */
+  .writing-studio .writing-episodes { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; padding-block: 4px 8px; }
+  .writing-episode-row { flex: none; }
+  .writing-studio .seps .writing-episode { min-height: 44px; max-width: 240px; }
+  .writing-studio .seps .writing-episode small { display: block; overflow: hidden; text-overflow: ellipsis; }
+  .writing-graph { max-height: 220px; overflow: auto; }
+  /* 띠 안의 항목 메뉴는 띠에 잘리지 않게 화면에 고정해 띄운다: 세로는 버튼 바로 아래(정적 위치), 가로는 화면 안쪽 여백에 맞춰 항목이 어디 있든 화면 밖으로 나가지 않는다.
+     fixed 메뉴는 스크롤하면 PopMenu가 닫는다(데스크톱 레일과 같다). */
+  .writing-episode-more .pop-menu-list { position: fixed; top: auto; right: 12px; left: 12px; width: auto; max-width: 360px; margin: calc(var(--more-size) + 4px) auto 0; }
+  .writing-studio .studio-workspace .writing-grid { grid-template-columns: 1fr; }
+  .writing-rail { border-right: 0; border-bottom: 1px solid var(--tline); }
+  .writing-editor { padding: 20px 16px 24px; }
+  .writing-chat .chat-log { max-height: 50vh; }
+  /* 문서 끝에서 하단 바가 접힌 채팅 '열기' 버튼(오른쪽 아래 16px 고정, 높이 44px) 밑에 깔리지 않게 그만큼 아래를 비운다. */
+  .writing-studio .studio-workspace:has(> .studio-chat-toggle) { padding-bottom: 76px; }
 }
 @media (max-width: 600px) {
-  .writing-studio .sbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .writing-studio .sbar .back { grid-column: span 2; }
-  .writing-studio .sbar .t { grid-row: 2; grid-column: span 2; }
-  .writing-studio .sbar .st { grid-row: 2; grid-column: 3; }
-  .writing-studio .sbar .tbtn { grid-row: 3; padding-inline: 8px; font-size: 13px; white-space: normal; word-break: keep-all; }
+  /* 모바일: 왼쪽 묶음은 한 줄(넘치면 줄바꿈), 오른쪽 컨트롤은 다음 줄에 넓게 */
+  .writing-bar-end { justify-content: flex-start; width: 100%; }
+  .writing-studio .sbar .tbtn { flex: 1 1 auto; padding-inline: 12px; }
+  .writing-settings-sheet { padding: 20px 16px; }
 }
+/* 터치 대상: 손가락으로 누르는 기기(폭과 무관, 태블릿 포함)와 좁은 화면에서는 이 파일이 크기를 정한 편집기 주변의 작은 버튼을 44px로 키운다.
+   전역 클래스(.btn.sm·.rback·.svw의 모드 전환 등)는 storyfork.css의 같은 조건 규칙이 맡는다. */
+@media (pointer: coarse), (max-width: 600px) {
+  .writing-studio .sbar .tbtn { height: 44px; }
+  .writing-more .pop-menu-btn, .writing-icon-btn { width: 44px; height: 44px; }
+  .writing-episode-row { --more-size: 44px; }
+  .writing-settings input[type="file"]::file-selector-button { height: 44px; }
+  /* 분할선의 누르는 영역은 아래쪽(버전 그래프의 여백·제목)으로 넓혀 44px를 채운다. 위쪽 목록의 마지막 항목은 가리지 않는다. */
+  .writing-split::after { inset: -8px 0 -27px; }
+}
+
+/* ── 데모 집필실(메모리 작품, StudioPage의 DemoStudioPage): 전역 스타일을 쓰는 화면이라 여기서는 덮어쓸 것만 둔다 ── */
+/* 접힌 채팅 '열기' 버튼(오른쪽 아래 24px 고정, 높이 44px)이 문서 끝의 원고 도구 줄을 덮지 않게 그만큼 아래를 비운다. */
+.studio:has(> .studio-chat-toggle) > .studio-workspace { padding-bottom: 84px; }
+/* 표지·대표 이미지 선택: 파일 입력은 시각적으로만 숨겨(.sr-only) 키보드로 닿고, 초점 고리는 눌리는 라벨에 그린다. */
+:is(.ovcov, .wimg):has(input:focus-visible) { outline: 2px solid var(--tacc); outline-offset: 2px; }
+/* 사전의 바로 고치는 칸과 검색: 전역 규칙이 지운 초점 고리를 키보드 초점에 다시 그린다. */
+.wiki :is(.wt, .wtext, .wprops [contenteditable], .wtbl [contenteditable]):focus-visible, .ovtop h2:focus-visible { outline: 2px solid var(--tacc); outline-offset: 2px; }
+.wq:focus-within { outline: 2px solid var(--tacc); outline-offset: 2px; }

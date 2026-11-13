@@ -54,7 +54,7 @@ function LoadMore({ hasMore, loading, failed, load }: { hasMore: boolean; loadin
  * 목업 wcard(w, i, ranked). 서버 작품은 다른 통계를 감추지만, updated는 마지막 업데이트 시각이 순위 기준인 카드라 그 시각을,
  * popular는 좋아요 수가 순위 기준인 카드라 서버 값인 좋아요 수를 보입니다.
  */
-function WCard({ w, i, ranked, updated, popular, onReport }: { w: Work; i: number; ranked?: boolean; updated?: boolean; popular?: boolean; onReport?: (w: Work) => void }) {
+export function WCard({ w, i, ranked, updated, popular, onReport }: { w: Work; i: number; ranked?: boolean; updated?: boolean; popular?: boolean; onReport?: (w: Work) => void }) {
   const stats = w.statisticsSupported !== false
   return (
     <div className="rg-item">

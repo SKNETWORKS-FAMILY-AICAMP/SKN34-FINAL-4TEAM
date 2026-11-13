@@ -2,12 +2,13 @@ import {expect,it,vi} from 'vitest'
 import {newSetting,studioLabelCleanup} from '../entities/studioWorld'
 import {editStudioSetting,putRelation} from '../entities/studioRelations'
 import {cardTypes,cardTypePatch,cardTypeOf,settingAreas,areaPatch} from '../entities/studioCards'
+import {worldWritingIssues} from '../entities/worldStudioWriting'
 import {WorldStudioUseCase} from '../usecases/WorldStudioUseCase'
 import type {WorldStudioRepository} from '../repositories/WorldStudioRepository'
 import type {StudioWorld} from '../entities/studioWorld'
 function fakeRepository():WorldStudioRepository {
  let world:StudioWorld
- return {listStudio:async()=>[world],read:async()=>world,create:async(name,description)=>(world={id:'fake',name,description,version:1,settings:[],analysis:null}),saveStudio:async next=>(world=next)}
+ return {listStudio:async()=>[world],read:async()=>world,create:async(name,description)=>(world={id:'fake',name,description,version:1,settings:[],analysis:null}),saveStudio:async next=>(world=next),setPublication:async(worldId,publication)=>({worldId,...publication,publishedAt:null,listed:false})}
 }
 it('preserves all eight types, seven areas and author metadata in demo saves',async()=>{
  const useCase=new WorldStudioUseCase(fakeRepository())
@@ -24,6 +25,37 @@ it('rejects invalid names without overwriting a saved world',async()=>{
  const w=await useCase.create('원본','')
  await expect(useCase.save({...w,name:' '})).rejects.toThrow()
  expect((await useCase.read(w.id)).name).toBe('원본')
+})
+
+it('rejects a reader reveal episode that is not an integer of 1 or more without overwriting a saved world',async()=>{
+ const repository=fakeRepository(),useCase=new WorldStudioUseCase(repository)
+ const card=newSetting('people');card.item.title='가람'
+ const saved=await useCase.save({...await useCase.create('세계',''),settings:[{...card,revealFromEpisode:3}]})
+ expect(saved.settings[0].revealFromEpisode).toBe(3)
+ const save=vi.spyOn(repository,'saveStudio')
+ for(const revealFromEpisode of [0,-2,1.5])await expect(useCase.save({...saved,settings:[{...card,revealFromEpisode}]})).rejects.toThrow('독자 공개 회차는 1 이상의 정수로 입력해 주세요.')
+ expect(save).not.toHaveBeenCalled()
+ expect((await useCase.read(saved.id)).settings[0].revealFromEpisode).toBe(3)
+})
+
+it('rejects a character document over 3,000 characters or with a malformed episode number, with the same message as the pre-save check and without overwriting a saved world',async()=>{
+ const repository=fakeRepository(),useCase=new WorldStudioUseCase(repository)
+ const card=newSetting('people');card.item.title='가람';card.item.text='본문'
+ const docs=(memory:string,episodes:Record<string,string>={})=>({...card,characterDocs:{soul:'성격',memory,episodes}})
+ const saved=await useCase.save({...await useCase.create('세계',''),settings:[docs('가'.repeat(3000),{3:'기억'})]})
+ expect(saved.settings[0].characterDocs).toEqual({soul:'성격',memory:'가'.repeat(3000),episodes:{3:'기억'}})
+ const save=vi.spyOn(repository,'saveStudio')
+ const longBody={...card,item:{...card.item,text:'가'.repeat(3001)}} // 인물 카드의 본문은 IDENTITY.md 문서다
+ for(const [row,message] of [[docs('가'.repeat(3001)),'MEMORY.md는 3,000자 이하로 줄여 주세요.'],[docs('',{12:'가'.repeat(3001)}),'memory/12회차.md는 3,000자 이하로 줄여 주세요.'],[docs('',{'-1':'기억'}),'회차 기억의 회차 번호는 0 이상의 정수로 입력해 주세요.'],[longBody,'IDENTITY.md는 3,000자 이하로 줄여 주세요.']] as const){
+  await expect(useCase.save({...saved,settings:[row]})).rejects.toThrow(message)
+  expect(worldWritingIssues({...saved,settings:[row]}).map(issue=>issue.message)).toEqual([message])
+ }
+ expect(save).not.toHaveBeenCalled()
+ expect((await useCase.read(saved.id)).settings[0].characterDocs?.memory).toHaveLength(3000)
+ const place={...newSetting('places'),characterDocs:{soul:'가'.repeat(3001),memory:'',episodes:{}}};place.item.title='항구' // 인물이 아닌 카드의 문서는 저장하지 않으므로 막지 않는다
+ await expect(useCase.save({...saved,settings:[place]})).resolves.toBeTruthy()
+ place.item.text='가'.repeat(3001) // 인물이 아닌 카드의 본문 길이는 기존 문구 그대로 막는다
+ await expect(useCase.save({...saved,settings:[place]})).rejects.toThrow('설정 이름과 설명의 길이를 확인해 주세요.')
 })
 
 it.each([
@@ -64,4 +96,12 @@ it('only requests label cleanup when trimming or removing empty labels changes t
  expect(studioLabelCleanup(['금빛 열쇠','보물'])).toBeUndefined()
  expect(studioLabelCleanup([' 금빛 열쇠 ','','보물'])).toEqual(['금빛 열쇠','보물'])
  expect(studioLabelCleanup([' ',''])).toEqual([])
+})
+
+it('passes the publication change and its cancellation through the use case',async()=>{
+ const repository=fakeRepository(),useCase=new WorldStudioUseCase(repository),controller=new AbortController()
+ const set=vi.spyOn(repository,'setPublication')
+ const result=await useCase.setPublication('fake',{visibility:'public',genre:'sf'},controller.signal)
+ expect(set).toHaveBeenCalledWith('fake',{visibility:'public',genre:'sf'},controller.signal)
+ expect(result).toMatchObject({worldId:'fake',visibility:'public',genre:'sf'})
 })

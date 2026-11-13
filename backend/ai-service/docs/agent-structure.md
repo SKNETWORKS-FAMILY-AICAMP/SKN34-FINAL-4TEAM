@@ -15,7 +15,7 @@
 - `app/retrieval/service.py → httpx → Content POST /internal/v1/ai/qa/retrieval`: 공통 Retrieval 도구입니다. AI는 DB에 직접 접속하지 않고, Content가 서명한 `scopeToken`을 되돌려 보내 Content가 범위·권한을 다시 확정한 근거와 공급자별 측정값을 받습니다. 오케스트레이션 Q&A가 `scope`로 호출하며 Content 응답 오류는 상태를 유지한 `RetrievalFailure`입니다. [계약](../../../docs/writing-ai-architecture/07-retrieval-contract-and-mocks.md#공통-retrieval-도구-오케스트레이션-2026-11-12-사용자-결정)
 - 생성은 Content의 [`ProposalService`](../../content-service/src/main/kotlin/ai/storyfork/content/proposal/service/ProposalService.kt)가 [`GenerationClient`](../../content-service/src/main/kotlin/ai/storyfork/content/proposal/client/GenerationClient.kt)를 통해 요청합니다. Content는 권한·기준 버전·문맥을 확인하고 DB 트랜잭션 밖에서 생성 API를 호출합니다. 응답을 받으면 기준을 다시 확인해 제안을 저장하며, 채택과 원고 반영은 별도 요청으로 처리합니다. Core의 AI 호출은 Health 확인 경로입니다.
 
-[최신 설계](../../../docs/design/design.md)의 최종 모델·제공사·에이전트 프레임워크는 미정입니다. 집필 AI 복합 실행만 사용자 요청으로 LangGraph를 씁니다. 현재 `openai` SDK 구현과 남아 있는 `openai-agents` 의존성을 전체 기술 선정 완료로 해석하지 않습니다.
+[최신 설계](../../../docs/design/design.md)의 집필 AI 여섯 Agent와 시뮬레이션 행동·요약 목표 모델은 OpenAI `gpt-6-luna`로 결정됐습니다. 그 밖의 모델·제공사·에이전트 프레임워크는 미정입니다. 집필 AI 복합 실행만 사용자 요청으로 LangGraph를 씁니다. 현재 `openai` SDK 구현과 남아 있는 `openai-agents` 의존성을 전체 기술 선정 완료로 해석하지 않습니다.
 
 ## 기능 패키지 구조
 

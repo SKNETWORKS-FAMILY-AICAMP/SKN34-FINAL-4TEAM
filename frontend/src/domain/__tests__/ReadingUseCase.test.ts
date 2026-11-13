@@ -5,6 +5,8 @@ import type { ReadingRecord, ReadingRecordRepository } from '../repositories/Rea
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
+import type { ReaderWorldCards } from '../entities/wiki'
+import type { Work } from '../entities/work'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
 
 /** 서버 독서 기록 대역: 계약대로 위치를 그 회차로 옮기고 읽은 회차에 더하며 작품을 맨 앞으로 올립니다. */
@@ -287,6 +289,17 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(server.repository.record).not.toHaveBeenCalled()
   })
 
+  it('회차를 열면 서식을 푼 블록과 문장을 같은 순서로 준다: 문장의 글은 기호를 포함한 원문 조각이다', async () => {
+    const { works, useCase } = fakes()
+    works.find((w) => w.id === 'postman')!.eps[0].p = ['## 새벽', '**비가 그쳤다. 도윤은 멈췄다.**\n> 집.', '---']
+    const r = await useCase.openEpisode('postman', 1, null)
+    if (!r || r === 'hidden') throw new Error('episode')
+    expect(r.paragraphs).toEqual([[{ t: '새벽', pi: 0 }], [{ t: '**비가 그쳤다.', pi: 1 }, { t: '도윤은 멈췄다.**', pi: 1 }, { t: '집.', pi: 1 }], []])
+    expect(r.blocks.map((b) => b.kind)).toEqual(['heading', 'blank', 'paragraph', 'quote', 'blank', 'rule'])
+    const drawn = r.blocks.flatMap((b) => ('sentences' in b ? b.sentences : [])).map((s) => s.parts.map((p) => p.text).join(''))
+    expect(drawn).toEqual(['새벽', '비가 그쳤다.', '도윤은 멈췄다.', '집.'])
+  })
+
   it('작가가 자기 비공개 작품을 미리 읽을 때는 서버 기록을 남기지 않는다', async () => {
     const { works, server, useCase } = fakes()
     works.find((w) => w.id === 'starlight')!.private = true
@@ -318,5 +331,67 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(items.find((x) => x.k === '인물' && x.label === '양소유')).toMatchObject({ go: '/work/guunmong' })
     expect(items.find((x) => x.k === '회차' && x.label === '구운몽 2화 돌다리 위의 팔선녀')).toMatchObject({ go: '/read/guunmong/2' })
     expect(items.filter((x) => x.k === '소설').some((x) => x.go === '/work/gate')).toBe(true)
+  })
+})
+
+describe('ReadingUseCase 회차별 포크 수 (작품 관리 화면)', () => {
+  const base = seedWorks(0)[0]
+  const fork = (id: string, forkAt: number | undefined, over: Partial<Work> = {}): Work => ({ ...base, id, parent: 'src', forkAt, private: false, hidden: false, eps: [{ t: '1화', p: ['본문'] }], ...over })
+  const original = { ...base, id: 'src', parent: undefined, forkAt: undefined }
+  /** 작품 목록만 쓰는 대역. Error를 주면 목록 조회가 실패한다. */
+  function withWorks(works: Work[] | Error) {
+    const workRepository: WorkRepository = { listWorks: async () => { if (works instanceof Error) throw works; return works }, listWorlds: async () => [], readWorld: async (w) => w, createFork: async () => { throw new Error('not used') }, saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
+    const readingRepository: ReadingRepository = { getProgress: async () => ({ last: {}, read: {}, seen: {}, liked: {} }), markSeen: async () => {}, saveProgress: async () => {} }
+    return new ReadingUseCase(workRepository, readingRepository, recordFake([]).repository)
+  }
+
+  it('이 작품에서 갈라진 공개 포크를 분기 기준 회차별로 센다 (0편인 회차는 키가 없다)', async () => {
+    const counts = await withWorks([original, fork('a', 1), fork('b', 1), fork('c', 3)]).forkCountsByEpisode('src')
+    expect(counts).toEqual({ 1: 2, 3: 1 })
+    expect(counts[2]).toBeUndefined()
+  })
+
+  it('비공개·숨김·공개 회차가 없는 포크와 다른 작품의 포크는 세지 않는다 (소설 상세와 같은 목록이다)', async () => {
+    const works = [original, fork('a', 1, { private: true }), fork('b', 1, { hidden: true }), fork('c', 1, { eps: [] }), fork('d', 1, { parent: 'other' }), fork('e', 2)]
+    expect(await withWorks(works).forkCountsByEpisode('src')).toEqual({ 2: 1 })
+  })
+
+  it('포크가 없거나 분기 기준 회차를 모르는 포크뿐이면 빈 객체다', async () => {
+    expect(await withWorks([original]).forkCountsByEpisode('src')).toEqual({})
+    expect(await withWorks([original, fork('a', undefined)]).forkCountsByEpisode('src')).toEqual({})
+  })
+
+  it('작품 목록을 읽지 못하면 0편으로 채우지 않고 오류를 그대로 알린다', async () => {
+    await expect(withWorks(new Error('목록을 읽지 못했어요.')).forkCountsByEpisode('src')).rejects.toThrow('목록을 읽지 못했어요.')
+  })
+})
+
+describe('ReadingUseCase 연결된 세계관의 설정 위키 (DEC-46)', () => {
+  const served = (worldId: string | null): ReaderWorldCards => ({ workId: 'guunmong', worldId, upto: 2, cards: [], relationships: [], relationshipStatus: 'current' })
+  const setup = (readWorldCards?: WorkRepository['readWorldCards']) =>
+    new ReadingUseCase({ readWorldCards } as unknown as WorkRepository, {} as ReadingRepository, recordFake([]).repository)
+  const server = { id: 'guunmong', canonical: true }
+
+  it('서버 작품에 연결된 세계관이 있으면 기준 회차를 정수로 맞춰 읽은 카드를 돌려준다', async () => {
+    const read = vi.fn(async () => served('world-1'))
+    const useCase = setup(read)
+    expect(await useCase.linkedWorldCards(server, 2.7)).toEqual(served('world-1'))
+    expect(read).toHaveBeenLastCalledWith('guunmong', 2)
+    // 기준 회차가 없거나 1보다 작으면 보내지 않아 서버가 발행된 최대 회차를 쓴다.
+    await useCase.linkedWorldCards(server)
+    expect(read).toHaveBeenLastCalledWith('guunmong', undefined)
+    await useCase.linkedWorldCards(server, 0)
+    expect(read).toHaveBeenLastCalledWith('guunmong', undefined)
+  })
+
+  it('연결된 세계관이 없는 작품은 null이라 기존 작품 설정 위키를 쓴다', async () => {
+    expect(await setup(async () => served(null)).linkedWorldCards(server, 1)).toBeNull()
+  })
+
+  it('메모리 데모 작품과 세계관 카드를 읽지 않는 저장소는 서버를 부르지 않고 null이다', async () => {
+    const read = vi.fn(async () => served('world-1'))
+    expect(await setup(read).linkedWorldCards({ id: 'guunmong' }, 1)).toBeNull()
+    expect(read).not.toHaveBeenCalled()
+    expect(await setup().linkedWorldCards(server, 1)).toBeNull()
   })
 })

@@ -7,6 +7,7 @@ import { InMemoryEventRepository } from '../data/mock/InMemoryEventRepository'
 import { InMemoryNoticeRepository } from '../data/mock/InMemoryNoticeRepository'
 import { InMemoryOperationsCommentRepository } from '../data/mock/InMemoryOperationsCommentRepository'
 import { InMemoryOperationsWorkRepository } from '../data/mock/InMemoryOperationsWorkRepository'
+import { InMemoryPublicWorldRepository } from '../data/mock/InMemoryPublicWorldRepository'
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../data/mock/InMemoryWorkInterestRepository'
 import { mockupFeedbackReportRepository } from '../data/mock/mockupRepositories'
@@ -25,6 +26,7 @@ export function createFixtureContainer() {
     operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(db)),
     operationsCommentRepository: asValue(new InMemoryOperationsCommentRepository(db)),
     adminActivityRepository: asValue(new InMemoryAdminActivityRepository(db)),
+    publicWorldRepository: asValue(new InMemoryPublicWorldRepository()),
     // 정본 작품이 없는 격리 컨테이너라 제보 목록은 비어 있고, 제보 화면을 확인하는 테스트는 저장소 메서드를 spyOn으로 바꾼다.
     feedbackReportRepository: asValue(mockupFeedbackReportRepository),
   })

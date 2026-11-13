@@ -41,12 +41,12 @@ class ContentMigrationTest {
     }
 
     @Test fun `fresh feature leaves initialize in FK order validate and replay idempotently`() = isolated { flyway,jdbc ->
-        assertEquals(30,flyway.migrate().migrationsExecuted)
-        // 30개이며 V24는 결번이다(V25가 공유 DB에 먼저 적용돼 낮은 번호를 나중에 채울 수 없다).
-        assertEquals(((1..23)+listOf(25,26,27,28,29,30,31)).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
+        assertEquals(32,flyway.migrate().migrationsExecuted)
+        // 32개이며 V24는 결번이다(V25가 공유 DB에 먼저 적용돼 낮은 번호를 나중에 채울 수 없다). V32~V35는 다른 열린 PR 몫이라 V36이 작품 소식, V37이 작품-세계관 연결이다.
+        assertEquals(((1..23)+listOf(25,26,27,28,29,30,31,36,37)).map(Int::toString),flyway.info().applied().filter { it.version?.toString()!="0" }.map {it.version.toString()})
         flyway.validate()
         assertEquals(0,flyway.migrate().migrationsExecuted)
-        for(table in listOf("work","work_view","work_like","reading_record","reading_episode","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge","episode_comment","episode_comment_like","work_interest","content_event_outbox","feedback_report","feedback_report_amendment","feedback_report_response","edit_suggestion")) {
+        for(table in listOf("work","work_view","work_like","reading_record","reading_episode","episode","episode_version","world","setting_version","publication_event","fork","checkpoint","ai_job","ai_proposal","story_plan","story_plan_character","story_plan_place","setting_reading_detail","setting_reading_property","setting_reading_alias","setting_reading_participant","setting_reading_link","setting_reading_knowledge","episode_comment","episode_comment_like","work_interest","content_event_outbox","feedback_report","feedback_report_amendment","feedback_report_response","edit_suggestion","work_notice")) {
             assertNotNull(jdbc.queryForObject("SELECT to_regclass(?)::text",String::class.java,table))
         }
         for(view in listOf("work_current","episode_current","setting_version_read")) {
@@ -116,8 +116,8 @@ class ContentMigrationTest {
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
         jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
-        // 남은 V16(샘플)부터 V21(작품 소프트 삭제)·V22(회차 공개 상태)·V23(작가의 말)·V25(예약 발행)·V26(세계관 체크포인트)·V27(회차 기준 세계관)·V28(제보)·V29(수정 제안)·V30(댓글 숨김)·V31(회차 소프트 삭제)까지 적용된다(V24는 결번).
-        assertEquals(15,flyway.migrate().migrationsExecuted)
+        // 남은 V16(샘플)부터 V21(작품 소프트 삭제)·V22(회차 공개 상태)·V23(작가의 말)·V25(예약 발행)·V26(세계관 체크포인트)·V27(회차 기준 세계관)·V28(제보)·V29(수정 제안)·V30(댓글 숨김)·V31(회차 소프트 삭제)·V36(작품 소식)·V37(작품-세계관 연결)까지 적용된다(V24는 결번, V32~V35는 다른 열린 PR 몫).
+        assertEquals(17,flyway.migrate().migrationsExecuted)
         assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
     }
@@ -233,6 +233,6 @@ class ContentMigrationTest {
         flyway.migrate()
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(30,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(32,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }
