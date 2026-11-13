@@ -38,6 +38,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   // ?ep=n은 처음 읽은 목록에만 쓴다. 쓰고 나면 비워 다른 작품·다시 읽기가 옛 번호를 따르지 않게 한다.
   const entry=useRef(initialEpisode)
   const current=useRef(draft)
+  const aiReload=useRef<AbortController|null>(null)
   // 서버에 가 있는 요청은 사용자가 누른 것이든 자동 저장이든 하나뿐이다.
   const pending=useRef<AbortController|null>(null)
   // 진행 중인 자동 저장과, 그것이 끝나기를 기다리는 사용자 요청
@@ -46,7 +47,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body||(draft.authorNote??'')!==(active.draft.authorNote??''))
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const resetOrder=()=>{orderRequest.current?.abort();orderRequest.current=null;setOrderLookup(null)}
-  const install=(e:WritingEpisode)=>{resetOrder();setActive(e);put(e.draft);setNotice('');setError('')}
+  const install=(e:WritingEpisode)=>{aiReload.current?.abort();resetOrder();setActive(e);put(e.draft);setNotice('');setError('')}
   useEffect(()=>{
     const controller=new AbortController()
     api.writingList(id,controller.signal).then(rows=>{
@@ -54,7 +55,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       const first=pickEpisode(rows,entry.current);entry.current=undefined
       setEpisodes(rows);if(first)install(first);setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
-    return ()=>{controller.abort();pending.current?.abort();waiting.current?.abort();historyRequest.current?.abort();orderRequest.current?.abort();orderRequest.current=null}
+    return ()=>{controller.abort();aiReload.current?.abort();pending.current?.abort();waiting.current?.abort();historyRequest.current?.abort();orderRequest.current?.abort();orderRequest.current=null}
   },[id,api])
   useEffect(()=>{
     const leave=(e:BeforeUnloadEvent)=>{if(dirty||busy)e.preventDefault()}
@@ -157,6 +158,29 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
         setPublicationHistory(result.publicationHistory)
       } catch(e) {if(!controller.signal.aborted)setHistoryError(e instanceof Error?e.message:'발행 이력을 불러오지 못했어요.')}
       finally {if(historyRequest.current===controller){historyRequest.current=null;setHistoryLoading(false)}}
+    },
+    /** 집필 AI가 작가 승인으로 회차 초안을 바꿨다(Content MCP). 목록을 다시 읽고, 고치던 글이 없으면 새 초안을 연다. */
+    aiApplied:async(number:number)=>{
+      aiReload.current?.abort()
+      const controller=new AbortController();aiReload.current=controller
+      const before=current.current
+      try{
+        const rows=await api.writingList(id,controller.signal)
+        if(controller.signal.aborted)return
+        const next=rows.find(e=>e.number===number)
+        setEpisodes(previous=>rows.map(row=>{
+          const saved=previous.find(episode=>episode.number===row.number)
+          return saved&&saved.draft.revision>row.draft.revision?saved:row
+        }))
+        if(active?.number!==number)return
+        // 재조회 중 편집·저장·회차 이동이 있으면 그 화면 상태가 우선이다.
+        if(dirty||current.current!==before){
+          setNotice('AI가 이 회차 초안을 바꿨어요. 작성 중인 변경을 복사해 둔 뒤 회차를 다시 열어 주세요.')
+          return
+        }
+        if(next&&!pending.current&&!waiting.current)install(next)
+      }catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'AI가 반영한 초안을 다시 불러오지 못했어요.')}
+      finally{if(aiReload.current===controller)aiReload.current=null}
     },
     episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,deleteBlocker:deleteBlocker(active,episodes),
     // 회차 목록의 항목별 메뉴가 선택하지 않은 회차의 삭제 가능 여부도 같은 규칙으로 알린다.

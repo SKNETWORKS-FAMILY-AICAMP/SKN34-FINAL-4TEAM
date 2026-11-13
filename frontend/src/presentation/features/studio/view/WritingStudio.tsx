@@ -24,15 +24,17 @@ import { VersionComparison } from './VersionComparison'
 import { SettingHistoryPanel } from './SettingHistoryPanel'
 import { CheckpointPanel } from './CheckpointPanel'
 import { PublicationSchedulePanel } from './PublicationSchedulePanel'
+import { StoryQaPanel } from '../../../shared/storyContext/StoryQaPanel'
 import { versionGraphRows } from '../../../../domain/entities/versionGraph'
-import { ChatPanel } from '../../../shared/chat/ChatPanel'
+import { WritingChat } from '../../../shared/chat/WritingChat'
+import { chatBasis } from '../../../../domain/entities/writingChat'
 import { VersionGraph } from './VersionGraph'
 import { LazyManuscriptEditor } from './LazyManuscriptEditor'
 import type { ManuscriptEditorHandle } from './ManuscriptEditor'
 import { ResizeSeparator } from './ResizeSeparator'
 import './version-panels.css'
 
-// AI 채팅 빈 상태의 추천 칩. 누르면 입력창에 글만 채운다(전송 연결 전에는 입력과 함께 잠겨 있다).
+// AI 채팅 빈 상태의 추천 칩. 누르면 입력창에 글만 채운다.
 const chatSuggestions=['다음 장면 아이디어','이 회차 요약','문장 다듬기']
 
 /** 회차 설정 시트의 의미 묶음: 묶음 사이는 넉넉히, 묶음 안은 촘촘히(스타일은 writing.css). */
@@ -88,7 +90,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const dev=import.meta.env.DEV
   // 기본은 단순 집필이고, 고급은 문맥 선택·장면 비트·고급 플롯 도구가 들어올 자리표시다.
   const [mode,setMode]=useState<'basic'|'advanced'>('basic')
-  // 전송이 아직 '준비 중'인 채팅이 본문 폭을 줄이지 않게, 창이 1200px 이하면 접은 채로 시작한다(세계관 작업실의 기본값과 같은 방식).
+  // 채팅이 본문 폭을 줄이지 않게, 창이 1200px 이하면 접은 채로 시작한다(세계관 작업실의 기본값과 같은 방식).
   const [chatOpen,setChatOpen]=useState(()=>!window.matchMedia?.('(max-width: 1200px)').matches)
   // 접기·열기 버튼은 한 번에 하나만 마운트되므로 ref 하나를 함께 쓴다. 누르면 그 버튼이 사라지니 새로 보이는 버튼으로 초점을 옮긴다(처음 렌더링에서는 옮기지 않는다).
   const chatToggle=useRef<HTMLButtonElement>(null)
@@ -225,10 +227,10 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         </>:<p>회차가 없어요. 회차 목록의 새 회차 버튼으로 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
       </div>
     </div>
-    {/* 집필실 안의 AI 채팅. 전송은 아직 연결하지 않아 입력·전송·첨부·추천 칩을 잠그고 사유를 보여 준다. */}
+    {/* 집필실 안의 집필 AI 채팅(#331). 근거는 열린 회차가 발행돼 있으면 그 회차, 아니면 가장 뒤의 발행 회차다. 데모(mockup)는 잠긴다. */}
     {chatOpen?<aside className="studio-chat writing-chat" aria-label="AI 채팅">
       <div className="studio-chat-head"><h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2><button ref={chatToggle} type="button" className="writing-icon-btn" aria-label="접기" title="접기" onClick={()=>setChatOpen(false)}><FoldIcon /></button></div>
-      <ChatPanel messages={[]} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 원고에 자동으로 반영되지 않아요." suggestions={chatSuggestions} disabledReason="준비 중 · AI 이어쓰기 연결 후 이곳에서 보낼 수 있어요."/>
+      <WritingChat workId={id} basis={chatBasis(vm.episodes,active?.number)} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onApplied={vm.aiApplied}/>
     </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
   </>}</main>
           {settingsOpen&&active&&<Sheet sid="U13" label="회차 설정" panelClass="sheet writing-settings-sheet" onClose={()=>setSettingsOpen(false)}>
@@ -252,6 +254,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               </div>
               <div className="writing-group"><ManuscriptExportPanel workId={id} episode={active.number} inherited={active.inherited} disabled={vm.busy||vm.dirty}/></div>
               {!active.inherited&&import.meta.env.MODE!=='mockup'&&<div className="writing-group"><EpisodeWorldBasisControl key={active.number} workId={id} number={active.number}/></div>}
+              {active.publishedVersionId&&import.meta.env.MODE!=='mockup'&&<div className="writing-group"><StoryQaPanel
+                key={`${id}/${active.number}/${active.publishedVersionId}`} workId={id} episode={active.number} versionId={active.publishedVersionId} owner/></div>}
               <Group title="회차 관리">
                 <div className="writing-actions">
                   {!active.inherited&&active.publishedVersionId&&<button className="btn sm" disabled={vm.busy||vm.dirty} onClick={async()=>{if(await vm.changeVisibility(false,false))setRights(false)}}>회차 공개 중단</button>}

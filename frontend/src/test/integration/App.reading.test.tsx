@@ -381,7 +381,7 @@ describe('공개 설정 읽기 패널 (기능 20)', () => {
     renderApp('/work/guunmong')
     fireEvent.click(await screen.findByRole('link', { name: '설정 위키' }))
     const panel = await screen.findByRole('article', { name: '구운몽/설정 위키' })
-    expect(sid()).toBe('U45 설정 위키')
+    await waitFor(() => expect(sid()).toBe('U45 설정 위키'))
     screen.getByRole('link', { name: '구운몽 소설 상세로 돌아가기' })
     within(panel).getByText('4화까지 공개된 설정만 보여요.')
     // 나무위키 형식: 목차에서 분류·문서로 건너가고, 문서 제목은 목차 번호를 단다.
@@ -398,7 +398,7 @@ describe('공개 설정 읽기 패널 (기능 20)', () => {
     renderApp('/read/guunmong/1')
     fireEvent.click(await screen.findByRole('link', { name: '설정 위키 보기' }))
     const panel = await screen.findByRole('article', { name: '구운몽/설정 위키' })
-    expect(sid()).toBe('U45 설정 위키')
+    await waitFor(() => expect(sid()).toBe('U45 설정 위키'))
     within(panel).getByText('1화까지 공개된 설정만 보여요.')
     within(panel).getByRole('heading', { name: /^\d+\.\d+\. 성진$/ })
     within(panel).getByRole('heading', { name: /^\d+\.\d+\. 연화봉$/ })
