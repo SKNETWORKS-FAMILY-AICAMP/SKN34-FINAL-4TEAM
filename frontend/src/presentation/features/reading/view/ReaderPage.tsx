@@ -16,6 +16,7 @@ import { EpisodeComments } from './EpisodeComments'
 import { EpisodeFeedbackReports } from './EpisodeFeedbackReports'
 import { UnavailableWork } from './WorkPage'
 import { EditSuggestionSheet } from './EditSuggestionSheet'
+import { StoryQaPanel } from '../../../shared/storyContext/StoryQaPanel'
 import { CommentSheet, FeedbackSheet, LookSheet } from './Sheets'
 
 const NUM = ['一', '二', '三', '四', '五', '六', '七', '八']
@@ -181,6 +182,9 @@ export function ReaderPage() {
         </div>
         {e.authorNote && <section className="author-note"><h3>작가의 말</h3><p>{e.authorNote}</p></section>}
         <div className="endmark" id="endmark" ref={refs.end}>— {r.n}화 끝 —</div>
+        {w.canonical && !w.private && e.versionId && !hiddenSourceEpisode(w, r.n, e.p) && (vm.loggedIn
+          ? <StoryQaPanel key={`${w.id}/${r.n}/${e.versionId}`} workId={w.id} episode={r.n} versionId={e.versionId} />
+          : <button className="tbtn" type="button" onClick={() => vm.requireMember('question')}>로그인하고 원고에 질문하기</button>)}
         <div className="endgrid" id="end">
           {r.next ? (
             <Go to={`/read/${id}/${r.next}`} className="tcard nextc"><div><small>다음 화</small><b>{r.next}화 {eps[r.next - 1].t}</b></div><span style={{ fontSize: 22 }}>›</span></Go>

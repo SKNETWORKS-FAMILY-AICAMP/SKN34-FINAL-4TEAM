@@ -4,6 +4,7 @@ import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.isListed
+import ai.storyfork.content.world.domain.validEpisode
 import ai.storyfork.content.world.domain.worldGenre
 import ai.storyfork.content.world.domain.worldVisibility
 import ai.storyfork.content.world.helper.RelationshipInputHelper
@@ -20,7 +21,7 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.json.JsonMapper
 
-/** PostgreSQL은 권한·카드·버전을, Neo4j는 관계의 현재 상태 하나만 소유한다. 네트워크 호출은 PG transaction 밖이다. */
+/** PostgreSQL은 권한·카드·버전을, Neo4j는 관계(회차별 연결, DEC-51)만 소유한다. 네트워크 호출은 PG transaction 밖이다. */
 @Service
 class WorldStudioService(
     private val worlds:StudioWorldRepository,private val drafts:WorldDraftRepository,
@@ -89,11 +90,13 @@ class WorldStudioService(
         return draft(request.id,subject)
     }
 
-    fun draft(worldId:UUID,subject:UUID):WorldDraftResponse {
+    /** 소유한 저장 초안이다. 관계는 [episode]화 시점의 것이며 생략하면 최신 회차다. */
+    fun draft(worldId:UUID,subject:UUID,episode:Int?=null):WorldDraftResponse {
         val loaded=tx { val world=owned(worldId,subject);val state=state(worldId);ready(state);readDraft(world,state) }
-        val stored=graph.read(worldId)
+        val stored=graph.read(worldId,episode)
         if(stored.worldId!=worldId || stored.version!=loaded.relationshipVersion) throw WorldStudioFailure.mismatch()
-        try { RelationshipInputHelper.merge(emptyList(),stored.relationships,true,loaded.cards.filter { it.lifecycle=="active" }.map { it.id }.toSet()) }
+        // 지난 회차의 관계는 그 뒤에 삭제된 카드를 끝점으로 가질 수 있어, 삭제된 카드도 이 세계관의 카드로 본다. 다른 세계관의 카드를 가리키면 어긋남이다.
+        try { RelationshipInputHelper.merge(emptyList(),stored.relationships,true,loaded.cards.map { it.id }.toSet()) }
         catch(_:IllegalArgumentException) { throw WorldStudioFailure.mismatch() }
         // Detect a prepare/finalize that raced the network read; never pair another card draft with this graph.
         tx {
@@ -117,7 +120,7 @@ class WorldStudioService(
         action(InitialWorldInput.fromDraft(latest,input.analysisId))
     }
 
-    /** 기본은 upsert. replace=true는 전체 현재 상태를 교체하며 생략 관계는 제거한다. 같은 요청은 같은 key/입력으로 재시도한다. */
+    /** 기본은 upsert. replace=true는 그 회차 시점의 전체 상태를 교체하며 생략 관계는 제거(종료)한다. 같은 요청은 같은 key/입력으로 재시도한다. */
     fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest):WorldDraftResponse=edit(worldId,subject,request,null)
 
     internal fun editAddition(worldId:UUID,subject:UUID,request:EditWorldDraftRequest,applicationId:UUID):WorldDraftResponse {
@@ -126,7 +129,7 @@ class WorldStudioService(
     }
 
     internal fun validateEditRequest(request:EditWorldDraftRequest) {
-        validateName(request.name,request.description);validateKey(request.key)
+        validateName(request.name,request.description);validateKey(request.key);validEpisode(request.episode)
         require(request.expectedDraftRevision>=0 && request.cards.size<=1000)
         require(request.cards.map { it.id }.distinct().size==request.cards.size) { "중복된 카드입니다." }
         request.cards.forEach { validate(it,false) }
@@ -159,16 +162,20 @@ class WorldStudioService(
             }
             EditPlan(readDraft(world,state),state.completed && same,state.graphVersion)
         }
-        if(loaded.duplicate) return draft(worldId,subject)
+        if(loaded.duplicate) return draft(worldId,subject,request.episode)
         val mergedCards=mergeCards(loaded.draft.cards,request)
         val known=mergedCards.filter { it.lifecycle=="active" }.map { it.id }.toSet()
         require(known.size<=1000) { "설정 카드는 1,000개까지 저장할 수 있습니다." }
-        val current=graph.read(worldId)
+        val current=graph.read(worldId,request.episode)
         val alreadyApplied=current.version==Math.incrementExact(loaded.graphVersion) && current.key==request.key && current.hash==hash
         if(current.worldId!=worldId || (!alreadyApplied && current.version!=loaded.graphVersion)) throw WorldStudioFailure.mismatch()
-        val relations=if(alreadyApplied) current.relationships else RelationshipInputHelper.merge(current.relationships,request.relationships,request.replace,known)
+        // 끝점은 이 세계관의 카드(삭제한 카드 포함)면 되고, 그 회차 시점 관계와 다른(새로 만들거나 바뀐) 관계만 양 끝이 활성 카드여야 한다.
+        val worldCards=mergedCards.map { it.id }.toSet()
+        val relations=if(alreadyApplied) current.relationships else RelationshipInputHelper.merge(current.relationships,request.relationships,request.replace,worldCards)
         // Even an acknowledged retry must still match the PostgreSQL card membership.
-        RelationshipInputHelper.merge(emptyList(),relations,true,known)
+        RelationshipInputHelper.merge(emptyList(),relations,true,worldCards)
+        // 이미 반영된 재시도는 relations가 current와 같아 새로 만들거나 바뀐 관계가 없다.
+        RelationshipInputHelper.merge(emptyList(),relations-current.relationships.toSet(),true,known)
         tx {
             owned(worldId,subject);guardApplication(worldId,applicationId);val state=state(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
@@ -184,7 +191,7 @@ class WorldStudioService(
             state.requestKey=request.key;state.requestHash=hash;state.expectedDraftRevision=request.expectedDraftRevision
             state.completed=false;states.flush()
         }
-        val stored=try { graph.replace(worldId,loaded.graphVersion,request.key,hash,relations) }
+        val stored=try { graph.replace(worldId,loaded.graphVersion,request.key,hash,relations,request.episode) }
         catch(_:WorldNotFound) {
             // Only this callback rejection proves the graph transaction did not apply; transport/CAS failures stay pending.
             if(alreadyApplied) throw WorldStudioFailure.mismatch()
@@ -223,7 +230,7 @@ class WorldStudioService(
                 states.flush()
             }
         }
-        return draft(worldId,subject)
+        return draft(worldId,subject,request.episode)
     }
 
     /** 인물/설정만 불변 버전으로 남긴다. 관계 과거 상태를 수집하거나 저장했다고 응답하지 않는다. */

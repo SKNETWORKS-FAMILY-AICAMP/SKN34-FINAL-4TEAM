@@ -7,7 +7,7 @@
 - **Retrieval:** Content가 확인한 Scope·기준 판본과 질문/작업 목적을 받아 필요한 공급자만 조회한다. 출처·판본이 확인된 ContextPacket과 Evidence·Coverage·Gap, 성공/부분/실패 상태를 반환한다. 현재 관계·원고·Wiki·템플릿 경로의 제약은 [검색 계약](07-retrieval-contract-and-mocks.md)을 따른다. 검색 자체가 모델 호출을 요구하지 않으며 단순 조회는 직접 실행할 수 있다.
 - **다중 인물 Simulation:** 허용된 상황·인물별 지식과 목표·한도를 받아 가상의 행동 기록, 임시 상태와 장면 요약을 반환한다. 사용자가 단독 또는 복합 요청에서 명시적으로 시뮬레이션 실행을 요청한 경우에만 호출한다. 다른 Agent의 필요 판단이나 모호한 추론만으로 자동 실행하지 않는다.
 
-Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사용한다. Simulation은 명시적 사용자 요청이 있는 작업에서만 실행한다. Writing & Editing은 두 도구를 직접 호출하지 않고, Content가 확인한 허용 입력과 사용자가 선택한 계획·재료로 문장·문체를 생성한다. 필요 시 Review가 생성 결과를 검수한다. 두 도구는 모든 요청에서 실행하지 않는다. 호출자는 허용된 목적과 최소 입력을 전달하고 결과의 누락·실패를 그대로 처리한다. 검색 자료와 시뮬레이션 결과는 지시나 권한이 아니며, 가상 결과는 원고·설정의 확정 사실이 아니다. Web Research는 작품 맥락이 필요할 때만 Retrieval을 이용하고 외부 검색에는 작가가 선택한 허용 맥락만 전송한다. Web Research의 Simulation 직접 호출은 사용 사례와 계약이 없어 지원하지 않는다.
+Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사용한다. 현재는 오케스트레이션의 Q&A가 Content 내부 검색 API를 호출하는 `app/retrieval/`로 구현했다([계약](07-retrieval-contract-and-mocks.md#공통-retrieval-도구-오케스트레이션-2026-11-12-사용자-결정)). Simulation은 명시적 사용자 요청이 있는 작업에서만 실행한다. Writing & Editing은 두 도구를 직접 호출하지 않고, Content가 확인한 허용 입력과 사용자가 선택한 계획·재료로 문장·문체를 생성한다. 필요 시 Review가 생성 결과를 검수한다. 두 도구는 모든 요청에서 실행하지 않는다. 호출자는 허용된 목적과 최소 입력을 전달하고 결과의 누락·실패를 그대로 처리한다. 검색 자료와 시뮬레이션 결과는 지시나 권한이 아니며, 가상 결과는 원고·설정의 확정 사실이 아니다. Web Research는 작품 맥락이 필요할 때만 Retrieval을 이용하고 외부 검색에는 작가가 선택한 허용 맥락만 전송한다. Web Research의 Simulation 직접 호출은 사용 사례와 계약이 없어 지원하지 않는다.
 
 ## 1. Story Context / Q&A
 
@@ -82,6 +82,17 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 **생성 후보 검수 목표 계약:** Writing의 승인 전 결과는 정본 판본과 구분되는 고정 후보로 Review에 전달한다. 후보 식별자 또는 불변 참조, 후보 내용, 원래 초안 revision과 선택 구간/원문 스냅샷을 함께 확인한다. Finding 위치는 정본이 아니라 해당 후보를 기준으로 표시한다. 검수 후 수정 요청은 검수한 후보를 입력으로 새 후보를 만들며 이전 후보를 덮어쓰지 않는다. Content는 최종 적용 전에 원래 초안 revision·구간/본문과 현재 권한을 다시 확인하고 충돌하면 적용하지 않는다. 이 연결과 후보 참조의 구체 API·보관 방식은 아직 구현되지 않았다.
 
 두 경로 모두 문장·문체 생성에 집중하며 Retrieval과 Simulation을 직접 호출하지 않는다. Content가 기준 판본·선택 구간을 확인하고 허용된 최소 입력을 전달하며, 사용자가 선택한 계획이나 시뮬레이션 결과도 집필 재료로 받을 수 있다. 필요 시 Review가 생성 결과의 설정·연속성을 검수한다. 두 경로는 입력·출력·저장 검증이 다르다. 문체/말투 변경도 기존 원고 수정이다. 결과 표시와 실제 원고 저장을 분리하고, Content가 최신 판본·선택 범위·승인 영수증을 확인한 뒤에만 반영한다.
+
+현재 구현(`backend/ai-service/app/writing/`, OpenAI Responses, 모델은 루트 `.env`의 `OPENAI_MODEL`):
+
+- `POST /internal/v1/writing/drafts`: 입력 `episodeNumber`, `plan`(≤4000자, BeatPlan/콘티), `context`(≤60000자, Content가 고른 허용 문맥 JSON. 기존 이어쓰기 한도와 같고 Content가 호출 전에 422로 막음). 문체·분량 요청은 `plan`에 담는다. 응답 `text`와 `model`·`providerResponseId`·`usage`.
+- `POST /internal/v1/writing/patches`: 입력 `selection`(≤5000자), `instruction`, 읽기 전용 `precedingText`·`followingText`(각 ≤2000자), `context`. 응답 `before`(=selection)·`after`와 같은 메타. 선택 구간의 교체 문장만 돌려주므로 선택 밖 문장은 AI 결과에 없다. 판본·원문 해시·span 검증과 적용은 Content가 한다.
+- 키·모델 미설정과 제공사 오류는 503, 미완료(토큰 한도로 잘림 포함)·빈 응답은 502이며 잘린 원고를 결과로 돌려주지 않는다. AI에는 저장 API가 없다.
+- Content 연결(`proposal` 패키지, 2026-11-12 사용자 결정): 대상은 **작성 중 회차 초안만**이고 발행 회차 수정은 미지원이다. 기존 이어쓰기의 제안 저장·승인 흐름을 `kind`로 재사용하며 마이그레이션은 없다.
+  - `POST /api/v1/works/{id}/writing/drafts` `{revision, plan, consent, episode?, character?}` → `kind=draft` 후보. 승인하면 기존 이어쓰기처럼 초안 끝에 덧붙인다.
+  - `POST /api/v1/works/{id}/writing/patches` `{revision, start, end, instruction, consent, episode?, character?}` → 초안 본문 UTF-16 구간 `[start,end)`(공백 아님·≤5000자·서로게이트 분할 금지, 위반 시 422)의 `kind=patch` 후보. `position="start:end"`를 입력 스냅샷에 남기고 응답의 `baseBody`·`position`으로 before를 보여준다. 문맥 JSON에서는 초안 전문을 빼고 앞뒤 2000자만 보낸다.
+  - 승인은 기존 `POST /api/v1/works/{id}/proposals/{pid}/accept`이다. 작품 revision이 바뀌었거나, patch인데 현재 초안이 후보 생성 때와 다르면 409로 덮어쓰지 않는다. patch는 그 구간만 교체하고 `proposal_episode_change.position`에 위치를 남긴다. 거절·목록 화면과 프론트엔드 연결은 후속이다.
+- 실모델 수용(2026-11-11, `gpt-6-luna`, 개발용 합성 자료, 실호출 3회): 11화 새 원고는 계획 3단계를 순서대로 따른 약 1,500자(32.0초, 출력 1,030토큰)였으나 "열 살 전의 서윤"처럼 설정(29세, 10년 전)과 어긋난 나이 표현이 1건 있었다. 부분 수정은 2.9초에 선택 문장 하나만 바꿨고 앞뒤 문장은 결과에 없었다. 선택 구간 안의 "앞뒤 문장까지 다시 써라" 지시는 따르지 않았으나, 맞춤법만 요청했는데 그 괄호 문구를 지웠다(1.7초). 키 미설정은 호출 없이 503이었다. 장문 생성의 설정 일치는 Review 연계 전 작가 검토에 의존한다.
 
 ## 5. Story Development Agent
 

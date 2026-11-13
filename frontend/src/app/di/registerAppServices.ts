@@ -37,6 +37,8 @@ import { InMemoryWorkNoticeRepository } from '../../data/mock/InMemoryWorkNotice
 import { WorkNoticeUseCase } from '../../domain/usecases/WorkNoticeUseCase'
 import { HttpEditSuggestionRepository } from '../../data/content/HttpEditSuggestionRepository'
 import { HttpFeedbackReportRepository } from '../../data/content/HttpFeedbackReportRepository'
+import { HttpWritingChatRepository } from '../../data/content/HttpWritingChatRepository'
+import { WritingChatUseCase } from '../../domain/usecases/WritingChatUseCase'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { HttpReadingRecordRepository } from '../../data/content/HttpReadingRecordRepository'
 import { HttpWorkRepository } from '../../data/content/HttpWorkRepository'
@@ -112,6 +114,7 @@ export function registerAppServices(container: AppContainer) {
     manuscriptUseCase: asFunction(({ manuscriptRepository }) => new ManuscriptUseCase(manuscriptRepository)).singleton(),
     episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
+    writingChatUseCase: asFunction(() => new WritingChatUseCase(new HttpWritingChatRepository())).singleton(),
     episodeCommentRepository: asFunction(() => new HttpEpisodeCommentRepository()).singleton(),
     episodeCommentUseCase: asFunction(({ episodeCommentRepository }) => new EpisodeCommentUseCase(episodeCommentRepository)).singleton(),
     workNoticeRepository: asFunction(() => new HttpWorkNoticeRepository()).singleton(),

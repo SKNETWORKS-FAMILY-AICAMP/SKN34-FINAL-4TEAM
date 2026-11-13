@@ -51,6 +51,25 @@ services:
       timeout: 3s
       retries: 20
 
+  # 원고 검색 v1 색인. 로컬 전용 docker-compose.elasticsearch.yaml과 같은 공식 이미지다. 볼륨은 배포마다 보존한다.
+  # 인덱스는 Content가 시작할 때 없을 때만 만들고 매핑을 검증한다. 내부 네트워크에서만 접근하며 호스트 포트는 없다.
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.6
+    platform: linux/amd64
+    labels: *cd-labels
+    mem_limit: 1g
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    volumes:
+      - manuscript-index:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow&timeout=3s"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 60s
+
   ai-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
     platform: linux/amd64
@@ -93,6 +112,8 @@ services:
         condition: service_healthy
       neo4j:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     environment:
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
@@ -106,6 +127,9 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?Set AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
       NEO4J_URI: bolt://neo4j:7687
+      # 발행 원고 자동 색인·검색. 임베딩은 ai-service 이미지의 고정 리비전 E5 모델이 만든다.
+      MANUSCRIPT_INDEX_ENABLED: "true"
+      MANUSCRIPT_INDEX_URL: http://elasticsearch:9200
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
 
   operations-service:
@@ -136,6 +160,8 @@ volumes:
   core-rabbitmq:
     labels: *cd-labels
   setting-attachments:
+    labels: *cd-labels
+  manuscript-index:
     labels: *cd-labels
 
 networks:

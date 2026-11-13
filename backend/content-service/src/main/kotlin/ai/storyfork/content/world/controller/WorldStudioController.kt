@@ -1,6 +1,7 @@
 package ai.storyfork.content.world.controller
 
 import ai.storyfork.content.work.service.WorkWorldService
+import ai.storyfork.content.world.domain.episodeFromText
 import ai.storyfork.content.world.domain.worldCoverFile
 import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.world.service.WorldStudioService
@@ -32,11 +33,15 @@ class WorldStudioController(private val service:WorldStudioService,private val c
     @PostMapping
     fun create(principal:Principal,@RequestBody request:CreateWorldRequest)=linked(service.create(UUID.fromString(principal.name),request))
 
-    /** 소유자의 카드 초안과 일치하는 현재 Neo4j 관계만 반환한다. 미전환/불일치는 409, 미완료는 503이다. */
+    /**
+     * 소유자의 카드 초안과 일치하는 Neo4j 관계를 반환한다. 관계는 `episode`(연결된 소설의 회차 순번, 1 이상) 시점의 것이며 생략하면 최신 회차다(DEC-51).
+     * 미전환/불일치는 409, 미완료는 503, `episode` 값 오류는 422다(문자열로 받아 Spring 타입 변환 400이 되지 않게 한다).
+     */
     @GetMapping("/{id}")
-    fun read(@PathVariable id:UUID,principal:Principal)=linked(service.draft(id,UUID.fromString(principal.name)))
+    fun read(@PathVariable id:UUID,principal:Principal,@RequestParam(required=false) episode:String?=null)=
+        linked(service.draft(id,UUID.fromString(principal.name),episodeFromText(episode)))
 
-    /** 예상 revision과 요청 키로 현재 상태를 저장한다. 확정 비적용 409는 재조회·수정하며 결과 미확인 충돌은 동일 입력으로 재시도한다. */
+    /** 예상 revision과 요청 키로 `episode`(생략하면 최신 회차) 시점의 관계를 저장한다(DEC-51). 확정 비적용 409는 재조회·수정하며 결과 미확인 충돌은 동일 입력으로 재시도한다. */
     @PutMapping("/{id}/draft")
     fun edit(@PathVariable id:UUID,principal:Principal,@RequestBody request:EditWorldDraftRequest)=linked(service.edit(id,UUID.fromString(principal.name),request))
 

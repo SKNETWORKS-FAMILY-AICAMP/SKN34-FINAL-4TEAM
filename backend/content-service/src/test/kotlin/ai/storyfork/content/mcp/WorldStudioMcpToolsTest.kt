@@ -153,6 +153,31 @@ class WorldStudioMcpToolsTest {
         verify(studio).draft(worldId, member)
     }
 
+    @Test fun `world_studio_read reads the relations as of the optional episode and rejects a malformed one before any service`() {
+        `when`(studio.draft(worldId, member, 3)).thenReturn(draft())
+        `when`(links.linkedWorkIds(listOf(worldId))).thenReturn(mapOf(worldId to "w1"))
+
+        val result = call("world_studio_read", mapOf("id" to "$worldId", "episode" to "3"), signedIn())
+
+        assertNotEquals(true, result.isError(), result.text())
+        verify(studio).draft(worldId, member, 3)
+        verifyNoMoreInteractions(studio)
+        for (bad in listOf("0", "-1", "abc", "1.5")) {
+            val failed = call("world_studio_read", mapOf("id" to "$worldId", "episode" to bad), signedIn())
+
+            assertEquals(true, failed.isError(), bad)
+            assertEquals(listOf("HTTP 422 WORLD_INPUT_INVALID", "이름·내용 길이, 카드·관계 ID와 입력 값을 확인하세요."), failed.text().lines(), bad)
+        }
+        verifyNoMoreInteractions(studio)
+    }
+
+    @Test fun `the read and edit tools tell the caller about the optional episode`() {
+        fun schema(tool: String) = specs.single { it.tool().name() == tool }.tool().inputSchema().toString()
+
+        assertTrue("episode" in schema("world_studio_read"), schema("world_studio_read"))
+        assertTrue("episode" in schema("world_studio_edit_draft"), schema("world_studio_edit_draft"))
+    }
+
     @Test fun `world_studio_edit_draft binds nested cards and relationships and forwards the same request DTO`() {
         val lira = UUID.fromString("77777777-7777-7777-7777-777777777777")
         val moon = UUID.fromString("88888888-8888-8888-8888-888888888888")
