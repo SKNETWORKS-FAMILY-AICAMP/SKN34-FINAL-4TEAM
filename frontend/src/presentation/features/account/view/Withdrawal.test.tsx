@@ -14,8 +14,8 @@ const me = { id: '1', nickname: '읽는사람', email: 'reader@storyfork.demo', 
 const pending = { status: 'PENDING', requestedAt: '2026-11-12T01:00:00Z', dueAt: '2026-12-12T01:00:00Z' }
 type Call = { url: string; method: string; body: unknown; signal?: AbortSignal | null }
 
-/** 로그인한 사용자로 프로필을 연다. `withdrawal`이 탈퇴 API 응답을 정한다. */
-function setup(withdrawal: (call: Call) => Response | Promise<Response>) {
+/** 로그인한 사용자로 프로필을 연다. `withdrawal`이 탈퇴 API 응답을, `sessions`가 로그인 기기 API 응답을 정한다. */
+function setup(withdrawal: (call: Call) => Response | Promise<Response>, { path = '/me/profile', sessions = () => Response.json({ sessions: [] }) }: { path?: string; sessions?: () => Response | Promise<Response> } = {}) {
   const calls: Call[] = []
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
     if (url.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
@@ -25,11 +25,11 @@ function setup(withdrawal: (call: Call) => Response | Promise<Response>) {
       calls.push(call)
       return withdrawal(call)
     }
-    if (url.includes('/auth/sessions')) return Response.json({ sessions: [] })
+    if (url.includes('/auth/sessions')) return sessions()
     return Response.json(me)
   }))
   const store = createAppStore({ role: 'user' })
-  return { calls, ...renderApp('/me/profile', store) }
+  return { calls, ...renderApp(path, store) }
 }
 const toastIs = (t: string | RegExp) => waitFor(() => expect(document.getElementById('toast')!.textContent).toMatch(t))
 /** 프로필 화면은 지연 로딩이라 파일의 첫 테스트에서 오래 걸릴 수 있어, 화면이 처음 뜨기를 기다릴 때만 넉넉히 기다린다. */
@@ -122,6 +122,65 @@ describe('회원탈퇴 (U30, UC-22 A3)', () => {
     expect(post?.signal?.aborted).toBe(true)
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(store.getState().session.role).toBe('user')
+  })
+
+  it('프로필에 직접 들어오면 탈퇴 카드로 스크롤하거나 포커스를 옮기지 않는다', async () => {
+    const scroll = vi.fn()
+    Element.prototype.scrollIntoView = scroll
+    try {
+      setup(() => Response.json(pending))
+      const cancel = await card('탈퇴 요청 취소')
+      expect(document.activeElement).not.toBe(cancel)
+      expect(scroll).not.toHaveBeenCalled()
+    } finally { delete (Element.prototype as Partial<Element>).scrollIntoView }
+  })
+
+  describe('알림에서 들어올 때 위쪽 카드가 늦게 그려지면', () => {
+    afterEach(() => { delete (Element.prototype as Partial<Element>).scrollIntoView })
+    const device = { id: 'c', deviceLabel: 'Chrome/140.0 (Windows NT 10.0) Safari/537.36', current: true, createdAt: '2026-01-01T00:00:00Z' }
+    /**
+     * 탈퇴 상태는 바로, 로그인 기기 목록은 `release()`를 부를 때 내려준다. jsdom에는 레이아웃이 없어
+     * 스크롤 대역이 불린 때마다 그 시점에 기기 목록이 이미 그려져 있었는지(`listed`)로 순서를 확인한다.
+     */
+    function fromNotification() {
+      const listed: boolean[] = []
+      const scroll = vi.fn(() => { listed.push(document.querySelector('.device-list') !== null) })
+      Element.prototype.scrollIntoView = scroll
+      let release = () => {}
+      setup(() => Response.json(pending), { path: '/me/profile?focus=withdrawal', sessions: () => new Promise<Response>((resolve) => { release = () => resolve(Response.json({ sessions: [device] })) }) })
+      return { listed, scroll, release: () => release() }
+    }
+
+    it('기기 목록이 그려진 뒤에도 탈퇴 카드를 다시 가운데로 맞추고 포커스를 유지한다', async () => {
+      const { listed, release } = fromNotification()
+      const cancel = await card('탈퇴 요청 취소')
+      await waitFor(() => expect(document.activeElement).toBe(cancel))
+      expect(listed).toEqual([false]) // 탈퇴 상태가 먼저 도착해 처음 한 번 맞춘다.
+      release()
+      await screen.findByText('Chrome · Windows')
+      await waitFor(() => expect(listed.at(-1)).toBe(true)) // 목록이 밀어낸 뒤 다시 맞춘다.
+      expect(document.activeElement).toBe(cancel)
+    })
+
+    it.each(['wheel', 'keyDown', 'pointerDown'] as const)('다시 맞추기 전에 사용자의 %s 조작이 있으면 더는 끌어당기지 않는다', async (input) => {
+      const { scroll, release } = fromNotification()
+      await card('탈퇴 요청 취소')
+      await waitFor(() => expect(scroll).toHaveBeenCalledTimes(1))
+      fireEvent[input](document.body)
+      release()
+      await screen.findByText('Chrome · Windows')
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(scroll).toHaveBeenCalledTimes(1)
+    })
+
+    it('화면을 떠나면 조작 감시를 거둔다', async () => {
+      const { scroll } = fromNotification()
+      await card('탈퇴 요청 취소')
+      await waitFor(() => expect(scroll).toHaveBeenCalledTimes(1))
+      const removed = vi.spyOn(document, 'removeEventListener')
+      cleanup()
+      expect(removed).toHaveBeenCalledWith('wheel', expect.any(Function))
+    })
   })
 
   it('상태를 읽지 못하면 실패를 알리고 다시 시도할 수 있다', async () => {

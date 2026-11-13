@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch } from '../../../../app/store'
@@ -15,6 +15,8 @@ export function useWithdrawalViewModel() {
   const withdrawal = appContainer.resolve('withdrawalUseCase')
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
+  const focusHandled = useCallback(() => setParams((current) => { const next = new URLSearchParams(current); next.delete('focus'); return next }, { replace: true }), [setParams])
   const busy = useRef(false)
   const [state, setState] = useState<WithdrawalState | null>(null)
   const [loadError, setLoadError] = useState(false)
@@ -64,6 +66,10 @@ export function useWithdrawalViewModel() {
 
   return {
     state, loadError, pending, error,
+    /** 탈퇴 요청 알림에서 왔으면(`?focus=withdrawal`) 카드가 상태를 그린 뒤 한 번만 스크롤·포커스합니다. */
+    focusRequested: params.get('focus') === 'withdrawal',
+    /** 포커스를 옮긴 뒤 표시를 지워, 새로 고침이나 상태 갱신 때 다시 끌어당기지 않습니다. */
+    focusHandled,
     /** 유예 기한이 지났으면(서버 409 또는 기한 시각 경과) 복구 요청을 보내지 않습니다. */
     expired: expiredByServer || (state?.status === 'PENDING' && Date.parse(state.dueAt) <= Date.now()),
     retry: () => setAttempt((value) => value + 1),
