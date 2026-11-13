@@ -414,3 +414,101 @@ def test_stream_reports_approval_wait_then_the_applied_step(monkeypatch):
     second = stream(request=None, conversation=conversation, resume={'approved': True})
     assert [name for name, _ in second] == ['step', 'done']
     assert second[0][1]['applied'] == {'episode': 3, 'revision': 8} and second[-1][1]['status'] == 'completed'
+
+
+# 대화 세션 CRUD(#331): 저장은 체크포인터 하나뿐이고 scope가 다른 대화는 없는 것으로 본다.
+ME, OTHER = 'user:1/work:1', 'user:2/work:1'
+
+
+def conversation(fn, *args):
+    return asyncio.run(getattr(service, fn)(*args))
+
+
+def test_sessions_lists_only_threads_of_the_scope_newest_first(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'))
+    first, second, others = str(uuid4()), str(uuid4()), str(uuid4())
+    chat(first, request='카이의 목표는?', inputs={'story_context': QA})
+    chat(second, request='길드 규칙은?', inputs={'story_context': QA})
+    chat(others, scope=OTHER, inputs={'story_context': QA})
+    sessions = conversation('sessions', ME)
+    assert [(s.threadId, s.title) for s in sessions] == [(second, '길드 규칙은?'), (first, '카이의 목표는?')]
+
+
+def test_history_has_each_turn_with_its_reply_and_the_waiting_turn(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='첫 질문', inputs={'story_context': QA})
+    fake_agents(monkeypatch, plan('web_research'))
+    chat(thread, request='조사해 줘')
+    history = conversation('history', thread, ME)
+    assert [t.request for t in history.turns] == ['첫 질문', '조사해 줘']
+    assert history.turns[0].reply.status == 'completed' and history.turns[0].reply.steps[0].result.claims
+    assert (history.turns[1].reply.status, history.turns[1].reply.missingInputs) == ('waiting', ['web_research'])
+
+
+@pytest.mark.parametrize('fn, args', [('history', ()), ('rename', ('새 제목',)), ('delete', ()), ('truncate', (0,))])
+def test_thread_of_another_scope_or_unknown_is_not_found(monkeypatch, fn, args):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, inputs={'story_context': QA})
+    for target, scope in ((thread, OTHER), (str(uuid4()), ME)):
+        with pytest.raises(service.ConversationNotFound):
+            conversation(fn, target, scope, *args)
+    assert conversation('history', thread, ME).turns
+
+
+def test_rename_keeps_turns_and_waits_for_a_finished_run(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, inputs={'story_context': QA})
+    conversation('rename', thread, ME, '규칙 정리')
+    history = conversation('history', thread, ME)
+    assert (history.title, len(history.turns)) == ('규칙 정리', 1)
+    fake_agents(monkeypatch, plan('web_research'))
+    chat(thread)
+    with pytest.raises(service.ConversationBusy):
+        conversation('rename', thread, ME, '다른 제목')
+
+
+def test_delete_removes_the_thread(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, inputs={'story_context': QA})
+    conversation('delete', thread, ME)
+    assert conversation('sessions', ME) == []
+
+
+def test_truncate_drops_the_turn_and_everything_after(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    for text in ('하나', '둘', '셋'):
+        chat(thread, request=text, inputs={'story_context': QA})
+    conversation('truncate', thread, ME, 1)
+    assert [t.request for t in conversation('history', thread, ME).turns] == ['하나']
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='넷', inputs={'story_context': QA})
+    assert [c[1][3] for c in calls if c[0] == 'route'] == [['하나']]  # 지운 턴은 Router 기록에도 없다.
+    conversation('truncate', thread, ME, 0)
+    assert conversation('sessions', ME) == []
+
+
+def test_edited_turn_reruns_from_that_turn_and_replaces_the_rest(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    for text in ('하나', '둘', '셋'):
+        chat(thread, request=text, inputs={'story_context': QA})
+    events = stream(request='둘 고침', conversation={'threadId': thread, 'scope': ME}, fromTurn=1,
+                    inputs={'story_context': QA})
+    assert events[-1][1]['status'] == 'completed'
+    assert [t.request for t in conversation('history', thread, ME).turns] == ['하나', '둘 고침']
+    stream(request='처음부터', conversation={'threadId': thread, 'scope': ME}, fromTurn=0, inputs={'story_context': QA})
+    history = conversation('history', thread, ME)
+    assert ([t.request for t in history.turns], history.title) == (['처음부터'], '처음부터')
+
+
+def test_edit_needs_an_existing_turn(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, inputs={'story_context': QA})
+    events = stream(conversation={'threadId': thread, 'scope': ME}, fromTurn=5, inputs={'story_context': QA})
+    assert events == [('error', {'message': service.CONVERSATION_NOT_FOUND_MESSAGE})]

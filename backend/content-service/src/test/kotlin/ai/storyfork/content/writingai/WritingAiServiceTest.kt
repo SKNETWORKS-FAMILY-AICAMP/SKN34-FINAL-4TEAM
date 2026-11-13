@@ -6,6 +6,7 @@ import ai.storyfork.content.context.service.QaScopeGrants
 import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScope
 import ai.storyfork.content.context.service.dto.QaScopeRequest
+import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
 import ai.storyfork.content.writingai.service.dto.WritingAiRequest
@@ -20,7 +21,8 @@ class WritingAiServiceTest {
     private val scopes = mock(QaScopeService::class.java)
     private val client = mock(WritingAiClient::class.java)
     private val grants = QaScopeGrants()
-    private val service = WritingAiService(scopes, grants, client)
+    private val access = mock(WorkAccessService::class.java)
+    private val service = WritingAiService(scopes, grants, client, access)
     private val result = JsonMapper.builder().build().readTree("""{"status":"completed"}""")
     private val ask = WritingAiRequest(request = "길드 규칙은?", episode = 2, episodeVersionId = "r2", consent = true)
 
@@ -66,5 +68,63 @@ class WritingAiServiceTest {
             assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", "owner", "Bearer user", bad) }.status)
         }
         verifyNoInteractions(client, scopes)
+    }
+
+    // 대화 세션(#331): 작품 권한을 확인한 뒤 작가·작품 scope로만 AI 세이버의 대화를 다룬다.
+    private val scope = "user:owner/work:work"
+
+    @Test
+    fun `session reads and changes are bound to the signed-in author and work`() {
+        `when`(client.sessions(scope)).thenReturn(result)
+        `when`(client.history("thread", scope)).thenReturn(result)
+        assertEquals(result, service.sessions("work", "owner"))
+        assertEquals(result, service.history("work", "owner", "thread"))
+        service.rename("work", "owner", "thread", "새 제목")
+        service.delete("work", "owner", "thread")
+        service.truncate("work", "owner", "thread", 2)
+        verify(access, times(5)).own("work", "owner")
+        verify(client).rename("thread", scope, "새 제목")
+        verify(client).delete("thread", scope)
+        verify(client).truncate("thread", scope, 2)
+    }
+
+    @Test
+    fun `another author's work never reaches the AI`() {
+        `when`(access.own("work", "intruder")).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.sessions("work", "intruder") }.status)
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.open("work", "intruder") }.status)
+        verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `a new session id is issued only for an owned work`() {
+        val first = service.open("work", "owner").threadId
+        assertNotEquals(first, service.open("work", "owner").threadId)
+        verify(access, times(2)).own("work", "owner")
+    }
+
+    @Test
+    fun `message body uses the path thread and edits rerun from the chosen turn`() {
+        `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
+            QaScope("work", null, 2, "r2", emptyList(), null))
+        val body = service.message("work", "owner", "thread", ask.copy(threadId = "ignored"), fromTurn = 1)
+        assertEquals(mapOf("threadId" to "thread", "scope" to scope), body["conversation"])
+        assertEquals(1, body["fromTurn"])
+        assertFalse("fromTurn" in service.message("work", "owner", "thread", ask))
+    }
+
+    @Test
+    fun `resume forwards the inputs the author filled in`() {
+        val inputs = JsonMapper.builder().build().readTree("""{"web_research":{"question":"한양에서 동래까지?"}}""")
+        val body = service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))
+        assertEquals(inputs, (body["resume"] as Map<*, *>)["inputs"])
+    }
+
+    @Test
+    fun `an edit is always a new request, never a resume`() {
+        val failure = assertThrows(ContentFailure::class.java) {
+            service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true)), fromTurn = 1)
+        }
+        assertEquals(422, failure.status)
     }
 }

@@ -1,5 +1,6 @@
 """집필 AI 오케스트레이션 내부 API 계약. 단계 입력은 Content가 권한·대상·판본을 확인해 기능별로 채운다."""
 
+from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -65,13 +66,14 @@ class OrchestrationRequest(BaseModel):
     operation: Feature | None = None
     materials: list[Annotated[str, Field(max_length=2000)]] = Field(default=[], max_length=8)
     inputs: StepInputs = StepInputs()
+    fromTurn: int | None = Field(default=None, ge=0)  # 있으면 그 턴부터 지우고 이 request로 다시 실행한다(메시지 수정).
 
     @model_validator(mode='after')
     def turn_or_resume(self):
         if (self.request is None) == (self.resume is None):
             raise ValueError('request와 resume 중 하나만 보내야 합니다.')
-        if self.resume is not None and self.conversation is None:
-            raise ValueError('resume은 conversation이 필요합니다.')
+        if (self.resume is not None or self.fromTurn is not None) and self.conversation is None:
+            raise ValueError('resume·fromTurn은 conversation이 필요합니다.')
         return self
 
 
@@ -110,3 +112,28 @@ class OrchestrationResponse(BaseModel):
     missingInputs: list[Feature] = []
     unsupported: list[Feature] = []
     awaitingApproval: Feature | None = None
+
+
+class ChatSession(BaseModel):
+    """체크포인터에 남은 대화 하나. 제목은 첫 요청 앞부분이며 rename으로 바꾼다."""
+    threadId: str
+    title: str
+    updatedAt: datetime
+
+
+class ChatTurn(BaseModel):
+    """한 턴의 요청과 그 턴의 최종 응답. 멈춘 턴은 reply.status가 waiting이다."""
+    request: str
+    reply: OrchestrationResponse | None = None  # 응답 기록 이전에 저장된 턴은 없다.
+
+
+class ChatHistory(BaseModel):
+    threadId: str
+    title: str
+    turns: list[ChatTurn]
+
+
+class RenameRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    scope: str = Field(min_length=1, max_length=200)
+    title: str = Field(min_length=1, max_length=100)

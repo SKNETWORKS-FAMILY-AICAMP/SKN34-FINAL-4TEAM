@@ -468,7 +468,7 @@
 <tr><td>허용 문맥 미리보기</td><td>❌</td></tr>
 <tr><td>이어쓰기 요청</td><td>❌</td></tr>
 <tr><td>부분 수정 요청</td><td>❌ <small>(Content·AI API와 승인 반영 구현 · 화면 미연결 · 통합 테스트 CI 대기)</small></td></tr>
-<tr><td>AI 대화 요청</td><td>❌ <small>(AI LangGraph 오케스트레이션·SSE·멀티턴·HITL과 Content 공개 경로 구현 · 화면·SSE 프록시 미연결 · Q&A 외 단계 입력 미연결)</small></td></tr>
+<tr><td>AI 대화 요청</td><td>✅ <small>(#331: 집필실·세계관 채팅이 Content SSE 중계로 AI 오케스트레이션에 연결 · 세션·메시지 CRUD는 LangGraph 체크포인터만 사용 · 초안 반영 승인·고증 질문·장면 계획 입력을 HITL 카드로 받음 · 발행 회차가 있어야 사용 · 크레딧 차감·첨부·선택 구간 수정 입력은 범위 밖)</small></td></tr>
 <tr><td>대화 목록 조회</td><td>❌</td></tr>
 <tr><td>대화 상세 조회</td><td>❌</td></tr>
 <tr><td>대화 기록 삭제</td><td>❌</td></tr>
@@ -677,7 +677,7 @@
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
 <tr><td>공통 시트의 summary 키보드 탐색 <small>(초기 포커스·Tab/Shift+Tab 순환, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/139">PR #139</a></td></tr>
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td></tr>
-<tr><td>집필실 3단 레이아웃 <small>(왼쪽 회차 목록·새 회차 아이콘·항목별 ⋮ 메뉴·크기 조절 분할선·버전 그래프, 가운데 제목 첫 줄과 본문 편집기(Toast UI Editor, 아래 행)·공개 분량 5,000자 규칙(화면 규칙), 오른쪽 공용 채팅, 기본/고급 전환 틀. 채팅의 AI 전송·첨부와 설정 수집은 준비 중 잠금이며 실제 연결은 아직 없음, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
+<tr><td>집필실 3단 레이아웃 <small>(왼쪽 회차 목록·새 회차 아이콘·항목별 ⋮ 메뉴·크기 조절 분할선·버전 그래프, 가운데 제목 첫 줄과 본문 편집기(Toast UI Editor, 아래 행)·공개 분량 5,000자 규칙(화면 규칙), 오른쪽 공용 채팅, 기본/고급 전환 틀. 채팅은 집필 AI에 연결(#331), 첨부와 설정 수집은 준비 중 잠금, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>집필실 본문 Toast UI 편집기와 원고 기본 서식 <small>(툴바 굵게·기울임·소제목·인용·구분선·이미지와 쓰기·미리보기, 저장은 문자열 그대로, 독자 화면·저장 버전 보기·EPUB 내보내기가 같은 문법으로 표시, DEC-48)</small></td><td>❌ <small>(부분: 편집기·서식 문법·독자 화면·공용 본문 렌더러·EPUB 내보내기 소스 구현, 로컬 단위·통합 레인 통과, 브라우저 육안 확인 미확인, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/327">#327</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/330">PR #330</a>, <a href="design/manuscript-format-contract.md">계약</a>)</small></td></tr>
 <tr><td rowspan="23">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="23"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a></td></tr>
 <tr><td>홈 단색 배경 보조 텍스트의 라이트·다크 대비 확보</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>

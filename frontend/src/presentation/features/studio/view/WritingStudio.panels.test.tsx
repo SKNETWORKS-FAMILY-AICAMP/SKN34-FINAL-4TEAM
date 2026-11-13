@@ -95,14 +95,14 @@ it('왼쪽 회차 목록·버전 그래프, 가운데 원고, 오른쪽 AI 채�
   expect(chat.contains(editor)).toBe(false)
 })
 
-it('AI 채팅은 전송을 연결하기 전까지 입력·전송·첨부·추천 칩을 사유와 함께 잠가 가짜 제안이나 전송 흔적을 만들지 않는다', () => {
+it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음·동의 전) 입력·전송·첨부·추천 칩을 사유와 함께 잠가 가짜 제안이나 전송 흔적을 만들지 않는다', () => {
   renderStudio()
   const chat = screen.getByRole('complementary', { name: 'AI 채팅' })
   const box = within(chat).getByRole('textbox', { name: '메시지' })
   expect(box).toHaveProperty('disabled', true)
   expect(box.getAttribute('placeholder')).toBe('AI에게 무엇이든 물어보세요')
   for (const name of ['전송', '음성 입력 (준비 중)']) expect(within(chat).getByRole('button', { name })).toHaveProperty('disabled', true)
-  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중 · AI 이어쓰기 연결 후 이곳에서 보낼 수 있어요.')
+  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|발행하면|동의에 체크/)
   // 첨부 안내는 + 버튼의 popover 안에만 있고, 항목은 모두 잠겨 있다.
   expect(within(chat).queryByText('이미지·음성 첨부는 준비 중이에요.')).toBeNull()
   fireEvent.click(within(chat).getByRole('button', { name: '첨부' }))

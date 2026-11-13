@@ -158,6 +158,14 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       } catch(e) {if(!controller.signal.aborted)setHistoryError(e instanceof Error?e.message:'발행 이력을 불러오지 못했어요.')}
       finally {if(historyRequest.current===controller){historyRequest.current=null;setHistoryLoading(false)}}
     },
+    /** 집필 AI가 작가 승인으로 회차 초안을 바꿨다(Content MCP). 목록을 다시 읽고, 고치던 글이 없으면 새 초안을 연다. */
+    aiApplied:async(number:number)=>{
+      try{
+        const rows=await api.writingList(id);setEpisodes(rows)
+        const next=rows.find(e=>e.number===number)
+        if(next&&active?.number===number){if(dirty)setNotice('AI가 이 회차 초안을 바꿨어요. 작성 중인 변경을 복사해 둔 뒤 회차를 다시 열어 주세요.');else install(next)}
+      }catch(e){setError(e instanceof Error?e.message:'AI가 반영한 초안을 다시 불러오지 못했어요.')}
+    },
     episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,mayLeave,deleteBlocker:deleteBlocker(active,episodes),
     // 회차 목록의 항목별 메뉴가 선택하지 않은 회차의 삭제 가능 여부도 같은 규칙으로 알린다.
     deleteBlockerOf:(e:WritingEpisode)=>deleteBlocker(e,episodes),
