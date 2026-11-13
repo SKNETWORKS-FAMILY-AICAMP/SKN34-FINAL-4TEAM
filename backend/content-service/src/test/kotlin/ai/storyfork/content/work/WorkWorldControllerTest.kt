@@ -85,4 +85,13 @@ class WorkWorldControllerTest {
         `when`(studio.draft(other, owner)).thenReturn(draft(other))
         assertNull(studios.read(other, principal).linkedWorkId)
     }
+    @Test fun `the owner reads a draft as of an episode and a malformed episode is an input error that never reaches the service`() {
+        `when`(studio.draft(world, owner, 3)).thenReturn(draft())
+        `when`(links.linkedWorkIds(listOf(world))).thenReturn(mapOf(world to "work"))
+
+        assertEquals(draft().copy(linkedWorkId = "work"), studios.read(world, principal, "3"))
+        verify(studio).draft(world, owner, 3)
+        for (bad in listOf("0", "-2", "abc", "1.5", "")) assertThrows(IllegalArgumentException::class.java, { studios.read(world, principal, bad) }, bad)
+        verifyNoMoreInteractions(studio)
+    }
 }
