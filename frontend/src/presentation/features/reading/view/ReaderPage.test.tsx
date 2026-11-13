@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
 import { renderApp } from '../../../../test/renderApp'
@@ -14,6 +14,7 @@ const focus = (el: HTMLElement) => act(() => { el.focus() })
 
 afterEach(() => {
   cleanup()
+  vi.restoreAllMocks()
   document.title = 'STORYFORK'
   Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 })
 })
@@ -28,14 +29,28 @@ async function openReader() {
 }
 
 describe('회차 뷰어 · 문장 키보드 접근', () => {
-  it('문장은 이름이 있는 버튼이고 탭 정지점은 하나뿐이다', async () => {
+  it('탭 정지점 문장 하나만 이름과 설명이 있는 버튼이고 나머지 문장은 본문 글자로 읽힌다', async () => {
     const s = await openReader()
     expect(s.length).toBeGreaterThan(3)
-    expect(s.every((el) => el.getAttribute('role') === 'button')).toBe(true)
     expect(s.filter((el) => el.tabIndex === 0)).toEqual([s[0]])
     expect(s.slice(1).every((el) => el.tabIndex === -1)).toBe(true)
-    screen.getByRole('button', { name: '“이건 어디로 가야 하지.”' })
+    // 연속 읽기에서 문장마다 '버튼'과 설명이 붙지 않도록 역할·설명은 탭 정지점 문장에만 둔다.
+    expect(s.filter((el) => el.getAttribute('role') === 'button')).toEqual([s[0]])
+    expect(s.filter((el) => el.hasAttribute('aria-describedby'))).toEqual([s[0]])
+    screen.getByRole('button', { name: s[0].textContent! })
+    expect(screen.queryByRole('button', { name: '“이건 어디로 가야 하지.”' })).toBeNull()
     expect(document.getElementById(s[0].getAttribute('aria-describedby') ?? '')?.textContent).toContain('댓글·피드백')
+  })
+
+  it('포커스가 옮겨 간 문장이 버튼이 되고 떠난 문장은 본문 글자로 돌아간다', async () => {
+    const s = await openReader()
+    focus(s[0])
+    fireEvent.keyDown(s[0], { key: 'ArrowRight' })
+    fireEvent.keyDown(s[1], { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(s[2])
+    expect(s.filter((el) => el.getAttribute('role') === 'button')).toEqual([s[2]])
+    expect(s.filter((el) => el.hasAttribute('aria-describedby'))).toEqual([s[2]])
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: '“이건 어디로 가야 하지.”' }))
   })
 
   it('방향키로 문장을 옮기면 탭 정지점이 따라가고 양 끝에서 멈추며 브라우저 단축키는 막지 않는다', async () => {
@@ -161,6 +176,18 @@ describe('회차 뷰어 · 숨긴 바와 구조', () => {
     expect([top, bottom].map((bar) => [bar.classList.contains('hide'), bar.hasAttribute('inert')])).toEqual([[true, true], [true, true]])
     scrollAt(300)
     expect([top, bottom].map((bar) => [bar.classList.contains('hide'), bar.hasAttribute('inert')])).toEqual([[false, false], [false, false]])
+  })
+
+  it('스크롤할 때 화면 위치를 모두 읽은 뒤에 진행률과 바 상태를 쓴다', async () => {
+    await openReader()
+    // 쓰기 뒤에 위치를 읽으면 스크롤마다 레이아웃을 한 번 더 계산하게 된다(강제 동기 레이아웃).
+    const order: string[] = []
+    const rect = vi.spyOn(document.getElementById('endmark')!, 'getBoundingClientRect').mockImplementation(() => { order.push('read'); return { top: 0 } as DOMRect })
+    vi.spyOn(document.getElementById('prog')!.style, 'width', 'set').mockImplementation(() => { order.push('write') })
+    vi.spyOn(DOMTokenList.prototype, 'toggle').mockImplementation(() => { order.push('write'); return true })
+    scrollAt(400)
+    expect(rect).toHaveBeenCalledTimes(1)
+    expect(order).toEqual(['read', 'write', 'write', 'write'])
   })
 
   it('포커스가 들어 있는 바는 숨기지 않는다', async () => {

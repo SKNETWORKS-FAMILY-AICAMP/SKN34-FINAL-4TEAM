@@ -92,6 +92,7 @@ it('닉네임 저장 뒤 이메일 요청 실패는 부분 성공과 입력을 �
     if (path.endsWith('/refresh')) return Response.json({ accessToken: 'token', user })
     if (path.endsWith('/sessions')) return Response.json({ sessions: [] })
     if (path.endsWith('/email-change')) return pending
+    if (path.endsWith('/withdrawal')) return Response.json({ status: 'NONE' })
     if (init?.method === 'PATCH') return Response.json({ ...user, nickname: '새이름' })
     return Response.json(user)
   })

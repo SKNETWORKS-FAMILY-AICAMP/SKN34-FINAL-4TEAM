@@ -27,7 +27,7 @@ class CoreAuthClientConfigIntegrationTest {
         val calls=AtomicInteger()
         val targetCalls=AtomicInteger()
         var status=200
-        var body="""{"memberId":"12345678-1234-4234-8234-123456789abc"}"""
+        var body="""{"memberId":"12345678-1234-4234-8234-123456789abc","operator":true}"""
         var delay=0L
         server.createContext("/internal/v1/auth/verify") { exchange ->
             calls.incrementAndGet()
@@ -52,7 +52,12 @@ class CoreAuthClientConfigIntegrationTest {
             val properties=CoreAuthClientProperties(URI.create("http://127.0.0.1:${server.address.port}"),Duration.ofSeconds(1),Duration.ofSeconds(3))
             val client=CoreAuthClientConfig().coreAuthClient(RestClient.builder(),properties,"service-credential-0123456789abcdef")
             val service=CoreAuthVerificationService(client)
-            repeat(2) {assertEquals("12345678-1234-4234-8234-123456789abc",service.verify("Bearer user-token").toString())}
+            repeat(2) {
+                val verified=service.verify("Bearer user-token")
+                assertEquals("12345678-1234-4234-8234-123456789abc",verified.memberId.toString())
+                // 운영자 여부는 Core 응답의 operator를 그대로 읽는다.
+                assertTrue(verified.operator)
+            }
             assertEquals(2,calls.get())
             status=302
             assertEquals(502,assertThrows(CoreAuthException::class.java) {service.verify("Bearer user-token")}.status)

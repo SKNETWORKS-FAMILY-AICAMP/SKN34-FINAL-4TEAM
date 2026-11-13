@@ -14,6 +14,7 @@ import type { SignupUseCase } from '../../domain/usecases/SignupUseCase'
 import type { AdminRepository } from '../../domain/repositories/AdminRepository'
 import type { ChatRepository } from '../../domain/repositories/ChatRepository'
 import type { CreditLedgerRepository } from '../../domain/repositories/CreditLedgerRepository'
+import type { WithdrawalRepository } from '../../domain/repositories/WithdrawalRepository'
 import type { CreditRepository } from '../../domain/repositories/CreditRepository'
 import type { FeedbackRepository } from '../../domain/repositories/FeedbackRepository'
 import type { NotificationRepository } from '../../domain/repositories/NotificationRepository'
@@ -27,6 +28,7 @@ import type { AdminUseCase } from '../../domain/usecases/AdminUseCase'
 import type { AccountUseCase } from '../../domain/usecases/AccountUseCase'
 import type { ChatUseCase } from '../../domain/usecases/ChatUseCase'
 import type { CreditLedgerUseCase } from '../../domain/usecases/CreditLedgerUseCase'
+import type { WithdrawalUseCase } from '../../domain/usecases/WithdrawalUseCase'
 import type { CreditUseCase } from '../../domain/usecases/CreditUseCase'
 import type { FeedbackUseCase } from '../../domain/usecases/FeedbackUseCase'
 import type { ForkUseCase } from '../../domain/usecases/ForkUseCase'
@@ -60,7 +62,10 @@ export type AppCradle = {
   adminActivityUseCase: import('../../domain/usecases/AdminActivityUseCase').AdminActivityUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
+  initialWorldUseCase: import('../../domain/usecases/InitialWorldUseCase').InitialWorldUseCase | null
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
+  publicWorldRepository: import('../../domain/repositories/PublicWorldRepository').PublicWorldRepository
+  publicWorldUseCase: import('../../domain/usecases/PublicWorldUseCase').PublicWorldUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
   mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository
   manuscriptUseCase: import('../../domain/usecases/ManuscriptUseCase').ManuscriptUseCase
@@ -69,6 +74,9 @@ export type AppCradle = {
   episodeRepository: EpisodeRepository
   episodeCommentUseCase: import('../../domain/usecases/EpisodeCommentUseCase').EpisodeCommentUseCase
   episodeCommentRepository: import('../../domain/repositories/EpisodeCommentRepository').EpisodeCommentRepository
+  workNoticeUseCase: import('../../domain/usecases/WorkNoticeUseCase').WorkNoticeUseCase
+  workNoticeRepository: import('../../domain/repositories/WorkNoticeRepository').WorkNoticeRepository
+  demoWorkNoticeUseCase: import('../../domain/usecases/WorkNoticeUseCase').WorkNoticeUseCase
   editSuggestionUseCase: import('../../domain/usecases/EditSuggestionUseCase').EditSuggestionUseCase
   editSuggestionRepository: import('../../domain/repositories/EditSuggestionRepository').EditSuggestionRepository
   feedbackReportUseCase: import('../../domain/usecases/FeedbackReportUseCase').FeedbackReportUseCase
@@ -95,6 +103,7 @@ export type AppCradle = {
   worldRepository: WorldRepository
   creditRepository: CreditRepository
   creditLedgerRepository: CreditLedgerRepository
+  withdrawalRepository: WithdrawalRepository
   chatRepository: ChatRepository
   adminRepository: AdminRepository
   adminUseCase: AdminUseCase
@@ -104,6 +113,7 @@ export type AppCradle = {
   libraryUseCase: LibraryUseCase
   creditUseCase: CreditUseCase
   creditLedgerUseCase: CreditLedgerUseCase
+  withdrawalUseCase: WithdrawalUseCase
   readingUseCase: ReadingUseCase
   feedbackUseCase: FeedbackUseCase
   forkUseCase: ForkUseCase

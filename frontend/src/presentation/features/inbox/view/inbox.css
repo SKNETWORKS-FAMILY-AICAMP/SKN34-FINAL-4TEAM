@@ -1,0 +1,18 @@
+/* 피드백함·알림함 전용 규칙. 전역 storyfork.css(@layer base)의 .panel·.ibx·.ck 위에 얹는다. */
+
+/* 패널 제목: 굵은 글씨 대신 제목 요소를 쓰되 크기는 이전(16px)과 같게 둔다. */
+.inbox-panel-title { font-size: 16px; }
+
+/* 알림함 목록. 전역 .inbox는 피드백함의 2단 격자(340px | 나머지)이고 .row는 선반(.shelf .row) 전용이라 빌려 쓰지 않는다. */
+.notice-prefs { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 10px; }
+.notice-list { display: grid; gap: 10px; margin: 0 0 10px; padding: 0; list-style: none; }
+.notice-row { display: flex; align-items: center; gap: 8px; }
+/* 전역 .ibx는 width:100%·아래 여백 10px의 블록이다. 줄 안에서는 남는 폭만 차지하고 간격은 목록의 gap이 맡는다. */
+.notice-row .ibx { flex: 1; min-width: 0; margin-bottom: 0; }
+/* 조작 실패 안내: 실패한 줄·버튼 바로 아래에 둔다. */
+.notice-failure { margin-top: 6px; }
+
+/* 독자 제보 카드: 답변하기는 누르기 쉬운 높이(44px)를 주고, 처리 결과는 카드 맨 아래에 남긴다. */
+.report-answer { margin-top: 8px; }
+.report-answer summary { min-height: 44px; padding: 10px 0; cursor: pointer; }
+.report-notice { margin-top: 8px; }

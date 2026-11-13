@@ -28,6 +28,11 @@ export class HttpWorkRepository implements WorkRepository {
     if (world.episode !== episode) throw new Error('세계관 응답의 기준 회차를 확인할 수 없어요.')
     return withReadingWorld(work, world)
   }
+  async readWorldCards(workId: string, upto?: number) {
+    const cards = await this.api.readingWorldCards(workId, upto)
+    if (cards.workId !== workId) throw new Error('세계관 응답의 작품을 확인할 수 없어요.')
+    return cards
+  }
   async createFork(id: string, episode: number, title: string, direction: string) {
     const made = await this.api.fork(id, episode, title, direction)
     return { id: made.id }

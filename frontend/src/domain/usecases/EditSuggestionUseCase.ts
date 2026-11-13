@@ -22,7 +22,8 @@ export class EditSuggestionUseCase {
 
   mine() { return this.repository.mine() }
 
-  inbox() { return this.repository.inbox() }
+  /** workId를 주면 그 작품의 제안만 서버에서 받는다(작품 관리 화면). 주지 않으면 내 모든 작품이다. */
+  inbox(workId?: string) { return this.repository.inbox(workId) }
 
   async saveEditedText(s: EditSuggestion, text: string) {
     ensure(editedTextError(text))

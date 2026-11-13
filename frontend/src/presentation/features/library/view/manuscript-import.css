@@ -9,7 +9,12 @@
 .mi-check input { flex: none; width: 18px; height: 18px; margin-block-start: 2px; }
 .mi-list { list-style: none; margin: 14px 0; padding: 0; display: grid; gap: 12px; }
 .mi-episode { border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; background: var(--surface); min-width: 0; }
-.mi-episode.is-excluded { opacity: .65; }
+/*
+ * 제외한 회차는 흐리게(opacity) 하지 않는다: 안의 보조 글자가 4.5:1 아래로 떨어진다(라이트 2.82:1).
+ * 옅은 면과 점선 테두리로 구분하고(경계 토큰 --line3은 이 면에서 3:1 이상) 상태는 '제외됨' 칩이 글자로 알린다.
+ */
+.mi-episode.is-excluded { background: var(--muted-bg); border-style: dashed; border-color: var(--line3, var(--line2)); }
+.mi-episode.is-excluded .chip { background: var(--surface); }
 .mi-episode-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; }
 .mi-episode-head .field { flex: 1 1 260px; min-width: 0; }
 .mi-episode-head .chip { white-space: normal; height: auto; min-height: 24px; padding-block: 3px; }
@@ -28,3 +33,8 @@
 .mi-partial h3 { color: var(--acc-ink); }
 .mi-result-panel > [role="status"] { margin-block: 8px; }
 @media (max-width: 600px) { .manuscript-import .mi-setup .btn, .manuscript-import .rowend .btn { width: 100%; } }
+/* 좁은 화면·터치 기기: 체크 줄을 전역 체크박스 보정과 같은 44px·24px로 맞춘다(이 파일은 레이어 밖이라 위의 28px·18px가 전역 보정을 이긴다). */
+@media (max-width: 600px), (pointer: coarse) {
+  .mi-check { align-items: center; min-height: 44px; }
+  .mi-check input { width: 24px; height: 24px; margin-block-start: 0; }
+}

@@ -8,7 +8,7 @@ import { adminReturnPath } from '../../../domain/entities/admin'
 
 const MESSAGES: Record<string, string> = {
   lib: '내 서재는 로그인 후 볼 수 있어요.',
-  chat: '캐릭터 챗은 로그인 후 이용할 수 있어요.',
+  chat: '캐릭터챗은 로그인 후 이용할 수 있어요.',
 }
 
 /**

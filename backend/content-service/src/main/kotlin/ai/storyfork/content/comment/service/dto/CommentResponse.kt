@@ -13,5 +13,5 @@ data class CommentResponse(
     val createdAt: Instant, val updatedAt: Instant,
 )
 
-/** 회차 댓글 목록이다. 최대 200개이며 페이지네이션은 없다. */
+/** 회차 댓글 목록이다(작품 전체 댓글 목록도 같다). 최대 200개이며 페이지네이션은 없다. */
 data class CommentListResponse(val items: List<CommentResponse>)

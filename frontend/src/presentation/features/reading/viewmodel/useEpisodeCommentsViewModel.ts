@@ -27,8 +27,8 @@ export function useEpisodeCommentsViewModel(workId: string, n: number, useCase: 
   const { data, isError, retry } = useAsyncData(() => useCase.list(workId, n, sort), [useCase, workId, n], [sort])
   const requireLogin = () => { dispatch(sessionActions.requireLogin({ next: pathname + search, msg: '댓글 작성과 좋아요는 로그인한 회원만 할 수 있어요.', role: 'user' })) }
 
-  /** 성공하면 true. 이미 보내는 중이면 무시하고, 입력 거절·서버 거절·네트워크 실패는 안내만 합니다. */
-  const send = async (task: () => Promise<unknown>, done?: string) => {
+  /** 성공하면 true. 이미 보내는 중이면 무시하고, 입력 거절·서버 거절·네트워크 실패는 안내만 합니다(fail: 사유를 알릴 곳, 기본은 토스트). */
+  const send = async (task: () => Promise<unknown>, done?: string, fail: (message: string) => void = toast) => {
     if (sending.current) return false
     sending.current = true
     setBusy(true)
@@ -38,7 +38,7 @@ export function useEpisodeCommentsViewModel(workId: string, n: number, useCase: 
       if (done) toast(done)
       return true
     } catch (error) {
-      toast(error instanceof Error ? error.message : '댓글 요청을 처리하지 못했어요.')
+      fail(error instanceof Error ? error.message : '댓글 요청을 처리하지 못했어요.')
       return false
     } finally {
       sending.current = false
@@ -53,10 +53,11 @@ export function useEpisodeCommentsViewModel(workId: string, n: number, useCase: 
     sort, setSort,
     loggedIn, busy,
     requireLogin,
-    create: async (body: string, quote: string | null, spoiler: boolean) => {
+    /** fail을 넘기면(문장 댓글 시트) 실패 사유를 토스트 대신 그리로 보냅니다. */
+    create: async (body: string, quote: string | null, spoiler: boolean, fail?: (message: string) => void) => {
       // 문장 시트는 익명도 열 수 있어, 서버의 인증 거절 문구 대신 로그인 안내로 보냅니다.
       if (!loggedIn) { requireLogin(); navigate('/login'); return false }
-      return send(() => useCase.create(workId, n, { body, quote, spoiler }), '댓글을 남겼어요')
+      return send(() => useCase.create(workId, n, { body, quote, spoiler }), '댓글을 남겼어요', fail)
     },
     update: (c: EpisodeComment, body: string, spoiler: boolean) => send(() => useCase.update(c, body, spoiler), '댓글을 고쳤어요'),
     remove: async (c: EpisodeComment) => window.confirm('댓글을 삭제할까요? 삭제하면 목록에서 사라져요.') && send(() => useCase.remove(c), '댓글을 삭제했어요'),
