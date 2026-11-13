@@ -115,6 +115,18 @@ it('숨긴 입력(hidden 속성·type=hidden·inert 안)은 첫 포커스와 Tab
   expect(document.activeElement).toBe(name)
 })
 
+it('브라우저가 visibility까지 따져 보이지 않는다고 답한 요소(visibility: hidden)는 초점 후보에서 뺀다', () => {
+  // jsdom에는 checkVisibility가 없어 대역을 둔다. 실제 브라우저처럼 visibilityProperty를 넘겨야만 visibility로 숨은 요소를 가려 준다.
+  HTMLElement.prototype.checkVisibility = function (this: HTMLElement, options?: CheckVisibilityOptions) { return !(options?.visibilityProperty && this.dataset.invisible) }
+  try {
+    renderSheet(<><button data-invisible="1">가려진 버튼</button><button>닫기</button><input aria-label="이름" /></>)
+    // focus()가 아무 일도 하지 않는 가려진 버튼이 아니라 처음 보이는 요소가 포커스를 받는다.
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: '닫기' }))
+  } finally {
+    Reflect.deleteProperty(HTMLElement.prototype, 'checkVisibility')
+  }
+})
+
 it('시트의 빈 곳을 눌러 초점이 시트 자체에 있을 때 Shift+Tab은 뒤 화면으로 새지 않고 마지막 요소로 간다', () => {
   renderSheet(<><button>닫기</button><button>저장</button></>)
   const dialog = screen.getByRole('dialog')

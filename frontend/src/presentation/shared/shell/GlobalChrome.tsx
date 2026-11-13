@@ -52,7 +52,7 @@ function RouteBar() {
 /**
  * 화면 아래 알림. role=status 노드 하나를 계속 두고 글자만 바꾼다: 알림마다 노드를 새로 끼우면(내용이 든 채 삽입되는 라이브 영역) 보조기기가 놓칠 수 있다.
  * 비어 있을 때의 hidden은 storyfork.css(#toast[hidden])가 display:none을 풀어, 화면에는 보이지 않는 빈 라이브 영역으로 남는다.
- * 머무는 시간은 글자 수에 비례한다(toastDuration).
+ * 머무는 시간은 글자 수에 비례한다(toastDuration). 떠 있는 것과 같은 글이 다시 오면 글자가 바뀌지 않아 다시 읽히지 않으므로, 한 번 비운 뒤 잠깐 있다가 다시 넣는다.
  */
 function Toast() {
   const [message, setMessage] = useState<string | null>(null)
@@ -62,10 +62,15 @@ function Toast() {
     let t = 0
     const show = (e: Event) => {
       const text = String((e as CustomEvent<string>).detail)
-      setMessage(text)
-      setShown((n) => n + 1)
       clearTimeout(t)
-      t = window.setTimeout(() => setMessage(null), toastDuration(text))
+      const put = () => {
+        setMessage(text)
+        setShown((n) => n + 1)
+        t = window.setTimeout(() => setMessage(null), toastDuration(text))
+      }
+      if (node.current?.textContent !== text) return put()
+      setMessage(null)
+      t = window.setTimeout(put, 50)
     }
     window.addEventListener('sf-toast', show)
     return () => { window.removeEventListener('sf-toast', show); clearTimeout(t) }

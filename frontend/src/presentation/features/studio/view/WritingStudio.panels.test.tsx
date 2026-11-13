@@ -16,6 +16,8 @@ const model = vi.hoisted(() => ({
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p> }))
+// 본문 편집기(Toast UI Editor)는 textarea 대역으로 바꾼다. 실제 편집기 동작은 ManuscriptEditor.test.tsx가 검증한다.
+vi.mock('./LazyManuscriptEditor', () => import('../../../../test/manuscriptEditorFake'))
 vi.mock('./ManuscriptExportPanel', () => ({
   ManuscriptExportPanel: (props: { workId: string; episode: number; inherited: boolean; disabled?: boolean }) => <p data-testid="export-panel">{JSON.stringify(props)}</p>,
 }))

@@ -1,11 +1,10 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import type { Editor } from '@tiptap/core'
-import { afterEach, beforeAll, expect, it, vi } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { createAppStore } from '../../../../app/store'
-import { stubRangeGeometry } from '../../../../test/rangeGeometry'
+import { LazyManuscriptEditor as fakeEditor } from '../../../../test/manuscriptEditorFake'
 import { WritingStudio } from './WritingStudio'
 
 const model = vi.hoisted(() => ({
@@ -27,7 +26,8 @@ vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: (...ar
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
-beforeAll(stubRangeGeometry)
+// 본문 편집기(Toast UI Editor)는 textarea 대역으로 바꾼다. 실제 편집기 동작은 ManuscriptEditor.test.tsx가 검증한다.
+vi.mock('./LazyManuscriptEditor', () => import('../../../../test/manuscriptEditorFake'))
 const originalActive = model.active
 const originalDraft = model.draft
 // 공개에는 본문 5,000자 이상이 필요하다(UC-10 U13). 공개 경로를 시험하는 저장 버전은 정확히 5,000자로 만든다.
@@ -38,7 +38,7 @@ const comparisonVersions = [
   { ...originalActive.versions[0], id: 'v2', body: '변경 원고' },
   { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
 ]
-afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = '' })
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = ''; fakeEditor.suspend = false })
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number) => {
@@ -514,9 +514,24 @@ it('원작 기준 회차는 제목과 본문이 읽기 전용이다', () => {
   model.active = { ...originalActive, inherited: true }
   renderStudio()
   expect(screen.getByRole('textbox', { name: '회차 제목' })).toHaveProperty('readOnly', true)
-  // 편집기(contenteditable)의 읽기 전용: 편집 불가 + 보조기기에 읽기 전용으로 알린다.
-  expect(screen.getByLabelText('원고 본문').getAttribute('contenteditable')).toBe('false')
-  expect(screen.getByLabelText('원고 본문').getAttribute('aria-readonly')).toBe('true')
+  // 편집기 대신 공용 렌더러(ManuscriptBody)로 그린 읽기 전용 본문: 이름은 같고, 읽기 전용임을 보조기기에 알리며, 키보드로 닿는다.
+  const body = screen.getByRole('textbox', { name: '원고 본문' })
+  expect(body.tagName).toBe('DIV')
+  expect(body.getAttribute('aria-readonly')).toBe('true')
+  expect(body.getAttribute('aria-multiline')).toBe('true')
+  expect(body.hasAttribute('contenteditable')).toBe(false)
+  expect(body.tabIndex).toBe(0)
+  expect(body.textContent).toBe('원고')
+  expect(screen.getByRole('textbox', { name: '회차 제목' }).closest('.writing-editor')?.querySelector('textarea')).toBeNull()
+})
+
+it('편집기를 불러오는 동안에는 본문 자리에만 안내를 보이고 제목과 하단 바는 그대로 둔다', async () => {
+  fakeEditor.suspend = true
+  await act(async () => { renderStudio() })
+  expect(screen.getByText('편집기를 불러오고 있어요.').getAttribute('aria-live')).toBe('polite')
+  expect(screen.queryByLabelText('원고 본문')).toBeNull()
+  expect(screen.getByRole('textbox', { name: '회차 제목' })).toBeTruthy()
+  expect(footer().contains(screen.getByRole('button', { name: '회차 설정' }))).toBe(true)
 })
 
 const graph = () => screen.getByRole('region', { name: '버전 그래프' })
@@ -681,7 +696,7 @@ it('편집기에는 제목·본문과 한 줄 하단 바(글자 수·저장 안�
   for (const name of ['초안 삭제', '회차 삭제', '순서 변경 가능 범위 확인', '발행 이력', '회차 공개 중단', '내보내기']) expect(screen.queryByRole('button', { name })).toBeNull()
   for (const name of ['회차 관리', '위험 영역', '원고 내보내기', '회차 이미지']) expect(screen.queryByRole('region', { name })).toBeNull()
   expect(screen.queryByLabelText('본문 이미지 추가')).toBeNull()
-  expect(within(editor).getAllByRole('button').map(b => b.getAttribute('aria-label') || b.textContent)).toEqual(['이미지 첨부', '회차 설정'])
+  expect(within(editor).getAllByRole('button').map(b => b.getAttribute('aria-label') || b.textContent)).toEqual(['회차 설정'])
   const foot = footer()
   expect(editor.contains(foot)).toBe(true)
   expect(foot.textContent).toContain('2 / 40,000자')
@@ -827,47 +842,71 @@ it('체크포인트의 저장 버전이 5,000자 미만이면 되돌리기를 �
   expect(model.revertCheckpoint).not.toHaveBeenCalled()
 })
 
-// ── 편집기(Tiptap) 연결 ──
-type Dom = HTMLElement & { editor: Editor }
-const editorOf = () => (screen.getByLabelText('원고 본문') as Dom).editor
+// ── 편집기 연결(본문 편집기는 textarea 대역) ──
+const bodyField = () => screen.getByLabelText<HTMLTextAreaElement>('원고 본문')
 
 it('본문 입력은 기존 vm.edit({ body }) 자동 저장 흐름으로 이어지고 저장 중에는 편집할 수 없다', () => {
   const view = renderStudio()
-  expect(screen.getByLabelText('원고 본문').getAttribute('contenteditable')).toBe('true')
-  act(() => { editorOf().chain().focus('end').insertContent('!').run() })
+  expect(bodyField().value).toBe('원고')
+  expect(bodyField().readOnly).toBe(false)
+  fireEvent.change(bodyField(), { target: { value: '원고!' } })
   expect(model.edit).toHaveBeenCalledExactlyOnceWith({ body: '원고!' })
   model.editingLocked = true
   view.rerender(<WritingStudio id="work-id" />)
-  expect(screen.getByLabelText('원고 본문').getAttribute('contenteditable')).toBe('false')
+  expect(bodyField().readOnly).toBe(true)
 })
 
-it('하단 이미지 첨부 버튼과 회차 설정의 본문 이미지 추가는 같은 업로드 경로(vm.addImage)에 커서 위치를 넘긴다', async () => {
+it('회차 설정의 본문 이미지 추가는 편집기의 커서 위치를 업로드 경로(vm.addImage)에 넘기고 하단 바에는 이미지 버튼을 두지 않는다', async () => {
   renderStudio()
   const file = new File(['png'], '본문.png', { type: 'image/png' })
-  const attach = screen.getByRole('button', { name: '이미지 첨부' })
-  expect(attach.getAttribute('title')).toBe('이미지 첨부')
-  expect(follows(screen.getByLabelText('원고 본문'), attach)).toBe(true)
-  const input = footer().querySelector<HTMLInputElement>('input[type="file"]')!
-  expect(input.accept).toBe('.png,.jpg,.jpeg')
-  const click = vi.spyOn(input, 'click')
-  fireEvent.click(attach)
-  expect(click).toHaveBeenCalledOnce()
-  await act(async () => { fireEvent.change(input, { target: { files: [file] } }) })
-  expect(model.addImage).toHaveBeenCalledExactlyOnceWith(file, 0, 0)
-  model.addImage.mockClear()
+  // 이미지는 편집기 툴바의 이미지 버튼이 맡는다(하단 바의 버튼과 겹쳐 없앴다).
+  expect(screen.queryByRole('button', { name: '이미지 첨부' })).toBeNull()
+  expect(footer().querySelector('input[type="file"]')).toBeNull()
+  bodyField().setSelectionRange(1, 2)
   openSettings()
-  await act(async () => { fireEvent.change(screen.getByLabelText('본문 이미지 추가'), { target: { files: [file] } }) })
-  expect(model.addImage).toHaveBeenCalledExactlyOnceWith(file, 0, 0)
+  const input = screen.getByLabelText<HTMLInputElement>('본문 이미지 추가')
+  expect(input.accept).toBe('.png,.jpg,.jpeg')
+  await act(async () => { fireEvent.change(input, { target: { files: [file] } }) })
+  expect(model.addImage).toHaveBeenCalledExactlyOnceWith(file, 1, 2)
 })
 
-it('이미지 첨부 버튼은 처리 중에는 잠그고 원작 기준 회차에는 두지 않는다', () => {
+it('편집기를 아직 불러오는 중이면 회차 설정의 본문 이미지 추가는 조용히 무시하지 않고 원고 끝에 올린다', async () => {
+  fakeEditor.suspend = true
+  try {
+    await act(async () => { renderStudio() })
+    const file = new File(['png'], '본문.png', { type: 'image/png' })
+    openSettings()
+    await act(async () => { fireEvent.change(screen.getByLabelText<HTMLInputElement>('본문 이미지 추가'), { target: { files: [file] } }) })
+    expect(model.addImage).toHaveBeenCalledExactlyOnceWith(file, model.draft.body.length, model.draft.body.length)
+  } finally { fakeEditor.suspend = false }
+})
+
+it('처리 중임을 편집기에 알려 툴바 이미지 버튼을 잠그게 하고, 원작 기준 회차에는 편집기를 두지 않는다', () => {
   model.busy = true
   const view = renderStudio()
-  expect(screen.getByRole('button', { name: '이미지 첨부' })).toHaveProperty('disabled', true)
+  expect(bodyField().dataset.busy).toBe('true')
   model.busy = false
+  view.rerender(<WritingStudio id="work-id" />)
+  expect(bodyField().dataset.busy).toBeUndefined()
   model.active = { ...originalActive, inherited: true }
   view.rerender(<WritingStudio id="work-id" />)
-  expect(screen.queryByRole('button', { name: '이미지 첨부' })).toBeNull()
+  expect(screen.getByLabelText('원고 본문').tagName).toBe('DIV')
+})
+
+it('상단 바의 실제 높이를 CSS 변수로 알려 좁은 화면에서 본문 툴바가 상단 바 바로 아래에 붙게 한다', () => {
+  const watched: Element[] = []
+  let notify = () => {}
+  vi.stubGlobal('ResizeObserver', class { constructor(changed: () => void) { notify = changed } observe(el: Element) { watched.push(el) } disconnect() { watched.length = 0 } })
+  try {
+    const view = renderStudio()
+    const bar = screen.getByRole('banner')
+    expect(watched).toEqual([bar])
+    Object.defineProperty(bar, 'offsetHeight', { configurable: true, value: 112 })
+    act(() => notify())
+    expect(bar.parentElement!.style.getPropertyValue('--writing-bar-height')).toBe('112px')
+    view.unmount()
+    expect(watched).toEqual([])
+  } finally { vi.unstubAllGlobals() }
 })
 
 // ── 회차 항목의 세로 ⋮ 메뉴 ──

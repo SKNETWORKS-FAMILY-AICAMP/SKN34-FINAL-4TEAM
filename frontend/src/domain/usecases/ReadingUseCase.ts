@@ -1,5 +1,5 @@
 import type { Work as ContentWork } from '../entities/content'
-import { splitSentences } from '../entities/feedback'
+import { readerBody } from '../entities/feedback'
 import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sameAuthorWorks, similarWorks, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
@@ -235,7 +235,8 @@ export class ReadingUseCase {
       work: w,
       n,
       ep,
-      paragraphs: splitSentences(ep.p),
+      // paragraphs: 고를 수 있는 문장(문단별), blocks: 화면이 그릴 블록. 문장 순서가 서로 같다.
+      ...readerBody(ep.p),
       previous: shown.filter((i) => i < n).at(-1) ?? null,
       next: shown.find((i) => i > n) ?? null,
       forks: w.parent ? [] : forksOf(works, id).filter((f) => f.forkAt === n),

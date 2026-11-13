@@ -6,6 +6,7 @@ import { avatarOf, epsOf, hiddenSourceEpisode, type Theme } from '../../../../do
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev } from '../../../shared/icons'
+import { ManuscriptText, StoredImage } from '../../../shared/media/MediaPanel'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { POP_GUTTER, popLeft } from '../viewmodel/sentencePop'
@@ -22,6 +23,8 @@ const chapLabel = (t: Theme, n: number) => t === 'hanji' ? '第 ' + NUM[n - 1] +
 const ORN: Record<Theme, string> = { hanji: '● ─────', star: '✦ ✧ ✦', neon: '// SIGNAL 72% · 7구역' }
 /** 문장 사이 이동 방향키 */
 const STEP: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }
+/** 문장이 있는 본문 블록의 요소(원고 기본 서식) */
+const BLOCK_TAG = { paragraph: 'p', quote: 'blockquote', heading: 'h3' } as const
 
 /** 목업 bindReader의 window.onscroll: 진행률 바, 아래로 스크롤하면 바 숨김(inert로 포커스·보조기기에서도 제외), 회차 끝이 보이면 U08 */
 function useReaderScroll(ready: boolean, setEnd: (end: boolean) => void) {
@@ -136,6 +139,7 @@ export function ReaderPage() {
     if (s?.kind === 'comment' || s?.kind === 'feedback' || s?.kind === 'suggest') focusSentence(s.k)
   }
   let k = 0
+  let image = 0
   return (
     <div className={vm.readerClass} style={vm.readerVars as CSSProperties}>
       {vm.amb && <Amb t={w.theme} lite={vm.amb.lite} />}
@@ -156,15 +160,24 @@ export function ReaderPage() {
         <span id="sentence-help" className="sr-only">{w.canonical?'댓글 달기 열기':'댓글·피드백 열기'}</span>
         <div className="text" id="text">
           {hiddenSourceEpisode(w, r.n, e.p) && <p className="muted">원작이 삭제돼 분기 전 회차 본문은 볼 수 없어요. {(w.forkAt ?? 0) + 1}화부터 이 포크 소설이 이어져요.</p>}
-          {r.paragraphs.map((ss, pi) => (
-            <p key={pi}>{ss.map((s, j) => {
+          {r.blocks.map((b, bi) => {
+            // 빈 줄은 블록 사이의 간격이다: n줄이면 문단 간격에 n-1줄을 더 두고, 본문 맨 앞·맨 끝에서는 간격을 만들지 않는다.
+            if (b.kind === 'blank') return bi > 0 && bi < r.blocks.length - 1 && Array.from({ length: b.count - 1 }, (_, j) => <br key={`${bi}-${j}`} />)
+            if (b.kind === 'rule') return <hr key={bi} />
+            if (b.kind === 'image') {
+              const fallback = `본문 이미지 ${++image}`
+              return <figure key={bi}><StoredImage target={{ kind: 'episode', workId: w.id, number: r.n }} id={b.id} alt={vm.imageAlts[b.id] || fallback} publicView={vm.publicImages} /></figure>
+            }
+            // 소제목은 회차 제목(h2) 아래의 h3다. 문장은 문단·인용·소제목을 이어서 세고(k) 구분선·이미지·빈 줄은 건너뛴다.
+            const Block = BLOCK_TAG[b.kind]
+            return <Block key={bi}>{b.sentences.map((s, j) => {
               const i = k++
               // 버튼 역할과 설명은 탭 정지점(포커스가 닿는) 문장 하나에만 둔다. 문장마다 두면 화면 읽기 프로그램의 연속 읽기가 '버튼'과 설명으로 끊긴다.
               const stop = i === vm.tabStop
-              return <span key={j}>{j > 0 && ' '}<span className={`s${vm.selected?.k === i ? ' sel' : ''}`} data-s={i} role={stop ? 'button' : undefined} tabIndex={stop ? 0 : -1} aria-describedby={stop ? 'sentence-help' : undefined}
-                onFocus={() => vm.setTabStop(i)} onClick={(ev) => pick(ev.currentTarget, i)} onKeyDown={(ev) => sentenceKey(ev, i)} onKeyUp={(ev) => { if (ev.key === ' ') pick(ev.currentTarget, i) }}>{s.t}</span></span>
-            })}</p>
-          ))}
+              return <span key={j}>{s.gap}<span className={`s${vm.selected?.k === i ? ' sel' : ''}`} data-s={i} role={stop ? 'button' : undefined} tabIndex={stop ? 0 : -1} aria-describedby={stop ? 'sentence-help' : undefined}
+                onFocus={() => vm.setTabStop(i)} onClick={(ev) => pick(ev.currentTarget, i)} onKeyDown={(ev) => sentenceKey(ev, i)} onKeyUp={(ev) => { if (ev.key === ' ') pick(ev.currentTarget, i) }}><ManuscriptText parts={s.parts} /></span></span>
+            })}</Block>
+          })}
         </div>
         {e.authorNote && <section className="author-note"><h3>작가의 말</h3><p>{e.authorNote}</p></section>}
         <div className="endmark" id="endmark" ref={refs.end}>— {r.n}화 끝 —</div>

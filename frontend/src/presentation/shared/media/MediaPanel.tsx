@@ -1,6 +1,6 @@
-import {useEffect,useRef,useState} from 'react'
+import {Fragment,useEffect,useMemo,useRef,useState} from 'react'
 import type {Attachment,MediaTarget} from '../../../domain/entities/media'
-import {imageReferencePattern} from '../../../domain/entities/media'
+import {manuscriptBlocks,type InlinePart} from '../../../domain/entities/manuscriptFormat'
 import {useMediaViewModel,useStoredImage} from './useMediaViewModel'
 import {usePublicImageAlts} from './usePublicImageAlts'
 import './media.css'
@@ -22,17 +22,34 @@ export function StoredImage({target,id,alt,publicView=false,revision=0}:{target:
  return vm.url?<img className="stored-image" src={vm.url} alt={alt}/>:<p ref={placeholder} className="media-message" role={vm.error?'alert':'status'}>{vm.error||'이미지를 불러오고 있어요…'}</p>
 }
 
+/** 원고의 줄 안 서식 조각을 굵게(strong)·기울임(em)으로 그린다. 글자는 React가 이스케이프하므로 원고에 적힌 태그는 글자로만 보인다. */
+export function ManuscriptText({parts}:{parts:Pick<InlinePart,'text'|'bold'|'italic'>[]}) {
+ return parts.map((part,i)=>{
+  const text=part.italic?<em>{part.text}</em>:part.text
+  return <Fragment key={i}>{part.bold?<strong>{text}</strong>:text}</Fragment>
+ })
+}
+
+/**
+ * 원고 본문을 원고 기본 서식(DEC-48)대로 그린다: 문단(문단 안의 줄바꿈은 줄바꿈으로)·소제목·인용·구분선·이미지·빈 줄.
+ * 서식 없는 원고는 통째로 글자로 그리던 때와 같은 줄 배치다: 빈 줄은 그 수만큼의 빈 줄이고, 본문을 끝내는 마지막 줄바꿈은 빈 줄을 만들지 않는다.
+ * 소제목은 쓰는 화면(저장 버전 보기·버전 비교·체크포인트·작품 관리)마다 바깥 제목 단계가 달라 제목 요소가 아닌 굵은 문단으로 그린다.
+ */
 export function ManuscriptBody({workId,number,body,publicView=false}:{workId:string;number:number;body:string;publicView?:boolean}) {
- const alts=usePublicImageAlts(workId,number,publicView&&body.includes('[[image:'))
- const parts=[];let offset=0;let imageNumber=0
- for(const match of body.matchAll(imageReferencePattern)){
-  parts.push(<span key={`text-${offset}`}>{body.slice(offset,match.index)}</span>)
-  const fallback=`본문 이미지 ${++imageNumber}`
-  parts.push(<StoredImage key={`${match.index}-${match[1]}`} target={{kind:'episode',workId,number}} id={match[1]} alt={alts[match[1]]||fallback} publicView={publicView}/>)
-  offset=match.index+match[0].length
- }
- parts.push(<span key={`text-${offset}`}>{body.slice(offset)}</span>)
- return <div className="manuscript-body">{parts}</div>
+ const blocks=useMemo(()=>manuscriptBlocks(body),[body])
+ const alts=usePublicImageAlts(workId,number,publicView&&blocks.some(block=>block.kind==='image'))
+ let imageNumber=0
+ return <div className="manuscript-body">{blocks.map((block,index)=>{
+  if(block.kind==='blank')return Array.from({length:block.count-(index===blocks.length-1?1:0)},(_,i)=><br key={`${index}-${i}`}/>)
+  if(block.kind==='rule')return <hr key={index}/>
+  if(block.kind==='image'){
+   // 글을 고쳐 블록 순서가 밀려도 같은 이미지를 다시 받지 않도록 이미지와 그 순번으로 식별한다.
+   const fallback=`본문 이미지 ${++imageNumber}`
+   return <StoredImage key={`${block.id}/${imageNumber}`} target={{kind:'episode',workId,number}} id={block.id} alt={alts[block.id]||fallback} publicView={publicView}/>
+  }
+  const lines=block.lines.map((parts,i)=><Fragment key={i}>{i>0&&'\n'}<ManuscriptText parts={parts}/></Fragment>)
+  return block.kind==='quote'?<blockquote key={index}>{lines}</blockquote>:<p key={index} className={block.kind==='heading'?'manuscript-heading':undefined}>{lines}</p>
+ })}</div>
 }
 
 /** 설정 첨부 이름 변경: 확장자는 서버가 형식을 정하므로 고정해서 보이고, 실패하면 입력을 그대로 둔다. */
