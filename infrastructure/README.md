@@ -139,11 +139,7 @@ curl.exe --fail --silent --show-error 'http://127.0.0.1:9200/_cluster/health?pre
 
 상태가 `green` 또는 `yellow`이면 요청을 받을 수 있습니다. 로컬 개발 전용 HTTP이며 인증을 끄고 `127.0.0.1`에만 포트를 엽니다. 종료하려면 같은 Compose 파일로 `stop`을 실행합니다. 인덱스 데이터는 `manuscript-index` 볼륨에 남습니다.
 
-새 로컬 환경에서는 [v1 매핑](elasticsearch/manuscript-chunks-v1.json)으로 원고 검색용 인덱스를 한 번 생성합니다.
-
-```powershell
-curl.exe --fail-with-body -X PUT 'http://127.0.0.1:9200/storyfork-manuscript-v1' -H 'Content-Type: application/json' --data-binary '@infrastructure/elasticsearch/manuscript-chunks-v1.json'
-```
+`MANUSCRIPT_INDEX_ENABLED=true`인 Content는 시작할 때 인덱스가 없으면 [v1 매핑](elasticsearch/manuscript-chunks-v1.json)으로 한 번 만듭니다. Content는 같은 내용의 `src/main/resources/manuscript/manuscript-chunks-v1.json`을 쓰고, 두 파일은 단위 테스트로 일치를 확인합니다. 기존 인덱스는 다시 만들거나 지우지 않고 매핑만 검증합니다. 매핑이 다르거나 샤드를 배정하지 못하면 Content가 시작하지 않습니다.
 
 PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/writing-ai-architecture/07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1)에서 384차원 모델, 작품·Fork·판본 필터, 검증 결과를 확인할 수 있습니다.
 
@@ -153,6 +149,32 @@ PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/
 2. 모델 리비전 `614241f622f53c4eeff9890bdc4f31cfecc418b3`의 `onnx/`에서 `tokenizer.json`과 `model_qint8_avx512_vnni.onnx`를 같은 로컬 디렉터리에 받습니다. 이 경로를 `MANUSCRIPT_EMBEDDING_MODEL_DIR`로 지정하고 AI Service를 `uv run --locked --extra manuscript uvicorn app.main:create_app --factory --reload`로 시작합니다. [고정 리비전 모델 파일](https://huggingface.co/intfloat/multilingual-e5-small/tree/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx)
 3. Content 터미널에 `MANUSCRIPT_INDEX_ENABLED=true`와 해당 DB의 `DATABASE_*`를 설정하고 평소대로 Content를 시작합니다. 두 서비스의 `INTERNAL_TOKEN`은 같아야 하며, 네이티브 실행에서는 필요한 값을 루트 `.env`에서 각 터미널에 설정합니다. Elasticsearch 기본 주소는 `http://127.0.0.1:9200`입니다.
 4. Content 로그의 `manuscript index reconciled`와 `curl.exe --fail http://127.0.0.1:9200/storyfork-manuscript-v1/_count`로 첫 적재를 확인합니다. 이후 변경은 기본 60초 주기에서 확인할 수 있습니다.
+
+### 개발 서버 자동 배포(CD)
+
+develop CI가 성공하면 CD가 [`docker-compose.dev.yaml`](docker-compose.dev.yaml)로 Elasticsearch를 함께 띄웁니다. 별도 수동 작업은 없습니다.
+
+- **Elasticsearch**: 로컬과 같은 공식 이미지 `docker.elastic.co/elasticsearch/elasticsearch:9.5.6`를 단일 노드로 실행하며 보안 기능은 끕니다. 호스트 포트를 열지 않고 Compose 내부 네트워크에서만 접근합니다. 데이터는 `storyfork-develop-cd_manuscript-index` 볼륨에 저장하고 배포할 때마다 그대로 둡니다. CD는 `down -v`를 실행하지 않습니다.
+- **Content**: `MANUSCRIPT_INDEX_ENABLED=true`와 `MANUSCRIPT_INDEX_URL=http://elasticsearch:9200`로 시작합니다. 인덱스가 없으면 생성하고, 있으면 매핑을 검증합니다. 실패하면 Content가 healthy가 되지 않아 `up --wait`가 실패합니다.
+- **AI 이미지**: `--extra manuscript`(numpy·onnxruntime·tokenizers, `uv.lock` 고정)를 설치합니다. 고정 리비전 `614241f6…`의 `onnx/model_qint8_avx512_vnni.onnx`와 `onnx/tokenizer.json`은 빌드할 때 `ADD --checksum`으로 받으며, SHA-256이 다르면 빌드가 실패합니다. 위치는 `MANUSCRIPT_EMBEDDING_MODEL_DIR=/app/models/multilingual-e5-small`입니다. 서버에는 모델 디렉터리나 `.env` 값을 따로 둘 필요가 없습니다.
+- **배포 확인**: 스택이 healthy가 된 뒤 CD가 `ai-service`에서 E5 임베딩을 한 번 실행합니다. 실패하면 이전 이미지를 정리하지 않고 CD를 실패로 끝냅니다.
+
+배포 전제조건은 CD가 확인하지 않으므로 서버 관리자가 확인해야 합니다.
+
+| 항목 | 전제 | 확인 방법(서버) |
+|---|---|---|
+| 메모리 | 기존 스택에 더해 Elasticsearch 최대 1GiB(`mem_limit`, 힙은 자동으로 그 절반)와 AI 모델 로드분 약 0.3GiB의 여유 | `free -h`, 배포 후 `docker stats --no-stream` |
+| 디스크 | AI 이미지가 의존성과 모델로 약 0.4GB 커집니다. 디스크 사용률이 Elasticsearch 저수위선(기본 85%)을 넘으면 새 인덱스의 샤드를 배정하지 못해 Content 시작이 실패합니다. | `df -h /var/lib/docker` |
+| CPU·ONNX | 메타데이터에 고정된 산출물은 AVX-512 VNNI용으로 양자화한 INT8 모델입니다. 다른 x86-64 CPU에서도 동작하는지는 확인하지 않았습니다. 배포 확인 단계가 실패하면 이 항목부터 확인합니다. 모델을 바꾸려면 새 인덱스 버전이 필요합니다. | `grep -o -m1 -w 'avx512_vnni\|avx2' /proc/cpuinfo`, 배포 로그의 E5 확인 단계 |
+| 커널 | 단일 노드 모드라 bootstrap check를 강제하지 않습니다. 공식 권장값은 `vm.max_map_count>=1048576`입니다. | `sysctl vm.max_map_count` |
+| 아키텍처 | 모든 이미지를 `linux/amd64`로 실행합니다. | `uname -m` → `x86_64` |
+
+배포 후 인덱스 상태는 서버의 배포 디렉터리에서 확인합니다.
+
+```bash
+docker exec storyfork-develop-cd-elasticsearch-1 curl -fsS 'http://127.0.0.1:9200/storyfork-manuscript-v1/_count'
+docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index'
+```
 
 ## CI → CD (publish → deploy)
 

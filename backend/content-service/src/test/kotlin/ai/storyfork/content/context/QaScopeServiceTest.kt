@@ -116,6 +116,9 @@ class QaScopeServiceTest {
         `when`(worlds.draft(world, author)).thenReturn(WorldDraftResponse(world, 1, null, null, "원작 세계", "", emptyList(), emptyList(), relationshipVersion = 3))
         val scope = service.resolve("fork", owner.toString(), request(episode = 1, version = "o1", target = "relationship"))
         assertEquals(QaWorldRef(world, 3), scope.world)
+        clearInvocations(worlds)
+        assertNull(service.currentRelationships(scope, owner.toString()))
+        verifyNoInteractions(worlds)
         verify(episodes, never()).findByWorkIdAndSequence("fork", 1)
     }
 

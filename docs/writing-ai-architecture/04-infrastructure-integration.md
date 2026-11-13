@@ -6,12 +6,12 @@
 |---|---|---|
 | Content PostgreSQL | 원고, 회차/설정/플롯 버전, Fork, 제안·적용 영수증의 정본 | Content만 정본을 쓴다. AI 입력은 확인된 판본의 최소 발췌다. |
 | WorldStudio Neo4j | 현재 관계의 단일 정본 | Content가 소유권·world 결합·graph token을 검증해 읽는다. 과거 관계나 회차별 스냅샷을 구성하지 않는다. |
-| 원고 Elasticsearch 벡터 인덱스 | 이번에 구현할 원고 검색 기반 | Content의 원고 판본에서 파생한다. 작품/Fork·문서·revision으로 검색을 제한하고 반환 근거를 PostgreSQL 원문과 재대조한다. 삭제·판본 변경은 구 인덱스를 차단한다. |
+| 원고 Elasticsearch 벡터 인덱스 | Content의 발행 판본 대조 작업 | AI Service의 로컬 E5로 임베딩한다. 검색 시 작품/Fork·회차·revision을 제한하고 근거를 PostgreSQL 원문과 재대조한다. |
 | 회차 Wiki | 후속 RAG 사건·지식·인과 경로 | 원고 판본의 파생 자료. 출처와 coverage가 확인된 뒤에만 사용한다. Neo4j 현재 관계 이력을 대신하지 않는다. |
 | 템플릿 검색 | 후속 독립 카탈로그 | 작품 비공개 원고와 분리하고 권리·라이선스를 확인한다. 추천만으로 작품 설정이 되지 않는다. |
 | 웹 검색 | 외부 현실 근거 | 검색 시점과 URL을 남긴다. 외부 문서는 명령이나 작품 정본이 아니다. |
 
-Elasticsearch 인덱스의 필수 키는 work/Fork, episode/document ID, source revision, span, index generation이다. PostgreSQL의 원문 저장 성공과 색인 성공을 동일한 트랜잭션으로 가정하지 않는다. 색인 지연·실패·오래된 generation은 검색 누락 또는 unavailable로 드러낸다. 임베딩 모델, 차원, 인덱스 매핑, 재색인 전략은 첫 실제 데이터 평가 때 확정한다.
+Elasticsearch 인덱스의 필수 키는 work/Fork, episode/document ID, source revision, span, index generation이다. PostgreSQL의 원문 저장 성공과 색인 성공을 동일한 트랜잭션으로 가정하지 않는다. 색인 지연·실패·오래된 generation은 검색 누락 또는 unavailable로 드러낸다. [원고 벡터 인덱스 v1](07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1)은 Content 시작 시 첫 대조에서 기존 발행본을 채우고 이후 발행·교체·공개 중단·삭제를 반영한다.
 
 ## 공개와 내부 API
 

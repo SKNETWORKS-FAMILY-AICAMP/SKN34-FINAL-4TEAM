@@ -20,6 +20,22 @@ export type WorldCheckpointSummary = { id: string; createdAt: string }
 export type WorldCheckpoint = WorldCheckpointSummary & { settings: SavedSetting[] }
 export type World = {id:string;name:string;revision:number;mode:'own'|'following'|'independent';basis:{episode:number;version:number;settings:SavedSetting[]}|null;draft:(SettingInput & {id:string})|null;settings:SavedSetting[];drafts:(SettingInput & {id:string})[];history:SavedSetting[];sourceToken:string;changes:{id:string;settingId:string;before:SavedSetting|null;after:SavedSetting|null;decision:'pending'|'apply'|'reject'}[]}
 export type StoryContext = {title:string;summary:string;basisEpisode:number;character:string;settings:SavedSetting[];draft:string;episodes:{number:number;version:number;versionId:string;title:string;sourceCharacters:number;excerpts:{start:number;end:number;text:string}[]}[];selection:{method:string;omittedCharacters:number;eligibleEpisodes:number;note:string}}
+
+type QaEpisodeRef = { number: number; versionId: string }
+export type StoryQaTarget = 'manuscript' | 'setting' | 'relationship'
+export type StoryQaInput = { episode: number; episodeVersionId: string; question: string; consent: boolean; target: StoryQaTarget }
+type StoryQaSource = { id: string; workId: string; sourceWorkId: string | null; episode: number; quote: string } & (
+  | { kind: 'manuscript'; episodeId: string; versionId: string; startUtf16: number; endUtf16: number }
+  | { kind: 'setting'; settingId: string; versionId: string; title: string }
+  | { kind: 'relationship'; worldId: string; graphVersion: number; relationshipId: string; title: string }
+)
+export type ManuscriptQaAnswer = {
+  status: 'answered' | 'partial' | 'insufficient'
+  claims: { text: string; kind: 'confirmed' | 'inferred'; sourceIds: string[] }[]
+  sources: StoryQaSource[]
+  gaps: { code: string; detail: string }[]
+  coverage: { expected: QaEpisodeRef[]; withVerifiedExcerpt: QaEpisodeRef[]; withoutVerifiedExcerpt: QaEpisodeRef[] }
+}
 export type Version = Draft & { id: string; episode: number; savedAt: string }
 export type PublicationEvent = {episode:number;versionId:string;publishedAt:string;action:'publish'|'replace'|'unpublish'|'republish'}
 export const publicationActionLabel:Record<PublicationEvent['action'],string>={publish:'발행',replace:'발행본 교체',unpublish:'공개 중단',republish:'재공개'}
