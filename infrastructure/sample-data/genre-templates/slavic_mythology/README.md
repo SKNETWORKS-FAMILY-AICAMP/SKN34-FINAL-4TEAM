@@ -1,16 +1,30 @@
-# 슬라브 신화와 동슬라브 민담
+# 슬라브 민담 · 마리야 모레브나
 
-중세 루스 기록과 19세기 채록 민담을 분리한다. 슬라브 전역의 통일된 신계·창세 신화는 복원하지 않는다. 페룬과 벨레스의 체계적인 전쟁 서사는 후대 학술 재구성과 현존 기록을 구별해야 한다.
+## 읽는 순서
 
-## 서사 우선 자료 구조
+1. [한국어 완역](source/original.md): 「마리야 모레브나」 한 작품의 109문단 전문이다. 판본·번역·권리 안내는 민담 본문과 구분한다.
+2. [세계관 카드](source/tradition-cards.json): 이 작품에서 추출한 30장이다. 각 카드의 narrative_refs는 원고 문단 앵커와 정확한 근거 문장을 가리킨다.
+3. [소스 템플릿](source/template.json): content_markdown은 완역 파일과 같고 setting_bible.sections는 카드 본문·유형·근거와 대응한다.
 
-- source/original.md가 먼저 작성한 한국어 전승 재서술이다. 새로운 주인공이나 도입 사건을 만든 창작 소설이 아니며, 문헌·지역·판본의 차이를 본문에서 구분한다.
-- source/tradition-cards.json의 12장 카드는 완성된 서사에서 추출했다. narrative는 original.md를 가리키고 narrative_refs는 절 앵커와 실제 근거 문단을 보존한다.
-- source/template.json의 content_markdown은 서사 전문이며 setting_bible.sections는 카드 본문·유형·근거를 그대로 반영한다. 기존 식별자와 카드 순서는 유지한다.
-- 각 절과 카드에 출전을 표시했다. 현대 번역문을 전재하지 않았으며 독립된 설화를 하나의 가상 세계로 합치지 않는다.
-- 미배포 신화 자료이므로 v1 동결본은 변경하지 않는다.
+## 저본과 범위
 
-## 출전
+아파나시예프 민담을 레너드 아서 매그너스가 영어로 옮긴 『러시아 민담집』(1915년 초판, 제공본은 1916년 2쇄 표기)의 192~203쪽을 사용했다. [구텐베르크의 해당 작품](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_192)과 [서지](https://www.gutenberg.org/ebooks/62509)를 확인했다. 러시아어 직접 번역이 아니라 영어판에서 새로 옮긴 한국어 중역이다.
 
-- [Slavic Religion, Encyclopedia of Religion](https://www.encyclopedia.com/environment/encyclopedias-almanacs-transcripts-and-maps/slavic-religion)
-- [아파나시예프 선집 『Russian Folk-Tales』, Magnus 번역](https://www.gutenberg.org/cache/epub/62509/pg62509-images.html)
+구텐베르크는 이 영어판을 미국 공개영역으로 표시한다. 편자와 역자의 사망 연도, 저본 HTML 해시, 문단 수와 번역 원칙은 원고 첫머리에 기록했다. 현대 한국어 번역은 전재하지 않았다.
+
+종전의 중세 루스 신 기록과 바실리사·불새 이야기 모음을 이 한 작품으로 교체했다. 같은 대상인 baba-yaga, hut, koshchei 키는 유지하되 이 판본에서 확인되는 내용으로 한정했다. 불새 탐색 등 다른 사건의 키를 새 사건에 재사용하지 않았고, 다른 코셰이 이야기의 알·몸 밖의 생명을 삽입하지 않았다. 원전의 완역과 별도로 카드는 작품 속 인물·물건·장소·사건을 추출한 설명이다.
+
+## 검증과 배포 범위
+
+- 본문 109문단의 순서와 반복 대화, 처음과 마지막 문장을 영문 저본과 대조한다.
+- JSON 문법, 고유 키·앵커, narrative_refs의 근거 일치, 원고와 content_markdown의 일치, 카드와 sections의 대응을 검사한다.
+- 이 변경은 이 폴더의 README와 source 아래 세 파일에 한정한다. 런타임 genre-templates.json, v1 동결본, 이미 저장된 사용자 세계관은 변경하지 않는다.
+- 따라서 런타임 리소스까지 비교하는 build_traditions.py --check는 런타임 동기화 전까지 불일치를 표시할 수 있다. 이 작업에서는 이를 없애려고 런타임 JSON을 재생성하지 않는다.
+
+## 본문 파생 항목 보강
+
+바닷새·암사자·벌의 조력, 바바 야가의 암말·쇠절구, 이반의 몸을 담은 통과 협력 부활, 세 누이의 혼인, 마리야의 진영·왕국을 보강했다. 코셰이의 말과 이반의 준마를 구분하고, 온 세상을 도는 암말의 성질을 다른 모든 말에 옮기지 않는다.
+
+이번 보강은 기존 21개 키와 해당 대상·템플릿 섹션 ID·순서를 유지하고, 새 대상 9개만 뒤에 추가한다. 모든 카드에는 실제 본문 앵커 안의 정확한 인용을 붙였으며 본문은 카드당 3,000 UTF-16 코드 단위 이하다. 주요 인물·사건·장소·물건·규칙을 포괄하되 모든 문장을 별도 카드로 만들지는 않는다.
+
+이번 단계는 tradition-cards.json·template.json·이 README만 변경한다. original.md의 전문과 template의 content_markdown, 최상위 id·genre_id·order는 보존한다. 런타임 JSON·전역 README·기존 사용자 세계관은 변경하지 않는다. 따라서 런타임 재생성 전에는 전체 리소스 일치 검사가 불일치를 표시할 수 있으며, 런타임 반영은 통합 단계에서 별도로 수행한다.

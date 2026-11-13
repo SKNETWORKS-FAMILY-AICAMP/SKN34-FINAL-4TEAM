@@ -1,25 +1,35 @@
-# 아즈텍·메시카 전승
+# 아즈텍 신화: 그림으로 전한 멕시코인들의 역사
 
-메시카의 신화와 의례를 문헌·유물 해설별로 요약한다. 정복 이후 기록의 성격과 신격·시대별 이설을 구분하며, 현대 창작의 단일 설정 체계로 만들지 않는다.
+## 수록 작품
 
-## 서사 우선 자료 구조
+16세기 익명 문헌 「그림으로 전한 멕시코인들의 역사」 한 작품의 1882년 게재본 전체를 직접 한국어로 옮겼다. 창조와 태양, 이주와 왕조, 스페인 정복, 하늘과 법, 토치밀코 계보, 달력과 제복까지 포함하며 다른 문헌의 신화를 덧붙이지 않는다.
 
-- source/original.md가 먼저 작성한 한국어 전승 재서술이다. 새로운 주인공이나 도입 사건을 만든 창작 소설이 아니며, 문헌·지역·판본의 차이를 본문에서 구분한다.
-- source/tradition-cards.json의 12장 카드는 완성된 서사에서 추출했다. narrative는 original.md를 가리키고 narrative_refs는 절 앵커와 실제 근거 문단을 보존한다.
-- source/template.json의 content_markdown은 서사 전문이며 setting_bible.sections는 카드 본문·유형·근거를 그대로 반영한다. 기존 식별자와 카드 순서는 유지한다.
-- 각 절과 카드에 출전을 표시했다. 현대 번역문을 전재하지 않았으며 독립된 설화를 하나의 가상 세계로 합치지 않는다.
-- 미배포 신화 자료이므로 v1 동결본은 변경하지 않는다.
+저자 미상의 16세기 스페인어 문헌이며, 《Anales del Museo Nacional de México》 제2권(1882), 85–106쪽의 INAH 영인 22쪽 전체를 저본으로 삼았다. [서지](https://revistas.inah.gob.mx/index.php/anales/article/view/6489) · [영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).
 
-## 출전
+## 파일
 
-- [Arqueología Mexicana, 위칠로포치틀리의 탄생](https://arqueologiamexicana.mx/mexico-antiguo/el-nacimiento-de-huitzilopochtli)
-- [Arqueología Mexicana, 메시카의 신들](https://arqueologiamexicana.mx/mexico-antiguo/los-dioses-de-los-mexicas)
-- [British Museum / Smarthistory, 테스카틀리포카 가면](https://smarthistory.org/mosaic-mask-of-tezcatlipoca/)
-- [British Museum / Smarthistory, 케찰코아틀 또는 틀랄록 가면](https://smarthistory.org/serpent-mask-of-quetzalcoatl-or-tlaloc/)
-- [INAH, 새 불 의례와 해 묶기](https://lugares.inah.gob.mx/en/node/5370)
-- [British Museum, 믹틀란테쿠틀리 상](https://artsandculture.google.com/asset/sandstone-seated-figure-of-mictlantecuhtli/8gEWZDIMx5CdRw?hl=en)
-- [Estudios de Cultura Náhuatl, 태양석의 날짜와 도상](https://www.scielo.org.mx/scielo.php?lng=es&nrm=iso&pid=S0071-16752023000100047&script=sci_arttext_plus&tlng=en)
+- source/original.md: 현대 번역문을 복사하지 않은 직접 한국어 완역. 74개 원문 문단 앵커와 인쇄 쪽수, 각주·여백 주, 판본·권리·식민기 서술 관점·결락 처리 설명을 포함한다.
+- source/tradition-cards.json: 이 한 작품에만 근거하는 72장. 창조와 이주만 발췌하지 않고 왕조·정복·하늘·법·계보·달력·제복까지 다룬다.
+- source/template.json: 기존 template ID·genre ID·order를 유지하며 본문과 카드 순서·내용·근거를 동기화한다.
 
-- [피렌체 코덱스 3권, 게티 디지털 판본](https://florentinecodex.getty.edu/book/3/folio/1r)
-- [피렌체 코덱스 7권, 의회도서관 소장 문헌 해설](https://www.loc.gov/item/2021667852/)
-- [영국박물관, 테스카틀리포카 모자이크 가면](https://artsandculture.google.com/asset/mosaic-mask-of-tezcatlipoca/0gHRmF7lJ3MC6w)
+## 경계와 표기
+
+본문의 번호 있는 11장, 번호 없는 아홉 장, 말미 계보·달력 두 부분을 모두 옮겼다. 무번호 장의 식별자와 제목은 편집용이며 잃어버린 원래 제목의 복원이 아니다. 저본의 빈칸·문장 결손·산술 및 연대 모순을 표시하고 그대로 남겼다. 105쪽 여백 주의 OCR 오독 등은 영인에서 판독하여 고쳤다. 자세한 대응 기준은 original.md 머리말에 있다.
+
+16세기 익명 원전과 1882년 활자본의 공공영역 텍스트를 사용한다. 현대 웹 편집물이나 번역의 권리를 공공영역이라고 주장하지 않는다. 문헌의 식민기 종교 표현, 정복 서술, 차별·노예제·가혹한 형벌은 당시 기록자의 관점과 역사적 자료로 구별한다.
+
+기존 동일 대상 key 여덟 개(huitzilopochtli, coatlicue, coatepec, birth-battle, tezcatlipoca, mictlan, five-suns, new-fire)를 유지했다. mictlan은 이 저본의 죽음의 신들의 거처에 범위를 좁혔으며 다른 문헌의 아홉 층 여정은 제거했다. 이 작품에 없는 코욜샤우키, 이름 붙은 시우코아틀 무기, 흑요석 거울 유물, 가면 귀속 논쟁의 카드는 제거하고 다른 대상을 그 key에 덮어씌우지 않았다.
+
+## 검증
+
+본문 74개 앵커의 중복·누락, 카드의 모든 narrative_refs 인용문 일치, 72개 key의 유일성·종류·길이 제한, template 본문 및 카드 동기화를 검증한다. 전체 runtime JSON 생성은 장르별 작업이 합쳐진 뒤 상위 빌드에서 수행하며, 이 작업은 위 세 source 파일과 이 README만 변경한다.
+
+## 전문 파생 카드 확장
+
+카드 72개로 확장하여 기존 32개 키를 모두 보존했다. 새 대상에는 새 키를 부여하고, 기존 템플릿 식별자와 순서를 유지한 채 새 섹션을 뒤에 추가했다.
+
+최초 인간과 전쟁의 기원, 집단별 신과 이주 경로, 차풀테펙의 패배와 복속, 도시·군주·타틸룰코의 연대, 정복 이후 통치, 종말·천체·법률·토치밀코 계보를 보완했다. 문헌 안의 이명·수량·연대 모순과 식민기 해석을 남기고 차별·노예제·폭력을 현대 규칙으로 승인하지 않는다.
+
+본문 74개 앵커를 주요 인물·집단·장소·사물·능력·사건·질문의 카드 근거에 모두 연결했다. 이름 명단은 집단 카드에 묶어 보존하므로 각 이름에 독립된 전기를 만들어 붙이지 않는다. 앵커 연결의 완전성은 의미의 자동 증명이 아니며, 원문의 문장과 카드의 진술을 별도로 대조했다.
+
+카드 본문은 UTF-16 기준 3,000자 이하이며, 모든 근거는 해당 앵커의 실제 문자열이다. 이번 카드 확장에서 original.md와 템플릿의 전문 content_markdown은 변경하지 않았다. 런타임 JSON과 다른 장르의 생성·반영은 상위 통합 작업에서 따로 수행한다.
