@@ -376,6 +376,20 @@ class WorkSearchServiceTest {
         assertEquals(listOf("윤서하"), service.list("owner-a").items.map { it.authorName })
     }
 
+    @Test fun `the linked world studio is shown on the owner's detail and list only, never on a public response`() {
+        work("a", "연결한 작품", 1)
+        work("b", "연결 없는 작품", 2, owner = "owner-a")
+        val world = java.util.UUID.randomUUID()
+        rows.first { it.id == "a" }.worldStudioId = world
+        `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("owner-a")).thenReturn(rows.toList())
+        views()
+
+        assertEquals(world, service.read("a", "owner-a").worldStudioId)
+        assertEquals(mapOf("a" to world, "b" to null), service.list("owner-a").items.associate { it.id to it.worldStudioId })
+        assertNull(service.publicRead("a").worldStudioId)
+        assertEquals(listOf(null, null), service.publicList(null, null, null).items.map { it.worldStudioId })
+    }
+
     @Test fun `the owner list asks Core before taking the row locks`() {
         work("a", "첫째", 1, author = "윤서하")
         `when`(works.findAllByOwnerIdOrderByCreatedAtDesc("owner-a")).thenReturn(rows.toList())

@@ -25,8 +25,9 @@ class GenreTemplateSeederTest {
     private val owner = UUID.fromString("5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01")
 
     private fun create(t: GenreTemplate) = CreateWorldRequest(t.name, t.description, t.worldId)
+    /** 템플릿 카드는 공개로 넣는다(DEC-46: 카드의 기본은 비공개라, 비공개로 넣으면 템플릿 세계관을 공개해도 카드가 보이지 않는다). */
     private fun edit(t: GenreTemplate) = EditWorldDraftRequest(0, t.name, t.description,
-        t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic") }, key = "genre-template-${t.genre}")
+        t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") }, key = "genre-template-${t.genre}")
     private fun save(t: GenreTemplate, revision: Long) = SaveWorldRequest(revision, "genre-template-${t.genre}")
     private fun draft(t: GenreTemplate, revision: Long = 0, saved: UUID? = null) =
         WorldDraftResponse(t.worldId, revision, saved, null, t.name, t.description, emptyList(), emptyList())

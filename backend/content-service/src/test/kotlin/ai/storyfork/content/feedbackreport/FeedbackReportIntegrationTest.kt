@@ -244,6 +244,32 @@ class FeedbackReportIntegrationTest {
         assertEquals(401,call("GET","/api/v1/works/feedback-reports/inbox").statusCode())
     }
 
+    @Test fun `the inbox work id filter lists only that work and anything that is not mine is an empty 200`() {
+        val owner=member("작가")
+        val first=work(owner.toString())
+        val second=work(owner.toString())
+        val elsewhere=work()
+        val reporter=member("독자")
+        val a=created(post(first,reporter,"""{"kind":"typo","body":"첫째"}"""))
+        val b=created(post(second,reporter,"""{"kind":"question","body":"둘째","visibility":"public"}"""))
+        created(post(elsewhere,reporter,"""{"kind":"typo","body":"남의 작품"}"""))
+
+        val inbox="/api/v1/works/feedback-reports/inbox"
+        assertEquals(listOf(a),ids(call("GET","$inbox?workId=$first",owner)))
+        assertEquals(listOf(b),ids(call("GET","$inbox?workId=$second",owner)))
+        assertEquals(listOf(b,a),ids(call("GET",inbox,owner)))
+        // 빈 값(`workId=`)은 생략과 같다.
+        assertEquals(listOf(b,a),ids(call("GET","$inbox?workId=",owner)))
+        // 남의 작품·없는 작품·형식이 틀린 값은 존재 여부를 드러내지 않도록 모두 같은 빈 목록(200)이다.
+        for(other in listOf(elsewhere,UUID.randomUUID().toString(),"not-a-uuid")) {
+            val response=call("GET","$inbox?workId=$other",owner)
+            assertEquals(200,response.statusCode(),response.body())
+            assertEquals(emptyList<String>(),ids(response),other)
+        }
+        assertEquals(emptyList<String>(),ids(call("GET","$inbox?workId=$first",reporter)))
+        assertEquals(401,call("GET","$inbox?workId=$first").statusCode())
+    }
+
     @Test fun `invalid input is 422 or 400 and nothing is stored or changed`() {
         val owner=member()
         val id=work(owner.toString())

@@ -24,6 +24,13 @@ class ManuscriptWriterTest {
     private fun entries(bytes: ByteArray): Map<String, ByteArray> = linkedMapOf<String, ByteArray>().also { map ->
         ZipInputStream(ByteArrayInputStream(bytes)).use { zip -> while (true) { val entry = zip.nextEntry ?: break; map[entry.name] = zip.readAllBytes() } }
     }
+    /** 한 회차만 내보낸 챕터의 `<body>` 안쪽. 올바른 XML인지도 함께 확인한다. */
+    private fun chapterBody(body: String): String {
+        val xhtml = String(entries(epub(listOf(ExportChapter(1, "제목", body)))).getValue("OEBPS/chapter1.xhtml"))
+        assertDoesNotThrow({ DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(InputSource(StringReader(xhtml))) }, xhtml)
+        return xhtml.substringAfter("<body>").substringBefore("</body>")
+    }
+    private fun markup(vararg lines: String) = lines.joinToString("") { "$it\n" }
 
     @Test fun `TXT starts with a BOM and separates the title and episodes with blank lines while dropping image markers`() {
         val whole = TxtManuscriptWriter.write("내 소설", chapters)
@@ -84,5 +91,90 @@ class ManuscriptWriterTest {
         val book = EpubManuscript.parse(epub(listOf(ExportChapter(1, "a\u0000b\u0008", "x\u0008y\n\n   \n\uD800z\n  들여쓰기  ")), image = { _, _ -> null }))
         assertEquals("ab", book.episodes.single().title)
         assertEquals("xy\nz\n들여쓰기", book.episodes.single().text)
+    }
+
+    @Test fun `manuscripts without format marks keep the exact chapter markup they had before formatting`() {
+        val body = listOf(
+            "첫 문단", "", "  들여쓴 줄  ", "\t", "${Char(0x3000)}전각 들여쓰기", "윈도우 줄\r", "옛 맥 줄\r둘로 나뉜다",
+            "앞 [[image:$first]] 뒤", "[[image:not-a-uuid]]",
+            "- 목록 아님", "1. 목록 아님", "`코드 아님`", "<b>태그 아님</b>", "#태그", "--", " ---", "## ",
+            "2 * 3 * 4", "**짝 없음", "** 공백 **", "끝에 별표*", "a > b & \"c\"",
+        ).joinToString("\n")
+        assertEquals(markup(
+            "<h1>제목</h1>", "<p>첫 문단</p>", "<p>들여쓴 줄</p>", "<p>전각 들여쓰기</p>", "<p>윈도우 줄</p>", "<p>옛 맥 줄</p>", "<p>둘로 나뉜다</p>",
+            "<p>앞</p>", "<p><img src=\"images/image1.png\" alt=\"\"/></p>", "<p>뒤</p>",
+            "<p>- 목록 아님</p>", "<p>1. 목록 아님</p>", "<p>`코드 아님`</p>", "<p>&lt;b&gt;태그 아님&lt;/b&gt;</p>", "<p>#태그</p>", "<p>--</p>", "<p>---</p>", "<p>##</p>",
+            "<p>2 * 3 * 4</p>", "<p>**짝 없음</p>", "<p>** 공백 **</p>", "<p>끝에 별표*</p>", "<p>a &gt; b &amp; &quot;c&quot;</p>",
+        ), chapterBody(body))
+    }
+
+    @Test fun `TXT keeps format marks as written so importing the file again keeps the formatting`() {
+        val body = "## 1장 새벽\n**굵게** *기울임*\n> 인용\n---\n\\*별표\\*"
+        val txt = TxtManuscriptWriter.write(null, listOf(ExportChapter(1, "1화", body)))
+        assertEquals("1화\n\n$body\n", String(txt, 3, txt.size - 3, Charsets.UTF_8))
+        assertEquals(body, TxtManuscript.parse(txt, "원고.txt").episodes.single().text)
+    }
+
+    @Test fun `EPUB draws bold italic subheadings and dividers from the manuscript format`() {
+        val body = listOf(
+            "## 1장 새벽", "# **굵은** 제목", "**그는 돌아오지 않았다.** 그는 *분명히* 말했다.", "  ***끝*** **굵게 *둘 다* 굵게**  ",
+            "---", "*****",
+            "별표 \\*글자\\*", "\\# 소제목 아님", "\\> 인용 아님", "\\---", "**<b> & \"q\"**", "**줄을", "넘는 굵게**",
+            // XML에 쓸 수 없는 글자뿐인 소제목은 그릴 글이 없으므로 내지 않는다.
+            "## ${Char(1)}",
+        ).joinToString("\n")
+        assertEquals(markup(
+            "<h1>제목</h1>", "<h2>1장 새벽</h2>", "<h2><strong>굵은</strong> 제목</h2>",
+            "<p><strong>그는 돌아오지 않았다.</strong> 그는 <em>분명히</em> 말했다.</p>", "<p><strong><em>끝</em></strong> <strong>굵게 <em>둘 다</em> 굵게</strong></p>",
+            "<hr/>", "<hr/>",
+            "<p>별표 *글자*</p>", "<p># 소제목 아님</p>", "<p>&gt; 인용 아님</p>", "<p>---</p>", "<p><strong>&lt;b&gt; &amp; &quot;q&quot;</strong></p>", "<p>**줄을</p>", "<p>넘는 굵게**</p>",
+        ), chapterBody(body))
+        // 다시 가져오면 글자만 남는다(가져오기는 서식을 되살리지 않는다).
+        assertEquals(
+            "1장 새벽\n굵은 제목\n그는 돌아오지 않았다. 그는 분명히 말했다.\n끝 굵게 둘 다 굵게\n별표 *글자*\n# 소제목 아님\n> 인용 아님\n---\n<b> & \"q\"\n**줄을\n넘는 굵게**",
+            EpubManuscript.parse(epub(listOf(ExportChapter(1, "제목", body)))).episodes.single().text,
+        )
+    }
+
+    @Test fun `consecutive quote lines share one blockquote and empty quote lines are not exported`() {
+        val body = listOf("> 그가 말했다.", ">", ">  **붙여** 쓴 인용  ", "", "> 빈 줄 뒤", "[[image:$first]]", "> 그림 뒤", "---", ">구분선 뒤", "문단", ">", "> ").joinToString("\n")
+        assertEquals(markup(
+            "<h1>제목</h1>",
+            "<blockquote>", "<p>그가 말했다.</p>", "<p><strong>붙여</strong> 쓴 인용</p>", "</blockquote>",
+            "<blockquote>", "<p>빈 줄 뒤</p>", "</blockquote>",
+            "<p><img src=\"images/image1.png\" alt=\"\"/></p>",
+            "<blockquote>", "<p>그림 뒤</p>", "</blockquote>",
+            "<hr/>",
+            "<blockquote>", "<p>구분선 뒤</p>", "</blockquote>",
+            "<p>문단</p>",
+        ), chapterBody(body))
+    }
+
+    @Test fun `text sharing a line with an image marker is exported as paragraphs without line formats`() {
+        fun img(n: Int) = "<p><img src=\"images/image$n.png\" alt=\"\"/></p>"
+        val body = listOf(
+            "## 앞 조각 [[image:$first]]# 뒤 조각", "---[[image:$first]]> 뒤 조각", "\\# 앞[[image:$first]]***", "**굵게** [[image:$first]] *기울임*",
+            "> 온전한 인용", "[[image:$first]]", "## 온전한 소제목",
+        ).joinToString("\n")
+        assertEquals(markup(
+            "<h1>제목</h1>",
+            "<p>## 앞 조각</p>", img(1), "<p># 뒤 조각</p>",
+            "<p>---</p>", img(2), "<p>&gt; 뒤 조각</p>",
+            "<p>\\# 앞</p>", img(3), "<p>***</p>",
+            "<p><strong>굵게</strong></p>", img(4), "<p><em>기울임</em></p>",
+            "<blockquote>", "<p>온전한 인용</p>", "</blockquote>", img(5), "<h2>온전한 소제목</h2>",
+        ), chapterBody(body))
+    }
+
+    @Test fun `lines whose content is over 2000 characters keep their marks as text`() {
+        // 내용 2,000자까지는 서식을 그리고, 2,001자부터는 기호와 백슬래시를 글자 그대로 낸다. 줄 종류(인용)와 XML 이스케이프는 그대로다.
+        val within = "가".repeat(1993); val over = "가".repeat(1990); val quoted = "가".repeat(1994)
+        val body = listOf("**굵게** $within", "**굵게** & \\*$over", "> **굵게** $quoted").joinToString("\n")
+        assertEquals(markup(
+            "<h1>제목</h1>",
+            "<p><strong>굵게</strong> $within</p>",
+            "<p>**굵게** &amp; \\*$over</p>",
+            "<blockquote>", "<p>**굵게** $quoted</p>", "</blockquote>",
+        ), chapterBody(body))
     }
 }

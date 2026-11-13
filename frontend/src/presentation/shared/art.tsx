@@ -1,10 +1,13 @@
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 
 import type { Theme, Work } from '../../domain/entities/work'
 import { kfmt, rng } from './format'
 
-/** 목업 art(): 테마별 인라인 SVG 표지 (외부 이미지 없음) */
-export function Art({ theme, w, h, seed, title = '' }: { theme: Theme; w: number; h: number; seed: string; title?: string }) {
+/**
+ * 목업 art(): 테마별 인라인 SVG 표지 (외부 이미지 없음).
+ * 표지 하나가 60~100개 노드라, 같은 값으로 다시 그려 달라는 요청(홈은 히어로 자동 넘김으로 4.5초마다 전체가 다시 그려진다)은 건너뛴다. 속성이 모두 원시값이라 얕은 비교로 충분하다.
+ */
+export const Art = memo(function Art({ theme, w, h, seed, title = '' }: { theme: Theme; w: number; h: number; seed: string; title?: string }) {
   const r = rng(seed + theme)
   const id = 'a' + Math.floor(r() * 1e9)
   const els: ReactNode[] = []
@@ -62,7 +65,7 @@ export function Art({ theme, w, h, seed, title = '' }: { theme: Theme; w: number
     }
   }
   return <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">{els}</svg>
-}
+})
 
 export function CoverOf({ w, k = '' }: { w: Work; k?: string }) {
   if (w.coverImg) return <img className="cimg" src={w.coverImg} alt="" />

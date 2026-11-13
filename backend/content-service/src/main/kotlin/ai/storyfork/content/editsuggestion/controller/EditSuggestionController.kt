@@ -25,9 +25,9 @@ class EditSuggestionController(private val service: EditSuggestionService) {
     @GetMapping("/works/edit-suggestions/mine")
     fun mine(principal: Principal): SuggestionListResponse = service.mine(principal.name)
 
-    /** 내가 소유한 작품들의 제안을 최신순으로 반환한다. */
+    /** 내가 소유한 작품들의 제안을 최신순으로 반환한다. 선택 쿼리 `workId`가 오면 그 작품만이며, 내 작품이 아니거나 없으면 빈 목록(200)이다. */
     @GetMapping("/works/edit-suggestions/inbox")
-    fun inbox(principal: Principal): SuggestionListResponse = service.inbox(principal.name)
+    fun inbox(principal: Principal,@RequestParam(required=false) workId: String?): SuggestionListResponse = service.inbox(principal.name,workId)
 
     /** 소유자가 편집안을 저장한다. 원래 afterText는 보존되고 `pending`/`held`가 아니면 409다. */
     @PutMapping("/works/{id}/edit-suggestions/{suggestionId}/edited-text")

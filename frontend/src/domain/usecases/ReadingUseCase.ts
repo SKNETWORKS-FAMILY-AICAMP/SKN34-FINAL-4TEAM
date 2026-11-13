@@ -1,6 +1,6 @@
 import type { Work as ContentWork } from '../entities/content'
-import { splitSentences } from '../entities/feedback'
-import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import { readerBody } from '../entities/feedback'
+import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sameAuthorWorks, similarWorks, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
@@ -131,6 +131,14 @@ export class ReadingUseCase {
     await repo.recordView(work.id, first.number).catch(() => {})
   }
 
+  /**
+   * 소설 상세 회차 목록의 누적 조회 수(공개 상세 응답에서만 옴). 공개 서버 작품이 아니거나 검색 저장소가 없는 목업이면 요청 없이 undefined이고,
+   * 읽지 못하면 0회로 숨기지 않고 던지므로 화면이 수를 감춘다.
+   */
+  async episodeViews(work: Work, signal?: AbortSignal) {
+    return work.canonical && isPub(work) ? this.workSearchRepository?.episodeViews(work.id, signal) : undefined
+  }
+
   private async load(id: string) {
     const [works, worlds, progress] = await Promise.all([this.workRepository.listWorks(), this.workRepository.listWorlds(), this.readingRepository.getProgress()])
     return { works, worlds, progress, w: works.find((x) => x.id === id || x.slug === id) }
@@ -180,6 +188,27 @@ export class ReadingUseCase {
   }
 
   /**
+   * U45 설정 위키: 서버 작품에 연결된 세계관(DEC-46)이 있으면 [upto]회차(없으면 발행된 최대 회차)까지 독자에게 공개된 그 세계관의 설정 카드를 돌려줍니다.
+   * 연결된 세계관이 없거나 메모리 데모 작품이면 null이고 화면은 기존 작품 설정 위키(getWork의 wiki)를 씁니다. 읽기 실패는 null로 바꾸지 않고 던집니다.
+   */
+  async linkedWorldCards(work: Pick<Work, 'id' | 'canonical'>, upto?: number) {
+    if (!work.canonical) return null
+    const cards = await this.workRepository.readWorldCards?.(work.id, upto && upto >= 1 ? Math.floor(upto) : undefined)
+    return cards?.worldId ? cards : null
+  }
+
+  /**
+   * 이 작품에서 갈라진 공개 포크 수를 분기 기준 회차별로 셉니다(0편인 회차는 키가 없음). 소설 상세의 회차별 포크 수와 같은 목록(forksOf)을 쓰며,
+   * 작품 목록을 읽지 못하면 0편으로 채우지 않고 던집니다(작품 관리 화면은 그때 수를 감춥니다).
+   * ponytail: 공개 작품 전체 목록을 읽어 센다(소설 상세도 같은 목록). 작품이 많아지면 작품별 포크 수를 주는 API로 바꾼다.
+   */
+  async forkCountsByEpisode(id: string) {
+    const counts: Record<number, number> = {}
+    for (const { forkAt } of forksOf(await this.workRepository.listWorks(), id)) if (forkAt) counts[forkAt] = (counts[forkAt] ?? 0) + 1
+    return counts
+  }
+
+  /**
    * 목업 reader(): 회차를 열면서 이어 읽기와 읽음을 서버 독서 기록에 남깁니다. 볼 수 없는 작품은 null,
    * 숨긴 회차는 'hidden'(상세로 보냄)입니다. 기록은 기다리지 않고 회차를 먼저 돌려주며, 저장 결과는 recording으로 받습니다
    * (실패하면 reject하므로 호출자가 알려야 합니다. 기록하지 않는 경우는 바로 끝납니다).
@@ -206,7 +235,8 @@ export class ReadingUseCase {
       work: w,
       n,
       ep,
-      paragraphs: splitSentences(ep.p),
+      // paragraphs: 고를 수 있는 문장(문단별), blocks: 화면이 그릴 블록. 문장 순서가 서로 같다.
+      ...readerBody(ep.p),
       previous: shown.filter((i) => i < n).at(-1) ?? null,
       next: shown.find((i) => i > n) ?? null,
       forks: w.parent ? [] : forksOf(works, id).filter((f) => f.forkAt === n),
@@ -242,6 +272,24 @@ export class ReadingUseCase {
     return {
       list: works.filter(isPub).filter((w) => matchW(w, q, f, works)).sort(sorter(sort === 'latest' ? 'new' : sort)),
       hasMore: false,
+    }
+  }
+
+  /**
+   * 소설 상세 추천(새 서버 경로 없이 공개 검색 findWorks를 인기 순으로 두 번 부른다): 같은 작가의 다른 작품(f=author)과 첫 장르의 비슷한 작품(f=genre,
+   * 해시태그가 겹치는 순)을 병렬로 읽는다. 한쪽만 실패할 수 있어 실패는 빈 목록으로 숨기지 않고 섹션마다 failed로 알리며, 이 메서드는 던지지 않는다.
+   * ponytail: 검색 첫 장(20개) 안에서만 거른다. 같은 작가·장르 작품이 20개를 넘으면 뒤의 작품은 못 찾는다. 필요하면 서버에 추천 API를 둔다.
+   */
+  async recommendWorks(work: Work, signal?: AbortSignal) {
+    const genre = work.genre.split(' · ')[0]
+    const [byAuthor, byGenre] = await Promise.allSettled([
+      this.findWorks({ q: work.author, f: 'author', sort: 'like' }, signal),
+      genre ? this.findWorks({ q: genre, f: 'genre', sort: 'like' }, signal) : { list: [] as Work[] },
+    ])
+    const sameAuthor = byAuthor.status === 'fulfilled' ? sameAuthorWorks(work, byAuthor.value.list) : []
+    return {
+      sameAuthor: { items: sameAuthor, failed: byAuthor.status === 'rejected' },
+      similar: { items: byGenre.status === 'fulfilled' ? similarWorks(work, byGenre.value.list, sameAuthor) : [], failed: byGenre.status === 'rejected' },
     }
   }
 

@@ -21,7 +21,7 @@ describe('InMemoryReadingRecordRepository (mockDb.progress 기반 목업)', () =
       { workId: 'starlight', lastEpisode: 1, readEpisodes: [1, 3] },
       { workId: 'guunmong', lastEpisode: 2, readEpisodes: [1, 2] },
     ])
-    // 같은 상태를 읽는 다른 목업(캐릭터 챗 등)이 보도록 정본은 mockDb.progress다.
+    // 같은 상태를 읽는 다른 목업(캐릭터챗 등)이 보도록 정본은 mockDb.progress다.
     expect(db.progress.last.starlight).toBe(1)
     expect(db.progress.read.starlight).toEqual([1, 3])
   })

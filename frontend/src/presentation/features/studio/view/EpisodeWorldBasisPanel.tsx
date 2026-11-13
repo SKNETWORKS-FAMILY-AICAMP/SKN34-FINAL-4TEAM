@@ -13,10 +13,10 @@ function EpisodeWorldBasisPanel({ workId, number }: { workId: string; number: nu
       {vm.cards ? '기준 버전 설정 닫기' : '기준 버전 설정 보기'}
     </button>}
     {vm.cards && (vm.cards.length > 0 ? <ul>{vm.cards.map(card => <li key={card.id}>
-      <details><summary>{card.title}</summary><p className="writing-preview">{card.body}</p></details>
+      <details><summary>{card.title}</summary><p className="writing-preview" tabIndex={0} role="group" aria-label={`${card.title} 내용`}>{card.body}</p></details>
     </li>)}</ul> : <p>이 버전에 저장된 인물·설정이 없어요.</p>)}
     {vm.busy && <p role="status">기준 세계관 요청을 처리하고 있어요…</p>}
-    {vm.error && <p role="alert">{vm.error}</p>}
+    {vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
     {vm.notice && <p role="status">{vm.notice}</p>}
     {vm.error && <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.reload()}>기준 세계관 다시 불러오기</button>}
     {vm.current && (vm.worlds.length === 0 ? <p>소유한 세계관이 없어요. <Go to="/worldstudio">세계관 작업실 열기</Go></p> : <>

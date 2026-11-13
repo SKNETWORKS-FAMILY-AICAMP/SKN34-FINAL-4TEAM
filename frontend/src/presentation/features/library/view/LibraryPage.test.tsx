@@ -10,6 +10,7 @@ import { createAppStore } from '../../../../app/store'
 import { LibraryPage } from './LibraryPage'
 
 vi.mock('./ServerWritingList', () => ({ ServerWritingList: () => null }))
+vi.mock('./MyWorlds', () => ({ MyWorlds: () => null }))
 
 afterEach(() => { cleanup(); document.title = 'STORYFORK' })
 
@@ -25,11 +26,34 @@ it('서재 탭은 현재 탭을 aria-current로 알리고 탭을 옮기면 따�
   await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
   expect(tab('읽는 중').getAttribute('aria-current')).toBe('page')
   expect(tab('내가 쓰는 소설').hasAttribute('aria-current')).toBe(false)
-  expect(tab('내 댓글·제보').hasAttribute('aria-current')).toBe(false)
-  fireEvent.click(tab('내 댓글·제보'))
-  await screen.findByText('작가가 처리하면 상태가 바뀌어요.')
-  expect(tab('내 댓글·제보').getAttribute('aria-current')).toBe('page')
+  fireEvent.click(tab('내가 쓰는 소설'))
+  await screen.findByRole('heading', { name: '새로 시작하기' })
+  expect(tab('내가 쓰는 소설').getAttribute('aria-current')).toBe('page')
   expect(tab('읽는 중').hasAttribute('aria-current')).toBe(false)
+})
+
+it('서재 탭 줄은 이름이 있는 내비게이션이라 상단 주요 메뉴와 구분된다', async () => {
+  renderLibrary()
+  await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
+  const tabs = screen.getByRole('navigation', { name: '서재 메뉴' })
+  expect(tabs.classList.contains('libtabs')).toBe(true)
+  expect(Array.from(tabs.querySelectorAll('a'), (link) => link.textContent)).toEqual(['읽는 중', '내가 쓰는 소설', '내가 만드는 세계관'])
+})
+
+it('서재 탭은 읽는 중 · 내가 쓰는 소설 · 내가 만드는 세계관 순서이고 ?tab=worlds는 세계관 탭을 현재 탭으로 알린다', async () => {
+  renderLibrary('/lib?tab=worlds')
+  await waitFor(() => expect(tab('내가 만드는 세계관').getAttribute('aria-current')).toBe('page'))
+  expect(Array.from(document.querySelectorAll('.libtabs a'), link => link.getAttribute('href'))).toEqual(['/lib?tab=read', '/lib?tab=write', '/lib?tab=worlds'])
+  expect(tab('읽는 중').hasAttribute('aria-current')).toBe(false)
+  expect(tab('내가 쓰는 소설').hasAttribute('aria-current')).toBe(false)
+})
+
+it('내 댓글·제보 탭은 없고, 예전 주소 ?tab=qa는 읽는 중 탭으로 열린다', async () => {
+  renderLibrary('/lib?tab=qa')
+  await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
+  expect(tab('읽는 중').getAttribute('aria-current')).toBe('page')
+  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull()
+  expect(screen.queryByText('작가가 처리하면 상태가 바뀌어요.')).toBeNull()
 })
 
 it('내 서재는 h1 하나와 건너뛰기 링크가 닿는 main을 가진다', async () => {

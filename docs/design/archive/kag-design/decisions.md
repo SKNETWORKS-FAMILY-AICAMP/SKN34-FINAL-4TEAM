@@ -21,9 +21,9 @@
 | DEC-10 | 임베딩 생성과 설정 추출 후보 생성은 kag-service. 그래프 쓰기 없이 후보만 반환 | `제안` ai-service `extractions` | 색인·질의에 같은 임베딩 모델을 쓰고, 지식 정렬을 그래프 읽기와 같은 곳에서 함 | [kag-service 제공 API](services/kag-service.md#제공-api) |
 | DEC-11 | KGDSL 실행을 호환하지 않고 구조화 그래프 API로 대체. LLM의 Text2Cypher·쿼리 생성 금지 | — | 범위 조건 누락·쿼리 주입 위험(X-15) | [knowledge-service 범위 검색 API](services/knowledge-service.md#범위-검색-api) |
 | DEC-12 | (2026-10-29) Langfuse v3 self-host 구성을 그대로 도입하고 의존 구성요소 Redis·ClickHouse를 추가. Redis·ClickHouse는 Langfuse 전용(Langfuse 소유)이며 core-api·ai-service·kag-service·knowledge-service는 접속하지 않음. 우리 서비스에 큐·worker를 두지 않는 원칙은 유지(Langfuse worker는 Langfuse 구성요소). 우리 서비스의 Redis 사용은 `미정`으로 D-10·D-11의 후보로만 기록. 운영 묶음의 배치는 DEC-14 | `확정` "Redis 두지 않음"(DP-08, [AGENTS.md](../../../../AGENTS.md) 변경 원칙 "DB·Redis·큐·worker·K8s·cloud 등 미래 인프라를 미리 추가하지 않는다", [architecture.md](../../../../docs/architecture.md) "DB·Redis·큐·worker… 없음") 일부 대체, 팀 재결정 필요. `미정` D-12 해소 | Langfuse v3 self-host가 Redis·ClickHouse를 요구(R-07). 사용자 "redis도 추가하면 추가하자" | [인프라 Langfuse](services/infrastructure.md#langfuse) |
-| DEC-13 | (2026-10-29) 업무 DB와 개발 객체 저장소를 정본 소유 도메인마다 별도 인스턴스로 나눔. PostgreSQL은 core-postgres(core DB, core-api 전용), knowledge-postgres(knowledge DB와 lakeFS 메타데이터 DB. 둘 다 knowledge 도메인 소유라 한 인스턴스에 DB·계정 분리, `제안`), langfuse-postgres(Langfuse 전용, DEC-14). 개발 객체 저장소는 core용(원고 이미지)·knowledge용(lakeFS 블록 저장)·Langfuse용 인스턴스로, 배포 실습은 AWS S3 소유자별 버킷과 서비스별 IAM으로 둠. 서비스 사이 FK 없음·다른 서비스 DB 직접 접근 금지는 유지. 스키마 마이그레이션은 core-api·knowledge-service 모두 Flyway이며 버전 파일은 각 서비스 안에 두고 다른 서비스 스키마를 건드리지 않음. lakeFS·Langfuse는 자체 마이그레이션 | `제안` PostgreSQL 인스턴스 하나에 DB 분리·개발 MinIO 하나에 버킷 분리(X-18). `미정` D-01(마이그레이션 도구)·D-34(개발 네트워크 배치) 해소 | GovBiz의 서비스별 DB 인스턴스·FK 없음·서비스별 마이그레이션 방식(R-08). 사용자 "우리 이 방식 그대로 적용하자". DB 제품은 PostgreSQL 유지(DEC-03)하고 방식만 적용 | [인프라 PostgreSQL 배치](services/infrastructure.md#postgresql-배치) |
-| DEC-14 | (2026-10-29) Langfuse 운영 묶음을 업무 Compose와 분리한 별도 Compose 프로젝트(가칭 llmops)로 둠. 구성은 Langfuse web·worker, 전용 PostgreSQL, ClickHouse(단일 노드, 컨테이너 메모리 상한과 서버 메모리 상한·mark 캐시 설정 파일. 개발 출발값 3g·2GiB·128MiB는 GovBiz 값이며 운영 기준값이 아님), 전용 Redis(비밀번호 필수, noeviction), 전용 blob 저장소(이벤트·미디어). 텔레메트리 끔, 모든 이미지 digest 고정, 호스트 포트는 Langfuse 화면만 `127.0.0.1`, 비밀값은 루트 `.env`에서 Langfuse 런타임에만 전달. 필요할 때만 켬. ai-service·kag-service → 수집 엔드포인트 연결은 external 네트워크 공유 또는 호스트 경유 중 `미정`(D-40) | `제안` 같은 Compose 안의 langfuse-ingest 내부 네트워크. `미정` D-40 중 PostgreSQL 배치·blob 버킷·ClickHouse 자원 설정 해소 | GovBiz LLMOps 별도 Compose 구성(R-08). DEC-12의 구성요소는 그대로 두고 배치·운영 방식만 정함 | [인프라 Langfuse](services/infrastructure.md#langfuse) |
-| DEC-15 | (2026-10-29) ai-service·kag-service 공통 추적 규칙. Langfuse SDK + OTEL, 내보낼 span 이름 허용 목록, 마스킹(입력·출력 본문 속성과 예외 속성 제거, 사용량 유지. 범위 토큰·원고 원문·작가 비공개 설정·개인정보·비밀값은 어떤 속성에도 넣지 않음), W3C `traceparent`를 core-api → ai-service → kag-service로 전달(형식만 검증해 부모로 연결, baggage·임의 속성 미수용), 짧은 전송 시간 제한(GovBiz 2초). 전송 실패는 작업 결과를 바꾸지 않고, 숨기지도 않고 서비스 로그·운영 지표에 남김. kag-service의 KAG 자체 LLM 호출도 같은 규칙으로 계측 | `제안` 상관 ID(형식 미정)를 W3C `traceparent`로 구체화. `확정` 메타데이터만 기록 원칙은 유지 | GovBiz `tracing.py` 방식(R-08) | [design.md 공통 계약: 관측성](design.md#공통-계약-관측성) |
+| DEC-13 | (2026-10-29) 업무 DB와 개발 객체 저장소를 정본 소유 도메인마다 별도 인스턴스로 나눔. PostgreSQL은 core-postgres(core DB, core-api 전용), knowledge-postgres(knowledge DB와 lakeFS 메타데이터 DB. 둘 다 knowledge 도메인 소유라 한 인스턴스에 DB·계정 분리, `제안`), langfuse-postgres(Langfuse 전용, DEC-14). 개발 객체 저장소는 core용(원고 이미지)·knowledge용(lakeFS 블록 저장)·Langfuse용 인스턴스로, 배포 실습은 AWS S3 소유자별 버킷과 서비스별 IAM으로 둠. 서비스 사이 FK 없음·다른 서비스 DB 직접 접근 금지는 유지. 스키마 마이그레이션은 core-api·knowledge-service 모두 Flyway이며 버전 파일은 각 서비스 안에 두고 다른 서비스 스키마를 건드리지 않음. lakeFS·Langfuse는 자체 마이그레이션 | `제안` PostgreSQL 인스턴스 하나에 DB 분리·개발 MinIO 하나에 버킷 분리(X-18). `미정` D-01(마이그레이션 도구)·D-34(개발 네트워크 배치) 해소 | 정본 소유자별로 접근과 마이그레이션 책임을 분리. DB 제품은 PostgreSQL 유지(DEC-03) | [인프라 PostgreSQL 배치](services/infrastructure.md#postgresql-배치) |
+| DEC-14 | (2026-10-29) Langfuse 운영 묶음을 업무 Compose와 분리한 별도 Compose 프로젝트(가칭 llmops)로 둠. 구성은 Langfuse web·worker, 전용 PostgreSQL, ClickHouse(단일 노드, 컨테이너 메모리 상한과 서버 메모리 상한·mark 캐시 설정 파일. 개발 출발값 3g·2GiB·128MiB), 전용 Redis(비밀번호 필수, noeviction), 전용 blob 저장소(이벤트·미디어). 텔레메트리 끔, 모든 이미지 digest 고정, 호스트 포트는 Langfuse 화면만 `127.0.0.1`, 비밀값은 루트 `.env`에서 Langfuse 런타임에만 전달. 필요할 때만 켬. ai-service·kag-service → 수집 엔드포인트 연결은 external 네트워크 공유 또는 호스트 경유 중 `미정`(D-40) | `제안` 같은 Compose 안의 langfuse-ingest 내부 네트워크. `미정` D-40 중 PostgreSQL 배치·blob 버킷·ClickHouse 자원 설정 해소 | 업무와 독립적으로 필요할 때 기동. DEC-12의 구성요소 유지 | [인프라 Langfuse](services/infrastructure.md#langfuse) |
+| DEC-15 | (2026-10-29) ai-service·kag-service 공통 추적 규칙. Langfuse SDK + OTEL, 내보낼 span 이름 허용 목록, 마스킹(입력·출력 본문 속성과 예외 속성 제거, 사용량 유지. 범위 토큰·원고 원문·작가 비공개 설정·개인정보·비밀값은 어떤 속성에도 넣지 않음), W3C `traceparent`를 core-api → ai-service → kag-service로 전달(형식만 검증해 부모로 연결, baggage·임의 속성 미수용), 짧은 전송 시간 제한(개발 출발값 2초). 전송 실패는 작업 결과를 바꾸지 않고, 숨기지도 않고 서비스 로그·운영 지표에 남김. kag-service의 KAG 자체 LLM 호출도 같은 규칙으로 계측 | `제안` 상관 ID(형식 미정)를 W3C `traceparent`로 구체화. `확정` 메타데이터만 기록 원칙은 유지 | 서비스 간 추적을 연결하면서 기록을 허용된 메타데이터로 제한 | [design.md 공통 계약: 관측성](design.md#공통-계약-관측성) |
 
 ## 검토 후 제외한 대안
 
@@ -113,26 +113,9 @@
 
 DEC-12를 기록하면서 [Langfuse self-host 안내](https://langfuse.com/self-hosting)를 다시 확인했습니다. 문서 버전 표시는 v4였고 구성은 같습니다. 각 구성요소의 역할은 web(화면·API), worker(수신 이벤트 비동기 처리), PostgreSQL(트랜잭션 데이터), Redis 또는 Valkey(캐시·작업 큐), ClickHouse(추적·관측·점수 저장), S3 호환 blob 저장소(수신 이벤트·첨부 보관)입니다. 도입할 Langfuse 버전과 라이선스는 도입 때 확인합니다(내용은 요약·재구성).
 
-### R-08 GovBiz 참고 프로젝트의 DB·Langfuse 운영 방식
-
-- **대상:** 같은 부트캠프의 참고 프로젝트 GovBiz([SKN34-4th-1Team](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-1Team)), 조사 시점 마지막 커밋 `a07e8d1`(2026-10-22). 2026-10-29 `/tmp`에 받아 코드·문서를 읽었고 실행하지 않았습니다. 저장소에는 흔적이 없습니다.
-- **업무 DB:** 서비스마다 별도 MySQL 8.4 인스턴스를 둡니다(core `mysql`·DB `govbiz`, catalog `catalog-mysql`·`govbiz_catalog`, ops `ops-mysql`). utf8mb4를 쓰고, 서비스 사이 FK가 없으며, 다른 서비스 DB에 직접 접근하지 않습니다. 마이그레이션은 core·catalog가 Flyway(파일 64개·3개), ops가 Django 마이그레이션(31개)입니다. 근거 파일: `README.md` 6.1절, `infrastructure/compose.yaml`, `infrastructure/compose.catalog.yaml`, `backend/ops-service/compose.yaml`.
-- **LLMOps:** 업무와 분리한 별도 Compose 프로젝트입니다(`infrastructure/llmops/compose.yaml`).
-  - Langfuse web·worker 4.46.0(이미지 digest 고정), Langfuse 전용 PostgreSQL 17.
-  - ClickHouse 25.12: 사용자 101:101, `mem_limit` 3g, `restart` on-failure:3, `CLICKHOUSE_CLUSTER_ENABLED=false` 단일 노드, 호스트 포트 없음. `clickhouse-memory.xml`로 서버 메모리 상한 2GiB·mark 캐시 128MiB를 두며, 파일 주석상 작은 로컬 데이터용이고 운영 기준값이 아닙니다. 스키마는 Langfuse가 시작할 때 마이그레이션합니다.
-  - Langfuse 전용 Redis 7.4(`requirepass`, `maxmemory-policy noeviction`).
-  - blob 저장소 `cgr.dev/chainguard/minio:latest`(digest 고정). 버킷 하나에 이벤트(`events/`)·미디어(`media/`) 경로를 나눕니다.
-  - 비밀값은 초기화 스크립트(`init_env.py`)가 만듭니다. `TELEMETRY_ENABLED=false`. Langfuse 화면은 `127.0.0.1:13000`에만 공개합니다. 업무 서비스는 ClickHouse에 접속하지 않습니다. 같은 파일의 평가 도구(Prefect)는 이번 결정 범위가 아닙니다.
-- **추적 방식:** `backend/ai-service/app/tracing.py`(`langfuse==4.15.6`). OTEL 기반이며 내보낼 span 이름을 허용 목록으로 거릅니다. 마스킹은 이름에 `input`·`output`이 들어간 속성(`usage` 포함 키 제외)과 `exception.` 속성을 지워 본문 없는 기록을 남깁니다. Core가 내부 HTTP로 W3C `traceparent`를 넘기면 AI가 형식만 검증해 부모로 연결하고, baggage·임의 속성은 받지 않습니다. 전송 시간 제한은 2초입니다.
-- **배포(EKS):** 관리형 DB 없이 저장소마다 StatefulSet과 EBS gp3 PVC를 쓰고, 백업은 암호화해 S3에 보관합니다(`infrastructure/eks/`). 우리 범위 밖이라 참고로만 기록합니다.
-- **적용하지 않은 것:** 업무 Redis·RabbitMQ·Elasticsearch·Qdrant는 이번 결정 범위가 아닙니다.
-- **설계 반영:** DEC-13(인스턴스 분리·Flyway), DEC-14(llmops 별도 프로젝트), DEC-15(추적 규칙). 같게 한 것과 다르게 한 것은 [인프라 GovBiz 대비 차이](services/infrastructure.md#govbiz-대비-차이)에 있습니다.
-- **한계:** 코드·문서 판독만 했습니다. Langfuse 4.46.0과 ClickHouse 설정값의 실제 동작, Chainguard 무료 이미지의 이용 조건·버전 고정 방식은 확인하지 않았습니다. GovBiz는 MySQL을 쓰므로 문자셋 설정 같은 DB 제품별 설정은 옮기지 않습니다.
-
 ### 근거의 한계
 
 - KAG·OpenSPG는 실행하지 않았습니다. R-01·R-02는 코드 판독 결과입니다.
-- GovBiz 조사(R-08)는 코드·문서 판독이며 실행하지 않았습니다.
 - lakeFS 시험(R-03)과 의존성 해석(R-06)은 `/tmp`에서 했고 저장소에 흔적이 없습니다. lakeFS 시험은 Python MinIO SDK 7.2.20으로 했으므로 Java SDK와 동작이 완전히 같다고 보장할 수 없습니다.
 - 라이선스 요약(R-04·R-05)은 설계 판단용이며 법률 판단이 아닙니다.
 - 외부 출처의 내용은 요약·재구성했습니다(원문 인용 아님).
