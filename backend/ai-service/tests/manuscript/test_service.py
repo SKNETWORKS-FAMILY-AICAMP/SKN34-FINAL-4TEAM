@@ -36,3 +36,14 @@ def test_embedding_model_unavailable_is_an_explicit_error(monkeypatch):
     with pytest.raises(ManuscriptFailure) as error:
         service.embed(EmbeddingRequest(texts=['질문'], kind='query'))
     assert error.value.status == 503
+
+
+def test_image_bakes_the_pinned_model_files_and_manuscript_extra():
+    from pathlib import Path
+
+    dockerfile = (Path(__file__).resolve().parents[2] / 'Dockerfile').read_text(encoding='utf-8')
+    assert dockerfile.count('--extra manuscript') == 2
+    for name, digest in service.FILES.items():
+        url = f'https://huggingface.co/{service.MODEL}/resolve/{service.REVISION}/onnx/{name}'
+        assert f'--checksum=sha256:{digest} {url}' in dockerfile
+    assert 'MANUSCRIPT_EMBEDDING_MODEL_DIR=' in dockerfile
