@@ -33,12 +33,20 @@ class TxtManuscript private constructor(private val lines: List<String>, private
 
         /** BOM을 뗀 뒤 엄격한 UTF-8 → 엄격한 CP949(MS949, EUC-KR 포함) 순으로 읽는다. 둘 다 안 되거나 제어 문자가 있으면 422다. */
         fun parse(bytes: ByteArray, filename: String): TxtManuscript {
-            val text = decode(bytes).replace(IMAGE_PLACEHOLDER.toString(), "")
-            if (text.any { it.isISOControl() && it !in "\t\r\n" }) throw ContentFailure(422, "글자가 아닌 제어 문자가 들어 있어 텍스트 파일로 읽을 수 없어요.")
-            if (text.isBlank()) throw ContentFailure(422, "파일이 비어 있어요.")
+            val text = readText(bytes)
             val lines = text.lines().let { if (it.last().isEmpty()) it.dropLast(1) else it }
             val name = filename.substringAfterLast('/').substringAfterLast('\\').substringBeforeLast('.').trim()
             return TxtManuscript(lines, name.ifEmpty { "원고" }.take(MAX_TITLE))
+        }
+
+        fun singleEpisodeBody(bytes: ByteArray): String =
+            readText(bytes).replace("\r\n", "\n").replace('\r', '\n')
+
+        private fun readText(bytes: ByteArray): String {
+            val text = decode(bytes).replace(IMAGE_PLACEHOLDER.toString(), "")
+            if (text.any { it.isISOControl() && it !in "\t\r\n" }) throw ContentFailure(422, "글자가 아닌 제어 문자가 들어 있어 텍스트 파일로 읽을 수 없어요.")
+            if (text.isBlank()) throw ContentFailure(422, "파일이 비어 있어요.")
+            return text
         }
 
         private fun decode(bytes: ByteArray): String {

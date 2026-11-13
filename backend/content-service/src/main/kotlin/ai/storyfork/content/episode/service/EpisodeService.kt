@@ -34,6 +34,10 @@ class EpisodeService(
         access.own(id,owner)
         return EpisodeListResponse(assemble(current.findAllByWorkIdOrderBySequence(id)))
     }
+    fun lastNumber(id: String, owner: String): Int {
+        access.own(id, owner)
+        return current.lastNumber(id)
+    }
     fun read(id: String, owner: String, number: Int): EpisodeResponse {
         access.own(id,owner)
         return readCurrent(id,number)
@@ -41,7 +45,7 @@ class EpisodeService(
     fun create(id: String, owner: String, data: CreateEpisodeRequest): EpisodeResponse {
         access.own(id,owner)
         validate(data.title,"")
-        val last=list(id,owner).items.maxOfOrNull { it.number } ?: 0
+        val last=current.lastNumber(id)
         checkContent(last<Int.MAX_VALUE,409,"회차 번호를 더 생성할 수 없어요.")
         val number=last+1
         val e=ensure(id,number)
