@@ -59,6 +59,14 @@ describe('FeedbackReportUseCase', () => {
     expect(await useCase.listInbox()).toEqual([report()])
   })
 
+  it('작가 피드백함은 작품을 정했을 때만 그 작품 ID를 저장소에 넘긴다(걸러 내기는 서버가 한다)', async () => {
+    const { repo, useCase } = setup()
+    expect(await useCase.listInbox('w1')).toEqual([report()])
+    expect(repo.listInbox).toHaveBeenLastCalledWith('w1')
+    await useCase.listInbox()
+    expect(repo.listInbox).toHaveBeenLastCalledWith(undefined)
+  })
+
   it('제보자 동작은 제보의 작품·ID로 보내고 정정은 입력을 검사한 본문을 보낸다', async () => {
     const { repo, useCase } = setup()
     const r = report({ id: 'r9', workId: 'w9' })

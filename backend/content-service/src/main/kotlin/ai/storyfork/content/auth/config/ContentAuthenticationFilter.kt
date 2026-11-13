@@ -7,9 +7,13 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.filter.OncePerRequestFilter
 import tools.jackson.databind.json.JsonMapper
+
+/** Core가 운영자(`operator=true`)로 확인한 회원의 인증 객체에만 담기는 authority다. */
+const val OPERATOR_AUTHORITY = "ROLE_OPERATOR"
 
 /** 사용자 ID 헤더/쿠키는 신뢰하지 않고 Core가 확인한 UUID만 Principal로 만든다. */
 class ContentAuthenticationFilter(private val service: CoreAuthVerificationService, private val mapper: JsonMapper) : OncePerRequestFilter() {
@@ -26,7 +30,8 @@ class ContentAuthenticationFilter(private val service: CoreAuthVerificationServi
                 return
             }
             val context = SecurityContextHolder.createEmptyContext()
-            context.authentication = UsernamePasswordAuthenticationToken.authenticated(member.toString(), null, emptyList())
+            val authorities = if (member.operator) listOf(SimpleGrantedAuthority(OPERATOR_AUTHORITY)) else emptyList()
+            context.authentication = UsernamePasswordAuthenticationToken.authenticated(member.memberId.toString(), null, authorities)
             SecurityContextHolder.setContext(context)
         }
         chain.doFilter(request, response)

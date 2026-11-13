@@ -364,6 +364,35 @@ class FeedbackReportServiceTest {
         verify(reports, never()).findTop200ByWorkIdInOrderByCreatedAtDesc(ArgumentMatchers.anyCollection<String>())
     }
 
+    @Test fun `inbox with a work id lists only that work and the filter applies before the 200 cap`() {
+        work("w1", owner = "me"); work("w2", owner = "me")
+        report("old", work = "w2", at = t0)
+        repeat(201) { report("n$it", work = "w1", at = t0.plusSeconds(10L + it)) }
+
+        // 필터가 200개 상한보다 늦으면 w1의 새 제보 200개에 밀려 w2의 제보가 사라진다.
+        assertEquals(listOf("old"), service.inbox("me", "w2").items.map { it.id })
+        assertEquals(200, service.inbox("me", "w1").items.size)
+        assertFalse(service.inbox("me").items.any { it.id == "old" })
+    }
+
+    @Test fun `inbox with a work id that is not mine is an empty list that reads neither reports nor Core`() {
+        work("mine", owner = "me"); work("theirs", owner = "other"); work("gone", owner = "me", deleted = true)
+        report("a", work = "mine"); report("b", work = "theirs"); report("c", work = "gone")
+
+        // 남의 작품·삭제한 작품·없는 작품·형식이 틀린 값은 존재 여부를 드러내지 않도록 모두 같은 빈 목록이다.
+        for (id in listOf("theirs", "gone", "no-such-work", "not-a-uuid")) assertEquals(emptyList<ReportResponse>(), service.inbox("me", id).items, id)
+        verify(reports, never()).findTop200ByWorkIdInOrderByCreatedAtDesc(ArgumentMatchers.anyCollection<String>())
+        assertTrue(asked.isEmpty())
+    }
+
+    @Test fun `inbox with a blank work id is the same as no filter`() {
+        work("w1", owner = "me"); work("w2", owner = "me")
+        report("a", work = "w1", at = t0.plusSeconds(1)); report("b", work = "w2", at = t0.plusSeconds(2))
+
+        // 화면이 "전체 작품"을 빈 값(`workId=`)으로 보내도 인박스가 비어 보이지 않는다.
+        for (blank in listOf("", "  ")) assertEquals(listOf("b", "a"), service.inbox("me", blank).items.map { it.id }, "[$blank]")
+    }
+
     @Test fun `the reporter changes visibility at any time even after withdrawal`() {
         work(); val row = report("r1", reporter = "reporter", visibility = "private")
 

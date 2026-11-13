@@ -91,19 +91,6 @@ describe('계정 (U30~U35E)', () => {
     expect(within(screen.getByRole('navigation', { name: '계정 메뉴' })).queryByRole('button', { name: '로그아웃' })).toBeNull()
   })
 
-  it('회원탈퇴는 30일 유예를 안내하고 실제로 바꾸지 않는다', async () => {
-    const { store } = renderAt('/me/profile')
-    fireEvent.click(await screen.findByRole('button', { name: '회원탈퇴' }))
-    const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
-    within(sheet).getByText(/탈퇴 기능은 준비 중이며, 여기서는 실제 계정을 삭제할 수 없어요/)
-    within(sheet).getByText(/정책 기획안.*30일/)
-    expect(within(sheet).queryByRole('button', { name: '탈퇴하기' })).toBeNull()
-    expect(within(sheet).queryByRole('checkbox')).toBeNull()
-    fireEvent.click(within(sheet).getByRole('button', { name: '확인' }))
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(store.getState().session.role).toBe('user')
-  })
-
   it('저장 공간은 MVP 제외를 안내하고 발행 회차 수정 초안을 보여 준다', async () => {
     renderAt('/studio/starlight?ep=1')
     const body = await screen.findByLabelText('원고 본문')

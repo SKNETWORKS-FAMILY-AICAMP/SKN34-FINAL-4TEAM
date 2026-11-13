@@ -13,7 +13,7 @@
 - `app/main.py → writing/router.py → agent.draft|patch → OpenAI.responses.create`: `POST /internal/v1/writing/drafts`는 계획·허용 문맥으로 새 회차 원고 Text를, `POST /internal/v1/writing/patches`는 선택 구간 하나의 before/after Patch를 반환합니다(#62). 모델 밖 검증이 없어 service 없이 router가 agent를 호출합니다. 호출자는 Content `ProposalService.writeDraft|writePatch`이며, 저장은 기존 제안 승인(accept)에서 판본을 다시 확인한 뒤에만 합니다. [Writing 설계](../../../docs/writing-ai-architecture/03-rag-simulation-design.md#4-writing--editing-agent)
 - 생성은 Content의 [`ProposalService`](../../content-service/src/main/kotlin/ai/storyfork/content/proposal/service/ProposalService.kt)가 [`GenerationClient`](../../content-service/src/main/kotlin/ai/storyfork/content/proposal/client/GenerationClient.kt)를 통해 요청합니다. Content는 권한·기준 버전·문맥을 확인하고 DB 트랜잭션 밖에서 생성 API를 호출합니다. 응답을 받으면 기준을 다시 확인해 제안을 저장하며, 채택과 원고 반영은 별도 요청으로 처리합니다. Core의 AI 호출은 Health 확인 경로입니다.
 
-[최신 설계](../../../docs/design/design.md)의 최종 모델·제공사·에이전트 프레임워크는 미정입니다. 현재 `openai` SDK 구현과 남아 있는 `openai-agents` 의존성을 전체 기술 선정 완료로 해석하지 않습니다.
+[최신 설계](../../../docs/design/design.md)의 집필 AI 여섯 Agent와 시뮬레이션 행동·요약 목표 모델은 OpenAI `gpt-6-luna`로 결정됐습니다. 그 밖의 모델·제공사·에이전트 프레임워크는 미정입니다. 현재 `openai` SDK 구현과 남아 있는 `openai-agents` 의존성을 전체 기술 선정 완료로 해석하지 않습니다.
 
 ## 기능 패키지 구조
 

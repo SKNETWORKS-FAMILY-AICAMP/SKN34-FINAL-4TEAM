@@ -6,7 +6,7 @@ import type { CreditUseCase } from '../../../domain/usecases/CreditUseCase'
 import { sessionActions } from '../session/sessionSlice'
 import { useAsyncData } from '../useAsyncData'
 
-/** 목업 policySheet(): GNB 크레딧 버튼·집필실 '정책 안내'(sf-policy 이벤트)로 엽니다. */
+/** 목업 policySheet(): 결제 내역(/me/pay)의 '정책 안내' 버튼(sf-policy 이벤트)으로 엽니다. */
 export function usePolicyViewModel(creditUseCase: CreditUseCase = appContainer.resolve('creditUseCase')) {
   const dispatch = useAppDispatch()
   const [open, setOpen] = useState(false)

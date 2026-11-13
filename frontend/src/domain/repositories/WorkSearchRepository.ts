@@ -15,4 +15,6 @@ export interface WorkSearchRepository {
   rankings(query: WorkRankingQuery, signal?: AbortSignal): Promise<{ items: Work[]; computedAt: Date }>
   /** 로그인 회원이 공개 회차를 연 기록. 익명이면 보내지 않으며, 같은 날 중복은 서버가 무시한다. */
   recordView(workId: string, episode: number, signal?: AbortSignal): Promise<void>
+  /** 공개 작품 상세의 회차 번호별 누적 회원 조회 수(기록 없는 회차는 키가 없다). 목록·검색·랭킹 응답에는 없어 상세를 따로 읽는다. */
+  episodeViews(workId: string, signal?: AbortSignal): Promise<Record<number, number>>
 }

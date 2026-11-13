@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
+import { isPub } from '../../../../domain/entities/work'
 import type { FeedbackUseCase } from '../../../../domain/usecases/FeedbackUseCase'
 import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { toast } from '../../../shared/events'
+import { usePublicImageAlts } from '../../../shared/media/usePublicImageAlts'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { uiActions } from '../../../shared/ui/uiSlice'
@@ -62,13 +64,20 @@ export function useReaderViewModel(id: string, n: number,
   useScreenId(ok ? 'U05' : null)
 
   const sentences = ok ? ok.paragraphs.flat() : []
+  // 본문 이미지는 독자가 받는 것과 같은 길로 받는다: 공개 작품은 로그인 없이 읽는 공개 경로와 공개 대체 텍스트, 작가만 여는 비공개 작품은 소유자 경로다.
+  const publicImages = !!ok && isPub(ok.work)
+  const imageAlts = usePublicImageAlts(ok?.work.id ?? '', ok?.n ?? 0, publicImages && ok.blocks.some((b) => b.kind === 'image'))
   const theme = ok?.work.theme ?? 'hanji'
   const lite = !look.dark
   return {
     /** undefined: 불러오는 중, null: 볼 수 없는 작품, 'hidden': 숨긴 회차 */
     state: data, isError, retry,
     reader: ok,
+    /** 고를 수 있는 문장. 순서가 reader.blocks의 문장 순서(화면의 data-s)와 같다. */
     sentences,
+    /** 본문 이미지를 공개 경로로 받을지와, 공개 작품 발행본 이미지의 대체 텍스트(이미지 ID → 설명, 못 읽으면 빈 값) */
+    publicImages,
+    imageAlts,
     readerClass: (look.eff === 'world' ? `th-${theme} themed${lite ? ' lite' : ''}` : `calm rd calm-${theme}`) + ' reader',
     readerVars: { ...(look.eff === 'white' || look.eff === 'night' ? LOOK_VARS[look.eff] : {}), '--fs': look.fs + 'px' },
     amb: look.eff === 'world' && look.motion ? { lite } : null,

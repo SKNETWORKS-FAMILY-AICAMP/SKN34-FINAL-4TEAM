@@ -162,6 +162,42 @@ it('#144 모두 읽음 실패는 현재 목록과 이후 재조회 알림을 읽
   expect(hook.result.current.items.every((item) => !item.read)).toBe(true)
 })
 
+it('조작 실패는 어디서 실패했는지와 함께 남겨 화면이 그 자리에서 알리게 하고, 다음 조작을 시작하면 지운다', async () => {
+  const { hook, markAll, shell } = setup(page(['c', 'b']))
+  await waitFor(() => expect(hook.result.current.status).toBe('ready'))
+  expect(hook.result.current.failure).toBeNull()
+
+  let done!: Promise<void>
+  act(() => { done = hook.result.current.markAll() })
+  await act(async () => { markAll.reject(new Error('읽음 실패')); await done })
+  expect(hook.result.current.failure).toEqual({ at: 'all', msg: '모두 읽음 처리하지 못했어요. 다시 시도해 주세요.' })
+
+  const [c] = hook.result.current.items
+  let finish!: (error: Error) => void
+  Object.assign(shell, { removeNotification: vi.fn(() => new Promise<void>((_, reject) => { finish = reject })) })
+  let removed!: Promise<boolean>
+  act(() => { removed = hook.result.current.remove(c) })
+  expect(hook.result.current.failure).toBeNull()
+  await act(async () => { finish(new Error('삭제 실패')); expect(await removed).toBe(false) })
+  expect(hook.result.current.failure).toEqual({ at: 'row:c', msg: '알림을 삭제하지 못했어요. 다시 시도해 주세요.' })
+  expect(ids(hook.result.current.items)).toEqual(['c', 'b'])
+})
+
+it('수신 설정 저장과 더 보기 실패도 각각의 자리로 남긴다', async () => {
+  const { hook, pending, shell } = setup(page(['c', 'b'], 'below-b'))
+  await waitFor(() => expect(hook.result.current.status).toBe('ready'))
+  Object.assign(shell, { savePrefs: vi.fn(() => Promise.reject(new Error('저장 실패'))) })
+  await act(async () => { await hook.result.current.setPref('read', false) })
+  expect(hook.result.current.failure).toEqual({ at: 'prefs', msg: '알림 설정을 저장하지 못했어요. 다시 시도해 주세요.' })
+  expect(hook.result.current.prefs).toEqual({ read: true, creator: true })
+
+  let more!: Promise<void>
+  act(() => { more = hook.result.current.loadMore() })
+  await act(async () => { pending[0].response.reject(new Error('조회 실패')); await more })
+  expect(hook.result.current.failure).toEqual({ at: 'more', msg: '알림을 더 불러오지 못했어요. 다시 시도해 주세요.' })
+  expect(hook.result.current.loadingMore).toBe(false)
+})
+
 it('#145 재시도 전 SSE 응답은 새 목록을 덮지 않는다', async () => {
   const { hook, pending, signal } = setup(page(['d', 'c']))
   await waitFor(() => expect(hook.result.current.status).toBe('ready'))

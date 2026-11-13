@@ -23,7 +23,7 @@
 
 ## 인증과 실행
 
-비공개 `/api/v1/works` API는 Auth가 검증한 JWT의 servlet `Principal.name`(회원 UUID)을 작성자로 사용한다. 클라이언트 사용자 ID 헤더·데모 역할·`CONTENT_DEV_OWNER`로 SecurityFilterChain을 우회할 수 없다. 모든 변경 요청에는 CSRF가 필요하고 공개 `/api/v1/public/works` 조회는 GET만 익명으로 허용한다.
+비공개 `/api/v1/works` API는 Auth가 검증한 JWT의 servlet `Principal.name`(회원 UUID)을 작성자로 사용한다. 클라이언트 사용자 ID 헤더·데모 역할·`CONTENT_DEV_OWNER`로 SecurityFilterChain을 우회할 수 없다. 모든 변경 요청에는 CSRF가 필요하고 공개 `/api/v1/public/works`·`/api/v1/public/world-studios`([공개 세계관 계약](design/public-world-contract.md)) 조회는 GET만 익명으로 허용한다.
 
 설정은 루트 `.env.example`을 참고해 루트 `.env`에서 관리한다. 실제 `.env`를 덮어쓰거나 서비스별 파일을 만들지 않는다. Content는 항상 PostgreSQL JDBC URL·사용자·비밀번호와 양 서비스의 동일한 `INTERNAL_TOKEN`이 필요하다. `OPENAI_API_KEY`와 `OPENAI_MODEL`은 AI 런타임에만 전달한다. 공용 실행 설정에는 모델 기본값이 없다. 생성을 사용하려면 사용 가능한 `OPENAI_MODEL`과 키를 명시해야 하며, 누락하면 생성 API는 503으로 실패한다. 팀 CD의 별도 모델 설정은 팀 전체 모델 선정 결정이나 실제 런타임 검증을 뜻하지 않는다.
 
@@ -71,7 +71,7 @@ docker compose up -d --build
 
 Aside를 사용할 수 있을 때 정상 흐름, 실패 경로, 재접속 저장 유지, 모바일·키보드 조작을 확인한다. 실제 Principal 제공자 연결과 Docker 기동을 별도로 확인하고, 유료 생성 추가 검증은 별도 승인 범위에서만 수행한다. 변경 전달 시 최신 커밋의 Required CI 결과를 확인한다.
 
-후속 집필 작업의 기준은 [이슈 #50 대응](issue-50-alignment.md)입니다. `/content`에서 작품을 선택하고 회차별 집필실로 이동할 수 있습니다. 모든 발행 요청은 저장 버전 ID를 명시해야 합니다.
+후속 집필 작업의 기준은 [이슈 #50 대응](issue-50-alignment.md)입니다. 작품 목록은 서재(`/lib?tab=write`)가 맡고, `/content?work=<작품ID>`에서 그 작품을 관리하며 '회차 작성하기'로 집필실(`/studio/{id}`)로 이동할 수 있습니다. 모든 발행 요청은 저장 버전 ID를 명시해야 합니다.
 
 
 #84의 파일·책임·DTO·영속성 대응과 이번 검증 한계는 [콘텐츠 책임 분리](issue-84-content-boundaries.md)를 따른다. 아래 과거 날짜의 기록은 당시 결과이며 이번 JPA 전환의 통과 근거로 대신하지 않는다.

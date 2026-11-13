@@ -7,6 +7,8 @@ import ai.storyfork.core.auth.helper.AuthTokenHelper
 import ai.storyfork.core.auth.repository.MemberRepository
 import ai.storyfork.core.auth.repository.ProfileChallengeRepository
 import ai.storyfork.core.auth.repository.SessionRepository
+import ai.storyfork.core.auth.service.dto.EmailRequest
+import ai.storyfork.core.auth.service.dto.NicknameRequest
 import ai.storyfork.core.auth.service.dto.ResetRequest
 import java.time.Instant
 import java.util.Optional
@@ -134,5 +136,31 @@ class ProfileServiceTest {
         givenReset(null)
 
         assertRejectedResetPreservesAccount()
+    }
+
+    @Test
+    fun `a restricted member cannot change the nickname or ask for an email change`() {
+        val restricted = AuthMember(UUID.randomUUID(), "gone@example.invalid", "x", "Reader", restricted = true)
+        `when`(members.lockById(restricted.id)).thenReturn(restricted)
+        val nickname = assertThrows(AuthException::class.java) { profiles.nickname(restricted.id, NicknameRequest("New")) }
+        assertEquals(AuthException.Reason.UNAUTHENTICATED, nickname.reason)
+        assertEquals("Reader", restricted.nickname)
+        val email = assertThrows(AuthException::class.java) { profiles.requestEmailChange(restricted.id, EmailRequest("new@example.invalid")) }
+        assertEquals(AuthException.Reason.UNAUTHENTICATED, email.reason)
+    }
+
+    @Test
+    fun `an ordinary member can still change the nickname`() {
+        `when`(members.lockById(member.id)).thenReturn(member)
+        assertEquals("New", profiles.nickname(member.id, NicknameRequest(" New ")).nickname)
+    }
+
+    @Test
+    fun `the emailed password reset link still works for a restricted member as before`() {
+        member.restricted = true
+        givenReset()
+        `when`(passwords.encode(request.newPassword)).thenReturn("new-hash")
+        profiles.resetPassword(request)
+        assertEquals("new-hash", member.passwordHash)
     }
 }

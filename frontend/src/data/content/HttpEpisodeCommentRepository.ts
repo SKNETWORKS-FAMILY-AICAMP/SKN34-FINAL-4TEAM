@@ -27,6 +27,10 @@ export class HttpEpisodeCommentRepository implements EpisodeCommentRepository {
   async list(id: string, n: number, sort: CommentSort) {
     return (await this.api.request(`/public${all(id, n)}?sort=${sort}`, comments, 'GET', undefined, undefined, !getAccessToken())).items
   }
+  /** 작품 전체 댓글(공개 읽기): 회차 댓글과 같은 DTO·검증이고 Bearer 선택 규칙도 같다. */
+  async listByWork(id: string, sort: CommentSort) {
+    return (await this.api.request(`/public/works/${encodeURIComponent(id)}/comments?sort=${sort}`, comments, 'GET', undefined, undefined, !getAccessToken())).items
+  }
   create(id: string, n: number, input: { body: string; quote?: string; spoiler?: boolean }) { return this.api.request(all(id, n), comment, 'POST', input) }
   update(id: string, n: number, commentId: string, input: { body: string; spoiler: boolean }) { return this.api.request(one(id, n, commentId), comment, 'PUT', input) }
   remove(id: string, n: number, commentId: string) { return this.api.request(one(id, n, commentId), z.undefined(), 'DELETE') }
