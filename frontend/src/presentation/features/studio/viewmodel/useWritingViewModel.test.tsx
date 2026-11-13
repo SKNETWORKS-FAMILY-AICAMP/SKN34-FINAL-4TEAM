@@ -485,3 +485,21 @@ it('자동 저장이 끝났을 때 그사이 입력이 남아 있으면 2초 뒤
   expect(api.writeEpisode).toHaveBeenLastCalledWith('w',1,{title:'1화',body:'둘째 입력',revision:1},false,expect.any(AbortSignal))
   expect(result.current.dirty).toBe(false)
 })
+
+it('keeps typing that starts while the AI draft is reloading', async () => {
+  const episode = { number: 1, draft: { title: '1화', body: '기존', revision: 0 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'content_only', checkpoints: [] }
+  let finishReload: (rows: typeof episode[]) => void = () => {}
+  const writingList = vi.fn().mockResolvedValueOnce([episode])
+    .mockImplementationOnce(() => new Promise(resolve => { finishReload = resolve }))
+  const api = { writingList, setPublicationVisibility: vi.fn(), history: vi.fn(), createEpisode: vi.fn(), writeEpisode: vi.fn(), restoreEpisode: vi.fn(), publishEpisode: vi.fn(), orderScope: vi.fn(), deleteDraft: vi.fn(), deleteEpisode: vi.fn() }
+  const { result } = renderHook(() => useWritingViewModel('w', api))
+  await act(async () => {})
+  let reloading: Promise<void> | undefined
+  act(() => { reloading = result.current.aiApplied(1) })
+  act(() => result.current.edit({ body: '새로 입력한 문장' }))
+  await act(async () => {
+    finishReload([{ ...episode, draft: { ...episode.draft, body: '서버의 AI 초안', revision: 1 } }])
+    await reloading
+  })
+  expect(result.current.draft.body).toBe('새로 입력한 문장')
+})

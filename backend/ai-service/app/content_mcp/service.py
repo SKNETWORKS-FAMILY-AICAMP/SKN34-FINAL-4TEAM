@@ -11,6 +11,7 @@ import os
 from contextvars import ContextVar
 
 from agents.mcp import MCPServerStreamableHttp
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from app.content_mcp.errors import ContentMcpFailure
 
@@ -20,19 +21,45 @@ PASSED_STATUSES = {401, 403, 404, 409, 422}
 SELECTION_CHANGED = '선택한 문장이 초안에서 바뀌었거나 여러 곳에 있어 반영하지 않았어요. 다시 요청해 주세요.'
 
 
+class DraftRevision(BaseModel):
+    model_config = ConfigDict(strict=True)
+    revision: int
+
+
+class Draft(DraftRevision):
+    title: str
+    body: str
+    authorNote: str | None = None
+
+
+class EpisodeReadResponse(BaseModel):
+    draft: Draft
+
+
+class EpisodeUpdateResponse(BaseModel):
+    draft: DraftRevision
+
+
 def apply_writing(work_id: str, number: int, result: dict) -> dict:
     """승인된 Text는 기존 초안 뒤에 잇고, Patch는 초안 안에 하나뿐인 선택 구간만 바꿔 저장한다."""
-    draft = call('episode_read', {'id': work_id, 'number': number})['draft']
+    try:
+        draft = EpisodeReadResponse.model_validate(call('episode_read', {'id': work_id, 'number': number})).draft
+    except ValidationError:
+        raise ContentMcpFailure(502, 'Content 초안 응답을 확인할 수 없습니다.') from None
     if 'text' in result:
         # 기존 초안을 덮어써 작가 원고를 잃지 않도록 뒤에 잇는다.
-        body = f"{draft['body']}\n\n{result['text']}" if draft['body'].strip() else result['text']
-    elif draft['body'].count(result['before']) == 1:
-        body = draft['body'].replace(result['before'], result['after'])
+        body = f"{draft.body}\n\n{result['text']}" if draft.body.strip() else result['text']
+    elif draft.body.count(result['before']) == 1:
+        body = draft.body.replace(result['before'], result['after'])
     else:
         raise ContentMcpFailure(409, SELECTION_CHANGED)
     saved = call('episode_update_draft', {'id': work_id, 'number': number, 'data': {
-        'title': draft['title'], 'body': body, 'revision': draft['revision'], 'authorNote': draft.get('authorNote', '')}})
-    return {'episode': number, 'revision': saved['draft']['revision']}
+        'title': draft.title, 'body': body, 'revision': draft.revision, 'authorNote': draft.authorNote or ''}})
+    try:
+        revision = EpisodeUpdateResponse.model_validate(saved).draft.revision
+    except ValidationError:
+        raise ContentMcpFailure(502, 'Content 초안 저장 응답을 확인할 수 없습니다.') from None
+    return {'episode': number, 'revision': revision}
 
 
 def call(tool: str, arguments: dict) -> dict:

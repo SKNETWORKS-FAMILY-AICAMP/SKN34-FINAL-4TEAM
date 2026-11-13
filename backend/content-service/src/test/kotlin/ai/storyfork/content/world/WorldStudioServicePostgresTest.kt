@@ -79,7 +79,9 @@ class WorldStudioServicePostgresTest {
                 assertThrows(RuntimeException::class.java) { service.save(create.id,actor,SaveWorldRequest(removed.draftRevision,"fail-late")) };assertEquals(removed,service.draft(create.id,actor))
                 val another=service.create(actor,CreateWorldRequest("別世界"))
                 assertThrows(WorldNotFound::class.java) { service.edit(another.worldId,actor,EditWorldDraftRequest(0,another.name,"",listOf(original),key="foreign")) }
-                val collision=EditWorldDraftRequest(0,another.name,"",relationships=listOf(relationship.copy(sourceCardId=null,targetCardId=null)),key="foreign-relation",replace=true)
+                // DEC-51: 연결은 두 카드 사이에만 있으니 다른 세계관의 관계 ID를 재사용하는 요청도 이 세계관의 실제 카드 둘을 끝점으로 쓴다.
+                val mine=listOf(CardPayload(UUID.randomUUID(),"다른 인물","원문","character","basic"),CardPayload(UUID.randomUUID(),"다른 장소","원문","location","space"))
+                val collision=EditWorldDraftRequest(0,another.name,"",mine,listOf(relationship.copy(sourceCardId=mine[0].id,targetCardId=mine[1].id)),"foreign-relation",true)
                 assertEquals("WORLD_WRITE_REJECTED",assertThrows(WorldStudioFailure::class.java) { service.edit(another.worldId,actor,collision) }.code)
                 assertEquals(another,service.draft(another.worldId,actor))
                 val corrected=collision.copy(key="corrected",relationships=listOf(collision.relationships.single().copy(id=UUID.randomUUID())))
@@ -104,6 +106,41 @@ class WorldStudioServicePostgresTest {
                 assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.world_save_request WHERE request_key='fail-late'"))
             }
         }
+    }
+    @Test fun `relations are recorded per episode and every episode reads its own connections`() {
+        WorldStudioPostgresFixture("independent").use { db -> db.studio().migrate();context(db).use { ctx ->
+            val service=ctx.getBean(WorldStudioService::class.java);val actor=UUID.randomUUID();val created=service.create(actor,CreateWorldRequest("회차별 관계"))
+            val cards=listOf("가","나","다").map { CardPayload(UUID.randomUUID(),it,"원문","character","basic") }
+            val (a,b,c)=cards.map { it.id }
+            val friend=RelationshipPayload(UUID.randomUUID(),a,b,"structural","친구",label="friend_of")
+            val enemy=friend.copy(body="적",label="enemy_of")
+            val lover=RelationshipPayload(UUID.randomUUID(),b,c,"emotional","연인")
+            var revision=created.draftRevision;var n=0
+            fun edit(episode:Int?,vararg rows:RelationshipPayload,cards:List<CardPayload> = emptyList()):Set<RelationshipPayload> {
+                val saved=service.edit(created.worldId,actor,EditWorldDraftRequest(revision,created.name,"",cards,rows.toList(),"episode-${n++}",false,episode))
+                revision=saved.draftRevision;return saved.relationships.toSet()
+            }
+            fun at(episode:Int?)=service.draft(created.worldId,actor,episode).relationships.toSet()
+            // 연결이 아직 없으면 회차를 생략해도 1화에 쓴다.
+            assertEquals(setOf(friend),edit(null,friend,cards=cards))
+            // 3화: 친구가 적이 되고 새 관계가 생긴다. 응답은 저장한 회차 기준이다.
+            assertEquals(setOf(enemy,lover),edit(3,enemy,lover))
+            assertEquals(setOf(friend),at(1));assertEquals(setOf(friend),at(2))
+            assertEquals(setOf(enemy,lover),at(3));assertEquals(setOf(enemy,lover),at(4));assertEquals(setOf(enemy,lover),at(null))
+            // 5화: 새 관계가 끝난다. 4화 이전은 그대로고 최신은 끝난 뒤다.
+            assertEquals(setOf(enemy),edit(5,lover.copy(lifecycle="removed")))
+            assertEquals(setOf(enemy,lover),at(4));assertEquals(setOf(enemy),at(5));assertEquals(setOf(enemy),at(null))
+            // 2화를 고쳐도 3화 이후 연결은 바뀌지 않는다.
+            val early=friend.copy(body="막역한 친구")
+            assertEquals(setOf(early),edit(2,early))
+            assertEquals(setOf(early),at(2));assertEquals(setOf(friend),at(1));assertEquals(setOf(enemy,lover),at(3));assertEquals(setOf(enemy),at(null))
+            // 같은 회차를 다시 저장하면 덮어쓰고, 끝점이 바뀌어도 그 회차에는 연결이 하나만 남는다(둘이면 조회가 실패한다).
+            assertEquals(setOf(enemy.copy(body="철천지원수")),edit(5,enemy.copy(body="철천지원수")))
+            val moved=enemy.copy(body="다른 사람과 원수",targetCardId=c)
+            assertEquals(setOf(moved),edit(5,moved));assertEquals(setOf(moved),at(null));assertEquals(setOf(enemy,lover),at(4))
+            // 끝난 관계를 같은 ID로 다시 쓰면 되살아난다.
+            assertEquals(setOf(moved,lover),edit(6,lover));assertEquals(setOf(moved),at(5))
+        } }
     }
     @Test fun `Neo4j success followed by PostgreSQL commit failure stays pending until exact replay`() {
         WorldStudioPostgresFixture("independent").use { db -> db.studio().migrate();context(db).use { ctx ->

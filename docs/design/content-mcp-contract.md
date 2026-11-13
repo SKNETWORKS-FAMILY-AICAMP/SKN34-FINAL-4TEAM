@@ -114,6 +114,8 @@ AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작�
 | `world_analysis_apply` | `POST …/analyses/{analysisId}/applications` |
 | `world_analysis_application_read` | `GET …/applications/{applicationId}` |
 
+`world_studio_read`·`world_studio_edit_draft`는 선택 인자 `episode`(관계의 회차 시점, 1 이상, 생략하면 최신 회차, [DEC-51](worldstudio-independent-schema.md#회차별-관계--dec-51))를 받는다. `world_studio_read`는 HTTP `?episode=`처럼 문자열로 받아 값 오류를 422로 낸다.
+
 ## 오류 형식
 
 - 도구 오류 텍스트는 첫 줄 `HTTP <상태>[ <코드>]`, 둘째 줄 detail이다. `ContentFailure`·`CoreAuthException`·WorldStudio 예외는 기존 HTTP API와 같은 상태·코드로 옮기고, 그 밖의 예외는 내용 없이 `HTTP 500`이다.
@@ -139,5 +141,5 @@ ai-service `app/content_mcp/`가 `openai-agents`의 `MCPServerStreamableHttp`로
 - JSON 타입이 틀린 인자처럼 도구 함수에 들어오기 전 실패는 Spring AI 기본 오류 문구로 나가며 HTTP 상태 줄이 없고, 호출자가 보낸 값 조각이 되돌아갈 수 있다(입력 스키마 검증이 먼저 막는 경우가 대부분).
 
 - 사용자 권한 그대로 정본을 바꾸므로 삭제·발행도 즉시 반영된다. 화면 확인 단계는 두지 않는다(시연 범위).
-- 사용자 토큰이 AI 작업 중 만료되면 도구가 인증 오류를 낸다. 갱신은 호출 측(ai-service) 몫이다.
+- 사용자 토큰이 AI 작업 중 만료되면 도구가 인증 오류를 낸다. 갱신은 호출 측(ai-service) 몫이다. 회차 원고 전처리(DEC-50)의 백그라운드 적재 인증과 사건·기억·회차별 상태 적재 도구는 [전처리 계약](manuscript-preprocessing-contract.md#전처리-mcp-도구-content-jobid-인증)의 `jobId` 인증 도구로 정했다(미구현).
 - 기존 API가 바뀌면 같은 작업에서 도구도 맞춘다.

@@ -33,7 +33,7 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg import AsyncConnection, errors, sql
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import Command, interrupt
+from langgraph.types import Command, Overwrite, interrupt
 
 from app import tracing
 from app.content_mcp import service as content_mcp
@@ -67,7 +67,7 @@ def _story_context(data: dict | None, state: dict) -> QaStepResult:
         if not found.excerpts:
             return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
         data = {'question': state['request'][:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
-    history = [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]
+    history = [] if state.get('replaceHistory') else [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]
     answer = manuscript.answer(AnswerRequest.model_validate({**data, 'history': history}))
     cited = {i for claim in answer.claims for i in claim.sourceIds}
     return QaStepResult(claims=answer.claims, gaps=gaps + answer.gaps, coverage=coverage,
@@ -138,12 +138,13 @@ class State(TypedDict, total=False):
     runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
     traceParent: str | None
     title: str  # 대화 제목. 첫 턴 요청 앞부분이며 rename으로만 바뀐다.
+    replaceHistory: bool
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa, reply}를 하나씩 덧붙인다.
 
 
 def plan(state: State) -> State:
     """Router 계획을 검증한다. 실행할 수 있으면 status=running과 대기 단계를 남긴다."""
-    history = [t['request'] for t in state.get('turns', [])][-HISTORY_TURNS:]
+    history = [] if state.get('replaceHistory') else [t['request'] for t in state.get('turns', [])][-HISTORY_TURNS:]
     with tracing.observe('plan', trace_context=_trace(state), input={'request': state['request']}) as span:
         routed = intent.route(state['request'], state.get('operation'), state['materials'], history)
         span.update(metadata={'status': routed.status, 'steps': [[s.feature, s.when] for s in routed.steps]})
@@ -209,7 +210,7 @@ def apply(state: State) -> State:
                 step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], step['result'])
         except ContentMcpFailure as error:
             step.update(status='failed', error=str(error))
-    return {'steps': steps}
+    return {'steps': steps, 'retrievalScope': answer.get('scope') or state.get('retrievalScope')}
 
 
 def _awaiting_approval(state: State) -> bool:
@@ -231,7 +232,10 @@ def finish(state: State) -> State:
         question = state['inputs'].get('story_context', {}).get('question') or state['request'][:500]
         qa = {'question': question, 'answer': answer[:2000]}
     reply = _response({**state, **done}).model_dump(mode='json')
-    return {**done, 'turns': [{'request': state['request'], 'qa': qa, 'reply': reply}]}
+    turn = [{'request': state['request'], 'qa': qa, 'reply': reply}]
+    if state.get('replaceHistory'):
+        return {**done, 'turns': Overwrite(turn), 'title': state['request'][:TITLE_LENGTH], 'replaceHistory': False}
+    return {**done, 'turns': turn}
 
 
 def _trace(state: State) -> dict | None:
@@ -319,7 +323,7 @@ def _initial(data: OrchestrationRequest) -> State:
                                        metadata={'operation': data.operation, 'conversation': data.conversation is not None})
     return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
-            'steps': [], 'missingInputs': [], 'unsupported': [],
+            'steps': [], 'missingInputs': [], 'unsupported': [], 'replaceHistory': False,
             'scope': data.conversation.scope if data.conversation else None,
             'retrievalScope': data.scope.model_dump() if data.scope else None,
             'target': data.target.model_dump() if data.target else None}
@@ -340,9 +344,8 @@ async def _target(data: OrchestrationRequest):
         state = {**_initial(data), 'title': snapshot.values.get('title') or data.request[:TITLE_LENGTH]}
         if data.fromTurn is not None:
             fork = await _fork_point(config, snapshot, data.fromTurn)
-            if fork is None:  # 첫 턴을 고치면 대화를 새로 시작한다.
-                await CHAT.checkpointer.adelete_thread(data.conversation.threadId)
-                state['title'] = data.request[:TITLE_LENGTH]
+            if fork is None:  # 새 첫 턴이 끝날 때까지 기존 이력을 보존한다.
+                state['replaceHistory'] = True
             else:
                 config = {**config, 'configurable': fork.config['configurable']}
         return CHAT, config, state, dict(state)
@@ -356,7 +359,8 @@ def _response(state: dict) -> OrchestrationResponse:
         waiting = state['__interrupt__'][0].value
         approval = waiting.get('awaitingApproval')
         state = {**state, 'status': 'waiting', 'message': APPROVAL_MESSAGE if approval else WAITING_MESSAGE,
-                 'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval}
+                 'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval,
+                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval else None}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
 

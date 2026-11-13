@@ -41,7 +41,7 @@ function Waiting({ reply, episode, pending, onResume }: {
   const draft = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed')
   if (reply.awaitingApproval) {
     return <section className="chat-hitl" aria-labelledby={`${id}-t`}>
-      <h3 id={`${id}-t`}>{episode ? `${episode}화 초안에 반영할까요?` : '초안에 반영할까요?'}</h3>
+      <h3 id={`${id}-t`}>{reply.approvalEpisode ? `${reply.approvalEpisode}화 초안에 반영할까요?` : '이 제안을 초안에 반영할까요?'}</h3>
       {draft && <div className="chat-hitl-preview" tabIndex={0} aria-label="반영할 내용">{stepText(draft)}</div>}
       <p className="chat-note">반영하면 작업 중인 초안만 바뀌고 발행되지 않아요. 반영하지 않아도 제안은 대화에 남아요.</p>
       <div className="chat-hitl-actions">
@@ -77,15 +77,26 @@ function Waiting({ reply, episode, pending, onResume }: {
  * 집필 AI 채팅(#331): 세션 고르기·새 대화·제목 바꾸기·삭제, 메시지 수정·여기부터 지우기, SSE 진행과 승인·입력 대기.
  * 상태와 요청은 useWritingChatViewModel 하나가 맡고, 이 화면은 그 값을 그린다. AI 제안은 원고에 자동으로 반영되지 않는다.
  */
-export function WritingChat({ workId, basis, emptyTitle, emptyText, suggestions, onApplied }: {
+type WritingChatProps = {
   workId: string | null; basis: ChatBasis | null; emptyTitle: string; emptyText: string; suggestions: string[]; onApplied?: (episode: number) => void
-}) {
+}
+
+export function WritingChat(props: WritingChatProps) {
+  return <WorkChat key={props.workId} {...props} />
+}
+
+function WorkChat({ workId, basis, emptyTitle, emptyText, suggestions, onApplied }: WritingChatProps) {
   const vm = useWritingChatViewModel(workId, basis, onApplied)
   const id = useId()
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
   const live = vm.live
+  function selectConversation(id: string) {
+    setEditing(null)
+    if (id) vm.select(id)
+    else vm.startNew()
+  }
   // 고치는 중이면 그 턴부터, 이어가는 중이면 멈춘 턴을 감추고 진행 표시로 대신한다.
   const shown = live?.editIndex !== undefined ? vm.turns.slice(0, live.editIndex) : live?.resumed ? vm.turns.slice(0, -1) : vm.turns
   const messages: ChatMessage[] = shown.flatMap((turn, i) => [
@@ -124,16 +135,16 @@ export function WritingChat({ workId, basis, emptyTitle, emptyText, suggestions,
         <button type="button" className="btn sm" onClick={() => setRenaming(null)}>취소</button>
       </form> : confirming ? <div className="chat-rename" role="group" aria-label="대화 삭제 확인">
         <p>이 대화를 지울까요? 되돌릴 수 없어요.</p>
-        <button type="button" className="btn sm danger" autoFocus disabled={vm.pending} onClick={async () => { if (await vm.remove()) setConfirming(false) }}>지우기</button>
+        <button type="button" className="btn sm danger" autoFocus disabled={vm.pending} onClick={async () => { if (await vm.remove()) { setEditing(null); setConfirming(false) } }}>지우기</button>
         <button type="button" className="btn sm" onClick={() => setConfirming(false)}>취소</button>
       </div> : <>
         <label className="sr-only" htmlFor={`${id}-pick`}>대화 고르기</label>
         <select id={`${id}-pick`} className="chat-session-pick" value={vm.threadId ?? ''} disabled={!vm.available || !!live}
-          onChange={(e) => (e.target.value ? vm.select(e.target.value) : vm.startNew())}>
+          onChange={(e) => selectConversation(e.target.value)}>
           {(!vm.threadId || !current) && <option value="">{vm.threadId ? (vm.title || '새 대화') : '새 대화'}</option>}
           {vm.sessions?.map((s) => <option key={s.threadId} value={s.threadId}>{s.title || '제목 없음'}</option>)}
         </select>
-        <button type="button" className="chat-icon-btn" aria-label="새 대화" title="새 대화" disabled={!vm.available || !!live} onClick={vm.startNew}><ComposeIcon /></button>
+        <button type="button" className="chat-icon-btn" aria-label="새 대화" title="새 대화" disabled={!vm.available || !!live} onClick={() => selectConversation("")}><ComposeIcon /></button>
         <PopMenu className="chat-session-menu" label="대화 메뉴" icon={<MoreIcon />}>
           <button type="button" role="menuitem" disabled={!vm.threadId || !current || vm.pending || !!vm.waiting} onClick={() => setRenaming(vm.title)}>제목 바꾸기</button>
           <button type="button" role="menuitem" disabled={!vm.threadId || !current || vm.pending} onClick={() => setConfirming(true)}>대화 삭제</button>

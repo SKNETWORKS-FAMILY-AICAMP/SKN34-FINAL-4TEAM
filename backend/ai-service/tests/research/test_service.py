@@ -32,3 +32,13 @@ def test_host_case_and_open_page_urls_count_as_searched(monkeypatch):
     ], gaps=[])
     fake_openai(monkeypatch, [page], parsed)
     assert service.research(ResearchRequest(question='질문')).findings[0].verdict == 'confirmed'
+
+
+def test_research_drops_malformed_and_distinct_blank_query_urls(monkeypatch):
+    page = 'https://example.org/article'
+    findings = [Finding(text='확인', verdict='confirmed', sourceUrls=[page, page + '?preview=', 'https://['])]
+    monkeypatch.setattr(service.agent, 'search', lambda _: (ResearchResult(findings=findings, gaps=[]), [page, 'https://[']))
+
+    result = service.research(ResearchRequest(question='질문'))
+
+    assert result.findings[0].sourceUrls == [page]

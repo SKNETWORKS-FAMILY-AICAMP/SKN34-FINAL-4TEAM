@@ -78,13 +78,13 @@ class WorldStudioServiceTest {
         val card=CardPayload(UUID.randomUUID(),"외부 인물","원문","character","basic")
         `when`(cards.findById(card.id)).thenReturn(Optional.of(SettingCard(card.id,UUID.randomUUID())))
         assertThrows(WorldNotFound::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(card),key="foreign")) }
-        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         assertEquals(2L,draft.draftRevision)
     }
     @Test fun `graph failure leaves a retriable receipt and does not change PostgreSQL draft content`() {
         owned()
         val request=EditWorldDraftRequest(2,"저장할 이름","",key="retry",replace=true)
-        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())).thenThrow(WorldStudioFailure.unavailable())
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
         assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
         assertFalse(state.completed);assertEquals("retry",state.requestKey)
         assertEquals("편집본",draft.name);assertEquals(2L,draft.draftRevision)
@@ -92,7 +92,7 @@ class WorldStudioServiceTest {
         assertThrows(WorldConflict::class.java) { service.edit(world,actor,request.copy(name="다른 요청")) }
         // Simulate lost Neo4j acknowledgement: its current state already has this request.
         `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }
-        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         val saved=service.edit(world,actor,request)
         assertTrue(state.completed);assertEquals(4L,state.graphVersion);assertEquals(3L,saved.draftRevision)
         assertEquals("저장할 이름",saved.name)
@@ -101,9 +101,10 @@ class WorldStudioServiceTest {
     }
     @Test fun `definite foreign graph identity rejection releases only its receipt without changing the current draft`() {
         owned()
-        val relation=RelationshipPayload(UUID.randomUUID(),null,null,"emotional","거절된 관계")
-        val request=EditWorldDraftRequest(2,"거절된 이름","",relationships=listOf(relation),key="foreign",replace=true)
-        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())).thenAnswer {
+        val first=CardPayload(UUID.randomUUID(),"가","원문","character","basic");val second=first.copy(id=UUID.randomUUID(),title="나")
+        val relation=RelationshipPayload(UUID.randomUUID(),first.id,second.id,"emotional","거절된 관계")
+        val request=EditWorldDraftRequest(2,"거절된 이름","",listOf(first,second),listOf(relation),"foreign",true)
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenAnswer {
             assertFalse(state.completed);assertEquals("foreign",state.requestKey)
             verify(manager,times(2)).commit(any())
             throw WorldNotFound()
@@ -114,13 +115,13 @@ class WorldStudioServiceTest {
         assertEquals("",state.requestKey);assertEquals("",state.requestHash);assertEquals(-1L,state.expectedDraftRevision)
         assertEquals("편집본",service.draft(world,actor).name);assertEquals(2L,draft.draftRevision)
         verify(cardDrafts,never()).save(any());verify(cardDrafts,never()).flush()
-        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         val saved=service.edit(world,actor,request.copy(name="수정",relationships=emptyList(),key="corrected"))
         assertEquals("수정",saved.name);assertEquals(3L,saved.draftRevision)
     }
     @Test fun `rejection recovery never clears a different pending receipt`() {
         owned()
-        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())).thenAnswer {
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenAnswer {
             state.requestKey="racing";state.requestHash="other"
             throw WorldNotFound()
         }
@@ -132,7 +133,7 @@ class WorldStudioServiceTest {
     @Test fun `rejection is not reported as safely released if its PostgreSQL recovery commit fails`() {
         owned();var commits=0
         doAnswer { if(++commits==3)throw org.springframework.transaction.TransactionSystemException("unconfirmed recovery");null }.`when`(manager).commit(any())
-        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())).thenThrow(WorldNotFound())
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldNotFound())
         assertThrows(org.springframework.transaction.TransactionSystemException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",key="rejected")) }
     }
     @Test fun `stale revision discovered just before prepare is explicitly rejected without a new receipt`() {
@@ -143,12 +144,12 @@ class WorldStudioServiceTest {
         }
         assertEquals("WORLD_WRITE_REJECTED",assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",key="stale")) }.code)
         assertTrue(state.completed);assertEquals("previous",state.requestKey)
-        verify(states,never()).flush();verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        verify(states,never()).flush();verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
     }
     @Test fun `a revision conflict on an existing pending receipt is not a definite rejection`() {
         owned()
         val request=EditWorldDraftRequest(2,"x","",key="pending")
-        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())).thenThrow(WorldStudioFailure.unavailable())
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
         assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
         draft.draftRevision=3
         assertThrows(WorldConflict::class.java) { service.edit(world,actor,request) }
@@ -157,7 +158,7 @@ class WorldStudioServiceTest {
     @Test fun `concurrent completion of the same request before prepare is not labeled unapplied`() {
         owned()
         val request=EditWorldDraftRequest(2,"x","",key="pending")
-        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())).thenThrow(WorldStudioFailure.unavailable())
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
         assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
         `when`(graph.read(world)).thenAnswer {
             state.completed=true;state.graphVersion=4;draft.draftRevision=3
@@ -169,10 +170,10 @@ class WorldStudioServiceTest {
     @Test fun `an already acknowledged graph write can never be released as a rejected write`() {
         owned()
         val request=EditWorldDraftRequest(2,"x","",key="pending")
-        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())).thenThrow(WorldStudioFailure.unavailable())
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
         assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
         `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }
-        doThrow(WorldNotFound()).`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        doThrow(WorldNotFound()).`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         assertEquals("RELATIONSHIP_VERSION_MISMATCH",assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }.code)
         assertFalse(state.completed);assertEquals("pending",state.requestKey);assertEquals(3L,state.graphVersion)
     }
@@ -194,11 +195,11 @@ class WorldStudioServiceTest {
         val card=CardPayload(UUID.randomUUID(),"인물","원문","character","basic")
         `when`(cards.findById(card.id)).thenReturn(Optional.empty())
         `when`(cards.saveAndFlush(any())).thenAnswer { it.arguments[0] }
-        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())).thenThrow(WorldStudioFailure.unavailable())
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
         assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(card),key="reserve")) }
         val ordered=inOrder(cards,graph)
         ordered.verify(cards).saveAndFlush(any())
-        ordered.verify(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        ordered.verify(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         verify(cardDrafts,never()).save(any())
     }
     @Test fun `racing prepare during graph read never installs a successful mismatched view`() {
@@ -212,9 +213,11 @@ class WorldStudioServiceTest {
         assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(invalid),key="invalid")) }
         assertTrue(state.completed)
         verify(states,never()).flush()
-        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
     }
     private fun anyUUID():UUID=any(UUID::class.java) ?: UUID(0,0)
+    /** 회차(null=최신)는 어떤 값이든 맞는 매처다. */
+    private fun anyEpisode():Int?=any()
 
     @Test fun `initial input uses owner and remains unchanged while validated under the world lock`() {
         owned()
@@ -230,7 +233,7 @@ class WorldStudioServiceTest {
         }
         assertEquals("used",result)
         assertEquals("홍😀\r\n길동",draft.description)
-        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         verify(cardDrafts,never()).save(any())
         verify(states,never()).flush()
     }
@@ -252,7 +255,7 @@ class WorldStudioServiceTest {
         state.completed=false
         assertEquals("RELATIONSHIP_WRITE_INCOMPLETE",assertThrows(WorldStudioFailure::class.java) { service.withInitialWorldInput(actor,original) { calls++; "bad" } }.code)
         assertEquals(0,calls)
-        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList())
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
     }
 
     @Test fun `initial input rejects current revision change even when draft and graph versions are unchanged`() {
@@ -384,5 +387,104 @@ class WorldStudioServiceTest {
         entity.coverObjectKey=null;entity.coverContentType=null
         assertFalse(service.list(actor).single().hasCover)
         assertFalse(service.draft(world,actor).hasCover)
+    }
+    // --- 회차별 관계(DEC-51) ---
+    private val cardA=UUID.randomUUID();private val cardB=UUID.randomUUID();private val cardC=UUID.randomUUID()
+    private fun cardDraft(id:UUID,lifecycle:String="active")=SettingCardDraft(id,world,CardFields(title="카드",cardType="character",lifecycle=lifecycle))
+    private fun at(episode:Int?,vararg relations:RelationshipPayload) {
+        `when`(graph.read(world,episode)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,relations.toList()) }
+    }
+
+    @Test fun `the owner reads the relations as of an episode`() {
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB)))
+        val early=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","초반 관계")
+        at(2,early)
+        assertEquals(listOf(early),service.draft(world,actor,2).relationships)
+        verify(graph).read(world,2)
+        assertTrue(service.draft(world,actor).relationships.isEmpty())
+        verify(graph).read(world,null)
+    }
+    @Test fun `a past episode may point at a card that was removed later but never at a foreign one`() {
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB,"removed")))
+        val past=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","그때는 있던 관계")
+        at(2,past)
+        assertEquals(listOf(past),service.draft(world,actor,2).relationships)
+        at(2,past.copy(targetCardId=cardC))
+        assertEquals("RELATIONSHIP_VERSION_MISMATCH",assertThrows(WorldStudioFailure::class.java) { service.draft(world,actor,2) }.code)
+    }
+    @Test fun `an edit merges with the relations of its episode, saves them there and answers for that episode`() {
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB),cardDraft(cardC)))
+        val existing=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","3화의 관계")
+        val added=RelationshipPayload(UUID.randomUUID(),cardA,cardC,"structural","새 관계")
+        at(3,existing)
+        val sent=mutableListOf<List<Any?>>()
+        doAnswer { sent+=it.arguments.toList();RelationshipStateResult(world,4,state.requestKey,state.requestHash,listOf(existing,added)) }
+            .`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(added),key="episode-3",episode=3))
+        assertEquals(3,sent.single()[5]);assertEquals(listOf(existing,added),sent.single()[4]);assertEquals(3L,sent.single()[1])
+        verify(graph,never()).read(world,null)
+        assertEquals(3L,saved.draftRevision)
+    }
+    @Test fun `an edit without an episode merges with and saves the latest relations`() {
+        owned()
+        val sent=mutableListOf<List<Any?>>()
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenAnswer { sent+=it.arguments.toList();throw WorldStudioFailure.unavailable() }
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",key="latest")) }
+        verify(graph).read(world,null)
+        assertNull(sent.single()[5]);assertEquals(3L,sent.single()[1]);assertEquals(emptyList<RelationshipPayload>(),sent.single()[4])
+    }
+    @Test fun `an episode below 1 is an input error before anything is prepared`() {
+        owned()
+        for(invalid in listOf(0,-1)) assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",key="bad",episode=invalid)) }
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
+    @Test fun `an incomplete relationship is rejected as an input error before anything is prepared`() {
+        owned()
+        val incomplete=RelationshipPayload(UUID.randomUUID(),cardA,null,"structural","끝이 비었다")
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(CardPayload(cardA,"가","원문","character","basic")),listOf(incomplete),"incomplete")) }
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
+    private val keptToRemoved=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","B가 삭제되기 전부터 있던 관계")
+    private val live=RelationshipPayload(UUID.randomUUID(),cardA,cardC,"structural","살아 있는 관계")
+    private fun removedCardB() { `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB,"removed"),cardDraft(cardC))) }
+
+    @Test fun `an edit that leaves a relation to a removed card as it is still changes the other relations`() {
+        owned();removedCardB()
+        val changed=live.copy(body="바뀐 내용")
+        at(3,keptToRemoved,live)
+        val sent=mutableListOf<List<Any?>>()
+        doAnswer { sent+=it.arguments.toList();RelationshipStateResult(world,4,state.requestKey,state.requestHash,listOf(keptToRemoved,changed)) }
+            .`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(changed),key="keep-removed",episode=3))
+        assertEquals(listOf(keptToRemoved,changed),sent.single()[4]);assertEquals(3L,saved.draftRevision)
+    }
+    @Test fun `a new or changed relation needs two active cards and every relation needs cards of this world`() {
+        owned();removedCardB()
+        at(3,keptToRemoved,live)
+        // 새 관계, 끝점을 삭제 카드로 옮긴 관계, 삭제 카드를 끝점으로 둔 채 내용을 바꾼 관계는 모두 거절한다.
+        for(relation in listOf(RelationshipPayload(UUID.randomUUID(),cardC,cardB,"structural","새 관계"),live.copy(targetCardId=cardB),keptToRemoved.copy(body="바뀐 내용")))
+            assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(relation),key="removed-end",episode=3)) }
+        // 그대로 둔 관계라도 다른 세계관의 카드를 끝점으로 가지면 거절한다.
+        at(3,keptToRemoved.copy(targetCardId=UUID.randomUUID()))
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",key="foreign-end",episode=3)) }
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
+    @Test fun `retrying an acknowledged edit accepts the relation that stays on a removed card`() {
+        owned();removedCardB()
+        val changed=live.copy(body="바뀐 내용");at(3,keptToRemoved,live)
+        val request=EditWorldDraftRequest(2,"x","",relationships=listOf(changed),key="retry-removed",episode=3)
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
+        // Neo4j는 썼지만 응답을 잃었다: 그 회차 관계에 요청이 이미 들어 있다.
+        val applied=RelationshipStateResult(world,4,state.requestKey,state.requestHash,listOf(keptToRemoved,changed))
+        `when`(graph.read(world,3)).thenReturn(applied)
+        doReturn(applied).`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        assertEquals(3L,service.edit(world,actor,request).draftRevision)
     }
 }

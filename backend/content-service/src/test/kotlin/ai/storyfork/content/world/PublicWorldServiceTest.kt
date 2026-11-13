@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
+import org.mockito.stubbing.OngoingStubbing
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.transaction.PlatformTransactionManager
@@ -75,7 +76,7 @@ class PublicWorldServiceTest {
             `when`(revisionCards.findAllByIdRevisionId(revisionId)).thenReturn(versions.map { WorldRevisionCard(RevisionCardKey(revisionId, it.cardId), id, it.id) })
             `when`(cardVersions.findAllById(versions.map { it.id })).thenReturn(versions)
             `when`(states.findById(id)).thenReturn(Optional.of(state))
-            `when`(graph.read(id)).thenReturn(RelationshipStateResult(id, 3, "key", "hash", relations))
+            graphReads(id) { it.thenReturn(RelationshipStateResult(id, 3, "key", "hash", relations)) }
             if (cover) `when`(storage.read("world-covers/$id")).thenReturn(AttachmentObjectResult(coverBytes))
         }
 
@@ -88,6 +89,10 @@ class PublicWorldServiceTest {
         /** 목록 쿼리가 돌려줄 행(공개된 활성 카드 ID 쌍)이다. */
         val publicCardRows get() = versions.filter { it.fields.lifecycle == "active" && it.fields.visibility == "public" }.map { arrayOf<Any>(revisionId, it.cardId) }
     }
+
+    /** 관계는 최신(null, 공개 목록·상세)이나 독자 기준 회차(upto, 독자 설정 위키)로 읽는다. 어느 쪽이든 같은 대답을 하도록 둘 다 스텁한다. */
+    private fun graphReads(id: UUID, answer: (OngoingStubbing<RelationshipStateResult>) -> Unit) =
+        listOf<Int?>(null, 0, 1, 2, 3, 5).forEach { answer(`when`(graph.read(id, it))) }
 
     private fun stubPage(seeds: List<Seed>, page: PageRequest, total: Long, genre: String? = null) {
         val result = PageImpl(seeds.map { it.world }, page, total)
@@ -145,6 +150,19 @@ class PublicWorldServiceTest {
         verifyNoInteractions(nicknames)
     }
 
+    @Test fun `reader cards read the relations as of the reader's episode while the public detail reads the latest`() {
+        val s = Seed(visibility = "private")
+        service.readerCards("work", s.id, 2)
+        verify(graph).read(s.id, 2)
+        service.readerCards("work", s.id, 1)
+        verify(graph).read(s.id, 1)
+        verify(graph, never()).read(s.id, null)
+        val open = Seed()
+        service.detail(open.id)
+        verify(graph).read(open.id, null)
+        verify(graph, never()).read(open.id, 2)
+    }
+
     @Test fun `reader cards are empty without reading Neo4j when the world has no sealed revision, is unknown or reveals nothing yet`() {
         val draftOnly = Seed(saved = false)
         val unsealed = Seed().also { it.revision.sealed = false }
@@ -159,7 +177,7 @@ class PublicWorldServiceTest {
         val pending = Seed()
         pending.state.completed = false
         val failing = Seed()
-        `when`(graph.read(failing.id)).thenThrow(WorldStudioFailure.unavailable())
+        graphReads(failing.id) { it.thenThrow(WorldStudioFailure.unavailable()) }
         listOf(pending, failing).forEach { s ->
             val result = service.readerCards("work", s.id, 2)
             assertEquals(listOf(s.first.cardId, s.hidden.cardId).sortedBy { it.toString() }, result.cards.map { it.id })

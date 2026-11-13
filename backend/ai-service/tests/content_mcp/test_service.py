@@ -92,3 +92,13 @@ def test_transport_failure_and_non_json_result_are_explicit_failures(monkeypatch
     with pytest.raises(ContentMcpFailure) as error:
         service.call('episode_read', {})
     assert error.value.status == 503
+
+
+def test_valid_json_with_incomplete_draft_is_rejected_before_writing(monkeypatch):
+    calls = content(monkeypatch, {'episode_read': (False, '{"draft": {}}')})
+
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_writing('work', 3, {'text': '이어쓰기'})
+
+    assert error.value.status == 502
+    assert [call[2] for call in calls] == ['episode_read']

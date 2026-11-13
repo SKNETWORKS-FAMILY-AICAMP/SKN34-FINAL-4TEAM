@@ -25,6 +25,7 @@ export type ChatReply = {
   steps: ChatStep[]
   missingInputs: ChatFeature[]
   awaitingApproval?: ChatFeature | null
+  approvalEpisode?: number | null
 }
 export type ChatTurn = { request: string; reply: ChatReply | null }
 export type ChatSession = { threadId: string; title: string; updatedAt: string }
@@ -57,13 +58,15 @@ export function chatBasis(episodes: WritingEpisode[], preferred?: number): ChatB
   return pick?.publishedVersionId ? { episode: pick.number, episodeVersionId: pick.publishedVersionId } : null
 }
 
+const researchVerdict: Record<string, string> = { confirmed: '확인됨', conflicting: '근거 상충', unverified: '미확인' }
+
 /** 단계 결과를 채팅 말풍선 글로. 결과가 없거나 실패면 그 사유를 그대로 보인다(성공처럼 꾸미지 않는다). */
 export function stepText(step: ChatStep): string {
   if (step.status === 'failed') return `실패: ${step.error ?? '작업을 완료하지 못했어요.'}`
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'
-  if (r.findings) return [...r.findings.map((f) => `${f.text}${f.sourceUrls.length ? ` (${f.sourceUrls.join(', ')})` : ''}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '조사 결과가 없어요.'
+  if (r.findings) return [...r.findings.map((f) => `${researchVerdict[f.verdict] ?? researchVerdict.unverified} · ${f.text}${f.sourceUrls.length ? ` (${f.sourceUrls.join(', ')})` : ''}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '조사 결과가 없어요.'
   if (r.after !== undefined) return `수정 전: ${r.before ?? ''}\n수정 후: ${r.after}`
   return r.text ?? ''
 }

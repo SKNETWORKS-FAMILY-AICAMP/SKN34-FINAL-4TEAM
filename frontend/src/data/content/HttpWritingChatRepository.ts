@@ -28,6 +28,7 @@ const reply: z.ZodType<ChatReply> = z.object({
   steps: z.array(step),
   missingInputs: z.array(z.string()),
   awaitingApproval: z.string().nullish(),
+  approvalEpisode: z.number().int().positive().nullish(),
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({

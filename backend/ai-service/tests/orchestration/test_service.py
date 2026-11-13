@@ -572,3 +572,37 @@ def test_missing_create_privilege_fails_with_the_manual_step(monkeypatch):
     monkeypatch.setattr(service.AsyncConnection, 'connect', server.connect)
     with pytest.raises(service.CheckpointDatabaseMissing, match='storyfork_ai'):
         asyncio.run(service.ensure_database(URL))
+
+def test_approval_refreshes_scope_before_later_retrieval(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('writing_editing', 'story_context'))
+    writer(monkeypatch)
+    pending = write_turn(thread, request='고친 뒤 설명해줘', target=TARGET,
+                         scope={'scopeToken': 'old.token'}, inputs={'writing_editing': PATCH})
+    assert pending.awaitingApproval == 'writing_editing'
+
+    done = write_turn(thread, resume={'approved': True, 'scope': {'scopeToken': 'fresh.token'}})
+
+    assert done.status == 'completed'
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['fresh.token']
+
+def test_failed_first_edit_keeps_existing_history(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='기존 질문', inputs={'story_context': QA})
+    def fail_route(*_):
+        raise IntentFailure()
+
+    monkeypatch.setattr(service.intent, 'route', fail_route)
+
+    events = stream(request='새 질문', conversation={'threadId': thread, 'scope': ME},
+                    fromTurn=0, inputs={'story_context': QA})
+
+    assert events[-1][0] == 'error'
+    assert [turn.request for turn in conversation('history', thread, ME).turns] == ['기존 질문']
+
+def test_approval_response_names_the_original_target_episode(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    result = write_turn(str(uuid4()), request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+
+    assert result.approvalEpisode == TARGET['episode']

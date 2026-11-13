@@ -111,7 +111,7 @@ it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음·동의 �
   // 빈 상태: 제목·한 줄 설명·추천 칩(칩도 잠겨 있어 입력창을 채우지 않는다)
   const log = within(chat).getByRole('log')
   expect(within(log).getByRole('heading', { name: '무엇을 함께 써볼까요?' })).toBeTruthy()
-  expect(within(log).getByText('AI의 제안은 원고에 자동으로 반영되지 않아요.')).toBeTruthy()
+  expect(within(log).getByText('AI의 제안은 승인하기 전까지 원고에 반영되지 않아요.')).toBeTruthy()
   for (const name of ['다음 장면 아이디어', '이 회차 요약', '문장 다듬기']) expect(within(log).getByRole('button', { name })).toHaveProperty('disabled', true)
   expect(log.querySelectorAll('.chat-msg')).toHaveLength(0)
   expect(model.save).not.toHaveBeenCalled()

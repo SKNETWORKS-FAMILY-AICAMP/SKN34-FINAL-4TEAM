@@ -6,7 +6,78 @@
 
 작성일: 2026-11-04. 상태: 독립 V1 및 JPA Repository·Service 구현. 공용 DB 적용·HTTP API/기존 UI 전환 완료를 뜻하지 않는다. 최신 실행 결과는 [JPA 검증 기록](worldstudio-jpa-verification.md)을 따른다.
 
+## 회차별 관계 — DEC-51
+
+**상태: 소스 구현, hosted CI 대기(2026-11-13 설계 확정).** 서버(`episode` 조회·저장)·MCP·독자 설정 위키(`upto`)는 소스에 구현했다. 화면에서 회차를 고르는 UI와 기존 데이터 이전(공유 Neo4j, [스크립트](../../infrastructure/neo4j/dec51-relationship-edges.cypher) 미실행)은 남았다.
+
+### 저장 모델
+
+```
+(:StudioCard A)-[:RELATED {relationId, worldId, fromEpisode, ended, payload}]->(:StudioCard B)
+```
+
+- 카드 노드는 지금처럼 `id`·`worldId`만 둔다. 인물·회차마다 새 노드를 만들지 않는다.
+- 관계가 바뀐 회차마다 두 카드 사이에 `RELATED` 연결을 하나 추가한다. `relationId`가 같은 연결들이 한 관계의 회차별 값이다. 한 쌍 사이의 여러 관계는 `relationId`로 구분한다.
+- `payload`는 지금 `StudioRelationship.payload`와 같은 내용(분류·방향/대칭·극성·본문·label·semantic metadata)이다. 방향 없는 관계도 source→target 연결 하나로 저장하고 payload의 대칭 값으로 구분한다.
+- 관계가 끝나면 `ended=true` 연결을 추가한다. 연결을 지우는 것은 같은 회차 값을 덮어쓸 때뿐이다.
+- 기존 `StudioRelationship` 노드는 없앤다. 다른 세계관이 같은 관계 ID를 쓰지 못하게 막는 확인은 연결의 `relationId`·`worldId`로 한다.
+- 세계관 노드(`StudioRelationshipWorld`)의 CAS token·요청 key/hash·잠금(`mutex`)은 그대로 쓴다.
+- 세계관 노드의 `count`는 이 세계관의 `RELATED` 연결 수(종료 연결 포함)로 뜻을 바꿨다. 조회마다 실제 연결 수와 비교해 다르면 `RELATIONSHIP_VERSION_MISMATCH`(409)다. 아직 이전하지 않은 기존 세계관이 빈 관계 성공으로 보이지 않게 하는 점검이기도 하다.
+
+### 회차 기준
+
+- 회차는 연결된 소설의 회차 순번 `episode.sequence`다. 독자 공개 회차 `revealFromEpisode`와 같은 번호다.
+- 소설이 연결되지 않은 세계관은 모든 관계를 1화로 기록한다.
+- 회차 삭제·순서 변경으로 번호가 바뀌어도 연결의 `fromEpisode`는 옮기지 않는다(ponytail 한계, 필요해지면 별도 결정).
+
+### 조회
+
+N화 시점 관계: 관계마다 `fromEpisode <= N`인 연결 중 가장 최근 하나를 고르고, 그것이 종료 연결이면 뺀다.
+
+```cypher
+MATCH (a:StudioCard)-[e:RELATED {worldId:$world}]->(b:StudioCard)
+WHERE e.fromEpisode <= $ep
+WITH e ORDER BY e.fromEpisode DESC
+WITH e.relationId AS id, head(collect(e)) AS e
+WHERE NOT e.ended
+RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
+```
+
+구현은 이 규칙의 설명용 질의와 달리 세계관의 연결을 한 질의로 모두 읽고(세계관 노드의 token·`count`와 함께), 같은 규칙을 코드(`relationsAsOf`)로 적용한다. 같은 관계·같은 회차의 가장 최근 연결이 둘이면 손상으로 보고 `RELATIONSHIP_VERSION_MISMATCH`다.
+
+| 호출 | 회차 |
+|---|---|
+| 작가 관리 화면·초안 조회 (`GET /api/v1/world-studios/{id}?episode=N`, MCP `world_studio_read`) | 요청의 회차, 생략하면 최신 |
+| 공개 세계관 조회 | 최신 |
+| 독자 설정 위키 `GET /public/works/{id}/world-cards?upto=` | `upto`(카드와 같은 기준이라 관계 스포일러도 막힌다) |
+
+### 저장
+
+- 저장 API는 지금처럼 'N화 시점의 관계 전체'를 받는다. 저장소가 N화 시점 값과 비교해 바뀐 관계만 `fromEpisode=N` 연결로 넣고(같은 관계·회차가 있으면 덮어씀), 목록에서 빠진 관계는 종료 연결을 넣는다. 회차를 생략하면 최신 회차다.
+- N화를 고쳐도 N화보다 뒤 회차에 이미 있는 연결은 바꾸지 않는다.
+- PG prepare → Neo4j CAS → PG finalization 순서, 원래 요청 재시도, 오류 코드는 아래 #132 계약을 그대로 따른다.
+
+### 구현 결과
+
+- **API**: `GET /api/v1/world-studios/{id}?episode=N`(선택)과 `PUT /api/v1/world-studios/{id}/draft` 본문의 `episode`(선택)는 1 이상의 정수다. 아니면 422 `WORLD_INPUT_INVALID`이고 저장 전에 거절한다(쿼리는 문자열로 받아 Spring 변환 400이 되지 않게 한다). 응답의 `relationships`는 요청한 회차 시점이며 저장 응답도 저장한 회차 기준이다. MCP `world_studio_read`·`world_studio_edit_draft`도 같은 `episode`를 받는다. 공개 세계관 조회는 최신, 독자 설정 위키는 `upto` 시점이다. 카드·revision 응답 모양은 바뀌지 않았다.
+- **저장 회차**: 요청의 `episode`, 생략하면 그 세계관 연결의 가장 큰 `fromEpisode`(종료 연결 포함), 연결이 하나도 없으면 1화다. 본문의 관계는 그 회차 시점의 관계 전체이고 upsert 모드(`replace=false`)는 그 시점 관계에 합쳐 전체로 만든다. 저장소가 그 시점 값과 비교해 새로 생겼거나 끝점·내용이 바뀐 관계만 `fromEpisode=N` 연결로 쓰고 목록에서 빠진 관계는 종료 연결을 쓴다. 바뀐 것이 없으면 연결을 쓰지 않고 세계관 노드의 token·key/hash만 올린다.
+- **덮어쓰기·끝점 변경**: 같은 관계의 같은 회차 연결이 있으면 지우고 새로 쓴다. 끝점이 바뀌어도 그 회차에는 연결이 하나만 남는다. N화보다 뒤 회차의 연결은 건드리지 않는다.
+- **미완성 관계**: 양 끝 카드 중 하나라도 비어 있는 활성 관계는 저장할 수 없다(요청 검증 422 `WORLD_INPUT_INVALID`, 저장 순서 1단계 전). `lifecycle="removed"`로 표시한 관계는 끝이 비어도 되며 그 시점 목록에서 빠져 종료 연결이 된다. 아래 #132의 '미완성 nullable endpoint 허용'을 대체한다.
+- **다른 세계관 ID 차단**: 다른 세계관의 연결이 같은 `relationId`를 쓰거나 카드가 다른 세계관 소속이면 이전처럼 그래프 콜백 안에서 거절한다(`WorldNotFound` → 확정 비적용 → `409 WORLD_WRITE_REJECTED`). 같은 key/hash 재시도의 멱등성과 token 불일치 처리는 #132와 같다.
+- **기존 데이터**: [`infrastructure/neo4j/dec51-relationship-edges.cypher`](../../infrastructure/neo4j/dec51-relationship-edges.cypher)가 `StudioRelationship`을 `fromEpisode=1`·`ended=false` 연결로 옮긴다. 공유 Neo4j 데이터라 실행 전에 승인을 받으며 아직 실행하지 않았다. 이전 전의 기존 세계관은 `count`가 연결 수와 달라 조회가 `RELATIONSHIP_VERSION_MISMATCH`이고 빈 관계로 보이지 않는다.
+- **한계**: ① 편집에서 그 회차 시점의 관계와 완전히 같게 둔 관계는 삭제한 카드가 끝점이어도 그대로 통과한다(끝점이 이 세계관의 카드이기만 하면 된다). 새로 만들거나 끝점·내용을 바꾼 관계는 양 끝이 활성 카드여야 하므로, 삭제한 카드를 끝점으로 하는 관계를 새로 잇거나 고칠 수는 없고 빼면 그 회차에 종료 연결이 생긴다. 이 세계관의 카드가 아닌 끝점은 어느 경우에도 422로 거절한다. 조회도 삭제된 카드를 이 세계관의 카드로 본다. ② `RELATED`에 인덱스가 없어 세계관 조회와 관계 ID 확인이 모든 연결을 훑는다. ③ 관계 ID는 노드가 없어 두 세계관이 같은 새 ID를 동시에 처음 쓰는 경합은 잠그지 못한다(이미 커밋된 ID는 막는다).
+
+### 기존 데이터
+
+지금 있는 `StudioRelationship` 관계는 `fromEpisode=1` 연결로 한 번 옮긴다. 공유 Neo4j 데이터라 실행 전에 승인을 받는다. 이전 스크립트: [`dec51-relationship-edges.cypher`](../../infrastructure/neo4j/dec51-relationship-edges.cypher)(한 트랜잭션·멱등, 양 끝이 모두 있는 관계만 옮기고 `count`를 새 뜻으로 다시 센다. 끝이 비어 옮기지 못한 관계는 노드로 남기며 스크립트의 점검 조회로 확인한다).
+
+### 범위 밖
+
+관계 이력 복원 API, 세계관 전체 restore, 같은 회차 정정 이력, 회차 재배치, 인물 자체의 회차별 상태(카드 값).
+
 ## 현재 관계 MVP 계약 — #132
+
+> **DEC-51로 대체됨(소스 구현, hosted CI 대기).** 관계 저장 모델·시점 조회·미완성 관계 거절은 위 절을 따르고, 저장 순서·인가·부분 실패 계약은 계속 유효하다. 이 절의 '현재 상태 하나' 서술은 DEC-51 이전 설명이다.
 
 2026-11-05 사용자 변경 결정: **관계 내용은 Neo4j의 현재 상태 하나만 정본으로 저장한다. 관계 변경 이력·과거 snapshot·버전 조회·복원은 만들지 않는다.** DEC-27·33의 관계 이력 보존에 대한 이번 MVP만의 예외이며, 인물·설정·원고의 기존 버전 기능과 기존 SQL·데이터를 폐기하는 결정은 아니다. 아래 V1 설계는 역사적 기록이며, 관계 저장·HTTP 연결·실행 소유권은 이 절과 Content 실행 계약을 우선한다. 소스 구현은 병합·hosted CI·실제 이관·배포 완료와 다르다.
 
@@ -15,8 +86,8 @@
 - Content의 `WorldStudioController → WorldStudioService → JPA / Neo4jRelationshipRepository`가 처리한다. Core의 기존 인증 확인으로 검증된 UUID Principal만 사용하며 body owner ID·체험 actor를 신뢰하지 않는다. 모든 개별 조회/변경은 소유 world를 먼저 검사한다. 변경 요청의 Bearer·쿠키·CSRF 경계를 유지한다.
 - PostgreSQL은 world/card UUID·소유권·카드 원문·기존 카드 버전/manifest와 요청 상태만 소유한다. 추가 V2의 `relationship_state`는 graph token·생성 hash·최근 key/hash·예상 draft revision·완료 여부만 저장한다. 관계 내용·관계 snapshot·outbox를 이중 저장하지 않는다.
 - 기존 V1의 12개 테이블과 SQL 바이트는 보존하고 V2로 상태 테이블 하나만 추가한다. 새 경로는 기존 PG `relationship*`/`world_revision_relationship`에 쓰지 않는다. 과거 데이터의 실제 Neo4j 이관은 승인·실행하지 않았고 자동 backfill/import도 없다. 전환 marker가 없는 기존 world는 빈 관계 성공이 아니라 `migration_required`다.
-- Neo4j는 안정적인 world/card/relation UUID, 한 쌍의 다중 관계, 방향/대칭·극성·구조/감정·자유 본문·label·semantic metadata를 현재 값으로 보존한다. 삭제는 현재 edge/payload를 제거하며 교차 world 재사용 방지용 ID 예약만 남을 수 있다. `relationshipVersion`/`graphVersion`은 CAS·정합성 token이지 과거 관계를 조회할 수 있는 버전이 아니다.
-- 관계 endpoint는 같은 world의 활성 카드만 참조한다. API는 미완성 nullable endpoint도 허용하지만 기존 UI의 명시 저장 검증은 양 endpoint를 요구한다. 요청당 카드·관계 최대 1,000개, 편집 요청 직렬화 크기 2 MB, key 1~200 UTF-8 바이트를 검사한다.
+- Neo4j는 안정적인 world/card/relation UUID, 한 쌍의 다중 관계, 방향/대칭·극성·구조/감정·자유 본문·label·semantic metadata를 현재 값으로 보존한다. 삭제는 현재 edge/payload를 제거하며 교차 world 재사용 방지용 ID 예약만 남을 수 있다(DEC-51 이후: 현재 값이 아니라 회차별 연결로 보존하고 삭제는 종료 연결을 추가한다). `relationshipVersion`/`graphVersion`은 CAS·정합성 token이지 과거 관계를 조회할 수 있는 버전이 아니다.
+- 관계 endpoint는 같은 world의 카드여야 하고, 새로 만들거나 바뀐 관계는 활성 카드만 참조한다(그 회차 시점 관계와 같게 둔 관계는 삭제한 카드도 허용, 위 '한계 ①'). DEC-51 이후 관계는 양 endpoint가 모두 있어야 저장하며 미완성(nullable) endpoint는 422 `WORLD_INPUT_INVALID`다(위 '구현 결과'). 요청당 카드·관계 최대 1,000개, 편집 요청 직렬화 크기 2 MB, key 1~200 UTF-8 바이트를 검사한다.
 
 ### 두 저장소의 부분 실패
 
@@ -35,8 +106,8 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 |---|---|
 | `GET /` | 소유 world 요약과 `current` / `incomplete` / `migration_required` 상태 |
 | `POST /` | caller UUID를 사용한 생성·같은 입력 재시도 |
-| `GET /{id}` | token이 일치하는 현재 카드·관계 전체 |
-| `PUT /{id}/draft` | 기본 upsert, `replace=true`면 현재 전체 교체. 관계 삭제도 이 요청으로 반영 |
+| `GET /{id}` | token이 일치하는 현재 카드와 `?episode=N`(선택, 생략하면 최신) 시점의 관계 전체 |
+| `PUT /{id}/draft` | 기본 upsert, `replace=true`면 전체 교체. 본문 `episode`(선택, 생략하면 최신 회차) 시점의 관계로 저장하고 관계 삭제도 이 요청으로 반영(종료 연결) |
 | `POST /{id}/revisions` | 기존 카드·설정의 불변 revision 저장. 관계 snapshot 없음 |
 | `GET /{id}/revisions/{revisionId}` | 기존 카드 revision 조회. `relationships=null`, `relationshipStatus=not_recorded` |
 | `PUT /{id}/publication` | 세계관 단위 공개 범위(`private`/`public`)·장르 설정(V6, [DEC-45](decisions.md)). 카드·관계·revision은 바꾸지 않는다 |
@@ -57,7 +128,7 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 | `WORLD_CONFLICT` | 409 | 요청 충돌, 비적용을 보장하지 않으므로 같은 body/key 보존 |
 | `RELATIONSHIP_HISTORY_UNSUPPORTED` | 409 | 관계를 포함한 과거 세계관 전체 복원 미지원 |
 
-현재 관계를 과거 revision에 끼워 넣지 않는다. 기존 전체 restore Service는 소유권 검사 뒤 명시적으로 차단하며 restore/history HTTP API를 새로 추가하지 않는다. 관계 시점 조회·복원과 관계까지 포함한 체크포인트/Fork는 미지원이다. 원고·인물·설정의 기존 버전 데이터와 관계 없는 버전 기능은 유지한다.
+현재 관계를 과거 revision에 끼워 넣지 않는다. 기존 전체 restore Service는 소유권 검사 뒤 명시적으로 차단하며 restore/history HTTP API를 새로 추가하지 않는다. 회차 시점 관계 조회는 DEC-51로 지원하지만 과거 값으로 되돌리는 복원과 관계까지 포함한 체크포인트/Fork는 미지원이다. 원고·인물·설정의 기존 버전 데이터와 관계 없는 버전 기능은 유지한다.
 
 ### 설정과 검증 경계
 

@@ -15,7 +15,7 @@ def research(data: ResearchRequest) -> ResearchResponse:
     """모델이 든 URL 중 실제 검색 결과에 있는 것만 근거로 남기고, 근거가 없는 판단은 미확인으로 내린다."""
     searched_at = datetime.now(timezone.utc)
     result, urls = agent.search(data)
-    found = {_norm(url) for url in urls}
+    found = {key for url in urls if (key := _norm(url)) is not None}
     findings = []
     for finding in result.findings:
         kept = [url for url in finding.sourceUrls if _norm(url) in found]
@@ -23,8 +23,13 @@ def research(data: ResearchRequest) -> ResearchResponse:
     return ResearchResponse(findings=findings, gaps=result.gaps, searchedAt=searched_at)
 
 
-def _norm(url: str) -> str:
+def _norm(url: str) -> str | None:
     """OpenAI가 인용 URL에 붙이는 utm 추적값과 끝 슬래시 차이만 무시하고 비교한다."""
-    parts = urlsplit(url)
-    query = urlencode([(k, v) for k, v in parse_qsl(parts.query) if not k.startswith('utm_')])
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return None
+    if parts.scheme not in {'http', 'https'} or not parts.hostname:
+        return None
+    query = urlencode([(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if not k.startswith('utm_')])
     return urlunsplit((parts.scheme, parts.netloc.lower(), parts.path.rstrip('/'), query, ''))

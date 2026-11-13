@@ -95,7 +95,7 @@ class PublicWorldService(
     }
 
     /**
-     * 연결된 소설 [workId]의 독자에게 [upto]화 기준으로 보이는 카드와 그 카드끼리의 현재 관계다(DEC-46). 세계관·카드의 공개 범위와 무관하게
+     * 연결된 소설 [workId]의 독자에게 [upto]화 기준으로 보이는 카드와 그 카드끼리의 [upto]화 시점 관계다(DEC-46·51). 세계관·카드의 공개 범위와 무관하게
      * 확정된 현재 버전의 카드 중 독자 공개 회차가 [upto] 이하인 것만 고른다. 세계관이 없거나 확정 버전이 없거나 보일 카드가 없으면 빈 목록이고 Neo4j를 읽지 않는다.
      * 작품의 공개 여부와 기준 회차(발행된 회차 안)는 호출자([ai.storyfork.content.work.service.WorkWorldService])가 먼저 정한다.
      */
@@ -108,7 +108,8 @@ class PublicWorldService(
                 .sortedBy { it.first.cardId.toString() }, states.findById(worldId).orElse(null))
         }
         if (seen.cards.isEmpty()) return ReaderWorldCardsResponse(workId, worldId, upto)
-        val relations = currentRelationships(worldId, seen.state, seen.cards.map { it.first.cardId }.toSet())
+        // 독자에게 보이는 기준 회차까지의 관계만 읽는다(카드와 같은 기준이라 관계 스포일러도 막힌다, DEC-51).
+        val relations = currentRelationships(worldId, seen.state, seen.cards.map { it.first.cardId }.toSet(), upto)
         return ReaderWorldCardsResponse(workId, worldId, upto,
             seen.cards.map { (card, from) -> ReaderWorldCardResponse(card.cardId, card.fields.title, card.fields.body, card.fields.cardType, card.fields.aliases.toList(), card.fields.tags.toList(), from) },
             // 양 끝이 독자에게 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
@@ -130,11 +131,11 @@ class PublicWorldService(
         return Snapshot(world, revision, cards, states.findById(id).orElse(null))
     }
 
-    /** Neo4j 현재 관계 중 양 끝이 [cardIds](보이는 카드)에 있는 것이다. 미전환·미완료·토큰 불일치·조회 실패는 null이며 호출자가 unavailable로 알린다. */
-    private fun currentRelationships(worldId: UUID, state: WorldRelationshipState?, cardIds: Set<UUID>): List<RelationshipPayload>? {
+    /** Neo4j 관계 중 [episode]화 시점(null이면 최신)의 것으로 양 끝이 [cardIds](보이는 카드)에 있는 것이다. 미전환·미완료·토큰 불일치·조회 실패는 null이며 호출자가 unavailable로 알린다. */
+    private fun currentRelationships(worldId: UUID, state: WorldRelationshipState?, cardIds: Set<UUID>, episode: Int? = null): List<RelationshipPayload>? {
         if (state == null || !state.completed) return null
         return try {
-            graph.read(worldId).takeIf { it.worldId == worldId && it.version == state.graphVersion }?.let { visibleRelationships(it.relationships, cardIds) }
+            graph.read(worldId, episode).takeIf { it.worldId == worldId && it.version == state.graphVersion }?.let { visibleRelationships(it.relationships, cardIds) }
         } catch (_: WorldStudioFailure) { null }
     }
 

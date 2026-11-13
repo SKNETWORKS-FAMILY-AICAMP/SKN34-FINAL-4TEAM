@@ -112,6 +112,7 @@ class OrchestrationResponse(BaseModel):
     missingInputs: list[Feature] = []
     unsupported: list[Feature] = []
     awaitingApproval: Feature | None = None
+    approvalEpisode: int | None = None
 
 
 class ChatSession(BaseModel):

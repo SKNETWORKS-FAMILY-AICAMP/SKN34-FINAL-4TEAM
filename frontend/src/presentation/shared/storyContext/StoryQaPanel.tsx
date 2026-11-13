@@ -1,6 +1,12 @@
 import { useStoryQaViewModel } from './useStoryQaViewModel'
 
-export function StoryQaPanel({ workId, episode, versionId, owner = false }: { workId: string; episode: number; versionId: string; owner?: boolean }) {
+type StoryQaProps = { workId: string; episode: number; versionId: string; owner?: boolean }
+
+export function StoryQaPanel(props: StoryQaProps) {
+  return <StoryQaForm key={JSON.stringify([props.workId, props.episode, props.versionId, props.owner ?? false])} {...props} />
+}
+
+function StoryQaForm({ workId, episode, versionId, owner = false }: StoryQaProps) {
   const vm = useStoryQaViewModel(workId, episode, versionId, owner)
   const answer = vm.answer
   return <details className="author-note manuscript-qa">

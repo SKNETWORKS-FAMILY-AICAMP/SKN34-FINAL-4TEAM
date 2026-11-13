@@ -48,3 +48,15 @@ describe('WritingChatUseCase', () => {
     expect(repo.rename).toHaveBeenCalledWith('w', 't', '새 제목')
   })
 })
+
+
+it('shows whether web research confirmed or contradicted a finding', () => {
+  const reply: ChatReply = { status: 'completed', missingInputs: [], steps: [
+    { feature: 'web_research', status: 'completed', result: { findings: [
+      { text: '같은 주장', verdict: 'confirmed', sourceUrls: ['https://example.org'] },
+      { text: '같은 주장', verdict: 'conflicting', sourceUrls: ['https://example.org'] },
+    ] } },
+  ] }
+  expect(replyText(reply)).toContain('확인됨 · 같은 주장')
+  expect(replyText(reply)).toContain('근거 상충 · 같은 주장')
+})

@@ -25,15 +25,22 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const [consent, setConsent] = useState(false)
   const active = useRef<AbortController | null>(null)
   const current = useRef<string | null>(null)
+  const sessionsRequest = useRef<AbortController | null>(null)
   current.current = threadId
 
   const refreshSessions = useCallback(async (pick = false) => {
     if (!useCase || !workId) return
+    sessionsRequest.current?.abort()
+    const controller = new AbortController()
+    sessionsRequest.current = controller
     try {
-      const rows = await useCase.sessions(workId)
+      const rows = await useCase.sessions(workId, controller.signal)
+      if (controller.signal.aborted) return
       setSessions(rows)
       if (pick && rows[0] && !current.current) setThreadId(rows[0].threadId)
-    } catch (failure) { setError(message(failure, '대화 목록을 불러오지 못했어요.')) }
+    } catch (failure) {
+      if (!controller.signal.aborted) setError(message(failure, '대화 목록을 불러오지 못했어요.'))
+    }
   }, [useCase, workId])
 
   const load = useCallback(async (id: string) => {
@@ -50,9 +57,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   // 작품이 바뀌면 처음부터: 목록을 읽고 가장 최근 대화를 연다.
   useEffect(() => {
-    setSessions(null); setThreadId(null); setTurns([]); setLive(null); setError('')
+    setSessions(null); setThreadId(null); setTurns([]); setLive(null); setPending(false); setError('')
     void refreshSessions(true)
-    return () => { active.current?.abort(); active.current = null }
+    return () => { sessionsRequest.current?.abort(); active.current?.abort(); active.current = null }
   }, [refreshSessions])
 
   useEffect(() => { if (threadId && !active.current) void load(threadId) }, [threadId, load])
