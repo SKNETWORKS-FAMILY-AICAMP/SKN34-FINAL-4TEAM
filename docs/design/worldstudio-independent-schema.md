@@ -6,7 +6,65 @@
 
 작성일: 2026-11-04. 상태: 독립 V1 및 JPA Repository·Service 구현. 공용 DB 적용·HTTP API/기존 UI 전환 완료를 뜻하지 않는다. 최신 실행 결과는 [JPA 검증 기록](worldstudio-jpa-verification.md)을 따른다.
 
+## 회차별 관계 — DEC-51
+
+**상태: 설계 확정(2026-11-13), 구현 전.** 구현이 끝날 때까지 현재 소스는 아래 #132 계약대로 동작한다.
+
+### 저장 모델
+
+```
+(:StudioCard A)-[:RELATED {relationId, worldId, fromEpisode, ended, payload}]->(:StudioCard B)
+```
+
+- 카드 노드는 지금처럼 `id`·`worldId`만 둔다. 인물·회차마다 새 노드를 만들지 않는다.
+- 관계가 바뀐 회차마다 두 카드 사이에 `RELATED` 연결을 하나 추가한다. `relationId`가 같은 연결들이 한 관계의 회차별 값이다. 한 쌍 사이의 여러 관계는 `relationId`로 구분한다.
+- `payload`는 지금 `StudioRelationship.payload`와 같은 내용(분류·방향/대칭·극성·본문·label·semantic metadata)이다. 방향 없는 관계도 source→target 연결 하나로 저장하고 payload의 대칭 값으로 구분한다.
+- 관계가 끝나면 `ended=true` 연결을 추가한다. 연결을 지우는 것은 같은 회차 값을 덮어쓸 때뿐이다.
+- 기존 `StudioRelationship` 노드는 없앤다. 다른 세계관이 같은 관계 ID를 쓰지 못하게 막는 확인은 연결의 `relationId`·`worldId`로 한다.
+- 세계관 노드(`StudioRelationshipWorld`)의 CAS token·요청 key/hash·잠금(`mutex`)은 그대로 쓴다.
+
+### 회차 기준
+
+- 회차는 연결된 소설의 회차 순번 `episode.sequence`다. 독자 공개 회차 `revealFromEpisode`와 같은 번호다.
+- 소설이 연결되지 않은 세계관은 모든 관계를 1화로 기록한다.
+- 회차 삭제·순서 변경으로 번호가 바뀌어도 연결의 `fromEpisode`는 옮기지 않는다(ponytail 한계, 필요해지면 별도 결정).
+
+### 조회
+
+N화 시점 관계: 관계마다 `fromEpisode <= N`인 연결 중 가장 최근 하나를 고르고, 그것이 종료 연결이면 뺀다.
+
+```cypher
+MATCH (a:StudioCard)-[e:RELATED {worldId:$world}]->(b:StudioCard)
+WHERE e.fromEpisode <= $ep
+WITH e ORDER BY e.fromEpisode DESC
+WITH e.relationId AS id, head(collect(e)) AS e
+WHERE NOT e.ended
+RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
+```
+
+| 호출 | 회차 |
+|---|---|
+| 작가 관리 화면·초안 조회 | 요청의 회차, 생략하면 최신 |
+| 공개 세계관 조회 | 최신 |
+| 독자 설정 위키 `GET /public/works/{id}/world-cards?upto=` | `upto`(카드와 같은 기준이라 관계 스포일러도 막힌다) |
+
+### 저장
+
+- 저장 API는 지금처럼 'N화 시점의 관계 전체'를 받는다. 저장소가 N화 시점 값과 비교해 바뀐 관계만 `fromEpisode=N` 연결로 넣고(같은 관계·회차가 있으면 덮어씀), 목록에서 빠진 관계는 종료 연결을 넣는다. 회차를 생략하면 최신 회차다.
+- N화를 고쳐도 N화보다 뒤 회차에 이미 있는 연결은 바꾸지 않는다.
+- PG prepare → Neo4j CAS → PG finalization 순서, 원래 요청 재시도, 오류 코드는 아래 #132 계약을 그대로 따른다.
+
+### 기존 데이터
+
+지금 있는 `StudioRelationship` 관계는 `fromEpisode=1` 연결로 한 번 옮긴다. 공유 Neo4j 데이터라 실행 전에 승인을 받는다.
+
+### 범위 밖
+
+관계 이력 복원 API, 세계관 전체 restore, 같은 회차 정정 이력, 회차 재배치, 인물 자체의 회차별 상태(카드 값).
+
 ## 현재 관계 MVP 계약 — #132
+
+> **DEC-51로 대체 결정, 구현 전.** 회차별 관계는 위 절을 따른다. 저장 순서·인가·부분 실패 계약은 계속 유효하다.
 
 2026-11-05 사용자 변경 결정: **관계 내용은 Neo4j의 현재 상태 하나만 정본으로 저장한다. 관계 변경 이력·과거 snapshot·버전 조회·복원은 만들지 않는다.** DEC-27·33의 관계 이력 보존에 대한 이번 MVP만의 예외이며, 인물·설정·원고의 기존 버전 기능과 기존 SQL·데이터를 폐기하는 결정은 아니다. 아래 V1 설계는 역사적 기록이며, 관계 저장·HTTP 연결·실행 소유권은 이 절과 Content 실행 계약을 우선한다. 소스 구현은 병합·hosted CI·실제 이관·배포 완료와 다르다.
 
