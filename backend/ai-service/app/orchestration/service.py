@@ -16,6 +16,10 @@ AsyncPostgresSaver가 PostgreSQL에 보관한다.
 Content MCP(DEC-49): 대화 안에서 Content가 반영 대상(target)을 보내면 Writing 결과 뒤 apply 노드가 interrupt로
 작가 승인을 기다린다. 승인 resume이면 그 요청의 사용자 Bearer로 Content MCP에 초안 반영을 요청하고, 거절이면 쓰지 않는다.
 토큰은 요청마다 컨텍스트로만 넘겨 체크포인트에 남기지 않는다.
+
+대화 세션 CRUD(#331): 대화용 테이블 없이 체크포인터만 쓴다. 실행마다 checkpoint metadata에 scope를 남겨 목록을 거르고,
+턴마다 최종 응답을 turns에 남겨 이력을 다시 그린다. 메시지 수정·삭제는 그 턴 직전의 완료 checkpoint에서 갈라져 나간다
+(옛 갈래 checkpoint는 남지만 최신 상태가 아니라 보이지 않는다). scope가 다른 대화는 없는 대화로 본다.
 """
 
 import operator
@@ -37,7 +41,8 @@ from app.intent.errors import IntentFailure
 from app.manuscript import service as manuscript
 from app.manuscript.errors import ManuscriptFailure
 from app.manuscript.models import AnswerRequest
-from app.orchestration.models import OrchestrationRequest, OrchestrationResponse, QaStepResult
+from app.orchestration.models import (ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
+                                      QaStepResult)
 from app.research import service as research
 from app.research.errors import ResearchFailure
 from app.research.models import ResearchRequest
@@ -89,6 +94,9 @@ ROUTER_FAILED_MESSAGE = '요청 분류에 실패했습니다.'
 CONVERSATION_MISMATCH_MESSAGE = '다른 사용자나 작품의 대화는 이어갈 수 없습니다.'
 NOTHING_TO_RESUME_MESSAGE = '이어갈 대기 중인 작업이 없습니다.'
 CONVERSATION_UNAVAILABLE_MESSAGE = '대화 저장소 설정이 필요합니다.'
+CONVERSATION_NOT_FOUND_MESSAGE = '대화나 메시지를 찾을 수 없습니다.'
+CONVERSATION_BUSY_MESSAGE = '진행 중인 작업이 끝난 뒤에 바꿀 수 있습니다.'
+TITLE_LENGTH = 40
 STREAM_FAILED_MESSAGE = '작업을 완료할 수 없습니다.'
 
 
@@ -98,6 +106,14 @@ class ConversationMismatch(Exception):
 
 class NothingToResume(Exception):
     """resume을 받았지만 그 대화에 interrupt로 멈춘 실행이 없다."""
+
+
+class ConversationNotFound(Exception):
+    """그 scope의 대화나 턴이 없다. 다른 사용자·작품의 대화도 여기에 든다."""
+
+
+class ConversationBusy(Exception):
+    """멈춘 실행이 있어 상태를 덮어쓰면 이어가기(resume)가 깨진다."""
 
 
 class ConversationUnavailable(Exception):
@@ -119,7 +135,8 @@ class State(TypedDict, total=False):
     target: dict | None  # Content가 확인한 Writing 반영 대상(workId·episode). 토큰은 담지 않는다.
     runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
     traceParent: str | None
-    turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa}를 하나씩 덧붙인다.
+    title: str  # 대화 제목. 첫 턴 요청 앞부분이며 rename으로만 바뀐다.
+    turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa, reply}를 하나씩 덧붙인다.
 
 
 def plan(state: State) -> State:
@@ -200,7 +217,7 @@ def _awaiting_approval(state: State) -> bool:
 
 
 def finish(state: State) -> State:
-    """실행 상태를 확정하고 이번 턴을 대화 기록에 남긴다. 실행하지 않은 턴도 요청은 남긴다."""
+    """실행 상태를 확정하고 이번 턴을 대화 기록에 남긴다. 실행하지 않은 턴도 요청과 응답은 남긴다."""
     done = {'status': state['status']}
     if state['status'] == 'running':
         failed = any(s['status'] == 'failed' for s in state['steps'])
@@ -211,7 +228,8 @@ def finish(state: State) -> State:
         answer = ' '.join(c['text'] for c in qa['claims']) or ' '.join(qa['gaps'])
         question = state['inputs'].get('story_context', {}).get('question') or state['request'][:500]
         qa = {'question': question, 'answer': answer[:2000]}
-    return {**done, 'turns': [{'request': state['request'], 'qa': qa}]}
+    reply = _response({**state, **done}).model_dump(mode='json')
+    return {**done, 'turns': [{'request': state['request'], 'qa': qa, 'reply': reply}]}
 
 
 def _trace(state: State) -> dict | None:
@@ -288,12 +306,19 @@ async def _target(data: OrchestrationRequest):
         return GRAPH, None, state, dict(state)
     if CHAT is None:
         raise ConversationUnavailable()
-    config = {'configurable': {'thread_id': data.conversation.threadId}}
+    config = _config(data.conversation.threadId, data.conversation.scope)
     snapshot = await CHAT.aget_state(config)
     if snapshot.values.get('scope', data.conversation.scope) != data.conversation.scope:
         raise ConversationMismatch()
     if data.resume is None:
-        state = _initial(data)
+        state = {**_initial(data), 'title': snapshot.values.get('title') or data.request[:TITLE_LENGTH]}
+        if data.fromTurn is not None:
+            fork = await _fork_point(config, snapshot, data.fromTurn)
+            if fork is None:  # 첫 턴을 고치면 대화를 새로 시작한다.
+                await CHAT.checkpointer.adelete_thread(data.conversation.threadId)
+                state['title'] = data.request[:TITLE_LENGTH]
+            else:
+                config = {**config, 'configurable': fork.config['configurable']}
         return CHAT, config, state, dict(state)
     if not snapshot.interrupts:
         raise NothingToResume()
@@ -307,6 +332,86 @@ def _response(state: dict) -> OrchestrationResponse:
         state = {**state, 'status': 'waiting', 'message': APPROVAL_MESSAGE if approval else WAITING_MESSAGE,
                  'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
+
+
+def _config(thread_id: str, scope: str) -> dict:
+    """실행·갱신이 남기는 checkpoint마다 scope를 metadata로 기록해 세션 목록을 거른다."""
+    return {'configurable': {'thread_id': thread_id}, 'metadata': {'scope': scope}}
+
+
+async def _owned(thread_id: str, scope: str):
+    if CHAT is None:
+        raise ConversationUnavailable()
+    config = _config(thread_id, scope)
+    snapshot = await CHAT.aget_state(config)
+    if not snapshot.values or snapshot.values.get('scope') != scope:
+        raise ConversationNotFound()
+    return config, snapshot
+
+
+async def _fork_point(config: dict, snapshot, index: int):
+    """index번 턴 직전의 완료 checkpoint. 첫 턴이면 None이다. 멈춘 턴(마지막)도 고치거나 지울 수 있다."""
+    turns = snapshot.values.get('turns', [])
+    if index > len(turns) - (0 if snapshot.next else 1):
+        raise ConversationNotFound()
+    if index == 0:
+        return None
+    async for past in CHAT.aget_state_history(config):
+        if not past.next and past.values.get('turns') == turns[:index]:
+            return past
+    raise ConversationNotFound()
+
+
+def _title(values: dict) -> str:
+    return values.get('title') or values.get('request', '')[:TITLE_LENGTH]
+
+
+async def sessions(scope: str) -> list[ChatSession]:
+    """scope의 대화를 최근 순으로. thread마다 가장 새 checkpoint의 제목과 시각을 쓴다."""
+    if CHAT is None:
+        raise ConversationUnavailable()
+    latest = {}
+    # shortcut: scope의 checkpoint를 모두 읽어 thread별로 고른다. 대화가 많아지면 thread 단위 목록 쿼리로 바꾼다.
+    async for row in CHAT.checkpointer.alist(None, filter={'scope': scope}):
+        thread = row.config['configurable']['thread_id']
+        if thread not in latest or row.checkpoint['id'] > latest[thread].checkpoint['id']:
+            latest[thread] = row
+    rows = sorted(latest.values(), key=lambda row: row.checkpoint['id'], reverse=True)
+    return [ChatSession(threadId=row.config['configurable']['thread_id'], title=_title(row.checkpoint['channel_values']),
+                        updatedAt=row.checkpoint['ts']) for row in rows]
+
+
+async def history(thread_id: str, scope: str) -> ChatHistory:
+    """최신 상태의 턴과 각 응답. 멈춘 실행이 있으면 그 턴을 waiting 응답과 함께 마지막에 붙인다."""
+    _, snapshot = await _owned(thread_id, scope)
+    values = snapshot.values
+    turns = [ChatTurn(request=t['request'], reply=t.get('reply')) for t in values.get('turns', [])]
+    if snapshot.interrupts:
+        turns.append(ChatTurn(request=values['request'], reply=_response({**values, '__interrupt__': snapshot.interrupts})))
+    return ChatHistory(threadId=thread_id, title=_title(values), turns=turns)
+
+
+async def rename(thread_id: str, scope: str, title: str) -> None:
+    config, snapshot = await _owned(thread_id, scope)
+    if snapshot.next:
+        raise ConversationBusy()
+    await CHAT.aupdate_state(config, {'title': title}, as_node='finish')
+
+
+async def delete(thread_id: str, scope: str) -> None:
+    await _owned(thread_id, scope)
+    await CHAT.checkpointer.adelete_thread(thread_id)
+
+
+async def truncate(thread_id: str, scope: str, index: int) -> None:
+    """index번 턴과 그 뒤를 지운다. 첫 턴부터 지우면 대화가 없어진다."""
+    config, snapshot = await _owned(thread_id, scope)
+    fork = await _fork_point(config, snapshot, index)
+    if fork is None:
+        await CHAT.checkpointer.adelete_thread(thread_id)
+        return
+    await CHAT.aupdate_state({**config, 'configurable': fork.config['configurable']}, {'title': _title(snapshot.values)},
+                             as_node='finish')
 
 
 async def run(data: OrchestrationRequest, authorization: str = '') -> OrchestrationResponse:
@@ -327,7 +432,8 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     HTTP 상태 대신 error 이벤트 하나로 알린다.
     """
     errors = {IntentFailure: ROUTER_FAILED_MESSAGE, ConversationMismatch: CONVERSATION_MISMATCH_MESSAGE,
-              NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE}
+              NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE,
+              ConversationNotFound: CONVERSATION_NOT_FOUND_MESSAGE}
     content_mcp.AUTHORIZATION.set(authorization)
     try:
         graph, config, payload, state = await _target(data)

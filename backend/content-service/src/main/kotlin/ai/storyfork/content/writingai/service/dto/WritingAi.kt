@@ -21,7 +21,12 @@ data class WritingAiRequest(
     val consent: Boolean = false,
 )
 
-data class WritingAiResume(val approved: Boolean)
+/** inputs는 AI가 입력 대기로 멈췄을 때 작가가 채운 단계 입력(예: web_research.question)이며 AI가 계약으로 검증한다. */
+data class WritingAiResume(val approved: Boolean, val inputs: JsonNode? = null)
 
 /** result는 AI 오케스트레이션 응답(계획·단계별 원본 결과·상태·runId)을 그대로 담는다. */
 data class WritingAiResponse(val threadId: String, val result: JsonNode)
+
+data class ChatSessionCreated(val threadId: String)
+
+data class ChatRename(@field:NotBlank @field:Size(max=100) val title: String)
