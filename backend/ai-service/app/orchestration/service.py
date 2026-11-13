@@ -30,6 +30,8 @@ from typing import Annotated, TypedDict
 
 from fastapi.sse import ServerSentEvent
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from psycopg import AsyncConnection, errors, sql
+from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
@@ -269,14 +271,38 @@ GRAPH = build().compile()
 CHAT = None  # lifespan이 AsyncPostgresSaver로 컴파일한다. 설정이 없으면 대화 요청은 503이다.
 
 
+class CheckpointDatabaseMissing(Exception):
+    """체크포인트 DB가 없고 이 계정으로는 만들 수 없다(운영 외부 DB 등)."""
+
+
+async def ensure_database(url: str) -> None:
+    """URL의 체크포인트 DB가 없으면 같은 서버의 기본 DB(postgres)에 접속해 만든다.
+
+    체크포인트는 Core·Content가 쓰는 DB와 다른 전용 DB(예: storyfork_ai)에 둔다. 같은 DB의 public에 먼저 테이블이 생기면
+    Core Flyway가 빈 DB가 아니라며 시작을 멈춘다(#337). CREATE DATABASE는 트랜잭션 밖에서만 실행돼 autocommit으로 접속한다.
+    """
+    name = conninfo_to_dict(url)['dbname']
+    async with await AsyncConnection.connect(make_conninfo(url, dbname='postgres'), autocommit=True) as conn:
+        if await (await conn.execute('SELECT 1 FROM pg_database WHERE datname = %s', (name,))).fetchone():
+            return
+        try:
+            await conn.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(name)))
+        except errors.DuplicateDatabase:
+            pass  # 다른 AI 인스턴스가 먼저 만들었다.
+        except errors.InsufficientPrivilege:
+            raise CheckpointDatabaseMissing(
+                f'체크포인트 DB {name}가 없고 이 계정에는 DB 생성 권한이 없습니다. DB를 먼저 만들어 주세요.') from None
+
+
 @asynccontextmanager
 async def lifespan(_app):
-    """AI_CHECKPOINT_DATABASE_URL(postgresql://…)이 있으면 체크포인트 테이블을 준비하고 대화 그래프를 연다."""
+    """AI_CHECKPOINT_DATABASE_URL(postgresql://…/storyfork_ai)이 있으면 전용 DB와 체크포인트 테이블을 준비하고 대화 그래프를 연다."""
     global CHAT
     url = os.environ.get('AI_CHECKPOINT_DATABASE_URL')
     if not url:
         yield
         return
+    await ensure_database(url)
     # shortcut: 연결 하나를 모든 요청이 잠금으로 나눠 쓴다. 동시 대화가 많아지면 AsyncConnectionPool로 바꾼다.
     async with AsyncPostgresSaver.from_conn_string(url) as saver:
         await saver.setup()

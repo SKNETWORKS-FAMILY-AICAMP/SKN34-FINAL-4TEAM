@@ -512,3 +512,63 @@ def test_edit_needs_an_existing_turn(monkeypatch):
     chat(thread, inputs={'story_context': QA})
     events = stream(conversation={'threadId': thread, 'scope': ME}, fromTurn=5, inputs={'story_context': QA})
     assert events == [('error', {'message': service.CONVERSATION_NOT_FOUND_MESSAGE})]
+
+
+# 체크포인트 전용 DB(#337): Core·Content가 쓰는 DB와 섞이지 않게 AI가 시작할 때 storyfork_ai를 준비한다.
+URL = 'postgresql://writer:secret@postgres:5432/storyfork_ai'
+
+
+class FakeServer:
+    """AsyncConnection.connect 대역. 접속 정보와 실행한 SQL을 남긴다."""
+
+    def __init__(self, exists=False, create_error=None):
+        self.exists, self.create_error, self.connected, self.queries = exists, create_error, [], []
+
+    async def connect(self, conninfo, **kwargs):
+        self.connected.append((conninfo, kwargs))
+        return self
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_):
+        return False
+
+    async def execute(self, query, params=None):
+        self.queries.append((query, params))
+        if 'create database' in repr(query).lower() and self.create_error:
+            raise self.create_error
+        return self
+
+    async def fetchone(self):
+        return (1,) if self.exists else None
+
+
+def test_missing_checkpoint_database_is_created_from_the_maintenance_database(monkeypatch):
+    server = FakeServer()
+    monkeypatch.setattr(service.AsyncConnection, 'connect', server.connect)
+    asyncio.run(service.ensure_database(URL))
+    (conninfo, kwargs), = server.connected
+    assert 'dbname=postgres' in conninfo and 'storyfork_ai' not in conninfo and kwargs == {'autocommit': True}
+    assert server.queries[0][1] == ('storyfork_ai',)
+    assert 'storyfork_ai' in repr(server.queries[1][0]) and 'create database' in repr(server.queries[1][0]).lower()
+
+
+def test_existing_checkpoint_database_is_left_alone(monkeypatch):
+    server = FakeServer(exists=True)
+    monkeypatch.setattr(service.AsyncConnection, 'connect', server.connect)
+    asyncio.run(service.ensure_database(URL))
+    assert len(server.queries) == 1
+
+
+def test_database_created_meanwhile_by_another_instance_is_fine(monkeypatch):
+    server = FakeServer(create_error=service.errors.DuplicateDatabase())
+    monkeypatch.setattr(service.AsyncConnection, 'connect', server.connect)
+    asyncio.run(service.ensure_database(URL))
+
+
+def test_missing_create_privilege_fails_with_the_manual_step(monkeypatch):
+    server = FakeServer(create_error=service.errors.InsufficientPrivilege())
+    monkeypatch.setattr(service.AsyncConnection, 'connect', server.connect)
+    with pytest.raises(service.CheckpointDatabaseMissing, match='storyfork_ai'):
+        asyncio.run(service.ensure_database(URL))
