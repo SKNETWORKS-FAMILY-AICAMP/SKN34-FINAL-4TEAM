@@ -565,6 +565,17 @@ input,textarea{caret-color:var(--pri)}
 .stats>span{display:inline-flex;align-items:center;gap:5px}.stats .mi{width:16px;height:16px}
 .whero .acts{align-items:center;gap:12px}.ibs{display:flex;gap:8px}
 .tbtn.weak{padding:0 14px;border-color:transparent;color:var(--tsub)}.tbtn.weak:hover{color:var(--tfg)}.whero .tbtn.weak{margin-left:auto}
+.manuscript-qa{white-space:normal;border-color:var(--tline);color:var(--tfg)}
+.manuscript-qa summary{cursor:pointer;font-weight:700}
+.manuscript-qa form{display:grid;gap:12px;margin:12px 0}
+.manuscript-qa label:not(.ck){display:grid;gap:6px}
+.manuscript-qa textarea{width:100%;resize:vertical;background:var(--tcard);color:var(--tfg);border:1px solid var(--tline);border-radius:8px;padding:10px}
+.manuscript-qa button{justify-self:start}.manuscript-qa button:disabled{opacity:.55;cursor:not-allowed}
+.manuscript-qa h3{margin-top:16px}.manuscript-qa p{color:var(--tfg)}
+.manuscript-qa ol,.manuscript-qa ul{padding-inline-start:1.5em}
+.manuscript-qa li{margin-block:6px;overflow-wrap:anywhere}
+.manuscript-qa a{color:var(--tacc);text-decoration:underline;padding-inline:3px}
+.manuscript-qa blockquote{margin:4px 0 0;white-space:pre-wrap}
 
 /* 터치 타깃: 좁은 화면(600px 이하)과 손가락이 주 입력인 기기(pointer:coarse — 태블릿·가로로 든 폰 포함)에서 누르는 요소를 44px 이상으로 한다.
    마우스가 주 입력인 데스크톱의 밀도는 그대로다. 체크박스는 라벨 전체를 누를 수 있다. 명시도가 같은 기본 규칙을 이기도록 파일 맨 끝에 둔다. */
@@ -587,15 +598,3 @@ input,textarea{caret-color:var(--pri)}
  input,textarea,select{font-size:16px}
  :is(.inp.sm,.pc select,.eps-q input,.lq input,.wq input,.memo-page textarea){font-size:16px}
 }
-
-.manuscript-qa{white-space:normal;border-color:var(--tline);color:var(--tfg)}
-.manuscript-qa summary{cursor:pointer;font-weight:700}
-.manuscript-qa form{display:grid;gap:12px;margin:12px 0}
-.manuscript-qa label:not(.ck){display:grid;gap:6px}
-.manuscript-qa textarea{width:100%;resize:vertical;background:var(--tcard);color:var(--tfg);border:1px solid var(--tline);border-radius:8px;padding:10px}
-.manuscript-qa button{justify-self:start}.manuscript-qa button:disabled{opacity:.55;cursor:not-allowed}
-.manuscript-qa h3{margin-top:16px}.manuscript-qa p{color:var(--tfg)}
-.manuscript-qa ol,.manuscript-qa ul{padding-inline-start:1.5em}
-.manuscript-qa li{margin-block:6px;overflow-wrap:anywhere}
-.manuscript-qa a{color:var(--tacc);text-decoration:underline;padding-inline:3px}
-.manuscript-qa blockquote{margin:4px 0 0;white-space:pre-wrap}
