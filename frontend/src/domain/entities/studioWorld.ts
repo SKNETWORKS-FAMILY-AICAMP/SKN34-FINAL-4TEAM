@@ -9,6 +9,10 @@ export type SettingItem = {
  orderEvidence: {sourceId:string;quote:string}[]; evidence: {sourceId:string;quote:string}[]
  origin: 'extraction'|'correction'|'author_addition'|'author_input'; authorText: string|null; decision: 'pending'|'approved'|'rejected'|'held'
 }
+<<<<<<< HEAD
+export type StudioSetting = {item:SettingItem;userCategory:string;tags:string[];aliases?:string[];templateOrder?:number}
+export type StudioWorld = {id:string;name:string;description:string;version:number;settings:StudioSetting[];relationshipStatus?:'current'|'incomplete'|'migration_required';analysis:{id:string;status:string;candidates:SettingItem[];issues:string[]}|null}
+=======
 /** 설정 카드 단위 공개(DEC-46). 세계관 단위 공개([WorldVisibility])와 다르다. */
 export type CardVisibility = 'private'|'public'
 /** 다른 세계관에서 가져온 카드의 출처 스냅샷(DEC-46). 가져온 뒤 원본의 변경·비공개 전환·삭제는 반영하지 않는다. */
@@ -37,6 +41,7 @@ export type WorldPublicationInput = {visibility:WorldVisibility;genre:PublicWorl
 /** `listed`는 지금 공개 목록·상세에 실제로 나오는지다. 공개로 설정해도 확정 버전이 없으면 false이고, `publishedAt`은 비공개이면 null이다. */
 export type WorldPublication = WorldPublicationInput & {worldId:string;publishedAt:string|null;listed:boolean}
 export type StudioWorld = {currentRevisionId?:string|null;id:string;name:string;description:string;version:number;visibility?:WorldVisibility;genre?:PublicWorldGenre|null;/** 올린 표지가 있는지(없으면 자동 생성 표지). 값이 없으면 없다. */hasCover?:boolean;/** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결). 없으면 미연결이다. */linkedWorkId?:string|null;settings:StudioSetting[];relationshipStatus?:'current'|'incomplete'|'migration_required';analysis:{id:string;status:string;candidates:SettingItem[];issues:string[]}|null}
+>>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
 export const newSetting = (section:StudioSection='basic'):StudioSetting => ({userCategory:'설정',tags:[],item:{id:crypto.randomUUID(),title:'',text:'',topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_addition',authorText:'',decision:'approved',...sectionFields(section)}})
 export function authorEdit(setting:StudioSetting,patch:Partial<SettingItem>):StudioSetting {
  const item={...setting.item,...patch,origin:'author_addition' as const,decision:'approved' as const,evidence:[],orderEvidence:[]}

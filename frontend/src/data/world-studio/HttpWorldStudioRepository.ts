@@ -20,6 +20,7 @@ const linkedWorkId = z.string().nullable().default(null)
 const area = z.enum(['basic', 'space', 'history', 'society', 'culture', 'special', 'conflict'])
 const evidence = z.array(z.object({ sourceId: z.string(), quote: z.string() }))
 const studio = z.object({
+  templateOrder: z.number().int().nonnegative().optional(),
   userCategory: z.string(),
   tags: z.array(z.string()),
   aliases: z.array(z.string()).optional(),
@@ -110,8 +111,13 @@ const card = z.object({
   classification: z.string(),
   aliases: z.array(z.string()),
   tags: z.array(z.string()),
+<<<<<<< HEAD
+  semanticMetadata: z.union([metadata, z.strictObject({})]),
+  visibility: z.literal('private'),
+=======
   semanticMetadata: metadata,
   visibility,
+>>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
   lifecycle: z.enum(['active', 'removed']),
 })
 const confirmationRequest=z.object({expectedDraftRevision:revision,key:uuid})
@@ -189,11 +195,23 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
     ids = new Set(active.map((c) => c.id))
   const settings: StudioSetting[] = active.map((c) => {
+<<<<<<< HEAD
+    // 기존 Seeder는 정본 필드만 저장했다. 빈 메타데이터만 복원하며 손상된 studio는 검증에서 거절한다.
+    const row: StudioSetting = 'studio' in c.semanticMetadata ? c.semanticMetadata.studio : {
+      userCategory:c.classification, tags:c.tags, aliases:c.aliases,
+      item:{id:c.id,title:c.title,text:c.body,category:c.areaCode,
+        kind:c.cardType==='rule'?'rule':c.cardType==='event'?'event':'entity',
+        entityType:['rule','event'].includes(c.cardType)?null:c.cardType,
+        topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],
+        condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_input',authorText:c.body,decision:'approved'},
+    }
+=======
     // 독자 공개 회차·가져온 출처·인물 문서는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
     const {revealFromEpisode:reveal,importedFrom:source,characterDocs:written,...known}=c.semanticMetadata
     const row = setting(known,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
       {userCategory:c.classification,aliases:c.aliases,tags:c.tags})
     if(c.semanticMetadata.studio.item.id!==c.id)throw invalid()
+>>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
     if (
       row.item.kind === 'relation' || row.item.id !== c.id || row.item.title !== c.title ||
       row.item.text !== c.body || row.item.category !== c.areaCode ||
@@ -201,10 +219,15 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
       JSON.stringify(row.tags) !== JSON.stringify(c.tags) ||
       JSON.stringify(row.aliases ?? []) !== JSON.stringify(c.aliases)
     ) throw invalid()
+<<<<<<< HEAD
+    return row
+  }).sort((a,b)=>(a.templateOrder??Number.MAX_SAFE_INTEGER)-(b.templateOrder??Number.MAX_SAFE_INTEGER))
+=======
     const episode = revealFromEpisode.safeParse(reveal), from = importedFrom.safeParse(source), docs = characterDocs.safeParse(written)
     return {...row,...(c.visibility==='public'&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
       ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data})}
   })
+>>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
   for (const r of value.relationships) {
     const row = setting(r.semanticMetadata,{id:r.id,kind:'relation',title:r.label,text:r.body,
       subjectId:r.sourceCardId,targetId:r.targetCardId,polarity:r.polarity??'asserted',

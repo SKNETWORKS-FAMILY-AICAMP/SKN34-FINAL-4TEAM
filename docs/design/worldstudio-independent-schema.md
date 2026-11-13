@@ -69,16 +69,24 @@ WorldStudio는 기능 플래그 없이 항상 켜져 있다. Content 서버 시�
 
 ## 플랫폼 장르 템플릿 세계관
 
-장르별 예시 템플릿 11개(카드 248장, [안내](../../infrastructure/sample-data/genre-templates/README.md))는 플랫폼 제공 콘텐츠로, 기존 운영 관리자 계정(Core `auth/V8__member_admin_operations.sql`의 `admin@example.test`, 회원 UUID `5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01`, `operator=true`)에 **임시 할당**해 그 계정이 소유하는 **WorldStudio 독립 세계관으로만** 둔다. 운영자로 로그인하면 세계관 목록에서 보인다. 작품·회차·체크포인트로는 넣지 않으며 사용자 샘플 CSV와 섞지 않는다.
+장르별 예시 템플릿 26개(카드 999장, [안내](../../infrastructure/sample-data/genre-templates/README.md))는 플랫폼 제공 콘텐츠로, 기존 운영 관리자 계정(Core `auth/V8__member_admin_operations.sql`의 `admin@example.test`, 회원 UUID `5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01`, `operator=true`)에 **임시 할당**해 그 계정이 소유하는 **WorldStudio 독립 세계관으로만** 둔다. 운영자로 로그인하면 세계관 목록에서 보인다. 작품·회차·체크포인트로는 넣지 않으며 사용자 샘플 CSV와 섞지 않는다.
 
 - **적재 경로:** WorldStudio 읽기는 Neo4j 현재 상태 노드가 필요해 SQL로 넣을 수 없다. Content 서버 시작(`ApplicationReadyEvent`) 때 `GenreTemplateSeeder`가 classpath `genre-templates.json`을 읽어 기존 `WorldStudioService`의 create → edit(`expectedDraftRevision=0`) → save를 운영 관리자 subject(`GenreTemplateSeeder.TEMPLATE_OWNER`)로 호출한다. 별도 쓰기 경로나 Neo4j 직접 쓰기는 없다.
-- **멱등:** 세계관 ID는 장르별 고정, edit·save key는 `genre-template-<장르>`다. 저장까지 끝난 세계관(`currentRevisionId`가 있음)은 건너뛴다. save가 draft revision을 올려 같은 edit의 중복 판정이 `WORLD_CONFLICT`로 바뀌기 때문이다. 앞선 edit가 미완료(`RELATIONSHIP_WRITE_INCOMPLETE`)로 남은 세계관은 create가 같은 코드로 거절하므로 이를 무시하고 같은 요청으로 edit를 재시도한다.
+- **멱등:** 세계관 ID는 장르별 고정, edit·save key는 `genre-template-<장르>`다. 최초 v1 적재에서는 저장까지 끝난 세계관(`currentRevisionId`가 있음)을 건너뛰며, 이후 별도의 v2 보완을 검사한다. save가 draft revision을 올려 같은 edit의 중복 판정이 `WORLD_CONFLICT`로 바뀌기 때문이다. 앞선 edit가 미완료(`RELATIONSHIP_WRITE_INCOMPLETE`)로 남은 세계관은 create가 같은 코드로 거절하므로 이를 무시하고 같은 요청으로 edit를 재시도한다.
 - **실패:** Neo4j·PG 장애 등 장르별 실패는 장르·예외 클래스·메시지만 `error`로 남기고 다음 장르와 서버 기동을 계속한다. 다음 시작 때 같은 방식으로 다시 시도한다. `genre-templates.json`을 읽지 못해도 `error`만 남기고 기동하며 그 시작에서는 적재하지 않는다.
 - **한계(PG만 초기화):** PostgreSQL만 초기화하고 Neo4j 데이터가 남으면 고정 worldId의 create가 graph mismatch(`RELATIONSHIP_VERSION_MISMATCH`)로 실패해 해당 장르가 재시작마다 오류 로그만 남기고 적재되지 않는다. 둘을 함께 초기화해야 한다. CI처럼 여러 PG가 Neo4j 하나를 공유하면 컨텍스트마다 오류 로그가 나오지만 테스트는 깨지지 않는다.
+<<<<<<< HEAD
+- **한계(임시 소유자):** 템플릿을 기존 운영 관리자 계정에 임시로 할당했다. ① V8 샘플 관리자 비밀번호가 마이그레이션 주석에 공개되어 있어 그 계정으로 로그인하면 누구나 템플릿을 수정·삭제할 수 있다. 실제 운영 계정·공개 템플릿 조회가 생기면 소유자를 바꾼다. ② V8은 `ON CONFLICT (email) DO NOTHING`이라 기존 DB에 `admin@example.test`가 다른 id로 있으면 템플릿 소유자가 실제 로그인 계정과 다를 수 있다. ③ 다른 사용자에게는 여전히 보이지 않는다(가져오기·공개는 후속). 소유자를 바꿔도 이미 적재된 세계관은 옮겨지지 않는다. 고정 worldId의 create가 소유자 불일치로 거절(`WorldNotFound`)되어 장르별 오류 로그만 남으므로, 소유자 변경 때는 기존 세계관(PG·Neo4j)을 승인 하에 정리해야 한다.
+- **v2 보완:** 기존 장르 11종의 최초 적재 입력만 `genre-templates-v1.json`으로 동결하고, 최초 저장 뒤 `GenreTemplateRepair`가 v1과 동일한 이름·설명·카드 및 관계 없는 revision 2만 갱신한다. 세계관·카드 ID와 과거 저장 버전은 유지한다. 고정 key `genre-template-<장르>-repair-v2`와 expected revision 2로 edit 후 revision 3을 save하며 미완료 작업은 같은 요청으로 재시도한다. 사용자 수정·완료된 보완은 건너뛴다. v2 본문·유형·메타데이터는 배포 후 동결하며 이후 임의 수정은 자동 반영 대상이 아니다. 자세한 절차는 [샘플 README](../../infrastructure/sample-data/genre-templates/README.md#v2-보완과-기존-데이터-반영)를 따른다.
+- **신화·고전 15종(카드 751장):** v1 동결본에서 제외하고 각 장르의 단일 작품 본문에서 추출한 카드로 create → edit → save한다. 처음부터 `templateOrder`와 유형 메타데이터를 넣고 사건은 event/history로 적재한다. 단일 작품의 한국어 전문은 저장소의 `source/original.md`와 `source/template.json`의 `content_markdown`에 보관한다. 런타임 카드 적재에서는 전문·창작 도입을 제외하며, 이번 변경으로 앱의 전문 표시 기능을 추가하지 않았다. 기존 검증용 DB에 다른 내용으로 동일 ID가 있으면 자동 교체하지 않고 충돌을 기록한다. 사용자 편집과 저장된 세계관은 재시작 시 보존한다. 카드마다 출처와 문헌 범위를 표시하며 Neo4j 관계선은 자동 생성하지 않는다.
+- **기존 정책과의 관계:** 카드는 DEC-36의 기본값인 비공개로 둔다. 후속 "가져오기"는 [요구사항 F-WLD-01](../requirements.md#f-wld-01)·[유스케이스 6.2](../usecase.md)의 "장르 기본 세계관을 복사해 시작"(원본 관계 없는 새 세계관)이며, 작품 Fork와 무관한 타인 세계관의 직접 이용(DEC-35)은 MVP 제외다.
+- **후속(미구현):** 목록은 소유자 전용이라 운영 관리자 계정만 볼 수 있다. 공개/비공개 설정, 다른 사용자의 템플릿 가져오기, Fork 연계는 이번 범위 밖이다. 서버 시작 적재는 로컬 단위(서비스 대역)로만 확인했고 실제 PG·Neo4j 실행은 CI·개발 환경 확인 대기다.
+=======
 - **한계(임시 소유자):** 템플릿을 기존 운영 관리자 계정에 임시로 할당했다. ① V8 샘플 관리자 비밀번호가 마이그레이션 주석에 공개되어 있어 그 계정으로 로그인하면 누구나 템플릿을 수정·삭제할 수 있다. 실제 운영 계정·공개 템플릿 조회가 생기면 소유자를 바꾼다. ② V8은 `ON CONFLICT (email) DO NOTHING`이라 기존 DB에 `admin@example.test`가 다른 id로 있으면 템플릿 소유자가 실제 로그인 계정과 다를 수 있다. ③ 세계관이 비공개라 다른 사용자에게는 여전히 보이지 않는다(소유자가 세계관을 공개해야 공개 목록·상세에 나온다). 소유자를 바꿔도 이미 적재된 세계관은 옮겨지지 않는다. 고정 worldId의 create가 소유자 불일치로 거절(`WorldNotFound`)되어 장르별 오류 로그만 남으므로, 소유자 변경 때는 기존 세계관(PG·Neo4j)을 승인 하에 정리해야 한다.
 - **내용 변경:** 저장된 세계관은 내용 비교 없이 건너뛴다. 같은 key로 입력이 바뀌면 hash 충돌이고 새 key만으로는 낡은 expected revision으로 거절된다. 내용을 바꾸려면 새 세계관 ID와 새 카드 ID(카드 ID는 세계관 사이에서도 유일)의 새 항목을 추가한다.
 - **기존 정책과의 관계:** 카드의 기본은 비공개지만(DEC-36·46) 템플릿 카드는 공개(`visibility=public`)로 넣는다. 공개 세계관 조회가 공개 카드만 보이므로(DEC-46), 소유자가 템플릿 세계관을 공개했을 때 카드가 함께 보이게 하려는 것이다. 세계관 자체의 공개 범위는 건드리지 않아 비공개다. 이 변경 전에 적재된 세계관은 다시 넣지 않아 카드가 비공개인 채이고, 확정 버전은 불변이라 소유자가 초안의 카드를 공개로 저장한 뒤 새 확정 버전을 남기거나 PostgreSQL·Neo4j를 함께 초기화해 다시 적재해야 바뀐다. [요구사항 F-WLD-01](../requirements.md#f-wld-01)·[유스케이스 6.2](../usecase.md)의 "장르 기본 세계관을 복사해 시작"(원본 관계 없는 새 세계관)은 아직 없고, 작품 Fork와 무관한 타인 세계관의 참조·추종 이용은 두지 않는다(DEC-35, 카드 단위 복사는 설정 가져오기 DEC-46).
 - **후속(미구현):** 목록은 소유자 전용이라 운영 관리자 계정만 볼 수 있다. 템플릿 세계관은 비공개로 적재되며, 세계관 단위 공개 설정(`PUT /{id}/publication`, DEC-45)으로 소유자가 직접 공개해야만 공개 목록·상세에 나온다(그때 공개 카드가 보인다). 소유자가 템플릿 세계관을 공개하면 다른 사용자는 설정 가져오기(DEC-46)로 그 공개 카드를 카드 단위로 자기 세계관에 복사할 수 있다. 템플릿을 통째로 복사해 새 세계관으로 시작하는 흐름과 Fork 연계는 없다. 서버 시작 적재는 로컬 단위(서비스 대역)로만 확인했고 실제 PG·Neo4j 실행은 CI·개발 환경 확인 대기다.
+>>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
 
 ## 기준
 
@@ -162,3 +170,5 @@ JWT 서명·만료 검증과 Principal→UUID 변환은 호출 계층의 책임�
 공용 개발 DB 적용은 이 PR 범위에서 제외한다. 이전 배포 시도는 인증·접속 확인 실패로 중단했고 백업/migration을 수행하지 않았다. 실제 적용 상태는 미확인이며 [배포 사전 확인](../deployment/worldstudio-v1-rollout.md)에 기록했다. SQL과 독립 JPA 구현은 작업 브랜치에 커밋·일반 push하여 팀 리뷰용 일반 PR로 제출한다. #86·#76과 원본 UX worktree는 변경하지 않는다.
 
 **PR 병합만으로 자동 마이그레이션이 실행되는지는 미확정이다.** 현재 WorldStudioConfig는 validate만 수행하고 migrate를 자동 호출하지 않는다. 실제 개발 DB 적용 여부, 배포 시 Flyway의 명시 실행 주체/시점/권한과 기능 활성화 순서는 팀원 검토가 필요하다.
+
+템플릿 보완의 `semanticMetadata.studio`는 정본 카드 필드와 일치하며, `templateOrder`로 읽기 순서를 보존한다. 프런트는 빈 메타데이터의 기존 카드만 정본 필드로 해석하고 손상된 studio는 거절한다. 사건 area는 `history`다.
