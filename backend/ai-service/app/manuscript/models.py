@@ -24,9 +24,16 @@ class Excerpt(BaseModel):
     title: str = Field(default='', max_length=256)
 
 
+class QaTurn(BaseModel):
+    """같은 대화의 이전 질문과 답. 근거가 아니라 지칭 해석용 자료다."""
+    question: str = Field(min_length=1, max_length=500)
+    answer: str = Field(max_length=2000)
+
+
 class AnswerRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
     excerpts: list[Excerpt] = Field(min_length=1, max_length=8)
+    history: list[QaTurn] = Field(default=[], max_length=5)
 
 
 class Claim(BaseModel):

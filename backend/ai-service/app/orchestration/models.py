@@ -31,8 +31,16 @@ class StepInputs(BaseModel):
     web_research: ResearchRequest | None = None
 
 
+class Conversation(BaseModel):
+    """Content가 발급한 대화 id와 Content가 확인한 사용자·작품 scope(예: user:1/work:2)."""
+    model_config = ConfigDict(extra='forbid')
+    threadId: str = Field(min_length=1, max_length=100)
+    scope: str = Field(min_length=1, max_length=200)
+
+
 class OrchestrationRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
+    conversation: Conversation | None = None
     request: str = Field(min_length=1, max_length=2000)
     operation: Feature | None = None
     materials: list[Annotated[str, Field(max_length=2000)]] = Field(default=[], max_length=8)

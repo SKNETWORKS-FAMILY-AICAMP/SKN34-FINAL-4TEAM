@@ -1,4 +1,5 @@
 import asyncio
+from uuid import uuid4
 
 import pytest
 
@@ -33,7 +34,7 @@ def test_clarify_and_rejected_run_nothing_and_keep_router_message(monkeypatch, r
 def test_router_receives_request_operation_and_materials(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
     run('규칙 알려줘', operation='story_context', materials=['자료'], inputs={'story_context': QA})
-    assert calls[0][1] == ('규칙 알려줘', 'story_context', ['자료'])
+    assert calls[0][1] == ('규칙 알려줘', 'story_context', ['자료'], [])
 
 
 @pytest.mark.parametrize('steps, unsupported', [
@@ -126,3 +127,42 @@ def test_stream_without_execution_ends_with_done_status(monkeypatch):
 def test_stream_router_failure_is_an_error_event(monkeypatch):
     fake_agents(monkeypatch, plan('story_context'), fail={'route': IntentFailure()})
     assert stream() == [('error', {'message': '요청 분류에 실패했습니다.'})]
+
+
+def chat(thread, scope='user:1/work:1', **body):
+    return run(conversation={'threadId': thread, 'scope': scope}, **body)
+
+
+def test_follow_up_turn_gets_previous_requests_and_qa_history(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='카이의 목표는?', inputs={'story_context': QA})
+    chat(thread, request='그 목표가 바뀐 이유는?', inputs={'story_context': QA})
+    route, qa = [c for c in calls if c[0] == 'route'], [c for c in calls if c[0] == 'story_context']
+    assert route[0][1][3] == [] and route[1][1][3] == ['카이의 목표는?']
+    assert qa[0][1][0].history == []
+    assert [(t.question, t.answer) for t in qa[1][1][0].history] == [(QA['question'], '밤에 닫는다')]
+
+
+def test_each_turn_starts_without_previous_turn_results(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    assert chat(thread).status == 'needs_input'
+    second = chat(thread, inputs={'story_context': QA})
+    assert (second.status, second.missingInputs, second.message) == ('completed', [], None)
+
+
+def test_conversation_of_another_scope_is_refused(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, inputs={'story_context': QA})
+    with pytest.raises(service.ConversationMismatch):
+        chat(thread, scope='user:2/work:1', inputs={'story_context': QA})
+    assert len([c for c in calls if c[0] == 'route']) == 1
+
+
+def test_requests_without_conversation_share_no_history(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    run('첫 질문', inputs={'story_context': QA})
+    run('둘째 질문', inputs={'story_context': QA})
+    assert [c[1][3] for c in calls if c[0] == 'route'] == [[], []]

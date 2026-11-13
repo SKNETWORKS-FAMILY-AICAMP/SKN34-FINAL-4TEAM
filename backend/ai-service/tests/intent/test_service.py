@@ -81,8 +81,15 @@ def test_free_text_is_classified_and_sent_only_as_data(monkeypatch, text, featur
     body = calls[0][1]
     assert body['input'][0]['role'] == 'developer'
     assert body['input'][1] == {'role': 'user', 'content': [
-        {'type': 'input_json', 'data': {'request': text, 'materials': [material]}}]}
+        {'type': 'input_json', 'data': {'request': text, 'materials': [material], 'history': []}}]}
     assert [q['name'] for q in body['questions']] == ['guard', 'clarity', *prompt.FEATURES]
+
+
+def test_previous_requests_are_sent_as_history_data(monkeypatch):
+    calls = fake_decisions(monkeypatch, ok(story_context='1'))
+    service.route('그 목표가 바뀐 이유는?', history=['카이의 목표는?'])
+    assert calls[0][1]['input'][1]['content'][0]['data']['history'] == ['카이의 목표는?']
+    assert 'history' in prompt.INSTRUCTIONS
 
 
 @pytest.mark.parametrize('answers', [

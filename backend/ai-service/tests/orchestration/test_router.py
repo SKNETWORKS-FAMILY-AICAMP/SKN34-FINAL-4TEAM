@@ -2,7 +2,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.intent.errors import IntentFailure
-from app.orchestration import router
+from app.orchestration import router, service
 from app.orchestration.models import OrchestrationRequest
 
 from .stubs import fake_agents, plan
@@ -24,3 +24,11 @@ def test_router_failure_becomes_503(monkeypatch):
     with pytest.raises(HTTPException) as error:
         router.orchestrate(OrchestrationRequest(request='요청'), 'test-token')
     assert error.value.status_code == 503
+
+
+def test_conversation_scope_mismatch_becomes_409(monkeypatch):
+    monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
+    fake_agents(monkeypatch, plan('story_context'), fail={'route': service.ConversationMismatch()})
+    with pytest.raises(HTTPException) as error:
+        router.orchestrate(OrchestrationRequest(request='요청'), 'test-token')
+    assert error.value.status_code == 409

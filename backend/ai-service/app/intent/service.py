@@ -13,11 +13,14 @@ from app.intent.models import IntentResult, IntentStep
 from app.intent.prompt import CLARIFY_MESSAGE, FEATURES, FINDING_FEATURES, GUARD_QUESTION, REJECT_MESSAGES, ROUTE_QUESTIONS
 
 
-def route(request: str, operation: str | None = None, materials: list[str] = ()) -> IntentResult:
-    """UI에서 고른 operation이 있으면 가드레일만 묻고 그 기능으로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure."""
+def route(request: str, operation: str | None = None, materials: list[str] = (), history: list[str] = ()) -> IntentResult:
+    """UI에서 고른 operation이 있으면 가드레일만 묻고 그 기능으로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure.
+
+    history는 같은 대화의 이전 요청이며 "그것" 같은 지칭을 해석하는 자료로만 보낸다.
+    """
     if operation is not None:
         IntentStep(feature=operation, when='always')  # 등록 밖 값은 모델 호출 전에 ValidationError(ValueError)
-    answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else ROUTE_QUESTIONS)
+    answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else ROUTE_QUESTIONS, list(history))
     try:
         if answers['guard'] != 'none':
             return IntentResult(status='rejected', reason=answers['guard'], message=REJECT_MESSAGES[answers['guard']])
