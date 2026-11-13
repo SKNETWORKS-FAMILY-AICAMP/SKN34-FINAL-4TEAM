@@ -26,7 +26,8 @@ class ManuscriptQaTest {
     private val versions = mock(EpisodeVersionRepository::class.java)
     private val answers = mock(ManuscriptQaClient::class.java)
     private val worlds = mock(ai.storyfork.content.world.service.WorldService::class.java)
-    private val service = ManuscriptQaService(scopeService, index, embeddings, episodes, versions, answers, worlds)
+    private val grants = QaScopeGrants()
+    private val service = ManuscriptQaService(scopeService, index, embeddings, episodes, versions, answers, worlds, grants)
     private val request = ManuscriptQaRequest(2, "r2", "무슨 일이 있었나요?", true)
     private val scopeRequest = QaScopeRequest(2, "r2", "manuscript")
     private val scope = QaScope("fork", "original", 2, "r2", listOf(QaEpisodeRef(1, "r1"), QaEpisodeRef(2, "r2")), null)
@@ -132,5 +133,27 @@ class ManuscriptQaTest {
         assertEquals(graph.worldId, source.worldId)
         assertEquals(409, assertThrows(ContentFailure::class.java) { service.ask("fork", owner, query) }.status)
         verifyNoInteractions(index, embeddings, worlds)
+    }
+
+    @Test
+    fun `ai retrieval returns verified excerpts and step metrics without calling the model or consent`() {
+        prepare(hit, hit.copy(id="foreign", workId="other"))
+        val result = service.retrieveForAi(QaRetrievalRequest(grants.issue(QaScopeGrant("fork", null, 2, "r2")), request.question))
+        assertEquals("found", result.status)
+        assertEquals(listOf(QaExcerpt("chunk", 2, "용이 나타났다.", "manuscript", "")), result.excerpts)
+        assertEquals(listOf("embedding" to 1, "elasticsearch" to 2, "postgres_verify" to 1), result.steps.map { it.provider to it.hits })
+        assertEquals(listOf(QaEpisodeRef(1, "r1")), result.coverage.withoutVerifiedExcerpt)
+        verifyNoInteractions(answers)
+    }
+
+    @Test
+    fun `ai retrieval keeps the reader relationship guard and rejects unsigned scope`() {
+        for (token in listOf(grants.issue(QaScopeGrant("fork", null, 2, "r2", "relationship")),
+            QaScopeGrants().issue(QaScopeGrant("fork", "forged-owner", 2, "r2", "relationship")))) {
+            assertEquals(403, assertThrows(ContentFailure::class.java) {
+                service.retrieveForAi(QaRetrievalRequest(token, request.question))
+            }.status)
+        }
+        verifyNoInteractions(scopeService)
     }
 }

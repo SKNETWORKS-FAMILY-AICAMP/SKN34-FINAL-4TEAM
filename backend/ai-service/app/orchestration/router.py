@@ -14,14 +14,16 @@ router = APIRouter()
 
 
 @router.post('/internal/v1/orchestrations')
-async def orchestrate(data: OrchestrationRequest, x_internal_token: str = Header(default='')) -> OrchestrationResponse:
+async def orchestrate(data: OrchestrationRequest, x_internal_token: str = Header(default=''),
+                      x_user_authorization: str = Header(default='')) -> OrchestrationResponse:
     """자유 입력 또는 UI 선택 기능을 Router로 계획하고, 검증을 통과하면 구현된 Agent를 계획 순서로 실행한다.
 
-    대화에서 입력이 빠지면 waiting으로 멈추고, 같은 conversation의 resume으로 이어간다.
+    대화에서 입력이 빠지거나 Writing 결과 반영 승인이 필요하면 waiting으로 멈추고, 같은 conversation의 resume으로 이어간다.
+    X-User-Authorization은 Content가 전달한 작가의 Bearer이며 승인된 반영의 Content MCP 호출에만 쓴다.
     """
     require_internal_token(x_internal_token)
     try:
-        return await service.run(data)
+        return await service.run(data, x_user_authorization)
     except IntentFailure:
         raise HTTPException(503, service.ROUTER_FAILED_MESSAGE) from None
     except service.ConversationUnavailable:
@@ -39,7 +41,8 @@ def internal_token(x_internal_token: str = Header(default='')) -> None:
 
 @router.post('/internal/v1/orchestrations/stream', response_class=EventSourceResponse,
              dependencies=[Depends(internal_token)])
-async def orchestrate_stream(data: OrchestrationRequest) -> AsyncIterator[ServerSentEvent]:
+async def orchestrate_stream(data: OrchestrationRequest,
+                             x_user_authorization: str = Header(default='')) -> AsyncIterator[ServerSentEvent]:
     """같은 실행을 SSE로 흘린다: plan, 단계마다 started·step, 멈추면 waiting, 마지막 done(실패 시 error)."""
-    async for event in service.stream(data):
+    async for event in service.stream(data, x_user_authorization):
         yield event

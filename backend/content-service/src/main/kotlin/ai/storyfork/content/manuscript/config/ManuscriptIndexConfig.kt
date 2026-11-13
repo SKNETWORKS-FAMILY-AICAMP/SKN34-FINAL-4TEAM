@@ -4,6 +4,7 @@ import ai.storyfork.content._common.ai_config.AiServiceClientProperties
 import ai.storyfork.content._common.helper.buildRestClient
 import ai.storyfork.content._common.helper.validateHttpBaseUrl
 import ai.storyfork.content.context.service.ManuscriptQaService
+import ai.storyfork.content.context.service.QaScopeGrants
 import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
@@ -67,6 +68,7 @@ internal class ManuscriptIndexConfig {
         scopes: QaScopeService, index: ManuscriptElasticsearch, embeddings: ManuscriptEmbeddingClient,
         episodes: EpisodeCurrentRepository, versions: EpisodeVersionRepository, worlds: WorldService,
         builder: RestClient.Builder, ai: AiServiceClientProperties, @Value("\${INTERNAL_TOKEN:}") token: String,
+        grants: QaScopeGrants,
     ) = ManuscriptQaService(scopes, index, embeddings, episodes, versions,
-        ManuscriptQaClient(buildRestClient(builder.clone(), ai.baseUrl, ai.connectTimeout, Duration.ofSeconds(45)), token), worlds)
+        ManuscriptQaClient(buildRestClient(builder.clone(), ai.baseUrl, ai.connectTimeout, Duration.ofSeconds(45)), token), worlds, grants)
 }

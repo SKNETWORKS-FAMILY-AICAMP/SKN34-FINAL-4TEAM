@@ -7,6 +7,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      # 집필 AI Retrieval 도구가 부르는 Content 내부 검색 API. Content는 32자 이상 INTERNAL_TOKEN만 받는다.
+      CONTENT_SERVICE_BASE_URL: http://content-service:8081
       # 집필 AI 대화·HITL 체크포인트(LangGraph AsyncPostgresSaver). 비우면 대화 요청은 503이다.
       AI_CHECKPOINT_DATABASE_URL: ${AI_CHECKPOINT_DATABASE_URL:-}
       # 집필 AI Langfuse 추적(메타데이터만). 키가 비면 추적하지 않는다.

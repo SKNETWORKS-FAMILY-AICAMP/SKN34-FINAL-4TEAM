@@ -116,6 +116,16 @@ Elasticsearch 9.5.6의 `storyfork-manuscript-v1-dev-sample`에 원고 표본 26�
 - 설정·관계는 제목과 근거의 문자 일치로 정렬해 최대 8건을 보낸다. 근거가 없으면 모델을 호출하지 않고 `insufficient`를 반환한다. 저장소 또는 모델 연결 장애는 503, 미등록 출처를 인용한 모델 응답은 502, 답변 도중 발행 범위나 확인한 근거가 바뀌면 409를 반환한다.
 - `MANUSCRIPT_INDEX_ENABLED=true`와 Content DB에 맞는 `MANUSCRIPT_INDEX_NAME`을 사용한다. 위에서 준비한 로컬 DB의 인덱스는 `storyfork-manuscript-v1-local`이다. AI Service에는 로컬 E5와 `OPENAI_API_KEY`, Structured Outputs를 지원하는 `OPENAI_MODEL`을 설정한다. [실행 안내](../../infrastructure/README.md#네이티브-자동-적재) · [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
 
+### 공통 Retrieval 도구 (오케스트레이션, 2026-11-12 사용자 결정)
+
+AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다. Flyway 마이그레이션과 원고 색인 동기화·시드 코드는 그대로 Content에 둔다.
+
+- Content `POST /internal/v1/ai/qa/retrieval` `{scopeToken, question}` → `{status: found|insufficient, sources, excerpts, gaps, coverage, steps}`. 위 Q&A API와 같은 `ManuscriptQaService.retrieve`(범위 확정 → 임베딩 → Elasticsearch → PostgreSQL 원문 재대조, 또는 설정·Neo4j 현재 관계)를 쓰고 모델은 부르지 않는다. `steps`는 공급자별(`embedding`·`elasticsearch`·`postgres_verify`·`postgres_settings`·`neo4j`) 소요 ms·결과 수다.
+- 인증은 `/internal/v1/ai/**` 전용 보안 체인의 `X-Internal-Token`(`INTERNAL_TOKEN`, 32자 이상)이다. 조회 키(작품·작가·회차·판본·대상)는 Content가 인증 뒤 `QaScopeGrants`로 HMAC 서명해 발급한 `scopeToken`(1시간 만료)에서만 읽는다. AI는 토큰을 되돌려 줄 뿐이라 `INTERNAL_TOKEN`만으로 다른 작가를 지정할 수 없다. 서명이 틀리거나 만료되면 403이다. Content가 그 값으로 `QaScopeService` 권한·범위를 다시 확정한다. 서명 키는 프로세스마다 새로 만들어 Content 재시작·다중 인스턴스에서는 발급한 토큰이 무효다. 독자 관계 질문 거절도 같다. 외부 전송 동의는 아래 Content 공개 경로가 확인하고 이 내부 경로는 확인하지 않는다.
+- 토큰 발급은 Content 공개 경로 `POST /api/v1/works/{id}/writing-ai/orchestrations` `{request | resume{approved}, threadId?, operation?, episode, episodeVersionId, target, consent}`가 한다. 회원 인증(Principal)·동의·작품 범위를 확인한 뒤 작가 본인으로 토큰을 발급하고, 대화를 `user:<작가>/work:<작품>` scope에 묶어 AI 오케스트레이션을 부른다. 응답은 `{threadId, result}`이며 result는 AI 응답 그대로다. resume 때도 새 토큰을 보내 AI가 저장된 토큰을 바꾸므로 1시간 만료·Content 재시작 뒤에도 이어 실행할 수 있다. 아직 Writing 문맥·웹 조사 입력은 보내지 않아 그 단계는 `waiting`이 되며, 화면·SSE 프록시는 없다.
+- AI `app/retrieval/service.retrieve`가 이 API를 호출한다. 오케스트레이션 요청에 Content가 확인한 `scope`가 있으면 Q&A 단계가 발췌 입력 없이 Retrieval로 근거를 받고, 근거가 없으면 모델을 부르지 않고 gaps만 돌려준다. Writing & Editing은 호출하지 않는다.
+- 한계: 오케스트레이션 경로는 답변 생성 뒤 Content의 범위·근거 재확인(409)을 하지 않는다. 검색어는 이번 요청 문장 그대로이며 후속 질문 재작성이 없다. Review·World & Plot이 생기면 같은 도구에 목적별 조회를 더한다.
+
 ### 로컬 실모델 검증 (2026-11-11)
 
 `gpt-5.6-luna`로 로그인한 독서 화면에서 공개 개발 샘플 질문을 세 번 제출했다. 원작 `starlight` 2화와 Fork `seal` 2화에서 카엘이 허락한 일을 묻자 각각 서고 열람을 답했고, 같은 상속 판본 `ec9e6883-0c2d-3b95-9976-b5fbaf6688bc`의 2화 원문을 표시했다. 동일 질문을 API에서 각각 한 번 재현해 두 응답 모두 200 `answered`이며 각 `workId`·`episodeId`가 PostgreSQL의 해당 작품과 회차에 일치하고 인용 청크 ID가 서로 다른 것을 확인했다. Fork의 `sourceWorkId`는 원작을 가리켰다.

@@ -10,7 +10,10 @@ from app.orchestration import service
 from app.orchestration.models import OrchestrationRequest
 from app.research.errors import ResearchFailure
 
-from .stubs import DRAFT, PATCH, QA, WEB, fake_agents, plan
+from app.retrieval.errors import RetrievalFailure
+from app.retrieval.models import RetrievalResult
+
+from .stubs import COVERAGE, DRAFT, PATCH, QA, SCOPE, WEB, fake_agents, plan
 
 
 def run(request='요청', **body):
@@ -266,3 +269,148 @@ def test_resumed_steps_join_the_trace_of_the_waiting_turn(monkeypatch, spans):
     done = resume(thread, inputs={'web_research': WEB})
     step = next(s for s in spans() if s.name == 'step.web_research')
     assert done.runId == waiting.runId == format(step.context.trace_id, '032x')
+
+
+def test_scope_lets_qa_retrieve_its_own_evidence_through_content(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    result = run('길드 규칙은?', scope=SCOPE)
+    assert result.status == 'completed' and names(calls) == ['route', 'retrieval', 'story_context']
+    scope, question = calls[1][1]
+    assert (scope.scopeToken, question) == ('signed.token', '길드 규칙은?')
+    asked = calls[2][1][0]
+    assert asked.question == '길드 규칙은?' and [e.id for e in asked.excerpts] == ['a']
+    qa = result.steps[0].result
+    assert [s.id for s in qa.sources] == ['a'] and qa.coverage.expected[0].versionId == 'r4'
+    assert qa.gaps == ['제외한 결과가 있어요.']
+
+
+def test_insufficient_evidence_answers_with_gaps_without_model(monkeypatch):
+    empty = RetrievalResult(status='insufficient', excerpts=[], coverage=COVERAGE, steps=[],
+                            gaps=[{'code': 'NO_EVIDENCE', 'detail': '근거를 확인하지 못했어요.'}])
+    calls = fake_agents(monkeypatch, plan('story_context'), retrieved=empty)
+    result = run('길드 규칙은?', scope=SCOPE)
+    assert names(calls) == ['route', 'retrieval']
+    qa = result.steps[0].result
+    assert (result.status, qa.claims, qa.gaps) == ('completed', [], ['근거를 확인하지 못했어요.'])
+
+
+def test_retrieval_failure_fails_the_qa_step(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'),
+                        fail={'retrieval': RetrievalFailure(409, '공개 원고 범위가 변경됐어요.')})
+    result = run(scope=SCOPE, inputs={'web_research': WEB})
+    assert [(s.status, s.error) for s in result.steps] == [('failed', '공개 원고 범위가 변경됐어요.'), ('not_started', None)]
+    assert names(calls) == ['route', 'retrieval']
+
+
+def test_given_excerpts_win_over_scope_and_skip_retrieval(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    run(scope=SCOPE, inputs={'story_context': QA})
+    assert names(calls) == ['route', 'story_context']
+
+
+def test_scope_does_not_satisfy_other_features(monkeypatch):
+    fake_agents(monkeypatch, plan('web_research'))
+    assert run(scope=SCOPE).missingInputs == ['web_research']
+
+
+def test_stream_unexpected_failure_still_ends_with_error_event(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'), fail={'route': RuntimeError('원고 본문이 담긴 메시지')})
+    assert stream(inputs={'story_context': QA}) == [('error', {'message': '작업을 완료할 수 없습니다.'})]
+
+
+def test_resume_uses_the_fresh_scope_token_from_content(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
+    run(conversation=conversation, scope={'scopeToken': 'old.token'})
+    resumed = run(None, conversation=conversation, resume={
+        'approved': True, 'inputs': {'web_research': WEB}, 'scope': {'scopeToken': 'fresh.token'}})
+    assert resumed.status == 'completed'
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['fresh.token']
+
+
+TARGET = {'workId': 'work', 'episode': 3}
+
+
+def writer(monkeypatch, fail=None):
+    """Content MCP 초안 반영 대역. 호출마다 (작품, 회차, 결과, 그때의 사용자 토큰)을 남긴다."""
+    applied = []
+
+    def apply_writing(work_id, number, result):
+        applied.append((work_id, number, result, service.content_mcp.AUTHORIZATION.get()))
+        if fail:
+            raise fail
+        return {'episode': number, 'revision': 8}
+
+    monkeypatch.setattr(service.content_mcp, 'apply_writing', apply_writing)
+    return applied
+
+
+def write_turn(thread, authorization='Bearer user', **body):
+    data = OrchestrationRequest(conversation={'threadId': thread, 'scope': 'user:1/work:1'}, **body)
+    return asyncio.run(service.run(data, authorization))
+
+
+def test_writing_result_waits_for_author_approval_before_any_write(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    result = write_turn(str(uuid4()), request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+    assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
+    assert result.steps[0].status == 'completed' and result.steps[0].result.after == '그는 차갑게 웃었다.'
+    assert applied == []
+
+
+def test_approval_writes_the_same_result_with_the_resuming_users_token(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    write_turn(thread, request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+    done = write_turn(thread, 'Bearer fresh', resume={'approved': True})
+    assert done.status == 'completed' and done.awaitingApproval is None
+    assert (done.steps[0].approval, done.steps[0].applied.revision) == ('approved', 8)
+    assert applied == [('work', 3, {'before': '그는 웃었다.', 'after': '그는 차갑게 웃었다.', 'model': 'm',
+                                    'providerResponseId': 'r', 'usage': None}, 'Bearer fresh')]
+    assert names(calls) == ['route', 'patch']  # 승인 뒤 모델을 다시 부르지 않는다.
+
+
+def test_declined_result_is_kept_but_never_written(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    write_turn(thread, request='써줘', target=TARGET, inputs={'writing_editing': DRAFT})
+    done = write_turn(thread, resume={'approved': False})
+    assert done.status == 'completed' and done.steps[0].approval == 'declined' and done.steps[0].applied is None
+    assert applied == []
+
+
+def test_failed_write_fails_the_step_and_stops_later_steps(monkeypatch):
+    from app.content_mcp.errors import ContentMcpFailure
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('writing_editing', 'web_research'))
+    writer(monkeypatch, fail=ContentMcpFailure(409, '초안이 최신이 아니에요.'))
+    write_turn(thread, request='고치고 조사해줘', target=TARGET, inputs={'writing_editing': PATCH, 'web_research': WEB})
+    done = write_turn(thread, resume={'approved': True})
+    assert done.status == 'failed' and done.steps[0].error == '초안이 최신이 아니에요.'
+    assert done.steps[0].result.after == '그는 차갑게 웃었다.' and done.steps[1].status == 'not_started'
+    assert 'web_research' not in names(calls)
+
+
+def test_writing_without_target_or_conversation_only_returns_a_proposal(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    assert write_turn(str(uuid4()), request='써줘', inputs={'writing_editing': DRAFT}).status == 'completed'
+    assert run('써줘', target=TARGET, inputs={'writing_editing': DRAFT}).status == 'completed'
+    assert applied == []
+
+
+def test_stream_reports_approval_wait_then_the_applied_step(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('writing_editing'))
+    writer(monkeypatch)
+    conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
+    first = stream(conversation=conversation, target=TARGET, inputs={'writing_editing': PATCH})
+    assert [name for name, _ in first] == ['plan', 'started', 'step', 'waiting', 'done']
+    assert first[3][1]['awaitingApproval'] == 'writing_editing' and first[-1][1]['status'] == 'waiting'
+    second = stream(request=None, conversation=conversation, resume={'approved': True})
+    assert [name for name, _ in second] == ['step', 'done']
+    assert second[0][1]['applied'] == {'episode': 3, 'revision': 8} and second[-1][1]['status'] == 'completed'

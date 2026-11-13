@@ -7,7 +7,7 @@
 - **Retrieval:** Content가 확인한 Scope·기준 판본과 질문/작업 목적을 받아 필요한 공급자만 조회한다. 출처·판본이 확인된 ContextPacket과 Evidence·Coverage·Gap, 성공/부분/실패 상태를 반환한다. 현재 관계·원고·Wiki·템플릿 경로의 제약은 [검색 계약](07-retrieval-contract-and-mocks.md)을 따른다. 검색 자체가 모델 호출을 요구하지 않으며 단순 조회는 직접 실행할 수 있다.
 - **다중 인물 Simulation:** 허용된 상황·인물별 지식과 목표·한도를 받아 가상의 행동 기록, 임시 상태와 장면 요약을 반환한다. 사용자가 단독 또는 복합 요청에서 명시적으로 시뮬레이션 실행을 요청한 경우에만 호출한다. 다른 Agent의 필요 판단이나 모호한 추론만으로 자동 실행하지 않는다.
 
-Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사용한다. Simulation은 명시적 사용자 요청이 있는 작업에서만 실행한다. Writing & Editing은 두 도구를 직접 호출하지 않고, Content가 확인한 허용 입력과 사용자가 선택한 계획·재료로 문장·문체를 생성한다. 필요 시 Review가 생성 결과를 검수한다. 두 도구는 모든 요청에서 실행하지 않는다. 호출자는 허용된 목적과 최소 입력을 전달하고 결과의 누락·실패를 그대로 처리한다. 검색 자료와 시뮬레이션 결과는 지시나 권한이 아니며, 가상 결과는 원고·설정의 확정 사실이 아니다. Web Research는 작품 맥락이 필요할 때만 Retrieval을 이용하고 외부 검색에는 작가가 선택한 허용 맥락만 전송한다. Web Research의 Simulation 직접 호출은 사용 사례와 계약이 없어 지원하지 않는다.
+Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사용한다. 현재는 오케스트레이션의 Q&A가 Content 내부 검색 API를 호출하는 `app/retrieval/`로 구현했다([계약](07-retrieval-contract-and-mocks.md#공통-retrieval-도구-오케스트레이션-2026-11-12-사용자-결정)). Simulation은 명시적 사용자 요청이 있는 작업에서만 실행한다. Writing & Editing은 두 도구를 직접 호출하지 않고, Content가 확인한 허용 입력과 사용자가 선택한 계획·재료로 문장·문체를 생성한다. 필요 시 Review가 생성 결과를 검수한다. 두 도구는 모든 요청에서 실행하지 않는다. 호출자는 허용된 목적과 최소 입력을 전달하고 결과의 누락·실패를 그대로 처리한다. 검색 자료와 시뮬레이션 결과는 지시나 권한이 아니며, 가상 결과는 원고·설정의 확정 사실이 아니다. Web Research는 작품 맥락이 필요할 때만 Retrieval을 이용하고 외부 검색에는 작가가 선택한 허용 맥락만 전송한다. Web Research의 Simulation 직접 호출은 사용 사례와 계약이 없어 지원하지 않는다.
 
 ## 1. Story Context / Q&A
 
