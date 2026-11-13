@@ -71,3 +71,38 @@ it('답을 만드는 사이 대화 상대가 바뀌면 새 대화는 막히지 �
   expect(speakers('guunmong/성진')).toEqual(['성진'])
   expect(speakers('guunmong/육관대사')).toEqual(['육관대사', '나', '육관대사'])
 })
+
+// 실서버 모드에서 대화방 조회는 작품 목록 HTTP를 다시 부른다. 질문·답 한 줄마다 다시 읽지 않고 화면 기록에만 덧붙인다.
+it('질문과 답을 화면 기록에 덧붙일 때 대화방을 다시 읽지 않는다', async () => {
+  vi.useFakeTimers()
+  const db = createFixtureDb(), store = createAppStore({ role: 'user' })
+  const uc = new ChatUseCase(new InMemoryWorkRepository(db), new InMemoryReadingRepository(db), new InMemoryChatRepository(db))
+  const page = vi.spyOn(uc, 'page')
+  const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}><MemoryRouter>{children}</MemoryRouter></Provider>
+  const { result } = renderHook(() => useChatViewModel('guunmong', '성진', uc), { wrapper })
+  const shown = () => result.current.data?.log.map((line) => line[0])
+  await act(async () => {})
+  expect(shown()).toEqual(['성진'])
+  await act(async () => { await result.current.ask({ q: 0 }) })
+  expect(shown()).toEqual(['성진', '나'])
+  await act(async () => { await vi.advanceTimersByTimeAsync(450) })
+  expect(shown()).toEqual(['성진', '나', '성진'])
+  expect(db.chat['guunmong/성진'].map((line) => line[0])).toEqual(['성진', '나', '성진'])
+  expect(page).toHaveBeenCalledTimes(1)
+  expect(store.getState().session.dataVersion).toBe(0)
+})
+
+it('빈 질문은 받지 않고 입력 오류로 남기며, 내용을 채워 다시 물으면 오류를 지운다', async () => {
+  vi.useFakeTimers()
+  const db = createFixtureDb(), store = createAppStore({ role: 'user' })
+  const uc = new ChatUseCase(new InMemoryWorkRepository(db), new InMemoryReadingRepository(db), new InMemoryChatRepository(db))
+  const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}><MemoryRouter>{children}</MemoryRouter></Provider>
+  const { result } = renderHook(() => useChatViewModel('guunmong', '성진', uc), { wrapper })
+  await act(async () => {})
+  expect(result.current.askError).toBe('')
+  await act(async () => { expect(await result.current.ask({ text: '   ' })).toBe(false) })
+  expect(result.current.askError).toBe('물어볼 내용을 입력해 주세요')
+  expect(db.chat['guunmong/성진']).toHaveLength(1)
+  await act(async () => { expect(await result.current.ask({ text: '안녕하세요' })).toBe(true) })
+  expect(result.current.askError).toBe('')
+})

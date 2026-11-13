@@ -102,6 +102,14 @@ describe('수정 제안 UseCase', () => {
     expect(repo.inbox).toHaveBeenCalledTimes(1)
   })
 
+  it('작가 피드백함은 작품을 정했을 때만 그 작품 ID를 저장소에 넘긴다(걸러 내기는 서버가 한다)', async () => {
+    const { repo, useCase } = setup()
+    expect(await useCase.inbox('w1')).toEqual([suggestion()])
+    expect(repo.inbox).toHaveBeenLastCalledWith('w1')
+    await useCase.inbox()
+    expect(repo.inbox).toHaveBeenLastCalledWith(undefined)
+  })
+
   it('편집안 저장은 공백을 지워 제안의 작품·ID로 보내고 잘못된 입력은 거절한다', async () => {
     const { repo, useCase } = setup()
     await useCase.saveEditedText(suggestion(), '  안 된다고요 ')

@@ -131,7 +131,7 @@ class EditSuggestionServiceTest {
         }
         `when`(suggestions.findTop200ByWorkIdInOrderByCreatedAtDesc(ArgumentMatchers.anyCollection<String>())).thenAnswer { call ->
             val ids = call.arguments[0] as Collection<*>
-            rows.filter { it.workId in ids }.sortedByDescending { it.createdAt }
+            rows.filter { it.workId in ids }.sortedByDescending { it.createdAt }.take(200)
         }
         `when`(episodes.read(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())).thenAnswer { call ->
             episodeOf(call.arguments[2] as Int)
@@ -330,6 +330,37 @@ class EditSuggestionServiceTest {
         assertEquals(listOf("두 번째 작품", "별빛 서약"), items.map { it.workTitle })
         assertTrue(items.all { it.owner && !it.mine })
         assertEquals(emptyList<String>(), service.inbox("nobody").items.map { it.id })
+    }
+
+    @Test fun `the inbox with a work id lists only that work and the filter applies before the 200 cap`() {
+        workRows["second"] = WorkEntity(id = "second", ownerId = "owner", title = "두 번째 작품", createdAt = t0.plusSeconds(1))
+        row("old", work = "second", at = t0)
+        repeat(201) { row("n$it", work = "work", at = t0.plusSeconds(10L + it)) }
+
+        // 필터가 200개 상한보다 늦으면 첫 작품의 새 제안 200개에 밀려 두 번째 작품의 제안이 사라진다.
+        assertEquals(listOf("old"), service.inbox("owner", "second").items.map { it.id })
+        assertEquals(200, service.inbox("owner", "work").items.size)
+        assertFalse(service.inbox("owner").items.any { it.id == "old" })
+    }
+
+    @Test fun `the inbox with a work id that is not mine is an empty list that reads neither suggestions nor Core`() {
+        workRows["theirs"] = WorkEntity(id = "theirs", ownerId = "other", title = "남의 작품")
+        workRows["gone"] = WorkEntity(id = "gone", ownerId = "owner", title = "삭제된 작품", deletedAt = t0)
+        row("a"); row("b", work = "theirs"); row("c", work = "gone")
+
+        // 남의 작품·삭제한 작품·없는 작품·형식이 틀린 값은 존재 여부를 드러내지 않도록 모두 같은 빈 목록이다.
+        for (id in listOf("theirs", "gone", "no-such-work", "not-a-uuid")) assertEquals(emptyList<SuggestionResponse>(), service.inbox("owner", id).items, id)
+        verify(suggestions, never()).findTop200ByWorkIdInOrderByCreatedAtDesc(ArgumentMatchers.anyCollection<String>())
+        assertTrue(asked.isEmpty())
+    }
+
+    @Test fun `the inbox with a blank work id is the same as no filter`() {
+        workRows["second"] = WorkEntity(id = "second", ownerId = "owner", title = "두 번째 작품", createdAt = t0.plusSeconds(1))
+        row("a", at = t0)
+        row("b", work = "second", at = t0.plusSeconds(5))
+
+        // 화면이 "전체 작품"을 빈 값(`workId=`)으로 보내도 인박스가 비어 보이지 않는다.
+        for (blank in listOf("", "  ")) assertEquals(listOf("b", "a"), service.inbox("owner", blank).items.map { it.id }, "[$blank]")
     }
 
     @Test fun `a list asks Core once for its distinct proposers and an empty list never asks`() {

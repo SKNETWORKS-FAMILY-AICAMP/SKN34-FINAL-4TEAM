@@ -3,6 +3,7 @@ import { asValue } from 'awilix/browser'
 import { createFixtureDb } from '../../data/mock/fixtureDb'
 import { InMemoryCreditLedgerRepository } from '../../data/mock/InMemoryCreditLedgerRepository'
 import { InMemoryNoticeRepository } from '../../data/mock/InMemoryNoticeRepository'
+import { InMemoryPublicWorldRepository } from '../../data/mock/InMemoryPublicWorldRepository'
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
@@ -10,11 +11,12 @@ import { InMemoryOperationsCommentRepository } from '../../data/mock/InMemoryOpe
 import { InMemoryAdminActivityRepository } from '../../data/mock/InMemoryAdminActivityRepository'
 import { InMemoryOperationsWorkRepository } from '../../data/mock/InMemoryOperationsWorkRepository'
 import { seedNotices } from '../../data/mock/seed'
-import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupFeedbackReportRepository, mockupNotificationRepository, mockupUnsupportedMedia } from '../../data/mock/mockupRepositories'
+import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupFeedbackReportRepository, mockupNotificationRepository, mockupUnsupportedMedia, mockupWithdrawalRepository } from '../../data/mock/mockupRepositories'
 import { HttpEpisodeRepository } from '../../data/content/HttpEpisodeRepository'
 import { HttpMediaRepository } from '../../data/content/HttpMediaRepository'
 import { InMemoryStoryPlanRepository } from '../../data/plans/InMemoryStoryPlanRepository'
 import { CreditLedgerUseCase } from '../../domain/usecases/CreditLedgerUseCase'
+import { WithdrawalUseCase } from '../../domain/usecases/WithdrawalUseCase'
 import { EpisodeUseCase } from '../../domain/usecases/EpisodeUseCase'
 import { AuthUseCase } from '../../domain/usecases/AuthUseCase'
 import { EventUseCase } from '../../domain/usecases/EventUseCase'
@@ -63,11 +65,17 @@ export function registerMockupServices(container: AppContainer) {
     // 크레딧 원장 API 대신 스튜디오 데모가 쓰는 데모 크레딧 잔액만 보여 줍니다.
     creditLedgerRepository: asValue(creditLedgerRepository),
     creditLedgerUseCase: asValue(new CreditLedgerUseCase(creditLedgerRepository)),
+    // 탈퇴 API 대신 요청 없음 상태만 보이고, 탈퇴·복구는 데모 미지원 오류로 답합니다(실제 계정을 바꾸지 않음).
+    withdrawalRepository: asValue(mockupWithdrawalRepository),
+    withdrawalUseCase: asValue(new WithdrawalUseCase(mockupWithdrawalRepository)),
     authRepository: asValue(mockupAuthRepository),
     authUseCase: asValue(new AuthUseCase(mockupAuthRepository)),
     notificationRepository: asValue(mockupNotificationRepository),
     shellUseCase: asValue(new ShellUseCase(mockupNotificationRepository, feedbackRepository)),
+    initialWorldUseCase: asValue(null),
     worldStudioUseCase: asValue(new WorldStudioUseCase(createMockupWorldStudioRepository())),
+    // 공개 세계관 API 대신 데모 세계관 26개를 같은 계약으로 보여 줍니다(파생·조합·작품은 이 데모에만 있습니다).
+    publicWorldRepository: asValue(new InMemoryPublicWorldRepository()),
     storyPlanUseCase: asValue(new StoryPlanUseCase(new InMemoryStoryPlanRepository(workRepository))),
     openNotificationStream: asValue(() => () => {}),
     // 공지는 관리자 탭에서 쓰면 /me/notice에 보이는 메모리 저장소. 기존 목업 공지 4건으로 시작합니다.

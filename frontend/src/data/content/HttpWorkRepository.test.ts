@@ -134,3 +134,45 @@ it('uses the server allowlist and reports the actual preview basis when the sele
   expect(form?.basisEpisode).toBe(3)
   expect(api.readingWorld).toHaveBeenCalledWith('work-uuid', 3)
 })
+
+describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
+  const [worldId, rian, tower, link] = Array.from({ length: 4 }, () => crypto.randomUUID())
+  const cards = [
+    { id: rian, title: '리안', text: '## 성격\n끈질기다', cardType: 'character', aliases: ['견습 서약사'], tags: ['주인공'], revealFromEpisode: 1 },
+    { id: tower, title: '별빛 탑', text: '봉인을 지키는 탑.', cardType: 'location', aliases: [], tags: [], revealFromEpisode: 2 },
+  ]
+  const served = (extra: object = {}) => ({ workId: 'work-uuid', worldId, upto: 2, cards, relationships: [{ id: link, sourceCardId: rian, targetCardId: tower, label: '머무는 곳' }], relationshipStatus: 'current', ...extra })
+  /** 호출마다 새 Response를 준다(같은 Response는 한 번만 읽힌다). */
+  const repositoryOf = (body: unknown, status = 200) => {
+    const fetcher = vi.fn(async () => Response.json(body, { status }))
+    return { fetcher, repository: new HttpWorkRepository(new HttpEpisodeRepository(fetcher), () => false) }
+  }
+
+  it('기준 회차를 붙여 Bearer 없이 읽고 서버가 준 카드·관계를 그대로 돌려준다', async () => {
+    const { fetcher, repository } = repositoryOf(served())
+    expect(await repository.readWorldCards('work-uuid', 2)).toEqual(served())
+    const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('/api/v1/public/works/work-uuid/world-cards?upto=2')
+    expect(init.method).toBe('GET')
+    expect(init.headers).not.toHaveProperty('Authorization')
+  })
+
+  it('기준 회차가 없으면 upto 없이 읽고 관계 상태가 없는 응답은 current로 읽는다', async () => {
+    const { fetcher, repository } = repositoryOf(served({ relationshipStatus: undefined }))
+    expect((await repository.readWorldCards('work-uuid')).relationshipStatus).toBe('current')
+    expect(fetcher.mock.calls[0]).toEqual(['/api/v1/public/works/work-uuid/world-cards', expect.anything()])
+  })
+
+  it('연결된 세계관이 없는 작품과 관계를 읽지 못한 응답을 서버가 준 그대로 구분해 돌려준다', async () => {
+    const unlinked = { workId: 'work-uuid', worldId: null, upto: 0, cards: [], relationships: [], relationshipStatus: 'current' }
+    expect(await repositoryOf(unlinked).repository.readWorldCards('work-uuid')).toEqual(unlinked)
+    const unavailable = served({ relationships: [], relationshipStatus: 'unavailable' })
+    expect((await repositoryOf(unavailable).repository.readWorldCards('work-uuid')).relationshipStatus).toBe('unavailable')
+  })
+
+  it('다른 작품의 응답·모르는 카드 유형·없는 작품(404)은 빈 위키로 바꾸지 않고 실패한다', async () => {
+    await expect(repositoryOf(served({ workId: 'another-work' })).repository.readWorldCards('work-uuid')).rejects.toThrow('작품')
+    await expect(repositoryOf(served({ cards: [{ ...cards[0], cardType: 'weapon' }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+    await expect(repositoryOf({ detail: '작품을 찾을 수 없어요.' }, 404).repository.readWorldCards('work-uuid')).rejects.toThrow('작품을 찾을 수 없어요.')
+  })
+})

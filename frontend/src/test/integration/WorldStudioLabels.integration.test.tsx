@@ -18,10 +18,10 @@ afterEach(cleanup)
 it('does not dirty or rewrite a saved card when unchanged tag and alias fields lose focus',async()=>{
  const card=newSetting('people');card.item.title='가람';card.tags=['금빛 열쇠'];card.aliases=['오래된 이름']
  const world:StudioWorld={id:'labels',name:'태그 검증',description:'',version:1,settings:[card],analysis:null}
- useCase=new WorldStudioUseCase({listStudio:async()=>[world],read:async()=>structuredClone(world),create:async()=>world,saveStudio:vi.fn()})
+ useCase=new WorldStudioUseCase({listStudio:async()=>[world],read:async()=>structuredClone(world),create:async()=>world,saveStudio:vi.fn(),setPublication:vi.fn()})
  render(<Provider store={createAppStore({role:'user'})}><MemoryRouter initialEntries={['/worldstudio/labels']}><Routes><Route path="/worldstudio/:worldId" element={<WorldStudioPage/>}/></Routes></MemoryRouter></Provider>)
- await screen.findByRole('heading',{name:'태그 검증',level:2})
- const step=screen.queryByRole('button',{name:'설정 카드'});if(step)fireEvent.click(step)
+ await screen.findByRole('heading',{name:'태그 검증',level:1})
+ fireEvent.click(screen.getByRole('button',{name:'가람 인물'})) // 설정집에서 카드를 골라야 편집 패널이 열린다
  const tag=screen.getByLabelText(/태그 \(쉼표로 구분\)/),alias=screen.getByLabelText(/^별칭/)
  fireEvent.focus(tag);fireEvent.blur(tag);fireEvent.focus(alias);fireEvent.blur(alias)
  expect(current.dirty).toBe(false)

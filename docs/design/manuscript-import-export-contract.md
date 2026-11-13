@@ -104,8 +104,8 @@
 - `source=draft`: 각 회차의 현재 초안(`EpisodeResponse.draft`). `source=published`: 발행본(`publishedVersionId`)이 있는 회차만.
 - Fork 작품은 상속 회차(`inherited=true`)를 빼고 자기 회차만 내보낸다(UC-10 A8). `episode=N`이 상속 회차면 403.
 - 내보낼 회차가 하나도 없으면 422 "내보낼 수 있는 회차가 없어요.". 잘못된 `format`·`source`는 422.
-- TXT: `text/plain;charset=UTF-8`, UTF-8 BOM. 작품 전체면 첫 줄에 작품 제목. 회차마다 `제목\n\n본문`을 빈 줄 두 개로 구분하고 `[[image:...]]` 표식은 지운다(이미지 제외).
-- EPUB 3: `application/epub+zip`. 첫 항목 `mimetype`(무압축), `META-INF/container.xml`, OPF(제목=작품 제목, `dc:language=ko`, `dc:identifier=urn:uuid:<workId>`, `dcterms:modified`), `nav.xhtml`, 회차별 XHTML 챕터(본문은 XML 이스케이프한 문단). `[[image:id]]`는 기존 원고 이미지 다운로드 권한 검사로 바이트를 읽어 챕터에 포함하고, 읽을 수 없으면 그 이미지만 뺀다.
+- TXT: `text/plain;charset=UTF-8`, UTF-8 BOM. 작품 전체면 첫 줄에 작품 제목. 회차마다 `제목\n\n본문`을 빈 줄 두 개로 구분하고 `[[image:...]]` 표식은 지운다(이미지 제외). 원고 기본 서식의 기호(`**`·`## `·`> `·`---` 등, DEC-48)는 원문 그대로 남아 다시 가져오면 서식이 유지된다.
+- EPUB 3: `application/epub+zip`. 첫 항목 `mimetype`(무압축), `META-INF/container.xml`, OPF(제목=작품 제목, `dc:language=ko`, `dc:identifier=urn:uuid:<workId>`, `dcterms:modified`), `nav.xhtml`, 회차별 XHTML 챕터. 본문은 [원고 기본 서식 계약](manuscript-format-contract.md)(DEC-48)의 문법으로 그린다: 문단 줄마다 `<p>`, 소제목 `<h2>`(회차 제목이 `<h1>`), 연속한 인용 줄은 `<blockquote>` 하나 안에 줄마다 `<p>`, 구분선 `<hr/>`, 굵게 `<strong>`·기울임 `<em>`(겹칠 수 있다). 줄 앞뒤 공백을 떼고 빈 줄·공백뿐인 줄·내용이 빈 인용 줄은 내지 않으며, 글자는 XML 이스케이프하고 XML에 쓸 수 없는 문자는 뺀다. 서식 기호가 없는 원고의 출력은 서식 도입 전과 같다. `[[image:id]]`는 기존 원고 이미지 다운로드 권한 검사로 바이트를 읽어 챕터에 포함하고, 읽을 수 없으면 그 이미지만 뺀다. 줄 가운데에 낀 표식은 이전처럼 이미지로 빼고, 같은 줄의 나머지 글은 소제목·인용·구분선 없이 문단으로 낸다(굵게·기울임은 적용).
 - `Content-Disposition: attachment; filename*=UTF-8''<작품 제목 또는 회차 제목>.<확장자>`(파일명에 쓸 수 없는 문자는 `_`).
 - 회차 메모·설정은 포함하지 않는다.
 
@@ -123,7 +123,7 @@
 
 | 계층 | 위치 |
 |---|---|
-| Content | `ai.storyfork.content.manuscript` 패키지(Controller·Service·순수 파서/작성기). 첨부 파일명 수정은 기존 `attachment` 패키지 |
+| Content | `ai.storyfork.content.manuscript` 패키지(Controller·Service·순수 파서/작성기, 원고 기본 서식 문법 `domain/ManuscriptFormat`). 첨부 파일명 수정은 기존 `attachment` 패키지 |
 | 프런트 | `domain/repositories/ManuscriptRepository`·`domain/usecases/ManuscriptUseCase`·`data/content/HttpManuscriptRepository`, `MediaRepository.rename`. `/import` 실제 화면, 집필실 내보내기 패널, 설정 첨부 이름 변경 버튼 |
 | mockup | 기존 데모 가져오기 화면 유지. 데모 집필실의 TXT 내보내기는 기존처럼 메모리 원고로 실제 TXT 파일을 만든다(초안 기준). EPUB·발행본 내보내기, 첨부 이름 변경, 원고 이미지 목록·대체 텍스트·공개 대체 텍스트 조회의 메모리 구현은 성공을 흉내 내지 않고 "데모에서는 지원하지 않아요" 오류를 낸다 |
 
@@ -133,3 +133,5 @@
 - 확정할 때 파일을 다시 올린다(최대 50MB 두 번 전송). 상태 저장이 필요해지면 가져오기 작업 테이블로 바꾼다.
 - 실패 항목은 확정 응답에만 있고 화면을 떠나면 다시 볼 수 없다.
 - EPUB 표·각주·스타일은 텍스트 문단으로만 가져온다. 내보내기 EPUB에 작가명은 넣지 않는다(Content에 회원 표시명이 없음).
+- EPUB 가져오기는 서식을 되살리지 않는다(글자만 읽고 `<hr/>`는 사라진다). EPUB으로 내보낸 뒤 다시 가져오면 서식 기호가 없어진다(TXT는 유지).
+- 내보내기 EPUB에는 스타일시트가 없어 소제목·인용·구분선의 모양은 읽는 앱의 기본값이다.

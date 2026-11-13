@@ -101,7 +101,7 @@ CREATE INDEX feedback_report_response_report ON feedback_report_response (report
 | `GET /api/v1/public/works/{id}/episodes/{number}/feedback-reports` | 익명 허용(Bearer 선택) | 공개 제보 + 비공개 제보 중 공개 답변이 있는 것(원문 숨김) + Bearer가 있으면 내 비공개 제보·(소유자면) 모든 제보. `{ items }` 최신순 |
 | `GET /api/v1/public/works/{id}/episodes/{number}/feedback-reports/{reportId}` | 익명 허용 | 상세. 볼 권한이 없으면 404 |
 | `GET /api/v1/works/feedback-reports/mine` | 회원 | 내 제보 전체 `{ items }` 최신순 |
-| `GET /api/v1/works/feedback-reports/inbox` | 회원 | 내가 소유한 모든 작품의 제보 `{ items }` 최신순 |
+| `GET /api/v1/works/feedback-reports/inbox` | 회원 | 내가 소유한 모든 작품의 제보 `{ items }` 최신순. 선택 쿼리 `workId`가 있으면 그 작품만(200개 상한도 그 작품 안에서)이고, 내 작품이 아니거나 삭제됐거나 없거나 형식이 틀린 값이면 존재 여부를 드러내지 않도록 빈 `{ items: [] }` 200. 빈 값(`workId=`)은 생략과 같다 |
 | `PUT /api/v1/works/{id}/feedback-reports/{reportId}/visibility` | 제보자 | `{ visibility }` → 200 |
 | `POST /api/v1/works/{id}/feedback-reports/{reportId}/corrections` | 제보자 | `{ body }` → 200 |
 | `POST /api/v1/works/{id}/feedback-reports/{reportId}/withdrawal` | 제보자 | 본문 없음 → 200 |
@@ -186,7 +186,7 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 | `POST /api/v1/works/{id}/episodes/{number}/edit-suggestions` | 회원 | `{ beforeText, afterText, reason? }` → 201 + `SuggestionResponse` |
 | `GET /api/v1/works/{id}/edit-suggestions/{suggestionId}` | 제안자·소유자 | 상세 |
 | `GET /api/v1/works/edit-suggestions/mine` | 회원 | 내 제안 `{ items }` 최신순 |
-| `GET /api/v1/works/edit-suggestions/inbox` | 회원 | 내 작품들의 제안 `{ items }` 최신순 |
+| `GET /api/v1/works/edit-suggestions/inbox` | 회원 | 내 작품들의 제안 `{ items }` 최신순. 선택 쿼리 `workId`가 있으면 그 작품만(200개 상한도 그 작품 안에서)이고, 내 작품이 아니거나 삭제됐거나 없거나 형식이 틀린 값이면 빈 `{ items: [] }` 200(제보 inbox와 같다) |
 | `PUT /api/v1/works/{id}/edit-suggestions/{suggestionId}/edited-text` | 소유자 | `{ editedText }` → 200 |
 | `POST /api/v1/works/{id}/edit-suggestions/{suggestionId}/approval` | 소유자 | 200(반영 결과 포함) / 409 기준 변경 |
 | `POST /api/v1/works/{id}/edit-suggestions/{suggestionId}/rejection` | 소유자 | `{ reason? }` → 200 |
@@ -198,7 +198,7 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 - 작가 피드백함(`InboxPage`)에 수정 제안 항목(변경 전·후 비교, 범위 검사 표시, 편집안 저장, 승인·거절·보류, 반영 결과·실패 사유)을 inbox API로 연결한다. 승인 후 안내는 "초안에 반영됨 — 발행은 집필실에서"처럼 발행과 구분한다.
   - 거절 사유 입력은 `거절`을 눌렀을 때만 나타나고 `거절 확인`으로 보낸다(실패하면 입력을 그대로 둔다). 기준 발행본이 바뀐 409는 위 문구와 함께 집필실로 가는 링크를 보인다.
   - 등록 시트는 고친 문장이 원래 문장과 같거나 비면 보내기를 잠그고 그 이유를 `aria-describedby`로 잇는다. 등록 실패는 시트가 열려 있으면 시트 안에만, 전송 중 시트를 닫았으면 토스트로 알린다.
-- 내 제안 목록은 기존 내 제보 화면의 같은 목록 자리에 함께 보인다(상태만 읽기).
+- 내 제안 목록은 기존 내 제보 화면의 같은 목록 자리에 함께 보인다(상태만 읽기). 내 제보·내 제안 화면('내 댓글·제보')은 서재 탭이 아니라 작품 관리 `/content?view=reports`에서 연다(`/content` 상단 링크).
 - 프런트는 `EditSuggestionRepository` interface + `HttpEditSuggestionRepository`를 새 파일로 만든다. 데모 작품의 기존 데모 수정 제안(메모리) 경로는 유지한다.
 
 ## 3. 연결 (23·24 병합 뒤)

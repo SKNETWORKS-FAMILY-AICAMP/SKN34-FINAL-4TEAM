@@ -125,3 +125,14 @@ it('목록을 불러오는 동안 불러오는 중이라고 알리고, 저장이
   finish(image(A, '다리.png', { altText: '완료' }))
   await waitFor(() => expect(locked(screen.getByLabelText('이미지 설명 · 다리.png'))).toBe(false))
 })
+
+it('행의 버튼은 글자를 짧게 두고 파일 이름은 이름(aria-label)으로만 붙여, 긴 파일 이름이 버튼을 늘려 시트를 넘치게 하지 않는다', async () => {
+  const long = '아주-긴-파일-이름-'.repeat(8) + '.png'
+  fakes.mediaUseCase.listEpisodeImages.mockResolvedValue([image(A, long)])
+  panel()
+  const save = await screen.findByRole('button', { name: `설명 저장 · ${long}` })
+  const remove = screen.getByRole('button', { name: `본문에서 빼기 · ${long}` })
+  expect([save.textContent, remove.textContent]).toEqual(['설명 저장', '본문에서 빼기'])
+  // 파일 이름은 행 머리에 한 번 보인다.
+  expect(screen.getAllByText(long)).toHaveLength(1)
+})

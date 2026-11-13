@@ -30,6 +30,19 @@ class ContentSecurityConfig {
         return http.build()
     }
 
+    // MCP 창구(#163): 내부 전용 `/mcp`. 공개 도구는 인증 없이, 사용자 도구는 Bearer를 기존 필터로 검증한 회원으로 호출되며
+    // 인증 요구는 도구가 정하므로 여기서는 permitAll이다. 브라우저 쿠키가 아닌 서비스 간 Bearer 호출이라 이 체인에서만 CSRF·CORS를 끈다.
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+    fun mcpSecurityFilterChain(http: HttpSecurity, service: CoreAuthVerificationService, mapper: JsonMapper): SecurityFilterChain {
+        http.securityMatcher("/mcp", "/mcp/**").csrf { it.disable() }.cors { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .authorizeHttpRequests { it.anyRequest().permitAll() }
+            .addFilterBefore(ContentAuthenticationFilter(service, mapper), AnonymousAuthenticationFilter::class.java)
+            .httpBasic { it.disable() }.formLogin { it.disable() }.logout { it.disable() }
+        return http.build()
+    }
+
     @Bean
     fun contentSecurityFilterChain(http: HttpSecurity, service: CoreAuthVerificationService, mapper: JsonMapper): SecurityFilterChain {
         val csrf = CookieCsrfTokenRepository().apply { setHeaderName("X-CSRF-TOKEN") }
@@ -37,7 +50,8 @@ class ContentSecurityConfig {
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/public/works", "/api/v1/public/works/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/public/works", "/api/v1/public/works/**",
+                        "/api/v1/public/world-studios", "/api/v1/public/world-studios/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v1/public/works/*/context/qa").authenticated()
                     .requestMatchers("/api/v1/works", "/api/v1/works/**", "/api/v1/world-studios", "/api/v1/world-studios/**").authenticated()
                     .anyRequest().denyAll()

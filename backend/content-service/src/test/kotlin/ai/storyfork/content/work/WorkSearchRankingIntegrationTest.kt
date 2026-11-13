@@ -201,6 +201,8 @@ class WorkSearchRankingIntegrationTest {
         assertEquals(403,recordView(open,1,reader,csrf=false).statusCode())
         assertEquals(0,count(draftOnly))
         assertEquals(4,count(open))
+        // 공개 상세의 회차별 조회 수는 기간 없이 누적(2000년 행 포함)이고 비회원(401) 요청은 세지 않는다.
+        assertEquals(4L,json.readTree(get("/api/v1/public/works/$open").body()).path("episodeViews").path("1").asLong())
     }
 
     @Test fun `author search and author names follow the owner's latest Core nickname`() {

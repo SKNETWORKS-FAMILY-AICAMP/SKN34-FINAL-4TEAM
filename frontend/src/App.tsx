@@ -16,6 +16,7 @@ import { VerifyEmailChangePage, VerifyEmailPage } from './presentation/features/
 import { HomePage } from './presentation/features/home/view/HomePage'
 import { CoreApiConnectionStatus } from './presentation/shared/core-api-status/CoreApiConnectionStatus'
 import { RequireRole } from './presentation/shared/session/RequireRole'
+import { Footer } from './presentation/shared/shell/Gnb'
 import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
 import { PolicySheet } from './presentation/shared/shell/PolicySheet'
 import { QuickJump } from './presentation/shared/shell/QuickJump'
@@ -32,6 +33,9 @@ const NewWorkPage = lazy(() => import('./presentation/features/library/view/NewW
 
 const StudioPage = lazy(() => import('./presentation/features/studio/view/StudioPage').then((m) => ({ default: m.StudioPage })))
 const WorldStudioPage = lazy(() => import('./presentation/features/worldstudio/view/WorldStudioPage').then((m) => ({ default: m.WorldStudioPage })))
+const WorldsPage = lazy(() => import('./presentation/features/worlds/view/WorldsPages').then((m) => ({ default: m.WorldsPage })))
+const WorldDetailPage = lazy(() => import('./presentation/features/worlds/view/WorldsPages').then((m) => ({ default: m.WorldDetailPage })))
+const WorldCardPage = lazy(() => import('./presentation/features/worlds/view/WorldCardPage').then((m) => ({ default: m.WorldCardPage })))
 const ReaderPage = lazy(() => import('./presentation/features/reading/view/ReaderPage').then((m) => ({ default: m.ReaderPage })))
 const PublicWikiPage = lazy(() => import('./presentation/features/reading/view/PublicWikiPage').then((m) => ({ default: m.PublicWikiPage })))
 const WorkPage = lazy(() => import('./presentation/features/reading/view/WorkPage').then((m) => ({ default: m.WorkPage })))
@@ -56,9 +60,11 @@ class RouteErrorBoundary extends Component<{ pathname: string; children: ReactNo
   }
 }
 
+/** 다른 화면처럼 공용 푸터를 #root 직속에 둔다. main이 min-h-screen이면 푸터가 첫 화면 밖으로 밀리므로, 남는 높이는 storyfork.css의 #root:has(>.foot) 세로 flex가 채운다. */
 function StartPage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-4 py-12 sm:px-8">
+    <>
+    <main className="mx-auto flex max-w-3xl flex-col justify-center gap-8 px-4 py-12 sm:px-8">
       <header>
         <p className="mb-4 text-sm font-semibold text-brand-primary">개발 기반 / 기능 준비 중</p>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">STORYFORK</h1>
@@ -83,6 +89,8 @@ function StartPage() {
         집필·피드백 기능은 아직 구현되지 않았습니다.
       </p>
     </main>
+    <Footer />
+    </>
   )
 }
 
@@ -126,7 +134,10 @@ function App() {
             <Route path="/lib" element={<RequireRole><LibraryPage /></RequireRole>} />
             <Route path="/write" element={<RequireRole><Navigate replace to="/lib?tab=write" /></RequireRole>} />
             <Route path="/new" element={<RequireRole>{mockup ? <NewWorkPage /> : <Navigate replace to="/content" />}</RequireRole>} />
-            <Route path="/worlds" element={<RequireRole><Navigate replace to={mockup ? '/new' : '/content'} /></RequireRole>} />
+            {/* 공개 세계관 둘러보기는 비회원도 볼 수 있다. 실제 모드는 Content 공개 API를, --mode mockup은 데모 세계관을 읽는다. */}
+            <Route path="/worlds" element={<WorldsPage />} />
+            <Route path="/worlds/:id" element={<WorldDetailPage />} />
+            <Route path="/worlds/:id/cards/:cardId" element={<WorldCardPage />} />
             <Route path="/worldstudio/:worldId?" element={<RequireRole><WorldStudioPage /></RequireRole>} />
             <Route path="/import" element={<RequireRole>{mockup ? <ImportPage /> : <ManuscriptImportPage />}</RequireRole>} />
             <Route path="/studio/:id" element={restoring ? checkingSession : <StudioPage />} />
@@ -140,7 +151,7 @@ function App() {
           </Routes>
         </Suspense>
       </RouteErrorBoundary>
-      {pathname !== '/status' && pathname !== '/content' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
+      {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
     </RestoreContext.Provider>
   )
 }

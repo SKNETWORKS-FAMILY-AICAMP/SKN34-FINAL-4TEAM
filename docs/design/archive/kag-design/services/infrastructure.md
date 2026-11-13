@@ -8,7 +8,7 @@
 
 다섯 서비스가 쓰는 저장소·객체 저장소·네트워크·Compose 구성·환경설정·비밀값·라이선스·배포의 목표 모습을 정합니다. 현재 Compose에는 `web`·`core-api`·`ai-service` 세 서비스만 있습니다(`현재`, [인프라 안내](../../../../../infrastructure/README.md)). 아래 구성요소는 처음 쓰는 기능을 구현할 때 하나씩 추가합니다(DP-08).
 
-저장소는 정본 소유 도메인마다 인스턴스를 나누고(DEC-13), Langfuse 운영 묶음은 업무와 다른 Compose 프로젝트로 둡니다(DEC-14). 두 결정은 참고 프로젝트 GovBiz의 운영 방식을 적용한 것이며, 같게 한 것과 다르게 한 것은 [GovBiz 대비 차이](#govbiz-대비-차이)에 있습니다.
+저장소는 정본 소유 도메인마다 인스턴스를 나누고(DEC-13), Langfuse 운영 묶음은 업무와 다른 Compose 프로젝트로 둡니다(DEC-14).
 
 ## 구성요소
 
@@ -29,7 +29,7 @@
 | Mailpit | 개발 환경 인증 메일 확인 | core-api | 도입 시 확인 | `합의` |
 | Elasticsearch | 작품 검색(공개 정보만). MVP는 DB 검색 | core-api | 도입 시 확인 | `합의`·MVP 제외 |
 
-**쓰지 않는 것:** Gitea(`채택` — 기존 `합의`·`확정` 대체, 팀 재결정 필요), OpenSPG 서버(Java·JDK 8)·MySQL·Pemja, 우리 서비스용 Redis·메시지 큐·별도 worker(큐·worker는 `확정` 유지. Redis는 Langfuse 전용만 둠, `채택` DEC-12), K8s·클라우드 관리형 서비스(배포 실습의 S3 제외). 제외 근거는 [decisions.md](../decisions.md#검토-후-제외한-대안)에 있습니다. GovBiz가 쓰는 업무 Redis·RabbitMQ·Qdrant도 적용하지 않습니다([GovBiz 대비 차이](#govbiz-대비-차이)).
+**쓰지 않는 것:** Gitea(`채택` — 기존 `합의`·`확정` 대체, 팀 재결정 필요), OpenSPG 서버(Java·JDK 8)·MySQL·Pemja, 우리 서비스용 Redis·메시지 큐·별도 worker(큐·worker는 `확정` 유지. Redis는 Langfuse 전용만 둠, `채택` DEC-12), K8s·클라우드 관리형 서비스(배포 실습의 S3 제외). 제외 근거는 [decisions.md](../decisions.md#검토-후-제외한-대안)에 있습니다.
 
 ## 구성요소 도입 시점
 
@@ -95,8 +95,8 @@
 | 배포 실습 | AWS S3. 소유자별 버킷(Core·lakeFS·Langfuse) | 서비스별 IAM 역할로 접근, 비공개 버킷, 키를 코드·`.env`에 두지 않음 | `채택` — 기존 "운영 배포 `미정`" 갱신. Langfuse 버킷은 `제안` |
 
 - **인스턴스·버킷 분리(`채택`, DEC-13):** 개발은 소유자마다 인스턴스를, 배포 실습은 소유자마다 버킷과 IAM 역할을 둡니다. core-api는 knowledge 객체 저장소·lakeFS 버킷에, lakeFS는 core 객체 저장소·Core 버킷에 자격 증명도 네트워크 경로도 없습니다. 기존 "MinIO 하나에 버킷·자격 증명 분리"(`제안`)를 대체합니다.
-- **MinIO 상태:** MinIO CE는 2025-10 바이너리·이미지 배포를 멈췄고, 2026-02 "더 이상 유지보수하지 않음"으로 바뀌어 보관 처리됐습니다. 2026-09 Docker Hub 이미지 저장소 삭제 보고도 있습니다. AGPLv3입니다. 보안 패치가 나오지 않으므로 개발 전용으로만 쓰고, 다른 S3 호환 저장소로 바꿀지는 `미정`(D-36)입니다. GovBiz가 digest를 고정해 쓰는 Chainguard MinIO 이미지(`cgr.dev/chainguard/minio`)도 직접 빌드의 대안 후보입니다. Chainguard 무료 이미지의 이용 조건·버전 고정 방식은 확인하지 않았습니다.
-- **Langfuse blob(`채택`, DEC-14):** 개발은 llmops 프로젝트 안의 전용 인스턴스, 배포 실습은 전용 버킷을 씁니다. 수신 이벤트와 미디어를 경로로 나눕니다. 이미지를 core·knowledge와 같은 직접 빌드 MinIO로 통일할지, GovBiz처럼 Chainguard MinIO 이미지를 digest 고정해 쓸지는 `미정`(D-36)입니다.
+- **MinIO 상태:** MinIO CE는 2025-10 바이너리·이미지 배포를 멈췄고, 2026-02 "더 이상 유지보수하지 않음"으로 바뀌어 보관 처리됐습니다. 2026-09 Docker Hub 이미지 저장소 삭제 보고도 있습니다. AGPLv3입니다. 보안 패치가 나오지 않으므로 개발 전용으로만 쓰고, 다른 S3 호환 저장소로 바꿀지는 `미정`(D-36)입니다. digest를 고정한 Chainguard MinIO 이미지(`cgr.dev/chainguard/minio`)도 직접 빌드의 대안 후보입니다. Chainguard 무료 이미지의 이용 조건·버전 고정 방식은 확인하지 않았습니다.
+- **Langfuse blob(`채택`, DEC-14):** 개발은 llmops 프로젝트 안의 전용 인스턴스, 배포 실습은 전용 버킷을 씁니다. 수신 이벤트와 미디어를 경로로 나눕니다. 이미지를 core·knowledge와 같은 직접 빌드 MinIO로 통일할지, Chainguard MinIO 이미지를 digest 고정해 쓸지는 `미정`(D-36)입니다.
 
 ### Langfuse
 
@@ -108,10 +108,10 @@
 |---|---|---|
 | Langfuse web·worker | 텔레메트리 끔. web만 화면 포트를 `127.0.0.1`에 공개(운영자 조회) | `채택`(DEC-14) |
 | langfuse-postgres | Langfuse 전용 인스턴스·계정. 스키마는 Langfuse 자체 마이그레이션 | `채택`(DEC-14) |
-| ClickHouse | 단일 노드(클러스터 기능 끔). 컨테이너 메모리 상한과, 서버 메모리 상한·mark 캐시 크기를 정한 설정 파일. 개발 출발값은 3g·2GiB·128MiB(GovBiz 값이며 운영 기준값이 아님). 스키마는 Langfuse가 시작할 때 마이그레이션 | `채택`(DEC-14), 운영 기준값 `미정`(D-40) |
+| ClickHouse | 단일 노드(클러스터 기능 끔). 컨테이너 메모리 상한과, 서버 메모리 상한·mark 캐시 크기를 정한 설정 파일. 개발 출발값은 3g·2GiB·128MiB. 스키마는 Langfuse가 시작할 때 마이그레이션 | `채택`(DEC-14), 운영 기준값 `미정`(D-40) |
 | Redis | 비밀번호 필수. `noeviction`(메모리가 차도 키를 지우지 않고 쓰기를 거부) | `채택`(DEC-14) |
 | Langfuse blob | 전용 인스턴스, 이벤트·미디어 경로. 이미지는 `미정`(D-36) | `채택`(DEC-14) |
-| 이미지 | 모든 이미지 digest 고정. 도입할 Langfuse 버전은 도입 때 정함(GovBiz는 4.46.0) | `채택`(DEC-14) |
+| 이미지 | 모든 이미지 digest 고정. 도입할 Langfuse 버전은 도입 때 정함 | `채택`(DEC-14) |
 
 - **적용 범위(`채택`):** Redis·ClickHouse는 Langfuse가 소유하고 Langfuse web·worker만 접속합니다. core-api·ai-service·kag-service·knowledge-service는 이 Redis·ClickHouse에 접속하지 않고 자격 증명도 받지 않습니다. Langfuse worker는 Langfuse 구성요소이며, 우리 서비스에 큐·worker를 두지 않는 원칙(`확정`)은 그대로입니다.
 - **우리 서비스의 Redis 사용(`미정`):** core-api의 속도 제한 상태 저장(D-10)과 다중 인스턴스 스케줄러 중복 방지(D-11)에 Redis를 후보로만 기록합니다. 단일 인스턴스 전제가 깨지거나 실제 필요가 확인될 때 별도로 결정하고, 그때 Langfuse용 Redis와 공유할지 따로 둘지도 함께 정합니다. 지금은 우리 서비스에 Redis를 넣지 않습니다.
@@ -245,7 +245,7 @@ flowchart LR
 ## 배포
 
 - **배포 실습 환경:** 객체 저장소는 AWS S3를 씁니다(`채택`). 소유자별 버킷(Core·lakeFS·Langfuse)을 두고 서비스별 IAM 역할로 접근하며, 비공개 버킷을 씁니다(DEC-13). 기존 "운영 배포 `미정`" 중 객체 저장소 부분을 갱신합니다.
-- 호스팅·TLS·도메인·백업 운영·운영 메일 발송사는 `미정`(D-17)입니다. GovBiz의 EKS 구성(저장소마다 StatefulSet·EBS gp3 볼륨, 암호화한 백업의 S3 보관)은 참고로만 기록하고 적용하지 않습니다([decisions.md R-08](../decisions.md#r-08-govbiz-참고-프로젝트의-dblangfuse-운영-방식)).
+- 호스팅·TLS·도메인·백업 운영·운영 메일 발송사는 `미정`(D-17)입니다.
 - 현재 Compose는 인증·TLS 없는 로컬 검증용이며 인터넷 운영 준비가 된 배포가 아닙니다(`확정`). 배포 실습도 운영 준비 완료로 표현하지 않습니다.
 - 이 설계는 단일 core-api 인스턴스 전제입니다. 다중 인스턴스는 스케줄러 중복 실행과 속도 제한 상태를 함께 다시 정해야 합니다(D-11).
 
@@ -271,7 +271,7 @@ knowledge DB와 lakeFS(메타데이터 DB + 데이터 저장소)는 서로를 �
 | lakeFS 1.87.0 이상 | BSL 1.1 | 개발·테스트·학습·시연(수정 포함 허용) | 운영 사용 조건(수정하지 않은 원본, 조직 내부 목적, 외부 기능 제공 금지), D-35 |
 | Neo4j Community | GPLv3 | 수정하지 않은 이미지를 서비스 뒤에서 사용 | 운영 전환 시 배포 형태 확인 |
 | MinIO CE | AGPLv3 | 개발 전용(core·knowledge 객체 저장소), 공식 소스 마지막 태그를 수정 없이 빌드 | 유지보수 종료, D-36 |
-| Chainguard MinIO 이미지 | 도입 시 확인 | Langfuse blob과 직접 빌드 대안의 후보(GovBiz가 digest 고정해 사용). 채택 여부 `미정` | 무료 이미지의 이용 조건·버전 고정 방식(확인하지 않음), D-36 |
+| Chainguard MinIO 이미지 | 도입 시 확인 | Langfuse blob과 직접 빌드 대안의 후보. 채택 여부 `미정` | 무료 이미지의 이용 조건·버전 고정 방식(확인하지 않음), D-36 |
 | OpenSPG KAG | Apache 2.0 | 포크해 kag-service로 수정 | LICENSE·NOTICE 유지, 수정 사실 표시 |
 | PostgreSQL | PostgreSQL License | 인스턴스 셋(core·knowledge·langfuse)에서 그대로 사용 | — |
 | Langfuse | 도입 시 확인 | self-host 구성 그대로 사용 | 도입하는 버전 기준으로 확인 |
@@ -288,19 +288,3 @@ knowledge DB와 lakeFS(메타데이터 DB + 데이터 저장소)는 서로를 �
 - D-03(복구 시점 맞춤), D-10·D-11(우리 서비스의 Redis 후보), D-17(운영 배포), D-23(공개키 배포), D-35(lakeFS 운영 사용), D-36(개발 객체 저장소 이미지, Chainguard 대안 포함), D-40(Langfuse 운영 세부: 수집 경로, 운영자 조회, 보관 기간, 백업, 운영 기준 자원값). D-01(마이그레이션 도구)·D-34(개발 네트워크 배치)는 DEC-13으로 해소했습니다.
 - 로컬 구성요소가 늘어 개발 머신 부담이 커집니다. 인스턴스 분리로 PostgreSQL·MinIO 컨테이너가 늘고, llmops 묶음 중 ClickHouse는 메모리 상한 기준 최대 약 3GB를 씁니다. llmops는 필요할 때만 켭니다(DEC-14).
 - 전체 목록은 [위험·미정 총괄](../design.md#위험미정-사항과-후속-결정)에 있습니다.
-
-## GovBiz 대비 차이
-
-참고 프로젝트 GovBiz([SKN34-4th-1Team](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-1Team), 커밋 `a07e8d1`)의 DB·Langfuse 운영 방식을 적용했습니다. 조사 근거와 한계는 [decisions.md R-08](../decisions.md#r-08-govbiz-참고-프로젝트의-dblangfuse-운영-방식)에 있습니다.
-
-| 항목 | GovBiz | STORYFORK | 비교 |
-|---|---|---|---|
-| 업무 DB 인스턴스 | 서비스마다 별도 MySQL 8.4 | 정본 소유 도메인마다 별도 PostgreSQL(core-postgres, knowledge-postgres) | 방식은 같음. 제품은 PostgreSQL 유지(DEC-03) |
-| 서비스 사이 참조 | FK 없음, 다른 서비스 DB 직접 접근 금지 | 같음 | 같음 |
-| 스키마 마이그레이션 | Flyway(core·catalog), Django 마이그레이션(ops) | Flyway(core-api·knowledge-service), lakeFS·Langfuse는 자체 | 같음(서비스마다 자기 스키마만) |
-| LLMOps 배치 | 업무와 분리한 별도 Compose 프로젝트 | 별도 Compose 프로젝트(가칭 llmops) | 같음 |
-| Langfuse 저장소 | 전용 PostgreSQL 17, ClickHouse 25.12(메모리 상한), Redis 7.4(`noeviction`), Chainguard MinIO, digest 고정 | 같은 구성. 버전은 도입 때 정하고, blob 이미지는 `미정`(D-36) | 같음. 이미지 선택만 남음 |
-| 추적 | OTEL, span 이름 허용 목록, 마스킹, `traceparent`, 전송 시간 제한 2초 | 같은 규칙을 ai-service·kag-service에 적용(DEC-15) | 같음. kag-service의 KAG 자체 LLM 호출까지 넓힘 |
-| 업무 Redis·RabbitMQ·Elasticsearch·Qdrant | 사용 | 적용하지 않음. 우리 서비스에 Redis·큐·worker를 두지 않고(DP-08), Elasticsearch는 MVP 이후(`합의`) | 다름 |
-| 벡터·그래프 색인 소유 | ai-service(Qdrant 검색 벡터·근거 청크) | knowledge-service(Neo4j 그래프·벡터 색인) | 다름. 우리 데이터는 요청마다 공개 범위(고정 커밋·독자 공개 기준 회차·시점 인물)가 달라, 범위 집행을 데이터 주인이 해야 함(DP-06, Property 21) |
-| 배포 | EKS, 저장소마다 StatefulSet·EBS gp3 PVC, 암호화한 백업의 S3 보관 | EKS 미적용. 배포 실습은 객체 저장소만 S3로 정했고 나머지는 `미정`(D-17) | 다름 |

@@ -8,12 +8,12 @@ import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { Sheet } from '../../../shared/Sheet'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useAccountViewModel } from '../viewmodel/useAccountViewModel'
 import { Devices } from './Devices'
 import { PayView } from './PayView'
+import { Withdrawal } from './Withdrawal'
 
 type VM = ReturnType<typeof useAccountViewModel>
 const PRIVATE = ['profile', 'liked', 'pay', 'storage']
@@ -49,7 +49,7 @@ function Account({ sub }: { sub: string }) {
   let T: ReactNode = null
   if (sub === 'notice') T = <NoticeBoard vm={vm} id={id} />
   else if (sub === 'event') T = <EventBoard vm={vm} id={id} />
-  else if (!vm.data && sub === 'liked') T = null
+  else if ((sub === 'liked' || sub === 'storage') && (vm.loadFailed || !vm.data)) T = <LoadState title={TITLE[sub]} failed={vm.loadFailed} retry={vm.retryLoad} />
   else if (sub === 'profile') T = vm.profileState === 'ready' ? <Profile vm={vm} /> : <section className="tcard mecard" aria-busy={vm.profileState === 'loading'}>
     <p role={vm.profileState === 'error' ? 'alert' : 'status'}>{vm.profileState === 'loading' ? '프로필을 불러오고 있어요.' : '프로필을 불러오지 못했어요. 다시 시도해 주세요.'}</p>
     {vm.profileState === 'error' && <button type="button" className="btn" onClick={vm.retryProfile}>프로필 다시 시도</button>}
@@ -69,6 +69,13 @@ function Account({ sub }: { sub: string }) {
       <Footer />
     </>
   )
+}
+
+/** 관심 소설·저장 공간의 조회 중·실패. 빈 화면이나 0건으로 보이지 않게 실제 상태를 알리고 다시 불러오게 합니다. */
+function LoadState({ title, failed, retry }: { title: string; failed: boolean; retry: () => void }) {
+  return <><h2>{title}</h2>{failed
+    ? <><p role="alert">{title}을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={retry}>다시 불러오기</button></>
+    : <p role="status">{title}을 불러오고 있어요.</p>}</>
 }
 
 const noticeDay = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' })
@@ -110,7 +117,6 @@ function EventBoard({ vm, id }: { vm: VM; id: string | null }) {
 function Profile({ vm }: { vm: VM }) {
   const [nick, setNick] = useState(vm.user.nick)
   const [email, setEmail] = useState(vm.user.email)
-  const [withdraw, setWithdraw] = useState(false)
   const form = useRef<HTMLFormElement>(null)
   const resume = useRef<Element | null>(null)
   useEffect(() => { form.current?.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus() }, [vm.profileErrors])
@@ -128,6 +134,7 @@ function Profile({ vm }: { vm: VM }) {
         resume.current = document.activeElement
         void vm.saveProfile(nick, email).then((ok) => { if (ok) { setNick(nick.trim()); setEmail(email.trim()) } })
       }}><div className="mehead"><span className="meav big">{vm.user.nick.slice(0, 1)}</span><div><b>{vm.user.nick}</b>{vm.user.joined && <small>가입일 {vm.user.joined}</small>}</div><div style={{ marginLeft: 'auto' }}><ThemeButton className="btn" /></div></div>
+        <p className="small muted">모든 항목은 필수예요.</p>
         <label className="field">닉네임<input className="inp" id="pfn" autoComplete="nickname" required disabled={vm.saving} value={nick} maxLength={12} aria-invalid={!!vm.profileErrors.nick} aria-describedby={vm.profileErrors.nick ? 'pfn-error' : undefined} onChange={(e) => setNick(e.target.value)} /></label>
         {vm.profileErrors.nick && <p id="pfn-error" role="alert">{vm.profileErrors.nick}</p>}
         <label className="field">이메일<input className="inp" id="pfe" type="email" autoComplete="email" required disabled={vm.saving} value={email} aria-invalid={!!vm.profileErrors.email} aria-describedby={vm.profileErrors.email ? 'pfe-error' : undefined} onChange={(e) => setEmail(e.target.value)} /></label>
@@ -139,21 +146,8 @@ function Profile({ vm }: { vm: VM }) {
         <div className="rowend"><button type="submit" className="btn pri" id="saveProfile" disabled={vm.saving}>{vm.saving ? '저장 중…' : '저장'}</button></div></form>
       <section className="tcard mecard" aria-labelledby="security-title"><h3 id="security-title">계정 보안</h3><p className="small muted">비밀번호를 바꾸려면 가입한 이메일로 재설정 링크를 요청해 주세요.</p><Link to="/auth/forgot-password" className="btn">비밀번호 재설정</Link></section>
       <Devices />
-      <div className="tcard mecard danger"><b>회원탈퇴</b><p className="small muted" style={{ margin: '6px 0 12px' }}>탈퇴 기능은 준비 중이에요. 현재는 실제 계정을 삭제할 수 없으며, 정책 기획안만 확인할 수 있어요.</p><button type="button" className="btn" id="withdrawBtn" onClick={() => setWithdraw(true)}>회원탈퇴</button></div>
-      {withdraw && <WithdrawSheet onClose={() => setWithdraw(false)} />}
+      <Withdrawal />
     </>
-  )
-}
-
-/** 정책 기획안 안내: 실제 탈퇴·데이터 변경 없음 */
-function WithdrawSheet({ onClose }: { onClose: () => void }) {
-  return (
-    <Sheet sid="U30" label="회원탈퇴" onClose={onClose}>
-      <div className="sh-h"><h3>회원탈퇴</h3><button type="button" className="x" aria-label="닫기" onClick={onClose}>✕</button></div>
-      <p>탈퇴 기능은 준비 중이며, 여기서는 실제 계정을 삭제할 수 없어요.</p>
-      <div className="policy">정책 기획안: 탈퇴 후 30일 동안 작품·세계관을 숨기고, 이 기간에 다시 로그인하면 복구하도록 계획했어요. 이후 작품·세계관·초안을 삭제하고 댓글·피드백 작성자는 익명 처리하는 내용이에요. 다른 Fork가 참조하는 버전은 보존하고 원작자는 ‘탈퇴한 회원’으로 표시하며, 직접 만든 Fork 작품은 삭제하는 내용도 포함돼요. 현재 구현된 탈퇴 절차가 아니에요.</div>
-      <div className="rowend"><button type="button" className="btn" onClick={onClose}>확인</button></div>
-    </Sheet>
   )
 }
 
@@ -187,6 +181,7 @@ function InquiryForm({ vm }: { vm: VM }) {
     <>
       <p className="small muted">보낸 문의와 운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
       <form ref={form} className="tcard mecard" id="iqf" noValidate aria-busy={vm.asking} onSubmit={async (e) => { e.preventDefault(); if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
+        <p className="small muted">모든 항목은 필수예요.</p>
         <label className="field">문의 유형<select className="inp" id="iqt" value={t} disabled={vm.asking} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>
         <label className="field">제목<input className="inp" id="iqs" maxLength={200} required readOnly={vm.asking} value={s} {...missing(s)} onChange={(e) => setS(e.target.value)} /></label>
         <label className="field">내용<textarea className="ta" id="iqb" maxLength={20000} required readOnly={vm.asking} value={b} {...missing(b)} onChange={(e) => setB(e.target.value)} /></label>

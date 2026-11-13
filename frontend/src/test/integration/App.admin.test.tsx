@@ -173,7 +173,8 @@ describe('관리자 (A01~A18)', () => {
   it('실패한 정기 작업은 수동 재시도 시연만 기록한다', async () => {
     renderAt('/admin?tab=jobs')
     const row = (await screen.findByText('알림 90일 보관기간 정리')).closest('tr') as HTMLElement
-    fireEvent.click(within(row).getByRole('button', { name: '수동 재시도 시연' }))
+    // 행 버튼의 이름에는 어느 작업인지가 함께 들어간다(같은 이름의 버튼끼리 구분).
+    fireEvent.click(within(row).getByRole('button', { name: '알림 90일 보관기간 정리 수동 재시도 시연' }))
     await toastIs('실패 작업의 수동 재시도 흐름을 기록했어요 (실제 작업은 실행하지 않음)')
     await within(row).findByText('수동 재시도 흐름 시연 · 실제 작업 없음')
   })

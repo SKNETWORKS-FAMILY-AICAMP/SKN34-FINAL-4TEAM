@@ -97,7 +97,7 @@ AI는 창작 방향을 대신 확정하는 주체가 아니라, 사용자의 선
 | 영역 | 적용 기술 |
 |---|---|
 | 구현 언어 | Kotlin 2.4, TypeScript 6, Python 3.11+ |
-| 웹 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, React Router, Redux Toolkit, Awilix, Zod |
+| 웹 프론트엔드 | React 19, Vite 8, Tailwind CSS 4, React Router, Redux Toolkit, Awilix, Zod, Tiptap(집필실 본문 편집기) |
 | 업무 API (Core·Content·운영) | Spring Boot 4.1, JDK 21, Spring Security(OAuth2 Resource Server·JWT), Spring Data JPA, Flyway |
 | AI API | FastAPI, OpenAI Python SDK(Responses API). 최종 모델·에이전트 프레임워크는 미정(DEC-28) |
 | 데이터 저장 | PostgreSQL 17, Neo4j 5.26(WorldStudio 현재 관계), S3 호환 object storage(로컬 MinIO) |
