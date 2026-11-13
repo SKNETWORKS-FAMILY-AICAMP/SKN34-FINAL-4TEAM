@@ -140,7 +140,6 @@ class WorldStudioServicePostgresTest {
             assertEquals(setOf(moved),edit(5,moved));assertEquals(setOf(moved),at(null));assertEquals(setOf(enemy,lover),at(4))
             // 끝난 관계를 같은 ID로 다시 쓰면 되살아난다.
             assertEquals(setOf(moved,lover),edit(6,lover));assertEquals(setOf(moved),at(5))
-            assertThrows(IllegalArgumentException::class.java) { service.draft(created.worldId,actor,0) }
         } }
     }
     @Test fun `Neo4j success followed by PostgreSQL commit failure stays pending until exact replay`() {

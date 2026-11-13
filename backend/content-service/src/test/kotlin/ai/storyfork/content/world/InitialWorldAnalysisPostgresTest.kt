@@ -483,7 +483,7 @@ class InitialWorldAnalysisPostgresTest {
                     if(inject && phase=="commit") loseAck.set(true)
                     result
                 }.`when`(graph).replace(org.mockito.ArgumentMatchers.eq(world.worldId) ?: world.worldId,org.mockito.ArgumentMatchers.anyLong(),
-                    org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyList())
+                    org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyList(),org.mockito.ArgumentMatchers.any())
                 val delegate=ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java)
                 val manager=object:PlatformTransactionManager {
                     override fun getTransaction(definition:org.springframework.transaction.TransactionDefinition?)=delegate.getTransaction(definition)
