@@ -68,7 +68,7 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_edit_draft",
-        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 관계는 episode(선택)화 시점의 전체 목록으로 저장하며 생략하면 최신 회차다. 소유자만 가능하며 expectedDraftRevision이 world_studio_read의 draftRevision과 다르면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다.",
+        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 관계는 episode(선택)화 시점의 전체 목록으로 저장하며 생략하면 최신 회차다. 설정 삭제(lifecycle=removed·replace=true에서 생략)는 episode를 생략한 최신 회차에서만 하며 지정하면 422다. 소유자만 가능하며 expectedDraftRevision이 world_studio_read의 draftRevision과 다르면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다.",
     )
     fun editDraft(
         context: McpTransportContext,
