@@ -21,7 +21,7 @@
 | SMTP | 현재 인증·복구·이메일 변경 | 로컬 구성 존재, 운영 제공사 미정. 옛 MVP 제외를 미구현으로 읽지 않음 |
 | Celery | AI 서비스의 회차 원고 전처리 작업 실행(DEC-50). 브로커는 기존 RabbitMQ, worker 컨테이너 하나 추가 | **결정만 기록, 미구현.** [전처리 계약](../manuscript-preprocessing-contract.md) |
 
-#132에서 **Neo4j**와 Content의 Java Driver를 사용하고 world/card/relation UUID로 연결합니다. PG prepare receipt → transaction 밖 Neo4j CAS → PG finalization이며 미완료는 원래 요청으로 재시도합니다. 관계는 현재 상태만 보관하므로 관계 이력·과거 시점 복원·관계 전체 체크포인트/Fork는 지원하지 않습니다. 이는 DEC-27·33의 관계만의 MVP 예외이며 기존 인물·설정·원고 버전과 SQL·데이터는 보존합니다. 별도 graph-service·큐·worker·outbox·분산 원자 transaction은 추가하지 않습니다. 실제 이관·운영 복구/백업은 별도 계약입니다([상세](../worldstudio-independent-schema.md#현재-관계-mvp-계약--132)).
+#132에서 **Neo4j**와 Content의 Java Driver를 사용하고 world/card/relation UUID로 연결합니다. PG prepare receipt → transaction 밖 Neo4j CAS → PG finalization이며 미완료는 원래 요청으로 재시도합니다. DEC-51부터 관계는 회차별 연결로 기록해 회차 시점 조회를 지원하지만([계약](../worldstudio-independent-schema.md#회차별-관계--dec-51)), 관계 이력 복원·관계 전체 체크포인트/Fork는 지원하지 않습니다. 이는 DEC-27·33의 관계만의 MVP 예외이며 기존 인물·설정·원고 버전과 SQL·데이터는 보존합니다. 별도 graph-service·큐·worker·outbox·분산 원자 transaction은 추가하지 않습니다. 실제 이관·운영 복구/백업은 별도 계약입니다([상세](../worldstudio-independent-schema.md#현재-관계-mvp-계약--132)).
 
 ## 네트워크와 비밀값
 

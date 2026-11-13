@@ -87,7 +87,7 @@ it('passes mutation cancellation through the use case without changing its input
  const world=await useCase.create('세계','',controller.signal)
  await useCase.save(world,controller.signal)
  expect(create).toHaveBeenCalledWith('세계','',controller.signal)
- expect(save).toHaveBeenCalledWith(world,controller.signal)
+ expect(save).toHaveBeenCalledWith(world,controller.signal,undefined)
 })
 
 it('only requests label cleanup when trimming or removing empty labels changes the value',()=>{

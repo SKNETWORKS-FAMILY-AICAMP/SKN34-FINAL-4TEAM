@@ -83,6 +83,8 @@ type Fixture = {
   demoCover?: true
   /** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결) */
   linkedWorkId?: string
+  /** 관계를 회차 시점으로 읽고 쓰는 서버 저장소(DEC-51, 없으면 회차를 모르는 데모) */
+  relationEpisodes?: true
 }
 const published = (worldId: string, change: WorldPublicationInput, listed = true): WorldPublication => ({ worldId, ...change, publishedAt: change.visibility === 'public' ? '2026-11-12T00:00:00Z' : null, listed })
 
@@ -116,6 +118,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
     saveStudio,
     setPublication,
     ...(fixture.demoCover ? {} : { setCover, removeCover, readCover }),
+    ...(fixture.relationEpisodes ? { relationEpisodes: true as const } : {}),
   })
   render(
     <Provider store={createAppStore({ role: 'user' })}>
@@ -497,7 +500,7 @@ it('버전 그래프는 작업 초안(저장하지 않은 수정 표시)과 확�
   expect(graph().queryByText('저장 안 됨')).toBeNull()
   fireEvent.change(screen.getByRole('textbox', { name: '설정 이름' }), { target: { value: '고친 이름' } })
   expect(graph().getByText('저장 안 됨')).toBeTruthy()
-  expect(graph().getByText(/관계는 현재 상태만 보관해요/)).toBeTruthy()
+  expect(graph().getByText(/관계는 회차별로 기록해요/)).toBeTruthy()
   fireEvent.click(graph().getByRole('button', { name: /확정 버전 1 · 초판/ }))
   expect(open).toHaveBeenCalledWith('r1')
   const sheet = within(screen.getByRole('dialog', { name: '확정 버전' }))
@@ -637,6 +640,91 @@ it('관계 연결 단계에서 그래프 카드를 차례로 두 번 누르면 �
   expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 대상' }).value).toBe(narae.item.id)
   expect(screen.getByRole('combobox', { name: '실제 관계 1' })).toBeTruthy()
   expect(screen.queryByText(/연결 상대를 고르세요/)).toBeNull()
+})
+
+// ── 관계 기준 회차(DEC-51): 인물 관계도 보기·작성 모드 관계 연결 단계에서 고른다 ───────────────────────
+const episodePicker = () => within(screen.getByRole('region', { name: '관계 기준 회차' }))
+it('인물 관계도 보기에서 회차를 고르면 그 회차로 다시 읽고, 회차 칸은 다시 열리지 않으며 요청이 끝나면 입력 칸으로 초점이 돌아온다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  const at = (episode?: number): StudioWorld => ({ id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: episode === 1 ? [garam, narae] : friends([garam, narae], garam, narae), analysis: null, linkedWorkId: 'w1' })
+  const read = vi.fn(async (_id: string, _signal?: AbortSignal, episode?: number) => structuredClone(at(episode)))
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa', { linkedWorkId: 'w1', relationEpisodes: true, read })
+  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  expect(screen.getByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy() // 최신 회차의 관계
+  const apply = episodePicker().getByRole('button', { name: '이 회차 관계 보기' }), field = episodePicker().getByRole('textbox', { name: '관계 기준 화' })
+  fireEvent.change(field, { target: { value: '1' } })
+  fireEvent.click(apply)
+  expect(await screen.findByText('아직 연결한 관계가 없어요.')).toBeTruthy()
+  expect(read).toHaveBeenLastCalledWith('qa', expect.any(AbortSignal), 1)
+  expect(episodePicker().getByText('지금은 1화 시점의 관계예요.')).toBeTruthy()
+  expect(episodePicker().getByRole('button', { name: '이 회차 관계 보기' })).toBe(apply) // 관계 편집기만 다시 열리고 회차 칸은 그대로다
+  await waitFor(() => expect(document.activeElement).toBe(field)) // 요청 중 잠기며 잃은 초점을 입력 칸으로 돌려준다
+})
+it('회차 선택은 데모(메모리)·소설 미연결·저장하지 않은 변경에서 이유와 함께 잠기고, 작성 모드의 관계 연결 단계에도 있다', async () => {
+  await show(undefined, '/worldstudio/qa?view=people', { linkedWorkId: 'w1' }) // 회차를 모르는 저장소
+  expect(episodePicker().getByText('데모에서는 지원하지 않아요.')).toBeTruthy()
+  expect(episodePicker().getByRole<HTMLInputElement>('textbox', { name: '관계 기준 화' }).disabled).toBe(true)
+  cleanup()
+  await wizard({ relationEpisodes: true })
+  fireEvent.click(within(screen.getByRole('navigation', { name: '세계관 작성 단계' })).getByRole('button', { name: '관계 연결 (선택)' }))
+  expect(episodePicker().getByText('소설을 연결하면 회차별로 기록할 수 있어요.')).toBeTruthy()
+  cleanup()
+  const [garam, narae] = [person('가람'), person('나래')]
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
+  expect(episodePicker().getByRole<HTMLInputElement>('textbox', { name: '관계 기준 화' }).disabled).toBe(false)
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(screen.getByRole('button', { name: '가람 · 친구 · 나래 삭제' })) // 초안을 바꾸면 다시 읽을 때 잃으므로 잠근다
+  expect(episodePicker().getByText('저장하지 않은 변경이 있어 회차를 바꿀 수 없어요. 먼저 세계관을 저장하세요.')).toBeTruthy()
+})
+
+/** 인물 관계도 보기의 회차 칸에 회차를 넣어 그 회차 시점으로 다시 읽는다. */
+const pickEpisode = async (episode: number) => {
+  fireEvent.change(episodePicker().getByRole('textbox', { name: '관계 기준 화' }), { target: { value: String(episode) } })
+  fireEvent.click(episodePicker().getByRole('button', { name: '이 회차 관계 보기' }))
+  await waitFor(() => expect(episodePicker().getByText(`지금은 ${episode}화 시점의 관계예요.`)).toBeTruthy())
+}
+it('관계 기준 회차를 고른 동안에는 설정 삭제 진입점(인물 삭제·편집 화면 삭제·레일 ⋮ 삭제)이 이유와 함께 잠기고, 최신으로 돌아오면 열린다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  const reason = '설정 삭제는 최신 회차에서 할 수 있어요.'
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
+  await pickEpisode(1)
+  fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
+  expect(screen.getByRole<HTMLButtonElement>('button', { name: '선택한 인물 삭제' }).disabled).toBe(true)
+  expect(within(screen.getByRole('region', { name: '관계 편집' })).getByText(reason)).toBeTruthy()
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  openCard('가람 인물')
+  expect(editor().getByRole<HTMLButtonElement>('button', { name: '삭제' }).disabled).toBe(true)
+  expect(editor().getByText(reason)).toBeTruthy()
+  fireEvent.click(rail().getByRole('button', { name: '나래 더보기' }))
+  const menu = screen.getByRole('menu', { name: '나래 더보기' })
+  expect(within(menu).getByRole<HTMLButtonElement>('menuitem', { name: '삭제' }).disabled).toBe(true)
+  expect(menu.getAttribute('aria-describedby')).toBe(editor().getByText(reason).id) // 잠긴 항목은 초점을 못 받으니 같은 이유를 메뉴의 설명으로 잇는다
+  fireEvent.click(rail().getByRole('button', { name: '나래 더보기' })) // 메뉴를 닫는다
+  backToBoard()
+  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(episodePicker().getByRole('button', { name: '최신으로' }))
+  await waitFor(() => expect(episodePicker().getByText('지금은 최신 회차의 관계예요.')).toBeTruthy())
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  openCard('가람 인물')
+  expect(editor().getByRole<HTMLButtonElement>('button', { name: '삭제' }).disabled).toBe(false)
+  expect(editor().queryByText(reason)).toBeNull()
+})
+it('지난 회차를 연 채 저장하면 어느 회차로 기록되는지 저장 영역과 작성 모드의 검토·저장 단계가 알리고, 최신이면 알리지 않는다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  const note = '관계는 1화 기준으로 저장돼요.'
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
+  expect(saveBar().queryByText(note)).toBeNull()
+  await pickEpisode(1)
+  expect(saveBar().getByText(note)).toBeTruthy()
+  fireEvent.click(episodePicker().getByRole('button', { name: '최신으로' }))
+  await waitFor(() => expect(saveBar().queryByText(note)).toBeNull())
+  cleanup()
+  await wizard({ linkedWorkId: 'w1', relationEpisodes: true })
+  const steps = () => within(screen.getByRole('navigation', { name: '세계관 작성 단계' }))
+  fireEvent.click(steps().getByRole('button', { name: '관계 연결 (선택)' }))
+  await pickEpisode(1)
+  fireEvent.click(steps().getByRole('button', { name: '검토·저장' }))
+  expect(within(screen.getByRole('region', { name: '세계관 검토' })).getByText(note)).toBeTruthy()
 })
 
 it('관계 목록 표는 주체·관계·대상과 편집·삭제를 보이고 삭제는 확인한 뒤에만 편집본에서 지운다', async () => {
@@ -825,7 +913,7 @@ it('상시 저장 영역은 바뀐 것이 없으면 저장됨과 잠긴 저장 �
   fireEvent.click(button())
   await waitFor(() => expect(saveBar().getByText('저장됨')).toBeTruthy())
   expect(saveStudio).toHaveBeenCalledOnce()
-  expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', settings: [expect.objectContaining({ item: expect.objectContaining({ title: '고친 이름' }) })] }), expect.any(AbortSignal))
+  expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', settings: [expect.objectContaining({ item: expect.objectContaining({ title: '고친 이름' }) })] }), expect.any(AbortSignal), undefined)
   expect(button().disabled).toBe(true)
 })
 
@@ -894,7 +982,7 @@ it('편집을 누르면 헤더에서 이름·설명을 바로 고치고 저장�
   fireEvent.click(infoForm().getByRole('button', { name: '저장' }))
   expect(await screen.findByRole('heading', { name: '새 이름', level: 1 })).toBeTruthy()
   expect(saveStudio).toHaveBeenCalledOnce()
-  expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', name: '새 이름', description: '새 소개', version: 1 }), expect.any(AbortSignal))
+  expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', name: '새 이름', description: '새 소개', version: 1 }), expect.any(AbortSignal), undefined)
   expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
   expect([setPublication, setCover, removeCover].map((fn) => fn.mock.calls.length)).toEqual([0, 0, 0]) // 바뀐 것만 보낸다
   expect(headerOf('새 이름').getByText('새 소개')).toBeTruthy()
@@ -1189,7 +1277,7 @@ it('패널의 저장은 이름·설명은 초안 저장으로, 공개 범위·�
   expect(await screen.findByRole('heading', { name: '새 이름', level: 1 })).toBeTruthy()
   await waitFor(() => expect(setPublication).toHaveBeenCalledOnce())
   expect(saveStudio).toHaveBeenCalledOnce()
-  expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', name: '새 이름' }), expect.any(AbortSignal))
+  expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', name: '새 이름' }), expect.any(AbortSignal), undefined)
   expect(setPublication).toHaveBeenCalledWith('qa', { visibility: 'public', genre: 'sf' }, expect.any(AbortSignal))
   await panelClosed()
   expect(headerOf('새 이름').getByText('SF', { selector: '.chip' })).toBeTruthy()
