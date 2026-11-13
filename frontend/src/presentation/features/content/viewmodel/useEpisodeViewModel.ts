@@ -1,48 +1,50 @@
 import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type {
-  Draft,
-  History,
-  Proposal,
-  StoryContext,
-  Version,
-  Work,
-  WorkRegistration,
-} from '../../../../domain/entities/content'
+import type { History, Work, WorkRegistration, WorkTaxonomy } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
-import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 
+type Origin = '' | 'create' | 'fork' | 'link'
+
+/**
+ * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단·삭제)·분기 만들기·세계관 연결·이력 조회.
+ * 작품 목록과 선택은 서재(`/lib?tab=write`)가 맡고, 이 화면은 주소의 `?work=<id>`(workId)가 가리키는 내 작품 하나를 관리하거나 쿼리가 없으면 새 작품을 만든다.
+ * 열린 작품(active)은 내 작품 목록에서 workId로 도출하므로 `install`이 목록을 갱신하면 함께 바뀌고, 작품 revision도 항상 서버 응답 값이다.
+ * 원고 작성·AI 이어쓰기·회차 공개는 집필실(`/studio/{id}`) 몫이다.
+ */
 export function useEpisodeViewModel(
+  workId: string | null,
   useCase: EpisodeUseCase = appContainer.resolve('episodeUseCase'),
   media: Pick<MediaUseCase, 'upload'> = appContainer.resolve('mediaUseCase'),
-  reading: Pick<ReadingUseCase, 'recordViews'> = appContainer.resolve('readingUseCase'),
 ) {
-  const [publicWorks, setPublicWorks] = useState<Work[]>([])
   const [works, setWorks] = useState<Work[]>([])
-  const [active, setActive] = useState<Work | null>(null)
-  const [draft, setDraft] = useState<Draft>({ title: '새 회차', body: '', revision: 0 })
-  const [proposal, setProposal] = useState<Proposal | null>(null)
-  const [history, setHistory] = useState<History | null>(null)
-  const [storyContext, setStoryContext] = useState<StoryContext | null>(null)
-  const [selectedVersion, setSelectedVersion] = useState<Version | null>(null)
+  const [loaded, setLoaded] = useState<{ id: string; history: History } | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  /**
+   * 마지막 요청을 보낸 자리. 작품 만들기·분기 만들기·세계관 연결은 그 폼·카드가 결과를 직접 보이고(화면 맨 위 알림은 스크롤해 내려간 자리에서 보이지 않는다),
+   * 자리가 없는 요청('')의 결과는 화면 맨 위 알림이 보인다.
+   */
+  const [origin, setOrigin] = useState<Origin>('')
   const [ready, setReady] = useState(false)
+  /** 내 작품 목록을 실제로 읽었는지. 읽기에 실패하면(인증 만료 등) 새 작품을 보내지 못하게 한다. */
+  const [listed, setListed] = useState(false)
   const [coverRevision, setCoverRevision] = useState(0)
   const alive = useRef(true)
   const inFlight = useRef(false)
   const request = useRef<AbortController | null>(null)
-  const dirty = !!active && (draft.title !== active.draft.title || draft.body !== active.draft.body)
-  const install = (w: Work) => {
-    setActive(w)
-    setDraft(w.draft)
-    setProposal(null)
-    setHistory(null)
-    setStoryContext(null)
-    setSelectedVersion(null)
-    setWorks((list) => [w, ...list.filter((x) => x.id !== w.id)])
+  const active = works.find((w) => w.id === workId) ?? null
+  /** 이력은 불러온 작품에서만 보인다(다른 작품으로 바뀌면 사라진다). 이 화면의 저장은 이력 내용을 바꾸지 않으므로 저장해도 남고, 탭을 다시 누르면 새로 읽는다. */
+  const history = loaded && loaded.id === active?.id ? loaded.history : null
+  const install = (w: Work) => setWorks((list) => [w, ...list.filter((x) => x.id !== w.id)])
+  /** 서버가 revision을 올리는 변경(공개 중단 등) 뒤 목록과 열린 작품을 다시 읽는다. */
+  const refresh = async () => {
+    const list = await useCase.list()
+    setWorks(list)
+    setListed(true)
+    const w = list.find((x) => x.id === active?.id)
+    if (w) install(w)
   }
   useEffect(() => {
     alive.current = true
@@ -50,6 +52,7 @@ export function useEpisodeViewModel(
     useCase.list(controller.signal).then((list) => {
       if (!controller.signal.aborted) {
         setWorks(list)
+        setListed(true)
         setReady(true)
       }
     }).catch((e: unknown) => {
@@ -68,19 +71,13 @@ export function useEpisodeViewModel(
       request.current?.abort()
     }
   }, [useCase])
-  useEffect(() => {
-    const leave = (event: BeforeUnloadEvent) => {
-      if (dirty) event.preventDefault()
-    }
-    window.addEventListener('beforeunload', leave)
-    return () => window.removeEventListener('beforeunload', leave)
-  }, [dirty])
-  const run = async (fn: () => Promise<void>) => {
+  const run = async (fn: () => Promise<void>, at: Origin = '') => {
     if (inFlight.current) return false
     inFlight.current = true
     setBusy(true)
     setError('')
     setNotice('')
+    setOrigin(at)
     try {
       await fn()
       return alive.current
@@ -94,68 +91,28 @@ export function useEpisodeViewModel(
       if (alive.current) setBusy(false)
     }
   }
-  const persist = async () => {
-    if (!active) throw new Error('작품을 선택해 주세요.')
-    if (!dirty) return draft
-    if (active.hasWritingEpisode === false) {
-      throw new Error('집필실에서 작성할 회차를 먼저 생성해 주세요.')
-    }
-    const saved = await useCase.save(active.id, draft)
-    setDraft(saved)
-    setActive({ ...active, draft: saved })
-    setWorks((list) => list.map((w) => w.id === active.id ? { ...w, draft: saved } : w))
-    return saved
-  }
   return {
     works,
-    publicWorks,
     active,
-    /** 공개 작품 보기에서 신고 버튼을 숨기는 화면용 값. 서버는 본인 작품 신고를 아직 막지 않습니다. */
-    activeIsMine: !!active && works.some((w) => w.id === active.id),
-    draft,
-    proposal,
     history,
-    storyContext,
-    selectedVersion,
     busy,
     error,
     notice,
+    origin,
     ready,
-    dirty,
+    listed,
     coverRevision,
-    browsePublic: () =>
-      run(async () => {
-        setPublicWorks(await useCase.publicList())
-      }),
-    edit: (patch: Partial<Pick<Draft, 'title' | 'body'>>) => {
-      setStoryContext(null)
-      setDraft((d) => ({ ...d, ...patch }))
-      setProposal(null)
-      setSelectedVersion(null)
-      setNotice('')
-    },
-    select: (w: Work | null) => {
-      if (busy) return false
-      if (dirty && !window.confirm('저장하지 않은 원고가 있어요. 이동할까요?')) return false
-      setActive(w)
-      if (w) setDraft(w.draft)
-      setProposal(null)
-      setHistory(null)
-      setSelectedVersion(null)
-      setError('')
-      setNotice('')
-      // 공개 열람 작품을 열면 로그인 회원의 조회를 기록한다. 기록 실패·익명은 UseCase가 읽기를 막지 않고 넘긴다.
-      if (w) void reading.recordViews(w)
-      return true
-    },
-    create: (title: string, summary: string, cover?: File, registration?: WorkRegistration) =>
-      run(async () => {
+    /** 새 작품의 id를 돌려준다. 표지 저장만 실패해도 작품은 만들어졌으므로 id를 돌려주고(오류는 알림으로 남김), 화면을 떠났거나 생성 자체가 실패하면 null이다. */
+    create: async (title: string, summary: string, cover?: File, registration?: WorkRegistration) => {
+      let id = null as string | null
+      await run(async () => {
         if (cover) validateMediaFile(cover, true)
         const controller = new AbortController()
         request.current = controller
         const work = await useCase.create(title, summary, controller.signal, registration)
         if (controller.signal.aborted) return
         install(work)
+        id = work.id
         if (cover) {
           try {
             await media.upload(
@@ -166,8 +123,10 @@ export function useEpisodeViewModel(
             )
           } catch (e) {
             if (controller.signal.aborted) return
+            // 작품은 만들어져 화면이 그 관리 화면으로 넘어간다. 만들기 폼이 사라지므로 사유는 맨 위 알림이 보인다.
+            setOrigin('')
             throw new Error(
-              `작품은 생성됐지만 표지 저장에 실패했어요. 작품을 다시 만들지 말고 아래 표지 선택·변경에서 재시도해 주세요. ${
+              `작품은 생성됐지만 표지 저장에 실패했어요. 작품을 다시 만들지 말고 표지 편집에서 재시도해 주세요. ${
                 e instanceof Error ? e.message : ''
               }`,
             )
@@ -180,123 +139,72 @@ export function useEpisodeViewModel(
             ? '비공개 작품과 표지를 저장했어요.'
             : '비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.',
         )
-      }),
-    save: () =>
-      run(async () => {
-        await persist()
-        setNotice('서버에 원고를 저장했어요.')
-      }),
+      }, 'create')
+      return alive.current ? id : null
+    },
     reload: () =>
       run(async () => {
-        if (dirty && !window.confirm('저장하지 않은 편집을 버리고 서버 원고를 불러올까요?')) return
-        const list = await useCase.list()
-        setWorks(list)
-        const w = list.find((x) => x.id === active?.id)
-        if (w) install(w)
+        await refresh()
         setNotice('최신 원고를 불러왔어요.')
-      }),
-    publish: (rights: boolean, allowFork: boolean, allowForkPublication: boolean) =>
-      run(async () => {
-        if (!active) return
-        if (!selectedVersion) {
-          throw new Error('저장·AI 이력에서 공개할 저장 버전을 먼저 선택해 주세요.')
-        }
-        const saved = await persist()
-        install(
-          await useCase.publish(
-            active.id,
-            selectedVersion ? { ...selectedVersion, revision: saved.revision } : saved,
-            rights,
-            allowFork,
-            allowForkPublication,
-            selectedVersion?.id,
-          ),
-        )
-        setNotice('회차를 공개했어요. 공개 원고에서 확인할 수 있어요.')
       }),
     loadHistory: () =>
       run(async () => {
-        if (active) setHistory(await useCase.history(active.id))
+        if (active) setLoaded({ id: active.id, history: await useCase.history(active.id) })
       }),
-    chooseVersion: (v: Version) => {
-      setSelectedVersion(v)
-      setNotice('선택한 저장 버전을 공개 대상으로 지정했어요. 현재 초안은 그대로예요.')
-    },
-    restore: async (v: Version) => {
-      if (!active || busy) return false
-      if (
-        dirty && !window.confirm('미저장 편집을 대신하여 이 버전을 새 저장본으로 복원할까요?')
-      ) return false
-      return run(async () => {
-        const saved = await useCase.save(active.id, {
-          title: v.title,
-          body: v.body,
-          revision: draft.revision,
-        })
-        install({ ...active, draft: saved })
-        setNotice('과거 원고를 새 버전으로 저장했어요. 공개본은 변경되지 않았어요.')
-      })
-    },
-    openProposal: (p: Proposal) => {
-      setProposal(p)
-      setNotice('보관한 AI 제안을 열었어요.')
-    },
+    /** 작품 제목·소개와 바뀐 장르·해시태그 수정. 서버가 돌려준 작품(새 revision 포함)으로 화면을 바꾼다. */
+    updateWork: (title: string, summary: string, taxonomy?: WorkTaxonomy) =>
+      run(async () => {
+        if (!active) return
+        install(await useCase.updateWork(active.id, title, summary, active.revision, undefined, taxonomy))
+        setNotice('작품 정보를 저장했어요.')
+      }),
     policy: (allowFork: boolean, allowForkPublication: boolean) =>
       run(async () => {
         if (!active) return
-        const saved = await persist()
-        install(await useCase.policy(active.id, saved.revision, allowFork, allowForkPublication))
+        install(await useCase.policy(active.id, active.revision, allowFork, allowForkPublication))
         setNotice('분기 생성·공개 허용 설정을 저장했어요.')
       }),
-    fork: (episode: number, title: string, direction: string) =>
-      run(async () => {
+    /**
+     * 내 세계관(WorldStudio)과의 1:1 연결(DEC-46). worldId가 null이면 확인을 받고 해제한다. 서버가 돌려준 연결로 열린 작품을 바꾸며 작품 revision은 그대로다.
+     * 남의 것·없는 세계관(404)이나 이미 다른 소설에 연결된 세계관(409)은 서버 사유를 오류로 알린다.
+     */
+    linkWorld: (worldId: string | null) => {
+      if (!worldId && !window.confirm('세계관 연결을 해제할까요? 독자 설정 위키에서 이 세계관의 설정 카드가 사라져요. 세계관과 설정 카드는 그대로 남아요.')) return Promise.resolve(false)
+      return run(async () => {
         if (!active) return
-        await persist()
-        install(await useCase.fork(active.id, episode, title, direction))
+        const linked = await useCase.linkWorldStudio(active.id, worldId)
+        install({ ...active, worldStudioId: linked.worldId })
+        setNotice(linked.worldId ? '세계관을 연결했어요.' : '세계관 연결을 해제했어요.')
+      }, 'link')
+    },
+    /** 새 분기 작품의 id를 돌려준다(실패하거나 화면을 떠났으면 null). */
+    fork: async (episode: number, title: string, direction: string) => {
+      let id = null as string | null
+      await run(async () => {
+        if (!active) return
+        const created = await useCase.fork(active.id, episode, title, direction)
+        install(created)
+        id = created.id
         setNotice('선택한 회차에서 비공개 분기 작품을 만들었어요.')
-      }),
-    loadContext: (episode: number, prompt: string, character: string, publicView: boolean) =>
-      run(async () => {
-        if (!active) return
-        await persist()
-        setStoryContext(await useCase.context(active.id, episode, prompt, character, publicView))
-        setNotice('회차 기준 문맥을 조회했어요. OpenAI는 호출하지 않았어요.')
-      }),
-    clearContext: () => setStoryContext(null),
-    propose: (prompt: string, consent: boolean, episode?: number, character = '') =>
-      run(async () => {
-        if (!active) return
-        if (active.hasWritingEpisode === false) {
-          throw new Error('집필실에서 작성할 회차를 먼저 생성해 주세요.')
-        }
-        const saved = await persist()
-        request.current = new AbortController()
-        const p = await useCase.propose(
-          active.id,
-          saved,
-          prompt,
-          consent,
-          request.current.signal,
-          episode,
-          character,
-        )
-        setProposal(p)
-        setStoryContext(p.context ?? null)
-        setNotice('AI 제안이 도착했어요. 원고에는 아직 반영되지 않았어요.')
-      }),
-    accept: () =>
-      run(async () => {
-        if (!active || !proposal) return
-        if (active.hasWritingEpisode === false) {
-          throw new Error('작성할 회차가 없어요. 집필실에서 회차를 생성해 주세요.')
-        }
-        const saved = await useCase.accept(active.id, proposal.id, draft.revision)
-        install({ ...active, draft: saved })
-        setNotice('AI 제안을 원고에 적용하고 저장했어요. 공개는 별도예요.')
-      }),
-    discard: () => {
-      setProposal(null)
-      setNotice('제안을 닫았어요. 원고는 변경하지 않았어요.')
+      }, 'fork')
+      return alive.current ? id : null
+    },
+    /** 분기 작품의 공개를 중단한다. 서버가 revision을 올리므로 끝나면 작품을 다시 읽는다. 발행된 회차와 원고는 남는다. */
+    stopFork: () => {
+      if (!active?.source || !window.confirm('포크 작품의 공개를 중단할까요? 발행된 회차와 원고는 보존돼요. 대기 중인 예약 발행은 취소되고, 원작이 공개를 허용하지 않으면 다시 공개할 수 없어요.')) return Promise.resolve(false)
+      return run(async () => {
+        await useCase.stopForkPublication(active.id)
+        await refresh()
+        setNotice('포크 공개를 중단했어요.')
+      })
+    },
+    /** 분기 작품을 삭제한다. 성공하면 true이며, 열려 있던 작품이 사라지므로 화면이 서재로 이동한다. */
+    deleteFork: () => {
+      if (!active?.source || !window.confirm(`「${active.title}」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.`)) return Promise.resolve(false)
+      return run(async () => {
+        await useCase.deleteWork(active.id)
+        setNotice('포크를 삭제했어요.')
+      })
     },
   }
 }

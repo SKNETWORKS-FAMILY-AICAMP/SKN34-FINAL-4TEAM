@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 /** #84: ownership boundaries must hold even when no PostgreSQL server is available. */
 class ContentBoundaryTest {
     private val root = Path.of("src/main/kotlin/ai/storyfork/content")
-    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading", "feedbackreport", "editsuggestion")
+    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading", "feedbackreport", "editsuggestion", "notice")
 
     @Test fun `content HTTP resources have distinct controllers without raw servlet arguments`() {
         val controllers = mapOf(
@@ -121,6 +121,13 @@ class ContentBoundaryTest {
         assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.editsuggestion.controller\""))
     }
 
+    @Test fun `notice package is registered for JPA scanning and the content exception handler`() {
+        val config = Files.readString(root.resolve("_common/config/ContentPersistenceConfig.kt"))
+        assertTrue(config.contains("\"ai.storyfork.content.notice.repository\""))
+        assertTrue(config.contains("\"ai.storyfork.content.notice.entity\""))
+        assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.notice.controller\""))
+    }
+
     @Test fun `edit suggestion table follows the contract and keeps the report link free of foreign keys for now`() {
         val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V29__edit_suggestion.sql"))
         val tables = sql.split("CREATE TABLE ").drop(1).associate { it.substringBefore(" (") to it }
@@ -139,6 +146,16 @@ class ContentBoundaryTest {
         assertTrue(sql.contains("CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_at DESC)"))
     }
 
+    @Test fun `work world studio link is one nullable unique uuid column that the work entity maps`() {
+        // 엔티티와 칼럼이 어긋나면 ddl-auto=validate 때문에 CI 통합 테스트 전체가 깨진다. UNIQUE가 세계관-소설 1:1(DEC-46)의 최종 방어다.
+        val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V37__work_world_studio.sql"))
+        assertTrue(sql.contains("ALTER TABLE work ADD COLUMN world_studio_id uuid UNIQUE;"))
+        assertFalse(sql.contains("REFERENCES"), "worldstudio는 별도 Flyway 이력이라 FK를 두지 않는다")
+        val field = ai.storyfork.content.work.entity.WorkEntity::class.java.getDeclaredField("worldStudioId")
+        assertEquals("world_studio_id", field.getAnnotation(jakarta.persistence.Column::class.java).name)
+        assertEquals(java.util.UUID::class.java, field.type)
+    }
+
     @Test fun `fresh SQL lives in feature leaves with one global version order`() {
         val migration = Path.of("src/main/resources/db/migration")
         assertFalse(Files.exists(migration.resolve("auth")))
@@ -150,9 +167,9 @@ class ContentBoundaryTest {
                     .map { Regex("V(\\d+)__.*").matchEntire(it.fileName.toString())!!.groupValues[1].toInt() }.toList()
             }
         }
-        // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf), V25 publication schedule (publication leaf), V26 world checkpoint (world leaf), V27 episode world basis (episode leaf), V28 feedback reports (work leaf), V29 edit suggestions (work leaf), V30 episode_comment.hidden (work leaf), V31 episode soft delete (episode leaf).
+        // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf), V25 publication schedule (publication leaf), V26 world checkpoint (world leaf), V27 episode world basis (episode leaf), V28 feedback reports (work leaf), V29 edit suggestions (work leaf), V30 episode_comment.hidden (work leaf), V31 episode soft delete (episode leaf), V36 work notices (work leaf; V32~V35 belong to other open PRs), V37 work.world_studio_id (work leaf, the 1:1 WorldStudio link of DEC-46).
         // V24 stays vacant: V25 reached the shared DB first and Flyway runs without outOfOrder, so a lower version could never be applied there.
-        assertEquals((1..23).toList() + listOf(25, 26, 27, 28, 29, 30, 31), versions.sorted())
+        assertEquals((1..23).toList() + listOf(25, 26, 27, 28, 29, 30, 31, 36, 37), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

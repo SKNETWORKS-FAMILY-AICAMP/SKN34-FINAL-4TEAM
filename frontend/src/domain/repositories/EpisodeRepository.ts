@@ -1,5 +1,5 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
-import type {WorkRegistration,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
+import type {WorkRegistration,WorkTaxonomy,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
 import type { ManuscriptQaAnswer, StoryQaInput } from '../entities/content'
 
@@ -19,9 +19,11 @@ export interface EpisodeRepository {
   publicList(signal?: AbortSignal): Promise<Work[]>
   list(signal?: AbortSignal): Promise<Work[]>
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>
-  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal): Promise<Work>
+  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy): Promise<Work>
   stopForkPublication(id: string, signal?: AbortSignal): Promise<void>
   deleteWork(id: string, signal?: AbortSignal): Promise<void>
+  /** 작품과 내 세계관의 1:1 연결(DEC-46). worldId가 null이면 해제한다. */
+  linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal): Promise<{ workId: string; worldId: string | null }>
   save(id: string, draft: Draft): Promise<Draft>
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication?: boolean, versionId?: string): Promise<Work>
   history(id: string,signal?:AbortSignal): Promise<History>

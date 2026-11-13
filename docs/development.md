@@ -95,7 +95,7 @@ python3 -m unittest infrastructure.ci.test_ci.SelectionTest infrastructure.ci.te
 # 각 서비스 디렉터리에서 변경한 단위 테스트를 지정하는 예
 pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
 ./gradlew unitTest --tests 'ai.storyfork.core.auth.AuthSecurityConfigTest' --no-daemon
-uv run --locked --extra dev python -m pytest -m 'not integration' tests/test_generation.py -k missing_key
+uv run --locked --extra dev python -m pytest -m 'not integration' tests/generation/test_agent.py -k missing_key
 ```
 
 자세한 선택 명령은 [Frontend 지침](../frontend/AGENTS.md#검증), [Core 지침](../backend/core-api/AGENTS.md#검증),
@@ -156,7 +156,7 @@ CI 이후 단일 CD의 게시 → 배포 흐름은 [인프라 안내](../infrast
 | 세션 시작 | ponytail 권장과 graphify 사용 안내(graphify·`graphify-out/graph.json`이 있을 때만) 주입 |
 | 셸 실행 전 | 브랜치·커밋 형식 위반, 실제 `.env`의 `git add`는 차단. `main`·`develop` 직접 푸시와 `gh pr merge`는 사용자 확인(Codex는 확인 기능이 없어 차단) |
 | 첫 검색 | graphify가 준비돼 있으면 세션의 첫 grep·검색을 한 번 막고 `graphify query`를 먼저 쓰게 함 |
-| 작업 종료 | 세션 시작 커밋 이후의 코드 변경(작업 중 커밋 포함)마다 한 번 TDD·단위 테스트·아키텍처/docs 점검과 권장 리뷰를 요청하고 `graphify update .`를 백그라운드로 실행 |
+| 작업 종료 | 세션 시작 커밋 이후의 코드 변경(작업 중 커밋 포함)마다 한 번 TDD·단위 테스트·아키텍처/docs 점검, 권장 리뷰, 이슈 → PR(`Closes #`)·후속 이슈 생성(`gh`가 있을 때만)을 요청하고 `graphify update .`를 백그라운드로 실행 |
 
 - **Claude Code**: [`.claude/settings.json`](../.claude/settings.json)이 자동 적용됩니다. 스킬은 `.claude/skills`(→ `.agents/skills`)입니다.
 - **Codex**: [`.codex/hooks.json`](../.codex/hooks.json)은 프로젝트를 신뢰하고 `/hooks`에서 훅을 승인해야 실행됩니다. 스킬은 `.agents/skills`를 읽습니다.

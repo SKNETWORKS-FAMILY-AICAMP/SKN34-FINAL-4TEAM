@@ -5,11 +5,16 @@ import './admin-operations.css'
 
 type VM = ReturnType<typeof useAdminViewModel>
 
-export function AdminActionStatus({ state }: { state?: AdminActionState }) {
+/**
+ * 조치의 진행·실패·완료 안내. 표의 행 조치처럼 버튼에서 떨어진 자리에 보일 때는 target으로 어느 대상의 조치인지 이름을 앞에 붙입니다.
+ * done을 끄면 완료 문구는 그리지 않습니다(행 조치의 완료는 화면 위 완료 줄 하나가 맡아 같은 문구가 두 번 보이지 않게 합니다).
+ */
+export function AdminActionStatus({ state, target, done = true }: { state?: AdminActionState; target?: string; done?: boolean }) {
+  const who = target ? <b>{target} · </b> : null
   return <>
-    {state?.pending && <p className="admin-note" role="status">요청을 처리하고 있어요. 중복으로 보내지 마세요.</p>}
-    {state?.error && <p className="admin-action-error" role="alert">{state.error}</p>}
-    {state?.message && <p className="admin-note" role="status">{state.message}</p>}
+    {state?.pending && <p className="admin-note" role="status">{who}요청을 처리하고 있어요. 중복으로 보내지 마세요.</p>}
+    {state?.error && <p className="admin-action-error" role="alert">{who}{state.error}</p>}
+    {done && state?.message && <p className="admin-note" role="status">{state.message}</p>}
   </>
 }
 
@@ -34,6 +39,7 @@ export function OperationsNotices({ vm }: { vm: VM }) {
         {row && <><p className="small muted">등록 {kstDateTime(row.createdAt)} · 수정 {kstDateTime(row.updatedAt)}</p><p className="admin-prose">{row.body}</p><h3>공지 수정</h3></>}
         <form onSubmit={(event) => { event.preventDefault(); void vm.saveNotice(row?.id ?? null, form) }}>
           <fieldset disabled={blocked} className="form-grid">
+            <p className="small muted wide">모든 항목은 필수예요.</p>
             <label className="field wide">공지 제목<input className="inp" required maxLength={200} value={form.title} onChange={(e) => vm.setNoticeDraft(key, { ...form, title: e.target.value })} /></label>
             <label className="field wide">공지 내용<textarea className="ta" required maxLength={20000} rows={8} value={form.body} onChange={(e) => vm.setNoticeDraft(key, { ...form, body: e.target.value })} /></label>
             <div className="rowend wide"><button type="submit" className="btn pri">{state?.pending ? '저장 중…' : '공지 저장'}</button>{row && <button type="button" className="btn" onClick={() => { if (window.confirm('이 공지를 삭제할까요? 회원 공지사항에서도 사라지고 복구할 수 없어요.')) void vm.deleteNotice(row.id) }}>공지 삭제</button>}</div>

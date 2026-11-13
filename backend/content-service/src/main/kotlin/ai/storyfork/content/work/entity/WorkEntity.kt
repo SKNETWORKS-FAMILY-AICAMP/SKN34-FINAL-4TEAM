@@ -39,4 +39,6 @@ class WorkEntity(
     @field:Column(name = "hero_background") var heroBackground: String? = null,
     /** 소프트 삭제 시각이다. 값이 있으면 삭제된 작품이며 행은 지우지 않는다(DEC-42). */
     @field:Column(name = "deleted_at") var deletedAt: Instant? = null,
+    /** 이 작품에 연결한 WorldStudio 세계관(worldstudio.world.id, V37)이다. 세계관과 소설은 1:1이라 UNIQUE이고 연결이 없으면 null이다(DEC-46). */
+    @field:Column(name = "world_studio_id") var worldStudioId: java.util.UUID? = null,
 )

@@ -23,6 +23,18 @@ export type EpisodeComment = {
 export const COMMENT_SORTS = [['latest', '최신순'], ['likes', '좋아요순']] as const
 export type CommentSort = (typeof COMMENT_SORTS)[number][0]
 
+/**
+ * 작품 전체 댓글의 BEST: 좋아요 상위 3개(동점은 최신 댓글이 먼저)다. 좋아요가 0이거나 운영 숨김이면 뽑지 않아 3개보다 적을 수 있다.
+ * ponytail: 받은 목록에서만 뽑는다. 서버가 최근 200개만 주므로 그보다 오래된 인기 댓글은 BEST에서 빠진다(정렬과 무관). 필요하면 서버가 좋아요 집계로 BEST를 알려 주게 한다.
+ */
+const BEST_COUNT = 3
+export function bestComments(comments: EpisodeComment[]) {
+  return comments
+    .filter((c) => c.likeCount > 0 && !c.hidden)
+    .sort((a, b) => b.likeCount - a.likeCount || Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, BEST_COUNT)
+}
+
 /** 본문(공백 제거 후)·인용 문장의 최대 글자 수 */
 export const COMMENT_MAX = 500
 
