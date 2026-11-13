@@ -79,7 +79,7 @@ export function WorldStudioPage() {
           {vm.editing && <WorldEditor vm={vm} world={vm.editing} revisions={revisions} openVersions={() => setVersionsOpen(true)} />}
         </main>
         {/* 편집 화면이 열려 있는 동안은 그 화면이 채팅을 그린다. 숨은 설정집 화면의 채팅은 좁은 화면에서 body에 그려지는 서랍이라 여기서 빼지 않으면 편집 화면 위에 겹쳐 뜬다. */}
-        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} />}
+        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} linkedWorkId={vm.linkedWorkId} />}
       </div>
       {editingCard && <WorldCardStudio vm={vm} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} />}
       {vm.editing && versionsOpen && (

@@ -9,13 +9,22 @@ description = "Internal health foundation for STORYFORK"
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "fastapi>=0.139.2,<0.140.0",
+    "langfuse>=3,<5",
+    "langgraph>=1.0,<2",
+    "langgraph-checkpoint-postgres>=3,<4",
     "openai>=3.1.0,<4.0.0",
     "openai-agents>=0.22.0,<0.23.0",
+    "psycopg[binary]>=3.2,<4",
     "pydantic>=2.12.2,<3.0.0",
     "uvicorn[standard]>=0.35.0,<1.0.0",
 ]
 
 [project.optional-dependencies]
+manuscript = [
+    "numpy>=2.2,<3",
+    "onnxruntime>=1.29,<2",
+    "tokenizers>=0.22,<1",
+]
 dev = [
     "httpx2>=2.0.0,<3.0.0",
     "pytest>=8.4.0,<10.0.0",

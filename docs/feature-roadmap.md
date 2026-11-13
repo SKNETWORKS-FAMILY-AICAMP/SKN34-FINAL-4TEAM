@@ -18,7 +18,7 @@
 - 현재/향후·범위 열은 삭제했다. GitHub 이슈 링크는 관련 범위의 추적 근거이며, 그 이슈가 해당 칸의 모든 세부 정책을 확정하거나 구현을 완료했다는 뜻은 아니다.
 - 삭제 정책은 DEC-42로 확정했다. 작품·회차·세계관·Fork·댓글·피드백·운영 데이터는 소프트 삭제, 초안·참조 없는 첨부·알림은 하드 삭제다. 세계관·설정·상태는 이력 보존·revert 원칙을 적용한다. #132 최신 사용자 결정의 관계는 MVP 예외로 Neo4j 현재 상태만 두었고, DEC-51로 회차별 연결 기록·시점 조회는 소스 구현했으나 이력 복원은 지원하지 않는다. 기존 SQL/데이터·인물/설정/원고 버전은 보존한다.
 - 향후 기능도 포함하지만 미정인 API·스키마·가격·한도·MVP 포함 여부를 확정하지 않는다. 중간 기능 이름 앞의 두 자리 번호는 기능 묶음 번호다. `#숫자` 링크는 실제 GitHub 이슈다.
-- LLMOps는 전체 서비스 개발 대상으로 명시했으며 이번 문서 변경으로 Langfuse 설치·연동 또는 평가 구현이 완료되는 것은 아니다. 프롬프트·모델 변경이 과거 생성 결과를 바꾸지 않으며, 추적에는 원고 전문·비공개 설정·개인정보·키를 기록하지 않는다. 원고 이미지의 목록·대체 텍스트·참조 제거는 이번 완료 근거를 확인하지 않아 ❌로 유지했다.
+- LLMOps는 전체 서비스 개발 대상으로 명시했으며 이번 문서 변경으로 Langfuse 설치·연동 또는 평가 구현이 완료되는 것은 아니다. 프롬프트·모델 변경이 과거 생성 결과를 바꾸지 않으며, 추적에는 질문·원고·답변 본문을 남기고(팀 결정 2026-11-13) 설정·현재 관계 본문은 참조만, 회원 계정 정보·키는 기록하지 않는다. 원고 이미지의 목록·대체 텍스트·참조 제거는 이번 완료 근거를 확인하지 않아 ❌로 유지했다.
 - 검색·랭킹·홈 편성은 기존 데모 화면을 기준으로 분류했다. 최신 순·인기 순·조회 순은 작품 정렬이지 검색어 순위가 아니다. 실시간·24시간·주간 문구만으로 실제 기간 집계 구현을 인정하지 않는다. 인기 검색어는 추가 검토로 도입 미확정이며, 별도 검색 MSA·검색 엔진을 이 표로 확정하지 않는다.
 - 중간 기능 또는 세부 기능의 `(Draft 검토 후보)` 표시는 채택 미확정을 뜻한다. 다른 기능과 같은 표 안에 있어도 구현·정책 채택이 확정된 것은 아니며 관련 PR과 검토 근거를 확인한다.
 - 중간 기능 통합: 58→05, 49→20, 52→21-C, 79→31, 82→34, 81→40-D. 21은 좋아요(21-A)·관심 작품(21-B)·독서 기록(21-C)으로 구분했다. 기존 기능은 삭제하지 않았으며, 05·08의 Draft 보완 동작은 해당 세부 행에 후보 표시를 유지한다.
@@ -468,7 +468,7 @@
 <tr><td>허용 문맥 미리보기</td><td>❌</td></tr>
 <tr><td>이어쓰기 요청</td><td>❌</td></tr>
 <tr><td>부분 수정 요청</td><td>❌ <small>(Content·AI API와 승인 반영 구현 · 화면 미연결 · 통합 테스트 CI 대기)</small></td></tr>
-<tr><td>AI 대화 요청</td><td>❌</td></tr>
+<tr><td>AI 대화 요청</td><td>✅ <small>(#331: 집필실·세계관 채팅이 Content SSE 중계로 AI 오케스트레이션에 연결 · 세션·메시지 CRUD는 LangGraph 체크포인터만 사용 · 초안 반영 승인·고증 질문·장면 계획 입력을 HITL 카드로 받음 · 발행 회차가 있어야 사용 · 크레딧 차감·첨부·선택 구간 수정 입력은 범위 밖)</small></td></tr>
 <tr><td>대화 목록 조회</td><td>❌</td></tr>
 <tr><td>대화 상세 조회</td><td>❌</td></tr>
 <tr><td>대화 기록 삭제</td><td>❌</td></tr>
@@ -516,7 +516,7 @@
 <tr><td>읽은 회차 기준으로 인물·답변 범위 제한</td><td>❌</td></tr>
 <tr><td>응답 근거 회차·근거 없음 표시</td><td>❌</td></tr>
 <tr><td>미열람 회차 질문의 답변 보류·스포일러 차단</td><td>❌</td></tr>
-<tr><td>AI 작업 창구(MCP)</td><td>Content MCP 서버</td><td>세계관·작품·회차 사용자 작업을 MCP 도구 73개로 제공(공개 조회는 인증 없음, 그 밖은 호출 사용자 권한, DEC-49)</td><td>❌ <small>(부분: content-service <code>/mcp</code> 서버·도구 소스 구현, 로컬 단위 테스트 통과. hosted CI 통합 테스트 미확인, ai-service 클라이언트 연결은 후속)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/163">#163</a></td></tr>
+<tr><td>AI 작업 창구(MCP)</td><td>Content MCP 서버</td><td>세계관·작품·회차 사용자 작업을 MCP 도구 73개로 제공(공개 조회는 인증 없음, 그 밖은 호출 사용자 권한, DEC-49)</td><td>❌ <small>(부분: content-service <code>/mcp</code> 서버·도구 소스 구현, 로컬 단위 테스트 통과. hosted CI 통합 테스트 미확인. ai-service는 집필 AI 작가 승인 뒤 초안 반영만 연결, 실제 Content <code>/mcp</code> 호출 미검증)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/163">#163</a></td></tr>
 </tbody>
 </table>
 
@@ -618,7 +618,7 @@
 <tr><td>운영 댓글 공감 적은순 정렬</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/265">PR #265</a></td></tr>
 <tr><td rowspan="2">운영 현황 관리</td><td rowspan="2">85 업무·데이터 현황 조회</td><td>답변 대기 문의·접수 신고·작가 검토 대기 수 조회</td><td>❌</td><td rowspan="2">—</td></tr>
 <tr><td>수집 자료 출처·수량·형식·사용처 명세 조회</td><td>❌</td></tr>
-<tr><td rowspan="29">LLMOps</td><td rowspan="7">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>❌</td><td rowspan="7"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td rowspan="29">LLMOps</td><td rowspan="7">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>❌ <small>(집필 AI 오케스트레이션·Q&A RAG의 Langfuse SDK 계측과 로컬 self-host Compose 구현(#302) · 실제 기동 미검증 · Content 검색 단계 미연결)</small></td><td rowspan="7"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 호출 기록 목록 조회</td><td>❌</td></tr>
 <tr><td>AI 호출 기록 상세 조회</td><td>❌</td></tr>
 <tr><td>요청 ID 기반 실행 단계 조회</td><td>❌</td></tr>
@@ -677,7 +677,7 @@
 <tr><td>키보드 접근성 확인</td><td>❌</td></tr>
 <tr><td>공통 시트의 summary 키보드 탐색 <small>(초기 포커스·Tab/Shift+Tab 순환, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/139">PR #139</a></td></tr>
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td></tr>
-<tr><td>집필실 3단 레이아웃 <small>(왼쪽 회차 목록·새 회차 아이콘·항목별 ⋮ 메뉴·크기 조절 분할선·버전 그래프, 가운데 제목 첫 줄과 본문 편집기(Toast UI Editor, 아래 행)·공개 분량 5,000자 규칙(화면 규칙), 오른쪽 공용 채팅, 기본/고급 전환 틀. 채팅의 AI 전송·첨부와 설정 수집은 준비 중 잠금이며 실제 연결은 아직 없음, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
+<tr><td>집필실 3단 레이아웃 <small>(왼쪽 회차 목록·새 회차 아이콘·항목별 ⋮ 메뉴·크기 조절 분할선·버전 그래프, 가운데 제목 첫 줄과 본문 편집기(Toast UI Editor, 아래 행)·공개 분량 5,000자 규칙(화면 규칙), 오른쪽 공용 채팅, 기본/고급 전환 틀. 채팅은 집필 AI에 연결(#331), 첨부와 설정 수집은 준비 중 잠금, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>집필실 본문 Toast UI 편집기와 원고 기본 서식 <small>(툴바 굵게·기울임·소제목·인용·구분선·이미지와 쓰기·미리보기, 저장은 문자열 그대로, 독자 화면·저장 버전 보기·EPUB 내보내기가 같은 문법으로 표시, DEC-48)</small></td><td>❌ <small>(부분: 편집기·서식 문법·독자 화면·공용 본문 렌더러·EPUB 내보내기 소스 구현, 로컬 단위·통합 레인 통과, 브라우저 육안 확인 미확인, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/327">#327</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/330">PR #330</a>, <a href="design/manuscript-format-contract.md">계약</a>)</small></td></tr>
 <tr><td rowspan="23">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="23"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a></td></tr>
 <tr><td>홈 단색 배경 보조 텍스트의 라이트·다크 대비 확보</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>

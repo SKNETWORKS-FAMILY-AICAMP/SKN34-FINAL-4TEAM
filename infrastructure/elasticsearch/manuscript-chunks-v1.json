@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "_meta": {
+      "embedding_model": "intfloat/multilingual-e5-small",
+      "embedding_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "embedding_artifact": "onnx/model_qint8_avx512_vnni.onnx"
+    },
+    "properties": {
+      "work_id": { "type": "keyword" },
+      "source_work_id": { "type": "keyword" },
+      "episode_id": { "type": "keyword" },
+      "episode_number": { "type": "integer", "coerce": false },
+      "source_revision": { "type": "keyword" },
+      "source_hash": { "type": "keyword", "index": false, "doc_values": false },
+      "start_utf16": { "type": "integer", "index": false, "doc_values": false, "coerce": false },
+      "end_utf16": { "type": "integer", "index": false, "doc_values": false, "coerce": false },
+      "index_generation": { "type": "integer", "coerce": false },
+      "embedding": {
+        "type": "dense_vector",
+        "dims": 384,
+        "index": true,
+        "similarity": "cosine",
+        "index_options": { "type": "int8_hnsw" }
+      }
+    }
+  }
+}

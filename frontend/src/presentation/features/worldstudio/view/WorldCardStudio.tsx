@@ -220,7 +220,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </footer>
           </div>
         </div>
-        <WorldChat variant="writing" open={chatOpen} onOpenChange={onChatOpenChange} />
+        <WorldChat variant="writing" open={chatOpen} onOpenChange={onChatOpenChange} linkedWorkId={vm.linkedWorkId} />
       </main>
     </div>
   )

@@ -26,6 +26,7 @@ native `include`로 재사용합니다. `storyfork-local` 프로젝트의 새 `s
 콘텐츠는 항상 활성이며 Core/Content의 별도 `CONTENT_CORE_AUTH_TOKEN`, 생성 시 Content/AI의 `INTERNAL_TOKEN`이 필요합니다([콘텐츠 설정](content-integration.md#인증과-실행)). **새 Content 이력은 개발용 fresh 전용**이며 기존 history에 바로 배포하지 않습니다. 정확한 대상·보존/복구 범위 승인 전 실제 DB/volume을 지우지 않습니다.
 WorldStudio(Neo4j)와 알림 사건(RabbitMQ)은 기능 플래그·compose profile 없이 local·개발 배포에서 항상 함께 뜹니다. `.env`에 `NEO4J_PASSWORD`, `CORE_RABBITMQ_PASSWORD`만 정하면 되고, WorldStudio schema는 Content 시작 시 Flyway가 적용합니다. 관계 계약은 [현재 관계 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따릅니다.
 Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
+집필 AI 대화(채팅·HITL)를 쓰려면 `AI_CHECKPOINT_DATABASE_URL`을 Core·Content의 `storyfork`가 아닌 전용 DB `storyfork_ai`로 설정합니다(예시는 `.env.example`). AI가 시작할 때 그 DB가 없으면 만들고, 비워 두면 대화 요청만 503입니다. 같은 `storyfork`로 설정하면 빈 DB에서 Core가 시작하지 못합니다(#337).
 
 | loopback 주소 | 용도 |
 |---|---|

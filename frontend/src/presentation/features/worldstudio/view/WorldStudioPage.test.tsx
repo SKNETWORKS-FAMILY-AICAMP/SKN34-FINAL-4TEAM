@@ -1338,18 +1338,18 @@ it('데모(목업)에서는 공개 화면 링크를 숨기고 공개 목록에�
   expect(screen.queryByText(/확정 버전이 없어/)).toBeNull() // 데모에는 공개 목록이 없어 확정 버전 안내도 하지 않는다
 })
 
-// ── AI 채팅 패널(집필실과 같은 공용 ChatPanel, 전송은 아직 연결하지 않았다) ─────────────────────────
+// ── AI 채팅 패널(집필실과 같은 공용 집필 AI 채팅, 연결 소설이 없거나 데모면 잠긴다) ─────────────────────────
 const chatPanel = () => screen.getByRole('complementary', { name: 'AI 채팅' })
 const noChat = () => screen.queryByRole('complementary', { name: 'AI 채팅' })
 
-it('설정 카드 단계에도 집필실과 같은 AI 채팅 패널이 있고 입력·전송·추천 문구는 준비 중으로 잠겨 있으며 가짜 응답이 없다', async () => {
+it('설정 카드 단계에도 집필실과 같은 AI 채팅 패널이 있고 보낼 수 없으면 입력·전송·추천 문구를 사유와 함께 잠그며 가짜 응답이 없다', async () => {
   await showWorld()
   const chat = within(chatPanel())
   expect(chat.getByRole('heading', { level: 2, name: 'AI 채팅' })).toBeTruthy()
   const box = chat.getByRole('textbox', { name: '메시지' })
   expect(box).toHaveProperty('disabled', true)
   expect(chat.getByRole('button', { name: '전송' })).toHaveProperty('disabled', true)
-  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중 · AI 연결 후 이곳에서 보낼 수 있어요.')
+  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|소설을 연결하면|발행하면|동의에 체크/)
   const log = chat.getByRole('log')
   for (const name of ['인물 카드 아이디어', '이 설정의 모순 찾기', '관계 제안']) expect(within(log).getByRole('button', { name })).toHaveProperty('disabled', true)
   expect(log.querySelectorAll('.chat-msg')).toHaveLength(0)
