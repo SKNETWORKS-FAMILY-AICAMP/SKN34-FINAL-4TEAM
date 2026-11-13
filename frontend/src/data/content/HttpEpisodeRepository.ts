@@ -1,19 +1,20 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
 import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
-import {settingCategories, type Draft, type SettingInput, type StoryQaInput, type WorkRegistration} from '../../domain/entities/content'
+import {settingCategories, type Draft, type SettingInput, type StoryQaInput, type WorkRegistration, type WorkTaxonomy} from '../../domain/entities/content'
 import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
 import { mapReadingWork } from './readingWork'
 import type { EpisodeWorldBasisChoice } from '../../domain/entities/episodeWorldBasis'
+import { cardTypes } from '../../domain/entities/studioCards'
 
 const draft = z.object({title:z.string(),body:z.string(),authorNote:z.string().optional(),revision:z.number().int().nonnegative()})
 const writing = z.object({publicationStatus:z.enum(['draft','published','suspended']).optional(),hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string(),checkpoints:z.array(z.object({versionId:z.string(),publishedAt:z.string(),active:z.boolean()}))})
 const episode = z.object({number:z.number().int().positive(),version:z.number().int().positive(),versionId:z.string().optional(),title:z.string(),body:z.string(),authorNote:z.string().optional(),inherited:z.boolean()})
 const source = z.object({workId:z.string(),title:z.string(),episode:z.number().int(),version:z.number().int(),direction:z.string(),deleted:z.boolean().optional()})
-const work = z.object({revision:z.number().int().nonnegative(),writingEpisodeNumber:z.number().int().positive().nullable().optional(),creationType:z.enum(['ORIGINAL','EXTERNAL_DERIVATIVE']).optional(),genres:z.array(z.string()).optional(),hashtags:z.array(z.string()).optional(),hasWritingEpisode:z.boolean().optional(),id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft})
+const work = z.object({revision:z.number().int().nonnegative(),writingEpisodeNumber:z.number().int().positive().nullable().optional(),creationType:z.enum(['ORIGINAL','EXTERNAL_DERIVATIVE']).optional(),genres:z.array(z.string()).optional(),hashtags:z.array(z.string()).optional(),hasWritingEpisode:z.boolean().optional(),id:z.string(),title:z.string(),summary:z.string(),visibility:z.enum(['private','public']),allowFork:z.boolean(),allowForkPublication:z.boolean().default(false),source:source.nullable(),episodes:z.array(episode),draft,worldStudioId:z.uuid().nullable().optional()})
 const setting = z.object({id:z.string(),versionId:z.string(),name:z.string(),content:z.string(),category:z.enum(settingCategories),tags:z.array(z.string()),visibility:z.enum(['private','public']),fromEpisode:z.number().int().positive(),toEpisode:z.number().int().positive().nullable(),knownBy:z.array(z.string()),evidence:z.string()})
 const worldCheckpointSummary = z.object({ id: z.string().min(1), createdAt: z.iso.datetime() })
 const worldCheckpoint = worldCheckpointSummary.extend({ settings: z.array(setting) })
@@ -48,6 +49,14 @@ const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.
   knowledge:z.array(z.object({text:z.string(),knownAt:z.number().int(),publicAt:z.number().int()})),links:z.array(z.object({to:z.string(),kind:z.string()})),
 })
 const readingWorld = z.object({workId:z.string(),episode:z.number().int().positive(),documents:z.array(readingDocument)})
+const cardId = z.string().min(1)
+/** 연결된 세계관의 독자 공개 카드(DEC-46). 관계 상태를 주기 전 응답은 current로 읽는다. */
+const readingWorldCards = z.object({
+  workId: z.string(), worldId: z.string().min(1).nullable(), upto: z.number().int().nonnegative(),
+  cards: z.array(z.object({ id: cardId, title: z.string(), text: z.string(), cardType: z.enum(cardTypes.map((type) => type.id)), aliases: z.array(z.string()), tags: z.array(z.string()), revealFromEpisode: z.number().int().positive() })),
+  relationships: z.array(z.object({ id: cardId, sourceCardId: cardId, targetCardId: cardId, label: z.string() })),
+  relationshipStatus: z.enum(['current', 'unavailable']).default('current'),
+})
 const publicationSchedule = z.object({
   id: z.string().min(1),
   versionId: z.string().min(1),
@@ -139,6 +148,10 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   }
   readingList(owned = false, signal?: AbortSignal) { return this.request(owned ? '/works' : '/public/works',z.array(readingWork),'GET',undefined,signal) }
   readingWorld(id:string,episode:number,signal?:AbortSignal) { return this.request(`/public/works/${encodeURIComponent(id)}/world?episode=${episode}`,readingWorld,'GET',undefined,signal) }
+  /** 작품에 연결된 세계관의 독자 공개 카드. 누구나 읽는 공개 GET이라 Bearer 없이 보내고, `upto`를 생략하면 서버가 발행된 최대 회차를 기준으로 삼는다. */
+  readingWorldCards(id: string, upto?: number, signal?: AbortSignal) {
+    return this.request(`/public/works/${encodeURIComponent(id)}/world-cards${upto === undefined ? '' : `?upto=${upto}`}`, readingWorldCards, 'GET', undefined, signal)
+  }
   async search(query: WorkSearchQuery, signal?: AbortSignal) {
     const params = new URLSearchParams({ f: query.f, sort: query.sort })
     if (query.q) params.set('q', query.q)
@@ -155,15 +168,25 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     const minutesSince = (updatedAt: string) => Math.max(0, Math.floor((at.getTime() - Date.parse(updatedAt)) / 60000))
     return { computedAt: at, items: items.map((w) => ({ ...mapReadingWork(w), ...(w.updatedAt ? { upd: minutesSince(w.updatedAt) } : {}) })) }
   }
+  /** 회차별 누적 조회 수(episodeViews)는 공개 상세(GET /public/works/{id})에만 오므로 목록 대신 이 읽기로 받는다. 익명 요청이며 기록 없는 회차는 키가 없다. */
+  async episodeViews(id: string, signal?: AbortSignal) {
+    const { episodeViews } = await this.request(`/public/works/${encodeURIComponent(id)}`, z.object({ episodeViews: z.record(z.string(), z.number().int().nonnegative()).nullish() }), 'GET', undefined, signal)
+    return episodeViews ?? {}
+  }
   async recordView(id: string, number: number, signal?: AbortSignal) {
     if (!getAccessToken()) return // 익명 열람은 회원 식별이 없어 기록하지 않는다.
     await this.request(`/works/${encodeURIComponent(id)}/episodes/${number}/views`, z.undefined(), 'POST', undefined, signal)
   }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) { return this.request('/works',work,'POST',registration?{title,summary,...registration}:{title,summary},signal) }
-  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal) { return this.request(`/works/${id}`,work,'PUT',{title,summary,revision},signal) }
+  /** 장르·해시태그는 주었을 때만 본문에 싣는다(생략하면 서버가 유지하고, 빈 배열은 비운다). */
+  updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy) { return this.request(`/works/${id}`,work,'PUT',{title,summary,revision,...taxonomy},signal) }
   stopForkPublication(id: string, signal?: AbortSignal) { return this.request(`/works/${id}/fork-publication`,z.undefined(),'DELETE',undefined,signal) }
   deleteWork(id: string, signal?: AbortSignal) { return this.request(`/works/${id}`,z.undefined(),'DELETE',undefined,signal) }
+  /** 작품과 내 세계관의 1:1 연결(DEC-46). worldId가 null이면 해제한다. 남의 것·없는 것은 404, 이미 다른 작품에 연결된 세계관은 409이며 서버 detail을 그대로 알린다. */
+  linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal) {
+    return this.request(`/works/${encodeURIComponent(workId)}/world-studio`, z.object({ workId: z.string(), worldId: z.uuid().nullable() }), 'PUT', { worldId }, signal)
+  }
   save(id: string, value: Draft) { return this.request(`/works/${id}/draft`,draft,'PUT',value) }
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) { return this.request(`/works/${id}/publish`,work,'POST',{revision,rightsConfirmed,allowFork,allowForkPublication,versionId}) }
   history(id: string,signal?:AbortSignal) { return this.request(`/works/${id}/history`,z.object({versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),proposals:z.array(proposal),publicationHistory:z.array(z.object({episode:z.number().int().positive(),versionId:z.string(),publishedAt:z.string(),action:z.enum(['publish','replace','unpublish','republish'])})).optional()}),'GET',undefined,signal) }

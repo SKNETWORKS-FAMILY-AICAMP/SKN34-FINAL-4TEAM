@@ -7,12 +7,15 @@ import ai.storyfork.content.proposal.client.GenerationClient
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.dto.CreateWorkRequest
 import ai.storyfork.content.work.service.dto.UpdateWorkRequest
+import ai.storyfork.content.work.service.dto.WorkResponse
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.datasource.DriverManagerDataSource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.concurrent.*
 
@@ -85,5 +88,82 @@ class WorkUpdatePostgresTest {
         val w=create()
         assertEquals(404,failure { works.update(w.id,"intruder",UpdateWorkRequest("탈취","소개",w.draft!!.revision)) }.status)
         assertEquals("수정삭제 검증",works.read(w.id,"author").title)
+    }
+
+    // ───── 장르·해시태그(선택 필드): 생략하면 유지, 보내면 등록과 같은 규칙으로 검증해 통째로 교체 ─────
+    private val jdbc get()=JdbcTemplate(DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test",""))
+    private fun count(sql: String,vararg args: Any)=jdbc.queryForObject(sql,Int::class.java,*args)!!
+    private fun genreRows(work: String)=count("SELECT count(*) FROM work_genre WHERE work_id=?",work)
+    private fun hashtagRows(work: String)=count("SELECT count(*) FROM work_hashtag WHERE work_id=?",work)
+    private fun register(genres: List<String> = listOf("판타지","SF"),tags: List<String> = listOf("회귀","먼치킨"))=
+        works.create("author",CreateWorkRequest("장르 수정 검증","소개","ORIGINAL",genres,tags,true))
+    /** 지금 revision으로 제목·소개는 그대로 두고 장르·해시태그만 보낸다(null은 생략). */
+    private fun change(w: WorkResponse,genres: List<String>? = null,tags: List<String>? = null)=
+        works.update(w.id,"author",UpdateWorkRequest("장르 수정 검증","소개",works.read(w.id,"author").draft!!.revision,genres,tags))
+
+    @Test fun `omitting genres and hashtags keeps the stored ones`() {
+        val w=register()
+        val updated=works.update(w.id,"author",UpdateWorkRequest("제목만 바꿈","소개",w.draft!!.revision))
+        assertEquals("제목만 바꿈",updated.title)
+        assertEquals(listOf("판타지","SF"),updated.genres)
+        assertEquals(listOf("회귀","먼치킨"),updated.hashtags)
+        assertEquals(2,genreRows(w.id))
+        assertEquals(2,hashtagRows(w.id))
+    }
+    @Test fun `genres and hashtags are replaced and read back in the approved order and the given order`() {
+        val w=register()
+        val updated=change(w,genres=listOf("SF","무협"),tags=listOf("먼치킨","  새 태그 ","회귀"))
+        assertEquals(listOf("무협","SF"),updated.genres)
+        assertEquals(listOf("먼치킨","새 태그","회귀"),updated.hashtags)
+        val read=works.read(w.id,"author")
+        assertEquals(listOf("무협","SF"),read.genres)
+        assertEquals(listOf("먼치킨","새 태그","회귀"),read.hashtags)
+        assertEquals(2,genreRows(w.id))
+        assertEquals(listOf("먼치킨","새 태그","회귀"),jdbc.queryForList("SELECT tag FROM work_hashtag WHERE work_id=? ORDER BY position",String::class.java,w.id))
+    }
+    @Test fun `the same genres and positions can be sent again after the old rows were deleted first`() {
+        val w=register()
+        // 같은 (작품, 장르)·(작품, 위치)·행 id를 다시 넣는다. 삭제가 insert보다 먼저 DB에 나가지 않으면 키 충돌로 실패한다.
+        val again=change(w,genres=listOf("판타지","SF"),tags=listOf("회귀","먼치킨"))
+        assertEquals(listOf("판타지","SF"),again.genres)
+        assertEquals(listOf("회귀","먼치킨"),again.hashtags)
+        assertEquals(1,change(w,tags=listOf("회귀")).hashtags.size)
+        assertEquals(1,hashtagRows(w.id))
+        assertEquals(10,change(w,tags=(1..10).map {"태그$it"}).hashtags.size)
+        assertEquals(10,hashtagRows(w.id))
+        assertEquals(2,genreRows(w.id))
+    }
+    @Test fun `an empty hashtag list clears them and genres keep at least one`() {
+        val w=register()
+        val cleared=change(w,tags=emptyList())
+        assertTrue(cleared.hashtags.isEmpty())
+        assertEquals(listOf("판타지","SF"),cleared.genres)
+        assertEquals(0,hashtagRows(w.id))
+        assertEquals(422,failure { change(w,genres=emptyList()) }.status)
+        assertEquals(listOf("판타지","SF"),works.read(w.id,"author").genres)
+    }
+    @Test fun `invalid genres or hashtags change nothing not even the title`() {
+        val w=register()
+        val before=works.read(w.id,"author")
+        val revision=before.draft!!.revision
+        val cases=listOf(
+            UpdateWorkRequest("바뀌면 안 되는 제목","소개",revision,genres=listOf("판타지","SF","무협")),
+            UpdateWorkRequest("바뀌면 안 되는 제목","소개",revision,genres=listOf("없는장르")),
+            UpdateWorkRequest("바뀌면 안 되는 제목","소개",revision,genres=listOf("판타지","판타지")),
+            UpdateWorkRequest("바뀌면 안 되는 제목","소개",revision,genres=listOf("무협"),hashtags=listOf("회귀","  ")),
+            UpdateWorkRequest("바뀌면 안 되는 제목","소개",revision,hashtags=(1..11).map {"태그$it"}),
+        )
+        cases.forEach { assertEquals(422,failure { works.update(w.id,"author",it) }.status) }
+        assertEquals(before,works.read(w.id,"author"))
+        assertEquals(2,genreRows(w.id))
+        assertEquals(2,hashtagRows(w.id))
+    }
+    @Test fun `a stale revision or another user cannot change genres and hashtags`() {
+        val w=register()
+        val before=works.read(w.id,"author")
+        val revision=before.draft!!.revision
+        assertEquals(409,failure { works.update(w.id,"author",UpdateWorkRequest("낡은 수정","소개",revision+5,listOf("무협"),emptyList())) }.status)
+        assertEquals(404,failure { works.update(w.id,"intruder",UpdateWorkRequest("탈취","소개",revision,listOf("무협"),emptyList())) }.status)
+        assertEquals(before,works.read(w.id,"author"))
     }
 }

@@ -1,6 +1,7 @@
 package ai.storyfork.content.auth
 
 import ai.storyfork.content.auth.client.CoreAuthClient
+import ai.storyfork.content.auth.client.ScheduledMemberPayload
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.auth.client.dto.NicknamesPayload
 import ai.storyfork.content.auth.client.dto.NicknamesResponse
@@ -25,8 +26,21 @@ class CoreAuthVerificationServiceTest {
         val service = CoreAuthVerificationService(client { header ->
             assertEquals("Bearer opaque-user-token", header); calls++; VerifiedMemberResponse(id)
         })
-        repeat(2) { assertEquals(id, service.verify("Bearer opaque-user-token")) }
+        repeat(2) { assertEquals(id, service.verify("Bearer opaque-user-token").memberId) }
         assertEquals(2, calls)
+    }
+
+    @Test fun `verify answers the member and the operator flag while the scheduled check still answers only the member id`() {
+        val id = UUID.randomUUID()
+        assertEquals(VerifiedMemberResponse(id, true), CoreAuthVerificationService(client { VerifiedMemberResponse(id, true) }).verify("Bearer a"))
+        // Core가 operator를 주지 않으면(구 응답) 일반 회원이다.
+        assertFalse(CoreAuthVerificationService(client { VerifiedMemberResponse(id) }).verify("Bearer a").operator)
+        val scheduled = object : CoreAuthClient {
+            override fun verify(authorization: String): VerifiedMemberResponse = error("user verification is unused")
+            override fun nicknames(request: NicknamesPayload): NicknamesResponse = throw UnsupportedOperationException("scheduled only")
+            override fun verifyScheduledMember(request: ScheduledMemberPayload) = VerifiedMemberResponse(id, true)
+        }
+        assertEquals(id, CoreAuthVerificationService(scheduled).verifyScheduledMember(id.toString()))
     }
 
     @Test fun `empty upstream body fails as invalid response not invalid user`() {

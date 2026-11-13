@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // React 조립 회귀: CI 통합 계층에서만 실행한다.
 import '../../../../test/fixtureApp'
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -121,6 +121,46 @@ it('급상승 줄만 실패해도 실패 안내 위에 TOP10의 계산 시각을
   const top = await screen.findByLabelText('실시간 인기 TOP10')
   within(top).getByText('순위를 불러오지 못했어요.')
   expect(within(top).queryByText(/\d{2}:\d{2} 기준/)).toBeNull()
+})
+
+it('순위 조회가 실패한 자리마다 다시 불러오기가 있고 누르면 그 자리를 서버 값으로 채운다', async () => {
+  const rankings = vi.spyOn(appContainer.resolve('workSearchRepository'), 'rankings')
+  const stub = rankings.getMockImplementation()!
+  rankings.mockRejectedValue(new Error('offline'))
+  renderHome()
+  await screen.findByText('다르게 이어진 포크 소설')
+  // 실시간 인기·급상승·포크 소설·방금 업데이트·이번 주 인기: 실패한 다섯 자리 모두에서 다시 시도할 수 있다.
+  expect(screen.getAllByRole('button', { name: '다시 불러오기' })).toHaveLength(5)
+  expect(screen.getAllByRole('alert').map((alert) => alert.textContent)).toContain('순위를 불러오지 못했어요.')
+  const top = screen.getByLabelText('실시간 인기 TOP10')
+  rankings.mockImplementation(stub)
+  fireEvent.click(within(top).getByRole('button', { name: '다시 불러오기' }))
+  await waitFor(() => expect(within(top).getAllByRole('listitem')).toHaveLength(10))
+  expect(screen.queryByText(/불러오지 못했어요/)).toBeNull()
+  expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+})
+
+it('필터 칩 묶음은 이름이 있는 그룹이다', async () => {
+  renderHome()
+  await screen.findByText('다르게 이어진 포크 소설')
+  const chips = within(screen.getByRole('group', { name: '소설 필터' })).getAllByRole('button')
+  expect(chips.map((chip) => [chip.textContent, chip.getAttribute('aria-pressed')])).toContainEqual(['추천', 'true'])
+})
+
+it.each([[true, 'instant'], [false, 'smooth']] as const)('발견 선반 화살표는 동작 줄이기(%s)를 따라 %s로 넘긴다', async (reduced, behavior) => {
+  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: reduced, addEventListener: () => {}, removeEventListener: () => {} })))
+  // jsdom에는 요소 scrollBy가 없다.
+  const scrollBy = vi.fn()
+  Object.defineProperty(HTMLElement.prototype, 'scrollBy', { configurable: true, value: scrollBy })
+  try {
+    renderHome()
+    await screen.findByText('오늘, 스토리포크의 발견')
+    fireEvent.click(screen.getByRole('button', { name: '다음' }))
+    expect(scrollBy).toHaveBeenCalledWith(expect.objectContaining({ behavior }))
+  } finally {
+    Reflect.deleteProperty(HTMLElement.prototype, 'scrollBy')
+    vi.unstubAllGlobals()
+  }
 })
 
 it('순위가 아닌 서버 작품 목록(지표 없음)은 기존 중립 제목과 회차만 보이고 지어낸 업데이트 시각을 쓰지 않는다', async () => {

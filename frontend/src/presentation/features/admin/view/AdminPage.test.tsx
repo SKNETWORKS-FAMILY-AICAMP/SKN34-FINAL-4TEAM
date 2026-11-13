@@ -61,6 +61,15 @@ it('본문 영역은 건너뛰기 링크가 닿는 하나의 main이다', async 
   expect(main.getAttribute('tabindex')).toBe('-1')
 })
 
+it('관리자 화면도 공용 푸터를 .adm 밖 최상위 형제로 둔다', async () => {
+  const { container } = renderAdmin('data')
+  await screen.findByRole('main')
+  const footer = screen.getByRole('contentinfo')
+  expect(within(footer).getByText('SKN34 최종 프로젝트 4팀')).toBeTruthy()
+  expect(footer.parentElement).toBe(container)
+  expect(footer.previousElementSibling).toBe(container.querySelector('.adm'))
+})
+
 it('상단바 글자·버튼 색은 하드코딩하지 않고 고정 어두운 면용 토큰을 쓴다', async () => {
   renderAdmin('data')
   await screen.findByRole('main')
@@ -83,7 +92,7 @@ it('운영 API 탭은 데모 조회가 실패해도 본문과 조치 버튼을 �
   const row = (await screen.findByText('연화봉러')).closest('tr') as HTMLElement
   await waitFor(() => expect(load).toHaveBeenCalled())
   await act(async () => { await new Promise((done) => setTimeout(done, 0)) })
-  expect((within(row).getByRole('button', { name: '이용 제한' }) as HTMLButtonElement).disabled).toBe(false)
+  expect((within(row).getByRole('button', { name: '연화봉러 이용 제한' }) as HTMLButtonElement).disabled).toBe(false)
   expect(screen.queryByText(/관리자 데이터를 불러오지 못했어요/)).toBeNull()
   cleanup()
   renderAdmin('characterChats')
@@ -135,29 +144,35 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   expect(cells(fork)).toEqual(['달빛 도서관 외전', '하늘', '포크', '외부 2차 창작 · 권리 미확인', '비공개', '운영 제한포크 정합성 점검'])
 
   // 제한은 확인을 거쳐야 보내고, 취소하면 요청도 목록 재조회도 없다.
-  fireEvent.click(within(open).getByRole('button', { name: '운영 제한' }))
+  fireEvent.click(within(open).getByRole('button', { name: '「달빛 도서관」 운영 제한' }))
   expect(confirm).toHaveBeenCalledTimes(1)
   expect(requests()).toEqual(['GET /api/v1/operations/works'])
   confirm.mockReturnValue(true)
-  fireEvent.click(within(open).getByRole('button', { name: '운영 제한' }))
-  await within(open).findByRole('button', { name: '제한 해제' })
+  fireEvent.click(within(open).getByRole('button', { name: '「달빛 도서관」 운영 제한' }))
+  await within(open).findByRole('button', { name: '「달빛 도서관」 제한 해제' })
   expect(requests()).toEqual(['GET /api/v1/operations/works', 'PUT /api/v1/operations/works/w-open/restriction', 'GET /api/v1/operations/works'])
   expect(cells(open)[4]).toBe('운영 제한')
   expect(within(open).getByText('운영 제한', { selector: '.chip' }).className).toContain('wait')
-  expect(within(fork).getByRole('button', { name: '운영 제한' })).toBeTruthy()
+  expect(within(fork).getByRole('button', { name: '「달빛 도서관 외전」 운영 제한' })).toBeTruthy()
+  // 완료 안내는 화면 위 한 줄에 대상 이름과 함께 한 번만 보인다(같은 문구를 조치 상태 줄로 또 그리지 않는다).
+  const done = screen.getAllByText('작품을 운영 제한했어요.')
+  expect(done).toHaveLength(1)
+  expect(done[0].getAttribute('role')).toBe('status')
+  expect(done[0].textContent).toBe('「달빛 도서관」 · 작품을 운영 제한했어요.')
 
   // 해제는 확인 없이 보내고 목록을 다시 읽어 공개 상태로 돌아온다.
   confirm.mockClear()
-  fireEvent.click(within(open).getByRole('button', { name: '제한 해제' }))
-  await within(open).findByRole('button', { name: '운영 제한' })
+  fireEvent.click(within(open).getByRole('button', { name: '「달빛 도서관」 제한 해제' }))
+  await within(open).findByRole('button', { name: '「달빛 도서관」 운영 제한' })
   expect(confirm).not.toHaveBeenCalled()
   expect(requests().slice(3)).toEqual(['DELETE /api/v1/operations/works/w-open/restriction', 'GET /api/v1/operations/works'])
   expect(cells(open)[4]).toBe('공개')
 
   // 서버(Content) 실패는 성공으로 바꾸지 않고 오류를 보이며 목록도 다시 읽지 않는다.
   failRestriction = true
-  fireEvent.click(within(fork).getByRole('button', { name: '운영 제한' }))
-  expect((await screen.findByRole('alert')).textContent).toBe('연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.')
+  fireEvent.click(within(fork).getByRole('button', { name: '「달빛 도서관 외전」 운영 제한' }))
+  // 실패 안내는 어느 작품의 조치인지 이름과 함께 알린다.
+  expect((await screen.findByRole('alert')).textContent).toBe('「달빛 도서관 외전」 · 연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.')
   expect(cells(fork)[4]).toBe('비공개')
   expect(requests()).toHaveLength(6)
 
@@ -349,7 +364,7 @@ it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 �
   // 서버(Content) 실패는 성공으로 바꾸지 않고 오류를 보이며 목록도 다시 읽지 않는다.
   failAction = true
   fireEvent.click(within(hidden).getByRole('button', { name: '하늘 댓글 게시 복구' }))
-  expect((await screen.findByRole('alert')).textContent).toBe('연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.')
+  expect((await screen.findByRole('alert')).textContent).toBe('하늘 님의 댓글 · 연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.')
   expect(cells(hidden)[4]).toBe('숨김')
   expect(requests()).toHaveLength(6)
 })
@@ -491,6 +506,34 @@ it('활동 로그 탭은 조회 권한이 없으면(403) 실패 화면 대신 �
   expect(document.querySelector('.audit-list')).toBeNull()
   // 탭 안내문에도 필요한 권한이 적혀 있다.
   expect(screen.getByText(/‘관리자 계정 관리’ 권한이 있는 관리자만 볼 수 있어요/).className).toBe('admin-note')
+})
+
+it('패널 제목은 굵은 글씨가 아니라 제목 요소이고, 메뉴 묶음 이름은 제목이 아니어서 화면 제목(h1)이 첫 제목이다', async () => {
+  renderAdmin('jobs')
+  const title = await screen.findByRole('heading', { name: '운영 정기 작업', level: 2 })
+  expect(title.className).toBe('panel-title')
+  expect(screen.getAllByRole('heading')[0].tagName).toBe('H1')
+  const menu = screen.getByRole('navigation', { name: '관리자 업무' })
+  expect(within(menu).queryAllByRole('heading')).toHaveLength(0)
+  expect(within(menu).getAllByRole('group').map((group) => group.getAttribute('aria-label'))).toEqual(['현황', '회원 관리', '콘텐츠 관리', '소통 관리', '서비스 운영', '내 계정'])
+})
+
+it('표의 행 버튼은 이름이 같은 버튼끼리 구분되도록 대상 이름을 함께 읽는다', async () => {
+  renderAdmin('jobs')
+  const row = (await screen.findByText('알림 90일 보관기간 정리')).closest('tr') as HTMLElement
+  expect(within(row).getByRole('button', { name: '알림 90일 보관기간 정리 수동 재시도 시연' }).textContent).toBe('수동 재시도 시연')
+  cleanup()
+  renderAdmin('characterChats')
+  const chat = (await screen.findAllByRole('button', { name: /(중지|운영 재개)$/ }))[0]
+  const cells = within(chat.closest('tr') as HTMLElement).getAllByRole('cell').map((cell) => cell.textContent)
+  expect(chat.getAttribute('aria-label')).toBe(`${cells[1]} ${cells[2]} ${chat.textContent}`)
+})
+
+it('관리자 계정 생성 폼은 필수 항목과 비밀번호 규칙을 글로 알린다', async () => {
+  renderAdmin('admins')
+  const password = await screen.findByLabelText<HTMLInputElement>('초기 비밀번호')
+  screen.getByText('모든 항목은 필수예요. 권한은 한 가지 이상 골라 주세요.')
+  expect(document.getElementById(password.getAttribute('aria-describedby')!)!.textContent).toBe('초기 비밀번호는 8자 이상이에요.')
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).

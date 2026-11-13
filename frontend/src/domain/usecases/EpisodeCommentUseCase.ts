@@ -19,6 +19,10 @@ export class EpisodeCommentUseCase {
     return this.repository.list(workId, n, sort)
   }
 
+  listByWork(workId: string, sort: CommentSort) {
+    return this.repository.listByWork(workId, sort)
+  }
+
   /** quote는 선택 문장(수정 불가)이다. 500자를 넘으면 잘라 보내지 않고 거절한다. */
   async create(workId: string, n: number, { body, quote, spoiler }: { body: string; quote?: string | null; spoiler: boolean }) {
     const text = check(body, quote)

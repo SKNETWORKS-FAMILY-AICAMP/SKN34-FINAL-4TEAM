@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import '../fixtureApp'
 
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import { openPolicy } from '../../presentation/shared/events'
 import { renderApp as renderAt } from '../renderApp'
 import { stubWorkSearch } from '../stubWorkSearch'
 
@@ -46,14 +47,12 @@ describe('홈·공통 셸 (U01·U02)', () => {
   it('세계관·크레딧 메뉴의 데모 꼬리표만 없애고 정책의 실제 차감 없음 안내는 유지한다', async () => {
     renderAt('/')
     const worlds = within(screen.getByRole('navigation', { name: '주요 메뉴' })).getByRole('link', { name: /세계관/ })
-    expect(worlds.getAttribute('href')).toBe('/worldstudio')
+    expect(worlds.getAttribute('href')).toBe('/worlds')
     expect(worlds.querySelector('.lf')?.textContent).toBe('세계관')
     expect(worlds.querySelector('.ls')?.textContent).toBe('세계관')
     expect(worlds.textContent).not.toContain('데모')
-    const credit = screen.getByRole('button', { name: '✦ 크레딧' })
-    expect(credit.querySelector('.demo')).toBeNull()
-    expect(credit.title).toBe('크레딧 정책은 아직 확정되지 않았어요')
-    fireEvent.click(credit)
+    expect(within(document.querySelector<HTMLElement>('.gnb')!).queryByRole('button', { name: /크레딧/ })).toBeNull()
+    act(() => { openPolicy() })
     const policy = await screen.findByRole('dialog', { name: '크레딧·이용 정책 안내' })
     expect(policy.textContent).toContain('실제 결제나 차감은 없습니다.')
   })

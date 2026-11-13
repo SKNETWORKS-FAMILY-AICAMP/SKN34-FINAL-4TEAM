@@ -1,0 +1,31 @@
+/*
+ * 설정 카드 본문 마크다운(CardMarkdown). 공개 카드 페이지(.nw-doc 안)와 편집 화면 미리보기가 같이 쓰는 읽기 화면 토큰(--tfg·--tsub·--tline·--tacc)만 쓴다.
+ * .nw-doc의 `p, li { white-space: pre-wrap }`(특이도 0,1,1)보다 이기도록 `div.card-md`로 시작한다.
+ */
+div.card-md { min-width: 0; overflow-wrap: anywhere; }
+div.card-md > :first-child { margin-top: 0; }
+div.card-md > :last-child { margin-bottom: 0; }
+
+/* 글자 그대로 쓴 줄바꿈은 예전 본문 표시처럼 줄을 바꾼다(마크다운이 접지 않는다). 줄 끝 공백 두 칸의 <br> 뒤에도 줄바꿈 글자가 따라오므로 <br>은 숨겨 한 번만 바꾼다. */
+div.card-md p { margin: 0 0 10px; line-height: 1.75; max-width: 68ch; white-space: pre-line; }
+div.card-md br { display: none; }
+div.card-md li { line-height: 1.75; max-width: 68ch; white-space: normal; }
+div.card-md ul, div.card-md ol { margin: 0 0 10px; padding-left: 22px; }
+div.card-md li > ul, div.card-md li > ol { margin: 4px 0 0; }
+
+div.card-md h3, div.card-md h4, div.card-md h5, div.card-md h6 { margin: 18px 0 8px; font-weight: 800; line-height: 1.4; text-wrap: balance; }
+div.card-md h3 { font-size: 19px; }
+div.card-md h4 { font-size: 16px; }
+div.card-md h5, div.card-md h6 { font-size: 14px; }
+
+div.card-md a { color: var(--tacc); text-decoration: underline; text-underline-offset: 3px; }
+div.card-md blockquote { margin: 0 0 10px; padding: 2px 0 2px 14px; border-left: 1px solid var(--tline); color: var(--tsub); }
+div.card-md hr { margin: 18px 0; border: 0; border-top: 1px solid var(--tline); }
+div.card-md code { padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--tfg) 9%, transparent); font-size: .92em; }
+div.card-md pre { margin: 0 0 12px; padding: 12px 14px; border: 1px solid var(--tline); border-radius: 8px; background: color-mix(in srgb, var(--tfg) 5%, transparent); overflow-x: auto; }
+div.card-md pre code { padding: 0; background: none; font-size: 13.5px; line-height: 1.6; white-space: pre; }
+
+/* 표는 좁은 화면에서 가로로 스크롤한다. */
+div.card-md table { display: block; max-width: 100%; margin: 0 0 12px; border-collapse: collapse; overflow-x: auto; font-size: 14px; }
+div.card-md th, div.card-md td { padding: 6px 12px; border: 1px solid var(--tline); text-align: left; vertical-align: top; }
+div.card-md th { background: color-mix(in srgb, var(--tfg) 6%, transparent); font-weight: 700; }

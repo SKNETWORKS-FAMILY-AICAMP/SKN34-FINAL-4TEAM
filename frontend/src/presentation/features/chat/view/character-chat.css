@@ -1,0 +1,6 @@
+/* 캐릭터챗 대화방 전용 보정. 전역(storyfork.css)의 .chlog·.chf 위에 얹는다. */
+/* 화자 이름(.sr-only는 position:absolute)이 대화 기록과 함께 스크롤되고 잘리도록 기준을 기록 영역에 둔다.
+   기준이 없으면 긴 대화의 아래쪽 이름표가 스크롤 영역 밖 위치를 차지해 문서 높이를 늘린다. */
+.chlog { position: relative; }
+/* 빈 질문 경고: 입력 줄(.chf) 바로 아래에 같은 좌우 여백으로 둔다. */
+.chat-ask-error { padding: 0 20px 12px; }
