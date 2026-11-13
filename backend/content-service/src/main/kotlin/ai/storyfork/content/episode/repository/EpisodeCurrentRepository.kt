@@ -6,16 +6,16 @@ import org.springframework.data.repository.query.Param
 
 interface EpisodeCurrentRepository : JpaRepository<EpisodeCurrentEntity, String> {
     // Same active-row predicate as EpisodeService.assemble, without loading manuscript history.
-    @Query(value = """
+    @Query("""
         SELECT COALESCE(MAX(e.sequence), 0)
-        FROM episode_current e
-        WHERE e.work_id = :workId AND (
-            e.draft_revision_floor >= 0
-            OR EXISTS (SELECT 1 FROM episode_draft d WHERE d.episode_id = e.id)
-            OR EXISTS (SELECT 1 FROM episode_version p WHERE p.id = e.published_version_id)
-            OR EXISTS (SELECT 1 FROM episode_version v WHERE v.episode_id = e.id AND v.is_saved)
+        FROM EpisodeCurrentEntity e
+        WHERE e.workId = :workId AND (
+            e.draftRevisionFloor >= 0
+            OR EXISTS (SELECT d.episodeId FROM EpisodeDraftEntity d WHERE d.episodeId = e.id)
+            OR EXISTS (SELECT p.id FROM EpisodeVersionEntity p WHERE p.id = e.publishedVersionId)
+            OR EXISTS (SELECT v.id FROM EpisodeVersionEntity v WHERE v.episodeId = e.id AND v.isSaved = true)
         )
-    """, nativeQuery = true)
+    """)
     fun lastNumber(@Param("workId") workId: String): Int
 
     fun findAllByWorkIdOrderBySequence(workId: String): List<EpisodeCurrentEntity>
