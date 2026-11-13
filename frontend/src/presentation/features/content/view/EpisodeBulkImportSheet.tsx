@@ -1,4 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
+import { Go } from '../../../shared/Go'
 import { Sheet } from '../../../shared/Sheet'
 import { paginate } from '../../../shared/paginate'
 import { useEpisodeBulkImport } from '../viewmodel/useEpisodeBulkImport'
@@ -139,6 +140,10 @@ export function EpisodeBulkImportSheet({ workId, onClose }: {
             <p className="small">이번 전송 {vm.progress.done}/{vm.progress.total}개 처리 · 저장 {vm.savedCount}개 · 실패 {vm.failedCount}개</p>
           </div>
         )}
+        {/* 회차 탭은 공개 회차만 보이므로 저장한 초안을 어디서 보는지 알린다. */}
+        {!vm.busy && vm.savedCount > 0 && <p className="muted small">
+          저장한 회차는 비공개 초안이에요. <Go to={`/studio/${workId}`}>집필실</Go>에서 확인하고 발행해 주세요.
+        </p>}
         {(vm.editable || vm.canRetry) && <label className="episode-bulk-rights">
           <input type="checkbox" checked={vm.rightsConfirmed}
             onChange={(event) => vm.setRightsConfirmed(event.currentTarget.checked)} />

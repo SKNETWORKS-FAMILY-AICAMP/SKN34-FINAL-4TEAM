@@ -13,8 +13,7 @@ const bulkResponse = z.object({
   workRevision: count,
   stopReason: z.string().nullish().transform((value) => value ?? null),
   results: z.array(z.discriminatedUnion('status', [
-    z.object({ ...bulkResultRow, status: z.literal('created'), versionId: z.string().min(1), reason: z.null() }),
-    z.object({ ...bulkResultRow, status: z.literal('versioned'), versionId: z.string().min(1), reason: z.null() }),
+    z.object({ ...bulkResultRow, status: z.enum(['created', 'versioned']), versionId: z.string().min(1), reason: z.null() }),
     z.object({ ...bulkResultRow, status: z.literal('failed'), versionId: z.null(), reason: z.string().min(1) }),
   ])),
 })
