@@ -24,11 +24,23 @@ class NoticeOutboxService(private val outbox: NoticeOutboxRepository) {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     fun enqueue(type: NoticeEventType, recipientId: UUID, targetId: String): UUID {
-        val row = outbox.save(NoticeOutboxEntity(
-            id = UUID.randomUUID(), eventType = type.code, recipientId = recipientId,
+        val id = UUID.randomUUID()
+        enqueueOnce(type, recipientId, targetId, id)
+        return id
+    }
+
+    /**
+     * [enqueue]와 같되 사건 id를 호출하는 쪽이 정한다. 같은 id가 이미 기록돼 있으면 새로 기록하지 않고 false를 반환한다.
+     * 정기 작업이 같은 사건을 여러 번 만들 수 있을 때(예: 크레딧 소멸 예정) 알림이 한 번만 생기게 하려고 쓴다.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    fun enqueueOnce(type: NoticeEventType, recipientId: UUID, targetId: String, eventId: UUID): Boolean {
+        if (outbox.existsById(eventId)) return false
+        outbox.save(NoticeOutboxEntity(
+            id = eventId, eventType = type.code, recipientId = recipientId,
             targetType = type.targetType, targetId = targetId, occurredAt = Instant.now().truncatedTo(ChronoUnit.MICROS),
         ))
-        return row.id
+        return true
     }
 
     /** 아직 보내지 않은 사건을 오래된 순으로 최대 50개, 계약 메시지로 바꿔 반환한다. */

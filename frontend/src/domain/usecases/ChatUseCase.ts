@@ -31,7 +31,7 @@ export async function chatsOf(chatRepository: ChatRepository, works: Work[]): Pr
 
 export type ChatFilter = { kind: string; work: string; character: string; sort: string }
 
-/** 목업 chatListPage()·chatPage()·chatReply(): U27 캐릭터 챗. 읽은 회차까지 공개된 원고에서만 답을 찾습니다. */
+/** 목업 chatListPage()·chatPage()·chatReply(): U27 캐릭터챗. 읽은 회차까지 공개된 원고에서만 답을 찾습니다. */
 export class ChatUseCase {
   private readonly workRepository: WorkRepository
   private readonly readingRepository: ReadingRepository

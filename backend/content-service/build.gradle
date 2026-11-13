@@ -30,8 +30,14 @@ allOpen {
 
 repositories { mavenCentral() }
 
+// MCP 창구(#163, DEC-49). Spring AI 2.0.x는 Spring Boot 4.1.x 기준으로 빌드됐다(2.1.x는 Boot 4.2 기준이라 쓰지 않는다).
+dependencyManagement {
+    imports { mavenBom 'org.springframework.ai:spring-ai-bom:2.0.2' }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.ai:spring-ai-starter-mcp-server-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-restclient'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
@@ -52,6 +58,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-restclient-test'
+    testImplementation 'com.networknt:json-schema-validator:3.0.8'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'com.h2database:h2'
 }

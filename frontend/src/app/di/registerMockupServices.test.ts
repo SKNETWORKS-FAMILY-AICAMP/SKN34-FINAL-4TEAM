@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 
+import { DEMO_WORLDS } from '../../data/mock/demoPublicWorlds'
 import { createAppContainer } from './container'
 
 const id = 'e25ffb25-8128-48c0-8d66-e1d56831cd56'
@@ -59,4 +60,23 @@ it('활동 기록 저장소는 실제 모드에서 운영 API를, mockup에서 �
   const container = createAppContainer()
   expect(container.resolve('adminActivityRepository').constructor.name).toBe('InMemoryAdminActivityRepository')
   expect(await container.resolve('adminActivityUseCase').list()).toEqual([])
+})
+
+it('공개 세계관은 실제 모드에서 Content 공개 API 저장소를, mockup에서 데모 메모리를 쓴다', async () => {
+  expect(createAppContainer().resolve('publicWorldRepository').constructor.name).toBe('HttpPublicWorldRepository')
+  vi.stubEnv('MODE', 'mockup')
+  const container = createAppContainer()
+  expect(container.resolve('publicWorldRepository').constructor.name).toBe('InMemoryPublicWorldRepository')
+  const useCase = container.resolve('publicWorldUseCase')
+  const page = await useCase.list()
+  expect([page.demo, page.items.length, page.total]).toEqual([true, DEMO_WORLDS.length, DEMO_WORLDS.length])
+  expect((await useCase.get(DEMO_WORLDS[0].id))?.demo).toBe(true)
+})
+
+it('mockup 컨테이너의 탈퇴는 요청 없음 상태만 보이고 탈퇴·복구는 실제 계정을 바꾸지 않도록 미지원 오류로 답한다', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  const withdrawal = createAppContainer().resolve('withdrawalUseCase')
+  expect(await withdrawal.status()).toEqual({ status: 'NONE' })
+  await expect(withdrawal.request('pw', '')).rejects.toThrow('데모에서는 지원하지 않아요')
+  await expect(withdrawal.restore()).rejects.toThrow('데모에서는 지원하지 않아요')
 })

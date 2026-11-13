@@ -134,6 +134,11 @@ class WorldStudioServicePostgresTest {
             }
             context(db).use { ctx -> val service=ctx.getBean(WorldStudioService::class.java)
                 assertEquals(first,service.revision(create.id,actor,first).revisionId);assertEquals(last,service.draft(create.id,actor).draftRevision)
+                val confirmedContext=service.confirmedContext(create.id,actor,first)
+                assertEquals(original,confirmedContext.cards.single {it.card.id==card}.card)
+                assertEquals(first,confirmedContext.revisionId);assertEquals("not_recorded",confirmedContext.relationshipStatus)
+                assertFalse(confirmedContext.currentRelationshipsIncluded)
+
                 assertTrue(service.draft(create.id,actor).relationships.isEmpty()) }
             db.connect().use { c ->
                 for(table in listOf("relationship","relationship_draft","relationship_version","world_revision_relationship"))

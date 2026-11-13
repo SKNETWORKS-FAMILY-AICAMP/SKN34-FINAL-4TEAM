@@ -8,7 +8,7 @@
 
 | 구분 | 내용 |
 |---|---|
-| 포함 | 보유 크레딧 합계, 지급분별 남은 양과 소멸 예정 시각, 지급·사용·소멸 내역 표시. 로딩·실패(다시 불러오기)·빈 내역 구분 |
+| 포함 | 보유 크레딧 합계, 지급분별 남은 양과 소멸 예정 시각, 지급·사용·소멸 내역 표시. 로딩·실패(다시 불러오기)·빈 내역 구분. 상단 계정 메뉴의 '보유 크레딧' 한 줄(잔액만, 누르면 결제 내역) |
 | 제외 | 스튜디오의 데모 AI 차감(`CreditUseCase`·`DemoCredits`)과 정책 안내 시트의 데모 잔액, 결제·충전·구독, AI 실행 연동, 소멸 예정 알림 |
 | `--mode mockup` | 서버를 부르지 않는다. 데모 크레딧 잔액만 보여 주고 지급·사용·소멸 내역은 만들지 않는다 |
 
@@ -21,8 +21,11 @@
 
 - `kind`는 `signup-trial`·`reward`·`event`이며, 화면은 각각 가입 체험·보상·이벤트 크레딧으로 부른다. 모르는 코드는 그대로 보인다.
 - 시각은 오프셋이 있는 ISO 8601이고 화면은 KST로 표시한다. 응답 형식이 다르면 Zod 검증에서 거부하고 실패 화면으로 처리한다.
-- 보유 크레딧과 내역은 함께 읽혀야 성공이다. 한쪽만 읽히면 어긋나 보이므로 일부만 보여 주지 않는다.
+- 보유 크레딧과 내역은 함께 읽혀야 성공이다. 한쪽만 읽히면 어긋나 보이므로 일부만 보여 주지 않는다. 이는 둘이 나란히 보이는 결제 내역 화면의 규칙이다.
+- 내역 없이 잔액만 보이는 계정 메뉴의 '보유 크레딧' 줄은 잔액만 읽는다(`GET /api/v1/me/credits` 한 번). 메뉴가 열릴 때 읽고 닫히면 요청을 취소한다. 읽는 동안은 `…`, 읽지 못하면 0으로 채우지 않고 '크레딧을 불러오지 못했어요'를 보인다(잔액 0은 0으로 보인다). 비로그인 메뉴에는 이 줄도 요청도 없다.
 
 ## 구조
 
 `PayView`(View) → `useAccountViewModel`(ViewModel, `credit`) → `CreditLedgerUseCase.overview()` → `CreditLedgerRepository` → `HttpCreditLedgerRepository`(Zod 검증).
+
+`AccountMenu`(View) → `useCreditBalance`(ViewModel) → `CreditLedgerUseCase.balance()` → 같은 `CreditLedgerRepository.balance()`.

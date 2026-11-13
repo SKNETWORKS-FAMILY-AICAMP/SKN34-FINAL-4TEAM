@@ -95,9 +95,12 @@ class EditSuggestionService(
         return SuggestionListResponse(respond(rows.filter {byWork.getValue(it.workId).deletedAt==null},member,byWork))
     }
 
-    /** 내가 소유한(삭제하지 않은) 작품들의 제안을 최신순으로 최대 200개 돌려준다. */
-    fun inbox(owner: String): SuggestionListResponse {
-        val ids=works.findAllByOwnerIdOrderByCreatedAtDesc(owner).filter {it.deletedAt==null}.map {it.id}
+    /**
+     * 내가 소유한(삭제하지 않은) 작품들의 제안을 최신순으로 최대 200개 돌려준다. [workId]가 오면 그 작품의 제안만이며(200개 상한도 그 작품 안에서),
+     * 내 작품이 아니거나 삭제됐거나 없으면 존재 여부를 드러내지 않도록 빈 목록이다. 빈 값(`workId=`)은 생략과 같다.
+     */
+    fun inbox(owner: String, workId: String? = null): SuggestionListResponse {
+        val ids=works.findAllByOwnerIdOrderByCreatedAtDesc(owner).filter {it.deletedAt==null && (workId.isNullOrBlank() || it.id==workId)}.map {it.id}
         if(ids.isEmpty()) return SuggestionListResponse(emptyList())
         return SuggestionListResponse(respond(suggestions.findTop200ByWorkIdInOrderByCreatedAtDesc(ids),owner))
     }

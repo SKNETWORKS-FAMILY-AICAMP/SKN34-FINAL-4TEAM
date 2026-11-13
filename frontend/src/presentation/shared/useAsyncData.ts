@@ -7,12 +7,13 @@ const sameScope = (a: readonly unknown[], b: readonly unknown[]) => a.length ===
 
 /**
  * Repository 조회 공통 Hook. useCoreApiHealth와 같이 화면 이탈 시 늦은 응답을 버립니다(요청 ID).
+ * load는 취소 신호(signal)를 받으며, 범위가 바뀌거나 다시 조회하거나 화면을 떠나면 이전 요청의 signal이 abort됩니다(쓰지 않아도 됩니다).
  * 조회 범위(deps)·인증(role·계정)이 바뀌면 이전 원고를 즉시 감추고 새 요청 결과만 표시합니다.
  * 같은 범위에서 dataVersion이 오르거나 retry하면 이전 성공 데이터를 유지한 채 다시 조회하며(isRefreshing),
  * 재조회가 실패해도 그 데이터는 남기고 isError로 알립니다.
  * refresh는 같은 대상에서 화면 선택(탭·회차 고르기)만 바뀌어 다시 읽을 값입니다. 범위가 아니므로 위와 같이 갱신합니다.
  */
-export function useAsyncData<T>(load: () => Promise<T>, deps: readonly unknown[], refresh: readonly unknown[] = []) {
+export function useAsyncData<T>(load: (signal: AbortSignal) => Promise<T>, deps: readonly unknown[], refresh: readonly unknown[] = []) {
   const dataVersion = useAppSelector((s) => s.session.dataVersion)
   const role = useAppSelector((s) => s.session.role)
   const identity = useAppSelector((s) => s.session.user.email)
@@ -24,15 +25,16 @@ export function useAsyncData<T>(load: () => Promise<T>, deps: readonly unknown[]
 
   useEffect(() => {
     const id = ++requestId.current
+    const controller = new AbortController()
     const update = (patch: Partial<State<T>>) => setState((s) => ({
       ...(s && sameScope(s.scope, scope) ? s : { data: undefined, isError: false, isFetching: true }), scope, ...patch,
     }))
     update({ isError: false, isFetching: true })
-    Promise.resolve().then(load).then(
+    Promise.resolve().then(() => load(controller.signal)).then(
       (data) => { if (requestId.current === id) update({ data, isError: false, isFetching: false }) },
       () => { if (requestId.current === id) update({ isError: true, isFetching: false }) },
     )
-    return () => { requestId.current += 1 }
+    return () => { requestId.current += 1; controller.abort() }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 호출자가 deps를 명시합니다.
   }, [...deps, ...refresh, dataVersion, attempt, role, identity])
 

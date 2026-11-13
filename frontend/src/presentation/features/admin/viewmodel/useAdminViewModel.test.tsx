@@ -97,6 +97,16 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     expect(hook.result.current.actions).toEqual({})
   })
 
+  it('마지막 완료 문구가 어느 조치(key)의 결과인지 함께 알려 화면이 대상 이름을 붙일 수 있게 한다', async () => {
+    const f = setup()
+    const { result } = f.mount()
+    await waitFor(() => expect(result.current.data && result.current.live.data).toBeTruthy())
+    expect(result.current.lastSuccessKey).toBe('')
+    await act(async () => { expect(await result.current.saveNotice(null, { title: '저장한 공지', body: '본문' })).toBe(true) })
+    expect(result.current.lastSuccessKey).toBe('notice:new')
+    expect(result.current.actions[result.current.lastSuccessKey].message).toBe(result.current.lastSuccess)
+  })
+
   it('고객지원 문의의 선택은 탭과 화면 재진입 후에도 Redux에 유지된다', async () => {
     const f = setup('feedback')
     const hook = f.mount()

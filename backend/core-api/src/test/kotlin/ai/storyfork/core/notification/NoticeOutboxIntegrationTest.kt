@@ -39,9 +39,14 @@ class NoticeOutboxIntegrationTest {
     private fun sent(id: UUID) = jdbc.queryForObject("select sent_at is not null from notification_outbox where id = ?", Boolean::class.java, id) == true
     private fun relay(publisher: NoticeEventPublisher) = NoticeOutboxRelay(outbox, publisher, true)
 
-    /** 발행기는 DB의 모든 대기 행을 처리하므로, 남의 대기 사건이 있는 DB(공유 개발 DB 등)에서는 이 테스트를 건너뛴다. */
-    private fun onlyOurRowsPending() =
+    /**
+     * 발행기는 DB의 모든 대기 행을 처리하므로, 남의 대기 사건이 있는 DB(공유 개발 DB 등)에서는 이 테스트를 건너뛴다.
+     * 다른 테스트가 만든 회원(이메일이 @example.invalid로 끝남, 탈퇴 익명화 회원 withdrawn.invalid는 제외)의 대기 사건(탈퇴 요청·소멸 예정 알림 등)은 먼저 보낸 것으로 표시해 건너뛰지 않게 한다.
+     */
+    private fun onlyOurRowsPending() {
+        jdbc.update("update notification_outbox set sent_at = now() where sent_at is null and recipient_id in (select id from auth_member where email like '%@example.invalid')")
         assumeTrue(jdbc.queryForObject("select count(*) from notification_outbox where sent_at is null", Int::class.java) == 0, "다른 대기 사건이 있는 DB에서는 실행하지 않는다")
+    }
 
     @Test
     fun `enqueue refuses to run without a surrounding business transaction`() {
