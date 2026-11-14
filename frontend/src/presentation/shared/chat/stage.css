@@ -1,0 +1,94 @@
+/* 인물 시뮬레이션 무대(#58): 집필실 중앙에서 편집기를 대신하는 패널. 면·선·글자는 읽기 토큰(--t*)을 읽는다(.calm 안에서 쓴다).
+   데스크톱은 격자 칸(편집기 자리) 높이에 맞춰 머리 → 대본(남는 높이, 안에서 스크롤) → 조작이 쌓이고, 좁은 화면은 문서가 스크롤하며 대본만 높이를 묶는다.
+   전역 storyfork.css는 @layer(base)라 이 파일이 늘 이긴다: 전역 터치 보정(44px·입력 16px)과 같은 속성은 아래에서 다시 정한다. */
+.stage { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; padding: 20px 16px 24px; overflow: auto; color: var(--tfg); word-break: keep-all; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--tfg) 28%, transparent) transparent; }
+.stage-head { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.stage-head h2 { flex: 1 1 auto; margin: 0; font-size: 18px; font-weight: 800; line-height: 1.4; }
+.stage-head h2:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; border-radius: 4px; }
+.stage-status { padding: 1px 10px; border: 1px solid currentColor; border-radius: 999px; color: var(--tsub); font-size: 12px; font-weight: 700; }
+.stage-status[data-status="running"], .stage-status[data-status="completed"] { color: var(--tacc); }
+.stage-status[data-status="failed"] { color: var(--danger); }
+.stage > .chat-error { margin-top: 0; }
+.stage p { margin: 0; }
+
+/* 시작 양식 */
+.stage-start { display: grid; gap: 14px; align-content: start; max-width: 640px; }
+.stage-start h3 { margin: 0; font-size: 16px; font-weight: 800; }
+.stage-form { display: grid; gap: 14px; }
+.stage-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.stage-fieldset legend { margin-bottom: 6px; padding: 0; font-size: 13px; font-weight: 700; }
+.stage-radio { display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 14px; }
+.stage-plan { display: grid; gap: 6px; }
+.stage-plan p { font-size: 13.5px; }
+.stage-plan ol { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.6; overflow-wrap: anywhere; }
+.stage-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2px 12px; max-height: 220px; margin: 0 0 6px; padding: 0; overflow: auto; list-style: none; }
+.stage-people label { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; }
+.stage-answer { padding: 10px 14px; border: 1px solid var(--tline); border-radius: 12px; background: var(--tcard); line-height: 1.6; }
+.stage-reason { color: var(--danger); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+
+/* 장면: 전제·비트 → 대본 → 조작 */
+.stage-premise { font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
+.stage-beats { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.5; }
+.stage-beats li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+.stage-beats span { color: var(--tsub); font-size: 12px; }
+.stage-beats [data-status="rejected"] span { color: var(--danger); font-weight: 700; }
+.stage-script { flex: 0 1 auto; min-height: 200px; max-height: 56vh; padding-right: 4px; overflow: auto; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--tfg) 28%, transparent) transparent; }
+.stage-turns { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.stage-turn { display: grid; gap: 4px; min-width: 0; }
+.stage-who { display: flex; align-items: center; gap: 8px; color: var(--tacc); font-size: 12.5px; font-weight: 800; }
+.stage-edited { padding: 0 8px; border: 1px solid var(--tline); border-radius: 999px; color: var(--tsub); font-size: 11.5px; font-weight: 700; }
+/* 인물 줄은 이름 + 말풍선, 나레이션은 이탤릭·회색 지문 블록 */
+.stage-bubble { min-width: 0; padding: 10px 14px; border: 1px solid var(--tline); border-radius: 16px 16px 16px 4px; background: var(--tcard); font-family: var(--story); font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; }
+.stage-narration .stage-bubble { border: 0; border-left: 3px solid var(--tline); border-radius: 4px 12px 12px 4px; background: color-mix(in srgb, var(--tfg) 5%, var(--tbg)); color: var(--tsub); font-style: italic; }
+/* 독백: 나레이션처럼 이탤릭이지만 시점 인물의 색(--tacc)으로 구분하고, 이름 옆에 '속마음'을 단다. */
+.stage-monologue .stage-bubble { border: 0; border-left: 3px solid var(--tacc); border-radius: 4px 12px 12px 4px; background: color-mix(in srgb, var(--tacc) 7%, var(--tbg)); color: var(--tfg); font-style: italic; }
+.stage-tag { padding: 0 8px; border-radius: 999px; background: color-mix(in srgb, var(--tacc) 14%, var(--tbg)); color: var(--pri-ink, var(--tacc)); font-size: 11.5px; font-weight: 700; }
+/* 시점이 바뀌는 곳의 구분선: 가운데 글자 + 양옆 선 */
+.stage-pov { display: flex; align-items: center; gap: 10px; color: var(--tsub); font-size: 12px; font-weight: 700; }
+.stage-pov::before, .stage-pov::after { content: ''; flex: 1; height: 1px; background: var(--tline); }
+.stage-note { padding: 6px 12px; border-left: 3px solid var(--tacc); border-radius: 4px 8px 8px 4px; background: color-mix(in srgb, var(--tacc) 8%, var(--tbg)); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.stage-note b { margin-right: 6px; color: var(--pri-ink, var(--tacc)); }
+/* 줄 행동: 평소엔 옅게, 줄에 다가가면 또렷하게(키보드 초점 포함) */
+.stage-actions { display: flex; gap: 2px; opacity: .55; transition: opacity .15s; }
+.stage-turn:hover .stage-actions, .stage-actions:focus-within { opacity: 1; }
+.stage-actions button { min-height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
+.stage-actions button:hover:not(:disabled) { background: var(--muted-bg); color: var(--tfg); }
+.stage-actions button:disabled { cursor: not-allowed; opacity: .5; }
+.stage-edit { display: grid; gap: 6px; }
+.stage-edit textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--line3); border-radius: 12px; background: var(--tcard); color: var(--tfg); font: inherit; font-family: var(--story); line-height: 1.7; resize: vertical; }
+.stage-edit textarea:focus-visible, .stage-note-form input:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
+.stage-edit-actions, .stage-controls, .stage-review-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+/* summary는 기본 표시(list-item)를 지켜 펼침 표식(▸)이 남게 한다. */
+.stage-checks { font-size: 12.5px; }
+.stage-checks summary { padding-block: 4px; color: var(--tsub); font-weight: 600; cursor: pointer; }
+.stage-checks[open] summary { color: var(--tfg); }
+.stage-checks summary:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; border-radius: 4px; }
+.stage-checks > :not(summary) { margin-top: 6px; }
+.stage-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; line-height: 1.55; overflow-wrap: anywhere; }
+.stage-verdict { font-weight: 700; }
+.stage-list [data-passed="false"] .stage-verdict { color: var(--danger); }
+.stage-evidence { color: var(--tsub); }
+.stage-note-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.stage-note-form label { flex: 1 1 100%; font-size: 13px; font-weight: 700; }
+.stage-note-form small { color: var(--tsub); font-weight: 400; }
+.stage-note-form input { flex: 1 1 200px; min-width: 0; height: 36px; padding: 0 12px; border: 1px solid var(--line3); border-radius: 999px; background: var(--tcard); color: inherit; font: inherit; font-size: 13.5px; }
+.stage-queued { color: var(--tsub); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+/* 원고 반영: 채팅의 승인 카드(.chat-hitl)와 같은 모양 */
+.stage-review { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--tacc) 45%, var(--tline)); border-radius: 16px; background: color-mix(in srgb, var(--tacc) 6%, var(--tcard)); }
+.stage-review-title { font-size: 14.5px; font-weight: 800; line-height: 1.45; }
+.stage-result { font-weight: 700; line-height: 1.5; }
+.stage-again { display: flex; }
+
+@media (min-width: 901px) {
+  .stage { padding: 24px max(32px, calc((100% - 72ch) / 2)) 24px; }
+  .stage-script { flex: 1 1 0; min-height: 160px; max-height: none; }
+}
+/* 좁은 화면과 손가락이 주 입력인 기기: 누르는 버튼은 44px, 입력 글자는 16px(iOS가 초점에서 화면을 확대하지 않게). */
+@media (max-width: 600px), (pointer: coarse) {
+  .stage-actions { opacity: 1; }
+  .stage-actions button { min-height: 44px; }
+  .stage-checks summary { padding-block: 13px; }
+  .stage-note-form input { height: 44px; }
+  .stage-radio, .stage-people label { min-height: 44px; }
+}
+@media (pointer: coarse) { .stage-edit textarea, .stage-note-form input { font-size: 16px; } }
