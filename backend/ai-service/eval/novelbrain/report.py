@@ -171,7 +171,7 @@ def ko_timechara_data() -> str:
     return ('\n\n'.join([table(['종류', '작품', '회차', '작품당 회차', '회차 글자 중앙값(범위)', '글자 합계'], works), f'장르(키워드 규칙으로 추정, 작품 수): {genres}.',
                           table(['유형', '질문'], types + [['합계', str(q['total'])]]),
                           f"종류별 {', '.join(f'{k} {v}' for k, v in q['by_kind'].items())}; 형식별 {', '.join(f'{k} {v}' for k, v in q['by_style'].items())}; "
-                          f"작품당 {span(q['per_work'])}문항; 질문 대상 인물 {q['characters']}명(작품별 합).",
+                          f"질문이 있는 작품 {q['works']}편(작품당 {span(q['per_work'])}문항); 질문 대상 인물 {q['characters']}명(작품별 합).",
                           table(['점검', '통과'], checks)]))
 
 

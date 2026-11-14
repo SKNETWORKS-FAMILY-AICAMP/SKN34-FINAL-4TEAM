@@ -26,5 +26,5 @@ def test_describe_questions_counts_by_type_kind_genre_style_and_work():
     out = describe_questions(rows)
     assert out['total'] == 4 and out['by_type'] == {'future': 2, 'past-only': 1, 'past-absence': 1}
     assert out['by_kind'] == {'web': 3, 'classic': 1} and out['by_genre'] == {'무협': 2, '판타지': 1, '고전': 1}
-    assert out['by_style'] == {'fact-structured': 2, 'fact-freeform': 2} and out['per_work'] == {'min': 1, 'max': 2}
+    assert out['by_style'] == {'fact-structured': 2, 'fact-freeform': 2} and out['per_work'] == {'min': 1, 'max': 2} and out['works'] == 3
     assert out['characters'] == 3

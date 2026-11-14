@@ -30,7 +30,7 @@ def describe_questions(rows: list[dict]) -> dict:
     per_work = Counter(r['work'] for r in rows)
     return {'total': len(rows), 'by_type': dict(Counter(r['data_type'] for r in rows)), 'by_kind': dict(Counter(r['kind'] for r in rows)),
             'by_genre': dict(Counter(r['genre'] for r in rows)), 'by_style': dict(Counter(r['question_generation'] for r in rows)),
-            'per_work': {'min': min(per_work.values()), 'max': max(per_work.values())},
+            'works': len(per_work), 'per_work': {'min': min(per_work.values()), 'max': max(per_work.values())},
             'characters': len({(r['work'], r['character']) for r in rows})}
 
 

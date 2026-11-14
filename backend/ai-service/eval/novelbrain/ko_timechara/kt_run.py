@@ -3,7 +3,7 @@
     cd backend/ai-service
     set -a; . <저장소 루트 .env>; set +a
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_run.py contexts [작품 id …]        # 호출 없음
-    uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_run.py run [--mode=…] [--configs=a,b]
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_run.py run [--mode=…] [--configs=a,b] [--works=w41,w42]
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_run.py report                      # 호출 없음: 표·짝 검정
 
 채점은 공개 evaluate.py와 같다: 공간(absence·presence)이 0이면 시간은 묻지 않고, 시공간은 0/1, 성격은 1~7. 채점 모델은 생성 모델과 같다.
@@ -121,8 +121,9 @@ def context_summary(rows: list[dict], contexts: dict) -> None:
         print(f"{config:9s} 기준 회차 뒤 항목 {b['future']:.2f} · 정답표 기준 모를 사건 발췌 {b['unseen']:.2f} · 다른 인물 기억 {b['foreign']:.2f} · 평균 항목 {b['items']:.1f}")
 
 
-def run(mode: str, configs: tuple[str, ...]) -> None:
-    rows = load_rows()
+def run(mode: str, configs: tuple[str, ...], works: tuple[str, ...] = ()) -> None:
+    """works를 주면 그 작품의 응답·채점만 캐시에 채운다(작품을 늘린 차수를 다른 실행과 겹치지 않게 따로 돌릴 때). 전체 집계 파일은 작품을 거르지 않은 실행이 쓴다."""
+    rows = [r for r in load_rows() if not works or r['work'] in works]
     data = build_data(sorted({r['work'] for r in rows}))
     contexts = build_contexts(rows, data)
     context_summary(rows, contexts)
@@ -133,9 +134,10 @@ def run(mode: str, configs: tuple[str, ...]) -> None:
     tasks = [(r, c) for r in rows for c in configs]
     print(f'질문 {len(rows)}개 × 구성 {len(configs)} = {len(tasks)} 과제 · 방식 {mode} · 장부 ${llm.cost.spent():.3f}', flush=True)
     records = run_rounds(tasks, make_work(contexts, templates, personalities), llm, make_executor(llm, mode), plan=plan_for(llm, mode))
-    (KT / 'runs').mkdir(exist_ok=True)
-    (KT / 'runs' / 'rows.json').write_text(json.dumps(records, ensure_ascii=False))
     print(f"완료: 점수 없음(실패) {sum(r['score'] is None for r in records)}/{len(records)}")
+    if not works:
+        (KT / 'runs').mkdir(exist_ok=True)
+        (KT / 'runs' / 'rows.json').write_text(json.dumps(records, ensure_ascii=False))
     cost_report(llm)
 
 
@@ -168,8 +170,8 @@ if __name__ == '__main__':
             (RESULTS / 'ko-timechara-context.json').write_text(json.dumps({'configs': context_rates(rows, contexts), 'k_context': K_CTX},
                                                                           ensure_ascii=False, indent=2, sort_keys=True))
     elif command == 'run':
-        run(opt('mode', 'sync'), tuple(opt('configs', ','.join(CONFIGS)).split(',')))
+        run(opt('mode', 'sync'), tuple(opt('configs', ','.join(CONFIGS)).split(',')), tuple(filter(None, opt('works', '').split(','))))
     elif command == 'report':
         report()
     else:
-        raise SystemExit('사용법: kt_run.py contexts [작품 id …] | run [--mode=…] [--configs=a,b] | report')
+        raise SystemExit('사용법: kt_run.py contexts [작품 id …] | run [--mode=…] [--configs=a,b] [--works=w41,w42] | report')
