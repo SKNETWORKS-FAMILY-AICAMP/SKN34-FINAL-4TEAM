@@ -358,10 +358,27 @@ def test_the_narrator_reads_only_manuscript_excerpts_up_to_the_base_episode(monk
     assert [e.id for e in recall[0]['manuscript']] == ['m']
 
 
+def test_only_an_omniscient_narration_gets_the_beats_after_the_current_one():
+    """독백·3인칭 제한·1인칭 서술은 아직 오지 않은 비트를 모른다(인물의 입력이 지금 비트만 받는 것과 같다). 전지적 서술만 계획 전체를 본다."""
+    fake = type('World', (), {'characters': {KAEL: type('C', (), {'title': '카엘'})()}, 'style': []})()
+    plan = SimulationPlan(mode='flow', characterIds=[KAEL, LINA], beats=['B0-PAST', 'B1-NOW', 'B2-FUTURE'])
+    scene = scene_of(plan, ('narration', {}), ('character', {'beat': 0, 'done': True}))  # 첫 비트가 끝나 지금은 B1
+
+    def beats(pov, purpose='scene', scene=scene):
+        return [b['text'] for b in service.narration_input(plan, fake, scene, purpose, pov)['plan']['beats']]
+
+    assert beats('omniscient') == ['B0-PAST', 'B1-NOW', 'B2-FUTURE']
+    assert beats(f'limited:{KAEL}') == beats(f'first:{KAEL}') == beats(f'limited:{KAEL}', 'monologue') == ['B0-PAST', 'B1-NOW']
+    assert 'B2-FUTURE' not in text(service.narration_input(plan, fake, scene, 'monologue', f'first:{KAEL}'))
+    finished = scene_of(plan, ('narration', {}), *[('character', {'beat': n, 'done': True}) for n in range(3)])  # 모든 비트가 끝나면 미래가 없다
+    assert beats(f'limited:{KAEL}', scene=finished) == ['B0-PAST', 'B1-NOW', 'B2-FUTURE']
+    assert service.narration_input(PLAN_IF, fake, service.new_scene(PLAN_IF), 'scene', f'limited:{KAEL}')['plan']['beats'] == []  # IF 모드엔 비트가 없다
+
+
 def test_narration_input_names_the_point_of_view_character_and_the_checks_follow_the_view():
     fake = type('World', (), {'characters': {KAEL: type('C', (), {'title': '카엘'})()}, 'style': []})()
     given = service.narration_input(PLAN_FLOW, fake, scene_of(PLAN_FLOW, ('narration', {})), 'monologue', f'first:{KAEL}')
-    assert given['pov'] == {'kind': 'first', 'character': '카엘'} and [b['status'] for b in given['plan']['beats']] == ['pending', 'pending']
+    assert given['pov'] == {'kind': 'first', 'character': '카엘'} and [b['text'] for b in given['plan']['beats']] == PLAN_FLOW.beats[:1]  # 지금 비트까지만
     assert service.check_kinds(PLAN_IF, 'character', 'omniscient') == ['knowledge_leak', 'voice_mix', 'relation', 'premise']
     assert service.check_kinds(PLAN_FLOW, 'character', 'omniscient')[-1] == 'beat'
     assert service.check_kinds(PLAN_IF, 'narration', 'omniscient') == service.check_kinds(PLAN_IF, 'narration', f'limited:{KAEL}') == ['knowledge_leak']

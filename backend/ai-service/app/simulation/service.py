@@ -407,11 +407,17 @@ def narrator_view(plan: SimulationPlan, world: World, scene: Scene) -> tuple[dic
 
 
 def narration_input(plan: SimulationPlan, world: World, scene: Scene, purpose: str, pov: str) -> dict:
-    """나레이터 모델 입력에 더하는 값: 쓰는 이유, 시점, 장면 계획, 문체 지침, 작가의 끼어들기 기록."""
+    """나레이터 모델 입력에 더하는 값: 쓰는 이유, 시점, 장면 계획, 문체 지침, 작가의 끼어들기 기록.
+
+    계획의 비트는 전지적 서술만 전체를 본다. 독백·3인칭 제한·1인칭 서술은 인물이 아직 모르는 뒤의 비트를 받지 않고 지금 비트까지만
+    받는다(_direction이 인물에게 지금 비트만 주는 것과 같은 이유다). 모든 비트가 끝났으면 뒤의 비트가 없어 전체를 준다.
+    """
     result = scene.result
     kind, _, who = pov.partition(':')
+    beat = current_beat(result)
+    beats = result.beats if kind == 'omniscient' or beat is None else result.beats[:beat.index + 1]
     return {'purpose': purpose, 'pov': {'kind': kind, 'character': world.characters[who].title if who in world.characters else None},
-            'plan': {'mode': plan.mode, 'premise': result.premise, 'beats': [b.model_dump() for b in result.beats]},
+            'plan': {'mode': plan.mode, 'premise': result.premise, 'beats': [b.model_dump() for b in beats]},
             'style': world.style, 'notes': [n.model_dump() for n in result.notes]}
 
 
