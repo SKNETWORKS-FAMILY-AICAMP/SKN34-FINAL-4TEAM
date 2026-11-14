@@ -19,8 +19,8 @@ COVERAGE = {'expected': [{'number': 4, 'versionId': 'r4'}], 'withVerifiedExcerpt
             'withoutVerifiedExcerpt': []}
 SIM = {'mode': 'if', 'premise': '만약 북문이 열려 있었다면?', 'characterIds': ['k']}
 FORM = {'mode': 'flow', 'beats': ['성문 대면', '숨긴 정체'], 'characterIds': ['k']}
-RAW_LINE = '카엘이 말했다. "멈춰."'  # 모델이 낸 그대로(직선 따옴표)
-OPENING, LINE, CLOSING = '성문 위로 밤비가 내렸다.', '카엘이 말했다. “멈춰.”', '비가 그쳤다.'  # LINE은 따옴표를 “ ”로 통일한 뒤의 글이다
+RAW_LINE = '카엘이 말했다. “멈춰.”'  # 모델이 낸 그대로(둥근 따옴표)
+OPENING, LINE, CLOSING = '성문 위로 밤비가 내렸다.', '카엘이 말했다. "멈춰."', '비가 그쳤다.'  # LINE은 따옴표를 직선 큰따옴표로 통일한 뒤의 글이다
 SCENE_TEXT = '\n\n'.join([OPENING, LINE, LINE, CLOSING])  # 시작 나레이션, 카엘 두 번, 마무리 나레이션
 WORLD = {'worldId': 'w', 'relationships': [], 'cards': [{
     'id': 'k', 'title': '카엘', 'body': 'KAEL-IDENTITY 북문을 지키는 기사', 'cardType': 'character', 'lifecycle': 'active',

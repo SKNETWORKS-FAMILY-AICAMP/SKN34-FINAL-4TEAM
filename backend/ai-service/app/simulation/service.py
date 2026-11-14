@@ -458,15 +458,15 @@ def check_kinds(plan: SimulationPlan, kind: str, pov: str) -> list[str]:
     return ['knowledge_leak', 'voice_mix'] if kind == 'monologue' or pov.startswith('first:') else ['knowledge_leak']
 
 
-DIALOGUE_QUOTES = ('“', '”')  # 원고 서식(DEC-48)은 대사 따옴표를 정하지 않는다. 코디네이터 결정(2026-11-14)으로 “ ”로 통일한다.
+DIALOGUE_QUOTES = ('"', '"')  # 통일할 대사 따옴표: 원고와 사용자 요구(지문 + "대사")에 맞춘 직선 큰따옴표(코디네이터 결정 2026-11-14). DEC-48은 정하지 않는다.
 _QUOTED = re.compile(r'「([^」\n]*)」|『([^』\n]*)』|"([^"\n]*)"|“([^“”\n]*)”')
-_DIALOGUE = re.compile(r'“[^”]*(?:”|$)')  # 닫히지 않은 대사는 끝까지 대사로 본다
+_DIALOGUE = re.compile(r'“[^”]*(?:”|$)|"[^"]*(?:"|$)')  # 둥근·직선 큰따옴표 모두 대사로 보고, 닫히지 않은 대사는 끝까지 대사로 본다
 _FIRST_PERSON = re.compile(r'(?:^|[.!?…]\s+)(?:저는|제가|저도|나는(?!\s*(?:듯|새))|내가|나도)(?![가-힣])')  # '나는 듯한 걸음'의 나는(날다)은 뺀다
 _PLAIN_FORMAL = re.compile(r'(?:[었았였겠있없]소|하오|시오)$')  # 하오체
 
 
 def normalize_quotes(text: str) -> str:
-    """대사 따옴표를 “ ”로 통일한다(「」·『』·직선 큰따옴표). 짝이 없는 따옴표와 작은따옴표는 건드리지 않는다."""
+    """대사 따옴표를 DIALOGUE_QUOTES(직선 큰따옴표)로 통일한다(「」·『』·둥근 큰따옴표). 짝이 없는 따옴표와 작은따옴표는 건드리지 않는다."""
     return _QUOTED.sub(lambda m: DIALOGUE_QUOTES[0] + next(g for g in m.groups() if g is not None) + DIALOGUE_QUOTES[1], text)
 
 

@@ -361,16 +361,17 @@ def test_the_checker_gets_other_characters_secrets_and_the_characters_future_as_
 # --- 인물 턴의 문체·따옴표·호칭 --------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize('raw, expected', [
-    ('「돌아가시오.」 그가 말했다.', '“돌아가시오.” 그가 말했다.'),
-    ('『가겠소.』', '“가겠소.”'),
-    ('"가겠습니다." 그는 고개를 숙였다.', '“가겠습니다.” 그는 고개를 숙였다.'),
-    ('“이미 맞다.” 그가 말했다.', '“이미 맞다.” 그가 말했다.'),
-    ('"하나." 「둘.」 “셋.”', '“하나.” “둘.” “셋.”'),
+    ('「돌아가시오.」 그가 말했다.', '"돌아가시오." 그가 말했다.'),
+    ('『가겠소.』', '"가겠소."'),
+    ('“가겠습니다.” 그는 고개를 숙였다.', '"가겠습니다." 그는 고개를 숙였다.'),
+    ('"이미 맞다." 그가 말했다.', '"이미 맞다." 그가 말했다.'),
+    ('“하나.” 「둘.」 "셋."', '"하나." "둘." "셋."'),
     ('짝이 없는 " 따옴표 하나', '짝이 없는 " 따옴표 하나'),   # 짝이 없으면 건드리지 않는다
     ("그는 '가라'고 했다.", "그는 '가라'고 했다."),            # 작은따옴표는 대사 표기가 아니다
 ])
-def test_dialogue_quotes_are_unified_to_curly_double_quotes(raw, expected):
+def test_dialogue_quotes_are_unified_to_straight_double_quotes(raw, expected):
     assert service.normalize_quotes(raw) == expected
+    assert service.normalize_quotes(expected) == expected  # 다시 해도 같다
 
 
 ACTOR = SimpleNamespace(id=KAEL, title='카엘')
@@ -384,30 +385,32 @@ def test_the_action_description_is_third_person_unless_the_actor_is_the_first_pe
 
 
 @pytest.mark.parametrize('prose', [
-    '“…돌아가십시오.” 저는 길현을 바라보며 고개를 저었습니다.',   # 1인칭에 합쇼체
-    '“…가겠습니다.” 나는 짧게 고개를 숙이고 물러섰다.',          # 1인칭
-    '“…” 길현은 숨을 고르고 고개를 숙였소.',                       # 하오체
-    '“…” 카엘이 고개를 끄덕였습니다. 그리고 물러났다.',             # 첫 문장이 합쇼체
+    '"…돌아가십시오." 저는 길현을 바라보며 고개를 저었습니다.',   # 1인칭에 합쇼체
+    '"…가겠습니다." 나는 짧게 고개를 숙이고 물러섰다.',          # 1인칭
+    '"…" 길현은 숨을 고르고 고개를 숙였소.',                       # 하오체
+    '"…" 카엘이 고개를 끄덕였습니다. 그리고 물러났다.',             # 첫 문장이 합쇼체
 ])
 def test_a_third_person_action_description_may_not_use_first_person_or_the_characters_speech_endings(prose):
     assert service.style_problem(prose, THIRD)
 
 
 @pytest.mark.parametrize('prose', [
-    '“…돌아가십시오.” 길동은 길현을 바라보며 고개를 저었다.',         # 대사 안의 합쇼체는 인물의 말투다
-    '카엘이 하늘을 나는 새를 올려다보았다. “…” 그가 말했다.',          # 문장 중간의 '나는'(날다)은 1인칭이 아니다
-    '“…” 나는 듯한 걸음으로 카엘이 문을 나섰다.',                      # 문장 첫머리여도 '나는 듯'(날다)은 1인칭이 아니다
-    '“이것은 사실이 아닙니다.” 카엘은 고개를 저었다. 그것은 사실이 아니다.',  # '아니다'는 합쇼체가 아니다
-    '“가겠습니다.',                                                  # 닫히지 않은 대사는 대사로 본다
-    '카엘이 낮게 말했다. “멈춰.”',
+    '"…돌아가십시오." 길동은 길현을 바라보며 고개를 저었다.',         # 대사 안의 합쇼체는 인물의 말투다
+    '“…돌아가십시오.” 길동은 길현을 바라보며 고개를 저었다.',         # 둥근 따옴표도 대사로 본다
+    '카엘이 하늘을 나는 새를 올려다보았다. "…" 그가 말했다.',          # 문장 중간의 '나는'(날다)은 1인칭이 아니다
+    '"…" 나는 듯한 걸음으로 카엘이 문을 나섰다.',                      # 문장 첫머리여도 '나는 듯'(날다)은 1인칭이 아니다
+    '"이것은 사실이 아닙니다." 카엘은 고개를 저었다. 그것은 사실이 아니다.',  # '아니다'는 합쇼체가 아니다
+    '"가겠습니다.',                                                  # 닫히지 않은 대사는 대사로 본다
+    '“가겠습니다.',                                                  # 둥근 따옴표도 마찬가지다
+    '카엘이 낮게 말했다. "멈춰."',
 ])
 def test_dialogue_and_plain_third_person_description_are_not_flagged(prose):
     assert service.style_problem(prose, THIRD) is None
 
 
 def test_a_first_person_view_description_keeps_the_plain_narration_ending_too_and_no_style_means_no_check():
-    assert service.style_problem('“…” 나는 고개를 저었습니다.', FIRST)
-    assert service.style_problem('“…” 나는 고개를 저었다.', FIRST) is None
+    assert service.style_problem('"…" 나는 고개를 저었습니다.', FIRST)
+    assert service.style_problem('"…" 나는 고개를 저었다.', FIRST) is None
     assert service.style_problem('아무 말이나 저었습니다.', None) is None  # 문체를 모르면(인물 턴이 아니면) 보지 않는다
 
 
