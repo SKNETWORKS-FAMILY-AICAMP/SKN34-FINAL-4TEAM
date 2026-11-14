@@ -4,12 +4,15 @@ import json
 from langchain_core.callbacks import dispatch_custom_event
 
 from app import tracing
-from app.simulation import scene_agent
+from app.simulation import director, scene_agent
 from app.simulation.callbacks import SceneEvents, UsageCallback
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Scene
 
 from .stubs import KAEL, LINA, PLAN_IF, action, context, narration, seed, speech, staged, text, verdict
+from .test_director import wired
+
+real_decide = director.decide  # staged()가 대역으로 바꾸기 전의 실제 연출 결정
 
 
 def reporting(inner, name, ms=5, tokens=(10, 4)):
@@ -92,3 +95,22 @@ def test_usage_callback_leaves_one_span_per_turn_in_the_trace_without_any_text(m
     metadata = {k.removeprefix('langfuse.observation.metadata.'): v for k, v in dict(turns[1].attributes).items() if 'metadata' in k}
     assert json.loads(metadata['calls']) == usage.turns[1]['calls'] and metadata['turn'] == 2 and metadata['modelCalls'] == 1
     assert 'KAEL' not in str(dict(turns[1].attributes)) and action().prose not in str(dict(turns[1].attributes))
+
+
+def test_the_directors_decisions_call_lands_in_the_ledger_of_the_turn_it_decided(monkeypatch):
+    staged(monkeypatch, verdicts=lambda payload: verdict(payload, scene_complete=True))
+    monkeypatch.setattr(director, 'decide', real_decide)  # 연출 결정만 실제 함수로 두고 Decisions 응답은 목 전송으로 준다
+
+    def decisions(sent):
+        picks = [{'type': 'choice', 'name': q['name'], 'choice': 'speech' if q['name'] == 'turn' and 'speech' in [c['value'] for c in q['choices']]
+                  else q['choices'][0]['value']} for q in sent['questions']]
+        return {'answers': picks, 'usage': {'input_tokens': 100, 'output_tokens': 5}}
+
+    wired(monkeypatch, decisions)
+    usage = UsageCallback()
+    run_with([usage])
+    assert [t['status'] for t in usage.turns] == ['paused', 'paused', 'completed']  # 시작 나레이션, 카엘, 마무리
+    for turn in usage.turns:  # 턴마다 그 턴을 정한 연출 결정 호출이 한 번 있고 토큰이 장부에 남는다
+        (decided,) = [c for c in turn['calls'] if c['name'] == 'director']
+        assert (decided['failed'], decided['inputTokens'], decided['outputTokens']) == (False, 100, 5)
+        assert turn['inputTokens'] >= 100

@@ -4,10 +4,12 @@ import json
 
 import httpx2
 import pytest
+from langchain_core.runnables import RunnableLambda
 from langchain_typesafe import Choice
 from langchain_typesafe.client import (TypeSafeAPIResponseValidationError, TypeSafeBadRequestError, TypeSafeNotFoundError)
 
 from app.simulation import director
+from app.simulation.callbacks import UsageCallback
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Decision
 
@@ -76,6 +78,14 @@ def test_a_gzip_compressed_reply_is_not_decoded_a_second_time_when_it_is_rewrapp
     새 응답이 풀린 JSON을 다시 풀려다 DecodingError(incorrect header check)가 난다."""
     wired(monkeypatch, reply(turn='speech'), gzipped=True)
     assert classify().choices['turn'].choice == 'speech'
+
+
+def test_the_usage_of_the_original_reply_is_carried_into_the_answer(monkeypatch):
+    wired(monkeypatch, {**reply(turn='speech'), 'usage': {'input_tokens': 120, 'output_tokens': 7, 'total_tokens': 127}})
+    usage = classify().usage
+    assert (usage.input_tokens, usage.output_tokens) == (120, 7)
+    wired(monkeypatch, reply(turn='speech'))
+    assert classify().usage.input_tokens is None  # 응답에 없으면 지어내지 않는다
 
 
 @pytest.mark.parametrize('body', [
@@ -184,3 +194,69 @@ def test_unusable_reply_is_a_502_and_missing_settings_a_503(monkeypatch):
     with pytest.raises(SimulationFailure) as failure:
         asyncio.run(director.decide(STATE, ('speech',), CAST))
     assert failure.value.status == 503
+
+
+# --- 사용량 장부 -------------------------------------------------------------------------------------------------------
+
+def in_a_run(ledger, allowed=('narration', 'speech')):
+    """LangChain 실행 안에서 연출 결정을 한 번 부르고 콜백(장부)에 쌓인 호출을 돌려준다. 실패는 그대로 올린다."""
+    async def run(_):
+        return await director.decide(STATE, allowed, CAST)
+    asyncio.run(RunnableLambda(run).ainvoke(None, {'callbacks': [ledger]}))
+    return ledger.calls
+
+
+def test_each_decisions_call_reaches_the_usage_ledger_with_its_tokens(monkeypatch):
+    wired(monkeypatch, {**reply(turn='speech', speaker='c1', pov='omniscient'), 'usage': {'input_tokens': 120, 'output_tokens': 7}})
+    (call,) = in_a_run(UsageCallback())
+    assert (call['name'], call['failed'], call['inputTokens'], call['outputTokens']) == ('director', False, 120, 7) and call['ms'] >= 0
+
+
+def test_a_failed_decisions_call_is_in_the_ledger_as_a_failure_without_tokens(monkeypatch):
+    wired(monkeypatch, {'error': 'x'}, status=500)
+    ledger = UsageCallback()
+    with pytest.raises(SimulationFailure):
+        in_a_run(ledger)
+    assert [(c['name'], c['failed'], c['inputTokens'], c['outputTokens']) for c in ledger.calls] == [('director', True, None, None)]
+
+
+# --- 독백의 시점 -------------------------------------------------------------------------------------------------------
+
+INNER_POVS = ['limited:c1', 'limited:c2', 'first:c1', 'first:c2']  # 시점 인물이 있는 선택지
+
+
+def test_when_only_a_monologue_is_allowed_the_point_of_view_choices_have_a_character(monkeypatch):
+    result, body = decide(monkeypatch, {'speaker': 'c1', 'pov': 'first:c2'}, allowed=('monologue',))
+    questions = {q['name']: q for q in body['questions']}
+    assert [c['value'] for c in questions['pov']['choices']] == INNER_POVS
+    assert result == Decision(turn='monologue', speaker=None, pov=f'first:{LINA}')
+
+
+def reasked(first, second):
+    """질문이 셋이면 첫 질문의 답을, 시점 하나만 물으면 두 번째 답을 준다. 보낸 요청 [(질문 이름들, 시점 선택지, 상태)]도 돌려준다."""
+    asked = []
+
+    def body(sent):
+        asked.append(([q['name'] for q in sent['questions']], [c['value'] for q in sent['questions'] if q['name'] == 'pov' for c in q['choices']],
+                      sent['input'][1]['content'][0]['data']['state']))
+        return reply(**(first if len(sent['questions']) == 3 else second))
+
+    return body, asked
+
+
+def test_a_monologue_answered_with_the_omniscient_view_asks_the_point_of_view_again_without_it(monkeypatch):
+    body, asked = reasked({'turn': 'monologue', 'speaker': 'c1', 'pov': 'omniscient'}, {'pov': 'first:c2'})
+    wired(monkeypatch, body)
+    result = asyncio.run(director.decide(STATE, ('narration', 'monologue', 'speech'), CAST))
+    assert result == Decision(turn='monologue', speaker=None, pov=f'first:{LINA}')
+    assert [names for names, _, _ in asked] == [['turn', 'speaker', 'pov'], ['pov']]  # 한 번 더, 시점만 묻는다
+    assert asked[0][1][0] == 'omniscient' and asked[1][1] == INNER_POVS
+    assert asked[1][2]['turn'] == 'monologue' and asked[1][2]['scene'] == STATE['scene']  # 독백인 줄 알려 준다
+
+
+def test_a_second_omniscient_answer_for_a_monologue_is_still_an_error(monkeypatch):
+    body, asked = reasked({'turn': 'monologue', 'speaker': 'c1', 'pov': 'omniscient'}, {'pov': 'omniscient'})
+    wired(monkeypatch, body)
+    with pytest.raises(SimulationFailure) as failure:
+        asyncio.run(director.decide(STATE, ('narration', 'monologue', 'speech'), CAST))
+    assert failure.value.status == 502 and len(asked) == 2  # 세 번째 시도는 없다

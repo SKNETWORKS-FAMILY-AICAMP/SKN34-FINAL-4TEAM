@@ -7,10 +7,12 @@
 모델이 준 값은 Python이 다시 검증하고 어긋나면 고치지 않고 실패로 올린다. 인물 id는 모델에 보내지 않고 별칭(c1…)으로만 주고받는다.
 """
 
+import time
 from collections.abc import Sequence
 from functools import lru_cache
 
 import httpx2
+from langchain_core.callbacks import adispatch_custom_event
 from langchain_core.utils import secret_from_env
 from langchain_typesafe import Choice, TypeSafeClassifier
 from langchain_typesafe.client import (TypeSafeAPIConnectionError, TypeSafeAPIResponseValidationError, TypeSafeAPITimeoutError,
@@ -65,22 +67,25 @@ class OpenAIDecisionClassifier(TypeSafeClassifier):
     def _converted(self, response: httpx2.Response, questions: dict[str, Choice]) -> httpx2.Response:
         """Decisions 응답을 패키지 응답 형식으로 바꾼다. 질문마다 보낸 선택지 안의 답이 정확히 하나여야 하고 거부(refusal)는 실패다.
 
-        Decisions는 확률을 주지 않아 고른 값만 1.0으로 채운다(신뢰도도 1.0). 실패 상태 응답은 그대로 두어 패키지가 오류로 바꾼다.
+        Decisions는 확률을 주지 않아 고른 값만 1.0으로 채운다(신뢰도도 1.0). 원 응답의 usage(토큰)는 그대로 옮긴다. 실패 상태 응답은
+        그대로 두어 패키지가 오류로 바꾼다.
         """
         if not response.is_success:
             return response
         try:
-            answers = DecisionsReply.model_validate(response.json()).answers
+            payload = response.json()
+            answers = DecisionsReply.model_validate(payload).answers
             given = {a.name: a for a in answers}
             if len(answers) != len(questions) or set(given) != set(questions) or any(
                     a.type != 'choice' or a.choice not in questions[name].criteria for name, a in given.items()):
                 raise ValueError
         except ValueError:  # JSON 오류·pydantic 검증 오류 모두 ValueError다
             raise TypeSafeAPIResponseValidationError(response.status_code, None, response.headers, 'answers') from None
+        usage = payload.get('usage')
         body = {'model': self.model, 'answers': {
             name: {'type': 'choice', 'choice': a.choice, 'confidence': 1.0,
                    'probabilities': {label: 1.0 if label == a.choice else 0.0 for label in questions[name].criteria}}
-            for name, a in given.items()}}
+            for name, a in given.items()}, **({'usage': usage} if isinstance(usage, dict) else {})}
         # 헤더는 옮기지 않는다. 원 응답의 Content-Encoding(gzip)·Content-Length는 이미 풀린 본문에 맞지 않아, 옮기면 새 응답이
         # 풀린 JSON을 다시 풀려다 DecodingError가 난다. 패키지가 읽는 헤더(x-typesafe-request-id)는 OpenAI 응답에 없다.
         return httpx2.Response(200, json=body, request=response.request)
@@ -95,7 +100,8 @@ def classifier() -> OpenAIDecisionClassifier:
 async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last_pov: str | None = None) -> Decision:
     """다음 턴의 연출 결정. allowed는 지금 쓸 수 있는 턴(하나뿐이면 묻지 않고 알려 준다), cast는 [{id, name}]이다.
 
-    state에는 인물 id가 없어야 한다. 모델에는 인물 별칭(c1…)만 보내고 답을 id로 되돌린다. 어긋난 답은 502, 호출 실패는 503이다.
+    state에는 인물 id가 없어야 한다. 모델에는 인물 별칭(c1…)만 보내고 답을 id로 되돌린다. 독백은 시점 인물이 있어야 해서 독백만 허용되면
+    전지적 시점을 선택지에서 빼고, 독백에 전지적 시점이 답으로 오면 시점만 한 번 더 묻는다. 그 밖에 어긋난 답은 502, 호출 실패는 503이다.
     """
     ids = {f'c{n}': c['id'] for n, c in enumerate(cast, 1)}
     names = {f'c{n}': c['name'] for n, c in enumerate(cast, 1)}
@@ -103,27 +109,45 @@ async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last
     povs = {'omniscient': '전지적 시점: 모든 인물과 사건을 아는 서술자',
             **{f'limited:{a}': f'{name}의 3인칭 제한 시점' for a, name in names.items()},
             **{f'first:{a}': f'{name}의 1인칭 시점' for a, name in names.items()}}
+    inner = {point: label for point, label in povs.items() if point != 'omniscient'}  # 독백은 시점 인물이 있어야 한다
     questions = {}
     if len(allowed) > 1:
         questions['turn'] = Choice(instructions=TURN_QUESTION, criteria={t: TURN_CHOICES[t] for t in allowed})
     questions['speaker'] = Choice(instructions=SPEAKER_QUESTION, criteria=names)
-    questions['pov'] = Choice(instructions=POV_QUESTION, criteria=povs)
+    questions['pov'] = Choice(instructions=POV_QUESTION, criteria=inner if list(allowed) == ['monologue'] else povs)
     seen = {**state, 'cast': [{'alias': a, 'name': name} for a, name in names.items()],
             'lastPov': _swap(last_pov, alias), **({'turn': allowed[0]} if len(allowed) == 1 else {})}
+    answers = await _ask(seen, questions)
+    turn, pov = (answers['turn'].choice if 'turn' in answers else allowed[0]), answers['pov'].choice
+    if turn not in allowed:
+        raise SimulationFailure(502, UNUSABLE)
+    if turn == 'monologue' and pov == 'omniscient':  # 어긋난 답은 고치지 않고 독백인 줄 알려 주며 시점만 인물 시점 선택지로 한 번 더 묻는다
+        pov = (await _ask({**seen, 'turn': turn}, {'pov': Choice(instructions=POV_QUESTION, criteria=inner)}))['pov'].choice
+    return Decision(turn=turn, speaker=ids[answers['speaker'].choice] if turn == 'speech' else None, pov=_swap(pov, ids))
+
+
+async def _ask(state: dict, questions: dict[str, Choice]) -> dict:
+    """Decisions를 한 번 부른다. 호출 하나의 지연·토큰·실패는 `simulation.model` 이벤트로 알려 콜백(장부)이 남기게 한다(본문·키는 없다)."""
     try:
         chosen = classifier()
     except ValueError:  # 키가 없다
         raise SimulationFailure(503, NEEDS_SETTINGS) from None
+    started, usage = time.monotonic(), None
     try:
-        answers = (await chosen.ainvoke({'state': seen, 'questions': questions})).choices
+        reply = await chosen.ainvoke({'state': state, 'questions': questions})
+        usage = reply.usage
+        return reply.choices
     except TypeSafeAPIResponseValidationError:
         raise SimulationFailure(502, UNUSABLE) from None
     except TypeSafeError:
         raise SimulationFailure(503, FAILED) from None
-    turn, pov = (answers['turn'].choice if 'turn' in answers else allowed[0]), answers['pov'].choice
-    if turn not in allowed or (turn == 'monologue' and pov == 'omniscient'):  # 독백은 시점 인물이 있어야 한다
-        raise SimulationFailure(502, UNUSABLE)
-    return Decision(turn=turn, speaker=ids[answers['speaker'].choice] if turn == 'speech' else None, pov=_swap(pov, ids))
+    finally:
+        try:
+            await adispatch_custom_event('simulation.model', {
+                'name': 'director', 'ms': round((time.monotonic() - started) * 1000), 'failed': usage is None,
+                'inputTokens': usage and usage.input_tokens, 'outputTokens': usage and usage.output_tokens})
+        except RuntimeError:  # LangChain 실행 밖이면 알릴 곳이 없다
+            pass
 
 
 def _swap(pov: str | None, table: dict[str, str]) -> str | None:
