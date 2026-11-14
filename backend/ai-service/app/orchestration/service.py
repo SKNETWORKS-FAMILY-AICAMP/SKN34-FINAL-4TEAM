@@ -39,8 +39,6 @@ from contextlib import asynccontextmanager
 from typing import Annotated, TypedDict
 
 from fastapi.sse import ServerSentEvent
-from langchain.agents.middleware.model_call_limit import ModelCallLimitExceededError
-from langchain.agents.middleware.tool_call_limit import ToolCallLimitExceededError
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.config import merge_configs
@@ -294,23 +292,20 @@ async def character_simulation(state: State, config: RunnableConfig) -> State:
             'decision': None, 'action': state.get('sceneAction')}
     config = merge_configs(config, {'callbacks': [SceneEvents(), UsageCallback(_trace(state))]})
     out = paused = None
-    try:
-        with tracing.observe('step.character_simulation', as_type='agent', trace_context=_trace(state)):
-            try:
-                out = await scene_agent(pausing).ainvoke(seed, config, context=context)
-            except GraphBubbleUp as pause:  # 턴 사이 대기는 정상이라 추적에 실패로 남기지 않는다
-                paused = pause
-    except (ModelCallLimitExceededError, ToolCallLimitExceededError):
-        out = {}  # 안전망이 장면을 끊었다. 에이전트 상태의 부분 결과는 읽지 않는다
+    with tracing.observe('step.character_simulation', as_type='agent', trace_context=_trace(state)):
+        try:
+            out = await scene_agent(pausing).ainvoke(seed, config, context=context)
+        except GraphBubbleUp as pause:  # 턴 사이 대기는 정상이라 추적에 실패로 남기지 않는다
+            paused = pause
     if paused:
         raise paused
-    index = next(i for i, s in enumerate(steps) if s['feature'] == 'character_simulation')
-    if not out:
-        steps[index] = {**steps[index], 'status': 'failed', 'error': LIMIT_MESSAGE}
-        return {'steps': steps, 'scene': None, 'sceneAction': None}
     final = Scene.model_validate(out['scene'])
+    if final.result.status in ('running', 'paused') and not final.declined:
+        # 에이전트는 장면이 끝나거나 멈춰야 끝난다. 이어 갈 장면인데 끝났다면 호출 한도(안전망)가 끊은 것이다. 쌓은 턴은 두고 이유를 남긴다.
+        final = simulation.stop_scene(final, LIMIT_MESSAGE, 'stopped', 'call_limit')
+    index = next(i for i, s in enumerate(steps) if s['feature'] == 'character_simulation')
     steps[index] = context.step(final)
-    done: State = {'steps': steps, 'sceneAction': None, 'scene': out['scene']}
+    done: State = {'steps': steps, 'sceneAction': None, 'scene': final.model_dump(mode='json')}
     if final.declined:  # 작가가 장면을 반영하지 않기로 했다
         done.update(status='cancelled', message=CANCELLED_MESSAGE)
     return done

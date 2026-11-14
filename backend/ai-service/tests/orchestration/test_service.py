@@ -13,6 +13,7 @@ from app.research.errors import ResearchFailure
 
 from app.retrieval.errors import RetrievalFailure
 from app.retrieval.models import RetrievalResult
+from app.simulation import scene_agent
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import SimulationPlan
 
@@ -539,6 +540,43 @@ def test_a_scene_that_fails_before_any_turn_ends_the_run_failed_with_the_partial
     step = result.steps[0]
     assert (step.status, step.result.status, step.result.turns, step.result.stopReason) == ('failed', 'stopped', [], 'check_failed')
     assert '나레이션' in step.error and result.steps[1].status == 'not_started' and applied == [] and 'web_research' not in planned(calls)
+
+
+@pytest.fixture
+def small_call_limit(monkeypatch):
+    """호출 한도 안전망을 3으로 줄인다. 에이전트는 만들 때 한도를 읽고 캐시되므로 앞뒤로 캐시를 비운다."""
+    monkeypatch.setattr(scene_agent, 'LOOP_LIMIT', 3)
+    scene_agent.scene_agent.cache_clear()
+    yield
+    scene_agent.scene_agent.cache_clear()
+
+
+def test_a_scene_cut_by_the_call_limit_keeps_its_turns_and_says_why(monkeypatch, small_call_limit):
+    fake_agents(monkeypatch, plan('character_simulation'))
+    fake_scene(monkeypatch)
+    result = run(REQUEST, target=TARGET)  # 한도 안에서 끝나지 못한다(마무리 전 네 번째 모델 호출에서 한도에 닿는다)
+    step = result.steps[0]
+    assert (result.status, step.status, step.error) == ('failed', 'failed', service.LIMIT_MESSAGE)  # 실패를 숨기지 않는다
+    assert (step.result.status, step.result.stopReason, [t.kind for t in step.result.turns]) == ('stopped', 'call_limit', ['narration', 'character', 'character'])
+
+
+def test_a_conversation_scene_cut_by_the_call_limit_keeps_the_turns_of_the_earlier_requests(monkeypatch, small_call_limit):
+    thread, *_ = start_scene(monkeypatch)
+    scene_turn(thread)
+    scene_turn(thread)  # 나레이션·카엘·카엘 세 턴
+    cut = scene_turn(thread)  # 이어 쓰려는 네 번째 모델 호출에서 한도에 닿는다
+    step = cut.steps[0]
+    assert (cut.status, cut.awaitingScene, cut.awaitingApproval, step.status, step.error) == ('failed', None, None, 'failed', service.LIMIT_MESSAGE)
+    assert (step.result.status, step.result.stopReason, len(step.result.turns)) == ('stopped', 'call_limit', 3)
+
+
+def test_declining_in_the_middle_of_a_scene_cancels_the_run_and_keeps_the_turns_without_a_limit_reason(monkeypatch):
+    thread, *_ = start_scene(monkeypatch)
+    scene_turn(thread)
+    done = write_turn(thread, resume={'approved': False})  # 이어 쓰던 장면을 반영하지 않기로 한다
+    step = done.steps[0]
+    assert (done.status, done.message) == ('cancelled', service.CANCELLED_MESSAGE)
+    assert (step.result.status, step.result.stopReason, len(step.result.turns)) == ('paused', None, 2) and step.error is None  # 호출 한도가 끊은 것이 아니다
 
 
 def test_world_failure_fails_the_scene_with_the_reason(monkeypatch):

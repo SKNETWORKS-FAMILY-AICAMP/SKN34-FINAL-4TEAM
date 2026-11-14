@@ -3,7 +3,9 @@
 한 번 도는 루프는 이렇다. `StageMiddleware.before_model`(작가의 조작을 기다리는 턴 사이 interrupt) → `DirectorMiddleware.before_model`
 (연출 결정: 이번 턴·화자·시점) → 모델 노드(`DirectorMiddleware.wrap_model_call`이 결정대로 도구 호출을 만든다. 도구를 고르는 건 연출
 결정이라 실제 모델은 부르지 않는다) → 도구(나레이션·독백·대사·마무리) → `SceneCheckMiddleware.wrap_tool_call`(검사, 위반이면 그 턴만 최대
-2회 재실행, 통과한 턴을 장면에 붙임). 호출 한도는 라이브러리의 ModelCallLimit·ToolCallLimit이 안전망으로 지킨다.
+2회 재실행, 통과한 턴을 장면에 붙임). 호출 한도는 라이브러리의 ModelCallLimit·ToolCallLimit이 안전망으로 지킨다. 한도에 닿으면
+예외 없이 에이전트가 끝나(exit_behavior='end') 쌓은 장면이 상태에 그대로 남는다. 에이전트는 장면이 끝나거나 멈춰야만 끝나므로 이어 갈
+장면(paused·running)인데 끝났다면 한도가 끊은 것이고, 바깥 오케스트레이션이 그 이유(call_limit)를 남긴다.
 에이전트 상태는 체크포인트에 남는다: 바깥 오케스트레이션 노드 안에서 돌리면 interrupt가 바깥 그래프로 전달되고, 같은 대화의
 resume이 이 에이전트를 멈춘 자리에서 이어 간다. 장면은 JSON(`Scene`)으로만 상태에 둔다.
 """
@@ -100,11 +102,11 @@ class DirectorMiddleware(AgentMiddleware):
         allowed, required = service.rules(context.plan, scene)
         if not allowed:
             return {'scene': _dump(service.stop_scene(scene, TURN_LIMIT_MESSAGE, 'stopped', 'turn_limit')), 'pending': True, 'jump_to': stop}
-        if scene.redo:
-            return {'decision': scene.redo.model_dump()}
         try:
             world = await asyncio.to_thread(context.world)
-            service.check_plan(context.plan, world)
+            service.check_plan(context.plan, world)  # 다시 말하기도 참여 인물이 지금 세계관에 모두 있는지 먼저 본다(세계관은 요청마다 다시 읽는다)
+            if scene.redo:
+                return {'decision': scene.redo.model_dump()}
             cast = [{'id': i, 'name': world.characters[i].title} for i in context.plan.characterIds]
             last = scene.result.turns[-1].pov if scene.result.turns else None
             decision = await director.decide(service.director_state(context.plan, scene, required), allowed, cast, last)
@@ -202,8 +204,8 @@ def build_scene_agent(pausing: bool, checkpointer=None):
     return create_agent(
         DirectorModel(), tools=TOOLS, name='scene_agent', context_schema=SceneContext, checkpointer=checkpointer,
         middleware=[*([StageMiddleware()] if pausing else []), DirectorMiddleware(),
-                    ModelCallLimitMiddleware(thread_limit=LOOP_LIMIT, run_limit=LOOP_LIMIT, exit_behavior='error'),
-                    ToolCallLimitMiddleware(thread_limit=LOOP_LIMIT, run_limit=LOOP_LIMIT, exit_behavior='error'), SceneCheckMiddleware()])
+                    ModelCallLimitMiddleware(thread_limit=LOOP_LIMIT, run_limit=LOOP_LIMIT, exit_behavior='end'),
+                    ToolCallLimitMiddleware(thread_limit=LOOP_LIMIT, run_limit=LOOP_LIMIT, exit_behavior='end'), SceneCheckMiddleware()])
 
 
 @lru_cache(maxsize=2)

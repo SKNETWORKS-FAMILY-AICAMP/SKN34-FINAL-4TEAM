@@ -59,7 +59,7 @@ internal class WritingAiService(
 
     private fun scopeOf(workId: String, owner: String) = "user:$owner/work:$workId"
 
-    /** 보낸 항목만 담는다. AI 요청 DTO가 모르는 필드를 거절하므로 null 필드를 싣지 않는다. */
+    /** 장면 조작(resume.scene). 보낸 항목만 담는다. AI 요청 DTO가 모르는 필드를 거절하므로 null 필드를 싣지 않는다. */
     private fun body(scene: WritingAiScene) = buildMap<String, Any?> {
         put("action", scene.action)
         scene.turn?.let { put("turn", it) }
@@ -67,6 +67,7 @@ internal class WritingAiService(
         scene.note?.let { put("note", it) }
     }
 
+    /** 시뮬레이션 시작 양식(simulation). 위와 같은 이유로 보낸 항목만 담는다. */
     private fun body(form: WritingAiSimulation) = buildMap<String, Any?> {
         put("mode", form.mode)
         form.premise?.let { put("premise", it) }
