@@ -63,6 +63,8 @@ class Dataset:
         self.characters = {k: c for k, c in self.cards.items() if c["cardType"] == "character"}
         self.rels = self.world["relationships"]
         self.manuscripts = [Manuscript(p) for p in sorted((directory / "episodes").glob("*.md"))]
+        plans = directory / "plans.json"
+        self.plans = json.loads(plans.read_text(encoding="utf-8")) if plans.exists() else None  # 장면 계획(시뮬레이션 흐름 모드의 비트)
         fork = self.world["work"].get("fork")
         self.first = fork["episode"] + 1 if fork else 1  # Fork는 기준 회차 뒤부터 자기 원고를 쓴다
         self.last = self.manuscripts[-1].number if self.manuscripts else STARLIGHT_EPISODES
@@ -81,6 +83,8 @@ class Dataset:
 
 
 DATASET_DIRS = [HERE, *sorted(p.parent for p in HERE.glob("*/world.json"))]
+# README 시연 순서가 쓰는 장면 계획: 데이터셋 → 장면 계획이 있어야 하는 회차(회차마다 3~4개)
+WALKTHROUGH_PLANS = {"heukgildong-fork": (4, 5), "honggildong": (5,)}
 
 
 class WorldChecks:
@@ -409,6 +413,69 @@ class WorldChecks:
             self.assertNotRegex(text, r"[A-Za-z]", "외국어를 흉내 낸 말투를 쓰지 않는다")
         for key in fork["changed"]:  # 말투를 인종이 아니라 경험·성격에서 끌어낸다고 SOUL에 못 박는다
             self.assertIn("하지 않는 말", self.cards[key]["characterDocs"]["soul"], key)
+
+    def test_scene_plans_are_well_formed(self):
+        """plans.json은 플롯 1개와 장면이다. 흐름 모드는 열린 회차의 장면을 `제목: 내용`(200자로 자름) 비트로 최대 8개, 참여 인물은 최대 6명 쓴다."""
+        plans = self.dataset.plans
+        if plans is None:
+            self.skipTest("장면 계획이 없는 데이터셋")
+        self.assertEqual({"plot", "scenes"}, set(plans))
+        self.assertEqual({"title", "content"}, set(plans["plot"]))
+        self.assertTrue(0 < len(plans["plot"]["title"]) <= 120 and len(plans["plot"]["content"]) <= 8000)  # 서버 한도(StoryPlanService.validate)
+        titles = [s["title"] for s in plans["scenes"]]
+        self.assertEqual(len(titles), len(set(titles)))  # 같은 제목은 건너뛰므로 제목이 겹치면 한쪽이 사라진다
+        self.assertNotIn(plans["plot"]["title"], titles)
+        by_episode = {}
+        for scene in plans["scenes"]:
+            who = scene["title"]
+            self.assertTrue({"episode", "title", "content", "characters"} <= set(scene) <= {"episode", "title", "content", "characters", "places"}, who)
+            self.assertTrue(isinstance(scene["episode"], int) and 1 <= scene["episode"] <= self.dataset.last + 1, who)  # 있는 회차나 바로 다음 회차
+            self.assertTrue(0 < len(scene["title"]) <= 120 and scene["title"] == scene["title"].strip(), who)
+            self.assertLessEqual(len(f"{scene['title']}: {scene['content']}"), 200, who)  # 더 길면 비트 끝이 잘린다
+            self.assertTrue(scene["characters"] and len(set(scene["characters"])) == len(scene["characters"]), who)
+            for key in scene["characters"]:
+                self.assertIn(key, self.characters, who)
+                self.assertLessEqual(self.cards[key].get("revealFromEpisode", 1), scene["episode"], f"{who}: {key}는 {scene['episode']}화에 아직 공개 전이다")
+            for key in scene.get("places", []):
+                self.assertEqual("location", self.cards[key]["cardType"], f"{who}: {key}")
+            by_episode.setdefault(scene["episode"], []).append(scene)
+        for episode, scenes in by_episode.items():
+            self.assertLessEqual(len(scenes), 8, f"{episode}화 비트")
+            self.assertLessEqual(len({k for s in scenes for k in s["characters"]}), 6, f"{episode}화 참여 인물")
+
+    def test_scene_plans_name_exactly_their_characters(self):
+        """장면 계획의 characterIds는 비어 있어(서버가 카드 id를 안 받는다) 화면이 비트 문장의 인물 이름으로 참여 인물을 채운다.
+        장면에 없는 인물의 이름·별칭이 나오면 그 인물이 끼어들고, 비트에 카드 제목이 없으면 그 인물이 빠진다. 비밀은 참여 인물이 모두 안 뒤에만 쓴다."""
+        if self.dataset.plans is None:
+            self.skipTest("장면 계획이 없는 데이터셋")
+        for scene in self.dataset.plans["scenes"]:
+            who, beat = scene["title"], f"{scene['title']}: {scene['content']}"
+            named = {k for k, c in self.characters.items() if any(n in beat for n in [c["title"], *(a for a in c["aliases"] if len(a) >= 2)])}
+            self.assertEqual(set(scene["characters"]), named, who)
+            for key in scene["characters"]:
+                self.assertIn(self.cards[key]["title"], beat, who)  # 별칭이 아니라 카드 제목(이름)으로 나온다
+            for secret in self.world["secrets"]:
+                if secret["phrase"] in beat:
+                    know = lambda key: key in secret["holders"] or secret.get("learnedBy", {}).get(key, math.inf) <= scene["episode"]  # noqa: E731
+                    self.assertTrue(all(know(key) for key in scene["characters"]), f"{who}: 아직 모르는 인물이 있는 장면에 비밀이 나온다")
+
+    def test_walkthrough_scene_plans_exist(self):
+        episodes = WALKTHROUGH_PLANS.get(self.dataset.dir.name)
+        if episodes is None:
+            self.skipTest("시연 순서가 장면 계획을 쓰지 않는 데이터셋")
+        plans = self.dataset.plans
+        self.assertIsNotNone(plans, "plans.json이 없다")
+        counts = {e: sum(s["episode"] == e for s in plans["scenes"]) for e in episodes}
+        self.assertTrue(all(3 <= n <= 4 for n in counts.values()), counts)
+
+
+class WalkthroughPlansMatch(unittest.TestCase):
+    """홍길동전 5화 장면 계획은 흑길동전 5화와 같은 비트다(같은 비트에서 원작 길동과 흑길동의 말씨를 비교한다)."""
+
+    def test_the_original_runs_the_same_fifth_episode_scenes_as_the_fork(self):
+        scenes = lambda name: [(s["title"], s["content"], s["characters"]) for s in (Dataset(HERE / name).plans or {"scenes": []})["scenes"] if s["episode"] == 5]  # noqa: E731
+        self.assertTrue(scenes("honggildong"))
+        self.assertEqual(scenes("heukgildong-fork"), scenes("honggildong"))
 
 
 def add_world_checks(directory):
