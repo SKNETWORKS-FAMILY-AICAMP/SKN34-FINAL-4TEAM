@@ -12,7 +12,7 @@ import { useWritingChatViewModel, type LiveTurn } from './useWritingChatViewMode
 
 const stateLabel = { done: '완료', run: '진행 중', wait: '대기', stop: '멈춤', fail: '실패' } as const
 // 시뮬레이션 단계는 서버의 단계 상태가 아니라 장면 상태로 보인다: 진행 중 step은 완료로 오고, 멈춘 장면을 완료로 꾸미면 안 된다.
-const simState = { running: 'run', completed: 'done', stopped: 'stop', failed: 'fail' } as const
+const simState = { running: 'run', paused: 'run', completed: 'done', stopped: 'stop', failed: 'fail' } as const
 const stepState = (step: ChatStep, running: string | null) =>
   step.status === 'failed' ? 'fail' : step.simulation ? simState[step.simulation.status] : step.status === 'completed' ? 'done' : step.feature === running ? 'run' : 'wait'
 /** 인물 시뮬레이션(#58) 입력 예시. 누르면 입력창에 글만 채운다. */

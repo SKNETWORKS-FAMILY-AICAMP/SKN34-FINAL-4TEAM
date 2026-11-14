@@ -9,17 +9,21 @@ import { csrf } from '../api/csrf'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
 
 // 인물 시뮬레이션(#58) 단계 결과. 계약 'SSE·응답' JSON 그대로이고 열거값도 계약의 값만 받는다.
+// 무대 필드(kind·editedByAuthor·notes)는 이전 체크포인트에 없을 수 있어 없으면 '고치지 않은 인물 줄·끼어들기 없음'으로 읽는다.
 const simulation: z.ZodType<CharacterSimulation> = z.object({
   mode: z.enum(['if', 'flow']),
   premise: z.string().nullish(),
   beats: z.array(z.object({ index: z.number().int(), text: z.string(), status: z.enum(['done', 'pending', 'rejected']) })),
   turns: z.array(z.object({
-    index: z.number().int(), characterId: z.string(), characterName: z.string(), prose: z.string(),
+    index: z.number().int(), kind: z.enum(['narration', 'character']).default('character'),
+    characterId: z.string().nullish().transform((id) => id ?? null), characterName: z.string(), prose: z.string(),
     checks: z.array(z.object({ kind: z.enum(['knowledge_leak', 'voice_mix', 'relation', 'premise', 'beat']), passed: z.boolean(), detail: z.string() })),
     regenerated: z.number().int().nonnegative(),
     evidence: z.array(z.object({ ref: z.string(), source: z.enum(['graph', 'manuscript', 'bm25']) })),
+    editedByAuthor: z.boolean().default(false),
   })),
-  status: z.enum(['running', 'completed', 'stopped', 'failed']),
+  notes: z.array(z.object({ afterTurn: z.number().int(), text: z.string() })).default([]),
+  status: z.enum(['running', 'paused', 'completed', 'stopped', 'failed']),
   stopReason: z.string().nullish(),
 })
 const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 없어요.'
@@ -54,6 +58,7 @@ const reply: z.ZodType<ChatReply> = z.object({
   steps: z.array(step),
   missingInputs: z.array(z.string()),
   awaitingApproval: z.string().nullish(),
+  awaitingScene: z.string().nullish(),
   approvalEpisode: z.number().int().positive().nullish(),
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
@@ -64,7 +69,7 @@ const events = {
   plan: z.object({ steps: z.array(step) }).transform((d) => ({ type: 'plan' as const, ...d })),
   started: z.object({ feature: z.string() }).transform((d) => ({ type: 'started' as const, ...d })),
   step: step.transform((s) => ({ type: 'step' as const, step: s })),
-  waiting: z.object({ steps: z.array(step), missingInputs: z.array(z.string()).default([]), awaitingApproval: z.string().nullish() })
+  waiting: z.object({ steps: z.array(step), missingInputs: z.array(z.string()).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish() })
     .transform((d) => ({ type: 'waiting' as const, ...d })),
   done: reply.transform((r) => ({ type: 'done' as const, reply: r })),
   error: z.object({ message: z.string() }).transform((d) => ({ type: 'error' as const, ...d })),

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, replyText, stepText, type ChatReply } from '../entities/writingChat'
+import { chatBasis, cleanScene, replyText, stepText, type ChatReply, type SceneAction } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -37,8 +37,8 @@ describe('replyText', () => {
 
 describe('인물 시뮬레이션 단계 글', () => {
   const simulation: CharacterSimulation = {
-    mode: 'if', premise: '카엘이 성문을 열었다면?', beats: [], status: 'completed', stopReason: null,
-    turns: [{ index: 0, characterId: 'c', characterName: '카엘', prose: '카엘이 문을 열었다.', checks: [{ kind: 'premise', passed: true, detail: '' }], regenerated: 0, evidence: [] }],
+    mode: 'if', premise: '카엘이 성문을 열었다면?', beats: [], notes: [], status: 'completed', stopReason: null,
+    turns: [{ index: 0, kind: 'character', characterId: 'c', characterName: '카엘', prose: '카엘이 문을 열었다.', checks: [{ kind: 'premise', passed: true, detail: '' }], regenerated: 0, evidence: [], editedByAuthor: false }],
   }
 
   it('말풍선에는 본문 대신 한 줄 요약을 쓰고 반영 결과를 잇는다(본문은 장면 카드가 그린다)', () => {
@@ -54,6 +54,32 @@ describe('인물 시뮬레이션 단계 글', () => {
   })
 })
 
+describe('장면 조작 정리(cleanScene)', () => {
+  it('끼어들기·고친 글의 앞뒤 공백을 지우고 빈 끼어들기는 보내지 않으며 나머지 필드는 그대로 둔다', () => {
+    expect(cleanScene({ action: 'next', note: '  문이 열린다  ' })).toEqual({ action: 'next', note: '문이 열린다' })
+    expect(cleanScene({ action: 'next', note: '   ' })).toEqual({ action: 'next' })
+    expect(cleanScene({ action: 'next' })).toEqual({ action: 'next' })
+    expect(cleanScene({ action: 'redo', turn: 3, note: ' 더 차갑게 ' })).toEqual({ action: 'redo', turn: 3, note: '더 차갑게' })
+    expect(cleanScene({ action: 'redo', turn: 0 })).toEqual({ action: 'redo', turn: 0 })
+    expect(cleanScene({ action: 'edit', turn: 2, text: ' "왔구나." ' })).toEqual({ action: 'edit', turn: 2, text: '"왔구나."' })
+    expect(cleanScene({ action: 'stop' })).toEqual({ action: 'stop' })
+  })
+
+  it('서버와 같은 한도(끼어들기 300자·고친 글 2,000자)를 넘기거나 비어 있으면 사유를 던진다', () => {
+    expect(() => cleanScene({ action: 'next', note: 'ㅁ'.repeat(301) })).toThrow('끼어들기는 300자까지')
+    expect(cleanScene({ action: 'next', note: 'ㅁ'.repeat(300) })).toMatchObject({ action: 'next' })
+    expect(() => cleanScene({ action: 'redo', turn: 1, note: 'ㅁ'.repeat(301) })).toThrow('끼어들기는 300자까지')
+    expect(() => cleanScene({ action: 'edit', turn: 1, text: '   ' })).toThrow('고친 글이 비어 있어요')
+    expect(() => cleanScene({ action: 'edit', turn: 1, text: 'ㅁ'.repeat(2001) })).toThrow('고친 글은 2,000자까지')
+    expect(cleanScene({ action: 'edit', turn: 1, text: 'ㅁ'.repeat(2000) })).toMatchObject({ action: 'edit' })
+  })
+
+  it.each([-1, 1.5, Number.NaN])('줄 번호(%s)가 0 이상의 정수가 아니면 보내지 않는다', (turn) => {
+    expect(() => cleanScene({ action: 'edit', turn, text: '글' })).toThrow('고칠 줄을 찾을 수 없어요')
+    expect(() => cleanScene({ action: 'redo', turn })).toThrow('고칠 줄을 찾을 수 없어요')
+  })
+})
+
 describe('WritingChatUseCase', () => {
   const repository = () => ({ rename: vi.fn(), send: vi.fn() }) as unknown as WritingChatRepository & { rename: ReturnType<typeof vi.fn>; send: ReturnType<typeof vi.fn> }
 
@@ -66,6 +92,23 @@ describe('WritingChatUseCase', () => {
     expect(repo.send).not.toHaveBeenCalled()
     await chat.rename('w', 't', ' 새 제목 ')
     expect(repo.rename).toHaveBeenCalledWith('w', 't', '새 제목')
+  })
+
+  it('장면 조작은 다듬어 보내고, 한도를 넘기거나 잘못된 조작은 서버에 보내지 않는다', async () => {
+    const repo = repository()
+    repo.send.mockResolvedValue(undefined)
+    const chat = new WritingChatUseCase(repo)
+    const basis = { episode: 1, episodeVersionId: 'v', consent: true as const }
+    const scene = (action: SceneAction) => ({ ...basis, resume: { approved: true, scene: action } })
+    const onEvent = () => {}
+    await chat.send('w', 't', scene({ action: 'next', note: ' 비가 쏟아진다 ' }), onEvent)
+    expect(repo.send).toHaveBeenCalledWith('w', 't', scene({ action: 'next', note: '비가 쏟아진다' }), onEvent, undefined, undefined)
+    await expect(chat.send('w', 't', scene({ action: 'edit', turn: 1, text: ' ' }), onEvent)).rejects.toThrow('고친 글이 비어 있어요')
+    await expect(chat.send('w', 't', scene({ action: 'redo', turn: -1 }), onEvent)).rejects.toThrow('고칠 줄을 찾을 수 없어요')
+    expect(repo.send).toHaveBeenCalledTimes(1)
+    // 승인·거절 응답은 장면 조작 검사를 거치지 않고 그대로 간다.
+    await chat.send('w', 't', { ...basis, resume: { approved: false } }, onEvent)
+    expect(repo.send).toHaveBeenLastCalledWith('w', 't', { ...basis, resume: { approved: false } }, onEvent, undefined, undefined)
   })
 })
 

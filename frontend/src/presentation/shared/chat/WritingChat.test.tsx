@@ -42,11 +42,11 @@ it('shows the saved approval episode even when a different episode is open', asy
 
 // ── 인물 시뮬레이션 장면(#58) ──
 const turn = (index: number, name: string, prose: string): CharacterSimulation['turns'][number] => ({
-  index, characterId: `c${index}`, characterName: name, prose,
+  index, kind: 'character', characterId: `c${index}`, characterName: name, prose, editedByAuthor: false,
   checks: [{ kind: 'premise', passed: true, detail: '전제를 따랐어요.' }], regenerated: 0, evidence: [{ ref: 'card-1', source: 'graph' }],
 })
 const scene = (extra: Partial<CharacterSimulation> = {}): CharacterSimulation =>
-  ({ mode: 'if', premise: '카엘이 성문을 열었다면?', beats: [], turns: [turn(0, '카엘', '카엘이 문을 열었다.')], status: 'completed', stopReason: null, ...extra })
+  ({ mode: 'if', premise: '카엘이 성문을 열었다면?', beats: [], turns: [turn(0, '카엘', '카엘이 문을 열었다.')], notes: [], status: 'completed', stopReason: null, ...extra })
 const simStep = (simulation: CharacterSimulation, extra: Partial<ChatStep> = {}): ChatStep => ({ feature: 'character_simulation', status: 'completed', simulation, ...extra })
 const waiting = (simulation: CharacterSimulation) => ({
   status: 'waiting', steps: [simStep(simulation)], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3,
