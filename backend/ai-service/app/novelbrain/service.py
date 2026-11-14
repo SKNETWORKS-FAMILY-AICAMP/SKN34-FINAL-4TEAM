@@ -15,12 +15,15 @@ from collections.abc import Iterable, Sequence
 from typing import Literal
 
 from app.manuscript.models import Excerpt
-from app.novelbrain.models import Card, Gap, RecallItem, RecallResult, WorldSnapshot
+from app.novelbrain.models import Card, Gap, RecallItem, RecallResult, Relation, WorldSnapshot
 
 # 한글 음절 덩어리 | 그 밖의 글자·숫자 덩어리(밑줄·구두점은 경계)
 _RUN = re.compile(r'[가-힣]+|[^\W_가-힣]+')
 _EPISODE_DOC = re.compile(r'ep([0-9]+)')
 _ARROWS = {'directed': '→', 'symmetric': '↔', None: '—'}
+_DENIED_ARROWS = {'directed': '↛', 'symmetric': '↮', None: '—'}
+# 이 종류의 다른 카드는 그 인물과 관계로 연결돼 있어야 인물이 아는 것으로 본다(장소·규칙·조직·능력·기타는 누구나 아는 정보).
+_LINKED_TYPES = ('character', 'event', 'object')
 _UNKNOWN, _NOT_LINKED = '출처를 확인할 수 없음', '연결된 관계가 없어 이 인물이 아는지 확인할 수 없음'
 _NOT_PARTY, _NOT_NAMED = '이 인물이 당사자가 아닌 관계라 아는지 확인할 수 없음', '발췌에 이 인물이 나오지 않아 목격 여부를 확인할 수 없음'
 _NOT_REVEALED = '상대 설정이 아직 공개되지 않아 이 관계를 아는지 확인할 수 없음'
@@ -131,7 +134,8 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
 
     - 그 인물 자신의 IDENTITY·SOUL·MEMORY와 `episode` 이하 회차 기억은 허용한다.
     - 다른 인물의 SOUL·MEMORY·회차 기억과 `revealFromEpisode`가 아직 안 온 카드는 아는 것이 아님이 확인되므로 조용히 뺀다.
-    - 근거를 확인할 수 없는 것은 빼고 Gap으로 남긴다: 관계로 연결되지 않은 다른 인물 카드, 그 인물이 끝점이 아닌 관계,
+    - 근거를 확인할 수 없는 것은 빼고 Gap으로 남긴다: 관계로 연결되지 않은 다른 인물·사건·물건 카드(부정 관계는 연결이 아니다),
+      그 인물이 끝점이 아닌 관계,
       상대 카드가 아직 공개되지 않았거나 스냅샷에 없는 관계(관계 문장에 상대 제목이 드러난다), 그 인물 이름이 나오지 않는 원고 발췌,
       형식을 알 수 없는 ref(닫힌 쪽으로 실패).
 
@@ -144,7 +148,8 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
         raise ValueError('세계관에 없는 인물입니다.')
     name = _fold(cards[character_id].title.strip())
     ends = {r.id: (r.source, r.target) for r in world.relations}
-    linked = {end for pair in ends.values() if character_id in pair for end in pair}
+    linked = {end for r in world.relations if r.polarity == 'asserted' and character_id in (r.source, r.target)
+              for end in (r.source, r.target)}
 
     def future(card: Card) -> bool:
         return card.revealFromEpisode is not None and card.revealFromEpisode > episode
@@ -172,7 +177,7 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
                 return True, ''
             if future(card):
                 return False, ''
-            return (False, _NOT_LINKED) if card.cardType == 'character' and card_id not in linked else (True, '')
+            return (False, _NOT_LINKED) if card.cardType in _LINKED_TYPES and card_id not in linked else (True, '')
         number = _EPISODE_DOC.fullmatch(part)
         if part not in ('soul', 'memory') and not number:
             return False, _UNKNOWN
@@ -204,17 +209,25 @@ def _documents(cards: list[Card]) -> dict[str, tuple[str, str]]:
     return {ref: doc for ref, doc in docs.items() if doc[1].strip()}
 
 
+def _relation_text(r: Relation, cards: dict[str, Card]) -> str:
+    denied = r.polarity == 'denied'
+    arrow = (_DENIED_ARROWS if denied else _ARROWS)[r.direction]
+    line = f'{cards[r.source].title} {arrow} {cards[r.target].title}' + (' (아님)' if denied else '')
+    return f'{line}: {r.label}' if r.label else line
+
+
 def _graph(world: WorldSnapshot, query: str) -> list[tuple[str, str, float]]:
     # 0단계: 질문에서 찾은 카드를 출발점으로 한 PPR 점수순 (ref, 본문, 점수). 관계의 점수는 두 끝점 점수의 평균이다.
+    # 부정(denied) 관계는 PPR이 걷는 간선에서 빼지만 관계 항목으로는 남는다(문장에 부정임이 드러난다).
     cards = {c.id: c for c in world.cards}
     relations = [r for r in world.relations if r.source in cards and r.target in cards]
-    scores = ppr(list(cards), [(r.source, r.target) for r in relations], seed_cards(query, world.cards))
+    edges = [(r.source, r.target) for r in relations if r.polarity == 'asserted']
+    scores = ppr(list(cards), edges, seed_cards(query, world.cards))
     found = [(_body_ref(cards[i]), cards[i].text, s) for i, s in scores.items() if s > 0 and cards[i].text.strip()]
     for r in relations:
         score = (scores.get(r.source, 0) + scores.get(r.target, 0)) / 2
-        line = f'{cards[r.source].title} {_ARROWS[r.direction]} {cards[r.target].title}'
         if score > 0:
-            found.append((f'relation:{r.id}', f'{line}: {r.label}' if r.label else line, score))
+            found.append((f'relation:{r.id}', _relation_text(r, cards), score))
     return sorted(found, key=lambda row: -row[2])
 
 

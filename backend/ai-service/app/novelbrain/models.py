@@ -27,12 +27,14 @@ class Card(BaseModel):
 
 
 class Relation(BaseModel):
-    """기준 회차 시점의 관계 하나. 끝점은 카드 id다."""
+    """기준 회차 시점의 관계 하나. 끝점은 카드 id다. `denied`는 '그런 관계가 아님'을 작가가 적은 부정 관계다."""
     id: str
     source: str
     target: str
     label: str
     direction: Literal['directed', 'symmetric'] | None = None
+    polarity: Literal['asserted', 'denied'] = 'asserted'
+    body: str = ''
 
 
 class WorldSnapshot(BaseModel):
@@ -103,7 +105,8 @@ def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
                 continue
             direction = r.get('direction')
             relations.append(Relation(id=relation_id, source=source, target=target, label=r.get('label') or '',
-                                      direction=direction if direction in _DIRECTIONS else None))
+                                      direction=direction if direction in _DIRECTIONS else None,
+                                      polarity='denied' if r.get('polarity') == 'denied' else 'asserted', body=r.get('body') or ''))
         return WorldSnapshot(worldId=read['worldId'], episode=episode, cards=cards, relations=relations)
     except (LookupError, TypeError, AttributeError, ValueError):
         raise ValueError('세계관 응답 형식을 확인할 수 없습니다.') from None
