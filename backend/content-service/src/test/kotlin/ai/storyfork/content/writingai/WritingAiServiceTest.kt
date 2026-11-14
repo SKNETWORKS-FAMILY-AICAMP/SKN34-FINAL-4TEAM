@@ -11,6 +11,7 @@ import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
 import ai.storyfork.content.writingai.service.dto.WritingAiRequest
 import ai.storyfork.content.writingai.service.dto.WritingAiResume
+import ai.storyfork.content.writingai.service.dto.WritingAiSimulation
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
@@ -118,6 +119,62 @@ class WritingAiServiceTest {
         val inputs = JsonMapper.builder().build().readTree("""{"web_research":{"question":"한양에서 동래까지?"}}""")
         val body = service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))
         assertEquals(inputs, (body["resume"] as Map<*, *>)["inputs"])
+    }
+
+    // [시뮬레이션] 버튼의 시작 양식(simulation): operation이 character_simulation인 새 요청에서만 받아 AI로 그대로 넘긴다.
+    private val button = ask.copy(request = "흐름 모드 시뮬레이션: 장면 계획 3개", operation = "character_simulation",
+        simulation = WritingAiSimulation("flow", beats = listOf("성문 대면", "숨긴 정체"), characterIds = listOf("k", "l")))
+
+    private fun scopeResolves() = `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
+        QaScope("work", null, 2, "r2", emptyList(), null))
+
+    @Test
+    fun `the simulation form of the button reaches the AI as it is with the operation`() {
+        scopeResolves()
+        val body = service.message("work", "owner", "thread", button)
+        assertEquals("character_simulation", body["operation"])
+        assertEquals(mapOf("mode" to "flow", "beats" to listOf("성문 대면", "숨긴 정체"), "characterIds" to listOf("k", "l")), body["simulation"])
+        val premise = WritingAiSimulation("if", premise = "만약 북문이 열려 있었다면?", characterIds = listOf("k"))
+        assertEquals(mapOf("mode" to "if", "premise" to "만약 북문이 열려 있었다면?", "characterIds" to listOf("k")),
+            service.message("work", "owner", "thread", button.copy(simulation = premise))["simulation"])
+        assertFalse("simulation" in service.message("work", "owner", "thread", ask))
+    }
+
+    @Test
+    fun `a simulation form is refused unless the request is a new character_simulation operation`() {
+        for (bad in listOf(button.copy(operation = null), button.copy(operation = "writing_editing"),
+            button.copy(request = null, resume = WritingAiResume(true), threadId = "thread"))) {
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.message("work", "owner", "thread", bad) }.status)
+        }
+        verifyNoInteractions(scopes)  // 권한 확인 전에 형식부터 막는다
+    }
+
+    @Test
+    fun `simulation form items over their limits never get past the service`() {
+        scopeResolves()
+        val form = button.simulation!!
+        for (bad in listOf(form.copy(beats = listOf("")), form.copy(beats = listOf("가".repeat(201))), form.copy(characterIds = listOf("")),
+            form.copy(characterIds = listOf("i".repeat(101))))) {
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.message("work", "owner", "thread", button.copy(simulation = bad)) }.status)
+        }
+        val edge = form.copy(beats = listOf("가".repeat(200)), characterIds = listOf("i".repeat(100)))
+        assertEquals(listOf("가".repeat(200)), (service.message("work", "owner", "thread", button.copy(simulation = edge))["simulation"] as Map<*, *>)["beats"])
+    }
+
+    @Test
+    fun `request validation bounds the mode and the sizes of the simulation form`() {
+        jakarta.validation.Validation.buildDefaultValidatorFactory().use { factory ->
+            val validator = factory.validator
+            val form = button.simulation!!
+            fun problems(simulation: WritingAiSimulation) = validator.validate(button.copy(simulation = simulation)).map { it.propertyPath.toString() }
+            assertTrue(validator.validate(button).isEmpty())
+            assertTrue(validator.validate(button.copy(simulation = form.copy(beats = List(8) { "비트" }, characterIds = List(6) { "id$it" }))).isEmpty())
+            assertEquals(listOf("simulation.mode"), problems(form.copy(mode = "story")))
+            assertEquals(listOf("simulation.premise"), problems(form.copy(premise = "가".repeat(501))))
+            assertEquals(listOf("simulation.beats"), problems(form.copy(beats = List(9) { "비트" })))
+            assertEquals(listOf("simulation.characterIds"), problems(form.copy(characterIds = emptyList())))
+            assertEquals(listOf("simulation.characterIds"), problems(form.copy(characterIds = List(7) { "id$it" })))
+        }
     }
 
     @Test

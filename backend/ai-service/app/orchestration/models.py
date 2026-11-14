@@ -9,7 +9,7 @@ from app.intent.models import Feature
 from app.manuscript.models import AnswerRequest, AnswerResponse, Excerpt
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
-from app.simulation.models import SimulationResult
+from app.simulation.models import SimulationPlan, SimulationResult
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
 
 
@@ -71,6 +71,9 @@ class OrchestrationRequest(BaseModel):
     materials: list[Annotated[str, Field(max_length=2000)]] = Field(default=[], max_length=8)
     inputs: StepInputs = StepInputs()
     fromTurn: int | None = Field(default=None, ge=0)  # 있으면 그 턴부터 지우고 이 request로 다시 실행한다(메시지 수정).
+    # [시뮬레이션] 버튼의 시작 양식(계약 '버튼 진입'). character_simulation 새 요청에서만 받고 길이·개수 한도는 SimulationPlan이 지킨다.
+    # 그래프의 simulation_plan이 이 값을 계획으로 쓰는 연결은 아직 없다(실행 구조 확정 뒤).
+    simulation: SimulationPlan | None = None
 
     @model_validator(mode='after')
     def turn_or_resume(self):
@@ -78,6 +81,8 @@ class OrchestrationRequest(BaseModel):
             raise ValueError('request와 resume 중 하나만 보내야 합니다.')
         if (self.resume is not None or self.fromTurn is not None) and self.conversation is None:
             raise ValueError('resume·fromTurn은 conversation이 필요합니다.')
+        if self.simulation is not None and (self.operation != 'character_simulation' or self.request is None):
+            raise ValueError('simulation은 character_simulation 새 요청에서만 보낼 수 있습니다.')
         return self
 
 

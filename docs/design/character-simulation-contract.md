@@ -96,6 +96,17 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 화면은 `turns[].prose`를 소설 문단으로 잇고 `checks`·`evidence`는 접어서 보인다. 끝나면 기존 승인 카드에 `초안에 반영`(=회차로 저장)을 보인다.
 - 승인 시 반영 본문은 `turns[].prose`를 빈 줄로 이은 텍스트이며, 기존 `content_mcp.apply_writing`의 Text 경로(초안 뒤에 잇기)를 쓴다.
 
+## 버튼 진입 (2026-11-14 사용자 결정)
+
+시연 진입은 집필실의 **[시뮬레이션] 버튼**이다. 채팅 자유 입력의 Router 분류는 건드리지 않는다. 버튼은 Router의 모델 분류를 거치지 않고 `operation`으로 기능을 직접 지정해, 모호한 문장이 되묻기로 끝나 시연이 끊기는 일을 피한다(가드레일은 기존 operation 경로대로 거친다).
+
+- 시작 양식(무대 패널): **IF**는 전제 한 줄("만약 ~했다면")과 참여 인물(연결 세계관의 인물 카드, 1~6명)이다. **흐름**은 이 작품의 장면 계획(`story_plan`, `kind=scene`) 중 열린 회차(`episode_number`)가 같은 것들을 순서대로 비트로 쓰고(`제목: 내용`을 200자로 자름, 최대 8개), 참여 인물은 그 계획들의 `characters` 합집합이다(양식에서 고칠 수 있다). 그 회차의 장면 계획이 없으면 안내하고 비트를 직접 입력하게 한다.
+- 시작은 채팅 메시지다: `operation: 'character_simulation'`, `request`(요약 문장, 예 "흐름 모드 시뮬레이션: 장면 계획 3개"), `simulation: {mode: 'if'|'flow', premise?: ≤500자, beats?: ≤8개 × ≤200자, characterIds: 1~6개 × ≤100자}`.
+- Content `WritingAiRequest.simulation`: `mode`·길이·개수를 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422, 권한 확인 전에 거절). 값은 그대로 AI에 넘긴다.
+- AI `OrchestrationRequest.simulation`: `SimulationPlan`과 같은 한도(전제 500자, 비트 8개×200자, 인물 6명×100자, 모르는 필드 거절)로 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422).
+  있으면 `simulation_plan`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
+  *(구현 상태: 두 서비스의 요청 검증·통과까지. `simulation_plan`의 계획 연결은 시뮬레이션 실행 구조를 바꾸는 작업에서 한다.)*
+
 ## 평가
 
 | 축 | 데이터셋 | 숫자 |
