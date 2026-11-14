@@ -469,7 +469,7 @@ def test_each_resume_writes_one_more_turn_and_the_finished_scene_waits_for_appro
     assert (done.status, done.awaitingApproval, done.awaitingScene, done.approvalEpisode) == ('waiting', 'character_simulation', None, 3)
     assert '시뮬레이션' in done.message and (done.steps[0].status, done.steps[0].result.status, len(done.steps[0].result.turns)) == ('completed', 'completed', 4)
     assert planned(calls) == ['route', 'sim_plan'] and applied == []  # 승인 전에는 쓰지 않고 라우팅·계획을 다시 하지 않는다
-    assert log.director == [['narration'], ['narration', 'monologue', 'speech'], ['narration', 'monologue', 'speech'], ['end']]
+    assert log.director == [['narration'], ['monologue', 'speech'], ['narration', 'monologue', 'speech'], ['end']]
 
 
 def test_scene_approval_writes_all_turns_in_order_joined_by_blank_lines_with_the_resuming_users_token(monkeypatch):

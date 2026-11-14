@@ -269,7 +269,7 @@ def rules(plan: SimulationPlan, scene: Scene) -> tuple[list[str], str | None]:
     """다음 턴의 규칙: (연출이 고를 수 있는 턴, 나레이션이 정해진 이유). 고를 수 있는 턴이 없으면 한도에 닿았다.
 
     장면 시작·작가의 메모·이야기의 끝·흐름 모드의 비트 전환에는 나레이션(마무리는 end)이 먼저다. 그 밖에는 나레이션·독백·대사 중에서
-    고르되 나레이션·독백이 두 번 이어지면 이번엔 대사다.
+    고르되 직전 턴이 나레이션이면 나레이션을 연달아 쓰지 않고(독백·대사만) 나레이션·독백이 두 번 이어지면 이번엔 대사다.
     """
     turns, trail = scene.result.turns, scene.trail
     if not trail:
@@ -283,7 +283,9 @@ def rules(plan: SimulationPlan, scene: Scene) -> tuple[list[str], str | None]:
     if sum(t.kind == 'character' for t in turns) >= TURN_LIMIT or len(turns) >= MAX_TURNS:
         return [], None
     quiet = len(turns) >= 2 and all(t.kind != 'character' for t in turns[-2:])
-    return (['speech'] if quiet else ['narration', 'monologue', 'speech']), None
+    if quiet:
+        return ['speech'], None
+    return (['monologue', 'speech'] if turns[-1].kind == 'narration' else ['narration', 'monologue', 'speech']), None
 
 
 def seen_lines(scene: Scene) -> list[dict]:
