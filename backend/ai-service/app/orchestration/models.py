@@ -9,7 +9,7 @@ from app.intent.models import Feature
 from app.manuscript.models import AnswerRequest, AnswerResponse, Excerpt
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
-from app.simulation.models import SimulationPlan, SimulationResult
+from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
 
 
@@ -52,11 +52,16 @@ class WritingTarget(BaseModel):
 
 
 class Resume(BaseModel):
-    """interrupt로 멈춘 실행에 대한 작가·Content의 답. 입력 대기면 빠진 단계 입력을, 반영 승인 대기면 승인 여부만 보낸다."""
+    """interrupt로 멈춘 실행에 대한 작가·Content의 답. 입력 대기면 빠진 단계 입력을, 반영 승인 대기면 승인 여부만 보낸다.
+
+    scene은 시뮬레이션 무대의 장면 조작(next·edit·redo·stop)이다. scene이 있으면 approved는 적용하지 않고 장면을 처리한 뒤 다시 멈춘다
+    (승인·거절은 scene 없는 resume으로만 한다).
+    """
     model_config = ConfigDict(extra='forbid')
     approved: bool
     inputs: StepInputs = StepInputs()
     scope: RetrievalScope | None = None  # Content가 resume 때 새로 서명한 Q&A 조회 토큰
+    scene: SceneAction | None = None
 
 
 class OrchestrationRequest(BaseModel):
@@ -112,7 +117,7 @@ class OrchestrationResponse(BaseModel):
     """steps는 계획 순서다. clarify·rejected·unsupported·needs_input·cancelled면 아무 Agent도 실행하지 않았다.
 
     waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다. 입력 대기면 missingInputs,
-    Writing 결과·시뮬레이션 장면 반영 승인 대기면 awaitingApproval이 있다.
+    Writing 결과·시뮬레이션 장면 반영 승인 대기면 awaitingApproval, 시뮬레이션 장면의 턴 사이 대기면 awaitingScene이 있다.
     """
     status: Literal['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']
     runId: str | None = None  # Langfuse trace id. 추적이 꺼져 있으면 없다.
@@ -121,6 +126,7 @@ class OrchestrationResponse(BaseModel):
     missingInputs: list[Feature] = []
     unsupported: list[Feature] = []
     awaitingApproval: Feature | None = None
+    awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
     approvalEpisode: int | None = None
 
 

@@ -19,7 +19,8 @@ async def orchestrate(data: OrchestrationRequest, x_internal_token: str = Header
                       x_user_authorization: str = Header(default='')) -> OrchestrationResponse:
     """자유 입력 또는 UI 선택 기능을 Router로 계획하고, 검증을 통과하면 구현된 Agent를 계획 순서로 실행한다.
 
-    대화에서 입력이 빠지거나 Writing 결과·시뮬레이션 장면 반영 승인이 필요하면 waiting으로 멈추고, 같은 conversation의 resume으로 이어간다.
+    대화에서 입력이 빠지거나 Writing 결과·시뮬레이션 장면 반영 승인이 필요하거나 시뮬레이션 장면이 턴 사이에서 작가의 조작을 기다리면 waiting으로 멈추고,
+    같은 conversation의 resume으로 이어간다(장면 조작은 resume.scene, 받을 수 없는 조작은 422).
     X-User-Authorization은 Content가 전달한 작가의 Bearer이며 승인된 반영의 Content MCP 호출에만 쓴다.
     """
     require_internal_token(x_internal_token)
@@ -35,6 +36,8 @@ async def orchestrate(data: OrchestrationRequest, x_internal_token: str = Header
         raise HTTPException(409, service.NOTHING_TO_RESUME_MESSAGE) from None
     except service.ConversationNotFound:
         raise HTTPException(404, service.CONVERSATION_NOT_FOUND_MESSAGE) from None
+    except service.SceneRejected as error:
+        raise HTTPException(422, str(error)) from None
 
 
 def internal_token(x_internal_token: str = Header(default='')) -> None:
@@ -46,7 +49,7 @@ def internal_token(x_internal_token: str = Header(default='')) -> None:
              dependencies=[Depends(internal_token)])
 async def orchestrate_stream(data: OrchestrationRequest,
                              x_user_authorization: str = Header(default='')) -> AsyncIterator[ServerSentEvent]:
-    """같은 실행을 SSE로 흘린다: plan, 단계마다 started·step(시뮬레이션은 턴마다 step), 멈추면 waiting, 마지막 done(실패 시 error)."""
+    """같은 실행을 SSE로 흘린다: plan, 단계마다 started·step(시뮬레이션은 턴이 끝날 때마다 누적 결과 step), 멈추면 waiting, 마지막 done(실패 시 error)."""
     async for event in service.stream(data, x_user_authorization):
         yield event
 
