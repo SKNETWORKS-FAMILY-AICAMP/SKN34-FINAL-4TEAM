@@ -144,20 +144,6 @@ class SyncExecutor:
         return failed
 
 
-class HybridExecutor:
-    """작은 라운드는 동기로(기다리지 않게), 큰 라운드는 Batch로(절반 가격)."""
-
-    def __init__(self, sync: Callable, batch: Callable, threshold: int = 300):
-        self.sync, self.batch, self.threshold = sync, batch, threshold
-
-    def __call__(self, requests: dict) -> set[str]:
-        return (self.batch if len(requests) >= self.threshold else self.sync)(requests)
-
-    @property
-    def uses_batch(self) -> bool:
-        return True
-
-
 class BatchExecutor:
     """Batch API(`/v1/responses`)로 요청을 묶어 제출·폴링·회수한다. 응답은 동기 호출과 같은 형식으로 캐시에 쓰고 Batch 가격으로 장부에 남긴다.
 
@@ -223,7 +209,18 @@ class BatchExecutor:
         failed |= set(keys) - seen
         state['done'] = True
         state_path.write_text(json.dumps(state))
+        self._delete_files(batch)
         return failed
+
+    def _delete_files(self, batch) -> None:
+        """끝난 배치의 입력·출력·오류 파일을 OpenAI에서 지운다(요청에 든 원문이 제공사 파일 저장소에 남지 않게). 지우지 못해도 평가는 계속한다."""
+        for name in ('input_file_id', 'output_file_id', 'error_file_id'):
+            file_id = getattr(batch, name, None)
+            if file_id:
+                try:
+                    self.client.files.delete(file_id)
+                except Exception:  # noqa: BLE001  정리는 최선만 한다(실패해도 결과에는 영향이 없다)
+                    self.log(f'파일 {file_id} 삭제 실패(수동으로 지워야 한다)')
 
     def __call__(self, requests: dict) -> set[str]:
         keys = sorted(requests)
@@ -245,6 +242,7 @@ class BatchExecutor:
                     self.log(f'배치 {batch_id} 토큰 한도 초과: {len(chunk)}건을 둘로 나눠 다시 제출')
                     chunks[:0] = [chunk[:half], chunk[half:]]
                     (self.state_dir / f'{name}.json').write_text(json.dumps({'batch_id': batch_id, 'keys': chunk, 'done': True}))
+                    self._delete_files(batch)
                     continue
                 bad = self._ingest(name, requests, batch)
                 self.log(f'배치 {batch_id} {batch.status}: 요청 {len(chunk)}건 중 실패·누락 {len(bad)}건')
@@ -292,15 +290,13 @@ OUT_GUESS = {'label': 3000, 'world': 2500, 'learn': 800, 'profile': 500, 'questi
 
 
 def make_executor(llm: Llm, mode: str, state_dir):
-    """mode: sync(스레드 호출) · batch(Batch API, 절반 가격) · hybrid(요청 300건 이상인 라운드만 Batch). 제출한 배치는 state_dir에 남아 이어 받는다."""
-    sync = SyncExecutor(llm)
+    """mode: sync(스레드 호출) 또는 batch(Batch API, 절반 가격). 제출한 배치는 state_dir에 남아 중단 뒤에 이어 받는다."""
     if mode == 'sync':
-        return sync
+        return SyncExecutor(llm)
     from openai import OpenAI
 
     client = OpenAI(api_key=os.environ['OPENAI_API_KEY'], timeout=120, max_retries=5)   # 폴링 중 일시 오류는 SDK 재시도에 맡긴다
-    batch = BatchExecutor(llm, client, state_dir)
-    return batch if mode == 'batch' else HybridExecutor(sync, batch)
+    return BatchExecutor(llm, client, state_dir)
 
 
 def plan_for(llm: Llm, mode: str, limit_usd: float = LIMIT_USD) -> dict:

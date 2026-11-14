@@ -6,7 +6,6 @@
 import json
 
 import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여야 한다(스크립트로 실행할 때 eval/novelbrain을 찾는다)
-from batch import cost_report, plan_for  # noqa: F401  다른 kt_* 모듈이 여기서 가져간다
 from batch import make_executor as _make_executor
 from kt_common import COST, KT, LIMIT_USD
 from llm import Llm, usd_llm

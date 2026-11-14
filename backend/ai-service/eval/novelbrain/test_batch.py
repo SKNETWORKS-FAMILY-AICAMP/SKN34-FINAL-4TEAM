@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 from pydantic import BaseModel
 
-from batch import BatchExecutor, HybridExecutor, Pending, Planner, Round, SyncExecutor, estimate, parse_body, run_rounds, strict_schema
+from batch import BatchExecutor, Pending, Planner, Round, SyncExecutor, estimate, parse_body, run_rounds, strict_schema
 from cost import CostLog
 from llm import Ledger, Llm, LlmFailure
 
@@ -128,8 +128,8 @@ class BatchFake:
 
     def __init__(self, fail_on=None, bad_status=None, statuses=('in_progress', 'completed')):
         self.fail_on, self.bad_status, self.statuses = fail_on, bad_status, list(statuses)
-        self.uploads, self.created, self.retrieved, self.files_store = [], [], 0, {}
-        self.files = SimpleNamespace(create=self._file_create, content=self._file_content)
+        self.uploads, self.created, self.retrieved, self.files_store, self.deleted = [], [], 0, {}, []
+        self.files = SimpleNamespace(create=self._file_create, content=self._file_content, delete=self.deleted.append)
         self.batches = SimpleNamespace(create=self._create, retrieve=self._retrieve)
 
     def _file_create(self, file, purpose):
@@ -160,7 +160,8 @@ class BatchFake:
                     payload = '{"value": 3}' if 'text' in item['body'] else text
                     lines.append({'custom_id': item['custom_id'], 'response': {'status_code': 200, 'body': body(payload)}, 'error': None})
             self.files_store[f'out-{index}'] = '\n'.join(json.dumps(line) for line in lines)
-        return SimpleNamespace(id=batch_id, status=status, output_file_id=f'out-{index}' if done else None, error_file_id=None, errors=None)
+        return SimpleNamespace(id=batch_id, status=status, input_file_id=f'file-{index}', output_file_id=f'out-{index}' if done else None,
+                               error_file_id=None, errors=None)
 
     def _file_content(self, file_id):
         return SimpleNamespace(text=self.files_store[file_id])
@@ -190,6 +191,7 @@ def test_batch_executor_uploads_polls_and_fills_the_cache_at_batch_prices(tmp_pa
     assert upload[0]['body']['model'] == 'm' and upload[0]['body']['store'] is False and upload[0]['body']['max_output_tokens'] == 500
     assert client.created == [{'input_file_id': 'file-0', 'endpoint': '/v1/responses', 'window': '24h'}]
     assert llm.ask('gen', 'ins', 'abc', max_output_tokens=500) == 'cba'          # 캐시에서 읽힌다(호출 없음)
+    assert client.deleted == ['file-0', 'out-0']                                  # 끝난 배치의 입력·출력 파일은 OpenAI에서 지운다
     rows = llm.cost.rows()
     assert len(rows) == 2 and all(r['batch'] and not r['failed'] for r in rows)
 
@@ -243,17 +245,6 @@ def test_batch_executor_splits_requests_into_chunks(tmp_path):
     requests = reqs(llm, *[f'text{i}' for i in range(5)])
     assert batch_executor(tmp_path, client, llm, max_requests=2)(requests) == set()
     assert [len(u) for u in client.uploads] == [2, 2, 1]
-
-
-def test_hybrid_executor_uses_sync_for_small_rounds_and_batch_for_large(tmp_path):
-    calls = []
-    llm = make_llm(tmp_path)
-    sync = lambda r: calls.append(('sync', len(r))) or set()  # noqa: E731
-    batch = lambda r: calls.append(('batch', len(r))) or set()  # noqa: E731
-    hybrid = HybridExecutor(sync, batch, threshold=3)
-    hybrid(reqs(llm, 'a', 'b'))
-    hybrid(reqs(llm, 'c', 'd', 'e'))
-    assert calls == [('sync', 2), ('batch', 3)]
 
 
 def test_estimate_uses_chars_per_token_and_batch_discount(tmp_path):

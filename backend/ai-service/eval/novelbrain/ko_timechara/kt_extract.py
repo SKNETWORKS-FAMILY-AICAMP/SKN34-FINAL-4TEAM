@@ -3,7 +3,7 @@
 
     cd backend/ai-service
     set -a; . <저장소 루트 .env>; set +a
-    uv run --locked --extra dev python eval/novelbrain/ko_timechara/kt_extract.py [--mode=sync|batch|hybrid] [작품 id …]
+    uv run --locked --extra dev python eval/novelbrain/ko_timechara/kt_extract.py [--mode=sync|batch] [작품 id …]
 
 결과는 `KT/works/<id>/{knowledge.jsonl,world.json,extract_stats.json}`(git 무시)에 쓰고 화면에는 집계만 낸다.
 """
@@ -14,9 +14,9 @@ from collections import Counter
 from pathlib import Path
 
 import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여야 한다(스크립트로 실행할 때 eval/novelbrain을 찾는다)
-from batch import Round, run_rounds
+from batch import Round, cost_report, plan_for, run_rounds
 from kt_common import KT
-from kt_exec import cost_report, load_works, make_executor, make_llm, plan_for
+from kt_exec import load_works, make_executor, make_llm
 from kt_label import (LABEL_INSTRUCTIONS, LABEL_TOKENS, LEARN_INSTRUCTIONS, LEARN_TOKENS, EpisodeLabel, LearnedLabel, build_knowledge,
                       learned_input, verify_episode, verify_learned)
 from kt_text import canonical_names
