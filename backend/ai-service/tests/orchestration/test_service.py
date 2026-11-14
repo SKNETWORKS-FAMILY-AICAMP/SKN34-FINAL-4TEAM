@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import pytest
 
+from app.content_mcp.errors import ContentMcpFailure
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE
 from app.manuscript.errors import ManuscriptFailure
@@ -609,11 +610,13 @@ def test_any_other_retrieval_error_still_fails_the_scene_run(monkeypatch):
     assert (result.status, result.steps[0].status, result.steps[0].error, result.steps[0].result.notice) == ('failed', 'failed', '공개 원고 범위가 변경됐어요.', None)
 
 
-def test_world_failure_fails_the_scene_with_the_reason(monkeypatch):
+@pytest.mark.parametrize('failure', [SimulationFailure(409, '이 작품에 연결된 세계관이 없어 시뮬레이션을 실행할 수 없어요.'),
+                                     ContentMcpFailure(409, '이 세계관은 회차별 관계로 옮겨지지 않았어요.')])  # 회차를 지정한 조회가 409여도 같다
+def test_world_failure_fails_the_scene_with_the_reason(monkeypatch, failure):
     fake_agents(monkeypatch, plan('character_simulation'))
-    fake_scene(monkeypatch, read=SimulationFailure(409, '이 작품에 연결된 세계관이 없어 시뮬레이션을 실행할 수 없어요.'))
+    fake_scene(monkeypatch, read=failure)
     result = run(REQUEST, target=TARGET)
-    assert (result.status, result.steps[0].status, result.steps[0].error) == ('failed', 'failed', '이 작품에 연결된 세계관이 없어 시뮬레이션을 실행할 수 없어요.')
+    assert (result.status, result.steps[0].status, result.steps[0].error) == ('failed', 'failed', str(failure))
     assert (result.steps[0].result.status, result.steps[0].result.turns) == ('failed', [])
 
 

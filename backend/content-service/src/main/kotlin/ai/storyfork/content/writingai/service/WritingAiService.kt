@@ -94,6 +94,10 @@ internal class WritingAiService(
                 message="시뮬레이션 설정은 시뮬레이션 새 요청에서만 보낼 수 있어요.")
             checkContent(form.beats.orEmpty().all { it.length in 1..200 } && form.characterIds.all { it.length in 1..100 },
                 message="시뮬레이션 비트는 200자, 인물 id는 100자 이하의 글이어야 해요.")
+            checkContent(form.premise == null || form.premise.isNotBlank(), message="시뮬레이션 전제는 비워 둘 수 없어요.")  // 값이 있으면 AI가 1자 이상을 요구한다
+        }
+        request.resume?.scene?.let { scene ->
+            checkContent(scene.text == null || scene.text.isNotBlank(), message="고친 줄의 글은 비워 둘 수 없어요.")  // AI가 edit의 빈 글을 거절하면 502가 된다
         }
         // 반영 회차는 근거 회차와 다를 수 있다(발행 전 초안을 열어 둔 경우). 새 요청에서만 정하고, 이어가기는 대화에 저장된 target을 쓴다.
         val reflect = request.targetEpisode ?: request.episode

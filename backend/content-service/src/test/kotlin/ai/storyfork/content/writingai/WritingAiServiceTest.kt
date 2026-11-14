@@ -245,6 +245,23 @@ class WritingAiServiceTest {
     }
 
     @Test
+    fun `a blank premise or edit text is refused here as a 422 instead of becoming an AI error shown as a 502`() {
+        scopeResolves()
+        val form = WritingAiSimulation("if", premise = "만약 북문이 열려 있었다면?", characterIds = listOf("k"))
+        for (bad in listOf("", "   ", "\n\t ")) {
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.message("work", "owner", "thread", button.copy(simulation = form.copy(premise = bad))) }.status)
+            val edit = ask.copy(request = null, threadId = "thread", resume = WritingAiResume(true, scene = WritingAiScene("edit", turn = 0, text = bad)))
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.message("work", "owner", "thread", edit) }.status)
+        }
+        // 값이 있으면 그대로 통과하고, 선택 필드의 생략(흐름 모드의 전제, edit가 아닌 조작의 글)도 막지 않는다.
+        service.message("work", "owner", "thread", button.copy(simulation = form))
+        service.message("work", "owner", "thread", button)
+        val edited = ask.copy(request = null, threadId = "thread", resume = WritingAiResume(true, scene = WritingAiScene("edit", turn = 0, text = "고친 줄")))
+        assertEquals("고친 줄", ((service.message("work", "owner", "thread", edited)["resume"] as Map<*, *>)["scene"] as Map<*, *>)["text"])
+        service.message("work", "owner", "thread", edited.copy(resume = WritingAiResume(true, scene = WritingAiScene("next", note = "끼어들기"))))
+    }
+
+    @Test
     fun `request validation bounds the mode and the sizes of the simulation form`() {
         jakarta.validation.Validation.buildDefaultValidatorFactory().use { factory ->
             val validator = factory.validator

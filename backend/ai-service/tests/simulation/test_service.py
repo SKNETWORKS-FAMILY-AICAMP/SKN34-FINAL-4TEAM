@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from app.content_mcp.errors import ContentMcpFailure
 from app.manuscript.models import Excerpt
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
@@ -26,6 +27,22 @@ def test_world_is_the_one_linked_to_the_work_and_is_read_at_the_base_episode(mon
                                               {'worldId': WORLD, 'linkedWorkId': 'work'}])
     assert service.read_world('work', EPISODE) == READ
     assert calls == [('world_studio_list', {}), ('world_studio_read', {'id': WORLD, 'episode': '3'})]
+
+
+def test_a_409_from_the_episode_scoped_world_read_fails_as_it_is_and_is_never_retried_without_the_episode(monkeypatch):
+    calls = []
+
+    def call(tool, arguments):
+        calls.append((tool, arguments))
+        if tool == 'world_studio_list':
+            return [{'worldId': WORLD, 'linkedWorkId': 'work'}]
+        raise ContentMcpFailure(409, '이 세계관은 회차별 관계로 옮겨지지 않았어요.')
+
+    monkeypatch.setattr(service.content_mcp, 'call', call)
+    with pytest.raises(ContentMcpFailure) as error:
+        service.read_world('work', EPISODE)
+    assert (error.value.status, str(error.value)) == (409, '이 세계관은 회차별 관계로 옮겨지지 않았어요.')
+    assert [(tool, args.get('episode')) for tool, args in calls] == [('world_studio_list', None), ('world_studio_read', str(EPISODE))]  # 회차를 생략한 재조회가 없다
 
 
 def test_work_without_a_linked_world_fails_explicitly_without_reading_any_world(monkeypatch):
@@ -222,6 +239,14 @@ def test_a_note_comes_before_every_other_rule_and_the_turn_cap_counts_every_kind
     after_narration = scene_of(PLAN_IF, ('narration', {})).model_copy(update={'memo': '비가 온다'})
     assert service.rules(PLAN_IF, after_narration) == (['narration'], 'note')  # 작가의 메모는 나레이션 직후에도 나레이션으로 옮긴다
     assert service.rules(PLAN_IF, scene_of(PLAN_IF, ('narration', {}), *([('character', {}), ('narration', {}), ('monologue', {})] * 13))) == ([], None)
+    # 작가의 메모도 전체 40턴 안전 한도는 넘지 못한다. 마무리는 한도에서도 쓴다(필수 마무리의 예외).
+    cycle = [('character', {}), ('narration', {}), ('monologue', {}), ('narration', {})]
+    at_cap = scene_of(PLAN_IF, ('narration', {}), *(cycle * 9), ('character', {}), ('narration', {}), ('monologue', {}))
+    assert len(at_cap.result.turns) == 40
+    assert service.rules(PLAN_IF, at_cap.model_copy(update={'memo': '비가 온다'})) == ([], None)
+    assert service.rules(PLAN_IF, scene_of(PLAN_IF, ('narration', {}), *(cycle * 9), ('character', {}), ('narration', {})).model_copy(update={'memo': '비가 온다'})) == (['narration'], 'note')
+    ended_at_cap = scene_of(PLAN_IF, ('narration', {}), *(cycle * 9), ('character', {}), ('narration', {}), ('character', {'ended': True}))
+    assert len(ended_at_cap.result.turns) == 40 and service.rules(PLAN_IF, ended_at_cap) == (['end'], 'closing')
     # 인물 대사는 한도 아래여도 나레이션·독백까지 합친 턴이 상한에 닿으면 멈춘다
     many = scene_of(PLAN_IF, ('narration', {}), *([('character', {}), ('narration', {}), ('monologue', {}), ('narration', {})] * 10))
     assert sum(t.kind == 'character' for t in many.result.turns) == 10 and len(many.result.turns) == 41 and service.rules(PLAN_IF, many) == ([], None)

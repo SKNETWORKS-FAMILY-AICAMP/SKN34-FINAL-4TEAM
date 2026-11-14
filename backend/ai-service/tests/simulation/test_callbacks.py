@@ -97,6 +97,24 @@ def test_usage_callback_leaves_one_span_per_turn_in_the_trace_without_any_text(m
     assert 'KAEL' not in str(dict(turns[1].attributes)) and action().prose not in str(dict(turns[1].attributes))
 
 
+def test_a_failed_directors_decision_call_is_finalized_in_the_ledger_and_announced_as_a_failed_step(monkeypatch):
+    staged(monkeypatch)
+    monkeypatch.setattr(director, 'decide', real_decide)
+    wired(monkeypatch, {'error': 'x'}, status=500)  # 연출 결정(Decisions) 호출이 서버 오류로 실패한다
+    usage = UsageCallback()
+
+    async def collect():
+        agent = scene_agent.build_scene_agent(False)
+        return [chunk async for chunk in agent.astream(seed(PLAN_IF), {'callbacks': [usage, SceneEvents()]}, context=context(PLAN_IF), stream_mode='custom')]
+
+    chunks = asyncio.run(collect())
+    assert [(c['status'], c['result']['status'], c['result']['turns']) for c in chunks] == [('failed', 'failed', [])]
+    assert chunks[0]['error'] == '연출 결정 모델 호출에 실패했습니다.'
+    (turn,) = usage.turns  # 턴 이벤트가 없어도 실패한 연출 호출의 지연·실패가 장부에서 사라지지 않는다
+    assert (turn['status'], turn['failures'], turn['modelCalls']) == ('failed', 1, 1)
+    assert [(c['name'], c['failed'], c['inputTokens']) for c in turn['calls']] == [('director', True, None)]
+
+
 def test_the_directors_decisions_call_lands_in_the_ledger_of_the_turn_it_decided(monkeypatch):
     staged(monkeypatch, verdicts=lambda payload: verdict(payload, scene_complete=True))
     monkeypatch.setattr(director, 'decide', real_decide)  # 연출 결정만 실제 함수로 두고 Decisions 응답은 목 전송으로 준다

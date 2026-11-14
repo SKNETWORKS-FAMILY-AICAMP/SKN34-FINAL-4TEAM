@@ -128,7 +128,9 @@ class DirectorMiddleware(AgentMiddleware):
             last = scene.result.turns[-1].pov if scene.result.turns else None
             decision = await director.decide(service.director_state(context.plan, scene, required), allowed, cast, last)
         except FAILURES as failure:
-            return {'scene': _dump(service.stop_scene(scene, str(failure), 'failed')), 'pending': True, 'jump_to': stop}
+            stopped = service.stop_scene(scene, str(failure), 'failed')
+            await adispatch_custom_event('scene', context.step(stopped))  # 턴이 없어도 실패한 연출 호출의 사용량을 장부에 확정하고 실패한 장면을 알린다
+            return {'scene': _dump(stopped), 'pending': True, 'jump_to': stop}
         return {'scene': _dump(scene), 'decision': decision.model_dump()}
 
     async def awrap_model_call(self, request, handler) -> ModelResponse:
