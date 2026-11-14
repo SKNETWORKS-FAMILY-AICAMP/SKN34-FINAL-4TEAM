@@ -5,6 +5,14 @@ import { PopMenu } from '../PopMenu'
 import './chat.css'
 
 const who = { user: '나', assistant: 'AI', system: '안내' } as const
+
+/** OpenAI 전송·비용 동의 한 줄. 집필 AI 채팅 입력창 위와 시뮬레이션 무대가 같은 문구·같은 값을 쓴다. */
+export function ConsentCheck({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
+  return <label className="chat-consent">
+    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+    <span>질문과 발행 회차 일부를 OpenAI로 보내고 API 비용이 드는 데 동의해요.</span>
+  </label>
+}
 const kinds = ['image', 'audio'] as const
 const kindLabel = { image: '이미지', audio: '음성' } as const
 

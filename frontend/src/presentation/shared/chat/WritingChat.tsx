@@ -5,7 +5,7 @@ import { featureLabel, replyText, stepText, type ChatBasis, type ChatReply, type
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
-import { ChatPanel } from './ChatPanel'
+import { ChatPanel, ConsentCheck } from './ChatPanel'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
 
 const stateLabel = { done: '완료', run: '진행 중', wait: '대기', stop: '멈춤', fail: '실패' } as const
@@ -120,14 +120,15 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
  */
 type WritingChatProps = {
   workId: string | null; emptyTitle: string; emptyText: string; suggestions: string[]; onOpenStage?: () => void
-} & ({ chat: ChatViewModel } | { chat?: undefined; basis: ChatBasis | null; onApplied?: (episode: number) => void })
-
-export function WritingChat(props: WritingChatProps) {
-  return props.chat ? <WorkChat key={props.workId} vm={props.chat} {...props} /> : <OwnedChat key={props.workId} {...props} />
+  chat?: ChatViewModel; basis?: ChatBasis | null; onApplied?: (episode: number) => void
 }
 
-function OwnedChat({ basis, onApplied, ...rest }: Omit<Extract<WritingChatProps, { basis: ChatBasis | null }>, 'chat'>) {
-  const vm = useWritingChatViewModel(rest.workId, basis, onApplied)
+export function WritingChat({ chat, basis = null, onApplied, ...rest }: WritingChatProps) {
+  return chat ? <WorkChat key={rest.workId} vm={chat} {...rest} /> : <OwnedChat key={rest.workId} basis={basis} onApplied={onApplied} {...rest} />
+}
+
+function OwnedChat({ basis, onApplied, ...rest }: Omit<WritingChatProps, 'chat'>) {
+  const vm = useWritingChatViewModel(rest.workId, basis ?? null, onApplied)
   return <WorkChat vm={vm} {...rest} />
 }
 
@@ -204,9 +205,6 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
         {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.basisEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} />}
         {vm.error && <div className="chat-error" role="alert"><p>{vm.error}</p><button type="button" className="btn sm" onClick={vm.retry}>다시 불러오기</button></div>}
       </> : undefined}
-      composerTop={vm.available && <label className="chat-consent">
-        <input type="checkbox" checked={vm.consent} onChange={(e) => vm.setConsent(e.target.checked)} />
-        <span>질문과 발행 회차 일부를 OpenAI로 보내고 API 비용이 드는 데 동의해요.</span>
-      </label>} />
+      composerTop={vm.available && <ConsentCheck checked={vm.consent} onChange={vm.setConsent} />} />
   </>
 }

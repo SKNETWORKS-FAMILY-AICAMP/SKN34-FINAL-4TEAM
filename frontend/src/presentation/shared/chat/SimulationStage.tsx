@@ -1,23 +1,16 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 
 import {
-  beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
+  beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, SIM_BEATS_MAX, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
   type CharacterSimulation, type SimulationStart, type SimulationTurn,
 } from '../../../domain/entities/characterSimulation'
+import { SCENE_NOTE_MAX, SCENE_TEXT_MAX } from '../../../domain/entities/writingChat'
 import { ManuscriptBody } from '../media/MediaPanel'
+import { ConsentCheck } from './ChatPanel'
 import { useSimulationSetupViewModel } from './useSimulationSetupViewModel'
 import type { StageViewModel } from './useSimulationStageViewModel'
 import './chat.css'
 import './stage.css'
-
-/** OpenAI 전송·비용 동의. 채팅 입력창 위 동의와 같은 값이다(채팅을 접어 둬도 무대에서 체크할 수 있다). */
-function Consent({ stage }: { stage: StageViewModel }) {
-  if (!stage.available) return null
-  return <label className="chat-consent">
-    <input type="checkbox" checked={stage.consent} onChange={(e) => stage.setConsent(e.target.checked)} />
-    <span>질문과 발행 회차 일부를 OpenAI로 보내고 API 비용이 드는 데 동의해요.</span>
-  </label>
-}
 
 /**
  * 시작 양식(버튼 진입): 모드를 고르고 IF는 전제, 흐름은 이 회차의 장면 계획(없으면 직접 입력)을 비트로 정하며 참여 인물을 1~6명 고른다.
@@ -31,20 +24,21 @@ function StartFields({ stage, data, planEpisode, plotLink }: {
   const [premise, setPremise] = useState('')
   const [lines, setLines] = useState('')
   // 모드마다 고른 인물을 따로 둔다: 흐름은 장면 계획의 인물을 미리 고르고, IF는 작가가 고른다.
-  const [picked, setPicked] = useState<Record<'if' | 'flow', string[]>>({ if: [], flow: data.characterIds })
-  const ids = data.characters.filter((character) => picked[mode].includes(character.id)).map((character) => character.id)
+  const [chosen, setChosen] = useState<Record<'if' | 'flow', string[]>>({ if: [], flow: data.characterIds })
+  const people = data.characters.filter((character) => chosen[mode].includes(character.id))
+  const ids = people.map((character) => character.id)
   const fromPlan = mode === 'flow' && data.beats.length > 0
   const start: SimulationStart = mode === 'if'
     ? { mode: 'if', premise, characterIds: ids }
     : { mode: 'flow', beats: fromPlan ? data.beats : lines.split('\n'), characterIds: ids }
   const problem = stage.issue(start)
-  const toggle = (characterId: string) => setPicked((now) => ({
+  const toggle = (characterId: string) => setChosen((now) => ({
     ...now, [mode]: now[mode].includes(characterId) ? now[mode].filter((other) => other !== characterId) : [...now[mode], characterId],
   }))
   const submit = (e: FormEvent) => {
     e.preventDefault()
     if (problem || stage.blocked || stage.pending) return
-    void stage.start(start, fromPlan ? 'plan' : 'manual', Object.fromEntries(data.characters.filter((character) => ids.includes(character.id)).map((character) => [character.id, character.name])))
+    void stage.start(start, fromPlan ? 'plan' : 'manual', Object.fromEntries(people.map((character) => [character.id, character.name])))
   }
   return <form className="stage-form" onSubmit={submit}>
     <fieldset className="stage-fieldset">
@@ -64,7 +58,7 @@ function StartFields({ stage, data, planEpisode, plotLink }: {
         : <div className="stage-plan">
           <p>이 회차의 장면 계획이 없어요.</p>
           <p className="chat-note">{plotLink}에서 장면 계획을 만들거나, 아래에 비트를 직접 적어 주세요.</p>
-          <label className="chat-field">비트 (한 줄에 하나, 최대 8줄)
+          <label className="chat-field">비트 (한 줄에 하나, 최대 {SIM_BEATS_MAX}줄)
             <textarea rows={4} value={lines} placeholder={'예:\n성문 앞에서 두 사람이 마주친다\n협상이 결렬된다'} onChange={(e) => setLines(e.target.value)} />
           </label>
         </div>}
@@ -79,7 +73,7 @@ function StartFields({ stage, data, planEpisode, plotLink }: {
       <p className="chat-note">{ids.length}명 선택</p>
     </fieldset>
     {problem && !problem.missing && <p className="stage-reason" role="status">{problem.text}</p>}
-    <Consent stage={stage} />
+    {stage.available && <ConsentCheck checked={stage.consent} onChange={stage.setConsent} />}
     {stage.blocked && <p className="chat-note">{stage.blocked}</p>}
     <button type="submit" className="btn pri" disabled={!!problem || !!stage.blocked || stage.pending}>시뮬레이션 시작</button>
   </form>
@@ -115,44 +109,41 @@ function Checks({ turn }: { turn: SimulationTurn }) {
   </details>
 }
 
-type Editing = { turn: number; text: string } | null
-
 /**
  * 대본 한 줄: 나레이션은 이탤릭·회색 지문 블록, 독백은 시점 인물 이름 + 속마음 표시의 이탤릭 블록, 인물은 이름 + 말풍선.
  * 줄마다 수정·다시 말하기가 있다(작가가 고친 줄은 검사 결과가 없다).
  */
-function Turn({ turn, stage, workId, episode, editing, setEditing, lockId }: {
-  turn: SimulationTurn; stage: StageViewModel; workId: string; episode: number; editing: Editing; setEditing: (value: Editing) => void; lockId: string
-}) {
+function Turn({ turn, stage, workId, episode, lockId }: { turn: SimulationTurn; stage: StageViewModel; workId: string; episode: number; lockId: string }) {
   const nameId = useId()
+  // 고치는 중인 글(null이면 읽는 중).
+  const [draft, setDraft] = useState<string | null>(null)
   const narration = turn.kind === 'narration'
   const monologue = turn.kind === 'monologue'
   const owner = monologue ? monologueOwner(turn, stage.names) : turn.characterName
-  const mine = editing?.turn === turn.index ? editing : null
   const edited = turn.editedByAuthor && <span className="stage-edited">작가 수정</span>
   const save = async (e: FormEvent) => {
     e.preventDefault()
-    if (mine && await stage.edit(turn.index, mine.text)) setEditing(null)
+    if (draft !== null && await stage.edit(turn.index, draft)) setDraft(null)
   }
   return <li className={`stage-turn${narration ? ' stage-narration' : monologue ? ' stage-monologue' : ''}`} data-kind={turn.kind}>
     {narration
       ? <p className="stage-who" id={nameId}><span className="sr-only">나레이션</span>{edited}</p>
       : <p className="stage-who" id={nameId}>{owner}{monologue && <span className="stage-tag">속마음</span>}{edited}</p>}
-    {mine
+    {draft !== null
       ? <form className="stage-edit" aria-live="off" onSubmit={save}>
         <label className="sr-only" htmlFor={`${nameId}-edit`}>{narration ? '나레이션' : monologue ? `${owner} 속마음` : owner} 줄 고치기</label>
-        <textarea id={`${nameId}-edit`} rows={4} value={mine.text} maxLength={2000} autoFocus
-          onChange={(e) => setEditing({ turn: turn.index, text: e.target.value })} onKeyDown={(e) => { if (e.key === 'Escape') setEditing(null) }} />
+        <textarea id={`${nameId}-edit`} rows={4} value={draft} maxLength={SCENE_TEXT_MAX} autoFocus
+          onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') setDraft(null) }} />
         <div className="stage-edit-actions">
-          <button type="submit" className="btn sm pri" disabled={!stage.canAct || !mine.text.trim() || mine.text.trim() === turn.prose.trim()}>수정 저장</button>
-          <button type="button" className="btn sm" onClick={() => setEditing(null)}>수정 취소</button>
+          <button type="submit" className="btn sm pri" disabled={!stage.canAct || !draft.trim() || draft.trim() === turn.prose.trim()}>수정 저장</button>
+          <button type="button" className="btn sm" onClick={() => setDraft(null)}>수정 취소</button>
         </div>
         <p className="chat-note">고친 줄은 작가가 쓴 글로 남고 검사 결과는 지워져요. 모델 호출은 없어요.</p>
       </form>
       : <div className="stage-bubble"><ManuscriptBody workId={workId} number={episode} body={turn.prose} /></div>}
-    {!mine && stage.showActions && <div className="stage-actions" aria-live="off">
+    {draft === null && stage.interactive && <div className="stage-actions" aria-live="off">
       <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct}
-        onClick={() => { stage.pause(); setEditing({ turn: turn.index, text: turn.prose }) }}>수정</button>
+        onClick={() => { stage.pause(); setDraft(turn.prose) }}>수정</button>
       <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct} onClick={() => void stage.redo(turn.index)}>다시 말하기</button>
     </div>}
     {!turn.editedByAuthor && (turn.kind === 'character' || !!turn.checks.length || !!turn.evidence.length) && <Checks turn={turn} />}
@@ -162,7 +153,6 @@ function Turn({ turn, stage, workId, episode, editing, setEditing, lockId }: {
 /** 진행 중이거나 끝난 장면: 대본(실시간 추가·자동 스크롤) → 진행 조작·끼어들기 → 원고 반영 또는 결과. */
 function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: CharacterSimulation; workId: string; episode: number }) {
   const id = useId()
-  const [editing, setEditing] = useState<Editing>(null)
   const [note, setNote] = useState('')
   const script = useRef<HTMLDivElement>(null)
   const pinned = useRef(true)
@@ -183,22 +173,21 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
           ? <li key={`note-${i}`} className="stage-note"><b>작가 끼어들기</b> <span>{row.note.text}</span></li>
           : row.kind === 'pov'
             ? <li key={`pov-${i}`} className="stage-pov">{row.text}</li>
-            : <Turn key={`turn-${row.turn.index}`} turn={row.turn} stage={stage} workId={workId} episode={episode} editing={editing} setEditing={setEditing} lockId={lockId} />)}
+            : <Turn key={`turn-${row.turn.index}`} turn={row.turn} stage={stage} workId={workId} episode={episode} lockId={lockId} />)}
       </ol>
       {!stage.rows.length && <p className="chat-note">아직 만들어진 장면이 없어요.</p>}
     </div>
     {stopped && sim.stopReason && <p className="stage-reason"><b>{sim.status === 'stopped' ? '멈춘 이유' : '실패 이유'}</b> {sim.stopReason}</p>}
     {stage.hint && <p className="chat-note" role="status">{stage.hint}</p>}
     {stage.linesLock && <p id={lockId} className="chat-note">{stage.linesLock}</p>}
-    {stage.retryNote && <p className="chat-note">{stage.retryNote}</p>}
     {stage.live && <div className="stage-controls" role="group" aria-label="장면 진행">
       <button type="button" className="btn sm" disabled={!stage.playing && !!stage.blocked} onClick={stage.playing ? stage.pause : stage.play}>{stage.playing ? '일시정지' : '재생'}</button>
       <button type="button" className="btn sm" disabled={stage.finishing || (!stage.pending && !!stage.blocked)} onClick={stage.finish}>{stage.finishing ? '끝내는 중…' : '장면 끝내기'}</button>
     </div>}
-    {stage.canNote && <>
+    {stage.interactive && <>
       <form className="stage-note-form" onSubmit={(e) => { e.preventDefault(); if (stage.leaveNote(note)) setNote('') }}>
         <label htmlFor={`${id}-note`}>끼어들기 <small>다음 턴부터 반영돼요</small></label>
-        <input id={`${id}-note`} value={note} maxLength={300} placeholder="예: 이때 카엘이 갑자기 문을 걷어찬다" onChange={(e) => setNote(e.target.value)} />
+        <input id={`${id}-note`} value={note} maxLength={SCENE_NOTE_MAX} placeholder="예: 이때 카엘이 갑자기 문을 걷어찬다" onChange={(e) => setNote(e.target.value)} />
         <button type="submit" className="btn sm" disabled={!note.trim()}>남기기</button>
       </form>
       {stage.queued && <p className="stage-queued" role="status">다음 턴에 반영할 끼어들기: “{stage.queued}” <button type="button" className="chat-link" aria-label="끼어들기 취소" onClick={stage.clearNote}>취소</button></p>}
@@ -213,8 +202,8 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
       </div>
     </section>}
     {stage.result && <p className="stage-result" role="status">{stage.result}</p>}
-    {!stage.live && !stage.approvable && !stage.pending && <div className="stage-again"><button type="button" className="btn sm" onClick={stage.compose}>새 시뮬레이션</button></div>}
-    <Consent stage={stage} />
+    {!stage.live && !stage.approvable && !stage.pending && <button type="button" className="btn sm stage-again" onClick={stage.compose}>새 시뮬레이션</button>}
+    {stage.available && <ConsentCheck checked={stage.consent} onChange={stage.setConsent} />}
   </>
 }
 

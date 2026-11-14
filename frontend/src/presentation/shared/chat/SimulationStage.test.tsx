@@ -672,6 +672,24 @@ it('작가가 끝낸 장면이 멈춤 상태로 승인을 기다리면 상태는
   expect(box().getByRole('button', { name: '원고에 반영' })).toBeTruthy()
 })
 
+it('실행이 이어 갈 수 없게 멈춤으로 끝나면 줄 행동 없이 채팅으로 다시 요청하라고 안내한다', async () => {
+  paused(narrate(0), speak(1))
+  setup((_input, emit) => {
+    const stopped = scene([narrate(0), speak(1)], { status: 'stopped', stopReason: '턴 한도를 넘었어요.' })
+    store.reply = { status: 'failed', steps: [stepOf(stopped)], missingInputs: [] }
+    emit({ type: 'step', step: store.reply.steps[0] })
+    emit({ type: 'done', reply: store.reply })
+  })
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  consent()
+  fireEvent.click(box().getByRole('button', { name: '재생' }))
+  await waitFor(() => expect(box().getByText('흐름 수정이나 다시 시도는 채팅으로 요청해 주세요.')).toBeTruthy())
+  expect(box().getByText('멈춘 이유').parentElement?.textContent).toBe('멈춘 이유 턴 한도를 넘었어요.')
+  expect(box().queryByRole('button', { name: '다시 말하기' })).toBeNull()
+  expect(box().queryByRole('group', { name: '장면 진행' })).toBeNull()
+  expect(box().getByRole('button', { name: '새 시뮬레이션' })).toBeTruthy()
+})
+
 // ── 실패 ──
 it('턴 도중 오류는 사유를 알리고 저절로 다음 턴을 보내지 않으며 재생으로 다시 시도한다', async () => {
   setup(
