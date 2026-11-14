@@ -9,11 +9,27 @@
 |---|---|
 | [world.json](world.json) | 세계관 정본: 카드 14개, 회차별 관계 32개(기록 35개), 비밀 색인(`secrets`, 테스트용) |
 | [seed.py](seed.py) | 로컬 스택 공개 진입점으로 적재하는 표준 라이브러리 스크립트 |
-| [test_world.py](test_world.py) | 형식·회차 지식 계약·적재 흐름 단위 테스트(서버·DB 없이) |
+| [test_world.py](test_world.py) | 형식·회차 지식 계약·적재 흐름 단위 테스트(서버·DB 없이). 아래 데이터셋 전부를 같은 규칙으로 검사한다 |
+
+## 데이터셋
+
+이 디렉터리의 별빛 서약의 탑(3화)이 첫 데이터셋이고, 장편 원고와 함께 만든 고전소설 세 개가 하위 디렉터리에 있다. 하위 디렉터리마다 `world.json`·`episodes/NN.md`(원고)·`knowledge.md`(회차별 지식 정답표)·`README.md`가 있고,
+`seed.py <디렉터리>`로 같은 방식으로 적재한다(디렉터리를 주지 않으면 이 디렉터리의 별빛).
+
+| 디렉터리 | 작품 | 규모 | 적재 |
+|---|---|---|---|
+| (이 디렉터리) | 별빛 서약의 탑 — 기존 샘플 작품에 연결 | 원고 3화(기존 CSV) | `seed.py` |
+| [guunmong/](guunmong/README.md) | 구운몽 (현대어 시연본) — **새 작품**으로 만든다(기존 샘플 구운몽은 그대로) | 16화 | `seed.py guunmong` |
+| [honggildong/](honggildong/README.md) | 홍길동전 (현대어 시연본) — 새 작품, Fork 허용 | 10화 | `seed.py honggildong` |
+| [heukgildong-fork/](heukgildong-fork/README.md) | 흑길동전 — 홍길동전 1화에서 갈라진 Fork | Fork 자신의 3화(2~4화) | `seed.py heukgildong-fork`(홍길동전을 먼저 적재) |
+
+고전 세 편의 원문은 위키문헌(저작권 만료)만 근거로 했고, 출판된 현대어 번역본·해설 문장은 쓰지 않았다. 현대어 원고는 모델 초안을 원문과 대조해 고친 우리 문장이다. 출처·판본·생략·압축은 각 README에 있다.
 
 ## 구성
 
 카드 id는 `uuid5(NAMESPACE, "card:<key>")`로 만들어 항상 같다(관계는 `"relation:<key>"`, [seed.py](seed.py)의 `card_id`·`relation_id`). 세계관 id는 `e29824ed-c503-55a7-ac48-721c125f1299`다.
+서버의 카드·관계 id는 세계관과 무관한 전역 기본키(`worldstudio.setting_card.id`·`relationship.id`)라서, 하위 디렉터리의 데이터셋은 세계관 id를 섞어 만든다(`card:<세계관 id>:<key>`, `scope_of`). 같은 key(`gildong`·`palace` 등)를 여러 세계관이 써도 겹치지 않는다.
+이 별빛 데이터셋만은 이미 적재된 id를 지키려고 위의 key만으로 만드는 규칙을 그대로 둔다.
 
 | 유형 | 카드 | key | 카드 id | 공개 | 독자 공개 |
 |---|---|---|---|---|---|
@@ -114,8 +130,12 @@
 # 로컬 스택이 떠 있을 때(공개 진입점 기본 http://localhost). 계정은 starlight 소유자인 개발 작가(writer@example.test)로 고정이다.
 # 공개 개발 비밀번호는 backend/core-api/.../auth/V4__sample_member.sql 주석에 있다.
 export STORYFORK_SEED_PASSWORD='<개발 작가 비밀번호>'
-python3 infrastructure/sample-data/simulation-demo/seed.py [--base-url http://localhost]
+python3 infrastructure/sample-data/simulation-demo/seed.py [데이터셋 디렉터리] [--base-url http://localhost]
+# 예: seed.py guunmong · seed.py honggildong 다음 seed.py heukgildong-fork (Fork는 원작을 먼저 적재해야 한다)
 ```
+
+- 하위 디렉터리의 데이터셋은 새 작품이다. 같은 제목의 작품이 개발 작가 계정에 있으면 그 작품을 쓰고, 없으면 `POST /api/v1/works`로 만든 뒤 원고를 회차 순서로 저장·발행한다(`episodes/NN.md`: 첫 줄 제목, 나머지 본문). 원작은 분기 정책(`PUT /works/{id}/policy`)도 허용으로 켠다.
+  Fork는 `POST /api/v1/works/{원작}/forks`(기준 회차·제목·소개·전개 방향)로 만들고 자기 회차만 저장·발행한다. 그다음 아래 세계관 적재와 작품 연결은 별빛과 같다.
 
 - 순서: Core 로그인 → 작품 소유·연결 확인 → `POST /api/v1/world-studios`(고정 id) → 회차 오름차순(1·2·3·5화)으로 `PUT /api/v1/world-studios/{id}/draft`(카드는 첫 저장, 관계는 회차별 `episode`, 그 회차에 새로 생기거나 바뀐 것만) → `PUT /api/v1/works/{workId}/world-studio`.
 - 다시 실행해도 중복이 없다. 회차마다 그 시점의 초안을 읽어 같은 값이면 저장을 건너뛰고, 저장 key는 보내는 입력에서 정하므로 같은 입력이면 같은 key다. 중간에 실패하면 다시 실행해 이어 간다.
@@ -131,7 +151,7 @@ python3 infrastructure/sample-data/simulation-demo/seed.py [--base-url http://lo
 python3 -m unittest infrastructure/sample-data/simulation-demo/test_world.py   # 저장소 루트에서, 서버·DB 없이
 ```
 
-- 테스트는 카드 유형·`characterDocs` 키·문서 길이·관계 끝점·episode 정수·비밀과 미래 사건의 격리(보유자 밖 문서·공개 카드·관계에 비밀 문구가 새지 않음)·서버/화면 계약·recall 필터가 읽는 규칙(부정 관계의 이름, 인물이 말하는 카드와의 긍정 연결)과, 모의 스택으로 본 적재 흐름(멱등·재개·연결 충돌)을 검사한다. CI에는 연결하지 않았다(`infrastructure/sample-data`의 CI 단계는 `test_import.py`만 돈다).
+- 테스트는 데이터셋마다(별빛과 하위 세 개) 카드 유형·`characterDocs` 키·문서 길이·관계 끝점·episode 정수·비밀과 미래 사건의 격리(보유자 밖 문서·공개 카드·관계에 비밀 문구가 새지 않음)·서버/화면 계약·recall 필터가 읽는 규칙(부정 관계의 이름, 인물이 말하는 카드와의 긍정 연결)과, 모의 스택으로 본 적재 흐름(멱등·재개·연결 충돌)을 검사한다. CI에는 연결하지 않았다(`infrastructure/sample-data`의 CI 단계는 `test_import.py`만 돈다).
 - 설계 규칙 4·5는 `feat/58-novelbrain`(`filter_for_character`)과 `feat/58-character-simulation`(관계를 `A → B: label[ 아님] — body`로 인물 입력에 넣음)의 2026-11-14 구현이 읽는 방식에 맞춘 것이다. 두 구현을 바꾸면 다시 확인한다.
 - **실제 스택 적재는 확인하지 못했다**(로컬 스택이 없었다). 서버·화면 계약은 소스(`WorldStudioService`·`RelationshipInputHelper`·`HttpWorldStudioRepository`)를 읽고 맞췄고, 저장소 밖 임시 검증으로 세 가지를 확인했다:
   ① 화면의 읽기 경로(zod 스키마와 `world()` 일관성 검사)를 옮겨 회차 1~5의 응답이 모두 파싱되고 인물 문서가 버려지지 않는 것, ② `seed.py`의 HTTP 클라이언트가 쿠키 CSRF·Bearer 규칙을 흉내 낸 임시 서버에서 끝까지(재실행 포함) 도는 것,
