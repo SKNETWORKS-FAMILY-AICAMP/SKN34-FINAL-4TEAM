@@ -41,9 +41,13 @@ def ordered(configs: dict):
     return [c for c in ORDER if c in configs]
 
 
+def pcell(p: float) -> str:
+    return 'p<0.001' if p < 0.0005 else f'p={p:.3f}'
+
+
 def sign(v: dict | None) -> str:
     """'오른:내린 (p)'. 앞 구성이 뒤 구성보다 나은 질문 수 : 못한 질문 수."""
-    return f"{v['up']}:{v['down']} (p={v['p']:.3f})" if v else '-'
+    return f"{v['up']}:{v['down']} ({pcell(v['p'])})" if v else '-'
 
 
 def retrieval(name: str, title: str) -> str:
@@ -97,7 +101,7 @@ KINDS = ('future', 'past-only', 'past-absence', 'past-presence')
 
 def psign(v: dict | None) -> str:
     """`paired()` 결과의 '앞만 : 뒤만 (p)'."""
-    return f"{v['a_only']}:{v['b_only']} (p={v['p']:.3f})" if v else '-'
+    return f"{v['a_only']}:{v['b_only']} ({pcell(v['p'])})" if v else '-'
 
 
 def type_cell(block: dict, kind: str) -> str:
