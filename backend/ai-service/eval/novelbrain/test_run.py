@@ -1,6 +1,6 @@
 """실행기의 순수 로직 단위 테스트: 항목→문단 순위 변환·평가용 세계관 구성·구성별 집계."""
 
-from run import aggregate, passage_ranking, text_world
+from run import aggregate, passage_ranking, reader_input, score_answers, text_world
 
 
 def test_passage_ranking_maps_cards_excerpts_and_relations_to_passages_in_order():
@@ -41,3 +41,19 @@ def test_aggregate_averages_recall_and_precision_and_groups_by_key():
     assert result['recall@2'] == (0.5 + 1.0) / 2
     assert result['p@2'] == (0.5 + 0.5) / 2
     assert result['by_group'][2]['recall@2'] == 0.5 and result['by_group'][3]['n'] == 1
+
+
+def test_reader_input_lists_titled_passages_then_the_question():
+    text = reader_input('Who?', [{'title': 'Green', 'text': 'Steve made it.'}, {'title': '', 'text': 'No title.'}])
+    assert text == '[1] Green\nSteve made it.\n\n[2] No title.\n\nQuestion: Who?\nAnswer:'
+    assert reader_input('Who?', []) == 'Question: Who?\nAnswer:'
+
+
+def test_score_answers_reports_em_f1_by_hops_and_counts_failures():
+    rows = [{'pred': 'Miquette Giraudy', 'golds': ['Miquette Giraudy'], 'hops': 2},
+            {'pred': 'Steve Hillage Smith', 'golds': ['Steve Hillage'], 'hops': 3},
+            {'pred': None, 'golds': ['x'], 'hops': 2}]
+    result = score_answers(rows)
+    assert result['n'] == 2 and result['failed'] == 1
+    assert result['em'] == 0.5 and result['f1'] == (1.0 + 0.8) / 2
+    assert result['by_hops'][2]['em'] == 1.0 and result['by_hops'][3]['f1'] == 0.8
