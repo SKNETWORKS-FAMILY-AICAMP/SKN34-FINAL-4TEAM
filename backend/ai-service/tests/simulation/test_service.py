@@ -186,12 +186,14 @@ def scene_of(plan=PLAN_IF, *entries):
 
 @pytest.mark.parametrize('entries, plan, expected', [
     ([], PLAN_IF, (['narration'], 'opening')),
-    ([('narration', {})], PLAN_IF, (['narration', 'monologue', 'speech'], None)),
+    ([('narration', {})], PLAN_IF, (['monologue', 'speech'], None)),                              # 직전이 나레이션이면 나레이션을 연달아 쓰지 않는다
     ([('narration', {}), ('character', {})], PLAN_IF, (['narration', 'monologue', 'speech'], None)),
     ([('narration', {}), ('character', {'ended': True, 'done': True})], PLAN_IF, (['end'], 'closing')),
     ([('narration', {}), ('character', {'beat': 0, 'done': True})], PLAN_FLOW, (['narration'], 'transition')),
     ([('narration', {}), ('character', {'beat': 0, 'done': True, 'ended': True})], PLAN_FLOW, (['end'], 'closing')),
     ([('narration', {}), ('character', {}), ('monologue', {})], PLAN_IF, (['narration', 'monologue', 'speech'], None)),
+    ([('narration', {}), ('character', {}), ('narration', {})], PLAN_IF, (['monologue', 'speech'], None)),
+    ([('narration', {}), ('character', {'beat': 0, 'done': True}), ('narration', {})], PLAN_FLOW, (['monologue', 'speech'], None)),  # 비트 전환 나레이션 뒤에도 나레이션을 더하지 않는다
     ([('narration', {}), ('monologue', {})], PLAN_IF, (['speech'], None)),                        # 서술·독백이 두 번 이어지면 이번엔 대사
     ([('narration', {}), ('character', {}), ('monologue', {}), ('narration', {})], PLAN_IF, (['speech'], None)),
     ([('narration', {})] + [('character', {})] * 12, PLAN_IF, ([], None)),                      # 인물 대사 한도
@@ -203,6 +205,8 @@ def test_rules_decide_which_turns_the_director_may_pick_and_why_narration_is_req
 def test_a_note_comes_before_every_other_rule_and_the_turn_cap_counts_every_kind():
     pending = scene_of(PLAN_IF, ('narration', {}), ('character', {'ended': True})).model_copy(update={'memo': '비가 온다'})
     assert service.rules(PLAN_IF, pending) == (['narration'], 'note')
+    after_narration = scene_of(PLAN_IF, ('narration', {})).model_copy(update={'memo': '비가 온다'})
+    assert service.rules(PLAN_IF, after_narration) == (['narration'], 'note')  # 작가의 메모는 나레이션 직후에도 나레이션으로 옮긴다
     assert service.rules(PLAN_IF, scene_of(PLAN_IF, ('narration', {}), *([('character', {}), ('narration', {}), ('monologue', {})] * 13))) == ([], None)
     # 인물 대사는 한도 아래여도 나레이션·독백까지 합친 턴이 상한에 닿으면 멈춘다
     many = scene_of(PLAN_IF, ('narration', {}), *([('character', {}), ('narration', {}), ('monologue', {}), ('narration', {})] * 10))

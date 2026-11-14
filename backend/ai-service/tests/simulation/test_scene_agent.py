@@ -13,6 +13,7 @@ from .stubs import (KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, Run, action, fake_cont
 IF_KINDS = ['knowledge_leak', 'voice_mix', 'relation', 'premise']
 FLOW_KINDS = ['knowledge_leak', 'voice_mix', 'relation', 'beat']
 ANY = ['narration', 'monologue', 'speech']
+NOT_NARRATION = ['monologue', 'speech']  # 직전 턴이 나레이션이면 나레이션을 연달아 쓰지 않는다
 
 
 def characters(scene):
@@ -27,7 +28,7 @@ def test_the_director_decides_before_every_turn_and_the_decision_is_recorded_on_
     scene = run_auto()
     # 모든 턴 앞에 연출 결정이 있고 도구(모델 호출)와 검사가 그 뒤를 따른다. 전지적 나레이션의 검사는 따로 기록된다.
     assert h.order == ['director', 'narrate', 'review', 'director', 'act', 'check', 'director', 'act', 'check', 'director', 'narrate', 'review']
-    assert [c['allowed'] for c in h.director] == [['narration'], ANY, ANY, ['end']]
+    assert [c['allowed'] for c in h.director] == [['narration'], NOT_NARRATION, ANY, ['end']]
     assert [(t.kind, t.characterName, t.pov) for t in scene.result.turns] == [
         ('narration', '나레이션', 'omniscient'), ('character', '카엘', f'limited:{KAEL}'), ('character', '리나', f'limited:{LINA}'),
         ('narration', '나레이션', 'omniscient')]
@@ -53,7 +54,7 @@ def test_flow_scene_narrates_the_start_every_beat_change_and_the_end(monkeypatch
     scene = run_auto(PLAN_FLOW)
     assert [t.characterName for t in scene.result.turns] == ['나레이션', '카엘', '나레이션', '리나', '나레이션']
     assert [c['purpose'] for c in h.calls.narrate] == ['opening', 'transition', 'closing']
-    assert [c['allowed'] for c in h.director] == [['narration'], ANY, ['narration'], ANY, ['end']]
+    assert [c['allowed'] for c in h.director] == [['narration'], NOT_NARRATION, ['narration'], NOT_NARRATION, ['end']]
     assert [b.status for b in scene.result.beats] == ['done', 'done']
     assert [(e.beat, e.done, e.ended) for e in scene.trail] == [(0, False, False), (0, True, False), (1, False, False), (1, True, True), (None, False, False)]
     assert (scene.result.mode, scene.result.premise, scene.result.status, scene.result.stopReason) == ('flow', None, 'completed', None)
@@ -114,7 +115,7 @@ def test_monologue_is_written_by_the_narrator_from_the_pov_characters_knowledge_
     assert check['checks'] == ['knowledge_leak', 'voice_mix'] and 'LINA-MEMORY-SECRET' in text(check['forbidden'])
     assert h.calls.check[1]['checks'] == IF_KINDS
     assert 'MONO-' not in text(h.calls.act[0])  # 다음 인물은 독백을 보지 못한다
-    assert [e['allowed'] for e in h.director][:3] == [['narration'], ANY, ['speech']]  # 서술·독백이 두 번 이어지면 이번엔 대사
+    assert [e['allowed'] for e in h.director][:3] == [['narration'], NOT_NARRATION, ['speech']]  # 서술·독백이 두 번 이어지면 이번엔 대사
 
 
 @pytest.mark.parametrize('pov, kinds', [(f'limited:{KAEL}', ['knowledge_leak']), (f'first:{KAEL}', ['knowledge_leak', 'voice_mix'])])
