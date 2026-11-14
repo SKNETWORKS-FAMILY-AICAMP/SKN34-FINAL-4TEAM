@@ -3,7 +3,7 @@
     cd backend/ai-service
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run.py retrieval musique|narrativeqa   # 호출 없음
     set -a; . <저장소 루트 .env>; set +a                                           # 아래부터 OpenAI 호출
-    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run.py answers musique [gold none]   # 답 정확도(EM·F1)
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run.py answers musique [gold none] [--cached-only]   # 답 정확도(EM·F1)
 
 구성 이름: ppr(그래프만=0단계) · vector(벡터만) · bm25(BM25만) · s1(0+1) · s2(0+1+2) · s3(0+1+2+3, 인물·회차가 있는 데이터만),
 하나씩 빼기: no_graph(벡터+BM25) · no_vector(그래프+BM25) · no_bm25(=s1). 같은 질문의 Recall@5로 짝 부호 검정(`paired`)을 함께 낸다.
@@ -131,7 +131,10 @@ def score_answers(rows: list[dict]) -> dict:
 
 
 def answers(name: str, extra: tuple[str, ...] = ()) -> None:
-    """MuSiQue: 구성별 상위 5개 문단(전문)을 리더에게 주고 답 정확도를 잰다. extra: gold(정답 근거 문단)·none(문단 없음) 기준선."""
+    """MuSiQue: 구성별 상위 5개 문단(전문)을 리더에게 주고 답 정확도를 잰다. extra: gold(정답 근거 문단)·none(문단 없음) 기준선.
+    `--cached-only`는 캐시에 있는 응답만 읽어 다시 계산한다(호출 0회, 캐시에 없는 요청은 실패로 센다)."""
+    cached_only = '--cached-only' in extra
+    extra = tuple(e for e in extra if e != '--cached-only')
     sample = json.loads((DATA / name / 'sample.json').read_text())
     runs = json.loads((DATA / 'runs' / f'{name}-rankings.json').read_text())
     by_pid = {p['id']: p for p in sample['passages']}
@@ -146,8 +149,11 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
 
     def work(task):
         q, config = task
+        text = reader_input(q['question'], passages_for(q, config))
+        if cached_only and not llm.is_cached(READER, text, max_output_tokens=3000):
+            return None
         try:
-            return llm.ask('answer', READER, reader_input(q['question'], passages_for(q, config)), max_output_tokens=3000)
+            return llm.ask('answer', READER, text, max_output_tokens=3000)
         except LlmFailure:
             return None
 
@@ -155,7 +161,7 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
     fresh = sum(not llm.is_cached(READER, reader_input(q['question'], passages_for(q, c)), max_output_tokens=3000) for q, c in tasks)
     print(f'{name}: 질문 {len(sample["questions"])} × 구성 {len(configs)} = {len(tasks)}건, 캐시에 없는 것 {fresh}건 '
           f'(장부 {ledger.used()}/{CAP})', flush=True)
-    if ledger.used() + fresh > CAP:  # 순위가 바뀐 뒤(작업 A 수정 병합 등)에는 문맥이 달라져 캐시에 없는 요청이 생긴다
+    if not cached_only and ledger.used() + fresh > CAP:  # 순위가 바뀐 뒤(작업 A 수정 병합 등)에는 문맥이 달라져 캐시에 없는 요청이 생긴다
         raise SystemExit('상한을 넘길 수 있어 중단한다. 이 단계는 수정 전 순위로 만든 결과를 그대로 쓴다.')
     with ThreadPoolExecutor(12) as pool:
         preds = list(pool.map(work, tasks))
@@ -218,10 +224,12 @@ def retrieval(name: str) -> None:
     scores = {c: [recall_at_k(runs[c][q['id']], set(q['gold']), K) for q in questions] for c in runs}
     result['paired'] = compare(scores, RETRIEVAL_PAIRS, [q.get('hops') for q in questions] if group else None)
     rankings_file = DATA / 'runs' / f'{name}-rankings.json'
-    if rankings_file.exists():  # 이전 실행의 순위와 같은지(재현) 또는 몇 문항이 달라졌는지(작업 A 수정 반영 뒤)
+    if rankings_file.exists():  # 이전 실행의 순위와 비교: 몇 문항이 달라졌는지, 같은 질문의 Recall@5가 올랐는지(작업 A 수정 반영 뒤 등)
         before = json.loads(rankings_file.read_text())
         print(f"{name}: 이전 순위와 상위 20이 같은 질문 " + ', '.join(
             f"{c} {sum(before[c][q['id']] == runs[c][q['id']] for q in questions)}/{len(questions)}" for c in before if c in runs))
+        result['vs_previous_run'] = {c: sign_test(scores[c], [recall_at_k(before[c][q['id']], set(q['gold']), K) for q in questions])
+                                     for c in runs if c in before}
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f'{name}-retrieval.json').write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     (DATA / 'runs').mkdir(exist_ok=True)
