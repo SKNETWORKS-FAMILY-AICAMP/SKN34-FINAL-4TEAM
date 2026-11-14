@@ -148,7 +148,8 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
       상대 카드가 아직 공개되지 않았거나 스냅샷에 없는 관계(관계 문장에 상대 제목이 드러난다), 그 인물 이름이 나오지 않는 원고 발췌,
       형식을 알 수 없는 ref(닫힌 쪽으로 실패).
 
-    ponytail: 발췌에 이름이 나오면 목격으로 근사한다(별칭·호칭·대명사 미지원). MEMORY.md는 회차 표시가 없어 항상 허용한다.
+    ponytail: 발췌에 이름이 나오면 목격으로 근사한다(라틴 이름은 낱말 경계, 한글 이름은 부분 일치. 별칭·호칭·대명사 미지원).
+    MEMORY.md는 회차 표시가 없어 항상 허용한다.
     """
     if character_id is None:
         return list(items), []
@@ -176,7 +177,7 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
                 return False, _UNKNOWN
             return (False, _NOT_REVEALED) if any(future(c) for c in others) else (True, '')
         if kind == 'manuscript':
-            return (True, '') if name and name in _fold(item.text) else (False, _NOT_NAMED)
+            return (True, '') if name and _mentions(name, _fold(item.text)) else (False, _NOT_NAMED)
         card_id, _, part = rest.partition('#')
         card = cards.get(card_id) if kind == 'card' else None
         if card is None:
