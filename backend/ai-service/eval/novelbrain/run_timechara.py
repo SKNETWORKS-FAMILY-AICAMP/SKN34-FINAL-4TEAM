@@ -2,7 +2,7 @@
 
     cd backend/ai-service
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py contexts   # 호출 없음: 문맥·누설 지표
-    set -a; . /Users/yunseongho/orca/SKN34-FINAL-4TEAM/.env; set +a                                # 아래부터 OpenAI 호출
+    set -a; . <저장소 루트 .env>; set +a                                # 아래부터 OpenAI 호출
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py run [구성 …]   # 구성을 주면 그 구성만 다시(나머지는 저장된 결과 유지)
 
 구성: zero(검색 없음, 공개 zero-shot과 같은 입력) · ppr(0단계) · vector · bm25 · s1 · s2 · s3. 문맥은 상위 6개 항목(rag-cutoff와 같은 6)이다.

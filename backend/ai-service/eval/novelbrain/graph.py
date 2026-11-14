@@ -1,7 +1,7 @@
 """평가용 지식 그래프: 문단 묶음에서 개체·트리플을 모델로 뽑고(HippoRAG OpenIE 방식) 개체를 합쳐 그래프 사전으로 만든다.
 
     cd backend/ai-service
-    set -a; . /Users/yunseongho/orca/SKN34-FINAL-4TEAM/.env; set +a
+    set -a; . <저장소 루트 .env>; set +a
     uv run --locked --extra dev python eval/novelbrain/graph.py musique|narrativeqa
 
 결과는 `.data/<데이터셋>/graph.json`이고, 모델 응답은 `.data/cache`에 남아 같은 명령을 다시 실행해도 호출하지 않는다.

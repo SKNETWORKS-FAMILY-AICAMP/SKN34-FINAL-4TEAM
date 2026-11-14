@@ -2,7 +2,7 @@
 
     cd backend/ai-service
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run.py retrieval musique|narrativeqa   # 호출 없음
-    set -a; . /Users/yunseongho/orca/SKN34-FINAL-4TEAM/.env; set +a                                           # 아래부터 OpenAI 호출
+    set -a; . <저장소 루트 .env>; set +a                                           # 아래부터 OpenAI 호출
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run.py answers musique [gold none]   # 답 정확도(EM·F1)
 
 구성 이름: ppr(그래프만=0단계) · vector(벡터만) · bm25(BM25만) · s1(0+1) · s2(0+1+2) · s3(0+1+2+3, 인물·회차가 있는 데이터만).

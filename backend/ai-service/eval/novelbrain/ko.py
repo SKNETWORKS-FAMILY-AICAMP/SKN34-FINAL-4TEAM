@@ -1,7 +1,7 @@
 """한국어 적용성: 저장소 샘플(`infrastructure/sample-data`)로 인물 시점 질문 세트를 만들고 같은 구성별 지표를 낸다.
 
     cd backend/ai-service
-    set -a; . /Users/yunseongho/orca/SKN34-FINAL-4TEAM/.env; set +a
+    set -a; . <저장소 루트 .env>; set +a
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko.py generate   # 모델로 질문 생성 → datasets/ko_sample.jsonl(커밋)
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko.py run        # 호출 없음: 구성별 지표 → results/ko-retrieval.json
 
