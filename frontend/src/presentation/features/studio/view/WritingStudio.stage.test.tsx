@@ -11,7 +11,9 @@ import type { CharacterSimulation } from '../../../../domain/entities/characterS
 import type { ChatEvent, ChatReply, ChatStep } from '../../../../domain/entities/writingChat'
 import { WritingStudio } from './WritingStudio'
 
-const { sessions, history, send, open, list, references } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), references: vi.fn() }))
+const { sessions, history, send, open, list, owned, readWorld } = vi.hoisted(() => ({
+  sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), owned: vi.fn(), readWorld: vi.fn(),
+}))
 const model = vi.hoisted(() => ({
   active: { number: 3, draft: { title: '셋째', body: '원고', revision: 1 }, versions: [], inherited: false, hasDraft: true, publishedVersionId: 'v3', checkpoints: [] },
   episodes: [{ number: 3, draft: { title: '셋째' }, inherited: false, publishedVersionId: 'v3', publicationStatus: 'published', versions: [], checkpoints: [] }],
@@ -27,12 +29,13 @@ vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 // 본문 편집기(Toast UI Editor)는 textarea 대역으로 바꾼다.
 vi.mock('./LazyManuscriptEditor', () => import('../../../../test/manuscriptEditorFake'))
-// 채팅은 실제 WritingChatUseCase 위에 가짜 Repository를, 장면 계획은 대역 UseCase를 얹는다.
+// 채팅은 실제 WritingChatUseCase 위에 가짜 Repository를, 장면 계획·세계관(인물 카드)은 대역 UseCase를 얹는다.
 vi.mock('../../../../app/appContainer', async () => {
   const { WritingChatUseCase } = await import('../../../../domain/usecases/WritingChatUseCase')
   const chat = new WritingChatUseCase({ sessions, history, send, open } as never)
-  const plans = { list, references }
-  return { appContainer: { resolve: (key: string) => (key === 'writingChatUseCase' ? chat : key === 'storyPlanUseCase' ? plans : {}) } }
+  const plans = { list }
+  const worlds = { list: owned, read: readWorld }
+  return { appContainer: { resolve: (key: string) => (key === 'writingChatUseCase' ? chat : key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : {}) } }
 })
 
 const store: { reply: ChatReply | null } = { reply: null }
@@ -57,7 +60,9 @@ beforeEach(() => {
   store.reply = null
   sessions.mockResolvedValue([])
   list.mockResolvedValue([])
-  references.mockResolvedValue({ characters: [{ id: 'c1', name: '카엘' }], places: [], episodes: [] })
+  // 이 작품(work-id)에 연결된 세계관과 그 인물 카드가 시작 양식의 인물 후보다.
+  owned.mockResolvedValue([{ id: 'world-1', linkedWorkId: 'work-id', settings: [] }])
+  readWorld.mockResolvedValue({ id: 'world-1', settings: [{ item: { id: 'c1', title: '카엘', kind: 'entity', entityType: 'character' }, userCategory: '', tags: [] }] })
   history.mockImplementation(async () => ({ threadId: 'a', title: '', turns: store.reply ? [{ request: '시뮬레이션', reply: store.reply }] : [] }))
 })
 afterEach(() => { cleanup(); vi.resetAllMocks(); model.mayLeave.mockReturnValue(true); model.select.mockReturnValue(true) })
