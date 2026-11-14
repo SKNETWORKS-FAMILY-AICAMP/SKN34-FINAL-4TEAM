@@ -4,7 +4,7 @@
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py contexts   # 호출 없음: 문맥·누설 지표
     set -a; . /Users/yunseongho/orca/SKN34-FINAL-4TEAM/.env; set +a                                # 아래부터 OpenAI 호출
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py pilot     # 유형마다 1문항·zero/s3만(응답 확인용)
-    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py run
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py run [구성 …]   # 구성을 주면 그 구성만 다시(나머지는 저장된 결과 유지)
 
 구성: zero(검색 없음, 공개 zero-shot과 같은 입력) · ppr(0단계) · vector · bm25 · s1 · s2 · s3. 문맥은 상위 6개 항목(rag-cutoff와 같은 6)이다.
 채점은 공개 evaluate.py와 같다: 공간(absence·presence)이 0이면 시간은 묻지 않고, 성격은 1~7.
@@ -12,6 +12,7 @@
 
 import ast
 import json
+import math
 import re
 import sys
 from collections import Counter
@@ -108,6 +109,24 @@ def summarize(records: list[dict]) -> dict:
     return out
 
 
+def paired(records: list[dict], a: str, b: str) -> dict:
+    """같은 질문에서 두 구성의 시공간 점수를 짝지어 센다: a만 맞음·b만 맞음, 어긋난 쌍에 대한 정확 부호 검정(양쪽) p값.
+    표본이 작아 구간이 겹치므로 '단계가 올랐다'는 말은 이 짝 비교로만 한다. 한쪽이 실패(None)한 질문은 뺀다."""
+    score = {(r['idx'], r['config']): r['score'] for r in records}
+    only_a = only_b = 0
+    for idx in {r['idx'] for r in records}:
+        x, y = score.get((idx, a)), score.get((idx, b))
+        if x is not None and y is not None:
+            only_a += x == 1 and y == 0
+            only_b += x == 0 and y == 1
+    n = only_a + only_b
+    p = min(1.0, 2 * sum(math.comb(n, i) for i in range(min(only_a, only_b) + 1)) / 2 ** n) if n else 1.0
+    return {'a_only': only_a, 'b_only': only_b, 'p': p}
+
+
+PAIRS = (('s3', 's2'), ('s3', 'zero'), ('s3', 'ppr'), ('s2', 's1'), ('s1', 'ppr'), ('ppr', 'zero'), ('s2', 'vector'), ('s2', 'bm25'))
+
+
 # ---- 입력 구성·실행(실제 데이터가 필요해 단위 테스트하지 않는다) ----
 
 def build_inputs():
@@ -174,11 +193,11 @@ def context_report(sample: list[dict], contexts: dict) -> None:
               f"평균 항목 수 {sum(len(c['items']) for c in everything) / len(everything):.1f}")
 
 
-def run(pilot: bool = False) -> None:
+def run(pilot: bool = False, only: tuple[str, ...] = ()) -> None:
     sample, series_data = build_inputs()
     contexts = build_contexts(sample, series_data)
     context_report(sample, contexts)
-    configs = ('zero', 's3') if pilot else CONFIGS
+    configs = ('zero', 's3') if pilot else only or CONFIGS
     if pilot:  # 유형마다 첫 1문항: 같은 요청이라 본 실행에서 캐시로 재사용된다
         sample = [next(r for r in sample if r['data_type'] == kind) for kind in TYPES]
     ledger = Ledger(DATA / 'ledger.jsonl')
@@ -190,8 +209,13 @@ def run(pilot: bool = False) -> None:
     tasks = [(r, config) for r in sample for config in configs]
     distinct = len({(system_prompt(r['series'], r['character'], r['character_period']),
                      context_message(r['question'], [i['text'] for i in contexts[r['idx']][config]['items']])) for r, config in tasks})
-    print(f'질문 {len(sample)}개 × 구성 {len(configs)} = 생성 요청 최대 {len(tasks)}(서로 다른 요청 {distinct}), '
-          f'채점은 응답마다 1~3회 → 장부 {ledger.used()}/{CAP}', flush=True)
+    fresh = len({(r['idx'], config) for r, config in tasks if not llm.is_cached(
+        system_prompt(r['series'], r['character'], r['character_period']),
+        context_message(r['question'], [i['text'] for i in contexts[r['idx']][config]['items']]), max_output_tokens=GEN_TOKENS)})
+    print(f'질문 {len(sample)}개 × 구성 {len(configs)} = 생성 요청 최대 {len(tasks)}(서로 다른 요청 {distinct}, 캐시에 없는 것 {fresh}), '
+          f'응답마다 채점 최대 3회 → 최대 {fresh * 4}회, 장부 {ledger.used()}/{CAP}', flush=True)
+    if ledger.used() + fresh * 4 > CAP:
+        raise SystemExit('상한을 넘길 수 있어 중단한다. 표본이나 구성을 줄여라.')
 
     def work(task):
         r, config = task
@@ -217,10 +241,14 @@ def run(pilot: bool = False) -> None:
         print(f'장부 {ledger.used()}/{CAP}')
         return
     (DATA / 'runs').mkdir(exist_ok=True)
-    (DATA / 'runs' / 'timechara-rows.json').write_text(json.dumps(records, ensure_ascii=False))
+    rows_file = DATA / 'runs' / 'timechara-rows.json'
+    if only and rows_file.exists():  # 다시 돌린 구성만 바꾸고 나머지는 이전 실행의 결과를 그대로 둔다
+        records = [r for r in json.loads(rows_file.read_text()) if r['config'] not in only] + records
+    rows_file.write_text(json.dumps(records, ensure_ascii=False))
     RESULTS.mkdir(exist_ok=True)
     summary = {'per_type': PER_TYPE, 'seed': SEED, 'k_context': K_CTX, 'excerpts': EXCERPTS, 'model': llm.model,
-               'calls_total_after_this_run': ledger.used(), 'configs': summarize(records)}
+               'calls_total_after_this_run': ledger.used(), 'configs': summarize(records),
+               'paired': {f'{a}|{b}': paired(records, a, b) for a, b in PAIRS}}
     (RESULTS / 'timechara.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
     for config, block in summary['configs'].items():
         print(f"{config:7s} 시공간(가중) {block['weighted']:.3f} 성격 {block['personality'] if block['personality'] is None else round(block['personality'], 2)} "
@@ -232,7 +260,17 @@ if __name__ == '__main__':
     if sys.argv[1:] == ['contexts']:
         sample, series_data = build_inputs()
         context_report(sample, build_contexts(sample, series_data))
-    elif sys.argv[1:] in (['run'], ['pilot']):
-        run(pilot=sys.argv[1] == 'pilot')
+    elif sys.argv[1:2] == ['run']:
+        run(only=tuple(sys.argv[2:]))
+    elif sys.argv[1:] == ['pilot']:
+        run(pilot=True)
+    elif sys.argv[1:] == ['paired']:  # 저장된 질문별 결과(.data/runs)로 짝 비교만 다시 계산해 results/timechara.json에 더한다. 호출 없음
+        records = json.loads((DATA / 'runs' / 'timechara-rows.json').read_text())
+        out = RESULTS / 'timechara.json'
+        summary = json.loads(out.read_text())
+        summary['paired'] = {f'{a}|{b}': paired(records, a, b) for a, b in PAIRS}
+        out.write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
+        for pair, v in summary['paired'].items():
+            print(f"{pair:12s} 앞만 맞음 {v['a_only']:2d} · 뒤만 맞음 {v['b_only']:2d} · p={v['p']:.3f}")
     else:
-        raise SystemExit('사용법: run_timechara.py contexts|pilot|run')
+        raise SystemExit('사용법: run_timechara.py contexts|pilot|run|paired')

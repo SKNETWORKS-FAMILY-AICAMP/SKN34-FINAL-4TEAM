@@ -1,5 +1,7 @@
 """실행기의 순수 로직 단위 테스트: 항목→문단 순위 변환·평가용 세계관 구성·구성별 집계."""
 
+import pytest
+
 from run import aggregate, passage_ranking, reader_input, score_answers, text_world
 
 
@@ -41,6 +43,13 @@ def test_aggregate_averages_recall_and_precision_and_groups_by_key():
     assert result['recall@2'] == (0.5 + 1.0) / 2
     assert result['p@2'] == (0.5 + 0.5) / 2
     assert result['by_group'][2]['recall@2'] == 0.5 and result['by_group'][3]['n'] == 1
+
+
+def test_aggregate_reports_standard_errors_so_small_gaps_can_be_read_as_noise():
+    rows = [{'ranked': ['a'], 'gold': ['a'], 'group': 1}, {'ranked': ['b'], 'gold': ['a'], 'group': 1}]
+    result = aggregate(rows, k=1, group='group')
+    assert result['recall@1'] == 0.5 and result['recall@1_se'] == pytest.approx(0.5)   # stdev([1, 0]) / sqrt(2)
+    assert aggregate(rows[:1], k=1)['recall@1_se'] == 0.0                             # 표본 1개는 오차를 말할 수 없어 0
 
 
 def test_reader_input_lists_titled_passages_then_the_question():

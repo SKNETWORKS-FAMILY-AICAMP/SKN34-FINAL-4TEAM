@@ -54,6 +54,8 @@ class Llm:
         self.ledger, self.cache_dir = ledger, Path(cache_dir)
         self.model = model or os.environ['OPENAI_MODEL']
         self._client, self.attempts, self.backoff = client, attempts, backoff
+        self._locks: dict[str, threading.Lock] = {}
+        self._guard = threading.Lock()
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
     @property
@@ -62,15 +64,29 @@ class Llm:
             self._client = OpenAI(api_key=os.environ['OPENAI_API_KEY'], timeout=180, max_retries=0)
         return self._client
 
-    def ask(self, kind: str, instructions: str, input: str, *, schema=None, max_output_tokens: int = 4000):
-        """텍스트 또는 schema(Pydantic) 결과 하나. 같은 요청이 캐시에 있으면 호출·장부 없이 돌려준다."""
+    def _path(self, instructions: str, input: str, schema, max_output_tokens: int) -> Path:
         key = hashlib.sha256(json.dumps(
             [self.model, instructions, input, schema.__name__ if schema else None, max_output_tokens],
             ensure_ascii=False).encode()).hexdigest()
-        path = self.cache_dir / f'{key}.json'
-        if path.exists():
-            cached = json.loads(path.read_text())['result']
-            return schema.model_validate(cached) if schema else cached
+        return self.cache_dir / f'{key}.json'
+
+    def is_cached(self, instructions: str, input: str, *, schema=None, max_output_tokens: int = 4000) -> bool:
+        """이 요청이 캐시에 있어 호출 없이 끝나는가(실행 전 예상 호출 수 계산용)."""
+        return self._path(instructions, input, schema, max_output_tokens).exists()
+
+    def ask(self, kind: str, instructions: str, input: str, *, schema=None, max_output_tokens: int = 4000):
+        """텍스트 또는 schema(Pydantic) 결과 하나. 같은 요청이 캐시에 있으면 호출·장부 없이 돌려준다."""
+        path = self._path(instructions, input, schema, max_output_tokens)
+        key = path.name
+        with self._guard:
+            lock = self._locks.setdefault(key, threading.Lock())
+        with lock:  # 같은 요청을 동시에 보내면 하나만 호출하고 나머지는 그 응답을 읽는다(중복 호출·캐시 덮어쓰기 방지)
+            if path.exists():
+                cached = json.loads(path.read_text())['result']
+                return schema.model_validate(cached) if schema else cached
+            return self._call(path, kind, instructions, input, schema, max_output_tokens)
+
+    def _call(self, path: Path, kind: str, instructions: str, input: str, schema, max_output_tokens: int):
         for attempt in range(self.attempts):
             self.ledger.charge(kind)
             try:

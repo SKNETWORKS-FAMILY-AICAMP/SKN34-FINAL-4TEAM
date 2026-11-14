@@ -2,7 +2,7 @@
 
 import pytest
 
-from run_timechara import context_message, foreign_memory, item_episode, judge_personality, judge_spatiotemporal, summarize
+from run_timechara import context_message, foreign_memory, item_episode, judge_personality, judge_spatiotemporal, paired, summarize
 
 LOOKUP = {'chunk': {'harry_potter:12': 7}, 'event': {'e-abc': 9}, 'when': {'r-x': 4}}
 SPATIAL = '{agent_name}|{question_0}|{answer_0}|{agent_fact_0}'
@@ -103,3 +103,13 @@ def test_summarize_reports_context_leak_rates_per_type():
     out = summarize(records)
     assert out['s2']['future_ctx'] == pytest.approx(2 / 3) and out['s2']['foreign_ctx'] == pytest.approx(1 / 3)
     assert out['s3']['future_ctx'] == 0
+
+
+def test_paired_counts_discordant_questions_and_gives_an_exact_sign_test():
+    def rec(idx, config, score):
+        return {'idx': idx, 'config': config, 'score': score}
+    records = [rec(i, 'a', x) for i, x in enumerate([1, 1, 0, 0])] + [rec(i, 'b', x) for i, x in enumerate([0, 1, 1, 0])]
+    assert paired(records, 'a', 'b') == {'a_only': 1, 'b_only': 1, 'p': 1.0}
+    records = [rec(i, 'a', 1) for i in range(9)] + [rec(i, 'b', 0 if i < 8 else 1) for i in range(9)] + [rec(20, 'a', 1), rec(20, 'b', None)]
+    out = paired(records, 'a', 'b')                      # 한쪽이 실패(None)한 질문은 짝에서 뺀다
+    assert (out['a_only'], out['b_only']) == (8, 0) and out['p'] == pytest.approx(2 * 1 / 2 ** 8)

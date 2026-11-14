@@ -1,6 +1,7 @@
 """OpenAI 호출 장부(상한)·캐시·재시도 단위 테스트. 실제 네트워크·키를 쓰지 않고 대역 클라이언트를 쓴다."""
 
 import threading
+import time
 from types import SimpleNamespace
 
 import httpx
@@ -14,11 +15,12 @@ from llm import CallCapExceeded, Ledger, Llm, LlmFailure
 class Fake:
     """responses.create/parse를 흉내 내는 대역. 앞 failures개는 일시 오류를 던진다."""
 
-    def __init__(self, failures=0, status='completed'):
-        self.calls, self.failures, self.status = 0, failures, status
+    def __init__(self, failures=0, status='completed', delay=0.0):
+        self.calls, self.failures, self.status, self.delay = 0, failures, status, delay
         self.responses = SimpleNamespace(create=self._create, parse=self._parse)
 
     def _result(self, **extra):
+        time.sleep(self.delay)
         self.calls += 1
         if self.calls <= self.failures:
             raise openai.APIConnectionError(request=httpx.Request('POST', 'http://x'))
@@ -115,3 +117,21 @@ def test_cap_blocks_before_the_provider_is_called(tmp_path):
     with pytest.raises(CallCapExceeded):
         llm.ask('k', 'ins', 'b')
     assert client.calls == 1
+
+
+def test_concurrent_identical_requests_call_the_provider_once(tmp_path):
+    # 같은 요청을 동시에 보내면 하나만 호출하고 나머지는 그 응답을 읽는다(둘 다 부르면 호출이 낭비되고 캐시에 마지막 응답만 남아 재현이 어긋난다).
+    llm, client = make(tmp_path, delay=0.05)
+    results = []
+    threads = [threading.Thread(target=lambda: results.append(llm.ask('k', 'ins', 'same'))) for _ in range(8)]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+    assert client.calls == 1 and llm.ledger.used() == 1 and len(set(results)) == 1 and len(results) == 8
+
+
+def test_is_cached_tells_whether_a_request_would_call_the_provider(tmp_path):
+    llm, client = make(tmp_path)
+    assert not llm.is_cached('ins', 'in')
+    llm.ask('k', 'ins', 'in')
+    assert llm.is_cached('ins', 'in') and not llm.is_cached('ins', 'other')
+    assert not llm.is_cached('ins', 'in', schema=Out)  # 같은 입력이라도 구조화 요청은 다른 요청이다

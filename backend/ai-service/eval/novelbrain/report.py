@@ -33,11 +33,13 @@ def retrieval(name: str, title: str) -> str:
     k, ceil = data['k'], data['ceiling']
     groups = sorted(next(iter(data['configs'].values())).get('by_group', {}))
     header = ['구성', f'Recall@{k}', f'P@{k}'] + [f'Recall@{k} {g}홉' for g in groups]
-    rows = [[NAMES[c], f"{b[f'recall@{k}']:.3f}", f"{b[f'p@{k}']:.3f}"] + [f"{b['by_group'][g][f'recall@{k}']:.3f}" for g in groups]
+    rows = [[NAMES[c], f"{b[f'recall@{k}']:.3f} ± {b[f'recall@{k}_se']:.3f}", f"{b[f'p@{k}']:.3f} ± {b[f'p@{k}_se']:.3f}"]
+            + [f"{b['by_group'][g][f'recall@{k}']:.3f}" for g in groups]
             for c in ordered(data['configs']) for b in [data['configs'][c]]]
     n = next(iter(data['configs'].values()))['n']
     return (f"**{title}** (질문 {n}개, 문단 {data['passages']}개, 개체 카드 {data['entities']}개, 관계 {data['relations']}개)\n\n"
-            + table(header, rows) + f"\n\n천장값(질문마다 정답 근거 수로 계산한 최대치): Recall@{k} {ceil[f'recall@{k}']:.3f}, P@{k} {ceil[f'p@{k}']:.3f}")
+            + table(header, rows) + f"\n\n천장값(질문마다 정답 근거 수로 계산한 최대치): Recall@{k} {ceil[f'recall@{k}']:.3f}, P@{k} {ceil[f'p@{k}']:.3f}. "
+            '± 뒤는 질문 평균의 표준오차.')
 
 
 def answers(name: str) -> str:

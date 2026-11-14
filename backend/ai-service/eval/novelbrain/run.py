@@ -13,7 +13,7 @@ import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from statistics import mean
+from statistics import mean, stdev
 
 from app.manuscript.models import Excerpt
 from app.novelbrain.models import Card, Relation, WorldSnapshot
@@ -67,9 +67,14 @@ def text_world(sample: dict, graph: dict) -> tuple[WorldSnapshot, dict[str, str]
 
 def aggregate(rows: list[dict], k: int, group: str | None = None) -> dict:
     """질문별 {'ranked','gold'}의 Recall@k·P@k 평균. group 키가 있으면 그 값별로도 낸다."""
+    def stats(values):
+        values = list(values)
+        return mean(values), (stdev(values) / len(values) ** 0.5 if len(values) > 1 else 0.0)
+
     def block(part):
-        return {'n': len(part), f'recall@{k}': mean(recall_at_k(r['ranked'], set(r['gold']), k) for r in part),
-                f'p@{k}': mean(precision_at_k(r['ranked'], set(r['gold']), k) for r in part)}
+        recall, recall_se = stats(recall_at_k(r['ranked'], set(r['gold']), k) for r in part)
+        precision, precision_se = stats(precision_at_k(r['ranked'], set(r['gold']), k) for r in part)
+        return {'n': len(part), f'recall@{k}': recall, f'recall@{k}_se': recall_se, f'p@{k}': precision, f'p@{k}_se': precision_se}
     result = block(rows)
     if group:
         result['by_group'] = {g: block([r for r in rows if r[group] == g]) for g in sorted({r[group] for r in rows})}
