@@ -74,7 +74,7 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
     mode: 'if', premise: '카엘이 성문을 열었다면?',
     beats: [{ index: 0, text: '성문 대면', status: 'done' }],
     turns: [{
-      index: 0, kind: 'character', characterId: 'card-1', characterName: '카엘', prose: '카엘이 문을 열었다.\n"왔구나."',
+      index: 0, kind: 'character', pov: 'omniscient', characterId: 'card-1', characterName: '카엘', prose: '카엘이 문을 열었다.\n"왔구나."',
       checks: [{ kind: 'premise', passed: true, detail: '전제를 따랐어요.' }, { kind: 'voice_mix', passed: false, detail: '말투가 섞였어요.' }],
       regenerated: 1, evidence: [{ ref: 'card-2', source: 'graph' }, { ref: '3화 발췌', source: 'manuscript' }, { ref: '설정 본문', source: 'bm25' }],
       editedByAuthor: false,
@@ -121,6 +121,8 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
     ['모드가 계약에 없다', scene({ mode: 'chaos' })],
     ['상태가 계약에 없다', scene({ status: 'sleeping' })],
     ['턴 종류가 계약에 없다', scene({ turns: [{ ...scene().turns[0], kind: 'chorus' }] })],
+    ['시점이 계약에 없다(3인칭 표기가 틀림)', scene({ turns: [{ ...scene().turns[0], pov: 'third:card-1' }] })],
+    ['시점이 문자열이 아니다', scene({ turns: [{ ...scene().turns[0], pov: 3 }] })],
     ['끼어들기 기록의 턴 번호가 숫자가 아니다', scene({ notes: [{ afterTurn: '첫 턴', text: '문이 열린다' }] })],
     ['인물 줄에 인물 이름이 없다', scene({ turns: [{ ...scene().turns[0], characterName: undefined }] })],
     ['검사 종류가 계약에 없다', scene({ turns: [{ ...scene().turns[0], checks: [{ kind: 'mood', passed: true, detail: '' }] }] })],
@@ -157,8 +159,8 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
   const rawScene = (extra: Record<string, unknown> = {}) => ({
     mode: 'flow', premise: null, beats: [{ index: 0, text: '성문 대면', status: 'pending' }],
     turns: [
-      { index: 0, kind: 'narration', characterId: null, characterName: '나레이션', prose: '성문은 닫혀 있었다.', checks: [], regenerated: 0, evidence: [], editedByAuthor: false },
-      { index: 1, kind: 'character', characterId: 'card-1', characterName: '카엘', prose: '"열어라."', checks: [], regenerated: 0, evidence: [], editedByAuthor: true },
+      { index: 0, kind: 'narration', pov: 'omniscient', characterId: null, characterName: '나레이션', prose: '성문은 닫혀 있었다.', checks: [], regenerated: 0, evidence: [], editedByAuthor: false },
+      { index: 1, kind: 'character', pov: 'omniscient', characterId: 'card-1', characterName: '카엘', prose: '"열어라."', checks: [], regenerated: 0, evidence: [], editedByAuthor: true },
     ],
     notes: [{ afterTurn: 0, text: '비가 쏟아진다' }], status: 'paused', stopReason: null, ...extra,
   })
@@ -180,12 +182,21 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
     expect(sim?.notes).toEqual([{ afterTurn: 0, text: '비가 쏟아진다' }])
   })
 
-  it('무대 필드가 없는 이전 체크포인트의 결과는 고치지 않은 인물 줄·끼어들기 없음으로 읽는다', async () => {
+  it('무대 필드가 없는 이전 체크포인트의 결과는 전지적 시점의 고치지 않은 인물 줄·끼어들기 없음으로 읽는다', async () => {
     const { notes: _notes, ...old } = rawScene({ status: 'completed' })
     const turn = { index: 0, characterId: 'card-1', characterName: '카엘', prose: '"왔구나."', checks: [], regenerated: 0, evidence: [] }
     const sim = firstScene(await run(stepEvent({ feature: 'character_simulation', status: 'completed', result: { ...old, turns: [turn] } }), done))
-    expect(sim?.turns).toEqual([{ ...turn, kind: 'character', editedByAuthor: false }])
+    expect(sim?.turns).toEqual([{ ...turn, kind: 'character', pov: 'omniscient', editedByAuthor: false }])
     expect(sim?.notes).toEqual([])
+  })
+
+  it('독백 줄(시점 인물의 속마음)과 줄마다의 시점(전지적·3인칭 제한·1인칭)을 그대로 읽는다', async () => {
+    const mono = { index: 1, kind: 'monologue', pov: 'limited:card-1', characterId: 'card-1', characterName: '카엘', prose: '문이 열리면 끝이다.', checks: [], regenerated: 0, evidence: [], editedByAuthor: false }
+    const first = { ...mono, index: 2, kind: 'character', pov: 'first:card-1', prose: '"열어라."' }
+    const raw = rawScene()
+    const sim = firstScene(await run(stepEvent({ feature: 'character_simulation', status: 'not_started', result: { ...raw, turns: [raw.turns[0], mono, first] } }), done))
+    expect(sim?.turns.map((turn) => [turn.kind, turn.pov])).toEqual([['narration', 'omniscient'], ['monologue', 'limited:card-1'], ['character', 'first:card-1']])
+    expect(sim?.turns[1]).toMatchObject({ characterId: 'card-1', characterName: '카엘' })
   })
 
   it('waiting 이벤트와 저장된 대화의 응답이 awaitingScene을 알려 준다', async () => {
@@ -209,8 +220,10 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
     }
     expect(await send({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation' }))
       .toMatchObject({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation', consent: true })
+    // 버튼 진입의 시작 양식 값(IF: 전제, 흐름: 비트)과 참여 인물은 simulation으로 그대로 간다.
+    expect(await send({ request: '흐름 모드 시뮬레이션: 장면 계획 2개', operation: 'character_simulation', simulation: { mode: 'flow', beats: ['성문 대면: 마주친다', '협상: 흥정한다'], characterIds: ['c1', 'c2'] } }))
+      .toMatchObject({ operation: 'character_simulation', simulation: { mode: 'flow', beats: ['성문 대면: 마주친다', '협상: 흥정한다'], characterIds: ['c1', 'c2'] } })
     expect(await send({ resume: { approved: true, scene: { action: 'edit', turn: 1, text: '"열어라."' } } }))
       .toMatchObject({ resume: { approved: true, scene: { action: 'edit', turn: 1, text: '"열어라."' } } })
   })
 })
-

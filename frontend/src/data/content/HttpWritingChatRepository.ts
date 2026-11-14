@@ -9,13 +9,14 @@ import { csrf } from '../api/csrf'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
 
 // 인물 시뮬레이션(#58) 단계 결과. 계약 'SSE·응답' JSON 그대로이고 열거값도 계약의 값만 받는다.
-// 무대 필드(kind·editedByAuthor·notes)는 이전 체크포인트에 없을 수 있어 없으면 '고치지 않은 인물 줄·끼어들기 없음'으로 읽는다.
+// 무대 필드(kind·pov·editedByAuthor·notes)는 이전 체크포인트에 없을 수 있어 없으면 '전지적 시점의 고치지 않은 인물 줄·끼어들기 없음'으로 읽는다.
+const pov = z.union([z.literal('omniscient'), z.templateLiteral(['limited:', z.string()]), z.templateLiteral(['first:', z.string()])]).default('omniscient')
 const simulation: z.ZodType<CharacterSimulation> = z.object({
   mode: z.enum(['if', 'flow']),
   premise: z.string().nullish(),
   beats: z.array(z.object({ index: z.number().int(), text: z.string(), status: z.enum(['done', 'pending', 'rejected']) })),
   turns: z.array(z.object({
-    index: z.number().int(), kind: z.enum(['narration', 'character']).default('character'),
+    index: z.number().int(), kind: z.enum(['narration', 'character', 'monologue']).default('character'), pov,
     characterId: z.string().nullish().transform((id) => id ?? null), characterName: z.string(), prose: z.string(),
     checks: z.array(z.object({ kind: z.enum(['knowledge_leak', 'voice_mix', 'relation', 'premise', 'beat']), passed: z.boolean(), detail: z.string() })),
     regenerated: z.number().int().nonnegative(),

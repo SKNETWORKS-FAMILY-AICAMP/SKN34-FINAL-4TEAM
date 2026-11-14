@@ -1,4 +1,4 @@
-import { sceneSummary, type CharacterSimulation } from './characterSimulation'
+import { sceneSummary, type CharacterSimulation, type SimulationStart } from './characterSimulation'
 import type { WritingEpisode } from './content'
 
 /** 집필 AI 채팅(#331). 대화 원본은 AI 서비스의 LangGraph 체크포인터이며 화면은 Content API로만 읽고 쓴다. */
@@ -58,8 +58,8 @@ export type SceneAction =
   | { action: 'stop' }
 /** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). */
 export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction }
-/** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행)이거나 멈춘 실행을 잇는 답이다. */
-export type ChatSendBody = { request: string; operation?: ChatFeature } | { resume: ChatResume }
+/** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행, 시뮬레이션은 시작 양식 값을 싣는다)이거나 멈춘 실행을 잇는 답이다. */
+export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart } | { resume: ChatResume }
 export type ChatMessageInput = ChatBasis & { consent: true } & ChatSendBody
 
 export const SCENE_NOTE_MAX = 300

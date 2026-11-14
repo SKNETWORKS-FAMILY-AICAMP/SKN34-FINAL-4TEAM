@@ -1,3 +1,4 @@
+import { cleanSimulation } from '../entities/characterSimulation'
 import { cleanScene, type ChatEvent, type ChatMessageInput } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 
@@ -17,8 +18,16 @@ export class WritingChatUseCase {
   truncate(workId: string, threadId: string, index: number) { return this.repository.truncate(workId, threadId, index) }
   async send(workId: string, threadId: string, input: ChatMessageInput, onEvent: (event: ChatEvent) => void, signal?: AbortSignal, editIndex?: number) {
     if ('request' in input && !input.request.trim()) throw new Error('보낼 내용을 적어 주세요.')
-    // 장면 조작(무대)은 서버 한도에 맞게 다듬어 보낸다. 승인·거절 응답은 그대로 간다.
-    const body = 'resume' in input && input.resume.scene ? { ...input, resume: { ...input.resume, scene: cleanScene(input.resume.scene) } } : input
-    return this.repository.send(workId, threadId, body, onEvent, signal, editIndex)
+    return this.repository.send(workId, threadId, checked(input), onEvent, signal, editIndex)
   }
+}
+
+/** 시작 양식 값과 장면 조작(무대)을 서버 한도에 맞게 다듬는다. 그 밖의 요청·승인 응답은 그대로 간다. */
+function checked(input: ChatMessageInput): ChatMessageInput {
+  if ('request' in input && input.simulation) {
+    if (input.operation !== 'character_simulation') throw new Error('시뮬레이션 시작은 시뮬레이션 기능으로만 보낼 수 있어요.')
+    return { ...input, simulation: cleanSimulation(input.simulation) }
+  }
+  if ('resume' in input && input.resume.scene) return { ...input, resume: { ...input.resume, scene: cleanScene(input.resume.scene) } }
+  return input
 }
