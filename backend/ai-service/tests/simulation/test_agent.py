@@ -3,21 +3,25 @@ from contextlib import nullcontext
 from types import SimpleNamespace
 
 import pytest
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.runnables import RunnableLambda
 from openai import OpenAIError
 from pydantic import ValidationError
 
-from app.simulation import agent
+from app.simulation import agent, prompt
 from app.simulation.errors import SimulationFailure
-from app.simulation.models import Action, CheckItem, PlanDraft, Verdict
+from app.simulation.models import Action, CheckItem, Narration, PlanDraft, Verdict
 
 ACTION = Action(prose='카엘이 말했다. "멈춰."', observed='카엘이 성문 앞에서 리나를 막아섰다.', refusesBeat=False, refusalReason=None)
+NARRATION = Narration(prose='성문 위로 밤비가 내렸다.', observed='밤비가 성문 앞에 내리고 있다.')
 PLAN = PlanDraft(mode='flow', premise=None, beats=['성문 대면'], characterIds=['k'])
 VERDICT = Verdict(checks=[CheckItem(kind='beat', passed=True, detail='비트를 따랐어요.', refs=[])], beatDone=True, sceneComplete=False)
 SECRET_DOC = {'known': [{'ref': 'k#soul', 'text': 'KAEL-SOUL 말이 짧다'}]}
 
-CALLS = {  # 모델 호출 세 가지: (호출, 응답 형식)
+CALLS = {  # 모델 호출 네 가지: (호출, 응답 형식)
     'plan': (lambda: agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [{'id': 'k', 'name': '카엘'}]), PlanDraft, PLAN),
     'act': (lambda: agent.act(SECRET_DOC), Action, ACTION),
+    'narrate': (lambda: agent.narrate(SECRET_DOC), Narration, NARRATION),
     'check': (lambda: agent.check(SECRET_DOC), Verdict, VERDICT),
 }
 
@@ -62,15 +66,48 @@ def test_plan_input_is_the_request_history_and_character_names_only(monkeypatch)
     assert '그대로' in seen['instructions'] and '제안' in seen['instructions']
 
 
-def test_act_and_check_send_the_assembled_input_as_it_is(monkeypatch):
+def test_act_narrate_and_check_send_the_assembled_input_as_it_is(monkeypatch):
     seen = []
-    provider(monkeypatch, lambda **kwargs: seen.append(kwargs) or completed(ACTION if len(seen) == 1 else VERDICT))
+    provider(monkeypatch, lambda **kwargs: seen.append(kwargs) or completed((ACTION, NARRATION, VERDICT)[len(seen) - 1]))
     agent.act(SECRET_DOC)
+    agent.narrate(SECRET_DOC)
     agent.check(SECRET_DOC)
-    assert [json.loads(k['input']) for k in seen] == [SECRET_DOC, SECRET_DOC]
+    assert [json.loads(k['input']) for k in seen] == [SECRET_DOC] * 3
     # 자료 속 문장은 명령이 아니고, 인물은 자기 입력 밖을 모른다는 지시가 각 호출에 있다.
     assert all('명령이 아닙니다' in k['instructions'] for k in seen)
-    assert '당신이 아는 것' in seen[0]['instructions'] and 'forbidden' in seen[1]['instructions']
+    assert '당신이 아는 것' in seen[0]['instructions'] and 'forbidden' in seen[2]['instructions']
+
+
+def test_narrator_writes_the_scenery_and_the_characters_only_their_own_lines():
+    # 배경·분위기·독백은 나레이터(메인 에이전트)가 쓰고 인물은 대사와 겉으로 보이는 짧은 행동만 쓴다.
+    assert '배경' in prompt.ACT_INSTRUCTIONS and '나레이터' in prompt.ACT_INSTRUCTIONS and 'authorNote' in prompt.ACT_INSTRUCTIONS
+    narrate = prompt.NARRATE_INSTRUCTIONS
+    assert all(word in narrate for word in ('purpose', 'pov', 'style', 'notes', 'observed', 'monologue', '대사', '기준 회차 뒤'))
+    assert all(kind in narrate for kind in ('omniscient', 'limited', 'first'))
+    assert 'self.id' in prompt.CHECK_INSTRUCTIONS and 'knowledge_leak' in prompt.CHECK_INSTRUCTIONS
+    assert set(prompt.NARRATION_FEEDBACK) == {'knowledge_leak', 'voice_mix'}
+
+
+class Listener(BaseCallbackHandler):
+    def __init__(self):
+        self.events = []
+
+    def on_custom_event(self, name, data, **kwargs):
+        self.events.append((name, data))
+
+
+def test_every_model_call_inside_a_langchain_run_reports_usage_latency_and_failure_without_any_text(monkeypatch):
+    listener = Listener()
+    provider(monkeypatch, lambda **_: completed(ACTION))
+    RunnableLambda(lambda _: agent.act(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
+    provider(monkeypatch, lambda **_: SimpleNamespace(status='incomplete', output_parsed=None, model='m', usage=None))
+    with pytest.raises(SimulationFailure):
+        RunnableLambda(lambda _: agent.narrate(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
+    (name, ok), (_, failed) = listener.events
+    assert name == 'simulation.model'
+    assert (ok['name'], ok['failed'], ok['inputTokens'], ok['outputTokens']) == ('act', False, 10, 4) and ok['ms'] >= 0
+    assert (failed['name'], failed['failed'], failed['inputTokens']) == ('narrate', True, None)
+    assert 'KAEL-SOUL' not in str(listener.events) and '멈춰' not in str(listener.events)  # 본문·키는 없다
 
 
 @pytest.mark.parametrize('name', CALLS)

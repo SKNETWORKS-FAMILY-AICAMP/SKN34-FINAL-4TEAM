@@ -5,21 +5,40 @@ OpenAI Decisions(`gpt-6-luna`)에 고정 선택지 질문만 보내므로 모델
 확정한 값만 쓴다. 결과에는 범위·대상·도구 필드가 없어 입력 문장이 그 결과를 바꿀 수 없다.
 """
 
+import re
+
 from pydantic import ValidationError
 
 from app.intent import agent
 from app.intent.errors import IntentFailure
 from app.intent.models import IntentResult, IntentStep
-from app.intent.prompt import CLARIFY_MESSAGE, FEATURES, FINDING_FEATURES, GUARD_QUESTION, REJECT_MESSAGES, ROUTE_QUESTIONS
+from app.intent.prompt import (CAPABILITY_NAMES, CLARIFY_MESSAGE, FEATURES, FINDING_FEATURES, GUARD_QUESTION,
+                               REJECT_MESSAGES, ROUTE_QUESTIONS)
+
+_PLAIN = re.compile(r'[\s·ㆍ・]')  # 보기 이름을 알아볼 때 공백·가운뎃점(· ㆍ ・) 차이는 무시한다
+_BY_NAME = {_PLAIN.sub('', name): feature for feature, name in CAPABILITY_NAMES.items()}
+
+
+def clarified(request: str) -> str | None:
+    """작가가 되묻기(CLARIFY_MESSAGE)의 기능 보기 이름으로 답했으면 그 기능, 아니면 None. 호출자가 직전 턴이 되묻기였는지 확인한다."""
+    return _BY_NAME.get(_PLAIN.sub('', request))
 
 
 def route(request: str, operation: str | None = None, materials: list[str] = (), history: list[str] = ()) -> IntentResult:
     """UI에서 고른 operation이 있으면 가드레일만 묻고 그 기능으로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure.
 
-    history는 같은 대화의 이전 요청이며 "그것" 같은 지칭을 해석하는 자료로만 보낸다.
+    자유 입력은 이번 요청만으로 먼저 분류한다. 이전 요청을 같이 보내면 이미 끝난 요청에 분류가 끌려가기 때문이다. 되묻기(clarify)가 나왔을 때만
+    history(같은 대화의 이전 요청)를 붙여 한 번 더 묻는다. "그거 고쳐줘" 같은 지칭은 이전 요청이 있어야 풀린다.
     """
     if operation is not None:
         IntentStep(feature=operation, when='always')  # 등록 밖 값은 모델 호출 전에 ValidationError(ValueError)
+    if operation:
+        return _decide(request, materials, operation, history)
+    first = _decide(request, materials, None, ())
+    return _decide(request, materials, None, history) if first.status == 'clarify' and history else first
+
+
+def _decide(request: str, materials: list[str], operation: str | None, history: list[str]) -> IntentResult:
     answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else ROUTE_QUESTIONS, list(history))
     try:
         if answers['guard'] != 'none':

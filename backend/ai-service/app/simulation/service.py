@@ -1,14 +1,15 @@
-"""인물 시뮬레이션 실행(docs/design/character-simulation-contract.md): 세계관 읽기 → 인물별 격리 턴 루프 → 결과.
+"""인물 시뮬레이션의 모델 밖 로직(docs/design/character-simulation-contract.md): 세계관 읽기, 계획, 장면 상태, 턴 입력 조립.
 
-한 턴은 다음 인물 선택 → NovelBrain recall(3단계 필터) → 그 인물이 아는 것만으로 입력 조립 → 행동 생성 → 검사
-(오류 1 누설·2 말투·3 호칭/관계, IF 전제 또는 비트 진행) → 위반이면 그 턴만 최대 2회 재생성 → 통과하면 장면 상태 갱신이다.
-인물 호출마다 입력을 새로 조립하며 이전 인물의 입력·모델 대화 상태를 넘기지 않는다. 다른 인물에게는 인물이 겉으로 드러낸
-행동(observed)만 장면 상태로 보이고 소설 문단(prose)의 속마음은 가지 않는다. 한도·실패·중단은 SimulationStopped로 올려
-부분 장면을 완료로 꾸미지 않는다. 모델이 판정한 결과는 형식과 근거 ref가 입력에 있는지 Python이 다시 확인한다.
-근거 ref는 NovelBrain 형식(`card:<id>#soul`·`relation:<id>`·`manuscript:<발췌 id>`)을 그대로 쓴다.
+장면은 턴 하나씩 이어 붙는다. 턴은 나레이션(전지적·3인칭 제한·1인칭), 독백(시점 인물의 속마음), 인물 대사다. 어느 턴을 쓸지는 연출 결정
+(director.py)이 정하고, 이 모듈은 그 결정이 따라야 할 규칙(rules)과 턴을 쓰기 위한 입력을 만든다. 장면 에이전트(scene_agent.py)의
+도구가 이 입력으로 모델을 부르고 미들웨어가 검사해 장면에 붙인다.
+인물 호출마다 입력을 새로 조립하며 이전 인물의 입력·모델 대화 상태를 넘기지 않는다. 다른 인물에게는 인물이 겉으로 드러낸 행동·나레이션이
+모두에게 알린 것(observed)만 장면 상태로 보이고 소설 문단(prose)의 속마음·독백은 가지 않는다. 근거 ref는 NovelBrain 형식
+(`card:<id>#soul`·`relation:<id>`·`manuscript:<발췌 id>`)을 그대로 쓴다.
 """
 
-from collections.abc import Callable, Sequence
+import unicodedata
+from dataclasses import dataclass, field
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
@@ -19,23 +20,28 @@ from app.novelbrain.models import Card, WorldSnapshot, world_snapshot
 from app.retrieval import service as retrieval
 from app.retrieval.models import RetrievalScope
 from app.simulation import agent
-from app.simulation.errors import SimulationFailure, SimulationStopped
-from app.simulation.models import Action, Beat, Check, Evidence, SimulationPlan, SimulationResult, Turn, Verdict
-from app.simulation.prompt import FEEDBACK, KIND_LABELS
+from app.simulation.errors import SimulationFailure
+from app.simulation.models import (GAP_LABELS, Action, Beat, Evidence, Narration, Note, Scene, SceneAction, SimulationPlan,
+                                   SimulationResult, Trail, Turn, Verdict)
 
-TURN_LIMIT = 12
+TURN_LIMIT = 12   # 인물 대사 턴 수 한도. 나레이션·독백은 세지 않는다.
+MAX_TURNS = 40    # 나레이션·독백까지 합친 턴 수 안전 한도(연출이 서술만 되풀이하지 않게)
 REGENERATIONS = 2
 CUT = 200  # 모델이 쓴 이유·설명을 작가에게 보일 때 자르는 길이(Structured Outputs 스키마에는 길이 제약을 못 둔다)
 KINDS = {'if': ['knowledge_leak', 'voice_mix', 'relation', 'premise'],
          'flow': ['knowledge_leak', 'voice_mix', 'relation', 'beat']}
+NARRATOR = '나레이션'
+NARRATOR_CARD = '나레이터'  # 제목이 이 말로 시작하는 카드(유형 무관)는 나레이션 문체 지침이다
 NEEDS_TARGET = '시뮬레이션할 작품과 회차를 확인할 수 없어요.'
 NO_LINKED_WORLD = '이 작품에 연결된 세계관이 없어 시뮬레이션을 실행할 수 없어요.'
 NO_CHARACTERS = '연결된 세계관에 인물 카드가 없어 시뮬레이션을 실행할 수 없어요.'
 BAD_WORLD = '세계관 응답을 확인할 수 없습니다.'
 BAD_PLAN = '시뮬레이션 계획 모델 응답을 확인할 수 없습니다.'
 BAD_ACTION = '시뮬레이션 모델 응답을 확인할 수 없습니다.'
+BAD_NARRATION = '시뮬레이션 나레이션 모델 응답을 확인할 수 없습니다.'
 BAD_VERDICT = '시뮬레이션 검사 모델 응답을 확인할 수 없습니다.'
 INVALID_PLAN = '시뮬레이션 계획이 완성되지 않았거나 세계관에 없는 인물이 있어요.'
+NOT_IN_WORLD = '연결된 세계관에 없는 인물이 있어요. 인물 카드를 다시 골라 주세요.'
 
 
 class WorldLink(BaseModel):
@@ -63,7 +69,7 @@ def plan(request: str, history: list[str], target: dict | None) -> SimulationPla
     고치지 않고 실패한다.
     """
     work_id, episode = _target(target)
-    cast = [{'id': c.id, 'name': c.title} for c in _characters(_snapshot(read_world(work_id, episode), episode)).values()]
+    cast = [{'id': c.id, 'name': c.title} for c in _characters(_world(read_world(work_id, episode), episode)[0]).values()]
     if not cast:
         raise SimulationFailure(409, NO_CHARACTERS)
     try:
@@ -75,91 +81,96 @@ def plan(request: str, history: list[str], target: dict | None) -> SimulationPla
     return drafted
 
 
-def run(plan: SimulationPlan, target: dict | None, request: str, scope: dict | None,
-        progress: Callable[[SimulationResult], None] | None = None) -> SimulationResult:
-    """연결 세계관을 읽고 scope가 있으면 Retrieval 발췌를 받아 장면을 실행한다.
+def plan_from_form(form: SimulationPlan, target: dict | None) -> SimulationPlan:
+    """[시뮬레이션] 버튼의 시작 양식을 계획으로 쓴다(계약 '버튼 진입'). 모델에게 묻지 않고 연결 세계관과 맞춰 보기만 한다.
 
-    발췌는 받은 그대로 recall에 넘긴다. 인물 필터가 원고(manuscript)만 쓰고 설정·현재 관계 발췌는 gaps로 돌린다.
+    모드별 필수값이 빠졌거나 인물이 세계관의 활성 인물 카드가 아니면 되묻지 않고 실패한다(422).
+    """
+    if gaps := form.gaps():
+        raise SimulationFailure(422, f'시뮬레이션 설정에 {", ".join(GAP_LABELS[g] for g in gaps)}이(가) 빠졌어요.')
+    work_id, episode = _target(target)
+    if not set(form.characterIds) <= set(_characters(_world(read_world(work_id, episode), episode)[0])):
+        raise SimulationFailure(422, NOT_IN_WORLD)
+    return form
+
+
+# --- 세계관·원고 발췌 ---------------------------------------------------------------------------------------------------
+
+@dataclass
+class World:
+    """한 요청이 읽은 세계관(기준 회차 시점)과 원고 발췌. 나레이터 문체 카드는 style로 따로 두고 스냅샷에서 뺐다."""
+    episode: int
+    read: dict
+    snapshot: WorldSnapshot
+    style: list[dict]
+    characters: dict[str, Card]
+    manuscript: list[Excerpt]
+
+
+def load_world(target: dict | None, request: str, scope: dict | None) -> World:
+    """연결 세계관을 읽고 scope가 있으면 Retrieval 발췌를 받는다. 발췌는 받은 그대로 recall에 넘기고 인물 필터가 원고만 쓴다.
+
+    ponytail: 검색어는 이번 요청 문장 하나다. 턴마다 다시 찾으려면 recall 호출 옆으로 옮긴다.
     """
     work_id, episode = _target(target)
     read = read_world(work_id, episode)
-    manuscript = []
-    if scope:
-        # ponytail: 검색어는 이번 요청 문장 하나이고 장면 전체가 같은 발췌를 쓴다. 턴마다 다시 찾으려면 recall 호출 옆으로 옮긴다.
-        manuscript = retrieval.retrieve(RetrievalScope.model_validate(scope), request).excerpts
-    return simulate(plan, read, episode, manuscript, progress)
+    snapshot, style = _world(read, episode)
+    manuscript = retrieval.retrieve(RetrievalScope.model_validate(scope), request).excerpts if scope else []
+    return World(episode, read, snapshot, style, _characters(snapshot), manuscript)
 
 
-def simulate(plan: SimulationPlan, read: dict, episode: int, manuscript: Sequence[Excerpt] = (),
-             progress: Callable[[SimulationResult], None] | None = None) -> SimulationResult:
-    """장면을 끝까지 실행해 completed 결과를 돌려준다. 그 밖의 끝은 부분 결과를 담은 SimulationStopped다.
+@dataclass
+class SceneContext:
+    """장면 에이전트 한 번의 실행(요청 하나)이 쓰는 값. 체크포인트에 넣지 않고 요청마다 바깥 그래프가 새로 만든다."""
+    plan: SimulationPlan
+    target: dict | None
+    request: str
+    scope: dict | None  # 재개마다 Content가 새로 서명한 조회 토큰으로 바뀐다
+    steps: list[dict]   # 바깥 그래프의 단계 목록. 대기·이벤트 payload에 장면의 현재 결과를 끼워 넣는다
+    pausing: bool       # 대화 안이면 턴 사이에서 멈춘다. 대화가 없으면 끝까지 한 번에 실행한다
+    loaded: World | None = field(default=None, repr=False)
+    views: dict = field(default_factory=dict, repr=False)  # 이번 요청에서 조립한 턴 입력. 같은 턴의 재생성이 다시 조회하지 않게 한다
 
-    progress는 통과한 턴마다 그때까지의 running 결과를 받는다. 마지막 턴(완결)은 반환값으로만 알린다.
+    def world(self) -> World:
+        """첫 호출 때 한 번 읽는다. 한 요청 안의 재생성·검사가 같은 세계관을 쓴다."""
+        if self.loaded is None:
+            self.loaded = load_world(self.target, self.request, self.scope)
+        return self.loaded
+
+    def step(self, scene: Scene) -> dict:
+        """장면의 현재 결과를 담은 단계 항목. 끝난 장면만 completed이고 멈춘 장면은 failed로 이유를 보인다."""
+        status = {'completed': 'completed', 'paused': 'not_started', 'running': 'not_started'}.get(scene.result.status, 'failed')
+        step = next(s for s in self.steps if s['feature'] == 'character_simulation')
+        return {**{k: v for k, v in step.items() if k != 'error'}, 'status': status, 'result': scene.result.model_dump(mode='json'),
+                **({'error': scene.error} if scene.error else {})}
+
+    def live_steps(self, scene: Scene) -> list[dict]:
+        return [self.step(scene) if s['feature'] == 'character_simulation' else s for s in self.steps]
+
+
+def _world(read: dict, episode: int) -> tuple[WorldSnapshot, list[dict]]:
+    """세계관 스냅샷과 나레이터 문체 지침. 제목이 '나레이터'로 시작하는 카드는 유형과 상관없이 문체 지침이라 스냅샷에서 뺀다.
+
+    인물 카드면 IDENTITY와 SOUL을 함께 지침으로 쓴다. 그래서 인물로 고를 수도 없고 인물의 입력에 들어가지도 않는다.
     """
-    snapshot = _snapshot(read, episode)
-    characters = _characters(snapshot)
-    if plan.gaps() or not set(plan.characterIds) <= set(characters):
-        raise SimulationFailure(422, INVALID_PLAN)
-    cast = [characters[i] for i in plan.characterIds]
-    flow, kinds = plan.mode == 'flow', KINDS[plan.mode]
-    beats = [Beat(index=i, text=t, status='pending') for i, t in enumerate(plan.beats)] if flow else []
-    turns: list[Turn] = []
-    scene: list[dict] = []  # 장면 상태: 인물이 겉으로 드러낸 행동. 모든 참여 인물이 같은 장소에 있다고 본다.
-    last: dict[str, int] = {}
-
-    def result(status, reason=None) -> SimulationResult:
-        return SimulationResult(mode=plan.mode, premise=None if flow else plan.premise, beats=[b.model_copy() for b in beats],
-                                turns=list(turns), status=status, stopReason=reason)
-
     try:
-        for index in range(TURN_LIMIT):
-            beat = next((b for b in beats if b.status == 'pending'), None)
-            direction = _direction(plan, beat)
-            actor = _actor(cast, beat and beat.text, last)
-            recalled = novelbrain.recall(snapshot, actor.id, episode, _query(direction, scene), stage=3, manuscript=manuscript)
-            own, future = _docs(actor, episode)
-            mine = [*own, *_relations(snapshot, read, actor.id)]
-            taken = {d['ref'] for d in mine}
-            known = [*mine, *({'ref': i.ref, 'label': f'조회({i.source})', 'text': i.text} for i in recalled.items
-                              if i.ref not in taken)]
-            asked = {'self': {'id': actor.id, 'name': actor.title}, 'known': known, 'present': [c.title for c in cast],
-                     'scene': list(scene), 'direction': direction}
-            forbidden = [*future, *(d for c in cast if c.id != actor.id for d in _private(c))]
-            voices = [{'ref': f'card:{c.id}#soul', 'name': c.title, 'text': c.soul} for c in cast
-                      if c.id != actor.id and c.soul.strip()]
-            feedback: list[str] = []
-            for attempt in range(REGENERATIONS + 1):
-                action = _acted(agent.act({**asked, **({'feedback': feedback} if feedback else {})}))
-                if flow and action.refusesBeat:
-                    beat.status = 'rejected'
-                    raise SimulationStopped(
-                        f'{actor.title}이(가) 비트 “{beat.text}”을(를) 따르지 않아 멈췄어요. 흐름을 고치거나 이대로 진행할지 정해 주세요. '
-                        f'이유: {(action.refusalReason or "알 수 없어요.")[:CUT]}', result('stopped', 'beat_rejected'))
-                checked = {**asked, 'forbidden': forbidden, 'voices': voices, 'checks': kinds, 'paragraph': action.prose}
-                verdict = agent.check(checked)
-                _verify(verdict, kinds, checked)
-                failed = [c for c in verdict.checks if not c.passed]
-                if not failed:
-                    break
-                feedback = [FEEDBACK[c.kind] for c in failed]
-            else:
-                raise SimulationStopped(
-                    f'{actor.title}의 {index + 1}번째 장면이 검사를 통과하지 못해 멈췄어요: '
-                    f'{", ".join(KIND_LABELS[c.kind] for c in failed)}. {failed[0].detail[:CUT]}', result('stopped', 'check_failed'))
-            turns.append(Turn(index=index, characterId=actor.id, characterName=actor.title, prose=action.prose.strip(),
-                              checks=[Check(kind=c.kind, passed=c.passed, detail=c.detail[:CUT]) for c in verdict.checks],
-                              regenerated=attempt, evidence=[Evidence(ref=i.ref, source=i.source) for i in recalled.items]))
-            scene.append({'ref': f'scene:{index}', 'by': actor.title, 'text': action.observed.strip()})
-            last[actor.id] = index
-            if flow and verdict.beatDone:
-                beat.status = 'done'
-            if all(b.status == 'done' for b in beats) if flow else verdict.sceneComplete:
-                return result('completed')
-            if progress:
-                progress(result('running'))
-        raise SimulationStopped(f'턴 한도({TURN_LIMIT})까지 장면이 끝나지 않아 멈췄어요.', result('stopped', 'turn_limit'))
-    except SimulationFailure as failure:
-        raise SimulationStopped(str(failure), result('failed')) from None
+        snapshot = world_snapshot(read, episode)
+    except ValueError:
+        raise SimulationFailure(502, BAD_WORLD) from None
+    narrators = {c.id: c for c in snapshot.cards if unicodedata.normalize('NFC', c.title).strip().startswith(NARRATOR_CARD)}
+    style = [{'ref': f'card:{c.id}', 'title': c.title, 'text': '\n\n'.join(t for t in (c.text, c.soul) if t.strip())}
+             for c in narrators.values()]
+    rest = snapshot.model_copy(update={'cards': [c for c in snapshot.cards if c.id not in narrators],
+                                       'relations': [r for r in snapshot.relations if not {r.source, r.target} & set(narrators)]})
+    return rest, style
+
+
+def _visible(snapshot: WorldSnapshot, episode: int) -> WorldSnapshot:
+    """전지적 나레이터가 보는 세계관: 기준 회차에 공개된 카드와 그 회차까지의 기억만(인물 시점 필터는 없다)."""
+    cards = [c.model_copy(update={'episodes': {n: t for n, t in c.episodes.items() if n <= episode}})
+             for c in snapshot.cards if c.revealFromEpisode is None or c.revealFromEpisode <= episode]
+    ids = {c.id for c in cards}
+    return snapshot.model_copy(update={'cards': cards, 'relations': [r for r in snapshot.relations if r.source in ids and r.target in ids]})
 
 
 def _target(target: dict | None) -> tuple[str, int]:
@@ -168,17 +179,136 @@ def _target(target: dict | None) -> tuple[str, int]:
     return target['workId'], target['episode']
 
 
-def _snapshot(read: dict, episode: int) -> WorldSnapshot:
-    try:
-        return world_snapshot(read, episode)
-    except ValueError:
-        raise SimulationFailure(502, BAD_WORLD) from None
-
-
 def _characters(snapshot: WorldSnapshot) -> dict[str, Card]:
     """활성 인물 카드. 삭제 카드·모양이 어긋난 characterDocs는 world_snapshot이 이미 걸러 냈다."""
     return {c.id: c for c in snapshot.cards if c.cardType == 'character'}
 
+
+# --- 장면 상태(순수 함수) ----------------------------------------------------------------------------------------------
+
+def new_scene(plan: SimulationPlan) -> Scene:
+    flow = plan.mode == 'flow'
+    beats = [Beat(index=i, text=t, status='pending') for i, t in enumerate(plan.beats)] if flow else []
+    return Scene(result=SimulationResult(mode=plan.mode, premise=None if flow else plan.premise, beats=beats, turns=[],
+                                         status='running', stopReason=None))
+
+
+def check_plan(plan: SimulationPlan, world: World) -> None:
+    """계획이 끝까지 정해졌고 인물이 지금 세계관의 활성 인물 카드인지 확인한다. 세계관은 요청마다 다시 읽으므로 그 사이 바뀔 수 있다."""
+    if plan.gaps() or not set(plan.characterIds) <= set(world.characters):
+        raise SimulationFailure(422, INVALID_PLAN)
+
+
+def current_beat(result: SimulationResult) -> Beat | None:
+    return next((b for b in result.beats if b.status == 'pending'), None)
+
+
+def _sync_beats(scene: Scene) -> None:
+    """비트의 끝남은 턴 기록에서 다시 센다. 지운 턴이 끝냈던 비트와 거부했던 비트는 다시 진행 중이 된다."""
+    for beat in scene.result.beats:
+        beat.status = 'done' if any(e.beat == beat.index and e.done for e in scene.trail) else 'pending'
+
+
+def apply_action(scene: Scene, action: SceneAction) -> Scene:
+    """작가의 조작을 장면에 반영한다(모델 호출 없음). 턴 번호가 장면 안인지는 호출자가 확인한다.
+
+    edit는 그 턴을 작가 글로 바꾸고, stop은 지금까지로 끝낸다. next·redo는 다음 턴을 쓰게 하며 redo는 그 턴부터 뒤를 지우고
+    같은 연출(인물·시점)로 그 턴만 다시 쓴다. 끝난 장면에 next를 하면 마무리를 걷어 내고 이어 간다.
+    """
+    scene = scene.model_copy(deep=True)
+    result, trail = scene.result, scene.trail
+    note = (action.note or '').strip() or None
+    if action.action == 'stop':
+        result.status, result.stopReason, scene.error = 'completed', None, None
+        return scene
+    if action.action == 'edit':
+        turn = result.turns[action.turn]
+        turn.prose, turn.editedByAuthor, turn.checks = action.text.strip(), True, []
+        trail[action.turn].observed = '' if turn.kind == 'monologue' else turn.prose  # 독백은 다른 인물에게 보이지 않는다
+        return scene
+    if action.action == 'redo':
+        k = action.turn
+        kept = trail[k]
+        scene.redo, scene.memo, scene.hint = kept.decision, kept.note, note
+        del result.turns[k:], trail[k:]
+        result.notes = [n for n in result.notes if n.afterTurn < k]
+        if note:
+            result.notes.append(Note(afterTurn=k - 1, text=note))
+    else:
+        if result.status == 'completed':
+            if trail and trail[-1].closing:
+                result.turns.pop()
+                trail.pop()
+            for entry in trail:
+                if entry.ended:
+                    entry.ended = entry.done = False
+        if note:
+            scene.memo = note
+            result.notes.append(Note(afterTurn=len(result.turns) - 1, text=note))
+    result.status, result.stopReason, scene.error = 'paused', None, None
+    _sync_beats(scene)
+    return scene
+
+
+def rules(plan: SimulationPlan, scene: Scene) -> tuple[list[str], str | None]:
+    """다음 턴의 규칙: (연출이 고를 수 있는 턴, 나레이션이 정해진 이유). 고를 수 있는 턴이 없으면 한도에 닿았다.
+
+    장면 시작·작가의 메모·이야기의 끝·흐름 모드의 비트 전환에는 나레이션(마무리는 end)이 먼저다. 그 밖에는 나레이션·독백·대사 중에서
+    고르되 나레이션·독백이 두 번 이어지면 이번엔 대사다.
+    """
+    turns, trail = scene.result.turns, scene.trail
+    if not trail:
+        return ['narration'], 'opening'
+    if scene.memo:
+        return ['narration'], 'note'
+    if any(e.ended for e in trail):
+        return ['end'], 'closing'
+    if turns[-1].kind == 'character' and trail[-1].done:
+        return ['narration'], 'transition'
+    if sum(t.kind == 'character' for t in turns) >= TURN_LIMIT or len(turns) >= MAX_TURNS:
+        return [], None
+    quiet = len(turns) >= 2 and all(t.kind != 'character' for t in turns[-2:])
+    return (['speech'] if quiet else ['narration', 'monologue', 'speech']), None
+
+
+def seen_lines(scene: Scene) -> list[dict]:
+    """장면 상태: 지금까지 드러난 것. 인물이 겉으로 드러낸 행동과 나레이션이 알린 것뿐이고 독백·속마음은 없다."""
+    return [{'ref': f'scene:{t.index}', 'by': t.characterName, 'text': e.observed} for t, e in zip(scene.result.turns, scene.trail) if e.observed]
+
+
+def director_state(plan: SimulationPlan, scene: Scene, required: str | None) -> dict:
+    """연출 결정 모델에 보이는 장면 요약. 인물 id·설정 문서·독백 내용은 없다."""
+    result, beat = scene.result, current_beat(scene.result)
+    lines = [{'kind': t.kind, 'by': t.characterName, 'pov': t.pov, **({'text': e.observed} if e.observed else {})}
+             for t, e in zip(result.turns, scene.trail)]
+    return {'mode': plan.mode, 'premise': result.premise, 'beats': [b.model_dump() for b in result.beats],
+            'currentBeat': beat and {'index': beat.index, 'text': beat.text}, 'scene': lines[-8:],
+            'notes': [n.model_dump() for n in result.notes], 'memoPending': bool(scene.memo),
+            'spoken': sum(t.kind == 'character' for t in result.turns), 'limit': TURN_LIMIT, **({'required': required} if required else {})}
+
+
+def add_turn(scene: Scene, turn: Turn, entry: Trail) -> Scene:
+    """통과한 턴을 장면에 붙인다. 쓴 메모·지시는 비우고 마무리 나레이션이면 장면이 끝난다."""
+    scene = scene.model_copy(deep=True)
+    scene.result.turns.append(turn)
+    scene.trail.append(entry)
+    scene.memo = scene.hint = scene.redo = scene.error = None
+    _sync_beats(scene)
+    scene.result.status, scene.result.stopReason = ('completed' if entry.closing else 'paused'), None
+    return scene
+
+
+def stop_scene(scene: Scene, message: str, status: str, reason: str | None = None, rejected: int | None = None) -> Scene:
+    """멈춘 장면: 쌓은 턴과 작가의 메모는 그대로 두고 상태·이유만 바꾼다. rejected는 따르지 않은 비트 번호다."""
+    scene = scene.model_copy(deep=True)
+    scene.result.status, scene.result.stopReason, scene.error = status, reason, message
+    for beat in scene.result.beats:
+        if beat.index == rejected:
+            beat.status = 'rejected'
+    return scene
+
+
+# --- 턴 입력 조립 ------------------------------------------------------------------------------------------------------
 
 def _doc(ref: str, label: str, text: str) -> dict:
     return {'ref': ref, 'label': label, 'text': text}
@@ -233,31 +363,79 @@ def _direction(plan: SimulationPlan, beat: Beat | None) -> dict:
     """인물에게는 지금 비트(흐름) 또는 IF 전제만 보인다. 뒤의 비트는 미래 정보라 넣지 않는다."""
     if plan.mode == 'if':
         return {'mode': 'if', 'premise': {'ref': 'premise', 'text': plan.premise}}
-    return {'mode': 'flow', 'currentBeat': {'ref': f'beat:{beat.index}', 'text': beat.text}}
+    return {'mode': 'flow', **({'currentBeat': {'ref': f'beat:{beat.index}', 'text': beat.text}} if beat else {})}
 
 
-def _query(direction: dict, scene: list[dict]) -> str:
-    """recall 검색어: 지금 비트나 전제와 가장 최근에 드러난 행동."""
-    goal = direction.get('premise') or direction['currentBeat']
-    return ' '.join([goal['text'], scene[-1]['text'] if scene else '']).strip()
+def _query(direction: dict, seen: list[dict]) -> str:
+    """recall 검색어: 지금 비트나 전제와 가장 최근에 드러난 일."""
+    goal = direction.get('premise') or direction.get('currentBeat') or {'text': ''}
+    return ' '.join([goal['text'], seen[-1]['text'] if seen else '']).strip()
 
 
-def _actor(cast: list[Card], beat_text: str | None, last: dict[str, int]) -> Card:
-    """비트에 이름이 나오는 인물을 우선하고, 그 안에서(없으면 전원) 가장 오래 차례가 없던 인물이 돌아가며 맡는다.
+def character_view(plan: SimulationPlan, world: World, scene: Scene, actor: Card) -> tuple[dict, dict, list[Evidence]]:
+    """그 인물이 아는 것만으로 조립한 모델 입력과 검사 보조 자료(금지 목록·다른 인물의 말투), 조회 근거.
 
-    ponytail: 이름이 그대로 나올 때만 알아본다(별칭·호칭 미지원). 필요하면 비트에 인물 id를 따로 받는다.
+    인물 대사와 그 인물 시점의 나레이션·독백이 같은 입력을 쓴다. 입력은 호출마다 새로 만들고 이전 인물의 입력은 넘기지 않는다.
     """
-    named = [c for c in cast if beat_text and c.title in beat_text]
-    return min(named or cast, key=lambda c: last.get(c.id, -1))
+    direction, seen = _direction(plan, current_beat(scene.result)), seen_lines(scene)
+    recalled = novelbrain.recall(world.snapshot, actor.id, world.episode, _query(direction, seen), stage=3, manuscript=world.manuscript)
+    own, future = _docs(actor, world.episode)
+    mine = [*own, *_relations(world.snapshot, world.read, actor.id)]
+    taken = {d['ref'] for d in mine}
+    known = [*mine, *({'ref': i.ref, 'label': f'조회({i.source})', 'text': i.text} for i in recalled.items if i.ref not in taken)]
+    cast = [world.characters[i] for i in plan.characterIds]
+    asked = {'self': {'id': actor.id, 'name': actor.title}, 'known': known, 'present': [c.title for c in cast],
+             'scene': seen, 'direction': direction}
+    extra = {'forbidden': [*future, *(d for c in cast if c.id != actor.id for d in _private(c))],
+             'voices': [{'ref': f'card:{c.id}#soul', 'name': c.title, 'text': c.soul} for c in cast if c.id != actor.id and c.soul.strip()]}
+    return asked, extra, [Evidence(ref=i.ref, source=i.source) for i in recalled.items]
 
 
-def _acted(action: Action) -> Action:
+def narrator_view(plan: SimulationPlan, world: World, scene: Scene) -> tuple[dict, dict, list[Evidence]]:
+    """전지적 나레이터의 모델 입력: 기준 회차까지의 세계관(2단계 조회, 인물 시점 필터 없음)과 원고 발췌. 금지 목록은 미래 정보뿐이다."""
+    direction, seen = _direction(plan, current_beat(scene.result)), seen_lines(scene)
+    manuscript = [e for e in world.manuscript if e.kind == 'manuscript' and e.episode <= world.episode]
+    recalled = novelbrain.recall(_visible(world.snapshot, world.episode), None, world.episode, _query(direction, seen), stage=2,
+                                 manuscript=manuscript)
+    asked = {'self': {'id': None, 'name': NARRATOR},
+             'known': [{'ref': i.ref, 'label': f'조회({i.source})', 'text': i.text} for i in recalled.items],
+             'present': [world.characters[i].title for i in plan.characterIds], 'scene': seen, 'direction': direction}
+    future = [{**d, 'owner': c.title} for c in world.snapshot.cards if c.cardType == 'character' for d in _docs(c, world.episode)[1]]
+    hidden = [{**_doc(f'card:{c.id}', '아직 공개되지 않은 설정', c.text), 'owner': c.title} for c in world.snapshot.cards
+              if c.revealFromEpisode is not None and c.revealFromEpisode > world.episode]
+    return asked, {'forbidden': [*future, *hidden], 'voices': []}, [Evidence(ref=i.ref, source=i.source) for i in recalled.items]
+
+
+def narration_input(plan: SimulationPlan, world: World, scene: Scene, purpose: str, pov: str) -> dict:
+    """나레이터 모델 입력에 더하는 값: 쓰는 이유, 시점, 장면 계획, 문체 지침, 작가의 끼어들기 기록."""
+    result = scene.result
+    kind, _, who = pov.partition(':')
+    return {'purpose': purpose, 'pov': {'kind': kind, 'character': world.characters[who].title if who in world.characters else None},
+            'plan': {'mode': plan.mode, 'premise': result.premise, 'beats': [b.model_dump() for b in result.beats]},
+            'style': world.style, 'notes': [n.model_dump() for n in result.notes]}
+
+
+def check_kinds(plan: SimulationPlan, kind: str, pov: str) -> list[str]:
+    """턴에 거는 검사. 대사는 전 항목, 독백·1인칭 서술은 지식 범위와 말투, 그 밖의 서술은 지식 범위(전지적은 미래 누설)만 본다."""
+    if kind == 'character':
+        return KINDS[plan.mode]
+    return ['knowledge_leak', 'voice_mix'] if kind == 'monologue' or pov.startswith('first:') else ['knowledge_leak']
+
+
+def acted(action: Action) -> Action:
     if not action.prose.strip() or not action.observed.strip():
         raise SimulationFailure(502, BAD_ACTION)
     return action
 
 
-def _verify(verdict: Verdict, kinds: list[str], payload: dict) -> None:
+def narrated(narration: Narration, monologue: bool) -> Narration:
+    """나레이션·독백 응답 확인: 본문이 있어야 하고, 나레이션은 모두에게 알릴 것(observed)도 있어야 한다."""
+    if not narration.prose.strip() or (not monologue and not narration.observed.strip()):
+        raise SimulationFailure(502, BAD_NARRATION)
+    return narration
+
+
+def verify(verdict: Verdict, kinds: list[str], payload: dict) -> None:
     """요청한 검사가 정확히 한 번씩 있고, 위반 근거 ref가 검사 모델의 입력에 있는 것만 인정한다. 아니면 실패한다."""
     refs = {item['ref'] for key in ('known', 'scene', 'forbidden', 'voices') for item in payload[key]}
     refs |= {v['ref'] for v in payload['direction'].values() if isinstance(v, dict)}
