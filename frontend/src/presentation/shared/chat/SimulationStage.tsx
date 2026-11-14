@@ -103,7 +103,7 @@ function StartForm({ stage, workId, planEpisode, plotLink }: { stage: StageViewM
 /** 줄 하나의 검사·근거. 접어 두어 본문 읽기를 방해하지 않는다. */
 function Checks({ turn }: { turn: SimulationTurn }) {
   const { passed, violated } = checkSummary(turn.checks)
-  return <details className="stage-checks">
+  return <details className="stage-checks" aria-live="off">
     <summary>검사·근거 · 통과 {passed} · 위반 {violated}</summary>
     {!!turn.checks.length && <ul className="stage-list" aria-label="검사">{turn.checks.map((check, i) => <li key={i} data-passed={check.passed}>
       <b>{checkKindLabel[check.kind]}</b> <span className="stage-verdict">{check.passed ? '통과' : '위반'}</span>{check.detail && ` ${check.detail}`}
@@ -139,7 +139,7 @@ function Turn({ turn, stage, workId, episode, editing, setEditing, lockId }: {
       ? <p className="stage-who" id={nameId}><span className="sr-only">나레이션</span>{edited}</p>
       : <p className="stage-who" id={nameId}>{owner}{monologue && <span className="stage-tag">속마음</span>}{edited}</p>}
     {mine
-      ? <form className="stage-edit" onSubmit={save}>
+      ? <form className="stage-edit" aria-live="off" onSubmit={save}>
         <label className="sr-only" htmlFor={`${nameId}-edit`}>{narration ? '나레이션' : monologue ? `${owner} 속마음` : owner} 줄 고치기</label>
         <textarea id={`${nameId}-edit`} rows={4} value={mine.text} maxLength={2000} autoFocus
           onChange={(e) => setEditing({ turn: turn.index, text: e.target.value })} onKeyDown={(e) => { if (e.key === 'Escape') setEditing(null) }} />
@@ -150,7 +150,7 @@ function Turn({ turn, stage, workId, episode, editing, setEditing, lockId }: {
         <p className="chat-note">고친 줄은 작가가 쓴 글로 남고 검사 결과는 지워져요. 모델 호출은 없어요.</p>
       </form>
       : <div className="stage-bubble"><ManuscriptBody workId={workId} number={episode} body={turn.prose} /></div>}
-    {!mine && stage.showActions && <div className="stage-actions">
+    {!mine && stage.showActions && <div className="stage-actions" aria-live="off">
       <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct}
         onClick={() => { stage.pause(); setEditing({ turn: turn.index, text: turn.prose }) }}>수정</button>
       <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct} onClick={() => void stage.redo(turn.index)}>다시 말하기</button>
@@ -236,7 +236,7 @@ export function SimulationStage({ stage, workId, episode, planEpisode, plotLink,
       {sim && <span className="stage-status" data-status={stage.statusKey}>{stage.statusText}</span>}
       <button type="button" className="btn sm" onClick={onClose}>무대 닫기</button>
     </header>
-    {stage.error && <div className="chat-error" role="alert"><p>{stage.error}</p><button type="button" className="btn sm" onClick={stage.dismissError}>알림 닫기</button></div>}
+    {stage.error && <div className="chat-error" role="alert"><p>{stage.error}</p><button type="button" className="btn sm" onClick={stage.reload}>다시 불러오기</button></div>}
     {sim ? <Scene stage={stage} sim={sim} workId={workId} episode={episode} /> : <StartForm stage={stage} workId={workId} planEpisode={planEpisode} plotLink={plotLink} />}
   </section>
 }

@@ -39,7 +39,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
   const blocked = chat.available ? (chat.consent ? '' : CONSENT_FIRST) : chat.lockedReason ?? ''
   const canAct = !chat.pending && !!chat.awaiting && !blocked
 
-  useEffect(() => { if (attention) { setOpen(true); setComposing(false) } }, [attention])
+  useEffect(() => { if (attention) { setOpen(true); setComposing(false); setAsked(false) } }, [attention])
   useEffect(() => { if (!live) { setPaused(false); setStopAfterTurn(false) } }, [live])
 
   const withNote = async (run: (note: string) => Promise<boolean>) => {
@@ -74,7 +74,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     hint: chat.deciding ? '답을 보내고 있어요…'
       : !live ? ''
         : chat.streaming ? (stopAfterTurn ? '이번 턴을 마치면 장면을 끝내요.' : paused ? '이번 턴을 마치면 멈춰요.' : '다음 줄을 만들고 있어요…')
-          : playing ? '' : '일시정지됨 · 재생하면 다음 줄을 만들어요.',
+          : playing ? '' : stoppedOrFailed ? '멈춘 장면이에요. 줄을 고치거나 다시 말하게 한 뒤 재생해 이어 가세요.' : '일시정지됨 · 재생하면 다음 줄을 만들어요.',
     // 줄 수정·다시 말하기가 잠긴 이유. 끝났거나 이어 갈 수 없는 장면에는 줄 행동을 두지 않는다.
     showActions: live || chat.awaiting === 'approval',
     linesLock: !sim ? '' : chat.pending ? LINES_LOCKED : chat.awaiting ? blocked : '',
@@ -90,7 +90,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     // 이 무대에서 시작한 요청이 첫 턴을 만드는 중이다(아직 장면이 없다).
     starting: asked && !sim && chat.streaming,
     available: chat.available, consent: chat.consent, setConsent: chat.setConsent, pending: chat.pending, deciding: chat.deciding,
-    error: chat.error, dismissError: chat.dismissError,
+    error: chat.error, reload: chat.retry,
     issue: simulationIssue,
     start: (start: SimulationStart, source: 'plan' | 'manual' = 'manual', names: Record<string, string> = {}) => {
       if (simulationIssue(start) || blocked || chat.pending) return Promise.resolve(false)

@@ -657,6 +657,8 @@ it('검사에 걸려 멈춘 장면은 이유를 보이고 줄 수정·다시 말
   expect(box().getByText('멈춤')).toBeTruthy()
   expect(box().queryByText('완료')).toBeNull()
   expect(box().getByText('멈춘 이유').parentElement?.textContent).toBe('멈춘 이유 말투가 섞여 멈췄어요.')
+  expect(box().getByText('멈춘 장면이에요. 줄을 고치거나 다시 말하게 한 뒤 재생해 이어 가세요.')).toBeTruthy()
+  expect(box().queryByText(/일시정지됨/)).toBeNull()
   expect((within(lines()[1]).getByRole('button', { name: '다시 말하기' }) as HTMLButtonElement).disabled).toBe(false)
   expect(box().getByRole('button', { name: '장면 끝내기' })).toBeTruthy()
   for (const name of ['원고에 반영', '반영하지 않기']) expect(box().queryByRole('button', { name })).toBeNull()
@@ -687,6 +689,25 @@ it('턴 도중 오류는 사유를 알리고 저절로 다음 턴을 보내지 �
   expect(box().queryByRole('alert')).toBeNull()
 })
 
+it('오류 상자의 다시 불러오기는 저장된 장면을 다시 읽어 오류를 지운다(기록을 못 읽어 장면이 사라진 때의 복구)', async () => {
+  paused(narrate(0), speak(1))
+  let failing = false
+  history.mockImplementation(async () => {
+    if (failing) throw new Error('대화를 불러오지 못했어요.')
+    return { threadId: 'a', title: '', turns: store.reply ? [{ request: store.request, reply: store.reply }] : [] }
+  })
+  setup((_input, emit) => { failing = true; pauseAt(emit, scene([narrate(0), speak(1), speak(2, '리안', '"저예요."')])) })
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  consent()
+  fireEvent.click(box().getByRole('button', { name: '재생' }))
+  await waitFor(() => expect(box().getByRole('alert').textContent).toContain('대화를 불러오지 못했어요.'))
+  expect(box().queryByRole('list', { name: '장면 대본' })).toBeNull() // 읽지 못한 기록을 가짜로 채우지 않는다.
+  failing = false
+  fireEvent.click(box().getByRole('button', { name: '다시 불러오기' }))
+  await waitFor(() => expect(lines()).toHaveLength(3))
+  expect(box().queryByRole('alert')).toBeNull()
+})
+
 it('장면 없이 끝난 요청(AI가 되묻거나 거절)은 답을 보이고 요청 입력을 이어 둔다', async () => {
   setup((_input, emit) => {
     store.reply = { status: 'clarify', message: '어느 인물의 시점으로 쓸까요?', steps: [], missingInputs: [] }
@@ -696,6 +717,29 @@ it('장면 없이 끝난 요청(AI가 되묻거나 거절)은 답을 보이고 �
   await waitFor(() => expect(box().getByText('어느 인물의 시점으로 쓸까요?')).toBeTruthy())
   expect(await box().findByRole('textbox', { name: '전제' })).toBeTruthy()
   expect(box().queryByRole('list', { name: '장면 대본' })).toBeNull()
+})
+
+it('장면이 시작되고 나면 그 뒤 일반 채팅의 답이 시작 양식에 새어 나오지 않는다', async () => {
+  setup((_input, emit) => { pauseAt(emit, scene([narrate(0)])) }, (_input, emit) => { reviewAt(emit, scene([narrate(0)], { status: 'completed' })) })
+  await begin()
+  await waitFor(() => expect(box().getByRole('button', { name: '원고에 반영' })).toBeTruthy())
+  // 작가가 채팅에서 장면과 상관없는 질문을 하고 AI가 일반 답으로 응답한 저장 상태.
+  store.reply = { status: 'completed', message: '카엘은 서른 살이에요.', steps: [{ feature: 'story_context', status: 'completed', result: { text: '카엘은 서른 살이에요.' } }], missingInputs: [] }
+  serve((_input, emit) => { emit({ type: 'done', reply: store.reply! }) })
+  fireEvent.click(box().getByRole('button', { name: '장면 이어 가기' }))
+  await waitFor(() => expect(box().getByRole('textbox', { name: '전제' })).toBeTruthy())
+  expect(box().queryByText('카엘은 서른 살이에요.')).toBeNull()
+})
+
+it('대본 안의 조작 영역(줄 행동·수정 입력·검사 접기)은 aria-live를 꺼 새 줄만 읽히게 한다', async () => {
+  paused(narrate(0), speak(1))
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  consent()
+  expect(lines()[1].querySelector('.stage-actions')?.getAttribute('aria-live')).toBe('off')
+  expect(lines()[1].querySelector('details')?.getAttribute('aria-live')).toBe('off')
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  expect(lines()[1].querySelector('form.stage-edit')?.getAttribute('aria-live')).toBe('off')
 })
 
 it('장면 결과 형식이 어긋나 단계가 실패하면 가짜 장면 없이 실패 사유를 알린다', async () => {
