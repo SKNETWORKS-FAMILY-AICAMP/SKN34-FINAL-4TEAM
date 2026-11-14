@@ -1,12 +1,13 @@
 """TimeChara 평가 실행: 검증 600건에서 유형마다 같은 수를 뽑아 구성별 문맥을 모으고, 인물 응답을 만들고, 공개 채점 기준으로 채점한다.
 
     cd backend/ai-service
-    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py contexts   # 호출 없음: 문맥·누설 지표
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py contexts [--subset]   # 호출 없음: 문맥·누설 지표
     set -a; . <저장소 루트 .env>; set +a                                # 아래부터 OpenAI 호출
-    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py run [구성 …]   # 구성을 주면 그 구성만 다시(나머지는 저장된 결과 유지)
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py run [--mode=sync|batch] [--subset]
 
 구성: zero(검색 없음, 공개 zero-shot과 같은 입력) · ppr(0단계) · vector · bm25 · s1 · s2 · s3. 문맥은 상위 6개 항목(rag-cutoff와 같은 6)이다.
 채점은 공개 evaluate.py와 같다: 공간(absence·presence)이 0이면 시간은 묻지 않고, 성격은 1~7.
+기본은 검증 600건 전체이고 `--subset`은 처음 평가한 유형별 20개(80건)다. 호출은 라운드(생성 → 채점 → 둘째 채점)로 묶어 동기 또는 Batch로 낸다.
 """
 
 import ast
@@ -14,13 +15,14 @@ import json
 import re
 import sys
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from app.manuscript.models import Excerpt
 from app.novelbrain.service import _documents, bm25_rank, recall
+from batch import Round, cost_report, make_executor, plan_for, run_rounds
+from cost import LIMIT_USD
 from embed import best_window, embed_texts, knn
-from llm import CAP, Ledger, Llm, LlmFailure
+from llm import usd_llm
 from metrics import parse_score, sign_test, spatiotemporal_score, wilson_interval
 from prepare import DATA, SEED
 from timechara import (SERIES, TYPES, build_world, chapter_tuple, common_names, cutoff, judge_name, load_chunks, ordinal_map,
@@ -117,12 +119,13 @@ def paired(records: list[dict], a: str, b: str) -> dict:
     return {'a_only': out['up'], 'b_only': out['down'], 'p': out['p']}
 
 
-PAIRS = (('s3', 's2'), ('s3', 'zero'), ('s3', 'ppr'), ('s2', 's1'), ('s1', 'ppr'), ('ppr', 'zero'), ('s2', 'vector'), ('s2', 'bm25'))
+PAIRS = (('s3', 's2'), ('s3', 'zero'), ('s3', 'ppr'), ('s2', 's1'), ('s1', 'ppr'), ('ppr', 'zero'), ('s2', 'vector'), ('s2', 'bm25'),
+         ('s3', 'vector'), ('s3', 'bm25'))
 
 
 # ---- 입력 구성·실행(실제 데이터가 필요해 단위 테스트하지 않는다) ----
 
-def build_inputs():
+def build_inputs(everything: bool = True):
     import numpy as np
 
     rows = [dict(r, idx=i) for i, r in enumerate(json.loads((TC / 'valid.json').read_text()))]
@@ -138,7 +141,7 @@ def build_inputs():
         world = build_world(mine, ordinals, common_names(names, words))
         series_data[series] = {'chunks': chunks, 'vectors': np.load(TC / f'vectors_{series}.npy'), 'ordinals': ordinals, 'world': world,
                                'docs': _documents(world['cards']), 'tables': tables}
-    return sample_by_type(rows, PER_TYPE, SEED), series_data
+    return (rows if everything else sample_by_type(rows, PER_TYPE, SEED)), series_data
 
 
 def build_contexts(sample: list[dict], series_data: dict) -> dict[int, dict]:
@@ -186,75 +189,79 @@ def context_report(sample: list[dict], contexts: dict) -> None:
               f"평균 항목 수 {sum(len(c['items']) for c in everything) / len(everything):.1f}")
 
 
-def run(only: tuple[str, ...] = ()) -> None:
-    sample, series_data = build_inputs()
-    contexts = build_contexts(sample, series_data)
-    context_report(sample, contexts)
-    configs = only or CONFIGS
-    ledger = Ledger(DATA / 'ledger.jsonl')
-    llm = Llm(ledger, DATA / 'cache')
-    template_s = (TC / 'data/spatiotemporal_consistency_evaluation_prompt.txt').read_text()
-    template_p = (TC / 'data/personality_consistency_evaluation_prompt.txt').read_text()
-    personality = {r['character']: (TC / f"data/personality/{r['character'].lower().replace(' ', '_')}_personality.txt").read_text()
-                   for r in sample}
-    tasks = [(r, config) for r in sample for config in configs]
-    distinct = len({(system_prompt(r['series'], r['character'], r['character_period']),
-                     context_message(r['question'], [i['text'] for i in contexts[r['idx']][config]['items']])) for r, config in tasks})
-    fresh = len({(r['idx'], config) for r, config in tasks if not llm.is_cached(
-        system_prompt(r['series'], r['character'], r['character_period']),
-        context_message(r['question'], [i['text'] for i in contexts[r['idx']][config]['items']]), max_output_tokens=GEN_TOKENS)})
-    print(f'질문 {len(sample)}개 × 구성 {len(configs)} = 생성 요청 최대 {len(tasks)}(서로 다른 요청 {distinct}, 캐시에 없는 것 {fresh}), '
-          f'응답마다 채점 최대 3회 → 최대 {fresh * 4}회, 장부 {ledger.used()}/{CAP}', flush=True)
-    if ledger.used() + fresh * 4 > CAP:
-        raise SystemExit('상한을 넘길 수 있어 중단한다. 표본이나 구성을 줄여라.')
+def make_work(contexts: dict, templates: dict, system_of, name_of, personality_of, extra=None):
+    """run_rounds용 work(task, llm). task = (질문 행, 구성). 라운드 1: 인물 응답 생성, 2: 시공간(공간 먼저)·성격 채점, 3: 공간이 1일 때 시간.
 
-    def work(task):
+    system_of(row)·name_of(row)·personality_of(row)(없으면 None)는 데이터마다 다른 부분이고, extra(row, ctx)는 기록에 더할 필드다.
+    호출이 영구 실패하면 score가 None인 채로 남아 집계의 failed로 센다(성공으로 꾸미지 않는다).
+    """
+    def work(task, llm):
         r, config = task
         ctx = contexts[r['idx']][config]
-        record = {'idx': r['idx'], 'config': config, 'data_type': r['data_type'], 'response': None, 'score': None,
-                  'temporal': None, 'spatial': None, 'personality': None, 'future_ctx': ctx['future'], 'foreign_ctx': ctx['foreign']}
-        try:
-            response = llm.ask('gen', system_prompt(r['series'], r['character'], r['character_period']),
-                               context_message(r['question'], [i['text'] for i in ctx['items']]), max_output_tokens=GEN_TOKENS)
-            name = judge_name(r['series'], r['character'], r['character_period'])
-            record.update(response=response, **judge_spatiotemporal(llm, r, response, name, template_s))
-            if config in PERSONALITY_CONFIGS:
-                record['personality'] = judge_personality(llm, r['question'], response, name, personality[r['character']], template_p)
-        except LlmFailure:
-            pass  # score가 None인 채로 남아 집계의 failed로 센다(성공으로 꾸미지 않는다)
+        record = {'idx': r['idx'], 'config': config, 'data_type': r['data_type'], 'response': None, 'score': None, 'temporal': None,
+                  'spatial': None, 'personality': None, 'future_ctx': ctx['future'], 'foreign_ctx': ctx['foreign'],
+                  **(extra(r, ctx) if extra else {})}
+        step = Round()
+        response, failed = step.get(lambda: llm.ask('gen', system_of(r), context_message(r['question'], [i['text'] for i in ctx['items']]),
+                                                    max_output_tokens=GEN_TOKENS))
+        step.done()
+        if failed:
+            return record
+        name, personality = name_of(r), personality_of(r)
+        verdict, _ = step.get(lambda: judge_spatiotemporal(llm, r, response, name, templates['spatiotemporal']))
+        score = step.get(lambda: judge_personality(llm, r['question'], response, name, personality, templates['personality']))[0] \
+            if config in PERSONALITY_CONFIGS and personality else None
+        step.done()
+        record.update(response=response, personality=score, **(verdict or {}))
         return record
+    return work
 
-    with ThreadPoolExecutor(12) as pool:
-        records = list(pool.map(work, tasks))
+
+def run(mode: str = 'sync', everything: bool = True) -> None:
+    sample, series_data = build_inputs(everything)
+    contexts = build_contexts(sample, series_data)
+    context_report(sample, contexts)
+    llm = usd_llm(DATA / 'cache', DATA / 'cost.jsonl', LIMIT_USD)
+    templates = {'spatiotemporal': (TC / 'data/spatiotemporal_consistency_evaluation_prompt.txt').read_text(),
+                 'personality': (TC / 'data/personality_consistency_evaluation_prompt.txt').read_text()}
+    personality = {r['character']: (TC / f"data/personality/{r['character'].lower().replace(' ', '_')}_personality.txt").read_text()
+                   for r in sample}
+    work = make_work(contexts, templates, lambda r: system_prompt(r['series'], r['character'], r['character_period']),
+                     lambda r: judge_name(r['series'], r['character'], r['character_period']), lambda r: personality[r['character']])
+    tasks = [(r, config) for r in sample for config in CONFIGS]
+    print(f'질문 {len(sample)}개 × 구성 {len(CONFIGS)} = {len(tasks)} 과제 · 방식 {mode} · 장부 ${llm.cost.spent():.3f}', flush=True)
+    records = run_rounds(tasks, work, llm, make_executor(llm, mode, DATA / 'batches'), plan=plan_for(llm, mode))
     (DATA / 'runs').mkdir(exist_ok=True)
-    rows_file = DATA / 'runs' / 'timechara-rows.json'
-    if only and rows_file.exists():  # 다시 돌린 구성만 바꾸고 나머지는 이전 실행의 결과를 그대로 둔다
-        records = [r for r in json.loads(rows_file.read_text()) if r['config'] not in only] + records
-    rows_file.write_text(json.dumps(records, ensure_ascii=False))
+    (DATA / 'runs' / 'timechara-rows.json').write_text(json.dumps(records, ensure_ascii=False))
+    write_results(records, llm.model, everything)
+    cost_report(llm)
+
+
+def write_results(records: list[dict], model: str, everything: bool) -> None:
+    """집계를 results/timechara.json에 쓴다(전체 600건이면 처음 평가한 80건 부분집합 수치도 함께: 시작점 수정 전 80건과 같은 질문으로 비교하려고)."""
+    rows = [dict(r, idx=i) for i, r in enumerate(json.loads((TC / 'valid.json').read_text()))]
+    first = {r['idx'] for r in sample_by_type(rows, PER_TYPE, SEED)}
+    summary = {'questions': len({r['idx'] for r in records}), 'per_type': PER_TYPE, 'seed': SEED, 'k_context': K_CTX, 'excerpts': EXCERPTS, 'model': model,
+               'configs': summarize(records), 'paired': {f'{a}|{b}': paired(records, a, b) for a, b in PAIRS},
+               'paired_by_type': {kind: {f'{a}|{b}': paired([r for r in records if r['data_type'] == kind], a, b) for a, b in PAIRS} for kind in TYPES}}
+    if everything:
+        subset = [r for r in records if r['idx'] in first]
+        summary['first_80'] = {'questions': len(first), 'configs': summarize(subset), 'paired': {f'{a}|{b}': paired(subset, a, b) for a, b in PAIRS}}
     RESULTS.mkdir(exist_ok=True)
-    summary = {'per_type': PER_TYPE, 'seed': SEED, 'k_context': K_CTX, 'excerpts': EXCERPTS, 'model': llm.model,
-               'calls_total_after_this_run': ledger.used(), 'configs': summarize(records),
-               'paired': {f'{a}|{b}': paired(records, a, b) for a, b in PAIRS}}
     (RESULTS / 'timechara.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
     for config, block in summary['configs'].items():
         print(f"{config:7s} 시공간(가중) {block['weighted']:.3f} 성격 {block['personality'] if block['personality'] is None else round(block['personality'], 2)} "
               f"실패 {block['failed']}/{block['n']}")
-    print(f'장부 {ledger.used()}/{CAP}')
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['contexts']:
-        sample, series_data = build_inputs()
+    options = [a for a in sys.argv[2:] if a.startswith('--')]
+    if sys.argv[1:2] == ['contexts']:
+        sample, series_data = build_inputs('--subset' not in options)
         context_report(sample, build_contexts(sample, series_data))
     elif sys.argv[1:2] == ['run']:
-        run(only=tuple(sys.argv[2:]))
-    elif sys.argv[1:] == ['paired']:  # 저장된 질문별 결과(.data/runs)로 짝 비교만 다시 계산해 results/timechara.json에 더한다. 호출 없음
-        records = json.loads((DATA / 'runs' / 'timechara-rows.json').read_text())
-        out = RESULTS / 'timechara.json'
-        summary = json.loads(out.read_text())
-        summary['paired'] = {f'{a}|{b}': paired(records, a, b) for a, b in PAIRS}
-        out.write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
-        for pair, v in summary['paired'].items():
-            print(f"{pair:12s} 앞만 맞음 {v['a_only']:2d} · 뒤만 맞음 {v['b_only']:2d} · p={v['p']:.3f}")
+        run(next((o.split('=', 1)[1] for o in options if o.startswith('--mode=')), 'sync'), '--subset' not in options)
+    elif sys.argv[1:2] == ['paired']:  # 저장된 질문별 결과(.data/runs)로 집계·짝 비교만 다시 계산한다. 호출 없음
+        write_results(json.loads((DATA / 'runs' / 'timechara-rows.json').read_text()), 'saved', True)
     else:
-        raise SystemExit('사용법: run_timechara.py contexts|run|paired')
+        raise SystemExit('사용법: run_timechara.py contexts|run|paired [--mode=…] [--subset]')

@@ -1,8 +1,10 @@
 """작품 고르기 단위 테스트: 장르 분류·후보 선별·장르별 선택·고전 회차 만들기. 합성 입력만 쓴다(소설 원문 없음)."""
 
+import zipfile
+
 import pytest
 
-from kt_select import QUOTA, choose, classify_genre, prepare_classic, screen
+from kt_select import QUOTA, choose, classify_genre, prepare_classic, read_head, screen
 
 BODY = '이야기가 이어진다. ' * 300
 
@@ -50,3 +52,17 @@ def test_prepare_classic_cleans_modernizes_caps_and_groups_into_episodes():
     assert [e['number'] for e in episodes] == list(range(1, 11))
     assert sum(len(e['text']) for e in episodes) <= 6100 and '{{' not in episodes[0]['text']
     assert '한 사람이' in episodes[0]['text']
+
+
+def test_read_head_reads_txt_in_any_supported_encoding_and_epub_but_skips_other_formats(tmp_path):
+    text = '가나다라마바사 ' * 100
+    (tmp_path / 'utf.txt').write_bytes(text.encode('utf-8'))
+    (tmp_path / 'legacy.txt').write_bytes(text.encode('cp949'))
+    assert read_head(tmp_path / 'utf.txt') == text and read_head(tmp_path / 'legacy.txt') == text
+    assert read_head(tmp_path / 'utf.txt', limit=46) == text.encode('utf-8')[:44].decode('utf-8')   # 읽다가 잘린 끝 글자(2바이트)는 버린다
+    with zipfile.ZipFile(tmp_path / 'book.epub', 'w') as z:
+        z.writestr('OEBPS/ch1.xhtml', '<html><body><p>첫째 장입니다.</p></body></html>')
+    assert '첫째 장입니다.' in read_head(tmp_path / 'book.epub')
+    (tmp_path / 'archive.zip').write_bytes(b'PK')
+    (tmp_path / 'broken.epub').write_bytes(b'not a zip')
+    assert read_head(tmp_path / 'archive.zip') is None and read_head(tmp_path / 'broken.epub') is None

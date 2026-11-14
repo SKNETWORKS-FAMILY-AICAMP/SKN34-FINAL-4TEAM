@@ -20,7 +20,8 @@ from app.manuscript.models import Excerpt
 from app.novelbrain.models import Card, RecallItem, Relation, WorldSnapshot
 from app.novelbrain.service import _documents, bm25_rank, filter_for_character, recall, rrf  # ponytail: BM25-only 구성이 2단계와 같은 문서를 쓰도록 비공개 헬퍼를 가져온다
 from embed import best_window, cached_embeddings, embed_texts, knn
-from llm import CAP, Ledger, Llm, LlmFailure
+from cost import LIMIT_USD
+from llm import LlmFailure, usd_llm
 from metrics import answer_f1, dedupe, exact_match, precision_at_k, recall_at_k, sign_test
 from prepare import DATA
 
@@ -139,8 +140,7 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
     runs = json.loads((DATA / 'runs' / f'{name}-rankings.json').read_text())
     by_pid = {p['id']: p for p in sample['passages']}
     configs = ('ppr', 'vector', 'bm25', 's1', 's2') + extra
-    ledger = Ledger(DATA / 'ledger.jsonl')
-    llm = Llm(ledger, DATA / 'cache')
+    llm = usd_llm(DATA / 'cache', DATA / 'cost.jsonl', LIMIT_USD)   # 호출 수 대신 금액(비용 장부)으로 막는다
 
     def passages_for(q, config):
         if config == 'gold':
@@ -160,9 +160,7 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
     tasks = [(q, c) for q in sample['questions'] for c in configs]
     fresh = sum(not llm.is_cached(READER, reader_input(q['question'], passages_for(q, c)), max_output_tokens=3000) for q, c in tasks)
     print(f'{name}: 질문 {len(sample["questions"])} × 구성 {len(configs)} = {len(tasks)}건, 캐시에 없는 것 {fresh}건 '
-          f'(장부 {ledger.used()}/{CAP})', flush=True)
-    if not cached_only and ledger.used() + fresh > CAP:  # 순위가 바뀐 뒤(작업 A 수정 병합 등)에는 문맥이 달라져 캐시에 없는 요청이 생긴다
-        raise SystemExit('상한을 넘길 수 있어 중단한다. 이 단계는 수정 전 순위로 만든 결과를 그대로 쓴다.')
+          f'(장부 ${llm.cost.spent():.3f} / 상한 ${LIMIT_USD:.2f})', flush=True)   # 순위가 바뀐 뒤에는 문맥이 달라져 캐시에 없는 요청이 생긴다
     with ThreadPoolExecutor(12) as pool:
         preds = list(pool.map(work, tasks))
     result = {'dataset': name, 'k': K, 'model': llm.model, 'configs': {}}
@@ -183,7 +181,7 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
     out.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     for config, block in result['configs'].items():
         print(f"{name:10s} {config:7s} EM={block['em']:.3f} F1={block['f1']:.3f} (n={block['n']}, 실패 {block['failed']})")
-    print(f'장부 {ledger.used()}/{CAP}')
+    print(f'장부 ${llm.cost.spent():.3f} / 상한 ${LIMIT_USD:.2f}')
 
 
 def retrieval(name: str) -> None:
