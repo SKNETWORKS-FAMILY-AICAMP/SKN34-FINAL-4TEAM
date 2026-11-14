@@ -4,7 +4,7 @@ from app.manuscript.models import Excerpt
 from app.retrieval.models import RetrievalResult
 from app.simulation import service
 from app.simulation.errors import SimulationFailure, SimulationStopped
-from app.simulation.models import CharacterRef, CheckItem, PlanDraft, SimulationPlan, Verdict
+from app.simulation.models import CheckItem, PlanDraft, SimulationPlan, Verdict
 from app.simulation.prompt import FEEDBACK
 
 from .stubs import (EPISODE, GATE, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, TARGET, WORLD, action, fake_content, fake_models,
@@ -52,7 +52,7 @@ def test_plan_asks_the_model_with_character_names_only(monkeypatch):
     assert plan == SimulationPlan(mode='flow', beats=['성문 대면'], characterIds=[KAEL])
     # 모델에는 인물 카드의 id·이름만 간다(장소·삭제 카드, 문서 본문은 없다).
     assert seen == [('카엘이 성문에서 리나를 막아서는 장면', ['이전 요청'],
-                     [CharacterRef(id=KAEL, name='카엘'), CharacterRef(id=LINA, name='리나')])]
+                     [{'id': KAEL, 'name': '카엘'}, {'id': LINA, 'name': '리나'}])]
 
 
 def test_plan_the_model_could_not_settle_is_returned_with_its_gaps_for_the_caller_to_ask(monkeypatch):

@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from app.simulation import agent
 from app.simulation.errors import SimulationFailure
-from app.simulation.models import Action, CharacterRef, CheckItem, PlanDraft, Verdict
+from app.simulation.models import Action, CheckItem, PlanDraft, Verdict
 
 ACTION = Action(prose='카엘이 말했다. "멈춰."', observed='카엘이 성문 앞에서 리나를 막아섰다.', refusesBeat=False, refusalReason=None)
 PLAN = PlanDraft(mode='flow', premise=None, beats=['성문 대면'], characterIds=['k'])
@@ -16,7 +16,7 @@ VERDICT = Verdict(checks=[CheckItem(kind='beat', passed=True, detail='비트를 
 SECRET_DOC = {'known': [{'ref': 'k#soul', 'text': 'KAEL-SOUL 말이 짧다'}]}
 
 CALLS = {  # 모델 호출 세 가지: (호출, 응답 형식)
-    'plan': (lambda: agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [CharacterRef(id='k', name='카엘')]), PlanDraft, PLAN),
+    'plan': (lambda: agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [{'id': 'k', 'name': '카엘'}]), PlanDraft, PLAN),
     'act': (lambda: agent.act(SECRET_DOC), Action, ACTION),
     'check': (lambda: agent.check(SECRET_DOC), Verdict, VERDICT),
 }
@@ -55,7 +55,7 @@ def test_each_call_is_one_stateless_structured_output_request(monkeypatch, name)
 def test_plan_input_is_the_request_history_and_character_names_only(monkeypatch):
     seen = {}
     provider(monkeypatch, lambda **kwargs: seen.update(kwargs) or completed(PLAN))
-    agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [CharacterRef(id='k', name='카엘')])
+    agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [{'id': 'k', 'name': '카엘'}])
     assert json.loads(seen['input']) == {'request': '카엘과 리나가 성문에서 만나면?', 'history': ['이전 요청'],
                                          'characters': [{'id': 'k', 'name': '카엘'}]}
     # 흐름 모드 비트: 작가가 적은 목록은 그대로 쓰고, 없으면 모델이 제안한다.

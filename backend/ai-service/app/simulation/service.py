@@ -20,8 +20,7 @@ from app.retrieval import service as retrieval
 from app.retrieval.models import RetrievalScope
 from app.simulation import agent
 from app.simulation.errors import SimulationFailure, SimulationStopped
-from app.simulation.models import (Action, Beat, CharacterRef, Check, CheckItem, Evidence, SimulationPlan,
-                                   SimulationResult, Turn, Verdict)
+from app.simulation.models import Action, Beat, Check, CheckItem, Evidence, SimulationPlan, SimulationResult, Turn, Verdict
 from app.simulation.prompt import FEEDBACK, KIND_LABELS
 
 TURN_LIMIT = 12
@@ -63,14 +62,14 @@ def plan(request: str, history: list[str], target: dict | None) -> SimulationPla
     고치지 않고 실패한다.
     """
     work_id, episode = _target(target)
-    cast = [CharacterRef(id=c.id, name=c.title) for c in _characters(_snapshot(read_world(work_id, episode), episode)).values()]
+    cast = [{'id': c.id, 'name': c.title} for c in _characters(_snapshot(read_world(work_id, episode), episode)).values()]
     if not cast:
         raise SimulationFailure(409, NO_CHARACTERS)
     try:
         drafted = SimulationPlan.model_validate(agent.plan(request, history, cast).model_dump())
     except ValidationError:
         raise SimulationFailure(502, BAD_PLAN) from None
-    if not set(drafted.characterIds) <= {c.id for c in cast}:
+    if not set(drafted.characterIds) <= {c['id'] for c in cast}:
         raise SimulationFailure(502, BAD_PLAN)
     return drafted
 

@@ -10,7 +10,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 Mode = Literal['if', 'flow']
 CheckKind = Literal['knowledge_leak', 'voice_mix', 'relation', 'premise', 'beat']
-Gap = Literal['mode', 'premise', 'beats', 'characterIds']
 # 작가에게 되묻는 문구에 쓰는 고정 라벨(모델이 쓴 문장은 쓰지 않는다).
 GAP_LABELS = {'mode': '모드(IF 또는 흐름)', 'premise': 'IF 전제("만약 ~했다면?")', 'beats': '장면 비트', 'characterIds': '참여 인물'}
 
@@ -23,9 +22,9 @@ class SimulationPlan(BaseModel):
     beats: list[Annotated[str, Field(min_length=1, max_length=200)]] = Field(default=[], max_length=8)
     characterIds: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(default=[], max_length=6)
 
-    def gaps(self) -> list[Gap]:
+    def gaps(self) -> list[str]:
         """실행 전에 작가가 더 알려 줘야 하는 것. IF는 전제 하나, 흐름은 비트 목록이 필요하다."""
-        gaps: list[Gap] = []
+        gaps: list[str] = []
         if self.mode is None:
             gaps.append('mode')
         elif self.mode == 'if' and not self.premise:
@@ -35,12 +34,6 @@ class SimulationPlan(BaseModel):
         if not self.characterIds:
             gaps.append('characterIds')
         return gaps
-
-
-class CharacterRef(BaseModel):
-    """작가에게 보여 줄 세계관의 인물 카드(참여 인물 선택지)."""
-    id: str
-    name: str
 
 
 class Beat(BaseModel):
