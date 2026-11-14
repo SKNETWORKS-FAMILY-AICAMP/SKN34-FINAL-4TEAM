@@ -17,108 +17,109 @@
       },
       "web": {
         "chars_per_episode": {
-          "max": 11860,
-          "median": 6295,
-          "min": 4265
+          "max": 13475,
+          "median": 6145,
+          "min": 801
         },
-        "episodes": 300,
+        "episodes": 1200,
         "episodes_per_work": {
           "max": 25,
           "min": 25
         },
-        "total_chars": 1946155,
-        "works": 12
+        "total_chars": 7491463,
+        "works": 48
       }
     },
     "genres": {
       "고전": 5,
-      "대체역사": 2,
-      "로맨스판타지": 2,
-      "무협": 2,
-      "판타지": 2,
-      "현대로맨스": 1,
-      "현대판타지": 3
+      "대체역사": 8,
+      "로맨스판타지": 8,
+      "무협": 8,
+      "판타지": 8,
+      "현대로맨스": 4,
+      "현대판타지": 12
     },
-    "works": 17
+    "works": 53
   },
   "extraction": {
-    "evidence_checked": 7443,
-    "evidence_ok": 7258,
-    "evidence_pass_rate": 0.9751444310090017,
+    "evidence_checked": 24465,
+    "evidence_ok": 23865,
+    "evidence_pass_rate": 0.9754751686082158,
     "failed": {
       "label": 0,
       "learn": 0,
       "world": 0
     },
     "label": {
-      "bad_name": 111,
-      "event_evidence": 79,
-      "events": 2502,
-      "evidence_checked": 7086,
-      "evidence_ok": 6910,
-      "kept": 2314,
-      "no_participant": 109,
-      "ref_evidence": 97,
-      "refs": 4695,
-      "refs_kept": 4485
+      "bad_name": 219,
+      "event_evidence": 250,
+      "events": 8599,
+      "evidence_checked": 23521,
+      "evidence_ok": 22954,
+      "kept": 7669,
+      "no_participant": 680,
+      "ref_evidence": 317,
+      "refs": 15141,
+      "refs_kept": 14594
     },
     "learn": {
-      "already_present": 12,
-      "bad_name": 13,
-      "evidence_checked": 357,
-      "evidence_ok": 348,
-      "learn_evidence": 9,
-      "learned": 382,
-      "learned_kept": 348
+      "already_present": 29,
+      "bad_name": 37,
+      "evidence_checked": 944,
+      "evidence_ok": 911,
+      "learn_evidence": 33,
+      "learned": 1011,
+      "learned_kept": 911,
+      "unknown_event": 1
     },
     "world": {
-      "bad_character": 159,
-      "bad_event": 53,
-      "bad_relation": 120,
-      "characters": 2246,
-      "events": 1814,
-      "relations": 1202
+      "bad_character": 249,
+      "bad_event": 330,
+      "bad_relation": 182,
+      "characters": 8089,
+      "events": 6175,
+      "relations": 3957
     }
   },
   "question_checks": {
-    "audited": 1088,
     "dropped": {
-      "copies_evidence": 4,
-      "duplicate": 51
+      "copies_evidence": 9,
+      "duplicate": 127
     },
-    "kept": 1088,
-    "review_evidence_ok": 109,
-    "review_sample": 109
+    "kept": 3328,
+    "review_evidence_ok": 333,
+    "review_sample": 333
   },
   "questions": {
     "by_genre": {
       "고전": 320,
-      "대체역사": 128,
-      "로맨스판타지": 128,
-      "무협": 128,
-      "판타지": 128,
-      "현대로맨스": 64,
-      "현대판타지": 192
+      "대체역사": 512,
+      "로맨스판타지": 512,
+      "무협": 512,
+      "판타지": 512,
+      "현대로맨스": 256,
+      "현대판타지": 704
     },
     "by_kind": {
       "classic": 320,
-      "web": 768
+      "web": 3008
     },
     "by_style": {
-      "fact-freeform": 561,
-      "fact-structured": 527
+      "fact-freeform": 1716,
+      "fact-structured": 1612
     },
     "by_type": {
-      "future": 374,
-      "past-absence": 170,
-      "past-only": 374,
-      "past-presence": 170
+      "future": 1144,
+      "past-absence": 520,
+      "past-only": 1144,
+      "past-presence": 520
     },
-    "characters": 115,
+    "characters": 370,
     "per_work": {
       "max": 64,
       "min": 64
     },
-    "total": 1088
+    "total": 3328,
+    "works": 52
   }
 }

@@ -31,5 +31,7 @@
 ## 규칙
 
 - 실제 OpenAI 호출은 모두 `llm.py`를 거친다. 첫 평가는 장부(`.data/ledger.jsonl`)가 3,000회를 막았고, KoTimeChara·TimeChara 600건·MuSiQue 다시 풀기는 비용 장부(`.data/cost.jsonl`)의 금액 상한(28달러, 이전 키 사용분은 `.data/cost-previous-key.jsonl`에 기록만)이 막는다. 재시도와 실패한(잘린) 호출도 센다. 큰 라운드는 Batch API(절반 가격)로 낼 수 있고 실행 전에 예상 금액을 출력한다.
+- 평가 모델은 `cost.MODEL`(`gpt-5.6-luna`)로 고정한다. 메인 `.env`의 `OPENAI_MODEL`이 바뀌어도 `usd_llm`은 읽지 않는다(비교 가능성). 키는 `.env`에서만 읽는다.
+- KoTimeChara 작품을 늘릴 때는 `kt_common.ROUNDS`(확대 차수별 누적 편수)에 새 차수를 더한다. 작품 id와 질문 임베딩 묶음이 차수를 따르므로 이미 만든 추출·질문·응답 캐시가 그대로 맞는다.
 - 입력·원고·모델 응답·키는 오류 메시지와 로그에 넣지 않는다. 호출 실패·잘린 응답·파싱 실패는 점수를 꾸미지 않고 집계의 `failed`로 센다.
 - 의존성 파일은 바꾸지 않았다. 일회성 도구가 필요하면 `uv run --with <패키지>`로만 쓴다.

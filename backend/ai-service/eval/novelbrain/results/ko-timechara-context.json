@@ -2,39 +2,39 @@
   "configs": {
     "bm25": {
       "all": {
-        "foreign": 0.8336397058823529,
-        "future": 0.75,
+        "foreign": 0.8629807692307693,
+        "future": 0.7427884615384616,
         "items": 6.0,
-        "questions": 1088,
+        "questions": 3328,
         "unseen": 0.0
       },
       "by_type": {
         "future": {
-          "foreign": 0.7807486631016043,
-          "future": 0.9919786096256684,
+          "foreign": 0.8085664335664335,
+          "future": 0.9965034965034965,
           "items": 6.0,
-          "questions": 374,
+          "questions": 1144,
           "unseen": 0.0
         },
         "past-absence": {
-          "foreign": 0.9647058823529412,
-          "future": 0.5588235294117647,
+          "foreign": 0.9730769230769231,
+          "future": 0.5596153846153846,
           "items": 6.0,
-          "questions": 170,
+          "questions": 520,
           "unseen": 0.0
         },
         "past-only": {
-          "foreign": 0.8529411764705882,
-          "future": 0.6283422459893048,
+          "foreign": 0.888986013986014,
+          "future": 0.6276223776223776,
           "items": 6.0,
-          "questions": 374,
+          "questions": 1144,
           "unseen": 0.0
         },
         "past-presence": {
-          "foreign": 0.7764705882352941,
-          "future": 0.6764705882352942,
+          "foreign": 0.8153846153846154,
+          "future": 0.6211538461538462,
           "items": 6.0,
-          "questions": 170,
+          "questions": 520,
           "unseen": 0.0
         }
       }
@@ -42,116 +42,116 @@
     "no_bm25": {
       "all": {
         "foreign": 0.0,
-        "future": 0.03768382352941176,
-        "items": 5.549632352941177,
-        "questions": 1088,
-        "unseen": 0.10661764705882353
+        "future": 0.014423076923076924,
+        "items": 5.715144230769231,
+        "questions": 3328,
+        "unseen": 0.10877403846153846
       },
       "by_type": {
         "future": {
           "foreign": 0.0,
-          "future": 0.06951871657754011,
-          "items": 5.171122994652406,
-          "questions": 374,
-          "unseen": 0.08823529411764706
+          "future": 0.027097902097902096,
+          "items": 5.4772727272727275,
+          "questions": 1144,
+          "unseen": 0.09615384615384616
         },
         "past-absence": {
           "foreign": 0.0,
           "future": 0.0,
-          "items": 5.570588235294117,
-          "questions": 170,
-          "unseen": 0.11176470588235295
+          "items": 5.607692307692307,
+          "questions": 520,
+          "unseen": 0.11730769230769231
         },
         "past-only": {
           "foreign": 0.0,
-          "future": 0.02406417112299465,
-          "items": 5.764705882352941,
-          "questions": 374,
-          "unseen": 0.11497326203208556
+          "future": 0.008741258741258742,
+          "items": 5.895104895104895,
+          "questions": 1144,
+          "unseen": 0.10664335664335664
         },
         "past-presence": {
           "foreign": 0.0,
-          "future": 0.03529411764705882,
-          "items": 5.8882352941176475,
-          "questions": 170,
-          "unseen": 0.12352941176470589
+          "future": 0.013461538461538462,
+          "items": 5.95,
+          "questions": 520,
+          "unseen": 0.1326923076923077
         }
       }
     },
     "no_graph": {
       "all": {
         "foreign": 0.0,
-        "future": 0.043198529411764705,
-        "items": 5.553308823529412,
-        "questions": 1088,
-        "unseen": 0.12224264705882353
+        "future": 0.017127403846153848,
+        "items": 5.719951923076923,
+        "questions": 3328,
+        "unseen": 0.12590144230769232
       },
       "by_type": {
         "future": {
           "foreign": 0.0,
-          "future": 0.07754010695187166,
-          "items": 5.192513368983957,
-          "questions": 374,
-          "unseen": 0.09090909090909091
+          "future": 0.030594405594405596,
+          "items": 5.503496503496503,
+          "questions": 1144,
+          "unseen": 0.1048951048951049
         },
         "past-absence": {
           "foreign": 0.0,
-          "future": 0.011764705882352941,
-          "items": 5.58235294117647,
-          "questions": 170,
-          "unseen": 0.12352941176470589
+          "future": 0.007692307692307693,
+          "items": 5.6596153846153845,
+          "questions": 520,
+          "unseen": 0.12307692307692308
         },
         "past-only": {
           "foreign": 0.0,
-          "future": 0.026737967914438502,
-          "items": 5.759358288770054,
-          "questions": 374,
-          "unseen": 0.14171122994652408
+          "future": 0.01048951048951049,
+          "items": 5.863636363636363,
+          "questions": 1144,
+          "unseen": 0.131993006993007
         },
         "past-presence": {
           "foreign": 0.0,
-          "future": 0.03529411764705882,
-          "items": 5.864705882352941,
-          "questions": 170,
-          "unseen": 0.14705882352941177
+          "future": 0.011538461538461539,
+          "items": 5.940384615384615,
+          "questions": 520,
+          "unseen": 0.16153846153846155
         }
       }
     },
     "no_vector": {
       "all": {
         "foreign": 0.0,
-        "future": 0.043198529411764705,
-        "items": 5.579044117647059,
-        "questions": 1088,
+        "future": 0.017728365384615384,
+        "items": 5.802283653846154,
+        "questions": 3328,
         "unseen": 0.0
       },
       "by_type": {
         "future": {
           "foreign": 0.0,
-          "future": 0.07754010695187166,
-          "items": 5.352941176470588,
-          "questions": 374,
+          "future": 0.030594405594405596,
+          "items": 5.678321678321678,
+          "questions": 1144,
           "unseen": 0.0
         },
         "past-absence": {
           "foreign": 0.0,
-          "future": 0.011764705882352941,
-          "items": 5.7176470588235295,
-          "questions": 170,
+          "future": 0.007692307692307693,
+          "items": 5.848076923076923,
+          "questions": 520,
           "unseen": 0.0
         },
         "past-only": {
           "foreign": 0.0,
-          "future": 0.026737967914438502,
-          "items": 5.68716577540107,
-          "questions": 374,
+          "future": 0.01048951048951049,
+          "items": 5.873251748251748,
+          "questions": 1144,
           "unseen": 0.0
         },
         "past-presence": {
           "foreign": 0.0,
-          "future": 0.03529411764705882,
-          "items": 5.7,
-          "questions": 170,
+          "future": 0.015384615384615385,
+          "items": 5.873076923076923,
+          "questions": 520,
           "unseen": 0.0
         }
       }
@@ -159,38 +159,38 @@
     "ppr": {
       "all": {
         "foreign": 0.0,
-        "future": 0.15808823529411764,
-        "items": 5.725183823529412,
-        "questions": 1088,
+        "future": 0.13010817307692307,
+        "items": 5.853665865384615,
+        "questions": 3328,
         "unseen": 0.0
       },
       "by_type": {
         "future": {
           "foreign": 0.0,
-          "future": 0.2914438502673797,
-          "items": 5.529411764705882,
-          "questions": 374,
+          "future": 0.2666083916083916,
+          "items": 5.708916083916084,
+          "questions": 1144,
           "unseen": 0.0
         },
         "past-absence": {
           "foreign": 0.0,
-          "future": 0.041176470588235294,
-          "items": 5.8882352941176475,
-          "questions": 170,
+          "future": 0.03461538461538462,
+          "items": 5.944230769230769,
+          "questions": 520,
           "unseen": 0.0
         },
         "past-only": {
           "foreign": 0.0,
-          "future": 0.11497326203208556,
-          "items": 5.783422459893048,
-          "questions": 374,
+          "future": 0.08041958041958042,
+          "items": 5.910839160839161,
+          "questions": 1144,
           "unseen": 0.0
         },
         "past-presence": {
           "foreign": 0.0,
-          "future": 0.07647058823529412,
-          "items": 5.864705882352941,
-          "questions": 170,
+          "future": 0.03461538461538462,
+          "items": 5.9557692307692305,
+          "questions": 520,
           "unseen": 0.0
         }
       }
@@ -198,156 +198,156 @@
     "s1": {
       "all": {
         "foreign": 0.0,
-        "future": 0.6231617647058824,
+        "future": 0.6253004807692307,
         "items": 6.0,
-        "questions": 1088,
-        "unseen": 0.5661764705882353
+        "questions": 3328,
+        "unseen": 0.5676081730769231
       },
       "by_type": {
         "future": {
           "foreign": 0.0,
-          "future": 0.9598930481283422,
+          "future": 0.9659090909090909,
           "items": 6.0,
-          "questions": 374,
-          "unseen": 0.7566844919786097
+          "questions": 1144,
+          "unseen": 0.7736013986013986
         },
         "past-absence": {
           "foreign": 0.0,
-          "future": 0.3352941176470588,
+          "future": 0.38653846153846155,
           "items": 6.0,
-          "questions": 170,
-          "unseen": 0.7705882352941177
+          "questions": 520,
+          "unseen": 0.8096153846153846
         },
         "past-only": {
           "foreign": 0.0,
-          "future": 0.4919786096256685,
+          "future": 0.4781468531468531,
           "items": 6.0,
-          "questions": 374,
-          "unseen": 0.38235294117647056
+          "questions": 1144,
+          "unseen": 0.36713286713286714
         },
         "past-presence": {
           "foreign": 0.0,
-          "future": 0.4588235294117647,
+          "future": 0.43846153846153846,
           "items": 6.0,
-          "questions": 170,
-          "unseen": 0.34705882352941175
+          "questions": 520,
+          "unseen": 0.31346153846153846
         }
       }
     },
     "s2": {
       "all": {
-        "foreign": 0.043198529411764705,
-        "future": 0.21783088235294118,
+        "foreign": 0.029146634615384616,
+        "future": 0.19501201923076922,
         "items": 6.0,
-        "questions": 1088,
-        "unseen": 0.07352941176470588
+        "questions": 3328,
+        "unseen": 0.06400240384615384
       },
       "by_type": {
         "future": {
-          "foreign": 0.06417112299465241,
-          "future": 0.43315508021390375,
+          "foreign": 0.04807692307692308,
+          "future": 0.4178321678321678,
           "items": 6.0,
-          "questions": 374,
-          "unseen": 0.16042780748663102
+          "questions": 1144,
+          "unseen": 0.1354895104895105
         },
         "past-absence": {
-          "foreign": 0.03529411764705882,
-          "future": 0.058823529411764705,
+          "foreign": 0.028846153846153848,
+          "future": 0.05384615384615385,
           "items": 6.0,
-          "questions": 170,
-          "unseen": 0.06470588235294118
+          "questions": 520,
+          "unseen": 0.06538461538461539
         },
         "past-only": {
-          "foreign": 0.034759358288770054,
-          "future": 0.13903743315508021,
+          "foreign": 0.018356643356643356,
+          "future": 0.10402097902097902,
           "items": 6.0,
-          "questions": 374,
-          "unseen": 0.01871657754010695
+          "questions": 1144,
+          "unseen": 0.017482517482517484
         },
         "past-presence": {
-          "foreign": 0.023529411764705882,
-          "future": 0.07647058823529412,
+          "foreign": 0.011538461538461539,
+          "future": 0.046153846153846156,
           "items": 6.0,
-          "questions": 170,
-          "unseen": 0.011764705882352941
+          "questions": 520,
+          "unseen": 0.007692307692307693
         }
       }
     },
     "s3": {
       "all": {
         "foreign": 0.0,
-        "future": 0.043198529411764705,
-        "items": 5.701286764705882,
-        "questions": 1088,
-        "unseen": 0.03952205882352941
+        "future": 0.017728365384615384,
+        "items": 5.861778846153846,
+        "questions": 3328,
+        "unseen": 0.04326923076923077
       },
       "by_type": {
         "future": {
           "foreign": 0.0,
-          "future": 0.07754010695187166,
-          "items": 5.451871657754011,
-          "questions": 374,
-          "unseen": 0.040106951871657755
+          "future": 0.030594405594405596,
+          "items": 5.736888111888112,
+          "questions": 1144,
+          "unseen": 0.044580419580419584
         },
         "past-absence": {
           "foreign": 0.0,
-          "future": 0.011764705882352941,
-          "items": 5.776470588235294,
-          "questions": 170,
-          "unseen": 0.06470588235294118
+          "future": 0.007692307692307693,
+          "items": 5.876923076923077,
+          "questions": 520,
+          "unseen": 0.075
         },
         "past-only": {
           "foreign": 0.0,
-          "future": 0.026737967914438502,
-          "items": 5.831550802139038,
-          "questions": 374,
-          "unseen": 0.026737967914438502
+          "future": 0.01048951048951049,
+          "items": 5.936188811188811,
+          "questions": 1144,
+          "unseen": 0.02972027972027972
         },
         "past-presence": {
           "foreign": 0.0,
-          "future": 0.03529411764705882,
-          "items": 5.8882352941176475,
-          "questions": 170,
-          "unseen": 0.041176470588235294
+          "future": 0.015384615384615385,
+          "items": 5.957692307692308,
+          "questions": 520,
+          "unseen": 0.038461538461538464
         }
       }
     },
     "vector": {
       "all": {
         "foreign": 0.0,
-        "future": 0.7408088235294118,
+        "future": 0.7515024038461539,
         "items": 6.0,
-        "questions": 1088,
-        "unseen": 0.7518382352941176
+        "questions": 3328,
+        "unseen": 0.7716346153846154
       },
       "by_type": {
         "future": {
           "foreign": 0.0,
-          "future": 0.9946524064171123,
+          "future": 0.986013986013986,
           "items": 6.0,
-          "questions": 374,
-          "unseen": 0.8983957219251337
+          "questions": 1144,
+          "unseen": 0.9152097902097902
         },
         "past-absence": {
           "foreign": 0.0,
-          "future": 0.5352941176470588,
+          "future": 0.5884615384615385,
           "items": 6.0,
-          "questions": 170,
-          "unseen": 0.8823529411764706
+          "questions": 520,
+          "unseen": 0.925
         },
         "past-only": {
           "foreign": 0.0,
-          "future": 0.6256684491978609,
+          "future": 0.6363636363636364,
           "items": 6.0,
-          "questions": 374,
-          "unseen": 0.6122994652406417
+          "questions": 1144,
+          "unseen": 0.625
         },
         "past-presence": {
           "foreign": 0.0,
-          "future": 0.6411764705882353,
+          "future": 0.6519230769230769,
           "items": 6.0,
-          "questions": 170,
-          "unseen": 0.6058823529411764
+          "questions": 520,
+          "unseen": 0.625
         }
       }
     },
@@ -356,7 +356,7 @@
         "foreign": 0.0,
         "future": 0.0,
         "items": 0.0,
-        "questions": 1088,
+        "questions": 3328,
         "unseen": 0.0
       },
       "by_type": {
@@ -364,28 +364,28 @@
           "foreign": 0.0,
           "future": 0.0,
           "items": 0.0,
-          "questions": 374,
+          "questions": 1144,
           "unseen": 0.0
         },
         "past-absence": {
           "foreign": 0.0,
           "future": 0.0,
           "items": 0.0,
-          "questions": 170,
+          "questions": 520,
           "unseen": 0.0
         },
         "past-only": {
           "foreign": 0.0,
           "future": 0.0,
           "items": 0.0,
-          "questions": 374,
+          "questions": 1144,
           "unseen": 0.0
         },
         "past-presence": {
           "foreign": 0.0,
           "future": 0.0,
           "items": 0.0,
-          "questions": 170,
+          "questions": 520,
           "unseen": 0.0
         }
       }
