@@ -60,7 +60,9 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
   useEffect(() => { if (chat.sceneTicket !== consumed) advance(chat.sceneTicket) }, [chat.sceneTicket, consumed])
 
   const running = playing || chat.streaming
-  const shown = !sim ? '' : sim.status === 'running' || sim.status === 'paused' ? (running ? 'running' : 'paused') : sim.status
+  // 작가가 멈춘 게 아닌데 오류가 있으면 오류로 멈춘 것이다(다시 시도는 재생).
+  const errored = !!chat.error && !paused
+  const shown = !sim ? '' : sim.status === 'running' || sim.status === 'paused' ? (running ? 'running' : errored ? 'error' : 'paused') : sim.status
   const result = step?.applied ? `${step.applied.episode}화 초안 끝에 이어 붙였어요.` : step?.approval === 'declined' ? '반영하지 않았어요. 장면은 대화에 남아 있어요.' : ''
   const stoppedOrFailed = sim?.status === 'stopped' || sim?.status === 'failed'
 
@@ -70,11 +72,11 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     show: () => { setOpen(true); setAsked(false); if (!attention) setComposing(true) },
     simulation: sim, rows: sim ? sceneRows(sim, roster) : [], names: sim ? characterNames(sim, roster) : {}, showForm: !sim || composing,
     live, playing, canAct, blocked, queued, finishing: stopAfterTurn,
-    statusKey: shown, statusText: shown === 'paused' ? '일시정지' : shown && statusLabel[shown],
+    statusKey: shown, statusText: shown === 'paused' ? '일시정지' : shown === 'error' ? '오류로 멈춤' : shown && statusLabel[shown],
     hint: chat.deciding ? '답을 보내고 있어요…'
       : !live ? (stoppedOrFailed && !chat.pending && !chat.awaiting && !result ? '흐름 수정이나 다시 시도는 채팅으로 요청해 주세요.' : '')
         : chat.streaming ? (stopAfterTurn ? '이번 턴을 마치면 장면을 끝내요.' : paused ? '이번 턴을 마치면 멈춰요.' : '다음 줄을 만들고 있어요…')
-          : playing ? '' : stoppedOrFailed ? '멈춘 장면이에요. 줄을 고치거나 다시 말하게 한 뒤 재생해 이어 가세요.' : '일시정지됨 · 재생하면 다음 줄을 만들어요.',
+          : playing ? '' : errored ? '오류로 멈췄어요 · 재생하면 다시 시도해요' : stoppedOrFailed ? '멈춘 장면이에요. 줄을 고치거나 다시 말하게 한 뒤 재생해 이어 가세요.' : '일시정지됨 · 재생하면 다음 줄을 만들어요.',
     // 줄 행동(수정·다시 말하기)과 끼어들기는 진행 중이거나 승인을 기다리는 장면에만 둔다. linesLock은 그 줄 행동이 잠긴 이유다.
     interactive: live || chat.awaiting === 'approval',
     linesLock: !sim ? '' : chat.pending ? LINES_LOCKED : chat.awaiting ? blocked : '',
@@ -92,7 +94,8 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     issue: simulationIssue,
     start: (start: SimulationStart, source: 'plan' | 'manual' = 'manual', names: Record<string, string> = {}) => {
       if (simulationIssue(start) || blocked || chat.pending) return Promise.resolve(false)
-      setComposing(false); setPaused(false); setStopAfterTurn(false); setAsked(true); setRoster(names)
+      // 양식은 첫 장면이 올 때(attention) 닫힌다: 요청이 실패하면 옛 장면이 아니라 입력한 양식이 남는다.
+      setPaused(false); setStopAfterTurn(false); setAsked(true); setRoster(names); setQueued('')
       return chat.send(simulationSummary(cleanSimulation(start), source), { operation: 'character_simulation', simulation: start })
     },
     play: () => {

@@ -7,22 +7,34 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../app/store'
 import { sceneLine, type CharacterSimulation, type SimulationTurn } from '../../../domain/entities/characterSimulation'
 import type { StoryPlan } from '../../../domain/entities/storyPlan'
+import type { StudioSetting } from '../../../domain/entities/studioWorld'
 import type { ChatEvent, ChatMessageInput, ChatReply, ChatStep } from '../../../domain/entities/writingChat'
 import { SimulationStage } from './SimulationStage'
 import { useSimulationStageViewModel } from './useSimulationStageViewModel'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
 
-const { sessions, history, send, open, list, references } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), references: vi.fn() }))
-// 채팅은 실제 WritingChatUseCase(장면 조작·시작 값 검증·정리) 위에 가짜 Repository를 얹어 와이어에 닿는 값을 본다. 장면 계획은 대역 UseCase다.
+const { sessions, history, send, open, list, owned, readWorld } = vi.hoisted(() => ({
+  sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), owned: vi.fn(), readWorld: vi.fn(),
+}))
+// 채팅은 실제 WritingChatUseCase(장면 조작·시작 값 검증·정리) 위에 가짜 Repository를 얹어 와이어에 닿는 값을 본다.
+// 장면 계획(list)과 세계관(owned=내 세계관 목록, readWorld=카드 읽기)은 대역 UseCase다.
 vi.mock('../../../app/appContainer', async () => {
   const { WritingChatUseCase } = await import('../../../domain/usecases/WritingChatUseCase')
   const chat = new WritingChatUseCase({ sessions, history, send, open } as never)
-  const plans = { list, references }
-  return { appContainer: { resolve: (key: string) => (key === 'storyPlanUseCase' ? plans : chat) } }
+  const plans = { list }
+  const worlds = { list: owned, read: readWorld }
+  return { appContainer: { resolve: (key: string) => (key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : chat) } }
 })
 
-// ── 시작 양식이 읽는 장면 계획·세계관 인물(기존 StoryPlanUseCase 대역) ──
+// ── 시작 양식이 읽는 장면 계획과, 작품에 연결된 WorldStudio 세계관의 인물 카드 ──
+// 인물 후보는 연결 세계관의 인물 카드다(레거시 설정집이 아니다): 카드 id가 서버가 검증하는 characterIds다.
+const card = (id: string, title: string, entityType = 'character', aliases: string[] = []) =>
+  ({ item: { id, title, kind: 'entity', entityType }, userCategory: '', tags: [], aliases }) as unknown as StudioSetting
 const CHARACTERS = [{ id: 'c1', name: '카엘' }, { id: 'c2', name: '리안' }, { id: 'c3', name: '도윤' }, { id: 'c4', name: '서연' }, { id: 'c5', name: '하준' }, { id: 'c6', name: '지우' }, { id: 'c7', name: '민서' }]
+const world = (settings: StudioSetting[] = [...CHARACTERS.map((c) => card(c.id, c.name)), card('p1', '성문', 'location')]) =>
+  ({ id: 'world-1', name: '세계관', description: '', version: 1, linkedWorkId: 'w', settings, analysis: null })
+// 내 세계관 목록의 한 줄(설정은 비어 온다). linkedWorkId가 이 작품(w)인 것이 연결 세계관이다.
+const summary = (id: string, linkedWorkId: string | null) => ({ id, name: id, description: '', version: 1, linkedWorkId, settings: [], analysis: null })
 const plan = (id: string, title: string, content: string, extra: Partial<StoryPlan> = {}): StoryPlan =>
   ({ id, workId: 'w', kind: 'scene', parentId: 'p1', title, content, episodeNumber: 4, characterIds: [], placeIds: [], revision: 1, episodeMissing: false, ...extra })
 
@@ -100,7 +112,8 @@ const reload = (reply: ChatReply) => { store.request = '시뮬레이션'; store.
 beforeEach(() => {
   store.request = ''; store.reply = null; handlers = []
   list.mockResolvedValue([])
-  references.mockResolvedValue({ characters: CHARACTERS, places: [], episodes: [{ number: 4, title: '넷째' }] })
+  owned.mockResolvedValue([summary('world-other', 'other-work'), summary('world-1', 'w')])
+  readWorld.mockResolvedValue(world())
   sessions.mockResolvedValue([])
   open.mockResolvedValue('a')
   history.mockImplementation(async () => ({ threadId: 'a', title: '', turns: store.reply ? [{ request: store.request, reply: store.reply }] : [] }))
@@ -120,6 +133,8 @@ const openForm = async () => {
 }
 const startButton = () => box().getByRole('button', { name: '시뮬레이션 시작' }) as HTMLButtonElement
 const pick = (...names: string[]) => names.forEach((name) => fireEvent.click(box().getByRole('checkbox', { name })))
+const people = () => within(box().getByRole('group', { name: '참여 인물 (1~6명)' })).getAllByRole('checkbox') as HTMLInputElement[]
+const checkedPeople = () => people().filter((c) => c.checked).map((c) => c.labels?.[0]?.textContent)
 
 it('시뮬레이션 버튼으로 무대를 열면 IF 양식이 먼저 나와 예시 placeholder의 전제와 세계관 인물 목록을 보이고, 전제·인물·동의가 갖춰져야 시작할 수 있다', async () => {
   setup()
@@ -128,7 +143,7 @@ it('시뮬레이션 버튼으로 무대를 열면 IF 양식이 먼저 나와 예
   const premise = box().getByRole('textbox', { name: '전제' }) as HTMLInputElement
   expect(premise.placeholder).toMatch(/만약 .*다면/)
   expect(premise.maxLength).toBe(500)
-  expect(within(box().getByRole('group', { name: '참여 인물 (1~6명)' })).getAllByRole('checkbox').map((c) => (c as HTMLInputElement).labels?.[0]?.textContent)).toEqual(CHARACTERS.map((c) => c.name))
+  expect(people().map((c) => c.labels?.[0]?.textContent)).toEqual(CHARACTERS.map((c) => c.name)) // 장소 카드(성문)는 후보가 아니다.
   expect(startButton().disabled).toBe(true)
   fireEvent.change(premise, { target: { value: PREMISE } })
   pick('카엘')
@@ -172,29 +187,47 @@ it('요청을 기다리는 동안 시작 버튼을 잠그고 같은 요청을 �
   serve(); await act(async () => { release() })
 })
 
-it('흐름 양식은 열린 회차의 장면 계획을 순서대로 비트로 보이고 그 인물을 미리 고르며, 시작하면 비트와 인물을 싣는다', async () => {
+it('흐름 양식은 열린 회차의 장면 계획을 순서대로 비트로 보이고 비트에 이름이 나오는 인물 카드를 미리 고르며, 시작하면 비트와 카드 id를 싣는다', async () => {
   list.mockResolvedValue([
-    plan('s1', '성문 대면', '카엘이 성문 앞에서 리안과 마주친다.', { characterIds: ['c1', 'c2'] }),
+    plan('s1', '성문 대면', '카엘이 성문 앞에서 리안과 마주친다.', { characterIds: ['legacy-9'] }),
     plan('p0', '전체 줄거리', '플롯', { kind: 'plot', parentId: null, episodeNumber: null }),
-    plan('s0', '다른 회차', '3화의 장면', { episodeNumber: 3, characterIds: ['c3'] }),
-    plan('s2', '협상', '두 사람이 조건을 흥정한다.', { characterIds: ['c2', 'c4'] }),
+    plan('s0', '다른 회차', '3화의 장면 도윤이 등장', { episodeNumber: 3 }),
+    plan('s2', '협상', '두 사람이 조건을 흥정한다. 서연이 중재한다.'),
   ])
   setup((_input, emit) => { pauseAt(emit, scene([narrate(0)])) }, () => {})
   await openForm()
   fireEvent.click(box().getByRole('radio', { name: /흐름/ }))
   expect(box().getByText(/4화의 장면 계획 2개를 순서대로 비트로 써요/)).toBeTruthy()
   expect(within(box().getByRole('list', { name: '흐름 비트' })).getAllByRole('listitem').map((li) => li.textContent))
-    .toEqual(['성문 대면: 카엘이 성문 앞에서 리안과 마주친다.', '협상: 두 사람이 조건을 흥정한다.'])
-  expect(CHARACTERS.filter((c) => (box().getByRole('checkbox', { name: c.name }) as HTMLInputElement).checked).map((c) => c.id)).toEqual(['c1', 'c2', 'c4'])
+    .toEqual(['성문 대면: 카엘이 성문 앞에서 리안과 마주친다.', '협상: 두 사람이 조건을 흥정한다. 서연이 중재한다.'])
+  expect(checkedPeople()).toEqual(['카엘', '리안', '서연']) // 다른 회차 계획의 도윤은 비트가 아니라 고르지 않는다.
   pick('도윤') // 양식에서 인물을 고칠 수 있다.
   consent()
   fireEvent.click(startButton())
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   expect(inputs()[0]).toMatchObject({
     request: '흐름 모드 시뮬레이션: 장면 계획 2개', operation: 'character_simulation',
-    simulation: { mode: 'flow', beats: ['성문 대면: 카엘이 성문 앞에서 리안과 마주친다.', '협상: 두 사람이 조건을 흥정한다.'], characterIds: ['c1', 'c2', 'c3', 'c4'] },
+    simulation: { mode: 'flow', beats: ['성문 대면: 카엘이 성문 앞에서 리안과 마주친다.', '협상: 두 사람이 조건을 흥정한다. 서연이 중재한다.'], characterIds: ['c1', 'c2', 'c3', 'c4'] },
   })
   serve()
+})
+
+it('비트에 별칭이 나오면 그 인물 카드를 고르고, 장면 계획에 달린 레거시 인물 id는 카드 id와 같아 보여도 쓰지 않는다', async () => {
+  readWorld.mockResolvedValue(world([card('k1', '카엘'), card('k2', '리안', 'character', ['붉은 검사']), card('k3', '도윤')]))
+  list.mockResolvedValue([plan('s1', '협상', '붉은 검사가 물러서지 않는다.', { characterIds: ['k3'] })])
+  setup()
+  await openForm()
+  fireEvent.click(box().getByRole('radio', { name: /흐름/ }))
+  expect(checkedPeople()).toEqual(['리안'])
+})
+
+it('비트에 인물 이름이 나오지 않거나 장면 계획이 없으면 아무도 미리 고르지 않는다', async () => {
+  list.mockResolvedValue([plan('s1', '성문 앞', '두 사람이 조건을 흥정한다.', { characterIds: ['c1', 'c2'] })])
+  setup()
+  await openForm()
+  fireEvent.click(box().getByRole('radio', { name: /흐름/ }))
+  expect(checkedPeople()).toEqual([])
+  expect(startButton().disabled).toBe(true)
 })
 
 it('열린 회차의 장면 계획이 없으면 그 사실과 플롯 안내를 보이고, 비트를 직접 한 줄씩 적어 흐름 시뮬레이션을 시작할 수 있다', async () => {
@@ -231,8 +264,12 @@ it('직접 적은 비트가 8줄이나 200자를 넘으면 사유를 알리고 �
   expect(startButton().disabled).toBe(true)
 })
 
-it('장면 계획·인물을 읽는 동안 불러오는 중을 알리고, 읽지 못하면 사유와 다시 불러오기를 보인다(빈 양식으로 꾸미지 않는다)', async () => {
-  list.mockRejectedValueOnce(new Error('network'))
+it.each([
+  ['장면 계획', () => list.mockRejectedValueOnce(new Error('network'))],
+  ['세계관 목록', () => owned.mockRejectedValueOnce(new Error('network'))],
+  ['세계관 카드', () => readWorld.mockRejectedValueOnce(new Error('network'))],
+])('%s를 읽는 동안 불러오는 중을 알리고, 읽지 못하면 사유와 다시 불러오기를 보인다(빈 양식으로 꾸미지 않는다)', async (_name, fail) => {
+  fail()
   setup()
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
   expect(box().getByText('장면 계획과 인물을 불러오고 있어요…')).toBeTruthy()
@@ -242,12 +279,45 @@ it('장면 계획·인물을 읽는 동안 불러오는 중을 알리고, 읽지
   expect(await box().findByRole('textbox', { name: '전제' })).toBeTruthy()
 })
 
-it('세계관에 인물 카드가 없으면 알리고 시작을 잠근다', async () => {
-  references.mockResolvedValue({ characters: [], places: [], episodes: [] })
+it('인물 후보는 이 작품에 연결된 세계관의 인물 카드뿐이고(다른 세계관·장소 카드·레거시 설정집이 아니다) 시작하면 그 카드 id를 싣는다', async () => {
+  readWorld.mockResolvedValue(world([card('k1', '카엘'), card('p1', '성문', 'location'), card('k2', '리안', 'character', ['붉은 검사']), card('r1', '성문 규칙', 'rule')]))
+  setup((_input, emit) => { pauseAt(emit, scene([narrate(0)])) }, () => {})
+  await openForm()
+  expect(people().map((c) => c.labels?.[0]?.textContent)).toEqual(['카엘', '리안'])
+  expect(owned).toHaveBeenCalledTimes(1)
+  expect(readWorld).toHaveBeenCalledTimes(1)
+  expect(readWorld.mock.calls[0][0]).toBe('world-1') // 다른 작품(other-work)에 연결된 세계관이 아니라 이 작품(w)의 세계관을 읽는다.
+  fireEvent.change(box().getByRole('textbox', { name: '전제' }), { target: { value: PREMISE } })
+  pick('리안'); consent()
+  fireEvent.click(startButton())
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(inputs()[0]).toMatchObject({ simulation: { mode: 'if', premise: PREMISE, characterIds: ['k2'] } })
+  serve()
+})
+
+it('연결된 세계관에 인물 카드가 없으면 알리고 시작을 잠근다', async () => {
+  readWorld.mockResolvedValue(world([card('p1', '성문', 'location')]))
   setup()
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
   expect(await box().findByText('이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.')).toBeTruthy()
   expect(startButton().disabled).toBe(true)
+})
+
+it('작품에 연결된 세계관이 없으면 그 이유를 IF·흐름 모두에 알리고 시작을 잠그며 세계관 카드를 읽지 않는다', async () => {
+  owned.mockResolvedValue([summary('world-other', 'other-work'), summary('world-free', null)])
+  setup()
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  expect(await box().findByText('연결된 세계관이 없어요.')).toBeTruthy()
+  expect(box().getByText(/작품 관리의 세계관 연결/)).toBeTruthy()
+  expect(readWorld).not.toHaveBeenCalled()
+  expect(box().queryByRole('group', { name: '참여 인물 (1~6명)' })?.querySelectorAll('input').length).toBe(0)
+  fireEvent.change(box().getByRole('textbox', { name: '전제' }), { target: { value: PREMISE } })
+  consent()
+  expect(startButton().disabled).toBe(true)
+  fireEvent.click(box().getByRole('radio', { name: /흐름/ }))
+  expect(box().getByText('연결된 세계관이 없어요.')).toBeTruthy()
+  expect(startButton().disabled).toBe(true)
+  expect(send).not.toHaveBeenCalled()
 })
 
 it('발행 회차가 없어 채팅이 막혀 있으면 그 이유를 알리고 동의 없이 시작을 잠근다', async () => {
@@ -454,6 +524,29 @@ it('줄 수정은 인라인 입력으로 고쳐 edit만 보내고(모델 호출 
   expect(send).toHaveBeenCalledTimes(1)
 })
 
+it('줄 수정 입력이 닫히면(취소·Esc·저장) 초점이 그 줄의 수정 버튼으로 돌아온다', async () => {
+  paused(narrate(0), speak(1))
+  const edited = { ...speak(1, '카엘', '"열어라, 지금."'), checks: [], evidence: [], editedByAuthor: true }
+  setup((_input, emit) => { pauseAt(emit, scene([narrate(0), edited])) })
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  consent()
+  const editButton = () => within(lines()[1]).getByRole('button', { name: '수정' })
+  fireEvent.click(editButton())
+  const box1 = within(lines()[1]).getByRole('textbox')
+  expect(document.activeElement).toBe(box1)
+  fireEvent.keyDown(box1, { key: 'Escape' })
+  expect(document.activeElement).toBe(editButton())
+  fireEvent.click(editButton())
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정 취소' }))
+  expect(document.activeElement).toBe(editButton())
+  fireEvent.click(editButton())
+  fireEvent.change(within(lines()[1]).getByRole('textbox'), { target: { value: '"열어라, 지금."' } })
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정 저장' }))
+  // 고친 줄의 배지는 요청이 끝나기 전 이력 재조회로 먼저 보이므로, 입력이 닫혀 초점이 돌아올 때까지 기다린다.
+  await waitFor(() => expect(document.activeElement).toBe(editButton()))
+  expect(within(lines()[1]).getByText('작가 수정')).toBeTruthy()
+})
+
 it('수정 입력이 비었거나 그대로면 저장할 수 없고, 취소하면 원래 줄로 돌아간다', async () => {
   paused(speak(0))
   setup()
@@ -639,6 +732,30 @@ it('승인 대기에서 장면 이어 가기는 남긴 끼어들기와 함께 ne
   serve()
 })
 
+it('승인 대기 중 남긴 끼어들기는 반영 버튼으로는 가지 않는다고 알리고, 새 시뮬레이션의 첫 턴에 새어 들어가지 않는다', async () => {
+  review()
+  setup(
+    (_input, emit) => { finish(emit, scene([narrate(0), speak(1)], { status: 'completed' }), { approval: 'declined' }) },
+    (_input, emit) => { pauseAt(emit, scene([narrate(0)])) },
+    (_input, emit) => { reviewAt(emit, scene([narrate(0)], { status: 'completed' })) })
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  consent()
+  const ask = box().getByRole('region', { name: '원고 반영' })
+  expect(within(ask).queryByText('끼어들기는 장면 이어 가기에만 실려요.')).toBeNull()
+  fireEvent.change(box().getByRole('textbox', { name: /끼어들기/ }), { target: { value: '리안이 끼어든다' } })
+  fireEvent.click(box().getByRole('button', { name: '남기기' }))
+  expect(within(ask).getByText('끼어들기는 장면 이어 가기에만 실려요.')).toBeTruthy()
+  fireEvent.click(within(ask).getByRole('button', { name: '반영하지 않기' }))
+  await waitFor(() => expect(box().getByRole('button', { name: '새 시뮬레이션' })).toBeTruthy())
+  expect(resumes()[0]).toEqual({ approved: false }) // 반영 버튼의 답에는 끼어들기가 실리지 않는다.
+  fireEvent.click(box().getByRole('button', { name: '새 시뮬레이션' }))
+  fireEvent.change(await box().findByRole('textbox', { name: '전제' }), { target: { value: PREMISE } })
+  pick('카엘')
+  fireEvent.click(startButton())
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(3))
+  expect(resumes()[2]).toEqual({ approved: true, scene: { action: 'next' } }) // 이전 장면에서 남긴 끼어들기가 새 장면에 실리지 않는다.
+})
+
 it('실패한 장면은 승인 대기여도 원고 반영을 묻지 않고 이유만 보인다(완료로 꾸미지 않는다)', async () => {
   reload({ status: 'waiting', steps: [stepOf(scene([narrate(0)], { status: 'failed', stopReason: '턴 한도(12)를 넘었어요.' }))], missingInputs: [], awaitingApproval: 'character_simulation' })
   setup()
@@ -701,10 +818,24 @@ it('턴 도중 오류는 사유를 알리고 저절로 다음 턴을 보내지 �
   await pause()
   expect(send).toHaveBeenCalledTimes(2)
   expect(lines()).toHaveLength(1)
+  // 오류로 멈춘 것을 작가가 멈춘 일시정지처럼 알리지 않는다.
+  expect(box().getByText('오류로 멈췄어요 · 재생하면 다시 시도해요')).toBeTruthy()
+  expect(box().getByText('오류로 멈춤')).toBeTruthy()
+  expect(box().queryByText(/일시정지/)).toBeNull()
   fireEvent.click(box().getByRole('button', { name: '재생' }))
   await waitFor(() => expect(lines()).toHaveLength(2))
   expect(send).toHaveBeenCalledTimes(3)
   expect(box().queryByRole('alert')).toBeNull()
+  expect(box().queryByText(/오류로 멈/)).toBeNull()
+})
+
+it('작가가 멈춘 장면은 오류가 따로 있어도 일시정지로 알린다', async () => {
+  paused(narrate(0), speak(1))
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(box().getByText('일시정지됨 · 재생하면 다음 줄을 만들어요.')).toBeTruthy()
+  expect(box().getByText('일시정지')).toBeTruthy()
+  expect(box().queryByText(/오류로 멈/)).toBeNull()
 })
 
 it('오류 상자의 다시 불러오기는 저장된 장면을 다시 읽어 오류를 지운다(기록을 못 읽어 장면이 사라진 때의 복구)', async () => {
@@ -724,6 +855,21 @@ it('오류 상자의 다시 불러오기는 저장된 장면을 다시 읽어 �
   fireEvent.click(box().getByRole('button', { name: '다시 불러오기' }))
   await waitFor(() => expect(lines()).toHaveLength(3))
   expect(box().queryByRole('alert')).toBeNull()
+})
+
+it('시작 요청이 실패하면 옛 장면으로 돌아가지 않고 입력한 양식을 그대로 둔 채 사유를 알린다', async () => {
+  reload({ status: 'completed', steps: [stepOf(scene([narrate(0)], { status: 'completed' }), { applied: { episode: 3, revision: 2 } })], missingInputs: [] })
+  setup(() => { throw new Error('서버에 보내지 못했어요.') })
+  await waitFor(() => expect(screen.getByTestId('chat-line').textContent).toBe('시뮬레이션 완료 · 1턴'))
+  await openForm() // 끝난 장면이 있어도 버튼은 새 시작 양식을 연다.
+  fireEvent.change(box().getByRole('textbox', { name: '전제' }), { target: { value: PREMISE } })
+  pick('카엘'); consent()
+  fireEvent.click(startButton())
+  await waitFor(() => expect(box().getByRole('alert').textContent).toContain('서버에 보내지 못했어요.'))
+  expect(box().queryByRole('list', { name: '장면 대본' })).toBeNull()
+  expect((box().getByRole('textbox', { name: '전제' }) as HTMLInputElement).value).toBe(PREMISE)
+  expect((box().getByRole('checkbox', { name: '카엘' }) as HTMLInputElement).checked).toBe(true)
+  expect(startButton().disabled).toBe(false) // 고치지 않고 다시 보낼 수 있다.
 })
 
 it('장면 없이 끝난 요청(AI가 되묻거나 거절)은 답을 보이고 요청 입력을 이어 둔다', async () => {

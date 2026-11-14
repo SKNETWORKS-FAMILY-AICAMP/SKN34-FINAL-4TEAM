@@ -69,7 +69,9 @@ function StartFields({ stage, data, planEpisode, plotLink }: {
           <label><input type="checkbox" checked={ids.includes(character.id)} disabled={!ids.includes(character.id) && ids.length >= SIM_CHARACTERS_MAX}
             onChange={() => toggle(character.id)} />{character.name}</label>
         </li>)}</ul>
-        : <p className="chat-note">이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.</p>}
+        : data.linked
+          ? <p className="chat-note">이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.</p>
+          : <><p>연결된 세계관이 없어요.</p><p className="chat-note">작품 관리의 세계관 연결에서 이 작품에 세계관을 연결해 주세요.</p></>}
       <p className="chat-note">{ids.length}명 선택</p>
     </fieldset>
     {problem && !problem.missing && <p className="stage-reason" role="status">{problem.text}</p>}
@@ -115,15 +117,21 @@ function Checks({ turn }: { turn: SimulationTurn }) {
  */
 function Turn({ turn, stage, workId, episode, lockId }: { turn: SimulationTurn; stage: StageViewModel; workId: string; episode: number; lockId: string }) {
   const nameId = useId()
-  // 고치는 중인 글(null이면 읽는 중).
+  // 고치는 중인 글(null이면 읽는 중). 입력이 닫히면(취소·Esc·저장) 사라지는 입력 대신 이 줄의 수정 버튼에 초점을 돌려준다.
   const [draft, setDraft] = useState<string | null>(null)
+  const editButton = useRef<HTMLButtonElement>(null)
+  const backToButton = useRef(false)
+  useEffect(() => {
+    if (draft === null && backToButton.current) { backToButton.current = false; editButton.current?.focus() }
+  })
+  const close = () => { backToButton.current = true; setDraft(null) }
   const narration = turn.kind === 'narration'
   const monologue = turn.kind === 'monologue'
   const owner = monologue ? monologueOwner(turn, stage.names) : turn.characterName
   const edited = turn.editedByAuthor && <span className="stage-edited">작가 수정</span>
   const save = async (e: FormEvent) => {
     e.preventDefault()
-    if (draft !== null && await stage.edit(turn.index, draft)) setDraft(null)
+    if (draft !== null && await stage.edit(turn.index, draft)) close()
   }
   return <li className={`stage-turn${narration ? ' stage-narration' : monologue ? ' stage-monologue' : ''}`} data-kind={turn.kind}>
     {narration
@@ -133,16 +141,16 @@ function Turn({ turn, stage, workId, episode, lockId }: { turn: SimulationTurn; 
       ? <form className="stage-edit" aria-live="off" onSubmit={save}>
         <label className="sr-only" htmlFor={`${nameId}-edit`}>{narration ? '나레이션' : monologue ? `${owner} 속마음` : owner} 줄 고치기</label>
         <textarea id={`${nameId}-edit`} rows={4} value={draft} maxLength={SCENE_TEXT_MAX} autoFocus
-          onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') setDraft(null) }} />
+          onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') close() }} />
         <div className="stage-edit-actions">
           <button type="submit" className="btn sm pri" disabled={!stage.canAct || !draft.trim() || draft.trim() === turn.prose.trim()}>수정 저장</button>
-          <button type="button" className="btn sm" onClick={() => setDraft(null)}>수정 취소</button>
+          <button type="button" className="btn sm" onClick={close}>수정 취소</button>
         </div>
         <p className="chat-note">고친 줄은 작가가 쓴 글로 남고 검사 결과는 지워져요. 모델 호출은 없어요.</p>
       </form>
       : <div className="stage-bubble"><ManuscriptBody workId={workId} number={episode} body={turn.prose} /></div>}
     {draft === null && stage.interactive && <div className="stage-actions" aria-live="off">
-      <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct}
+      <button ref={editButton} type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct}
         onClick={() => { stage.pause(); setDraft(turn.prose) }}>수정</button>
       <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct} onClick={() => void stage.redo(turn.index)}>다시 말하기</button>
     </div>}
@@ -200,6 +208,7 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
         <button type="button" className="btn" disabled={!stage.canAct} onClick={() => void stage.decline()}>반영하지 않기</button>
         <button type="button" className="btn" disabled={!stage.canAct} onClick={() => void stage.continueScene()}>장면 이어 가기</button>
       </div>
+      {stage.queued && <p className="chat-note">끼어들기는 장면 이어 가기에만 실려요.</p>}
     </section>}
     {stage.result && <p className="stage-result" role="status">{stage.result}</p>}
     {!stage.live && !stage.approvable && !stage.pending && <button type="button" className="btn sm stage-again" onClick={stage.compose}>새 시뮬레이션</button>}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, simulationSummary, statusLabel, type CharacterSimulation, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
+import { beatCharacterIds, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, simulationSummary, statusLabel, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
+import type { StudioSetting } from '../entities/studioWorld'
 
 const turn = (index: number, prose: string, checks: SimulationTurn['checks'] = []): SimulationTurn =>
   ({ index, kind: 'character', pov: 'omniscient', characterId: `c${index}`, characterName: `인물${index}`, prose, checks, regenerated: 0, evidence: [], editedByAuthor: false })
@@ -143,44 +144,70 @@ describe('독백·시점(#58 무대)', () => {
 
 describe('장면 계획 → 흐름 비트(버튼 진입)', () => {
   const plan = (title: string, content: string, extra: Partial<Parameters<typeof planBeats>[0][number]> = {}) =>
-    ({ kind: 'scene' as const, episodeNumber: 3, title, content, characterIds: [], ...extra })
+    ({ kind: 'scene' as const, episodeNumber: 3, title, content, ...extra })
 
   it('열린 회차의 장면 계획만 목록 순서대로 `제목: 내용` 비트로 쓰고, 플롯·다른 회차·회차 없는 계획은 뺀다', () => {
-    const { beats } = planBeats([
+    expect(planBeats([
       plan('성문 대면', '카엘이 성문 앞에서 리안과 마주친다.'),
       plan('전체 줄거리', '플롯은 비트가 아니다.', { kind: 'plot', episodeNumber: null }),
       plan('다른 회차', '2화의 장면', { episodeNumber: 2 }),
       plan('회차 없음', '아직 배치 전', { episodeNumber: null }),
       plan('협상', '두 사람이 조건을 흥정한다.'),
-    ], 3)
-    expect(beats).toEqual(['성문 대면: 카엘이 성문 앞에서 리안과 마주친다.', '협상: 두 사람이 조건을 흥정한다.'])
+    ], 3)).toEqual(['성문 대면: 카엘이 성문 앞에서 리안과 마주친다.', '협상: 두 사람이 조건을 흥정한다.'])
   })
 
   it('내용이 비면 제목만 쓰고, 비트는 200자로 자르며(글자 한가운데를 가르지 않는다) 최대 8개만 쓴다', () => {
-    const long = planBeats([plan('긴 장면', '가'.repeat(300)), plan('이모지', `${'나'.repeat(197)}😀😀`), plan('제목만', '  ')], 3).beats
+    const long = planBeats([plan('긴 장면', '가'.repeat(300)), plan('이모지', `${'나'.repeat(197)}😀😀`), plan('제목만', '  ')], 3)
     expect(long[0]).toHaveLength(200)
     expect(long[0].startsWith('긴 장면: 가')).toBe(true)
     expect(long[1].length).toBeLessThanOrEqual(200)
     expect(long[1].endsWith('\uD83D')).toBe(false)
     expect(long[2]).toBe('제목만')
-    const many = planBeats(Array.from({ length: 10 }, (_, i) => plan(`장면${i}`, '내용')), 3).beats
+    const many = planBeats(Array.from({ length: 10 }, (_, i) => plan(`장면${i}`, '내용')), 3)
     expect(many).toHaveLength(8)
     expect(many[7]).toBe('장면7: 내용')
   })
 
-  it('참여 인물은 비트로 쓴 장면 계획들의 인물 합집합이고 처음 나온 순서·중복 없이 센다(8개를 넘어 잘린 계획의 인물은 뺀다)', () => {
-    const { characterIds } = planBeats([
-      plan('가', '1', { characterIds: ['c2', 'c1'] }), plan('나', '2', { characterIds: ['c1', 'c3'] }),
-      plan('다른 회차', '3', { episodeNumber: 9, characterIds: ['c9'] }),
-    ], 3)
-    expect(characterIds).toEqual(['c2', 'c1', 'c3'])
-    const cut = planBeats(Array.from({ length: 9 }, (_, i) => plan(`장면${i}`, '내용', { characterIds: [`c${i}`] })), 3)
-    expect(cut.characterIds).toEqual(['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'])
+  it('회차를 모르거나 장면 계획이 없으면 비트가 없다', () => {
+    expect(planBeats([plan('가', '1')], null)).toEqual([])
+    expect(planBeats([], 3)).toEqual([])
+  })
+})
+
+describe('연결 세계관의 인물 카드(시작 양식 후보)', () => {
+  // 서버는 simulation.characterIds를 연결 WorldStudio의 활성 인물 카드 id로 검증한다(레거시 설정집 id가 아니다).
+  const card = (id: string, title: string, entityType: string, aliases?: string[]) =>
+    ({ item: { id, title, kind: 'entity', entityType }, userCategory: '', tags: [], aliases }) as unknown as StudioSetting
+  const people: SimulationCharacter[] = [
+    { id: 'c1', name: '카엘', aliases: [] }, { id: 'c2', name: '리안', aliases: ['붉은 검사'] }, { id: 'c3', name: '도윤', aliases: ['윤'] }, { id: 'c4', name: '리', aliases: [] },
+  ]
+
+  it('인물 카드만 카드 id·이름·별칭으로 고르고, 장소·사건·규칙 카드와 이름 없는 카드는 뺀다', () => {
+    const rule = { item: { id: 'r1', title: '성문 규칙', kind: 'rule', entityType: null }, userCategory: '', tags: [] } as unknown as StudioSetting
+    expect(worldCharacters([
+      card('c1', ' 카엘 ', 'character', ['검은 기사']), card('p1', '성문', 'location'), card('c2', '리안', 'character'), rule, card('c3', '   ', 'character'),
+    ])).toEqual([{ id: 'c1', name: '카엘', aliases: ['검은 기사'] }, { id: 'c2', name: '리안', aliases: [] }])
   })
 
-  it('회차를 모르거나 장면 계획이 없으면 빈 결과다', () => {
-    expect(planBeats([plan('가', '1')], null)).toEqual({ beats: [], characterIds: [] })
-    expect(planBeats([], 3)).toEqual({ beats: [], characterIds: [] })
+  it('인물 카드가 없으면 후보가 없다', () => {
+    expect(worldCharacters([])).toEqual([])
+    expect(worldCharacters([card('p1', '성문', 'location')])).toEqual([])
+  })
+
+  it('비트 문장에 이름이나 별칭이 나오는 인물을 목록 순서대로 고른다(조사가 붙어도 잡는다)', () => {
+    expect(beatCharacterIds(['성문 대면: 카엘이 성문 앞에서 마주친다.', '협상: 붉은 검사는 물러서지 않는다.'], people)).toEqual(['c1', 'c2'])
+    expect(beatCharacterIds(['도윤은 말없이 서 있다.'], people)).toEqual(['c3'])
+  })
+
+  it('이름이 나오지 않으면 비워 두고, 오탐이 많은 한 글자 이름·별칭은 고르지 않는다', () => {
+    expect(beatCharacterIds(['두 사람이 조건을 흥정한다. 윤기가 흐르는 검, 그리고 리본.'], people)).toEqual([])
+    expect(beatCharacterIds([], people)).toEqual([])
+    expect(beatCharacterIds(['카엘이 온다.'], [])).toEqual([])
+  })
+
+  it('고르는 인물은 6명까지다(목록 앞쪽부터)', () => {
+    const many = Array.from({ length: 8 }, (_, i): SimulationCharacter => ({ id: `c${i}`, name: `인물${i}`, aliases: [] }))
+    expect(beatCharacterIds([many.map((c) => c.name).join(' ')], many)).toEqual(['c0', 'c1', 'c2', 'c3', 'c4', 'c5'])
   })
 })
 

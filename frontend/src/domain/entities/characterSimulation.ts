@@ -1,4 +1,6 @@
+import { cardTypeOf } from './studioCards'
 import type { StoryPlan } from './storyPlan'
+import type { StudioSetting } from './studioWorld'
 
 /**
  * 인물 시뮬레이션(#58) 단계 결과. 모양은 [계약](../../../../docs/design/character-simulation-contract.md)의 'SSE·응답' JSON 그대로다.
@@ -136,16 +138,33 @@ const cut = (text: string, max: number) => {
   return /[\uD800-\uDBFF]$/.test(head) ? head.slice(0, -1) : head
 }
 
-/**
- * 열린 회차의 장면 계획(kind=scene)을 목록 순서대로 비트로 쓴다: 비트 문장은 `제목: 내용`(내용이 비면 제목만)을 200자로 자르고 최대 8개.
- * 참여 인물은 비트로 쓴 장면 계획들의 인물 합집합(처음 나온 순서)이다.
- */
-export function planBeats(plans: Pick<StoryPlan, 'kind' | 'episodeNumber' | 'title' | 'content' | 'characterIds'>[], episode: number | null) {
+/** 열린 회차의 장면 계획(kind=scene)을 목록 순서대로 비트로 쓴다: 비트 문장은 `제목: 내용`(내용이 비면 제목만)을 200자로 자르고 최대 8개. */
+export function planBeats(plans: Pick<StoryPlan, 'kind' | 'episodeNumber' | 'title' | 'content'>[], episode: number | null) {
   const used = episode === null ? [] : plans.filter((plan) => plan.kind === 'scene' && plan.episodeNumber === episode).slice(0, SIM_BEATS_MAX)
-  return {
-    beats: used.map((plan) => cut([plan.title.trim(), plan.content.trim()].filter(Boolean).join(': '), SIM_BEAT_MAX)),
-    characterIds: [...new Set(used.flatMap((plan) => plan.characterIds))],
-  }
+  return used.map((plan) => cut([plan.title.trim(), plan.content.trim()].filter(Boolean).join(': '), SIM_BEAT_MAX))
+}
+
+/** 시작 양식의 인물 후보. id는 연결 WorldStudio의 인물 카드 id다. */
+export type SimulationCharacter = { id: string; name: string; aliases: string[] }
+
+/**
+ * 연결 세계관의 인물 카드. 서버는 simulation.characterIds를 연결 WorldStudio의 활성 인물 카드 id로 검증하므로
+ * 레거시 설정집이나 장면 계획의 인물 id가 아니라 이 카드 id를 쓴다. 이름 없는 카드는 고를 수 없어 뺀다.
+ */
+export const worldCharacters = (settings: StudioSetting[]): SimulationCharacter[] =>
+  settings.filter((setting) => cardTypeOf(setting.item) === 'character' && setting.item.title.trim())
+    .map((setting) => ({ id: setting.item.id, name: setting.item.title.trim(), aliases: setting.aliases ?? [] }))
+
+/**
+ * 흐름 모드가 미리 고르는 참여 인물: 비트 문장(제목·내용)에 이름이나 별칭이 나오는 인물 카드를 목록 순서대로 6명까지.
+ * ponytail: 부분 문자열 일치라 조사가 붙은 이름도 잡지만 이름이 다른 낱말의 일부여도 잡힌다. 한 글자 이름은 오탐이 많아 건너뛴다. 작가가 양식에서 고친다.
+ */
+export function beatCharacterIds(beats: string[], characters: SimulationCharacter[]) {
+  const text = beats.join('\n')
+  return characters
+    .filter((character) => [character.name, ...character.aliases].some((name) => name.trim().length >= 2 && text.includes(name.trim())))
+    .map((character) => character.id)
+    .slice(0, SIM_CHARACTERS_MAX)
 }
 
 // 공백을 정리하고 모드에 맞는 필드만 남기며 중복 인물은 한 번만 센다.

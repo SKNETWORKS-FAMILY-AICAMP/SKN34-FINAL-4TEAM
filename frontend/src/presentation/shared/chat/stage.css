@@ -7,7 +7,7 @@
 .stage-head h2:focus-visible { outline: 2px solid var(--tacc); outline-offset: 4px; border-radius: 4px; }
 .stage-status { padding: 1px 10px; border: 1px solid currentColor; border-radius: 999px; color: var(--tsub); font-size: 12px; font-weight: 700; }
 .stage-status[data-status="running"], .stage-status[data-status="completed"] { color: var(--tacc); }
-.stage-status[data-status="failed"] { color: var(--danger); }
+.stage-status[data-status="failed"], .stage-status[data-status="error"] { color: var(--danger); }
 .stage > .chat-error { margin-top: 0; }
 .stage p { margin: 0; }
 
