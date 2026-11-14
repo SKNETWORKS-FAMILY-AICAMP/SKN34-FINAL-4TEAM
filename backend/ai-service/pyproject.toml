@@ -9,6 +9,8 @@ description = "Internal health foundation for STORYFORK"
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "fastapi>=0.139.2,<0.140.0",
+    "langchain>=1.5,<2",
+    "langchain-typesafe==0.0.1a3",
     "langfuse>=3,<5",
     "langgraph>=1.0,<2",
     "langgraph-checkpoint-postgres>=3,<4",
