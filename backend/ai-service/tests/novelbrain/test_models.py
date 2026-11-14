@@ -11,10 +11,10 @@ def card(id, title, body='본문', card_type='character', meta=None, lifecycle='
             'lifecycle': lifecycle}
 
 
-def relation(id, source, target, label='남매', direction='symmetric', lifecycle='active'):
+def relation(id, source, target, label='남매', direction='symmetric', lifecycle='active', polarity='asserted', body='설명'):
     """`world_studio_read`의 관계 한 줄(RelationshipPayload JSON)."""
-    return {'id': id, 'sourceCardId': source, 'targetCardId': target, 'category': 'structural', 'body': '설명',
-            'label': label, 'direction': direction, 'polarity': 'asserted', 'semanticMetadata': {}, 'lifecycle': lifecycle}
+    return {'id': id, 'sourceCardId': source, 'targetCardId': target, 'category': 'structural', 'body': body,
+            'label': label, 'direction': direction, 'polarity': polarity, 'semanticMetadata': {}, 'lifecycle': lifecycle}
 
 
 def read(cards, relationships=()):
@@ -37,7 +37,25 @@ def test_world_snapshot_maps_cards_character_docs_and_relations():
         cards=[Card(id='kael', cardType='character', title='카엘', text='성문 수비대장', soul='말투는 건조하다.', memory='리라의 오빠다.',
                     episodes={1: '1화 기억', 12: '12화 기억'}, revealFromEpisode=2),
                Card(id='gate', cardType='location', title='성문', text='북쪽 성문')],
-        relations=[Relation(id='r1', source='kael', target='gate', label='근무지', direction='directed')])
+        relations=[Relation(id='r1', source='kael', target='gate', label='근무지', direction='directed', body='설명')])
+
+
+@pytest.mark.parametrize('polarity,expected', [('asserted', 'asserted'), ('denied', 'denied'), (None, 'asserted'), ('both', 'asserted')])
+def test_world_snapshot_reads_relation_polarity_and_body(polarity, expected):
+    snapshot = world_snapshot(read([card('kael', '카엘'), card('lira', '리라')],
+                                   [relation('r1', 'kael', 'lira', '스승', 'directed', polarity=polarity, body='어린 시절 검술을 가르쳤다')]), 1)
+
+    assert [(r.polarity, r.body) for r in snapshot.relations] == [(expected, '어린 시절 검술을 가르쳤다')]
+
+
+def test_world_snapshot_relation_without_polarity_or_body_uses_the_defaults():
+    bare = relation('r1', 'kael', 'lira')
+    del bare['polarity'], bare['body']
+    nulls = relation('r2', 'kael', 'lira', polarity=None, body=None)
+
+    snapshot = world_snapshot(read([card('kael', '카엘'), card('lira', '리라')], [bare, nulls]), 1)
+
+    assert [(r.polarity, r.body) for r in snapshot.relations] == [('asserted', ''), ('asserted', '')]
 
 
 @pytest.mark.parametrize('docs', [
@@ -116,6 +134,7 @@ def test_world_snapshot_rejects_a_response_it_cannot_read_without_echoing_the_in
 
 @pytest.mark.parametrize('build', [
     lambda: RecallItem(ref='card:c', source='web', text='t', rank=1, score=0.1),
+    lambda: Relation(id='r', source='a', target='b', label='x', polarity='both'),
     lambda: RecallResult(items=[], gaps=[], stage=4),
     lambda: RecallResult(items=[], gaps=[], stage=-1),
 ])

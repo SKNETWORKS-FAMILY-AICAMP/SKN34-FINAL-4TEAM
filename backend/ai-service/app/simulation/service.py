@@ -20,11 +20,12 @@ from app.retrieval import service as retrieval
 from app.retrieval.models import RetrievalScope
 from app.simulation import agent
 from app.simulation.errors import SimulationFailure, SimulationStopped
-from app.simulation.models import Action, Beat, Check, CheckItem, Evidence, SimulationPlan, SimulationResult, Turn, Verdict
+from app.simulation.models import Action, Beat, Check, Evidence, SimulationPlan, SimulationResult, Turn, Verdict
 from app.simulation.prompt import FEEDBACK, KIND_LABELS
 
 TURN_LIMIT = 12
 REGENERATIONS = 2
+CUT = 200  # 모델이 쓴 이유·설명을 작가에게 보일 때 자르는 길이(Structured Outputs 스키마에는 길이 제약을 못 둔다)
 KINDS = {'if': ['knowledge_leak', 'voice_mix', 'relation', 'premise'],
          'flow': ['knowledge_leak', 'voice_mix', 'relation', 'beat']}
 NEEDS_TARGET = '시뮬레이션할 작품과 회차를 확인할 수 없어요.'
@@ -133,9 +134,10 @@ def simulate(plan: SimulationPlan, read: dict, episode: int, manuscript: Sequenc
                     beat.status = 'rejected'
                     raise SimulationStopped(
                         f'{actor.title}이(가) 비트 “{beat.text}”을(를) 따르지 않아 멈췄어요. 흐름을 고치거나 이대로 진행할지 정해 주세요. '
-                        f'이유: {action.refusalReason or "알 수 없어요."}', result('stopped', 'beat_rejected'))
+                        f'이유: {(action.refusalReason or "알 수 없어요.")[:CUT]}', result('stopped', 'beat_rejected'))
                 checked = {**asked, 'forbidden': forbidden, 'voices': voices, 'checks': kinds, 'paragraph': action.prose}
-                verdict = _verified(agent.check(checked), kinds, checked)
+                verdict = agent.check(checked)
+                _verify(verdict, kinds, checked)
                 failed = [c for c in verdict.checks if not c.passed]
                 if not failed:
                     break
@@ -143,9 +145,9 @@ def simulate(plan: SimulationPlan, read: dict, episode: int, manuscript: Sequenc
             else:
                 raise SimulationStopped(
                     f'{actor.title}의 {index + 1}번째 장면이 검사를 통과하지 못해 멈췄어요: '
-                    f'{", ".join(KIND_LABELS[c.kind] for c in failed)}. {failed[0].detail}', result('stopped', 'check_failed'))
+                    f'{", ".join(KIND_LABELS[c.kind] for c in failed)}. {failed[0].detail[:CUT]}', result('stopped', 'check_failed'))
             turns.append(Turn(index=index, characterId=actor.id, characterName=actor.title, prose=action.prose.strip(),
-                              checks=[Check(kind=c.kind, passed=c.passed, detail=c.detail) for c in verdict.checks],
+                              checks=[Check(kind=c.kind, passed=c.passed, detail=c.detail[:CUT]) for c in verdict.checks],
                               regenerated=attempt, evidence=[Evidence(ref=i.ref, source=i.source) for i in recalled.items]))
             scene.append({'ref': f'scene:{index}', 'by': actor.title, 'text': action.observed.strip()})
             last[actor.id] = index
@@ -255,11 +257,9 @@ def _acted(action: Action) -> Action:
     return action
 
 
-def _verified(verdict: Verdict, kinds: list[str], payload: dict) -> Verdict:
-    """요청한 검사가 정확히 한 번씩 있고, 위반 근거 ref가 검사 모델의 입력에 있는 것만 인정한다."""
+def _verify(verdict: Verdict, kinds: list[str], payload: dict) -> None:
+    """요청한 검사가 정확히 한 번씩 있고, 위반 근거 ref가 검사 모델의 입력에 있는 것만 인정한다. 아니면 실패한다."""
     refs = {item['ref'] for key in ('known', 'scene', 'forbidden', 'voices') for item in payload[key]}
     refs |= {v['ref'] for v in payload['direction'].values() if isinstance(v, dict)}
     if sorted(c.kind for c in verdict.checks) != sorted(kinds) or any(r not in refs for c in verdict.checks for r in c.refs):
         raise SimulationFailure(502, BAD_VERDICT)
-    return verdict.model_copy(update={'checks': [CheckItem(kind=c.kind, passed=c.passed, detail=c.detail[:200], refs=c.refs)
-                                                 for c in verdict.checks]})

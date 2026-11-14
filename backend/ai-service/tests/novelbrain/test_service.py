@@ -248,11 +248,43 @@ def test_filter_keeps_an_unrevealed_character_only_when_a_relation_links_them_to
     assert refs(filter_for_character(items, WORLD, 'lira', 2)[0]) == ['card:lira#identity', 'card:sera#identity']
 
 
-def test_filter_allows_a_non_character_card_without_a_link_unless_it_is_revealed_later():
-    items = [item('card:gate'), item('card:crown')]
+def test_filter_allows_a_card_that_needs_no_link_unless_it_is_revealed_later():
+    world = with_card(WORLD, 'gate', revealFromEpisode=5)  # 성문(장소)은 5화부터 공개한다.
+    items = [item('card:gate')]
 
-    assert filter_for_character(items, WORLD, 'sera', 4) == ([items[0]], [])
-    assert refs(filter_for_character(items, WORLD, 'sera', 5)[0]) == ['card:gate', 'card:crown']
+    assert filter_for_character(items, WORLD, 'sera', 4) == (items, [])  # 공개 회차가 없는 장소는 누구나 안다.
+    assert filter_for_character(items, world, 'sera', 4) == ([], [])
+    assert filter_for_character(items, world, 'sera', 5) == (items, [])
+
+
+HERO = Card(id='hero', cardType='character', title='가이', text='주인공', revealFromEpisode=1)
+
+
+@pytest.mark.parametrize('card_type,needs_link', [('character', True), ('event', True), ('object', True), ('location', False),
+                                                  ('rule', False), ('organization', False), ('ability', False), ('other', False)])
+@pytest.mark.parametrize('link', [None, 'asserted', 'denied'])
+def test_filter_asks_for_a_relation_only_for_character_event_and_object_cards(card_type, needs_link, link):
+    # 사건·물건도 인물이 겪거나 가진 것이 아니면 아는지 확인할 수 없다. 관계 이름은 자유이고 연결돼 있으면 아는 것으로 본다. 부정 관계는 연결이 아니다.
+    other = Card(id='x', cardType=card_type, title='대상', text='본문')
+    relations = [] if link is None else [Relation(id='r', source='hero', target='x', label='아는 사이', polarity=link)]
+    world = WorldSnapshot(worldId='w', episode=3, cards=[HERO, other], relations=relations)
+    target = item('card:x#identity' if card_type == 'character' else 'card:x')
+
+    kept, gaps = filter_for_character([target], world, 'hero', 3)
+
+    allowed = not needs_link or link == 'asserted'
+    assert (kept == [target]) is allowed
+    assert gaps == ([] if allowed else [Gap(ref=target.ref, reason='연결된 관계가 없어 이 인물이 아는지 확인할 수 없음')])
+
+
+@pytest.mark.parametrize('card_type', ['event', 'object'])
+@pytest.mark.parametrize('linked', [False, True])
+def test_filter_silently_drops_a_future_event_or_object_whether_or_not_it_is_linked(card_type, linked):
+    other = Card(id='x', cardType=card_type, title='대상', text='본문', revealFromEpisode=9)
+    relations = [Relation(id='r', source='hero', target='x', label='아는 사이')] if linked else []
+    world = WorldSnapshot(worldId='w', episode=3, cards=[HERO, other], relations=relations)
+
+    assert filter_for_character([item('card:x')], world, 'hero', 3) == ([], [])
 
 
 def test_filter_blocks_a_card_revealed_in_the_future_even_when_linked():
@@ -456,6 +488,42 @@ def test_stage_3_does_not_show_the_title_of_an_unrevealed_card_through_a_relatio
     assert '왕관' not in ' '.join(i.text for i in result.items)
     assert 'relation:r-lc' in [g.ref for g in result.gaps]
     assert 'relation:r-ls' in refs(result.items)  # 이미 공개된 상대(세라)와의 관계는 그대로 쓴다.
+
+
+def test_stage_3_does_not_treat_a_denied_relation_as_a_connection_but_still_shows_it_as_denied():
+    denied = Relation(id='r-ks', source='kael', target='sera', label='동료', direction='symmetric', polarity='denied')
+    world = WORLD.model_copy(update={'relations': RELATIONS + [denied]})
+
+    result = recall(world, 'kael', 2, '세라는 카엘의 동료인가', k=100)
+
+    assert 'card:sera#identity' not in refs(result.items)
+    assert 'card:sera#identity' in [g.ref for g in result.gaps]
+    assert {i.ref: i.text for i in result.items}['relation:r-ks'] == '카엘 ↮ 세라 (아님): 동료'
+
+
+@pytest.mark.parametrize('direction,label,expected', [('directed', '스승', '카엘 ↛ 리라 (아님): 스승'),
+                                                      ('symmetric', '남매', '카엘 ↮ 리라 (아님): 남매'),
+                                                      (None, '', '카엘 — 리라 (아님)')])
+def test_a_denied_relation_item_shows_the_negation(direction, label, expected):
+    world = WorldSnapshot(worldId='w', episode=1, cards=[KAEL, LIRA], relations=[
+        Relation(id='r', source='kael', target='lira', label=label, direction=direction, polarity='denied')])
+
+    assert {i.ref: i.text for i in recall(world, None, 1, '카엘', stage=0, k=100).items}['relation:r'] == expected
+
+
+def test_a_denied_relation_carries_no_ppr_mass_but_stays_a_relation_item():
+    cards = [Card(id='a', cardType='character', title='가이', text='가이 소개'),
+             Card(id='b', cardType='character', title='나이', text='나이 소개')]
+
+    def stage0(polarity):
+        world = WorldSnapshot(worldId='w', episode=1, cards=cards, relations=[
+            Relation(id='r', source='a', target='b', label='스승', direction='directed', polarity=polarity)])
+        return {i.ref: i.text for i in recall(world, None, 1, '가이', stage=0, k=100).items}
+
+    assert 'card:b#identity' in stage0('asserted')
+    denied = stage0('denied')
+    assert 'card:b#identity' not in denied  # 부정 관계로는 이웃에 닿지 않는다.
+    assert denied['relation:r'] == '가이 ↛ 나이 (아님): 스승'
 
 
 def test_stage_3_without_a_character_is_the_main_agent_view_and_filters_nothing():
