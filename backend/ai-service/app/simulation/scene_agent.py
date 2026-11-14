@@ -11,6 +11,7 @@ resume이 이 에이전트를 멈춘 자리에서 이어 간다. 장면은 JSON(
 """
 
 import asyncio
+from collections import namedtuple
 from functools import lru_cache
 from typing import Any, NotRequired
 
@@ -27,7 +28,7 @@ from app.content_mcp.errors import ContentMcpFailure
 from app.retrieval.errors import RetrievalFailure
 from app.simulation import agent, director, service
 from app.simulation.errors import SimulationFailure
-from app.simulation.models import Check, CheckItem, Decision, Evidence, Scene, SceneAction, Trail, Turn
+from app.simulation.models import Check, Decision, Evidence, Scene, SceneAction, Trail, Turn
 from app.simulation.prompt import FEEDBACK, KIND_LABELS, NARRATION_FEEDBACK
 from app.simulation.service import SceneContext
 from app.simulation.tools import TOOLS
@@ -36,6 +37,19 @@ FAILURES = (SimulationFailure, RetrievalFailure, ContentMcpFailure)
 LOOP_LIMIT = service.MAX_TURNS * 2  # 모델·도구 호출 안전망. 정상 장면은 턴마다 한 번씩만 부른다
 TOOL_OF = {'narration': 'narrate', 'monologue': 'monologue', 'speech': 'speak', 'end': 'end_scene'}
 TURN_LIMIT_MESSAGE = f'인물 대사 턴 한도({service.TURN_LIMIT})까지 장면이 끝나지 않아 멈췄어요.'
+
+
+Problem = namedtuple('Problem', 'kind detail')  # 모델 검사 앞에서 서버가 잡은 위반. 검사 모델의 항목처럼 kind·detail만 쓴다
+
+
+def _problem(made: dict, scene: Scene) -> Problem | None:
+    """모델 검사 앞에서 서버가 잡는 확실한 위반: 행동 묘사의 인칭·문체, 같은 인물이 앞서 한 대사와 거의 같은 대사. 걸리면 모델을 부르지 않고 다시 쓴다."""
+    if reason := service.style_problem(made['prose'], made['check']['payload'].get('actionStyle')):
+        return Problem('voice_mix', reason)
+    earlier = [t.prose for t in scene.result.turns if t.kind == 'character' and t.characterId == made['characterId']]
+    if made['kind'] == 'character' and service.repeated_line(made['prose'], earlier):
+        return Problem('repetition', '같은 인물이 앞서 한 대사와 거의 같은 말을 되풀이했어요.')
+    return None
 
 
 class SceneState(AgentState):
@@ -149,8 +163,8 @@ class SceneCheckMiddleware(AgentMiddleware):
                                f'이유: {made["refusal"][:service.CUT]}')
                     return await self._done(call, context, service.stop_scene(scene, message, 'stopped', 'beat_rejected', made['beat']), 'error')
                 spec = made['check']
-                if problem := service.style_problem(made['prose'], spec['payload'].get('actionStyle')):  # 확실한 문체 위반은 검사 모델을 부르지 않고 다시 쓴다
-                    failed = [CheckItem(kind='voice_mix', passed=False, detail=problem, refs=[])]
+                if problem := _problem(made, scene):
+                    failed = [problem]
                 else:
                     payload = {**spec['payload'], 'checks': spec['kinds'], 'paragraph': made['prose']}
                     verdict = await asyncio.to_thread(agent.check, payload)

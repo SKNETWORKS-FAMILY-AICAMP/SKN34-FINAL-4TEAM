@@ -11,6 +11,7 @@
 import re
 import unicodedata
 from dataclasses import dataclass, field
+from difflib import SequenceMatcher
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
@@ -497,6 +498,24 @@ def style_problem(prose: str, style: dict | None) -> str | None:
             if _PLAIN_FORMAL.search(end) or (end.endswith('니다') and len(end) > 2 and '가' <= end[-3] <= '힣' and (ord(end[-3]) - 0xAC00) % 28 == 17):
                 return '행동 묘사가 인물의 말투(합쇼체·하오체)로 쓰였어요. 서술체(-다)로 써야 해요.'
     return None
+
+
+REPEAT_RATIO, REPEAT_MIN = 0.8, 10  # 같은 인물의 앞선 대사와 이만큼 비슷하면(공백·기호를 뺀 글자 기준) 되풀이다. 이보다 짧은 대사는 상투어라 보지 않는다
+
+
+def _spoken(prose: str) -> str:
+    """대사(큰따옴표 안)만 이어 붙이고 공백·문장부호를 뺀다. 행동 묘사는 보지 않는다."""
+    return re.sub(r'[\W_]+', '', ''.join(m.group(0).strip('“”"') for m in _DIALOGUE.finditer(prose)))
+
+
+def repeated_line(prose: str, earlier: list[str]) -> bool:
+    """같은 인물이 앞서 한 대사(earlier는 그 인물의 앞선 턴 본문)와 거의 같은 대사를 되풀이했는지. 다른 인물의 대사와는 비교하지 않는다.
+
+    ponytail: 정규화한 글자열의 단순 유사도(difflib)다. 말만 바꿔 같은 내용을 되풀이하는 것은 못 잡는다.
+    """
+    now = _spoken(prose)
+    return len(now) >= REPEAT_MIN and any(SequenceMatcher(None, now, before).ratio() >= REPEAT_RATIO
+                                          for before in map(_spoken, earlier) if len(before) >= REPEAT_MIN)
 
 
 def acted(action: Action) -> Action:
