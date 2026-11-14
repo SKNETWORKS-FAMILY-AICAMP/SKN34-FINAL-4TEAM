@@ -50,7 +50,7 @@ def test_result_dumps_the_contract_json_shape():
                   {'index': 2, 'kind': 'character', 'characterId': 'k', 'characterName': '카엘', 'prose': '"멈춰."',
                    'checks': [{'kind': 'beat', 'passed': True, 'detail': '비트를 따랐어요.'}], 'regenerated': 1,
                    'evidence': [{'ref': 'card:g', 'source': 'graph'}], 'pov': 'limited:k', 'editedByAuthor': True}],
-        'notes': [{'afterTurn': 0, 'text': '비가 쏟아진다'}], 'status': 'paused', 'stopReason': None}
+        'notes': [{'afterTurn': 0, 'text': '비가 쏟아진다'}], 'status': 'paused', 'stopReason': None, 'notice': None}
 
 
 def test_turn_is_a_character_turn_in_the_omniscient_view_unless_it_says_otherwise():

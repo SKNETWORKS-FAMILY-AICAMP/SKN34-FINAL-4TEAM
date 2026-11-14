@@ -11,7 +11,7 @@ import httpx
 from pydantic import ValidationError
 
 from app import tracing
-from app.retrieval.errors import RetrievalFailure
+from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult, RetrievalScope
 
 # Content가 사용자에게 보여 줄 고정 문구로 거절하는 상태. 그 밖의 오류는 502로 닫는다.
@@ -54,4 +54,5 @@ def _failure(response: httpx.Response) -> RetrievalFailure:
         message = response.json().get('detail') or 'Content 검색을 완료할 수 없습니다.'
     except ValueError:
         message = 'Content 검색을 완료할 수 없습니다.'
-    return RetrievalFailure(response.status_code, str(message)[:200])
+    failure = RetrievalUnavailable if response.status_code == 503 else RetrievalFailure  # Content가 검색을 쓸 수 없다고 답한 것만 구분한다
+    return failure(response.status_code, str(message)[:200])

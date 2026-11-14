@@ -1,5 +1,6 @@
 import pytest
 
+from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
 from app.simulation import scene_agent, service
 from app.simulation.errors import SimulationFailure
@@ -76,7 +77,7 @@ def test_if_mode_checks_the_premise_and_ends_when_the_scene_is_complete(monkeypa
 def test_result_shape_follows_the_contract_json(monkeypatch):
     setup(monkeypatch, speech(KAEL), verdicts=lambda payload: verdict(payload, beat_done=True))
     result = run_auto(PLAN_FLOW).result.model_dump(mode='json')
-    assert set(result) == {'mode', 'premise', 'beats', 'turns', 'notes', 'status', 'stopReason'} and result['notes'] == []
+    assert set(result) == {'mode', 'premise', 'beats', 'turns', 'notes', 'status', 'stopReason', 'notice'} and result['notes'] == [] and result['notice'] is None
     opening, turn = result['turns'][:2]
     assert (opening['kind'], opening['characterId'], opening['characterName'], opening['checks'], opening['pov']) == (
         'narration', None, '나레이션', [], 'omniscient')
@@ -434,6 +435,51 @@ def test_the_world_is_read_once_per_request_and_the_retrieval_token_is_the_one_t
     assert [tool for tool, _ in h.content] == ['world_studio_list', 'world_studio_read'] and tokens == ['old.token']
     run.resume(SceneAction(action='next'), scope={'scopeToken': 'fresh.token'})  # 한 요청 안의 재생성은 세계관을 다시 읽지 않는다
     assert len(h.content) == 4 and tokens == ['old.token', 'fresh.token'] and h.calls.act[-1]['self']['id'] == KAEL
+
+
+def retrieval_raises(monkeypatch, error):
+    def retrieve(scope, question):
+        raise error
+    monkeypatch.setattr(service.retrieval, 'retrieve', retrieve)
+
+
+def test_a_scene_goes_on_without_manuscript_excerpts_and_says_so_in_its_result(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL))
+    retrieval_raises(monkeypatch, RetrievalUnavailable(503, '원고 Q&A를 사용할 수 없어요.'))
+    run = Run(scope={'scopeToken': 'old.token'}).start()
+    assert run.shown['result']['notice'] == service.NO_EXCERPTS and [t['kind'] for t in run.shown['result']['turns']] == ['narration']  # 첫 턴이 쓰였다
+    assert h.recall[0]['manuscript'] == [] and run.shown['status'] == 'not_started' and 'error' not in run.shown  # 실패가 아니라 알림이다
+    run.next()
+    assert run.scene.result.notice == service.NO_EXCERPTS and len(run.scene.result.turns) == 2
+    monkeypatch.setattr(service.retrieval, 'retrieve', lambda scope, question: RetrievalResult(
+        status='found', excerpts=[], gaps=[], steps=[], coverage={'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt': []}))
+    run.resume(SceneAction(action='next'), scope={'scopeToken': 'fresh.token'})  # 검색이 돌아와도 앞 턴은 발췌 없이 쓰였으니 알림을 지우지 않는다
+    assert run.scene.result.notice == service.NO_EXCERPTS and len(run.scene.result.turns) == 3
+
+
+def test_a_redo_request_that_loses_the_search_also_records_the_notice(monkeypatch):
+    setup(monkeypatch, speech(KAEL), speech(LINA))
+    found = RetrievalResult(status='found', excerpts=[], gaps=[], steps=[], coverage={'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt': []})
+    monkeypatch.setattr(service.retrieval, 'retrieve', lambda scope, question: found)
+    run = Run(scope={'scopeToken': 'old.token'}).start().next()
+    assert run.scene.result.notice is None
+    retrieval_raises(monkeypatch, RetrievalUnavailable(503, '원고 Q&A를 사용할 수 없어요.'))
+    run.resume(SceneAction(action='redo', turn=1), scope={'scopeToken': 'fresh.token'})  # 다시 말하기 요청에서 검색을 못 쓰게 됐다
+    assert run.scene.result.notice == service.NO_EXCERPTS and len(run.scene.result.turns) == 2
+
+
+def test_a_scene_that_never_needed_the_excerpts_has_no_notice(monkeypatch):
+    setup(monkeypatch, speech(KAEL))
+    monkeypatch.setattr(service.retrieval, 'retrieve', lambda scope, question: RetrievalResult(
+        status='found', excerpts=[], gaps=[], steps=[], coverage={'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt': []}))
+    assert Run(scope={'scopeToken': 'x'}).start().scene.result.notice is None and run_auto().result.notice is None
+
+
+def test_any_other_retrieval_error_still_fails_the_scene_with_its_message_and_no_notice(monkeypatch):
+    setup(monkeypatch, speech(KAEL))
+    retrieval_raises(monkeypatch, RetrievalFailure(409, '공개 원고 범위가 변경됐어요.'))
+    scene = run_auto(scope={'scopeToken': 'x'})
+    assert (scene.result.status, scene.error, scene.result.notice, scene.result.turns) == ('failed', '공개 원고 범위가 변경됐어요.', None, [])
 
 
 def test_a_finished_scene_can_be_continued_after_the_approval_question_by_an_action_the_graph_hands_back(monkeypatch):
