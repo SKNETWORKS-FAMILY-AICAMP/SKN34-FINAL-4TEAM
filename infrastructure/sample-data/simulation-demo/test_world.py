@@ -45,6 +45,10 @@ GENRES = {"판타지", "현대판타지", "무협", "선협", "퓨전", "로맨�
           "일상", "고전", "일반소설", "기타"}
 # Fork 시연의 고정관념 금지 규칙: 비하 표현 차단(어간)과 외국어 흉내를 막는 알파벳 금지
 BANNED = ("깜둥", "검둥", "흑형", "니그")
+# 나레이션 문체는 세계관에서 제목이 `나레이터`로 시작하는 카드(유형 무관)의 본문을 지침으로 쓴다
+NARRATOR_SECTIONS = ("## 배경 설명", "## 시점", "## 말투", "## 하지 않는 것")
+FORK_NARRATOR_RULES = ("특정 인종", "방언·속어", "사회의 문제", "스스로 익힌", "담담하고 존중하는 시선")  # 흑길동전 README 고정관념 금지 규칙에서 옮긴 말
+is_narrator = lambda card: card["title"].startswith("나레이터")  # noqa: E731
 
 
 class Manuscript:
@@ -120,7 +124,7 @@ class WorldChecks:
         self.assertTrue(len(work.get("hashtags", [])) <= 10 and all(t.strip() for t in work.get("hashtags", [])))
 
     def test_card_mix_and_visibility(self):
-        count = lambda *types: sum(c["cardType"] in types for c in self.world["cards"])  # noqa: E731
+        count = lambda *types: sum(c["cardType"] in types and not is_narrator(c) for c in self.world["cards"])  # noqa: E731
         self.assertGreaterEqual(count("character"), 3)
         self.assertGreaterEqual(count("event"), 3)
         self.assertGreaterEqual(count("object"), 1)
@@ -129,7 +133,7 @@ class WorldChecks:
             self.assertTrue(count("character") <= 4 and count("event") <= 4 and count("object") <= 2 and count("location", "rule") <= 4)
         self.assertEqual(len(self.world["cards"]), len(self.cards))  # key 중복 없음
         for card in self.world["cards"]:
-            if card["cardType"] in ("location", "rule"):
+            if card["cardType"] in ("location", "rule") and not is_narrator(card):
                 self.assertEqual("public", card["visibility"], card["key"])  # 누구나 아는 세계 설정
             if card["cardType"] in ("character", "event"):
                 self.assertEqual("private", card["visibility"], card["key"])  # 지식은 관계로만 퍼진다
@@ -389,6 +393,9 @@ class WorldChecks:
             self.assertEqual(upto(source.cards[key]), upto(self.cards[key]), key)
         for key in changed:
             old, new = upto(source.cards[key]), upto(self.cards[key])
+            if "characterDocs" not in old:  # 인물이 아닌 바뀐 카드(Fork 자신의 나레이터 카드): 본문만 달라진다
+                self.assertNotEqual(old["body"], new["body"], key)
+                continue
             self.assertEqual(old["characterDocs"]["episodes"], new["characterDocs"]["episodes"], key)  # 물려받은 회차의 기억은 그대로
             self.assertNotEqual((old["body"], old["characterDocs"]["memory"]), (new["body"], new["characterDocs"]["memory"]), key)
         grams = lambda s: {s[i:i + 2] for i in range(len(s) - 1)}  # noqa: E731
@@ -412,7 +419,32 @@ class WorldChecks:
                 self.assertNotIn(word, text)
             self.assertNotRegex(text, r"[A-Za-z]", "외국어를 흉내 낸 말투를 쓰지 않는다")
         for key in fork["changed"]:  # 말투를 인종이 아니라 경험·성격에서 끌어낸다고 SOUL에 못 박는다
-            self.assertIn("하지 않는 말", self.cards[key]["characterDocs"]["soul"], key)
+            if key in self.characters:
+                self.assertIn("하지 않는 말", self.cards[key]["characterDocs"]["soul"], key)
+
+    def test_narrator_card_guides_the_narration_style(self):
+        """작품마다 나레이터 카드 하나: 제목 `나레이터 — <작품명>`, 비공개 규칙 카드, 배경 설명·시점·말투·하지 않는 것.
+        규칙 카드는 인물이 누구나 아는 것으로 읽으므로 인물·물건·사건 이름과 비밀을 쓰지 않는다. Fork는 고정관념 금지 규칙을 옮겨 적는다."""
+        narrators = [c for c in self.world["cards"] if is_narrator(c)]
+        self.assertEqual(1, len(narrators))
+        card, body = narrators[0], narrators[0]["body"]
+        self.assertEqual("나레이터 — " + self.world["world"]["name"].split(" · ")[0], card["title"])
+        self.assertEqual(("narrator", "rule", "private"), (card["key"], card["cardType"], card["visibility"]))
+        self.assertNotIn("revealFromEpisode", card)  # 독자에게 공개하는 설정이 아니다
+        for section in NARRATOR_SECTIONS:
+            self.assertIn(section, body)
+        for rule in ("현대 속어", "속마음", "암시"):  # 하지 않는 것
+            self.assertIn(rule, body.partition("## 하지 않는 것")[2])
+        for other in self.cards.values():
+            if other["cardType"] in ("character", "object", "event"):
+                for name in [other["title"], *(a for a in other["aliases"] if len(a) >= 2)]:
+                    self.assertNotIn(name, body, f"나레이터 카드가 {other['key']}의 이름을 쓴다")
+        for secret in self.world["secrets"]:
+            self.assertNotIn(secret["phrase"], body)
+        if self.world["work"].get("fork"):
+            for rule in FORK_NARRATOR_RULES:
+                self.assertIn(rule, body)
+            self.assertIn("narrator", self.world["work"]["fork"]["changed"])  # 원작 나레이터 카드를 Fork 자신의 것으로 바꾼다
 
     def test_scene_plans_are_well_formed(self):
         """plans.json은 플롯 1개와 장면이다. 흐름 모드는 열린 회차의 장면을 `제목: 내용`(200자로 자름) 비트로 최대 8개, 참여 인물은 최대 6명 쓴다."""
