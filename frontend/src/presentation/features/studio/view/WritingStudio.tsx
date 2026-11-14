@@ -1,4 +1,5 @@
 import { Suspense,useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
+import { useSearchParams } from 'react-router'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
 import { publicationActionLabel,type WritingEpisode } from '../../../../domain/entities/content'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
@@ -85,6 +86,15 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     if(at.left<around.left||at.right>around.right)frame.scrollLeft+=at.left-around.left-12
     if(at.top<around.top||at.bottom>around.bottom)frame.scrollTop+=at.top-around.top-12
   },[activeNumber,vm.ready])
+  // 활성 회차가 바뀌면(목록 선택·새 회차·삭제·다시 읽기) 주소의 ?ep=n도 따라가, 새로 고침이 작가가 보던 회차로 열리게 한다(처음 연 회차는 건드리지 않고 기록은 쌓지 않는다).
+  const [,setQuery]=useSearchParams()
+  const shown=useRef<number>(undefined)
+  const followUrl=useEffectEvent((n:number)=>setQuery(q=>{const next=new URLSearchParams(q);next.set('ep',String(n));return next},{replace:true}))
+  useEffect(()=>{
+    if(activeNumber===undefined)return
+    if(shown.current!==undefined&&shown.current!==activeNumber)followUrl(activeNumber)
+    shown.current=activeNumber
+  },[activeNumber])
   // 왼쪽 레일에서 회차 목록이 차지하는 높이 비율(%). 화면 로컬 값이라 새로 열면 처음으로 돌아온다.
   const [split,setSplit]=useState(50)
   const {dark,toggle:toggleTheme}=useTheme()
@@ -134,6 +144,11 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const openVersion=(versionId:string)=>{if(!active)return;setSelection({episode:active.number,id:versionId});setRights(false);setHistoryView('versions');setVersionsOpen(true)}
   // 항목의 ⋮ 메뉴가 고른 회차를 먼저 선택한다(저장하지 않은 입력을 버리지 않으면 false). 이미 선택된 회차는 다시 고르지 않는다.
   const pick=(e:WritingEpisode)=>{if(active?.number===e.number)return true;if(!vm.select(e))return false;setSelection({episode:0,id:''});setRights(false);return true}
+  // 승인을 기다리는 장면·제안의 반영 회차(서버가 알려 준 값)가 열린 회차와 다르면 편집기를 그 회차로 연다. 새로 고친 뒤 주소의 ?ep=n이 다른 회차여도 승인 문구와 편집기가 같은 회차를 가리킨다.
+  // 승인 회차가 새로 오거나 목록이 준비될 때만 맞추므로 그 뒤 작가가 고른 회차는 되돌리지 않는다.
+  const approvalEpisode=chat.approvalEpisode
+  const openApproval=useEffectEvent((target:number)=>{const e=vm.episodes.find(x=>x.number===target);if(e)pick(e)})
+  useEffect(()=>{if(approvalEpisode&&vm.ready)openApproval(approvalEpisode)},[approvalEpisode,vm.ready])
   const deleteActive=async()=>settled(await vm.deleteEpisode())
   // 다른 회차의 삭제는 그 회차가 활성 회차가 된 다음 렌더에서 시작한다(삭제는 렌더 시점의 활성 회차를 지운다).
   const [deleting,setDeleting]=useState(0)

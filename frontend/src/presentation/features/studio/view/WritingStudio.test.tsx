@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { Provider } from 'react-redux'
-import { MemoryRouter, useLocation } from 'react-router'
+import { MemoryRouter, useLocation, useNavigationType } from 'react-router'
 import { createAppStore } from '../../../../app/store'
 import { LazyManuscriptEditor as fakeEditor } from '../../../../test/manuscriptEditorFake'
 import { WritingStudio } from './WritingStudio'
@@ -39,12 +39,13 @@ const comparisonVersions = [
   { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
 ]
 afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = ''; fakeEditor.suspend = false })
-const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
+const Where = () => { const l = useLocation(); return <p hidden data-testid="where" data-nav={useNavigationType()}>{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
-const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number) => {
+const navigation = () => screen.getByTestId('where').dataset.nav
+const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number, path = '/studio/work-id') => {
   const store = createAppStore({}, ui)
   const view = render(<WritingStudio id="work-id" episode={episode} />, {
-    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={['/studio/work-id']}>{children}<Where /></MemoryRouter></Provider>,
+    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={[path]}>{children}<Where /></MemoryRouter></Provider>,
   })
   return { ...view, store }
 }
@@ -72,6 +73,30 @@ it('passes the ?ep=n episode number to the writing view model so the studio open
   cleanup()
   renderStudio()
   expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, undefined)
+})
+
+// 활성 회차는 ViewModel이 바꾸지만(목록 선택·새 회차·삭제·다시 읽기) 주소는 처음 연 ?ep=n에 머물러, 새로 고치면 옛 회차로 열리던 버그.
+it('활성 회차가 바뀌면 주소의 ?ep=n이 따라가고(다른 쿼리는 지키고 기록은 쌓지 않는다) 처음 연 회차는 주소를 건드리지 않는다', () => {
+  model.active = { ...originalActive, number: 2 }
+  const { rerender } = renderStudio({}, 2, '/studio/work-id?ep=2&x=1')
+  expect(where()).toBe('/studio/work-id?ep=2&x=1')
+  expect(navigation()).toBe('POP')
+  model.active = { ...originalActive, number: 4 }
+  rerender(<WritingStudio id="work-id" episode={2} />)
+  expect(where()).toBe('/studio/work-id?ep=4&x=1')
+  expect(navigation()).toBe('REPLACE')
+})
+
+it('열린 회차가 잠깐 없어졌다 다른 회차로 돌아와도(삭제 뒤 다음 회차) 주소가 따라간다', () => {
+  model.active = { ...originalActive, number: 5 }
+  const { rerender } = renderStudio({}, undefined, '/studio/work-id?ep=5')
+  expect(where()).toBe('/studio/work-id?ep=5')
+  model.active = null as never
+  rerender(<WritingStudio id="work-id" />)
+  expect(where()).toBe('/studio/work-id?ep=5')
+  model.active = { ...originalActive, number: 1 }
+  rerender(<WritingStudio id="work-id" />)
+  expect(where()).toBe('/studio/work-id?ep=1')
 })
 
 const manage = () => screen.getByRole('region', { name: '회차 관리' })

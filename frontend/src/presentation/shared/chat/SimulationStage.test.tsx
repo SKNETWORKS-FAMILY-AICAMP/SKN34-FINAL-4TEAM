@@ -334,8 +334,23 @@ it('인물 후보는 이 작품에 연결된 세계관의 인물 카드뿐이고
   serve()
 })
 
+it('제목이 나레이터로 시작하는 카드는 서버가 문체 지침으로 빼므로 인물 후보에 나오지 않는다', async () => {
+  readWorld.mockResolvedValue(world([card('k1', '카엘'), card('n1', '나레이터 — 흑길동전'), card('k2', '리안')]))
+  setup()
+  await openForm()
+  expect(people().map((c) => c.labels?.[0]?.textContent)).toEqual(['카엘', '리안'])
+})
+
 it('연결된 세계관에 인물 카드가 없으면 알리고 시작을 잠근다', async () => {
   readWorld.mockResolvedValue(world([card('p1', '성문', 'location')]))
+  setup()
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  expect(await box().findByText('이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.')).toBeTruthy()
+  expect(startButton().disabled).toBe(true)
+})
+
+it('나레이터 카드뿐인 세계관은 인물 카드가 없는 것과 같이 알리고 시작을 잠근다', async () => {
+  readWorld.mockResolvedValue(world([card('n1', '나레이터 — 흑길동전')]))
   setup()
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
   expect(await box().findByText('이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.')).toBeTruthy()

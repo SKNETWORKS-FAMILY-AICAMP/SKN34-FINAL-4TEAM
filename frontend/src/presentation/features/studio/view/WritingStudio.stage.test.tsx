@@ -54,7 +54,8 @@ const stored = (reply: ChatReply) => {
 const pausedReply = (): ChatReply => ({ status: 'waiting', steps: [simStep(scene())], missingInputs: [], awaitingScene: 'character_simulation' })
 const approvalReply = (): ChatReply => ({ status: 'waiting', steps: [simStep(scene({ status: 'completed' }))], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3 })
 
-const renderStudio = () => render(<Provider store={createAppStore()}><MemoryRouter><WritingStudio id="work-id" /></MemoryRouter></Provider>)
+const tree = (store = createAppStore()) => <Provider store={store}><MemoryRouter><WritingStudio id="work-id" /></MemoryRouter></Provider>
+const renderStudio = () => render(tree())
 const editor = () => screen.getByRole('textbox', { name: '회차 제목', hidden: true }).closest('.writing-editor') as HTMLElement
 
 beforeEach(() => {
@@ -112,6 +113,46 @@ it('진행 중인 저장 장면이 있으면 무대가 저절로 열리되 초�
   const reopened = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
   expect(document.activeElement).toBe(within(reopened).getByRole('heading', { name: '인물 시뮬레이션 무대' }))
   expect(within(reopened).getByText('"열어라."')).toBeTruthy()
+})
+
+// 새로 고치면 무대는 대화 체크포인트에서 복원되지만 편집기는 주소의 ?ep=n 회차로 열려, 승인 문구(4화)와 편집기(2화)가 어긋나던 버그.
+const fourth: TestEpisode = { number: 4, draft: { title: '넷째' }, inherited: false, publishedVersionId: null, publicationStatus: 'draft', versions: [], checkpoints: [] }
+
+it('새로 고친 뒤 승인을 기다리는 장면이 복원되면 편집기를 그 장면의 반영 회차로 연다(주소의 ?ep=가 다른 회차여도)', async () => {
+  model.episodes = [...model.episodes, fourth] // 편집기는 3화에 열려 있다.
+  stored({ ...approvalReply(), approvalEpisode: 4 })
+  renderStudio()
+  const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  expect(within(stage).getByText('이 장면을 4화 초안에 반영할까요?')).toBeTruthy()
+  await waitFor(() => expect(model.select).toHaveBeenCalledWith(fourth))
+  expect(model.select).toHaveBeenCalledTimes(1)
+})
+
+it('승인 회차가 이미 열린 회차이거나 목록에 없으면 편집기를 옮기지 않는다', async () => {
+  stored(approvalReply()) // approvalEpisode 3 = 열린 회차
+  renderStudio()
+  await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  expect(model.select).not.toHaveBeenCalled()
+  cleanup()
+  stored({ ...approvalReply(), approvalEpisode: 9 }) // 목록에 없는 회차
+  renderStudio()
+  await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  expect(model.select).not.toHaveBeenCalled()
+})
+
+it('복원 때 한 번만 맞추고, 그 뒤 작가가 고른 회차를 다시 되돌리지 않는다', async () => {
+  model.episodes = [...model.episodes, fourth]
+  stored({ ...approvalReply(), approvalEpisode: 4 })
+  const store = createAppStore()
+  const { rerender } = render(tree(store))
+  await waitFor(() => expect(model.select).toHaveBeenCalledTimes(1))
+  // 활성 회차가 바뀌어(맞춘 뒤, 또는 작가가 다른 회차를 열어) 다시 그려져도 승인 회차로 다시 옮기지 않는다.
+  model.active = { number: 4, draft: { title: '넷째', body: '', revision: 1 }, versions: [], inherited: false, hasDraft: true, publishedVersionId: null, checkpoints: [] }
+  rerender(tree(store))
+  model.active = originalModel.active
+  rerender(tree(store))
+  await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  expect(model.select).toHaveBeenCalledTimes(1)
 })
 
 it('채팅을 접어도 무대와 진행 중인 장면은 그대로다(채팅 상태를 집필실이 쥐고 있다)', async () => {

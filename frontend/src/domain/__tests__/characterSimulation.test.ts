@@ -194,6 +194,16 @@ describe('연결 세계관의 인물 카드(시작 양식 후보)', () => {
     expect(worldCharacters([card('p1', '성문', 'location')])).toEqual([])
   })
 
+  // 서버(simulation/service.py)는 제목이 '나레이터'로 시작하는 카드를 인물이 아니라 문체 지침으로 보고 스냅샷에서 뺀다(NFC → trim → 시작 일치, 카드 유형 무관).
+  it('제목이 나레이터로 시작하는 카드는 인물 후보가 아니다(NFC·앞 공백도 서버와 같게)', () => {
+    const decomposed = '나레이터 — 흑길동전'.normalize('NFD')
+    expect(decomposed).not.toBe('나레이터 — 흑길동전')
+    expect(worldCharacters([
+      card('n1', '나레이터 — 흑길동전', 'character'), card('n2', '나레이터', 'character'), card('n3', '  나레이터 문체', 'character'),
+      card('n4', decomposed, 'character'), card('c1', '카엘', 'character'), card('c2', '이 나레이터', 'character'),
+    ])).toEqual([{ id: 'c1', name: '카엘', aliases: [] }, { id: 'c2', name: '이 나레이터', aliases: [] }])
+  })
+
   it('비트 문장에 이름이나 별칭이 나오는 인물을 목록 순서대로 고른다(조사가 붙어도 잡는다)', () => {
     expect(beatCharacterIds(['성문 대면: 카엘이 성문 앞에서 마주친다.', '협상: 붉은 검사는 물러서지 않는다.'], people)).toEqual(['c1', 'c2'])
     expect(beatCharacterIds(['도윤은 말없이 서 있다.'], people)).toEqual(['c3'])

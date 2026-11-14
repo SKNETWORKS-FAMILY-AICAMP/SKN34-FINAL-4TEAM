@@ -156,7 +156,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 - 나레이션은 어느 시점이든 `characterId`가 없고 이름이 '나레이션'이다. 독백 턴만 시점 인물의 id·이름을 가진다.
 - 계획의 비트는 전지적 서술만 전체를 입력으로 받는다. 독백·3인칭 제한·1인칭 서술은 지금 비트까지만 받는다(아직 오지 않은 뒤의 비트를 인물은 모른다. 인물 입력이 지금 비트만 받는 것과 같은 규칙이고, 모든 비트가 끝났으면 전체를 준다).
-- 나레이션 문체는 설정집의 `나레이터…` 카드(제목이 `나레이터`로 시작, 유형 무관, 인물 카드면 IDENTITY+SOUL)가 정한다. 없으면 기본 지침이다. 이 카드는 문체 지침이라 인물로 고를 수 없고 인물의 입력에도 들어가지 않는다.
+- 나레이션 문체는 설정집의 `나레이터…` 카드(제목이 `나레이터`로 시작, 유형 무관, 인물 카드면 IDENTITY+SOUL)가 정한다. 없으면 기본 지침이다. 이 카드는 문체 지침이라 인물로 고를 수 없고 인물의 입력에도 들어가지 않는다(화면의 시작 양식도 같은 규칙, 곧 NFC 정규화·앞뒤 공백 제거 뒤 `나레이터`로 시작하는 카드를 인물 후보에서 뺀다).
 - 나레이션 `observed`(모두에게 알린 사실)만 인물의 장면 상태로 간다. 나레이션 본문과 독백은 인물에게 가지 않는다.
 - 나레이터는 인물이 말하거나 결정하거나 행동하는 내용(현재 비트의 사건)을 지문으로 요약·대신 서술하지 않고(장면 시작은 배경·분위기만, 비트 전환은 바뀐 시간·장소·분위기만), 이미 쓴 문장을 되풀이하지 않는다. 입력 `alreadyWritten`(직전 나레이션 본문 최대 3개)이 그 근거이며 전지적 서술에만 준다(인물 시점은 그 인물이 아는 것만 쓴다).
 
@@ -197,7 +197,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 시작 양식(무대 패널): **IF**는 전제 한 줄("만약 ~했다면")과 참여 인물(연결 세계관의 인물 카드, 1~6명)이다. **흐름**은 이 작품의 장면 계획(`story_plan`, `kind=scene`) 중 열린 회차(`episode_number`)가 같은 것들을 순서대로 비트로 쓰고(`제목: 내용`을 200자로 자름, 최대 8개), 참여 인물은 그 계획들의 `characters` 합집합이다(양식에서 고칠 수 있다). 그 회차의 장면 계획이 없으면 안내하고 비트를 직접 입력하게 한다.
 - 시작은 채팅 메시지다: `operation: 'character_simulation'`, `request`(요약 문장, 예 "흐름 모드 시뮬레이션: 장면 계획 3개"), `simulation: {mode: 'if'|'flow', premise?: ≤500자, beats?: ≤8개 × ≤200자, characterIds: 1~6개 × ≤100자}`.
 - Content `WritingAiRequest.simulation`: `mode`·길이·개수를 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422, 권한 확인 전에 거절). 값은 그대로 AI에 넘긴다.
-- 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 승인 질문의 `approvalEpisode`에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다.
+- 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 승인 질문의 `approvalEpisode`에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다. 장면 대기(`awaitingScene`) 응답에는 `approvalEpisode`가 없어(승인 질문에만 싣는다) 그 복원에서는 서버가 반영 회차를 알려 주지 않고, 집필실이 열린 회차를 따라 바꿔 둔 주소의 `?ep=n`이 편집기 회차를 정한다.
 - AI `OrchestrationRequest.simulation`: `SimulationPlan`과 같은 한도(전제 500자, 비트 8개×200자, 인물 6명×100자, 모르는 필드 거절)로 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422).
   있으면 `simulation_plan`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
 
