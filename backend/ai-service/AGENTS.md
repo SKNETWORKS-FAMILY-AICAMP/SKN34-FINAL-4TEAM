@@ -1,7 +1,7 @@
 # AI Service 구현 지침
 
 `backend/ai-service/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
-현재 내부 Health, 이어쓰기 제안, 초기 세계관 후보 추출, 원고 임베딩·Q&A(`app/manuscript/`), 웹 조사(`app/research/`, OpenAI `web_search`), 새 원고·부분 수정(`app/writing/`) API, Intent Router(`app/intent/`, OpenAI Decisions `gpt-6-luna`), Content 내부 검색 API를 부르는 공통 Retrieval(`app/retrieval/`)과 이를 묶는 LangGraph 오케스트레이션(`app/orchestration/`), 작가가 승인한 Writing 결과를 작가 권한으로 초안에 반영하는 Content MCP 클라이언트(`app/content_mcp/`)가 있다. AI 실행 체크포인트는 전용 PostgreSQL DB에 저장한다. 콘텐츠 정본은 Content API와 MCP로만 읽고 쓴다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
+현재 내부 Health, 이어쓰기 제안, 초기 세계관 후보 추출, 원고 임베딩·Q&A(`app/manuscript/`), 웹 조사(`app/research/`, OpenAI `web_search`), 새 원고·부분 수정(`app/writing/`) API, Intent Router(`app/intent/`, OpenAI Decisions `gpt-6-luna`), Content 내부 검색 API를 부르는 공통 Retrieval(`app/retrieval/`), 인물 시뮬레이션의 기억 추론 라이브러리 NovelBrain(`app/novelbrain/`, [계약](../../docs/design/character-simulation-contract.md))과 이를 묶는 LangGraph 오케스트레이션(`app/orchestration/`), 작가가 승인한 Writing 결과를 작가 권한으로 초안에 반영하는 Content MCP 클라이언트(`app/content_mcp/`)가 있다. AI 실행 체크포인트는 전용 PostgreSQL DB에 저장한다. 콘텐츠 정본은 Content API와 MCP로만 읽고 쓴다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
 현재 호출 흐름과 기능별 코드 구조는 [AI Service 구현 경계](docs/agent-structure.md)를 본다.
 
 ## 구조
