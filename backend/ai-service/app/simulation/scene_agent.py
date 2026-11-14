@@ -27,7 +27,7 @@ from app.content_mcp.errors import ContentMcpFailure
 from app.retrieval.errors import RetrievalFailure
 from app.simulation import agent, director, service
 from app.simulation.errors import SimulationFailure
-from app.simulation.models import Check, Decision, Evidence, Scene, SceneAction, Trail, Turn
+from app.simulation.models import Check, CheckItem, Decision, Evidence, Scene, SceneAction, Trail, Turn
 from app.simulation.prompt import FEEDBACK, KIND_LABELS, NARRATION_FEEDBACK
 from app.simulation.service import SceneContext
 from app.simulation.tools import TOOLS
@@ -149,12 +149,15 @@ class SceneCheckMiddleware(AgentMiddleware):
                                f'이유: {made["refusal"][:service.CUT]}')
                     return await self._done(call, context, service.stop_scene(scene, message, 'stopped', 'beat_rejected', made['beat']), 'error')
                 spec = made['check']
-                payload = {**spec['payload'], 'checks': spec['kinds'], 'paragraph': made['prose']}
-                verdict = await asyncio.to_thread(agent.check, payload)
-                service.verify(verdict, spec['kinds'], payload)
-                failed = [c for c in verdict.checks if not c.passed]
-                if not failed:
-                    return await self._added(call, context, scene, decision, made, verdict, attempt)
+                if problem := service.style_problem(made['prose'], spec['payload'].get('actionStyle')):  # 확실한 문체 위반은 검사 모델을 부르지 않고 다시 쓴다
+                    failed = [CheckItem(kind='voice_mix', passed=False, detail=problem, refs=[])]
+                else:
+                    payload = {**spec['payload'], 'checks': spec['kinds'], 'paragraph': made['prose']}
+                    verdict = await asyncio.to_thread(agent.check, payload)
+                    service.verify(verdict, spec['kinds'], payload)
+                    failed = [c for c in verdict.checks if not c.passed]
+                    if not failed:
+                        return await self._added(call, context, scene, decision, made, verdict, attempt)
                 notices = NARRATION_FEEDBACK if spec['notices'] == 'narration' else FEEDBACK
                 feedback = [notices[c.kind] for c in failed]
             labels = ', '.join(KIND_LABELS[c.kind] for c in failed)

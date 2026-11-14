@@ -1,11 +1,13 @@
+from types import SimpleNamespace
+
 import pytest
 
 from app.manuscript.models import Excerpt
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
-from app.simulation import service
+from app.simulation import prompt, service
 from app.simulation.errors import SimulationFailure
-from app.simulation.models import Decision, Note, PlanDraft, SceneAction, SimulationPlan, Trail, Turn
+from app.simulation.models import CheckItem, Decision, Note, PlanDraft, SceneAction, SimulationPlan, Trail, Turn, Verdict
 
 from .stubs import (EPISODE, GATE, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, SHADOW, TARGET, WORLD, card, context, fake_content,
                     fake_novelbrain, recalled, text)
@@ -356,6 +358,86 @@ def test_the_checker_gets_other_characters_secrets_and_the_characters_future_as_
     assert 'forbidden' not in kael and 'voices' not in kael  # 인물에게는 금지 목록이 가지 않는다
 
 
+# --- 인물 턴의 문체·따옴표·호칭 --------------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize('raw, expected', [
+    ('「돌아가시오.」 그가 말했다.', '“돌아가시오.” 그가 말했다.'),
+    ('『가겠소.』', '“가겠소.”'),
+    ('"가겠습니다." 그는 고개를 숙였다.', '“가겠습니다.” 그는 고개를 숙였다.'),
+    ('“이미 맞다.” 그가 말했다.', '“이미 맞다.” 그가 말했다.'),
+    ('"하나." 「둘.」 “셋.”', '“하나.” “둘.” “셋.”'),
+    ('짝이 없는 " 따옴표 하나', '짝이 없는 " 따옴표 하나'),   # 짝이 없으면 건드리지 않는다
+    ("그는 '가라'고 했다.", "그는 '가라'고 했다."),            # 작은따옴표는 대사 표기가 아니다
+])
+def test_dialogue_quotes_are_unified_to_curly_double_quotes(raw, expected):
+    assert service.normalize_quotes(raw) == expected
+
+
+ACTOR = SimpleNamespace(id=KAEL, title='카엘')
+THIRD, FIRST = {'person': 'third', 'subject': '카엘'}, {'person': 'first', 'subject': '카엘'}
+
+
+def test_the_action_description_is_third_person_unless_the_actor_is_the_first_person_view_character():
+    assert service.action_style('omniscient', ACTOR) == service.action_style(f'limited:{KAEL}', ACTOR) == THIRD
+    assert service.action_style(f'first:{LINA}', ACTOR) == THIRD  # 다른 인물의 1인칭 시점이면 이 인물은 3인칭으로 서술된다
+    assert service.action_style(f'first:{KAEL}', ACTOR) == FIRST
+
+
+@pytest.mark.parametrize('prose', [
+    '“…돌아가십시오.” 저는 길현을 바라보며 고개를 저었습니다.',   # 1인칭에 합쇼체
+    '“…가겠습니다.” 나는 짧게 고개를 숙이고 물러섰다.',          # 1인칭
+    '“…” 길현은 숨을 고르고 고개를 숙였소.',                       # 하오체
+    '“…” 카엘이 고개를 끄덕였습니다. 그리고 물러났다.',             # 첫 문장이 합쇼체
+])
+def test_a_third_person_action_description_may_not_use_first_person_or_the_characters_speech_endings(prose):
+    assert service.style_problem(prose, THIRD)
+
+
+@pytest.mark.parametrize('prose', [
+    '“…돌아가십시오.” 길동은 길현을 바라보며 고개를 저었다.',         # 대사 안의 합쇼체는 인물의 말투다
+    '카엘이 하늘을 나는 새를 올려다보았다. “…” 그가 말했다.',          # 문장 중간의 '나는'(날다)은 1인칭이 아니다
+    '“…” 나는 듯한 걸음으로 카엘이 문을 나섰다.',                      # 문장 첫머리여도 '나는 듯'(날다)은 1인칭이 아니다
+    '“이것은 사실이 아닙니다.” 카엘은 고개를 저었다. 그것은 사실이 아니다.',  # '아니다'는 합쇼체가 아니다
+    '“가겠습니다.',                                                  # 닫히지 않은 대사는 대사로 본다
+    '카엘이 낮게 말했다. “멈춰.”',
+])
+def test_dialogue_and_plain_third_person_description_are_not_flagged(prose):
+    assert service.style_problem(prose, THIRD) is None
+
+
+def test_a_first_person_view_description_keeps_the_plain_narration_ending_too_and_no_style_means_no_check():
+    assert service.style_problem('“…” 나는 고개를 저었습니다.', FIRST)
+    assert service.style_problem('“…” 나는 고개를 저었다.', FIRST) is None
+    assert service.style_problem('아무 말이나 저었습니다.', None) is None  # 문체를 모르면(인물 턴이 아니면) 보지 않는다
+
+
+def test_the_checker_gets_who_the_other_characters_are_and_which_relations_connect_them_to_the_speaker(monkeypatch):
+    fake_novelbrain(monkeypatch)
+    fake_content(monkeypatch)
+    world = service.load_world(TARGET, '요청', None)
+    asked, extra, _ = service.character_view(PLAN_IF, world, service.new_scene(PLAN_IF), world.characters[KAEL])
+    (other,) = extra['others']
+    assert (other['ref'], other['name']) == (f'card:{LINA}#identity', '리나') and 'LINA-IDENTITY' in other['text']
+    assert f'relation:{REL}' in other['relations'] and set(other['relations']) <= {d['ref'] for d in asked['known']}
+    assert 'others' not in asked and 'LINA-IDENTITY' not in text(asked['known'])  # 인물 입력에는 다른 인물의 정체가 가지 않는다
+
+
+def test_a_violation_may_cite_the_identity_of_another_character_but_not_something_made_up():
+    payload = {'known': [], 'scene': [], 'forbidden': [], 'voices': [], 'others': [{'ref': 'card:x#identity'}], 'direction': {}}
+
+    def verdict(ref):
+        return Verdict(checks=[CheckItem(kind='relation', passed=False, detail='d', refs=[ref])], beatDone=False, sceneComplete=False)
+
+    service.verify(verdict('card:x#identity'), ['relation'], payload)
+    with pytest.raises(SimulationFailure):
+        service.verify(verdict('card:y#identity'), ['relation'], payload)
+
+
+def test_the_instructions_name_the_inputs_the_code_sends():
+    assert 'actionStyle' in prompt.ACT_INSTRUCTIONS and 'actionStyle' in prompt.CHECK_INSTRUCTIONS and 'others' in prompt.CHECK_INSTRUCTIONS
+    assert 'alreadyWritten' in prompt.NARRATE_INSTRUCTIONS and 'speech' in prompt.DIRECTOR_INSTRUCTIONS
+
+
 def test_the_narrator_gets_the_world_up_to_the_base_episode_with_style_cards_and_future_as_forbidden(monkeypatch):
     recall = fake_novelbrain(monkeypatch)
     fake_content(monkeypatch, read=NARRATOR_WORLD)
@@ -399,6 +481,14 @@ def test_only_an_omniscient_narration_gets_the_beats_after_the_current_one():
     finished = scene_of(plan, ('narration', {}), *[('character', {'beat': n, 'done': True}) for n in range(3)])  # 모든 비트가 끝나면 미래가 없다
     assert beats(f'limited:{KAEL}', scene=finished) == ['B0-PAST', 'B1-NOW', 'B2-FUTURE']
     assert service.narration_input(PLAN_IF, fake, service.new_scene(PLAN_IF), 'scene', f'limited:{KAEL}')['plan']['beats'] == []  # IF 모드엔 비트가 없다
+
+
+def test_only_an_omniscient_narration_sees_what_the_narrator_already_wrote_so_it_does_not_repeat_itself():
+    fake = type('World', (), {'characters': {KAEL: type('C', (), {'title': '카엘'})()}, 'style': []})()
+    scene = scene_of(PLAN_IF, ('narration', {}), ('character', {}), *[('narration', {})] * 4)  # 나레이션은 0·2·3·4·5번 턴
+    assert service.narration_input(PLAN_IF, fake, scene, 'scene', 'omniscient')['alreadyWritten'] == ['narration-3', 'narration-4', 'narration-5']
+    assert 'alreadyWritten' not in service.narration_input(PLAN_IF, fake, scene, 'scene', f'limited:{KAEL}')  # 인물 시점은 그 인물이 아는 것만
+    assert service.narration_input(PLAN_IF, fake, service.new_scene(PLAN_IF), 'opening', 'omniscient')['alreadyWritten'] == []
 
 
 def test_narration_input_names_the_point_of_view_character_and_the_checks_follow_the_view():
