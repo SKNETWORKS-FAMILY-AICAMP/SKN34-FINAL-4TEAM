@@ -77,17 +77,16 @@ def plan(request: str, history: list[str], target: dict | None) -> SimulationPla
 
 def run(plan: SimulationPlan, target: dict | None, request: str, scope: dict | None,
         progress: Callable[[SimulationResult], None] | None = None) -> SimulationResult:
-    """연결 세계관을 읽고 scope가 있으면 원고 발췌를 받아 장면을 실행한다. 원고 발췌는 manuscript 종류만 recall에 넘긴다.
+    """연결 세계관을 읽고 scope가 있으면 Retrieval 발췌를 받아 장면을 실행한다.
 
-    설정·현재 관계 발췌는 기준 회차 시점의 세계관과 겹치고, 현재 관계를 과거 관계로 쓰지 않기 위해 뺀다.
+    발췌는 받은 그대로 recall에 넘긴다. 인물 필터가 원고(manuscript)만 쓰고 설정·현재 관계 발췌는 gaps로 돌린다.
     """
     work_id, episode = _target(target)
     read = read_world(work_id, episode)
     manuscript = []
     if scope:
         # ponytail: 검색어는 이번 요청 문장 하나이고 장면 전체가 같은 발췌를 쓴다. 턴마다 다시 찾으려면 recall 호출 옆으로 옮긴다.
-        found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
-        manuscript = [e for e in found.excerpts if e.kind == 'manuscript']
+        manuscript = retrieval.retrieve(RetrievalScope.model_validate(scope), request).excerpts
     return simulate(plan, read, episode, manuscript, progress)
 
 
@@ -208,18 +207,23 @@ def _private(card: Card) -> list[dict]:
 def _relations(snapshot: WorldSnapshot, read: dict, character_id: str) -> list[dict]:
     """기준 회차 시점의 관계 중 그 인물이 끝점인 것(삭제·끝점 없는 관계는 스냅샷이 이미 뺐다).
 
+    상대 카드가 기준 회차에 아직 공개되지 않았으면 뺀다. 관계 문장에 상대 제목이 드러나기 때문이며 recall의 인물 필터와 같은 규칙이다.
+
     ponytail: WorldSnapshot의 관계에는 설명(body)과 부정(polarity=denied)이 없어 응답 원본에서 id로 찾아 읽는다.
     스냅샷에 두 필드가 생기면 이 조회를 지운다.
     """
-    names = {c.id: c.title for c in snapshot.cards}
+    cards = {c.id: c for c in snapshot.cards}
     raw = {r.get('id'): r for r in read.get('relationships') or []}
     items = []
     for r in snapshot.relations:
         if character_id not in (r.source, r.target):
             continue
+        other = cards[r.target if r.source == character_id else r.source]
+        if other.revealFromEpisode is not None and other.revealFromEpisode > snapshot.episode:
+            continue
         extra = raw.get(r.id) or {}
         arrow = '→' if r.direction == 'directed' else '↔'
-        said = f'{names[r.source]} {arrow} {names[r.target]}: {r.label}{" 아님" if extra.get("polarity") == "denied" else ""}'
+        said = f'{cards[r.source].title} {arrow} {cards[r.target].title}: {r.label}{" 아님" if extra.get("polarity") == "denied" else ""}'
         items.append(_doc(f'relation:{r.id}', '관계', f'{said} — {extra["body"]}' if extra.get('body') else said))
     return items
 

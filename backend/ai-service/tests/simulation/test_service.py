@@ -98,8 +98,10 @@ def test_character_input_holds_only_that_characters_documents_up_to_the_base_epi
     simulate()
     kael, lina = text(calls.act[0]), text(calls.act[1])
     # 카엘: 자기 문서(기준 회차 이하)와 자기가 끝점인 활성 관계(부정 관계는 '아님'으로)만.
-    assert all(mark in kael for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-MEMORY', 'KAEL-EP2', '경계', '친구 아님'))
+    assert all(mark in kael for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-MEMORY', 'KAEL-EP2', '경계', '친구 아님', 'REL-KAEL-GATE'))
     assert not any(mark in kael for mark in ('LINA-', 'KAEL-EP5-FUTURE', 'REMOVED', 'REL-LINA-GATE', 'REL-REMOVED'))
+    # 기준 회차에 아직 공개되지 않은 카드와의 관계는 아는지 확인할 수 없어 관계 문장에도 상대 제목이 드러나지 않게 뺀다.
+    assert not any(mark in kael for mark in ('REL-SHADOW', '그림자 길드', 'SHADOW'))
     # 리나: 카엘의 문서·비공개 생각(prose에만 있던 KAEL-INNER)은 없고 장면에는 카엘이 드러낸 행동(observed)만 있다.
     assert all(mark in lina for mark in ('LINA-IDENTITY', 'LINA-SOUL', 'LINA-MEMORY-SECRET', 'LINA-EP3', 'REL-LINA-GATE'))
     assert not any(mark in lina for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-MEMORY', 'KAEL-EP', 'KAEL-INNER'))
@@ -317,7 +319,7 @@ def test_plan_the_world_does_not_support_fails_before_any_model_call(monkeypatch
 COVERAGE = {'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt': []}
 
 
-def test_run_reads_the_linked_world_and_gives_recall_only_manuscript_excerpts(monkeypatch):
+def test_run_reads_the_linked_world_and_hands_the_retrieved_excerpts_to_recall(monkeypatch):
     calls = fake_content(monkeypatch)
     recall = fake_novelbrain(monkeypatch)
     fake_models(monkeypatch, action(), lambda payload: verdict(payload, scene_complete=True))
@@ -328,7 +330,8 @@ def test_run_reads_the_linked_world_and_gives_recall_only_manuscript_excerpts(mo
     result = service.run(PLAN_IF, TARGET, '카엘과 리나가 만나면', {'scopeToken': 'signed.token'})
     assert result.status == 'completed' and asked == [('signed.token', '카엘과 리나가 만나면')]
     assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
-    assert [e.id for e in recall[0]['manuscript']] == ['m']  # 설정·현재 관계 발췌는 세계관(기준 회차 시점)과 겹치므로 뺀다
+    # 받은 발췌를 그대로 넘긴다. 원고가 아닌 발췌(설정·현재 관계)는 recall의 인물 필터가 gaps로 돌린다.
+    assert [e.id for e in recall[0]['manuscript']] == ['m', 's']
 
 
 def test_run_without_scope_does_not_retrieve(monkeypatch):

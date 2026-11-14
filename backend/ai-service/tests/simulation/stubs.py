@@ -10,13 +10,13 @@ from types import SimpleNamespace
 from app.simulation import service
 from app.simulation.models import Action, CheckItem, SimulationPlan, Verdict
 
-WORLD, KAEL, LINA, GATE, REL, REL2, REL3, REL4 = (f'00000000-0000-0000-0000-{n:012d}' for n in range(1, 9))
+WORLD, KAEL, LINA, GATE, REL, REL2, REL3, REL4, SHADOW, REL5, REL6 = (f'00000000-0000-0000-0000-{n:012d}' for n in range(1, 12))
 EPISODE = 3
 TARGET = {'workId': 'work', 'episode': EPISODE}
 
 
-def card(id, title, body, cardType='character', docs=None, lifecycle='active', aliases=()):
-    meta = {'characterDocs': docs} if docs else {}
+def card(id, title, body, cardType='character', docs=None, lifecycle='active', aliases=(), reveal=None):
+    meta = {**({'characterDocs': docs} if docs else {}), **({'revealFromEpisode': reveal} if reveal else {})}
     return {'id': id, 'title': title, 'body': body, 'cardType': cardType, 'areaCode': 'basic', 'classification': '',
             'aliases': list(aliases), 'tags': [], 'semanticMetadata': meta, 'visibility': 'private', 'lifecycle': lifecycle}
 
@@ -35,7 +35,8 @@ READ = {
         card(LINA, '리나', 'LINA-IDENTITY 떠돌이 약초상', docs={
             'soul': 'LINA-SOUL 존댓말을 쓰는 상냥한 말투', 'memory': 'LINA-MEMORY-SECRET 사실은 왕국의 첩자다',
             'episodes': {'3': 'LINA-EP3 성문을 살폈다'}}),
-        card(GATE, '북문', 'GATE-LORE 북쪽 성문', cardType='location'),
+        card(GATE, '북문', 'GATE-LORE 북쪽 성문', cardType='location', reveal=3),  # 기준 회차(3)에 공개되는 카드
+        card(SHADOW, '그림자 길드', 'SHADOW-GUILD 아직 공개되지 않은 조직', cardType='organization', reveal=5),
         card('00000000-0000-0000-0000-0000000000ff', '지워진 인물', 'REMOVED-CARD', lifecycle='removed'),
     ],
     'relationships': [
@@ -43,6 +44,8 @@ READ = {
         relation(REL2, LINA, GATE, '출입', 'REL-LINA-GATE 리나는 북문을 드나든다'),   # 카엘이 끝점이 아닌 관계
         relation(REL3, KAEL, LINA, '친구', '', direction='symmetric', polarity='denied'),
         relation(REL4, KAEL, LINA, '스승', 'REL-REMOVED', lifecycle='removed'),
+        relation(REL5, KAEL, SHADOW, '숙적', 'REL-SHADOW 정체를 아직 모른다'),  # 상대 카드가 기준 회차에 아직 공개되지 않았다
+        relation(REL6, KAEL, GATE, '수호', 'REL-KAEL-GATE 카엘은 북문을 지킨다'),
     ],
 }
 PLAN_IF = SimulationPlan(mode='if', premise='IF-PREMISE 만약 북문이 열려 있었다면?', characterIds=[KAEL, LINA])
