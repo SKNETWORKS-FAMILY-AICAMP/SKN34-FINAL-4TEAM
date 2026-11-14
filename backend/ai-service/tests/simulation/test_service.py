@@ -205,6 +205,22 @@ def test_beat_refusal_stops_as_a_planning_problem_without_regenerating(monkeypat
     assert '카엘' in str(stop) and 'REASON' in str(stop) and 'B0-NOW' in str(stop)
 
 
+def test_long_refusal_reason_from_the_model_is_cut_in_the_stop_message(monkeypatch):
+    fake_novelbrain(monkeypatch)
+    fake_models(monkeypatch, action(refuses=True, reason='R' * 300), lambda payload: verdict(payload))
+    message = str(stopped(PLAN_FLOW))
+    assert 'R' * 200 in message and 'R' * 201 not in message
+
+
+def test_check_detail_from_the_model_is_cut_in_the_turn_and_in_the_stop_message(monkeypatch):
+    fake_novelbrain(monkeypatch)
+    fake_models(monkeypatch, action(), lambda payload: verdict(payload, detail='D' * 300, scene_complete=True))
+    assert [len(c.detail) for c in simulate().turns[0].checks] == [200] * 4
+    fake_models(monkeypatch, action(), lambda payload: verdict(payload, fail=('voice_mix',), detail='E' * 300))
+    message = str(stopped())
+    assert 'E' * 200 in message and 'E' * 201 not in message
+
+
 def test_unfinished_scene_stops_at_the_turn_limit_and_never_looks_complete(monkeypatch):
     fake_novelbrain(monkeypatch)
     calls = fake_models(monkeypatch, action(), lambda payload: verdict(payload))

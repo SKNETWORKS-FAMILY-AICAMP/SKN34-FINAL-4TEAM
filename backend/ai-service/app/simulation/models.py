@@ -91,10 +91,8 @@ class Action(BaseModel):
     refusalReason: str | None
 
 
-class CheckItem(BaseModel):
-    kind: CheckKind
-    passed: bool
-    detail: str
+class CheckItem(Check):
+    """검사 모델 출력의 검사 한 건. 위반 근거가 된 입력 항목의 ref(refs)가 더 있다."""
     refs: list[str]
 
 
