@@ -50,6 +50,7 @@ def test_quota_for_keeps_the_base_ratio_and_the_first_picks_when_the_work_count_
     assert quota_for(12) == QUOTA
     grown = quota_for(40)
     assert sum(grown.values()) == 40 and all(grown[g] >= QUOTA[g] for g in QUOTA) and grown['현대판타지'] == 10
+    assert all(quota_for(n + 1)[g] >= quota_for(n)[g] for n in range(12, 90) for g in QUOTA)   # 편수를 더 늘려도 이미 고른 작품이 빠지지 않는다
     rows = [{'file': f'{g}-{i}', 'genre': g} for g in QUOTA for i in range(30)]
     assert all(r in choose(rows, 58, grown) for r in choose(rows, 58))                  # 편수를 늘려도 처음 12편은 그대로(id 유지)
 
