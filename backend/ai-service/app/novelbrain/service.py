@@ -23,6 +23,9 @@ _EPISODE_DOC = re.compile(r'ep([0-9]+)')
 _ARROWS = {'directed': '→', 'symmetric': '↔', None: '—'}
 _UNKNOWN, _NOT_LINKED = '출처를 확인할 수 없음', '연결된 관계가 없어 이 인물이 아는지 확인할 수 없음'
 _NOT_PARTY, _NOT_NAMED = '이 인물이 당사자가 아닌 관계라 아는지 확인할 수 없음', '발췌에 이 인물이 나오지 않아 목격 여부를 확인할 수 없음'
+_NOT_REVEALED = '상대 설정이 아직 공개되지 않아 이 관계를 아는지 확인할 수 없음'
+# Retrieval이 돌려주는 원고 아닌 발췌(kind)를 인물 시점에 쓰지 않는 이유: 관계는 기준 회차가 아닌 현재 Neo4j 값이고, 설정은 스냅샷 카드로 다룬다.
+_EXCERPT_GAPS = {'relationship': 'relationship_current_not_episode', 'setting': 'setting_via_retrieval'}
 
 
 def _fold(text: str) -> str:
@@ -129,7 +132,8 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
     - 그 인물 자신의 IDENTITY·SOUL·MEMORY와 `episode` 이하 회차 기억은 허용한다.
     - 다른 인물의 SOUL·MEMORY·회차 기억과 `revealFromEpisode`가 아직 안 온 카드는 아는 것이 아님이 확인되므로 조용히 뺀다.
     - 근거를 확인할 수 없는 것은 빼고 Gap으로 남긴다: 관계로 연결되지 않은 다른 인물 카드, 그 인물이 끝점이 아닌 관계,
-      그 인물 이름이 나오지 않는 원고 발췌, 형식을 알 수 없는 ref(닫힌 쪽으로 실패).
+      상대 카드가 아직 공개되지 않았거나 스냅샷에 없는 관계(관계 문장에 상대 제목이 드러난다), 그 인물 이름이 나오지 않는 원고 발췌,
+      형식을 알 수 없는 ref(닫힌 쪽으로 실패).
 
     ponytail: 발췌에 이름이 나오면 목격으로 근사한다(별칭·호칭·대명사 미지원). MEMORY.md는 회차 표시가 없어 항상 허용한다.
     """
@@ -142,13 +146,21 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
     ends = {r.id: (r.source, r.target) for r in world.relations}
     linked = {end for pair in ends.values() if character_id in pair for end in pair}
 
+    def future(card: Card) -> bool:
+        return card.revealFromEpisode is not None and card.revealFromEpisode > episode
+
     def judge(item: RecallItem) -> tuple[bool, str]:
         # (허용 여부, 허용하지 않을 때의 gap 이유). 이유가 비어 있으면 gap 없이 조용히 뺀다.
         kind, _, rest = item.ref.partition(':')
         if kind == 'relation':
             if rest not in ends:
                 return False, _UNKNOWN
-            return (True, '') if character_id in ends[rest] else (False, _NOT_PARTY)
+            if character_id not in ends[rest]:
+                return False, _NOT_PARTY
+            others = [cards.get(end) for end in ends[rest] if end != character_id]
+            if None in others:
+                return False, _UNKNOWN
+            return (False, _NOT_REVEALED) if any(future(c) for c in others) else (True, '')
         if kind == 'manuscript':
             return (True, '') if name and name in _fold(item.text) else (False, _NOT_NAMED)
         card_id, _, part = rest.partition('#')
@@ -158,7 +170,7 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
         if part in ('', 'identity'):
             if card_id == character_id:
                 return True, ''
-            if card.revealFromEpisode is not None and card.revealFromEpisode > episode:
+            if future(card):
                 return False, ''
             return (False, _NOT_LINKED) if card.cardType == 'character' and card_id not in linked else (True, '')
         number = _EPISODE_DOC.fullmatch(part)
@@ -213,13 +225,16 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
     0 = PPR 그래프(카드·관계), 1 = + `manuscript` 발췌(받은 순서가 순위), 2 = + 카드·인물 문서 BM25, 3 = + 인물 시점 필터.
     1단계부터는 순위를 RRF로 합치고(source는 처음 찾은 방식) 0단계는 PPR 점수 그대로다. 필터는 합친 목록 전체에 적용한 뒤 k개를 자르며,
     gaps는 그렇게 남은 k개보다 앞 순위였던 항목만 담는다. `character_id=None`이면 3단계에서도 거르지 않는다.
-    필터할 때 `world`는 `episode` 이전 시점의 관계여야 하고(더 늦으면 ValueError), 인물의 기준 회차 뒤 발췌는 입력에서 뺀다.
+    필터할 때 `world`는 `episode` 이전 시점의 관계여야 하고(더 늦으면 ValueError), 인물의 기준 회차 뒤 원고 발췌는 입력에서 뺀다.
+    원고(kind=manuscript)가 아닌 발췌는 시점을 보증할 수 없어 쓰지 않고, 순위에 들기 전에 걸러 gap으로 남긴다(윈도우와 무관하게 항상).
     """
     filtering = stage >= 3 and character_id is not None
+    skipped: list[Gap] = []
     if filtering:
         if world.episode > episode:
             raise ValueError('관계 스냅샷이 인물의 기준 회차보다 늦은 시점입니다.')
-        manuscript = [e for e in manuscript if e.episode <= episode]
+        skipped = [Gap(ref=f'manuscript:{e.id}', reason=_EXCERPT_GAPS[e.kind]) for e in manuscript if e.kind != 'manuscript']
+        manuscript = [e for e in manuscript if e.kind == 'manuscript' and e.episode <= episode]
     graph = _graph(world, query)
     rankings = [[ref for ref, _, _ in graph]]
     found = {ref: ('graph', text) for ref, text, _ in graph}
@@ -241,6 +256,6 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
         before = {i.ref: i.rank for i in items}
         items, gaps = filter_for_character(items, world, character_id, episode)
         last = items[k - 1].rank if len(items) >= k else len(before) + 1
-        gaps = [g for g in gaps if before[g.ref] < last]
+        gaps = [g for g in gaps if before[g.ref] < last] + skipped
     items = [i.model_copy(update={'rank': n}) for n, i in enumerate(items[:k], 1)]
     return RecallResult(items=items, gaps=gaps, stage=stage)
