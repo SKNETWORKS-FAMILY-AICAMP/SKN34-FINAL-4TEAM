@@ -5,8 +5,7 @@
 """
 
 import json
-import sys
-from types import ModuleType, SimpleNamespace
+from types import SimpleNamespace
 
 from app.simulation import service
 from app.simulation.models import Action, CheckItem, SimulationPlan, Verdict
@@ -30,7 +29,7 @@ def relation(id, source, target, label, body, direction='directed', polarity='as
 READ = {
     'worldId': WORLD, 'draftRevision': 4, 'name': '달빛 세계', 'description': '', 'relationshipStatus': 'current',
     'cards': [
-        card(KAEL, '카엘', 'KAEL-IDENTITY 북문을 지키는 기사', aliases=['기사'], docs={
+        card(KAEL, '카엘', 'KAEL-IDENTITY 북문을 지키는 기사', docs={
             'soul': 'KAEL-SOUL 말이 짧고 퉁명스러운 반말', 'memory': 'KAEL-MEMORY 왕가에 맹세했다',
             'episodes': {'2': 'KAEL-EP2 리나를 처음 만났다', '5': 'KAEL-EP5-FUTURE 왕이 죽는다'}}),
         card(LINA, '리나', 'LINA-IDENTITY 떠돌이 약초상', docs={
@@ -69,18 +68,15 @@ def recalled(ref=f'card:{GATE}', source='graph', text='GATE-LORE 북문은 밤�
 
 
 def fake_novelbrain(monkeypatch, items=None):
-    """app.novelbrain 대역(작업 A 병합 전). recall 호출 기록 list를 돌려준다."""
+    """app.novelbrain.service.recall 대역(world_snapshot은 실제 함수). recall 호출 기록 list를 돌려준다."""
     calls = []
 
     def recall(world, character_id, episode, query, stage=3, manuscript=(), k=8):
         calls.append({'world': world, 'character_id': character_id, 'episode': episode, 'query': query,
                       'stage': stage, 'manuscript': list(manuscript), 'k': k})
-        return SimpleNamespace(items=[recalled()] if items is None else items, gaps=[])
+        return SimpleNamespace(items=[recalled()] if items is None else items, gaps=[], stage=stage)
 
-    module = ModuleType('app.novelbrain')
-    module.recall = recall
-    module.world_snapshot = lambda read, episode: SimpleNamespace(read=read, episode=episode)
-    monkeypatch.setitem(sys.modules, 'app.novelbrain', module)
+    monkeypatch.setattr(service.novelbrain, 'recall', recall)
     return calls
 
 

@@ -7,7 +7,7 @@ from app.simulation.errors import SimulationFailure, SimulationStopped
 from app.simulation.models import CharacterRef, CheckItem, PlanDraft, SimulationPlan, Verdict
 from app.simulation.prompt import FEEDBACK
 
-from .stubs import (EPISODE, GATE, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, TARGET, WORLD, action, fake_content, fake_models,
+from .stubs import (EPISODE, GATE, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, TARGET, WORLD, action, fake_content, fake_models,
                     fake_novelbrain, recalled, text, verdict)
 
 IF_KINDS = ['knowledge_leak', 'voice_mix', 'relation', 'premise']
@@ -108,6 +108,24 @@ def test_character_input_holds_only_that_characters_documents_up_to_the_base_epi
     assert [p['self']['id'] for p in calls.act] == [KAEL, LINA]
 
 
+def test_real_novelbrain_filter_keeps_other_characters_private_documents_out_of_the_input(monkeypatch):
+    calls = fake_models(monkeypatch, action(), lambda payload: verdict(payload, scene_complete=True))
+    turn = simulate().turns[0]  # 실제 recall(3단계 시점·인물 필터)
+    kael = text(calls.act[0])
+    assert not any(mark in kael for mark in ('LINA-SOUL', 'LINA-MEMORY-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
+    assert turn.evidence and not any(e.ref.split('#')[-1] in ('soul', 'memory', 'ep03') and f'{LINA}' in e.ref for e in turn.evidence)
+
+
+def test_input_uses_novelbrain_refs_and_lists_each_ref_once(monkeypatch):
+    fake_novelbrain(monkeypatch, items=[recalled(ref=f'card:{KAEL}#soul', source='bm25', text='KAEL-SOUL 말이 짧고 퉁명스러운 반말')])
+    calls = fake_models(monkeypatch, action(), lambda payload: verdict(payload, scene_complete=True))
+    result = simulate()
+    refs = [d['ref'] for d in calls.act[0]['known']]
+    assert {f'card:{KAEL}#identity', f'card:{KAEL}#soul', f'card:{KAEL}#memory', f'card:{KAEL}#ep02', f'relation:{REL}'} <= set(refs)
+    assert len(refs) == len(set(refs))  # 조회 결과가 이미 입력에 든 문서면 겹쳐 넣지 않는다
+    assert [e.ref for e in result.turns[0].evidence] == [f'card:{KAEL}#soul']  # 근거 기록에는 조회한 그대로 남는다
+
+
 def test_character_sees_only_the_current_beat_never_the_later_ones(monkeypatch):
     fake_novelbrain(monkeypatch)
     calls = fake_models(monkeypatch, action(refuses=True, reason='이유'), lambda payload: verdict(payload))
@@ -121,7 +139,7 @@ def test_each_turn_recalls_for_that_character_at_stage_3_for_the_base_episode(mo
     excerpt = Excerpt(id='m1', episode=2, quote='원고 발췌')
     simulate(manuscript=[excerpt])
     assert [(c['character_id'], c['stage'], c['episode']) for c in recall] == [(KAEL, 3, EPISODE), (LINA, 3, EPISODE)]
-    assert recall[0]['manuscript'] == [excerpt] and recall[0]['world'].read == READ and recall[0]['world'].episode == EPISODE
+    assert recall[0]['manuscript'] == [excerpt] and (recall[0]['world'].worldId, recall[0]['world'].episode) == (WORLD, EPISODE)
     assert 'IF-PREMISE' in recall[0]['query']
     assert 'GATE-LORE 북문은 밤에 닫힌다' in text(calls.act[0]['known'])  # 조회 결과가 그 인물의 입력에 들어간다
 
@@ -152,7 +170,7 @@ def test_checker_gets_other_characters_secrets_and_the_characters_future_as_forb
 def test_violation_regenerates_only_that_turn_then_stops_after_two_retries(monkeypatch):
     fake_novelbrain(monkeypatch)
     calls = fake_models(monkeypatch, action(), lambda payload: verdict(
-        payload, fail=('knowledge_leak',), refs=[f'{LINA}#memory'], detail='LEAK-DETAIL 리나의 정체를 말했다'))
+        payload, fail=('knowledge_leak',), refs=[f'card:{LINA}#memory'], detail='LEAK-DETAIL 리나의 정체를 말했다'))
     stop = stopped()
     assert len(calls.act) == len(calls.check) == 3  # 처음 + 재생성 2회
     assert (stop.result.status, stop.result.stopReason, stop.result.turns) == ('stopped', 'check_failed', [])
@@ -206,7 +224,7 @@ def test_flow_completes_when_every_beat_is_done(monkeypatch):
 
 def test_characters_in_the_current_beat_act_before_the_others(monkeypatch):
     fake_novelbrain(monkeypatch)
-    plan = SimulationPlan(mode='flow', beats=['기사가 칼을 뽑는다'], characterIds=[KAEL, LINA])  # 별칭 '기사' = 카엘
+    plan = SimulationPlan(mode='flow', beats=['카엘이 칼을 뽑는다'], characterIds=[KAEL, LINA])
     calls = fake_models(monkeypatch, action(), lambda payload: verdict(payload, beat_done=len(calls.act) == 2))
     assert [t.characterId for t in simulate(plan).turns] == [KAEL, KAEL]
 

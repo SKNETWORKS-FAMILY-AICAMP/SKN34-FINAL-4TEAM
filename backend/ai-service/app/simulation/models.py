@@ -93,41 +93,6 @@ class SimulationResult(BaseModel):
     stopReason: str | None
 
 
-class Docs(BaseModel):
-    """인물 카드의 작가용 문서(DEC-47, `semanticMetadata.characterDocs`). 회차 키는 JSON 문자열이라 int로 읽는다."""
-    soul: str = ''
-    memory: str = ''
-    episodes: dict[int, str] = {}
-
-
-class Card(BaseModel):
-    """Content `world_studio_read` 응답의 카드 중 시뮬레이션이 읽는 부분. IDENTITY.md는 카드 본문(body)이다."""
-    id: str
-    title: str
-    body: str = ''
-    cardType: str
-    aliases: list[str] = []
-    lifecycle: str = 'active'
-    semanticMetadata: dict = {}
-
-
-class Relation(BaseModel):
-    """기준 회차 시점의 관계 한 건. polarity가 denied면 그 관계가 아니라는 뜻이다."""
-    id: str
-    sourceCardId: str | None = None
-    targetCardId: str | None = None
-    label: str = ''
-    body: str = ''
-    direction: str | None = None
-    polarity: str | None = None
-    lifecycle: str = 'active'
-
-
-class World(BaseModel):
-    cards: list[Card]
-    relationships: list[Relation] = []
-
-
 class PlanDraft(BaseModel):
     """계획 모델 출력. 요청에 없는 것은 None·빈 배열이다."""
     mode: Mode | None
