@@ -1,5 +1,4 @@
 import pytest
-from langchain.agents.middleware.model_call_limit import ModelCallLimitExceededError
 
 from app.retrieval.models import RetrievalResult
 from app.simulation import scene_agent, service
@@ -7,8 +6,8 @@ from app.simulation.errors import SimulationFailure
 from app.simulation.models import Note, SceneAction, SimulationPlan
 from app.simulation.prompt import FEEDBACK, NARRATION_FEEDBACK
 
-from .stubs import (KAEL, LINA, PLAN_FLOW, PLAN_IF, Run, action, monologue, narration, narrating, run_auto, speech, staged as setup, text,
-                    verdict)
+from .stubs import (KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, Run, action, fake_content, monologue, narration, narrating, run_auto, speech,
+                    staged as setup, text, verdict)
 
 IF_KINDS = ['knowledge_leak', 'voice_mix', 'relation', 'premise']
 FLOW_KINDS = ['knowledge_leak', 'voice_mix', 'relation', 'beat']
@@ -291,11 +290,11 @@ def test_director_failure_is_a_failed_scene_with_the_fixed_message(monkeypatch):
     assert (scene.result.status, scene.error, scene.result.turns) == ('failed', '연출 결정 모델 호출에 실패했습니다.', [])
 
 
-def test_the_loop_guards_stop_a_scene_that_would_never_end(monkeypatch):
+def test_the_loop_guards_end_a_scene_that_would_never_end_without_losing_its_turns(monkeypatch):
     setup(monkeypatch, lambda state, allowed, cast, last: speech(KAEL if state['spoken'] % 2 == 0 else LINA))
     monkeypatch.setattr(scene_agent, 'LOOP_LIMIT', 3)
-    with pytest.raises(ModelCallLimitExceededError):
-        run_auto()
+    scene = run_auto()  # 한도에 닿으면 예외 없이 끝난다. 쌓은 턴은 그대로이고 장면은 끝나지 않은 채(paused)라 바깥 그래프가 이유를 남긴다.
+    assert [t.kind for t in scene.result.turns] == ['narration', 'character', 'character'] and scene.result.status == 'paused'
 
 
 def test_the_agents_model_slot_is_never_used_because_the_director_builds_the_calls():
@@ -352,6 +351,14 @@ def test_redo_writes_that_turn_again_for_the_same_character_with_the_recorded_di
     assert h.calls.act[-1]['self']['id'] == KAEL and h.calls.act[-1]['authorNote'] == 'REDO-NOTE 더 퉁명스럽게'
     assert 'authorNote' not in text(h.calls.check[-1]) and len(h.director) == asked_director  # 연출은 기록된 결정을 쓴다
     assert run.waiting and run.scene.result.notes == [Note(afterTurn=0, text='REDO-NOTE 더 퉁명스럽게')] and run.scene.hint is None
+
+
+def test_a_redo_checks_that_the_whole_cast_still_exists_before_writing_again(monkeypatch):
+    setup(monkeypatch, speech(KAEL), speech(LINA))
+    run = Run().start().next().next()
+    fake_content(monkeypatch, read={**READ, 'cards': [c for c in READ['cards'] if c['id'] != LINA]})  # 그 사이 리나 카드가 지워졌다
+    run.resume(SceneAction(action='redo', turn=1))  # 카엘의 줄만 다시 말하게 해도 장면의 참여 인물은 모두 있어야 한다
+    assert run.waiting and (run.scene.result.status, run.scene.error) == ('failed', service.INVALID_PLAN)  # 오류로 죽지 않고 멈춰서 작가가 정한다
 
 
 def test_a_note_makes_the_next_turn_a_narration_and_reaches_the_characters_only_through_it(monkeypatch):
