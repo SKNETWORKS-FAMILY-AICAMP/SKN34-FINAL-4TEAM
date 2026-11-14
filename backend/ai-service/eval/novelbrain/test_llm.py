@@ -9,7 +9,7 @@ import openai
 import pytest
 from pydantic import BaseModel
 
-from llm import CallCapExceeded, Ledger, Llm, LlmFailure
+from llm import CallCapExceeded, Ledger, Llm, LlmFailure, usd_llm
 
 
 class Fake:
@@ -135,3 +135,8 @@ def test_is_cached_tells_whether_a_request_would_call_the_provider(tmp_path):
     llm.ask('k', 'ins', 'in')
     assert llm.is_cached('ins', 'in') and not llm.is_cached('ins', 'other')
     assert not llm.is_cached('ins', 'in', schema=Out)  # 같은 입력이라도 구조화 요청은 다른 요청이다
+
+
+def test_usd_llm_pins_the_evaluation_model_whatever_the_environment_says(tmp_path, monkeypatch):
+    monkeypatch.setenv('OPENAI_MODEL', 'gpt-6-luna')
+    assert usd_llm(tmp_path / 'cache', tmp_path / 'cost.jsonl', 1.0).model == 'gpt-5.6-luna'

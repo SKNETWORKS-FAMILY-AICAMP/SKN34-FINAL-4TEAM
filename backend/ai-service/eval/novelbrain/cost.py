@@ -11,6 +11,7 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
+MODEL = 'gpt-5.6-luna'   # 평가 모델은 단가표와 같은 이 모델로 고정한다(비교 가능성). 메인 .env의 OPENAI_MODEL이 바뀌어도 usd_llm은 이 값을 쓴다
 PRICE_IN, PRICE_CACHED, PRICE_OUT = 0.20, 0.02, 1.20   # USD / 1M tokens
 BATCH_FACTOR = 0.5
 LONG_INPUT = 272_000

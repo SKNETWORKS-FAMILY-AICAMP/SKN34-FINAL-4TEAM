@@ -15,7 +15,7 @@ from pathlib import Path
 import openai
 from openai import OpenAI, OpenAIError
 
-from cost import CostLog
+from cost import MODEL, CostLog
 
 CAP = 3000
 RESERVE_USD = 0.05   # 진행 중인 호출이 상한을 넘기지 않게 남겨 두는 여유
@@ -140,6 +140,6 @@ class Llm:
 
 
 def usd_llm(cache_dir, cost_path, limit_usd: float, ledger_path=None, model: str | None = None) -> Llm:
-    """호출 수 상한(Ledger) 대신 비용 장부(`cost_path`)의 금액 상한으로 막는 Llm. 응답은 cache_dir에 캐시한다."""
-    return Llm(Ledger(ledger_path or Path(cost_path).with_name('calls.jsonl'), cap=10 ** 9), cache_dir, model=model, cost=CostLog(cost_path),
+    """호출 수 상한(Ledger) 대신 비용 장부(`cost_path`)의 금액 상한으로 막는 Llm. 응답은 cache_dir에 캐시한다. 모델은 `cost.MODEL`로 고정한다(.env 값은 읽지 않는다)."""
+    return Llm(Ledger(ledger_path or Path(cost_path).with_name('calls.jsonl'), cap=10 ** 9), cache_dir, model=model or MODEL, cost=CostLog(cost_path),
                limit_usd=limit_usd)
