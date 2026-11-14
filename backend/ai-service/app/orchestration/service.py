@@ -46,6 +46,7 @@ from app.content_mcp import service as content_mcp
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
+from app.intent.prompt import CLARIFY_MESSAGE
 from app.manuscript import service as manuscript
 from app.manuscript.errors import ManuscriptFailure
 from app.manuscript.models import AnswerRequest
@@ -71,11 +72,11 @@ def _story_context(data: dict | None, state: dict) -> QaStepResult:
     gaps, coverage = [], None
     if data is None:
         # shortcut: 검색어는 이번 요청 문장 그대로다. 지칭만 있는 후속 질문의 검색이 약하면 이전 질문을 붙이는 재작성을 검토한다.
-        found = retrieval.retrieve(RetrievalScope.model_validate(state['retrievalScope']), state['request'])
+        found = retrieval.retrieve(RetrievalScope.model_validate(state['retrievalScope']), _task(state))
         gaps, coverage = [g.detail for g in found.gaps], found.coverage
         if not found.excerpts:
             return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
-        data = {'question': state['request'][:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
+        data = {'question': _task(state)[:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
     history = [] if state.get('replaceHistory') else [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]
     answer = manuscript.answer(AnswerRequest.model_validate({**data, 'history': history}))
     cited = {i for claim in answer.claims for i in claim.sourceIds}
@@ -90,7 +91,7 @@ def _character_simulation(data: None, state: dict) -> SimulationResult:
     """
     step = next(s for s in state['steps'] if s['feature'] == 'character_simulation')
     write = get_stream_writer()
-    return simulation.run(SimulationPlan.model_validate(state['simulationPlan']), state.get('target'), state['request'],
+    return simulation.run(SimulationPlan.model_validate(state['simulationPlan']), state.get('target'), _task(state),
                           state.get('retrievalScope'), lambda partial: write({**step, 'result': partial.model_dump(mode='json')}))
 
 
@@ -159,6 +160,7 @@ class State(TypedDict, total=False):
     retrievalScope: dict | None  # Content가 확인한 Q&A 조회 키. 있으면 Q&A가 Retrieval로 근거를 받는다.
     target: dict | None  # Content가 확인한 Writing 반영 대상(workId·episode). 토큰은 담지 않는다.
     simulationPlan: dict | None  # simulation_plan이 정한 시뮬레이션 계획(SimulationPlan JSON). 장면 단계가 쓴다.
+    task: str | None  # Router 되묻기에 기능 이름으로 답한 턴이 실행할 요청(되물음을 받은 직전 요청). 없으면 request를 실행한다.
     runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
     traceParent: str | None
     title: str  # 대화 제목. 첫 턴 요청 앞부분이며 rename으로만 바뀐다.
@@ -166,15 +168,45 @@ class State(TypedDict, total=False):
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa, reply}를 하나씩 덧붙인다.
 
 
+def _previous(state: State) -> list[dict]:
+    """이전 턴들. 메시지 수정으로 대화를 다시 시작하는 턴에는 없다."""
+    return [] if state.get('replaceHistory') else state.get('turns', [])
+
+
 def _history(state: State) -> list[str]:
-    """이전 턴의 요청. 지칭 해석용 자료로만 쓴다. 메시지 수정으로 대화를 다시 시작하는 턴에는 없다."""
-    return [] if state.get('replaceHistory') else [t['request'] for t in state.get('turns', [])][-HISTORY_TURNS:]
+    """이전 턴의 요청. 지칭 해석용 자료로만 쓴다."""
+    return [t['request'] for t in _previous(state)][-HISTORY_TURNS:]
+
+
+def _task(state: State) -> str:
+    """이번 턴이 실행하는 요청. 되물음에 기능 이름으로 답한 턴은 되물음을 받은 직전 요청이고, 아니면 작가가 보낸 request다."""
+    return state.get('task') or state['request']
+
+
+def _clarified(state: State) -> tuple[str, str] | None:
+    """직전 턴이 Router의 되묻기였고 이번 요청이 그 보기 이름이면 (그 기능, 되물음을 받은 요청). 아니면 None.
+
+    UI가 operation을 골랐으면 그것이 우선한다. 시뮬레이션 계획의 되묻기는 문구가 달라 해당하지 않는다.
+    """
+    feature, last = intent.clarified(state['request']), _previous(state)[-1:]
+    if state.get('operation') or not feature or not last or (last[0].get('reply') or {}).get('message') != CLARIFY_MESSAGE:
+        return None
+    return feature, last[0]['request']
 
 
 def plan(state: State) -> State:
-    """Router 계획을 검증한다. 실행할 수 있으면 status=running과 대기 단계를 남긴다."""
-    with tracing.observe('plan', trace_context=_trace(state), input={'request': state['request']}) as span:
-        routed = intent.route(state['request'], state.get('operation'), state['materials'], _history(state))
+    """Router 계획을 검증한다. 실행할 수 있으면 status=running과 대기 단계를 남긴다.
+
+    작가가 되묻기에 기능 이름으로 답했으면 모델에게 다시 분류시키지 않는다. 되물음을 받은 요청을 그 기능의 operation 경로(가드레일만)로
+    확정하고 이번 턴은 그 요청을 실행한다(task).
+    """
+    asked = _clarified(state)
+    if asked:
+        operation, request, history = asked[0], asked[1], []
+    else:
+        operation, request, history = state.get('operation'), state['request'], _history(state)
+    with tracing.observe('plan', trace_context=_trace(state), input={'request': request}) as span:
+        routed = intent.route(request, operation, state['materials'], history)
         span.update(metadata={'status': routed.status, 'steps': [[s.feature, s.when] for s in routed.steps]})
     if routed.status != 'route':
         return {'status': routed.status, 'message': routed.message, 'steps': []}
@@ -183,7 +215,7 @@ def plan(state: State) -> State:
     unsupported = [s.feature for s in routed.steps if s.feature not in CALLS or s.when != 'always']
     if unsupported:
         return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'steps': steps, 'unsupported': unsupported}
-    return {'status': 'running', 'steps': steps}
+    return {'status': 'running', 'steps': steps, **({'task': request} if asked else {})}
 
 
 def simulation_plan(state: State) -> State:
@@ -196,7 +228,7 @@ def simulation_plan(state: State) -> State:
     step = next(s for s in steps if s['feature'] == 'character_simulation')
     try:
         with tracing.observe('step.character_simulation.plan', as_type='agent', trace_context=_trace(state)):
-            drafted = simulation.plan(state['request'], _history(state), state.get('target'))
+            drafted = simulation.plan(_task(state), _history(state), state.get('target'))
     except FAILURES as error:
         step.update(status='failed', error=str(error))
         return {'steps': steps}
@@ -286,7 +318,7 @@ def finish(state: State) -> State:
               None)
     if qa:
         answer = ' '.join(c['text'] for c in qa['claims']) or ' '.join(qa['gaps'])
-        question = state['inputs'].get('story_context', {}).get('question') or state['request'][:500]
+        question = state['inputs'].get('story_context', {}).get('question') or _task(state)[:500]
         qa = {'question': question, 'answer': answer[:2000]}
     reply = _response({**state, **done}).model_dump(mode='json')
     turn = [{'request': state['request'], 'qa': qa, 'reply': reply}]
@@ -394,7 +426,7 @@ def _initial(data: OrchestrationRequest) -> State:
                                        metadata={'operation': data.operation, 'conversation': data.conversation is not None})
     return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
-            'steps': [], 'missingInputs': [], 'unsupported': [], 'replaceHistory': False, 'simulationPlan': None,
+            'steps': [], 'missingInputs': [], 'unsupported': [], 'replaceHistory': False, 'simulationPlan': None, 'task': None,
             'scope': data.conversation.scope if data.conversation else None,
             'retrievalScope': data.scope.model_dump() if data.scope else None,
             'target': data.target.model_dump() if data.target else None}

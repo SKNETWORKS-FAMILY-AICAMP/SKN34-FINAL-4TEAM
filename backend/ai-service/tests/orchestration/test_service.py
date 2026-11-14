@@ -5,6 +5,7 @@ from uuid import uuid4
 import pytest
 
 from app.intent.errors import IntentFailure
+from app.intent.prompt import CLARIFY_MESSAGE
 from app.manuscript.errors import ManuscriptFailure
 from app.orchestration import service
 from app.orchestration.models import OrchestrationRequest
@@ -812,3 +813,66 @@ def test_reediting_a_waiting_first_turn_still_replaces_old_history(monkeypatch):
     assert [turn.request for turn in history.turns] == ['입력 대기']
     chat(thread, request='다시 수정', fromTurn=0, inputs={'story_context': QA})
     assert [turn.request for turn in conversation('history', thread, ME).turns] == ['다시 수정']
+
+
+# Router가 되물은 뒤 작가가 CLARIFY_MESSAGE의 기능 보기 이름으로 답하면 모델이 다시 분류하지 않고 그 기능으로 확정한다.
+# 이번 턴이 실행하는 요청은 되물음을 받은 직전 요청이고, 대화 기록에는 작가가 보낸 글이 남는다.
+VAGUE = '5화를 흐름 모드로 시뮬레이션해줘. 등장인물은 길동과 길현이야.'
+CLARIFY = plan(status='clarify', message=CLARIFY_MESSAGE)
+
+
+def test_a_capability_name_answering_the_router_clarify_runs_the_earlier_request_as_that_feature(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, CLARIFY)
+    asked = write_turn(thread, request=VAGUE, scope=SCOPE, target=TARGET)
+    assert (asked.status, asked.message) == ('clarify', CLARIFY_MESSAGE)
+    calls = fake_agents(monkeypatch, plan('character_simulation'))
+    writer(monkeypatch)
+    answered = write_turn(thread, request='인물 시뮬레이션', scope=SCOPE, target=TARGET)
+    assert (answered.status, answered.awaitingApproval) == ('waiting', 'character_simulation')
+    assert names(calls) == ['route', 'sim_plan', 'simulation']
+    assert calls[0][1] == (VAGUE, 'character_simulation', [], [])  # operation 경로(가드레일만)로 되물음을 받은 요청을 확정
+    assert calls[1][1][0] == VAGUE  # 시뮬레이션 계획도 그 요청으로 세운다
+    assert calls[2][1][2] == VAGUE
+    history = asyncio.run(service.history(thread, 'user:1/work:1'))
+    assert [t.request for t in history.turns] == [VAGUE, '인물 시뮬레이션']  # 대화 기록에는 작가가 보낸 글
+
+
+def test_the_clarified_request_does_not_leak_into_the_next_turn(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, CLARIFY)
+    write_turn(thread, request='길드 규칙은?', scope=SCOPE)
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    result = write_turn(thread, request='작품 질문', scope=SCOPE)
+    assert result.status == 'completed' and names(calls) == ['route', 'retrieval', 'story_context']
+    assert calls[1][1][1] == '길드 규칙은?' and calls[2][1][0].question == '길드 규칙은?'
+    write_turn(thread, request='다른 질문은?', scope=SCOPE)
+    assert [c[1][1] for c in calls if c[0] == 'retrieval'] == ['길드 규칙은?', '다른 질문은?']
+    assert [c[1][3] for c in calls if c[0] == 'route'][-1] == ['길드 규칙은?', '작품 질문']
+
+
+def test_a_capability_name_is_ordinary_text_unless_the_router_just_asked(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='카이의 목표는?', inputs={'story_context': QA})
+    calls = fake_agents(monkeypatch, plan('writing_editing'))
+    chat(thread, request='집필·수정', inputs={'writing_editing': PATCH})
+    assert calls[0][1] == ('집필·수정', None, [], ['카이의 목표는?'])
+
+
+def test_a_simulation_clarify_is_not_a_router_clarify(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan(mode='flow', beats=['성문 대면']))
+    assert write_turn(thread, request='장면 시뮬레이션', scope=SCOPE, target=TARGET).status == 'clarify'
+    calls = fake_agents(monkeypatch, plan('writing_editing'))
+    write_turn(thread, request='집필·수정', target=TARGET, inputs={'writing_editing': PATCH})
+    assert calls[0][1] == ('집필·수정', None, [], ['장면 시뮬레이션'])
+
+
+def test_an_explicit_operation_wins_over_a_clarify_answer(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, CLARIFY)
+    chat(thread, request=VAGUE)
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='집필·수정', operation='story_context', inputs={'story_context': QA})
+    assert calls[0][1] == ('집필·수정', 'story_context', [], [VAGUE])
