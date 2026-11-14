@@ -511,10 +511,10 @@ def _spoken(prose: str) -> str:
 def repeated_line(prose: str, earlier: list[str]) -> bool:
     """같은 인물이 앞서 한 대사(earlier는 그 인물의 앞선 턴 본문)와 거의 같은 대사를 되풀이했는지. 다른 인물의 대사와는 비교하지 않는다.
 
-    ponytail: 정규화한 글자열의 단순 유사도(difflib)다. 말만 바꿔 같은 내용을 되풀이하는 것은 못 잡는다.
+    ponytail: 정규화한 글자열의 단순 유사도(difflib)다. 말만 바꿔 같은 내용을 되풀이하는 것은 못 잡는다. 대사는 짧아 autojunk는 끈다(켜 두면 200자 넘는 글에서 자주 나오는 글자를 비교에서 뺀다).
     """
     now = _spoken(prose)
-    return len(now) >= REPEAT_MIN and any(SequenceMatcher(None, now, before).ratio() >= REPEAT_RATIO
+    return len(now) >= REPEAT_MIN and any(SequenceMatcher(None, now, before, autojunk=False).ratio() >= REPEAT_RATIO
                                           for before in map(_spoken, earlier) if len(before) >= REPEAT_MIN)
 
 

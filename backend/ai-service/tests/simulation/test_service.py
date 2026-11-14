@@ -440,6 +440,13 @@ def test_a_different_or_silent_line_is_not_a_repeat(prose):
     assert not service.repeated_line(prose, SAID)
 
 
+def test_a_long_repetitive_line_is_still_compared_character_by_character():
+    line = '"' + '그 일은 제가 처리하겠습니다. 다른 분들은 물러나 주십시오. ' * 10 + '"'
+    # 정규화한 글자가 200자를 넘으면 difflib 기본값(autojunk)이 자주 나오는 글자를 비교에서 빼, 앞에 한마디만 붙여도 유사도가 0이 됐다.
+    assert service.repeated_line('"네, ' + line[1:], [line])
+    assert not service.repeated_line('"' + '이제 떠나겠습니다. 부디 강녕하십시오. 오래도록 평안하시기를 빕니다. ' * 8 + '"', [line])  # 다른 긴 말은 반복이 아니다
+
+
 def test_a_short_stock_phrase_said_again_is_not_a_repeat():
     assert not service.repeated_line('"알겠습니다." 카엘이 고개를 끄덕였다.', ['"알겠습니다." 카엘이 고개를 숙였다.'])
 
