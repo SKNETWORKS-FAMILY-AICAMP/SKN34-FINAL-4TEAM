@@ -443,6 +443,14 @@ class WorldChecks:
                 (record,) = about(m.number)
                 self.assertNotIn("부르지 못", record["body"], f"{m.number}화 원고에서 길동이 형님이라 부르는데 관계는 부르지 못한다고 한다")
 
+    def test_a_kin_term_the_manuscript_forbids_is_not_spoken(self):
+        """흑길동전 2화 원고는 길현이 길동을 아우라 부르지 못한다고 쓴다. 그 호칭이 길현의 SOUL이나 장면 비트에 있으면 시뮬레이션 대사가 원고와 어긋난다."""
+        if not any("아우라 부르지 못" in m.body for m in self.dataset.manuscripts):
+            self.skipTest("원고가 아우 호칭을 막지 않는 데이터셋")
+        beats = [f"{s['title']}: {s['content']}" for s in (self.dataset.plans or {"scenes": []})["scenes"]]
+        for text in (self.cards["gilhyeon"]["characterDocs"]["soul"], *beats):
+            self.assertNotIn("아우", text)
+
     def test_narrator_card_guides_the_narration_style(self):
         """작품마다 나레이터 카드 하나: 제목 `나레이터 — <작품명>`, 비공개 규칙 카드, 배경 설명·시점·말투·하지 않는 것.
         규칙 카드는 인물이 누구나 아는 것으로 읽으므로 인물·물건·사건 이름과 비밀을 쓰지 않는다. Fork는 고정관념 금지 규칙을 옮겨 적는다."""
