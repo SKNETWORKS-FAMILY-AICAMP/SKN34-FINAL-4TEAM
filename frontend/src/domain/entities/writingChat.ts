@@ -1,7 +1,8 @@
+import { sceneSummary, type CharacterSimulation } from './characterSimulation'
 import type { WritingEpisode } from './content'
 
 /** 집필 AI 채팅(#331). 대화 원본은 AI 서비스의 LangGraph 체크포인터이며 화면은 Content API로만 읽고 쓴다. */
-export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | (string & {})
+export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | (string & {})
 export type ChatStepResult = {
   claims?: { text: string }[]
   gaps?: string[]
@@ -14,6 +15,8 @@ export type ChatStep = {
   feature: ChatFeature
   status: 'completed' | 'failed' | 'not_started'
   result?: ChatStepResult | null
+  /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
+  simulation?: CharacterSimulation | null
   error?: string | null
   approval?: 'approved' | 'declined' | null
   applied?: { episode: number; revision: number } | null
@@ -49,7 +52,7 @@ export type ChatMessageInput = ChatBasis & { consent: true } & (
   | { request: string }
   | { resume: { approved: boolean; inputs?: ChatStepInputs } })
 
-export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사' }
+export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션' }
 
 /** 열린 회차가 발행돼 있으면 그 회차, 아니면 가장 뒤의 발행 회차. 발행 회차가 없으면 null(채팅을 잠근다). */
 export function chatBasis(episodes: WritingEpisode[], preferred?: number): ChatBasis | null {
@@ -63,6 +66,7 @@ const researchVerdict: Record<string, string> = { confirmed: '확인됨', confli
 /** 단계 결과를 채팅 말풍선 글로. 결과가 없거나 실패면 그 사유를 그대로 보인다(성공처럼 꾸미지 않는다). */
 export function stepText(step: ChatStep): string {
   if (step.status === 'failed') return `실패: ${step.error ?? '작업을 완료하지 못했어요.'}`
+  if (step.simulation) return sceneSummary(step.simulation)
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'

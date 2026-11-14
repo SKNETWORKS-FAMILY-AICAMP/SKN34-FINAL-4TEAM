@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import type { CharacterSimulation } from '../../domain/entities/characterSimulation'
 import type { ChatEvent, ChatHistory, ChatMessageInput, ChatReply, ChatSession, ChatStep } from '../../domain/entities/writingChat'
 import type { WritingChatRepository } from '../../domain/repositories/WritingChatRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
@@ -7,10 +8,27 @@ import { authVersion, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
 
+// 인물 시뮬레이션(#58) 단계 결과. 계약 'SSE·응답' JSON 그대로이고 열거값도 계약의 값만 받는다.
+const simulation: z.ZodType<CharacterSimulation> = z.object({
+  mode: z.enum(['if', 'flow']),
+  premise: z.string().nullish(),
+  beats: z.array(z.object({ index: z.number().int(), text: z.string(), status: z.enum(['done', 'pending', 'rejected']) })),
+  turns: z.array(z.object({
+    index: z.number().int(), characterId: z.string(), characterName: z.string(), prose: z.string(),
+    checks: z.array(z.object({ kind: z.enum(['knowledge_leak', 'voice_mix', 'relation', 'premise', 'beat']), passed: z.boolean(), detail: z.string() })),
+    regenerated: z.number().int().nonnegative(),
+    evidence: z.array(z.object({ ref: z.string(), source: z.enum(['graph', 'manuscript', 'bm25']) })),
+  })),
+  status: z.enum(['running', 'completed', 'stopped', 'failed']),
+  stopReason: z.string().nullish(),
+})
+const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 없어요.'
+
 const step: z.ZodType<ChatStep> = z.object({
   feature: z.string(),
   status: z.enum(['completed', 'failed', 'not_started']),
-  result: z.object({
+  // 시뮬레이션 결과의 키는 통과시켜 아래 transform이 따로 검증한다(다른 단계는 이 모양만 받는다).
+  result: z.looseObject({
     claims: z.array(z.object({ text: z.string() })).optional(),
     gaps: z.array(z.string()).optional(),
     text: z.string().optional(),
@@ -21,6 +39,14 @@ const step: z.ZodType<ChatStep> = z.object({
   error: z.string().nullish(),
   approval: z.enum(['approved', 'declined']).nullish(),
   applied: z.object({ episode: z.number().int(), revision: z.number().int() }).nullish(),
+}).transform((raw): ChatStep => {
+  // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
+  if (raw.feature !== 'character_simulation' || (!raw.result && raw.status !== 'completed')) return raw
+  const { result, ...rest } = raw
+  const parsed = simulation.safeParse(result)
+  if (parsed.success) return { ...rest, simulation: parsed.data }
+  // 형식이 어긋나면 가짜 장면을 만들지 않고 일반 단계처럼 실패를 보인다. 서버가 이미 보낸 실패 사유는 지킨다.
+  return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || BAD_SIMULATION }
 })
 const reply: z.ZodType<ChatReply> = z.object({
   status: z.enum(['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']),
