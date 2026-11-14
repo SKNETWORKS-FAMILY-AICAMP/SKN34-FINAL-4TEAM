@@ -28,6 +28,8 @@ export type ChatReply = {
   steps: ChatStep[]
   missingInputs: ChatFeature[]
   awaitingApproval?: ChatFeature | null
+  /** 턴마다 멈추는 시뮬레이션 장면이 작가의 조작(다음 턴·수정·다시 말하기·끝내기)을 기다린다(#58 무대). */
+  awaitingScene?: ChatFeature | null
   approvalEpisode?: number | null
 }
 export type ChatTurn = { request: string; reply: ChatReply | null }
@@ -38,7 +40,7 @@ export type ChatEvent =
   | { type: 'plan'; steps: ChatStep[] }
   | { type: 'started'; feature: ChatFeature }
   | { type: 'step'; step: ChatStep }
-  | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null }
+  | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null; awaitingScene?: ChatFeature | null }
   | { type: 'done'; reply: ChatReply }
   | { type: 'error'; message: string }
 /** Q&A 근거 기준. Content가 발행 회차만 기준으로 받는다. */
@@ -48,9 +50,43 @@ export type ChatStepInputs = {
   web_research?: { question: string }
   writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } }
 }
-export type ChatMessageInput = ChatBasis & { consent: true } & (
-  | { request: string }
-  | { resume: { approved: boolean; inputs?: ChatStepInputs } })
+/** 시뮬레이션 무대에서 작가가 장면에 거는 조작(AI `Resume.scene`, Content `WritingAiResume.scene`을 그대로 통과한다). */
+export type SceneAction =
+  | { action: 'next'; note?: string }
+  | { action: 'edit'; turn: number; text: string }
+  | { action: 'redo'; turn: number; note?: string }
+  | { action: 'stop' }
+/** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). */
+export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction }
+/** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행)이거나 멈춘 실행을 잇는 답이다. */
+export type ChatSendBody = { request: string; operation?: ChatFeature } | { resume: ChatResume }
+export type ChatMessageInput = ChatBasis & { consent: true } & ChatSendBody
+
+export const SCENE_NOTE_MAX = 300
+export const SCENE_TEXT_MAX = 2000
+const turnNumber = (turn: number) => {
+  if (!Number.isInteger(turn) || turn < 0) throw new Error('고칠 줄을 찾을 수 없어요.')
+  return turn
+}
+const noteText = (note?: string) => {
+  const text = note?.trim()
+  if (text && text.length > SCENE_NOTE_MAX) throw new Error(`끼어들기는 ${SCENE_NOTE_MAX}자까지 적을 수 있어요.`)
+  return text ? { note: text } : {}
+}
+/** 장면 조작을 보낼 모양으로 다듬는다(서버 검증과 같은 한도). 보낼 수 없으면 이유를 던진다. */
+export function cleanScene(scene: SceneAction): SceneAction {
+  switch (scene.action) {
+    case 'stop': return { action: 'stop' }
+    case 'next': return { action: 'next', ...noteText(scene.note) }
+    case 'redo': return { action: 'redo', turn: turnNumber(scene.turn), ...noteText(scene.note) }
+    case 'edit': {
+      const text = scene.text.trim()
+      if (!text) throw new Error('고친 글이 비어 있어요. 줄을 지우려면 다시 말하기를 써 주세요.')
+      if (text.length > SCENE_TEXT_MAX) throw new Error(`고친 글은 ${SCENE_TEXT_MAX.toLocaleString('ko-KR')}자까지 적을 수 있어요.`)
+      return { action: 'edit', turn: turnNumber(scene.turn), text }
+    }
+  }
+}
 
 export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션' }
 

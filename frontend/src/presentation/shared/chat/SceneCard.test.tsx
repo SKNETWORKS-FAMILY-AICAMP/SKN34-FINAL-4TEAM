@@ -12,12 +12,12 @@ import { SceneCard } from './SceneCard'
 afterEach(cleanup)
 
 const turn = (index: number, extra: Partial<SimulationTurn> = {}): SimulationTurn => ({
-  index, characterId: `card-${index}`, characterName: index ? '리안' : '카엘', prose: index ? '"저예요."' : '카엘이 문을 열었다.\n그는 *분명히* 웃었다.',
+  index, kind: 'character', characterId: `card-${index}`, characterName: index ? '리안' : '카엘', editedByAuthor: false, prose: index ? '"저예요."' : '카엘이 문을 열었다.\n그는 *분명히* 웃었다.',
   checks: [{ kind: 'voice_mix', passed: false, detail: '말투가 섞였어요.' }, { kind: 'relation', passed: true, detail: '' }],
   regenerated: 2, evidence: [{ ref: 'card-9', source: 'graph' }, { ref: '3화 발췌', source: 'manuscript' }], ...extra,
 })
 const scene = (extra: Partial<CharacterSimulation> = {}): CharacterSimulation =>
-  ({ mode: 'if', premise: '카엘이 성문을 열었다면?', beats: [], turns: [turn(0), turn(1)], status: 'completed', stopReason: null, ...extra })
+  ({ mode: 'if', premise: '카엘이 성문을 열었다면?', beats: [], turns: [turn(0), turn(1)], notes: [], status: 'completed', stopReason: null, ...extra })
 const show = (sim: CharacterSimulation) => render(<SceneCard simulation={sim} workId="w1" episode={3} />)
 
 it('머리에 모드와 상태를, IF 모드는 전제를 보이고 턴마다 인물 이름과 원고 서식으로 그린 문단을 보인다', () => {
