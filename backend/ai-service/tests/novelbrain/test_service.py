@@ -640,3 +640,10 @@ def test_blank_documents_and_relations_to_unknown_cards_are_not_items():
 
     assert set(refs(result.items)) == {'card:a#memory', 'card:b', 'relation:r1'}
     assert {i.ref: i.text for i in result.items}['relation:r1'] == '가이 — 성: 살다'
+
+
+def test_direct_filter_rejects_a_world_snapshot_later_than_the_character_episode():
+    # recall만 막으면 filter_for_character를 바로 부르는 쪽은 미래 관계를 그대로 받는다.
+    with pytest.raises(ValueError):
+        filter_for_character([], WORLD, 'kael', 1)
+    assert filter_for_character([], WORLD, None, 1) == ([], [])
