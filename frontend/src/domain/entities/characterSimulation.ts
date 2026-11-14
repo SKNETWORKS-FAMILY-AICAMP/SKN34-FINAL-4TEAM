@@ -120,6 +120,17 @@ export function sceneRows(sim: Pick<CharacterSimulation, 'turns' | 'notes'>, kno
   return rows
 }
 
+// 서버 SimulationResult.stopReason은 코드값이고 사람이 읽을 문장은 단계 error다. error 문장이 없을 때만 코드를 이 문구로 바꾼다.
+// ponytail: 턴 한도 12는 서버 TURN_LIMIT와 같은 값을 적었다. 서버가 한도를 바꾸면 함께 바꾼다(error 문장이 오면 그 문장이 먼저다).
+const stopReasons: Record<string, string> = {
+  check_failed: '검사를 통과하지 못했어요',
+  beat_rejected: '인물이 비트를 거부했어요',
+  turn_limit: '턴 한도(12)에 닿았어요 · 장면 끝내기로 반영할 수 있어요',
+  call_limit: '호출 한도에 닿아 멈췄어요',
+}
+/** stopReason 코드의 사람이 읽을 문구. 모르는 코드는 장면이 멈췄다고만 알린다(코드를 그대로 보이지 않는다). */
+export const stopReasonText = (code: string) => (Object.hasOwn(stopReasons, code) ? stopReasons[code] : '장면이 멈췄어요')
+
 /** 채팅 쪽 한 줄: 대본은 무대가 보이므로 채팅에는 상태와 턴 수만 알린다. 턴 사이 대기는 진행 중으로 읽힌다. */
 export const sceneLine = (sim: Pick<CharacterSimulation, 'status' | 'turns'>) =>
   `시뮬레이션 ${sim.status === 'running' || sim.status === 'paused' ? '진행 중' : statusLabel[sim.status]} · ${sim.turns.length}턴`
