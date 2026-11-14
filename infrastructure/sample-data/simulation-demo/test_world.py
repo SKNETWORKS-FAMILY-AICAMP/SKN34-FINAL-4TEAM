@@ -455,6 +455,7 @@ class FakeStack:
         self.works = {STARLIGHT_ID: self.work(STARLIGHT_ID, "별빛 서약의 탑", owner, worldStudioId=linked)}  # 이미 있는 샘플 작품
         self.puts, self.calls, self.fail_put = [], [], None
         self.id_owner = {}  # 카드·관계 id → 세계관. 서버(worldstudio V1)의 id는 세계관과 무관한 전역 기본키다
+        self.plans, self.plan_posts, self.fail_plan = {}, [], None  # 작품 id → 계획 목록, 받은 POST 본문, n번째 POST를 실패시킨다
 
     @property
     def linked(self):
@@ -522,7 +523,33 @@ class FakeStack:
                 return self.fork(work, body)
             if rest.startswith("episodes"):
                 return self.episodes(work, method, parts[6:], body)
+            if rest == "story-plans":
+                return self.story_plans(work, method, body)
         raise AssertionError(f"모의에 없는 호출: {method} {path}")
+
+    def story_plans(self, work, method, body):
+        """StoryPlanService.validate의 핵심: 장면은 소속 플롯, 회차는 있는 것만, 인물·장소는 설정집(레거시) id만 받는다(새 작품의 설정집은 비어 있다)."""
+        plans = self.plans.setdefault(work["id"], [])
+        if method == "GET":
+            return 200, plans  # 목록 순서 = 만든 순서(서버는 createdAt, id 순)
+        self.plan_posts.append(body)
+        if self.fail_plan == len(self.plan_posts):
+            return 500, {"detail": "모의 서버 오류"}
+        parent = next((p for p in plans if p["id"] == body.get("parentId")), None)
+        if (body["kind"] == "scene") != (parent is not None and parent["kind"] == "plot") or not 0 < len(body["title"].strip()) <= 120 \
+                or len(body["content"]) > 8000 or body["revision"] != 0:
+            return 422, {"detail": "제목은 1~120자, 계획 내용은 8,000자 이내로 입력해 주세요."}
+        if body["kind"] == "plot" and (body.get("episodeNumber") is not None or body.get("characterIds") or body.get("placeIds")):
+            return 422, {"detail": "회차·인물·장소는 장면 계획에서 연결해 주세요."}
+        if body.get("characterIds") or body.get("placeIds"):
+            return 422, {"detail": "연결할 인물·장소를 찾을 수 없어요. 다시 선택해 주세요."}
+        number = body.get("episodeNumber")
+        if number is not None and number not in work["episodes"]:
+            return 422, {"detail": "연결할 회차를 찾을 수 없어요."}
+        plan = {"id": self.new_id(), "workId": work["id"], "kind": body["kind"], "parentId": body.get("parentId"), "title": body["title"].strip(),
+                "content": body["content"], "episodeNumber": number, "episodeMissing": False, "characterIds": [], "placeIds": [], "revision": 1}
+        plans.append(plan)
+        return 201, plan
 
     def create_work(self, body):
         if body.get("creationType") not in ("ORIGINAL", "EXTERNAL_DERIVATIVE") or not body.get("rightsConfirmed") \
@@ -828,6 +855,104 @@ class NewWorkSeedTest(unittest.TestCase):
             seed.main([str(self.original)])
         self.assertEqual(1, len(self.works("원작")))
         self.assertEqual([1, 2, 3], sorted(self.works("원작")[0]["episodes"]))
+
+
+class ScenePlanSeedTest(unittest.TestCase):
+    """`plans.json`의 플롯 1개와 장면 계획을 만드는 흐름: 파일 순서가 비트 순서, 같은 제목은 건너뜀, 인물·장소는 서버가 받는 때만 보낸다."""
+    PLOT = {"title": "시험 플롯", "content": "두 사람의 이야기."}
+    SCENES = [{"episode": 2, "title": "첫 장면", "content": "가인이 나리를 만난다.", "characters": ["a", "b"], "places": []},
+              {"episode": 2, "title": "둘째 장면", "content": "나리가 떠난다.", "characters": ["b"], "places": []},
+              {"episode": 3, "title": "셋째 장면", "content": "가인이 홀로 남는다.", "characters": ["a"], "places": []}]
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root, self.fake = Path(self.tmp.name), FakeStack()
+        self.dir = write_dataset(self.root, "orig", "원작", {1: "첫째 날.", 2: "둘째 날.", 3: "셋째 날."}, creationType="ORIGINAL", genres=["고전"], allowFork=True)
+        self.write_plans(self.SCENES)
+
+    def write_plans(self, scenes, directory=None):
+        (directory or self.dir).joinpath("plans.json").write_text(json.dumps({"plot": self.PLOT, "scenes": scenes}, ensure_ascii=False), encoding="utf-8")
+
+    def seed(self, directory=None):
+        directory = directory or self.dir
+        world = json.loads((directory / "world.json").read_text(encoding="utf-8"))
+        return seed.seed(self.fake.call, world, owner=OWNER, base=directory)
+
+    def work(self, title="원작"):
+        (work,) = [w for w in self.fake.works.values() if w["title"] == title]
+        return work
+
+    def titles(self, title="원작"):
+        return [p["title"] for p in self.fake.plans.get(self.work(title)["id"], [])]
+
+    def test_creates_the_plot_first_then_every_scene_in_file_order(self):
+        self.seed()
+        plans = self.fake.plans[self.work()["id"]]
+        self.assertEqual([("plot", "시험 플롯", None), ("scene", "첫 장면", 2), ("scene", "둘째 장면", 2), ("scene", "셋째 장면", 3)],
+                         [(p["kind"], p["title"], p["episodeNumber"]) for p in plans])
+        self.assertEqual({plans[0]["id"]}, {p["parentId"] for p in plans[1:]})  # 장면은 모두 그 플롯 아래
+
+    def test_requests_carry_the_text_and_no_card_ids_by_default(self):
+        self.seed()
+        plot_id = self.fake.plans[self.work()["id"]][0]["id"]
+        self.assertEqual({"kind": "plot", "title": "시험 플롯", "content": "두 사람의 이야기.", "revision": 0}, self.fake.plan_posts[0])
+        self.assertEqual({"kind": "scene", "parentId": plot_id, "title": "첫 장면", "content": "가인이 나리를 만난다.", "episodeNumber": 2,
+                          "characterIds": [], "placeIds": [], "revision": 0}, self.fake.plan_posts[1])
+
+    def test_card_ids_are_sent_only_when_the_server_takes_them(self):
+        """장면 계획 API는 설정집(레거시) id만 받아 WorldStudio 카드 id는 422다. 받게 되면 SEND_PLAN_REFS를 켠다."""
+        scene = {**self.SCENES[0], "places": ["ev"]}
+        with unittest.mock.patch.object(seed, "SEND_PLAN_REFS", True):
+            body = seed.plan_payload(scene, "plot-id", "scope:")
+        self.assertEqual(([seed.card_id("a", "scope:"), seed.card_id("b", "scope:")], [seed.card_id("ev", "scope:")]), (body["characterIds"], body["placeIds"]))
+        self.assertEqual(([], []), tuple(seed.plan_payload(scene, "plot-id", "scope:")[k] for k in ("characterIds", "placeIds")))
+        with unittest.mock.patch.object(seed, "SEND_PLAN_REFS", True), self.assertRaises(seed.SeedError) as caught:
+            self.seed()
+        self.assertIn("422", str(caught.exception))
+
+    def test_rerun_creates_no_plan_again(self):
+        self.seed()
+        before = len(self.fake.plan_posts)
+        self.seed()
+        self.assertEqual(before, len(self.fake.plan_posts))
+        self.assertEqual(["시험 플롯", "첫 장면", "둘째 장면", "셋째 장면"], self.titles())
+
+    def test_a_failed_scene_resumes_in_order_without_duplicates(self):
+        self.fake.fail_plan = 3  # 플롯(1)·첫 장면(2) 뒤 둘째 장면에서 실패
+        with self.assertRaises(seed.SeedError) as caught:
+            self.seed()
+        self.assertIn("모의 서버 오류", str(caught.exception))
+        self.assertNotIn("나리가 떠난다", str(caught.exception))  # 오류에는 상태와 서버의 detail만, 장면 글은 없다
+        self.assertEqual(["시험 플롯", "첫 장면"], self.titles())
+        self.fake.fail_plan = None
+        self.seed()
+        self.assertEqual(["시험 플롯", "첫 장면", "둘째 장면", "셋째 장면"], self.titles())
+
+    def test_a_plan_for_the_next_unwritten_episode_creates_that_draft_once(self):
+        self.write_plans([{"episode": 4, "title": "다음 회차 장면", "content": "가인이 문을 연다.", "characters": ["a"]}])
+        self.seed()
+        episodes = self.work()["episodes"]
+        self.assertEqual([1, 2, 3, 4], sorted(episodes))
+        self.assertEqual(("새 회차", None), (episodes[4]["draft"]["title"], episodes[4]["published"]))
+        self.seed()
+        self.assertEqual([1, 2, 3, 4], sorted(self.work()["episodes"]))
+        self.assertEqual(["시험 플롯", "다음 회차 장면"], self.titles())
+
+    def test_a_plan_beyond_the_next_episode_is_refused_before_anything_is_written(self):
+        self.write_plans([*self.SCENES, {"episode": 5, "title": "먼 회차 장면", "content": "x", "characters": ["a"]}])
+        with self.assertRaises(seed.SeedError) as caught:
+            self.seed()
+        self.assertIn("5화", str(caught.exception))
+        self.assertEqual(([], [1, 2, 3]), (self.fake.plan_posts, sorted(self.work()["episodes"])))
+
+    def test_a_fork_gets_its_plans_on_its_own_work(self):
+        fork = write_dataset(self.root, "fork", "갈래", {2: "다른 둘째 날."}, fork={"sourceDir": "../orig", "episode": 1, "direction": "다른 전개", "changed": ["a"]})
+        self.write_plans([{"episode": 2, "title": "갈래의 장면", "content": "x", "characters": ["a"]}], fork)
+        self.seed()
+        self.seed(fork)
+        self.assertEqual(["시험 플롯", "첫 장면", "둘째 장면", "셋째 장면"], self.titles("원작"))
+        self.assertEqual(["시험 플롯", "갈래의 장면"], self.titles("갈래"))
 
 
 if __name__ == "__main__":

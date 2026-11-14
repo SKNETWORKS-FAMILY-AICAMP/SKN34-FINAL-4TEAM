@@ -2,7 +2,8 @@
 """시연 세계관(world.json)을 로컬 스택의 공개 진입점으로 적재한다(표준 라이브러리만).
 
 흐름: Core 로그인 → (새 작품이면) 작품 생성·회차 원고 저장·발행, (Fork면) 원작의 기준 회차에서 Fork 생성·자기 원고 발행
-→ 세계관 생성(고정 id, 멱등) → 회차 오름차순으로 초안 저장(카드는 첫 저장, 관계는 회차별 `episode`) → 작품에 연결.
+→ 세계관 생성(고정 id, 멱등) → 회차 오름차순으로 초안 저장(카드는 첫 저장, 관계는 회차별 `episode`) → 작품에 연결
+→ (`plans.json`이 있으면) 플롯 1개와 장면 계획 생성(시뮬레이션 흐름 모드의 비트).
 같은 id·key·제목으로 다시 실행해도 중복이 생기지 않는다(이미 같은 값이면 건너뛴다).
 이미 다른 세계관이 연결된 작품은 덮어쓰지 않고 이유를 알린 뒤 실패한다.
 
@@ -41,6 +42,10 @@ KINDS = {"character": ("entity", "character"), "location": ("entity", "location"
          "rule": ("rule", None), "event": ("event", None)}
 CARD_FIELDS = ("title", "body", "cardType", "areaCode", "classification", "aliases", "tags", "semanticMetadata", "visibility", "lifecycle")
 RELATION_FIELDS = ("sourceCardId", "targetCardId", "category", "body", "label", "direction", "polarity", "semanticMetadata", "lifecycle")
+# 장면 계획(Content `story-plans`)의 인물·장소는 서버가 설정집(레거시 `GET /works/{id}/world`의 settings) id만 받는다(StoryPlanService.validate).
+# WorldStudio 카드 id는 422라 지금은 보내지 않는다. 등장 인물은 장면 본문에 이름으로 적고, plans.json의 characters·places에는 카드 key를 둔다.
+# ponytail: 서버가 카드 id를 받게 되면 True로 바꾼다(그 밖에 바꿀 곳이 없다).
+SEND_PLAN_REFS = False
 
 
 class SeedError(Exception):
@@ -168,6 +173,40 @@ def _ensure_work(call, spec, base, log):
     return mine["id"]
 
 
+def plan_payload(scene, parent, scope):
+    """plans.json 장면 → `POST /story-plans` 본문(새 계획이라 revision 0). 인물·장소는 카드 key를 id로 바꿔 SEND_PLAN_REFS일 때만 보낸다."""
+    ids = lambda keys: [card_id(key, scope) for key in keys] if SEND_PLAN_REFS else []  # noqa: E731
+    return {"kind": "scene", "parentId": parent, "title": scene["title"], "content": scene["content"], "episodeNumber": scene["episode"],
+            "characterIds": ids(scene["characters"]), "placeIds": ids(scene.get("places", [])), "revision": 0}
+
+
+def _seed_plans(call, work, plans, scope, log):
+    """plans.json의 플롯 1개와 장면 계획을 만든다. 같은 제목이 이미 있으면 건너뛰고, 장면은 파일 순서대로 만든다(서버 목록 순서가 비트 순서다).
+    장면은 있는 회차나 바로 다음 회차에만 붙는다. 다음 회차는 없으면 빈 초안을 만든다(앱이 발행 뒤 만드는 것과 같다)."""
+    path = f"/api/v1/works/{work}"
+    have = {e["number"] for e in _ok(call("GET", path + "/episodes"), "회차 목록")}
+    last = max(have, default=0)
+    for number in sorted({scene["episode"] for scene in plans["scenes"]}):  # 쓰기 전에 거절한다
+        if number not in have and number != last + 1:
+            raise SeedError(f"{number}화가 없어요. 장면 계획은 있는 회차나 바로 다음 회차({last + 1}화)에만 붙일 수 있어요.")
+    existing = _ok(call("GET", path + "/story-plans"), "장면 계획 목록")
+    plot = next((p for p in existing if p["kind"] == "plot" and p["title"] == plans["plot"]["title"]), None)
+    if plot is None:
+        plot = _ok(call("POST", path + "/story-plans", {"kind": "plot", **plans["plot"], "revision": 0}), "플롯 만들기")
+        log(f"플롯 「{plot['title']}」을 만들었어요")
+    done = {p["title"] for p in existing if p["kind"] == "scene" and p["parentId"] == plot["id"]}
+    made = 0
+    for scene in plans["scenes"]:
+        if scene["title"] in done:
+            continue
+        if scene["episode"] not in have:
+            _ok(call("POST", path + "/episodes", {"title": "새 회차"}), f"{scene['episode']}화 만들기")
+            have.add(scene["episode"])
+        _ok(call("POST", path + "/story-plans", plan_payload(scene, plot["id"], scope)), f"장면 계획 「{scene['title']}」")
+        made += 1
+    log(f"장면 계획: 새로 {made}개(전체 {len(plans['scenes'])}개)")
+
+
 def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
     """call(method, path, body) → (status, json)로 적재하고 회차별 관계 수 {회차: 수}를 돌려준다. base는 world.json이 있는 디렉터리다."""
     wid, spec = world["world"]["id"], world["work"]
@@ -205,6 +244,8 @@ def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
     if linked != wid:
         _ok(call("PUT", f"/api/v1/works/{work}/world-studio", {"worldId": wid}), "작품 연결")
         log("작품에 연결했어요")
+    if (base / "plans.json").exists():
+        _seed_plans(call, work, json.loads((base / "plans.json").read_text(encoding="utf-8")), scope, log)
     counts = {ep: len(_ok(call("GET", f"/api/v1/world-studios/{wid}?episode={ep}"), f"{ep}화 시점 확인")["relationships"])
               for ep in range(1, max(episodes(world)) + 1)}
     log("회차별 관계 수: " + " · ".join(f"{ep}화 {n}" for ep, n in counts.items()))
