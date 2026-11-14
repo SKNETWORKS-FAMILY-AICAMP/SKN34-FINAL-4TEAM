@@ -32,6 +32,8 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
   // 시작 양식에서 고른 인물의 이름(id → 이름). 아직 말하지 않은 인물의 시점 이름을 채운다. 새로 고치면 없고, 그때는 줄이 알려 주는 이름만 쓴다.
   const [roster, setRoster] = useState<Record<string, string>>({})
 
+  // 시스템이 멈추거나 실패한 장면(작가가 줄을 고치거나 재생을 눌러야 이어 간다).
+  const stoppedOrFailed = sim?.status === 'stopped' || sim?.status === 'failed'
   const live = !!sim && !chat.deciding && (chat.streaming || chat.awaiting === 'scene')
   // 진행 중이거나 작가의 답(다음 턴·승인)을 기다리는 장면이 있다.
   const attention = !!sim && (chat.streaming || !!chat.awaiting)
@@ -41,6 +43,8 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
 
   useEffect(() => { if (attention) { setOpen(true); setComposing(false); setAsked(false) } }, [attention])
   useEffect(() => { if (!live) { setPaused(false); setStopAfterTurn(false) } }, [live])
+  // 끼어들기는 남긴 대화의 장면에만 실린다: 다른 대화를 열면 지워 그 대화의 next에 새어 들어가지 않게 한다.
+  useEffect(() => { setQueued('') }, [chat.threadId])
 
   const withNote = async (run: (note: string) => Promise<boolean>) => {
     const note = queued
@@ -55,7 +59,8 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
   const advance = useEffectEvent((ticket: number) => {
     setConsumed(ticket)
     if (chat.awaiting !== 'scene') return
-    if (stopAfterTurn) { setStopAfterTurn(false); void chat.sceneAction({ action: 'stop' }) } else if (!paused) void sendNext()
+    // 멈춘·실패한 장면은 저절로 다시 시도하지 않는다(별도 오류 없이 장면 대기로 돌아와도 같은 실패를 되풀이하며 호출만 쓴다).
+    if (stopAfterTurn) { setStopAfterTurn(false); void chat.sceneAction({ action: 'stop' }) } else if (!paused && !stoppedOrFailed) void sendNext()
   })
   useEffect(() => { if (chat.sceneTicket !== consumed) advance(chat.sceneTicket) }, [chat.sceneTicket, consumed])
 
@@ -64,7 +69,6 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
   const errored = !!chat.error && !paused
   const shown = !sim ? '' : sim.status === 'running' || sim.status === 'paused' ? (running ? 'running' : errored ? 'error' : 'paused') : sim.status
   const result = step?.applied ? `${step.applied.episode}화 초안 끝에 이어 붙였어요.` : step?.approval === 'declined' ? '반영하지 않았어요. 장면은 대화에 남아 있어요.' : ''
-  const stoppedOrFailed = sim?.status === 'stopped' || sim?.status === 'failed'
 
   return {
     open, hide: () => setOpen(false), compose: () => setComposing(true),

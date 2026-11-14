@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 시뮬레이션 무대(#58): 공용 채팅 ViewModel + 무대 ViewModel + 무대 화면을 가짜 서버(턴마다 SSE를 흘리고 체크포인트를 갱신)와 함께 검증한다.
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
@@ -525,6 +525,35 @@ it('남긴 끼어들기는 보내기 전에 취소할 수 있다', async () => {
   expect(box().queryByText(/다음 턴에 반영할 끼어들기/)).toBeNull()
 })
 
+// 대화를 바꾸면 채팅의 threadId·이력만 바뀌고 집필실이 쥔 무대 상태는 남아, 대화 A의 끼어들기가 대화 B의 next에 실리던 문제.
+function SwitchHost() {
+  const chat = useWritingChatViewModel('w', BASIS, onApplied)
+  const stage = useSimulationStageViewModel(chat)
+  return <>
+    {chat.sessions?.map((s) => <button key={s.threadId} type="button" onClick={() => chat.select(s.threadId)}>{`대화 ${s.threadId}`}</button>)}
+    {stage.open && <SimulationStage stage={stage} workId="w" episode={3} planEpisode={4} plotLink={<a href="/plot">플롯 화면</a>} onClose={stage.hide} />}
+  </>
+}
+
+it('다른 대화를 열면 이전 대화에서 남긴 끼어들기를 버려 새 대화의 장면에 실리지 않는다', async () => {
+  const waitingScene = (...turns: SimulationTurn[]): ChatReply => ({ status: 'waiting', steps: [stepOf(scene(turns))], missingInputs: [], awaitingScene: 'character_simulation' })
+  sessions.mockResolvedValue([{ threadId: 'a', title: 'A', updatedAt: '' }, { threadId: 'b', title: 'B', updatedAt: '' }])
+  history.mockImplementation(async (_work: string, id: string) => ({ threadId: id, title: '', turns: [{ request: '시뮬레이션', reply: id === 'a' ? waitingScene(narrate(0)) : waitingScene(narrate(0), speak(1)) }] }))
+  serve((_input, emit) => { reviewAt(emit, scene([narrate(0), speak(1), speak(2, '리안', '"저예요."')], { status: 'completed' })) })
+  render(<Provider store={createAppStore()}><SwitchHost /></Provider>)
+  await waitFor(() => expect(lines()).toHaveLength(1))
+  consent()
+  fireEvent.change(box().getByRole('textbox', { name: /끼어들기/ }), { target: { value: 'A 대화의 지시' } })
+  fireEvent.click(box().getByRole('button', { name: '남기기' }))
+  expect(box().getByText(/다음 턴에 반영할 끼어들기/).textContent).toContain('A 대화의 지시')
+  fireEvent.click(screen.getByRole('button', { name: '대화 b' }))
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(box().queryByText(/다음 턴에 반영할 끼어들기/)).toBeNull()
+  fireEvent.click(box().getByRole('button', { name: '재생' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(resumes()[0]).toEqual({ approved: true, scene: { action: 'next' } })
+})
+
 // ── 장면 끝내기 ──
 it('멈춰 있을 때 장면 끝내기는 바로 stop을 보내고, 장면이 승인 대기로 넘어가면 원고에 반영을 묻는다', async () => {
   reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)]))], missingInputs: [], awaitingScene: 'character_simulation' })
@@ -628,6 +657,24 @@ it('수정 요청이 실패하면 입력을 그대로 두고 사유를 알린다
   await waitFor(() => expect(box().getByRole('alert').textContent).toContain('장면 대기 상태가 아니에요.'))
   expect((within(lines()[0]).getByRole('textbox') as HTMLTextAreaElement).value).toBe('"다른 말."')
   expect(within(lines()[0]).queryByText('작가 수정')).toBeNull()
+})
+
+it('줄 수정을 저장하는 동안에는 입력을 잠가, 그사이 친 글이 저장 뒤 입력과 함께 사라지지 않게 한다', async () => {
+  paused(narrate(0), speak(1))
+  const edited = { ...speak(1, '카엘', '"열어라, 지금."'), checks: [], evidence: [], editedByAuthor: true }
+  let release!: () => void
+  setup(async (_input, emit) => { await new Promise<void>((resolve) => { release = resolve }); pauseAt(emit, scene([narrate(0), edited])) })
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  consent()
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  const edit = () => within(lines()[1]).getByRole('textbox') as HTMLTextAreaElement
+  expect(edit().readOnly).toBe(false)
+  fireEvent.change(edit(), { target: { value: '"열어라, 지금."' } })
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정 저장' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(edit().readOnly).toBe(true)
+  await act(async () => { release() })
+  await waitFor(() => expect(within(lines()[1]).queryByRole('textbox')).toBeNull())
 })
 
 it('다시 말하기는 뒤에 지워질 줄이 있으면 확인을 거쳐 redo를 보낸다', async () => {
@@ -771,6 +818,39 @@ it('반영하지 않기는 승인 없이 답하고 반영하지 않았다고 알
   await waitFor(() => expect(box().getByText('반영하지 않았어요. 장면은 대화에 남아 있어요.')).toBeTruthy())
   expect(resumes()[0]).toEqual({ approved: false })
   expect(onApplied).not.toHaveBeenCalled()
+})
+
+// 고치는 줄의 새 글은 Turn의 draft에만 있어, 그 상태로 반영하면 서버의 옛 장면이 붙는데 화면에는 고친 입력이 남던 문제.
+it('승인 대기 장면에서 줄을 고치는 동안에는 원고 반영을 막고 이유를 알리며, 취소하면 다시 열어 준다', async () => {
+  review()
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  consent()
+  const approve = () => box().getByRole('button', { name: '원고에 반영' }) as HTMLButtonElement
+  expect(approve().disabled).toBe(false)
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  fireEvent.change(within(lines()[1]).getByRole('textbox'), { target: { value: '"고친 말."' } })
+  expect(approve().disabled).toBe(true)
+  expect(box().getByText('고치는 줄을 저장하거나 취소하면 원고에 반영할 수 있어요.')).toBeTruthy()
+  fireEvent.click(approve())
+  expect(send).not.toHaveBeenCalled()
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정 취소' }))
+  expect(approve().disabled).toBe(false)
+  expect(box().queryByText('고치는 줄을 저장하거나 취소하면 원고에 반영할 수 있어요.')).toBeNull()
+})
+
+it('고치던 줄이 다시 말하기로 지워져도 원고 반영 잠금이 풀린다(잠금이 남아 승인할 수 없게 되지 않는다)', async () => {
+  review()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  setup((_input, emit) => { reviewAt(emit, scene([narrate(0, '문이 다시 닫혔다.')], { status: 'completed' })) })
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  consent()
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  expect((box().getByRole('button', { name: '원고에 반영' }) as HTMLButtonElement).disabled).toBe(true)
+  fireEvent.click(within(lines()[0]).getByRole('button', { name: '다시 말하기' }))
+  await waitFor(() => expect(lines()).toHaveLength(1))
+  // 새 장면이 붙는 순간에는 요청이 아직 끝나지 않아 잠겨 있다. 끝난 뒤 잠금(고치던 줄 수)이 남아 있지 않아야 반영할 수 있다.
+  await waitFor(() => expect((box().getByRole('button', { name: '원고에 반영' }) as HTMLButtonElement).disabled).toBe(false))
 })
 
 it('승인 대기에서 장면 이어 가기는 남긴 끼어들기와 함께 next를 보내 장면을 다시 진행한다', async () => {
@@ -972,6 +1052,46 @@ it('턴 도중 오류는 사유를 알리고 저절로 다음 턴을 보내지 �
   expect(send).toHaveBeenCalledTimes(3)
   expect(box().queryByRole('alert')).toBeNull()
   expect(box().queryByText(/오류로 멈/)).toBeNull()
+})
+
+it('서버가 별도 오류 없이 멈춘(stopped) 장면을 턴 사이 대기로 돌려주면 저절로 다시 보내지 않고 재생을 눌러야 이어 간다', async () => {
+  const halted = scene([narrate(0), speak(1)], { status: 'stopped', stopReason: 'check_failed' })
+  setup(
+    (_input, emit) => { pauseAt(emit, scene([narrate(0)])) },
+    (_input, emit) => {
+      const steps = [stepOf(halted, { status: 'failed', error: '검사를 통과하지 못했어요.' })]
+      store.reply = { status: 'waiting', steps, missingInputs: [], awaitingScene: 'character_simulation' }
+      emit({ type: 'step', step: steps[0] })
+      emit({ type: 'waiting', steps, missingInputs: [], awaitingScene: 'character_simulation' })
+      emit({ type: 'done', reply: store.reply })
+    },
+    (_input, emit) => { reviewAt(emit, scene([narrate(0), speak(1)], { status: 'completed' })) })
+  await begin()
+  await waitFor(() => expect(box().getByText('멈춘 이유')).toBeTruthy())
+  await pause()
+  expect(send).toHaveBeenCalledTimes(2) // 같은 실패를 되풀이하는 세 번째 요청을 저절로 보내지 않는다.
+  fireEvent.click(box().getByRole('button', { name: '재생' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(3))
+  expect(resumes()[2]).toEqual({ approved: true, scene: { action: 'next' } })
+})
+
+// 이력을 다시 읽는 await 사이에 작품이 바뀌면, 이전 작품 요청의 뒷정리가 새 작품의 멈춘 장면을 저절로 재생하게 만들던 문제.
+it('이력을 읽는 사이 작품이 바뀌면 이전 작품 요청의 뒷정리가 새 작품의 장면 신호(sceneTicket)를 올리지 않는다', async () => {
+  const waitingScene = scene([narrate(0)])
+  let releaseHistory!: () => void
+  history.mockImplementationOnce(() => new Promise((resolve) => {
+    releaseHistory = () => resolve({ threadId: 'a', title: '', turns: [{ request: '시뮬레이션', reply: { status: 'waiting', steps: [stepOf(waitingScene)], missingInputs: [], awaitingScene: 'character_simulation' } }] })
+  }))
+  serve((_input, emit) => { pauseAt(emit, waitingScene) })
+  const { result, rerender } = renderHook(({ work }) => useWritingChatViewModel(work, BASIS), { initialProps: { work: 'w' } })
+  await waitFor(() => expect(result.current.sessions).not.toBeNull())
+  act(() => result.current.setConsent(true))
+  let sending!: Promise<boolean>
+  act(() => { sending = result.current.send(`IF 모드 시뮬레이션: ${PREMISE}`, { operation: 'character_simulation', simulation: { mode: 'if', premise: PREMISE, characterIds: ['c1'] } }) })
+  await waitFor(() => expect(history).toHaveBeenCalledTimes(1))
+  rerender({ work: 'w2' })
+  await act(async () => { releaseHistory(); await sending })
+  expect(result.current.sceneTicket).toBe(0)
 })
 
 it('작가가 멈춘 장면은 오류가 따로 있어도 일시정지로 알린다', async () => {

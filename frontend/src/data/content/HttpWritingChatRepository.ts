@@ -30,10 +30,26 @@ const simulation: z.ZodType<CharacterSimulation> = z.object({
 })
 const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 없어요.'
 
-const step: z.ZodType<ChatStep> = z.object({
-  feature: z.string(),
+const stepFields = {
   status: z.enum(['completed', 'failed', 'not_started']),
-  // 시뮬레이션 결과의 키는 통과시켜 아래 transform이 따로 검증한다(다른 단계는 이 모양만 받는다).
+  error: z.string().nullish(),
+  approval: z.enum(['approved', 'declined']).nullish(),
+  applied: z.object({ episode: z.number().int(), revision: z.number().int() }).nullish(),
+}
+// 시뮬레이션 단계는 결과가 객체가 아니어도(문자열·배열·숫자) 이 단계만 실패로 바꿔야 해서 결과를 transform이 따로 검증한다.
+// 결과를 객체로 먼저 검사하면 그 실패가 transform 앞에서 응답 전체의 형식 오류가 된다.
+const simulationStep = z.object({ feature: z.literal('character_simulation'), ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
+  const { result, ...rest } = raw
+  // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
+  if (!result && raw.status !== 'completed') return rest
+  const parsed = simulation.safeParse(result)
+  if (parsed.success) return { ...rest, simulation: parsed.data }
+  // 형식이 어긋나면 가짜 장면을 만들지 않고 일반 단계처럼 실패를 보인다. 서버가 이미 보낸 실패 사유는 지킨다.
+  return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || BAD_SIMULATION }
+})
+const step: z.ZodType<ChatStep> = z.union([simulationStep, z.object({
+  feature: z.string(),
+  ...stepFields,
   result: z.looseObject({
     claims: z.array(z.object({ text: z.string() })).optional(),
     gaps: z.array(z.string()).optional(),
@@ -42,18 +58,7 @@ const step: z.ZodType<ChatStep> = z.object({
     after: z.string().optional(),
     findings: z.array(z.object({ text: z.string(), verdict: z.string(), sourceUrls: z.array(z.string()) })).optional(),
   }).nullish(),
-  error: z.string().nullish(),
-  approval: z.enum(['approved', 'declined']).nullish(),
-  applied: z.object({ episode: z.number().int(), revision: z.number().int() }).nullish(),
-}).transform((raw): ChatStep => {
-  // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
-  if (raw.feature !== 'character_simulation' || (!raw.result && raw.status !== 'completed')) return raw
-  const { result, ...rest } = raw
-  const parsed = simulation.safeParse(result)
-  if (parsed.success) return { ...rest, simulation: parsed.data }
-  // 형식이 어긋나면 가짜 장면을 만들지 않고 일반 단계처럼 실패를 보인다. 서버가 이미 보낸 실패 사유는 지킨다.
-  return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || BAD_SIMULATION }
-})
+})])
 const reply: z.ZodType<ChatReply> = z.object({
   status: z.enum(['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']),
   message: z.string().nullish(),

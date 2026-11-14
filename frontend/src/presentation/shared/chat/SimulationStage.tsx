@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 
 import {
   beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, SIM_BEATS_MAX, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
@@ -116,7 +116,7 @@ function Checks({ turn }: { turn: SimulationTurn }) {
  * 대본 한 줄: 나레이션은 이탤릭·회색 지문 블록, 독백은 시점 인물 이름 + 속마음 표시의 이탤릭 블록, 인물은 이름 + 말풍선.
  * 줄마다 수정·다시 말하기가 있다(작가가 고친 줄은 검사 결과가 없다).
  */
-function Turn({ turn, stage, workId, episode, lockId }: { turn: SimulationTurn; stage: StageViewModel; workId: string; episode: number; lockId: string }) {
+function Turn({ turn, stage, workId, episode, lockId, track }: { turn: SimulationTurn; stage: StageViewModel; workId: string; episode: number; lockId: string; track: (delta: number) => void }) {
   const nameId = useId()
   // 고치는 중인 글(null이면 읽는 중). 입력이 닫히면(취소·Esc·저장) 사라지는 입력 대신 이 줄의 수정 버튼에 초점을 돌려준다.
   const [draft, setDraft] = useState<string | null>(null)
@@ -126,6 +126,9 @@ function Turn({ turn, stage, workId, episode, lockId }: { turn: SimulationTurn; 
     if (draft === null && backToButton.current) { backToButton.current = false; editButton.current?.focus() }
   })
   const close = () => { backToButton.current = true; setDraft(null) }
+  // 고치는 입력이 열려 있음을 장면에 알린다(원고 반영을 막으려고). 입력이 닫히거나 이 줄이 사라져도 풀린다.
+  const editing = draft !== null
+  useEffect(() => { if (!editing) return; track(1); return () => track(-1) }, [editing, track])
   const narration = turn.kind === 'narration'
   const monologue = turn.kind === 'monologue'
   const owner = monologue ? monologueOwner(turn, stage.names) : turn.characterName
@@ -141,7 +144,7 @@ function Turn({ turn, stage, workId, episode, lockId }: { turn: SimulationTurn; 
     {draft !== null
       ? <form className="stage-edit" aria-live="off" onSubmit={save}>
         <label className="sr-only" htmlFor={`${nameId}-edit`}>{narration ? '나레이션' : monologue ? `${owner} 속마음` : owner} 줄 고치기</label>
-        <textarea id={`${nameId}-edit`} rows={4} value={draft} maxLength={SCENE_TEXT_MAX} autoFocus
+        <textarea id={`${nameId}-edit`} rows={4} value={draft} maxLength={SCENE_TEXT_MAX} autoFocus readOnly={stage.pending}
           onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') close() }} />
         <div className="stage-edit-actions">
           <button type="submit" className="btn sm pri" disabled={!stage.canAct || !draft.trim() || draft.trim() === turn.prose.trim()}>수정 저장</button>
@@ -171,6 +174,10 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
     if (el && pinned.current) el.scrollTop = el.scrollHeight
   }, [stage.rows.length])
   const lockId = `${id}-lock`
+  const holdId = `${id}-hold`
+  // 열려 있는 줄 수정 입력 수. 고치는 줄의 새 글은 아직 서버 장면에 없어, 그 상태로 반영하면 화면과 다른 옛 장면이 붙는다.
+  const [editing, setEditing] = useState(0)
+  const track = useCallback((delta: number) => setEditing((n) => n + delta), [])
   return <>
     {sim.premise && <p className="stage-premise">{sim.premise}</p>}
     {!!sim.beats.length && <ol className="stage-beats" aria-label="흐름 비트">{sim.beats.map((beat) => <li key={beat.index} data-status={beat.status}>{beat.text}<span>{beatLabel[beat.status]}</span></li>)}</ol>}
@@ -182,7 +189,7 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
           ? <li key={`note-${i}`} className="stage-note"><b>작가 끼어들기</b> <span>{row.note.text}</span></li>
           : row.kind === 'pov'
             ? <li key={`pov-${i}`} className="stage-pov">{row.text}</li>
-            : <Turn key={`turn-${row.turn.index}`} turn={row.turn} stage={stage} workId={workId} episode={episode} lockId={lockId} />)}
+            : <Turn key={`turn-${row.turn.index}`} turn={row.turn} stage={stage} workId={workId} episode={episode} lockId={lockId} track={track} />)}
       </ol>
       {!stage.rows.length && <p className="chat-note">아직 만들어진 장면이 없어요.</p>}
     </div>
@@ -205,10 +212,11 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
       <p className="stage-review-title">이 장면을 {stage.target}에 반영할까요?</p>
       <p className="chat-note">승인하면 이 장면이 {stage.target} 뒤에 이어 붙어요. 이어 붙는 글은 약 {stage.approveChars.toLocaleString('ko-KR')}자예요. 반영하기 전에는 원고가 바뀌지 않고, 반영하지 않아도 장면은 대화에 남아요.</p>
       <div className="stage-review-actions">
-        <button type="button" className="btn pri" disabled={!stage.canAct} onClick={() => void stage.approve()}>원고에 반영</button>
+        <button type="button" className="btn pri" disabled={!stage.canAct || editing > 0} aria-describedby={editing > 0 ? holdId : undefined} onClick={() => void stage.approve()}>원고에 반영</button>
         <button type="button" className="btn" disabled={!stage.canAct} onClick={() => void stage.decline()}>반영하지 않기</button>
         <button type="button" className="btn" disabled={!stage.canAct} onClick={() => void stage.continueScene()}>장면 이어 가기</button>
       </div>
+      {editing > 0 && <p id={holdId} className="chat-note">고치는 줄을 저장하거나 취소하면 원고에 반영할 수 있어요.</p>}
       {stage.queued && <p className="chat-note">끼어들기는 장면 이어 가기에만 실려요.</p>}
     </section>}
     {stage.result && <p className="stage-result" role="status">{stage.result}</p>}

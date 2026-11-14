@@ -130,6 +130,9 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
     ['근거 출처가 계약에 없다', scene({ turns: [{ ...scene().turns[0], evidence: [{ ref: 'x', source: 'web' }] }] })],
     ['턴 목록이 배열이 아니다', scene({ turns: '카엘이 문을 열었다.' })],
     ['결과가 없다', null],
+    ['결과가 객체가 아니라 문자열이다', '장면이 끝났어요.'],
+    ['결과가 객체가 아니라 배열이다', [scene()]],
+    ['결과가 객체가 아니라 숫자다', 3],
   ])('형식이 어긋난 결과(%s)는 가짜 장면을 만들지 않고 일반 단계처럼 실패로 알린다', async (_name, result) => {
     const events = await run(stepEvent(simStep(result)), 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n')
     const step = events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
@@ -153,6 +156,23 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
   it('다른 단계의 결과 모양은 그대로 읽는다', async () => {
     const events = await run(stepEvent({ feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } }), 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n')
     expect(events[0]).toEqual({ type: 'step', step: { feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } } })
+  })
+
+  it('저장된 대화에서도 결과가 객체가 아닌 시뮬레이션 단계 하나만 실패로 읽고 같은 응답의 다른 단계와 승인 회차는 살린다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '대화', turns: [{ request: '시뮬레이션', reply: {
+      status: 'waiting', missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3,
+      steps: [{ feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } }, simStep('장면이 끝났어요.')],
+    } }] }))
+    const reply = (await new HttpWritingChatRepository(fetcher).history('w1', 't1')).turns[0].reply
+    expect(reply?.approvalEpisode).toBe(3)
+    expect(reply?.steps[0]).toMatchObject({ feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } })
+    expect(reply?.steps[1]).toMatchObject({ feature: 'character_simulation', status: 'failed', error: BAD })
+    expect(reply?.steps[1].simulation).toBeUndefined()
+  })
+
+  it('시뮬레이션이 아닌 단계의 결과가 객체가 아니면 이전처럼 그 이벤트를 형식 오류로 알리고 뒤 이벤트는 계속 읽는다', async () => {
+    const events = await run(stepEvent({ feature: 'story_context', status: 'completed', result: '문자열' }), 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n')
+    expect(events).toEqual([{ type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' }, expect.objectContaining({ type: 'done' })])
   })
 })
 

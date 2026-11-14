@@ -29,6 +29,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const active = useRef<AbortController | null>(null)
   const current = useRef<string | null>(null)
   const sessionsRequest = useRef<AbortController | null>(null)
+  // 작품(또는 UseCase)이 바뀔 때마다 오른다. 이전 작품의 요청이 뒤늦게 이 작품의 목록·장면 신호를 건드리지 못하게 한다.
+  const generation = useRef(0)
   current.current = threadId
 
   const refreshSessions = useCallback(async (pick = false) => {
@@ -62,7 +64,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   useEffect(() => {
     setSessions(null); setThreadId(null); setTurns([]); setLive(null); setPending(false); setError('')
     void refreshSessions(true)
-    return () => { sessionsRequest.current?.abort(); active.current?.abort(); active.current = null }
+    return () => { generation.current += 1; sessionsRequest.current?.abort(); active.current?.abort(); active.current = null }
   }, [refreshSessions])
 
   useEffect(() => { if (threadId && !active.current) void load(threadId) }, [threadId, load])
@@ -81,6 +83,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     if (!useCase || !workId || !basis || !consent) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
     const controller = new AbortController()
     active.current = controller
+    const owner = generation.current
     setPending(true); setError('')
     const resumed = 'resume' in input
     // 이어가기는 멈춘 턴의 계획을 그대로 이어 보여 준다(같은 턴이 두 번 보이지 않게 화면이 그 턴을 감춘다).
@@ -106,10 +109,13 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       if (active.current === controller) {
         active.current = null
         if (id) await load(id)
-        setLive(null); setPending(false)
-        void refreshSessions()
-        // 실패한 턴은 알리지 않는다: 무대가 저절로 다음 턴을 보내지 않고 작가가 다시 시도한다.
-        if (ok && sceneWaits) setSceneTicket((n) => n + 1)
+        // 이력을 읽는 사이 작품이 바뀌었으면 뒷정리는 새 작품의 상태를 건드리지 않는다(옛 요청이 sceneTicket을 올려 새 작품의 멈춘 장면이 저절로 재생되던 문제).
+        if (generation.current === owner) {
+          setLive(null); setPending(false)
+          void refreshSessions()
+          // 실패한 턴은 알리지 않는다: 무대가 저절로 다음 턴을 보내지 않고 작가가 다시 시도한다.
+          if (ok && sceneWaits) setSceneTicket((n) => n + 1)
+        }
       }
     }
     return ok

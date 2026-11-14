@@ -163,7 +163,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 ## 무대(Stage): 턴마다 멈추는 실행 (2026-11-14 사용자 결정)
 
 - 화면: 집필실 중앙의 무대 패널(모달 아님)이 장면을 실시간으로 보여 준다. 나레이션은 지문 블록, 독백은 시점 인물의 속마음 줄, 대사는 인물 말풍선이다. 채팅에는 "시뮬레이션 진행 중 · N턴" 한 줄과 무대 열기 링크만 남는다. 서버→화면은 기존 SSE, 화면→서버는 기존 resume 요청이다(새 WebSocket 없음).
-- 턴마다 멈춤: 에이전트가 한 턴을 쓰면 `interrupt({steps, awaitingScene: 'character_simulation'})`로 멈추고 장면은 에이전트 상태에 남는다. 화면은 자동 재생 중이면 `waiting`(awaitingScene)을 받자마자 `resume.scene={action:'next'}`를 보내고 일시정지면 보내지 않는다. 매 턴이 별도 HTTP 요청이고 각 요청의 SSE가 그 턴의 `step`(누적 결과)을 흘린다.
+- 턴마다 멈춤: 에이전트가 한 턴을 쓰면 `interrupt({steps, awaitingScene: 'character_simulation'})`로 멈추고 장면은 에이전트 상태에 남는다. 화면은 자동 재생 중이면 `waiting`(awaitingScene)을 받자마자 `resume.scene={action:'next'}`를 보내고 일시정지면 보내지 않는다. 장면이 멈춤(`stopped`)·실패(`failed`)면 별도 오류가 없어도 자동으로 보내지 않고, 작가가 줄을 고치거나 재생을 눌러야 `next`(재시도)를 보낸다. 매 턴이 별도 HTTP 요청이고 각 요청의 SSE가 그 턴의 `step`(누적 결과)을 흘린다.
 
 ### 장면 조작 `resume.scene`
 
