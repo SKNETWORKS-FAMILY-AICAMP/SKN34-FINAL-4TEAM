@@ -26,6 +26,7 @@ const simulation: z.ZodType<CharacterSimulation> = z.object({
   notes: z.array(z.object({ afterTurn: z.number().int(), text: z.string() })).default([]),
   status: z.enum(['running', 'paused', 'completed', 'stopped', 'failed']),
   stopReason: z.string().nullish(),
+  notice: z.string().nullish(),
 })
 const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 없어요.'
 

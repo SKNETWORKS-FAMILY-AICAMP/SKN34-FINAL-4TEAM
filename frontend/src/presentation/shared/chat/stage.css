@@ -27,6 +27,8 @@
 .stage-reason { color: var(--danger); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
 
 /* 장면: 전제·비트 → 대본 → 조작 */
+/* 서버 안내(원고 발췌를 쓰지 못했다는 등): 대본 위의 옅은 한 줄 */
+.stage-notice { padding: 6px 12px; border-radius: 8px; background: color-mix(in srgb, var(--tfg) 6%, var(--tbg)); line-height: 1.55; overflow-wrap: anywhere; }
 .stage-premise { font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
 .stage-beats { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.5; }
 .stage-beats li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }

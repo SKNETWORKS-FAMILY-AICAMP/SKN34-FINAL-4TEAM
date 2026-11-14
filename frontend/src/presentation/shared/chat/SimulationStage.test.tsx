@@ -807,6 +807,42 @@ it('실행이 이어 갈 수 없게 멈춤으로 끝나면 줄 행동 없이 채
   expect(box().getByRole('button', { name: '새 시뮬레이션' })).toBeTruthy()
 })
 
+// ── 안내(notice): 원고 발췌를 쓰지 못해 세계관 설정만으로 만들었을 때 등 서버가 장면에 붙이는 한 줄 ──
+const NOTICE = '원고 발췌를 검색하지 못해 세계관 설정만으로 만들었어요.'
+it('장면에 안내(notice)가 있으면 대본 위에 role=status 한 줄로 보인다', async () => {
+  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { notice: NOTICE }))], missingInputs: [], awaitingScene: 'character_simulation' })
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  const note = box().getByText(NOTICE)
+  expect(note.getAttribute('role')).toBe('status')
+  expect(note.classList.contains('stage-notice')).toBe(true)
+  const script = box().getByRole('list', { name: '장면 대본' }).parentElement as HTMLElement
+  expect(note.compareDocumentPosition(script) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 안내가 대본보다 앞(위)이다.
+  expect(box().getAllByText(NOTICE)).toHaveLength(1)
+})
+
+it.each([[null], [undefined], ['']])('안내(notice)가 %s이면 안내 줄을 두지 않는다', async (notice) => {
+  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { notice }))], missingInputs: [], awaitingScene: 'character_simulation' })
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(stage().querySelector('.stage-notice')).toBeNull()
+})
+
+it('진행 중 누적 결과로 안내가 생기면 곧바로 보이고, 이후 결과에서 사라지면 함께 사라진다', async () => {
+  let second!: () => void
+  setup(
+    (_input, emit) => { pauseAt(emit, scene([narrate(0)], { notice: NOTICE })) },
+    async (_input, emit) => { await new Promise<void>((resolve) => { second = resolve }); pauseAt(emit, scene([narrate(0), speak(1)], { notice: null })) },
+    () => {})
+  await begin()
+  await waitFor(() => expect(box().getByText(NOTICE)).toBeTruthy())
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  await act(async () => { second() })
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(box().queryByText(NOTICE)).toBeNull()
+  serve()
+})
+
 // ── 멈춘 이유: 서버는 stopReason에 코드값을, 사람이 읽을 문장은 단계 error에 준다 ──
 const stoppedScene = (stopReason: string | null) => reload({
   status: 'waiting', missingInputs: [], awaitingScene: 'character_simulation',
