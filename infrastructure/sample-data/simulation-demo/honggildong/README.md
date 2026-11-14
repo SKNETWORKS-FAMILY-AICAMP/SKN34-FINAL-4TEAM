@@ -74,12 +74,14 @@
 # 로컬 스택이 떠 있을 때(공개 진입점 기본 http://localhost). 계정은 개발 작가(writer@example.test)다.
 # 공개 개발 비밀번호는 backend/core-api/.../auth/V4__sample_member.sql 주석에 있다.
 export STORYFORK_SEED_PASSWORD='<개발 작가 비밀번호>'
-python3 infrastructure/sample-data/simulation-demo/seed.py honggildong [--base-url http://localhost]
+python3 infrastructure/sample-data/simulation-demo/seed.py honggildong
+# 공개 진입점 주소를 직접 줄 때
+python3 infrastructure/sample-data/simulation-demo/seed.py honggildong --base-url http://localhost
 ```
 
 새 작품 「홍길동전 (현대어 시연본)」은 개발 작가 계정 소유로 만들어지고 10화가 모두 발행되며, 분기 정책(Fork·분기 공개)을 허용으로 켠다. 흑길동전은 이 작품을 먼저 적재한 뒤 적재한다.
 
-자세한 순서와 멱등·재개 규칙은 [상위 README](../README.md#적재)와 같다. 초안만 저장하고 확정 버전·공개는 하지 않는다.
+자세한 순서와 멱등·재개 규칙은 [상위 README](../README.md#적재)와 같다. 원고 10화는 저장·발행하고 세계관은 초안만 저장한다(확정 버전·세계관 공개는 하지 않는다).
 
 ## 확인과 한계
 

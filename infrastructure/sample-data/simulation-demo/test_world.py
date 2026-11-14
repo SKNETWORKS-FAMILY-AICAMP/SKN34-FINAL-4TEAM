@@ -948,6 +948,31 @@ class NewWorkSeedTest(unittest.TestCase):
         self.assertIn(OTHER_WORLD, str(caught.exception))
         self.assertEqual(before, len(self.fake.worlds))
 
+    def test_a_work_linked_to_another_world_is_refused_before_its_manuscript_changes(self):
+        self.seed(self.original)
+        (work,) = self.works("원작")
+        work["worldStudioId"] = OTHER_WORLD
+        (self.original / "episodes" / "02.md").write_text("2화 제목\n\n고쳐 쓴 둘째 날.\n", encoding="utf-8")
+        before = len(self.fake.calls)
+        with self.assertRaises(seed.SeedError) as caught:
+            self.seed(self.original)
+        self.assertIn(OTHER_WORLD, str(caught.exception))
+        self.assertEqual([], self.writes_since(before))  # 연결을 확인하기 전에 발행하면 실패해도 공개 원고가 바뀐다
+
+    def test_a_fork_of_the_same_source_with_another_title_or_base_episode_is_not_reused(self):
+        for title, episode in (("남의 갈래", 1), ("갈래", 2)):  # 제목이 다른 분기, 기준 회차가 다른 분기
+            with self.subTest(title=title, episode=episode):
+                fake = FakeStack()
+                self.seed(self.original, fake)
+                (source,) = self.works("원작", fake)
+                status, other = fake.call("POST", f"/api/v1/works/{source['id']}/forks", {"episode": episode, "title": title, "summary": "", "direction": ""})
+                self.assertEqual(201, status)
+                before = len(fake.calls)
+                with self.assertRaises(seed.SeedError):
+                    self.seed(self.fork, fake)
+                self.assertEqual([], [c for c in fake.calls[before:] if "/episodes" in c[1] or "world-studio" in c[1]])  # 남의 분기에 원고를 쓰거나 세계관을 잇지 않는다
+                self.assertEqual([other["id"]], [w["id"] for w in fake.works.values() if w["source"]])
+
     def test_an_episode_gap_is_refused(self):
         gap = write_dataset(self.root, "gap", "빈틈", {1: "첫째 날.", 3: "셋째 날."}, creationType="ORIGINAL", genres=["고전"])
         with self.assertRaises(seed.SeedError) as caught:

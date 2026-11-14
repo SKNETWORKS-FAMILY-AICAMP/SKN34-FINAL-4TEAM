@@ -147,8 +147,16 @@ def _publish_episodes(call, work, base, log):
         log(f"{number}화 발행")
 
 
-def _ensure_work(call, spec, base, log):
-    """제목으로 내 작품을 찾고 없으면 만든다(Fork는 원작의 기준 회차에서 갈라진다). 원고를 발행하고 작품 id를 돌려준다."""
+def _check_link(row, wid):
+    """작품에 이미 다른 세계관이 연결돼 있으면 덮어쓰지 않고 멈춘다."""
+    linked = row.get("worldStudioId")
+    if linked and linked != wid:
+        raise SeedError(f"작품에 이미 다른 세계관({linked})이 연결돼 있어 덮어쓰지 않아요. "
+                        "그 연결을 직접 해제하거나 그 세계관을 그대로 쓰세요.")
+
+
+def _ensure_work(call, spec, base, log, wid):
+    """제목으로 내 작품을 찾고 없으면 만든다(Fork는 원작의 기준 회차에서 갈라진다). 연결을 확인한 뒤 원고를 발행하고 작품 id를 돌려준다."""
     works = _ok(call("GET", "/api/v1/works"), "작품 목록")
     fork = spec.get("fork")
     if fork:
@@ -156,13 +164,15 @@ def _ensure_work(call, spec, base, log):
         source = next((w for w in works if w["title"] == source_title and not w.get("source")), None)
         if source is None:
             raise SeedError(f"원작 「{source_title}」이(가) 아직 없어요. 먼저 {fork['sourceDir']}의 원작 데이터셋을 적재하세요.")
-        mine = next((w for w in works if (w.get("source") or {}).get("workId") == source["id"]), None) or _ok(
+        mine = next((w for w in works if (w.get("source") or {}).get("workId") == source["id"] and w["title"] == spec["title"]
+                     and w["source"].get("episode") == fork["episode"]), None) or _ok(
             call("POST", f"/api/v1/works/{source['id']}/forks", {"episode": fork["episode"], "title": spec["title"],
                                                                 "summary": spec.get("summary", ""), "direction": fork.get("direction", "")}), "Fork 생성")
     else:
         mine = next((w for w in works if w["title"] == spec["title"] and not w.get("source")), None) or _ok(
             call("POST", "/api/v1/works", {"title": spec["title"], "summary": spec.get("summary", ""), "creationType": spec["creationType"],
                                            "genres": spec["genres"], "hashtags": spec.get("hashtags", []), "rightsConfirmed": True}), "작품 생성")
+    _check_link(mine, wid)  # 어긋나면 실패해도 공개 원고가 바뀌지 않게 발행보다 먼저 본다
     _publish_episodes(call, mine["id"], base, log)
     if spec.get("allowFork"):  # Fork를 만들려면 원작이 분기를 허용해야 한다
         row = _ok(call("GET", f"/api/v1/works/{mine['id']}"), "작품 조회")
@@ -213,12 +223,10 @@ def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
         if owner and row.get("ownerId") != owner:
             raise SeedError(f"이 계정은 {spec['slug']} 작품의 소유자가 아니에요. 개발 작가({EMAIL})로 실행하세요.")
     else:
-        work = _ensure_work(call, spec, base, log)
+        work = _ensure_work(call, spec, base, log, wid)
         row = _ok(call("GET", f"/api/v1/works/{work}"), "작품 조회")
+    _check_link(row, wid)
     linked = row.get("worldStudioId")
-    if linked and linked != wid:
-        raise SeedError(f"작품에 이미 다른 세계관({linked})이 연결돼 있어 덮어쓰지 않아요. "
-                        "그 연결을 직접 해제하거나 그 세계관을 그대로 쓰세요.")
     _ok(call("POST", "/api/v1/world-studios", {"id": wid, "name": name, "description": description}), "세계관 생성")
     scope = scope_of(world)
     cards = [card_payload(card, scope) for card in world["cards"]]

@@ -143,20 +143,22 @@
 # 로컬 스택이 떠 있을 때(공개 진입점 기본 http://localhost). 계정은 starlight 소유자인 개발 작가(writer@example.test)로 고정이다.
 # 공개 개발 비밀번호는 backend/core-api/.../auth/V4__sample_member.sql 주석에 있다.
 export STORYFORK_SEED_PASSWORD='<개발 작가 비밀번호>'
-python3 infrastructure/sample-data/simulation-demo/seed.py [데이터셋 디렉터리] [--base-url http://localhost]
-# 예: seed.py guunmong · seed.py honggildong 다음 seed.py heukgildong-fork (Fork는 원작을 먼저 적재해야 한다)
+python3 infrastructure/sample-data/simulation-demo/seed.py                       # 데이터셋 디렉터리를 생략하면 이 디렉터리의 별빛 서약의 탑
+python3 infrastructure/sample-data/simulation-demo/seed.py guunmong              # 하위 데이터셋은 디렉터리 이름을 준다
+python3 infrastructure/sample-data/simulation-demo/seed.py guunmong --base-url http://localhost   # 공개 진입점 주소를 직접 줄 때
+# 홍길동전을 먼저 적재한 뒤 seed.py heukgildong-fork (Fork는 원작을 먼저 적재해야 한다)
 ```
 
 - 하위 디렉터리의 데이터셋은 새 작품이다. 같은 제목의 작품이 개발 작가 계정에 있으면 그 작품을 쓰고, 없으면 `POST /api/v1/works`로 만든 뒤 원고를 회차 순서로 저장·발행한다(`episodes/NN.md`: 첫 줄 제목, 나머지 본문). 원작은 분기 정책(`PUT /works/{id}/policy`)도 허용으로 켠다.
-  Fork는 `POST /api/v1/works/{원작}/forks`(기준 회차·제목·소개·전개 방향)로 만들고 자기 회차만 저장·발행한다. 그다음 아래 세계관 적재와 작품 연결은 별빛과 같다.
+  Fork는 `POST /api/v1/works/{원작}/forks`(기준 회차·제목·소개·전개 방향)로 만들고 자기 회차만 저장·발행한다. 다시 실행하면 제목과 기준 회차가 같은 분기를 쓴다(다른 분기에는 쓰지 않는다). 그다음 아래 세계관 적재와 작품 연결은 별빛과 같다.
 
 - 순서: Core 로그인 → 작품 소유·연결 확인 → `POST /api/v1/world-studios`(고정 id) → 회차 오름차순(1·2·3·5화)으로 `PUT /api/v1/world-studios/{id}/draft`(카드는 첫 저장, 관계는 회차별 `episode`, 그 회차에 새로 생기거나 바뀐 것만) → `PUT /api/v1/works/{workId}/world-studio` → (`plans.json`이 있으면) `POST /api/v1/works/{workId}/story-plans`로 플롯 1개와 장면([장면 계획과 나레이터 카드](#장면-계획과-나레이터-카드-흐름-모드-시연)).
 - 다시 실행해도 중복이 없다. 회차마다 그 시점의 초안을 읽어 같은 값이면 저장을 건너뛰고, 저장 key는 보내는 입력에서 정하므로 같은 입력이면 같은 key다. 중간에 실패하면 다시 실행해 이어 간다.
-- 작품에 이미 **다른 세계관**이 연결돼 있으면 덮어쓰지 않고 그 id를 알린 뒤 실패한다(연결을 직접 해제하거나 그 세계관을 쓴다). 소유자가 아닌 계정, 같은 id의 세계관을 다른 이름으로 이미 만든 경우도 이유를 알리고 실패한다.
+- 작품에 이미 **다른 세계관**이 연결돼 있으면 덮어쓰지 않고 그 id를 알린 뒤 실패한다(연결을 직접 해제하거나 그 세계관을 쓴다). 원고를 저장·발행하기 전에 확인하므로 실패해도 공개 원고는 바뀌지 않는다. 소유자가 아닌 계정, 같은 id의 세계관을 다른 이름으로 이미 만든 경우도 이유를 알리고 실패한다.
 - 비밀번호는 환경변수(`STORYFORK_SEED_PASSWORD`) 또는 `--password`로 받고 출력하지 않는다. 오류 메시지에는 상태 코드와 서버가 준 `detail`만 담는다.
 - 끝에 회차별 관계 수를 출력하고 1화와 2화가 같으면 실패로 끝낸다. 직접 보려면 `GET /api/v1/world-studios/e29824ed-c503-55a7-ac48-721c125f1299?episode=N`(작가 토큰, MCP `world_studio_read`와 같다)의 `relationships` 길이가 표와 같아야 한다.
-- 초안만 저장한다. 확정 버전(`/revisions`)과 세계관 공개는 하지 않으므로 독자 설정 위키·공개 세계관에는 나오지 않는다. AI가 `world_studio_read`로 읽는 것은 이 초안이다.
-- 적재는 upsert다. world.json에서 카드·관계를 지워도 서버에서는 지워지지 않는다(화면의 설정 삭제를 쓰거나 새 세계관 id로 다시 만든다).
+- 세계관은 초안만 저장한다. 확정 버전(`/revisions`)과 세계관 공개는 하지 않으므로 독자 설정 위키·공개 세계관에는 나오지 않는다. AI가 `world_studio_read`로 읽는 것은 이 초안이다.
+- 적재는 upsert다. world.json에서 카드·관계를 지워도 서버에서는 지워지지 않는다(화면의 설정 삭제를 쓰거나 아래 복구 안내대로 다시 만든다).
 
 ## 확인과 한계
 
@@ -171,6 +173,6 @@ python3 -m unittest infrastructure/sample-data/simulation-demo/test_world.py   #
   ① 화면의 읽기 경로(zod 스키마와 `world()` 일관성 검사)를 옮겨 회차 1~5의 응답이 모두 파싱되고 인물 문서가 버려지지 않는 것, ② `seed.py`의 HTTP 클라이언트가 쿠키 CSRF·Bearer 규칙을 흉내 낸 임시 서버에서 끝까지(재실행 포함) 도는 것,
   ③ `feat/58-novelbrain`의 `world_snapshot`·`recall`에 이 세계관을 넣어 위 정답표대로 나오는 것(카엘 1화엔 2화 기억이 없고 2화엔 있다, 카엘은 2화에 속삭임 문단을 못 보고 리안은 본다, 리안은 4화까지 비밀 사건·카엘 MEMORY·5화 기억이 없고 5화엔 있다,
   세라핀은 3화에 서고 사건을 모르고 gap으로 남는다, 필터가 없는 0~2단계에서는 같은 질문에 비밀이 샌다).
-- 서버가 저장 도중 멈춰 세계관이 관계 저장 미완료(`incomplete`)가 되면 조회가 503이라 스크립트가 이어 가지 못한다. 로컬 개발 DB라면 world.json의 세계관 id를 바꿔 다시 적재한다.
+- 서버가 저장 도중 멈춰 세계관이 관계 저장 미완료(`incomplete`)가 되면 조회가 503이라 스크립트가 이어 가지 못한다. 로컬 개발 DB라면 하위 데이터셋(구운몽·홍길동전·흑길동전)은 world.json의 세계관 id를 바꿔 다시 적재한다(카드·관계 id가 세계관 id에서 만들어져 새로 생기고, 작품에 이전 세계관이 연결돼 있으면 먼저 `PUT /api/v1/works/{id}/world-studio`에 `worldId: null`로 해제한다). 별빛은 카드·관계 id가 세계관 id와 무관해 id만 바꾸면 이미 저장된 같은 id와 충돌하므로 로컬 DB를 새로 만든다.
 - 5화 관계는 서버 API로는 읽히지만 작품 회차(1~3화)에 없는 회차다. 화면의 '관계 기준 회차' 선택에서 고를 수 있는지는 확인하지 않았다.
 - 고정 입력이므로 인물 문서·관계를 고치면 이 README의 정답표와 `test_world.py`의 기대(회차별 관계 수 증가 등)를 함께 맞춘다.

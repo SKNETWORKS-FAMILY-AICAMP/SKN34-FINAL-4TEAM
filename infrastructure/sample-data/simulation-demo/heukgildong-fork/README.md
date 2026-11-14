@@ -69,12 +69,14 @@ Fork 자신의 원고는 **2~4화 3편**(회당 3,132~3,503자, 합계 10,072자
 # 로컬 스택이 떠 있을 때(공개 진입점 기본 http://localhost). 계정은 개발 작가(writer@example.test)다.
 # 공개 개발 비밀번호는 backend/core-api/.../auth/V4__sample_member.sql 주석에 있다.
 export STORYFORK_SEED_PASSWORD='<개발 작가 비밀번호>'
-python3 infrastructure/sample-data/simulation-demo/seed.py heukgildong-fork [--base-url http://localhost]
+python3 infrastructure/sample-data/simulation-demo/seed.py heukgildong-fork
+# 공개 진입점 주소를 직접 줄 때
+python3 infrastructure/sample-data/simulation-demo/seed.py heukgildong-fork --base-url http://localhost
 ```
 
-먼저 `seed.py honggildong`으로 원작을 적재해야 한다(없으면 이유를 알리고 멈춘다). Fork 작품은 `POST /api/v1/works/{원작}/forks`로 만들어 1화를 물려받고 자기 2~4화만 저장·발행한다. 같은 소유자가 같은 작품을 두 번 분기할 수 없어 다시 실행하면 만든 분기를 찾아 쓴다.
+먼저 `seed.py honggildong`으로 원작을 적재해야 한다(없으면 이유를 알리고 멈춘다). Fork 작품은 `POST /api/v1/works/{원작}/forks`로 만들어 1화를 물려받고 자기 2~4화만 저장·발행한다. 다시 실행하면 제목과 기준 회차가 같은 분기를 찾아 쓴다. 같은 소유자가 같은 작품을 두 번 분기할 수 없어, 제목이나 기준 회차가 다른 분기가 이미 있으면 서버가 거절해 멈춘다(남의 분기에 원고를 쓰지 않는다).
 
-자세한 순서와 멱등·재개 규칙은 [상위 README](../README.md#적재)와 같다. 초안만 저장하고 확정 버전·공개는 하지 않는다.
+자세한 순서와 멱등·재개 규칙은 [상위 README](../README.md#적재)와 같다. 원고 2~4화는 저장·발행하고 세계관은 초안만 저장한다(확정 버전·세계관 공개는 하지 않는다).
 
 ## 확인과 한계
 
