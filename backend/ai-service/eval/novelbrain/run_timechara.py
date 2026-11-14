@@ -11,7 +11,6 @@
 
 import ast
 import json
-import math
 import re
 import sys
 from collections import Counter
@@ -22,7 +21,7 @@ from app.manuscript.models import Excerpt
 from app.novelbrain.service import _documents, bm25_rank, recall
 from embed import best_window, embed_texts, knn
 from llm import CAP, Ledger, Llm, LlmFailure
-from metrics import parse_score, spatiotemporal_score, wilson_interval
+from metrics import parse_score, sign_test, spatiotemporal_score, wilson_interval
 from prepare import DATA, SEED
 from timechara import (SERIES, TYPES, build_world, chapter_tuple, common_names, cutoff, judge_name, load_chunks, ordinal_map,
                        parse_tables, sample_by_type, snapshot, system_prompt)
@@ -109,18 +108,13 @@ def summarize(records: list[dict]) -> dict:
 
 
 def paired(records: list[dict], a: str, b: str) -> dict:
-    """같은 질문에서 두 구성의 시공간 점수를 짝지어 센다: a만 맞음·b만 맞음, 어긋난 쌍에 대한 정확 부호 검정(양쪽) p값.
+    """같은 질문에서 두 구성의 시공간 점수를 짝지어 센다: a만 맞음·b만 맞음과 정확 부호 검정(양측) p.
     표본이 작아 구간이 겹치므로 '단계가 올랐다'는 말은 이 짝 비교로만 한다. 한쪽이 실패(None)한 질문은 뺀다."""
     score = {(r['idx'], r['config']): r['score'] for r in records}
-    only_a = only_b = 0
-    for idx in {r['idx'] for r in records}:
-        x, y = score.get((idx, a)), score.get((idx, b))
-        if x is not None and y is not None:
-            only_a += x == 1 and y == 0
-            only_b += x == 0 and y == 1
-    n = only_a + only_b
-    p = min(1.0, 2 * sum(math.comb(n, i) for i in range(min(only_a, only_b) + 1)) / 2 ** n) if n else 1.0
-    return {'a_only': only_a, 'b_only': only_b, 'p': p}
+    both = [(score[idx, a], score[idx, b]) for idx in sorted({r['idx'] for r in records})
+            if score.get((idx, a)) is not None and score.get((idx, b)) is not None]
+    out = sign_test([x for x, _ in both], [y for _, y in both])
+    return {'a_only': out['up'], 'b_only': out['down'], 'p': out['p']}
 
 
 PAIRS = (('s3', 's2'), ('s3', 'zero'), ('s3', 'ppr'), ('s2', 's1'), ('s1', 'ppr'), ('ppr', 'zero'), ('s2', 'vector'), ('s2', 'bm25'))

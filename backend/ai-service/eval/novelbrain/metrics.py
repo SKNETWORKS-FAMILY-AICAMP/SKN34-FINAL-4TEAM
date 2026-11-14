@@ -86,3 +86,13 @@ def wilson_interval(successes: int, n: int, z: float = 1.96) -> tuple[float, flo
     center = (p + z * z / (2 * n)) / denom
     margin = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
     return max(0.0, center - margin), min(1.0, center + margin)
+
+
+def sign_test(a: list[float], b: list[float]) -> dict:
+    """같은 질문에서 두 구성의 점수를 짝지어 센다: a가 높은 질문 수(up)·낮은 질문 수(down)와 정확 부호 검정(양측) p.
+    같은 점수의 질문은 검정에서 뺀다. 표본이 작아 평균 차이만으로는 '올랐다'고 말할 수 없어서 쓴다."""
+    up = sum(x > y for x, y in zip(a, b, strict=True))
+    down = sum(x < y for x, y in zip(a, b, strict=True))
+    n = up + down
+    p = min(1.0, 2 * sum(math.comb(n, i) for i in range(min(up, down) + 1)) / 2 ** n) if n else 1.0
+    return {'up': up, 'down': down, 'p': p}

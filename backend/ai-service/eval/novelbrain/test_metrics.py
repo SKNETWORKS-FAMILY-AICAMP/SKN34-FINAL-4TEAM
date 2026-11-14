@@ -10,6 +10,7 @@ from metrics import (
     parse_score,
     precision_at_k,
     recall_at_k,
+    sign_test,
     spatiotemporal_score,
     wilson_interval,
 )
@@ -96,3 +97,12 @@ def test_wilson_interval_matches_reference_value():
     assert wilson_interval(0, 0) == (0.0, 0.0)
     lo, hi = wilson_interval(10, 10)
     assert hi == pytest.approx(1.0) and lo < 1.0
+
+
+def test_sign_test_counts_improved_and_worsened_questions_with_exact_p():
+    assert sign_test([1, 1, 0, 0], [0, 1, 1, 0]) == {'up': 1, 'down': 1, 'p': 1.0}
+    out = sign_test([1.0] * 9, [0.0] * 8 + [1.0])        # 같은 점수(마지막 질문)는 센 뒤 뺀다
+    assert (out['up'], out['down']) == (8, 0) and out['p'] == pytest.approx(2 / 2 ** 8)
+    assert sign_test([0.5, 0.5], [0.5, 0.5]) == {'up': 0, 'down': 0, 'p': 1.0}
+    with pytest.raises(ValueError):
+        sign_test([1.0], [1.0, 0.0])

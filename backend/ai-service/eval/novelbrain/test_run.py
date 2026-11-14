@@ -2,7 +2,7 @@
 
 import pytest
 
-from run import aggregate, passage_ranking, reader_input, score_answers, text_world
+from run import aggregate, compare, leave_one_out, passage_ranking, reader_input, score_answers, text_world
 
 
 def test_passage_ranking_maps_cards_excerpts_and_relations_to_passages_in_order():
@@ -66,3 +66,19 @@ def test_score_answers_reports_em_f1_by_hops_and_counts_failures():
     assert result['n'] == 2 and result['failed'] == 1
     assert result['em'] == 0.5 and result['f1'] == (1.0 + 0.8) / 2
     assert result['by_hops'][2]['em'] == 1.0 and result['by_hops'][3]['f1'] == 0.8
+
+
+def test_leave_one_out_fuses_the_remaining_rankings_with_rrf():
+    graph, vector, bm25 = ['g1', 'shared'], ['v1', 'shared'], ['b1', 'shared']
+    loo = leave_one_out(graph, vector, bm25)
+    assert loo['full'][0] == 'shared' and loo['no_graph'][0] == 'shared'      # 세 목록(또는 남은 두 목록)에 든 ref가 먼저
+    assert 'g1' not in loo['no_graph'] and 'v1' not in loo['no_vector'] and 'b1' not in loo['no_bm25']
+    assert set(loo['full']) == {'g1', 'v1', 'b1', 'shared'}
+
+
+def test_compare_runs_the_sign_test_per_pair_and_per_group():
+    scores = {'a': [1.0, 1.0, 0.5, 0.0], 'b': [0.0, 1.0, 0.0, 0.0]}
+    out = compare(scores, [('a', 'b')], groups=[2, 2, 3, 3])
+    assert out['all']['a|b'] == {'up': 2, 'down': 0, 'p': 0.5}
+    assert out['by_group'][2]['a|b']['up'] == 1 and out['by_group'][3]['a|b'] == {'up': 1, 'down': 0, 'p': 1.0}
+    assert compare(scores, [('a', 'b')])['by_group'] == {}

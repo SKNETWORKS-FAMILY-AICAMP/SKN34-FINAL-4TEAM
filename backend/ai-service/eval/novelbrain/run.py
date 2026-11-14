@@ -5,7 +5,8 @@
     set -a; . <저장소 루트 .env>; set +a                                           # 아래부터 OpenAI 호출
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run.py answers musique [gold none]   # 답 정확도(EM·F1)
 
-구성 이름: ppr(그래프만=0단계) · vector(벡터만) · bm25(BM25만) · s1(0+1) · s2(0+1+2) · s3(0+1+2+3, 인물·회차가 있는 데이터만).
+구성 이름: ppr(그래프만=0단계) · vector(벡터만) · bm25(BM25만) · s1(0+1) · s2(0+1+2) · s3(0+1+2+3, 인물·회차가 있는 데이터만),
+하나씩 빼기: no_graph(벡터+BM25) · no_vector(그래프+BM25) · no_bm25(=s1). 같은 질문의 Recall@5로 짝 부호 검정(`paired`)을 함께 낸다.
 집계 수치는 `results/*.json`, 질문별 순위·응답 원본은 `.data/runs`(git 무시)에 둔다.
 """
 
@@ -16,20 +17,50 @@ from pathlib import Path
 from statistics import mean, stdev
 
 from app.manuscript.models import Excerpt
-from app.novelbrain.models import Card, Relation, WorldSnapshot
-from app.novelbrain.service import _documents, bm25_rank, recall  # ponytail: BM25-only 구성이 2단계와 같은 문서를 쓰도록 비공개 헬퍼를 가져온다
+from app.novelbrain.models import Card, RecallItem, Relation, WorldSnapshot
+from app.novelbrain.service import _documents, bm25_rank, filter_for_character, recall, rrf  # ponytail: BM25-only 구성이 2단계와 같은 문서를 쓰도록 비공개 헬퍼를 가져온다
 from embed import best_window, cached_embeddings, embed_texts, knn
 from llm import CAP, Ledger, Llm, LlmFailure
-from metrics import answer_f1, dedupe, exact_match, precision_at_k, recall_at_k
+from metrics import answer_f1, dedupe, exact_match, precision_at_k, recall_at_k, sign_test
 from prepare import DATA
 
 K = 5            # 지표의 상위 k
 EXCERPTS = 10    # 벡터 검색이 recall에 넘기는 발췌 수
-BIG = 1000       # recall이 k개로 자르기 전에 문단 순위를 만들 수 있게 넉넉히
+BIG = 10 ** 6    # recall이 순위를 자르지 않게(그래프 목록은 수천 개라 자르면 하나씩 빼기의 합산이 recall과 어긋난다)
 MIN_NAME = 3     # seed_cards는 제목을 부분 문자열로 찾아 한두 글자 개체가 엉뚱한 낱말에서 일치하므로 세계관에서 뺀다
 RESULTS = Path(__file__).resolve().parent / 'results'
+# 짝 부호 검정에 쓰는 구성 쌍(앞이 뒤보다 나은 질문 수 : 못한 질문 수)
+RETRIEVAL_PAIRS = (('s1', 'ppr'), ('s1', 'vector'), ('s2', 's1'), ('s2', 'vector'), ('s2', 'bm25'), ('s2', 'ppr'),
+                   ('s2', 'no_graph'), ('s2', 'no_vector'), ('vector', 'ppr'))
+ANSWER_PAIRS = (('ppr', 'vector'), ('ppr', 's2'), ('ppr', 'bm25'), ('s2', 'vector'), ('s2', 'none'), ('vector', 'none'), ('gold', 's2'))
 READER = ('Answer the question using only the passages. Reply with the shortest possible answer (a name, a date, a number or a short phrase) '
           'and nothing else. If the passages do not contain the answer, give your best guess from them.')
+
+
+def fuse(lists: list[list[str]]) -> list[str]:
+    """ref 순위 목록들을 RRF로 합친 ref 목록. recall이 1단계 이상에서 하는 합산과 같은 `rrf`다."""
+    return [ref for ref, _ in rrf(lists)]
+
+
+def filtered(refs: list[str], texts: dict[str, str], world: WorldSnapshot, character_id: str, episode: int) -> list[str]:
+    """합친 ref 목록에 인물 시점 필터만 건다(recall 3단계의 필터 부분). 필터는 ref와 발췌 본문(texts)만 읽는다."""
+    items = [RecallItem(ref=ref, source='graph', text=texts.get(ref, ''), rank=n, score=0.0) for n, ref in enumerate(refs, 1)]
+    return [i.ref for i in filter_for_character(items, world, character_id, episode)[0]]
+
+
+def leave_one_out(graph: list[str], vector: list[str], bm25: list[str]) -> dict[str, list[str]]:
+    """전체(0+1+2)에서 요소를 하나씩 뺀 ref 순위: 빠진 요소의 목록을 빼고 나머지를 RRF로 합친다."""
+    return {'full': fuse([graph, vector, bm25]), 'no_graph': fuse([vector, bm25]), 'no_vector': fuse([graph, bm25]),
+            'no_bm25': fuse([graph, vector])}
+
+
+def compare(scores: dict[str, list[float]], pairs, groups: list | None = None) -> dict:
+    """구성별 질문 점수 목록에서 쌍마다 부호 검정. groups(질문별 집단 값)가 있으면 집단별로도 낸다."""
+    def run(index):
+        return {f'{a}|{b}': sign_test([scores[a][i] for i in index], [scores[b][i] for i in index]) for a, b in pairs}
+    everything = list(range(len(next(iter(scores.values())))))
+    by_group = {g: run([i for i in everything if groups[i] == g]) for g in sorted(set(groups))} if groups else {}
+    return {'all': run(everything), 'by_group': by_group}
 
 
 def passage_ranking(refs: list[str], pids: set[str], rel_pid: dict[str, str]) -> list[str]:
@@ -121,7 +152,11 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
             return None
 
     tasks = [(q, c) for q in sample['questions'] for c in configs]
-    print(f'{name}: 질문 {len(sample["questions"])} × 구성 {len(configs)} = 최대 {len(tasks)}회 (장부 {ledger.used()}/{CAP}, 같은 입력은 캐시)', flush=True)
+    fresh = sum(not llm.is_cached(READER, reader_input(q['question'], passages_for(q, c)), max_output_tokens=3000) for q, c in tasks)
+    print(f'{name}: 질문 {len(sample["questions"])} × 구성 {len(configs)} = {len(tasks)}건, 캐시에 없는 것 {fresh}건 '
+          f'(장부 {ledger.used()}/{CAP})', flush=True)
+    if ledger.used() + fresh > CAP:  # 순위가 바뀐 뒤(작업 A 수정 병합 등)에는 문맥이 달라져 캐시에 없는 요청이 생긴다
+        raise SystemExit('상한을 넘길 수 있어 중단한다. 이 단계는 수정 전 순위로 만든 결과를 그대로 쓴다.')
     with ThreadPoolExecutor(12) as pool:
         preds = list(pool.map(work, tasks))
     result = {'dataset': name, 'k': K, 'model': llm.model, 'configs': {}}
@@ -130,6 +165,11 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
                 for (q, c), pred in zip(tasks, preds) if c == config]
         empty = sum(not passages_for(q, config) for q in sample['questions'])
         result['configs'][config] = dict(score_answers(rows), empty_context=empty)
+    em = {c: {q['id']: exact_match(pred, [q['answer'], *q['aliases']]) for (q, cfg), pred in zip(tasks, preds)
+              if cfg == c and pred is not None} for c in configs}
+    result['paired_em'] = {f'{a}|{b}': sign_test([em[a][i] for i in sorted(em[a].keys() & em[b].keys())],
+                                                [em[b][i] for i in sorted(em[a].keys() & em[b].keys())])
+                           for a, b in ANSWER_PAIRS if a in em and b in em}
     RESULTS.mkdir(exist_ok=True)
     out = RESULTS / f'{name}-answers.json'
     previous = json.loads(out.read_text())['configs'] if out.exists() else {}
@@ -151,7 +191,7 @@ def retrieval(name: str) -> None:
     query_vectors = embed_texts([q['question'] for q in questions], 'query')
     docs = _documents(world.cards)
     bm25_docs = [(ref, f'{title} {text}') for ref, (title, text) in docs.items()]
-    runs: dict[str, dict[str, list[str]]] = {c: {} for c in ('ppr', 'vector', 'bm25', 's1', 's2')}
+    runs: dict[str, dict[str, list[str]]] = {c: {} for c in ('ppr', 'vector', 'bm25', 's1', 's2', 'no_graph', 'no_vector')}
     for number, q in enumerate(questions):
         manuscript = [Excerpt(id=passages[i]['id'], episode=1, quote=best_window(texts[i], q['question']))
                       for i in knn(matrix, query_vectors[number], EXCERPTS)]
@@ -162,6 +202,10 @@ def retrieval(name: str) -> None:
             's1': [i.ref for i in recall(world, None, 1, q['question'], stage=1, manuscript=manuscript, k=BIG).items],
             's2': [i.ref for i in recall(world, None, 1, q['question'], stage=2, manuscript=manuscript, k=BIG).items],
         }
+        loo = leave_one_out(refs['ppr'], refs['vector'], refs['bm25'])
+        # 하나씩 빼기가 recall과 같은 합산이라는 확인: 전체는 2단계, BM25를 뺀 것은 1단계와 ref 순위가 같아야 한다
+        assert loo['full'] == refs['s2'] and loo['no_bm25'] == refs['s1'], q['id']
+        refs |= {'no_graph': loo['no_graph'], 'no_vector': loo['no_vector']}
         for config, found in refs.items():
             runs[config][q['id']] = passage_ranking(found, pids, rel_pid)[:20]
     group = 'hops' if name == 'musique' else None
@@ -171,10 +215,17 @@ def retrieval(name: str) -> None:
                           f'p@{K}': mean(min(K, len(q['gold'])) / K for q in questions)},
               'configs': {c: aggregate([{'ranked': runs[c][q['id']], 'gold': q['gold'], 'hops': q.get('hops')} for q in questions],
                                        K, group) for c in runs}}
+    scores = {c: [recall_at_k(runs[c][q['id']], set(q['gold']), K) for q in questions] for c in runs}
+    result['paired'] = compare(scores, RETRIEVAL_PAIRS, [q.get('hops') for q in questions] if group else None)
+    rankings_file = DATA / 'runs' / f'{name}-rankings.json'
+    if rankings_file.exists():  # 이전 실행의 순위와 같은지(재현) 또는 몇 문항이 달라졌는지(작업 A 수정 반영 뒤)
+        before = json.loads(rankings_file.read_text())
+        print(f"{name}: 이전 순위와 상위 20이 같은 질문 " + ', '.join(
+            f"{c} {sum(before[c][q['id']] == runs[c][q['id']] for q in questions)}/{len(questions)}" for c in before if c in runs))
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f'{name}-retrieval.json').write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     (DATA / 'runs').mkdir(exist_ok=True)
-    (DATA / 'runs' / f'{name}-rankings.json').write_text(json.dumps(runs, ensure_ascii=False))
+    rankings_file.write_text(json.dumps(runs, ensure_ascii=False))
     for config, block in result['configs'].items():
         print(f"{name:12s} {config:7s} recall@{K}={block[f'recall@{K}']:.3f} p@{K}={block[f'p@{K}']:.3f} (n={block['n']})")
 

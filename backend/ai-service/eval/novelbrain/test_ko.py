@@ -2,7 +2,10 @@
 
 import pytest
 
-from ko import WORKS, candidates, evidence_ids, load_works, valid_question
+from app.manuscript.models import Excerpt
+from app.novelbrain.service import _documents, bm25_rank, recall
+from ko import WORKS, candidates, evidence_ids, ko_world, load_works, valid_question
+from run import filtered, fuse
 
 PARAGRAPH = '문을 지키던 기사 카엘은 서한을 흘끗 보더니 고개를 저었다. “해가 진 뒤에는 문이 열리지 않소.”'
 
@@ -52,3 +55,20 @@ def test_evidence_ids_map_items_to_paragraphs_and_cards_but_not_relations():
     refs = ['manuscript:p1', 'card:k3', 'card:k4#identity', 'relation:r1', 'manuscript:p2']
     assert evidence_ids(refs) == ['p1', 'k3', 'k4', 'p2']
     assert evidence_ids(['card:k3', 'manuscript:k3']) == ['k3']  # 같은 id는 처음 순위에서 한 번만
+
+
+def test_filtered_fusion_reproduces_recall_stage_3(works):
+    # 하나씩 빼기의 근거: 같은 목록을 RRF로 합친 뒤 필터를 걸면 recall(3단계)과 순위가 같다.
+    title = '별빛 서약의 탑'
+    paragraphs = [(e, i, t) for e, ps in sorted(works[title]['episodes'].items()) for i, t in enumerate(ps)]
+    manuscript = [Excerpt(id=f'{e}.{i}', episode=e, quote=t[:256]) for e, i, t in paragraphs]
+    question, episode = '카엘은 해가 진 뒤 문을 열었나요?', 2
+    world = ko_world(works, title, episode)
+    character_id = next(c.id for c in world.cards if c.title == '카엘')
+    expected = [i.ref for i in recall(world, character_id, episode, question, stage=3, manuscript=manuscript, k=1000).items]
+    graph = [i.ref for i in recall(world, character_id, episode, question, stage=0, k=1000).items]
+    vector = [f'manuscript:{e.id}' for e in manuscript if e.episode <= episode]
+    docs = _documents(world.cards)
+    bm25 = [ref for ref, _ in bm25_rank(question, [(ref, f'{t} {x}') for ref, (t, x) in docs.items()])]
+    texts = {f'manuscript:{e.id}': e.quote for e in manuscript}
+    assert filtered(fuse([graph, vector, bm25]), texts, world, character_id, episode) == expected

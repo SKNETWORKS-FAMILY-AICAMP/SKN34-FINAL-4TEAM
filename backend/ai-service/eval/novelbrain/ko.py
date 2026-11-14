@@ -3,7 +3,7 @@
     cd backend/ai-service
     set -a; . <저장소 루트 .env>; set +a
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko.py generate   # 모델로 질문 생성 → datasets/ko_sample.jsonl(커밋)
-    uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko.py run        # 호출 없음: 구성별 지표 → results/ko-retrieval.json
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko.py run        # 호출 없음: 구성별 지표·하나씩 빼기·짝 검정 → results/ko-retrieval.json
 
 질문 종류: known(그 인물이 겪은 사건) · future(기준 회차 뒤 사건) · unwitnessed(그 인물이 나오지 않은 사건) · setting(설정 항목).
 모델이 만든 질문은 규칙(근거 구절이 원문에 있음·질문에 답이 그대로 없음·길이·낱말 겹침·중복)으로 다시 검증하고, 어긋난 것은 버린다.
@@ -26,6 +26,7 @@ from embed import best_window, embed_texts, knn
 from llm import CAP, Ledger, Llm, LlmFailure
 from metrics import dedupe, precision_at_k, recall_at_k
 from prepare import DATA, SEED
+from run import BIG, compare, filtered, fuse
 
 HERE = Path(__file__).resolve().parent
 SAMPLE = HERE.parents[3] / 'infrastructure/sample-data/content'
@@ -34,7 +35,9 @@ RESULTS = HERE / 'results'
 WORKS = ('구운몽', '별빛 서약의 탑', '회색 도시의 우편배달부')   # 회차가 둘 이상인 원작. 홍길동전(1화)은 시점 질문을 만들 수 없다
 QUOTA = {'known': 24, 'future': 14, 'unwitnessed': 14, 'setting': 14}
 CARD_TYPE = {'인물': 'character', '장소': 'location', '규칙': 'rule', '상태': 'object', '지식': 'event'}
-K, EXCERPTS, BIG = 5, 10, 1000
+K, EXCERPTS = 5, 10
+# 짝 부호 검정에 쓰는 구성 쌍. 하나씩 빼기의 기준(전체)은 s3(0+1+2+3), 필터를 빼면 s2
+KO_PAIRS = (('s3', 's2'), ('s3', 'no_graph'), ('s3', 'no_vector'), ('s3', 'no_bm25'), ('s3', 'vector'), ('s3', 'bm25'), ('s3', 'ppr'))
 
 INSTRUCTIONS = """다음은 웹소설의 한 문단이거나 소설 설정 항목 하나다. 이 글에 적힌 사실 하나를 골라, 글을 보지 않은 사람에게 묻는 한국어 질문 하나와 그 근거가 되는 구절을 만든다.
 - quote는 글에 있는 그대로 복사한 구절이어야 한다(고치거나 줄이지 말 것).
@@ -203,13 +206,25 @@ def ko_world(works: dict, title: str, episode: int) -> WorldSnapshot:
     return WorldSnapshot(worldId=title, episode=episode, cards=cards, relations=relations)
 
 
+def question_score(r: dict, ranked: list[str], cards_of: dict) -> dict:
+    """질문 하나의 결과. known·setting은 Recall@5·P@5, future·unwitnessed는 누설(상위 5에 막아야 할 근거가 있으면 1)."""
+    if r['kind'] in ('known', 'setting'):
+        gold = ({paragraph_id(r['work'], r['gold']['episode'], r['gold']['index'])} if r['kind'] == 'known'
+                else {cards_of[r['work']][r['gold']['name']]})
+        return {'recall': recall_at_k(ranked, gold, K), 'p': precision_at_k(ranked, gold, K)}
+    if r['kind'] == 'future':
+        return {'leak': float(any(int(i.split('.')[1]) > r['episode'] for i in ranked if '.' in i))}
+    return {'leak': float(paragraph_id(r['work'], r['gold']['episode'], r['gold']['index']) in ranked)}
+
+
 def run() -> None:
     works = load_works()
     rows = [json.loads(line) for line in DATASET.read_text().splitlines()]
     pools = {t: [(e, i, text) for e, ps in sorted(w['episodes'].items()) for i, text in enumerate(ps)] for t, w in works.items()}
     vectors = {t: embed_texts([text for _, _, text in pool], 'passage') for t, pool in pools.items()}
     queries = embed_texts([r['question'] for r in rows], 'query')
-    runs: dict[str, dict[str, list[str]]] = {c: {} for c in ('ppr', 'vector', 'bm25', 's1', 's2', 's3')}
+    configs = ('ppr', 'vector', 'bm25', 's1', 's2', 's3', 'no_graph', 'no_vector', 'no_bm25')
+    runs: dict[str, dict[str, list[str]]] = {c: {} for c in configs}
     for n, r in enumerate(rows):
         title, episode = r['work'], r['episode']
         world = ko_world(works, title, episode)
@@ -228,30 +243,38 @@ def run() -> None:
         for config, stage in (('s1', 1), ('s2', 2), ('s3', 3)):
             refs[config] = [i.ref for i in recall(world, character_id, episode, r['question'], stage=stage,
                                                   manuscript=manuscript, k=BIG).items]
+        # 하나씩 빼기(필터는 건 채로): recall 3단계는 필터 전에 기준 회차 뒤 발췌를 입력에서 빼므로 같은 입력으로 합친다
+        early = [f'manuscript:{e.id}' for e in manuscript if e.episode <= episode]
+        texts = {f'manuscript:{e.id}': e.quote for e in manuscript}
+        keep = lambda lists: filtered(fuse(lists), texts, world, character_id, episode)  # noqa: E731
+        assert keep([refs['ppr'], early, refs['bm25']]) == refs['s3'], r['id']  # 합산·필터가 recall 3단계와 같다는 확인
+        refs |= {'no_graph': keep([early, refs['bm25']]), 'no_vector': keep([refs['ppr'], refs['bm25']]),
+                 'no_bm25': keep([refs['ppr'], early])}
         for config, found in refs.items():
             runs[config][r['id']] = evidence_ids(found)[:K]
     cards_of = {t: {c.title: c.id for c in ko_world(works, t, 1).cards} for t in works}
+    scores = {c: {r['id']: question_score(r, runs[c][r['id']], cards_of) for r in rows} for c in configs}
     result = {'n': len(rows), 'k': K, 'excerpts_per_question': EXCERPTS, 'by_kind': {kind: sum(r['kind'] == kind for r in rows) for kind in QUOTA},
-              'configs': {}}
-    for config in runs:
+              'configs': {}, 'paired': {}}
+    for config in configs:
         block = {}
         for kind in ('known', 'setting'):
-            mine = [r for r in rows if r['kind'] == kind]
-            gold = lambda r: {paragraph_id(r['work'], r['gold']['episode'], r['gold']['index'])} if kind == 'known' else {  # noqa: E731
-                cards_of[r['work']][r['gold']['name']]}
-            block[kind] = {'n': len(mine), f'recall@{K}': mean(recall_at_k(runs[config][r['id']], gold(r), K) for r in mine),
-                           f'p@{K}': mean(precision_at_k(runs[config][r['id']], gold(r), K) for r in mine)}
-        future = [r for r in rows if r['kind'] == 'future']
-        block['future'] = {'n': len(future), 'leak': mean(any(int(i.split('.')[1]) > r['episode'] for i in runs[config][r['id']] if '.' in i)
-                                                           for r in future)}
-        unseen = [r for r in rows if r['kind'] == 'unwitnessed']
-        block['unwitnessed'] = {'n': len(unseen), 'leak': mean(
-            paragraph_id(r['work'], r['gold']['episode'], r['gold']['index']) in runs[config][r['id']] for r in unseen)}
+            mine = [scores[config][r['id']] for r in rows if r['kind'] == kind]
+            block[kind] = {'n': len(mine), f'recall@{K}': mean(m['recall'] for m in mine), f'p@{K}': mean(m['p'] for m in mine)}
+        for kind in ('future', 'unwitnessed'):
+            mine = [scores[config][r['id']] for r in rows if r['kind'] == kind]
+            block[kind] = {'n': len(mine), 'leak': mean(m['leak'] for m in mine)}
         result['configs'][config] = block
+    for kind in QUOTA:  # 짝 검정은 '높을수록 좋은' 값으로: known·setting은 Recall@5, future·unwitnessed는 막은 질문(1-누설)
+        mine = [r['id'] for r in rows if r['kind'] == kind]
+        key = (lambda m: m['recall']) if kind in ('known', 'setting') else (lambda m: 1 - m['leak'])
+        result['paired'][kind] = compare({c: [key(scores[c][i]) for i in mine] for c in configs}, KO_PAIRS)['all']
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / 'ko-retrieval.json').write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    (DATA / 'runs').mkdir(exist_ok=True)
+    (DATA / 'runs' / 'ko-rankings.json').write_text(json.dumps(runs, ensure_ascii=False))
     for config, b in result['configs'].items():
-        print(f"{config:7s} known R@5={b['known']['recall@5']:.2f} P@5={b['known']['p@5']:.2f} | setting R@5={b['setting']['recall@5']:.2f} "
+        print(f"{config:9s} known R@5={b['known']['recall@5']:.2f} P@5={b['known']['p@5']:.2f} | setting R@5={b['setting']['recall@5']:.2f} "
               f"P@5={b['setting']['p@5']:.2f} | 미래 누설 {b['future']['leak']:.2f} | 미목격 누설 {b['unwitnessed']['leak']:.2f}")
 
 
