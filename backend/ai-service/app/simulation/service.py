@@ -8,6 +8,7 @@
 (`card:<id>#soul`·`relation:<id>`·`manuscript:<발췌 id>`)을 그대로 쓴다.
 """
 
+import re
 import unicodedata
 from dataclasses import dataclass, field
 
@@ -409,8 +410,13 @@ def character_view(plan: SimulationPlan, world: World, scene: Scene, actor: Card
     cast = [world.characters[i] for i in plan.characterIds]
     asked = {'self': {'id': actor.id, 'name': actor.title}, 'known': known, 'present': [c.title for c in cast],
              'scene': seen, 'direction': direction}
+    refs = {d['ref'] for d in known}
+    others = [{'ref': f'card:{c.id}#identity', 'name': c.title, 'text': c.text,
+               'relations': [f'relation:{r.id}' for r in world.snapshot.relations if {r.source, r.target} == {actor.id, c.id} and f'relation:{r.id}' in refs]}
+              for c in cast if c.id != actor.id and c.text.strip()]  # 호칭 검사용: 그 인물이 누구이고 화자와 어떤 관계인지(인물 입력에는 가지 않는다)
     extra = {'forbidden': [*future, *(d for c in cast if c.id != actor.id for d in _private(c))],
-             'voices': [{'ref': f'card:{c.id}#soul', 'name': c.title, 'text': c.soul} for c in cast if c.id != actor.id and c.soul.strip()]}
+             'voices': [{'ref': f'card:{c.id}#soul', 'name': c.title, 'text': c.soul} for c in cast if c.id != actor.id and c.soul.strip()],
+             'others': others}
     return asked, extra, [Evidence(ref=i.ref, source=i.source) for i in recalled.items]
 
 
@@ -439,9 +445,10 @@ def narration_input(plan: SimulationPlan, world: World, scene: Scene, purpose: s
     kind, _, who = pov.partition(':')
     beat = current_beat(result)
     beats = result.beats if kind == 'omniscient' or beat is None else result.beats[:beat.index + 1]
+    written = [t.prose for t in result.turns if t.kind == 'narration'][-3:]  # 반복을 피하려고 전지적 서술에만 보인다(인물 시점은 그 인물이 아는 것만)
     return {'purpose': purpose, 'pov': {'kind': kind, 'character': world.characters[who].title if who in world.characters else None},
             'plan': {'mode': plan.mode, 'premise': result.premise, 'beats': [b.model_dump() for b in beats]},
-            'style': world.style, 'notes': [n.model_dump() for n in result.notes]}
+            'style': world.style, 'notes': [n.model_dump() for n in result.notes], **({'alreadyWritten': written} if kind == 'omniscient' else {})}
 
 
 def check_kinds(plan: SimulationPlan, kind: str, pov: str) -> list[str]:
@@ -449,6 +456,45 @@ def check_kinds(plan: SimulationPlan, kind: str, pov: str) -> list[str]:
     if kind == 'character':
         return KINDS[plan.mode]
     return ['knowledge_leak', 'voice_mix'] if kind == 'monologue' or pov.startswith('first:') else ['knowledge_leak']
+
+
+DIALOGUE_QUOTES = ('"', '"')  # 통일할 대사 따옴표: 원고와 사용자 요구(지문 + "대사")에 맞춘 직선 큰따옴표(코디네이터 결정 2026-11-14). DEC-48은 정하지 않는다.
+_QUOTED = re.compile(r'「([^」\n]*)」|『([^』\n]*)』|"([^"\n]*)"|“([^“”\n]*)”')
+_DIALOGUE = re.compile(r'“[^”]*(?:”|$)|"[^"]*(?:"|$)')  # 둥근·직선 큰따옴표 모두 대사로 보고, 닫히지 않은 대사는 끝까지 대사로 본다
+_FIRST_PERSON = re.compile(r'(?:^|[.!?…]\s+)(?:저는|제가|저도|나는(?!\s*(?:듯|새))|내가|나도)(?![가-힣])')  # '나는 듯한 걸음'의 나는(날다)은 뺀다
+_PLAIN_FORMAL = re.compile(r'(?:[었았였겠있없]소|하오|시오)$')  # 하오체
+
+
+def normalize_quotes(text: str) -> str:
+    """대사 따옴표를 DIALOGUE_QUOTES(직선 큰따옴표)로 통일한다(「」·『』·둥근 큰따옴표). 짝이 없는 따옴표와 작은따옴표는 건드리지 않는다."""
+    return _QUOTED.sub(lambda m: DIALOGUE_QUOTES[0] + next(g for g in m.groups() if g is not None) + DIALOGUE_QUOTES[1], text)
+
+
+def action_style(pov: str, actor: Card) -> dict:
+    """인물 턴의 행동 묘사(대사 밖의 서술)가 따를 인칭. 인물의 말투는 대사 안에서만 쓰고 행동 묘사는 서술체(-다)다.
+
+    1인칭 시점이고 그 시점 인물이 이 인물일 때만 1인칭이고, 그 밖(전지적·3인칭 제한·다른 인물의 1인칭 시점)은 3인칭이다.
+    """
+    return {'person': 'first' if pov == f'first:{actor.id}' else 'third', 'subject': actor.title}
+
+
+def style_problem(prose: str, style: dict | None) -> str | None:
+    """행동 묘사(대사 밖의 글)가 인칭·문체를 확실히 어기면 이유를, 아니면 None. 모델 검사 앞에서 확실한 경우만 거른다.
+
+    3인칭이어야 하는데 문장 첫머리가 저는·나는 같은 1인칭이거나, 문장이 합쇼체(-ㅂ니다)·하오체(-소)로 끝나는 경우다. 대사 안의 글은 보지 않는다.
+    ponytail: 한국어 어미 휴리스틱이라 드문 거짓 양성이 있다. 그 턴은 재생성되고 계속 어기면 말투 섞임으로 멈춘다.
+    """
+    if not style:
+        return None
+    for part in _DIALOGUE.split(prose):
+        part = part.strip()
+        if style['person'] == 'third' and _FIRST_PERSON.search(part):
+            return '3인칭으로 써야 하는 행동 묘사가 1인칭이에요.'
+        for sentence in re.split(r'(?<=[.!?…])\s+', part):
+            end = sentence.rstrip('.!?…\'" ')
+            if _PLAIN_FORMAL.search(end) or (end.endswith('니다') and len(end) > 2 and '가' <= end[-3] <= '힣' and (ord(end[-3]) - 0xAC00) % 28 == 17):
+                return '행동 묘사가 인물의 말투(합쇼체·하오체)로 쓰였어요. 서술체(-다)로 써야 해요.'
+    return None
 
 
 def acted(action: Action) -> Action:
@@ -466,7 +512,7 @@ def narrated(narration: Narration, monologue: bool) -> Narration:
 
 def verify(verdict: Verdict, kinds: list[str], payload: dict) -> None:
     """요청한 검사가 정확히 한 번씩 있고, 위반 근거 ref가 검사 모델의 입력에 있는 것만 인정한다. 아니면 실패한다."""
-    refs = {item['ref'] for key in ('known', 'scene', 'forbidden', 'voices') for item in payload[key]}
+    refs = {item['ref'] for key in ('known', 'scene', 'forbidden', 'voices', 'others') for item in payload.get(key, [])}
     refs |= {v['ref'] for v in payload['direction'].values() if isinstance(v, dict)}
     if sorted(c.kind for c in verdict.checks) != sorted(kinds) or any(r not in refs for c in verdict.checks for r in c.refs):
         raise SimulationFailure(502, BAD_VERDICT)

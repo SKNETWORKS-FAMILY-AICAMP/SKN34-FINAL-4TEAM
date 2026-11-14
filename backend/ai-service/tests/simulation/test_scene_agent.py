@@ -437,6 +437,42 @@ def test_the_world_is_read_once_per_request_and_the_retrieval_token_is_the_one_t
     assert len(h.content) == 4 and tokens == ['old.token', 'fresh.token'] and h.calls.act[-1]['self']['id'] == KAEL
 
 
+def test_dialogue_quotes_are_unified_in_the_written_turn(monkeypatch):
+    setup(monkeypatch, speech(KAEL), acts=action(prose='「멈춰라.」 카엘이 낮게 말했다.'), verdicts=lambda payload: verdict(payload, scene_complete=True))
+    assert characters(run_auto())[0].prose == '"멈춰라." 카엘이 낮게 말했다.'
+
+
+def test_the_character_gets_the_action_style_of_the_turn_and_only_the_checker_gets_who_the_others_are(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL, f'first:{KAEL}'), speech(LINA, f'first:{KAEL}'), verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) == 2))
+    run_auto()
+    assert [a['actionStyle'] for a in h.calls.act] == [{'person': 'first', 'subject': '카엘'}, {'person': 'third', 'subject': '리나'}]
+    assert [c['actionStyle']['person'] for c in h.calls.check] == ['first', 'third'] and h.calls.check[0]['others'][0]['name'] == '리나'
+    assert all('others' not in a for a in h.calls.act)
+
+
+def test_an_action_description_in_the_wrong_person_or_voice_is_rewritten_before_the_model_check(monkeypatch):
+    bad, good = action(prose='"돌아가십시오." 저는 고개를 저었습니다.'), action(prose='"돌아가십시오." 카엘은 고개를 저었다.')
+    h = setup(monkeypatch, speech(KAEL), acts=[bad, good], verdicts=lambda payload: verdict(payload, scene_complete=True))
+    turn = characters(run_auto())[0]
+    assert (turn.prose, turn.regenerated) == (good.prose, 1)
+    assert len(h.calls.act) == 2 and len(h.calls.check) == 1  # 확실한 위반은 검사 모델을 부르지 않고 다시 쓴다
+    assert h.calls.act[1]['feedback'] == [FEEDBACK['voice_mix']]
+
+
+def test_a_description_that_never_gets_fixed_stops_the_scene_as_a_voice_mix_without_asking_the_check_model(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL), acts=action(prose='"…" 저는 고개를 저었습니다.'))
+    scene = run_auto()
+    assert (scene.result.status, scene.result.stopReason) == ('stopped', 'check_failed') and '말투 섞임' in scene.error
+    assert len(h.calls.act) == 3 and h.calls.check == []
+
+
+def test_the_closing_narration_sees_the_opening_the_narrator_already_wrote(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL), narrations=[narration(prose='OPENING-LINE 새벽 들판에 어둠이 남아 있었다.'), narration(prose='끝났다.')],
+              verdicts=lambda payload: verdict(payload, scene_complete=True))
+    run_auto()
+    assert h.calls.narrate[0]['alreadyWritten'] == [] and h.calls.narrate[1]['alreadyWritten'] == ['OPENING-LINE 새벽 들판에 어둠이 남아 있었다.']
+
+
 def retrieval_raises(monkeypatch, error):
     def retrieve(scope, question):
         raise error

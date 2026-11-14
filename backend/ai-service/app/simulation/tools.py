@@ -46,9 +46,10 @@ async def _write(runtime: Runtime, kind: str, pov: str, character_id: str | None
     asked, extra, evidence = context.views[key]
     beat, index = service.current_beat(scene.result), len(scene.result.turns)
     given = {**({'authorNote': scene.hint} if scene.hint else {}), **({'feedback': feedback} if feedback else {})}
-    refusal = None
+    refusal, style = None, None
     if kind == 'character':
-        action = service.acted(await asyncio.to_thread(agent.act, {**asked, **given}))
+        style = service.action_style(pov, owner)  # 대사만 인물의 말투, 행동 묘사는 시점에 맞는 인칭의 서술체
+        action = service.acted(await asyncio.to_thread(agent.act, {**asked, 'actionStyle': style, **given}))
         prose, observed = action.prose.strip(), action.observed.strip()
         refusal = (action.refusalReason or '알 수 없어요.') if action.refusesBeat and plan.mode == 'flow' else None
         label = f'{owner.title}의 {index + 1}번째 장면'
@@ -60,9 +61,9 @@ async def _write(runtime: Runtime, kind: str, pov: str, character_id: str | None
         label = f'{owner.title}의 {index + 1}번째 독백' if inner else f'{NARRATOR}의 {index + 1}번째 장면'
     named = owner if kind != 'narration' else None  # 나레이션은 어느 시점이든 인물이 없다. 시점 인물은 지식 범위일 뿐이다
     artifact = {'kind': kind, 'characterId': named and named.id, 'characterName': named.title if named else NARRATOR,
-                'prose': prose, 'observed': observed, 'refusal': refusal, 'beat': beat.index if beat else None,
+                'prose': service.normalize_quotes(prose), 'observed': observed, 'refusal': refusal, 'beat': beat.index if beat else None,
                 'evidence': [e.model_dump() for e in evidence],
-                'check': {'payload': {**asked, **extra}, 'kinds': service.check_kinds(plan, kind, pov),
+                'check': {'payload': {**asked, **extra, **({'actionStyle': style} if style else {})}, 'kinds': service.check_kinds(plan, kind, pov),
                           'notices': 'character' if kind == 'character' else 'narration', 'who': label}}
     return f'{label}을(를) 썼어요.', artifact
 
