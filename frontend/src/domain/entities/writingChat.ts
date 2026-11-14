@@ -43,8 +43,11 @@ export type ChatEvent =
   | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null; awaitingScene?: ChatFeature | null }
   | { type: 'done'; reply: ChatReply }
   | { type: 'error'; message: string }
-/** Q&A 근거 기준. Content가 발행 회차만 기준으로 받는다. */
-export type ChatBasis = { episode: number; episodeVersionId: string }
+/**
+ * Q&A 근거 기준(지식 상한). Content가 발행 회차만 기준으로 받는다.
+ * targetEpisode는 결과를 반영할 회차(작가가 연 회차, 발행 전 초안이어도 된다)이고 없으면 서버가 근거 회차와 같게 본다.
+ */
+export type ChatBasis = { episode: number; episodeVersionId: string; targetEpisode?: number }
 /** 입력 대기에서 작가가 채우는 단계 입력. 이름은 AI StepInputs 계약과 같다. */
 export type ChatStepInputs = {
   web_research?: { question: string }
@@ -90,11 +93,18 @@ export function cleanScene(scene: SceneAction): SceneAction {
 
 export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션' }
 
-/** 열린 회차가 발행돼 있으면 그 회차, 아니면 가장 뒤의 발행 회차. 발행 회차가 없으면 null(채팅을 잠근다). */
-export function chatBasis(episodes: WritingEpisode[], preferred?: number): ChatBasis | null {
-  const published = episodes.filter((e) => e.publishedVersionId)
-  const pick = published.find((e) => e.number === preferred) ?? published.reduce<WritingEpisode | undefined>((last, e) => (!last || e.number > last.number ? e : last), undefined)
-  return pick?.publishedVersionId ? { episode: pick.number, episodeVersionId: pick.publishedVersionId } : null
+/**
+ * 근거 회차(지식 상한, 발행된 판본 필요)와 반영 회차(targetEpisode, 작가가 연 회차)를 나눠 고른다.
+ * 열린 회차가 발행돼 있으면 그 회차가 둘 다이고, 발행 전 초안이면 그 앞의 가장 뒤 발행 회차를 근거로 열린 회차에 반영한다
+ * (서버는 targetEpisode ≥ episode만 받으므로 근거는 열린 회차보다 뒤가 되지 않게 고른다).
+ * 열린 회차를 모르거나 목록에 없으면 가장 뒤의 발행 회차만 근거로 쓰고 반영 회차는 보내지 않는다. 근거가 없으면 null(채팅을 잠근다).
+ */
+export function chatBasis(episodes: WritingEpisode[], open?: number): ChatBasis | null {
+  const known = open !== undefined && episodes.some((e) => e.number === open)
+  const pick = episodes
+    .filter((e) => e.publishedVersionId && (!known || e.number <= open))
+    .reduce<WritingEpisode | undefined>((last, e) => (!last || e.number > last.number ? e : last), undefined)
+  return pick?.publishedVersionId ? { episode: pick.number, episodeVersionId: pick.publishedVersionId, ...(known ? { targetEpisode: open } : {}) } : null
 }
 
 const researchVerdict: Record<string, string> = { confirmed: '확인됨', conflicting: '근거 상충', unverified: '미확인' }

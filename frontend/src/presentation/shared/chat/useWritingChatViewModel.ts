@@ -133,6 +133,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   return {
     sessions, threadId, title, turns, live, waiting, pending, error, consent, setConsent, lockedReason,
     available: !!useCase && !!workId && !!basis, basisEpisode: basis?.episode ?? null,
+    // 결과를 반영할 회차(작가가 연 회차). 근거 회차와 다를 수 있다(5화 초안은 4화까지를 근거로 5화에 반영한다).
+    targetEpisode: basis?.targetEpisode ?? basis?.episode ?? null,
     simulation: simulationStep?.simulation ?? null, simulationStep, awaiting, approvalEpisode: waiting?.approvalEpisode ?? null,
     streaming: !!live, deciding: !!live?.decision, sceneTicket,
     dismissError: () => setError(''),

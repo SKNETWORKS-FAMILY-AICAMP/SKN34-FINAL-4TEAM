@@ -7,12 +7,38 @@ import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
 const episode = (number: number, publishedVersionId: string | null) => ({ number, publishedVersionId }) as WritingEpisode
 
+// 근거 회차(지식 상한, 발행된 판본 필요)와 반영 회차(targetEpisode, 작가가 연 회차: 초안이어도 된다)를 분리한다.
+// 서버는 targetEpisode ≥ episode(근거)만 받으므로 근거는 열린 회차보다 뒤가 되지 않게 고른다.
 describe('chatBasis', () => {
-  it('열린 회차가 발행돼 있으면 그 회차, 아니면 가장 뒤의 발행 회차를 근거로 쓴다', () => {
+  it('열린 회차가 발행돼 있으면 그 회차가 근거이자 반영 회차다', () => {
     const list = [episode(1, 'v1'), episode(2, 'v2'), episode(3, null)]
-    expect(chatBasis(list, 1)).toEqual({ episode: 1, episodeVersionId: 'v1' })
-    expect(chatBasis(list, 3)).toEqual({ episode: 2, episodeVersionId: 'v2' })
+    expect(chatBasis(list, 1)).toEqual({ episode: 1, episodeVersionId: 'v1', targetEpisode: 1 })
+    expect(chatBasis(list, 2)).toEqual({ episode: 2, episodeVersionId: 'v2', targetEpisode: 2 })
+  })
+
+  it('열린 회차가 발행 전 초안이면 그 앞의 가장 뒤 발행 회차가 근거이고 반영 회차는 열린 회차다(5화 초안은 4화까지를 근거로 5화에 반영한다)', () => {
+    const list = [episode(3, 'v3'), episode(4, 'v4'), episode(5, null)]
+    expect(chatBasis(list, 5)).toEqual({ episode: 4, episodeVersionId: 'v4', targetEpisode: 5 })
+  })
+
+  it('열린 회차보다 뒤의 발행 회차는 근거로 쓰지 않는다(근거가 반영 회차보다 뒤가 되면 서버가 거절한다)', () => {
+    const list = [episode(1, 'v1'), episode(2, null), episode(3, 'v3')]
+    expect(chatBasis(list, 2)).toEqual({ episode: 1, episodeVersionId: 'v1', targetEpisode: 2 })
+  })
+
+  it('열린 회차 앞에 발행 회차가 없으면 근거가 없다(채팅을 잠근다)', () => {
+    expect(chatBasis([episode(1, null), episode(2, 'v2')], 1)).toBeNull()
     expect(chatBasis([episode(1, null)], 1)).toBeNull()
+    expect(chatBasis([], 1)).toBeNull()
+  })
+
+  it('열린 회차를 모르거나 목록에 없으면 가장 뒤의 발행 회차를 근거로 하고 반영 회차는 보내지 않는다(서버가 근거 회차와 같게 본다)', () => {
+    const list = [episode(1, 'v1'), episode(2, 'v2'), episode(3, null)]
+    expect(chatBasis(list)).toEqual({ episode: 2, episodeVersionId: 'v2' })
+    expect(chatBasis(list)).not.toHaveProperty('targetEpisode')
+    expect(chatBasis(list, 99)).toEqual({ episode: 2, episodeVersionId: 'v2' })
+    expect(chatBasis(list, 99)).not.toHaveProperty('targetEpisode')
+    expect(chatBasis([episode(1, null)])).toBeNull()
   })
 })
 

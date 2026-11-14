@@ -173,6 +173,21 @@ it('시뮬레이션 단계가 전제·비트를 기다리면 화면에서 채울
   expect(within(form).getByRole('button', { name: '취소' })).toHaveProperty('disabled', false)
 })
 
+it('집필 입력 대기는 근거 회차가 아니라 열린(반영) 회차의 장면 계획을 받고, 요청에 반영 회차를 싣는다', async () => {
+  openThread([{ request: '이어 써 줘', reply: { status: 'waiting', steps: [], missingInputs: ['writing_editing'], awaitingApproval: null } }])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  fireEvent.change(within(form).getByLabelText(/쓸 장면 계획 · 2화/), { target: { value: '선장이 항구에 도착한다.' } })
+  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({
+    episode: 1, episodeVersionId: 'v', targetEpisode: 2,
+    resume: { approved: true, inputs: { writing_editing: { draft: { episodeNumber: 2, plan: '선장이 항구에 도착한다.' } } } },
+  })
+})
+
 it('빈 대화에는 IF·흐름 시뮬레이션 예시를 추천 칩으로 보이고 누르면 입력창에 글만 채운다', async () => {
   sessions.mockResolvedValue([])
   renderChat()

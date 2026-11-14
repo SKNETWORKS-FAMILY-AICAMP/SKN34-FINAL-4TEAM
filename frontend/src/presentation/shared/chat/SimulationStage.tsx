@@ -85,6 +85,7 @@ function StartForm({ stage, workId, planEpisode, plotLink }: { stage: StageViewM
   const setup = useSimulationSetupViewModel(workId, planEpisode)
   return <div className="stage-start">
     <h3>어떤 장면을 시뮬레이션할까요?</h3>
+    {stage.basisNote && <p className="chat-note">{stage.basisNote}</p>}
     {stage.sceneError && <p className="stage-reason" role="alert">{stage.sceneError}</p>}
     {stage.answer && <p className="stage-answer" role="status">{stage.answer}</p>}
     {stage.starting && <p className="chat-note" role="status">시뮬레이션을 시작하고 있어요…</p>}

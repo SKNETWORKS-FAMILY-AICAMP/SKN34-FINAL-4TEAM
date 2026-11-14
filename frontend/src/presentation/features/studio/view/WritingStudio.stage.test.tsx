@@ -14,9 +14,10 @@ import { WritingStudio } from './WritingStudio'
 const { sessions, history, send, open, list, owned, readWorld } = vi.hoisted(() => ({
   sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), owned: vi.fn(), readWorld: vi.fn(),
 }))
+type TestEpisode = { number: number; draft: { title: string; body?: string; revision?: number }; versions: unknown[]; inherited: boolean; hasDraft?: boolean; publishedVersionId: string | null; checkpoints: unknown[]; publicationStatus?: string }
 const model = vi.hoisted(() => ({
-  active: { number: 3, draft: { title: '셋째', body: '원고', revision: 1 }, versions: [], inherited: false, hasDraft: true, publishedVersionId: 'v3', checkpoints: [] },
-  episodes: [{ number: 3, draft: { title: '셋째' }, inherited: false, publishedVersionId: 'v3', publicationStatus: 'published', versions: [], checkpoints: [] }],
+  active: { number: 3, draft: { title: '셋째', body: '원고', revision: 1 }, versions: [], inherited: false, hasDraft: true, publishedVersionId: 'v3', checkpoints: [] } as TestEpisode | null,
+  episodes: [{ number: 3, draft: { title: '셋째' }, inherited: false, publishedVersionId: 'v3', publicationStatus: 'published', versions: [], checkpoints: [] }] as TestEpisode[],
   draft: { title: '셋째', body: '원고', revision: 1 },
   busy: false, error: '', notice: '', ready: true, dirty: false, editingLocked: false, deleteBlocker: '', deleteBlockerOf: () => '',
   orderLookup: null, historyLoading: false, historyError: '', publicationHistory: null,
@@ -65,7 +66,8 @@ beforeEach(() => {
   readWorld.mockResolvedValue({ id: 'world-1', settings: [{ item: { id: 'c1', title: '카엘', kind: 'entity', entityType: 'character' }, userCategory: '', tags: [] }] })
   history.mockImplementation(async () => ({ threadId: 'a', title: '', turns: store.reply ? [{ request: '시뮬레이션', reply: store.reply }] : [] }))
 })
-afterEach(() => { cleanup(); vi.resetAllMocks(); model.mayLeave.mockReturnValue(true); model.select.mockReturnValue(true) })
+const originalModel = { active: model.active, episodes: model.episodes }
+afterEach(() => { cleanup(); vi.resetAllMocks(); model.mayLeave.mockReturnValue(true); model.select.mockReturnValue(true); Object.assign(model, originalModel) })
 
 it('시뮬레이션 버튼은 편집기 대신 무대를 열고(편집기는 숨기기만 한다) 초점을 무대로 옮기며, 다시 누르면 편집기와 버튼 초점이 돌아온다', async () => {
   renderStudio()
@@ -140,6 +142,24 @@ it('원고에 반영하면 그 회차 초안을 다시 읽도록 집필실에 �
   await waitFor(() => expect(within(stage).getByText('3화 초안 끝에 이어 붙였어요.')).toBeTruthy())
 })
 
+it('발행 전 초안 회차를 열고 시뮬레이션을 시작하면 근거는 발행된 앞 회차, 반영은 열린 회차로 보낸다(결과가 앞 회차 초안에 붙던 버그)', async () => {
+  const draftEpisode = { number: 4, draft: { title: '넷째' }, inherited: false, publishedVersionId: null, publicationStatus: 'draft', versions: [], checkpoints: [] }
+  model.episodes = [...model.episodes, draftEpisode]
+  model.active = { number: 4, draft: { title: '넷째', body: '초안', revision: 1 }, versions: [], inherited: false, hasDraft: true, publishedVersionId: null, checkpoints: [] }
+  open.mockResolvedValue('a')
+  send.mockResolvedValue(undefined)
+  renderStudio()
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  expect(await within(stage).findByText('근거: 3화까지 / 반영: 4화 초안')).toBeTruthy()
+  fireEvent.change(within(stage).getByRole('textbox', { name: '전제' }), { target: { value: '만약 카엘이 성문을 열었다면?' } })
+  fireEvent.click(within(stage).getByRole('checkbox', { name: '카엘' }))
+  fireEvent.click(within(stage).getByRole('checkbox', { name: /OpenAI/ }))
+  fireEvent.click(within(stage).getByRole('button', { name: '시뮬레이션 시작' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ episode: 3, episodeVersionId: 'v3', targetEpisode: 4, operation: 'character_simulation' })
+})
+
 it('장면 계획이 없다는 안내의 플롯 화면 링크는 저장하지 않은 입력이 있으면 이동을 막는다', async () => {
   renderStudio()
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
@@ -154,7 +174,7 @@ it('장면 계획이 없다는 안내의 플롯 화면 링크는 저장하지 �
 })
 
 it('작품에 편집할 회차가 없으면 시뮬레이션 버튼을 잠근다', () => {
-  model.active = null as never
+  model.active = null
   renderStudio()
   expect((screen.getByRole('button', { name: '시뮬레이션' }) as HTMLButtonElement).disabled).toBe(true)
   model.active = { number: 3, draft: { title: '셋째', body: '원고', revision: 1 }, versions: [], inherited: false, hasDraft: true, publishedVersionId: 'v3', checkpoints: [] }

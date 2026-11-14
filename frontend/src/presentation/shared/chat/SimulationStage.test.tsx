@@ -8,7 +8,7 @@ import { createAppStore } from '../../../app/store'
 import { sceneLine, type CharacterSimulation, type SimulationTurn } from '../../../domain/entities/characterSimulation'
 import type { StoryPlan } from '../../../domain/entities/storyPlan'
 import type { StudioSetting } from '../../../domain/entities/studioWorld'
-import type { ChatEvent, ChatMessageInput, ChatReply, ChatStep } from '../../../domain/entities/writingChat'
+import type { ChatBasis, ChatEvent, ChatMessageInput, ChatReply, ChatStep } from '../../../domain/entities/writingChat'
 import { SimulationStage } from './SimulationStage'
 import { useSimulationStageViewModel } from './useSimulationStageViewModel'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
@@ -68,7 +68,7 @@ const pauseAt = (emit: Emit, simulation: CharacterSimulation) => {
 /** 장면이 끝나 작가의 승인을 기다린다. */
 const reviewAt = (emit: Emit, simulation: CharacterSimulation) => {
   const steps = [stepOf(simulation)]
-  store.reply = { status: 'waiting', steps, missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3 }
+  store.reply = { status: 'waiting', steps, missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 4 }
   emit({ type: 'step', step: steps[0] })
   emit({ type: 'waiting', steps, missingInputs: [], awaitingApproval: 'character_simulation' })
   emit({ type: 'done', reply: store.reply })
@@ -80,9 +80,10 @@ const finish = (emit: Emit, simulation: CharacterSimulation, extra: Partial<Chat
 }
 const serve = (...next: Handler[]) => { handlers = next }
 
-const BASIS = { episode: 3, episodeVersionId: 'v3' }
+// 근거(지식 상한)는 발행된 3화, 작가가 연 반영 회차는 발행 전 4화 초안이다(근거와 반영 회차가 묶여 4화가 아닌 3화에 반영되던 버그 시나리오).
+const BASIS: ChatBasis = { episode: 3, episodeVersionId: 'v3', targetEpisode: 4 }
 const onApplied = vi.fn()
-function Host({ basis = BASIS }: { basis?: typeof BASIS | null }) {
+function Host({ basis = BASIS }: { basis?: ChatBasis | null }) {
   const chat = useWritingChatViewModel('w', basis, onApplied)
   const stage = useSimulationStageViewModel(chat)
   return <>
@@ -153,6 +154,44 @@ it('시뮬레이션 버튼으로 무대를 열면 IF 양식이 먼저 나와 예
   expect(startButton().disabled).toBe(false)
   expect(list).toHaveBeenCalledWith('w', expect.anything())
   expect(send).not.toHaveBeenCalled()
+})
+
+// ── 근거 회차(지식 상한)와 반영 회차(작가가 연 회차)는 따로다 ──
+it('근거 회차가 열린 회차와 다르면 시작 양식에 근거와 반영 회차를 한 줄로 알린다', async () => {
+  setup()
+  await openForm()
+  expect(box().getByText('근거: 3화까지 / 반영: 4화 초안')).toBeTruthy()
+})
+
+it.each([
+  ['근거와 열린 회차가 같으면', { episode: 4, episodeVersionId: 'v4', targetEpisode: 4 }],
+  ['열린 회차를 모르면', { episode: 3, episodeVersionId: 'v3' }],
+])('%s 근거·반영 안내 줄을 두지 않는다', async (_name, basis) => {
+  render(<Provider store={createAppStore()}><Host basis={basis} /></Provider>)
+  await openForm()
+  expect(box().queryByText(/근거: .*반영:/)).toBeNull()
+})
+
+it('시작과 장면 조작·승인 요청 모두 근거 회차(episode·episodeVersionId)와 별도로 반영 회차(targetEpisode)를 싣는다', async () => {
+  paused(narrate(0))
+  setup((_input, emit) => { reviewAt(emit, scene([narrate(0)], { status: 'completed' })) }, (_input, emit) => { finish(emit, scene([narrate(0)], { status: 'completed' }), { applied: { episode: 4, revision: 2 } }) })
+  await waitFor(() => expect(lines()).toHaveLength(1))
+  consent()
+  fireEvent.click(box().getByRole('button', { name: '재생' }))
+  await waitFor(() => expect(box().getByRole('button', { name: '원고에 반영' })).toBeTruthy())
+  fireEvent.click(box().getByRole('button', { name: '원고에 반영' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  expect(inputs()[0]).toMatchObject({ episode: 3, episodeVersionId: 'v3', targetEpisode: 4, resume: { scene: { action: 'next' } } })
+  expect(inputs()[1]).toMatchObject({ episode: 3, episodeVersionId: 'v3', targetEpisode: 4, resume: { approved: true } })
+})
+
+it('서버가 승인 대상 회차를 주지 않아도 반영 문구는 근거 회차가 아니라 열린 회차를 말한다', async () => {
+  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0)], { status: 'completed' }))], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: null })
+  setup()
+  const ask = await screen.findByRole('region', { name: '원고 반영' })
+  expect(within(ask).getByText('이 장면을 4화 초안에 반영할까요?')).toBeTruthy()
+  expect(within(ask).getByText(/승인하면 이 장면이 4화 초안 뒤에 이어 붙어요\./)).toBeTruthy()
+  expect(within(ask).queryByText(/3화/)).toBeNull()
 })
 
 it('IF 시작은 operation과 simulation(전제·인물)을 싣고 요청 문장은 모드와 전제를 알린다(의도 분류를 건너뛴다)', async () => {
@@ -685,15 +724,15 @@ it('시작 양식에서 고른 인물의 이름으로, 아직 말하지 않은 �
 // ── 원고 반영 ──
 const review = (extra: Partial<CharacterSimulation> = {}) => reload({
   status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { status: 'completed', ...extra }))], missingInputs: [],
-  awaitingApproval: 'character_simulation', approvalEpisode: 3,
+  awaitingApproval: 'character_simulation', approvalEpisode: 4,
 })
 
 it('끝난 장면은 원고에 반영·반영하지 않기·장면 이어 가기를 묻고 승인 전에는 반영됐다고 알리지 않는다', async () => {
   review()
-  setup((_input, emit) => { finish(emit, scene([narrate(0), speak(1)], { status: 'completed' }), { applied: { episode: 3, revision: 5 } }) })
+  setup((_input, emit) => { finish(emit, scene([narrate(0), speak(1)], { status: 'completed' }), { applied: { episode: 4, revision: 5 } }) })
   await waitFor(() => expect(lines()).toHaveLength(2))
   const ask = box().getByRole('region', { name: '원고 반영' })
-  expect(within(ask).getByText(/승인하면 이 장면이 3화 초안 뒤에 이어 붙어요\./)).toBeTruthy()
+  expect(within(ask).getByText(/승인하면 이 장면이 4화 초안 뒤에 이어 붙어요\./)).toBeTruthy()
   expect(within(ask).getByText(/약 \d+자/)).toBeTruthy()
   expect(box().queryByText(/이어 붙였어요/)).toBeNull()
   expect(onApplied).not.toHaveBeenCalled()
@@ -702,8 +741,8 @@ it('끝난 장면은 원고에 반영·반영하지 않기·장면 이어 가기
   fireEvent.click(within(ask).getByRole('button', { name: '원고에 반영' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   expect(resumes()[0]).toEqual({ approved: true })
-  await waitFor(() => expect(box().getByText('3화 초안 끝에 이어 붙였어요.')).toBeTruthy())
-  expect(onApplied).toHaveBeenCalledWith(3)
+  await waitFor(() => expect(box().getByText('4화 초안 끝에 이어 붙였어요.')).toBeTruthy())
+  expect(onApplied).toHaveBeenCalledWith(4)
   expect(box().queryByRole('region', { name: '원고 반영' })).toBeNull()
   expect(box().getByRole('button', { name: '새 시뮬레이션' })).toBeTruthy()
 })
@@ -782,7 +821,7 @@ it('검사에 걸려 멈춘 장면은 이유를 보이고 줄 수정·다시 말
 })
 
 it('작가가 끝낸 장면이 멈춤 상태로 승인을 기다리면 상태는 그대로 알리고 원고 반영은 물을 수 있다', async () => {
-  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { status: 'stopped', stopReason: 'turn_limit' }))], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3 })
+  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { status: 'stopped', stopReason: 'turn_limit' }))], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 4 })
   setup()
   await waitFor(() => expect(lines()).toHaveLength(2))
   expect(box().getByText('멈춤')).toBeTruthy()
@@ -949,7 +988,7 @@ it('오류 상자의 다시 불러오기는 저장된 장면을 다시 읽어 �
 })
 
 it('시작 요청이 실패하면 옛 장면으로 돌아가지 않고 입력한 양식을 그대로 둔 채 사유를 알린다', async () => {
-  reload({ status: 'completed', steps: [stepOf(scene([narrate(0)], { status: 'completed' }), { applied: { episode: 3, revision: 2 } })], missingInputs: [] })
+  reload({ status: 'completed', steps: [stepOf(scene([narrate(0)], { status: 'completed' }), { applied: { episode: 4, revision: 2 } })], missingInputs: [] })
   setup(() => { throw new Error('서버에 보내지 못했어요.') })
   await waitFor(() => expect(screen.getByTestId('chat-line').textContent).toBe('시뮬레이션 완료 · 1턴'))
   await openForm() // 끝난 장면이 있어도 버튼은 새 시작 양식을 연다.
@@ -1024,7 +1063,7 @@ it('저장된 진행 중 장면이 있으면 닫혀 있던 무대가 저절로 �
 })
 
 it('저장된 장면이 이미 끝나 있으면 무대를 저절로 열지 않고, 시뮬레이션 버튼은 새 요청 입력으로 연다', async () => {
-  reload({ status: 'completed', steps: [stepOf(scene([narrate(0)], { status: 'completed' }), { applied: { episode: 3, revision: 2 } })], missingInputs: [] })
+  reload({ status: 'completed', steps: [stepOf(scene([narrate(0)], { status: 'completed' }), { applied: { episode: 4, revision: 2 } })], missingInputs: [] })
   setup()
   await waitFor(() => expect(screen.getByTestId('chat-line').textContent).toBe('시뮬레이션 완료 · 1턴'))
   expect(screen.queryByRole('region', { name: '인물 시뮬레이션 무대' })).toBeNull()

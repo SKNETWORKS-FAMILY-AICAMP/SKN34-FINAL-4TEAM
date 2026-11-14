@@ -228,6 +228,8 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
     }
     expect(await send({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation' }))
       .toMatchObject({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation', consent: true })
+    // 반영 회차(targetEpisode, 작가가 연 회차)는 근거 회차(episode)와 따로 그대로 간다.
+    expect(await send({ request: '이어 써 줘', targetEpisode: 3 })).toMatchObject({ episode: 2, episodeVersionId: 'v2', targetEpisode: 3 })
     // 버튼 진입의 시작 양식 값(IF: 전제, 흐름: 비트)과 참여 인물은 simulation으로 그대로 간다.
     expect(await send({ request: '흐름 모드 시뮬레이션: 장면 계획 2개', operation: 'character_simulation', simulation: { mode: 'flow', beats: ['성문 대면: 마주친다', '협상: 흥정한다'], characterIds: ['c1', 'c2'] } }))
       .toMatchObject({ operation: 'character_simulation', simulation: { mode: 'flow', beats: ['성문 대면: 마주친다', '협상: 흥정한다'], characterIds: ['c1', 'c2'] } })

@@ -82,7 +82,11 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     linesLock: !sim ? '' : chat.pending ? LINES_LOCKED : chat.awaiting ? blocked : '',
     // 승인 대기 장면이 실패가 아니고 턴이 있으면 원고 반영을 묻는다. 시스템이 멈춘 장면은 승인이 아니라 장면 조작(다시 말하기 등)으로 이어 간다.
     approvable: chat.awaiting === 'approval' && !!sim && sim.status !== 'failed' && sim.turns.length > 0,
-    target: chat.approvalEpisode ? `${chat.approvalEpisode}화 초안` : '초안',
+    // 반영 회차: 서버가 알려 준 승인 대상, 없으면 작가가 연 회차(근거 회차가 아니다).
+    target: (chat.approvalEpisode ?? chat.targetEpisode) ? `${chat.approvalEpisode ?? chat.targetEpisode}화 초안` : '초안',
+    // 근거 회차(지식 상한)가 열린 회차와 다를 때만 어디까지를 근거로 어디에 반영하는지 알린다.
+    basisNote: chat.basisEpisode !== null && chat.targetEpisode !== null && chat.basisEpisode !== chat.targetEpisode
+      ? `근거: ${chat.basisEpisode}화까지 / 반영: ${chat.targetEpisode}화 초안` : '',
     approveChars: sim ? bodyLength(sceneProse(sim)) : 0,
     result,
     // 멈춘·실패한 장면의 이유: 서버는 사람이 읽을 문장을 단계 error에 주고 stopReason은 코드값이다. 문장이 없을 때만 코드를 문구로 바꾼다.
