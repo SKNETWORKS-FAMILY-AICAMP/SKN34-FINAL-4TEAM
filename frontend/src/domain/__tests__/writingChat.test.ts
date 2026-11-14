@@ -38,7 +38,7 @@ describe('replyText', () => {
 describe('인물 시뮬레이션 단계 글', () => {
   const simulation: CharacterSimulation = {
     mode: 'if', premise: '카엘이 성문을 열었다면?', beats: [], notes: [], status: 'completed', stopReason: null,
-    turns: [{ index: 0, kind: 'character', characterId: 'c', characterName: '카엘', prose: '카엘이 문을 열었다.', checks: [{ kind: 'premise', passed: true, detail: '' }], regenerated: 0, evidence: [], editedByAuthor: false }],
+    turns: [{ index: 0, kind: 'character', pov: 'omniscient', characterId: 'c', characterName: '카엘', prose: '카엘이 문을 열었다.', checks: [{ kind: 'premise', passed: true, detail: '' }], regenerated: 0, evidence: [], editedByAuthor: false }],
   }
 
   it('말풍선에는 본문 대신 한 줄 요약을 쓰고 반영 결과를 잇는다(본문은 장면 카드가 그린다)', () => {
@@ -77,6 +77,26 @@ describe('장면 조작 정리(cleanScene)', () => {
   it.each([-1, 1.5, Number.NaN])('줄 번호(%s)가 0 이상의 정수가 아니면 보내지 않는다', (turn) => {
     expect(() => cleanScene({ action: 'edit', turn, text: '글' })).toThrow('고칠 줄을 찾을 수 없어요')
     expect(() => cleanScene({ action: 'redo', turn })).toThrow('고칠 줄을 찾을 수 없어요')
+  })
+})
+
+describe('WritingChatUseCase 시뮬레이션 시작', () => {
+  const repository = () => ({ send: vi.fn().mockResolvedValue(undefined) }) as unknown as WritingChatRepository & { send: ReturnType<typeof vi.fn> }
+  const basis = { episode: 1, episodeVersionId: 'v', consent: true as const }
+  const onEvent = () => {}
+
+  it('시작 값을 다듬어 operation과 함께 보낸다', async () => {
+    const repo = repository()
+    await new WritingChatUseCase(repo).send('w', 't', { ...basis, request: '요약', operation: 'character_simulation', simulation: { mode: 'if', premise: ' 만약 ~했다면? ', characterIds: ['c1', 'c1'] } }, onEvent)
+    expect(repo.send).toHaveBeenCalledWith('w', 't', { ...basis, request: '요약', operation: 'character_simulation', simulation: { mode: 'if', premise: '만약 ~했다면?', characterIds: ['c1'] } }, onEvent, undefined, undefined)
+  })
+
+  it('한도를 넘기거나 operation 없이 simulation만 오면 서버에 보내지 않는다', async () => {
+    const repo = repository()
+    const chat = new WritingChatUseCase(repo)
+    await expect(chat.send('w', 't', { ...basis, request: '요약', operation: 'character_simulation', simulation: { mode: 'flow', beats: [], characterIds: ['c1'] } }, onEvent)).rejects.toThrow('비트를 하나 이상')
+    await expect(chat.send('w', 't', { ...basis, request: '요약', simulation: { mode: 'if', premise: '전제', characterIds: ['c1'] } }, onEvent)).rejects.toThrow('시뮬레이션 시작은 시뮬레이션 기능으로만')
+    expect(repo.send).not.toHaveBeenCalled()
   })
 })
 
