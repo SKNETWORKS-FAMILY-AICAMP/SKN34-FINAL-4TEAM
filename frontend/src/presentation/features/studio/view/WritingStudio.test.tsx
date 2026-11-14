@@ -605,14 +605,14 @@ it('상단 바의 기본·고급 토글은 기본이 눌려 있고 고급에서�
   expect(screen.queryByRole('region', { name: '고급 도구' })).toBeNull()
 })
 
-it('상단 바는 컨트롤을 네 개만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
+it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장·버전 공개·더보기)만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
   renderStudio()
   const bar = screen.getByRole('banner')
   expect(within(bar).getByRole('link', { name: '내가 쓰는 소설' })).toBeTruthy()
   expect(within(bar).getByRole('heading', { level: 1, name: '집필실' })).toBeTruthy()
   expect(within(bar).getByRole('status').textContent).toBe('저장됨')
   const names = within(bar).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label'))
-  expect(names).toEqual(['기본', '고급', '버전 저장', '버전 · 공개', '더보기'])
+  expect(names).toEqual(['기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
   // 자주 안 쓰는 이동·이력은 메뉴가 열리기 전에는 상단에 없다
   for (const name of ['플롯', '다시 불러오기', '설정 버전 이력', '발행 이력']) {
     expect(within(bar).queryByRole('link', { name })).toBeNull()

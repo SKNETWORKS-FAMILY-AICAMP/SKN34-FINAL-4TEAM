@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { appContainer } from '../../../app/appContainer'
-import type { ChatBasis, ChatEvent, ChatFeature, ChatSession, ChatStep, ChatStepInputs, ChatTurn } from '../../../domain/entities/writingChat'
+import type { SimulationStart } from '../../../domain/entities/characterSimulation'
+import type { ChatBasis, ChatEvent, ChatFeature, ChatSendBody, ChatSession, ChatStep, ChatStepInputs, ChatTurn, SceneAction } from '../../../domain/entities/writingChat'
 
-/** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. */
-export type LiveTurn = { request: string; steps: ChatStep[]; running: ChatFeature | null; editIndex?: number; resumed?: boolean }
+/** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. decision은 승인·거절 응답(장면 조작이 아닌 이어가기)이다. */
+export type LiveTurn = { request: string; steps: ChatStep[]; running: ChatFeature | null; editIndex?: number; resumed?: boolean; decision?: boolean }
 
 const message = (error: unknown, fallback: string) => (error instanceof Error && error.message !== 'Request cancelled' ? error.message : fallback)
 
@@ -23,6 +24,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [consent, setConsent] = useState(false)
+  // 턴 사이에 멈춘 시뮬레이션 장면이 작가 조작을 기다리게 된 횟수(무대가 자동 재생이면 이 값이 오를 때마다 다음 턴을 보낸다).
+  const [sceneTicket, setSceneTicket] = useState(0)
   const active = useRef<AbortController | null>(null)
   const current = useRef<string | null>(null)
   const sessionsRequest = useRef<AbortController | null>(null)
@@ -73,7 +76,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   })
 
   /** 스트림 하나를 끝까지 읽고 이력·목록을 다시 읽는다. 실패도 저장 여부는 이력이 알려 준다. */
-  async function stream(request: string, input: { request: string } | { resume: { approved: boolean; inputs?: ChatStepInputs } }, editIndex?: number) {
+  async function stream(request: string, input: ChatSendBody, editIndex?: number) {
     if (active.current) return false
     if (!useCase || !workId || !basis || !consent) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
     const controller = new AbortController()
@@ -81,8 +84,10 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     setPending(true); setError('')
     const resumed = 'resume' in input
     // 이어가기는 멈춘 턴의 계획을 그대로 이어 보여 준다(같은 턴이 두 번 보이지 않게 화면이 그 턴을 감춘다).
-    setLive({ request, steps: resumed ? turns.at(-1)?.reply?.steps ?? [] : [], running: null, editIndex, resumed })
+    const decision = 'resume' in input && !input.resume.scene
+    setLive({ request, steps: resumed ? turns.at(-1)?.reply?.steps ?? [] : [], running: null, editIndex, resumed, decision })
     let ok = true
+    let sceneWaits = false
     let id = threadId
     try {
       id ??= await useCase.open(workId, controller.signal)
@@ -90,6 +95,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       await useCase.send(workId, id, { ...basis, consent: true, ...input }, (event) => {
         if (active.current !== controller) return
         if (event.type === 'error') { ok = false; setError(event.message) }
+        if (event.type === 'waiting' && event.awaitingScene === 'character_simulation') sceneWaits = true
         if (event.type === 'step' && event.step.applied) onApplied?.(event.step.applied.episode)
         apply(event)
       }, controller.signal, editIndex)
@@ -102,6 +108,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
         if (id) await load(id)
         setLive(null); setPending(false)
         void refreshSessions()
+        // 실패한 턴은 알리지 않는다: 무대가 저절로 다음 턴을 보내지 않고 작가가 다시 시도한다.
+        if (ok && sceneWaits) setSceneTicket((n) => n + 1)
       }
     }
     return ok
@@ -118,16 +126,23 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       : !basis ? '회차를 하나 이상 발행하면 AI와 대화할 수 있어요. AI는 발행한 회차를 근거로 답해요.'
         : !consent ? '입력창 위 동의에 체크하면 보낼 수 있어요.' : undefined
   const waiting = !live && turns.at(-1)?.reply?.status === 'waiting' ? turns.at(-1)!.reply! : null
+  // 인물 시뮬레이션 장면(#58 무대): 흐르는 중이면 SSE로 받은 단계, 아니면 저장된 마지막 응답의 단계. 장면을 못 읽은 단계는 simulation 없이 실패로 온다.
+  const simulationStep = (live ? live.steps : turns.at(-1)?.reply?.steps)?.find((step) => step.feature === 'character_simulation') ?? null
+  const awaiting = waiting?.awaitingScene === 'character_simulation' ? 'scene' as const : waiting?.awaitingApproval === 'character_simulation' ? 'approval' as const : null
 
   return {
     sessions, threadId, title, turns, live, waiting, pending, error, consent, setConsent, lockedReason,
     available: !!useCase && !!workId && !!basis, basisEpisode: basis?.episode ?? null,
+    simulation: simulationStep?.simulation ?? null, simulationStep, awaiting, approvalEpisode: waiting?.approvalEpisode ?? null,
+    streaming: !!live, deciding: !!live?.decision, sceneTicket,
     dismissError: () => setError(''),
     select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setThreadId(id) },
     startNew: () => { if (active.current) return; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError('') },
-    send: (text: string) => stream(text, { request: text }),
+    send: (text: string, extra?: { operation?: ChatFeature; simulation?: SimulationStart }) => stream(text, { request: text, ...extra }),
     edit: (index: number, text: string) => stream(text, { request: text }, index),
     resume: (approved: boolean, inputs?: ChatStepInputs) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs } }),
+    /** 무대의 장면 조작(다음 턴·줄 수정·다시 말하기·끝내기). 멈춘 장면을 이어 가는 요청이라 approved는 서버 검증용으로 함께 보낸다. */
+    sceneAction: (action: SceneAction) => stream(turns.at(-1)?.request ?? '', { resume: { approved: true, scene: action } }),
     deleteFrom: (index: number) => change(async () => {
       await useCase!.truncate(workId!, threadId!, index)
       if (index === 0) { current.current = null; setThreadId(null); setTurns([]); setTitle('') } else await load(threadId!)
@@ -142,3 +157,6 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     retry: () => { setError(''); void refreshSessions(); if (threadId) void load(threadId) },
   }
 }
+
+/** 집필 AI 채팅 ViewModel. 집필실은 무대(시뮬레이션)와 이 상태를 함께 쓰려고 직접 만들어 채팅·무대에 내려 준다. */
+export type ChatViewModel = ReturnType<typeof useWritingChatViewModel>

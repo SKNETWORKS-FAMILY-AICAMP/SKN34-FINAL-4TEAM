@@ -1,14 +1,12 @@
-import { useId, useState, type ReactNode } from 'react'
+import { useId, useState } from 'react'
 
-import { sceneProse, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import { bodyLength } from '../../../domain/entities/manuscriptLength'
+import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { featureLabel, replyText, stepText, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
 import { ChatPanel } from './ChatPanel'
-import { SceneCard } from './SceneCard'
-import { useWritingChatViewModel, type LiveTurn } from './useWritingChatViewModel'
+import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
 
 const stateLabel = { done: '완료', run: '진행 중', wait: '대기', stop: '멈춤', fail: '실패' } as const
 // 시뮬레이션 단계는 서버의 단계 상태가 아니라 장면 상태로 보인다: 진행 중 step은 완료로 오고, 멈춘 장면을 완료로 꾸미면 안 된다.
@@ -17,13 +15,25 @@ const stepState = (step: ChatStep, running: string | null) =>
   step.status === 'failed' ? 'fail' : step.simulation ? simState[step.simulation.status] : step.status === 'completed' ? 'done' : step.feature === running ? 'run' : 'wait'
 /** 인물 시뮬레이션(#58) 입력 예시. 누르면 입력창에 글만 채운다. */
 const simulationExamples = ['IF 시뮬레이션: "만약 ~했다면?"', '흐름 시뮬레이션: 비트를 적어 요청']
-type SceneOf = (simulation: CharacterSimulation, key?: string) => ReactNode
+
+/**
+ * 채팅 쪽 장면 한 줄: 대본(턴·검사·승인)은 집필실 무대가 보이므로 채팅에는 상태와 턴 수만 알리고 무대를 여는 링크를 둔다.
+ * 무대가 없는 화면(세계관 작업실)은 링크 대신 집필실에서 이어 갈 수 있다고 안내한다. 승인 대기여도 채팅에서 저장을 묻지 않는다.
+ */
+function SceneLine({ simulation, approval, onOpenStage }: { simulation: CharacterSimulation; approval?: boolean; onOpenStage?: () => void }) {
+  return <div className="chat-sceneline">
+    <p>{sceneLine(simulation)}{approval && ' · 원고 반영을 기다려요'}</p>
+    {onOpenStage
+      ? <button type="button" className="chat-link" onClick={onOpenStage}>무대 열기</button>
+      : <p className="chat-note">시뮬레이션 무대는 집필실에서 열 수 있어요.</p>}
+  </div>
+}
 
 /**
  * 진행 중인 턴의 단계 목록. 단계가 끝나는 대로 결과를 바로 아래에 보인다(SSE 순서 그대로).
- * 장면 카드는 상태 알림(role="status") 밖에 둔다: 알림 영역은 바뀔 때마다 통째로 읽혀 긴 본문이 턴마다 다시 읽히기 때문이다.
+ * 장면 한 줄은 상태 알림(role="status") 밖에 둔다: 알림 영역은 바뀔 때마다 통째로 읽혀 턴마다 다시 읽히기 때문이다.
  */
-function Progress({ live, scene }: { live: LiveTurn; scene: SceneOf }) {
+function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => void }) {
   return <>
     <div className="chat-msg assistant">
       <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>
@@ -42,41 +52,32 @@ function Progress({ live, scene }: { live: LiveTurn; scene: SceneOf }) {
         })}</ol>}
       </div>
     </div>
-    {live.steps.map((step) => step.simulation && <div key={step.feature} className="chat-scene">{scene(step.simulation)}</div>)}
+    {live.steps.map((step) => step.simulation && <div key={step.feature} className="chat-scene"><SceneLine simulation={step.simulation} onOpenStage={onOpenStage} /></div>)}
   </>
 }
 
 /**
- * 인물 시뮬레이션 장면의 승인 카드. 기존 승인 카드(chat-hitl)와 같은 모양이고 문구만 회차 저장으로 바뀐다.
- * 저장할 수 있는 건 끝난 장면(completed)뿐이다. 멈춤·실패 장면은 승인 대신 이유를 보이고, 흐름 수정·다시 시도는 채팅으로 한다.
+ * 턴 사이 대기·승인 대기 중인 시뮬레이션 장면. 조작(재생·수정·원고 반영)은 무대에서 하고 채팅에는 한 줄만 둔다.
+ * 장면을 읽지 못한 단계는 가짜 장면 없이 실패 사유만 보인다.
  */
-function SceneApproval({ reply, pending, onResume, scene }: { reply: ChatReply; pending: boolean; onResume: (approved: boolean) => void; scene: SceneOf }) {
-  const id = useId()
+function SceneWait({ reply, onOpenStage }: { reply: ChatReply; onOpenStage?: () => void }) {
   const step = reply.steps.find((s) => s.feature === 'character_simulation')
-  const ready = step?.simulation?.status === 'completed' ? step.simulation : null
-  const target = reply.approvalEpisode ? `${reply.approvalEpisode}화 초안` : '초안'
-  return <section className="chat-hitl" aria-labelledby={`${id}-t`}>
-    <h3 id={`${id}-t`}>{ready ? `이 장면을 ${target}에 저장할까요?` : '이 장면은 저장할 수 없어요'}</h3>
-    {step?.simulation ? scene(step.simulation) : <p className="chat-note" role="alert">{step ? stepText(step) : '시뮬레이션 결과를 찾지 못했어요.'}</p>}
-    {ready && <>
-      <p className="chat-note">승인하면 이 장면이 {target} 뒤에 이어 붙어요. 이어 붙는 글은 약 {bodyLength(sceneProse(ready)).toLocaleString('ko-KR')}자예요. 저장하기 전에는 원고가 바뀌지 않고, 저장하지 않아도 장면은 대화에 남아요.</p>
-      <div className="chat-hitl-actions">
-        <button type="button" className="btn sm pri" disabled={pending} onClick={() => onResume(true)}>회차로 저장</button>
-        <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>저장하지 않기</button>
-      </div>
-    </>}
-  </section>
+  return <div className="chat-scene">
+    {step?.simulation
+      ? <SceneLine simulation={step.simulation} approval={reply.awaitingApproval === 'character_simulation'} onOpenStage={onOpenStage} />
+      : <p className="chat-note" role="alert">{step ? stepText(step) : '시뮬레이션 결과를 찾지 못했어요.'}</p>}
+  </div>
 }
 
 /** 멈춘 턴: 초안 반영 승인 또는 빠진 단계 입력. 승인 전에는 원고가 바뀌지 않는다. */
-function Waiting({ reply, episode, pending, onResume, scene }: {
-  reply: ChatReply; episode: number | null; pending: boolean; onResume: (approved: boolean, inputs?: ChatStepInputs) => void; scene: SceneOf
+function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
+  reply: ChatReply; episode: number | null; pending: boolean; onResume: (approved: boolean, inputs?: ChatStepInputs) => void; onOpenStage?: () => void
 }) {
   const id = useId()
   const [question, setQuestion] = useState('')
   const [plan, setPlan] = useState('')
   const draft = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed')
-  if (reply.awaitingApproval === 'character_simulation') return <SceneApproval reply={reply} pending={pending} onResume={onResume} scene={scene} />
+  if (reply.awaitingApproval === 'character_simulation' || reply.awaitingScene === 'character_simulation') return <SceneWait reply={reply} onOpenStage={onOpenStage} />
   if (reply.awaitingApproval) {
     return <section className="chat-hitl" aria-labelledby={`${id}-t`}>
       <h3 id={`${id}-t`}>{reply.approvalEpisode ? `${reply.approvalEpisode}화 초안에 반영할까요?` : '이 제안을 초안에 반영할까요?'}</h3>
@@ -114,17 +115,23 @@ function Waiting({ reply, episode, pending, onResume, scene }: {
 /**
  * 집필 AI 채팅(#331): 세션 고르기·새 대화·제목 바꾸기·삭제, 메시지 수정·여기부터 지우기, SSE 진행과 승인·입력 대기.
  * 상태와 요청은 useWritingChatViewModel 하나가 맡고, 이 화면은 그 값을 그린다. AI 제안은 원고에 자동으로 반영되지 않는다.
+ * 집필실은 무대(시뮬레이션)와 상태를 함께 쓰려고 ViewModel(chat)을 만들어 내려 주고, 그 밖의 화면은 basis·onApplied로 이 화면이 직접 만든다.
+ * 인물 시뮬레이션 장면은 채팅에 상태 한 줄만 보이고 무대 열기(onOpenStage)로 집필실 무대를 연다.
  */
 type WritingChatProps = {
-  workId: string | null; basis: ChatBasis | null; emptyTitle: string; emptyText: string; suggestions: string[]; onApplied?: (episode: number) => void
-}
+  workId: string | null; emptyTitle: string; emptyText: string; suggestions: string[]; onOpenStage?: () => void
+} & ({ chat: ChatViewModel } | { chat?: undefined; basis: ChatBasis | null; onApplied?: (episode: number) => void })
 
 export function WritingChat(props: WritingChatProps) {
-  return <WorkChat key={props.workId} {...props} />
+  return props.chat ? <WorkChat key={props.workId} vm={props.chat} {...props} /> : <OwnedChat key={props.workId} {...props} />
 }
 
-function WorkChat({ workId, basis, emptyTitle, emptyText, suggestions, onApplied }: WritingChatProps) {
-  const vm = useWritingChatViewModel(workId, basis, onApplied)
+function OwnedChat({ basis, onApplied, ...rest }: Omit<Extract<WritingChatProps, { basis: ChatBasis | null }>, 'chat'>) {
+  const vm = useWritingChatViewModel(rest.workId, basis, onApplied)
+  return <WorkChat vm={vm} {...rest} />
+}
+
+function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm: ChatViewModel } & Pick<WritingChatProps, 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage'>) {
   const id = useId()
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
@@ -163,9 +170,6 @@ function WorkChat({ workId, basis, emptyTitle, emptyText, suggestions, onApplied
       <button type="button" onClick={() => void vm.deleteFrom(index)}>여기부터 지우기</button>
     </div>
   }
-  // 장면 본문에는 이미지가 없다: workId·episode는 ManuscriptBody가 요구하는 자리만 채운다.
-  const scene: SceneOf = (simulation, key) => <SceneCard key={key} simulation={simulation} workId={workId ?? ''} episode={vm.basisEpisode ?? 1} />
-  const cards = (m: ChatMessage) => m.role === 'assistant' ? shown[Number(m.id.slice(1))]?.reply?.steps.map((s) => s.simulation && scene(s.simulation, s.feature)) : null
   const current = vm.sessions?.find((s) => s.threadId === vm.threadId)
   return <>
     <div className="chat-sessions">
@@ -194,10 +198,10 @@ function WorkChat({ workId, basis, emptyTitle, emptyText, suggestions, onApplied
       </>}
     </div>
     <ChatPanel messages={messages} onSend={vm.send} busy={vm.pending} disabledReason={vm.lockedReason}
-      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={cards} renderActions={actions}
+      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderActions={actions}
       after={live || vm.waiting || vm.error ? <>
-        {live && <Progress live={live} scene={scene} />}
-        {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.basisEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} scene={scene} />}
+        {live && <Progress live={live} onOpenStage={onOpenStage} />}
+        {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.basisEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} />}
         {vm.error && <div className="chat-error" role="alert"><p>{vm.error}</p><button type="button" className="btn sm" onClick={vm.retry}>다시 불러오기</button></div>}
       </> : undefined}
       composerTop={vm.available && <label className="chat-consent">

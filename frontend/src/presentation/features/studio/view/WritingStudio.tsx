@@ -26,6 +26,9 @@ import { CheckpointPanel } from './CheckpointPanel'
 import { PublicationSchedulePanel } from './PublicationSchedulePanel'
 import { StoryQaPanel } from '../../../shared/storyContext/StoryQaPanel'
 import { versionGraphRows } from '../../../../domain/entities/versionGraph'
+import { SimulationStage } from '../../../shared/chat/SimulationStage'
+import { useSimulationStageViewModel } from '../../../shared/chat/useSimulationStageViewModel'
+import { useWritingChatViewModel } from '../../../shared/chat/useWritingChatViewModel'
 import { WritingChat } from '../../../shared/chat/WritingChat'
 import { chatBasis } from '../../../../domain/entities/writingChat'
 import { VersionGraph } from './VersionGraph'
@@ -106,6 +109,17 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const [historyEpisode,setHistoryEpisode]=useState<number|null>(null)
   const [historyView,setHistoryView]=useState<'versions'|'compare'|'settings'|'publication'|'schedule'>('versions')
   const active=vm.active
+  // 집필 AI 채팅 상태는 채팅 패널과 시뮬레이션 무대가 함께 쓰므로 여기서 만들어 둘에 내려 준다(채팅을 접어도 진행 중인 장면이 끊기지 않는다).
+  // 근거는 열린 회차가 발행돼 있으면 그 회차, 아니면 가장 뒤의 발행 회차다. 데모(mockup)는 잠긴다.
+  const chat=useWritingChatViewModel(id,chatBasis(vm.episodes,active?.number),vm.aiApplied)
+  const stage=useSimulationStageViewModel(chat)
+  // 사용자가 무대를 열었을 때만 무대 제목으로 초점을 옮기고(저절로 열린 무대는 초점을 빼앗지 않는다), 닫으면 버튼으로 돌려준다.
+  const stageButton=useRef<HTMLButtonElement>(null)
+  const stageHeading=useRef<HTMLHeadingElement>(null)
+  const [stageFocus,setStageFocus]=useState(0)
+  useEffect(()=>{if(stageFocus)stageHeading.current?.focus()},[stageFocus])
+  const openStage=()=>{stage.show();setStageFocus(n=>n+1)}
+  const closeStage=()=>{stage.hide();stageButton.current?.focus()}
   const historyLabel={
     versions:'원고 저장본 · 공개',
     compare:active?`${active.number}화 원고 버전 비교`:'원고 버전 비교',
@@ -145,6 +159,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
           <button type="button" className={mode==='basic'?'on':''} aria-pressed={mode==='basic'} onClick={()=>setMode('basic')}>기본</button>
           <button type="button" className={mode==='advanced'?'on':''} aria-pressed={mode==='advanced'} onClick={()=>setMode('advanced')}>고급</button>
         </div>
+        {/* 인물 시뮬레이션 무대는 편집기를 대신해 중앙에 열린다. 누르면 요청 입력(시작 양식)이, 진행 중인 장면이 있으면 그 장면이 보인다. */}
+        <button ref={stageButton} type="button" className="tbtn" aria-pressed={stage.open} disabled={!vm.ready||!active} onClick={stage.open?closeStage:openStage}>시뮬레이션</button>
         <button className="tbtn" disabled={vm.busy||!active||active.inherited} onClick={()=>void vm.save()}>버전 저장</button>
         <button className="tbtn pri" disabled={vm.busy||!active} onClick={openVersions}>버전 · 공개</button>
         <PopMenu className="writing-more" label="더보기" icon={<MoreIcon />}>
@@ -200,8 +216,11 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
           </>}
         </div>
       </div>
+      {/* 시뮬레이션 무대가 열려 있는 동안은 편집기 자리를 대신한다. 편집기는 숨기기만 해 입력·되돌리기 기록을 지킨다. */}
+      {stage.open&&<SimulationStage stage={stage} workId={id} episode={chat.basisEpisode??active?.number??1} planEpisode={active?.number??null}
+        plotLink={<Go to={`/studio/${id}?view=narrative`} onClick={leave}>플롯 화면</Go>} headingRef={stageHeading} onClose={closeStage}/>}
       {/* 가운데는 원고만: 제목 · 본문 · 한 줄 하단 바. 나머지 기능은 '회차 설정' 시트에 있다. */}
-      <div className="editor writing-editor">
+      <div className="editor writing-editor" hidden={stage.open}>
         {active?<>
           {active.hasDraft===false&&<p role="status" className="small muted writing-draftless">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           <input className="et writing-title" aria-label="회차 제목" placeholder="제목" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked} onChange={e=>vm.edit({title:e.target.value})}/>
@@ -227,10 +246,10 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         </>:<p>회차가 없어요. 회차 목록의 새 회차 버튼으로 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
       </div>
     </div>
-    {/* 집필실 안의 집필 AI 채팅(#331). 근거는 열린 회차가 발행돼 있으면 그 회차, 아니면 가장 뒤의 발행 회차다. 데모(mockup)는 잠긴다. */}
+    {/* 집필실 안의 집필 AI 채팅(#331). 인물 시뮬레이션 장면은 채팅에 상태 한 줄만 보이고 무대 열기가 무대를 연다. */}
     {chatOpen?<aside className="studio-chat writing-chat" aria-label="AI 채팅">
       <div className="studio-chat-head"><h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2><button ref={chatToggle} type="button" className="writing-icon-btn" aria-label="접기" title="접기" onClick={()=>setChatOpen(false)}><FoldIcon /></button></div>
-      <WritingChat workId={id} basis={chatBasis(vm.episodes,active?.number)} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onApplied={vm.aiApplied}/>
+      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={openStage}/>
     </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
   </>}</main>
           {settingsOpen&&active&&<Sheet sid="U13" label="회차 설정" panelClass="sheet writing-settings-sheet" onClose={()=>setSettingsOpen(false)}>
