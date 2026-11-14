@@ -195,6 +195,50 @@ def test_seed_cards_ignores_blank_titles_and_ignores_latin_case():
     assert seed_cards('Where is KAEL now?', cards) == {'k': 1.0}
 
 
+@pytest.mark.parametrize('title,query,seeded', [
+    # 라틴 문자·숫자로 시작하거나 끝나는 제목은 그쪽 끝이 낱말 경계(앞뒤가 라틴 문자·숫자가 아님)여야 한다.
+    ('Hat', 'what is it', False),
+    ('Hat', 'the Hat fell', True),
+    ('Hat', 'what a hat', True),  # 낱말 안쪽의 첫 일치를 지나 다음 일치를 찾는다.
+    ('Hat', 'THE HAT FELL', True),
+    ('Hat', 'Hat?', True),  # 문장 시작·끝과 문장 부호는 경계다.
+    ('Hat', 'He said "Hat".', True),
+    ('Hat', 'Hat을 썼다', True),  # 한글 조사는 라틴 낱말의 경계다.
+    ('Hat', '모자Hat', True),
+    ('Doe', 'what does it do', False),
+    ('Doe', 'Doe came back', True),
+    ('R2', 'R2D2 beeped', False),  # 숫자로 끝나는 제목도 경계를 요구한다.
+    ('R2', 'R2 beeped', True),
+    ('7', 'chapter 17', False),
+    ('7', 'chapter 7 begins', True),
+    ('A.B', 'aXb', False),  # 제목의 특수문자는 글자 그대로다.
+    ('A.B', 'what about a.b?', True),
+    ('C++', 'abc++', False),
+    ('C++', 'abc++ or c++', True),
+    # 한글 제목은 조사가 붙어도 맞도록 부분 일치다.
+    ('카엘', '카엘이 말했다', True),
+    ('카엘', '리라가 카엘에게 말했다', True),
+    ('카엘', 'Kael카엘', True),
+])
+def test_seed_cards_finds_a_latin_title_only_at_word_boundaries(title, query, seeded):
+    cards = [Card(id='c', cardType='character', title=title, text='소개')]
+
+    assert seed_cards(query, cards) == ({'c': 1.0} if seeded else {})
+
+
+@pytest.mark.parametrize('title,query,seeded', [
+    ('Kael의 검', 'the Kael의 검을 들었다', True),
+    ('Kael의 검', 'xKael의 검을 들었다', False),
+    ('왕 A', '왕 A는 누구인가', True),
+    ('왕 A', '왕 Ab는 누구인가', False),
+])
+def test_seed_cards_asks_for_a_boundary_only_at_the_latin_end_of_a_mixed_title(title, query, seeded):
+    # 다른 카드가 제목으로 먼저 걸리게 해 BM25 대체 경로가 끼어들지 않게 한다.
+    cards = [Card(id='c', cardType='other', title=title, text='소개'), Card(id='anchor', cardType='other', title='앵커', text='닻')]
+
+    assert ('c' in seed_cards(f'{query} 앵커', cards)) is seeded
+
+
 # --- rrf ----------------------------------------------------------------------------------------------------------------
 
 def test_rrf_ranks_an_item_first_that_is_near_the_top_of_every_list():
@@ -333,6 +377,27 @@ def test_filter_keeps_only_excerpts_that_name_the_character():
 
     assert refs(kept) == ['manuscript:m1']
     assert [g.ref for g in gaps] == ['manuscript:m2']
+
+
+@pytest.mark.parametrize('name,text,named', [
+    ('Doe', 'he does not know', False),  # 이름이 낱말 안쪽에만 있으면 목격으로 보지 않는다(seed_cards와 같은 낱말 경계).
+    ('Doe', 'Doe knows', True),
+    ('Doe', 'he does not know. Doe left', True),
+    ('Hat', 'what a day', False),
+    ('Hat', 'The HAT fell', True),
+    ('Hat', 'Hat을 썼다', True),  # 한글 조사는 라틴 이름의 경계다.
+    ('카엘', '카엘이 성문 앞에 섰다', True),  # 한글 이름은 조사가 붙어도 맞도록 부분 일치다.
+    ('카엘', '리라가 웃었다', False),
+    ('  ', '아무 글', False),  # 이름이 빈 인물은 어떤 발췌도 확인할 수 없다.
+])
+def test_filter_asks_for_a_word_boundary_when_checking_that_an_excerpt_names_the_character(name, text, named):
+    world = WorldSnapshot(worldId='w', episode=3, relations=[], cards=[Card(id='c', cardType='character', title=name, text='소개')])
+    target = item('manuscript:m', text)
+
+    kept, gaps = filter_for_character([target], world, 'c', 3)
+
+    assert (kept == [target]) is named
+    assert gaps == ([] if named else [Gap(ref='manuscript:m', reason='발췌에 이 인물이 나오지 않아 목격 여부를 확인할 수 없음')])
 
 
 @pytest.mark.parametrize('ref', ['card:ghost#identity', 'card:kael#nonsense', 'card:kael#ep', 'card:kael#epx1',
