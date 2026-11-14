@@ -282,8 +282,8 @@ def run_rounds(tasks: list, work: Callable, llm: Llm, executor: Callable, retrie
     raise RuntimeError(f'{max_rounds}라운드 안에 끝나지 않았다.')
 
 
-# 파일럿 전에 쓰는 호출당 출력 토큰 어림값. 실행 뒤에는 장부의 실측 평균이 이 값을 덮어쓴다.
-OUT_GUESS = {'label': 3000, 'world': 2500, 'learn': 800, 'profile': 500, 'question': 300, 'gen': 700, 'judge': 700}
+# 새 장부가 비어 있을 때 쓰는 호출당 출력 토큰: 이전 실행(KoTimeChara 17편, 장부 17,016줄)의 실측 평균. 호출이 쌓이면 새 장부의 실측 평균이 이 값을 덮어쓴다.
+OUT_GUESS = {'label': 2990, 'world': 1740, 'learn': 1020, 'profile': 240, 'question': 230, 'gen': 290, 'judge': 330}
 
 
 def make_executor(llm: Llm, mode: str, state_dir):

@@ -4,7 +4,7 @@ import zipfile
 
 import pytest
 
-from kt_select import QUOTA, choose, classify_genre, prepare_classic, read_head, screen
+from kt_select import QUOTA, choose, classify_genre, prepare_classic, quota_for, read_head, screen
 
 BODY = '이야기가 이어진다. ' * 300
 
@@ -44,6 +44,14 @@ def test_choose_fills_the_quota_per_genre_deterministically_and_redistributes_mi
     assert picked != choose(rows, seed=59)
     thin = [r for r in rows if r['genre'] != '대체역사']                  # 한 장르가 비면 남은 장르에서 채워 총수를 지킨다
     assert len(choose(thin, seed=58)) == sum(QUOTA.values())
+
+
+def test_quota_for_keeps_the_base_ratio_and_the_first_picks_when_the_work_count_grows():
+    assert quota_for(12) == QUOTA
+    grown = quota_for(40)
+    assert sum(grown.values()) == 40 and all(grown[g] >= QUOTA[g] for g in QUOTA) and grown['현대판타지'] == 10
+    rows = [{'file': f'{g}-{i}', 'genre': g} for g in QUOTA for i in range(30)]
+    assert all(r in choose(rows, 58, grown) for r in choose(rows, 58))                  # 편수를 늘려도 처음 12편은 그대로(id 유지)
 
 
 def test_prepare_classic_cleans_modernizes_caps_and_groups_into_episodes():

@@ -14,7 +14,7 @@ from pathlib import Path
 PRICE_IN, PRICE_CACHED, PRICE_OUT = 0.20, 0.02, 1.20   # USD / 1M tokens
 BATCH_FACTOR = 0.5
 LONG_INPUT = 272_000
-LIMIT_USD = 27.5   # 총 30달러 승인에서 이전 실행 추정 실비 약 2.24달러를 빼고 남기는 여유(장부 기준 상한)
+LIMIT_USD = 28.0   # 새 키(조직 microstone)의 승인 30달러에서 남기는 여유(장부 기준 상한). 이전 키의 사용분은 `.data/cost-previous-key.jsonl`에 기록만 하고 세지 않는다
 
 
 def usd(tokens_in: int, tokens_out: int, cached: int = 0, batch: bool = False, long: bool = False) -> float:
