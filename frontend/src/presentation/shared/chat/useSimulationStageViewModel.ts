@@ -60,6 +60,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
   useEffect(() => { if (chat.sceneTicket !== consumed) advance(chat.sceneTicket) }, [chat.sceneTicket, consumed])
 
   const running = playing || chat.streaming
+  const shown = !sim ? '' : sim.status === 'running' || sim.status === 'paused' ? (running ? 'running' : 'paused') : sim.status
   const result = step?.applied ? `${step.applied.episode}화 초안 끝에 이어 붙였어요.` : step?.approval === 'declined' ? '반영하지 않았어요. 장면은 대화에 남아 있어요.' : ''
   const stoppedOrFailed = sim?.status === 'stopped' || sim?.status === 'failed'
 
@@ -69,17 +70,14 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     show: () => { setOpen(true); setAsked(false); if (!attention) setComposing(true) },
     simulation: sim, rows: sim ? sceneRows(sim, roster) : [], names: sim ? characterNames(sim, roster) : {}, showForm: !sim || composing,
     live, playing, canAct, blocked, queued, finishing: stopAfterTurn,
-    statusText: !sim ? '' : sim.status === 'running' || sim.status === 'paused' ? (running ? statusLabel.running : '일시정지') : statusLabel[sim.status],
-    statusKey: !sim ? '' : sim.status === 'paused' || sim.status === 'running' ? (running ? 'running' : 'paused') : sim.status,
+    statusKey: shown, statusText: shown === 'paused' ? '일시정지' : shown && statusLabel[shown],
     hint: chat.deciding ? '답을 보내고 있어요…'
-      : !live ? ''
+      : !live ? (stoppedOrFailed && !chat.pending && !chat.awaiting && !result ? '흐름 수정이나 다시 시도는 채팅으로 요청해 주세요.' : '')
         : chat.streaming ? (stopAfterTurn ? '이번 턴을 마치면 장면을 끝내요.' : paused ? '이번 턴을 마치면 멈춰요.' : '다음 줄을 만들고 있어요…')
           : playing ? '' : stoppedOrFailed ? '멈춘 장면이에요. 줄을 고치거나 다시 말하게 한 뒤 재생해 이어 가세요.' : '일시정지됨 · 재생하면 다음 줄을 만들어요.',
-    // 줄 수정·다시 말하기가 잠긴 이유. 끝났거나 이어 갈 수 없는 장면에는 줄 행동을 두지 않는다.
-    showActions: live || chat.awaiting === 'approval',
+    // 줄 행동(수정·다시 말하기)과 끼어들기는 진행 중이거나 승인을 기다리는 장면에만 둔다. linesLock은 그 줄 행동이 잠긴 이유다.
+    interactive: live || chat.awaiting === 'approval',
     linesLock: !sim ? '' : chat.pending ? LINES_LOCKED : chat.awaiting ? blocked : '',
-    retryNote: stoppedOrFailed && !chat.pending && !chat.awaiting && !result ? '흐름 수정이나 다시 시도는 채팅으로 요청해 주세요.' : '',
-    canNote: live || chat.awaiting === 'approval',
     // 승인 대기 장면이 실패가 아니고 턴이 있으면 원고 반영을 묻는다. 시스템이 멈춘 장면은 승인이 아니라 장면 조작(다시 말하기 등)으로 이어 간다.
     approvable: chat.awaiting === 'approval' && !!sim && sim.status !== 'failed' && sim.turns.length > 0,
     target: chat.approvalEpisode ? `${chat.approvalEpisode}화 초안` : '초안',
