@@ -107,13 +107,22 @@ def ppr(nodes: Iterable[str], edges: Iterable[tuple[str, str]], seeds: dict[str,
     return score
 
 
+def _mentions(title: str, asked: str) -> bool:
+    # 제목이 라틴 문자·숫자로 시작하거나 끝나면 그쪽 끝은 낱말 경계(앞뒤가 라틴 문자·숫자가 아님)여야 한다('Hat'이 'what'에, 'Doe'가 'does'에
+    # 맞지 않게). 한글 제목은 조사가 붙어도 맞도록 부분 일치다. title·asked는 _fold한 글이다.
+    head = r'(?<![0-9a-z])' if re.match(r'[0-9a-z]', title) else ''
+    tail = r'(?![0-9a-z])' if re.search(r'[0-9a-z]\Z', title) else ''
+    return re.search(head + re.escape(title) + tail, asked) is not None
+
+
 def seed_cards(query: str, cards: list[Card]) -> dict[str, float]:
     """PPR 출발점: 제목이 질문에 나오는 카드(가중치 1). 하나도 없으면 카드 BM25 상위 3개.
 
-    ponytail: 제목을 부분 문자열로 찾아 조사가 붙어도 맞지만 한 글자 제목은 다른 낱말 속에서도 일치한다(별칭 미지원).
+    ponytail: 한글 제목은 부분 문자열로 찾아 조사가 붙어도 맞지만 한 글자 제목은 다른 낱말 속에서도 일치한다. 라틴 문자는 ASCII만
+    경계로 치고(é 같은 악센트 문자는 아님) 별칭은 지원하지 않는다.
     """
     asked = _fold(query)
-    named = {c.id: 1.0 for c in cards if c.title.strip() and _fold(c.title.strip()) in asked}
+    named = {c.id: 1.0 for c in cards if c.title.strip() and _mentions(_fold(c.title.strip()), asked)}
     if named:
         return named
     return {ref: 1.0 for ref, _ in bm25_rank(query, [(c.id, f'{c.title} {c.text}') for c in cards])[:3]}
@@ -139,7 +148,8 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
       상대 카드가 아직 공개되지 않았거나 스냅샷에 없는 관계(관계 문장에 상대 제목이 드러난다), 그 인물 이름이 나오지 않는 원고 발췌,
       형식을 알 수 없는 ref(닫힌 쪽으로 실패).
 
-    ponytail: 발췌에 이름이 나오면 목격으로 근사한다(별칭·호칭·대명사 미지원). MEMORY.md는 회차 표시가 없어 항상 허용한다.
+    ponytail: 발췌에 이름이 나오면 목격으로 근사한다(라틴 이름은 낱말 경계, 한글 이름은 부분 일치. 별칭·호칭·대명사 미지원).
+    MEMORY.md는 회차 표시가 없어 항상 허용한다.
     """
     if character_id is None:
         return list(items), []
@@ -167,7 +177,7 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
                 return False, _UNKNOWN
             return (False, _NOT_REVEALED) if any(future(c) for c in others) else (True, '')
         if kind == 'manuscript':
-            return (True, '') if name and name in _fold(item.text) else (False, _NOT_NAMED)
+            return (True, '') if name and _mentions(name, _fold(item.text)) else (False, _NOT_NAMED)
         card_id, _, part = rest.partition('#')
         card = cards.get(card_id) if kind == 'card' else None
         if card is None:
