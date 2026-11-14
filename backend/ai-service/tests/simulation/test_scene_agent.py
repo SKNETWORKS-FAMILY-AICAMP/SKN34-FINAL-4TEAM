@@ -467,6 +467,33 @@ def test_a_description_that_never_gets_fixed_stops_the_scene_as_a_voice_mix_with
     assert len(h.calls.act) == 3 and h.calls.check == []
 
 
+LINE_A = action(prose='"그 일은 제가 처리하겠습니다. 다른 분들은 물러나 주십시오." 카엘이 고개를 숙였다.')
+LINE_A_AGAIN = action(prose='"그 일은 제가 처리하겠습니다. 다른 분들은 물러나 주세요." 카엘이 한 걸음 나섰다.')
+LINE_B = action(prose='"이제 떠나겠습니다. 부디 강녕하십시오." 카엘이 절했다.')
+
+
+def test_a_character_repeating_its_own_earlier_line_is_rewritten_before_the_model_check(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL), speech(KAEL), acts=[LINE_A, LINE_A_AGAIN, LINE_B], verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) == 3))
+    turns = characters(run_auto())
+    assert [t.prose for t in turns] == [LINE_A.prose, LINE_B.prose] and [t.regenerated for t in turns] == [0, 1]
+    assert len(h.calls.act) == 3 and len(h.calls.check) == 2  # 같은 말은 검사 모델을 부르지 않고 다시 쓴다
+    assert h.calls.act[2]['feedback'] == [FEEDBACK['repetition']]
+
+
+def test_the_same_words_from_another_character_are_not_a_repeat(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL), speech(LINA), acts=LINE_A, verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) == 2))
+    turns = characters(run_auto())
+    assert [t.regenerated for t in turns] == [0, 0] and len(h.calls.act) == 2
+
+
+def test_a_line_that_keeps_repeating_stops_the_scene_naming_the_repeat_and_the_cast_is_never_forced_to_speak(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL), speech(KAEL), acts=LINE_A)
+    scene = run_auto()
+    assert (scene.result.status, scene.result.stopReason) == ('stopped', 'check_failed') and '같은 말 반복' in scene.error
+    assert len(h.calls.act) == 4 and len(h.calls.check) == 1  # 첫 대사 하나와 두 번째 대사의 시도 셋
+    assert {t.characterName for t in scene.result.turns} == {'나레이션', '카엘'}  # 리나는 한 번도 말하지 않았어도 이 장면은 문제없이 이어졌다
+
+
 def test_the_closing_narration_sees_the_opening_the_narrator_already_wrote(monkeypatch):
     h = setup(monkeypatch, speech(KAEL), narrations=[narration(prose='OPENING-LINE 새벽 들판에 어둠이 남아 있었다.'), narration(prose='끝났다.')],
               verdicts=lambda payload: verdict(payload, scene_complete=True))

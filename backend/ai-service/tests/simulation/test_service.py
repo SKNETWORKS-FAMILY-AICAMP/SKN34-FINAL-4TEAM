@@ -418,6 +418,32 @@ def test_a_first_person_view_description_keeps_the_plain_narration_ending_too_an
     assert service.style_problem('아무 말이나 저었습니다.', None) is None  # 문체를 모르면(인물 턴이 아니면) 보지 않는다
 
 
+SAID = ['"그 일은 제가 처리하겠습니다. 다른 분들은 물러나 주십시오." 카엘이 고개를 숙였다.', '"확인하지 않은 말은 전하지 마십시오." 카엘이 낮게 말했다.']
+
+
+@pytest.mark.parametrize('prose', [
+    '"그 일은 제가 처리하겠습니다. 다른 분들은 물러나 주세요!" 카엘이 한 걸음 나섰다.',      # 끝말만 바꾼 같은 말(행동 묘사는 다르다)
+    '“그 일은  제가 처리하겠습니다 다른 분들은 물러나 주십시오” 그는 눈을 감았다.',          # 따옴표·공백·문장부호만 다르다
+    '"확인하지 않은 말은 전하지 마십시오!" 카엘이 다시 말했다.',                          # 앞선 대사 둘 중 아무거나와 같아도 된다
+    '"그 일은 제가 처리하겠습니다. 다른 분들은 물러나 주십시오.',                          # 닫히지 않은 대사도 대사로 본다
+])
+def test_a_line_that_almost_repeats_what_the_same_character_already_said_is_a_repeat(prose):
+    assert service.repeated_line(prose, SAID)
+    assert not service.repeated_line(prose, [])  # 앞선 대사가 없으면 되풀이일 수 없다
+
+
+@pytest.mark.parametrize('prose', [
+    '"이제 떠나겠습니다. 부디 강녕하십시오." 카엘이 절했다.',            # 다른 말
+    '카엘이 말없이 고개를 숙였다.',                                    # 대사가 없다
+])
+def test_a_different_or_silent_line_is_not_a_repeat(prose):
+    assert not service.repeated_line(prose, SAID)
+
+
+def test_a_short_stock_phrase_said_again_is_not_a_repeat():
+    assert not service.repeated_line('"알겠습니다." 카엘이 고개를 끄덕였다.', ['"알겠습니다." 카엘이 고개를 숙였다.'])
+
+
 def test_the_checker_gets_who_the_other_characters_are_and_which_relations_connect_them_to_the_speaker(monkeypatch):
     fake_novelbrain(monkeypatch)
     fake_content(monkeypatch)
@@ -443,6 +469,11 @@ def test_a_violation_may_cite_the_identity_of_another_character_but_not_somethin
 def test_the_instructions_name_the_inputs_the_code_sends():
     assert 'actionStyle' in prompt.ACT_INSTRUCTIONS and 'actionStyle' in prompt.CHECK_INSTRUCTIONS and 'others' in prompt.CHECK_INSTRUCTIONS
     assert 'alreadyWritten' in prompt.NARRATE_INSTRUCTIONS and 'speech' in prompt.DIRECTOR_INSTRUCTIONS
+
+
+def test_the_director_is_told_the_cast_is_a_permission_to_appear_and_never_a_turn_order():
+    assert '등장을 허용한 범위' in prompt.DIRECTOR_INSTRUCTIONS and '모두 등장할 필요' in prompt.DIRECTOR_INSTRUCTIONS
+    assert not any(word in prompt.DIRECTOR_INSTRUCTIONS for word in ('돌아가며', '번갈아', '순번'))
 
 
 def test_the_narrator_gets_the_world_up_to_the_base_episode_with_style_cards_and_future_as_forbidden(monkeypatch):
