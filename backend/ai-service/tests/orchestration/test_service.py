@@ -729,12 +729,23 @@ def test_a_note_makes_the_next_turn_a_narration(monkeypatch):
     assert log.narrate[-1]['purpose'] == 'note' and log.narrate[-1]['notes'] == [{'afterTurn': 1, 'text': '갑자기 정전이 된다'}]
 
 
+def test_a_note_after_the_story_ended_ends_the_scene_without_a_second_narration(monkeypatch):
+    thread, _, _, log, _ = start_scene(monkeypatch)
+    scene_turn(thread)
+    scene_turn(thread)  # 시작 나레이션, 카엘 두 번(이야기가 끝났다고 판정)
+    noted = scene_turn(thread, 'next', note='갑자기 정전이 된다')
+    assert [t.kind for t in noted.steps[0].result.turns] == ['narration', 'character', 'character', 'narration']
+    done = scene_turn(thread)  # 직전이 나레이션이라 마무리 나레이션 없이 끝나고 승인을 묻는다
+    assert (done.awaitingApproval, done.steps[0].result.status) == ('character_simulation', 'completed')
+    assert [t.kind for t in done.steps[0].result.turns] == ['narration', 'character', 'character', 'narration'] and len(log.narrate) == 2
+
+
 def test_a_finished_scene_can_be_continued_from_the_approval_question_and_approved_later(monkeypatch):
     thread, _, _, log, applied = start_scene(monkeypatch)
     finish_scene(thread)
     more = scene_turn(thread, 'next', note='이야기가 이어진다')  # 승인 대기 중의 장면 조작은 장면으로 돌아가 이어 간다
     assert (more.status, more.awaitingScene, more.awaitingApproval) == ('waiting', 'character_simulation', None)
-    assert [t.kind for t in more.steps[0].result.turns] == ['narration', 'character', 'character', 'narration']  # 마무리가 빠지고 메모 나레이션이 붙었다
+    assert [t.kind for t in more.steps[0].result.turns] == ['narration', 'character', 'character', 'narration', 'narration']  # 마무리 줄은 그대로, 메모 나레이션이 뒤에 붙었다
     assert (more.steps[0].status, more.steps[0].result.status) == ('not_started', 'paused') and log.narrate[-1]['purpose'] == 'note'
     assert applied == []
     asked = scene_turn(thread, 'stop')

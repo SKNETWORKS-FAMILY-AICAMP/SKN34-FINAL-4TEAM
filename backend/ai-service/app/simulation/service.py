@@ -230,14 +230,13 @@ def apply_action(scene: Scene, action: SceneAction) -> Scene:
     """작가의 조작을 장면에 반영한다(모델 호출 없음). 턴 번호가 장면 안인지는 호출자가 확인한다.
 
     edit는 그 턴을 작가 글로 바꾸고, stop은 지금까지로 끝낸다. next·redo는 다음 턴을 쓰게 하며 redo는 그 턴부터 뒤를 지우고
-    같은 연출(인물·시점)로 그 턴만 다시 쓴다. 끝난 장면에 next를 하면 마무리를 걷어 내고 이어 간다.
+    같은 연출(인물·시점)로 그 턴만 다시 쓴다. 끝난 장면에 next를 해도 기존 줄(마무리 나레이션 포함)은 그대로 두고 이야기만 다시 열어 뒤에 붙인다.
     """
+    if action.action == 'stop':
+        return finish_scene(scene)
     scene = scene.model_copy(deep=True)
     result, trail = scene.result, scene.trail
     note = (action.note or '').strip() or None
-    if action.action == 'stop':
-        result.status, result.stopReason, scene.error = 'completed', None, None
-        return scene
     if action.action == 'edit':
         turn = result.turns[action.turn]
         turn.prose, turn.editedByAuthor, turn.checks = action.text.strip(), True, []
@@ -252,10 +251,7 @@ def apply_action(scene: Scene, action: SceneAction) -> Scene:
         if note:
             result.notes.append(Note(afterTurn=k - 1, text=note))
     else:
-        if result.status == 'completed':
-            if trail and trail[-1].closing:
-                result.turns.pop()
-                trail.pop()
+        if result.status == 'completed':  # 끝난 이야기를 다시 연다: 마지막 비트가 다시 진행 중이 된다(줄은 지우지 않는다)
             for entry in trail:
                 if entry.ended:
                     entry.ended = entry.done = False
@@ -267,8 +263,16 @@ def apply_action(scene: Scene, action: SceneAction) -> Scene:
     return scene
 
 
+def finish_scene(scene: Scene) -> Scene:
+    """장면을 지금까지로 끝낸다(completed, 이유·오류 없음). 작가의 stop과, 마무리 나레이션을 생략하는 끝이 같은 결과다."""
+    scene = scene.model_copy(deep=True)
+    scene.result.status, scene.result.stopReason, scene.error = 'completed', None, None
+    return scene
+
+
 def rules(plan: SimulationPlan, scene: Scene) -> tuple[list[str], str | None]:
     """다음 턴의 규칙: (연출이 고를 수 있는 턴, 나레이션이 정해진 이유). 고를 수 있는 턴이 없으면 한도에 닿았다.
+    이야기가 끝났는데 직전 턴이 나레이션이면 마무리 나레이션을 더하지 않으니 턴 없이 끝내라는 뜻으로 ([], 'done')을 준다.
 
     장면 시작·작가의 메모·이야기의 끝·흐름 모드의 비트 전환에는 나레이션(마무리는 end)이 먼저다. 그 밖에는 나레이션·독백·대사 중에서
     고르되 직전 턴이 나레이션이면 나레이션을 연달아 쓰지 않고(독백·대사만) 나레이션·독백이 두 번 이어지면 이번엔 대사다.
@@ -279,7 +283,7 @@ def rules(plan: SimulationPlan, scene: Scene) -> tuple[list[str], str | None]:
     if scene.memo:
         return ['narration'], 'note'
     if any(e.ended for e in trail):
-        return ['end'], 'closing'
+        return ([], 'done') if turns[-1].kind == 'narration' else (['end'], 'closing')  # 나레이션을 연달아 쓰지 않으니 직전이 나레이션이면 마무리는 생략한다
     if turns[-1].kind == 'character' and trail[-1].done:
         return ['narration'], 'transition'
     if sum(t.kind == 'character' for t in turns) >= TURN_LIMIT or len(turns) >= MAX_TURNS:

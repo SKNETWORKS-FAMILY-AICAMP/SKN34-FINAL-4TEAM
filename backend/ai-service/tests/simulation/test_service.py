@@ -201,6 +201,8 @@ def scene_of(plan=PLAN_IF, *entries):
     ([('narration', {})], PLAN_IF, (['monologue', 'speech'], None)),                              # 직전이 나레이션이면 나레이션을 연달아 쓰지 않는다
     ([('narration', {}), ('character', {})], PLAN_IF, (['narration', 'monologue', 'speech'], None)),
     ([('narration', {}), ('character', {'ended': True, 'done': True})], PLAN_IF, (['end'], 'closing')),
+    ([('narration', {}), ('character', {'ended': True, 'done': True}), ('narration', {})], PLAN_IF, ([], 'done')),  # 직전이 나레이션이면 마무리 나레이션도 더하지 않는다
+    ([('narration', {}), ('character', {'ended': True, 'done': True}), ('monologue', {})], PLAN_IF, (['end'], 'closing')),  # 독백 뒤에는 마무리를 쓴다(나레이션만 막는다)
     ([('narration', {}), ('character', {'beat': 0, 'done': True})], PLAN_FLOW, (['narration'], 'transition')),
     ([('narration', {}), ('character', {'beat': 0, 'done': True, 'ended': True})], PLAN_FLOW, (['end'], 'closing')),
     ([('narration', {}), ('character', {}), ('monologue', {})], PLAN_IF, (['narration', 'monologue', 'speech'], None)),
@@ -252,7 +254,7 @@ def test_edit_replaces_the_line_with_the_authors_text_and_clears_its_checks():
     assert again.trail[2].observed == ''  # 독백은 고쳐도 다른 인물에게 보이지 않는다
 
 
-def test_stop_ends_the_scene_as_it_is_and_next_after_it_takes_the_closing_narration_back():
+def test_stop_ends_the_scene_as_it_is_and_next_after_it_keeps_every_line_and_only_reopens_the_story():
     scene = scene_of(PLAN_FLOW, ('narration', {}), ('character', {'beat': 0, 'done': True, 'ended': True}),
                      ('narration', {'closing': True}))
     scene.result.status = 'completed'
@@ -260,10 +262,14 @@ def test_stop_ends_the_scene_as_it_is_and_next_after_it_takes_the_closing_narrat
     stopped = service.apply_action(scene.model_copy(update={'error': '멈췄어요'}), SceneAction(action='stop'))
     assert (stopped.result.status, stopped.result.stopReason, stopped.error, len(stopped.result.turns)) == ('completed', None, None, 3)
     more = service.apply_action(scene, SceneAction(action='next', note='MORE 이어진다'))
-    assert [t.kind for t in more.result.turns] == ['narration', 'character'] and more.result.status == 'paused'
+    # 이어 가기는 기존 줄(마무리 나레이션 포함)을 그대로 두고 뒤에 붙이기만 한다.
+    assert [t.kind for t in more.result.turns] == ['narration', 'character', 'narration'] and more.result.status == 'paused'
+    assert [t.prose for t in more.result.turns] == [t.prose for t in scene.result.turns]
     assert (more.trail[1].ended, more.trail[1].done, more.memo) == (False, False, 'MORE 이어진다')
-    assert more.result.notes == [Note(afterTurn=1, text='MORE 이어진다')] and more.result.beats[0].status == 'pending'  # 마지막 비트가 다시 열린다
+    assert more.result.notes == [Note(afterTurn=2, text='MORE 이어진다')] and more.result.beats[0].status == 'pending'  # 마지막 비트가 다시 열린다
     assert service.rules(PLAN_FLOW, more) == (['narration'], 'note')
+    plain = service.apply_action(scene, SceneAction(action='next'))
+    assert len(plain.result.turns) == 3 and service.rules(PLAN_FLOW, plain) == (['monologue', 'speech'], None)  # 마무리 나레이션 뒤라 나레이션은 아니다
 
 
 def test_next_after_a_stop_or_failure_retries_and_forgets_the_old_reason():

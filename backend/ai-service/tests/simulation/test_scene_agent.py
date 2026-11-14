@@ -554,6 +554,42 @@ def test_a_finished_scene_can_be_continued_after_the_approval_question_by_an_act
     assert edited.waiting is None and edited.scene.result.status == 'completed' and edited.scene.result.turns[1].prose == 'AUTHOR-LINE'
     assert counts(h) == seen  # 고치기만 했으면 모델을 부르지 않고 바로 승인으로 돌아간다
     more = Run().start(scene=finished, action=SceneAction(action='next', note='MORE 이야기가 이어진다'))
-    assert [t['kind'] for t in more.shown['result']['turns']] == ['narration', 'character', 'character', 'narration']  # 마무리가 빠지고 메모 나레이션이 붙었다
+    # 기존 줄(마무리 나레이션 포함)은 그대로이고 메모 나레이션이 뒤에 붙는다.
+    assert [t['kind'] for t in more.shown['result']['turns']] == ['narration', 'character', 'character', 'narration', 'narration']
     assert more.shown['result']['status'] == 'paused' and h.calls.narrate[-1]['purpose'] == 'note'
-    assert [e.closing for e in more.scene.trail] == [False, False, False, False] and not more.scene.trail[2].ended
+    assert [e.closing for e in more.scene.trail] == [False, False, False, True, False] and not more.scene.trail[2].ended
+
+
+def test_continuing_a_finished_scene_keeps_every_line_and_only_appends_one_that_is_not_a_second_narration(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL), speech(LINA), verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) == 2))
+    finished = run_auto()  # 시작 나레이션, 카엘, 리나, 마무리 나레이션
+    more = Run().start(scene=finished, action=SceneAction(action='next'))
+    turns = more.shown['result']['turns']
+    assert [t['prose'] for t in turns[:4]] == [t.prose for t in finished.result.turns]  # 마무리 줄이 지워지거나 덮어쓰이지 않는다
+    assert len(turns) == 5 and turns[4]['kind'] != 'narration'  # 직전이 마무리 나레이션이라 다음은 나레이션이 아니다
+
+
+def test_the_reported_session_never_writes_two_narrations_in_a_row_and_never_loses_a_line(monkeypatch):
+    """나레이션 → 카엘 → 스스로 완료 → 이어 가기 → 리나(작가 수정) → 리나 다시 말하기 → 끼어들기 → 나레이션 → 이어 가기 순서."""
+    h = setup(monkeypatch, speech(KAEL), speech(LINA), speech(KAEL), verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) in (1, 3)))
+    finished = run_auto()  # 시작 나레이션, 카엘, 마무리 나레이션
+    run = Run().start(scene=finished, action=SceneAction(action='next'))  # 장면 이어 가기
+    run.resume(SceneAction(action='edit', turn=3, text='LINA-EDITED 리나가 놀랐다.'))
+    run.resume(SceneAction(action='redo', turn=3))  # 다시 쓴 리나 줄을 이야기가 끝났다고 판정한다
+    run.next(note='지수가 놀라 말을 잃는다')  # 메모 나레이션
+    run.next()  # 끝났고 직전이 나레이션이라 마무리 없이 끝난다
+    scene = run.scene
+    kinds = [t.kind for t in scene.result.turns]
+    assert kinds == ['narration', 'character', 'narration', 'character', 'narration'] and scene.result.status == 'completed'
+    assert [t.prose for t in scene.result.turns[:3]] == [t.prose for t in finished.result.turns]  # 이어 가기가 마무리 줄을 지우지 않았다
+    assert not any(a == b == 'narration' for a, b in zip(kinds, kinds[1:]))
+
+
+def test_a_note_after_the_story_ended_gets_no_second_narration_as_the_closing(monkeypatch):
+    setup(monkeypatch, speech(KAEL), verdicts=lambda payload: verdict(payload, scene_complete=True))
+    run = Run().start().next()  # 시작 나레이션, 카엘(이야기가 끝났다고 판정)
+    run.next(note='지수가 놀라 말을 잃는다')  # 메모 나레이션
+    assert [t['kind'] for t in run.shown['result']['turns']] == ['narration', 'character', 'narration']
+    run.next()  # 이야기는 끝났지만 직전이 나레이션이라 마무리 나레이션을 더하지 않고 턴 없이 끝낸다
+    assert run.waiting is None and run.scene.result.status == 'completed'
+    assert [t.kind for t in run.scene.result.turns] == ['narration', 'character', 'narration'] and not any(e.closing for e in run.scene.trail)

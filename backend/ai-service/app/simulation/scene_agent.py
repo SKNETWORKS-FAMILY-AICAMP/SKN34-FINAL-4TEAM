@@ -114,6 +114,8 @@ class DirectorMiddleware(AgentMiddleware):
             return {'jump_to': 'end'}  # 멈춘 장면은 StageMiddleware가 작가의 조작으로 되살린 뒤에만 이어진다
         stop = 'model' if context.pausing else 'end'
         allowed, required = service.rules(context.plan, scene)
+        if required == 'done':  # 이야기가 끝났고 직전이 나레이션이라 마무리 나레이션 없이 끝낸다
+            return {'scene': _dump(service.finish_scene(scene)), 'jump_to': 'end'}
         if not allowed:
             return {'scene': _dump(service.stop_scene(scene, TURN_LIMIT_MESSAGE, 'stopped', 'turn_limit')), 'pending': True, 'jump_to': stop}
         try:
