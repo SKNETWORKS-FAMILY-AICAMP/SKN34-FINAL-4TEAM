@@ -43,9 +43,6 @@ class Planner:
     def __init__(self, llm: Llm, failed=frozenset()):
         self.llm, self.failed, self.requests = llm, failed, {}
 
-    def is_cached(self, instructions, input, *, schema=None, max_output_tokens=4000):
-        return self.llm.is_cached(instructions, input, schema=schema, max_output_tokens=max_output_tokens)
-
     def ask(self, kind, instructions, input, *, schema=None, max_output_tokens=4000):
         key = self.llm._path(instructions, input, schema, max_output_tokens).stem
         if self.llm.is_cached(instructions, input, schema=schema, max_output_tokens=max_output_tokens):

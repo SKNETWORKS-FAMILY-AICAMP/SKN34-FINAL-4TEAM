@@ -116,18 +116,19 @@ def timechara() -> str:
     out = [f"**검증 {questions}건, 시작점 수정 뒤 문맥**\n\n"
            + table(['구성', '시공간(가중)', 'future', 'past-only', 'past-absence', 'past-presence', '성격(1~7)', '문맥 미래', '문맥 타인 기억', '실패'], rows)
            + f"\n\n모델 `{data['model']}`, 문맥은 상위 {data['k_context']}개 항목. 유형 칸은 평균 [Wilson 95% 구간], 가중은 공개 600건의 유형 구성(200/200/100/100) 비율로 가중한 평균."]
-    if 'first_80' in data and before:
-        first = data['first_80']['configs']
-        compare = [[NAMES[c], f"{before['configs'][c]['weighted']:.3f}", f"{first[c]['weighted']:.3f}", f"{data['configs'][c]['weighted']:.3f}",
-                    (f"{before['configs'][c]['personality']:.2f}" if before['configs'][c]['personality'] is not None else '-'),
-                    (f"{first[c]['personality']:.2f}" if first[c]['personality'] is not None else '-')]
+    subset = data.get('first_80') or ({'configs': data['configs'], 'paired': data['paired']} if questions == 80 else None)
+    if subset and before:
+        full = 'first_80' in data   # 600건 전체 실행이면 80건 부분집합 수치와 600건 수치를 나란히 낸다
+        header = ['구성', '80건 수정 전 시공간', '80건 수정 후 시공간'] + ([f'{questions}건 수정 후 시공간'] if full else []) + ['80건 수정 전 성격', '80건 수정 후 성격']
+        score = lambda block: f"{block['personality']:.2f}" if block['personality'] is not None else '-'  # noqa: E731
+        compare = [[NAMES[c], f"{before['configs'][c]['weighted']:.3f}", f"{subset['configs'][c]['weighted']:.3f}"]
+                   + ([f"{data['configs'][c]['weighted']:.3f}"] if full else []) + [score(before['configs'][c]), score(subset['configs'][c])]
                    for c in ordered(data['configs']) if c in before['configs']]
-        out.append('**처음 평가한 80건(유형당 20)에서 수정 전과 후, 그리고 600건 전체**\n\n'
-                   + table(['구성', '80건 수정 전 시공간', '80건 수정 후 시공간', '600건 수정 후 시공간', '80건 수정 전 성격', '80건 수정 후 성격'], compare))
-        pairs = [[label, psign(before['paired'].get(key)), psign(data['first_80']['paired'].get(key)), psign(data['paired'].get(key))]
+        out.append('**처음 평가한 80건(유형당 20)에서 수정 전과 후' + (', 그리고 600건 전체' if full else '') + '**\n\n' + table(header, compare))
+        pairs = [[label, psign(before['paired'].get(key)), psign(subset['paired'].get(key))] + ([psign(data['paired'].get(key))] if full else [])
                  for key, label in TC_PAIRS]
         out.append('같은 질문에서 짝 비교(앞 구성만 맞은 질문 수 : 뒤 구성만 맞은 질문 수, 정확 부호 검정 양측 p):\n\n'
-                   + table(['비교', '80건 수정 전', '80건 수정 후', f'{questions}건 수정 후'], pairs))
+                   + table(['비교', '80건 수정 전', '80건 수정 후'] + ([f'{questions}건 수정 후'] if full else []), pairs))
     else:
         out.append('같은 질문에서 짝 비교:\n\n' + table(['비교', '앞만 : 뒤만'], [[label, psign(data['paired'].get(key))] for key, label in TC_PAIRS]))
     if 'paired_by_type' in data:
@@ -149,7 +150,8 @@ def ko_timechara_data() -> str:
     if not data:
         return ''
     kinds = {'web': '웹소설(수집본)', 'classic': '고전(위키문헌)'}
-    works = [[kinds[k], str(b['works']), str(b['episodes']), f"{b['episodes_per_work']['min']}~{b['episodes_per_work']['max']}",
+    span = lambda r: str(r['min']) if r['min'] == r['max'] else f"{r['min']}~{r['max']}"  # noqa: E731
+    works = [[kinds[k], str(b['works']), str(b['episodes']), span(b['episodes_per_work']),
               f"{b['chars_per_episode']['median']:,} ({b['chars_per_episode']['min']:,}~{b['chars_per_episode']['max']:,})", f"{b['total_chars']:,}"]
              for k, b in data['data']['by_kind'].items()]
     q, e, c = data['questions'], data['extraction'], data['question_checks']
@@ -166,8 +168,24 @@ def ko_timechara_data() -> str:
     return ('\n\n'.join([table(['종류', '작품', '회차', '작품당 회차', '회차 글자 중앙값(범위)', '글자 합계'], works), f'장르(키워드 규칙으로 추정, 작품 수): {genres}.',
                           table(['유형', '질문'], types + [['합계', str(q['total'])]]),
                           f"종류별 {', '.join(f'{k} {v}' for k, v in q['by_kind'].items())}; 형식별 {', '.join(f'{k} {v}' for k, v in q['by_style'].items())}; "
-                          f"작품당 {q['per_work']['min']}~{q['per_work']['max']}문항; 질문 대상 인물 {q['characters']}명(작품별 합).",
+                          f"작품당 {span(q['per_work'])}문항; 질문 대상 인물 {q['characters']}명(작품별 합).",
                           table(['자동 점검', '통과'], checks)]))
+
+
+def ko_timechara_context() -> str:
+    """KoTimeChara 문맥 노출(호출 없이 계산한 두 누설 지표와 타인 기억)."""
+    data = load('ko-timechara-context')
+    if not data:
+        return ''
+    rows = []
+    for c in KO_TC_ROWS:
+        b = data['configs'][c]
+        f = b['by_type'].get('future', b['all'])
+        rows.append([KO_TC_NAMES[c], f"{b['all']['future']:.2f}", f"{b['all']['unseen']:.2f}", f"{b['all']['foreign']:.2f}", f"{b['all']['items']:.1f}",
+                     f"{f['future']:.2f}", f"{f['unseen']:.2f}"])
+    return (table(['구성', '문맥 미래(필터와 같은 조건)', '문맥 미래·미목격(정답표 기준)', '문맥 타인 기억', '평균 항목 수', 'future형: 미래', 'future형: 정답표 기준'], rows)
+            + f"\n\n질문 {next(iter(data['configs'].values()))['all']['questions']}개, 문맥은 상위 {data['k_context']}개 항목. '정답표 기준'은 문맥의 원고 발췌가 그 인물이 보지 못한 사건·기준 회차 뒤 사건의 "
+              "근거 문장과 겹치는 질문의 비율로, 필터 규칙(기준 회차 이하·발췌에 이름 포함)과 독립인 라벨로 센다. 원고 발췌만 본다(카드·관계는 해당 없음).")
 
 
 def ko_timechara() -> str:
@@ -219,6 +237,7 @@ def ko() -> str:
 if __name__ == '__main__':
     for heading, body in (('MuSiQue 근거 검색', retrieval('musique', 'MuSiQue')), ('NarrativeQA 근거 검색', retrieval('narrativeqa', 'NarrativeQA')),
                           ('MuSiQue 답 정확도', answers('musique')), ('TimeChara', timechara()), ('한국어 샘플', ko()),
-                          ('KoTimeChara 데이터', ko_timechara_data()), ('KoTimeChara', ko_timechara())):
+                          ('KoTimeChara 데이터', ko_timechara_data()), ('KoTimeChara 문맥 노출', ko_timechara_context()),
+                          ('KoTimeChara', ko_timechara())):
         if body:
             print(f'## {heading}\n\n{body}\n')

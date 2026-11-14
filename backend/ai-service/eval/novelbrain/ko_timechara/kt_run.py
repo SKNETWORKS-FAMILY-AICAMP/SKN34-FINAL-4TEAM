@@ -18,7 +18,7 @@ import sys
 from batch import cost_report, plan_for, run_rounds
 from embed import cached_embeddings, embed_texts
 from kt_common import KT, RESULTS, SEED
-from kt_context import CONFIGS, chunk_episode, contexts_for
+from kt_context import CONFIGS, K_CTX, chunk_episode, contexts_for
 from kt_exec import load_works, make_executor, make_llm
 from kt_world import load_world
 from prepare import DATA
@@ -108,12 +108,22 @@ def build_contexts(rows: list[dict], data: dict) -> dict:
     return {r['idx']: contexts_for(r, data[r['work']], data[r['work']]['knowledge'], queries[n]) for n, r in enumerate(rows)}
 
 
-def context_summary(rows: list[dict], contexts: dict) -> None:
+def context_rates(rows: list[dict], contexts: dict) -> dict:
+    """구성별 문맥 노출(호출 없음): 기준 회차 뒤 항목·정답표 기준 모를 사건 발췌·다른 인물 기억이 든 질문의 비율과 평균 항목 수. 전체와 유형별."""
+    def block(part):
+        mine = [contexts[r['idx']][config] for r in part]
+        return {'questions': len(part), 'future': sum(c['future'] for c in mine) / len(mine), 'unseen': sum(c['unseen'] for c in mine) / len(mine),
+                'foreign': sum(c['foreign'] for c in mine) / len(mine), 'items': sum(len(c['items']) for c in mine) / len(mine)}
+    out = {}
     for config in CONFIGS:
-        mine = [contexts[r['idx']][config] for r in rows]
-        print(f"{config:9s} 기준 회차 뒤 항목 {sum(c['future'] for c in mine) / len(mine):.2f} · 정답표 기준 모를 사건 발췌 "
-              f"{sum(c['unseen'] for c in mine) / len(mine):.2f} · 다른 인물 기억 {sum(c['foreign'] for c in mine) / len(mine):.2f} · "
-              f"평균 항목 {sum(len(c['items']) for c in mine) / len(mine):.1f}")
+        out[config] = {'all': block(rows), 'by_type': {t: block([r for r in rows if r['data_type'] == t]) for t in TYPES if any(r['data_type'] == t for r in rows)}}
+    return out
+
+
+def context_summary(rows: list[dict], contexts: dict) -> None:
+    for config, rate in context_rates(rows, contexts).items():
+        b = rate['all']
+        print(f"{config:9s} 기준 회차 뒤 항목 {b['future']:.2f} · 정답표 기준 모를 사건 발췌 {b['unseen']:.2f} · 다른 인물 기억 {b['foreign']:.2f} · 평균 항목 {b['items']:.1f}")
 
 
 def run(mode: str, sample: int | None, configs: tuple[str, ...]) -> None:
@@ -156,9 +166,14 @@ if __name__ == '__main__':
     command, options = (sys.argv[1] if len(sys.argv) > 1 else ''), [a for a in sys.argv[2:] if a.startswith('--')]
     rest = [a for a in sys.argv[2:] if not a.startswith('--')]
     opt = lambda name, default=None: next((o.split('=', 1)[1] for o in options if o.startswith(f'--{name}=')), default)  # noqa: E731
-    if command == 'contexts':
+    if command == 'contexts':   # 호출 없음: 문맥 노출 비율을 results/ko-timechara-context.json에도 쓴다(작품을 고르지 않았을 때)
         rows = [r for r in load_rows() if not rest or r['work'] in rest]
-        context_summary(rows, build_contexts(rows, build_data(sorted({r['work'] for r in rows}))))
+        contexts = build_contexts(rows, build_data(sorted({r['work'] for r in rows})))
+        context_summary(rows, contexts)
+        if not rest:
+            RESULTS.mkdir(exist_ok=True)
+            (RESULTS / 'ko-timechara-context.json').write_text(json.dumps({'configs': context_rates(rows, contexts), 'k_context': K_CTX},
+                                                                          ensure_ascii=False, indent=2, sort_keys=True))
     elif command == 'run':
         run(opt('mode', 'sync'), int(opt('sample', 0)) or None, tuple(opt('configs', ','.join(CONFIGS)).split(',')))
     elif command == 'report':

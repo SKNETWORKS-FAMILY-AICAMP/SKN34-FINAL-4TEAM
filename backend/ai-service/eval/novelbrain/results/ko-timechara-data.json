@@ -1,0 +1,124 @@
+{
+  "data": {
+    "by_kind": {
+      "classic": {
+        "chars_per_episode": {
+          "max": 7037,
+          "median": 5040,
+          "min": 3292
+        },
+        "episodes": 56,
+        "episodes_per_work": {
+          "max": 14,
+          "min": 10
+        },
+        "total_chars": 300763,
+        "works": 5
+      },
+      "web": {
+        "chars_per_episode": {
+          "max": 11860,
+          "median": 6295,
+          "min": 4265
+        },
+        "episodes": 300,
+        "episodes_per_work": {
+          "max": 25,
+          "min": 25
+        },
+        "total_chars": 1946155,
+        "works": 12
+      }
+    },
+    "genres": {
+      "고전": 5,
+      "대체역사": 2,
+      "로맨스판타지": 2,
+      "무협": 2,
+      "판타지": 2,
+      "현대로맨스": 1,
+      "현대판타지": 3
+    },
+    "works": 17
+  },
+  "extraction": {
+    "evidence_checked": 7443,
+    "evidence_ok": 7258,
+    "evidence_pass_rate": 0.9751444310090017,
+    "failed": {
+      "label": 0,
+      "learn": 0,
+      "world": 0
+    },
+    "label": {
+      "bad_name": 111,
+      "event_evidence": 79,
+      "events": 2502,
+      "evidence_checked": 7086,
+      "evidence_ok": 6910,
+      "kept": 2314,
+      "no_participant": 109,
+      "ref_evidence": 97,
+      "refs": 4695,
+      "refs_kept": 4485
+    },
+    "learn": {
+      "already_present": 12,
+      "bad_name": 13,
+      "evidence_checked": 357,
+      "evidence_ok": 348,
+      "learn_evidence": 9,
+      "learned": 382,
+      "learned_kept": 348
+    },
+    "world": {
+      "bad_character": 159,
+      "bad_event": 53,
+      "bad_relation": 120,
+      "characters": 2246,
+      "events": 1814,
+      "relations": 1202
+    }
+  },
+  "question_checks": {
+    "audited": 1088,
+    "dropped": {
+      "copies_evidence": 4,
+      "duplicate": 51
+    },
+    "kept": 1088,
+    "review_evidence_ok": 109,
+    "review_sample": 109
+  },
+  "questions": {
+    "by_genre": {
+      "고전": 320,
+      "대체역사": 128,
+      "로맨스판타지": 128,
+      "무협": 128,
+      "판타지": 128,
+      "현대로맨스": 64,
+      "현대판타지": 192
+    },
+    "by_kind": {
+      "classic": 320,
+      "web": 768
+    },
+    "by_style": {
+      "fact-freeform": 561,
+      "fact-structured": 527
+    },
+    "by_type": {
+      "future": 374,
+      "past-absence": 170,
+      "past-only": 374,
+      "past-presence": 170
+    },
+    "characters": 115,
+    "per_work": {
+      "max": 64,
+      "min": 64
+    },
+    "total": 1088
+  }
+}

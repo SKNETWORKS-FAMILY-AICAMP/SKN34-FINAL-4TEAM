@@ -1,0 +1,395 @@
+{
+  "configs": {
+    "bm25": {
+      "all": {
+        "foreign": 0.8336397058823529,
+        "future": 0.75,
+        "items": 6.0,
+        "questions": 1088,
+        "unseen": 0.0
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.7807486631016043,
+          "future": 0.9919786096256684,
+          "items": 6.0,
+          "questions": 374,
+          "unseen": 0.0
+        },
+        "past-absence": {
+          "foreign": 0.9647058823529412,
+          "future": 0.5588235294117647,
+          "items": 6.0,
+          "questions": 170,
+          "unseen": 0.0
+        },
+        "past-only": {
+          "foreign": 0.8529411764705882,
+          "future": 0.6283422459893048,
+          "items": 6.0,
+          "questions": 374,
+          "unseen": 0.0
+        },
+        "past-presence": {
+          "foreign": 0.7764705882352941,
+          "future": 0.6764705882352942,
+          "items": 6.0,
+          "questions": 170,
+          "unseen": 0.0
+        }
+      }
+    },
+    "no_bm25": {
+      "all": {
+        "foreign": 0.0,
+        "future": 0.03768382352941176,
+        "items": 5.549632352941177,
+        "questions": 1088,
+        "unseen": 0.10661764705882353
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.0,
+          "future": 0.06951871657754011,
+          "items": 5.171122994652406,
+          "questions": 374,
+          "unseen": 0.08823529411764706
+        },
+        "past-absence": {
+          "foreign": 0.0,
+          "future": 0.0,
+          "items": 5.570588235294117,
+          "questions": 170,
+          "unseen": 0.11176470588235295
+        },
+        "past-only": {
+          "foreign": 0.0,
+          "future": 0.02406417112299465,
+          "items": 5.764705882352941,
+          "questions": 374,
+          "unseen": 0.11497326203208556
+        },
+        "past-presence": {
+          "foreign": 0.0,
+          "future": 0.03529411764705882,
+          "items": 5.8882352941176475,
+          "questions": 170,
+          "unseen": 0.12352941176470589
+        }
+      }
+    },
+    "no_graph": {
+      "all": {
+        "foreign": 0.0,
+        "future": 0.043198529411764705,
+        "items": 5.553308823529412,
+        "questions": 1088,
+        "unseen": 0.12224264705882353
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.0,
+          "future": 0.07754010695187166,
+          "items": 5.192513368983957,
+          "questions": 374,
+          "unseen": 0.09090909090909091
+        },
+        "past-absence": {
+          "foreign": 0.0,
+          "future": 0.011764705882352941,
+          "items": 5.58235294117647,
+          "questions": 170,
+          "unseen": 0.12352941176470589
+        },
+        "past-only": {
+          "foreign": 0.0,
+          "future": 0.026737967914438502,
+          "items": 5.759358288770054,
+          "questions": 374,
+          "unseen": 0.14171122994652408
+        },
+        "past-presence": {
+          "foreign": 0.0,
+          "future": 0.03529411764705882,
+          "items": 5.864705882352941,
+          "questions": 170,
+          "unseen": 0.14705882352941177
+        }
+      }
+    },
+    "no_vector": {
+      "all": {
+        "foreign": 0.0,
+        "future": 0.043198529411764705,
+        "items": 5.579044117647059,
+        "questions": 1088,
+        "unseen": 0.0
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.0,
+          "future": 0.07754010695187166,
+          "items": 5.352941176470588,
+          "questions": 374,
+          "unseen": 0.0
+        },
+        "past-absence": {
+          "foreign": 0.0,
+          "future": 0.011764705882352941,
+          "items": 5.7176470588235295,
+          "questions": 170,
+          "unseen": 0.0
+        },
+        "past-only": {
+          "foreign": 0.0,
+          "future": 0.026737967914438502,
+          "items": 5.68716577540107,
+          "questions": 374,
+          "unseen": 0.0
+        },
+        "past-presence": {
+          "foreign": 0.0,
+          "future": 0.03529411764705882,
+          "items": 5.7,
+          "questions": 170,
+          "unseen": 0.0
+        }
+      }
+    },
+    "ppr": {
+      "all": {
+        "foreign": 0.0,
+        "future": 0.15808823529411764,
+        "items": 5.725183823529412,
+        "questions": 1088,
+        "unseen": 0.0
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.0,
+          "future": 0.2914438502673797,
+          "items": 5.529411764705882,
+          "questions": 374,
+          "unseen": 0.0
+        },
+        "past-absence": {
+          "foreign": 0.0,
+          "future": 0.041176470588235294,
+          "items": 5.8882352941176475,
+          "questions": 170,
+          "unseen": 0.0
+        },
+        "past-only": {
+          "foreign": 0.0,
+          "future": 0.11497326203208556,
+          "items": 5.783422459893048,
+          "questions": 374,
+          "unseen": 0.0
+        },
+        "past-presence": {
+          "foreign": 0.0,
+          "future": 0.07647058823529412,
+          "items": 5.864705882352941,
+          "questions": 170,
+          "unseen": 0.0
+        }
+      }
+    },
+    "s1": {
+      "all": {
+        "foreign": 0.0,
+        "future": 0.6231617647058824,
+        "items": 6.0,
+        "questions": 1088,
+        "unseen": 0.5661764705882353
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.0,
+          "future": 0.9598930481283422,
+          "items": 6.0,
+          "questions": 374,
+          "unseen": 0.7566844919786097
+        },
+        "past-absence": {
+          "foreign": 0.0,
+          "future": 0.3352941176470588,
+          "items": 6.0,
+          "questions": 170,
+          "unseen": 0.7705882352941177
+        },
+        "past-only": {
+          "foreign": 0.0,
+          "future": 0.4919786096256685,
+          "items": 6.0,
+          "questions": 374,
+          "unseen": 0.38235294117647056
+        },
+        "past-presence": {
+          "foreign": 0.0,
+          "future": 0.4588235294117647,
+          "items": 6.0,
+          "questions": 170,
+          "unseen": 0.34705882352941175
+        }
+      }
+    },
+    "s2": {
+      "all": {
+        "foreign": 0.043198529411764705,
+        "future": 0.21783088235294118,
+        "items": 6.0,
+        "questions": 1088,
+        "unseen": 0.07352941176470588
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.06417112299465241,
+          "future": 0.43315508021390375,
+          "items": 6.0,
+          "questions": 374,
+          "unseen": 0.16042780748663102
+        },
+        "past-absence": {
+          "foreign": 0.03529411764705882,
+          "future": 0.058823529411764705,
+          "items": 6.0,
+          "questions": 170,
+          "unseen": 0.06470588235294118
+        },
+        "past-only": {
+          "foreign": 0.034759358288770054,
+          "future": 0.13903743315508021,
+          "items": 6.0,
+          "questions": 374,
+          "unseen": 0.01871657754010695
+        },
+        "past-presence": {
+          "foreign": 0.023529411764705882,
+          "future": 0.07647058823529412,
+          "items": 6.0,
+          "questions": 170,
+          "unseen": 0.011764705882352941
+        }
+      }
+    },
+    "s3": {
+      "all": {
+        "foreign": 0.0,
+        "future": 0.043198529411764705,
+        "items": 5.701286764705882,
+        "questions": 1088,
+        "unseen": 0.03952205882352941
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.0,
+          "future": 0.07754010695187166,
+          "items": 5.451871657754011,
+          "questions": 374,
+          "unseen": 0.040106951871657755
+        },
+        "past-absence": {
+          "foreign": 0.0,
+          "future": 0.011764705882352941,
+          "items": 5.776470588235294,
+          "questions": 170,
+          "unseen": 0.06470588235294118
+        },
+        "past-only": {
+          "foreign": 0.0,
+          "future": 0.026737967914438502,
+          "items": 5.831550802139038,
+          "questions": 374,
+          "unseen": 0.026737967914438502
+        },
+        "past-presence": {
+          "foreign": 0.0,
+          "future": 0.03529411764705882,
+          "items": 5.8882352941176475,
+          "questions": 170,
+          "unseen": 0.041176470588235294
+        }
+      }
+    },
+    "vector": {
+      "all": {
+        "foreign": 0.0,
+        "future": 0.7408088235294118,
+        "items": 6.0,
+        "questions": 1088,
+        "unseen": 0.7518382352941176
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.0,
+          "future": 0.9946524064171123,
+          "items": 6.0,
+          "questions": 374,
+          "unseen": 0.8983957219251337
+        },
+        "past-absence": {
+          "foreign": 0.0,
+          "future": 0.5352941176470588,
+          "items": 6.0,
+          "questions": 170,
+          "unseen": 0.8823529411764706
+        },
+        "past-only": {
+          "foreign": 0.0,
+          "future": 0.6256684491978609,
+          "items": 6.0,
+          "questions": 374,
+          "unseen": 0.6122994652406417
+        },
+        "past-presence": {
+          "foreign": 0.0,
+          "future": 0.6411764705882353,
+          "items": 6.0,
+          "questions": 170,
+          "unseen": 0.6058823529411764
+        }
+      }
+    },
+    "zero": {
+      "all": {
+        "foreign": 0.0,
+        "future": 0.0,
+        "items": 0.0,
+        "questions": 1088,
+        "unseen": 0.0
+      },
+      "by_type": {
+        "future": {
+          "foreign": 0.0,
+          "future": 0.0,
+          "items": 0.0,
+          "questions": 374,
+          "unseen": 0.0
+        },
+        "past-absence": {
+          "foreign": 0.0,
+          "future": 0.0,
+          "items": 0.0,
+          "questions": 170,
+          "unseen": 0.0
+        },
+        "past-only": {
+          "foreign": 0.0,
+          "future": 0.0,
+          "items": 0.0,
+          "questions": 374,
+          "unseen": 0.0
+        },
+        "past-presence": {
+          "foreign": 0.0,
+          "future": 0.0,
+          "items": 0.0,
+          "questions": 170,
+          "unseen": 0.0
+        }
+      }
+    }
+  },
+  "k_context": 6
+}

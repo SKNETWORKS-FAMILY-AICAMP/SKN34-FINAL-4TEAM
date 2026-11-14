@@ -4,7 +4,8 @@ from types import SimpleNamespace
 
 from batch import SyncExecutor, run_rounds
 from cost import CostLog
-from kt_run import group_report, ko_system_prompt, make_work, subset
+from kt_context import CONFIGS
+from kt_run import context_rates, group_report, ko_system_prompt, make_work, subset
 from llm import Ledger, Llm
 
 TEMPLATES = {'spatiotemporal': 'S [Interactions] {question_0} {answer_0} [Fact] {agent_fact_0} Spatiotemporal Consistency {agent_name}',
@@ -81,3 +82,13 @@ def test_subset_is_deterministic_and_keeps_the_requested_size_and_all_types_when
     assert {r['data_type'] for r in subset(rows, 8)} == {'future', 'past-only', 'past-absence', 'past-presence'}
     assert subset(rows, 100) == rows
     assert 'Absence:' not in ko_system_prompt('철수', 3) and '철수' in ko_system_prompt('철수', 3) and '3화' in ko_system_prompt('철수', 3)
+
+
+def test_context_rates_average_each_flag_per_configuration_and_per_type():
+    rows = [row(0, 'future'), row(1, 'future'), row(2, 'past-only')]
+    contexts = {0: {c: {'items': [1, 2], 'future': True, 'foreign': False, 'unseen': False} for c in CONFIGS},
+                1: {c: {'items': [1], 'future': False, 'foreign': True, 'unseen': True} for c in CONFIGS},
+                2: {c: {'items': [], 'future': True, 'foreign': False, 'unseen': False} for c in CONFIGS}}
+    rate = context_rates(rows, contexts)['s3']
+    assert rate['all'] == {'questions': 3, 'future': 2 / 3, 'unseen': 1 / 3, 'foreign': 1 / 3, 'items': 1.0}
+    assert rate['by_type']['future']['future'] == 0.5 and rate['by_type']['past-only']['items'] == 0.0 and 'past-absence' not in rate['by_type']
