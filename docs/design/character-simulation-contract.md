@@ -95,7 +95,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 |---|---|---|
 | 0→1 | NarrativeQA 일부(영어, Apache 2.0, 저작권 만료작) | 근거 Recall@5·P@5 |
 | 1→2 | MuSiQue 일부(영어, 다단계) | 정확도, HippoRAG 공개 수치와 비교 |
-| 2→3 | TimeChara 검증 600건(영어, MIT, 비상업 연구 한정) | 누설률·시공간 일관성(0/1)·성격 일관성(1~7), 리더보드·`rag-cutoff`와 비교 |
+| 2→3 | TimeChara 검증 600건(영어, 데이터 CC BY-NC 4.0·코드 MIT, 비상업 연구 한정, HF 약관 동의 필요) | 누설률·시공간 일관성(0/1)·성격 일관성(1~7), 리더보드·`rag-cutoff`와 비교 |
 | 한국어 적용성 | 저장소 샘플 작품 자체 세트 50~100건 | 같은 지표의 단계별 추세 |
 | 흐름 모드 A/B | 같은 비트를 A 메인 단독 / B 흐름 모드로 작성 | 오류 1~3 건수 |
 
