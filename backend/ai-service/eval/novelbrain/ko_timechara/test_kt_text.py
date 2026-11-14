@@ -76,6 +76,7 @@ def test_normalize_and_evidence_ok_match_literally_after_folding_whitespace_and_
     assert not evidence_ok(text, '문이 닫혔다.')
     assert not evidence_ok(text, '')
     assert not evidence_ok(text, '문')                                 # 너무 짧은 근거는 거른다
+    assert evidence_ok('옛 이야기에는 쓰러\n졌다는 말이 있다 그리고 끝난다', '쓰러졌다는 말이 있다 그리고')    # 줄 끝에서 낱말이 끊긴 원문도 공백 차이만 무시하고 맞는다
 
 
 def test_group_paragraphs_makes_equal_sized_episodes_in_order():

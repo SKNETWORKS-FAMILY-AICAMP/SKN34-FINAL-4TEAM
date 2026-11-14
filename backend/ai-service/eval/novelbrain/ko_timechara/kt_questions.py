@@ -3,7 +3,7 @@
 
     cd backend/ai-service
     set -a; . <저장소 루트 .env>; set +a
-    uv run --locked --extra dev python eval/novelbrain/ko_timechara/kt_questions.py [--mode=sync|batch|hybrid] [작품 id …]
+    uv run --locked --extra dev python eval/novelbrain/ko_timechara/kt_questions.py [--mode=sync|batch] [작품 id …]
 
 유형 규칙(기준 회차 p, 사건 회차 e, 인물 c):
 - future: c가 참여하는 사건이 e > p. 인물은 그 사건을 아직 알 수 없다.
@@ -22,11 +22,11 @@ from collections import Counter
 from pydantic import BaseModel
 
 import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여야 한다
-from batch import Round, run_rounds
+from batch import Round, cost_report, plan_for, run_rounds
 from kt_common import KT, SEED
-from kt_exec import cost_report, load_works, make_executor, make_llm, plan_for
+from kt_exec import load_works, make_executor, make_llm
 from kt_label import PROFILE_INSTRUCTIONS, PROFILE_TOKENS, Profile, appearances, knows
-from kt_text import normalize
+from kt_text import squash
 
 # 작품당 정원(합 64): 공개 600건의 유형 구성(future 1/3·past-only 1/3·absence 1/6·presence 1/6)과 같은 비율, future는 정형·자유 반반
 QUOTA = {('future', 'fact-structured'): 11, ('future', 'fact-freeform'): 11, ('past-only', 'fact-freeform'): 22,
@@ -83,8 +83,8 @@ def facts(kind: str, name: str, cutoff: int, event: dict, passage: str) -> tuple
 
 def valid_question(question: str, evidence: str, seen: set[str]) -> str | None:
     """모델이 쓴 자유 질문의 규칙 검증. 통과하면 None, 아니면 버리는 이유(고쳐 쓰지 않는다)."""
-    flat, folded = ' '.join(question.split()), normalize(evidence)
-    asked = normalize(flat)
+    flat, folded = ' '.join(question.split()), squash(evidence)
+    asked = squash(flat)
     if not 12 <= len(flat) <= 160:
         return 'bad_length'
     if any(folded[i:i + 14] in asked for i in range(0, max(len(folded) - 13, 1), 3)):
@@ -167,7 +167,7 @@ def profile_input(name: str, knowledge: list[dict]) -> str:
 def assemble(meta: dict, knowledge: list[dict], texts: dict[int, str], specs: list[dict], written: dict[int, str | None],
              quota: dict) -> tuple[list[dict], Counter]:
     """뽑은 spec으로 질문 행을 만든다. 자유 질문은 모델 출력(written[spec 번호])을 규칙으로 검증하고, 유형·형식마다 정원까지만 남긴다.
-    마지막에 지식표로 자동 점검(audit)해 위반 행은 버린다. 돌려주는 집계는 버린 이유별 수다."""
+    마지막에 지식표로 자동 점검(audit)해 위반 행은 버린다. 돌려주는 집계는 버린 이유별 수이고 `audited`는 점검한 행 수다."""
     events = {e['id']: e for r in knowledge for e in r['events']}
     drops: Counter = Counter()
     rows, seen, counts = [], set(), Counter()
@@ -190,6 +190,7 @@ def assemble(meta: dict, knowledge: list[dict], texts: dict[int, str], specs: li
                'character': spec['character'], 'cutoff': spec['cutoff'], 'event_id': event['id'], 'event_episode': event['episode'],
                'event_summary': event['summary'], 'evidence': event['evidence'], 'participants': [p['name'] for p in event['participants']],
                'question': question, 'temporal_label': temporal, 'spatial_label': spatial}
+        drops['audited'] += 1
         if problems := audit(row, knowledge):
             drops.update(problems)
             continue
@@ -253,12 +254,14 @@ def main(mode: str, ids: list[str]) -> None:
             personalities[wid][key] = ' '.join(out.personality.split())
     rows, drops = [], Counter()
     texts_of = {wid: {e['number']: e['text'] for e in work['episodes']} for wid, work in works.items()}
+    (KT / 'question_stats.json').parent.mkdir(parents=True, exist_ok=True)
     for wid, work in works.items():
         mine, dropped = assemble({'id': wid, 'kind': work['kind'], 'genre': work['genre']}, plans[wid]['knowledge'], texts_of[wid],
                                  plans[wid]['specs'], written[wid], QUOTA)
         rows += mine
         drops.update(dropped)
-        print(f"{wid} 질문 {len(mine)} ({dict(Counter(r['data_type'] for r in mine))}) 인물 {len(plans[wid]['mains'])} 버림 {dict(dropped)}")
+        print(f"{wid} 질문 {len(mine)} ({dict(Counter(r['data_type'] for r in mine))}) 인물 {len(plans[wid]['mains'])} 버림 "
+              f"{ {k: v for k, v in dropped.items() if k != 'audited'} }")
     rows = [dict(r, idx=n) for n, r in enumerate(rows)]
     (KT / 'questions.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows))
     (KT / 'personalities.json').write_text(json.dumps(personalities, ensure_ascii=False))
@@ -267,6 +270,9 @@ def main(mode: str, ids: list[str]) -> None:
         writer = csv.DictWriter(file, fieldnames=list(sample[0]))
         writer.writeheader()
         writer.writerows(sample)
+    audited = drops.pop('audited')
+    (KT / 'question_stats.json').write_text(json.dumps({'audited': audited, 'kept': len(rows), 'dropped': dict(drops),
+                                                        'review_sample': len(sample), 'review_evidence_ok': sum(s['evidence_in_episode'] for s in sample)}))
     print(f'질문 {len(rows)}개 (유형 {dict(Counter(r["data_type"] for r in rows))}), 버린 이유 {dict(drops)}, 검수 표본 {len(sample)}개 '
           f'(근거 대조 통과 {sum(s["evidence_in_episode"] for s in sample)}/{len(sample)})')
     cost_report(llm)

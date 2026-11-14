@@ -75,10 +75,15 @@ def normalize(text: str) -> str:
     return ' '.join(unicodedata.normalize('NFKC', text).translate(QUOTES).split())
 
 
+def squash(text: str) -> str:
+    """normalize한 글에서 공백을 모두 없앤 비교용 글. 고전은 줄 끝에서 낱말 가운데가 끊겨 있어 공백 차이를 허용해야 근거 문장이 맞는다."""
+    return ''.join(normalize(text).split())
+
+
 def evidence_ok(text: str, sentence: str, min_chars: int = 6) -> bool:
-    """근거 문장이 원문에 글자 그대로(공백·따옴표 모양만 접어서) 들어 있는가. 너무 짧은 근거는 거른다."""
-    folded = normalize(sentence)
-    return len(folded) >= min_chars and folded in normalize(text)
+    """근거 문장이 원문에 글자 그대로(공백의 차이와 따옴표 모양만 무시) 들어 있는가. 너무 짧은 근거는 거른다."""
+    folded = squash(sentence)
+    return len(folded) >= min_chars and folded in squash(text)
 
 
 def group_paragraphs(text: str, count: int) -> list[dict]:
