@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from batch import SyncExecutor, run_rounds
 from cost import CostLog
 from kt_context import CONFIGS
-from kt_run import context_rates, group_report, ko_system_prompt, make_work
+from kt_run import context_rates, embed_group, group_report, ko_system_prompt, make_work
 from llm import Ledger, Llm
 
 TEMPLATES = {'spatiotemporal': 'S [Interactions] {question_0} {answer_0} [Fact] {agent_fact_0} Spatiotemporal Consistency {agent_name}',
@@ -79,6 +79,11 @@ def test_group_report_summarizes_and_pairs_within_each_group():
 def test_ko_system_prompt_names_the_character_and_cutoff():
     prompt = ko_system_prompt('철수', 3)
     assert '철수' in prompt and '3화' in prompt and 'Absence:' not in prompt
+
+
+def test_embed_group_keeps_the_first_works_together_and_separates_each_expansion():
+    assert {embed_group(w) for w in ('c01', 'c05', 'w01', 'w12')} == {0} and {embed_group(w) for w in ('w13', 'w40')} == {1}
+    assert embed_group('w41') == embed_group('w48') == 2           # ROUNDS = (12, 40, 48)
 
 
 def test_context_rates_average_each_flag_per_configuration_and_per_type():

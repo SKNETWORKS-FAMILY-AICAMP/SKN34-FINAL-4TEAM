@@ -16,7 +16,7 @@ import sys
 
 from batch import cost_report, plan_for, run_rounds
 from embed import cached_embeddings, embed_texts
-from kt_common import KT, RESULTS
+from kt_common import KT, RESULTS, ROUNDS
 from kt_context import CONFIGS, K_CTX, chunk_episode, contexts_for
 from kt_exec import load_works, make_executor, make_llm
 from kt_world import load_world
@@ -87,8 +87,19 @@ def build_data(wids: list[str]) -> dict:
     return out
 
 
+# 질문 임베딩 묶음. E5(int8 동적 양자화)는 같은 묶음의 다른 질문에 따라 벡터가 조금 달라져(성분 차이 최대 약 0.01) 이웃 순위가 바뀐다.
+# 처음 17편(1,088문항)은 예전과 같은 한 묶음으로 임베딩해 이미 낸 응답·채점 캐시를 살리고, 작품을 늘린 차수마다 따로 묶는다.
+def embed_group(work: str) -> int:
+    return sum(work[0] == 'w' and int(work[1:]) > count for count in ROUNDS[:-1])
+
+
 def build_contexts(rows: list[dict], data: dict) -> dict:
-    queries = embed_texts([r['question'] for r in rows], 'query')
+    groups: dict[int, list[int]] = {}
+    for n, r in enumerate(rows):
+        groups.setdefault(embed_group(r['work']), []).append(n)
+    queries = {}
+    for numbers in groups.values():
+        queries.update(zip(numbers, embed_texts([rows[n]['question'] for n in numbers], 'query')))
     return {r['idx']: contexts_for(r, data[r['work']], data[r['work']]['knowledge'], queries[n]) for n, r in enumerate(rows)}
 
 

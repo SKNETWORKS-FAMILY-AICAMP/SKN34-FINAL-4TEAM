@@ -19,12 +19,13 @@ import zipfile
 from collections import Counter
 from pathlib import Path
 
-from kt_common import KT, SEED
+from kt_common import KT, ROUNDS, SEED
 from kt_text import clean_wikitext, decode_bytes, epub_text, group_paragraphs, modernize_hangul, split_episodes
 
 HEAD_BYTES = 1_500_000      # 후보 선별은 앞부분만 읽는다(앞쪽 25화면 충분하다)
 EPISODES = 25               # 웹소설은 작품마다 앞쪽 25화
 MIN_MEDIAN, MIN_EPISODE = 2500, 800
+MAX_MEDIAN = 12_000         # 회차 글자 중앙값이 이보다 큰 작품은 뺀다(추출 출력 한도·비용이 다른 회차 구성이라 한 작품만 튄다)
 # 장르별 기본 선정 수(합 12 = 처음 평가한 구성비). 장르는 제목·앞부분의 낱말로 추정한다.
 QUOTA = {'현대판타지': 3, '판타지': 2, '무협': 2, '대체역사': 2, '로맨스판타지': 2, '현대로맨스': 1}
 GENRE_WORDS = {
@@ -168,9 +169,9 @@ def save_work(work_id: str, kind: str, genre: str, source: str, pattern: str, ep
 
 def prepare(works: int = 12) -> None:
     """후보에서 장르별로 works편을 고르고(앞쪽 25화를 못 나누는 작품은 버리고 다음 후보로 교체), 고전을 받아 회차로 묶어 works/에 저장한다.
-    처음 12편은 편수를 늘려도 같은 작품·같은 id(w01~w12)이고, 늘린 작품은 w13부터 붙는다(이미 만든 추출·질문·캐시를 그대로 쓴다)."""
+    이미 만든 작품의 id는 편수를 늘려도 그대로다: 확대 차수(ROUNDS)마다 그 차수에 새로 들어온 작품에 (장르, 파일) 순으로 이어 번호를 붙인다."""
     candidates = json.loads((KT / 'candidates.json').read_text())
-    folder, rows, ready = Path(candidates['folder']), candidates['rows'], {}
+    folder, rows, ready = Path(candidates['folder']), [r for r in candidates['rows'] if r['median_chars'] <= MAX_MEDIAN], {}
     quota = quota_for(works)
     while True:
         picked = choose(rows, SEED, quota)
@@ -186,8 +187,10 @@ def prepare(works: int = 12) -> None:
                     break
         else:
             break
-    base, by_name = choose(rows, SEED), lambda r: (r['genre'], r['file'])
-    for number, row in enumerate(sorted(base, key=by_name) + sorted((r for r in picked if r not in base), key=by_name), 1):
+    by_name, ordered = (lambda r: (r['genre'], r['file'])), []
+    for count in [n for n in ROUNDS if n < works] + [works]:
+        ordered += sorted((r for r in choose(rows, SEED, quota_for(count)) if r not in ordered), key=by_name)
+    for number, row in enumerate(ordered, 1):
         pattern, episodes = ready[row['file']]
         save_work(f'w{number:02d}', 'web', row['genre'], 'collection', pattern, episodes)
     raw_dir = KT / 'classics_raw'
