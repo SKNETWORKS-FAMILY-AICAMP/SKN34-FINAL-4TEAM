@@ -1,5 +1,9 @@
 # Shared application settings; use with docker-compose.local.yaml, .dev.yaml or .prod.yaml.
 # This base has no image/build selection and is not runnable on its own.
+
+# 전처리 Celery 브로커(DEC-50). 비워 두면 Core·Content와 같은 rabbitmq 컨테이너·자격(CORE_RABBITMQ_*)으로 만든다.
+x-celery-broker-url: &celery-broker-url ${CELERY_BROKER_URL:-amqp://${CORE_RABBITMQ_USER:-storyfork}:${CORE_RABBITMQ_PASSWORD:-}@${CORE_RABBITMQ_HOST:-rabbitmq}:${CORE_RABBITMQ_PORT:-5672}//}
+
 services:
   ai-service:
     init: true
@@ -15,11 +19,23 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-}
+      CELERY_BROKER_URL: *celery-broker-url
     # 호스트에서 별도 도구를 실행하는 기존 설정에서도 내부 호스트 이름을 유지한다.
     extra_hosts:
       - "host.docker.internal:host-gateway"
     expose:
       - "8000"
+
+  # 회차 원고 전처리 Celery worker(접수 1건 = task 1개). ai-service와 같은 이미지에서 명령만 다르다.
+  ai-worker:
+    init: true
+    command: ["celery", "-A", "app.worker:celery", "worker", "--loglevel=INFO", "--concurrency=2"]
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      CELERY_BROKER_URL: *celery-broker-url
+      CONTENT_SERVICE_BASE_URL: http://content-service:8081
 
   core-api:
     init: true

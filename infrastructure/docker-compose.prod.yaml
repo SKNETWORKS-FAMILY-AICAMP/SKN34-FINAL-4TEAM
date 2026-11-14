@@ -11,6 +11,13 @@ services:
     environment:
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
 
+  # ai-service와 같은 이미지에서 전처리 Celery worker를 띄운다. 브로커는 CELERY_BROKER_URL 또는 외부 CORE_RABBITMQ_*로 정한다.
+  ai-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
+    platform: linux/amd64
+    environment:
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+
   core-api:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:main
     platform: linux/amd64

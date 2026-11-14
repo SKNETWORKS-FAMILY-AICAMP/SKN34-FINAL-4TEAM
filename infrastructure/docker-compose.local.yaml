@@ -90,6 +90,18 @@ services:
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
 
+  # ai-service와 같은 소스로 빌드한 이미지(레이어 캐시를 공유한다)에서 Celery worker를 띄운다.
+  ai-worker:
+    build:
+      context: ../backend/ai-service
+      dockerfile: Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
+
   core-api:
     build:
       context: ../backend/core-api

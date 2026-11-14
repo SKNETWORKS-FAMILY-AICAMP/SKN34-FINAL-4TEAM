@@ -79,6 +79,19 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
 
+  # ai-service와 같은 게시 이미지에서 전처리 Celery worker를 띄운다.
+  ai-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+
   core-api:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:develop
     platform: linux/amd64
