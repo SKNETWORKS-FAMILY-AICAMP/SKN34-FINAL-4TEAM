@@ -30,3 +30,4 @@ coverage/
 
 # Local recording fixtures, captures and recorder output.
 /.recordings/
+backend/ai-service/eval/novelbrain/.data/
