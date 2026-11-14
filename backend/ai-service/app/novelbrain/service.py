@@ -107,13 +107,22 @@ def ppr(nodes: Iterable[str], edges: Iterable[tuple[str, str]], seeds: dict[str,
     return score
 
 
+def _mentions(title: str, asked: str) -> bool:
+    # 제목이 라틴 문자·숫자로 시작하거나 끝나면 그쪽 끝은 낱말 경계(앞뒤가 라틴 문자·숫자가 아님)여야 한다('Hat'이 'what'에, 'Doe'가 'does'에
+    # 맞지 않게). 한글 제목은 조사가 붙어도 맞도록 부분 일치다. title·asked는 _fold한 글이다.
+    head = r'(?<![0-9a-z])' if re.match(r'[0-9a-z]', title) else ''
+    tail = r'(?![0-9a-z])' if re.search(r'[0-9a-z]\Z', title) else ''
+    return re.search(head + re.escape(title) + tail, asked) is not None
+
+
 def seed_cards(query: str, cards: list[Card]) -> dict[str, float]:
     """PPR 출발점: 제목이 질문에 나오는 카드(가중치 1). 하나도 없으면 카드 BM25 상위 3개.
 
-    ponytail: 제목을 부분 문자열로 찾아 조사가 붙어도 맞지만 한 글자 제목은 다른 낱말 속에서도 일치한다(별칭 미지원).
+    ponytail: 한글 제목은 부분 문자열로 찾아 조사가 붙어도 맞지만 한 글자 제목은 다른 낱말 속에서도 일치한다. 라틴 문자는 ASCII만
+    경계로 치고(é 같은 악센트 문자는 아님) 별칭은 지원하지 않는다.
     """
     asked = _fold(query)
-    named = {c.id: 1.0 for c in cards if c.title.strip() and _fold(c.title.strip()) in asked}
+    named = {c.id: 1.0 for c in cards if c.title.strip() and _mentions(_fold(c.title.strip()), asked)}
     if named:
         return named
     return {ref: 1.0 for ref, _ in bm25_rank(query, [(c.id, f'{c.title} {c.text}') for c in cards])[:3]}
