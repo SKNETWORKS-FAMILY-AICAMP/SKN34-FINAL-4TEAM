@@ -37,22 +37,28 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - `WorldSnapshot`: `world_studio_read` 응답에서 만든 카드(id·cardType·title·text·`characterDocs`·`revealFromEpisode`)와 그 회차의 관계 목록.
 - `RecallResult.items[]`: `{ref, source: graph|manuscript|bm25, text, rank, score}`, `RecallResult.gaps[]`: 확인할 수 없어 제외한 항목.
 - 필터 단계에서 지식 출처·시점을 확인할 수 없는 항목은 결과에서 빼고 `gaps`에 남긴다. 사실로 채우지 않는다(설계 §3).
+- 구현 규칙(2026-11-14 확정): ref는 `card:<id>`·`card:<id>#identity|soul|memory|ep<NN>`·`relation:<id>`·`manuscript:<발췌id>`다. 0단계는 PPR 점수, 1단계부터 RRF 합산이다.
+  인물 필터는 다른 인물의 SOUL·MEMORY·회차 기억, 자기 기준 회차 뒤 기억, `revealFromEpisode`가 기준 회차 뒤인 카드를 조용히 뺀다.
+  확인할 수 없는 것은 `gaps`로 남긴다: 관계로 연결되지 않은 인물 카드, 그 인물이 끝점이 아닌 관계, 상대 카드가 미공개이거나 스냅샷에 없는 관계,
+  인물 이름이 나오지 않는 원고 발췌, Retrieval의 원고 아닌 발췌(`relationship_current_not_episode`·`setting_via_retrieval`), 형식을 알 수 없는 ref.
+  `revealFromEpisode`가 없는 카드는 허용한다(독자 노출 기준이지 인물 지식 기준이 아니며, 막으면 대부분의 세계 설정이 빠진다).
+  `world.episode`가 기준 회차보다 늦으면 ValueError다. `MEMORY.md`는 회차 표시가 없어 항상 허용한다.
 
 ## 시뮬레이션 실행
 
 ```text
-메인 에이전트: 모드 판정 → IF 전제 또는 비트 목록 + 참여 인물 확정 (빠지면 기존 gate interrupt로 묻는다)
+메인 에이전트: 모드 판정 → IF 전제 또는 비트 목록 + 참여 인물 확정 (정하지 못하면 `clarify` 한 문장으로 되묻고 작가가 다음 메시지로 답한다. 비트가 없으면 계획 호출이 제안한 비트로 진행)
  → 턴: 다음 인물 선택 → recall(그 인물, 기준 회차) → 그 인물에게 보이는 장면 상태만 투영
        → 행동·대사 생성 → 검사(아래 오류 1~3, IF 위반/비트 진행)
-       → 위반이면 그 턴만 재생성(최대 2회) → 그래도 위반이면 멈추고 작가에게 묻는다
+       → 위반이면 그 턴만 재생성(최대 2회) → 그래도 위반이면 멈춘다(부분 결과 + `stopReason`)
        → 통과하면 지문 + "대사" 문단을 SSE step으로 내보내고 장면 상태 갱신
  → 종료(비트 완료·IF 장면 완결·턴 한도) → 승인 대기(waiting) → 승인 시 회차 초안 반영
 ```
 
 - 위치: `backend/ai-service/app/simulation/`(턴 루프·프롬프트·검사)과 `app/orchestration/`의 `character_simulation` 단계 연결. LangGraph 단일 그래프에 노드로 둔다(기존 `StateGraph`·체크포인터 재사용).
 - 인물 호출마다 그 인물의 입력만 새로 조립한다. 이전 인물의 입력·모델 대화 상태를 넘기지 않는다.
-- 턴 한도 기본 12, 재생성 2회. 한도·실패·중단은 `failed`/미완료로 표시하고 부분 장면을 완료로 꾸미지 않는다(UC-09 E2).
-- 인물이 자기 성격대로 비트를 거부하면 오류가 아니라 **기획 쪽 문제**로 보고 "흐름 수정 / 이대로 진행"을 묻는다.
+- 턴 한도 기본 12, 재생성 2회. 위반 반복·비트 거부·턴 한도는 그 단계를 `failed`로 두고 부분 결과(`status: stopped|failed`, `stopReason`)를 함께 돌려준다. 부분 장면을 완료로 꾸미지 않고 승인(저장)도 묻지 않는다(UC-09 E2).
+- 인물이 자기 성격대로 비트를 거부하면 오류가 아니라 **기획 쪽 문제**로 보고 `stopReason: beat_rejected`로 멈춘다. 작가는 채팅으로 흐름을 고쳐 다시 요청한다("이대로 진행"은 후속).
 - 작가가 중간에 보낸 메시지는 다음 턴의 장면 상태에 반영한다.
 
 ### 흐름 모드가 해결하는 오류
@@ -66,7 +72,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 ### SSE·응답
 
-- 기존 이벤트(`plan`·`started`·`step`·`waiting`·`done`·`error`)를 그대로 쓴다. 새 이벤트 종류는 없다.
+- 기존 이벤트(`plan`·`started`·`step`·`waiting`·`done`·`error`)를 그대로 쓴다. 새 이벤트 종류는 없다. 턴마다의 `step`은 그때까지의 **누적** 결과를 담으며 화면은 같은 단계 항목을 교체한다.
 - `character_simulation` 단계 결과(`StepResult.result`)와 턴마다의 `step` 이벤트는 다음 모양을 쓴다.
 
 ```json
@@ -95,7 +101,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 |---|---|---|
 | 0→1 | NarrativeQA 일부(영어, Apache 2.0, 저작권 만료작) | 근거 Recall@5·P@5 |
 | 1→2 | MuSiQue 일부(영어, 다단계) | 정확도, HippoRAG 공개 수치와 비교 |
-| 2→3 | TimeChara 검증 600건(영어, MIT, 비상업 연구 한정) | 누설률·시공간 일관성(0/1)·성격 일관성(1~7), 리더보드·`rag-cutoff`와 비교 |
+| 2→3 | TimeChara 검증 600건(영어, 데이터 CC BY-NC 4.0·코드 MIT, 비상업 연구 한정, HF 약관 동의 필요) | 누설률·시공간 일관성(0/1)·성격 일관성(1~7), 리더보드·`rag-cutoff`와 비교 |
 | 한국어 적용성 | 저장소 샘플 작품 자체 세트 50~100건 | 같은 지표의 단계별 추세 |
 | 흐름 모드 A/B | 같은 비트를 A 메인 단독 / B 흐름 모드로 작성 | 오류 1~3 건수 |
 
