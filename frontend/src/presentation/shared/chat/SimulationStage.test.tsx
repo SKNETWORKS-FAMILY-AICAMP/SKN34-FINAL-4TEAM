@@ -757,23 +757,23 @@ it('승인 대기 중 남긴 끼어들기는 반영 버튼으로는 가지 않�
 })
 
 it('실패한 장면은 승인 대기여도 원고 반영을 묻지 않고 이유만 보인다(완료로 꾸미지 않는다)', async () => {
-  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0)], { status: 'failed', stopReason: '턴 한도(12)를 넘었어요.' }))], missingInputs: [], awaitingApproval: 'character_simulation' })
+  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0)], { status: 'failed', stopReason: 'call_limit' }))], missingInputs: [], awaitingApproval: 'character_simulation' })
   setup()
   await waitFor(() => expect(lines()).toHaveLength(1))
   expect(box().getByText('실패')).toBeTruthy()
   expect(box().queryByText('완료')).toBeNull()
-  expect(box().getByText('실패 이유').parentElement?.textContent).toBe('실패 이유 턴 한도(12)를 넘었어요.')
+  expect(box().getByText('실패 이유').parentElement?.textContent).toBe('실패 이유 호출 한도에 닿아 멈췄어요')
   for (const name of ['원고에 반영', '반영하지 않기']) expect(box().queryByRole('button', { name })).toBeNull()
 })
 
 it('검사에 걸려 멈춘 장면은 이유를 보이고 줄 수정·다시 말하기·장면 끝내기를 열어 둔다(완료로 꾸미지 않는다)', async () => {
-  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { status: 'stopped', stopReason: '말투가 섞여 멈췄어요.' }))], missingInputs: [], awaitingScene: 'character_simulation' })
+  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { status: 'stopped', stopReason: 'check_failed' }))], missingInputs: [], awaitingScene: 'character_simulation' })
   setup()
   await waitFor(() => expect(lines()).toHaveLength(2))
   consent()
   expect(box().getByText('멈춤')).toBeTruthy()
   expect(box().queryByText('완료')).toBeNull()
-  expect(box().getByText('멈춘 이유').parentElement?.textContent).toBe('멈춘 이유 말투가 섞여 멈췄어요.')
+  expect(box().getByText('멈춘 이유').parentElement?.textContent).toBe('멈춘 이유 검사를 통과하지 못했어요')
   expect(box().getByText('멈춘 장면이에요. 줄을 고치거나 다시 말하게 한 뒤 재생해 이어 가세요.')).toBeTruthy()
   expect(box().queryByText(/일시정지됨/)).toBeNull()
   expect((within(lines()[1]).getByRole('button', { name: '다시 말하기' }) as HTMLButtonElement).disabled).toBe(false)
@@ -782,7 +782,7 @@ it('검사에 걸려 멈춘 장면은 이유를 보이고 줄 수정·다시 말
 })
 
 it('작가가 끝낸 장면이 멈춤 상태로 승인을 기다리면 상태는 그대로 알리고 원고 반영은 물을 수 있다', async () => {
-  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { status: 'stopped', stopReason: '작가가 장면을 끝냈어요.' }))], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3 })
+  reload({ status: 'waiting', steps: [stepOf(scene([narrate(0), speak(1)], { status: 'stopped', stopReason: 'turn_limit' }))], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3 })
   setup()
   await waitFor(() => expect(lines()).toHaveLength(2))
   expect(box().getByText('멈춤')).toBeTruthy()
@@ -792,7 +792,7 @@ it('작가가 끝낸 장면이 멈춤 상태로 승인을 기다리면 상태는
 it('실행이 이어 갈 수 없게 멈춤으로 끝나면 줄 행동 없이 채팅으로 다시 요청하라고 안내한다', async () => {
   paused(narrate(0), speak(1))
   setup((_input, emit) => {
-    const stopped = scene([narrate(0), speak(1)], { status: 'stopped', stopReason: '턴 한도를 넘었어요.' })
+    const stopped = scene([narrate(0), speak(1)], { status: 'stopped', stopReason: 'turn_limit' })
     store.reply = { status: 'failed', steps: [stepOf(stopped)], missingInputs: [] }
     emit({ type: 'step', step: store.reply.steps[0] })
     emit({ type: 'done', reply: store.reply })
@@ -801,10 +801,65 @@ it('실행이 이어 갈 수 없게 멈춤으로 끝나면 줄 행동 없이 채
   consent()
   fireEvent.click(box().getByRole('button', { name: '재생' }))
   await waitFor(() => expect(box().getByText('흐름 수정이나 다시 시도는 채팅으로 요청해 주세요.')).toBeTruthy())
-  expect(box().getByText('멈춘 이유').parentElement?.textContent).toBe('멈춘 이유 턴 한도를 넘었어요.')
+  expect(box().getByText('멈춘 이유').parentElement?.textContent).toBe('멈춘 이유 턴 한도(12)에 닿았어요 · 장면 끝내기로 반영할 수 있어요')
   expect(box().queryByRole('button', { name: '다시 말하기' })).toBeNull()
   expect(box().queryByRole('group', { name: '장면 진행' })).toBeNull()
   expect(box().getByRole('button', { name: '새 시뮬레이션' })).toBeTruthy()
+})
+
+// ── 멈춘 이유: 서버는 stopReason에 코드값을, 사람이 읽을 문장은 단계 error에 준다 ──
+const stoppedScene = (stopReason: string | null) => reload({
+  status: 'waiting', missingInputs: [], awaitingScene: 'character_simulation',
+  steps: [stepOf(scene([narrate(0), speak(1)], { status: 'stopped', stopReason }))],
+})
+const reasonLine = () => box().getByText('멈춘 이유').parentElement?.textContent
+
+it('단계 error 문장이 있으면 그것을 멈춘 이유로 보이고 코드 문구로 덮어쓰지 않는다', async () => {
+  reload({
+    status: 'waiting', missingInputs: [], awaitingScene: 'character_simulation',
+    steps: [stepOf(scene([narrate(0), speak(1)], { status: 'stopped', stopReason: 'turn_limit' }), { status: 'failed', error: '인물 대사 턴 한도(12)까지 장면이 끝나지 않아 멈췄어요.' })],
+  })
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(reasonLine()).toBe('멈춘 이유 인물 대사 턴 한도(12)까지 장면이 끝나지 않아 멈췄어요.')
+  expect(box().queryByText(/장면 끝내기로 반영할 수 있어요/)).toBeNull()
+  expect(box().queryByText(/turn_limit/)).toBeNull()
+})
+
+it.each([
+  ['check_failed', '검사를 통과하지 못했어요'],
+  ['beat_rejected', '인물이 비트를 거부했어요'],
+  ['turn_limit', '턴 한도(12)에 닿았어요 · 장면 끝내기로 반영할 수 있어요'],
+  ['call_limit', '호출 한도에 닿아 멈췄어요'],
+])('단계 error가 없으면 stopReason 코드 %s를 사람이 읽을 문구로 보인다(코드는 그대로 찍지 않는다)', async (code, text) => {
+  stoppedScene(code)
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(reasonLine()).toBe(`멈춘 이유 ${text}`)
+  expect(box().queryByText(new RegExp(code))).toBeNull()
+})
+
+it('알 수 없는 코드는 장면이 멈췄다고만 알리고, 이유가 아예 없으면 이유 줄을 두지 않는다', async () => {
+  stoppedScene('some_future_code')
+  const view = setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(reasonLine()).toBe('멈춘 이유 장면이 멈췄어요')
+  expect(box().queryByText(/some_future_code/)).toBeNull()
+  view.unmount()
+  stoppedScene(null)
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(box().queryByText('멈춘 이유')).toBeNull()
+})
+
+it('실패한 장면도 단계 error 문장을 실패 이유로 보인다', async () => {
+  reload({
+    status: 'waiting', missingInputs: [], awaitingApproval: 'character_simulation',
+    steps: [stepOf(scene([narrate(0)], { status: 'failed', stopReason: null }), { status: 'failed', error: '시뮬레이션이 호출 한도를 넘어 멈췄어요.' })],
+  })
+  setup()
+  await waitFor(() => expect(lines()).toHaveLength(1))
+  expect(box().getByText('실패 이유').parentElement?.textContent).toBe('실패 이유 시뮬레이션이 호출 한도를 넘어 멈췄어요.')
 })
 
 // ── 실패 ──

@@ -170,7 +170,6 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
     if (el && pinned.current) el.scrollTop = el.scrollHeight
   }, [stage.rows.length])
   const lockId = `${id}-lock`
-  const stopped = sim.status === 'stopped' || sim.status === 'failed'
   return <>
     {sim.premise && <p className="stage-premise">{sim.premise}</p>}
     {!!sim.beats.length && <ol className="stage-beats" aria-label="흐름 비트">{sim.beats.map((beat) => <li key={beat.index} data-status={beat.status}>{beat.text}<span>{beatLabel[beat.status]}</span></li>)}</ol>}
@@ -185,7 +184,7 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
       </ol>
       {!stage.rows.length && <p className="chat-note">아직 만들어진 장면이 없어요.</p>}
     </div>
-    {stopped && sim.stopReason && <p className="stage-reason"><b>{sim.status === 'stopped' ? '멈춘 이유' : '실패 이유'}</b> {sim.stopReason}</p>}
+    {stage.stopText && <p className="stage-reason"><b>{sim.status === 'stopped' ? '멈춘 이유' : '실패 이유'}</b> {stage.stopText}</p>}
     {stage.hint && <p className="chat-note" role="status">{stage.hint}</p>}
     {stage.linesLock && <p id={lockId} className="chat-note">{stage.linesLock}</p>}
     {stage.live && <div className="stage-controls" role="group" aria-label="장면 진행">

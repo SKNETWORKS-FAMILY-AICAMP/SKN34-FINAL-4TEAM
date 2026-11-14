@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { beatCharacterIds, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, simulationSummary, statusLabel, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
+import { beatCharacterIds, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, simulationSummary, statusLabel, stopReasonText, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
 import type { StudioSetting } from '../entities/studioWorld'
 
 const turn = (index: number, prose: string, checks: SimulationTurn['checks'] = []): SimulationTurn =>
@@ -253,5 +253,16 @@ describe('시뮬레이션 시작 값(cleanSimulation)', () => {
     expect(simulationSummary(ifStart())).toBe('IF 모드 시뮬레이션: 만약 카엘이 성문을 열었다면?')
     expect(simulationSummary(flowStart({ beats: ['a', 'b', 'c'] }), 'plan')).toBe('흐름 모드 시뮬레이션: 장면 계획 3개')
     expect(simulationSummary(flowStart({ beats: ['a', 'b'] }), 'manual')).toBe('흐름 모드 시뮬레이션: 비트 2개')
+  })
+})
+
+describe('멈춘 이유 문구(stopReason 코드)', () => {
+  it('서버가 주는 코드를 사람이 읽을 문구로 바꾸고, 모르는 코드는 장면이 멈췄다고만 알린다', () => {
+    expect(stopReasonText('check_failed')).toBe('검사를 통과하지 못했어요')
+    expect(stopReasonText('beat_rejected')).toBe('인물이 비트를 거부했어요')
+    expect(stopReasonText('turn_limit')).toBe('턴 한도(12)에 닿았어요 · 장면 끝내기로 반영할 수 있어요')
+    expect(stopReasonText('call_limit')).toBe('호출 한도에 닿아 멈췄어요')
+    expect(stopReasonText('brand_new_code')).toBe('장면이 멈췄어요')
+    expect(stopReasonText('')).toBe('장면이 멈췄어요')
   })
 })
