@@ -11,7 +11,7 @@ from app.orchestration import service
 from app.orchestration.models import OrchestrationRequest
 from app.research.errors import ResearchFailure
 
-from app.retrieval.errors import RetrievalFailure
+from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
 from app.simulation import scene_agent
 from app.simulation.errors import SimulationFailure
@@ -577,6 +577,23 @@ def test_declining_in_the_middle_of_a_scene_cancels_the_run_and_keeps_the_turns_
     step = done.steps[0]
     assert (done.status, done.message) == ('cancelled', service.CANCELLED_MESSAGE)
     assert (step.result.status, step.result.stopReason, len(step.result.turns)) == ('paused', None, 2) and step.error is None  # 호출 한도가 끊은 것이 아니다
+
+
+def test_a_scene_goes_on_when_the_content_service_says_the_manuscript_search_is_unavailable_and_the_response_says_so(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('character_simulation'), fail={'retrieval': RetrievalUnavailable(503, '원고 Q&A를 사용할 수 없어요.')})
+    fake_scene(monkeypatch)
+    result = write_turn(str(uuid4()), request=REQUEST, scope=SCOPE, target=TARGET)
+    step = result.steps[0]
+    assert (result.status, result.awaitingScene, step.error) == ('waiting', 'character_simulation', None)  # 실패가 아니라 이어 간다
+    assert (step.result.notice, [t.kind for t in step.result.turns]) == ('원고 발췌 검색을 쓸 수 없어 세계관 설정만으로 진행했어요.', ['narration'])
+    assert names(calls).count('retrieval') == 1
+
+
+def test_any_other_retrieval_error_still_fails_the_scene_run(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'), fail={'retrieval': RetrievalFailure(409, '공개 원고 범위가 변경됐어요.')})
+    fake_scene(monkeypatch)
+    result = write_turn(str(uuid4()), request=REQUEST, scope=SCOPE, target=TARGET)
+    assert (result.status, result.steps[0].status, result.steps[0].error, result.steps[0].result.notice) == ('failed', 'failed', '공개 원고 범위가 변경됐어요.', None)
 
 
 def test_world_failure_fails_the_scene_with_the_reason(monkeypatch):

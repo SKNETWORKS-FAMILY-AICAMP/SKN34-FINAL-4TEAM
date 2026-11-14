@@ -1,6 +1,7 @@
 import pytest
 
 from app.manuscript.models import Excerpt
+from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
 from app.simulation import service
 from app.simulation.errors import SimulationFailure
@@ -43,6 +44,31 @@ def test_load_world_reads_the_linked_world_and_retrieves_excerpts_for_the_reques
     assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read'] and asked == [('signed.token', '카엘과 리나가 만나면')]
     # 받은 발췌를 그대로 둔다. 원고가 아닌 발췌(설정·현재 관계)는 recall의 인물 필터가 gaps로 돌린다.
     assert [e.id for e in world.manuscript] == ['m', 's'] and set(world.characters) == {KAEL, LINA} and world.episode == EPISODE
+
+
+def raising(error):
+    def retrieve(scope, question):
+        raise error
+    return retrieve
+
+
+def test_load_world_goes_on_without_excerpts_when_the_search_is_unavailable_and_carries_the_notice(monkeypatch):
+    fake_content(monkeypatch)
+    monkeypatch.setattr(service.retrieval, 'retrieve', raising(RetrievalUnavailable(503, '원고 Q&A를 사용할 수 없어요.')))
+    world = service.load_world(TARGET, '요청', {'scopeToken': 'signed.token'})
+    assert (world.manuscript, world.notice) == ([], '원고 발췌 검색을 쓸 수 없어 세계관 설정만으로 진행했어요.')
+    assert world.notice == service.NO_EXCERPTS and set(world.characters) == {KAEL, LINA}  # 세계관 카드·관계는 그대로 읽는다
+
+
+@pytest.mark.parametrize('error', [RetrievalFailure(403, 'x'), RetrievalFailure(404, 'x'), RetrievalFailure(409, '공개 원고 범위가 변경됐어요.'),
+                                   RetrievalFailure(422, 'x'), RetrievalFailure(502, 'Content 검색에 실패했습니다.'),
+                                   RetrievalFailure(503, 'Content 검색 설정이 필요합니다.')])  # 우리 쪽 503은 Content가 답한 것이 아니다
+def test_every_other_retrieval_error_still_fails_the_world_load(monkeypatch, error):
+    fake_content(monkeypatch)
+    monkeypatch.setattr(service.retrieval, 'retrieve', raising(error))
+    with pytest.raises(RetrievalFailure) as failure:
+        service.load_world(TARGET, '요청', {'scopeToken': 'signed.token'})
+    assert failure.value is error
 
 
 def test_load_world_without_scope_does_not_retrieve(monkeypatch):

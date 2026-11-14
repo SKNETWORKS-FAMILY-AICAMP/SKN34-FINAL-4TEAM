@@ -100,11 +100,13 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
   }],
   "notes": [{"afterTurn": 1, "text": "작가의 끼어들기 기록"}],
   "status": "running" | "paused" | "completed" | "stopped" | "failed",
-  "stopReason": null
+  "stopReason": null,
+  "notice": null | "원고 발췌 검색을 쓸 수 없어 세계관 설정만으로 진행했어요."
 }
 ```
 
 - `running`은 첫 턴 전, `paused`는 턴 사이 대기, `completed`는 장면 끝, `stopped`·`failed`는 멈춘 부분 결과(`stopReason` 코드: `check_failed`·`beat_rejected`·`turn_limit`·`call_limit`, 호출 실패는 null)다. 사람이 읽는 이유 문장은 `stopReason`이 아니라 단계의 `error`다. 나레이션·독백은 검사 결과(`checks`)를 내보이지 않는다.
+- `notice`는 실패는 아니지만 작가가 알아야 할 진행 조건이다. Content가 원고 검색을 쓸 수 없다고 503으로 답하면(원고 색인이 꺼진 로컬·데모 스택 등) 원고 발췌 없이 세계관 설정(NovelBrain 0·2·3단계)만으로 진행하고 이 필드에 이유를 채우며(한 번 붙으면 장면이 끝날 때까지 남는다), 그 밖의 검색 오류(403·404·409·422·기타 5xx, 우리 쪽 설정·연결 실패)는 그대로 단계 실패다.
 - 화면은 `turns[].prose`를 종류별로 그리고(나레이션 지문 블록·독백 줄·인물 말풍선) `checks`·`evidence`는 접어서 보인다.
 - 승인 시 반영 본문은 `turns[].prose`(나레이션·독백 포함)를 순서대로 빈 줄로 이은 텍스트이며, 기존 `content_mcp.apply_writing`의 Text 경로(초안 뒤에 잇기)를 쓴다.
 

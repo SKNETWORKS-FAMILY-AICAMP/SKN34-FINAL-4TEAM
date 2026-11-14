@@ -85,6 +85,7 @@ class SimulationResult(BaseModel):
     """`character_simulation` 단계 결과. 흐름 모드의 premise는 None, IF 모드의 beats는 비어 있다.
 
     running은 첫 턴 전, paused는 턴 사이(작가의 조작을 기다림), completed는 장면 끝, stopped·failed는 멈춘 부분 결과(stopReason)다.
+    notice는 실패는 아니지만 작가가 알아야 할 진행 조건이다(원고 발췌 검색을 쓸 수 없어 세계관 설정만으로 쓴 경우). 한 번 붙으면 장면이 끝날 때까지 남는다.
     """
     mode: Mode
     premise: str | None
@@ -93,6 +94,7 @@ class SimulationResult(BaseModel):
     notes: list[Note] = []
     status: Literal['running', 'paused', 'completed', 'stopped', 'failed']
     stopReason: str | None
+    notice: str | None = None
 
 
 class Decision(BaseModel):

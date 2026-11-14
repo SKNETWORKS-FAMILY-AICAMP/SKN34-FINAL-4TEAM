@@ -105,14 +105,15 @@ class DirectorMiddleware(AgentMiddleware):
         try:
             world = await asyncio.to_thread(context.world)
             service.check_plan(context.plan, world)  # 다시 말하기도 참여 인물이 지금 세계관에 모두 있는지 먼저 본다(세계관은 요청마다 다시 읽는다)
+            scene = service.with_notice(scene, world.notice)  # 원고 발췌를 못 쓰고 진행한다는 것을 장면 결과에 알린다(숨기지 않는다)
             if scene.redo:
-                return {'decision': scene.redo.model_dump()}
+                return {'scene': _dump(scene), 'decision': scene.redo.model_dump()}
             cast = [{'id': i, 'name': world.characters[i].title} for i in context.plan.characterIds]
             last = scene.result.turns[-1].pov if scene.result.turns else None
             decision = await director.decide(service.director_state(context.plan, scene, required), allowed, cast, last)
         except FAILURES as failure:
             return {'scene': _dump(service.stop_scene(scene, str(failure), 'failed')), 'pending': True, 'jump_to': stop}
-        return {'decision': decision.model_dump()}
+        return {'scene': _dump(scene), 'decision': decision.model_dump()}
 
     async def awrap_model_call(self, request, handler) -> ModelResponse:
         """결정대로 도구 호출을 만든다. 무엇을 쓸지는 연출 결정이 이미 정했으므로 모델을 다시 부르지 않는다."""

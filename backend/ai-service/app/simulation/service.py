@@ -18,6 +18,7 @@ from app.manuscript.models import Excerpt
 from app.novelbrain import service as novelbrain
 from app.novelbrain.models import Card, WorldSnapshot, world_snapshot
 from app.retrieval import service as retrieval
+from app.retrieval.errors import RetrievalUnavailable
 from app.retrieval.models import RetrievalScope
 from app.simulation import agent
 from app.simulation.errors import SimulationFailure
@@ -42,6 +43,7 @@ BAD_NARRATION = '시뮬레이션 나레이션 모델 응답을 확인할 수 없
 BAD_VERDICT = '시뮬레이션 검사 모델 응답을 확인할 수 없습니다.'
 INVALID_PLAN = '시뮬레이션 계획이 완성되지 않았거나 세계관에 없는 인물이 있어요.'
 NOT_IN_WORLD = '연결된 세계관에 없는 인물이 있어요. 인물 카드를 다시 골라 주세요.'
+NO_EXCERPTS = '원고 발췌 검색을 쓸 수 없어 세계관 설정만으로 진행했어요.'
 
 
 class WorldLink(BaseModel):
@@ -98,25 +100,37 @@ def plan_from_form(form: SimulationPlan, target: dict | None) -> SimulationPlan:
 
 @dataclass
 class World:
-    """한 요청이 읽은 세계관(기준 회차 시점)과 원고 발췌. 나레이터 문체 카드는 style로 따로 두고 스냅샷에서 뺐다."""
+    """한 요청이 읽은 세계관(기준 회차 시점)과 원고 발췌. 나레이터 문체 카드는 style로 따로 두고 스냅샷에서 뺐다.
+
+    notice는 원고 발췌를 받지 못하고 진행한 이유다(장면 결과에 알려 숨기지 않는다).
+    """
     episode: int
     read: dict
     snapshot: WorldSnapshot
     style: list[dict]
     characters: dict[str, Card]
     manuscript: list[Excerpt]
+    notice: str | None = None
 
 
 def load_world(target: dict | None, request: str, scope: dict | None) -> World:
     """연결 세계관을 읽고 scope가 있으면 Retrieval 발췌를 받는다. 발췌는 받은 그대로 recall에 넘기고 인물 필터가 원고만 쓴다.
+
+    원고 발췌는 보조 근거라, Content가 원고 검색을 쓸 수 없다고(503) 답하면 발췌 없이 세계관 설정만으로 진행하고 notice를 남긴다.
+    그 밖의 검색 오류(권한·범위·형식·기타 서버 오류, 우리 쪽 설정·연결 실패)는 숨기지 않고 그대로 실패한다.
 
     ponytail: 검색어는 이번 요청 문장 하나다. 턴마다 다시 찾으려면 recall 호출 옆으로 옮긴다.
     """
     work_id, episode = _target(target)
     read = read_world(work_id, episode)
     snapshot, style = _world(read, episode)
-    manuscript = retrieval.retrieve(RetrievalScope.model_validate(scope), request).excerpts if scope else []
-    return World(episode, read, snapshot, style, _characters(snapshot), manuscript)
+    manuscript, notice = [], None
+    if scope:
+        try:
+            manuscript = retrieval.retrieve(RetrievalScope.model_validate(scope), request).excerpts
+        except RetrievalUnavailable:
+            notice = NO_EXCERPTS
+    return World(episode, read, snapshot, style, _characters(snapshot), manuscript, notice)
 
 
 @dataclass
@@ -285,6 +299,15 @@ def director_state(plan: SimulationPlan, scene: Scene, required: str | None) -> 
             'currentBeat': beat and {'index': beat.index, 'text': beat.text}, 'scene': lines[-8:],
             'notes': [n.model_dump() for n in result.notes], 'memoPending': bool(scene.memo),
             'spoken': sum(t.kind == 'character' for t in result.turns), 'limit': TURN_LIMIT, **({'required': required} if required else {})}
+
+
+def with_notice(scene: Scene, notice: str | None) -> Scene:
+    """장면 결과에 알림을 붙인다. 알림이 없거나 이미 같은 알림이면 그대로 돌려준다. 한 번 붙은 알림은 지우지 않는다(앞 턴이 그 조건으로 쓰였다)."""
+    if not notice or scene.result.notice == notice:
+        return scene
+    scene = scene.model_copy(deep=True)
+    scene.result.notice = notice
+    return scene
 
 
 def add_turn(scene: Scene, turn: Turn, entry: Trail) -> Scene:
