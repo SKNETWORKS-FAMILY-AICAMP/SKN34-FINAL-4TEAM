@@ -7,6 +7,7 @@ DB·네트워크·서버를 쓰지 않는다. 실행(저장소 루트에서):
 import contextlib
 import importlib.util
 import io
+import itertools
 import json
 import math
 import os
@@ -417,6 +418,30 @@ class WorldChecks:
         for key in fork["changed"]:  # 말투를 인종이 아니라 경험·성격에서 끌어낸다고 SOUL에 못 박는다
             if key in self.characters:
                 self.assertIn("하지 않는 말", self.cards[key]["characterDocs"]["soul"], key)
+
+    def test_scene_participants_are_linked_to_each_other(self):
+        """recall 필터는 긍정 관계로 이어진 인물만 아는 것으로 본다. 장면에 함께 나오는 인물끼리는 그 회차에 이미 이어져 있어야 서로를 안다."""
+        if self.dataset.plans is None:
+            self.skipTest("장면 계획이 없는 데이터셋")
+        for scene in self.dataset.plans["scenes"]:
+            records = self.records_at(scene["episode"])
+            for a, b in itertools.combinations(scene["characters"], 2):
+                self.assertTrue(any(r.get("polarity", "asserted") == "asserted" and {r["source"], r["target"]} == {a, b} for r in records),
+                                f"{scene['title']}: {scene['episode']}화에 {a}와 {b}를 잇는 긍정 관계가 없다")
+
+    def test_the_half_brother_relation_follows_the_manuscript(self):
+        """서자 길동은 이복형 길현을 형이라 부르지 못해 이름이나 직함으로 부른다. 둘은 길현이 처음 나오는 회차부터 이어지고,
+        원고에서 길동이 '형님'이라 부르는 회차에는 관계 문장도 그렇게 바뀐다."""
+        if not {"gildong", "gilhyeon"} <= set(self.cards):
+            self.skipTest("길동·길현이 없는 데이터셋")
+        about = lambda episode: [r for r in self.records_at(episode) if (r["source"], r["target"], r["label"]) == ("gildong", "gilhyeon", "이복형")]  # noqa: E731
+        (first,) = about(self.cards["gilhyeon"]["revealFromEpisode"])
+        self.assertEqual("asserted", first.get("polarity", "asserted"))
+        self.assertTrue("형이라 부르지 못" in first["body"] and "이름" in first["body"] and "직함" in first["body"])
+        for m in self.dataset.manuscripts:
+            if "형님" in m.body:
+                (record,) = about(m.number)
+                self.assertNotIn("부르지 못", record["body"], f"{m.number}화 원고에서 길동이 형님이라 부르는데 관계는 부르지 못한다고 한다")
 
     def test_narrator_card_guides_the_narration_style(self):
         """작품마다 나레이터 카드 하나: 제목 `나레이터 — <작품명>`, 비공개 규칙 카드, 배경 설명·시점·말투·하지 않는 것.

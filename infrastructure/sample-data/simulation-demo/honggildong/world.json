@@ -1136,6 +1136,15 @@
       "body": "술법으로 별당을 산과 물이 뒤섞인 곳처럼 바꾸고 특재를 죽인 뒤 관상녀를 잡아왔다."
     },
     {
+      "key": "gildong-gilhyeon-c9ca",
+      "from": 2,
+      "source": "gildong",
+      "target": "gilhyeon",
+      "predicate": "custom_relation_directed",
+      "label": "이복형",
+      "body": "길현은 홍문의 맏아들이자 길동의 이복형이다. 길동은 서자라서 그를 형이라 부르지 못하고 이름이나 직함으로 부른다."
+    },
+    {
       "key": "gildong-gwansangnyeo-a6f4",
       "from": 2,
       "source": "gildong",
@@ -1692,6 +1701,15 @@
       "predicate": "custom_relation_directed",
       "label": "참여",
       "body": "호송 중 매복을 알아차리고 부적을 날려 몸을 띄운 뒤 총격을 피했다."
+    },
+    {
+      "key": "gildong-gilhyeon-c9ca",
+      "from": 6,
+      "source": "gildong",
+      "target": "gilhyeon",
+      "predicate": "custom_relation_directed",
+      "label": "이복형",
+      "body": "길동은 경상감사로 부임한 길현을 찾아가 형님이라 부르며 죄를 청했고, 길현도 그를 아우라 부른다."
     },
     {
       "key": "gildong-king-47ab",
