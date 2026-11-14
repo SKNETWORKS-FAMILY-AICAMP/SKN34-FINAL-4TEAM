@@ -41,8 +41,10 @@ export type CharacterSimulation = {
   turns: SimulationTurn[]
   notes: SimulationNote[]
   status: SimulationStatus
-  /** 멈춘·실패한 이유(서버 문구 그대로). */
+  /** 멈춘·실패한 이유의 코드값(check_failed·beat_rejected·turn_limit·call_limit). 사람이 읽을 문장은 단계 error이고 코드는 stopReasonText가 문구로 바꾼다. */
   stopReason?: string | null
+  /** 서버가 장면에 붙이는 안내 한 줄(원고 발췌를 쓸 수 없어 세계관 설정만으로 만들었을 때 등). 없으면 보이지 않는다. */
+  notice?: string | null
 }
 
 export const statusLabel: Record<SimulationStatus, string> = { running: '진행 중', paused: '다음 턴 대기', completed: '완료', stopped: '멈춤', failed: '실패' }

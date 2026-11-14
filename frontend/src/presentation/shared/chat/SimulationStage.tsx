@@ -173,6 +173,7 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
   return <>
     {sim.premise && <p className="stage-premise">{sim.premise}</p>}
     {!!sim.beats.length && <ol className="stage-beats" aria-label="흐름 비트">{sim.beats.map((beat) => <li key={beat.index} data-status={beat.status}>{beat.text}<span>{beatLabel[beat.status]}</span></li>)}</ol>}
+    {sim.notice && <p className="chat-note stage-notice" role="status">{sim.notice}</p>}
     <div ref={script} className="stage-script"
       onScroll={(e) => { const el = e.currentTarget; pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80 }}>
       <ol className="stage-turns" aria-label="장면 대본" aria-live="polite">

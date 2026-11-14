@@ -125,6 +125,7 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
     ['시점이 문자열이 아니다', scene({ turns: [{ ...scene().turns[0], pov: 3 }] })],
     ['끼어들기 기록의 턴 번호가 숫자가 아니다', scene({ notes: [{ afterTurn: '첫 턴', text: '문이 열린다' }] })],
     ['인물 줄에 인물 이름이 없다', scene({ turns: [{ ...scene().turns[0], characterName: undefined }] })],
+    ['안내(notice)가 문자열이 아니다', scene({ notice: 3 })],
     ['검사 종류가 계약에 없다', scene({ turns: [{ ...scene().turns[0], checks: [{ kind: 'mood', passed: true, detail: '' }] }] })],
     ['근거 출처가 계약에 없다', scene({ turns: [{ ...scene().turns[0], evidence: [{ ref: 'x', source: 'web' }] }] })],
     ['턴 목록이 배열이 아니다', scene({ turns: '카엘이 문을 열었다.' })],
@@ -180,6 +181,13 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
     expect(sim?.turns[0]).toMatchObject({ kind: 'narration', characterId: null, characterName: '나레이션', editedByAuthor: false })
     expect(sim?.turns[1]).toMatchObject({ kind: 'character', characterId: 'card-1', editedByAuthor: true })
     expect(sim?.notes).toEqual([{ afterTurn: 0, text: '비가 쏟아진다' }])
+  })
+
+  it('선택 필드 notice(원고 발췌를 쓰지 못했다는 등의 안내)를 문장 그대로 읽고, 없거나 null이어도 읽는다', async () => {
+    const read = async (extra: Record<string, unknown>) => firstScene(await run(stepEvent({ feature: 'character_simulation', status: 'not_started', result: rawScene(extra) }), done))
+    expect((await read({ notice: '원고 발췌를 검색하지 못해 세계관 설정만으로 만들었어요.' }))?.notice).toBe('원고 발췌를 검색하지 못해 세계관 설정만으로 만들었어요.')
+    expect((await read({ notice: null }))?.notice).toBeNull()
+    expect(await read({})).not.toHaveProperty('notice')
   })
 
   it('무대 필드가 없는 이전 체크포인트의 결과는 전지적 시점의 고치지 않은 인물 줄·끼어들기 없음으로 읽는다', async () => {
