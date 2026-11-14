@@ -43,22 +43,22 @@ def test_work_without_a_linked_world_fails_explicitly_without_reading_any_world(
 
 # --- 계획 ------------------------------------------------------------------------------------------------------------
 
-def test_plan_asks_the_model_with_character_names_only_and_returns_the_choices(monkeypatch):
+def test_plan_asks_the_model_with_character_names_only(monkeypatch):
     fake_content(monkeypatch)
     seen = []
     draft = PlanDraft(mode='flow', premise=None, beats=['성문 대면'], characterIds=[KAEL])
     monkeypatch.setattr(service.agent, 'plan', lambda *args: seen.append(args) or draft)
-    plan, characters = service.plan('카엘이 성문에서 리나를 막아서는 장면', ['이전 요청'], TARGET, None)
+    plan = service.plan('카엘이 성문에서 리나를 막아서는 장면', ['이전 요청'], TARGET)
     assert plan == SimulationPlan(mode='flow', beats=['성문 대면'], characterIds=[KAEL])
-    assert characters == [CharacterRef(id=KAEL, name='카엘'), CharacterRef(id=LINA, name='리나')]  # 장소·삭제 카드는 없다
-    assert seen == [('카엘이 성문에서 리나를 막아서는 장면', ['이전 요청'], characters)]
+    # 모델에는 인물 카드의 id·이름만 간다(장소·삭제 카드, 문서 본문은 없다).
+    assert seen == [('카엘이 성문에서 리나를 막아서는 장면', ['이전 요청'],
+                     [CharacterRef(id=KAEL, name='카엘'), CharacterRef(id=LINA, name='리나')])]
 
 
-def test_plan_with_an_author_answer_skips_the_model(monkeypatch):
+def test_plan_the_model_could_not_settle_is_returned_with_its_gaps_for_the_caller_to_ask(monkeypatch):
     fake_content(monkeypatch)
-    monkeypatch.setattr(service.agent, 'plan', lambda *args: pytest.fail('작가가 계획을 줬으면 모델을 부르지 않는다'))
-    plan, characters = service.plan('요청', [], TARGET, {'mode': 'if'})
-    assert plan == SimulationPlan(mode='if') and len(characters) == 2
+    monkeypatch.setattr(service.agent, 'plan', lambda *args: PlanDraft(mode=None, premise=None, beats=[], characterIds=[]))
+    assert service.plan('뭔가 해 줘', [], TARGET).gaps() == ['mode', 'characterIds']
 
 
 @pytest.mark.parametrize('draft', [
@@ -69,20 +69,21 @@ def test_plan_the_world_or_the_limits_do_not_allow_is_an_error_not_a_fix(monkeyp
     fake_content(monkeypatch)
     monkeypatch.setattr(service.agent, 'plan', lambda *args: draft)
     with pytest.raises(SimulationFailure) as error:
-        service.plan('요청', [], TARGET, None)
+        service.plan('요청', [], TARGET)
     assert error.value.status == 502
 
 
 def test_world_without_character_cards_cannot_be_simulated(monkeypatch):
     fake_content(monkeypatch, read={**READ, 'cards': [READ['cards'][2]]})
     with pytest.raises(SimulationFailure) as error:
-        service.plan('요청', [], TARGET, None)
+        service.plan('요청', [], TARGET)
     assert error.value.status == 409
 
 
-def test_plan_needs_the_target_work_and_episode():
+@pytest.mark.parametrize('call', [lambda: service.plan('요청', [], None), lambda: service.run(PLAN_IF, None, '요청', None)])
+def test_plan_and_run_need_the_target_work_and_episode(call):
     with pytest.raises(SimulationFailure) as error:
-        service.plan('요청', [], None, None)
+        call()
     assert error.value.status == 422
 
 

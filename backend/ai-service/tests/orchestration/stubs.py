@@ -5,6 +5,7 @@ from app.manuscript.models import AnswerResponse, Claim
 from app.orchestration import service
 from app.research.models import Finding, ResearchResponse
 from app.retrieval.models import RetrievalResult
+from app.simulation.models import Check, SimulationPlan, SimulationResult, Turn
 from app.writing.models import DraftResponse, PatchResponse
 
 QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'quote': '길드는 밤에 문을 닫는다.'}]}
@@ -14,6 +15,17 @@ WEB = {'question': '조선 후기 한양에서 동래까지 며칠?'}
 SCOPE = {'scopeToken': 'signed.token'}
 COVERAGE = {'expected': [{'number': 4, 'versionId': 'r4'}], 'withVerifiedExcerpt': [{'number': 4, 'versionId': 'r4'}],
             'withoutVerifiedExcerpt': []}
+SIM = {'mode': 'if', 'premise': '만약 북문이 열려 있었다면?', 'characterIds': ['k']}
+
+
+def scene(*prose, status='completed', reason=None):
+    """인물 시뮬레이션 결과 대역. prose마다 한 턴이다."""
+    turns = [Turn(index=i, characterId='k', characterName='카엘', prose=p, regenerated=0, evidence=[],
+                  checks=[Check(kind='knowledge_leak', passed=True, detail='문제 없음')]) for i, p in enumerate(prose)]
+    return SimulationResult(mode='if', premise=SIM['premise'], beats=[], turns=turns, status=status, stopReason=reason)
+
+
+SCENE = scene('카엘이 말했다. "멈춰."', '리나가 웃었다. "알겠어요."')
 FOUND = RetrievalResult(status='found', excerpts=QA['excerpts'], gaps=[{'code': 'UNVERIFIED_HIT', 'detail': '제외한 결과가 있어요.'}],
                         coverage=COVERAGE, steps=[{'provider': 'elasticsearch', 'ms': 5, 'hits': 2}])
 
@@ -25,8 +37,11 @@ def plan(*steps, status='route', **extra):
     return IntentResult(status=status, steps=items, **extra)
 
 
-def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND):
-    """Router와 구현된 업무 Agent 대역. 호출 기록 list를 돌려준다. fail은 {이름: 던질 예외}."""
+def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None, simulated=None):
+    """Router와 구현된 업무 Agent 대역. 호출 기록 list를 돌려준다. fail은 {이름: 던질 예외}.
+
+    시뮬레이션은 계획(sim_plan: drafted 또는 완성된 SIM)과 실행(simulation: simulated 함수 또는 SCENE)을 따로 기록한다.
+    """
     calls, fail = [], fail or {}
 
     def agent(name, result):
@@ -45,6 +60,10 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND):
         text='선장은 항구에 내렸다.', model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.writing, 'patch', agent('patch', PatchResponse(
         before='그는 웃었다.', after='그는 차갑게 웃었다.', model='m', providerResponseId='r', usage=None)))
+    monkeypatch.setattr(service.simulation, 'plan', agent(
+        'sim_plan', lambda request, history, target: drafted or SimulationPlan(**SIM)))
+    monkeypatch.setattr(service.simulation, 'run', agent(
+        'simulation', simulated or (lambda plan, target, request, scope, progress=None: SCENE)))
     monkeypatch.setattr(service.research, 'research', agent('web_research', ResearchResponse(
         findings=[Finding(text='약 15일', verdict='unverified', sourceUrls=[])], gaps=[],
         searchedAt=datetime(2026, 11, 12, tzinfo=timezone.utc))))

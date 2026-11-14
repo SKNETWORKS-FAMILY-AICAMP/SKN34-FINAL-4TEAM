@@ -18,9 +18,9 @@ from app.simulation.prompt import ACT_INSTRUCTIONS, CHECK_INSTRUCTIONS, PLAN_INS
 
 
 def plan(request: str, history: list[str], characters: list[CharacterRef]) -> PlanDraft:
-    """요청 문장과 인물 목록(id·이름만)으로 모드·전제·비트·참여 인물을 뽑는다."""
+    """요청 문장과 인물 목록(id·이름만)으로 모드·전제·비트·참여 인물을 정한다. 흐름 모드에 비트가 없으면 비트를 제안한다."""
     data = {'request': request, 'history': history, 'characters': [c.model_dump() for c in characters]}
-    return _parse('plan', PLAN_INSTRUCTIONS, data, PlanDraft, 800, 40)
+    return _parse('plan', PLAN_INSTRUCTIONS, data, PlanDraft, 1200, 40)
 
 
 def act(data: dict) -> Action:

@@ -56,25 +56,23 @@ def read_world(work_id: str, episode: int) -> dict:
     return content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)})
 
 
-def plan(request: str, history: list[str], target: dict | None, given: dict | None) -> tuple[SimulationPlan, list[CharacterRef]]:
-    """작가 요청에서 계획을 뽑고, 작가가 고를 수 있는 세계관 인물 목록과 함께 돌려준다.
+def plan(request: str, history: list[str], target: dict | None) -> SimulationPlan:
+    """작가 요청과 세계관 인물 목록(id·이름)으로 모드·전제·비트·참여 인물을 뽑는다.
 
-    작가가 계획을 직접 줬으면(given) 모델을 부르지 않는다. 모델이 세계관에 없는 인물 id나 한도 밖 값을 주면 고치지 않고 실패한다.
+    정하지 못한 값은 계획의 gaps()로 남기고 호출자가 작가에게 되묻는다. 모델이 세계관에 없는 인물 id나 한도 밖 값을 주면
+    고치지 않고 실패한다.
     """
     work_id, episode = _target(target)
     cast = [CharacterRef(id=c.id, name=c.title) for c in _characters(_snapshot(read_world(work_id, episode), episode)).values()]
     if not cast:
         raise SimulationFailure(409, NO_CHARACTERS)
-    answer = SimulationPlan.model_validate(given or {})
-    if answer != SimulationPlan():
-        return answer, cast
     try:
         drafted = SimulationPlan.model_validate(agent.plan(request, history, cast).model_dump())
     except ValidationError:
         raise SimulationFailure(502, BAD_PLAN) from None
     if not set(drafted.characterIds) <= {c.id for c in cast}:
         raise SimulationFailure(502, BAD_PLAN)
-    return drafted, cast
+    return drafted
 
 
 def run(plan: SimulationPlan, target: dict | None, request: str, scope: dict | None,

@@ -29,15 +29,6 @@ def test_plan_limits(body):
         SimulationPlan.model_validate(body)
 
 
-def test_author_answer_fills_gaps_without_erasing_the_earlier_plan():
-    asked = SimulationPlan(mode='flow', beats=['성문 대면'])
-    merged = asked.merged(SimulationPlan(characterIds=['k']))
-    assert merged == SimulationPlan(mode='flow', beats=['성문 대면'], characterIds=['k'])
-    # 답이 값을 주면 그 값이 이긴다. 비어 있는 필드는 이전 값을 지우지 않는다.
-    assert merged.merged(SimulationPlan(beats=['재회'], characterIds=['l'])).beats == ['재회']
-    assert merged.merged(SimulationPlan(characterIds=['l'])).characterIds == ['l']
-
-
 def test_result_dumps_the_contract_json_shape():
     result = SimulationResult(
         mode='flow', premise=None, beats=[Beat(index=0, text='성문 대면', status='done')],

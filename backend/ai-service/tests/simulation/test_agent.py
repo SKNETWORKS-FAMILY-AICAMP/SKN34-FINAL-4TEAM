@@ -58,6 +58,8 @@ def test_plan_input_is_the_request_history_and_character_names_only(monkeypatch)
     agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [CharacterRef(id='k', name='카엘')])
     assert json.loads(seen['input']) == {'request': '카엘과 리나가 성문에서 만나면?', 'history': ['이전 요청'],
                                          'characters': [{'id': 'k', 'name': '카엘'}]}
+    # 흐름 모드 비트: 작가가 적은 목록은 그대로 쓰고, 없으면 모델이 제안한다.
+    assert '그대로' in seen['instructions'] and '제안' in seen['instructions']
 
 
 def test_act_and_check_send_the_assembled_input_as_it_is(monkeypatch):
