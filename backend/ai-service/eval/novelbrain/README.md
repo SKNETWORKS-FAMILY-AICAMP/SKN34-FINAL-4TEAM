@@ -22,28 +22,8 @@
 
 ## 재현
 
-```sh
-cd backend/ai-service
-RUN='uv run --locked --extra dev --extra manuscript python eval/novelbrain'
-
-# 1단계: 데이터(호출 없음). TimeChara는 HuggingFace 로그인·약관 동의가 필요하다(비상업 연구 한정, 토큰은 ~/.cache/huggingface/token).
-$RUN/prepare.py e5 && $RUN/prepare.py musique && $RUN/prepare.py narrativeqa && $RUN/prepare.py timechara
-
-# 그래프 추출(OpenAI 호출 약 220회, 결과는 .data/cache에 남아 재실행은 0회)
-set -a; . /Users/yunseongho/orca/SKN34-FINAL-4TEAM/.env; set +a   # OPENAI_API_KEY·OPENAI_MODEL을 환경에만 올린다
-$RUN/graph.py musique && $RUN/graph.py narrativeqa
-
-# 2단계
-$RUN/timechara.py embed                       # 소설 청크 18,568개 벡터(약 5분, 호출 없음)
-$RUN/run.py retrieval musique && $RUN/run.py retrieval narrativeqa           # 호출 없음
-$RUN/run.py answers musique gold none                                       # MuSiQue 답(약 700회)
-$RUN/run_timechara.py contexts                                              # 호출 없음: 문맥의 미래·타인 기억 노출
-$RUN/run_timechara.py run && $RUN/run_timechara.py paired                   # TimeChara(약 1,800회)
-$RUN/ko.py generate && $RUN/ko.py run                                        # 한국어(생성 약 95회)
-python3 eval/novelbrain/report.py                                           # 표
-```
-
-단위 테스트: `uv run --locked --extra dev python -m pytest eval/novelbrain -q` (numpy가 없는 환경에서는 kNN 테스트 1건만 건너뛴다).
+명령 전체는 [결과 문서 §8](../../../../docs/evaluation/novelbrain.md#8-재현)에 있다. TimeChara는 HuggingFace 로그인·약관 동의가 필요하다(비상업 연구 한정, 토큰은 `~/.cache/huggingface/token`).
+단위 테스트: `cd backend/ai-service && uv run --locked --extra dev python -m pytest eval/novelbrain -q` (numpy가 없는 환경에서는 kNN 테스트 1건만 건너뛴다).
 
 ## 규칙
 

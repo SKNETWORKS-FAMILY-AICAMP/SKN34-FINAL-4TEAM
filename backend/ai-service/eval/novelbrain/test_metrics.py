@@ -9,7 +9,6 @@ from metrics import (
     normalize_answer,
     parse_score,
     precision_at_k,
-    ranking_from_scores,
     recall_at_k,
     spatiotemporal_score,
     wilson_interval,
@@ -42,12 +41,6 @@ def test_empty_gold_is_an_error_not_a_zero():
         recall_at_k(['a'], set(), 5)
     with pytest.raises(ValueError):
         precision_at_k(['a'], set(), 5)
-
-
-def test_ranking_from_scores_sorts_desc_then_by_id():
-    # rrf에 넘기는 순위 목록: 점수가 같으면 id 순으로 고정해 실행마다 같은 순위를 만든다.
-    assert ranking_from_scores({'a': 0.2, 'b': 0.9, 'c': 0.2, 'd': 0.0}) == ['b', 'a', 'c', 'd']
-    assert ranking_from_scores({}) == []
 
 
 def test_normalize_answer_follows_squad_rules():

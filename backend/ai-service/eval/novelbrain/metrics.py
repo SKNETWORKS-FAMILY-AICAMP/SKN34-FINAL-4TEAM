@@ -27,17 +27,10 @@ def precision_at_k(ranked: list[str], gold: set[str], k: int) -> float:
     return _hits(ranked, gold, k) / k
 
 
-def ranking_from_scores(scores: dict[str, float]) -> list[str]:
-    """rrf에 넘길 순위 목록. 점수 내림차순, 같으면 id 순으로 고정한다."""
-    return [key for key, _ in sorted(scores.items(), key=lambda kv: (-kv[1], kv[0]))]
-
-
 def normalize_answer(text: str) -> str:
     """SQuAD 규칙: 소문자·구두점·관사 제거 후 공백 정리."""
-    text = text.lower()
-    text = ''.join(ch for ch in text if ch not in set(string.punctuation))
-    text = re.sub(r'\b(a|an|the)\b', ' ', text)
-    return ' '.join(text.split())
+    text = text.lower().translate(str.maketrans('', '', string.punctuation))
+    return ' '.join(re.sub(r'\b(a|an|the)\b', ' ', text).split())
 
 
 def exact_match(pred: str, golds: list[str]) -> float:

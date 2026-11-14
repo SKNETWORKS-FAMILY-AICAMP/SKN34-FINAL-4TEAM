@@ -3,7 +3,6 @@
     cd backend/ai-service
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py contexts   # 호출 없음: 문맥·누설 지표
     set -a; . /Users/yunseongho/orca/SKN34-FINAL-4TEAM/.env; set +a                                # 아래부터 OpenAI 호출
-    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py pilot     # 유형마다 1문항·zero/s3만(응답 확인용)
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py run [구성 …]   # 구성을 주면 그 구성만 다시(나머지는 저장된 결과 유지)
 
 구성: zero(검색 없음, 공개 zero-shot과 같은 입력) · ppr(0단계) · vector · bm25 · s1 · s2 · s3. 문맥은 상위 6개 항목(rag-cutoff와 같은 6)이다.
@@ -193,13 +192,11 @@ def context_report(sample: list[dict], contexts: dict) -> None:
               f"평균 항목 수 {sum(len(c['items']) for c in everything) / len(everything):.1f}")
 
 
-def run(pilot: bool = False, only: tuple[str, ...] = ()) -> None:
+def run(only: tuple[str, ...] = ()) -> None:
     sample, series_data = build_inputs()
     contexts = build_contexts(sample, series_data)
     context_report(sample, contexts)
-    configs = ('zero', 's3') if pilot else only or CONFIGS
-    if pilot:  # 유형마다 첫 1문항: 같은 요청이라 본 실행에서 캐시로 재사용된다
-        sample = [next(r for r in sample if r['data_type'] == kind) for kind in TYPES]
+    configs = only or CONFIGS
     ledger = Ledger(DATA / 'ledger.jsonl')
     llm = Llm(ledger, DATA / 'cache')
     template_s = (TC / 'data/spatiotemporal_consistency_evaluation_prompt.txt').read_text()
@@ -235,11 +232,6 @@ def run(pilot: bool = False, only: tuple[str, ...] = ()) -> None:
 
     with ThreadPoolExecutor(12) as pool:
         records = list(pool.map(work, tasks))
-    if pilot:
-        for rec in records:
-            print({k: (v if k != 'response' else (v or '')[:160].replace('\n', ' ')) for k, v in rec.items() if k != 'idx'})
-        print(f'장부 {ledger.used()}/{CAP}')
-        return
     (DATA / 'runs').mkdir(exist_ok=True)
     rows_file = DATA / 'runs' / 'timechara-rows.json'
     if only and rows_file.exists():  # 다시 돌린 구성만 바꾸고 나머지는 이전 실행의 결과를 그대로 둔다
@@ -262,8 +254,6 @@ if __name__ == '__main__':
         context_report(sample, build_contexts(sample, series_data))
     elif sys.argv[1:2] == ['run']:
         run(only=tuple(sys.argv[2:]))
-    elif sys.argv[1:] == ['pilot']:
-        run(pilot=True)
     elif sys.argv[1:] == ['paired']:  # 저장된 질문별 결과(.data/runs)로 짝 비교만 다시 계산해 results/timechara.json에 더한다. 호출 없음
         records = json.loads((DATA / 'runs' / 'timechara-rows.json').read_text())
         out = RESULTS / 'timechara.json'
@@ -273,4 +263,4 @@ if __name__ == '__main__':
         for pair, v in summary['paired'].items():
             print(f"{pair:12s} 앞만 맞음 {v['a_only']:2d} · 뒤만 맞음 {v['b_only']:2d} · p={v['p']:.3f}")
     else:
-        raise SystemExit('사용법: run_timechara.py contexts|pilot|run|paired')
+        raise SystemExit('사용법: run_timechara.py contexts|run|paired')
