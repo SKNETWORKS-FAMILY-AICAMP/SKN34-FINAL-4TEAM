@@ -6,6 +6,7 @@ import ai.storyfork.content.context.service.QaScopeGrants
 import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScope
 import ai.storyfork.content.context.service.dto.QaScopeRequest
+import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
@@ -24,7 +25,8 @@ class WritingAiServiceTest {
     private val client = mock(WritingAiClient::class.java)
     private val grants = QaScopeGrants()
     private val access = mock(WorkAccessService::class.java)
-    private val service = WritingAiService(scopes, grants, client, access)
+    private val episodes = mock(EpisodeService::class.java)
+    private val service = WritingAiService(scopes, grants, client, access, episodes)
     private val result = JsonMapper.builder().build().readTree("""{"status":"completed"}""")
     private val ask = WritingAiRequest(request = "길드 규칙은?", episode = 2, episodeVersionId = "r2", consent = true)
 
@@ -49,6 +51,56 @@ class WritingAiServiceTest {
         assertEquals(mapOf("threadId" to response.threadId, "scope" to "user:owner/work:work"), body["conversation"])
         assertEquals(QaScopeGrant("work", "owner", 2, "r2"), grants.read(token(body["scope"])))
         assertEquals(mapOf("workId" to "work", "episode" to 2), body["target"])
+    }
+
+    private fun grounded() = `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
+        QaScope("work", null, 2, "r2", emptyList(), null))
+
+    @Test
+    fun `a target episode after the grounding episode reflects into that episode while the grounding stays as it was`() {
+        grounded()
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", "owner", "Bearer user", ask.copy(targetEpisode = 5))  // 2화까지 발행됐고 작가는 5화 초안을 열어 두었다
+        val body = sent()
+        assertEquals(mapOf("workId" to "work", "episode" to 5, "baseEpisode" to 2), body["target"])  // 반영은 5화, 지식 상한은 근거 2화
+        assertEquals(QaScopeGrant("work", "owner", 2, "r2"), grants.read(token(body["scope"])))  // 근거 조회 범위는 그대로
+        verify(scopes).resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))
+        verify(episodes).read("work", "owner", 5)  // 반영 회차가 이 작품의 활성 회차인지 확인한다
+    }
+
+    @Test
+    fun `a target episode equal to the grounding episode or missing changes nothing and needs no lookup`() {
+        grounded()
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", "owner", "Bearer user", ask.copy(targetEpisode = 2))
+        assertEquals(mapOf("workId" to "work", "episode" to 2), sent()["target"])
+        verifyNoInteractions(episodes)
+    }
+
+    @Test
+    fun `a target episode before the grounding episode is refused before anything is resolved or sent`() {
+        for (before in listOf(1, 0, -3)) {
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", "owner", "Bearer user", ask.copy(targetEpisode = before)) }.status)
+        }
+        verifyNoInteractions(scopes, episodes, client)
+    }
+
+    @Test
+    fun `a target episode the work does not have is a 422 while other lookup failures keep their status`() {
+        grounded()
+        `when`(episodes.read("work", "owner", 9)).thenThrow(ContentFailure(404, "회차를 찾을 수 없어요."))
+        assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", "owner", "Bearer user", ask.copy(targetEpisode = 9)) }.status)
+        `when`(episodes.read("work", "owner", 8)).thenThrow(ContentFailure(403, "권한이 없어요."))
+        assertEquals(403, assertThrows(ContentFailure::class.java) { service.run("work", "owner", "Bearer user", ask.copy(targetEpisode = 8)) }.status)
+        verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `resume ignores the target episode because the conversation already has its target`() {
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", "owner", "Bearer user", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread", targetEpisode = 1))
+        assertFalse("target" in sent())
+        verifyNoInteractions(episodes)
     }
 
     @Test

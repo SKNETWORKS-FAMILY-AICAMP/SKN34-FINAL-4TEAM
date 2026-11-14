@@ -13,6 +13,15 @@ def test_writing_input_needs_exactly_one_of_draft_or_patch(body):
         WritingInput.model_validate(body)
 
 
+def test_target_may_name_a_base_episode_that_is_not_the_episode_it_reflects_into():
+    plain = OrchestrationRequest(request='요청', target={'workId': 'w', 'episode': 4})
+    assert plain.target.baseEpisode is None and plain.target.model_dump(exclude_none=True) == {'workId': 'w', 'episode': 4}
+    split = OrchestrationRequest(request='요청', target={'workId': 'w', 'episode': 5, 'baseEpisode': 4})
+    assert (split.target.episode, split.target.baseEpisode) == (5, 4)
+    with pytest.raises(ValidationError):
+        OrchestrationRequest(request='요청', target={'workId': 'w', 'episode': 5, 'baseEpisode': 0})
+
+
 @pytest.mark.parametrize('body', [
     {},                                                                   # 요청도 재개도 없음
     {'request': '요청', 'resume': {'approved': True}, 'conversation': {'threadId': 't', 'scope': 's'}},

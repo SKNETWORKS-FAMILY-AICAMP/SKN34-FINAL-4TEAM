@@ -1,10 +1,12 @@
 package ai.storyfork.content.writingai.service
 
+import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.exception.checkContent
 import ai.storyfork.content.context.service.QaScopeGrant
 import ai.storyfork.content.context.service.QaScopeGrants
 import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScopeRequest
+import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.dto.ChatSessionCreated
@@ -31,6 +33,7 @@ internal class WritingAiService(
     private val grants: QaScopeGrants,
     private val client: WritingAiClient,
     private val access: WorkAccessService,
+    private val episodes: EpisodeService,
 ) {
     fun run(workId: String, owner: String, authorization: String, request: WritingAiRequest): WritingAiResponse {
         checkContent(request.resume == null || request.threadId != null, message="이어갈 대화를 지정해 주세요.")
@@ -68,6 +71,12 @@ internal class WritingAiService(
     }
 
     /** 시뮬레이션 시작 양식(simulation). 위와 같은 이유로 보낸 항목만 담는다. */
+    /** 반영 회차가 이 작품의 활성 회차인지 확인한다(발행 전 초안이어도 된다). 없으면 422이고 권한 같은 다른 오류는 그대로 둔다. */
+    private fun requireEpisode(workId: String, owner: String, number: Int) {
+        try { episodes.read(workId, owner, number) }
+        catch (error: ContentFailure) { throw if (error.status == 404) ContentFailure(422, "반영할 회차를 찾을 수 없어요.") else error }
+    }
+
     private fun body(form: WritingAiSimulation) = buildMap<String, Any?> {
         put("mode", form.mode)
         form.premise?.let { put("premise", it) }
@@ -86,10 +95,14 @@ internal class WritingAiService(
             checkContent(form.beats.orEmpty().all { it.length in 1..200 } && form.characterIds.all { it.length in 1..100 },
                 message="시뮬레이션 비트는 200자, 인물 id는 100자 이하의 글이어야 해요.")
         }
+        // 반영 회차는 근거 회차와 다를 수 있다(발행 전 초안을 열어 둔 경우). 새 요청에서만 정하고, 이어가기는 대화에 저장된 target을 쓴다.
+        val reflect = request.targetEpisode ?: request.episode
         if (request.resume == null) {
+            checkContent(reflect >= request.episode, message="반영할 회차는 근거 회차보다 앞설 수 없어요.")
             // 모델 호출 전에 권한 밖 작품·회차를 막는다. 실제 근거 조회 때 Content가 다시 확정한다.
             scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId,
                 if (request.target == "relationship") "manuscript" else request.target))
+            if (reflect != request.episode) requireEpisode(workId, owner, reflect)
         }
         val scope = mapOf("scopeToken" to grants.issue(
             QaScopeGrant(workId, owner, request.episode, request.episodeVersionId, request.target)))
@@ -105,7 +118,12 @@ internal class WritingAiService(
             } else {
                 put("request", request.request)
                 put("scope", scope)
-                put("target", mapOf("workId" to workId, "episode" to request.episode))
+                // episode는 AI가 승인 뒤 초안을 쓸 회차다. 근거 회차와 다르면 baseEpisode로 근거 회차(세계관 지식 상한)를 따로 알린다.
+                put("target", buildMap<String, Any> {
+                    put("workId", workId)
+                    put("episode", reflect)
+                    if (reflect != request.episode) put("baseEpisode", request.episode)
+                })
                 request.operation?.let { put("operation", it) }
                 request.simulation?.let { put("simulation", body(it)) }
                 fromTurn?.let { put("fromTurn", it) }

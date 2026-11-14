@@ -190,9 +190,10 @@ def _visible(snapshot: WorldSnapshot, episode: int) -> WorldSnapshot:
 
 
 def _target(target: dict | None) -> tuple[str, int]:
+    """작품과 세계관을 읽을 기준 회차. 반영 회차(episode)가 근거 회차와 다르면(발행 전 초안) 지식 상한은 근거 회차(baseEpisode)다."""
     if not target:
         raise SimulationFailure(422, NEEDS_TARGET)
-    return target['workId'], target['episode']
+    return target['workId'], target.get('baseEpisode') or target['episode']
 
 
 def _characters(snapshot: WorldSnapshot) -> dict[str, Card]:

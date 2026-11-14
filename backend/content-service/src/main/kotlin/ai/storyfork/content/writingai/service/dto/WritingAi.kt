@@ -10,6 +10,8 @@ import tools.jackson.databind.JsonNode
 /**
  * 집필 AI 자유 입력 요청. 새 턴은 request, 멈춘 실행을 이어갈 때는 같은 threadId와 resume 하나만 보낸다.
  * episode·episodeVersionId·target은 Q&A 근거 조회 범위이며 Content가 서명 토큰으로만 AI에 넘긴다.
+ * targetEpisode는 AI가 승인 뒤 초안을 쓸 회차다(작가가 연 회차, 발행 전 초안이어도 된다). 없으면 episode와 같고, 있으면 episode 이상이어야
+ * 하며 그 작품의 활성 회차여야 한다. 근거 회차(episode)는 그대로 지식 상한이다. 새 요청에서만 쓰고 이어가기에서는 무시한다.
  * simulation은 [시뮬레이션] 버튼의 시작 양식이며 operation이 character_simulation인 새 요청에서만 받는다.
  */
 data class WritingAiRequest(
@@ -22,6 +24,7 @@ data class WritingAiRequest(
     @field:Size(max=100) val threadId: String? = null,
     val consent: Boolean = false,
     @field:Valid val simulation: WritingAiSimulation? = null,
+    val targetEpisode: Int? = null,
 )
 
 /**

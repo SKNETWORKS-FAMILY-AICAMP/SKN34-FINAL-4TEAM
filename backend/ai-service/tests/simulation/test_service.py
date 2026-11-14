@@ -48,6 +48,18 @@ def test_load_world_reads_the_linked_world_and_retrieves_excerpts_for_the_reques
     assert [e.id for e in world.manuscript] == ['m', 's'] and set(world.characters) == {KAEL, LINA} and world.episode == EPISODE
 
 
+BASE_TARGET = {'workId': 'work', 'episode': EPISODE + 2, 'baseEpisode': EPISODE}  # 발행은 기준 회차까지, 작가는 그보다 뒤 초안을 열었다
+
+
+def test_the_world_is_read_at_the_base_episode_not_at_the_episode_the_scene_is_reflected_into(monkeypatch):
+    calls = fake_content(monkeypatch)
+    world = service.load_world(BASE_TARGET, '요청', None)
+    assert [(tool, args.get('episode')) for tool, args in calls if tool == 'world_studio_read'] == [('world_studio_read', str(EPISODE))]
+    assert world.episode == EPISODE
+    service.plan_from_form(SimulationPlan(mode='if', premise='만약 ~했다면', characterIds=[KAEL]), BASE_TARGET)
+    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE)] * 2
+
+
 def raising(error):
     def retrieve(scope, question):
         raise error

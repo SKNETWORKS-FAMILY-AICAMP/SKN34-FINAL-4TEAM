@@ -451,6 +451,19 @@ def finish_scene(thread):
     return result
 
 
+def test_a_draft_after_the_base_episode_is_where_the_scene_is_reflected_while_the_world_is_read_at_the_base(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'))
+    log = fake_scene(monkeypatch)
+    applied = writer(monkeypatch)
+    thread = str(uuid4())
+    write_turn(thread, request=REQUEST, scope=SCOPE, target={**TARGET, 'episode': 5, 'baseEpisode': 3})  # 3화까지 발행, 작가는 5화 초안을 열었다
+    asked = finish_scene(thread)
+    assert (asked.awaitingApproval, asked.approvalEpisode) == ('character_simulation', 5)  # 승인 질문은 반영 회차(5화)를 보인다
+    done = write_turn(thread, 'Bearer fresh', resume={'approved': True})
+    assert (done.status, done.steps[0].applied.episode) == ('completed', 5) and [a[1] for a in applied] == [5]
+    assert {episode for _, episode in log.read} == {3}  # 세계관 지식 상한은 근거 회차 그대로다
+
+
 def test_the_first_request_plans_writes_the_opening_turn_and_waits_for_the_author(monkeypatch):
     thread, result, calls, log, applied = start_scene(monkeypatch)
     assert (result.status, result.awaitingScene, result.awaitingApproval, result.message) == ('waiting', 'character_simulation', None, service.SCENE_MESSAGE)

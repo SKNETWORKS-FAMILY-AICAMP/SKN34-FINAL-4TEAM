@@ -486,7 +486,7 @@ def _initial(data: OrchestrationRequest) -> State:
             'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
             'scope': data.conversation.scope if data.conversation else None,
             'retrievalScope': data.scope.model_dump() if data.scope else None,
-            'target': data.target.model_dump() if data.target else None}
+            'target': data.target.model_dump(exclude_none=True) if data.target else None}
 
 
 async def _target(data: OrchestrationRequest):

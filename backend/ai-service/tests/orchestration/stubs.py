@@ -83,10 +83,11 @@ def fake_scene(monkeypatch, complete_after=2, fail=None, read=WORLD):
     카엘이 complete_after번 말하면 이야기가 끝난다. fail은 'narration'·'speech'(해당 검사를 계속 위반)이다.
     호출 기록을 SimpleNamespace(director·act·narrate·check)로 돌려준다.
     """
-    log = SimpleNamespace(director=[], act=[], narrate=[], check=[])
+    log = SimpleNamespace(director=[], act=[], narrate=[], check=[], read=[])
     sim = service.simulation  # app.simulation.service
 
     def read_world(work_id, episode):
+        log.read.append((work_id, episode))
         if isinstance(read, Exception):
             raise read
         return read
