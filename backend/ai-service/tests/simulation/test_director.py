@@ -1,4 +1,5 @@
 import asyncio
+import gzip
 import json
 
 import httpx2
@@ -22,13 +23,21 @@ def reply(**choices):
                         for n, c in choices.items()]}
 
 
-def wired(monkeypatch, body, status=200):
-    """분류기를 목 HTTP 전송에 연결한다. 보낸 요청 [(URL, 헤더, 본문)] 목록을 돌려준다."""
+def wired(monkeypatch, body, status=200, gzipped=False):
+    """분류기를 목 HTTP 전송에 연결한다. 보낸 요청 [(URL, 헤더, 본문)] 목록을 돌려준다.
+
+    gzipped면 실제 OpenAI 응답처럼 gzip으로 압축한 본문과 그에 맞는 Content-Encoding·Content-Length 헤더로 답한다.
+    """
     sent = []
 
     def handler(request):
         sent.append((str(request.url), dict(request.headers), json.loads(request.content)))
-        return httpx2.Response(status, json=body(sent[-1][2]) if callable(body) else body)
+        data = body(sent[-1][2]) if callable(body) else body
+        if gzipped:
+            packed = gzip.compress(json.dumps(data).encode())
+            return httpx2.Response(status, content=packed, headers={'content-type': 'application/json', 'content-encoding': 'gzip',
+                                                                    'content-length': str(len(packed)), 'x-request-id': 'req_abc'})
+        return httpx2.Response(status, json=data)
 
     classifier = director.OpenAIDecisionClassifier(
         api_key='sk-test-secret', instructions='연출 지시', async_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)))
@@ -60,6 +69,13 @@ def test_answers_become_the_packages_choice_answers(monkeypatch):
     wired(monkeypatch, reply(turn='speech'))
     answer = classify().choices['turn']
     assert (answer.choice, answer.probabilities, answer.confidence) == ('speech', {'speech': 1.0, 'narration': 0.0}, 1.0)
+
+
+def test_a_gzip_compressed_reply_is_not_decoded_a_second_time_when_it_is_rewrapped(monkeypatch):
+    """OpenAI는 응답을 gzip으로 보낸다. 클라이언트가 이미 푼 본문으로 새 응답을 만들 때 원 응답의 압축·길이 헤더를 옮기면
+    새 응답이 풀린 JSON을 다시 풀려다 DecodingError(incorrect header check)가 난다."""
+    wired(monkeypatch, reply(turn='speech'), gzipped=True)
+    assert classify().choices['turn'].choice == 'speech'
 
 
 @pytest.mark.parametrize('body', [

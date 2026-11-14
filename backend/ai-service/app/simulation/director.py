@@ -81,7 +81,9 @@ class OpenAIDecisionClassifier(TypeSafeClassifier):
             name: {'type': 'choice', 'choice': a.choice, 'confidence': 1.0,
                    'probabilities': {label: 1.0 if label == a.choice else 0.0 for label in questions[name].criteria}}
             for name, a in given.items()}}
-        return httpx2.Response(200, json=body, headers=response.headers, request=response.request)
+        # 헤더는 옮기지 않는다. 원 응답의 Content-Encoding(gzip)·Content-Length는 이미 풀린 본문에 맞지 않아, 옮기면 새 응답이
+        # 풀린 JSON을 다시 풀려다 DecodingError가 난다. 패키지가 읽는 헤더(x-typesafe-request-id)는 OpenAI 응답에 없다.
+        return httpx2.Response(200, json=body, request=response.request)
 
 
 @lru_cache(maxsize=1)
