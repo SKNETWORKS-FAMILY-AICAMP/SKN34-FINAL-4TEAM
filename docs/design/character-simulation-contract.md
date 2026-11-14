@@ -37,6 +37,12 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - `WorldSnapshot`: `world_studio_read` 응답에서 만든 카드(id·cardType·title·text·`characterDocs`·`revealFromEpisode`)와 그 회차의 관계 목록.
 - `RecallResult.items[]`: `{ref, source: graph|manuscript|bm25, text, rank, score}`, `RecallResult.gaps[]`: 확인할 수 없어 제외한 항목.
 - 필터 단계에서 지식 출처·시점을 확인할 수 없는 항목은 결과에서 빼고 `gaps`에 남긴다. 사실로 채우지 않는다(설계 §3).
+- 구현 규칙(2026-11-14 확정): ref는 `card:<id>`·`card:<id>#identity|soul|memory|ep<NN>`·`relation:<id>`·`manuscript:<발췌id>`다. 0단계는 PPR 점수, 1단계부터 RRF 합산이다.
+  인물 필터는 다른 인물의 SOUL·MEMORY·회차 기억, 자기 기준 회차 뒤 기억, `revealFromEpisode`가 기준 회차 뒤인 카드를 조용히 뺀다.
+  확인할 수 없는 것은 `gaps`로 남긴다: 관계로 연결되지 않은 인물 카드, 그 인물이 끝점이 아닌 관계, 상대 카드가 미공개이거나 스냅샷에 없는 관계,
+  인물 이름이 나오지 않는 원고 발췌, Retrieval의 원고 아닌 발췌(`relationship_current_not_episode`·`setting_via_retrieval`), 형식을 알 수 없는 ref.
+  `revealFromEpisode`가 없는 카드는 허용한다(독자 노출 기준이지 인물 지식 기준이 아니며, 막으면 대부분의 세계 설정이 빠진다).
+  `world.episode`가 기준 회차보다 늦으면 ValueError다. `MEMORY.md`는 회차 표시가 없어 항상 허용한다.
 
 ## 시뮬레이션 실행
 
