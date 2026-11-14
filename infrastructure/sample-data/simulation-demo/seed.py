@@ -182,13 +182,9 @@ def plan_payload(scene, parent, scope):
 
 def _seed_plans(call, work, plans, scope, log):
     """plans.json의 플롯 1개와 장면 계획을 만든다. 같은 제목이 이미 있으면 건너뛰고, 장면은 파일 순서대로 만든다(서버 목록 순서가 비트 순서다).
-    장면은 있는 회차나 바로 다음 회차에만 붙는다. 다음 회차는 없으면 빈 초안을 만든다(앱이 발행 뒤 만드는 것과 같다)."""
+    장면은 있는 회차에 붙는다. 마지막 회차 바로 다음 번호는 없으면 빈 초안을 만든다(앱이 발행 뒤 만드는 것과 같다). 그보다 먼 회차는 서버가 422로 거절한다."""
     path = f"/api/v1/works/{work}"
     have = {e["number"] for e in _ok(call("GET", path + "/episodes"), "회차 목록")}
-    last = max(have, default=0)
-    for number in sorted({scene["episode"] for scene in plans["scenes"]}):  # 쓰기 전에 거절한다
-        if number not in have and number != last + 1:
-            raise SeedError(f"{number}화가 없어요. 장면 계획은 있는 회차나 바로 다음 회차({last + 1}화)에만 붙일 수 있어요.")
     existing = _ok(call("GET", path + "/story-plans"), "장면 계획 목록")
     plot = next((p for p in existing if p["kind"] == "plot" and p["title"] == plans["plot"]["title"]), None)
     if plot is None:
@@ -199,7 +195,7 @@ def _seed_plans(call, work, plans, scope, log):
     for scene in plans["scenes"]:
         if scene["title"] in done:
             continue
-        if scene["episode"] not in have:
+        if scene["episode"] == max(have, default=0) + 1:
             _ok(call("POST", path + "/episodes", {"title": "새 회차"}), f"{scene['episode']}화 만들기")
             have.add(scene["episode"])
         _ok(call("POST", path + "/story-plans", plan_payload(scene, plot["id"], scope)), f"장면 계획 「{scene['title']}」")

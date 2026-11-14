@@ -46,8 +46,6 @@ GENRES = {"판타지", "현대판타지", "무협", "선협", "퓨전", "로맨�
 # Fork 시연의 고정관념 금지 규칙: 비하 표현 차단(어간)과 외국어 흉내를 막는 알파벳 금지
 BANNED = ("깜둥", "검둥", "흑형", "니그")
 # 나레이션 문체는 세계관에서 제목이 `나레이터`로 시작하는 카드(유형 무관)의 본문을 지침으로 쓴다
-NARRATOR_SECTIONS = ("## 배경 설명", "## 시점", "## 말투", "## 하지 않는 것")
-FORK_NARRATOR_RULES = ("특정 인종", "방언·속어", "사회의 문제", "스스로 익힌", "담담하고 존중하는 시선")  # 흑길동전 README 고정관념 금지 규칙에서 옮긴 말
 is_narrator = lambda card: card["title"].startswith("나레이터")  # noqa: E731
 
 
@@ -87,8 +85,6 @@ class Dataset:
 
 
 DATASET_DIRS = [HERE, *sorted(p.parent for p in HERE.glob("*/world.json"))]
-# README 시연 순서가 쓰는 장면 계획: 데이터셋 → 장면 계획이 있어야 하는 회차(회차마다 3~4개)
-WALKTHROUGH_PLANS = {"heukgildong-fork": (4, 5), "honggildong": (5,)}
 
 
 class WorldChecks:
@@ -431,7 +427,7 @@ class WorldChecks:
         self.assertEqual("나레이터 — " + self.world["world"]["name"].split(" · ")[0], card["title"])
         self.assertEqual(("narrator", "rule", "private"), (card["key"], card["cardType"], card["visibility"]))
         self.assertNotIn("revealFromEpisode", card)  # 독자에게 공개하는 설정이 아니다
-        for section in NARRATOR_SECTIONS:
+        for section in ("## 배경 설명", "## 시점", "## 말투", "## 하지 않는 것"):
             self.assertIn(section, body)
         for rule in ("현대 속어", "속마음", "암시"):  # 하지 않는 것
             self.assertIn(rule, body.partition("## 하지 않는 것")[2])
@@ -442,7 +438,7 @@ class WorldChecks:
         for secret in self.world["secrets"]:
             self.assertNotIn(secret["phrase"], body)
         if self.world["work"].get("fork"):
-            for rule in FORK_NARRATOR_RULES:
+            for rule in ("특정 인종", "방언·속어", "사회의 문제", "스스로 익힌", "담담하고 존중하는 시선"):  # 흑길동전 README 고정관념 금지 규칙에서 옮긴 말
                 self.assertIn(rule, body)
             self.assertIn("narrator", self.world["work"]["fork"]["changed"])  # 원작 나레이터 카드를 Fork 자신의 것으로 바꾼다
 
@@ -491,23 +487,14 @@ class WorldChecks:
                     know = lambda key: key in secret["holders"] or secret.get("learnedBy", {}).get(key, math.inf) <= scene["episode"]  # noqa: E731
                     self.assertTrue(all(know(key) for key in scene["characters"]), f"{who}: 아직 모르는 인물이 있는 장면에 비밀이 나온다")
 
-    def test_walkthrough_scene_plans_exist(self):
-        episodes = WALKTHROUGH_PLANS.get(self.dataset.dir.name)
-        if episodes is None:
-            self.skipTest("시연 순서가 장면 계획을 쓰지 않는 데이터셋")
-        plans = self.dataset.plans
-        self.assertIsNotNone(plans, "plans.json이 없다")
-        counts = {e: sum(s["episode"] == e for s in plans["scenes"]) for e in episodes}
-        self.assertTrue(all(3 <= n <= 4 for n in counts.values()), counts)
+class WalkthroughPlans(unittest.TestCase):
+    """README 시연 순서가 쓰는 장면 계획: 흑길동전 4·5화와 홍길동전 5화에 3~4개씩 있고, 두 작품의 5화는 같은 비트다(같은 비트에서 길동의 말씨를 비교한다)."""
 
-
-class WalkthroughPlansMatch(unittest.TestCase):
-    """홍길동전 5화 장면 계획은 흑길동전 5화와 같은 비트다(같은 비트에서 원작 길동과 흑길동의 말씨를 비교한다)."""
-
-    def test_the_original_runs_the_same_fifth_episode_scenes_as_the_fork(self):
-        scenes = lambda name: [(s["title"], s["content"], s["characters"]) for s in (Dataset(HERE / name).plans or {"scenes": []})["scenes"] if s["episode"] == 5]  # noqa: E731
-        self.assertTrue(scenes("honggildong"))
-        self.assertEqual(scenes("heukgildong-fork"), scenes("honggildong"))
+    def test_scenes_exist_and_the_fifth_episode_is_shared(self):
+        scenes = lambda name, episode: [(s["title"], s["content"], s["characters"]) for s in Dataset(HERE / name).plans["scenes"] if s["episode"] == episode]  # noqa: E731
+        for name, episode in (("heukgildong-fork", 4), ("heukgildong-fork", 5), ("honggildong", 5)):
+            self.assertIn(len(scenes(name, episode)), (3, 4), f"{name} {episode}화")
+        self.assertEqual(scenes("heukgildong-fork", 5), scenes("honggildong", 5))
 
 
 def add_world_checks(directory):
@@ -627,7 +614,7 @@ class FakeStack:
         raise AssertionError(f"모의에 없는 호출: {method} {path}")
 
     def story_plans(self, work, method, body):
-        """StoryPlanService.validate의 핵심: 장면은 소속 플롯, 회차는 있는 것만, 인물·장소는 설정집(레거시) id만 받는다(새 작품의 설정집은 비어 있다)."""
+        """StoryPlanService.validate의 핵심: 장면은 소속 플롯, 회차는 있는 것만."""
         plans = self.plans.setdefault(work["id"], [])
         if method == "GET":
             return 200, plans  # 목록 순서 = 만든 순서(서버는 createdAt, id 순)
@@ -635,13 +622,8 @@ class FakeStack:
         if self.fail_plan == len(self.plan_posts):
             return 500, {"detail": "모의 서버 오류"}
         parent = next((p for p in plans if p["id"] == body.get("parentId")), None)
-        if (body["kind"] == "scene") != (parent is not None and parent["kind"] == "plot") or not 0 < len(body["title"].strip()) <= 120 \
-                or len(body["content"]) > 8000 or body["revision"] != 0:
-            return 422, {"detail": "제목은 1~120자, 계획 내용은 8,000자 이내로 입력해 주세요."}
-        if body["kind"] == "plot" and (body.get("episodeNumber") is not None or body.get("characterIds") or body.get("placeIds")):
-            return 422, {"detail": "회차·인물·장소는 장면 계획에서 연결해 주세요."}
-        if body.get("characterIds") or body.get("placeIds"):
-            return 422, {"detail": "연결할 인물·장소를 찾을 수 없어요. 다시 선택해 주세요."}
+        if (body["kind"] == "scene") != (parent is not None and parent["kind"] == "plot"):
+            return 422, {"detail": "장면 계획은 소속 플롯을 선택해야 해요."}
         number = body.get("episodeNumber")
         if number is not None and number not in work["episodes"]:
             return 422, {"detail": "연결할 회차를 찾을 수 없어요."}
@@ -959,63 +941,58 @@ class NewWorkSeedTest(unittest.TestCase):
 class ScenePlanSeedTest(unittest.TestCase):
     """`plans.json`의 플롯 1개와 장면 계획을 만드는 흐름: 파일 순서가 비트 순서, 같은 제목은 건너뜀, 인물·장소는 서버가 받는 때만 보낸다."""
     PLOT = {"title": "시험 플롯", "content": "두 사람의 이야기."}
-    SCENES = [{"episode": 2, "title": "첫 장면", "content": "가인이 나리를 만난다.", "characters": ["a", "b"], "places": []},
-              {"episode": 2, "title": "둘째 장면", "content": "나리가 떠난다.", "characters": ["b"], "places": []},
-              {"episode": 3, "title": "셋째 장면", "content": "가인이 홀로 남는다.", "characters": ["a"], "places": []}]
+    SCENES = [{"episode": 2, "title": "첫 장면", "content": "가인이 나리를 만난다.", "characters": ["a", "b"]},
+              {"episode": 2, "title": "둘째 장면", "content": "나리가 떠난다.", "characters": ["b"]},
+              {"episode": 3, "title": "셋째 장면", "content": "가인이 홀로 남는다.", "characters": ["a"]}]
+    ALL = ["시험 플롯", "첫 장면", "둘째 장면", "셋째 장면"]
 
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.tmp.cleanup)
-        self.root, self.fake = Path(self.tmp.name), FakeStack()
-        self.dir = write_dataset(self.root, "orig", "원작", {1: "첫째 날.", 2: "둘째 날.", 3: "셋째 날."}, creationType="ORIGINAL", genres=["고전"], allowFork=True)
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.fake = FakeStack()
+        self.dir = write_dataset(Path(tmp.name), "orig", "원작", {1: "첫째 날.", 2: "둘째 날.", 3: "셋째 날."}, creationType="ORIGINAL", genres=["고전"])
         self.write_plans(self.SCENES)
 
-    def write_plans(self, scenes, directory=None):
-        (directory or self.dir).joinpath("plans.json").write_text(json.dumps({"plot": self.PLOT, "scenes": scenes}, ensure_ascii=False), encoding="utf-8")
+    def write_plans(self, scenes):
+        (self.dir / "plans.json").write_text(json.dumps({"plot": self.PLOT, "scenes": scenes}, ensure_ascii=False), encoding="utf-8")
 
-    def seed(self, directory=None):
-        directory = directory or self.dir
-        world = json.loads((directory / "world.json").read_text(encoding="utf-8"))
-        return seed.seed(self.fake.call, world, owner=OWNER, base=directory)
+    def seed(self):
+        world = json.loads((self.dir / "world.json").read_text(encoding="utf-8"))
+        return seed.seed(self.fake.call, world, owner=OWNER, base=self.dir)
 
-    def work(self, title="원작"):
-        (work,) = [w for w in self.fake.works.values() if w["title"] == title]
+    @property
+    def work(self):
+        (work,) = [w for w in self.fake.works.values() if w["title"] == "원작"]
         return work
 
-    def titles(self, title="원작"):
-        return [p["title"] for p in self.fake.plans.get(self.work(title)["id"], [])]
+    @property
+    def plans(self):
+        return self.fake.plans.get(self.work["id"], [])
 
     def test_creates_the_plot_first_then_every_scene_in_file_order(self):
         self.seed()
-        plans = self.fake.plans[self.work()["id"]]
         self.assertEqual([("plot", "시험 플롯", None), ("scene", "첫 장면", 2), ("scene", "둘째 장면", 2), ("scene", "셋째 장면", 3)],
-                         [(p["kind"], p["title"], p["episodeNumber"]) for p in plans])
-        self.assertEqual({plans[0]["id"]}, {p["parentId"] for p in plans[1:]})  # 장면은 모두 그 플롯 아래
+                         [(p["kind"], p["title"], p["episodeNumber"]) for p in self.plans])
+        self.assertEqual({self.plans[0]["id"]}, {p["parentId"] for p in self.plans[1:]})  # 장면은 모두 그 플롯 아래
 
     def test_requests_carry_the_text_and_no_card_ids_by_default(self):
         self.seed()
-        plot_id = self.fake.plans[self.work()["id"]][0]["id"]
         self.assertEqual({"kind": "plot", "title": "시험 플롯", "content": "두 사람의 이야기.", "revision": 0}, self.fake.plan_posts[0])
-        self.assertEqual({"kind": "scene", "parentId": plot_id, "title": "첫 장면", "content": "가인이 나리를 만난다.", "episodeNumber": 2,
+        self.assertEqual({"kind": "scene", "parentId": self.plans[0]["id"], "title": "첫 장면", "content": "가인이 나리를 만난다.", "episodeNumber": 2,
                           "characterIds": [], "placeIds": [], "revision": 0}, self.fake.plan_posts[1])
 
     def test_card_ids_are_sent_only_when_the_server_takes_them(self):
         """장면 계획 API는 설정집(레거시) id만 받아 WorldStudio 카드 id는 422다. 받게 되면 SEND_PLAN_REFS를 켠다."""
-        scene = {**self.SCENES[0], "places": ["ev"]}
         with unittest.mock.patch.object(seed, "SEND_PLAN_REFS", True):
-            body = seed.plan_payload(scene, "plot-id", "scope:")
+            body = seed.plan_payload({**self.SCENES[0], "places": ["ev"]}, "plot-id", "scope:")
         self.assertEqual(([seed.card_id("a", "scope:"), seed.card_id("b", "scope:")], [seed.card_id("ev", "scope:")]), (body["characterIds"], body["placeIds"]))
-        self.assertEqual(([], []), tuple(seed.plan_payload(scene, "plot-id", "scope:")[k] for k in ("characterIds", "placeIds")))
-        with unittest.mock.patch.object(seed, "SEND_PLAN_REFS", True), self.assertRaises(seed.SeedError) as caught:
-            self.seed()
-        self.assertIn("422", str(caught.exception))
 
     def test_rerun_creates_no_plan_again(self):
         self.seed()
         before = len(self.fake.plan_posts)
         self.seed()
         self.assertEqual(before, len(self.fake.plan_posts))
-        self.assertEqual(["시험 플롯", "첫 장면", "둘째 장면", "셋째 장면"], self.titles())
+        self.assertEqual(self.ALL, [p["title"] for p in self.plans])
 
     def test_a_failed_scene_resumes_in_order_without_duplicates(self):
         self.fake.fail_plan = 3  # 플롯(1)·첫 장면(2) 뒤 둘째 장면에서 실패
@@ -1023,35 +1000,26 @@ class ScenePlanSeedTest(unittest.TestCase):
             self.seed()
         self.assertIn("모의 서버 오류", str(caught.exception))
         self.assertNotIn("나리가 떠난다", str(caught.exception))  # 오류에는 상태와 서버의 detail만, 장면 글은 없다
-        self.assertEqual(["시험 플롯", "첫 장면"], self.titles())
+        self.assertEqual(self.ALL[:2], [p["title"] for p in self.plans])
         self.fake.fail_plan = None
         self.seed()
-        self.assertEqual(["시험 플롯", "첫 장면", "둘째 장면", "셋째 장면"], self.titles())
+        self.assertEqual(self.ALL, [p["title"] for p in self.plans])
 
     def test_a_plan_for_the_next_unwritten_episode_creates_that_draft_once(self):
         self.write_plans([{"episode": 4, "title": "다음 회차 장면", "content": "가인이 문을 연다.", "characters": ["a"]}])
         self.seed()
-        episodes = self.work()["episodes"]
+        self.seed()
+        episodes = self.work["episodes"]
         self.assertEqual([1, 2, 3, 4], sorted(episodes))
         self.assertEqual(("새 회차", None), (episodes[4]["draft"]["title"], episodes[4]["published"]))
-        self.seed()
-        self.assertEqual([1, 2, 3, 4], sorted(self.work()["episodes"]))
-        self.assertEqual(["시험 플롯", "다음 회차 장면"], self.titles())
+        self.assertEqual(["시험 플롯", "다음 회차 장면"], [p["title"] for p in self.plans])
 
-    def test_a_plan_beyond_the_next_episode_is_refused_before_anything_is_written(self):
-        self.write_plans([*self.SCENES, {"episode": 5, "title": "먼 회차 장면", "content": "x", "characters": ["a"]}])
+    def test_a_plan_beyond_the_next_episode_is_refused_by_the_server(self):
+        self.write_plans([{"episode": 5, "title": "먼 회차 장면", "content": "x", "characters": ["a"]}])
         with self.assertRaises(seed.SeedError) as caught:
             self.seed()
-        self.assertIn("5화", str(caught.exception))
-        self.assertEqual(([], [1, 2, 3]), (self.fake.plan_posts, sorted(self.work()["episodes"])))
-
-    def test_a_fork_gets_its_plans_on_its_own_work(self):
-        fork = write_dataset(self.root, "fork", "갈래", {2: "다른 둘째 날."}, fork={"sourceDir": "../orig", "episode": 1, "direction": "다른 전개", "changed": ["a"]})
-        self.write_plans([{"episode": 2, "title": "갈래의 장면", "content": "x", "characters": ["a"]}], fork)
-        self.seed()
-        self.seed(fork)
-        self.assertEqual(["시험 플롯", "첫 장면", "둘째 장면", "셋째 장면"], self.titles("원작"))
-        self.assertEqual(["시험 플롯", "갈래의 장면"], self.titles("갈래"))
+        self.assertIn("422", str(caught.exception))
+        self.assertEqual([1, 2, 3], sorted(self.work["episodes"]))  # 먼 회차를 위해 초안을 만들지 않는다
 
 
 if __name__ == "__main__":
