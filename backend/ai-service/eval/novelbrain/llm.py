@@ -15,7 +15,10 @@ from pathlib import Path
 import openai
 from openai import OpenAI, OpenAIError
 
+from cost import CostLog
+
 CAP = 3000
+RESERVE_USD = 0.05   # 진행 중인 호출이 상한을 넘기지 않게 남겨 두는 여유
 TRANSIENT = (openai.RateLimitError, openai.APITimeoutError, openai.APIConnectionError, openai.InternalServerError)
 
 
@@ -50,8 +53,9 @@ class Ledger:
 
 class Llm:
     def __init__(self, ledger: Ledger, cache_dir, model: str | None = None, client=None, attempts: int = 3,
-                 backoff: float = 2.0):
+                 backoff: float = 2.0, cost: CostLog | None = None, limit_usd: float | None = None):
         self.ledger, self.cache_dir = ledger, Path(cache_dir)
+        self.cost, self.limit_usd = cost, limit_usd
         self.model = model or os.environ['OPENAI_MODEL']
         self._client, self.attempts, self.backoff = client, attempts, backoff
         self._locks: dict[str, threading.Lock] = {}
@@ -86,8 +90,25 @@ class Llm:
                 return schema.model_validate(cached) if schema else cached
             return self._call(path, kind, instructions, input, schema, max_output_tokens)
 
+    def _record(self, kind: str, usage, failed: bool = False, chars: int = 0) -> None:
+        """호출의 토큰과 추정 금액을 비용 장부에 남긴다(잘린 응답도 청구되므로 센다). chars는 요청 글자 수(글자/토큰 비 실측용)."""
+        if self.cost is not None and usage is not None:
+            cached = getattr(getattr(usage, 'input_tokens_details', None), 'cached_tokens', 0) or 0
+            self.cost.record(kind, usage.input_tokens, usage.output_tokens, cached, failed=failed, chars=chars)
+
+    def write_cache(self, key: str, result, model: str | None, usage: dict | None) -> None:
+        """Batch 회수처럼 밖에서 얻은 응답을 동기 호출과 같은 형식으로 캐시에 쓴다."""
+        record = {'result': result.model_dump() if hasattr(result, 'model_dump') else result, 'model': model,
+                  'usage': {'in': usage['in'], 'out': usage['out']} if usage else None}
+        path = self.cache_dir / f'{key}.json'
+        tmp = path.with_suffix(f'.{threading.get_ident()}.tmp')
+        tmp.write_text(json.dumps(record, ensure_ascii=False))
+        os.replace(tmp, path)
+
     def _call(self, path: Path, kind: str, instructions: str, input: str, schema, max_output_tokens: int):
         for attempt in range(self.attempts):
+            if self.cost is not None and self.limit_usd is not None and self.cost.spent() + RESERVE_USD > self.limit_usd:
+                raise CallCapExceeded(f'비용 상한 ${self.limit_usd:.2f}에 도달했다.')
             self.ledger.charge(kind)
             try:
                 options = dict(model=self.model, store=False, max_output_tokens=max_output_tokens,
@@ -99,11 +120,15 @@ class Llm:
                 continue
             except OpenAIError as error:
                 raise LlmFailure(type(error).__name__) from None
+            chars = len(instructions) + len(input)
             if response.status != 'completed':
+                self._record(kind, response.usage, failed=True, chars=chars)
                 raise LlmFailure('incomplete')
             result = response.output_parsed if schema else response.output_text.strip()
             if result is None:
+                self._record(kind, response.usage, failed=True, chars=chars)
                 raise LlmFailure('unparsed')
+            self._record(kind, response.usage, chars=chars)
             usage = response.usage
             record = {'result': result.model_dump() if schema else result, 'model': response.model,
                       'usage': {'in': usage.input_tokens, 'out': usage.output_tokens} if usage else None}
@@ -112,3 +137,9 @@ class Llm:
             os.replace(tmp, path)
             return result
         raise LlmFailure('transient')
+
+
+def usd_llm(cache_dir, cost_path, limit_usd: float, ledger_path=None, model: str | None = None) -> Llm:
+    """호출 수 상한(Ledger) 대신 비용 장부(`cost_path`)의 금액 상한으로 막는 Llm. 응답은 cache_dir에 캐시한다."""
+    return Llm(Ledger(ledger_path or Path(cost_path).with_name('calls.jsonl'), cap=10 ** 9), cache_dir, model=model, cost=CostLog(cost_path),
+               limit_usd=limit_usd)
