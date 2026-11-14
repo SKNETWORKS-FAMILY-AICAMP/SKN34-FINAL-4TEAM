@@ -269,7 +269,29 @@ def test_filter_keeps_only_relations_that_have_the_character_as_an_endpoint():
 
     assert refs(kept) == ['relation:r-kl', 'relation:r-kg']
     assert [g.ref for g in gaps] == ['relation:r-ls', 'relation:r-lc']
-    assert refs(filter_for_character(items, WORLD, 'lira', 2)[0]) == ['relation:r-kl', 'relation:r-ls', 'relation:r-lc']
+    assert refs(filter_for_character(items, WORLD, 'lira', 5)[0]) == ['relation:r-kl', 'relation:r-ls', 'relation:r-lc']
+
+
+def test_filter_holds_back_a_relation_whose_other_card_is_not_revealed_yet():
+    # 관계 문장에 상대 카드의 제목이 드러난다: 리라–왕관(5화부터)은 2화의 리라에게 쓰지 않고 gap으로 남긴다.
+    items = [item('relation:r-lc'), item('relation:r-ls')]
+
+    kept, gaps = filter_for_character(items, WORLD, 'lira', 2)
+
+    assert refs(kept) == ['relation:r-ls']
+    assert [g.ref for g in gaps] == ['relation:r-lc'] and gaps[0].reason
+    assert refs(filter_for_character(items, WORLD, 'lira', 5)[0]) == ['relation:r-lc', 'relation:r-ls']
+    # 인물 자신의 공개 회차는 관계를 막지 않는다(세라는 2화부터 공개지만 1화의 세라에게 리라와의 관계는 보인다).
+    assert refs(filter_for_character([item('relation:r-ls')], WORLD, 'sera', 1)[0]) == ['relation:r-ls']
+
+
+def test_filter_fails_closed_on_a_relation_whose_other_card_is_not_in_the_snapshot():
+    ghost = Relation(id='r-ghost', source='kael', target='ghost', label='?', direction=None)
+    world = WORLD.model_copy(update={'relations': RELATIONS + [ghost]})
+
+    kept, gaps = filter_for_character([item('relation:r-ghost')], world, 'kael', 2)
+
+    assert kept == [] and [g.ref for g in gaps] == ['relation:r-ghost']
 
 
 def test_filter_keeps_only_excerpts_that_name_the_character():
@@ -402,6 +424,38 @@ def test_stage_3_drops_excerpts_from_after_the_base_episode_for_a_character_but_
 
     assert 'manuscript:m3' not in refs(character.items) and 'manuscript:m3' not in [g.ref for g in character.gaps]
     assert 'manuscript:m3' in refs(main.items)
+
+
+@pytest.mark.parametrize('kind,reason', [('relationship', 'relationship_current_not_episode'), ('setting', 'setting_via_retrieval')])
+@pytest.mark.parametrize('excerpt_episode', [1, 3, 9])
+def test_stage_3_uses_only_manuscript_excerpts_and_leaves_the_others_as_gaps(kind, reason, excerpt_episode):
+    # Retrieval은 현재 Neo4j 관계(relationship)·설정(setting) 발췌도 돌려주고 episode에는 기준 회차를 적는다. 시점을 보증할 수 없어 쓰지 않는다.
+    leaked = Excerpt(id='r', episode=excerpt_episode, kind=kind, quote='카엘 → 리라: 10화의 배신')
+
+    result = recall(WORLD, 'kael', 3, '카엘과 리라의 관계', manuscript=[leaked, M1], k=100)
+
+    assert 'manuscript:r' not in refs(result.items)
+    assert '10화의 배신' not in ' '.join(i.text for i in result.items)
+    assert 'manuscript:m1' in refs(result.items)  # 원고 발췌는 그대로 쓴다.
+    assert Gap(ref='manuscript:r', reason=reason) in result.gaps
+    # 순위에 들지 않은 발췌라 k로 자르는 윈도우와 무관하게 늘 gap으로 남는다.
+    assert Gap(ref='manuscript:r', reason=reason) in recall(WORLD, 'kael', 3, '카엘과 리라의 관계', manuscript=[leaked, M1], k=1).gaps
+
+
+def test_non_manuscript_excerpts_stay_in_the_stages_that_do_not_filter_for_a_character():
+    relationship = Excerpt(id='r', episode=3, kind='relationship', quote='카엘 → 리라: 10화의 배신')
+
+    assert 'manuscript:r' in refs(recall(WORLD, 'kael', 3, '카엘', stage=2, manuscript=[relationship], k=100).items)
+    assert 'manuscript:r' in refs(recall(WORLD, None, 3, '카엘', manuscript=[relationship], k=100).items)
+
+
+def test_stage_3_does_not_show_the_title_of_an_unrevealed_card_through_a_relation():
+    result = recall(WORLD, 'lira', 2, '리라가 훔친 것', k=100)
+
+    assert 'relation:r-lc' not in refs(result.items)
+    assert '왕관' not in ' '.join(i.text for i in result.items)
+    assert 'relation:r-lc' in [g.ref for g in result.gaps]
+    assert 'relation:r-ls' in refs(result.items)  # 이미 공개된 상대(세라)와의 관계는 그대로 쓴다.
 
 
 def test_stage_3_without_a_character_is_the_main_agent_view_and_filters_nothing():
