@@ -122,3 +122,42 @@
   .chat-hitl { margin-left: 0; }
 }
 @media (pointer: coarse) { .chat-edit textarea, .chat-field :is(input, textarea), .chat-rename input { font-size: 16px; } }
+
+/* 인물 시뮬레이션 장면 카드(#58): 머리(모드·상태) → 턴(인물 이름 · 웹소설 문단 · 접힌 검사·근거) → 멈춤·실패 이유. 면·선·글자는 위와 같은 읽기 토큰을 쓴다.
+   카드는 저장된 대화에서는 말풍선 안(폭을 채운다), 진행·승인 중에는 승인 카드 안이나 진행 표시 아래(.chat-scene)에 놓인다. 승인 카드 안에서는 테두리 없이 카드의 면을 따른다. */
+.sim-card { display: grid; gap: 10px; min-width: 0; padding: 12px 14px; border: 1px solid var(--tline); border-radius: 16px; background: var(--chat-card, var(--tcard)); color: var(--tfg); }
+.chat-bubble:has(> .sim-card) { max-width: 100%; }
+.chat-hitl .sim-card { padding: 0; border: 0; background: none; }
+.chat-scene { margin: 16px 0 0 36px; }
+.sim-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+.sim-head h4 { margin: 0; font-size: 13.5px; font-weight: 800; line-height: 1.45; }
+.sim-status { padding: 1px 10px; border: 1px solid currentColor; border-radius: 999px; color: var(--tsub); font-size: 12px; font-weight: 700; }
+.sim-status[data-status="running"], .sim-status[data-status="completed"] { color: var(--tacc); }
+.sim-status[data-status="failed"] { color: var(--danger); }
+.sim-premise { margin: 0; font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
+.sim-beats, .sim-turns, .sim-list { margin: 0; padding: 0; list-style: none; }
+.sim-beats { display: grid; gap: 2px; font-size: 13px; line-height: 1.5; }
+.sim-beats li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+.sim-beats span { color: var(--tsub); font-size: 12px; }
+.sim-beats [data-status="rejected"] span { color: var(--danger); font-weight: 700; }
+.sim-turns { display: grid; gap: 14px; }
+.sim-who { margin: 0 0 2px; color: var(--tacc); font-size: 12.5px; font-weight: 800; }
+.sim-prose { font-family: var(--story); font-size: 14.5px; }
+/* summary는 기본 표시(list-item)를 지켜 펼침 표식(▸)이 남게 한다. */
+.sim-checks { font-size: 12.5px; }
+.sim-checks summary { padding-block: 4px; color: var(--tsub); font-weight: 600; cursor: pointer; }
+.sim-checks[open] summary { color: var(--tfg); }
+.sim-checks summary:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; border-radius: 4px; }
+.sim-checks > :not(summary) { margin-top: 6px; }
+.sim-list { display: grid; gap: 2px; line-height: 1.55; overflow-wrap: anywhere; }
+.sim-verdict { font-weight: 700; }
+.sim-list [data-passed="false"] .sim-verdict { color: var(--danger); }
+.sim-evidence { color: var(--tsub); }
+.sim-reason { margin: 0; color: var(--danger); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+/* 진행 표시의 멈춘 장면: 완료(채운 점)와 실패(빨강)가 아니라 보조색 점으로 구분한다. */
+.chat-steps [data-state="stop"] .chat-step-dot { border-color: var(--tsub); background: var(--tsub); }
+.chat-steps [data-state="stop"] .chat-step-state { font-weight: 700; }
+@media (max-width: 600px), (pointer: coarse) {
+  .chat-scene { margin-left: 0; }
+  .sim-checks summary { padding-block: 13px; }
+}
