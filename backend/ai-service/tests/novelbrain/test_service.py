@@ -358,7 +358,7 @@ def test_filter_holds_back_a_relation_whose_other_card_is_not_revealed_yet():
     assert [g.ref for g in gaps] == ['relation:r-lc'] and gaps[0].reason
     assert refs(filter_for_character(items, WORLD, 'lira', 5)[0]) == ['relation:r-lc', 'relation:r-ls']
     # 인물 자신의 공개 회차는 관계를 막지 않는다(세라는 2화부터 공개지만 1화의 세라에게 리라와의 관계는 보인다).
-    assert refs(filter_for_character([item('relation:r-ls')], WORLD, 'sera', 1)[0]) == ['relation:r-ls']
+    assert refs(filter_for_character([item('relation:r-ls')], WORLD.model_copy(update={'episode': 1}), 'sera', 1)[0]) == ['relation:r-ls']
 
 
 def test_filter_fails_closed_on_a_relation_whose_other_card_is_not_in_the_snapshot():
@@ -640,3 +640,10 @@ def test_blank_documents_and_relations_to_unknown_cards_are_not_items():
 
     assert set(refs(result.items)) == {'card:a#memory', 'card:b', 'relation:r1'}
     assert {i.ref: i.text for i in result.items}['relation:r1'] == '가이 — 성: 살다'
+
+
+def test_direct_filter_rejects_a_world_snapshot_later_than_the_character_episode():
+    # recall만 막으면 filter_for_character를 바로 부르는 쪽은 미래 관계를 그대로 받는다.
+    with pytest.raises(ValueError):
+        filter_for_character([], WORLD, 'kael', 1)
+    assert filter_for_character([], WORLD, None, 1) == ([], [])

@@ -153,6 +153,8 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
     """
     if character_id is None:
         return list(items), []
+    if world.episode > episode:
+        raise ValueError('관계 스냅샷이 인물의 기준 회차보다 늦은 시점입니다.')
     cards = {c.id: c for c in world.cards}
     if character_id not in cards:
         raise ValueError('세계관에 없는 인물입니다.')
